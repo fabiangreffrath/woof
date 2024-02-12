@@ -19,14 +19,25 @@
 //
 //-----------------------------------------------------------------------------
 
-#include "doomstat.h"
+#include <stdlib.h>
+
 #include "d_event.h"
-#include "r_main.h"
-#include "p_map.h"
-#include "p_spec.h"
-#include "p_user.h"
+#include "d_player.h"
+#include "d_ticcmd.h"
+#include "doomdef.h"
+#include "doomstat.h"
+#include "doomtype.h"
 #include "g_game.h"
 #include "hu_stuff.h"
+#include "info.h"
+#include "p_map.h"
+#include "p_mobj.h"
+#include "p_pspr.h"
+#include "p_spec.h"
+#include "p_user.h"
+#include "r_defs.h"
+#include "r_main.h"
+#include "r_state.h"
 
 static fixed_t PlayerSlope(player_t *player)
 {

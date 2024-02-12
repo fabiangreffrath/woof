@@ -19,7 +19,7 @@ set(WOOF_SOURCES
                            d_ticcmd.h
                            dogs.h
                            doomdata.h
-    doomdef.c              doomdef.h
+                           doomdef.h
     doomstat.c             doomstat.h
                            doomtype.h
     dsdhacked.c            dsdhacked.h

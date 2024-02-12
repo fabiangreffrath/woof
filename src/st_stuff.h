@@ -22,8 +22,11 @@
 #ifndef __STSTUFF_H__
 #define __STSTUFF_H__
 
+#include "doomdef.h"
 #include "doomtype.h"
-#include "d_event.h"
+
+struct event_s;
+struct player_s;
 
 // Size of statusbar.
 // Now sensitive for scaling.
@@ -37,7 +40,7 @@
 //
 
 // Called by main loop.
-boolean ST_Responder(event_t* ev);
+boolean ST_Responder(struct event_s *ev);
 
 // Called by main loop.
 void ST_Ticker(void);
@@ -80,8 +83,8 @@ extern int sts_traditional_keys;  // display keys the traditional way
 extern int hud_blink_keys;
 #define KEYBLINKMASK 0x8
 #define KEYBLINKTICS (7*KEYBLINKMASK)
-extern void ST_SetKeyBlink(player_t* player, int blue, int yellow, int red);
-extern int  ST_BlinkKey(player_t* player, int index);
+extern void ST_SetKeyBlink(struct player_s *player, int blue, int yellow, int red);
+extern int  ST_BlinkKey(struct player_s *player, int index);
 extern int  st_keyorskull[3];
 
 extern int hud_backpack_thresholds; // backpack changes thresholds

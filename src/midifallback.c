@@ -15,12 +15,10 @@
 //      MIDI instrument fallback support
 //
 
-
+#include "midifallback.h"
 #include "doomtype.h"
 #include "i_printf.h"
-#include <stdio.h>
 #include "midifile.h"
-#include "midifallback.h"
 
 static const byte drums_table[128] = {
     0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,

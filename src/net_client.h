@@ -18,8 +18,9 @@
 #define NET_CLIENT_H
 
 #include "doomtype.h"
-#include "d_ticcmd.h"
 #include "net_defs.h"
+
+struct ticcmd_s;
 
 #define DEFAULT_PLAYER_NAME "Player"
 
@@ -29,7 +30,7 @@ void NET_CL_Run(void);
 void NET_CL_Init(void);
 void NET_CL_LaunchGame(void);
 void NET_CL_StartGame(net_gamesettings_t *settings);
-void NET_CL_SendTiccmd(ticcmd_t *ticcmd, int maketic);
+void NET_CL_SendTiccmd(struct ticcmd_s *ticcmd, int maketic);
 boolean NET_CL_GetSettings(net_gamesettings_t *_settings);
 void NET_Init(void);
 

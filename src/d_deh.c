@@ -19,25 +19,36 @@
 //
 //--------------------------------------------------------------------
 
-#include "m_io.h"
+#include <ctype.h>
+#include <stdint.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 
-// killough 5/2/98: fixed headers, removed rendunant external declarations:
+#include "d_items.h"
+#include "d_main.h"
+#include "d_think.h"
 #include "doomdef.h"
+#include "doomtype.h"
+#include "dsdhacked.h"
+#include "dstrings.h"
+#include "g_game.h"
 #include "i_printf.h"
-#include "sounds.h"
+#include "i_system.h"
 #include "info.h"
-#include "m_argv.h" // [FG] M_CheckParm()
+#include "m_argv.h"
 #include "m_array.h"
 #include "m_cheat.h"
+#include "m_fixed.h"
+#include "m_io.h"
 #include "m_misc2.h"
-#include "p_inter.h"
-#include "g_game.h"
-#include "d_think.h"
-#include "d_main.h" // D_DehChangePredefinedTranslucency()
-#include "w_wad.h"
 #include "memio.h"
-
-#include "dsdhacked.h"
+#include "p_action.h"
+#include "p_inter.h"
+#include "p_mobj.h"
+#include "sounds.h"
+#include "w_wad.h"
+#include "z_zone.h"
 
 static boolean bfgcells_modified = false;
 
@@ -141,9 +152,6 @@ char **dehfiles = NULL;  // filenames of .deh files for demo footer
 // which are set by D_ENGLSH.H or D_FRENCH.H(etc).  BEX files are a
 // better way of changing these strings globally by language.
 
-// ====================================================================
-// Any of these can be changed using the bex extensions
-#include "dstrings.h"  // to get the initial values
 char *s_D_DEVSTR    = D_DEVSTR;
 char *s_D_CDROM     = D_CDROM;
 char *s_PRESSKEY    = PRESSKEY;
@@ -1494,8 +1502,6 @@ char *deh_misc[] =
 // FRAME nnn = PointerMnemonic
 
 // External references to action functions scattered about the code
-
-#include "p_action.h"
 
 typedef struct {
   actionf_t cptr;  // actual pointer to the subroutine

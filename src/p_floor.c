@@ -18,15 +18,24 @@
 //
 //-----------------------------------------------------------------------------
 
+#include <limits.h>
+
+#include "d_think.h"
+#include "doomdata.h"
 #include "doomstat.h"
+#include "doomtype.h"
 #include "i_printf.h"
-#include "r_main.h"
+#include "i_system.h" // [FG] I_GetMemoryValue()
+#include "m_fixed.h"
 #include "p_map.h"
+#include "p_mobj.h"
 #include "p_spec.h"
 #include "p_tick.h"
+#include "r_defs.h"
+#include "r_state.h"
 #include "s_sound.h"
 #include "sounds.h"
-#include "i_system.h" // [FG] I_GetMemoryValue()
+#include "z_zone.h"
 
 ///////////////////////////////////////////////////////////////////////
 // 
@@ -573,7 +582,7 @@ int EV_DoFloor
 
       case raiseToTexture:
         {
-          int minsize = D_MAXINT;
+          int minsize = INT_MAX;
           side_t*     side;
                       
           if (!comp[comp_model])  // killough 10/98

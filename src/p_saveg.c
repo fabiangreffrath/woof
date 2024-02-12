@@ -17,16 +17,29 @@
 //
 //-----------------------------------------------------------------------------
 
+#include <string.h>
+
+#include "am_map.h"
+#include "d_player.h"
+#include "d_think.h"
+#include "d_ticcmd.h"
+#include "doomdata.h"
+#include "doomdef.h"
 #include "doomstat.h"
-#include "r_main.h"
+#include "i_system.h"
+#include "info.h"
+#include "m_random.h"
+#include "p_enemy.h"
 #include "p_maputl.h"
+#include "p_mobj.h"
+#include "p_pspr.h"
+#include "p_saveg.h"
 #include "p_spec.h"
 #include "p_tick.h"
-#include "p_saveg.h"
-#include "m_random.h"
-#include "am_map.h"
-#include "p_enemy.h"
+#include "r_defs.h"
+#include "r_state.h"
 #include "w_wad.h" // [FG] W_LumpLength()
+#include "z_zone.h"
 
 byte *save_p;
 

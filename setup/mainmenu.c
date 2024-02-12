@@ -12,23 +12,19 @@
 // GNU General Public License for more details.
 //
 
+#include "SDL.h"
+
 #include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
 
 #include "config.h"
-#include "textscreen.h"
-
-#include "execute.h"
-
+#include "doomkeys.h"
 #include "i_timer.h"
-#include "m_argv.h"
 #include "m_misc2.h"
-#include "z_zone.h"
-
+#include "multiplayer.h"
 #include "setup_icon.c"
 
-#include "multiplayer.h"
+#include "textscreen.h"
 
 static void DoQuit(void *widget, void *dosave)
 {

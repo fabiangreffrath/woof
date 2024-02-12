@@ -22,7 +22,9 @@
 #ifndef __P_EXTNODES__
 #define __P_EXTNODES__
 
-#include "r_defs.h"
+#include "doomtype.h"
+
+struct vertex_s;
 
 typedef enum
 {
@@ -41,7 +43,7 @@ typedef enum
 } mapformat_t;
 
 extern mapformat_t P_CheckMapFormat(int lumpnum);
-extern int P_GetOffset(vertex_t *v1, vertex_t *v2);
+extern int P_GetOffset(struct vertex_s *v1, struct vertex_s *v2);
 
 extern void P_LoadSegs_DEEP(int lump);
 extern void P_LoadSubsectors_DEEP(int lump);

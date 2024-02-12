@@ -21,10 +21,6 @@
 #ifndef __D_EVENT__
 #define __D_EVENT__
 
-
-#include "doomtype.h"
-
-
 //
 // Event handling.
 //
@@ -49,7 +45,7 @@ typedef enum
 } evtype_t;
 
 // Event structure.
-typedef struct
+typedef struct event_s
 {
   evtype_t  type;
   int       data1;    // keys / mouse/joystick buttons / left axis x

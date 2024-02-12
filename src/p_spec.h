@@ -19,8 +19,15 @@
 #ifndef __P_SPEC__
 #define __P_SPEC__
 
-#include "r_defs.h"
-#include "d_player.h"
+#include "d_think.h"
+#include "doomdef.h"
+#include "doomtype.h"
+#include "m_fixed.h"
+
+struct line_s;
+struct mobj_s;
+struct player_s;
+struct sector_s;
 
 //      Define values for map objects
 #define MO_TELEPORTMAN  14
@@ -522,12 +529,11 @@ typedef PACKED_PREFIX struct
 
 typedef struct
 {
-  line_t *line;
+  struct line_s *line;
   bwhere_e where;
   int   btexture;
   int   btimer;
-  mobj_t *soundorg;
-
+  struct mobj_s *soundorg;
 } button_t;
 
 // p_lights
@@ -535,7 +541,7 @@ typedef struct
 typedef struct
 {
   thinker_t thinker;
-  sector_t *sector;
+  struct sector_s *sector;
   int count;
   int maxlight;
   int minlight;
@@ -544,7 +550,7 @@ typedef struct
 typedef struct
 {
   thinker_t thinker;
-  sector_t *sector;
+  struct sector_s *sector;
   int count;
   int maxlight;
   int minlight;
@@ -555,7 +561,7 @@ typedef struct
 typedef struct
 {
   thinker_t thinker;
-  sector_t *sector;
+  struct sector_s *sector;
   int count;
   int minlight;
   int maxlight;
@@ -566,7 +572,7 @@ typedef struct
 typedef struct
 {
   thinker_t thinker;
-  sector_t *sector;
+  struct sector_s *sector;
   int minlight;
   int maxlight;
   int direction;
@@ -575,10 +581,10 @@ typedef struct
 
 // p_plats
 
-typedef struct
+typedef struct plat_s
 {
   thinker_t thinker;
-  sector_t *sector;
+  struct sector_s *sector;
   fixed_t speed;
   fixed_t low;
   fixed_t high;
@@ -605,7 +611,7 @@ typedef struct
 {
   thinker_t thinker;
   vldoor_e type;
-  sector_t *sector;
+  struct sector_s *sector;
   fixed_t topheight;
   fixed_t speed;
 
@@ -619,18 +625,18 @@ typedef struct
   int topcountdown;
   
   //jff 1/31/98 keep track of line door is triggered by
-  line_t *line;
+  struct line_s *line;
 
   int lighttag; //killough 10/98: sector tag for gradual lighting effects
 } vldoor_t;
 
 // p_doors
 
-typedef struct
+typedef struct ceiling_s
 {
   thinker_t thinker;
   ceiling_e type;
-  sector_t *sector;
+  struct sector_s *sector;
   fixed_t bottomheight;
   fixed_t topheight;
   fixed_t speed;
@@ -663,7 +669,7 @@ typedef struct
   thinker_t thinker;
   floor_e type;
   boolean crush;
-  sector_t *sector;
+  struct sector_s *sector;
   int direction;
   int newspecial;
   int oldspecial;   //jff 3/14/98 add to fix bug in change transfers
@@ -676,7 +682,7 @@ typedef struct
 {
   thinker_t thinker;
   elevator_e type;
-  sector_t *sector;
+  struct sector_s *sector;
   int direction;
   fixed_t floordestheight;
   fixed_t ceilingdestheight;
@@ -725,7 +731,7 @@ typedef struct {
     p_wind,
     p_current,
   } type;
-  mobj_t *source;      // Point source if point pusher
+  struct mobj_s *source;      // Point source if point pusher
   int x_mag;           // X Strength
   int y_mag;           // Y Strength
   int magnitude;       // Vector strength for point pusher
@@ -762,53 +768,53 @@ extern ceilinglist_t *activeceilings;  // jff 2/22/98
 
 int twoSided(int sector, int line);
 
-sector_t *getSector(int currentSector, int line, int side);
+struct sector_s *getSector(int currentSector, int line, int side);
 
-side_t *getSide(int currentSector, int line, int side);
+struct side_s *getSide(int currentSector, int line, int side);
 
-fixed_t P_FindLowestFloorSurrounding(sector_t *sec);
+fixed_t P_FindLowestFloorSurrounding(struct sector_s *sec);
 
-fixed_t P_FindHighestFloorSurrounding(sector_t *sec);
+fixed_t P_FindHighestFloorSurrounding(struct sector_s *sec);
 
-fixed_t P_FindNextHighestFloor(sector_t *sec, int currentheight);
+fixed_t P_FindNextHighestFloor(struct sector_s *sec, int currentheight);
 
-fixed_t P_FindNextLowestFloor(sector_t *sec, int currentheight);
+fixed_t P_FindNextLowestFloor(struct sector_s *sec, int currentheight);
 
-fixed_t P_FindLowestCeilingSurrounding(sector_t *sec); // jff 2/04/98
+fixed_t P_FindLowestCeilingSurrounding(struct sector_s *sec); // jff 2/04/98
 
-fixed_t P_FindHighestCeilingSurrounding(sector_t *sec); // jff 2/04/98
+fixed_t P_FindHighestCeilingSurrounding(struct sector_s *sec); // jff 2/04/98
 
-fixed_t P_FindNextLowestCeiling(sector_t *sec, int currentheight); // jff 2/04/98
+fixed_t P_FindNextLowestCeiling(struct sector_s *sec, int currentheight); // jff 2/04/98
 
-fixed_t P_FindNextHighestCeiling(sector_t *sec, int currentheight); // jff 2/04/98
+fixed_t P_FindNextHighestCeiling(struct sector_s *sec, int currentheight); // jff 2/04/98
 
 fixed_t P_FindShortestTextureAround(int secnum); // jff 2/04/98
 
 fixed_t P_FindShortestUpperAround(int secnum); // jff 2/04/98
 
-sector_t *P_FindModelFloorSector(fixed_t floordestheight, int secnum); //jff 02/04/98
+struct sector_s *P_FindModelFloorSector(fixed_t floordestheight, int secnum); //jff 02/04/98
 
-sector_t *P_FindModelCeilingSector(fixed_t ceildestheight, int secnum); //jff 02/04/98 
+struct sector_s *P_FindModelCeilingSector(fixed_t ceildestheight, int secnum); //jff 02/04/98 
 
-int P_FindSectorFromLineTag(const line_t *line, int start); // killough 4/17/98
+int P_FindSectorFromLineTag(const struct line_s *line, int start); // killough 4/17/98
 
-int P_FindLineFromLineTag(const line_t *line, int start);   // killough 4/17/98
+int P_FindLineFromLineTag(const struct line_s *line, int start);   // killough 4/17/98
 
-int P_FindMinSurroundingLight(sector_t *sector, int max);
+int P_FindMinSurroundingLight(struct sector_s *sector, int max);
 
-sector_t *getNextSector(line_t *line, sector_t *sec);
+struct sector_s *getNextSector(struct line_s *line, struct sector_s *sec);
 
-int P_CheckTag(line_t *line); // jff 2/27/98
+int P_CheckTag(struct line_s *line); // jff 2/27/98
 
-boolean P_CanUnlockGenDoor(line_t *line, player_t *player);
+boolean P_CanUnlockGenDoor(struct line_s *line, struct player_s *player);
 
-int P_SectorActive(special_e t, sector_t *s);
+int P_SectorActive(special_e t, struct sector_s *s);
 
-boolean P_IsSecret(sector_t *sec);
+boolean P_IsSecret(struct sector_s *sec);
 
-boolean P_WasSecret(sector_t *sec);
+boolean P_WasSecret(struct sector_s *sec);
 
-void P_ChangeSwitchTexture(line_t *line, int useAgain);
+void P_ChangeSwitchTexture(struct line_s *line, int useAgain);
 
 ////////////////////////////////////////////////////////////////
 //
@@ -840,8 +846,8 @@ void T_MoveCeiling(ceiling_t *ceiling);
 
 // p_floor
 
-result_e T_MovePlane(sector_t *sector, fixed_t speed, fixed_t dest,
-		     boolean crush, int floorOrCeiling, int direction);
+result_e T_MovePlane(struct sector_s *sector, fixed_t speed, fixed_t dest,
+                     boolean crush, int floorOrCeiling, int direction);
 
 void T_MoveFloor(floormove_t *floor);
 
@@ -863,74 +869,74 @@ void T_Pusher(pusher_t *);      // phares 3/20/98: Push thinker
 
 // p_telept
 
-int EV_Teleport(line_t *line, int side, mobj_t *thing);
+int EV_Teleport(struct line_s *line, int side, struct mobj_s *thing);
 
 // killough 2/14/98: Add silent teleporter
-int EV_SilentTeleport(line_t *line, int side, mobj_t *thing);
+int EV_SilentTeleport(struct line_s *line, int side, struct mobj_s *thing);
 
 // killough 1/31/98: Add silent line teleporter
-int EV_SilentLineTeleport(line_t *line, int side, 
-			  mobj_t *thing, boolean reverse);
+int EV_SilentLineTeleport(struct line_s *line, int side, 
+                          struct mobj_s *thing, boolean reverse);
 
 // p_floor
 
-int EV_DoElevator(line_t *line, elevator_e elevtype);
+int EV_DoElevator(struct line_s *line, elevator_e elevtype);
 
-int EV_BuildStairs(line_t *line, stair_e type);
+int EV_BuildStairs(struct line_s *line, stair_e type);
 
-int EV_DoFloor(line_t *line, floor_e floortype);
+int EV_DoFloor(struct line_s *line, floor_e floortype);
 
 // p_ceilng
 
-int EV_DoCeiling(line_t *line, ceiling_e type);
+int EV_DoCeiling(struct line_s *line, ceiling_e type);
 
-int EV_CeilingCrushStop(line_t *line);
+int EV_CeilingCrushStop(struct line_s *line);
 
 // p_doors
 
-int EV_VerticalDoor(line_t *line, mobj_t *thing);
+int EV_VerticalDoor(struct line_s *line, struct mobj_s *thing);
 
-int EV_DoDoor(line_t *line, vldoor_e type);
+int EV_DoDoor(struct line_s *line, vldoor_e type);
 
-int EV_DoLockedDoor(line_t *line, vldoor_e type, mobj_t *thing);
+int EV_DoLockedDoor(struct line_s *line, vldoor_e type, struct mobj_s *thing);
 
 // p_lights
 
-int EV_StartLightStrobing(line_t *line);
+int EV_StartLightStrobing(struct line_s *line);
 
-int EV_TurnTagLightsOff(line_t *line);
+int EV_TurnTagLightsOff(struct line_s *line);
 
-int EV_LightTurnOn(line_t *line, int bright);
+int EV_LightTurnOn(struct line_s *line, int bright);
 
-int EV_LightTurnOnPartway(line_t *line, fixed_t level);  // killough 10/10/98
+int EV_LightTurnOnPartway(struct line_s *line, fixed_t level);  // killough 10/10/98
 
 // p_floor
 
-int EV_DoChange(line_t *line, change_e changetype);
+int EV_DoChange(struct line_s *line, change_e changetype);
 
-int EV_DoDonut(line_t *line);
+int EV_DoDonut(struct line_s *line);
 
 // p_plats
 
-int EV_DoPlat(line_t *line, plattype_e type, int amount);
+int EV_DoPlat(struct line_s *line, plattype_e type, int amount);
 
-int EV_StopPlat(line_t *line);
+int EV_StopPlat(struct line_s *line);
 
 // p_genlin
 
-int EV_DoGenFloor(line_t *line);
+int EV_DoGenFloor(struct line_s *line);
 
-int EV_DoGenCeiling(line_t *line);
+int EV_DoGenCeiling(struct line_s *line);
 
-int EV_DoGenLift(line_t *line);
+int EV_DoGenLift(struct line_s *line);
 
-int EV_DoGenStairs(line_t *line);
+int EV_DoGenStairs(struct line_s *line);
 
-int EV_DoGenCrusher(line_t *line);
+int EV_DoGenCrusher(struct line_s *line);
 
-int EV_DoGenDoor(line_t *line);
+int EV_DoGenDoor(struct line_s *line);
 
-int EV_DoGenLockedDoor(line_t *line);
+int EV_DoGenLockedDoor(struct line_s *line);
 
 ////////////////////////////////////////////////////////////////
 //
@@ -950,23 +956,25 @@ void P_SpawnSpecials(void);
 void P_UpdateSpecials(void);
 
 // when needed
-boolean P_UseSpecialLine(mobj_t *thing, line_t *line, int side, boolean bossaction);
+boolean P_UseSpecialLine(struct mobj_s *thing, struct line_s *line, int side,
+                         boolean bossaction);
 
-void P_ShootSpecialLine(mobj_t *thing, line_t *line);
+void P_ShootSpecialLine(struct mobj_s *thing, struct line_s *line);
 
-void P_CrossSpecialLine(line_t *, int side, mobj_t *thing, boolean bossaction); // killough 11/98
+void P_CrossSpecialLine(struct line_s *, int side, struct mobj_s *thing,
+                        boolean bossaction); // killough 11/98
 
-void P_PlayerInSpecialSector(player_t *player);
+void P_PlayerInSpecialSector(struct player_s *player);
 
 // p_lights
 
-void P_SpawnFireFlicker(sector_t *sector);
+void P_SpawnFireFlicker(struct sector_s *sector);
 
-void P_SpawnLightFlash(sector_t *sector);
+void P_SpawnLightFlash(struct sector_s *sector);
 
-void P_SpawnStrobeFlash(sector_t *sector, int fastOrSlow, int inSync);
+void P_SpawnStrobeFlash(struct sector_s *sector, int fastOrSlow, int inSync);
 
-void P_SpawnGlowingLight(sector_t *sector);
+void P_SpawnGlowingLight(struct sector_s *sector);
 
 // p_plats
 
@@ -980,9 +988,9 @@ void P_ActivateInStasis(int tag);
 
 // p_doors
 
-void P_SpawnDoorCloseIn30(sector_t *sec);
+void P_SpawnDoorCloseIn30(struct sector_s *sec);
 
-void P_SpawnDoorRaiseIn5Mins(sector_t *sec, int secnum);
+void P_SpawnDoorRaiseIn5Mins(struct sector_s *sec, int secnum);
 
 // p_ceilng
 
@@ -992,11 +1000,11 @@ void P_RemoveAllActiveCeilings(void);                //jff 2/22/98
 
 void P_AddActiveCeiling(ceiling_t *c);
 
-int P_ActivateInStasisCeiling(line_t *line); 
+int P_ActivateInStasisCeiling(struct line_s *line); 
 
-mobj_t *P_GetPushThing(int);                                // phares 3/23/98
+struct mobj_s *P_GetPushThing(int);                                // phares 3/23/98
 
-void P_HitFloor (mobj_t *mo, int oof); // [FG] play sound when hitting animated floor
+void P_HitFloor (struct mobj_s *mo, int oof); // [FG] play sound when hitting animated floor
 
 #endif
 

@@ -18,19 +18,34 @@
 //
 //-----------------------------------------------------------------------------
 
+#include "r_data.h"
+
+#include <limits.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+#include "d_think.h"
+#include "doomdef.h"
 #include "doomstat.h"
 #include "i_printf.h"
-#include "p_tick.h"
-#include "w_wad.h"
-#include "r_main.h"
-#include "r_sky.h"
-#include "m_io.h"
+#include "i_system.h"
+#include "info.h"
 #include "m_argv.h" // M_CheckParm()
+#include "m_fixed.h"
+#include "m_io.h"
 #include "m_misc2.h"
 #include "m_swap.h"
-#include "v_video.h" // cr_dark
+#include "p_mobj.h"
+#include "p_tick.h"
 #include "r_bmaps.h" // [crispy] R_BrightmapForTexName()
-#include "v_flextran.h"
+#include "r_defs.h"
+#include "r_main.h"
+#include "r_sky.h"
+#include "r_state.h"
+#include "v_video.h" // cr_dark, cr_shaded
+#include "w_wad.h"
+#include "z_zone.h"
 
 //
 // Graphics.

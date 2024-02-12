@@ -21,7 +21,7 @@
 #ifndef __DOOMTYPE__
 #define __DOOMTYPE__
 
-#include <stddef.h> // [FG] NULL
+#include <stddef.h> // size_t, NULL
 #include <stdint.h> // [FG] intptr_t types
 
 #include "config.h"
@@ -29,13 +29,14 @@
 typedef enum {false, true} boolean;
 
 typedef uint8_t byte;
-typedef uint8_t pixel_t;
 
-// haleyjd: resolve platform-specific range symbol issues
+typedef byte pixel_t;
 
-#include <limits.h>
-#define D_MAXINT INT_MAX
-#define D_MININT INT_MIN
+// This could be wider for >8 bit display. Indeed, true color support is
+// posibble precalculating 24bpp lightmap/colormap LUT. from darkening PLAYPAL
+// to all black. Could use even more than 32 levels.
+
+typedef byte lighttable_t;
 
 // [FG] common definitions from Chocolate Doom
 

@@ -25,15 +25,7 @@
 #ifndef __Z_ZONE__
 #define __Z_ZONE__
 
-// Include system definitions so that prototypes become
-// active before macro replacements below are in effect.
-
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <assert.h>
-
-#include "doomtype.h"
+#include <stddef.h>
 
 // ZONE MEMORY
 // PU - purge tags.

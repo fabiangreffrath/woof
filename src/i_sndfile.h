@@ -20,6 +20,7 @@
 #define __I_SNDFILE__
 
 #include "al.h"
+
 #include "doomtype.h"
 
 #define FADETIME 1000 // microseconds

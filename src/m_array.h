@@ -18,8 +18,8 @@
 // array_push(), array_grow() and array_free() may change the buffer pointer,
 // and any previously-taken pointers should be considered invalidated.
 
-#include <stdlib.h>
 #include <stddef.h>
+#include <stdlib.h>
 
 #include "i_system.h"
 

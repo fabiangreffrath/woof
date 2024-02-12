@@ -16,25 +16,22 @@
 //   System interface for music.
 //
 
-
-#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
-#include "mus2mid.h"
-#include "memio.h"
-#include "doomtype.h"
+#include "../opl/opl.h"
 
+#include "doomtype.h"
 #include "i_printf.h"
 #include "i_sound.h"
 #include "m_array.h"
-#include "m_swap.h"
 #include "m_io.h"
+#include "m_swap.h"
+#include "memio.h"
+#include "midifile.h"
+#include "mus2mid.h"
 #include "w_wad.h"
 #include "z_zone.h"
-
-#include "../opl/opl.h"
-#include "midifile.h"
 
 // #define OPL_MIDI_DEBUG
 

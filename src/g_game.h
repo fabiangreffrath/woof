@@ -18,9 +18,11 @@
 #define __G_GAME__
 
 #include "doomdef.h"
-#include "d_event.h"
-#include "d_ticcmd.h"
+#include "doomstat.h"
+#include "doomtype.h"
 #include "m_fixed.h"
+
+struct event_s;
 
 //
 // GAME
@@ -33,8 +35,8 @@
 
 void G_PrepTiccmd(void);
 void G_ClearInput(void);
-boolean G_MovementResponder(event_t *ev);
-boolean G_Responder(event_t *ev);
+boolean G_MovementResponder(struct event_s *ev);
+boolean G_Responder(struct event_s *ev);
 boolean G_CheckDemoStatus(void);
 void G_DeathMatchSpawnPlayer(int playernum);
 void G_InitNew(skill_t skill, int episode, int map);

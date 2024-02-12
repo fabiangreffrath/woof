@@ -15,26 +15,26 @@
 // DESCRIPTION:
 //      Windows native MIDI
 
-
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
 #include <mmsystem.h>
 #include <mmreg.h>
-#include <stdio.h>
-#include <stdlib.h>
+
+#include <limits.h>
 #include <math.h>
+#include <stdlib.h>
 
 #include "doomtype.h"
 #include "i_printf.h"
 #include "i_sound.h"
 #include "i_system.h"
 #include "m_array.h"
-#include "m_misc2.h"
 #include "m_io.h"
+#include "m_misc2.h"
 #include "memio.h"
-#include "mus2mid.h"
-#include "midifile.h"
 #include "midifallback.h"
+#include "midifile.h"
+#include "mus2mid.h"
 
 enum
 {

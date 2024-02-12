@@ -14,16 +14,16 @@
 // DESCRIPTION:
 //
 
-#include "i_oalmusic.h"
-#include "i_oalstream.h"
+#include "al.h"
+#include "alc.h"
+#include "alext.h"
+#include "SDL.h"
 
 #include <stdlib.h>
-#include <string.h>
-
-#include "SDL.h"
-#include "alext.h"
 
 #include "doomtype.h"
+#include "i_oalmusic.h"
+#include "i_oalstream.h"
 #include "i_printf.h"
 #include "i_sound.h"
 

@@ -19,14 +19,16 @@
 //	[crispy] support MUSINFO lump (dynamic music changing)
 //
 
-#include "doomtype.h"
-#include "i_printf.h"
-#include "g_game.h"
-#include "u_scanner.h"
-#include "s_sound.h"
-#include "w_wad.h"
-
 #include "s_musinfo.h"
+
+#include "doomtype.h"
+#include "g_game.h"
+#include "i_printf.h"
+#include "p_mobj.h"
+#include "s_sound.h"
+#include "u_scanner.h"
+#include "w_wad.h"
+#include "z_zone.h"
 
 musinfo_t musinfo = {0};
 

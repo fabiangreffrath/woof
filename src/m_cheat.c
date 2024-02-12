@@ -17,25 +17,38 @@
 //
 //-----------------------------------------------------------------------------
 
+#include <ctype.h>
+#include <stdlib.h>
+#include <string.h>
+
+#include "am_map.h"
+#include "d_deh.h" // Ty 03/27/98 - externalized strings
+#include "d_event.h"
+#include "d_main.h"
+#include "d_player.h"
+#include "d_think.h"
+#include "doomdata.h"
+#include "doomdef.h"
 #include "doomstat.h"
-#include "p_tick.h"
 #include "g_game.h"
-#include "r_data.h"
+#include "info.h"
+#include "m_cheat.h"
+#include "m_fixed.h"
+#include "m_input.h"
+#include "m_misc2.h"
 #include "p_inter.h"
 #include "p_map.h"
-#include "m_cheat.h"
-#include "m_argv.h"
+#include "p_mobj.h"
+#include "p_pspr.h"
+#include "p_spec.h" // SPECHITS
+#include "p_tick.h"
+#include "r_defs.h"
+#include "r_state.h"
 #include "s_sound.h"
 #include "sounds.h"
-#include "dstrings.h"
-#include "d_deh.h"  // Ty 03/27/98 - externalized strings
+#include "tables.h"
 #include "u_mapinfo.h"
 #include "w_wad.h"
-#include "m_misc2.h"
-#include "p_spec.h" // SPECHITS
-#include "d_main.h"
-#include "m_input.h"
-#include "am_map.h"
 
 #define plyr (players+consoleplayer)     /* the console player */
 

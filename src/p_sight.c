@@ -17,11 +17,19 @@
 //
 //-----------------------------------------------------------------------------
 
+#include "doomdata.h"
 #include "doomstat.h"
-#include "r_main.h"
-#include "p_maputl.h"
-#include "p_setup.h"
+#include "doomtype.h"
+#include "i_system.h"
 #include "m_bbox.h"
+#include "m_fixed.h"
+#include "p_maputl.h"
+#include "p_mobj.h"
+#include "p_setup.h"
+#include "r_defs.h"
+#include "r_main.h"
+#include "r_state.h"
+#include "tables.h"
 
 //
 // P_CheckSight

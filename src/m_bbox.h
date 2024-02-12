@@ -21,7 +21,6 @@
 #ifndef __M_BBOX__
 #define __M_BBOX__
 
-#include "z_zone.h"         // killough 1/18/98
 #include "m_fixed.h"
 
 // Bounding box coordinate storage.

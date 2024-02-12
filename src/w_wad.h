@@ -20,6 +20,7 @@
 #ifndef __W_WAD__
 #define __W_WAD__
 
+#include "doomtype.h"
 #include "z_zone.h"
 
 //
@@ -99,7 +100,7 @@ int     (W_CheckNumForName)(const char* name, int);   // killough 4/17/98
 int     W_GetNumForName (const char* name);
 int     W_LumpLength (int lump);
 void    W_ReadLump (int lump, void *dest);
-void*   W_CacheLumpNum (int lump, pu_tag tag);
+void    *W_CacheLumpNum(int lump, pu_tag tag);
 
 #define W_CacheLumpName(name,tag) W_CacheLumpNum (W_GetNumForName(name),(tag))
 

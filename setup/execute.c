@@ -20,29 +20,19 @@
 #include <string.h>
 #include <ctype.h>
 
-#include <sys/types.h>
-
 #ifdef _WIN32
-
-#define WIN32_LEAN_AND_MEAN
-#include <windows.h>
-#include <process.h>
-#include <shellapi.h>
-
+  #define WIN32_LEAN_AND_MEAN
+  #include <windows.h>
+  #include <shellapi.h>
 #else
-
-#include <sys/wait.h>
-#include <unistd.h>
-
+  #include <sys/wait.h>
+  #include <unistd.h>
 #endif
 
-#include "textscreen.h"
-
-#include "config.h"
 #include "execute.h"
 #include "m_argv.h"
-#include "m_misc2.h"
 #include "m_io.h"
+#include "m_misc2.h"
 
 struct execute_context_s
 {

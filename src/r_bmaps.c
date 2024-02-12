@@ -19,13 +19,19 @@
 //	Adapted from doomretro/src/r_data.c:97-209
 //
 
-#include "doomtype.h"
+#include <stdlib.h>
+#include <string.h>
+
+#include "doomdef.h"
 #include "doomstat.h"
-#include "r_data.h"
-#include "w_wad.h"
-#include "m_misc2.h"
-#include "u_scanner.h"
+#include "doomtype.h"
+#include "info.h"
 #include "m_array.h"
+#include "m_misc2.h"
+#include "r_data.h"
+#include "u_scanner.h"
+#include "w_wad.h"
+#include "z_zone.h"
 
 boolean brightmaps;
 boolean brightmaps_found;

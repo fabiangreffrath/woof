@@ -86,7 +86,7 @@ static boolean I_XMP_OpenStream(void *data, ALsizei size, ALenum *format,
     return true;
 }
 
-static uint32_t I_XMP_FillStream(byte *buffer, uint32_t buffer_samples)
+static int I_XMP_FillStream(byte *buffer, int buffer_samples)
 {
     int ret = xmp_play_buffer(context, buffer, buffer_samples * 4,
                               stream_looping ? 0 : 1);

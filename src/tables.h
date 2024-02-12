@@ -33,6 +33,7 @@
 #ifndef __TABLES__
 #define __TABLES__
 
+#include "doomtype.h" // inline
 #include "m_fixed.h"
 
 #define FINEANGLES              8192

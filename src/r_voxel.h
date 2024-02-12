@@ -16,7 +16,6 @@
 #define __R_VOXEL__
 
 #include "doomtype.h"
-#include "r_defs.h"
 
 void VX_Init (void);
 
@@ -24,9 +23,11 @@ void VX_ClearVoxels (void);
 
 void VX_NearbySprites (void);
 
-boolean VX_ProjectVoxel (mobj_t * thing);
+struct mobj_s;
+boolean VX_ProjectVoxel (struct mobj_s * thing);
 
-void VX_DrawVoxel (vissprite_t * vis);
+struct vissprite_s;
+void VX_DrawVoxel (struct vissprite_s * vis);
 
 extern const char ** vxfiles;
 

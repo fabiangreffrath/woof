@@ -20,23 +20,35 @@
 //
 //-----------------------------------------------------------------------------
 
+#include <stdlib.h>
+
+#include "am_map.h"
+#include "d_event.h"
+#include "d_items.h"
+#include "d_player.h"
 #include "doomdef.h"
 #include "doomstat.h"
-#include "m_random.h"
-#include "i_video.h"
-#include "v_video.h"
-#include "w_wad.h"
-#include "st_stuff.h"
 #include "hu_stuff.h" // [FG] hud_displayed
-#include "st_lib.h"
-#include "r_main.h"
-#include "am_map.h"
+#include "i_printf.h"
+#include "i_video.h"
+#include "info.h"
 #include "m_cheat.h"
 #include "m_misc2.h"
+#include "m_random.h"
 #include "m_swap.h"
-#include "i_printf.h"
+#include "p_mobj.h"
+#include "r_data.h"
+#include "r_defs.h"
+#include "r_main.h"
+#include "r_state.h"
 #include "s_sound.h"
 #include "sounds.h"
+#include "st_lib.h"
+#include "st_stuff.h"
+#include "tables.h"
+#include "v_video.h"
+#include "w_wad.h"
+#include "z_zone.h"
 
 // [crispy] immediately redraw status bar after help screens have been shown
 extern boolean inhelpscreens;
@@ -1095,7 +1107,7 @@ void ST_loadGraphics(void)
   // Load the numbers, tall and short
   for (i=0;i<10;i++)
     {
-      sprintf(namebuf, "STTNUM%d", i);
+      M_snprintf(namebuf, sizeof(namebuf), "STTNUM%d", i);
       tallnum[i] = (patch_t *) W_CacheLumpName(namebuf, PU_STATIC);
       M_snprintf(namebuf, sizeof(namebuf), "STYSNUM%d", i);
       shortnum[i] = (patch_t *) W_CacheLumpName(namebuf, PU_STATIC);
@@ -1108,7 +1120,7 @@ void ST_loadGraphics(void)
   // key cards
   for (i=0;i<NUMCARDS+3;i++)  //jff 2/23/98 show both keys too
     {
-      sprintf(namebuf, "STKEYS%d", i);
+      M_snprintf(namebuf, sizeof(namebuf), "STKEYS%d", i);
       keys[i] = (patch_t *) W_CacheLumpName(namebuf, PU_STATIC);
     }
 
@@ -1118,7 +1130,7 @@ void ST_loadGraphics(void)
   // arms ownership widgets
   for (i=0;i<6;i++)
     {
-      sprintf(namebuf, "STGNUM%d", i+2);
+      M_snprintf(namebuf, sizeof(namebuf), "STGNUM%d", i+2);
 
       // gray #
       arms[i][0] = (patch_t *) W_CacheLumpName(namebuf, PU_STATIC);
@@ -1132,7 +1144,7 @@ void ST_loadGraphics(void)
   // player face backgrounds and using displayplayer to choose them:
   for (i=0; i<MAXPLAYERS; i++)
     {
-      sprintf(namebuf, "STFB%d", i);
+      M_snprintf(namebuf, sizeof(namebuf), "STFB%d", i);
       faceback[i] = (patch_t *) W_CacheLumpName(namebuf, PU_STATIC);
     }
 
@@ -1155,18 +1167,18 @@ void ST_loadGraphics(void)
       int j;
       for (j=0;j<ST_NUMSTRAIGHTFACES;j++)
         {
-          sprintf(namebuf, "STFST%d%d", i, j);
+          M_snprintf(namebuf, sizeof(namebuf), "STFST%d%d", i, j);
           faces[facenum++] = W_CacheLumpName(namebuf, PU_STATIC);
         }
-      sprintf(namebuf, "STFTR%d0", i);        // turn right
+      M_snprintf(namebuf, sizeof(namebuf), "STFTR%d0", i);        // turn right
       faces[facenum++] = W_CacheLumpName(namebuf, PU_STATIC);
-      sprintf(namebuf, "STFTL%d0", i);        // turn left
+      M_snprintf(namebuf, sizeof(namebuf), "STFTL%d0", i);        // turn left
       faces[facenum++] = W_CacheLumpName(namebuf, PU_STATIC);
-      sprintf(namebuf, "STFOUCH%d", i);       // ouch!
+      M_snprintf(namebuf, sizeof(namebuf), "STFOUCH%d", i);       // ouch!
       faces[facenum++] = W_CacheLumpName(namebuf, PU_STATIC);
-      sprintf(namebuf, "STFEVL%d", i);        // evil grin ;)
+      M_snprintf(namebuf, sizeof(namebuf), "STFEVL%d", i);        // evil grin ;)
       faces[facenum++] = W_CacheLumpName(namebuf, PU_STATIC);
-      sprintf(namebuf, "STFKILL%d", i);       // pissed off
+      M_snprintf(namebuf, sizeof(namebuf), "STFKILL%d", i);       // pissed off
       faces[facenum++] = W_CacheLumpName(namebuf, PU_STATIC);
     }
   faces[facenum++] = W_CacheLumpName("STFGOD0", PU_STATIC);
@@ -1175,7 +1187,7 @@ void ST_loadGraphics(void)
   // [FG] support face gib animations as in the 3DO/Jaguar/PSX ports
   for (i = 0; i < ST_NUMXDTHFACES; i++)
   {
-    sprintf(namebuf, "STFXDTH%d", i);
+    M_snprintf(namebuf, sizeof(namebuf), "STFXDTH%d", i);
 
     if (W_CheckNumForName(namebuf) != -1)
       faces[facenum++] = W_CacheLumpName(namebuf, PU_STATIC);

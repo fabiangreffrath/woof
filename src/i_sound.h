@@ -22,10 +22,10 @@
 #ifndef __I_SOUND__
 #define __I_SOUND__
 
-#include "al.h"
+#include "config.h"
 
-#include "p_mobj.h"
-#include "sounds.h"
+#include "doomtype.h"
+#include "m_fixed.h"
 
 // when to clip out sounds
 // Does not fit the large outdoor areas.
@@ -77,17 +77,22 @@ extern boolean snd_hrtf;
 extern int snd_absorption;
 extern int snd_doppler;
 
+struct mobj_s;
+
+struct sfxinfo_s;
+
 typedef struct sound_module_s
 {
     boolean (*InitSound)(void);
     boolean (*ReinitSound)(void);
     boolean (*AllowReinitSound)(void);
-    boolean (*CacheSound)(sfxinfo_t *sfx);
-    boolean (*AdjustSoundParams)(const mobj_t *listener, const mobj_t *source,
+    boolean (*CacheSound)(struct sfxinfo_s *sfx);
+    boolean (*AdjustSoundParams)(const struct mobj_s *listener,
+                                 const struct mobj_s *source,
                                  int chanvol, int *vol, int *sep, int *pri);
     void (*UpdateSoundParams)(int channel, int vol, int sep);
-    void (*UpdateListenerParams)(const mobj_t *listener);
-    boolean (*StartSound)(int channel, sfxinfo_t *sfx, int pitch);
+    void (*UpdateListenerParams)(const struct mobj_s *listener);
+    boolean (*StartSound)(int channel, struct sfxinfo_s *sfx, int pitch);
     void (*StopSound)(int channel);
     boolean (*SoundIsPlaying)(int channel);
     void (*ShutdownSound)(void);
@@ -117,10 +122,10 @@ void I_SetSoundModule(int device);
 void I_SetChannels(void);
 
 // Get raw data lump index for sound descriptor.
-int I_GetSfxLumpNum(sfxinfo_t *sfxinfo);
+int I_GetSfxLumpNum(struct sfxinfo_s *sfxinfo);
 
 // Starts a sound in a particular sound channel.
-int I_StartSound(sfxinfo_t *sound, int vol, int sep, int pitch);
+int I_StartSound(struct sfxinfo_s *sound, int vol, int sep, int pitch);
 
 // Stops a sound channel.
 void I_StopSound(int handle);
@@ -132,17 +137,18 @@ boolean I_SoundIsPlaying(int handle);
 
 // Outputs adjusted volume, separation, and priority from the sound module.
 // Returns false if no sound should be played.
-boolean I_AdjustSoundParams(const mobj_t *listener, const mobj_t *source,
+boolean I_AdjustSoundParams(const struct mobj_s *listener,
+                            const struct mobj_s *source,
                             int chanvol, int *vol, int *sep, int *pri);
 
 // Updates the volume, separation,
 //  and pitch of a sound channel.
 void I_UpdateSoundParams(int handle, int vol, int sep);
-void I_UpdateListenerParams(const mobj_t *listener);
+void I_UpdateListenerParams(const struct mobj_s *listener);
 void I_DeferSoundUpdates(void);
 void I_ProcessSoundUpdates(void);
 
-// haleyjd
+// haleyjds
 int I_SoundID(int handle);
 
 //

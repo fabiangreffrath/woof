@@ -19,23 +19,41 @@
 //
 //-----------------------------------------------------------------------------
 
+#include <stdlib.h>
+
+#include "d_items.h"
+#include "d_player.h"
+#include "d_think.h"
+#include "doomdata.h"
+#include "doomdef.h"
 #include "doomstat.h"
+#include "doomtype.h"
+#include "g_game.h"
+#include "hu_obituary.h"
 #include "i_printf.h"
+#include "i_system.h"
+#include "info.h"
+#include "m_bbox.h"
+#include "m_fixed.h"
 #include "m_random.h"
-#include "r_main.h"
-#include "p_maputl.h"
+#include "p_action.h"
+#include "p_enemy.h"
+#include "p_inter.h"
 #include "p_map.h"
+#include "p_maputl.h"
+#include "p_mobj.h"
+#include "p_pspr.h"
 #include "p_setup.h"
 #include "p_spec.h"
+#include "p_tick.h"
+#include "r_defs.h"
+#include "r_main.h"
+#include "r_state.h"
 #include "s_sound.h"
 #include "sounds.h"
-#include "p_inter.h"
-#include "g_game.h"
-#include "p_enemy.h"
-#include "p_tick.h"
-#include "m_bbox.h"
-
-#include "p_action.h"
+#include "tables.h"
+#include "u_mapinfo.h"
+#include "z_zone.h"
 
 static mobj_t *current_actor;
 

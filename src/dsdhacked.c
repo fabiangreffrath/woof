@@ -18,6 +18,7 @@
 #include <string.h>
 #include <ctype.h>
 
+#include "d_think.h"
 #include "doomtype.h"
 #include "info.h"
 #include "m_array.h"

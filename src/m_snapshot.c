@@ -15,15 +15,19 @@
 //      Savegame snapshots
 //
 
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 #include <sys/stat.h>
 #include <time.h>
 
-#include "doomtype.h"
+#include "doomdef.h"
 #include "doomstat.h"
-
+#include "doomtype.h"
+#include "m_fixed.h"
 #include "m_io.h"
-#include "v_video.h"
 #include "r_main.h"
+#include "v_video.h"
 
 static const char snapshot_str[] = "WOOF_SNAPSHOT";
 static const int snapshot_len = arrlen(snapshot_str);

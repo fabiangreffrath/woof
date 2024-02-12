@@ -21,8 +21,8 @@
 #define __P_SETUP__
 
 #include "doomdef.h"
-#include "p_mobj.h"
-#include "r_defs.h"
+#include "doomtype.h"
+#include "m_fixed.h"
 
 void P_SetupLevel(int episode, int map, int playermask, skill_t skill);
 void P_Init(void);               // Called by startup code.
@@ -36,11 +36,11 @@ extern int      bmapwidth;
 extern int      bmapheight;      // in mapblocks
 extern fixed_t  bmaporgx;
 extern fixed_t  bmaporgy;        // origin of block map
-extern mobj_t   **blocklinks;    // for thing chains
+extern struct mobj_s **blocklinks;    // for thing chains
 
 extern boolean skipblstart; // MaxW: Skip initial blocklist short
 
-sector_t* GetSectorAtNullAddress(void);
+struct sector_s *GetSectorAtNullAddress(void);
 void P_DegenMobjThinker(void *p);
 void P_SegLengths(boolean contrast_only);
 

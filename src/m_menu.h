@@ -21,7 +21,9 @@
 #ifndef __M_MENU__
 #define __M_MENU__
 
-#include "d_event.h"
+#include "doomtype.h"
+
+struct event_s;
 
 //
 // MENUS
@@ -32,7 +34,7 @@
 // this can resize the view and change game parameters.
 // Does all the real work of the menu interaction.
 
-boolean M_Responder (event_t *ev);
+boolean M_Responder(struct event_s *ev);
 
 // Called by main loop,
 // only used for menu (skull cursor) animation.
