@@ -20,6 +20,7 @@
 #include "SDL.h"
 
 boolean I_UseController(void);
+void I_InitController(void);
 void I_OpenController(int which);
 void I_CloseController(int which);
 

@@ -36,27 +36,6 @@ ticcmd_t *I_BaseTiccmd(void)
   return &emptycmd;
 }
 
-static void I_ShutdownJoystick(void)
-{
-    SDL_QuitSubSystem(SDL_INIT_GAMECONTROLLER);
-}
-
-void I_InitJoystick(void)
-{
-    if (SDL_Init(SDL_INIT_GAMECONTROLLER) < 0)
-    {
-        I_Printf(VB_WARNING, "I_InitJoystick: Failed to initialize game controller: %s",
-                SDL_GetError());
-        return;
-    }
-
-    SDL_GameControllerEventState(SDL_ENABLE);
-
-    I_Printf(VB_INFO, "I_InitJoystick: Initialize game controller.");
-
-    I_AtExit(I_ShutdownJoystick, true);
-}
-
 //
 // I_Error
 //

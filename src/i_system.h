@@ -23,9 +23,6 @@
 #include "d_ticcmd.h"
 #include "i_timer.h"
 
-// Called by DoomMain.
-void I_InitJoystick(void);
-
 //
 // Called by D_DoomLoop,
 // called before processing any tics in a frame
