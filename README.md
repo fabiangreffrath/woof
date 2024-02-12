@@ -48,9 +48,11 @@ The following key features have been introduced in Woof! relative to MBF or WinM
 
 ## Rendering
 
- * The renderer has been made much more robust against common rendering bugs which were found especially in extremely huge levels and levels with extreme heights or height differences.
+ * Support for arbitrary resolutions up to native display resolution. Dynamic resolution scaling to automatically change the internal resolution to maintain a target framerate.
  * Support for rendering with uncapped frame rate and frame interpolation has been added.
  * A widescreen rendering mode has been added with proper support for the widescreen assets found e.g. in the Unity version of Doom.
+ * Adjustable field of view (FOV).
+ * Support for "Blocky Spectre Drawing" adapted to any resolution.
  * Screenshots are saved in PNG format and are actual representations of the game screen rendering.
  * Support for Voxels in KVX format has been added.
 
@@ -69,6 +71,7 @@ The following key features have been introduced in Woof! relative to MBF or WinM
 ## Capability
 
  * The level building code has been upgraded to allow for loading maps in "extended nodes" format. Furthermore, maps using nodes in uncompressed XNOD/XGLN or compressed ZNOD/ZGLN formats, or DeePBSP format can now be loaded.
+ * Integration of the NanoBSP node builder (enforce with `-bsp`) for maps without nodes or with unsupported nodes (not demo compatible).
  * Support for tall textures and sprites in DeePsea format has been added.
  * Support for unlimited extra states, sprites, mobjtypes and sounds has been added for use in Dehacked patches (supporting the "DEHEXTRA" and "DSDHacked" specs).
  * Support for changing in-game music using the "MUSINFO" lump has been added.
@@ -155,6 +158,8 @@ Over time, I got increasingly frustrated that the code would only compile and ru
 This is how this project was born.
 
 Many additions and improvements to this source port were taken from fraggle's [Chocolate Doom](https://www.chocolate-doom.org/wiki/index.php/Chocolate_Doom), taking advantage of its exceptional portability, accuracy and compatibility.
+
+Special thanks to @rfomin and @ceski-1 for implementing the more advanced features of this port, and @JNechaevsky and @MrALaux for helping to port back some useful features from their own source port projects!
 
 # Legalese
 
