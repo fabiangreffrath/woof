@@ -24,8 +24,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#include "../miniz/miniz.h"
-
 #include "am_map.h"
 #include "config.h"
 #include "d_event.h"
@@ -49,6 +47,8 @@
 #include "v_video.h"
 #include "w_wad.h"
 #include "z_zone.h"
+
+#include "miniz.h"
 
 // [FG] set the application icon
 

@@ -21,9 +21,6 @@
 #include <math.h>
 #include <string.h>
 
-// [FG] support maps with NODES in compressed ZNOD/ZGLN formats
-#include "../miniz/miniz.h"
-
 #include "doomdata.h"
 #include "i_printf.h"
 #include "i_system.h"
@@ -37,6 +34,9 @@
 #include "r_state.h"
 #include "w_wad.h"
 #include "z_zone.h"
+
+// [FG] support maps with NODES in compressed ZNOD/ZGLN formats
+#include "miniz.h"
 
 // [FG] support maps with NODES in DeePBSP format
 

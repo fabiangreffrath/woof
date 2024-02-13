@@ -29,7 +29,7 @@
 
 #if defined(_MSC_VER)
 // For Visual C++, we need to include the win_opendir module.
-#include "../win32/win_opendir.h"
+#include "win_opendir.h"
 #elif defined(HAVE_DIRENT_H)
 #include <dirent.h>
 #elif defined(__WATCOMC__)

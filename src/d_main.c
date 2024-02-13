@@ -27,7 +27,6 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "../miniz/miniz.h"
 #include "am_map.h"
 #include "config.h"
 #include "d_deh.h"  // Ty 04/08/98 - Externalizations
@@ -85,6 +84,8 @@
 #include "w_wad.h"
 #include "wi_stuff.h"
 #include "z_zone.h"
+
+#include "miniz.h"
 
 // DEHacked support - Ty 03/09/97
 // killough 10/98:
