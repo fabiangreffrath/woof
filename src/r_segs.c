@@ -378,7 +378,7 @@ static void R_RenderSegLoop (void)
           texturecolumn >>= FRACBITS;
 
           // calculate lighting
-          index = FixedDiv(rw_scale, video.xscale) >> LIGHTSCALESHIFT;  // killough 11/98
+          index = FixedDiv(rw_scale * 160, projection) >> LIGHTSCALESHIFT;  // killough 11/98
 
           if (index >=  MAXLIGHTSCALE )
             index = MAXLIGHTSCALE-1;
