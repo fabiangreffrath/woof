@@ -34,67 +34,40 @@ If you turn the [Doom logo upside down](https://www.reddit.com/r/Doom/comments/8
 
 # Key features
 
-The following key features have been introduced in Woof! relative to MBF or WinMBF, respectively.
-
-## General
-
- * The code has been made 64-bit and big-endian compatible.
- * The code has been ported to SDL2, so the game scene is now rendered to screen using hardware acceleration if available.
- * The build system has been ported to CMake with support for building on Linux and Windows (the latter using either vcpkg or a MSYS2 environment).
- * All non-free embedded lumps have been either removed or replaced.
- * Support for "autoload" directories has been added, both for common ("doom-all") and per IWAD files. WAD files in these directories are loaded before those passed to the `-file` parameter, DEHACKED files in these directories are processed after those passed to the `-deh` parameter and before those embedded into WAD files. Additionally, autoload directories for PWADs are also supported in a similar manner, but these directories will need to be created manually.
- * Savegame backward compatibility across different platforms and releases is maintained, so it is possible to restore savegames from previous versions and even `MBF.EXE`.
- * Integration of the Chocolate Doom network code. Demo compatible multiplayer for all supported complevels allowing for cross-port network games with the Chocolate family of ports, e.g. Crispy Doom (remember to set `-complevel vanilla` for the server).
-
-## Rendering
-
- * Support for arbitrary resolutions up to native display resolution. Dynamic resolution scaling to automatically change the internal resolution to maintain a target framerate.
- * Support for rendering with uncapped frame rate and frame interpolation has been added.
- * A widescreen rendering mode has been added with proper support for the widescreen assets found e.g. in the Unity version of Doom.
+ * Arbitrary resolutions up to native display resolution. Dynamic resolution scaling (DRS) to automatically change the internal resolution to maintain a target framerate.
+ * Widescreen rendering with proper support for the widescreen assets.
+ * Rendering with uncapped frame rate and frame interpolation.
  * Adjustable field of view (FOV).
- * Support for "Blocky Spectre Drawing" adapted to any resolution.
- * Screenshots are saved in PNG format and are actual representations of the game screen rendering.
- * Support for Voxels in KVX format has been added.
+ * Voxels in KVX format.
 
-## Sound
+ * 3D audio, supporting stereo and up to 7.1 surround sound with an optional HRTF mode, as well as PC speaker emulation.
+ * Several music backends: native MIDI on Windows and macOS, FluidSynth with a bundled soundfont, built-in OPL3 emulator. Digital music and sound formats supported by libsndfile, module music supported by libxmp.
 
- * The port uses OpenAL for music and sound mixing. It is able to play back sounds in any format supported by libsndfile and precaches them in memory at start up.
- * The port features optional 3D audio, supporting stereo and up to 7.1 surround sound with an optional HRTF mode, as well as PC speaker emulation.
- * The port provides several music backends: MIDI music is played back natively on Windows, or using the fluidsynth renderer with a soundfont (if available), or using the built-in OPL3 emulator. Digital music formats are played back with libsndfile, module music is rendered with libxmp.
+ * Modern gamepad support.
+ * Mouselook.
 
-## Input
+ * Autoload directories.
+ * Savegame backward compatibility up to `MBF.EXE`.
+ * Integration of the Chocolate Doom network code.
+ * Compatibility levels: "Vanilla", "Boom", "MBF" and "MBF21" (default).
 
- * The port allows to bind each action to multiple keys and mouse or joystick buttons, and unbind them using the <kbd>Del</kbd> key in the menu.
- * The port provides modern gamepad support allowing to bind any action to shoulder triggers or analog sticks.
- * Support for mouselook has been added.
+## Capabilities
 
-## Capability
-
- * The level building code has been upgraded to allow for loading maps in "extended nodes" format. Furthermore, maps using nodes in uncompressed XNOD/XGLN or compressed ZNOD/ZGLN formats, or DeePBSP format can now be loaded.
+ * Support for extended nodes in uncompressed XNOD or XGLN and compressed ZNOD or ZGLN formats, and DeePBSP format.
  * Integration of the NanoBSP node builder (enforce with `-bsp`) for maps without nodes or with unsupported nodes (not demo compatible).
- * Support for tall textures and sprites in DeePsea format has been added.
- * Support for unlimited extra states, sprites, mobjtypes and sounds has been added for use in Dehacked patches (supporting the "DEHEXTRA" and "DSDHacked" specs).
- * Support for changing in-game music using the "MUSINFO" lump has been added.
- * Support for the "UMAPINFO" lump has been added, compliant to Rev 2.2 of the [spec](https://github.com/kraflab/umapinfo).
- * Support for the "MBF21" compatibility level has been added, compliant to Rev 1.4 of the [spec](https://github.com/kraflab/mbf21).
- * Support for SMMU swirling animated flats.
- * Ability to customize the appearance of the extended Boom HUD using the [WOOFHUD](https://github.com/fabiangreffrath/woof/blob/master/docs/woofhud.md) lump.
-
-## Compatibility
-
- * All IWAD files since Doom 1.2 are supported, including Doom Shareware, The Ultimate Doom, Doom 2 and Final Doom. Furthermore, the IWAD files shipped with the "Doom 3: BFG Edition" and the ones published by the Freedoom project as well as Chex Quest, HACX and REKKR are supported.
- * UMAPINFO lumps for MASTERLEVELS.WAD, NERVE.WAD, SIGIL_V1_21.WAD, E1M4B.WAD and E1M8B.WAD have been added which are meant to be autoloaded with the corresponding PWAD and change map title, level transitions, par times, music and skies accordingly.
- * The concept of compatibility levels has been added, currently offering "Vanilla", "Boom", "MBF" and "MBF21" (default). The default compatibility level may be changed through the menu and overridden with the `-complevel` parameter, allowing for both numeric and named arguments, or the `COMPLVL` lump. Menu items in the Setup menu that don't apply to the current compatibility level are disabled and grayed out.
- * The project strives for full demo compatibility for all supported complevels. Furthermore, this port offers quality-of-life features like e.g. a demo progress bar, demo playback warp and skip as well as continued demo recording.
- * The SPECHITS, REJECT, INTERCEPTS and DONUT overflow emulations have been ported over from Chocolate Doom / PrBoom+, allowing for some more obscure Vanilla demos to keep sync.
+ * Tall textures and sprites in DeePsea format.
+ * Unlimited extra states, sprites, mobjtypes and sounds for use in Dehacked patches (supporting the "DEHEXTRA" and "DSDHacked" specs).
+ * In-game music changing using MUSINFO.
+ * UMAPINFO support, compliant to Rev 2.2 of the [spec](https://github.com/kraflab/umapinfo).
+ * MBF21 compatibility level, compliant to Rev 1.4 of the [spec](https://github.com/kraflab/mbf21).
+ * SMMU-style swirling animated flats.
+ * Customization the extended Boom HUD using the [WOOFHUD](https://github.com/fabiangreffrath/woof/blob/master/docs/woofhud.md) lump.
 
 # Releases
 
-Source code and Windows binaries (MSVC builds for Windows 7 and newer) for the latest release can be found on the [Release](https://github.com/fabiangreffrath/woof/releases/latest) page.
+Source code, Windows binaries (MSVC builds for Windows 7 and newer) and Linux AppImages for the latest release can be found on the [Release](https://github.com/fabiangreffrath/woof/releases/latest) page.
 
-The most recent list of changes can be found in the [Changelog](https://github.com/fabiangreffrath/woof/blob/master/CHANGELOG.md).
-
-A complete history of changes and releases can be found in the [Wiki](https://github.com/fabiangreffrath/woof/wiki/Changelog) or on the [Releases](https://github.com/fabiangreffrath/woof/releases) page.
+The most recent list of changes can be found in the current [Changelog](https://github.com/fabiangreffrath/woof/blob/master/CHANGELOG.md).
 
 # Compiling
 
@@ -157,9 +130,9 @@ As the original MBF was limited to run only under MS-DOS, I used its pure port W
 Over time, I got increasingly frustrated that the code would only compile and run on 32-bit systems and still use the meanwhile outdated SDL-1 libraries.
 This is how this project was born.
 
-Many additions and improvements to this source port were taken from fraggle's [Chocolate Doom](https://www.chocolate-doom.org/wiki/index.php/Chocolate_Doom), taking advantage of its exceptional portability, accuracy and compatibility.
+Many additions and improvements to this source port were taken from fraggle's [Chocolate Doom](https://www.chocolate-doom.org/wiki/index.php/Chocolate_Doom), taking advantage of its exceptional portability, accuracy and compatibility. Further sources of inspiration are [PrBoom+](https://github.com/coelckers/prboom-plus), [DSDA-Doom](https://github.com/kraflab/dsda-doom) and [The Eternity Engine](https://github.com/team-eternity/eternity).
 
-Special thanks to @rfomin and @ceski-1 for implementing the more advanced features of this port, and @JNechaevsky and @MrALaux for helping to port back some useful features from their own source port projects!
+Special thanks to @rfomin and @ceski-1 for implementing the more advanced features of this port, and @JNechaevsky and @MrAlaux for helping to port back some useful features from their own source port projects!
 
 # Legalese
 
