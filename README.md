@@ -60,6 +60,11 @@ If you turn the [Doom logo upside down](https://www.reddit.com/r/Doom/comments/8
  * SMMU-style swirling animated flats.
  * Customization of the extended Boom HUD using the [WOOFHUD](https://github.com/fabiangreffrath/woof/blob/master/docs/woofhud.md) lump.
 
+## Usage
+
+ * [Cheat Codes](https://github.com/fabiangreffrath/woof/wiki/Cheats)
+ * [Command Line Parameters](https://github.com/fabiangreffrath/woof/wiki/Command-Line-Parameters)
+
 # Releases
 
 Source code, Windows binaries (MSVC builds for Windows 7 and newer) and Linux AppImages for the latest release can be found on the [Release](https://github.com/fabiangreffrath/woof/releases/latest) page.
