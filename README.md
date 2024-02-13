@@ -34,18 +34,15 @@ If you turn the [Doom logo upside down](https://www.reddit.com/r/Doom/comments/8
 
 # Key features
 
- * Arbitrary resolutions up to native display resolution. Dynamic resolution scaling (DRS) to automatically change the internal resolution to maintain a target framerate.
- * Widescreen rendering with proper support for the widescreen assets.
+ * Arbitrary resolutions up to native display resolution with dynamic resolution scaling (DRS) to automatically change the internal resolution to maintain a target framerate.
+ * Widescreen rendering with proper support for widescreen assets.
  * Rendering with uncapped frame rate and frame interpolation.
  * Adjustable field of view (FOV).
- * Voxels in KVX format.
-
+ * Support for voxels in KVX format.
  * 3D audio, supporting stereo and up to 7.1 surround sound with an optional HRTF mode, as well as PC speaker emulation.
  * Several music backends: native MIDI on Windows and macOS, FluidSynth with a bundled soundfont, built-in OPL3 emulator. Digital music and sound formats supported by libsndfile, module music supported by libxmp.
-
  * Modern gamepad support.
  * Mouselook.
-
  * Autoload directories.
  * Savegame backward compatibility up to `MBF.EXE`.
  * Integration of the Chocolate Doom network code.
@@ -61,7 +58,7 @@ If you turn the [Doom logo upside down](https://www.reddit.com/r/Doom/comments/8
  * UMAPINFO support, compliant to Rev 2.2 of the [spec](https://github.com/kraflab/umapinfo).
  * MBF21 compatibility level, compliant to Rev 1.4 of the [spec](https://github.com/kraflab/mbf21).
  * SMMU-style swirling animated flats.
- * Customization the extended Boom HUD using the [WOOFHUD](https://github.com/fabiangreffrath/woof/blob/master/docs/woofhud.md) lump.
+ * Customization of the extended Boom HUD using the [WOOFHUD](https://github.com/fabiangreffrath/woof/blob/master/docs/woofhud.md) lump.
 
 # Releases
 
