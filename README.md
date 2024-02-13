@@ -146,11 +146,11 @@ Copyright:
  © 2017 Christoph Oelckers;  
  © 2019 Fernando Carmona Varo;  
  © 2020 Alex Mayfield;  
- © 2020-2023 Fabian Greffrath;  
- © 2020-2023 Roman Fomin;  
+ © 2020-2024 Fabian Greffrath;  
+ © 2020-2024 Roman Fomin;  
  © 2021 Ryan Krafnick;  
- © 2022-2023 Alaux;  
- © 2022-2023 ceski;  
+ © 2022-2024 Alaux;  
+ © 2022-2024 ceski;  
  © 2023 Andrew Apted;  
  © 2023 liPillON.  
 License: [GPL-2.0+](https://www.gnu.org/licenses/old-licenses/gpl-2.0.html)
