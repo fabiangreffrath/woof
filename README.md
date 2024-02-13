@@ -83,8 +83,9 @@ It can be cloned via
 
 ## Linux, and Windows with MSYS2
 
-The following libraries need to be installed:
-
+The following build system and libraries need to be installed:
+ 
+ * [CMake](https://cmake.org) (>= 3.9)
  * [SDL2](https://github.com/libsdl-org/SDL/tree/SDL2) (>= 2.0.18)
  * [SDL2_net](https://github.com/libsdl-org/SDL_net)
  * [openal-soft](https://github.com/kcat/openal-soft) (>= 1.22.0 for PC Speaker emulation)
