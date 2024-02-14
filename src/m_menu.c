@@ -149,8 +149,29 @@ backdrop_t menu_backdrop;
 #define M_X_LOADSAVE 80
 #define M_LOADSAVE_WIDTH (24 * 8 + 8) // [FG] c.f. M_DrawSaveLoadBorder()
 
-#define DISABLE_ITEM(condition, item) \
-        ((condition) ? (item.m_flags |= S_DISABLE) : (item.m_flags &= ~S_DISABLE))
+static void DISABLE_ITEM (boolean condition, setup_menu_t *menu, const char *item)
+{
+    while (!(menu->m_flags & S_END))
+    {
+        if (strcasecmp(menu->m_text, item) == 0)
+        {
+            if (condition)
+            {
+                menu->m_flags |= S_DISABLE;
+            }
+            else
+            {
+                menu->m_flags &= ~S_DISABLE;
+            }
+
+            return;
+        }
+
+        menu++;
+    }
+
+    I_Error("Item %s not found in menu", item);
+}
 
 // Final entry
 #define MI_END \
@@ -3071,7 +3092,7 @@ static const char *bobfactor_strings[] = {
 
 static void M_UpdateCenteredWeaponItem(void)
 {
-  DISABLE_ITEM(!cosmetic_bobbing, weap_settings2[weap2_center]);
+  DISABLE_ITEM(!cosmetic_bobbing, weap_settings2, "center_weapon");
 }
 
 setup_menu_t weap_settings1[] =  // Weapons Settings screen
@@ -3302,12 +3323,12 @@ enum {
 
 static void M_UpdateCrosshairItems (void)
 {
-    DISABLE_ITEM(!hud_crosshair, stat_settings3[stat3_xhairhealth]);
-    DISABLE_ITEM(!hud_crosshair, stat_settings3[stat3_xhairtarget]);
-    DISABLE_ITEM(!hud_crosshair, stat_settings3[stat3_xhairlockon]);
-    DISABLE_ITEM(!hud_crosshair, stat_settings3[stat3_xhaircolor]);
+    DISABLE_ITEM(!hud_crosshair, stat_settings3, "hud_crosshair_health");
+    DISABLE_ITEM(!hud_crosshair, stat_settings3, "hud_crosshair_target");
+    DISABLE_ITEM(!hud_crosshair, stat_settings3, "hud_crosshair_lockon");
+    DISABLE_ITEM(!hud_crosshair, stat_settings3, "hud_crosshair_color");
     DISABLE_ITEM(!(hud_crosshair && hud_crosshair_target == crosstarget_highlight),
-        stat_settings3[stat3_xhairtcolor]);
+        stat_settings3, "hud_crosshair_target_color");
 }
 
 static const char *crosshair_target_strings[] = {
@@ -3865,7 +3886,7 @@ static void M_ResetVideoHeight(void)
     }
 
     DISABLE_ITEM(current_video_height <= DRS_MIN_HEIGHT,
-                 gen_settings1[gen1_dynamic_resolution]);
+                 gen_settings1, "dynamic_resolution");
 
     resetneeded = true;
 }
@@ -3912,7 +3933,7 @@ static const char *sound_module_strings[] = {
 
 static void M_UpdateAdvancedSoundItems(void)
 {
-  DISABLE_ITEM(snd_module != SND_MODULE_3D, gen_settings2[gen2_sndhrtf]);
+  DISABLE_ITEM(snd_module != SND_MODULE_3D, gen_settings2, "snd_hrtf");
 }
 
 static void M_SetSoundModule(void)
@@ -3940,7 +3961,7 @@ static void M_SetMidiPlayer(void)
 
 static void M_ToggleUncapped(void)
 {
-  DISABLE_ITEM(!default_uncapped, gen_settings1[gen1_fpslimit]);
+  DISABLE_ITEM(!default_uncapped, gen_settings1, "fpslimit");
   setrefreshneeded = true;
 }
 
