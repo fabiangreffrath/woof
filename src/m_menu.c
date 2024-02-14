@@ -3038,7 +3038,6 @@ enum {           // killough 10/98: enum for y-offset info
 };
 
 enum {
-  weap2_title1,
   weap2_bobbing,
   weap2_hide_weapon,
   weap2_center, // [FG] centered weapon sprite
