@@ -260,6 +260,7 @@ static fixed_t centerxfrac_nonwide;
 static void R_InitTextureMapping(void)
 {
   register int i,x;
+  double angle; // tan angle with offset applied like vanilla R_InitTables().
   fixed_t slopefrac;
   angle_t fov;
 
@@ -270,30 +271,31 @@ static void R_InitTextureMapping(void)
   // Calc focallength
   //  so FIELDOFVIEW angles covers SCREENWIDTH.
 
-  if (custom_fov != FOV_DEFAULT)
+  if (custom_fov == FOV_DEFAULT)
   {
-    const double slope = (tan(custom_fov * M_PI / 360.0) *
-                          centerxfrac / centerxfrac_nonwide);
-    const double angle = atan(slope) + M_PI / FINEANGLES; // finetangent offset.
-    fov = angle * FINEANGLES / M_PI;
-    slopefrac = tan(angle) * FRACUNIT;
-    focallength = FixedDiv(centerxfrac, slopefrac);
-    projection = centerxfrac / slope;
-  }
-  else
-  {
-    fov = FIELDOFVIEW;
-    slopefrac = finetangent[FINEANGLES / 4 + fov / 2];
+    slopefrac = finetangent[FINEANGLES / 4 + FIELDOFVIEW / 2];
     focallength = FixedDiv(centerxfrac_nonwide, slopefrac);
     projection = centerxfrac_nonwide;
 
-    if (centerxfrac != centerxfrac_nonwide)
+    if (centerxfrac == centerxfrac_nonwide)
+    {
+      angle = (FIELDOFVIEW / 2.0 + 0.5) * 2.0 * M_PI / FINEANGLES;
+    }
+    else
     {
       const double slope = (double)centerxfrac / centerxfrac_nonwide;
-      const double angle = atan(slope) + M_PI / FINEANGLES; // finetangent offset.
-      fov = angle * FINEANGLES / M_PI;
+      angle = atan(slope) + M_PI / FINEANGLES;
       slopefrac = tan(angle) * FRACUNIT;
     }
+  }
+  else
+  {
+    const double slope = (tan(custom_fov * M_PI / 360.0) *
+                          centerxfrac / centerxfrac_nonwide);
+    angle = atan(slope) + M_PI / FINEANGLES;
+    slopefrac = tan(angle) * FRACUNIT;
+    focallength = FixedDiv(centerxfrac, slopefrac);
+    projection = centerxfrac / slope;
   }
 
   for (i=0 ; i<FINEANGLES/2 ; i++)
@@ -340,7 +342,8 @@ static void R_InitTextureMapping(void)
         
   clipangle = xtoviewangle[0];
 
-  vx_clipangle = clipangle - ((fov << ANGLETOFINESHIFT) - ANG90);
+  fov = angle * ANGLE_MAX / M_PI;
+  vx_clipangle = clipangle - (fov - ANG90);
 }
 
 //
