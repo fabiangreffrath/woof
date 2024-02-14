@@ -37,6 +37,7 @@ extern int      centerx;
 extern int      centery;
 extern fixed_t  centerxfrac;
 extern fixed_t  centeryfrac;
+extern fixed_t  focallength;
 extern fixed_t  projection;
 extern int      validcount;
 extern int      linecount;

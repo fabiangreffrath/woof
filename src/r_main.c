@@ -48,6 +48,7 @@ int validcount = 1;         // increment every time a check is made
 lighttable_t *fixedcolormap;
 int      centerx, centery;
 fixed_t  centerxfrac, centeryfrac;
+fixed_t  focallength;
 fixed_t  projection;
 fixed_t  viewx, viewy, viewz;
 angle_t  viewangle;
@@ -259,7 +260,7 @@ static fixed_t centerxfrac_nonwide;
 static void R_InitTextureMapping(void)
 {
   register int i,x;
-  fixed_t focallength, slopefrac;
+  fixed_t slopefrac;
   angle_t fov;
 
   // Use tangent table to generate viewangletox:
@@ -273,8 +274,9 @@ static void R_InitTextureMapping(void)
   {
     const double slope = (tan(custom_fov * M_PI / 360.0) *
                           centerxfrac / centerxfrac_nonwide);
-    fov = atan(slope) * FINEANGLES / M_PI;
-    slopefrac = finetangent[FINEANGLES / 4 + fov / 2];
+    const double angle = atan(slope) + M_PI / FINEANGLES; // finetangent offset.
+    fov = angle * FINEANGLES / M_PI;
+    slopefrac = tan(angle) * FRACUNIT;
     focallength = FixedDiv(centerxfrac, slopefrac);
     projection = centerxfrac / slope;
   }
@@ -285,10 +287,12 @@ static void R_InitTextureMapping(void)
     focallength = FixedDiv(centerxfrac_nonwide, slopefrac);
     projection = centerxfrac_nonwide;
 
-    if (widescreen != RATIO_ORIG)
+    if (centerxfrac != centerxfrac_nonwide)
     {
-      fov = atan((double)centerxfrac / centerxfrac_nonwide) * FINEANGLES / M_PI;
-      slopefrac = finetangent[FINEANGLES / 4 + fov / 2];
+      const double slope = (double)centerxfrac / centerxfrac_nonwide;
+      const double angle = atan(slope) + M_PI / FINEANGLES; // finetangent offset.
+      fov = angle * FINEANGLES / M_PI;
+      slopefrac = tan(angle) * FRACUNIT;
     }
   }
 
