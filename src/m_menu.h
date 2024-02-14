@@ -179,6 +179,7 @@ typedef struct setup_menu_s
   void (*action)(void); // killough 10/98: function to call after changing
   int strings_id; // [FG] selection of choices
   mrect_t rect;
+  boolean inited;
 } setup_menu_t;
 
 typedef enum

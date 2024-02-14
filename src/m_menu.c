@@ -149,28 +149,36 @@ backdrop_t menu_backdrop;
 #define M_X_LOADSAVE 80
 #define M_LOADSAVE_WIDTH (24 * 8 + 8) // [FG] c.f. M_DrawSaveLoadBorder()
 
-static void DISABLE_ITEM (boolean condition, setup_menu_t *menu, const char *item)
+static void DISABLE_ITEM (boolean condition, setup_menu_t **menus, const char *item)
 {
-    while (!(menu->m_flags & S_END))
+    setup_menu_t *menu;
+
+    while ((menu = *menus++))
     {
-        if (strcasecmp(menu->m_text, item) == 0)
+        while (!(menu->m_flags & S_END))
         {
-            if (condition)
+            const char *name = !menu->inited ? menu->var.name :
+                                menu->var.def ? menu->var.def->name : NULL;
+
+            if (name && !strcasecmp(name, item))
             {
-                menu->m_flags |= S_DISABLE;
-            }
-            else
-            {
-                menu->m_flags &= ~S_DISABLE;
+                if (condition)
+                {
+                    menu->m_flags |= S_DISABLE;
+                }
+                else
+                {
+                    menu->m_flags &= ~S_DISABLE;
+                }
+
+                return;
             }
 
-            return;
+            menu++;
         }
-
-        menu++;
     }
 
-    I_Error("Item %s not found in menu", item);
+    I_Error("Item \"%s\" not found in menu", item);
 }
 
 // Final entry
@@ -3069,7 +3077,7 @@ static const char *bobfactor_strings[] = {
 
 static void M_UpdateCenteredWeaponItem(void)
 {
-  DISABLE_ITEM(!cosmetic_bobbing, weap_settings2, "center_weapon");
+  DISABLE_ITEM(!cosmetic_bobbing, weap_settings, "center_weapon");
 }
 
 setup_menu_t weap_settings1[] =  // Weapons Settings screen
@@ -3262,12 +3270,12 @@ setup_menu_t stat_settings2[] =
 
 static void M_UpdateCrosshairItems (void)
 {
-    DISABLE_ITEM(!hud_crosshair, stat_settings3, "hud_crosshair_health");
-    DISABLE_ITEM(!hud_crosshair, stat_settings3, "hud_crosshair_target");
-    DISABLE_ITEM(!hud_crosshair, stat_settings3, "hud_crosshair_lockon");
-    DISABLE_ITEM(!hud_crosshair, stat_settings3, "hud_crosshair_color");
+    DISABLE_ITEM(!hud_crosshair, stat_settings, "hud_crosshair_health");
+    DISABLE_ITEM(!hud_crosshair, stat_settings, "hud_crosshair_target");
+    DISABLE_ITEM(!hud_crosshair, stat_settings, "hud_crosshair_lockon");
+    DISABLE_ITEM(!hud_crosshair, stat_settings, "hud_crosshair_color");
     DISABLE_ITEM(!(hud_crosshair && hud_crosshair_target == crosstarget_highlight),
-        stat_settings3, "hud_crosshair_target_color");
+        stat_settings, "hud_crosshair_target_color");
 }
 
 static const char *crosshair_target_strings[] = {
@@ -3746,7 +3754,7 @@ static void M_ResetVideoHeight(void)
     }
 
     DISABLE_ITEM(current_video_height <= DRS_MIN_HEIGHT,
-                 gen_settings1, "dynamic_resolution");
+                 gen_settings, "dynamic_resolution");
 
     resetneeded = true;
 }
@@ -3793,7 +3801,7 @@ static const char *sound_module_strings[] = {
 
 static void M_UpdateAdvancedSoundItems(void)
 {
-  DISABLE_ITEM(snd_module != SND_MODULE_3D, gen_settings2, "snd_hrtf");
+  DISABLE_ITEM(snd_module != SND_MODULE_3D, gen_settings, "snd_hrtf");
 }
 
 static void M_SetSoundModule(void)
@@ -3821,7 +3829,7 @@ static void M_SetMidiPlayer(void)
 
 static void M_ToggleUncapped(void)
 {
-  DISABLE_ITEM(!default_uncapped, gen_settings1, "fpslimit");
+  DISABLE_ITEM(!default_uncapped, gen_settings, "fpslimit");
   setrefreshneeded = true;
 }
 
@@ -4022,7 +4030,7 @@ static const char *menu_backdrop_strings[] = {
 
 void M_DisableVoxelsRenderingItem(void)
 {
-    DISABLE_ITEM(true, gen_settings5, "voxels_rendering");
+    DISABLE_ITEM(true, gen_settings, "voxels_rendering");
 }
 
 #define CNTR_X 162
@@ -4357,7 +4365,10 @@ static void M_InitDefaults(void)
 	  if (!(dp = M_LookupDefault(t->var.name)))
 	    I_Error("Could not find config variable \"%s\"", t->var.name);
 	  else
+	  {
 	    (t->var.def = dp)->setup_menu = t;
+	    t->inited = true;
+	  }
 	}
 }
 
@@ -6951,12 +6962,12 @@ void M_ResetSetupMenu(void)
 {
   extern boolean deh_set_blood_color;
 
-  DISABLE_ITEM(M_ParmExists("-strict"), comp_settings1, "strictmode");
-  DISABLE_ITEM(force_complevel, comp_settings1, "default_complevel");
-  DISABLE_ITEM(M_ParmExists("-pistolstart"), comp_settings1, "pistolstart");
-  DISABLE_ITEM(M_ParmExists("-uncapped") || M_ParmExists("-nouncapped"), gen_settings1, "uncapped");
-  DISABLE_ITEM(deh_set_blood_color, enem_settings1, "colored_blood");
-  DISABLE_ITEM(!brightmaps_found || force_brightmaps, gen_settings5, "brightmaps");
+  DISABLE_ITEM(M_ParmExists("-strict"), comp_settings, "strictmode");
+  DISABLE_ITEM(force_complevel, comp_settings, "default_complevel");
+  DISABLE_ITEM(M_ParmExists("-pistolstart"), comp_settings, "pistolstart");
+  DISABLE_ITEM(M_ParmExists("-uncapped") || M_ParmExists("-nouncapped"), gen_settings, "uncapped");
+  DISABLE_ITEM(deh_set_blood_color, enem_settings, "colored_blood");
+  DISABLE_ITEM(!brightmaps_found || force_brightmaps, gen_settings, "brightmaps");
 
   M_CoerceFPSLimit();
   M_UpdateCrosshairItems();
