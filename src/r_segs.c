@@ -157,7 +157,7 @@ void R_RenderMaskedSegRange(drawseg_t *ds, int x1, int x2)
       {
         if (!fixedcolormap)      // calculate lighting
           {                             // killough 11/98:
-            unsigned index = FixedDiv(spryscale, video.xscale) >> LIGHTSCALESHIFT;
+            unsigned index = FixedDiv(spryscale * 160, projection) >> LIGHTSCALESHIFT;
 
             if (index >=  MAXLIGHTSCALE )
               index = MAXLIGHTSCALE-1;
@@ -378,7 +378,7 @@ static void R_RenderSegLoop (void)
           texturecolumn >>= FRACBITS;
 
           // calculate lighting
-          index = FixedDiv(rw_scale * 160, projection) >> LIGHTSCALESHIFT;  // killough 11/98
+          index = FixedDiv(rw_scale * 160, projection) >> LIGHTSCALESHIFT;
 
           if (index >=  MAXLIGHTSCALE )
             index = MAXLIGHTSCALE-1;
