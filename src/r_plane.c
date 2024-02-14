@@ -447,7 +447,7 @@ static void do_draw_plane(visplane_t *pl)
 	  dc_colormap[0] = dc_colormap[1] = fullcolormap;          // killough 3/20/98
 
         dc_texheight = textureheight[texture]>>FRACBITS; // killough
-        dc_iscale = pspriteiscale;
+        dc_iscale = skyiscale;
 
         // [FG] stretch short skies
         if (stretchsky && dc_texheight < 200)

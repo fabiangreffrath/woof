@@ -50,6 +50,7 @@ int      centerx, centery;
 fixed_t  centerxfrac, centeryfrac;
 fixed_t  focallength;
 fixed_t  projection;
+fixed_t  skyiscale;
 fixed_t  viewx, viewy, viewz;
 angle_t  viewangle;
 localview_t localview;
@@ -586,6 +587,8 @@ void R_ExecuteSetViewSize (void)
   // psprite scales
   pspritescale = FixedDiv(viewwidth_nonwide, SCREENWIDTH);       // killough 11/98
   pspriteiscale = FixedDiv(SCREENWIDTH, viewwidth_nonwide) + 1;  // killough 11/98
+
+  skyiscale = FixedDiv(160 << FRACBITS, focallength);
 
   for (i=0 ; i<viewwidth ; i++)
     {

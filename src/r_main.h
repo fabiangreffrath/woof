@@ -39,6 +39,7 @@ extern fixed_t  centerxfrac;
 extern fixed_t  centeryfrac;
 extern fixed_t  focallength;
 extern fixed_t  projection;
+extern fixed_t  skyiscale;
 extern int      validcount;
 extern int      linecount;
 extern int      loopcount;
