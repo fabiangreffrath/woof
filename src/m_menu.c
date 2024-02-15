@@ -3283,7 +3283,7 @@ setup_menu_t stat_settings2[] =
 
   {"Use Doom Font", S_CHOICE, m_null, M_X, M_SPC,
    {"hud_widget_font"}, 0, NULL, str_show_widgets},
-  {"Widescreen", S_YESNO, m_null, M_X, M_SPC,
+  {"Widescreen Alignment", S_YESNO, m_null, M_X, M_SPC,
    {"hud_widescreen_widgets"}, 0, HU_Start},
   {"Vertical Layout", S_YESNO, m_null, M_X, M_SPC,
    {"hud_widget_layout"}, 0, HU_Start},
