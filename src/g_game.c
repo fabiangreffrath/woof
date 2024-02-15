@@ -3370,8 +3370,6 @@ void G_ReloadDefaults(boolean keep_demover)
     allow_pushers = 1;
     classic_bfg = 0;
   }
-
-  M_ResetSetupMenu();
 }
 
 void G_DoNewGame (void)
