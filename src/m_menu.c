@@ -4360,10 +4360,7 @@ static void M_InitDefaults(void)
 	  if (!(dp = M_LookupDefault(t->var.name)))
 	    I_Error("Could not find config variable \"%s\"", t->var.name);
 	  else
-	  {
 	    (t->var.def = dp)->setup_menu = t;
-	    t->inited = true;
-	  }
 	}
 }
 
