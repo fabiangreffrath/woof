@@ -1528,11 +1528,7 @@ void HU_Erase(void)
   w = doom_widget;
   while (w->multiline)
   {
-    if (*w->multiline->on ||
-        w->multiline == &w_message) // always clear message widget
-    {
-      HUlib_erase_widget(w);
-    }
+    HUlib_erase_widget(w);
     w++;
   }
 
