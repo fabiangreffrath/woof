@@ -50,6 +50,7 @@ int      centerx, centery;
 fixed_t  centerxfrac, centeryfrac;
 fixed_t  focallength;
 fixed_t  projection;
+fixed_t  skyiscale;
 fixed_t  viewx, viewy, viewz;
 angle_t  viewangle;
 localview_t localview;
@@ -260,8 +261,10 @@ static fixed_t centerxfrac_nonwide;
 static void R_InitTextureMapping(void)
 {
   register int i,x;
+  double angle; // tan angle with offset applied like vanilla R_InitTables().
   fixed_t slopefrac;
   angle_t fov;
+  double slopebam;
 
   // Use tangent table to generate viewangletox:
   //  viewangletox will give the next greatest x
@@ -270,30 +273,31 @@ static void R_InitTextureMapping(void)
   // Calc focallength
   //  so FIELDOFVIEW angles covers SCREENWIDTH.
 
-  if (custom_fov != FOV_DEFAULT)
+  if (custom_fov == FOV_DEFAULT)
   {
-    const double slope = (tan(custom_fov * M_PI / 360.0) *
-                          centerxfrac / centerxfrac_nonwide);
-    const double angle = atan(slope) + M_PI / FINEANGLES; // finetangent offset.
-    fov = angle * FINEANGLES / M_PI;
-    slopefrac = tan(angle) * FRACUNIT;
-    focallength = FixedDiv(centerxfrac, slopefrac);
-    projection = centerxfrac / slope;
-  }
-  else
-  {
-    fov = FIELDOFVIEW;
-    slopefrac = finetangent[FINEANGLES / 4 + fov / 2];
+    slopefrac = finetangent[FINEANGLES / 4 + FIELDOFVIEW / 2];
     focallength = FixedDiv(centerxfrac_nonwide, slopefrac);
     projection = centerxfrac_nonwide;
 
-    if (centerxfrac != centerxfrac_nonwide)
+    if (centerxfrac == centerxfrac_nonwide)
+    {
+      angle = (FIELDOFVIEW / 2.0 + 0.5) * 2.0 * M_PI / FINEANGLES;
+    }
+    else
     {
       const double slope = (double)centerxfrac / centerxfrac_nonwide;
-      const double angle = atan(slope) + M_PI / FINEANGLES; // finetangent offset.
-      fov = angle * FINEANGLES / M_PI;
+      angle = atan(slope) + M_PI / FINEANGLES;
       slopefrac = tan(angle) * FRACUNIT;
     }
+  }
+  else
+  {
+    const double slope = (tan(custom_fov * M_PI / 360.0) *
+                          centerxfrac / centerxfrac_nonwide);
+    angle = atan(slope) + M_PI / FINEANGLES;
+    slopefrac = tan(angle) * FRACUNIT;
+    focallength = FixedDiv(centerxfrac, slopefrac);
+    projection = centerxfrac / slope;
   }
 
   for (i=0 ; i<FINEANGLES/2 ; i++)
@@ -321,13 +325,15 @@ static void R_InitTextureMapping(void)
   //  xtoviewangle will give the smallest view angle
   //  that maps to x.
 
+  slopebam = tan(angle) * ANG90;
+
   for (x=0; x<=viewwidth; x++)
     {
       for (i=0; viewangletox[i] > x; i++)
         ;
       xtoviewangle[x] = (i<<ANGLETOFINESHIFT)-ANG90;
       // [FG] linear horizontal sky scrolling
-      linearskyangle[x] = ((viewwidth/2-x)*((video.unscaledw<<FRACBITS)/viewwidth))*(ANG90/(NONWIDEWIDTH<<FRACBITS));
+      linearskyangle[x] = (0.5 - x / (double)viewwidth) * slopebam;
     }
     
   // Take out the fencepost cases from viewangletox.
@@ -340,7 +346,8 @@ static void R_InitTextureMapping(void)
         
   clipangle = xtoviewangle[0];
 
-  vx_clipangle = clipangle - ((fov << ANGLETOFINESHIFT) - ANG90);
+  fov = angle * ANGLE_MAX / M_PI;
+  vx_clipangle = clipangle - (fov - ANG90);
 }
 
 //
@@ -580,6 +587,8 @@ void R_ExecuteSetViewSize (void)
   // psprite scales
   pspritescale = FixedDiv(viewwidth_nonwide, SCREENWIDTH);       // killough 11/98
   pspriteiscale = FixedDiv(SCREENWIDTH, viewwidth_nonwide) + 1;  // killough 11/98
+
+  skyiscale = FixedDiv(160 << FRACBITS, focallength);
 
   for (i=0 ; i<viewwidth ; i++)
     {
