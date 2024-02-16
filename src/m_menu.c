@@ -5935,12 +5935,41 @@ static boolean M_MenuMouseResponder(void)
         return true;
     }
 
-    static boolean active_thermo = false;
+    static setup_menu_t *active_thermo = NULL;
+
+    if (M_InputDeactivated(input_menu_enter) && active_thermo)
+    {
+        int flags = active_thermo->m_flags;
+        default_t *def = active_thermo->var.def;
+
+        if (flags & S_ACTION)
+        {
+            if (flags & (S_LEVWARN | S_PRGWARN))
+            {
+                warn_about_changes(flags);
+            }
+            else if (def->current)
+            {
+                def->current->i = def->location->i;
+            }
+
+            if (active_thermo->action)
+            {
+                active_thermo->action();
+            }
+        }
+        active_thermo = NULL;
+    }
 
     setup_menu_t *current_item = current_setup_menu + set_menu_itemon;
     int flags = current_item->m_flags;
     default_t *def = current_item->var.def;
     mrect_t *rect = &current_item->rect;
+
+    if (ItemDisabled(flags))
+    {
+        return false;
+    }
 
     if (M_InputActivated(input_menu_enter)
         && !M_PointInsideRect(rect, mouse_state_x, mouse_state_y))
@@ -5948,37 +5977,16 @@ static boolean M_MenuMouseResponder(void)
         return true; // eat event
     }
 
-    if (ItemDisabled(flags))
-    {
-        return false;
-    }
-
     if (flags & S_THERMO)
     {
+        if (active_thermo && active_thermo != current_item)
+        {
+            active_thermo = NULL;
+        }
+
         if (M_InputActivated(input_menu_enter))
         {
-            active_thermo = true;
-        }
-        else if (M_InputDeactivated(input_menu_enter))
-        {
-            active_thermo = false;
-
-            if (flags & S_ACTION)
-            {
-                if (flags & (S_LEVWARN | S_PRGWARN))
-                {
-                    warn_about_changes(flags);
-                }
-                else if (def->current)
-                {
-                    def->current->i = def->location->i;
-                }
-
-                if (current_item->action)
-                {
-                    current_item->action();
-                }
-            }
+            active_thermo = current_item;
         }
     }
 
@@ -5991,7 +5999,7 @@ static boolean M_MenuMouseResponder(void)
 
         if (max == UL)
         {
-            const char **strings = GetStrings(current_item->strings_id);
+            const char **strings = GetStrings(active_thermo->strings_id);
             if (strings)
                 max = array_size(strings) - 1;
             else
@@ -6006,9 +6014,9 @@ static boolean M_MenuMouseResponder(void)
         {
             def->location->i = value;
 
-            if (!(flags & S_ACTION) && current_item->action)
+            if (!(flags & S_ACTION) && active_thermo->action)
             {
-                current_item->action();
+                active_thermo->action();
             }
             S_StartSound(NULL, sfx_stnmov);
         }
@@ -6017,12 +6025,6 @@ static boolean M_MenuMouseResponder(void)
 
     if (!M_InputActivated(input_menu_enter))
     {
-        return false;
-    }
-
-    if (ItemDisabled(flags))
-    {
-        S_StartSound(NULL, sfx_oof);
         return false;
     }
 
