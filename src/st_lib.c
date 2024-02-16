@@ -27,7 +27,7 @@
 #include "r_main.h"
 #include "m_swap.h"
 
-int sts_always_red;      //jff 2/18/98 control to disable status color changes
+int sts_colored_numbers; //jff 2/18/98 control to disable status color changes
 int sts_pct_always_gray; // killough 2/21/98: always gray %'s? bug or feature?
 
 extern boolean st_crispyhud;
@@ -120,7 +120,7 @@ static void STlib_drawNum
   // in the special case of 0, you draw 0
   if (!num)
   {
-    if (outrng && !sts_always_red)
+    if (outrng && sts_colored_numbers)
       V_DrawPatchTranslated(x - w, n->y, n->p[ 0 ],outrng);
     else //jff 2/18/98 allow use of faster draw routine from config
       V_DrawPatch(x - w, n->y, n->p[ 0 ]);
@@ -131,7 +131,7 @@ static void STlib_drawNum
   while (num && numdigits--)
   {
     x -= w;
-    if (outrng && !sts_always_red)
+    if (outrng && sts_colored_numbers)
       V_DrawPatchTranslated(x, n->y, n->p[ num % 10 ],outrng);
     else //jff 2/18/98 allow use of faster draw routine from config
       V_DrawPatch(x, n->y, n->p[ num % 10 ]);
@@ -143,7 +143,7 @@ static void STlib_drawNum
   if (neg && sttminus)
   {
     w = SHORT(sttminus->width);
-    if (outrng && !sts_always_red)
+    if (outrng && sts_colored_numbers)
       V_DrawPatchTranslated(x - w, n->y, sttminus,outrng);
     else //jff 2/18/98 allow use of faster draw routine from config
       V_DrawPatch(x - w, n->y, sttminus);
@@ -211,7 +211,7 @@ void STlib_updatePercent
       per->p,
       // [FG] fix always gray percent / always red mismatch
       sts_pct_always_gray ? cr_gray :
-      sts_always_red ? NULL :
+      !sts_colored_numbers ? NULL :
       outrng
     );
   }

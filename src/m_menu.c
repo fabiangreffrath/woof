@@ -235,7 +235,7 @@ extern int armor_yellow;  // armor amount less than which status is yellow
 extern int armor_green;   // armor amount above is blue, below is green
 extern int ammo_red;      // ammo percent less than which status is red
 extern int ammo_yellow;   // ammo percent less is yellow more green
-extern int sts_always_red;// status numbers do not change colors
+extern int sts_colored_numbers;// status numbers do not change colors
 extern int sts_pct_always_gray;// status percents do not change colors
 extern int sts_traditional_keys;  // display keys the traditional way
 
@@ -3193,7 +3193,7 @@ static setup_tab_t stat_tabs[] =
 
 enum {
   stat1_title1,
-  stat1_rednum,
+  stat1_colornum,
   stat1_graypcnt,
   stat1_solid,
   stat1_stub1,
@@ -3223,8 +3223,7 @@ static void M_UpdateHUDModeStrings(void);
 setup_menu_t stat_settings1[] =  // Status Bar and HUD Settings screen
 {
   {"Status Bar", S_SKIP|S_TITLE, m_null, M_X, M_Y},
-
-  {"Standard Colors", S_YESNO|S_COSMETIC, m_null, M_X, M_SPC, {"sts_always_red"}},
+  {"Colored Numbers", S_YESNO|S_COSMETIC, m_null, M_X, M_SPC, {"sts_colored_numbers"}},
   {"Gray Percent Sign", S_YESNO|S_COSMETIC, m_null, M_X, M_SPC, {"sts_pct_always_gray"}},
   {"Solid Background Color", S_YESNO, m_null, M_X, M_SPC, {"st_solidbackground"}},
 
