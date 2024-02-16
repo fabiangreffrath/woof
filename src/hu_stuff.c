@@ -1562,7 +1562,6 @@ void HU_Ticker(void)
   boom_widget = boom_widgets[hud_active];
   plr = &players[displayplayer];         // killough 3/7/98
 
-  HU_Erase();
   HU_disable_all_widgets();
   draw_crispy_hud = false;
 
