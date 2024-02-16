@@ -396,7 +396,7 @@ static void V_DrawPatchColumnTRTR(const patch_column_t *patchcol)
 static void V_DrawMaskedColumn(patch_column_t *patchcol, const int ytop,
                                column_t *column)
 {
-    while (column->topdelta != 0xff)
+    for (; column->topdelta != 0xff; column = (column_t *)((byte *)column + column->length + 4))
     {
         // calculate unclipped screen coordinates for post
         int columntop = ytop + column->topdelta;
@@ -437,8 +437,6 @@ static void V_DrawMaskedColumn(patch_column_t *patchcol, const int ytop,
             patchcol->source = (byte *)column + 3;
             drawcolfunc(patchcol);
         }
-
-        column = (column_t *)((byte *)column + column->length + 4);
     }
 }
 
