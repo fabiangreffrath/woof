@@ -3210,7 +3210,6 @@ enum {
   stat1_type,
   stat1_mode,
   stat1_stub3,
-  stat1_title3,
   stat1_backpack,
   stat1_armortype,
   stat1_smooth,
@@ -3269,7 +3268,7 @@ static const char *screensize_strings[] = {
 };
 
 static const char *hudtype_strings[] = {
-    "Crispy", "No Bars", "Boom"
+    "Crispy", "Boom No Bars", "Boom"
 };
 
 static const char **M_GetHUDModeStrings(void)
@@ -3281,31 +3280,32 @@ static const char **M_GetHUDModeStrings(void)
 
 static void M_UpdateHUDModeStrings(void);
 
+#define H_X_THRM8 (M_X_THRM8 - 14)
+#define H_X (M_X - 14)
+
 setup_menu_t stat_settings1[] =  // Status Bar and HUD Settings screen
 {
-  {"Screen Size", S_THERMO, m_null, M_X_THRM8, M_Y, {"screenblocks"}, 0, M_SizeDisplayAlt, str_screensize},
+  {"Screen Size", S_THERMO, m_null, H_X_THRM8, M_Y, {"screenblocks"}, 0, M_SizeDisplayAlt, str_screensize},
 
-  {"", S_SKIP, m_null, M_X, M_THRM_SPC},
+  {"", S_SKIP, m_null, H_X, M_THRM_SPC},
 
-  {"Status Bar", S_SKIP|S_TITLE, m_null, M_X, M_SPC},
-  {"Colored Numbers", S_YESNO|S_COSMETIC, m_null, M_X, M_SPC, {"sts_colored_numbers"}, 0, M_UpdateHUDAppearanceItems},
-  {"Gray Percent Sign", S_YESNO|S_COSMETIC, m_null, M_X, M_SPC, {"sts_pct_always_gray"}},
-  {"Solid Background Color", S_YESNO, m_null, M_X, M_SPC, {"st_solidbackground"}},
+  {"Status Bar", S_SKIP|S_TITLE, m_null, H_X, M_SPC},
+  {"Colored Numbers", S_YESNO|S_COSMETIC, m_null, H_X, M_SPC, {"sts_colored_numbers"}, 0, M_UpdateHUDAppearanceItems},
+  {"Gray Percent Sign", S_YESNO|S_COSMETIC, m_null, H_X, M_SPC, {"sts_pct_always_gray"}},
+  {"Solid Background Color", S_YESNO, m_null, H_X, M_SPC, {"st_solidbackground"}},
 
-  {"", S_SKIP, m_null, M_X, M_SPC},
+  {"", S_SKIP, m_null, H_X, M_SPC},
 
-  {"Fullscreen HUD", S_SKIP|S_TITLE, m_null, M_X, M_SPC},
-  {"HUD Type", S_CHOICE, m_null, M_X, M_SPC, {"hud_type"}, 0, M_UpdateHUDModeStrings, str_hudtype},
-  {"HUD Mode", S_CHOICE, m_null, M_X, M_SPC, {"hud_active"}, 0, NULL, str_hudmode},
+  {"Fullscreen HUD", S_SKIP|S_TITLE, m_null, H_X, M_SPC},
+  {"HUD Type", S_CHOICE, m_null, H_X, M_SPC, {"hud_type"}, 0, M_UpdateHUDModeStrings, str_hudtype},
+  {"HUD Mode", S_CHOICE, m_null, H_X, M_SPC, {"hud_active"}, 0, NULL, str_hudmode},
 
-  {"", S_SKIP, m_null, M_X, M_SPC},
+  {"", S_SKIP, m_null, H_X, M_SPC},
 
-  {"HUD Appearance", S_SKIP|S_TITLE, m_null, M_X, M_SPC},
-
-  {"Backpack Shifts Ammo Color", S_YESNO, m_null, M_X, M_SPC, {"hud_backpack_thresholds"}},
-  {"Armor Color Matches Type", S_YESNO, m_null, M_X, M_SPC, {"hud_armor_type"}},
-  {"Animated Health/Armor Count", S_YESNO, m_null, M_X, M_SPC, {"hud_animated_counts"}},
-  {"Blink Missing Keys", S_YESNO, m_null, M_X, M_SPC, {"hud_blink_keys"}},
+  {"Backpack Shifts Ammo Color", S_YESNO, m_null, H_X, M_SPC, {"hud_backpack_thresholds"}},
+  {"Armor Color Matches Type", S_YESNO, m_null, H_X, M_SPC, {"hud_armor_type"}},
+  {"Animated Health/Armor Count", S_YESNO, m_null, H_X, M_SPC, {"hud_animated_counts"}},
+  {"Blink Missing Keys", S_YESNO, m_null, H_X, M_SPC, {"hud_blink_keys"}},
 
   MI_RESET,
 
