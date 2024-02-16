@@ -1533,6 +1533,8 @@ static void M_ChangeMessages(int choice)
 // hud_displayed is toggled by + or = in fullscreen
 // hud_displayed is cleared by -
 
+static void M_UpdateHUDItems(void);
+
 static void M_SizeDisplay(int choice)
 {
   switch(choice)
@@ -1559,6 +1561,7 @@ static void M_SizeDisplay(int choice)
       break;
     }
   R_SetViewSize (screenblocks /*, detailLevel obsolete -- killough */);
+  M_UpdateHUDItems();
 }
 
 //
@@ -3207,6 +3210,29 @@ enum {
   stat1_smooth,
 };
 
+static void M_UpdateHUDAppearanceItems(void)
+{
+    const boolean prefer_red = (screenblocks != 11 && !sts_colored_numbers);
+
+    DISABLE_ITEM(prefer_red, stat_settings1[stat1_backpack]);
+    DISABLE_ITEM(prefer_red, stat_settings1[stat1_armortype]);
+}
+
+static void M_UpdateHUDItems(void)
+{
+    const boolean full_hud = (screenblocks == 11);
+
+    DISABLE_ITEM(full_hud, stat_settings1[stat1_title1]);
+    DISABLE_ITEM(full_hud, stat_settings1[stat1_colornum]);
+    DISABLE_ITEM(full_hud, stat_settings1[stat1_graypcnt]);
+    DISABLE_ITEM(full_hud, stat_settings1[stat1_solid]);
+    DISABLE_ITEM(!full_hud, stat_settings1[stat1_title2]);
+    DISABLE_ITEM(!full_hud, stat_settings1[stat1_type]);
+    DISABLE_ITEM(!full_hud, stat_settings1[stat1_mode]);
+
+    M_UpdateHUDAppearanceItems();
+}
+
 static const char *hudtype_strings[] = {
     "Crispy", "No Bars", "Boom"
 };
@@ -3223,7 +3249,7 @@ static void M_UpdateHUDModeStrings(void);
 setup_menu_t stat_settings1[] =  // Status Bar and HUD Settings screen
 {
   {"Status Bar", S_SKIP|S_TITLE, m_null, M_X, M_Y},
-  {"Colored Numbers", S_YESNO|S_COSMETIC, m_null, M_X, M_SPC, {"sts_colored_numbers"}},
+  {"Colored Numbers", S_YESNO|S_COSMETIC, m_null, M_X, M_SPC, {"sts_colored_numbers"}, 0, M_UpdateHUDAppearanceItems},
   {"Gray Percent Sign", S_YESNO|S_COSMETIC, m_null, M_X, M_SPC, {"sts_pct_always_gray"}},
   {"Solid Background Color", S_YESNO, m_null, M_X, M_SPC, {"st_solidbackground"}},
 
@@ -7158,6 +7184,7 @@ void M_ResetSetupMenu(void)
   M_UpdateCrosshairItems();
   M_UpdateCenteredWeaponItem();
   M_UpdateAdvancedSoundItems();
+  M_UpdateHUDItems();
 }
 
 void M_ResetSetupMenuVideo(void)
