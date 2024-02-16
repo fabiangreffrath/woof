@@ -86,6 +86,8 @@ int traditional_menu;
 //int     detailLevel;    obsolete -- killough
 int screenblocks;    // has default
 
+static int saved_screenblocks;
+
 static int screenSize;      // temp for screenblocks (0-9)
 
 static int quickSaveSlot;   // -1 = no quicksave slot picked!
@@ -235,7 +237,7 @@ extern int armor_yellow;  // armor amount less than which status is yellow
 extern int armor_green;   // armor amount above is blue, below is green
 extern int ammo_red;      // ammo percent less than which status is red
 extern int ammo_yellow;   // ammo percent less is yellow more green
-extern int sts_always_red;// status numbers do not change colors
+extern int sts_colored_numbers;// status numbers do not change colors
 extern int sts_pct_always_gray;// status percents do not change colors
 extern int sts_traditional_keys;  // display keys the traditional way
 
@@ -1533,6 +1535,8 @@ static void M_ChangeMessages(int choice)
 // hud_displayed is toggled by + or = in fullscreen
 // hud_displayed is cleared by -
 
+static void M_UpdateHUDItems(void);
+
 static void M_SizeDisplay(int choice)
 {
   switch(choice)
@@ -1559,6 +1563,8 @@ static void M_SizeDisplay(int choice)
       break;
     }
   R_SetViewSize (screenblocks /*, detailLevel obsolete -- killough */);
+  M_UpdateHUDItems();
+  saved_screenblocks = screenblocks;
 }
 
 //
@@ -1931,6 +1937,7 @@ enum
     str_curve,
     str_center_weapon,
     str_bobfactor,
+    str_screensize,
     str_hudtype,
     str_hudmode,
     str_show_widgets,
@@ -3192,23 +3199,76 @@ static setup_tab_t stat_tabs[] =
 };
 
 enum {
+  stat1_screensize,
+  stat1_stub1,
   stat1_title1,
-  stat1_rednum,
+  stat1_colornum,
   stat1_graypcnt,
   stat1_solid,
-  stat1_stub1,
+  stat1_stub2,
   stat1_title2,
   stat1_type,
   stat1_mode,
-  stat1_stub2,
-  stat1_title3,
+  stat1_stub3,
   stat1_backpack,
   stat1_armortype,
   stat1_smooth,
 };
 
+static void M_UpdateHUDAppearanceItems(void)
+{
+    const boolean prefer_red = (screenblocks != 11 && !sts_colored_numbers);
+
+    DISABLE_ITEM(prefer_red, stat_settings1[stat1_backpack]);
+    DISABLE_ITEM(prefer_red, stat_settings1[stat1_armortype]);
+}
+
+static void M_UpdateHUDItems(void)
+{
+    const boolean full_hud = (screenblocks == 11);
+
+    DISABLE_ITEM(full_hud, stat_settings1[stat1_title1]);
+    DISABLE_ITEM(full_hud, stat_settings1[stat1_colornum]);
+    DISABLE_ITEM(full_hud, stat_settings1[stat1_graypcnt]);
+    DISABLE_ITEM(full_hud, stat_settings1[stat1_solid]);
+    DISABLE_ITEM(!full_hud, stat_settings1[stat1_title2]);
+    DISABLE_ITEM(!full_hud, stat_settings1[stat1_type]);
+    DISABLE_ITEM(!full_hud, stat_settings1[stat1_mode]);
+
+    M_UpdateHUDAppearanceItems();
+}
+
+static void M_SizeDisplayAlt(void)
+{
+    boolean choice = -1;
+
+    if (screenblocks > saved_screenblocks)
+    {
+        choice = 1;
+    }
+    else if (screenblocks < saved_screenblocks)
+    {
+        choice = 0;
+    }
+
+    screenblocks = saved_screenblocks;
+
+    if (choice != -1)
+    {
+        M_SizeDisplay(choice);
+    }
+
+    hud_displayed = (screenblocks == 11);
+    M_UpdateHUDItems();
+}
+
+static const char *screensize_strings[] = {
+    "", "", "", "Status Bar", "Status Bar", "Status Bar", "Status Bar",
+    "Status Bar", "Status Bar", "Status Bar", "Status Bar", "Fullscreen"
+};
+
 static const char *hudtype_strings[] = {
-    "Crispy", "No Bars", "Boom"
+    "Crispy", "Boom No Bars", "Boom"
 };
 
 static const char **M_GetHUDModeStrings(void)
@@ -3220,28 +3280,32 @@ static const char **M_GetHUDModeStrings(void)
 
 static void M_UpdateHUDModeStrings(void);
 
+#define H_X_THRM8 (M_X_THRM8 - 14)
+#define H_X (M_X - 14)
+
 setup_menu_t stat_settings1[] =  // Status Bar and HUD Settings screen
 {
-  {"Status Bar", S_SKIP|S_TITLE, m_null, M_X, M_Y},
+  {"Screen Size", S_THERMO, m_null, H_X_THRM8, M_Y, {"screenblocks"}, 0, M_SizeDisplayAlt, str_screensize},
 
-  {"Standard Colors", S_YESNO|S_COSMETIC, m_null, M_X, M_SPC, {"sts_always_red"}},
-  {"Gray Percent Sign", S_YESNO|S_COSMETIC, m_null, M_X, M_SPC, {"sts_pct_always_gray"}},
-  {"Solid Background Color", S_YESNO, m_null, M_X, M_SPC, {"st_solidbackground"}},
+  {"", S_SKIP, m_null, H_X, M_THRM_SPC},
 
-  {"", S_SKIP, m_null, M_X, M_SPC},
+  {"Status Bar", S_SKIP|S_TITLE, m_null, H_X, M_SPC},
+  {"Colored Numbers", S_YESNO|S_COSMETIC, m_null, H_X, M_SPC, {"sts_colored_numbers"}, 0, M_UpdateHUDAppearanceItems},
+  {"Gray Percent Sign", S_YESNO|S_COSMETIC, m_null, H_X, M_SPC, {"sts_pct_always_gray"}},
+  {"Solid Background Color", S_YESNO, m_null, H_X, M_SPC, {"st_solidbackground"}},
 
-  {"Fullscreen HUD", S_SKIP|S_TITLE, m_null, M_X, M_SPC},
-  {"HUD Type", S_CHOICE, m_null, M_X, M_SPC, {"hud_type"}, 0, M_UpdateHUDModeStrings, str_hudtype},
-  {"HUD Mode", S_CHOICE, m_null, M_X, M_SPC, {"hud_active"}, 0, NULL, str_hudmode},
+  {"", S_SKIP, m_null, H_X, M_SPC},
 
-  {"", S_SKIP, m_null, M_X, M_SPC},
+  {"Fullscreen HUD", S_SKIP|S_TITLE, m_null, H_X, M_SPC},
+  {"HUD Type", S_CHOICE, m_null, H_X, M_SPC, {"hud_type"}, 0, M_UpdateHUDModeStrings, str_hudtype},
+  {"HUD Mode", S_CHOICE, m_null, H_X, M_SPC, {"hud_active"}, 0, NULL, str_hudmode},
 
-  {"HUD Appearance", S_SKIP|S_TITLE, m_null, M_X, M_SPC},
+  {"", S_SKIP, m_null, H_X, M_SPC},
 
-  {"Backpack Shifts Ammo Color", S_YESNO, m_null, M_X, M_SPC, {"hud_backpack_thresholds"}},
-  {"Armor Color Matches Type", S_YESNO, m_null, M_X, M_SPC, {"hud_armor_type"}},
-  {"Animated Health/Armor Count", S_YESNO, m_null, M_X, M_SPC, {"hud_animated_counts"}},
-  {"Blink Missing Keys", S_YESNO, m_null, M_X, M_SPC, {"hud_blink_keys"}},
+  {"Backpack Shifts Ammo Color", S_YESNO, m_null, H_X, M_SPC, {"hud_backpack_thresholds"}},
+  {"Armor Color Matches Type", S_YESNO, m_null, H_X, M_SPC, {"hud_armor_type"}},
+  {"Animated Health/Armor Count", S_YESNO, m_null, H_X, M_SPC, {"hud_animated_counts"}},
+  {"Blink Missing Keys", S_YESNO, m_null, H_X, M_SPC, {"hud_blink_keys"}},
 
   MI_RESET,
 
@@ -5076,6 +5140,7 @@ static boolean M_ShortcutResponder(void)
             hud_displayed = 1;               //jff 3/3/98 turn hud on
             hud_active = (hud_active + 1) % 3; // cycle hud_active
             HU_disable_all_widgets();
+            M_UpdateHUDItems();
         }
         return true;
     }
@@ -6961,6 +7026,7 @@ static const char **selectstrings[] = {
     curve_strings,
     center_weapon_strings,
     bobfactor_strings,
+    screensize_strings,
     hudtype_strings,
     NULL, // str_hudmode
     show_widgets_strings,
@@ -7016,6 +7082,7 @@ void M_Init(void)
   itemOn = currentMenu->lastOn;
   whichSkull = 0;
   skullAnimCounter = 10;
+  saved_screenblocks = screenblocks;
   screenSize = screenblocks - 3;
   messageToPrint = 0;
   messageString = NULL;
@@ -7161,6 +7228,7 @@ void M_ResetSetupMenu(void)
   M_UpdateCrosshairItems();
   M_UpdateCenteredWeaponItem();
   M_UpdateAdvancedSoundItems();
+  M_UpdateHUDItems();
 }
 
 void M_ResetSetupMenuVideo(void)

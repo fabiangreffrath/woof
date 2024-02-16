@@ -2581,10 +2581,10 @@ default_t defaults[] = {
   //
 
   { // no color changes on status bar
-    "sts_always_red",
-    (config_t *) &sts_always_red, NULL,
-    {1}, {0,1}, number, ss_stat, wad_yes,
-    "1 to disable use of color on status bar"
+    "sts_colored_numbers",
+    (config_t *) &sts_colored_numbers, NULL,
+    {0}, {0,1}, number, ss_stat, wad_yes,
+    "1 to enable use of color on status bar"
   },
 
   {
