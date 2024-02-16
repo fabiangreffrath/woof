@@ -5979,6 +5979,11 @@ static boolean M_MenuMouseResponder(void)
 
     if (flags & S_THERMO)
     {
+        if (active_thermo && active_thermo != current_item)
+        {
+            active_thermo = NULL;
+        }
+
         if (M_InputActivated(input_menu_enter))
         {
             active_thermo = current_item;
