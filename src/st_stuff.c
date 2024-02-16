@@ -61,10 +61,6 @@ extern boolean inhelpscreens;
 #define ST_FX                   143
 #define ST_FY                   169
 
-// Should be set to patch width
-//  for tall numbers later on
-#define ST_TALLNUMWIDTH         (tallnum[0]->width)
-
 // Number of status faces.
 #define ST_NUMPAINFACES         5
 #define ST_NUMSTRAIGHTFACES     3
@@ -1407,19 +1403,19 @@ static int StatusBarBufferHeight(void)
   int st_height = ST_HEIGHT;
   patch_t *const patch = W_CacheLumpName("brdr_b", PU_CACHE);
 
-  if (patch && patch->height > st_height)
-    st_height = patch->height;
+  if (patch && SHORT(patch->height) > st_height)
+    st_height = SHORT(patch->height);
 
-  if (sbar && sbar->height > st_height)
-    st_height = sbar->height;
+  if (sbar && SHORT(sbar->height) > st_height)
+    st_height = SHORT(sbar->height);
 
-  if (armsbg && armsbg->height > st_height)
-    st_height = armsbg->height;
+  if (armsbg && SHORT(armsbg->height) > st_height)
+    st_height = SHORT(armsbg->height);
 
   for (i = 0; i < MAXPLAYERS; i++)
   {
-    if (faceback[i] && faceback[i]->height > st_height)
-      st_height = faceback[i]->height;
+    if (faceback[i] && SHORT(faceback[i]->height) > st_height)
+      st_height = SHORT(faceback[i]->height);
   }
 
   return st_height;
@@ -1448,30 +1444,30 @@ void ST_Warnings(void)
   int i;
   patch_t *const patch = W_CacheLumpName("brdr_b", PU_CACHE);
 
-  if (patch && patch->height > ST_HEIGHT)
+  if (patch && SHORT(patch->height) > ST_HEIGHT)
   {
     I_Printf(VB_WARNING, "ST_Init: Non-standard BRDR_B height of %d. "
-                         "Expected <= %d.", patch->height, ST_HEIGHT);
+                         "Expected <= %d.", SHORT(patch->height), ST_HEIGHT);
   }
 
-  if (sbar && sbar->height != ST_HEIGHT)
+  if (sbar && SHORT(sbar->height) != ST_HEIGHT)
   {
     I_Printf(VB_WARNING, "ST_Init: Non-standard STBAR height of %d. "
-                         "Expected %d.", sbar->height, ST_HEIGHT);
+                         "Expected %d.", SHORT(sbar->height), ST_HEIGHT);
   }
 
-  if (armsbg && armsbg->height > ST_HEIGHT)
+  if (armsbg && SHORT(armsbg->height) > ST_HEIGHT)
   {
     I_Printf(VB_WARNING, "ST_Init: Non-standard STARMS height of %d. "
-                         "Expected <= %d.", armsbg->height, ST_HEIGHT);
+                         "Expected <= %d.", SHORT(armsbg->height), ST_HEIGHT);
   }
 
   for (i = 0; i < MAXPLAYERS; i++)
   {
-    if (faceback[i] && faceback[i]->height > ST_HEIGHT)
+    if (faceback[i] && SHORT(faceback[i]->height) > ST_HEIGHT)
     {
       I_Printf(VB_WARNING, "ST_Init: Non-standard STFB%d height of %d. "
-                           "Expected <= %d.", i, faceback[i]->height, ST_HEIGHT);
+                           "Expected <= %d.", i, SHORT(faceback[i]->height), ST_HEIGHT);
     }
   }
 }
