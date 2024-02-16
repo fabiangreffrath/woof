@@ -586,7 +586,7 @@ static void AM_initScreenSize(void)
   if (automapoverlay && scaledviewheight == SCREENHEIGHT)
     f_h = video.height;
   else
-    f_h = video.height - ((ST_HEIGHT * video.yscale) >> FRACBITS);
+    f_h = video.height - V_ScaleY(ST_HEIGHT);
 }
 
 void AM_ResetScreenSize(void)
@@ -624,7 +624,7 @@ static void AM_LevelInit(void)
   {
     fixed_t a = FixedDiv(f_w, (max_w>>MAPBITS < 2048) ? 2*(max_w>>MAPBITS) : 4096);
     fixed_t b = FixedDiv(f_h, (max_h>>MAPBITS < 2048) ? 2*(max_h>>MAPBITS) : 4096);
-    scale_mtof = FixedDiv(a < b ? a : b, (int) (0.7*MAPUNIT));
+    scale_mtof = FixedDiv((a < b ? a : b), (int) (0.7*MAPUNIT));
   }
 
   if (scale_mtof > max_scale_mtof)
@@ -665,21 +665,20 @@ void AM_Stop (void)
 //
 void AM_Start()
 {
-  static int lastlevel = -1, lastepisode = -1, last_width = -1, last_height = -1, last_viewheight = -1;
+  static int lastlevel = -1, lastepisode = -1;
 
   if (!stopped)
     AM_Stop();
   stopped = false;
-  if (lastlevel != gamemap || lastepisode != gameepisode ||
-      last_width != video.width || last_height != video.height ||
-      viewheight != last_viewheight)
+  if (lastlevel != gamemap || lastepisode != gameepisode)
   {
-    last_height = video.height;
-    last_width = video.width;
-    last_viewheight = viewheight;
     AM_LevelInit();
     lastlevel = gamemap;
     lastepisode = gameepisode;
+  }
+  else
+  {
+    AM_ResetScreenSize();
   }
   AM_initVariables();
   AM_loadPics();
