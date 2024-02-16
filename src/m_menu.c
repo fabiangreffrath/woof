@@ -5966,15 +5966,15 @@ static boolean M_MenuMouseResponder(void)
     default_t *def = current_item->var.def;
     mrect_t *rect = &current_item->rect;
 
+    if (ItemDisabled(flags))
+    {
+        return false;
+    }
+
     if (M_InputActivated(input_menu_enter)
         && !M_PointInsideRect(rect, mouse_state_x, mouse_state_y))
     {
         return true; // eat event
-    }
-
-    if (ItemDisabled(flags))
-    {
-        return false;
     }
 
     if (flags & S_THERMO)
@@ -6025,12 +6025,6 @@ static boolean M_MenuMouseResponder(void)
 
     if (!M_InputActivated(input_menu_enter))
     {
-        return false;
-    }
-
-    if (ItemDisabled(flags))
-    {
-        S_StartSound(NULL, sfx_oof);
         return false;
     }
 
