@@ -2220,6 +2220,7 @@ static void G_DoLoadGame(void)
   char vcheck[VERSIONSIZE];
   uint64_t checksum;
   int tmp_compat, tmp_skill, tmp_epi, tmp_map;
+  extern int death_use_action;
 
   I_SetFastdemoTimer(false);
 
@@ -2398,6 +2399,13 @@ static void G_DoLoadGame(void)
 
   // draw the pattern into the back screen
   R_FillBackScreen();
+
+  // [JN] If "On death action" is set to "last save",
+  // then prevent holded "use" button to work for next few tics.
+  // This fixes imidiate pressing on wall upon reloading
+  // a save game, if "use" button is kept pressed.
+  if (death_use_action == 1)
+      players[consoleplayer].usedown = true;
 
   // killough 12/98: support -recordfrom and -loadgame -playdemo
   if (!command_loadgame)
