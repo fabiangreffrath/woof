@@ -2524,7 +2524,6 @@ static void M_DrawDelVerify(void)
 
 static void M_DrawInstructions()
 {
-    default_t *def = current_setup_menu[set_menu_itemon].var.def;
     int flags = current_setup_menu[set_menu_itemon].m_flags;
 
     if (ItemDisabled(flags) || print_warning_about_changes > 0)
@@ -2535,23 +2534,6 @@ static void M_DrawInstructions()
     if (menu_input == mouse_mode && !(flags & S_HILITE))
     {
         return;
-    }
-
-    // killough 8/15/98: warn when values are different
-    if (flags & (S_NUM|S_YESNO)
-        && !(flags & S_COSMETIC) // don't warn about cosmetic options
-        && def->current && def->current->i != def->location->i)
-    {
-        if (!(setup_gather | print_warning_about_changes))
-        {
-            strcpy(menu_buffer, "Current value differs from default");
-            M_DrawMenuString(4, M_Y_WARN, CR_RED);
-        }
-
-        if (setup_select && !(flags & (S_LEVWARN | S_PRGWARN)))
-        {
-            def->current->i = def->location->i;
-        }
     }
 
     // There are different instruction messages depending on whether you
