@@ -588,6 +588,12 @@ void R_ExecuteSetViewSize (void)
   pspritescale = FixedDiv(viewwidth_nonwide, SCREENWIDTH);       // killough 11/98
   pspriteiscale = FixedDiv(SCREENWIDTH, viewwidth_nonwide);      // killough 11/98
 
+  // [FG] make sure that the product of the weapon sprite scale factor
+  //      and its reciprocal is always at least FRACUNIT to
+  //      fix garbage lines at the top of weapon sprites
+  while (FixedMul(pspriteiscale, pspritescale) < FRACUNIT)
+    pspriteiscale++;
+
   skyiscale = FixedDiv(160 << FRACBITS, focallength);
 
   for (i=0 ; i<viewwidth ; i++)
