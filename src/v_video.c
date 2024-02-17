@@ -524,7 +524,7 @@ static void V_DrawPatchInt(int x, int y, patch_t *patch, boolean flipped)
             }
     #endif
 
-            column = (column_t *)((byte *)patch + patch->columnofs[texturecolumn]);
+            column = (column_t *)((byte *)patch + LONG(patch->columnofs[texturecolumn]));
             V_DrawMaskedColumn(&patchcol, ytop, column);
         }
     }
