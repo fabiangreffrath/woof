@@ -750,7 +750,9 @@ void I_FinishUpdate(void)
             remaining_time = target_time - elapsed_time;
 
             if (remaining_time > 1000)
-                I_Sleep((remaining_time - 1000) / 1000);
+            {
+                I_Sleep(1);
+            }
         }
     }
     else
