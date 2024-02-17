@@ -7224,6 +7224,11 @@ void M_ResetSetupMenu(void)
     gen_settings5[gen5_brightmaps].m_flags |= S_DISABLE;
   }
 
+  if (current_video_height <= DRS_MIN_HEIGHT)
+  {
+    gen_settings1[gen1_dynamic_resolution].m_flags |= S_DISABLE;
+  }
+
   M_CoerceFPSLimit();
   M_UpdateCrosshairItems();
   M_UpdateCenteredWeaponItem();
