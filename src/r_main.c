@@ -265,7 +265,7 @@ static void R_InitTextureMapping(void)
   double angle; // tan angle with offset applied like vanilla R_InitTables().
   fixed_t slopefrac;
   angle_t fov;
-  double slopebam;
+  double linearskyfactor;
 
   // Use tangent table to generate viewangletox:
   //  viewangletox will give the next greatest x
@@ -326,7 +326,7 @@ static void R_InitTextureMapping(void)
   //  xtoviewangle will give the smallest view angle
   //  that maps to x.
 
-  slopebam = tan(angle) * ANG90;
+  linearskyfactor = tan(angle) * ANG90;
 
   for (x=0; x<=viewwidth; x++)
     {
@@ -334,7 +334,7 @@ static void R_InitTextureMapping(void)
         ;
       xtoviewangle[x] = (i<<ANGLETOFINESHIFT)-ANG90;
       // [FG] linear horizontal sky scrolling
-      linearskyangle[x] = (0.5 - x / (double)viewwidth) * slopebam;
+      linearskyangle[x] = (0.5 - x / (double)viewwidth) * linearskyfactor;
     }
     
   // Take out the fencepost cases from viewangletox.
