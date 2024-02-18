@@ -2814,7 +2814,7 @@ setup_menu_t keys_settings1[] =  // Key Binding screen strings
 
   {"Toggles", S_SKIP|S_TITLE,    m_null, KB_X, M_SPC},
   {"Autorun"     , S_INPUT,      m_scrn, KB_X, M_SPC, {0}, input_autorun},
-  {"Free Look"   , S_INPUT,      m_scrn, KB_X, M_SPC, {0}, input_mouselook},
+  {"Free Look"   , S_INPUT,      m_scrn, KB_X, M_SPC, {0}, input_freelook},
   {"Vertmouse"   , S_INPUT,      m_scrn, KB_X, M_SPC, {0}, input_novert},
 
   MI_RESET,
@@ -4941,7 +4941,7 @@ static boolean M_ShortcutResponder(const event_t *ev)
         // return true; // [FG] don't let toggles eat keys
     }
 
-    if (M_InputActivated(input_mouselook))
+    if (M_InputActivated(input_freelook))
     {
         if (ev->type == ev_joyb_down)
         {
