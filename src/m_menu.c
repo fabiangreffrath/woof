@@ -4297,13 +4297,12 @@ setup_menu_t gen_settings5[] = {
   {"Smooth Pixel Scaling", S_YESNO, m_null, M_X, M_Y,
    {"smooth_scaling"}, 0, M_ResetScreen},
 
-  {"Enable Translucency", S_YESNO|S_STRICT, m_null, M_X, M_SPC,
-   {"translucency"}, 0, M_Trans},
+  {"Sprite Translucency", S_YESNO|S_STRICT, m_null, M_X, M_SPC, {"translucency"}},
 
-  {"Translucency Percent", S_NUM, m_null, M_X, M_SPC,
+  {"Translucency Percent", S_THERMO|S_ACTION, m_null, M_X_THRM8, M_SPC,
    {"tran_filter_pct"}, 0, M_Trans},
 
-  {"", S_SKIP, m_null, M_X, M_SPC},
+  {"", S_SKIP, m_null, M_X, M_THRM_SPC},
 
   {"Voxels", S_YESNO|S_STRICT, m_null, M_X, M_SPC, {"voxels_rendering"}},
 
@@ -4367,8 +4366,6 @@ setup_menu_t gen_settings6[] = {
 void M_Trans(void) // To reset translucency after setting it in menu
 {
     R_InitTranMap(0);
-
-    D_SetPredefinedTranslucency();
 }
 
 // Setting up for the General screen. Turn on flags, set pointers,
