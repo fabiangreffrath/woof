@@ -4918,7 +4918,7 @@ void M_DrawCredits(void)     // killough 10/98: credit screen
   M_DrawScreenItems(cred_settings);
 }
 
-static boolean M_ShortcutResponder(void)
+static boolean M_ShortcutResponder(const event_t *ev)
 {
     // If there is no active menu displayed...
 
@@ -4943,9 +4943,18 @@ static boolean M_ShortcutResponder(void)
 
     if (M_InputActivated(input_mouselook))
     {
-        mouselook = !mouselook;
-        padlook = !padlook;
-        togglemsg("Free Look %s", mouselook ? "On" : "Off");
+        if (ev->type == ev_joyb_down)
+        {
+            // Gamepad free look toggle only affects gamepad.
+            padlook = !padlook;
+            togglemsg("Gamepad Free Look %s", padlook ? "On" : "Off");
+        }
+        else
+        {
+            // Keyboard or mouse free look toggle only affects mouse.
+            mouselook = !mouselook;
+            togglemsg("Free Look %s", mouselook ? "On" : "Off");
+        }
         M_UpdateMouseLook();
         // return true; // [FG] don't let toggles eat keys
     }
@@ -6383,7 +6392,7 @@ boolean M_Responder (event_t* ev)
         G_ScreenShot();
     }
 
-    if (M_ShortcutResponder())
+    if (M_ShortcutResponder(ev))
     {
         return true;
     }
