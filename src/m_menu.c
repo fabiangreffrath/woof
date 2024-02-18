@@ -1535,8 +1535,6 @@ static void M_ChangeMessages(int choice)
 // hud_displayed is toggled by + or = in fullscreen
 // hud_displayed is cleared by -
 
-static void M_UpdateHUDItems(void);
-
 static void M_SizeDisplay(int choice)
 {
   switch(choice)
@@ -1563,7 +1561,6 @@ static void M_SizeDisplay(int choice)
       break;
     }
   R_SetViewSize (screenblocks /*, detailLevel obsolete -- killough */);
-  M_UpdateHUDItems();
   saved_screenblocks = screenblocks;
 }
 
@@ -3197,32 +3194,15 @@ enum {
   stat1_smooth,
 };
 
-static void M_UpdateHUDAppearanceItems(void)
-{
-    const boolean prefer_red = (screenblocks != 11 && !sts_colored_numbers);
-
-    DISABLE_ITEM(prefer_red, stat_settings1[stat1_backpack]);
-    DISABLE_ITEM(prefer_red, stat_settings1[stat1_armortype]);
-}
-
 static void M_UpdateHUDItems(void)
 {
-    const boolean full_hud = (screenblocks == 11);
-
-    DISABLE_ITEM(full_hud, stat_settings1[stat1_title1]);
-    DISABLE_ITEM(full_hud, stat_settings1[stat1_colornum]);
-    DISABLE_ITEM(full_hud, stat_settings1[stat1_graypcnt]);
-    DISABLE_ITEM(full_hud, stat_settings1[stat1_solid]);
-    DISABLE_ITEM(!full_hud, stat_settings1[stat1_title2]);
-    DISABLE_ITEM(!full_hud, stat_settings1[stat1_type]);
-    DISABLE_ITEM(!full_hud, stat_settings1[stat1_mode]);
-
-    M_UpdateHUDAppearanceItems();
+    DISABLE_ITEM(!sts_colored_numbers, stat_settings1[stat1_backpack]);
+    DISABLE_ITEM(!sts_colored_numbers, stat_settings1[stat1_armortype]);
 }
 
 static void M_SizeDisplayAlt(void)
 {
-    boolean choice = -1;
+    int choice = -1;
 
     if (screenblocks > saved_screenblocks)
     {
@@ -3241,7 +3221,6 @@ static void M_SizeDisplayAlt(void)
     }
 
     hud_displayed = (screenblocks == 11);
-    M_UpdateHUDItems();
 }
 
 static const char *screensize_strings[] = {
@@ -3272,7 +3251,7 @@ setup_menu_t stat_settings1[] =  // Status Bar and HUD Settings screen
   {"", S_SKIP, m_null, H_X, M_THRM_SPC},
 
   {"Status Bar", S_SKIP|S_TITLE, m_null, H_X, M_SPC},
-  {"Colored Numbers", S_YESNO|S_COSMETIC, m_null, H_X, M_SPC, {"sts_colored_numbers"}, 0, M_UpdateHUDAppearanceItems},
+  {"Colored Numbers", S_YESNO|S_COSMETIC, m_null, H_X, M_SPC, {"sts_colored_numbers"}, 0, M_UpdateHUDItems},
   {"Gray Percent Sign", S_YESNO|S_COSMETIC, m_null, H_X, M_SPC, {"sts_pct_always_gray"}},
   {"Solid Background Color", S_YESNO, m_null, H_X, M_SPC, {"st_solidbackground"}},
 
@@ -5122,7 +5101,6 @@ static boolean M_ShortcutResponder(void)
             hud_displayed = 1;               //jff 3/3/98 turn hud on
             hud_active = (hud_active + 1) % 3; // cycle hud_active
             HU_disable_all_widgets();
-            M_UpdateHUDItems();
         }
         return true;
     }
