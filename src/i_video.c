@@ -1514,6 +1514,12 @@ static void I_InitGraphicsMode(void)
                 SDL_GetError());
     }
 
+    SDL_RendererInfo info;
+    if (SDL_GetRendererInfo(renderer, &info) == 0)
+    {
+        I_Printf(VB_DEBUG, "SDL render driver: %s", info.name);
+    }
+
     UpdateLimiter();
 }
 
