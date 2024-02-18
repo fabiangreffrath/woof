@@ -1435,6 +1435,7 @@ static void I_InitGraphicsMode(void)
 
     // [FG] window flags
     flags |= SDL_WINDOW_RESIZABLE;
+    flags |= SDL_WINDOW_ALLOW_HIGHDPI;
 
     w = window_width;
     h = window_height;
