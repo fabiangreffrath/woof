@@ -68,8 +68,6 @@ void I_DynamicResolution(void);
 
 extern boolean drs_skip_frame;
 
-extern char *sdl_renderdriver;
-
 extern boolean use_vsync;  // killough 2/8/98: controls whether vsync is called
 extern boolean disk_icon;  // killough 10/98
 extern int current_video_height;
