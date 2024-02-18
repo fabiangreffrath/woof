@@ -473,7 +473,7 @@ void I_StartTic (void)
 
         SDL_GetMouseState(&x, &y);
 
-        SDL_GetRendererOutputSize(renderer, &w, &h);
+        SDL_GetWindowSize(screen, &w, &h);
 
         SDL_Rect rect;
         SDL_RenderGetViewport(renderer, &rect);
