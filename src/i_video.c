@@ -73,8 +73,6 @@ fixed_t fractionaltic;
 boolean disk_icon;  // killough 10/98
 int fps; // [FG] FPS counter widget
 
-char *sdl_renderdriver = "";
-
 // [FG] rendering window, renderer, intermediate ARGB frame buffer and texture
 
 static SDL_Window *screen;
@@ -372,7 +370,7 @@ static void UpdateLimiter(void)
     }
     else
     {
-        use_limiter = (targetrefresh > 0);
+        use_limiter = false;
     }
 }
 
@@ -1490,11 +1488,6 @@ static void I_InitGraphicsMode(void)
     if (use_vsync && !timingdemo)
     {
         flags |= SDL_RENDERER_PRESENTVSYNC;
-    }
-
-    if (*sdl_renderdriver)
-    {
-        SDL_SetHint(SDL_HINT_RENDER_DRIVER, sdl_renderdriver);
     }
 
     // [FG] create renderer
