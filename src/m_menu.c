@@ -4172,7 +4172,7 @@ void M_ResetTimeScale(void)
     I_SetTimeScale(time_scale);
 }
 
-static void M_UpdateMouseLook(void)
+static void M_UpdateFreeLook(void)
 {
   P_UpdateDirectVerticalAiming();
 
@@ -4226,7 +4226,7 @@ setup_menu_t gen_settings3[] = {
   {"Double-Click to \"Use\"", S_YESNO, m_null, CNTR_X, M_Y, {"dclick_use"}},
 
   {"Free Look", S_YESNO, m_null, CNTR_X, M_SPC,
-   {"mouselook"}, 0, M_UpdateMouseLook},
+   {"mouselook"}, 0, M_UpdateFreeLook},
 
   // [FG] invert vertical axis
   {"Invert Look", S_YESNO, m_null, CNTR_X, M_SPC,
@@ -4260,7 +4260,7 @@ setup_menu_t gen_settings4[] = {
    {"joy_layout"}, 0, I_ResetController, str_layout},
 
   {"Free Look", S_YESNO, m_null, CNTR_X, M_SPC,
-   {"padlook"}, 0, M_UpdateMouseLook},
+   {"padlook"}, 0, M_UpdateFreeLook},
 
   {"Invert Look", S_YESNO, m_scrn, CNTR_X, M_SPC, {"joy_invert_look"}},
 
@@ -4955,7 +4955,7 @@ static boolean M_ShortcutResponder(const event_t *ev)
             mouselook = !mouselook;
             togglemsg("Free Look %s", mouselook ? "On" : "Off");
         }
-        M_UpdateMouseLook();
+        M_UpdateFreeLook();
         // return true; // [FG] don't let toggles eat keys
     }
 
