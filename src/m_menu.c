@@ -3194,12 +3194,6 @@ enum {
   stat1_smooth,
 };
 
-static void M_UpdateHUDItems(void)
-{
-    DISABLE_ITEM(!sts_colored_numbers, stat_settings1[stat1_backpack]);
-    DISABLE_ITEM(!sts_colored_numbers, stat_settings1[stat1_armortype]);
-}
-
 static void M_SizeDisplayAlt(void)
 {
     int choice = -1;
@@ -3251,7 +3245,7 @@ setup_menu_t stat_settings1[] =  // Status Bar and HUD Settings screen
   {"", S_SKIP, m_null, H_X, M_THRM_SPC},
 
   {"Status Bar", S_SKIP|S_TITLE, m_null, H_X, M_SPC},
-  {"Colored Numbers", S_YESNO|S_COSMETIC, m_null, H_X, M_SPC, {"sts_colored_numbers"}, 0, M_UpdateHUDItems},
+  {"Colored Numbers", S_YESNO|S_COSMETIC, m_null, H_X, M_SPC, {"sts_colored_numbers"}},
   {"Gray Percent Sign", S_YESNO|S_COSMETIC, m_null, H_X, M_SPC, {"sts_pct_always_gray"}},
   {"Solid Background Color", S_YESNO, m_null, H_X, M_SPC, {"st_solidbackground"}},
 
@@ -7193,7 +7187,6 @@ void M_ResetSetupMenu(void)
   M_UpdateCrosshairItems();
   M_UpdateCenteredWeaponItem();
   M_UpdateAdvancedSoundItems();
-  M_UpdateHUDItems();
 }
 
 void M_ResetSetupMenuVideo(void)
