@@ -4267,7 +4267,7 @@ setup_menu_t gen_settings3[] = {
   {"Look Sensitivity", S_THERMO|S_THRM_SIZE11, m_null, CNTR_X, M_THRM_SPC,
    {"mouse_sensitivity_y_look"}},
 
-  {"Forward Sensitivity", S_THERMO|S_THRM_SIZE11, m_null, CNTR_X, M_THRM_SPC,
+  {"Move Sensitivity", S_THERMO|S_THRM_SIZE11, m_null, CNTR_X, M_THRM_SPC,
    {"mouse_sensitivity_y"}},
 
   {"Strafe Sensitivity", S_THERMO|S_THRM_SIZE11, m_null, CNTR_X, M_THRM_SPC,
