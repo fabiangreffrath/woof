@@ -157,10 +157,7 @@ void R_RenderMaskedSegRange(drawseg_t *ds, int x1, int x2)
       {
         if (!fixedcolormap)      // calculate lighting
           {                             // killough 11/98:
-            unsigned index = FixedDiv(spryscale * 160, focallength) >> LIGHTSCALESHIFT;
-
-            if (index >=  MAXLIGHTSCALE )
-              index = MAXLIGHTSCALE-1;
+            const int index = R_GetLightIndex(spryscale);
 
             // [crispy] brightmaps for two sided mid-textures
             dc_brightmap = texturebrightmap[texnum];
@@ -369,7 +366,7 @@ static void R_RenderSegLoop (void)
       // texturecolumn and lighting are independent of wall tiers
       if (segtextured)
         {
-          unsigned index;
+          const int index = R_GetLightIndex(rw_scale);
 
           // calculate texture offset
           angle_t angle =(rw_centerangle+xtoviewangle[rw_x])>>ANGLETOFINESHIFT;
@@ -378,10 +375,6 @@ static void R_RenderSegLoop (void)
           texturecolumn >>= FRACBITS;
 
           // calculate lighting
-          index = FixedDiv(rw_scale * 160, focallength) >> LIGHTSCALESHIFT;
-
-          if (index >=  MAXLIGHTSCALE )
-            index = MAXLIGHTSCALE-1;
           dc_colormap[0] = walllights[index];
           dc_colormap[1] = (!fixedcolormap && STRICTMODE(brightmaps)) ?
                            fullcolormap : dc_colormap[0];

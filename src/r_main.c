@@ -48,7 +48,6 @@ int validcount = 1;         // increment every time a check is made
 lighttable_t *fixedcolormap;
 int      centerx, centery;
 fixed_t  centerxfrac, centeryfrac;
-fixed_t  focallength;
 fixed_t  projection;
 fixed_t  skyiscale;
 fixed_t  viewx, viewy, viewz;
@@ -60,6 +59,8 @@ fixed_t  viewcos, viewsin;
 player_t *viewplayer;
 extern lighttable_t **walllights;
 fixed_t  viewheightfrac; // [FG] sprite clipping optimizations
+
+static fixed_t focallength, lightfocallength;
 
 //
 // precalculated math tables
@@ -468,6 +469,12 @@ void R_SmoothLight(void)
   // R_ExecuteSetViewSize();
   // [crispy] re-calculate fake contrast
   P_SegLengths(true);
+}
+
+int R_GetLightIndex(fixed_t scale)
+{
+  const int index = FixedDiv(scale * 160, lightfocallength) >> LIGHTSCALESHIFT;
+  return BETWEEN(0, MAXLIGHTSCALE - 1, index);
 }
 
 static fixed_t viewpitch;
