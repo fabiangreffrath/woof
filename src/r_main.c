@@ -472,7 +472,7 @@ void R_SmoothLight(void)
 
 static fixed_t viewpitch;
 
-static void R_SetupMouselook(void)
+static void R_SetupFreelook(void)
 {
   fixed_t dy;
   int i;
@@ -582,7 +582,7 @@ void R_ExecuteSetViewSize (void)
 
   R_InitTextureMapping();
 
-  R_SetupMouselook();
+  R_SetupFreelook();
 
   // psprite scales
   pspritescale = FixedDiv(viewwidth_nonwide, SCREENWIDTH);       // killough 11/98
@@ -756,7 +756,7 @@ void R_SetupFrame (player_t *player)
   if (pitch != viewpitch)
   {
     viewpitch = pitch;
-    R_SetupMouselook();
+    R_SetupFreelook();
   }
 
   // 3-screen display mode.
