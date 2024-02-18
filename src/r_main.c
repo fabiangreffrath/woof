@@ -262,7 +262,6 @@ static fixed_t centerxfrac_nonwide;
 static void R_InitTextureMapping(void)
 {
   register int i,x;
-  double angle; // tan angle with offset applied like vanilla R_InitTables().
   fixed_t slopefrac;
   angle_t fov;
   double linearskyfactor;
@@ -276,27 +275,30 @@ static void R_InitTextureMapping(void)
 
   if (custom_fov == FOV_DEFAULT)
   {
-    slopefrac = finetangent[FINEANGLES / 4 + FIELDOFVIEW / 2];
+    fov = FIELDOFVIEW;
+    slopefrac = finetangent[FINEANGLES / 4 + fov / 2];
     focallength = FixedDiv(centerxfrac_nonwide, slopefrac);
+    lightfocallength = focallength;
     projection = centerxfrac_nonwide;
 
-    if (centerxfrac == centerxfrac_nonwide)
+    if (centerxfrac != centerxfrac_nonwide)
     {
-      angle = (FIELDOFVIEW / 2.0 + 0.5) * 2.0 * M_PI / FINEANGLES;
-    }
-    else
-    {
-      const double slope = (double)centerxfrac / centerxfrac_nonwide;
-      angle = atan(slope) + M_PI / FINEANGLES;
-      slopefrac = tan(angle) * FRACUNIT;
+      fov = atan((double)centerxfrac / centerxfrac_nonwide) * FINEANGLES / M_PI;
+      slopefrac = finetangent[FINEANGLES / 4 + fov / 2];
     }
   }
   else
   {
     const double slope = (tan(custom_fov * M_PI / 360.0) *
                           centerxfrac / centerxfrac_nonwide);
-    angle = atan(slope) + M_PI / FINEANGLES;
-    slopefrac = tan(angle) * FRACUNIT;
+
+    // For correct light across FOV range. Calculated like R_InitTables().
+    const double lightangle = atan(slope) + M_PI / FINEANGLES;
+    const double lightslopefrac = tan(lightangle) * FRACUNIT;
+    lightfocallength = FixedDiv(centerxfrac, lightslopefrac);
+
+    fov = atan(slope) * FINEANGLES / M_PI;
+    slopefrac = finetangent[FINEANGLES / 4 + fov / 2];
     focallength = FixedDiv(centerxfrac, slopefrac);
     projection = centerxfrac / slope;
   }
@@ -326,7 +328,7 @@ static void R_InitTextureMapping(void)
   //  xtoviewangle will give the smallest view angle
   //  that maps to x.
 
-  linearskyfactor = tan(angle) * ANG90;
+  linearskyfactor = FIXED2DOUBLE(slopefrac) * ANG90;
 
   for (x=0; x<=viewwidth; x++)
     {
@@ -347,8 +349,7 @@ static void R_InitTextureMapping(void)
         
   clipangle = xtoviewangle[0];
 
-  fov = angle * ANGLE_MAX / M_PI;
-  vx_clipangle = clipangle - (fov - ANG90);
+  vx_clipangle = clipangle - ((fov << ANGLETOFINESHIFT) - ANG90);
 }
 
 //
