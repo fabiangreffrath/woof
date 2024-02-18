@@ -837,9 +837,8 @@ void R_RenderPlayerView (player_t* player)
     { // killough 2/10/98: add flashing red HOM indicators
       pixel_t c[47*47];
       extern int lastshottic;
-      const int linesize = video.width;
       int i , color = !flashing_hom || (gametic % 20) < 9 ? 0xb0 : 0;
-      memset(I_VideoBuffer+viewwindowy*linesize,color,viewheight*linesize);
+      V_FillRect(scaledviewx, scaledviewy, scaledviewwidth, scaledviewheight, color);
       for (i=0;i<47*47;i++)
         {
           char t =
