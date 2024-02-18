@@ -372,7 +372,7 @@ static void UpdateLimiter(void)
     }
     else
     {
-        use_limiter = (targetrefresh > 0);
+        use_limiter = false;
     }
 }
 
