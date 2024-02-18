@@ -288,7 +288,7 @@ void D_Display (void)
   wipe = false;
 
   // save the current screen if about to wipe
-  if (gamestate != wipegamestate && NOTSTRICTMODE(screen_melt))
+  if (gamestate != wipegamestate && (strictmode || screen_melt))
     {
       wipe = true;
       wipe_StartScreen(0, 0, video.unscaledw, SCREENHEIGHT);
@@ -2000,9 +2000,7 @@ void D_SetPredefinedTranslucency(void)
     if (deh_set_translucency[i])
       continue;
 
-    if (STRICTMODE_VANILLA(translucency))
-      mobjinfo[predefined_translucency[i]].flags |= MF_TRANSLUCENT;
-    else
+    if (strictmode && demo_compatibility)
       mobjinfo[predefined_translucency[i]].flags &= ~MF_TRANSLUCENT;
   }
 }
