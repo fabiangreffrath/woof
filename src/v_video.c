@@ -698,6 +698,35 @@ void V_CopyRect(int srcx, int srcy, pixel_t *source,
     }
 }
 
+static void V_ClipRect(vrect_t *rect)
+{
+    // clip to left and top edges
+    rect->cx1 = rect->x >= 0 ? rect->x : 0;
+    rect->cy1 = rect->y >= 0 ? rect->y : 0;
+
+    // determine right and bottom edges
+    rect->cx2 = rect->x + rect->w - 1;
+    rect->cy2 = rect->y + rect->h - 1;
+
+    // clip right and bottom edges
+    if (rect->cx2 >= video.unscaledw)
+        rect->cx2 =  video.unscaledw - 1;
+    if (rect->cy2 >= SCREENHEIGHT)
+        rect->cy2 =  SCREENHEIGHT - 1;
+
+    // determine clipped width and height
+    rect->cw = rect->cx2 - rect->cx1 + 1;
+    rect->ch = rect->cy2 - rect->cy1 + 1;
+}
+
+static void V_ScaleClippedRect(vrect_t *rect)
+{
+    rect->sx = x1lookup[rect->cx1];
+    rect->sy = y1lookup[rect->cy1];
+    rect->sw = x2lookup[rect->cx2] - rect->sx + 1;
+    rect->sh = y2lookup[rect->cy2] - rect->sy + 1;
+}
+
 //
 // V_DrawBlock
 //
@@ -718,9 +747,19 @@ void V_DrawBlock(int x, int y, int width, int height, pixel_t *src)
     dstrect.w = width;
     dstrect.h = height;
 
-    V_ScaleRect(&dstrect);
+    V_ClipRect(&dstrect);
 
-    source = src + y * width + x;
+    // clipped away completely?
+    if (dstrect.cw <= 0 || dstrect.ch <= 0)
+        return;
+
+    // change in origin due to clipping
+    int dx = dstrect.cx1 - x;
+    int dy = dstrect.cy1 - y;
+
+    V_ScaleClippedRect(&dstrect);
+
+    source = src + dy * width + dx;
     dest = V_ADDRESS(dest_screen, dstrect.sx, dstrect.sy);
 
     {
