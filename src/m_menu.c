@@ -2814,7 +2814,7 @@ setup_menu_t keys_settings1[] =  // Key Binding screen strings
 
   {"Toggles", S_SKIP|S_TITLE,    m_null, KB_X, M_SPC},
   {"Autorun"     , S_INPUT,      m_scrn, KB_X, M_SPC, {0}, input_autorun},
-  {"Free Look"   , S_INPUT,      m_scrn, KB_X, M_SPC, {0}, input_mouselook},
+  {"Free Look"   , S_INPUT,      m_scrn, KB_X, M_SPC, {0}, input_freelook},
   {"Vertmouse"   , S_INPUT,      m_scrn, KB_X, M_SPC, {0}, input_novert},
 
   MI_RESET,
@@ -4172,7 +4172,7 @@ void M_ResetTimeScale(void)
     I_SetTimeScale(time_scale);
 }
 
-static void M_UpdateMouseLook(void)
+static void M_UpdateFreeLook(void)
 {
   P_UpdateDirectVerticalAiming();
 
@@ -4226,7 +4226,7 @@ setup_menu_t gen_settings3[] = {
   {"Double-Click to \"Use\"", S_YESNO, m_null, CNTR_X, M_Y, {"dclick_use"}},
 
   {"Free Look", S_YESNO, m_null, CNTR_X, M_SPC,
-   {"mouselook"}, 0, M_UpdateMouseLook},
+   {"mouselook"}, 0, M_UpdateFreeLook},
 
   // [FG] invert vertical axis
   {"Invert Look", S_YESNO, m_null, CNTR_X, M_SPC,
@@ -4260,7 +4260,7 @@ setup_menu_t gen_settings4[] = {
    {"joy_layout"}, 0, I_ResetController, str_layout},
 
   {"Free Look", S_YESNO, m_null, CNTR_X, M_SPC,
-   {"padlook"}, 0, M_UpdateMouseLook},
+   {"padlook"}, 0, M_UpdateFreeLook},
 
   {"Invert Look", S_YESNO, m_scrn, CNTR_X, M_SPC, {"joy_invert_look"}},
 
@@ -4918,7 +4918,7 @@ void M_DrawCredits(void)     // killough 10/98: credit screen
   M_DrawScreenItems(cred_settings);
 }
 
-static boolean M_ShortcutResponder(void)
+static boolean M_ShortcutResponder(const event_t *ev)
 {
     // If there is no active menu displayed...
 
@@ -4941,12 +4941,21 @@ static boolean M_ShortcutResponder(void)
         // return true; // [FG] don't let toggles eat keys
     }
 
-    if (M_InputActivated(input_mouselook))
+    if (M_InputActivated(input_freelook))
     {
-        mouselook = !mouselook;
-        padlook = !padlook;
-        togglemsg("Free Look %s", mouselook ? "On" : "Off");
-        M_UpdateMouseLook();
+        if (ev->type == ev_joyb_down)
+        {
+            // Gamepad free look toggle only affects gamepad.
+            padlook = !padlook;
+            togglemsg("Gamepad Free Look %s", padlook ? "On" : "Off");
+        }
+        else
+        {
+            // Keyboard or mouse free look toggle only affects mouse.
+            mouselook = !mouselook;
+            togglemsg("Free Look %s", mouselook ? "On" : "Off");
+        }
+        M_UpdateFreeLook();
         // return true; // [FG] don't let toggles eat keys
     }
 
@@ -6383,7 +6392,7 @@ boolean M_Responder (event_t* ev)
         G_ScreenShot();
     }
 
-    if (M_ShortcutResponder())
+    if (M_ShortcutResponder(ev))
     {
         return true;
     }
