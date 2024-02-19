@@ -1964,47 +1964,6 @@ void D_SetBloodColor(void)
   }
 }
 
-static const int predefined_translucency[] = {
-    // MBF
-    MT_FIRE,      MT_SMOKE,     MT_FATSHOT,  MT_BRUISERSHOT,
-    MT_SPAWNFIRE, MT_TROOPSHOT, MT_HEADSHOT, MT_PLASMA,
-    MT_BFG,       MT_ARACHPLAZ, MT_PUFF,     MT_TFOG,
-    MT_IFOG,      MT_MISC12,    MT_INV,      MT_INS,
-    MT_MEGA,
-    // [Woof!]
-    MT_PLASMA1,   MT_PLASMA2
-};
-
-static boolean deh_set_translucency[arrlen(predefined_translucency)] = {false};
-
-void D_DehChangePredefinedTranslucency(int index)
-{
-  int i;
-
-  for (i = 0; i < arrlen(predefined_translucency); ++i)
-  {
-    if (predefined_translucency[i] == index)
-    {
-      deh_set_translucency[i] = true;
-      break;
-    }
-  }
-}
-
-void D_SetPredefinedTranslucency(void)
-{
-  int i;
-
-  for (i = 0; i < arrlen(predefined_translucency); ++i)
-  {
-    if (deh_set_translucency[i])
-      continue;
-
-    if (strictmode && demo_compatibility)
-      mobjinfo[predefined_translucency[i]].flags &= ~MF_TRANSLUCENT;
-  }
-}
-
 // killough 2/22/98: Add support for ENDBOOM, which is PC-specific
 // killough 8/1/98: change back to ENDOOM
 
