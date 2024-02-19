@@ -48,7 +48,6 @@ int validcount = 1;         // increment every time a check is made
 lighttable_t *fixedcolormap;
 int      centerx, centery;
 fixed_t  centerxfrac, centeryfrac;
-fixed_t  focallength;
 fixed_t  projection;
 fixed_t  skyiscale;
 fixed_t  viewx, viewy, viewz;
@@ -60,6 +59,8 @@ fixed_t  viewcos, viewsin;
 player_t *viewplayer;
 extern lighttable_t **walllights;
 fixed_t  viewheightfrac; // [FG] sprite clipping optimizations
+
+static fixed_t focallength, lightfocallength;
 
 //
 // precalculated math tables
@@ -261,10 +262,9 @@ static fixed_t centerxfrac_nonwide;
 static void R_InitTextureMapping(void)
 {
   register int i,x;
-  double angle; // tan angle with offset applied like vanilla R_InitTables().
   fixed_t slopefrac;
   angle_t fov;
-  double slopebam;
+  double linearskyfactor;
 
   // Use tangent table to generate viewangletox:
   //  viewangletox will give the next greatest x
@@ -275,27 +275,30 @@ static void R_InitTextureMapping(void)
 
   if (custom_fov == FOV_DEFAULT)
   {
-    slopefrac = finetangent[FINEANGLES / 4 + FIELDOFVIEW / 2];
+    fov = FIELDOFVIEW;
+    slopefrac = finetangent[FINEANGLES / 4 + fov / 2];
     focallength = FixedDiv(centerxfrac_nonwide, slopefrac);
+    lightfocallength = focallength;
     projection = centerxfrac_nonwide;
 
-    if (centerxfrac == centerxfrac_nonwide)
+    if (centerxfrac != centerxfrac_nonwide)
     {
-      angle = (FIELDOFVIEW / 2.0 + 0.5) * 2.0 * M_PI / FINEANGLES;
-    }
-    else
-    {
-      const double slope = (double)centerxfrac / centerxfrac_nonwide;
-      angle = atan(slope) + M_PI / FINEANGLES;
-      slopefrac = tan(angle) * FRACUNIT;
+      fov = atan((double)centerxfrac / centerxfrac_nonwide) * FINEANGLES / M_PI;
+      slopefrac = finetangent[FINEANGLES / 4 + fov / 2];
     }
   }
   else
   {
     const double slope = (tan(custom_fov * M_PI / 360.0) *
                           centerxfrac / centerxfrac_nonwide);
-    angle = atan(slope) + M_PI / FINEANGLES;
-    slopefrac = tan(angle) * FRACUNIT;
+
+    // For correct light across FOV range. Calculated like R_InitTables().
+    const double lightangle = atan(slope) + M_PI / FINEANGLES;
+    const double lightslopefrac = tan(lightangle) * FRACUNIT;
+    lightfocallength = FixedDiv(centerxfrac, lightslopefrac);
+
+    fov = atan(slope) * FINEANGLES / M_PI;
+    slopefrac = finetangent[FINEANGLES / 4 + fov / 2];
     focallength = FixedDiv(centerxfrac, slopefrac);
     projection = centerxfrac / slope;
   }
@@ -325,7 +328,7 @@ static void R_InitTextureMapping(void)
   //  xtoviewangle will give the smallest view angle
   //  that maps to x.
 
-  slopebam = tan(angle) * ANG90;
+  linearskyfactor = FIXED2DOUBLE(slopefrac) * ANG90;
 
   for (x=0; x<=viewwidth; x++)
     {
@@ -333,7 +336,7 @@ static void R_InitTextureMapping(void)
         ;
       xtoviewangle[x] = (i<<ANGLETOFINESHIFT)-ANG90;
       // [FG] linear horizontal sky scrolling
-      linearskyangle[x] = (0.5 - x / (double)viewwidth) * slopebam;
+      linearskyangle[x] = (0.5 - x / (double)viewwidth) * linearskyfactor;
     }
     
   // Take out the fencepost cases from viewangletox.
@@ -346,8 +349,7 @@ static void R_InitTextureMapping(void)
         
   clipangle = xtoviewangle[0];
 
-  fov = angle * ANGLE_MAX / M_PI;
-  vx_clipangle = clipangle - (fov - ANG90);
+  vx_clipangle = clipangle - ((fov << ANGLETOFINESHIFT) - ANG90);
 }
 
 //
@@ -468,6 +470,12 @@ void R_SmoothLight(void)
   // R_ExecuteSetViewSize();
   // [crispy] re-calculate fake contrast
   P_SegLengths(true);
+}
+
+int R_GetLightIndex(fixed_t scale)
+{
+  const int index = FixedDiv(scale * 160, lightfocallength) >> LIGHTSCALESHIFT;
+  return BETWEEN(0, MAXLIGHTSCALE - 1, index);
 }
 
 static fixed_t viewpitch;
