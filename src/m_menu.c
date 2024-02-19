@@ -885,7 +885,7 @@ static void M_DrawLoad(void)
     int i;
 
     //jff 3/15/98 use symbolic load position
-    V_DrawPatch(72, LOADGRAPHIC_Y, W_CacheLumpName("M_LGTTL",PU_CACHE));
+    V_DrawPatch(72, LOADGRAPHIC_Y, W_CacheLumpName("M_LOADG",PU_CACHE));
     for (i = 0 ; i < load_page ; i++)
     {
         menuitem_t *item = &currentMenu->menuitems[i];
@@ -1084,7 +1084,7 @@ static void M_DrawSave(void)
     int i;
 
     //jff 3/15/98 use symbolic load position
-    V_DrawPatchDirect (72,LOADGRAPHIC_Y,W_CacheLumpName("M_SGTTL",PU_CACHE));
+    V_DrawPatchDirect (72,LOADGRAPHIC_Y,W_CacheLumpName("M_SAVEG",PU_CACHE));
     for (i = 0 ; i < load_page ; i++)
     {
       menuitem_t *item = &currentMenu->menuitems[i];
