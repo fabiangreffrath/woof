@@ -18,6 +18,11 @@
 //
 //-----------------------------------------------------------------------------
 
+#if defined(_WIN32)
+#define WIN32_LEAN_AND_MEAN
+#include <windows.h>
+#endif
+
 #include "SDL.h" // haleyjd
 
 #include "../miniz/miniz.h"
@@ -200,6 +205,17 @@ void I_ResetRelativeMouseState(void)
     SDL_GetRelativeMouseState(NULL, NULL);
 }
 
+static void UpdatePriority(void)
+{
+    const boolean active = (screenvisible && window_focused);
+#if defined(_WIN32)
+    SetPriorityClass(GetCurrentProcess(), active ? ABOVE_NORMAL_PRIORITY_CLASS
+                                                 : NORMAL_PRIORITY_CLASS);
+#endif
+    SDL_SetThreadPriority(active ? SDL_THREAD_PRIORITY_HIGH
+                                 : SDL_THREAD_PRIORITY_NORMAL);
+}
+
 // [FG] window event handling from Chocolate Doom 3.0
 
 static void HandleWindowEvent(SDL_WindowEvent *event)
@@ -212,11 +228,13 @@ static void HandleWindowEvent(SDL_WindowEvent *event)
 
         case SDL_WINDOWEVENT_MINIMIZED:
             screenvisible = false;
+            UpdatePriority();
             break;
 
         case SDL_WINDOWEVENT_MAXIMIZED:
         case SDL_WINDOWEVENT_RESTORED:
             screenvisible = true;
+            UpdatePriority();
             break;
 
         // Update the value of window_focused when we get a focus event
@@ -227,10 +245,12 @@ static void HandleWindowEvent(SDL_WindowEvent *event)
 
         case SDL_WINDOWEVENT_FOCUS_GAINED:
             window_focused = true;
+            UpdatePriority();
             break;
 
         case SDL_WINDOWEVENT_FOCUS_LOST:
             window_focused = false;
+            UpdatePriority();
             break;
 
         // We want to save the user's preferred monitor to use for running the
