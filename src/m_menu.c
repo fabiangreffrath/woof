@@ -1877,7 +1877,7 @@ static void M_DrawBackground(char *patchname)
 
 static void M_DrawSetup(void)
 {
-  M_DrawTitle(124, 15, "M_OPTION", "OPTIONS");
+  M_DrawTitle(124, 15, "M_OPTTTL", "OPTIONS");
 }
 
 /////////////////////////////
