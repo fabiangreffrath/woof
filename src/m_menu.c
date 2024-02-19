@@ -2412,6 +2412,8 @@ static void M_DrawSetting(setup_menu_t *s, int accum_y)
 
       if (strings)
         strcpy(menu_buffer, strings[value]);
+      else if (flags & S_THRM_PCT)
+        M_snprintf(menu_buffer, 4, "%d%%", value);
       else
         M_snprintf(menu_buffer, 4, "%d", value);
 
@@ -4299,7 +4301,7 @@ setup_menu_t gen_settings5[] = {
 
   {"Sprite Translucency", S_YESNO|S_STRICT, m_null, M_X, M_SPC, {"translucency"}},
 
-  {"Translucency Percent", S_THERMO|S_ACTION, m_null, M_X_THRM8, M_SPC,
+  {"Translucency", S_THERMO|S_ACTION|S_THRM_PCT, m_null, M_X_THRM8, M_SPC,
    {"tran_filter_pct"}, 0, M_Trans},
 
   {"", S_SKIP, m_null, M_X, M_THRM_SPC},
