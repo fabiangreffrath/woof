@@ -3652,6 +3652,7 @@ enum
 
   comp1_blockmapfix,
   comp1_hangsolid,
+  comp1_intercepts,
 };
 
 static const char *default_complevel_strings[] = {
@@ -3687,6 +3688,9 @@ setup_menu_t comp_settings1[] =  // Compatibility Settings screen #1
 
   {"Walk Under Solid Hanging Bodies", S_YESNO|S_STRICT, m_null, M_X,
    M_SPC, {"hangsolid"}},
+
+  {"Emulate INTERCEPTS overflow", S_YESNO|S_VANILLA, m_null, M_X,
+   M_SPC, {"emu_intercepts"}},
 
 
   MI_RESET,
