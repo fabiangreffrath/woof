@@ -400,6 +400,7 @@ static void do_draw_plane(visplane_t *pl)
 	int texture;
 	angle_t an, flip;
 	boolean vertically_scrolling = false;
+	boolean stretch;
 
 	// killough 10/98: allow skies to come from sidedefs.
 	// Allows scrolling and/or animated skies, as well as
@@ -457,19 +458,22 @@ static void do_draw_plane(visplane_t *pl)
 	  dc_colormap[0] = dc_colormap[1] = fullcolormap;          // killough 3/20/98
 
         dc_texheight = textureheight[texture]>>FRACBITS; // killough
-        dc_iscale = pspriteiscale;
+        dc_iscale = skyiscale;
 
         // [FG] stretch short skies
-        if (stretchsky && dc_texheight < 200)
+        stretch = (stretchsky && dc_texheight < 200);
+        if (stretch || !vertically_scrolling)
         {
-          dc_iscale = dc_iscale * dc_texheight / SKYSTRETCH_HEIGHT;
-          dc_texturemid = dc_texturemid * dc_texheight / SKYSTRETCH_HEIGHT;
-          colfunc = R_DrawColumn;
-        }
-        else if (!vertically_scrolling)
-        {
+          fixed_t diff;
+
+          if (stretch)
+          {
+            dc_iscale = dc_iscale * dc_texheight / SKYSTRETCH_HEIGHT;
+            dc_texturemid = dc_texturemid * dc_texheight / SKYSTRETCH_HEIGHT;
+          }
+
           // Make sure the fade-to-color effect doesn't happen too early
-          fixed_t diff = dc_texturemid - SCREENHEIGHT / 2 * FRACUNIT;
+          diff = dc_texturemid - SCREENHEIGHT / 2 * FRACUNIT;
           if (diff < 0)
           {
             diff += textureheight[texture];

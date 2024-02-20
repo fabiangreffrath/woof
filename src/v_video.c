@@ -1,11 +1,12 @@
 //
 //  Copyright (C) 1999 by
 //  id Software, Chi Hoang, Lee Killough, Jim Flynn, Rand Phares, Ty Halderman
+//  Copyright (C) 2013 James Haley et al.
 //
-//  This program is free software; you can redistribute it and/or
-//  modify it under the terms of the GNU General Public License
-//  as published by the Free Software Foundation; either version 2
-//  of the License, or (at your option) any later version.
+//  This program is free software: you can redistribute it and/or modify
+//  it under the terms of the GNU General Public License as published by
+//  the Free Software Foundation, either version 3 of the License, or
+//  (at your option) any later version.
 //
 //  This program is distributed in the hope that it will be useful,
 //  but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -404,7 +405,7 @@ static void V_DrawPatchColumnTRTR(const patch_column_t *patchcol)
 static void V_DrawMaskedColumn(patch_column_t *patchcol, const int ytop,
                                column_t *column)
 {
-    while (column->topdelta != 0xff)
+    for (; column->topdelta != 0xff; column = (column_t *)((byte *)column + column->length + 4))
     {
         // calculate unclipped screen coordinates for post
         int columntop = ytop + column->topdelta;
@@ -445,8 +446,6 @@ static void V_DrawMaskedColumn(patch_column_t *patchcol, const int ytop,
             patchcol->source = (byte *)column + 3;
             drawcolfunc(patchcol);
         }
-
-        column = (column_t *)((byte *)column + column->length + 4);
     }
 }
 
@@ -533,7 +532,7 @@ static void V_DrawPatchInt(int x, int y, patch_t *patch, boolean flipped)
             }
     #endif
 
-            column = (column_t *)((byte *)patch + patch->columnofs[texturecolumn]);
+            column = (column_t *)((byte *)patch + LONG(patch->columnofs[texturecolumn]));
             V_DrawMaskedColumn(&patchcol, ytop, column);
         }
     }
@@ -707,6 +706,35 @@ void V_CopyRect(int srcx, int srcy, pixel_t *source,
     }
 }
 
+static void V_ClipRect(vrect_t *rect)
+{
+    // clip to left and top edges
+    rect->cx1 = rect->x >= 0 ? rect->x : 0;
+    rect->cy1 = rect->y >= 0 ? rect->y : 0;
+
+    // determine right and bottom edges
+    rect->cx2 = rect->x + rect->w - 1;
+    rect->cy2 = rect->y + rect->h - 1;
+
+    // clip right and bottom edges
+    if (rect->cx2 >= video.unscaledw)
+        rect->cx2 =  video.unscaledw - 1;
+    if (rect->cy2 >= SCREENHEIGHT)
+        rect->cy2 =  SCREENHEIGHT - 1;
+
+    // determine clipped width and height
+    rect->cw = rect->cx2 - rect->cx1 + 1;
+    rect->ch = rect->cy2 - rect->cy1 + 1;
+}
+
+static void V_ScaleClippedRect(vrect_t *rect)
+{
+    rect->sx = x1lookup[rect->cx1];
+    rect->sy = y1lookup[rect->cy1];
+    rect->sw = x2lookup[rect->cx2] - rect->sx + 1;
+    rect->sh = y2lookup[rect->cy2] - rect->sy + 1;
+}
+
 //
 // V_DrawBlock
 //
@@ -727,9 +755,19 @@ void V_DrawBlock(int x, int y, int width, int height, pixel_t *src)
     dstrect.w = width;
     dstrect.h = height;
 
-    V_ScaleRect(&dstrect);
+    V_ClipRect(&dstrect);
 
-    source = src + y * width + x;
+    // clipped away completely?
+    if (dstrect.cw <= 0 || dstrect.ch <= 0)
+        return;
+
+    // change in origin due to clipping
+    int dx = dstrect.cx1 - x;
+    int dy = dstrect.cy1 - y;
+
+    V_ScaleClippedRect(&dstrect);
+
+    source = src + dy * width + dx;
     dest = V_ADDRESS(dest_screen, dstrect.sx, dstrect.sy);
 
     {

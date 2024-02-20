@@ -42,8 +42,6 @@ extern boolean clfastparm; // checkparm of -fast
 
 void D_SetMaxHealth(void);
 void D_SetBloodColor(void);
-void D_SetPredefinedTranslucency(void);
-void D_DehChangePredefinedTranslucency(int index);
 
 boolean D_CheckEndDoom(void);
 

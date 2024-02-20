@@ -61,6 +61,7 @@ lighttable_t *fixedcolormap;
 int      centerx, centery;
 fixed_t  centerxfrac, centeryfrac;
 fixed_t  projection;
+fixed_t  skyiscale;
 fixed_t  viewx, viewy, viewz;
 angle_t  viewangle;
 localview_t localview;
@@ -70,6 +71,8 @@ fixed_t  viewcos, viewsin;
 player_t *viewplayer;
 extern lighttable_t **walllights;
 fixed_t  viewheightfrac; // [FG] sprite clipping optimizations
+
+static fixed_t focallength, lightfocallength;
 
 //
 // precalculated math tables
@@ -271,8 +274,9 @@ static fixed_t centerxfrac_nonwide;
 static void R_InitTextureMapping(void)
 {
   register int i,x;
-  fixed_t focallength, slopefrac;
+  fixed_t slopefrac;
   angle_t fov;
+  double linearskyfactor;
 
   // Use tangent table to generate viewangletox:
   //  viewangletox will give the next greatest x
@@ -281,27 +285,34 @@ static void R_InitTextureMapping(void)
   // Calc focallength
   //  so FIELDOFVIEW angles covers SCREENWIDTH.
 
-  if (custom_fov != FOV_DEFAULT)
-  {
-    const double slope = (tan(custom_fov * M_PI / 360.0) *
-                          centerxfrac / centerxfrac_nonwide);
-    fov = atan(slope) * FINEANGLES / M_PI;
-    slopefrac = finetangent[FINEANGLES / 4 + fov / 2];
-    focallength = FixedDiv(centerxfrac, slopefrac);
-    projection = centerxfrac / slope;
-  }
-  else
+  if (custom_fov == FOV_DEFAULT)
   {
     fov = FIELDOFVIEW;
     slopefrac = finetangent[FINEANGLES / 4 + fov / 2];
     focallength = FixedDiv(centerxfrac_nonwide, slopefrac);
+    lightfocallength = focallength;
     projection = centerxfrac_nonwide;
 
-    if (widescreen != RATIO_ORIG)
+    if (centerxfrac != centerxfrac_nonwide)
     {
       fov = atan((double)centerxfrac / centerxfrac_nonwide) * FINEANGLES / M_PI;
       slopefrac = finetangent[FINEANGLES / 4 + fov / 2];
     }
+  }
+  else
+  {
+    const double slope = (tan(custom_fov * M_PI / 360.0) *
+                          centerxfrac / centerxfrac_nonwide);
+
+    // For correct light across FOV range. Calculated like R_InitTables().
+    const double lightangle = atan(slope) + M_PI / FINEANGLES;
+    const double lightslopefrac = tan(lightangle) * FRACUNIT;
+    lightfocallength = FixedDiv(centerxfrac, lightslopefrac);
+
+    fov = atan(slope) * FINEANGLES / M_PI;
+    slopefrac = finetangent[FINEANGLES / 4 + fov / 2];
+    focallength = FixedDiv(centerxfrac, slopefrac);
+    projection = centerxfrac / slope;
   }
 
   for (i=0 ; i<FINEANGLES/2 ; i++)
@@ -329,13 +340,15 @@ static void R_InitTextureMapping(void)
   //  xtoviewangle will give the smallest view angle
   //  that maps to x.
 
+  linearskyfactor = FIXED2DOUBLE(slopefrac) * ANG90;
+
   for (x=0; x<=viewwidth; x++)
     {
       for (i=0; viewangletox[i] > x; i++)
         ;
       xtoviewangle[x] = (i<<ANGLETOFINESHIFT)-ANG90;
       // [FG] linear horizontal sky scrolling
-      linearskyangle[x] = ((viewwidth/2-x)*((video.unscaledw<<FRACBITS)/viewwidth))*(ANG90/(NONWIDEWIDTH<<FRACBITS));
+      linearskyangle[x] = (0.5 - x / (double)viewwidth) * linearskyfactor;
     }
     
   // Take out the fencepost cases from viewangletox.
@@ -471,9 +484,15 @@ void R_SmoothLight(void)
   P_SegLengths(true);
 }
 
+int R_GetLightIndex(fixed_t scale)
+{
+  const int index = FixedDiv(scale * 160, lightfocallength) >> LIGHTSCALESHIFT;
+  return BETWEEN(0, MAXLIGHTSCALE - 1, index);
+}
+
 static fixed_t viewpitch;
 
-static void R_SetupMouselook(void)
+static void R_SetupFreelook(void)
 {
   fixed_t dy;
   int i;
@@ -583,11 +602,19 @@ void R_ExecuteSetViewSize (void)
 
   R_InitTextureMapping();
 
-  R_SetupMouselook();
+  R_SetupFreelook();
 
   // psprite scales
   pspritescale = FixedDiv(viewwidth_nonwide, SCREENWIDTH);       // killough 11/98
-  pspriteiscale = FixedDiv(SCREENWIDTH, viewwidth_nonwide) + 1;  // killough 11/98
+  pspriteiscale = FixedDiv(SCREENWIDTH, viewwidth_nonwide);      // killough 11/98
+
+  // [FG] make sure that the product of the weapon sprite scale factor
+  //      and its reciprocal is always at least FRACUNIT to
+  //      fix garbage lines at the top of weapon sprites
+  while (FixedMul(pspriteiscale, pspritescale) < FRACUNIT)
+    pspriteiscale++;
+
+  skyiscale = FixedDiv(160 << FRACBITS, focallength);
 
   for (i=0 ; i<viewwidth ; i++)
     {
@@ -749,7 +776,7 @@ void R_SetupFrame (player_t *player)
   if (pitch != viewpitch)
   {
     viewpitch = pitch;
-    R_SetupMouselook();
+    R_SetupFreelook();
   }
 
   // 3-screen display mode.
@@ -830,9 +857,8 @@ void R_RenderPlayerView (player_t* player)
     { // killough 2/10/98: add flashing red HOM indicators
       pixel_t c[47*47];
       extern int lastshottic;
-      const int linesize = video.width;
       int i , color = !flashing_hom || (gametic % 20) < 9 ? 0xb0 : 0;
-      memset(I_VideoBuffer+viewwindowy*linesize,color,viewheight*linesize);
+      V_FillRect(scaledviewx, scaledviewy, scaledviewwidth, scaledviewheight, color);
       for (i=0;i<47*47;i++)
         {
           char t =

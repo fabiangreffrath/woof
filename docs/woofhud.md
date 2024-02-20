@@ -40,7 +40,7 @@ Possible values for the widget position keywords:
 
 When using relative screen positioning, the widgets are aligned "first come, first serve". For example, the first widget in a paragraph that is aligned with the "bottomleft" keyword will end up in the very bottom-left area of the screen and each following widget that is aligned with the same keyword will get stacked one line above.
 
-Absolute X and Y screen coordinates are limited to the low-resolution non-widescreen visible area of the screen, i.e. `0 <= X < 320` and `0 <= Y < 200`. Negative values will get interpreted relative to the right or lower edges of the screen, respectively. If the "Widescreen Widget Arrangement" feature is enabled, widgets will get aligned with respect to the widescreen area of the screen (new in Woof! 12.1.0).
+Absolute X and Y screen coordinates are limited to the low-resolution non-widescreen visible area of the screen, i.e. `0 <= X < 320` and `0 <= Y < 200`. Negative values will get interpreted relative to the right or lower edges of the screen, respectively. If the "Widescreen Widget Arrangement" feature is enabled, widgets will get aligned with respect to the widescreen area of the screen (new in Woof! 14.0.0).
 
 ## Examples
 

@@ -43,6 +43,7 @@ extern int      centery;
 extern fixed_t  centerxfrac;
 extern fixed_t  centeryfrac;
 extern fixed_t  projection;
+extern fixed_t  skyiscale;
 extern int      validcount;
 extern int      linecount;
 extern int      loopcount;
@@ -113,6 +114,7 @@ void R_Init(void);                           // Called by startup code.
 void R_SetViewSize(int blocks);              // Called by M_Responder.
 
 void R_InitLightTables(void);                // killough 8/9/98
+int R_GetLightIndex(fixed_t scale);
 
 extern boolean setsizeneeded;
 void R_ExecuteSetViewSize(void);

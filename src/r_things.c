@@ -446,7 +446,8 @@ void R_DrawVisSprite(vissprite_t *vis, int x1, int x2)
           ((vis->mobjflags & MF_TRANSLATION) >> (MF_TRANSSHIFT-8) );
       }
     else
-      if (vis->mobjflags & MF_TRANSLUCENT) // phares
+      if (translucency && !(strictmode && demo_compatibility)
+          && vis->mobjflags & MF_TRANSLUCENT) // phares
         {
           colfunc = R_DrawTLColumn;
           tranmap = main_tranmap;       // killough 4/11/98
@@ -677,9 +678,8 @@ void R_ProjectSprite (mobj_t* thing)
     vis->colormap[0] = vis->colormap[1] = fullcolormap;       // full bright  // killough 3/20/98
   else
     {      // diminished light
-      int index = FixedDiv(xscale, video.xscale) >> LIGHTSCALESHIFT;  // killough 11/98
-      if (index >= MAXLIGHTSCALE)
-        index = MAXLIGHTSCALE-1;
+      const int index = R_GetLightIndex(xscale);
+
       vis->colormap[0] = spritelights[index];
       vis->colormap[1] = fullcolormap;
     }

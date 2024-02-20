@@ -170,9 +170,8 @@ static void SaveGameSettings(net_gamesettings_t *settings)
 
     longtics = (demo_compatibility && M_ParmExists("-longtics")) || mbf21;
 
-    settings->lowres_turn = (M_ParmExists("-record")
-                          && !longtics)
-                          || M_ParmExists("-shorttics");
+    settings->lowres_turn = ((M_ParmExists("-record") && !longtics) ||
+                             M_ParmExists("-shorttics") || shorttics);
 
     settings->demo_version = demo_version;
     G_WriteOptions(settings->options);
@@ -180,8 +179,6 @@ static void SaveGameSettings(net_gamesettings_t *settings)
 
 static void InitConnectData(net_connect_data_t *connect_data)
 {
-    boolean shorttics;
-
     connect_data->max_players = MAXPLAYERS;
     connect_data->drone = false;
 
@@ -225,15 +222,12 @@ static void InitConnectData(net_connect_data_t *connect_data)
     // Play with low turning resolution to emulate demo recording.
     //
 
-    shorttics = M_ParmExists("-shorttics");
-
     longtics = (demo_compatibility && M_ParmExists("-longtics")) || mbf21;
 
     // Are we recording a demo? Possibly set lowres turn mode
 
-    connect_data->lowres_turn = (M_ParmExists("-record")
-                             && !longtics)
-                              || shorttics;
+    connect_data->lowres_turn = ((M_ParmExists("-record") && !longtics) ||
+                                 M_ParmExists("-shorttics") || shorttics);
 
     // Read checksums of our WAD directory and dehacked information
 

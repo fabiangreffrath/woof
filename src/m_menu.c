@@ -99,6 +99,8 @@ int traditional_menu;
 //int     detailLevel;    obsolete -- killough
 int screenblocks;    // has default
 
+static int saved_screenblocks;
+
 static int screenSize;      // temp for screenblocks (0-9)
 
 static int quickSaveSlot;   // -1 = no quicksave slot picked!
@@ -162,8 +164,32 @@ backdrop_t menu_backdrop;
 #define M_X_LOADSAVE 80
 #define M_LOADSAVE_WIDTH (24 * 8 + 8) // [FG] c.f. M_DrawSaveLoadBorder()
 
-#define DISABLE_ITEM(condition, item) \
-        ((condition) ? (item.m_flags |= S_DISABLE) : (item.m_flags &= ~S_DISABLE))
+static void DisableItem(boolean condition, setup_menu_t *menu, const char *item)
+{
+    while (!(menu->m_flags & S_END))
+    {
+        if (!(menu->m_flags & (S_SKIP | S_RESET)))
+        {
+            if (strcasecmp(menu->var.def->name, item) == 0)
+            {
+                if (condition)
+                {
+                    menu->m_flags |= S_DISABLE;
+                }
+                else
+                {
+                    menu->m_flags &= ~S_DISABLE;
+                }
+
+                return;
+            }
+        }
+
+        menu++;
+    }
+
+    I_Error("Item \"%s\" not found in menu", item);
+}
 
 // Final entry
 #define MI_END \
@@ -248,7 +274,7 @@ extern int armor_yellow;  // armor amount less than which status is yellow
 extern int armor_green;   // armor amount above is blue, below is green
 extern int ammo_red;      // ammo percent less than which status is red
 extern int ammo_yellow;   // ammo percent less is yellow more green
-extern int sts_always_red;// status numbers do not change colors
+extern int sts_colored_numbers;// status numbers do not change colors
 extern int sts_pct_always_gray;// status percents do not change colors
 extern int sts_traditional_keys;  // display keys the traditional way
 
@@ -513,11 +539,9 @@ static void M_FinishHelp(int choice)        // killough 10/98
 
 static void M_DrawReadThis1(void)
 {
-  inhelpscreens = true;
-  if (gamemode == shareware)
-    V_DrawPatchFullScreen (W_CacheLumpName("HELP2",PU_CACHE));
-  else
-    M_DrawCredits();
+    inhelpscreens = true;
+  
+    V_DrawPatchFullScreen(W_CacheLumpName("HELP2", PU_CACHE));
 }
 
 //
@@ -527,11 +551,19 @@ static void M_DrawReadThis1(void)
 
 static void M_DrawReadThis2(void)
 {
-  inhelpscreens = true;
-  if (gamemode == shareware)
-    M_DrawCredits();
-  else
-    V_DrawPatchFullScreen (W_CacheLumpName("CREDIT",PU_CACHE));
+    inhelpscreens = true;
+    
+    // We only ever draw the second page if this is 
+    // gameversion == exe_doom_1_9 and gamemode == registered
+    
+    V_DrawPatchFullScreen(W_CacheLumpName("HELP1", PU_CACHE));
+}
+
+static void M_DrawReadThisCommercial(void)
+{
+    inhelpscreens = true;
+
+    V_DrawPatchFullScreen(W_CacheLumpName("HELP", PU_CACHE));
 }
 
 /////////////////////////////
@@ -1572,6 +1604,7 @@ static void M_SizeDisplay(int choice)
       break;
     }
   R_SetViewSize (screenblocks /*, detailLevel obsolete -- killough */);
+  saved_screenblocks = screenblocks;
 }
 
 //
@@ -1887,7 +1920,7 @@ static void M_DrawBackground(char *patchname)
 
 static void M_DrawSetup(void)
 {
-  M_DrawTitle(124, 15, "M_OPTION", "OPTIONS");
+  M_DrawTitle(124, 15, "M_OPTTTL", "OPTIONS");
 }
 
 /////////////////////////////
@@ -1944,6 +1977,7 @@ enum
     str_curve,
     str_center_weapon,
     str_bobfactor,
+    str_screensize,
     str_hudtype,
     str_hudmode,
     str_show_widgets,
@@ -2280,8 +2314,11 @@ static void M_DrawSetting(setup_menu_t *s, int accum_y)
         gather_buffer[gather_count] = 0;
         strcpy(menu_buffer, gather_buffer);
       }
+      else if (flags & S_PCT)
+        M_snprintf(menu_buffer, sizeof(menu_buffer), "%d%%", s->var.def->location->i);
       else
-        sprintf(menu_buffer,"%d",s->var.def->location->i);
+        M_snprintf(menu_buffer, sizeof(menu_buffer), "%d", s->var.def->location->i);
+
       BlinkingArrowRight(s);
       M_DrawMenuStringEx(flags, x, y, color);
       return;
@@ -2402,7 +2439,7 @@ static void M_DrawSetting(setup_menu_t *s, int accum_y)
           max = M_THRM_UL_VAL;
       }
 
-      value = BETWEEN(min, max, value);
+      int thrm_val = BETWEEN(min, max, value);
 
       byte *cr;
       if (ItemDisabled(flags))
@@ -2417,12 +2454,14 @@ static void M_DrawSetting(setup_menu_t *s, int accum_y)
       rect->y = y;
       rect->w = (width + 2) * M_THRM_STEP;
       rect->h = M_THRM_HEIGHT;
-      M_DrawSetupThermo(x, y, width, max - min, value - min, cr);
+      M_DrawSetupThermo(x, y, width, max - min, thrm_val - min, cr);
 
       if (strings)
         strcpy(menu_buffer, strings[value]);
+      else if (flags & S_PCT)
+        M_snprintf(menu_buffer, sizeof(menu_buffer), "%d%%", value);
       else
-        M_snprintf(menu_buffer, 4, "%d", value);
+        M_snprintf(menu_buffer, sizeof(menu_buffer), "%d", value);
 
       BlinkingArrowRight(s);
       M_DrawMenuStringEx(flags, x + M_THRM_STEP + rect->w, y + M_THRM_TXT_OFFSET, color);
@@ -2530,7 +2569,6 @@ static void M_DrawDelVerify(void)
 
 static void M_DrawInstructions()
 {
-    default_t *def = current_setup_menu[set_menu_itemon].var.def;
     int flags = current_setup_menu[set_menu_itemon].m_flags;
 
     if (ItemDisabled(flags) || print_warning_about_changes > 0)
@@ -2541,23 +2579,6 @@ static void M_DrawInstructions()
     if (menu_input == mouse_mode && !(flags & S_HILITE))
     {
         return;
-    }
-
-    // killough 8/15/98: warn when values are different
-    if (flags & (S_NUM|S_YESNO)
-        && !(flags & S_COSMETIC) // don't warn about cosmetic options
-        && def->current && def->current->i != def->location->i)
-    {
-        if (!(setup_gather | print_warning_about_changes))
-        {
-            strcpy(menu_buffer, "Current value differs from default");
-            M_DrawMenuString(4, M_Y_WARN, CR_RED);
-        }
-
-        if (setup_select && !(flags & (S_LEVWARN | S_PRGWARN)))
-        {
-            def->current->i = def->location->i;
-        }
     }
 
     // There are different instruction messages depending on whether you
@@ -2841,7 +2862,7 @@ setup_menu_t keys_settings1[] =  // Key Binding screen strings
 
   {"Toggles", S_SKIP|S_TITLE,    m_null, KB_X, M_SPC},
   {"Autorun"     , S_INPUT,      m_scrn, KB_X, M_SPC, {0}, input_autorun},
-  {"Free Look"   , S_INPUT,      m_scrn, KB_X, M_SPC, {0}, input_mouselook},
+  {"Free Look"   , S_INPUT,      m_scrn, KB_X, M_SPC, {0}, input_freelook},
   {"Vertmouse"   , S_INPUT,      m_scrn, KB_X, M_SPC, {0}, input_novert},
 
   MI_RESET,
@@ -3034,30 +3055,6 @@ static void M_DrawKeybnd(void)
 // Note that this screen has no PREV or NEXT items, since there are no
 // neighboring screens.
 
-enum {           // killough 10/98: enum for y-offset info
-  weap1_pref1,
-  weap1_pref2,
-  weap1_pref3,
-  weap1_pref4,
-  weap1_pref5,
-  weap1_pref6,
-  weap1_pref7,
-  weap1_pref8,
-  weap1_pref9,
-  weap1_stub1,
-  weap1_toggle,
-  weap1_stub2,
-  weap1_bfg,
-};
-
-enum {
-  weap2_title1,
-  weap2_bobbing,
-  weap2_hide_weapon,
-  weap2_center, // [FG] centered weapon sprite
-  weap2_recoilpitch,
-};
-
 setup_menu_t weap_settings1[], weap_settings2[];
 
 static setup_menu_t* weap_settings[] =
@@ -3085,7 +3082,7 @@ static const char *bobfactor_strings[] = {
 
 static void M_UpdateCenteredWeaponItem(void)
 {
-  DISABLE_ITEM(!cosmetic_bobbing, weap_settings2[weap2_center]);
+  DisableItem(!cosmetic_bobbing, weap_settings2, "center_weapon");
 }
 
 setup_menu_t weap_settings1[] =  // Weapons Settings screen
@@ -3205,24 +3202,36 @@ static setup_tab_t stat_tabs[] =
    { NULL }
 };
 
-enum {
-  stat1_title1,
-  stat1_rednum,
-  stat1_graypcnt,
-  stat1_solid,
-  stat1_stub1,
-  stat1_title2,
-  stat1_type,
-  stat1_mode,
-  stat1_stub2,
-  stat1_title3,
-  stat1_backpack,
-  stat1_armortype,
-  stat1_smooth,
+static void M_SizeDisplayAlt(void)
+{
+    int choice = -1;
+
+    if (screenblocks > saved_screenblocks)
+    {
+        choice = 1;
+    }
+    else if (screenblocks < saved_screenblocks)
+    {
+        choice = 0;
+    }
+
+    screenblocks = saved_screenblocks;
+
+    if (choice != -1)
+    {
+        M_SizeDisplay(choice);
+    }
+
+    hud_displayed = (screenblocks == 11);
+}
+
+static const char *screensize_strings[] = {
+    "", "", "", "Status Bar", "Status Bar", "Status Bar", "Status Bar",
+    "Status Bar", "Status Bar", "Status Bar", "Status Bar", "Fullscreen"
 };
 
 static const char *hudtype_strings[] = {
-    "Crispy", "No Bars", "Boom"
+    "Crispy", "Boom No Bars", "Boom"
 };
 
 static const char **M_GetHUDModeStrings(void)
@@ -3234,45 +3243,36 @@ static const char **M_GetHUDModeStrings(void)
 
 static void M_UpdateHUDModeStrings(void);
 
+#define H_X_THRM8 (M_X_THRM8 - 14)
+#define H_X (M_X - 14)
+
 setup_menu_t stat_settings1[] =  // Status Bar and HUD Settings screen
 {
-  {"Status Bar", S_SKIP|S_TITLE, m_null, M_X, M_Y},
+  {"Screen Size", S_THERMO, m_null, H_X_THRM8, M_Y, {"screenblocks"}, 0, M_SizeDisplayAlt, str_screensize},
 
-  {"Standard Colors", S_YESNO|S_COSMETIC, m_null, M_X, M_SPC, {"sts_always_red"}},
-  {"Gray Percent Sign", S_YESNO|S_COSMETIC, m_null, M_X, M_SPC, {"sts_pct_always_gray"}},
-  {"Solid Background Color", S_YESNO, m_null, M_X, M_SPC, {"st_solidbackground"}},
+  {"", S_SKIP, m_null, H_X, M_THRM_SPC},
 
-  {"", S_SKIP, m_null, M_X, M_SPC},
+  {"Status Bar", S_SKIP|S_TITLE, m_null, H_X, M_SPC},
+  {"Colored Numbers", S_YESNO|S_COSMETIC, m_null, H_X, M_SPC, {"sts_colored_numbers"}},
+  {"Gray Percent Sign", S_YESNO|S_COSMETIC, m_null, H_X, M_SPC, {"sts_pct_always_gray"}},
+  {"Solid Background Color", S_YESNO, m_null, H_X, M_SPC, {"st_solidbackground"}},
 
-  {"Fullscreen HUD", S_SKIP|S_TITLE, m_null, M_X, M_SPC},
-  {"HUD Type", S_CHOICE, m_null, M_X, M_SPC, {"hud_type"}, 0, M_UpdateHUDModeStrings, str_hudtype},
-  {"HUD Mode", S_CHOICE, m_null, M_X, M_SPC, {"hud_active"}, 0, NULL, str_hudmode},
+  {"", S_SKIP, m_null, H_X, M_SPC},
 
-  {"", S_SKIP, m_null, M_X, M_SPC},
+  {"Fullscreen HUD", S_SKIP|S_TITLE, m_null, H_X, M_SPC},
+  {"HUD Type", S_CHOICE, m_null, H_X, M_SPC, {"hud_type"}, 0, M_UpdateHUDModeStrings, str_hudtype},
+  {"HUD Mode", S_CHOICE, m_null, H_X, M_SPC, {"hud_active"}, 0, NULL, str_hudmode},
 
-  {"HUD Appearance", S_SKIP|S_TITLE, m_null, M_X, M_SPC},
+  {"", S_SKIP, m_null, H_X, M_SPC},
 
-  {"Backpack Shifts Ammo Color", S_YESNO, m_null, M_X, M_SPC, {"hud_backpack_thresholds"}},
-  {"Armor Color Matches Type", S_YESNO, m_null, M_X, M_SPC, {"hud_armor_type"}},
-  {"Animated Health/Armor Count", S_YESNO, m_null, M_X, M_SPC, {"hud_animated_counts"}},
-  {"Blink Missing Keys", S_YESNO, m_null, M_X, M_SPC, {"hud_blink_keys"}},
+  {"Backpack Shifts Ammo Color", S_YESNO, m_null, H_X, M_SPC, {"hud_backpack_thresholds"}},
+  {"Armor Color Matches Type", S_YESNO, m_null, H_X, M_SPC, {"hud_armor_type"}},
+  {"Animated Health/Armor Count", S_YESNO, m_null, H_X, M_SPC, {"hud_animated_counts"}},
+  {"Blink Missing Keys", S_YESNO, m_null, H_X, M_SPC, {"hud_blink_keys"}},
 
   MI_RESET,
 
   MI_END
-};
-
-enum {
-  stat2_title1,
-  stat2_stats,
-  stat2_time,
-  stat2_coords,
-  stat2_timeuse,
-  stat2_stub1,
-  stat2_title2,
-  stat2_hudfont,
-  stat2_widescreen,
-  stat2_layout,
 };
 
 static const char *show_widgets_strings[] = {
@@ -3297,7 +3297,7 @@ setup_menu_t stat_settings2[] =
 
   {"Use Doom Font", S_CHOICE, m_null, M_X, M_SPC,
    {"hud_widget_font"}, 0, NULL, str_show_widgets},
-  {"Widescreen", S_YESNO, m_null, M_X, M_SPC,
+  {"Widescreen Alignment", S_YESNO, m_null, M_X, M_SPC,
    {"hud_widescreen_widgets"}, 0, HU_Start},
   {"Vertical Layout", S_YESNO, m_null, M_X, M_SPC,
    {"hud_widget_layout"}, 0, HU_Start},
@@ -3305,23 +3305,14 @@ setup_menu_t stat_settings2[] =
   MI_END
 };
 
-enum {
-  stat3_xhair,
-  stat3_xhairhealth,
-  stat3_xhairtarget,
-  stat3_xhairlockon,
-  stat3_xhaircolor,
-  stat3_xhairtcolor,
-};
-
 static void M_UpdateCrosshairItems (void)
 {
-    DISABLE_ITEM(!hud_crosshair, stat_settings3[stat3_xhairhealth]);
-    DISABLE_ITEM(!hud_crosshair, stat_settings3[stat3_xhairtarget]);
-    DISABLE_ITEM(!hud_crosshair, stat_settings3[stat3_xhairlockon]);
-    DISABLE_ITEM(!hud_crosshair, stat_settings3[stat3_xhaircolor]);
-    DISABLE_ITEM(!(hud_crosshair && hud_crosshair_target == crosstarget_highlight),
-        stat_settings3[stat3_xhairtcolor]);
+    DisableItem(!hud_crosshair, stat_settings3, "hud_crosshair_health");
+    DisableItem(!hud_crosshair, stat_settings3, "hud_crosshair_target");
+    DisableItem(!hud_crosshair, stat_settings3, "hud_crosshair_lockon");
+    DisableItem(!hud_crosshair, stat_settings3, "hud_crosshair_color");
+    DisableItem(!(hud_crosshair && hud_crosshair_target == crosstarget_highlight),
+        stat_settings3, "hud_crosshair_target_color");
 }
 
 static const char *crosshair_target_strings[] = {
@@ -3333,18 +3324,20 @@ static const char *hudcolor_strings[] = {
     "YELLOW", "BLUE2", "BLACK", "PURPLE", "WHITE", "NONE"
 };
 
+#define XH_X M_X - 28
+
 setup_menu_t stat_settings3[] =
 {
-  {"Enable Crosshair", S_CHOICE, m_null, M_X, M_Y,
+  {"Crosshair", S_CHOICE, m_null, XH_X, M_Y,
    {"hud_crosshair"}, 0, M_UpdateCrosshairItems, str_crosshair},
 
-  {"Color By Player Health",S_YESNO|S_STRICT, m_null, M_X, M_SPC, {"hud_crosshair_health"}},
-  {"Color By Target", S_CHOICE|S_STRICT, m_null, M_X, M_SPC,
+  {"Color By Player Health",S_YESNO|S_STRICT, m_null, XH_X, M_SPC, {"hud_crosshair_health"}},
+  {"Color By Target", S_CHOICE|S_STRICT, m_null, XH_X, M_SPC,
    {"hud_crosshair_target"}, 0, M_UpdateCrosshairItems, str_crosshair_target},
-  {"Lock On Target", S_YESNO|S_STRICT, m_null, M_X, M_SPC, {"hud_crosshair_lockon"}},
-  {"Default Color", S_CRITEM, m_null,M_X, M_SPC,
+  {"Lock On Target", S_YESNO|S_STRICT, m_null, XH_X, M_SPC, {"hud_crosshair_lockon"}},
+  {"Default Color", S_CRITEM, m_null, XH_X, M_SPC,
    {"hud_crosshair_color"}, 0, NULL, str_hudcolor},
-  {"Highlight Color", S_CRITEM|S_STRICT, m_null, M_X, M_SPC,
+  {"Highlight Color", S_CRITEM|S_STRICT, m_null, XH_X, M_SPC,
    {"hud_crosshair_target_color"}, 0, NULL, str_hudcolor},
 
   MI_END
@@ -3405,6 +3398,16 @@ static void M_DrawStatusHUD(void)
   M_DrawInstructions();
   M_DrawScreenItems(current_setup_menu);
 
+  if (hud_crosshair && mult_screens_index == 2)
+  {
+    patch_t *patch = W_CacheLumpName(crosshair_lumps[hud_crosshair], PU_CACHE);
+
+    int x = XH_X + 80 - SHORT(patch->width) / 2;
+    int y = M_Y + M_SPC / 2 - SHORT(patch->height) / 2 - 1;
+
+    V_DrawPatchTranslated(x, y, patch, colrngs[hud_crosshair_color]);
+  }
+
   // If the Reset Button has been selected, an "Are you sure?" message
   // is overlayed across everything else.
 
@@ -3423,20 +3426,6 @@ static setup_menu_t* auto_settings[] =
 {
   auto_settings1,
   NULL
-};
-
-enum {
-  auto1_title1,
-  auto1_preset,
-  auto1_follow,
-  auto1_rotate,
-  auto1_overlay,
-  auto1_pointer,
-  auto1_stub1,
-  auto1_title2,
-  auto1_smooth,
-  auto1_secrets,
-  auto1_flash,
 };
 
 static const char *overlay_strings[] = {
@@ -3524,17 +3513,6 @@ static setup_menu_t* enem_settings[] =
 {
   enem_settings1,
   NULL
-};
-
-enum {
-  enem1_helpers,
-  enem1_gap1,
-
-  enem1_title1,
-  enem1_colored_blood,
-  enem1_flipcorpses,
-  enem1_ghost,
-  enem1_fuzz,
 };
 
 static void M_BarkSound(void)
@@ -3632,23 +3610,6 @@ static setup_menu_t* comp_settings[] =
   NULL
 };
 
-enum
-{
-  comp1_title1,
-  comp1_complevel,
-  comp1_strictmode,
-  comp1_gap1,
-
-  comp1_title2,
-  comp1_verticalaim,
-  comp1_autostrafe50,
-  comp1_pistolstart,
-  comp1_gap2,
-
-  comp1_blockmapfix,
-  comp1_hangsolid,
-};
-
 static const char *default_complevel_strings[] = {
   "Vanilla", "Boom", "MBF", "MBF21"
 };
@@ -3682,6 +3643,9 @@ setup_menu_t comp_settings1[] =  // Compatibility Settings screen #1
 
   {"Walk Under Solid Hanging Bodies", S_YESNO|S_STRICT, m_null, M_X,
    M_SPC, {"hangsolid"}},
+
+  {"Emulate INTERCEPTS overflow", S_YESNO|S_VANILLA, m_null, M_X,
+   M_SPC, {"emu_intercepts"}},
 
 
   MI_RESET,
@@ -3766,43 +3730,6 @@ static setup_tab_t gen_tabs[] =
    { NULL }
 };
 
-// Page 1
-
-enum {
-  gen1_resolution_scale,
-  gen1_dynamic_resolution,
-  gen1_widescreen,
-  gen1_fov,
-  gen1_gap1,
-
-  gen1_fullscreen,
-  gen1_exclusive_fullscreen,
-  gen1_gap2,
-
-  gen1_uncapped,
-  gen1_fpslimit,
-  gen1_vsync,
-  gen1_gap3,
-
-  gen1_gamma
-};
-
-// Page 2
-
-enum {
-  gen2_sfx_vol,
-  gen2_music_vol,
-  gen2_gap1,
-
-  gen2_sndmodule,
-  gen2_sndhrtf,
-  gen2_pitch,
-  gen2_fullsnd,
-  gen2_gap2,
-
-  gen2_musicbackend,
-};
-
 int resolution_scale;
 
 static const char **M_GetResolutionScaleStrings(void)
@@ -3878,8 +3805,8 @@ static void M_ResetVideoHeight(void)
         VX_ResetMaxDist();
     }
 
-    DISABLE_ITEM(current_video_height <= DRS_MIN_HEIGHT,
-                 gen_settings1[gen1_dynamic_resolution]);
+    DisableItem(current_video_height <= DRS_MIN_HEIGHT,
+                 gen_settings1, "dynamic_resolution");
 
     resetneeded = true;
 }
@@ -3926,7 +3853,7 @@ static const char *sound_module_strings[] = {
 
 static void M_UpdateAdvancedSoundItems(void)
 {
-  DISABLE_ITEM(snd_module != SND_MODULE_3D, gen_settings2[gen2_sndhrtf]);
+  DisableItem(snd_module != SND_MODULE_3D, gen_settings2, "snd_hrtf");
 }
 
 static void M_SetSoundModule(void)
@@ -3954,7 +3881,7 @@ static void M_SetMidiPlayer(void)
 
 static void M_ToggleUncapped(void)
 {
-  DISABLE_ITEM(!default_uncapped, gen_settings1[gen1_fpslimit]);
+  DisableItem(!default_uncapped, gen_settings1, "fpslimit");
   setrefreshneeded = true;
 }
 
@@ -4065,61 +3992,6 @@ setup_menu_t gen_settings2[] = { // General Settings screen2
   MI_END
 };
 
-// Page 3
-
-enum {
-  gen3_dclick,
-  gen3_free_look,
-  gen3_invert_look,
-  gen3_gap1,
-
-  gen3_turn_sens,
-  gen3_look_sens,
-  gen3_forward_sens,
-  gen3_strafe_sens,
-  gen3_gap2,
-
-  gen3_mouse_accel,
-};
-
-// Page 5
-
-enum {
-  gen5_smooth_scaling,
-  gen5_trans,
-  gen5_transpct,
-  gen5_gap1,
-
-  gen5_voxels,
-  gen5_brightmaps,
-  gen5_stretch_sky,
-  gen5_linear_sky,
-  gen5_swirl,
-  gen5_smoothlight,
-  gen5_gap2,
-
-  gen5_menu_background,
-  gen5_endoom,
-};
-
-// Page 6
-
-enum {
-  gen6_title1,
-  gen6_screen_melt,
-  gen6_death_action,
-  gen6_demobar,
-  gen6_palette_changes,
-  gen6_level_brightness,
-  gen6_organize_savefiles,
-  gen6_gap1,
-
-  gen6_title2,
-  gen6_realtic_clock_rate,
-  gen6_default_skill,
-};
-
-
 #define MOUSE_ACCEL_STRINGS_SIZE (40 + 1)
 
 static const char **M_GetMouseAccelStrings(void)
@@ -4167,7 +4039,7 @@ void M_ResetTimeScale(void)
     I_SetTimeScale(time_scale);
 }
 
-static void M_UpdateMouseLook(void)
+static void M_UpdateFreeLook(void)
 {
   P_UpdateDirectVerticalAiming();
 
@@ -4210,7 +4082,7 @@ static const char *menu_backdrop_strings[] = {
 
 void M_DisableVoxelsRenderingItem(void)
 {
-    gen_settings5[gen5_voxels].m_flags |= S_DISABLE;
+    DisableItem(true, gen_settings5, "voxels_rendering");
 }
 
 #define CNTR_X 162
@@ -4221,7 +4093,7 @@ setup_menu_t gen_settings3[] = {
   {"Double-Click to \"Use\"", S_YESNO, m_null, CNTR_X, M_Y, {"dclick_use"}},
 
   {"Free Look", S_YESNO, m_null, CNTR_X, M_SPC,
-   {"mouselook"}, 0, M_UpdateMouseLook},
+   {"mouselook"}, 0, M_UpdateFreeLook},
 
   // [FG] invert vertical axis
   {"Invert Look", S_YESNO, m_null, CNTR_X, M_SPC,
@@ -4235,7 +4107,7 @@ setup_menu_t gen_settings3[] = {
   {"Look Sensitivity", S_THERMO|S_THRM_SIZE11, m_null, CNTR_X, M_THRM_SPC,
    {"mouse_sensitivity_y_look"}},
 
-  {"Forward Sensitivity", S_THERMO|S_THRM_SIZE11, m_null, CNTR_X, M_THRM_SPC,
+  {"Move Sensitivity", S_THERMO|S_THRM_SIZE11, m_null, CNTR_X, M_THRM_SPC,
    {"mouse_sensitivity_y"}},
 
   {"Strafe Sensitivity", S_THERMO|S_THRM_SIZE11, m_null, CNTR_X, M_THRM_SPC,
@@ -4255,7 +4127,7 @@ setup_menu_t gen_settings4[] = {
    {"joy_layout"}, 0, I_ResetController, str_layout},
 
   {"Free Look", S_YESNO, m_null, CNTR_X, M_SPC,
-   {"padlook"}, 0, M_UpdateMouseLook},
+   {"padlook"}, 0, M_UpdateFreeLook},
 
   {"Invert Look", S_YESNO, m_scrn, CNTR_X, M_SPC, {"joy_invert_look"}},
 
@@ -4292,13 +4164,12 @@ setup_menu_t gen_settings5[] = {
   {"Smooth Pixel Scaling", S_YESNO, m_null, M_X, M_Y,
    {"smooth_scaling"}, 0, M_ResetScreen},
 
-  {"Enable Translucency", S_YESNO|S_STRICT, m_null, M_X, M_SPC,
-   {"translucency"}, 0, M_Trans},
+  {"Sprite Translucency", S_YESNO|S_STRICT, m_null, M_X, M_SPC, {"translucency"}},
 
-  {"Translucency Percent", S_NUM, m_null, M_X, M_SPC,
+  {"Translucency", S_THERMO|S_ACTION|S_PCT, m_null, M_X_THRM8, M_SPC,
    {"tran_filter_pct"}, 0, M_Trans},
 
-  {"", S_SKIP, m_null, M_X, M_SPC},
+  {"", S_SKIP, m_null, M_X, M_THRM_SPC},
 
   {"Voxels", S_YESNO|S_STRICT, m_null, M_X, M_SPC, {"voxels_rendering"}},
 
@@ -4350,7 +4221,7 @@ setup_menu_t gen_settings6[] = {
 
   {"Miscellaneous", S_SKIP|S_TITLE, m_null, M_X, M_SPC},
 
-  {"Game speed", S_NUM|S_STRICT, m_null, M_X, M_SPC,
+  {"Game speed", S_NUM|S_STRICT|S_PCT, m_null, M_X, M_SPC,
    {"realtic_clock_rate"}, 0, M_ResetTimeScale},
 
   {"Default Skill", S_CHOICE|S_LEVWARN, m_null, M_X, M_SPC,
@@ -4362,8 +4233,6 @@ setup_menu_t gen_settings6[] = {
 void M_Trans(void) // To reset translucency after setting it in menu
 {
     R_InitTranMap(0);
-
-    D_SetPredefinedTranslucency();
 }
 
 // Setting up for the General screen. Turn on flags, set pointers,
@@ -4913,7 +4782,7 @@ void M_DrawCredits(void)     // killough 10/98: credit screen
   M_DrawScreenItems(cred_settings);
 }
 
-static boolean M_ShortcutResponder(void)
+static boolean M_ShortcutResponder(const event_t *ev)
 {
     // If there is no active menu displayed...
 
@@ -4936,12 +4805,21 @@ static boolean M_ShortcutResponder(void)
         // return true; // [FG] don't let toggles eat keys
     }
 
-    if (M_InputActivated(input_mouselook))
+    if (M_InputActivated(input_freelook))
     {
-        mouselook = !mouselook;
-        padlook = !padlook;
-        togglemsg("Free Look %s", mouselook ? "On" : "Off");
-        M_UpdateMouseLook();
+        if (ev->type == ev_joyb_down)
+        {
+            // Gamepad free look toggle only affects gamepad.
+            padlook = !padlook;
+            togglemsg("Gamepad Free Look %s", padlook ? "On" : "Off");
+        }
+        else
+        {
+            // Keyboard or mouse free look toggle only affects mouse.
+            mouselook = !mouselook;
+            togglemsg("Free Look %s", mouselook ? "On" : "Off");
+        }
+        M_UpdateFreeLook();
         // return true; // [FG] don't let toggles eat keys
     }
 
@@ -5949,12 +5827,41 @@ static boolean M_MenuMouseResponder(void)
         return true;
     }
 
-    static boolean active_thermo = false;
+    static setup_menu_t *active_thermo = NULL;
+
+    if (M_InputDeactivated(input_menu_enter) && active_thermo)
+    {
+        int flags = active_thermo->m_flags;
+        default_t *def = active_thermo->var.def;
+
+        if (flags & S_ACTION)
+        {
+            if (flags & (S_LEVWARN | S_PRGWARN))
+            {
+                warn_about_changes(flags);
+            }
+            else if (def->current)
+            {
+                def->current->i = def->location->i;
+            }
+
+            if (active_thermo->action)
+            {
+                active_thermo->action();
+            }
+        }
+        active_thermo = NULL;
+    }
 
     setup_menu_t *current_item = current_setup_menu + set_menu_itemon;
     int flags = current_item->m_flags;
     default_t *def = current_item->var.def;
     mrect_t *rect = &current_item->rect;
+
+    if (ItemDisabled(flags))
+    {
+        return false;
+    }
 
     if (M_InputActivated(input_menu_enter)
         && !M_PointInsideRect(rect, mouse_state_x, mouse_state_y))
@@ -5962,37 +5869,16 @@ static boolean M_MenuMouseResponder(void)
         return true; // eat event
     }
 
-    if (ItemDisabled(flags))
-    {
-        return false;
-    }
-
     if (flags & S_THERMO)
     {
+        if (active_thermo && active_thermo != current_item)
+        {
+            active_thermo = NULL;
+        }
+
         if (M_InputActivated(input_menu_enter))
         {
-            active_thermo = true;
-        }
-        else if (M_InputDeactivated(input_menu_enter))
-        {
-            active_thermo = false;
-
-            if (flags & S_ACTION)
-            {
-                if (flags & (S_LEVWARN | S_PRGWARN))
-                {
-                    warn_about_changes(flags);
-                }
-                else if (def->current)
-                {
-                    def->current->i = def->location->i;
-                }
-
-                if (current_item->action)
-                {
-                    current_item->action();
-                }
-            }
+            active_thermo = current_item;
         }
     }
 
@@ -6005,7 +5891,7 @@ static boolean M_MenuMouseResponder(void)
 
         if (max == UL)
         {
-            const char **strings = GetStrings(current_item->strings_id);
+            const char **strings = GetStrings(active_thermo->strings_id);
             if (strings)
                 max = array_size(strings) - 1;
             else
@@ -6020,9 +5906,9 @@ static boolean M_MenuMouseResponder(void)
         {
             def->location->i = value;
 
-            if (!(flags & S_ACTION) && current_item->action)
+            if (!(flags & S_ACTION) && active_thermo->action)
             {
-                current_item->action();
+                active_thermo->action();
             }
             S_StartSound(NULL, sfx_stnmov);
         }
@@ -6031,12 +5917,6 @@ static boolean M_MenuMouseResponder(void)
 
     if (!M_InputActivated(input_menu_enter))
     {
-        return false;
-    }
-
-    if (ItemDisabled(flags))
-    {
-        S_StartSound(NULL, sfx_oof);
         return false;
     }
 
@@ -6376,7 +6256,7 @@ boolean M_Responder (event_t* ev)
         G_ScreenShot();
     }
 
-    if (M_ShortcutResponder())
+    if (M_ShortcutResponder(ev))
     {
         return true;
     }
@@ -6530,6 +6410,11 @@ boolean M_Responder (event_t* ev)
             }
             itemOn = currentMenu->lastOn;
             S_StartSound(NULL, sfx_swtchn);
+        }
+        else
+        {
+            M_ClearMenus();
+            S_StartSound(NULL, sfx_swtchx);
         }
         return true;
     }
@@ -6973,6 +6858,7 @@ static const char **selectstrings[] = {
     curve_strings,
     center_weapon_strings,
     bobfactor_strings,
+    screensize_strings,
     hudtype_strings,
     NULL, // str_hudmode
     show_widgets_strings,
@@ -7028,6 +6914,7 @@ void M_Init(void)
   itemOn = currentMenu->lastOn;
   whichSkull = 0;
   skullAnimCounter = 10;
+  saved_screenblocks = screenblocks;
   screenSize = screenblocks - 3;
   messageToPrint = 0;
   messageString = NULL;
@@ -7037,9 +6924,21 @@ void M_Init(void)
   // Here we could catch other version dependencies,
   //  like HELP1/2, and four episodes.
 
-  switch(gamemode)
-    {
-    case commercial:
+  if (gameversion >= exe_ultimate)
+  {
+      MainMenu[readthis].routine = M_ReadThis2;
+      ReadDef2.prevMenu = NULL;
+  }
+
+  if (gameversion == exe_final)
+  {
+      ReadDef2.routine = M_DrawReadThisCommercial;
+      // [crispy] rearrange Skull in Final Doom HELP screen
+      ReadDef2.y -= 10;
+  }
+
+  if (gamemode == commercial)
+  {
       // This is used because DOOM 2 had only one HELP
       //  page. I use CREDIT as second page now, but
       //  kept this hack for educational purposes.
@@ -7050,30 +6949,22 @@ void M_Init(void)
       {
         NewDef.prevMenu = &MainDef;
       }
-      ReadDef1.routine = M_DrawReadThis1;
+      ReadDef1.routine = M_DrawReadThisCommercial;
       ReadDef1.x = 330;
       ReadDef1.y = 165;
       HelpDef.y = 165;
       ReadMenu1[0].routine = M_FinishReadThis;
-      break;
-    case registered:
-      // Episode 2 and 3 are handled,
-      //  branching to an ad screen.
+  }
 
-      // killough 2/21/98: Fix registered Doom help screen
-      // killough 10/98: moved to second screen, moved up to the top
-      ReadDef2.y = 15;
-
-    case shareware:
-      // We need to remove the fourth episode.
+  // Versions of doom.exe before the Ultimate Doom release only had
+  // three episodes; if we're emulating one of those then don't try
+  // to show episode four. If we are, then do show episode four
+  // (should crash if missing).
+  if (gameversion < exe_ultimate)
+  {
       EpiDef.numitems--;
-      break;
-    case retail:
-      // We are fine.
-    default:
-      break;
-    }
-
+  }
+  
   M_ResetMenu();        // killough 10/98
   M_ResetSetupMenu();
   M_InitExtendedHelp(); // init extended help screens // phares 3/30/98
@@ -7139,35 +7030,13 @@ void M_ResetSetupMenu(void)
 {
   extern boolean deh_set_blood_color;
 
-  if (M_ParmExists("-strict"))
-  {
-    comp_settings1[comp1_strictmode].m_flags |= S_DISABLE;
-  }
-
-  if (force_complevel)
-  {
-    comp_settings1[comp1_complevel].m_flags |= S_DISABLE;
-  }
-
-  if (M_ParmExists("-pistolstart"))
-  {
-    comp_settings1[comp1_pistolstart].m_flags |= S_DISABLE;
-  }
-
-  if (M_ParmExists("-uncapped") || M_ParmExists("-nouncapped"))
-  {
-    gen_settings1[gen1_uncapped].m_flags |= S_DISABLE;
-  }
-
-  if (deh_set_blood_color)
-  {
-    enem_settings1[enem1_colored_blood].m_flags |= S_DISABLE;
-  }
-
-  if (!brightmaps_found || force_brightmaps)
-  {
-    gen_settings5[gen5_brightmaps].m_flags |= S_DISABLE;
-  }
+  DisableItem(M_ParmExists("-strict"), comp_settings1, "strictmode");
+  DisableItem(force_complevel, comp_settings1, "default_complevel");
+  DisableItem(M_ParmExists("-pistolstart"), comp_settings1, "pistolstart");
+  DisableItem(M_ParmExists("-uncapped") || M_ParmExists("-nouncapped"), gen_settings1, "uncapped");
+  DisableItem(deh_set_blood_color, enem_settings1, "colored_blood");
+  DisableItem(!brightmaps_found || force_brightmaps, gen_settings5, "brightmaps");
+  DisableItem(current_video_height <= DRS_MIN_HEIGHT, gen_settings1, "dynamic_resolution");
 
   M_CoerceFPSLimit();
   M_UpdateCrosshairItems();

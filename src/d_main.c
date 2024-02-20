@@ -303,7 +303,7 @@ void D_Display (void)
   wipe = false;
 
   // save the current screen if about to wipe
-  if (gamestate != wipegamestate && NOTSTRICTMODE(screen_melt))
+  if (gamestate != wipegamestate && (strictmode || screen_melt))
     {
       wipe = true;
       wipe_StartScreen(0, 0, video.unscaledw, SCREENHEIGHT);
@@ -326,6 +326,9 @@ void D_Display (void)
       oldgamestate = -1;            // force background redraw
       borderdrawcount = 3;
     }
+
+  if (gamestate == GS_LEVEL && gametic)
+    HU_Erase();
 
   switch (gamestate)                // do buffered drawing
     {
@@ -1973,49 +1976,6 @@ void D_SetBloodColor(void)
     mobjinfo[MT_HEAD].bloodcolor = 0;
     mobjinfo[MT_BRUISER].bloodcolor = 0;
     mobjinfo[MT_KNIGHT].bloodcolor = 0;
-  }
-}
-
-static const int predefined_translucency[] = {
-    // MBF
-    MT_FIRE,      MT_SMOKE,     MT_FATSHOT,  MT_BRUISERSHOT,
-    MT_SPAWNFIRE, MT_TROOPSHOT, MT_HEADSHOT, MT_PLASMA,
-    MT_BFG,       MT_ARACHPLAZ, MT_PUFF,     MT_TFOG,
-    MT_IFOG,      MT_MISC12,    MT_INV,      MT_INS,
-    MT_MEGA,
-    // [Woof!]
-    MT_PLASMA1,   MT_PLASMA2
-};
-
-static boolean deh_set_translucency[arrlen(predefined_translucency)] = {false};
-
-void D_DehChangePredefinedTranslucency(int index)
-{
-  int i;
-
-  for (i = 0; i < arrlen(predefined_translucency); ++i)
-  {
-    if (predefined_translucency[i] == index)
-    {
-      deh_set_translucency[i] = true;
-      break;
-    }
-  }
-}
-
-void D_SetPredefinedTranslucency(void)
-{
-  int i;
-
-  for (i = 0; i < arrlen(predefined_translucency); ++i)
-  {
-    if (deh_set_translucency[i])
-      continue;
-
-    if (STRICTMODE_VANILLA(translucency))
-      mobjinfo[predefined_translucency[i]].flags |= MF_TRANSLUCENT;
-    else
-      mobjinfo[predefined_translucency[i]].flags &= ~MF_TRANSLUCENT;
   }
 }
 
