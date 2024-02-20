@@ -267,6 +267,7 @@ void R_DrawTLColumn (void)
             *dest = tranmap[(*dest<<8)+colormap[brightmap[src]][src]]; // phares
             dest += linesize;   // killough 11/98
             frac += fracstep;
+            src = source[(frac>>FRACBITS) & heightmask];
             *dest = tranmap[(*dest<<8)+colormap[brightmap[src]][src]]; // phares
             dest += linesize;   // killough 11/98
             frac += fracstep;
