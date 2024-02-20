@@ -502,11 +502,9 @@ static void M_FinishHelp(int choice)        // killough 10/98
 
 static void M_DrawReadThis1(void)
 {
-  inhelpscreens = true;
-  if (gamemode == shareware)
-    V_DrawPatchFullScreen (W_CacheLumpName("HELP2",PU_CACHE));
-  else
-    M_DrawCredits();
+    inhelpscreens = true;
+  
+    V_DrawPatchFullScreen(W_CacheLumpName("HELP2", PU_CACHE));
 }
 
 //
@@ -516,11 +514,19 @@ static void M_DrawReadThis1(void)
 
 static void M_DrawReadThis2(void)
 {
-  inhelpscreens = true;
-  if (gamemode == shareware)
-    M_DrawCredits();
-  else
-    V_DrawPatchFullScreen (W_CacheLumpName("CREDIT",PU_CACHE));
+    inhelpscreens = true;
+    
+    // We only ever draw the second page if this is 
+    // gameversion == exe_doom_1_9 and gamemode == registered
+    
+    V_DrawPatchFullScreen(W_CacheLumpName("HELP1", PU_CACHE));
+}
+
+static void M_DrawReadThisCommercial(void)
+{
+    inhelpscreens = true;
+
+    V_DrawPatchFullScreen(W_CacheLumpName("HELP", PU_CACHE));
 }
 
 /////////////////////////////
@@ -7064,9 +7070,21 @@ void M_Init(void)
   // Here we could catch other version dependencies,
   //  like HELP1/2, and four episodes.
 
-  switch(gamemode)
-    {
-    case commercial:
+  if (gameversion >= exe_ultimate)
+  {
+      MainMenu[readthis].routine = M_ReadThis2;
+      ReadDef2.prevMenu = NULL;
+  }
+
+  if (gameversion == exe_final)
+  {
+      ReadDef2.routine = M_DrawReadThisCommercial;
+      // [crispy] rearrange Skull in Final Doom HELP screen
+      ReadDef2.y -= 10;
+  }
+
+  if (gamemode == commercial)
+  {
       // This is used because DOOM 2 had only one HELP
       //  page. I use CREDIT as second page now, but
       //  kept this hack for educational purposes.
@@ -7077,30 +7095,22 @@ void M_Init(void)
       {
         NewDef.prevMenu = &MainDef;
       }
-      ReadDef1.routine = M_DrawReadThis1;
+      ReadDef1.routine = M_DrawReadThisCommercial;
       ReadDef1.x = 330;
       ReadDef1.y = 165;
       HelpDef.y = 165;
       ReadMenu1[0].routine = M_FinishReadThis;
-      break;
-    case registered:
-      // Episode 2 and 3 are handled,
-      //  branching to an ad screen.
+  }
 
-      // killough 2/21/98: Fix registered Doom help screen
-      // killough 10/98: moved to second screen, moved up to the top
-      ReadDef2.y = 15;
-
-    case shareware:
-      // We need to remove the fourth episode.
+  // Versions of doom.exe before the Ultimate Doom release only had
+  // three episodes; if we're emulating one of those then don't try
+  // to show episode four. If we are, then do show episode four
+  // (should crash if missing).
+  if (gameversion < exe_ultimate)
+  {
       EpiDef.numitems--;
-      break;
-    case retail:
-      // We are fine.
-    default:
-      break;
-    }
-
+  }
+  
   M_ResetMenu();        // killough 10/98
   M_ResetSetupMenu();
   M_InitExtendedHelp(); // init extended help screens // phares 3/30/98
