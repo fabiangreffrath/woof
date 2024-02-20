@@ -2413,9 +2413,9 @@ static void M_DrawSetting(setup_menu_t *s, int accum_y)
       if (strings)
         strcpy(menu_buffer, strings[value]);
       else if (flags & S_THRM_PCT)
-        M_snprintf(menu_buffer, 4, "%d%%", value);
+        M_snprintf(menu_buffer, sizeof(menu_buffer), "%d%%", value);
       else
-        M_snprintf(menu_buffer, 4, "%d", value);
+        M_snprintf(menu_buffer, sizeof(menu_buffer), "%d", value);
 
       BlinkingArrowRight(s);
       M_DrawMenuStringEx(flags, x + M_THRM_STEP + rect->w, y + M_THRM_TXT_OFFSET, color);
