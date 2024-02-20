@@ -2096,6 +2096,13 @@ default_t defaults[] = {
     "Raw gamepad/mouse input for turning/looking (0 = Interpolate, 1 = Raw)"
   },
 
+  {
+    "shorttics",
+    (config_t *) &shorttics, NULL,
+    {0}, {0, 1}, number, ss_none, wad_no,
+    "1 to use low resolution turning."
+  },
+
   //
   // Chat macro
   //

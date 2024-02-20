@@ -289,6 +289,9 @@ extern  boolean demorecording;
 // recording Vanilla demos in netgames.
 extern  boolean lowres_turn;
 
+// Config key for low resolution turning.
+extern  boolean shorttics;
+
 // cph's doom 1.91 longtics hack
 extern  boolean longtics;
 
@@ -313,11 +316,7 @@ extern  boolean   strictmode, default_strictmode;
 
 #define STRICTMODE(x) (strictmode ? 0 : (x))
 
-#define NOTSTRICTMODE(x) (strictmode ? 1 : (x))
-
 #define STRICTMODE_COMP(x) (strictmode ? comp[x] : default_comp[x])
-
-#define STRICTMODE_VANILLA(x) (strictmode && demo_compatibility ? 0 : (x))
 
 extern  boolean   critical;
 

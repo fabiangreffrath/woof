@@ -33,7 +33,6 @@
 #include "p_inter.h"
 #include "g_game.h"
 #include "d_think.h"
-#include "d_main.h" // D_DehChangePredefinedTranslucency()
 #include "w_wad.h"
 #include "memio.h"
 
@@ -1996,7 +1995,6 @@ void deh_procThing(DEHFILE *fpin, FILE* fpout, char *line)
                 }
 
                 mobjinfo[indexnum].flags = value;
-                D_DehChangePredefinedTranslucency(indexnum);
                 break;
 
               case DEH_MOBJINFO_INFIGHTING_GROUP:
