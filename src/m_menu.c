@@ -3387,7 +3387,7 @@ static void M_DrawStatusHUD(void)
     patch_t *patch = W_CacheLumpName(crosshair_lumps[hud_crosshair], PU_CACHE);
 
     int x = XH_X + 80 - SHORT(patch->width) / 2;
-    int y = M_Y + 15 - SHORT(patch->height) / 2;
+    int y = M_Y + M_SPC / 2 - SHORT(patch->height) / 2 - 1;
 
     V_DrawPatchTranslated(x, y, patch, colrngs[hud_crosshair_color]);
   }
