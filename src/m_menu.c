@@ -3311,18 +3311,20 @@ static const char *hudcolor_strings[] = {
     "YELLOW", "BLUE2", "BLACK", "PURPLE", "WHITE", "NONE"
 };
 
+#define XH_X M_X - 28
+
 setup_menu_t stat_settings3[] =
 {
-  {"Enable Crosshair", S_CHOICE, m_null, M_X, M_Y,
+  {"Crosshair", S_CHOICE, m_null, XH_X, M_Y,
    {"hud_crosshair"}, 0, M_UpdateCrosshairItems, str_crosshair},
 
-  {"Color By Player Health",S_YESNO|S_STRICT, m_null, M_X, M_SPC, {"hud_crosshair_health"}},
-  {"Color By Target", S_CHOICE|S_STRICT, m_null, M_X, M_SPC,
+  {"Color By Player Health",S_YESNO|S_STRICT, m_null, XH_X, M_SPC, {"hud_crosshair_health"}},
+  {"Color By Target", S_CHOICE|S_STRICT, m_null, XH_X, M_SPC,
    {"hud_crosshair_target"}, 0, M_UpdateCrosshairItems, str_crosshair_target},
-  {"Lock On Target", S_YESNO|S_STRICT, m_null, M_X, M_SPC, {"hud_crosshair_lockon"}},
-  {"Default Color", S_CRITEM, m_null,M_X, M_SPC,
+  {"Lock On Target", S_YESNO|S_STRICT, m_null, XH_X, M_SPC, {"hud_crosshair_lockon"}},
+  {"Default Color", S_CRITEM, m_null, XH_X, M_SPC,
    {"hud_crosshair_color"}, 0, NULL, str_hudcolor},
-  {"Highlight Color", S_CRITEM|S_STRICT, m_null, M_X, M_SPC,
+  {"Highlight Color", S_CRITEM|S_STRICT, m_null, XH_X, M_SPC,
    {"hud_crosshair_target_color"}, 0, NULL, str_hudcolor},
 
   MI_END
@@ -3382,6 +3384,16 @@ static void M_DrawStatusHUD(void)
   M_DrawTabs();
   M_DrawInstructions();
   M_DrawScreenItems(current_setup_menu);
+
+  if (hud_crosshair && mult_screens_index == 2)
+  {
+    patch_t *patch = W_CacheLumpName(crosshair_lumps[hud_crosshair], PU_CACHE);
+
+    int x = XH_X + 80 - SHORT(patch->width) / 2;
+    int y = M_Y + M_SPC / 2 - SHORT(patch->height) / 2 - 1;
+
+    V_DrawPatchTranslated(x, y, patch, colrngs[hud_crosshair_color]);
+  }
 
   // If the Reset Button has been selected, an "Are you sure?" message
   // is overlayed across everything else.
