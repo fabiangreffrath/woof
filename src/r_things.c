@@ -664,9 +664,8 @@ void R_ProjectSprite (mobj_t* thing)
     vis->colormap[0] = vis->colormap[1] = fullcolormap;       // full bright  // killough 3/20/98
   else
     {      // diminished light
-      int index = FixedDiv(xscale * 160, focallength) >> LIGHTSCALESHIFT;
-      if (index >= MAXLIGHTSCALE)
-        index = MAXLIGHTSCALE-1;
+      const int index = R_GetLightIndex(xscale);
+
       vis->colormap[0] = spritelights[index];
       vis->colormap[1] = fullcolormap;
     }

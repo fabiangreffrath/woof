@@ -1559,8 +1559,6 @@ static void M_ChangeMessages(int choice)
 // hud_displayed is toggled by + or = in fullscreen
 // hud_displayed is cleared by -
 
-static void M_UpdateHUDItems(void);
-
 static void M_SizeDisplay(int choice)
 {
   switch(choice)
@@ -1587,7 +1585,6 @@ static void M_SizeDisplay(int choice)
       break;
     }
   R_SetViewSize (screenblocks /*, detailLevel obsolete -- killough */);
-  M_UpdateHUDItems();
   saved_screenblocks = screenblocks;
 }
 
@@ -1904,7 +1901,7 @@ static void M_DrawBackground(char *patchname)
 
 static void M_DrawSetup(void)
 {
-  M_DrawTitle(124, 15, "M_OPTION", "OPTIONS");
+  M_DrawTitle(124, 15, "M_OPTTTL", "OPTIONS");
 }
 
 /////////////////////////////
@@ -2420,7 +2417,7 @@ static void M_DrawSetting(setup_menu_t *s, int accum_y)
           max = M_THRM_UL_VAL;
       }
 
-      value = BETWEEN(min, max, value);
+      int thrm_val = BETWEEN(min, max, value);
 
       byte *cr;
       if (ItemDisabled(flags))
@@ -2435,7 +2432,7 @@ static void M_DrawSetting(setup_menu_t *s, int accum_y)
       rect->y = y;
       rect->w = (width + 2) * M_THRM_STEP;
       rect->h = M_THRM_HEIGHT;
-      M_DrawSetupThermo(x, y, width, max - min, value - min, cr);
+      M_DrawSetupThermo(x, y, width, max - min, thrm_val - min, cr);
 
       if (strings)
         strcpy(menu_buffer, strings[value]);
@@ -2548,7 +2545,6 @@ static void M_DrawDelVerify(void)
 
 static void M_DrawInstructions()
 {
-    default_t *def = current_setup_menu[set_menu_itemon].var.def;
     int flags = current_setup_menu[set_menu_itemon].m_flags;
 
     if (ItemDisabled(flags) || print_warning_about_changes > 0)
@@ -2559,23 +2555,6 @@ static void M_DrawInstructions()
     if (menu_input == mouse_mode && !(flags & S_HILITE))
     {
         return;
-    }
-
-    // killough 8/15/98: warn when values are different
-    if (flags & (S_NUM|S_YESNO)
-        && !(flags & S_COSMETIC) // don't warn about cosmetic options
-        && def->current && def->current->i != def->location->i)
-    {
-        if (!(setup_gather | print_warning_about_changes))
-        {
-            strcpy(menu_buffer, "Current value differs from default");
-            M_DrawMenuString(4, M_Y_WARN, CR_RED);
-        }
-
-        if (setup_select && !(flags & (S_LEVWARN | S_PRGWARN)))
-        {
-            def->current->i = def->location->i;
-        }
     }
 
     // There are different instruction messages depending on whether you
@@ -2859,7 +2838,7 @@ setup_menu_t keys_settings1[] =  // Key Binding screen strings
 
   {"Toggles", S_SKIP|S_TITLE,    m_null, KB_X, M_SPC},
   {"Autorun"     , S_INPUT,      m_scrn, KB_X, M_SPC, {0}, input_autorun},
-  {"Free Look"   , S_INPUT,      m_scrn, KB_X, M_SPC, {0}, input_mouselook},
+  {"Free Look"   , S_INPUT,      m_scrn, KB_X, M_SPC, {0}, input_freelook},
   {"Vertmouse"   , S_INPUT,      m_scrn, KB_X, M_SPC, {0}, input_novert},
 
   MI_RESET,
@@ -3199,30 +3178,9 @@ static setup_tab_t stat_tabs[] =
    { NULL }
 };
 
-static void M_UpdateHUDAppearanceItems(void)
-{
-    const boolean prefer_red = (screenblocks != 11 && !sts_colored_numbers);
-
-    DisableItem(prefer_red, stat_settings1, "hud_backpack_thresholds");
-    DisableItem(prefer_red, stat_settings1, "hud_armor_type");
-}
-
-static void M_UpdateHUDItems(void)
-{
-    const boolean full_hud = (screenblocks == 11);
-
-    DisableItem(full_hud, stat_settings1, "sts_colored_numbers");
-    DisableItem(full_hud, stat_settings1, "sts_pct_always_gray");
-    DisableItem(full_hud, stat_settings1, "st_solidbackground");
-    DisableItem(!full_hud, stat_settings1, "hud_type");
-    DisableItem(!full_hud, stat_settings1, "hud_active");
-
-    M_UpdateHUDAppearanceItems();
-}
-
 static void M_SizeDisplayAlt(void)
 {
-    boolean choice = -1;
+    int choice = -1;
 
     if (screenblocks > saved_screenblocks)
     {
@@ -3241,7 +3199,6 @@ static void M_SizeDisplayAlt(void)
     }
 
     hud_displayed = (screenblocks == 11);
-    M_UpdateHUDItems();
 }
 
 static const char *screensize_strings[] = {
@@ -3272,7 +3229,7 @@ setup_menu_t stat_settings1[] =  // Status Bar and HUD Settings screen
   {"", S_SKIP, m_null, H_X, M_THRM_SPC},
 
   {"Status Bar", S_SKIP|S_TITLE, m_null, H_X, M_SPC},
-  {"Colored Numbers", S_YESNO|S_COSMETIC, m_null, H_X, M_SPC, {"sts_colored_numbers"}, 0, M_UpdateHUDAppearanceItems},
+  {"Colored Numbers", S_YESNO|S_COSMETIC, m_null, H_X, M_SPC, {"sts_colored_numbers"}},
   {"Gray Percent Sign", S_YESNO|S_COSMETIC, m_null, H_X, M_SPC, {"sts_pct_always_gray"}},
   {"Solid Background Color", S_YESNO, m_null, H_X, M_SPC, {"st_solidbackground"}},
 
@@ -3650,6 +3607,9 @@ setup_menu_t comp_settings1[] =  // Compatibility Settings screen #1
 
   {"Walk Under Solid Hanging Bodies", S_YESNO|S_STRICT, m_null, M_X,
    M_SPC, {"hangsolid"}},
+
+  {"Emulate INTERCEPTS overflow", S_YESNO|S_VANILLA, m_null, M_X,
+   M_SPC, {"emu_intercepts"}},
 
 
   MI_RESET,
@@ -4043,7 +4003,7 @@ void M_ResetTimeScale(void)
     I_SetTimeScale(time_scale);
 }
 
-static void M_UpdateMouseLook(void)
+static void M_UpdateFreeLook(void)
 {
   P_UpdateDirectVerticalAiming();
 
@@ -4097,7 +4057,7 @@ setup_menu_t gen_settings3[] = {
   {"Double-Click to \"Use\"", S_YESNO, m_null, CNTR_X, M_Y, {"dclick_use"}},
 
   {"Free Look", S_YESNO, m_null, CNTR_X, M_SPC,
-   {"mouselook"}, 0, M_UpdateMouseLook},
+   {"mouselook"}, 0, M_UpdateFreeLook},
 
   // [FG] invert vertical axis
   {"Invert Look", S_YESNO, m_null, CNTR_X, M_SPC,
@@ -4111,7 +4071,7 @@ setup_menu_t gen_settings3[] = {
   {"Look Sensitivity", S_THERMO|S_THRM_SIZE11, m_null, CNTR_X, M_THRM_SPC,
    {"mouse_sensitivity_y_look"}},
 
-  {"Forward Sensitivity", S_THERMO|S_THRM_SIZE11, m_null, CNTR_X, M_THRM_SPC,
+  {"Move Sensitivity", S_THERMO|S_THRM_SIZE11, m_null, CNTR_X, M_THRM_SPC,
    {"mouse_sensitivity_y"}},
 
   {"Strafe Sensitivity", S_THERMO|S_THRM_SIZE11, m_null, CNTR_X, M_THRM_SPC,
@@ -4131,7 +4091,7 @@ setup_menu_t gen_settings4[] = {
    {"joy_layout"}, 0, I_ResetController, str_layout},
 
   {"Free Look", S_YESNO, m_null, CNTR_X, M_SPC,
-   {"padlook"}, 0, M_UpdateMouseLook},
+   {"padlook"}, 0, M_UpdateFreeLook},
 
   {"Invert Look", S_YESNO, m_scrn, CNTR_X, M_SPC, {"joy_invert_look"}},
 
@@ -4789,7 +4749,7 @@ void M_DrawCredits(void)     // killough 10/98: credit screen
   M_DrawScreenItems(cred_settings);
 }
 
-static boolean M_ShortcutResponder(void)
+static boolean M_ShortcutResponder(const event_t *ev)
 {
     // If there is no active menu displayed...
 
@@ -4812,12 +4772,21 @@ static boolean M_ShortcutResponder(void)
         // return true; // [FG] don't let toggles eat keys
     }
 
-    if (M_InputActivated(input_mouselook))
+    if (M_InputActivated(input_freelook))
     {
-        mouselook = !mouselook;
-        padlook = !padlook;
-        togglemsg("Free Look %s", mouselook ? "On" : "Off");
-        M_UpdateMouseLook();
+        if (ev->type == ev_joyb_down)
+        {
+            // Gamepad free look toggle only affects gamepad.
+            padlook = !padlook;
+            togglemsg("Gamepad Free Look %s", padlook ? "On" : "Off");
+        }
+        else
+        {
+            // Keyboard or mouse free look toggle only affects mouse.
+            mouselook = !mouselook;
+            togglemsg("Free Look %s", mouselook ? "On" : "Off");
+        }
+        M_UpdateFreeLook();
         // return true; // [FG] don't let toggles eat keys
     }
 
@@ -4966,7 +4935,6 @@ static boolean M_ShortcutResponder(void)
             hud_displayed = 1;               //jff 3/3/98 turn hud on
             hud_active = (hud_active + 1) % 3; // cycle hud_active
             HU_disable_all_widgets();
-            M_UpdateHUDItems();
         }
         return true;
     }
@@ -6255,7 +6223,7 @@ boolean M_Responder (event_t* ev)
         G_ScreenShot();
     }
 
-    if (M_ShortcutResponder())
+    if (M_ShortcutResponder(ev))
     {
         return true;
     }
@@ -6409,6 +6377,11 @@ boolean M_Responder (event_t* ev)
             }
             itemOn = currentMenu->lastOn;
             S_StartSound(NULL, sfx_swtchn);
+        }
+        else
+        {
+            M_ClearMenus();
+            S_StartSound(NULL, sfx_swtchx);
         }
         return true;
     }
@@ -7026,12 +6999,12 @@ void M_ResetSetupMenu(void)
   DisableItem(M_ParmExists("-uncapped") || M_ParmExists("-nouncapped"), gen_settings1, "uncapped");
   DisableItem(deh_set_blood_color, enem_settings1, "colored_blood");
   DisableItem(!brightmaps_found || force_brightmaps, gen_settings5, "brightmaps");
+  DisableItem(current_video_height <= DRS_MIN_HEIGHT, gen_settings1, "dynamic_resolution");
 
   M_CoerceFPSLimit();
   M_UpdateCrosshairItems();
   M_UpdateCenteredWeaponItem();
   M_UpdateAdvancedSoundItems();
-  M_UpdateHUDItems();
 }
 
 void M_ResetSetupMenuVideo(void)

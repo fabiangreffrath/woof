@@ -724,10 +724,7 @@ boolean VX_ProjectVoxel (mobj_t * thing)
 	else
 	{
 		// diminished light
-		int index = FixedDiv(xscale * 160, focallength) >> LIGHTSCALESHIFT;
-
-		if (index < 0)               index = 0;
-		if (index > MAXLIGHTSCALE-1) index = MAXLIGHTSCALE-1;
+		const int index = R_GetLightIndex(xscale);
 
 		vis->colormap[0] = spritelights[index];
 		vis->colormap[1] = fullcolormap;

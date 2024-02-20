@@ -143,24 +143,6 @@ default_t defaults[] = {
   },
 
   {
-    "sdl_renderdriver",
-    (config_t *) &sdl_renderdriver, NULL,
-#if defined(_WIN32)
-    {.s = "direct3d11"},
-#else
-    {.s = ""},
-#endif
-    {0}, string, ss_none, wad_no,
-    "SDL render driver, possible values are "
-#if defined(_WIN32)
-    "direct3d, direct3d11, direct3d12, "
-#elif defined(__APPLE__)
-    "metal, "
-#endif
-    "opengl, opengles2, opengles, software"
-  },
-
-  {
     "correct_aspect_ratio",
     (config_t *) &use_aspect, NULL,
     {1}, {0, 1}, number, ss_none, wad_no,
@@ -1177,11 +1159,11 @@ default_t defaults[] = {
   },
 
   {
-    "input_mouselook",
+    "input_freelook",
     NULL, NULL,
     {0}, {UL,UL}, input, ss_keys, wad_no,
-    "key to toggle mouselook",
-    input_mouselook, { {0, 0} }
+    "key to toggle free look",
+    input_freelook, { {0, 0} }
   },
 
   // [FG] reload current level / go to next level
@@ -2112,6 +2094,13 @@ default_t defaults[] = {
     (config_t *) &raw_input, NULL,
     {1}, {0, 1}, number, ss_none, wad_no,
     "Raw gamepad/mouse input for turning/looking (0 = Interpolate, 1 = Raw)"
+  },
+
+  {
+    "shorttics",
+    (config_t *) &shorttics, NULL,
+    {0}, {0, 1}, number, ss_none, wad_no,
+    "1 to use low resolution turning."
   },
 
   //

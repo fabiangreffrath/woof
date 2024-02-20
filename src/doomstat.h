@@ -289,6 +289,9 @@ extern  boolean demorecording;
 // recording Vanilla demos in netgames.
 extern  boolean lowres_turn;
 
+// Config key for low resolution turning.
+extern  boolean shorttics;
+
 // cph's doom 1.91 longtics hack
 extern  boolean longtics;
 

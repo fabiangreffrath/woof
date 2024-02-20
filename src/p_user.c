@@ -21,6 +21,7 @@
 
 #include "doomstat.h"
 #include "d_event.h"
+#include "m_input.h"
 #include "r_main.h"
 #include "p_map.h"
 #include "p_spec.h"
@@ -340,6 +341,8 @@ void P_DeathThink (player_t* player)
           char *file = G_SaveGameName(savegameslot);
           G_LoadGame(file, savegameslot, false);
           free(file);
+          // [Woof!] prevent on-death-action reloads from activating specials
+          M_InputGameDeactivate(input_use);
         }
         else
           player->playerstate = PST_REBORN;
