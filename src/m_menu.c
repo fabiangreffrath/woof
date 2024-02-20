@@ -2592,7 +2592,7 @@ static void M_DrawInstructions()
         {
             s = "Press key or button to bind/unbind";
         }
-        else if (flags & S_YESNO)
+        else if (flags & (S_YESNO|S_ONOFF))
         {
             if (menu_input == pad_mode)
                 s = "[ PadA ] to toggle";
