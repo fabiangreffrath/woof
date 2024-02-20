@@ -151,8 +151,32 @@ backdrop_t menu_backdrop;
 #define M_X_LOADSAVE 80
 #define M_LOADSAVE_WIDTH (24 * 8 + 8) // [FG] c.f. M_DrawSaveLoadBorder()
 
-#define DISABLE_ITEM(condition, item) \
-        ((condition) ? (item.m_flags |= S_DISABLE) : (item.m_flags &= ~S_DISABLE))
+static void DisableItem(boolean condition, setup_menu_t *menu, const char *item)
+{
+    while (!(menu->m_flags & S_END))
+    {
+        if (!(menu->m_flags & (S_SKIP | S_RESET)))
+        {
+            if (strcasecmp(menu->var.def->name, item) == 0)
+            {
+                if (condition)
+                {
+                    menu->m_flags |= S_DISABLE;
+                }
+                else
+                {
+                    menu->m_flags &= ~S_DISABLE;
+                }
+
+                return;
+            }
+        }
+
+        menu++;
+    }
+
+    I_Error("Item \"%s\" not found in menu", item);
+}
 
 // Final entry
 #define MI_END \
@@ -3013,29 +3037,6 @@ static void M_DrawKeybnd(void)
 // Note that this screen has no PREV or NEXT items, since there are no
 // neighboring screens.
 
-enum {           // killough 10/98: enum for y-offset info
-  weap1_pref1,
-  weap1_pref2,
-  weap1_pref3,
-  weap1_pref4,
-  weap1_pref5,
-  weap1_pref6,
-  weap1_pref7,
-  weap1_pref8,
-  weap1_pref9,
-  weap1_stub1,
-  weap1_toggle,
-  weap1_stub2,
-  weap1_bfg,
-};
-
-enum {
-  weap2_bobbing,
-  weap2_hide_weapon,
-  weap2_center, // [FG] centered weapon sprite
-  weap2_recoilpitch,
-};
-
 setup_menu_t weap_settings1[], weap_settings2[];
 
 static setup_menu_t* weap_settings[] =
@@ -3063,7 +3064,7 @@ static const char *bobfactor_strings[] = {
 
 static void M_UpdateCenteredWeaponItem(void)
 {
-  DISABLE_ITEM(!cosmetic_bobbing, weap_settings2[weap2_center]);
+  DisableItem(!cosmetic_bobbing, weap_settings2, "center_weapon");
 }
 
 setup_menu_t weap_settings1[] =  // Weapons Settings screen
@@ -3183,23 +3184,6 @@ static setup_tab_t stat_tabs[] =
    { NULL }
 };
 
-enum {
-  stat1_screensize,
-  stat1_stub1,
-  stat1_title1,
-  stat1_colornum,
-  stat1_graypcnt,
-  stat1_solid,
-  stat1_stub2,
-  stat1_title2,
-  stat1_type,
-  stat1_mode,
-  stat1_stub3,
-  stat1_backpack,
-  stat1_armortype,
-  stat1_smooth,
-};
-
 static void M_SizeDisplayAlt(void)
 {
     int choice = -1;
@@ -3273,19 +3257,6 @@ setup_menu_t stat_settings1[] =  // Status Bar and HUD Settings screen
   MI_END
 };
 
-enum {
-  stat2_title1,
-  stat2_stats,
-  stat2_time,
-  stat2_coords,
-  stat2_timeuse,
-  stat2_stub1,
-  stat2_title2,
-  stat2_hudfont,
-  stat2_widescreen,
-  stat2_layout,
-};
-
 static const char *show_widgets_strings[] = {
     "Off", "Automap", "HUD", "Always"
 };
@@ -3316,23 +3287,14 @@ setup_menu_t stat_settings2[] =
   MI_END
 };
 
-enum {
-  stat3_xhair,
-  stat3_xhairhealth,
-  stat3_xhairtarget,
-  stat3_xhairlockon,
-  stat3_xhaircolor,
-  stat3_xhairtcolor,
-};
-
 static void M_UpdateCrosshairItems (void)
 {
-    DISABLE_ITEM(!hud_crosshair, stat_settings3[stat3_xhairhealth]);
-    DISABLE_ITEM(!hud_crosshair, stat_settings3[stat3_xhairtarget]);
-    DISABLE_ITEM(!hud_crosshair, stat_settings3[stat3_xhairlockon]);
-    DISABLE_ITEM(!hud_crosshair, stat_settings3[stat3_xhaircolor]);
-    DISABLE_ITEM(!(hud_crosshair && hud_crosshair_target == crosstarget_highlight),
-        stat_settings3[stat3_xhairtcolor]);
+    DisableItem(!hud_crosshair, stat_settings3, "hud_crosshair_health");
+    DisableItem(!hud_crosshair, stat_settings3, "hud_crosshair_target");
+    DisableItem(!hud_crosshair, stat_settings3, "hud_crosshair_lockon");
+    DisableItem(!hud_crosshair, stat_settings3, "hud_crosshair_color");
+    DisableItem(!(hud_crosshair && hud_crosshair_target == crosstarget_highlight),
+        stat_settings3, "hud_crosshair_target_color");
 }
 
 static const char *crosshair_target_strings[] = {
@@ -3436,20 +3398,6 @@ static setup_menu_t* auto_settings[] =
   NULL
 };
 
-enum {
-  auto1_title1,
-  auto1_preset,
-  auto1_follow,
-  auto1_rotate,
-  auto1_overlay,
-  auto1_pointer,
-  auto1_stub1,
-  auto1_title2,
-  auto1_smooth,
-  auto1_secrets,
-  auto1_flash,
-};
-
 static const char *overlay_strings[] = {
     "Off", "On", "Dark"
 };
@@ -3535,17 +3483,6 @@ static setup_menu_t* enem_settings[] =
 {
   enem_settings1,
   NULL
-};
-
-enum {
-  enem1_helpers,
-  enem1_gap1,
-
-  enem1_title1,
-  enem1_colored_blood,
-  enem1_flipcorpses,
-  enem1_ghost,
-  enem1_fuzz,
 };
 
 static void M_BarkSound(void)
@@ -3641,24 +3578,6 @@ static setup_menu_t* comp_settings[] =
 {
   comp_settings1,
   NULL
-};
-
-enum
-{
-  comp1_title1,
-  comp1_complevel,
-  comp1_strictmode,
-  comp1_gap1,
-
-  comp1_title2,
-  comp1_verticalaim,
-  comp1_autostrafe50,
-  comp1_pistolstart,
-  comp1_gap2,
-
-  comp1_blockmapfix,
-  comp1_hangsolid,
-  comp1_intercepts,
 };
 
 static const char *default_complevel_strings[] = {
@@ -3781,43 +3700,6 @@ static setup_tab_t gen_tabs[] =
    { NULL }
 };
 
-// Page 1
-
-enum {
-  gen1_resolution_scale,
-  gen1_dynamic_resolution,
-  gen1_widescreen,
-  gen1_fov,
-  gen1_gap1,
-
-  gen1_fullscreen,
-  gen1_exclusive_fullscreen,
-  gen1_gap2,
-
-  gen1_uncapped,
-  gen1_fpslimit,
-  gen1_vsync,
-  gen1_gap3,
-
-  gen1_gamma
-};
-
-// Page 2
-
-enum {
-  gen2_sfx_vol,
-  gen2_music_vol,
-  gen2_gap1,
-
-  gen2_sndmodule,
-  gen2_sndhrtf,
-  gen2_pitch,
-  gen2_fullsnd,
-  gen2_gap2,
-
-  gen2_musicbackend,
-};
-
 int resolution_scale;
 
 static const char **M_GetResolutionScaleStrings(void)
@@ -3893,8 +3775,8 @@ static void M_ResetVideoHeight(void)
         VX_ResetMaxDist();
     }
 
-    DISABLE_ITEM(current_video_height <= DRS_MIN_HEIGHT,
-                 gen_settings1[gen1_dynamic_resolution]);
+    DisableItem(current_video_height <= DRS_MIN_HEIGHT,
+                 gen_settings1, "dynamic_resolution");
 
     resetneeded = true;
 }
@@ -3941,7 +3823,7 @@ static const char *sound_module_strings[] = {
 
 static void M_UpdateAdvancedSoundItems(void)
 {
-  DISABLE_ITEM(snd_module != SND_MODULE_3D, gen_settings2[gen2_sndhrtf]);
+  DisableItem(snd_module != SND_MODULE_3D, gen_settings2, "snd_hrtf");
 }
 
 static void M_SetSoundModule(void)
@@ -3969,7 +3851,7 @@ static void M_SetMidiPlayer(void)
 
 static void M_ToggleUncapped(void)
 {
-  DISABLE_ITEM(!default_uncapped, gen_settings1[gen1_fpslimit]);
+  DisableItem(!default_uncapped, gen_settings1, "fpslimit");
   setrefreshneeded = true;
 }
 
@@ -4080,61 +3962,6 @@ setup_menu_t gen_settings2[] = { // General Settings screen2
   MI_END
 };
 
-// Page 3
-
-enum {
-  gen3_dclick,
-  gen3_free_look,
-  gen3_invert_look,
-  gen3_gap1,
-
-  gen3_turn_sens,
-  gen3_look_sens,
-  gen3_forward_sens,
-  gen3_strafe_sens,
-  gen3_gap2,
-
-  gen3_mouse_accel,
-};
-
-// Page 5
-
-enum {
-  gen5_smooth_scaling,
-  gen5_trans,
-  gen5_transpct,
-  gen5_gap1,
-
-  gen5_voxels,
-  gen5_brightmaps,
-  gen5_stretch_sky,
-  gen5_linear_sky,
-  gen5_swirl,
-  gen5_smoothlight,
-  gen5_gap2,
-
-  gen5_menu_background,
-  gen5_endoom,
-};
-
-// Page 6
-
-enum {
-  gen6_title1,
-  gen6_screen_melt,
-  gen6_death_action,
-  gen6_demobar,
-  gen6_palette_changes,
-  gen6_level_brightness,
-  gen6_organize_savefiles,
-  gen6_gap1,
-
-  gen6_title2,
-  gen6_realtic_clock_rate,
-  gen6_default_skill,
-};
-
-
 #define MOUSE_ACCEL_STRINGS_SIZE (40 + 1)
 
 static const char **M_GetMouseAccelStrings(void)
@@ -4225,7 +4052,7 @@ static const char *menu_backdrop_strings[] = {
 
 void M_DisableVoxelsRenderingItem(void)
 {
-    gen_settings5[gen5_voxels].m_flags |= S_DISABLE;
+    DisableItem(true, gen_settings5, "voxels_rendering");
 }
 
 #define CNTR_X 162
@@ -7176,40 +7003,13 @@ void M_ResetSetupMenu(void)
 {
   extern boolean deh_set_blood_color;
 
-  if (M_ParmExists("-strict"))
-  {
-    comp_settings1[comp1_strictmode].m_flags |= S_DISABLE;
-  }
-
-  if (force_complevel)
-  {
-    comp_settings1[comp1_complevel].m_flags |= S_DISABLE;
-  }
-
-  if (M_ParmExists("-pistolstart"))
-  {
-    comp_settings1[comp1_pistolstart].m_flags |= S_DISABLE;
-  }
-
-  if (M_ParmExists("-uncapped") || M_ParmExists("-nouncapped"))
-  {
-    gen_settings1[gen1_uncapped].m_flags |= S_DISABLE;
-  }
-
-  if (deh_set_blood_color)
-  {
-    enem_settings1[enem1_colored_blood].m_flags |= S_DISABLE;
-  }
-
-  if (!brightmaps_found || force_brightmaps)
-  {
-    gen_settings5[gen5_brightmaps].m_flags |= S_DISABLE;
-  }
-
-  if (current_video_height <= DRS_MIN_HEIGHT)
-  {
-    gen_settings1[gen1_dynamic_resolution].m_flags |= S_DISABLE;
-  }
+  DisableItem(M_ParmExists("-strict"), comp_settings1, "strictmode");
+  DisableItem(force_complevel, comp_settings1, "default_complevel");
+  DisableItem(M_ParmExists("-pistolstart"), comp_settings1, "pistolstart");
+  DisableItem(M_ParmExists("-uncapped") || M_ParmExists("-nouncapped"), gen_settings1, "uncapped");
+  DisableItem(deh_set_blood_color, enem_settings1, "colored_blood");
+  DisableItem(!brightmaps_found || force_brightmaps, gen_settings5, "brightmaps");
+  DisableItem(current_video_height <= DRS_MIN_HEIGHT, gen_settings1, "dynamic_resolution");
 
   M_CoerceFPSLimit();
   M_UpdateCrosshairItems();
