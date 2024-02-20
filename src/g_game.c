@@ -116,6 +116,7 @@ int             max_kill_requirement; // DSDA UV Max category requirements
 int             totalleveltimes; // [FG] total time for all completed levels
 boolean         demorecording;
 boolean         longtics;             // cph's doom 1.91 longtics hack
+boolean         shorttics;            // Config key for low resolution turning.
 boolean         lowres_turn;          // low resolution turning for longtics
 boolean         demoplayback;
 boolean         singledemo;           // quit after playing a demo from cmdline
