@@ -2393,7 +2393,7 @@ static void M_DrawSetting(setup_menu_t *s, int accum_y)
           max = M_THRM_UL_VAL;
       }
 
-      value = BETWEEN(min, max, value);
+      int thrm_val = BETWEEN(min, max, value);
 
       byte *cr;
       if (ItemDisabled(flags))
@@ -2408,7 +2408,7 @@ static void M_DrawSetting(setup_menu_t *s, int accum_y)
       rect->y = y;
       rect->w = (width + 2) * M_THRM_STEP;
       rect->h = M_THRM_HEIGHT;
-      M_DrawSetupThermo(x, y, width, max - min, value - min, cr);
+      M_DrawSetupThermo(x, y, width, max - min, thrm_val - min, cr);
 
       if (strings)
         strcpy(menu_buffer, strings[value]);
