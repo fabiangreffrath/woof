@@ -2442,8 +2442,10 @@ static void M_DrawSetting(setup_menu_t *s, int accum_y)
 
       if (strings)
         strcpy(menu_buffer, strings[value]);
+      else if (flags & S_THRM_PCT)
+        M_snprintf(menu_buffer, sizeof(menu_buffer), "%d%%", value);
       else
-        M_snprintf(menu_buffer, 4, "%d", value);
+        M_snprintf(menu_buffer, sizeof(menu_buffer), "%d", value);
 
       BlinkingArrowRight(s);
       M_DrawMenuStringEx(flags, x + M_THRM_STEP + rect->w, y + M_THRM_TXT_OFFSET, color);
@@ -4134,13 +4136,12 @@ setup_menu_t gen_settings5[] = {
   {"Smooth Pixel Scaling", S_YESNO, m_null, M_X, M_Y,
    {"smooth_scaling"}, 0, M_ResetScreen},
 
-  {"Enable Translucency", S_YESNO|S_STRICT, m_null, M_X, M_SPC,
-   {"translucency"}, 0, M_Trans},
+  {"Sprite Translucency", S_YESNO|S_STRICT, m_null, M_X, M_SPC, {"translucency"}},
 
-  {"Translucency Percent", S_NUM, m_null, M_X, M_SPC,
+  {"Translucency", S_THERMO|S_ACTION|S_THRM_PCT, m_null, M_X_THRM8, M_SPC,
    {"tran_filter_pct"}, 0, M_Trans},
 
-  {"", S_SKIP, m_null, M_X, M_SPC},
+  {"", S_SKIP, m_null, M_X, M_THRM_SPC},
 
   {"Voxels", S_YESNO|S_STRICT, m_null, M_X, M_SPC, {"voxels_rendering"}},
 
@@ -4204,8 +4205,6 @@ setup_menu_t gen_settings6[] = {
 void M_Trans(void) // To reset translucency after setting it in menu
 {
     R_InitTranMap(0);
-
-    D_SetPredefinedTranslucency();
 }
 
 // Setting up for the General screen. Turn on flags, set pointers,

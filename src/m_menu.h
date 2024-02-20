@@ -109,6 +109,7 @@ void M_DisableVoxelsRenderingItem(void);
 #define S_ONOFF        0x08000000 // Alias for S_YESNO
 #define S_MBF          0x10000000 // Disable if complevel < mbf
 #define S_THRM_SIZE4   0x20000000 // Thermo bar size 4
+#define S_THRM_PCT     0x40000000 // Show % sign
 
 // S_SHOWDESC  = the set of items whose description should be displayed
 // S_SHOWSET   = the set of items whose setting should be displayed
