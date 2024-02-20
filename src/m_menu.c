@@ -4166,10 +4166,10 @@ setup_menu_t gen_settings5[] = {
 
   {"Sprite Translucency", S_ONOFF|S_STRICT, m_null, M_X, M_SPC, {"translucency"}},
 
-  {"Translucency", S_THERMO|S_ACTION|S_PCT, m_null, M_X_THRM8, M_SPC,
+  {"Translucency Filter", S_NUM|S_ACTION|S_PCT, m_null, M_X, M_SPC,
    {"tran_filter_pct"}, 0, M_Trans},
 
-  {"", S_SKIP, m_null, M_X, M_THRM_SPC},
+  {"", S_SKIP, m_null, M_X, M_SPC},
 
   {"Voxels", S_ONOFF|S_STRICT, m_null, M_X, M_SPC, {"voxels_rendering"}},
 
