@@ -4150,10 +4150,10 @@ setup_menu_t gen_settings4[] = {
   {"Camera Curve", S_THERMO, m_scrn, CNTR_X, M_THRM_SPC,
    {"joy_response_curve_camera"}, 0, I_ResetController, str_curve},
 
-  {"Movement Deadzone", S_THERMO, m_scrn, CNTR_X, M_THRM_SPC,
+  {"Movement Deadzone", S_THERMO|S_PCT, m_scrn, CNTR_X, M_THRM_SPC,
    {"joy_deadzone_movement"}, 0, I_ResetController},
 
-  {"Camera Deadzone", S_THERMO, m_scrn, CNTR_X, M_THRM_SPC,
+  {"Camera Deadzone", S_THERMO|S_PCT, m_scrn, CNTR_X, M_THRM_SPC,
    {"joy_deadzone_camera"}, 0, I_ResetController},
 
   MI_END
