@@ -3311,6 +3311,7 @@ setup_menu_t stat_settings2[] =
 };
 
 enum {
+  stat3_gap1,
   stat3_xhair,
   stat3_xhairhealth,
   stat3_xhairtarget,
@@ -3340,7 +3341,9 @@ static const char *hudcolor_strings[] = {
 
 setup_menu_t stat_settings3[] =
 {
-  {"Enable Crosshair", S_CHOICE, m_null, M_X, M_Y,
+  {"", S_SKIP, m_null, M_X, M_Y},
+
+  {"Crosshair", S_CHOICE, m_null, M_X, M_SPC,
    {"hud_crosshair"}, 0, M_UpdateCrosshairItems, str_crosshair},
 
   {"Color By Player Health",S_YESNO|S_STRICT, m_null, M_X, M_SPC, {"hud_crosshair_health"}},
@@ -3409,6 +3412,16 @@ static void M_DrawStatusHUD(void)
   M_DrawTabs();
   M_DrawInstructions();
   M_DrawScreenItems(current_setup_menu);
+
+  if (hud_crosshair && mult_screens_index == 2)
+  {
+    patch_t *patch = W_CacheLumpName(crosshair_lumps[hud_crosshair], PU_CACHE);
+
+    int x = M_X + 20 - SHORT(patch->width) / 2;
+    int y = M_Y - SHORT(patch->height) / 2;
+
+    V_DrawPatchTranslated(x, y, patch, colrngs[hud_crosshair_color]);
+  }
 
   // If the Reset Button has been selected, an "Are you sure?" message
   // is overlayed across everything else.
