@@ -18,7 +18,6 @@
 #define __G_GAME__
 
 #include "doomdef.h"
-#include "doomstat.h"
 #include "doomtype.h"
 #include "m_fixed.h"
 

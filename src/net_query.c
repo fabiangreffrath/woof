@@ -23,7 +23,7 @@
 #include "doomdef.h"
 #include "i_printf.h"
 #include "i_system.h"
-#include "i_timer.h" // I_Sleep
+#include "i_timer.h" 
 #include "net_defs.h"
 #include "net_io.h"
 #include "net_packet.h"

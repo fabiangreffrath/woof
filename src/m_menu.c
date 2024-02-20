@@ -55,7 +55,7 @@
 #include "m_snapshot.h"
 #include "m_swap.h"
 #include "p_mobj.h"
-#include "p_saveg.h" // saveg_compat
+#include "p_saveg.h"
 #include "r_bmaps.h"
 #include "r_data.h"
 #include "r_defs.h"

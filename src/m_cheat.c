@@ -24,7 +24,6 @@
 #include "am_map.h"
 #include "d_deh.h" // Ty 03/27/98 - externalized strings
 #include "d_event.h"
-#include "d_main.h"
 #include "d_player.h"
 #include "d_think.h"
 #include "doomdata.h"

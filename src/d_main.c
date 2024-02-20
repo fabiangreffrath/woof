@@ -31,7 +31,7 @@
 #include "config.h"
 #include "d_deh.h"  // Ty 04/08/98 - Externalizations
 #include "d_event.h"
-#include "d_iwad.h" // [FG] D_FindWADByName()
+#include "d_iwad.h"
 #include "d_loop.h"
 #include "d_main.h"
 #include "d_player.h"
@@ -46,7 +46,7 @@
 #include "g_game.h"
 #include "hu_stuff.h"
 #include "i_endoom.h"
-#include "i_glob.h" // [FG] I_StartMultiGlob()
+#include "i_glob.h"
 #include "i_input.h"
 #include "i_printf.h"
 #include "i_sound.h"

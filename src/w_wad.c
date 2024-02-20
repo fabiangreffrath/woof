@@ -27,7 +27,7 @@
 #include "i_system.h"
 #include "m_array.h"
 #include "m_io.h"
-#include "m_misc2.h" // [FG] M_BaseName()
+#include "m_misc2.h"
 #include "m_swap.h"
 #include "w_wad.h"
 #include "z_zone.h"

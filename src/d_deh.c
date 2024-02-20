@@ -26,7 +26,6 @@
 #include <string.h>
 
 #include "d_items.h"
-#include "d_main.h"
 #include "d_think.h"
 #include "doomdef.h"
 #include "doomtype.h"
