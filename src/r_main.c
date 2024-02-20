@@ -290,7 +290,7 @@ static void R_InitTextureMapping(void)
     fov = FIELDOFVIEW;
     slopefrac = finetangent[FINEANGLES / 4 + fov / 2];
     focallength = FixedDiv(centerxfrac_nonwide, slopefrac);
-    lightfocallength = focallength;
+    lightfocallength = centerxfrac_nonwide;
     projection = centerxfrac_nonwide;
 
     if (centerxfrac != centerxfrac_nonwide)
