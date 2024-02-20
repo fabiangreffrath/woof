@@ -2301,8 +2301,11 @@ static void M_DrawSetting(setup_menu_t *s, int accum_y)
         gather_buffer[gather_count] = 0;
         strcpy(menu_buffer, gather_buffer);
       }
+      else if (flags & S_PCT)
+        M_snprintf(menu_buffer, sizeof(menu_buffer), "%d%%", s->var.def->location->i);
       else
-        sprintf(menu_buffer,"%d",s->var.def->location->i);
+        M_snprintf(menu_buffer, sizeof(menu_buffer), "%d", s->var.def->location->i);
+
       BlinkingArrowRight(s);
       M_DrawMenuStringEx(flags, x, y, color);
       return;
@@ -2442,7 +2445,7 @@ static void M_DrawSetting(setup_menu_t *s, int accum_y)
 
       if (strings)
         strcpy(menu_buffer, strings[value]);
-      else if (flags & S_THRM_PCT)
+      else if (flags & S_PCT)
         M_snprintf(menu_buffer, sizeof(menu_buffer), "%d%%", value);
       else
         M_snprintf(menu_buffer, sizeof(menu_buffer), "%d", value);
@@ -4138,7 +4141,7 @@ setup_menu_t gen_settings5[] = {
 
   {"Sprite Translucency", S_YESNO|S_STRICT, m_null, M_X, M_SPC, {"translucency"}},
 
-  {"Translucency", S_THERMO|S_ACTION|S_THRM_PCT, m_null, M_X_THRM8, M_SPC,
+  {"Translucency", S_THERMO|S_ACTION|S_PCT, m_null, M_X_THRM8, M_SPC,
    {"tran_filter_pct"}, 0, M_Trans},
 
   {"", S_SKIP, m_null, M_X, M_THRM_SPC},
@@ -4193,7 +4196,7 @@ setup_menu_t gen_settings6[] = {
 
   {"Miscellaneous", S_SKIP|S_TITLE, m_null, M_X, M_SPC},
 
-  {"Game speed", S_NUM|S_STRICT, m_null, M_X, M_SPC,
+  {"Game speed", S_NUM|S_STRICT|S_PCT, m_null, M_X, M_SPC,
    {"realtic_clock_rate"}, 0, M_ResetTimeScale},
 
   {"Default Skill", S_CHOICE|S_LEVWARN, m_null, M_X, M_SPC,
