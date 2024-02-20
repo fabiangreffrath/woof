@@ -24,9 +24,9 @@
 #define __V_VIDEO__
 
 #include "doomtype.h"
-#include "doomdef.h"
-// Needed because we are refering to patches.
-#include "r_data.h"
+#include "m_fixed.h"
+
+struct patch_s;
 
 //
 // VIDEO
@@ -143,7 +143,7 @@ void V_CopyRect(int srcx, int srcy, pixel_t *source,
 
 // killough 11/98: Consolidated V_DrawPatch and V_DrawPatchFlipped
 
-void V_DrawPatchGeneral(int x, int y, patch_t *patch, boolean flipped);
+void V_DrawPatchGeneral(int x, int y, struct patch_s *patch, boolean flipped);
 
 #define V_DrawPatch(x, y, p)        V_DrawPatchGeneral(x, y, p, false)
 
@@ -151,11 +151,11 @@ void V_DrawPatchGeneral(int x, int y, patch_t *patch, boolean flipped);
 
 #define V_DrawPatchDirect V_DrawPatch       /* killough 5/2/98 */
 
-void V_DrawPatchTranslated(int x, int y, patch_t *patch, byte *outr);
+void V_DrawPatchTranslated(int x, int y, struct patch_s *patch, byte *outr);
 
-void V_DrawPatchTRTR(int x, int y, patch_t *patch, byte *outr1, byte *outr2);
+void V_DrawPatchTRTR(int x, int y, struct patch_s *patch, byte *outr1, byte *outr2);
 
-void V_DrawPatchFullScreen(patch_t *patch);
+void V_DrawPatchFullScreen(struct patch_s *patch);
 
 // Draw a linear block of pixels into the view buffer.
 

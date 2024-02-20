@@ -21,7 +21,8 @@
 #define __M_CHEAT__
 
 #include "doomtype.h"
-#include "d_event.h"
+
+struct event_s;
 
 typedef void (*cheatf_v)();
 typedef void (*cheatf_i)(int i);
@@ -57,7 +58,7 @@ extern struct cheat_s {
   boolean deh_modified;                // killough 9/12/98
 } cheat[];
 
-boolean M_CheatResponder(event_t *ev);
+boolean M_CheatResponder(struct event_s *ev);
 
 #endif
 

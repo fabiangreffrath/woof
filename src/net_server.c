@@ -14,30 +14,25 @@
 // Network server code
 //
 
-#include <stdio.h>
+#include <limits.h>
 #include <stdarg.h>
 #include <stdlib.h>
 #include <string.h>
 
 #include "config.h"
-
-#include "doomtype.h"
 #include "doomdef.h"
+#include "doomtype.h"
 #include "i_printf.h"
 #include "i_system.h"
-#include "i_video.h" // I_Sleep
+#include "i_timer.h"
 #include "m_argv.h"
 #include "m_misc2.h"
-
 #include "net_client.h"
 #include "net_common.h"
-#include "net_defs.h"
 #include "net_io.h"
-#include "net_loop.h"
 #include "net_packet.h"
 #include "net_query.h"
 #include "net_server.h"
-#include "net_sdl.h"
 #include "net_structrw.h"
 
 // How often to refresh our registration with the master server.

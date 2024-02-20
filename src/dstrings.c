@@ -67,7 +67,7 @@ char **endmsg[]=
 };
 
 // killough 1/18/98: remove hardcoded limit and replace with var (silly hack):
-const size_t NUM_QUITMESSAGES = sizeof(endmsg)/sizeof(*endmsg) - 1;
+const int NUM_QUITMESSAGES = sizeof(endmsg)/sizeof(*endmsg) - 1;
 
   
 //----------------------------------------------------------------------------

@@ -22,13 +22,15 @@
 //
 //-----------------------------------------------------------------------------
 
-#include "doomdef.h"
-#include "sounds.h"
-#include "m_fixed.h"
-#include "p_mobj.h"
-#include "w_wad.h"
 #include "info.h"
 
+#include <stddef.h>
+
+#include "doomtype.h"
+#include "m_fixed.h"
+#include "p_mobj.h"
+#include "sounds.h"
+#include "w_wad.h"
 
 // ********************************************************************
 // Sprite names
@@ -6196,14 +6198,12 @@ static const byte cr_white[] =
    224,225,226,227,228,229,230,231,232,233,234,235,236,237,238,239,
    240,241,242,243,244,245,246,247,248,249,250,251,252,253,254,255};
 
-// [FG] replace embedded non-free dogs sprites and sounds
-#include "dogs.h"
-
 // [FG] replace embedded non-free plasma ball sprites
 #include "beta.h"
-
 // [FG] crosshair patches
 #include "cross.h"
+// [FG] replace embedded non-free dogs sprites and sounds
+#include "dogs.h"
 
 // killough 1/31/98: 
 // Table of predefined lumps, used to make up for any wad deficiencies.

@@ -20,8 +20,7 @@
 #ifndef __I_SYSTEM__
 #define __I_SYSTEM__
 
-#include "d_ticcmd.h"
-#include "i_timer.h"
+#include "doomtype.h"
 
 //
 // Called by D_DoomLoop,
@@ -53,7 +52,7 @@ void I_StartDisplay(void);
 // This ticcmd will then be modified by the gameloop
 // for normal input.
 
-ticcmd_t* I_BaseTiccmd (void);
+struct ticcmd_s *I_BaseTiccmd(void);
 
 // killough 3/20/98: add const
 // killough 4/25/98: add gcc attributes

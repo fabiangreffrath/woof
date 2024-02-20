@@ -12,26 +12,33 @@
 // GNU General Public License for more details.
 //
 
-#include "i_printf.h"
-#include "r_draw.h"
-#include "r_main.h"
-#include "r_things.h"
-#include "v_video.h"
+#include <stdlib.h>
+#include <string.h>
+
+#include "doomdata.h"
+#include "doomstat.h"
+#include "doomtype.h"
 #include "i_glob.h"
+#include "i_printf.h"
 #include "i_video.h"
-#include "m_bbox.h"
+#include "info.h"
 #include "m_array.h"
+#include "m_bbox.h"
+#include "m_fixed.h"
 #include "m_menu.h"
 #include "m_misc.h"
 #include "m_misc2.h"
-#include "z_zone.h"
-#include "w_wad.h"
-
+#include "p_mobj.h"
 #include "r_bmaps.h"
+#include "r_defs.h"
+#include "r_draw.h"
+#include "r_main.h"
+#include "r_state.h"
+#include "r_things.h"
+#include "tables.h"
 #include "v_video.h"
-
-#include "doomstat.h"
-
+#include "w_wad.h"
+#include "z_zone.h"
 
 static boolean voxels_found;
 boolean voxels_rendering, default_voxels_rendering;

@@ -20,21 +20,33 @@
 //-----------------------------------------------------------------------------
 
 #define _USE_MATH_DEFINES
+#include <limits.h>
 #include <math.h>
+#include <stdint.h>
+#include <string.h>
 
+#include "d_loop.h"
+#include "d_player.h"
+#include "doomdata.h"
+#include "doomdef.h"
 #include "doomstat.h"
-#include "r_main.h"
-#include "r_things.h"
-#include "r_plane.h"
-#include "r_bsp.h"
-#include "r_draw.h"
-#include "r_sky.h"
-#include "r_voxel.h"
 #include "i_video.h"
-#include "v_video.h"
-#include "v_flextran.h"
-#include "st_stuff.h"
+#include "p_mobj.h"
 #include "p_setup.h" // P_SegLengths
+#include "r_bsp.h"
+#include "r_data.h"
+#include "r_defs.h"
+#include "r_draw.h"
+#include "r_main.h"
+#include "r_plane.h"
+#include "r_sky.h"
+#include "r_state.h"
+#include "r_things.h"
+#include "r_voxel.h"
+#include "st_stuff.h"
+#include "v_flextran.h"
+#include "v_video.h"
+#include "z_zone.h"
 
 // Fineangles in the SCREENWIDTH wide window.
 #define FIELDOFVIEW 2048

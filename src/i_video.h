@@ -21,7 +21,6 @@
 #ifndef __I_VIDEO__
 #define __I_VIDEO__
 
-
 #include "doomtype.h"
 
 #define FOV_DEFAULT 90

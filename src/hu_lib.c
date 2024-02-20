@@ -17,12 +17,18 @@
 //
 //-----------------------------------------------------------------------------
 
-#include "doomstat.h"
+#include <ctype.h>
+#include <stdlib.h>
+
+#include "doomdef.h"
 #include "doomkeys.h"
-#include "m_swap.h"
+#include "doomstat.h"
 #include "hu_lib.h"
 #include "hu_stuff.h"
+#include "m_swap.h"
+#include "r_defs.h"
 #include "r_draw.h"
+#include "r_state.h"
 #include "v_video.h"
 
 // [FG] horizontal alignment

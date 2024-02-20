@@ -15,6 +15,12 @@
 //      FluidSynth backend
 
 #include "fluidsynth.h"
+#include "SDL.h"
+
+#include <stdlib.h>
+#include <string.h>
+
+#include "config.h"
 
 #if (FLUIDSYNTH_VERSION_MAJOR < 2 || (FLUIDSYNTH_VERSION_MAJOR == 2 && FLUIDSYNTH_VERSION_MINOR < 2))
   typedef int fluid_int_t;
@@ -23,20 +29,18 @@
   typedef fluid_long_long_t fluid_int_t;
 #endif
 
-#include "SDL.h"
-#include "i_oalmusic.h"
-
+#include "d_iwad.h" // [FG] D_DoomExeDir()
 #include "doomtype.h"
+#include "i_glob.h"
+#include "i_oalmusic.h"
 #include "i_printf.h"
 #include "i_sound.h"
+#include "m_array.h"
 #include "m_misc2.h"
 #include "memio.h"
 #include "mus2mid.h"
 #include "w_wad.h"
 #include "z_zone.h"
-#include "i_glob.h"
-#include "d_iwad.h" // [FG] D_DoomExeDir()
-#include "m_array.h"
 
 const char *soundfont_path = "";
 char *soundfont_dir = "";
@@ -50,7 +54,7 @@ static fluid_player_t *player = NULL;
 
 static const char **soundfonts = NULL;
 
-static uint32_t FL_Callback(uint8_t *buffer, uint32_t buffer_samples)
+static int FL_Callback(byte *buffer, int buffer_samples)
 {
     int result;
 

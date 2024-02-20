@@ -20,8 +20,13 @@
 #ifndef __R_MAIN__
 #define __R_MAIN__
 
-#include "d_player.h"
-#include "r_data.h"
+#include "doomtype.h"
+#include "m_fixed.h"
+#include "tables.h"
+
+struct node_s;
+struct player_s;
+struct seg_s;
 
 //
 // POV related.
@@ -93,18 +98,18 @@ extern void (*colfunc)(void);
 // Utility functions.
 //
 
-int R_PointOnSide(fixed_t x, fixed_t y, node_t *node);
-int R_PointOnSegSide(fixed_t x, fixed_t y, seg_t *line);
+int R_PointOnSide(fixed_t x, fixed_t y, struct node_s *node);
+int R_PointOnSegSide(fixed_t x, fixed_t y, struct seg_s *line);
 angle_t R_PointToAngle(fixed_t x, fixed_t y);
 angle_t R_PointToAngle2(fixed_t x1, fixed_t y1, fixed_t x2, fixed_t y2);
 angle_t R_PointToAngleCrispy(fixed_t x, fixed_t y);
-subsector_t *R_PointInSubsector(fixed_t x, fixed_t y);
+struct subsector_s *R_PointInSubsector(fixed_t x, fixed_t y);
 
 //
 // REFRESH - the actual rendering functions.
 //
 
-void R_RenderPlayerView(player_t *player);   // Called by G_Drawer.
+void R_RenderPlayerView(struct player_s *player);   // Called by G_Drawer.
 void R_Init(void);                           // Called by startup code.
 void R_SetViewSize(int blocks);              // Called by M_Responder.
 

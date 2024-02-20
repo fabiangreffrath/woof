@@ -21,8 +21,6 @@
 #include <stdio.h>
 #include <sys/stat.h>
 
-#include "doomtype.h"
-
 #ifdef _MSC_VER
   #include <direct.h>
   #include <io.h>

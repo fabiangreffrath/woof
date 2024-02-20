@@ -15,7 +15,9 @@
 //      Custom input
 
 #include <string.h>
+
 #include "m_input.h"
+#include "d_event.h"
 #include "doomkeys.h"
 
 #define M_ARRAY_INIT_CAPACITY NUM_INPUTS

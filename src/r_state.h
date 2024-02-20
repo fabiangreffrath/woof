@@ -21,8 +21,9 @@
 #define __R_STATE__
 
 // Need data structure definitions.
-#include "d_player.h"
-#include "r_main.h"
+#include "r_defs.h"
+
+struct player_s;
 
 //
 // Refresh internal data structures,
@@ -107,7 +108,7 @@ extern fixed_t          viewy;
 extern fixed_t          viewz;
 extern angle_t          viewangle;
 extern localview_t      localview; // View orientation offsets for current frame.
-extern player_t         *viewplayer;
+extern struct player_s  *viewplayer;
 extern angle_t          clipangle;
 extern angle_t          vx_clipangle;
 extern int              viewangletox[FINEANGLES/2];

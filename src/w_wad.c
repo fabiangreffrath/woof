@@ -17,17 +17,20 @@
 //
 //-----------------------------------------------------------------------------
 
+#include <ctype.h>
 #include <fcntl.h>
+#include <stdlib.h>
+#include <string.h>
 
+#include "d_main.h" // [FG] wadfiles
 #include "i_printf.h"
 #include "i_system.h"
-#include "m_io.h"
-
-#include "w_wad.h"
 #include "m_array.h"
-#include "m_misc2.h" // [FG] M_BaseName()
+#include "m_io.h"
+#include "m_misc2.h"
 #include "m_swap.h"
-#include "d_main.h" // [FG] wadfiles
+#include "w_wad.h"
+#include "z_zone.h"
 
 //
 // GLOBALS

@@ -15,15 +15,13 @@
 //    Reading of MIDI files.
 //
 
-#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <assert.h>
+
+#include "SDL_endian.h"
 
 #include "doomtype.h"
 #include "i_printf.h"
-#include "m_swap.h"
-#include "i_system.h"
 #include "memio.h"
 #include "midifile.h"
 
@@ -661,8 +659,6 @@ unsigned int MIDI_NumTracks(midi_file_t *file)
 midi_track_iter_t *MIDI_IterateTrack(midi_file_t *file, unsigned int track)
 {
     midi_track_iter_t *iter;
-
-    assert(track < file->num_tracks);
 
     iter = malloc(sizeof(*iter));
     iter->track = &file->tracks[track];

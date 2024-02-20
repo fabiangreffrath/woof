@@ -23,26 +23,37 @@
 #include <windows.h>
 #endif
 
-#include "SDL.h" // haleyjd
+#include "SDL.h"
 
-#include "../miniz/miniz.h"
+#include <limits.h>
+#include <stdio.h>
+#include <stdlib.h>
 
-#include "doomstat.h"
-#include "i_printf.h"
-#include "r_plane.h"
-#include "v_video.h"
-#include "d_main.h"
-#include "st_stuff.h"
-#include "m_argv.h"
-#include "w_wad.h"
-#include "r_main.h"
-#include "r_draw.h"
-#include "r_voxel.h"
 #include "am_map.h"
-#include "m_menu.h"
+#include "config.h"
+#include "d_event.h"
+#include "d_main.h"
+#include "doomdef.h"
+#include "doomstat.h"
 #include "i_input.h"
+#include "i_printf.h"
+#include "i_system.h"
+#include "i_timer.h"
 #include "i_video.h"
+#include "m_argv.h"
+#include "m_fixed.h"
 #include "m_io.h"
+#include "m_menu.h"
+#include "r_draw.h"
+#include "r_main.h"
+#include "r_plane.h"
+#include "r_voxel.h"
+#include "st_stuff.h"
+#include "v_video.h"
+#include "w_wad.h"
+#include "z_zone.h"
+
+#include "miniz.h"
 
 // [FG] set the application icon
 
@@ -1669,6 +1680,8 @@ void I_ShutdownGraphics(void)
     }
 
     UpdateGrab();
+
+    SDL_QuitSubSystem(SDL_INIT_VIDEO);
 }
 
 void I_InitGraphics(void)

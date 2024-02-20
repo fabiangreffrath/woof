@@ -19,8 +19,6 @@
 #ifndef __M_MISC2__
 #define __M_MISC2__
 
-#include <fenv.h>
-#include <math.h>
 #include <stdarg.h>
 
 #include "doomtype.h"

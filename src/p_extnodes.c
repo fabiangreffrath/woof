@@ -18,17 +18,25 @@
 //
 //-----------------------------------------------------------------------------
 
+#include <math.h>
+#include <string.h>
+
+#include "doomdata.h"
 #include "i_printf.h"
-#include "r_main.h"
-#include "w_wad.h"
+#include "i_system.h"
 #include "m_argv.h"
+#include "m_fixed.h"
 #include "m_swap.h"
-
-// [FG] support maps with NODES in compressed ZNOD/ZGLN formats
-#include "../miniz/miniz.h"
-
 #include "p_extnodes.h"
 #include "p_setup.h"
+#include "r_defs.h"
+#include "r_main.h"
+#include "r_state.h"
+#include "w_wad.h"
+#include "z_zone.h"
+
+// [FG] support maps with NODES in compressed ZNOD/ZGLN formats
+#include "miniz.h"
 
 // [FG] support maps with NODES in DeePBSP format
 

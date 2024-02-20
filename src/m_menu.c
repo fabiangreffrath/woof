@@ -22,41 +22,54 @@
 //
 //-----------------------------------------------------------------------------
 
-#include "doomdef.h"
-#include "doomstat.h"
-#include "doomkeys.h"
-#include "dstrings.h"
+#include <ctype.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+#include "am_map.h"
+#include "config.h"
+#include "d_deh.h"
+#include "d_event.h"
 #include "d_main.h"
-#include "i_system.h"
-#include "i_video.h"
-#include "v_video.h"
-#include "w_wad.h"
-#include "r_main.h"
-#include "hu_stuff.h"
+#include "doomdef.h"
+#include "doomkeys.h"
+#include "doomstat.h"
+#include "dstrings.h"
 #include "g_game.h"
+#include "hu_lib.h"
+#include "hu_stuff.h"
+#include "i_gamepad.h"
+#include "i_sound.h"
+#include "i_system.h"
+#include "i_timer.h"
+#include "i_video.h"
+#include "m_argv.h"
+#include "m_array.h"
+#include "m_fixed.h"
+#include "m_input.h"
+#include "m_io.h"
+#include "m_menu.h"
+#include "m_misc.h"
+#include "m_misc2.h"
+#include "m_snapshot.h"
+#include "m_swap.h"
+#include "p_mobj.h"
+#include "p_saveg.h"
+#include "r_bmaps.h"
+#include "r_data.h"
+#include "r_defs.h"
+#include "r_draw.h"
+#include "r_main.h"
+#include "r_plane.h" // [FG] R_InitPlanes()
+#include "r_sky.h"   // [FG] R_InitSkyMap()
+#include "r_voxel.h"
 #include "s_sound.h"
 #include "sounds.h"
-#include "m_menu.h"
-#include "d_deh.h"
-#include "m_misc.h"
-#include "m_misc2.h" // [FG] M_StringDuplicate()
-#include "m_io.h"
-#include "m_swap.h"
-#include "w_wad.h" // [FG] W_IsIWADLump() / W_WadNameForLump()
-#include "p_saveg.h" // saveg_compat
-#include "m_input.h"
-#include "i_gamepad.h"
-#include "r_draw.h" // [FG] R_SetFuzzColumnMode
-#include "r_sky.h" // [FG] R_InitSkyMap()
-#include "r_plane.h" // [FG] R_InitPlanes()
-#include "r_voxel.h"
-#include "m_argv.h"
-#include "m_snapshot.h"
-#include "i_sound.h"
-#include "r_bmaps.h"
-#include "m_array.h"
-#include "am_map.h"
-#include "r_voxel.h"
+#include "u_mapinfo.h"
+#include "v_video.h"
+#include "w_wad.h"
+#include "z_zone.h"
 
 // [crispy] remove DOS reference from the game quit confirmation dialogs
 #ifndef _WIN32

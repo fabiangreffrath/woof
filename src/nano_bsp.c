@@ -23,12 +23,19 @@
 //
 //----------------------------------------------------------------------------
 
+#include <limits.h>
+#include <stdlib.h>
+#include <string.h>
+
+#include "doomdata.h"
+#include "doomtype.h"
 #include "m_bbox.h"
+#include "m_fixed.h"
 #include "p_extnodes.h"
+#include "r_defs.h"
 #include "r_main.h"
-
-#include "nano_bsp.h"
-
+#include "r_state.h"
+#include "z_zone.h"
 
 #define DIST_EPSILON  (FRACUNIT / 64)
 

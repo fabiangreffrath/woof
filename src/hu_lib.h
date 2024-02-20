@@ -20,7 +20,9 @@
 #ifndef __HULIB__
 #define __HULIB__
 
-#include "v_video.h" //jff 2/16/52 include color range defs
+#include "doomtype.h"
+
+struct patch_s;
 
 // [FG] font stuff
 
@@ -32,7 +34,7 @@
 
 typedef struct
 {
-  patch_t *patches[HU_FONTSIZE+6];
+  struct patch_s *patches[HU_FONTSIZE+6];
 
   int line_height;
 
@@ -42,7 +44,7 @@ typedef struct
   const int tab_mask;
 } hu_font_t;
 
-extern patch_t **hu_font;
+extern struct patch_s **hu_font;
 
 // [FG] widget stuff
 

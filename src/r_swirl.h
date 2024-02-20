@@ -20,6 +20,8 @@
 #ifndef __R_SWIRL__
 #define __R_SWIRL__
 
+#include "doomtype.h"
+
 byte *R_DistortedFlat(int flatnum);
 
 #endif

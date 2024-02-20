@@ -18,19 +18,27 @@
 //
 //-----------------------------------------------------------------------------
 
+#include <string.h>
+
+#include "d_event.h"
+#include "d_player.h"
+#include "doomdef.h"
 #include "doomstat.h"
-#include "i_printf.h"
-#include "m_random.h"
-#include "w_wad.h"
+#include "doomtype.h"
 #include "g_game.h"
-#include "r_main.h"
-#include "v_video.h"
-#include "wi_stuff.h"
+#include "hu_lib.h"
+#include "i_printf.h"
+#include "m_misc2.h"
+#include "m_random.h"
+#include "m_swap.h"
+#include "r_defs.h"
 #include "s_sound.h"
 #include "sounds.h"
-#include "hu_stuff.h"
-#include "m_misc2.h"
-#include "m_swap.h"
+#include "u_mapinfo.h"
+#include "v_video.h"
+#include "w_wad.h"
+#include "wi_stuff.h"
+#include "z_zone.h"
 
 // Ty 03/17/98: flag that new par times have been loaded in d_deh
 extern boolean deh_pars;  
@@ -1981,7 +1989,7 @@ void WI_loadData(void)
                                      PU_STATIC, 0);
       for (i=0 ; i<NUMMAPS ; i++)
         {
-          sprintf(name, "WILV%d%d", wbs->epsd, i);
+          M_snprintf(name, sizeof(name), "WILV%d%d", wbs->epsd, i);
           if (W_CheckNumForName(name) != -1)
           {
           lnames[i] = W_CacheLumpName(name, PU_STATIC);
@@ -2033,7 +2041,7 @@ void WI_loadData(void)
   for (i=0;i<10;i++)
     {
       // numbers 0-9
-      sprintf(name, "WINUM%d", i);     
+      M_snprintf(name, sizeof(name), "WINUM%d", i);
       num[i] = W_CacheLumpName(name, PU_STATIC);
     }
 
@@ -2101,11 +2109,11 @@ void WI_loadData(void)
   for (i=0 ; i<MAXPLAYERS ; i++)
     {
       // "1,2,3,4"
-      sprintf(name, "STPB%d", i);      
+      M_snprintf(name, sizeof(name), "STPB%d", i);
       p[i] = W_CacheLumpName(name, PU_STATIC);
 
       // "1,2,3,4"
-      sprintf(name, "WIBP%d", i+1);     
+      M_snprintf(name, sizeof(name), "WIBP%d", i + 1);
       bp[i] = W_CacheLumpName(name, PU_STATIC);
     }
 }

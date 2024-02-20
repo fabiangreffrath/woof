@@ -17,24 +17,19 @@
 //	all OS independend parts.
 //
 
-#include <stdlib.h>
-
-#include "i_printf.h"
-#include "d_main.h"
-#include "m_argv.h"
-#include "m_menu.h"
-#include "m_misc2.h"
-#include "i_system.h"
-#include "i_video.h"
-#include "g_game.h"
+#include "d_loop.h"
+#include "d_player.h"
+#include "d_ticcmd.h"
 #include "doomdef.h"
 #include "doomstat.h"
-//#include "w_checksum.h"
-//#include "w_wad.h"
-
-//#include "deh_main.h"
-
-#include "d_loop.h"
+#include "doomtype.h"
+#include "g_game.h"
+#include "i_printf.h"
+#include "m_argv.h"
+#include "m_misc2.h"
+#include "net_defs.h"
+#include "p_mobj.h"
+#include "tables.h"
 
 ticcmd_t *netcmds;
 

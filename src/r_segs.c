@@ -19,16 +19,27 @@
 //
 // 4/25/98, 5/2/98 killough: reformatted, beautified
 
+#include <limits.h>
+#include <string.h>
+
+#include "doomdata.h"
 #include "doomstat.h"
-#include "i_video.h"
-#include "v_video.h"
-#include "r_main.h"
-#include "r_bsp.h"
-#include "r_plane.h"
-#include "r_things.h"
-#include "r_draw.h"
-#include "w_wad.h"
+#include "doomtype.h"
+#include "i_system.h"
+#include "m_fixed.h"
 #include "r_bmaps.h" // [crispy] brightmaps
+#include "r_bsp.h"
+#include "r_data.h"
+#include "r_defs.h"
+#include "r_draw.h"
+#include "r_main.h"
+#include "r_plane.h"
+#include "r_state.h"
+#include "r_things.h"
+#include "tables.h"
+#include "v_video.h"
+#include "w_wad.h"
+#include "z_zone.h"
 
 // OPTIMIZE: closed two sided lines as single sided
 
@@ -153,7 +164,7 @@ void R_RenderMaskedSegRange(drawseg_t *ds, int x1, int x2)
 
   // draw the columns
   for (dc_x = x1 ; dc_x <= x2 ; dc_x++, spryscale += rw_scalestep)
-    if (maskedtexturecol[dc_x] != D_MAXINT) // [FG] 32-bit integer math
+    if (maskedtexturecol[dc_x] != INT_MAX) // [FG] 32-bit integer math
       {
         if (!fixedcolormap)      // calculate lighting
           {                             // killough 11/98:
@@ -198,7 +209,7 @@ void R_RenderMaskedSegRange(drawseg_t *ds, int x1, int x2)
         col = (column_t *)((byte *)
                            R_GetColumnMod(texnum,maskedtexturecol[dc_x]) - 3);
         R_DrawMaskedColumn (col);
-        maskedtexturecol[dc_x] = D_MAXINT; // [FG] 32-bit integer math
+        maskedtexturecol[dc_x] = INT_MAX; // [FG] 32-bit integer math
       }
 
   // [FG] reset column drawing function
@@ -609,8 +620,8 @@ void R_StoreWallRange(const int start, const int stop)
       ds_p->silhouette = SIL_BOTH;
       ds_p->sprtopclip = screenheightarray;
       ds_p->sprbottomclip = negonearray;
-      ds_p->bsilheight = D_MAXINT;
-      ds_p->tsilheight = D_MININT;
+      ds_p->bsilheight = INT_MAX;
+      ds_p->tsilheight = INT_MIN;
     }
   else      // two sided line
     {
@@ -626,7 +637,7 @@ void R_StoreWallRange(const int start, const int stop)
         if (backsector->interpfloorheight > viewz)
           {
             ds_p->silhouette = SIL_BOTTOM;
-            ds_p->bsilheight = D_MAXINT;
+            ds_p->bsilheight = INT_MAX;
           }
 
       if (frontsector->interpceilingheight < backsector->interpceilingheight)
@@ -638,7 +649,7 @@ void R_StoreWallRange(const int start, const int stop)
         if (backsector->interpceilingheight < viewz)
           {
             ds_p->silhouette |= SIL_TOP;
-            ds_p->tsilheight = D_MININT;
+            ds_p->tsilheight = INT_MIN;
           }
 
       // killough 1/17/98: this test is required if the fix
@@ -654,13 +665,13 @@ void R_StoreWallRange(const int start, const int stop)
         if (doorclosed || backsector->interpceilingheight<=frontsector->interpfloorheight)
           {
             ds_p->sprbottomclip = negonearray;
-            ds_p->bsilheight = D_MAXINT;
+            ds_p->bsilheight = INT_MAX;
             ds_p->silhouette |= SIL_BOTTOM;
           }
         if (doorclosed || backsector->interpfloorheight>=frontsector->interpceilingheight)
           {                   // killough 1/17/98, 2/8/98
             ds_p->sprtopclip = screenheightarray;
-            ds_p->tsilheight = D_MININT;
+            ds_p->tsilheight = INT_MIN;
             ds_p->silhouette |= SIL_TOP;
           }
       }
@@ -886,12 +897,12 @@ void R_StoreWallRange(const int start, const int stop)
   if (maskedtexture && !(ds_p->silhouette & SIL_TOP))
     {
       ds_p->silhouette |= SIL_TOP;
-      ds_p->tsilheight = D_MININT;
+      ds_p->tsilheight = INT_MIN;
     }
   if (maskedtexture && !(ds_p->silhouette & SIL_BOTTOM))
     {
       ds_p->silhouette |= SIL_BOTTOM;
-      ds_p->bsilheight = D_MAXINT;
+      ds_p->bsilheight = INT_MAX;
     }
   ds_p++;
 }

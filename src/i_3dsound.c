@@ -15,14 +15,22 @@
 //      System interface for 3D sound.
 //
 
-#include <stdio.h>
+#include "al.h"
+
 #include <stdlib.h>
 
+#include "d_player.h"
+#include "d_think.h"
+#include "doomdef.h"
 #include "doomstat.h"
+#include "doomtype.h"
 #include "i_oalsound.h"
-#include "r_data.h"
-#include "r_main.h"
+#include "i_sound.h"
+#include "m_fixed.h"
+#include "p_mobj.h"
 #include "p_setup.h"
+#include "sounds.h"
+#include "tables.h"
 
 #define FIXED_TO_ALFLOAT(x) ((ALfloat)(FIXED2DOUBLE(x)))
 

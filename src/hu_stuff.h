@@ -19,9 +19,11 @@
 #ifndef __HU_STUFF_H__
 #define __HU_STUFF_H__
 
-#include "d_event.h"
-#include "r_defs.h"
-#include "hu_lib.h"
+#include "doomdef.h"
+#include "doomtype.h"
+
+struct event_s;
+struct mobj_s;
 
 #define HU_BROADCAST    5
 
@@ -35,7 +37,7 @@ void HU_Start(void);
 void HU_disable_all_widgets (void);
 void HU_widget_rebuild_sttime(void);
 
-boolean HU_Responder(event_t* ev);
+boolean HU_Responder(struct event_s *ev);
 
 void HU_Ticker(void);
 void HU_Drawer(void);
@@ -107,7 +109,7 @@ extern crosstarget_t hud_crosshair_target;
 
 // [Alaux] Lock crosshair on target
 extern boolean hud_crosshair_lockon;
-extern mobj_t *crosshair_target;
+extern struct mobj_s *crosshair_target;
 void HU_UpdateCrosshairLock(int x, int y);
 void HU_DrawCrosshair(void);
 

@@ -21,8 +21,7 @@
 #ifndef __R_DATA__
 #define __R_DATA__
 
-#include "r_defs.h"
-#include "r_state.h"
+#include "doomtype.h"
 
 // Retrieve column data for span blitting.
 byte *R_GetColumn(int tex, int col);

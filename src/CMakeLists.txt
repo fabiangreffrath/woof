@@ -19,7 +19,7 @@ set(WOOF_SOURCES
                            d_ticcmd.h
                            dogs.h
                            doomdata.h
-    doomdef.c              doomdef.h
+                           doomdef.h
     doomstat.c             doomstat.h
                            doomtype.h
     dsdhacked.c            dsdhacked.h
@@ -163,7 +163,8 @@ else()
 endif()
 
 target_woof_settings(woof)
-target_include_directories(woof PRIVATE "${CMAKE_CURRENT_BINARY_DIR}/../")
+target_include_directories(woof PRIVATE
+        "${CMAKE_CURRENT_BINARY_DIR}/../" "../miniz")
 
 target_link_libraries(woof PRIVATE
     ${SDL2_LIBRARIES}
@@ -184,6 +185,7 @@ endif()
 
 if(WIN32)
     target_sources(woof PRIVATE i_winmusic.c)
+    target_include_directories(woof PRIVATE "../win32")
     target_link_libraries(woof PRIVATE winmm)
     if(MSVC)
         target_sources(woof PRIVATE

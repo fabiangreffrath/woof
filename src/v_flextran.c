@@ -28,9 +28,11 @@
 // Copyright 1998-2012 (C) Marisa Heit
 //
 
-#include "i_video.h"
 #include "v_flextran.h"
+
+#include "i_video.h"
 #include "w_wad.h"
+#include "z_zone.h"
 
 unsigned int  Col2RGB8[65][256];
 unsigned int *Col2RGB8_LessPrecision[65];

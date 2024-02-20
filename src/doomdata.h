@@ -22,9 +22,6 @@
 #ifndef __DOOMDATA__
 #define __DOOMDATA__
 
-// The most basic types we use, portability.
-#include "doomtype.h"
-
 //
 // Map level types.
 // The following data structures define the persistent format

@@ -17,10 +17,11 @@
 //
 //-----------------------------------------------------------------------------
 
+#include "SDL.h"
+
+#include <stdlib.h>
+
 #include "config.h"
-
-#include "SDL.h" // haleyjd
-
 #include "i_printf.h"
 #include "i_system.h"
 #include "m_argv.h"

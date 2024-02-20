@@ -21,15 +21,23 @@
 //
 //-----------------------------------------------------------------------------
 
-#include "doomstat.h"
+#include <stdlib.h>
+#include <string.h>
+
+#include "doomdef.h"
 #include "doomtype.h"
-#include "w_wad.h"   /* needed for color translation lump lookup */
-#include "v_trans.h"
-#include "v_video.h"
+#include "i_system.h"
 #include "i_video.h"
 #include "m_argv.h"
-#include "m_swap.h"
 #include "m_misc2.h"
+#include "m_swap.h"
+#include "r_data.h"
+#include "r_defs.h"
+#include "r_state.h"
+#include "v_trans.h"
+#include "v_video.h"
+#include "w_wad.h" // needed for color translation lump lookup
+#include "z_zone.h"
 
 pixel_t *I_VideoBuffer;
 

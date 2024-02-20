@@ -17,15 +17,23 @@
 //
 //-----------------------------------------------------------------------------
 
+#include "d_deh.h" // Ty 03/27/98 - externalized
+#include "d_player.h"
+#include "d_think.h"
+#include "doomdata.h"
+#include "doomdef.h"
 #include "doomstat.h"
+#include "doomtype.h"
+#include "m_fixed.h"
+#include "p_mobj.h"
 #include "p_spec.h"
 #include "p_tick.h"
+#include "r_defs.h"
+#include "r_state.h"
 #include "s_sound.h"
 #include "sounds.h"
-#include "r_main.h"
-#include "dstrings.h"
-#include "d_deh.h"  // Ty 03/27/98 - externalized
 #include "st_stuff.h"
+#include "z_zone.h"
 
 ///////////////////////////////////////////////////////////////
 //

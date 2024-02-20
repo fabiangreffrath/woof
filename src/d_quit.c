@@ -17,6 +17,7 @@
 //
 
 #include <errno.h>
+#include <string.h>
 
 #include "SDL.h"
 
@@ -38,8 +39,6 @@ extern char **tempdirs;
 void I_Quit(void)
 {
     int i;
-
-    SDL_QuitSubSystem(SDL_INIT_VIDEO);
 
     SDL_Quit();
 

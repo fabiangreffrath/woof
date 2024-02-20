@@ -16,12 +16,12 @@
 
 #include "SDL.h"
 
-#include "doomtype.h"
-#include "doomkeys.h"
-#include "i_printf.h"
 #include "d_event.h"
 #include "d_main.h"
+#include "doomkeys.h"
+#include "doomtype.h"
 #include "i_gamepad.h"
+#include "i_printf.h"
 #include "i_system.h"
 
 #define AXIS_BUTTON_DEADZONE (SDL_JOYSTICK_AXIS_MAX / 3)

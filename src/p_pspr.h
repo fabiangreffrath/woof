@@ -21,12 +21,12 @@
 #define __P_PSPR__
 
 #include "doomdef.h"
+#include "doomtype.h"
 
 // Basic data types.
 // Needs fixed point, and BAM angles.
 
 #include "m_fixed.h"
-#include "tables.h"
 
 // Needs to include the precompiled sprite animation tables.
 //
@@ -35,6 +35,8 @@
 // i.e. the Thing Atrributes table and the Frame Sequence table.
 
 #include "info.h"
+
+struct player_s;
 
 //
 // Overlay psprites are scaled shapes
@@ -65,7 +67,6 @@ int P_WeaponPreferred(int w1, int w2);
 
 extern boolean weapon_recoilpitch;
 
-struct player_s;
 int P_SwitchWeapon(struct player_s *player);
 boolean P_CheckAmmo(struct player_s *player);
 void P_SetupPsprites(struct player_s *curplayer);

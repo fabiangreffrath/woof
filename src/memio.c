@@ -16,11 +16,10 @@
 // memory.
 //
 
-#include <stdlib.h>
 #include <string.h>
 
+#include "doomtype.h"
 #include "memio.h"
-
 #include "z_zone.h"
 
 typedef enum {

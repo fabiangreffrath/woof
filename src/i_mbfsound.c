@@ -18,10 +18,16 @@
 //      System interface for WinMBF sound.
 //
 
+#include <stdlib.h>
+
 #include "doomstat.h"
+#include "doomtype.h"
 #include "i_oalsound.h"
 #include "i_sound.h"
+#include "m_fixed.h"
+#include "p_mobj.h"
 #include "r_main.h"
+#include "tables.h"
 
 int forceFlipPan;
 

@@ -21,12 +21,14 @@
 #ifndef __SOUNDS__
 #define __SOUNDS__
 
+#include "doomtype.h"
+
 //
 // SoundFX struct.
 //
 
-typedef struct sfxinfo_struct {
-
+typedef struct sfxinfo_s
+{
   // up to 6-character name
   char *name;
 
@@ -46,7 +48,7 @@ typedef struct sfxinfo_struct {
   int priority;
 
   // referenced sound if a link
-  struct sfxinfo_struct *link;
+  struct sfxinfo_s *link;
 
   // pitch if a link
   int pitch;
