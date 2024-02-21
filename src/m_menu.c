@@ -159,7 +159,7 @@ backdrop_t menu_backdrop;
 #define M_X_THRM11    (M_X - (M_THRM_SIZE11 + 3) * M_THRM_STEP)
 #define M_THRM_TXT_OFFSET 3
 #define M_THRM_SPC    (M_THRM_HEIGHT + 1)
-#define M_THRM_UL_VAL 20
+#define M_THRM_UL_VAL 50
 
 #define M_X_LOADSAVE 80
 #define M_LOADSAVE_WIDTH (24 * 8 + 8) // [FG] c.f. M_DrawSaveLoadBorder()
@@ -2592,7 +2592,7 @@ static void M_DrawInstructions()
         {
             s = "Press key or button to bind/unbind";
         }
-        else if (flags & S_YESNO)
+        else if (flags & (S_YESNO|S_ONOFF))
         {
             if (menu_input == pad_mode)
                 s = "[ PadA ] to toggle";
@@ -3099,12 +3099,12 @@ setup_menu_t weap_settings1[] =  // Weapons Settings screen
 
   {"", S_SKIP, m_null, M_X, M_SPC},
 
-  {"Use Weapon Toggles", S_YESNO|S_BOOM, m_null, M_X, M_SPC,
+  {"Use Weapon Toggles", S_ONOFF|S_BOOM, m_null, M_X, M_SPC,
    {"doom_weapon_toggles"}},
 
   {"", S_SKIP, m_null, M_X, M_SPC},
 
-  {"Pre-Beta BFG", S_YESNO, m_null, M_X,  // killough 8/8/98
+  {"Pre-Beta BFG", S_ONOFF, m_null, M_X,  // killough 8/8/98
    M_SPC, {"classic_bfg"}},
 
   // Button for resetting to defaults
@@ -3118,13 +3118,13 @@ setup_menu_t weap_settings2[] =
   {"View/Weapon Bobbing", S_CHOICE, m_null, M_X, M_Y,
    {"cosmetic_bobbing"}, 0, M_UpdateCenteredWeaponItem, str_bobfactor},
 
-  {"Hide Weapon", S_YESNO|S_STRICT, m_null, M_X, M_SPC, {"hide_weapon"}},
+  {"Hide Weapon", S_ONOFF|S_STRICT, m_null, M_X, M_SPC, {"hide_weapon"}},
 
   // [FG] centered or bobbing weapon sprite
   {"Weapon Alignment", S_CHOICE|S_STRICT, m_null, M_X, M_SPC,
    {"center_weapon"}, 0, NULL, str_center_weapon},
 
-  {"Weapon Recoil", S_YESNO, m_null, M_X, M_SPC, {"weapon_recoilpitch"}},
+  {"Weapon Recoil", S_ONOFF, m_null, M_X, M_SPC, {"weapon_recoilpitch"}},
 
   MI_END
 };
@@ -3253,9 +3253,9 @@ setup_menu_t stat_settings1[] =  // Status Bar and HUD Settings screen
   {"", S_SKIP, m_null, H_X, M_THRM_SPC},
 
   {"Status Bar", S_SKIP|S_TITLE, m_null, H_X, M_SPC},
-  {"Colored Numbers", S_YESNO|S_COSMETIC, m_null, H_X, M_SPC, {"sts_colored_numbers"}},
-  {"Gray Percent Sign", S_YESNO|S_COSMETIC, m_null, H_X, M_SPC, {"sts_pct_always_gray"}},
-  {"Solid Background Color", S_YESNO, m_null, H_X, M_SPC, {"st_solidbackground"}},
+  {"Colored Numbers", S_ONOFF|S_COSMETIC, m_null, H_X, M_SPC, {"sts_colored_numbers"}},
+  {"Gray Percent Sign", S_ONOFF|S_COSMETIC, m_null, H_X, M_SPC, {"sts_pct_always_gray"}},
+  {"Solid Background Color", S_ONOFF, m_null, H_X, M_SPC, {"st_solidbackground"}},
 
   {"", S_SKIP, m_null, H_X, M_SPC},
 
@@ -3265,10 +3265,10 @@ setup_menu_t stat_settings1[] =  // Status Bar and HUD Settings screen
 
   {"", S_SKIP, m_null, H_X, M_SPC},
 
-  {"Backpack Shifts Ammo Color", S_YESNO, m_null, H_X, M_SPC, {"hud_backpack_thresholds"}},
-  {"Armor Color Matches Type", S_YESNO, m_null, H_X, M_SPC, {"hud_armor_type"}},
-  {"Animated Health/Armor Count", S_YESNO, m_null, H_X, M_SPC, {"hud_animated_counts"}},
-  {"Blink Missing Keys", S_YESNO, m_null, H_X, M_SPC, {"hud_blink_keys"}},
+  {"Backpack Shifts Ammo Color", S_ONOFF, m_null, H_X, M_SPC, {"hud_backpack_thresholds"}},
+  {"Armor Color Matches Type", S_ONOFF, m_null, H_X, M_SPC, {"hud_armor_type"}},
+  {"Animated Health/Armor Count", S_ONOFF, m_null, H_X, M_SPC, {"hud_animated_counts"}},
+  {"Blink Missing Keys", S_ONOFF, m_null, H_X, M_SPC, {"hud_blink_keys"}},
 
   MI_RESET,
 
@@ -3289,7 +3289,7 @@ setup_menu_t stat_settings2[] =
    {"hud_level_time"}, 0, NULL, str_show_widgets},
   {"Show Player Coords", S_CHOICE|S_STRICT, m_null, M_X, M_SPC,
    {"hud_player_coords"}, 0, NULL, str_show_widgets},
-  {"Use-Button Timer", S_YESNO, m_null, M_X, M_SPC, {"hud_time_use"}},
+  {"Use-Button Timer", S_ONOFF, m_null, M_X, M_SPC, {"hud_time_use"}},
 
   {"", S_SKIP, m_null, M_X, M_SPC},
 
@@ -3297,9 +3297,9 @@ setup_menu_t stat_settings2[] =
 
   {"Use Doom Font", S_CHOICE, m_null, M_X, M_SPC,
    {"hud_widget_font"}, 0, NULL, str_show_widgets},
-  {"Widescreen Alignment", S_YESNO, m_null, M_X, M_SPC,
+  {"Widescreen Alignment", S_ONOFF, m_null, M_X, M_SPC,
    {"hud_widescreen_widgets"}, 0, HU_Start},
-  {"Vertical Layout", S_YESNO, m_null, M_X, M_SPC,
+  {"Vertical Layout", S_ONOFF, m_null, M_X, M_SPC,
    {"hud_widget_layout"}, 0, HU_Start},
 
   MI_END
@@ -3324,17 +3324,17 @@ static const char *hudcolor_strings[] = {
     "YELLOW", "BLUE2", "BLACK", "PURPLE", "WHITE", "NONE"
 };
 
-#define XH_X M_X - 28
+#define XH_X (M_X - 33)
 
 setup_menu_t stat_settings3[] =
 {
   {"Crosshair", S_CHOICE, m_null, XH_X, M_Y,
    {"hud_crosshair"}, 0, M_UpdateCrosshairItems, str_crosshair},
 
-  {"Color By Player Health",S_YESNO|S_STRICT, m_null, XH_X, M_SPC, {"hud_crosshair_health"}},
+  {"Color By Player Health",S_ONOFF|S_STRICT, m_null, XH_X, M_SPC, {"hud_crosshair_health"}},
   {"Color By Target", S_CHOICE|S_STRICT, m_null, XH_X, M_SPC,
    {"hud_crosshair_target"}, 0, M_UpdateCrosshairItems, str_crosshair_target},
-  {"Lock On Target", S_YESNO|S_STRICT, m_null, XH_X, M_SPC, {"hud_crosshair_lockon"}},
+  {"Lock On Target", S_ONOFF|S_STRICT, m_null, XH_X, M_SPC, {"hud_crosshair_lockon"}},
   {"Default Color", S_CRITEM, m_null, XH_X, M_SPC,
    {"hud_crosshair_color"}, 0, NULL, str_hudcolor},
   {"Highlight Color", S_CRITEM|S_STRICT, m_null, XH_X, M_SPC,
@@ -3345,18 +3345,18 @@ setup_menu_t stat_settings3[] =
 
 setup_menu_t stat_settings4[] =
 {
-  {"\"A Secret is Revealed!\" Message", S_YESNO, m_null, M_X, M_Y,
+  {"\"A Secret is Revealed!\" Message", S_ONOFF, m_null, M_X, M_Y,
    {"hud_secret_message"}},
 
-  {"Show Toggle Messages", S_YESNO, m_null, M_X, M_SPC, {"show_toggle_messages"}},
+  {"Show Toggle Messages", S_ONOFF, m_null, M_X, M_SPC, {"show_toggle_messages"}},
 
-  {"Show Pickup Messages", S_YESNO, m_null, M_X, M_SPC, {"show_pickup_messages"}},
+  {"Show Pickup Messages", S_ONOFF, m_null, M_X, M_SPC, {"show_pickup_messages"}},
 
-  {"Show Obituaries", S_YESNO, m_null, M_X, M_SPC, {"show_obituary_messages"}},
+  {"Show Obituaries", S_ONOFF, m_null, M_X, M_SPC, {"show_obituary_messages"}},
 
-  {"Center Messages", S_YESNO, m_null, M_X, M_SPC, {"message_centered"}},
+  {"Center Messages", S_ONOFF, m_null, M_X, M_SPC, {"message_centered"}},
 
-  {"Colorize Messages", S_YESNO, m_null, M_X, M_SPC,
+  {"Colorize Messages", S_ONOFF, m_null, M_X, M_SPC,
    {"message_colorized"}, 0, HU_ResetMessageColors},
 
   MI_END
@@ -3402,7 +3402,7 @@ static void M_DrawStatusHUD(void)
   {
     patch_t *patch = W_CacheLumpName(crosshair_lumps[hud_crosshair], PU_CACHE);
 
-    int x = XH_X + 80 - SHORT(patch->width) / 2;
+    int x = XH_X + 85 - SHORT(patch->width) / 2;
     int y = M_Y + M_SPC / 2 - SHORT(patch->height) / 2 - 1;
 
     V_DrawPatchTranslated(x, y, patch, colrngs[hud_crosshair_color]);
@@ -3439,21 +3439,21 @@ static const char *automap_preset_strings[] = {
 setup_menu_t auto_settings1[] =  // 1st AutoMap Settings screen       
 {
   {"Modes", S_SKIP|S_TITLE, m_null, M_X, M_Y},
-  {"Follow Player" ,        S_YESNO,  m_null, M_X, M_SPC, {"followplayer"}},
-  {"Rotate Automap",        S_YESNO,  m_null, M_X, M_SPC, {"automaprotate"}},
+  {"Follow Player" ,        S_ONOFF,  m_null, M_X, M_SPC, {"followplayer"}},
+  {"Rotate Automap",        S_ONOFF,  m_null, M_X, M_SPC, {"automaprotate"}},
   {"Overlay Automap",       S_CHOICE, m_null, M_X, M_SPC, {"automapoverlay"},
    0, NULL, str_overlay},
-  {"Coords Follow Pointer", S_YESNO,  m_null, M_X, M_SPC, {"map_point_coord"}},  // killough 10/98
+  {"Coords Follow Pointer", S_ONOFF,  m_null, M_X, M_SPC, {"map_point_coord"}},  // killough 10/98
 
   {"", S_SKIP, m_null, M_X, M_SPC},
 
   {"Miscellaneous", S_SKIP|S_TITLE, m_null, M_X, M_SPC},
   {"Color Preset", S_CHOICE|S_COSMETIC, m_null, M_X, M_SPC,
    {"mapcolor_preset"}, 0, AM_ColorPreset, str_automap_preset},
-  {"Smooth automap lines", S_YESNO, m_null, M_X, M_SPC,
+  {"Smooth automap lines", S_ONOFF, m_null, M_X, M_SPC,
    {"map_smooth_lines"}, 0, AM_EnableSmoothLines},
-  {"Show Found Secrets Only", S_YESNO, m_null, M_X, M_SPC, {"map_secret_after"}},
-  {"Flashing Keyed Doors" , S_YESNO, m_null, M_X, M_SPC, {"map_keyed_door_flash"}},
+  {"Show Found Secrets Only", S_ONOFF, m_null, M_X, M_SPC, {"map_secret_after"}},
+  {"Flashing Keyed Doors" , S_ONOFF, m_null, M_X, M_SPC, {"map_keyed_door_flash"}},
 
   MI_RESET,
 
@@ -3533,19 +3533,19 @@ setup_menu_t enem_settings1[] =  // Enemy Settings screen
   {"Cosmetic", S_SKIP|S_TITLE, m_null, M_X, M_SPC},
 
   // [FG] colored blood and gibs
-  {"Colored Blood", S_YESNO|S_STRICT, m_null, M_X, M_SPC,
+  {"Colored Blood", S_ONOFF|S_STRICT, m_null, M_X, M_SPC,
    {"colored_blood"}, 0, D_SetBloodColor},
 
   // [crispy] randomly flip corpse, blood and death animation sprites
-  {"Randomly Mirrored Corpses", S_YESNO|S_STRICT, m_null, M_X, M_SPC,
+  {"Randomly Mirrored Corpses", S_ONOFF|S_STRICT, m_null, M_X, M_SPC,
    {"flipcorpses"}},
 
   // [crispy] resurrected pools of gore ("ghost monsters") are translucent
-  {"Translucent Ghost Monsters", S_YESNO|S_STRICT|S_VANILLA, m_null, M_X, M_SPC,
+  {"Translucent Ghost Monsters", S_ONOFF|S_STRICT|S_VANILLA, m_null, M_X, M_SPC,
    {"ghost_monsters"}},
 
   // [FG] spectre drawing mode
-  {"Blocky Spectre Drawing", S_YESNO, m_null, M_X, M_SPC,
+  {"Blocky Spectre Drawing", S_ONOFF, m_null, M_X, M_SPC,
    {"fuzzcolumn_mode"}, 0, R_SetFuzzColumnMode},
 
   MI_RESET,
@@ -3621,30 +3621,30 @@ setup_menu_t comp_settings1[] =  // Compatibility Settings screen #1
   {"Default Compatibility Level", S_CHOICE|S_LEVWARN, m_null, M_X, M_SPC,
    {"default_complevel"}, 0, NULL, str_default_complevel},
 
-  {"Strict Mode", S_YESNO|S_LEVWARN, m_null, M_X, M_SPC, {"strictmode"}},
+  {"Strict Mode", S_ONOFF|S_LEVWARN, m_null, M_X, M_SPC, {"strictmode"}},
 
   {"", S_SKIP, m_null, M_X, M_SPC},
 
   {"Compatibility-breaking Features", S_SKIP|S_TITLE, m_null, M_X, M_SPC},
 
-  {"Direct Vertical Aiming", S_YESNO|S_STRICT, m_null, M_X, M_SPC,
+  {"Direct Vertical Aiming", S_ONOFF|S_STRICT, m_null, M_X, M_SPC,
    {"direct_vertical_aiming"}},
 
-  {"Auto Strafe 50", S_YESNO|S_STRICT, m_null, M_X, M_SPC,
+  {"Auto Strafe 50", S_ONOFF|S_STRICT, m_null, M_X, M_SPC,
    {"autostrafe50"}, 0, G_UpdateSideMove},
 
-  {"Pistol Start", S_YESNO|S_STRICT, m_null, M_X, M_SPC,
+  {"Pistol Start", S_ONOFF|S_STRICT, m_null, M_X, M_SPC,
    {"pistolstart"}},
 
   {"", S_SKIP, m_null, M_X, M_SPC},
 
-  {"Improved Hit Detection", S_YESNO|S_STRICT|S_BOOM, m_null, M_X,
+  {"Improved Hit Detection", S_ONOFF|S_STRICT|S_BOOM, m_null, M_X,
    M_SPC, {"blockmapfix"}},
 
-  {"Walk Under Solid Hanging Bodies", S_YESNO|S_STRICT, m_null, M_X,
+  {"Walk Under Solid Hanging Bodies", S_ONOFF|S_STRICT, m_null, M_X,
    M_SPC, {"hangsolid"}},
 
-  {"Emulate INTERCEPTS overflow", S_YESNO|S_VANILLA, m_null, M_X,
+  {"Emulate INTERCEPTS overflow", S_ONOFF|S_VANILLA, m_null, M_X,
    M_SPC, {"emu_intercepts"}},
 
 
@@ -3927,7 +3927,7 @@ setup_menu_t gen_settings1[] = { // General Settings screen1
   {"Resolution Scale", S_THERMO|S_THRM_SIZE11|S_ACTION, m_null, M_X_THRM11, M_Y,
    {"resolution_scale"}, 0, M_ResetVideoHeight, str_resolution_scale},
 
-  {"Dynamic Resolution", S_YESNO, m_null, M_X, M_THRM_SPC,
+  {"Dynamic Resolution", S_ONOFF, m_null, M_X, M_THRM_SPC,
    {"dynamic_resolution"}, 0, M_ResetVideoHeight},
 
   {"Widescreen", S_CHOICE, m_null, M_X, M_SPC,
@@ -3937,21 +3937,21 @@ setup_menu_t gen_settings1[] = { // General Settings screen1
 
   {"", S_SKIP, m_null, M_X, M_THRM_SPC},
 
-  {"Fullscreen", S_YESNO, m_null, M_X, M_SPC,
+  {"Fullscreen", S_ONOFF, m_null, M_X, M_SPC,
    {"fullscreen"}, 0, M_ToggleFullScreen},
 
-  {"Exclusive Fullscreen", S_YESNO, m_null, M_X, M_SPC,
+  {"Exclusive Fullscreen", S_ONOFF, m_null, M_X, M_SPC,
    {"exclusive_fullscreen"}, 0, M_ToggleExclusiveFullScreen},
 
   {"", S_SKIP, m_null, M_X, M_SPC},
 
-  {"Uncapped Framerate", S_YESNO, m_null, M_X, M_SPC,
+  {"Uncapped Framerate", S_ONOFF, m_null, M_X, M_SPC,
    {"uncapped"}, 0, M_ToggleUncapped},
 
   {"Framerate Limit", S_NUM, m_null, M_X, M_SPC,
    {"fpslimit"}, 0, M_CoerceFPSLimit},
 
-  {"VSync", S_YESNO, m_null, M_X, M_SPC, {"use_vsync"}, 0, I_ToggleVsync},
+  {"VSync", S_ONOFF, m_null, M_X, M_SPC, {"use_vsync"}, 0, I_ToggleVsync},
 
   {"", S_SKIP, m_null, M_X, M_SPC},
 
@@ -3976,12 +3976,12 @@ setup_menu_t gen_settings2[] = { // General Settings screen2
   {"Sound Module", S_CHOICE, m_null, M_X, M_SPC,
    {"snd_module"}, 0, M_SetSoundModule, str_sound_module},
 
-  {"Headphones Mode", S_YESNO, m_null, M_X, M_SPC, {"snd_hrtf"}, 0, M_SetSoundModule},
+  {"Headphones Mode", S_ONOFF, m_null, M_X, M_SPC, {"snd_hrtf"}, 0, M_SetSoundModule},
 
-  {"Pitch-Shifted Sounds", S_YESNO, m_null, M_X, M_SPC, {"pitched_sounds"}},
+  {"Pitch-Shifted Sounds", S_ONOFF, m_null, M_X, M_SPC, {"pitched_sounds"}},
 
   // [FG] play sounds in full length
-  {"Disable Sound Cutoffs", S_YESNO, m_null, M_X, M_SPC, {"full_sounds"}},
+  {"Disable Sound Cutoffs", S_ONOFF, m_null, M_X, M_SPC, {"full_sounds"}},
 
   {"", S_SKIP, m_null, M_X, M_SPC},
 
@@ -4090,13 +4090,13 @@ void M_DisableVoxelsRenderingItem(void)
 setup_menu_t gen_settings3[] = {
 
   // [FG] double click to "use"
-  {"Double-Click to \"Use\"", S_YESNO, m_null, CNTR_X, M_Y, {"dclick_use"}},
+  {"Double-Click to \"Use\"", S_ONOFF, m_null, CNTR_X, M_Y, {"dclick_use"}},
 
-  {"Free Look", S_YESNO, m_null, CNTR_X, M_SPC,
+  {"Free Look", S_ONOFF, m_null, CNTR_X, M_SPC,
    {"mouselook"}, 0, M_UpdateFreeLook},
 
   // [FG] invert vertical axis
-  {"Invert Look", S_YESNO, m_null, CNTR_X, M_SPC,
+  {"Invert Look", S_ONOFF, m_null, CNTR_X, M_SPC,
    {"mouse_y_invert"}},
 
   {"", S_SKIP, m_null, CNTR_X, M_SPC},
@@ -4126,10 +4126,10 @@ setup_menu_t gen_settings4[] = {
   {"Stick Layout", S_CHOICE, m_scrn, CNTR_X, M_Y,
    {"joy_layout"}, 0, I_ResetController, str_layout},
 
-  {"Free Look", S_YESNO, m_null, CNTR_X, M_SPC,
+  {"Free Look", S_ONOFF, m_null, CNTR_X, M_SPC,
    {"padlook"}, 0, M_UpdateFreeLook},
 
-  {"Invert Look", S_YESNO, m_scrn, CNTR_X, M_SPC, {"joy_invert_look"}},
+  {"Invert Look", S_ONOFF, m_scrn, CNTR_X, M_SPC, {"joy_invert_look"}},
 
   {"", S_SKIP, m_null, CNTR_X, M_SPC},
 
@@ -4150,10 +4150,10 @@ setup_menu_t gen_settings4[] = {
   {"Camera Curve", S_THERMO, m_scrn, CNTR_X, M_THRM_SPC,
    {"joy_response_curve_camera"}, 0, I_ResetController, str_curve},
 
-  {"Movement Deadzone", S_THERMO, m_scrn, CNTR_X, M_THRM_SPC,
+  {"Movement Deadzone", S_THERMO|S_PCT, m_scrn, CNTR_X, M_THRM_SPC,
    {"joy_deadzone_movement"}, 0, I_ResetController},
 
-  {"Camera Deadzone", S_THERMO, m_scrn, CNTR_X, M_THRM_SPC,
+  {"Camera Deadzone", S_THERMO|S_PCT, m_scrn, CNTR_X, M_THRM_SPC,
    {"joy_deadzone_camera"}, 0, I_ResetController},
 
   MI_END
@@ -4161,29 +4161,29 @@ setup_menu_t gen_settings4[] = {
 
 setup_menu_t gen_settings5[] = {
 
-  {"Smooth Pixel Scaling", S_YESNO, m_null, M_X, M_Y,
+  {"Smooth Pixel Scaling", S_ONOFF, m_null, M_X, M_Y,
    {"smooth_scaling"}, 0, M_ResetScreen},
 
-  {"Sprite Translucency", S_YESNO|S_STRICT, m_null, M_X, M_SPC, {"translucency"}},
+  {"Sprite Translucency", S_ONOFF|S_STRICT, m_null, M_X, M_SPC, {"translucency"}},
 
-  {"Translucency", S_THERMO|S_ACTION|S_PCT, m_null, M_X_THRM8, M_SPC,
+  {"Translucency Filter", S_NUM|S_ACTION|S_PCT, m_null, M_X, M_SPC,
    {"tran_filter_pct"}, 0, M_Trans},
 
-  {"", S_SKIP, m_null, M_X, M_THRM_SPC},
+  {"", S_SKIP, m_null, M_X, M_SPC},
 
-  {"Voxels", S_YESNO|S_STRICT, m_null, M_X, M_SPC, {"voxels_rendering"}},
+  {"Voxels", S_ONOFF|S_STRICT, m_null, M_X, M_SPC, {"voxels_rendering"}},
 
-  {"Brightmaps", S_YESNO|S_STRICT, m_null, M_X, M_SPC, {"brightmaps"}},
+  {"Brightmaps", S_ONOFF|S_STRICT, m_null, M_X, M_SPC, {"brightmaps"}},
 
-  {"Stretch Short Skies", S_YESNO, m_null, M_X, M_SPC,
+  {"Stretch Short Skies", S_ONOFF, m_null, M_X, M_SPC,
    {"stretchsky"}, 0, R_InitSkyMap},
 
-  {"Linear Sky Scrolling", S_YESNO, m_null, M_X, M_SPC,
+  {"Linear Sky Scrolling", S_ONOFF, m_null, M_X, M_SPC,
    {"linearsky"}, 0, R_InitPlanes},
 
-  {"Swirling Flats", S_YESNO, m_null, M_X, M_SPC, {"r_swirl"}},
+  {"Swirling Flats", S_ONOFF, m_null, M_X, M_SPC, {"r_swirl"}},
 
-  {"Smooth Diminishing Lighting", S_YESNO, m_null, M_X, M_SPC,
+  {"Smooth Diminishing Lighting", S_ONOFF, m_null, M_X, M_SPC,
    {"smoothlight"}, 0, M_SmoothLight},
 
   {"", S_SKIP, m_null, M_X, M_SPC},
@@ -4201,20 +4201,20 @@ setup_menu_t gen_settings6[] = {
 
   {"Quality of life", S_SKIP|S_TITLE, m_null, M_X, M_Y},
 
-  {"Screen melt", S_YESNO|S_STRICT, m_null, M_X, M_SPC, {"screen_melt"}},
+  {"Screen melt", S_ONOFF|S_STRICT, m_null, M_X, M_SPC, {"screen_melt"}},
 
   {"On death action", S_CHOICE, m_null, M_X, M_SPC,
    {"death_use_action"}, 0, NULL, str_death_use_action},
 
-  {"Demo progress bar", S_YESNO, m_null, M_X, M_SPC, {"demobar"}},
+  {"Demo progress bar", S_ONOFF, m_null, M_X, M_SPC, {"demobar"}},
 
-  {"Screen flashes", S_YESNO|S_STRICT, m_null, M_X, M_SPC,
+  {"Screen flashes", S_ONOFF|S_STRICT, m_null, M_X, M_SPC,
    {"palette_changes"}},
 
   {"Level Brightness", S_THERMO|S_THRM_SIZE4|S_STRICT, m_null, M_X_THRM4, M_SPC,
    {"extra_level_brightness"}},
 
-  {"Organize save files", S_YESNO|S_PRGWARN, m_null, M_X, M_THRM_SPC,
+  {"Organize save files", S_ONOFF|S_PRGWARN, m_null, M_X, M_THRM_SPC,
    {"organize_savefiles"}},
 
   {"", S_SKIP, m_null, M_X, M_SPC},

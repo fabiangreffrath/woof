@@ -1326,7 +1326,7 @@ const char *crosshair_lumps[HU_CROSSHAIRS] =
 
 const char *crosshair_strings[HU_CROSSHAIRS] =
 {
-  "None",
+  "Off",
   "Cross", "Angle", "Dot", "Big Cross",
   "Circle", "Big Circle", "Chevron", "Chevrons",
   "Arcs"
