@@ -427,14 +427,14 @@ static int CalcControllerSideStrafe(int speed)
   return BETWEEN(-sidemove[speed], sidemove[speed], side);
 }
 
-static double CalcControllerAngle(int speed)
+static double CalcControllerAngle(void)
 {
-  return (angleturn[speed] * axes[AXIS_TURN] * direction[joy_invert_turn]);
+  return (angleturn[1] * axes[AXIS_TURN] * direction[joy_invert_turn]);
 }
 
-static double CalcControllerPitch(int speed)
+static double CalcControllerPitch(void)
 {
-  const double pitch = angleturn[speed] * axes[AXIS_LOOK];
+  const double pitch = angleturn[1] * axes[AXIS_LOOK];
   return (pitch * FRACUNIT * direction[joy_invert_look]);
 }
 
@@ -531,14 +531,12 @@ void G_PrepTiccmd(void)
 
   if (I_UseController())
   {
-    const int speed = autorun ^ M_InputGameActive(input_speed);
-
     I_CalcControllerAxes();
     D_UpdateDeltaTics();
 
     if (axes[AXIS_TURN] && !strafe)
     {
-      localview.rawangle -= CalcControllerAngle(speed) * deltatics;
+      localview.rawangle -= CalcControllerAngle() * deltatics;
       cmd->angleturn = CarryAngle(localview.rawangle);
       localview.angle = cmd->angleturn << 16;
       axes[AXIS_TURN] = 0.0f;
@@ -546,7 +544,7 @@ void G_PrepTiccmd(void)
 
     if (axes[AXIS_LOOK] && padlook)
     {
-      localview.rawpitch -= CalcControllerPitch(speed) * deltatics;
+      localview.rawpitch -= CalcControllerPitch() * deltatics;
       cmd->pitch = CarryPitch(localview.rawpitch);
       localview.pitch = cmd->pitch;
       axes[AXIS_LOOK] = 0.0f;
