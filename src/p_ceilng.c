@@ -17,12 +17,18 @@
 //
 //-----------------------------------------------------------------------------
 
+#include "d_think.h"
 #include "doomstat.h"
-#include "r_main.h"
+#include "doomtype.h"
+#include "m_fixed.h"
+#include "p_mobj.h"
 #include "p_spec.h"
 #include "p_tick.h"
+#include "r_defs.h"
+#include "r_state.h"
 #include "s_sound.h"
 #include "sounds.h"
+#include "z_zone.h"
 
 // the list of ceilings moving currently, including crushers
 ceilinglist_t *activeceilings;

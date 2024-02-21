@@ -16,14 +16,15 @@
 //     to the IWAD type.
 //
 
+#include "SDL.h"
+
 #include <stdlib.h>
+#include <string.h>
 
-#include "SDL_filesystem.h" // [FG] SDL_GetBasePath()
-
-#include "i_system.h"
-#include "m_io.h"
 #include "d_iwad.h"
+#include "i_system.h"
 #include "m_argv.h"
+#include "m_io.h"
 #include "m_misc2.h"
 
 static const iwad_t iwads[] =

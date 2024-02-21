@@ -16,18 +16,20 @@
 // to be interrogated.
 //
 
+#include <ctype.h>
+#include <stdarg.h>
 #include <stdlib.h>
 #include <string.h>
-#include <ctype.h>
 
-#include "i_glob.h"
-#include "m_misc2.h"
-#include "m_io.h"
 #include "config.h"
+#include "doomtype.h"
+#include "i_glob.h"
+#include "m_io.h"
+#include "m_misc2.h"
 
 #if defined(_MSC_VER)
 // For Visual C++, we need to include the win_opendir module.
-#include "../win32/win_opendir.h"
+#include "win_opendir.h"
 #elif defined(HAVE_DIRENT_H)
 #include <dirent.h>
 #elif defined(__WATCOMC__)

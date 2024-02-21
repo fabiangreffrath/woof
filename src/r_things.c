@@ -18,20 +18,33 @@
 //
 //-----------------------------------------------------------------------------
 
+#include <stdlib.h>
+#include <string.h>
+
+#include "d_player.h"
+#include "doomdef.h"
 #include "doomstat.h"
+#include "hu_stuff.h" // [Alaux] Lock crosshair on target
 #include "i_printf.h"
+#include "i_system.h"
 #include "i_video.h"
+#include "info.h"
+#include "m_swap.h"
+#include "p_mobj.h"
+#include "p_pspr.h"
+#include "r_bmaps.h" // [crispy] R_BrightmapForTexName()
+#include "r_bsp.h"
+#include "r_data.h"
+#include "r_draw.h"
+#include "r_main.h"
+#include "r_segs.h"
+#include "r_state.h"
+#include "r_things.h"
+#include "r_voxel.h"
+#include "tables.h"
 #include "v_video.h"
 #include "w_wad.h"
-#include "r_main.h"
-#include "r_bsp.h"
-#include "r_segs.h"
-#include "r_draw.h"
-#include "r_things.h"
-#include "r_bmaps.h" // [crispy] R_BrightmapForTexName()
-#include "r_voxel.h"
-#include "m_swap.h"
-#include "hu_stuff.h" // [Alaux] Lock crosshair on target
+#include "z_zone.h"
 
 #define MINZ        (FRACUNIT*4)
 #define BASEYCENTER 100

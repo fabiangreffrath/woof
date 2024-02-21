@@ -20,13 +20,21 @@
 //
 //-----------------------------------------------------------------------------
 
+#include <limits.h>
+#include <stdlib.h>
+
+#include "doomdata.h"
 #include "doomstat.h"
 #include "i_printf.h"
 #include "m_bbox.h"
-#include "r_main.h"
-#include "p_maputl.h"
 #include "p_map.h"
+#include "p_maputl.h"
+#include "p_mobj.h"
 #include "p_setup.h"
+#include "r_defs.h"
+#include "r_main.h"
+#include "r_state.h"
+#include "z_zone.h"
 
 //
 // P_AproxDistance
@@ -682,7 +690,7 @@ boolean P_TraverseIntercepts(traverser_t func, fixed_t maxfrac)
   int count = intercept_p - intercepts;
   while (count--)
     {
-      fixed_t dist = D_MAXINT;
+      fixed_t dist = INT_MAX;
       intercept_t *scan;
       for (scan = intercepts; scan < intercept_p; scan++)
         if (scan->frac < dist)
@@ -691,7 +699,7 @@ boolean P_TraverseIntercepts(traverser_t func, fixed_t maxfrac)
         return true;    // checked everything in range
       if (!func(in))
         return false;           // don't bother going farther
-      in->frac = D_MAXINT;
+      in->frac = INT_MAX;
     }
   return true;                  // everything was traversed
 }

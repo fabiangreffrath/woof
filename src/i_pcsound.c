@@ -15,17 +15,21 @@
 //    PC speaker interface.
 //
 
+#include "al.h"
+#include "alext.h"
 #include "SDL.h"
 
-#include <stdio.h>
-#include <stdlib.h>
-
 #include "doomstat.h"
-#include "i_sound.h"
+#include "doomtype.h"
 #include "i_oalsound.h"
 #include "i_printf.h"
+#include "i_sound.h"
+#include "m_fixed.h"
 #include "m_misc2.h"
+#include "p_mobj.h"
+#include "sounds.h"
 #include "w_wad.h"
+#include "z_zone.h"
 
 // C doesn't allow casting between function and non-function pointer types, so
 // with C99 we need to use a union to reinterpret the pointer type. Pre-C99

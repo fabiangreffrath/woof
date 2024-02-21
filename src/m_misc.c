@@ -21,37 +21,46 @@
 //
 //-----------------------------------------------------------------------------
 
-#include "doomstat.h"
-#include "doomkeys.h"
-#include "m_argv.h"
-#include "g_game.h"
-#include "m_menu.h"
+#include <ctype.h>
+#include <errno.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
 #include "am_map.h"
-#include "w_wad.h"
-#include "i_printf.h"
-#include "i_system.h"
-#include "i_sound.h"
-#include "i_video.h"
-#include "v_video.h"
+#include "config.h"
+#include "d_main.h"
+#include "doomkeys.h"
+#include "doomstat.h"
+#include "dstrings.h"
+#include "g_game.h"
+#include "hu_lib.h" // HU_MAXMESSAGES
 #include "hu_obituary.h"
 #include "hu_stuff.h"
-#include "st_stuff.h"
-#include "dstrings.h"
+#include "i_gamepad.h"
+#include "i_printf.h"
+#include "i_sound.h"
+#include "i_system.h"
+#include "i_video.h"
+#include "m_argv.h"
+#include "m_array.h"
+#include "m_io.h"
+#include "m_menu.h"
 #include "m_misc.h"
 #include "m_misc2.h"
+#include "net_client.h" // net_player_name
+#include "p_mobj.h"
+#include "p_pspr.h"
+#include "r_draw.h" // [FG] fuzzcolumn_mode
+#include "r_main.h"
+#include "r_sky.h" // [FG] stretchsky
+#include "r_voxel.h"
 #include "s_sound.h"
 #include "sounds.h"
-#include "d_main.h"
-#include "r_draw.h" // [FG] fuzzcolumn_mode
-#include "r_sky.h" // [FG] stretchsky
-#include "hu_lib.h" // HU_MAXMESSAGES
-#include "net_client.h" // net_player_name
-#include "i_gamepad.h"
-#include "m_array.h"
-#include "r_voxel.h"
-
-#include "m_io.h"
-#include <errno.h>
+#include "st_stuff.h"
+#include "v_video.h"
+#include "w_wad.h"
+#include "z_zone.h"
 
 //
 // DEFAULTS

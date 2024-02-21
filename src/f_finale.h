@@ -22,14 +22,15 @@
 #define __F_FINALE__
 
 #include "doomtype.h"
-#include "d_event.h"
+
+struct event_s;
 
 //
 // FINALE
 //
 
 // Called by main loop.
-boolean F_Responder (event_t* ev);
+boolean F_Responder(struct event_s *ev);
 
 // Called by main loop.
 void F_Ticker (void);

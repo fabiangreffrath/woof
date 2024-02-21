@@ -17,22 +17,35 @@
 //
 //-----------------------------------------------------------------------------
 
-#include "doomstat.h"
-#include "st_stuff.h"
-#include "r_main.h"
-#include "r_things.h"
-#include "p_setup.h"
-#include "p_maputl.h"
-#include "w_wad.h"
-#include "i_video.h"
-#include "v_video.h"
-#include "p_spec.h"
+#include <limits.h>
+#include <string.h>
+
 #include "am_map.h"
-#include "d_deh.h"    // Ty 03/27/98 - externalizations
+#include "d_deh.h"
+#include "d_event.h"
+#include "d_player.h"
+#include "doomdata.h"
+#include "doomdef.h"
+#include "doomstat.h"
+#include "hu_stuff.h"
+#include "i_video.h"
 #include "m_input.h"
 #include "m_menu.h"
-#include "hu_stuff.h"
+#include "m_misc2.h"
+#include "p_maputl.h"
+#include "p_mobj.h"
+#include "p_setup.h"
+#include "p_spec.h"
+#include "r_defs.h"
+#include "r_main.h"
+#include "r_state.h"
+#include "r_things.h"
+#include "st_stuff.h"
+#include "tables.h"
 #include "v_flextran.h"
+#include "v_video.h"
+#include "w_wad.h"
+#include "z_zone.h"
 
 //jff 1/7/98 default automap colors added
 int mapcolor_back;    // map background
@@ -384,8 +397,8 @@ static void AM_findMinMaxBoundaries(void)
   fixed_t a;
   fixed_t b;
 
-  min_x = min_y =  D_MAXINT;
-  max_x = max_y = -D_MAXINT;
+  min_x = min_y =  INT_MAX;
+  max_x = max_y = -INT_MAX;
 
   for (i=0;i<numvertexes;i++)
   {
@@ -530,7 +543,7 @@ static void AM_loadPics(void)
 
   for (i=0;i<10;i++)
   {
-    sprintf(namebuf, "AMMNUM%d", i);
+    M_snprintf(namebuf, sizeof(namebuf), "AMMNUM%d", i);
     marknums[i] = W_CacheLumpName(namebuf, PU_STATIC);
   }
 }

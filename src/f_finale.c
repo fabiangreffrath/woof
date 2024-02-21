@@ -18,17 +18,27 @@
 //-----------------------------------------------------------------------------
 
 
-#include "doomstat.h"
+#include <ctype.h>
+#include <stdlib.h>
+#include <string.h>
+
+#include "d_deh.h" // Ty 03/22/98 - externalizations
 #include "d_event.h"
-#include "v_video.h"
-#include "w_wad.h"
-#include "s_sound.h"
-#include "sounds.h"
-#include "dstrings.h"
-#include "d_deh.h"  // Ty 03/22/98 - externalizations
+#include "doomdef.h"
+#include "doomstat.h"
+#include "doomtype.h"
+#include "hu_lib.h"
+#include "info.h"
 #include "m_misc2.h" // [FG] M_StringDuplicate()
 #include "m_swap.h"
-#include "r_draw.h"
+#include "r_defs.h"
+#include "r_state.h"
+#include "s_sound.h"
+#include "sounds.h"
+#include "u_mapinfo.h"
+#include "v_video.h"
+#include "w_wad.h"
+#include "z_zone.h"
 
 // Stage of animation:
 //  0 = text, 1 = art screen, 2 = character cast
@@ -342,8 +352,6 @@ void F_Ticker(void)
 // the Get_TextSpeed function so that the speed of writing the      //   ^
 // text can be increased, and there's still time to read what's     //   |
 // written.                                                         // phares
-
-#include "hu_stuff.h"
 
 // [FG] add line breaks for lines exceeding screenwidth
 static inline boolean F_AddLineBreak (char *c)
@@ -765,7 +773,7 @@ void F_BunnyScroll (void)
     laststage = stage;
   }
       
-  sprintf (name,"END%i",stage);
+  M_snprintf(name, sizeof(name), "END%i", stage);
   V_DrawPatch ((SCREENWIDTH-13*8)/2,
                (SCREENHEIGHT-8*8)/2,
                W_CacheLumpName (name,PU_CACHE));

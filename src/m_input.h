@@ -18,7 +18,8 @@
 #define __M_INPUT__
 
 #include "doomtype.h"
-#include "d_event.h"
+
+struct event_s;
 
 #define NUM_INPUTS 4
 
@@ -156,7 +157,7 @@ boolean M_InputAddKey(int id, int value);
 boolean M_InputAddMouseB(int id, int value);
 boolean M_InputAddJoyB(int id, int value);
 
-void    M_InputTrackEvent(event_t *ev);
+void    M_InputTrackEvent(struct event_s *ev);
 boolean M_InputActivated(int id);
 boolean M_InputDeactivated(int id);
 boolean M_InputAddActivated(int id);

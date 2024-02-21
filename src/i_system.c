@@ -16,19 +16,23 @@
 //
 //-----------------------------------------------------------------------------
 
+#include "SDL.h"
+
 #ifdef _WIN32
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
 #endif
 
-#include <stdio.h>
+#include <stdarg.h>
+#include <stdlib.h>
+#include <string.h>
 
-#include "SDL.h"
-
+#include "config.h"
+#include "d_ticcmd.h"
 #include "i_printf.h"
 #include "i_system.h"
-#include "m_misc2.h"
 #include "m_argv.h"
+#include "m_misc2.h"
 
 ticcmd_t *I_BaseTiccmd(void)
 {

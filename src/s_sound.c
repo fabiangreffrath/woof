@@ -20,17 +20,22 @@
 // killough 3/7/98: modified to allow arbitrary listeners in spy mode
 // killough 5/2/98: reindented, removed useless code, beautified
 
-#include <stdlib.h> // [FG] qsort()
+#include <string.h>
 
+#include "doomdef.h"
 #include "doomstat.h"
 #include "i_printf.h"
-#include "s_sound.h"
-#include "s_musinfo.h" // [crispy] struct musinfo
 #include "i_sound.h"
-#include "r_main.h"
-#include "m_random.h"
+#include "i_system.h"
 #include "m_misc2.h"
+#include "m_random.h"
+#include "p_mobj.h"
+#include "s_musinfo.h" // [crispy] struct musinfo
+#include "s_sound.h"
+#include "sounds.h"
+#include "u_mapinfo.h"
 #include "w_wad.h"
+#include "z_zone.h"
 
 //jff end sound enabling variables readable here
 
@@ -511,7 +516,7 @@ void S_ChangeMusic(int musicnum, int looping)
    if(!music->lumpnum)
    {
       char namebuf[9];
-      sprintf(namebuf, "d_%s", music->name);
+      M_snprintf(namebuf, sizeof(namebuf), "d_%s", music->name);
       music->lumpnum = W_GetNumForName(namebuf);
    }
    
@@ -716,7 +721,7 @@ static void InitE4Music (void)
     musicinfo_t *music = &S_music[i];
     char namebuf[9];
 
-    sprintf(namebuf, "d_%s", music->name);
+    M_snprintf(namebuf, sizeof(namebuf), "d_%s", music->name);
 
     if (W_CheckNumForName(namebuf) == -1)
     {

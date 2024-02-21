@@ -16,15 +16,23 @@
 //      System interface for OpenAL sound.
 //
 
-#include <stdio.h>
-#include <stdlib.h>
+#include "al.h"
+#include "alc.h"
+#include "alext.h"
+#include "efx.h"
 
-#include "doomstat.h"
-#include "i_printf.h"
+#include <math.h>
+#include <stdlib.h>
+#include <string.h>
+
 #include "i_oalsound.h"
+#include "i_printf.h"
 #include "i_sndfile.h"
-#include "r_data.h"
+#include "i_sound.h"
+#include "m_fixed.h"
+#include "sounds.h"
 #include "w_wad.h"
+#include "z_zone.h"
 
 #define OAL_ROLLOFF_FACTOR 1
 #define OAL_SPEED_OF_SOUND 343.3f

@@ -20,6 +20,7 @@
 #ifndef __R_THINGS__
 #define __R_THINGS__
 
+#include "doomtype.h"
 #include "m_fixed.h"
 #include "r_defs.h"
 

@@ -16,52 +16,72 @@
 //
 //-----------------------------------------------------------------------------
 
-#include <time.h>
-#include <stdarg.h>
 #include <errno.h>
+#include <math.h>
+#include <stdarg.h>
+#include <stddef.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <time.h>
 
-#include "m_io.h" // haleyjd
-
-#include "doomstat.h"
-#include "i_printf.h"
-#include "doomkeys.h"
-#include "f_finale.h"
-#include "m_argv.h"
-#include "m_misc.h"
-#include "m_menu.h"
-#include "m_random.h"
-#include "p_setup.h"
-#include "p_saveg.h"
-#include "p_tick.h"
-#include "d_main.h"
-#include "wi_stuff.h"
-#include "hu_stuff.h"
-#include "st_stuff.h"
 #include "am_map.h"
-#include "w_wad.h"
-#include "r_main.h"
-#include "r_draw.h"
-#include "p_map.h"
-#include "s_sound.h"
-#include "s_musinfo.h"
-#include "dstrings.h"
-#include "sounds.h"
-#include "r_data.h"
-#include "r_sky.h"
-#include "d_deh.h"              // Ty 3/27/98 deh declarations
-#include "p_inter.h"
+#include "config.h"
+#include "d_deh.h" // Ty 3/27/98 deh declarations
+#include "d_event.h"
+#include "d_main.h"
+#include "d_player.h"
+#include "d_ticcmd.h"
+#include "doomdata.h"
+#include "doomkeys.h"
+#include "doomstat.h"
+#include "f_finale.h"
 #include "g_game.h"
-#include "statdump.h" // [FG] StatCopy()
-#include "m_misc2.h"
-#include "u_mapinfo.h"
+#include "hu_obituary.h"
+#include "hu_stuff.h"
+#include "i_gamepad.h"
+#include "i_input.h"
+#include "i_printf.h"
+#include "i_system.h"
+#include "i_timer.h"
+#include "i_video.h"
+#include "info.h"
+#include "m_argv.h"
+#include "m_array.h"
 #include "m_input.h"
-#include "memio.h"
+#include "m_io.h"
+#include "m_menu.h"
+#include "m_misc.h"
+#include "m_misc2.h"
+#include "m_random.h"
 #include "m_snapshot.h"
 #include "m_swap.h" // [FG] LONG
-#include "i_input.h"
-#include "i_gamepad.h"
-#include "i_video.h"
-#include "m_array.h"
+#include "memio.h"
+#include "net_defs.h"
+#include "p_inter.h"
+#include "p_map.h"
+#include "p_mobj.h"
+#include "p_pspr.h"
+#include "p_saveg.h"
+#include "p_setup.h"
+#include "p_tick.h"
+#include "r_data.h"
+#include "r_defs.h"
+#include "r_draw.h"
+#include "r_main.h"
+#include "r_sky.h"
+#include "r_state.h"
+#include "s_musinfo.h"
+#include "s_sound.h"
+#include "sounds.h"
+#include "st_stuff.h"
+#include "statdump.h" // [FG] StatCopy()
+#include "tables.h"
+#include "u_mapinfo.h"
+#include "version.h"
+#include "w_wad.h"
+#include "wi_stuff.h"
+#include "z_zone.h"
 
 #define SAVEGAMESIZE  0x20000
 #define SAVESTRINGSIZE  24
@@ -407,14 +427,14 @@ static int CalcControllerSideStrafe(int speed)
   return BETWEEN(-sidemove[speed], sidemove[speed], side);
 }
 
-static double CalcControllerAngle(int speed)
+static double CalcControllerAngle(void)
 {
-  return (angleturn[speed] * axes[AXIS_TURN] * direction[joy_invert_turn]);
+  return (angleturn[1] * axes[AXIS_TURN] * direction[joy_invert_turn]);
 }
 
-static double CalcControllerPitch(int speed)
+static double CalcControllerPitch(void)
 {
-  const double pitch = angleturn[speed] * axes[AXIS_LOOK];
+  const double pitch = angleturn[1] * axes[AXIS_LOOK];
   return (pitch * FRACUNIT * direction[joy_invert_look]);
 }
 
@@ -511,14 +531,12 @@ void G_PrepTiccmd(void)
 
   if (I_UseController())
   {
-    const int speed = autorun ^ M_InputGameActive(input_speed);
-
     I_CalcControllerAxes();
     D_UpdateDeltaTics();
 
     if (axes[AXIS_TURN] && !strafe)
     {
-      localview.rawangle -= CalcControllerAngle(speed) * deltatics;
+      localview.rawangle -= CalcControllerAngle() * deltatics;
       cmd->angleturn = CarryAngle(localview.rawangle);
       localview.angle = cmd->angleturn << 16;
       axes[AXIS_TURN] = 0.0f;
@@ -526,7 +544,7 @@ void G_PrepTiccmd(void)
 
     if (axes[AXIS_LOOK] && padlook)
     {
-      localview.rawpitch -= CalcControllerPitch(speed) * deltatics;
+      localview.rawpitch -= CalcControllerPitch() * deltatics;
       cmd->pitch = CarryPitch(localview.rawpitch);
       localview.pitch = cmd->pitch;
       axes[AXIS_LOOK] = 0.0f;

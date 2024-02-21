@@ -17,10 +17,14 @@
 //
 //-----------------------------------------------------------------------------
 
-#include "i_video.h"
-#include "v_video.h"
-#include "m_random.h"
+#include <string.h>
+
+#include "doomtype.h"
 #include "f_wipe.h"
+#include "i_video.h"
+#include "m_random.h"
+#include "v_video.h"
+#include "z_zone.h"
 
 // Even in hires mode, we simulate what happens on a 320x200 screen; ie.
 // the screen is vertically sliced into 160 columns that fall to the bottom

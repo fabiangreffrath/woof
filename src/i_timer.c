@@ -19,10 +19,10 @@
 
 #include "SDL.h"
 
-#include "i_timer.h"
+#include "doomdef.h"
+#include "doomtype.h"
+#include "i_system.h"
 #include "m_fixed.h"
-#include "doomstat.h"
-#include "m_argv.h"
 
 static uint64_t basecounter = 0;
 static uint64_t basefreq = 0;

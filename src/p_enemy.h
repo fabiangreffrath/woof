@@ -22,9 +22,9 @@
 #ifndef __P_ENEMY__
 #define __P_ENEMY__
 
-#include "p_mobj.h"
+struct mobj_s;
 
-void P_NoiseAlert (mobj_t *target, mobj_t *emmiter);
+void P_NoiseAlert(struct mobj_s *target, struct mobj_s *emmiter);
 void P_SpawnBrainTargets(void); // killough 3/26/98: spawn icon landings
 
 extern struct brain_s {         // killough 3/26/98: global state of boss brain

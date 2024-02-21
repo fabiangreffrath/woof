@@ -18,22 +18,33 @@
 //
 //-----------------------------------------------------------------------------
 
+#include <stdlib.h>
+
+#include "d_player.h"
+#include "doomdata.h"
+#include "doomdef.h"
 #include "doomstat.h"
+#include "hu_obituary.h"
 #include "i_printf.h"
-#include "r_main.h"
-#include "p_mobj.h"
-#include "p_maputl.h"
+#include "i_system.h"
+#include "info.h"
+#include "m_argv.h"
+#include "m_bbox.h"
+#include "m_misc2.h"
+#include "m_random.h"
+#include "p_inter.h"
 #include "p_map.h"
+#include "p_maputl.h"
+#include "p_mobj.h"
 #include "p_setup.h"
 #include "p_spec.h"
+#include "r_defs.h"
+#include "r_main.h"
+#include "r_state.h"
 #include "s_sound.h"
 #include "sounds.h"
-#include "p_inter.h"
-#include "m_random.h"
-#include "m_bbox.h"
 #include "v_video.h"
-#include "m_argv.h"
-#include "m_misc2.h"
+#include "z_zone.h"
 
 static mobj_t    *tmthing;
 static int       tmflags;

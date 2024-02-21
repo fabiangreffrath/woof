@@ -17,15 +17,24 @@
 //
 //-----------------------------------------------------------------------------
 
+#include "d_player.h"
+#include "doomdata.h"
+#include "doomdef.h"
 #include "doomstat.h"
-#include "i_printf.h"
-#include "w_wad.h"
-#include "r_main.h"
-#include "p_spec.h"
+#include "doomtype.h"
 #include "g_game.h"
+#include "i_printf.h"
+#include "i_system.h"
+#include "m_swap.h"
+#include "p_mobj.h"
+#include "p_spec.h"
+#include "r_data.h"
+#include "r_defs.h"
+#include "r_state.h"
 #include "s_sound.h"
 #include "sounds.h"
-#include "m_swap.h"
+#include "w_wad.h"
+#include "z_zone.h"
 
 // killough 2/8/98: Remove switch limit
 

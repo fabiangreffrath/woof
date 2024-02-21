@@ -19,6 +19,8 @@
 
 #include "SDL.h"
 
+#include "doomtype.h"
+
 boolean I_UseController(void);
 void I_InitController(void);
 void I_OpenController(int which);

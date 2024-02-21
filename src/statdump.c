@@ -20,16 +20,15 @@
  */
 
 #include <stdio.h>
-#include <stdlib.h>
 #include <string.h>
 
+#include "statdump.h"
+
+#include "d_player.h"
 #include "doomdef.h"
 #include "i_printf.h"
-#include "d_player.h"
 #include "m_argv.h"
 #include "m_io.h"
-
-#include "statdump.h"
 
 /* Par times for E1M1-E1M9. */
 static const int doom1_par_times[] =

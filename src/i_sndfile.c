@@ -16,16 +16,21 @@
 // DESCRIPTION:
 //      Load sound lumps with libsndfile.
 
-#include "i_sndfile.h"
-#include "i_printf.h"
-
+#include "sndfile.h"
+#include "al.h"
 #include "alext.h"
-#include <sndfile.h>
+
+#include "i_sndfile.h"
+
+#include <math.h>
+#include <stdint.h>
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <math.h>
 
+#include "config.h"
 #include "i_oalstream.h"
+#include "i_printf.h"
 #include "m_swap.h"
 #include "memio.h"
 
@@ -618,7 +623,7 @@ static void I_SND_PlayStream(boolean looping)
     stream_looping = looping;
 }
 
-static uint32_t I_SND_FillStream(byte *data, uint32_t frames)
+static int I_SND_FillStream(byte *data, int frames)
 {
     sf_count_t filled = 0;
     boolean restart = false;

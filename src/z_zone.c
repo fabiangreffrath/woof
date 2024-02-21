@@ -25,7 +25,11 @@
 // statistics and tunables.
 //-----------------------------------------------------------------------------
 
+#include <stdlib.h>
+#include <string.h>
+
 #include "z_zone.h"
+
 #include "i_system.h"
 
 // Minimum chunk size at which blocks are allocated
@@ -35,7 +39,7 @@
 #define ZONEID  0x931d4a11
 
 typedef struct memblock {
-  struct memblock *next,*prev;
+  struct memblock *next, *prev;
   size_t size;
   void **user;
   unsigned id;

@@ -15,16 +15,19 @@
 //
 //-----------------------------------------------------------------------------
 
+#include <stdlib.h>
 #include <string.h>
 
-#include "doomtype.h"
-#include "doomstat.h"
 #include "d_deh.h"
-#include "m_misc2.h"
-#include "p_mobj.h"
-#include "net_client.h"
-
+#include "d_player.h"
+#include "doomdef.h"
+#include "doomstat.h"
+#include "doomtype.h"
 #include "hu_obituary.h"
+#include "info.h"
+#include "m_misc2.h"
+#include "net_client.h"
+#include "p_mobj.h"
 
 int show_obituary_messages;
 int hudcolor_obituary;

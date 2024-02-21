@@ -17,12 +17,16 @@
 //
 //-----------------------------------------------------------------------------
 
+#include "doomdef.h"
 #include "doomstat.h"
-#include "p_user.h"
-#include "p_spec.h"
-#include "p_tick.h"
+#include "info.h"
 #include "p_map.h"
-#include "s_musinfo.h" // [crispy] T_MAPMusic()
+#include "p_mobj.h"
+#include "p_tick.h"
+#include "p_spec.h"
+#include "p_user.h"
+#include "s_musinfo.h"
+#include "z_zone.h"
 
 int leveltime;
 int oldleveltime;

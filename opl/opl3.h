@@ -29,7 +29,7 @@
 #ifndef OPL_OPL3_H
 #define OPL_OPL3_H
 
-#include <inttypes.h>
+#include <stdint.h>
 
 #define OPL_WRITEBUF_SIZE   1024
 #define OPL_WRITEBUF_DELAY  2

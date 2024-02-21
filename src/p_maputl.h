@@ -20,7 +20,12 @@
 #ifndef __P_MAPUTL__
 #define __P_MAPUTL__
 
-#include "r_defs.h"
+#include "doomtype.h"
+#include "m_fixed.h"
+#include "tables.h"
+
+struct mobj_s;
+struct line_s;
 
 // mapblocks are used to check movement against lines and things
 #define MAPBLOCKUNITS   128
@@ -44,30 +49,30 @@ typedef struct {
   fixed_t     frac;           // along trace line
   boolean     isaline;
   union {
-    mobj_t* thing;
-    line_t* line;
+    struct mobj_s* thing;
+    struct line_s* line;
   } d;
 } intercept_t;
 
 typedef boolean (*traverser_t)(intercept_t *in);
 
-fixed_t P_AproxDistance (fixed_t dx, fixed_t dy);
-int     P_PointOnLineSide (fixed_t x, fixed_t y, line_t *line);
-int     P_PointOnDivlineSide (fixed_t x, fixed_t y, divline_t *line);
-void    P_MakeDivline (line_t *li, divline_t *dl);
-fixed_t P_InterceptVector (divline_t *v2, divline_t *v1);
-int     P_BoxOnLineSide (fixed_t *tmbox, line_t *ld);
-void    P_LineOpening (line_t *linedef);
-void    P_UnsetThingPosition(mobj_t *thing);
-void    P_SetThingPosition(mobj_t *thing);
-boolean P_BlockLinesIterator (int x, int y, boolean func(line_t *));
-boolean P_BlockThingsIterator(int x, int y, boolean func(mobj_t *));
-boolean ThingIsOnLine(mobj_t *t, line_t *l);  // killough 3/15/98
+fixed_t P_AproxDistance(fixed_t dx, fixed_t dy);
+int     P_PointOnLineSide(fixed_t x, fixed_t y, struct line_s *line);
+int     P_PointOnDivlineSide(fixed_t x, fixed_t y, divline_t *line);
+void    P_MakeDivline(struct line_s *li, divline_t *dl);
+fixed_t P_InterceptVector(divline_t *v2, divline_t *v1);
+int     P_BoxOnLineSide(fixed_t *tmbox, struct line_s *ld);
+void    P_LineOpening(struct line_s *linedef);
+void    P_UnsetThingPosition(struct mobj_s *thing);
+void    P_SetThingPosition(struct mobj_s *thing);
+boolean P_BlockLinesIterator (int x, int y, boolean func(struct line_s *));
+boolean P_BlockThingsIterator(int x, int y, boolean func(struct mobj_s *));
+boolean ThingIsOnLine(struct mobj_s *t, struct line_s *l);  // killough 3/15/98
 boolean P_PathTraverse(fixed_t x1, fixed_t y1, fixed_t x2, fixed_t y2,
                        int flags, boolean trav(intercept_t *));
 
 angle_t P_PointToAngle(fixed_t xo, fixed_t yo, fixed_t x, fixed_t y);
-mobj_t *P_RoughTargetSearch(mobj_t *mo, angle_t fov, int distance);
+struct mobj_s *P_RoughTargetSearch(struct mobj_s *mo, angle_t fov, int distance);
 
 extern fixed_t opentop;
 extern fixed_t openbottom;

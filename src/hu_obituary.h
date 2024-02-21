@@ -18,6 +18,8 @@
 #ifndef __HU_OBITUARY_H__
 #define __HU_OBITUARY_H__
 
+struct mobj_s;
+
 typedef enum
 {
     MOD_None,
@@ -29,7 +31,7 @@ typedef enum
 } method_t;
 
 void HU_InitObituaries(void);
-void HU_Obituary(mobj_t *target, mobj_t *source, method_t mod);
+void HU_Obituary(struct mobj_s *target, struct mobj_s *source, method_t mod);
 
 extern int show_obituary_messages;
 extern int hudcolor_obituary;

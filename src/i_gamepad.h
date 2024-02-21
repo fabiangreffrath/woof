@@ -18,6 +18,7 @@
 #define __I_GAMEPAD__
 
 #include "doomkeys.h"
+#include "doomtype.h"
 
 extern boolean joy_enable;                  // Enable game controller.
 extern int joy_layout;                      // Analog stick layout.

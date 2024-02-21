@@ -20,9 +20,11 @@
 #ifndef __P_INTER__
 #define __P_INTER__
 
-#include "d_player.h"
-#include "p_mobj.h"
+#include "doomtype.h"
 #include "hu_obituary.h"
+
+struct player_s;
+struct mobj_s;
 
 // Ty 03/09/98 Moved to an int in p_inter.c for deh and externalization 
 #define MAXHEALTH maxhealth
@@ -30,10 +32,11 @@
 // follow a player exlusively for 3 seconds
 #define BASETHRESHOLD   (100)
 
-boolean P_GivePower(player_t *, int);
-void P_TouchSpecialThing(mobj_t *special, mobj_t *toucher);
-void P_DamageMobjBy(mobj_t *target,mobj_t *inflictor,mobj_t *source,int damage,method_t method);
-#define P_DamageMobj(a,b,c,d) P_DamageMobjBy(a,b,c,d,MOD_None)
+boolean P_GivePower(struct player_s *, int);
+void P_TouchSpecialThing(struct mobj_s *special, struct mobj_s *toucher);
+void P_DamageMobjBy(struct mobj_s *target, struct mobj_s *inflictor,
+                    struct mobj_s *source, int damage, method_t method);
+#define P_DamageMobj(a, b, c, d) P_DamageMobjBy(a, b, c, d, MOD_None)
 
 // killough 5/2/98: moved from d_deh.c, g_game.c, m_misc.c, others:
 

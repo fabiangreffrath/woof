@@ -21,19 +21,6 @@
 #ifndef __DOOMDEF__
 #define __DOOMDEF__
 
-// This must come first, since it redefines malloc(), free(), etc. -- killough:
-#include "z_zone.h"
-
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <ctype.h>
-#include <limits.h>
-
-#include "config.h"
-
-#include "version.h"
-
 // Game mode handling - identify IWAD version
 //  to handle IWAD dependend animations etc.
 typedef enum {

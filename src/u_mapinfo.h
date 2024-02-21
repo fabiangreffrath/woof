@@ -30,7 +30,7 @@ typedef struct
   int tag;
 } bossaction_t;
 
-typedef struct
+typedef struct mapentry_s
 {
   char *mapname;
   char *levelname;
@@ -52,7 +52,6 @@ typedef struct
   boolean nointermission;
   int numbossactions;
   bossaction_t *bossactions;
-
 } mapentry_t;
 
 typedef struct

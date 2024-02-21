@@ -18,6 +18,7 @@
 #ifndef NET_IO_H
 #define NET_IO_H
 
+#include "doomtype.h"
 #include "net_defs.h"
 
 extern net_addr_t net_broadcast_addr;

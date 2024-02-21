@@ -17,14 +17,15 @@
 #ifndef __I_OALSTREAM__
 #define __I_OALSTREAM__
 
-#include "doomtype.h"
 #include "al.h"
+
+#include "doomtype.h"
 
 typedef struct
 {
     boolean (*I_OpenStream)(void *data, ALsizei size, ALenum *format,
                             ALsizei *freq, ALsizei *frame_size);
-    uint32_t (*I_FillStream)(byte *data, uint32_t frames);
+    int (*I_FillStream)(byte *data, int frames);
     void (*I_PlayStream)(boolean looping);
     void (*I_CloseStream)(void);
 } stream_module_t;

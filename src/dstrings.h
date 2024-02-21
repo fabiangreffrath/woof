@@ -33,9 +33,9 @@
 // Use -DFRENCH etc.
 
 #ifdef FRENCH
-#include "d_french.h"
+  #include "d_french.h" // IWYU pragma: export
 #else
-#include "d_englsh.h"
+  #include "d_englsh.h" // IWYU pragma: export
 #endif
 
 // Note this is not externally modifiable through DEH/BEX
@@ -60,9 +60,7 @@
 // killough 1/18/98: 
 // replace hardcoded limit with extern var (silly hack, I know)
 
-#include <stddef.h>
-
-extern const size_t NUM_QUITMESSAGES;  // Calculated in dstrings.c
+extern const int NUM_QUITMESSAGES;  // Calculated in dstrings.c
 
 extern char** endmsg[];   // killough 1/18/98 const added
 

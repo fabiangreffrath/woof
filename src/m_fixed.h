@@ -20,9 +20,9 @@
 #ifndef __M_FIXED__
 #define __M_FIXED__
 
+#include <limits.h>
 #include <stdlib.h> // abs()
-#include "doomtype.h"
-#include "i_system.h"
+#include <stdint.h> // int64_t
 
 //
 // Fixed point, 32bit as 16.16.
@@ -50,7 +50,7 @@ inline static fixed_t FixedMul(fixed_t a, fixed_t b)
 inline static fixed_t FixedDiv(fixed_t a, fixed_t b)
 {
   // [FG] avoid 31-bit shift (from Chocolate Doom)
-  return (abs(a)>>14) >= abs(b) ? ((a^b) < 0 ? D_MININT : D_MAXINT) :
+  return (abs(a)>>14) >= abs(b) ? ((a^b) < 0 ? INT_MIN : INT_MAX) :
     (fixed_t)(((int64_t) a << FRACBITS) / b);
 }
 

@@ -20,18 +20,16 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "doomdef.h"
 #include "i_printf.h"
 #include "i_system.h"
-#include "i_timer.h" // I_Sleep
-#include "m_misc2.h"
-
-#include "net_common.h"
+#include "i_timer.h" 
 #include "net_defs.h"
 #include "net_io.h"
 #include "net_packet.h"
 #include "net_query.h"
-#include "net_structrw.h"
 #include "net_sdl.h"
+#include "net_structrw.h"
 
 // DNS address of the Internet master server.
 

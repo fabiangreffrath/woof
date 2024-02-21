@@ -19,12 +19,17 @@
 //-----------------------------------------------------------------------------
 
 #include <math.h>
+#include <string.h>
+
+#include "i_sound.h"
 
 #include "doomstat.h"
 #include "i_printf.h"
-#include "i_sound.h"
-#include "w_wad.h"
+#include "i_system.h"
 #include "m_array.h"
+#include "p_mobj.h"
+#include "sounds.h"
+#include "w_wad.h"
 
 int snd_module;
 

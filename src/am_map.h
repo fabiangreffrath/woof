@@ -20,8 +20,10 @@
 #ifndef __AMMAP_H__
 #define __AMMAP_H__
 
-#include "d_event.h"
+#include "doomtype.h"
 #include "m_fixed.h"
+
+struct event_s;
 
 // Used by ST StatusBar stuff.
 #define AM_MSGHEADER (('a'<<24)+('m'<<16))
@@ -29,7 +31,7 @@
 #define AM_MSGEXITED (AM_MSGHEADER | ('x'<<8))
 
 // Called by main loop.
-boolean AM_Responder (event_t* ev);
+boolean AM_Responder(struct event_s *ev);
 
 // Called by main loop.
 void AM_Ticker (void);

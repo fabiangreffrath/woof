@@ -15,22 +15,13 @@
 //     OPL SDL interface.
 //
 
-#include "config.h"
-
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <errno.h>
-#include <limits.h>
-
 #include "SDL.h"
+
+#include "doomtype.h"
 #include "i_oalmusic.h"
-
-#include "opl3.h"
-
 #include "opl.h"
+#include "opl3.h"
 #include "opl_internal.h"
-
 #include "opl_queue.h"
 
 #define MAX_SOUND_SLICE_TIME 100 /* ms */
@@ -147,7 +138,7 @@ static void FillBuffer(uint8_t *buffer, unsigned int nsamples)
 
 // Callback function to fill a new sound buffer:
 
-static uint32_t OPL_Callback(uint8_t *buffer, uint32_t buffer_samples)
+static int OPL_Callback(byte *buffer, int buffer_samples)
 {
     unsigned int filled;
 

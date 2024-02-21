@@ -19,26 +19,40 @@
 
 // killough 5/3/98: remove unnecessary headers
 
-#include "doomstat.h"
+#include <stdlib.h>
+#include <string.h>
+
+#include "d_deh.h" /* Ty 03/27/98 - externalization of mapnamesx arrays */
+#include "d_event.h"
+#include "d_items.h"
+#include "d_player.h"
 #include "doomkeys.h"
-#include "hu_stuff.h"
-#include "hu_obituary.h"
-#include "hu_lib.h"
-#include "r_state.h"
-#include "st_stuff.h" /* jff 2/16/98 need loc of status bar */
-#include "w_wad.h"
-#include "s_sound.h"
+#include "doomstat.h"
 #include "dstrings.h"
-#include "sounds.h"
-#include "d_deh.h"   /* Ty 03/27/98 - externalization of mapnamesx arrays */
+#include "hu_lib.h"
+#include "hu_obituary.h"
+#include "hu_stuff.h"
+#include "i_video.h" // fps
+#include "m_fixed.h"
 #include "m_input.h"
-#include "p_map.h" // crosshair (linetarget)
 #include "m_misc2.h"
 #include "m_swap.h"
-#include "i_video.h" // fps
+#include "p_map.h" // crosshair (linetarget)
+#include "p_mobj.h"
+#include "r_data.h"
+#include "r_defs.h"
 #include "r_main.h"
+#include "r_state.h"
 #include "r_voxel.h"
+#include "s_sound.h"
+#include "sounds.h"
+#include "st_stuff.h" /* jff 2/16/98 need loc of status bar */
+#include "tables.h"
+#include "u_mapinfo.h"
 #include "u_scanner.h"
+#include "v_video.h"
+#include "w_wad.h"
+#include "z_zone.h"
 
 // global heads up display controls
 
@@ -397,28 +411,28 @@ void HU_Init(void)
   // load the heads-up font
   for (i = 0, j = HU_FONTSTART; i < HU_FONTSIZE; i++, j++)
   {
-    sprintf(buffer, "STCFN%.3d", j);
+    M_snprintf(buffer, sizeof(buffer), "STCFN%.3d", j);
     if (W_CheckNumForName(buffer) != -1)
       big_font.patches[i] = (patch_t *) W_CacheLumpName(buffer, PU_STATIC);
 
     if ('0' <= j && j <= '9')
     {
-      sprintf(buffer, "DIG%.1d", j - 48);
+      M_snprintf(buffer, sizeof(buffer), "DIG%.1d", j - 48);
       sml_font.patches[i] = (patch_t *) W_CacheLumpName(buffer, PU_STATIC);
     }
     else if ('A' <= j && j <= 'Z')
     {
-      sprintf(buffer, "DIG%c", j);
+      M_snprintf(buffer, sizeof(buffer), "DIG%c", j);
       sml_font.patches[i] = (patch_t *) W_CacheLumpName(buffer, PU_STATIC);
     }
     else if (j > 122)
     {
-      sprintf(buffer, "STBR%.3d", j);
+      M_snprintf(buffer, sizeof(buffer), "STBR%.3d", j);
       sml_font.patches[i] = (patch_t *) W_CacheLumpName(buffer, PU_STATIC);
     }
     else
     {
-      sprintf(buffer, "DIG%.2d", j);
+      M_snprintf(buffer, sizeof(buffer), "DIG%.2d", j);
       if (W_CheckNumForName(buffer) != -1)
         sml_font.patches[i] = (patch_t *) W_CacheLumpName(buffer, PU_STATIC);
     }
@@ -444,7 +458,7 @@ void HU_Init(void)
   //jff 2/26/98 load patches for keys and double keys
   for (i = HU_FONTSIZE, j = 0; j < 6; i++, j++)
   {
-    sprintf(buffer, "STKEYS%.1d", j);
+    M_snprintf(buffer, sizeof(buffer), "STKEYS%.1d", j);
     sml_font.patches[i] =
     big_font.patches[i] = (patch_t *) W_CacheLumpName(buffer, PU_STATIC);
   }
@@ -777,7 +791,7 @@ static void HU_widget_build_ammo (void)
     }
 
     // build the numeric amount init string
-    sprintf(hud_ammostr + i, "%3d/%3d", ammo, fullammo);
+    M_snprintf(hud_ammostr + i, sizeof(hud_ammostr), "%3d/%3d", ammo, fullammo);
 
     // backpack changes thresholds (ammo widget)
     if (plr->backpack && !hud_backpack_thresholds && fullammo)
@@ -835,7 +849,7 @@ static void HU_widget_build_health (void)
   }
 
   // build the numeric amount init string
-  sprintf(hud_healthstr + i, "%3d", st_health);
+  M_snprintf(hud_healthstr + i, sizeof(hud_healthstr), "%3d", st_health);
 
   // set the display color from the amount of health posessed
   w_health.cr = ColorByHealth(plr->health, 100, st_invul);
@@ -881,7 +895,7 @@ static void HU_widget_build_armor (void)
   }
 
   // build the numeric amount init string
-  sprintf(hud_armorstr + i, "%3d", st_armor);
+  M_snprintf(hud_armorstr + i, sizeof(hud_armorstr), "%3d", st_armor);
 
   // color of armor depends on type
   if (hud_armor_type)
@@ -1034,7 +1048,7 @@ static inline int HU_top (char *const fragstr, int i, const int idx1, const int 
   {
     char numbuf[32], *s;
 
-    sprintf(numbuf, "%5d", top1);
+    M_snprintf(numbuf, sizeof(numbuf), "%5d", top1);
     // make frag count in player's color via escape code
 
     fragstr[i++] = '\x1b'; //jff 3/26/98 use ESC not '\' for paths
@@ -1191,29 +1205,32 @@ static void HU_widget_build_sttime(void)
   {
     if (time_scale != 100)
     {
-      offset += sprintf(hud_timestr, "\x1b%c%d%% ",
-              '0'+CR_BLUE, time_scale);
+      offset += M_snprintf(hud_timestr, sizeof(hud_timestr), "\x1b%c%d%% ",
+                           '0'+CR_BLUE, time_scale);
     }
 
     if (totalleveltimes)
     {
       const int time = (totalleveltimes + leveltime) / TICRATE;
 
-      offset += sprintf(hud_timestr + offset, "\x1b%c%d:%02d ",
-              '0'+CR_GREEN, time/60, time%60);
+      offset += M_snprintf(hud_timestr + offset, sizeof(hud_timestr),
+                           "\x1b%c%d:%02d ",
+                           '0'+CR_GREEN, time/60, time%60);
     }
 
     if (!plr->btuse_tics)
     {
-      sprintf(hud_timestr + offset, "\x1b%c%d:%05.2f\t",
-              '0'+CR_GRAY, leveltime/TICRATE/60, (float)(leveltime%(60*TICRATE))/TICRATE);
+      M_snprintf(hud_timestr + offset, sizeof(hud_timestr), "\x1b%c%d:%05.2f\t",
+                 '0'+CR_GRAY, leveltime / TICRATE / 60,
+                 (float)(leveltime % (60 * TICRATE)) / TICRATE);
     }
   }
 
   if (plr->btuse_tics)
   {
-    sprintf(hud_timestr + offset, "\x1b%cU %d:%05.2f\t",
-            '0'+CR_GOLD, plr->btuse/TICRATE/60, (float)(plr->btuse%(60*TICRATE))/TICRATE);
+    M_snprintf(hud_timestr + offset, sizeof(hud_timestr), "\x1b%cU %d:%05.2f\t",
+               '0'+CR_GOLD, plr->btuse / TICRATE / 60, 
+               (float)(plr->btuse % (60 * TICRATE)) / TICRATE);
   }
 
   HUlib_add_string_to_cur_line(&w_sttime, hud_timestr);
@@ -1236,18 +1253,18 @@ static void HU_widget_build_coord (void)
   //jff 2/16/98 output new coord display
   if (hud_widget_layout)
   {
-    sprintf(hud_coordstr, "X\t\x1b%c%d", '0'+CR_GRAY, x >> FRACBITS);
+    M_snprintf(hud_coordstr, sizeof(hud_coordstr), "X\t\x1b%c%d", '0'+CR_GRAY, x >> FRACBITS);
     HUlib_add_string_to_cur_line(&w_coord, hud_coordstr);
 
-    sprintf(hud_coordstr, "Y\t\x1b%c%d", '0'+CR_GRAY, y >> FRACBITS);
+    M_snprintf(hud_coordstr, sizeof(hud_coordstr), "Y\t\x1b%c%d", '0'+CR_GRAY, y >> FRACBITS);
     HUlib_add_string_to_cur_line(&w_coord, hud_coordstr);
 
-    sprintf(hud_coordstr, "Z\t\x1b%c%d", '0'+CR_GRAY, z >> FRACBITS);
+    M_snprintf(hud_coordstr, sizeof(hud_coordstr), "Z\t\x1b%c%d", '0'+CR_GRAY, z >> FRACBITS);
     HUlib_add_string_to_cur_line(&w_coord, hud_coordstr);
   }
   else
   {
-    sprintf(hud_coordstr, "X \x1b%c%d \x1b%cY \x1b%c%d \x1b%cZ \x1b%c%d",
+    M_snprintf(hud_coordstr, sizeof(hud_coordstr), "X \x1b%c%d \x1b%cY \x1b%c%d \x1b%cZ \x1b%c%d",
             '0'+CR_GRAY, x >> FRACBITS, '0'+hudcolor_xyco,
             '0'+CR_GRAY, y >> FRACBITS, '0'+hudcolor_xyco,
             '0'+CR_GRAY, z >> FRACBITS);
@@ -1260,7 +1277,8 @@ static void HU_widget_build_fps (void)
 {
   char hud_fpsstr[HU_MAXLINELENGTH/4];
 
-  sprintf(hud_fpsstr,"\x1b%c%d \x1b%cFPS", '0'+CR_GRAY, fps, '0'+CR_ORIG);
+  M_snprintf(hud_fpsstr, sizeof(hud_fpsstr), "\x1b%c%d \x1b%cFPS",
+             '0'+CR_GRAY, fps, '0'+CR_ORIG);
   HUlib_add_string_to_cur_line(&w_fps, hud_fpsstr);
 }
 
@@ -1268,15 +1286,15 @@ static void HU_widget_build_rate (void)
 {
   char hud_ratestr[HU_MAXLINELENGTH];
 
-  sprintf(hud_ratestr,
-          "Sprites %4d Segs %4d Visplanes %4d   \x1b%cFPS %3d %dx%d\x1b%c",
-          rendered_vissprites, rendered_segs, rendered_visplanes,
-          '0'+CR_GRAY, fps, video.width, video.height, '0'+CR_ORIG);
+  M_snprintf(hud_ratestr, sizeof(hud_ratestr),
+             "Sprites %4d Segs %4d Visplanes %4d   \x1b%cFPS %3d %dx%d\x1b%c",
+             rendered_vissprites, rendered_segs, rendered_visplanes,
+             '0'+CR_GRAY, fps, video.width, video.height, '0'+CR_ORIG);
   HUlib_add_string_to_cur_line(&w_rate, hud_ratestr);
 
   if (voxels_rendering)
   {
-    sprintf(hud_ratestr, " Voxels %4d", rendered_voxels);
+    M_snprintf(hud_ratestr, sizeof(hud_ratestr), " Voxels %4d", rendered_voxels);
     HUlib_add_string_to_cur_line(&w_rate, hud_ratestr);
   }
 }
@@ -1308,7 +1326,7 @@ const char *crosshair_lumps[HU_CROSSHAIRS] =
 
 const char *crosshair_strings[HU_CROSSHAIRS] =
 {
-  "None",
+  "Off",
   "Cross", "Angle", "Dot", "Big Cross",
   "Circle", "Big Circle", "Chevron", "Chevrons",
   "Arcs"

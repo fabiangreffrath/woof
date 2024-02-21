@@ -19,13 +19,20 @@
 //
 //-----------------------------------------------------------------------------
 
+#include <string.h>
+
+#include "doomdef.h"
 #include "doomstat.h"
+#include "i_system.h"
 #include "i_video.h"
-#include "w_wad.h"
 #include "r_bsp.h"
-#include "r_draw.h" // [FG]
+#include "r_defs.h"
+#include "r_draw.h"
 #include "r_main.h"
+#include "r_state.h"
 #include "v_video.h"
+#include "w_wad.h"
+#include "z_zone.h"
 
 //
 // All drawing to the view buffer is accomplished in this file.
@@ -267,6 +274,7 @@ void R_DrawTLColumn (void)
             *dest = tranmap[(*dest<<8)+colormap[brightmap[src]][src]]; // phares
             dest += linesize;   // killough 11/98
             frac += fracstep;
+            src = source[(frac>>FRACBITS) & heightmask];
             *dest = tranmap[(*dest<<8)+colormap[brightmap[src]][src]]; // phares
             dest += linesize;   // killough 11/98
             frac += fracstep;

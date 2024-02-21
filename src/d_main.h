@@ -21,8 +21,9 @@
 #ifndef __D_MAIN__
 #define __D_MAIN__
 
-#include "doomdef.h"
-#include "d_event.h"
+#include "doomtype.h"
+
+struct event_s;
 
 extern char **wadfiles;       // killough 11/98
 
@@ -45,7 +46,7 @@ void D_SetBloodColor(void);
 boolean D_CheckEndDoom(void);
 
 // Called by IO functions when input is detected.
-void D_PostEvent(event_t* ev);
+void D_PostEvent(struct event_s *ev);
 
 void D_UpdateDeltaTics(void);
 

@@ -16,7 +16,6 @@
 #define TESTCONFIG_H
 
 #include "doomtype.h"
-#include "textscreen.h"
 
 typedef struct execute_context_s execute_context_t;
 

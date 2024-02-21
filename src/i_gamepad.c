@@ -14,11 +14,12 @@
 // DESCRIPTION:
 //
 
-#include <math.h>
-
 #include "SDL.h"
 
+#include <math.h>
+
 #include "doomkeys.h"
+#include "doomtype.h"
 #include "g_game.h"
 #include "i_timer.h"
 

@@ -17,17 +17,15 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdarg.h>
-#include <string.h>
 
 #include "doomtype.h"
 #include "i_system.h"
+#include "i_timer.h"
 #include "m_argv.h"
 #include "m_io.h"
-
 #include "net_common.h"
 #include "net_io.h"
 #include "net_packet.h"
-#include "net_structrw.h"
 
 // connections time out after 30 seconds
 

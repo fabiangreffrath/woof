@@ -17,6 +17,8 @@
 // Color translation tables
 //
 
+#include <math.h>
+
 #include "doomtype.h"
 #include "i_video.h"
 #include "v_trans.h"
