@@ -1149,7 +1149,11 @@ static void ResetResolution(int height, boolean reset_pitch)
 
     video.unscaledw = (int)(unscaled_actualheight * aspect_ratio);
 
+    video.unscaledw = (video.unscaledw + 1) & ~1;
+
     video.width = (int)(actualheight * aspect_ratio);
+
+    video.width = (video.width + 1) & ~1;
 
     // [FG] For performance reasons, SDL2 insists that the screen pitch, i.e.
     // the *number of bytes* that one horizontal row of pixels occupy in
