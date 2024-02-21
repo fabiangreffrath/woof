@@ -1149,13 +1149,11 @@ static void ResetResolution(int height, boolean reset_pitch)
 
     video.unscaledw = (int)(unscaled_actualheight * aspect_ratio);
 
-    // Unscaled widescreen 16:9 resolution truncates to 426x240, which is not
-    // quite 16:9. To avoid visual instability, we calculate the scaled width
-    // without the actual aspect ratio. For example, at 1280x720 we get
-    // 1278x720.
+    video.unscaledw &= ~1;
 
-    double vertscale = (double)actualheight / (double)unscaled_actualheight;
-    video.width = (int)ceil(video.unscaledw * vertscale);
+    video.width = (int)(actualheight * aspect_ratio);
+
+    video.width &= ~1;
 
     // [FG] For performance reasons, SDL2 insists that the screen pitch, i.e.
     // the *number of bytes* that one horizontal row of pixels occupy in
