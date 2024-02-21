@@ -1749,7 +1749,7 @@ void I_CheckHOM(void)
         if (I_VideoBuffer[video.width - 1] == v_lightest_color)
         {
             printf("HOM %dx%d\n",
-                native_res[curr_test_res].w, native_res[curr_test_res].h);
+                native_res[curr_test_res - 1].w, native_res[curr_test_res - 1].h);
             break;
         }
     }
