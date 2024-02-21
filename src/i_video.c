@@ -1149,11 +1149,13 @@ static void ResetResolution(int height, boolean reset_pitch)
 
     video.unscaledw = (int)(unscaled_actualheight * aspect_ratio);
 
-    video.unscaledw &= ~1;
+    // Unscaled widescreen 16:9 resolution truncates to 426x240, which is not
+    // quite 16:9. To avoid visual instability, we calculate the scaled width
+    // without the actual aspect ratio. For example, at 1280x720 we get
+    // 1278x720.
 
-    video.width = (int)(actualheight * aspect_ratio);
-
-    video.width &= ~1;
+    double vertscale = (double)actualheight / (double)unscaled_actualheight;
+    video.width = (int)ceil(video.unscaledw * vertscale);
 
     // [FG] For performance reasons, SDL2 insists that the screen pitch, i.e.
     // the *number of bytes* that one horizontal row of pixels occupy in
@@ -1176,7 +1178,8 @@ static void ResetResolution(int height, boolean reset_pitch)
     if (automapactive)
       AM_ResetScreenSize();
 
-    I_Printf(VB_DEBUG, "ResetResolution: %dx%d", video.width, video.height);
+    I_Printf(VB_DEBUG, "ResetResolution: %dx%d (%dx%d)",
+        video.width, video.height, video.unscaledw, SCREENHEIGHT);
 
     drs_skip_frame = true;
 }
@@ -1699,11 +1702,11 @@ void I_InitGraphics(void)
 static struct {
     int w, h;
 } native_res[] = {
-    //{  320,  240 },
+    {  320,  240 },
     {  640,  480 },
     {  800,  600 },
     { 1024,  768 },
-    //{ 1280, 1024 },
+    { 1280, 1024 },
     { 1280,  720 },
     { 1280,  800 },
     { 1366,  768 },
@@ -1717,6 +1720,7 @@ static struct {
     { 2304, 1440 },
     { 2560, 1600 },
     { 3200, 2400 },
+    { 3440, 1440 },
     { 3840, 2160 },
     { 5120, 2160 }  
 };
@@ -1730,6 +1734,7 @@ boolean I_ChangeRes(void)
 
     native_height_adjusted = (int)(native_height / 1.2);
 
+    printf("I_ChangeRes: %dx%d\n", native_width, native_height);
     ResetResolution(native_height_adjusted, true);
     CreateSurfaces(video.pitch, video.height);
     ResetLogicalSize();
@@ -1748,8 +1753,8 @@ void I_CheckHOM(void)
     {
         if (I_VideoBuffer[video.width - 1] == v_lightest_color)
         {
-            printf("HOM %dx%d\n",
-                native_res[curr_test_res - 1].w, native_res[curr_test_res - 1].h);
+            printf("HOM\n");
+            //run_test = false;
             break;
         }
     }

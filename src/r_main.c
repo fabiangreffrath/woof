@@ -955,7 +955,8 @@ void R_RenderPlayerView (player_t* player)
   R_SetFuzzPosDraw();
   R_DrawMasked ();
 
-  I_CheckHOM();
+  if (run_test)
+    I_CheckHOM();
 
   // Check for new console commands.
   NetUpdate ();
