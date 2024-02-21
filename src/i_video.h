@@ -107,6 +107,9 @@ void I_InitWindowIcon(void);
 void I_ShowMouseCursor(boolean on);
 void I_ResetRelativeMouseState(void);
 
+boolean I_ChangeRes(void);
+void I_CheckHOM(void);
+
 #endif
 
 //----------------------------------------------------------------------------

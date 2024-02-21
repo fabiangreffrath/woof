@@ -133,6 +133,8 @@ char **wadfiles;
 
 boolean devparm;        // started game with -devparm
 
+boolean run_test;
+
 // jff 1/24/98 add new versions of these variables to remember command line
 boolean clnomonsters;   // checkparm of -nomonsters
 boolean clrespawnparm;  // checkparm of -respawn
@@ -2931,6 +2933,11 @@ void D_DoomMain(void)
     I_AtExitPrio(D_EndDoom, false, "D_EndDoom", exit_priority_last);
   }
 
+  if (M_ParmExists("-test"))
+  {
+    run_test = true;
+  }
+
   TryRunTics();
 
   D_StartGameLoop();
@@ -2939,6 +2946,18 @@ void D_DoomMain(void)
     {
       // frame syncronous IO operations
       I_StartFrame ();
+
+      if (run_test)
+      {
+        static int oldgametic = 3;
+
+        if (gametic >= oldgametic)
+        {
+          oldgametic = gametic + 3;
+          if (!I_ChangeRes())
+            I_SafeExit(0);
+        }
+      }
 
       TryRunTics (); // will run at least one tic
 
