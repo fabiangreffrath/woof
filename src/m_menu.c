@@ -162,6 +162,7 @@ backdrop_t menu_backdrop;
 #define M_THRM_UL_VAL 50
 
 #define M_X_LOADSAVE 80
+#define M_Y_LOADSAVE 34
 #define M_LOADSAVE_WIDTH (24 * 8 + 8) // [FG] c.f. M_DrawSaveLoadBorder()
 
 static void DisableItem(boolean condition, setup_menu_t *menu, const char *item)
@@ -397,15 +398,19 @@ enum
 // associated with the item.
 //
 
+#define MAIN_MENU_RECT \
+    {0, 0, SCREENWIDTH, LINEHEIGHT}
+
 static menuitem_t MainMenu[]=
 {
-  {1,"M_NGAME", M_NewGame, 'n'},
-  {1,"M_LOADG", M_LoadGame,'l'},
-  {1,"M_SAVEG", M_SaveGame,'s'},
-  {1,"M_OPTION", M_Setup, 'o'}, // change M_Options to M_Setup
+  {1,"M_NGAME",  M_NewGame,  'n', NULL, 0, MAIN_MENU_RECT},
+  {1,"M_LOADG",  M_LoadGame, 'l', NULL, 0, MAIN_MENU_RECT},
+  {1,"M_SAVEG",  M_SaveGame, 's', NULL, 0, MAIN_MENU_RECT},
+  // change M_Options to M_Setup
+  {1,"M_OPTION", M_Setup,    'o', NULL, 0, MAIN_MENU_RECT}, 
   // Another hickup with Special edition.
-  {1,"M_RDTHIS",M_ReadThis,'r'},
-  {1,"M_QUITG", M_QuitDOOM,'q'}
+  {1,"M_RDTHIS", M_ReadThis, 'r', NULL, 0, MAIN_MENU_RECT},
+  {1,"M_QUITG",  M_QuitDOOM, 'q', NULL, 0, MAIN_MENU_RECT}
 };
 
 static menu_t MainDef =
@@ -588,16 +593,21 @@ enum
 
 // The definitions of the Episodes menu
 
+#define M_Y_EPISODES 63
+
+#define EPISODES_RECT(n) \
+    {0, M_Y_EPISODES + (n) * LINEHEIGHT, SCREENWIDTH, LINEHEIGHT}
+
 static menuitem_t EpisodeMenu[]=   // added a few free entries for UMAPINFO
 {
-  {1,"M_EPI1", M_Episode,'k'},
-  {1,"M_EPI2", M_Episode,'t'},
-  {1,"M_EPI3", M_Episode,'i'},
-  {1,"M_EPI4", M_Episode,'t'},
-  {1,"", M_Episode,'0'},
-  {1,"", M_Episode,'0'},
-  {1,"", M_Episode,'0'},
-  {1,"", M_Episode,'0'}
+  {1, "M_EPI1", M_Episode, 'k', NULL, 0, EPISODES_RECT(0)},
+  {1, "M_EPI2", M_Episode, 't', NULL, 0, EPISODES_RECT(1)},
+  {1, "M_EPI3", M_Episode, 'i', NULL, 0, EPISODES_RECT(2)},
+  {1, "M_EPI4", M_Episode, 't', NULL, 0, EPISODES_RECT(3)},
+  {1, "",       M_Episode, '0', NULL, 0, EPISODES_RECT(4)},
+  {1, "",       M_Episode, '0', NULL, 0, EPISODES_RECT(5)},
+  {1, "",       M_Episode, '0', NULL, 0, EPISODES_RECT(6)},
+  {1, "",       M_Episode, '0', NULL, 0, EPISODES_RECT(7)}
 };
 
 static menu_t EpiDef =
@@ -606,7 +616,7 @@ static menu_t EpiDef =
   &MainDef,      // previous menu
   EpisodeMenu,   // menuitem_t ->
   M_DrawEpisode, // drawing routine ->
-  48,63,         // x,y
+  48, M_Y_EPISODES, // x,y
   ep1            // lastOn
 };
 
@@ -708,13 +718,18 @@ enum
 
 // The definitions of the New Game menu
 
+#define M_Y_NEWGAME 63
+
+#define NEW_GAME_RECT(n) \
+    {0, M_Y_NEWGAME + (n) * LINEHEIGHT, SCREENWIDTH, LINEHEIGHT}
+
 static menuitem_t NewGameMenu[]=
 {
-  {1,"M_JKILL", M_ChooseSkill, 'i', "I'm too young to die."},
-  {1,"M_ROUGH", M_ChooseSkill, 'h', "Hey, not too rough."},
-  {1,"M_HURT",  M_ChooseSkill, 'h', "Hurt me plenty."},
-  {1,"M_ULTRA", M_ChooseSkill, 'u', "Ultra-Violence."},
-  {1,"M_NMARE", M_ChooseSkill, 'n', "Nightmare!"}
+  {1,"M_JKILL", M_ChooseSkill, 'i', "I'm too young to die.", 0, NEW_GAME_RECT(0)},
+  {1,"M_ROUGH", M_ChooseSkill, 'h', "Hey, not too rough.",   0, NEW_GAME_RECT(1)},
+  {1,"M_HURT",  M_ChooseSkill, 'h', "Hurt me plenty.",       0, NEW_GAME_RECT(2)},
+  {1,"M_ULTRA", M_ChooseSkill, 'u', "Ultra-Violence.",       0, NEW_GAME_RECT(3)},
+  {1,"M_NMARE", M_ChooseSkill, 'n', "Nightmare!",            0, NEW_GAME_RECT(4)}
 };
 
 static menu_t NewDef =
@@ -723,7 +738,7 @@ static menu_t NewDef =
   &EpiDef,        // previous menu
   NewGameMenu,    // menuitem_t ->
   M_DrawNewGame,  // drawing routine ->
-  48,63,          // x,y
+  48, M_Y_NEWGAME, // x,y
   hurtme          // lastOn
 };
 
@@ -816,21 +831,21 @@ enum
 } load_e;
 
 #define SAVE_LOAD_RECT(n) \
-    {M_X_LOADSAVE, LINEHEIGHT * (n + 1), M_LOADSAVE_WIDTH, LINEHEIGHT}
+    {M_X_LOADSAVE, M_Y_LOADSAVE + (n) * LINEHEIGHT, M_LOADSAVE_WIDTH, LINEHEIGHT}
 
 // The definitions of the Load Game screen
 
 static menuitem_t LoadMenu[]=
 {
-  {1, "", M_LoadSelect,'1', NULL, 0, SAVE_LOAD_RECT(1)},
-  {1, "", M_LoadSelect,'2', NULL, 0, SAVE_LOAD_RECT(2)},
-  {1, "", M_LoadSelect,'3', NULL, 0, SAVE_LOAD_RECT(3)},
-  {1, "", M_LoadSelect,'4', NULL, 0, SAVE_LOAD_RECT(4)},
-  {1, "", M_LoadSelect,'5', NULL, 0, SAVE_LOAD_RECT(5)},
-  {1, "", M_LoadSelect,'6', NULL, 0, SAVE_LOAD_RECT(6)}, //jff 3/15/98 extend number of slots
-  {1, "", M_LoadSelect,'7', NULL, 0, SAVE_LOAD_RECT(7)},
-  {1, "", M_LoadSelect,'8', NULL, 0, SAVE_LOAD_RECT(8)},
-  {-1, "", NULL, 0, NULL, MF_PAGE, SAVE_LOAD_RECT(9)}
+  {1, "", M_LoadSelect,'1', NULL, 0, SAVE_LOAD_RECT(0)},
+  {1, "", M_LoadSelect,'2', NULL, 0, SAVE_LOAD_RECT(1)},
+  {1, "", M_LoadSelect,'3', NULL, 0, SAVE_LOAD_RECT(2)},
+  {1, "", M_LoadSelect,'4', NULL, 0, SAVE_LOAD_RECT(3)},
+  {1, "", M_LoadSelect,'5', NULL, 0, SAVE_LOAD_RECT(4)},
+  {1, "", M_LoadSelect,'6', NULL, 0, SAVE_LOAD_RECT(5)}, //jff 3/15/98 extend number of slots
+  {1, "", M_LoadSelect,'7', NULL, 0, SAVE_LOAD_RECT(6)},
+  {1, "", M_LoadSelect,'8', NULL, 0, SAVE_LOAD_RECT(7)},
+  {-1, "", NULL, 0, NULL, MF_PAGE, SAVE_LOAD_RECT(8)}
 };
 
 static menu_t LoadDef =
@@ -839,7 +854,7 @@ static menu_t LoadDef =
   &MainDef,
   LoadMenu,
   M_DrawLoad,
-  M_X_LOADSAVE,34, //jff 3/15/98 move menu up
+  M_X_LOADSAVE, M_Y_LOADSAVE, //jff 3/15/98 move menu up
   0
 };
 
@@ -1042,15 +1057,15 @@ static void M_LoadGame (int choice)
 
 static menuitem_t SaveMenu[]=
 {
-  {1,"", M_SaveSelect,'1', NULL, 0, SAVE_LOAD_RECT(1)},
-  {1,"", M_SaveSelect,'2', NULL, 0, SAVE_LOAD_RECT(2)},
-  {1,"", M_SaveSelect,'3', NULL, 0, SAVE_LOAD_RECT(3)},
-  {1,"", M_SaveSelect,'4', NULL, 0, SAVE_LOAD_RECT(4)},
-  {1,"", M_SaveSelect,'5', NULL, 0, SAVE_LOAD_RECT(5)},
-  {1,"", M_SaveSelect,'6', NULL, 0, SAVE_LOAD_RECT(6)},
-  {1,"", M_SaveSelect,'7', NULL, 0, SAVE_LOAD_RECT(7)}, //jff 3/15/98 extend number of slots
-  {1,"", M_SaveSelect,'8', NULL, 0, SAVE_LOAD_RECT(8)},
-  {-1, "", NULL, 0, NULL, MF_PAGE, SAVE_LOAD_RECT(9)}
+  {1,"", M_SaveSelect,'1', NULL, 0, SAVE_LOAD_RECT(0)},
+  {1,"", M_SaveSelect,'2', NULL, 0, SAVE_LOAD_RECT(1)},
+  {1,"", M_SaveSelect,'3', NULL, 0, SAVE_LOAD_RECT(2)},
+  {1,"", M_SaveSelect,'4', NULL, 0, SAVE_LOAD_RECT(3)},
+  {1,"", M_SaveSelect,'5', NULL, 0, SAVE_LOAD_RECT(4)},
+  {1,"", M_SaveSelect,'6', NULL, 0, SAVE_LOAD_RECT(5)},
+  {1,"", M_SaveSelect,'7', NULL, 0, SAVE_LOAD_RECT(6)}, //jff 3/15/98 extend number of slots
+  {1,"", M_SaveSelect,'8', NULL, 0, SAVE_LOAD_RECT(7)},
+  {-1, "", NULL, 0, NULL, MF_PAGE, SAVE_LOAD_RECT(8)}
 };
 
 static menu_t SaveDef =
@@ -1059,7 +1074,7 @@ static menu_t SaveDef =
   &MainDef,
   SaveMenu,
   M_DrawSave,
-  M_X_LOADSAVE,34, //jff 3/15/98 move menu up
+  M_X_LOADSAVE, M_Y_LOADSAVE, //jff 3/15/98 move menu up
   0
 };
 
@@ -1764,16 +1779,21 @@ static int setup_screen; // the current setup screen. takes values from setup_e
 // the program which takes over when an item is selected, and the hotkey
 // associated with the item.
 
+#define M_Y_SETUP 37
+
+#define SETUP_MENU_RECT(n) \
+    {0, M_Y_SETUP + (n) * LINEHEIGHT, SCREENWIDTH, LINEHEIGHT}
+
 static menuitem_t SetupMenu[]=
 {
   // [FG] alternative text for missing menu graphics lumps
-  {1,"M_GENERL",M_General,    'g', "GENERAL"},      // killough 10/98
-  {1,"M_KEYBND",M_KeyBindings,'k', "KEY BINDINGS"},
-  {1,"M_COMPAT",M_Compat,     'p', "DOOM COMPATIBILITY"},
-  {1,"M_STAT"  ,M_StatusBar,  's', "STATUS BAR / HUD"},
-  {1,"M_AUTO"  ,M_Automap,    'a', "AUTOMAP"},
-  {1,"M_WEAP"  ,M_Weapons,    'w', "WEAPONS"},
-  {1,"M_ENEM"  ,M_Enemy,      'e', "ENEMIES"},
+  {1,"M_GENERL",M_General,    'g', "GENERAL",            0, SETUP_MENU_RECT(0)},
+  {1,"M_KEYBND",M_KeyBindings,'k', "KEY BINDINGS",       0, SETUP_MENU_RECT(1)},
+  {1,"M_COMPAT",M_Compat,     'p', "DOOM COMPATIBILITY", 0, SETUP_MENU_RECT(2)},
+  {1,"M_STAT"  ,M_StatusBar,  's', "STATUS BAR / HUD",   0, SETUP_MENU_RECT(3)},
+  {1,"M_AUTO"  ,M_Automap,    'a', "AUTOMAP",            0, SETUP_MENU_RECT(4)},
+  {1,"M_WEAP"  ,M_Weapons,    'w', "WEAPONS",            0, SETUP_MENU_RECT(5)},
+  {1,"M_ENEM"  ,M_Enemy,      'e', "ENEMIES",            0, SETUP_MENU_RECT(6)},
 };
 
 /////////////////////////////
@@ -1817,7 +1837,7 @@ static menu_t SetupDef =
   &MainDef,      // menu to return to when BACKSPACE is hit on this menu
   SetupMenu,     // definition of items to show on the Setup Screen
   M_DrawSetup,   // program that draws the Setup Screen
-  60,37,         // x,y position of the skull (modified when the skull is
+  60, M_Y_SETUP, // x,y position of the skull (modified when the skull is
                  // drawn). The skull is parked on the upper-left corner
                  // of the Setup screens, since it isn't needed as a cursor
   0              // last item the user was on for this menu
@@ -6600,7 +6620,6 @@ void M_Drawer (void)
     for (int i = 0; i < max; ++i)
     {
         menuitem_t *item = &currentMenu->menuitems[i];
-        mrect_t *rect = &item->rect;
 
         const char *alttext = item->alttext;
         const char *name = item->name;
@@ -6618,21 +6637,16 @@ void M_Drawer (void)
         {
             if (alttext)
             {
-                rect->x = 0;
-                rect->y = y;
-                rect->w = SCREENWIDTH;
-                rect->h = LINEHEIGHT;
                 M_DrawStringCR(x, y + 8 - (M_StringHeight(alttext) / 2),
                                cr, NULL, alttext);
             }
         }
         else if (name[0])
         {
+            mrect_t *rect = &item->rect;
             patch_t *patch = W_CacheLumpName(name, PU_CACHE);
-            rect->x = 0;
+            // due to the MainMenu[] hacks, we have to set y here
             rect->y = y - SHORT(patch->topoffset);
-            rect->w = SCREENWIDTH;
-            rect->h = SHORT(patch->height);
             V_DrawPatchTranslated(x, y, patch, cr);
         }
 
@@ -6960,7 +6974,7 @@ void M_Init(void)
   // three episodes; if we're emulating one of those then don't try
   // to show episode four. If we are, then do show episode four
   // (should crash if missing).
-  if (gameversion < exe_ultimate)
+  if (gameversion < exe_ultimate && !EpiCustom)
   {
       EpiDef.numitems--;
   }
