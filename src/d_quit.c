@@ -40,6 +40,8 @@ void I_Quit(void)
 {
     int i;
 
+    SDL_QuitSubSystem(SDL_INIT_VIDEO);
+
     SDL_Quit();
 
     if (!tempdirs)
