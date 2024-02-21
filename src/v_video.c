@@ -710,13 +710,26 @@ void V_CopyRect(int srcx, int srcy, pixel_t *source,
     srcrect.w = width;
     srcrect.h = height;
 
+    V_ClipRect(&srcrect);
+
+    // clipped away completely?
+    if (srcrect.cw <= 0 || srcrect.ch <= 0)
+        return;
+
+    V_ScaleClippedRect(&srcrect);
+
     dstrect.x = destx;
     dstrect.y = desty;
     dstrect.w = width;
     dstrect.h = height;
 
-    V_ScaleRect(&srcrect);
-    V_ScaleRect(&dstrect);
+    V_ClipRect(&dstrect);
+
+    // clipped away completely?
+    if (dstrect.cw <= 0 || dstrect.ch <= 0)
+        return;
+
+    V_ScaleClippedRect(&dstrect);
 
     // use the smaller of the two scaled rect widths / heights
     usew = (srcrect.sw < dstrect.sw ? srcrect.sw : dstrect.sw);
