@@ -1132,10 +1132,7 @@ static double CurrentAspectRatio(void)
 
     double aspect_ratio = (double)w / (double)h;
 
-    if (aspect_ratio > ASPECT_RATIO_MAX)
-    {
-        aspect_ratio = ASPECT_RATIO_MAX;
-    }
+    aspect_ratio = BETWEEN(ASPECT_RATIO_MIN, ASPECT_RATIO_MAX, aspect_ratio);
 
     return aspect_ratio;
 }

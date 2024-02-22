@@ -286,19 +286,13 @@ static void R_InitTextureMapping(void)
   // Calc focallength
   //  so FIELDOFVIEW angles covers SCREENWIDTH.
 
-  if (custom_fov == FOV_DEFAULT)
+  if (custom_fov == FOV_DEFAULT && centerxfrac == centerxfrac_nonwide)
   {
     fov = FIELDOFVIEW;
     slopefrac = finetangent[FINEANGLES / 4 + fov / 2];
     focallength = FixedDiv(centerxfrac_nonwide, slopefrac);
     lightfocallength = centerxfrac_nonwide;
     projection = centerxfrac_nonwide;
-
-    if (centerxfrac != centerxfrac_nonwide)
-    {
-      fov = atan((double)centerxfrac / centerxfrac_nonwide) * FINEANGLES / M_PI;
-      slopefrac = finetangent[FINEANGLES / 4 + fov / 2];
-    }
   }
   else
   {
