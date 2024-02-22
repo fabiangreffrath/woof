@@ -26,7 +26,7 @@
 #define FOV_DEFAULT 90
 #define FOV_MIN 60
 #define FOV_MAX 120
-#define ASPECT_RATIO_MAX 3.6 // Up to 32:9 ultrawide.
+#define ASPECT_RATIO_MAX 2.4 // Up to 21:9. TODO: Support up to 3.6 (32:9).
 #define ASPECT_RATIO_MIN (4.0 / 3.0)
 
 typedef enum

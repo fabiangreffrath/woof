@@ -1677,8 +1677,6 @@ void I_ShutdownGraphics(void)
     }
 
     UpdateGrab();
-
-    SDL_QuitSubSystem(SDL_INIT_VIDEO);
 }
 
 void I_InitGraphics(void)

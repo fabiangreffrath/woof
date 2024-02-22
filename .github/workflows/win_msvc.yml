@@ -18,7 +18,7 @@ jobs:
   build:
     if: ${{ github.repository == 'fabiangreffrath/woof' }}
     name: MSVC ${{ matrix.config.arch }}
-    runs-on: windows-latest
+    runs-on: windows-2019
 
     strategy:
       matrix:

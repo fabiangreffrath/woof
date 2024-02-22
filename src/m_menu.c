@@ -1986,6 +1986,7 @@ enum
     str_hudcolor,
     str_overlay,
     str_automap_preset,
+    str_automap_keyed_door,
 
     str_resolution_scale,
     str_midi_player,
@@ -3436,6 +3437,10 @@ static const char *automap_preset_strings[] = {
     "Vanilla", "Boom", "ZDoom"
 };
 
+static const char *automap_keyed_door_strings[] = {
+    "Off", "On", "Flashing"
+};
+
 setup_menu_t auto_settings1[] =  // 1st AutoMap Settings screen       
 {
   {"Modes", S_SKIP|S_TITLE, m_null, M_X, M_Y},
@@ -3453,7 +3458,8 @@ setup_menu_t auto_settings1[] =  // 1st AutoMap Settings screen
   {"Smooth automap lines", S_ONOFF, m_null, M_X, M_SPC,
    {"map_smooth_lines"}, 0, AM_EnableSmoothLines},
   {"Show Found Secrets Only", S_ONOFF, m_null, M_X, M_SPC, {"map_secret_after"}},
-  {"Flashing Keyed Doors" , S_ONOFF, m_null, M_X, M_SPC, {"map_keyed_door_flash"}},
+  {"Color Keyed Doors" , S_CHOICE, m_null, M_X, M_SPC,
+   {"map_keyed_door"}, 0, NULL, str_automap_keyed_door},
 
   MI_RESET,
 
@@ -6867,6 +6873,7 @@ static const char **selectstrings[] = {
     hudcolor_strings,
     overlay_strings,
     automap_preset_strings,
+    automap_keyed_door_strings,
     NULL, // str_resolution_scale
     NULL, // str_midi_player
     gamma_strings,

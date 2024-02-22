@@ -77,7 +77,7 @@ int mapcolor_enemy;   // enemy sprite color
 //jff 3/9/98 add option to not show secret sectors until entered
 int map_secret_after;
 
-int map_keyed_door_flash; // keyed doors are flashing
+int map_keyed_door; // keyed doors are colored or flashing
 
 int map_smooth_lines;
 
@@ -1543,6 +1543,11 @@ static void AM_drawGrid(int color)
 //
 static int AM_DoorColor(int type)
 {
+  if (map_keyed_door == MAP_KEYED_DOOR_OFF)
+  {
+    return -1;
+  }
+
   if (GenLockedBase <= type && type< GenDoorBase)
   {
     type -= GenLockedBase;
@@ -1589,7 +1594,7 @@ static void AM_drawWalls(void)
   int i;
   static mline_t l;
 
-  const boolean keyed_door_flash = map_keyed_door_flash && (leveltime & 16);
+  const boolean keyed_door_flash = (map_keyed_door == MAP_KEYED_DOOR_FLASH) && (leveltime & 16);
 
   // draw the unclipped visible portions of all lines
   for (i=0;i<numlines;i++)
