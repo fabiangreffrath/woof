@@ -285,19 +285,13 @@ static void R_InitTextureMapping(void)
   // Calc focallength
   //  so FIELDOFVIEW angles covers SCREENWIDTH.
 
-  if (custom_fov == FOV_DEFAULT)
+  if (custom_fov == FOV_DEFAULT && centerxfrac == centerxfrac_nonwide)
   {
     fov = FIELDOFVIEW;
     slopefrac = finetangent[FINEANGLES / 4 + fov / 2];
     focallength = FixedDiv(centerxfrac_nonwide, slopefrac);
     lightfocallength = centerxfrac_nonwide;
     projection = centerxfrac_nonwide;
-
-    if (centerxfrac != centerxfrac_nonwide)
-    {
-      fov = atan((double)centerxfrac / centerxfrac_nonwide) * FINEANGLES / M_PI;
-      slopefrac = finetangent[FINEANGLES / 4 + fov / 2];
-    }
   }
   else
   {
@@ -507,8 +501,8 @@ static void R_SetupFreelook(void)
     dy = 0;
   }
 
-  centery = viewheight / 2 + (dy >> FRACBITS);
-  centeryfrac = centery << FRACBITS;
+  centeryfrac = (viewheight << FRACBITS) / 2 + dy;
+  centery = centeryfrac >> FRACBITS;
 
   for (i = 0; i < viewheight; i++)
   {
@@ -593,7 +587,7 @@ void R_ExecuteSetViewSize (void)
   viewwidth_nonwide = V_ScaleX(scaledviewwidth_nonwide);
 
   centerxfrac = (viewwidth << FRACBITS) / 2;
-  centerx = (centerxfrac >> FRACBITS);
+  centerx = centerxfrac >> FRACBITS;
   centerxfrac_nonwide = (viewwidth_nonwide << FRACBITS) / 2;
 
   viewheightfrac = viewheight << (FRACBITS + 1); // [FG] sprite clipping optimizations
