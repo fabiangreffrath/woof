@@ -68,6 +68,8 @@ if(MSVC)
     # Using the token operator to compare signed and unsigned numbers required
     # the compiler to convert the signed value to unsigned.
     _checked_add_compile_option(/wd4018)
+    # Different 'modifier' qualifiers (const, volatile). For older MSVC versions.
+    _checked_add_compile_option(/wd4090)
 
     # Extra warnings for clang-cl.exe - prevents warning spam in SDL headers.
     _checked_add_compile_option(-Wno-pragma-pack)
