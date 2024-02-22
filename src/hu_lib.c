@@ -65,7 +65,7 @@ static int align_offset[num_offsets];
 
 void HUlib_reset_align_offsets (void)
 {
-  int bottom = SCREENHEIGHT - 1;
+  int bottom = SCREENHEIGHT;
 
   if (scaledviewheight < SCREENHEIGHT ||
       draw_crispy_hud ||
