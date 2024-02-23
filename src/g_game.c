@@ -961,7 +961,8 @@ static void G_DoLoadLevel(void)
   }
 
   P_SetupLevel (gameepisode, gamemap, 0, gameskill);
-  // [Woof!] Do not reset chosen player view while multiplayer.
+  // [Woof!] Do not reset chosen player view across levels in multiplayer.
+  // However, reset must be done in case of starting new game from demo playback.
   if (!displayplayer_set || !netgame)
   {
     displayplayer = consoleplayer;    // view the guy you are playing
