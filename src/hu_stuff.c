@@ -571,6 +571,8 @@ static void HU_widget_build_sttime(void);
 static void HU_widget_build_title (void);
 static void HU_widget_build_weapon (void);
 
+static hu_multiline_t *w_stats;
+
 void HU_Start(void)
 {
   int i;
@@ -650,6 +652,8 @@ void HU_Start(void)
   HUlib_init_multiline(&w_monsec, hud_widget_layout ? 3 : 1,
                        &boom_font, colrngs[CR_GRAY],
                        NULL, HU_widget_build_monsec);
+  // [FG] in deathmatch: w_keys.builder = HU_widget_build_frag()
+  w_stats = deathmatch ? &w_keys : &w_monsec;
 
   HUlib_init_multiline(&w_sttime, 1,
                        &boom_font, colrngs[CR_GRAY],
@@ -1695,9 +1699,6 @@ void HU_Ticker(void)
       }
     }
   }
-
-  // [FG] in deathmatch: w_keys.builder = HU_widget_build_frag()
-  hu_multiline_t *const w_stats = deathmatch ? &w_keys : &w_monsec;
 
   // draw the automap widgets if automap is displayed
 
