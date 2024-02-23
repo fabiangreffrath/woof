@@ -10,7 +10,7 @@
   - Instantly enable/disable translucency for things.
 * Show preview of currently selected crosshair in the menu.
 * "Run" key/button no longer affects gamepad turn speed.
-* Change automap "Flashing Keyed Doors" to "Color Keyed Doors" with "On", "Flashing", and "Off" options.
+* Change automap "Flashing Keyed Doors" to "Color Keyed Doors" with "Off", "On", and "Flashing" options.
 * Remove conditional disabling of HUD menu items.
 * Rename "Forward Sensitivity" to "Move Sensitivity".
 * Use `M_OPTTTL` patch for "Options" menu title.
