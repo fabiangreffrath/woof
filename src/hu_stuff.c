@@ -512,7 +512,7 @@ static void HU_set_centered_message(boolean init)
 
 static inline void HU_cond_build_widget (hu_multiline_t *const multiline, boolean cond)
 {
-  if (cond)
+  if (cond && multiline->built == false)
   {
     multiline->builder();
     multiline->built = true;
