@@ -70,6 +70,8 @@ static callback_func_t callback;
 
 static boolean music_initialized;
 
+static SDL_mutex *music_lock;
+
 static boolean UpdatePlayer(void)
 {
     ALint processed, state;
@@ -196,11 +198,13 @@ static int PlayerThread(void *unused)
 
     StartPlayer();
 
-    while (player_thread_running)
+    while (true)
     {
         boolean result;
 
-        result = UpdatePlayer();
+        SDL_LockMutex(music_lock);
+        result = player_thread_running && UpdatePlayer();
+        SDL_UnlockMutex(music_lock);
 
         if (result == false)
         {
@@ -286,6 +290,8 @@ static void I_OAL_PlaySong(void *handle, boolean looping)
         return;
     }
 
+    music_lock = SDL_CreateMutex();
+
     player_thread_running = true;
     player_thread_handle = SDL_CreateThread(PlayerThread, NULL, NULL);
     if (player_thread_handle == NULL)
@@ -309,7 +315,10 @@ static void I_OAL_StopSong(void *handle)
 
     alSourceStop(player.source);
 
+    SDL_LockMutex(music_lock);
     player_thread_running = false;
+    SDL_UnlockMutex(music_lock);
+
     SDL_WaitThread(player_thread_handle, NULL);
 
     alGetSourcei(player.source, AL_BUFFERS_PROCESSED, &processed);
@@ -325,6 +334,8 @@ static void I_OAL_StopSong(void *handle)
     {
         I_Printf(VB_ERROR, "I_OAL_StopSong: Error stopping playback.");
     }
+
+    SDL_DestroyMutex(music_lock);
 }
 
 static void I_OAL_UnRegisterSong(void *handle)
