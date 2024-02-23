@@ -831,7 +831,7 @@ enum
 } load_e;
 
 #define SAVE_LOAD_RECT(n) \
-    {M_X_LOADSAVE, M_Y_LOADSAVE + (n) * LINEHEIGHT, M_LOADSAVE_WIDTH, LINEHEIGHT}
+    {M_X_LOADSAVE, M_Y_LOADSAVE + (n) * LINEHEIGHT - 7, M_LOADSAVE_WIDTH, LINEHEIGHT}
 
 // The definitions of the Load Game screen
 
