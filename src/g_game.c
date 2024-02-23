@@ -872,6 +872,7 @@ void G_ClearInput(void)
 static void G_DoLoadLevel(void)
 {
   int i;
+  static boolean displayplayer_set = false;
 
   // Set the sky map.
   // First thing, we have a dummy sky texture name,
@@ -960,7 +961,12 @@ static void G_DoLoadLevel(void)
   }
 
   P_SetupLevel (gameepisode, gamemap, 0, gameskill);
-  displayplayer = consoleplayer;    // view the guy you are playing
+  // [Woof!] Do not reset chosen player view while multiplayer or demo playback.
+  if (!displayplayer_set)
+  {
+    displayplayer = consoleplayer;    // view the guy you are playing
+    displayplayer_set = true;
+  }
   // [Alaux] Update smooth count values
   st_health = players[displayplayer].health;
   st_armor  = players[displayplayer].armorpoints;
