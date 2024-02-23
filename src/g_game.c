@@ -872,7 +872,6 @@ void G_ClearInput(void)
 static void G_DoLoadLevel(void)
 {
   int i;
-  static boolean displayplayer_set = false;
 
   // Set the sky map.
   // First thing, we have a dummy sky texture name,
@@ -961,12 +960,11 @@ static void G_DoLoadLevel(void)
   }
 
   P_SetupLevel (gameepisode, gamemap, 0, gameskill);
-  // [Woof!] Do not reset chosen player view across levels in multiplayer.
-  // However, reset must be done in case of starting new game from demo playback.
-  if (!displayplayer_set || !netgame)
+  // [Woof!] Do not reset chosen player view across levels in multiplayer
+  // demo playback. However, it must be reset when starting a new game.
+  if (usergame)
   {
     displayplayer = consoleplayer;    // view the guy you are playing
-    displayplayer_set = true;
   }
   // [Alaux] Update smooth count values
   st_health = players[displayplayer].health;
