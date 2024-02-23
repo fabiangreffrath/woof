@@ -512,7 +512,7 @@ static void HU_set_centered_message(boolean init)
 
 static inline void HU_cond_build_widget (hu_multiline_t *const multiline, boolean cond)
 {
-  if (cond)
+  if (cond && multiline->built == false)
   {
     multiline->builder();
     multiline->built = true;
@@ -570,6 +570,8 @@ static void HU_widget_build_monsec(void);
 static void HU_widget_build_sttime(void);
 static void HU_widget_build_title (void);
 static void HU_widget_build_weapon (void);
+
+static hu_multiline_t *w_stats;
 
 void HU_Start(void)
 {
@@ -650,6 +652,8 @@ void HU_Start(void)
   HUlib_init_multiline(&w_monsec, hud_widget_layout ? 3 : 1,
                        &boom_font, colrngs[CR_GRAY],
                        NULL, HU_widget_build_monsec);
+  // [FG] in deathmatch: w_keys.builder = HU_widget_build_frag()
+  w_stats = deathmatch ? &w_keys : &w_monsec;
 
   HUlib_init_multiline(&w_sttime, 1,
                        &boom_font, colrngs[CR_GRAY],
@@ -1700,13 +1704,13 @@ void HU_Ticker(void)
 
   if (automapactive)
   {
-    HU_cond_build_widget(&w_monsec, hud_level_stats & HUD_WIDGET_AUTOMAP);
+    HU_cond_build_widget(w_stats, hud_level_stats & HUD_WIDGET_AUTOMAP);
     HU_cond_build_widget(&w_sttime, hud_level_time & HUD_WIDGET_AUTOMAP || plr->btuse_tics);
     HU_cond_build_widget(&w_coord, STRICTMODE(hud_player_coords) & HUD_WIDGET_AUTOMAP);
   }
   else
   {
-    HU_cond_build_widget(&w_monsec, hud_level_stats & HUD_WIDGET_HUD);
+    HU_cond_build_widget(w_stats, hud_level_stats & HUD_WIDGET_HUD);
     HU_cond_build_widget(&w_sttime, hud_level_time & HUD_WIDGET_HUD || plr->btuse_tics);
     HU_cond_build_widget(&w_coord, STRICTMODE(hud_player_coords) & HUD_WIDGET_HUD);
   }
