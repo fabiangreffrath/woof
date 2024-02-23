@@ -1696,17 +1696,20 @@ void HU_Ticker(void)
     }
   }
 
+  // [FG] in deathmatch: w_keys.builder = HU_widget_build_frag()
+  hu_multiline_t *const w_stats = deathmatch ? &w_keys : &w_monsec;
+
   // draw the automap widgets if automap is displayed
 
   if (automapactive)
   {
-    HU_cond_build_widget(&w_monsec, hud_level_stats & HUD_WIDGET_AUTOMAP);
+    HU_cond_build_widget(w_stats, hud_level_stats & HUD_WIDGET_AUTOMAP);
     HU_cond_build_widget(&w_sttime, hud_level_time & HUD_WIDGET_AUTOMAP || plr->btuse_tics);
     HU_cond_build_widget(&w_coord, STRICTMODE(hud_player_coords) & HUD_WIDGET_AUTOMAP);
   }
   else
   {
-    HU_cond_build_widget(&w_monsec, hud_level_stats & HUD_WIDGET_HUD);
+    HU_cond_build_widget(w_stats, hud_level_stats & HUD_WIDGET_HUD);
     HU_cond_build_widget(&w_sttime, hud_level_time & HUD_WIDGET_HUD || plr->btuse_tics);
     HU_cond_build_widget(&w_coord, STRICTMODE(hud_player_coords) & HUD_WIDGET_HUD);
   }
