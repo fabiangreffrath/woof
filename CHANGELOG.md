@@ -14,6 +14,8 @@
 * Remove conditional disabling of HUD menu items.
 * Rename "Forward Sensitivity" to "Move Sensitivity".
 * Use `M_OPTTTL` patch for "Options" menu title.
+* In deathmatch show "Frags" widget instead of "Level Stats".
+* Do not reset chosen player view across levels in multiplayer demo playback spy mode.
 
 **Bug Fixes**
 * Fix framerate limiter in capped mode.
@@ -27,6 +29,9 @@
 * Fix drawing "unlimited" thermo values (mouse sensitivity).
 * Fix translucent columns drawing.
 * Fix `ENDOOM` crash.
+* Fix main menu item hilighting for e.g. `hr2final.wad`.
+* Fix bottom-aligned widgets being drawn one pixel too high.
+* Fix mis-colored blood voxels after invulnarability.
 
 **Miscellaneous**
 * Limit auto aspect ratio to 21:9.
