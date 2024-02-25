@@ -105,9 +105,6 @@ void P_Bob(player_t *player, angle_t angle, fixed_t move)
 // Calculate the walking / running height adjustment
 //
 
-// [crispy] variable player view bob
-static const int bobfactors[3] = {0, 4, 3};
-
 void P_CalcHeight (player_t* player)
 {
   int     angle;
