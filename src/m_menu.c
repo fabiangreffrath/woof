@@ -3131,10 +3131,7 @@ setup_menu_t weap_settings1[] =  // Weapons Settings screen
 
 setup_menu_t weap_settings2[] =
 {
-  {"Weapon Bobbing", S_THERMO|S_PCT, m_null, M_X_THRM8, M_Y,
-   {"weapon_bobbing_pct"}, 0, M_UpdateCenteredWeaponItem},
-
-  {"Hide Weapon", S_ONOFF|S_STRICT, m_null, M_X, M_THRM_SPC, {"hide_weapon"}},
+  {"Hide Weapon", S_ONOFF|S_STRICT, m_null, M_X, M_Y, {"hide_weapon"}},
 
   // [FG] centered or bobbing weapon sprite
   {"Weapon Alignment", S_CHOICE|S_STRICT, m_null, M_X, M_SPC,
@@ -4192,10 +4189,6 @@ setup_menu_t gen_settings5[] = {
 
   {"", S_SKIP, m_null, M_X, M_SPC},
 
-  {"View Bobbing", S_THERMO|S_PCT, m_null, M_X_THRM8, M_SPC, {"view_bobbing_pct"}},
-
-  {"", S_SKIP, m_null, M_X, M_THRM_SPC},
-
   {"Voxels", S_ONOFF|S_STRICT, m_null, M_X, M_SPC, {"voxels_rendering"}},
 
   {"Brightmaps", S_ONOFF|S_STRICT, m_null, M_X, M_SPC, {"brightmaps"}},
@@ -4243,6 +4236,14 @@ setup_menu_t gen_settings6[] = {
    {"organize_savefiles"}},
 
   {"", S_SKIP, m_null, M_X, M_SPC},
+
+  {"View Bobbing", S_THERMO|S_PCT, m_null, M_X_THRM8, M_SPC,
+   {"view_bobbing_pct"}},
+
+  {"Weapon Bobbing", S_THERMO|S_PCT, m_null, M_X_THRM8, M_THRM_SPC,
+   {"weapon_bobbing_pct"}, 0, M_UpdateCenteredWeaponItem},
+
+  {"", S_SKIP, m_null, M_X, M_THRM_SPC},
 
   {"Miscellaneous", S_SKIP|S_TITLE, m_null, M_X, M_SPC},
 
