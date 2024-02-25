@@ -1,5 +1,5 @@
 **New Features and Improvements**
-* Increase main thread priority when window is visible and focused (Windows only).
+* Increase main thread priority when window is visible and focused.
 * Bring back "Emulate Intercepts Overflow" option to the "Doom Compatibility" menu.
 * Apply free look toggle to current input type only. Rename `input_mouselook` to `input_freelook` in config.
 * Add `shorttics` config item.
