@@ -604,11 +604,18 @@ static void AM_initScreenSize(void)
 
 void AM_ResetScreenSize(void)
 {
-  AM_saveScaleAndLoc();
+  int old_h = f_h;
 
   AM_initScreenSize();
 
-  AM_restoreScaleAndLoc();
+  if (f_h != old_h)
+  {
+    // Change the scaling multipliers
+    scale_mtof = FixedDiv(f_w << FRACBITS, m_w);
+    scale_ftom = FixedDiv(FRACUNIT, scale_mtof);
+  }
+
+  AM_activateNewScale();
 }
 
 //
