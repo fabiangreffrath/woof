@@ -826,7 +826,6 @@ static void saveg_read_player_t(player_t *str)
 
     // fixed_t bob;
     str->bob = saveg_read32();
-    str->bob2 = str->bob;
 
     // fixed_t momx;
     str->momx = saveg_read32();

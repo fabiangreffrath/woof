@@ -147,9 +147,6 @@ void P_CalcHeight (player_t* player)
     player->bob = MAXBOB;
   }
 
-  // [crispy] variable player view bob
-  player->bob2 = bobfactors[cosmetic_bobbing] * player->bob / 4;
-
   if (!onground || player->cheats & CF_NOMOMENTUM)
     {
       player->viewz = player->mo->z + VIEWHEIGHT;
@@ -168,7 +165,9 @@ void P_CalcHeight (player_t* player)
     }
 
   angle = (FINEANGLES/20*leveltime)&FINEMASK;
-  bob = FixedMul(player->bob2/2,finesine[angle]);
+
+  bob = player->bob * view_bobbing_pct / 100;
+  bob = FixedMul(bob/2,finesine[angle]);
 
   // move viewheight
 

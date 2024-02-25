@@ -205,9 +205,6 @@ typedef struct player_s
   // [crispy] weapon recoil pitch
   fixed_t             recoilpitch, oldrecoilpitch;
 
-  // [crispy] variable player view bob
-  fixed_t             bob2;
-
   weapswitch_t switching;
 
   // DSDA UV Max category requirements

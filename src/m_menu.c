@@ -1996,7 +1996,6 @@ enum
     str_layout,
     str_curve,
     str_center_weapon,
-    str_bobfactor,
     str_screensize,
     str_hudtype,
     str_hudmode,
@@ -3097,13 +3096,9 @@ static const char *center_weapon_strings[] = {
     "Off", "Centered", "Bobbing"
 };
 
-static const char *bobfactor_strings[] = {
-    "Off", "Full", "75%"
-};
-
 static void M_UpdateCenteredWeaponItem(void)
 {
-  DisableItem(!cosmetic_bobbing, weap_settings2, "center_weapon");
+  DisableItem(!weapon_bobbing_pct, weap_settings2, "center_weapon");
 }
 
 setup_menu_t weap_settings1[] =  // Weapons Settings screen
@@ -3136,10 +3131,10 @@ setup_menu_t weap_settings1[] =  // Weapons Settings screen
 
 setup_menu_t weap_settings2[] =
 {
-  {"View/Weapon Bobbing", S_CHOICE, m_null, M_X, M_Y,
-   {"cosmetic_bobbing"}, 0, M_UpdateCenteredWeaponItem, str_bobfactor},
+  {"Weapon Bobbing", S_THERMO|S_PCT, m_null, M_X_THRM8, M_Y,
+   {"weapon_bobbing_pct"}, 0, M_UpdateCenteredWeaponItem},
 
-  {"Hide Weapon", S_ONOFF|S_STRICT, m_null, M_X, M_SPC, {"hide_weapon"}},
+  {"Hide Weapon", S_ONOFF|S_STRICT, m_null, M_X, M_THRM_SPC, {"hide_weapon"}},
 
   // [FG] centered or bobbing weapon sprite
   {"Weapon Alignment", S_CHOICE|S_STRICT, m_null, M_X, M_SPC,
@@ -4196,6 +4191,10 @@ setup_menu_t gen_settings5[] = {
    {"tran_filter_pct"}, 0, M_Trans},
 
   {"", S_SKIP, m_null, M_X, M_SPC},
+
+  {"View Bobbing", S_THERMO|S_PCT, m_null, M_X_THRM8, M_SPC, {"view_bobbing_pct"}},
+
+  {"", S_SKIP, m_null, M_X, M_THRM_SPC},
 
   {"Voxels", S_ONOFF|S_STRICT, m_null, M_X, M_SPC, {"voxels_rendering"}},
 
@@ -6877,7 +6876,6 @@ static const char **selectstrings[] = {
     layout_strings,
     curve_strings,
     center_weapon_strings,
-    bobfactor_strings,
     screensize_strings,
     hudtype_strings,
     NULL, // str_hudmode

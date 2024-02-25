@@ -335,6 +335,13 @@ default_t defaults[] = {
   },
 
   {
+    "view_bobbing_pct",
+    (config_t *) &view_bobbing_pct, NULL,
+    {100}, {0,100}, number, ss_gen, wad_no,
+    "Player View Bobbing Percentage"
+  },
+
+  {
     "extra_level_brightness",
     (config_t *) &extra_level_brightness, NULL,
     {0}, {0,4}, number, ss_gen, wad_no,
@@ -710,10 +717,10 @@ default_t defaults[] = {
   },
 
   {
-    "cosmetic_bobbing",
-    (config_t *) &cosmetic_bobbing, NULL,
-    {1}, {0,2}, number, ss_weap, wad_no,
-    "Player View/Weapon Bobbing (0 = off, 1 = full, 2 = 75%)"
+    "weapon_bobbing_pct",
+    (config_t *) &weapon_bobbing_pct, NULL,
+    {100}, {0,100}, number, ss_weap, wad_no,
+    "Player Weapon Bobbing Percentage"
   },
 
   {

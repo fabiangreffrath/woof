@@ -120,7 +120,8 @@ boolean hide_weapon;
 // [FG] centered weapon sprite
 int center_weapon;
 
-int cosmetic_bobbing;
+int view_bobbing_pct;
+int weapon_bobbing_pct;
 
 char *MAPNAME(int e, int m)
 {
