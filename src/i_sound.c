@@ -523,8 +523,10 @@ void I_SetMidiPlayer(int device)
     {
         int n;
         const char **strings = native_midi_module->I_DeviceList(&n);
+        int num_devices = array_size(strings);
+        array_free(strings);
 
-        if (device < array_size(strings))
+        if (device < num_devices)
         {
             native_midi_module->I_ShutdownMusic();
             if (native_midi_module->I_InitMusic(device))
@@ -534,8 +536,6 @@ void I_SetMidiPlayer(int device)
                 return;
             }
         }
-
-        array_free(strings);
     }
 
     native_midi = false;
@@ -547,6 +547,7 @@ void I_SetMidiPlayer(int device)
         int n;
         const char **strings = stream_modules[i]->I_DeviceList(&n);
         int num_devices = array_size(strings);
+        array_free(strings);
 
         if (device >= accum && device < accum + num_devices)
         {
@@ -560,8 +561,6 @@ void I_SetMidiPlayer(int device)
         }
 
         accum += num_devices;
-
-        array_free(strings);
     }
 
     MidiPlayerFallback();
