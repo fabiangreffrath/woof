@@ -4240,10 +4240,10 @@ setup_menu_t gen_settings6[] = {
   {"Screen flashes", S_ONOFF|S_STRICT, m_null, M_X, M_SPC,
    {"palette_changes"}},
 
-  {"Organize save files", S_ONOFF|S_PRGWARN, m_null, M_X, M_THRM_SPC,
+  {"Organize save files", S_ONOFF|S_PRGWARN, m_null, M_X, M_SPC,
    {"organize_savefiles"}},
 
-  {"", S_SKIP, m_null, M_X, M_THRM_SPC},
+  {"", S_SKIP, m_null, M_X, M_SPC},
 
   {"Miscellaneous", S_SKIP|S_TITLE, m_null, M_X, M_SPC},
 
