@@ -1142,7 +1142,7 @@ void P_MovePsprites(player_t *player)
       // [FG] not attacking means idle
       else if (!player->attackdown || center_weapon_strict == WEAPON_BOBBING)
       {
-        fixed_t bob = player->bob * weapon_bobbing_pct * 25 / 100;
+        fixed_t bob = player->bob * weapon_bobbing_pct / 4;
         P_ApplyBobbing(&psp->sx2, &psp->sy2, bob);
       }
       // [FG] center the weapon sprite horizontally and push up vertically

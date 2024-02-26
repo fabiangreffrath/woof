@@ -3122,7 +3122,6 @@ setup_menu_t weap_settings1[] =
 
   {"Weapon Recoil", S_ONOFF, m_null, M_X, M_SPC, {"weapon_recoilpitch"}},
 
-  // Button for resetting to defaults
   MI_RESET,
 
   MI_END
