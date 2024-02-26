@@ -2021,6 +2021,7 @@ enum
     str_death_use_action,
     str_menu_backdrop,
     str_widescreen,
+    str_bobbing_pct,
 };
 
 static const char **GetStrings(int id);
@@ -3086,8 +3087,8 @@ static setup_menu_t* weap_settings[] =
 
 static setup_tab_t weap_tabs[] =
 {
-   { "preferences", weap_settings1 },
-   { "cosmetic",    weap_settings2 },
+   { "cosmetic",    weap_settings1 },
+   { "preferences", weap_settings2 },
    { NULL }
 };
 
@@ -3098,10 +3099,36 @@ static const char *center_weapon_strings[] = {
 
 static void M_UpdateCenteredWeaponItem(void)
 {
-  DisableItem(!weapon_bobbing_pct, weap_settings2, "center_weapon");
+  DisableItem(!weapon_bobbing_pct, weap_settings1, "center_weapon");
 }
 
-setup_menu_t weap_settings1[] =  // Weapons Settings screen
+static const char *bobbing_pct_strings[] = {
+  "0%", "25%", "50%", "75%", "100%"
+};
+
+setup_menu_t weap_settings1[] =
+{
+  {"View Bob", S_THERMO|S_THRM_SIZE4, m_null, M_X_THRM4, M_Y,
+   {"view_bobbing_pct"}, 0, NULL, str_bobbing_pct},
+
+  {"Weapon Bob", S_THERMO|S_THRM_SIZE4, m_null, M_X_THRM4, M_THRM_SPC,
+   {"weapon_bobbing_pct"}, 0, M_UpdateCenteredWeaponItem, str_bobbing_pct},
+
+  // [FG] centered or bobbing weapon sprite
+  {"Weapon Alignment", S_CHOICE|S_STRICT, m_null, M_X, M_THRM_SPC,
+   {"center_weapon"}, 0, NULL, str_center_weapon},
+
+  {"Hide Weapon", S_ONOFF|S_STRICT, m_null, M_X, M_SPC, {"hide_weapon"}},
+
+  {"Weapon Recoil", S_ONOFF, m_null, M_X, M_SPC, {"weapon_recoilpitch"}},
+
+  // Button for resetting to defaults
+  MI_RESET,
+
+  MI_END
+};
+
+setup_menu_t weap_settings2[] =  // Weapons Settings screen
 {
   {"1St Choice Weapon", S_WEAP|S_BOOM, m_null, M_X, M_Y,   {"weapon_choice_1"}},
   {"2Nd Choice Weapon", S_WEAP|S_BOOM, m_null, M_X, M_SPC, {"weapon_choice_2"}},
@@ -3122,22 +3149,6 @@ setup_menu_t weap_settings1[] =  // Weapons Settings screen
 
   {"Pre-Beta BFG", S_ONOFF, m_null, M_X,  // killough 8/8/98
    M_SPC, {"classic_bfg"}},
-
-  // Button for resetting to defaults
-  MI_RESET,
-
-  MI_END
-};
-
-setup_menu_t weap_settings2[] =
-{
-  {"Hide Weapon", S_ONOFF|S_STRICT, m_null, M_X, M_Y, {"hide_weapon"}},
-
-  // [FG] centered or bobbing weapon sprite
-  {"Weapon Alignment", S_CHOICE|S_STRICT, m_null, M_X, M_SPC,
-   {"center_weapon"}, 0, NULL, str_center_weapon},
-
-  {"Weapon Recoil", S_ONOFF, m_null, M_X, M_SPC, {"weapon_recoilpitch"}},
 
   MI_END
 };
@@ -4234,14 +4245,6 @@ setup_menu_t gen_settings6[] = {
 
   {"Organize save files", S_ONOFF|S_PRGWARN, m_null, M_X, M_THRM_SPC,
    {"organize_savefiles"}},
-
-  {"", S_SKIP, m_null, M_X, M_SPC},
-
-  {"View Bobbing", S_THERMO|S_PCT, m_null, M_X_THRM8, M_SPC,
-   {"view_bobbing_pct"}},
-
-  {"Weapon Bobbing", S_THERMO|S_PCT, m_null, M_X_THRM8, M_THRM_SPC,
-   {"weapon_bobbing_pct"}, 0, M_UpdateCenteredWeaponItem},
 
   {"", S_SKIP, m_null, M_X, M_THRM_SPC},
 
@@ -6898,6 +6901,7 @@ static const char **selectstrings[] = {
     death_use_action_strings,
     menu_backdrop_strings,
     widescreen_strings,
+    bobbing_pct_strings,
 };
 
 static const char **GetStrings(int id)

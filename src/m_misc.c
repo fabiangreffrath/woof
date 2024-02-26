@@ -335,13 +335,6 @@ default_t defaults[] = {
   },
 
   {
-    "view_bobbing_pct",
-    (config_t *) &view_bobbing_pct, NULL,
-    {100}, {0,100}, number, ss_gen, wad_no,
-    "Player View Bobbing Percentage"
-  },
-
-  {
     "extra_level_brightness",
     (config_t *) &extra_level_brightness, NULL,
     {0}, {0,4}, number, ss_gen, wad_no,
@@ -717,17 +710,24 @@ default_t defaults[] = {
   },
 
   {
-    "weapon_bobbing_pct",
-    (config_t *) &weapon_bobbing_pct, NULL,
-    {100}, {0,100}, number, ss_weap, wad_no,
-    "Player Weapon Bobbing Percentage"
-  },
-
-  {
     "hide_weapon",
     (config_t *) &hide_weapon, NULL,
     {0}, {0,1}, number, ss_weap, wad_no,
     "1 to hide weapon"
+  },
+
+  {
+    "view_bobbing_pct",
+    (config_t *) &view_bobbing_pct, NULL,
+    {4}, {0,4}, number, ss_weap, wad_no,
+    "Player View Bobbing (0 - 0%, 1 - 25% ... 4 - 100%)"
+  },
+
+  {
+    "weapon_bobbing_pct",
+    (config_t *) &weapon_bobbing_pct, NULL,
+    {4}, {0,4}, number, ss_weap, wad_no,
+    "Player Weapon Bobbing (0 - 0%, 1 - 25% ... 4 - 100%)"
   },
 
   // [FG] centered or bobbing weapon sprite
