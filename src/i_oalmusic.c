@@ -37,8 +37,6 @@ extern stream_module_t stream_xmp_module;
 extern stream_module_t stream_opl_module;
 extern stream_module_t stream_fl_module;
 
-stream_module_t *midi_stream_module;
-
 static stream_module_t *stream_modules[] =
 {
     &stream_snd_module,

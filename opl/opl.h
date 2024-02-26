@@ -18,7 +18,7 @@
 #ifndef OPL_OPL_H
 #define OPL_OPL_H
 
-#include "doomtype.h"
+#include <stdint.h>
 
 typedef void (*opl_callback_t)(void *data);
 
@@ -130,7 +130,7 @@ void OPL_ClearCallbacks(void);
 
 void OPL_SetPaused(int paused);
 
-int OPL_FillBuffer(byte *buffer, int buffer_samples);
+int OPL_FillBuffer(unsigned char *buffer, int buffer_samples);
 
 #endif
 
