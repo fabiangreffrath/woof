@@ -15,9 +15,8 @@
 //     OPL interface.
 //
 
-#include "SDL.h"
-
 #include <stdio.h>
+#include <string.h>
 
 #include "m_io.h"
 #include "opl.h"
@@ -324,69 +323,6 @@ void OPL_ClearCallbacks(void)
     if (driver != NULL)
     {
         driver->clear_callbacks_func();
-    }
-}
-
-typedef struct
-{
-    int finished;
-
-    SDL_mutex *mutex;
-    SDL_cond *cond;
-} delay_data_t;
-
-static void DelayCallback(void *_delay_data)
-{
-    delay_data_t *delay_data = _delay_data;
-
-    SDL_LockMutex(delay_data->mutex);
-    delay_data->finished = 1;
-
-    SDL_CondSignal(delay_data->cond);
-
-    SDL_UnlockMutex(delay_data->mutex);
-}
-
-void OPL_Delay(uint64_t us)
-{
-    delay_data_t delay_data;
-
-    if (driver == NULL)
-    {
-        return;
-    }
-
-    // Create a callback that will signal this thread after the
-    // specified time.
-
-    delay_data.finished = 0;
-    delay_data.mutex = SDL_CreateMutex();
-    delay_data.cond = SDL_CreateCond();
-
-    OPL_SetCallback(us, DelayCallback, &delay_data);
-
-    // Wait until the callback is invoked.
-
-    SDL_LockMutex(delay_data.mutex);
-
-    while (!delay_data.finished)
-    {
-        SDL_CondWait(delay_data.cond, delay_data.mutex);
-    }
-
-    SDL_UnlockMutex(delay_data.mutex);
-
-    // Clean up.
-
-    SDL_DestroyMutex(delay_data.mutex);
-    SDL_DestroyCond(delay_data.cond);
-}
-
-void OPL_SetPaused(int paused)
-{
-    if (driver != NULL)
-    {
-        driver->set_paused_func(paused);
     }
 }
 

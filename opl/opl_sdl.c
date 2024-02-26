@@ -15,8 +15,6 @@
 //     OPL SDL interface.
 //
 
-#include "SDL.h"
-
 #include "doomtype.h"
 #include "opl.h"
 #include "opl3.h"
@@ -32,11 +30,6 @@ typedef struct
     unsigned int value;       // Last value that was set.
     uint64_t expire_time;     // Calculated time that timer will expire.
 } opl_timer_t;
-
-// When the callback mutex is locked using OPL_Lock, callback functions
-// are not invoked.
-
-static SDL_mutex *callback_mutex = NULL;
 
 // Queue of callbacks waiting to be invoked.
 
@@ -166,12 +159,6 @@ static void OPL_SDL_Shutdown(void)
         opl_chip = NULL;
     }
     */
-
-    if (callback_mutex != NULL)
-    {
-        SDL_DestroyMutex(callback_mutex);
-        callback_mutex = NULL;
-    }
 }
 
 static int OPL_SDL_Init(unsigned int port_base)
@@ -311,11 +298,6 @@ static void OPL_SDL_ClearCallbacks(void)
     OPL_Queue_Clear(callback_queue);
 }
 
-static void OPL_SDL_SetPaused(int paused)
-{
-    opl_sdl_paused = paused;
-}
-
 static void OPL_SDL_AdjustCallbacks(float factor)
 {
     OPL_Queue_AdjustCallbacks(callback_queue, current_time, factor);
@@ -330,7 +312,6 @@ opl_driver_t opl_sdl_driver =
     OPL_SDL_PortWrite,
     OPL_SDL_SetCallback,
     OPL_SDL_ClearCallbacks,
-    OPL_SDL_SetPaused,
     OPL_SDL_AdjustCallbacks,
 };
 
