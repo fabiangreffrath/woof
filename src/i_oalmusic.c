@@ -22,7 +22,6 @@
 #include <stdlib.h>
 
 #include "doomtype.h"
-#include "i_oalmusic.h"
 #include "i_oalstream.h"
 #include "i_printf.h"
 #include "i_sound.h"
@@ -35,8 +34,12 @@
 
 extern stream_module_t stream_snd_module;
 extern stream_module_t stream_xmp_module;
+extern stream_module_t stream_opl_module;
+extern stream_module_t stream_fl_module;
 
-stream_module_t *stream_modules[] =
+stream_module_t *midi_stream_module;
+
+static stream_module_t *stream_modules[] =
 {
     &stream_snd_module,
 #if defined(HAVE_LIBXMP)
@@ -65,8 +68,6 @@ static stream_player_t player;
 
 static SDL_Thread *player_thread_handle;
 static int player_thread_running;
-
-static callback_func_t callback;
 
 static boolean music_initialized;
 
@@ -97,14 +98,7 @@ static boolean UpdatePlayer(void)
 
         // Read the next chunk of data, refill the buffer, and queue it back on
         // the source.
-        if (callback)
-        {
-            frames = callback(player.data, BUFFER_SAMPLES);
-        }
-        else
-        {
-            frames = active_module->I_FillStream(player.data, BUFFER_SAMPLES);
-        }
+        frames = active_module->I_FillStream(player.data, BUFFER_SAMPLES);
 
         if (frames > 0)
         {
@@ -152,10 +146,7 @@ static boolean StartPlayer(void)
     alSourceRewind(player.source);
     alSourcei(player.source, AL_BUFFER, 0);
 
-    if (!callback)
-    {
-        active_module->I_PlayStream(player.looping);
-    }
+    active_module->I_PlayStream(player.looping);
 
     // Fill the buffer queue
     for (i = 0; i < NUM_BUFFERS; i++)
@@ -164,14 +155,7 @@ static boolean StartPlayer(void)
         ALsizei size;
 
         // Get some data to give it to the buffer
-        if (callback)
-        {
-            frames = callback(player.data, BUFFER_SAMPLES);
-        }
-        else
-        {
-            frames = active_module->I_FillStream(player.data, BUFFER_SAMPLES);
-        }
+        frames = active_module->I_FillStream(player.data, BUFFER_SAMPLES);
 
         if (frames < 1)
             break;
@@ -247,17 +231,36 @@ static boolean I_OAL_InitMusic(int device)
         alSourcei(player.source, AL_SOURCE_SPATIALIZE_SOFT, AL_FALSE);
     }
 
+    for (int i = 0; i < arrlen(stream_modules); ++i)
+    {
+        stream_modules[i]->I_InitStream(0);
+    }
+
     music_initialized = true;
 
     return true;
 }
+
+int mus_gain = 100;
+int opl_gain = 200;
 
 static void I_OAL_SetMusicVolume(int volume)
 {
     if (!music_initialized)
         return;
 
-    alSourcef(player.source, AL_GAIN, (ALfloat)volume / 15.0f);
+    ALfloat gain = (ALfloat)volume / 15.0f;
+
+    if (active_module == &stream_opl_module)
+    {
+        gain *= (ALfloat)opl_gain / 100.0f;
+    }
+    else if (active_module == &stream_fl_module)
+    {
+        gain *= (ALfloat)mus_gain / 100.0f;
+    }
+
+    alSourcef(player.source, AL_GAIN, gain);
 }
 
 static void I_OAL_PauseSong(void *handle)
@@ -303,15 +306,8 @@ static void I_OAL_PlaySong(void *handle, boolean looping)
 
 static void I_OAL_StopSong(void *handle)
 {
-    ALsizei processed;
-
-    if (!music_initialized)
+    if (!music_initialized || !player_thread_running)
         return;
-
-    if (!player_thread_running)
-    {
-        return;
-    }
 
     alSourceStop(player.source);
 
@@ -320,15 +316,6 @@ static void I_OAL_StopSong(void *handle)
     SDL_UnlockMutex(music_lock);
 
     SDL_WaitThread(player_thread_handle, NULL);
-
-    alGetSourcei(player.source, AL_BUFFERS_PROCESSED, &processed);
-    if (processed > 0)
-    {
-        ALuint* al_buf = malloc(processed * sizeof(*al_buf));
-        alSourceUnqueueBuffers(player.source, processed, al_buf);
-        free(al_buf);
-    }
-    alSourcei(player.source, AL_BUFFER, 0);
 
     if (alGetError() != AL_NO_ERROR)
     {
@@ -343,10 +330,7 @@ static void I_OAL_UnRegisterSong(void *handle)
     if (!music_initialized)
         return;
 
-    if (!callback)
-    {
-        active_module->I_CloseStream();
-    }
+    active_module->I_CloseStream();
 
     if (player.data)
     {
@@ -362,6 +346,9 @@ static void I_OAL_ShutdownMusic(void)
 
     I_OAL_StopSong(NULL);
     I_OAL_UnRegisterSong(NULL);
+
+    midi_stream_module->I_ShutdownStream();
+    active_module->I_ShutdownStream();
 
     alDeleteSources(1, &player.source);
     alDeleteBuffers(NUM_BUFFERS, player.buffers);
@@ -384,6 +371,18 @@ static void *I_OAL_RegisterSong(void *data, int len)
     if (!music_initialized)
         return NULL;
 
+    if (IsMid(data, len) || IsMus(data, len))
+    {
+        if (midi_stream_module &&
+            midi_stream_module->I_OpenStream(data, len, &player.format,
+                                              &player.freq, &player.frame_size))
+        {
+            active_module = midi_stream_module;
+            return (void *)1;
+        }
+        return NULL;
+    }
+
     for (i = 0; i < arrlen(stream_modules); ++i)
     {
         if (stream_modules[i]->I_OpenStream(data, len, &player.format,
@@ -401,41 +400,6 @@ static const char **I_OAL_DeviceList(int *current_device)
 {
     *current_device = 0;
     return NULL;
-}
-
-void I_OAL_SetGain(float gain)
-{
-    if (!music_initialized)
-        return;
-
-    alSourcef(player.source, AL_GAIN, (ALfloat)gain);
-}
-
-boolean I_OAL_HookMusic(callback_func_t callback_func)
-{
-    if (!music_initialized)
-        return false;
-
-    if (callback_func)
-    {
-        callback = callback_func;
-
-        player.format = AL_FORMAT_STEREO16;
-        player.freq = SND_SAMPLERATE;
-        player.frame_size = 2 * sizeof(short);
-
-        I_OAL_SetGain(1.0f);
-        I_OAL_PlaySong(NULL, false);
-    }
-    else
-    {
-        I_OAL_StopSong(NULL);
-        I_OAL_UnRegisterSong(NULL);
-
-        callback = NULL;
-    }
-
-    return true;
 }
 
 static void I_OAL_UpdateMusic(void)

@@ -34,7 +34,6 @@ static opl_driver_t *drivers[] =
 };
 
 static opl_driver_t *driver = NULL;
-static int init_stage_reg_writes = 1;
 
 unsigned int opl_sample_rate = 22050;
 
@@ -48,8 +47,6 @@ unsigned int opl_sample_rate = 22050;
 static opl_init_result_t InitDriver(opl_driver_t *_driver,
                                     unsigned int port_base)
 {
-    opl_init_result_t result1, result2;
-
     // Initialize the driver.
 
     if (!_driver->init_func(port_base))
@@ -63,23 +60,10 @@ static opl_init_result_t InitDriver(opl_driver_t *_driver,
     // (it's done twice, like how Doom does it).
 
     driver = _driver;
-    init_stage_reg_writes = 1;
-
-    result1 = OPL_Detect();
-    result2 = OPL_Detect();
-    if (result1 == OPL_INIT_NONE || result2 == OPL_INIT_NONE)
-    {
-        printf("OPL_Init: No OPL detected using '%s' driver.\n", _driver->name);
-        _driver->shutdown_func();
-        driver = NULL;
-        return OPL_INIT_NONE;
-    }
-
-    init_stage_reg_writes = 0;
 
     printf("OPL_Init: Using driver '%s'.\n", driver->name);
 
-    return result2;
+    return OPL_INIT_OPL3;
 }
 
 // Find a driver automatically by trying each in the list.
@@ -232,18 +216,7 @@ void OPL_WriteRegister(int reg, int value)
 
     for (i=0; i<6; ++i)
     {
-        // An oddity of the Doom OPL code: at startup initialization,
-        // the spacing here is performed by reading from the register
-        // port; after initialization, the data port is read, instead.
-
-        if (init_stage_reg_writes)
-        {
-            OPL_ReadPort(OPL_REGISTER_PORT);
-        }
-        else
-        {
-            OPL_ReadPort(OPL_DATA_PORT);
-        }
+        OPL_ReadPort(OPL_DATA_PORT);
     }
 
     OPL_WritePort(OPL_DATA_PORT, value);
@@ -254,66 +227,6 @@ void OPL_WriteRegister(int reg, int value)
     for (i=0; i<24; ++i)
     {
         OPL_ReadStatus();
-    }
-}
-
-// Detect the presence of an OPL chip
-
-opl_init_result_t OPL_Detect(void)
-{
-    int result1, result2;
-    int i;
-
-    // Reset both timers:
-    OPL_WriteRegister(OPL_REG_TIMER_CTRL, 0x60);
-
-    // Enable interrupts:
-    OPL_WriteRegister(OPL_REG_TIMER_CTRL, 0x80);
-
-    // Read status
-    result1 = OPL_ReadStatus();
-
-    // Set timer:
-    OPL_WriteRegister(OPL_REG_TIMER1, 0xff);
-
-    // Start timer 1:
-    OPL_WriteRegister(OPL_REG_TIMER_CTRL, 0x21);
-
-    // Wait for 80 microseconds
-    // This is how Doom does it:
-
-    for (i=0; i<200; ++i)
-    {
-        OPL_ReadStatus();
-    }
-
-    OPL_Delay(1 * OPL_MS);
-
-    // Read status
-    result2 = OPL_ReadStatus();
-
-    // Reset both timers:
-    OPL_WriteRegister(OPL_REG_TIMER_CTRL, 0x60);
-
-    // Enable interrupts:
-    OPL_WriteRegister(OPL_REG_TIMER_CTRL, 0x80);
-
-    if ((result1 & 0xe0) == 0x00 && (result2 & 0xe0) == 0xc0)
-    {
-        result1 = OPL_ReadPort(OPL_REGISTER_PORT);
-        result2 = OPL_ReadPort(OPL_REGISTER_PORT_OPL3);
-        if (result1 == 0x00)
-        {
-            return OPL_INIT_OPL3;
-        }
-        else
-        {
-            return OPL_INIT_OPL2;
-        }
-    }
-    else
-    {
-        return OPL_INIT_NONE;
     }
 }
 
@@ -411,22 +324,6 @@ void OPL_ClearCallbacks(void)
     if (driver != NULL)
     {
         driver->clear_callbacks_func();
-    }
-}
-
-void OPL_Lock(void)
-{
-    if (driver != NULL)
-    {
-        driver->lock_func();
-    }
-}
-
-void OPL_Unlock(void)
-{
-    if (driver != NULL)
-    {
-        driver->unlock_func();
     }
 }
 

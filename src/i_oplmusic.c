@@ -22,6 +22,7 @@
 #include "../opl/opl.h"
 
 #include "doomtype.h"
+#include "i_oalstream.h"
 #include "i_printf.h"
 #include "i_sound.h"
 #include "m_array.h"
@@ -651,13 +652,6 @@ static void SetChannelVolume(opl_channel_data_t *channel, unsigned int volume,
 static void I_OPL_SetMusicVolume(int volume)
 {
     unsigned int i;
-
-    volume = volume * 127 / 15; // [FG] adjust volume
-
-    if (current_music_volume == volume)
-    {
-        return;
-    }
 
     // Internal state variable.
 
@@ -1481,234 +1475,7 @@ static void StartTrack(midi_file_t *file, unsigned int track_num)
     ScheduleTrack(track);
 }
 
-// Start playing a mid
-
-static void I_OPL_PlaySong(void *handle, boolean looping)
-{
-    midi_file_t *file;
-    unsigned int i;
-
-    if (!music_initialized || handle == NULL)
-    {
-        return;
-    }
-
-    file = handle;
-
-    // Allocate track data.
-
-    tracks = malloc(MIDI_NumTracks(file) * sizeof(opl_track_data_t));
-
-    num_tracks = MIDI_NumTracks(file);
-    running_tracks = num_tracks;
-    song_looping = looping;
-
-    ticks_per_beat = MIDI_GetFileTimeDivision(file);
-
-    // Default is 120 bpm.
-    // TODO: this is wrong
-
-    us_per_beat = 500 * 1000;
-
-    start_music_volume = current_music_volume;
-
-    for (i = 0; i < num_tracks; ++i)
-    {
-        StartTrack(file, i);
-    }
-
-    for (i = 0; i < MIDI_CHANNELS_PER_TRACK; ++i)
-    {
-        InitChannel(&channels[i]);
-    }
-
-    // If the music was previously paused, it needs to be unpaused; playing
-    // a new song implies that we turn off pause. This matches vanilla
-    // behavior of the DMX library, and some of the higher-level code in
-    // s_sound.c relies on this.
-    OPL_SetPaused(0);
-}
-
-static void I_OPL_PauseSong(void *handle)
-{
-    unsigned int i;
-
-    if (!music_initialized)
-    {
-        return;
-    }
-
-    // Pause OPL callbacks.
-
-    OPL_SetPaused(1);
-
-    // Turn off all main instrument voices (not percussion).
-    // This is what Vanilla does.
-
-    for (i = 0; i < num_opl_voices; ++i)
-    {
-        if (voices[i].channel != NULL
-         && voices[i].current_instr < percussion_instrs)
-        {
-            VoiceKeyOff(&voices[i]);
-        }
-    }
-}
-
-static void I_OPL_ResumeSong(void *handle)
-{
-    if (!music_initialized)
-    {
-        return;
-    }
-
-    OPL_SetPaused(0);
-}
-
-static void I_OPL_StopSong(void *handle)
-{
-    unsigned int i;
-
-    if (!music_initialized)
-    {
-        return;
-    }
-
-    OPL_Lock();
-
-    // Stop all playback.
-
-    OPL_ClearCallbacks();
-
-    // Free all voices.
-
-    for (i = 0; i < MIDI_CHANNELS_PER_TRACK; ++i)
-    {
-        AllNotesOff(&channels[i], 0);
-    }
-
-    // Free all track data.
-
-    for (i = 0; i < num_tracks; ++i)
-    {
-        MIDI_FreeIterator(tracks[i].iter);
-    }
-
-    free(tracks);
-
-    tracks = NULL;
-    num_tracks = 0;
-
-    OPL_Unlock();
-}
-
-static void I_OPL_UnRegisterSong(void *handle)
-{
-    if (!music_initialized)
-    {
-        return;
-    }
-
-    if (handle != NULL)
-    {
-        MIDI_FreeFile(handle);
-    }
-}
-
-static boolean OPL_InitMusic(void);
-
-static void *I_OPL_RegisterSong(void *data, int len)
-{
-    midi_file_t *result;
-
-    if (!music_initialized)
-    {
-        OPL_InitMusic();
-    }
-
-    // MUS files begin with "MUS"
-    // Reject anything which doesnt have this signature
-
-    // [crispy] remove MID file size limit
-    if (IsMid(data, len) /* && len < MAXMIDLENGTH */)
-    {
-        result = MIDI_LoadFile(data, len);
-    }
-    else
-    {
-        // Assume a MUS file and try to convert
-        MEMFILE *instream;
-        MEMFILE *outstream;
-        void *outbuf;
-        size_t outbuf_len;
-
-        instream = mem_fopen_read(data, len);
-        outstream = mem_fopen_write();
-
-        if (mus2mid(instream, outstream) == 0)
-        {
-            mem_get_buf(outstream, &outbuf, &outbuf_len);
-            result = MIDI_LoadFile(outbuf, outbuf_len);
-        }
-        else
-        {
-            result = NULL;
-        }
-
-        mem_fclose(instream);
-        mem_fclose(outstream);
-    }
-
-    if (result == NULL)
-    {
-        I_Printf(VB_ERROR, "I_OPL_RegisterSong: Failed to load MID.");
-    }
-
-    return result;
-}
-
-#if 0
-// Is the song playing?
-
-static boolean I_OPL_MusicIsPlaying(void)
-{
-    if (!music_initialized)
-    {
-        return false;
-    }
-
-    return num_tracks > 0;
-}
-#endif
-
-// Shutdown music
-
-static void I_OPL_ShutdownMusic(void)
-{
-    if (music_initialized)
-    {
-        // Stop currently-playing track, if there is one:
-
-        I_OPL_StopSong(NULL);
-
-        OPL_Shutdown();
-
-        // Release GENMIDI lump
-
-        Z_ChangeTag(lump, PU_CACHE);
-
-        music_initialized = false;
-    }
-}
-
-// Initialize music subsystem
-
-static boolean I_OPL_InitMusic(int device)
-{
-    return true;
-}
-
-static boolean OPL_InitMusic(void)
+static boolean I_OPL_InitStream(int device)
 {
     char *dmxoption;
     opl_init_result_t chip_type;
@@ -1766,6 +1533,155 @@ static boolean OPL_InitMusic(void)
     return true;
 }
 
+static midi_file_t *midifile;
+
+static boolean I_OPL_OpenStream(void *data, ALsizei size, ALenum *format,
+                                ALsizei *freq, ALsizei *frame_size)
+{
+    // [crispy] remove MID file size limit
+    if (IsMid(data, size) /* && size < MAXMIDLENGTH */)
+    {
+        midifile = MIDI_LoadFile(data, size);
+    }
+    else
+    {
+        // Assume a MUS file and try to convert
+        MEMFILE *instream;
+        MEMFILE *outstream;
+        void *outbuf;
+        size_t outbuf_len;
+
+        instream = mem_fopen_read(data, size);
+        outstream = mem_fopen_write();
+
+        if (mus2mid(instream, outstream) == 0)
+        {
+            mem_get_buf(outstream, &outbuf, &outbuf_len);
+            midifile = MIDI_LoadFile(outbuf, outbuf_len);
+        }
+        else
+        {
+            midifile = NULL;
+        }
+
+        mem_fclose(instream);
+        mem_fclose(outstream);
+    }
+
+    if (midifile == NULL)
+    {
+        I_Printf(VB_ERROR, "I_OPL_RegisterSong: Failed to load MID.");
+        return false;
+    }
+
+    *format = AL_FORMAT_STEREO16;
+    *freq = SND_SAMPLERATE;
+    *frame_size = 2 * sizeof(short);
+
+    return true;
+}
+
+// Start playing a mid
+
+static void I_OPL_PlayStream(boolean looping)
+{
+    unsigned int i;
+
+    if (!music_initialized)
+    {
+        return;
+    }
+
+    I_OPL_SetMusicVolume(127);
+
+    // Allocate track data.
+
+    tracks = malloc(MIDI_NumTracks(midifile) * sizeof(opl_track_data_t));
+
+    num_tracks = MIDI_NumTracks(midifile);
+    running_tracks = num_tracks;
+    song_looping = looping;
+
+    ticks_per_beat = MIDI_GetFileTimeDivision(midifile);
+
+    // Default is 120 bpm.
+    // TODO: this is wrong
+
+    us_per_beat = 500 * 1000;
+
+    start_music_volume = current_music_volume;
+
+    for (i = 0; i < num_tracks; ++i)
+    {
+        StartTrack(midifile, i);
+    }
+
+    for (i = 0; i < MIDI_CHANNELS_PER_TRACK; ++i)
+    {
+        InitChannel(&channels[i]);
+    }
+}
+
+static int I_OPL_FillStream(byte *buffer, int buffer_samples)
+{
+    return OPL_FillBuffer(buffer, buffer_samples);
+}
+
+static void I_OPL_CloseStream(void)
+{
+    unsigned int i;
+
+    if (!music_initialized)
+    {
+        return;
+    }
+
+    // Stop all playback.
+
+    OPL_ClearCallbacks();
+
+    // Free all voices.
+
+    for (i = 0; i < MIDI_CHANNELS_PER_TRACK; ++i)
+    {
+        AllNotesOff(&channels[i], 0);
+    }
+
+    // Free all track data.
+
+    for (i = 0; i < num_tracks; ++i)
+    {
+        MIDI_FreeIterator(tracks[i].iter);
+    }
+
+    free(tracks);
+
+    tracks = NULL;
+    num_tracks = 0;
+
+    if (midifile)
+    {
+        MIDI_FreeFile(midifile);
+        midifile = NULL;
+    }
+}
+
+// Shutdown music
+
+static void I_OPL_ShutdownStream(void)
+{
+    if (music_initialized)
+    {
+        OPL_Shutdown();
+
+        // Release GENMIDI lump
+
+        Z_ChangeTag(lump, PU_CACHE);
+
+        music_initialized = false;
+    }
+}
+
 static const char **I_OPL_DeviceList(int *current_device)
 {
     const char **devices = NULL;
@@ -1774,22 +1690,13 @@ static const char **I_OPL_DeviceList(int *current_device)
     return devices;
 }
 
-static void I_OPL_UpdateMusic(void)
+stream_module_t stream_opl_module =
 {
-    ;
-}
-
-music_module_t music_opl_module =
-{
-    I_OPL_InitMusic,
-    I_OPL_ShutdownMusic,
-    I_OPL_SetMusicVolume,
-    I_OPL_PauseSong,
-    I_OPL_ResumeSong,
-    I_OPL_RegisterSong,
-    I_OPL_PlaySong,
-    I_OPL_UpdateMusic,
-    I_OPL_StopSong,
-    I_OPL_UnRegisterSong,
+    I_OPL_InitStream,
+    I_OPL_OpenStream,
+    I_OPL_FillStream,
+    I_OPL_PlayStream,
+    I_OPL_CloseStream,
+    I_OPL_ShutdownStream,
     I_OPL_DeviceList,
 };
