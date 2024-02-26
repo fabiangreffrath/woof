@@ -373,7 +373,7 @@ static void *I_OAL_RegisterSong(void *data, int len)
     {
         if (midi_stream_module &&
             midi_stream_module->I_OpenStream(data, len, &player.format,
-                                              &player.freq, &player.frame_size))
+                                             &player.freq, &player.frame_size))
         {
             active_module = midi_stream_module;
             return (void *)1;
