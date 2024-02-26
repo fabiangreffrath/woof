@@ -46,12 +46,6 @@ static const sound_module_t *sound_modules[] =
 
 static const sound_module_t *sound_module;
 
-// Music modules
-extern music_module_t music_win_module;
-extern music_module_t music_mac_module;
-extern music_module_t music_fl_module;
-extern music_module_t music_oal_module;
-
 static music_module_t *native_midi_module =
 #if defined(_WIN32)
     &music_win_module;
@@ -62,9 +56,6 @@ static music_module_t *native_midi_module =
 #endif
 
 static boolean native_midi;
-
-extern stream_module_t stream_opl_module;
-extern stream_module_t stream_fl_module;
 
 static stream_module_t *stream_modules[] =
 {

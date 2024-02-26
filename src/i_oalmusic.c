@@ -32,11 +32,6 @@
 #define NUM_BUFFERS 4
 #define BUFFER_SAMPLES 4096
 
-extern stream_module_t stream_snd_module;
-extern stream_module_t stream_xmp_module;
-extern stream_module_t stream_opl_module;
-extern stream_module_t stream_fl_module;
-
 static stream_module_t *stream_modules[] =
 {
     &stream_snd_module,

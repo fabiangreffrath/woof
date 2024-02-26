@@ -33,4 +33,9 @@ typedef struct stream_module_s
     const char **(*I_DeviceList)(int *current_device);
 } stream_module_t;
 
+extern stream_module_t stream_opl_module;
+extern stream_module_t stream_fl_module;
+extern stream_module_t stream_snd_module;
+extern stream_module_t stream_xmp_module;
+
 #endif

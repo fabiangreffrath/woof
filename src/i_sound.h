@@ -172,6 +172,11 @@ typedef struct
     const char **(*I_DeviceList)(int *current_device);
 } music_module_t;
 
+// Music modules
+extern music_module_t music_oal_module;
+extern music_module_t music_win_module;
+extern music_module_t music_mac_module;
+
 extern int midi_player;
 
 extern struct stream_module_s *midi_stream_module;
