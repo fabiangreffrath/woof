@@ -497,13 +497,11 @@ static void MidiPlayerFallback(void)
 
     native_midi = false;
 
-    int offset = (native_midi_module != NULL);
-
     for (int i = 0; i < arrlen(stream_modules); ++i)
     {
         if (stream_modules[i]->I_InitStream(0))
         {
-            midi_player = i + offset;
+            midi_player = i + (native_midi_module != NULL);
             midi_stream_module = stream_modules[i];
             return;
         }
@@ -519,12 +517,13 @@ void I_SetMidiPlayer(int device)
         return;
     }
 
+    int num_devices = 0;
+
     if (native_midi_module)
     {
         int n;
         const char **strings = native_midi_module->I_DeviceList(&n);
-        int num_devices = array_size(strings);
-        array_free(strings);
+        num_devices = array_size(strings);
 
         if (device < num_devices)
         {
@@ -540,20 +539,16 @@ void I_SetMidiPlayer(int device)
 
     native_midi = false;
 
-    int offset = (native_midi_module != NULL);
-
-    for (int i = 0, accum = offset; i < arrlen(stream_modules); ++i)
+    for (int i = 0, accum = num_devices; i < arrlen(stream_modules); ++i)
     {
         int n;
         const char **strings = stream_modules[i]->I_DeviceList(&n);
-        int num_devices = array_size(strings);
-        array_free(strings);
+        num_devices = array_size(strings);
 
         if (device >= accum && device < accum + num_devices)
         {
-            midi_player = i + offset;
-            device -= accum;
-            if (stream_modules[i]->I_InitStream(device))
+            midi_player = i + (native_midi_module != NULL);
+            if (stream_modules[i]->I_InitStream(device - accum))
             {
                 midi_stream_module = stream_modules[i];
                 return;
@@ -697,8 +692,6 @@ const char **I_DeviceList(int *current_device)
         {
             array_push(devices, strings[i]);
         }
-
-        array_free(strings);
     }
 
     int offset = (native_midi_module != NULL);
@@ -717,8 +710,6 @@ const char **I_DeviceList(int *current_device)
         {
             array_push(devices, strings[k]);
         }
-
-        array_free(strings);
     }
 
     return devices;

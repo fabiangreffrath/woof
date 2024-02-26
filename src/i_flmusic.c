@@ -402,9 +402,14 @@ static void I_FL_ShutdownStream(void)
 
 static const char **I_FL_DeviceList(int *current_device)
 {
-    const char **devices = NULL;
+    static const char **devices = NULL;
 
     *current_device = 0;
+
+    if (devices)
+    {
+        return devices;
+    }
 
     if (W_CheckNumForName("SNDFONT") >= 0)
     {
