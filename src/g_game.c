@@ -960,7 +960,12 @@ static void G_DoLoadLevel(void)
   }
 
   P_SetupLevel (gameepisode, gamemap, 0, gameskill);
-  displayplayer = consoleplayer;    // view the guy you are playing
+  // [Woof!] Do not reset chosen player view across levels in multiplayer
+  // demo playback. However, it must be reset when starting a new game.
+  if (usergame)
+  {
+    displayplayer = consoleplayer;    // view the guy you are playing
+  }
   // [Alaux] Update smooth count values
   st_health = players[displayplayer].health;
   st_armor  = players[displayplayer].armorpoints;

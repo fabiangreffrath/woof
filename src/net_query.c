@@ -324,7 +324,7 @@ static void NET_Query_ParseResponse(net_addr_t *addr, net_packet_t *packet,
         target = GetTargetForAddr(addr, true);
         broadcast_target = GetTargetForAddr(NULL, false);
         target->state = QUERY_TARGET_QUERIED;
-        target->query_time = broadcast_target->query_time;
+        target->query_time = broadcast_target ? broadcast_target->query_time : 0;
     }
 
     if (target->state != QUERY_TARGET_RESPONDED)
