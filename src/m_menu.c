@@ -3963,9 +3963,7 @@ setup_menu_t gen_settings1[] = { // General Settings screen1
 
   {"FOV", S_THERMO, m_null, M_X_THRM8, M_SPC, {"fov"}, 0, M_UpdateFOV},
 
-  {"", S_SKIP, m_null, M_X, M_THRM_SPC},
-
-  {"Fullscreen", S_ONOFF, m_null, M_X, M_SPC,
+  {"Fullscreen", S_ONOFF, m_null, M_X, M_THRM_SPC,
    {"fullscreen"}, 0, M_ToggleFullScreen},
 
   {"Exclusive Fullscreen", S_ONOFF, m_null, M_X, M_SPC,
@@ -3985,6 +3983,9 @@ setup_menu_t gen_settings1[] = { // General Settings screen1
 
   {"Gamma Correction", S_THERMO, m_null, M_X_THRM8, M_SPC,
    {"gamma2"}, 0, M_ResetGamma, str_gamma},
+
+  {"Level Brightness", S_THERMO|S_THRM_SIZE4|S_STRICT, m_null, M_X_THRM4, M_THRM_SPC,
+   {"extra_level_brightness"}},
 
   MI_RESET,
 
@@ -4238,9 +4239,6 @@ setup_menu_t gen_settings6[] = {
 
   {"Screen flashes", S_ONOFF|S_STRICT, m_null, M_X, M_SPC,
    {"palette_changes"}},
-
-  {"Level Brightness", S_THERMO|S_THRM_SIZE4|S_STRICT, m_null, M_X_THRM4, M_SPC,
-   {"extra_level_brightness"}},
 
   {"Organize save files", S_ONOFF|S_PRGWARN, m_null, M_X, M_THRM_SPC,
    {"organize_savefiles"}},
