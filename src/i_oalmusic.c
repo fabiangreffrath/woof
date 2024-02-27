@@ -340,7 +340,10 @@ static void I_OAL_ShutdownMusic(void)
     I_OAL_StopSong(NULL);
     I_OAL_UnRegisterSong(NULL);
 
-    midi_stream_module->I_ShutdownStream();
+    if (midi_stream_module)
+    {
+        midi_stream_module->I_ShutdownStream();
+    }
     active_module->I_ShutdownStream();
 
     alDeleteSources(1, &player.source);
@@ -391,7 +394,6 @@ static void *I_OAL_RegisterSong(void *data, int len)
 
 static const char **I_OAL_DeviceList(int *current_device)
 {
-    *current_device = 0;
     return NULL;
 }
 

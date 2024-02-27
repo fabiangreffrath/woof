@@ -673,7 +673,6 @@ static void I_SND_ShutdownStream(void)
 
 static const char **I_SND_DeviceList(int *current_device)
 {
-    *current_device = 0;
     return NULL;
 }
 

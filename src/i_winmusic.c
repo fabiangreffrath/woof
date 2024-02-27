@@ -1890,11 +1890,14 @@ static const char **I_WIN_DeviceList(int *current_device)
 {
     static const char **devices = NULL;
 
-    *current_device = 0;
-
     if (devices)
     {
         return devices;
+    }
+
+    if (current_device)
+    {
+        *current_device = 0;
     }
 
     GetDevices();
@@ -1907,7 +1910,8 @@ static const char **I_WIN_DeviceList(int *current_device)
 
     for (int i = 0; i < array_size(winmm_devices); ++i)
     {
-        if (!strncasecmp(winmm_devices[i], winmm_device, MAXPNAMELEN))
+        if (current_device &&
+            !strncasecmp(winmm_devices[i], winmm_device, MAXPNAMELEN))
         {
             *current_device = i;
         }

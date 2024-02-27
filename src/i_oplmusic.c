@@ -1684,8 +1684,17 @@ static void I_OPL_ShutdownStream(void)
 
 static const char **I_OPL_DeviceList(int *current_device)
 {
-    const char **devices = NULL;
-    *current_device = 0;
+    static const char **devices = NULL;
+
+    if (devices)
+    {
+        return devices;
+    }
+
+    if (current_device)
+    {
+        *current_device = 0;
+    }
     array_push(devices, "OPL3 Emulation");
     return devices;
 }

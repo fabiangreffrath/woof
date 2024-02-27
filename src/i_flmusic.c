@@ -404,11 +404,14 @@ static const char **I_FL_DeviceList(int *current_device)
 {
     static const char **devices = NULL;
 
-    *current_device = 0;
-
     if (devices)
     {
         return devices;
+    }
+
+    if (current_device)
+    {
+        *current_device = 0;
     }
 
     if (W_CheckNumForName("SNDFONT") >= 0)
@@ -429,7 +432,7 @@ static const char **I_FL_DeviceList(int *current_device)
 
         array_push(devices, M_StringJoin("FluidSynth (", name, ")", NULL));
 
-        if (!strcasecmp(soundfonts[i], soundfont_path))
+        if (current_device && !strcasecmp(soundfonts[i], soundfont_path))
         {
             *current_device = i;
         }
