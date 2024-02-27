@@ -1140,6 +1140,9 @@ static boolean P_SightBlockLinesIterator(int x, int y)
   int s1, s2;
   divline_t dl;
 
+  if (x < 0 || y < 0 || x >= bmapwidth || y >= bmapheight)
+    return true;
+
   offset = y*bmapwidth+x;
 
   offset = *(blockmap+offset);
