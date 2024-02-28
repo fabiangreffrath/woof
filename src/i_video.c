@@ -720,6 +720,7 @@ void I_FinishUpdate(void)
     UpdateGrab();
 
     // [FG] [AM] Real FPS counter
+    if (frametime_start)
     {
         static uint64_t last_time;
         uint64_t time;
@@ -729,8 +730,8 @@ void I_FinishUpdate(void)
 
         time = frametime_start - last_time;
 
-        // Update FPS counter every 10th of second
-        if (time >= 100000)
+        // Update FPS counter every second
+        if (time >= 1000000)
         {
             fps = (frame_counter * 1000000) / time;
             frame_counter = 0;
