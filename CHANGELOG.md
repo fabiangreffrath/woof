@@ -1,5 +1,5 @@
 **New Features and Improvements**
-* Increase main thread priority when window is visible and focused.
+* Add percentage settings for weapon and view bobbing (sliders in the Weapons menu).
 * Bring back "Emulate Intercepts Overflow" option to the "Doom Compatibility" menu.
 * Apply free look toggle to current input type only. Rename `input_mouselook` to `input_freelook` in config.
 * Add `shorttics` config item.
