@@ -230,11 +230,6 @@ static boolean P_CrossBSPNode(int bspnum, register los_t *los)
 
 static boolean P_CheckSight_MBF(mobj_t *t1, mobj_t *t2)
 {
-  if (true) // TODO: function pointer
-  {
-    return P_CheckSight_12(t1, t2);
-  }
-
   const sector_t *s1 = t1->subsector->sector;
   const sector_t *s2 = t2->subsector->sector;
   int pnum = (s1-sectors)*numsectors + (s2-sectors);
@@ -294,7 +289,7 @@ static boolean P_CheckSight_MBF(mobj_t *t1, mobj_t *t2)
 }
 
 boolean checksight12;
-boolean (*P_CheckSight)(mobj_t *t1, mobj_t *t2);
+boolean (*P_CheckSight)(mobj_t *t1, mobj_t *t2) = P_CheckSight_MBF;
 
 void P_UpdateCheckSight(void)
 {
