@@ -1188,8 +1188,6 @@ static boolean P_SightBlockLinesIterator(int x, int y)
 ====================
 */
 
-extern boolean PTR_SightTraverse(intercept_t *in);
-
 static boolean P_SightTraverseIntercepts(void)
 {
   int count;

@@ -1864,8 +1864,6 @@ boolean PTR_SightTraverse(intercept_t *in)
 =====================
 */
 
-extern boolean P_SightPathTraverse(fixed_t x1, fixed_t y1, fixed_t x2, fixed_t y2);
-
 boolean P_CheckSight_12(mobj_t *t1, mobj_t *t2)
 {
   int s1, s2;
