@@ -228,7 +228,7 @@ static boolean P_CrossBSPNode(int bspnum, register los_t *los)
 //
 // killough 4/20/98: cleaned up, made to use new LOS struct
 
-boolean P_CheckSight(mobj_t *t1, mobj_t *t2)
+static boolean P_CheckSight_MBF(mobj_t *t1, mobj_t *t2)
 {
   if (true) // TODO: function pointer
   {
@@ -291,6 +291,14 @@ boolean P_CheckSight(mobj_t *t1, mobj_t *t2)
 
   // the head node is the last node output
   return P_CrossBSPNode(numnodes-1, &los);
+}
+
+boolean checksight12;
+boolean (*P_CheckSight)(mobj_t *t1, mobj_t *t2);
+
+void P_UpdateCheckSight(void)
+{
+  P_CheckSight = CRITICAL(checksight12) ? P_CheckSight_12 : P_CheckSight_MBF;
 }
 
 //

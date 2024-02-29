@@ -3669,6 +3669,9 @@ setup_menu_t comp_settings1[] =  // Compatibility Settings screen #1
   {"Improved Hit Detection", S_ONOFF|S_STRICT|S_BOOM, m_null, M_X,
    M_SPC, {"blockmapfix"}},
 
+  {"Fast Line-of-Sight Calculation", S_ONOFF|S_STRICT, m_null, M_X,
+   M_SPC, {"checksight12"}, 0, P_UpdateCheckSight},
+
   {"Walk Under Solid Hanging Bodies", S_ONOFF|S_STRICT, m_null, M_X,
    M_SPC, {"hangsolid"}},
 
