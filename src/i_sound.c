@@ -613,7 +613,7 @@ boolean I_InitMusic(void)
 void I_ShutdownMusic(void)
 {
     music_oal_module.I_ShutdownMusic();
-    if (native_midi)
+    if (native_midi && native_midi_module)
     {
         native_midi_module->I_ShutdownMusic();
     }
