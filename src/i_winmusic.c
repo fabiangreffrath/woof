@@ -51,7 +51,7 @@ enum
     RESET_TYPE_XG,
 };
 
-char *winmm_device = "";
+const char *winmm_device = "";
 int winmm_complevel = COMP_STANDARD;
 int winmm_reset_type = RESET_TYPE_GM;
 int winmm_reset_delay = 0;
@@ -104,7 +104,7 @@ static CRITICAL_SECTION CriticalSection;
 
 #define EMIDI_DEVICE (1U << EMIDI_DEVICE_GENERAL_MIDI)
 
-static char **winmm_devices = NULL;
+static const char **winmm_devices = NULL;
 
 // This is a reduced Windows MIDIEVENT structure for MEVT_F_SHORT
 // type of events.
@@ -1888,9 +1888,17 @@ static void I_WIN_ShutdownMusic(void)
 
 static const char **I_WIN_DeviceList(int *current_device)
 {
-    const char **devices = NULL;
+    static const char **devices = NULL;
 
-    *current_device = 0;
+    if (devices)
+    {
+        return devices;
+    }
+
+    if (current_device)
+    {
+        *current_device = 0;
+    }
 
     GetDevices();
 
@@ -1902,12 +1910,13 @@ static const char **I_WIN_DeviceList(int *current_device)
 
     for (int i = 0; i < array_size(winmm_devices); ++i)
     {
-        array_push(devices, winmm_devices[i]);
-        if (!strncasecmp(winmm_devices[i], winmm_device, MAXPNAMELEN))
+        if (current_device &&
+            !strncasecmp(winmm_devices[i], winmm_device, MAXPNAMELEN))
         {
             *current_device = i;
         }
     }
+    devices = winmm_devices;
     return devices;
 }
 

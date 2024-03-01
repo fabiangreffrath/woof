@@ -577,6 +577,11 @@ boolean I_SND_LoadFile(void *data, ALenum *format, byte **wavdata,
     return true;
 }
 
+static boolean I_SND_InitStream(int device)
+{
+    return true;
+}
+
 static sndfile_t stream;
 
 static loop_metadata_t loop;
@@ -661,10 +666,23 @@ static void I_SND_CloseStream(void)
     CloseFile(&stream);
 }
 
+static void I_SND_ShutdownStream(void)
+{
+    ;
+}
+
+static const char **I_SND_DeviceList(int *current_device)
+{
+    return NULL;
+}
+
 stream_module_t stream_snd_module =
 {
+    I_SND_InitStream,
     I_SND_OpenStream,
     I_SND_FillStream,
     I_SND_PlayStream,
     I_SND_CloseStream,
+    I_SND_ShutdownStream,
+    I_SND_DeviceList,
 };

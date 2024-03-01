@@ -59,17 +59,26 @@ static void PrintError(int e)
     I_Printf(VB_ERROR, "XMP: %s", msg);
 }
 
-static boolean I_XMP_OpenStream(void *data, ALsizei size, ALenum *format,
-                                ALsizei *freq, ALsizei *frame_size)
+static boolean I_XMP_InitStream(int device)
 {
-    int err = 0;
-
     context = xmp_create_context();
+
     if (!context)
     {
         I_Printf(VB_ERROR, "XMP: Failed to create context.");
         return false;
     }
+
+    return true;
+}
+
+static boolean I_XMP_OpenStream(void *data, ALsizei size, ALenum *format,
+                                ALsizei *freq, ALsizei *frame_size)
+{
+    if (!context)
+        return false;
+
+    int err = 0;
 
     err = xmp_load_module_from_memory(context, data, (long)size);
     if (err < 0)
@@ -101,26 +110,44 @@ static int I_XMP_FillStream(byte *buffer, int buffer_samples)
 
 static void I_XMP_PlayStream(boolean looping)
 {
+    if (!context)
+        return;
+
     stream_looping = looping;
     xmp_start_player(context, SND_SAMPLERATE, 0);
 }
 
 static void I_XMP_CloseStream(void)
 {
-    if (context)
-    {
-        xmp_stop_module(context);
-        xmp_end_player(context);
-        xmp_release_module(context);
-        xmp_free_context(context);
-        context = NULL;
-    }
+    if (!context)
+        return;
+
+    xmp_stop_module(context);
+    xmp_end_player(context);
+    xmp_release_module(context);
+}
+
+static void I_XMP_ShutdownStream(void)
+{
+    if (!context)
+        return;
+
+    xmp_free_context(context);
+    context = NULL;
+}
+
+static const char **I_XMP_DeviceList(int *current_device)
+{
+    return NULL;
 }
 
 stream_module_t stream_xmp_module =
 {
+    I_XMP_InitStream,
     I_XMP_OpenStream,
     I_XMP_FillStream,
     I_XMP_PlayStream,
     I_XMP_CloseStream,
+    I_XMP_ShutdownStream,
+    I_XMP_DeviceList,
 };

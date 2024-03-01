@@ -27,6 +27,8 @@
 #include "doomtype.h"
 #include "m_fixed.h"
 
+struct stream_module_s;
+
 // when to clip out sounds
 // Does not fit the large outdoor areas.
 #define S_CLIPPING_DIST (1200 << FRACBITS)
@@ -170,7 +172,14 @@ typedef struct
     const char **(*I_DeviceList)(int *current_device);
 } music_module_t;
 
+// Music modules
+extern music_module_t music_oal_module;
+extern music_module_t music_win_module;
+extern music_module_t music_mac_module;
+
 extern int midi_player;
+
+extern struct stream_module_s *midi_stream_module;
 
 boolean I_InitMusic(void);
 void I_ShutdownMusic(void);

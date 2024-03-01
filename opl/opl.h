@@ -104,11 +104,6 @@ unsigned int OPL_ReadStatus(void);
 
 void OPL_WriteRegister(int reg, int value);
 
-// Perform a detection sequence to determine that an
-// OPL chip is present.
-
-opl_init_result_t OPL_Detect(void);
-
 // Initialize all registers, performed on startup.
 
 void OPL_InitRegisters(int opl3);
@@ -131,22 +126,11 @@ void OPL_AdjustCallbacks(float factor);
 
 void OPL_ClearCallbacks(void);
 
-// Begin critical section, during which, OPL callbacks will not be
-// invoked.
-
-void OPL_Lock(void);
-
-// End critical section.
-
-void OPL_Unlock(void);
-
-// Block until the specified number of microseconds have elapsed.
-
-void OPL_Delay(uint64_t us);
-
 // Pause the OPL callbacks.
 
 void OPL_SetPaused(int paused);
+
+int OPL_FillBuffer(unsigned char *buffer, int buffer_samples);
 
 #endif
 
