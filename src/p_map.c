@@ -1853,6 +1853,18 @@ boolean PTR_SightTraverse(intercept_t *in)
   return true;  // keep going
 }
 
+// This is the P_CheckSight() implementation in Doom 1.2,
+// taken from the Heretic source code.
+//
+// Copyright(C) 1993-1996 Id Software, Inc.
+// Copyright(C) 1993-2008 Raven Software
+//
+// p_map.c:PTR_SightTraverse()
+// p_map.c:P_CheckSight_12()
+// p_maputl.c:P_SightBlockLinesIterator()
+// p_maputl.c:P_SightTraverseIntercepts()
+// p_maputl.c:P_SightPathTraverse()
+
 /*
 =====================
 =
