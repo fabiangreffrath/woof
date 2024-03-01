@@ -177,13 +177,18 @@ static int PlayerThread(void *unused)
 
     while (true)
     {
-        boolean result;
+        boolean keep_going;
+
+        if (!UpdatePlayer())
+        {
+            break;
+        }
 
         SDL_LockMutex(music_lock);
-        result = player_thread_running && UpdatePlayer();
+        keep_going = player_thread_running;
         SDL_UnlockMutex(music_lock);
 
-        if (result == false)
+        if (!keep_going)
         {
             break;
         }
