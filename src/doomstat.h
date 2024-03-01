@@ -162,6 +162,15 @@ enum {
 
 extern int comp[COMP_TOTAL], default_comp[COMP_TOTAL];
 
+typedef enum
+{
+  INVUL_VANILLA,
+  INVUL_MBF,
+  INVUL_GRAY,
+} invul_mode_t;
+
+extern invul_mode_t invul_mode;
+
 // -------------------------------------------
 // Language.
 extern  Language_t   language;

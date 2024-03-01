@@ -58,6 +58,8 @@ extern byte *cr_dark;
 extern byte *cr_shaded;
 extern byte *cr_bright;
 
+extern byte invul_gray[];
+
 // array of pointers to color translation tables
 extern byte *colrngs[];
 extern byte *red2col[];

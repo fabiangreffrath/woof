@@ -76,6 +76,8 @@ void M_SetMenuFontSpacing(void);
 
 void M_DisableVoxelsRenderingItem(void);
 
+void M_InvulMode(void);
+
 /////////////////////////////
 //
 // The following #defines are for the m_flags field of each item on every
