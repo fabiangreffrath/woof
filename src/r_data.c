@@ -1048,11 +1048,10 @@ void R_InitData(void)
 int R_FlatNumForName(const char *name)    // killough -- const added
 {
   int i = (W_CheckNumForName)(name, ns_flats);
-  if (i == -1)
+  if (i == NO_TEXTURE)
   {
-    // [FG] render missing flats as SKY
     I_Printf(VB_WARNING, "R_FlatNumForName: %.8s not found", name);
-    return skyflatnum;
+    return i;
   }
   return i - firstflat;
 }
@@ -1124,7 +1123,12 @@ void R_PrecacheLevel(void)
   memset(hitlist, 0, numflats);
 
   for (i = numsectors; --i >= 0; )
-    hitlist[sectors[i].floorpic] = hitlist[sectors[i].ceilingpic] = 1;
+  {
+    if (sectors[i].floorpic > NO_TEXTURE)
+        hitlist[sectors[i].floorpic] = 1;
+    if (sectors[i].ceilingpic > NO_TEXTURE)
+        hitlist[sectors[i].ceilingpic] = 1;
+  }
 
   for (i = numflats; --i >= 0; )
     if (hitlist[i])
