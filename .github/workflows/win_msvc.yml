@@ -11,14 +11,14 @@ on:
   workflow_dispatch:
 
 env:
-  VCPKG_ROOT: C:\vcpkg
+  VCPKG_DIR: C:\vcpkg
   VCPKG_BINARY_SOURCES: "clear;nuget,GitHub,readwrite"
 
 jobs:
   build:
     if: ${{ github.repository == 'fabiangreffrath/woof' }}
     name: MSVC ${{ matrix.config.arch }}
-    runs-on: windows-2019
+    runs-on: windows-latest
 
     strategy:
       matrix:
@@ -32,12 +32,19 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Developer Command Prompt
+        uses: ilammy/msvc-dev-cmd@v1
+        with:
+          # The version of the toolset is specified due to faulty version discovery.
+          toolset: 14.39
+          arch: ${{ matrix.config.arch }}
+
       - name: Setup vcpkg and NuGet
         shell: bash
         run: |
           set -euo pipefail
 
-          cd "${{ env.VCPKG_ROOT }}"
+          cd "${{ env.VCPKG_DIR }}"
           git fetch --tags
           LATESTTAG=$(git describe --tags --abbrev=0)
           git checkout $LATESTTAG
@@ -57,9 +64,9 @@ jobs:
 
       - name: Configure
         run: |
-          cmake -B build -A ${{ matrix.config.name }} `
+          cmake -B build -G Ninja `
             -DCMAKE_BUILD_TYPE=Release -DENABLE_WERROR=ON -DENABLE_LTO=ON `
-            -DCMAKE_TOOLCHAIN_FILE="${{ env.VCPKG_ROOT }}/scripts/buildsystems/vcpkg.cmake" `
+            -DCMAKE_TOOLCHAIN_FILE="${{ env.VCPKG_DIR }}/scripts/buildsystems/vcpkg.cmake" `
             -DVCPKG_TARGET_TRIPLET="${{ matrix.config.arch }}-windows-static-release" `
             -DVCPKG_OVERLAY_TRIPLETS="cmake/triplets" `
             -DCMAKE_POLICY_DEFAULT_CMP0091=NEW -DCMAKE_MSVC_RUNTIME_LIBRARY=MultiThreaded `

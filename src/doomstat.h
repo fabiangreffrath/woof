@@ -439,7 +439,8 @@ extern boolean hide_weapon;
 // [FG] centered weapon sprite
 extern int center_weapon;
 
-extern int cosmetic_bobbing;
+extern int view_bobbing_pct;
+extern int weapon_bobbing_pct;
 
 // Doom-style printf
 

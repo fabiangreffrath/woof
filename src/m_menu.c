@@ -1996,7 +1996,6 @@ enum
     str_layout,
     str_curve,
     str_center_weapon,
-    str_bobfactor,
     str_screensize,
     str_hudtype,
     str_hudmode,
@@ -2022,6 +2021,7 @@ enum
     str_death_use_action,
     str_menu_backdrop,
     str_widescreen,
+    str_bobbing_pct,
 };
 
 static const char **GetStrings(int id);
@@ -3087,8 +3087,8 @@ static setup_menu_t* weap_settings[] =
 
 static setup_tab_t weap_tabs[] =
 {
-   { "preferences", weap_settings1 },
-   { "cosmetic",    weap_settings2 },
+   { "cosmetic",    weap_settings1 },
+   { "preferences", weap_settings2 },
    { NULL }
 };
 
@@ -3097,16 +3097,37 @@ static const char *center_weapon_strings[] = {
     "Off", "Centered", "Bobbing"
 };
 
-static const char *bobfactor_strings[] = {
-    "Off", "Full", "75%"
-};
-
 static void M_UpdateCenteredWeaponItem(void)
 {
-  DisableItem(!cosmetic_bobbing, weap_settings2, "center_weapon");
+  DisableItem(!weapon_bobbing_pct, weap_settings1, "center_weapon");
 }
 
-setup_menu_t weap_settings1[] =  // Weapons Settings screen
+static const char *bobbing_pct_strings[] = {
+  "0%", "25%", "50%", "75%", "100%"
+};
+
+setup_menu_t weap_settings1[] =
+{
+  {"View Bob", S_THERMO|S_THRM_SIZE4, m_null, M_X_THRM4, M_Y,
+   {"view_bobbing_pct"}, 0, NULL, str_bobbing_pct},
+
+  {"Weapon Bob", S_THERMO|S_THRM_SIZE4, m_null, M_X_THRM4, M_THRM_SPC,
+   {"weapon_bobbing_pct"}, 0, M_UpdateCenteredWeaponItem, str_bobbing_pct},
+
+  // [FG] centered or bobbing weapon sprite
+  {"Weapon Alignment", S_CHOICE|S_STRICT, m_null, M_X, M_THRM_SPC,
+   {"center_weapon"}, 0, NULL, str_center_weapon},
+
+  {"Hide Weapon", S_ONOFF|S_STRICT, m_null, M_X, M_SPC, {"hide_weapon"}},
+
+  {"Weapon Recoil", S_ONOFF, m_null, M_X, M_SPC, {"weapon_recoilpitch"}},
+
+  MI_RESET,
+
+  MI_END
+};
+
+setup_menu_t weap_settings2[] =  // Weapons Settings screen
 {
   {"1St Choice Weapon", S_WEAP|S_BOOM, m_null, M_X, M_Y,   {"weapon_choice_1"}},
   {"2Nd Choice Weapon", S_WEAP|S_BOOM, m_null, M_X, M_SPC, {"weapon_choice_2"}},
@@ -3127,25 +3148,6 @@ setup_menu_t weap_settings1[] =  // Weapons Settings screen
 
   {"Pre-Beta BFG", S_ONOFF, m_null, M_X,  // killough 8/8/98
    M_SPC, {"classic_bfg"}},
-
-  // Button for resetting to defaults
-  MI_RESET,
-
-  MI_END
-};
-
-setup_menu_t weap_settings2[] =
-{
-  {"View/Weapon Bobbing", S_CHOICE, m_null, M_X, M_Y,
-   {"cosmetic_bobbing"}, 0, M_UpdateCenteredWeaponItem, str_bobfactor},
-
-  {"Hide Weapon", S_ONOFF|S_STRICT, m_null, M_X, M_SPC, {"hide_weapon"}},
-
-  // [FG] centered or bobbing weapon sprite
-  {"Weapon Alignment", S_CHOICE|S_STRICT, m_null, M_X, M_SPC,
-   {"center_weapon"}, 0, NULL, str_center_weapon},
-
-  {"Weapon Recoil", S_ONOFF, m_null, M_X, M_SPC, {"weapon_recoilpitch"}},
 
   MI_END
 };
@@ -3961,9 +3963,7 @@ setup_menu_t gen_settings1[] = { // General Settings screen1
 
   {"FOV", S_THERMO, m_null, M_X_THRM8, M_SPC, {"fov"}, 0, M_UpdateFOV},
 
-  {"", S_SKIP, m_null, M_X, M_THRM_SPC},
-
-  {"Fullscreen", S_ONOFF, m_null, M_X, M_SPC,
+  {"Fullscreen", S_ONOFF, m_null, M_X, M_THRM_SPC,
    {"fullscreen"}, 0, M_ToggleFullScreen},
 
   {"Exclusive Fullscreen", S_ONOFF, m_null, M_X, M_SPC,
@@ -3983,6 +3983,9 @@ setup_menu_t gen_settings1[] = { // General Settings screen1
 
   {"Gamma Correction", S_THERMO, m_null, M_X_THRM8, M_SPC,
    {"gamma2"}, 0, M_ResetGamma, str_gamma},
+
+  {"Level Brightness", S_THERMO|S_THRM_SIZE4|S_STRICT, m_null, M_X_THRM4, M_THRM_SPC,
+   {"extra_level_brightness"}},
 
   MI_RESET,
 
@@ -4237,10 +4240,7 @@ setup_menu_t gen_settings6[] = {
   {"Screen flashes", S_ONOFF|S_STRICT, m_null, M_X, M_SPC,
    {"palette_changes"}},
 
-  {"Level Brightness", S_THERMO|S_THRM_SIZE4|S_STRICT, m_null, M_X_THRM4, M_SPC,
-   {"extra_level_brightness"}},
-
-  {"Organize save files", S_ONOFF|S_PRGWARN, m_null, M_X, M_THRM_SPC,
+  {"Organize save files", S_ONOFF|S_PRGWARN, m_null, M_X, M_SPC,
    {"organize_savefiles"}},
 
   {"", S_SKIP, m_null, M_X, M_SPC},
@@ -6877,7 +6877,6 @@ static const char **selectstrings[] = {
     layout_strings,
     curve_strings,
     center_weapon_strings,
-    bobfactor_strings,
     screensize_strings,
     hudtype_strings,
     NULL, // str_hudmode
@@ -6899,6 +6898,7 @@ static const char **selectstrings[] = {
     death_use_action_strings,
     menu_backdrop_strings,
     widescreen_strings,
+    bobbing_pct_strings,
 };
 
 static const char **GetStrings(int id)

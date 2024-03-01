@@ -710,17 +710,24 @@ default_t defaults[] = {
   },
 
   {
-    "cosmetic_bobbing",
-    (config_t *) &cosmetic_bobbing, NULL,
-    {1}, {0,2}, number, ss_weap, wad_no,
-    "Player View/Weapon Bobbing (0 = off, 1 = full, 2 = 75%)"
-  },
-
-  {
     "hide_weapon",
     (config_t *) &hide_weapon, NULL,
     {0}, {0,1}, number, ss_weap, wad_no,
     "1 to hide weapon"
+  },
+
+  {
+    "view_bobbing_pct",
+    (config_t *) &view_bobbing_pct, NULL,
+    {4}, {0,4}, number, ss_weap, wad_no,
+    "Player View Bobbing (0 - 0%, 1 - 25% ... 4 - 100%)"
+  },
+
+  {
+    "weapon_bobbing_pct",
+    (config_t *) &weapon_bobbing_pct, NULL,
+    {4}, {0,4}, number, ss_weap, wad_no,
+    "Player Weapon Bobbing (0 - 0%, 1 - 25% ... 4 - 100%)"
   },
 
   // [FG] centered or bobbing weapon sprite
@@ -2726,7 +2733,7 @@ default_t defaults[] = {
     "hud_type",
     (config_t *) &hud_type, NULL,
     {HUD_TYPE_BOOM}, {HUD_TYPE_CRISPY,NUM_HUD_TYPES-1}, number, ss_stat, wad_no,
-    "Fullscreen HUD (0 = Crispy, 1 = Boom (No Bars), 2 = Boom"
+    "Fullscreen HUD (0 = Crispy, 1 = Boom (No Bars), 2 = Boom)"
   },
 
   // backpack changes thresholds
