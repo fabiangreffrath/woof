@@ -1808,6 +1808,103 @@ void P_UseLines(player_t *player)
       S_StartSound (usething, sfx_noway);
 }
 
+/*
+==============
+=
+= PTR_SightTraverse
+=
+==============
+*/
+
+static fixed_t sightzstart;            // eye z of looker
+
+boolean PTR_SightTraverse(intercept_t *in)
+{
+  line_t *li;
+  fixed_t slope;
+
+  li = in->d.line;
+
+  //
+  // crosses a two sided line
+  //
+  P_LineOpening(li);
+
+  if (openbottom >= opentop)  // quick test for totally closed doors
+    return false;  // stop
+
+  if (li->frontsector->floorheight != li->backsector->floorheight)
+  {
+    slope = FixedDiv(openbottom - sightzstart , in->frac);
+    if (slope > bottomslope)
+      bottomslope = slope;
+  }
+
+  if (li->frontsector->ceilingheight != li->backsector->ceilingheight)
+  {
+    slope = FixedDiv(opentop - sightzstart, in->frac);
+    if (slope < topslope)
+      topslope = slope;
+  }
+
+  if (topslope <= bottomslope)
+    return false;  // stop
+
+  return true;  // keep going
+}
+
+// This is the P_CheckSight() implementation in Doom 1.2,
+// taken from the Heretic source code.
+//
+// Copyright(C) 1993-1996 Id Software, Inc.
+// Copyright(C) 1993-2008 Raven Software
+//
+// p_map.c:PTR_SightTraverse()
+// p_map.c:P_CheckSight_12()
+// p_maputl.c:P_SightBlockLinesIterator()
+// p_maputl.c:P_SightTraverseIntercepts()
+// p_maputl.c:P_SightPathTraverse()
+
+/*
+=====================
+=
+= P_CheckSight
+=
+= Returns true if a straight line between t1 and t2 is unobstructed
+= look from eyes of t1 to any part of t2
+=
+=====================
+*/
+
+boolean P_CheckSight_12(mobj_t *t1, mobj_t *t2)
+{
+  int s1, s2;
+  int pnum, bytenum, bitnum;
+
+  //
+  // check for trivial rejection
+  //
+  s1 = (t1->subsector->sector - sectors);
+  s2 = (t2->subsector->sector - sectors);
+  pnum = s1*numsectors + s2;
+  bytenum = pnum>>3;
+  bitnum = 1 << (pnum&7);
+
+  if (rejectmatrix[bytenum]&bitnum)
+  {
+    return false;    // can't possibly be connected
+  }
+
+  //
+  // check precisely
+  //
+  sightzstart = t1->z + t1->height - (t1->height>>2);
+  topslope = (t2->z+t2->height) - sightzstart;
+  bottomslope = (t2->z) - sightzstart;
+
+  return P_SightPathTraverse (t1->x, t1->y, t2->x, t2->y);
+}
+
 //
 // RADIUS ATTACK
 //
