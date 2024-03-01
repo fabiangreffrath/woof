@@ -848,11 +848,14 @@ void R_InitSpriteLumps(void)
 // killough 4/4/98: Add support for C_START/C_END markers
 //
 
-byte invul_orig[256];
+static byte invul_orig[256];
 
 void R_InvulMode(void)
 {
-  switch (invul_mode)
+  if (colormaps == NULL)
+    return;
+
+  switch (STRICTMODE(invul_mode))
   {
     case INVUL_VANILLA:
       default_comp[comp_skymap] = 1;
