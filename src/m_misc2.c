@@ -17,15 +17,15 @@
 //      [FG] miscellaneous helper functions from Chocolate Doom.
 //
 
+#include <ctype.h>
+#include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <ctype.h>
-#include <errno.h>
 
-#include "m_misc2.h"
 #include "i_system.h"
 #include "m_io.h"
+#include "m_misc2.h"
 
 // Check if a file exists
 
@@ -42,7 +42,7 @@ boolean M_FileExists(const char *filename)
     }
     else
     {
-        // If we can't open because the file is a directory, the 
+        // If we can't open because the file is a directory, the
         // "file" exists at least!
 
         return errno == EISDIR;
@@ -92,8 +92,9 @@ char *M_FileCaseExists(const char *path)
         return path_dup;
     }
 
-    // cast result to (char *), because `path_dup` isn't (const char *) in the first place
-    filename = (char *) M_BaseName(path_dup);
+    // cast result to (char *), because `path_dup` isn't (const char *) in the
+    // first place
+    filename = (char *)M_BaseName(path_dup);
 
     // 1: lowercase filename, e.g. doom2.wad
     M_ForceLowercase(filename);
@@ -141,10 +142,10 @@ char *M_FileCaseExists(const char *path)
 
 boolean M_StrToInt(const char *str, int *result)
 {
-    return sscanf(str, " 0x%x", (unsigned int *) result) == 1
-        || sscanf(str, " 0X%x", (unsigned int *) result) == 1
-        || sscanf(str, " 0%o", (unsigned int *) result) == 1
-        || sscanf(str, " %d", result) == 1;
+    return sscanf(str, " 0x%x", (unsigned int *)result) == 1
+           || sscanf(str, " 0X%x", (unsigned int *)result) == 1
+           || sscanf(str, " 0%o", (unsigned int *)result) == 1
+           || sscanf(str, " %d", result) == 1;
 }
 
 // Returns the directory portion of the given path, without the trailing
@@ -169,8 +170,8 @@ char *M_DirName(const char *path)
     }
     else
     {
-        const char *p = MAX(pb, pf);
-        result = M_StringDuplicate(path);
+        const char *p    = MAX(pb, pf);
+        result           = M_StringDuplicate(path);
         result[p - path] = '\0';
         return result;
     }
@@ -261,7 +262,7 @@ char *M_StringReplace(const char *haystack, const char *needle,
     // Iterate through occurrences of 'needle' and calculate the size of
     // the new string.
     result_len = strlen(haystack) + 1;
-    p = haystack;
+    p          = haystack;
 
     for (;;)
     {
@@ -271,7 +272,7 @@ char *M_StringReplace(const char *haystack, const char *needle,
             break;
         }
 
-        p += needle_len;
+        p          += needle_len;
         result_len += strlen(replacement) - needle_len;
     }
 
@@ -284,22 +285,24 @@ char *M_StringReplace(const char *haystack, const char *needle,
         return NULL;
     }
 
-    dst = result; dst_len = result_len;
-    p = haystack;
+    dst     = result;
+    dst_len = result_len;
+    p       = haystack;
 
     while (*p != '\0')
     {
         if (!strncmp(p, needle, needle_len))
         {
             M_StringCopy(dst, replacement, dst_len);
-            p += needle_len;
-            dst += strlen(replacement);
+            p       += needle_len;
+            dst     += strlen(replacement);
             dst_len -= strlen(replacement);
         }
         else
         {
             *dst = *p;
-            ++dst; --dst_len;
+            ++dst;
+            --dst_len;
             ++p;
         }
     }
@@ -351,13 +354,13 @@ boolean M_StringConcat(char *dest, const char *src, size_t dest_size)
 boolean M_StringEndsWith(const char *s, const char *suffix)
 {
     return strlen(s) >= strlen(suffix)
-        && strcmp(s + strlen(s) - strlen(suffix), suffix) == 0;
+           && strcmp(s + strlen(s) - strlen(suffix), suffix) == 0;
 }
 
 boolean M_StringCaseEndsWith(const char *s, const char *suffix)
 {
     return strlen(s) >= strlen(suffix)
-        && strcasecmp(s + strlen(s) - strlen(suffix), suffix) == 0;
+           && strcasecmp(s + strlen(s) - strlen(suffix), suffix) == 0;
 }
 
 // Return a newly-malloced string with all the strings given as arguments
@@ -412,7 +415,8 @@ char *M_StringJoin(const char *s, ...)
 }
 
 // Safe, portable vsnprintf().
-int PRINTF_ATTR(3, 0) M_vsnprintf(char *buf, size_t buf_len, const char *s, va_list args)
+int PRINTF_ATTR(3, 0)
+    M_vsnprintf(char *buf, size_t buf_len, const char *s, va_list args)
 {
     int result;
 
@@ -431,7 +435,7 @@ int PRINTF_ATTR(3, 0) M_vsnprintf(char *buf, size_t buf_len, const char *s, va_l
     if (result < 0 || result >= buf_len)
     {
         buf[buf_len - 1] = '\0';
-        result = buf_len - 1;
+        result           = buf_len - 1;
     }
 
     return result;
@@ -473,14 +477,21 @@ char *AddDefaultExtension(char *path, const char *ext)
 {
     char *p = path;
 
-    while (*p++);
+    while (*p++)
+        ;
 
     while (p-- > path && *p != '/' && *p != '\\')
+    {
         if (*p == '.')
+        {
             return path;
+        }
+    }
 
     if (*ext != '.')
+    {
         strcat(path, ".");
+    }
 
     return strcat(path, ext);
 }
@@ -498,22 +509,36 @@ void NormalizeSlashes(char *str)
 
     // Convert all slashes/backslashes to DIR_SEPARATOR
     for (p = str; *p; p++)
+    {
         if ((*p == '/' || *p == '\\') && *p != DIR_SEPARATOR)
+        {
             *p = DIR_SEPARATOR;
+        }
+    }
 
     // Remove trailing slashes
     while (p > str && *--p == DIR_SEPARATOR)
+    {
         *p = 0;
+    }
 
 #if defined(_WIN32)
     // Don't collapse leading slashes on Windows
     if (*str == DIR_SEPARATOR)
+    {
         str++;
+    }
 #endif
 
     // Collapse multiple slashes
-    for (p = str; (*str++ = *p); )
+    for (p = str; (*str++ = *p);)
+    {
         if (*p++ == DIR_SEPARATOR)
+        {
             while (*p == DIR_SEPARATOR)
+            {
                 p++;
+            }
+        }
+    }
 }

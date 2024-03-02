@@ -14,12 +14,12 @@
 // DESCRIPTION:
 //
 
-#include <xmp.h>
 #include <stdio.h>
+#include <xmp.h>
 
 #include "doomtype.h"
-#include "i_printf.h"
 #include "i_oalstream.h"
+#include "i_printf.h"
 #include "i_sound.h"
 
 static xmp_context context;
@@ -76,11 +76,13 @@ static boolean I_XMP_OpenStream(void *data, ALsizei size, ALenum *format,
                                 ALsizei *freq, ALsizei *frame_size)
 {
     if (!context)
+    {
         return false;
+    }
 
     int err = 0;
 
-    err = xmp_load_module_from_memory(context, data, (long)size);
+    err     = xmp_load_module_from_memory(context, data, (long)size);
     if (err < 0)
     {
         PrintError(err);
@@ -88,8 +90,8 @@ static boolean I_XMP_OpenStream(void *data, ALsizei size, ALenum *format,
         return false;
     }
 
-    *format = AL_FORMAT_STEREO16;
-    *freq = SND_SAMPLERATE;
+    *format     = AL_FORMAT_STEREO16;
+    *freq       = SND_SAMPLERATE;
     *frame_size = 2 * sizeof(short);
 
     return true;
@@ -111,7 +113,9 @@ static int I_XMP_FillStream(byte *buffer, int buffer_samples)
 static void I_XMP_PlayStream(boolean looping)
 {
     if (!context)
+    {
         return;
+    }
 
     stream_looping = looping;
     xmp_start_player(context, SND_SAMPLERATE, 0);
@@ -120,7 +124,9 @@ static void I_XMP_PlayStream(boolean looping)
 static void I_XMP_CloseStream(void)
 {
     if (!context)
+    {
         return;
+    }
 
     xmp_stop_module(context);
     xmp_end_player(context);
@@ -130,7 +136,9 @@ static void I_XMP_CloseStream(void)
 static void I_XMP_ShutdownStream(void)
 {
     if (!context)
+    {
         return;
+    }
 
     xmp_free_context(context);
     context = NULL;
@@ -141,13 +149,7 @@ static const char **I_XMP_DeviceList(int *current_device)
     return NULL;
 }
 
-stream_module_t stream_xmp_module =
-{
-    I_XMP_InitStream,
-    I_XMP_OpenStream,
-    I_XMP_FillStream,
-    I_XMP_PlayStream,
-    I_XMP_CloseStream,
-    I_XMP_ShutdownStream,
-    I_XMP_DeviceList,
+stream_module_t stream_xmp_module = {
+    I_XMP_InitStream,  I_XMP_OpenStream,     I_XMP_FillStream, I_XMP_PlayStream,
+    I_XMP_CloseStream, I_XMP_ShutdownStream, I_XMP_DeviceList,
 };

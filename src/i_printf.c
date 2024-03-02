@@ -20,11 +20,11 @@
 #include <string.h>
 
 #ifdef _WIN32
- #define WIN32_LEAN_AND_MEAN
- #include <windows.h>
- #include <io.h>
+#  define WIN32_LEAN_AND_MEAN
+#  include <io.h>
+#  include <windows.h>
 #else
- #include <unistd.h> // [FG] isatty()
+#  include <unistd.h>  // [FG] isatty()
 #endif
 
 #include "i_printf.h"
@@ -46,7 +46,9 @@ int I_ConsoleStdout(void)
 #endif
             ret = 1;
         else
+        {
             ret = 0;
+        }
     }
 
     return ret;
@@ -73,8 +75,8 @@ static void EnableVTMode(void)
         return;
     }
 
-    if (!SetConsoleMode(hConsole, ENABLE_PROCESSED_OUTPUT |
-                                  ENABLE_VIRTUAL_TERMINAL_PROCESSING))
+    if (!SetConsoleMode(hConsole, ENABLE_PROCESSED_OUTPUT
+                                      | ENABLE_VIRTUAL_TERMINAL_PROCESSING))
     {
         return;
     }
@@ -114,7 +116,9 @@ void I_InitPrintf(void)
     //
 
     if (M_ParmExists("-verbose") || M_ParmExists("--verbose"))
+    {
         verbosity = VB_MAX;
+    }
 
     //!
     //
@@ -122,7 +126,9 @@ void I_InitPrintf(void)
     //
 
     if (M_ParmExists("-quiet") || M_ParmExists("--quiet"))
+    {
         verbosity = VB_ERROR;
+    }
 
     I_AtExit(I_ShutdownPrintf, true);
 }
@@ -131,13 +137,15 @@ static boolean whole_line = true;
 
 void I_Printf(verbosity_t prio, const char *msg, ...)
 {
-    FILE *stream = stdout;
-    const int msglen = strlen(msg);
+    FILE *stream             = stdout;
+    const int msglen         = strlen(msg);
     const char *color_prefix = NULL, *color_suffix = NULL;
     va_list args;
 
     if (prio > verbosity)
+    {
         return;
+    }
 
     switch (prio)
     {
@@ -154,40 +162,48 @@ void I_Printf(verbosity_t prio, const char *msg, ...)
 #ifdef _WIN32
         && vt_mode_enabled
 #endif
-        )
+    )
     {
         switch (prio)
         {
             case VB_WARNING:
-                color_prefix = "\033[33m"; // [FG] yellow
+                color_prefix = "\033[33m";  // [FG] yellow
                 break;
             case VB_ERROR:
-                color_prefix = "\033[31m"; // [FG] red
+                color_prefix = "\033[31m";  // [FG] red
                 break;
             case VB_DEBUG:
-                color_prefix = "\033[36m"; // [FG] cyan
+                color_prefix = "\033[36m";  // [FG] cyan
                 break;
             default:
                 break;
         }
 
         if (color_prefix)
-            color_suffix = "\033[0m"; // [FG] reset
+        {
+            color_suffix = "\033[0m";  // [FG] reset
+        }
     }
 
     // [FG] warnings always get their own new line
     if (!whole_line && prio != VB_INFO)
+    {
         fprintf(stream, "%s", "\n");
+    }
 
     if (color_prefix)
+    {
         fprintf(stream, "%s", color_prefix);
+    }
 
     va_start(args, msg);
     vfprintf(stream, msg, args);
     va_end(args);
 
     if (color_suffix)
+    {
         fprintf(stream, "%s", color_suffix);
+    }
 
     // [FG] no newline if format string has trailing space
     if (msglen && msg[msglen - 1] != ' ')

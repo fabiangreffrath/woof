@@ -23,7 +23,7 @@
 
 #include "doomtype.h"
 
-#define FADETIME 1000 // microseconds
+#define FADETIME 1000  // microseconds
 
 boolean I_SND_LoadFile(void *data, ALenum *format, byte **wavdata,
                        ALsizei *size, ALsizei *freq);

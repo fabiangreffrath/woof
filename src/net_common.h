@@ -66,7 +66,7 @@ typedef enum
 
 typedef struct net_reliable_packet_s net_reliable_packet_t;
 
-typedef struct 
+typedef struct
 {
     net_connstate_t state;
     net_disconnect_reason_t disconnect_reason;
@@ -80,7 +80,6 @@ typedef struct
     int reliable_send_seq;
     int reliable_recv_seq;
 } net_connection_t;
-
 
 void NET_Conn_SendPacket(net_connection_t *conn, net_packet_t *packet);
 void NET_Conn_InitClient(net_connection_t *conn, net_addr_t *addr,
@@ -103,4 +102,3 @@ void NET_Log(const char *fmt, ...) PRINTF_ATTR(1, 2);
 void NET_LogPacket(net_packet_t *packet);
 
 #endif /* #ifndef NET_COMMON_H */
-

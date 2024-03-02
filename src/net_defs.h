@@ -16,10 +16,10 @@
 //
 
 #ifndef NET_DEFS_H
-#define NET_DEFS_H 
+#define NET_DEFS_H
 
-#include "doomtype.h"
 #include "d_ticcmd.h"
+#include "doomtype.h"
 
 typedef byte sha1_digest_t[20];
 
@@ -27,7 +27,7 @@ typedef byte sha1_digest_t[20];
 // NET_MAXPLAYERS, as there may be observers that are not participating
 // (eg. left/right monitors)
 
-#define MAXNETNODES 16
+#define MAXNETNODES    16
 
 // The maximum number of players, multiplayer/networking.
 // This is the maximum supported by the networking code; individual games
@@ -37,11 +37,11 @@ typedef byte sha1_digest_t[20];
 
 // Maximum length of a player's name.
 
-#define MAXPLAYERNAME 30
+#define MAXPLAYERNAME  30
 
 // Networking and tick handling related.
 
-#define BACKUPTICS 128
+#define BACKUPTICS     128
 
 typedef struct _net_module_s net_module_t;
 typedef struct _net_packet_s net_packet_t;
@@ -108,7 +108,7 @@ struct _net_addr_s
 
 // header field value indicating that the packet is a reliable packet
 
-#define NET_RELIABLE_PACKET (1 << 15)
+#define NET_RELIABLE_PACKET  (1 << 15)
 
 // Supported protocols. If you're developing a fork of Chocolate
 // Doom, you can add your own entry to this list while maintaining
@@ -136,7 +136,7 @@ typedef enum
 typedef enum
 {
     NET_PACKET_TYPE_SYN,
-    NET_PACKET_TYPE_ACK, // deprecated
+    NET_PACKET_TYPE_ACK,  // deprecated
     NET_PACKET_TYPE_REJECTED,
     NET_PACKET_TYPE_KEEPALIVE,
     NET_PACKET_TYPE_WAITING_DATA,
@@ -225,14 +225,14 @@ typedef struct
 
 } net_gamesettings_t;
 
-#define NET_TICDIFF_FORWARD      (1 << 0)
-#define NET_TICDIFF_SIDE         (1 << 1)
-#define NET_TICDIFF_TURN         (1 << 2)
-#define NET_TICDIFF_BUTTONS      (1 << 3)
-#define NET_TICDIFF_CONSISTANCY  (1 << 4)
-#define NET_TICDIFF_CHATCHAR     (1 << 5)
-#define NET_TICDIFF_RAVEN        (1 << 6)
-#define NET_TICDIFF_STRIFE       (1 << 7)
+#define NET_TICDIFF_FORWARD     (1 << 0)
+#define NET_TICDIFF_SIDE        (1 << 1)
+#define NET_TICDIFF_TURN        (1 << 2)
+#define NET_TICDIFF_BUTTONS     (1 << 3)
+#define NET_TICDIFF_CONSISTANCY (1 << 4)
+#define NET_TICDIFF_CHATCHAR    (1 << 5)
+#define NET_TICDIFF_RAVEN       (1 << 6)
+#define NET_TICDIFF_STRIFE      (1 << 7)
 
 typedef struct
 {
@@ -242,7 +242,7 @@ typedef struct
 
 // Complete set of ticcmds from all players
 
-typedef struct 
+typedef struct
 {
     signed int latency;
     unsigned int seq;

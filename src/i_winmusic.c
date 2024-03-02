@@ -16,9 +16,9 @@
 //      Windows native MIDI
 
 #define WIN32_LEAN_AND_MEAN
-#include <windows.h>
-#include <mmsystem.h>
 #include <mmreg.h>
+#include <mmsystem.h>
+#include <windows.h>
 
 #include <limits.h>
 #include <math.h>
@@ -51,31 +51,28 @@ enum
     RESET_TYPE_XG,
 };
 
-const char *winmm_device = "";
-int winmm_complevel = COMP_STANDARD;
-int winmm_reset_type = RESET_TYPE_GM;
-int winmm_reset_delay = 0;
+const char *winmm_device         = "";
+int winmm_complevel              = COMP_STANDARD;
+int winmm_reset_type             = RESET_TYPE_GM;
+int winmm_reset_delay            = 0;
 
-static const byte gm_system_on[] = {
-    0xF0, 0x7E, 0x7F, 0x09, 0x01, 0xF7
-};
+static const byte gm_system_on[] = {0xF0, 0x7E, 0x7F, 0x09, 0x01, 0xF7};
 
-static const byte gs_reset[] = {
-    0xF0, 0x41, 0x10, 0x42, 0x12, 0x40, 0x00, 0x7F, 0x00, 0x41, 0xF7
-};
+static const byte gs_reset[]     = {0xF0, 0x41, 0x10, 0x42, 0x12, 0x40,
+                                    0x00, 0x7F, 0x00, 0x41, 0xF7};
 
-static const byte xg_system_on[] = {
-    0xF0, 0x43, 0x10, 0x4C, 0x00, 0x00, 0x7E, 0x00, 0xF7
-};
+static const byte xg_system_on[] = {0xF0, 0x43, 0x10, 0x4C, 0x00,
+                                    0x00, 0x7E, 0x00, 0xF7};
 
-static const byte ff_loopStart[] = {'l', 'o', 'o', 'p', 'S', 't', 'a', 'r', 't'};
-static const byte ff_loopEnd[] = {'l', 'o', 'o', 'p', 'E', 'n', 'd'};
+static const byte ff_loopStart[] = {'l', 'o', 'o', 'p', 'S',
+                                    't', 'a', 'r', 't'};
+static const byte ff_loopEnd[]   = {'l', 'o', 'o', 'p', 'E', 'n', 'd'};
 
 static boolean use_fallback;
 
 #define DEFAULT_VOLUME 100
 static byte channel_volume[MIDI_CHANNELS_PER_TRACK];
-static float volume_factor = 0.0f;
+static float volume_factor   = 0.0f;
 static boolean update_volume = false;
 
 typedef enum
@@ -112,7 +109,7 @@ static const char **winmm_devices = NULL;
 typedef struct
 {
     DWORD dwDeltaTime;
-    DWORD dwStreamID; // always 0
+    DWORD dwStreamID;  // always 0
     DWORD dwEvent;
 } native_event_t;
 
@@ -145,7 +142,7 @@ typedef struct
 
 static win_midi_song_t song;
 
-#define BUFFER_INITIAL_SIZE 8192
+#define BUFFER_INITIAL_SIZE     8192
 
 #define PLAYER_THREAD_WAIT_TIME 4000
 
@@ -163,7 +160,7 @@ static buffer_t buffer;
 
 #define STREAM_MAX_EVENTS 4
 
-#define MAKE_EVT(a, b, c, d)                                                   \
+#define MAKE_EVT(a, b, c, d) \
     ((DWORD)(a) | ((DWORD)(b) << 8) | ((DWORD)(c) << 16) | ((DWORD)(d) << 24))
 
 #define PADDED_SIZE(x) (((x) + sizeof(DWORD) - 1) & ~(sizeof(DWORD) - 1))
@@ -275,12 +272,12 @@ static void StreamOut(void)
     MMRESULT mmr;
 
     memset(hdr, 0, sizeof(*hdr));
-    hdr->lpData = (LPSTR)buffer.data;
+    hdr->lpData          = (LPSTR)buffer.data;
     hdr->dwBytesRecorded = buffer.position;
-    hdr->dwBufferLength = buffer.size;
+    hdr->dwBufferLength  = buffer.size;
 
     // Reset buffer position even if midiStreamOut fails.
-    buffer.position = 0;
+    buffer.position      = 0;
 
     mmr = midiOutPrepareHeader((HMIDIOUT)hMidiStream, hdr, sizeof(MIDIHDR));
     if (mmr != MMSYSERR_NOERROR)
@@ -291,7 +288,7 @@ static void StreamOut(void)
 
     buffer.prepared = true;
 
-    mmr = midiStreamOut(hMidiStream, hdr, sizeof(MIDIHDR));
+    mmr             = midiStreamOut(hMidiStream, hdr, sizeof(MIDIHDR));
     if (mmr != MMSYSERR_NOERROR)
     {
         MidiError("midiStreamOut", mmr);
@@ -306,8 +303,9 @@ static void SendShortMsg(unsigned int delta_time, byte status, byte channel,
 {
     native_event_t native_event;
     native_event.dwDeltaTime = delta_time;
-    native_event.dwStreamID = 0;
-    native_event.dwEvent = MAKE_EVT(status | channel, param1, param2, MEVT_SHORTMSG);
+    native_event.dwStreamID  = 0;
+    native_event.dwEvent =
+        MAKE_EVT(status | channel, param1, param2, MEVT_SHORTMSG);
     WriteBuffer((byte *)&native_event, sizeof(native_event_t));
 }
 
@@ -330,8 +328,8 @@ static void SendLongMsg(unsigned int delta_time, const byte *ptr,
 {
     native_event_t native_event;
     native_event.dwDeltaTime = delta_time;
-    native_event.dwStreamID = 0;
-    native_event.dwEvent = MAKE_EVT(length, 0, 0, MEVT_LONGMSG);
+    native_event.dwStreamID  = 0;
+    native_event.dwEvent     = MAKE_EVT(length, 0, 0, MEVT_LONGMSG);
     WriteBuffer((byte *)&native_event, sizeof(native_event_t));
     WriteBuffer(ptr, length);
     WriteBufferPad();
@@ -346,8 +344,8 @@ static void SendNullRPN(unsigned int delta_time, const midi_event_t *event)
     const byte channel = event->data.channel.channel;
     SendShortMsg(delta_time, MIDI_EVENT_CONTROLLER, channel,
                  MIDI_CONTROLLER_RPN_LSB, MIDI_RPN_NULL);
-    SendShortMsg(0, MIDI_EVENT_CONTROLLER, channel,
-                 MIDI_CONTROLLER_RPN_MSB, MIDI_RPN_NULL);
+    SendShortMsg(0, MIDI_EVENT_CONTROLLER, channel, MIDI_CONTROLLER_RPN_MSB,
+                 MIDI_RPN_NULL);
 }
 
 // Writes a NOP message (ticks). Call this function from the MIDI thread only,
@@ -357,8 +355,8 @@ static void SendNOPMsg(unsigned int delta_time)
 {
     native_event_t native_event;
     native_event.dwDeltaTime = delta_time;
-    native_event.dwStreamID = 0;
-    native_event.dwEvent = MAKE_EVT(0, 0, 0, MEVT_NOP);
+    native_event.dwStreamID  = 0;
+    native_event.dwEvent     = MAKE_EVT(0, 0, 0, MEVT_NOP);
     WriteBuffer((byte *)&native_event, sizeof(native_event_t));
 }
 
@@ -383,8 +381,8 @@ static void UpdateTempo(unsigned int delta_time, const midi_event_t *event)
                      event->data.meta.data[0], 0);
 
     native_event.dwDeltaTime = delta_time;
-    native_event.dwStreamID = 0;
-    native_event.dwEvent = MAKE_EVT(tempo, 0, 0, MEVT_TEMPO);
+    native_event.dwStreamID  = 0;
+    native_event.dwEvent     = MAKE_EVT(tempo, 0, 0, MEVT_TEMPO);
     WriteBuffer((byte *)&native_event, sizeof(native_event_t));
 }
 
@@ -459,8 +457,10 @@ static void SendNotesSoundOff(void)
 
     for (i = 0; i < MIDI_CHANNELS_PER_TRACK; ++i)
     {
-        SendShortMsg(0, MIDI_EVENT_CONTROLLER, i, MIDI_CONTROLLER_ALL_NOTES_OFF, 0);
-        SendShortMsg(0, MIDI_EVENT_CONTROLLER, i, MIDI_CONTROLLER_ALL_SOUND_OFF, 0);
+        SendShortMsg(0, MIDI_EVENT_CONTROLLER, i, MIDI_CONTROLLER_ALL_NOTES_OFF,
+                     0);
+        SendShortMsg(0, MIDI_EVENT_CONTROLLER, i, MIDI_CONTROLLER_ALL_SOUND_OFF,
+                     0);
     }
 }
 
@@ -475,10 +475,13 @@ static void ResetControllers(void)
     for (i = 0; i < MIDI_CHANNELS_PER_TRACK; ++i)
     {
         // Reset commonly used controllers.
-        SendShortMsg(0, MIDI_EVENT_CONTROLLER, i, MIDI_CONTROLLER_RESET_ALL_CTRLS, 0);
+        SendShortMsg(0, MIDI_EVENT_CONTROLLER, i,
+                     MIDI_CONTROLLER_RESET_ALL_CTRLS, 0);
         SendShortMsg(0, MIDI_EVENT_CONTROLLER, i, MIDI_CONTROLLER_PAN, 64);
-        SendShortMsg(0, MIDI_EVENT_CONTROLLER, i, MIDI_CONTROLLER_BANK_SELECT_MSB, 0);
-        SendShortMsg(0, MIDI_EVENT_CONTROLLER, i, MIDI_CONTROLLER_BANK_SELECT_LSB, 0);
+        SendShortMsg(0, MIDI_EVENT_CONTROLLER, i,
+                     MIDI_CONTROLLER_BANK_SELECT_MSB, 0);
+        SendShortMsg(0, MIDI_EVENT_CONTROLLER, i,
+                     MIDI_CONTROLLER_BANK_SELECT_LSB, 0);
         SendShortMsg(0, MIDI_EVENT_PROGRAM_CHANGE, i, 0, 0);
         SendShortMsg(0, MIDI_EVENT_CONTROLLER, i, MIDI_CONTROLLER_REVERB, 40);
         SendShortMsg(0, MIDI_EVENT_CONTROLLER, i, MIDI_CONTROLLER_CHORUS, 0);
@@ -500,8 +503,10 @@ static void ResetPitchBendSensitivity(void)
         SendShortMsg(0, MIDI_EVENT_CONTROLLER, i, MIDI_CONTROLLER_RPN_MSB, 0);
 
         // Reset pitch bend sensitivity to +/- 2 semitones and 0 cents.
-        SendShortMsg(0, MIDI_EVENT_CONTROLLER, i, MIDI_CONTROLLER_DATA_ENTRY_MSB, 2);
-        SendShortMsg(0, MIDI_EVENT_CONTROLLER, i, MIDI_CONTROLLER_DATA_ENTRY_LSB, 0);
+        SendShortMsg(0, MIDI_EVENT_CONTROLLER, i,
+                     MIDI_CONTROLLER_DATA_ENTRY_MSB, 2);
+        SendShortMsg(0, MIDI_EVENT_CONTROLLER, i,
+                     MIDI_CONTROLLER_DATA_ENTRY_LSB, 0);
 
         // Set RPN MSB/LSB to null value after data entry.
         SendShortMsg(0, MIDI_EVENT_CONTROLLER, i, MIDI_CONTROLLER_RPN_LSB, 127);
@@ -568,17 +573,17 @@ static void ResetDevice(void)
 
 static boolean IsPartLevel(const byte *msg, unsigned int length)
 {
-    if (length == 10 &&
-        msg[0] == 0x41 && // Roland
-        msg[2] == 0x42 && // GS
-        msg[3] == 0x12 && // DT1
-        msg[4] == 0x40 && // Address MSB
-        msg[5] >= 0x10 && // Address
-        msg[5] <= 0x1F && // Address
-        msg[6] == 0x19 && // Address LSB
-        msg[9] == 0xF7)   // SysEx EOX
+    if (length == 10 && msg[0] == 0x41 &&  // Roland
+        msg[2] == 0x42 &&                  // GS
+        msg[3] == 0x12 &&                  // DT1
+        msg[4] == 0x40 &&                  // Address MSB
+        msg[5] >= 0x10 &&                  // Address
+        msg[5] <= 0x1F &&                  // Address
+        msg[6] == 0x19 &&                  // Address LSB
+        msg[9] == 0xF7)                    // SysEx EOX
     {
-        const byte checksum = 128 - ((int)msg[4] + msg[5] + msg[6] + msg[7]) % 128;
+        const byte checksum =
+            128 - ((int)msg[4] + msg[5] + msg[6] + msg[7]) % 128;
 
         if (msg[8] == checksum)
         {
@@ -604,33 +609,34 @@ static boolean IsSysExReset(const byte *msg, unsigned int length)
 
     switch (msg[0])
     {
-        case 0x41: // Roland
+        case 0x41:  // Roland
             switch (msg[2])
             {
-                case 0x42: // GS
+                case 0x42:  // GS
                     switch (msg[3])
                     {
-                        case 0x12: // DT1
-                            if (length == 10 &&
-                                msg[4] == 0x00 &&  // Address MSB
-                                msg[5] == 0x00 &&  // Address
-                                msg[6] == 0x7F &&  // Address LSB
-                              ((msg[7] == 0x00 &&  // Data     (MODE-1)
-                                msg[8] == 0x01) || // Checksum (MODE-1)
-                               (msg[7] == 0x01 &&  // Data     (MODE-2)
-                                msg[8] == 0x00)))  // Checksum (MODE-2)
+                        case 0x12:  // DT1
+                            if (length == 10 && msg[4] == 0x00
+                                &&                   // Address MSB
+                                msg[5] == 0x00 &&    // Address
+                                msg[6] == 0x7F &&    // Address LSB
+                                ((msg[7] == 0x00 &&  // Data     (MODE-1)
+                                  msg[8] == 0x01)
+                                 ||                  // Checksum (MODE-1)
+                                 (msg[7] == 0x01 &&  // Data     (MODE-2)
+                                  msg[8] == 0x00)))  // Checksum (MODE-2)
                             {
                                 // SC-88 System Mode Set
                                 // 41 <dev> 42 12 00 00 7F 00 01 F7 (MODE-1)
                                 // 41 <dev> 42 12 00 00 7F 01 00 F7 (MODE-2)
                                 return true;
                             }
-                            else if (length == 10 &&
-                                     msg[4] == 0x40 && // Address MSB
-                                     msg[5] == 0x00 && // Address
-                                     msg[6] == 0x7F && // Address LSB
-                                     msg[7] == 0x00 && // Data (GS Reset)
-                                     msg[8] == 0x41)   // Checksum
+                            else if (length == 10 && msg[4] == 0x40
+                                     &&                 // Address MSB
+                                     msg[5] == 0x00 &&  // Address
+                                     msg[6] == 0x7F &&  // Address LSB
+                                     msg[7] == 0x00 &&  // Data (GS Reset)
+                                     msg[8] == 0x41)    // Checksum
                             {
                                 // GS Reset
                                 // 41 <dev> 42 12 40 00 7F 00 41 F7
@@ -642,16 +648,16 @@ static boolean IsSysExReset(const byte *msg, unsigned int length)
             }
             break;
 
-        case 0x43: // Yamaha
+        case 0x43:  // Yamaha
             switch (msg[2])
             {
-                case 0x2B: // TG300
-                    if (length == 9 &&
-                        msg[3] == 0x00 && // Start Address b20 - b14
-                        msg[4] == 0x00 && // Start Address b13 - b7
-                        msg[5] == 0x7F && // Start Address b6 - b0
-                        msg[6] == 0x00 && // Data
-                        msg[7] == 0x01)   // Checksum
+                case 0x2B:  // TG300
+                    if (length == 9 && msg[3] == 0x00
+                        &&                 // Start Address b20 - b14
+                        msg[4] == 0x00 &&  // Start Address b13 - b7
+                        msg[5] == 0x7F &&  // Start Address b6 - b0
+                        msg[6] == 0x00 &&  // Data
+                        msg[7] == 0x01)    // Checksum
                     {
                         // TG300 All Parameter Reset
                         // 43 <dev> 2B 00 00 7F 00 01 F7
@@ -659,13 +665,13 @@ static boolean IsSysExReset(const byte *msg, unsigned int length)
                     }
                     break;
 
-                case 0x4C: // XG
-                    if (length == 8 &&
-                        msg[3] == 0x00 &&  // Address High
-                        msg[4] == 0x00 &&  // Address Mid
-                       (msg[5] == 0x7E ||  // Address Low (System On)
-                        msg[5] == 0x7F) && // Address Low (All Parameter Reset)
-                        msg[6] == 0x00)    // Data
+                case 0x4C:                                // XG
+                    if (length == 8 && msg[3] == 0x00 &&  // Address High
+                        msg[4] == 0x00 &&                 // Address Mid
+                        (msg[5] == 0x7E ||  // Address Low (System On)
+                         msg[5] == 0x7F)
+                        &&               // Address Low (All Parameter Reset)
+                        msg[6] == 0x00)  // Data
                     {
                         // XG System On, XG All Parameter Reset
                         // 43 <dev> 4C 00 00 7E 00 F7
@@ -676,14 +682,14 @@ static boolean IsSysExReset(const byte *msg, unsigned int length)
             }
             break;
 
-        case 0x7E: // Universal Non-Real Time
+        case 0x7E:  // Universal Non-Real Time
             switch (msg[2])
             {
-                case 0x09: // General Midi
-                    if (length == 5 &&
-                       (msg[3] == 0x01 || // GM System On
-                        msg[3] == 0x02 || // GM System Off
-                        msg[3] == 0x03))  // GM2 System On
+                case 0x09:  // General Midi
+                    if (length == 5
+                        && (msg[3] == 0x01 ||  // GM System On
+                            msg[3] == 0x02 ||  // GM System Off
+                            msg[3] == 0x03))   // GM2 System On
                     {
                         // GM System On/Off, GM2 System On
                         // 7E <dev> 09 01 F7
@@ -704,8 +710,8 @@ static boolean IsSysExReset(const byte *msg, unsigned int length)
 static void SendSysExMsg(unsigned int delta_time, const midi_event_t *event)
 {
     native_event_t native_event;
-    const byte event_type = MIDI_EVENT_SYSEX;
-    const byte *data = event->data.sysex.data;
+    const byte event_type     = MIDI_EVENT_SYSEX;
+    const byte *data          = event->data.sysex.data;
     const unsigned int length = event->data.sysex.length;
 
     if (IsPartLevel(data, length))
@@ -713,15 +719,15 @@ static void SendSysExMsg(unsigned int delta_time, const midi_event_t *event)
         byte channel;
 
         // Convert "block number" to a channel number.
-        if (data[5] == 0x10) // Channel 10
+        if (data[5] == 0x10)  // Channel 10
         {
             channel = 9;
         }
-        else if (data[5] < 0x1A) // Channels 1-9
+        else if (data[5] < 0x1A)  // Channels 1-9
         {
             channel = (data[5] & 0x0F) - 1;
         }
-        else // Channels 11-16
+        else  // Channels 11-16
         {
             channel = data[5] & 0x0F;
         }
@@ -733,7 +739,7 @@ static void SendSysExMsg(unsigned int delta_time, const midi_event_t *event)
 
     // Send the SysEx message.
     native_event.dwDeltaTime = delta_time;
-    native_event.dwStreamID = 0;
+    native_event.dwStreamID  = 0;
     native_event.dwEvent = MAKE_EVT(length + sizeof(byte), 0, 0, MEVT_LONGMSG);
     WriteBuffer((byte *)&native_event, sizeof(native_event_t));
     WriteBuffer(&event_type, sizeof(byte));
@@ -806,14 +812,14 @@ static void SetLoopPoint(void)
 
 static void CheckFFLoop(const midi_event_t *event)
 {
-    if (event->data.meta.length == sizeof(ff_loopStart) &&
-        !memcmp(event->data.meta.data, ff_loopStart, sizeof(ff_loopStart)))
+    if (event->data.meta.length == sizeof(ff_loopStart)
+        && !memcmp(event->data.meta.data, ff_loopStart, sizeof(ff_loopStart)))
     {
         SetLoopPoint();
         song.ff_loop = true;
     }
-    else if (song.ff_loop && event->data.meta.length == sizeof(ff_loopEnd) &&
-             !memcmp(event->data.meta.data, ff_loopEnd, sizeof(ff_loopEnd)))
+    else if (song.ff_loop && event->data.meta.length == sizeof(ff_loopEnd)
+             && !memcmp(event->data.meta.data, ff_loopEnd, sizeof(ff_loopEnd)))
     {
         song.ff_restart = true;
     }
@@ -839,12 +845,12 @@ static void SendEMIDI(unsigned int delta_time, const midi_event_t *event,
                 if (flag == EMIDI_DEVICE_ALL)
                 {
                     track->emidi_device_flags = UINT_MAX;
-                    track->emidi_designated = true;
+                    track->emidi_designated   = true;
                 }
                 else if (flag <= EMIDI_DEVICE_ULTRASOUND)
                 {
                     track->emidi_device_flags |= 1U << flag;
-                    track->emidi_designated = true;
+                    track->emidi_designated    = true;
                 }
             }
             SendNOPMsg(delta_time);
@@ -862,7 +868,7 @@ static void SendEMIDI(unsigned int delta_time, const midi_event_t *event,
                 if (!track->emidi_designated)
                 {
                     track->emidi_device_flags = UINT_MAX;
-                    track->emidi_designated = true;
+                    track->emidi_designated   = true;
                 }
 
                 if (flag <= EMIDI_DEVICE_ULTRASOUND)
@@ -899,8 +905,8 @@ static void SendEMIDI(unsigned int delta_time, const midi_event_t *event,
             break;
 
         case EMIDI_CONTROLLER_LOOP_BEGIN:
-            count = event->data.channel.param2;
-            count = (count == 0) ? (-1) : count;
+            count                   = event->data.channel.param2;
+            count                   = (count == 0) ? (-1) : count;
             track->emidi_loop_count = count;
             MIDI_SetLoopPoint(track->iter);
             SendNOPMsg(delta_time);
@@ -944,8 +950,10 @@ static void SendEMIDI(unsigned int delta_time, const midi_event_t *event,
                     if (song.tracks[i].emidi_loop_count != 0)
                     {
                         MIDI_RestartAtLoopPoint(song.tracks[i].iter);
-                        song.tracks[i].end_of_track = song.tracks[i].saved_end_of_track;
-                        song.tracks[i].elapsed_time = song.tracks[i].saved_elapsed_time;
+                        song.tracks[i].end_of_track =
+                            song.tracks[i].saved_end_of_track;
+                        song.tracks[i].elapsed_time =
+                            song.tracks[i].saved_elapsed_time;
                         song.elapsed_time = song.saved_elapsed_time;
                     }
 
@@ -1315,13 +1323,13 @@ static void RestartTracks(void)
     for (i = 0; i < song.num_tracks; ++i)
     {
         MIDI_RestartIterator(song.tracks[i].iter);
-        song.tracks[i].elapsed_time = 0;
-        song.tracks[i].end_of_track = false;
+        song.tracks[i].elapsed_time       = 0;
+        song.tracks[i].end_of_track       = false;
         song.tracks[i].emidi_device_flags = 0;
-        song.tracks[i].emidi_designated = false;
-        song.tracks[i].emidi_program = false;
-        song.tracks[i].emidi_volume = false;
-        song.tracks[i].emidi_loop_count = 0;
+        song.tracks[i].emidi_designated   = false;
+        song.tracks[i].emidi_program      = false;
+        song.tracks[i].emidi_volume       = false;
+        song.tracks[i].emidi_loop_count   = 0;
     }
     song.elapsed_time = 0;
 }
@@ -1335,9 +1343,9 @@ static void RestartTracks(void)
 static boolean IsRPGLoop(void)
 {
     unsigned int i;
-    unsigned int num_rpg_events = 0;
+    unsigned int num_rpg_events   = 0;
     unsigned int num_emidi_events = 0;
-    midi_event_t *event = NULL;
+    midi_event_t *event           = NULL;
 
     for (i = 0; i < song.num_tracks; ++i)
     {
@@ -1379,11 +1387,11 @@ static void FillBuffer(void)
     unsigned int i;
     int num_events;
 
-    for (num_events = 0; num_events < STREAM_MAX_EVENTS; )
+    for (num_events = 0; num_events < STREAM_MAX_EVENTS;)
     {
-        midi_event_t *event = NULL;
+        midi_event_t *event     = NULL;
         win_midi_track_t *track = NULL;
-        unsigned int min_time = UINT_MAX;
+        unsigned int min_time   = UINT_MAX;
         unsigned int delta_time;
 
         // Find next event across all tracks.
@@ -1391,12 +1399,12 @@ static void FillBuffer(void)
         {
             if (!song.tracks[i].end_of_track)
             {
-                unsigned int time = song.tracks[i].elapsed_time +
-                                    MIDI_GetDeltaTime(song.tracks[i].iter);
+                unsigned int time = song.tracks[i].elapsed_time
+                                    + MIDI_GetDeltaTime(song.tracks[i].iter);
                 if (time < min_time)
                 {
                     min_time = time;
-                    track = &song.tracks[i];
+                    track    = &song.tracks[i];
                 }
             }
         }
@@ -1416,7 +1424,8 @@ static void FillBuffer(void)
                 {
                     for (i = 0; i < MIDI_CHANNELS_PER_TRACK; ++i)
                     {
-                        SendShortMsg(0, MIDI_EVENT_CONTROLLER, i, MIDI_CONTROLLER_RESET_ALL_CTRLS, 0);
+                        SendShortMsg(0, MIDI_EVENT_CONTROLLER, i,
+                                     MIDI_CONTROLLER_RESET_ALL_CTRLS, 0);
                     }
                     RestartTracks();
                     continue;
@@ -1426,8 +1435,8 @@ static void FillBuffer(void)
         }
 
         track->elapsed_time = min_time;
-        delta_time = min_time - song.elapsed_time;
-        song.elapsed_time = min_time;
+        delta_time          = min_time - song.elapsed_time;
+        song.elapsed_time   = min_time;
 
         if (!MIDI_GetNextEvent(track->iter, &event))
         {
@@ -1482,7 +1491,7 @@ static DWORD WINAPI PlayerProc(LPVOID lpParam)
             case STATE_STARTUP:
                 ResetDevice();
                 StreamOut();
-                song.rpg_loop = IsRPGLoop();
+                song.rpg_loop  = IsRPGLoop();
                 win_midi_state = STATE_PLAYING;
                 break;
 
@@ -1618,7 +1627,7 @@ static boolean I_WIN_InitMusic(int device)
             device = 0;
         }
         winmm_device = winmm_devices[device];
-        MidiDevice = device;
+        MidiDevice   = device;
     }
 
     mmr = midiStreamOpen(&hMidiStream, &MidiDevice, (DWORD)1,
@@ -1634,9 +1643,9 @@ static boolean I_WIN_InitMusic(int device)
     AllocateBuffer(BUFFER_INITIAL_SIZE);
 
     hBufferReturnEvent = CreateEvent(NULL, FALSE, FALSE, NULL);
-    hStoppedEvent = CreateEvent(NULL, FALSE, FALSE, NULL);
-    hPlayerThread = CreateThread(NULL, 0, (LPTHREAD_START_ROUTINE)PlayerProc,
-                                 0, 0, 0);
+    hStoppedEvent      = CreateEvent(NULL, FALSE, FALSE, NULL);
+    hPlayerThread =
+        CreateThread(NULL, 0, (LPTHREAD_START_ROUTINE)PlayerProc, 0, 0, 0);
     SetThreadPriority(hPlayerThread, THREAD_PRIORITY_TIME_CRITICAL);
     InitializeCriticalSectionAndSpinCount(&CriticalSection, 1024);
 
@@ -1691,7 +1700,7 @@ static void I_WIN_PlaySong(void *handle, boolean looping)
     }
 
     EnterCriticalSection(&CriticalSection);
-    song.looping = looping;
+    song.looping   = looping;
     win_midi_state = STATE_STARTUP;
     StreamStart();
     LeaveCriticalSection(&CriticalSection);
@@ -1752,7 +1761,7 @@ static void *I_WIN_RegisterSong(void *data, int len)
         void *outbuf;
         size_t outbuf_len;
 
-        instream = mem_fopen_read(data, len);
+        instream  = mem_fopen_read(data, len);
         outstream = mem_fopen_write();
 
         if (mus2mid(instream, outstream) == 0)
@@ -1775,7 +1784,7 @@ static void *I_WIN_RegisterSong(void *data, int len)
         return NULL;
     }
 
-    prop_timediv.cbStruct = sizeof(MIDIPROPTIMEDIV);
+    prop_timediv.cbStruct  = sizeof(MIDIPROPTIMEDIV);
     prop_timediv.dwTimeDiv = MIDI_GetFileTimeDivision(song.file);
     mmr = midiStreamProperty(hMidiStream, (LPBYTE)&prop_timediv,
                              MIDIPROP_SET | MIDIPROP_TIMEDIV);
@@ -1784,22 +1793,22 @@ static void *I_WIN_RegisterSong(void *data, int len)
         MidiError("midiStreamProperty", mmr);
         return NULL;
     }
-    timediv = prop_timediv.dwTimeDiv;
+    timediv             = prop_timediv.dwTimeDiv;
 
     // Set initial tempo.
     prop_tempo.cbStruct = sizeof(MIDIPROPTIMEDIV);
-    prop_tempo.dwTempo = 500000; // 120 BPM
-    mmr = midiStreamProperty(hMidiStream, (LPBYTE)&prop_tempo,
-                             MIDIPROP_SET | MIDIPROP_TEMPO);
+    prop_tempo.dwTempo  = 500000;  // 120 BPM
+    mmr                 = midiStreamProperty(hMidiStream, (LPBYTE)&prop_tempo,
+                                             MIDIPROP_SET | MIDIPROP_TEMPO);
     if (mmr != MMSYSERR_NOERROR)
     {
         MidiError("midiStreamProperty", mmr);
         return NULL;
     }
-    tempo = prop_tempo.dwTempo;
+    tempo           = prop_tempo.dwTempo;
 
     song.num_tracks = MIDI_NumTracks(song.file);
-    song.tracks = calloc(song.num_tracks, sizeof(win_midi_track_t));
+    song.tracks     = calloc(song.num_tracks, sizeof(win_midi_track_t));
     for (i = 0; i < song.num_tracks; ++i)
     {
         song.tracks[i].iter = MIDI_IterateTrack(song.file, i);
@@ -1831,13 +1840,13 @@ static void I_WIN_UnRegisterSong(void *handle)
         MIDI_FreeFile(song.file);
         song.file = NULL;
     }
-    song.elapsed_time = 0;
+    song.elapsed_time       = 0;
     song.saved_elapsed_time = 0;
-    song.num_tracks = 0;
-    song.looping = false;
-    song.ff_loop = false;
-    song.ff_restart = false;
-    song.rpg_loop = false;
+    song.num_tracks         = 0;
+    song.looping            = false;
+    song.ff_loop            = false;
+    song.ff_restart         = false;
+    song.rpg_loop           = false;
 }
 
 static void I_WIN_ShutdownMusic(void)
@@ -1856,7 +1865,8 @@ static void I_WIN_ShutdownMusic(void)
     StreamStart();
     LeaveCriticalSection(&CriticalSection);
 
-    if (WaitForSingleObject(hPlayerThread, PLAYER_THREAD_WAIT_TIME) == WAIT_OBJECT_0)
+    if (WaitForSingleObject(hPlayerThread, PLAYER_THREAD_WAIT_TIME)
+        == WAIT_OBJECT_0)
     {
         CloseHandle(hPlayerThread);
         hPlayerThread = NULL;
@@ -1877,8 +1887,8 @@ static void I_WIN_ShutdownMusic(void)
     hMidiStream = NULL;
 
     free(buffer.data);
-    buffer.data = NULL;
-    buffer.size = 0;
+    buffer.data     = NULL;
+    buffer.size     = 0;
     buffer.position = 0;
 
     CloseHandle(hBufferReturnEvent);
@@ -1910,8 +1920,8 @@ static const char **I_WIN_DeviceList(int *current_device)
 
     for (int i = 0; i < array_size(winmm_devices); ++i)
     {
-        if (current_device &&
-            !strncasecmp(winmm_devices[i], winmm_device, MAXPNAMELEN))
+        if (current_device
+            && !strncasecmp(winmm_devices[i], winmm_device, MAXPNAMELEN))
         {
             *current_device = i;
         }
@@ -1925,17 +1935,9 @@ static void I_WIN_UpdateMusic(void)
     ;
 }
 
-music_module_t music_win_module =
-{
-    I_WIN_InitMusic,
-    I_WIN_ShutdownMusic,
-    I_WIN_SetMusicVolume,
-    I_WIN_PauseSong,
-    I_WIN_ResumeSong,
-    I_WIN_RegisterSong,
-    I_WIN_PlaySong,
-    I_WIN_UpdateMusic,
-    I_WIN_StopSong,
-    I_WIN_UnRegisterSong,
-    I_WIN_DeviceList,
+music_module_t music_win_module = {
+    I_WIN_InitMusic,      I_WIN_ShutdownMusic, I_WIN_SetMusicVolume,
+    I_WIN_PauseSong,      I_WIN_ResumeSong,    I_WIN_RegisterSong,
+    I_WIN_PlaySong,       I_WIN_UpdateMusic,   I_WIN_StopSong,
+    I_WIN_UnRegisterSong, I_WIN_DeviceList,
 };

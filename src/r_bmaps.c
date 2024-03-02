@@ -39,9 +39,9 @@ boolean force_brightmaps;
 
 #define COLORMASK_SIZE 256
 
-static const byte nobrightmap[COLORMASK_SIZE] = { 0 };
+static const byte nobrightmap[COLORMASK_SIZE] = {0};
 
-const byte *dc_brightmap = nobrightmap;
+const byte *dc_brightmap                      = nobrightmap;
 
 typedef struct
 {
@@ -60,11 +60,15 @@ static void ReadColormask(u_scanner_t *s, byte *colormask)
         {
             color1 = s->number;
             if (color1 >= 0 && color1 < COLORMASK_SIZE)
+            {
                 colormask[color1] = 1;
+            }
         }
 
         if (!U_CheckToken(s, '-'))
+        {
             continue;
+        }
 
         if (U_MustGetInteger(s))
         {
@@ -73,7 +77,9 @@ static void ReadColormask(u_scanner_t *s, byte *colormask)
             {
                 int i;
                 for (i = color1 + 1; i <= color2; ++i)
+                {
                     colormask[i] = 1;
+                }
             }
         }
     } while (U_CheckToken(s, ','));
@@ -89,9 +95,9 @@ typedef struct
 } elem_t;
 
 static elem_t *textures_bm = NULL;
-static elem_t *flats_bm = NULL;
-static elem_t *sprites_bm = NULL;
-static elem_t *states_bm = NULL;
+static elem_t *flats_bm    = NULL;
+static elem_t *sprites_bm  = NULL;
+static elem_t *states_bm   = NULL;
 
 static int GetBrightmap(const char *name)
 {
@@ -99,7 +105,9 @@ static int GetBrightmap(const char *name)
     for (i = 0; i < array_size(brightmaps_array); ++i)
     {
         if (!strcasecmp(brightmaps_array[i].name, name))
+        {
             return i;
+        }
     }
     return -1;
 }
@@ -136,7 +144,9 @@ static boolean ParseProperty(u_scanner_t *s, elem_t *elem)
             if (U_CheckToken(s, '|'))
             {
                 if (U_MustGetIdentifier(s, "DOOM2"))
+                {
                     game = DOOM1AND2;
+                }
             }
         }
         else if (!strcasecmp("DOOM2", s->string))
@@ -148,15 +158,15 @@ static boolean ParseProperty(u_scanner_t *s, elem_t *elem)
             U_Unget(s);
         }
     }
-    if ((gamemission == doom && game == DOOM2ONLY) ||
-        (gamemission == doom2 && game == DOOM1ONLY))
+    if ((gamemission == doom && game == DOOM2ONLY)
+        || (gamemission == doom2 && game == DOOM1ONLY))
     {
         free(name);
         return false;
     }
 
     elem->name = name;
-    elem->idx = idx;
+    elem->idx  = idx;
     return true;
 }
 
@@ -191,7 +201,7 @@ const byte *R_BrightmapForSprite(const int type)
     {
         int i;
 
-        for (i = array_size(sprites_bm) - 1; i >= 0 ; i--)
+        for (i = array_size(sprites_bm) - 1; i >= 0; i--)
         {
             if (sprites_bm[i].num == type)
             {
@@ -243,7 +253,7 @@ void R_ParseBrightmaps(int lumpnum)
 {
     u_scanner_t scanner, *s;
     const char *data = W_CacheLumpNum(lumpnum, PU_CACHE);
-    int length = W_LumpLength(lumpnum);
+    int length       = W_LumpLength(lumpnum);
 
     force_brightmaps = W_IsWADLump(lumpnum);
 
@@ -256,7 +266,7 @@ void R_ParseBrightmaps(int lumpnum)
     }
 
     scanner = U_ScanOpen(data, length, "BRGHTMPS");
-    s = &scanner;
+    s       = &scanner;
     while (U_HasTokensLeft(s))
     {
         if (!U_CheckToken(s, TK_Identifier))

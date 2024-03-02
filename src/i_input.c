@@ -38,41 +38,45 @@ static int GetAxisState(int axis)
 
 static void AxisToButton(int value, int *state, int direction)
 {
-  int button = -1;
+    int button = -1;
 
-  if (value < AXIS_BUTTON_DEADZONE && value > -AXIS_BUTTON_DEADZONE)
-  {
-    value = 0;
-  }
-
-  if (value < 0)
-    button = direction;
-  else if (value > 0)
-    button = direction + 1;
-
-  if (button != *state)
-  {
-    if (*state != -1)
+    if (value < AXIS_BUTTON_DEADZONE && value > -AXIS_BUTTON_DEADZONE)
     {
-        static event_t up;
-        up.data1 = *state;
-        up.type = ev_joyb_up;
-        D_PostEvent(&up);
+        value = 0;
     }
 
-    if (button != -1)
+    if (value < 0)
     {
-        static event_t down;
-        down.data1 = button;
-        down.type = ev_joyb_down;
-        D_PostEvent(&down);
+        button = direction;
+    }
+    else if (value > 0)
+    {
+        button = direction + 1;
     }
 
-    *state = button;
-  }
+    if (button != *state)
+    {
+        if (*state != -1)
+        {
+            static event_t up;
+            up.data1 = *state;
+            up.type  = ev_joyb_up;
+            D_PostEvent(&up);
+        }
+
+        if (button != -1)
+        {
+            static event_t down;
+            down.data1 = button;
+            down.type  = ev_joyb_down;
+            D_PostEvent(&down);
+        }
+
+        *state = button;
+    }
 }
 
-static int axisbuttons[] = { -1, -1, -1, -1 };
+static int axisbuttons[] = {-1, -1, -1, -1};
 
 static void AxisToButtons(event_t *ev)
 {
@@ -152,12 +156,12 @@ static void UpdateControllerAxisState(unsigned int value, boolean left_trigger)
         if (value > trigger_threshold && !left_trigger_on)
         {
             left_trigger_on = true;
-            event.type = ev_joyb_down;
+            event.type      = ev_joyb_down;
         }
         else if (value <= trigger_threshold && left_trigger_on)
         {
             left_trigger_on = false;
-            event.type = ev_joyb_up;
+            event.type      = ev_joyb_up;
         }
         else
         {
@@ -171,12 +175,12 @@ static void UpdateControllerAxisState(unsigned int value, boolean left_trigger)
         if (value > trigger_threshold && !right_trigger_on)
         {
             right_trigger_on = true;
-            event.type = ev_joyb_down;
+            event.type       = ev_joyb_down;
         }
         else if (value <= trigger_threshold && right_trigger_on)
         {
             right_trigger_on = false;
-            event.type = ev_joyb_up;
+            event.type       = ev_joyb_up;
         }
         else
         {
@@ -258,15 +262,18 @@ void I_OpenController(int which)
         if (controller)
         {
             controller_index = which;
-            I_Printf(VB_INFO, "I_OpenController: Found a valid game controller, named: %s",
-                    SDL_GameControllerName(controller));
+            I_Printf(
+                VB_INFO,
+                "I_OpenController: Found a valid game controller, named: %s",
+                SDL_GameControllerName(controller));
         }
     }
 
     if (controller == NULL)
     {
-        I_Printf(VB_ERROR, "I_OpenController: Could not open game controller %i: %s",
-                which, SDL_GetError());
+        I_Printf(VB_ERROR,
+                 "I_OpenController: Could not open game controller %i: %s",
+                 which, SDL_GetError());
     }
 
     I_ResetController();
@@ -282,7 +289,7 @@ void I_CloseController(int which)
     if (controller != NULL && controller_index == which)
     {
         SDL_GameControllerClose(controller);
-        controller = NULL;
+        controller       = NULL;
         controller_index = -1;
     }
 
@@ -352,7 +359,8 @@ static int TranslateKey(int scancode)
     }
 }
 
-static void UpdateMouseButtonState(unsigned int button, boolean on, unsigned int dclick)
+static void UpdateMouseButtonState(unsigned int button, boolean on,
+                                   unsigned int dclick)
 {
     static event_t event;
 
@@ -411,11 +419,11 @@ static void MapMouseWheelToButtons(SDL_MouseWheelEvent wheel)
     int button;
 
     if (wheel.y < 0)
-    {   // scroll down
+    {  // scroll down
         button = MOUSE_BUTTON_WHEELDOWN;
     }
-    else if (wheel.y >0)
-    {   // scroll up
+    else if (wheel.y > 0)
+    {  // scroll up
         button = MOUSE_BUTTON_WHEELUP;
     }
     else if (wheel.x < 0)
@@ -432,12 +440,12 @@ static void MapMouseWheelToButtons(SDL_MouseWheelEvent wheel)
     }
 
     // post a button down event
-    down.type = ev_mouseb_down;
+    down.type  = ev_mouseb_down;
     down.data1 = button;
     D_PostEvent(&down);
 
     // hold button for one tic, required for checks in G_BuildTiccmd
-    delay_event.type = ev_mouseb_up;
+    delay_event.type  = ev_mouseb_up;
     delay_event.data1 = button;
 }
 
@@ -466,15 +474,20 @@ int mouse_acceleration_threshold;
 double I_AccelerateMouse(int val)
 {
     if (!mouse_acceleration)
+    {
         return val;
+    }
 
     if (val < 0)
+    {
         return -I_AccelerateMouse(-val);
+    }
 
     if (val > mouse_acceleration_threshold)
     {
-        return ((double)(val - mouse_acceleration_threshold) *
-                (mouse_acceleration + 10) / 10 + mouse_acceleration_threshold);
+        return ((double)(val - mouse_acceleration_threshold)
+                    * (mouse_acceleration + 10) / 10
+                + mouse_acceleration_threshold);
     }
     else
     {
@@ -491,7 +504,7 @@ void I_ReadMouse(void)
 
     if (x != 0 || y != 0)
     {
-        ev.type = ev_mouse;
+        ev.type  = ev_mouse;
         ev.data1 = 0;
         ev.data2 = x;
         ev.data3 = -y;
@@ -505,7 +518,8 @@ void I_HandleMouseEvent(SDL_Event *sdlevent)
     switch (sdlevent->type)
     {
         case SDL_MOUSEBUTTONDOWN:
-            UpdateMouseButtonState(sdlevent->button.button, true, sdlevent->button.clicks);
+            UpdateMouseButtonState(sdlevent->button.button, true,
+                                   sdlevent->button.clicks);
             break;
 
         case SDL_MOUSEBUTTONUP:
@@ -528,7 +542,7 @@ void I_HandleKeyboardEvent(SDL_Event *sdlevent)
     switch (sdlevent->type)
     {
         case SDL_KEYDOWN:
-            event.type = ev_keydown;
+            event.type  = ev_keydown;
             event.data1 = TranslateKey(sdlevent->key.keysym.scancode);
 
             if (event.data1 != 0)
@@ -538,7 +552,7 @@ void I_HandleKeyboardEvent(SDL_Event *sdlevent)
             break;
 
         case SDL_KEYUP:
-            event.type = ev_keyup;
+            event.type  = ev_keyup;
             event.data1 = TranslateKey(sdlevent->key.keysym.scancode);
 
             // data2/data3 are initialized to zero for ev_keyup.

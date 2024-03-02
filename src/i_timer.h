@@ -25,7 +25,7 @@
 // Called by D_DoomLoop,
 // returns current time in tics.
 extern int (*I_GetTime)(void);
-int I_GetTime_RealTime(void);     // killough
+int I_GetTime_RealTime(void);  // killough
 
 extern int (*I_GetFracTime)(void);
 

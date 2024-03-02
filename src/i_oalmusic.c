@@ -14,10 +14,10 @@
 // DESCRIPTION:
 //
 
+#include "SDL.h"
 #include "al.h"
 #include "alc.h"
 #include "alext.h"
-#include "SDL.h"
 
 #include <stdlib.h>
 
@@ -29,11 +29,10 @@
 // Define the number of buffers and buffer size (in milliseconds) to use. 4
 // buffers with 4096 samples each gives a nice per-chunk size, and lets the
 // queue last for about half second at 44.1khz.
-#define NUM_BUFFERS 4
+#define NUM_BUFFERS    4
 #define BUFFER_SAMPLES 4096
 
-static stream_module_t *stream_modules[] =
-{
+static stream_module_t *stream_modules[] = {
     &stream_snd_module,
 #if defined(HAVE_LIBXMP)
     &stream_xmp_module,
@@ -151,12 +150,14 @@ static boolean StartPlayer(void)
         frames = active_module->I_FillStream(player.data, BUFFER_SAMPLES);
 
         if (frames < 1)
+        {
             break;
+        }
 
         size = frames * player.frame_size;
 
         alBufferData(player.buffers[i], player.format, player.data, size,
-                    player.freq);
+                     player.freq);
     }
     if (alGetError() != AL_NO_ERROR)
     {
@@ -202,7 +203,9 @@ static int PlayerThread(void *unused)
 static boolean I_OAL_InitMusic(int device)
 {
     if (alcGetCurrentContext() == NULL)
+    {
         return false;
+    }
 
     active_module = &stream_snd_module;
 
@@ -245,7 +248,9 @@ int opl_gain = 200;
 static void I_OAL_SetMusicVolume(int volume)
 {
     if (!music_initialized)
+    {
         return;
+    }
 
     ALfloat gain = (ALfloat)volume / 15.0f;
 
@@ -264,7 +269,9 @@ static void I_OAL_SetMusicVolume(int volume)
 static void I_OAL_PauseSong(void *handle)
 {
     if (!music_initialized)
+    {
         return;
+    }
 
     alSourcePause(player.source);
 }
@@ -272,7 +279,9 @@ static void I_OAL_PauseSong(void *handle)
 static void I_OAL_ResumeSong(void *handle)
 {
     if (!music_initialized)
+    {
         return;
+    }
 
     alSourcePlay(player.source);
 }
@@ -280,7 +289,9 @@ static void I_OAL_ResumeSong(void *handle)
 static void I_OAL_PlaySong(void *handle, boolean looping)
 {
     if (!music_initialized)
+    {
         return;
+    }
 
     player.looping = looping;
 
@@ -291,10 +302,10 @@ static void I_OAL_PlaySong(void *handle, boolean looping)
         return;
     }
 
-    music_lock = SDL_CreateMutex();
+    music_lock            = SDL_CreateMutex();
 
     player_thread_running = true;
-    player_thread_handle = SDL_CreateThread(PlayerThread, NULL, NULL);
+    player_thread_handle  = SDL_CreateThread(PlayerThread, NULL, NULL);
     if (player_thread_handle == NULL)
     {
         I_Printf(VB_ERROR, "Error creating thread: %s", SDL_GetError());
@@ -305,7 +316,9 @@ static void I_OAL_PlaySong(void *handle, boolean looping)
 static void I_OAL_StopSong(void *handle)
 {
     if (!music_initialized || !player_thread_running)
+    {
         return;
+    }
 
     alSourceStop(player.source);
 
@@ -326,7 +339,9 @@ static void I_OAL_StopSong(void *handle)
 static void I_OAL_UnRegisterSong(void *handle)
 {
     if (!music_initialized)
+    {
         return;
+    }
 
     active_module->I_CloseStream();
 
@@ -340,7 +355,9 @@ static void I_OAL_UnRegisterSong(void *handle)
 static void I_OAL_ShutdownMusic(void)
 {
     if (!music_initialized)
+    {
         return;
+    }
 
     I_OAL_StopSong(NULL);
     I_OAL_UnRegisterSong(NULL);
@@ -370,13 +387,15 @@ static void *I_OAL_RegisterSong(void *data, int len)
     int i;
 
     if (!music_initialized)
+    {
         return NULL;
+    }
 
     if (IsMid(data, len) || IsMus(data, len))
     {
-        if (midi_stream_module &&
-            midi_stream_module->I_OpenStream(data, len, &player.format,
-                                             &player.freq, &player.frame_size))
+        if (midi_stream_module
+            && midi_stream_module->I_OpenStream(
+                data, len, &player.format, &player.freq, &player.frame_size))
         {
             active_module = midi_stream_module;
             return (void *)1;
@@ -407,17 +426,9 @@ static void I_OAL_UpdateMusic(void)
     ;
 }
 
-music_module_t music_oal_module =
-{
-    I_OAL_InitMusic,
-    I_OAL_ShutdownMusic,
-    I_OAL_SetMusicVolume,
-    I_OAL_PauseSong,
-    I_OAL_ResumeSong,
-    I_OAL_RegisterSong,
-    I_OAL_PlaySong,
-    I_OAL_UpdateMusic,
-    I_OAL_StopSong,
-    I_OAL_UnRegisterSong,
-    I_OAL_DeviceList,
+music_module_t music_oal_module = {
+    I_OAL_InitMusic,      I_OAL_ShutdownMusic, I_OAL_SetMusicVolume,
+    I_OAL_PauseSong,      I_OAL_ResumeSong,    I_OAL_RegisterSong,
+    I_OAL_PlaySong,       I_OAL_UpdateMusic,   I_OAL_StopSong,
+    I_OAL_UnRegisterSong, I_OAL_DeviceList,
 };

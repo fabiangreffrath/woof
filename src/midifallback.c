@@ -21,23 +21,17 @@
 #include "midifile.h"
 
 static const byte drums_table[128] = {
-    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-    0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08,
-    0x10, 0x10, 0x10, 0x10, 0x10, 0x10, 0x10, 0x10,
-    0x18, 0x19, 0x18, 0x18, 0x18, 0x18, 0x18, 0x18,
-    0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20,
-    0x28, 0x28, 0x28, 0x28, 0x28, 0x28, 0x28, 0x28,
-    0x30, 0x30, 0x30, 0x30, 0x30, 0x30, 0x30, 0x30,
-    0x38, 0x38, 0x38, 0x38, 0x38, 0x38, 0x38, 0x38,
-    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x7F
-};
+    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x08, 0x08, 0x08, 0x08,
+    0x08, 0x08, 0x08, 0x08, 0x10, 0x10, 0x10, 0x10, 0x10, 0x10, 0x10, 0x10,
+    0x18, 0x19, 0x18, 0x18, 0x18, 0x18, 0x18, 0x18, 0x20, 0x20, 0x20, 0x20,
+    0x20, 0x20, 0x20, 0x20, 0x28, 0x28, 0x28, 0x28, 0x28, 0x28, 0x28, 0x28,
+    0x30, 0x30, 0x30, 0x30, 0x30, 0x30, 0x30, 0x30, 0x38, 0x38, 0x38, 0x38,
+    0x38, 0x38, 0x38, 0x38, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x7F};
 
 static byte variation[128][128];
 static byte bank_msb[MIDI_CHANNELS_PER_TRACK];
@@ -58,14 +52,13 @@ static void UpdateDrumMap(const byte *msg, unsigned int length)
     // <map> is 00-02 for off (normal part), drum map 1, or drum map 2.
     // <sum> is checksum.
 
-    if (length == 10 &&
-        msg[0] == 0x41 && // Roland
-        msg[1] == 0x10 && // Device ID
-        msg[2] == 0x42 && // GS
-        msg[3] == 0x12 && // DT1
-        msg[4] == 0x40 && // Address MSB
-        msg[6] == 0x15 && // Address LSB
-        msg[9] == 0xF7)   // SysEx EOX
+    if (length == 10 && msg[0] == 0x41 &&  // Roland
+        msg[1] == 0x10 &&                  // Device ID
+        msg[2] == 0x42 &&                  // GS
+        msg[3] == 0x12 &&                  // DT1
+        msg[4] == 0x40 &&                  // Address MSB
+        msg[6] == 0x15 &&                  // Address LSB
+        msg[9] == 0xF7)                    // SysEx EOX
     {
         checksum = 128 - ((int)msg[4] + msg[5] + msg[6] + msg[7]) % 128;
 
@@ -74,15 +67,15 @@ static void UpdateDrumMap(const byte *msg, unsigned int length)
             return;
         }
 
-        if (msg[5] == 0x10) // Channel 10
+        if (msg[5] == 0x10)  // Channel 10
         {
             idx = 9;
         }
-        else if (msg[5] < 0x1A) // Channels 1-9
+        else if (msg[5] < 0x1A)  // Channels 1-9
         {
             idx = (msg[5] & 0x0F) - 1;
         }
-        else // Channels 11-16
+        else  // Channels 11-16
         {
             idx = msg[5] & 0x0F;
         }
@@ -94,7 +87,7 @@ static void UpdateDrumMap(const byte *msg, unsigned int length)
 static boolean GetProgramFallback(byte idx, byte program,
                                   midi_fallback_t *fallback)
 {
-    if (drum_map[idx] == 0) // Normal channel
+    if (drum_map[idx] == 0)  // Normal channel
     {
         if (bank_msb[idx] == 0 || variation[bank_msb[idx]][program])
         {
@@ -112,9 +105,9 @@ static boolean GetProgramFallback(byte idx, byte program,
             fallback->value = 0;
 
             I_Printf(VB_WARNING,
-                    "midifallback: warning: ch=%d [bank_msb=%d prog=%d] "
-                    "falling back to [bank_msb=%d prog=%d]",
-                    idx, bank_msb[idx], program, fallback->value, program);
+                     "midifallback: warning: ch=%d [bank_msb=%d prog=%d] "
+                     "falling back to [bank_msb=%d prog=%d]",
+                     idx, bank_msb[idx], program, fallback->value, program);
             return true;
         }
 
@@ -132,26 +125,26 @@ static boolean GetProgramFallback(byte idx, byte program,
         }
 
         I_Printf(VB_WARNING,
-                "midifallback: warning: ch=%d [bank_msb=%d prog=%d] "
-                "falling back to [bank_msb=%d prog=%d]",
-                idx, bank_msb[idx], program, fallback->value, program);
+                 "midifallback: warning: ch=%d [bank_msb=%d prog=%d] "
+                 "falling back to [bank_msb=%d prog=%d]",
+                 idx, bank_msb[idx], program, fallback->value, program);
         return true;
     }
-    else // Drums channel
+    else  // Drums channel
     {
         if (program != drums_table[program])
         {
             // Use drum set from drums fallback table.
             // Drums 0-63 and 127: same as original SC-55 (1.00 - 1.21).
             // Drums 64-126: standard drum set (0).
-            fallback->type = FALLBACK_DRUMS;
+            fallback->type  = FALLBACK_DRUMS;
             fallback->value = drums_table[program];
-            selected[idx] = true;
+            selected[idx]   = true;
 
             I_Printf(VB_WARNING,
-                    "midifallback: warning: ch=%d [prog=%d] "
-                    "falling back to [prog=%d] (drums)",
-                    idx, program, fallback->value);
+                     "midifallback: warning: ch=%d [prog=%d] "
+                     "falling back to [prog=%d] (drums)",
+                     idx, program, fallback->value);
             return true;
         }
     }
@@ -189,13 +182,14 @@ void MIDI_CheckFallback(const midi_event_t *event, midi_fallback_t *fallback,
                     {
                         // Bank select LSB > 0 not supported. This also
                         // preserves user's current SC-XX map.
-                        fallback->type = FALLBACK_BANK_LSB;
+                        fallback->type  = FALLBACK_BANK_LSB;
                         fallback->value = 0;
 
                         I_Printf(VB_WARNING,
-                                "midifallback: warning: ch=%d [bank_lsb=%d] "
-                                "replaced by [bank_lsb=%d]",
-                                idx, event->data.channel.param2, fallback->value);
+                                 "midifallback: warning: ch=%d [bank_lsb=%d] "
+                                 "replaced by [bank_lsb=%d]",
+                                 idx, event->data.channel.param2,
+                                 fallback->value);
                         return;
                     }
                     break;
@@ -211,7 +205,7 @@ void MIDI_CheckFallback(const midi_event_t *event, midi_fallback_t *fallback,
             break;
 
         case MIDI_EVENT_PROGRAM_CHANGE:
-            idx = event->data.channel.channel;
+            idx     = event->data.channel.channel;
             program = event->data.channel.param1;
             if (GetProgramFallback(idx, program, fallback))
             {
@@ -220,7 +214,7 @@ void MIDI_CheckFallback(const midi_event_t *event, midi_fallback_t *fallback,
             break;
     }
 
-    fallback->type = FALLBACK_NONE;
+    fallback->type  = FALLBACK_NONE;
     fallback->value = 0;
 }
 
@@ -252,12 +246,12 @@ void MIDI_InitFallback(void)
     }
 
     // Variation #1
-    variation[1][38] = 1;
-    variation[1][57] = 1;
-    variation[1][60] = 1;
-    variation[1][80] = 1;
-    variation[1][81] = 1;
-    variation[1][98] = 1;
+    variation[1][38]  = 1;
+    variation[1][57]  = 1;
+    variation[1][60]  = 1;
+    variation[1][80]  = 1;
+    variation[1][81]  = 1;
+    variation[1][98]  = 1;
     variation[1][102] = 1;
     variation[1][104] = 1;
     variation[1][120] = 1;
@@ -306,37 +300,37 @@ void MIDI_InitFallback(void)
     variation[7][125] = 1;
 
     // Variation #8
-    variation[8][0] = 1;
-    variation[8][1] = 1;
-    variation[8][2] = 1;
-    variation[8][3] = 1;
-    variation[8][4] = 1;
-    variation[8][5] = 1;
-    variation[8][6] = 1;
-    variation[8][11] = 1;
-    variation[8][12] = 1;
-    variation[8][14] = 1;
-    variation[8][16] = 1;
-    variation[8][17] = 1;
-    variation[8][19] = 1;
-    variation[8][21] = 1;
-    variation[8][24] = 1;
-    variation[8][25] = 1;
-    variation[8][26] = 1;
-    variation[8][27] = 1;
-    variation[8][28] = 1;
-    variation[8][30] = 1;
-    variation[8][31] = 1;
-    variation[8][38] = 1;
-    variation[8][39] = 1;
-    variation[8][40] = 1;
-    variation[8][48] = 1;
-    variation[8][50] = 1;
-    variation[8][61] = 1;
-    variation[8][62] = 1;
-    variation[8][63] = 1;
-    variation[8][80] = 1;
-    variation[8][81] = 1;
+    variation[8][0]   = 1;
+    variation[8][1]   = 1;
+    variation[8][2]   = 1;
+    variation[8][3]   = 1;
+    variation[8][4]   = 1;
+    variation[8][5]   = 1;
+    variation[8][6]   = 1;
+    variation[8][11]  = 1;
+    variation[8][12]  = 1;
+    variation[8][14]  = 1;
+    variation[8][16]  = 1;
+    variation[8][17]  = 1;
+    variation[8][19]  = 1;
+    variation[8][21]  = 1;
+    variation[8][24]  = 1;
+    variation[8][25]  = 1;
+    variation[8][26]  = 1;
+    variation[8][27]  = 1;
+    variation[8][28]  = 1;
+    variation[8][30]  = 1;
+    variation[8][31]  = 1;
+    variation[8][38]  = 1;
+    variation[8][39]  = 1;
+    variation[8][40]  = 1;
+    variation[8][48]  = 1;
+    variation[8][50]  = 1;
+    variation[8][61]  = 1;
+    variation[8][62]  = 1;
+    variation[8][63]  = 1;
+    variation[8][80]  = 1;
+    variation[8][81]  = 1;
     variation[8][107] = 1;
     variation[8][115] = 1;
     variation[8][116] = 1;
@@ -345,15 +339,15 @@ void MIDI_InitFallback(void)
     variation[8][125] = 1;
 
     // Variation #9
-    variation[9][14] = 1;
+    variation[9][14]  = 1;
     variation[9][118] = 1;
     variation[9][125] = 1;
 
     // Variation #16
-    variation[16][0] = 1;
-    variation[16][4] = 1;
-    variation[16][5] = 1;
-    variation[16][6] = 1;
+    variation[16][0]  = 1;
+    variation[16][4]  = 1;
+    variation[16][5]  = 1;
+    variation[16][6]  = 1;
     variation[16][16] = 1;
     variation[16][19] = 1;
     variation[16][24] = 1;
@@ -364,8 +358,8 @@ void MIDI_InitFallback(void)
     variation[16][63] = 1;
 
     // Variation #24
-    variation[24][4] = 1;
-    variation[24][6] = 1;
+    variation[24][4]  = 1;
+    variation[24][6]  = 1;
 
     // Variation #32
     variation[32][16] = 1;

@@ -63,9 +63,9 @@ static void hsv_to_rgb(vect *hsv, vect *rgb)
 {
     double h, s, v;
 
-    h = hsv->x;
-    s = hsv->y;
-    v = hsv->z;
+    h  = hsv->x;
+    s  = hsv->y;
+    v  = hsv->z;
     h *= 360.0;
     if (s < CTOLERANCE)
     {
@@ -80,42 +80,42 @@ static void hsv_to_rgb(vect *hsv, vect *rgb)
 
         if (h >= 360.0)
         {
-            h  -= 360.0;
+            h -= 360.0;
         }
         h /= 60.0;
-        i = (int)floor(h);
-        f = h - i;
-        p = v * (1.0 - s);
-        q = v * (1.0 - (s * f));
-        t = v * (1.0 - (s * (1.0 - f)));
+        i  = (int)floor(h);
+        f  = h - i;
+        p  = v * (1.0 - s);
+        q  = v * (1.0 - (s * f));
+        t  = v * (1.0 - (s * (1.0 - f)));
         switch (i)
         {
-            case 0 :
+            case 0:
                 rgb->x = v;
                 rgb->y = t;
                 rgb->z = p;
                 break;
-            case 1 :
+            case 1:
                 rgb->x = q;
                 rgb->y = v;
                 rgb->z = p;
                 break;
-            case 2 :
+            case 2:
                 rgb->x = p;
                 rgb->y = v;
                 rgb->z = t;
                 break;
-            case 3 :
+            case 3:
                 rgb->x = p;
                 rgb->y = q;
                 rgb->z = v;
                 break;
-            case 4 :
+            case 4:
                 rgb->x = t;
                 rgb->y = p;
                 rgb->z = v;
                 break;
-            case 5 :
+            case 5:
                 rgb->x = v;
                 rgb->y = p;
                 rgb->z = q;
@@ -130,9 +130,9 @@ static void rgb_to_hsv(vect *rgb, vect *hsv)
     double cmax, cmin;
     double r, g, b;
 
-    r = rgb->x;
-    g = rgb->y;
-    b = rgb->z;
+    r    = rgb->x;
+    g    = rgb->y;
+    b    = rgb->z;
     /* find the cmax and cmin of r g b */
     cmax = r;
     cmin = r;
@@ -140,7 +140,7 @@ static void rgb_to_hsv(vect *rgb, vect *hsv)
     cmin = (g < cmin ? g : cmin);
     cmax = (b > cmax ? b : cmax);
     cmin = (b < cmin ? b : cmin);
-    v = cmax;           /* value */
+    v    = cmax; /* value */
     if (cmax > CTOLERANCE)
     {
         s = (cmax - cmin) / cmax;
@@ -159,10 +159,10 @@ static void rgb_to_hsv(vect *rgb, vect *hsv)
         double cdelta;
         double rc, gc, bc;
 
-        cdelta = cmax-cmin;
-        rc = (cmax - r) / cdelta;
-        gc = (cmax - g) / cdelta;
-        bc = (cmax - b) / cdelta;
+        cdelta = cmax - cmin;
+        rc     = (cmax - r) / cdelta;
+        gc     = (cmax - g) / cdelta;
+        bc     = (cmax - b) / cdelta;
         if (r == cmax)
         {
             h = bc - gc;
@@ -186,7 +186,7 @@ static void rgb_to_hsv(vect *rgb, vect *hsv)
     hsv->z = v;
 }
 
-byte V_Colorize (byte *playpal, int cr, byte source)
+byte V_Colorize(byte *playpal, int cr, byte source)
 {
     vect rgb, hsv;
 
@@ -278,7 +278,7 @@ byte V_Colorize (byte *playpal, int cr, byte source)
         {
             hsv.x = 300.0 / 360.0;
         }
-     }
+    }
 
     hsv_to_rgb(&hsv, &rgb);
 
@@ -286,5 +286,5 @@ byte V_Colorize (byte *playpal, int cr, byte source)
     rgb.y *= 255.0;
     rgb.z *= 255.0;
 
-    return I_GetPaletteIndex(playpal, (int) rgb.x, (int) rgb.y, (int) rgb.z);
+    return I_GetPaletteIndex(playpal, (int)rgb.x, (int)rgb.y, (int)rgb.z);
 }

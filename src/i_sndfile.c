@@ -16,9 +16,9 @@
 // DESCRIPTION:
 //      Load sound lumps with libsndfile.
 
-#include "sndfile.h"
 #include "al.h"
 #include "alext.h"
+#include "sndfile.h"
 
 #include "i_sndfile.h"
 
@@ -40,10 +40,10 @@ typedef struct
     int start_time, end_time;
 } loop_metadata_t;
 
-#define LOOP_START_TAG "LOOP_START"
-#define LOOP_END_TAG   "LOOP_END"
-#define FLAC_VORBIS_COMMENT  4
-#define OGG_COMMENT_HEADER   3
+#define LOOP_START_TAG      "LOOP_START"
+#define LOOP_END_TAG        "LOOP_END"
+#define FLAC_VORBIS_COMMENT 4
+#define OGG_COMMENT_HEADER  3
 
 // Given a time string (for LOOP_START/LOOP_END), parse it and return
 // the time (in # samples since start of track) it represents.
@@ -58,23 +58,23 @@ static unsigned int ParseVorbisTime(unsigned int freq, char *value)
         return atoi(value);
     }
 
-    result = 0;
+    result    = 0;
     num_start = value;
 
     for (p = value; *p != '\0'; ++p)
     {
         if (*p == '.' || *p == ':')
         {
-            c = *p; *p = '\0';
-            result = result * 60 + atoi(num_start);
+            c         = *p;
+            *p        = '\0';
+            result    = result * 60 + atoi(num_start);
             num_start = p + 1;
-            *p = c;
+            *p        = c;
         }
 
         if (*p == '.')
         {
-            return result * freq
-                 + (unsigned int) (atof(p) * freq);
+            return result * freq + (unsigned int)(atof(p) * freq);
         }
     }
 
@@ -94,8 +94,8 @@ static void ParseVorbisComment(loop_metadata_t *metadata, char *comment)
         return;
     }
 
-    key = comment;
-    *eq = '\0';
+    key   = comment;
+    *eq   = '\0';
     value = eq + 1;
 
     if (!strcmp(key, LOOP_START_TAG))
@@ -144,9 +144,9 @@ static void ParseVorbisComments(loop_metadata_t *metadata, MEMFILE *fs)
         comment_len = LONG(buf);
 
         // Read actual comment data into string buffer.
-        comment = calloc(1, comment_len + 1);
-        if (comment == NULL ||
-            mem_fread(comment, 1, comment_len, fs) < comment_len)
+        comment     = calloc(1, comment_len + 1);
+        if (comment == NULL
+            || mem_fread(comment, 1, comment_len, fs) < comment_len)
         {
             free(comment);
             break;
@@ -182,7 +182,9 @@ static void ParseOggFile(loop_metadata_t *metadata, MEMFILE *fs)
         if (!memcmp(buf + 1, "vorbis", 6))
         {
             if (buf[0] == OGG_COMMENT_HEADER)
+            {
                 ParseVorbisComments(metadata, fs);
+            }
         }
     }
 }
@@ -212,9 +214,9 @@ static void ParseFlacFile(loop_metadata_t *metadata, MEMFILE *fs)
 
         block_type = header[0] & ~0x80;
         last_block = (header[0] & 0x80) != 0;
-        block_len = (header[1] << 16) | (header[2] << 8) | header[3];
+        block_len  = (header[1] << 16) | (header[2] << 8) | header[3];
 
-        pos = mem_ftell(fs);
+        pos        = mem_ftell(fs);
         if (pos < 0)
         {
             return;
@@ -271,16 +273,11 @@ static sf_count_t sfvio_tell(void *user_data)
     return mem_ftell((MEMFILE *)user_data);
 }
 
-static SF_VIRTUAL_IO sfvio =
-{
-    sfvio_get_filelen,
-    sfvio_seek,
-    sfvio_read,
-    NULL,
-    sfvio_tell
-};
+static SF_VIRTUAL_IO sfvio = {sfvio_get_filelen, sfvio_seek, sfvio_read, NULL,
+                              sfvio_tell};
 
-static sf_count_t sfx_mix_mono_read_float(SNDFILE *file, float *data, sf_count_t datalen)
+static sf_count_t sfx_mix_mono_read_float(SNDFILE *file, float *data,
+                                          sf_count_t datalen)
 {
     SF_INFO info = {0};
     static float multi_data[2048];
@@ -290,23 +287,30 @@ static sf_count_t sfx_mix_mono_read_float(SNDFILE *file, float *data, sf_count_t
     sf_command(file, SFC_GET_CURRENT_SF_INFO, &info, sizeof(info));
 
     if (info.channels == 1)
+    {
         return sf_readf_float(file, data, datalen);
+    }
 
     while (dataout < datalen)
     {
-        int this_read = MIN(arrlen(multi_data) / info.channels, datalen - dataout);
+        int this_read =
+            MIN(arrlen(multi_data) / info.channels, datalen - dataout);
 
         frames_read = sf_readf_float(file, multi_data, this_read);
 
         if (frames_read == 0)
+        {
             break;
+        }
 
         for (k = 0; k < frames_read; k++)
         {
             float mix = 0.0f;
 
             for (ch = 0; ch < info.channels; ch++)
+            {
                 mix += multi_data[k * info.channels + ch];
+            }
 
             data[dataout + k] = mix / info.channels;
         }
@@ -317,7 +321,8 @@ static sf_count_t sfx_mix_mono_read_float(SNDFILE *file, float *data, sf_count_t
     return dataout;
 }
 
-static sf_count_t sfx_mix_mono_read_short(SNDFILE *file, short *data, sf_count_t datalen)
+static sf_count_t sfx_mix_mono_read_short(SNDFILE *file, short *data,
+                                          sf_count_t datalen)
 {
     SF_INFO info = {0};
     static short multi_data[2048];
@@ -327,23 +332,30 @@ static sf_count_t sfx_mix_mono_read_short(SNDFILE *file, short *data, sf_count_t
     sf_command(file, SFC_GET_CURRENT_SF_INFO, &info, sizeof(info));
 
     if (info.channels == 1)
+    {
         return sf_readf_short(file, data, datalen);
+    }
 
     while (dataout < datalen)
     {
-        int this_read = MIN(arrlen(multi_data) / info.channels, datalen - dataout);
+        int this_read =
+            MIN(arrlen(multi_data) / info.channels, datalen - dataout);
 
         frames_read = sf_readf_short(file, multi_data, this_read);
 
         if (frames_read == 0)
+        {
             break;
+        }
 
         for (k = 0; k < frames_read; k++)
         {
             float mix = 0.0f;
 
             for (ch = 0; ch < info.channels; ch++)
+            {
                 mix += multi_data[k * info.channels + ch];
+            }
 
             data[dataout + k] = mix / info.channels;
         }
@@ -358,8 +370,8 @@ typedef enum
 {
     Int16,
     Float,
-    //IMA4,
-    //MSADPCM
+    // IMA4,
+    // MSADPCM
 } sample_format_t;
 
 typedef struct
@@ -396,7 +408,8 @@ static boolean OpenFile(sndfile_t *file, void *data, sf_count_t size)
     file->sfdata = mem_fopen_read(data, size);
     memset(&file->sfinfo, 0, sizeof(file->sfinfo));
 
-    file->sndfile = sf_open_virtual(&sfvio, SFM_READ, &file->sfinfo, file->sfdata);
+    file->sndfile =
+        sf_open_virtual(&sfvio, SFM_READ, &file->sfinfo, file->sfdata);
 
     if (!file->sndfile)
     {
@@ -432,7 +445,9 @@ static boolean OpenFile(sndfile_t *file, void *data, sf_count_t size)
         case SF_FORMAT_MPEG_LAYER_III:
 #endif
             if (alIsExtensionPresent("AL_EXT_FLOAT32"))
+            {
                 sample_format = Float;
+            }
             break;
 
         case SF_FORMAT_IMA_ADPCM:
@@ -464,27 +479,36 @@ static boolean OpenFile(sndfile_t *file, void *data, sf_count_t size)
     if (file->sfinfo.channels == 1)
     {
         if (sample_format == Int16)
+        {
             format = AL_FORMAT_MONO16;
+        }
         else if (sample_format == Float)
+        {
             format = AL_FORMAT_MONO_FLOAT32;
+        }
     }
     else if (file->sfinfo.channels == 2)
     {
         if (sample_format == Int16)
+        {
             format = AL_FORMAT_STEREO16;
+        }
         else if (sample_format == Float)
+        {
             format = AL_FORMAT_STEREO_FLOAT32;
+        }
     }
 
     if (format == AL_NONE)
     {
-        I_Printf(VB_ERROR, "SndFile: Unsupported channel count %d.", file->sfinfo.channels);
+        I_Printf(VB_ERROR, "SndFile: Unsupported channel count %d.",
+                 file->sfinfo.channels);
         return false;
     }
 
     file->sample_format = sample_format;
-    file->format = format;
-    file->frame_size = frame_size;
+    file->format        = format;
+    file->frame_size    = frame_size;
 
     return true;
 }
@@ -524,9 +548,9 @@ static void FadeInMonoFloat32(float *data, ALsizei size, ALsizei freq)
 boolean I_SND_LoadFile(void *data, ALenum *format, byte **wavdata,
                        ALsizei *size, ALsizei *freq)
 {
-    sndfile_t file = { 0 };
+    sndfile_t file        = {0};
     sf_count_t num_frames = 0;
-    void *local_wavdata = NULL;
+    void *local_wavdata   = NULL;
 
     if (OpenFile(&file, data, *size) == false)
     {
@@ -534,19 +558,20 @@ boolean I_SND_LoadFile(void *data, ALenum *format, byte **wavdata,
         return false;
     }
 
-    local_wavdata = malloc(file.sfinfo.frames * file.frame_size / file.sfinfo.channels);
+    local_wavdata =
+        malloc(file.sfinfo.frames * file.frame_size / file.sfinfo.channels);
 
     if (file.sample_format == Int16)
     {
         num_frames = sfx_mix_mono_read_short(file.sndfile, local_wavdata,
                                              file.sfinfo.frames);
-        *format = AL_FORMAT_MONO16;
+        *format    = AL_FORMAT_MONO16;
     }
     else if (file.sample_format == Float)
     {
         num_frames = sfx_mix_mono_read_float(file.sndfile, local_wavdata,
                                              file.sfinfo.frames);
-        *format = AL_FORMAT_MONO_FLOAT32;
+        *format    = AL_FORMAT_MONO_FLOAT32;
     }
 
     if (num_frames < file.sfinfo.frames)
@@ -598,11 +623,11 @@ static boolean I_SND_OpenStream(void *data, ALsizei size, ALenum *format,
         return false;
     }
 
-    fs = mem_fopen_read(data, size);
+    fs              = mem_fopen_read(data, size);
 
-    loop.freq = stream.sfinfo.samplerate;
+    loop.freq       = stream.sfinfo.samplerate;
     loop.start_time = 0;
-    loop.end_time = 0;
+    loop.end_time   = 0;
 
     switch ((stream.sfinfo.format & SF_FORMAT_TYPEMASK))
     {
@@ -616,8 +641,8 @@ static boolean I_SND_OpenStream(void *data, ALsizei size, ALenum *format,
 
     mem_fclose(fs);
 
-    *format = stream.format;
-    *freq = stream.sfinfo.samplerate;
+    *format     = stream.format;
+    *freq       = stream.sfinfo.samplerate;
     *frame_size = stream.frame_size;
 
     return true;
@@ -631,7 +656,7 @@ static void I_SND_PlayStream(boolean looping)
 static int I_SND_FillStream(byte *data, int frames)
 {
     sf_count_t filled = 0;
-    boolean restart = false;
+    boolean restart   = false;
 
     if (loop.end_time)
     {
@@ -639,7 +664,7 @@ static int I_SND_FillStream(byte *data, int frames)
 
         if (pos + frames >= loop.end_time)
         {
-            frames = loop.end_time - pos;
+            frames  = loop.end_time - pos;
             restart = true;
         }
     }
@@ -676,13 +701,7 @@ static const char **I_SND_DeviceList(int *current_device)
     return NULL;
 }
 
-stream_module_t stream_snd_module =
-{
-    I_SND_InitStream,
-    I_SND_OpenStream,
-    I_SND_FillStream,
-    I_SND_PlayStream,
-    I_SND_CloseStream,
-    I_SND_ShutdownStream,
-    I_SND_DeviceList,
+stream_module_t stream_snd_module = {
+    I_SND_InitStream,  I_SND_OpenStream,     I_SND_FillStream, I_SND_PlayStream,
+    I_SND_CloseStream, I_SND_ShutdownStream, I_SND_DeviceList,
 };

@@ -42,7 +42,8 @@ void I_OAL_ResetSource3D(int channel, boolean point_source);
 void I_OAL_UpdateSourceParams(int channel, const ALfloat *position,
                               const ALfloat *velocity);
 
-void I_OAL_UpdateListenerParams(const ALfloat *position, const ALfloat *velocity,
+void I_OAL_UpdateListenerParams(const ALfloat *position,
+                                const ALfloat *velocity,
                                 const ALfloat *orientation);
 
 boolean I_OAL_InitSound(void);
