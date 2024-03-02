@@ -528,9 +528,10 @@ void I_SetMidiPlayer(int device)
         const char **strings = native_midi_module->I_DeviceList(NULL);
         num_devices = array_size(strings);
 
+        native_midi_module->I_ShutdownMusic();
+
         if (device < num_devices)
         {
-            native_midi_module->I_ShutdownMusic();
             if (native_midi_module->I_InitMusic(device))
             {
                 native_midi = true;
