@@ -218,8 +218,13 @@ static net_addr_t *NET_SV_ResolveAddress(const char *address)
     }
 }
 
-net_module_t net_loop_server_module = {
-    NET_SV_InitClient,     NET_SV_InitServer,   NET_SV_SendPacket,
-    NET_SV_RecvPacket,     NET_SV_AddrToString, NET_SV_FreeAddress,
+net_module_t net_loop_server_module =
+{
+    NET_SV_InitClient,
+    NET_SV_InitServer,
+    NET_SV_SendPacket,
+    NET_SV_RecvPacket,
+    NET_SV_AddrToString,
+    NET_SV_FreeAddress,
     NET_SV_ResolveAddress,
 };

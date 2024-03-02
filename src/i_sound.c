@@ -65,7 +65,7 @@ static stream_module_t *stream_modules[] =
     &stream_opl_module,
 };
 
-stream_module_t *midi_stream_module  = NULL;
+stream_module_t *midi_stream_module = NULL;
 
 static music_module_t *active_module = NULL;
 
@@ -127,8 +127,7 @@ boolean I_AdjustSoundParams(const mobj_t *listener, const mobj_t *source,
         return false;
     }
 
-    return sound_module->AdjustSoundParams(listener, source, chanvol, vol, sep,
-                                           pri);
+    return sound_module->AdjustSoundParams(listener, source, chanvol, vol, sep, pri);
 }
 
 //
@@ -208,9 +207,8 @@ void I_SetChannels(void)
     // This table provides step widths for pitch parameters.
     for (i = 0; i < arrlen(steptable); i++)
     {
-        steptable[i] =
-            pow(base, (double)(2 * (i - NORM_PITCH))
-                          / NORM_PITCH); // [FG] variable pitch bend range
+        // [FG] variable pitch bend range
+        steptable[i] = pow(base, (double)(2 * (i - NORM_PITCH)) / NORM_PITCH);
     }
 }
 

@@ -470,10 +470,8 @@ static void SendNotesSoundOff(void)
 
     for (i = 0; i < MIDI_CHANNELS_PER_TRACK; ++i)
     {
-        SendShortMsg(0, MIDI_EVENT_CONTROLLER, i, MIDI_CONTROLLER_ALL_NOTES_OFF,
-                     0);
-        SendShortMsg(0, MIDI_EVENT_CONTROLLER, i, MIDI_CONTROLLER_ALL_SOUND_OFF,
-                     0);
+        SendShortMsg(0, MIDI_EVENT_CONTROLLER, i, MIDI_CONTROLLER_ALL_NOTES_OFF, 0);
+        SendShortMsg(0, MIDI_EVENT_CONTROLLER, i, MIDI_CONTROLLER_ALL_SOUND_OFF, 0);
     }
 }
 
@@ -488,13 +486,10 @@ static void ResetControllers(void)
     for (i = 0; i < MIDI_CHANNELS_PER_TRACK; ++i)
     {
         // Reset commonly used controllers.
-        SendShortMsg(0, MIDI_EVENT_CONTROLLER, i,
-                     MIDI_CONTROLLER_RESET_ALL_CTRLS, 0);
+        SendShortMsg(0, MIDI_EVENT_CONTROLLER, i, MIDI_CONTROLLER_RESET_ALL_CTRLS, 0);
         SendShortMsg(0, MIDI_EVENT_CONTROLLER, i, MIDI_CONTROLLER_PAN, 64);
-        SendShortMsg(0, MIDI_EVENT_CONTROLLER, i,
-                     MIDI_CONTROLLER_BANK_SELECT_MSB, 0);
-        SendShortMsg(0, MIDI_EVENT_CONTROLLER, i,
-                     MIDI_CONTROLLER_BANK_SELECT_LSB, 0);
+        SendShortMsg(0, MIDI_EVENT_CONTROLLER, i, MIDI_CONTROLLER_BANK_SELECT_MSB, 0);
+        SendShortMsg(0, MIDI_EVENT_CONTROLLER, i, MIDI_CONTROLLER_BANK_SELECT_LSB, 0);
         SendShortMsg(0, MIDI_EVENT_PROGRAM_CHANGE, i, 0, 0);
         SendShortMsg(0, MIDI_EVENT_CONTROLLER, i, MIDI_CONTROLLER_REVERB, 40);
         SendShortMsg(0, MIDI_EVENT_CONTROLLER, i, MIDI_CONTROLLER_CHORUS, 0);
@@ -516,10 +511,8 @@ static void ResetPitchBendSensitivity(void)
         SendShortMsg(0, MIDI_EVENT_CONTROLLER, i, MIDI_CONTROLLER_RPN_MSB, 0);
 
         // Reset pitch bend sensitivity to +/- 2 semitones and 0 cents.
-        SendShortMsg(0, MIDI_EVENT_CONTROLLER, i,
-                     MIDI_CONTROLLER_DATA_ENTRY_MSB, 2);
-        SendShortMsg(0, MIDI_EVENT_CONTROLLER, i,
-                     MIDI_CONTROLLER_DATA_ENTRY_LSB, 0);
+        SendShortMsg(0, MIDI_EVENT_CONTROLLER, i, MIDI_CONTROLLER_DATA_ENTRY_MSB, 2);
+        SendShortMsg(0, MIDI_EVENT_CONTROLLER, i, MIDI_CONTROLLER_DATA_ENTRY_LSB, 0);
 
         // Set RPN MSB/LSB to null value after data entry.
         SendShortMsg(0, MIDI_EVENT_CONTROLLER, i, MIDI_CONTROLLER_RPN_LSB, 127);
@@ -596,8 +589,7 @@ static boolean IsPartLevel(const byte *msg, unsigned int length)
         msg[6] == 0x19 && // Address LSB
         msg[9] == 0xF7)   // SysEx EOX
     {
-        const byte checksum =
-            128 - ((int)msg[4] + msg[5] + msg[6] + msg[7]) % 128;
+        const byte checksum = 128 - ((int)msg[4] + msg[5] + msg[6] + msg[7]) % 128;
 
         if (msg[8] == checksum)
         {
@@ -965,10 +957,8 @@ static void SendEMIDI(unsigned int delta_time, const midi_event_t *event,
                     if (song.tracks[i].emidi_loop_count != 0)
                     {
                         MIDI_RestartAtLoopPoint(song.tracks[i].iter);
-                        song.tracks[i].end_of_track =
-                            song.tracks[i].saved_end_of_track;
-                        song.tracks[i].elapsed_time =
-                            song.tracks[i].saved_elapsed_time;
+                        song.tracks[i].end_of_track = song.tracks[i].saved_end_of_track;
+                        song.tracks[i].elapsed_time = song.tracks[i].saved_elapsed_time;
                         song.elapsed_time = song.saved_elapsed_time;
                     }
 
@@ -1880,8 +1870,7 @@ static void I_WIN_ShutdownMusic(void)
     StreamStart();
     LeaveCriticalSection(&CriticalSection);
 
-    if (WaitForSingleObject(hPlayerThread, PLAYER_THREAD_WAIT_TIME)
-        == WAIT_OBJECT_0)
+    if (WaitForSingleObject(hPlayerThread, PLAYER_THREAD_WAIT_TIME) == WAIT_OBJECT_0)
     {
         CloseHandle(hPlayerThread);
         hPlayerThread = NULL;

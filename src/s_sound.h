@@ -18,9 +18,9 @@
 //-----------------------------------------------------------------------------
 
 #ifndef __S_SOUND__
-#  define __S_SOUND__
+#define __S_SOUND__
 
-#  include "doomtype.h"
+#include "doomtype.h"
 
 struct mobj_s;
 

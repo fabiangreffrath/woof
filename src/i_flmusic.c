@@ -203,10 +203,10 @@ static boolean I_FL_InitStream(int device)
     int lumpnum;
 
     fluid_set_log_function(FLUID_PANIC, I_FL_Log_Error, NULL);
-    fluid_set_log_function(FLUID_ERR, I_FL_Log_Error, NULL);
-    fluid_set_log_function(FLUID_WARN, I_FL_Log_Debug, NULL);
-    fluid_set_log_function(FLUID_INFO, NULL, NULL);
-    fluid_set_log_function(FLUID_DBG, NULL, NULL);
+    fluid_set_log_function(FLUID_ERR,   I_FL_Log_Error, NULL);
+    fluid_set_log_function(FLUID_WARN,  I_FL_Log_Debug, NULL);
+    fluid_set_log_function(FLUID_INFO,  NULL,           NULL);
+    fluid_set_log_function(FLUID_DBG,   NULL,           NULL);
 
     settings = new_fluid_settings();
 

@@ -540,8 +540,8 @@ static void SetVoiceInstrument(opl_voice_t *voice, genmidi_instr_t *instr,
 
     // Calculate voice priority.
 
-    voice->priority = 0x0f - (data->carrier.attack >> 4) + 0x0f
-                      - (data->carrier.sustain & 0x0f);
+    voice->priority = 0x0f - (data->carrier.attack >> 4)
+                    + 0x0f - (data->carrier.sustain & 0x0f);
 }
 
 static void SetVoiceVolume(opl_voice_t *voice, unsigned int volume)
@@ -592,8 +592,7 @@ static void SetVoiceVolume(opl_voice_t *voice, unsigned int volume)
             {
                 voice->mod_volume = mod_volume;
                 OPL_WriteRegister((OPL_REGS_LEVEL + voice->op1) | voice->array,
-                                  mod_volume
-                                      | (opl_voice->modulator.scale & 0xc0));
+                                  mod_volume | (opl_voice->modulator.scale & 0xc0));
             }
         }
     }
@@ -698,13 +697,6 @@ static void KeyOffEvent(opl_track_data_t *track, midi_event_t *event)
     opl_channel_data_t *channel;
     int i;
     unsigned int key;
-
-    /*
-        printf("note off: channel %i, %i, %i\n",
-               event->data.channel.channel,
-               event->data.channel.param1,
-               event->data.channel.param2);
-    */
 
     channel = TrackChannelForEvent(track, event);
     key = event->data.channel.param1;
@@ -1257,7 +1249,7 @@ static void MetaEvent(opl_track_data_t *track, midi_event_t *event)
 
     switch (event->data.meta.type)
     {
-            // Things we can just ignore.
+        // Things we can just ignore.
 
         case MIDI_META_SEQUENCE_NUMBER:
         case MIDI_META_TEXT:
@@ -1277,8 +1269,8 @@ static void MetaEvent(opl_track_data_t *track, midi_event_t *event)
             }
             break;
 
-            // End of track - actually handled when we run out of events
-            // in the track, see below.
+        // End of track - actually handled when we run out of events in the
+        // track, see below.
 
         case MIDI_META_END_OF_TRACK:
             break;
@@ -1320,7 +1312,7 @@ static void ProcessEvent(opl_track_data_t *track, midi_event_t *event)
             MetaEvent(track, event);
             break;
 
-            // SysEx events can be ignored.
+        // SysEx events can be ignored.
 
         case MIDI_EVENT_SYSEX:
         case MIDI_EVENT_SYSEX_SPLIT:
