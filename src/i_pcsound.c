@@ -36,12 +36,7 @@
 // still needs to use a normal cast and live with the warning (C++ is fine with
 // a regular reinterpret_cast).
 #if __STDC_VERSION__ >= 199901L
-#  define FUNCTION_CAST(T, ptr) \
-      (union {                  \
-        void *p;                \
-        T f;                    \
-      }){ptr}                   \
-          .f
+#  define FUNCTION_CAST(T, ptr) (union{void *p; T f;}){ptr}.f
 #else
 #  define FUNCTION_CAST(T, ptr) (T)(ptr)
 #endif
@@ -71,7 +66,8 @@ static uint8_t *current_sound_pos           = NULL;
 static unsigned int current_sound_remaining = 0;
 static int current_sound_handle             = 0;
 
-static const uint16_t divisors[]            = {
+static const uint16_t divisors[] =
+{
     0,    6818, 6628, 6449, 6279, 6087, 5906, 5736, 5575, 5423, 5279, 5120,
     4971, 4830, 4697, 4554, 4435, 4307, 4186, 4058, 3950, 3836, 3728, 3615,
     3519, 3418, 3323, 3224, 3131, 3043, 2960, 2875, 2794, 2711, 2633, 2560,
@@ -503,7 +499,8 @@ static boolean I_PCS_SoundIsPlaying(int channel)
     return current_sound_lump != NULL && current_sound_remaining > 0;
 }
 
-const sound_module_t sound_pcs_module = {
+const sound_module_t sound_pcs_module =
+{
     I_PCS_InitSound,
     I_PCS_ReinitSound,
     I_OAL_AllowReinitSound,

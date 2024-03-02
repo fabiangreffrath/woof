@@ -37,7 +37,7 @@ net_context_t *NET_NewContext(void)
 {
     net_context_t *context;
 
-    context              = Z_Malloc(sizeof(net_context_t), PU_STATIC, 0);
+    context = Z_Malloc(sizeof(net_context_t), PU_STATIC, 0);
     context->num_modules = 0;
 
     return context;

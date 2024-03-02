@@ -352,7 +352,8 @@ void D_StartNetGame(net_gamesettings_t *settings,
     // Use original network client sync code rather than the improved
     // sync code.
     //
-    settings->new_sync          = !M_ParmExists("-oldsync");
+
+    settings->new_sync = !M_ParmExists("-oldsync");
 
     //!
     // @category net
@@ -362,7 +363,7 @@ void D_StartNetGame(net_gamesettings_t *settings,
     // packets.
     //
 
-    i                           = M_CheckParmWithArgs("-extratics", 1);
+    i = M_CheckParmWithArgs("-extratics", 1);
 
     if (i > 0)
     {

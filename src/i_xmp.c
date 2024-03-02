@@ -14,8 +14,7 @@
 // DESCRIPTION:
 //
 
-#include <stdio.h>
-#include <xmp.h>
+#include "xmp.h"
 
 #include "doomtype.h"
 #include "i_oalstream.h"
@@ -149,7 +148,13 @@ static const char **I_XMP_DeviceList(int *current_device)
     return NULL;
 }
 
-stream_module_t stream_xmp_module = {
-    I_XMP_InitStream,  I_XMP_OpenStream,     I_XMP_FillStream, I_XMP_PlayStream,
-    I_XMP_CloseStream, I_XMP_ShutdownStream, I_XMP_DeviceList,
+stream_module_t stream_xmp_module =
+{
+    I_XMP_InitStream,
+    I_XMP_OpenStream,
+    I_XMP_FillStream,
+    I_XMP_PlayStream,
+    I_XMP_CloseStream,
+    I_XMP_ShutdownStream,
+    I_XMP_DeviceList,
 };

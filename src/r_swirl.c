@@ -65,17 +65,16 @@ static void R_InitDistortedFlats()
 
                 sinvalue  = (y * swirlfactor + i * SPEED * 5 + 900) & FINEMASK;
                 sinvalue2 = (x * swirlfactor2 + i * SPEED * 4 + 300) & FINEMASK;
-                x1        = x + 128 + ((finesine[sinvalue] * AMP) >> FRACBITS)
+                x1 = x + 128 + ((finesine[sinvalue] * AMP) >> FRACBITS)
                      + ((finesine[sinvalue2] * AMP2) >> FRACBITS);
 
                 sinvalue = (x * swirlfactor + i * SPEED * 3 + 700) & FINEMASK;
-                sinvalue2 =
-                    (y * swirlfactor2 + i * SPEED * 4 + 1200) & FINEMASK;
+                sinvalue2 = (y * swirlfactor2 + i * SPEED * 4 + 1200) & FINEMASK;
                 y1 = y + 128 + ((finesine[sinvalue] * AMP) >> FRACBITS)
                      + ((finesine[sinvalue2] * AMP2) >> FRACBITS);
 
-                x1                   &= 63;
-                y1                   &= 63;
+                x1 &= 63;
+                y1 &= 63;
 
                 offset[(y << 6) + x]  = (y1 << 6) + x1;
             }

@@ -40,7 +40,7 @@ musinfo_t musinfo = {0};
 
 void S_ParseMusInfo(const char *mapid)
 {
-    u_scanner_t scanner, *s;
+    u_scanner_t *s;
     int num, lumpnum;
 
     lumpnum = W_CheckNumForName("MUSINFO");
@@ -50,9 +50,8 @@ void S_ParseMusInfo(const char *mapid)
         return;
     }
 
-    scanner = U_ScanOpen(W_CacheLumpNum(lumpnum, PU_CACHE),
-                         W_LumpLength(lumpnum), "MUSINFO");
-    s       = &scanner;
+    s = U_ScanOpen(W_CacheLumpNum(lumpnum, PU_CACHE),
+                   W_LumpLength(lumpnum), "MUSINFO");
 
     while (U_HasTokensLeft(s))
     {

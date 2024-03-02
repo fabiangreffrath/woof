@@ -262,7 +262,7 @@ char *M_StringReplace(const char *haystack, const char *needle,
     // Iterate through occurrences of 'needle' and calculate the size of
     // the new string.
     result_len = strlen(haystack) + 1;
-    p          = haystack;
+    p = haystack;
 
     for (;;)
     {
@@ -272,7 +272,7 @@ char *M_StringReplace(const char *haystack, const char *needle,
             break;
         }
 
-        p          += needle_len;
+        p += needle_len;
         result_len += strlen(replacement) - needle_len;
     }
 
@@ -285,17 +285,17 @@ char *M_StringReplace(const char *haystack, const char *needle,
         return NULL;
     }
 
-    dst     = result;
+    dst = result;
     dst_len = result_len;
-    p       = haystack;
+    p = haystack;
 
     while (*p != '\0')
     {
         if (!strncmp(p, needle, needle_len))
         {
             M_StringCopy(dst, replacement, dst_len);
-            p       += needle_len;
-            dst     += strlen(replacement);
+            p += needle_len;
+            dst += strlen(replacement);
             dst_len -= strlen(replacement);
         }
         else

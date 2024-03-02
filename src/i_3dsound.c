@@ -82,9 +82,9 @@ static void CalcListenerParams(const mobj_t *listener,
 
     // Doom to OpenAL space: {x, y, z} to {x, z, -y}
 
-    lis->position[0]       = FIXED_TO_ALFLOAT(listener->x);
-    lis->position[1]       = FIXED_TO_ALFLOAT(player->viewz);
-    lis->position[2]       = FIXED_TO_ALFLOAT(-listener->y);
+    lis->position[0] = FIXED_TO_ALFLOAT(listener->x);
+    lis->position[1] = FIXED_TO_ALFLOAT(player->viewz);
+    lis->position[2] = FIXED_TO_ALFLOAT(-listener->y);
 
     if (oal_use_doppler)
     {
@@ -333,10 +333,20 @@ static boolean I_3D_StartSound(int channel, sfxinfo_t *sfx, int pitch)
     return I_OAL_StartSound(channel, sfx, pitch);
 }
 
-const sound_module_t sound_3d_module = {
-    I_OAL_InitSound,           I_OAL_ReinitSound,      I_OAL_AllowReinitSound,
-    I_OAL_CacheSound,          I_3D_AdjustSoundParams, I_3D_UpdateSoundParams,
-    I_3D_UpdateListenerParams, I_3D_StartSound,        I_OAL_StopSound,
-    I_OAL_SoundIsPlaying,      I_OAL_ShutdownSound,    I_OAL_ShutdownModule,
-    I_OAL_DeferUpdates,        I_OAL_ProcessUpdates,
+const sound_module_t sound_3d_module =
+{
+    I_OAL_InitSound,
+    I_OAL_ReinitSound,
+    I_OAL_AllowReinitSound,
+    I_OAL_CacheSound,
+    I_3D_AdjustSoundParams,
+    I_3D_UpdateSoundParams,
+    I_3D_UpdateListenerParams,
+    I_3D_StartSound,
+    I_OAL_StopSound,
+    I_OAL_SoundIsPlaying,
+    I_OAL_ShutdownSound,
+    I_OAL_ShutdownModule,
+    I_OAL_DeferUpdates,
+    I_OAL_ProcessUpdates,
 };

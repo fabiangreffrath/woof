@@ -138,7 +138,8 @@ void I_MBF_UpdateSoundParams(int channel, int volume, int separation)
     I_OAL_SetPan(channel, separation);
 }
 
-const sound_module_t sound_mbf_module = {
+const sound_module_t sound_mbf_module =
+{
     I_OAL_InitSound,
     I_OAL_ReinitSound,
     I_OAL_AllowReinitSound,

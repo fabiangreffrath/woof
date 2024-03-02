@@ -31,17 +31,22 @@ buffer to a file.
 #include "m_io.h"
 
 /* Par times for E1M1-E1M9. */
-static const int doom1_par_times[] = {
+static const int doom1_par_times[] =
+{
     30, 75, 120, 90, 165, 180, 180, 30, 165,
 };
 
 /* Par times for MAP01-MAP09. */
-static const int doom2_par_times[] = {
+static const int doom2_par_times[] =
+{
     30, 90, 120, 120, 90, 150, 120, 120, 270,
 };
 
 /* Player colors. */
-static const char *player_colors[] = {"Green", "Indigo", "Brown", "Red"};
+static const char *player_colors[] =
+{
+    "Green", "Indigo", "Brown", "Red"
+};
 
 // Array of end-of-level statistics that have been captured.
 

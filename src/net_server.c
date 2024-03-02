@@ -239,7 +239,7 @@ static void NET_SV_AssignPlayers(void)
         {
             if (!clients[i].drone)
             {
-                sv_players[pl]                = &clients[i];
+                sv_players[pl] = &clients[i];
                 sv_players[pl]->player_number = pl;
                 ++pl;
             }
@@ -652,10 +652,8 @@ static void NET_SV_ParseSYN(net_packet_t *packet, net_client_t *client,
         return;
     }
 
-    if (/*!D_ValidGameMode(data.gamemission, data.gamemode)
-     ||*/
-        data.max_players
-        > NET_MAXPLAYERS)
+    if (/*!D_ValidGameMode(data.gamemission, data.gamemode) ||*/
+        data.max_players > NET_MAXPLAYERS)
     {
         NET_Log("server: error: invalid connect data, max_players=%d, "
                 "gamemission=%d, gamemode=%d",
@@ -717,12 +715,12 @@ static void NET_SV_ParseSYN(net_packet_t *packet, net_client_t *client,
         NET_Log("server: wrong mode/mission, %d != %d || %d != %d",
                 data.gamemode, sv_gamemode, data.gamemission, sv_gamemission);
         /*
-                M_snprintf(msg, sizeof(msg),
-                           "Game mismatch: server is %s (%s), client is %s
-           (%s)", D_GameMissionString(sv_gamemission),
-                           D_GameModeString(sv_gamemode),
-                           D_GameMissionString(data.gamemission),
-                           D_GameModeString(data.gamemode));
+        M_snprintf(msg, sizeof(msg),
+                   "Game mismatch: server is %s (%s), client is %s (%s)",
+                   D_GameMissionString(sv_gamemission),
+                   D_GameModeString(sv_gamemode),
+                   D_GameMissionString(data.gamemission),
+                   D_GameModeString(data.gamemode));
         */
         M_snprintf(msg, sizeof(msg),
                    "Game mismatch: server is %d (%d), client is %d (%d)",
@@ -1183,10 +1181,10 @@ static void NET_SV_ParseGameData(net_packet_t *packet, net_client_t *client)
             continue;
         }
 
-        recvobj                    = &recvwindow[index][player];
-        recvobj->active            = true;
-        recvobj->diff              = diff;
-        recvobj->latency           = latency;
+        recvobj = &recvwindow[index][player];
+        recvobj->active  = true;
+        recvobj->diff    = diff;
+        recvobj->latency = latency;
 
         client->last_gamedata_time = nowtime;
         NET_Log("server: stored tic %lu for player %d", (unsigned long)seq + i,
@@ -1366,8 +1364,7 @@ static void NET_SV_ParseResendRequest(net_packet_t *packet,
             // This is pretty fatal.  We could disconnect the client,
             // but then again this could be a spoofed packet.  Just
             // ignore it.
-            NET_Log("server: error: don't have tic %d any more, "
-                    "can't resend",
+            NET_Log("server: error: don't have tic %d any more, can't resend",
                     i);
             return;
         }
@@ -1388,7 +1385,7 @@ void NET_SV_SendQueryResponse(net_addr_t *addr)
 
     // Version
 
-    querydata.version      = PROJECT_STRING;
+    querydata.version = PROJECT_STRING;
 
     // Server state
 
@@ -1411,7 +1408,7 @@ void NET_SV_SendQueryResponse(net_addr_t *addr)
     // When starting a network server, specify a name for the server.
     //
 
-    p                      = M_CheckParmWithArgs("-servername", 1);
+    p = M_CheckParmWithArgs("-servername", 1);
 
     if (p > 0)
     {

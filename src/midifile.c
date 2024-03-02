@@ -202,7 +202,7 @@ static void *ReadByteSequence(unsigned int num_bytes, MEMFILE *stream)
 static boolean ReadChannelEvent(midi_event_t *event, byte event_type,
                                 boolean two_param, MEMFILE *stream)
 {
-    byte b                      = 0;
+    byte b = 0;
 
     // Set basics:
 
@@ -268,7 +268,7 @@ static boolean ReadSysExEvent(midi_event_t *event, int event_type,
 
 static boolean ReadMetaEvent(midi_event_t *event, MEMFILE *stream)
 {
-    byte b            = 0;
+    byte b = 0;
 
     event->event_type = MIDI_EVENT_META;
 
@@ -464,8 +464,8 @@ static boolean ReadTrack(midi_track_t *track, MEMFILE *stream)
         if (track->num_events == track->num_events_mem)
         {
             track->num_events_mem += 100;
-            new_events             = realloc(track->events,
-                                             sizeof(midi_event_t) * track->num_events_mem);
+            new_events = realloc(track->events,
+                                 sizeof(midi_event_t) * track->num_events_mem);
         }
 
         if (new_events == NULL)
@@ -477,7 +477,7 @@ static boolean ReadTrack(midi_track_t *track, MEMFILE *stream)
 
         // Read the next event:
 
-        event         = &track->events[track->num_events];
+        event  = &track->events[track->num_events];
         if (!ReadEvent(event, &last_event_type, stream))
         {
             return false;

@@ -142,9 +142,14 @@ static net_addr_t *NET_CL_ResolveAddress(const char *address)
     }
 }
 
-net_module_t net_loop_client_module = {
-    NET_CL_InitClient,     NET_CL_InitServer,   NET_CL_SendPacket,
-    NET_CL_RecvPacket,     NET_CL_AddrToString, NET_CL_FreeAddress,
+net_module_t net_loop_client_module =
+{
+    NET_CL_InitClient,
+    NET_CL_InitServer,
+    NET_CL_SendPacket,
+    NET_CL_RecvPacket,
+    NET_CL_AddrToString,
+    NET_CL_FreeAddress,
     NET_CL_ResolveAddress,
 };
 

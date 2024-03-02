@@ -16,9 +16,9 @@
 //      Windows native MIDI
 
 #define WIN32_LEAN_AND_MEAN
+#include <windows.h>
 #include <mmreg.h>
 #include <mmsystem.h>
-#include <windows.h>
 
 #include <limits.h>
 #include <math.h>
@@ -56,17 +56,30 @@ int winmm_complevel              = COMP_STANDARD;
 int winmm_reset_type             = RESET_TYPE_GM;
 int winmm_reset_delay            = 0;
 
-static const byte gm_system_on[] = {0xF0, 0x7E, 0x7F, 0x09, 0x01, 0xF7};
+static const byte gm_system_on[] =
+{
+    0xF0, 0x7E, 0x7F, 0x09, 0x01, 0xF7
+};
 
-static const byte gs_reset[]     = {0xF0, 0x41, 0x10, 0x42, 0x12, 0x40,
-                                    0x00, 0x7F, 0x00, 0x41, 0xF7};
+static const byte gs_reset[] =
+{
+    0xF0, 0x41, 0x10, 0x42, 0x12, 0x40, 0x00, 0x7F, 0x00, 0x41, 0xF7
+};
 
-static const byte xg_system_on[] = {0xF0, 0x43, 0x10, 0x4C, 0x00,
-                                    0x00, 0x7E, 0x00, 0xF7};
+static const byte xg_system_on[] =
+{
+    0xF0, 0x43, 0x10, 0x4C, 0x00, 0x00, 0x7E, 0x00, 0xF7
+};
 
-static const byte ff_loopStart[] = {'l', 'o', 'o', 'p', 'S',
-                                    't', 'a', 'r', 't'};
-static const byte ff_loopEnd[]   = {'l', 'o', 'o', 'p', 'E', 'n', 'd'};
+static const byte ff_loopStart[] =
+{
+    'l', 'o', 'o', 'p', 'S', 't', 'a', 'r', 't'
+};
+
+static const byte ff_loopEnd[] =
+{
+    'l', 'o', 'o', 'p', 'E', 'n', 'd'
+};
 
 static boolean use_fallback;
 
@@ -573,14 +586,15 @@ static void ResetDevice(void)
 
 static boolean IsPartLevel(const byte *msg, unsigned int length)
 {
-    if (length == 10 && msg[0] == 0x41 &&  // Roland
-        msg[2] == 0x42 &&                  // GS
-        msg[3] == 0x12 &&                  // DT1
-        msg[4] == 0x40 &&                  // Address MSB
-        msg[5] >= 0x10 &&                  // Address
-        msg[5] <= 0x1F &&                  // Address
-        msg[6] == 0x19 &&                  // Address LSB
-        msg[9] == 0xF7)                    // SysEx EOX
+    if (length == 10 &&
+        msg[0] == 0x41 && // Roland
+        msg[2] == 0x42 && // GS
+        msg[3] == 0x12 && // DT1
+        msg[4] == 0x40 && // Address MSB
+        msg[5] >= 0x10 && // Address
+        msg[5] <= 0x1F && // Address
+        msg[6] == 0x19 && // Address LSB
+        msg[9] == 0xF7)   // SysEx EOX
     {
         const byte checksum =
             128 - ((int)msg[4] + msg[5] + msg[6] + msg[7]) % 128;
@@ -616,8 +630,8 @@ static boolean IsSysExReset(const byte *msg, unsigned int length)
                     switch (msg[3])
                     {
                         case 0x12:  // DT1
-                            if (length == 10 && msg[4] == 0x00
-                                &&                   // Address MSB
+                            if (length == 10 &&
+                                msg[4] == 0x00 &&    // Address MSB
                                 msg[5] == 0x00 &&    // Address
                                 msg[6] == 0x7F &&    // Address LSB
                                 ((msg[7] == 0x00 &&  // Data     (MODE-1)
@@ -631,8 +645,8 @@ static boolean IsSysExReset(const byte *msg, unsigned int length)
                                 // 41 <dev> 42 12 00 00 7F 01 00 F7 (MODE-2)
                                 return true;
                             }
-                            else if (length == 10 && msg[4] == 0x40
-                                     &&                 // Address MSB
+                            else if (length == 10 &&
+                                     msg[4] == 0x40 &&  // Address MSB
                                      msg[5] == 0x00 &&  // Address
                                      msg[6] == 0x7F &&  // Address LSB
                                      msg[7] == 0x00 &&  // Data (GS Reset)
@@ -652,8 +666,8 @@ static boolean IsSysExReset(const byte *msg, unsigned int length)
             switch (msg[2])
             {
                 case 0x2B:  // TG300
-                    if (length == 9 && msg[3] == 0x00
-                        &&                 // Start Address b20 - b14
+                    if (length == 9 &&
+                        msg[3] == 0x00 &&  // Start Address b20 - b14
                         msg[4] == 0x00 &&  // Start Address b13 - b7
                         msg[5] == 0x7F &&  // Start Address b6 - b0
                         msg[6] == 0x00 &&  // Data
@@ -666,12 +680,13 @@ static boolean IsSysExReset(const byte *msg, unsigned int length)
                     break;
 
                 case 0x4C:                                // XG
-                    if (length == 8 && msg[3] == 0x00 &&  // Address High
-                        msg[4] == 0x00 &&                 // Address Mid
-                        (msg[5] == 0x7E ||  // Address Low (System On)
+                    if (length == 8 &&
+                        msg[3] == 0x00 &&  // Address High
+                        msg[4] == 0x00 &&  // Address Mid
+                        (msg[5] == 0x7E || // Address Low (System On)
                          msg[5] == 0x7F)
-                        &&               // Address Low (All Parameter Reset)
-                        msg[6] == 0x00)  // Data
+                        &&                 // Address Low (All Parameter Reset)
+                        msg[6] == 0x00)    // Data
                     {
                         // XG System On, XG All Parameter Reset
                         // 43 <dev> 4C 00 00 7E 00 F7
@@ -1935,9 +1950,17 @@ static void I_WIN_UpdateMusic(void)
     ;
 }
 
-music_module_t music_win_module = {
-    I_WIN_InitMusic,      I_WIN_ShutdownMusic, I_WIN_SetMusicVolume,
-    I_WIN_PauseSong,      I_WIN_ResumeSong,    I_WIN_RegisterSong,
-    I_WIN_PlaySong,       I_WIN_UpdateMusic,   I_WIN_StopSong,
-    I_WIN_UnRegisterSong, I_WIN_DeviceList,
+music_module_t music_win_module =
+{
+    I_WIN_InitMusic,
+    I_WIN_ShutdownMusic,
+    I_WIN_SetMusicVolume,
+    I_WIN_PauseSong,
+    I_WIN_ResumeSong,
+    I_WIN_RegisterSong,
+    I_WIN_PlaySong,
+    I_WIN_UpdateMusic,
+    I_WIN_StopSong,
+    I_WIN_UnRegisterSong,
+    I_WIN_DeviceList,
 };

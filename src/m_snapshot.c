@@ -96,16 +96,10 @@ void M_ReadSavegameTime(int i, char *name)
         savegametimes[i][0] = '\0';
     }
     else
-// [FG] suppress the most useless compiler warning ever
-#if defined(__GNUC__)
-#  pragma GCC diagnostic push
-#  pragma GCC diagnostic ignored "-Wformat-y2k"
-#endif
+    {
         strftime(savegametimes[i], sizeof(savegametimes[i]), "%x %X",
                  localtime(&st.st_mtime));
-#if defined(__GNUC__)
-#  pragma GCC diagnostic pop
-#endif
+    }
 }
 
 char *M_GetSavegameTime(int i)
@@ -130,7 +124,7 @@ static void M_TakeSnapshot(void)
         current_snapshot = malloc(snapshot_size * sizeof(**snapshots));
     }
 
-    byte *p       = current_snapshot;
+    byte *p = current_snapshot;
 
     const byte *s = I_VideoBuffer;
 
@@ -180,7 +174,7 @@ boolean M_DrawSnapshot(int n, int x, int y, int w, int h)
     const fixed_t step_x = (SCREENWIDTH << FRACBITS) / rect.sw;
     const fixed_t step_y = (SCREENHEIGHT << FRACBITS) / rect.sh;
 
-    byte *dest           = I_VideoBuffer + rect.sy * video.pitch + rect.sx;
+    byte *dest = I_VideoBuffer + rect.sy * video.pitch + rect.sx;
 
     fixed_t srcx, srcy;
     int destx, desty;

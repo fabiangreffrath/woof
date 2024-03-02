@@ -33,7 +33,7 @@
 
 // maximum time between sending packets
 
-#define KEEPALIVE_PERIOD       1
+#define KEEPALIVE_PERIOD 1
 
 // reliable packet that is guaranteed to reach its destination
 
@@ -148,7 +148,7 @@ static void NET_Conn_ParseReliableACK(net_connection_t *conn,
         // Discard it, then.
         // Unlink from the list.
 
-        rp                     = conn->reliable_packets;
+        rp = conn->reliable_packets;
         conn->reliable_packets = rp->next;
 
         NET_FreePacket(rp->packet);
@@ -189,7 +189,7 @@ static boolean NET_Conn_ReliablePacket(net_connection_t *conn,
 
         conn->reliable_recv_seq = (conn->reliable_recv_seq + 1) & 0xff;
 
-        result                  = false;
+        result = false;
     }
 
     // Send an acknowledgement
@@ -383,7 +383,7 @@ net_packet_t *NET_Conn_NewReliable(net_connection_t *conn, int packet_type)
 
     // Add to the list of reliable packets
 
-    rp                 = malloc(sizeof(net_reliable_packet_t));
+    rp = malloc(sizeof(net_reliable_packet_t));
     rp->packet         = packet;
     rp->next           = NULL;
     rp->seq            = conn->reliable_send_seq;
@@ -412,8 +412,8 @@ unsigned int NET_ExpandTicNum(unsigned int relative, unsigned int b)
     unsigned int l, h;
     unsigned int result;
 
-    h      = relative & ~0xff;
-    l      = relative & 0xff;
+    h = relative & ~0xff;
+    l = relative & 0xff;
 
     result = h | b;
 

@@ -108,8 +108,7 @@ static boolean I_MAC_InitMusic(int device)
         return false;
     }
 
-#if MAC_OS_X_VERSION_MIN_REQUIRED \
-    < 1050  // this is deprecated, but works back to 10.0
+#if MAC_OS_X_VERSION_MIN_REQUIRED < 1050  // this is deprecated, but works back to 10.0
     if (AUGraphGetNodeInfo(graph, output, NULL, NULL, NULL, &unit) != noErr)
 #else  // not deprecated, but requires 10.5 or later
     if (AUGraphNodeInfo(graph, output, NULL, &unit) != noErr)
@@ -390,9 +389,17 @@ static void I_MAC_UpdateMusic(void)
     }
 }
 
-music_module_t music_mac_module = {
-    I_MAC_InitMusic,      I_MAC_ShutdownMusic, I_MAC_SetMusicVolume,
-    I_MAC_PauseSong,      I_MAC_ResumeSong,    I_MAC_RegisterSong,
-    I_MAC_PlaySong,       I_MAC_UpdateMusic,   I_MAC_StopSong,
-    I_MAC_UnRegisterSong, I_MAC_DeviceList,
+music_module_t music_mac_module =
+{
+    I_MAC_InitMusic,
+    I_MAC_ShutdownMusic,
+    I_MAC_SetMusicVolume,
+    I_MAC_PauseSong,
+    I_MAC_ResumeSong,
+    I_MAC_RegisterSong,
+    I_MAC_PlaySong,
+    I_MAC_UpdateMusic,
+    I_MAC_StopSong,
+    I_MAC_UnRegisterSong,
+    I_MAC_DeviceList,
 };

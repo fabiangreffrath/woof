@@ -273,16 +273,19 @@ static sf_count_t sfvio_tell(void *user_data)
     return mem_ftell((MEMFILE *)user_data);
 }
 
-static SF_VIRTUAL_IO sfvio = {sfvio_get_filelen, sfvio_seek, sfvio_read, NULL,
-                              sfvio_tell};
+static SF_VIRTUAL_IO sfvio =
+{
+    sfvio_get_filelen,
+    sfvio_seek,
+    sfvio_read,
+    NULL,
+    sfvio_tell
+};
 
 static sf_count_t sfx_mix_mono_read_float(SNDFILE *file, float *data,
                                           sf_count_t datalen)
 {
     SF_INFO info = {0};
-    static float multi_data[2048];
-    int k, ch, frames_read;
-    sf_count_t dataout = 0;
 
     sf_command(file, SFC_GET_CURRENT_SF_INFO, &info, sizeof(info));
 
@@ -290,6 +293,10 @@ static sf_count_t sfx_mix_mono_read_float(SNDFILE *file, float *data,
     {
         return sf_readf_float(file, data, datalen);
     }
+
+    static float multi_data[2048];
+    int k, ch, frames_read;
+    sf_count_t dataout = 0;
 
     while (dataout < datalen)
     {
@@ -325,9 +332,6 @@ static sf_count_t sfx_mix_mono_read_short(SNDFILE *file, short *data,
                                           sf_count_t datalen)
 {
     SF_INFO info = {0};
-    static short multi_data[2048];
-    int k, ch, frames_read;
-    sf_count_t dataout = 0;
 
     sf_command(file, SFC_GET_CURRENT_SF_INFO, &info, sizeof(info));
 
@@ -335,6 +339,10 @@ static sf_count_t sfx_mix_mono_read_short(SNDFILE *file, short *data,
     {
         return sf_readf_short(file, data, datalen);
     }
+
+    static short multi_data[2048];
+    int k, ch, frames_read;
+    sf_count_t dataout = 0;
 
     while (dataout < datalen)
     {
@@ -701,7 +709,13 @@ static const char **I_SND_DeviceList(int *current_device)
     return NULL;
 }
 
-stream_module_t stream_snd_module = {
-    I_SND_InitStream,  I_SND_OpenStream,     I_SND_FillStream, I_SND_PlayStream,
-    I_SND_CloseStream, I_SND_ShutdownStream, I_SND_DeviceList,
+stream_module_t stream_snd_module =
+{
+    I_SND_InitStream,
+    I_SND_OpenStream,
+    I_SND_FillStream,
+    I_SND_PlayStream,
+    I_SND_CloseStream,
+    I_SND_ShutdownStream,
+    I_SND_DeviceList,
 };

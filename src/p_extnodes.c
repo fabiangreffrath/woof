@@ -246,30 +246,33 @@ void P_LoadSegs_DEEP(int lump)
 
     for (i = 0; i < numsegs; i++)
     {
-        seg_t *li         = segs + i;
+        seg_t *li = segs + i;
         mapseg_deep_t *ml = (mapseg_deep_t *)data + i;
         int side, linedef;
         line_t *ldef;
         int vn1, vn2;
 
         // [MB] 2020-04-22: Fix endianess for DeePBSDP V4 nodes
-        vn1        = LONG(ml->v1);
-        vn2        = LONG(ml->v2);
+        vn1 = LONG(ml->v1);
+        vn2 = LONG(ml->v2);
 
         // [FG] extended nodes
-        li->v1     = &vertexes[vn1];
-        li->v2     = &vertexes[vn2];
+        li->v1 = &vertexes[vn1];
+        li->v2 = &vertexes[vn2];
 
         li->angle  = (SHORT(ml->angle)) << 16;
         li->offset = (SHORT(ml->offset)) << 16;
-        linedef    = (unsigned short)SHORT(ml->linedef);  // [FG] extended nodes
-        ldef       = &lines[linedef];
-        li->linedef     = ldef;
-        side            = SHORT(ml->side);
+
+        linedef = (unsigned short)SHORT(ml->linedef);  // [FG] extended nodes
+        ldef = &lines[linedef];
+        li->linedef = ldef;
+
+        side = SHORT(ml->side);
         li->sidedef     = &sides[ldef->sidenum[side]];
         li->frontsector = sides[ldef->sidenum[side]].sector;
+
         // [FG] recalculate
-        li->offset      = P_GetOffset(li->v1, (ml->side ? ldef->v2 : ldef->v1));
+        li->offset = P_GetOffset(li->v1, (ml->side ? ldef->v2 : ldef->v1));
 
         if (ldef->flags & ML_TWOSIDED)
         {
@@ -564,7 +567,7 @@ void P_LoadNodes_XNOD(int lump, boolean compressed, boolean glnodes)
     unsigned int numNodes;
     vertex_t *newvertarray = NULL;
 
-    data                   = W_CacheLumpNum(lump, PU_LEVEL);
+    data = W_CacheLumpNum(lump, PU_LEVEL);
 
     // 0. Uncompress nodes lump (or simply skip header)
 
@@ -596,9 +599,9 @@ void P_LoadNodes_XNOD(int lump, boolean compressed, boolean glnodes)
         // resize if output buffer runs full
         while ((err = inflate(zstream, Z_SYNC_FLUSH)) == Z_OK)
         {
-            int outlen_old     = outlen;
-            outlen             = 2 * outlen_old;
-            output             = Z_Realloc(output, outlen, PU_STATIC, 0);
+            int outlen_old = outlen;
+            outlen = 2 * outlen_old;
+            output = Z_Realloc(output, outlen, PU_STATIC, 0);
             zstream->next_out  = output + outlen_old;
             zstream->avail_out = outlen - outlen_old;
         }
@@ -654,9 +657,9 @@ void P_LoadNodes_XNOD(int lump, boolean compressed, boolean glnodes)
     {
         newvertarray[i + orgVerts].r_x = newvertarray[i + orgVerts].x =
             LONG(*((unsigned int *)data));
-        data                           += sizeof(newvertarray[0].x);
+        data += sizeof(newvertarray[0].x);
 
-        newvertarray[i + orgVerts].r_y  = newvertarray[i + orgVerts].y =
+        newvertarray[i + orgVerts].r_y = newvertarray[i + orgVerts].y =
             LONG(*((unsigned int *)data));
         data += sizeof(newvertarray[0].y);
     }
@@ -691,17 +694,17 @@ void P_LoadNodes_XNOD(int lump, boolean compressed, boolean glnodes)
     {
         mapsubsector_xnod_t *mseg  = (mapsubsector_xnod_t *)data + i;
 
-        subsectors[i].firstline    = currSeg;
-        subsectors[i].numlines     = LONG(mseg->numsegs);
-        currSeg                   += LONG(mseg->numsegs);
+        subsectors[i].firstline = currSeg;
+        subsectors[i].numlines  = LONG(mseg->numsegs);
+        currSeg                += LONG(mseg->numsegs);
     }
 
-    data    += numsubsectors * sizeof(mapsubsector_xnod_t);
+    data += numsubsectors * sizeof(mapsubsector_xnod_t);
 
     // 3. Load segs
 
-    numSegs  = LONG(*((unsigned int *)data));
-    data    += sizeof(numSegs);
+    numSegs = LONG(*((unsigned int *)data));
+    data   += sizeof(numSegs);
 
     // The number of stored segs should match the number of segs used by
     // subsectors
@@ -722,26 +725,26 @@ void P_LoadNodes_XNOD(int lump, boolean compressed, boolean glnodes)
         P_LoadSegs_XNOD(data);
     }
 
-    data     += numsegs * sizeof(mapseg_xnod_t);
+    data += numsegs * sizeof(mapseg_xnod_t);
 
     // 4. Load nodes
 
-    numNodes  = LONG(*((unsigned int *)data));
-    data     += sizeof(numNodes);
+    numNodes = LONG(*((unsigned int *)data));
+    data    += sizeof(numNodes);
 
-    numnodes  = numNodes;
-    nodes     = Z_Malloc(numnodes * sizeof(node_t), PU_LEVEL, 0);
+    numnodes = numNodes;
+    nodes    = Z_Malloc(numnodes * sizeof(node_t), PU_LEVEL, 0);
 
     for (i = 0; i < numnodes; i++)
     {
         int j, k;
-        node_t *no         = nodes + i;
+        node_t *no = nodes + i;
         mapnode_xnod_t *mn = (mapnode_xnod_t *)data + i;
 
-        no->x              = SHORT(mn->x) << FRACBITS;
-        no->y              = SHORT(mn->y) << FRACBITS;
-        no->dx             = SHORT(mn->dx) << FRACBITS;
-        no->dy             = SHORT(mn->dy) << FRACBITS;
+        no->x  = SHORT(mn->x) << FRACBITS;
+        no->y  = SHORT(mn->y) << FRACBITS;
+        no->dx = SHORT(mn->dx) << FRACBITS;
+        no->dy = SHORT(mn->dy) << FRACBITS;
 
         for (j = 0; j < 2; j++)
         {

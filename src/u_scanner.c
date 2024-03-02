@@ -34,7 +34,8 @@
 #include "m_misc2.h"
 #include "u_scanner.h"
 
-static const char *U_TokenNames[TK_NumSpecialTokens] = {
+static const char *U_TokenNames[TK_NumSpecialTokens] =
+{
     "Identifier",  // case insensitive identifier, beginning with a letter and
                    // may contain [a-z0-9_]
     "String Constant",
@@ -48,99 +49,99 @@ static const char *U_TokenNames[TK_NumSpecialTokens] = {
     "Greater Than or Equals",
     "Less Than or Equals",
     "Left Shift",
-    "Right Shift"};
+    "Right Shift"
+};
 
 static void U_CheckForWhitespace(u_scanner_t *scanner);
 static void U_ExpandState(u_scanner_t *scanner);
 static void U_Unescape(char *str);
 static void U_SetString(char **ptr, const char *start, int length);
 
-u_scanner_t U_ScanOpen(const char *data, int length, const char *name)
+u_scanner_t *U_ScanOpen(const char *data, int length, const char *name)
 {
-    u_scanner_t scanner = {0};
-    scanner.lineStart = scanner.logicalPosition = scanner.scanPos =
-        scanner.tokenLinePosition               = 0;
-    scanner.line = scanner.tokenLine = 1;
-    scanner.needNext                 = true;
-    scanner.string                   = NULL;
-    scanner.nextState.string         = NULL;
-    scanner.name                     = name;
+    u_scanner_t *s = calloc(1, sizeof(*s));
+    s->line = s->tokenLine = 1;
+    s->needNext         = true;
+    s->string           = NULL;
+    s->nextState.string = NULL;
+    s->name             = name;
 
     if (length == -1)
     {
         length = strlen(data);
     }
-    scanner.length = length;
-    scanner.data   = (char *)malloc(sizeof(char) * length);
-    memcpy(scanner.data, data, length);
+    s->length = length;
+    s->data   = (char *)malloc(sizeof(char) * length);
+    memcpy(s->data, data, length);
 
-    U_CheckForWhitespace(&scanner);
+    U_CheckForWhitespace(s);
 
-    return scanner;
+    return s;
 }
 
-void U_ScanClose(u_scanner_t *scanner)
+void U_ScanClose(u_scanner_t *s)
 {
-    if (scanner->nextState.string != NULL)
+    if (s->nextState.string != NULL)
     {
-        free(scanner->nextState.string);
+        free(s->nextState.string);
     }
-    if (scanner->data != NULL)
+    if (s->data != NULL)
     {
-        free(scanner->data);
+        free(s->data);
     }
+    free(s);
 }
 
-static void U_IncrementLine(u_scanner_t *scanner)
+static void U_IncrementLine(u_scanner_t *s)
 {
-    scanner->line++;
-    scanner->lineStart = scanner->scanPos;
+    s->line++;
+    s->lineStart = s->scanPos;
 }
 
-static void U_CheckForWhitespace(u_scanner_t *scanner)
+static void U_CheckForWhitespace(u_scanner_t *s)
 {
     int comment = 0;  // 1 = till next new line, 2 = till end block
-    while (scanner->scanPos < scanner->length)
+    while (s->scanPos < s->length)
     {
-        char cur  = scanner->data[scanner->scanPos];
-        char next = scanner->scanPos + 1 < scanner->length
-                        ? scanner->data[scanner->scanPos + 1]
-                        : 0;
+        char cur  = s->data[s->scanPos];
+        char next = s->scanPos + 1 < s->length
+                    ? s->data[s->scanPos + 1]
+                    : 0;
         if (comment == 2)
         {
             if (cur != '*' || next != '/')
             {
                 if (cur == '\n' || cur == '\r')
                 {
-                    scanner->scanPos++;
+                    s->scanPos++;
 
                     // Do a quick check for Windows style new line
                     if (cur == '\r' && next == '\n')
                     {
-                        scanner->scanPos++;
+                        s->scanPos++;
                     }
-                    U_IncrementLine(scanner);
+                    U_IncrementLine(s);
                 }
                 else
                 {
-                    scanner->scanPos++;
+                    s->scanPos++;
                 }
             }
             else
             {
-                comment           = 0;
-                scanner->scanPos += 2;
+                comment = 0;
+                s->scanPos += 2;
             }
             continue;
         }
 
         if (cur == ' ' || cur == '\t' || cur == 0)
         {
-            scanner->scanPos++;
+            s->scanPos++;
         }
         else if (cur == '\n' || cur == '\r')
         {
-            scanner->scanPos++;
+            s->scanPos++;
             if (comment == 1)
             {
                 comment = 0;
@@ -149,9 +150,9 @@ static void U_CheckForWhitespace(u_scanner_t *scanner)
             // Do a quick check for Windows style new line
             if (cur == '\r' && next == '\n')
             {
-                scanner->scanPos++;
+                s->scanPos++;
             }
-            U_IncrementLine(scanner);
+            U_IncrementLine(s);
         }
         else if (cur == '/' && comment == 0)
         {
@@ -166,7 +167,7 @@ static void U_CheckForWhitespace(u_scanner_t *scanner)
                 default:
                     return;
             }
-            scanner->scanPos += 2;
+            s->scanPos += 2;
         }
         else
         {
@@ -176,7 +177,7 @@ static void U_CheckForWhitespace(u_scanner_t *scanner)
             }
             else
             {
-                scanner->scanPos++;
+                s->scanPos++;
             }
         }
     }
@@ -246,34 +247,34 @@ static void U_RestoreState(u_scanner_t *s, u_scanner_t savedstate)
     }
 }
 
-boolean U_GetString(u_scanner_t *scanner)
+boolean U_GetString(u_scanner_t *s)
 {
     unsigned int start;
     char cur;
-    u_parserstate_t *nextState = &scanner->nextState;
+    u_parserstate_t *nextState = &s->nextState;
 
-    if (!scanner->needNext)
+    if (!s->needNext)
     {
-        scanner->needNext = true;
-        U_ExpandState(scanner);
+        s->needNext = true;
+        U_ExpandState(s);
         return true;
     }
 
-    nextState->tokenLine         = scanner->line;
-    nextState->tokenLinePosition = scanner->scanPos - scanner->lineStart;
+    nextState->tokenLine         = s->line;
+    nextState->tokenLinePosition = s->scanPos - s->lineStart;
     nextState->token             = TK_NoToken;
-    if (scanner->scanPos >= scanner->length)
+    if (s->scanPos >= s->length)
     {
-        U_ExpandState(scanner);
+        U_ExpandState(s);
         return false;
     }
 
-    start = scanner->scanPos;
-    cur   = scanner->data[scanner->scanPos++];
+    start = s->scanPos;
+    cur   = s->data[s->scanPos++];
 
-    while (scanner->scanPos < scanner->length)
+    while (s->scanPos < s->length)
     {
-        cur = scanner->data[scanner->scanPos];
+        cur = s->data[s->scanPos];
 
         if (cur == ' ' || cur == '\t' || cur == '\n' || cur == '\r' || cur == 0)
         {
@@ -281,17 +282,17 @@ boolean U_GetString(u_scanner_t *scanner)
         }
         else
         {
-            scanner->scanPos++;
+            s->scanPos++;
         }
     }
 
-    U_SetString(&(nextState->string), scanner->data + start,
-                scanner->scanPos - start);
-    U_ExpandState(scanner);
+    U_SetString(&(nextState->string), s->data + start,
+                s->scanPos - start);
+    U_ExpandState(s);
     return true;
 }
 
-boolean U_GetNextToken(u_scanner_t *scanner, boolean expandState)
+boolean U_GetNextToken(u_scanner_t *s, boolean expandState)
 {
     unsigned int start;
     unsigned int end;
@@ -301,33 +302,33 @@ boolean U_GetNextToken(u_scanner_t *scanner, boolean expandState)
     boolean floatHasExponent = false;
     boolean stringFinished =
         false;  // Strings are the only things that can have 0 length tokens.
-    u_parserstate_t *nextState = &scanner->nextState;
+    u_parserstate_t *nextState = &s->nextState;
 
-    if (!scanner->needNext)
+    if (!s->needNext)
     {
-        scanner->needNext = true;
+        s->needNext = true;
         if (expandState)
         {
-            U_ExpandState(scanner);
+            U_ExpandState(s);
         }
         return true;
     }
 
-    nextState->tokenLine         = scanner->line;
-    nextState->tokenLinePosition = scanner->scanPos - scanner->lineStart;
+    nextState->tokenLine         = s->line;
+    nextState->tokenLinePosition = s->scanPos - s->lineStart;
     nextState->token             = TK_NoToken;
-    if (scanner->scanPos >= scanner->length)
+    if (s->scanPos >= s->length)
     {
         if (expandState)
         {
-            U_ExpandState(scanner);
+            U_ExpandState(s);
         }
         return false;
     }
 
-    start = scanner->scanPos;
-    end   = scanner->scanPos;
-    cur   = scanner->data[scanner->scanPos++];
+    start = s->scanPos;
+    end   = s->scanPos;
+    cur   = s->data[s->scanPos++];
 
     // Determine by first character
     if (cur == '_' || (cur >= 'A' && cur <= 'Z') || (cur >= 'a' && cur <= 'z'))
@@ -355,13 +356,13 @@ boolean U_GetNextToken(u_scanner_t *scanner, boolean expandState)
     }
     else
     {
-        end              = scanner->scanPos;
+        end              = s->scanPos;
         nextState->token = cur;
 
         // Now check for operator tokens
-        if (scanner->scanPos < scanner->length)
+        if (s->scanPos < s->length)
         {
-            char next = scanner->data[scanner->scanPos];
+            char next = s->data[s->scanPos];
             if (cur == '&' && next == '&')
             {
                 nextState->token = TK_AndAnd;
@@ -402,17 +403,17 @@ boolean U_GetNextToken(u_scanner_t *scanner, boolean expandState)
             }
             if (nextState->token != cur)
             {
-                scanner->scanPos++;
-                end = scanner->scanPos;
+                s->scanPos++;
+                end = s->scanPos;
             }
         }
     }
 
     if (start == end)
     {
-        while (scanner->scanPos < scanner->length)
+        while (s->scanPos < s->length)
         {
-            cur = scanner->data[scanner->scanPos];
+            cur = s->data[s->scanPos];
             switch (nextState->token)
             {
                 default:
@@ -421,17 +422,17 @@ boolean U_GetNextToken(u_scanner_t *scanner, boolean expandState)
                     if (cur != '_' && (cur < 'A' || cur > 'Z')
                         && (cur < 'a' || cur > 'z') && (cur < '0' || cur > '9'))
                     {
-                        end = scanner->scanPos;
+                        end = s->scanPos;
                     }
                     break;
                 case TK_IntConst:
                     if (cur == '.'
-                        || (scanner->scanPos - 1 != start && cur == 'e'))
+                        || (s->scanPos - 1 != start && cur == 'e'))
                     {
                         nextState->token = TK_FloatConst;
                     }
                     else if ((cur == 'x' || cur == 'X')
-                             && scanner->scanPos - 1 == start)
+                             && s->scanPos - 1 == start)
                     {
                         integerBase = 16;
                         break;
@@ -443,13 +444,13 @@ boolean U_GetNextToken(u_scanner_t *scanner, boolean expandState)
                             default:
                                 if (cur < '0' || cur > '9')
                                 {
-                                    end = scanner->scanPos;
+                                    end = s->scanPos;
                                 }
                                 break;
                             case 8:
                                 if (cur < '0' || cur > '7')
                                 {
-                                    end = scanner->scanPos;
+                                    end = s->scanPos;
                                 }
                                 break;
                             case 16:
@@ -457,7 +458,7 @@ boolean U_GetNextToken(u_scanner_t *scanner, boolean expandState)
                                     && (cur < 'A' || cur > 'F')
                                     && (cur < 'a' || cur > 'f'))
                                 {
-                                    end = scanner->scanPos;
+                                    end = s->scanPos;
                                 }
                                 break;
                         }
@@ -475,41 +476,41 @@ boolean U_GetNextToken(u_scanner_t *scanner, boolean expandState)
                         {
                             floatHasDecimal  = true;
                             floatHasExponent = true;
-                            if (scanner->scanPos + 1 < scanner->length)
+                            if (s->scanPos + 1 < s->length)
                             {
-                                char next = scanner->data[scanner->scanPos + 1];
+                                char next = s->data[s->scanPos + 1];
                                 if ((next < '0' || next > '9') && next != '+'
                                     && next != '-')
                                 {
-                                    end = scanner->scanPos;
+                                    end = s->scanPos;
                                 }
                                 else
                                 {
-                                    scanner->scanPos++;
+                                    s->scanPos++;
                                 }
                             }
                             break;
                         }
-                        end = scanner->scanPos;
+                        end = s->scanPos;
                     }
                     break;
                 case TK_StringConst:
                     if (cur == '"')
                     {
                         stringFinished = true;
-                        end            = scanner->scanPos;
-                        scanner->scanPos++;
+                        end            = s->scanPos;
+                        s->scanPos++;
                     }
                     else if (cur == '\\')
                     {
-                        scanner->scanPos++;  // Will add two since the loop
+                        s->scanPos++;  // Will add two since the loop
                                              // automatically adds one
                     }
                     break;
             }
             if (start == end && !stringFinished)
             {
-                scanner->scanPos++;
+                s->scanPos++;
             }
             else
             {
@@ -517,15 +518,15 @@ boolean U_GetNextToken(u_scanner_t *scanner, boolean expandState)
             }
         }
         // If we reached end of input while reading, set it as the end of token
-        if (scanner->scanPos == scanner->length && start == end)
+        if (s->scanPos == s->length && start == end)
         {
-            end = scanner->length;
+            end = s->length;
         }
     }
 
     if (end - start > 0 || stringFinished)
     {
-        U_SetString(&(nextState->string), scanner->data + start, end - start);
+        U_SetString(&(nextState->string), s->data + start, end - start);
         if (nextState->token == TK_FloatConst)
         {
             nextState->decimal    = atof(nextState->string);
@@ -565,29 +566,29 @@ boolean U_GetNextToken(u_scanner_t *scanner, boolean expandState)
         }
         if (expandState)
         {
-            U_ExpandState(scanner);
+            U_ExpandState(s);
         }
         return true;
     }
     nextState->token = TK_NoToken;
     if (expandState)
     {
-        U_ExpandState(scanner);
+        U_ExpandState(s);
     }
     return false;
 }
 
 // Skips all Tokens in current line and parses the first token on the next
 // line.
-boolean U_GetNextLineToken(u_scanner_t *scanner)
+boolean U_GetNextLineToken(u_scanner_t *s)
 {
-    unsigned int line = scanner->line;
+    unsigned int line = s->line;
     boolean retval    = false;
 
     do
     {
-        retval = U_GetNextToken(scanner, true);
-    } while (retval && scanner->line == line);
+        retval = U_GetNextToken(s, true);
+    } while (retval && s->line == line);
 
     return retval;
 }

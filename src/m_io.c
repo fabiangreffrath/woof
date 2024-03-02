@@ -135,7 +135,7 @@ char *M_ConvertSysNativeMBToUtf8(const char *str)
     char *ret     = NULL;
     wchar_t *wstr = NULL;
 
-    wstr          = ConvertSysNativeMBToWide(str);
+    wstr = ConvertSysNativeMBToWide(str);
 
     if (!wstr)
     {
@@ -158,7 +158,7 @@ char *M_ConvertUtf8ToSysNativeMB(const char *str)
     char *ret     = NULL;
     wchar_t *wstr = NULL;
 
-    wstr          = ConvertUtf8ToWide(str);
+    wstr = ConvertUtf8ToWide(str);
 
     if (!wstr)
     {
@@ -182,7 +182,7 @@ FILE *M_fopen(const char *filename, const char *mode)
     wchar_t *wname = NULL;
     wchar_t *wmode = NULL;
 
-    wname          = ConvertUtf8ToWide(filename);
+    wname = ConvertUtf8ToWide(filename);
 
     if (!wname)
     {
@@ -301,7 +301,7 @@ int M_stat(const char *path, struct stat *buf)
         return -1;
     }
 
-    ret           = _wstat(wpath, &wbuf);
+    ret = _wstat(wpath, &wbuf);
 
     // The _wstat() function expects a struct _stat* parameter that is
     // incompatible with struct stat*. We copy only the required compatible

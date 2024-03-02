@@ -41,7 +41,8 @@ umapinfo_t U_mapinfo;
 
 umapinfo_t default_mapinfo;
 
-static const char *const ActorNames[] = {
+static const char *const ActorNames[] =
+{
     "DoomPlayer", "ZombieMan", "ShotgunGuy", "Archvile", "ArchvileFire",
     "Revenant", "RevenantTracer", "RevenantTracerSmoke", "Fatso", "FatShot",
     "ChaingunGuy", "DoomImp", "Demon", "Spectre", "Cacodemon", "BaronOfHell",
@@ -175,7 +176,8 @@ static const char *const ActorNames[] = {
     "Deh_Actor_247",  // Extra thing 97
     "Deh_Actor_248",  // Extra thing 98
     "Deh_Actor_249",  // Extra thing 99
-    NULL};
+    NULL
+};
 
 static void FreeMap(mapentry_t *mape)
 {
@@ -302,8 +304,8 @@ static void UpdateMapEntry(mapentry_t *mape, mapentry_t *newe)
         }
         else
         {
-            mape->bossactions = (bossaction_t *)realloc(
-                mape->bossactions, sizeof(bossaction_t) * mape->numbossactions);
+            mape->bossactions = realloc(mape->bossactions,
+                                        sizeof(bossaction_t) * mape->numbossactions);
             memcpy(mape->bossactions, newe->bossactions,
                    sizeof(bossaction_t) * mape->numbossactions);
         }
@@ -322,8 +324,8 @@ static char *ParseMultiString(u_scanner_t *s, int error)
     {
         if (!strcasecmp(s->string, "clear"))
         {
-            return strdup(
-                "-");  // this was explicitly deleted to override the default.
+            // this was explicitly deleted to override the default.
+            return strdup("-");
         }
         else
         {
@@ -340,18 +342,13 @@ static char *ParseMultiString(u_scanner_t *s, int error)
         }
         else
         {
-            size_t newlen = strlen(build) + strlen(s->string)
-                            + 2;  // strlen for both the existing text and the
-                                  // new line, plus room for one \n and one \0
-            build = (char *)I_Realloc(build,
-                                      newlen);  // Prepare the destination
-                                                // memory for the below strcats
-            strcat(
-                build,
-                "\n");  // Replace the existing text's \0 terminator with a \n
-            strcat(
-                build,
-                s->string);  // Concatenate the new line onto the existing text
+            // plus room for one \n and one \0
+            size_t newlen = strlen(build) + strlen(s->string) + 2;
+            build = (char *)I_Realloc(build, newlen);
+            // Replace the existing text's \0 terminator with a \n
+            strcat(build,"\n");
+            // Concatenate the new line onto the existing text
+            strcat(build, s->string);
         }
     } while (U_CheckToken(s, ','));
     return build;
@@ -656,13 +653,12 @@ static int ParseStandardProperty(u_scanner_t *s, mapentry_t *mape)
                     {
                         mape->numbossactions++;
                     }
-                    mape->bossactions = (bossaction_t *)realloc(
-                        mape->bossactions,
-                        sizeof(bossaction_t) * mape->numbossactions);
-                    mape->bossactions[mape->numbossactions - 1].type = i;
-                    mape->bossactions[mape->numbossactions - 1].special =
-                        special;
-                    mape->bossactions[mape->numbossactions - 1].tag = tag;
+                    mape->bossactions = realloc(mape->bossactions,
+                                                sizeof(bossaction_t) * mape->numbossactions);
+                    bossaction_t *bossaction = &mape->bossactions[mape->numbossactions - 1];
+                    bossaction->type    = i;
+                    bossaction->special = special;
+                    bossaction->tag     = tag;
                 }
             }
         }
@@ -709,8 +705,8 @@ static int ParseMapEntry(u_scanner_t *s, mapentry_t *val)
     {
         if (!ParseStandardProperty(s, val))
         {
-            U_GetNextToken(
-                s, true);  // If there was an error parsing, skip to next token
+            // If there was an error parsing, skip to next token
+            U_GetNextToken(s, true);
         }
     }
     return 1;
@@ -743,41 +739,40 @@ static boolean UpdateDefaultMapEntry(mapentry_t *val, int num)
 
 void U_ParseMapDefInfo(int lumpnum)
 {
-    const char *buffer  = W_CacheLumpNum(lumpnum, PU_CACHE);
-    size_t length       = W_LumpLength(lumpnum);
-    u_scanner_t scanner = U_ScanOpen(buffer, length, "UMAPDEF");
+    const char *buffer = W_CacheLumpNum(lumpnum, PU_CACHE);
+    size_t length      = W_LumpLength(lumpnum);
+    u_scanner_t *s     = U_ScanOpen(buffer, length, "UMAPDEF");
 
-    while (U_HasTokensLeft(&scanner))
+    while (U_HasTokensLeft(s))
     {
         mapentry_t parsed = {0};
-        if (!ParseMapEntry(&scanner, &parsed))
+        if (!ParseMapEntry(s, &parsed))
         {
-            U_Error(&scanner, "Skipping entry: %s", scanner.string);
+            U_Error(s, "Skipping entry: %s", s->string);
             continue;
         }
 
         default_mapinfo.mapcount++;
-        default_mapinfo.maps = (mapentry_t *)realloc(
-            default_mapinfo.maps,
-            sizeof(mapentry_t) * default_mapinfo.mapcount);
+        default_mapinfo.maps = realloc(default_mapinfo.maps,
+                                       sizeof(mapentry_t) * default_mapinfo.mapcount);
         default_mapinfo.maps[default_mapinfo.mapcount - 1] = parsed;
     }
-    U_ScanClose(&scanner);
+    U_ScanClose(s);
 }
 
 void U_ParseMapInfo(int lumpnum)
 {
     unsigned int i;
-    const char *buffer  = W_CacheLumpNum(lumpnum, PU_CACHE);
-    size_t length       = W_LumpLength(lumpnum);
-    u_scanner_t scanner = U_ScanOpen(buffer, length, "UMAPINFO");
+    const char *buffer = W_CacheLumpNum(lumpnum, PU_CACHE);
+    size_t length      = W_LumpLength(lumpnum);
+    u_scanner_t *s     = U_ScanOpen(buffer, length, "UMAPINFO");
 
-    while (U_HasTokensLeft(&scanner))
+    while (U_HasTokensLeft(s))
     {
         mapentry_t parsed = {0};
-        if (!ParseMapEntry(&scanner, &parsed))
+        if (!ParseMapEntry(s, &parsed))
         {
-            U_Error(&scanner, "Skipping entry: %s", scanner.string);
+            U_Error(s, "Skipping entry: %s", s->string);
             continue;
         }
 
@@ -838,8 +833,8 @@ void U_ParseMapInfo(int lumpnum)
         if (i == U_mapinfo.mapcount)
         {
             U_mapinfo.mapcount++;
-            U_mapinfo.maps = (mapentry_t *)realloc(
-                U_mapinfo.maps, sizeof(mapentry_t) * U_mapinfo.mapcount);
+            U_mapinfo.maps = realloc(U_mapinfo.maps,
+                                     sizeof(mapentry_t) * U_mapinfo.mapcount);
 
             if (!UpdateDefaultMapEntry(&parsed, i))
             {
@@ -847,7 +842,7 @@ void U_ParseMapInfo(int lumpnum)
             }
         }
     }
-    U_ScanClose(&scanner);
+    U_ScanClose(s);
 }
 
 boolean U_CheckField(char *str)

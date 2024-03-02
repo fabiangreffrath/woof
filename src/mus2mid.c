@@ -69,7 +69,8 @@ typedef PACKED_PREFIX struct
 #endif
 
 // Standard MIDI type 0 header + track header
-static const byte midiheader[] = {
+static const byte midiheader[] =
+{
     'M',  'T',  'h',  'd',   // Main header
     0x00, 0x00, 0x00, 0x06,  // Header size
     0x00, 0x00,              // MIDI type (0)
@@ -80,20 +81,26 @@ static const byte midiheader[] = {
 };
 
 // Cached channel velocities
-static byte channelvelocities[] = {127, 127, 127, 127, 127, 127, 127, 127,
-                                   127, 127, 127, 127, 127, 127, 127, 127};
+static byte channelvelocities[] =
+{
+    127, 127, 127, 127, 127, 127, 127, 127,
+    127, 127, 127, 127, 127, 127, 127, 127
+};
 
 // Timestamps between sequences of MUS events
 
-static unsigned int queuedtime  = 0;
+static unsigned int queuedtime = 0;
 
 // Counter for the length of the track
 
 static unsigned int tracksize;
 
-static const byte controller_map[] = {0x00, 0x20, 0x01, 0x07, 0x0A,
-                                      0x0B, 0x5B, 0x5D, 0x40, 0x43,
-                                      0x78, 0x7B, 0x7E, 0x7F, 0x79};
+static const byte controller_map[] =
+{
+    0x00, 0x20, 0x01, 0x07, 0x0A,
+    0x0B, 0x5B, 0x5D, 0x40, 0x43,
+    0x78, 0x7B, 0x7E, 0x7F, 0x79
+};
 
 static int channel_map[NUM_CHANNELS];
 
@@ -699,8 +706,8 @@ int main(int argc, char *argv[])
 
     infile_len = M_ReadFile(argv[1], &infile);
 
-    src        = mem_fopen_read(infile, infile_len);
-    dst        = mem_fopen_write();
+    src = mem_fopen_read(infile, infile_len);
+    dst = mem_fopen_write();
 
     if (mus2mid(src, dst))
     {

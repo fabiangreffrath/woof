@@ -115,12 +115,10 @@ extern void A_PlaySound(struct mobj_s *mo);    // killough 11/98
 extern void A_RandomJump(struct mobj_s *mo);   // killough 11/98
 extern void A_LineEffect(struct mobj_s *mo);   // killough 11/98
 
-extern void A_FireOldBFG(
-    struct player_s *player,
-    struct pspdef_s *psp);  // killough 7/19/98: classic BFG firing function
-extern void A_BetaSkullAttack(
-    struct mobj_s
-        *actor);  // killough 10/98: beta lost souls attacked different
+// killough 7/19/98: classic BFG firing function
+extern void A_FireOldBFG(struct player_s *player, struct pspdef_s *psp);
+// killough 10/98: beta lost souls attacked different
+extern void A_BetaSkullAttack(struct mobj_s *actor);
 extern void A_Stop(struct mobj_s *actor);
 
 // [XA] New mbf21 codepointers

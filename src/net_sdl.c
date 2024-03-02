@@ -123,7 +123,7 @@ static net_addr_t *NET_SDL_FindAddress(IPaddress *addr)
 
     // Add a new entry
 
-    new_entry                    = Z_Malloc(sizeof(addrpair_t), PU_STATIC, 0);
+    new_entry = Z_Malloc(sizeof(addrpair_t), PU_STATIC, 0);
 
     new_entry->sdl_addr          = *addr;
     new_entry->net_addr.refcount = 0;
@@ -314,7 +314,7 @@ static boolean NET_SDL_RecvPacket(net_addr_t **addr, net_packet_t **packet)
 
     // Address
 
-    *addr          = NET_SDL_FindAddress(&recvpacket->address);
+    *addr = NET_SDL_FindAddress(&recvpacket->address);
 
     return true;
 }
@@ -352,13 +352,13 @@ net_addr_t *NET_SDL_ResolveAddress(const char *address)
     int result;
     char *colon;
 
-    colon         = strchr(address, ':');
+    colon = strchr(address, ':');
 
     addr_hostname = M_StringDuplicate(address);
     if (colon != NULL)
     {
         addr_hostname[colon - address] = '\0';
-        addr_port                      = atoi(colon + 1);
+        addr_port = atoi(colon + 1);
     }
     else
     {
@@ -393,8 +393,14 @@ void NET_SDL_Shutdown(void)
 
 // Complete module
 
-net_module_t net_sdl_module = {
-    NET_SDL_InitClient,     NET_SDL_InitServer,   NET_SDL_SendPacket,
-    NET_SDL_RecvPacket,     NET_SDL_AddrToString, NET_SDL_FreeAddress,
-    NET_SDL_ResolveAddress, NET_SDL_Shutdown,
+net_module_t net_sdl_module =
+{
+    NET_SDL_InitClient,
+    NET_SDL_InitServer,
+    NET_SDL_SendPacket,
+    NET_SDL_RecvPacket,
+    NET_SDL_AddrToString,
+    NET_SDL_FreeAddress,
+    NET_SDL_ResolveAddress,
+    NET_SDL_Shutdown,
 };

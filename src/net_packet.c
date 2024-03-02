@@ -34,10 +34,10 @@ net_packet_t *NET_NewPacket(int initial_size)
         initial_size = 256;
     }
 
-    packet->alloced      = initial_size;
-    packet->data         = Z_Malloc(initial_size, PU_STATIC, 0);
-    packet->len          = 0;
-    packet->pos          = 0;
+    packet->alloced = initial_size;
+    packet->data    = Z_Malloc(initial_size, PU_STATIC, 0);
+    packet->len     = 0;
+    packet->pos     = 0;
 
     total_packet_memory += sizeof(net_packet_t) + initial_size;
 
@@ -118,9 +118,9 @@ boolean NET_ReadInt32(net_packet_t *packet, unsigned int *data)
         return false;
     }
 
-    p            = packet->data + packet->pos;
+    p = packet->data + packet->pos;
 
-    *data        = (p[0] << 24) | (p[1] << 16) | (p[2] << 8) | p[3];
+    *data = (p[0] << 24) | (p[1] << 16) | (p[2] << 8) | p[3];
     packet->pos += 4;
 
     return true;
@@ -250,14 +250,14 @@ static void NET_IncreasePacket(net_packet_t *packet)
 
     total_packet_memory -= packet->alloced;
 
-    packet->alloced     *= 2;
+    packet->alloced *= 2;
 
-    newdata              = Z_Malloc(packet->alloced, PU_STATIC, 0);
+    newdata = Z_Malloc(packet->alloced, PU_STATIC, 0);
 
     memcpy(newdata, packet->data, packet->len);
 
     Z_Free(packet->data);
-    packet->data         = newdata;
+    packet->data = newdata;
 
     total_packet_memory += packet->alloced;
 }
@@ -286,10 +286,10 @@ void NET_WriteInt16(net_packet_t *packet, unsigned int i)
         NET_IncreasePacket(packet);
     }
 
-    p            = packet->data + packet->len;
+    p = packet->data + packet->len;
 
-    p[0]         = (i >> 8) & 0xff;
-    p[1]         = i & 0xff;
+    p[0] = (i >> 8) & 0xff;
+    p[1] = i & 0xff;
 
     packet->len += 2;
 }
@@ -305,12 +305,12 @@ void NET_WriteInt32(net_packet_t *packet, unsigned int i)
         NET_IncreasePacket(packet);
     }
 
-    p            = packet->data + packet->len;
+    p = packet->data + packet->len;
 
-    p[0]         = (i >> 24) & 0xff;
-    p[1]         = (i >> 16) & 0xff;
-    p[2]         = (i >> 8) & 0xff;
-    p[3]         = i & 0xff;
+    p[0] = (i >> 24) & 0xff;
+    p[1] = (i >> 16) & 0xff;
+    p[2] = (i >> 8) & 0xff;
+    p[3] = i & 0xff;
 
     packet->len += 4;
 }

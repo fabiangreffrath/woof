@@ -125,86 +125,118 @@ typedef struct
 #    define SOFTWARE_KEY "Software"
 #  endif
 
-static registry_value_t uninstall_values[] = {
-  // Ultimate Doom, CD version (Depths of Doom trilogy)
+static registry_value_t uninstall_values[] =
+{
+    // Ultimate Doom, CD version (Depths of Doom trilogy)
 
     {
-     HKEY_LOCAL_MACHINE,                                       SOFTWARE_KEY "\\Microsoft\\Windows\\CurrentVersion\\"
-                     "Uninstall\\Ultimate Doom for Windows 95", "UninstallString",
-     },
+        HKEY_LOCAL_MACHINE,
+        SOFTWARE_KEY "\\Microsoft\\Windows\\CurrentVersion\\"
+                     "Uninstall\\Ultimate Doom for Windows 95",
+        "UninstallString",
+    },
 
- // Doom II, CD version (Depths of Doom trilogy)
-
-    {
-     HKEY_LOCAL_MACHINE,                                                        SOFTWARE_KEY "\\Microsoft\\Windows\\CurrentVersion\\"
-                     "Uninstall\\Doom II for Windows 95",                                                                                       "UninstallString",
-     },
-
- // Final Doom
+    // Doom II, CD version (Depths of Doom trilogy)
 
     {
-     HKEY_LOCAL_MACHINE, SOFTWARE_KEY "\\Microsoft\\Windows\\CurrentVersion\\"
-                     "Uninstall\\Final Doom for Windows 95","UninstallString",
-     },
+        HKEY_LOCAL_MACHINE,
+        SOFTWARE_KEY "\\Microsoft\\Windows\\CurrentVersion\\"
+                     "Uninstall\\Doom II for Windows 95",
+        "UninstallString",
+    },
 
- // Shareware version
+    // Final Doom
 
     {
-     HKEY_LOCAL_MACHINE,                                                              SOFTWARE_KEY "\\Microsoft\\Windows\\CurrentVersion\\"
-                     "Uninstall\\Doom Shareware for Windows 95",                                                                "UninstallString",
-     },
+        HKEY_LOCAL_MACHINE,
+        SOFTWARE_KEY "\\Microsoft\\Windows\\CurrentVersion\\"
+                     "Uninstall\\Final Doom for Windows 95",
+        "UninstallString",
+    },
+
+    // Shareware version
+
+    {
+        HKEY_LOCAL_MACHINE,
+        SOFTWARE_KEY "\\Microsoft\\Windows\\CurrentVersion\\"
+                     "Uninstall\\Doom Shareware for Windows 95",
+        "UninstallString",
+    },
 };
 
 // Values installed by the GOG.com and Collector's Edition versions
 
-static registry_value_t root_path_keys[] = {
-  // Doom Collector's Edition
+static registry_value_t root_path_keys[] =
+{
+    // Doom Collector's Edition
 
     {
-     HKEY_LOCAL_MACHINE, SOFTWARE_KEY "\\Activision\\DOOM Collector's Edition\\v1.0",
-     "INSTALLPATH", },
+        HKEY_LOCAL_MACHINE,
+        SOFTWARE_KEY "\\Activision\\DOOM Collector's Edition\\v1.0",
+        "INSTALLPATH",
+    },
 
- // Doom II
-
-    {
-     HKEY_LOCAL_MACHINE, SOFTWARE_KEY "\\GOG.com\\Games\\1435848814",
-     "PATH", },
-
- // Doom 3: BFG Edition
+    // Doom II
 
     {
-     HKEY_LOCAL_MACHINE, SOFTWARE_KEY "\\GOG.com\\Games\\1135892318",
-     "PATH", },
+        HKEY_LOCAL_MACHINE,
+        SOFTWARE_KEY "\\GOG.com\\Games\\1435848814",
+        "PATH",
+    },
 
- // Final Doom
-
-    {
-     HKEY_LOCAL_MACHINE, SOFTWARE_KEY "\\GOG.com\\Games\\1435848742",
-     "PATH", },
-
- // Ultimate Doom
+    // Doom 3: BFG Edition
 
     {
-     HKEY_LOCAL_MACHINE, SOFTWARE_KEY "\\GOG.com\\Games\\1435827232",
-     "PATH", },
+        HKEY_LOCAL_MACHINE,
+        SOFTWARE_KEY "\\GOG.com\\Games\\1135892318",
+        "PATH",
+    },
 
- // DOOM Unity port
-    {HKEY_LOCAL_MACHINE, SOFTWARE_KEY "\\GOG.com\\Games\\2015545325", "PATH"},
+    // Final Doom
 
- // DOOM II Unity port
-    {HKEY_LOCAL_MACHINE, SOFTWARE_KEY "\\GOG.com\\Games\\1426071866", "PATH"},
+    {
+        HKEY_LOCAL_MACHINE,
+        SOFTWARE_KEY "\\GOG.com\\Games\\1435848742",
+        "PATH",
+    },
+
+    // Ultimate Doom
+
+    {
+        HKEY_LOCAL_MACHINE,
+        SOFTWARE_KEY "\\GOG.com\\Games\\1435827232",
+        "PATH",
+    },
+
+    // DOOM Unity port
+
+    {
+        HKEY_LOCAL_MACHINE,
+        SOFTWARE_KEY "\\GOG.com\\Games\\2015545325",
+        "PATH"
+    },
+
+    // DOOM II Unity port
+
+    {
+        HKEY_LOCAL_MACHINE,
+        SOFTWARE_KEY "\\GOG.com\\Games\\1426071866",
+        "PATH"
+    },
 };
 
 // Subdirectories of the above install path, where IWADs are installed.
 
-static char *root_path_subdirs[] = {
+static char *root_path_subdirs[] =
+{
     ".",        "Doom2", "Final Doom", "Ultimate Doom",
     "Plutonia", "TNT",   "base\\wads",
 };
 
 // Location where Steam is installed
 
-static registry_value_t steam_install_location = {
+static registry_value_t steam_install_location =
+{
     HKEY_LOCAL_MACHINE,
     SOFTWARE_KEY "\\Valve\\Steam",
     "InstallPath",
@@ -212,7 +244,8 @@ static registry_value_t steam_install_location = {
 
 // Subdirs of the steam install directory where IWADs are found
 
-static char *steam_install_subdirs[] = {
+static char *steam_install_subdirs[] =
+{
     "steamapps\\common\\doom 2\\base", "steamapps\\common\\final doom\\base",
     "steamapps\\common\\ultimate doom\\base",
 
@@ -222,7 +255,8 @@ static char *steam_install_subdirs[] = {
 
     "steamapps\\common\\ultimate doom\\rerelease\\DOOM_Data\\StreamingAssets",
     "steamapps\\common\\doom 2\\rerelease\\DOOM II_Data\\StreamingAssets",
-    "steamapps\\common\\doom 2\\finaldoombase"};
+    "steamapps\\common\\doom 2\\finaldoombase"
+};
 
 static char *GetRegistryString(registry_value_t *reg_val)
 {

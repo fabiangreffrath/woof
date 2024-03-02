@@ -119,11 +119,11 @@ boolean net_waiting_for_launch = false;
 
 // Name that we send to the server
 
-char *net_player_name          = NULL;
+char *net_player_name = NULL;
 
 // Connected but not participating in the game (observer)
 
-boolean drone                  = false;
+boolean drone = false;
 
 // The last ticcmd constructed
 
@@ -199,13 +199,14 @@ static void UpdateClockSync(unsigned int seq, unsigned int remote_latency)
 #define KD 0.02
 
     // How does our latency compare to the worst other player?
-    error        = latency - remote_latency;
+    error = latency - remote_latency;
     cumul_error += error;
 
-    offsetms     = KP * (FRACUNIT * error) - KI * (FRACUNIT * cumul_error)
-               + (KD * FRACUNIT) * (last_error - error);
+    offsetms = KP * (FRACUNIT * error)
+             - KI * (FRACUNIT * cumul_error)
+             + (KD * FRACUNIT) * (last_error - error);
 
-    last_error   = error;
+    last_error = error;
     last_latency = latency;
 
     NET_Log("client: latency %d, remote %d -> offset=%dms, cumul_error=%d",

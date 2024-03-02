@@ -87,16 +87,16 @@ typedef struct
 
 } u_scanner_t;
 
-u_scanner_t U_ScanOpen(const char *data, int length, const char *name);
-void U_ScanClose(u_scanner_t *scanner);
-boolean U_GetNextToken(u_scanner_t *scanner, boolean expandState);
-boolean U_GetNextLineToken(u_scanner_t *scanner);
-boolean U_HasTokensLeft(u_scanner_t *scanner);
-boolean U_MustGetToken(u_scanner_t *scanner, char token);
-boolean U_MustGetIdentifier(u_scanner_t *scanner, const char *ident);
+u_scanner_t *U_ScanOpen(const char *data, int length, const char *name);
+void U_ScanClose(u_scanner_t *s);
+boolean U_GetNextToken(u_scanner_t *s, boolean expandState);
+boolean U_GetNextLineToken(u_scanner_t *s);
+boolean U_HasTokensLeft(u_scanner_t *s);
+boolean U_MustGetToken(u_scanner_t *s, char token);
+boolean U_MustGetIdentifier(u_scanner_t *s, const char *ident);
 boolean U_MustGetInteger(u_scanner_t *s);
 boolean U_MustGetFloat(u_scanner_t *s);
-boolean U_CheckToken(u_scanner_t *scanner, char token);
+boolean U_CheckToken(u_scanner_t *s, char token);
 boolean U_CheckInteger(u_scanner_t *s);
 boolean U_CheckFloat(u_scanner_t *s);
 void U_Unget(u_scanner_t *s);

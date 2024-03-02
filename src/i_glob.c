@@ -284,8 +284,8 @@ static void ReadAllFilenames(glob_t *glob)
         {
             break;
         }
-        glob->filenames                      = realloc(glob->filenames,
-                                                       (glob->filenames_len + 1) * sizeof(char *));
+        glob->filenames = realloc(glob->filenames,
+                                  (glob->filenames_len + 1) * sizeof(char *));
         glob->filenames[glob->filenames_len] = name;
         ++glob->filenames_len;
     }

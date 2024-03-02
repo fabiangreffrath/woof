@@ -203,10 +203,10 @@ static boolean I_FL_InitStream(int device)
     int lumpnum;
 
     fluid_set_log_function(FLUID_PANIC, I_FL_Log_Error, NULL);
-    fluid_set_log_function(FLUID_ERR, I_FL_Log_Error, NULL);
-    fluid_set_log_function(FLUID_WARN, I_FL_Log_Debug, NULL);
-    fluid_set_log_function(FLUID_INFO, NULL, NULL);
-    fluid_set_log_function(FLUID_DBG, NULL, NULL);
+    fluid_set_log_function(FLUID_ERR,   I_FL_Log_Error, NULL);
+    fluid_set_log_function(FLUID_WARN,  I_FL_Log_Debug, NULL);
+    fluid_set_log_function(FLUID_INFO,  NULL,           NULL);
+    fluid_set_log_function(FLUID_DBG,   NULL,           NULL);
 
     settings = new_fluid_settings();
 
@@ -443,7 +443,13 @@ static const char **I_FL_DeviceList(int *current_device)
     return devices;
 }
 
-stream_module_t stream_fl_module = {
-    I_FL_InitStream,  I_FL_OpenStream,     I_FL_FillStream, I_FL_PlayStream,
-    I_FL_CloseStream, I_FL_ShutdownStream, I_FL_DeviceList,
+stream_module_t stream_fl_module =
+{
+    I_FL_InitStream,
+    I_FL_OpenStream,
+    I_FL_FillStream,
+    I_FL_PlayStream,
+    I_FL_CloseStream,
+    I_FL_ShutdownStream,
+    I_FL_DeviceList,
 };

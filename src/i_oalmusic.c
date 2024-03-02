@@ -32,7 +32,8 @@
 #define NUM_BUFFERS    4
 #define BUFFER_SAMPLES 4096
 
-static stream_module_t *stream_modules[] = {
+static stream_module_t *stream_modules[] =
+{
     &stream_snd_module,
 #if defined(HAVE_LIBXMP)
     &stream_xmp_module,
@@ -394,8 +395,8 @@ static void *I_OAL_RegisterSong(void *data, int len)
     if (IsMid(data, len) || IsMus(data, len))
     {
         if (midi_stream_module
-            && midi_stream_module->I_OpenStream(
-                data, len, &player.format, &player.freq, &player.frame_size))
+            && midi_stream_module->I_OpenStream(data, len, &player.format,
+                                                &player.freq, &player.frame_size))
         {
             active_module = midi_stream_module;
             return (void *)1;
@@ -426,9 +427,17 @@ static void I_OAL_UpdateMusic(void)
     ;
 }
 
-music_module_t music_oal_module = {
-    I_OAL_InitMusic,      I_OAL_ShutdownMusic, I_OAL_SetMusicVolume,
-    I_OAL_PauseSong,      I_OAL_ResumeSong,    I_OAL_RegisterSong,
-    I_OAL_PlaySong,       I_OAL_UpdateMusic,   I_OAL_StopSong,
-    I_OAL_UnRegisterSong, I_OAL_DeviceList,
+music_module_t music_oal_module =
+{
+    I_OAL_InitMusic,
+    I_OAL_ShutdownMusic,
+    I_OAL_SetMusicVolume,
+    I_OAL_PauseSong,
+    I_OAL_ResumeSong,
+    I_OAL_RegisterSong,
+    I_OAL_PlaySong,
+    I_OAL_UpdateMusic,
+    I_OAL_StopSong,
+    I_OAL_UnRegisterSong,
+    I_OAL_DeviceList,
 };

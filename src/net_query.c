@@ -323,7 +323,7 @@ static void NET_Query_ParseResponse(net_addr_t *addr, net_packet_t *packet,
 
         // Create new target.
 
-        target           = GetTargetForAddr(addr, true);
+        target = GetTargetForAddr(addr, true);
         broadcast_target = GetTargetForAddr(NULL, false);
         target->state    = QUERY_TARGET_QUERIED;
         target->query_time =
@@ -388,7 +388,7 @@ static void NET_Query_ParseMasterResponse(net_addr_t *master_addr,
 
     // Mark the master as having responded.
 
-    target        = GetTargetForAddr(master_addr, true);
+    target = GetTargetForAddr(master_addr, true);
     target->state = QUERY_TARGET_RESPONDED;
 }
 
@@ -592,8 +592,8 @@ void NET_Query_Init(void)
     }
 
     free(targets);
-    targets        = NULL;
-    num_targets    = 0;
+    targets     = NULL;
+    num_targets = 0;
 
     printed_header = false;
 }
@@ -654,7 +654,7 @@ int NET_StartLANQuery(void)
 
     // Add a broadcast target to the list.
 
-    target       = GetTargetForAddr(NULL, true);
+    target = GetTargetForAddr(NULL, true);
     target->type = QUERY_TARGET_BROADCAST;
 
     return 1;
@@ -676,7 +676,7 @@ int NET_StartMasterQuery(void)
         return 0;
     }
 
-    target       = GetTargetForAddr(master, true);
+    target = GetTargetForAddr(master, true);
     target->type = QUERY_TARGET_MASTER;
     NET_ReleaseAddress(master);
 
@@ -730,18 +730,10 @@ static const char *GameDescription(GameMode_t mode, GameMission_t mission)
             return "tnt";
         case pack_plut:
             return "plutonia";
-            /*
-                    case pack_chex:
-                        return "chex";
-                    case pack_hacx:
-                        return "hacx";
-                    case heretic:
-                        return "heretic";
-                    case hexen:
-                        return "hexen";
-                    case strife:
-                        return "strife";
-            */
+        case pack_chex:
+            return "chex";
+        case pack_hacx:
+            return "hacx";
         default:
             return "?";
     }
@@ -868,7 +860,7 @@ net_addr_t *NET_FindLANServer(void)
 
     // Add a broadcast target to the list.
 
-    target       = GetTargetForAddr(NULL, true);
+    target = GetTargetForAddr(NULL, true);
     target->type = QUERY_TARGET_BROADCAST;
 
     // Run the query loop, and stop at the first target found.

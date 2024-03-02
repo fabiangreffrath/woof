@@ -262,10 +262,8 @@ void I_OpenController(int which)
         if (controller)
         {
             controller_index = which;
-            I_Printf(
-                VB_INFO,
-                "I_OpenController: Found a valid game controller, named: %s",
-                SDL_GameControllerName(controller));
+            I_Printf(VB_INFO, "I_OpenController: Found a valid game controller"
+                     ", named: %s", SDL_GameControllerName(controller));
         }
     }
 
@@ -419,11 +417,11 @@ static void MapMouseWheelToButtons(SDL_MouseWheelEvent wheel)
     int button;
 
     if (wheel.y < 0)
-    {  // scroll down
+    {
         button = MOUSE_BUTTON_WHEELDOWN;
     }
     else if (wheel.y > 0)
-    {  // scroll up
+    {
         button = MOUSE_BUTTON_WHEELUP;
     }
     else if (wheel.x < 0)

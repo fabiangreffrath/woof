@@ -41,7 +41,7 @@ boolean force_brightmaps;
 
 static const byte nobrightmap[COLORMASK_SIZE] = {0};
 
-const byte *dc_brightmap                      = nobrightmap;
+const byte *dc_brightmap = nobrightmap;
 
 typedef struct
 {
@@ -251,7 +251,7 @@ const byte *R_BrightmapForState(const int state)
 
 void R_ParseBrightmaps(int lumpnum)
 {
-    u_scanner_t scanner, *s;
+    u_scanner_t *s;
     const char *data = W_CacheLumpNum(lumpnum, PU_CACHE);
     int length       = W_LumpLength(lumpnum);
 
@@ -265,8 +265,8 @@ void R_ParseBrightmaps(int lumpnum)
         array_push(brightmaps_array, brightmap);
     }
 
-    scanner = U_ScanOpen(data, length, "BRGHTMPS");
-    s       = &scanner;
+    s = U_ScanOpen(data, length, "BRGHTMPS");
+
     while (U_HasTokensLeft(s))
     {
         if (!U_CheckToken(s, TK_Identifier))

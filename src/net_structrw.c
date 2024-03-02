@@ -97,24 +97,23 @@ boolean NET_ReadSettings(net_packet_t *packet, net_gamesettings_t *settings)
     boolean success;
     int i;
 
-    success =
-        NET_ReadInt8(packet, (unsigned int *)&settings->ticdup)
-        && NET_ReadInt8(packet, (unsigned int *)&settings->extratics)
-        && NET_ReadInt8(packet, (unsigned int *)&settings->deathmatch)
-        && NET_ReadInt8(packet, (unsigned int *)&settings->nomonsters)
-        && NET_ReadInt8(packet, (unsigned int *)&settings->fast_monsters)
-        && NET_ReadInt8(packet, (unsigned int *)&settings->respawn_monsters)
-        && NET_ReadInt8(packet, (unsigned int *)&settings->episode)
-        && NET_ReadInt8(packet, (unsigned int *)&settings->map)
-        && NET_ReadSInt8(packet, &settings->skill)
-        && NET_ReadInt8(packet, (unsigned int *)&settings->gameversion)
-        && NET_ReadInt8(packet, (unsigned int *)&settings->lowres_turn)
-        && NET_ReadInt8(packet, (unsigned int *)&settings->new_sync)
-        && NET_ReadInt32(packet, (unsigned int *)&settings->timelimit)
-        && NET_ReadSInt8(packet, (signed int *)&settings->loadgame)
-        && NET_ReadInt8(packet, (unsigned int *)&settings->random)
-        && NET_ReadInt8(packet, (unsigned int *)&settings->num_players)
-        && NET_ReadSInt8(packet, (signed int *)&settings->consoleplayer);
+    success = NET_ReadInt8(packet, (unsigned int *)&settings->ticdup)
+           && NET_ReadInt8(packet, (unsigned int *)&settings->extratics)
+           && NET_ReadInt8(packet, (unsigned int *)&settings->deathmatch)
+           && NET_ReadInt8(packet, (unsigned int *)&settings->nomonsters)
+           && NET_ReadInt8(packet, (unsigned int *)&settings->fast_monsters)
+           && NET_ReadInt8(packet, (unsigned int *)&settings->respawn_monsters)
+           && NET_ReadInt8(packet, (unsigned int *)&settings->episode)
+           && NET_ReadInt8(packet, (unsigned int *)&settings->map)
+           && NET_ReadSInt8(packet, &settings->skill)
+           && NET_ReadInt8(packet, (unsigned int *)&settings->gameversion)
+           && NET_ReadInt8(packet, (unsigned int *)&settings->lowres_turn)
+           && NET_ReadInt8(packet, (unsigned int *)&settings->new_sync)
+           && NET_ReadInt32(packet, (unsigned int *)&settings->timelimit)
+           && NET_ReadSInt8(packet, (signed int *)&settings->loadgame)
+           && NET_ReadInt8(packet, (unsigned int *)&settings->random)
+           && NET_ReadInt8(packet, (unsigned int *)&settings->num_players)
+           && NET_ReadSInt8(packet, (signed int *)&settings->consoleplayer);
 
     if (!success)
     {
@@ -149,12 +148,12 @@ boolean NET_ReadQueryData(net_packet_t *packet, net_querydata_t *query)
 
     query->version = NET_ReadSafeString(packet);
 
-    success        = query->version != NULL
-              && NET_ReadInt8(packet, (unsigned int *)&query->server_state)
-              && NET_ReadInt8(packet, (unsigned int *)&query->num_players)
-              && NET_ReadInt8(packet, (unsigned int *)&query->max_players)
-              && NET_ReadInt8(packet, (unsigned int *)&query->gamemode)
-              && NET_ReadInt8(packet, (unsigned int *)&query->gamemission);
+    success = query->version != NULL
+           && NET_ReadInt8(packet, (unsigned int *)&query->server_state)
+           && NET_ReadInt8(packet, (unsigned int *)&query->num_players)
+           && NET_ReadInt8(packet, (unsigned int *)&query->max_players)
+           && NET_ReadInt8(packet, (unsigned int *)&query->gamemode)
+           && NET_ReadInt8(packet, (unsigned int *)&query->gamemission);
 
     if (!success)
     {
@@ -166,7 +165,7 @@ boolean NET_ReadQueryData(net_packet_t *packet, net_querydata_t *query)
     // We read the list of protocols supported by the server. However,
     // old versions of Chocolate Doom do not support this field; it is
     // okay if it cannot be successfully read.
-    query->protocol    = NET_ReadProtocolList(packet);
+    query->protocol = NET_ReadProtocolList(packet);
 
     return query->description != NULL;
 }
@@ -226,18 +225,6 @@ void NET_WriteTiccmdDiff(net_packet_t *packet, net_ticdiff_t *diff,
     {
         NET_WriteInt8(packet, diff->cmd.chatchar);
     }
-    /*
-        if (diff->diff & NET_TICDIFF_RAVEN)
-        {
-            NET_WriteInt8(packet, diff->cmd.lookfly);
-            NET_WriteInt8(packet, diff->cmd.arti);
-        }
-        if (diff->diff & NET_TICDIFF_STRIFE)
-        {
-            NET_WriteInt8(packet, diff->cmd.buttons2);
-            NET_WriteInt16(packet, diff->cmd.inventory);
-        }
-    */
 }
 
 boolean NET_ReadTiccmdDiff(net_packet_t *packet, net_ticdiff_t *diff,
@@ -319,29 +306,7 @@ boolean NET_ReadTiccmdDiff(net_packet_t *packet, net_ticdiff_t *diff,
         }
         diff->cmd.chatchar = val;
     }
-    /*
-        if (diff->diff & NET_TICDIFF_RAVEN)
-        {
-            if (!NET_ReadInt8(packet, &val))
-                return false;
-            diff->cmd.lookfly = val;
 
-            if (!NET_ReadInt8(packet, &val))
-                return false;
-            diff->cmd.arti = val;
-        }
-
-        if (diff->diff & NET_TICDIFF_STRIFE)
-        {
-            if (!NET_ReadInt8(packet, &val))
-                return false;
-            diff->cmd.buttons2 = val;
-
-            if (!NET_ReadInt16(packet, &val))
-                return false;
-            diff->cmd.inventory = val;
-        }
-    */
     return true;
 }
 
@@ -374,17 +339,6 @@ void NET_TiccmdDiff(ticcmd_t *tic1, ticcmd_t *tic2, net_ticdiff_t *diff)
     {
         diff->diff |= NET_TICDIFF_CHATCHAR;
     }
-
-    // Heretic/Hexen-specific
-    /*
-        if (tic1->lookfly != tic2->lookfly || tic2->arti != 0)
-            diff->diff |= NET_TICDIFF_RAVEN;
-
-        // Strife-specific
-
-        if (tic1->buttons2 != tic2->buttons2 || tic2->inventory != 0)
-            diff->diff |= NET_TICDIFF_STRIFE;
-    */
 }
 
 void NET_TiccmdPatch(ticcmd_t *src, net_ticdiff_t *diff, ticcmd_t *dest)
@@ -422,31 +376,6 @@ void NET_TiccmdPatch(ticcmd_t *src, net_ticdiff_t *diff, ticcmd_t *dest)
     {
         dest->chatchar = 0;
     }
-
-    // Heretic/Hexen specific:
-    /*
-        if (diff->diff & NET_TICDIFF_RAVEN)
-        {
-            dest->lookfly = diff->cmd.lookfly;
-            dest->arti = diff->cmd.arti;
-        }
-        else
-        {
-            dest->arti = 0;
-        }
-
-        // Strife-specific:
-
-        if (diff->diff & NET_TICDIFF_STRIFE)
-        {
-            dest->buttons2 = diff->cmd.buttons2;
-            dest->inventory = diff->cmd.inventory;
-        }
-        else
-        {
-            dest->inventory = 0;
-        }
-    */
 }
 
 //
@@ -631,17 +560,6 @@ void NET_WriteSHA1Sum(net_packet_t *packet, sha1_digest_t digest)
     NET_WriteBlob(packet, digest, sizeof(sha1_digest_t));
 }
 
-/*
-boolean NET_ReadPRNGSeed(net_packet_t *packet, prng_seed_t seed)
-{
-    return NET_ReadBlob(packet, seed, sizeof(prng_seed_t));
-}
-
-void NET_WritePRNGSeed(net_packet_t *packet, prng_seed_t seed)
-{
-    NET_WriteBlob(packet, seed, sizeof(prng_seed_t));
-}
-*/
 static net_protocol_t ParseProtocolName(const char *name)
 {
     int i;

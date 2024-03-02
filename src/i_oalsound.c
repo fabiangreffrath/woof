@@ -52,12 +52,7 @@
 // still needs to use a normal cast and live with the warning (C++ is fine with
 // a regular reinterpret_cast).
 #if __STDC_VERSION__ >= 199901L
-#  define FUNCTION_CAST(T, ptr) \
-      (union {                  \
-        void *p;                \
-        T f;                    \
-      }){ptr}                   \
-          .f
+#  define FUNCTION_CAST(T, ptr) (union{void *p; T f;}){ptr}.f
 #else
 #  define FUNCTION_CAST(T, ptr) (T)(ptr)
 #endif
