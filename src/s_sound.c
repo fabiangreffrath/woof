@@ -30,7 +30,7 @@
 #include "m_misc2.h"
 #include "m_random.h"
 #include "p_mobj.h"
-#include "s_musinfo.h"  // [crispy] struct musinfo
+#include "s_musinfo.h" // [crispy] struct musinfo
 #include "s_sound.h"
 #include "sounds.h"
 #include "u_mapinfo.h"
@@ -41,15 +41,15 @@
 
 typedef struct channel_s
 {
-    sfxinfo_t *sfxinfo;    // sound information (if null, channel avail.)
-    const mobj_t *origin;  // origin of sound
-    int volume;            // volume scale value for effect -- haleyjd 05/29/06
-    int pitch;             // pitch modifier -- haleyjd 06/03/06
-    int handle;            // handle of the sound being played
-    int o_priority;        // haleyjd 09/27/06: stored priority value
-    int priority;          // current priority value
-    int singularity;       // haleyjd 09/27/06: stored singularity value
-    int idnum;             // haleyjd 09/30/06: unique id num for sound event
+    sfxinfo_t *sfxinfo;   // sound information (if null, channel avail.)
+    const mobj_t *origin; // origin of sound
+    int volume;           // volume scale value for effect -- haleyjd 05/29/06
+    int pitch;            // pitch modifier -- haleyjd 06/03/06
+    int handle;           // handle of the sound being played
+    int o_priority;       // haleyjd 09/27/06: stored priority value
+    int priority;         // current priority value
+    int singularity;      // haleyjd 09/27/06: stored singularity value
+    int idnum;            // haleyjd 09/30/06: unique id num for sound event
 } channel_t;
 
 // the set of channels available
@@ -75,7 +75,7 @@ static musicinfo_t *mus_playing;
 //  by the defaults code in M_misc:
 // number of channels available
 int numChannels;
-int default_numChannels;  // killough 9/98
+int default_numChannels; // killough 9/98
 
 // jff 3/17/98 to keep track of last IDMUS specified music num
 int idmusnum;
@@ -100,7 +100,7 @@ static void S_StopChannel(int cnum)
 
     if (channels[cnum].sfxinfo)
     {
-        I_StopSound(channels[cnum].handle);  // stop the sound playing
+        I_StopSound(channels[cnum].handle); // stop the sound playing
 
         // haleyjd 09/27/06: clear the entire channel
         memset(&channels[cnum], 0, sizeof(channel_t));
@@ -135,7 +135,7 @@ static int S_getChannel(const mobj_t *origin, sfxinfo_t *sfxinfo, int priority,
 {
     // channel number to use
     int cnum;
-    int lowestpriority = -1;  // haleyjd
+    int lowestpriority = -1; // haleyjd
     int lpcnum = -1;
 
     // haleyjd 09/28/06: moved this here. If we kill a sound already
@@ -180,11 +180,11 @@ static int S_getChannel(const mobj_t *origin, sfxinfo_t *sfxinfo, int priority,
         // in the loop above
         if (priority > lowestpriority)
         {
-            return -1;  // No lower priority.  Sorry, Charlie.
+            return -1; // No lower priority.  Sorry, Charlie.
         }
         else
         {
-            S_StopChannel(lpcnum);  // Otherwise, kick out lowest priority.
+            S_StopChannel(lpcnum); // Otherwise, kick out lowest priority.
             cnum = lpcnum;
         }
     }
@@ -304,7 +304,7 @@ void S_StartSound(const mobj_t *origin, int sfx_id)
 
     while (sfx->link)
     {
-        sfx = sfx->link;  // sf: skip thru link(s)
+        sfx = sfx->link; // sf: skip thru link(s)
     }
 
     // Assigns the handle to one of the channels in the mix/output buffer.
@@ -320,12 +320,12 @@ void S_StartSound(const mobj_t *origin, int sfx_id)
         // haleyjd 09/27/06: store priority and singularity values (!!!)
         channels[cnum].volume = volumeScale;
         channels[cnum].pitch = pitch;
-        channels[cnum].o_priority = o_priority;  // original priority
-        channels[cnum].priority = priority;      // scaled priority
+        channels[cnum].o_priority = o_priority; // original priority
+        channels[cnum].priority = priority;     // scaled priority
         channels[cnum].singularity = singularity;
-        channels[cnum].idnum = I_SoundID(handle);  // unique instance id
+        channels[cnum].idnum = I_SoundID(handle); // unique instance id
     }
-    else  // haleyjd: the sound didn't start, so clear the channel info
+    else // haleyjd: the sound didn't start, so clear the channel info
     {
         memset(&channels[cnum], 0, sizeof(channel_t));
     }
@@ -454,14 +454,14 @@ void S_UpdateSounds(const mobj_t *listener)
             {
                 // initialize parameters
                 int volume = snd_SfxVolume;
-                int pitch = c->pitch;  // haleyjd 06/03/06: use channel's pitch!
+                int pitch = c->pitch; // haleyjd 06/03/06: use channel's pitch!
                 int sep = NORM_SEP;
-                int pri = c->o_priority;  // haleyjd 09/27/06: priority
+                int pri = c->o_priority; // haleyjd 09/27/06: priority
 
                 // check non-local sounds for distance clipping
                 // or modify their params
 
-                if (c->origin && listener != c->origin)  // killough 3/20/98
+                if (c->origin && listener != c->origin) // killough 3/20/98
                 {
                     if (!S_AdjustSoundParams(listener, c->origin, c->volume,
                                              &volume, &sep, &pitch, &pri))
@@ -471,11 +471,11 @@ void S_UpdateSounds(const mobj_t *listener)
                     else
                     {
                         I_UpdateSoundParams(c->handle, volume, sep);
-                        c->priority = pri;  // haleyjd
+                        c->priority = pri; // haleyjd
                     }
                 }
             }
-            else  // if channel is allocated but sound has stopped, free it
+            else // if channel is allocated but sound has stopped, free it
             {
                 S_StopChannel(cnum);
             }
@@ -671,8 +671,9 @@ void S_StopMusic(void)
 
     I_StopSong((void *)mus_playing->handle);
     I_UnRegisterSong((void *)mus_playing->handle);
-    if (mus_playing->data
-        != NULL)  // for wads with "empty" music lumps (Nihility.wad)
+
+    // for wads with "empty" music lumps (Nihility.wad)
+    if (mus_playing->data!= NULL)
     {
         Z_ChangeTag(mus_playing->data, PU_CACHE);
     }
@@ -741,7 +742,7 @@ void S_Start(void)
 
     if (idmusnum != -1)
     {
-        mnum = idmusnum;  // jff 3/17/98 reload IDMUS music if not -1
+        mnum = idmusnum; // jff 3/17/98 reload IDMUS music if not -1
     }
     else
     {

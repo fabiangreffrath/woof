@@ -25,7 +25,7 @@
 
 #include "doomtype.h"
 
-#define MAX_MUS_ENTRIES 65  // [crispy] 0 to 64 inclusive
+#define MAX_MUS_ENTRIES 65 // [crispy] 0 to 64 inclusive
 
 typedef struct musinfo_s
 {

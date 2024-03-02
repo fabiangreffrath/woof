@@ -90,7 +90,7 @@ static void UpdateDrumMap(const byte *msg, unsigned int length)
 static boolean GetProgramFallback(byte idx, byte program,
                                   midi_fallback_t *fallback)
 {
-    if (drum_map[idx] == 0)  // Normal channel
+    if (drum_map[idx] == 0) // Normal channel
     {
         if (bank_msb[idx] == 0 || variation[bank_msb[idx]][program])
         {
@@ -133,7 +133,7 @@ static boolean GetProgramFallback(byte idx, byte program,
                  idx, bank_msb[idx], program, fallback->value, program);
         return true;
     }
-    else  // Drums channel
+    else // Drums channel
     {
         if (program != drums_table[program])
         {

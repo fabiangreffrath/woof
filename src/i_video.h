@@ -61,15 +61,15 @@ void I_FinishUpdate(void);
 
 void I_ReadScreen(byte *dst);
 
-void I_ResetScreen(void);  // killough 10/98
-void I_ToggleVsync(void);  // [JN] Calls native SDL vsync toggle
+void I_ResetScreen(void); // killough 10/98
+void I_ToggleVsync(void); // [JN] Calls native SDL vsync toggle
 
 void I_DynamicResolution(void);
 
 extern boolean drs_skip_frame;
 
-extern boolean use_vsync;  // killough 2/8/98: controls whether vsync is called
-extern boolean disk_icon;  // killough 10/98
+extern boolean use_vsync; // killough 2/8/98: controls whether vsync is called
+extern boolean disk_icon; // killough 10/98
 extern int current_video_height;
 
 #  define DRS_MIN_HEIGHT 400
@@ -77,16 +77,16 @@ extern boolean dynamic_resolution;
 
 extern boolean use_aspect;
 extern boolean uncapped,
-    default_uncapped;  // [FG] uncapped rendering frame rate
+    default_uncapped; // [FG] uncapped rendering frame rate
 
 extern boolean fullscreen;
 extern boolean exclusive_fullscreen;
-extern int fpslimit;  // when uncapped, limit framerate to this value
+extern int fpslimit; // when uncapped, limit framerate to this value
 extern int fps;
-extern boolean vga_porch_flash;  // emulate VGA "porch" behaviour
-extern aspect_ratio_mode_t widescreen, default_widescreen;  // widescreen mode
-extern int custom_fov;     // Custom FOV set by the player.
-extern int video_display;  // display index
+extern boolean vga_porch_flash; // emulate VGA "porch" behaviour
+extern aspect_ratio_mode_t widescreen, default_widescreen; // widescreen mode
+extern int custom_fov;    // Custom FOV set by the player.
+extern int video_display; // display index
 extern boolean screenvisible;
 extern boolean window_focused;
 extern boolean resetneeded;
@@ -99,7 +99,7 @@ extern boolean default_grabmouse;
 extern int gamma2;
 byte I_GetPaletteIndex(byte *palette, int r, int g, int b);
 
-boolean I_WritePNGfile(char *filename);  // [FG] screenshots in PNG format
+boolean I_WritePNGfile(char *filename); // [FG] screenshots in PNG format
 
 void *I_GetSDLWindow(void);
 void *I_GetSDLRenderer(void);

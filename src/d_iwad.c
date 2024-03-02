@@ -71,7 +71,7 @@ char *D_DoomExeDir(void)
 {
     static char *base;
 
-    if (base == NULL)  // cache multiple requests
+    if (base == NULL) // cache multiple requests
     {
         char *result;
 
@@ -403,12 +403,12 @@ static void CheckDOSDefaults(void)
     // These are the default install directories used by the deice
     // installer program:
 
-    AddIWADDir("\\doom2");     // Doom II
-    AddIWADDir("\\plutonia");  // Final Doom
+    AddIWADDir("\\doom2");    // Doom II
+    AddIWADDir("\\plutonia"); // Final Doom
     AddIWADDir("\\tnt");
-    AddIWADDir("\\doom_se");  // Ultimate Doom
-    AddIWADDir("\\doom");     // Shareware / Registered Doom
-    AddIWADDir("\\dooms");    // Shareware versions
+    AddIWADDir("\\doom_se"); // Ultimate Doom
+    AddIWADDir("\\doom");    // Shareware / Registered Doom
+    AddIWADDir("\\dooms");   // Shareware versions
     AddIWADDir("\\doomsw");
 }
 
@@ -544,8 +544,8 @@ static void AddSteamDirs(void)
     AddIWADPath(steampath, "/DOOM 3 BFG Edition/base/wads");
     free(steampath);
 }
-#  endif  // __MACOSX__
-#endif    // !_WIN32
+#  endif // __MACOSX__
+#endif   // !_WIN32
 
 //
 // Build a list of IWAD files

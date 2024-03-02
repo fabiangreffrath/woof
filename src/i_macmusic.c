@@ -320,7 +320,7 @@ static void *I_MAC_RegisterSong(void *data, int len)
 #  else
     if (MusicSequenceLoadSMFDataWithFlags(sequence, data_ref, 0) != noErr)
 #  endif
-#else  // MusicSequenceFileLoadData() requires 10.5 or later.
+#else // MusicSequenceFileLoadData() requires 10.5 or later.
     if (MusicSequenceFileLoadData(sequence, data_ref, 0, 0) != noErr)
 #endif
     {

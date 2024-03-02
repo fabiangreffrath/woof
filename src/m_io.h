@@ -54,4 +54,4 @@ char *M_ConvertWideToUtf8(const wchar_t *wstr);
 char *M_ConvertSysNativeMBToUtf8(const char *str);
 char *M_ConvertUtf8ToSysNativeMB(const char *str);
 
-#endif  // M_IO_INCLUDED
+#endif // M_IO_INCLUDED

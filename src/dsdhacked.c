@@ -178,7 +178,7 @@ int dsdh_GetDehSpriteIndex(const char *key)
         if (sprnames[i] && !strncasecmp(sprnames[i], key, 4)
             && !sprnames_state[i])
         {
-            sprnames_state[i] = true;  // sprite has been edited
+            sprnames_state[i] = true; // sprite has been edited
             return i;
         }
     }
@@ -297,7 +297,7 @@ int dsdh_GetDehSFXIndex(const char *key, size_t length)
         if (S_sfx[i].name && strlen(S_sfx[i].name) == length
             && !strncasecmp(S_sfx[i].name, key, length) && !sfx_state[i])
         {
-            sfx_state[i] = true;  // sfx has been edited
+            sfx_state[i] = true; // sfx has been edited
             return i;
         }
     }
@@ -357,7 +357,7 @@ int dsdh_GetDehMusicIndex(const char *key, int length)
         if (S_music[i].name && strlen(S_music[i].name) == length
             && !strncasecmp(S_music[i].name, key, length) && !music_state[i])
         {
-            music_state[i] = true;  // music has been edited
+            music_state[i] = true; // music has been edited
             return i;
         }
     }
@@ -373,7 +373,7 @@ static void FreeMusic(void)
 //
 //  Things
 //
-#include "p_map.h"  // MELEERANGE
+#include "p_map.h" // MELEERANGE
 
 mobjinfo_t *mobjinfo = NULL;
 int num_mobj_types;

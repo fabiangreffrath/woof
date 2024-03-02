@@ -375,7 +375,7 @@ static void ResetParams(void)
     }
 
     // Context state parameters.
-    alDistanceModel(AL_INVERSE_DISTANCE_CLAMPED);  // OpenAL 1.1 Specs, 3.4.2.
+    alDistanceModel(AL_INVERSE_DISTANCE_CLAMPED); // OpenAL 1.1 Specs, 3.4.2.
     alSpeedOfSound(OAL_SPEED_OF_SOUND * OAL_MAP_UNITS_PER_METER);
 
     UpdateUserSoundSettings();
@@ -678,7 +678,7 @@ boolean I_OAL_CacheSound(sfxinfo_t *sfx)
 
     if (sfx->cached == false)
     {
-        sfx->lumpnum = -2;  // [FG] don't try again
+        sfx->lumpnum = -2; // [FG] don't try again
         return false;
     }
 

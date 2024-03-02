@@ -285,7 +285,7 @@ void NET_WaitForLaunch(void)
     }
 
     TXT_SetColor(TXT_COLOR_BLUE, 0x04, 0x14,
-                 0x40);  // Romero's "funky blue" color
+                 0x40); // Romero's "funky blue" color
 
     I_InitWindowIcon();
 

@@ -220,7 +220,7 @@ int mem_fgetc(MEMFILE *stream)
         return (int)ch;
     }
 
-    return -1;  // EOF
+    return -1; // EOF
 }
 
 void mem_get_buf(MEMFILE *stream, void **buf, size_t *buflen)

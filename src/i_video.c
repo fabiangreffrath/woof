@@ -62,15 +62,15 @@
 int current_video_height;
 boolean dynamic_resolution;
 
-boolean use_vsync;  // killough 2/8/98: controls whether vsync is called
+boolean use_vsync; // killough 2/8/98: controls whether vsync is called
 boolean use_aspect;
-boolean uncapped, default_uncapped;  // [FG] uncapped rendering frame rate
-int fpslimit;  // when uncapped, limit framerate to this value
+boolean uncapped, default_uncapped; // [FG] uncapped rendering frame rate
+int fpslimit; // when uncapped, limit framerate to this value
 boolean fullscreen;
 boolean exclusive_fullscreen;
-aspect_ratio_mode_t widescreen, default_widescreen;  // widescreen mode
+aspect_ratio_mode_t widescreen, default_widescreen; // widescreen mode
 int custom_fov;
-boolean vga_porch_flash;  // emulate VGA "porch" behaviour
+boolean vga_porch_flash; // emulate VGA "porch" behaviour
 boolean smooth_scaling;
 
 boolean resetneeded;
@@ -78,7 +78,7 @@ boolean setrefreshneeded;
 boolean toggle_fullscreen;
 boolean toggle_exclusive_fullscreen;
 
-int video_display = 0;  // display index
+int video_display = 0; // display index
 int window_width, window_height;
 int window_position_x, window_position_y;
 
@@ -86,8 +86,8 @@ int window_position_x, window_position_y;
 //      range of [0.0, 1.0).  Used for interpolation.
 fixed_t fractionaltic;
 
-boolean disk_icon;  // killough 10/98
-int fps;            // [FG] FPS counter widget
+boolean disk_icon; // killough 10/98
+int fps;           // [FG] FPS counter widget
 
 // [FG] rendering window, renderer, intermediate ARGB frame buffer and texture
 
@@ -922,7 +922,7 @@ void I_SetPalette(byte *palette)
     const byte *const gamma = gammatable[gamma2];
     SDL_Color colors[256];
 
-    if (noblit)  // killough 8/11/98
+    if (noblit) // killough 8/11/98
     {
         return;
     }
@@ -1195,7 +1195,7 @@ static void ResetResolution(int height, boolean reset_pitch)
     V_Init();
     R_InitVisplanesRes();
     R_SetFuzzColumnMode();
-    setsizeneeded = true;  // run R_ExecuteSetViewSize
+    setsizeneeded = true; // run R_ExecuteSetViewSize
 
     if (automapactive)
     {
@@ -1725,7 +1725,7 @@ void I_InitGraphics(void)
     I_AtExit(I_ShutdownGraphics, true);
 
     I_InitVideoParms();
-    I_InitGraphicsMode();  // killough 10/98
+    I_InitGraphicsMode(); // killough 10/98
     ResetResolution(CurrentResolutionHeight(), true);
     CreateSurfaces(video.pitch, video.height);
     ResetLogicalSize();

@@ -100,7 +100,7 @@ static void U_IncrementLine(u_scanner_t *s)
 
 static void U_CheckForWhitespace(u_scanner_t *s)
 {
-    int comment = 0;  // 1 = till next new line, 2 = till end block
+    int comment = 0; // 1 = till next new line, 2 = till end block
     while (s->scanPos < s->length)
     {
         char cur = s->data[s->scanPos];
@@ -347,8 +347,8 @@ boolean U_GetNextToken(u_scanner_t *s, boolean expandState)
     }
     else if (cur == '"')
     {
-        end = ++start;  // Move the start up one character so we don't have to
-                        // trim it later.
+        end = ++start; // Move the start up one character so we don't have to
+                       // trim it later.
         nextState->token = TK_StringConst;
     }
     else
@@ -499,8 +499,8 @@ boolean U_GetNextToken(u_scanner_t *s, boolean expandState)
                     }
                     else if (cur == '\\')
                     {
-                        s->scanPos++;  // Will add two since the loop
-                                       // automatically adds one
+                        s->scanPos++; // Will add two since the loop
+                                      // automatically adds one
                     }
                     break;
             }

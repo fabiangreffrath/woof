@@ -315,7 +315,7 @@ static boolean WriteChangeController_Valued(byte channel, byte control,
     // Quirk in vanilla DOOM? MUS controller values should be
     // 7-bit, not 8-bit.
 
-    working = value;  // & 0x7F;
+    working = value; // & 0x7F;
 
     // Fix on said quirk to stop MIDI players from complaining that
     // the value is out of range:
@@ -446,7 +446,7 @@ boolean mus2mid(MEMFILE *musinput, MEMFILE *midioutput)
 
     // Descriptor for the current MUS event
     byte eventdescriptor;
-    int channel;  // Channel number
+    int channel; // Channel number
     musevent event;
 
     // Bunch of vars read from MUS lump

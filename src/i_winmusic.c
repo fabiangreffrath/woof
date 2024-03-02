@@ -122,7 +122,7 @@ static const char **winmm_devices = NULL;
 typedef struct
 {
     DWORD dwDeltaTime;
-    DWORD dwStreamID;  // always 0
+    DWORD dwStreamID; // always 0
     DWORD dwEvent;
 } native_event_t;
 
@@ -734,15 +734,15 @@ static void SendSysExMsg(unsigned int delta_time, const midi_event_t *event)
         byte channel;
 
         // Convert "block number" to a channel number.
-        if (data[5] == 0x10)  // Channel 10
+        if (data[5] == 0x10) // Channel 10
         {
             channel = 9;
         }
-        else if (data[5] < 0x1A)  // Channels 1-9
+        else if (data[5] < 0x1A) // Channels 1-9
         {
             channel = (data[5] & 0x0F) - 1;
         }
-        else  // Channels 11-16
+        else // Channels 11-16
         {
             channel = data[5] & 0x0F;
         }
@@ -1812,7 +1812,7 @@ static void *I_WIN_RegisterSong(void *data, int len)
 
     // Set initial tempo.
     prop_tempo.cbStruct = sizeof(MIDIPROPTIMEDIV);
-    prop_tempo.dwTempo = 500000;  // 120 BPM
+    prop_tempo.dwTempo = 500000; // 120 BPM
     mmr = midiStreamProperty(hMidiStream, (LPBYTE)&prop_tempo,
                              MIDIPROP_SET | MIDIPROP_TEMPO);
     if (mmr != MMSYSERR_NOERROR)

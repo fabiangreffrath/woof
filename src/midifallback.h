@@ -40,4 +40,4 @@ void MIDI_CheckFallback(const midi_event_t *event, midi_fallback_t *fallback,
 void MIDI_ResetFallback(void);
 void MIDI_InitFallback(void);
 
-#endif  // MIDIFALLBACK_H
+#endif // MIDIFALLBACK_H

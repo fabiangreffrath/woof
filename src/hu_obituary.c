@@ -161,10 +161,10 @@ void HU_Obituary(mobj_t *target, mobj_t *source, method_t mod)
                     ob = (mod == MOD_Melee) ? s_OB_CACOHIT : s_OB_CACO;
                     break;
                 case MT_SERGEANT:
-                    ob = s_OB_DEMONHIT;  // [FG] melee only
+                    ob = s_OB_DEMONHIT; // [FG] melee only
                     break;
                 case MT_SHADOWS:
-                    ob = s_OB_SPECTREHIT;  // [FG] melee only
+                    ob = s_OB_SPECTREHIT; // [FG] melee only
                     break;
                 case MT_BRUISER:
                     ob = (mod == MOD_Melee) ? s_OB_BARONHIT : s_OB_BARON;

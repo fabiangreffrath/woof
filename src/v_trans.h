@@ -24,4 +24,4 @@
 
 byte V_Colorize(byte *playpal, int cr, byte source);
 
-#endif  // __V_TRANS__
+#endif // __V_TRANS__

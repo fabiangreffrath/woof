@@ -104,16 +104,16 @@ extern void A_BrainSpit(struct mobj_s *mo);
 extern void A_SpawnSound(struct mobj_s *mo);
 extern void A_SpawnFly(struct mobj_s *mo);
 extern void A_BrainExplode(struct mobj_s *mo);
-extern void A_Detonate(struct mobj_s *mo);     // killough 8/9/98
-extern void A_Mushroom(struct mobj_s *actor);  // killough 10/98
-extern void A_Die(struct mobj_s *actor);       // killough 11/98
-extern void A_Spawn(struct mobj_s *mo);        // killough 11/98
-extern void A_Turn(struct mobj_s *mo);         // killough 11/98
-extern void A_Face(struct mobj_s *mo);         // killough 11/98
-extern void A_Scratch(struct mobj_s *mo);      // killough 11/98
-extern void A_PlaySound(struct mobj_s *mo);    // killough 11/98
-extern void A_RandomJump(struct mobj_s *mo);   // killough 11/98
-extern void A_LineEffect(struct mobj_s *mo);   // killough 11/98
+extern void A_Detonate(struct mobj_s *mo);    // killough 8/9/98
+extern void A_Mushroom(struct mobj_s *actor); // killough 10/98
+extern void A_Die(struct mobj_s *actor);      // killough 11/98
+extern void A_Spawn(struct mobj_s *mo);       // killough 11/98
+extern void A_Turn(struct mobj_s *mo);        // killough 11/98
+extern void A_Face(struct mobj_s *mo);        // killough 11/98
+extern void A_Scratch(struct mobj_s *mo);     // killough 11/98
+extern void A_PlaySound(struct mobj_s *mo);   // killough 11/98
+extern void A_RandomJump(struct mobj_s *mo);  // killough 11/98
+extern void A_LineEffect(struct mobj_s *mo);  // killough 11/98
 
 // killough 7/19/98: classic BFG firing function
 extern void A_FireOldBFG(struct player_s *player, struct pspdef_s *psp);

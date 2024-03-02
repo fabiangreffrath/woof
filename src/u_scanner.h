@@ -31,19 +31,19 @@
 
 enum
 {
-    TK_Identifier,   // Ex: SomeIdentifier
-    TK_StringConst,  // Ex: "Some String"
-    TK_IntConst,     // Ex: 27
-    TK_FloatConst,   // Ex: 1.5
-    TK_BoolConst,    // Ex: true
-    TK_AndAnd,       // &&
-    TK_OrOr,         // ||
-    TK_EqEq,         // ==
-    TK_NotEq,        // !=
-    TK_GtrEq,        // >=
-    TK_LessEq,       // <=
-    TK_ShiftLeft,    // <<
-    TK_ShiftRight,   // >>
+    TK_Identifier,  // Ex: SomeIdentifier
+    TK_StringConst, // Ex: "Some String"
+    TK_IntConst,    // Ex: 27
+    TK_FloatConst,  // Ex: 1.5
+    TK_BoolConst,   // Ex: true
+    TK_AndAnd,      // &&
+    TK_OrOr,        // ||
+    TK_EqEq,        // ==
+    TK_NotEq,       // !=
+    TK_GtrEq,       // >=
+    TK_LessEq,      // <=
+    TK_ShiftLeft,   // <<
+    TK_ShiftRight,  // >>
 
     TK_NumSpecialTokens,
 
@@ -77,7 +77,7 @@ typedef struct
     unsigned int tokenLinePosition;
     unsigned int scanPos;
 
-    boolean needNext;  // If checkToken returns false this will be false.
+    boolean needNext; // If checkToken returns false this will be false.
 
     char *string;
     int number;

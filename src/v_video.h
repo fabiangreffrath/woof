@@ -63,23 +63,23 @@ extern byte *red2col[];
 // symbolic indices into color translation table pointer array
 typedef enum
 {
-    CR_BRICK,   // 0
-    CR_TAN,     // 1
-    CR_GRAY,    // 2
-    CR_GREEN,   // 3
-    CR_BROWN,   // 4
-    CR_GOLD,    // 5
-    CR_RED,     // 6
-    CR_BLUE1,   // 7
-    CR_ORANGE,  // 8
-    CR_YELLOW,  // 9
-    CR_BLUE2,   // 10
-    CR_BLACK,   // 11
-    CR_PURPLE,  // 12
-    CR_WHITE,   // 13
-    CR_NONE,    // 14 // [FG] dummy
-    CR_BRIGHT,  // 15
-    CR_LIMIT    // 16 //jff 2/27/98 added for range check
+    CR_BRICK,  // 0
+    CR_TAN,    // 1
+    CR_GRAY,   // 2
+    CR_GREEN,  // 3
+    CR_BROWN,  // 4
+    CR_GOLD,   // 5
+    CR_RED,    // 6
+    CR_BLUE1,  // 7
+    CR_ORANGE, // 8
+    CR_YELLOW, // 9
+    CR_BLUE2,  // 10
+    CR_BLACK,  // 11
+    CR_PURPLE, // 12
+    CR_WHITE,  // 13
+    CR_NONE,   // 14 // [FG] dummy
+    CR_BRIGHT, // 15
+    CR_LIMIT   // 16 //jff 2/27/98 added for range check
 } crange_idx_e;
 
 // jff 1/16/98 end palette color range additions
@@ -94,30 +94,30 @@ typedef struct
     int width;
     int height;
     int pitch;
-    int unscaledw;  // unscaled width with correction for widecreen
-    int deltaw;     // widescreen delta
+    int unscaledw; // unscaled width with correction for widecreen
+    int deltaw;    // widescreen delta
 
-    fixed_t xscale;  // x-axis scaling multiplier
-    fixed_t yscale;  // y-axis scaling multiplier
-    fixed_t xstep;   // x-axis scaling step
-    fixed_t ystep;   // y-axis scaling step
+    fixed_t xscale; // x-axis scaling multiplier
+    fixed_t yscale; // y-axis scaling multiplier
+    fixed_t xstep;  // x-axis scaling step
+    fixed_t ystep;  // y-axis scaling step
 } video_t;
 
 extern video_t video;
 
 typedef struct
 {
-    int x;  // original x coordinate for upper left corner
-    int y;  // original y coordinate for upper left corner
-    int w;  // original width
-    int h;  // original height
+    int x;   // original x coordinate for upper left corner
+    int y;   // original y coordinate for upper left corner
+    int w;   // original width
+    int h;   // original height
 
-    int cx1;  // clipped x coordinate for left edge
-    int cx2;  // clipped x coordinate for right edge
-    int cy1;  // clipped y coordinate for upper edge
-    int cy2;  // clipped y coordinate for lower edge
-    int cw;   // clipped width
-    int ch;   // clipped height
+    int cx1; // clipped x coordinate for left edge
+    int cx2; // clipped x coordinate for right edge
+    int cy1; // clipped y coordinate for upper edge
+    int cy2; // clipped y coordinate for lower edge
+    int cw;  // clipped width
+    int ch;  // clipped height
 
     int sx;  // scaled x
     int sy;  // scaled y

@@ -31,7 +31,7 @@ typedef long fluid_long_long_t;
 typedef fluid_long_long_t fluid_int_t;
 #endif
 
-#include "d_iwad.h"  // [FG] D_DoomExeDir()
+#include "d_iwad.h" // [FG] D_DoomExeDir()
 #include "doomtype.h"
 #include "i_glob.h"
 #include "i_printf.h"

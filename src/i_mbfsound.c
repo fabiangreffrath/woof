@@ -82,7 +82,7 @@ static boolean I_MBF_AdjustSoundParams(const mobj_t *listener,
                              >> ANGLETOFINESHIFT])
                : 0;
 
-    if (!dist)  // killough 11/98: handle zero-distance as special case
+    if (!dist) // killough 11/98: handle zero-distance as special case
     {
         return true;
     }
@@ -118,7 +118,7 @@ static boolean I_MBF_AdjustSoundParams(const mobj_t *listener,
     // haleyjd 09/27/06: decrease priority with volume attenuation
     *pri = *pri + (127 - *vol);
 
-    if (*pri > 255)  // cap to 255
+    if (*pri > 255) // cap to 255
     {
         *pri = 255;
     }

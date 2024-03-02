@@ -263,7 +263,7 @@ void P_LoadSegs_DEEP(int lump)
         li->angle = (SHORT(ml->angle)) << 16;
         li->offset = (SHORT(ml->offset)) << 16;
 
-        linedef = (unsigned short)SHORT(ml->linedef);  // [FG] extended nodes
+        linedef = (unsigned short)SHORT(ml->linedef); // [FG] extended nodes
         ldef = &lines[linedef];
         li->linedef = ldef;
 

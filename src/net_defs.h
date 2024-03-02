@@ -136,7 +136,7 @@ typedef enum
 typedef enum
 {
     NET_PACKET_TYPE_SYN,
-    NET_PACKET_TYPE_ACK,  // deprecated
+    NET_PACKET_TYPE_ACK, // deprecated
     NET_PACKET_TYPE_REJECTED,
     NET_PACKET_TYPE_KEEPALIVE,
     NET_PACKET_TYPE_WAITING_DATA,
@@ -206,7 +206,7 @@ typedef struct
     int new_sync;
     int timelimit;
     int loadgame;
-    int random;  // [Strife only]
+    int random; // [Strife only]
 
     // These fields are only used by the server when sending a game
     // start message:

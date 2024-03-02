@@ -210,7 +210,7 @@ void I_SetChannels(void)
     {
         steptable[i] =
             pow(base, (double)(2 * (i - NORM_PITCH))
-                          / NORM_PITCH);  // [FG] variable pitch bend range
+                          / NORM_PITCH); // [FG] variable pitch bend range
     }
 }
 
@@ -299,7 +299,7 @@ int I_StartSound(sfxinfo_t *sfx, int vol, int sep, int pitch)
 
     channelinfo[channel].sfx = sfx;
     channelinfo[channel].enabled = true;
-    channelinfo[channel].idnum = id++;  // give the sound a unique id
+    channelinfo[channel].idnum = id++; // give the sound a unique id
 
     I_UpdateSoundParams(channel, vol, sep);
 
@@ -521,7 +521,7 @@ void I_SetSoundModule(int device)
     }
 }
 
-int midi_player;  // current music module
+int midi_player; // current music module
 
 static void MidiPlayerFallback(void)
 {

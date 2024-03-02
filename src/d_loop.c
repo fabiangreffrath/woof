@@ -883,9 +883,9 @@ void TryRunTics(void)
             TicdupSquash(set);
         }
 
-        NetUpdate();  // check for new console commands
+        NetUpdate(); // check for new console commands
     }
 
     // killough 3/16/98: change consoleplayer to displayplayer
-    S_UpdateSounds(players[displayplayer].mo);  // move positional sounds
+    S_UpdateSounds(players[displayplayer].mo); // move positional sounds
 }

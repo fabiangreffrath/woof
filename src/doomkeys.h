@@ -233,4 +233,4 @@ enum
     NUM_LAYOUTS
 };
 
-#endif  // __DOOMKEYS__
+#endif // __DOOMKEYS__

@@ -36,7 +36,7 @@
 #include "r_state.h"
 #include "v_trans.h"
 #include "v_video.h"
-#include "w_wad.h"  // needed for color translation lump lookup
+#include "w_wad.h" // needed for color translation lump lookup
 #include "z_zone.h"
 
 pixel_t *I_VideoBuffer;
@@ -200,7 +200,7 @@ void WriteGeneratedLumpWad(const char *filename)
     const size_t num_lumps = arrlen(crdefs);
     lumpinfo_t *lumps = calloc(num_lumps, sizeof(*lumps));
 
-    for (i = 0; i < num_lumps - 1; i++)  // last entry is dummy
+    for (i = 0; i < num_lumps - 1; i++) // last entry is dummy
     {
         M_CopyLumpName(lumps[i].name, crdefs[i].name);
         lumps[i].data = *crdefs[i].map2;
@@ -218,7 +218,7 @@ void WriteGeneratedLumpWad(const char *filename)
 
 video_t video;
 
-#define WIDE_SCREENWIDTH 864  // corresponds to 3.6 aspect ratio
+#define WIDE_SCREENWIDTH 864 // corresponds to 3.6 aspect ratio
 
 static int x1lookup[WIDE_SCREENWIDTH + 1];
 static int y1lookup[SCREENHEIGHT + 1];
@@ -248,13 +248,13 @@ static void (*drawcolfunc)(const patch_column_t *patchcol);
 static void V_DrawPatchColumn(const patch_column_t *patchcol)
 {
     int count;
-    byte *dest;    // killough
-    fixed_t frac;  // killough
+    byte *dest;   // killough
+    fixed_t frac; // killough
     fixed_t fracstep;
 
     count = patchcol->y2 - patchcol->y1 + 1;
 
-    if (count <= 0)  // Zero length, column does not exceed a pixel.
+    if (count <= 0) // Zero length, column does not exceed a pixel.
     {
         return;
     }
@@ -302,13 +302,13 @@ static void V_DrawPatchColumn(const patch_column_t *patchcol)
 static void V_DrawPatchColumnTR(const patch_column_t *patchcol)
 {
     int count;
-    byte *dest;    // killough
-    fixed_t frac;  // killough
+    byte *dest;   // killough
+    fixed_t frac; // killough
     fixed_t fracstep;
 
     count = patchcol->y2 - patchcol->y1 + 1;
 
-    if (count <= 0)  // Zero length, column does not exceed a pixel.
+    if (count <= 0) // Zero length, column does not exceed a pixel.
     {
         return;
     }
@@ -356,13 +356,13 @@ static void V_DrawPatchColumnTR(const patch_column_t *patchcol)
 static void V_DrawPatchColumnTRTR(const patch_column_t *patchcol)
 {
     int count;
-    byte *dest;    // killough
-    fixed_t frac;  // killough
+    byte *dest;   // killough
+    fixed_t frac; // killough
     fixed_t fracstep;
 
     count = patchcol->y2 - patchcol->y1 + 1;
 
-    if (count <= 0)  // Zero length, column does not exceed a pixel.
+    if (count <= 0) // Zero length, column does not exceed a pixel.
     {
         return;
     }
@@ -506,7 +506,7 @@ static void V_DrawPatchInt(int x, int y, patch_t *patch, boolean flipped)
     {
         x1 = -x2lookup[-x1 - 1];
     }
-    else  // too far off-screen
+    else // too far off-screen
     {
         x1 = (x1 * video.xscale) >> FRACBITS;
     }
