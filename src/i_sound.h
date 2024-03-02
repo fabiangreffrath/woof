@@ -41,20 +41,20 @@ struct stream_module_s;
 // killough 12/98: restore original
 // #define S_CLOSE_DIST (160<<FRACBITS)
 
-#define S_CLOSE_DIST (200 << FRACBITS)
+#define S_CLOSE_DIST    (200 << FRACBITS)
 
-#define S_ATTENUATOR ((S_CLIPPING_DIST - S_CLOSE_DIST) >> FRACBITS)
+#define S_ATTENUATOR    ((S_CLIPPING_DIST - S_CLOSE_DIST) >> FRACBITS)
 
 // Adjustable by menu.
 // [FG] moved here from i_sound.c
-#define MAX_CHANNELS 32
+#define MAX_CHANNELS    32
 // [FG] moved here from s_sound.c
-#define NORM_PITCH 128
-#define NORM_PRIORITY 64
-#define NORM_SEP 128
-#define S_STEREO_SWING (96<<FRACBITS)
+#define NORM_PITCH      128
+#define NORM_PRIORITY   64
+#define NORM_SEP        128
+#define S_STEREO_SWING  (96 << FRACBITS)
 
-#define SND_SAMPLERATE 44100
+#define SND_SAMPLERATE  44100
 
 // [FG] variable pitch bend range
 extern int pitch_bend_range;
@@ -90,8 +90,8 @@ typedef struct sound_module_s
     boolean (*AllowReinitSound)(void);
     boolean (*CacheSound)(struct sfxinfo_s *sfx);
     boolean (*AdjustSoundParams)(const struct mobj_s *listener,
-                                 const struct mobj_s *source,
-                                 int chanvol, int *vol, int *sep, int *pri);
+                                 const struct mobj_s *source, int chanvol,
+                                 int *vol, int *sep, int *pri);
     void (*UpdateSoundParams)(int channel, int vol, int sep);
     void (*UpdateListenerParams)(const struct mobj_s *listener);
     boolean (*StartSound)(int channel, struct sfxinfo_s *sfx, int pitch);
@@ -140,8 +140,8 @@ boolean I_SoundIsPlaying(int handle);
 // Outputs adjusted volume, separation, and priority from the sound module.
 // Returns false if no sound should be played.
 boolean I_AdjustSoundParams(const struct mobj_s *listener,
-                            const struct mobj_s *source,
-                            int chanvol, int *vol, int *sep, int *pri);
+                            const struct mobj_s *source, int chanvol, int *vol,
+                            int *sep, int *pri);
 
 // Updates the volume, separation,
 //  and pitch of a sound channel.
@@ -184,7 +184,7 @@ extern struct stream_module_s *midi_stream_module;
 boolean I_InitMusic(void);
 void I_ShutdownMusic(void);
 
-#define DEFAULT_MIDI_DEVICE -1 // use saved music module device
+#define DEFAULT_MIDI_DEVICE -1  // use saved music module device
 
 void I_SetMidiPlayer(int device);
 

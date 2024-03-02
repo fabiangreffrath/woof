@@ -34,75 +34,75 @@
 #include "w_wad.h"
 #include "z_zone.h"
 
-unsigned int  Col2RGB8[65][256];
+unsigned int Col2RGB8[65][256];
 unsigned int *Col2RGB8_LessPrecision[65];
 byte RGB32k[32][32][32];
 
 static unsigned int Col2RGB8_2[63][256];
 
-#define MAKECOLOR(a) (((a)<<3)|((a)>>2))
+#define MAKECOLOR(a) (((a) << 3) | ((a) >> 2))
 
 typedef struct
 {
-   unsigned int r, g, b;
+    unsigned int r, g, b;
 } tpalcol_t;
 
 void V_InitFlexTranTable(void)
 {
-   int i, r, g, b, x, y;
-   tpalcol_t  *tempRGBpal;
-   const byte *palRover;
+    int i, r, g, b, x, y;
+    tpalcol_t *tempRGBpal;
+    const byte *palRover;
 
-   byte *palette = W_CacheLumpName("PLAYPAL", PU_STATIC);
+    byte *palette = W_CacheLumpName("PLAYPAL", PU_STATIC);
 
-   tempRGBpal = Z_Malloc(256*sizeof(*tempRGBpal), PU_STATIC, 0);
+    tempRGBpal = Z_Malloc(256 * sizeof(*tempRGBpal), PU_STATIC, 0);
 
-   for(i = 0, palRover = palette; i < 256; i++, palRover += 3)
-   {
-      tempRGBpal[i].r = palRover[0];
-      tempRGBpal[i].g = palRover[1];
-      tempRGBpal[i].b = palRover[2];
-   }
+    for (i = 0, palRover = palette; i < 256; i++, palRover += 3)
+    {
+        tempRGBpal[i].r = palRover[0];
+        tempRGBpal[i].g = palRover[1];
+        tempRGBpal[i].b = palRover[2];
+    }
 
-   // build RGB table
-   for(r = 0; r < 32; ++r)
-   {
-      for(g = 0; g < 32; ++g)
-      {
-         for(b = 0; b < 32; ++b)
-         {
-            RGB32k[r][g][b] =
-               I_GetPaletteIndex(palette,
-                                 MAKECOLOR(r), MAKECOLOR(g), MAKECOLOR(b));
-         }
-      }
-   }
+    // build RGB table
+    for (r = 0; r < 32; ++r)
+    {
+        for (g = 0; g < 32; ++g)
+        {
+            for (b = 0; b < 32; ++b)
+            {
+                RGB32k[r][g][b] = I_GetPaletteIndex(palette, MAKECOLOR(r),
+                                                    MAKECOLOR(g), MAKECOLOR(b));
+            }
+        }
+    }
 
-   // build lookup table
-   for(x = 0; x < 65; ++x)
-   {
-      for(y = 0; y < 256; ++y)
-      {
-         Col2RGB8[x][y] = (((tempRGBpal[y].r*x)>>4)<<20)  |
-                            ((tempRGBpal[y].g*x)>>4) |
-                          (((tempRGBpal[y].b*x)>>4)<<10);
-      }
-   }
+    // build lookup table
+    for (x = 0; x < 65; ++x)
+    {
+        for (y = 0; y < 256; ++y)
+        {
+            Col2RGB8[x][y] = (((tempRGBpal[y].r * x) >> 4) << 20)
+                             | ((tempRGBpal[y].g * x) >> 4)
+                             | (((tempRGBpal[y].b * x) >> 4) << 10);
+        }
+    }
 
-   // build a secondary lookup with red and blue lsbs masked out for additive
-   // blending; otherwise, the overflow messes up the calculation and you get
-   // something very ugly.
-   for(x = 1; x < 64; ++x)
-   {
-      Col2RGB8_LessPrecision[x] = Col2RGB8_2[x - 1];
+    // build a secondary lookup with red and blue lsbs masked out for additive
+    // blending; otherwise, the overflow messes up the calculation and you get
+    // something very ugly.
+    for (x = 1; x < 64; ++x)
+    {
+        Col2RGB8_LessPrecision[x] = Col2RGB8_2[x - 1];
 
-      for(y = 0; y < 256; ++y)
-         Col2RGB8_2[x-1][y] = Col2RGB8[x][y] & 0x3feffbff;
-   }
-   Col2RGB8_LessPrecision[0]  = Col2RGB8[0];
-   Col2RGB8_LessPrecision[64] = Col2RGB8[64];
+        for (y = 0; y < 256; ++y)
+        {
+            Col2RGB8_2[x - 1][y] = Col2RGB8[x][y] & 0x3feffbff;
+        }
+    }
+    Col2RGB8_LessPrecision[0]  = Col2RGB8[0];
+    Col2RGB8_LessPrecision[64] = Col2RGB8[64];
 
-   Z_Free(tempRGBpal);
-   Z_ChangeTag(palette, PU_CACHE);
+    Z_Free(tempRGBpal);
+    Z_ChangeTag(palette, PU_CACHE);
 }
-

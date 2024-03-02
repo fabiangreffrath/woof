@@ -18,9 +18,9 @@
 //-----------------------------------------------------------------------------
 
 #ifndef __S_SOUND__
-#define __S_SOUND__
+#  define __S_SOUND__
 
-#include "doomtype.h"
+#  include "doomtype.h"
 
 struct mobj_s;
 
@@ -82,7 +82,7 @@ void S_SetSfxVolume(int volume);
 extern int numChannels;
 extern int default_numChannels;  // killough 10/98
 
-//jff 3/17/98 holds last IDMUS number, or -1
+// jff 3/17/98 holds last IDMUS number, or -1
 extern int idmusnum;
 
 #endif
