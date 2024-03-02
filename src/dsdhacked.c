@@ -30,12 +30,12 @@
 state_t *states = NULL;
 int num_states;
 byte *defined_codeptr_args = NULL;
-statenum_t *seenstate_tab  = NULL;
-actionf_t *deh_codeptr     = NULL;
+statenum_t *seenstate_tab = NULL;
+actionf_t *deh_codeptr = NULL;
 
 static void InitStates(void)
 {
-    states     = original_states;
+    states = original_states;
     num_states = NUMSTATES;
 
     array_grow(seenstate_tab, num_states);
@@ -96,8 +96,8 @@ void dsdh_EnsureStatesCapacity(int limit)
 
     for (int i = old_num_states; i < num_states; ++i)
     {
-        states[i].sprite    = SPR_TNT1;
-        states[i].tics      = -1;
+        states[i].sprite = SPR_TNT1;
+        states[i].tics = -1;
         states[i].nextstate = i;
     }
 }
@@ -109,11 +109,11 @@ void dsdh_EnsureStatesCapacity(int limit)
 char **sprnames = NULL;
 int num_sprites;
 static char **deh_spritenames = NULL;
-static byte *sprnames_state   = NULL;
+static byte *sprnames_state = NULL;
 
 static void InitSprites(void)
 {
-    sprnames    = original_sprnames;
+    sprnames = original_sprnames;
     num_sprites = NUMSPRITES;
 
     array_grow(deh_spritenames, num_sprites);
@@ -222,11 +222,11 @@ int dsdh_GetOriginalSpriteIndex(const char *key)
 sfxinfo_t *S_sfx = NULL;
 int num_sfx;
 static char **deh_soundnames = NULL;
-static byte *sfx_state       = NULL;
+static byte *sfx_state = NULL;
 
 static void InitSFX(void)
 {
-    S_sfx   = original_S_sfx;
+    S_sfx = original_S_sfx;
     num_sfx = NUMSFX;
 
     array_grow(deh_soundnames, num_sfx);
@@ -259,7 +259,7 @@ void dsdh_EnsureSFXCapacity(int limit)
         return;
     }
 
-    const int old_num_sfx       = num_sfx;
+    const int old_num_sfx = num_sfx;
 
     static int first_allocation = true;
     if (first_allocation)
@@ -274,7 +274,7 @@ void dsdh_EnsureSFXCapacity(int limit)
         array_grow(S_sfx, limit);
     }
 
-    num_sfx              = array_capacity(S_sfx);
+    num_sfx = array_capacity(S_sfx);
     const int size_delta = num_sfx - old_num_sfx;
     memset(S_sfx + old_num_sfx, 0, size_delta * sizeof(*S_sfx));
 
@@ -284,9 +284,9 @@ void dsdh_EnsureSFXCapacity(int limit)
     for (int i = old_num_sfx; i < num_sfx; ++i)
     {
         S_sfx[i].priority = 127;
-        S_sfx[i].pitch    = -1;
-        S_sfx[i].volume   = -1;
-        S_sfx[i].lumpnum  = -1;
+        S_sfx[i].pitch = -1;
+        S_sfx[i].volume = -1;
+        S_sfx[i].lumpnum = -1;
     }
 }
 
@@ -343,7 +343,7 @@ static byte *music_state = NULL;
 
 static void InitMusic(void)
 {
-    S_music   = original_S_music;
+    S_music = original_S_music;
     num_music = NUMMUSIC;
 
     array_grow(music_state, num_music);
@@ -380,7 +380,7 @@ int num_mobj_types;
 
 static void InitMobjInfo(void)
 {
-    mobjinfo       = original_mobjinfo;
+    mobjinfo = original_mobjinfo;
     num_mobj_types = NUMMOBJTYPES;
 }
 
@@ -391,7 +391,7 @@ void dsdh_EnsureMobjInfoCapacity(int limit)
         return;
     }
 
-    const int old_num_mobj_types    = num_mobj_types;
+    const int old_num_mobj_types = num_mobj_types;
 
     static boolean first_allocation = true;
     if (first_allocation)
@@ -413,12 +413,12 @@ void dsdh_EnsureMobjInfoCapacity(int limit)
 
     for (int i = old_num_mobj_types; i < num_mobj_types; ++i)
     {
-        mobjinfo[i].droppeditem      = MT_NULL;
+        mobjinfo[i].droppeditem = MT_NULL;
         mobjinfo[i].infighting_group = IG_DEFAULT;
         mobjinfo[i].projectile_group = PG_DEFAULT;
-        mobjinfo[i].splash_group     = SG_DEFAULT;
-        mobjinfo[i].altspeed         = NO_ALTSPEED;
-        mobjinfo[i].meleerange       = MELEERANGE;
+        mobjinfo[i].splash_group = SG_DEFAULT;
+        mobjinfo[i].altspeed = NO_ALTSPEED;
+        mobjinfo[i].meleerange = MELEERANGE;
     }
 }
 

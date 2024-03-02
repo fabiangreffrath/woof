@@ -100,7 +100,7 @@ void V_InitFlexTranTable(void)
             Col2RGB8_2[x - 1][y] = Col2RGB8[x][y] & 0x3feffbff;
         }
     }
-    Col2RGB8_LessPrecision[0]  = Col2RGB8[0];
+    Col2RGB8_LessPrecision[0] = Col2RGB8[0];
     Col2RGB8_LessPrecision[64] = Col2RGB8[64];
 
     Z_Free(tempRGBpal);

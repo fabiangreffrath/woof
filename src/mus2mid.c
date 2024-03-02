@@ -114,7 +114,7 @@ static boolean WriteTime(unsigned int time, MEMFILE *midioutput)
     while ((time >>= 7) != 0)
     {
         buffer <<= 8;
-        buffer  |= ((time & 0x7F) | 0x80);
+        buffer |= ((time & 0x7F) | 0x80);
     }
 
     for (;;)
@@ -424,11 +424,11 @@ static boolean ReadMusHeader(MEMFILE *file, musheader *header)
 
     if (result)
     {
-        header->scorelength       = SHORT(header->scorelength);
-        header->scorestart        = SHORT(header->scorestart);
-        header->primarychannels   = SHORT(header->primarychannels);
+        header->scorelength = SHORT(header->scorelength);
+        header->scorestart = SHORT(header->scorestart);
+        header->primarychannels = SHORT(header->primarychannels);
         header->secondarychannels = SHORT(header->secondarychannels);
-        header->instrumentcount   = SHORT(header->instrumentcount);
+        header->instrumentcount = SHORT(header->instrumentcount);
     }
 
     return result;
@@ -515,7 +515,7 @@ boolean mus2mid(MEMFILE *musinput, MEMFILE *midioutput)
             }
 
             channel = GetMIDIChannel(eventdescriptor & 0x0F, midioutput);
-            event   = eventdescriptor & 0x70;
+            event = eventdescriptor & 0x70;
 
             switch (event)
             {

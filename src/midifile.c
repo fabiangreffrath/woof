@@ -130,7 +130,7 @@ static boolean ReadByte(byte *result, MEMFILE *stream)
 static boolean ReadVariableLength(unsigned int *result, MEMFILE *stream)
 {
     int i;
-    byte b  = 0;
+    byte b = 0;
 
     *result = 0;
 
@@ -146,7 +146,7 @@ static boolean ReadVariableLength(unsigned int *result, MEMFILE *stream)
         // Insert the bottom seven bits from this byte.
 
         *result <<= 7;
-        *result  |= b & 0x7f;
+        *result |= b & 0x7f;
 
         // If the top bit is not set, this is the end.
 
@@ -206,7 +206,7 @@ static boolean ReadChannelEvent(midi_event_t *event, byte event_type,
 
     // Set basics:
 
-    event->event_type           = event_type & 0xf0;
+    event->event_type = event_type & 0xf0;
     event->data.channel.channel = event_type & 0x0f;
 
     // Read parameters:
@@ -438,7 +438,7 @@ static boolean ReadTrack(midi_track_t *track, MEMFILE *stream)
     unsigned int last_event_type;
 
     track->num_events = 0;
-    track->events     = NULL;
+    track->events = NULL;
 
     // Read the header:
 
@@ -477,7 +477,7 @@ static boolean ReadTrack(midi_track_t *track, MEMFILE *stream)
 
         // Read the next event:
 
-        event  = &track->events[track->num_events];
+        event = &track->events[track->num_events];
         if (!ReadEvent(event, &last_event_type, stream))
         {
             return false;
@@ -563,7 +563,7 @@ static boolean ReadFileHeader(midi_file_t *file, MEMFILE *stream)
         return false;
     }
 
-    format_type      = SDL_SwapBE16(file->header.format_type);
+    format_type = SDL_SwapBE16(file->header.format_type);
     file->num_tracks = SDL_SwapBE16(file->header.num_tracks);
 
     if ((format_type != 0 && format_type != 1) || file->num_tracks < 1)
@@ -605,14 +605,14 @@ midi_file_t *MIDI_LoadFile(void *buf, size_t buflen)
         return NULL;
     }
 
-    file->tracks      = NULL;
-    file->num_tracks  = 0;
-    file->buffer      = NULL;
+    file->tracks = NULL;
+    file->num_tracks = 0;
+    file->buffer = NULL;
     file->buffer_size = 0;
 
     // Open file
 
-    stream            = mem_fopen_read(buf, buflen);
+    stream = mem_fopen_read(buf, buflen);
 
     if (stream == NULL)
     {
@@ -657,9 +657,9 @@ midi_track_iter_t *MIDI_IterateTrack(midi_file_t *file, unsigned int track)
 {
     midi_track_iter_t *iter;
 
-    iter             = malloc(sizeof(*iter));
-    iter->track      = &file->tracks[track];
-    iter->position   = 0;
+    iter = malloc(sizeof(*iter));
+    iter->track = &file->tracks[track];
+    iter->position = 0;
     iter->loop_point = 0;
 
     return iter;
@@ -723,7 +723,7 @@ unsigned int MIDI_GetFileTimeDivision(midi_file_t *file)
 
 void MIDI_RestartIterator(midi_track_iter_t *iter)
 {
-    iter->position   = 0;
+    iter->position = 0;
     iter->loop_point = 0;
 }
 

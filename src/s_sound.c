@@ -60,7 +60,7 @@ static mobj_t sobjs[MAX_CHANNELS];
 // These are not used, but should be (menu).
 // Maximum volume of a sound effect.
 // Internal default is max out of 0-15.
-int snd_SfxVolume   = 15;
+int snd_SfxVolume = 15;
 
 // Maximum volume of music. Useless so far.
 int snd_MusicVolume = 15;
@@ -136,7 +136,7 @@ static int S_getChannel(const mobj_t *origin, sfxinfo_t *sfxinfo, int priority,
     // channel number to use
     int cnum;
     int lowestpriority = -1;  // haleyjd
-    int lpcnum         = -1;
+    int lpcnum = -1;
 
     // haleyjd 09/28/06: moved this here. If we kill a sound already
     // being played, we can use that channel. There is no need to
@@ -167,7 +167,7 @@ static int S_getChannel(const mobj_t *origin, sfxinfo_t *sfxinfo, int priority,
             if (channels[cnum].priority > lowestpriority)
             {
                 lowestpriority = channels[cnum].priority;
-                lpcnum         = cnum;
+                lpcnum = cnum;
             }
         }
     }
@@ -203,7 +203,7 @@ void S_StartSound(const mobj_t *origin, int sfx_id)
 {
     int sep, pitch, o_priority, priority, singularity, cnum, handle;
     int volumeScale = 127;
-    int volume      = snd_SfxVolume;
+    int volume = snd_SfxVolume;
     sfxinfo_t *sfx;
 
     // jff 1/22/98 return if sound is not enabled
@@ -231,7 +231,7 @@ void S_StartSound(const mobj_t *origin, int sfx_id)
     // Initialize sound parameters
     if (sfx->link)
     {
-        pitch        = sfx->pitch;
+        pitch = sfx->pitch;
         volumeScale += sfx->volume;
     }
     else
@@ -252,7 +252,7 @@ void S_StartSound(const mobj_t *origin, int sfx_id)
     // haleyjd: modified so that priority value is always used
     // haleyjd: also modified to get and store proper singularity value
     o_priority = priority = sfx->priority;
-    singularity           = sfx->singularity;
+    singularity = sfx->singularity;
 
     // Check to see if it is audible, modify the params
     // killough 3/7/98, 4/25/98: code rearranged slightly
@@ -300,7 +300,7 @@ void S_StartSound(const mobj_t *origin, int sfx_id)
 #endif
 
     channels[cnum].sfxinfo = sfx;
-    channels[cnum].origin  = origin;
+    channels[cnum].origin = origin;
 
     while (sfx->link)
     {
@@ -313,17 +313,17 @@ void S_StartSound(const mobj_t *origin, int sfx_id)
     // haleyjd: check to see if the sound was started
     if (handle >= 0)
     {
-        channels[cnum].handle      = handle;
+        channels[cnum].handle = handle;
 
         // haleyjd 05/29/06: record volume scale value
         // haleyjd 06/03/06: record pitch too (wtf is going on here??)
         // haleyjd 09/27/06: store priority and singularity values (!!!)
-        channels[cnum].volume      = volumeScale;
-        channels[cnum].pitch       = pitch;
-        channels[cnum].o_priority  = o_priority;  // original priority
-        channels[cnum].priority    = priority;    // scaled priority
+        channels[cnum].volume = volumeScale;
+        channels[cnum].pitch = pitch;
+        channels[cnum].o_priority = o_priority;  // original priority
+        channels[cnum].priority = priority;      // scaled priority
         channels[cnum].singularity = singularity;
-        channels[cnum].idnum       = I_SoundID(handle);  // unique instance id
+        channels[cnum].idnum = I_SoundID(handle);  // unique instance id
     }
     else  // haleyjd: the sound didn't start, so clear the channel info
     {
@@ -373,11 +373,11 @@ void S_UnlinkSound(mobj_t *origin)
         {
             if (channels[cnum].sfxinfo && channels[cnum].origin == origin)
             {
-                mobj_t *const sobj    = &sobjs[cnum];
-                sobj->x               = origin->x;
-                sobj->y               = origin->y;
-                sobj->z               = origin->z;
-                sobj->info            = origin->info;
+                mobj_t *const sobj = &sobjs[cnum];
+                sobj->x = origin->x;
+                sobj->y = origin->y;
+                sobj->z = origin->z;
+                sobj->info = origin->info;
                 channels[cnum].origin = sobj;
                 break;
             }
@@ -437,7 +437,7 @@ void S_UpdateSounds(const mobj_t *listener)
 
     for (cnum = 0; cnum < numChannels; ++cnum)
     {
-        channel_t *c   = &channels[cnum];
+        channel_t *c = &channels[cnum];
         sfxinfo_t *sfx = c->sfxinfo;
 
         // haleyjd: has this software channel lost its hardware channel?
@@ -455,8 +455,8 @@ void S_UpdateSounds(const mobj_t *listener)
                 // initialize parameters
                 int volume = snd_SfxVolume;
                 int pitch = c->pitch;  // haleyjd 06/03/06: use channel's pitch!
-                int sep   = NORM_SEP;
-                int pri   = c->o_priority;  // haleyjd 09/27/06: priority
+                int sep = NORM_SEP;
+                int pri = c->o_priority;  // haleyjd 09/27/06: priority
 
                 // check non-local sounds for distance clipping
                 // or modify their params
@@ -539,7 +539,7 @@ void S_ChangeMusic(int musicnum, int looping)
 {
     musicinfo_t *music;
 
-    musinfo.current_item         = -1;
+    musinfo.current_item = -1;
     S_music[mus_musinfo].lumpnum = -1;
 
     if (musicnum <= mus_None || musicnum >= NUMMUSIC)
@@ -574,7 +574,7 @@ void S_ChangeMusic(int musicnum, int looping)
     }
 
     // load & register it
-    music->data   = W_CacheLumpNum(music->lumpnum, PU_STATIC);
+    music->data = W_CacheLumpNum(music->lumpnum, PU_STATIC);
     // julian: added lump length
     music->handle = I_RegisterSong(music->data, W_LumpLength(music->lumpnum));
 
@@ -590,7 +590,7 @@ void S_ChangeMusic(int musicnum, int looping)
     // [crispy] musinfo.items[0] is reserved for the map's default music
     if (!musinfo.items[0])
     {
-        musinfo.items[0]             = music->lumpnum;
+        musinfo.items[0] = music->lumpnum;
         S_music[mus_musinfo].lumpnum = -1;
     }
 }
@@ -623,8 +623,8 @@ void S_ChangeMusInfoMusic(int lumpnum, int looping)
 
     music->lumpnum = lumpnum;
 
-    music->data    = W_CacheLumpNum(music->lumpnum, PU_STATIC);
-    music->handle  = I_RegisterSong(music->data, W_LumpLength(music->lumpnum));
+    music->data = W_CacheLumpNum(music->lumpnum, PU_STATIC);
+    music->handle = I_RegisterSong(music->data, W_LumpLength(music->lumpnum));
 
     I_PlaySong((void *)music->handle, looping);
 
@@ -678,7 +678,7 @@ void S_StopMusic(void)
     }
 
     mus_playing->data = NULL;
-    mus_playing       = NULL;
+    mus_playing = NULL;
 }
 
 //

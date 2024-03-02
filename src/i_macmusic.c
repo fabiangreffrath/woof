@@ -68,22 +68,22 @@ static boolean I_MAC_InitMusic(int device)
 
     NewAUGraph(&graph);
 
-    d.componentType         = kAudioUnitType_MusicDevice;
-    d.componentSubType      = kAudioUnitSubType_DLSSynth;
+    d.componentType = kAudioUnitType_MusicDevice;
+    d.componentSubType = kAudioUnitSubType_DLSSynth;
     d.componentManufacturer = kAudioUnitManufacturer_Apple;
-    d.componentFlags        = 0;
-    d.componentFlagsMask    = 0;
+    d.componentFlags = 0;
+    d.componentFlagsMask = 0;
 #if MAC_OS_X_VERSION_MIN_REQUIRED < 1050
     AUGraphNewNode(graph, &d, 0, NULL, &synth);
 #else
     AUGraphAddNode(graph, &d, &synth);
 #endif
 
-    d.componentType         = kAudioUnitType_Output;
-    d.componentSubType      = kAudioUnitSubType_DefaultOutput;
+    d.componentType = kAudioUnitType_Output;
+    d.componentSubType = kAudioUnitSubType_DefaultOutput;
     d.componentManufacturer = kAudioUnitManufacturer_Apple;
-    d.componentFlags        = 0;
-    d.componentFlagsMask    = 0;
+    d.componentFlags = 0;
+    d.componentFlagsMask = 0;
 #if MAC_OS_X_VERSION_MIN_REQUIRED < 1050
     AUGraphNewNode(graph, &d, 0, NULL, &output);
 #else
@@ -290,7 +290,7 @@ static void *I_MAC_RegisterSong(void *data, int len)
         void *outbuf;
         size_t outbuf_len;
 
-        instream  = mem_fopen_read(data, len);
+        instream = mem_fopen_read(data, len);
         outstream = mem_fopen_write();
 
         if (mus2mid(instream, outstream) == 0)
@@ -363,7 +363,7 @@ static void I_MAC_ShutdownMusic(void)
 static const char **I_MAC_DeviceList(int *current_device)
 {
     const char **devices = NULL;
-    *current_device      = 0;
+    *current_device = 0;
     array_push(devices, "Native");
     return devices;
 }

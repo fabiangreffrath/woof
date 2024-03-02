@@ -61,10 +61,10 @@ static int phase_offset = 0;
 
 #define TIMER_FREQ 1193181 /* hz */
 
-static uint8_t *current_sound_lump          = NULL;
-static uint8_t *current_sound_pos           = NULL;
+static uint8_t *current_sound_lump = NULL;
+static uint8_t *current_sound_pos = NULL;
 static unsigned int current_sound_remaining = 0;
-static int current_sound_handle             = 0;
+static int current_sound_handle = 0;
 
 static const uint16_t divisors[] =
 {
@@ -149,7 +149,7 @@ static boolean CachePCSLump(sfxinfo_t *sfxinfo)
     // Load from WAD
 
     current_sound_lump = W_CacheLumpNum(lumpnum, PU_STATIC);
-    lumplen            = W_LumpLength(lumpnum);
+    lumplen = W_LumpLength(lumpnum);
 
     // Read header
 
@@ -168,7 +168,7 @@ static boolean CachePCSLump(sfxinfo_t *sfxinfo)
     // Header checks out ok
 
     current_sound_remaining = headerlen;
-    current_sound_pos       = current_sound_lump + 4;
+    current_sound_pos = current_sound_lump + 4;
 
     return true;
 }
@@ -211,7 +211,7 @@ static ALsizei AL_APIENTRY BufferCallback(void *userptr, void *data,
 
     nsamples = size / 4;
 
-    leftptr  = (int16_t *)data;
+    leftptr = (int16_t *)data;
     rightptr = ((int16_t *)data) + 1;
 
     // Fill the output buffer
@@ -270,11 +270,11 @@ static ALsizei AL_APIENTRY BufferCallback(void *userptr, void *data,
 
         // Use the same value for the left and right channels.
 
-        *leftptr   = this_value;
-        *rightptr  = this_value;
+        *leftptr = this_value;
+        *rightptr = this_value;
 
-        leftptr   += 2;
-        rightptr  += 2;
+        leftptr += 2;
+        rightptr += 2;
     }
 
     return size;
@@ -322,9 +322,9 @@ static void UnregisterCallback(void)
 
 static void InitPCSound(void)
 {
-    mixing_freq       = SND_SAMPLERATE;
+    mixing_freq = SND_SAMPLERATE;
 
-    current_freq      = 0;
+    current_freq = 0;
     current_remaining = 0;
 
     RegisterCallback();
@@ -407,8 +407,8 @@ static boolean I_PCS_AdjustSoundParams(const mobj_t *listener,
 
     // calculate the distance to sound origin
     //  and clip it if necessary
-    adx         = abs(listener->x - source->x);
-    ady         = abs(listener->y - source->y);
+    adx = abs(listener->x - source->x);
+    ady = abs(listener->y - source->y);
 
     // From _GG1_ p.428. Appox. eucledian distance fast.
     approx_dist = adx + ady - ((adx < ady ? adx : ady) >> 1);

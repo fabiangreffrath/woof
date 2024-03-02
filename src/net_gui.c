@@ -108,7 +108,7 @@ static void BuildWindow(void)
         M_snprintf(buf, sizeof(buf), " %i. ", i + 1);
         TXT_AddWidget(table, TXT_NewLabel(buf));
         player_labels[i] = TXT_NewLabel("");
-        ip_labels[i]     = TXT_NewLabel("");
+        ip_labels[i] = TXT_NewLabel("");
         TXT_AddWidget(table, player_labels[i]);
         TXT_AddWidget(table, ip_labels[i]);
     }
@@ -193,7 +193,7 @@ static void BuildMasterStatusWindow(void)
 {
     txt_window_t *master_window;
 
-    master_window    = TXT_NewWindow(NULL);
+    master_window = TXT_NewWindow(NULL);
     master_msg_label = TXT_NewLabel("");
     TXT_AddWidget(master_window, master_msg_label);
 

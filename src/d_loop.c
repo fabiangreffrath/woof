@@ -115,7 +115,7 @@ static int GetAdjustedTime(void)
     {
         int time_ms;
 
-        time_ms  = I_GetTimeMS();
+        time_ms = I_GetTimeMS();
 
         time_ms += (offsetms / FRACUNIT);
 
@@ -186,7 +186,7 @@ static boolean BuildNewTic(void)
         NET_CL_SendTiccmd(&cmd, maketic);
     }
 
-    ticdata[maketic % BACKUPTICS].cmds[localplayer]   = cmd;
+    ticdata[maketic % BACKUPTICS].cmds[localplayer] = cmd;
     ticdata[maketic % BACKUPTICS].ingame[localplayer] = true;
 
     ++maketic;
@@ -221,20 +221,20 @@ void NetUpdate(void)
     NET_SV_Run();
 
     // check time
-    nowtime  = GetAdjustedTime() / ticdup;
-    newtics  = nowtime - lasttime;
+    nowtime = GetAdjustedTime() / ticdup;
+    newtics = nowtime - lasttime;
 
     lasttime = nowtime;
 
     if (skiptics <= newtics)
     {
-        newtics  -= skiptics;
-        skiptics  = 0;
+        newtics -= skiptics;
+        skiptics = 0;
     }
     else
     {
         skiptics -= newtics;
-        newtics   = 0;
+        newtics = 0;
     }
 
     // build new ticcmds for console player
@@ -287,7 +287,7 @@ void D_ReceiveTic(ticcmd_t *ticcmds, boolean *players_mask)
         }
         else
         {
-            ticdata[recvtic % BACKUPTICS].cmds[i]   = ticcmds[i];
+            ticdata[recvtic % BACKUPTICS].cmds[i] = ticcmds[i];
             ticdata[recvtic % BACKUPTICS].ingame[i] = players_mask[i];
         }
     }
@@ -340,10 +340,10 @@ void D_StartNetGame(net_gamesettings_t *settings,
     int i;
 
     offsetms = 0;
-    recvtic  = 0;
+    recvtic = 0;
 
-    settings->consoleplayer     = 0;
-    settings->num_players       = 1;
+    settings->consoleplayer = 0;
+    settings->num_players = 1;
     settings->player_classes[0] = player_class;
 
     //!
@@ -422,7 +422,7 @@ void D_StartNetGame(net_gamesettings_t *settings,
 
     // Copy settings to global variables.
 
-    ticdup   = settings->ticdup;
+    ticdup = settings->ticdup;
     new_sync = settings->new_sync;
 
     if (ticdup < 1)
@@ -439,7 +439,7 @@ void D_StartNetGame(net_gamesettings_t *settings,
 
 boolean D_InitNetGame(net_connect_data_t *connect_data)
 {
-    boolean result   = false;
+    boolean result = false;
     net_addr_t *addr = NULL;
     int i;
 
@@ -556,10 +556,10 @@ void D_CheckNetPlaybackSkip(void)
     {
         I_Printf(VB_INFO,
                  "Demo playback skipping is suppressed in network game.");
-        singletics        = false;
-        fastdemo          = false;
-        timingdemo        = false;
-        playback_warp     = -1;
+        singletics = false;
+        fastdemo = false;
+        timingdemo = false;
+        playback_warp = -1;
         playback_skiptics = 0;
     }
 }
@@ -750,8 +750,8 @@ void TryRunTics(void)
 #define return_early (uncapped && counts == 0)
 
     // get real tics
-    entertic     = I_GetTime() / ticdup;
-    realtics     = entertic - oldentertics;
+    entertic = I_GetTime() / ticdup;
+    realtics = entertic - oldentertics;
     oldentertics = entertic;
 
     // in singletics mode, run a single tic every time this function

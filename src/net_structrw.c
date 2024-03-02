@@ -313,7 +313,7 @@ boolean NET_ReadTiccmdDiff(net_packet_t *packet, net_ticdiff_t *diff,
 void NET_TiccmdDiff(ticcmd_t *tic1, ticcmd_t *tic2, net_ticdiff_t *diff)
 {
     diff->diff = 0;
-    diff->cmd  = *tic2;
+    diff->cmd = *tic2;
 
     if (tic1->forwardmove != tic2->forwardmove)
     {

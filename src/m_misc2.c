@@ -170,8 +170,8 @@ char *M_DirName(const char *path)
     }
     else
     {
-        const char *p    = MAX(pb, pf);
-        result           = M_StringDuplicate(path);
+        const char *p = MAX(pb, pf);
+        result = M_StringDuplicate(path);
         result[p - path] = '\0';
         return result;
     }
@@ -435,7 +435,7 @@ int PRINTF_ATTR(3, 0)
     if (result < 0 || result >= buf_len)
     {
         buf[buf_len - 1] = '\0';
-        result           = buf_len - 1;
+        result = buf_len - 1;
     }
 
     return result;

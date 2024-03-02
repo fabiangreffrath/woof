@@ -95,9 +95,9 @@ typedef struct
 } elem_t;
 
 static elem_t *textures_bm = NULL;
-static elem_t *flats_bm    = NULL;
-static elem_t *sprites_bm  = NULL;
-static elem_t *states_bm   = NULL;
+static elem_t *flats_bm = NULL;
+static elem_t *sprites_bm = NULL;
+static elem_t *states_bm = NULL;
 
 static int GetBrightmap(const char *name)
 {
@@ -166,7 +166,7 @@ static boolean ParseProperty(u_scanner_t *s, elem_t *elem)
     }
 
     elem->name = name;
-    elem->idx  = idx;
+    elem->idx = idx;
     return true;
 }
 
@@ -253,7 +253,7 @@ void R_ParseBrightmaps(int lumpnum)
 {
     u_scanner_t *s;
     const char *data = W_CacheLumpNum(lumpnum, PU_CACHE);
-    int length       = W_LumpLength(lumpnum);
+    int length = W_LumpLength(lumpnum);
 
     force_brightmaps = W_IsWADLump(lumpnum);
 

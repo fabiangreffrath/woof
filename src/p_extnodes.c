@@ -105,7 +105,7 @@ typedef PACKED_PREFIX struct
 mapformat_t P_CheckMapFormat(int lumpnum)
 {
     mapformat_t format = MFMT_DOOM;
-    byte *lump_data    = NULL;
+    byte *lump_data = NULL;
     int size_subs = 0, size_nodes = 0;
 
     if (W_LumpExistsWithName(lumpnum + ML_BLOCKMAP + 1, "BEHAVIOR"))
@@ -240,7 +240,7 @@ void P_LoadSegs_DEEP(int lump)
     byte *data;
 
     numsegs = W_LumpLength(lump) / sizeof(mapseg_deep_t);
-    segs    = Z_Malloc(numsegs * sizeof(seg_t), PU_LEVEL, 0);
+    segs = Z_Malloc(numsegs * sizeof(seg_t), PU_LEVEL, 0);
     memset(segs, 0, numsegs * sizeof(seg_t));
     data = W_CacheLumpNum(lump, PU_STATIC);
 
@@ -260,7 +260,7 @@ void P_LoadSegs_DEEP(int lump)
         li->v1 = &vertexes[vn1];
         li->v2 = &vertexes[vn2];
 
-        li->angle  = (SHORT(ml->angle)) << 16;
+        li->angle = (SHORT(ml->angle)) << 16;
         li->offset = (SHORT(ml->offset)) << 16;
 
         linedef = (unsigned short)SHORT(ml->linedef);  // [FG] extended nodes
@@ -268,7 +268,7 @@ void P_LoadSegs_DEEP(int lump)
         li->linedef = ldef;
 
         side = SHORT(ml->side);
-        li->sidedef     = &sides[ldef->sidenum[side]];
+        li->sidedef = &sides[ldef->sidenum[side]];
         li->frontsector = sides[ldef->sidenum[side]].sector;
 
         // [FG] recalculate
@@ -303,15 +303,15 @@ void P_LoadSubsectors_DEEP(int lump)
     int i;
 
     numsubsectors = W_LumpLength(lump) / sizeof(mapsubsector_deep_t);
-    subsectors    = Z_Malloc(numsubsectors * sizeof(subsector_t), PU_LEVEL, 0);
-    data          = (mapsubsector_deep_t *)W_CacheLumpNum(lump, PU_STATIC);
+    subsectors = Z_Malloc(numsubsectors * sizeof(subsector_t), PU_LEVEL, 0);
+    data = (mapsubsector_deep_t *)W_CacheLumpNum(lump, PU_STATIC);
 
     memset(subsectors, 0, numsubsectors * sizeof(subsector_t));
 
     for (i = 0; i < numsubsectors; i++)
     {
         // [MB] 2020-04-22: Fix endianess for DeePBSDP V4 nodes
-        subsectors[i].numlines  = (unsigned short)SHORT(data[i].numsegs);
+        subsectors[i].numlines = (unsigned short)SHORT(data[i].numsegs);
         subsectors[i].firstline = LONG(data[i].firstseg);
     }
 
@@ -323,21 +323,21 @@ void P_LoadNodes_DEEP(int lump)
     byte *data;
     int i;
 
-    numnodes  = W_LumpLength(lump) / sizeof(mapnode_deep_t);
-    nodes     = Z_Malloc(numnodes * sizeof(node_t), PU_LEVEL, 0);
-    data      = W_CacheLumpNum(lump, PU_STATIC);
+    numnodes = W_LumpLength(lump) / sizeof(mapnode_deep_t);
+    nodes = Z_Malloc(numnodes * sizeof(node_t), PU_LEVEL, 0);
+    data = W_CacheLumpNum(lump, PU_STATIC);
 
     // [FG] skip header
-    data     += 8;
+    data += 8;
 
     for (i = 0; i < numnodes; i++)
     {
-        node_t *no         = nodes + i;
+        node_t *no = nodes + i;
         mapnode_deep_t *mn = (mapnode_deep_t *)data + i;
         int j;
 
-        no->x  = SHORT(mn->x) << FRACBITS;
-        no->y  = SHORT(mn->y) << FRACBITS;
+        no->x = SHORT(mn->x) << FRACBITS;
+        no->y = SHORT(mn->y) << FRACBITS;
         no->dx = SHORT(mn->dx) << FRACBITS;
         no->dy = SHORT(mn->dy) << FRACBITS;
 
@@ -377,19 +377,19 @@ static void P_LoadSegs_XNOD(byte *data)
         line_t *ldef;
         unsigned int linedef;
         unsigned char side;
-        seg_t *li         = segs + i;
+        seg_t *li = segs + i;
         mapseg_xnod_t *ml = (mapseg_xnod_t *)data + i;
         unsigned int v1, v2;
 
-        v1          = LONG(ml->v1);
-        v2          = LONG(ml->v2);
-        li->v1      = &vertexes[v1];
-        li->v2      = &vertexes[v2];
+        v1 = LONG(ml->v1);
+        v2 = LONG(ml->v2);
+        li->v1 = &vertexes[v1];
+        li->v2 = &vertexes[v2];
 
-        linedef     = (unsigned short)SHORT(ml->linedef);
-        ldef        = &lines[linedef];
+        linedef = (unsigned short)SHORT(ml->linedef);
+        ldef = &lines[linedef];
         li->linedef = ldef;
-        side        = ml->side;
+        side = ml->side;
 
         // Andrey Budko: check for wrong indexes
         if ((unsigned)ldef->sidenum[side] >= (unsigned)numsides)
@@ -399,7 +399,7 @@ static void P_LoadSegs_XNOD(byte *data)
                     linedef, i, (unsigned)ldef->sidenum[side]);
         }
 
-        li->sidedef     = &sides[ldef->sidenum[side]];
+        li->sidedef = &sides[ldef->sidenum[side]];
         li->frontsector = sides[ldef->sidenum[side]].sector;
 
         // seg angle and offset are not included
@@ -445,7 +445,7 @@ static void P_LoadSegs_XGLN(byte *data)
             unsigned char side;
             seg_t *seg;
 
-            v1   = LONG(ml->v1);
+            v1 = LONG(ml->v1);
             // partner = LONG(ml->v2);
             line = (unsigned short)SHORT(ml->linedef);
             side = ml->side;
@@ -457,7 +457,7 @@ static void P_LoadSegs_XGLN(byte *data)
 
             ml++;
 
-            seg     = &segs[subsectors[i].firstline + j];
+            seg = &segs[subsectors[i].firstline + j];
 
             seg->v1 = &vertexes[v1];
             if (j == 0)
@@ -480,7 +480,7 @@ static void P_LoadSegs_XGLN(byte *data)
                             i, j, (unsigned int)line);
                 }
 
-                ldef         = &lines[line];
+                ldef = &lines[line];
                 seg->linedef = ldef;
 
                 if (side != 0 && side != 1)
@@ -530,12 +530,12 @@ static void P_LoadSegs_XGLN(byte *data)
             }
             else
             {
-                seg->angle       = 0;
-                seg->offset      = 0;
-                seg->linedef     = NULL;
-                seg->sidedef     = NULL;
+                seg->angle = 0;
+                seg->offset = 0;
+                seg->linedef = NULL;
+                seg->sidedef = NULL;
                 seg->frontsector = segs[subsectors[i].firstline].frontsector;
-                seg->backsector  = seg->frontsector;
+                seg->backsector = seg->frontsector;
             }
         }
 
@@ -579,15 +579,15 @@ void P_LoadNodes_XNOD(int lump, boolean compressed, boolean glnodes)
 
         // first estimate for compression rate:
         // output buffer size == 2.5 * input size
-        outlen  = 2.5 * len;
-        output  = Z_Malloc(outlen, PU_STATIC, 0);
+        outlen = 2.5 * len;
+        output = Z_Malloc(outlen, PU_STATIC, 0);
 
         // initialize stream state for decompression
         zstream = Z_Malloc(sizeof(*zstream), PU_STATIC, 0);
         memset(zstream, 0, sizeof(*zstream));
-        zstream->next_in   = data + 4;
-        zstream->avail_in  = len - 4;
-        zstream->next_out  = output;
+        zstream->next_in = data + 4;
+        zstream->avail_in = len - 4;
+        zstream->next_out = output;
         zstream->avail_out = outlen;
 
         if (inflateInit(zstream) != Z_OK)
@@ -602,7 +602,7 @@ void P_LoadNodes_XNOD(int lump, boolean compressed, boolean glnodes)
             int outlen_old = outlen;
             outlen = 2 * outlen_old;
             output = Z_Realloc(output, outlen, PU_STATIC, 0);
-            zstream->next_out  = output + outlen_old;
+            zstream->next_out = output + outlen_old;
             zstream->avail_out = outlen - outlen_old;
         }
 
@@ -635,11 +635,11 @@ void P_LoadNodes_XNOD(int lump, boolean compressed, boolean glnodes)
 
     // 1. Load new vertices added during node building
 
-    orgVerts  = LONG(*((unsigned int *)data));
-    data     += sizeof(orgVerts);
+    orgVerts = LONG(*((unsigned int *)data));
+    data += sizeof(orgVerts);
 
-    newVerts  = LONG(*((unsigned int *)data));
-    data     += sizeof(newVerts);
+    newVerts = LONG(*((unsigned int *)data));
+    data += sizeof(newVerts);
 
     if (orgVerts + newVerts == (unsigned int)numvertexes)
     {
@@ -673,14 +673,14 @@ void P_LoadNodes_XNOD(int lump, boolean compressed, boolean glnodes)
         }
 
         Z_Free(vertexes);
-        vertexes    = newvertarray;
+        vertexes = newvertarray;
         numvertexes = orgVerts + newVerts;
     }
 
     // 2. Load subsectors
 
-    numSubs  = LONG(*((unsigned int *)data));
-    data    += sizeof(numSubs);
+    numSubs = LONG(*((unsigned int *)data));
+    data += sizeof(numSubs);
 
     if (numSubs < 1)
     {
@@ -688,15 +688,15 @@ void P_LoadNodes_XNOD(int lump, boolean compressed, boolean glnodes)
     }
 
     numsubsectors = numSubs;
-    subsectors    = Z_Malloc(numsubsectors * sizeof(subsector_t), PU_LEVEL, 0);
+    subsectors = Z_Malloc(numsubsectors * sizeof(subsector_t), PU_LEVEL, 0);
 
     for (i = currSeg = 0; i < numsubsectors; i++)
     {
-        mapsubsector_xnod_t *mseg  = (mapsubsector_xnod_t *)data + i;
+        mapsubsector_xnod_t *mseg = (mapsubsector_xnod_t *)data + i;
 
         subsectors[i].firstline = currSeg;
-        subsectors[i].numlines  = LONG(mseg->numsegs);
-        currSeg                += LONG(mseg->numsegs);
+        subsectors[i].numlines = LONG(mseg->numsegs);
+        currSeg += LONG(mseg->numsegs);
     }
 
     data += numsubsectors * sizeof(mapsubsector_xnod_t);
@@ -704,7 +704,7 @@ void P_LoadNodes_XNOD(int lump, boolean compressed, boolean glnodes)
     // 3. Load segs
 
     numSegs = LONG(*((unsigned int *)data));
-    data   += sizeof(numSegs);
+    data += sizeof(numSegs);
 
     // The number of stored segs should match the number of segs used by
     // subsectors
@@ -714,7 +714,7 @@ void P_LoadNodes_XNOD(int lump, boolean compressed, boolean glnodes)
     }
 
     numsegs = numSegs;
-    segs    = Z_Malloc(numsegs * sizeof(seg_t), PU_LEVEL, 0);
+    segs = Z_Malloc(numsegs * sizeof(seg_t), PU_LEVEL, 0);
 
     if (glnodes)
     {
@@ -730,10 +730,10 @@ void P_LoadNodes_XNOD(int lump, boolean compressed, boolean glnodes)
     // 4. Load nodes
 
     numNodes = LONG(*((unsigned int *)data));
-    data    += sizeof(numNodes);
+    data += sizeof(numNodes);
 
     numnodes = numNodes;
-    nodes    = Z_Malloc(numnodes * sizeof(node_t), PU_LEVEL, 0);
+    nodes = Z_Malloc(numnodes * sizeof(node_t), PU_LEVEL, 0);
 
     for (i = 0; i < numnodes; i++)
     {
@@ -741,8 +741,8 @@ void P_LoadNodes_XNOD(int lump, boolean compressed, boolean glnodes)
         node_t *no = nodes + i;
         mapnode_xnod_t *mn = (mapnode_xnod_t *)data + i;
 
-        no->x  = SHORT(mn->x) << FRACBITS;
-        no->y  = SHORT(mn->y) << FRACBITS;
+        no->x = SHORT(mn->x) << FRACBITS;
+        no->y = SHORT(mn->y) << FRACBITS;
         no->dx = SHORT(mn->dx) << FRACBITS;
         no->dy = SHORT(mn->dy) << FRACBITS;
 

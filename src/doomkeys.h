@@ -89,7 +89,7 @@ enum
     KEYP_MULTIPLY,
     KEYP_PERIOD,
     KEYP_EQUALS = KEY_EQUALS,
-    KEYP_ENTER  = KEY_ENTER,
+    KEYP_ENTER = KEY_ENTER,
 };
 
 #define SCANCODE_TO_KEYS_ARRAY {                                            \

@@ -35,9 +35,9 @@ net_packet_t *NET_NewPacket(int initial_size)
     }
 
     packet->alloced = initial_size;
-    packet->data    = Z_Malloc(initial_size, PU_STATIC, 0);
-    packet->len     = 0;
-    packet->pos     = 0;
+    packet->data = Z_Malloc(initial_size, PU_STATIC, 0);
+    packet->len = 0;
+    packet->pos = 0;
 
     total_packet_memory += sizeof(net_packet_t) + initial_size;
 
@@ -79,7 +79,7 @@ boolean NET_ReadInt8(net_packet_t *packet, unsigned int *data)
         return false;
     }
 
-    *data        = packet->data[packet->pos];
+    *data = packet->data[packet->pos];
 
     packet->pos += 1;
 
@@ -98,9 +98,9 @@ boolean NET_ReadInt16(net_packet_t *packet, unsigned int *data)
         return false;
     }
 
-    p            = packet->data + packet->pos;
+    p = packet->data + packet->pos;
 
-    *data        = (p[0] << 8) | p[1];
+    *data = (p[0] << 8) | p[1];
     packet->pos += 2;
 
     return true;
@@ -271,8 +271,8 @@ void NET_WriteInt8(net_packet_t *packet, unsigned int i)
         NET_IncreasePacket(packet);
     }
 
-    packet->data[packet->len]  = i;
-    packet->len               += 1;
+    packet->data[packet->len] = i;
+    packet->len += 1;
 }
 
 // Write a 16-bit integer to the packet

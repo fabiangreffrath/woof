@@ -50,8 +50,8 @@ void S_ParseMusInfo(const char *mapid)
         return;
     }
 
-    s = U_ScanOpen(W_CacheLumpNum(lumpnum, PU_CACHE),
-                   W_LumpLength(lumpnum), "MUSINFO");
+    s = U_ScanOpen(W_CacheLumpNum(lumpnum, PU_CACHE), W_LumpLength(lumpnum),
+                   "MUSINFO");
 
     while (U_HasTokensLeft(s))
     {

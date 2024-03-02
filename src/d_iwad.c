@@ -84,7 +84,7 @@ char *D_DoomExeDir(void)
         else
         {
             result = M_DirName(myargv[0]);
-            base   = M_StringDuplicate(result);
+            base = M_StringDuplicate(result);
         }
     }
 
@@ -433,7 +433,7 @@ static void AddIWADPath(const char *path, const char *suffix)
     dup_path = M_StringDuplicate(path);
 
     // Split into individual dirs within the list.
-    left     = dup_path;
+    left = dup_path;
 
     for (;;)
     {
@@ -473,7 +473,7 @@ static void AddXdgDirs(void)
     // > user specific data files should be stored. If $XDG_DATA_HOME
     // > is either not set or empty, a default equal to
     // > $HOME/.local/share should be used.
-    env     = M_getenv("XDG_DATA_HOME");
+    env = M_getenv("XDG_DATA_HOME");
     tmp_env = NULL;
 
     if (env == NULL)
@@ -485,7 +485,7 @@ static void AddXdgDirs(void)
         }
 
         tmp_env = M_StringJoin(homedir, "/.local/share", NULL);
-        env     = tmp_env;
+        env = tmp_env;
     }
 
     // We support $XDG_DATA_HOME/games/doom (which will usually be
@@ -651,7 +651,7 @@ char *D_FindWADByName(const char *name)
 
         // Construct a string for the full path
 
-        path  = M_StringJoin(iwad_dirs[i], DIR_SEPARATOR_S, name, NULL);
+        path = M_StringJoin(iwad_dirs[i], DIR_SEPARATOR_S, name, NULL);
 
         probe = M_FileCaseExists(path);
         if (probe != NULL)
@@ -714,7 +714,7 @@ char *D_FindIWADFile(GameMode_t *mode, GameMission_t *mission,
 
         char *iwadfile = myargv[iwadparm + 1];
 
-        char *file     = malloc(strlen(iwadfile) + 5);
+        char *file = malloc(strlen(iwadfile) + 5);
         AddDefaultExtension(strcpy(file, iwadfile), ".wad");
 
         result = D_FindWADByName(file);
@@ -749,7 +749,7 @@ char *D_FindIWADFile(GameMode_t *mode, GameMission_t *mission,
         {
             if (!strcasecmp(name, iwads[i].name))
             {
-                *mode    = iwads[i].mode;
+                *mode = iwads[i].mode;
                 *mission = iwads[i].mission;
                 *variant = iwads[i].variant;
                 break;
@@ -782,7 +782,7 @@ const iwad_t **D_GetIwads(void)
     char *filename;
     int i;
 
-    result     = malloc(sizeof(iwad_t *) * (arrlen(iwads) + 1));
+    result = malloc(sizeof(iwad_t *) * (arrlen(iwads) + 1));
     result_len = 0;
 
     // Try to find all IWADs

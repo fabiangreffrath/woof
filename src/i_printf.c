@@ -137,8 +137,8 @@ static boolean whole_line = true;
 
 void I_Printf(verbosity_t prio, const char *msg, ...)
 {
-    FILE *stream             = stdout;
-    const int msglen         = strlen(msg);
+    FILE *stream = stdout;
+    const int msglen = strlen(msg);
     const char *color_prefix = NULL, *color_suffix = NULL;
     va_list args;
 

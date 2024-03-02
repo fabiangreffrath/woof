@@ -276,7 +276,7 @@ static void PrintStats(FILE *stream, const wbstartstruct_t *stats)
     fprintf(stream, "\n");
 
     leveltime = stats->plyr[0].stime / TICRATE;
-    partime   = stats->partime / TICRATE;
+    partime = stats->partime / TICRATE;
     fprintf(stream, "Time: %i:%02i", leveltime / 60, leveltime % 60);
     fprintf(stream, " (par: %i:%02i)\n", partime / 60, partime % 60);
     fprintf(stream, "\n");

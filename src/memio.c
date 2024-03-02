@@ -45,14 +45,14 @@ MEMFILE *mem_fopen_read(void *buf, size_t buflen)
 {
     MEMFILE *file;
 
-    file           = Z_Malloc(sizeof(MEMFILE), PU_STATIC, 0);
+    file = Z_Malloc(sizeof(MEMFILE), PU_STATIC, 0);
 
-    file->buf      = (unsigned char *)buf;
-    file->buflen   = buflen;
+    file->buf = (unsigned char *)buf;
+    file->buflen = buflen;
     file->position = 0;
     file->read_eof = false;
-    file->eof      = false;
-    file->mode     = MODE_READ;
+    file->eof = false;
+    file->mode = MODE_READ;
 
     return file;
 }
@@ -108,15 +108,15 @@ MEMFILE *mem_fopen_write(void)
 {
     MEMFILE *file;
 
-    file           = Z_Malloc(sizeof(MEMFILE), PU_STATIC, 0);
+    file = Z_Malloc(sizeof(MEMFILE), PU_STATIC, 0);
 
-    file->alloced  = 1024;
-    file->buf      = Z_Malloc(file->alloced, PU_STATIC, 0);
-    file->buflen   = 0;
+    file->alloced = 1024;
+    file->buf = Z_Malloc(file->alloced, PU_STATIC, 0);
+    file->buflen = 0;
     file->position = 0;
     file->read_eof = false;
-    file->eof      = false;
-    file->mode     = MODE_WRITE;
+    file->eof = false;
+    file->mode = MODE_WRITE;
 
     return file;
 }
@@ -144,7 +144,7 @@ size_t mem_fwrite(const void *ptr, size_t size, size_t nmemb, MEMFILE *stream)
         newbuf = Z_Malloc(stream->alloced * 2, PU_STATIC, 0);
         memcpy(newbuf, stream->buf, stream->alloced);
         Z_Free(stream->buf);
-        stream->buf      = newbuf;
+        stream->buf = newbuf;
         stream->alloced *= 2;
     }
 
@@ -225,7 +225,7 @@ int mem_fgetc(MEMFILE *stream)
 
 void mem_get_buf(MEMFILE *stream, void **buf, size_t *buflen)
 {
-    *buf    = stream->buf;
+    *buf = stream->buf;
     *buflen = stream->buflen;
 }
 
@@ -272,7 +272,7 @@ int mem_fseek(MEMFILE *stream, signed long position, mem_rel_t whence)
     {
         stream->position = newpos;
         stream->read_eof = false;
-        stream->eof      = false;
+        stream->eof = false;
         return 0;
     }
     else

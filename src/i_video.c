@@ -328,7 +328,7 @@ static void AdjustWindowSize(void)
     // [FG] window size when returning from fullscreen mode
     if (scalefactor > 0)
     {
-        window_width  = scalefactor * video.unscaledw;
+        window_width = scalefactor * video.unscaledw;
         window_height = scalefactor * ACTUALHEIGHT;
     }
     else if (old_w > 0 && old_h > 0)
@@ -550,7 +550,7 @@ void I_StartTic(void)
             return;
         }
 
-        ev.type  = ev_mouse_state;
+        ev.type = ev_mouse_state;
         ev.data2 = x;
         ev.data3 = y;
 
@@ -643,8 +643,8 @@ void I_DynamicResolution(void)
     static double averagepercent;
 
     // 1.25 milliseconds for SDL render present
-    double target        = (1.0 / targetrefresh) - 0.00125;
-    double actual        = frametime_withoutpresent / 1000000.0;
+    double target = (1.0 / targetrefresh) - 0.00125;
+    double actual = frametime_withoutpresent / 1000000.0;
 
     double actualpercent = actual / target;
 
@@ -747,9 +747,9 @@ void I_FinishUpdate(void)
         // Update FPS counter every second
         if (time >= 1000000)
         {
-            fps           = (frame_counter * 1000000) / time;
+            fps = (frame_counter * 1000000) / time;
             frame_counter = 0;
-            last_time     = frametime_start;
+            last_time = frametime_start;
         }
     }
 
@@ -781,8 +781,8 @@ void I_FinishUpdate(void)
 
         while (true)
         {
-            uint64_t current_time   = I_GetTimeUS();
-            uint64_t elapsed_time   = current_time - frametime_start;
+            uint64_t current_time = I_GetTimeUS();
+            uint64_t elapsed_time = current_time - frametime_start;
             uint64_t remaining_time = 0;
 
             if (elapsed_time >= target_time)
@@ -847,7 +847,7 @@ static void I_InitDiskFlash(void)
     }
 
     diskflash = Z_Malloc(disk.sw * disk.sh * sizeof(*diskflash), PU_STATIC, 0);
-    old_data  = Z_Malloc(disk.sw * disk.sh * sizeof(*old_data), PU_STATIC, 0);
+    old_data = Z_Malloc(disk.sw * disk.sh * sizeof(*old_data), PU_STATIC, 0);
 
     V_GetBlock(0, 0, disk.sw, disk.sh, temp);
     V_DrawPatch(-video.deltaw, 0, W_CacheLumpName("STDISK", PU_CACHE));
@@ -953,7 +953,7 @@ byte I_GetPaletteIndex(byte *palette, int r, int g, int b)
     int best_diff, diff;
     int i;
 
-    best      = 0;
+    best = 0;
     best_diff = INT_MAX;
 
     for (i = 0; i < 256; ++i)
@@ -964,7 +964,7 @@ byte I_GetPaletteIndex(byte *palette, int r, int g, int b)
 
         if (diff < best_diff)
         {
-            best      = i;
+            best = i;
             best_diff = diff;
         }
 
@@ -984,11 +984,11 @@ boolean I_WritePNGfile(char *filename)
     SDL_PixelFormat *format;
     int pitch;
     byte *pixels;
-    boolean ret               = false;
+    boolean ret = false;
 
     // [FG] native PNG pixel format
     const uint32_t png_format = SDL_PIXELFORMAT_RGB24;
-    format                    = SDL_AllocFormat(png_format);
+    format = SDL_AllocFormat(png_format);
 
     UpdateRender();
 
@@ -997,24 +997,24 @@ boolean I_WritePNGfile(char *filename)
     if (rect.w * actualheight > rect.h * video.width)
     {
         int temp = rect.w;
-        rect.w   = rect.h * video.width / actualheight;
-        rect.x   = (temp - rect.w) / 2;
+        rect.w = rect.h * video.width / actualheight;
+        rect.x = (temp - rect.w) / 2;
     }
     else if (rect.h * video.width > rect.w * actualheight)
     {
         int temp = rect.h;
-        rect.h   = rect.w * actualheight / video.width;
-        rect.y   = (temp - rect.h) / 2;
+        rect.h = rect.w * actualheight / video.width;
+        rect.y = (temp - rect.h) / 2;
     }
 
     // [FG] allocate memory for screenshot image
-    pitch  = rect.w * format->BytesPerPixel;
+    pitch = rect.w * format->BytesPerPixel;
     pixels = malloc(rect.h * pitch);
     SDL_RenderReadPixels(renderer, &rect, format->format, pixels, pitch);
 
     {
         size_t size = 0;
-        void *png   = NULL;
+        void *png = NULL;
         FILE *file;
 
         png = tdefl_write_image_to_png_file_in_memory(
@@ -1177,7 +1177,7 @@ static void ResetResolution(int height, boolean reset_pitch)
     // 1278x720.
 
     double vertscale = (double)actualheight / (double)unscaled_actualheight;
-    video.width      = (int)ceil(video.unscaledw * vertscale);
+    video.width = (int)ceil(video.unscaledw * vertscale);
 
     // [FG] For performance reasons, SDL2 insists that the screen pitch, i.e.
     // the *number of bytes* that one horizontal row of pixels occupy in
@@ -1222,7 +1222,7 @@ static void CreateUpscaledTexture(boolean force)
     int w, h, w_upscale, h_upscale;
     static int h_upscale_old, w_upscale_old;
 
-    const int screen_width  = video.width;
+    const int screen_width = video.width;
     const int screen_height = video.height;
 
     SDL_GetRendererInfo(renderer, &info);
@@ -1370,18 +1370,18 @@ static void I_InitVideoParms(void)
         I_Error("Error getting display mode: %s", SDL_GetError());
     }
 
-    native_width  = mode.w;
+    native_width = mode.w;
     native_height = mode.h;
 
     if (use_aspect)
     {
         native_height_adjusted = (int)(native_height / 1.2);
-        unscaled_actualheight  = ACTUALHEIGHT;
+        unscaled_actualheight = ACTUALHEIGHT;
     }
     else
     {
         native_height_adjusted = native_height;
-        unscaled_actualheight  = SCREENHEIGHT;
+        unscaled_actualheight = SCREENHEIGHT;
     }
 
     // SDL may report native refresh rate as zero.
@@ -1389,8 +1389,8 @@ static void I_InitVideoParms(void)
 
     I_ResetInvalidDisplayIndex();
     widescreen = default_widescreen;
-    uncapped   = default_uncapped;
-    grabmouse  = default_grabmouse;
+    uncapped = default_uncapped;
+    grabmouse = default_grabmouse;
     I_ResetTargetRefresh();
 
     //!
@@ -1498,7 +1498,7 @@ static void I_InitVideoParms(void)
 static void I_InitGraphicsMode(void)
 {
     int w, h;
-    uint32_t flags  = 0;
+    uint32_t flags = 0;
 
     // [FG] window flags
     flags |= SDL_WINDOW_RESIZABLE;
@@ -1593,7 +1593,7 @@ static void I_InitGraphicsMode(void)
 
 void I_GetResolutionScaling(resolution_scaling_t *rs)
 {
-    rs->max  = native_height_adjusted;
+    rs->max = native_height_adjusted;
     rs->step = 50;
 }
 
@@ -1676,7 +1676,7 @@ static void I_ReinitGraphicsMode(void)
 
     if (screen != NULL)
     {
-        const int i   = SDL_GetWindowDisplayIndex(screen);
+        const int i = SDL_GetWindowDisplayIndex(screen);
         video_display = i < 0 ? 0 : i;
         SDL_DestroyWindow(screen);
         screen = NULL;
@@ -1695,7 +1695,7 @@ void I_ResetScreen(void)
 {
     resetneeded = false;
 
-    widescreen  = default_widescreen;
+    widescreen = default_widescreen;
 
     ResetResolution(CurrentResolutionHeight(), true);
     CreateSurfaces(video.pitch, video.height);

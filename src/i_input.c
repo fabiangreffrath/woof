@@ -60,7 +60,7 @@ static void AxisToButton(int value, int *state, int direction)
         {
             static event_t up;
             up.data1 = *state;
-            up.type  = ev_joyb_up;
+            up.type = ev_joyb_up;
             D_PostEvent(&up);
         }
 
@@ -68,7 +68,7 @@ static void AxisToButton(int value, int *state, int direction)
         {
             static event_t down;
             down.data1 = button;
-            down.type  = ev_joyb_down;
+            down.type = ev_joyb_down;
             D_PostEvent(&down);
         }
 
@@ -156,12 +156,12 @@ static void UpdateControllerAxisState(unsigned int value, boolean left_trigger)
         if (value > trigger_threshold && !left_trigger_on)
         {
             left_trigger_on = true;
-            event.type      = ev_joyb_down;
+            event.type = ev_joyb_down;
         }
         else if (value <= trigger_threshold && left_trigger_on)
         {
             left_trigger_on = false;
-            event.type      = ev_joyb_up;
+            event.type = ev_joyb_up;
         }
         else
         {
@@ -175,12 +175,12 @@ static void UpdateControllerAxisState(unsigned int value, boolean left_trigger)
         if (value > trigger_threshold && !right_trigger_on)
         {
             right_trigger_on = true;
-            event.type       = ev_joyb_down;
+            event.type = ev_joyb_down;
         }
         else if (value <= trigger_threshold && right_trigger_on)
         {
             right_trigger_on = false;
-            event.type       = ev_joyb_up;
+            event.type = ev_joyb_up;
         }
         else
         {
@@ -262,8 +262,10 @@ void I_OpenController(int which)
         if (controller)
         {
             controller_index = which;
-            I_Printf(VB_INFO, "I_OpenController: Found a valid game controller"
-                     ", named: %s", SDL_GameControllerName(controller));
+            I_Printf(VB_INFO,
+                     "I_OpenController: Found a valid game controller"
+                     ", named: %s",
+                     SDL_GameControllerName(controller));
         }
     }
 
@@ -287,7 +289,7 @@ void I_CloseController(int which)
     if (controller != NULL && controller_index == which)
     {
         SDL_GameControllerClose(controller);
-        controller       = NULL;
+        controller = NULL;
         controller_index = -1;
     }
 
@@ -438,12 +440,12 @@ static void MapMouseWheelToButtons(SDL_MouseWheelEvent wheel)
     }
 
     // post a button down event
-    down.type  = ev_mouseb_down;
+    down.type = ev_mouseb_down;
     down.data1 = button;
     D_PostEvent(&down);
 
     // hold button for one tic, required for checks in G_BuildTiccmd
-    delay_event.type  = ev_mouseb_up;
+    delay_event.type = ev_mouseb_up;
     delay_event.data1 = button;
 }
 
@@ -502,7 +504,7 @@ void I_ReadMouse(void)
 
     if (x != 0 || y != 0)
     {
-        ev.type  = ev_mouse;
+        ev.type = ev_mouse;
         ev.data1 = 0;
         ev.data2 = x;
         ev.data3 = -y;
@@ -540,7 +542,7 @@ void I_HandleKeyboardEvent(SDL_Event *sdlevent)
     switch (sdlevent->type)
     {
         case SDL_KEYDOWN:
-            event.type  = ev_keydown;
+            event.type = ev_keydown;
             event.data1 = TranslateKey(sdlevent->key.keysym.scancode);
 
             if (event.data1 != 0)
@@ -550,7 +552,7 @@ void I_HandleKeyboardEvent(SDL_Event *sdlevent)
             break;
 
         case SDL_KEYUP:
-            event.type  = ev_keyup;
+            event.type = ev_keyup;
             event.data1 = TranslateKey(sdlevent->key.keysym.scancode);
 
             // data2/data3 are initialized to zero for ev_keyup.

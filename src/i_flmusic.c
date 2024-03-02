@@ -44,15 +44,15 @@ typedef fluid_long_long_t fluid_int_t;
 #include "z_zone.h"
 
 const char *soundfont_path = "";
-char *soundfont_dir        = "";
+char *soundfont_dir = "";
 boolean mus_chorus;
 boolean mus_reverb;
 
-static fluid_synth_t *synth       = NULL;
+static fluid_synth_t *synth = NULL;
 static fluid_settings_t *settings = NULL;
-static fluid_player_t *player     = NULL;
+static fluid_player_t *player = NULL;
 
-static const char **soundfonts    = NULL;
+static const char **soundfonts = NULL;
 
 // Load SNDFONT lump
 
@@ -145,7 +145,7 @@ static void GetSoundFonts(void)
     // Split into individual dirs within the list.
     dup_path = M_StringDuplicate(soundfont_dir);
 
-    left     = dup_path;
+    left = dup_path;
 
     while (1)
     {
@@ -203,10 +203,10 @@ static boolean I_FL_InitStream(int device)
     int lumpnum;
 
     fluid_set_log_function(FLUID_PANIC, I_FL_Log_Error, NULL);
-    fluid_set_log_function(FLUID_ERR,   I_FL_Log_Error, NULL);
-    fluid_set_log_function(FLUID_WARN,  I_FL_Log_Debug, NULL);
-    fluid_set_log_function(FLUID_INFO,  NULL,           NULL);
-    fluid_set_log_function(FLUID_DBG,   NULL,           NULL);
+    fluid_set_log_function(FLUID_ERR, I_FL_Log_Error, NULL);
+    fluid_set_log_function(FLUID_WARN, I_FL_Log_Debug, NULL);
+    fluid_set_log_function(FLUID_INFO, NULL, NULL);
+    fluid_set_log_function(FLUID_DBG, NULL, NULL);
 
     settings = new_fluid_settings();
 
@@ -243,8 +243,8 @@ static boolean I_FL_InitStream(int device)
     {
         fluid_sfloader_t *sfloader;
 
-        lump     = W_CacheLumpNum(lumpnum, PU_STATIC);
-        lumplen  = W_LumpLength(lumpnum);
+        lump = W_CacheLumpNum(lumpnum, PU_STATIC);
+        lumplen = W_LumpLength(lumpnum);
 
         sfloader = new_fluid_defsfloader(settings);
         fluid_sfloader_set_callbacks(sfloader, FL_sfopen, FL_sfread, FL_sfseek,
@@ -308,7 +308,7 @@ static boolean I_FL_OpenStream(void *data, ALsizei size, ALenum *format,
 {
     int result = FLUID_FAILED;
 
-    player     = new_fluid_player(synth);
+    player = new_fluid_player(synth);
 
     if (player == NULL)
     {
@@ -329,7 +329,7 @@ static boolean I_FL_OpenStream(void *data, ALsizei size, ALenum *format,
         void *outbuf;
         size_t outbuf_len;
 
-        instream  = mem_fopen_read(data, size);
+        instream = mem_fopen_read(data, size);
         outstream = mem_fopen_write();
 
         if (mus2mid(instream, outstream) == 0)
@@ -350,8 +350,8 @@ static boolean I_FL_OpenStream(void *data, ALsizei size, ALenum *format,
         return false;
     }
 
-    *format     = AL_FORMAT_STEREO16;
-    *freq       = SND_SAMPLERATE;
+    *format = AL_FORMAT_STEREO16;
+    *freq = SND_SAMPLERATE;
     *frame_size = 2 * sizeof(short);
 
     return true;

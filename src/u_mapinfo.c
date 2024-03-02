@@ -346,7 +346,7 @@ static char *ParseMultiString(u_scanner_t *s, int error)
             size_t newlen = strlen(build) + strlen(s->string) + 2;
             build = I_Realloc(build, newlen);
             // Replace the existing text's \0 terminator with a \n
-            strcat(build,"\n");
+            strcat(build, "\n");
             // Concatenate the new line onto the existing text
             strcat(build, s->string);
         }
@@ -447,8 +447,8 @@ static int ParseStandardProperty(u_scanner_t *s, mapentry_t *mape)
         else
         {
             char lumpname[9] = {0};
-            char *alttext    = NULL;
-            char *key        = NULL;
+            char *alttext = NULL;
+            char *key = NULL;
 
             ParseLumpName(s, lumpname);
             if (U_CheckToken(s, ','))
@@ -461,7 +461,7 @@ static int ParseStandardProperty(u_scanner_t *s, mapentry_t *mape)
                 {
                     if (U_MustGetToken(s, TK_StringConst))
                     {
-                        key    = strdup(s->string);
+                        key = strdup(s->string);
                         key[0] = tolower(key[0]);
                     }
                 }
@@ -616,7 +616,7 @@ static int ParseStandardProperty(u_scanner_t *s, mapentry_t *mape)
                 {
                     free(mape->bossactions);
                 }
-                mape->bossactions    = NULL;
+                mape->bossactions = NULL;
                 mape->numbossactions = -1;
             }
             else
@@ -656,9 +656,9 @@ static int ParseStandardProperty(u_scanner_t *s, mapentry_t *mape)
                     mape->bossactions = realloc(mape->bossactions,
                                                 sizeof(bossaction_t) * mape->numbossactions);
                     bossaction_t *bossaction = &mape->bossactions[mape->numbossactions - 1];
-                    bossaction->type    = i;
+                    bossaction->type = i;
                     bossaction->special = special;
-                    bossaction->tag     = tag;
+                    bossaction->tag = tag;
                 }
             }
         }
@@ -740,8 +740,8 @@ static boolean UpdateDefaultMapEntry(mapentry_t *val, int num)
 void U_ParseMapDefInfo(int lumpnum)
 {
     const char *buffer = W_CacheLumpNum(lumpnum, PU_CACHE);
-    size_t length      = W_LumpLength(lumpnum);
-    u_scanner_t *s     = U_ScanOpen(buffer, length, "UMAPDEF");
+    size_t length = W_LumpLength(lumpnum);
+    u_scanner_t *s = U_ScanOpen(buffer, length, "UMAPDEF");
 
     while (U_HasTokensLeft(s))
     {
@@ -764,8 +764,8 @@ void U_ParseMapInfo(int lumpnum)
 {
     unsigned int i;
     const char *buffer = W_CacheLumpNum(lumpnum, PU_CACHE);
-    size_t length      = W_LumpLength(lumpnum);
-    u_scanner_t *s     = U_ScanOpen(buffer, length, "UMAPINFO");
+    size_t length = W_LumpLength(lumpnum);
+    u_scanner_t *s = U_ScanOpen(buffer, length, "UMAPINFO");
 
     while (U_HasTokensLeft(s))
     {

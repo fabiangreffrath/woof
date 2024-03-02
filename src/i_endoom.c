@@ -48,7 +48,7 @@ void I_Endoom(byte *endoom_data)
 
     screendata = TXT_GetScreenData();
 
-    indent     = (ENDOOM_W - TXT_SCREEN_W) / 2;
+    indent = (ENDOOM_W - TXT_SCREEN_W) / 2;
 
     for (y = 0; y < TXT_SCREEN_H; ++y)
     {

@@ -297,9 +297,9 @@ int I_StartSound(sfxinfo_t *sfx, int vol, int sep, int pitch)
         return -1;
     }
 
-    channelinfo[channel].sfx     = sfx;
+    channelinfo[channel].sfx = sfx;
     channelinfo[channel].enabled = true;
-    channelinfo[channel].idnum   = id++;  // give the sound a unique id
+    channelinfo[channel].idnum = id++;  // give the sound a unique id
 
     I_UpdateSoundParams(channel, vol, sep);
 
@@ -467,12 +467,12 @@ void I_InitSound(void)
     for (int i = 0; i < arrlen(sfx_subst); i++)
     {
         sfxinfo_t *from = &S_sfx[sfx_subst[i].from],
-                  *to   = &S_sfx[sfx_subst[i].to];
+                  *to = &S_sfx[sfx_subst[i].to];
 
         if (from->lumpnum == -1)
         {
-            from->link   = to;
-            from->pitch  = NORM_PITCH;
+            from->link = to;
+            from->pitch = NORM_PITCH;
             from->volume = 0;
         }
     }
@@ -545,8 +545,8 @@ static void MidiPlayerFallback(void)
     {
         if (stream_modules[i]->I_InitStream(0))
         {
-            midi_player        += i;
-            midi_stream_module  = stream_modules[i];
+            midi_player += i;
+            midi_stream_module = stream_modules[i];
             return;
         }
     }
@@ -563,12 +563,12 @@ void I_SetMidiPlayer(int device)
 
     int num_devices = 0;
 
-    midi_player     = 0;
+    midi_player = 0;
 
     if (native_midi_module)
     {
         const char **strings = native_midi_module->I_DeviceList(NULL);
-        num_devices          = array_size(strings);
+        num_devices = array_size(strings);
 
         if (device < num_devices)
         {
@@ -587,7 +587,7 @@ void I_SetMidiPlayer(int device)
     for (int i = 0, accum = num_devices; i < arrlen(stream_modules); ++i)
     {
         const char **strings = stream_modules[i]->I_DeviceList(NULL);
-        num_devices          = array_size(strings);
+        num_devices = array_size(strings);
 
         if (device >= accum && device < accum + num_devices)
         {
@@ -634,7 +634,7 @@ boolean I_InitMusic(void)
         module_index = 1;
     }
 
-    native_midi  = false;
+    native_midi = false;
 
     module_index = midi_player - module_index;
 
@@ -727,9 +727,9 @@ const char **I_DeviceList(int *current_device)
 {
     const char **devices = NULL;
 
-    *current_device      = 0;
+    *current_device = 0;
 
-    int module_index     = 0;
+    int module_index = 0;
 
     if (native_midi_module)
     {

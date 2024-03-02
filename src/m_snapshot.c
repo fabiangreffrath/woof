@@ -30,8 +30,8 @@
 #include "v_video.h"
 
 static const char snapshot_str[] = "WOOF_SNAPSHOT";
-static const int snapshot_len    = arrlen(snapshot_str);
-static const int snapshot_size   = SCREENWIDTH * SCREENHEIGHT;
+static const int snapshot_len = arrlen(snapshot_str);
+static const int snapshot_size = SCREENWIDTH * SCREENHEIGHT;
 
 static byte *snapshots[10];
 static byte *current_snapshot;
@@ -191,7 +191,7 @@ boolean M_DrawSnapshot(int n, int x, int y, int w, int h)
     for (desty = 0, srcy = 0; desty < rect.sh; desty++, srcy += step_y)
     {
         destline = dest + desty * video.pitch;
-        srcline  = snapshots[n] + (srcy >> FRACBITS) * SCREENWIDTH;
+        srcline = snapshots[n] + (srcy >> FRACBITS) * SCREENWIDTH;
 
         for (destx = 0, srcx = 0; destx < rect.sw; destx++, srcx += step_x)
         {

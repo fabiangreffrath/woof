@@ -395,18 +395,18 @@ void NET_CL_SendTiccmd(ticcmd_t *ticcmd, int maketic)
 
     // Store in the send queue
 
-    sendobj         = &send_queue[maketic % BACKUPTICS];
+    sendobj = &send_queue[maketic % BACKUPTICS];
     sendobj->active = true;
-    sendobj->seq    = maketic;
-    sendobj->time   = I_GetTimeMS();
-    sendobj->cmd    = diff;
+    sendobj->seq = maketic;
+    sendobj->time = I_GetTimeMS();
+    sendobj->cmd = diff;
 
-    last_ticcmd     = *ticcmd;
+    last_ticcmd = *ticcmd;
 
     // Send to server.
 
-    starttic        = maketic - settings.extratics;
-    endtic          = maketic;
+    starttic = maketic - settings.extratics;
+    endtic = maketic;
 
     if (starttic < 0)
     {
@@ -443,7 +443,7 @@ static void NET_CL_ParseSYN(net_packet_t *packet)
 
     // We are now successfully connected.
     NET_Log("client: connected to server");
-    client_connection.state    = NET_CONN_STATE_CONNECTED;
+    client_connection.state = NET_CONN_STATE_CONNECTED;
     client_connection.protocol = protocol;
 
     // Even though we have negotiated a compatible protocol, the game may still
@@ -485,7 +485,7 @@ static void NET_CL_ParseReject(net_packet_t *packet)
 
     if (client_connection.state == NET_CONN_STATE_CONNECTING)
     {
-        client_connection.state             = NET_CONN_STATE_DISCONNECTED;
+        client_connection.state = NET_CONN_STATE_DISCONNECTED;
         client_connection.disconnect_reason = NET_DISCONNECT_REMOTE;
         SetRejectReason(msg);
     }
@@ -549,7 +549,7 @@ static void NET_CL_ParseLaunch(net_packet_t *packet)
     }
 
     net_client_wait_data.num_players = num_players;
-    client_state                     = CLIENT_STATE_WAITING_START;
+    client_state = CLIENT_STATE_WAITING_START;
     NET_Log("client: now waiting for game start");
 }
 
@@ -646,18 +646,18 @@ static void NET_CL_CheckResends(void)
     unsigned int nowtime;
     boolean maybe_deadlocked;
 
-    nowtime          = I_GetTimeMS();
+    nowtime = I_GetTimeMS();
     maybe_deadlocked = nowtime - gamedata_recv_time > 1000;
 
-    resend_start     = -1;
-    resend_end       = -1;
+    resend_start = -1;
+    resend_end = -1;
 
     for (i = 0; i < BACKUPTICS; ++i)
     {
         net_server_recv_t *recvobj;
         boolean need_resend;
 
-        recvobj     = &recvwindow[i];
+        recvobj = &recvwindow[i];
 
         // if need_resend is true, this tic needs another retransmit
         // request (300ms timeout)
@@ -750,7 +750,7 @@ static void NET_CL_ParseGameData(net_packet_t *packet)
     if (!need_to_acknowledge)
     {
         need_to_acknowledge = true;
-        gamedata_recv_time  = nowtime;
+        gamedata_recv_time = nowtime;
     }
 
     // Expand byte value into the full tic number
@@ -779,10 +779,10 @@ static void NET_CL_ParseGameData(net_packet_t *packet)
 
         // Store in the receive window
 
-        recvobj         = &recvwindow[index];
+        recvobj = &recvwindow[index];
 
         recvobj->active = true;
-        recvobj->cmd    = cmd;
+        recvobj->cmd = cmd;
         NET_Log("client: stored tic %lu in receive window",
                 (unsigned long)seq + i);
 
@@ -815,7 +815,7 @@ static void NET_CL_ParseGameData(net_packet_t *packet)
         resend_end = BACKUPTICS - 1;
     }
 
-    index        = resend_end - 1;
+    index = resend_end - 1;
     resend_start = resend_end;
 
     while (index >= 0)
@@ -1070,7 +1070,7 @@ boolean NET_CL_Connect(net_addr_t *addr, net_connect_data_t *data)
     net_local_is_freedoom = data->is_freedoom;
 
     // create a new network I/O context and add just the necessary module
-    client_context        = NET_NewContext();
+    client_context = NET_NewContext();
 
     // initialize module for client mode
     if (!addr->module->InitClient())
@@ -1081,14 +1081,14 @@ boolean NET_CL_Connect(net_addr_t *addr, net_connect_data_t *data)
 
     NET_AddModule(client_context, addr->module);
 
-    net_client_connected          = true;
+    net_client_connected = true;
     net_client_received_wait_data = false;
-    sent_hole_punch               = false;
+    sent_hole_punch = false;
 
     NET_Conn_InitClient(&client_connection, addr, NET_PROTOCOL_UNKNOWN);
 
     // try to connect
-    start_time     = I_GetTimeMS();
+    start_time = I_GetTimeMS();
     last_send_time = -1;
     SetRejectReason("Unknown reason");
 
@@ -1133,7 +1133,7 @@ boolean NET_CL_Connect(net_addr_t *addr, net_connect_data_t *data)
         NET_Log("client: connected successfully");
         SetRejectReason(NULL);
         client_state = CLIENT_STATE_WAITING_LAUNCH;
-        drone        = data->drone;
+        drone = data->drone;
 
         return true;
     }

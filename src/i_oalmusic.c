@@ -303,10 +303,10 @@ static void I_OAL_PlaySong(void *handle, boolean looping)
         return;
     }
 
-    music_lock            = SDL_CreateMutex();
+    music_lock = SDL_CreateMutex();
 
     player_thread_running = true;
-    player_thread_handle  = SDL_CreateThread(PlayerThread, NULL, NULL);
+    player_thread_handle = SDL_CreateThread(PlayerThread, NULL, NULL);
     if (player_thread_handle == NULL)
     {
         I_Printf(VB_ERROR, "Error creating thread: %s", SDL_GetError());

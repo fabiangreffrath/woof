@@ -138,14 +138,14 @@ void V_InitColorTranslation(void)
 {
     register const crdef_t *p;
 
-    int playpal_lump     = W_GetNumForName("PLAYPAL");
-    byte *playpal        = W_CacheLumpNum(playpal_lump, PU_STATIC);
+    int playpal_lump = W_GetNumForName("PLAYPAL");
+    byte *playpal = W_CacheLumpNum(playpal_lump, PU_STATIC);
     boolean iwad_playpal = W_IsIWADLump(playpal_lump);
 
-    int force_rebuild    = M_CheckParm("-tranmap");
+    int force_rebuild = M_CheckParm("-tranmap");
 
     // [crispy] preserve gray drop shadow in IWAD status bar numbers
-    boolean keepgray     = W_IsIWADLump(W_GetNumForName("sttnum0"));
+    boolean keepgray = W_IsIWADLump(W_GetNumForName("sttnum0"));
 
     for (p = crdefs; p->name; p++)
     {
@@ -191,14 +191,14 @@ void V_InitColorTranslation(void)
     }
 
     v_lightest_color = I_GetPaletteIndex(playpal, 0xFF, 0xFF, 0xFF);
-    v_darkest_color  = I_GetPaletteIndex(playpal, 0x00, 0x00, 0x00);
+    v_darkest_color = I_GetPaletteIndex(playpal, 0x00, 0x00, 0x00);
 }
 
 void WriteGeneratedLumpWad(const char *filename)
 {
     int i;
     const size_t num_lumps = arrlen(crdefs);
-    lumpinfo_t *lumps      = calloc(num_lumps, sizeof(*lumps));
+    lumpinfo_t *lumps = calloc(num_lumps, sizeof(*lumps));
 
     for (i = 0; i < num_lumps - 1; i++)  // last entry is dummy
     {
@@ -272,7 +272,7 @@ static void V_DrawPatchColumn(const patch_column_t *patchcol)
 
     // Determine scaling, which is the only mapping to be done.
     fracstep = patchcol->step;
-    frac     = patchcol->frac + ((patchcol->y1 * fracstep) & 0xFFFF);
+    frac = patchcol->frac + ((patchcol->y1 * fracstep) & 0xFFFF);
 
     // Inner loop that does the actual texture mapping,
     //  e.g. a DDA-lile scaling.
@@ -285,12 +285,12 @@ static void V_DrawPatchColumn(const patch_column_t *patchcol)
 
         while ((count -= 2) >= 0)
         {
-            *dest  = source[frac >> FRACBITS];
-            dest  += linesize;
-            frac  += fracstep;
-            *dest  = source[frac >> FRACBITS];
-            dest  += linesize;
-            frac  += fracstep;
+            *dest = source[frac >> FRACBITS];
+            dest += linesize;
+            frac += fracstep;
+            *dest = source[frac >> FRACBITS];
+            dest += linesize;
+            frac += fracstep;
         }
         if (count & 1)
         {
@@ -326,7 +326,7 @@ static void V_DrawPatchColumnTR(const patch_column_t *patchcol)
 
     // Determine scaling, which is the only mapping to be done.
     fracstep = patchcol->step;
-    frac     = patchcol->frac + ((patchcol->y1 * fracstep) & 0xFFFF);
+    frac = patchcol->frac + ((patchcol->y1 * fracstep) & 0xFFFF);
 
     // Inner loop that does the actual texture mapping,
     //  e.g. a DDA-lile scaling.
@@ -339,12 +339,12 @@ static void V_DrawPatchColumnTR(const patch_column_t *patchcol)
 
         while ((count -= 2) >= 0)
         {
-            *dest  = translation[source[frac >> FRACBITS]];
-            dest  += linesize;
-            frac  += fracstep;
-            *dest  = translation[source[frac >> FRACBITS]];
-            dest  += linesize;
-            frac  += fracstep;
+            *dest = translation[source[frac >> FRACBITS]];
+            dest += linesize;
+            frac += fracstep;
+            *dest = translation[source[frac >> FRACBITS]];
+            dest += linesize;
+            frac += fracstep;
         }
         if (count & 1)
         {
@@ -380,7 +380,7 @@ static void V_DrawPatchColumnTRTR(const patch_column_t *patchcol)
 
     // Determine scaling, which is the only mapping to be done.
     fracstep = patchcol->step;
-    frac     = patchcol->frac + ((patchcol->y1 * fracstep) & 0xFFFF);
+    frac = patchcol->frac + ((patchcol->y1 * fracstep) & 0xFFFF);
 
     // Inner loop that does the actual texture mapping,
     //  e.g. a DDA-lile scaling.
@@ -393,12 +393,12 @@ static void V_DrawPatchColumnTRTR(const patch_column_t *patchcol)
 
         while ((count -= 2) >= 0)
         {
-            *dest  = translation2[translation1[source[frac >> FRACBITS]]];
-            dest  += linesize;
-            frac  += fracstep;
-            *dest  = translation2[translation1[source[frac >> FRACBITS]]];
-            dest  += linesize;
-            frac  += fracstep;
+            *dest = translation2[translation1[source[frac >> FRACBITS]]];
+            dest += linesize;
+            frac += fracstep;
+            *dest = translation2[translation1[source[frac >> FRACBITS]]];
+            dest += linesize;
+            frac += fracstep;
         }
         if (count & 1)
         {
@@ -424,13 +424,13 @@ static void V_DrawMaskedColumn(patch_column_t *patchcol, const int ytop,
                 return;
             }
 
-            patchcol->y1   = y1lookup[columntop];
+            patchcol->y1 = y1lookup[columntop];
             patchcol->frac = 0;
         }
         else
         {
             patchcol->frac = (-columntop) << FRACBITS;
-            patchcol->y1   = 0;
+            patchcol->y1 = 0;
         }
 
         if (columntop + column->length - 1 < 0)
@@ -485,7 +485,7 @@ static void V_DrawPatchInt(int x, int y, patch_t *patch, boolean flipped)
         x2 = x1 + w - 1;
     }
 
-    iscale        = video.xstep;
+    iscale = video.xstep;
     patchcol.step = video.ystep;
 
     // off the left or right side?
@@ -634,7 +634,7 @@ void V_DrawPatchFullScreen(patch_t *patch)
     const int x = (video.unscaledw - SHORT(patch->width)) / 2;
 
     patch->leftoffset = 0;
-    patch->topoffset  = 0;
+    patch->topoffset = 0;
 
     // [crispy] fill pillarboxes in widescreen mode
     if (video.unscaledw != NONWIDEWIDTH)
@@ -786,13 +786,13 @@ void V_CopyRect(int srcx, int srcy, pixel_t *source, int width, int height,
     usew = (srcrect.sw < dstrect.sw ? srcrect.sw : dstrect.sw);
     useh = (srcrect.sh < dstrect.sh ? srcrect.sh : dstrect.sh);
 
-    src  = V_ADDRESS(source, srcrect.sx, srcrect.sy);
+    src = V_ADDRESS(source, srcrect.sx, srcrect.sy);
     dest = V_ADDRESS(dest_screen, dstrect.sx, dstrect.sy);
 
     while (useh--)
     {
         memcpy(dest, src, usew);
-        src  += linesize;
+        src += linesize;
         dest += linesize;
     }
 }
@@ -832,7 +832,7 @@ void V_DrawBlock(int x, int y, int width, int height, pixel_t *src)
     V_ScaleClippedRect(&dstrect);
 
     source = src + dy * width + dx;
-    dest   = V_ADDRESS(dest_screen, dstrect.sx, dstrect.sy);
+    dest = V_ADDRESS(dest_screen, dstrect.sx, dstrect.sy);
 
     {
         int w;
@@ -844,19 +844,19 @@ void V_DrawBlock(int x, int y, int width, int height, pixel_t *src)
 
         while (dstrect.sh--)
         {
-            row   = dest;
-            w     = dstrect.sw;
+            row = dest;
+            w = dstrect.sw;
             xfrac = 0;
-            ytex  = (yfrac >> FRACBITS) * width;
+            ytex = (yfrac >> FRACBITS) * width;
 
             while (w--)
             {
-                xtex    = (xfrac >> FRACBITS);
-                *row++  = source[ytex + xtex];
-                xfrac  += video.xstep;
+                xtex = (xfrac >> FRACBITS);
+                *row++ = source[ytex + xtex];
+                xfrac += video.xstep;
             }
 
-            dest  += linesize;
+            dest += linesize;
             yfrac += video.ystep;
         }
     }
@@ -876,26 +876,26 @@ void V_TileBlock64(int line, int width, int height, const byte *src)
 
     V_ScaleRect(&dstrect);
 
-    h     = dstrect.sh;
+    h = dstrect.sh;
     yfrac = dstrect.sy * video.ystep;
 
-    dest  = dest_screen;
+    dest = dest_screen;
 
     while (h--)
     {
         int w = dstrect.sw;
-        row   = dest;
+        row = dest;
         xfrac = 0;
-        ytex  = ((yfrac >> FRACBITS) & 63) << 6;
+        ytex = ((yfrac >> FRACBITS) & 63) << 6;
 
         while (w--)
         {
-            xtex    = (xfrac >> FRACBITS) & 63;
-            *row++  = src[ytex + xtex];
-            xfrac  += video.xstep;
+            xtex = (xfrac >> FRACBITS) & 63;
+            *row++ = src[ytex + xtex];
+            xfrac += video.xstep;
         }
 
-        dest  += linesize;
+        dest += linesize;
         yfrac += video.ystep;
     }
 }
@@ -926,7 +926,7 @@ void V_GetBlock(int x, int y, int width, int height, byte *dest)
     while (height--)
     {
         memcpy(dest, src, width);
-        src  += linesize;
+        src += linesize;
         dest += width;
     }
 }
@@ -950,7 +950,7 @@ void V_PutBlock(int x, int y, int width, int height, byte *src)
     {
         memcpy(dest, src, width);
         dest += linesize;
-        src  += width;
+        src += width;
     }
 }
 
@@ -996,8 +996,8 @@ void V_Init(void)
 
     video.xscale = (video.width << FRACBITS) / video.unscaledw;
     video.yscale = (video.height << FRACBITS) / SCREENHEIGHT;
-    video.xstep  = ((video.unscaledw << FRACBITS) / video.width) + 1;
-    video.ystep  = ((SCREENHEIGHT << FRACBITS) / video.height) + 1;
+    video.xstep = ((video.unscaledw << FRACBITS) / video.width) + 1;
+    video.ystep = ((SCREENHEIGHT << FRACBITS) / video.height) + 1;
 
     x1lookup[0] = 0;
     lastfrac = frac = 0;
@@ -1005,7 +1005,7 @@ void V_Init(void)
     {
         if (frac >> FRACBITS > lastfrac >> FRACBITS)
         {
-            x1lookup[frac >> FRACBITS]     = i;
+            x1lookup[frac >> FRACBITS] = i;
             x2lookup[lastfrac >> FRACBITS] = i - 1;
             lastfrac = frac;
         }
@@ -1021,7 +1021,7 @@ void V_Init(void)
     {
         if (frac >> FRACBITS > lastfrac >> FRACBITS)
         {
-            y1lookup[frac >> FRACBITS]     = i;
+            y1lookup[frac >> FRACBITS] = i;
             y2lookup[lastfrac >> FRACBITS] = i - 1;
             lastfrac = frac;
         }

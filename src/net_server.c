@@ -390,12 +390,12 @@ static void NET_SV_SendWaitingData(net_client_t *client)
 
     NET_SV_AssignPlayers();
 
-    controller              = NET_SV_Controller();
+    controller = NET_SV_Controller();
 
-    wait_data.num_players   = NET_SV_NumPlayers();
-    wait_data.num_drones    = NET_SV_NumDrones();
+    wait_data.num_players = NET_SV_NumPlayers();
+    wait_data.num_drones = NET_SV_NumDrones();
     wait_data.ready_players = NET_SV_NumReadyPlayers();
-    wait_data.max_players   = NET_SV_MaxPlayers();
+    wait_data.max_players = NET_SV_MaxPlayers();
     wait_data.is_controller = (client == controller);
     wait_data.consoleplayer = client->player_number;
 
@@ -554,19 +554,19 @@ static void NET_SV_SendReject(net_addr_t *addr, const char *msg)
 static void NET_SV_InitNewClient(net_client_t *client, net_addr_t *addr,
                                  net_protocol_t protocol)
 {
-    client->active       = true;
+    client->active = true;
     client->connect_time = I_GetTimeMS();
     NET_Conn_InitServer(&client->connection, addr, protocol);
     client->addr = addr;
     NET_ReferenceAddress(addr);
-    client->last_send_time     = -1;
+    client->last_send_time = -1;
 
     // init the ticcmd send queue
 
-    client->sendseq            = 0;
-    client->acknowledged       = 0;
-    client->drone              = false;
-    client->ready              = false;
+    client->sendseq = 0;
+    client->acknowledged = 0;
+    client->drone = false;
+    client->ready = false;
 
     client->last_gamedata_time = 0;
 
@@ -701,7 +701,7 @@ static void NET_SV_ParseSYN(net_packet_t *packet, net_client_t *client,
     // Adopt the game mode and mission of the first connecting client:
     if (num_players == 0 && !data.drone)
     {
-        sv_gamemode    = data.gamemode;
+        sv_gamemode = data.gamemode;
         sv_gamemission = data.gamemission;
         NET_Log("server: new game, mode=%d, mission=%d", sv_gamemode,
                 sv_gamemission);
@@ -774,12 +774,12 @@ static void NET_SV_ParseSYN(net_packet_t *packet, net_client_t *client,
     // Save the SHA1 checksums and other details.
     memcpy(client->wad_sha1sum, data.wad_sha1sum, sizeof(sha1_digest_t));
     memcpy(client->deh_sha1sum, data.deh_sha1sum, sizeof(sha1_digest_t));
-    client->is_freedoom      = data.is_freedoom;
-    client->max_players      = data.max_players;
-    client->name             = M_StringDuplicate(player_name);
+    client->is_freedoom = data.is_freedoom;
+    client->max_players = data.max_players;
+    client->name = M_StringDuplicate(player_name);
     client->recording_lowres = data.lowres_turn;
-    client->drone            = data.drone;
-    client->player_class     = data.player_class;
+    client->drone = data.drone;
+    client->player_class = data.player_class;
 
     // Send a reply back to the client, indicating a successful connection
     // and specifying the protocol that will be used for communications.
@@ -894,8 +894,8 @@ static void StartGame(void)
 
         clients[i].last_gamedata_time = nowtime;
 
-        startpacket               = NET_Conn_NewReliable(&clients[i].connection,
-                                                         NET_PACKET_TYPE_GAMESTART);
+        startpacket = NET_Conn_NewReliable(&clients[i].connection,
+                                           NET_PACKET_TYPE_GAMESTART);
 
         sv_settings.consoleplayer = clients[i].player_number;
 
@@ -1042,7 +1042,7 @@ static void NET_SV_SendResendRequest(net_client_t *client, int start, int end)
             continue;
         }
 
-        recvobj              = &recvwindow[index][client->player_number];
+        recvobj = &recvwindow[index][client->player_number];
 
         recvobj->resend_time = nowtime;
     }
@@ -1057,18 +1057,18 @@ static void NET_SV_CheckResends(net_client_t *client)
     int resend_start, resend_end;
     unsigned int nowtime;
 
-    nowtime      = I_GetTimeMS();
+    nowtime = I_GetTimeMS();
 
-    player       = client->player_number;
+    player = client->player_number;
     resend_start = -1;
-    resend_end   = -1;
+    resend_end = -1;
 
     for (i = 0; i < BACKUPTICS; ++i)
     {
         net_client_recv_t *recvobj;
         boolean need_resend;
 
-        recvobj     = &recvwindow[i][player];
+        recvobj = &recvwindow[i][player];
 
         // if need_resend is true, this tic needs another retransmit
         // request (300ms timeout)
@@ -1156,8 +1156,8 @@ static void NET_SV_ParseGameData(net_packet_t *packet, net_client_t *client)
     nowtime = I_GetTimeMS();
 
     // Expand 8-bit values to the full sequence number
-    ackseq  = NET_SV_ExpandTicNum(ackseq);
-    seq     = NET_SV_ExpandTicNum(seq);
+    ackseq = NET_SV_ExpandTicNum(ackseq);
+    seq = NET_SV_ExpandTicNum(seq);
 
     // Sanity checks
 
@@ -1182,8 +1182,8 @@ static void NET_SV_ParseGameData(net_packet_t *packet, net_client_t *client)
         }
 
         recvobj = &recvwindow[index][player];
-        recvobj->active  = true;
-        recvobj->diff    = diff;
+        recvobj->active = true;
+        recvobj->diff = diff;
         recvobj->latency = latency;
 
         client->last_gamedata_time = nowtime;
@@ -1217,7 +1217,7 @@ static void NET_SV_ParseGameData(net_packet_t *packet, net_client_t *client)
         resend_end = BACKUPTICS - 1;
     }
 
-    index        = resend_end - 1;
+    index = resend_end - 1;
     resend_start = resend_end;
 
     while (index >= 0)
@@ -1393,13 +1393,13 @@ void NET_SV_SendQueryResponse(net_addr_t *addr)
 
     // Number of players/maximum players
 
-    querydata.num_players  = NET_SV_NumPlayers();
-    querydata.max_players  = NET_SV_MaxPlayers();
+    querydata.num_players = NET_SV_NumPlayers();
+    querydata.max_players = NET_SV_MaxPlayers();
 
     // Game mode/mission
 
-    querydata.gamemode     = sv_gamemode;
-    querydata.gamemission  = sv_gamemission;
+    querydata.gamemode = sv_gamemode;
+    querydata.gamemission = sv_gamemission;
 
     //!
     // @category net
@@ -1628,7 +1628,7 @@ static void NET_SV_PumpSendQueue(net_client_t *client)
 
     // We have all data we need to generate a command for this tic.
 
-    cmd.seq     = client->sendseq;
+    cmd.seq = client->sendseq;
 
     // Add ticcmds from all players
 
@@ -1654,9 +1654,9 @@ static void NET_SV_PumpSendQueue(net_client_t *client)
 
         cmd.playeringame[i] = true;
 
-        recvobj             = &recvwindow[recv_index][i];
+        recvobj = &recvwindow[recv_index][i];
 
-        cmd.cmds[i]         = recvobj->diff;
+        cmd.cmds[i] = recvobj->diff;
 
         if (recvobj->latency > cmd.latency)
         {
@@ -1673,7 +1673,7 @@ static void NET_SV_PumpSendQueue(net_client_t *client)
     // Transmit the new tic to the client
 
     starttic = client->sendseq - sv_settings.extratics;
-    endtic   = client->sendseq;
+    endtic = client->sendseq;
 
     if (starttic < 0)
     {
@@ -1757,7 +1757,7 @@ static void NET_SV_GameEnded(void)
     int i;
 
     server_state = SERVER_WAITING_LAUNCH;
-    sv_gamemode  = indetermined;
+    sv_gamemode = indetermined;
 
     for (i = 0; i < MAXNETNODES; ++i)
     {
@@ -1872,8 +1872,8 @@ void NET_SV_Init(void)
 
     NET_SV_AssignPlayers();
 
-    server_state       = SERVER_WAITING_LAUNCH;
-    sv_gamemode        = indetermined;
+    server_state = SERVER_WAITING_LAUNCH;
+    sv_gamemode = indetermined;
     server_initialized = true;
 }
 
@@ -1892,7 +1892,7 @@ static void UpdateMasterServer(void)
 
         new_addr = NET_Query_ResolveMaster(server_context);
         NET_ReleaseAddress(master_server);
-        master_server       = new_addr;
+        master_server = new_addr;
 
         master_resolve_time = now;
     }
@@ -2021,7 +2021,7 @@ void NET_SV_Shutdown(void)
     // Wait for all clients to finish disconnecting
 
     start_time = I_GetTimeMS();
-    running    = true;
+    running = true;
 
     while (running)
     {

@@ -102,7 +102,7 @@ static boolean I_MBF_AdjustSoundParams(const mobj_t *listener,
         {
             angle += 0xffffffff;
         }
-        angle  -= listener->angle;
+        angle -= listener->angle;
         angle >>= ANGLETOFINESHIFT;
 
         // stereo separation

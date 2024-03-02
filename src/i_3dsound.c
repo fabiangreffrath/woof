@@ -77,8 +77,8 @@ static void CalcListenerParams(const mobj_t *listener,
                                oal_listener_params_t *lis)
 {
     const player_t *player = listener->player;
-    const int yaw          = listener->angle >> ANGLETOFINESHIFT;
-    const int pitch        = CalcFinePitch(player);
+    const int yaw = listener->angle >> ANGLETOFINESHIFT;
+    const int pitch = CalcFinePitch(player);
 
     // Doom to OpenAL space: {x, y, z} to {x, z, -y}
 
@@ -157,15 +157,15 @@ static void CalcHypotenuse(fixed_t adx, fixed_t ady, fixed_t *dist)
     if (ady > adx)
     {
         const fixed_t temp = adx;
-        adx                = ady;
-        ady                = temp;
+        adx = ady;
+        ady = temp;
     }
 
     if (adx)
     {
         const int slope = FixedDiv(ady, adx) >> DBITS;
         const int angle = tantoangle[slope] >> ANGLETOFINESHIFT;
-        *dist           = FixedDiv(adx, finecosine[angle]);
+        *dist = FixedDiv(adx, finecosine[angle]);
     }
     else
     {
@@ -202,7 +202,7 @@ static void CalcDistance(const mobj_t *listener, const mobj_t *source,
         // The source is a door, switch, lift, etc. and doesn't have a proper
         // vertical position. Ignore vertical distance like vanilla Doom.
         src->z = listener->player->viewz;
-        *dist  = distxy;
+        *dist = distxy;
     }
 }
 

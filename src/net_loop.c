@@ -56,7 +56,7 @@ static void QueuePush(packet_queue_t *queue, net_packet_t *packet)
     }
 
     queue->packets[queue->tail] = packet;
-    queue->tail                 = new_tail;
+    queue->tail = new_tail;
 }
 
 static net_packet_t *QueuePop(packet_queue_t *queue)
@@ -70,7 +70,7 @@ static net_packet_t *QueuePop(packet_queue_t *queue)
         return NULL;
     }
 
-    packet      = queue->packets[queue->head];
+    packet = queue->packets[queue->head];
     queue->head = (queue->head + 1) % MAX_QUEUE_SIZE;
 
     return packet;
@@ -109,8 +109,8 @@ static boolean NET_CL_RecvPacket(net_addr_t **addr, net_packet_t **packet)
 
     if (popped != NULL)
     {
-        *packet            = popped;
-        *addr              = &client_addr;
+        *packet = popped;
+        *addr = &client_addr;
         client_addr.module = &net_loop_client_module;
 
         return true;
@@ -186,8 +186,8 @@ static boolean NET_SV_RecvPacket(net_addr_t **addr, net_packet_t **packet)
 
     if (popped != NULL)
     {
-        *packet            = popped;
-        *addr              = &server_addr;
+        *packet = popped;
+        *addr = &server_addr;
         server_addr.module = &net_loop_server_module;
 
         return true;

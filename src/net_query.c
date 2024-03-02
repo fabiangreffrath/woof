@@ -75,15 +75,15 @@ typedef struct
 } query_target_t;
 
 static boolean registered_with_master = false;
-static boolean got_master_response    = false;
+static boolean got_master_response = false;
 
 static net_context_t *query_context;
 static query_target_t *targets;
 static int num_targets;
 
 static boolean query_loop_running = false;
-static boolean printed_header     = false;
-static int last_query_time        = 0;
+static boolean printed_header = false;
+static int last_query_time = 0;
 
 // static char *securedemo_start_message = NULL;
 
@@ -229,12 +229,12 @@ static query_target_t *GetTargetForAddr(net_addr_t *addr, boolean create)
 
     targets = I_Realloc(targets, sizeof(query_target_t) * (num_targets + 1));
 
-    target  = &targets[num_targets];
-    target->type           = QUERY_TARGET_SERVER;
-    target->state          = QUERY_TARGET_QUEUED;
-    target->printed        = false;
+    target = &targets[num_targets];
+    target->type = QUERY_TARGET_SERVER;
+    target->state = QUERY_TARGET_QUEUED;
+    target->printed = false;
     target->query_attempts = 0;
-    target->addr           = addr;
+    target->addr = addr;
     NET_ReferenceAddress(addr);
     ++num_targets;
 
@@ -250,7 +250,7 @@ static void FreeTargets(void)
         NET_ReleaseAddress(targets[i].addr);
     }
     free(targets);
-    targets     = NULL;
+    targets = NULL;
     num_targets = 0;
 }
 
@@ -325,7 +325,7 @@ static void NET_Query_ParseResponse(net_addr_t *addr, net_packet_t *packet,
 
         target = GetTargetForAddr(addr, true);
         broadcast_target = GetTargetForAddr(NULL, false);
-        target->state    = QUERY_TARGET_QUERIED;
+        target->state = QUERY_TARGET_QUERIED;
         target->query_time =
             broadcast_target ? broadcast_target->query_time : 0;
     }
@@ -479,7 +479,7 @@ static void SendOneQuery(void)
     }
 
     // printf("Queried %s\n", NET_AddrToString(targets[i].addr));
-    targets[i].state      = QUERY_TARGET_QUERIED;
+    targets[i].state = QUERY_TARGET_QUERIED;
     targets[i].query_time = now;
     ++targets[i].query_attempts;
 
@@ -592,7 +592,7 @@ void NET_Query_Init(void)
     }
 
     free(targets);
-    targets     = NULL;
+    targets = NULL;
     num_targets = 0;
 
     printed_header = false;

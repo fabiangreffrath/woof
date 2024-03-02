@@ -58,18 +58,18 @@ static unsigned int ParseVorbisTime(unsigned int freq, char *value)
         return atoi(value);
     }
 
-    result    = 0;
+    result = 0;
     num_start = value;
 
     for (p = value; *p != '\0'; ++p)
     {
         if (*p == '.' || *p == ':')
         {
-            c         = *p;
-            *p        = '\0';
-            result    = result * 60 + atoi(num_start);
+            c = *p;
+            *p = '\0';
+            result = result * 60 + atoi(num_start);
             num_start = p + 1;
-            *p        = c;
+            *p = c;
         }
 
         if (*p == '.')
@@ -94,8 +94,8 @@ static void ParseVorbisComment(loop_metadata_t *metadata, char *comment)
         return;
     }
 
-    key   = comment;
-    *eq   = '\0';
+    key = comment;
+    *eq = '\0';
     value = eq + 1;
 
     if (!strcmp(key, LOOP_START_TAG))
@@ -144,7 +144,7 @@ static void ParseVorbisComments(loop_metadata_t *metadata, MEMFILE *fs)
         comment_len = LONG(buf);
 
         // Read actual comment data into string buffer.
-        comment     = calloc(1, comment_len + 1);
+        comment = calloc(1, comment_len + 1);
         if (comment == NULL
             || mem_fread(comment, 1, comment_len, fs) < comment_len)
         {
@@ -214,9 +214,9 @@ static void ParseFlacFile(loop_metadata_t *metadata, MEMFILE *fs)
 
         block_type = header[0] & ~0x80;
         last_block = (header[0] & 0x80) != 0;
-        block_len  = (header[1] << 16) | (header[2] << 8) | header[3];
+        block_len = (header[1] << 16) | (header[2] << 8) | header[3];
 
-        pos        = mem_ftell(fs);
+        pos = mem_ftell(fs);
         if (pos < 0)
         {
             return;
@@ -515,8 +515,8 @@ static boolean OpenFile(sndfile_t *file, void *data, sf_count_t size)
     }
 
     file->sample_format = sample_format;
-    file->format        = format;
-    file->frame_size    = frame_size;
+    file->format = format;
+    file->frame_size = frame_size;
 
     return true;
 }
@@ -556,9 +556,9 @@ static void FadeInMonoFloat32(float *data, ALsizei size, ALsizei freq)
 boolean I_SND_LoadFile(void *data, ALenum *format, byte **wavdata,
                        ALsizei *size, ALsizei *freq)
 {
-    sndfile_t file        = {0};
+    sndfile_t file = {0};
     sf_count_t num_frames = 0;
-    void *local_wavdata   = NULL;
+    void *local_wavdata = NULL;
 
     if (OpenFile(&file, data, *size) == false)
     {
@@ -573,13 +573,13 @@ boolean I_SND_LoadFile(void *data, ALenum *format, byte **wavdata,
     {
         num_frames = sfx_mix_mono_read_short(file.sndfile, local_wavdata,
                                              file.sfinfo.frames);
-        *format    = AL_FORMAT_MONO16;
+        *format = AL_FORMAT_MONO16;
     }
     else if (file.sample_format == Float)
     {
         num_frames = sfx_mix_mono_read_float(file.sndfile, local_wavdata,
                                              file.sfinfo.frames);
-        *format    = AL_FORMAT_MONO_FLOAT32;
+        *format = AL_FORMAT_MONO_FLOAT32;
     }
 
     if (num_frames < file.sfinfo.frames)
@@ -631,11 +631,11 @@ static boolean I_SND_OpenStream(void *data, ALsizei size, ALenum *format,
         return false;
     }
 
-    fs              = mem_fopen_read(data, size);
+    fs = mem_fopen_read(data, size);
 
-    loop.freq       = stream.sfinfo.samplerate;
+    loop.freq = stream.sfinfo.samplerate;
     loop.start_time = 0;
-    loop.end_time   = 0;
+    loop.end_time = 0;
 
     switch ((stream.sfinfo.format & SF_FORMAT_TYPEMASK))
     {
@@ -649,8 +649,8 @@ static boolean I_SND_OpenStream(void *data, ALsizei size, ALenum *format,
 
     mem_fclose(fs);
 
-    *format     = stream.format;
-    *freq       = stream.sfinfo.samplerate;
+    *format = stream.format;
+    *freq = stream.sfinfo.samplerate;
     *frame_size = stream.frame_size;
 
     return true;
@@ -664,7 +664,7 @@ static void I_SND_PlayStream(boolean looping)
 static int I_SND_FillStream(byte *data, int frames)
 {
     sf_count_t filled = 0;
-    boolean restart   = false;
+    boolean restart = false;
 
     if (loop.end_time)
     {
@@ -672,7 +672,7 @@ static int I_SND_FillStream(byte *data, int frames)
 
         if (pos + frames >= loop.end_time)
         {
-            frames  = loop.end_time - pos;
+            frames = loop.end_time - pos;
             restart = true;
         }
     }

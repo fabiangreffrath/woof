@@ -60,7 +60,7 @@ static boolean IsDirectory(char *dir, struct dirent *de)
         int result;
 
         filename = M_StringJoin(dir, DIR_SEPARATOR_S, de->d_name, NULL);
-        result   = M_stat(filename, &sb);
+        result = M_stat(filename, &sb);
         free(filename);
 
         if (result != 0)
@@ -110,7 +110,7 @@ glob_t *I_StartMultiGlob(const char *directory, int flags, const char *glob,
     {
         return NULL;
     }
-    globs[0]  = M_StringDuplicate(glob);
+    globs[0] = M_StringDuplicate(glob);
     num_globs = 1;
 
     va_start(args, glob);
@@ -129,7 +129,7 @@ glob_t *I_StartMultiGlob(const char *directory, int flags, const char *glob,
         {
             FreeStringList(globs, num_globs);
         }
-        globs            = new_globs;
+        globs = new_globs;
         globs[num_globs] = M_StringDuplicate(arg);
         ++num_globs;
     }
@@ -144,7 +144,7 @@ glob_t *I_StartMultiGlob(const char *directory, int flags, const char *glob,
 
     directory_native = M_ConvertUtf8ToSysNativeMB(directory);
 
-    result->dir      = opendir(directory_native);
+    result->dir = opendir(directory_native);
     if (result->dir == NULL)
     {
         FreeStringList(globs, num_globs);
@@ -153,14 +153,14 @@ glob_t *I_StartMultiGlob(const char *directory, int flags, const char *glob,
         return NULL;
     }
 
-    result->directory     = directory_native;
-    result->globs         = globs;
-    result->num_globs     = num_globs;
-    result->flags         = flags;
+    result->directory = directory_native;
+    result->globs = globs;
+    result->num_globs = num_globs;
+    result->flags = flags;
     result->last_filename = NULL;
-    result->filenames     = NULL;
+    result->filenames = NULL;
     result->filenames_len = 0;
-    result->next_index    = -1;
+    result->next_index = -1;
     return result;
 }
 
@@ -262,7 +262,7 @@ static char *NextGlob(glob_t *glob)
     // Return the fully-qualified path, not just the bare filename.
     temp = M_StringJoin(glob->directory, DIR_SEPARATOR_S, de->d_name, NULL);
 
-    ret  = M_ConvertSysNativeMBToUtf8(temp);
+    ret = M_ConvertSysNativeMBToUtf8(temp);
 
     free(temp);
 
@@ -273,9 +273,9 @@ static void ReadAllFilenames(glob_t *glob)
 {
     char *name;
 
-    glob->filenames     = NULL;
+    glob->filenames = NULL;
     glob->filenames_len = 0;
-    glob->next_index    = 0;
+    glob->next_index = 0;
 
     for (;;)
     {
@@ -300,7 +300,7 @@ static void SortFilenames(char **filenames, int len, int flags)
     {
         return;
     }
-    pivot    = filenames[len - 1];
+    pivot = filenames[len - 1];
     left_len = 0;
     for (i = 0; i < len - 1; ++i)
     {
@@ -315,13 +315,13 @@ static void SortFilenames(char **filenames, int len, int flags)
 
         if (cmp < 0)
         {
-            tmp                 = filenames[i];
-            filenames[i]        = filenames[left_len];
+            tmp = filenames[i];
+            filenames[i] = filenames[left_len];
             filenames[left_len] = tmp;
             ++left_len;
         }
     }
-    filenames[len - 1]  = filenames[left_len];
+    filenames[len - 1] = filenames[left_len];
     filenames[left_len] = pivot;
 
     SortFilenames(filenames, left_len, flags);

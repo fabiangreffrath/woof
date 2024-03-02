@@ -81,7 +81,7 @@ static boolean I_XMP_OpenStream(void *data, ALsizei size, ALenum *format,
 
     int err = 0;
 
-    err     = xmp_load_module_from_memory(context, data, (long)size);
+    err = xmp_load_module_from_memory(context, data, (long)size);
     if (err < 0)
     {
         PrintError(err);
@@ -89,8 +89,8 @@ static boolean I_XMP_OpenStream(void *data, ALsizei size, ALenum *format,
         return false;
     }
 
-    *format     = AL_FORMAT_STEREO16;
-    *freq       = SND_SAMPLERATE;
+    *format = AL_FORMAT_STEREO16;
+    *freq = SND_SAMPLERATE;
     *frame_size = 2 * sizeof(short);
 
     return true;

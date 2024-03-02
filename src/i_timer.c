@@ -25,7 +25,7 @@
 #include "m_fixed.h"
 
 static uint64_t basecounter = 0;
-static uint64_t basefreq    = 0;
+static uint64_t basefreq = 0;
 
 static int MSToTic(uint32_t time)
 {
@@ -138,9 +138,9 @@ void I_InitTimer(void)
 
     I_AtExit(I_ShutdownTimer, true);
 
-    basefreq      = SDL_GetPerformanceFrequency();
+    basefreq = SDL_GetPerformanceFrequency();
 
-    I_GetTime     = I_GetTime_Scaled;
+    I_GetTime = I_GetTime_Scaled;
     I_GetFracTime = I_GetFracTime_Scaled;
 }
 
@@ -148,9 +148,9 @@ void I_SetTimeScale(int scale)
 {
     uint64_t counter;
 
-    counter      = GetPerfCounter_Scaled();
+    counter = GetPerfCounter_Scaled();
 
-    time_scale   = scale;
+    time_scale = scale;
 
     basecounter += (GetPerfCounter_Scaled() - counter);
 }
@@ -159,21 +159,21 @@ void I_SetFastdemoTimer(boolean on)
 {
     if (on)
     {
-        fasttic       = I_GetTime_Scaled();
+        fasttic = I_GetTime_Scaled();
 
-        I_GetTime     = I_GetTime_FastDemo;
+        I_GetTime = I_GetTime_FastDemo;
         I_GetFracTime = I_GetFracTime_FastDemo;
     }
     else if (I_GetTime == I_GetTime_FastDemo)
     {
         uint64_t counter;
 
-        counter        = TicToCounter(I_GetTime_FastDemo());
+        counter = TicToCounter(I_GetTime_FastDemo());
 
-        basecounter   += (GetPerfCounter_Scaled() - counter);
+        basecounter += (GetPerfCounter_Scaled() - counter);
 
-        I_GetTime      = I_GetTime_Scaled;
-        I_GetFracTime  = I_GetFracTime_Scaled;
+        I_GetTime = I_GetTime_Scaled;
+        I_GetFracTime = I_GetFracTime_Scaled;
     }
 }
 

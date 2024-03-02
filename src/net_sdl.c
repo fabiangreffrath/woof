@@ -37,7 +37,7 @@
 #define DEFAULT_PORT 2342
 
 static boolean initted = false;
-static int port        = DEFAULT_PORT;
+static int port = DEFAULT_PORT;
 static UDPsocket udpsocket;
 static UDPpacket *recvpacket;
 
@@ -105,7 +105,7 @@ static net_addr_t *NET_SDL_FindAddress(IPaddress *addr)
         // after reallocing, we will add this in as the first entry
         // in the new block of memory
 
-        empty_entry         = addr_table_size;
+        empty_entry = addr_table_size;
 
         // allocate a new array twice the size, init to 0 and copy
         // the existing table in.  replace the old table.
@@ -117,7 +117,7 @@ static net_addr_t *NET_SDL_FindAddress(IPaddress *addr)
         memcpy(new_addr_table, addr_table,
                sizeof(addrpair_t *) * addr_table_size);
         Z_Free(addr_table);
-        addr_table      = new_addr_table;
+        addr_table = new_addr_table;
         addr_table_size = new_addr_table_size;
     }
 
@@ -125,12 +125,12 @@ static net_addr_t *NET_SDL_FindAddress(IPaddress *addr)
 
     new_entry = Z_Malloc(sizeof(addrpair_t), PU_STATIC, 0);
 
-    new_entry->sdl_addr          = *addr;
+    new_entry->sdl_addr = *addr;
     new_entry->net_addr.refcount = 0;
-    new_entry->net_addr.handle   = &new_entry->sdl_addr;
-    new_entry->net_addr.module   = &net_sdl_module;
+    new_entry->net_addr.handle = &new_entry->sdl_addr;
+    new_entry->net_addr.module = &net_sdl_module;
 
-    addr_table[empty_entry]      = new_entry;
+    addr_table[empty_entry] = new_entry;
 
     return &new_entry->net_addr;
 }
@@ -276,8 +276,8 @@ static void NET_SDL_SendPacket(net_addr_t *addr, net_packet_t *packet)
 #endif
 
     sdl_packet.channel = 0;
-    sdl_packet.data    = packet->data;
-    sdl_packet.len     = packet->len;
+    sdl_packet.data = packet->data;
+    sdl_packet.len = packet->len;
     sdl_packet.address = ip;
 
     if (!SDLNet_UDP_Send(udpsocket, -1, &sdl_packet))
@@ -325,7 +325,7 @@ void NET_SDL_AddrToString(net_addr_t *addr, char *buffer, int buffer_len)
     uint32_t host;
     uint16_t port;
 
-    ip   = (IPaddress *)addr->handle;
+    ip = (IPaddress *)addr->handle;
     host = SDLNet_Read32(&ip->host);
     port = SDLNet_Read16(&ip->port);
 

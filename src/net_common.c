@@ -33,7 +33,7 @@
 
 // maximum time between sending packets
 
-#define KEEPALIVE_PERIOD 1
+#define KEEPALIVE_PERIOD       1
 
 // reliable packet that is guaranteed to reach its destination
 
@@ -50,13 +50,13 @@ static FILE *net_debug = NULL;
 static void NET_Conn_Init(net_connection_t *conn, net_addr_t *addr,
                           net_protocol_t protocol)
 {
-    conn->last_send_time      = -1;
-    conn->num_retries         = 0;
-    conn->addr                = addr;
-    conn->protocol            = protocol;
-    conn->reliable_packets    = NULL;
-    conn->reliable_send_seq   = 0;
-    conn->reliable_recv_seq   = 0;
+    conn->last_send_time = -1;
+    conn->num_retries = 0;
+    conn->addr = addr;
+    conn->protocol = protocol;
+    conn->reliable_packets = NULL;
+    conn->reliable_send_seq = 0;
+    conn->reliable_recv_seq = 0;
     conn->keepalive_recv_time = I_GetTimeMS();
 }
 
@@ -101,9 +101,9 @@ static void NET_Conn_ParseDisconnect(net_connection_t *conn,
     NET_Conn_SendPacket(conn, reply);
     NET_FreePacket(reply);
 
-    conn->last_send_time    = I_GetTimeMS();
+    conn->last_send_time = I_GetTimeMS();
 
-    conn->state             = NET_CONN_STATE_DISCONNECTED_SLEEP;
+    conn->state = NET_CONN_STATE_DISCONNECTED_SLEEP;
     conn->disconnect_reason = NET_DISCONNECT_REMOTE;
 }
 
@@ -118,9 +118,9 @@ static void NET_Conn_ParseDisconnectACK(net_connection_t *conn,
         // We have received an acknowledgement to our disconnect
         // request. We have been disconnected successfully.
 
-        conn->state             = NET_CONN_STATE_DISCONNECTED;
+        conn->state = NET_CONN_STATE_DISCONNECTED;
         conn->disconnect_reason = NET_DISCONNECT_LOCAL;
-        conn->last_send_time    = -1;
+        conn->last_send_time = -1;
     }
 }
 
@@ -266,10 +266,10 @@ void NET_Conn_Disconnect(net_connection_t *conn)
         && conn->state != NET_CONN_STATE_DISCONNECTING
         && conn->state != NET_CONN_STATE_DISCONNECTED_SLEEP)
     {
-        conn->state             = NET_CONN_STATE_DISCONNECTING;
+        conn->state = NET_CONN_STATE_DISCONNECTING;
         conn->disconnect_reason = NET_DISCONNECT_LOCAL;
-        conn->last_send_time    = -1;
-        conn->num_retries       = 0;
+        conn->last_send_time = -1;
+        conn->num_retries = 0;
     }
 }
 
@@ -289,7 +289,7 @@ void NET_Conn_Run(net_connection_t *conn)
             // Haven't received any packets from the other end in a long
             // time.  Assume disconnected.
 
-            conn->state             = NET_CONN_STATE_DISCONNECTED;
+            conn->state = NET_CONN_STATE_DISCONNECTED;
             conn->disconnect_reason = NET_DISCONNECT_TIMEOUT;
         }
 
@@ -345,7 +345,7 @@ void NET_Conn_Run(net_connection_t *conn)
                 // No more retries allowed.
                 // Force disconnect.
 
-                conn->state             = NET_CONN_STATE_DISCONNECTED;
+                conn->state = NET_CONN_STATE_DISCONNECTED;
                 conn->disconnect_reason = NET_DISCONNECT_LOCAL;
             }
         }
@@ -359,7 +359,7 @@ void NET_Conn_Run(net_connection_t *conn)
         {
             // Idle for 5 seconds, switch state
 
-            conn->state             = NET_CONN_STATE_DISCONNECTED;
+            conn->state = NET_CONN_STATE_DISCONNECTED;
             conn->disconnect_reason = NET_DISCONNECT_REMOTE;
         }
     }
@@ -384,16 +384,16 @@ net_packet_t *NET_Conn_NewReliable(net_connection_t *conn, int packet_type)
     // Add to the list of reliable packets
 
     rp = malloc(sizeof(net_reliable_packet_t));
-    rp->packet         = packet;
-    rp->next           = NULL;
-    rp->seq            = conn->reliable_send_seq;
+    rp->packet = packet;
+    rp->next = NULL;
+    rp->seq = conn->reliable_send_seq;
     rp->last_send_time = -1;
 
     for (listend = &conn->reliable_packets; *listend != NULL;
          listend = &((*listend)->next))
         ;
 
-    *listend                = rp;
+    *listend = rp;
 
     // Count along the sequence
 

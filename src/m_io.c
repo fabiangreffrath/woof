@@ -41,9 +41,9 @@
 static wchar_t *ConvertMultiByteToWide(const char *str, UINT code_page)
 {
     wchar_t *wstr = NULL;
-    int wlen      = 0;
+    int wlen = 0;
 
-    wlen          = MultiByteToWideChar(code_page, 0, str, -1, NULL, 0);
+    wlen = MultiByteToWideChar(code_page, 0, str, -1, NULL, 0);
 
     if (!wlen)
     {
@@ -76,7 +76,7 @@ static wchar_t *ConvertMultiByteToWide(const char *str, UINT code_page)
 static char *ConvertWideToMultiByte(const wchar_t *wstr, UINT code_page)
 {
     char *str = NULL;
-    int len   = 0;
+    int len = 0;
 
     len = WideCharToMultiByte(code_page, 0, wstr, -1, NULL, 0, NULL, NULL);
 
@@ -132,7 +132,7 @@ static char *ConvertWideToSysNativeMB(const wchar_t *wstr)
 char *M_ConvertSysNativeMBToUtf8(const char *str)
 {
 #ifdef _WIN32
-    char *ret     = NULL;
+    char *ret = NULL;
     wchar_t *wstr = NULL;
 
     wstr = ConvertSysNativeMBToWide(str);
@@ -155,7 +155,7 @@ char *M_ConvertSysNativeMBToUtf8(const char *str)
 char *M_ConvertUtf8ToSysNativeMB(const char *str)
 {
 #ifdef _WIN32
-    char *ret     = NULL;
+    char *ret = NULL;
     wchar_t *wstr = NULL;
 
     wstr = ConvertUtf8ToWide(str);
@@ -306,7 +306,7 @@ int M_stat(const char *path, struct stat *buf)
     // The _wstat() function expects a struct _stat* parameter that is
     // incompatible with struct stat*. We copy only the required compatible
     // field.
-    buf->st_mode  = wbuf.st_mode;
+    buf->st_mode = wbuf.st_mode;
     buf->st_mtime = wbuf.st_mtime;
 
     free(wpath);
@@ -429,7 +429,7 @@ char *M_getenv(const char *name)
     }
 
     env_var_t env_var;
-    env_var.var  = env;
+    env_var.var = env;
     env_var.name = M_StringDuplicate(name);
     array_push(env_vars, env_var);
 

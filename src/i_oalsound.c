@@ -154,7 +154,7 @@ void I_OAL_ShutdownModule(void)
         if (S_sfx[i].cached)
         {
             alDeleteBuffers(1, &S_sfx[i].buffer);
-            S_sfx[i].cached  = false;
+            S_sfx[i].cached = false;
             S_sfx[i].lumpnum = -1;
         }
     }
@@ -198,7 +198,7 @@ void I_OAL_ShutdownSound(void)
 
 static void SetResampler(ALuint *sources)
 {
-    const char *resampler_name          = oal_resamplers[snd_resampler];
+    const char *resampler_name = oal_resamplers[snd_resampler];
     LPALGETSTRINGISOFT alGetStringiSOFT = NULL;
     ALint i, num_resamplers, def_resampler;
 
@@ -218,7 +218,7 @@ static void SetResampler(ALuint *sources)
     }
 
     num_resamplers = alGetInteger(AL_NUM_RESAMPLERS_SOFT);
-    def_resampler  = alGetInteger(AL_DEFAULT_RESAMPLER_SOFT);
+    def_resampler = alGetInteger(AL_DEFAULT_RESAMPLER_SOFT);
 
     if (!num_resamplers)
     {
@@ -402,7 +402,7 @@ static void PrintDeviceInfo(ALCdevice *device)
 static void GetAttribs(ALCint *attribs)
 {
     const boolean use_3d = (snd_module == SND_MODULE_3D);
-    int i                = 0;
+    int i = 0;
 
     memset(attribs, 0, sizeof(*attribs) * OAL_NUM_ATTRIBS);
 
@@ -431,7 +431,7 @@ boolean I_OAL_InitSound(void)
         I_OAL_ShutdownSound();
     }
 
-    oal         = calloc(1, sizeof(*oal));
+    oal = calloc(1, sizeof(*oal));
     oal->device = alcOpenDevice(NULL);
     if (!oal->device)
     {
@@ -601,7 +601,7 @@ boolean I_OAL_CacheSound(sfxinfo_t *sfx)
         // W_CacheLumpNum handles that for us).
         lumpdata = (byte *)W_CacheLumpNum(lumpnum, PU_STATIC);
 
-        lumplen  = W_LumpLength(lumpnum);
+        lumplen = W_LumpLength(lumpnum);
 
         // Check the header, and ensure this is a valid sound
         if (lumplen > DMXHDRSIZE && lumpdata[0] == 0x03 && lumpdata[1] == 0x00)
@@ -623,7 +623,7 @@ boolean I_OAL_CacheSound(sfxinfo_t *sfx)
             {
                 // Ignore DMX padding.
                 sampledata += DMXPADSIZE;
-                size       -= DMXPADSIZE * 2;
+                size -= DMXPADSIZE * 2;
             }
 
             // All Doom sounds are 8-bit

@@ -50,7 +50,7 @@ static void R_InitDistortedFlats()
     int i;
 
     offsets = I_Realloc(offsets, SEQUENCE * FLATSIZE * sizeof(*offsets));
-    offset  = offsets;
+    offset = offsets;
 
     for (i = 0; i < SEQUENCE; i++)
     {
@@ -63,7 +63,7 @@ static void R_InitDistortedFlats()
                 int x1, y1;
                 int sinvalue, sinvalue2;
 
-                sinvalue  = (y * swirlfactor + i * SPEED * 5 + 900) & FINEMASK;
+                sinvalue = (y * swirlfactor + i * SPEED * 5 + 900) & FINEMASK;
                 sinvalue2 = (x * swirlfactor2 + i * SPEED * 4 + 300) & FINEMASK;
                 x1 = x + 128 + ((finesine[sinvalue] * AMP) >> FRACBITS)
                      + ((finesine[sinvalue2] * AMP2) >> FRACBITS);
@@ -76,7 +76,7 @@ static void R_InitDistortedFlats()
                 x1 &= 63;
                 y1 &= 63;
 
-                offset[(y << 6) + x]  = (y1 << 6) + x1;
+                offset[(y << 6) + x] = (y1 << 6) + x1;
             }
         }
 
@@ -86,7 +86,7 @@ static void R_InitDistortedFlats()
 
 byte *R_DistortedFlat(int flatnum)
 {
-    static int swirltic  = -1;
+    static int swirltic = -1;
     static int swirlflat = -1;
     static byte distortedflat[FLATSIZE];
 
@@ -106,7 +106,7 @@ byte *R_DistortedFlat(int flatnum)
             offset = offsets;
         }
 
-        swirltic  = leveltime;
+        swirltic = leveltime;
         swirlflat = -1;
     }
 
