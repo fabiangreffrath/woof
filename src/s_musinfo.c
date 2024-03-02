@@ -17,7 +17,7 @@
 // GNU General Public License for more details.
 //
 // DESCRIPTION:
-//	[crispy] support MUSINFO lump (dynamic music changing)
+//     support MUSINFO lump (dynamic music changing)
 //
 
 #include "s_musinfo.h"

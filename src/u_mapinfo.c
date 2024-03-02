@@ -344,7 +344,7 @@ static char *ParseMultiString(u_scanner_t *s, int error)
         {
             // plus room for one \n and one \0
             size_t newlen = strlen(build) + strlen(s->string) + 2;
-            build = (char *)I_Realloc(build, newlen);
+            build = I_Realloc(build, newlen);
             // Replace the existing text's \0 terminator with a \n
             strcat(build,"\n");
             // Concatenate the new line onto the existing text

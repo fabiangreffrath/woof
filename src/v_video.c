@@ -268,7 +268,7 @@ static void V_DrawPatchColumn(const patch_column_t *patchcol)
     }
 #endif
 
-    dest     = V_ADDRESS(dest_screen, patchcol->x, patchcol->y1);
+    dest = V_ADDRESS(dest_screen, patchcol->x, patchcol->y1);
 
     // Determine scaling, which is the only mapping to be done.
     fracstep = patchcol->step;
@@ -322,7 +322,7 @@ static void V_DrawPatchColumnTR(const patch_column_t *patchcol)
     }
 #endif
 
-    dest     = V_ADDRESS(dest_screen, patchcol->x, patchcol->y1);
+    dest = V_ADDRESS(dest_screen, patchcol->x, patchcol->y1);
 
     // Determine scaling, which is the only mapping to be done.
     fracstep = patchcol->step;
@@ -376,7 +376,7 @@ static void V_DrawPatchColumnTRTR(const patch_column_t *patchcol)
     }
 #endif
 
-    dest     = V_ADDRESS(dest_screen, patchcol->x, patchcol->y1);
+    dest = V_ADDRESS(dest_screen, patchcol->x, patchcol->y1);
 
     // Determine scaling, which is the only mapping to be done.
     fracstep = patchcol->step;
@@ -469,7 +469,7 @@ static void V_DrawPatchInt(int x, int y, patch_t *patch, boolean flipped)
     fixed_t iscale, xiscale, startfrac = 0;
     patch_column_t patchcol = {0};
 
-    w                       = SHORT(patch->width);
+    w = SHORT(patch->width);
 
     // calculate edges of the shape
     if (flipped)

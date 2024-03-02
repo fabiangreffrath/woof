@@ -71,7 +71,7 @@ u_scanner_t *U_ScanOpen(const char *data, int length, const char *name)
         length = strlen(data);
     }
     s->length = length;
-    s->data   = (char *)malloc(sizeof(char) * length);
+    s->data   = malloc(length);
     memcpy(s->data, data, length);
 
     U_CheckForWhitespace(s);
@@ -300,8 +300,8 @@ boolean U_GetNextToken(u_scanner_t *s, boolean expandState)
     int integerBase          = 10;
     boolean floatHasDecimal  = false;
     boolean floatHasExponent = false;
-    boolean stringFinished =
-        false;  // Strings are the only things that can have 0 length tokens.
+    // Strings are the only things that can have 0 length tokens.
+    boolean stringFinished = false;
     u_parserstate_t *nextState = &s->nextState;
 
     if (!s->needNext)
@@ -356,7 +356,7 @@ boolean U_GetNextToken(u_scanner_t *s, boolean expandState)
     }
     else
     {
-        end              = s->scanPos;
+        end = s->scanPos;
         nextState->token = cur;
 
         // Now check for operator tokens
@@ -498,7 +498,7 @@ boolean U_GetNextToken(u_scanner_t *s, boolean expandState)
                     if (cur == '"')
                     {
                         stringFinished = true;
-                        end            = s->scanPos;
+                        end = s->scanPos;
                         s->scanPos++;
                     }
                     else if (cur == '\\')

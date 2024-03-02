@@ -632,7 +632,7 @@ void S_ChangeMusInfoMusic(int lumpnum, int looping)
     I_Printf(VB_INFO, "S_ChangeMusInfoMusic: %.8s (%s)",
              lumpinfo[music->lumpnum].name, W_WadNameForLump(music->lumpnum));
 
-    mus_playing          = music;
+    mus_playing = music;
 
     musinfo.current_item = lumpnum;
 }
@@ -773,17 +773,17 @@ static void InitE4Music(void)
 {
     int i, j;
     static const int spmus[] =  // Song - Who? - Where?
-        {
-            mus_e3m4,  // American    e4m1
-            mus_e3m2,  // Romero      e4m2
-            mus_e3m3,  // Shawn       e4m3
-            mus_e1m5,  // American    e4m4
-            mus_e2m7,  // Tim         e4m5
-            mus_e2m4,  // Romero      e4m6
-            mus_e2m6,  // J.Anderson  e4m7 CHIRON.WAD
-            mus_e2m5,  // Shawn       e4m8
-            mus_e1m9   // Tim         e4m9
-        };
+    {
+        mus_e3m4,  // American    e4m1
+        mus_e3m2,  // Romero      e4m2
+        mus_e3m3,  // Shawn       e4m3
+        mus_e1m5,  // American    e4m4
+        mus_e2m7,  // Tim         e4m5
+        mus_e2m4,  // Romero      e4m6
+        mus_e2m6,  // J.Anderson  e4m7 CHIRON.WAD
+        mus_e2m5,  // Shawn       e4m8
+        mus_e1m9   // Tim         e4m9
+    };
 
     for (i = mus_e4m1, j = 0; i <= mus_e4m9; i++, j++)
     {

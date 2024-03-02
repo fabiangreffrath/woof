@@ -339,8 +339,8 @@ void D_StartNetGame(net_gamesettings_t *settings,
 {
     int i;
 
-    offsetms                    = 0;
-    recvtic                     = 0;
+    offsetms = 0;
+    recvtic  = 0;
 
     settings->consoleplayer     = 0;
     settings->num_players       = 1;
@@ -636,7 +636,7 @@ static void OldNetSync(void)
         }
 
         frameskip[frameon & 3] = oldnettics > recvtic;
-        oldnettics             = maketic;
+        oldnettics = maketic;
 
         if (frameskip[0] && frameskip[1] && frameskip[2] && frameskip[3])
         {
@@ -704,7 +704,7 @@ static void TicdupSquash(ticcmd_set_t *set)
 
     for (i = 0; i < NET_MAXPLAYERS; ++i)
     {
-        cmd           = &set->cmds[i];
+        cmd = &set->cmds[i];
         cmd->chatchar = 0;
         if (cmd->buttons & BT_SPECIAL)
         {
@@ -766,7 +766,7 @@ void TryRunTics(void)
         NetUpdate();
     }
 
-    lowtic        = GetLowTic();
+    lowtic = GetLowTic();
 
     availabletics = lowtic - gametic / ticdup;
 

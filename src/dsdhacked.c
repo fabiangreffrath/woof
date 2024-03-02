@@ -64,7 +64,7 @@ void dsdh_EnsureStatesCapacity(int limit)
         return;
     }
 
-    const int old_num_states        = num_states;
+    const int old_num_states = num_states;
 
     static boolean first_allocation = true;
     if (first_allocation)
@@ -79,7 +79,7 @@ void dsdh_EnsureStatesCapacity(int limit)
         array_grow(states, limit);
     }
 
-    num_states           = array_capacity(states);
+    num_states = array_capacity(states);
     const int size_delta = num_states - old_num_states;
     memset(states + old_num_states, 0, size_delta * sizeof(*states));
 
@@ -133,7 +133,7 @@ static void EnsureSpritesCapacity(int limit)
         return;
     }
 
-    const int old_num_sprites       = num_sprites;
+    const int old_num_sprites = num_sprites;
 
     static boolean first_allocation = true;
     if (first_allocation)
@@ -149,7 +149,7 @@ static void EnsureSpritesCapacity(int limit)
         array_grow(sprnames, limit);
     }
 
-    num_sprites          = array_capacity(sprnames);
+    num_sprites = array_capacity(sprnames);
     const int size_delta = num_sprites - old_num_sprites;
     memset(sprnames + old_num_sprites, 0, size_delta * sizeof(*sprnames));
 
