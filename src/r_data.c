@@ -866,7 +866,7 @@ void R_InvulMode(void)
       memcpy(&colormaps[0][256*32], invul_orig, 256);
       break;
     case INVUL_GRAY:
-      default_comp[comp_skymap] = 1;
+      default_comp[comp_skymap] = 0;
       memcpy(&colormaps[0][256*32], invul_gray, 256);
       break;
   }

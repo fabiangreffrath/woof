@@ -4111,7 +4111,7 @@ static const char *menu_backdrop_strings[] = {
 };
 
 static const char *invul_mode_strings[] = {
-  "Vanilla", "Affect Sky", "Gray"
+  "Vanilla", "MBF", "Gray"
 };
 
 void M_DisableVoxelsRenderingItem(void)
@@ -4245,7 +4245,7 @@ setup_menu_t gen_settings6[] = {
   {"Screen flashes", S_ONOFF|S_STRICT, m_null, M_X, M_SPC,
    {"palette_changes"}},
 
-  {"Invulnerability Mode", S_CHOICE|S_STRICT, m_null, M_X, M_SPC,
+  {"Invulnerability effect", S_CHOICE|S_STRICT, m_null, M_X, M_SPC,
    {"invul_mode"}, 0, R_InvulMode, str_invul_mode},
 
   {"Organize save files", S_ONOFF|S_PRGWARN, m_null, M_X, M_SPC,
