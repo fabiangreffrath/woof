@@ -1,0 +1,84 @@
+﻿---
+AlignAfterOpenBracket: Align
+AlignArrayOfStructures: Left
+AlignConsecutiveAssignments:
+  Enabled: false
+AlignConsecutiveDeclarations:
+  Enabled: false
+AlignConsecutiveMacros:
+  Enabled: true
+  AcrossEmptyLines: true
+  AcrossComments: true
+  AlignCompound: true
+  PadOperators: true
+AlignConsecutiveShortCaseStatements:
+  Enabled: false
+AlignEscapedNewlines: Left
+AlignOperands: Align
+AlignTrailingComments:
+  Kind: Always
+AllowAllArgumentsOnNextLine: false
+AllowAllParametersOfDeclarationOnNextLine: false
+AllowShortBlocksOnASingleLine: Never
+AllowShortCaseLabelsOnASingleLine: false
+AllowShortEnumsOnASingleLine: false
+AllowShortFunctionsOnASingleLine: None
+AllowShortIfStatementsOnASingleLine: Never
+AllowShortLoopsOnASingleLine: false
+AlwaysBreakAfterReturnType: None
+AlwaysBreakBeforeMultilineStrings: false
+BinPackArguments: true
+BinPackParameters: true
+BracedInitializerIndentWidth: 4
+BreakArrays: false
+BreakBeforeBinaryOperators: NonAssignment
+BreakBeforeBraces: Custom
+BraceWrapping:
+  AfterCaseLabel: true
+  AfterControlStatement: Always
+  AfterEnum: true
+  AfterFunction: true
+  AfterStruct: true
+  AfterUnion: true
+  AfterExternBlock : true
+  BeforeElse: true
+  BeforeWhile: false
+  SplitEmptyFunction: true
+  SplitEmptyRecord: true
+BreakBeforeTernaryOperators: true
+BreakStringLiterals: true
+ColumnLimit: 80
+IncludeBlocks: Preserve
+IndentCaseBlocks: true
+IndentCaseLabels: true
+IndentPPDirectives: AfterHash
+IndentWidth: 4
+IndentWrappedFunctionNames: false
+InsertBraces: true
+InsertNewlineAtEOF: true
+InsertTrailingCommas: None
+KeepEmptyLinesAtTheStartOfBlocks: true
+Language: Cpp
+MaxEmptyLinesToKeep: 1
+PPIndentWidth: 2
+PointerAlignment: Right
+ReflowComments: true
+RemoveBracesLLVM: false
+SeparateDefinitionBlocks: Always
+SpaceAfterCStyleCast: false
+SpaceAfterLogicalNot: false
+SpaceBeforeAssignmentOperators: true
+SpaceBeforeCaseColon: false
+SpaceBeforeParens: ControlStatementsExceptControlMacros
+SpaceBeforeSquareBrackets: false
+SpaceInEmptyBlock: false
+SpacesBeforeTrailingComments: 1
+SpacesInContainerLiterals: false
+SpacesInSquareBrackets: false
+SpacesInParensOptions:
+  InConditionalStatements: false
+  InCStyleCasts: false
+  InEmptyParentheses: false
+  Other: false
+TabWidth: 4
+UseTab: Never

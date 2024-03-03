@@ -31,7 +31,7 @@
 
 // haleyjd 09/09/10: packing required
 #if defined(_MSC_VER)
-#pragma pack(push, 1)
+#  pragma pack(push, 1)
 #endif
 
 typedef PACKED_PREFIX struct
@@ -50,7 +50,7 @@ typedef PACKED_PREFIX struct
 
 // haleyjd 09/09/10: packing off.
 #if defined(_MSC_VER)
-#pragma pack(pop)
+#  pragma pack(pop)
 #endif
 
 typedef struct
@@ -88,20 +88,18 @@ struct midi_file_s
 
 // Check the header of a chunk:
 
-static boolean CheckChunkHeader(chunk_header_t *chunk,
-                                const char *expected_id)
+static boolean CheckChunkHeader(chunk_header_t *chunk, const char *expected_id)
 {
     boolean result;
-    
-    result = (memcmp((char *) chunk->chunk_id, expected_id, 4) == 0);
+
+    result = (memcmp((char *)chunk->chunk_id, expected_id, 4) == 0);
 
     if (!result)
     {
         I_Printf(VB_ERROR,
                  "CheckChunkHeader: Expected '%s' chunk header, "
                  "got '%c%c%c%c'",
-                 expected_id,
-                 chunk->chunk_id[0], chunk->chunk_id[1],
+                 expected_id, chunk->chunk_id[0], chunk->chunk_id[1],
                  chunk->chunk_id[2], chunk->chunk_id[3]);
     }
 
@@ -136,7 +134,7 @@ static boolean ReadVariableLength(unsigned int *result, MEMFILE *stream)
 
     *result = 0;
 
-    for (i=0; i<4; ++i)
+    for (i = 0; i < 4; ++i)
     {
         if (!ReadByte(&b, stream))
         {
@@ -183,12 +181,12 @@ static void *ReadByteSequence(unsigned int num_bytes, MEMFILE *stream)
 
     // Read the data:
 
-    for (i=0; i<num_bytes; ++i)
+    for (i = 0; i < num_bytes; ++i)
     {
         if (!ReadByte(&result[i], stream))
         {
             I_Printf(VB_ERROR, "ReadByteSequence: Error while reading byte %u",
-                               i);
+                     i);
             free(result);
             return NULL;
         }
@@ -201,9 +199,8 @@ static void *ReadByteSequence(unsigned int num_bytes, MEMFILE *stream)
 // two_param indicates that the event type takes two parameters
 // (three byte) otherwise it is single parameter (two byte)
 
-static boolean ReadChannelEvent(midi_event_t *event,
-                                byte event_type, boolean two_param,
-                                MEMFILE *stream)
+static boolean ReadChannelEvent(midi_event_t *event, byte event_type,
+                                boolean two_param, MEMFILE *stream)
 {
     byte b = 0;
 
@@ -324,7 +321,7 @@ static boolean ReadEvent(midi_event_t *event, unsigned int *last_event_type,
         return false;
     }
 
-    // All event types have their top bit set.  Therefore, if 
+    // All event types have their top bit set.  Therefore, if
     // the top bit is not set, it is because we are using the "same
     // as previous event type" shortcut to save a byte.  Skip back
     // a byte so that we read this byte again.
@@ -348,7 +345,7 @@ static boolean ReadEvent(midi_event_t *event, unsigned int *last_event_type,
 
     switch (event_type & 0xf0)
     {
-        // Two parameter channel events:
+            // Two parameter channel events:
 
         case MIDI_EVENT_NOTE_OFF:
         case MIDI_EVENT_NOTE_ON:
@@ -357,7 +354,7 @@ static boolean ReadEvent(midi_event_t *event, unsigned int *last_event_type,
         case MIDI_EVENT_PITCH_BEND:
             return ReadChannelEvent(event, event_type, true, stream);
 
-        // Single parameter channel events:
+            // Single parameter channel events:
 
         case MIDI_EVENT_PROGRAM_CHANGE:
         case MIDI_EVENT_CHAN_AFTERTOUCH:
@@ -458,7 +455,7 @@ static boolean ReadTrack(midi_track_t *track, MEMFILE *stream)
     {
         // Resize the track slightly larger to hold another event:
 
-        // new_events = realloc(track->events, 
+        // new_events = realloc(track->events,
         //                      sizeof(midi_event_t) * (track->num_events + 1));
 
         // Depending on the state of the heap and the malloc implementation,
@@ -468,7 +465,7 @@ static boolean ReadTrack(midi_track_t *track, MEMFILE *stream)
         {
             track->num_events_mem += 100;
             new_events = realloc(track->events,
-                                 sizeof (midi_event_t) * track->num_events_mem);
+                                 sizeof(midi_event_t) * track->num_events_mem);
         }
 
         if (new_events == NULL)
@@ -491,7 +488,7 @@ static boolean ReadTrack(midi_track_t *track, MEMFILE *stream)
         // End of track?
 
         if (event->event_type == MIDI_EVENT_META
-         && event->data.meta.type == MIDI_META_END_OF_TRACK)
+            && event->data.meta.type == MIDI_META_END_OF_TRACK)
         {
             break;
         }
@@ -506,7 +503,7 @@ static void FreeTrack(midi_track_t *track)
 {
     unsigned int i;
 
-    for (i=0; i<track->num_events; ++i)
+    for (i = 0; i < track->num_events; ++i)
     {
         FreeEvent(&track->events[i]);
     }
@@ -531,7 +528,7 @@ static boolean ReadAllTracks(midi_file_t *file, MEMFILE *stream)
 
     // Read each track:
 
-    for (i=0; i<file->num_tracks; ++i)
+    for (i = 0; i < file->num_tracks; ++i)
     {
         if (!ReadTrack(&file->tracks[i], stream))
         {
@@ -557,19 +554,19 @@ static boolean ReadFileHeader(midi_file_t *file, MEMFILE *stream)
     }
 
     if (!CheckChunkHeader(&file->header.chunk_header, HEADER_CHUNK_ID)
-     || SDL_SwapBE32(file->header.chunk_header.chunk_size) != 6)
+        || SDL_SwapBE32(file->header.chunk_header.chunk_size) != 6)
     {
-        I_Printf(VB_ERROR, "ReadFileHeader: Invalid MIDI chunk header! "
-                           "chunk_size=%i",
-                           SDL_SwapBE32(file->header.chunk_header.chunk_size));
+        I_Printf(VB_ERROR,
+                 "ReadFileHeader: Invalid MIDI chunk header! "
+                 "chunk_size=%i",
+                 SDL_SwapBE32(file->header.chunk_header.chunk_size));
         return false;
     }
 
     format_type = SDL_SwapBE16(file->header.format_type);
     file->num_tracks = SDL_SwapBE16(file->header.num_tracks);
 
-    if ((format_type != 0 && format_type != 1)
-     || file->num_tracks < 1)
+    if ((format_type != 0 && format_type != 1) || file->num_tracks < 1)
     {
         I_Printf(VB_ERROR, "ReadFileHeader: Only type 0/1 "
                            "MIDI files supported!");
@@ -585,7 +582,7 @@ void MIDI_FreeFile(midi_file_t *file)
 
     if (file->tracks != NULL)
     {
-        for (i=0; i<file->num_tracks; ++i)
+        for (i = 0; i < file->num_tracks; ++i)
         {
             FreeTrack(&file->tracks[i]);
         }
@@ -716,8 +713,7 @@ unsigned int MIDI_GetFileTimeDivision(midi_file_t *file)
     // differently.
     if (result < 0)
     {
-        return (signed int)(-(result/256))
-             * (signed int)(result & 0xFF);
+        return (signed int)(-(result / 256)) * (signed int)(result & 0xFF);
     }
     else
     {

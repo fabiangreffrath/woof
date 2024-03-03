@@ -2,7 +2,8 @@
 // Copyright(C) 1993-1996 Id Software, Inc.
 // Copyright(C) 1993-2008 Raven Software
 // Copyright(C) 2005-2014 Simon Howard
-// Copyright(C) 2005-2006 Florian Schulze, Colin Phipps, Neil Stevens, Andrey Budko
+// Copyright(C) 2005-2006 Florian Schulze, Colin Phipps, Neil Stevens, Andrey
+// Budko
 // Copyright(C) 2017 Fabian Greffrath
 //
 // This program is free software; you can redistribute it and/or
@@ -38,7 +39,7 @@ typedef struct musinfo_s
 
 extern musinfo_t musinfo;
 
-extern void S_ParseMusInfo (const char *mapid);
-extern void T_MusInfo (void);
+extern void S_ParseMusInfo(const char *mapid);
+extern void T_MusInfo(void);
 
 #endif

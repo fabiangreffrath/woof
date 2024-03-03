@@ -73,7 +73,8 @@ static int CalcFinePitch(const player_t *player)
     }
 }
 
-static void CalcListenerParams(const mobj_t *listener, oal_listener_params_t *lis)
+static void CalcListenerParams(const mobj_t *listener,
+                               oal_listener_params_t *lis)
 {
     const player_t *player = listener->player;
     const int yaw = listener->angle >> ANGLETOFINESHIFT;
@@ -113,14 +114,18 @@ static void CalcListenerParams(const mobj_t *listener, oal_listener_params_t *li
     else
     {
         // "At" vector after yaw and pitch rotations.
-        lis->orientation[0] = FIXED_TO_ALFLOAT(FixedMul(finecosine[yaw], finecosine[pitch]));
+        lis->orientation[0] =
+            FIXED_TO_ALFLOAT(FixedMul(finecosine[yaw], finecosine[pitch]));
         lis->orientation[1] = FIXED_TO_ALFLOAT(-finesine[pitch]);
-        lis->orientation[2] = FIXED_TO_ALFLOAT(-FixedMul(finesine[yaw], finecosine[pitch]));
+        lis->orientation[2] =
+            FIXED_TO_ALFLOAT(-FixedMul(finesine[yaw], finecosine[pitch]));
 
         // "Up" vector after yaw and pitch rotations.
-        lis->orientation[3] = FIXED_TO_ALFLOAT(FixedMul(finecosine[yaw], finesine[pitch]));
+        lis->orientation[3] =
+            FIXED_TO_ALFLOAT(FixedMul(finecosine[yaw], finesine[pitch]));
         lis->orientation[4] = FIXED_TO_ALFLOAT(finecosine[pitch]);
-        lis->orientation[5] = FIXED_TO_ALFLOAT(-FixedMul(finesine[yaw], finesine[pitch]));
+        lis->orientation[5] =
+            FIXED_TO_ALFLOAT(-FixedMul(finesine[yaw], finesine[pitch]));
     }
 }
 
@@ -171,15 +176,18 @@ static void CalcHypotenuse(fixed_t adx, fixed_t ady, fixed_t *dist)
 static void CalcDistance(const mobj_t *listener, const mobj_t *source,
                          oal_source_params_t *src, fixed_t *dist)
 {
-    const fixed_t adx = abs((listener->x >> FRACBITS) - (source->x >> FRACBITS));
-    const fixed_t ady = abs((listener->y >> FRACBITS) - (source->y >> FRACBITS));
+    const fixed_t adx =
+        abs((listener->x >> FRACBITS) - (source->x >> FRACBITS));
+    const fixed_t ady =
+        abs((listener->y >> FRACBITS) - (source->y >> FRACBITS));
     fixed_t distxy;
 
     CalcHypotenuse(adx, ady, &distxy);
 
     // Treat monsters and projectiles as point sources.
-    src->point_source = (source->thinker.function.p1 != (actionf_p1)P_DegenMobjThinker &&
-                        source->info && source->actualheight);
+    src->point_source =
+        (source->thinker.function.p1 != (actionf_p1)P_DegenMobjThinker
+         && source->info && source->actualheight);
 
     if (src->point_source)
     {
@@ -218,8 +226,8 @@ static boolean CalcVolumePriority(fixed_t dist, int *vol, int *pri)
     {
         // OpenAL inverse distance model never reaches zero volume. Gradually
         // ramp down the volume as the distance approaches the limit.
-        pri_volume = *vol * ((S_CLIPPING_DIST >> FRACBITS) - dist) /
-                            (S_CLOSE_DIST >> FRACBITS);
+        pri_volume = *vol * ((S_CLIPPING_DIST >> FRACBITS) - dist)
+                     / (S_CLOSE_DIST >> FRACBITS);
         *vol = pri_volume;
     }
     else
@@ -234,7 +242,9 @@ static boolean CalcVolumePriority(fixed_t dist, int *vol, int *pri)
     *pri += (127 - pri_volume);
 
     if (*pri > 255)
+    {
         *pri = 255;
+    }
 
     return (pri_volume > 0);
 }
@@ -244,15 +254,20 @@ static boolean ScaleVolume(int chanvol, int *vol)
     *vol = (snd_SfxVolume * chanvol) / 15;
 
     if (*vol < 1)
+    {
         return false;
+    }
     else if (*vol > 127)
+    {
         *vol = 127;
+    }
 
     return true;
 }
 
-static boolean I_3D_AdjustSoundParams(const mobj_t *listener, const mobj_t *source,
-                                      int chanvol, int *vol, int *sep, int *pri)
+static boolean I_3D_AdjustSoundParams(const mobj_t *listener,
+                                      const mobj_t *source, int chanvol,
+                                      int *vol, int *sep, int *pri)
 {
     fixed_t dist;
 
@@ -261,8 +276,8 @@ static boolean I_3D_AdjustSoundParams(const mobj_t *listener, const mobj_t *sour
         return false;
     }
 
-    if (!source || source == players[displayplayer].mo || !listener ||
-        !listener->player)
+    if (!source || source == players[displayplayer].mo || !listener
+        || !listener->player)
     {
         src.use_3d = false;
         return true;

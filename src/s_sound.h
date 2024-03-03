@@ -80,9 +80,9 @@ void S_SetSfxVolume(int volume);
 
 // machine-independent sound params
 extern int numChannels;
-extern int default_numChannels;  // killough 10/98
+extern int default_numChannels; // killough 10/98
 
-//jff 3/17/98 holds last IDMUS number, or -1
+// jff 3/17/98 holds last IDMUS number, or -1
 extern int idmusnum;
 
 #endif

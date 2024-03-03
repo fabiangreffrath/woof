@@ -32,13 +32,11 @@ struct patch_s;
 // VIDEO
 //
 
-#define CENTERY     (SCREENHEIGHT/2)
-
 extern int v_lightest_color, v_darkest_color;
 
-//jff 2/16/98 palette color ranges for translation
-//jff 2/18/98 conversion to palette lookups for speed
-//jff 4/24/98 now pointers to lumps loaded 
+// jff 2/16/98 palette color ranges for translation
+// jff 2/18/98 conversion to palette lookups for speed
+// jff 4/24/98 now pointers to lumps loaded
 extern byte *cr_brick;
 extern byte *cr_tan;
 extern byte *cr_gray;
@@ -65,29 +63,30 @@ extern byte *red2col[];
 // symbolic indices into color translation table pointer array
 typedef enum
 {
-  CR_BRICK,   //0
-  CR_TAN,     //1
-  CR_GRAY,    //2
-  CR_GREEN,   //3
-  CR_BROWN,   //4
-  CR_GOLD,    //5
-  CR_RED,     //6
-  CR_BLUE1,   //7
-  CR_ORANGE,  //8
-  CR_YELLOW,  //9
-  CR_BLUE2,   //10
-  CR_BLACK,   //11
-  CR_PURPLE,  //12
-  CR_WHITE,   //13
-  CR_NONE,    //14 // [FG] dummy
-  CR_BRIGHT,  //15
-  CR_LIMIT    //16 //jff 2/27/98 added for range check
+    CR_BRICK,  // 0
+    CR_TAN,    // 1
+    CR_GRAY,   // 2
+    CR_GREEN,  // 3
+    CR_BROWN,  // 4
+    CR_GOLD,   // 5
+    CR_RED,    // 6
+    CR_BLUE1,  // 7
+    CR_ORANGE, // 8
+    CR_YELLOW, // 9
+    CR_BLUE2,  // 10
+    CR_BLACK,  // 11
+    CR_PURPLE, // 12
+    CR_WHITE,  // 13
+    CR_NONE,   // 14 // [FG] dummy
+    CR_BRIGHT, // 15
+    CR_LIMIT   // 16 //jff 2/27/98 added for range check
 } crange_idx_e;
-//jff 1/16/98 end palette color range additions
+
+// jff 1/16/98 end palette color range additions
 
 extern pixel_t *I_VideoBuffer;
 
-//jff 4/24/98 loads color translation lumps
+// jff 4/24/98 loads color translation lumps
 void V_InitColorTranslation(void);
 
 typedef struct
@@ -95,8 +94,8 @@ typedef struct
     int width;
     int height;
     int pitch;
-    int unscaledw;  // unscaled width with correction for widecreen
-    int deltaw;     // widescreen delta
+    int unscaledw; // unscaled width with correction for widecreen
+    int deltaw;    // widescreen delta
 
     fixed_t xscale; // x-axis scaling multiplier
     fixed_t yscale; // y-axis scaling multiplier
@@ -127,33 +126,33 @@ typedef struct
 } vrect_t;
 
 void V_ScaleRect(vrect_t *rect);
-int  V_ScaleX(int x);
-int  V_ScaleY(int y);
+int V_ScaleX(int x);
+int V_ScaleY(int y);
 
 // Allocates buffer screens, call before R_Init.
-void V_Init (void);
+void V_Init(void);
 
 void V_UseBuffer(pixel_t *buffer);
 
 void V_RestoreBuffer(void);
 
-void V_CopyRect(int srcx, int srcy, pixel_t *source,
-                int width, int height,
+void V_CopyRect(int srcx, int srcy, pixel_t *source, int width, int height,
                 int destx, int desty);
 
 // killough 11/98: Consolidated V_DrawPatch and V_DrawPatchFlipped
 
 void V_DrawPatchGeneral(int x, int y, struct patch_s *patch, boolean flipped);
 
-#define V_DrawPatch(x, y, p)        V_DrawPatchGeneral(x, y, p, false)
+#define V_DrawPatch(x, y, p) V_DrawPatchGeneral(x, y, p, false)
 
 #define V_DrawPatchFlipped(x, y, p) V_DrawPatchGeneral(x, y, p, true)
 
-#define V_DrawPatchDirect V_DrawPatch       /* killough 5/2/98 */
+#define V_DrawPatchDirect V_DrawPatch /* killough 5/2/98 */
 
 void V_DrawPatchTranslated(int x, int y, struct patch_s *patch, byte *outr);
 
-void V_DrawPatchTRTR(int x, int y, struct patch_s *patch, byte *outr1, byte *outr2);
+void V_DrawPatchTRTR(int x, int y, struct patch_s *patch, byte *outr1,
+                     byte *outr2);
 
 void V_DrawPatchFullScreen(struct patch_s *patch);
 
@@ -215,4 +214,3 @@ int V_BloodColor(int blood);
 //
 //
 //----------------------------------------------------------------------------
-

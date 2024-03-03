@@ -15,22 +15,22 @@
 //      Compatibility wrappers from Chocolate Doom
 //
 
+#include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <errno.h>
 
 #ifdef _WIN32
-  #define WIN32_LEAN_AND_MEAN
-  #include <windows.h>
-  #include <io.h>
-  #include <direct.h>
+#  define WIN32_LEAN_AND_MEAN
+#  include <direct.h>
+#  include <io.h>
+#  include <windows.h>
 #else
-  #include <fcntl.h>
-  #include <unistd.h>
+#  include <fcntl.h>
+#  include <unistd.h>
 #endif
 
-#include <sys/types.h>
 #include <sys/stat.h>
+#include <sys/types.h>
 
 #include "i_printf.h"
 #include "i_system.h"
@@ -48,7 +48,8 @@ static wchar_t *ConvertMultiByteToWide(const char *str, UINT code_page)
     if (!wlen)
     {
         errno = EINVAL;
-        I_Printf(VB_WARNING, "Warning: Failed to convert path to wide encoding");
+        I_Printf(VB_WARNING,
+                 "Warning: Failed to convert path to wide encoding");
         return NULL;
     }
 
@@ -63,7 +64,8 @@ static wchar_t *ConvertMultiByteToWide(const char *str, UINT code_page)
     if (MultiByteToWideChar(code_page, 0, str, -1, wstr, wlen) == 0)
     {
         errno = EINVAL;
-        I_Printf(VB_WARNING, "Warning: Failed to convert path to wide encoding");
+        I_Printf(VB_WARNING,
+                 "Warning: Failed to convert path to wide encoding");
         free(wstr);
         return NULL;
     }
@@ -81,7 +83,8 @@ static char *ConvertWideToMultiByte(const wchar_t *wstr, UINT code_page)
     if (!len)
     {
         errno = EINVAL;
-        I_Printf(VB_WARNING, "Warning: Failed to convert path to multi byte encoding");
+        I_Printf(VB_WARNING,
+                 "Warning: Failed to convert path to multi byte encoding");
         return NULL;
     }
 
@@ -96,7 +99,8 @@ static char *ConvertWideToMultiByte(const wchar_t *wstr, UINT code_page)
     if (WideCharToMultiByte(code_page, 0, wstr, -1, str, len, NULL, NULL) == 0)
     {
         errno = EINVAL;
-        I_Printf(VB_WARNING, "Warning: Failed to convert path to multi byte encoding");
+        I_Printf(VB_WARNING,
+                 "Warning: Failed to convert path to multi byte encoding");
         free(str);
         return NULL;
     }
@@ -171,7 +175,7 @@ char *M_ConvertUtf8ToSysNativeMB(const char *str)
 #endif
 }
 
-FILE* M_fopen(const char *filename, const char *mode)
+FILE *M_fopen(const char *filename, const char *mode)
 {
 #ifdef _WIN32
     FILE *file;
@@ -380,7 +384,8 @@ void M_MakeDirectory(const char *path)
 }
 
 #ifdef _WIN32
-typedef struct {
+typedef struct
+{
     char *var;
     const char *name;
 } env_var_t;
@@ -398,7 +403,9 @@ char *M_getenv(const char *name)
     for (i = 0; i < array_size(env_vars); ++i)
     {
         if (!strcasecmp(name, env_vars[i].name))
-           return env_vars[i].var;
+        {
+            return env_vars[i].var;
+        }
     }
 
     wname = ConvertUtf8ToWide(name);

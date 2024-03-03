@@ -15,7 +15,7 @@
 //
 //  * The client waiting screen when we are waiting for the server to
 //    start the game.
-//   
+//
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -64,7 +64,8 @@ static void OpenWaitDialog(void)
 {
     txt_window_action_t *cancel;
 
-    char *title = M_StringJoin(PROJECT_STRING, ": Waiting for game start...", NULL);
+    char *title =
+        M_StringJoin(PROJECT_STRING, ": Waiting for game start...", NULL);
 
     TXT_SetDesktopTitle(title);
 
@@ -79,7 +80,7 @@ static void OpenWaitDialog(void)
 
     TXT_SetWindowAction(window, TXT_HORIZ_LEFT, cancel);
     TXT_SetWindowPosition(window, TXT_HORIZ_CENTER, TXT_VERT_BOTTOM,
-                                  TXT_SCREEN_W / 2, TXT_SCREEN_H - 9);
+                          TXT_SCREEN_W / 2, TXT_SCREEN_H - 9);
 
     old_max_players = 0;
 }
@@ -143,7 +144,7 @@ static void UpdateGUI(void)
     {
         txt_color_t color = TXT_COLOR_BRIGHT_WHITE;
 
-        if ((signed) i == net_client_wait_data.consoleplayer)
+        if ((signed)i == net_client_wait_data.consoleplayer)
         {
             color = TXT_COLOR_YELLOW;
         }
@@ -155,8 +156,7 @@ static void UpdateGUI(void)
         {
             TXT_SetLabel(player_labels[i],
                          net_client_wait_data.player_names[i]);
-            TXT_SetLabel(ip_labels[i],
-                         net_client_wait_data.player_addrs[i]);
+            TXT_SetLabel(ip_labels[i], net_client_wait_data.player_addrs[i]);
         }
         else
         {
@@ -202,7 +202,7 @@ static void BuildMasterStatusWindow(void)
 
     TXT_LowerWindow(master_window);
     TXT_SetWindowPosition(master_window, TXT_HORIZ_CENTER, TXT_VERT_CENTER,
-                                         TXT_SCREEN_W / 2, TXT_SCREEN_H - 4);
+                          TXT_SCREEN_W / 2, TXT_SCREEN_H - 4);
     TXT_SetWindowAction(master_window, TXT_HORIZ_LEFT, NULL);
     TXT_SetWindowAction(master_window, TXT_HORIZ_CENTER, NULL);
     TXT_SetWindowAction(master_window, TXT_HORIZ_RIGHT, NULL);
@@ -224,13 +224,15 @@ static void CheckMasterStatus(void)
 
     if (added)
     {
-        TXT_SetLabel(master_msg_label,
+        TXT_SetLabel(
+            master_msg_label,
             "Your server is now registered with the global master server.\n"
             "Other players can find your server online.");
     }
     else
     {
-        TXT_SetLabel(master_msg_label,
+        TXT_SetLabel(
+            master_msg_label,
             "Failed to register with the master server. Your server is not\n"
             "publicly accessible. You may need to reconfigure your Internet\n"
             "router to add a port forward for UDP port 2342. Look up\n"
@@ -260,12 +262,11 @@ static void CheckAutoLaunch(void)
 {
     int nodes;
 
-    if (net_client_received_wait_data
-     && net_client_wait_data.is_controller
-     && expected_nodes > 0)
+    if (net_client_received_wait_data && net_client_wait_data.is_controller
+        && expected_nodes > 0)
     {
-        nodes = net_client_wait_data.num_players
-              + net_client_wait_data.num_drones;
+        nodes =
+            net_client_wait_data.num_players + net_client_wait_data.num_drones;
 
         if (nodes >= expected_nodes)
         {

@@ -80,7 +80,7 @@ static void hsv_to_rgb(vect *hsv, vect *rgb)
 
         if (h >= 360.0)
         {
-            h  -= 360.0;
+            h -= 360.0;
         }
         h /= 60.0;
         i = (int)floor(h);
@@ -90,32 +90,32 @@ static void hsv_to_rgb(vect *hsv, vect *rgb)
         t = v * (1.0 - (s * (1.0 - f)));
         switch (i)
         {
-            case 0 :
+            case 0:
                 rgb->x = v;
                 rgb->y = t;
                 rgb->z = p;
                 break;
-            case 1 :
+            case 1:
                 rgb->x = q;
                 rgb->y = v;
                 rgb->z = p;
                 break;
-            case 2 :
+            case 2:
                 rgb->x = p;
                 rgb->y = v;
                 rgb->z = t;
                 break;
-            case 3 :
+            case 3:
                 rgb->x = p;
                 rgb->y = q;
                 rgb->z = v;
                 break;
-            case 4 :
+            case 4:
                 rgb->x = t;
                 rgb->y = p;
                 rgb->z = v;
                 break;
-            case 5 :
+            case 5:
                 rgb->x = v;
                 rgb->y = p;
                 rgb->z = q;
@@ -140,7 +140,7 @@ static void rgb_to_hsv(vect *rgb, vect *hsv)
     cmin = (g < cmin ? g : cmin);
     cmax = (b > cmax ? b : cmax);
     cmin = (b < cmin ? b : cmin);
-    v = cmax;           /* value */
+    v = cmax; /* value */
     if (cmax > CTOLERANCE)
     {
         s = (cmax - cmin) / cmax;
@@ -159,7 +159,7 @@ static void rgb_to_hsv(vect *rgb, vect *hsv)
         double cdelta;
         double rc, gc, bc;
 
-        cdelta = cmax-cmin;
+        cdelta = cmax - cmin;
         rc = (cmax - r) / cdelta;
         gc = (cmax - g) / cdelta;
         bc = (cmax - b) / cdelta;
@@ -186,7 +186,7 @@ static void rgb_to_hsv(vect *rgb, vect *hsv)
     hsv->z = v;
 }
 
-byte V_Colorize (byte *playpal, int cr, byte source)
+byte V_Colorize(byte *playpal, int cr, byte source)
 {
     vect rgb, hsv;
 
@@ -278,7 +278,7 @@ byte V_Colorize (byte *playpal, int cr, byte source)
         {
             hsv.x = 300.0 / 360.0;
         }
-     }
+    }
 
     hsv_to_rgb(&hsv, &rgb);
 
@@ -286,5 +286,5 @@ byte V_Colorize (byte *playpal, int cr, byte source)
     rgb.y *= 255.0;
     rgb.z *= 255.0;
 
-    return I_GetPaletteIndex(playpal, (int) rgb.x, (int) rgb.y, (int) rgb.z);
+    return I_GetPaletteIndex(playpal, (int)rgb.x, (int)rgb.y, (int)rgb.z);
 }

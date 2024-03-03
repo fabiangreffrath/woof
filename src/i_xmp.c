@@ -14,12 +14,11 @@
 // DESCRIPTION:
 //
 
-#include <xmp.h>
-#include <stdio.h>
+#include "xmp.h"
 
 #include "doomtype.h"
-#include "i_printf.h"
 #include "i_oalstream.h"
+#include "i_printf.h"
 #include "i_sound.h"
 
 static xmp_context context;
@@ -76,7 +75,9 @@ static boolean I_XMP_OpenStream(void *data, ALsizei size, ALenum *format,
                                 ALsizei *freq, ALsizei *frame_size)
 {
     if (!context)
+    {
         return false;
+    }
 
     int err = 0;
 
@@ -111,7 +112,9 @@ static int I_XMP_FillStream(byte *buffer, int buffer_samples)
 static void I_XMP_PlayStream(boolean looping)
 {
     if (!context)
+    {
         return;
+    }
 
     stream_looping = looping;
     xmp_start_player(context, SND_SAMPLERATE, 0);
@@ -120,7 +123,9 @@ static void I_XMP_PlayStream(boolean looping)
 static void I_XMP_CloseStream(void)
 {
     if (!context)
+    {
         return;
+    }
 
     xmp_stop_module(context);
     xmp_end_player(context);
@@ -130,7 +135,9 @@ static void I_XMP_CloseStream(void)
 static void I_XMP_ShutdownStream(void)
 {
     if (!context)
+    {
         return;
+    }
 
     xmp_free_context(context);
     context = NULL;

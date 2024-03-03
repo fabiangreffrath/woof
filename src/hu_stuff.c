@@ -2146,7 +2146,7 @@ static boolean HU_AddHUDAlignment (char *name, int hud, char *alignstr)
 
 static void HU_ParseHUD (void)
 {
-  u_scanner_t scanner, *s;
+  u_scanner_t *s;
   int hud = -1;
   int lumpnum;
   const char *data;
@@ -2160,8 +2160,7 @@ static void HU_ParseHUD (void)
   data = W_CacheLumpNum(lumpnum, PU_CACHE);
   length = W_LumpLength(lumpnum);
 
-  scanner = U_ScanOpen(data, length, "WOOFHUD");
-  s = &scanner;
+  s = U_ScanOpen(data, length, "WOOFHUD");
 
   while (U_HasTokensLeft(s))
   {
