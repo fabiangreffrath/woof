@@ -57,36 +57,6 @@ static void wipe_shittyColMajorXform(byte *array, int width, int height)
   Z_Free(dest);
 }
 
-static int wipe_initColorXForm(int width, int height, int ticks)
-{
-  V_PutBlock(0, 0, width, height, wipe_scr_start);
-  return 0;
-}
-
-// killough 3/5/98: reformatted and cleaned up
-static int wipe_doColorXForm(int width, int height, int ticks)
-{
-  boolean unchanged = true;
-  byte *w   = wipe_scr;
-  byte *e   = wipe_scr_end;
-  byte *end = wipe_scr+width*height;
-  for (;w != end; w++, e++)
-    if (*w != *e)
-      {
-        int newval;
-        unchanged = false;
-        *w = *w > *e ?
-          (newval = *w - ticks) < *e ? *e : newval :
-          (newval = *w + ticks) > *e ? *e : newval ;
-      }
-  return unchanged;
-}
-
-static int wipe_exitColorXForm(int width, int height, int ticks)
-{
-  return 0;
-}
-
 static int *col_y;
 
 static int wipe_initMelt(int width, int height, int ticks)
@@ -195,17 +165,8 @@ int wipe_EndScreen(int x, int y, int width, int height)
   return 0;
 }
 
-static int (*const wipes[])(int, int, int) = {
-  wipe_initColorXForm,
-  wipe_doColorXForm,
-  wipe_exitColorXForm,
-  wipe_initMelt,
-  wipe_doMelt,
-  wipe_exitMelt
-};
-
 // killough 3/5/98: reformatted and cleaned up
-int wipe_ScreenWipe(int wipeno, int x, int y, int width, int height, int ticks)
+int wipe_ScreenWipe(int x, int y, int width, int height, int ticks)
 {
   static boolean go;                               // when zero, stop the wipe
 
@@ -216,11 +177,11 @@ int wipe_ScreenWipe(int wipeno, int x, int y, int width, int height, int ticks)
     {
       go = 1;
       wipe_scr = I_VideoBuffer;
-      wipes[wipeno*3](width, height, ticks);
+      wipe_initMelt(width, height, ticks);
     }
-  if (wipes[wipeno*3+1](width, height, ticks))     // final stuff
+  if (wipe_doMelt(width, height, ticks))     // final stuff
     {
-      wipes[wipeno*3+2](width, height, ticks);
+      wipe_exitMelt(width, height, ticks);
       go = 0;
     }
   return !go;
