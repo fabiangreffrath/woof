@@ -253,10 +253,12 @@ static void I_OAL_SetMusicVolume(int volume)
     {
         gain *= (ALfloat)opl_gain / 100.0f;
     }
+#if defined(HAVE_FLUIDSYNTH)
     else if (active_module == &stream_fl_module)
     {
         gain *= (ALfloat)mus_gain / 100.0f;
     }
+#endif
 
     alSourcef(player.source, AL_GAIN, gain);
 }
