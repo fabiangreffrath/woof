@@ -626,7 +626,7 @@ void R_ExecuteSetViewSize (void)
 
       for (j=0 ; j<MAXLIGHTSCALE ; j++)
         {                                       // killough 11/98:
-          int t, level = startmap - j*NONWIDEWIDTH/scaledviewwidth_nonwide/DISTMAP;
+          int t, level = startmap - j / DISTMAP;
 
           if (level < 0)
             level = 0;
