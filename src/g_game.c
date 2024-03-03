@@ -579,7 +579,7 @@ void G_PrepTiccmd(void)
 
 void G_BuildTiccmd(ticcmd_t* cmd)
 {
-  const boolean strafe = M_InputGameActive(input_strafe);
+  const boolean strafe = M_InputGameActive(input_strafe) && !basecmd.angleturn;
   const boolean turnleft = M_InputGameActive(input_turnleft);
   const boolean turnright = M_InputGameActive(input_turnright);
   // [FG] speed key inverts autorun
