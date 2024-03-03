@@ -615,10 +615,13 @@ void G_BuildTiccmd(ticcmd_t* cmd)
 
     if (strafe)
     {
-      if (turnright)
-        side += sidemove[speed];
-      if (turnleft)
-        side -= sidemove[speed];
+      if (!cmd->angleturn)
+      {
+        if (turnright)
+          side += sidemove[speed];
+        if (turnleft)
+          side -= sidemove[speed];
+      }
     }
     else
     {
@@ -649,7 +652,7 @@ void G_BuildTiccmd(ticcmd_t* cmd)
 
   if (I_UseController())
   {
-    if (axes[AXIS_TURN] && strafe)
+    if (axes[AXIS_TURN] && strafe && !cmd->angleturn)
     {
       side += CalcControllerSideTurn(speed);
     }
@@ -667,7 +670,7 @@ void G_BuildTiccmd(ticcmd_t* cmd)
 
   // Mouse
 
-  if (mousex && strafe)
+  if (mousex && strafe && !cmd->angleturn)
   {
     const double mouseside = CalcMouseSide(mousex);
     side += CarryMouseSide(mouseside);
