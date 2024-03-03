@@ -1052,11 +1052,28 @@ static boolean G_StrictModeSkipEvent(event_t *ev)
 
     case ev_joyb_down:
     case ev_joyb_up:
-    case ev_joystick:
-        if (first_event && (ev->data1 || ev->data2 || ev->data3 || ev->data4))
+        if (first_event)
         {
           first_event = false;
           enable_controller = true;
+        }
+        return !enable_controller;
+
+    case ev_joystick:
+        if (first_event)
+        {
+          *axes_data[AXIS_LEFTX] = ev->data1;
+          *axes_data[AXIS_LEFTY] = ev->data2;
+          *axes_data[AXIS_RIGHTX] = ev->data3;
+          *axes_data[AXIS_RIGHTY] = ev->data4;
+          I_CalcControllerAxes();
+          if (axes[AXIS_STRAFE] || axes[AXIS_FORWARD] || axes[AXIS_TURN] ||
+              axes[AXIS_LOOK])
+          {
+            first_event = false;
+            enable_controller = true;
+          }
+          return true; // Already "ate" the event above.
         }
         return !enable_controller;
 
