@@ -2152,7 +2152,9 @@ static void M_DrawTabs(void)
     for (int i = 0; tabs[i].text; ++i)
     {
         if (i)
-          width += M_TAB_OFFSET;
+        {
+            width += M_TAB_OFFSET;
+        }
 
         mrect_t *rect = &tabs[i].rect;
         if (!rect->w)
@@ -2171,7 +2173,9 @@ static void M_DrawTabs(void)
         mrect_t *rect = &tabs[i].rect;
 
         if (i)
-          x += M_TAB_OFFSET;
+        {
+            x += M_TAB_OFFSET;
+        }
 
         menu_buffer[0] = '\0';
         strcpy(menu_buffer, tabs[i].text);
