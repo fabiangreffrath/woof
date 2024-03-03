@@ -579,7 +579,7 @@ void G_PrepTiccmd(void)
 
 void G_BuildTiccmd(ticcmd_t* cmd)
 {
-  const boolean strafe = M_InputGameActive(input_strafe) && !basecmd.angleturn;
+  const boolean strafe = M_InputGameActive(input_strafe);
   const boolean turnleft = M_InputGameActive(input_turnleft);
   const boolean turnright = M_InputGameActive(input_turnright);
   // [FG] speed key inverts autorun
@@ -615,10 +615,13 @@ void G_BuildTiccmd(ticcmd_t* cmd)
 
     if (strafe)
     {
-      if (turnright)
-        side += sidemove[speed];
-      if (turnleft)
-        side -= sidemove[speed];
+      if (!cmd->angleturn)
+      {
+        if (turnright)
+          side += sidemove[speed];
+        if (turnleft)
+          side -= sidemove[speed];
+      }
     }
     else
     {
@@ -649,7 +652,7 @@ void G_BuildTiccmd(ticcmd_t* cmd)
 
   if (I_UseController())
   {
-    if (axes[AXIS_TURN] && strafe)
+    if (axes[AXIS_TURN] && strafe && !cmd->angleturn)
     {
       side += CalcControllerSideTurn(speed);
     }
@@ -667,7 +670,7 @@ void G_BuildTiccmd(ticcmd_t* cmd)
 
   // Mouse
 
-  if (mousex && strafe)
+  if (mousex && strafe && !cmd->angleturn)
   {
     const double mouseside = CalcMouseSide(mousex);
     side += CarryMouseSide(mouseside);
