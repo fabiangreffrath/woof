@@ -192,19 +192,19 @@ void V_InitColorTranslation(void)
         cr_bright[i] = V_Colorize(playpal, CR_BRIGHT, (byte)i);
     }
 
-  v_lightest_color = I_GetPaletteIndex(playpal, 0xFF, 0xFF, 0xFF);
-  v_darkest_color  = I_GetPaletteIndex(playpal, 0x00, 0x00, 0x00);
+    v_lightest_color = I_GetPaletteIndex(playpal, 0xFF, 0xFF, 0xFF);
+    v_darkest_color  = I_GetPaletteIndex(playpal, 0x00, 0x00, 0x00);
 
-  byte *palsrc = playpal;
-  for (int i = 0; i < 256; ++i)
-  {
-    double red   = *palsrc++ / 256.0;
-    double green = *palsrc++ / 256.0;
-    double blue  = *palsrc++ / 256.0;
+    byte *palsrc = playpal;
+    for (int i = 0; i < 256; ++i)
+    {
+        double red   = *palsrc++ / 256.0;
+        double green = *palsrc++ / 256.0;
+        double blue  = *palsrc++ / 256.0;
 
-    int gray = (red * 0.299 + green * 0.587 + blue * 0.144) * 255;
-    invul_gray[i] = I_GetPaletteIndex(playpal, gray, gray, gray);
-  }
+        int gray = (red * 0.299 + green * 0.587 + blue * 0.144) * 255;
+        invul_gray[i] = I_GetPaletteIndex(playpal, gray, gray, gray);
+    }
 }
 
 void WriteGeneratedLumpWad(const char *filename)
