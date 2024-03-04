@@ -31,8 +31,9 @@
 
 int forceFlipPan;
 
-static boolean I_MBF_AdjustSoundParams(const mobj_t *listener, const mobj_t *source,
-                                       int chanvol, int *vol, int *sep, int *pri)
+static boolean I_MBF_AdjustSoundParams(const mobj_t *listener,
+                                       const mobj_t *source, int chanvol,
+                                       int *vol, int *sep, int *pri)
 {
     fixed_t adx, ady, dist;
     angle_t angle;
@@ -41,18 +42,26 @@ static boolean I_MBF_AdjustSoundParams(const mobj_t *listener, const mobj_t *sou
     *vol = (snd_SfxVolume * chanvol) / 15;
 
     if (*vol < 1)
+    {
         return false;
+    }
     else if (*vol > 127)
+    {
         *vol = 127;
+    }
 
     *sep = NORM_SEP;
 
     if (!source || source == players[displayplayer].mo)
+    {
         return true;
+    }
 
     // haleyjd 08/12/04: we cannot adjust a sound for a NULL listener.
     if (!listener)
+    {
         return true;
+    }
 
     // calculate the distance to sound origin
     //  and clip it if necessary
@@ -64,25 +73,35 @@ static boolean I_MBF_AdjustSoundParams(const mobj_t *listener, const mobj_t *sou
     ady = abs((listener->y >> FRACBITS) - (source->y >> FRACBITS));
 
     if (ady > adx)
+    {
         dist = adx, adx = ady, ady = dist;
+    }
 
-    dist = adx ? FixedDiv(adx, finesine[(tantoangle[FixedDiv(ady, adx) >> DBITS]
-                                         + ANG90) >> ANGLETOFINESHIFT]) : 0;
+    dist = adx ? FixedDiv(
+               adx, finesine[(tantoangle[FixedDiv(ady, adx) >> DBITS] + ANG90)
+                             >> ANGLETOFINESHIFT])
+               : 0;
 
-    if (!dist)  // killough 11/98: handle zero-distance as special case
+    if (!dist) // killough 11/98: handle zero-distance as special case
+    {
         return true;
+    }
 
     if (dist > S_CLIPPING_DIST >> FRACBITS)
+    {
         return false;
+    }
 
-    if (source->x != players[displayplayer].mo->x ||
-        source->y != players[displayplayer].mo->y)
+    if (source->x != players[displayplayer].mo->x
+        || source->y != players[displayplayer].mo->y)
     {
         // angle of source to listener
         angle = R_PointToAngle2(listener->x, listener->y, source->x, source->y);
 
         if (angle <= listener->angle)
+        {
             angle += 0xffffffff;
+        }
         angle -= listener->angle;
         angle >>= ANGLETOFINESHIFT;
 
@@ -92,13 +111,17 @@ static boolean I_MBF_AdjustSoundParams(const mobj_t *listener, const mobj_t *sou
 
     // volume calculation
     if (dist > S_CLOSE_DIST >> FRACBITS)
+    {
         *vol = *vol * ((S_CLIPPING_DIST >> FRACBITS) - dist) / S_ATTENUATOR;
+    }
 
     // haleyjd 09/27/06: decrease priority with volume attenuation
     *pri = *pri + (127 - *vol);
 
     if (*pri > 255) // cap to 255
+    {
         *pri = 255;
+    }
 
     return (*vol > 0);
 }

@@ -664,6 +664,13 @@ default_t defaults[] = {
   },
 
   {
+    "checksight12",
+    (config_t *) &checksight12, NULL,
+    {0}, {0,1}, number, ss_comp, wad_no,
+    "1 to enable fast blockmap-based line-of-sight calculation"
+  },
+
+  {
     "direct_vertical_aiming",
     (config_t *) &default_direct_vertical_aiming, (config_t *) &direct_vertical_aiming,
     {0}, {0,1}, number, ss_comp, wad_no,

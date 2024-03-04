@@ -24,6 +24,8 @@
 #include "i_sound.h"
 
 #include "doomstat.h"
+#include "doomtype.h"
+#include "i_oalstream.h"
 #include "i_printf.h"
 #include "i_system.h"
 #include "m_array.h"
@@ -44,47 +46,42 @@ static const sound_module_t *sound_modules[] =
 
 static const sound_module_t *sound_module;
 
-// Music modules
-extern music_module_t music_win_module;
-extern music_module_t music_mac_module;
-extern music_module_t music_fl_module;
-extern music_module_t music_oal_module;
-extern music_module_t music_opl_module;
-
-typedef struct
-{
-    music_module_t *module;
-    int num_devices;
-} music_modules_t;
-
-static music_modules_t music_modules[] =
-{
+static music_module_t *native_midi_module =
 #if defined(_WIN32)
-    { &music_win_module, 1 },
+    &music_win_module;
 #elif defined(__APPLE__)
-    { &music_mac_module, 1 },
+    &music_mac_module;
+#else
+    NULL;
 #endif
+
+static boolean native_midi;
+
+static stream_module_t *stream_modules[] =
+{
 #if defined(HAVE_FLUIDSYNTH)
-    { &music_fl_module, 1 },
+    &stream_fl_module,
 #endif
-    { &music_opl_module, 1 },
+    &stream_opl_module,
 };
 
-static music_module_t *midi_player_module = NULL;
+stream_module_t *midi_stream_module = NULL;
+
 static music_module_t *active_module = NULL;
 
 // haleyjd: safety variables to keep changes to *_card from making
 // these routines think that sound has been initialized when it hasn't
 static boolean snd_init = false;
 
-typedef struct {
-  // SFX id of the playing sound effect.
-  // Used to catch duplicates (like chainsaw).
-  sfxinfo_t *sfx;
+typedef struct
+{
+    // SFX id of the playing sound effect.
+    // Used to catch duplicates (like chainsaw).
+    sfxinfo_t *sfx;
 
-  boolean enabled;
-  // haleyjd 06/16/08: unique id number
-  int idnum;
+    boolean enabled;
+    // haleyjd 06/16/08: unique id number
+    int idnum;
 } channel_info_t;
 
 channel_info_t channelinfo[MAX_CHANNELS];
@@ -95,23 +92,25 @@ float steptable[256];
 //
 // StopChannel
 //
-// cph 
-// Stops a sound, unlocks the data 
+// cph
+// Stops a sound, unlocks the data
 //
 static void StopChannel(int channel)
 {
 #ifdef RANGECHECK
-  // haleyjd 02/18/05: bounds checking
-  if (channel < 0 || channel >= MAX_CHANNELS)
-    return;
+    // haleyjd 02/18/05: bounds checking
+    if (channel < 0 || channel >= MAX_CHANNELS)
+    {
+        return;
+    }
 #endif
 
-  if (channelinfo[channel].enabled)
-  {
-    sound_module->StopSound(channel);
+    if (channelinfo[channel].enabled)
+    {
+        sound_module->StopSound(channel);
 
-    channelinfo[channel].enabled = false;
-  }
+        channelinfo[channel].enabled = false;
+    }
 }
 
 //
@@ -123,10 +122,12 @@ static void StopChannel(int channel)
 boolean I_AdjustSoundParams(const mobj_t *listener, const mobj_t *source,
                             int chanvol, int *vol, int *sep, int *pri)
 {
-  if (!snd_init)
-    return false;
+    if (!snd_init)
+    {
+        return false;
+    }
 
-  return sound_module->AdjustSoundParams(listener, source, chanvol, vol, sep, pri);
+    return sound_module->AdjustSoundParams(listener, source, chanvol, vol, sep, pri);
 }
 
 //
@@ -137,21 +138,27 @@ boolean I_AdjustSoundParams(const mobj_t *listener, const mobj_t *source,
 //
 void I_UpdateSoundParams(int channel, int volume, int separation)
 {
-  if (!snd_init)
-    return;
+    if (!snd_init)
+    {
+        return;
+    }
 
 #ifdef RANGECHECK
-  if (channel < 0 || channel >= MAX_CHANNELS)
-    I_Error("I_UpdateSoundParams: channel out of range");
+    if (channel < 0 || channel >= MAX_CHANNELS)
+    {
+        I_Error("I_UpdateSoundParams: channel out of range");
+    }
 #endif
 
-  sound_module->UpdateSoundParams(channel, volume, separation);
+    sound_module->UpdateSoundParams(channel, volume, separation);
 }
 
 void I_UpdateListenerParams(const mobj_t *listener)
 {
     if (!snd_init || !sound_module->UpdateListenerParams)
+    {
         return;
+    }
 
     sound_module->UpdateListenerParams(listener);
 }
@@ -159,7 +166,9 @@ void I_UpdateListenerParams(const mobj_t *listener)
 void I_DeferSoundUpdates(void)
 {
     if (!snd_init)
+    {
         return;
+    }
 
     sound_module->DeferUpdates();
 }
@@ -167,7 +176,9 @@ void I_DeferSoundUpdates(void)
 void I_ProcessSoundUpdates(void)
 {
     if (!snd_init)
+    {
         return;
+    }
 
     sound_module->ProcessUpdates();
 }
@@ -180,24 +191,25 @@ int pitch_bend_range;
 //
 // Init internal lookups (raw data, mixing buffer, channels).
 // This function sets up internal lookups used during
-//  the mixing process. 
+//  the mixing process.
 //
 void I_SetChannels(void)
 {
-  int i;
-  const double base = pitch_bend_range / 100.0;
+    int i;
+    const double base = pitch_bend_range / 100.0;
 
-  // Okay, reset internal mixing channels to zero.
-  for (i = 0; i < MAX_CHANNELS; i++)
-  {
-    memset(&channelinfo[i], 0, sizeof(channel_info_t));
-  }
+    // Okay, reset internal mixing channels to zero.
+    for (i = 0; i < MAX_CHANNELS; i++)
+    {
+        memset(&channelinfo[i], 0, sizeof(channel_info_t));
+    }
 
-  // This table provides step widths for pitch parameters.
-  for (i = 0; i < arrlen(steptable); i++)
-  {
-    steptable[i] = pow(base, (double)(2 * (i - NORM_PITCH)) / NORM_PITCH); // [FG] variable pitch bend range
-  }
+    // This table provides step widths for pitch parameters.
+    for (i = 0; i < arrlen(steptable); i++)
+    {
+        // [FG] variable pitch bend range
+        steptable[i] = pow(base, (double)(2 * (i - NORM_PITCH)) / NORM_PITCH);
+    }
 }
 
 //
@@ -205,13 +217,13 @@ void I_SetChannels(void)
 //
 void I_SetSfxVolume(int volume)
 {
-  // Identical to DOS.
-  // Basically, this should propagate
-  //  the menu/config file setting
-  //  to the state variable used in
-  //  the mixing.
+    // Identical to DOS.
+    // Basically, this should propagate
+    //  the menu/config file setting
+    //  to the state variable used in
+    //  the mixing.
 
-  snd_SfxVolume = volume;
+    snd_SfxVolume = volume;
 }
 
 // jff 1/21/98 moved music volume down into MUSIC API with the rest
@@ -224,19 +236,19 @@ void I_SetSfxVolume(int volume)
 //
 int I_GetSfxLumpNum(sfxinfo_t *sfx)
 {
-  if (sfx->lumpnum == -1)
-  {
-    char namebuf[16];
+    if (sfx->lumpnum == -1)
+    {
+        char namebuf[16];
 
-    memset(namebuf, 0, sizeof(namebuf));
+        memset(namebuf, 0, sizeof(namebuf));
 
-    strcpy(namebuf, "DS");
-    strcpy(namebuf+2, sfx->name);
+        strcpy(namebuf, "DS");
+        strcpy(namebuf + 2, sfx->name);
 
-    sfx->lumpnum = W_CheckNumForName(namebuf);
-  }
+        sfx->lumpnum = W_CheckNumForName(namebuf);
+    }
 
-  return sfx->lumpnum;
+    return sfx->lumpnum;
 }
 
 // Almost all of the sound code from this point on was
@@ -252,43 +264,51 @@ int I_GetSfxLumpNum(sfxinfo_t *sfx)
 //
 int I_StartSound(sfxinfo_t *sfx, int vol, int sep, int pitch)
 {
-  static unsigned int id = 0;
-  int channel;
+    static unsigned int id = 0;
+    int channel;
 
-  if (!snd_init)
-    return -1;
+    if (!snd_init)
+    {
+        return -1;
+    }
 
-  // haleyjd 06/03/06: look for an unused hardware channel
-  for (channel = 0; channel < MAX_CHANNELS; channel++)
-  {
-    if (channelinfo[channel].enabled == false)
-      break;
-  }
+    // haleyjd 06/03/06: look for an unused hardware channel
+    for (channel = 0; channel < MAX_CHANNELS; channel++)
+    {
+        if (channelinfo[channel].enabled == false)
+        {
+            break;
+        }
+    }
 
-  // all used? don't play the sound. It's preferable to miss a sound
-  // than it is to cut off one already playing, which sounds weird.
-  if (channel == MAX_CHANNELS)
-    return -1;
+    // all used? don't play the sound. It's preferable to miss a sound
+    // than it is to cut off one already playing, which sounds weird.
+    if (channel == MAX_CHANNELS)
+    {
+        return -1;
+    }
 
-  StopChannel(channel);
-
-  if (sound_module->CacheSound(sfx) == false)
-    return -1;
-
-  channelinfo[channel].sfx = sfx;
-  channelinfo[channel].enabled = true;
-  channelinfo[channel].idnum = id++; // give the sound a unique id
-
-  I_UpdateSoundParams(channel, vol, sep);
-
-  if (sound_module->StartSound(channel, sfx, pitch) == false)
-  {
-    I_Printf(VB_WARNING, "I_StartSound: Error playing sfx.");
     StopChannel(channel);
-    return -1;
-  }
 
-  return channel;
+    if (sound_module->CacheSound(sfx) == false)
+    {
+        return -1;
+    }
+
+    channelinfo[channel].sfx = sfx;
+    channelinfo[channel].enabled = true;
+    channelinfo[channel].idnum = id++; // give the sound a unique id
+
+    I_UpdateSoundParams(channel, vol, sep);
+
+    if (sound_module->StartSound(channel, sfx, pitch) == false)
+    {
+        I_Printf(VB_WARNING, "I_StartSound: Error playing sfx.");
+        StopChannel(channel);
+        return -1;
+    }
+
+    return channel;
 }
 
 //
@@ -299,15 +319,19 @@ int I_StartSound(sfxinfo_t *sfx, int vol, int sep, int pitch)
 //
 void I_StopSound(int channel)
 {
-  if (!snd_init)
-    return;
+    if (!snd_init)
+    {
+        return;
+    }
 
 #ifdef RANGECHECK
-  if (channel < 0 || channel >= MAX_CHANNELS)
-    I_Error("I_StopSound: channel out of range");
+    if (channel < 0 || channel >= MAX_CHANNELS)
+    {
+        I_Error("I_StopSound: channel out of range");
+    }
 #endif
 
-  StopChannel(channel);
+    StopChannel(channel);
 }
 
 //
@@ -317,15 +341,19 @@ void I_StopSound(int channel)
 //
 boolean I_SoundIsPlaying(int channel)
 {
-  if (!snd_init)
-    return false;
+    if (!snd_init)
+    {
+        return false;
+    }
 
 #ifdef RANGECHECK
-  if (channel < 0 || channel >= MAX_CHANNELS)
-    I_Error("I_SoundIsPlaying: channel out of range");
+    if (channel < 0 || channel >= MAX_CHANNELS)
+    {
+        I_Error("I_SoundIsPlaying: channel out of range");
+    }
 #endif
 
-  return sound_module->SoundIsPlaying(channel);
+    return sound_module->SoundIsPlaying(channel);
 }
 
 //
@@ -338,15 +366,19 @@ boolean I_SoundIsPlaying(int channel)
 //
 int I_SoundID(int channel)
 {
-  if (!snd_init)
-    return 0;
+    if (!snd_init)
+    {
+        return 0;
+    }
 
 #ifdef RANGECHECK
-  if (channel < 0 || channel >= MAX_CHANNELS)
-    I_Error("I_SoundID: channel out of range\n");
+    if (channel < 0 || channel >= MAX_CHANNELS)
+    {
+        I_Error("I_SoundID: channel out of range\n");
+    }
 #endif
 
-  return channelinfo[channel].idnum;
+    return channelinfo[channel].idnum;
 }
 
 //
@@ -368,20 +400,21 @@ void I_ShutdownSound(void)
 
 // [FG] add links for likely missing sounds
 
-struct {
-  const int from, to;
+struct
+{
+    const int from, to;
 } static const sfx_subst[] = {
-  {sfx_secret, sfx_itmbk},
-  {sfx_itmbk,  sfx_getpow},
-  {sfx_getpow, sfx_itemup},
-  {sfx_itemup, sfx_None},
+    {sfx_secret, sfx_itmbk },
+    {sfx_itmbk,  sfx_getpow},
+    {sfx_getpow, sfx_itemup},
+    {sfx_itemup, sfx_None  },
 
-  {sfx_splash, sfx_oof},
-  {sfx_ploosh, sfx_oof},
-  {sfx_lvsiz,  sfx_oof},
-  {sfx_splsml, sfx_None},
-  {sfx_plosml, sfx_None},
-  {sfx_lavsml, sfx_None},
+    {sfx_splash, sfx_oof   },
+    {sfx_ploosh, sfx_oof   },
+    {sfx_lvsiz,  sfx_oof   },
+    {sfx_splsml, sfx_None  },
+    {sfx_plosml, sfx_None  },
+    {sfx_lavsml, sfx_None  },
 };
 
 //
@@ -409,35 +442,37 @@ void I_InitSound(void)
 
     snd_init = true;
 
-    // [FG] precache all sound effects
-    if (!nosfxparm)
+    if (nosfxparm)
     {
-      int i;
+        return;
+    }
 
-      I_Printf(VB_INFO, " Precaching all sound effects... ");
-      for (i = 1; i < num_sfx; i++)
-      {
+    // [FG] precache all sound effects
+
+    I_Printf(VB_INFO, " Precaching all sound effects... ");
+    for (int i = 1; i < num_sfx; i++)
+    {
         // DEHEXTRA has turned S_sfx into a sparse array
         if (!S_sfx[i].name)
-          continue;
-
+        {
+            continue;
+        }
         sound_module->CacheSound(&S_sfx[i]);
-      }
-      I_Printf(VB_INFO, "done.");
+    }
+    I_Printf(VB_INFO, "done.");
 
-      // [FG] add links for likely missing sounds
-      for (i = 0; i < arrlen(sfx_subst); i++)
-      {
+    // [FG] add links for likely missing sounds
+    for (int i = 0; i < arrlen(sfx_subst); i++)
+    {
         sfxinfo_t *from = &S_sfx[sfx_subst[i].from],
-                    *to = &S_sfx[sfx_subst[i].to];
+                  *to = &S_sfx[sfx_subst[i].to];
 
         if (from->lumpnum == -1)
         {
-          from->link = to;
-          from->pitch = NORM_PITCH;
-          from->volume = 0;
+            from->link = to;
+            from->pitch = NORM_PITCH;
+            from->volume = 0;
         }
-      }
     }
 }
 
@@ -445,7 +480,8 @@ boolean I_AllowReinitSound(void)
 {
     if (!snd_init)
     {
-        I_Printf(VB_WARNING, "I_AllowReinitSound: Sound was never initialized.");
+        I_Printf(VB_WARNING,
+                 "I_AllowReinitSound: Sound was never initialized.");
         return false;
     }
 
@@ -488,15 +524,27 @@ int midi_player; // current music module
 static void MidiPlayerFallback(void)
 {
     // Fall back the the first module that initializes, device 0.
-    int i;
 
-    for (i = 0; i < arrlen(music_modules); i++)
+    midi_player = 0;
+
+    if (native_midi_module)
     {
-        if (music_modules[i].module->I_InitMusic(0))
+        if (native_midi_module->I_InitMusic(0))
         {
-            midi_player = i;
-            midi_player_module = music_modules[midi_player].module;
-            active_module = midi_player_module;
+            native_midi = true;
+            return;
+        }
+        midi_player = 1;
+    }
+
+    native_midi = false;
+
+    for (int i = 0; i < arrlen(stream_modules); ++i)
+    {
+        if (stream_modules[i]->I_InitStream(0))
+        {
+            midi_player += i;
+            midi_stream_module = stream_modules[i];
             return;
         }
     }
@@ -506,34 +554,51 @@ static void MidiPlayerFallback(void)
 
 void I_SetMidiPlayer(int device)
 {
-    int i, accum;
-
     if (nomusicparm)
     {
         return;
     }
 
-    midi_player_module->I_ShutdownMusic();
+    int num_devices = 0;
 
-    for (i = 0, accum = 0; i < arrlen(music_modules); ++i)
+    midi_player = 0;
+
+    if (native_midi_module)
     {
-        int num_devices = music_modules[i].num_devices;
+        const char **strings = native_midi_module->I_DeviceList(NULL);
+        num_devices = array_size(strings);
+
+        native_midi_module->I_ShutdownMusic();
+
+        if (device < num_devices)
+        {
+            if (native_midi_module->I_InitMusic(device))
+            {
+                native_midi = true;
+                return;
+            }
+        }
+        midi_player = 1;
+    }
+
+    native_midi = false;
+
+    for (int i = 0, accum = num_devices; i < arrlen(stream_modules); ++i)
+    {
+        const char **strings = stream_modules[i]->I_DeviceList(NULL);
+        num_devices = array_size(strings);
 
         if (device >= accum && device < accum + num_devices)
         {
-            midi_player_module = music_modules[i].module;
-            midi_player = i;
-            device -= accum;
-            break;
+            midi_player += i;
+            if (stream_modules[i]->I_InitStream(device - accum))
+            {
+                midi_stream_module = stream_modules[i];
+                return;
+            }
         }
 
         accum += num_devices;
-    }
-
-    if (midi_player_module->I_InitMusic(device))
-    {
-        active_module = midi_player_module;
-        return;
     }
 
     MidiPlayerFallback();
@@ -551,14 +616,32 @@ boolean I_InitMusic(void)
 
     music_oal_module.I_InitMusic(0);
 
+    active_module = &music_oal_module;
+
     I_AtExit(I_ShutdownMusic, true);
 
-    if (midi_player < arrlen(music_modules))
+    int module_index = 0;
+
+    if (native_midi_module)
     {
-        midi_player_module = music_modules[midi_player].module;
-        if (midi_player_module->I_InitMusic(DEFAULT_MIDI_DEVICE))
+        if (midi_player == 0
+            && native_midi_module->I_InitMusic(DEFAULT_MIDI_DEVICE))
         {
-            active_module = midi_player_module;
+            native_midi = true;
+            return true;
+        }
+        module_index = 1;
+    }
+
+    native_midi = false;
+
+    module_index = midi_player - module_index;
+
+    if (module_index < arrlen(stream_modules))
+    {
+        if (stream_modules[module_index]->I_InitStream(DEFAULT_MIDI_DEVICE))
+        {
+            midi_stream_module = stream_modules[module_index];
             return true;
         }
     }
@@ -571,7 +654,10 @@ boolean I_InitMusic(void)
 void I_ShutdownMusic(void)
 {
     music_oal_module.I_ShutdownMusic();
-    midi_player_module->I_ShutdownMusic();
+    if (native_midi && native_midi_module)
+    {
+        native_midi_module->I_ShutdownMusic();
+    }
 }
 
 void I_SetMusicVolume(int volume)
@@ -601,27 +687,16 @@ boolean IsMus(byte *mem, int len)
 
 void *I_RegisterSong(void *data, int size)
 {
-    if (IsMus(data, size) || IsMid(data, size))
+    active_module = &music_oal_module;
+
+    if (native_midi && (IsMid(data, size) || IsMus(data, size)))
     {
-        active_module = midi_player_module;
-    }
-    else
-    {
-        // Not a MIDI file. We have to shutdown the OPL module due to
-        // implementation details.
-
-        if (midi_player_module == &music_opl_module)
-        {
-            midi_player_module->I_ShutdownMusic();
-        }
-
-        // Try to open file with SndFile or XMP.
-
-        active_module = &music_oal_module;
+        active_module = native_midi_module;
     }
 
+    void *result = active_module->I_RegisterSong(data, size);
     active_module->I_SetMusicVolume(snd_MusicVolume);
-    return active_module->I_RegisterSong(data, size);
+    return result;
 }
 
 void I_PlaySong(void *handle, boolean looping)
@@ -653,25 +728,41 @@ const char **I_DeviceList(int *current_device)
 
     *current_device = 0;
 
-    for (int i = 0; i < arrlen(music_modules); ++i)
+    int module_index = 0;
+
+    if (native_midi_module)
     {
-        const char **module_devices = NULL;
-        int module_device;
+        int device;
+        const char **strings = native_midi_module->I_DeviceList(&device);
 
-        module_devices = music_modules[i].module->I_DeviceList(&module_device);
-
-        if (midi_player == i)
+        if (midi_player == module_index)
         {
-            *current_device = array_size(devices) + module_device;
+            *current_device = device;
         }
 
-        music_modules[i].num_devices = array_size(module_devices);
-
-        for (int k = 0; k < array_size(module_devices); ++k)
+        for (int i = 0; i < array_size(strings); ++i)
         {
-            array_push(devices, module_devices[k]);
+            array_push(devices, strings[i]);
         }
-        array_free(module_devices);
+        module_index = 1;
+    }
+
+    for (int i = 0; i < arrlen(stream_modules); ++i)
+    {
+        int device;
+        const char **strings = stream_modules[i]->I_DeviceList(&device);
+
+        if (midi_player == module_index)
+        {
+            *current_device = array_size(devices) + device;
+        }
+
+        for (int k = 0; k < array_size(strings); ++k)
+        {
+            array_push(devices, strings[k]);
+        }
+
+        module_index++;
     }
 
     return devices;

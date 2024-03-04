@@ -42,7 +42,9 @@ int I_GetTimeMS(void)
     uint64_t counter = SDL_GetPerformanceCounter();
 
     if (basecounter == 0)
+    {
         basecounter = counter;
+    }
 
     return ((counter - basecounter) * 1000ull) / basefreq;
 }
@@ -52,7 +54,9 @@ uint64_t I_GetTimeUS(void)
     uint64_t counter = SDL_GetPerformanceCounter();
 
     if (basecounter == 0)
+    {
         basecounter = counter;
+    }
 
     return ((counter - basecounter) * 1000000ull) / basefreq;
 }
@@ -66,7 +70,9 @@ static uint64_t GetPerfCounter_Scaled(void)
     counter = SDL_GetPerformanceCounter() * time_scale / 100;
 
     if (basecounter == 0)
+    {
         basecounter = counter;
+    }
 
     return counter - basecounter;
 }
@@ -78,7 +84,9 @@ static uint32_t GetTimeMS_Scaled(void)
     counter = SDL_GetPerformanceCounter() * time_scale / 100;
 
     if (basecounter == 0)
+    {
         basecounter = counter;
+    }
 
     return ((counter - basecounter) * 1000ull) / basefreq;
 }

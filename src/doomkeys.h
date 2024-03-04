@@ -24,21 +24,22 @@
 // This is the stuff configured by Setup.Exe.
 // Most key data are simple ascii (uppercased).
 //
-#define KEY_RIGHTARROW  0xae
-#define KEY_LEFTARROW   0xac
-#define KEY_UPARROW     0xad
-#define KEY_DOWNARROW   0xaf
-#define KEY_ESCAPE      27
-#define KEY_ENTER       13
-#define KEY_TAB         9
+#define KEY_RIGHTARROW 0xae
+#define KEY_LEFTARROW  0xac
+#define KEY_UPARROW    0xad
+#define KEY_DOWNARROW  0xaf
+#define KEY_ESCAPE     27
+#define KEY_ENTER      13
+#define KEY_TAB        9
 
-#define KEY_BACKSPACE   0x7f
-#define KEY_PAUSE       0xff
+#define KEY_BACKSPACE  0x7f
+#define KEY_PAUSE      0xff
 
-#define KEY_EQUALS      0x3d
-#define KEY_MINUS       0x2d
+#define KEY_EQUALS     0x3d
+#define KEY_MINUS      0x2d
 
-enum {
+enum
+{
 
     // Keys without character representations
 
@@ -232,4 +233,4 @@ enum
     NUM_LAYOUTS
 };
 
-#endif          // __DOOMKEYS__
+#endif // __DOOMKEYS__

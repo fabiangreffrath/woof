@@ -952,6 +952,7 @@ static void G_DoLoadLevel(void)
   critical = (gameaction == ga_playdemo || demorecording || demoplayback || D_CheckNetConnect());
 
   P_UpdateDirectVerticalAiming();
+  P_UpdateCheckSight();
 
   // [crispy] pistol start
   if (CRITICAL(pistolstart))

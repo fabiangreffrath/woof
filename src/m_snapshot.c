@@ -37,152 +37,167 @@ static byte *snapshots[10];
 static byte *current_snapshot;
 static char savegametimes[10][32];
 
-const int M_SnapshotDataSize (void)
+const int M_SnapshotDataSize(void)
 {
-  return snapshot_len + snapshot_size;
+    return snapshot_len + snapshot_size;
 }
 
-void M_ResetSnapshot (int i)
+void M_ResetSnapshot(int i)
 {
-  if (snapshots[i])
-  {
-    free(snapshots[i]);
-    snapshots[i] = NULL;
-  }
+    if (snapshots[i])
+    {
+        free(snapshots[i]);
+        snapshots[i] = NULL;
+    }
 }
 
 // [FG] try to read snapshot data from the end of a savegame file
 
-boolean M_ReadSnapshot (int i, FILE *fp)
+boolean M_ReadSnapshot(int i, FILE *fp)
 {
-  char str[16] = {0};
+    char str[16] = {0};
 
-  M_ResetSnapshot (i);
+    M_ResetSnapshot(i);
 
-  if (fseek(fp, -M_SnapshotDataSize(), SEEK_END) != 0)
-    return false;
+    if (fseek(fp, -M_SnapshotDataSize(), SEEK_END) != 0)
+    {
+        return false;
+    }
 
-  if (fread(str, 1, snapshot_len, fp) != snapshot_len)
-    return false;
+    if (fread(str, 1, snapshot_len, fp) != snapshot_len)
+    {
+        return false;
+    }
 
-  if (strncasecmp(str, snapshot_str, snapshot_len) != 0)
-    return false;
+    if (strncasecmp(str, snapshot_str, snapshot_len) != 0)
+    {
+        return false;
+    }
 
-  if ((snapshots[i] = malloc(snapshot_size * sizeof(**snapshots))) == NULL)
-    return false;
+    if ((snapshots[i] = malloc(snapshot_size * sizeof(**snapshots))) == NULL)
+    {
+        return false;
+    }
 
-  if (fread(snapshots[i], 1, snapshot_size, fp) != snapshot_size)
-    return false;
+    if (fread(snapshots[i], 1, snapshot_size, fp) != snapshot_size)
+    {
+        return false;
+    }
 
-  return true;
+    return true;
 }
 
-void M_ReadSavegameTime (int i, char *name)
+void M_ReadSavegameTime(int i, char *name)
 {
-  struct stat st;
+    struct stat st;
 
-  if (M_stat(name, &st) == -1)
-    savegametimes[i][0] = '\0';
-  else
+    if (M_stat(name, &st) == -1)
+    {
+        savegametimes[i][0] = '\0';
+    }
+    else
+    {
 // [FG] suppress the most useless compiler warning ever
 #if defined(__GNUC__)
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wformat-y2k"
+#  pragma GCC diagnostic push
+#  pragma GCC diagnostic ignored "-Wformat-y2k"
 #endif
-    strftime(savegametimes[i], sizeof(savegametimes[i]), "%x %X", localtime(&st.st_mtime));
+        strftime(savegametimes[i], sizeof(savegametimes[i]), "%x %X",
+                 localtime(&st.st_mtime));
 #if defined(__GNUC__)
-#pragma GCC diagnostic pop
+#  pragma GCC diagnostic pop
 #endif
+    }
 }
 
-char *M_GetSavegameTime (int i)
+char *M_GetSavegameTime(int i)
 {
-  return savegametimes[i];
+    return savegametimes[i];
 }
 
 // [FG] take a snapshot in SCREENWIDTH*SCREENHEIGHT resolution, i.e.
 //      in hires mode only only each second pixel in each second row is saved,
 //      in widescreen mode only the non-widescreen part in the middle is saved
 
-static void M_TakeSnapshot (void)
+static void M_TakeSnapshot(void)
 {
-  int old_screenblocks = screenblocks;
+    int old_screenblocks = screenblocks;
 
-  R_SetViewSize(11);
-  R_ExecuteSetViewSize();
-  R_RenderPlayerView(&players[displayplayer]);
+    R_SetViewSize(11);
+    R_ExecuteSetViewSize();
+    R_RenderPlayerView(&players[displayplayer]);
 
-  if (!current_snapshot)
-  {
-    current_snapshot = malloc(snapshot_size * sizeof(**snapshots));
-  }
-
-  byte *p = current_snapshot;
-
-  const byte *s = I_VideoBuffer;
-
-  int x, y;
-  for (y = 0; y < SCREENHEIGHT; y++)
-  {
-    for (x = video.deltaw; x < NONWIDEWIDTH + video.deltaw; x++)
+    if (!current_snapshot)
     {
-      *p++ = s[V_ScaleY(y) * video.pitch + V_ScaleX(x)];
+        current_snapshot = malloc(snapshot_size * sizeof(**snapshots));
     }
-  }
 
-  R_SetViewSize(old_screenblocks);
+    byte *p = current_snapshot;
+
+    const byte *s = I_VideoBuffer;
+
+    int x, y;
+    for (y = 0; y < SCREENHEIGHT; y++)
+    {
+        for (x = video.deltaw; x < NONWIDEWIDTH + video.deltaw; x++)
+        {
+            *p++ = s[V_ScaleY(y) * video.pitch + V_ScaleX(x)];
+        }
+    }
+
+    R_SetViewSize(old_screenblocks);
 }
 
-void M_WriteSnapshot (byte *p)
+void M_WriteSnapshot(byte *p)
 {
-  M_TakeSnapshot();
+    M_TakeSnapshot();
 
-  memcpy(p, snapshot_str, snapshot_len);
-  p += snapshot_len;
+    memcpy(p, snapshot_str, snapshot_len);
+    p += snapshot_len;
 
-  memcpy(p, current_snapshot, snapshot_size);
-  p += snapshot_size;
+    memcpy(p, current_snapshot, snapshot_size);
+    p += snapshot_size;
 }
 
 // [FG] draw snapshot for the n'th savegame, if no snapshot is found
 //      fill the area with palette index 0 (i.e. mostly black)
 
-boolean M_DrawSnapshot (int n, int x, int y, int w, int h)
+boolean M_DrawSnapshot(int n, int x, int y, int w, int h)
 {
-  if (!snapshots[n])
-  {
-    V_FillRect(x, y, w, h, v_darkest_color);
-    return false;
-  }
-
-  vrect_t rect;
-
-  rect.x = x;
-  rect.y = y;
-  rect.w = w;
-  rect.h = h;
-
-  V_ScaleRect(&rect);
-
-  const fixed_t step_x = (SCREENWIDTH << FRACBITS) / rect.sw;
-  const fixed_t step_y = (SCREENHEIGHT << FRACBITS) / rect.sh;
-
-  byte *dest = I_VideoBuffer + rect.sy * video.pitch + rect.sx;
-
-  fixed_t srcx, srcy;
-  int destx, desty;
-  byte *destline, *srcline;
-
-  for (desty = 0, srcy = 0; desty < rect.sh; desty++, srcy += step_y)
-  {
-    destline = dest + desty * video.pitch;
-    srcline = snapshots[n] + (srcy >> FRACBITS) * SCREENWIDTH;
-
-    for (destx = 0, srcx = 0; destx < rect.sw; destx++, srcx += step_x)
+    if (!snapshots[n])
     {
-      *destline++ = srcline[srcx >> FRACBITS];
+        V_FillRect(x, y, w, h, v_darkest_color);
+        return false;
     }
-  }
 
-  return true;
+    vrect_t rect;
+
+    rect.x = x;
+    rect.y = y;
+    rect.w = w;
+    rect.h = h;
+
+    V_ScaleRect(&rect);
+
+    const fixed_t step_x = (SCREENWIDTH << FRACBITS) / rect.sw;
+    const fixed_t step_y = (SCREENHEIGHT << FRACBITS) / rect.sh;
+
+    byte *dest = I_VideoBuffer + rect.sy * video.pitch + rect.sx;
+
+    fixed_t srcx, srcy;
+    int destx, desty;
+    byte *destline, *srcline;
+
+    for (desty = 0, srcy = 0; desty < rect.sh; desty++, srcy += step_y)
+    {
+        destline = dest + desty * video.pitch;
+        srcline = snapshots[n] + (srcy >> FRACBITS) * SCREENWIDTH;
+
+        for (destx = 0, srcx = 0; destx < rect.sw; destx++, srcx += step_x)
+        {
+            *destline++ = srcline[srcx >> FRACBITS];
+        }
+    }
+
+    return true;
 }

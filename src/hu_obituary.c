@@ -39,8 +39,11 @@ struct
     const char *const from;
     const char *const to;
 } static const pronouns[] = {
-    {"%g", "they"},   {"%h", "them"},    {"%p", "their"},
-    {"%s", "theirs"}, {"%r", "they're"},
+    {"%g", "they"   },
+    {"%h", "them"   },
+    {"%p", "their"  },
+    {"%s", "theirs" },
+    {"%r", "they're"},
 };
 
 static char *playerstr[] = {
@@ -221,7 +224,9 @@ void HU_Obituary(mobj_t *target, mobj_t *source, method_t mod)
     for (i = 0; i < MAXPLAYERS; i++)
     {
         if (!playeringame[i])
+        {
             break;
+        }
 
         doomprintf(&players[i], MESSAGES_OBITUARY, "\x1b%c%s",
                    '0' + hudcolor_obituary, str);

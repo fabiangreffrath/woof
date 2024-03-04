@@ -2152,6 +2152,11 @@ static void M_DrawTabs(void)
 
     for (int i = 0; tabs[i].text; ++i)
     {
+        if (i)
+        {
+            width += M_TAB_OFFSET;
+        }
+
         mrect_t *rect = &tabs[i].rect;
         if (!rect->w)
         {
@@ -2159,7 +2164,7 @@ static void M_DrawTabs(void)
             rect->y = M_TAB_Y;
             rect->h = M_SPC;
         }
-        width += rect->w + M_TAB_OFFSET;
+        width += rect->w;
     }
 
     int x = (SCREENWIDTH - width) / 2;
@@ -2168,7 +2173,11 @@ static void M_DrawTabs(void)
     {
         mrect_t *rect = &tabs[i].rect;
 
-        x += M_TAB_OFFSET;
+        if (i)
+        {
+            x += M_TAB_OFFSET;
+        }
+
         menu_buffer[0] = '\0';
         strcpy(menu_buffer, tabs[i].text);
         M_DrawMenuStringEx(tabs[i].flags, x, rect->y, CR_GOLD);
@@ -3669,6 +3678,9 @@ setup_menu_t comp_settings1[] =  // Compatibility Settings screen #1
 
   {"Improved Hit Detection", S_ONOFF|S_STRICT|S_BOOM, m_null, M_X,
    M_SPC, {"blockmapfix"}},
+
+  {"Fast Line-of-Sight Calculation", S_ONOFF|S_STRICT, m_null, M_X,
+   M_SPC, {"checksight12"}, 0, P_UpdateCheckSight},
 
   {"Walk Under Solid Hanging Bodies", S_ONOFF|S_STRICT, m_null, M_X,
    M_SPC, {"hangsolid"}},

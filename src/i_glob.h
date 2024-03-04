@@ -15,12 +15,11 @@
 //	System specific file globbing interface.
 //
 
-
 #ifndef __I_GLOB__
 #define __I_GLOB__
 
-#define GLOB_FLAG_NOCASE  0x01
-#define GLOB_FLAG_SORTED  0x02
+#define GLOB_FLAG_NOCASE 0x01
+#define GLOB_FLAG_SORTED 0x02
 
 typedef struct glob_s glob_t;
 
@@ -30,8 +29,8 @@ glob_t *I_StartGlob(const char *directory, const char *glob, int flags);
 
 // Same as I_StartGlob but multiple glob patterns can be provided. The list
 // of patterns must be terminated with NULL.
-glob_t *I_StartMultiGlob(const char *directory, int flags,
-                         const char *glob, ...);
+glob_t *I_StartMultiGlob(const char *directory, int flags, const char *glob,
+                         ...);
 
 // Finish reading file list.
 void I_EndGlob(glob_t *glob);
@@ -41,4 +40,3 @@ void I_EndGlob(glob_t *glob);
 const char *I_NextGlob(glob_t *glob);
 
 #endif
-

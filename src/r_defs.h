@@ -41,6 +41,8 @@ struct mobj_s;
 
 #define MAXDRAWSEGS   256
 
+#define NO_TEXTURE (-1)
+
 //
 // INTERNAL MAP TYPES
 //  used by play and refresh

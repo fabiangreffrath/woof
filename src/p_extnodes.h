@@ -14,10 +14,10 @@
 //  GNU General Public License for more details.
 //
 // DESCRIPTION:
-//      support maps with NODES in uncompressed XNOD/XGLN or compressed ZNOD/ZGLN formats, or DeePBSP format
+//      support maps with NODES in uncompressed XNOD/XGLN or compressed
+//      ZNOD/ZGLN formats, or DeePBSP format
 //
 //-----------------------------------------------------------------------------
-
 
 #ifndef __P_EXTNODES__
 #define __P_EXTNODES__

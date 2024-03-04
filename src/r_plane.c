@@ -304,6 +304,9 @@ visplane_t *R_FindPlane(fixed_t height, int picnum, int lightlevel,
   visplane_t *check;
   unsigned hash;                      // killough
 
+  if (picnum == NO_TEXTURE)
+    return NULL;
+
   if (picnum == skyflatnum || picnum & PL_SKYFLAT)  // killough 10/98
   {
     lightlevel = 0;   // killough 7/19/98: most skies map together
