@@ -594,6 +594,11 @@ void G_BuildTiccmd(ticcmd_t* cmd)
 
   G_DemoSkipTics();
 
+  if (!uncapped || !raw_input)
+  {
+    G_PrepTiccmd();
+  }
+
   memcpy(cmd, &basecmd, sizeof(*cmd));
   memset(&basecmd, 0, sizeof(basecmd));
 
