@@ -1,82 +1,67 @@
-//
-//  Copyright (C) 1999 by
-//  id Software, Chi Hoang, Lee Killough, Jim Flynn, Rand Phares, Ty Halderman
-//  Copyright(C) 2020-2021 Fabian Greffrath
-//
-//  This program is free software; you can redistribute it and/or
-//  modify it under the terms of the GNU General Public License
-//  as published by the Free Software Foundation; either version 2
-//  of the License, or (at your option) any later version.
-//
-//  This program is distributed in the hope that it will be useful,
-//  but WITHOUT ANY WARRANTY; without even the implied warranty of
-//  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-//  GNU General Public License for more details.
-//
-// DESCRIPTION:
-//   Menu widget stuff, episode selection and such.
-//    
-//-----------------------------------------------------------------------------
-
-#ifndef __M_MENU__
-#define __M_MENU__
 
 #include "doomtype.h"
+#include "mn_menu.h"
 
 struct event_s;
 
-//
-// MENUS
-//
-// Called by main loop,
-// saves config file and calls I_Quit when user exits.
-// Even when the menu is not displayed,
-// this can resize the view and change game parameters.
-// Does all the real work of the menu interaction.
+void M_InitDefaults(void);
 
-boolean M_Responder(struct event_s *ev);
+// [FG] alternative text for missing menu graphics lumps
+void M_DrawTitle(int x, int y, const char *patch, const char *alttext);
 
-// Called by main loop,
-// only used for menu (skull cursor) animation.
+int M_GetPixelWidth(const char *ch);
+void M_UpdateFreeLook(void);
 
-void M_Ticker (void);
+extern const char *gamma_strings[];
+void M_ResetGamma(void);
 
-// Called by main loop,
-// draws the menus directly into the screen buffer.
+extern boolean setup_active;
+boolean MN_CursorPostionSetup(int x, int y);
+boolean MN_MouseResponderSetup(int x, int y);
+boolean MN_ResponderSetup(struct event_s *ev, menu_action_t action, int ch);
 
-void M_Drawer (void);
+extern boolean default_verify;
+extern int warning_about_changes, print_warning_about_changes;
 
-// Called by D_DoomMain,
-// loads the config file.
+#define SPACEWIDTH 4
 
-void M_Init (void);
+void M_DrawDelVerify(void);
 
-// Called by intro code to force menu up upon a keypress,
-// does nothing if menu is already up.
+void M_DrawString(int cx, int cy, int color, const char *ch);
+void M_DrawStringCR(int cx, int cy, byte *cr1, byte *cr2, const char *ch);
 
-void M_StartControlPanel (void);
+typedef enum
+{
+  set_general, // killough 10/98
+  set_compat,
+  set_key_bindings,
+  set_weapons,
+  set_statbar,
+  set_automap,
+  set_enemy,
+  set_setup_end
+} set_setup_t;
 
-void M_ForcedLoadGame(const char *msg); // killough 5/15/98: forced loadgames
+void M_General(int choice);
+void M_DrawGeneral(void);
 
-extern int traditional_menu;  // display the menu traditional way
+void M_KeyBindings(int choice);
+void M_DrawKeybnd(void);
 
-void M_Trans(void);          // killough 11/98: reset translucency
+void M_Compat(int choice);
+void M_DrawCompat(void);
 
-void M_ResetMenu(void);      // killough 11/98: reset main menu ordering
+void M_StatusBar(int choice);
+void M_DrawStatusHUD(void);
 
-void M_ResetSetupMenu(void);
+void M_Automap(int choice);
+void M_DrawAutoMap(void);
 
-void M_ResetSetupMenuVideo(void);
+void M_Weapons(int choice);
+void M_DrawWeapons(void);
 
-void M_ResetTimeScale(void);
-
-void M_DrawCredits(void);    // killough 11/98
-
-void M_SetMenuFontSpacing(void);
-
-void M_DisableVoxelsRenderingItem(void);
-
-void M_InvulMode(void);
+void M_Enemy(int choice);
+void M_DrawEnemy(void);
 
 /////////////////////////////
 //
@@ -138,16 +123,8 @@ typedef enum {
   m_null,       // Has no meaning; not applicable
   m_scrn,       // A key can not be assigned to more than one action
   m_map,        // in the same group. A key can be assigned to one
-  m_menu,       // action in one group, and another action in another.
+                // action in one group, and another action in another.
 } setup_group;
-
-typedef struct
-{
-  short x;
-  short y;
-  short w;
-  short h;
-} mrect_t;
 
 /////////////////////////////
 //
@@ -185,42 +162,3 @@ typedef struct setup_menu_s
   int strings_id; // [FG] selection of choices
   mrect_t rect;
 } setup_menu_t;
-
-typedef enum
-{
-  MENU_BG_OFF,
-  MENU_BG_DARK,
-  MENU_BG_TEXTURE,
-} backdrop_t;
-
-extern backdrop_t menu_backdrop;
-extern boolean M_MenuIsShaded(void);
-
-extern void M_SetQuickSaveSlot (int slot);
-
-extern int resolution_scale;
-extern int midi_player_menu;
-
-void M_InitMenuStrings(void);
-
-extern boolean StartsWithMapIdentifier (char *str);
-
-#endif    
-
-//----------------------------------------------------------------------------
-//
-// $Log: m_menu.h,v $
-// Revision 1.4  1998/05/16  09:17:18  killough
-// Make loadgame checksum friendlier
-//
-// Revision 1.3  1998/05/03  21:56:53  killough
-// Add traditional_menu declaration
-//
-// Revision 1.2  1998/01/26  19:27:11  phares
-// First rev with no ^Ms
-//
-// Revision 1.1.1.1  1998/01/19  14:02:58  rand
-// Lee's Jan 19 sources
-//
-//
-//----------------------------------------------------------------------------

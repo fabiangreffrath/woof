@@ -76,6 +76,8 @@ typedef struct default_s
   struct setup_menu_s *setup_menu;          // Xref to setup menu item, if any
 } default_t;
 
+extern default_t defaults[];
+
 #define UL (-123456789) /* magic number for no min or max for parameter */
 
 #endif

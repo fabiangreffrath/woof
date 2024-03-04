@@ -56,7 +56,8 @@ set(WOOF_SOURCES
                            m_fixed.h
     m_input.c              m_input.h
     m_io.c                 m_io.h
-    m_menu.c               m_menu.h
+    mn_menu.c              mn_menu.h
+    mn_setup.c             mn_setup.h
     m_misc.c               m_misc.h
     m_misc2.c              m_misc2.h
     m_random.c             m_random.h

@@ -45,7 +45,8 @@
 #include "m_argv.h"
 #include "m_array.h"
 #include "m_io.h"
-#include "m_menu.h"
+#include "mn_menu.h"
+#include "mn_setup.h"
 #include "m_misc.h"
 #include "m_misc2.h"
 #include "net_client.h" // net_player_name

@@ -30,7 +30,7 @@
 #include "hu_stuff.h"
 #include "i_video.h"
 #include "m_input.h"
-#include "m_menu.h"
+#include "mn_menu.h"
 #include "m_misc2.h"
 #include "p_maputl.h"
 #include "p_mobj.h"

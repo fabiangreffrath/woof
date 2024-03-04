@@ -59,7 +59,7 @@
 #include "m_fixed.h"
 #include "m_input.h"
 #include "m_io.h"
-#include "m_menu.h"
+#include "mn_menu.h"
 #include "m_misc.h"
 #include "m_misc2.h"
 #include "m_swap.h"
@@ -148,9 +148,6 @@ boolean singletics = false; // debug flag to cancel adaptiveness
 //jff 1/22/98 parms for disabling music and sound
 boolean nosfxparm;
 boolean nomusicparm;
-
-//jff 4/18/98
-extern boolean inhelpscreens;
 
 skill_t startskill;
 int     startepisode;

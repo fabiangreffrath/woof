@@ -1576,8 +1576,6 @@ void HU_Erase(void)
 static boolean bsdown; // Is backspace down?
 static int bscounter;
 
-int M_StringWidth(char *string);
-
 void HU_Ticker(void)
 {
   doom_widget = doom_widgets[hud_active];

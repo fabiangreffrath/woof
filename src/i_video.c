@@ -43,7 +43,7 @@
 #include "m_argv.h"
 #include "m_fixed.h"
 #include "m_io.h"
-#include "m_menu.h"
+#include "mn_menu.h"
 #include "r_draw.h"
 #include "r_main.h"
 #include "r_plane.h"

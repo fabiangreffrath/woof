@@ -25,7 +25,7 @@
 #include "m_array.h"
 #include "m_bbox.h"
 #include "m_fixed.h"
-#include "m_menu.h"
+#include "mn_menu.h"
 #include "m_misc.h"
 #include "m_misc2.h"
 #include "p_mobj.h"

@@ -73,6 +73,8 @@ void G_EnableWarp(boolean warp);
 int G_GetNamedComplevel (const char *arg);
 const char *G_GetCurrentComplevelName(void);
 
+int G_GotoNextLevel(int *pEpi, int *pMap);
+
 typedef enum
 {
   CL_VANILLA,
@@ -83,6 +85,8 @@ typedef enum
 
 extern complevel_t default_complevel;
 extern boolean force_complevel;
+
+extern int realtic_clock_rate;
 
 // killough 5/2/98: moved from m_misc.c:
 extern int  key_escape;
