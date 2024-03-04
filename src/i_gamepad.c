@@ -18,6 +18,7 @@
 
 #include <math.h>
 
+#include "d_event.h"
 #include "doomkeys.h"
 #include "doomtype.h"
 #include "g_game.h"
@@ -51,7 +52,7 @@ boolean joy_invert_strafe;
 boolean joy_invert_turn;
 boolean joy_invert_look;
 
-int *axes_data[NUM_AXES];
+static int *axes_data[NUM_AXES]; // Pointers to ev_joystick event data.
 float axes[NUM_AXES];
 int trigger_threshold;
 
@@ -282,6 +283,14 @@ void I_CalcControllerAxes(void)
         camera.x.data = 0;
         camera.y.data = 0;
     }
+}
+
+void I_UpdateAxesData(const event_t *ev)
+{
+    *axes_data[AXIS_LEFTX] = ev->data1;
+    *axes_data[AXIS_LEFTY] = ev->data2;
+    *axes_data[AXIS_RIGHTX] = ev->data3;
+    *axes_data[AXIS_RIGHTY] = ev->data4;
 }
 
 void I_ResetControllerAxes(void)
