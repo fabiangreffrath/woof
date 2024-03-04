@@ -97,6 +97,7 @@ extern boolean autostrafe50;
 extern int  novert;
 extern boolean mouselook;
 extern boolean padlook;
+extern int  dclick_use; // [FG] double click acts as "use"
 
 extern fixed_t *forwardmove;
 extern fixed_t *sidemove;

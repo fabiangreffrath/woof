@@ -1,67 +1,89 @@
 
 #include "doomtype.h"
-#include "mn_menu.h"
+#include "doomdef.h"
 
 struct event_s;
 
-void M_InitDefaults(void);
+typedef struct mrect_s
+{
+    short x;
+    short y;
+    short w;
+    short h;
+} mrect_t;
 
-// [FG] alternative text for missing menu graphics lumps
-void M_DrawTitle(int x, int y, const char *patch, const char *alttext);
+typedef enum
+{
+    MENU_NULL,
+    MENU_UP,
+    MENU_DOWN,
+    MENU_LEFT,
+    MENU_RIGHT,
+    MENU_BACKSPACE,
+    MENU_ENTER,
+    MENU_ESCAPE,
+    MENU_CLEAR
+} menu_action_t;
 
-int M_GetPixelWidth(const char *ch);
-void M_UpdateFreeLook(void);
+typedef enum
+{
+    null_mode,
+    mouse_mode,
+    pad_mode,
+    key_mode
+} menu_input_mode_t;
 
-extern const char *gamma_strings[];
-void M_ResetGamma(void);
-
+extern menu_input_mode_t menu_input;
 extern boolean setup_active;
-boolean MN_CursorPostionSetup(int x, int y);
-boolean MN_MouseResponderSetup(int x, int y);
-boolean MN_ResponderSetup(struct event_s *ev, menu_action_t action, int ch);
+extern short whichSkull; // which skull to draw (he blinks)
+extern int saved_screenblocks;
 
 extern boolean default_verify;
 extern int warning_about_changes, print_warning_about_changes;
 
-#define SPACEWIDTH 4
+extern int resolution_scale;
+extern int midi_player_menu;
 
-void M_DrawDelVerify(void);
+void MN_InitDefaults(void);
+void MN_UpdateFreeLook(void);
 
-void M_DrawString(int cx, int cy, int color, const char *ch);
-void M_DrawStringCR(int cx, int cy, byte *cr1, byte *cr2, const char *ch);
+extern const char *gamma_strings[];
+void MN_ResetGamma(void);
 
-typedef enum
-{
-  set_general, // killough 10/98
-  set_compat,
-  set_key_bindings,
-  set_weapons,
-  set_statbar,
-  set_automap,
-  set_enemy,
-  set_setup_end
-} set_setup_t;
+boolean MN_SetupCursorPostion(int x, int y);
+boolean MN_SetupMouseResponder(int x, int y);
+boolean MN_SetupResponder(int action, int ch);
 
-void M_General(int choice);
-void M_DrawGeneral(void);
+void MN_DrawDelVerify(void);
+void MN_SizeDisplay(int choice);
 
-void M_KeyBindings(int choice);
-void M_DrawKeybnd(void);
+void MN_SetNextMenuAlt(ss_types type);
+boolean MN_PointInsideRect(mrect_t *rect, int x, int y);
+void MN_ClearMenus(void);
+void MN_Back(void);
 
-void M_Compat(int choice);
-void M_DrawCompat(void);
+// [FG] alternative text for missing menu graphics lumps
+void MN_DrawTitle(int x, int y, const char *patch, const char *alttext);
+void MN_DrawString(int cx, int cy, int color, const char *ch);
+void MN_DrawStringCR(int cx, int cy, byte *cr1, byte *cr2, const char *ch);
+int  MN_StringWidth(const char *string);
+int  MN_StringHeight(const char *string);
 
-void M_StatusBar(int choice);
-void M_DrawStatusHUD(void);
+void MN_General(int choice);
+void MN_KeyBindings(int choice);
+void MN_Compat(int choice);
+void MN_StatusBar(int choice);
+void MN_Automap(int choice);
+void MN_Weapons(int choice);
+void MN_Enemy(int choice);
 
-void M_Automap(int choice);
-void M_DrawAutoMap(void);
-
-void M_Weapons(int choice);
-void M_DrawWeapons(void);
-
-void M_Enemy(int choice);
-void M_DrawEnemy(void);
+void MN_DrawGeneral(void);
+void MN_DrawKeybnd(void);
+void MN_DrawCompat(void);
+void MN_DrawStatusHUD(void);
+void MN_DrawAutoMap(void);
+void MN_DrawWeapons(void);
+void MN_DrawEnemy(void);
 
 /////////////////////////////
 //

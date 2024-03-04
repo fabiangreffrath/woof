@@ -4,11 +4,9 @@
 #include "doomstat.h"
 #include "mn_menu.h"
 #include "mn_setup.h"
-
 #include "doomtype.h"
 #include "doomdef.h"
 #include "am_map.h"
-#include "d_event.h"
 #include "g_game.h"
 #include "hu_lib.h"
 #include "hu_stuff.h"
@@ -38,8 +36,8 @@
 #include "w_wad.h"
 
 static int M_GetKeyString(int c, int offset);
-static void M_DrawMenuString(int cx, int cy, int color);
-static void M_DrawMenuStringEx(int flags, int x, int y, int color);
+static void DrawMenuString(int cx, int cy, int color);
+static void DrawMenuStringEx(int flags, int x, int y, int color);
 
 int warning_about_changes, print_warning_about_changes;
 
@@ -67,6 +65,13 @@ static boolean default_reset;
 // killough 10/98: added Compatibility and General menus
 //
 
+// phares 4/16/98:
+// X,Y position of reset button. This is the same for every screen, and is
+// only defined once here.
+
+#define X_BUTTON 301
+#define Y_BUTTON (SCREENHEIGHT - 15 - 3)
+
 #define M_SPC        9
 #define M_X          240
 #define M_Y          (29 + M_SPC)
@@ -83,6 +88,8 @@ static boolean default_reset;
 #define M_THRM_TXT_OFFSET 3
 #define M_THRM_SPC    (M_THRM_HEIGHT + 1)
 #define M_THRM_UL_VAL 50
+
+#define SPACEWIDTH 4
 
 // Final entry
 #define MI_END \
@@ -140,26 +147,25 @@ boolean default_verify           = false; // verify reset defaults decision
 //
 // current_setup_menu is a pointer to the current setup menu table.
 
-static int set_menu_itemon; // which setup item is selected?   // phares 3/98
-static setup_menu_t *current_setup_menu; // points to current setup menu table
-static int mult_screens_index; // the index of the current screen in a set
+static int set_item_on; // which setup item is selected?   // phares 3/98
+static setup_menu_t *current_menu; // points to current setup menu table
+static int current_page; // the index of the current screen in a set
 
 typedef struct
 {
   const char *text;
-  setup_menu_t *page;
   mrect_t rect;
   int flags;
 } setup_tab_t;
 
-static setup_tab_t *current_setup_tabs;
+static setup_tab_t *current_tabs;
 static int set_tab_on;
 
 // [FG] save the setup menu's itemon value in the S_END element's x coordinate
 
-static int M_GetSetupMenuItemOn (void)
+static int GetItemOn (void)
 {
-  const setup_menu_t* menu = current_setup_menu;
+  const setup_menu_t* menu = current_menu;
 
   if (menu)
   {
@@ -172,9 +178,9 @@ static int M_GetSetupMenuItemOn (void)
   return 0;
 }
 
-static void M_SetSetupMenuItemOn (const int x)
+static void SetItemOn (const int x)
 {
-  setup_menu_t* menu = current_setup_menu;
+  setup_menu_t* menu = current_menu;
 
   if (menu)
   {
@@ -185,40 +191,8 @@ static void M_SetSetupMenuItemOn (const int x)
   }
 }
 
-// [FG] save the index of the current screen in the first page's S_END element's y coordinate
-
-static int M_GetMultScreenIndex (setup_menu_t *const *const pages)
-{
-  if (pages)
-  {
-    const setup_menu_t* menu = pages[0];
-
-    if (menu)
-    {
-      while (!(menu->m_flags & S_END))
-        menu++;
-
-      return menu->m_y;
-    }
-  }
-
-  return 0;
-}
-
-static void M_SetMultScreenIndex (const int y)
-{
-    if (!current_setup_tabs)
-    {
-        return;
-    }
-
-    setup_menu_t * menu = current_setup_tabs[0].page;
-
-    while (!(menu->m_flags & S_END))
-        menu++;
-
-    menu->m_y = y;
-}
+static int GetPageIndex(setup_menu_t *const *const pages);
+static void SetPageIndex(const int y);
 
 /////////////////////////////
 //
@@ -240,7 +214,7 @@ static ss_types setup_screen; // the current setup screen.
 //
 // killough 11/98: rewritten to support hires
 
-static void M_DrawBackground(char *patchname)
+static void DrawBackground(char *patchname)
 {
   if (setup_active && menu_backdrop != MENU_BG_TEXTURE)
     return;
@@ -272,7 +246,7 @@ static void M_DrawBackground(char *patchname)
 // the first screen for each group. It blinks when selected, thus the
 // two patches, which it toggles back and forth.
 
-static char ResetButtonName[2][8] = {"M_BUTT1","M_BUTT2"};
+static char reset_button_name[2][8] = {"M_BUTT1","M_BUTT2"};
 
 /////////////////////////////
 //
@@ -320,7 +294,7 @@ enum
 
 static const char **GetStrings(int id);
 
-static void M_DrawMenuStringEx(int flags, int x, int y, int color);
+static void DrawMenuStringEx(int flags, int x, int y, int color);
 
 static boolean ItemDisabled(int flags)
 {
@@ -338,7 +312,7 @@ static boolean ItemDisabled(int flags)
 
 static boolean ItemSelected(setup_menu_t *s)
 {
-  if (s == current_setup_menu + set_menu_itemon && whichSkull)
+  if (s == current_menu + set_item_on && whichSkull)
     return true;
 
   return false;
@@ -426,9 +400,9 @@ static void BlinkingArrowRight(setup_menu_t *s)
 #define M_TAB_Y      22
 #define M_TAB_OFFSET 8
 
-static void M_DrawTabs(void)
+static void DrawTabs(void)
 {
-    setup_tab_t *tabs = current_setup_tabs;
+    setup_tab_t *tabs = current_tabs;
 
     int width = 0;
 
@@ -442,7 +416,7 @@ static void M_DrawTabs(void)
         mrect_t *rect = &tabs[i].rect;
         if (!rect->w)
         {
-            rect->w = M_GetPixelWidth(tabs[i].text);
+            rect->w = MN_GetPixelWidth(tabs[i].text);
             rect->y = M_TAB_Y;
             rect->h = M_SPC;
         }
@@ -462,8 +436,8 @@ static void M_DrawTabs(void)
 
         menu_buffer[0] = '\0';
         strcpy(menu_buffer, tabs[i].text);
-        M_DrawMenuStringEx(tabs[i].flags, x, rect->y, CR_GOLD);
-        if (i == mult_screens_index)
+        DrawMenuStringEx(tabs[i].flags, x, rect->y, CR_GOLD);
+        if (i == current_page)
         {
             V_FillRect(x + video.deltaw, rect->y + M_SPC, rect->w, 1,
                        cr_gold[cr_shaded[v_lightest_color]]);
@@ -475,7 +449,7 @@ static void M_DrawTabs(void)
     }
 }
 
-static void M_DrawItem(setup_menu_t* s, int accum_y)
+static void DrawItem(setup_menu_t* s, int accum_y)
 {
     int x = s->m_x;
     int y = s->m_y;
@@ -489,7 +463,7 @@ static void M_DrawItem(setup_menu_t* s, int accum_y)
         // Draw the blinking version in tune with the blinking skull otherwise
 
         const int index = (flags & (S_HILITE|S_SELECT)) ? whichSkull : 0;
-        patch_t *patch = W_CacheLumpName(ResetButtonName[index], PU_CACHE);
+        patch_t *patch = W_CacheLumpName(reset_button_name[index], PU_CACHE);
         rect->x = x;
         rect->y = y;
         rect->w = SHORT(patch->width);
@@ -521,7 +495,7 @@ static void M_DrawItem(setup_menu_t* s, int accum_y)
 
     // killough 10/98: support left-justification:
     strcat(menu_buffer, text);
-    w = M_GetPixelWidth(menu_buffer);
+    w = MN_GetPixelWidth(menu_buffer);
     if (!(flags & S_LEFTJUST))
     {
         x -= (w + 4);
@@ -537,7 +511,7 @@ static void M_DrawItem(setup_menu_t* s, int accum_y)
         y += M_THRM_TXT_OFFSET;
     }
 
-    M_DrawMenuStringEx(flags, x, y, color);
+    DrawMenuStringEx(flags, x, y, color);
 }
 
 // If a number item is being changed, allow up to N keystrokes to 'gather'
@@ -559,7 +533,7 @@ static char gather_buffer[MAXGATHER+1];  // killough 10/98: make input character
 // displays the appropriate setting value: yes/no, a key binding, a number,
 // a paint chip, etc.
 
-static void M_DrawSetupThermo(int x, int y, int width, int size, int dot, byte *cr)
+static void DrawSetupThermo(int x, int y, int width, int size, int dot, byte *cr)
 {
   int xx;
   int  i;
@@ -585,7 +559,7 @@ static void M_DrawSetupThermo(int x, int y, int width, int size, int dot, byte *
                         W_CacheLumpName("M_THERMO", PU_CACHE), cr);
 }
 
-static void M_DrawSetting(setup_menu_t *s, int accum_y)
+static void DrawSetting(setup_menu_t *s, int accum_y)
 {
   int x = s->m_x, y = s->m_y, flags = s->m_flags, color;
 
@@ -605,7 +579,7 @@ static void M_DrawSetting(setup_menu_t *s, int accum_y)
     {
       strcpy(menu_buffer, s->var.def->location->i ? "YES" : "NO");
       BlinkingArrowRight(s);
-      M_DrawMenuStringEx(flags, x, y, color);
+      DrawMenuStringEx(flags, x, y, color);
       return;
     }
 
@@ -613,7 +587,7 @@ static void M_DrawSetting(setup_menu_t *s, int accum_y)
     {
       strcpy(menu_buffer, s->var.def->location->i ? "ON" : "OFF");
       BlinkingArrowRight(s);
-      M_DrawMenuStringEx(flags, x, y, color);
+      DrawMenuStringEx(flags, x, y, color);
       return;
     }
 
@@ -633,7 +607,7 @@ static void M_DrawSetting(setup_menu_t *s, int accum_y)
         M_snprintf(menu_buffer, sizeof(menu_buffer), "%d", s->var.def->location->i);
 
       BlinkingArrowRight(s);
-      M_DrawMenuStringEx(flags, x, y, color);
+      DrawMenuStringEx(flags, x, y, color);
       return;
     }
 
@@ -680,7 +654,7 @@ static void M_DrawSetting(setup_menu_t *s, int accum_y)
       M_GetKeyString(0, 0);
 
     BlinkingArrowRight(s);
-    M_DrawMenuStringEx(flags, x, y, color);
+    DrawMenuStringEx(flags, x, y, color);
   }
 
   // Is the item a weapon number?
@@ -696,7 +670,7 @@ static void M_DrawSetting(setup_menu_t *s, int accum_y)
     {
       sprintf(menu_buffer,"%d", s->var.def->location->i);
       BlinkingArrowRight(s);
-      M_DrawMenuStringEx(flags, x, y, color);
+      DrawMenuStringEx(flags, x, y, color);
       return;
     }
 
@@ -716,7 +690,7 @@ static void M_DrawSetting(setup_menu_t *s, int accum_y)
 
       if (i >= 0 && strings)
         strcat(menu_buffer, strings[i]);
-      width = M_GetPixelWidth(menu_buffer);
+      width = MN_GetPixelWidth(menu_buffer);
       if (flags & S_NEXT_LINE)
       {
         y += M_SPC;
@@ -725,7 +699,7 @@ static void M_DrawSetting(setup_menu_t *s, int accum_y)
       }
 
       BlinkingArrowRight(s);
-      M_DrawMenuStringEx(flags, x, y, flags & S_CRITEM ? i : color);
+      DrawMenuStringEx(flags, x, y, flags & S_CRITEM ? i : color);
       return;
     }
 
@@ -767,7 +741,7 @@ static void M_DrawSetting(setup_menu_t *s, int accum_y)
       rect->y = y;
       rect->w = (width + 2) * M_THRM_STEP;
       rect->h = M_THRM_HEIGHT;
-      M_DrawSetupThermo(x, y, width, max - min, thrm_val - min, cr);
+      DrawSetupThermo(x, y, width, max - min, thrm_val - min, cr);
 
       if (strings)
         strcpy(menu_buffer, strings[value]);
@@ -777,7 +751,7 @@ static void M_DrawSetting(setup_menu_t *s, int accum_y)
         M_snprintf(menu_buffer, sizeof(menu_buffer), "%d", value);
 
       BlinkingArrowRight(s);
-      M_DrawMenuStringEx(flags, x + M_THRM_STEP + rect->w, y + M_THRM_TXT_OFFSET, color);
+      DrawMenuStringEx(flags, x + M_THRM_STEP + rect->w, y + M_THRM_TXT_OFFSET, color);
     }
 }
 
@@ -786,7 +760,7 @@ static void M_DrawSetting(setup_menu_t *s, int accum_y)
 // M_DrawScreenItems takes the data for each menu item and gives it to
 // the drawing routines above.
 
-static void M_DrawScreenItems(setup_menu_t* src)
+static void DrawScreenItems(setup_menu_t* src)
 {
   if (print_warning_about_changes > 0)   // killough 8/15/98: print warning
   {
@@ -805,8 +779,8 @@ static void M_DrawScreenItems(setup_menu_t* src)
       strcpy(menu_buffer, "Warning: Changes apply to next game");
     }
 
-    x_warn = SCREENWIDTH/2 - M_GetPixelWidth(menu_buffer)/2;
-    M_DrawMenuString(x_warn, M_Y_WARN, CR_RED);
+    x_warn = SCREENWIDTH/2 - MN_GetPixelWidth(menu_buffer)/2;
+    DrawMenuString(x_warn, M_Y_WARN, CR_RED);
   }
 
   int accum_y = 0;
@@ -825,14 +799,14 @@ static void M_DrawScreenItems(setup_menu_t* src)
 
       if (src->m_flags & S_SHOWDESC)
       {
-          M_DrawItem(src, accum_y);
+          DrawItem(src, accum_y);
       }
 
       // See if we're to draw the setting (right-hand part)
 
       if (src->m_flags & S_SHOWSET)
       {
-          M_DrawSetting(src, accum_y);
+          DrawSetting(src, accum_y);
       }
 
       src++;
@@ -847,7 +821,7 @@ static void M_DrawScreenItems(setup_menu_t* src)
 #define VERIFYBOXXORG 66
 #define VERIFYBOXYORG 88
 
-static void M_DrawDefVerify()
+static void DrawDefVerify()
 {
   V_DrawPatch(VERIFYBOXXORG, VERIFYBOXYORG, W_CacheLumpName("M_VBOX", PU_CACHE));
 
@@ -857,18 +831,18 @@ static void M_DrawDefVerify()
   if (whichSkull) // blink the text
     {
       strcpy(menu_buffer, "Restore defaults? (Y or N)");
-      M_DrawMenuString(VERIFYBOXXORG+8,VERIFYBOXYORG+8,CR_RED);
+      DrawMenuString(VERIFYBOXXORG+8,VERIFYBOXYORG+8,CR_RED);
     }
 }
 
-void M_DrawDelVerify(void)
+void MN_DrawDelVerify(void)
 {
     V_DrawPatch(VERIFYBOXXORG, VERIFYBOXYORG,
                 W_CacheLumpName("M_VBOX", PU_CACHE));
 
     if (whichSkull)
     {
-        M_DrawString(VERIFYBOXXORG + 8, VERIFYBOXYORG + 8, CR_RED,
+        MN_DrawString(VERIFYBOXXORG + 8, VERIFYBOXYORG + 8, CR_RED,
                      "Delete savegame? (Y or N)");
     }
 }
@@ -880,9 +854,9 @@ void M_DrawDelVerify(void)
 //
 // killough 8/15/98: rewritten
 
-static void M_DrawInstructions()
+static void DrawInstructions()
 {
-    int flags = current_setup_menu[set_menu_itemon].m_flags;
+    int flags = current_menu[set_item_on].m_flags;
 
     if (ItemDisabled(flags) || print_warning_about_changes > 0)
     {
@@ -970,7 +944,19 @@ static void M_DrawInstructions()
         }
     }
 
-    M_DrawStringCR((SCREENWIDTH - M_GetPixelWidth(s)) / 2, M_Y_WARN, cr_shaded, NULL, s);
+    MN_DrawStringCR((SCREENWIDTH - MN_GetPixelWidth(s)) / 2, M_Y_WARN, cr_shaded, NULL, s);
+}
+
+static void SetupMenu(void)
+{
+    setup_active = true;
+    setup_select = false;
+    default_verify = false;
+    setup_gather = false;
+    set_tab_on = 0;
+    set_item_on = GetItemOn();
+    while (current_menu[set_item_on++].m_flags & S_SKIP);
+    current_menu[--set_item_on].m_flags |= S_HILITE;
 }
 
 /////////////////////////////
@@ -979,43 +965,14 @@ static void M_DrawInstructions()
 
 #define KB_X  130
 
-// phares 4/16/98:
-// X,Y position of reset button. This is the same for every screen, and is
-// only defined once here.
-
-#define X_BUTTON 301
-#define Y_BUTTON (SCREENHEIGHT - 15 - 3)
-
-// Definitions of the (in this case) five key binding screens.
-
-setup_menu_t keys_settings1[];
-setup_menu_t keys_settings2[];
-setup_menu_t keys_settings3[];
-setup_menu_t keys_settings4[];
-setup_menu_t keys_settings5[];
-setup_menu_t keys_settings6[];
-
-// The table which gets you from one screen table to the next.
-
-setup_menu_t* keys_settings[] =
-{
-  keys_settings1,
-  keys_settings2,
-  keys_settings3,
-  keys_settings4,
-  keys_settings5,
-  keys_settings6,
-  NULL
-};
-
 static setup_tab_t keys_tabs[] =
 {
-   { "action", keys_settings1 },
-   { "weapon", keys_settings2 },
-   { "misc", keys_settings3 },
-   { "func", keys_settings4 },
-   { "automap", keys_settings5 },
-   { "cheats", keys_settings6 },
+   { "action"  },
+   { "weapon"  },
+   { "misc"    },
+   { "func"    },
+   { "automap" },
+   { "cheats"  },
    { NULL }
 };
 
@@ -1048,13 +1005,8 @@ static setup_tab_t keys_tabs[] =
 // button. If there is more than one screen in a set, the others don't get
 // the reset button.
 //
-// Note also that this screen has a "NEXT ->" line. This acts like an
-// item, in that 'activating' it moves you along to the next screen. If
-// there's a "<- PREV" item on a screen, it behaves similarly, moving you
-// to the previous screen. If you leave these off, you can't move from
-// screen to screen.
 
-setup_menu_t keys_settings1[] =  // Key Binding screen strings
+static setup_menu_t keys_settings1[] =  // Key Binding screen strings
 {
   {"Fire"        , S_INPUT,      m_scrn, KB_X, M_Y, {0}, input_fire},
   {"Forward"     , S_INPUT,      m_scrn, KB_X, M_SPC, {0}, input_forward},
@@ -1080,7 +1032,7 @@ setup_menu_t keys_settings1[] =  // Key Binding screen strings
   MI_END
 };
 
-setup_menu_t keys_settings2[] =
+static setup_menu_t keys_settings2[] =
 {
   {"Fist"    , S_INPUT,       m_scrn, KB_X, M_Y,   {0}, input_weapon1},
   {"Pistol"  , S_INPUT,       m_scrn, KB_X, M_SPC, {0}, input_weapon2},
@@ -1102,7 +1054,7 @@ setup_menu_t keys_settings2[] =
   MI_END
 };
 
-setup_menu_t keys_settings3[] =
+static setup_menu_t keys_settings3[] =
 {
   // [FG] reload current level / go to next level
   {"Reload Map/Demo",  S_INPUT, m_scrn, KB_X, M_Y,   {0}, input_menu_reloadlevel},
@@ -1129,7 +1081,7 @@ setup_menu_t keys_settings3[] =
   MI_END
 };
 
-setup_menu_t keys_settings4[] =
+static setup_menu_t keys_settings4[] =
 {
   // phares 4/13/98:
   // key_help and key_escape can no longer be rebound. This keeps the
@@ -1162,7 +1114,7 @@ setup_menu_t keys_settings4[] =
   MI_END
 };
 
-setup_menu_t keys_settings5[] =  // Key Binding screen strings       
+static setup_menu_t keys_settings5[] =  // Key Binding screen strings       
 {
   {"Toggle Automap",  S_INPUT, m_map, KB_X, M_Y,   {0}, input_map},
   {"Follow",          S_INPUT, m_map, KB_X, M_SPC, {0}, input_map_follow},
@@ -1187,7 +1139,7 @@ setup_menu_t keys_settings5[] =  // Key Binding screen strings
 
 #define CHEAT_X 160
 
-setup_menu_t keys_settings6[] =
+static setup_menu_t keys_settings6[] =
 {
   {"Fake Archvile Jump",   S_INPUT, m_scrn, CHEAT_X, M_Y,   {0}, input_avj},
   {"God mode/Resurrect",   S_INPUT, m_scrn, CHEAT_X, M_SPC, {0}, input_iddqd},
@@ -1208,75 +1160,62 @@ setup_menu_t keys_settings6[] =
   MI_END
 };
 
+static setup_menu_t* keys_settings[] =
+{
+  keys_settings1,
+  keys_settings2,
+  keys_settings3,
+  keys_settings4,
+  keys_settings5,
+  keys_settings6,
+  NULL
+};
+
 // Setting up for the Key Binding screen. Turn on flags, set pointers,
 // locate the first item on the screen where the cursor is allowed to
 // land.
 
-void M_KeyBindings(int choice)
+void MN_KeyBindings(int choice)
 {
-  M_SetupNextMenuAlt(ss_keys);
-
-  setup_active = true;
+  MN_SetNextMenuAlt(ss_keys);
   setup_screen = ss_keys;
   set_keybnd_active = true;
-  setup_select = false;
-  default_verify = false;
-  setup_gather = false;
-  mult_screens_index = M_GetMultScreenIndex(keys_settings);
-  set_tab_on = mult_screens_index;
-  current_setup_menu = keys_settings[mult_screens_index];
-  current_setup_tabs = keys_tabs;
-  set_menu_itemon = M_GetSetupMenuItemOn();
-  while (current_setup_menu[set_menu_itemon++].m_flags & S_SKIP);
-  current_setup_menu[--set_menu_itemon].m_flags |= S_HILITE;
+  current_page = GetPageIndex(keys_settings);
+  current_menu = keys_settings[current_page];
+  current_tabs = keys_tabs;
+  SetupMenu();
 }
 
 // The drawing part of the Key Bindings Setup initialization. Draw the
 // background, title, instruction line, and items.
 
-void M_DrawKeybnd(void)
+void MN_DrawKeybnd(void)
 {
   inhelpscreens = true;    // killough 4/6/98: Force status bar redraw
 
   // Set up the Key Binding screen 
 
-  M_DrawBackground("FLOOR4_6"); // Draw background
-  M_DrawTitle(84, 2, "M_KEYBND", "KEY BINDINGS");
-  M_DrawTabs();
-  M_DrawInstructions();
-  M_DrawScreenItems(current_setup_menu);
+  DrawBackground("FLOOR4_6"); // Draw background
+  MN_DrawTitle(84, 2, "M_KEYBND", "KEY BINDINGS");
+  DrawTabs();
+  DrawInstructions();
+  DrawScreenItems(current_menu);
 
   // If the Reset Button has been selected, an "Are you sure?" message
   // is overlayed across everything else.
 
   if (default_verify)
-    M_DrawDefVerify();
+    DrawDefVerify();
 }
 
 /////////////////////////////
 //
 // The Weapon Screen tables.
 
-// There's only one weapon settings screen (for now). But since we're
-// trying to fit a common description for screens, it gets a setup_menu_t,
-// which only has one screen definition in it.
-//
-// Note that this screen has no PREV or NEXT items, since there are no
-// neighboring screens.
-
-setup_menu_t weap_settings1[], weap_settings2[];
-
-static setup_menu_t* weap_settings[] =
-{
-  weap_settings1,
-  weap_settings2,
-  NULL
-};
-
 static setup_tab_t weap_tabs[] =
 {
-   { "cosmetic",    weap_settings1 },
-   { "preferences", weap_settings2 },
+   { "cosmetic"    },
+   { "preferences" },
    { NULL }
 };
 
@@ -1285,22 +1224,19 @@ static const char *center_weapon_strings[] = {
     "Off", "Centered", "Bobbing"
 };
 
-static void M_UpdateCenteredWeaponItem(void)
-{
-  DisableItem(!weapon_bobbing_pct, weap_settings1, "center_weapon");
-}
+static void UpdateCenteredWeaponItem(void);
 
 static const char *bobbing_pct_strings[] = {
   "0%", "25%", "50%", "75%", "100%"
 };
 
-setup_menu_t weap_settings1[] =
+static setup_menu_t weap_settings1[] =
 {
   {"View Bob", S_THERMO|S_THRM_SIZE4, m_null, M_X_THRM4, M_Y,
    {"view_bobbing_pct"}, 0, NULL, str_bobbing_pct},
 
   {"Weapon Bob", S_THERMO|S_THRM_SIZE4, m_null, M_X_THRM4, M_THRM_SPC,
-   {"weapon_bobbing_pct"}, 0, M_UpdateCenteredWeaponItem, str_bobbing_pct},
+   {"weapon_bobbing_pct"}, 0, UpdateCenteredWeaponItem, str_bobbing_pct},
 
   // [FG] centered or bobbing weapon sprite
   {"Weapon Alignment", S_CHOICE|S_STRICT, m_null, M_X, M_THRM_SPC,
@@ -1315,7 +1251,7 @@ setup_menu_t weap_settings1[] =
   MI_END
 };
 
-setup_menu_t weap_settings2[] =  // Weapons Settings screen
+static setup_menu_t weap_settings2[] =  // Weapons Settings screen
 {
   {"1St Choice Weapon", S_WEAP|S_BOOM, m_null, M_X, M_Y,   {"weapon_choice_1"}},
   {"2Nd Choice Weapon", S_WEAP|S_BOOM, m_null, M_X, M_SPC, {"weapon_choice_2"}},
@@ -1340,80 +1276,68 @@ setup_menu_t weap_settings2[] =  // Weapons Settings screen
   MI_END
 };
 
+static setup_menu_t* weap_settings[] =
+{
+  weap_settings1,
+  weap_settings2,
+  NULL
+};
+
+static void UpdateCenteredWeaponItem(void)
+{
+  DisableItem(!weapon_bobbing_pct, weap_settings1, "center_weapon");
+}
+
 // Setting up for the Weapons screen. Turn on flags, set pointers,
 // locate the first item on the screen where the cursor is allowed to
 // land.
 
-void M_Weapons(int choice)
+void MN_Weapons(int choice)
 {
-  M_SetupNextMenuAlt(ss_weap);
-
-  setup_active = true;
+  MN_SetNextMenuAlt(ss_weap);
   setup_screen = ss_weap;
   set_weapon_active = true;
-  setup_select = false;
-  default_verify = false;
-  setup_gather = false;
-  mult_screens_index = M_GetMultScreenIndex(weap_settings);
-  set_tab_on = mult_screens_index;
-  current_setup_menu = weap_settings[mult_screens_index];
-  current_setup_tabs = weap_tabs;
-  set_menu_itemon = M_GetSetupMenuItemOn();
-  while (current_setup_menu[set_menu_itemon++].m_flags & S_SKIP);
-  current_setup_menu[--set_menu_itemon].m_flags |= S_HILITE;
+  current_page = GetPageIndex(weap_settings);
+  current_menu = weap_settings[current_page];
+  current_tabs = weap_tabs;
+  SetupMenu();
 }
 
 
 // The drawing part of the Weapons Setup initialization. Draw the
 // background, title, instruction line, and items.
 
-void M_DrawWeapons(void)
+void MN_DrawWeapons(void)
 {
   inhelpscreens = true;    // killough 4/6/98: Force status bar redraw
 
-  M_DrawBackground("FLOOR4_6"); // Draw background
-  M_DrawTitle(109, 2, "M_WEAP", "WEAPONS");
-  M_DrawTabs();
-  M_DrawInstructions();
-  M_DrawScreenItems(current_setup_menu);
+  DrawBackground("FLOOR4_6"); // Draw background
+  MN_DrawTitle(109, 2, "M_WEAP", "WEAPONS");
+  DrawTabs();
+  DrawInstructions();
+  DrawScreenItems(current_menu);
 
   // If the Reset Button has been selected, an "Are you sure?" message
   // is overlayed across everything else.
 
   if (default_verify)
-    M_DrawDefVerify();
+    DrawDefVerify();
 }
 
 /////////////////////////////
 //
 // The Status Bar / HUD tables.
 
-// Screen table definitions
-
-setup_menu_t stat_settings1[];
-setup_menu_t stat_settings2[];
-setup_menu_t stat_settings3[];
-setup_menu_t stat_settings4[];
-
-static setup_menu_t* stat_settings[] =
-{
-  stat_settings1,
-  stat_settings2,
-  stat_settings3,
-  stat_settings4,
-  NULL
-};
-
 static setup_tab_t stat_tabs[] =
 {
-   { "HUD",       stat_settings1 },
-   { "Widgets",   stat_settings2 },
-   { "Crosshair", stat_settings3 },
-   { "Messages",  stat_settings4 },
+   { "HUD" },
+   { "Widgets" },
+   { "Crosshair" },
+   { "Messages" },
    { NULL }
 };
 
-static void M_SizeDisplayAlt(void)
+static void SizeDisplayAlt(void)
 {
     int choice = -1;
 
@@ -1430,7 +1354,7 @@ static void M_SizeDisplayAlt(void)
 
     if (choice != -1)
     {
-        M_SizeDisplay(choice);
+        MN_SizeDisplay(choice);
     }
 
     hud_displayed = (screenblocks == 11);
@@ -1457,9 +1381,9 @@ static void M_UpdateHUDModeStrings(void);
 #define H_X_THRM8 (M_X_THRM8 - 14)
 #define H_X (M_X - 14)
 
-setup_menu_t stat_settings1[] =  // Status Bar and HUD Settings screen
+static setup_menu_t stat_settings1[] =  // Status Bar and HUD Settings screen
 {
-  {"Screen Size", S_THERMO, m_null, H_X_THRM8, M_Y, {"screenblocks"}, 0, M_SizeDisplayAlt, str_screensize},
+  {"Screen Size", S_THERMO, m_null, H_X_THRM8, M_Y, {"screenblocks"}, 0, SizeDisplayAlt, str_screensize},
 
   {"", S_SKIP, m_null, H_X, M_THRM_SPC},
 
@@ -1490,7 +1414,7 @@ static const char *show_widgets_strings[] = {
     "Off", "Automap", "HUD", "Always"
 };
 
-setup_menu_t stat_settings2[] =
+static setup_menu_t stat_settings2[] =
 {
   {"Widget Types", S_SKIP|S_TITLE, m_null, M_X, M_Y},
 
@@ -1516,15 +1440,7 @@ setup_menu_t stat_settings2[] =
   MI_END
 };
 
-static void M_UpdateCrosshairItems (void)
-{
-    DisableItem(!hud_crosshair, stat_settings3, "hud_crosshair_health");
-    DisableItem(!hud_crosshair, stat_settings3, "hud_crosshair_target");
-    DisableItem(!hud_crosshair, stat_settings3, "hud_crosshair_lockon");
-    DisableItem(!hud_crosshair, stat_settings3, "hud_crosshair_color");
-    DisableItem(!(hud_crosshair && hud_crosshair_target == crosstarget_highlight),
-        stat_settings3, "hud_crosshair_target_color");
-}
+static void UpdateCrosshairItems(void);
 
 static const char *crosshair_target_strings[] = {
     "Off", "Highlight", "Health"
@@ -1537,14 +1453,14 @@ static const char *hudcolor_strings[] = {
 
 #define XH_X (M_X - 33)
 
-setup_menu_t stat_settings3[] =
+static setup_menu_t stat_settings3[] =
 {
   {"Crosshair", S_CHOICE, m_null, XH_X, M_Y,
-   {"hud_crosshair"}, 0, M_UpdateCrosshairItems, str_crosshair},
+   {"hud_crosshair"}, 0, UpdateCrosshairItems, str_crosshair},
 
   {"Color By Player Health",S_ONOFF|S_STRICT, m_null, XH_X, M_SPC, {"hud_crosshair_health"}},
   {"Color By Target", S_CHOICE|S_STRICT, m_null, XH_X, M_SPC,
-   {"hud_crosshair_target"}, 0, M_UpdateCrosshairItems, str_crosshair_target},
+   {"hud_crosshair_target"}, 0, UpdateCrosshairItems, str_crosshair_target},
   {"Lock On Target", S_ONOFF|S_STRICT, m_null, XH_X, M_SPC, {"hud_crosshair_lockon"}},
   {"Default Color", S_CRITEM, m_null, XH_X, M_SPC,
    {"hud_crosshair_color"}, 0, NULL, str_hudcolor},
@@ -1554,7 +1470,7 @@ setup_menu_t stat_settings3[] =
   MI_END
 };
 
-setup_menu_t stat_settings4[] =
+static setup_menu_t stat_settings4[] =
 {
   {"\"A Secret is Revealed!\" Message", S_ONOFF, m_null, M_X, M_Y,
    {"hud_secret_message"}},
@@ -1573,43 +1489,54 @@ setup_menu_t stat_settings4[] =
   MI_END
 };
 
+static setup_menu_t* stat_settings[] =
+{
+  stat_settings1,
+  stat_settings2,
+  stat_settings3,
+  stat_settings4,
+  NULL
+};
+
+static void UpdateCrosshairItems(void)
+{
+    DisableItem(!hud_crosshair, stat_settings3, "hud_crosshair_health");
+    DisableItem(!hud_crosshair, stat_settings3, "hud_crosshair_target");
+    DisableItem(!hud_crosshair, stat_settings3, "hud_crosshair_lockon");
+    DisableItem(!hud_crosshair, stat_settings3, "hud_crosshair_color");
+    DisableItem(!(hud_crosshair && hud_crosshair_target == crosstarget_highlight),
+        stat_settings3, "hud_crosshair_target_color");
+}
+
 // Setting up for the Status Bar / HUD screen. Turn on flags, set pointers,
 // locate the first item on the screen where the cursor is allowed to
 // land.
 
-void M_StatusBar(int choice)
+void MN_StatusBar(int choice)
 {
-  M_SetupNextMenuAlt(ss_stat);
-
-  setup_active = true;
+  MN_SetNextMenuAlt(ss_stat);
   setup_screen = ss_stat;
-  setup_select = false;
-  default_verify = false;
-  setup_gather = false;
-  mult_screens_index = M_GetMultScreenIndex(stat_settings);
-  set_tab_on = mult_screens_index;
-  current_setup_menu = stat_settings[mult_screens_index];
-  current_setup_tabs = stat_tabs;
-  set_menu_itemon = M_GetSetupMenuItemOn();
-  while (current_setup_menu[set_menu_itemon++].m_flags & S_SKIP);
-  current_setup_menu[--set_menu_itemon].m_flags |= S_HILITE;
+  current_page = GetPageIndex(stat_settings);
+  current_menu = stat_settings[current_page];
+  current_tabs = stat_tabs;
+  SetupMenu();
 }
 
 
 // The drawing part of the Status Bar / HUD Setup initialization. Draw the
 // background, title, instruction line, and items.
 
-void M_DrawStatusHUD(void)
+void MN_DrawStatusHUD(void)
 {
   inhelpscreens = true;    // killough 4/6/98: Force status bar redraw
 
-  M_DrawBackground("FLOOR4_6"); // Draw background
-  M_DrawTitle(59, 2, "M_STAT", "STATUS BAR / HUD");
-  M_DrawTabs();
-  M_DrawInstructions();
-  M_DrawScreenItems(current_setup_menu);
+  DrawBackground("FLOOR4_6"); // Draw background
+  MN_DrawTitle(59, 2, "M_STAT", "STATUS BAR / HUD");
+  DrawTabs();
+  DrawInstructions();
+  DrawScreenItems(current_menu);
 
-  if (hud_crosshair && mult_screens_index == 2)
+  if (hud_crosshair && current_page == 2)
   {
     patch_t *patch = W_CacheLumpName(crosshair_lumps[hud_crosshair], PU_CACHE);
 
@@ -1623,21 +1550,13 @@ void M_DrawStatusHUD(void)
   // is overlayed across everything else.
 
   if (default_verify)
-    M_DrawDefVerify();
+    DrawDefVerify();
 }
 
 
 /////////////////////////////
 //
 // The Automap tables.
-
-setup_menu_t auto_settings1[];
-
-static setup_menu_t* auto_settings[] =
-{
-  auto_settings1,
-  NULL
-};
 
 static const char *overlay_strings[] = {
     "Off", "On", "Dark"
@@ -1651,7 +1570,7 @@ static const char *automap_keyed_door_strings[] = {
     "Off", "On", "Flashing"
 };
 
-setup_menu_t auto_settings1[] =  // 1st AutoMap Settings screen       
+static setup_menu_t auto_settings1[] =  // 1st AutoMap Settings screen       
 {
   {"Modes", S_SKIP|S_TITLE, m_null, M_X, M_Y},
   {"Follow Player" ,        S_ONOFF,  m_null, M_X, M_SPC, {"followplayer"}},
@@ -1676,45 +1595,43 @@ setup_menu_t auto_settings1[] =  // 1st AutoMap Settings screen
   MI_END
 };
 
+static setup_menu_t* auto_settings[] =
+{
+  auto_settings1,
+  NULL
+};
+
 // Setting up for the Automap screen. Turn on flags, set pointers,
 // locate the first item on the screen where the cursor is allowed to
 // land.
 
-void M_Automap(int choice)
+void MN_Automap(int choice)
 {
-  M_SetupNextMenuAlt(ss_auto);
-
-  setup_active = true;
+  MN_SetNextMenuAlt(ss_auto);
   setup_screen = ss_auto;
-  setup_select = false;
-  default_verify = false;
-  setup_gather = false;
-  mult_screens_index = M_GetMultScreenIndex(auto_settings);
-  set_tab_on = mult_screens_index;
-  current_setup_menu = auto_settings[mult_screens_index];
-  current_setup_tabs = NULL;
-  set_menu_itemon = M_GetSetupMenuItemOn();
-  while (current_setup_menu[set_menu_itemon++].m_flags & S_SKIP);
-  current_setup_menu[--set_menu_itemon].m_flags |= S_HILITE;
+  current_page = GetPageIndex(auto_settings);
+  current_menu = auto_settings[current_page];
+  current_tabs = NULL;
+  SetupMenu();
 }
 
 // The drawing part of the Automap Setup initialization. Draw the
 // background, title, instruction line, and items.
 
-void M_DrawAutoMap(void)
+void MN_DrawAutoMap(void)
 {
   inhelpscreens = true;    // killough 4/6/98: Force status bar redraw
 
-  M_DrawBackground("FLOOR4_6"); // Draw background
-  M_DrawTitle(109, 2, "M_AUTO", "AUTOMAP");
-  M_DrawInstructions();
-  M_DrawScreenItems(current_setup_menu);
+  DrawBackground("FLOOR4_6"); // Draw background
+  MN_DrawTitle(109, 2, "M_AUTO", "AUTOMAP");
+  DrawInstructions();
+  DrawScreenItems(current_menu);
 
   // If the Reset Button has been selected, an "Are you sure?" message
   // is overlayed across everything else.
 
   if (default_verify)
-    M_DrawDefVerify();
+    DrawDefVerify();
 }
 
 
@@ -1722,15 +1639,7 @@ void M_DrawAutoMap(void)
 //
 // The Enemies table.
 
-setup_menu_t enem_settings1[];
-
-static setup_menu_t* enem_settings[] =
-{
-  enem_settings1,
-  NULL
-};
-
-static void M_BarkSound(void)
+static void BarkSound(void)
 {
     if (default_dogs)
     {
@@ -1738,10 +1647,10 @@ static void M_BarkSound(void)
     }
 }
 
-setup_menu_t enem_settings1[] =  // Enemy Settings screen
+static setup_menu_t enem_settings1[] =  // Enemy Settings screen
 {
   {"Helper Dogs", S_MBF|S_THERMO|S_THRM_SIZE4|S_LEVWARN|S_ACTION,
-   m_null, M_X_THRM4, M_Y, {"player_helpers"}, 0, M_BarkSound},
+   m_null, M_X_THRM4, M_Y, {"player_helpers"}, 0, BarkSound},
 
   {"", S_SKIP, m_null, M_X, M_THRM_SPC},
 
@@ -1769,47 +1678,45 @@ setup_menu_t enem_settings1[] =  // Enemy Settings screen
 
 };
 
+static setup_menu_t* enem_settings[] =
+{
+  enem_settings1,
+  NULL
+};
+
 /////////////////////////////
 
 // Setting up for the Enemies screen. Turn on flags, set pointers,
 // locate the first item on the screen where the cursor is allowed to
 // land.
 
-void M_Enemy(int choice)
+void MN_Enemy(int choice)
 {
-  M_SetupNextMenuAlt(ss_enem);
-
-  setup_active = true;
+  MN_SetNextMenuAlt(ss_enem);
   setup_screen = ss_enem;
-  setup_select = false;
-  default_verify = false;
-  setup_gather = false;
-  mult_screens_index = M_GetMultScreenIndex(enem_settings);
-  set_tab_on = mult_screens_index;
-  current_setup_menu = enem_settings[mult_screens_index];
-  current_setup_tabs = NULL;
-  set_menu_itemon = M_GetSetupMenuItemOn();
-  while (current_setup_menu[set_menu_itemon++].m_flags & S_SKIP);
-  current_setup_menu[--set_menu_itemon].m_flags |= S_HILITE;
+  current_page = GetPageIndex(enem_settings);
+  current_menu = enem_settings[current_page];
+  current_tabs = NULL;
+  SetupMenu();
 }
 
 // The drawing part of the Enemies Setup initialization. Draw the
 // background, title, instruction line, and items.
 
-void M_DrawEnemy(void)
+void MN_DrawEnemy(void)
 {
   inhelpscreens = true;
 
-  M_DrawBackground("FLOOR4_6"); // Draw background
-  M_DrawTitle(114, 2, "M_ENEM", "ENEMIES");
-  M_DrawInstructions();
-  M_DrawScreenItems(current_setup_menu);
+  DrawBackground("FLOOR4_6"); // Draw background
+  MN_DrawTitle(114, 2, "M_ENEM", "ENEMIES");
+  DrawInstructions();
+  DrawScreenItems(current_menu);
 
   // If the Reset Button has been selected, an "Are you sure?" message
   // is overlayed across everything else.
 
   if (default_verify)
-    M_DrawDefVerify();
+    DrawDefVerify();
 }
 
 /////////////////////////////
@@ -1875,41 +1782,33 @@ setup_menu_t comp_settings1[] =  // Compatibility Settings screen #1
 // locate the first item on the screen where the cursor is allowed to
 // land.
 
-void M_Compat(int choice)
+void MN_Compat(int choice)
 {
-  M_SetupNextMenuAlt(ss_comp);
-
-  setup_active = true;
+  MN_SetNextMenuAlt(ss_comp);
   setup_screen = ss_comp;
-  setup_select = false;
-  default_verify = false;
-  setup_gather = false;
-  mult_screens_index = M_GetMultScreenIndex(comp_settings);
-  set_tab_on = mult_screens_index;
-  current_setup_menu = comp_settings[mult_screens_index];
-  current_setup_tabs = NULL;
-  set_menu_itemon = M_GetSetupMenuItemOn();
-  while (current_setup_menu[set_menu_itemon++].m_flags & S_SKIP);
-  current_setup_menu[--set_menu_itemon].m_flags |= S_HILITE;
+  current_page = GetPageIndex(comp_settings);
+  current_menu = comp_settings[current_page];
+  current_tabs = NULL;
+  SetupMenu();
 }
 
 // The drawing part of the Compatibility Setup initialization. Draw the
 // background, title, instruction line, and items.
 
-void M_DrawCompat(void)
+void MN_DrawCompat(void)
 {
   inhelpscreens = true;
 
-  M_DrawBackground("FLOOR4_6"); // Draw background
-  M_DrawTitle(52, 2, "M_COMPAT", "DOOM COMPATIBILITY");
-  M_DrawInstructions();
-  M_DrawScreenItems(current_setup_menu);
+  DrawBackground("FLOOR4_6"); // Draw background
+  MN_DrawTitle(52, 2, "M_COMPAT", "DOOM COMPATIBILITY");
+  DrawInstructions();
+  DrawScreenItems(current_menu);
 
   // If the Reset Button has been selected, an "Are you sure?" message
   // is overlayed across everything else.
 
   if (default_verify)
-    M_DrawDefVerify();
+    DrawDefVerify();
 }
 
 /////////////////////////////
@@ -1939,18 +1838,18 @@ static setup_menu_t* gen_settings[] =
 
 static setup_tab_t gen_tabs[] =
 {
-   { "video",   gen_settings1 },
-   { "audio",   gen_settings2 },
-   { "mouse",   gen_settings3 },
-   { "gamepad", gen_settings4 },
-   { "display", gen_settings5 },
-   { "misc",    gen_settings6 },
+   { "video" },
+   { "audio" },
+   { "mouse" },
+   { "gamepad" },
+   { "display" },
+   { "misc" },
    { NULL }
 };
 
 int resolution_scale;
 
-static const char **M_GetResolutionScaleStrings(void)
+static const char **GetResolutionScaleStrings(void)
 {
     const char **strings = NULL;
 
@@ -1981,7 +1880,7 @@ static const char **M_GetResolutionScaleStrings(void)
     return strings;
 }
 
-static void M_ResetVideoHeight(void)
+static void ResetVideoHeight(void)
 {
     const char **strings = GetStrings(str_resolution_scale);
     resolution_scaling_t rs;
@@ -2035,12 +1934,12 @@ static const char *widescreen_strings[] = {
 
 int midi_player_menu;
 
-static const char **M_GetMidiDevicesStrings(void)
+static const char **GetMidiDevicesStrings(void)
 {
     return I_DeviceList(&midi_player_menu);
 }
 
-static void M_SmoothLight(void)
+static void SmoothLight(void)
 {
   setsmoothlight = true;
   setsizeneeded = true; // run R_ExecuteSetViewSize
@@ -2057,7 +1956,7 @@ const char *gamma_strings[] = {
     "0.5", "1", "1.5", "2", "2.5", "3", "3.5", "4"
 };
 
-void M_ResetGamma(void)
+void MN_ResetGamma(void)
 {
   I_SetPalette(W_CacheLumpName("PLAYPAL",PU_CACHE));
 }
@@ -2069,14 +1968,14 @@ static const char *sound_module_strings[] = {
 #endif
 };
 
-static void M_UpdateAdvancedSoundItems(void)
+static void UpdateAdvancedSoundItems(void)
 {
   DisableItem(snd_module != SND_MODULE_3D, gen_settings2, "snd_hrtf");
 }
 
-static void M_SetSoundModule(void)
+static void SetSoundModule(void)
 {
-  M_UpdateAdvancedSoundItems();
+  UpdateAdvancedSoundItems();
 
   if (!I_AllowReinitSound())
   {
@@ -2089,7 +1988,7 @@ static void M_SetSoundModule(void)
   I_SetSoundModule(snd_module);
 }
 
-static void M_SetMidiPlayer(void)
+static void SetMidiPlayer(void)
 {
   S_StopMusic();
   I_SetMidiPlayer(midi_player_menu);
@@ -2097,45 +1996,45 @@ static void M_SetMidiPlayer(void)
   S_RestartMusic();
 }
 
-static void M_ToggleUncapped(void)
+static void ToggleUncapped(void)
 {
   DisableItem(!default_uncapped, gen_settings1, "fpslimit");
   setrefreshneeded = true;
 }
 
-static void M_ToggleFullScreen(void)
+static void ToggleFullScreen(void)
 {
   toggle_fullscreen = true;
 }
 
-static void M_ToggleExclusiveFullScreen(void)
+static void ToggleExclusiveFullScreen(void)
 {
   toggle_exclusive_fullscreen = true;
 }
 
-static void M_CoerceFPSLimit(void)
+static void CoerceFPSLimit(void)
 {
   if (fpslimit < TICRATE)
     fpslimit = 0;
   setrefreshneeded = true;
 }
 
-static void M_UpdateFOV(void)
+static void UpdateFOV(void)
 {
   setsizeneeded = true; // run R_ExecuteSetViewSize;
 }
 
-static void M_ResetScreen(void)
+static void ResetVideo(void)
 {
   resetneeded = true;
 }
 
-static void M_UpdateSfxVolume(void)
+static void UpdateSfxVolume(void)
 {
   S_SetSfxVolume(snd_SfxVolume);
 }
 
-static void M_UpdateMusicVolume(void)
+static void UpdateMusicVolume(void)
 {
   S_SetMusicVolume(snd_MusicVolume);
 }
@@ -2143,36 +2042,36 @@ static void M_UpdateMusicVolume(void)
 setup_menu_t gen_settings1[] = { // General Settings screen1
 
   {"Resolution Scale", S_THERMO|S_THRM_SIZE11|S_ACTION, m_null, M_X_THRM11, M_Y,
-   {"resolution_scale"}, 0, M_ResetVideoHeight, str_resolution_scale},
+   {"resolution_scale"}, 0, ResetVideoHeight, str_resolution_scale},
 
   {"Dynamic Resolution", S_ONOFF, m_null, M_X, M_THRM_SPC,
-   {"dynamic_resolution"}, 0, M_ResetVideoHeight},
+   {"dynamic_resolution"}, 0, ResetVideoHeight},
 
   {"Widescreen", S_CHOICE, m_null, M_X, M_SPC,
-   {"widescreen"}, 0, M_ResetScreen, str_widescreen},
+   {"widescreen"}, 0, ResetVideo, str_widescreen},
 
-  {"FOV", S_THERMO, m_null, M_X_THRM8, M_SPC, {"fov"}, 0, M_UpdateFOV},
+  {"FOV", S_THERMO, m_null, M_X_THRM8, M_SPC, {"fov"}, 0, UpdateFOV},
 
   {"Fullscreen", S_ONOFF, m_null, M_X, M_THRM_SPC,
-   {"fullscreen"}, 0, M_ToggleFullScreen},
+   {"fullscreen"}, 0, ToggleFullScreen},
 
   {"Exclusive Fullscreen", S_ONOFF, m_null, M_X, M_SPC,
-   {"exclusive_fullscreen"}, 0, M_ToggleExclusiveFullScreen},
+   {"exclusive_fullscreen"}, 0, ToggleExclusiveFullScreen},
 
   {"", S_SKIP, m_null, M_X, M_SPC},
 
   {"Uncapped Framerate", S_ONOFF, m_null, M_X, M_SPC,
-   {"uncapped"}, 0, M_ToggleUncapped},
+   {"uncapped"}, 0, ToggleUncapped},
 
   {"Framerate Limit", S_NUM, m_null, M_X, M_SPC,
-   {"fpslimit"}, 0, M_CoerceFPSLimit},
+   {"fpslimit"}, 0, CoerceFPSLimit},
 
   {"VSync", S_ONOFF, m_null, M_X, M_SPC, {"use_vsync"}, 0, I_ToggleVsync},
 
   {"", S_SKIP, m_null, M_X, M_SPC},
 
   {"Gamma Correction", S_THERMO, m_null, M_X_THRM8, M_SPC,
-   {"gamma2"}, 0, M_ResetGamma, str_gamma},
+   {"gamma2"}, 0, MN_ResetGamma, str_gamma},
 
   {"Level Brightness", S_THERMO|S_THRM_SIZE4|S_STRICT, m_null, M_X_THRM4, M_THRM_SPC,
    {"extra_level_brightness"}},
@@ -2185,17 +2084,17 @@ setup_menu_t gen_settings1[] = { // General Settings screen1
 setup_menu_t gen_settings2[] = { // General Settings screen2
 
   {"Sound Volume", S_THERMO, m_null, M_X_THRM8, M_Y,
-   {"sfx_volume"}, 0, M_UpdateSfxVolume},
+   {"sfx_volume"}, 0, UpdateSfxVolume},
 
   {"Music Volume", S_THERMO, m_null, M_X_THRM8, M_THRM_SPC,
-   {"music_volume"}, 0, M_UpdateMusicVolume},
+   {"music_volume"}, 0, UpdateMusicVolume},
 
   {"", S_SKIP, m_null, M_X, M_THRM_SPC},
 
   {"Sound Module", S_CHOICE, m_null, M_X, M_SPC,
-   {"snd_module"}, 0, M_SetSoundModule, str_sound_module},
+   {"snd_module"}, 0, SetSoundModule, str_sound_module},
 
-  {"Headphones Mode", S_ONOFF, m_null, M_X, M_SPC, {"snd_hrtf"}, 0, M_SetSoundModule},
+  {"Headphones Mode", S_ONOFF, m_null, M_X, M_SPC, {"snd_hrtf"}, 0, SetSoundModule},
 
   {"Pitch-Shifted Sounds", S_ONOFF, m_null, M_X, M_SPC, {"pitched_sounds"}},
 
@@ -2206,7 +2105,7 @@ setup_menu_t gen_settings2[] = { // General Settings screen2
 
   // [FG] music backend
   {"MIDI player", S_CHOICE|S_ACTION|S_NEXT_LINE, m_null, M_X, M_SPC,
-   {"midi_player_menu"}, 0, M_SetMidiPlayer, str_midi_player},
+   {"midi_player_menu"}, 0, SetMidiPlayer, str_midi_player},
 
   MI_END
 };
@@ -2227,7 +2126,7 @@ static const char **M_GetMouseAccelStrings(void)
     return strings;
 }
 
-void M_ResetTimeScale(void)
+void MN_ResetTimeScale(void)
 {
     if (strictmode || D_CheckNetConnect())
     {
@@ -2258,7 +2157,7 @@ void M_ResetTimeScale(void)
     I_SetTimeScale(time_scale);
 }
 
-void M_UpdateFreeLook(void)
+void MN_UpdateFreeLook(void)
 {
   P_UpdateDirectVerticalAiming();
 
@@ -2303,7 +2202,7 @@ static const char *invul_mode_strings[] = {
   "Vanilla", "MBF", "Gray"
 };
 
-void M_DisableVoxelsRenderingItem(void)
+void MN_DisableVoxelsRenderingItem(void)
 {
     DisableItem(true, gen_settings5, "voxels_rendering");
 }
@@ -2316,7 +2215,7 @@ setup_menu_t gen_settings3[] = {
   {"Double-Click to \"Use\"", S_ONOFF, m_null, CNTR_X, M_Y, {"dclick_use"}},
 
   {"Free Look", S_ONOFF, m_null, CNTR_X, M_SPC,
-   {"mouselook"}, 0, M_UpdateFreeLook},
+   {"mouselook"}, 0, MN_UpdateFreeLook},
 
   // [FG] invert vertical axis
   {"Invert Look", S_ONOFF, m_null, CNTR_X, M_SPC,
@@ -2350,7 +2249,7 @@ setup_menu_t gen_settings4[] = {
    {"joy_layout"}, 0, I_ResetController, str_layout},
 
   {"Free Look", S_ONOFF, m_null, CNTR_X, M_SPC,
-   {"padlook"}, 0, M_UpdateFreeLook},
+   {"padlook"}, 0, MN_UpdateFreeLook},
 
   {"Invert Look", S_ONOFF, m_scrn, CNTR_X, M_SPC, {"joy_invert_look"}},
 
@@ -2385,12 +2284,12 @@ setup_menu_t gen_settings4[] = {
 setup_menu_t gen_settings5[] = {
 
   {"Smooth Pixel Scaling", S_ONOFF, m_null, M_X, M_Y,
-   {"smooth_scaling"}, 0, M_ResetScreen},
+   {"smooth_scaling"}, 0, ResetVideo},
 
   {"Sprite Translucency", S_ONOFF|S_STRICT, m_null, M_X, M_SPC, {"translucency"}},
 
   {"Translucency Filter", S_NUM|S_ACTION|S_PCT, m_null, M_X, M_SPC,
-   {"tran_filter_pct"}, 0, M_Trans},
+   {"tran_filter_pct"}, 0, MN_Trans},
 
   {"", S_SKIP, m_null, M_X, M_SPC},
 
@@ -2407,7 +2306,7 @@ setup_menu_t gen_settings5[] = {
   {"Swirling Flats", S_ONOFF, m_null, M_X, M_SPC, {"r_swirl"}},
 
   {"Smooth Diminishing Lighting", S_ONOFF, m_null, M_X, M_SPC,
-   {"smoothlight"}, 0, M_SmoothLight},
+   {"smoothlight"}, 0, SmoothLight},
 
   {"", S_SKIP, m_null, M_X, M_SPC},
 
@@ -2445,7 +2344,7 @@ setup_menu_t gen_settings6[] = {
   {"Miscellaneous", S_SKIP|S_TITLE, m_null, M_X, M_SPC},
 
   {"Game speed", S_NUM|S_STRICT|S_PCT, m_null, M_X, M_SPC,
-   {"realtic_clock_rate"}, 0, M_ResetTimeScale},
+   {"realtic_clock_rate"}, 0, MN_ResetTimeScale},
 
   {"Default Skill", S_CHOICE|S_LEVWARN, m_null, M_X, M_SPC,
    {"default_skill"}, 0, NULL, str_default_skill},
@@ -2453,7 +2352,7 @@ setup_menu_t gen_settings6[] = {
   MI_END
 };
 
-void M_Trans(void) // To reset translucency after setting it in menu
+void MN_Trans(void) // To reset translucency after setting it in menu
 {
     R_InitTranMap(0);
 }
@@ -2462,42 +2361,34 @@ void M_Trans(void) // To reset translucency after setting it in menu
 // locate the first item on the screen where the cursor is allowed to
 // land.
 
-void M_General(int choice)
+void MN_General(int choice)
 {
-  M_SetupNextMenuAlt(ss_gen);
-
-  setup_active = true;
+  MN_SetNextMenuAlt(ss_gen);
   setup_screen = ss_gen;
-  setup_select = false;
-  default_verify = false;
-  setup_gather = false;
-  mult_screens_index = M_GetMultScreenIndex(gen_settings);
-  set_tab_on = mult_screens_index;
-  current_setup_menu = gen_settings[mult_screens_index];
-  current_setup_tabs = gen_tabs;
-  set_menu_itemon = M_GetSetupMenuItemOn();
-  while (current_setup_menu[set_menu_itemon++].m_flags & S_SKIP);
-  current_setup_menu[--set_menu_itemon].m_flags |= S_HILITE;
+  current_page = GetPageIndex(gen_settings);
+  current_menu = gen_settings[current_page];
+  current_tabs = gen_tabs;
+  SetupMenu();
 }
 
 // The drawing part of the General Setup initialization. Draw the
 // background, title, instruction line, and items.
 
-void M_DrawGeneral(void)
+void MN_DrawGeneral(void)
 {
   inhelpscreens = true;
 
-  M_DrawBackground("FLOOR4_6"); // Draw background
-  M_DrawTitle(114, 2, "M_GENERL", "GENERAL");
-  M_DrawTabs();
-  M_DrawInstructions();
-  M_DrawScreenItems(current_setup_menu);
+  DrawBackground("FLOOR4_6"); // Draw background
+  MN_DrawTitle(114, 2, "M_GENERL", "GENERAL");
+  DrawTabs();
+  DrawInstructions();
+  DrawScreenItems(current_menu);
 
   // If the Reset Button has been selected, an "Are you sure?" message
   // is overlayed across everything else.
 
   if (default_verify)
-    M_DrawDefVerify();
+    DrawDefVerify();
 }
 
 /////////////////////////////
@@ -2509,7 +2400,7 @@ void M_DrawGeneral(void)
 // M_SelectDone() gets called when you have finished entering your
 // Setup Menu item change.
 
-static void M_SelectDone(setup_menu_t* ptr)
+static void SelectDone(setup_menu_t* ptr)
 {
   ptr->m_flags &= ~S_SELECT;
   ptr->m_flags |= S_HILITE;
@@ -2533,12 +2424,42 @@ static setup_menu_t **setup_screens[] =
   comp_settings,
 };
 
+// [FG] save the index of the current screen in the first page's S_END element's y coordinate
+
+static int GetPageIndex(setup_menu_t *const *const pages)
+{
+  if (pages)
+  {
+    const setup_menu_t* menu = pages[0];
+
+    if (menu)
+    {
+      while (!(menu->m_flags & S_END))
+        menu++;
+
+      return menu->m_y;
+    }
+  }
+
+  return 0;
+}
+
+static void SetPageIndex(const int y)
+{
+    setup_menu_t * menu = setup_screens[setup_screen][current_page];
+
+    while (!(menu->m_flags & S_END))
+        menu++;
+
+    menu->m_y = y;
+}
+
 // phares 4/19/98:
 // M_ResetDefaults() resets all values for a setup screen to default values
 // 
 // killough 10/98: rewritten to fix bugs and warn about pending changes
 
-static void M_ResetDefaults()
+static void ResetDefaults()
 {
     default_t *dp;
     int warn = 0;
@@ -2559,7 +2480,7 @@ static void M_ResetDefaults()
             continue;
         }
 
-        setup_menu_t **screens = setup_screens[setup_screen - 1];
+        setup_menu_t **screens = setup_screens[setup_screen];
 
         for ( ; *screens; screens++)
         {
@@ -2622,12 +2543,12 @@ static void M_ResetDefaults()
 // array entry. var.name becomes converted to var.def.
 //
 
-void M_InitDefaults(void)
+void MN_InitDefaults(void)
 {
   setup_menu_t *const *p, *t;
   default_t *dp;
   int i;
-  for (i = 0; i < ss_max-1; i++)
+  for (i = 0; i < ss_max; i++)
     for (p = setup_screens[i]; *p; p++)
       for (t = *p; !(t->m_flags & S_END); t++)
 	if (t->m_flags & S_HASDEFPTR)
@@ -2683,7 +2604,7 @@ static int menu_font_spacing = 0;
 
 // M_DrawMenuString() draws the string in menu_buffer[]
 
-void M_DrawStringCR(int cx, int cy, byte *cr1, byte *cr2, const char *ch)
+void MN_DrawStringCR(int cx, int cy, byte *cr1, byte *cr2, const char *ch)
 {
     int   w;
     int   c;
@@ -2733,41 +2654,41 @@ void M_DrawStringCR(int cx, int cy, byte *cr1, byte *cr2, const char *ch)
     }
 }
 
-void M_DrawString(int cx, int cy, int color, const char *ch)
+void MN_DrawString(int cx, int cy, int color, const char *ch)
 {
-  M_DrawStringCR(cx, cy, colrngs[color], NULL, ch);
+    MN_DrawStringCR(cx, cy, colrngs[color], NULL, ch);
 }
 
 // cph 2006/08/06 - M_DrawString() is the old M_DrawMenuString, except that it is not tied to menu_buffer
 
-static void M_DrawMenuString(int cx, int cy, int color)
+static void DrawMenuString(int cx, int cy, int color)
 {
-  M_DrawString(cx, cy, color, menu_buffer);
+    MN_DrawString(cx, cy, color, menu_buffer);
 }
 
-static void M_DrawMenuStringEx(int flags, int x, int y, int color)
+static void DrawMenuStringEx(int flags, int x, int y, int color)
 {
     if (ItemDisabled(flags))
     {
-        M_DrawStringCR(x, y, cr_dark, NULL, menu_buffer);
+        MN_DrawStringCR(x, y, cr_dark, NULL, menu_buffer);
     }
     else if (flags & S_HILITE)
     {
         if (color == CR_NONE)
-            M_DrawStringCR(x, y, cr_bright, NULL, menu_buffer);
+            MN_DrawStringCR(x, y, cr_bright, NULL, menu_buffer);
         else
-            M_DrawStringCR(x, y, colrngs[color], cr_bright, menu_buffer);
+            MN_DrawStringCR(x, y, colrngs[color], cr_bright, menu_buffer);
     }
     else
     {
-        M_DrawMenuString(x, y, color);
+        DrawMenuString(x, y, color);
     }
 }
 
 // M_GetPixelWidth() returns the number of pixels in the width of
 // the string, NOT the number of chars in the string.
 
-int M_GetPixelWidth(const char *ch)
+int MN_GetPixelWidth(const char *ch)
 {
     int len = 0;
     int c;
@@ -2860,36 +2781,36 @@ static setup_menu_t cred_settings[] = {
   {0,S_SKIP|S_END,m_null}
 };
 
-void M_DrawCredits(void)     // killough 10/98: credit screen
+void MN_DrawCredits(void)     // killough 10/98: credit screen
 {
   char mbftext_s[32];
   sprintf(mbftext_s, PROJECT_STRING);
   inhelpscreens = true;
-  M_DrawBackground(gamemode==shareware ? "CEIL5_1" : "MFLR8_4");
-  M_DrawTitle(42, 9, "MBFTEXT", mbftext_s);
-  M_DrawScreenItems(cred_settings);
+  DrawBackground(gamemode==shareware ? "CEIL5_1" : "MFLR8_4");
+  MN_DrawTitle(42, 9, "MBFTEXT", mbftext_s);
+  DrawScreenItems(cred_settings);
 }
 
-boolean MN_CursorPostionSetup(int x, int y)
+boolean MN_SetupCursorPostion(int x, int y)
 {
     if (!setup_active || setup_select)
     {
         return false;
     }
 
-    if (current_setup_tabs)
+    if (current_tabs)
     {
-        for (int i = 0; current_setup_tabs[i].text; ++i)
+        for (int i = 0; current_tabs[i].text; ++i)
         {
-            setup_tab_t *tab = &current_setup_tabs[i];
+            setup_tab_t *tab = &current_tabs[i];
 
             tab->flags &= ~S_HILITE;
 
-            if (M_PointInsideRect(&tab->rect, x, y))
+            if (MN_PointInsideRect(&tab->rect, x, y))
             {
                 tab->flags |= S_HILITE;
 
-                if (set_tab_on != i)
+                if (current_page != i)
                 {
                     set_tab_on = i;
                     S_StartSound(NULL, sfx_itemup);
@@ -2898,9 +2819,9 @@ boolean MN_CursorPostionSetup(int x, int y)
         }
     }
 
-    for (int i = 0; !(current_setup_menu[i].m_flags & S_END); i++)
+    for (int i = 0; !(current_menu[i].m_flags & S_END); i++)
     {
-        setup_menu_t *item = &current_setup_menu[i];
+        setup_menu_t *item = &current_menu[i];
         int flags = item->m_flags;
 
         if (flags & S_SKIP)
@@ -2910,14 +2831,14 @@ boolean MN_CursorPostionSetup(int x, int y)
 
         item->m_flags &= ~S_HILITE;
 
-        if (M_PointInsideRect(&item->rect, x, y))
+        if (MN_PointInsideRect(&item->rect, x, y))
         {
             item->m_flags |= S_HILITE;
 
-            if (set_menu_itemon != i)
+            if (set_item_on != i)
             {
                 print_warning_about_changes = false;
-                set_menu_itemon = i;
+                set_item_on = i;
                 S_StartSound(NULL, sfx_itemup);
             }
         }
@@ -2930,7 +2851,7 @@ static int setup_cancel = -1;
 
 static void OnOff(void)
 {
-    setup_menu_t *current_item = current_setup_menu + set_menu_itemon;
+    setup_menu_t *current_item = current_menu + set_item_on;
     int flags = current_item->m_flags;
     default_t *def = current_item->var.def;
 
@@ -2955,7 +2876,7 @@ static void OnOff(void)
 
 static void Choice(menu_action_t action)
 {
-    setup_menu_t *current_item = current_setup_menu + set_menu_itemon;
+    setup_menu_t *current_item = current_menu + set_item_on;
     int flags = current_item->m_flags;
     default_t *def = current_item->var.def;
     int value = def->location->i;
@@ -3030,7 +2951,7 @@ static void Choice(menu_action_t action)
         {
             current_item->action();
         }
-        M_SelectDone(current_item);
+        SelectDone(current_item);
         setup_cancel = -1;
     }
 }
@@ -3042,7 +2963,7 @@ static boolean ChangeEntry(menu_action_t action, int ch)
         return false;
     }
 
-    setup_menu_t *current_item = current_setup_menu + set_menu_itemon;
+    setup_menu_t *current_item = current_menu + set_item_on;
     int flags = current_item->m_flags;
     default_t *def = current_item->var.def;
 
@@ -3054,7 +2975,7 @@ static boolean ChangeEntry(menu_action_t action, int ch)
             setup_cancel = -1;
         }
 
-        M_SelectDone(current_item);                           // phares 4/17/98
+        SelectDone(current_item);                           // phares 4/17/98
         setup_gather = false;   // finished gathering keys, if any
         return true;
     }
@@ -3065,7 +2986,7 @@ static boolean ChangeEntry(menu_action_t action, int ch)
         {
            OnOff();
         }
-        M_SelectDone(current_item);        // phares 4/17/98
+        SelectDone(current_item);        // phares 4/17/98
         return true;
     }
 
@@ -3124,7 +3045,7 @@ static boolean ChangeEntry(menu_action_t action, int ch)
                     }
                 }
             }
-            M_SelectDone(current_item);     // phares 4/17/98
+            SelectDone(current_item);     // phares 4/17/98
             setup_gather = false; // finished gathering keys
             return true;
         }
@@ -3160,7 +3081,7 @@ static boolean BindInput(void)
         return false;
     }
 
-    setup_menu_t *current_item = current_setup_menu + set_menu_itemon;
+    setup_menu_t *current_item = current_menu + set_item_on;
 
     int input_id = (current_item->m_flags & S_INPUT) ? current_item->input_id : 0;
 
@@ -3184,7 +3105,7 @@ static boolean BindInput(void)
     if (M_InputActivated(input_id))
     {
         M_InputRemoveActivated(input_id);
-        M_SelectDone(current_item);
+        SelectDone(current_item);
         return true;
     }
 
@@ -3215,7 +3136,7 @@ static boolean BindInput(void)
         return true;
     }
 
-    M_SelectDone(current_item);       // phares 4/17/98
+    SelectDone(current_item);       // phares 4/17/98
     return true;
 }
 
@@ -3228,38 +3149,38 @@ static boolean NextPage(int inc)
     // The m_var1 field contains a pointer to the appropriate screen
     // to move to.
 
-    if (!current_setup_tabs)
+    if (!current_tabs)
     {
         return false;
     }
 
-    int i = mult_screens_index + inc;
+    int i = current_page + inc;
 
-    if (i < 0 || current_setup_tabs[i].text == NULL)
+    if (i < 0 || current_tabs[i].text == NULL)
     {
         return false;
     }
 
-    mult_screens_index += inc;
+    current_page += inc;
 
-    setup_menu_t *current_item = current_setup_menu + set_menu_itemon;
+    setup_menu_t *current_item = current_menu + set_item_on;
     current_item->m_flags &= ~S_HILITE;
 
-    M_SetSetupMenuItemOn(set_menu_itemon);
-    set_tab_on = mult_screens_index;
-    current_setup_menu = current_setup_tabs[set_tab_on].page;
-    set_menu_itemon = M_GetSetupMenuItemOn();
+    SetItemOn(set_item_on);
+    set_tab_on = current_page;
+    current_menu = setup_screens[setup_screen][current_page];
+    set_item_on = GetItemOn();
 
     print_warning_about_changes = false; // killough 10/98
-    while (current_setup_menu[set_menu_itemon++].m_flags & S_SKIP);
-    current_setup_menu[--set_menu_itemon].m_flags |= S_HILITE;
+    while (current_menu[set_item_on++].m_flags & S_SKIP);
+    current_menu[--set_item_on].m_flags |= S_HILITE;
 
     S_StartSound(NULL, sfx_pstop);  // killough 10/98
     return true;
 
 }
 
-boolean MN_ResponderSetup(event_t *ev, menu_action_t action, int ch)
+boolean MN_SetupResponder(menu_action_t action, int ch)
 {
     // phares 3/26/98 - 4/11/98:
     // Setup screen key processing
@@ -3269,7 +3190,12 @@ boolean MN_ResponderSetup(event_t *ev, menu_action_t action, int ch)
         return false;
     }
 
-    setup_menu_t *current_item = current_setup_menu + set_menu_itemon;
+    if (menu_input != mouse_mode && current_tabs)
+    {
+        current_tabs[set_tab_on].flags &= ~S_HILITE;
+    }
+
+    setup_menu_t *current_item = current_menu + set_item_on;
 
     // phares 4/19/98:
     // Catch the response to the 'reset to default?' verification
@@ -3279,14 +3205,14 @@ boolean MN_ResponderSetup(event_t *ev, menu_action_t action, int ch)
     {
         if (toupper(ch) == 'Y')
         {
-            M_ResetDefaults();
+            ResetDefaults();
             default_verify = false;
-            M_SelectDone(current_item);
+            SelectDone(current_item);
         }
         else if (toupper(ch) == 'N')
         {
             default_verify = false;
-            M_SelectDone(current_item);
+            SelectDone(current_item);
         }
         return true;
     }
@@ -3341,7 +3267,7 @@ boolean MN_ResponderSetup(event_t *ev, menu_action_t action, int ch)
             current_item->var.def->location->i = ch;
         }
 
-        M_SelectDone(current_item);       // phares 4/17/98
+        SelectDone(current_item);       // phares 4/17/98
         return true;
     }
 
@@ -3355,17 +3281,17 @@ boolean MN_ResponderSetup(event_t *ev, menu_action_t action, int ch)
         {
             if (current_item->m_flags & S_END)
             {
-                set_menu_itemon = 0;
-                current_item = current_setup_menu;
+                set_item_on = 0;
+                current_item = current_menu;
             }
             else
             {
-                set_menu_itemon++;
+                set_item_on++;
                 current_item++;
             }
         } while (current_item->m_flags & S_SKIP);
 
-        M_SelectDone(current_item);         // phares 4/17/98
+        SelectDone(current_item);         // phares 4/17/98
         return true;
     }
 
@@ -3374,19 +3300,19 @@ boolean MN_ResponderSetup(event_t *ev, menu_action_t action, int ch)
         current_item->m_flags &= ~S_HILITE;     // phares 4/17/98
         do
         {
-            if (set_menu_itemon == 0)
+            if (set_item_on == 0)
             {
                 do
                 {
-                    set_menu_itemon++;
+                    set_item_on++;
                     current_item++;
                 } while(!(current_item->m_flags & S_END));
             }
-            set_menu_itemon--;
+            set_item_on--;
             current_item--;
         } while(current_item->m_flags & S_SKIP);
 
-        M_SelectDone(current_item);         // phares 4/17/98
+        SelectDone(current_item);         // phares 4/17/98
         return true;
     }
 
@@ -3434,16 +3360,16 @@ boolean MN_ResponderSetup(event_t *ev, menu_action_t action, int ch)
 
     if (action == MENU_ESCAPE || action == MENU_BACKSPACE)
     {
-        M_SetSetupMenuItemOn(set_menu_itemon);
-        M_SetMultScreenIndex(mult_screens_index);
+        SetItemOn(set_item_on);
+        SetPageIndex(current_page);
 
         if (action == MENU_ESCAPE) // Clear all menus
         {
-            M_ClearMenus();
+            MN_ClearMenus();
         }
         else if (action == MENU_BACKSPACE)
         {
-            M_Back();
+            MN_Back();
         }
 
         current_item->m_flags &= ~(S_HILITE|S_SELECT);// phares 4/19/98
@@ -3479,36 +3405,34 @@ boolean MN_ResponderSetup(event_t *ev, menu_action_t action, int ch)
 
 static boolean SetupTab(void)
 {
-    if (!current_setup_tabs)
+    if (!current_tabs)
     {
         return false;
     }
 
-    setup_tab_t *tab = current_setup_tabs + set_tab_on;
+    setup_tab_t *tab = current_tabs + set_tab_on;
 
     if (!(M_InputActivated(input_menu_enter) && tab->flags & S_HILITE))
     {
         return false;
     }
 
-    current_setup_menu = tab->page;
-    mult_screens_index = set_tab_on;
-    set_menu_itemon = 0;
-    while (current_setup_menu[set_menu_itemon++].m_flags & S_SKIP);
-    set_menu_itemon--;
+    current_page = set_tab_on;
+    current_menu = setup_screens[setup_screen][current_page];
+    set_item_on = 0;
+    while (current_menu[set_item_on++].m_flags & S_SKIP);
+    set_item_on--;
 
     S_StartSound(NULL, sfx_pstop);
     return true;
 }
 
-boolean MN_MouseResponderSetup(int x, int y)
+boolean MN_SetupMouseResponder(int x, int y)
 {
     if (!setup_active || setup_select)
     {
         return false;
     }
-
-    I_ShowMouseCursor(true);
 
     if (SetupTab())
     {
@@ -3541,7 +3465,7 @@ boolean MN_MouseResponderSetup(int x, int y)
         active_thermo = NULL;
     }
 
-    setup_menu_t *current_item = current_setup_menu + set_menu_itemon;
+    setup_menu_t *current_item = current_menu + set_item_on;
     int flags = current_item->m_flags;
     default_t *def = current_item->var.def;
     mrect_t *rect = &current_item->rect;
@@ -3552,7 +3476,7 @@ boolean MN_MouseResponderSetup(int x, int y)
     }
 
     if (M_InputActivated(input_menu_enter)
-        && !M_PointInsideRect(rect, x, y))
+        && !MN_PointInsideRect(rect, x, y))
     {
         return true; // eat event
     }
@@ -3656,15 +3580,53 @@ boolean MN_MouseResponderSetup(int x, int y)
     return false;
 }
 
-void M_SetMenuFontSpacing(void)
+//
+// Find string width from hu_font chars
+//
+
+int MN_StringWidth(const char *string)
 {
-  if (M_StringWidth("abcdefghijklmnopqrstuvwxyz01234") > 230)
+  int c, w = 0;
+
+  while (*string)
+  {
+    c = *string++;
+    if (c == '\x1b') // skip code for color change
+    {
+      if (*string)
+        string++;
+      continue;
+    }
+    c = toupper(c) - HU_FONTSTART;
+    if (c < 0 || c > HU_FONTSIZE)
+    {
+      w += SPACEWIDTH;
+      continue;
+    }
+    w += SHORT(hu_font[c]->width);
+  }
+
+  return w;
+}
+
+void MN_SetMenuFontSpacing(void)
+{
+  if (MN_StringWidth("abcdefghijklmnopqrstuvwxyz01234") > 230)
     menu_font_spacing = -1;
+}
+
+//
+//    Find string height from hu_font chars
+//
+
+int MN_StringHeight(const char *string)
+{
+  return SHORT(hu_font[0]->height);
 }
 
 // [FG] alternative text for missing menu graphics lumps
 
-void M_DrawTitle(int x, int y, const char *patch, const char *alttext)
+void MN_DrawTitle(int x, int y, const char *patch, const char *alttext)
 {
   if (W_CheckNumForName(patch) >= 0)
     V_DrawPatchDirect(x,y,W_CacheLumpName(patch,PU_CACHE));
@@ -3672,8 +3634,8 @@ void M_DrawTitle(int x, int y, const char *patch, const char *alttext)
   {
     // patch doesn't exist, draw some text in place of it
     M_snprintf(menu_buffer, sizeof(menu_buffer), "%s", alttext);
-    M_DrawMenuString(SCREENWIDTH/2 - M_StringWidth(alttext)/2,
-                     y + 8 - M_StringHeight(alttext)/2, // assumes patch height 16
+    DrawMenuString(SCREENWIDTH/2 - MN_StringWidth(alttext)/2,
+                     y + 8 - MN_StringHeight(alttext)/2, // assumes patch height 16
                      CR_TITLE);
   }
 }
@@ -3728,15 +3690,15 @@ static void M_UpdateHUDModeStrings(void)
     selectstrings[str_hudmode] = M_GetHUDModeStrings();
 }
 
-void M_InitMenuStrings(void)
+void MN_InitMenuStrings(void)
 {
     M_UpdateHUDModeStrings();
-    selectstrings[str_resolution_scale] = M_GetResolutionScaleStrings();
-    selectstrings[str_midi_player] = M_GetMidiDevicesStrings();
+    selectstrings[str_resolution_scale] = GetResolutionScaleStrings();
+    selectstrings[str_midi_player] = GetMidiDevicesStrings();
     selectstrings[str_mouse_accel] = M_GetMouseAccelStrings();
 }
 
-void M_ResetSetupMenu(void)
+void MN_SetupResetMenu(void)
 {
   extern boolean deh_set_blood_color;
 
@@ -3748,15 +3710,15 @@ void M_ResetSetupMenu(void)
   DisableItem(!brightmaps_found || force_brightmaps, gen_settings5, "brightmaps");
   DisableItem(current_video_height <= DRS_MIN_HEIGHT, gen_settings1, "dynamic_resolution");
 
-  M_CoerceFPSLimit();
-  M_UpdateCrosshairItems();
-  M_UpdateCenteredWeaponItem();
-  M_UpdateAdvancedSoundItems();
+  CoerceFPSLimit();
+  UpdateCrosshairItems();
+  UpdateCenteredWeaponItem();
+  UpdateAdvancedSoundItems();
 }
 
-void M_ResetSetupMenuVideo(void)
+void MN_SetupResetMenuVideo(void)
 {
-  M_ToggleUncapped();
+  ToggleUncapped();
 }
 
 //

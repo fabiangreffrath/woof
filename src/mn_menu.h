@@ -22,7 +22,6 @@
 #define __M_MENU__
 
 #include "doomtype.h"
-#include "doomdef.h"
 
 struct event_s;
 
@@ -55,37 +54,20 @@ void M_Init (void);
 // Called by intro code to force menu up upon a keypress,
 // does nothing if menu is already up.
 
-void M_StartControlPanel (void);
+void MN_StartControlPanel(void);
 
-void M_ForcedLoadGame(const char *msg); // killough 5/15/98: forced loadgames
+void MN_ForcedLoadGame(const char *msg); // killough 5/15/98: forced loadgames
 
 extern int traditional_menu;  // display the menu traditional way
 
-void M_Trans(void);          // killough 11/98: reset translucency
-
-void M_ResetMenu(void);      // killough 11/98: reset main menu ordering
-
-void M_ResetSetupMenu(void);
-
-void M_ResetSetupMenuVideo(void);
-
-void M_ResetTimeScale(void);
-
-void M_DrawCredits(void);    // killough 11/98
-
-void M_SetMenuFontSpacing(void);
-
-void M_DisableVoxelsRenderingItem(void);
-
-void M_InvulMode(void);
-
-typedef struct mrect_s
-{
-    short x;
-    short y;
-    short w;
-    short h;
-} mrect_t;
+void MN_Trans(void);          // killough 11/98: reset translucency
+void MN_ResetMenu(void);      // killough 11/98: reset main menu ordering
+void MN_SetupResetMenu(void);
+void MN_SetupResetMenuVideo(void);
+void MN_ResetTimeScale(void);
+void MN_DrawCredits(void);    // killough 11/98
+void MN_SetMenuFontSpacing(void);
+void MN_DisableVoxelsRenderingItem(void);
 
 typedef enum
 {
@@ -94,54 +76,18 @@ typedef enum
     MENU_BG_TEXTURE,
 } backdrop_t;
 
-typedef enum
-{
-    MENU_NULL,
-    MENU_UP,
-    MENU_DOWN,
-    MENU_LEFT,
-    MENU_RIGHT,
-    MENU_BACKSPACE,
-    MENU_ENTER,
-    MENU_ESCAPE,
-    MENU_CLEAR
-} menu_action_t;
-
-typedef enum
-{
-    null_mode,
-    mouse_mode,
-    pad_mode,
-    key_mode
-} menu_input_mode_t;
-
-extern menu_input_mode_t menu_input;
-
 extern backdrop_t menu_backdrop;
-extern boolean M_MenuIsShaded(void);
+boolean MN_MenuIsShaded(void);
 
-extern void M_SetQuickSaveSlot (int slot);
+void MN_SetQuickSaveSlot(int slot);
 
-extern int resolution_scale;
-extern int midi_player_menu;
+void MN_InitMenuStrings(void);
 
-void M_InitMenuStrings(void);
-
-extern boolean StartsWithMapIdentifier (char *str);
+boolean MN_StartsWithMapIdentifier(char *str);
 
 extern boolean inhelpscreens;
-extern short whichSkull; // which skull to draw (he blinks)
-extern int saved_screenblocks;
 
-void M_SizeDisplay(int choice);
-
-void M_SetupNextMenuAlt(ss_types type);
-boolean M_PointInsideRect(mrect_t *rect, int x, int y);
-void M_ClearMenus(void);
-void M_Back(void);
-
-int  M_StringWidth(const char *string);
-int  M_StringHeight(const char *string);
+int MN_GetPixelWidth(const char *ch);
 
 #endif
 

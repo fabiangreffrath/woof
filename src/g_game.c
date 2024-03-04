@@ -1296,7 +1296,7 @@ boolean G_Responder(event_t* ev)
 	 (ev->type == ev_mouseb_down) ||
 	 (ev->type == ev_joyb_down)) ?
 	(!menuactive ? S_StartSound(NULL,sfx_swtchn) : true),
-	M_StartControlPanel(), true : false;
+	MN_StartControlPanel(), true : false;
     }
 
   if (gamestate == GS_FINALE && F_Responder(ev))
@@ -2154,7 +2154,7 @@ void G_LoadGame(char *name, int slot, boolean command)
 static void G_LoadGameErr(const char *msg)
 {
   Z_Free(savebuffer);                // Free the savegame buffer
-  M_ForcedLoadGame(msg);             // Print message asking for 'Y' to force
+  MN_ForcedLoadGame(msg);             // Print message asking for 'Y' to force
   if (command_loadgame)              // If this was a command-line -loadgame
     {
       G_CheckDemoStatus();           // If there was also a -record
@@ -2348,7 +2348,7 @@ static void G_DoSaveGame(void)
 
   if (name) free(name);
 
-  M_SetQuickSaveSlot(savegameslot);
+  MN_SetQuickSaveSlot(savegameslot);
 
   drs_skip_frame = true;
 }
@@ -2567,7 +2567,7 @@ static void G_DoLoadGame(void)
   I_Printf(VB_INFO, "%d:%05.2f", leveltime / TICRATE / 60,
                                  (float)(leveltime % (60 * TICRATE)) / TICRATE);
 
-  M_SetQuickSaveSlot(savegameslot);
+  MN_SetQuickSaveSlot(savegameslot);
 }
 
 boolean clean_screenshot;

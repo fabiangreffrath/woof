@@ -2252,7 +2252,7 @@ void AM_Drawer (void)
     pspr_interp = false;
   }
   // [Alaux] Dark automap overlay
-  else if (automapoverlay == AM_OVERLAY_DARK && !M_MenuIsShaded())
+  else if (automapoverlay == AM_OVERLAY_DARK && !MN_MenuIsShaded())
     V_ShadeScreen();
 
   if (automap_grid)                  // killough 2/28/98: change var name

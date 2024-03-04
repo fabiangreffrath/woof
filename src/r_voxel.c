@@ -305,7 +305,7 @@ void VX_Init (void)
 	{
 		I_Printf(VB_INFO, "Voxels not found.");
 		voxels_rendering = false;
-		M_DisableVoxelsRenderingItem();
+		MN_DisableVoxelsRenderingItem();
 		return;
 	}
 
@@ -338,7 +338,7 @@ void VX_Init (void)
 	if (!voxels_found)
 	{
 		voxels_rendering = false;
-		M_DisableVoxelsRenderingItem();
+		MN_DisableVoxelsRenderingItem();
 	}
 }
 

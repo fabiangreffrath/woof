@@ -427,10 +427,10 @@ boolean WI_Responder(event_t* ev)
 
 static void WI_DrawString(int y, const char* str)
 {
-  extern void M_DrawString(int x, int y, int color, const char* str);
-  extern int M_GetPixelWidth(const char *str);
+  extern void MN_DrawString(int x, int y, int color, const char* str);
+  extern int MN_GetPixelWidth(const char *str);
 
-  M_DrawString(160 - (M_GetPixelWidth(str) / 2), y, CR_GRAY, str);
+  MN_DrawString(160 - (MN_GetPixelWidth(str) / 2), y, CR_GRAY, str);
 }
 
 

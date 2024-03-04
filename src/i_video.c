@@ -1492,7 +1492,7 @@ static void I_InitVideoParms(void)
         fullscreen = true;
     }
 
-    M_ResetSetupMenuVideo();
+    MN_SetupResetMenuVideo();
 }
 
 static void I_InitGraphicsMode(void)
