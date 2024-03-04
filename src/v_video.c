@@ -133,6 +133,8 @@ int V_BloodColor(int blood)
 
 int v_lightest_color, v_darkest_color;
 
+byte invul_gray[256];
+
 // killough 5/2/98: tiny engine driven by table above
 void V_InitColorTranslation(void)
 {
@@ -191,7 +193,18 @@ void V_InitColorTranslation(void)
     }
 
     v_lightest_color = I_GetPaletteIndex(playpal, 0xFF, 0xFF, 0xFF);
-    v_darkest_color = I_GetPaletteIndex(playpal, 0x00, 0x00, 0x00);
+    v_darkest_color  = I_GetPaletteIndex(playpal, 0x00, 0x00, 0x00);
+
+    byte *palsrc = playpal;
+    for (int i = 0; i < 256; ++i)
+    {
+        double red   = *palsrc++ / 256.0;
+        double green = *palsrc++ / 256.0;
+        double blue  = *palsrc++ / 256.0;
+
+        int gray = (red * 0.299 + green * 0.587 + blue * 0.144) * 255;
+        invul_gray[i] = I_GetPaletteIndex(playpal, gray, gray, gray);
+    }
 }
 
 void WriteGeneratedLumpWad(const char *filename)

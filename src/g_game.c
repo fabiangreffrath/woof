@@ -3364,6 +3364,8 @@ void G_ReloadDefaults(boolean keep_demover)
 
   D_SetBloodColor();
 
+  R_InvulMode();
+
   if (!mbf21)
   {
     // Set new compatibility options

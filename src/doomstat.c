@@ -51,6 +51,8 @@ int compatibility, default_compatibility;          // killough 1/31/98
 
 int comp[COMP_TOTAL], default_comp[COMP_TOTAL];    // killough 10/98
 
+invul_mode_t invul_mode;
+
 // [FG] overflow emulation
 overflow_t overflow[EMU_TOTAL] = {
   { true, false, "spechits_overflow"},

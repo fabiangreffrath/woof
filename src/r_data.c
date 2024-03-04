@@ -848,6 +848,30 @@ void R_InitSpriteLumps(void)
 // killough 4/4/98: Add support for C_START/C_END markers
 //
 
+static byte invul_orig[256];
+
+void R_InvulMode(void)
+{
+  if (colormaps == NULL)
+    return;
+
+  switch (STRICTMODE(invul_mode))
+  {
+    case INVUL_VANILLA:
+      default_comp[comp_skymap] = 1;
+      memcpy(&colormaps[0][256*32], invul_orig, 256);
+      break;
+    case INVUL_MBF:
+      default_comp[comp_skymap] = 0;
+      memcpy(&colormaps[0][256*32], invul_orig, 256);
+      break;
+    case INVUL_GRAY:
+      default_comp[comp_skymap] = 0;
+      memcpy(&colormaps[0][256*32], invul_gray, 256);
+      break;
+  }
+}
+
 void R_InitColormaps(void)
 {
   int i;
@@ -864,6 +888,9 @@ void R_InitColormaps(void)
   // [FG] dark/shaded color translation table
   cr_dark = &colormaps[0][256*15];
   cr_shaded = &colormaps[0][256*6];
+
+  memcpy(invul_orig, &colormaps[0][256*32], 256);
+  R_InvulMode();
 }
 
 // killough 4/4/98: get colormap number from name

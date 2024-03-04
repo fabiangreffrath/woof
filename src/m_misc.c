@@ -611,6 +611,13 @@ default_t defaults[] = {
   },
 
   {
+    "invul_mode",
+    (config_t *) &invul_mode, NULL,
+    {INVUL_MBF}, {INVUL_VANILLA, INVUL_GRAY}, number, ss_gen, wad_no,
+    "invulnerability effect (0 = vanilla, 1 = MBF, 2 = gray)"
+  },
+
+  {
     "organize_savefiles",
     (config_t *) &organize_savefiles, NULL,
     {-1}, {-1,1}, number, ss_gen, wad_no,
