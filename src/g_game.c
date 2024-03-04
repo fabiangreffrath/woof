@@ -594,6 +594,11 @@ void G_BuildTiccmd(ticcmd_t* cmd)
 
   G_DemoSkipTics();
 
+  if (!uncapped || !raw_input)
+  {
+    G_PrepTiccmd();
+  }
+
   memcpy(cmd, &basecmd, sizeof(*cmd));
   memset(&basecmd, 0, sizeof(basecmd));
 
@@ -1065,10 +1070,7 @@ static boolean G_StrictModeSkipEvent(event_t *ev)
     case ev_joystick:
         if (first_event)
         {
-          *axes_data[AXIS_LEFTX] = ev->data1;
-          *axes_data[AXIS_LEFTY] = ev->data2;
-          *axes_data[AXIS_RIGHTX] = ev->data3;
-          *axes_data[AXIS_RIGHTY] = ev->data4;
+          I_UpdateAxesData(ev);
           I_CalcControllerAxes();
           if (axes[AXIS_STRAFE] || axes[AXIS_FORWARD] || axes[AXIS_TURN] ||
               axes[AXIS_LOOK])
@@ -1102,10 +1104,7 @@ boolean G_MovementResponder(event_t *ev)
       return true;
 
     case ev_joystick:
-      *axes_data[AXIS_LEFTX] = ev->data1;
-      *axes_data[AXIS_LEFTY] = ev->data2;
-      *axes_data[AXIS_RIGHTX] = ev->data3;
-      *axes_data[AXIS_RIGHTY] = ev->data4;
+      I_UpdateAxesData(ev);
       return true;
 
     default:

@@ -196,9 +196,13 @@ void D_PostEvent(event_t *ev)
   {
     case ev_mouse:
     case ev_joystick:
-      G_MovementResponder(ev);
-      G_PrepTiccmd();
-      break;
+      if (uncapped && raw_input)
+      {
+        G_MovementResponder(ev);
+        G_PrepTiccmd();
+        break;
+      }
+      // Fall through.
 
     default:
       events[eventhead++] = *ev;

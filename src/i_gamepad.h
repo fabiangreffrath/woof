@@ -17,6 +17,7 @@
 #ifndef __I_GAMEPAD__
 #define __I_GAMEPAD__
 
+#include "d_event.h"
 #include "doomkeys.h"
 #include "doomtype.h"
 
@@ -44,11 +45,11 @@ extern boolean joy_invert_strafe;           // Invert strafe axis.
 extern boolean joy_invert_turn;             // Invert turn axis.
 extern boolean joy_invert_look;             // Invert look axis.
 
-extern int *axes_data[NUM_AXES];    // Pointers to ev_joystick event data.
 extern float axes[NUM_AXES];        // Calculated controller values.
 extern int trigger_threshold;       // Trigger threshold (axis resolution).
 
 void I_CalcControllerAxes(void);
+void I_UpdateAxesData(const struct event_s *ev);
 void I_ResetControllerAxes(void);
 void I_ResetControllerLevel(void);
 void I_ResetController(void);
