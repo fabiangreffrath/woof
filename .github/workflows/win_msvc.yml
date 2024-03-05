@@ -80,7 +80,7 @@ jobs:
         run: |
           cd demotest
           pip install pyyaml joblib
-          python demotest --jobs 4 --port "../build/src/Release/woof.com"
+          python demotest --jobs 4 --port ../build/src/woof
 
       - name: Package
         run: |
