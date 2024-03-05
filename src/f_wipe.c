@@ -95,7 +95,7 @@ static int wipe_doColorXForm(int width, int height, int ticks)
   return (fade_tick > 64);
 }
 
-static int wipe_exitColorXForm(int width, int height, int ticks)
+static int wipe_exit(int width, int height, int ticks)
 {
   Z_Free(wipe_scr_start);
   Z_Free(wipe_scr_end);
@@ -188,8 +188,7 @@ static int wipe_doMelt(int width, int height, int ticks)
 static int wipe_exitMelt(int width, int height, int ticks)
 {
   Z_Free(col_y);
-  Z_Free(wipe_scr_start);
-  Z_Free(wipe_scr_end);
+  wipe_exit(width, height, ticks);
   return 0;
 }
 
@@ -218,13 +217,13 @@ static int wipe_NOP(int x, int y, int t)
 static int (*const wipes[])(int, int, int) = {
   wipe_NOP,
   wipe_NOP,
-  wipe_NOP,
+  wipe_exit,
   wipe_initMelt,
   wipe_doMelt,
   wipe_exitMelt,
   wipe_initColorXForm,
   wipe_doColorXForm,
-  wipe_exitColorXForm,
+  wipe_exit,
 };
 
 // killough 3/5/98: reformatted and cleaned up
