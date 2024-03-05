@@ -1133,8 +1133,7 @@ static setup_menu_t keys_settings4[] = {
     MI_END
 };
 
-static setup_menu_t keys_settings5[] =
-{
+static setup_menu_t keys_settings5[] = {
     {"Toggle Automap",  S_INPUT, KB_X, M_SPC, {0}, m_map, input_map},
     {"Follow",          S_INPUT, KB_X, M_SPC, {0}, m_map, input_map_follow},
     {"Overlay",         S_INPUT, KB_X, M_SPC, {0}, m_map, input_map_overlay},
@@ -1571,6 +1570,7 @@ static const char *automap_keyed_door_strings[] = {"Off", "On", "Flashing"};
 static setup_menu_t auto_settings1[] = {
 
     {"Modes", S_SKIP | S_TITLE, M_X, M_SPC},
+
     {"Follow Player",   S_ONOFF,  M_X, M_SPC, {"followplayer"}},
     {"Rotate Automap",  S_ONOFF,  M_X, M_SPC, {"automaprotate"}},
     {"Overlay Automap", S_CHOICE, M_X, M_SPC, {"automapoverlay"},
@@ -1649,6 +1649,7 @@ static void BarkSound(void)
 }
 
 static setup_menu_t enem_settings1[] = {
+
     {"Helper Dogs", S_MBF | S_THERMO | S_THRM_SIZE4 | S_LEVWARN | S_ACTION,
      M_X_THRM4, M_THRM_SPC, {"player_helpers"}, m_null, input_null,
      str_empty, BarkSound},
@@ -1727,6 +1728,7 @@ static const char *default_complevel_strings[] = {
 };
 
 setup_menu_t comp_settings1[] = {
+
     {"Compatibility", S_SKIP | S_TITLE, M_X, M_SPC},
 
     {"Default Compatibility Level", S_CHOICE | S_LEVWARN, M_X, M_SPC,

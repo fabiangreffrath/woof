@@ -235,7 +235,7 @@ static void M_DrawHelp(void);  // phares 5/04/98
 
 static void M_DrawSaveLoadBorder(int x, int y, byte *cr);
 static void M_DrawThermo(int x, int y, int thermWidth, int thermDot, byte *cr);
-static void M_WriteText(int x, int y, const char *string);
+static void WriteText(int x, int y, const char *string);
 static void M_StartMessage(char *string, void (*routine)(int), boolean input);
 
 // phares 3/30/98
@@ -788,7 +788,7 @@ static void M_DrawBorderedSnapshot(int n)
     if (!M_DrawSnapshot(n, snapshot_x, snapshot_y, snapshot_width,
                         snapshot_height))
     {
-        M_WriteText(snapshot_x + (snapshot_width - MN_StringWidth(txt)) / 2
+        WriteText(snapshot_x + (snapshot_width - MN_StringWidth(txt)) / 2
                         - video.deltaw,
                     snapshot_y + snapshot_height / 2 - MN_StringHeight(txt) / 2,
                     txt);
@@ -871,7 +871,7 @@ static void M_DrawLoad(void)
         byte *cr = (item->flags & MF_HILITE) ? cr_bright : NULL;
 
         M_DrawSaveLoadBorder(LoadDef.x, LoadDef.y + LINEHEIGHT * i, cr);
-        M_WriteText(LoadDef.x, LoadDef.y + LINEHEIGHT * i, savegamestrings[i]);
+        WriteText(LoadDef.x, LoadDef.y + LINEHEIGHT * i, savegamestrings[i]);
     }
 
     M_DrawBorderedSnapshot(itemOn);
@@ -1090,13 +1090,13 @@ static void M_DrawSave(void)
         byte *cr = (item->flags & MF_HILITE) ? cr_bright : NULL;
 
         M_DrawSaveLoadBorder(LoadDef.x, LoadDef.y + LINEHEIGHT * i, cr);
-        M_WriteText(LoadDef.x, LoadDef.y + LINEHEIGHT * i, savegamestrings[i]);
+        WriteText(LoadDef.x, LoadDef.y + LINEHEIGHT * i, savegamestrings[i]);
     }
 
     if (saveStringEnter)
     {
         i = MN_StringWidth(savegamestrings[saveSlot]);
-        M_WriteText(LoadDef.x + i, LoadDef.y + LINEHEIGHT * saveSlot, "_");
+        WriteText(LoadDef.x + i, LoadDef.y + LINEHEIGHT * saveSlot, "_");
     }
 
     M_DrawBorderedSnapshot(itemOn);
@@ -3038,7 +3038,7 @@ void M_Drawer(void)
             }
             *p = 0;
 
-            M_WriteText(160 - MN_StringWidth(string) / 2, y, string);
+            WriteText(160 - MN_StringWidth(string) / 2, y, string);
             y += SHORT(hu_font[0]->height);
 
             if ((*p = c))
@@ -3197,7 +3197,7 @@ static void M_DrawThermo(int x, int y, int thermWidth, int thermDot, byte *cr)
 
     // [FG] write numerical values next to thermometer
     M_snprintf(num, 4, "%3d", thermDot);
-    M_WriteText(xx + 8, y + 3, num);
+    WriteText(xx + 8, y + 3, num);
 
     // [FG] do not crash anymore if value exceeds thermometer range
     if (thermDot >= thermWidth)
@@ -3213,7 +3213,7 @@ static void M_DrawThermo(int x, int y, int thermWidth, int thermDot, byte *cr)
 //    Write a string using the hu_font
 //
 
-static void M_WriteText(int x, int y, const char *string)
+static void WriteText(int x, int y, const char *string)
 {
     int w;
     const char *ch;
