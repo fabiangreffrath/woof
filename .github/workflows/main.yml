@@ -27,7 +27,7 @@ jobs:
             shell: bash
 
           - name: macOS Clang
-            os: macos-14
+            os: macos-latest
             compiler: clang
             shell: bash
 
