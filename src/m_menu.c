@@ -2022,6 +2022,7 @@ enum
     str_menu_backdrop,
     str_widescreen,
     str_bobbing_pct,
+    str_screen_melt,
     str_invul_mode,
 };
 
@@ -4122,6 +4123,10 @@ static const char *menu_backdrop_strings[] = {
   "Off", "Dark", "Texture"
 };
 
+static const char *screen_melt_strings[] = {
+  "Off", "Melt", "Crossfade"
+};
+
 static const char *invul_mode_strings[] = {
   "Vanilla", "MBF", "Gray"
 };
@@ -4247,7 +4252,8 @@ setup_menu_t gen_settings6[] = {
 
   {"Quality of life", S_SKIP|S_TITLE, m_null, M_X, M_Y},
 
-  {"Screen melt", S_ONOFF|S_STRICT, m_null, M_X, M_SPC, {"screen_melt"}},
+  {"Screen wipe effect", S_CHOICE|S_STRICT, m_null, M_X, M_SPC,
+   {"screen_melt"}, 0, NULL, str_screen_melt},
 
   {"On death action", S_CHOICE, m_null, M_X, M_SPC,
    {"death_use_action"}, 0, NULL, str_death_use_action},
@@ -6919,6 +6925,7 @@ static const char **selectstrings[] = {
     menu_backdrop_strings,
     widescreen_strings,
     bobbing_pct_strings,
+    screen_melt_strings,
     invul_mode_strings,
 };
 

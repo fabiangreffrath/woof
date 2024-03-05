@@ -33,6 +33,7 @@
 #include "doomkeys.h"
 #include "doomstat.h"
 #include "dstrings.h"
+#include "f_wipe.h"
 #include "g_game.h"
 #include "hu_lib.h" // HU_MAXMESSAGES
 #include "hu_obituary.h"
@@ -606,8 +607,8 @@ default_t defaults[] = {
   {
     "screen_melt",
     (config_t *) &screen_melt, NULL,
-    {1}, {0,1}, number, ss_gen, wad_no,
-    "0 to disable screen melt"
+    {wipe_Melt}, {wipe_None, wipe_ColorXForm}, number, ss_gen, wad_no,
+    "screen wipe effect (0 = none, 1 = melt, 2 = crossfade)"
   },
 
   {
