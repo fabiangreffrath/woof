@@ -164,13 +164,14 @@ static hu_widget_t doom_widgets[MAX_HUDS][MAX_WIDGETS_D] = {
 
 static hu_widget_t boom_widgets[MAX_HUDS][MAX_WIDGETS_B] = {
   {
+    {&w_rate,   align_left,  align_top},
     {&w_monsec, align_left,  align_top},
     {&w_sttime, align_left,  align_top},
     {&w_coord,  align_right, align_top},
     {&w_fps,    align_right, align_top},
-    {&w_rate,   align_left,  align_top},
     {NULL}
   }, {
+    {&w_rate,   align_left,  align_top},
     {&w_armor,  align_left,  align_bottom},
     {&w_health, align_left,  align_bottom},
     {&w_ammo,   align_left,  align_bottom},
@@ -181,9 +182,9 @@ static hu_widget_t boom_widgets[MAX_HUDS][MAX_WIDGETS_B] = {
     {&w_sttime, align_left,  align_bottom},
     {&w_coord,  align_right, align_top},
     {&w_fps,    align_right, align_top},
-    {&w_rate,   align_left,  align_top},
     {NULL}
   }, {
+    {&w_rate,   align_left,  align_top},
     {&w_health, align_right, align_top},
     {&w_armor,  align_right, align_top},
     {&w_ammo,   align_right, align_bottom},
@@ -194,7 +195,6 @@ static hu_widget_t boom_widgets[MAX_HUDS][MAX_WIDGETS_B] = {
     {&w_sttime, align_left,  align_bottom},
     {&w_coord , align_right, align_top},
     {&w_fps,    align_right, align_top},
-    {&w_rate,   align_left,  align_top},
     {NULL}
   }
 };
@@ -671,6 +671,8 @@ void HU_Start(void)
   HUlib_init_multiline(&w_rate, (voxels_rendering ? 2 : 1),
                        &boom_font, colrngs[hudcolor_xyco],
                        NULL, HU_widget_build_rate);
+  // [FG] draw the IDRATE widget exclusively
+  w_rate.exclusive = true;
 
   HU_set_centered_message(false);
 
