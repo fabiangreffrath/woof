@@ -445,12 +445,14 @@ void D_Display (void)
       int nowtime, tics;
       do
         {
+          I_Sleep(1);
           nowtime = I_GetTime();
           tics = nowtime - wipestart;
         }
       while (!tics);
       wipestart = nowtime;
-      done = wipe_ScreenWipe(wipe_Melt, 0, 0, video.unscaledw, SCREENHEIGHT, tics);
+      done = wipe_ScreenWipe(strictmode ? wipe_Melt : screen_melt,
+                             0, 0, video.unscaledw, SCREENHEIGHT, tics);
       M_Drawer();                   // menu is drawn even on top of wipes
       I_FinishUpdate();             // page flip or blit buffer
     }

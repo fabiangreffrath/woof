@@ -25,9 +25,9 @@
 //
 
 enum {
-  // simple gradual pixel change for 8-bit only
-  wipe_ColorXForm,
+  wipe_None,
   wipe_Melt,        // weird screen melt
+  wipe_ColorXForm,
   wipe_NUMWIPES
 };
 

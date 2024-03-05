@@ -27,7 +27,7 @@ jobs:
             shell: bash
 
           - name: macOS Clang
-            os: macos-14
+            os: macos-latest
             compiler: clang
             shell: bash
 
@@ -71,6 +71,8 @@ jobs:
           msystem: ${{ matrix.config.msystem }}
           update: false
           install: >-
+            diffutils
+            ${{ matrix.config.msys-env }}-python-pip
             ${{ matrix.config.msys-env }}-gcc
             ${{ matrix.config.msys-env }}-cmake
             ${{ matrix.config.msys-env }}-ninja
@@ -80,7 +82,6 @@ jobs:
             ${{ matrix.config.msys-env }}-libsndfile
             ${{ matrix.config.msys-env }}-fluidsynth
             ${{ matrix.config.msys-env }}-libxmp
-            ${{ matrix.config.msys-env }}-python-pip
 
       - uses: actions/checkout@v4
 
