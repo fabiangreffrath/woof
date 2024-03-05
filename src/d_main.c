@@ -448,6 +448,7 @@ void D_Display (void)
       int nowtime, tics;
       do
         {
+          I_Sleep(1);
           nowtime = I_GetTime();
           tics = nowtime - wipestart;
         }
