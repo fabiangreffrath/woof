@@ -104,6 +104,8 @@ typedef struct hu_multiline_s
   void (*builder)(void);
   boolean built;
 
+  boolean exclusive;
+
 } hu_multiline_t;
 
 // [FG] configured alignment and coordinates for multilines
