@@ -31,6 +31,7 @@
 #include "m_misc2.h"
 #include "m_random.h"
 #include "m_swap.h"
+#include "mn_menu.h"
 #include "r_defs.h"
 #include "s_sound.h"
 #include "sounds.h"
@@ -427,9 +428,6 @@ boolean WI_Responder(event_t* ev)
 
 static void WI_DrawString(int y, const char* str)
 {
-  extern void MN_DrawString(int x, int y, int color, const char* str);
-  extern int MN_GetPixelWidth(const char *str);
-
   MN_DrawString(160 - (MN_GetPixelWidth(str) / 2), y, CR_GRAY, str);
 }
 

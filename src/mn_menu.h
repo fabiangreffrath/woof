@@ -15,8 +15,7 @@
 //
 // DESCRIPTION:
 //   Menu widget stuff, episode selection and such.
-//    
-//-----------------------------------------------------------------------------
+//
 
 #ifndef __M_MENU__
 #define __M_MENU__
@@ -39,17 +38,17 @@ boolean M_Responder(struct event_s *ev);
 // Called by main loop,
 // only used for menu (skull cursor) animation.
 
-void M_Ticker (void);
+void M_Ticker(void);
 
 // Called by main loop,
 // draws the menus directly into the screen buffer.
 
-void M_Drawer (void);
+void M_Drawer(void);
 
 // Called by D_DoomMain,
 // loads the config file.
 
-void M_Init (void);
+void M_Init(void);
 
 // Called by intro code to force menu up upon a keypress,
 // does nothing if menu is already up.
@@ -57,17 +56,16 @@ void M_Init (void);
 void MN_StartControlPanel(void);
 
 void MN_ForcedLoadGame(const char *msg); // killough 5/15/98: forced loadgames
-
-extern int traditional_menu;  // display the menu traditional way
-
-void MN_Trans(void);          // killough 11/98: reset translucency
-void MN_ResetMenu(void);      // killough 11/98: reset main menu ordering
+void MN_Trans(void);     // killough 11/98: reset translucency
+void MN_ResetMenu(void); // killough 11/98: reset main menu ordering
 void MN_SetupResetMenu(void);
 void MN_SetupResetMenuVideo(void);
 void MN_ResetTimeScale(void);
-void MN_DrawCredits(void);    // killough 11/98
+void MN_DrawCredits(void); // killough 11/98
 void MN_SetMenuFontSpacing(void);
 void MN_DisableVoxelsRenderingItem(void);
+
+extern int traditional_menu; // display the menu traditional way
 
 typedef enum
 {
@@ -88,6 +86,7 @@ boolean MN_StartsWithMapIdentifier(char *str);
 extern boolean inhelpscreens;
 
 int MN_GetPixelWidth(const char *ch);
+void MN_DrawString(int cx, int cy, int color, const char *ch);
 
 #endif
 

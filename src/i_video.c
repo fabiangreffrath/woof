@@ -528,7 +528,7 @@ void I_StartTic(void)
         else
         {
             old_rect = rect;
-            ev.data1 = 1;
+            ev.data1 = EV_RESIZE_VIEWPORT;
         }
 
         float scalex, scaley;
