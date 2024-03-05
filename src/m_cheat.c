@@ -598,7 +598,6 @@ static void cheat_clev0()
 {
   int epsd, map;
   char *cur, *next;
-  extern int G_GotoNextLevel(int *e, int *m);
 
   cur = M_StringDuplicate(MAPNAME(gameepisode, gamemap));
 

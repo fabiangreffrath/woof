@@ -36,6 +36,7 @@
 #include "m_misc2.h"
 #include "m_random.h"
 #include "m_swap.h"
+#include "mn_menu.h"
 #include "p_mobj.h"
 #include "r_data.h"
 #include "r_defs.h"
@@ -49,9 +50,6 @@
 #include "v_video.h"
 #include "w_wad.h"
 #include "z_zone.h"
-
-// [crispy] immediately redraw status bar after help screens have been shown
-extern boolean inhelpscreens;
 
 //
 // STATUS BAR DATA

@@ -25,7 +25,7 @@
 #include "m_array.h"
 #include "m_bbox.h"
 #include "m_fixed.h"
-#include "m_menu.h"
+#include "mn_menu.h"
 #include "m_misc.h"
 #include "m_misc2.h"
 #include "p_mobj.h"
@@ -305,7 +305,7 @@ void VX_Init (void)
 	{
 		I_Printf(VB_INFO, "Voxels not found.");
 		voxels_rendering = false;
-		M_DisableVoxelsRenderingItem();
+		MN_DisableVoxelsRenderingItem();
 		return;
 	}
 
@@ -338,7 +338,7 @@ void VX_Init (void)
 	if (!voxels_found)
 	{
 		voxels_rendering = false;
-		M_DisableVoxelsRenderingItem();
+		MN_DisableVoxelsRenderingItem();
 	}
 }
 

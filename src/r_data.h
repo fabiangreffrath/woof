@@ -53,6 +53,8 @@ boolean R_IsPatchLump (const int lump);
 
 extern byte *main_tranmap, *tranmap;
 
+extern int tran_filter_pct;
+
 #endif
 
 //----------------------------------------------------------------------------

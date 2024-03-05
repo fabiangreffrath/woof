@@ -46,13 +46,15 @@
 #include "m_argv.h"
 #include "m_array.h"
 #include "m_io.h"
-#include "m_menu.h"
+#include "mn_menu.h"
+#include "mn_setup.h"
 #include "m_misc.h"
 #include "m_misc2.h"
 #include "net_client.h" // net_player_name
 #include "p_mobj.h"
 #include "p_pspr.h"
 #include "r_draw.h" // [FG] fuzzcolumn_mode
+#include "r_data.h"
 #include "r_main.h"
 #include "r_sky.h" // [FG] stretchsky
 #include "r_voxel.h"
@@ -68,12 +70,8 @@
 //
 
 static int config_help;         //jff 3/3/98
-// [FG] double click acts as "use"
-extern int dclick_use;
 // [FG] invert vertical axis
 extern int mouse_y_invert;
-extern int realtic_clock_rate;         // killough 4/13/98: adjustable timer
-extern int tran_filter_pct;            // killough 2/21/98
 extern int showMessages;
 extern int show_toggle_messages;
 extern int show_pickup_messages;
@@ -3230,8 +3228,8 @@ void M_LoadOptions(void)
     }
   }
 
-  M_Trans();           // reset translucency in case of change
-  M_ResetMenu();       // reset menu in case of change
+  MN_Trans();           // reset translucency in case of change
+  MN_ResetMenu();       // reset menu in case of change
 }
 
 //

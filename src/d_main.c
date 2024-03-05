@@ -59,7 +59,7 @@
 #include "m_fixed.h"
 #include "m_input.h"
 #include "m_io.h"
-#include "m_menu.h"
+#include "mn_menu.h"
 #include "m_misc.h"
 #include "m_misc2.h"
 #include "m_swap.h"
@@ -148,9 +148,6 @@ boolean singletics = false; // debug flag to cancel adaptiveness
 //jff 1/22/98 parms for disabling music and sound
 boolean nosfxparm;
 boolean nomusicparm;
-
-//jff 4/18/98
-extern boolean inhelpscreens;
 
 skill_t startskill;
 int     startepisode;
@@ -511,7 +508,7 @@ void D_PageDrawer(void)
         }
     }
   else
-    M_DrawCredits();
+    MN_DrawCredits();
 }
 
 //
@@ -1059,7 +1056,7 @@ static boolean FileContainsMaps(const char *filename)
 
         for (i = 0; i < header.numlumps; i++)
         {
-            if (StartsWithMapIdentifier(fileinfo[i].name))
+            if (MN_StartsWithMapIdentifier(fileinfo[i].name))
             {
                 ret = true;
                 break;
@@ -2741,14 +2738,14 @@ void D_DoomMain(void)
   G_UpdateSideMove();
   G_UpdateCarryAngle();
 
-  M_ResetTimeScale();
+  MN_ResetTimeScale();
 
   I_Printf(VB_INFO, "S_Init: Setting up sound.");
   S_Init(snd_SfxVolume /* *8 */, snd_MusicVolume /* *8*/ );
 
   I_Printf(VB_INFO, "HU_Init: Setting up heads up display.");
   HU_Init();
-  M_SetMenuFontSpacing();
+  MN_SetMenuFontSpacing();
 
   I_Printf(VB_INFO, "ST_Init: Init status bar.");
   ST_Init();
@@ -2907,7 +2904,7 @@ void D_DoomMain(void)
   // [FG] init graphics (video.widedelta) before HUD widgets
   I_InitGraphics();
 
-  M_InitMenuStrings();
+  MN_InitMenuStrings();
 
   if (startloadgame >= 0)
   {
