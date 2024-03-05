@@ -43,7 +43,7 @@
 #include "m_argv.h"
 #include "m_fixed.h"
 #include "m_io.h"
-#include "m_menu.h"
+#include "mn_menu.h"
 #include "r_draw.h"
 #include "r_main.h"
 #include "r_plane.h"
@@ -528,7 +528,7 @@ void I_StartTic(void)
         else
         {
             old_rect = rect;
-            ev.data1 = 1;
+            ev.data1 = EV_RESIZE_VIEWPORT;
         }
 
         float scalex, scaley;
@@ -1492,7 +1492,7 @@ static void I_InitVideoParms(void)
         fullscreen = true;
     }
 
-    M_ResetSetupMenuVideo();
+    MN_SetupResetMenuVideo();
 }
 
 static void I_InitGraphicsMode(void)

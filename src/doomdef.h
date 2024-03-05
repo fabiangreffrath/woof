@@ -194,7 +194,7 @@ typedef enum {
 // Used when resetting the defaults for every item in a Setup group.
 
 typedef enum {
-  ss_none,
+  ss_none = -1,
   ss_keys,
   ss_weap,
   ss_stat,

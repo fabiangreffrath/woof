@@ -54,6 +54,7 @@ typedef struct event_s
   int       data4;    // right axis y
 } event_t;
 
+#define EV_RESIZE_VIEWPORT 1
  
 typedef enum
 {
