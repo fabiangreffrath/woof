@@ -1,6 +1,6 @@
 **New Features and Improvements**
 * Add "Fast Line-of-Sight Calculation" option, a faster blockmap-based algorithm from Doom 1.2 (also Heretic).
-* Add a QOL "Invulnerability Effect" option, the ability to override the MBF "sky fix", and a "Grey" colourmap that is easier on the eyes.
+* Add a QOL "Invulnerability Effect" option, the ability to override the MBF "sky fix", and a "Gray" colormap that is easier on the eyes.
 
 **Bug Fixes**
 * Apply deadzone to gamepad for strict mode check.
