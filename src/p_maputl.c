@@ -938,51 +938,17 @@ boolean P_PathTraverse(fixed_t x1, fixed_t y1, fixed_t x2, fixed_t y2,
       if (mapx == xt2 && mapy == yt2)
         break;
 
-      // [RH] Handle corner cases properly instead of pretending they don't
-      // exist.
-      switch ((((yintercept >> FRACBITS) == mapy) << 1)
-             | ((xintercept >> FRACBITS) == mapx))
+      if ((yintercept >> FRACBITS) == mapy)
         {
-        case 0: // neither xintercept nor yintercept match!
-          count = 64;  // Stop traversing, because somebody screwed up.
-          break;
-
-        case 1: // xintercept matches
-          xintercept += xstep;
-          mapy += mapystep;
-          break;
-
-        case 2: // yintercept matches
           yintercept += ystep;
           mapx += mapxstep;
-          break;
-
-        case 3: // xintercept and yintercept both match
-          // The trace is exiting a block through its corner. Not only does
-          // the block being entered need to be checked (which will happen
-          // when this loop continues), but the other two blocks adjacent to
-          // the corner also need to be checked.
-          if (flags & PT_ADDLINES)
-            {
-              if (!P_BlockThingsIterator(mapx + mapxstep, mapy, PIT_AddThingIntercepts))
-                return false; // early out
-              if (!P_BlockThingsIterator(mapx, mapy + mapystep, PIT_AddThingIntercepts))
-                return false; // early out
-            }
-
-          if (flags & PT_ADDTHINGS)
-            {
-              if (!P_BlockThingsIterator(mapx + mapxstep, mapy, PIT_AddThingIntercepts))
-                return false; // early out
-              if (!P_BlockThingsIterator(mapx, mapy + mapystep, PIT_AddThingIntercepts))
-                return false; // early out
-            }
-          xintercept += xstep;
-          yintercept += ystep;
-          mapx += mapxstep;
-          mapy += mapystep;
-          break;
         }
+      else
+        if ((xintercept >> FRACBITS) == mapx)
+          {
+            xintercept += xstep;
+            mapy += mapystep;
+          }
     }
 
   // go through the sorted list
