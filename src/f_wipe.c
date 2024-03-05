@@ -210,13 +210,21 @@ int wipe_EndScreen(int x, int y, int width, int height)
   return 0;
 }
 
+static int wipe_NOP(int x, int y, int t)
+{
+  return 0;
+}
+
 static int (*const wipes[])(int, int, int) = {
+  wipe_NOP,
+  wipe_NOP,
+  wipe_NOP,
+  wipe_initMelt,
+  wipe_doMelt,
+  wipe_exitMelt,
   wipe_initColorXForm,
   wipe_doColorXForm,
   wipe_exitColorXForm,
-  wipe_initMelt,
-  wipe_doMelt,
-  wipe_exitMelt
 };
 
 // killough 3/5/98: reformatted and cleaned up
