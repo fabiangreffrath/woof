@@ -310,6 +310,7 @@ enum
     str_menu_backdrop,
     str_widescreen,
     str_bobbing_pct,
+    str_screen_melt,
     str_invul_mode,
 };
 
@@ -2247,6 +2248,8 @@ const char *default_skill_strings[] = {
 static const char *death_use_action_strings[] = {"default", "last save",
                                                  "nothing"};
 
+static const char *screen_melt_strings[] = {"Off", "Melt", "Crossfade"};
+
 static const char *invul_mode_strings[] = {"Vanilla", "MBF", "Gray"};
 
 void MN_ResetTimeScale(void)
@@ -2286,7 +2289,8 @@ static setup_menu_t gen_settings6[] = {
 
     {"Quality of life", S_SKIP | S_TITLE, M_X, M_SPC},
 
-    {"Screen melt", S_ONOFF | S_STRICT, M_X, M_SPC, {"screen_melt"}},
+    {"Screen wipe effect", S_CHOICE | S_STRICT, M_X, M_SPC, {"screen_melt"},
+     m_null, input_null, str_screen_melt},
 
     {"On death action", S_CHOICE, M_X, M_SPC, {"death_use_action"},
      m_null, input_null, str_death_use_action},
@@ -3738,6 +3742,7 @@ static const char **selectstrings[] = {
     menu_backdrop_strings,
     widescreen_strings,
     bobbing_pct_strings,
+    screen_melt_strings,
     invul_mode_strings,
 };
 
