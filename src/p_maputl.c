@@ -1333,6 +1333,8 @@ boolean P_SightPathTraverse(fixed_t x1, fixed_t y1, fixed_t x2, fixed_t y2)
     if (mapx == xt2 && mapy == yt2)
       break;
 
+    // [RH] Handle corner cases properly instead of pretending they don't
+    // exist.
     // xintercept and yintercept both match
     if ((xintercept >> FRACBITS) == mapx && (yintercept >> FRACBITS) == mapy)
     {
