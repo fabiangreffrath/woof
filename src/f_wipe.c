@@ -23,6 +23,7 @@
 #include "f_wipe.h"
 #include "i_video.h"
 #include "m_random.h"
+#include "v_flextran.h"
 #include "v_video.h"
 #include "z_zone.h"
 
@@ -57,33 +58,47 @@ static void wipe_shittyColMajorXform(byte *array, int width, int height)
   Z_Free(dest);
 }
 
+// [FG] cross-fading screen wipe implementation
+
+static int fade_tick;
+
 static int wipe_initColorXForm(int width, int height, int ticks)
 {
   V_PutBlock(0, 0, width, height, wipe_scr_start);
+  fade_tick = 0;
   return 0;
 }
 
-// killough 3/5/98: reformatted and cleaned up
 static int wipe_doColorXForm(int width, int height, int ticks)
 {
-  boolean unchanged = true;
-  byte *w   = wipe_scr;
-  byte *e   = wipe_scr_end;
-  byte *end = wipe_scr+width*height;
-  for (;w != end; w++, e++)
-    if (*w != *e)
-      {
-        int newval;
-        unchanged = false;
-        *w = *w > *e ?
-          (newval = *w - ticks) < *e ? *e : newval :
-          (newval = *w + ticks) > *e ? *e : newval ;
-      }
-  return unchanged;
+  for (int y = 0; y < height; y++)
+  {
+    byte *sta = wipe_scr_start + y * width;
+    byte *end = wipe_scr_end + y * width;
+    byte *dst = wipe_scr + y * video.pitch;
+
+    for (int x = 0; x < width; x++)
+    {
+      unsigned int *fg2rgb = Col2RGB8[fade_tick];
+      unsigned int *bg2rgb = Col2RGB8[64 - fade_tick];
+      unsigned int fg, bg;
+
+      fg = fg2rgb[end[x]];
+      bg = bg2rgb[sta[x]];
+      fg = (fg + bg) | 0x1f07c1f;
+      dst[x] = RGB32k[0][0][fg & (fg >> 15)];
+    }
+  }
+
+  fade_tick += 2 * ticks;
+
+  return (fade_tick > 64);
 }
 
 static int wipe_exitColorXForm(int width, int height, int ticks)
 {
+  Z_Free(wipe_scr_start);
+  Z_Free(wipe_scr_end);
   return 0;
 }
 

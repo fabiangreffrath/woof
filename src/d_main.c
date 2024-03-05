@@ -453,7 +453,7 @@ void D_Display (void)
         }
       while (!tics);
       wipestart = nowtime;
-      done = wipe_ScreenWipe(wipe_Melt, 0, 0, video.unscaledw, SCREENHEIGHT, tics);
+      done = wipe_ScreenWipe(0, 0, 0, video.unscaledw, SCREENHEIGHT, tics); // TODO variable
       M_Drawer();                   // menu is drawn even on top of wipes
       I_FinishUpdate();             // page flip or blit buffer
     }
