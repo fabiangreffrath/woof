@@ -529,9 +529,8 @@ void G_PrepTiccmd(void)
 
   // Gamepad
 
-  if (I_UseController())
+  if (I_UseController() && I_CalcControllerAxes())
   {
-    I_CalcControllerAxes();
     D_UpdateDeltaTics();
 
     if (axes[AXIS_TURN] && !strafe)
@@ -1181,7 +1180,7 @@ static boolean G_StrictModeSkipEvent(event_t *ev)
             first_event = false;
             enable_controller = true;
           }
-          return true; // Already "ate" the event above.
+          I_ResetControllerLevel();
         }
         return !enable_controller;
 
