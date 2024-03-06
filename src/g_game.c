@@ -1180,7 +1180,7 @@ static boolean G_StrictModeSkipEvent(event_t *ev)
             first_event = false;
             enable_controller = true;
           }
-          return true; // Already "ate" the event above.
+          I_ResetControllerLevel();
         }
         return !enable_controller;
 
