@@ -529,9 +529,8 @@ void G_PrepTiccmd(void)
 
   // Gamepad
 
-  if (I_UseController())
+  if (I_UseController() && I_CalcControllerAxes())
   {
-    I_CalcControllerAxes();
     D_UpdateDeltaTics();
 
     if (axes[AXIS_TURN] && !strafe)

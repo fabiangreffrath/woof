@@ -48,7 +48,7 @@ extern boolean joy_invert_look;             // Invert look axis.
 extern float axes[NUM_AXES];        // Calculated controller values.
 extern int trigger_threshold;       // Trigger threshold (axis resolution).
 
-void I_CalcControllerAxes(void);
+boolean I_CalcControllerAxes(void);
 void I_UpdateAxesData(const struct event_s *ev);
 void I_ResetControllerAxes(void);
 void I_ResetControllerLevel(void);
