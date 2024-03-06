@@ -2449,7 +2449,7 @@ static int GetPageIndex(setup_menu_t *const *const pages)
 
 static void SetPageIndex(const int y)
 {
-    setup_menu_t *menu = setup_screens[setup_screen][current_page];
+    setup_menu_t *menu = setup_screens[setup_screen][0];
 
     while (!(menu->m_flags & S_END))
     {
