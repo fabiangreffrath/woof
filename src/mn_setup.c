@@ -2100,7 +2100,7 @@ static const char **M_GetMouseAccelStrings(void)
     static const char *strings[MOUSE_ACCEL_STRINGS_SIZE];
     char buf[8];
 
-    strings[0] = M_StringDuplicate("Off");
+    strings[0] = "Off";
 
     for (int i = 1; i < MOUSE_ACCEL_STRINGS_SIZE; ++i)
     {
