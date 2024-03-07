@@ -15,20 +15,20 @@
 //      Savegame snapshots
 //
 
-#ifndef __M_SNAPSHOT__
-#define __M_SNAPSHOT__
+#ifndef __MN_SNAPSHOT__
+#define __MN_SNAPSHOT__
 
 #include <stdio.h>
 
 #include "doomtype.h"
 
-const int M_SnapshotDataSize(void);
-void M_ResetSnapshot(int i);
-boolean M_ReadSnapshot(int i, FILE *fp);
-void M_WriteSnapshot(byte *p);
-boolean M_DrawSnapshot(int i, int x, int y, int w, int h);
+const int MN_SnapshotDataSize(void);
+void MN_ResetSnapshot(int i);
+boolean MN_ReadSnapshot(int i, FILE *fp);
+void MN_WriteSnapshot(byte *p);
+boolean MN_DrawSnapshot(int i, int x, int y, int w, int h);
 
-void M_ReadSavegameTime(int i, char *name);
-char *M_GetSavegameTime(int i);
+void MN_ReadSavegameTime(int i, char *name);
+char *MN_GetSavegameTime(int i);
 
 #endif
