@@ -31,7 +31,7 @@
 #include "i_video.h"
 #include "m_input.h"
 #include "mn_menu.h"
-#include "m_misc2.h"
+#include "m_misc.h"
 #include "p_maputl.h"
 #include "p_mobj.h"
 #include "p_setup.h"

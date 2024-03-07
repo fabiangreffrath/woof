@@ -43,7 +43,7 @@
 #include "i_video.h"
 #include "m_input.h"
 #include "m_io.h"
-#include "m_misc2.h"
+#include "m_misc.h"
 #include "mn_snapshot.h"
 #include "m_swap.h"
 #include "mn_menu.h"

@@ -28,7 +28,7 @@
 #include "g_game.h"
 #include "hu_lib.h"
 #include "i_printf.h"
-#include "m_misc2.h"
+#include "m_misc.h"
 #include "m_random.h"
 #include "m_swap.h"
 #include "mn_menu.h"

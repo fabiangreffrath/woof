@@ -16,7 +16,7 @@
 //
 
 #include "net_packet.h"
-#include "m_misc2.h"
+#include "m_misc.h"
 #include "z_zone.h"
 #include <ctype.h>
 #include <string.h>

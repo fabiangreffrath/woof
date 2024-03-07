@@ -182,6 +182,8 @@ void V_DrawBackground(const char *patchname);
 
 int V_BloodColor(int blood);
 
+void V_ScreenShot(void);
+
 #endif
 
 //----------------------------------------------------------------------------

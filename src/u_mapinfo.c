@@ -25,7 +25,7 @@
 #include "doomdef.h"
 #include "doomstat.h"
 #include "i_system.h"
-#include "m_misc2.h"
+#include "m_misc.h"
 #include "u_mapinfo.h"
 #include "u_scanner.h"
 #include "w_wad.h"

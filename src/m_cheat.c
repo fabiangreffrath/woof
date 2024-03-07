@@ -34,7 +34,7 @@
 #include "m_cheat.h"
 #include "m_fixed.h"
 #include "m_input.h"
-#include "m_misc2.h"
+#include "m_misc.h"
 #include "p_inter.h"
 #include "p_map.h"
 #include "p_mobj.h"

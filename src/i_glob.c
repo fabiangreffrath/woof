@@ -25,7 +25,7 @@
 #include "doomtype.h"
 #include "i_glob.h"
 #include "m_io.h"
-#include "m_misc2.h"
+#include "m_misc.h"
 
 #if defined(_MSC_VER)
 // For Visual C++, we need to include the win_opendir module.

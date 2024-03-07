@@ -21,19 +21,25 @@
 //
 //-----------------------------------------------------------------------------
 
+#include <errno.h>
 #include <stdlib.h>
 #include <string.h>
 
+#include "d_main.h"
 #include "doomdef.h"
+#include "doomstat.h"
 #include "doomtype.h"
 #include "i_system.h"
 #include "i_video.h"
 #include "m_argv.h"
-#include "m_misc2.h"
+#include "m_io.h"
+#include "m_misc.h"
 #include "m_swap.h"
 #include "r_data.h"
 #include "r_defs.h"
 #include "r_state.h"
+#include "s_sound.h"
+#include "sounds.h"
 #include "v_trans.h"
 #include "v_video.h"
 #include "w_wad.h" // needed for color translation lump lookup
@@ -1057,6 +1063,72 @@ void V_UseBuffer(pixel_t *buffer)
 void V_RestoreBuffer(void)
 {
     dest_screen = I_VideoBuffer;
+}
+
+//
+// SCREEN SHOTS
+//
+
+//
+// V_ScreenShot
+//
+// Modified by Lee Killough so that any number of shots can be taken,
+// the code is faster, and no annoying "screenshot" message appears.
+//
+// killough 10/98: improved error-handling
+
+void V_ScreenShot(void)
+{
+    boolean success = false;
+
+    errno = 0;
+
+    if (!M_access(screenshotdir,2))
+    {
+        static int shot;
+        char lbmname[16] = {0};
+        int tries = 10000;
+        char *screenshotname = NULL;
+
+        do
+        {
+            M_snprintf(lbmname, sizeof(lbmname), "%.4s%04d.png",
+                       D_DoomExeName(), shot++); // [FG] PNG
+            if (screenshotname)
+              free(screenshotname);
+            screenshotname = M_StringJoin(screenshotdir, DIR_SEPARATOR_S,
+                                          lbmname, NULL);
+        }
+        while (!M_access(screenshotname,0) && --tries);
+
+        if (tries)
+        {
+            // killough 10/98: detect failure and remove file if error
+            // killough 11/98: add hires support
+            if (!(success = I_WritePNGfile(screenshotname))) // [FG] PNG
+            {
+                int t = errno;
+                M_remove(screenshotname);
+                errno = t;
+            }
+        }
+        if (screenshotname)
+        {
+            free(screenshotname);
+        }
+    }
+
+    // 1/18/98 killough: replace "SCREEN SHOT" acknowledgement with sfx
+    // players[consoleplayer].message = "screen shot"
+
+    // killough 10/98: print error message and change sound effect if error
+    S_StartSound(NULL,
+                 !success
+                 ? displaymsg("%s", errno ? strerror(errno)
+                                          : "Could not take screenshot"),
+                 sfx_oof
+                 : gamemode == commercial ? sfx_radio
+                                          : sfx_tink);
 }
 
 //----------------------------------------------------------------------------

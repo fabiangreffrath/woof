@@ -35,7 +35,7 @@
 #include "i_video.h" // fps
 #include "m_fixed.h"
 #include "m_input.h"
-#include "m_misc2.h"
+#include "m_misc.h"
 #include "m_swap.h"
 #include "p_map.h" // crosshair (linetarget)
 #include "p_mobj.h"

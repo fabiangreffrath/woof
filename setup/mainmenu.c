@@ -20,7 +20,7 @@
 #include "config.h"
 #include "doomkeys.h"
 #include "i_timer.h"
-#include "m_misc2.h"
+#include "m_misc.h"
 #include "multiplayer.h"
 #include "setup_icon.c"
 

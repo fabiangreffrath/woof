@@ -25,7 +25,7 @@
 #include "i_system.h"
 #include "m_argv.h"
 #include "m_io.h"
-#include "m_misc2.h"
+#include "m_misc.h"
 
 static const iwad_t iwads[] = {
     {"doom2.wad",     doom2,      commercial,   vanilla,  "Doom II"                   },

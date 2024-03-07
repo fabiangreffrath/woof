@@ -21,7 +21,7 @@
 #include "doomdef.h"
 #include "doomkeys.h"
 #include "execute.h"
-#include "m_misc2.h"
+#include "m_misc.h"
 #include "multiplayer.h"
 #include "net_defs.h"
 #include "net_io.h"

@@ -32,7 +32,7 @@
 #include "i_printf.h"
 #include "i_system.h"
 #include "m_argv.h"
-#include "m_misc2.h"
+#include "m_misc.h"
 
 ticcmd_t *I_BaseTiccmd(void)
 {

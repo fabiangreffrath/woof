@@ -48,11 +48,11 @@
 #include "info.h"
 #include "m_argv.h"
 #include "m_array.h"
+#include "m_config.h"
 #include "m_input.h"
 #include "m_io.h"
 #include "mn_menu.h"
 #include "m_misc.h"
-#include "m_misc2.h"
 #include "m_random.h"
 #include "mn_snapshot.h"
 #include "m_swap.h" // [FG] LONG
@@ -78,6 +78,7 @@
 #include "statdump.h" // [FG] StatCopy()
 #include "tables.h"
 #include "u_mapinfo.h"
+#include "v_video.h"
 #include "version.h"
 #include "w_wad.h"
 #include "wi_stuff.h"
@@ -2639,7 +2640,7 @@ void G_Ticker(void)
 	  G_CleanScreenshot();
 	  clean_screenshot = false;
 	}
-	M_ScreenShot();
+	V_ScreenShot();
 	gameaction = ga_nothing;
 	break;
       case ga_reloadlevel:
