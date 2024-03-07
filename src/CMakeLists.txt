@@ -61,7 +61,7 @@ set(WOOF_SOURCES
     mn_setup.c             mn_setup.h
     m_misc.c               m_misc.h
     m_random.c             m_random.h
-    m_snapshot.c           m_snapshot.h
+    mn_snapshot.c          mn_snapshot.h
                            m_swap.h
     memio.c                memio.h
     midifallback.c         midifallback.h

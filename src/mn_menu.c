@@ -44,7 +44,7 @@
 #include "m_input.h"
 #include "m_io.h"
 #include "m_misc.h"
-#include "m_snapshot.h"
+#include "mn_snapshot.h"
 #include "m_swap.h"
 #include "mn_menu.h"
 #include "mn_setup.h"
@@ -785,7 +785,7 @@ static void M_DrawBorderedSnapshot(int n)
         return;
     }
 
-    if (!M_DrawSnapshot(n, snapshot_x, snapshot_y, snapshot_width,
+    if (!MN_DrawSnapshot(n, snapshot_x, snapshot_y, snapshot_width,
                         snapshot_height))
     {
         WriteText(snapshot_x + (snapshot_width - MN_StringWidth(txt)) / 2
@@ -794,7 +794,7 @@ static void M_DrawBorderedSnapshot(int n)
                     txt);
     }
 
-    txt = M_GetSavegameTime(n);
+    txt = MN_GetSavegameTime(n);
     MN_DrawString(snapshot_x + snapshot_width / 2 - MN_GetPixelWidth(txt) / 2
                       - video.deltaw,
                   snapshot_y + snapshot_height + MN_StringHeight(txt), CR_GOLD,
@@ -1033,13 +1033,13 @@ static void M_ReadSaveStrings(void)
 
         char *name = G_SaveGameName(i); // killough 3/22/98
         fp = M_fopen(name, "rb");
-        M_ReadSavegameTime(i, name);
+        MN_ReadSavegameTime(i, name);
         if (name)
         {
             free(name);
         }
 
-        M_ResetSnapshot(i);
+        MN_ResetSnapshot(i);
 
         if (!fp)
         { // Ty 03/27/98 - externalized:
@@ -1065,9 +1065,9 @@ static void M_ReadSaveStrings(void)
             continue;
         }
 
-        if (!M_ReadSnapshot(i, fp))
+        if (!MN_ReadSnapshot(i, fp))
         {
-            M_ResetSnapshot(i);
+            MN_ResetSnapshot(i);
         }
 
         fclose(fp);

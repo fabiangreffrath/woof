@@ -54,7 +54,7 @@
 #include "mn_menu.h"
 #include "m_misc.h"
 #include "m_random.h"
-#include "m_snapshot.h"
+#include "mn_snapshot.h"
 #include "m_swap.h" // [FG] LONG
 #include "memio.h"
 #include "net_defs.h"
@@ -2329,9 +2329,9 @@ static void G_DoSaveGame(void)
   saveg_write32(max_kill_requirement);
 
   // [FG] save snapshot
-  CheckSaveGame(M_SnapshotDataSize());
-  M_WriteSnapshot(save_p);
-  save_p += M_SnapshotDataSize();
+  CheckSaveGame(MN_SnapshotDataSize());
+  MN_WriteSnapshot(save_p);
+  save_p += MN_SnapshotDataSize();
 
   length = save_p - savebuffer;
 

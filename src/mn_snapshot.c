@@ -37,12 +37,12 @@ static byte *snapshots[10];
 static byte *current_snapshot;
 static char savegametimes[10][32];
 
-const int M_SnapshotDataSize(void)
+const int MN_SnapshotDataSize(void)
 {
     return snapshot_len + snapshot_size;
 }
 
-void M_ResetSnapshot(int i)
+void MN_ResetSnapshot(int i)
 {
     if (snapshots[i])
     {
@@ -53,13 +53,13 @@ void M_ResetSnapshot(int i)
 
 // [FG] try to read snapshot data from the end of a savegame file
 
-boolean M_ReadSnapshot(int i, FILE *fp)
+boolean MN_ReadSnapshot(int i, FILE *fp)
 {
     char str[16] = {0};
 
-    M_ResetSnapshot(i);
+    MN_ResetSnapshot(i);
 
-    if (fseek(fp, -M_SnapshotDataSize(), SEEK_END) != 0)
+    if (fseek(fp, -MN_SnapshotDataSize(), SEEK_END) != 0)
     {
         return false;
     }
@@ -87,7 +87,7 @@ boolean M_ReadSnapshot(int i, FILE *fp)
     return true;
 }
 
-void M_ReadSavegameTime(int i, char *name)
+void MN_ReadSavegameTime(int i, char *name)
 {
     struct stat st;
 
@@ -110,7 +110,7 @@ void M_ReadSavegameTime(int i, char *name)
     }
 }
 
-char *M_GetSavegameTime(int i)
+char *MN_GetSavegameTime(int i)
 {
     return savegametimes[i];
 }
@@ -119,7 +119,7 @@ char *M_GetSavegameTime(int i)
 //      in hires mode only only each second pixel in each second row is saved,
 //      in widescreen mode only the non-widescreen part in the middle is saved
 
-static void M_TakeSnapshot(void)
+static void TakeSnapshot(void)
 {
     int old_screenblocks = screenblocks;
 
@@ -148,9 +148,9 @@ static void M_TakeSnapshot(void)
     R_SetViewSize(old_screenblocks);
 }
 
-void M_WriteSnapshot(byte *p)
+void MN_WriteSnapshot(byte *p)
 {
-    M_TakeSnapshot();
+    TakeSnapshot();
 
     memcpy(p, snapshot_str, snapshot_len);
     p += snapshot_len;
@@ -162,7 +162,7 @@ void M_WriteSnapshot(byte *p)
 // [FG] draw snapshot for the n'th savegame, if no snapshot is found
 //      fill the area with palette index 0 (i.e. mostly black)
 
-boolean M_DrawSnapshot(int n, int x, int y, int w, int h)
+boolean MN_DrawSnapshot(int n, int x, int y, int w, int h)
 {
     if (!snapshots[n])
     {
