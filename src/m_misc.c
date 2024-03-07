@@ -551,20 +551,24 @@ void NormalizeSlashes(char *str)
 
 boolean M_WriteFile(char const *name, void *source, int length)
 {
-  FILE *fp;
+    FILE *fp;
 
-  errno = 0;
-  
-  if (!(fp = M_fopen(name, "wb")))       // Try opening file
-    return 0;                          // Could not open file for writing
+    errno = 0;
 
-  length = fwrite(source, 1, length, fp) == length;   // Write data
-  fclose(fp);
+    if (!(fp = M_fopen(name, "wb"))) // Try opening file
+    {
+        return 0; // Could not open file for writing
+    }
 
-  if (!length)                         // Remove partially written file
-    M_remove(name);
+    length = fwrite(source, 1, length, fp) == length; // Write data
+    fclose(fp);
 
-  return length;
+    if (!length) // Remove partially written file
+    {
+        M_remove(name);
+    }
+
+    return length;
 }
 
 //
@@ -574,28 +578,28 @@ boolean M_WriteFile(char const *name, void *source, int length)
 
 int M_ReadFile(char const *name, byte **buffer)
 {
-  FILE *fp;
+    FILE *fp;
 
-  errno = 0;
+    errno = 0;
 
-  if ((fp = M_fopen(name, "rb")))
+    if ((fp = M_fopen(name, "rb")))
     {
-      size_t length;
+        size_t length;
 
-      fseek(fp, 0, SEEK_END);
-      length = ftell(fp);
-      fseek(fp, 0, SEEK_SET);
-      *buffer = Z_Malloc(length, PU_STATIC, 0);
-      if (fread(*buffer, 1, length, fp) == length)
+        fseek(fp, 0, SEEK_END);
+        length = ftell(fp);
+        fseek(fp, 0, SEEK_SET);
+        *buffer = Z_Malloc(length, PU_STATIC, 0);
+        if (fread(*buffer, 1, length, fp) == length)
         {
-          fclose(fp);
-          return length;
+            fclose(fp);
+            return length;
         }
-      fclose(fp);
+        fclose(fp);
     }
 
-  I_Error("Couldn't read file %s: %s", name, 
-      errno ? strerror(errno) : "(Unknown Error)");
+    I_Error("Couldn't read file %s: %s", name,
+            errno ? strerror(errno) : "(Unknown Error)");
 
-  return 0;
+    return 0;
 }

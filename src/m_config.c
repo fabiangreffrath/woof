@@ -45,16 +45,16 @@
 #include "i_video.h"
 #include "m_argv.h"
 #include "m_array.h"
+#include "m_config.h"
 #include "m_io.h"
+#include "m_misc.h"
 #include "mn_menu.h"
 #include "mn_setup.h"
-#include "m_config.h"
-#include "m_misc.h"
 #include "net_client.h" // net_player_name
 #include "p_mobj.h"
 #include "p_pspr.h"
-#include "r_draw.h" // [FG] fuzzcolumn_mode
 #include "r_data.h"
+#include "r_draw.h" // [FG] fuzzcolumn_mode
 #include "r_main.h"
 #include "r_sky.h" // [FG] stretchsky
 #include "r_voxel.h"
@@ -68,7 +68,7 @@
 // DEFAULTS
 //
 
-static int config_help;         //jff 3/3/98
+static int config_help; // jff 3/3/98
 // [FG] invert vertical axis
 extern int mouse_y_invert;
 extern int showMessages;
@@ -77,8 +77,10 @@ extern int show_pickup_messages;
 
 extern int window_width, window_height;
 extern int window_position_x, window_position_y;
-extern boolean flipcorpses; // [crispy] randomly flip corpse, blood and death animation sprites
-extern boolean ghost_monsters; // [crispy] resurrected pools of gore ("ghost monsters") are translucent
+extern boolean flipcorpses;    // [crispy] randomly flip corpse, blood and death
+                               // animation sprites
+extern boolean ghost_monsters; // [crispy] resurrected pools of gore ("ghost
+                               // monsters") are translucent
 extern int mouse_acceleration;
 extern int mouse_acceleration_threshold;
 extern int show_endoom;
@@ -87,7 +89,7 @@ extern char *soundfont_path;
 extern char *soundfont_dir;
 extern boolean mus_chorus;
 extern boolean mus_reverb;
-extern int     mus_gain;
+extern int mus_gain;
 #endif
 #if defined(_WIN32)
 extern char *winmm_device;
@@ -107,13 +109,13 @@ extern boolean hangsolid;
 extern boolean blockmapfix;
 extern int extra_level_brightness;
 
-extern char *chat_macros[];  // killough 10/98
+extern char *chat_macros[]; // killough 10/98
 
-//jff 3/3/98 added min, max, and help string to all entries
-//jff 4/10/98 added isstr field to specify whether value is string or int
+// jff 3/3/98 added min, max, and help string to all entries
+// jff 4/10/98 added isstr field to specify whether value is string or int
 //
-// killough 11/98: entirely restructured to allow options to be modified
-// from wads, and to consolidate with menu code
+//  killough 11/98: entirely restructured to allow options to be modified
+//  from wads, and to consolidate with menu code
 
 default_t defaults[] = {
 
@@ -2831,222 +2833,278 @@ default_t defaults[] = {
 };
 
 static char *defaultfile;
-static boolean defaults_loaded = false;      // killough 10/98
+static boolean defaults_loaded = false; // killough 10/98
 
 #define NUMDEFAULTS ((unsigned)(sizeof defaults / sizeof *defaults - 1))
 
 // killough 11/98: hash function for name lookup
 static unsigned default_hash(const char *name)
 {
-  unsigned hash = 0;
-  while (*name)
-    hash = hash*2 + toupper(*name++);
-  return hash % NUMDEFAULTS;
+    unsigned hash = 0;
+    while (*name)
+    {
+        hash = hash * 2 + toupper(*name++);
+    }
+    return hash % NUMDEFAULTS;
 }
 
 default_t *M_LookupDefault(const char *name)
 {
-  static int hash_init;
-  register default_t *dp;
+    static int hash_init;
+    register default_t *dp;
 
-  // Initialize hash table if not initialized already
-  if (!hash_init)
-    for (hash_init = 1, dp = defaults; dp->name; dp++)
-      {
-        unsigned h = default_hash(dp->name);
-        dp->next = defaults[h].first;
-        defaults[h].first = dp;
-      }
+    // Initialize hash table if not initialized already
+    if (!hash_init)
+    {
+        for (hash_init = 1, dp = defaults; dp->name; dp++)
+        {
+            unsigned h = default_hash(dp->name);
+            dp->next = defaults[h].first;
+            defaults[h].first = dp;
+        }
+    }
 
-  // Look up name in hash table
-  for (dp = defaults[default_hash(name)].first;
-       dp && strcasecmp(name, dp->name); dp = dp->next);
+    // Look up name in hash table
+    for (dp = defaults[default_hash(name)].first;
+         dp && strcasecmp(name, dp->name); dp = dp->next)
+        ;
 
-  return dp;
+    return dp;
 }
 
 //
 // M_SaveDefaults
 //
 
-void M_SaveDefaults (void)
+void M_SaveDefaults(void)
 {
-  char *tmpfile;
-  register default_t *dp;
-  FILE *f;
-  int maxlen = 0;
+    char *tmpfile;
+    register default_t *dp;
+    FILE *f;
+    int maxlen = 0;
 
-  // killough 10/98: for when exiting early
-  if (!defaults_loaded || !defaultfile)
-    return;
-
-  // get maximum config key string length
-  for (dp = defaults; ; dp++)
-  {
-    int len;
-    if (!dp->name)
-      break;
-    len = strlen(dp->name);
-    if (len > maxlen && len < 80) {
-      maxlen = len;
-    }
-  }
-
-  tmpfile = M_StringJoin(D_DoomPrefDir(), DIR_SEPARATOR_S, "tmp", D_DoomExeName(), ".cfg", NULL);
-  NormalizeSlashes(tmpfile);
-
-  errno = 0;
-  if (!(f = M_fopen(tmpfile, "w")))  // killough 9/21/98
-    goto error;
-
-  // 3/3/98 explain format of file
-  // killough 10/98: use executable's name
-
-  if (config_help &&
-      fprintf(f,";%s.cfg format:\n"
-	      ";[min-max(default)] description of variable\n"
-	      ";* at end indicates variable is settable in wads\n"
-	      ";variable   value\n", D_DoomExeName()) == EOF)
-    goto error;
-
-  // killough 10/98: output comment lines which were read in during input
-
-  for (dp = defaults; ; dp++)
+    // killough 10/98: for when exiting early
+    if (!defaults_loaded || !defaultfile)
     {
-      config_t value = {0};
+        return;
+    }
 
-      // If we still haven't seen any blanks,
-      // Output a blank line for separation
-
-      if (putc('\n',f) == EOF)
-	goto error;
-
-      if (!dp->name)      // If we're at end of defaults table, exit loop
-        break;
-
-      //jff 3/3/98 output help string
-      //
-      // killough 10/98:
-      // Don't output config help if any [ lines appeared before this one.
-      // Make default values, and numeric range output, automatic.
-      //
-      // Always write a help string to avoid incorrect entries
-      // in the user config
-
-      if (config_help)
-	if ((dp->type == string ? 
-	     fprintf(f,"[(\"%s\")]", (char *) dp->defaultvalue.s) :
-	     dp->limit.min == UL ?
-	     dp->limit.max == UL ?
-	     fprintf(f, "[?-?(%d)]", dp->defaultvalue.i) :
-	     fprintf(f, "[?-%d(%d)]", dp->limit.max, dp->defaultvalue.i) :
-	     dp->limit.max == UL ?
-	     fprintf(f, "[%d-?(%d)]", dp->limit.min, dp->defaultvalue.i) :
-	     fprintf(f, "[%d-%d(%d)]", dp->limit.min, dp->limit.max,
-		     dp->defaultvalue.i)) == EOF ||
-	    fprintf(f," %s %s\n", dp->help, dp->wad_allowed ? "*" :"") == EOF)
-	  goto error;
-
-      // killough 11/98:
-      // Write out original default if .wad file has modified the default
-      
-      if (dp->type == string)
-        value.s = dp->modified ? dp->orig_default.s : dp->location->s;
-      else if (dp->type == number)
-        value.i = dp->modified ? dp->orig_default.i : dp->location->i;
-
-      //jff 4/10/98 kill super-hack on pointer value
-      // killough 3/6/98:
-      // use spaces instead of tabs for uniform justification
-
-      if (dp->type != input)
-      {
-      if (dp->type == number ?
-          fprintf(f, "%-*s %i\n", maxlen, dp->name, value.i) == EOF :
-          fprintf(f,"%-*s \"%s\"\n", maxlen, dp->name, (char *) value.s) == EOF)
-        goto error;
-      }
-
-      if (dp->type == input)
-      {
-        int i;
-        const input_t *inputs = M_Input(dp->input_id);
-
-        fprintf(f, "%-*s ", maxlen, dp->name);
-
-        for (i = 0; i < array_size(inputs); ++i)
+    // get maximum config key string length
+    for (dp = defaults;; dp++)
+    {
+        int len;
+        if (!dp->name)
         {
-          if (i > 0)
-            fprintf(f, ", ");
+            break;
+        }
+        len = strlen(dp->name);
+        if (len > maxlen && len < 80)
+        {
+            maxlen = len;
+        }
+    }
 
-          switch (inputs[i].type)
-          {
-            const char *s;
+    tmpfile = M_StringJoin(D_DoomPrefDir(), DIR_SEPARATOR_S, "tmp",
+                           D_DoomExeName(), ".cfg", NULL);
+    NormalizeSlashes(tmpfile);
 
-            case INPUT_KEY:
-              if (inputs[i].value >= 33 && inputs[i].value <= 126)
-              {
-                // The '=', ',', and '.' keys originally meant the shifted
-                // versions of those keys, but w/o having to shift them in
-                // the game.
-                char c = inputs[i].value;
-                if (c == ',')
-                  c = '<';
-                else if (c == '.')
-                  c = '>';
-                else if (c == '=')
-                  c = '+';
+    errno = 0;
+    if (!(f = M_fopen(tmpfile, "w"))) // killough 9/21/98
+    {
+        goto error;
+    }
 
-                fprintf(f, "%c", c);
-              }
-              else
-              {
-                s = M_GetNameForKey(inputs[i].value);
-                if (s)
-                  fprintf(f, "%s", s);
-              }
-              break;
-            case INPUT_MOUSEB:
-              {
-                s = M_GetNameForMouseB(inputs[i].value);
-                if (s)
-                  fprintf(f, "%s", s);
-              }
-              break;
-            case INPUT_JOYB:
-              {
-                s = M_GetNameForJoyB(inputs[i].value);
-                if (s)
-                  fprintf(f, "%s", s);
-              }
-              break;
-            default:
-              break;
-          }
+    // 3/3/98 explain format of file
+    // killough 10/98: use executable's name
+
+    if (config_help
+        && fprintf(f,
+                   ";%s.cfg format:\n"
+                   ";[min-max(default)] description of variable\n"
+                   ";* at end indicates variable is settable in wads\n"
+                   ";variable   value\n",
+                   D_DoomExeName())
+               == EOF)
+    {
+        goto error;
+    }
+
+    // killough 10/98: output comment lines which were read in during input
+
+    for (dp = defaults;; dp++)
+    {
+        config_t value = {0};
+
+        // If we still haven't seen any blanks,
+        // Output a blank line for separation
+
+        if (putc('\n', f) == EOF)
+        {
+            goto error;
         }
 
-        if (i == 0)
-          fprintf(f, "%s", "NONE");
+        if (!dp->name) // If we're at end of defaults table, exit loop
+        {
+            break;
+        }
 
-        fprintf(f, "\n");
-      }
+        // jff 3/3/98 output help string
+        //
+        //  killough 10/98:
+        //  Don't output config help if any [ lines appeared before this one.
+        //  Make default values, and numeric range output, automatic.
+        //
+        //  Always write a help string to avoid incorrect entries
+        //  in the user config
+
+        if (config_help)
+        {
+            if ((dp->type == string
+                     ? fprintf(f, "[(\"%s\")]", (char *)dp->defaultvalue.s)
+                     : dp->limit.min == UL
+                        ? dp->limit.max == UL
+                           ? fprintf(f, "[?-?(%d)]", dp->defaultvalue.i)
+                           : fprintf(f, "[?-%d(%d)]", dp->limit.max,
+                                     dp->defaultvalue.i)
+                        : dp->limit.max == UL
+                           ? fprintf(f, "[%d-?(%d)]", dp->limit.min,
+                                     dp->defaultvalue.i)
+                           : fprintf(f, "[%d-%d(%d)]", dp->limit.min, dp->limit.max,
+                                     dp->defaultvalue.i))
+                       == EOF
+                || fprintf(f, " %s %s\n", dp->help, dp->wad_allowed ? "*" : "")
+                       == EOF)
+            {
+                goto error;
+            }
+        }
+
+        // killough 11/98:
+        // Write out original default if .wad file has modified the default
+
+        if (dp->type == string)
+        {
+            value.s = dp->modified ? dp->orig_default.s : dp->location->s;
+        }
+        else if (dp->type == number)
+        {
+            value.i = dp->modified ? dp->orig_default.i : dp->location->i;
+        }
+
+        // jff 4/10/98 kill super-hack on pointer value
+        //  killough 3/6/98:
+        //  use spaces instead of tabs for uniform justification
+
+        if (dp->type != input)
+        {
+            if (dp->type == number
+                    ? fprintf(f, "%-*s %i\n", maxlen, dp->name, value.i) == EOF
+                    : fprintf(f, "%-*s \"%s\"\n", maxlen, dp->name, value.s)
+                          == EOF)
+            {
+                goto error;
+            }
+        }
+
+        if (dp->type == input)
+        {
+            int i;
+            const input_t *inputs = M_Input(dp->input_id);
+
+            fprintf(f, "%-*s ", maxlen, dp->name);
+
+            for (i = 0; i < array_size(inputs); ++i)
+            {
+                if (i > 0)
+                {
+                    fprintf(f, ", ");
+                }
+
+                switch (inputs[i].type)
+                {
+                    const char *s;
+
+                    case INPUT_KEY:
+                        if (inputs[i].value >= 33 && inputs[i].value <= 126)
+                        {
+                            // The '=', ',', and '.' keys originally meant the
+                            // shifted versions of those keys, but w/o having to
+                            // shift them in the game.
+                            char c = inputs[i].value;
+                            if (c == ',')
+                            {
+                                c = '<';
+                            }
+                            else if (c == '.')
+                            {
+                                c = '>';
+                            }
+                            else if (c == '=')
+                            {
+                                c = '+';
+                            }
+
+                            fprintf(f, "%c", c);
+                        }
+                        else
+                        {
+                            s = M_GetNameForKey(inputs[i].value);
+                            if (s)
+                            {
+                                fprintf(f, "%s", s);
+                            }
+                        }
+                        break;
+                    case INPUT_MOUSEB:
+                        {
+                            s = M_GetNameForMouseB(inputs[i].value);
+                            if (s)
+                            {
+                                fprintf(f, "%s", s);
+                            }
+                        }
+                        break;
+                    case INPUT_JOYB:
+                        {
+                            s = M_GetNameForJoyB(inputs[i].value);
+                            if (s)
+                            {
+                                fprintf(f, "%s", s);
+                            }
+                        }
+                        break;
+                    default:
+                        break;
+                }
+            }
+
+            if (i == 0)
+            {
+                fprintf(f, "%s", "NONE");
+            }
+
+            fprintf(f, "\n");
+        }
     }
 
-  if (fclose(f) == EOF)
+    if (fclose(f) == EOF)
     {
     error:
-      I_Error("Could not write defaults to %s: %s\n%s left unchanged\n",
-	      tmpfile, errno ? strerror(errno): "(Unknown Error)",defaultfile);
-      return;
+        I_Error("Could not write defaults to %s: %s\n%s left unchanged\n",
+                tmpfile, errno ? strerror(errno) : "(Unknown Error)",
+                defaultfile);
+        return;
     }
 
-  M_remove(defaultfile);
+    M_remove(defaultfile);
 
-  if (M_rename(tmpfile, defaultfile))
-    I_Error("Could not write defaults to %s: %s\n", defaultfile,
-	    errno ? strerror(errno): "(Unknown Error)");
+    if (M_rename(tmpfile, defaultfile))
+    {
+        I_Error("Could not write defaults to %s: %s\n", defaultfile,
+                errno ? strerror(errno) : "(Unknown Error)");
+    }
 
-  free(tmpfile);
+    free(tmpfile);
 }
 
 //
@@ -3059,132 +3117,162 @@ void M_SaveDefaults (void)
 
 boolean M_ParseOption(const char *p, boolean wad)
 {
-  char name[80], strparm[1024];
-  default_t *dp;
-  int parm;
+    char name[80], strparm[1024];
+    default_t *dp;
+    int parm;
 
-  while (isspace(*p))  // killough 10/98: skip leading whitespace
-    p++;
-
-  //jff 3/3/98 skip lines not starting with an alphanum
-  // killough 10/98: move to be made part of main test, add comment-handling
-
-  if (sscanf(p, "%79s %1023[^\n]", name, strparm) != 2 || !isalnum(*name) ||
-      !(dp = M_LookupDefault(name)) ||
-      (*strparm == '"') == (dp->type != string) ||
-      (wad && !dp->wad_allowed))
-    return 1;
-
-  // [FG] bind mapcolor options to the mapcolor preset menu item
-  if (strncmp(name, "mapcolor_", 9) == 0 ||
-      strcmp(name, "hudcolor_titl") == 0)
-  {
-    default_t *dp_preset = M_LookupDefault("mapcolor_preset");
-    dp->setup_menu = dp_preset->setup_menu;
-  }
-
-  if (demo_version < 203 && dp->setup_menu &&
-      !(dp->setup_menu->m_flags & S_COSMETIC))
-    return 1;
-
-  if (dp->type == string)     // get a string default
+    while (isspace(*p)) // killough 10/98: skip leading whitespace
     {
-      int len = strlen(strparm)-1;
-
-      while (isspace(strparm[len]))
-        len--;
-
-      if (strparm[len] == '"')
-        len--;
-
-      strparm[len+1] = 0;
-
-      if (wad && !dp->modified)                       // Modified by wad
-	{                                             // First time modified
-	  dp->modified = 1;                           // Mark it as modified
-	  dp->orig_default.s = dp->location->s;         // Save original default
-	}
-      else
-	free(dp->location->s);                // Free old value
-
-      dp->location->s = strdup(strparm+1);    // Change default value
-
-      if (dp->current)                                // Current value
-	{
-	  free(dp->current->s);               // Free old value
-	  dp->current->s = strdup(strparm+1); // Change current value
-	}
+        p++;
     }
-  else if (dp->type == number)
-    {
-      if (sscanf(strparm, "%i", &parm) != 1)
-	return 1;                       // Not A Number
 
-      //jff 3/4/98 range check numeric parameters
-      if ((dp->limit.min == UL || dp->limit.min <= parm) &&
-	  (dp->limit.max == UL || dp->limit.max >= parm))
-	{
-	  if (wad)
-	    {
-	      if (!dp->modified)         // First time it's modified by wad
-		{
-		  dp->modified = 1;      // Mark it as modified
-		  dp->orig_default.i = dp->location->i;  // Save original default
-		}
-	      if (dp->current)           // Change current value
-		dp->current->i = parm;
-	    }
-	  dp->location->i = parm;          // Change default
-	}
+    // jff 3/3/98 skip lines not starting with an alphanum
+    //  killough 10/98: move to be made part of main test, add comment-handling
+
+    if (sscanf(p, "%79s %1023[^\n]", name, strparm) != 2 || !isalnum(*name)
+        || !(dp = M_LookupDefault(name))
+        || (*strparm == '"') == (dp->type != string)
+        || (wad && !dp->wad_allowed))
+    {
+        return 1;
     }
-  else if (dp->type == input)
+
+    // [FG] bind mapcolor options to the mapcolor preset menu item
+    if (strncmp(name, "mapcolor_", 9) == 0
+        || strcmp(name, "hudcolor_titl") == 0)
     {
-      char buffer[80];
-      char *scan;
+        default_t *dp_preset = M_LookupDefault("mapcolor_preset");
+        dp->setup_menu = dp_preset->setup_menu;
+    }
 
-      M_InputReset(dp->input_id);
+    if (demo_version < 203 && dp->setup_menu
+        && !(dp->setup_menu->m_flags & S_COSMETIC))
+    {
+        return 1;
+    }
 
-      scan = strtok(strparm, ",");
+    if (dp->type == string) // get a string default
+    {
+        int len = strlen(strparm) - 1;
 
-      do
-      {
-        if (sscanf(scan, "%79s", buffer) == 1)
+        while (isspace(strparm[len]))
         {
-          if (strlen(buffer) == 1)
-          {
-            // The '=', ',', and '.' keys originally meant the shifted
-            // versions of those keys, but w/o having to shift them in
-            // the game.
-            char c = buffer[0];
-            if (c == '<')
-              c = ',';
-            else if (c == '>')
-              c = '.';
-            else if (c == '+')
-              c = '=';
-
-            M_InputAddKey(dp->input_id, c);
-          }
-          else
-          {
-            int value;
-            if ((value = M_GetKeyForName(buffer)) > 0)
-              M_InputAddKey(dp->input_id, value);
-            else if ((value = M_GetJoyBForName(buffer)) >= 0)
-              M_InputAddJoyB(dp->input_id, value);
-            else if ((value = M_GetMouseBForName(buffer)) >= 0)
-              M_InputAddMouseB(dp->input_id, value);
-          }
+            len--;
         }
 
-        scan = strtok(NULL, ",");
-      } while (scan);
+        if (strparm[len] == '"')
+        {
+            len--;
+        }
+
+        strparm[len + 1] = 0;
+
+        if (wad && !dp->modified)                 // Modified by wad
+        {                                         // First time modified
+            dp->modified = 1;                     // Mark it as modified
+            dp->orig_default.s = dp->location->s; // Save original default
+        }
+        else
+        {
+            free(dp->location->s); // Free old value
+        }
+
+        dp->location->s = strdup(strparm + 1); // Change default value
+
+        if (dp->current) // Current value
+        {
+            free(dp->current->s);                 // Free old value
+            dp->current->s = strdup(strparm + 1); // Change current value
+        }
+    }
+    else if (dp->type == number)
+    {
+        if (sscanf(strparm, "%i", &parm) != 1)
+        {
+            return 1; // Not A Number
+        }
+
+        // jff 3/4/98 range check numeric parameters
+        if ((dp->limit.min == UL || dp->limit.min <= parm)
+            && (dp->limit.max == UL || dp->limit.max >= parm))
+        {
+            if (wad)
+            {
+                if (!dp->modified) // First time it's modified by wad
+                {
+                    dp->modified = 1; // Mark it as modified
+                    dp->orig_default.i = dp->location->i; // Save original default
+                }
+                if (dp->current) // Change current value
+                {
+                    dp->current->i = parm;
+                }
+            }
+            dp->location->i = parm; // Change default
+        }
+    }
+    else if (dp->type == input)
+    {
+        char buffer[80];
+        char *scan;
+
+        M_InputReset(dp->input_id);
+
+        scan = strtok(strparm, ",");
+
+        do
+        {
+            if (sscanf(scan, "%79s", buffer) == 1)
+            {
+                if (strlen(buffer) == 1)
+                {
+                    // The '=', ',', and '.' keys originally meant the shifted
+                    // versions of those keys, but w/o having to shift them in
+                    // the game.
+                    char c = buffer[0];
+                    if (c == '<')
+                    {
+                        c = ',';
+                    }
+                    else if (c == '>')
+                    {
+                        c = '.';
+                    }
+                    else if (c == '+')
+                    {
+                        c = '=';
+                    }
+
+                    M_InputAddKey(dp->input_id, c);
+                }
+                else
+                {
+                    int value;
+                    if ((value = M_GetKeyForName(buffer)) > 0)
+                    {
+                        M_InputAddKey(dp->input_id, value);
+                    }
+                    else if ((value = M_GetJoyBForName(buffer)) >= 0)
+                    {
+                        M_InputAddJoyB(dp->input_id, value);
+                    }
+                    else if ((value = M_GetMouseBForName(buffer)) >= 0)
+                    {
+                        M_InputAddMouseB(dp->input_id, value);
+                    }
+                }
+            }
+
+            scan = strtok(NULL, ",");
+        } while (scan);
     }
 
-  if (wad && dp->setup_menu)
-    dp->setup_menu->m_flags |= S_DISABLE;
+    if (wad && dp->setup_menu)
+    {
+        dp->setup_menu->m_flags |= S_DISABLE;
+    }
 
-  return 0;                          // Success
+    return 0; // Success
 }
 
 //
@@ -3197,119 +3285,139 @@ boolean M_ParseOption(const char *p, boolean wad)
 
 void M_LoadOptions(void)
 {
-  int lump;
+    int lump;
 
-  //!
-  // @category mod
-  //
-  // Avoid loading OPTIONS lumps embedded into WAD files.
-  //
+    //!
+    // @category mod
+    //
+    // Avoid loading OPTIONS lumps embedded into WAD files.
+    //
 
-  if (!M_CheckParm("-nooptions"))
-  {
-  if ((lump = W_CheckNumForName("OPTIONS")) != -1)
+    if (!M_CheckParm("-nooptions"))
     {
-      int size = W_LumpLength(lump), buflen = 0;
-      char *buf = NULL, *p, *options = p = W_CacheLumpNum(lump, PU_STATIC);
-      while (size > 0)
-	{
-	  int len = 0;
-	  while (len < size && p[len++] && p[len-1] != '\n');
-	  if (len >= buflen)
-	    buf = I_Realloc(buf, buflen = len+1);
-	  strncpy(buf, p, len)[len] = 0;
-	  p += len;
-	  size -= len;
-	  M_ParseOption(buf, true);
-	}
-      free(buf);
-      Z_ChangeTag(options, PU_CACHE);
+        if ((lump = W_CheckNumForName("OPTIONS")) != -1)
+        {
+            int size = W_LumpLength(lump), buflen = 0;
+            char *buf = NULL, *p,
+                 *options = p = W_CacheLumpNum(lump, PU_STATIC);
+            while (size > 0)
+            {
+                int len = 0;
+                while (len < size && p[len++] && p[len - 1] != '\n')
+                    ;
+                if (len >= buflen)
+                {
+                    buf = I_Realloc(buf, buflen = len + 1);
+                }
+                strncpy(buf, p, len)[len] = 0;
+                p += len;
+                size -= len;
+                M_ParseOption(buf, true);
+            }
+            free(buf);
+            Z_ChangeTag(options, PU_CACHE);
+        }
     }
-  }
 
-  MN_Trans();           // reset translucency in case of change
-  MN_ResetMenu();       // reset menu in case of change
+    MN_Trans();     // reset translucency in case of change
+    MN_ResetMenu(); // reset menu in case of change
 }
 
 //
 // M_LoadDefaults
 //
 
-void M_LoadDefaults (void)
+void M_LoadDefaults(void)
 {
-  register default_t *dp;
-  int i;
-  FILE *f;
+    register default_t *dp;
+    int i;
+    FILE *f;
 
-  // set everything to base values
-  //
-  // phares 4/13/98:
-  // provide default strings with their own malloced memory so that when
-  // we leave this routine, that's what we're dealing with whether there
-  // was a config file or not, and whether there were chat definitions
-  // in it or not. This provides consistency later on when/if we need to
-  // edit these strings (i.e. chat macros in the Chat Strings Setup screen).
-
-  for (dp = defaults; dp->name; dp++)
-    if (dp->type == string)
-      dp->location->s = strdup(dp->defaultvalue.s);
-    else if (dp->type == number)
-      dp->location->i = dp->defaultvalue.i;
-    else if (dp->type == input)
-      M_InputSetDefault(dp->input_id, dp->inputs);
-
-  // Load special keys
-  M_InputPredefined();
-
-  // check for a custom default file
-
-  if (!defaultfile)
-  {
-    //!
-    // @arg <file>
-    // @vanilla
+    // set everything to base values
     //
-    // Load main configuration from the specified file, instead of the
-    // default.
-    //
+    // phares 4/13/98:
+    // provide default strings with their own malloced memory so that when
+    // we leave this routine, that's what we're dealing with whether there
+    // was a config file or not, and whether there were chat definitions
+    // in it or not. This provides consistency later on when/if we need to
+    // edit these strings (i.e. chat macros in the Chat Strings Setup screen).
 
-    if ((i = M_CheckParm("-config")) && i < myargc-1)
-      defaultfile = strdup(myargv[i+1]);
+    for (dp = defaults; dp->name; dp++)
+    {
+        if (dp->type == string)
+        {
+            dp->location->s = strdup(dp->defaultvalue.s);
+        }
+        else if (dp->type == number)
+        {
+            dp->location->i = dp->defaultvalue.i;
+        }
+        else if (dp->type == input)
+        {
+            M_InputSetDefault(dp->input_id, dp->inputs);
+        }
+    }
+
+    // Load special keys
+    M_InputPredefined();
+
+    // check for a custom default file
+
+    if (!defaultfile)
+    {
+        //!
+        // @arg <file>
+        // @vanilla
+        //
+        // Load main configuration from the specified file, instead of the
+        // default.
+        //
+
+        if ((i = M_CheckParm("-config")) && i < myargc - 1)
+        {
+            defaultfile = strdup(myargv[i + 1]);
+        }
+        else
+        {
+            defaultfile = strdup(basedefault);
+        }
+    }
+
+    NormalizeSlashes(defaultfile);
+
+    // read the file in, overriding any set defaults
+    //
+    // killough 9/21/98: Print warning if file missing, and use fgets for
+    // reading
+
+    if ((f = M_fopen(defaultfile, "r")))
+    {
+        char s[256];
+
+        while (fgets(s, sizeof s, f))
+        {
+            M_ParseOption(s, false);
+        }
+    }
+
+    defaults_loaded = true; // killough 10/98
+
+    // [FG] initialize logging verbosity early to decide
+    //      if the following lines will get printed or not
+
+    I_InitPrintf();
+
+    I_Printf(VB_INFO, "M_LoadDefaults: Load system defaults.");
+
+    if (f)
+    {
+        I_Printf(VB_INFO, " default file: %s\n", defaultfile);
+        fclose(f);
+    }
     else
-      defaultfile = strdup(basedefault);
-  }
-
-  NormalizeSlashes(defaultfile);
-
-  // read the file in, overriding any set defaults
-  //
-  // killough 9/21/98: Print warning if file missing, and use fgets for reading
-
-  if ((f = M_fopen(defaultfile, "r")))
-  {
-    char s[256];
-
-    while (fgets(s, sizeof s, f))
-      M_ParseOption(s, false);
-  }
-
-  defaults_loaded = true;            // killough 10/98
-
-  // [FG] initialize logging verbosity early to decide
-  //      if the following lines will get printed or not
-
-  I_InitPrintf();
-
-  I_Printf(VB_INFO, "M_LoadDefaults: Load system defaults.");
-
-  if (f)
-  {
-    I_Printf(VB_INFO, " default file: %s\n", defaultfile);
-    fclose(f);
-  }
-  else
-  {
-    I_Printf(VB_WARNING, " Warning: Cannot read %s -- using built-in defaults\n",
-                         defaultfile);
-  }
+    {
+        I_Printf(VB_WARNING,
+                 " Warning: Cannot read %s -- using built-in defaults\n",
+                 defaultfile);
+    }
 }

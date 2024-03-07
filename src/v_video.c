@@ -21,6 +21,7 @@
 //
 //-----------------------------------------------------------------------------
 
+#include <errno.h>
 #include <stdlib.h>
 #include <string.h>
 
@@ -31,9 +32,9 @@
 #include "i_system.h"
 #include "i_video.h"
 #include "m_argv.h"
+#include "m_io.h"
 #include "m_misc.h"
 #include "m_swap.h"
-#include "m_io.h"
 #include "r_data.h"
 #include "r_defs.h"
 #include "r_state.h"
