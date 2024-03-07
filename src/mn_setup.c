@@ -2876,7 +2876,7 @@ boolean MN_SetupCursorPostion(int x, int y)
             {
                 tab->flags |= S_HILITE;
 
-                if (current_page != i)
+                if (set_tab_on != i)
                 {
                     set_tab_on = i;
                     S_StartSound(NULL, sfx_itemup);
