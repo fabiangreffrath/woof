@@ -27,7 +27,7 @@
 #include "i_printf.h"
 #include "m_array.h"
 #include "m_io.h"
-#include "m_misc.h"
+#include "m_config.h"
 #include "w_wad.h"
 
 //

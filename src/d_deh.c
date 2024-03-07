@@ -40,7 +40,7 @@
 #include "m_cheat.h"
 #include "m_fixed.h"
 #include "m_io.h"
-#include "m_misc2.h"
+#include "m_misc.h"
 #include "memio.h"
 #include "p_action.h"
 #include "p_inter.h"

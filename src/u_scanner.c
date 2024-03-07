@@ -31,7 +31,7 @@
 
 #include "doomtype.h"
 #include "i_system.h"
-#include "m_misc2.h"
+#include "m_misc.h"
 #include "u_scanner.h"
 
 static const char *U_TokenNames[TK_NumSpecialTokens] =

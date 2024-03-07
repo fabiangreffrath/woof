@@ -26,7 +26,7 @@
 #include "g_game.h"
 #include "i_printf.h"
 #include "m_argv.h"
-#include "m_misc2.h"
+#include "m_misc.h"
 #include "net_defs.h"
 #include "p_mobj.h"
 #include "tables.h"

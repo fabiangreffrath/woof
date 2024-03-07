@@ -27,7 +27,7 @@
 #include "i_system.h"
 #include "i_video.h"
 #include "m_argv.h"
-#include "m_misc2.h"
+#include "m_misc.h"
 #include "net_client.h"
 #include "net_defs.h"
 #include "net_gui.h"

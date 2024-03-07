@@ -30,7 +30,7 @@
 #include "info.h"
 #include "m_argv.h"
 #include "m_bbox.h"
-#include "m_misc2.h"
+#include "m_misc.h"
 #include "m_random.h"
 #include "p_inter.h"
 #include "p_map.h"

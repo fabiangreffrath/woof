@@ -27,7 +27,6 @@
 #include "m_fixed.h"
 #include "mn_menu.h"
 #include "m_misc.h"
-#include "m_misc2.h"
 #include "p_mobj.h"
 #include "r_bmaps.h"
 #include "r_defs.h"

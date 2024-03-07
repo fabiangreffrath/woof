@@ -18,7 +18,7 @@
 //-----------------------------------------------------------------------------
 
 #include "doomstat.h"
-#include "m_misc2.h"
+#include "m_misc.h"
 
 // Game Mode - identify IWAD as shareware, retail etc.
 GameMode_t gamemode = indetermined;

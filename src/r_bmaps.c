@@ -27,7 +27,7 @@
 #include "doomtype.h"
 #include "info.h"
 #include "m_array.h"
-#include "m_misc2.h"
+#include "m_misc.h"
 #include "r_data.h"
 #include "u_scanner.h"
 #include "w_wad.h"

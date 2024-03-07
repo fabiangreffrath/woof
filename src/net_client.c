@@ -23,7 +23,7 @@
 #include "i_printf.h"
 #include "i_timer.h"
 #include "m_fixed.h"
-#include "m_misc2.h"
+#include "m_misc.h"
 #include "net_client.h"
 #include "net_common.h"
 #include "net_io.h"

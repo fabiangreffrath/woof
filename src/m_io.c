@@ -35,7 +35,7 @@
 #include "i_printf.h"
 #include "i_system.h"
 #include "m_array.h"
-#include "m_misc2.h"
+#include "m_misc.h"
 
 #ifdef _WIN32
 static wchar_t *ConvertMultiByteToWide(const char *str, UINT code_page)

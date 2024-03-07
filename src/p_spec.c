@@ -39,7 +39,7 @@
 #include "info.h"
 #include "m_argv.h"
 #include "m_bbox.h" // phares 3/20/98
-#include "m_misc2.h"
+#include "m_misc.h"
 #include "m_random.h"
 #include "m_swap.h"
 #include "p_inter.h"

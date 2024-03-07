@@ -25,7 +25,7 @@
 #include "doomtype.h"
 #include "hu_obituary.h"
 #include "info.h"
-#include "m_misc2.h"
+#include "m_misc.h"
 #include "net_client.h"
 #include "p_mobj.h"
 

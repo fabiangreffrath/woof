@@ -25,7 +25,7 @@
 #include "i_printf.h"
 #include "i_sound.h"
 #include "m_fixed.h"
-#include "m_misc2.h"
+#include "m_misc.h"
 #include "p_mobj.h"
 #include "sounds.h"
 #include "w_wad.h"

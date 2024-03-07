@@ -27,7 +27,7 @@
 #include "i_printf.h"
 #include "i_sound.h"
 #include "i_system.h"
-#include "m_misc2.h"
+#include "m_misc.h"
 #include "m_random.h"
 #include "p_mobj.h"
 #include "s_musinfo.h" // [crispy] struct musinfo
