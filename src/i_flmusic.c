@@ -295,8 +295,6 @@ static boolean I_FL_InitStream(int device)
         return false;
     }
 
-    fluid_synth_set_gain(synth, 1.0f);
-
     I_Printf(VB_INFO, "FluidSynth Init: Using '%s'.",
              lumpnum >= 0 ? "SNDFONT lump" : soundfont_path);
 
