@@ -16,6 +16,7 @@
 
 #include <ctype.h>
 #include <stdlib.h>
+#include <string.h>
 
 #include "doomtype.h"
 #include "i_video.h"
@@ -31,7 +32,7 @@ typedef struct
 
 typedef struct
 {
-    byte headr[4];
+    byte magic[4];
     uint16_t charheight;
     byte firstc;
     byte lastc;
@@ -58,8 +59,12 @@ boolean MN_LoadFon2(const byte *gfx_data, int size)
     }
 
     const fon2_header_t *header = (fon2_header_t *)gfx_data;
-    height = SHORT(header->charheight);
+    if (memcmp(header->magic, "FON2", 4))
+    {
+        return false;
+    }
 
+    height = SHORT(header->charheight);
     if (height == 0)
     {
         return false;
@@ -172,8 +177,8 @@ boolean MN_DrawFon2String(int x, int y, byte *cr, const char *str)
 
         if (chars[c].width)
         {
-            V_DrawBlockTR(cx + kerning, y, chars[c].width, height,
-                          chars[c].data, alpha, cr);
+            V_DrawBlockTR(cx, y, chars[c].width, height, chars[c].data,
+                          alpha, cr);
             cx += chars[c].width + kerning;
         }
         else
