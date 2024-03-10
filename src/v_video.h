@@ -162,6 +162,9 @@ void V_DrawPatchFullScreen(struct patch_s *patch);
 
 void V_DrawBlock(int x, int y, int width, int height, pixel_t *src);
 
+void V_DrawBlockTR(int x, int y, int width, int height, pixel_t *src,
+                   byte alpha, byte *outr);
+
 // Reads a linear block of pixels into the view buffer.
 
 void V_GetBlock(int x, int y, int width, int height, pixel_t *dest);

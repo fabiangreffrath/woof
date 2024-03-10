@@ -881,6 +881,69 @@ void V_DrawBlock(int x, int y, int width, int height, pixel_t *src)
     }
 }
 
+void V_DrawBlockTR(int x, int y, int width, int height, pixel_t *src,
+                   byte alpha, byte *outr)
+{
+    const byte *source;
+    byte *dest;
+    vrect_t dstrect;
+
+    dstrect.x = x;
+    dstrect.y = y;
+    dstrect.w = width;
+    dstrect.h = height;
+
+    V_ClipRect(&dstrect);
+
+    // clipped away completely?
+    if (dstrect.cw <= 0 || dstrect.ch <= 0)
+    {
+        return;
+    }
+
+    // change in origin due to clipping
+    int dx = dstrect.cx1 - x;
+    int dy = dstrect.cy1 - y;
+
+    V_ScaleClippedRect(&dstrect);
+
+    source = src + dy * width + dx;
+    dest = V_ADDRESS(dest_screen, dstrect.sx, dstrect.sy);
+
+    {
+        int w;
+        fixed_t xfrac, yfrac;
+        int xtex, ytex;
+        byte *row, c;
+
+        yfrac = 0;
+
+        while (dstrect.sh--)
+        {
+            row = dest;
+            w = dstrect.sw;
+            xfrac = 0;
+            ytex = (yfrac >> FRACBITS) * width;
+
+            while (w--)
+            {
+                xtex = (xfrac >> FRACBITS);
+                c = source[ytex + xtex];
+                if (c == alpha)
+                    ++row;
+                else if (outr)
+                    *row++ = outr[c];
+                else
+                    *row++ = c;
+                xfrac += video.xstep;
+            }
+
+            dest += linesize;
+            yfrac += video.ystep;
+        }
+    }
+}
+
 void V_TileBlock64(int line, int width, int height, const byte *src)
 {
     byte *dest, *row;
