@@ -147,9 +147,7 @@ static void W_AddFile(const char *name) // killough 1/31/98: static, const
       length = header.numlumps*sizeof(filelump_t);
       fileinfo2free = fileinfo = malloc(length);    // killough
       lseek(handle, header.infotableofs, SEEK_SET);
-      // [FG] check return value
-      if (!read(handle, fileinfo, length))
-        I_Error("Error reading lump directory from %s\n", filename);
+      read(handle, fileinfo, length);
       numlumps += header.numlumps;
     }
 
