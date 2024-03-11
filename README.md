@@ -149,6 +149,7 @@ Copyright:
  © 2005-2006 by Florian Schulze, Colin Phipps, Neil Stevens, Andrey Budko;  
  © 2005-2018 Simon Howard;  
  © 2006 Ben Ryves;  
+ © 2008-2019 Simon Judd;  
  © 2017 Christoph Oelckers;  
  © 2019 Fernando Carmona Varo;  
  © 2020 Alex Mayfield;  
@@ -158,8 +159,7 @@ Copyright:
  © 2022-2024 Alaux;  
  © 2022-2024 ceski;  
  © 2023 Andrew Apted;  
- © 2023 liPillON;  
- © 2008 - 2019 Simon Judd.  
+ © 2023 liPillON.  
 License: [GPL-2.0+](https://www.gnu.org/licenses/old-licenses/gpl-2.0.html)
 
 Files: `src/beta.h`  
