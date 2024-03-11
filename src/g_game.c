@@ -3515,6 +3515,10 @@ void G_ReloadDefaults(boolean keep_demover)
     // These are not configurable
     variable_friction = 1;
     allow_pushers = 1;
+  }
+
+  if (strictmode || demo_version != 203)
+  {
     classic_bfg = 0;
   }
 }

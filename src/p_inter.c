@@ -593,7 +593,7 @@ void P_TouchSpecialThing(mobj_t *special, mobj_t *toucher)
     case SPR_BFUG:
       if (!P_GiveWeapon (player, wp_bfg, false) )
         return;
-      if (STRICTMODE(classic_bfg) || beta_emulation)
+      if ((classic_bfg || beta_emulation) && demo_version == 203)
         pickupmsg(player, "You got the BFG2704!  Oh, yes."); // killough 8/9/98: beta BFG
       else
         pickupmsg(player, "%s", s_GOTBFG9000); // Ty 03/22/98 - externalized

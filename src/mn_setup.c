@@ -1286,6 +1286,11 @@ static void UpdateCenteredWeaponItem(void)
     DisableItem(!weapon_bobbing_pct, weap_settings1, "center_weapon");
 }
 
+static void UpdatePreBetaBFGItem(void)
+{
+    DisableItem(default_complevel != CL_MBF, weap_settings2, "classic_bfg");
+}
+
 // Setting up for the Weapons screen. Turn on flags, set pointers,
 // locate the first item on the screen where the cursor is allowed to
 // land.
@@ -1727,12 +1732,18 @@ static const char *default_complevel_strings[] = {
     "Vanilla", "Boom", "MBF", "MBF21"
 };
 
+static void UpdateCompLevel(void)
+{
+    UpdatePreBetaBFGItem();
+}
+
 setup_menu_t comp_settings1[] = {
 
     {"Compatibility", S_SKIP | S_TITLE, M_X, M_SPC},
 
     {"Default Compatibility Level", S_CHOICE | S_LEVWARN, M_X, M_SPC,
-     {"default_complevel"}, m_null, input_null, str_default_complevel},
+     {"default_complevel"}, m_null, input_null, str_default_complevel,
+     UpdateCompLevel},
 
     {"Strict Mode", S_ONOFF | S_LEVWARN, M_X, M_SPC, {"strictmode"}},
 
@@ -3791,6 +3802,7 @@ void MN_SetupResetMenu(void)
     UpdateCrosshairItems();
     UpdateCenteredWeaponItem();
     UpdateAdvancedSoundItems();
+    UpdatePreBetaBFGItem();
 }
 
 void MN_SetupResetMenuVideo(void)
