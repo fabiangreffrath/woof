@@ -1872,7 +1872,7 @@ void MN_SetNextMenuAlt(ss_types type)
 
 static void M_DrawSetup(void)
 {
-    MN_DrawTitle(124, 15, "M_OPTION", "OPTIONS");
+    MN_DrawTitle(108, 15, "M_OPTTTL", "OPTIONS");
 }
 
 /////////////////////////////
