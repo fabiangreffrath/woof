@@ -158,7 +158,8 @@ Copyright:
  © 2022-2024 Alaux;  
  © 2022-2024 ceski;  
  © 2023 Andrew Apted;  
- © 2023 liPillON.  
+ © 2023 liPillON;  
+ © 2008 - 2019 Simon Judd.  
 License: [GPL-2.0+](https://www.gnu.org/licenses/old-licenses/gpl-2.0.html)
 
 Files: `src/beta.h`  
@@ -193,11 +194,6 @@ Copyright:
  © 1999 by id Software, Chi Hoang, Lee Killough, Jim Flynn, Rand Phares, Ty Halderman;  
  © 2013 James Haley et al.  
 License: [GPL-3.0+](https://www.gnu.org/licenses/gpl-3.0)
-
-Files: `src/mn_font.*`  
-Copyright:  
-Copyright(C) 2008 - 2019 Simon Judd
-License: [GPL-2.0+](https://www.gnu.org/licenses/old-licenses/gpl-2.0.html)
 
 Files: `cmake/FindSDL2.cmake, cmake/FindSDL2_net.cmake`  
 Copyright: © 2018 Alex Mayfield.  
