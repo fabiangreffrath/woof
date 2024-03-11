@@ -159,6 +159,7 @@ boolean         force_complevel;
 boolean         pistolstart, default_pistolstart;
 
 boolean         strictmode, default_strictmode;
+boolean         force_strictmode;
 boolean         critical;
 
 // [crispy] store last cmd to track joins
@@ -3436,7 +3437,10 @@ void G_ReloadDefaults(boolean keep_demover)
   //
 
   if (M_CheckParm("-strict"))
+  {
     strictmode = true;
+    force_strictmode = true;
+  }
 
   G_UpdateSideMove();
   P_UpdateDirectVerticalAiming();

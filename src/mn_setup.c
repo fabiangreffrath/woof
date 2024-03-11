@@ -318,7 +318,8 @@ static const char **GetStrings(int id);
 
 static boolean ItemDisabled(int flags)
 {
-    if ((flags & S_DISABLE) || (flags & S_STRICT && default_strictmode)
+    if ((flags & S_DISABLE)
+        || (flags & S_STRICT && (default_strictmode || force_strictmode))
         || (flags & S_BOOM && default_complevel < CL_BOOM)
         || (flags & S_MBF && default_complevel < CL_MBF)
         || (flags & S_VANILLA && default_complevel != CL_VANILLA))
@@ -3777,7 +3778,7 @@ void MN_SetupResetMenu(void)
 {
     extern boolean deh_set_blood_color;
 
-    DisableItem(M_ParmExists("-strict"), comp_settings1, "strictmode");
+    DisableItem(force_strictmode, comp_settings1, "strictmode");
     DisableItem(force_complevel, comp_settings1, "default_complevel");
     DisableItem(M_ParmExists("-pistolstart"), comp_settings1, "pistolstart");
     DisableItem(M_ParmExists("-uncapped") || M_ParmExists("-nouncapped"),
