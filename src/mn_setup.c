@@ -1275,7 +1275,7 @@ static setup_menu_t weap_settings2[] = {
     {"Use Weapon Toggles", S_ONOFF | S_BOOM, M_X, M_SPC, {"doom_weapon_toggles"}},
     MI_GAP,
     // killough 8/8/98
-    {"Pre-Beta BFG", S_ONOFF, M_X, M_SPC, {"classic_bfg"}},
+    {"Pre-Beta BFG", S_ONOFF | S_STRICT, M_X, M_SPC, {"classic_bfg"}},
     MI_END
 };
 
