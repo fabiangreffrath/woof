@@ -111,8 +111,7 @@ void P_SetPspritePtr(player_t *player, pspdef_t *psp, statenum_t stnum)
         }
 
       // killough 7/19/98: Pre-Beta BFG
-      if (stnum == S_BFG1 && (classic_bfg || beta_emulation)
-          && demo_version == 203)
+      if (stnum == S_BFG1 && (STRICTMODE(classic_bfg) || beta_emulation))
 	stnum = S_OLDBFG1;                 // Skip to alternative weapon frame
 
       state = &states[stnum];
