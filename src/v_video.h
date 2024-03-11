@@ -162,9 +162,6 @@ void V_DrawPatchFullScreen(struct patch_s *patch);
 
 void V_DrawBlock(int x, int y, int width, int height, pixel_t *src);
 
-void V_DrawBlockTR(int x, int y, int width, int height, pixel_t *src,
-                   byte alpha, byte *outr);
-
 // Reads a linear block of pixels into the view buffer.
 
 void V_GetBlock(int x, int y, int width, int height, pixel_t *dest);
@@ -184,6 +181,9 @@ void V_DrawBackground(const char *patchname);
 // [FG] colored blood and gibs
 
 int V_BloodColor(int blood);
+
+struct patch_s *V_LinearToTransPatch(const byte *data, int width, int height,
+                                     int color_key);
 
 void V_ScreenShot(void);
 

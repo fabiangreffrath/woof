@@ -23,13 +23,14 @@
 #include "doomtype.h"
 #include "i_video.h"
 #include "m_swap.h"
+#include "r_defs.h"
 #include "v_video.h"
 #include "w_wad.h"
 
 typedef struct
 {
     uint16_t width;
-    byte *data;
+    patch_t *patch;
 } fon2_char_t;
 
 typedef struct
@@ -49,7 +50,6 @@ static int numchars;
 static int height;
 static int firstc;
 static int kerning;
-static byte alpha;
 
 #define FON2_SPACE 12
 
@@ -108,7 +108,7 @@ boolean MN_LoadFon2(const byte *gfx_data, int size)
     }
 
     // 0 is transparent, last is border color
-    alpha = translate[0];
+    byte color_key = translate[0];
 
     // The picture data follows, using the same RLE as FON1 and IMGZ.
     for (int i = 0; i < numchars; ++i)
@@ -121,8 +121,8 @@ boolean MN_LoadFon2(const byte *gfx_data, int size)
         }
 
         int numpixels = chars[i].width * height;
-        chars[i].data = malloc(numpixels);
-        byte *d = chars[i].data;
+        byte *data = malloc(numpixels);
+        byte *d = data;
         byte code = 0;
         int length = 0;
 
@@ -149,6 +149,10 @@ boolean MN_LoadFon2(const byte *gfx_data, int size)
                 numpixels -= length;
             }
         }
+
+        chars[i].patch = V_LinearToTransPatch(data, chars[i].width, height,
+                                              color_key);
+        free(data);
     }
 
     free(translate);
@@ -164,7 +168,7 @@ boolean MN_DrawFon2String(int x, int y, byte *cr, const char *str)
 
     int c, cx;
 
-    cx = x + video.deltaw;
+    cx = x;
 
     while (*str)
     {
@@ -179,8 +183,7 @@ boolean MN_DrawFon2String(int x, int y, byte *cr, const char *str)
 
         if (chars[c].width)
         {
-            V_DrawBlockTR(cx, y, chars[c].width, height, chars[c].data,
-                          alpha, cr);
+            V_DrawPatchTranslated(cx, y, chars[c].patch, cr);
             cx += chars[c].width + kerning;
         }
         else
