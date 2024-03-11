@@ -2736,7 +2736,8 @@ boolean M_Responder(event_t *ev)
 
     if (!menuactive)
     {
-        if (action == MENU_ESCAPE) // phares
+        if ((demoplayback && (action == MENU_ENTER || action == MENU_BACKSPACE))
+            || action == MENU_ESCAPE) // phares
         {
             MN_StartControlPanel();
             S_StartSound(NULL, sfx_swtchn);

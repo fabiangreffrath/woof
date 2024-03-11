@@ -1290,7 +1290,7 @@ boolean G_Responder(event_t* ev)
       // of demo playback, or if automap active.
       // Don't suck up keys, which may be cheats
 
-      return (gamestate == GS_DEMOSCREEN || demoplayback) &&
+      return gamestate == GS_DEMOSCREEN &&
 	!(paused & 2) && !automapactive &&
 	((ev->type == ev_keydown) ||
 	 (ev->type == ev_mouseb_down) ||
