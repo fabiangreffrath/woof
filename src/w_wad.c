@@ -118,7 +118,7 @@ static void W_AddFile(const char *name) // killough 1/31/98: static, const
     boolean is_single = false;
 
     // killough:
-    if (M_StringCaseEndsWith(name, ".lmp"))
+    if (!M_StringCaseEndsWith(name, ".wad"))
     {
         // single lump file
         fileinfo = calloc(1, sizeof(*fileinfo));
