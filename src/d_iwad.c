@@ -714,7 +714,7 @@ char *D_TryFindWADByName(const char *filename)
 {
     char *result;
 
-    if (!strrchr(filename, '.'))
+    if (!strrchr(M_BaseName(filename), '.'))
     {
         result = FindWithExtensions(filename, ".wad", ".zip", ".lmp", NULL);
     }

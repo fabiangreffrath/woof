@@ -151,7 +151,7 @@ static void W_AddFile(const char *name) // killough 1/31/98: static, const
         }
 
         length = header.numlumps * sizeof(filelump_t);
-        fileinfo = malloc(length); 
+        fileinfo = malloc(length);
         if (fileinfo == NULL)
         {
             I_Error("Failed to allocate file table from %s", name);
