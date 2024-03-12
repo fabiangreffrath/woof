@@ -44,10 +44,11 @@
 #include "m_input.h"
 #include "m_io.h"
 #include "m_misc.h"
-#include "mn_snapshot.h"
 #include "m_swap.h"
+#include "mn_font.h"
 #include "mn_menu.h"
 #include "mn_setup.h"
+#include "mn_snapshot.h"
 #include "p_saveg.h"
 #include "r_defs.h"
 #include "r_draw.h"
@@ -1727,8 +1728,8 @@ static menuitem_t SetupMenu[] = {
   // [FG] alternative text for missing menu graphics lumps
     {1, "M_GENERL", MN_General,     'g', "GENERAL",            SETUP_MENU_RECT(0)},
     {1, "M_KEYBND", MN_KeyBindings, 'k', "KEY BINDINGS",       SETUP_MENU_RECT(1)},
-    {1, "M_COMPAT", MN_Compat,      'd', "DOOM COMPATIBILITY", SETUP_MENU_RECT(2)},
-    {1, "M_STAT",   MN_StatusBar,   's', "STATUS BAR / HUD",   SETUP_MENU_RECT(3)},
+    {1, "M_COMPAT", MN_Compat,      'c', "COMPATIBILITY",      SETUP_MENU_RECT(2)},
+    {1, "M_STAT",   MN_StatusBar,   's', "STATUS BAR/HUD",     SETUP_MENU_RECT(3)},
     {1, "M_AUTO",   MN_Automap,     'a', "AUTOMAP",            SETUP_MENU_RECT(4)},
     {1, "M_WEAP",   MN_Weapons,     'w', "WEAPONS",            SETUP_MENU_RECT(5)},
     {1, "M_ENEM",   MN_Enemy,       'e', "ENEMIES",            SETUP_MENU_RECT(6)},
@@ -1871,7 +1872,7 @@ void MN_SetNextMenuAlt(ss_types type)
 
 static void M_DrawSetup(void)
 {
-    MN_DrawTitle(124, 15, "M_OPTTTL", "OPTIONS");
+    MN_DrawTitle(108, 15, "M_OPTTTL", "OPTIONS");
 }
 
 /////////////////////////////
@@ -1935,6 +1936,12 @@ void M_Init(void)
     messageString = NULL;
     messageLastMenuActive = menuactive;
     quickSaveSlot = -1;
+
+    int lumpnum = W_CheckNumForName("DBIGFONT");
+    if (lumpnum > 0)
+    {
+        MN_LoadFon2(W_CacheLumpNum(lumpnum, PU_CACHE), W_LumpLength(lumpnum));
+    }
 
     // Here we could catch other version dependencies,
     //  like HELP1/2, and four episodes.
@@ -2736,7 +2743,8 @@ boolean M_Responder(event_t *ev)
 
     if (!menuactive)
     {
-        if (action == MENU_ESCAPE) // phares
+        if ((demoplayback && (action == MENU_ENTER || action == MENU_BACKSPACE))
+            || action == MENU_ESCAPE) // phares
         {
             MN_StartControlPanel();
             S_StartSound(NULL, sfx_swtchn);
@@ -3125,8 +3133,11 @@ void M_Drawer(void)
         {
             if (alttext)
             {
-                MN_DrawStringCR(x, y + 8 - MN_StringHeight(alttext) / 2, cr,
-                                NULL, alttext);
+                if (!MN_DrawFon2String(x, y, cr, alttext))
+                {
+                    MN_DrawStringCR(x, y + 8 - MN_StringHeight(alttext) / 2, cr,
+                                    NULL, alttext);
+                }
             }
         }
         else if (name[0])

@@ -33,6 +33,7 @@
 #include "m_input.h"
 #include "m_misc.h"
 #include "m_swap.h"
+#include "mn_font.h"
 #include "mn_menu.h"
 #include "p_mobj.h"
 #include "r_bmaps.h"
@@ -47,6 +48,7 @@
 #include "sounds.h"
 #include "v_video.h"
 #include "w_wad.h"
+#include "z_zone.h"
 
 static int M_GetKeyString(int c, int offset);
 static void DrawMenuString(int cx, int cy, int color);
@@ -318,7 +320,8 @@ static const char **GetStrings(int id);
 
 static boolean ItemDisabled(int flags)
 {
-    if ((flags & S_DISABLE) || (flags & S_STRICT && default_strictmode)
+    if ((flags & S_DISABLE)
+        || (flags & S_STRICT && (default_strictmode || force_strictmode))
         || (flags & S_BOOM && default_complevel < CL_BOOM)
         || (flags & S_MBF && default_complevel < CL_MBF)
         || (flags & S_VANILLA && default_complevel != CL_VANILLA))
@@ -1275,7 +1278,7 @@ static setup_menu_t weap_settings2[] = {
     {"Use Weapon Toggles", S_ONOFF | S_BOOM, M_X, M_SPC, {"doom_weapon_toggles"}},
     MI_GAP,
     // killough 8/8/98
-    {"Pre-Beta BFG", S_ONOFF, M_X, M_SPC, {"classic_bfg"}},
+    {"Pre-Beta BFG", S_ONOFF | S_STRICT, M_X, M_SPC, {"classic_bfg"}},
     MI_END
 };
 
@@ -1532,7 +1535,7 @@ void MN_DrawStatusHUD(void)
     inhelpscreens = true; // killough 4/6/98: Force status bar redraw
 
     DrawBackground("FLOOR4_6"); // Draw background
-    MN_DrawTitle(59, 2, "M_STAT", "STATUS BAR / HUD");
+    MN_DrawTitle(59, 2, "M_STAT", "STATUS BAR/HUD");
     DrawTabs();
     DrawInstructions();
     DrawScreenItems(current_menu);
@@ -1729,8 +1732,6 @@ static const char *default_complevel_strings[] = {
 
 setup_menu_t comp_settings1[] = {
 
-    {"Compatibility", S_SKIP | S_TITLE, M_X, M_SPC},
-
     {"Default Compatibility Level", S_CHOICE | S_LEVWARN, M_X, M_SPC,
      {"default_complevel"}, m_null, input_null, str_default_complevel},
 
@@ -1791,7 +1792,7 @@ void MN_DrawCompat(void)
     inhelpscreens = true;
 
     DrawBackground("FLOOR4_6"); // Draw background
-    MN_DrawTitle(52, 2, "M_COMPAT", "DOOM COMPATIBILITY");
+    MN_DrawTitle(52, 2, "M_COMPAT", "COMPATIBILITY");
     DrawInstructions();
     DrawScreenItems(current_menu);
 
@@ -3711,11 +3712,16 @@ void MN_DrawTitle(int x, int y, const char *patch, const char *alttext)
     else
     {
         // patch doesn't exist, draw some text in place of it
-        M_snprintf(menu_buffer, sizeof(menu_buffer), "%s", alttext);
-        DrawMenuString(
-            SCREENWIDTH / 2 - MN_StringWidth(alttext) / 2,
-            y + 8 - MN_StringHeight(alttext) / 2, // assumes patch height 16
-            CR_TITLE);
+        if (!MN_DrawFon2String(
+                SCREENWIDTH / 2 - MN_GetFon2PixelWidth(alttext) / 2,
+                y, NULL, alttext))
+        {
+            M_snprintf(menu_buffer, sizeof(menu_buffer), "%s", alttext);
+            DrawMenuString(
+                SCREENWIDTH / 2 - MN_StringWidth(alttext) / 2,
+                y + 8 - MN_StringHeight(alttext) / 2, // assumes patch height 16
+                CR_TITLE);
+        }
     }
 }
 
@@ -3777,7 +3783,7 @@ void MN_SetupResetMenu(void)
 {
     extern boolean deh_set_blood_color;
 
-    DisableItem(M_ParmExists("-strict"), comp_settings1, "strictmode");
+    DisableItem(force_strictmode, comp_settings1, "strictmode");
     DisableItem(force_complevel, comp_settings1, "default_complevel");
     DisableItem(M_ParmExists("-pistolstart"), comp_settings1, "pistolstart");
     DisableItem(M_ParmExists("-uncapped") || M_ParmExists("-nouncapped"),
