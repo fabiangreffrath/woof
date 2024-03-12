@@ -104,7 +104,7 @@ static void W_AddFile(const char *name) // killough 1/31/98: static, const
 
     if (handle == -1)
     {
-        I_Error("Error: couldn't open %s\n", name); // killough
+        I_Error("Error: couldn't open %s", name); // killough
     }
 
     I_Printf(VB_INFO, " adding %s", name); // killough 8/8/98
@@ -129,7 +129,7 @@ static void W_AddFile(const char *name) // killough 1/31/98: static, const
         // WAD file
         if (read(handle, &header, sizeof(header)) == 0)
         {
-            I_Error("Error reading header from %s, %s", name, strerror(errno));
+            I_Error("Error reading header from %s (%s)", name, strerror(errno));
         }
 
         if (strncmp(header.identification, "IWAD", 4)
@@ -141,13 +141,13 @@ static void W_AddFile(const char *name) // killough 1/31/98: static, const
         header.numlumps = LONG(header.numlumps);
         if (header.numlumps == 0)
         {
-            I_Printf(VB_WARNING, "Wad file %s is empty.", name);
+            I_Printf(VB_WARNING, "Wad file %s is empty", name);
             close(handle);
             return;
         }
 
         length = header.numlumps * sizeof(filelump_t);
-        fileinfo = malloc(length); // killough
+        fileinfo = malloc(length); 
         if (fileinfo == NULL)
         {
             I_Error("Failed to allocate file table from %s", name);
@@ -156,7 +156,7 @@ static void W_AddFile(const char *name) // killough 1/31/98: static, const
         header.infotableofs = LONG(header.infotableofs);
         if (lseek(handle, header.infotableofs, SEEK_SET) == -1)
         {
-            I_Printf(VB_WARNING, "Error seeking offset from %s, %s.", name,
+            I_Printf(VB_WARNING, "Error seeking offset from %s (%s)", name,
                      strerror(errno));
             close(handle);
             free(fileinfo);
@@ -165,7 +165,7 @@ static void W_AddFile(const char *name) // killough 1/31/98: static, const
 
         if (read(handle, fileinfo, length) == 0)
         {
-            I_Printf(VB_WARNING, "Error reading lump directory from %s, %s",
+            I_Printf(VB_WARNING, "Error reading lump directory from %s (%s)",
                      name, strerror(errno));
             close(handle);
             free(fileinfo);

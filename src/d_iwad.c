@@ -667,7 +667,7 @@ char *D_FindWADByName(const char *name)
     return NULL;
 }
 
-static char *FileWithExtensions(const char *filename, const char *ext, ...)
+static char *FindWithExtensions(const char *filename, const char *ext, ...)
 {
     char *path, *s;
     va_list args;
@@ -716,7 +716,7 @@ char *D_TryFindWADByName(const char *filename)
 
     if (!strrchr(filename, '.'))
     {
-        result = FileWithExtensions(filename, ".wad", ".zip", ".lmp", NULL);
+        result = FindWithExtensions(filename, ".wad", ".zip", ".lmp", NULL);
     }
     else
     {
