@@ -78,13 +78,12 @@ char *D_DoomExeDir(void)
         result = SDL_GetBasePath();
         if (result != NULL)
         {
-            base = M_StringDuplicate(result);
+            base = M_DirName(result);
             SDL_free(result);
         }
         else
         {
-            result = M_DirName(myargv[0]);
-            base = M_StringDuplicate(result);
+            base = M_DirName(myargv[0]);
         }
     }
 
