@@ -104,6 +104,10 @@ static void W_AddFile(const char *name) // killough 1/31/98: static, const
 
     if (handle == -1)
     {
+        if (M_StringCaseEndsWith(name, ".lmp"))
+        {
+            return;
+        }
         I_Error("Error: couldn't open %s", name); // killough
     }
 
