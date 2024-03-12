@@ -667,6 +667,42 @@ char *D_FindWADByName(const char *name)
     return NULL;
 }
 
+static char *FileWithExtensions(const char *filename, const char *ext, ...)
+{
+    char *path, *s;
+    va_list args;
+
+    s = M_StringJoin(filename, ext, NULL);
+    path = D_FindWADByName(s);
+    if (path != NULL)
+    {
+        free(s);
+        return path;
+    }
+
+    va_start(args, ext);
+    while (true)
+    {
+        const char *arg = va_arg(args, const char *);
+        if (arg == NULL)
+        {
+            break;
+        }
+
+        free(s);
+        s = M_StringJoin(filename, arg, NULL);
+        path = D_FindWADByName(s);
+        if (path != NULL)
+        {
+            break;
+        }
+    }
+    va_end(args);
+
+    free(s);
+    return path;
+}
+
 //
 // D_TryWADByName
 //
@@ -678,7 +714,14 @@ char *D_TryFindWADByName(const char *filename)
 {
     char *result;
 
-    result = D_FindWADByName(filename);
+    if (!strrchr(filename, '.'))
+    {
+        result = FileWithExtensions(filename, ".wad", ".zip", ".lmp", NULL);
+    }
+    else
+    {
+        result = D_FindWADByName(filename);
+    }
 
     if (result != NULL)
     {
