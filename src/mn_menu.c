@@ -642,8 +642,8 @@ static void M_DrawNewGame(void)
     // [crispy] force status bar refresh
     inhelpscreens = true;
 
-    V_DrawPatchDirect(96, 14, W_CacheLumpName("M_NEWG", PU_CACHE));
-    V_DrawPatchDirect(54, 38, W_CacheLumpName("M_SKILL", PU_CACHE));
+    MN_DrawTitle(96, 14, "M_NEWG", "NEW GAME");
+    MN_DrawTitle(54, 38, "M_SKILL", "Choose Skill Level:");
 }
 
 static void M_NewGame(int choice)
