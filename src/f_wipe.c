@@ -214,6 +214,116 @@ static int wipe_NOP(int x, int y, int t)
   return 0;
 }
 
+/*
+// Copyright(C) 1992 Id Software, Inc.
+// Copyright(C) 2007-2011 Moritz "Ripper" Kroll
+
+===================
+=
+= FizzleFade
+=
+= It uses maximum-length Linear Feedback Shift Registers (LFSR) counters.
+= You can find a list of them with lengths from 3 to 168 at:
+= http://www.xilinx.com/support/documentation/application_notes/xapp052.pdf
+= Many thanks to Xilinx for this list!!!
+=
+===================
+*/
+
+// XOR masks for the pseudo-random number sequence starting with n=17 bits
+static const uint32_t rndmasks[] = {
+                    // n    XNOR from (starting at 1, not 0 as usual)
+    0x00012000,     // 17   17,14
+    0x00020400,     // 18   18,11
+    0x00040023,     // 19   19,6,2,1
+    0x00090000,     // 20   20,17
+    0x00140000,     // 21   21,19
+    0x00300000,     // 22   22,21
+    0x00420000,     // 23   23,18
+    0x00e10000,     // 24   24,23,22,17
+    0x01200000,     // 25   25,22      (this is enough for 8191x4095)
+};
+
+// Returns the number of bits needed to represent the given value
+static int log2_ceil(uint32_t x)
+{
+    int n = 0;
+    uint32_t v = 1;
+
+    while (v < x)
+    {
+        n++;
+        v <<= 1;
+    }
+
+    return n;
+}
+
+static unsigned int rndbits_y;
+static unsigned int rndmask;
+static unsigned int lastrndval;
+
+static int wipe_initFizzle(int width, int height, int ticks)
+{
+    int rndbits_x = log2_ceil(width);
+    rndbits_y = log2_ceil(height);
+
+    int rndbits = rndbits_x + rndbits_y;
+    if (rndbits < 17)
+        rndbits = 17; // no problem, just a bit slower
+    else if (rndbits > 25)
+        rndbits = 25; // fizzle fade will not fill whole screen
+
+    rndmask = rndmasks[rndbits - 17];
+
+    V_PutBlock(0, 0, width, height, wipe_scr_start);
+
+    lastrndval = 0;
+
+    return 0;
+}
+
+static int wipe_doFizzle(int width, int height, int ticks)
+{
+    const int pixperframe = (width * height) >> 5;
+    unsigned int rndval = lastrndval;
+
+    for (unsigned p = 0; p < pixperframe; p++)
+    {
+        // seperate random value into x/y pair
+
+        unsigned int x = rndval >> rndbits_y;
+        unsigned int y = rndval & ((1 << rndbits_y) - 1);
+
+        // advance to next random element
+
+        rndval = (rndval >> 1) ^ (rndval & 1 ? 0 : rndmask);
+
+        if (x >= width || y >= height)
+        {
+            if (rndval == 0) // entire sequence has been completed
+            {
+                return true;
+            }
+
+            p--;
+            continue;
+        }
+
+        // copy one pixel
+        wipe_scr[y * video.pitch + x] = wipe_scr_end[y * width + x];
+
+        if (rndval == 0) // entire sequence has been completed
+        {
+            return true;
+        }
+    }
+
+    lastrndval = rndval;
+
+    return false;
+}
+
 static int (*const wipes[])(int, int, int) = {
   wipe_NOP,
   wipe_NOP,
@@ -221,8 +331,8 @@ static int (*const wipes[])(int, int, int) = {
   wipe_initMelt,
   wipe_doMelt,
   wipe_exitMelt,
-  wipe_initColorXForm,
-  wipe_doColorXForm,
+  wipe_initFizzle,
+  wipe_doFizzle,
   wipe_exit,
 };
 
