@@ -3092,10 +3092,14 @@ void M_Drawer(void)
         for (int i = 0; i < max; i++)
         {
             const char *name = currentMenu->menuitems[i].name;
+            int patch_lump = -1;
 
-            int patch_lump = W_CheckNumForName(name);
+            if (name[0])
+            {
+                patch_lump = W_CheckNumForName(name);
+            }
 
-            if ((name[0] == 0 || patch_lump < 0
+            if ((patch_lump < 0
                  || (W_IsIWADLump(patch_lump) && bigfont_lump >= 0))
                 && currentMenu->menuitems[i].alttext)
             {
