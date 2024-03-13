@@ -666,20 +666,12 @@ char *D_FindWADByName(const char *name)
     return NULL;
 }
 
-static char *FindWithExtensions(const char *filename, const char *ext, ...)
+static char *FindWithExtensions(const char *filename, ...)
 {
-    char *path, *s;
+    char *path = NULL;
     va_list args;
 
-    s = M_StringJoin(filename, ext, NULL);
-    path = D_FindWADByName(s);
-    if (path != NULL)
-    {
-        free(s);
-        return path;
-    }
-
-    va_start(args, ext);
+    va_start(args, filename);
     while (true)
     {
         const char *arg = va_arg(args, const char *);
@@ -688,9 +680,9 @@ static char *FindWithExtensions(const char *filename, const char *ext, ...)
             break;
         }
 
-        free(s);
-        s = M_StringJoin(filename, arg, NULL);
+        char *s = M_StringJoin(filename, arg, NULL);
         path = D_FindWADByName(s);
+        free(s);
         if (path != NULL)
         {
             break;
@@ -698,7 +690,6 @@ static char *FindWithExtensions(const char *filename, const char *ext, ...)
     }
     va_end(args);
 
-    free(s);
     return path;
 }
 

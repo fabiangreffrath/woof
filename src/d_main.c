@@ -668,17 +668,12 @@ void D_StartTitle (void)
   D_AdvanceDemo();
 }
 
-static boolean CheckExtensions(const char *filename, const char *ext, ...)
+static boolean CheckExtensions(const char *filename, ...)
 {
     boolean result = false;
     va_list args;
 
-    if (M_StringCaseEndsWith(filename, ext))
-    {
-        return true;
-    }
-
-    va_start(args, ext);
+    va_start(args, filename);
     while (true)
     {
         const char *arg = va_arg(args, const char *);
@@ -769,8 +764,14 @@ static boolean D_AddZipFile(const char *file)
 
 void D_AddFile(const char *file)
 {
+  char *s = M_StringDuplicate(file);
+
+  NormalizeSlashes(s);
+
   // [FG] search for PWADs by their filename
-  char *path = D_TryFindWADByName(file);
+  char *path = D_TryFindWADByName(s);
+
+  free(s);
 
   if (M_StringCaseEndsWith(path, ".kvx"))
   {
