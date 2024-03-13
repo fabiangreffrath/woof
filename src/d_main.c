@@ -812,25 +812,22 @@ char *D_DoomPrefDir(void)
 
     if (dir == NULL)
     {
-        char *result;
-
 #if !defined(_WIN32) || defined(_WIN32_WCE)
         // Configuration settings are stored in an OS-appropriate path
         // determined by SDL.  On typical Unix systems, this might be
         // ~/.local/share/chocolate-doom.  On Windows, we behave like
         // Vanilla Doom and save in the current directory.
 
-        result = SDL_GetPrefPath("", PROJECT_SHORTNAME);
+        char *result = SDL_GetPrefPath("", PROJECT_SHORTNAME);
         if (result != NULL)
         {
-            dir = M_StringDuplicate(result);
+            dir = M_DirName(result);
             SDL_free(result);
         }
         else
 #endif /* #ifndef _WIN32 */
         {
-            result = D_DoomExeDir();
-            dir = M_StringDuplicate(result);
+            dir = D_DoomExeDir();
         }
 
         M_MakeDirectory(dir);
