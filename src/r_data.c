@@ -852,7 +852,7 @@ static byte invul_orig[256];
 
 void R_InvulMode(void)
 {
-  if (colormaps == NULL)
+  if (colormaps == NULL || beta_emulation)
     return;
 
   switch (STRICTMODE(invul_mode))
