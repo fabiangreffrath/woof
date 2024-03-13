@@ -501,8 +501,8 @@ static void R_SetupFreelook(void)
     dy = 0;
   }
 
-  centeryfrac = (viewheight << FRACBITS) / 2 + dy;
-  centery = centeryfrac >> FRACBITS;
+  centery = viewheight / 2 + (dy >> FRACBITS);
+  centeryfrac = centery << FRACBITS;
 
   for (i = 0; i < viewheight; i++)
   {
