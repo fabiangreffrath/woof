@@ -298,14 +298,14 @@ enum
     {0, 0, SCREENWIDTH, LINEHEIGHT}
 
 static menuitem_t MainMenu[] = {
-    {1, "M_NGAME",  M_NewGame,  'n', NULL, MAIN_MENU_RECT},
-    {1, "M_LOADG",  M_LoadGame, 'l', NULL, MAIN_MENU_RECT},
-    {1, "M_SAVEG",  M_SaveGame, 's', NULL, MAIN_MENU_RECT},
+    {1, "M_NGAME",  M_NewGame,  'n', "New Game",   MAIN_MENU_RECT},
+    {1, "M_LOADG",  M_LoadGame, 'l', "Load Game",  MAIN_MENU_RECT},
+    {1, "M_SAVEG",  M_SaveGame, 's', "Save Game",  MAIN_MENU_RECT},
     // change M_Options to M_Setup
-    {1, "M_OPTION", M_Setup,    'o', NULL, MAIN_MENU_RECT},
+    {1, "M_OPTION", M_Setup,    'o', "Options",    MAIN_MENU_RECT},
     // Another hickup with Special edition.
-    {1, "M_RDTHIS", M_ReadThis, 'r', NULL, MAIN_MENU_RECT},
-    {1, "M_QUITG",  M_QuitDOOM, 'q', NULL, MAIN_MENU_RECT}
+    {1, "M_RDTHIS", M_ReadThis, 'r', "Read This!", MAIN_MENU_RECT},
+    {1, "M_QUITG",  M_QuitDOOM, 'q', "Quit",       MAIN_MENU_RECT}
 };
 
 static menu_t MainDef = {
@@ -488,10 +488,10 @@ enum
 
 static menuitem_t EpisodeMenu[] = // added a few free entries for UMAPINFO
 {
-    {1, "M_EPI1", M_Episode, 'k', NULL, EPISODES_RECT(0)},
-    {1, "M_EPI2", M_Episode, 't', NULL, EPISODES_RECT(1)},
-    {1, "M_EPI3", M_Episode, 'i', NULL, EPISODES_RECT(2)},
-    {1, "M_EPI4", M_Episode, 't', NULL, EPISODES_RECT(3)},
+    {1, "M_EPI1", M_Episode, 'k', "Knee-Deep in the Dead", EPISODES_RECT(0)},
+    {1, "M_EPI2", M_Episode, 't', "The Shores of Hell",    EPISODES_RECT(1)},
+    {1, "M_EPI3", M_Episode, 'i', "Inferno",               EPISODES_RECT(2)},
+    {1, "M_EPI4", M_Episode, 't', "Thy Flesh Consumed",    EPISODES_RECT(3)},
     {1, "",       M_Episode, '0', NULL, EPISODES_RECT(4)},
     {1, "",       M_Episode, '0', NULL, EPISODES_RECT(5)},
     {1, "",       M_Episode, '0', NULL, EPISODES_RECT(6)},
@@ -568,7 +568,7 @@ static void M_DrawEpisode(void)
     // [crispy] force status bar refresh
     inhelpscreens = true;
 
-    MN_DrawTitle(54, EpiDef.y - 25, "M_EPISOD", "WHICH EPISODE?");
+    MN_DrawTitle(54, EpiDef.y - 25, "M_EPISOD", "Which Episode?");
 }
 
 static void M_Episode(int choice)
@@ -642,8 +642,8 @@ static void M_DrawNewGame(void)
     // [crispy] force status bar refresh
     inhelpscreens = true;
 
-    V_DrawPatchDirect(96, 14, W_CacheLumpName("M_NEWG", PU_CACHE));
-    V_DrawPatchDirect(54, 38, W_CacheLumpName("M_SKILL", PU_CACHE));
+    MN_DrawTitle(96, 14, "M_NEWG", "NEW GAME");
+    MN_DrawTitle(54, 38, "M_SKILL", "Choose Skill Level:");
 }
 
 static void M_NewGame(int choice)
@@ -865,7 +865,7 @@ static void M_DrawLoad(void)
     int i;
 
     // jff 3/15/98 use symbolic load position
-    V_DrawPatch(72, LOADGRAPHIC_Y, W_CacheLumpName("M_LOADG", PU_CACHE));
+    MN_DrawTitle(72, LOADGRAPHIC_Y, "M_LOADG", "Load Game");
     for (i = 0; i < load_page; i++)
     {
         menuitem_t *item = &currentMenu->menuitems[i];
@@ -1084,7 +1084,7 @@ static void M_DrawSave(void)
     int i;
 
     // jff 3/15/98 use symbolic load position
-    V_DrawPatchDirect(72, LOADGRAPHIC_Y, W_CacheLumpName("M_SAVEG", PU_CACHE));
+    MN_DrawTitle(72, LOADGRAPHIC_Y, "M_SAVEG", "Save Game");
     for (i = 0; i < load_page; i++)
     {
         menuitem_t *item = &currentMenu->menuitems[i];
@@ -1290,9 +1290,9 @@ enum
     {80 /*SoundDef.x*/, 64 /*SoundDef.y*/ + LINEHEIGHT *(n), (16 + 2) * 8, 13}
 
 static menuitem_t SoundMenu[] = {
-    {2,  "M_SFXVOL", M_SfxVol,   's', NULL, {},                                   MF_THRM_STR},
+    {2,  "M_SFXVOL", M_SfxVol,   's', "Sfx Volume", {},                           MF_THRM_STR},
     {-1, "",         NULL,       0,   NULL, THERMO_VOLUME_RECT(sfx_vol_thermo),   MF_THRM    },
-    {2,  "M_MUSVOL", M_MusicVol, 'm', NULL, {},                                   MF_THRM_STR},
+    {2,  "M_MUSVOL", M_MusicVol, 'm', "Music Volume", {},                         MF_THRM_STR},
     {-1, "",         NULL,       0,   NULL, THERMO_VOLUME_RECT(music_vol_thermo), MF_THRM    },
 };
 
@@ -1305,7 +1305,7 @@ static menu_t SoundDef = {sound_end, &MainDef, SoundMenu, M_DrawSound,
 
 static void M_DrawSound(void)
 {
-    V_DrawPatchDirect(60, 38, W_CacheLumpName("M_SVOL", PU_CACHE));
+    MN_DrawTitle(60, 38, "M_SVOL", "Sound Volume");
 
     int index = itemOn + 1;
     menuitem_t *item = &currentMenu->menuitems[index];
@@ -1726,13 +1726,13 @@ static void M_DrawHelp(void)
 
 static menuitem_t SetupMenu[] = {
   // [FG] alternative text for missing menu graphics lumps
-    {1, "M_GENERL", MN_General,     'g', "GENERAL",            SETUP_MENU_RECT(0)},
-    {1, "M_KEYBND", MN_KeyBindings, 'k', "KEY BINDINGS",       SETUP_MENU_RECT(1)},
-    {1, "M_COMPAT", MN_Compat,      'c', "COMPATIBILITY",      SETUP_MENU_RECT(2)},
-    {1, "M_STAT",   MN_StatusBar,   's', "STATUS BAR/HUD",     SETUP_MENU_RECT(3)},
-    {1, "M_AUTO",   MN_Automap,     'a', "AUTOMAP",            SETUP_MENU_RECT(4)},
-    {1, "M_WEAP",   MN_Weapons,     'w', "WEAPONS",            SETUP_MENU_RECT(5)},
-    {1, "M_ENEM",   MN_Enemy,       'e', "ENEMIES",            SETUP_MENU_RECT(6)},
+    {1, "M_GENERL", MN_General,     'g', "General",            SETUP_MENU_RECT(0)},
+    {1, "M_KEYBND", MN_KeyBindings, 'k', "Key Bindings",       SETUP_MENU_RECT(1)},
+    {1, "M_COMPAT", MN_Compat,      'c', "Compatibility",      SETUP_MENU_RECT(2)},
+    {1, "M_STAT",   MN_StatusBar,   's', "Status Bar/HUD",     SETUP_MENU_RECT(3)},
+    {1, "M_AUTO",   MN_Automap,     'a', "Automap",            SETUP_MENU_RECT(4)},
+    {1, "M_WEAP",   MN_Weapons,     'w', "Weapons",            SETUP_MENU_RECT(5)},
+    {1, "M_ENEM",   MN_Enemy,       'e', "Enemies",            SETUP_MENU_RECT(6)},
 };
 
 /////////////////////////////
@@ -3087,11 +3087,20 @@ void M_Drawer(void)
     // [FG] check current menu for missing menu graphics lumps - only once
     if (currentMenu->lumps_missing == 0)
     {
+        int bigfont_lump = W_CheckNumForName("DBIGFONT");
+
         for (int i = 0; i < max; i++)
         {
             const char *name = currentMenu->menuitems[i].name;
+            int patch_lump = -1;
 
-            if ((name[0] == 0 || W_CheckNumForName(name) < 0)
+            if (name[0])
+            {
+                patch_lump = W_CheckNumForName(name);
+            }
+
+            if ((patch_lump < 0
+                 || (W_IsIWADLump(patch_lump) && bigfont_lump >= 0))
                 && currentMenu->menuitems[i].alttext)
             {
                 currentMenu->lumps_missing++;
@@ -3127,6 +3136,10 @@ void M_Drawer(void)
             cr = NULL;
         }
 
+        mrect_t *rect = &item->rect;
+        // due to the MainMenu[] hacks, we have to set `y` here
+        rect->y = y;
+
         // [FG] at least one menu graphics lump is missing, draw alternative
         // text
         if (currentMenu->lumps_missing > 0)
@@ -3142,10 +3155,8 @@ void M_Drawer(void)
         }
         else if (name[0])
         {
-            mrect_t *rect = &item->rect;
             patch_t *patch = W_CacheLumpName(name, PU_CACHE);
-            // due to the MainMenu[] hacks, we have to set y here
-            rect->y = y - SHORT(patch->topoffset);
+            rect->y -= SHORT(patch->topoffset);
             V_DrawPatchTranslated(x, y, patch, cr);
         }
 
