@@ -2253,7 +2253,7 @@ const char *default_skill_strings[] = {
 static const char *death_use_action_strings[] = {"default", "last save",
                                                  "nothing"};
 
-static const char *screen_melt_strings[] = {"Off", "Melt", "Crossfade"};
+static const char *screen_melt_strings[] = {"Off", "Melt", "Crossfade", "Fizzle"};
 
 static const char *invul_mode_strings[] = {"Vanilla", "MBF", "Gray"};
 
