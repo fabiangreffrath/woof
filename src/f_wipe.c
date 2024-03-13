@@ -267,8 +267,8 @@ static unsigned int lastrndval;
 
 static int wipe_initFizzle(int width, int height, int ticks)
 {
-    int rndbits_x = log2_ceil(width);
-    rndbits_y = log2_ceil(height);
+    int rndbits_x = log2_ceil(video.unscaledw);
+    rndbits_y = log2_ceil(COLUMN_MAX_Y);
 
     int rndbits = rndbits_x + rndbits_y;
     if (rndbits < 17)
@@ -287,7 +287,7 @@ static int wipe_initFizzle(int width, int height, int ticks)
 
 static int wipe_doFizzle(int width, int height, int ticks)
 {
-    const int pixperframe = (width * height) >> 5;
+    const int pixperframe = (video.unscaledw * COLUMN_MAX_Y) >> 5;
     unsigned int rndval = lastrndval;
 
     for (unsigned p = 0; p < pixperframe; p++)
@@ -301,7 +301,7 @@ static int wipe_doFizzle(int width, int height, int ticks)
 
         rndval = (rndval >> 1) ^ (rndval & 1 ? 0 : rndmask);
 
-        if (x >= width || y >= height)
+        if (x >= video.unscaledw || y >= COLUMN_MAX_Y)
         {
             if (rndval == 0) // entire sequence has been completed
             {
@@ -313,7 +313,18 @@ static int wipe_doFizzle(int width, int height, int ticks)
         }
 
         // copy one pixel
-        wipe_scr[y * video.pitch + x] = wipe_scr_end[y * width + x];
+        vrect_t rect = {x, y, 1, 1};
+        V_ScaleRect(&rect);
+
+        byte *src = wipe_scr_end + rect.sy * width + rect.sx;
+        byte *dest = wipe_scr + rect.sy * video.pitch + rect.sx;
+
+        while (rect.sh--)
+        {
+            memcpy(dest, src, rect.sw);
+            src += width;
+            dest += video.pitch;
+        }
 
         if (rndval == 0) // entire sequence has been completed
         {
