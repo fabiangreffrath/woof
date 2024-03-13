@@ -1211,7 +1211,7 @@ void MN_DrawKeybnd(void)
     // Set up the Key Binding screen
 
     DrawBackground("FLOOR4_6"); // Draw background
-    MN_DrawTitle(84, 2, "M_KEYBND", "KEY BINDINGS");
+    MN_DrawTitle(84, 2, "M_KEYBND", "Key Bindings");
     DrawTabs();
     DrawInstructions();
     DrawScreenItems(current_menu);
@@ -1312,7 +1312,7 @@ void MN_DrawWeapons(void)
     inhelpscreens = true; // killough 4/6/98: Force status bar redraw
 
     DrawBackground("FLOOR4_6"); // Draw background
-    MN_DrawTitle(109, 2, "M_WEAP", "WEAPONS");
+    MN_DrawTitle(109, 2, "M_WEAP", "Weapons");
     DrawTabs();
     DrawInstructions();
     DrawScreenItems(current_menu);
@@ -1535,7 +1535,7 @@ void MN_DrawStatusHUD(void)
     inhelpscreens = true; // killough 4/6/98: Force status bar redraw
 
     DrawBackground("FLOOR4_6"); // Draw background
-    MN_DrawTitle(59, 2, "M_STAT", "STATUS BAR/HUD");
+    MN_DrawTitle(59, 2, "M_STAT", "Status Bar/HUD");
     DrawTabs();
     DrawInstructions();
     DrawScreenItems(current_menu);
@@ -1626,7 +1626,7 @@ void MN_DrawAutoMap(void)
     inhelpscreens = true; // killough 4/6/98: Force status bar redraw
 
     DrawBackground("FLOOR4_6"); // Draw background
-    MN_DrawTitle(109, 2, "M_AUTO", "AUTOMAP");
+    MN_DrawTitle(109, 2, "M_AUTO", "Automap");
     DrawInstructions();
     DrawScreenItems(current_menu);
 
@@ -1708,7 +1708,7 @@ void MN_DrawEnemy(void)
     inhelpscreens = true;
 
     DrawBackground("FLOOR4_6"); // Draw background
-    MN_DrawTitle(114, 2, "M_ENEM", "ENEMIES");
+    MN_DrawTitle(114, 2, "M_ENEM", "Enemies");
     DrawInstructions();
     DrawScreenItems(current_menu);
 
@@ -1792,7 +1792,7 @@ void MN_DrawCompat(void)
     inhelpscreens = true;
 
     DrawBackground("FLOOR4_6"); // Draw background
-    MN_DrawTitle(52, 2, "M_COMPAT", "COMPATIBILITY");
+    MN_DrawTitle(52, 2, "M_COMPAT", "Compatibility");
     DrawInstructions();
     DrawScreenItems(current_menu);
 
@@ -2377,7 +2377,7 @@ void MN_DrawGeneral(void)
     inhelpscreens = true;
 
     DrawBackground("FLOOR4_6"); // Draw background
-    MN_DrawTitle(114, 2, "M_GENERL", "GENERAL");
+    MN_DrawTitle(114, 2, "M_GENERL", "General");
     DrawTabs();
     DrawInstructions();
     DrawScreenItems(current_menu);
@@ -3705,9 +3705,12 @@ int MN_StringHeight(const char *string)
 
 void MN_DrawTitle(int x, int y, const char *patch, const char *alttext)
 {
-    if (W_CheckNumForName(patch) >= 0)
+    int patch_lump = W_CheckNumForName(patch);
+    int bigfont_lump = W_CheckNumForName("DBIGFONT");
+
+    if (patch_lump >= 0 && !(W_IsIWADLump(patch_lump) && bigfont_lump >= 0))
     {
-        V_DrawPatchDirect(x, y, W_CacheLumpName(patch, PU_CACHE));
+        V_DrawPatchDirect(x, y, W_CacheLumpNum(patch_lump, PU_CACHE));
     }
     else
     {

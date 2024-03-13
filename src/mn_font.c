@@ -49,6 +49,7 @@ static fon2_char_t *chars = NULL;
 static int numchars;
 static int height;
 static int firstc;
+static boolean upper;
 static int kerning;
 
 #define FON2_SPACE 12
@@ -81,6 +82,10 @@ boolean MN_LoadFon2(const byte *gfx_data, int size)
     }
 
     firstc = header->firstc;
+    if (header->lastc < 'z')
+    {
+        upper = true;
+    }
     numchars = header->lastc - header->firstc + 1;
     chars = malloc(numchars * sizeof(*chars));
 
@@ -174,7 +179,7 @@ boolean MN_DrawFon2String(int x, int y, byte *cr, const char *str)
     {
         c = *str++;
 
-        c = toupper(c) - firstc;
+        c = (upper ? toupper(c) : c) - firstc;
         if (c < 0 || c >= numchars)
         {
             cx += FON2_SPACE;
@@ -209,7 +214,7 @@ int MN_GetFon2PixelWidth(const char *str)
     {
         c = *str++;
 
-        c = toupper(c) - firstc;
+        c = (upper ? toupper(c) : c) - firstc;
         if (c < 0 || c > numchars)
         {
             len += FON2_SPACE; // space
