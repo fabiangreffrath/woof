@@ -58,6 +58,7 @@ static void wipe_shittyColMajorXform(byte *array, int width, int height)
   Z_Free(dest);
 }
 
+/*
 // [FG] cross-fading screen wipe implementation
 
 static int fade_tick;
@@ -94,6 +95,7 @@ static int wipe_doColorXForm(int width, int height, int ticks)
 
   return (fade_tick > 64);
 }
+*/
 
 static int wipe_exit(int width, int height, int ticks)
 {
