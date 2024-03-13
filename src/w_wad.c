@@ -122,7 +122,6 @@ static void W_AddFile(const char *name) // killough 1/31/98: static, const
     {
         // single lump file
         fileinfo = calloc(1, sizeof(*fileinfo));
-        fileinfo[0].filepos = 0;
         fileinfo[0].size = LONG(W_FileLength(handle));
         ExtractFileBase(name, fileinfo[0].name);
         numlumps++;
