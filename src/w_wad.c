@@ -17,6 +17,7 @@
 //
 //-----------------------------------------------------------------------------
 
+#include <errno.h>
 #include <ctype.h>
 #include <fcntl.h>
 #include <stdlib.h>
@@ -91,90 +92,111 @@ static int *handles = NULL;
 
 static void W_AddFile(const char *name) // killough 1/31/98: static, const
 {
-  wadinfo_t   header;
-  lumpinfo_t* lump_p;
-  unsigned    i;
-  int         handle;
-  int         length;
-  int         startlump;
-  filelump_t  *fileinfo, *fileinfo2free=NULL; //killough
-  filelump_t  singleinfo;
-  boolean     is_single = false;
-  char        *filename = strcpy(malloc(strlen(name)+5), name);
+    wadinfo_t header;
+    filelump_t *fileinfo;
+    int handle;
+    int length;
+    int startlump;
 
-  NormalizeSlashes(AddDefaultExtension(filename, ".wad"));  // killough 11/98
+    // open the file and add to directory
 
-  // open the file and add to directory
+    handle = M_open(name, O_RDONLY | O_BINARY);
 
-  if ((handle = M_open(filename,O_RDONLY | O_BINARY)) == -1)
+    if (handle == -1)
     {
-      if (strlen(name) > 4 && !strcasecmp(name+strlen(name)-4 , ".lmp" ))
-	{
-	  free(filename);
-	  return;
-	}
-      // killough 11/98: allow .lmp extension if none existed before
-      NormalizeSlashes(AddDefaultExtension(strcpy(filename, name), ".lmp"));
-      if ((handle = M_open(filename,O_RDONLY | O_BINARY)) == -1)
-	I_Error("Error: couldn't open %s\n",name);  // killough
+        if (M_StringCaseEndsWith(name, ".lmp"))
+        {
+            return;
+        }
+        I_Error("Error: couldn't open %s", name); // killough
     }
 
-  I_Printf(VB_INFO, " adding %s",filename);   // killough 8/8/98
-  startlump = numlumps;
+    I_Printf(VB_INFO, " adding %s", name); // killough 8/8/98
 
-  // killough:
-  if (strlen(filename)<=4 || strcasecmp(filename+strlen(filename)-4, ".wad" ))
+    startlump = numlumps;
+
+    boolean is_single = false;
+
+    // killough:
+    if (!M_StringCaseEndsWith(name, ".wad"))
     {
-      // single lump file
-      fileinfo = &singleinfo;
-      singleinfo.filepos = 0;
-      singleinfo.size = LONG(W_FileLength(handle));
-      ExtractFileBase(filename, singleinfo.name);
-      numlumps++;
-      is_single = true;
+        // single lump file
+        fileinfo = calloc(1, sizeof(*fileinfo));
+        fileinfo[0].size = LONG(W_FileLength(handle));
+        ExtractFileBase(name, fileinfo[0].name);
+        numlumps++;
+        is_single = true;
     }
-  else
+    else
     {
-      // WAD file
-      // [FG] check return value
-      if (!read(handle, &header, sizeof(header)))
-        I_Error("Wad file %s doesn't have IWAD or PWAD id\n", filename);
-      if (strncmp(header.identification,"IWAD",4) &&
-          strncmp(header.identification,"PWAD",4))
-        I_Error("Wad file %s doesn't have IWAD or PWAD id\n", filename);
-      header.numlumps = LONG(header.numlumps);
-      header.infotableofs = LONG(header.infotableofs);
-      length = header.numlumps*sizeof(filelump_t);
-      fileinfo2free = fileinfo = malloc(length);    // killough
-      lseek(handle, header.infotableofs, SEEK_SET);
-      // [FG] check return value
-      if (!read(handle, fileinfo, length))
-        I_Error("Error reading lump directory from %s\n", filename);
-      numlumps += header.numlumps;
+        // WAD file
+        if (read(handle, &header, sizeof(header)) == 0)
+        {
+            I_Error("Error reading header from %s (%s)", name, strerror(errno));
+        }
+
+        if (strncmp(header.identification, "IWAD", 4)
+            && strncmp(header.identification, "PWAD", 4))
+        {
+            I_Error("Wad file %s doesn't have IWAD or PWAD id", name);
+        }
+
+        header.numlumps = LONG(header.numlumps);
+        if (header.numlumps == 0)
+        {
+            I_Printf(VB_WARNING, "Wad file %s is empty", name);
+            close(handle);
+            return;
+        }
+
+        length = header.numlumps * sizeof(filelump_t);
+        fileinfo = malloc(length);
+        if (fileinfo == NULL)
+        {
+            I_Error("Failed to allocate file table from %s", name);
+        }
+
+        header.infotableofs = LONG(header.infotableofs);
+        if (lseek(handle, header.infotableofs, SEEK_SET) == -1)
+        {
+            I_Printf(VB_WARNING, "Error seeking offset from %s (%s)", name,
+                     strerror(errno));
+            close(handle);
+            free(fileinfo);
+            return;
+        }
+
+        if (read(handle, fileinfo, length) == 0)
+        {
+            I_Printf(VB_WARNING, "Error reading lump directory from %s (%s)",
+                     name, strerror(errno));
+            close(handle);
+            free(fileinfo);
+            return;
+        }
+
+        numlumps += header.numlumps;
     }
 
     array_push(handles, handle);
 
-    free(filename);           // killough 11/98
-
     // Fill in lumpinfo
-    lumpinfo = Z_Realloc(lumpinfo, numlumps*sizeof(lumpinfo_t), PU_STATIC, 0);
+    lumpinfo = Z_Realloc(lumpinfo, numlumps * sizeof(lumpinfo_t), PU_STATIC, 0);
 
-    lump_p = &lumpinfo[startlump];
+    for (int i = startlump, j = 0; i < numlumps; i++, j++)
+    {
+        lumpinfo[i].handle = handle; //  killough 4/25/98
+        lumpinfo[i].position = LONG(fileinfo[j].filepos);
+        lumpinfo[i].size = LONG(fileinfo[j].size);
+        lumpinfo[i].data = NULL;           // killough 1/31/98
+        lumpinfo[i].namespace = ns_global; // killough 4/17/98
+        M_CopyLumpName(lumpinfo[i].name, fileinfo[j].name);
 
-    for (i=startlump ; i<numlumps ; i++,lump_p++, fileinfo++)
-      {
-        lump_p->handle = handle;                    //  killough 4/25/98
-        lump_p->position = LONG(fileinfo->filepos);
-        lump_p->size = LONG(fileinfo->size);
-        lump_p->data = NULL;                        // killough 1/31/98
-        lump_p->namespace = ns_global;              // killough 4/17/98
-        M_CopyLumpName(lump_p->name, fileinfo->name);
         // [FG] WAD file that contains the lump
-        lump_p->wad_file = (is_single ? NULL : name);
-      }
+        lumpinfo[i].wad_file = (is_single ? NULL : name);
+    }
 
-    free(fileinfo2free);      // killough
+    free(fileinfo);
 }
 
 // jff 1/23/98 Create routines to reorder the master directory

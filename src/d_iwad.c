@@ -78,13 +78,12 @@ char *D_DoomExeDir(void)
         result = SDL_GetBasePath();
         if (result != NULL)
         {
-            base = M_StringDuplicate(result);
+            base = M_DirName(result);
             SDL_free(result);
         }
         else
         {
-            result = M_DirName(myargv[0]);
-            base = M_StringDuplicate(result);
+            base = M_DirName(myargv[0]);
         }
     }
 
@@ -667,6 +666,33 @@ char *D_FindWADByName(const char *name)
     return NULL;
 }
 
+static char *FindWithExtensions(const char *filename, ...)
+{
+    char *path = NULL;
+    va_list args;
+
+    va_start(args, filename);
+    while (true)
+    {
+        const char *arg = va_arg(args, const char *);
+        if (arg == NULL)
+        {
+            break;
+        }
+
+        char *s = M_StringJoin(filename, arg, NULL);
+        path = D_FindWADByName(s);
+        free(s);
+        if (path != NULL)
+        {
+            break;
+        }
+    }
+    va_end(args);
+
+    return path;
+}
+
 //
 // D_TryWADByName
 //
@@ -678,7 +704,14 @@ char *D_TryFindWADByName(const char *filename)
 {
     char *result;
 
-    result = D_FindWADByName(filename);
+    if (!strrchr(M_BaseName(filename), '.'))
+    {
+        result = FindWithExtensions(filename, ".wad", ".zip", ".lmp", NULL);
+    }
+    else
+    {
+        result = D_FindWADByName(filename);
+    }
 
     if (result != NULL)
     {
