@@ -606,8 +606,8 @@ default_t defaults[] = {
   {
     "screen_melt",
     (config_t *) &screen_melt, NULL,
-    {wipe_Melt}, {wipe_None, wipe_ColorXForm}, number, ss_gen, wad_no,
-    "screen wipe effect (0 = none, 1 = melt, 2 = crossfade)"
+    {wipe_Melt}, {wipe_None, wipe_Fizzle}, number, ss_gen, wad_no,
+    "screen wipe effect (0 = none, 1 = melt, 2 = crossfade, 3 = fizzlefade)"
   },
 
   {

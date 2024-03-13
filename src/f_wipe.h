@@ -28,6 +28,7 @@ enum {
   wipe_None,
   wipe_Melt,        // weird screen melt
   wipe_ColorXForm,
+  wipe_Fizzle,
   wipe_NUMWIPES
 };
 
