@@ -2743,7 +2743,7 @@ void D_DoomMain(void)
 
   I_Printf(VB_INFO, "HU_Init: Setting up heads up display.");
   HU_Init();
-  MN_SetMenuFontSpacing();
+  MN_SetHUFontKerning();
 
   I_Printf(VB_INFO, "ST_Init: Init status bar.");
   ST_Init();

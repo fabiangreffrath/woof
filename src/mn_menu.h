@@ -62,7 +62,7 @@ void MN_SetupResetMenu(void);
 void MN_SetupResetMenuVideo(void);
 void MN_ResetTimeScale(void);
 void MN_DrawCredits(void); // killough 11/98
-void MN_SetMenuFontSpacing(void);
+void MN_SetHUFontKerning(void);
 void MN_DisableVoxelsRenderingItem(void);
 
 extern int traditional_menu; // display the menu traditional way

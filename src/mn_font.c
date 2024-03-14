@@ -193,7 +193,7 @@ boolean MN_DrawFon2String(int x, int y, byte *cr, const char *str)
         }
         else
         {
-            cx += FON2_SPACE + kerning;
+            cx += FON2_SPACE;
         }
     }
 
@@ -221,7 +221,14 @@ int MN_GetFon2PixelWidth(const char *str)
             continue;
         }
 
-        len += chars[c].width + kerning;
+        if (chars[c].width)
+        {
+            len += chars[c].width + kerning;
+        }
+        else
+        {
+            len += FON2_SPACE;
+        }
     }
     len -= kerning;
     return len;

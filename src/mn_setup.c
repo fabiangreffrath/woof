@@ -2630,7 +2630,7 @@ static int M_GetKeyString(int c, int offset)
     return offset;
 }
 
-static int menu_font_spacing = 0;
+static int kerning = 0;
 
 void MN_DrawStringCR(int cx, int cy, byte *cr1, byte *cr2, const char *ch)
 {
@@ -2686,7 +2686,7 @@ void MN_DrawStringCR(int cx, int cy, byte *cr1, byte *cr2, const char *ch)
 
         // The screen is cramped, so trim one unit from each
         // character so they butt up against each other.
-        cx += w + menu_font_spacing;
+        cx += w + kerning;
     }
 }
 
@@ -2755,10 +2755,9 @@ int MN_GetPixelWidth(const char *ch)
         }
 
         len += SHORT(hu_font[c]->width);
-        len += menu_font_spacing; // adjust so everything fits
+        len += kerning; // adjust so everything fits
     }
-    len -=
-        menu_font_spacing; // replace what you took away on the last char only
+    len -= kerning; // replace what you took away on the last char only
     return len;
 }
 
@@ -3684,11 +3683,11 @@ int MN_StringWidth(const char *string)
     return w;
 }
 
-void MN_SetMenuFontSpacing(void)
+void MN_SetHUFontKerning(void)
 {
     if (MN_StringWidth("abcdefghijklmnopqrstuvwxyz01234") > 230)
     {
-        menu_font_spacing = -1;
+        kerning = -1;
     }
 }
 
