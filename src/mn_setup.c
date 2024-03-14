@@ -3709,7 +3709,7 @@ void MN_DrawTitle(int x, int y, const char *patch, const char *alttext)
 
     if (patch_lump >= 0 && !(W_IsIWADLump(patch_lump) && bigfont_lump >= 0))
     {
-        V_DrawPatchDirect(x, y, W_CacheLumpNum(patch_lump, PU_CACHE));
+        V_DrawPatch(x, y, W_CacheLumpNum(patch_lump, PU_CACHE));
     }
     else
     {

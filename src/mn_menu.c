@@ -329,7 +329,7 @@ static void M_DrawMainMenu(void)
 
     options_active = false;
 
-    V_DrawPatchDirect(94, 2, W_CacheLumpName("M_DOOM", PU_CACHE));
+    V_DrawPatch(94, 2, W_CacheLumpName("M_DOOM", PU_CACHE));
 }
 
 /////////////////////////////
@@ -3167,8 +3167,8 @@ void M_Drawer(void)
 
     y = setup_active ? SCREENHEIGHT - 19 : currentMenu->y;
 
-    V_DrawPatchDirect(x + SKULLXOFF, y - 5 + itemOn * LINEHEIGHT,
-                      W_CacheLumpName(skullName[whichSkull], PU_CACHE));
+    V_DrawPatch(x + SKULLXOFF, y - 5 + itemOn * LINEHEIGHT,
+                W_CacheLumpName(skullName[whichSkull], PU_CACHE));
 
     if (delete_verify)
     {
@@ -3273,7 +3273,7 @@ static void WriteText(int x, int y, const char *string)
         {
             break;
         }
-        V_DrawPatchDirect(cx, cy, hu_font[c]);
+        V_DrawPatch(cx, cy, hu_font[c]);
         cx += w;
     }
 }
