@@ -2906,7 +2906,6 @@ void M_SaveDefaults(void)
 
     tmpfile = M_StringJoin(D_DoomPrefDir(), DIR_SEPARATOR_S, "tmp",
                            D_DoomExeName(), ".cfg", NULL);
-    NormalizeSlashes(tmpfile);
 
     errno = 0;
     if (!(f = M_fopen(tmpfile, "w"))) // killough 9/21/98
@@ -3382,8 +3381,6 @@ void M_LoadDefaults(void)
             defaultfile = strdup(basedefault);
         }
     }
-
-    NormalizeSlashes(defaultfile);
 
     // read the file in, overriding any set defaults
     //

@@ -764,14 +764,8 @@ static boolean D_AddZipFile(const char *file)
 
 void D_AddFile(const char *file)
 {
-  char *s = M_StringDuplicate(file);
-
-  NormalizeSlashes(s);
-
   // [FG] search for PWADs by their filename
-  char *path = D_TryFindWADByName(s);
-
-  free(s);
+  char *path = D_TryFindWADByName(file);
 
   if (M_StringCaseEndsWith(path, ".kvx"))
   {
@@ -2563,7 +2557,6 @@ void D_DoomMain(void)
                                   "savegames", NULL);
       free(oldsavegame);
 
-      NormalizeSlashes(basesavegame);
       M_MakeDirectory(basesavegame);
 
       oldsavegame = basesavegame;
@@ -2571,7 +2564,6 @@ void D_DoomMain(void)
                                   M_BaseName(wadname), NULL);
       free(oldsavegame);
 
-      NormalizeSlashes(basesavegame);
       M_MakeDirectory(basesavegame);
     }
   }
