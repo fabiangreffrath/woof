@@ -3392,34 +3392,38 @@ void G_ReloadDefaults(boolean keep_demover)
 
   if (!keep_demover)
   {
-    int level = G_GetWadComplevel();
+    int level = -1;
 
-    if (level < 0)
+    //!
+    // @arg <version>
+    // @category compat
+    // @help
+    //
+    // Emulate a specific version of Doom/Boom/MBF. Valid values are
+    // "vanilla", "boom", "mbf", "mbf21".
+    //
+
+    int p = M_CheckParmWithArgs("-complevel", 1);
+
+    if (p > 0)
     {
-      //!
-      // @arg <version>
-      // @category compat
-      // @help
-      //
-      // Emulate a specific version of Doom/Boom/MBF. Valid values are
-      // "vanilla", "boom", "mbf", "mbf21".
-      //
-
-      int p = M_CheckParmWithArgs("-complevel", 1);
-
-      if (p > 0)
+      level = G_GetNamedComplevel(myargv[p + 1]);
+      if (level < 0)
       {
-        level = G_GetNamedComplevel(myargv[p + 1]);
-        if (level < 0)
-        {
-          I_Error("Invalid parameter '%s' for -complevel, "
-                  "valid values are vanilla, boom, mbf, mbf21.", myargv[p + 1]);
-        }
+        I_Error("Invalid parameter '%s' for -complevel, "
+                "valid values are vanilla, boom, mbf, mbf21.", myargv[p + 1]);
       }
     }
 
     if (level < 0)
+    {
+      level = G_GetWadComplevel();
+    }
+
+    if (level < 0)
+    {
       demo_version = G_GetDefaultComplevel();
+    }
     else
     {
       demo_version = level;
