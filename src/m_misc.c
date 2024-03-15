@@ -497,53 +497,6 @@ char *AddDefaultExtension(char *path, const char *ext)
     return strcat(path, ext);
 }
 
-// NormalizeSlashes
-//
-// Remove trailing slashes, translate backslashes to slashes
-// The string to normalize is passed and returned in str
-//
-// killough 11/98: rewritten
-
-void NormalizeSlashes(char *str)
-{
-    char *p;
-
-    // Convert all slashes/backslashes to DIR_SEPARATOR
-    for (p = str; *p; p++)
-    {
-        if ((*p == '/' || *p == '\\') && *p != DIR_SEPARATOR)
-        {
-            *p = DIR_SEPARATOR;
-        }
-    }
-
-    // Remove trailing slashes
-    while (p > str && *--p == DIR_SEPARATOR)
-    {
-        *p = 0;
-    }
-
-#if defined(_WIN32)
-    // Don't collapse leading slashes on Windows
-    if (*str == DIR_SEPARATOR)
-    {
-        str++;
-    }
-#endif
-
-    // Collapse multiple slashes
-    for (p = str; (*str++ = *p);)
-    {
-        if (*p++ == DIR_SEPARATOR)
-        {
-            while (*p == DIR_SEPARATOR)
-            {
-                p++;
-            }
-        }
-    }
-}
-
 //
 // M_WriteFile
 //
