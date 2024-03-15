@@ -23,6 +23,7 @@
 #include "i_gamepad.h"
 #include "i_printf.h"
 #include "i_system.h"
+#include "r_main.h"
 
 #define AXIS_BUTTON_DEADZONE (SDL_JOYSTICK_AXIS_MAX / 3)
 
@@ -471,16 +472,11 @@ void I_DelayEvent(void)
 int mouse_acceleration;
 int mouse_acceleration_threshold;
 
-double I_AccelerateMouse(int val)
+static double AccelerateMouse_Thresh(int val)
 {
-    if (!mouse_acceleration)
-    {
-        return val;
-    }
-
     if (val < 0)
     {
-        return -I_AccelerateMouse(-val);
+        return -AccelerateMouse_Thresh(-val);
     }
 
     if (val > mouse_acceleration_threshold)
@@ -492,6 +488,31 @@ double I_AccelerateMouse(int val)
     else
     {
         return val;
+    }
+}
+
+static double AccelerateMouse_NoThresh(int val)
+{
+    return ((double)val * (mouse_acceleration + 10) / 10);
+}
+
+static double AccelerateMouse_Skip(int val)
+{
+    return val;
+}
+
+double (*I_AccelerateMouse)(int val) = AccelerateMouse_NoThresh;
+
+void I_UpdateAccelerateMouse(void)
+{
+    if (mouse_acceleration)
+    {
+        I_AccelerateMouse =
+            raw_input ? AccelerateMouse_NoThresh : AccelerateMouse_Thresh;
+    }
+    else
+    {
+        I_AccelerateMouse = AccelerateMouse_Skip;
     }
 }
 
