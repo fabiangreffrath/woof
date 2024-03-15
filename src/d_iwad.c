@@ -427,10 +427,9 @@ static boolean DirIsFile(const char *path, const char *filename)
 // to the end of the paths before adding them.
 static void AddIWADPath(const char *path, const char *suffix)
 {
-    char *left, *p, *dup_path;
+    char *left, *p, *dup_path, *dir;
 
     dup_path = M_StringDuplicate(path);
-    NormalizeSlashes(dup_path);
 
     // Split into individual dirs within the list.
     left = dup_path;
@@ -444,7 +443,10 @@ static void AddIWADPath(const char *path, const char *suffix)
             // as another iwad dir
             *p = '\0';
 
-            AddIWADDir(M_StringJoin(left, suffix, NULL));
+            dir = M_DirName(left);
+            AddIWADDir(M_StringJoin(dir, suffix, NULL));
+            free(dir);
+
             left = p + 1;
         }
         else
@@ -453,7 +455,9 @@ static void AddIWADPath(const char *path, const char *suffix)
         }
     }
 
-    AddIWADDir(M_StringJoin(left, suffix, NULL));
+    dir = M_DirName(left);
+    AddIWADDir(M_StringJoin(dir, suffix, NULL));
+    free(dir);
 
     free(dup_path);
 }

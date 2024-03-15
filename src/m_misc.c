@@ -540,11 +540,6 @@ void NormalizeSlashes(char *str)
             {
                 p++;
             }
-            // Remove trailing slash before PATH_SEPARATOR
-            if (*p == PATH_SEPARATOR)
-            {
-                str--;
-            }
         }
     }
 }
