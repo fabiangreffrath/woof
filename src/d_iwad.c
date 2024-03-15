@@ -430,6 +430,7 @@ static void AddIWADPath(const char *path, const char *suffix)
     char *left, *p, *dup_path;
 
     dup_path = M_StringDuplicate(path);
+    NormalizeSlashes(dup_path);
 
     // Split into individual dirs within the list.
     left = dup_path;
