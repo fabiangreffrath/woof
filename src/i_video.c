@@ -1722,6 +1722,11 @@ void I_InitGraphics(void)
         I_Error("Failed to initialize video: %s", SDL_GetError());
     }
 
+    // clear out any events waiting at the start and center the mouse
+    SDL_Event dummy;
+    while (SDL_PollEvent(&dummy))
+        ;
+
     I_AtExit(I_ShutdownGraphics, true);
 
     I_InitVideoParms();
