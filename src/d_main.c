@@ -2654,6 +2654,7 @@ void D_DoomMain(void)
 
   if (!M_ParmExists("-nomapinfo"))
   {
+    D_ProcessInWads("UMAPINFO", U_ParseMapInfo, true);
     D_ProcessInWads("UMAPINFO", U_ParseMapInfo, false);
   }
 
