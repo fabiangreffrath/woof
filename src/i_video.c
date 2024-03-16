@@ -1729,6 +1729,11 @@ void I_InitGraphics(void)
     ResetResolution(CurrentResolutionHeight(), true);
     CreateSurfaces(video.pitch, video.height);
     ResetLogicalSize();
+
+    // clear out events waiting at the start and center the mouse
+    SDL_PumpEvents();
+    SDL_FlushEvent(SDL_MOUSEMOTION);
+    I_ResetRelativeMouseState();
 }
 
 //----------------------------------------------------------------------------
