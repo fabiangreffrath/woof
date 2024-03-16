@@ -1730,10 +1730,9 @@ void I_InitGraphics(void)
     CreateSurfaces(video.pitch, video.height);
     ResetLogicalSize();
 
-    // clear out any events waiting at the start and center the mouse
-    SDL_Event dummy;
-    while (SDL_PollEvent(&dummy))
-        ;
+    // clear out events waiting at the start and center the mouse
+    SDL_PumpEvents();
+    SDL_FlushEvent(SDL_MOUSEMOTION);
     I_ResetRelativeMouseState();
 }
 
