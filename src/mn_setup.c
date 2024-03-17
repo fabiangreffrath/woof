@@ -321,29 +321,16 @@ static const char **GetStrings(int id);
 
 static boolean ItemDisabled(int flags)
 {
+    complevel_t complevel =
+        force_complevel != CL_NONE ? force_complevel : default_complevel;
+
     if ((flags & S_DISABLE)
-        || (flags & S_STRICT && (default_strictmode || force_strictmode)))
+        || (flags & S_STRICT && (default_strictmode || force_strictmode))
+        || (flags & S_BOOM && complevel < CL_BOOM)
+        || (flags & S_MBF && complevel < CL_MBF)
+        || (flags & S_VANILLA && complevel != CL_VANILLA))
     {
         return true;
-    }
-
-    if (force_demo_version > 0)
-    {
-        if ((flags & S_BOOM && force_demo_version < 202)
-            || (flags & S_MBF && force_demo_version < 203)
-            || (flags & S_VANILLA && force_demo_version != 109))
-        {
-            return true;
-        }
-    }
-    else
-    {
-        if ((flags & S_BOOM && default_complevel < CL_BOOM)
-            || (flags & S_MBF && default_complevel < CL_MBF)
-            || (flags & S_VANILLA && default_complevel != CL_VANILLA))
-        {
-            return true;
-        }
     }
 
     return false;
@@ -1790,7 +1777,7 @@ setup_menu_t comp_settings1[] = {
 
 static void UpdateInterceptsEmuItem(void)
 {
-    DisableItem((force_demo_version == 109 || default_complevel == CL_VANILLA)
+    DisableItem((force_complevel == CL_VANILLA || default_complevel == CL_VANILLA)
                     && overflow[emu_intercepts].enabled,
                 comp_settings1, "blockmapfix");
 }
@@ -3813,7 +3800,7 @@ void MN_SetupResetMenu(void)
     extern boolean deh_set_blood_color;
 
     DisableItem(force_strictmode, comp_settings1, "strictmode");
-    DisableItem(force_demo_version > 0, comp_settings1, "default_complevel");
+    DisableItem(force_complevel != CL_NONE, comp_settings1, "default_complevel");
     DisableItem(M_ParmExists("-pistolstart"), comp_settings1, "pistolstart");
     DisableItem(M_ParmExists("-uncapped") || M_ParmExists("-nouncapped"),
                 gen_settings1, "uncapped");

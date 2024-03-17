@@ -77,14 +77,14 @@ int G_GotoNextLevel(int *pEpi, int *pMap);
 
 typedef enum
 {
+  CL_NONE = -1,
   CL_VANILLA,
   CL_BOOM,
   CL_MBF,
   CL_MBF21,
 } complevel_t;
 
-extern complevel_t default_complevel;
-extern int force_demo_version;
+extern complevel_t force_complevel, default_complevel;
 
 extern int realtic_clock_rate;
 
