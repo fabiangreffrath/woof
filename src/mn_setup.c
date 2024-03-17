@@ -1834,8 +1834,9 @@ static const char **GetResolutionScaleStrings(void)
 
     int val = SCREENHEIGHT * 2;
     char buf[8];
+    int i;
 
-    for (int i = 1; val < rs.max; ++i)
+    for (i = 1; val < rs.max; ++i)
     {
         if (val == current_video_height)
         {
@@ -1848,6 +1849,8 @@ static const char **GetResolutionScaleStrings(void)
 
         val += rs.step;
     }
+
+    resolution_scale = BETWEEN(0, i, resolution_scale);
 
     array_push(strings, "native");
 
@@ -2097,7 +2100,7 @@ void MN_UpdateFreeLook(void)
 
 #define MOUSE_ACCEL_STRINGS_SIZE (40 + 1)
 
-static const char **M_GetMouseAccelStrings(void)
+static const char **GetMouseAccelStrings(void)
 {
     static const char *strings[MOUSE_ACCEL_STRINGS_SIZE];
     char buf[8];
@@ -3779,7 +3782,7 @@ void MN_InitMenuStrings(void)
     UpdateHUDModeStrings();
     selectstrings[str_resolution_scale] = GetResolutionScaleStrings();
     selectstrings[str_midi_player] = GetMidiDevicesStrings();
-    selectstrings[str_mouse_accel] = M_GetMouseAccelStrings();
+    selectstrings[str_mouse_accel] = GetMouseAccelStrings();
 }
 
 void MN_SetupResetMenu(void)
