@@ -84,7 +84,7 @@ typedef enum
 } complevel_t;
 
 extern complevel_t default_complevel;
-extern boolean force_complevel;
+extern int force_demo_version;
 
 extern int realtic_clock_rate;
 

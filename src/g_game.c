@@ -154,7 +154,7 @@ boolean         padlook = false;
 int             realtic_clock_rate = 100;
 
 complevel_t     default_complevel;
-boolean         force_complevel;
+int             force_demo_version;
 
 boolean         pistolstart, default_pistolstart;
 
@@ -3423,11 +3423,12 @@ void G_ReloadDefaults(boolean keep_demover)
     if (level < 0)
     {
       demo_version = G_GetDefaultComplevel();
+      force_demo_version = -1;
     }
     else
     {
       demo_version = level;
-      force_complevel = true;
+      force_demo_version = level;
     }
   }
 
