@@ -1752,7 +1752,8 @@ static void UpdateInterceptsEmuItem(void);
 setup_menu_t comp_settings1[] = {
 
     {"Default Compatibility Level", S_CHOICE | S_LEVWARN, M_X, M_SPC,
-     {"default_complevel"}, m_null, input_null, str_default_complevel},
+     {"default_complevel"}, m_null, input_null, str_default_complevel,
+     UpdateInterceptsEmuItem},
 
     {"Strict Mode", S_ONOFF | S_LEVWARN, M_X, M_SPC, {"strictmode"}},
 
@@ -1789,7 +1790,8 @@ setup_menu_t comp_settings1[] = {
 
 static void UpdateInterceptsEmuItem(void)
 {
-    DisableItem(demo_compatibility && overflow[emu_intercepts].enabled,
+    DisableItem((force_demo_version == 109 || default_complevel == CL_VANILLA)
+                    && overflow[emu_intercepts].enabled,
                 comp_settings1, "blockmapfix");
 }
 
