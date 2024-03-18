@@ -18,6 +18,7 @@
 #define __G_GAME__
 
 #include "doomdef.h"
+#include "doomstat.h"
 #include "doomtype.h"
 #include "m_fixed.h"
 
@@ -70,7 +71,7 @@ int G_ValidateMapName(const char *mapname, int *pEpi, int *pMap);
 
 void G_EnableWarp(boolean warp);
 
-int G_GetNamedComplevel (const char *arg);
+demo_version_t G_GetNamedComplevel(const char *arg);
 const char *G_GetCurrentComplevelName(void);
 
 int G_GotoNextLevel(int *pEpi, int *pMap);
