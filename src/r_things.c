@@ -720,7 +720,7 @@ void R_AddSprites(sector_t* sec, int lightlevel)
   // Well, now it will be done.
   sec->validcount = validcount;
 
-  if (demo_version <= 202)
+  if (demo_version <= DV_BOOM)
     lightlevel = sec->lightlevel;
 
   lightnum = (lightlevel >> LIGHTSEGSHIFT)+extralight;

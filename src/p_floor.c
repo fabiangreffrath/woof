@@ -123,7 +123,7 @@ result_e T_MovePlane
           // Moving a floor up
           // jff 02/04/98 keep floor from moving thru ceilings
           // jff 2/22/98 weaken check to demo_compatibility
-          destheight = (demo_compatibility || (demo_version >= 203 && comp[comp_floors]) ||
+          destheight = (demo_compatibility || (demo_version >= DV_MBF && comp[comp_floors]) ||
 			dest<sector->ceilingheight)? // killough 10/98
                           dest : sector->ceilingheight;
           if (sector->floorheight + speed > destheight)
@@ -146,7 +146,7 @@ result_e T_MovePlane
             flag = P_CheckSector(sector,crush); //jff 3/19/98 use faster chk
             if (flag == true)
             {
-              if (demo_compatibility || (demo_version >= 203 && comp[comp_floors])) // killough 10/98
+              if (demo_compatibility || (demo_version >= DV_MBF && comp[comp_floors])) // killough 10/98
                 if (crush == true) //jff 1/25/98 fix floor crusher
                   return crushed;
               sector->floorheight = lastpos;
@@ -834,7 +834,7 @@ int EV_BuildStairs
         if (tsec->floorpic != texture)
           continue;
 
-	if (comp[comp_stairs] || demo_version == 203)
+	if (comp[comp_stairs] || demo_version == DV_MBF)
 	{
 	height += stairsize;  // killough 10/98: intentionally left this way
 	}
@@ -843,7 +843,7 @@ int EV_BuildStairs
         if (P_SectorActive(floor_special,tsec)) //jff 2/22/98
 	  continue;
 
-	if (!comp[comp_stairs] && demo_version != 203)
+	if (!comp[comp_stairs] && demo_version != DV_MBF)
 	{
 	height += stairsize;
 	}
@@ -879,7 +879,7 @@ int EV_BuildStairs
     {
       // cph 2001/09/22 - emulate buggy MBF comp_stairs for demos, with logic
       // reversed since we now have a separate outer loop index.
-      if (demo_version == 203)
+      if (demo_version == DV_MBF)
         ssec = secnum; // Trash outer loop index
       else
       {

@@ -125,10 +125,10 @@ static void LoadGameSettings(net_gamesettings_t *settings)
 
     if (demo_version == 0)
     {
-        demo_version = 109;
+        demo_version = DV_VANILLA;
     }
 
-    if (demo_version == 109)
+    if (demo_version == DV_VANILLA)
     {
         compatibility = true;
     }

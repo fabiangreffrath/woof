@@ -321,11 +321,14 @@ static const char **GetStrings(int id);
 
 static boolean ItemDisabled(int flags)
 {
+    complevel_t complevel =
+        force_complevel != CL_NONE ? force_complevel : default_complevel;
+
     if ((flags & S_DISABLE)
         || (flags & S_STRICT && (default_strictmode || force_strictmode))
-        || (flags & S_BOOM && default_complevel < CL_BOOM)
-        || (flags & S_MBF && default_complevel < CL_MBF)
-        || (flags & S_VANILLA && default_complevel != CL_VANILLA))
+        || (flags & S_BOOM && complevel < CL_BOOM)
+        || (flags & S_MBF && complevel < CL_MBF)
+        || (flags & S_VANILLA && complevel != CL_VANILLA))
     {
         return true;
     }
@@ -1731,10 +1734,13 @@ static const char *default_complevel_strings[] = {
     "Vanilla", "Boom", "MBF", "MBF21"
 };
 
+static void UpdateInterceptsEmuItem(void);
+
 setup_menu_t comp_settings1[] = {
 
     {"Default Compatibility Level", S_CHOICE | S_LEVWARN, M_X, M_SPC,
-     {"default_complevel"}, m_null, input_null, str_default_complevel},
+     {"default_complevel"}, m_null, input_null, str_default_complevel,
+     UpdateInterceptsEmuItem},
 
     {"Strict Mode", S_ONOFF | S_LEVWARN, M_X, M_SPC, {"strictmode"}},
 
@@ -1752,7 +1758,7 @@ setup_menu_t comp_settings1[] = {
 
     MI_GAP,
 
-    {"Improved Hit Detection", S_ONOFF | S_STRICT | S_BOOM, M_X, M_SPC,
+    {"Improved Hit Detection", S_ONOFF | S_STRICT, M_X, M_SPC,
      {"blockmapfix"}},
 
     {"Fast Line-of-Sight Calculation", S_ONOFF | S_STRICT, M_X, M_SPC,
@@ -1762,12 +1768,19 @@ setup_menu_t comp_settings1[] = {
      {"hangsolid"}},
 
     {"Emulate INTERCEPTS overflow", S_ONOFF | S_VANILLA, M_X, M_SPC,
-     {"emu_intercepts"}},
+     {"emu_intercepts"}, m_null, input_null, str_empty, UpdateInterceptsEmuItem},
 
     MI_RESET,
 
     MI_END
 };
+
+static void UpdateInterceptsEmuItem(void)
+{
+    DisableItem((force_complevel == CL_VANILLA || default_complevel == CL_VANILLA)
+                    && overflow[emu_intercepts].enabled,
+                comp_settings1, "blockmapfix");
+}
 
 static setup_menu_t *comp_settings[] = {comp_settings1, NULL};
 
@@ -3790,7 +3803,7 @@ void MN_SetupResetMenu(void)
     extern boolean deh_set_blood_color;
 
     DisableItem(force_strictmode, comp_settings1, "strictmode");
-    DisableItem(force_complevel, comp_settings1, "default_complevel");
+    DisableItem(force_complevel != CL_NONE, comp_settings1, "default_complevel");
     DisableItem(M_ParmExists("-pistolstart"), comp_settings1, "pistolstart");
     DisableItem(M_ParmExists("-uncapped") || M_ParmExists("-nouncapped"),
                 gen_settings1, "uncapped");
@@ -3798,6 +3811,7 @@ void MN_SetupResetMenu(void)
     DisableItem(!brightmaps_found || force_brightmaps, gen_settings5,
                 "brightmaps");
 
+    UpdateInterceptsEmuItem();
     UpdateDynamicResolutionItem();
     CoerceFPSLimit();
     UpdateCrosshairItems();
