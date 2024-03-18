@@ -3498,7 +3498,7 @@ void G_ReloadDefaults(boolean keep_demover)
   // Reset MBF compatibility options in strict mode
   if (strictmode)
   {
-    if (demo_version == 203)
+    if (demo_version == DV_MBF)
       G_MBFDefaults();
     else if (mbf21)
       G_MBF21Defaults();
@@ -3744,7 +3744,7 @@ void G_InitNew(skill_t skill, int episode, int map)
 
   M_LoadOptions();     // killough 11/98: read OPTIONS lump from wad
 
-  if (demo_version == 203)
+  if (demo_version == DV_MBF)
     G_MBFComp();
 
   G_DoLoadLevel();
@@ -4030,7 +4030,7 @@ byte *G_ReadOptions(byte *demo_p)
   rngseed += *demo_p++ & 0xff;
 
   // Options new to v2.03
-  if (demo_version >= 203)
+  if (demo_version >= DV_MBF)
     {
       monster_infighting = *demo_p++;   // killough 7/19/98
 
@@ -4065,10 +4065,6 @@ byte *G_ReadOptions(byte *demo_p)
       }
 
       G_MBFComp();
-
-      // Options new to v2.04, etc.
-      if (demo_version >= 204)
-	;
     }
   else  // defaults for versions < 2.02
     {
@@ -4076,7 +4072,7 @@ byte *G_ReadOptions(byte *demo_p)
       for (i=0; i < COMP_TOTAL; i++)
 	comp[i] = compatibility;
 
-      if (demo_version == 202 || demo_version == 201)
+      if (demo_version == DV_BOOM || demo_version == DV_BOOM201)
         G_BoomComp();
 
       monster_infighting = 1;           // killough 7/19/98
@@ -4106,7 +4102,7 @@ void G_BeginRecording(void)
 
   demo_p = demobuffer;
 
-  if (demo_version == 203 || mbf21)
+  if (demo_version == DV_MBF || mbf21)
   {
   *demo_p++ = demo_version;
 
@@ -4142,7 +4138,7 @@ void G_BeginRecording(void)
   for (; i<MIN_MAXPLAYERS; i++)
     *demo_p++ = 0;
   }
-  else if (demo_version == 202)
+  else if (demo_version == DV_BOOM)
   {
     *demo_p++ = demo_version;
 
@@ -4175,11 +4171,11 @@ void G_BeginRecording(void)
     for (; i<MIN_MAXPLAYERS; i++)
       *demo_p++ = 0;
   }
-  else if (demo_version == 109)
+  else if (demo_version == DV_VANILLA)
   {
     if (longtics)
     {
-      *demo_p++ = 111;
+      *demo_p++ = DV_LONGTIC;
     }
     else
     {
