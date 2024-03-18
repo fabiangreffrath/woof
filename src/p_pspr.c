@@ -169,7 +169,7 @@ static void P_BringUpWeapon(player_t *player)
   player->pendingweapon = wp_nochange;
 
   // killough 12/98: prevent pistol from starting visibly at bottom of screen:
-  player->psprites[ps_weapon].sy = demo_version >= 203 ? 
+  player->psprites[ps_weapon].sy = demo_version >= DV_MBF ? 
     WEAPONBOTTOM+FRACUNIT*2 : WEAPONBOTTOM;
 
   P_SetPsprite(player, ps_weapon, newstate);
@@ -630,7 +630,7 @@ static void A_FireSomething(player_t* player,int adder)
 
   // killough 3/27/98: prevent recoil in no-clipping mode
   if (!(player->mo->flags & MF_NOCLIP))
-    if (weapon_recoil && (demo_version >= 203 || !compatibility))
+    if (weapon_recoil && (demo_version >= DV_MBF || !compatibility))
       P_Thrust(player, ANG180 + player->mo->angle,
                2048*recoil_values[player->readyweapon].thrust);          // phares
 }
@@ -672,7 +672,7 @@ void A_Punch(player_t *player, pspdef_t *psp)
   range = (mbf21 ? player->mo->info->meleerange : MELEERANGE);
 
   // killough 8/2/98: make autoaiming prefer enemies
-  if (demo_version<203 ||
+  if (demo_version < DV_MBF ||
       (slope = P_AimLineAttack(player->mo, angle, range, MF_FRIEND),
        !linetarget))
     slope = P_AimLineAttack(player->mo, angle, range, 0);
@@ -709,7 +709,7 @@ void A_Saw(player_t *player, pspdef_t *psp)
   range = (mbf21 ? player->mo->info->meleerange : MELEERANGE) + 1;
 
   // killough 8/2/98: make autoaiming prefer enemies
-  if (demo_version<203 ||
+  if (demo_version < DV_MBF ||
       (slope = P_AimLineAttack(player->mo, angle, range, MF_FRIEND),
        !linetarget))
     slope = P_AimLineAttack(player->mo, angle, range, 0);
@@ -871,7 +871,7 @@ static void P_BulletSlope(mobj_t *mo)
   angle_t an = mo->angle;    // see which target is to be aimed at
 
   // killough 8/2/98: make autoaiming prefer enemies
-  int mask = demo_version < 203 ? 0 : MF_FRIEND;
+  int mask = demo_version < DV_MBF ? 0 : MF_FRIEND;
 
   if (direct_vertical_aiming)
   {
@@ -1039,7 +1039,7 @@ void A_BFGSpray(mobj_t *mo)
       // mo->target is the originator (player) of the missile
 
       // killough 8/2/98: make autoaiming prefer enemies
-      if (demo_version < 203 || 
+      if (demo_version < DV_MBF || 
 	  (P_AimLineAttack(mo->target, an, 16*64*FRACUNIT, MF_FRIEND), 
 	   !linetarget))
 	P_AimLineAttack(mo->target, an, 16*64*FRACUNIT, 0);

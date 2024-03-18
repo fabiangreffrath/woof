@@ -260,7 +260,7 @@ static boolean P_CheckSight_MBF(mobj_t *t1, mobj_t *t2)
   // killough 11/98: shortcut for melee situations
   // [FG] Compatibility bug in P_CheckSight
   // http://prboom.sourceforge.net/mbf-bugs.html
-  if (t1->subsector == t2->subsector && demo_version >= 203)     // same subsector? obviously visible
+  if (t1->subsector == t2->subsector && demo_version >= DV_MBF)     // same subsector? obviously visible
     return true;
 
   // An unobstructed LOS is possible.
