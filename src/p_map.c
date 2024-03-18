@@ -149,7 +149,7 @@ int P_GetFriction(const mobj_t *mo, int *frictionfactor)
   // friction value (muddy has precedence over icy).
 
   if (!(mo->flags & (MF_NOCLIP|MF_NOGRAVITY)) 
-      && (demo_version >= 203 || (mo->player && !compatibility)) &&
+      && (demo_version >= DV_MBF || (mo->player && !compatibility)) &&
       variable_friction)
     for (m = mo->touching_sectorlist; m; m = m->m_tnext)
       if ((sec = m->m_sector)->special & FRICTION_MASK &&
@@ -157,7 +157,7 @@ int P_GetFriction(const mobj_t *mo, int *frictionfactor)
 	  (mo->z <= sec->floorheight ||
 	   (sec->heightsec != -1 &&
 	    mo->z <= sectors[sec->heightsec].floorheight &&
-	    demo_version >= 203)))
+	    demo_version >= DV_MBF)))
 	friction = sec->friction, movefactor = sec->movefactor;
   
   if (frictionfactor)
@@ -178,7 +178,7 @@ int P_GetMoveFactor(const mobj_t *mo, int *frictionp)
 
   // Restore original Boom friction code for
   // demo compatibility
-  if (demo_version < 203)
+  if (demo_version < DV_MBF)
   {
     int momentum;
 
@@ -256,7 +256,7 @@ boolean P_TeleportMove(mobj_t *thing, fixed_t x, fixed_t y, boolean boss)
 
   // killough 8/9/98: make telefragging more consistent, preserve compatibility
   telefrag = thing->player || 
-    (comp[comp_telefrag] || demo_version < 203 ? gamemap==30 : boss);
+    (comp[comp_telefrag] || demo_version < DV_MBF ? gamemap==30 : boss);
 
   // kill anything occupying the position
 
@@ -780,7 +780,7 @@ boolean P_CheckPosition(mobj_t *thing, fixed_t x, fixed_t y)
   // Whether object can get out of a sticky situation:
   tmunstuck = thing->player &&          // only players
     thing->player->mo == thing &&       // not voodoo dolls
-    demo_version >= 203;                // not under old demos
+    demo_version >= DV_MBF;             // not under old demos
 
   // The base floor / ceiling is from the subsector
   // that contains the point.
@@ -889,7 +889,7 @@ boolean P_TryMove(mobj_t *thing, fixed_t x, fixed_t y, boolean dropoff)
 			   (tmfloorz-tmdropoffz > 128*FRACUNIT || 
 			    !thing->target || thing->target->z >tmdropoffz)))
 	    {
-	      if (!monkeys || demo_version < 203 ?
+	      if (!monkeys || demo_version < DV_MBF ?
 		  tmfloorz - tmdropoffz > 24*FRACUNIT :
 		  thing->floorz  - tmfloorz > 24*FRACUNIT ||
 		  thing->dropoffz - tmdropoffz > 24*FRACUNIT)
@@ -1151,7 +1151,7 @@ static void P_HitSlideLine(line_t *ld)
 
   // killough 10/98: only bounce if hit hard (prevents wobbling)
 
-  if (demo_version >= 203)
+  if (demo_version >= DV_MBF)
   {
   icyfloor = 
      P_AproxDistance(tmxmove, tmymove) > 4*FRACUNIT &&
@@ -1362,7 +1362,7 @@ void P_SlideMove(mobj_t *mo)
 	    if (!P_TryMove(mo, mo->x + mo->momx, mo->y, true))
 	      // [FG] Compatibility bug in P_SlideMove
 	      // http://prboom.sourceforge.net/mbf-bugs.html
-	      if (demo_version == 201)
+	      if (demo_version == DV_BOOM201)
 		mo->momx = mo->momy = 0;
 
 	  break;
@@ -2132,7 +2132,7 @@ boolean P_CheckSector(sector_t *sector,boolean crunch)
   msecnode_t *n;
 
   // killough 10/98: sometimes use Doom's method
-  if (comp[comp_floors] && (demo_version >= 203 || demo_compatibility))
+  if (comp[comp_floors] && (demo_version >= DV_MBF || demo_compatibility))
     return P_ChangeSector(sector,crunch);
 
   nofit = false;

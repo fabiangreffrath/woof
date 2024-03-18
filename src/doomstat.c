@@ -62,7 +62,7 @@ overflow_t overflow[EMU_TOTAL] = {
   { true, false, "donut_overflow"}
 };
 
-int demo_version;           // killough 7/19/98: Boom version of demo
+demo_version_t demo_version;        // killough 7/19/98: Boom version of demo
 
 // v1.1-like pitched sounds
 int pitched_sounds;  // killough 10/98

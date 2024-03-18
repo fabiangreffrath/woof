@@ -1733,7 +1733,7 @@ static void WI_updateStats(void)
           // killough 2/22/98: Make secrets = 100% if maxsecret = 0:
           // [FG] Intermission screen secrets desync
           // http://prboom.sourceforge.net/mbf-bugs.html
-          if ((!wbs->maxsecret && demo_version < 203) ||
+          if ((!wbs->maxsecret && demo_version < DV_MBF) ||
               cnt_secret[0] >= (wbs->maxsecret ? 
                                 (plrs[me].ssecret * 100) / wbs->maxsecret : 100))
             {
@@ -1767,10 +1767,10 @@ static void WI_updateStats(void)
 
                 // This check affects demo compatibility with PrBoom+
                 if ((cnt_time >= plrs[me].stime / TICRATE) &&
-                    (demo_version < 203 || cnt_total_time >= wbs->totaltimes / TICRATE)
+                    (demo_version < DV_MBF || cnt_total_time >= wbs->totaltimes / TICRATE)
                    )
                   {
-                    if (demo_version < 203)
+                    if (demo_version < DV_MBF)
                       cnt_total_time = wbs->totaltimes / TICRATE;
                     S_StartSound(0, sfx_barexp);
                     sp_state++;
