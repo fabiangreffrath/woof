@@ -304,6 +304,11 @@ static boolean I_FL_InitStream(int device)
 static boolean I_FL_OpenStream(void *data, ALsizei size, ALenum *format,
                                ALsizei *freq, ALsizei *frame_size)
 {
+    if (!synth)
+    {
+        return false;
+    }
+
     int result = FLUID_FAILED;
 
     player = new_fluid_player(synth);
@@ -372,25 +377,29 @@ static int I_FL_FillStream(byte *buffer, int buffer_samples)
 
 static void I_FL_PlayStream(boolean looping)
 {
-    if (player)
+    if (!player)
     {
-        fluid_player_set_loop(player, looping ? -1 : 1);
-        fluid_player_play(player);
+        return;
     }
+
+    fluid_player_set_loop(player, looping ? -1 : 1);
+    fluid_player_play(player);
 }
 
 static void I_FL_CloseStream(void)
 {
-    if (player)
+    if (!player || !synth)
     {
-        fluid_player_stop(player);
-
-        fluid_synth_program_reset(synth);
-        fluid_synth_system_reset(synth);
-
-        delete_fluid_player(player);
-        player = NULL;
+        return;
     }
+
+    fluid_player_stop(player);
+
+    fluid_synth_program_reset(synth);
+    fluid_synth_system_reset(synth);
+
+    delete_fluid_player(player);
+    player = NULL;
 }
 
 static void I_FL_ShutdownStream(void)

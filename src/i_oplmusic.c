@@ -1503,6 +1503,11 @@ static midi_file_t *midifile;
 static boolean I_OPL_OpenStream(void *data, ALsizei size, ALenum *format,
                                 ALsizei *freq, ALsizei *frame_size)
 {
+    if (!music_initialized)
+    {
+        return false;
+    }
+
     // [crispy] remove MID file size limit
     if (IsMid(data, size) /* && size < MAXMIDLENGTH */)
     {
