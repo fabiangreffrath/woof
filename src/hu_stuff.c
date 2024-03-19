@@ -140,24 +140,26 @@ static hu_multiline_t w_rate;
 #define MAX_WIDGETS_D 5
 #define MAX_WIDGETS_B 12
 
+#define W_SECRET_Y ((SCREENHEIGHT - ST_HEIGHT) / 4)
+
 static hu_widget_t doom_widgets[MAX_HUDS][MAX_WIDGETS_D] = {
   {
     {&w_title,   align_direct, align_bottom, 0},
     {&w_message, align_direct, align_top,    0},
     {&w_chat,    align_direct, align_top,    0},
-    {&w_secret,  align_center, align_direct, 0, 42},
+    {&w_secret,  align_center, align_direct, 0, W_SECRET_Y},
     {NULL}
   }, {
     {&w_title,   align_direct, align_bottom, 0},
     {&w_message, align_direct, align_top,    0},
     {&w_chat,    align_direct, align_top,    0},
-    {&w_secret,  align_center, align_direct, 0, 42},
+    {&w_secret,  align_center, align_direct, 0, W_SECRET_Y},
     {NULL}
   }, {
     {&w_title,   align_direct, align_bottom, 0},
     {&w_message, align_direct, align_top,    0},
     {&w_chat,    align_direct, align_top,    0},
-    {&w_secret,  align_center, align_direct, 0, 42},
+    {&w_secret,  align_center, align_direct, 0, W_SECRET_Y},
     {NULL}
   }
 };
