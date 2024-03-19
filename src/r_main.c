@@ -480,7 +480,7 @@ void R_SmoothLight(void)
 
 int R_GetLightIndex(fixed_t scale)
 {
-  const int index = FixedDiv(scale * 160, lightfocallength) >> LIGHTSCALESHIFT;
+  const int index = ((int64_t)scale * (160 << FRACBITS) / lightfocallength) >> LIGHTSCALESHIFT;
   return BETWEEN(0, MAXLIGHTSCALE - 1, index);
 }
 
