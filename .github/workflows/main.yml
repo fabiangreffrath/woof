@@ -51,7 +51,7 @@ jobs:
             libsndfile1-dev \
             libfluidsynth-dev \
             libxmp-dev
-          sed -e 's/jammy/lunar/g' -i /etc/apt/sources.list
+          sudo sed -e 's/jammy/lunar/g' -i /etc/apt/sources.list /etc/apt/sources.list.d/*
           sudo apt-get update
           sudo apt-get install \
             libsndfile1-dev
