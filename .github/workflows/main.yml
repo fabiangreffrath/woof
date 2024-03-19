@@ -51,6 +51,11 @@ jobs:
             libsndfile1-dev \
             libfluidsynth-dev \
             libxmp-dev
+          sudo sed -e 's/jammy/lunar/g;s/22/23/g' -i /etc/apt/sources.list /etc/apt/sources.list.d/*
+          sudo apt-get update
+          sudo apt-get install \
+            libflac-dev \
+            libsndfile1-dev
 
       - name: Install dependencies (macOS)
         if: runner.os == 'macOS'
