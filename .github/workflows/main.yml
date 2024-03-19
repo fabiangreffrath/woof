@@ -39,6 +39,10 @@ jobs:
             msys-env: mingw-w64-ucrt-x86_64
 
     steps:
+      - name: Set up Homebrew
+        if: runner.os == 'Linux'
+        uses: Homebrew/actions/setup-homebrew@master
+
       - name: Install dependencies (Linux)
         if: runner.os == 'Linux'
         run: |
@@ -48,9 +52,10 @@ jobs:
             libsdl2-dev \
             libsdl2-net-dev \
             libopenal-dev \
-            libsndfile1-dev \
             libfluidsynth-dev \
             libxmp-dev
+          brew install \
+            libsndfile
 
       - name: Install dependencies (macOS)
         if: runner.os == 'macOS'
@@ -90,7 +95,6 @@ jobs:
           CC: ${{ matrix.config.compiler }}
         run: |
           cmake -B build -G Ninja -DCMAKE_BUILD_TYPE=Release \
-                -DCMAKE_INSTALL_PREFIX=/usr \
                 -DENABLE_WERROR=ON -DENABLE_HARDENING=ON -DENABLE_LTO=ON
 
       - name: Build
