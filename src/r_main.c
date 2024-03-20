@@ -293,7 +293,6 @@ static void R_InitTextureMapping(void)
     lightfocallength = centerxfrac_nonwide;
     projection = centerxfrac_nonwide;
     limit = FRACUNIT * 2;
-    skyiscale = FixedDiv(SCREENWIDTH, viewwidth_nonwide);
 
     if (centerxfrac != centerxfrac_nonwide)
     {
@@ -316,7 +315,6 @@ static void R_InitTextureMapping(void)
     focallength = FixedDiv(centerxfrac, slopefrac);
     projection = centerxfrac / slope;
     limit = slopefrac;
-    skyiscale = (slope * 160.0 / FIXED2DOUBLE(centerxfrac)) * FRACUNIT;
   }
 
   for (i=0 ; i<FINEANGLES/2 ; i++)
@@ -617,6 +615,8 @@ void R_ExecuteSetViewSize (void)
   //      fix garbage lines at the top of weapon sprites
   while (FixedMul(pspriteiscale, pspritescale) < FRACUNIT)
     pspriteiscale++;
+
+  skyiscale = FixedDiv(160 << FRACBITS, focallength);
 
   for (i=0 ; i<viewwidth ; i++)
     {
