@@ -274,7 +274,7 @@ static fixed_t centerxfrac_nonwide;
 static void R_InitTextureMapping(void)
 {
   register int i,x;
-  fixed_t slopefrac, limit;
+  fixed_t slopefrac;
   angle_t fov;
   double linearskyfactor;
 
@@ -285,20 +285,13 @@ static void R_InitTextureMapping(void)
   // Calc focallength
   //  so FIELDOFVIEW angles covers SCREENWIDTH.
 
-  if (custom_fov == FOV_DEFAULT)
+  if (custom_fov == FOV_DEFAULT && centerxfrac == centerxfrac_nonwide)
   {
     fov = FIELDOFVIEW;
     slopefrac = finetangent[FINEANGLES / 4 + fov / 2];
     focallength = FixedDiv(centerxfrac_nonwide, slopefrac);
     lightfocallength = centerxfrac_nonwide;
     projection = centerxfrac_nonwide;
-    limit = FRACUNIT * 2;
-
-    if (centerxfrac != centerxfrac_nonwide)
-    {
-      fov = atan((double)centerxfrac / centerxfrac_nonwide) * FINEANGLES / M_PI;
-      slopefrac = finetangent[FINEANGLES / 4 + fov / 2];
-    }
   }
   else
   {
@@ -314,16 +307,15 @@ static void R_InitTextureMapping(void)
     slopefrac = finetangent[FINEANGLES / 4 + fov / 2];
     focallength = FixedDiv(centerxfrac, slopefrac);
     projection = centerxfrac / slope;
-    limit = slopefrac;
   }
 
   for (i=0 ; i<FINEANGLES/2 ; i++)
     {
       int t;
-      if (finetangent[i] > limit)
+      if (finetangent[i] > slopefrac)
         t = -1;
       else
-        if (finetangent[i] < -limit)
+        if (finetangent[i] < -slopefrac)
           t = viewwidth+1;
       else
         {
