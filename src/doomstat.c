@@ -22,8 +22,8 @@
 
 // Game Mode - identify IWAD as shareware, retail etc.
 GameMode_t gamemode = indetermined;
-GameMission_t gamemission = doom;
-GameVariant_t gamevariant = vanilla;
+GameMission_t gamemission = none;
+GameVariant_t gamevariant = unknown_variant;
 
 // [FG] emulate a specific version of Doom
 GameVersion_t gameversion = exe_doom_1_9;
