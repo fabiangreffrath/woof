@@ -1290,9 +1290,9 @@ enum
     {80 /*SoundDef.x*/, 64 /*SoundDef.y*/ + LINEHEIGHT *(n), (16 + 2) * 8, 13}
 
 static menuitem_t SoundMenu[] = {
-    {2,  "M_SFXVOL", M_SfxVol,   's', "Sfx Volume", {},                           MF_THRM_STR},
+    {2,  "M_SFXVOL", M_SfxVol,   's', "Sfx Volume", {0},                           MF_THRM_STR},
     {-1, "",         NULL,       0,   NULL, THERMO_VOLUME_RECT(sfx_vol_thermo),   MF_THRM    },
-    {2,  "M_MUSVOL", M_MusicVol, 'm', "Music Volume", {},                         MF_THRM_STR},
+    {2,  "M_MUSVOL", M_MusicVol, 'm', "Music Volume", {0},                         MF_THRM_STR},
     {-1, "",         NULL,       0,   NULL, THERMO_VOLUME_RECT(music_vol_thermo), MF_THRM    },
 };
 
