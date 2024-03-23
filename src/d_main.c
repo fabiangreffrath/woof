@@ -1730,12 +1730,13 @@ static void D_AutoloadIWadDir()
     char *autoload_dir;
 
     // common auto-loaded files for all Doom flavors
-    if (gamemission < pack_chex &&
-        gamevariant == vanilla)
+    if (gamevariant)
     {
-      autoload_dir = GetAutoloadDir(*base, "doom-all", true);
+      char *all_dir = M_StringJoin(gamevariant, "-all", NULL);
+      autoload_dir = GetAutoloadDir(*base, all_dir, true);
       AutoLoadWADs(autoload_dir);
       free(autoload_dir);
+      free(all_dir);
     }
 
     // auto-loaded files per IWAD
@@ -1796,12 +1797,13 @@ static void D_AutoloadDehDir()
     char *autoload_dir;
 
     // common auto-loaded files for all Doom flavors
-    if (gamemission < pack_chex &&
-        gamevariant == vanilla)
+    if (gamevariant)
     {
-      autoload_dir = GetAutoloadDir(*base, "doom-all", true);
+      char *all_dir = M_StringJoin(gamevariant, "-all", NULL);
+      autoload_dir = GetAutoloadDir(*base, all_dir, true);
       AutoLoadPatches(autoload_dir);
       free(autoload_dir);
+      free(all_dir);
     }
 
     // auto-loaded files per IWAD

@@ -28,22 +28,22 @@
 #include "m_misc.h"
 
 static const iwad_t iwads[] = {
-    {"doom2.wad",     doom2,      commercial,   vanilla,  "Doom II"                   },
-    {"plutonia.wad",  pack_plut,  commercial,   vanilla,
-     "Final Doom: Plutonia Experiment"                                                },
-    {"tnt.wad",       pack_tnt,   commercial,   vanilla,  "Final Doom: TNT: Evilution"},
+    {"doom2.wad",     doom2,      commercial,   "doom",     "Doom II"                   },
+    {"plutonia.wad",  pack_plut,  commercial,   "doom",
+     "Final Doom: Plutonia Experiment"                                                  },
+    {"tnt.wad",       pack_tnt,   commercial,   "doom",     "Final Doom: TNT: Evilution"},
  // "doom.wad" may be retail or registered
-    {"doom.wad",      doom,       indetermined, vanilla,  "Doom"                      },
-    {"doom1.wad",     doom,       indetermined, vanilla,  "Doom Shareware"            },
-    {"doom2f.wad",    doom2,      commercial,   vanilla,  "Doom II: L'Enfer sur Terre"},
-    {"chex.wad",      pack_chex,  retail,       vanilla,  "Chex Quest"                },
-    {"hacx.wad",      pack_hacx,  commercial,   vanilla,  "Hacx"                      },
-    {"freedoom2.wad", doom2,      commercial,   freedoom, "Freedoom: Phase 2"         },
-    {"freedoom1.wad", doom,       retail,       freedoom, "Freedoom: Phase 1"         },
-    {"freedm.wad",    doom2,      commercial,   freedoom, "FreeDM"                    },
-    {"rekkrsa.wad",   pack_rekkr, retail,       vanilla,  "REKKR"                     },
-    {"rekkrsl.wad",   pack_rekkr, retail,       vanilla,  "REKKR: Sunken Land"        },
-    {"miniwad.wad",   doom2,      commercial,   miniwad,  "miniwad"                   }
+    {"doom.wad",      doom,       indetermined, "doom",     "Doom"                      },
+    {"doom1.wad",     doom,       indetermined, "doom",     "Doom Shareware"            },
+    {"doom2f.wad",    doom2,      commercial,   "doom",     "Doom II: L'Enfer sur Terre"},
+    {"chex.wad",      pack_chex,  retail,       NULL,       "Chex Quest"                },
+    {"hacx.wad",      pack_hacx,  commercial,   NULL,       "Hacx"                      },
+    {"freedoom2.wad", doom2,      commercial,   "freedoom", "Freedoom: Phase 2"         },
+    {"freedoom1.wad", doom,       retail,       "freedoom", "Freedoom: Phase 1"         },
+    {"freedm.wad",    doom2,      commercial,   "freedoom", "FreeDM"                    },
+    {"rekkrsa.wad",   pack_rekkr, retail,       NULL,       "REKKR"                     },
+    {"rekkrsl.wad",   pack_rekkr, retail,       NULL,       "REKKR: Sunken Land"        },
+    {"miniwad.wad",   doom2,      commercial,   NULL,       "miniwad"                   }
 };
 
 // "128 IWAD search directories should be enough for anybody".
@@ -728,7 +728,7 @@ char *D_TryFindWADByName(const char *filename)
 //
 
 char *D_FindIWADFile(GameMode_t *mode, GameMission_t *mission,
-                     GameVariant_t *variant)
+                     const char **variant)
 {
     char *result;
 
