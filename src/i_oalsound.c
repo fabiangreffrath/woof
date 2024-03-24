@@ -40,7 +40,7 @@
 #define OAL_MAP_UNITS_PER_METER (128.0f / 3.0f)
 #define OAL_SOURCE_RADIUS       32.0f
 #define OAL_DEFAULT_PITCH       1.0f
-#define OAL_NUM_ATTRIBS         5
+#define OAL_NUM_ATTRIBS         7
 
 #define DMXHDRSIZE              8
 #define DMXPADSIZE              16
@@ -58,6 +58,7 @@
 #endif
 
 int snd_resampler;
+boolean snd_limiter;
 boolean snd_hrtf;
 int snd_absorption;
 int snd_doppler;
@@ -420,6 +421,13 @@ static void GetAttribs(ALCint *attribs)
                               : ALC_STEREO_BASIC_SOFT;
     }
 #endif
+
+    if (alcIsExtensionPresent(oal->device, "ALC_SOFT_output_limiter")
+        == ALC_TRUE)
+    {
+        attribs[i++] = ALC_OUTPUT_LIMITER_SOFT;
+        attribs[i++] = snd_limiter ? ALC_TRUE : ALC_FALSE;
+    }
 }
 
 boolean I_OAL_InitSound(void)
