@@ -28,19 +28,19 @@
 #include "m_misc.h"
 
 static const iwad_t iwads[] = {
-    {"doom2.wad",     doom2,      commercial,   "doom",     "Doom II"                   },
-    {"plutonia.wad",  pack_plut,  commercial,   "doom",
+    {"doom2.wad",     doom2,      commercial,   "doom2",    "Doom II"                   },
+    {"plutonia.wad",  pack_plut,  commercial,   "doom2",
      "Final Doom: Plutonia Experiment"                                                  },
-    {"tnt.wad",       pack_tnt,   commercial,   "doom",     "Final Doom: TNT: Evilution"},
+    {"tnt.wad",       pack_tnt,   commercial,   "doom2",    "Final Doom: TNT: Evilution"},
  // "doom.wad" may be retail or registered
     {"doom.wad",      doom,       indetermined, "doom",     "Doom"                      },
     {"doom1.wad",     doom,       indetermined, "doom",     "Doom Shareware"            },
-    {"doom2f.wad",    doom2,      commercial,   "doom",     "Doom II: L'Enfer sur Terre"},
+    {"doom2f.wad",    doom2,      commercial,   "doom2",    "Doom II: L'Enfer sur Terre"},
     {"chex.wad",      pack_chex,  retail,       NULL,       "Chex Quest"                },
     {"hacx.wad",      pack_hacx,  commercial,   NULL,       "Hacx"                      },
-    {"freedoom2.wad", doom2,      commercial,   "freedoom", "Freedoom: Phase 2"         },
-    {"freedoom1.wad", doom,       retail,       "freedoom", "Freedoom: Phase 1"         },
-    {"freedm.wad",    doom2,      commercial,   "freedoom", "FreeDM"                    },
+    {"freedoom2.wad", doom2,      commercial,   NULL,       "Freedoom: Phase 2"         },
+    {"freedoom1.wad", doom,       retail,       NULL,       "Freedoom: Phase 1"         },
+    {"freedm.wad",    doom2,      commercial,   NULL,       "FreeDM"                    },
     {"rekkrsa.wad",   pack_rekkr, retail,       NULL,       "REKKR"                     },
     {"rekkrsl.wad",   pack_rekkr, retail,       NULL,       "REKKR: Sunken Land"        },
     {"miniwad.wad",   doom2,      commercial,   NULL,       "miniwad"                   }
