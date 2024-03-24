@@ -403,7 +403,6 @@ static void PrintDeviceInfo(ALCdevice *device)
 static void GetAttribs(ALCint **attribs)
 {
     const boolean use_3d = (snd_module == SND_MODULE_3D);
-    int i = 0;
 
     if (alcIsExtensionPresent(oal->device, "ALC_SOFT_HRTF") == ALC_TRUE)
     {
