@@ -424,6 +424,13 @@ default_t defaults[] = {
   },
 
   {
+    "snd_limiter",
+    (config_t *) &snd_limiter, NULL,
+    {0}, {0, 1}, number, ss_none, wad_no,
+    "1 to enable sound output limiter"
+  },
+
+  {
     "snd_module",
     (config_t *) &snd_module, NULL,
     {SND_MODULE_MBF}, {0, NUM_SND_MODULES - 1}, number, ss_gen, wad_no,
