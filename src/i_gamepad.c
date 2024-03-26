@@ -132,23 +132,39 @@ static void CalcExtraScale(axes_t *ax, float magnitude)
 // https://squircular.blogspot.com/2015/09/fg-squircle-mapping.html
 //
 
+#define MIN_C2S 0.000001f
+
 static void CircleToSquare(float *x, float *y)
 {
     const float u = *x;
     const float v = *y;
-    const float r2 = u * u + v * v;
-    const float uv = u * v;
-    const float sgnuv = SGNF(uv);
-    const float sqrto = sqrtf(0.5f * (r2 - sqrtf(r2 * (r2 - 4.0f * uv * uv))));
 
-    if (fabsf(u) > 0.000001f)
+    if (fabsf(u) > MIN_C2S && fabsf(v) > MIN_C2S)
     {
-        *y = sgnuv / u * sqrto;
-    }
+        const float uv = u * v;
+        const float sgnuv = SGNF(uv);
 
-    if (fabsf(v) > 0.000001f)
-    {
-        *x = sgnuv / v * sqrto;
+        if (sgnuv)
+        {
+            const float r2 = u * u + v * v;
+            const float rad = r2 * (r2 - 4.0f * uv * uv);
+
+            if (rad > 0.0f)
+            {
+                const float r2rad = 0.5f * (r2 - sqrtf(rad));
+
+                if (r2rad > 0.0f)
+                {
+                    const float sqrto = sqrtf(r2rad);
+
+                    *x = sgnuv / v * sqrto;
+                    *y = sgnuv / u * sqrto;
+
+                    *x = BETWEEN(-1.0f, 1.0f, *x);
+                    *y = BETWEEN(-1.0f, 1.0f, *y);
+                }
+            }
+        }
     }
 }
 
