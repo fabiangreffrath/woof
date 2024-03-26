@@ -26,6 +26,7 @@
 #include "doomdata.h"
 #include "doomdef.h"
 #include "doomstat.h"
+#include "g_game.h"
 #include "i_system.h"
 #include "info.h"
 #include "m_random.h"
@@ -971,6 +972,11 @@ static void saveg_read_player_t(player_t *str)
         str->oldpitch = 0;
         str->slope = 0;
         str->maxkilldiscount = 0;
+    }
+
+    if (!mouselook && !padlook)
+    {
+        str->centering = true;
     }
 }
 
