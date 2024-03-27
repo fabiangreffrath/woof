@@ -519,7 +519,10 @@ void HUlib_erase_widget (const hu_widget_t *const w)
   const hu_font_t *const f = *m->font;
 
   const int height = m->numlines * f->line_height;
-  const int y = vert_align_widget(w, m, f, w->h_align, w->v_align);
+  int y = vert_align_widget(w, m, f, w->h_align, w->v_align);
+
+  if (w->v_align == align_bottom)
+    y -= height;
 
   if (y > scaledviewy && y < scaledviewy + scaledviewheight - height)
   {
