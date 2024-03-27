@@ -1144,7 +1144,7 @@ void IdentifyVersion (void)
 
   // locate the IWAD and determine game mode from it
 
-  iwad = D_FindIWADFile(&gamemode, &gamemission, &gamevariant);
+  iwad = D_FindIWADFile(&gamemode, &gamemission);
 
   if (iwad && *iwad)
     {
@@ -1729,14 +1729,34 @@ static void D_AutoloadIWadDir()
   {
     char *autoload_dir;
 
+    autoload_dir = GetAutoloadDir(*base, "all-all", true);
+    AutoLoadWADs(autoload_dir);
+    free(autoload_dir);
+
+    GameMission_t local_gamemission = D_GetGameMissionByIWADName(M_BaseName(wadfiles[0]));
+
     // common auto-loaded files for all Doom flavors
-    if (gamemission < pack_chex &&
-        gamevariant != freedoom &&
-        gamevariant != miniwad)
+    if (local_gamemission != none)
     {
-      autoload_dir = GetAutoloadDir(*base, "doom-all", true);
-      AutoLoadWADs(autoload_dir);
-      free(autoload_dir);
+      if (local_gamemission < pack_chex)
+      {
+        autoload_dir = GetAutoloadDir(*base, "doom-all", true);
+        AutoLoadWADs(autoload_dir);
+        free(autoload_dir);
+      }
+
+      if (local_gamemission == doom)
+      {
+        autoload_dir = GetAutoloadDir(*base, "doom1-all", true);
+        AutoLoadWADs(autoload_dir);
+        free(autoload_dir);
+      }
+      else if (local_gamemission >= doom2 && local_gamemission <= pack_plut)
+      {
+        autoload_dir = GetAutoloadDir(*base, "doom2-all", true);
+        AutoLoadWADs(autoload_dir);
+        free(autoload_dir);
+      }
     }
 
     // auto-loaded files per IWAD
@@ -1796,14 +1816,34 @@ static void D_AutoloadDehDir()
   {
     char *autoload_dir;
 
+    autoload_dir = GetAutoloadDir(*base, "all-all", true);
+    AutoLoadPatches(autoload_dir);
+    free(autoload_dir);
+
+    GameMission_t local_gamemission = D_GetGameMissionByIWADName(M_BaseName(wadfiles[0]));
+
     // common auto-loaded files for all Doom flavors
-    if (gamemission < pack_chex &&
-        gamevariant != freedoom &&
-        gamevariant != miniwad)
+    if (local_gamemission != none)
     {
-      autoload_dir = GetAutoloadDir(*base, "doom-all", true);
-      AutoLoadPatches(autoload_dir);
-      free(autoload_dir);
+      if (local_gamemission < pack_chex)
+      {
+        autoload_dir = GetAutoloadDir(*base, "doom-all", true);
+        AutoLoadPatches(autoload_dir);
+        free(autoload_dir);
+      }
+
+      if (local_gamemission == doom)
+      {
+        autoload_dir = GetAutoloadDir(*base, "doom1-all", true);
+        AutoLoadPatches(autoload_dir);
+        free(autoload_dir);
+      }
+      else if (local_gamemission >= doom2 && local_gamemission <= pack_plut)
+      {
+        autoload_dir = GetAutoloadDir(*base, "doom2-all", true);
+        AutoLoadPatches(autoload_dir);
+        free(autoload_dir);
+      }
     }
 
     // auto-loaded files per IWAD
