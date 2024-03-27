@@ -40,15 +40,9 @@ typedef enum {
   pack_chex,    // Chex Quest
   pack_hacx,    // Hacx
   pack_rekkr,   // Rekkr
+  pack_freedoom, // Freedoom
   none
 } GameMission_t;
-
-typedef enum
-{
-    vanilla,    // Vanilla Doom
-    freedoom,   // FreeDoom: Phase 1 + 2 and FreeDM
-    miniwad     // miniwad
-} GameVariant_t;
 
 // Identify language to use, software localization.
 typedef enum {
