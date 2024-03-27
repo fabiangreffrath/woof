@@ -586,8 +586,12 @@ signed int TXT_GetChar(void)
                     return 0;
                 }
 
-            default:
+            case SDL_CONTROLLERDEVICEADDED:
+            case SDL_CONTROLLERDEVICEREMOVED:
                 SDL_PushEvent(&ev);
+                break;
+
+            default:
                 break;
         }
     }
