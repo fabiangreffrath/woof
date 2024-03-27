@@ -43,12 +43,11 @@
 //  and the total size == width*height*depth/8.,
 //
 
-byte *viewimage; 
-int  viewwidth;
 int  scaledviewwidth;
 int  scaledviewheight;        // killough 11/98
 int  scaledviewx;
 int  scaledviewy;
+int  viewwidth;
 int  viewheight;
 int  viewwindowx;
 int  viewwindowy; 
