@@ -40,7 +40,6 @@ typedef enum {
   pack_chex,    // Chex Quest
   pack_hacx,    // Hacx
   pack_rekkr,   // Rekkr
-  pack_freedoom, // Freedoom
   none
 } GameMission_t;
 
