@@ -526,6 +526,9 @@ void HUlib_erase_widget (const hu_widget_t *const w)
     y = vert_align_widget(w, m, f, w->h_align, w->v_align);
   }
 
+  if (w->v_align == align_top)
+    y -= height;
+
   if (y > scaledviewy && y < scaledviewy + scaledviewheight - height)
   {
     R_VideoErase(0, y, scaledviewx, height);
