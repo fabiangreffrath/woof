@@ -23,7 +23,7 @@
 typedef struct midi_file_s midi_file_t;
 typedef struct midi_track_iter_s midi_track_iter_t;
 
-#define MIDI_CHANNELS_PER_TRACK 16
+#define MIDI_CHANNELS_PER_TRACK      16
 
 #define MIDI_RPN_MSB                 0x00
 #define MIDI_RPN_PITCH_BEND_SENS_LSB 0x00
@@ -83,24 +83,24 @@ typedef enum
 
 typedef enum
 {
-    MIDI_META_SEQUENCE_NUMBER       = 0x00,
+    MIDI_META_SEQUENCE_NUMBER    = 0x00,
 
-    MIDI_META_TEXT                  = 0x01,
-    MIDI_META_COPYRIGHT             = 0x02,
-    MIDI_META_TRACK_NAME            = 0x03,
-    MIDI_META_INSTR_NAME            = 0x04,
-    MIDI_META_LYRICS                = 0x05,
-    MIDI_META_MARKER                = 0x06,
-    MIDI_META_CUE_POINT             = 0x07,
+    MIDI_META_TEXT               = 0x01,
+    MIDI_META_COPYRIGHT          = 0x02,
+    MIDI_META_TRACK_NAME         = 0x03,
+    MIDI_META_INSTR_NAME         = 0x04,
+    MIDI_META_LYRICS             = 0x05,
+    MIDI_META_MARKER             = 0x06,
+    MIDI_META_CUE_POINT          = 0x07,
 
-    MIDI_META_CHANNEL_PREFIX        = 0x20,
-    MIDI_META_END_OF_TRACK          = 0x2F,
+    MIDI_META_CHANNEL_PREFIX     = 0x20,
+    MIDI_META_END_OF_TRACK       = 0x2F,
 
-    MIDI_META_SET_TEMPO             = 0x51,
-    MIDI_META_SMPTE_OFFSET          = 0x54,
-    MIDI_META_TIME_SIGNATURE        = 0x58,
-    MIDI_META_KEY_SIGNATURE         = 0x59,
-    MIDI_META_SEQUENCER_SPECIFIC    = 0x7F,
+    MIDI_META_SET_TEMPO          = 0x51,
+    MIDI_META_SMPTE_OFFSET       = 0x54,
+    MIDI_META_TIME_SIGNATURE     = 0x58,
+    MIDI_META_KEY_SIGNATURE      = 0x59,
+    MIDI_META_SEQUENCER_SPECIFIC = 0x7F,
 } midi_meta_event_type_t;
 
 #define EMIDI_LOOP_FLAG 0x7F
@@ -231,4 +231,3 @@ void MIDI_SetLoopPoint(midi_track_iter_t *iter);
 void MIDI_RestartAtLoopPoint(midi_track_iter_t *iter);
 
 #endif /* #ifndef MIDIFILE_H */
-

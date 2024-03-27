@@ -40,7 +40,7 @@
 #include "m_cheat.h"
 #include "m_fixed.h"
 #include "m_io.h"
-#include "m_misc2.h"
+#include "m_misc.h"
 #include "memio.h"
 #include "p_action.h"
 #include "p_inter.h"
@@ -3320,7 +3320,10 @@ boolean deh_GetData(char *s, char *k, long *l, char **strval, FILE *fpout)
       if (*t == '=') break;
       buffer[i] = *t;  // copy it
     }
-  buffer[--i] = '\0';  // terminate the key before the '='
+  if (i > 0)
+    {
+      buffer[--i] = '\0';  // terminate the key before the '='
+    }
   if (!*t)  // end of string with no equal sign
     {
       okrc = false;

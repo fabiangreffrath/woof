@@ -99,6 +99,17 @@ if(ENABLE_ASAN)
     _checked_add_link_option(-fsanitize=address)
 endif()
 
+option(ENABLE_TSAN "Enable TSan" OFF)
+if(ENABLE_TSAN)
+    # Set -Werror to catch "argument unused during compilation" warnings.
+    # Also needs to be a link flag for test to pass.
+    set(CMAKE_REQUIRED_FLAGS "-Werror -fsanitize=thread")
+    _checked_add_compile_option(-g)
+    _checked_add_compile_option(-fsanitize=thread)
+    unset(CMAKE_REQUIRED_FLAGS)
+    _checked_add_link_option(-fsanitize=thread)
+endif()
+
 option(ENABLE_HARDENING "Enable hardening flags" OFF)
 if(ENABLE_HARDENING)
     _checked_add_compile_option(-fstack-protector-strong)

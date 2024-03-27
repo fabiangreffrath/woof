@@ -481,7 +481,7 @@ void R_SmoothLight(void)
 
 int R_GetLightIndex(fixed_t scale)
 {
-  const int index = FixedDiv(scale * 160, lightfocallength) >> LIGHTSCALESHIFT;
+  const int index = ((int64_t)scale * (160 << FRACBITS) / lightfocallength) >> LIGHTSCALESHIFT;
   return BETWEEN(0, MAXLIGHTSCALE - 1, index);
 }
 
@@ -609,7 +609,14 @@ void R_ExecuteSetViewSize (void)
   while (FixedMul(pspriteiscale, pspritescale) < FRACUNIT)
     pspriteiscale++;
 
-  skyiscale = FixedDiv(160 << FRACBITS, focallength);
+  if (custom_fov == FOV_DEFAULT)
+  {
+    skyiscale = FixedDiv(SCREENWIDTH, viewwidth_nonwide);
+  }
+  else
+  {
+    skyiscale = tan(custom_fov * M_PI / 360.0) * SCREENWIDTH / viewwidth_nonwide * FRACUNIT;
+  }
 
   for (i=0 ; i<viewwidth ; i++)
     {
@@ -627,7 +634,7 @@ void R_ExecuteSetViewSize (void)
 
       for (j=0 ; j<MAXLIGHTSCALE ; j++)
         {                                       // killough 11/98:
-          int t, level = startmap - j*NONWIDEWIDTH/scaledviewwidth_nonwide/DISTMAP;
+          int t, level = startmap - j / DISTMAP;
 
           if (level < 0)
             level = 0;

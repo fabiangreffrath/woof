@@ -23,6 +23,7 @@
 #include "i_gamepad.h"
 #include "i_printf.h"
 #include "i_system.h"
+#include "r_main.h"
 
 #define AXIS_BUTTON_DEADZONE (SDL_JOYSTICK_AXIS_MAX / 3)
 
@@ -38,41 +39,45 @@ static int GetAxisState(int axis)
 
 static void AxisToButton(int value, int *state, int direction)
 {
-  int button = -1;
+    int button = -1;
 
-  if (value < AXIS_BUTTON_DEADZONE && value > -AXIS_BUTTON_DEADZONE)
-  {
-    value = 0;
-  }
-
-  if (value < 0)
-    button = direction;
-  else if (value > 0)
-    button = direction + 1;
-
-  if (button != *state)
-  {
-    if (*state != -1)
+    if (value < AXIS_BUTTON_DEADZONE && value > -AXIS_BUTTON_DEADZONE)
     {
-        static event_t up;
-        up.data1 = *state;
-        up.type = ev_joyb_up;
-        D_PostEvent(&up);
+        value = 0;
     }
 
-    if (button != -1)
+    if (value < 0)
     {
-        static event_t down;
-        down.data1 = button;
-        down.type = ev_joyb_down;
-        D_PostEvent(&down);
+        button = direction;
+    }
+    else if (value > 0)
+    {
+        button = direction + 1;
     }
 
-    *state = button;
-  }
+    if (button != *state)
+    {
+        if (*state != -1)
+        {
+            static event_t up;
+            up.data1 = *state;
+            up.type = ev_joyb_up;
+            D_PostEvent(&up);
+        }
+
+        if (button != -1)
+        {
+            static event_t down;
+            down.data1 = button;
+            down.type = ev_joyb_down;
+            D_PostEvent(&down);
+        }
+
+        *state = button;
+    }
 }
 
-static int axisbuttons[] = { -1, -1, -1, -1 };
+static int axisbuttons[] = {-1, -1, -1, -1};
 
 static void AxisToButtons(event_t *ev)
 {
@@ -258,15 +263,18 @@ void I_OpenController(int which)
         if (controller)
         {
             controller_index = which;
-            I_Printf(VB_INFO, "I_OpenController: Found a valid game controller, named: %s",
-                    SDL_GameControllerName(controller));
+            I_Printf(VB_INFO,
+                     "I_OpenController: Found a valid game controller"
+                     ", named: %s",
+                     SDL_GameControllerName(controller));
         }
     }
 
     if (controller == NULL)
     {
-        I_Printf(VB_ERROR, "I_OpenController: Could not open game controller %i: %s",
-                which, SDL_GetError());
+        I_Printf(VB_ERROR,
+                 "I_OpenController: Could not open game controller %i: %s",
+                 which, SDL_GetError());
     }
 
     I_ResetController();
@@ -352,7 +360,8 @@ static int TranslateKey(int scancode)
     }
 }
 
-static void UpdateMouseButtonState(unsigned int button, boolean on, unsigned int dclick)
+static void UpdateMouseButtonState(unsigned int button, boolean on,
+                                   unsigned int dclick)
 {
     static event_t event;
 
@@ -411,11 +420,11 @@ static void MapMouseWheelToButtons(SDL_MouseWheelEvent wheel)
     int button;
 
     if (wheel.y < 0)
-    {   // scroll down
+    {
         button = MOUSE_BUTTON_WHEELDOWN;
     }
-    else if (wheel.y >0)
-    {   // scroll up
+    else if (wheel.y > 0)
+    {
         button = MOUSE_BUTTON_WHEELUP;
     }
     else if (wheel.x < 0)
@@ -463,22 +472,47 @@ void I_DelayEvent(void)
 int mouse_acceleration;
 int mouse_acceleration_threshold;
 
-double I_AccelerateMouse(int val)
+static double AccelerateMouse_Thresh(int val)
 {
-    if (!mouse_acceleration)
-        return val;
-
     if (val < 0)
-        return -I_AccelerateMouse(-val);
+    {
+        return -AccelerateMouse_Thresh(-val);
+    }
 
     if (val > mouse_acceleration_threshold)
     {
-        return ((double)(val - mouse_acceleration_threshold) *
-                (mouse_acceleration + 10) / 10 + mouse_acceleration_threshold);
+        return ((double)(val - mouse_acceleration_threshold)
+                    * (mouse_acceleration + 10) / 10
+                + mouse_acceleration_threshold);
     }
     else
     {
         return val;
+    }
+}
+
+static double AccelerateMouse_NoThresh(int val)
+{
+    return ((double)val * (mouse_acceleration + 10) / 10);
+}
+
+static double AccelerateMouse_Skip(int val)
+{
+    return val;
+}
+
+double (*I_AccelerateMouse)(int val) = AccelerateMouse_NoThresh;
+
+void I_UpdateAccelerateMouse(void)
+{
+    if (mouse_acceleration)
+    {
+        I_AccelerateMouse =
+            raw_input ? AccelerateMouse_NoThresh : AccelerateMouse_Thresh;
+    }
+    else
+    {
+        I_AccelerateMouse = AccelerateMouse_Skip;
     }
 }
 
@@ -505,7 +539,8 @@ void I_HandleMouseEvent(SDL_Event *sdlevent)
     switch (sdlevent->type)
     {
         case SDL_MOUSEBUTTONDOWN:
-            UpdateMouseButtonState(sdlevent->button.button, true, sdlevent->button.clicks);
+            UpdateMouseButtonState(sdlevent->button.button, true,
+                                   sdlevent->button.clicks);
             break;
 
         case SDL_MOUSEBUTTONUP:

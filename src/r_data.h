@@ -47,9 +47,13 @@ int R_ColormapNumForName(const char *name);      // killough 4/4/98
 
 void R_InitColormaps(void);   // killough 8/9/98
 
+void R_InvulMode(void);
+
 boolean R_IsPatchLump (const int lump);
 
 extern byte *main_tranmap, *tranmap;
+
+extern int tran_filter_pct;
 
 #endif
 

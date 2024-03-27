@@ -30,8 +30,8 @@
 #include "hu_stuff.h"
 #include "i_video.h"
 #include "m_input.h"
-#include "m_menu.h"
-#include "m_misc2.h"
+#include "mn_menu.h"
+#include "m_misc.h"
 #include "p_maputl.h"
 #include "p_mobj.h"
 #include "p_setup.h"
@@ -77,7 +77,7 @@ int mapcolor_enemy;   // enemy sprite color
 //jff 3/9/98 add option to not show secret sectors until entered
 int map_secret_after;
 
-int map_keyed_door_flash; // keyed doors are flashing
+int map_keyed_door; // keyed doors are colored or flashing
 
 int map_smooth_lines;
 
@@ -604,11 +604,18 @@ static void AM_initScreenSize(void)
 
 void AM_ResetScreenSize(void)
 {
-  AM_saveScaleAndLoc();
+  int old_h = f_h;
 
   AM_initScreenSize();
 
-  AM_restoreScaleAndLoc();
+  if (f_h != old_h)
+  {
+    // Change the scaling multipliers
+    scale_mtof = FixedDiv(f_w << FRACBITS, m_w);
+    scale_ftom = FixedDiv(FRACUNIT, scale_mtof);
+  }
+
+  AM_activateNewScale();
 }
 
 //
@@ -1543,6 +1550,11 @@ static void AM_drawGrid(int color)
 //
 static int AM_DoorColor(int type)
 {
+  if (map_keyed_door == MAP_KEYED_DOOR_OFF)
+  {
+    return -1;
+  }
+
   if (GenLockedBase <= type && type< GenDoorBase)
   {
     type -= GenLockedBase;
@@ -1589,7 +1601,7 @@ static void AM_drawWalls(void)
   int i;
   static mline_t l;
 
-  const boolean keyed_door_flash = map_keyed_door_flash && (leveltime & 16);
+  const boolean keyed_door_flash = (map_keyed_door == MAP_KEYED_DOOR_FLASH) && (leveltime & 16);
 
   // draw the unclipped visible portions of all lines
   for (i=0;i<numlines;i++)
@@ -2240,7 +2252,7 @@ void AM_Drawer (void)
     pspr_interp = false;
   }
   // [Alaux] Dark automap overlay
-  else if (automapoverlay == AM_OVERLAY_DARK && !M_MenuIsShaded())
+  else if (automapoverlay == AM_OVERLAY_DARK && !MN_MenuIsShaded())
     V_ShadeScreen();
 
   if (automap_grid)                  // killough 2/28/98: change var name

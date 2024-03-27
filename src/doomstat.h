@@ -93,14 +93,26 @@ typedef struct {
 
 extern overflow_t overflow[EMU_TOTAL];
 
-extern int demo_version;           // killough 7/19/98: Version of demo
+typedef enum {
+  DV_NONE    = -1,
+  DV_VANILLA = 109,
+  DV_LONGTIC = 111,
+  DV_BOOM200 = 200,
+  DV_BOOM201 = 201,
+  DV_BOOM    = 202,
+  DV_MBF     = 203,
+  DV_MBF21   = 221,
+  DV_UM      = 255,
+} demo_version_t;
+
+extern demo_version_t demo_version;           // killough 7/19/98: Version of demo
 
 // Only true when playing back an old demo -- used only in "corner cases"
 // which break playback but are otherwise unnoticable or are just desirable:
 
-#define demo_compatibility (demo_version < 200) /* killough 11/98: macroized */
+#define demo_compatibility (demo_version < DV_BOOM200) /* killough 11/98: macroized */
 
-#define mbf21 (demo_version == 221)
+#define mbf21 (demo_version == DV_MBF21)
 
 // killough 7/19/98: whether monsters should fight against each other
 extern int monster_infighting, default_monster_infighting;
@@ -161,6 +173,15 @@ enum {
 };
 
 extern int comp[COMP_TOTAL], default_comp[COMP_TOTAL];
+
+typedef enum
+{
+  INVUL_VANILLA,
+  INVUL_MBF,
+  INVUL_GRAY,
+} invul_mode_t;
+
+extern invul_mode_t invul_mode;
 
 // -------------------------------------------
 // Language.
@@ -310,6 +331,7 @@ extern  int       playback_skiptics;
 extern  boolean   frozen_mode;
 
 extern  boolean   strictmode, default_strictmode;
+extern  boolean   force_strictmode;
 
 #define STRICTMODE(x) (strictmode ? 0 : (x))
 
@@ -439,7 +461,8 @@ extern boolean hide_weapon;
 // [FG] centered weapon sprite
 extern int center_weapon;
 
-extern int cosmetic_bobbing;
+extern int view_bobbing_pct;
+extern int weapon_bobbing_pct;
 
 // Doom-style printf
 

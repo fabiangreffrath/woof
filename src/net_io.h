@@ -58,5 +58,4 @@ void NET_ReleaseAddress(net_addr_t *addr);
 // caller when it is no longer needed.
 net_addr_t *NET_ResolveAddress(net_context_t *context, const char *address);
 
-#endif  /* #ifndef NET_IO_H */
-
+#endif /* #ifndef NET_IO_H */

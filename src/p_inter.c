@@ -593,7 +593,7 @@ void P_TouchSpecialThing(mobj_t *special, mobj_t *toucher)
     case SPR_BFUG:
       if (!P_GiveWeapon (player, wp_bfg, false) )
         return;
-      if (classic_bfg || beta_emulation)
+      if (STRICTMODE(classic_bfg) || beta_emulation)
         pickupmsg(player, "You got the BFG2704!  Oh, yes."); // killough 8/9/98: beta BFG
       else
         pickupmsg(player, "%s", s_GOTBFG9000); // Ty 03/22/98 - externalized
@@ -727,7 +727,7 @@ static void P_KillMobj(mobj_t *source, mobj_t *target, method_t mod)
 
             if (playerscount)
             {
-              if (demo_version >= 203)
+              if (demo_version >= DV_MBF)
                 i = P_Random(pr_friends) % playerscount;
               else
                 i = Woof_Random() % playerscount;
@@ -936,7 +936,7 @@ void P_DamageMobjBy(mobj_t *target,mobj_t *inflictor, mobj_t *source, int damage
     }
 
   // killough 9/7/98: keep track of targets so that friends can help friends
-  if (demo_version >= 203)
+  if (demo_version >= DV_MBF)
     {
       // If target is a player, set player's target to source,
       // so that a friend can tell who's hurting a player
@@ -969,7 +969,7 @@ void P_DamageMobjBy(mobj_t *target,mobj_t *inflictor, mobj_t *source, int damage
   if (source && source != target && !(source->flags2 & MF2_DMGIGNORED) &&
       (!target->threshold || target->flags2 & MF2_NOTHRESHOLD) &&
       ((source->flags ^ target->flags) & MF_FRIEND || 
-       monster_infighting || demo_version < 203) &&
+       monster_infighting || demo_version < DV_MBF) &&
       !P_InfightingImmune(target, source))
     {
       // if not intent on another player, chase after this one
@@ -979,7 +979,7 @@ void P_DamageMobjBy(mobj_t *target,mobj_t *inflictor, mobj_t *source, int damage
       // killough 9/9/98: cleaned up, made more consistent:
 
       if (!target->lastenemy || target->lastenemy->health <= 0 ||
-	  (demo_version < 203 ? !target->lastenemy->player :
+	  (demo_version < DV_MBF ? !target->lastenemy->player :
 	   !((target->flags ^ target->lastenemy->flags) & MF_FRIEND) &&
 	   target->target != source)) // remember last enemy - killough
 	P_SetTarget(&target->lastenemy, target->target);

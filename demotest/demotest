@@ -4,7 +4,7 @@ import sys
 import shutil
 import subprocess
 import urllib.request
-from pathlib import Path
+from pathlib import Path, PurePath, PureWindowsPath
 from zipfile import ZipFile
 from argparse import ArgumentParser
 
@@ -87,7 +87,10 @@ def compare_output(record):
     return True
 
 def run_program(args):
-    source_port = Path(args.source_port).resolve()
+    source_port = PurePath(args.source_port)
+    if type(source_port) is PureWindowsPath:
+        source_port = source_port.with_suffix('.exe')
+    source_port = Path(source_port).resolve()
     if not source_port.exists():
         sys.exit("Doom port is not found.")
 

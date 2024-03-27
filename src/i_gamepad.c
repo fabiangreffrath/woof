@@ -18,6 +18,7 @@
 
 #include <math.h>
 
+#include "d_event.h"
 #include "doomkeys.h"
 #include "doomtype.h"
 #include "g_game.h"
@@ -51,7 +52,7 @@ boolean joy_invert_strafe;
 boolean joy_invert_turn;
 boolean joy_invert_look;
 
-int *axes_data[NUM_AXES];
+static int *axes_data[NUM_AXES]; // Pointers to ev_joystick event data.
 float axes[NUM_AXES];
 int trigger_threshold;
 
@@ -131,23 +132,39 @@ static void CalcExtraScale(axes_t *ax, float magnitude)
 // https://squircular.blogspot.com/2015/09/fg-squircle-mapping.html
 //
 
+#define MIN_C2S 0.000001f
+
 static void CircleToSquare(float *x, float *y)
 {
     const float u = *x;
     const float v = *y;
-    const float r2 = u * u + v * v;
-    const float uv = u * v;
-    const float sgnuv = SGNF(uv);
-    const float sqrto = sqrtf(0.5f * (r2 - sqrtf(r2 * (r2 - 4.0f * uv * uv))));
 
-    if (fabsf(u) > 0.000001f)
+    if (fabsf(u) > MIN_C2S && fabsf(v) > MIN_C2S)
     {
-        *y = sgnuv / u * sqrto;
-    }
+        const float uv = u * v;
+        const float sgnuv = SGNF(uv);
 
-    if (fabsf(v) > 0.000001f)
-    {
-        *x = sgnuv / v * sqrto;
+        if (sgnuv)
+        {
+            const float r2 = u * u + v * v;
+            const float rad = r2 * (r2 - 4.0f * uv * uv);
+
+            if (rad > 0.0f)
+            {
+                const float r2rad = 0.5f * (r2 - sqrtf(rad));
+
+                if (r2rad > 0.0f)
+                {
+                    const float sqrto = sqrtf(r2rad);
+
+                    *x = sgnuv / v * sqrto;
+                    *y = sgnuv / u * sqrto;
+
+                    *x = BETWEEN(-1.0f, 1.0f, *x);
+                    *y = BETWEEN(-1.0f, 1.0f, *y);
+                }
+            }
+        }
     }
 }
 
@@ -260,8 +277,10 @@ static void CalcRadial(axes_t *ax, float *xaxis, float *yaxis)
 static void (*CalcMovement)(axes_t *ax, float *xaxis, float *yaxis);
 static void (*CalcCamera)(axes_t *ax, float *xaxis, float *yaxis);
 
-void I_CalcControllerAxes(void)
+boolean I_CalcControllerAxes(void)
 {
+    boolean camera_update = false;
+
     if (movement.x.data || movement.y.data)
     {
         CalcMovement(&movement, &axes[AXIS_STRAFE], &axes[AXIS_FORWARD]);
@@ -281,7 +300,19 @@ void I_CalcControllerAxes(void)
 
         camera.x.data = 0;
         camera.y.data = 0;
+
+        camera_update = true;
     }
+
+    return camera_update;
+}
+
+void I_UpdateAxesData(const event_t *ev)
+{
+    *axes_data[AXIS_LEFTX] = ev->data1;
+    *axes_data[AXIS_LEFTY] = ev->data2;
+    *axes_data[AXIS_RIGHTX] = ev->data3;
+    *axes_data[AXIS_RIGHTY] = ev->data4;
 }
 
 void I_ResetControllerAxes(void)

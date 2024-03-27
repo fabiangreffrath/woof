@@ -15,9 +15,9 @@
 //    PC speaker interface.
 //
 
+#include "SDL.h"
 #include "al.h"
 #include "alext.h"
-#include "SDL.h"
 
 #include "doomstat.h"
 #include "doomtype.h"
@@ -25,7 +25,7 @@
 #include "i_printf.h"
 #include "i_sound.h"
 #include "m_fixed.h"
-#include "m_misc2.h"
+#include "m_misc.h"
 #include "p_mobj.h"
 #include "sounds.h"
 #include "w_wad.h"
@@ -36,9 +36,9 @@
 // still needs to use a normal cast and live with the warning (C++ is fine with
 // a regular reinterpret_cast).
 #if __STDC_VERSION__ >= 199901L
-#define FUNCTION_CAST(T, ptr) (union{void *p; T f;}){ptr}.f
+#  define FUNCTION_CAST(T, ptr) (union{void *p; T f;}){ptr}.f
 #else
-#define FUNCTION_CAST(T, ptr) (T)(ptr)
+#  define FUNCTION_CAST(T, ptr) (T)(ptr)
 #endif
 
 static LPALBUFFERCALLBACKSOFT alBufferCallbackSOFT;
@@ -66,24 +66,19 @@ static uint8_t *current_sound_pos = NULL;
 static unsigned int current_sound_remaining = 0;
 static int current_sound_handle = 0;
 
-static const uint16_t divisors[] = {
-    0,
-    6818, 6628, 6449, 6279, 6087, 5906, 5736, 5575,
-    5423, 5279, 5120, 4971, 4830, 4697, 4554, 4435,
-    4307, 4186, 4058, 3950, 3836, 3728, 3615, 3519,
-    3418, 3323, 3224, 3131, 3043, 2960, 2875, 2794,
-    2711, 2633, 2560, 2485, 2415, 2348, 2281, 2213,
-    2153, 2089, 2032, 1975, 1918, 1864, 1810, 1757,
-    1709, 1659, 1612, 1565, 1521, 1478, 1435, 1395,
-    1355, 1316, 1280, 1242, 1207, 1173, 1140, 1107,
-    1075, 1045, 1015,  986,  959,  931,  905,  879,
-     854,  829,  806,  783,  760,  739,  718,  697,
-     677,  658,  640,  621,  604,  586,  570,  553,
-     538,  522,  507,  493,  479,  465,  452,  439,
-     427,  415,  403,  391,  380,  369,  359,  348,
-     339,  329,  319,  310,  302,  293,  285,  276,
-     269,  261,  253,  246,  239,  232,  226,  219,
-     213,  207,  201,  195,  190,  184,  179,
+static const uint16_t divisors[] =
+{
+    0,    6818, 6628, 6449, 6279, 6087, 5906, 5736, 5575, 5423, 5279, 5120,
+    4971, 4830, 4697, 4554, 4435, 4307, 4186, 4058, 3950, 3836, 3728, 3615,
+    3519, 3418, 3323, 3224, 3131, 3043, 2960, 2875, 2794, 2711, 2633, 2560,
+    2485, 2415, 2348, 2281, 2213, 2153, 2089, 2032, 1975, 1918, 1864, 1810,
+    1757, 1709, 1659, 1612, 1565, 1521, 1478, 1435, 1395, 1355, 1316, 1280,
+    1242, 1207, 1173, 1140, 1107, 1075, 1045, 1015, 986,  959,  931,  905,
+    879,  854,  829,  806,  783,  760,  739,  718,  697,  677,  658,  640,
+    621,  604,  586,  570,  553,  538,  522,  507,  493,  479,  465,  452,
+    439,  427,  415,  403,  391,  380,  369,  359,  348,  339,  329,  319,
+    310,  302,  293,  285,  276,  269,  261,  253,  246,  239,  232,  226,
+    219,  213,  207,  201,  195,  190,  184,  179,
 };
 
 static void GetFreq(int *duration, int *freq)
@@ -104,7 +99,7 @@ static void GetFreq(int *duration, int *freq)
 
         if (tone < arrlen(divisors) && divisors[tone] != 0)
         {
-            *freq = (int) (TIMER_FREQ / divisors[tone]);
+            *freq = (int)(TIMER_FREQ / divisors[tone]);
         }
         else
         {
@@ -138,7 +133,7 @@ static boolean CachePCSLump(sfxinfo_t *sfxinfo)
     int headerlen;
 
     // Free the current sound lump back to the cache
- 
+
     if (current_sound_lump != NULL)
     {
         Z_Free(current_sound_lump);
@@ -178,7 +173,7 @@ static boolean CachePCSLump(sfxinfo_t *sfxinfo)
     return true;
 }
 
-// These Doom PC speaker sounds are not played - this can be seen in the 
+// These Doom PC speaker sounds are not played - this can be seen in the
 // Heretic source code, where there are remnants of this left over
 // from Doom.
 
@@ -186,12 +181,7 @@ static boolean IsDisabledSound(sfxinfo_t *sfxinfo)
 {
     int i;
     const char *disabled_sounds[] = {
-        "posact",
-        "bgact",
-        "dmact",
-        "dmpain",
-        "popain",
-        "sawidl",
+        "posact", "bgact", "dmact", "dmpain", "popain", "sawidl",
     };
 
     for (i = 0; i < arrlen(disabled_sounds); ++i)
@@ -207,7 +197,8 @@ static boolean IsDisabledSound(sfxinfo_t *sfxinfo)
 
 // Mixer function that does the PC speaker emulation
 
-static ALsizei AL_APIENTRY BufferCallback(void *userptr, void *data, ALsizei size)
+static ALsizei AL_APIENTRY BufferCallback(void *userptr, void *data,
+                                          ALsizei size)
 {
     int16_t *leftptr;
     int16_t *rightptr;
@@ -220,8 +211,8 @@ static ALsizei AL_APIENTRY BufferCallback(void *userptr, void *data, ALsizei siz
 
     nsamples = size / 4;
 
-    leftptr = (int16_t *) data;
-    rightptr = ((int16_t *) data) + 1;
+    leftptr = (int16_t *)data;
+    rightptr = ((int16_t *)data) + 1;
 
     // Fill the output buffer
 
@@ -230,7 +221,7 @@ static ALsizei AL_APIENTRY BufferCallback(void *userptr, void *data, ALsizei siz
         // Has this sound expired? If so, invoke the callback to get the next
         // frequency.
 
-        while (current_remaining == 0) 
+        while (current_remaining == 0)
         {
             // Get the next frequency to play
 
@@ -258,12 +249,12 @@ static ALsizei AL_APIENTRY BufferCallback(void *userptr, void *data, ALsizei siz
             int frac;
 
             // Determine whether we are at a peak or trough in the current
-            // sound.  Multiply by 2 so that frac % 2 will give 0 or 1 
+            // sound.  Multiply by 2 so that frac % 2 will give 0 or 1
             // depending on whether we are at a peak or trough.
 
             frac = (phase_offset * current_freq * 2) / mixing_freq;
 
-            if ((frac % 2) == 0) 
+            if ((frac % 2) == 0)
             {
                 this_value = SQUARE_WAVE_AMP;
             }
@@ -293,11 +284,12 @@ static void RegisterCallback(void)
 {
     if (!alIsExtensionPresent("AL_SOFT_callback_buffer"))
     {
-        I_Printf(VB_ERROR, "RegisterCallback: AL_SOFT_callback_buffer not found.");
+        I_Printf(VB_ERROR,
+                 "RegisterCallback: AL_SOFT_callback_buffer not found.");
         return;
     }
-    alBufferCallbackSOFT = FUNCTION_CAST(LPALBUFFERCALLBACKSOFT,
-                                         alGetProcAddress("alBufferCallbackSOFT"));
+    alBufferCallbackSOFT = FUNCTION_CAST(
+        LPALBUFFERCALLBACKSOFT, alGetProcAddress("alBufferCallbackSOFT"));
 
     alGenBuffers(1, &callback_buffer);
     alGenSources(1, &callback_source);
@@ -396,17 +388,22 @@ static boolean I_PCS_CacheSound(sfxinfo_t *sfx)
     return (GetLumpNum(sfx) != -1);
 }
 
-static boolean I_PCS_AdjustSoundParams(const mobj_t *listener, const mobj_t *source,
-                                      int chanvol, int *vol, int *sep, int *pri)
+static boolean I_PCS_AdjustSoundParams(const mobj_t *listener,
+                                       const mobj_t *source, int chanvol,
+                                       int *vol, int *sep, int *pri)
 {
     fixed_t adx, ady, approx_dist;
 
     if (!source || source == players[displayplayer].mo)
+    {
         return true;
+    }
 
     // haleyjd 08/12/04: we cannot adjust a sound for a NULL listener.
     if (!listener)
+    {
         return true;
+    }
 
     // calculate the distance to sound origin
     //  and clip it if necessary
@@ -414,7 +411,7 @@ static boolean I_PCS_AdjustSoundParams(const mobj_t *listener, const mobj_t *sou
     ady = abs(listener->y - source->y);
 
     // From _GG1_ p.428. Appox. eucledian distance fast.
-    approx_dist = adx + ady - ((adx < ady ? adx : ady)>>1);
+    approx_dist = adx + ady - ((adx < ady ? adx : ady) >> 1);
 
     if (approx_dist > S_CLIPPING_DIST)
     {
@@ -429,9 +426,8 @@ static boolean I_PCS_AdjustSoundParams(const mobj_t *listener, const mobj_t *sou
     else
     {
         // distance effect
-        *vol = (snd_SfxVolume
-                * ((S_CLIPPING_DIST - approx_dist)>>FRACBITS))
-            / S_ATTENUATOR;
+        *vol = (snd_SfxVolume * ((S_CLIPPING_DIST - approx_dist) >> FRACBITS))
+               / S_ATTENUATOR;
     }
 
     return (*vol > 0);

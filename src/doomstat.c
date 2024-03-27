@@ -18,7 +18,7 @@
 //-----------------------------------------------------------------------------
 
 #include "doomstat.h"
-#include "m_misc2.h"
+#include "m_misc.h"
 
 // Game Mode - identify IWAD as shareware, retail etc.
 GameMode_t gamemode = indetermined;
@@ -51,6 +51,8 @@ int compatibility, default_compatibility;          // killough 1/31/98
 
 int comp[COMP_TOTAL], default_comp[COMP_TOTAL];    // killough 10/98
 
+invul_mode_t invul_mode;
+
 // [FG] overflow emulation
 overflow_t overflow[EMU_TOTAL] = {
   { true, false, "spechits_overflow"},
@@ -60,7 +62,7 @@ overflow_t overflow[EMU_TOTAL] = {
   { true, false, "donut_overflow"}
 };
 
-int demo_version;           // killough 7/19/98: Boom version of demo
+demo_version_t demo_version;        // killough 7/19/98: Boom version of demo
 
 // v1.1-like pitched sounds
 int pitched_sounds;  // killough 10/98
@@ -120,7 +122,8 @@ boolean hide_weapon;
 // [FG] centered weapon sprite
 int center_weapon;
 
-int cosmetic_bobbing;
+int view_bobbing_pct;
+int weapon_bobbing_pct;
 
 char *MAPNAME(int e, int m)
 {

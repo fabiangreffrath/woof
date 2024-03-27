@@ -23,10 +23,10 @@
 
 #include "doomtype.h"
 
-#define FOV_DEFAULT 90
-#define FOV_MIN 60
-#define FOV_MAX 120
-#define ASPECT_RATIO_MAX 3.6 // Up to 32:9 ultrawide.
+#define FOV_DEFAULT      90
+#define FOV_MIN          60
+#define FOV_MAX          120
+#define ASPECT_RATIO_MAX 2.4  // Up to 21:9. TODO: Support up to 3.6 (32:9).
 #define ASPECT_RATIO_MIN (4.0 / 3.0)
 
 typedef enum
@@ -55,28 +55,29 @@ void I_InitGraphics(void);
 void I_ShutdownGraphics(void);
 
 // Takes full 8 bit values.
-void I_SetPalette(byte* palette);
+void I_SetPalette(byte *palette);
 
 void I_FinishUpdate(void);
 
-void I_ReadScreen(byte* dst);
+void I_ReadScreen(byte *dst);
 
-void I_ResetScreen(void);   // killough 10/98
+void I_ResetScreen(void); // killough 10/98
 void I_ToggleVsync(void); // [JN] Calls native SDL vsync toggle
 
 void I_DynamicResolution(void);
 
 extern boolean drs_skip_frame;
 
-extern boolean use_vsync;  // killough 2/8/98: controls whether vsync is called
-extern boolean disk_icon;  // killough 10/98
+extern boolean use_vsync; // killough 2/8/98: controls whether vsync is called
+extern boolean disk_icon; // killough 10/98
 extern int current_video_height;
 
-#define DRS_MIN_HEIGHT 400
+#  define DRS_MIN_HEIGHT 400
 extern boolean dynamic_resolution;
 
 extern boolean use_aspect;
-extern boolean uncapped, default_uncapped; // [FG] uncapped rendering frame rate
+extern boolean uncapped,
+    default_uncapped; // [FG] uncapped rendering frame rate
 
 extern boolean fullscreen;
 extern boolean exclusive_fullscreen;
@@ -84,7 +85,7 @@ extern int fpslimit; // when uncapped, limit framerate to this value
 extern int fps;
 extern boolean vga_porch_flash; // emulate VGA "porch" behaviour
 extern aspect_ratio_mode_t widescreen, default_widescreen; // widescreen mode
-extern int custom_fov; // Custom FOV set by the player.
+extern int custom_fov;    // Custom FOV set by the player.
 extern int video_display; // display index
 extern boolean screenvisible;
 extern boolean window_focused;

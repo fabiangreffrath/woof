@@ -19,8 +19,8 @@
 //-----------------------------------------------------------------------------
 
 #if defined(_WIN32)
-#define WIN32_LEAN_AND_MEAN
-#include <windows.h>
+#  define WIN32_LEAN_AND_MEAN
+#  include <windows.h>
 #endif
 
 #include "SDL.h"
@@ -43,7 +43,7 @@
 #include "m_argv.h"
 #include "m_fixed.h"
 #include "m_io.h"
-#include "m_menu.h"
+#include "mn_menu.h"
 #include "r_draw.h"
 #include "r_main.h"
 #include "r_plane.h"
@@ -62,7 +62,7 @@
 int current_video_height;
 boolean dynamic_resolution;
 
-boolean use_vsync;  // killough 2/8/98: controls whether vsync is called
+boolean use_vsync; // killough 2/8/98: controls whether vsync is called
 boolean use_aspect;
 boolean uncapped, default_uncapped; // [FG] uncapped rendering frame rate
 int fpslimit; // when uncapped, limit framerate to this value
@@ -86,8 +86,8 @@ int window_position_x, window_position_y;
 //      range of [0.0, 1.0).  Used for interpolation.
 fixed_t fractionaltic;
 
-boolean disk_icon;  // killough 10/98
-int fps; // [FG] FPS counter widget
+boolean disk_icon; // killough 10/98
+int fps;           // [FG] FPS counter widget
 
 // [FG] rendering window, renderer, intermediate ARGB frame buffer and texture
 
@@ -147,18 +147,25 @@ static boolean MouseShouldBeGrabbed(void)
 {
     // if the window doesnt have focus, never grab it
     if (!window_focused)
+    {
         return false;
+    }
 
     // if we specify not to grab the mouse, never grab
     if (!grabmouse)
+    {
         return false;
+    }
 
-    // when menu is active or game is paused, release the mouse 
+    // when menu is active or game is paused, release the mouse
     if (menuactive || paused)
+    {
         return false;
+    }
 
     // only grab mouse when playing levels (but not demos)
-    return (gamestate == GS_LEVEL || gamestate == GS_INTERMISSION) && !demoplayback;
+    return (gamestate == GS_LEVEL || gamestate == GS_INTERMISSION)
+           && !demoplayback;
 }
 
 // [FG] mouse grabbing from Chocolate Doom 3.0
@@ -250,9 +257,9 @@ static void HandleWindowEvent(SDL_WindowEvent *event)
 
         // Update the value of window_focused when we get a focus event
         //
-        // We try to make ourselves be well-behaved: the grab on the mouse
-        // is removed if we lose focus (such as a popup window appearing),
-        // and we dont move the mouse around if we aren't focused either.
+        // We try to make ourselves be well-behaved: the grab on the mouse is
+        // removed if we lose focus (such as a popup window appearing), and
+        // we dont move the mouse around if we aren't focused either.
 
         case SDL_WINDOWEVENT_FOCUS_GAINED:
             window_focused = true;
@@ -266,8 +273,8 @@ static void HandleWindowEvent(SDL_WindowEvent *event)
 
         // We want to save the user's preferred monitor to use for running the
         // game, so that next time we're run we start on the same display. So
-        // every time the window is moved, find which display we're now on and
-        // update the video_display config variable.
+        // every time the window is moved, find which display we're now on
+        // and update the video_display config variable.
 
         case SDL_WINDOWEVENT_RESIZED:
             if (!fullscreen)
@@ -301,8 +308,9 @@ static boolean ToggleFullScreenKeyShortcut(SDL_Keysym *sym)
 #if defined(__MACOSX__)
     flags |= (KMOD_LGUI | KMOD_RGUI);
 #endif
-    return (sym->scancode == SDL_SCANCODE_RETURN ||
-            sym->scancode == SDL_SCANCODE_KP_ENTER) && (sym->mod & flags) != 0;
+    return (sym->scancode == SDL_SCANCODE_RETURN
+            || sym->scancode == SDL_SCANCODE_KP_ENTER)
+           && (sym->mod & flags) != 0;
 }
 
 // Adjust window_width / window_height variables to be an an aspect
@@ -329,9 +337,13 @@ static void AdjustWindowSize(void)
 
         // rendered height does not necessarily match window height
         if (window_height * old_w > window_width * old_h)
+        {
             rendered_height = (window_width * old_h + old_w - 1) / old_w;
+        }
         else
+        {
             rendered_height = window_height;
+        }
 
         window_width = rendered_height * video.width / actualheight;
     }
@@ -385,7 +397,8 @@ static void UpdateLimiter(void)
 {
     if (uncapped)
     {
-        if (fpslimit >= native_refresh_rate && native_refresh_rate > 0 && use_vsync)
+        if (fpslimit >= native_refresh_rate && native_refresh_rate > 0
+            && use_vsync)
         {
             // SDL will limit framerate using vsync.
             use_limiter = false;
@@ -486,7 +499,7 @@ static void I_GetEvent(void)
 //
 // I_StartTic
 //
-void I_StartTic (void)
+void I_StartTic(void)
 {
     I_GetEvent();
 
@@ -515,7 +528,7 @@ void I_StartTic (void)
         else
         {
             old_rect = rect;
-            ev.data1 = 1;
+            ev.data1 = EV_RESIZE_VIEWPORT;
         }
 
         float scalex, scaley;
@@ -576,13 +589,14 @@ void I_StartDisplay(void)
 //
 void I_StartFrame(void)
 {
-
+    ;
 }
 
 static void UpdateRender(void)
 {
     SDL_LowerBlit(screenbuffer, &blit_rect, argbbuffer, &blit_rect);
-    SDL_UpdateTexture(texture, &blit_rect, argbbuffer->pixels, argbbuffer->pitch);
+    SDL_UpdateTexture(texture, &blit_rect, argbbuffer->pixels,
+                      argbbuffer->pitch);
     SDL_RenderClear(renderer);
 
     if (texture_upscaled)
@@ -611,9 +625,9 @@ static void ResetLogicalSize(void);
 
 void I_DynamicResolution(void)
 {
-    if (!dynamic_resolution || current_video_height <= DRS_MIN_HEIGHT ||
-        frametime_withoutpresent == 0 || targetrefresh <= 0 ||
-        menuactive)
+    if (!dynamic_resolution || current_video_height <= DRS_MIN_HEIGHT
+        || frametime_withoutpresent == 0 || targetrefresh <= 0
+        || menuactive)
     {
         return;
     }
@@ -634,10 +648,10 @@ void I_DynamicResolution(void)
 
     double actualpercent = actual / target;
 
-    #define DRS_DELTA 0.1
+    #define DRS_DELTA   0.1
     #define DRS_GREATER (1 + DRS_DELTA)
-    #define DRS_LESS (1 - DRS_DELTA / 10.0)
-    #define DRS_STEP (SCREENHEIGHT / 2)
+    #define DRS_LESS    (1 - DRS_DELTA / 10.0)
+    #define DRS_STEP    (SCREENHEIGHT / 2)
 
     int newheight = 0;
     int oldheight = video.height;
@@ -650,7 +664,7 @@ void I_DynamicResolution(void)
 
     if (actualpercent > DRS_GREATER)
     {
-        double reduction = (actualpercent - DRS_GREATER ) * 0.4;
+        double reduction = (actualpercent - DRS_GREATER) * 0.4;
         newheight = (int)MAX(DRS_MIN_HEIGHT, oldheight - oldheight * reduction);
     }
     else if (averagepercent < DRS_LESS && frame_counter > targetrefresh)
@@ -665,7 +679,7 @@ void I_DynamicResolution(void)
 
     frame_counter = 0;
 
-    int mul = (newheight + (DRS_STEP - 1)) / DRS_STEP; // integer round
+    int mul = (newheight + (DRS_STEP - 1)) / DRS_STEP;  // integer round
 
     newheight = mul * DRS_STEP;
 
@@ -720,6 +734,7 @@ void I_FinishUpdate(void)
     UpdateGrab();
 
     // [FG] [AM] Real FPS counter
+    if (frametime_start)
     {
         static uint64_t last_time;
         uint64_t time;
@@ -729,8 +744,8 @@ void I_FinishUpdate(void)
 
         time = frametime_start - last_time;
 
-        // Update FPS counter every 10th of second
-        if (time >= 100000)
+        // Update FPS counter every second
+        if (time >= 1000000)
         {
             fps = (frame_counter * 1000000) / time;
             frame_counter = 0;
@@ -779,7 +794,9 @@ void I_FinishUpdate(void)
             remaining_time = target_time - elapsed_time;
 
             if (remaining_time > 1000)
+            {
                 I_Sleep((remaining_time - 1000) / 1000);
+            }
         }
     }
     else
@@ -812,32 +829,32 @@ static vrect_t disk;
 
 static void I_InitDiskFlash(void)
 {
-  pixel_t *temp;
+    pixel_t *temp;
 
-  disk.x = 0;
-  disk.y = 0;
-  disk.w = 16;
-  disk.h = 16;
+    disk.x = 0;
+    disk.y = 0;
+    disk.w = 16;
+    disk.h = 16;
 
-  V_ScaleRect(&disk);
+    V_ScaleRect(&disk);
 
-  temp = Z_Malloc(disk.sw * disk.sh * sizeof(*temp), PU_STATIC, 0);
+    temp = Z_Malloc(disk.sw * disk.sh * sizeof(*temp), PU_STATIC, 0);
 
-  if (diskflash)
-  {
-    Z_Free(diskflash);
-    Z_Free(old_data);
-  }
+    if (diskflash)
+    {
+        Z_Free(diskflash);
+        Z_Free(old_data);
+    }
 
-  diskflash = Z_Malloc(disk.sw * disk.sh * sizeof(*diskflash), PU_STATIC, 0);
-  old_data = Z_Malloc(disk.sw * disk.sh * sizeof(*old_data), PU_STATIC, 0);
+    diskflash = Z_Malloc(disk.sw * disk.sh * sizeof(*diskflash), PU_STATIC, 0);
+    old_data = Z_Malloc(disk.sw * disk.sh * sizeof(*old_data), PU_STATIC, 0);
 
-  V_GetBlock(0, 0, disk.sw, disk.sh, temp);
-  V_DrawPatch(-video.deltaw, 0, W_CacheLumpName("STDISK", PU_CACHE));
-  V_GetBlock(0, 0, disk.sw, disk.sh, diskflash);
-  V_PutBlock(0, 0, disk.sw, disk.sh, temp);
+    V_GetBlock(0, 0, disk.sw, disk.sh, temp);
+    V_DrawPatch(-video.deltaw, 0, W_CacheLumpName("STDISK", PU_CACHE));
+    V_GetBlock(0, 0, disk.sw, disk.sh, diskflash);
+    V_PutBlock(0, 0, disk.sw, disk.sh, temp);
 
-  Z_Free(temp);
+    Z_Free(temp);
 }
 
 //
@@ -846,21 +863,25 @@ static void I_InitDiskFlash(void)
 
 void I_BeginRead(unsigned int bytes)
 {
-  disk_to_draw += bytes;
+    disk_to_draw += bytes;
 }
 
 static void I_DrawDiskIcon(void)
 {
-  if (!disk_icon || PLAYBACK_SKIP)
-    return;
+    if (!disk_icon || PLAYBACK_SKIP)
+    {
+        return;
+    }
 
-  if (disk_to_draw >= DISK_ICON_THRESHOLD)
-  {
-    V_GetBlock(video.width - disk.sw, video.height - disk.sh, disk.sw, disk.sh, old_data);
-    V_PutBlock(video.width - disk.sw, video.height - disk.sh, disk.sw, disk.sh, diskflash);
+    if (disk_to_draw >= DISK_ICON_THRESHOLD)
+    {
+        V_GetBlock(video.width - disk.sw, video.height - disk.sh, disk.sw,
+                   disk.sh, old_data);
+        V_PutBlock(video.width - disk.sw, video.height - disk.sh, disk.sw,
+                   disk.sh, diskflash);
 
-    disk_to_restore = 1;
-  }
+        disk_to_restore = 1;
+    }
 }
 
 //
@@ -869,22 +890,25 @@ static void I_DrawDiskIcon(void)
 
 void I_EndRead(void)
 {
-  // [FG] posponed to next tic
+    // [FG] posponed to next tic
 }
 
 static void I_RestoreDiskBackground(void)
 {
-  if (!disk_icon || PLAYBACK_SKIP)
-    return;
+    if (!disk_icon || PLAYBACK_SKIP)
+    {
+        return;
+    }
 
-  if (disk_to_restore)
-  {
-    V_PutBlock(video.width - disk.sw, video.height - disk.sh, disk.sw, disk.sh, old_data);
+    if (disk_to_restore)
+    {
+        V_PutBlock(video.width - disk.sw, video.height - disk.sh, disk.sw,
+                   disk.sh, old_data);
 
-    disk_to_restore = 0;
-  }
+        disk_to_restore = 0;
+    }
 
-  disk_to_draw = 0;
+    disk_to_draw = 0;
 }
 
 #include "i_gamma.h"
@@ -893,128 +917,128 @@ int gamma2;
 
 void I_SetPalette(byte *palette)
 {
-  // haleyjd
-  int i;
-  const byte *const gamma = gammatable[gamma2];
-  SDL_Color colors[256];
+    // haleyjd
+    int i;
+    const byte *const gamma = gammatable[gamma2];
+    SDL_Color colors[256];
 
-  if (noblit)             // killough 8/11/98
-    return;
+    if (noblit) // killough 8/11/98
+    {
+        return;
+    }
 
-  for(i = 0; i < 256; ++i)
-  {
-    colors[i].r = gamma[*palette++];
-    colors[i].g = gamma[*palette++];
-    colors[i].b = gamma[*palette++];
-  }
+    for (i = 0; i < 256; ++i)
+    {
+        colors[i].r = gamma[*palette++];
+        colors[i].g = gamma[*palette++];
+        colors[i].b = gamma[*palette++];
+    }
 
-  SDL_SetPaletteColors(screenbuffer->format->palette, colors, 0, 256);
+    SDL_SetPaletteColors(screenbuffer->format->palette, colors, 0, 256);
 
-  if (vga_porch_flash)
-  {
-    // "flash" the pillars/letterboxes with palette changes,
-    // emulating VGA "porch" behaviour
-    SDL_SetRenderDrawColor(renderer,
-                           colors[0].r, colors[0].g, colors[0].b,
-                           SDL_ALPHA_OPAQUE);
-  }
+    if (vga_porch_flash)
+    {
+        // "flash" the pillars/letterboxes with palette changes,
+        // emulating VGA "porch" behaviour
+        SDL_SetRenderDrawColor(renderer, colors[0].r, colors[0].g, colors[0].b,
+                               SDL_ALPHA_OPAQUE);
+    }
 }
 
 // Taken from Chocolate Doom chocolate-doom/src/i_video.c:L841-867
 
 byte I_GetPaletteIndex(byte *palette, int r, int g, int b)
 {
-  byte best;
-  int best_diff, diff;
-  int i;
+    byte best;
+    int best_diff, diff;
+    int i;
 
-  best = 0; best_diff = INT_MAX;
+    best = 0;
+    best_diff = INT_MAX;
 
-  for (i = 0; i < 256; ++i)
-  {
-    diff = (r - palette[3 * i + 0]) * (r - palette[3 * i + 0])
-          + (g - palette[3 * i + 1]) * (g - palette[3 * i + 1])
-          + (b - palette[3 * i + 2]) * (b - palette[3 * i + 2]);
-
-    if (diff < best_diff)
+    for (i = 0; i < 256; ++i)
     {
-      best = i;
-      best_diff = diff;
+        diff = (r - palette[3 * i + 0]) * (r - palette[3 * i + 0])
+               + (g - palette[3 * i + 1]) * (g - palette[3 * i + 1])
+               + (b - palette[3 * i + 2]) * (b - palette[3 * i + 2]);
+
+        if (diff < best_diff)
+        {
+            best = i;
+            best_diff = diff;
+        }
+
+        if (diff == 0)
+        {
+            break;
+        }
     }
 
-    if (diff == 0)
-    {
-      break;
-    }
-  }
-
-  return best;
+    return best;
 }
 
 // [FG] save screenshots in PNG format
 boolean I_WritePNGfile(char *filename)
 {
-  SDL_Rect rect = {0};
-  SDL_PixelFormat *format;
-  int pitch;
-  byte *pixels;
-  boolean ret = false;
+    SDL_Rect rect = {0};
+    SDL_PixelFormat *format;
+    int pitch;
+    byte *pixels;
+    boolean ret = false;
 
-  // [FG] native PNG pixel format
-  const uint32_t png_format = SDL_PIXELFORMAT_RGB24;
-  format = SDL_AllocFormat(png_format);
+    // [FG] native PNG pixel format
+    const uint32_t png_format = SDL_PIXELFORMAT_RGB24;
+    format = SDL_AllocFormat(png_format);
 
-  UpdateRender();
+    UpdateRender();
 
-  // [FG] adjust cropping rectangle if necessary
-  SDL_GetRendererOutputSize(renderer, &rect.w, &rect.h);
-  if (rect.w * actualheight > rect.h * video.width)
-  {
-    int temp = rect.w;
-    rect.w = rect.h * video.width / actualheight;
-    rect.x = (temp - rect.w) / 2;
-  }
-  else if (rect.h * video.width > rect.w * actualheight)
-  {
-    int temp = rect.h;
-    rect.h = rect.w * actualheight / video.width;
-    rect.y = (temp - rect.h) / 2;
-  }
-
-  // [FG] allocate memory for screenshot image
-  pitch = rect.w * format->BytesPerPixel;
-  pixels = malloc(rect.h * pitch);
-  SDL_RenderReadPixels(renderer, &rect, format->format, pixels, pitch);
-
-  {
-    size_t size = 0;
-    void *png = NULL;
-    FILE *file;
-
-    png = tdefl_write_image_to_png_file_in_memory(pixels,
-                                                  rect.w, rect.h,
-                                                  format->BytesPerPixel,
-                                                  &size);
-
-    if (png)
+    // [FG] adjust cropping rectangle if necessary
+    SDL_GetRendererOutputSize(renderer, &rect.w, &rect.h);
+    if (rect.w * actualheight > rect.h * video.width)
     {
-      if ((file = M_fopen(filename, "wb")))
-      {
-        if (fwrite(png, 1, size, file) == size)
-        {
-          ret = true;
-          I_Printf(VB_INFO, "I_WritePNGfile: %s", filename);
-        }
-        fclose(file);
-      }
-      free(png);
+        int temp = rect.w;
+        rect.w = rect.h * video.width / actualheight;
+        rect.x = (temp - rect.w) / 2;
     }
-  }
+    else if (rect.h * video.width > rect.w * actualheight)
+    {
+        int temp = rect.h;
+        rect.h = rect.w * actualheight / video.width;
+        rect.y = (temp - rect.h) / 2;
+    }
 
-  SDL_FreeFormat(format);
-  free(pixels);
+    // [FG] allocate memory for screenshot image
+    pitch = rect.w * format->BytesPerPixel;
+    pixels = malloc(rect.h * pitch);
+    SDL_RenderReadPixels(renderer, &rect, format->format, pixels, pitch);
 
-  return ret;
+    {
+        size_t size = 0;
+        void *png = NULL;
+        FILE *file;
+
+        png = tdefl_write_image_to_png_file_in_memory(
+            pixels, rect.w, rect.h, format->BytesPerPixel, &size);
+
+        if (png)
+        {
+            if ((file = M_fopen(filename, "wb")))
+            {
+                if (fwrite(png, 1, size, file) == size)
+                {
+                    ret = true;
+                    I_Printf(VB_INFO, "I_WritePNGfile: %s", filename);
+                }
+                fclose(file);
+            }
+            free(png);
+        }
+    }
+
+    SDL_FreeFormat(format);
+    free(pixels);
+
+    return ret;
 }
 
 // Set the application icon
@@ -1023,9 +1047,8 @@ void I_InitWindowIcon(void)
 {
     SDL_Surface *surface;
 
-    surface = SDL_CreateRGBSurfaceFrom((void *) icon_data, icon_w, icon_h,
-                                       32, icon_w * 4,
-                                       0xffu << 24, 0xffu << 16,
+    surface = SDL_CreateRGBSurfaceFrom((void *)icon_data, icon_w, icon_h, 32,
+                                       icon_w * 4, 0xffu << 24, 0xffu << 16,
                                        0xffu << 8, 0xffu << 0);
 
     SDL_SetWindowIcon(screen, surface);
@@ -1041,8 +1064,10 @@ static void CenterWindow(int *x, int *y, int w, int h)
 
     if (SDL_GetDisplayBounds(video_display, &bounds) < 0)
     {
-        I_Printf(VB_WARNING, "CenterWindow: Failed to read display bounds "
-                             "for display #%d!", video_display);
+        I_Printf(VB_WARNING,
+                 "CenterWindow: Failed to read display bounds "
+                 "for display #%d!",
+                 video_display);
         return;
     }
 
@@ -1064,10 +1089,10 @@ static void I_ResetInvalidDisplayIndex(void)
     if (video_display < 0 || video_display >= SDL_GetNumVideoDisplays())
     {
         I_Printf(VB_WARNING,
-                "I_ResetInvalidDisplayIndex: We were configured to run on "
-                "display #%d, but it no longer exists (max %d). "
-                "Moving to display 0.",
-                video_display, SDL_GetNumVideoDisplays() - 1);
+                 "I_ResetInvalidDisplayIndex: We were configured to run on "
+                 "display #%d, but it no longer exists (max %d). "
+                 "Moving to display 0.",
+                 video_display, SDL_GetNumVideoDisplays() - 1);
         video_display = 0;
     }
 }
@@ -1173,7 +1198,9 @@ static void ResetResolution(int height, boolean reset_pitch)
     setsizeneeded = true; // run R_ExecuteSetViewSize
 
     if (automapactive)
-      AM_ResetScreenSize();
+    {
+        AM_ResetScreenSize();
+    }
 
     I_Printf(VB_DEBUG, "ResetResolution: %dx%d (%dx%d)",
         video.width, video.height, video.unscaledw, SCREENHEIGHT);
@@ -1284,11 +1311,9 @@ static void CreateUpscaledTexture(boolean force)
     // but does a better job at downscaling from the upscaled texture to
     // screen.
 
-    texture_upscaled = SDL_CreateTexture(renderer,
-                                         SDL_GetWindowPixelFormat(screen),
-                                         SDL_TEXTUREACCESS_TARGET,
-                                         w_upscale * screen_width,
-                                         h_upscale * screen_height);
+    texture_upscaled = SDL_CreateTexture(
+        renderer, SDL_GetWindowPixelFormat(screen), SDL_TEXTUREACCESS_TARGET,
+        w_upscale * screen_width, h_upscale * screen_height);
 
     SDL_SetTextureScaleMode(texture_upscaled, SDL_ScaleModeLinear);
 }
@@ -1341,6 +1366,7 @@ static void I_InitVideoParms(void)
     int p, tmp_scalefactor;
     SDL_DisplayMode mode;
 
+    I_ResetInvalidDisplayIndex();
     if (SDL_GetCurrentDisplayMode(video_display, &mode))
     {
         I_Error("Error getting display mode: %s", SDL_GetError());
@@ -1363,7 +1389,6 @@ static void I_InitVideoParms(void)
     // SDL may report native refresh rate as zero.
     native_refresh_rate = mode.refresh_rate;
 
-    I_ResetInvalidDisplayIndex();
     widescreen = default_widescreen;
     uncapped = default_uncapped;
     grabmouse = default_grabmouse;
@@ -1376,7 +1401,9 @@ static void I_InitVideoParms(void)
     //
 
     if (M_CheckParm("-uncapped"))
+    {
         uncapped = true;
+    }
 
     //!
     // @category video
@@ -1385,19 +1412,25 @@ static void I_InitVideoParms(void)
     //
 
     else if (M_CheckParm("-nouncapped"))
+    {
         uncapped = false;
+    }
 
     if (M_CheckParm("-grabmouse"))
+    {
         grabmouse = true;
+    }
 
     //!
-    // @category video 
+    // @category video
     //
     // Don't grab the mouse when running in windowed mode.
     //
 
     else if (M_CheckParm("-nograbmouse"))
+    {
         grabmouse = false;
+    }
 
     //!
     // @category video
@@ -1406,7 +1439,9 @@ static void I_InitVideoParms(void)
     //
 
     if ((p = M_CheckParm("-1")))
+    {
         tmp_scalefactor = 1;
+    }
 
     //!
     // @category video
@@ -1415,7 +1450,9 @@ static void I_InitVideoParms(void)
     //
 
     else if ((p = M_CheckParm("-2")))
+    {
         tmp_scalefactor = 2;
+    }
 
     //!
     // @category video
@@ -1424,11 +1461,15 @@ static void I_InitVideoParms(void)
     //
 
     else if ((p = M_CheckParm("-3")))
+    {
         tmp_scalefactor = 3;
+    }
 
     // -skipsec can take a negative number as a parameter
     if (p && strcasecmp("-skipsec", myargv[p - 1]))
+    {
         scalefactor = tmp_scalefactor;
+    }
 
     //!
     // @category video
@@ -1452,7 +1493,7 @@ static void I_InitVideoParms(void)
         fullscreen = true;
     }
 
-    M_ResetSetupMenuVideo();
+    MN_SetupResetMenuVideo();
 }
 
 static void I_InitGraphicsMode(void)
@@ -1501,8 +1542,7 @@ static void I_InitGraphicsMode(void)
 
     if (screen == NULL)
     {
-        I_Error("Error creating window for video startup: %s",
-                SDL_GetError());
+        I_Error("Error creating window for video startup: %s", SDL_GetError());
     }
 
     I_InitWindowIcon();
@@ -1560,7 +1600,8 @@ void I_GetResolutionScaling(resolution_scaling_t *rs)
 
 static int CurrentResolutionHeight(void)
 {
-    current_video_height = BETWEEN(SCREENHEIGHT, native_height_adjusted, current_video_height);
+    current_video_height =
+        BETWEEN(SCREENHEIGHT, native_height_adjusted, current_video_height);
 
     return current_video_height;
 }
@@ -1574,9 +1615,7 @@ static void CreateSurfaces(int w, int h)
         SDL_FreeSurface(screenbuffer);
     }
 
-    screenbuffer = SDL_CreateRGBSurface(0,
-                                        w, h, 8,
-                                        0, 0, 0, 0);
+    screenbuffer = SDL_CreateRGBSurface(0, w, h, 8, 0, 0, 0, 0);
     SDL_FillRect(screenbuffer, NULL, 0);
 
     I_VideoBuffer = screenbuffer->pixels;
@@ -1594,9 +1633,8 @@ static void CreateSurfaces(int w, int h)
 
         SDL_PixelFormatEnumToMasks(SDL_GetWindowPixelFormat(screen), &bpp,
                                    &rmask, &gmask, &bmask, &amask);
-        argbbuffer = SDL_CreateRGBSurface(0,
-                                          w, h, bpp,
-                                          rmask, gmask, bmask, amask);
+        argbbuffer =
+            SDL_CreateRGBSurface(0, w, h, bpp, rmask, gmask, bmask, amask);
         SDL_FillRect(argbbuffer, NULL, 0);
     }
 
@@ -1609,10 +1647,8 @@ static void CreateSurfaces(int w, int h)
         SDL_DestroyTexture(texture);
     }
 
-    texture = SDL_CreateTexture(renderer,
-                                SDL_GetWindowPixelFormat(screen),
-                                SDL_TEXTUREACCESS_STREAMING,
-                                w, h);
+    texture = SDL_CreateTexture(renderer, SDL_GetWindowPixelFormat(screen),
+                                SDL_TEXTUREACCESS_STREAMING, w, h);
 
     SDL_SetTextureScaleMode(texture, SDL_ScaleModeNearest);
 
@@ -1682,7 +1718,7 @@ void I_ShutdownGraphics(void)
 
 void I_InitGraphics(void)
 {
-    if (SDL_Init(SDL_INIT_VIDEO) < 0) 
+    if (SDL_Init(SDL_INIT_VIDEO) < 0)
     {
         I_Error("Failed to initialize video: %s", SDL_GetError());
     }
@@ -1690,10 +1726,15 @@ void I_InitGraphics(void)
     I_AtExit(I_ShutdownGraphics, true);
 
     I_InitVideoParms();
-    I_InitGraphicsMode();    // killough 10/98
+    I_InitGraphicsMode(); // killough 10/98
     ResetResolution(CurrentResolutionHeight(), true);
     CreateSurfaces(video.pitch, video.height);
     ResetLogicalSize();
+
+    // clear out events waiting at the start and center the mouse
+    SDL_PumpEvents();
+    SDL_FlushEvent(SDL_MOUSEMOTION);
+    I_ResetRelativeMouseState();
 }
 
 static struct {

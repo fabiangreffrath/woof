@@ -18,6 +18,7 @@
 #define __G_GAME__
 
 #include "doomdef.h"
+#include "doomstat.h"
 #include "doomtype.h"
 #include "m_fixed.h"
 
@@ -70,19 +71,23 @@ int G_ValidateMapName(const char *mapname, int *pEpi, int *pMap);
 
 void G_EnableWarp(boolean warp);
 
-int G_GetNamedComplevel (const char *arg);
+demo_version_t G_GetNamedComplevel(const char *arg);
 const char *G_GetCurrentComplevelName(void);
+
+int G_GotoNextLevel(int *pEpi, int *pMap);
 
 typedef enum
 {
+  CL_NONE = -1,
   CL_VANILLA,
   CL_BOOM,
   CL_MBF,
   CL_MBF21,
 } complevel_t;
 
-extern complevel_t default_complevel;
-extern boolean force_complevel;
+extern complevel_t force_complevel, default_complevel;
+
+extern int realtic_clock_rate;
 
 // killough 5/2/98: moved from m_misc.c:
 extern int  key_escape;
@@ -93,6 +98,7 @@ extern boolean autostrafe50;
 extern int  novert;
 extern boolean mouselook;
 extern boolean padlook;
+extern int  dclick_use; // [FG] double click acts as "use"
 
 extern fixed_t *forwardmove;
 extern fixed_t *sidemove;

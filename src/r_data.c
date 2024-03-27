@@ -34,7 +34,7 @@
 #include "m_argv.h" // M_CheckParm()
 #include "m_fixed.h"
 #include "m_io.h"
-#include "m_misc2.h"
+#include "m_misc.h"
 #include "m_swap.h"
 #include "p_mobj.h"
 #include "p_tick.h"
@@ -848,6 +848,30 @@ void R_InitSpriteLumps(void)
 // killough 4/4/98: Add support for C_START/C_END markers
 //
 
+static byte invul_orig[256];
+
+void R_InvulMode(void)
+{
+  if (colormaps == NULL || beta_emulation)
+    return;
+
+  switch (STRICTMODE(invul_mode))
+  {
+    case INVUL_VANILLA:
+      default_comp[comp_skymap] = 1;
+      memcpy(&colormaps[0][256*32], invul_orig, 256);
+      break;
+    case INVUL_MBF:
+      default_comp[comp_skymap] = 0;
+      memcpy(&colormaps[0][256*32], invul_orig, 256);
+      break;
+    case INVUL_GRAY:
+      default_comp[comp_skymap] = 0;
+      memcpy(&colormaps[0][256*32], invul_gray, 256);
+      break;
+  }
+}
+
 void R_InitColormaps(void)
 {
   int i;
@@ -864,6 +888,9 @@ void R_InitColormaps(void)
   // [FG] dark/shaded color translation table
   cr_dark = &colormaps[0][256*15];
   cr_shaded = &colormaps[0][256*6];
+
+  memcpy(invul_orig, &colormaps[0][256*32], 256);
+  R_InvulMode();
 }
 
 // killough 4/4/98: get colormap number from name
@@ -1048,11 +1075,10 @@ void R_InitData(void)
 int R_FlatNumForName(const char *name)    // killough -- const added
 {
   int i = (W_CheckNumForName)(name, ns_flats);
-  if (i == -1)
+  if (i == NO_TEXTURE)
   {
-    // [FG] render missing flats as SKY
     I_Printf(VB_WARNING, "R_FlatNumForName: %.8s not found", name);
-    return skyflatnum;
+    return i;
   }
   return i - firstflat;
 }
@@ -1124,7 +1150,12 @@ void R_PrecacheLevel(void)
   memset(hitlist, 0, numflats);
 
   for (i = numsectors; --i >= 0; )
-    hitlist[sectors[i].floorpic] = hitlist[sectors[i].ceilingpic] = 1;
+  {
+    if (sectors[i].floorpic > NO_TEXTURE)
+        hitlist[sectors[i].floorpic] = 1;
+    if (sectors[i].ceilingpic > NO_TEXTURE)
+        hitlist[sectors[i].ceilingpic] = 1;
+  }
 
   for (i = numflats; --i >= 0; )
     if (hitlist[i])

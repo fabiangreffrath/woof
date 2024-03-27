@@ -228,7 +228,7 @@ static boolean P_CrossBSPNode(int bspnum, register los_t *los)
 //
 // killough 4/20/98: cleaned up, made to use new LOS struct
 
-boolean P_CheckSight(mobj_t *t1, mobj_t *t2)
+static boolean P_CheckSight_MBF(mobj_t *t1, mobj_t *t2)
 {
   const sector_t *s1 = t1->subsector->sector;
   const sector_t *s2 = t2->subsector->sector;
@@ -260,7 +260,7 @@ boolean P_CheckSight(mobj_t *t1, mobj_t *t2)
   // killough 11/98: shortcut for melee situations
   // [FG] Compatibility bug in P_CheckSight
   // http://prboom.sourceforge.net/mbf-bugs.html
-  if (t1->subsector == t2->subsector && demo_version >= 203)     // same subsector? obviously visible
+  if (t1->subsector == t2->subsector && demo_version >= DV_MBF)     // same subsector? obviously visible
     return true;
 
   // An unobstructed LOS is possible.
@@ -286,6 +286,14 @@ boolean P_CheckSight(mobj_t *t1, mobj_t *t2)
 
   // the head node is the last node output
   return P_CrossBSPNode(numnodes-1, &los);
+}
+
+boolean checksight12;
+boolean (*P_CheckSight)(mobj_t *t1, mobj_t *t2) = P_CheckSight_MBF;
+
+void P_UpdateCheckSight(void)
+{
+  P_CheckSight = CRITICAL(checksight12) ? P_CheckSight_12 : P_CheckSight_MBF;
 }
 
 //

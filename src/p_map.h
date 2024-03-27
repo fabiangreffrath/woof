@@ -49,7 +49,7 @@ boolean P_TryMove(struct mobj_s *thing, fixed_t x, fixed_t y, boolean dropoff);
 // killough 8/9/98: extra argument for telefragging
 boolean P_TeleportMove(struct mobj_s *thing, fixed_t x, fixed_t y, boolean boss);
 void    P_SlideMove(struct mobj_s *mo);
-boolean P_CheckSight(struct mobj_s *t1, struct mobj_s *t2);
+extern boolean (*P_CheckSight)(struct mobj_s *t1, struct mobj_s *t2);
 boolean P_CheckFov(struct mobj_s *t1, struct mobj_s *t2, angle_t fov);
 void    P_UseLines(struct player_s *player);
 

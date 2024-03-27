@@ -1124,6 +1124,256 @@ mobj_t *P_RoughTargetSearch(mobj_t *mo, angle_t fov, int distance)
   return NULL;
 }
 
+/*
+==================
+=
+= P_SightBlockLinesIterator
+=
+===================
+*/
+
+static boolean P_SightBlockLinesIterator(int x, int y)
+{
+  int offset;
+  long *list;
+  line_t *ld;
+  int s1, s2;
+  divline_t dl;
+
+  if (x < 0 || y < 0 || x >= bmapwidth || y >= bmapheight)
+    return true;
+
+  offset = y*bmapwidth+x;
+
+  offset = *(blockmap+offset);
+
+  for (list = blockmaplump+offset; *list != -1; list++)
+  {
+    ld = &lines[*list];
+    if (ld->validcount == validcount)
+      continue;    // line has already been checked
+    ld->validcount = validcount;
+
+    s1 = P_PointOnDivlineSide(ld->v1->x, ld->v1->y, &trace);
+    s2 = P_PointOnDivlineSide(ld->v2->x, ld->v2->y, &trace);
+    if (s1 == s2)
+      continue;    // line isn't crossed
+    P_MakeDivline (ld, &dl);
+    s1 = P_PointOnDivlineSide(trace.x, trace.y, &dl);
+    s2 = P_PointOnDivlineSide(trace.x+trace.dx, trace.y+trace.dy, &dl);
+    if (s1 == s2)
+      continue; // line isn't crossed
+
+    // try to early out the check
+    if (!ld->backsector)
+      return false; // stop checking
+
+    check_intercept();    // killough
+
+    // store the line for later intersection testing
+    intercept_p->d.line = ld;
+    intercept_p++;
+
+  }
+
+  return true; // everything was checked
+}
+
+/*
+====================
+=
+= P_SightTraverseIntercepts
+=
+= Returns true if the traverser function returns true for all lines
+====================
+*/
+
+static boolean P_SightTraverseIntercepts(void)
+{
+  int count;
+  fixed_t dist;
+  intercept_t *scan, *in;
+  divline_t dl;
+
+  count = intercept_p - intercepts;
+  //
+  // calculate intercept distance
+  //
+  for (scan = intercepts; scan<intercept_p; scan++)
+  {
+    P_MakeDivline(scan->d.line, &dl);
+    scan->frac = P_InterceptVector(&trace, &dl);
+  }
+
+  //
+  // go through in order
+  //
+  in = 0; // shut up compiler warning
+
+  while (count--)
+  {
+    dist = INT_MAX;
+    for (scan = intercepts ; scan<intercept_p ; scan++)
+      if (scan->frac < dist)
+      {
+        dist = scan->frac;
+        in = scan;
+      }
+
+    if (!PTR_SightTraverse(in))
+        return false;      // don't bother going farther
+      in->frac = INT_MAX;
+  }
+
+  return true;    // everything was traversed
+}
+
+/*
+==================
+=
+= P_SightPathTraverse
+=
+= Traces a line from x1,y1 to x2,y2, calling the traverser function for each
+= Returns true if the traverser function returns true for all lines
+==================
+*/
+
+boolean P_SightPathTraverse(fixed_t x1, fixed_t y1, fixed_t x2, fixed_t y2)
+{
+  fixed_t xt1,yt1,xt2,yt2;
+  fixed_t xstep,ystep;
+  fixed_t partial;
+  fixed_t xintercept, yintercept;
+  int mapx, mapy, mapxstep, mapystep;
+  int count;
+
+  validcount++;
+  intercept_p = intercepts;
+
+  if (((x1-bmaporgx)&(MAPBLOCKSIZE-1)) == 0)
+    x1 += FRACUNIT;        // don't side exactly on a line
+  if (((y1-bmaporgy)&(MAPBLOCKSIZE-1)) == 0)
+    y1 += FRACUNIT;        // don't side exactly on a line
+  trace.x = x1;
+  trace.y = y1;
+  trace.dx = x2 - x1;
+  trace.dy = y2 - y1;
+
+  x1 -= bmaporgx;
+  y1 -= bmaporgy;
+  xt1 = x1 >> MAPBLOCKSHIFT;
+  yt1 = y1 >> MAPBLOCKSHIFT;
+
+  x2 -= bmaporgx;
+  y2 -= bmaporgy;
+  xt2 = x2 >> MAPBLOCKSHIFT;
+  yt2 = y2 >> MAPBLOCKSHIFT;
+
+  // points should never be out of bounds, but check once instead of
+  // each block
+  if (xt1<0 || yt1<0 || xt1>=bmapwidth || yt1>=bmapheight
+    || xt2<0 || yt2<0 || xt2>=bmapwidth || yt2>=bmapheight)
+    return false;
+
+  if (xt2 > xt1)
+  {
+    mapxstep = 1;
+    partial = FRACUNIT - ((x1>>MAPBTOFRAC)&(FRACUNIT-1));
+    ystep = FixedDiv (y2-y1,abs(x2-x1));
+  }
+  else if (xt2 < xt1)
+  {
+    mapxstep = -1;
+    partial = (x1>>MAPBTOFRAC)&(FRACUNIT-1);
+    ystep = FixedDiv (y2-y1,abs(x2-x1));
+  }
+  else
+  {
+    mapxstep = 0;
+    partial = FRACUNIT;
+    ystep = 256*FRACUNIT;
+  }
+  yintercept = (y1>>MAPBTOFRAC) + FixedMul (partial, ystep);
+
+
+  if (yt2 > yt1)
+  {
+    mapystep = 1;
+    partial = FRACUNIT - ((y1>>MAPBTOFRAC)&(FRACUNIT-1));
+    xstep = FixedDiv (x2-x1,abs(y2-y1));
+  }
+  else if (yt2 < yt1)
+  {
+    mapystep = -1;
+    partial = (y1>>MAPBTOFRAC)&(FRACUNIT-1);
+    xstep = FixedDiv (x2-x1,abs(y2-y1));
+  }
+  else
+  {
+    mapystep = 0;
+    partial = FRACUNIT;
+    xstep = 256*FRACUNIT;
+  }
+  xintercept = (x1>>MAPBTOFRAC) + FixedMul (partial, xstep);
+
+
+  //
+  // step through map blocks
+  // Count is present to prevent a round off error from skipping the break
+  mapx = xt1;
+  mapy = yt1;
+
+  for (count = 0; count < 64; count++)
+  {
+    if (!P_SightBlockLinesIterator(mapx, mapy))
+    {
+      return false;  // early out
+    }
+
+    if (mapx == xt2 && mapy == yt2)
+      break;
+
+    // [RH] Handle corner cases properly instead of pretending they don't
+    // exist.
+    // neither xintercept nor yintercept match!
+    if ((xintercept >> FRACBITS) != mapx && (yintercept >> FRACBITS) != mapy)
+    {
+      count = 64;  // Stop traversing, because somebody screwed up.
+    }
+    // xintercept and yintercept both match
+    else if ((xintercept >> FRACBITS) == mapx && (yintercept >> FRACBITS) == mapy)
+    {
+      // The trace is exiting a block through its corner. Not only does the
+      // block being entered need to be checked (which will happen when this
+      // loop continues), but the other two blocks adjacent to the corner
+      // also need to be checked.
+
+      if (!P_SightBlockLinesIterator(mapx + mapxstep, mapy) ||
+          !P_SightBlockLinesIterator(mapx, mapy + mapystep))
+      {
+        return false;
+      }
+      xintercept += xstep;
+      yintercept += ystep;
+      mapx += mapxstep;
+      mapy += mapystep;
+    }
+    else if ((yintercept >> FRACBITS) == mapy)
+    {
+      yintercept += ystep;
+      mapx += mapxstep;
+    }
+    else if ((xintercept >> FRACBITS) == mapx)
+    {
+      xintercept += xstep;
+      mapy += mapystep;
+    }
+
+  }
+
+  return P_SightTraverseIntercepts();
+}
+
 //----------------------------------------------------------------------------
 //
 // $Log: p_maputl.c,v $

@@ -21,13 +21,21 @@
 
 #include "doomtype.h"
 
-typedef struct
+typedef struct stream_module_s
 {
+    boolean (*I_InitStream)(int device);
     boolean (*I_OpenStream)(void *data, ALsizei size, ALenum *format,
                             ALsizei *freq, ALsizei *frame_size);
     int (*I_FillStream)(byte *data, int frames);
     void (*I_PlayStream)(boolean looping);
     void (*I_CloseStream)(void);
+    void (*I_ShutdownStream)(void);
+    const char **(*I_DeviceList)(int *current_device);
 } stream_module_t;
+
+extern stream_module_t stream_opl_module;
+extern stream_module_t stream_fl_module;
+extern stream_module_t stream_snd_module;
+extern stream_module_t stream_xmp_module;
 
 #endif

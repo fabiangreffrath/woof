@@ -29,7 +29,7 @@
 #include "doomtype.h"
 #include "hu_lib.h"
 #include "info.h"
-#include "m_misc2.h" // [FG] M_StringDuplicate()
+#include "m_misc.h" // [FG] M_StringDuplicate()
 #include "m_swap.h"
 #include "r_defs.h"
 #include "r_state.h"

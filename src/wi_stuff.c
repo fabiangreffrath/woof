@@ -28,9 +28,10 @@
 #include "g_game.h"
 #include "hu_lib.h"
 #include "i_printf.h"
-#include "m_misc2.h"
+#include "m_misc.h"
 #include "m_random.h"
 #include "m_swap.h"
+#include "mn_menu.h"
 #include "r_defs.h"
 #include "s_sound.h"
 #include "sounds.h"
@@ -427,10 +428,7 @@ boolean WI_Responder(event_t* ev)
 
 static void WI_DrawString(int y, const char* str)
 {
-  extern void M_DrawString(int x, int y, int color, const char* str);
-  extern int M_GetPixelWidth(const char *str);
-
-  M_DrawString(160 - (M_GetPixelWidth(str) / 2), y, CR_GRAY, str);
+  MN_DrawString(160 - (MN_GetPixelWidth(str) / 2), y, CR_GRAY, str);
 }
 
 
@@ -1735,7 +1733,7 @@ static void WI_updateStats(void)
           // killough 2/22/98: Make secrets = 100% if maxsecret = 0:
           // [FG] Intermission screen secrets desync
           // http://prboom.sourceforge.net/mbf-bugs.html
-          if ((!wbs->maxsecret && demo_version < 203) ||
+          if ((!wbs->maxsecret && demo_version < DV_MBF) ||
               cnt_secret[0] >= (wbs->maxsecret ? 
                                 (plrs[me].ssecret * 100) / wbs->maxsecret : 100))
             {
@@ -1769,10 +1767,10 @@ static void WI_updateStats(void)
 
                 // This check affects demo compatibility with PrBoom+
                 if ((cnt_time >= plrs[me].stime / TICRATE) &&
-                    (demo_version < 203 || cnt_total_time >= wbs->totaltimes / TICRATE)
+                    (demo_version < DV_MBF || cnt_total_time >= wbs->totaltimes / TICRATE)
                    )
                   {
-                    if (demo_version < 203)
+                    if (demo_version < DV_MBF)
                       cnt_total_time = wbs->totaltimes / TICRATE;
                     S_StartSound(0, sfx_barexp);
                     sp_state++;

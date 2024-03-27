@@ -157,26 +157,26 @@ boolean M_InputAddKey(int id, int value);
 boolean M_InputAddMouseB(int id, int value);
 boolean M_InputAddJoyB(int id, int value);
 
-void    M_InputTrackEvent(struct event_s *ev);
+void M_InputTrackEvent(struct event_s *ev);
 boolean M_InputActivated(int id);
 boolean M_InputDeactivated(int id);
 boolean M_InputAddActivated(int id);
-void    M_InputRemoveActivated(int id);
+void M_InputRemoveActivated(int id);
 
 boolean M_InputGameActive(int id);
-void    M_InputGameDeactivate(int id);
+void M_InputGameDeactivate(int id);
 
-void    M_InputReset(int id);
-void    M_InputSetDefault(int id, input_t *inputs);
+void M_InputReset(int id);
+void M_InputSetDefault(int id, input_t *inputs);
 
-const char* M_GetNameForKey(int key);
-int M_GetKeyForName(const char* name);
+const char *M_GetNameForKey(int key);
+int M_GetKeyForName(const char *name);
 
-const char* M_GetNameForJoyB(int joyb);
-int M_GetJoyBForName(const char* name);
+const char *M_GetNameForJoyB(int joyb);
+int M_GetJoyBForName(const char *name);
 
-const char* M_GetNameForMouseB(int joyb);
-int M_GetMouseBForName(const char* name);
+const char *M_GetNameForMouseB(int joyb);
+int M_GetMouseBForName(const char *name);
 
 boolean M_IsMouseWheel(int mouseb);
 

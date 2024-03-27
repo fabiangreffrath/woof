@@ -62,6 +62,7 @@ typedef enum {
 
 typedef enum
 {
+    exe_indetermined = -1,
     exe_doom_1_9,    // Doom 1.9: for shareware, registered and commercial
     exe_ultimate,    // Ultimate Doom (retail)
     exe_final,       // Final Doom
@@ -194,7 +195,7 @@ typedef enum {
 // Used when resetting the defaults for every item in a Setup group.
 
 typedef enum {
-  ss_none,
+  ss_none = -1,
   ss_keys,
   ss_weap,
   ss_stat,

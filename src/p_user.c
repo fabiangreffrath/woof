@@ -93,7 +93,7 @@ void P_Thrust(player_t* player,angle_t angle,fixed_t move)
 
 void P_Bob(player_t *player, angle_t angle, fixed_t move)
 {
-  if (demo_version < 203)
+  if (demo_version < DV_MBF)
     return;
 
   player->momx += FixedMul(move,finecosine[angle >>= ANGLETOFINESHIFT]);
@@ -104,9 +104,6 @@ void P_Bob(player_t *player, angle_t angle, fixed_t move)
 // P_CalcHeight
 // Calculate the walking / running height adjustment
 //
-
-// [crispy] variable player view bob
-static const int bobfactors[3] = {0, 4, 3};
 
 void P_CalcHeight (player_t* player)
 {
@@ -128,14 +125,14 @@ void P_CalcHeight (player_t* player)
 
   // [FG] MBF player bobbing rewrite causes demo sync problems
   // http://prboom.sourceforge.net/mbf-bugs.html
-  player->bob = (demo_version >= 203 && player_bobbing) ?
+  player->bob = (demo_version >= DV_MBF && player_bobbing) ?
       (FixedMul(player->momx,player->momx)
       + FixedMul(player->momy,player->momy))>>2 :
       (demo_compatibility || player_bobbing) ?
       (FixedMul (player->mo->momx, player->mo->momx)
       + FixedMul (player->mo->momy,player->mo->momy))>>2 : 0;
 
-  if ((demo_version == 202 || demo_version == 203) &&
+  if ((demo_version == DV_BOOM || demo_version == DV_MBF) &&
       player->mo->friction > ORIG_FRICTION) // ice?
   {
     if (player->bob > (MAXBOB>>2))
@@ -146,9 +143,6 @@ void P_CalcHeight (player_t* player)
   if (player->bob > MAXBOB)                             
     player->bob = MAXBOB;
   }
-
-  // [crispy] variable player view bob
-  player->bob2 = bobfactors[cosmetic_bobbing] * player->bob / 4;
 
   if (!onground || player->cheats & CF_NOMOMENTUM)
     {
@@ -168,7 +162,9 @@ void P_CalcHeight (player_t* player)
     }
 
   angle = (FINEANGLES/20*leveltime)&FINEMASK;
-  bob = FixedMul(player->bob2/2,finesine[angle]);
+
+  bob = player->bob * view_bobbing_pct / 4;
+  bob = FixedMul(bob/2,finesine[angle]);
 
   // move viewheight
 
@@ -231,7 +227,7 @@ void P_MovePlayer (player_t* player)
   // ice, because the player still "works just as hard" to move, while the
   // thrust applied to the movement varies with 'movefactor'.
 
-  if ((!demo_compatibility && demo_version < 203) ||
+  if ((!demo_compatibility && demo_version < DV_MBF) ||
       cmd->forwardmove | cmd->sidemove) // killough 10/98
     {
       if (onground || mo->flags & MF_BOUNCES) // killough 8/9/98

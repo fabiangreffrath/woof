@@ -22,6 +22,6 @@
 
 #include "doomtype.h"
 
-byte V_Colorize (byte *playpal, int cr, byte source);
+byte V_Colorize(byte *playpal, int cr, byte source);
 
 #endif // __V_TRANS__

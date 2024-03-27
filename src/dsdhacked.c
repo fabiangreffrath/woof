@@ -14,9 +14,9 @@
 // DESCRIPTION:
 //      DSDHacked support
 
+#include <ctype.h>
 #include <stdlib.h>
 #include <string.h>
-#include <ctype.h>
 
 #include "d_think.h"
 #include "doomtype.h"
@@ -87,10 +87,12 @@ void dsdh_EnsureStatesCapacity(int limit)
     memset(deh_codeptr + old_num_states, 0, size_delta * sizeof(*deh_codeptr));
 
     array_grow(defined_codeptr_args, size_delta);
-    memset(defined_codeptr_args + old_num_states, 0, size_delta * sizeof(*defined_codeptr_args));
+    memset(defined_codeptr_args + old_num_states, 0,
+           size_delta * sizeof(*defined_codeptr_args));
 
     array_grow(seenstate_tab, size_delta);
-    memset(seenstate_tab + old_num_states, 0, size_delta * sizeof(*seenstate_tab));
+    memset(seenstate_tab + old_num_states, 0,
+           size_delta * sizeof(*seenstate_tab));
 
     for (int i = old_num_states; i < num_states; ++i)
     {
@@ -138,7 +140,8 @@ static void EnsureSpritesCapacity(int limit)
     {
         sprnames = NULL;
         array_grow(sprnames, old_num_sprites + limit);
-        memcpy(sprnames, original_sprnames, old_num_sprites * sizeof(*sprnames));
+        memcpy(sprnames, original_sprnames,
+               old_num_sprites * sizeof(*sprnames));
         first_allocation = false;
     }
     else
@@ -151,7 +154,8 @@ static void EnsureSpritesCapacity(int limit)
     memset(sprnames + old_num_sprites, 0, size_delta * sizeof(*sprnames));
 
     array_grow(sprnames_state, size_delta);
-    memset(sprnames_state + old_num_sprites, 0, size_delta * sizeof(*sprnames_state));
+    memset(sprnames_state + old_num_sprites, 0,
+           size_delta * sizeof(*sprnames_state));
 }
 
 static void FreeSprites(void)
@@ -167,11 +171,12 @@ static void FreeSprites(void)
     array_free(sprnames_state);
 }
 
-int dsdh_GetDehSpriteIndex(const char* key)
+int dsdh_GetDehSpriteIndex(const char *key)
 {
     for (int i = 0; i < num_sprites; ++i)
     {
-        if (sprnames[i] && !strncasecmp(sprnames[i], key, 4) && !sprnames_state[i])
+        if (sprnames[i] && !strncasecmp(sprnames[i], key, 4)
+            && !sprnames_state[i])
         {
             sprnames_state[i] = true; // sprite has been edited
             return i;
@@ -181,10 +186,10 @@ int dsdh_GetDehSpriteIndex(const char* key)
     return -1;
 }
 
-int dsdh_GetOriginalSpriteIndex(const char* key)
+int dsdh_GetOriginalSpriteIndex(const char *key)
 {
     int i;
-    const char* c;
+    const char *c;
 
     for (i = 0; i < array_capacity(deh_spritenames); ++i)
     {
@@ -285,14 +290,12 @@ void dsdh_EnsureSFXCapacity(int limit)
     }
 }
 
-int dsdh_GetDehSFXIndex(const char* key, size_t length)
+int dsdh_GetDehSFXIndex(const char *key, size_t length)
 {
     for (int i = 1; i < num_sfx; ++i)
     {
-        if (S_sfx[i].name &&
-            strlen(S_sfx[i].name) == length &&
-            !strncasecmp(S_sfx[i].name, key, length) &&
-            !sfx_state[i])
+        if (S_sfx[i].name && strlen(S_sfx[i].name) == length
+            && !strncasecmp(S_sfx[i].name, key, length) && !sfx_state[i])
         {
             sfx_state[i] = true; // sfx has been edited
             return i;
@@ -302,10 +305,10 @@ int dsdh_GetDehSFXIndex(const char* key, size_t length)
     return -1;
 }
 
-int dsdh_GetOriginalSFXIndex(const char* key)
+int dsdh_GetOriginalSFXIndex(const char *key)
 {
     int i;
-    const char* c;
+    const char *c;
 
     for (i = 1; i < array_capacity(deh_soundnames); ++i)
     {
@@ -347,14 +350,12 @@ static void InitMusic(void)
     memset(music_state, 0, num_music * sizeof(*music_state));
 }
 
-int dsdh_GetDehMusicIndex(const char* key, int length)
+int dsdh_GetDehMusicIndex(const char *key, int length)
 {
     for (int i = 1; i < num_music; ++i)
     {
-        if (S_music[i].name &&
-            strlen(S_music[i].name) == length &&
-            !strncasecmp(S_music[i].name, key, length) &&
-            !music_state[i])
+        if (S_music[i].name && strlen(S_music[i].name) == length
+            && !strncasecmp(S_music[i].name, key, length) && !music_state[i])
         {
             music_state[i] = true; // music has been edited
             return i;
@@ -374,7 +375,7 @@ static void FreeMusic(void)
 //
 #include "p_map.h" // MELEERANGE
 
-mobjinfo_t* mobjinfo = NULL;
+mobjinfo_t *mobjinfo = NULL;
 int num_mobj_types;
 
 static void InitMobjInfo(void)
@@ -397,7 +398,8 @@ void dsdh_EnsureMobjInfoCapacity(int limit)
     {
         mobjinfo = NULL;
         array_grow(mobjinfo, old_num_mobj_types + limit);
-        memcpy(mobjinfo, original_mobjinfo, old_num_mobj_types * sizeof(*mobjinfo));
+        memcpy(mobjinfo, original_mobjinfo,
+               old_num_mobj_types * sizeof(*mobjinfo));
         first_allocation = false;
     }
     else

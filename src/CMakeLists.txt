@@ -38,7 +38,7 @@ set(WOOF_SOURCES
     i_input.c              i_input.h
     i_main.c
     i_mbfsound.c
-    i_oalmusic.c           i_oalmusic.h
+    i_oalmusic.c
     i_oalsound.c           i_oalsound.h
                            i_oalstream.h
     i_oplmusic.c
@@ -53,14 +53,16 @@ set(WOOF_SOURCES
                            m_array.h
     m_bbox.c               m_bbox.h
     m_cheat.c              m_cheat.h
+    m_config.c             m_config.h
                            m_fixed.h
     m_input.c              m_input.h
     m_io.c                 m_io.h
-    m_menu.c               m_menu.h
+    mn_font.c              mn_font.h
+    mn_menu.c              mn_menu.h
+    mn_setup.c             mn_setup.h
     m_misc.c               m_misc.h
-    m_misc2.c              m_misc2.h
     m_random.c             m_random.h
-    m_snapshot.c           m_snapshot.h
+    mn_snapshot.c          mn_snapshot.h
                            m_swap.h
     memio.c                memio.h
     midifallback.c         midifallback.h
@@ -231,7 +233,7 @@ set(SETUP_SOURCES
     m_argv.c                m_argv.h
                             m_array.h
     m_io.c                  m_io.h
-    m_misc2.c               m_misc2.h
+    m_misc.c                m_misc.h
     net_io.c                net_io.h
     net_packet.c            net_packet.h
     net_query.c             net_query.h

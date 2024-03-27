@@ -107,7 +107,13 @@ extern int mapcolor_preset;
 //jff 3/9/98
 extern int map_secret_after;  // secrets do not appear til after bagged
 
-extern int map_keyed_door_flash; // keyed doors are flashing
+enum {
+  MAP_KEYED_DOOR_OFF,
+  MAP_KEYED_DOOR_COLOR,
+  MAP_KEYED_DOOR_FLASH
+};
+
+extern int map_keyed_door; // keyed doors are colored or flashing
 
 extern int map_smooth_lines;
 

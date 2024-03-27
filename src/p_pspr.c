@@ -111,7 +111,7 @@ void P_SetPspritePtr(player_t *player, pspdef_t *psp, statenum_t stnum)
         }
 
       // killough 7/19/98: Pre-Beta BFG
-      if (stnum == S_BFG1 && (classic_bfg || beta_emulation))
+      if (stnum == S_BFG1 && (STRICTMODE(classic_bfg) || beta_emulation))
 	stnum = S_OLDBFG1;                 // Skip to alternative weapon frame
 
       state = &states[stnum];
@@ -169,7 +169,7 @@ static void P_BringUpWeapon(player_t *player)
   player->pendingweapon = wp_nochange;
 
   // killough 12/98: prevent pistol from starting visibly at bottom of screen:
-  player->psprites[ps_weapon].sy = demo_version >= 203 ? 
+  player->psprites[ps_weapon].sy = demo_version >= DV_MBF ? 
     WEAPONBOTTOM+FRACUNIT*2 : WEAPONBOTTOM;
 
   P_SetPsprite(player, ps_weapon, newstate);
@@ -630,7 +630,7 @@ static void A_FireSomething(player_t* player,int adder)
 
   // killough 3/27/98: prevent recoil in no-clipping mode
   if (!(player->mo->flags & MF_NOCLIP))
-    if (weapon_recoil && (demo_version >= 203 || !compatibility))
+    if (weapon_recoil && (demo_version >= DV_MBF || !compatibility))
       P_Thrust(player, ANG180 + player->mo->angle,
                2048*recoil_values[player->readyweapon].thrust);          // phares
 }
@@ -672,7 +672,7 @@ void A_Punch(player_t *player, pspdef_t *psp)
   range = (mbf21 ? player->mo->info->meleerange : MELEERANGE);
 
   // killough 8/2/98: make autoaiming prefer enemies
-  if (demo_version<203 ||
+  if (demo_version < DV_MBF ||
       (slope = P_AimLineAttack(player->mo, angle, range, MF_FRIEND),
        !linetarget))
     slope = P_AimLineAttack(player->mo, angle, range, 0);
@@ -709,7 +709,7 @@ void A_Saw(player_t *player, pspdef_t *psp)
   range = (mbf21 ? player->mo->info->meleerange : MELEERANGE) + 1;
 
   // killough 8/2/98: make autoaiming prefer enemies
-  if (demo_version<203 ||
+  if (demo_version < DV_MBF ||
       (slope = P_AimLineAttack(player->mo, angle, range, MF_FRIEND),
        !linetarget))
     slope = P_AimLineAttack(player->mo, angle, range, 0);
@@ -871,7 +871,7 @@ static void P_BulletSlope(mobj_t *mo)
   angle_t an = mo->angle;    // see which target is to be aimed at
 
   // killough 8/2/98: make autoaiming prefer enemies
-  int mask = demo_version < 203 ? 0 : MF_FRIEND;
+  int mask = demo_version < DV_MBF ? 0 : MF_FRIEND;
 
   if (direct_vertical_aiming)
   {
@@ -1039,7 +1039,7 @@ void A_BFGSpray(mobj_t *mo)
       // mo->target is the originator (player) of the missile
 
       // killough 8/2/98: make autoaiming prefer enemies
-      if (demo_version < 203 || 
+      if (demo_version < DV_MBF || 
 	  (P_AimLineAttack(mo->target, an, 16*64*FRACUNIT, MF_FRIEND), 
 	   !linetarget))
 	P_AimLineAttack(mo->target, an, 16*64*FRACUNIT, 0);
@@ -1089,8 +1089,6 @@ void P_SetupPsprites(player_t *player)
 // Called every tic by player thinking routine.
 //
 
-#define BOBBING_75 2
-
 #define WEAPON_CENTERED 1
 #define WEAPON_BOBBING 2
 
@@ -1118,7 +1116,7 @@ void P_MovePsprites(player_t *player)
 
   if (psp->state)
   {
-    if (!cosmetic_bobbing)
+    if (!weapon_bobbing_pct)
     {
       static fixed_t last_sy = WEAPONTOP;
 
@@ -1135,7 +1133,7 @@ void P_MovePsprites(player_t *player)
         psp->sy2 -= (last_sy - WEAPONTOP);
       }
     }
-    else if (cosmetic_bobbing == BOBBING_75 || center_weapon_strict || uncapped)
+    else if (center_weapon_strict || uncapped)
     {
       // [FG] don't center during lowering and raising states
       if (psp->state->misc1 || player->switching)
@@ -1144,7 +1142,8 @@ void P_MovePsprites(player_t *player)
       // [FG] not attacking means idle
       else if (!player->attackdown || center_weapon_strict == WEAPON_BOBBING)
       {
-        P_ApplyBobbing(&psp->sx2, &psp->sy2, player->bob2);
+        fixed_t bob = player->bob * weapon_bobbing_pct / 4;
+        P_ApplyBobbing(&psp->sx2, &psp->sy2, bob);
       }
       // [FG] center the weapon sprite horizontally and push up vertically
       else if (center_weapon_strict == WEAPON_CENTERED)

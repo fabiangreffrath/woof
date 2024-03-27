@@ -449,19 +449,19 @@ static boolean P_Move(mobj_t *actor, boolean dropoff) // killough 9/12/98
       // Boom v2.02 and LxDoom return good && (P_Random(pr_trywalk)&3)
       // MBF plays even more games
 
-      if (demo_version < 202)
+      if (demo_version < DV_BOOM)
         return good;
-      if (demo_version < 203)
+      if (demo_version < DV_MBF)
         return good && (compatibility || (P_Random(pr_trywalk)&3)); //jff 8/13/98
       else
-      return good && (demo_version < 203 || comp[comp_doorstuck] ||
+      return good && (demo_version < DV_MBF || comp[comp_doorstuck] ||
 		      (P_Random(pr_opendoor) >= 230) ^ (good & 1));
     }
   else
     actor->flags &= ~MF_INFLOAT;
 
   // killough 11/98: fall more slowly, under gravity, if felldown==true
-  if (!(actor->flags & MF_FLOAT) && (!felldown || demo_version < 203))
+  if (!(actor->flags & MF_FLOAT) && (!felldown || demo_version < DV_MBF))
     actor->z = actor->floorz;
 
   return true;
@@ -687,7 +687,7 @@ static void P_NewChaseDir(mobj_t *actor)
 
   actor->strafecount = 0;
 
-  if (demo_version >= 203)
+  if (demo_version >= DV_MBF)
   {
     if (actor->floorz - actor->dropoffz > FRACUNIT*24 &&
 	actor->z <= actor->floorz && !(actor->flags & (MF_DROPOFF|MF_FLOAT)) &&
@@ -853,7 +853,7 @@ static boolean P_LookForPlayers(mobj_t *actor, boolean allaround)
 
   c = 0;
 
-  stopc = demo_version < 203 && !demo_compatibility && monsters_remember ?
+  stopc = demo_version < DV_MBF && !demo_compatibility && monsters_remember ?
     MAXPLAYERS : 2;       // killough 9/9/98
 
   for (;; actor->lastlook = (actor->lastlook+1)&(MAXPLAYERS-1))
@@ -869,7 +869,7 @@ static boolean P_LookForPlayers(mobj_t *actor, boolean allaround)
         // There are no more desyncs on Donce's demos on horror.wad
 
         // Use last known enemy if no players sighted -- killough 2/15/98:
-        if (demo_version < 203 && !demo_compatibility && monsters_remember)
+        if (demo_version < DV_MBF && !demo_compatibility && monsters_remember)
         {
           if (actor->lastenemy && actor->lastenemy->health > 0)
           {
@@ -897,7 +897,7 @@ static boolean P_LookForPlayers(mobj_t *actor, boolean allaround)
 
       // killough 9/9/98: give monsters a threshold towards getting players
       // (we don't want it to be too easy for a player with dogs :)
-      if (demo_version >= 203 && !comp[comp_pursuit])
+      if (demo_version >= DV_MBF && !comp[comp_pursuit])
 	actor->threshold = 60;
 
       return true;
@@ -927,7 +927,7 @@ static boolean P_LookForMonsters(mobj_t *actor, boolean allaround)
       return true;
     }
 
-  if (demo_version < 203)  // Old demos do not support monster-seeking bots
+  if (demo_version < DV_MBF)  // Old demos do not support monster-seeking bots
     return false;
 
   // Search the threaded list corresponding to this object's potential targets
@@ -1202,7 +1202,7 @@ void A_Chase(mobj_t *actor)
 
   if (!actor->threshold)
   {
-    if (demo_version < 203)
+    if (demo_version < DV_MBF)
       {   // killough 9/9/98: for backward demo compatibility
 	if (netgame && !P_CheckSight(actor, actor->target) &&
 	    P_LookForPlayers(actor, true))
@@ -1758,7 +1758,7 @@ static boolean P_HealCorpse(mobj_t* actor, int radius, statenum_t healstate, sfx
                   corpsehit->health = info->spawnhealth;
 		  P_SetTarget(&corpsehit->target, NULL);  // killough 11/98
 
-		  if (demo_version >= 203)
+		  if (demo_version >= DV_MBF)
 		    {         // kilough 9/9/98
 		      P_SetTarget(&corpsehit->lastenemy, NULL);
 		      corpsehit->flags &= ~MF_JUSTHIT;
@@ -1852,7 +1852,7 @@ void A_VileTarget(mobj_t *actor)
 
   // killough 12/98: fix Vile fog coordinates
   fog = P_SpawnMobj(actor->target->x,
-                    demo_version < 203 ? actor->target->x : actor->target->y,
+                    demo_version < DV_MBF ? actor->target->x : actor->target->y,
                     actor->target->z,MT_FIRE);
 
   P_SetTarget(&actor->tracer, fog);   // killough 11/98
@@ -2021,7 +2021,7 @@ void A_BetaSkullAttack(mobj_t *actor)
 {
   int damage;
 
-  if (demo_version < 203)
+  if (demo_version < DV_MBF)
     return;
 
   if (!actor->target || actor->target->type == MT_SKULL)
@@ -2038,7 +2038,7 @@ void A_BetaSkullAttack(mobj_t *actor)
 
 void A_Stop(mobj_t *actor)
 {
-  if (demo_version < 203)
+  if (demo_version < DV_MBF)
     return;
   actor->momx = actor->momy = actor->momz = 0;
 }
@@ -2204,7 +2204,7 @@ void A_Fall(mobj_t *actor)
 // killough 11/98: kill an object
 void A_Die(mobj_t *actor)
 {
-  if (demo_version < 203)
+  if (demo_version < DV_MBF)
     return;
   P_DamageMobj(actor, NULL, NULL, actor->health);
 }
@@ -2224,7 +2224,7 @@ void A_Explode(mobj_t *thingy)
 
 void A_Detonate(mobj_t *mo)
 {
-  if (demo_version < 203)
+  if (demo_version < DV_MBF)
     return;
   P_RadiusAttack(mo, mo->target, mo->info->damage, mo->info->damage);
 }
@@ -2242,7 +2242,7 @@ void A_Mushroom(mobj_t *actor)
   fixed_t misc1 = actor->state->misc1 ? actor->state->misc1 : FRACUNIT*4;
   fixed_t misc2 = actor->state->misc2 ? actor->state->misc2 : FRACUNIT/2;
 
-  if (demo_version < 203)
+  if (demo_version < DV_MBF)
     return;
   A_Explode(actor);               // make normal explosion
 
@@ -2737,7 +2737,7 @@ void A_KeenDie(mobj_t* mo)
 
 void A_Spawn(mobj_t *mo)
 {
-  if (demo_version < 203)
+  if (demo_version < DV_MBF)
     return;
   if (mo->state->misc1)
     {
@@ -2754,21 +2754,21 @@ void A_Spawn(mobj_t *mo)
 
 void A_Turn(mobj_t *mo)
 {
-  if (demo_version < 203)
+  if (demo_version < DV_MBF)
     return;
   mo->angle += (angle_t)(((uint64_t) mo->state->misc1 << 32) / 360);
 }
 
 void A_Face(mobj_t *mo)
 {
-  if (demo_version < 203)
+  if (demo_version < DV_MBF)
     return;
   mo->angle = (angle_t)(((uint64_t) mo->state->misc1 << 32) / 360);
 }
 
 void A_Scratch(mobj_t *mo)
 {
-  if (demo_version < 203)
+  if (demo_version < DV_MBF)
     return;
   mo->target && (A_FaceTarget(mo), P_CheckMeleeRange(mo)) ?
     mo->state->misc2 ? S_StartSound(mo, mo->state->misc2) : (void) 0,
@@ -2777,7 +2777,7 @@ void A_Scratch(mobj_t *mo)
 
 void A_PlaySound(mobj_t *mo)
 {
-  if (demo_version < 203)
+  if (demo_version < DV_MBF)
     return;
   S_StartSound(mo->state->misc2 ? NULL : mo, mo->state->misc1);
 }
@@ -2796,7 +2796,7 @@ void A_RandomJump(mobj_t *mo)
 
 void A_LineEffect(mobj_t *mo)
 {
-  if (demo_version < 203)
+  if (demo_version < DV_MBF)
     return;
   if (!(mo->intflags & MIF_LINEDONE))                // Unless already used up
     {

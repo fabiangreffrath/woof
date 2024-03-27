@@ -39,7 +39,7 @@
 #include "info.h"
 #include "m_argv.h"
 #include "m_bbox.h" // phares 3/20/98
-#include "m_misc2.h"
+#include "m_misc.h"
 #include "m_random.h"
 #include "m_swap.h"
 #include "p_inter.h"
@@ -898,7 +898,7 @@ boolean P_CanUnlockGenDoor(line_t *line, player_t *player)
            !(player->cards[it_bluecard] | player->cards[it_blueskull]) ||
            // [FG] 3-key door works with only 2 keys
            // http://prboom.sourceforge.net/mbf-bugs.html
-           !(player->cards[it_yellowcard] | (demo_version == 203 ? !player->cards[it_yellowskull] : player->cards[it_yellowskull]))))
+           !(player->cards[it_yellowcard] | (demo_version == DV_MBF ? !player->cards[it_yellowskull] : player->cards[it_yellowskull]))))
         {
           doomprintf(player, MESSAGES_NONE, "%s", s_PD_ALL3); // Ty 03/27/98 - externalized
           S_StartSound(player->mo,sfx_oof);             // killough 3/20/98
@@ -3059,7 +3059,7 @@ static void P_SpawnFriction(void)
         else
           movefactor = ((friction - 0xDB34)*(0xA))/0x80;
 
-        if (demo_version >= 203)
+        if (demo_version >= DV_MBF)
           { // killough 8/28/98: prevent odd situations
             if (friction > FRACUNIT)
               friction = FRACUNIT;
@@ -3082,7 +3082,7 @@ static void P_SpawnFriction(void)
             // at level startup, and then uses this friction value.
 
             // Boom's friction code for demo compatibility
-            if (!demo_compatibility && demo_version < 203)
+            if (!demo_compatibility && demo_version < DV_MBF)
               Add_Friction(friction,movefactor,s);
 
             sectors[s].friction = friction;
@@ -3180,7 +3180,7 @@ pusher_t* tmpusher; // pusher structure for blockmap searches
 
 boolean PIT_PushThing(mobj_t* thing)
 {
-  if (demo_version < 203  ?     // killough 10/98: made more general
+  if (demo_version < DV_MBF  ?     // killough 10/98: made more general
       thing->player && !(thing->flags & (MF_NOCLIP | MF_NOGRAVITY)) :
       (sentient(thing) || thing->flags & MF_SHOOTABLE) &&
       !(thing->flags & MF_NOCLIP))
@@ -3202,7 +3202,7 @@ boolean PIT_PushThing(mobj_t* thing)
       // to stay close to source, grow increasingly hard as you
       // get closer, as expected. Still, it doesn't consider z :(
 
-      if (speed > 0 && demo_version >= 203)
+      if (speed > 0 && demo_version >= DV_MBF)
         {
           int x = (thing->x-sx) >> FRACBITS;
           int y = (thing->y-sy) >> FRACBITS;

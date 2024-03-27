@@ -14,29 +14,30 @@
 // DESCRIPTION:
 //      FluidSynth backend
 
-#include "fluidsynth.h"
 #include "SDL.h"
+#include "fluidsynth.h"
 
 #include <stdlib.h>
 #include <string.h>
 
 #include "config.h"
+#include "i_oalstream.h"
 
-#if (FLUIDSYNTH_VERSION_MAJOR < 2 || (FLUIDSYNTH_VERSION_MAJOR == 2 && FLUIDSYNTH_VERSION_MINOR < 2))
-  typedef int fluid_int_t;
-  typedef long fluid_long_long_t;
+#if (FLUIDSYNTH_VERSION_MAJOR < 2 \
+     || (FLUIDSYNTH_VERSION_MAJOR == 2 && FLUIDSYNTH_VERSION_MINOR < 2))
+typedef int fluid_int_t;
+typedef long fluid_long_long_t;
 #else
-  typedef fluid_long_long_t fluid_int_t;
+typedef fluid_long_long_t fluid_int_t;
 #endif
 
 #include "d_iwad.h" // [FG] D_DoomExeDir()
 #include "doomtype.h"
 #include "i_glob.h"
-#include "i_oalmusic.h"
 #include "i_printf.h"
 #include "i_sound.h"
 #include "m_array.h"
-#include "m_misc2.h"
+#include "m_misc.h"
 #include "memio.h"
 #include "mus2mid.h"
 #include "w_wad.h"
@@ -46,27 +47,12 @@ const char *soundfont_path = "";
 char *soundfont_dir = "";
 boolean mus_chorus;
 boolean mus_reverb;
-int     mus_gain = 100;
 
 static fluid_synth_t *synth = NULL;
 static fluid_settings_t *settings = NULL;
 static fluid_player_t *player = NULL;
 
 static const char **soundfonts = NULL;
-
-static int FL_Callback(byte *buffer, int buffer_samples)
-{
-    int result;
-
-    result = fluid_synth_write_s16(synth, buffer_samples, buffer, 0, 2, buffer, 1, 2);
-
-    if (result != FLUID_OK)
-    {
-        I_Printf(VB_ERROR, "FL_Callback: Error generating FluidSynth audio");
-    }
-
-    return buffer_samples;
-}
 
 // Load SNDFONT lump
 
@@ -124,10 +110,10 @@ static void ScanDir(const char *dir)
         dir = rel;
     }
 
-    glob = I_StartMultiGlob(dir, GLOB_FLAG_NOCASE|GLOB_FLAG_SORTED,
-                            "*.sf2", "*.sf3", NULL);
+    glob = I_StartMultiGlob(dir, GLOB_FLAG_NOCASE | GLOB_FLAG_SORTED, "*.sf2",
+                            "*.sf3", NULL);
 
-    while(1)
+    while (1)
     {
         const char *filename = I_NextGlob(glob);
 
@@ -203,15 +189,15 @@ static void FreeSynthAndSettings(void)
 
 static void I_FL_Log_Error(int level, const char *message, void *data)
 {
-  I_Printf(VB_ERROR, "%s", message);
+    I_Printf(VB_ERROR, "%s", message);
 }
 
 static void I_FL_Log_Debug(int level, const char *message, void *data)
 {
-  I_Printf(VB_DEBUG, "%s", message);
+    I_Printf(VB_DEBUG, "%s", message);
 }
 
-static boolean I_FL_InitMusic(int device)
+static boolean I_FL_InitStream(int device)
 {
     int sf_id;
     int lumpnum;
@@ -248,7 +234,7 @@ static boolean I_FL_InitMusic(int device)
     if (synth == NULL)
     {
         I_Printf(VB_ERROR,
-                "I_FL_InitMusic: FluidSynth failed to initialize synth.");
+                 "I_FL_InitMusic: FluidSynth failed to initialize synth.");
         return false;
     }
 
@@ -299,66 +285,30 @@ static boolean I_FL_InitMusic(int device)
     if (sf_id == FLUID_FAILED)
     {
         char *errmsg;
-        errmsg = M_StringJoin("Error loading FluidSynth soundfont: ",
-            lumpnum >= 0 ? "SNDFONT lump" : soundfont_path, NULL);
-        SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_WARNING, PROJECT_STRING,
-            errmsg, NULL);
+        errmsg =
+            M_StringJoin("Error loading FluidSynth soundfont: ",
+                         lumpnum >= 0 ? "SNDFONT lump" : soundfont_path, NULL);
+        SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_WARNING, PROJECT_STRING, errmsg,
+                                 NULL);
         free(errmsg);
         FreeSynthAndSettings();
         return false;
     }
 
     I_Printf(VB_INFO, "FluidSynth Init: Using '%s'.",
-        lumpnum >= 0 ? "SNDFONT lump" : soundfont_path);
+             lumpnum >= 0 ? "SNDFONT lump" : soundfont_path);
 
     return true;
 }
 
-static void I_FL_SetMusicVolume(int volume)
+static boolean I_FL_OpenStream(void *data, ALsizei size, ALenum *format,
+                               ALsizei *freq, ALsizei *frame_size)
 {
-    if (synth)
+    if (!synth)
     {
-        // FluidSynth's default is 0.2. Make 1.0 the maximum.
-        // 0 -- 0.2 -- 10.0
-        fluid_synth_set_gain(synth, ((float)volume / 15) * ((float)mus_gain / 100));
+        return false;
     }
-}
 
-static void I_FL_PauseSong(void *handle)
-{
-    if (player)
-    {
-        I_OAL_HookMusic(NULL);
-    }
-}
-
-static void I_FL_ResumeSong(void *handle)
-{
-    if (player)
-    {
-        I_OAL_HookMusic(FL_Callback);
-    }
-}
-
-static void I_FL_PlaySong(void *handle, boolean looping)
-{
-    if (player)
-    {
-        fluid_player_set_loop(player, looping ? -1 : 1);
-        fluid_player_play(player);
-    }
-}
-
-static void I_FL_StopSong(void *handle)
-{
-    if (player)
-    {
-       fluid_player_stop(player);
-    }
-}
-
-static void *I_FL_RegisterSong(void *data, int len)
-{
     int result = FLUID_FAILED;
 
     player = new_fluid_player(synth);
@@ -366,13 +316,13 @@ static void *I_FL_RegisterSong(void *data, int len)
     if (player == NULL)
     {
         I_Printf(VB_ERROR,
-                "I_FL_InitMusic: FluidSynth failed to initialize player.");
-        return NULL;
+                 "I_FL_InitMusic: FluidSynth failed to initialize player.");
+        return false;
     }
 
-    if (IsMid(data, len))
+    if (IsMid(data, size))
     {
-        result = fluid_player_add_mem(player, data, len);
+        result = fluid_player_add_mem(player, data, size);
     }
     else
     {
@@ -382,7 +332,7 @@ static void *I_FL_RegisterSong(void *data, int len)
         void *outbuf;
         size_t outbuf_len;
 
-        instream = mem_fopen_read(data, len);
+        instream = mem_fopen_read(data, size);
         outstream = mem_fopen_write();
 
         if (mus2mid(instream, outstream) == 0)
@@ -400,38 +350,60 @@ static void *I_FL_RegisterSong(void *data, int len)
         delete_fluid_player(player);
         player = NULL;
         I_Printf(VB_ERROR, "I_FL_RegisterSong: Failed to load in-memory song.");
-        return NULL;
+        return false;
     }
 
-    if (!I_OAL_HookMusic(FL_Callback))
-    {
-        delete_fluid_player(player);
-        player = NULL;
-        return NULL;
-    }
+    *format = AL_FORMAT_STEREO16;
+    *freq = SND_SAMPLERATE;
+    *frame_size = 2 * sizeof(short);
 
-    return (void *)1;
+    return true;
 }
 
-static void I_FL_UnRegisterSong(void *handle)
+static int I_FL_FillStream(byte *buffer, int buffer_samples)
 {
-    if (player)
+    int result;
+
+    result = fluid_synth_write_s16(synth, buffer_samples, buffer, 0, 2, buffer,
+                                   1, 2);
+
+    if (result != FLUID_OK)
     {
-        fluid_synth_program_reset(synth);
-        fluid_synth_system_reset(synth);
-
-        I_OAL_HookMusic(NULL);
-
-        delete_fluid_player(player);
-        player = NULL;
+        I_Printf(VB_ERROR, "FL_Callback: Error generating FluidSynth audio");
     }
+
+    return buffer_samples;
 }
 
-static void I_FL_ShutdownMusic(void)
+static void I_FL_PlayStream(boolean looping)
 {
-    I_FL_StopSong(NULL);
-    I_FL_UnRegisterSong(NULL);
+    if (!player)
+    {
+        return;
+    }
 
+    fluid_player_set_loop(player, looping ? -1 : 1);
+    fluid_player_play(player);
+}
+
+static void I_FL_CloseStream(void)
+{
+    if (!player || !synth)
+    {
+        return;
+    }
+
+    fluid_player_stop(player);
+
+    fluid_synth_program_reset(synth);
+    fluid_synth_system_reset(synth);
+
+    delete_fluid_player(player);
+    player = NULL;
+}
+
+static void I_FL_ShutdownStream(void)
+{
     FreeSynthAndSettings();
 }
 
@@ -439,9 +411,17 @@ static void I_FL_ShutdownMusic(void)
 
 static const char **I_FL_DeviceList(int *current_device)
 {
-    const char **devices = NULL;
+    static const char **devices = NULL;
 
-    *current_device = 0;
+    if (devices)
+    {
+        return devices;
+    }
+
+    if (current_device)
+    {
+        *current_device = 0;
+    }
 
     if (W_CheckNumForName("SNDFONT") >= 0)
     {
@@ -461,7 +441,7 @@ static const char **I_FL_DeviceList(int *current_device)
 
         array_push(devices, M_StringJoin("FluidSynth (", name, ")", NULL));
 
-        if (!strcasecmp(soundfonts[i], soundfont_path))
+        if (current_device && !strcasecmp(soundfonts[i], soundfont_path))
         {
             *current_device = i;
         }
@@ -470,22 +450,13 @@ static const char **I_FL_DeviceList(int *current_device)
     return devices;
 }
 
-static void I_FL_UpdateMusic(void)
+stream_module_t stream_fl_module =
 {
-    ;
-}
-
-music_module_t music_fl_module =
-{
-    I_FL_InitMusic,
-    I_FL_ShutdownMusic,
-    I_FL_SetMusicVolume,
-    I_FL_PauseSong,
-    I_FL_ResumeSong,
-    I_FL_RegisterSong,
-    I_FL_PlaySong,
-    I_FL_UpdateMusic,
-    I_FL_StopSong,
-    I_FL_UnRegisterSong,
+    I_FL_InitStream,
+    I_FL_OpenStream,
+    I_FL_FillStream,
+    I_FL_PlayStream,
+    I_FL_CloseStream,
+    I_FL_ShutdownStream,
     I_FL_DeviceList,
 };

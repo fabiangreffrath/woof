@@ -31,80 +31,79 @@
 
 enum
 {
-  TK_Identifier,  // Ex: SomeIdentifier
-  TK_StringConst,  // Ex: "Some String"
-  TK_IntConst,  // Ex: 27
-  TK_FloatConst,  // Ex: 1.5
-  TK_BoolConst,  // Ex: true
-  TK_AndAnd,    // &&
-  TK_OrOr,    // ||
-  TK_EqEq,    // ==
-  TK_NotEq,    // !=
-  TK_GtrEq,    // >=
-  TK_LessEq,    // <=
-  TK_ShiftLeft,  // <<
-  TK_ShiftRight,  // >>
+    TK_Identifier,  // Ex: SomeIdentifier
+    TK_StringConst, // Ex: "Some String"
+    TK_IntConst,    // Ex: 27
+    TK_FloatConst,  // Ex: 1.5
+    TK_BoolConst,   // Ex: true
+    TK_AndAnd,      // &&
+    TK_OrOr,        // ||
+    TK_EqEq,        // ==
+    TK_NotEq,       // !=
+    TK_GtrEq,       // >=
+    TK_LessEq,      // <=
+    TK_ShiftLeft,   // <<
+    TK_ShiftRight,  // >>
 
-  TK_NumSpecialTokens,
+    TK_NumSpecialTokens,
 
-  TK_NoToken = -1
+    TK_NoToken = -1
 };
 
 typedef struct
 {
-  char          *string;
-  int           number;
-  double        decimal;
-  boolean       sc_boolean;
-  char          token;
-  unsigned int  tokenLine;
-  unsigned int  tokenLinePosition;
+    char *string;
+    int number;
+    double decimal;
+    boolean sc_boolean;
+    char token;
+    unsigned int tokenLine;
+    unsigned int tokenLinePosition;
 } u_parserstate_t;
 
 typedef struct
 {
-  const char* name;
+    const char *name;
 
-  u_parserstate_t  nextState;
+    u_parserstate_t nextState;
 
-  char*            data;
-  unsigned int     length;
+    char *data;
+    unsigned int length;
 
-  unsigned int     line;
-  unsigned int     lineStart;
-  unsigned int     logicalPosition;
-  unsigned int     tokenLine;
-  unsigned int     tokenLinePosition;
-  unsigned int     scanPos;
+    unsigned int line;
+    unsigned int lineStart;
+    unsigned int logicalPosition;
+    unsigned int tokenLine;
+    unsigned int tokenLinePosition;
+    unsigned int scanPos;
 
-  boolean          needNext; // If checkToken returns false this will be false.
+    boolean needNext; // If checkToken returns false this will be false.
 
-  char*   string;
-  int     number;
-  double  decimal;
-  boolean sc_boolean;
-  char    token;
+    char *string;
+    int number;
+    double decimal;
+    boolean sc_boolean;
+    char token;
 
 } u_scanner_t;
 
+u_scanner_t *U_ScanOpen(const char *data, int length, const char *name);
+void U_ScanClose(u_scanner_t *s);
+boolean U_GetNextToken(u_scanner_t *s, boolean expandState);
+boolean U_GetNextLineToken(u_scanner_t *s);
+boolean U_HasTokensLeft(u_scanner_t *s);
+boolean U_MustGetToken(u_scanner_t *s, char token);
+boolean U_MustGetIdentifier(u_scanner_t *s, const char *ident);
+boolean U_MustGetInteger(u_scanner_t *s);
+boolean U_MustGetFloat(u_scanner_t *s);
+boolean U_CheckToken(u_scanner_t *s, char token);
+boolean U_CheckInteger(u_scanner_t *s);
+boolean U_CheckFloat(u_scanner_t *s);
+void U_Unget(u_scanner_t *s);
+boolean U_GetString(u_scanner_t *s);
 
-u_scanner_t  U_ScanOpen(const char* data, int length, const char *name);
-void         U_ScanClose(u_scanner_t* scanner);
-boolean      U_GetNextToken(u_scanner_t* scanner, boolean expandState);
-boolean      U_GetNextLineToken(u_scanner_t* scanner);
-boolean      U_HasTokensLeft(u_scanner_t* scanner);
-boolean      U_MustGetToken(u_scanner_t* scanner, char token);
-boolean      U_MustGetIdentifier(u_scanner_t* scanner, const char *ident);
-boolean      U_MustGetInteger(u_scanner_t* s);
-boolean      U_MustGetFloat(u_scanner_t* s);
-boolean      U_CheckToken(u_scanner_t* scanner, char token);
-boolean      U_CheckInteger(u_scanner_t* s);
-boolean      U_CheckFloat(u_scanner_t* s);
-void         U_Unget(u_scanner_t* s);
-boolean      U_GetString(u_scanner_t* s);
-
-void         PRINTF_ATTR(2, 0) U_Error(u_scanner_t* s, const char *msg, ...);
-void         U_ErrorToken(u_scanner_t* s, int token);
-void         U_ErrorString(u_scanner_t* s, const char *mustget);
+void PRINTF_ATTR(2, 0) U_Error(u_scanner_t *s, const char *msg, ...);
+void U_ErrorToken(u_scanner_t *s, int token);
+void U_ErrorString(u_scanner_t *s, const char *mustget);
 
 #endif /* __U_SCANNER_H__ */

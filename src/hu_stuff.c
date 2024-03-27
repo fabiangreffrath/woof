@@ -35,7 +35,7 @@
 #include "i_video.h" // fps
 #include "m_fixed.h"
 #include "m_input.h"
-#include "m_misc2.h"
+#include "m_misc.h"
 #include "m_swap.h"
 #include "p_map.h" // crosshair (linetarget)
 #include "p_mobj.h"
@@ -140,37 +140,40 @@ static hu_multiline_t w_rate;
 #define MAX_WIDGETS_D 5
 #define MAX_WIDGETS_B 12
 
+#define W_SECRET_Y ((SCREENHEIGHT - ST_HEIGHT) / 4)
+
 static hu_widget_t doom_widgets[MAX_HUDS][MAX_WIDGETS_D] = {
   {
     {&w_title,   align_direct, align_bottom, 0},
     {&w_message, align_direct, align_top,    0},
     {&w_chat,    align_direct, align_top,    0},
-    {&w_secret,  align_center, align_direct, 0, 84},
+    {&w_secret,  align_center, align_direct, 0, W_SECRET_Y},
     {NULL}
   }, {
     {&w_title,   align_direct, align_bottom, 0},
     {&w_message, align_direct, align_top,    0},
     {&w_chat,    align_direct, align_top,    0},
-    {&w_secret,  align_center, align_direct, 0, 84},
+    {&w_secret,  align_center, align_direct, 0, W_SECRET_Y},
     {NULL}
   }, {
     {&w_title,   align_direct, align_bottom, 0},
     {&w_message, align_direct, align_top,    0},
     {&w_chat,    align_direct, align_top,    0},
-    {&w_secret,  align_center, align_direct, 0, 84},
+    {&w_secret,  align_center, align_direct, 0, W_SECRET_Y},
     {NULL}
   }
 };
 
 static hu_widget_t boom_widgets[MAX_HUDS][MAX_WIDGETS_B] = {
   {
+    {&w_rate,   align_left,  align_top},
     {&w_monsec, align_left,  align_top},
     {&w_sttime, align_left,  align_top},
     {&w_coord,  align_right, align_top},
     {&w_fps,    align_right, align_top},
-    {&w_rate,   align_left,  align_top},
     {NULL}
   }, {
+    {&w_rate,   align_left,  align_top},
     {&w_armor,  align_left,  align_bottom},
     {&w_health, align_left,  align_bottom},
     {&w_ammo,   align_left,  align_bottom},
@@ -181,9 +184,9 @@ static hu_widget_t boom_widgets[MAX_HUDS][MAX_WIDGETS_B] = {
     {&w_sttime, align_left,  align_bottom},
     {&w_coord,  align_right, align_top},
     {&w_fps,    align_right, align_top},
-    {&w_rate,   align_left,  align_top},
     {NULL}
   }, {
+    {&w_rate,   align_left,  align_top},
     {&w_health, align_right, align_top},
     {&w_armor,  align_right, align_top},
     {&w_ammo,   align_right, align_bottom},
@@ -194,7 +197,6 @@ static hu_widget_t boom_widgets[MAX_HUDS][MAX_WIDGETS_B] = {
     {&w_sttime, align_left,  align_bottom},
     {&w_coord , align_right, align_top},
     {&w_fps,    align_right, align_top},
-    {&w_rate,   align_left,  align_top},
     {NULL}
   }
 };
@@ -512,7 +514,7 @@ static void HU_set_centered_message(boolean init)
 
 static inline void HU_cond_build_widget (hu_multiline_t *const multiline, boolean cond)
 {
-  if (cond)
+  if (cond && multiline->built == false)
   {
     multiline->builder();
     multiline->built = true;
@@ -570,6 +572,8 @@ static void HU_widget_build_monsec(void);
 static void HU_widget_build_sttime(void);
 static void HU_widget_build_title (void);
 static void HU_widget_build_weapon (void);
+
+static hu_multiline_t *w_stats;
 
 void HU_Start(void)
 {
@@ -650,6 +654,8 @@ void HU_Start(void)
   HUlib_init_multiline(&w_monsec, hud_widget_layout ? 3 : 1,
                        &boom_font, colrngs[CR_GRAY],
                        NULL, HU_widget_build_monsec);
+  // [FG] in deathmatch: w_keys.builder = HU_widget_build_frag()
+  w_stats = deathmatch ? &w_keys : &w_monsec;
 
   HUlib_init_multiline(&w_sttime, 1,
                        &boom_font, colrngs[CR_GRAY],
@@ -667,6 +673,8 @@ void HU_Start(void)
   HUlib_init_multiline(&w_rate, (voxels_rendering ? 2 : 1),
                        &boom_font, colrngs[hudcolor_xyco],
                        NULL, HU_widget_build_rate);
+  // [FG] draw the IDRATE widget exclusively
+  w_rate.exclusive = true;
 
   HU_set_centered_message(false);
 
@@ -1432,8 +1440,7 @@ void HU_DrawCrosshair(void)
   if (plr->playerstate != PST_LIVE ||
       automapactive ||
       menuactive ||
-      paused ||
-      secret_on)
+      paused)
   {
     return;
   }
@@ -1572,8 +1579,6 @@ void HU_Erase(void)
 static boolean bsdown; // Is backspace down?
 static int bscounter;
 
-int M_StringWidth(char *string);
-
 void HU_Ticker(void)
 {
   doom_widget = doom_widgets[hud_active];
@@ -1700,13 +1705,13 @@ void HU_Ticker(void)
 
   if (automapactive)
   {
-    HU_cond_build_widget(&w_monsec, hud_level_stats & HUD_WIDGET_AUTOMAP);
+    HU_cond_build_widget(w_stats, hud_level_stats & HUD_WIDGET_AUTOMAP);
     HU_cond_build_widget(&w_sttime, hud_level_time & HUD_WIDGET_AUTOMAP || plr->btuse_tics);
     HU_cond_build_widget(&w_coord, STRICTMODE(hud_player_coords) & HUD_WIDGET_AUTOMAP);
   }
   else
   {
-    HU_cond_build_widget(&w_monsec, hud_level_stats & HUD_WIDGET_HUD);
+    HU_cond_build_widget(w_stats, hud_level_stats & HUD_WIDGET_HUD);
     HU_cond_build_widget(&w_sttime, hud_level_time & HUD_WIDGET_HUD || plr->btuse_tics);
     HU_cond_build_widget(&w_coord, STRICTMODE(hud_player_coords) & HUD_WIDGET_HUD);
   }
@@ -2142,7 +2147,7 @@ static boolean HU_AddHUDAlignment (char *name, int hud, char *alignstr)
 
 static void HU_ParseHUD (void)
 {
-  u_scanner_t scanner, *s;
+  u_scanner_t *s;
   int hud = -1;
   int lumpnum;
   const char *data;
@@ -2156,8 +2161,7 @@ static void HU_ParseHUD (void)
   data = W_CacheLumpNum(lumpnum, PU_CACHE);
   length = W_LumpLength(lumpnum);
 
-  scanner = U_ScanOpen(data, length, "WOOFHUD");
-  s = &scanner;
+  s = U_ScanOpen(data, length, "WOOFHUD");
 
   while (U_HasTokensLeft(s))
   {

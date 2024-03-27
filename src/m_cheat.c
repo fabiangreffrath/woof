@@ -34,7 +34,7 @@
 #include "m_cheat.h"
 #include "m_fixed.h"
 #include "m_input.h"
-#include "m_misc2.h"
+#include "m_misc.h"
 #include "p_inter.h"
 #include "p_map.h"
 #include "p_mobj.h"
@@ -598,7 +598,6 @@ static void cheat_clev0()
 {
   int epsd, map;
   char *cur, *next;
-  extern int G_GotoNextLevel(int *e, int *m);
 
   cur = M_StringDuplicate(MAPNAME(gameepisode, gamemap));
 
