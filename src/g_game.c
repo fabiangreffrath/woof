@@ -54,6 +54,7 @@
 #include "mn_menu.h"
 #include "m_misc.h"
 #include "m_random.h"
+#include "mn_setup.h"
 #include "mn_snapshot.h"
 #include "m_swap.h" // [FG] LONG
 #include "memio.h"
@@ -959,7 +960,6 @@ static void G_DoLoadLevel(void)
 
   critical = (gameaction == ga_playdemo || demorecording || demoplayback || D_CheckNetConnect());
 
-  P_UpdateDirectVerticalAiming();
   P_UpdateCheckSight();
 
   // [crispy] pistol start
@@ -969,6 +969,9 @@ static void G_DoLoadLevel(void)
   }
 
   P_SetupLevel (gameepisode, gamemap, 0, gameskill);
+
+  MN_UpdateFreeLook();
+
   // [Woof!] Do not reset chosen player view across levels in multiplayer
   // demo playback. However, it must be reset when starting a new game.
   if (usergame)
