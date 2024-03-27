@@ -2099,7 +2099,7 @@ void MN_UpdateFreeLook(void)
 {
     P_UpdateDirectVerticalAiming();
 
-    if (!mouselook || !padlook)
+    if (!mouselook && !padlook)
     {
         for (int i = 0; i < MAXPLAYERS; ++i)
         {
