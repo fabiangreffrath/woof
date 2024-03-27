@@ -587,6 +587,7 @@ signed int TXT_GetChar(void)
                 }
 
             default:
+                SDL_PushEvent(&ev);
                 break;
         }
     }
