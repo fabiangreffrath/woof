@@ -45,9 +45,6 @@ jobs:
           set -euo pipefail
 
           cd "${{ env.VCPKG_DIR }}"
-          git fetch --tags
-          LATESTTAG=$(git describe --tags --abbrev=0)
-          git checkout $LATESTTAG
 
           NUGET=$(vcpkg fetch nuget | tail -n 1)
           GH_PACKAGES_URL="https://nuget.pkg.github.com/${{ github.repository_owner }}/index.json"
