@@ -2948,9 +2948,41 @@ void D_DoomMain(void)
 
         if (gametic >= oldgametic)
         {
+          static boolean first_test = true;
+          static boolean cycle_fov = false;
+
           oldgametic = gametic + 3;
-          if (!I_ChangeRes())
-            I_SafeExit(0);
+
+          if (first_test)
+          {
+            custom_fov = FOV_MIN;
+            setsizeneeded = true;
+            cycle_fov = false;
+            first_test = false;
+          }
+          else if (cycle_fov)
+          {
+            if (custom_fov == FOV_MAX)
+            {
+              custom_fov = FOV_MIN;
+              cycle_fov = false;
+            }
+            else
+            {
+              custom_fov++;
+            }
+            setsizeneeded = true;
+          }
+          else
+          {
+            cycle_fov = true;
+            if (!I_ChangeRes())
+            {
+              custom_fov = FOV_DEFAULT;
+              default_widescreen = RATIO_AUTO;
+              I_SafeExit(0);
+            }
+          }
         }
       }
 
