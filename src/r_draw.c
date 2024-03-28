@@ -43,12 +43,11 @@
 //  and the total size == width*height*depth/8.,
 //
 
-byte *viewimage; 
-int  viewwidth;
 int  scaledviewwidth;
 int  scaledviewheight;        // killough 11/98
 int  scaledviewx;
 int  scaledviewy;
+int  viewwidth;
 int  viewheight;
 int  viewwindowx;
 int  viewwindowy; 
@@ -941,8 +940,6 @@ void R_VideoErase(int x, int y, int w, int h)
 
 void R_DrawViewBorder(void)
 {
-  int side;
-
   if (scaledviewwidth == video.unscaledw || background_buffer == NULL)
     return;
 
@@ -950,9 +947,9 @@ void R_DrawViewBorder(void)
   R_VideoErase(0, 0, video.unscaledw, scaledviewy);
 
   // copy sides
-  side = scaledviewx;
-  R_VideoErase(0, scaledviewy, side, scaledviewheight);
-  R_VideoErase(video.unscaledw - side, scaledviewy, side, scaledviewheight);
+  R_VideoErase(0, scaledviewy, scaledviewx, scaledviewheight);
+  R_VideoErase(scaledviewx + scaledviewwidth, scaledviewy, scaledviewx,
+               scaledviewheight);
 
   // copy bottom
   R_VideoErase(0, scaledviewy + scaledviewheight, video.unscaledw, scaledviewy);

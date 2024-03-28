@@ -599,7 +599,7 @@ static void AM_initScreenSize(void)
   if (automapoverlay && scaledviewheight == SCREENHEIGHT)
     f_h = video.height;
   else
-    f_h = video.height - V_ScaleY(ST_HEIGHT);
+    f_h = V_ScaleY(SCREENHEIGHT - ST_HEIGHT);
 }
 
 void AM_ResetScreenSize(void)
