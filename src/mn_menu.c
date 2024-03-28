@@ -3068,7 +3068,11 @@ void M_Drawer(void)
     if (MN_MenuIsShaded())
     {
         inhelpscreens = true;
-        V_ShadeScreen();
+        R_ShadeScreen(true);
+    }
+    else
+    {
+        R_ShadeScreen(false);
     }
 
     if (currentMenu->routine)

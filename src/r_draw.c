@@ -94,6 +94,8 @@ byte    dc_skycolor;
 //  be used. It has also been used with Wolfenstein 3D.
 // 
 
+byte *darkcolormap = NULL;
+
 void R_DrawColumn (void) 
 { 
   int              count; 
@@ -155,7 +157,7 @@ void R_DrawColumn (void)
             
             // [crispy] brightmaps
             byte src = source[frac>>FRACBITS];
-            *dest = colormap[brightmap[src]][src];
+            *dest = darkcolormap[colormap[brightmap[src]][src]];
             dest += linesize;                     // killough 11/98
             if ((frac += fracstep) >= heightmask)
               frac -= heightmask;
@@ -167,18 +169,18 @@ void R_DrawColumn (void)
         while ((count-=2)>=0)   // texture height is a power of 2 -- killough
           {
             byte src = source[(frac>>FRACBITS) & heightmask];
-            *dest = colormap[brightmap[src]][src];
+            *dest = darkcolormap[colormap[brightmap[src]][src]];
             dest += linesize;   // killough 11/98
             frac += fracstep;
             src = source[(frac>>FRACBITS) & heightmask];
-            *dest = colormap[brightmap[src]][src];
+            *dest = darkcolormap[colormap[brightmap[src]][src]];
             dest += linesize;   // killough 11/98
             frac += fracstep;
           }
         if (count & 1)
         {
           byte src = source[(frac>>FRACBITS) & heightmask];
-          *dest = colormap[brightmap[src]][src];
+          *dest = darkcolormap[colormap[brightmap[src]][src]];
         }
       }
   }
@@ -764,7 +766,7 @@ void R_DrawSpan (void)
       ds_xfrac += ds_xstep;
       ds_yfrac += ds_ystep;
       src = source[spot];
-      dest[0] = colormap[brightmap[src]][src];
+      dest[0] = darkcolormap[colormap[brightmap[src]][src]];
 
       ytemp = (ds_yfrac >> 10) & 0x0FC0;
       xtemp = (ds_xfrac >> 16) & 0x003F;
@@ -772,7 +774,7 @@ void R_DrawSpan (void)
       ds_xfrac += ds_xstep;
       ds_yfrac += ds_ystep;
       src = source[spot];
-      dest[1] = colormap[brightmap[src]][src];
+      dest[1] = darkcolormap[colormap[brightmap[src]][src]];
         
       ytemp = (ds_yfrac >> 10) & 0x0FC0;
       xtemp = (ds_xfrac >> 16) & 0x003F;
@@ -780,7 +782,7 @@ void R_DrawSpan (void)
       ds_xfrac += ds_xstep;
       ds_yfrac += ds_ystep;
       src = source[spot];
-      dest[2] = colormap[brightmap[src]][src];
+      dest[2] = darkcolormap[colormap[brightmap[src]][src]];
         
       ytemp = (ds_yfrac >> 10) & 0x0FC0;
       xtemp = (ds_xfrac >> 16) & 0x003F;
@@ -788,7 +790,7 @@ void R_DrawSpan (void)
       ds_xfrac += ds_xstep;
       ds_yfrac += ds_ystep;
       src = source[spot];
-      dest[3] = colormap[brightmap[src]][src];
+      dest[3] = darkcolormap[colormap[brightmap[src]][src]];
                 
       dest += 4;
       count -= 4;
@@ -803,7 +805,7 @@ void R_DrawSpan (void)
       ds_xfrac += ds_xstep;
       ds_yfrac += ds_ystep;
       src = source[spot];
-      *dest++ = colormap[brightmap[src]][src];
+      *dest++ = darkcolormap[colormap[brightmap[src]][src]];
       count--;
     } 
 } 
@@ -820,6 +822,18 @@ void R_InitBufferRes(void)
   solidcol = Z_Calloc(1, video.width * sizeof(*solidcol), PU_STATIC, NULL);
 }
 
+void R_ShadeScreen(boolean on)
+{
+    if (on)
+    {
+        darkcolormap = &colormaps[0][20 * 256];
+    }
+    else
+    {
+        darkcolormap = colormaps[0];
+    }
+}
+
 //
 // R_InitBuffer 
 // Creats lookup tables that avoid
@@ -831,6 +845,8 @@ void R_InitBufferRes(void)
 void R_InitBuffer(void)
 {
   int i;
+
+  darkcolormap = colormaps[0];
 
   linesize = video.pitch;    // killough 11/98
 

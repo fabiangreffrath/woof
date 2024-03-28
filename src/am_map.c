@@ -37,6 +37,7 @@
 #include "p_setup.h"
 #include "p_spec.h"
 #include "r_defs.h"
+#include "r_draw.h"
 #include "r_main.h"
 #include "r_state.h"
 #include "r_things.h"
@@ -671,6 +672,7 @@ void AM_Stop (void)
   automapactive = false;
   ST_Responder(&st_notify);
   stopped = true;
+  R_ShadeScreen(false);
 }
 
 //
@@ -889,9 +891,15 @@ boolean AM_Responder
 
       switch (automapoverlay)
       {
-        case 2:  togglemsg("Dark Overlay On");        break;
-        case 1:  togglemsg("%s", s_AMSTR_OVERLAYON);  break;
-        default: togglemsg("%s", s_AMSTR_OVERLAYOFF); break;
+        case AM_OVERLAY_DARK:
+          togglemsg("Dark Overlay On");
+          break;
+        case AM_OVERLAY_ON:
+          togglemsg("%s", s_AMSTR_OVERLAYON);
+          break;
+        default:
+          togglemsg("%s", s_AMSTR_OVERLAYOFF);
+          break;
       }
 
       AM_initScreenSize();
@@ -2246,14 +2254,16 @@ void AM_Drawer (void)
     }
   }
 
-  if (!automapoverlay)
+  R_ShadeScreen(false);
+
+  if (automapoverlay == AM_OVERLAY_OFF)
   {
     AM_clearFB(mapcolor_back);       //jff 1/5/98 background default color
     pspr_interp = false;
   }
   // [Alaux] Dark automap overlay
   else if (automapoverlay == AM_OVERLAY_DARK && !MN_MenuIsShaded())
-    V_ShadeScreen();
+    R_ShadeScreen(true);
 
   if (automap_grid)                  // killough 2/28/98: change var name
     AM_drawGrid(mapcolor_grid);      //jff 1/7/98 grid default color

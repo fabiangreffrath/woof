@@ -92,6 +92,8 @@ void R_DrawViewBorder(void);
 
 void R_InitBufferRes(void);
 
+void R_ShadeScreen(boolean on);
+
 #endif
 
 //----------------------------------------------------------------------------
