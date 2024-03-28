@@ -1202,7 +1202,8 @@ static void ResetResolution(int height, boolean reset_pitch)
         AM_ResetScreenSize();
     }
 
-    I_Printf(VB_DEBUG, "ResetResolution: %dx%d", video.width, video.height);
+    I_Printf(VB_DEBUG, "ResetResolution: %dx%d (%dx%d)",
+        video.width, video.height, video.unscaledw, SCREENHEIGHT);
 
     drs_skip_frame = true;
 }
@@ -1734,6 +1735,66 @@ void I_InitGraphics(void)
     SDL_PumpEvents();
     SDL_FlushEvent(SDL_MOUSEMOTION);
     I_ResetRelativeMouseState();
+}
+
+static struct {
+    int w, h;
+} native_res[] = {
+    {  320,  240 },
+    {  640,  480 },
+    {  800,  600 },
+    { 1024,  768 },
+    { 1280, 1024 },
+    { 1280,  720 },
+    { 1280,  800 },
+    { 1366,  768 },
+    { 1440,  900 },
+    { 1440, 1080 },
+    { 1680, 1050 },
+    { 1920, 1080 },
+    { 1920, 1200 },
+    { 2048, 1152 },
+    { 2560, 1080 },
+    { 2304, 1440 },
+    { 2560, 1440 },
+    { 2560, 1600 },
+    { 3200, 2400 },
+    { 3440, 1440 },
+    { 3840, 1600 },
+    { 3840, 2160 },
+    { 5120, 2160 }
+};
+
+static int curr_test_res;
+
+boolean I_ChangeRes(void)
+{
+    native_width  = native_res[curr_test_res].w;
+    native_height = native_res[curr_test_res].h;
+
+    native_height_adjusted = (int)(native_height / 1.2);
+
+    printf("I_ChangeRes: %dx%d\n", native_width, native_height);
+    ResetResolution(native_height_adjusted, true);
+    CreateSurfaces(video.pitch, video.height);
+    ResetLogicalSize();
+
+    curr_test_res++;
+
+    if (curr_test_res == arrlen(native_res))
+        return false;
+
+    return true;
+}
+
+void I_CheckHOM(void)
+{
+    if (I_VideoBuffer[video.width - 1] == 0xb0)
+    {
+        I_Printf(VB_WARNING, "HOM: native %dx%d, video %dx%d, fov %d",
+                 native_width, native_height, video.width, video.height,
+                 custom_fov);
+    }
 }
 
 //----------------------------------------------------------------------------
