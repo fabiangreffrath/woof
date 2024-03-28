@@ -56,7 +56,7 @@ void ST_Init(void);
 void ST_Warnings(void);
 
 // [crispy] forcefully initialize the status bar backing screen
-void ST_refreshBackground(boolean force);
+void ST_refreshBackground(void);
 
 void ST_InitRes(void);
 
