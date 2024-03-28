@@ -52,8 +52,12 @@ int main(int argc, char **argv)
    myargc = argc;
    myargv = argv;
 
+#ifdef _WIN32
+   setlocale(LC_ALL, ".UTF-8");
+#else
    // Print date and time in the Load/Save Game menus in the current locale
    setlocale(LC_TIME, "");
+#endif
 
    I_Printf(VB_ALWAYS, "%s (built on %s)\n", PROJECT_STRING, version_date);
 
