@@ -858,7 +858,7 @@ void R_RenderPlayerView (player_t* player)
   if (run_test)
   {
     V_FillRect(scaledviewx, scaledviewy, scaledviewwidth, scaledviewheight,
-               v_lightest_color);
+               0xb0);
   }
 
   if (autodetect_hom)

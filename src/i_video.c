@@ -1789,7 +1789,7 @@ boolean I_ChangeRes(void)
 
 void I_CheckHOM(void)
 {
-    if (I_VideoBuffer[video.width - 1] == v_lightest_color)
+    if (I_VideoBuffer[video.width - 1] == 0xb0)
     {
         I_Printf(VB_WARNING, "HOM: native %dx%d, video %dx%d, fov %d",
                  native_width, native_height, video.width, video.height,
