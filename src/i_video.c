@@ -1789,14 +1789,11 @@ boolean I_ChangeRes(void)
 
 void I_CheckHOM(void)
 {
-    for (int i = 0; i < video.height; ++i)
+    if (I_VideoBuffer[video.width - 1] == v_lightest_color)
     {
-        if (I_VideoBuffer[video.width - 1] == v_lightest_color)
-        {
-            printf("HOM\n");
-            //run_test = false;
-            break;
-        }
+        I_Printf(VB_WARNING, "HOM: native %dx%d, video %dx%d, fov %d",
+                 native_width, native_height, video.width, video.height,
+                 custom_fov);
     }
 }
 
