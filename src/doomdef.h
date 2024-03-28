@@ -43,13 +43,6 @@ typedef enum {
   none
 } GameMission_t;
 
-typedef enum
-{
-    vanilla,    // Vanilla Doom
-    freedoom,   // FreeDoom: Phase 1 + 2 and FreeDM
-    miniwad     // miniwad
-} GameVariant_t;
-
 // Identify language to use, software localization.
 typedef enum {
   english,
