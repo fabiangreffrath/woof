@@ -2713,7 +2713,6 @@ void D_DoomMain(void)
 
   I_Printf(VB_INFO, "I_Init: Setting up machine state.");
   I_InitTimer();
-  I_InitController();
   I_InitSound();
   I_InitMusic();
 
@@ -2895,6 +2894,7 @@ void D_DoomMain(void)
 
   // [FG] init graphics (video.widedelta) before HUD widgets
   I_InitGraphics();
+  I_InitController();
 
   MN_InitMenuStrings();
 
