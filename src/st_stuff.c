@@ -377,7 +377,7 @@ static void ST_DrawSolidBackground(int st_x)
   Z_ChangeTag (pal, PU_CACHE);
 }
 
-void ST_refreshBackground(boolean force)
+void ST_refreshBackground(void)
 {
     int st_x;
 
@@ -441,24 +441,7 @@ void ST_refreshBackground(boolean force)
 
     // [crispy] copy entire video.unscaledw, to preserve the pattern to the left
     // and right of the status bar in widescren mode
-    if (!force)
-    {
-        V_CopyRect(ST_X, 0, st_backing_screen,
-                   video.unscaledw, ST_HEIGHT,
-                   ST_X, ST_Y);
-    }
-    else
-    {
-        if (video.deltaw > 0 && !st_firsttime)
-        {
-            V_CopyRect(0, 0, st_backing_screen,
-                       video.deltaw, ST_HEIGHT,
-                       0, ST_Y);
-            V_CopyRect(SCREENWIDTH + video.deltaw, 0, st_backing_screen,
-                       video.deltaw, ST_HEIGHT,
-                       SCREENWIDTH + video.deltaw, ST_Y);
-        }
-    }
+    V_CopyRect(0, 0, st_backing_screen, video.unscaledw, ST_HEIGHT, 0, ST_Y);
 }
 
 // Respond to keyboard input events,
@@ -1087,7 +1070,7 @@ void ST_Drawer(boolean fullscreen, boolean refresh)
     st_firsttime = false;
 
     // draw status bar background to off-screen buff
-    ST_refreshBackground(false);
+    ST_refreshBackground();
   }
   
   ST_drawWidgets();
