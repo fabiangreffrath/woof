@@ -15,6 +15,13 @@
 //      Savegame snapshots
 //
 
+#ifdef _WIN32
+#  define WIN32_LEAN_AND_MEAN
+#  include <windows.h>
+#else
+#  include <locale.h>
+#endif
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -26,6 +33,7 @@
 #include "doomtype.h"
 #include "m_fixed.h"
 #include "m_io.h"
+#include "m_misc.h"
 #include "r_main.h"
 #include "v_video.h"
 
@@ -97,15 +105,31 @@ void MN_ReadSavegameTime(int i, char *name)
     }
     else
     {
+#if defined(_WIN32)
+        SYSTEMTIME lt;
+        wchar_t wdate[64];
+
+        GetLocalTime(&lt);
+        GetDateFormatEx(LOCALE_NAME_USER_DEFAULT, DATE_SHORTDATE, &lt, NULL,
+                        wdate, arrlen(wdate), NULL);
+        char *date = M_ConvertWideToUtf8(wdate);
+        M_snprintf(savegametimes[i], sizeof(savegametimes[i]),
+                   "%s %.2d:%.2d:%.2d", date, lt.wHour, lt.wMinute, lt.wSecond);
+        free(date);
+#else
+        // Print date and time in the Load/Save Game menus in the current locale
+        setlocale(LC_TIME, "");
+
 // [FG] suppress the most useless compiler warning ever
-#if defined(__GNUC__)
-#  pragma GCC diagnostic push
-#  pragma GCC diagnostic ignored "-Wformat-y2k"
-#endif
+#  if defined(__GNUC__)
+#    pragma GCC diagnostic push
+#    pragma GCC diagnostic ignored "-Wformat-y2k"
+#  endif
         strftime(savegametimes[i], sizeof(savegametimes[i]), "%x %X",
                  localtime(&st.st_mtime));
-#if defined(__GNUC__)
-#  pragma GCC diagnostic pop
+#  if defined(__GNUC__)
+#    pragma GCC diagnostic pop
+#  endif
 #endif
     }
 }
