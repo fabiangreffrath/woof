@@ -18,6 +18,8 @@
 #ifdef _WIN32
 #  define WIN32_LEAN_AND_MEAN
 #  include <windows.h>
+#  include "i_printf.h"
+#  include "m_misc.h"
 #else
 #  include <locale.h>
 #endif
@@ -33,7 +35,6 @@
 #include "doomtype.h"
 #include "m_fixed.h"
 #include "m_io.h"
-#include "m_misc.h"
 #include "r_main.h"
 #include "v_video.h"
 
@@ -106,16 +107,34 @@ void MN_ReadSavegameTime(int i, char *name)
     else
     {
 #if defined(_WIN32)
-        SYSTEMTIME lt;
+        HANDLE hFile;
+        FILETIME ftWrite;
+        SYSTEMTIME stUTC, stLocal;
         wchar_t wdate[64];
 
-        GetLocalTime(&lt);
-        GetDateFormatEx(LOCALE_NAME_USER_DEFAULT, DATE_SHORTDATE, &lt, NULL,
-                        wdate, arrlen(wdate), NULL);
+        hFile = CreateFile(name, GENERIC_READ, FILE_SHARE_READ, NULL,
+                           OPEN_EXISTING, 0, NULL);
+        if (hFile == INVALID_HANDLE_VALUE)
+        {
+            I_Printf(VB_ERROR, "MN_ReadSavegameTime: CreateFile failed");
+            return;
+        }
+        if (!GetFileTime(hFile, NULL, NULL, &ftWrite))
+        {
+            I_Printf(VB_ERROR, "MN_ReadSavegameTime: GetFileTime failed");
+            return;
+        }
+
+        FileTimeToSystemTime(&ftWrite, &stUTC);
+        SystemTimeToTzSpecificLocalTime(NULL, &stUTC, &stLocal);
+        GetDateFormatEx(LOCALE_NAME_USER_DEFAULT, DATE_SHORTDATE, &stLocal,
+                        NULL, wdate, arrlen(wdate), NULL);
         char *date = M_ConvertWideToUtf8(wdate);
         M_snprintf(savegametimes[i], sizeof(savegametimes[i]),
-                   "%s %.2d:%.2d:%.2d", date, lt.wHour, lt.wMinute, lt.wSecond);
+                   "%s %.2d:%.2d:%.2d", date, stLocal.wHour, stLocal.wMinute,
+                   stLocal.wSecond);
         free(date);
+        CloseHandle(hFile);
 #else
         // Print date and time in the Load/Save Game menus in the current locale
         setlocale(LC_TIME, "");
