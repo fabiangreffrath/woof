@@ -49,6 +49,7 @@ char *M_getenv(const char *name);
 
 #ifdef _WIN32
 char *M_ConvertWideToUtf8(const wchar_t *wstr);
+wchar_t *M_ConvertUtf8ToWide(const char *str);
 #endif
 
 char *M_ConvertSysNativeMBToUtf8(const char *str);

@@ -57,7 +57,7 @@ static wchar_t *ConvertMultiByteToWide(const char *str, UINT code_page)
 
     if (!wstr)
     {
-        I_Error("ConvertUtf8ToWide: Failed to allocate new string");
+        I_Error("M_ConvertUtf8ToWide: Failed to allocate new string");
         return NULL;
     }
 
@@ -108,7 +108,7 @@ static char *ConvertWideToMultiByte(const wchar_t *wstr, UINT code_page)
     return str;
 }
 
-static wchar_t *ConvertUtf8ToWide(const char *str)
+wchar_t *M_ConvertUtf8ToWide(const char *str)
 {
     return ConvertMultiByteToWide(str, CP_UTF8);
 }
@@ -158,7 +158,7 @@ char *M_ConvertUtf8ToSysNativeMB(const char *str)
     char *ret = NULL;
     wchar_t *wstr = NULL;
 
-    wstr = ConvertUtf8ToWide(str);
+    wstr = M_ConvertUtf8ToWide(str);
 
     if (!wstr)
     {
@@ -182,14 +182,14 @@ FILE *M_fopen(const char *filename, const char *mode)
     wchar_t *wname = NULL;
     wchar_t *wmode = NULL;
 
-    wname = ConvertUtf8ToWide(filename);
+    wname = M_ConvertUtf8ToWide(filename);
 
     if (!wname)
     {
         return NULL;
     }
 
-    wmode = ConvertUtf8ToWide(mode);
+    wmode = M_ConvertUtf8ToWide(mode);
 
     if (!wmode)
     {
@@ -214,7 +214,7 @@ int M_remove(const char *path)
     wchar_t *wpath = NULL;
     int ret;
 
-    wpath = ConvertUtf8ToWide(path);
+    wpath = M_ConvertUtf8ToWide(path);
 
     if (!wpath)
     {
@@ -237,7 +237,7 @@ int M_rmdir(const char *dirname)
     wchar_t *wdirname = NULL;
     int ret;
 
-    wdirname = ConvertUtf8ToWide(dirname);
+    wdirname = M_ConvertUtf8ToWide(dirname);
 
     if (!wdirname)
     {
@@ -261,14 +261,14 @@ int M_rename(const char *oldname, const char *newname)
     wchar_t *wnew = NULL;
     int ret;
 
-    wold = ConvertUtf8ToWide(oldname);
+    wold = M_ConvertUtf8ToWide(oldname);
 
     if (!wold)
     {
         return 0;
     }
 
-    wnew = ConvertUtf8ToWide(newname);
+    wnew = M_ConvertUtf8ToWide(newname);
 
     if (!wnew)
     {
@@ -294,7 +294,7 @@ int M_stat(const char *path, struct stat *buf)
     struct _stat wbuf;
     int ret;
 
-    wpath = ConvertUtf8ToWide(path);
+    wpath = M_ConvertUtf8ToWide(path);
 
     if (!wpath)
     {
@@ -323,7 +323,7 @@ int M_open(const char *filename, int oflag)
     wchar_t *wname = NULL;
     int ret;
 
-    wname = ConvertUtf8ToWide(filename);
+    wname = M_ConvertUtf8ToWide(filename);
 
     if (!wname)
     {
@@ -346,7 +346,7 @@ int M_access(const char *path, int mode)
     wchar_t *wpath = NULL;
     int ret;
 
-    wpath = ConvertUtf8ToWide(path);
+    wpath = M_ConvertUtf8ToWide(path);
 
     if (!wpath)
     {
@@ -368,7 +368,7 @@ void M_MakeDirectory(const char *path)
 #ifdef _WIN32
     wchar_t *wdir;
 
-    wdir = ConvertUtf8ToWide(path);
+    wdir = M_ConvertUtf8ToWide(path);
 
     if (!wdir)
     {
@@ -408,7 +408,7 @@ char *M_getenv(const char *name)
         }
     }
 
-    wname = ConvertUtf8ToWide(name);
+    wname = M_ConvertUtf8ToWide(name);
 
     if (!wname)
     {

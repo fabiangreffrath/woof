@@ -102,10 +102,12 @@ void MN_ReadSavegameTime(int i, char *name)
     HANDLE hFile;
     FILETIME ftWrite;
     SYSTEMTIME stUTC, stLocal;
-    wchar_t wdate[64];
+    wchar_t wdate[32], wtime[32];
 
-    hFile = CreateFile(name, GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING,
-                       0, NULL);
+    wchar_t *wname = M_ConvertUtf8ToWide(name);
+    hFile = CreateFileW(wname, GENERIC_READ, FILE_SHARE_READ, NULL,
+                        OPEN_EXISTING, 0, NULL);
+    free(wname);
     if (hFile == INVALID_HANDLE_VALUE)
     {
         savegametimes[i][0] = '\0';
@@ -124,10 +126,13 @@ void MN_ReadSavegameTime(int i, char *name)
     SystemTimeToTzSpecificLocalTime(NULL, &stUTC, &stLocal);
     GetDateFormatEx(LOCALE_NAME_USER_DEFAULT, DATE_SHORTDATE, &stLocal, NULL,
                     wdate, arrlen(wdate), NULL);
+    GetTimeFormatEx(LOCALE_NAME_USER_DEFAULT, LOCALE_USE_CP_ACP, &stLocal, NULL,
+                    wtime, arrlen(wtime));
     char *date = M_ConvertWideToUtf8(wdate);
-    M_snprintf(savegametimes[i], sizeof(savegametimes[i]), "%s %.2d:%.2d:%.2d",
-               date, stLocal.wHour, stLocal.wMinute, stLocal.wSecond);
+    char *time = M_ConvertWideToUtf8(wtime);
+    M_snprintf(savegametimes[i], sizeof(savegametimes[i]), "%s %s", date, time);
     free(date);
+    free(time);
     CloseHandle(hFile);
 #else
     struct stat st;
