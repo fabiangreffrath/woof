@@ -159,12 +159,12 @@ static inline void inc_cur_line (hu_multiline_t *const m)
 
 // [FG] add string to line, increasing its (length and) width
 
-static inline const char hu_toupper (const char c)
+static inline const char ascii_toupper (const char c)
 {
-  if (c < HU_FONTSIZE)
-    return toupper(c);
+  if (c >= 'a' && c <= 'z')
+    return c + 'A' - 'a';
   else
-    return (c);
+    return c;
 }
 
 static void add_string_to_line (hu_line_t *const l, const hu_font_t *const f, const char *s)
@@ -178,7 +178,7 @@ static void add_string_to_line (hu_line_t *const l, const hu_font_t *const f, co
 
   while (*s)
   {
-    c = hu_toupper(*s++);
+    c = ascii_toupper(*s++);
 
     if (c == '\x1b')
     {
@@ -332,7 +332,7 @@ static void draw_line_aligned (const hu_multiline_t *m, const hu_line_t *l, cons
   // draw the new stuff
   for (i = 0; i < l->len; i++)
   {
-    c = hu_toupper(l->line[i]); //jff insure were not getting a cheap toupper conv.
+    c = ascii_toupper(l->line[i]); //jff insure were not getting a cheap toupper conv.
 
 #if 0
     if (c == '\n')
