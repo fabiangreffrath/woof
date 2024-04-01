@@ -1721,7 +1721,7 @@ static void AutoLoadWADs(const char *path)
     I_EndGlob(glob);
 }
 
-static void D_AutoloadIWadDir()
+static void D_AutoloadIWadDir(void (*AutoLoadFunc)(const char *path))
 {
   char **base;
 
@@ -1730,7 +1730,7 @@ static void D_AutoloadIWadDir()
     char *autoload_dir;
 
     autoload_dir = GetAutoloadDir(*base, "all-all", true);
-    AutoLoadWADs(autoload_dir);
+    AutoLoadFunc(autoload_dir);
     free(autoload_dir);
 
     GameMission_t local_gamemission = D_GetGameMissionByIWADName(M_BaseName(wadfiles[0]));
@@ -1741,32 +1741,32 @@ static void D_AutoloadIWadDir()
       if (local_gamemission < pack_chex)
       {
         autoload_dir = GetAutoloadDir(*base, "doom-all", true);
-        AutoLoadWADs(autoload_dir);
+        AutoLoadFunc(autoload_dir);
         free(autoload_dir);
       }
 
       if (local_gamemission == doom)
       {
         autoload_dir = GetAutoloadDir(*base, "doom1-all", true);
-        AutoLoadWADs(autoload_dir);
+        AutoLoadFunc(autoload_dir);
         free(autoload_dir);
       }
       else if (local_gamemission >= doom2 && local_gamemission <= pack_plut)
       {
         autoload_dir = GetAutoloadDir(*base, "doom2-all", true);
-        AutoLoadWADs(autoload_dir);
+        AutoLoadFunc(autoload_dir);
         free(autoload_dir);
       }
     }
 
     // auto-loaded files per IWAD
     autoload_dir = GetAutoloadDir(*base, M_BaseName(wadfiles[0]), true);
-    AutoLoadWADs(autoload_dir);
+    AutoLoadFunc(autoload_dir);
     free(autoload_dir);
   }
 }
 
-static void D_AutoloadPWadDir()
+static void D_AutoloadPWadDir(void (*AutoLoadFunc)(const char *path))
 {
   int i;
 
@@ -1778,7 +1778,7 @@ static void D_AutoloadPWadDir()
     {
       char *autoload_dir;
       autoload_dir = GetAutoloadDir(*base, M_BaseName(wadfiles[i]), false);
-      AutoLoadWADs(autoload_dir);
+      AutoLoadFunc(autoload_dir);
       free(autoload_dir);
     }
   }
@@ -1804,71 +1804,6 @@ static void AutoLoadPatches(const char *path)
     }
 
     I_EndGlob(glob);
-}
-
-// auto-loading of .deh files.
-
-static void D_AutoloadDehDir()
-{
-  char **base;
-
-  for (base = autoload_paths; base && *base; base++)
-  {
-    char *autoload_dir;
-
-    autoload_dir = GetAutoloadDir(*base, "all-all", true);
-    AutoLoadPatches(autoload_dir);
-    free(autoload_dir);
-
-    GameMission_t local_gamemission = D_GetGameMissionByIWADName(M_BaseName(wadfiles[0]));
-
-    // common auto-loaded files for all Doom flavors
-    if (local_gamemission != none)
-    {
-      if (local_gamemission < pack_chex)
-      {
-        autoload_dir = GetAutoloadDir(*base, "doom-all", true);
-        AutoLoadPatches(autoload_dir);
-        free(autoload_dir);
-      }
-
-      if (local_gamemission == doom)
-      {
-        autoload_dir = GetAutoloadDir(*base, "doom1-all", true);
-        AutoLoadPatches(autoload_dir);
-        free(autoload_dir);
-      }
-      else if (local_gamemission >= doom2 && local_gamemission <= pack_plut)
-      {
-        autoload_dir = GetAutoloadDir(*base, "doom2-all", true);
-        AutoLoadPatches(autoload_dir);
-        free(autoload_dir);
-      }
-    }
-
-    // auto-loaded files per IWAD
-    autoload_dir = GetAutoloadDir(*base, M_BaseName(wadfiles[0]), true);
-    AutoLoadPatches(autoload_dir);
-    free(autoload_dir);
-  }
-}
-
-static void D_AutoloadPWadDehDir()
-{
-  int i;
-
-  for (i = 1; i < array_size(wadfiles); ++i)
-  {
-    char **base;
-
-    for (base = autoload_paths; base && *base; base++)
-    {
-      char *autoload_dir;
-      autoload_dir = GetAutoloadDir(*base, M_BaseName(wadfiles[i]), false);
-      AutoLoadPatches(autoload_dir);
-      free(autoload_dir);
-    }
-  }
 }
 
 // killough 10/98: support .deh from wads
@@ -2297,7 +2232,7 @@ void D_DoomMain(void)
   // add wad files from autoload IWAD directories before wads from -file parameter
 
   PrepareAutoloadPaths();
-  D_AutoloadIWadDir();
+  D_AutoloadIWadDir(AutoLoadWADs);
 
   // add any files specified on the command line with -file wadfile
   // to the wad list
@@ -2330,7 +2265,7 @@ void D_DoomMain(void)
 
   // add wad files from autoload PWAD directories
 
-  D_AutoloadPWadDir();
+  D_AutoloadPWadDir(AutoLoadWADs);
 
   //!
   // @arg <demo>
@@ -2640,7 +2575,7 @@ void D_DoomMain(void)
 
   // process deh in wads and .deh files from autoload directory
   // before deh in wads from -file parameter
-  D_AutoloadDehDir();
+  D_AutoloadIWadDir(AutoLoadPatches);
 
   // killough 10/98: now process all deh in wads
   if (!M_ParmExists("-nodeh"))
@@ -2649,7 +2584,7 @@ void D_DoomMain(void)
   }
 
   // process .deh files from PWADs autoload directories
-  D_AutoloadPWadDehDir();
+  D_AutoloadPWadDir(AutoLoadPatches);
 
   PostProcessDeh();
 
