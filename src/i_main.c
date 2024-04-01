@@ -52,12 +52,8 @@ int main(int argc, char **argv)
    myargc = argc;
    myargv = argv;
 
-   // Do not set the locale on Windows due to problems with `toupper` behaviour
-   // https://github.com/fabiangreffrath/woof/pull/1630#issuecomment-2026917711
-#ifndef _WIN32
    // Print date and time in the Load/Save Game menus in the current locale
    setlocale(LC_TIME, "");
-#endif
 
    I_Printf(VB_ALWAYS, "%s (built on %s)\n", PROJECT_STRING, version_date);
 
