@@ -69,7 +69,7 @@ void ExtractFileBase(const char *path, char *dest)
       break;
     }
     else
-      *dest++ = toupper(*src++);
+      *dest++ = M_ToUpper(*src++);
 }
 
 //
@@ -279,14 +279,14 @@ static void W_CoalesceMarkedResource(const char *start_marker,
 unsigned W_LumpNameHash(const char *s)
 {
   unsigned hash;
-  (void) ((hash =        toupper(s[0]), s[1]) &&
-          (hash = hash*3+toupper(s[1]), s[2]) &&
-          (hash = hash*2+toupper(s[2]), s[3]) &&
-          (hash = hash*2+toupper(s[3]), s[4]) &&
-          (hash = hash*2+toupper(s[4]), s[5]) &&
-          (hash = hash*2+toupper(s[5]), s[6]) &&
-          (hash = hash*2+toupper(s[6]),
-           hash = hash*2+toupper(s[7]))
+  (void) ((hash =        M_ToUpper(s[0]), s[1]) &&
+          (hash = hash*3+M_ToUpper(s[1]), s[2]) &&
+          (hash = hash*2+M_ToUpper(s[2]), s[3]) &&
+          (hash = hash*2+M_ToUpper(s[3]), s[4]) &&
+          (hash = hash*2+M_ToUpper(s[4]), s[5]) &&
+          (hash = hash*2+M_ToUpper(s[5]), s[6]) &&
+          (hash = hash*2+M_ToUpper(s[6]),
+           hash = hash*2+M_ToUpper(s[7]))
          );
   return hash;
 }

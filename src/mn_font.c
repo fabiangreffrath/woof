@@ -22,6 +22,7 @@
 
 #include "doomtype.h"
 #include "i_video.h"
+#include "m_misc.h"
 #include "m_swap.h"
 #include "r_defs.h"
 #include "v_video.h"
@@ -179,7 +180,7 @@ boolean MN_DrawFon2String(int x, int y, byte *cr, const char *str)
     {
         c = *str++;
 
-        c = (upper ? toupper(c) : c) - firstc;
+        c = (upper ? M_ToUpper(c) : c) - firstc;
         if (c < 0 || c >= numchars)
         {
             cx += FON2_SPACE;
@@ -214,7 +215,7 @@ int MN_GetFon2PixelWidth(const char *str)
     {
         c = *str++;
 
-        c = (upper ? toupper(c) : c) - firstc;
+        c = (upper ? M_ToUpper(c) : c) - firstc;
         if (c < 0 || c > numchars)
         {
             len += FON2_SPACE; // space

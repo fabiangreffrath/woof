@@ -2850,7 +2850,7 @@ static unsigned default_hash(const char *name)
     unsigned hash = 0;
     while (*name)
     {
-        hash = hash * 2 + toupper(*name++);
+        hash = hash * 2 + M_ToUpper(*name++);
     }
     return hash % NUMDEFAULTS;
 }

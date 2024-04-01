@@ -2677,7 +2677,7 @@ void MN_DrawStringCR(int cx, int cy, byte *cr1, byte *cr2, const char *ch)
             }
         }
 
-        c = toupper(c) - HU_FONTSTART;
+        c = M_ToUpper(c) - HU_FONTSTART;
         if (c < 0 || c > HU_FONTSIZE)
         {
             cx += SPACEWIDTH; // space
@@ -2764,7 +2764,7 @@ int MN_GetPixelWidth(const char *ch)
             continue;
         }
 
-        c = toupper(c) - HU_FONTSTART;
+        c = M_ToUpper(c) - HU_FONTSTART;
         if (c < 0 || c > HU_FONTSIZE)
         {
             len += SPACEWIDTH; // space
@@ -3288,13 +3288,13 @@ boolean MN_SetupResponder(menu_action_t action, int ch)
 
     if (default_verify)
     {
-        if (toupper(ch) == 'Y')
+        if (M_ToUpper(ch) == 'Y')
         {
             ResetDefaults();
             default_verify = false;
             SelectDone(current_item);
         }
-        else if (toupper(ch) == 'N')
+        else if (M_ToUpper(ch) == 'N')
         {
             default_verify = false;
             SelectDone(current_item);
@@ -3688,7 +3688,7 @@ int MN_StringWidth(const char *string)
             }
             continue;
         }
-        c = toupper(c) - HU_FONTSTART;
+        c = M_ToUpper(c) - HU_FONTSTART;
         if (c < 0 || c > HU_FONTSIZE)
         {
             w += SPACEWIDTH;

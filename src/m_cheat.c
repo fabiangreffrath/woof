@@ -1203,13 +1203,13 @@ boolean M_FindCheats(int key)
 
   if (argsleft)
     {
-      *arg++ = tolower(key);             // store key in arg buffer
+      *arg++ = M_ToLower(key);             // store key in arg buffer
       if (!--argsleft)                   // if last key in arg list,
         cheat[cht].func.s(argbuf);       // process the arg buffer
       return 1;                          // affirmative response
     }
 
-  key = tolower(key) - 'a';
+  key = M_ToLower(key) - 'a';
   if (key < 0 || key >= 32)              // ignore most non-alpha cheat letters
     {
       sr = 0;        // clear shift register
@@ -1225,7 +1225,7 @@ boolean M_FindCheats(int key)
           const char *p; // [FG] char!
           for (p=cheat[i].cheat; *p; p++)
             {
-              unsigned key = tolower(*p)-'a';  // convert to 0-31
+              unsigned key = M_ToLower(*p)-'a';  // convert to 0-31
               if (key >= 32)            // ignore most non-alpha cheat letters
                 continue;
               c = (c<<5) + key;         // shift key into code
