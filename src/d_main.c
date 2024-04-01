@@ -856,7 +856,7 @@ static char *GetAutoloadDir(const char *base, const char *iwadname, boolean crea
     char *lower;
 
     lower = M_StringDuplicate(iwadname);
-    M_ForceLowercase(lower);
+    M_StringToLower(lower);
     result = M_StringJoin(base, DIR_SEPARATOR_S, lower, NULL);
     free(lower);
 
@@ -1482,7 +1482,7 @@ static int GuessFileType(const char *name)
 
     base = M_BaseName(name);
     lower = M_StringDuplicate(base);
-    M_ForceLowercase(lower);
+    M_StringToLower(lower);
 
     // only ever add one argument to the -iwad parameter
 

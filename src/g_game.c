@@ -3646,7 +3646,7 @@ int G_ValidateMapName(const char *mapname, int *pEpi, int *pMap)
     return 0;
   strncpy(mapuname, mapname, 8);
   mapuname[8] = 0;
-  M_ForceUppercase(mapuname);
+  M_StringToUpper(mapuname);
 
   if (gamemode != commercial)
   {

@@ -541,7 +541,7 @@ boolean U_GetNextToken(u_scanner_t *s, boolean expandState)
             char *p = nextState->string;
             while (*p)
             {
-                *p = tolower(*p);
+                *p = M_ToLower(*p);
                 p++;
             }
             // Check for a boolean constant.

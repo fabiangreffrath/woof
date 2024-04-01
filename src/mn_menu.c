@@ -1147,20 +1147,20 @@ static void SetDefaultSaveName(int slot)
         M_snprintf(savegamestrings[slot], SAVESTRINGSIZE, "%s", maplump);
     }
 
-    M_ForceUppercase(savegamestrings[slot]);
+    M_StringToUpper(savegamestrings[slot]);
 }
 
 // [FG] override savegame name if it already starts with a map identifier
 boolean MN_StartsWithMapIdentifier(char *str)
 {
-    if (strnlen(str, 8) >= 4 && toupper(str[0]) == 'E' && isdigit(str[1])
-        && toupper(str[2]) == 'M' && isdigit(str[3]))
+    if (strnlen(str, 8) >= 4 && M_ToUpper(str[0]) == 'E' && isdigit(str[1])
+        && M_ToUpper(str[2]) == 'M' && isdigit(str[3]))
     {
         return true;
     }
 
-    if (strnlen(str, 8) >= 5 && toupper(str[0]) == 'M' && toupper(str[1]) == 'A'
-        && toupper(str[2]) == 'P' && isdigit(str[3]) && isdigit(str[4]))
+    if (strnlen(str, 8) >= 5 && M_ToUpper(str[0]) == 'M' && M_ToUpper(str[1]) == 'A'
+        && M_ToUpper(str[2]) == 'P' && isdigit(str[3]) && isdigit(str[4]))
     {
         return true;
     }
@@ -2381,13 +2381,13 @@ static boolean SaveLoadResponder(menu_action_t action, int ch)
 
     if (delete_verify)
     {
-        if (toupper(ch) == 'Y')
+        if (M_ToUpper(ch) == 'Y')
         {
             M_DeleteGame(itemOn);
             S_StartSound(NULL, sfx_itemup);
             delete_verify = false;
         }
-        else if (toupper(ch) == 'N')
+        else if (M_ToUpper(ch) == 'N')
         {
             S_StartSound(NULL, sfx_itemup);
             delete_verify = false;
@@ -2678,7 +2678,7 @@ boolean M_Responder(event_t *ev)
         }
         else
         {
-            ch = toupper(ch);
+            ch = M_ToUpper(ch);
 
             if (ch >= 32 && ch <= 127 && saveCharIndex < SAVESTRINGSIZE - 1
                 && MN_StringWidth(savegamestrings[saveSlot])
@@ -3261,7 +3261,7 @@ static void WriteText(int x, int y, const char *string)
             continue;
         }
 
-        c = toupper(c) - HU_FONTSTART;
+        c = M_ToUpper(c) - HU_FONTSTART;
         if (c < 0 || c >= HU_FONTSIZE)
         {
             cx += 4;

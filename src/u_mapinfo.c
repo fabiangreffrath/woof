@@ -374,7 +374,7 @@ static int ParseLumpName(u_scanner_t *s, char *buffer)
     }
     strncpy(buffer, s->string, 8);
     buffer[8] = 0;
-    M_ForceUppercase(buffer);
+    M_StringToUpper(buffer);
     return 1;
 }
 
@@ -461,7 +461,7 @@ static int ParseStandardProperty(u_scanner_t *s, mapentry_t *mape)
                     if (U_MustGetToken(s, TK_StringConst))
                     {
                         key = strdup(s->string);
-                        key[0] = tolower(key[0]);
+                        key[0] = M_ToLower(key[0]);
                     }
                 }
             }

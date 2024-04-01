@@ -25,6 +25,7 @@
 #include "doomstat.h"
 #include "hu_lib.h"
 #include "hu_stuff.h"
+#include "m_misc.h"
 #include "m_swap.h"
 #include "r_defs.h"
 #include "r_draw.h"
@@ -170,7 +171,7 @@ static void add_string_to_line (hu_line_t *const l, const hu_font_t *const f, co
 
   while (*s)
   {
-    c = toupper(*s++);
+    c = M_ToUpper(*s++);
 
     if (c == '\x1b')
     {
@@ -324,7 +325,7 @@ static void draw_line_aligned (const hu_multiline_t *m, const hu_line_t *l, cons
   // draw the new stuff
   for (i = 0; i < l->len; i++)
   {
-    c = toupper(l->line[i]); //jff insure were not getting a cheap toupper conv.
+    c = M_ToUpper(l->line[i]);
 
 #if 0
     if (c == '\n')

@@ -181,7 +181,7 @@ void P_InitPicAnims (void)
             int j;
 
             startname = M_StringDuplicate(animdefs[i].startname);
-            M_ForceUppercase(startname);
+            M_StringToUpper(startname);
 
             // [FG] play sound when hitting animated floor
             if (strstr(startname, "WATER") || strstr(startname, "BLOOD"))

@@ -98,7 +98,7 @@ char *M_FileCaseExists(const char *path)
     filename = (char *)M_BaseName(path_dup);
 
     // 1: lowercase filename, e.g. doom2.wad
-    M_ForceLowercase(filename);
+    M_StringToLower(filename);
 
     if (M_FileExists(path_dup))
     {
@@ -106,7 +106,7 @@ char *M_FileCaseExists(const char *path)
     }
 
     // 2: uppercase filename, e.g. DOOM2.WAD
-    M_ForceUppercase(filename);
+    M_StringToUpper(filename);
 
     if (M_FileExists(path_dup))
     {
@@ -117,7 +117,7 @@ char *M_FileCaseExists(const char *path)
     ext = strrchr(path_dup, '.');
     if (ext != NULL && ext > filename)
     {
-        M_ForceLowercase(ext + 1);
+        M_StringToLower(ext + 1);
 
         if (M_FileExists(path_dup))
         {
@@ -128,7 +128,7 @@ char *M_FileCaseExists(const char *path)
     // 4. lowercase filename with uppercase first letter, e.g. Doom2.wad
     if (strlen(filename) > 1)
     {
-        M_ForceLowercase(filename + 1);
+        M_StringToLower(filename + 1);
 
         if (M_FileExists(path_dup))
         {
@@ -210,25 +210,41 @@ const char *M_BaseName(const char *path)
 
 // Change string to uppercase.
 
-void M_ForceUppercase(char *text)
+char M_ToUpper(const char c)
+{
+  if (c >= 'a' && c <= 'z')
+    return c + 'A' - 'a';
+  else
+    return c;
+}
+
+void M_StringToUpper(char *text)
 {
     char *p;
 
     for (p = text; *p != '\0'; ++p)
     {
-        *p = toupper(*p);
+        *p = M_ToUpper(*p);
     }
 }
 
 // Change string to lowercase.
 
-void M_ForceLowercase(char *text)
+char M_ToLower(const char c)
+{
+  if (c >= 'A' && c <= 'Z')
+    return c - 'A' + 'a';
+  else
+    return c;
+}
+
+void M_StringToLower(char *text)
 {
     char *p;
 
     for (p = text; *p != '\0'; ++p)
     {
-        *p = tolower(*p);
+        *p = M_ToLower(*p);
     }
 }
 
