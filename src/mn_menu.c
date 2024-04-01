@@ -1147,7 +1147,7 @@ static void SetDefaultSaveName(int slot)
         M_snprintf(savegamestrings[slot], SAVESTRINGSIZE, "%s", maplump);
     }
 
-    M_ForceUppercase(savegamestrings[slot]);
+    M_StringToUpper(savegamestrings[slot]);
 }
 
 // [FG] override savegame name if it already starts with a map identifier

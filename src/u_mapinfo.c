@@ -374,7 +374,7 @@ static int ParseLumpName(u_scanner_t *s, char *buffer)
     }
     strncpy(buffer, s->string, 8);
     buffer[8] = 0;
-    M_ForceUppercase(buffer);
+    M_StringToUpper(buffer);
     return 1;
 }
 
