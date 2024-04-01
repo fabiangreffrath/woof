@@ -25,6 +25,7 @@
 #include "doomstat.h"
 #include "hu_lib.h"
 #include "hu_stuff.h"
+#include "m_misc.h"
 #include "m_swap.h"
 #include "r_defs.h"
 #include "r_draw.h"
@@ -159,14 +160,6 @@ static inline void inc_cur_line (hu_multiline_t *const m)
 
 // [FG] add string to line, increasing its (length and) width
 
-static inline const char ascii_toupper (const char c)
-{
-  if (c >= 'a' && c <= 'z')
-    return c + 'A' - 'a';
-  else
-    return c;
-}
-
 static void add_string_to_line (hu_line_t *const l, const hu_font_t *const f, const char *s)
 {
   int w = 0;
@@ -178,7 +171,7 @@ static void add_string_to_line (hu_line_t *const l, const hu_font_t *const f, co
 
   while (*s)
   {
-    c = ascii_toupper(*s++);
+    c = M_ToUpper(*s++);
 
     if (c == '\x1b')
     {
@@ -332,7 +325,7 @@ static void draw_line_aligned (const hu_multiline_t *m, const hu_line_t *l, cons
   // draw the new stuff
   for (i = 0; i < l->len; i++)
   {
-    c = ascii_toupper(l->line[i]); //jff insure were not getting a cheap toupper conv.
+    c = M_ToUpper(l->line[i]);
 
 #if 0
     if (c == '\n')

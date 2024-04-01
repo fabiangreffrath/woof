@@ -210,17 +210,33 @@ const char *M_BaseName(const char *path)
 
 // Change string to uppercase.
 
+char M_ToUpper(const char c)
+{
+  if (c >= 'a' && c <= 'z')
+    return c + 'A' - 'a';
+  else
+    return c;
+}
+
 void M_ForceUppercase(char *text)
 {
     char *p;
 
     for (p = text; *p != '\0'; ++p)
     {
-        *p = toupper(*p);
+        *p = M_ToUpper(*p);
     }
 }
 
 // Change string to lowercase.
+
+char M_ToLower(const char c)
+{
+  if (c >= 'A' && c <= 'Z')
+    return c - 'A' + 'a';
+  else
+    return c;
+}
 
 void M_ForceLowercase(char *text)
 {
@@ -228,7 +244,7 @@ void M_ForceLowercase(char *text)
 
     for (p = text; *p != '\0'; ++p)
     {
-        *p = tolower(*p);
+        *p = M_ToLower(*p);
     }
 }
 
