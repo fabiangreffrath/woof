@@ -1478,7 +1478,7 @@ void HU_Erase(void)
 
   while (w->multiline)
   {
-    if (w->multiline->on || w->multiline->built)
+    if ((w->multiline->on && *w->multiline->on) || w->multiline->built)
     {
       HUlib_erase_widget(w);
     }
