@@ -506,7 +506,7 @@ void HUlib_init_multiline(hu_multiline_t *m,
   m->cr = cr;
   m->drawcursor = false;
 
-  m->on = on ? on : &m->built;
+  m->on = on;
 
   m->builder = builder;
   m->built = false;
