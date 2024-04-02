@@ -112,7 +112,7 @@ static void STlib_drawNum
   }
 
   // if non-number, do not draw it
-  if (num == 1994)
+  if (num == LARGENUMBER)
     return;
 
   //jff 2/16/98 add color translation to digit output

@@ -22,6 +22,8 @@
 
 #include "doomtype.h"
 
+#define LARGENUMBER 1994
+
 // We are referring to patches.
 struct patch_s;
 

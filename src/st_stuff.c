@@ -730,9 +730,10 @@ int ST_BlinkKey(player_t* player, int index)
   return -1;
 }
 
+static int largeammo = LARGENUMBER; // means "n/a"
+
 void ST_updateWidgets(void)
 {
-  static int  largeammo = 1994; // means "n/a"
   int         i;
 
   // must redirect the pointer if the ready weapon has changed.
@@ -1220,6 +1221,9 @@ void ST_createWidgets(void)
 
   // the last weapon type
   w_ready.data = plyr->readyweapon;
+
+  if (weaponinfo[plyr->readyweapon].ammo == am_noammo)
+    w_ready.num = &largeammo;
 
   // health percentage
   STlib_initPercent(&w_health,

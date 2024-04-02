@@ -34,6 +34,7 @@
 #include "mn_menu.h"
 #include "r_defs.h"
 #include "s_sound.h"
+#include "st_lib.h"
 #include "sounds.h"
 #include "u_mapinfo.h"
 #include "v_video.h"
@@ -767,7 +768,7 @@ WI_drawNum
     }
 
   // if non-number, do not draw it
-  if (n == 1994)
+  if (n == LARGENUMBER)
     return 0;
 
   // draw the new number
