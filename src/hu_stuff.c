@@ -1553,7 +1553,10 @@ void HU_Erase(void)
   w = doom_widget;
   while (w->multiline)
   {
-    HUlib_erase_widget(w);
+    if (*w->multiline->on)
+    {
+      HUlib_erase_widget(w);
+    }
     w++;
   }
 

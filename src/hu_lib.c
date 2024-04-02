@@ -528,7 +528,7 @@ void HUlib_erase_widget (const hu_widget_t *const w)
   }
 
   if (w->v_align == align_top)
-    y -= height;
+    y += f->line_height - height;
 
   if (y > scaledviewy && y < scaledviewy + scaledviewheight - height)
   {
