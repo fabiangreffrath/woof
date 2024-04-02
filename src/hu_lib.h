@@ -105,6 +105,7 @@ typedef struct hu_multiline_s
   boolean built;
 
   boolean exclusive;
+  boolean bottomup;
 
 } hu_multiline_t;
 

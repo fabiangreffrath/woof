@@ -465,7 +465,7 @@ void HUlib_draw_widget (const hu_widget_t *const w)
     draw_widget_single(w, f);
   // [FG] Vanilla widget with top alignment,
   //      or Boom widget with bottom alignment
-  else if ((m->on != NULL) ^ (w->v_align == align_bottom))
+  else if (m->bottomup ^ (w->v_align == align_bottom))
     draw_widget_bottomup(w, f);
   else
     draw_widget_topdown(w, f);
@@ -506,12 +506,13 @@ void HUlib_init_multiline(hu_multiline_t *m,
   m->cr = cr;
   m->drawcursor = false;
 
-  m->on = on;
+  m->on = on ? on : &m->built;
 
   m->builder = builder;
   m->built = false;
 
-  m->exclusive = (m->on != NULL);
+  m->exclusive = (on != NULL);
+  m->bottomup = (on != NULL);
 }
 
 void HUlib_erase_widget (const hu_widget_t *const w)
