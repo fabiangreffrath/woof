@@ -1215,15 +1215,14 @@ void ST_createWidgets(void)
                 ST_AMMOX - distributed_delta,
                 ST_AMMOY,
                 tallnum,
-                &plyr->ammo[weaponinfo[plyr->readyweapon].ammo],
+                weaponinfo[plyr->readyweapon].ammo != am_noammo ?
+                &plyr->ammo[weaponinfo[plyr->readyweapon].ammo] :
+                &largeammo,
                 &st_statusbaron,
                 ST_AMMOWIDTH );
 
   // the last weapon type
   w_ready.data = plyr->readyweapon;
-
-  if (weaponinfo[plyr->readyweapon].ammo == am_noammo)
-    w_ready.num = &largeammo;
 
   // health percentage
   STlib_initPercent(&w_health,
