@@ -80,8 +80,6 @@ void A_Recoil(player_t* player)
 
 static void P_SetPsprite(player_t *player, int position, statenum_t stnum)
 {
-  P_SetPspritePtr(player, &player->psprites[position], stnum);
-
   if (position == ps_weapon)
   {
     const weaponinfo_t wp = weaponinfo[player->readyweapon];
@@ -91,6 +89,8 @@ static void P_SetPsprite(player_t *player, int position, statenum_t stnum)
     else if (stnum == wp.downstate)
       player->switching = weapswitch_lowering;
   }
+
+  P_SetPspritePtr(player, &player->psprites[position], stnum);
 }
 
 //
