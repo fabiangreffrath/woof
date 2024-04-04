@@ -46,14 +46,7 @@ static const sound_module_t *sound_modules[] =
 
 static const sound_module_t *sound_module;
 
-static music_module_t *native_midi_module =
-#if defined(_WIN32)
-    &music_win_module;
-#elif defined(__APPLE__)
-    &music_mac_module;
-#else
-    NULL;
-#endif
+static music_module_t *native_midi_module = &music_mid_module;
 
 static boolean native_midi;
 

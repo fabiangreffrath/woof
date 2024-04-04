@@ -91,12 +91,10 @@ extern boolean mus_chorus;
 extern boolean mus_reverb;
 extern int mus_gain;
 #endif
-#if defined(_WIN32)
-extern char *winmm_device;
-extern int winmm_complevel;
-extern int winmm_reset_type;
-extern int winmm_reset_delay;
-#endif
+extern char *midi_device;
+extern int midi_complevel;
+extern int midi_reset_type;
+extern int midi_reset_delay;
 extern int opl_gain;
 extern boolean demobar;
 extern boolean smoothlight;
@@ -476,9 +474,9 @@ default_t defaults[] = {
   {
     "soundfont_dir",
     (config_t *) &soundfont_dir, NULL,
-#if defined(_WIN32)
+#  if defined(_WIN32)
     {.s = "soundfonts"},
-#else
+#  else
     /* RedHat/Fedora/Arch */
     {.s = "/usr/share/soundfonts:"
     /* Debian/Ubuntu/OpenSUSE */
@@ -486,7 +484,7 @@ default_t defaults[] = {
     "/usr/share/sounds/sf3:"
     /* AppImage */
     "../share/" PROJECT_SHORTNAME "/soundfonts"},
-#endif
+#  endif
     {0}, string, ss_none, wad_no,
     "FluidSynth soundfont directories"
   },
@@ -527,35 +525,33 @@ default_t defaults[] = {
     "fine tune OPL emulation output level (default 200%)"
   },
 
-#if defined(_WIN32)
   {
-    "winmm_device",
-    (config_t *) &winmm_device, NULL,
+    "midi_device",
+    (config_t *) &midi_device, NULL,
     {.s = ""}, {0}, string, ss_none, wad_no,
     "Native MIDI device"
   },
 
   {
-    "winmm_complevel",
-    (config_t *) &winmm_complevel, NULL,
+    "midi_complevel",
+    (config_t *) &midi_complevel, NULL,
     {1}, {0, 2}, number, ss_none, wad_no,
     "Native MIDI compatibility level (0 = Vanilla, 1 = Standard, 2 = Full)"
   },
 
   {
-    "winmm_reset_type",
-    (config_t *) &winmm_reset_type, NULL,
+    "midi_reset_type",
+    (config_t *) &midi_reset_type, NULL,
     {1}, {0, 3}, number, ss_none, wad_no,
     "SysEx reset for native MIDI (0 = None, 1 = GM, 2 = GS, 3 = XG)"
   },
 
   {
-    "winmm_reset_delay",
-    (config_t *) &winmm_reset_delay, NULL,
+    "midi_reset_delay",
+    (config_t *) &midi_reset_delay, NULL,
     {0}, {0, 2000}, number, ss_none, wad_no,
     "Delay after reset for native MIDI (milliseconds)"
   },
-#endif
 
   //
   // QOL features

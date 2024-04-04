@@ -38,6 +38,7 @@ set(WOOF_SOURCES
     i_input.c              i_input.h
     i_main.c
     i_mbfsound.c
+    i_midimusic.c
     i_oalmusic.c
     i_oalsound.c           i_oalsound.h
                            i_oalstream.h
@@ -173,6 +174,7 @@ target_link_libraries(woof PRIVATE
     SDL2_net::SDL2_net
     OpenAL::OpenAL
     SndFile::sndfile
+    RtMidi::rtmidi
     opl
     textscreen)
 
@@ -186,19 +188,11 @@ if(HAVE_AL_BUFFER_CALLBACK)
 endif()
 
 if(WIN32)
-    target_sources(woof PRIVATE i_winmusic.c)
     target_include_directories(woof PRIVATE "../win32")
-    target_link_libraries(woof PRIVATE winmm)
     if(MSVC)
         target_sources(woof PRIVATE
             ../win32/win_opendir.c ../win32/win_opendir.h)
     endif()
-endif()
-
-if(APPLE)
-    target_sources(woof PRIVATE i_macmusic.c)
-    target_link_libraries(woof PRIVATE
-        -Wl,-framework,AudioToolbox -Wl,-framework,AudioUnit -Wl,-framework,CoreServices)
 endif()
 
 if(FluidSynth_FOUND)

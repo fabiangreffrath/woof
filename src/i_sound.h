@@ -175,8 +175,7 @@ typedef struct
 
 // Music modules
 extern music_module_t music_oal_module;
-extern music_module_t music_win_module;
-extern music_module_t music_mac_module;
+extern music_module_t music_mid_module;
 
 extern int midi_player;
 
