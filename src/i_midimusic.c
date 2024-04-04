@@ -140,15 +140,30 @@ typedef struct
 
 static midi_song_t song;
 
+static boolean CheckError(const char *func)
+{
+    if (!midiout->ok)
+    {
+        I_Printf(VB_ERROR, "%s: %s", func, midiout->msg);
+        return true;
+    }
+    return false;
+}
+
 static void SendShortMsg(byte status, byte channel, byte param1, byte param2)
 {
     byte message[3];
+    int length = 2;
 
     message[0] = status | channel;
     message[1] = param1;
-    message[2] = param2;
+    if (param2)
+    {
+        length = 3;
+        message[2] = param2;
+    }
 
-    if (rtmidi_out_send_message(midiout, message, sizeof(message)) < 0)
+    if (rtmidi_out_send_message(midiout, message, length) < 0)
     {
         I_Printf(VB_ERROR, "SendShortMsg: %s", midiout->msg);
     }
@@ -1286,14 +1301,14 @@ static int PlayerThread(void *unused)
 
 static void GetDevices(void)
 {
-    if (!midiout)
-    {
-        midiout = rtmidi_out_create_default();
-    }
-
     if (array_size(ports))
     {
         return;
+    }
+
+    if (!midiout)
+    {
+        midiout = rtmidi_out_create_default();
     }
 
     unsigned int num_devs = rtmidi_get_port_count(midiout);
@@ -1307,6 +1322,8 @@ static void GetDevices(void)
         rtmidi_get_port_name(midiout, i, s, &len);
         array_push(ports, s);
     }
+
+    CheckError("GetDevices");
 }
 
 static boolean I_MID_InitMusic(int device)
@@ -1341,13 +1358,17 @@ static boolean I_MID_InitMusic(int device)
         midiout = rtmidi_out_create_default();
     }
 
-    if (midiout == NULL)
+    if (CheckError("I_MID_InitMusic"))
     {
-        I_Printf(VB_ERROR, "I_MID_InitMusic: Fail");
         return false;
     }
 
     rtmidi_open_port(midiout, device, midi_device);
+
+    if (CheckError("I_MID_InitMusic"))
+    {
+        return false;
+    }
 
     ProcessEvent = (midi_complevel == COMP_VANILLA) ? ProcessEvent_Vanilla
                                                     : ProcessEvent_Standard;
