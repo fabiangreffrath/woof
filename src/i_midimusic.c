@@ -1403,6 +1403,7 @@ static void I_MID_PlaySong(void *handle, boolean looping)
     }
 
     SDL_AtomicSet(&player_thread_running, 1);
+    song.looping = looping;
     midi_state = STATE_STARTUP;
     music_lock = SDL_CreateMutex();
     player_thread_handle = SDL_CreateThread(PlayerThread, NULL, NULL);
