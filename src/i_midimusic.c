@@ -153,17 +153,12 @@ static boolean CheckError(const char *func)
 static void SendShortMsg(byte status, byte channel, byte param1, byte param2)
 {
     byte message[3];
-    int length = 2;
 
     message[0] = status | channel;
     message[1] = param1;
-    if (param2)
-    {
-        length = 3;
-        message[2] = param2;
-    }
+    message[2] = param2;
 
-    if (rtmidi_out_send_message(midiout, message, length) < 0)
+    if (rtmidi_out_send_message(midiout, message, sizeof(message)) < 0)
     {
         I_Printf(VB_ERROR, "SendShortMsg: %s", midiout->msg);
     }
