@@ -102,6 +102,7 @@ typedef enum
     STATE_EXIT,
     STATE_PLAYING,
     STATE_WAITING,
+    STATE_STOPPED,
     STATE_PAUSED
 } midi_state_t;
 
@@ -194,11 +195,6 @@ static void SendNullRPN(const midi_event_t *event)
 // {
 //     ;
 // }
-
-static uint64_t TicksToUS(unsigned int ticks)
-{
-    return ((uint64_t)ticks * us_per_beat) / ticks_per_beat;
-}
 
 static void UpdateTempo(const midi_event_t *event)
 {
@@ -1152,12 +1148,12 @@ static boolean IsRPGLoop(void)
     return (num_rpg_events == 1 && num_emidi_events == 0);
 }
 
-// Fills the output buffer with events from the current song and then streams it
-// out. Call this function from the MIDI thread only, with exclusive access to
-// shared resources.
+// Get the next event from the MIDI file, process it or return if the delta
+// time is > 0. Call this function from the MIDI thread only, with exclusive
+// access to shared resources.
 
-static boolean GetNextEvent(midi_event_t **event, midi_track_t **track,
-                            uint64_t *wait_time)
+static midi_state_t NextEvent(midi_event_t **event, midi_track_t **track,
+                              int64_t *wait_time)
 {
     midi_event_t *local_event = NULL;
     midi_track_t *local_track = NULL;
@@ -1188,6 +1184,7 @@ static boolean GetNextEvent(midi_event_t **event, midi_track_t **track,
             {
                 song.ff_restart = false;
                 RestartLoop();
+                return STATE_PLAYING;
             }
             else if (song.looping)
             {
@@ -1197,9 +1194,10 @@ static boolean GetNextEvent(midi_event_t **event, midi_track_t **track,
                                  MIDI_CONTROLLER_RESET_ALL_CTRLS, 0);
                 }
                 RestartTracks();
+                return STATE_PLAYING;
             }
         }
-        return false;
+        return STATE_STOPPED;
     }
 
     local_track->elapsed_time = min_time;
@@ -1209,7 +1207,7 @@ static boolean GetNextEvent(midi_event_t **event, midi_track_t **track,
     if (!MIDI_GetNextEvent(local_track->iter, &local_event))
     {
         local_track->end_of_track = true;
-        return false;
+        return STATE_PLAYING;
     }
 
     // Restart FF loop after sending all events that share same ticks_per_beat.
@@ -1217,14 +1215,21 @@ static boolean GetNextEvent(midi_event_t **event, midi_track_t **track,
     {
         song.ff_restart = false;
         RestartLoop();
-        return false;
+        return STATE_PLAYING;
+    }
+
+    if (delta_time == 0)
+    {
+        ProcessEvent(local_event, local_track);
+        return STATE_PLAYING;
     }
 
     *track = local_track;
     *event = local_event;
-    *wait_time = I_GetTimeUS() + TicksToUS(delta_time);
 
-    return true;
+    int64_t us = ((int64_t)delta_time * us_per_beat) / ticks_per_beat;
+    *wait_time = I_GetTimeUS() + us;
+    return STATE_WAITING;
 }
 
 static int PlayerThread(void *unused)
@@ -1233,12 +1238,14 @@ static int PlayerThread(void *unused)
 
     midi_event_t *event = NULL;
     midi_track_t *track = NULL;
-    uint64_t wait_time = 0;
+    boolean sleep = false;
+    int64_t wait_time = 0;
 
     while (SDL_AtomicGet(&player_thread_running))
     {
-        if (wait_time && wait_time - I_GetTimeUS() > 1000)
+        if (sleep)
         {
+            sleep = false;
             I_Sleep(1);
         }
 
@@ -1261,10 +1268,7 @@ static int PlayerThread(void *unused)
 
             case STATE_PLAYING:
                 wait_time = 0;
-                if (GetNextEvent(&event, &track, &wait_time))
-                {
-                    midi_state = STATE_WAITING;
-                }
+                midi_state = NextEvent(&event, &track, &wait_time);
                 break;
 
             case STATE_STOPPING:
@@ -1274,17 +1278,24 @@ static int PlayerThread(void *unused)
                 break;
 
             case STATE_WAITING:
-                if (wait_time <= I_GetTimeUS())
                 {
-                    ProcessEvent(event, track);
-                    wait_time = 0;
-                    midi_state = STATE_PLAYING;
-                    break;
+                    int64_t remaining_time = wait_time - I_GetTimeUS();
+                    if (remaining_time <= 0)
+                    {
+                        ProcessEvent(event, track);
+                        wait_time = 0;
+                        midi_state = STATE_PLAYING;
+                    }
+                    else if (remaining_time > 1000)
+                    {
+                        sleep = true;
+                    }
                 }
                 break;
 
+            case STATE_STOPPED:
             case STATE_PAUSED:
-                wait_time = I_GetTimeUS() + 5000;
+                sleep = true;
                 break;
         }
 
