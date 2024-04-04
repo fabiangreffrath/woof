@@ -697,11 +697,6 @@ void I_PlaySong(void *handle, boolean looping)
     active_module->I_PlaySong(handle, looping);
 }
 
-void I_UpdateMusic(void)
-{
-    active_module->I_UpdateMusic();
-}
-
 void I_StopSong(void *handle)
 {
     active_module->I_StopSong(handle);

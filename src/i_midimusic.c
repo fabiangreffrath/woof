@@ -1579,19 +1579,13 @@ static const char **I_MID_DeviceList(int *current_device)
 
     for (int i = 0; i < array_size(ports); ++i)
     {
-        if (current_device
-            && !strcasecmp(ports[i], midi_device))
+        if (current_device && !strcasecmp(ports[i], midi_device))
         {
             *current_device = i;
         }
     }
     devices = ports;
     return devices;
-}
-
-static void I_MID_UpdateMusic(void)
-{
-    ;
 }
 
 music_module_t music_mid_module =
@@ -1603,7 +1597,6 @@ music_module_t music_mid_module =
     I_MID_ResumeSong,
     I_MID_RegisterSong,
     I_MID_PlaySong,
-    I_MID_UpdateMusic,
     I_MID_StopSong,
     I_MID_UnRegisterSong,
     I_MID_DeviceList,
