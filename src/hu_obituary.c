@@ -1,5 +1,5 @@
 //
-//  Copyright (C) 2023 Fabian Greffrath
+//  Copyright (C) 2023-2024 Fabian Greffrath
 //
 //  This program is free software; you can redistribute it and/or
 //  modify it under the terms of the GNU General Public License
@@ -53,8 +53,38 @@ static char *playerstr[] = {
     "Player 4",
 };
 
+static void AssignObituary(const int type, char *ob, char *ob_m)
+{
+    if (ob && !mobjinfo[type].obituary)
+    {
+        mobjinfo[type].obituary = ob;
+    }
+    if (ob_m && !mobjinfo[type].obituary_melee)
+    {
+        mobjinfo[type].obituary_melee = ob_m;
+    }
+}
+
 void HU_InitObituaries(void)
 {
+    AssignObituary(MT_POSSESSED, s_OB_ZOMBIE,   NULL);
+    AssignObituary(MT_SHOTGUY,   s_OB_SHOTGUY,  NULL);
+    AssignObituary(MT_VILE,      s_OB_VILE,     NULL);
+    AssignObituary(MT_UNDEAD,    s_OB_UNDEAD,   s_OB_UNDEADHIT);
+    AssignObituary(MT_FATSO,     s_OB_FATSO,    NULL);
+    AssignObituary(MT_CHAINGUY,  s_OB_CHAINGUY, NULL);
+    AssignObituary(MT_SKULL,     s_OB_SKULL,    NULL);
+    AssignObituary(MT_TROOP,     s_OB_IMP,      s_OB_IMPHIT);
+    AssignObituary(MT_HEAD,      s_OB_CACO,     s_OB_CACOHIT);
+    AssignObituary(MT_SERGEANT,  NULL,          s_OB_DEMONHIT);
+    AssignObituary(MT_SHADOWS,   NULL,          s_OB_SPECTREHIT);
+    AssignObituary(MT_BRUISER,   s_OB_BARON,    s_OB_BARONHIT);
+    AssignObituary(MT_KNIGHT,    s_OB_KNIGHT,   s_OB_KNIGHTHIT);
+    AssignObituary(MT_SPIDER,    s_OB_SPIDER,   NULL);
+    AssignObituary(MT_BABY,      s_OB_BABY,     NULL);
+    AssignObituary(MT_CYBORG,    s_OB_CYBORG,   NULL);
+    AssignObituary(MT_WOLFSS,    s_OB_WOLFSS,   NULL);
+
     // [FG] TODO only the server knows the names of all clients,
     //           but at least we know ours...
 
@@ -131,61 +161,18 @@ void HU_Obituary(mobj_t *target, mobj_t *source, method_t mod)
         }
         else
         {
-            switch (source->type)
+            const int type = source->type;
+
+            if (type >= 0 && type < num_mobj_types)
             {
-                case MT_POSSESSED:
-                    ob = s_OB_ZOMBIE;
-                    break;
-                case MT_SHOTGUY:
-                    ob = s_OB_SHOTGUY;
-                    break;
-                case MT_VILE:
-                    ob = s_OB_VILE;
-                    break;
-                case MT_UNDEAD:
-                    ob = (mod == MOD_Melee) ? s_OB_UNDEADHIT : s_OB_UNDEAD;
-                    break;
-                case MT_FATSO:
-                    ob = s_OB_FATSO;
-                    break;
-                case MT_CHAINGUY:
-                    ob = s_OB_CHAINGUY;
-                    break;
-                case MT_SKULL:
-                    ob = s_OB_SKULL;
-                    break;
-                case MT_TROOP:
-                    ob = (mod == MOD_Melee) ? s_OB_IMPHIT : s_OB_IMP;
-                    break;
-                case MT_HEAD:
-                    ob = (mod == MOD_Melee) ? s_OB_CACOHIT : s_OB_CACO;
-                    break;
-                case MT_SERGEANT:
-                    ob = s_OB_DEMONHIT; // [FG] melee only
-                    break;
-                case MT_SHADOWS:
-                    ob = s_OB_SPECTREHIT; // [FG] melee only
-                    break;
-                case MT_BRUISER:
-                    ob = (mod == MOD_Melee) ? s_OB_BARONHIT : s_OB_BARON;
-                    break;
-                case MT_KNIGHT:
-                    ob = (mod == MOD_Melee) ? s_OB_KNIGHTHIT : s_OB_KNIGHT;
-                    break;
-                case MT_SPIDER:
-                    ob = s_OB_SPIDER;
-                    break;
-                case MT_BABY:
-                    ob = s_OB_BABY;
-                    break;
-                case MT_CYBORG:
-                    ob = s_OB_CYBORG;
-                    break;
-                case MT_WOLFSS:
-                    ob = s_OB_WOLFSS;
-                    break;
-                default:
-                    break;
+                if (mod == MOD_Melee && mobjinfo[type].obituary_melee)
+                {
+                    ob = mobjinfo[type].obituary_melee;
+                }
+                else if (mobjinfo[type].obituary)
+                {
+                    ob = mobjinfo[type].obituary;
+                }
             }
         }
     }
