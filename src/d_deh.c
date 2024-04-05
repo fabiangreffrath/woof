@@ -2970,6 +2970,32 @@ void deh_procError(DEHFILE *fpin, FILE* fpout, char *line)
   return;
 }
 
+// [FG] Obituaries
+static boolean deh_procObituarySub(char *key, char *newstring)
+{
+  boolean found = false;
+  int actor = -1;
+
+  if (sscanf(key, "Obituary_Deh_Actor_%d", &actor) == 1)
+  {
+    if (actor >= 0 && actor < num_mobj_types)
+    {
+      if (M_StringEndsWith(key, "_Melee"))
+      {
+        mobjinfo[actor].obituary_melee = strdup(newstring);
+      }
+      else
+      {
+        mobjinfo[actor].obituary = strdup(newstring);
+      }
+
+      found = true;
+    }
+  }
+
+  return found;
+}
+
 // ====================================================================
 // deh_procStrings
 // Purpose: Handle BEX [STRINGS] extension
@@ -3038,6 +3064,10 @@ void deh_procStrings(DEHFILE *fpin, FILE* fpout, char *line)
         {
           // go process the current string
           found = deh_procStringSub(key, NULL, holdstring, fpout);  // supply keyand not search string
+
+          // [FG] Obituaries
+          if (!found)
+            found = deh_procObituarySub(key, holdstring);
 
           if (!found)
             if (fpout) fprintf(fpout,
