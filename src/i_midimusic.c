@@ -98,9 +98,8 @@ static float volume_factor = 0.0f;
 typedef enum
 {
     STATE_STARTUP,
-    STATE_STOPPING,
-    STATE_EXIT,
     STATE_PLAYING,
+    STATE_PAUSING,
     STATE_WAITING,
     STATE_STOPPED,
     STATE_PAUSED
@@ -1262,19 +1261,14 @@ static int PlayerThread(void *unused)
                 midi_state = STATE_PLAYING;
                 break;
 
-            case STATE_EXIT:
-                SDL_AtomicSet(&player_thread_running, 0);
-                break;
-
             case STATE_PLAYING:
-                wait_time = 0;
                 midi_state = NextEvent(&event, &track, &wait_time);
                 break;
 
-            case STATE_STOPPING:
+            case STATE_PAUSING:
                 // Send notes/sound off to prevent hanging notes.
                 SendNotesSoundOff();
-                midi_state = STATE_EXIT;
+                midi_state = STATE_PAUSED;
                 break;
 
             case STATE_WAITING:
@@ -1283,7 +1277,6 @@ static int PlayerThread(void *unused)
                     if (remaining_time <= 0)
                     {
                         ProcessEvent(event, track);
-                        wait_time = 0;
                         midi_state = STATE_PLAYING;
                     }
                     else if (remaining_time > 1000)
@@ -1414,12 +1407,12 @@ static void I_MID_StopSong(void *handle)
         return;
     }
 
-    SDL_LockMutex(music_lock);
-    midi_state = STATE_STOPPING;
-    SDL_UnlockMutex(music_lock);
-
+    SDL_AtomicSet(&player_thread_running, 0);
     SDL_WaitThread(player_thread_handle, NULL);
     SDL_DestroyMutex(music_lock);
+
+    // Send notes/sound off to prevent hanging notes.
+    SendNotesSoundOff();
 }
 
 static void I_MID_PlaySong(void *handle, boolean looping)
@@ -1444,7 +1437,7 @@ static void I_MID_PauseSong(void *handle)
     }
 
     SDL_LockMutex(music_lock);
-    midi_state = STATE_PAUSED;
+    midi_state = STATE_PAUSING;
     SDL_UnlockMutex(music_lock);
 }
 
