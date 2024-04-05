@@ -26,6 +26,7 @@
 #include "i_sound.h"
 #include "i_timer.h"
 #include "m_array.h"
+#include "m_misc.h"
 #include "memio.h"
 #include "midifallback.h"
 #include "midifile.h"
@@ -1310,19 +1311,40 @@ static void GetDevices(void)
         midiout = rtmidi_out_create_default();
     }
 
+    if (CheckError("GetDevices"))
+    {
+        return;
+    }
+
+    enum RtMidiApi current_api = rtmidi_out_get_current_api(midiout);
+
+    if (CheckError("GetDevices"))
+    {
+        return;
+    }
+
     unsigned int num_devs = rtmidi_get_port_count(midiout);
 
     for (int i = 0; i < num_devs; ++i)
     {
-        char *s;
         int len;
         rtmidi_get_port_name(midiout, i, NULL, &len);
-        s = malloc(len);
-        rtmidi_get_port_name(midiout, i, s, &len);
-        array_push(ports, s);
-    }
+        char *name = malloc(len);
+        rtmidi_get_port_name(midiout, i, name, &len);
 
-    CheckError("GetDevices");
+        if (current_api == RTMIDI_API_LINUX_ALSA)
+        {
+            char *p = strchr(name, ':');
+            *p = '\0';
+            char *s = M_StringJoin("ALSA: ", name, NULL);
+            array_push(ports, s);
+            free(name);
+        }
+        else
+        {
+            array_push(ports, name);
+        }
+    }
 }
 
 static boolean I_MID_InitMusic(int device)
