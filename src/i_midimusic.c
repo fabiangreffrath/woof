@@ -34,6 +34,14 @@
 
 static PortMidiStream *midiout;
 
+typedef struct
+{
+    PmDeviceID id;
+    const char *name;
+} pm_device_t;
+
+static pm_device_t *pm_devices;
+
 static SDL_Thread *player_thread_handle;
 static SDL_mutex *music_lock;
 static SDL_atomic_t player_thread_running;
@@ -110,8 +118,6 @@ static midi_state_t midi_state;
 
 #define EMIDI_DEVICE (1U << EMIDI_DEVICE_GENERAL_MIDI)
 
-static const char **ports = NULL;
-
 typedef struct
 {
     midi_track_iter_t *iter;
@@ -145,7 +151,7 @@ static void SendShortMsg(byte status, byte channel, byte param1, byte param2)
 {
     PmError err = Pm_WriteShort(midiout, 0,
                                 Pm_Message(status | channel, param1, param2));
-    
+
     if (err != pmNoError)
     {
         I_Printf(VB_ERROR, "SendShortMsg: %s", Pm_GetErrorText(err));
@@ -162,7 +168,7 @@ static void SendChannelMsg(const midi_event_t *event, boolean use_param2)
 static void SendLongMsg(const byte *message, unsigned int length)
 {
     PmError err = Pm_WriteSysEx(midiout, 0, (byte *)message);
-    
+
     if (err != pmNoError)
     {
         I_Printf(VB_ERROR, "SendLongMsg: %s", Pm_GetErrorText(err));
@@ -1284,7 +1290,7 @@ static int PlayerThread(void *unused)
 
 static void GetDevices(void)
 {
-    if (array_size(ports))
+    if (array_size(pm_devices))
     {
         return;
     }
@@ -1293,16 +1299,20 @@ static void GetDevices(void)
 
     for (int i = 0; i < num_devs; ++i)
     {
-        const PmDeviceInfo *info = Pm_GetDeviceInfo(i); 
-        array_push(ports, M_StringDuplicate(info->name));
+        const PmDeviceInfo *info = Pm_GetDeviceInfo(i);
+        if (info->output)
+        {
+            pm_device_t device;
+            device.id = i;
+            device.name = M_StringDuplicate(info->name);
+            array_push(pm_devices, device);
+        }
     }
 }
 
 static boolean I_MID_InitMusic(int device)
 {
-    PmError err;
-    
-    err = Pm_Initialize();
+    PmError err = Pm_Initialize();
 
     if (err != pmNoError)
     {
@@ -1316,9 +1326,9 @@ static boolean I_MID_InitMusic(int device)
 
         device = 0;
 
-        for (int i = 0; i < array_size(ports); ++i)
+        for (int i = 0; i < array_size(pm_devices); ++i)
         {
-            if (!strcasecmp(ports[i], midi_device))
+            if (!strcasecmp(pm_devices[i].name, midi_device))
             {
                 device = i;
                 break;
@@ -1326,16 +1336,19 @@ static boolean I_MID_InitMusic(int device)
         }
     }
 
-    if (array_size(ports))
+    if (!array_size(pm_devices))
     {
-        if (device >= array_size(ports))
-        {
-            device = 0;
-        }
-        midi_device = ports[device];
+        I_Printf(VB_ERROR, "I_MID_InitMusic: No devices found.");
+        return false;
     }
 
-    err = Pm_OpenOutput(&midiout, device, NULL, 0, NULL, NULL, 0);
+    if (device >= array_size(pm_devices))
+    {
+        device = 0;
+    }
+    midi_device = pm_devices[device].name;
+
+    err = Pm_OpenOutput(&midiout, pm_devices[device].id, NULL, 0, NULL, NULL, 0);
 
     if (err != pmNoError)
     {
@@ -1564,14 +1577,15 @@ static const char **I_MID_DeviceList(int *current_device)
 
     GetDevices();
 
-    for (int i = 0; i < array_size(ports); ++i)
+    for (int i = 0; i < array_size(pm_devices); ++i)
     {
-        if (current_device && !strcasecmp(ports[i], midi_device))
+        if (current_device && !strcasecmp(pm_devices[i].name, midi_device))
         {
             *current_device = i;
         }
+
+        array_push(devices, pm_devices[i].name);
     }
-    devices = ports;
     return devices;
 }
 
