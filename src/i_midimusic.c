@@ -1225,7 +1225,8 @@ static midi_state_t NextEvent(midi_event_t **event, midi_track_t **track,
 
     *track = local_track;
     *event = local_event;
-    *wait_time = ((uint64_t)delta_time * us_per_beat) / ticks_per_beat;
+    uint64_t us = ((uint64_t)delta_time * us_per_beat) / ticks_per_beat;
+    *wait_time = I_GetTimeUS() + us;
     return STATE_WAITING;
 }
 
@@ -1235,14 +1236,15 @@ static int PlayerThread(void *unused)
 
     midi_event_t *event = NULL;
     midi_track_t *track = NULL;
+    boolean sleep = false;
     uint64_t wait_time = 0;
 
     while (SDL_AtomicGet(&player_thread_running))
     {
-        if (wait_time)
+        if (sleep)
         {
-            I_SleepUS(wait_time);
-            wait_time = 0;
+            I_SleepUS(1000);
+            sleep = false;
         }
 
         // The MIDI thread must have exclusive access to shared resources until
@@ -1269,8 +1271,17 @@ static int PlayerThread(void *unused)
                 break;
 
             case STATE_WAITING:
-                if (wait_time == 0)
                 {
+                    int64_t remaining_time = wait_time - I_GetTimeUS();
+                    if (remaining_time > 1000)
+                    {
+                        sleep = true;
+                        break;
+                    }
+                    if (remaining_time > 0)
+                    {
+                        I_SleepUS(remaining_time);
+                    }
                     ProcessEvent(event, track);
                     midi_state = STATE_PLAYING;
                 }
@@ -1278,7 +1289,7 @@ static int PlayerThread(void *unused)
 
             case STATE_STOPPED:
             case STATE_PAUSED:
-                wait_time = 1000;
+                sleep = true;
                 break;
         }
 
