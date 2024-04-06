@@ -1157,7 +1157,7 @@ static boolean IsRPGLoop(void)
 // access to shared resources.
 
 static midi_state_t NextEvent(midi_event_t **event, midi_track_t **track,
-                              int64_t *wait_time)
+                              uint64_t *wait_time)
 {
     midi_event_t *local_event = NULL;
     midi_track_t *local_track = NULL;
@@ -1230,9 +1230,7 @@ static midi_state_t NextEvent(midi_event_t **event, midi_track_t **track,
 
     *track = local_track;
     *event = local_event;
-
-    int64_t us = ((int64_t)delta_time * us_per_beat) / ticks_per_beat;
-    *wait_time = I_GetTimeUS() + us;
+    *wait_time = ((uint64_t)delta_time * us_per_beat) / ticks_per_beat;
     return STATE_WAITING;
 }
 
@@ -1242,15 +1240,14 @@ static int PlayerThread(void *unused)
 
     midi_event_t *event = NULL;
     midi_track_t *track = NULL;
-    boolean sleep = false;
-    int64_t wait_time = 0;
+    uint64_t wait_time = 0;
 
     while (SDL_AtomicGet(&player_thread_running))
     {
-        if (sleep)
+        if (wait_time)
         {
-            sleep = false;
-            I_Sleep(1);
+            I_SleepUS(wait_time);
+            wait_time = 0;
         }
 
         // The MIDI thread must have exclusive access to shared resources until
@@ -1277,23 +1274,16 @@ static int PlayerThread(void *unused)
                 break;
 
             case STATE_WAITING:
+                if (wait_time == 0)
                 {
-                    int64_t remaining_time = wait_time - I_GetTimeUS();
-                    if (remaining_time <= 0)
-                    {
-                        ProcessEvent(event, track);
-                        midi_state = STATE_PLAYING;
-                    }
-                    else if (remaining_time > 1000)
-                    {
-                        sleep = true;
-                    }
+                    ProcessEvent(event, track);
+                    midi_state = STATE_PLAYING;
                 }
                 break;
 
             case STATE_STOPPED:
             case STATE_PAUSED:
-                sleep = true;
+                wait_time = 1000;
                 break;
         }
 
