@@ -172,9 +172,9 @@ static void SendChannelMsg(const midi_event_t *event, boolean use_param2)
                  use_param2 ? event->data.channel.param2 : 0);
 }
 
-static void SendLongMsg(const byte *ptr, unsigned int length)
+static void SendLongMsg(const byte *message, unsigned int length)
 {
-    if (rtmidi_out_send_message(midiout, ptr, length) < 0)
+    if (rtmidi_out_send_message(midiout, message, length) < 0)
     {
         I_Printf(VB_ERROR, "SendLongMsg: %s", midiout->msg);
     }
@@ -529,7 +529,11 @@ static void SendSysExMsg(const midi_event_t *event)
     }
 
     // Send the SysEx message.
-    SendLongMsg(data, length);
+    byte *message = malloc(length + 1);
+    message[0] = MIDI_EVENT_SYSEX;
+    memcpy(message + 1, data, length);
+    SendLongMsg(message, length + 1);
+    free(message);
 
     if (IsSysExReset(data, length))
     {
