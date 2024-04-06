@@ -29,6 +29,8 @@
 #include <windows.h>
 
 HANDLE hTimer = NULL;
+#else
+#include <unistd.h>
 #endif
 
 static uint64_t basecounter = 0;
