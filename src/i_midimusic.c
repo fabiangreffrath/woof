@@ -16,7 +16,7 @@
 //
 
 #include "SDL.h"
-#include "rtmidi/rtmidi_c.h"
+#include "portmidi.h"
 
 #include <math.h>
 #include <stdlib.h>
@@ -32,7 +32,7 @@
 #include "midifile.h"
 #include "mus2mid.h"
 
-static struct RtMidiWrapper *midiout;
+static PortMidiStream *midiout;
 
 static SDL_Thread *player_thread_handle;
 static SDL_mutex *music_lock;
@@ -141,27 +141,14 @@ typedef struct
 
 static midi_song_t song;
 
-static boolean CheckError(const char *func)
-{
-    if (!midiout->ok)
-    {
-        I_Printf(VB_ERROR, "%s: %s", func, midiout->msg);
-        return true;
-    }
-    return false;
-}
-
 static void SendShortMsg(byte status, byte channel, byte param1, byte param2)
 {
-    byte message[3];
-
-    message[0] = status | channel;
-    message[1] = param1;
-    message[2] = param2;
-
-    if (rtmidi_out_send_message(midiout, message, sizeof(message)) < 0)
+    PmError err = Pm_WriteShort(midiout, 0,
+                                Pm_Message(status | channel, param1, param2));
+    
+    if (err != pmNoError)
     {
-        I_Printf(VB_ERROR, "SendShortMsg: %s", midiout->msg);
+        I_Printf(VB_ERROR, "SendShortMsg: %s", Pm_GetErrorText(err));
     }
 }
 
@@ -174,9 +161,11 @@ static void SendChannelMsg(const midi_event_t *event, boolean use_param2)
 
 static void SendLongMsg(const byte *message, unsigned int length)
 {
-    if (rtmidi_out_send_message(midiout, message, length) < 0)
+    PmError err = Pm_WriteSysEx(midiout, 0, (byte *)message);
+    
+    if (err != pmNoError)
     {
-        I_Printf(VB_ERROR, "SendLongMsg: %s", midiout->msg);
+        I_Printf(VB_ERROR, "SendLongMsg: %s", Pm_GetErrorText(err));
     }
 }
 
@@ -1300,49 +1289,27 @@ static void GetDevices(void)
         return;
     }
 
-    if (!midiout)
-    {
-        midiout = rtmidi_out_create_default();
-    }
-
-    if (CheckError("GetDevices"))
-    {
-        return;
-    }
-
-    enum RtMidiApi current_api = rtmidi_out_get_current_api(midiout);
-
-    if (CheckError("GetDevices"))
-    {
-        return;
-    }
-
-    unsigned int num_devs = rtmidi_get_port_count(midiout);
+    int num_devs = Pm_CountDevices();
 
     for (int i = 0; i < num_devs; ++i)
     {
-        int len;
-        rtmidi_get_port_name(midiout, i, NULL, &len);
-        char *name = malloc(len);
-        rtmidi_get_port_name(midiout, i, name, &len);
-
-        if (current_api == RTMIDI_API_LINUX_ALSA)
-        {
-            char *p = strchr(name, ':');
-            *p = '\0';
-            char *s = M_StringJoin("ALSA: ", name, NULL);
-            array_push(ports, s);
-            free(name);
-        }
-        else
-        {
-            array_push(ports, name);
-        }
+        const PmDeviceInfo *info = Pm_GetDeviceInfo(i); 
+        array_push(ports, M_StringDuplicate(info->name));
     }
 }
 
 static boolean I_MID_InitMusic(int device)
 {
+    PmError err;
+    
+    err = Pm_Initialize();
+
+    if (err != pmNoError)
+    {
+        I_Printf(VB_ERROR, "I_MID_InitMusic: %s", Pm_GetErrorText(err));
+        return false;
+    }
+
     if (device == DEFAULT_MIDI_DEVICE)
     {
         GetDevices();
@@ -1368,20 +1335,11 @@ static boolean I_MID_InitMusic(int device)
         midi_device = ports[device];
     }
 
-    if (!midiout)
-    {
-        midiout = rtmidi_out_create_default();
-    }
+    err = Pm_OpenOutput(&midiout, device, NULL, 0, NULL, NULL, 0);
 
-    if (CheckError("I_MID_InitMusic"))
+    if (err != pmNoError)
     {
-        return false;
-    }
-
-    rtmidi_open_port(midiout, device, midi_device);
-
-    if (CheckError("I_MID_InitMusic"))
-    {
+        I_Printf(VB_ERROR, "I_MID_InitMusic: %s", Pm_GetErrorText(err));
         return false;
     }
 
@@ -1406,6 +1364,12 @@ static void I_MID_SetMusicVolume(int volume)
         return;
     }
     last_volume = volume;
+
+    if (!SDL_AtomicGet(&player_thread_running))
+    {
+        volume_factor = sqrtf((float)volume / 15.0f);
+        return;
+    }
 
     SDL_LockMutex(music_lock);
     volume_factor = sqrtf((float)volume / 15.0f);
@@ -1572,8 +1536,13 @@ static void I_MID_ShutdownMusic(void)
 
     ResetDevice();
 
-    rtmidi_close_port(midiout);
-    rtmidi_out_free(midiout);
+    PmError err = Pm_Terminate();
+
+    if (err != pmNoError)
+    {
+        I_Printf(VB_ERROR, "I_MID_ShutdownMusic: %s", Pm_GetErrorText(err));
+    }
+
     midiout = NULL;
 
     music_initialized = false;

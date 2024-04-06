@@ -174,7 +174,7 @@ target_link_libraries(woof PRIVATE
     SDL2_net::SDL2_net
     OpenAL::OpenAL
     SndFile::sndfile
-    RtMidi::rtmidi
+    PortMidi::portmidi
     opl
     textscreen)
 

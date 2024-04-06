@@ -67,7 +67,7 @@ find_package(SDL2 2.0.18 REQUIRED)
 find_package(SDL2_net REQUIRED)
 find_package(OpenAL REQUIRED)
 find_package(SndFile 1.0.29 REQUIRED)
-find_package(RtMidi REQUIRED)
+find_package(PortMidi REQUIRED)
 
 if(OPENAL_VERSION_STRING VERSION_GREATER_EQUAL "1.22.0")
     set(HAVE_AL_BUFFER_CALLBACK TRUE)
