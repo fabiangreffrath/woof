@@ -1570,8 +1570,6 @@ static void I_MID_ShutdownMusic(void)
     I_MID_StopSong(NULL);
     I_MID_UnRegisterSong(NULL);
 
-    // Send notes/sound off prior to reset to prevent volume spikes.
-    SendNotesSoundOff();
     ResetDevice();
 
     rtmidi_close_port(midiout);
