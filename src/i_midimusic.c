@@ -1560,7 +1560,14 @@ static void I_MID_ShutdownMusic(void)
 
     ResetDevice();
 
-    PmError err = Pm_Terminate();
+    PmError err = Pm_Close(midiout);
+
+    if (err != pmNoError)
+    {
+        I_Printf(VB_ERROR, "I_MID_ShutdownMusic: %s", Pm_GetErrorText(err));
+    }
+
+    err = Pm_Terminate();
 
     if (err != pmNoError)
     {
