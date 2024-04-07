@@ -235,7 +235,13 @@ static void SetResampler(ALuint *sources)
     }
     if (i == num_resamplers)
     {
-        I_Printf(VB_WARNING, " Failed to find resampler: '%s'.", snd_resampler);
+        I_Printf(VB_WARNING, " Failed to find resampler: '%s'. Valid choices:",
+                 snd_resampler);
+        for (i = 0; i < num_resamplers; i++)
+        {
+            I_Printf(VB_WARNING, "  %s",
+                     alGetStringiSOFT(AL_RESAMPLER_NAME_SOFT, i));
+        }
         return;
     }
 
