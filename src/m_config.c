@@ -419,8 +419,8 @@ default_t defaults[] = {
   {
     "snd_resampler",
     (config_t *) &snd_resampler, NULL,
-    {1}, {0, 2}, number, ss_gen, wad_no,
-    "OpenAL resampler (0 = Nearest, 1 = Linear, 2 = Cubic)"
+    {.s = "Linear"}, {0}, string, ss_none, wad_no,
+    "Sound resampler"
   },
 
   {
