@@ -5,7 +5,6 @@
     "sdl2-net",
     "openal-soft",
     "libsndfile",
-    "portmidi",
     {
         "name": "fluidsynth",
         "default-features": false,

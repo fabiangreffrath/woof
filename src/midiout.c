@@ -1,3 +1,15 @@
+//
+// Copyright(C) 2024 Roman Fomin
+//
+// This program is free software; you can redistribute it and/or
+// modify it under the terms of the GNU General Public License
+// as published by the Free Software Foundation; either version 2
+// of the License, or (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
 
 #include "midiout.h"
 
@@ -6,6 +18,8 @@
 #include "config.h"
 #include "doomtype.h"
 #include "i_printf.h"
+
+#define MIDI_DEFAULT_BUFFER_SIZE 32
 
 //---------------------------------------------------------
 //    WINMM
@@ -20,6 +34,8 @@
 #include "m_io.h"
 
 static HMIDIOUT hMidiOut;
+static byte *sysex_buffer;
+static int sysex_buffer_size;
 
 #define PACK_MSG(status, data1, data2)                        \
     ((((data2) << 16) & 0xFF0000) | (((data1) << 8) & 0xFF00) \
@@ -52,20 +68,18 @@ void MIDI_SendShortMsg(byte status, byte channel, byte param1, byte param2)
     }
 }
 
-#define DEFAULT_SYSEX_BUFFER_SIZE 1024
-
-static byte sysex_buffer[DEFAULT_SYSEX_BUFFER_SIZE];
-
 void MIDI_SendLongMsg(const byte *message, unsigned int length)
 {
     MMRESULT result;
     MIDIHDR sysex = {0};
 
-    if (length > DEFAULT_SYSEX_BUFFER_SIZE)
+    if (length > sysex_buffer_size)
     {
-        I_Printf(VB_ERROR, "MIDI_SendLongMsg: SysEx message is too long");
-        return;
+        sysex_buffer_size = length;
+        free(sysex_buffer);
+        sysex_buffer = malloc(sysex_buffer_size);
     }
+
     memcpy(sysex_buffer, message, length);
 
     sysex.lpData = (LPSTR)sysex_buffer;
@@ -120,13 +134,13 @@ boolean MIDI_OpenDevice(int device)
 {
     MMRESULT result = midiOutOpen(&hMidiOut, device, (DWORD_PTR)NULL,
                                   (DWORD_PTR)NULL, CALLBACK_NULL);
-
     if (result != MMSYSERR_NOERROR)
     {
         MidiError("MIDI_OpenDevice", result);
         return false;
     }
-
+    sysex_buffer_size = MIDI_DEFAULT_BUFFER_SIZE;
+    sysex_buffer = malloc(sysex_buffer_size);
     return true;
 }
 
@@ -137,6 +151,7 @@ void MIDI_CloseDevice(void)
     {
         MidiError("MIDI_CloseDevice", result);
     }
+    free(sysex_buffer);
 }
 
 //---------------------------------------------------------
@@ -152,8 +167,7 @@ void MIDI_CloseDevice(void)
 static snd_seq_t *seq;
 static snd_seq_port_subscribe_t *subscription;
 static snd_midi_event_t *coder;
-static unsigned int buffer_size = 32;
-static byte *buffer;
+static size_t buffer_size;
 static int vport;
 
 typedef struct
@@ -211,8 +225,8 @@ static boolean Init(void)
         }
     }
 
+    buffer_size = MIDI_DEFAULT_BUFFER_SIZE;
     snd_midi_event_new(buffer_size, &coder);
-    buffer = malloc(buffer_size);
     snd_midi_event_init(coder);
     return true;
 }
@@ -221,22 +235,18 @@ static void SendMessage(const byte *message, unsigned int length)
 {
     int err;
 
-    if (length > buffer_size )
+    if (length > buffer_size)
     {
         buffer_size = length;
-        snd_midi_event_resize_buffer(coder, length);
-        free(buffer);
-        buffer = malloc(buffer_size);
+        snd_midi_event_resize_buffer(coder, buffer_size);
     }
-
-    memcpy(buffer, message, length);
 
     snd_seq_event_t ev;
     snd_seq_ev_clear(&ev);
 
     for (int i = 0; i < length; ++i)
     {
-        if (snd_midi_event_encode_byte(coder, buffer[i], &ev) == 1)
+        if (snd_midi_event_encode_byte(coder, message[i], &ev) == 1)
         {
             // Send the event
             snd_seq_ev_set_source(&ev, vport);
@@ -288,12 +298,7 @@ const char *MIDI_GetDeviceName(int device)
 
 boolean MIDI_OpenDevice(int device)
 {
-    if (!Init())
-    {
-        return false;
-    }
-
-    if (device > array_size(ports))
+    if (!Init() || device > array_size(ports))
     {
         return false;
     }
