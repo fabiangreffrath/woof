@@ -196,6 +196,11 @@ if(WIN32)
     endif()
 endif()
 
+if(ALSA_FOUND)
+    target_include_directories(woof PRIVATE ${ALSA_INCLUDE_DIR})
+    target_link_libraries(woof PRIVATE ALSA::ALSA)
+endif()
+
 if(FluidSynth_FOUND)
     target_sources(woof PRIVATE i_flmusic.c)
     target_link_libraries(woof PRIVATE FluidSynth::libfluidsynth)
