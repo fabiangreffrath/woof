@@ -16,7 +16,6 @@
 //
 
 #include "SDL.h"
-#include "portmidi.h"
 
 #include <math.h>
 #include <stdlib.h>
@@ -28,19 +27,10 @@
 #include "m_array.h"
 #include "m_misc.h"
 #include "memio.h"
+#include "midiout.h"
 #include "midifallback.h"
 #include "midifile.h"
 #include "mus2mid.h"
-
-static PortMidiStream *midiout;
-
-typedef struct
-{
-    PmDeviceID id;
-    const char *name;
-} pm_device_t;
-
-static pm_device_t *pm_devices;
 
 static SDL_Thread *player_thread_handle;
 static SDL_mutex *music_lock;
@@ -147,32 +137,11 @@ typedef struct
 
 static midi_song_t song;
 
-static void SendShortMsg(byte status, byte channel, byte param1, byte param2)
-{
-    PmError err = Pm_WriteShort(midiout, 0,
-                                Pm_Message(status | channel, param1, param2));
-
-    if (err != pmNoError)
-    {
-        I_Printf(VB_ERROR, "SendShortMsg: %s", Pm_GetErrorText(err));
-    }
-}
-
 static void SendChannelMsg(const midi_event_t *event, boolean use_param2)
 {
-    SendShortMsg(event->event_type, event->data.channel.channel,
-                 event->data.channel.param1,
-                 use_param2 ? event->data.channel.param2 : 0);
-}
-
-static void SendLongMsg(const byte *message, unsigned int length)
-{
-    PmError err = Pm_WriteSysEx(midiout, 0, (byte *)message);
-
-    if (err != pmNoError)
-    {
-        I_Printf(VB_ERROR, "SendLongMsg: %s", Pm_GetErrorText(err));
-    }
+    MIDI_SendShortMsg(event->event_type, event->data.channel.channel,
+                      event->data.channel.param1,
+                      use_param2 ? event->data.channel.param2 : 0);
 }
 
 // Writes an RPN message set to NULL (0x7F). Prevents accidental data entry.
@@ -180,9 +149,9 @@ static void SendLongMsg(const byte *message, unsigned int length)
 static void SendNullRPN(const midi_event_t *event)
 {
     const byte channel = event->data.channel.channel;
-    SendShortMsg(MIDI_EVENT_CONTROLLER, channel, MIDI_CONTROLLER_RPN_LSB,
+    MIDI_SendShortMsg(MIDI_EVENT_CONTROLLER, channel, MIDI_CONTROLLER_RPN_LSB,
                  MIDI_RPN_NULL);
-    SendShortMsg(MIDI_EVENT_CONTROLLER, channel, MIDI_CONTROLLER_RPN_MSB,
+    MIDI_SendShortMsg(MIDI_EVENT_CONTROLLER, channel, MIDI_CONTROLLER_RPN_MSB,
                  MIDI_RPN_NULL);
 }
 
@@ -210,7 +179,7 @@ static void SendManualVolumeMsg(byte channel, byte volume)
         scaled_volume = 127;
     }
 
-    SendShortMsg(MIDI_EVENT_CONTROLLER, channel, MIDI_CONTROLLER_VOLUME_MSB,
+    MIDI_SendShortMsg(MIDI_EVENT_CONTROLLER, channel, MIDI_CONTROLLER_VOLUME_MSB,
                  scaled_volume);
 
     channel_volume[channel] = volume;
@@ -256,8 +225,8 @@ static void SendNotesSoundOff(void)
 
     for (i = 0; i < MIDI_CHANNELS_PER_TRACK; ++i)
     {
-        SendShortMsg(MIDI_EVENT_CONTROLLER, i, MIDI_CONTROLLER_ALL_NOTES_OFF, 0);
-        SendShortMsg(MIDI_EVENT_CONTROLLER, i, MIDI_CONTROLLER_ALL_SOUND_OFF, 0);
+        MIDI_SendShortMsg(MIDI_EVENT_CONTROLLER, i, MIDI_CONTROLLER_ALL_NOTES_OFF, 0);
+        MIDI_SendShortMsg(MIDI_EVENT_CONTROLLER, i, MIDI_CONTROLLER_ALL_SOUND_OFF, 0);
     }
 }
 
@@ -271,13 +240,13 @@ static void ResetControllers(void)
     for (i = 0; i < MIDI_CHANNELS_PER_TRACK; ++i)
     {
         // Reset commonly used controllers.
-        SendShortMsg(MIDI_EVENT_CONTROLLER, i, MIDI_CONTROLLER_RESET_ALL_CTRLS, 0);
-        SendShortMsg(MIDI_EVENT_CONTROLLER, i, MIDI_CONTROLLER_PAN, 64);
-        SendShortMsg(MIDI_EVENT_CONTROLLER, i, MIDI_CONTROLLER_BANK_SELECT_MSB, 0);
-        SendShortMsg(MIDI_EVENT_CONTROLLER, i, MIDI_CONTROLLER_BANK_SELECT_LSB, 0);
-        SendShortMsg(MIDI_EVENT_PROGRAM_CHANGE, i, 0, 0);
-        SendShortMsg(MIDI_EVENT_CONTROLLER, i, MIDI_CONTROLLER_REVERB, 40);
-        SendShortMsg(MIDI_EVENT_CONTROLLER, i, MIDI_CONTROLLER_CHORUS, 0);
+        MIDI_SendShortMsg(MIDI_EVENT_CONTROLLER, i, MIDI_CONTROLLER_RESET_ALL_CTRLS, 0);
+        MIDI_SendShortMsg(MIDI_EVENT_CONTROLLER, i, MIDI_CONTROLLER_PAN, 64);
+        MIDI_SendShortMsg(MIDI_EVENT_CONTROLLER, i, MIDI_CONTROLLER_BANK_SELECT_MSB, 0);
+        MIDI_SendShortMsg(MIDI_EVENT_CONTROLLER, i, MIDI_CONTROLLER_BANK_SELECT_LSB, 0);
+        MIDI_SendShortMsg(MIDI_EVENT_PROGRAM_CHANGE, i, 0, 0);
+        MIDI_SendShortMsg(MIDI_EVENT_CONTROLLER, i, MIDI_CONTROLLER_REVERB, 40);
+        MIDI_SendShortMsg(MIDI_EVENT_CONTROLLER, i, MIDI_CONTROLLER_CHORUS, 0);
     }
 }
 
@@ -291,16 +260,16 @@ static void ResetPitchBendSensitivity(void)
     for (i = 0; i < MIDI_CHANNELS_PER_TRACK; ++i)
     {
         // Set RPN MSB/LSB to pitch bend sensitivity.
-        SendShortMsg(MIDI_EVENT_CONTROLLER, i, MIDI_CONTROLLER_RPN_LSB, 0);
-        SendShortMsg(MIDI_EVENT_CONTROLLER, i, MIDI_CONTROLLER_RPN_MSB, 0);
+        MIDI_SendShortMsg(MIDI_EVENT_CONTROLLER, i, MIDI_CONTROLLER_RPN_LSB, 0);
+        MIDI_SendShortMsg(MIDI_EVENT_CONTROLLER, i, MIDI_CONTROLLER_RPN_MSB, 0);
 
         // Reset pitch bend sensitivity to +/- 2 semitones and 0 cents.
-        SendShortMsg(MIDI_EVENT_CONTROLLER, i, MIDI_CONTROLLER_DATA_ENTRY_MSB, 2);
-        SendShortMsg(MIDI_EVENT_CONTROLLER, i, MIDI_CONTROLLER_DATA_ENTRY_LSB, 0);
+        MIDI_SendShortMsg(MIDI_EVENT_CONTROLLER, i, MIDI_CONTROLLER_DATA_ENTRY_MSB, 2);
+        MIDI_SendShortMsg(MIDI_EVENT_CONTROLLER, i, MIDI_CONTROLLER_DATA_ENTRY_LSB, 0);
 
         // Set RPN MSB/LSB to null value after data entry.
-        SendShortMsg(MIDI_EVENT_CONTROLLER, i, MIDI_CONTROLLER_RPN_LSB, 127);
-        SendShortMsg(MIDI_EVENT_CONTROLLER, i, MIDI_CONTROLLER_RPN_MSB, 127);
+        MIDI_SendShortMsg(MIDI_EVENT_CONTROLLER, i, MIDI_CONTROLLER_RPN_LSB, 127);
+        MIDI_SendShortMsg(MIDI_EVENT_CONTROLLER, i, MIDI_CONTROLLER_RPN_MSB, 127);
     }
 }
 
@@ -319,16 +288,16 @@ static void ResetDevice(void)
             break;
 
         case RESET_TYPE_GS:
-            SendLongMsg(gs_reset, sizeof(gs_reset));
+            MIDI_SendLongMsg(gs_reset, sizeof(gs_reset));
             use_fallback = (midi_complevel != COMP_VANILLA);
             break;
 
         case RESET_TYPE_XG:
-            SendLongMsg(xg_system_on, sizeof(xg_system_on));
+            MIDI_SendLongMsg(xg_system_on, sizeof(xg_system_on));
             break;
 
         default:
-            SendLongMsg(gm_system_on, sizeof(gm_system_on));
+            MIDI_SendLongMsg(gm_system_on, sizeof(gm_system_on));
             break;
     }
 
@@ -527,7 +496,7 @@ static void SendSysExMsg(const midi_event_t *event)
     byte *message = malloc(length + 1);
     message[0] = MIDI_EVENT_SYSEX;
     memcpy(message + 1, data, length);
-    SendLongMsg(message, length + 1);
+    MIDI_SendLongMsg(message, length + 1);
     free(message);
 
     if (IsSysExReset(data, length))
@@ -556,17 +525,17 @@ static void SendProgramMsg(byte channel, byte program,
     switch ((int)fallback->type)
     {
         case FALLBACK_BANK_MSB:
-            SendShortMsg(MIDI_EVENT_CONTROLLER, channel,
+            MIDI_SendShortMsg(MIDI_EVENT_CONTROLLER, channel,
                          MIDI_CONTROLLER_BANK_SELECT_MSB, fallback->value);
-            SendShortMsg(MIDI_EVENT_PROGRAM_CHANGE, channel, program, 0);
+            MIDI_SendShortMsg(MIDI_EVENT_PROGRAM_CHANGE, channel, program, 0);
             break;
 
         case FALLBACK_DRUMS:
-            SendShortMsg(MIDI_EVENT_PROGRAM_CHANGE, channel, fallback->value, 0);
+            MIDI_SendShortMsg(MIDI_EVENT_PROGRAM_CHANGE, channel, fallback->value, 0);
             break;
 
         default:
-            SendShortMsg(MIDI_EVENT_PROGRAM_CHANGE, channel, program, 0);
+            MIDI_SendShortMsg(MIDI_EVENT_PROGRAM_CHANGE, channel, program, 0);
             break;
     }
 }
@@ -1189,7 +1158,7 @@ static midi_state_t NextEvent(midi_event_t **event, midi_track_t **track,
             {
                 for (int i = 0; i < MIDI_CHANNELS_PER_TRACK; ++i)
                 {
-                    SendShortMsg(MIDI_EVENT_CONTROLLER, i,
+                    MIDI_SendShortMsg(MIDI_EVENT_CONTROLLER, i,
                                  MIDI_CONTROLLER_RESET_ALL_CTRLS, 0);
                 }
                 RestartTracks();
@@ -1299,47 +1268,38 @@ static int PlayerThread(void *unused)
     return 0;
 }
 
+const char **midi_devices = NULL;
+
 static void GetDevices(void)
 {
-    if (array_size(pm_devices))
+    if (array_size(midi_devices))
     {
         return;
     }
 
-    int num_devs = Pm_CountDevices();
+    int num_devs = MIDI_CountDevices();
 
     for (int i = 0; i < num_devs; ++i)
     {
-        const PmDeviceInfo *info = Pm_GetDeviceInfo(i);
-        if (info->output)
+        const char *name = MIDI_GetDeviceName(i);
+        if (name)
         {
-            pm_device_t device;
-            device.id = i;
-            device.name = M_StringDuplicate(info->name);
-            array_push(pm_devices, device);
+            array_push(midi_devices, name);
         }
     }
 }
 
 static boolean I_MID_InitMusic(int device)
 {
-    PmError err = Pm_Initialize();
-
-    if (err != pmNoError)
-    {
-        I_Printf(VB_ERROR, "I_MID_InitMusic: %s", Pm_GetErrorText(err));
-        return false;
-    }
-
     if (device == DEFAULT_MIDI_DEVICE)
     {
         GetDevices();
 
         device = 0;
 
-        for (int i = 0; i < array_size(pm_devices); ++i)
+        for (int i = 0; i < array_size(midi_devices); ++i)
         {
-            if (!strcasecmp(pm_devices[i].name, midi_device))
+            if (!strcasecmp(midi_devices[i], midi_device))
             {
                 device = i;
                 break;
@@ -1347,23 +1307,20 @@ static boolean I_MID_InitMusic(int device)
         }
     }
 
-    if (!array_size(pm_devices))
+    if (!array_size(midi_devices))
     {
         I_Printf(VB_ERROR, "I_MID_InitMusic: No devices found.");
         return false;
     }
 
-    if (device >= array_size(pm_devices))
+    if (device >= array_size(midi_devices))
     {
         device = 0;
     }
-    midi_device = pm_devices[device].name;
+    midi_device = midi_devices[device];
 
-    err = Pm_OpenOutput(&midiout, pm_devices[device].id, NULL, 0, NULL, NULL, 0);
-
-    if (err != pmNoError)
+    if (!MIDI_OpenDevice(device))
     {
-        I_Printf(VB_ERROR, "I_MID_InitMusic: %s", Pm_GetErrorText(err));
         return false;
     }
 
@@ -1560,21 +1517,7 @@ static void I_MID_ShutdownMusic(void)
 
     ResetDevice();
 
-    PmError err = Pm_Close(midiout);
-
-    if (err != pmNoError)
-    {
-        I_Printf(VB_ERROR, "I_MID_ShutdownMusic: %s", Pm_GetErrorText(err));
-    }
-
-    err = Pm_Terminate();
-
-    if (err != pmNoError)
-    {
-        I_Printf(VB_ERROR, "I_MID_ShutdownMusic: %s", Pm_GetErrorText(err));
-    }
-
-    midiout = NULL;
+    MIDI_CloseDevice();
 
     music_initialized = false;
 }
@@ -1595,15 +1538,14 @@ static const char **I_MID_DeviceList(int *current_device)
 
     GetDevices();
 
-    for (int i = 0; i < array_size(pm_devices); ++i)
+    for (int i = 0; i < array_size(midi_devices); ++i)
     {
-        if (current_device && !strcasecmp(pm_devices[i].name, midi_device))
+        if (current_device && !strcasecmp(midi_devices[i], midi_device))
         {
             *current_device = i;
         }
-
-        array_push(devices, pm_devices[i].name);
     }
+    devices = midi_devices;
     return devices;
 }
 

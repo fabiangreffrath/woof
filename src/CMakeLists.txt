@@ -68,6 +68,7 @@ set(WOOF_SOURCES
     memio.c                memio.h
     midifallback.c         midifallback.h
     midifile.c             midifile.h
+    midiout.c              midiout.h
     mus2mid.c              mus2mid.h
     nano_bsp.c             nano_bsp.h
     net_client.c           net_client.h
@@ -174,7 +175,6 @@ target_link_libraries(woof PRIVATE
     SDL2_net::SDL2_net
     OpenAL::OpenAL
     SndFile::sndfile
-    PortMidi::portmidi
     opl
     textscreen)
 
@@ -189,6 +189,7 @@ endif()
 
 if(WIN32)
     target_include_directories(woof PRIVATE "../win32")
+    target_link_libraries(woof PRIVATE winmm)
     if(MSVC)
         target_sources(woof PRIVATE
             ../win32/win_opendir.c ../win32/win_opendir.h)
