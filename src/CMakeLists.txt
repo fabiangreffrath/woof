@@ -196,6 +196,13 @@ if(WIN32)
     endif()
 endif()
 
+if(APPLE)
+    target_link_libraries(woof PRIVATE
+        -Wl,-framework,AudioToolbox -Wl,-framework,AudioUnit
+        -Wl,-framework,CoreServices -Wl,-framework,CoreAudio
+        -Wl,-framework,CoreMIDI)
+endif()
+
 if(ALSA_FOUND)
     target_include_directories(woof PRIVATE ${ALSA_INCLUDE_DIR})
     target_link_libraries(woof PRIVATE ALSA::ALSA)

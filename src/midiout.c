@@ -37,10 +37,6 @@ static HMIDIOUT hMidiOut;
 static byte *sysex_buffer;
 static int sysex_buffer_size;
 
-#define PACK_MSG(status, data1, data2)                        \
-    ((((data2) << 16) & 0xFF0000) | (((data1) << 8) & 0xFF00) \
-    | ((status) & 0xFF))
-
 static void MidiError(const char *prefix, MMRESULT result)
 {
     wchar_t werror[MAXERRORLENGTH];
@@ -58,10 +54,20 @@ static void MidiError(const char *prefix, MMRESULT result)
     }
 }
 
-void MIDI_SendShortMsg(byte status, byte channel, byte param1, byte param2)
+void MIDI_SendShortMsg(const byte *message, unsigned int length)
 {
-    MMRESULT result =
-        midiOutShortMsg(hMidiOut, PACK_MSG(status | channel, param1, param2));
+    MMRESULT result;
+
+    // Pack MIDI bytes into double word.
+    DWORD packet = 0;
+    byte *ptr = (byte *)&packet;
+    for (int i = 0; i < length; ++i)
+    {
+        *ptr = message[i];
+        ++ptr;
+    }
+
+    result = midiOutShortMsg(hMidiOut, packet);
     if (result != MMSYSERR_NOERROR)
     {
         MidiError("MIDI_SendShortMsg", result);
@@ -168,7 +174,7 @@ static snd_seq_t *seq;
 static snd_seq_port_subscribe_t *subscription;
 static snd_midi_event_t *coder;
 static size_t buffer_size;
-static int vport;
+static int vport = -1;
 
 typedef struct
 {
@@ -194,6 +200,7 @@ static boolean Init(void)
     if (err < 0)
     {
         I_Printf(VB_ERROR, "Init: %s", snd_strerror(err));
+        seq = NULL;
         return false;
     }
 
@@ -231,10 +238,34 @@ static boolean Init(void)
     return true;
 }
 
+static void Cleanup(void)
+{
+    if (!seq)
+    {
+        return;
+    }
+    if (subscription)
+    {
+        snd_seq_unsubscribe_port(seq, subscription);
+        snd_seq_port_subscribe_free(subscription);
+        subscription = NULL;
+    }
+    if (vport >= 0)
+    {
+        snd_seq_delete_port(seq, vport);
+        vport = -1;
+    }
+    if (coder)
+    {
+        snd_midi_event_free(coder);
+        coder = NULL;
+    }
+    snd_seq_close(seq);
+    seq = NULL;
+}
+
 static void SendMessage(const byte *message, unsigned int length)
 {
-    int err;
-
     if (length > buffer_size)
     {
         buffer_size = length;
@@ -243,17 +274,17 @@ static void SendMessage(const byte *message, unsigned int length)
 
     snd_seq_event_t ev;
     snd_seq_ev_clear(&ev);
+    snd_seq_ev_set_source(&ev, vport);
+    snd_seq_ev_set_subs(&ev);
+    snd_seq_ev_set_direct(&ev);
 
     for (int i = 0; i < length; ++i)
     {
         if (snd_midi_event_encode_byte(coder, message[i], &ev) == 1)
         {
             // Send the event
-            snd_seq_ev_set_source(&ev, vport);
-            snd_seq_ev_set_subs(&ev);
-            snd_seq_ev_set_direct(&ev);
-            err = snd_seq_event_output(seq, &ev);
-            if (err < 0 )
+            int err = snd_seq_event_output(seq, &ev);
+            if (err < 0)
             {
                 I_Printf(VB_ERROR, "SendMessage: %s", snd_strerror(err));
                 return;
@@ -265,10 +296,9 @@ static void SendMessage(const byte *message, unsigned int length)
     snd_seq_drain_output(seq);
 }
 
-void MIDI_SendShortMsg(byte status, byte channel, byte param1, byte param2)
+void MIDI_SendShortMsg(const byte *message, unsigned int length)
 {
-    byte message[] = { status | channel, param1, param2 };
-    SendMessage(message, sizeof(message));
+    SendMessage(message, length);
 }
 
 void MIDI_SendLongMsg(const byte *message, unsigned int length)
@@ -316,6 +346,7 @@ boolean MIDI_OpenDevice(int device)
     if (vport < 0)
     {
         I_Printf(VB_ERROR, "MIDI_OpenDevice: %s", snd_strerror(vport));
+        Cleanup();
         return false;
     }
 
@@ -330,7 +361,8 @@ boolean MIDI_OpenDevice(int device)
     err = snd_seq_subscribe_port(seq, subscription);
     if (err < 0)
     {
-        I_Printf(VB_ERROR, "MIDI_OpenDevice: %s", snd_strerror(vport));
+        I_Printf(VB_ERROR, "MIDI_OpenDevice: %s", snd_strerror(err));
+        Cleanup();
         return false;
     }
 
@@ -339,40 +371,272 @@ boolean MIDI_OpenDevice(int device)
 
 void MIDI_CloseDevice(void)
 {
-    if (!seq)
+    Cleanup();
+}
+
+//---------------------------------------------------------
+//    CoreMIDI
+//---------------------------------------------------------
+#elif defined(__APPLE__)
+
+#include <AudioToolbox/AudioToolbox.h>
+#include <AudioUnit/AudioUnit.h>
+#include <CoreAudio/HostTime.h>
+#include <CoreMIDI/MIDIServices.h>
+#include <CoreServices/CoreServices.h>
+#include <AvailabilityMacros.h>
+
+#include "m_array.h"
+#include "m_misc.h"
+
+static AUGraph graph;
+static AudioUnit unit;
+
+static MIDIPortRef port;
+static MIDIClientRef client;
+static MIDIEndpointRef endpoint;
+
+// Maximum buffer size that CoreMIDI can handle for MIDIPacketList
+#define PACKET_BUFFER_SIZE 65536
+static Byte *packet_buffer = NULL;
+
+typedef struct
+{
+    const char *name;
+    int id;
+} device_t;
+
+static device_t *devices = NULL;
+static int current_device;
+
+static void Init(void)
+{
+    if (array_size(devices))
     {
         return;
     }
 
-    int err;
+    device_t device;
+    device.name = "DLS Synth";
+    device.id = -1;
+    array_push(devices, device);
 
-    if (subscription)
+    ItemCount num_dest = MIDIGetNumberOfDestinations();
+    for (ItemCount i = 0; i < num_dest; ++i)
     {
-        err = snd_seq_unsubscribe_port(seq, subscription);
-        if (err < 0)
+        MIDIEndpointRef dest = MIDIGetDestination(i);
+        if (!dest)
         {
-            I_Printf(VB_ERROR, "MIDI_CloseDevice: %s", snd_strerror(err));
+            continue;
         }
-        snd_seq_port_subscribe_free(subscription);
-        subscription = NULL;
-    }
-    if (vport >= 0)
-    {
-        snd_seq_delete_port(seq, vport);
-    }
-    if (coder)
-    {
-        snd_midi_event_free(coder);
-        coder = NULL;
-    }
 
-    snd_seq_close(seq);
-    seq = NULL;
+        CFStringRef name;
+        if (MIDIObjectGetStringProperty(dest, kMIDIPropertyDisplayName, &name)
+            == noErr)
+        {
+            const char *s = CFStringGetCStringPtr(name, kCFStringEncodingUTF8);
+            if (s)
+            {
+                device.name = M_StringDuplicate(s);
+                device.id = i;
+                array_push(devices, device);
+            }
+        }
+    }
 }
 
+static void Cleanup(void)
+{
+    if (graph)
+    {
+        AUGraphStop(graph);
+        DisposeAUGraph(graph);
+        graph = NULL;
+    }
+    if (port)
+    {
+        MIDIPortDispose(port);
+        port = 0;
+    }
+    if (client)
+    {
+        MIDIClientDispose(client);
+        client = 0;
+    }
+    if (packet_buffer)
+    {
+        free(packet_buffer);
+        packet_buffer = NULL;
+    }
+}
+
+static void SendMessage(const byte *message, unsigned int length)
+{
+    MIDITimeStamp time_stamp = AudioGetCurrentHostTime();
+    MIDIPacketList *packet_list = (MIDIPacketList *)packet_buffer;
+    MIDIPacket *packet = MIDIPacketListInit(packet_list);
+
+    // MIDIPacketList and MIDIPacket consume extra buffer areas for meta
+    // information, and available size is smaller than buffer size. Here, we
+    // simply assume that at least half size is available for data payload.
+    ByteCount send_size = MIN(length, PACKET_BUFFER_SIZE / 2);
+
+    // Add message to the MIDIPacketList
+    MIDIPacketListAdd(packet_list, PACKET_BUFFER_SIZE, packet, time_stamp,
+                      send_size, message);
+
+    if (MIDISend(port, endpoint, packet_list) != noErr)
+    {
+        I_Printf(VB_ERROR, "SendMessage: MIDISend failed");
+    }
+}
+
+void MIDI_SendShortMsg(const byte *message, unsigned int length)
+{
+    if (current_device > 0)
+    {
+        SendMessage(message, length);
+        return;
+    }
+
+    UInt32 data[3] = {0};
+    for (int i = 0; i < length; ++i)
+    {
+        data[i] = message[i];
+    }
+
+    if (MusicDeviceMIDIEvent(unit, data[0], data[1], data[2], 0)
+        != noErr)
+    {
+        I_Printf(VB_ERROR, "MIDI_SendShortMsg: MusicDeviceMIDIEvent failed");
+    }
+}
+
+void MIDI_SendLongMsg(const byte *message, unsigned int length)
+{
+    if (current_device > 0)
+    {
+        SendMessage(message, length);
+        return;
+    }
+
+    if (MusicDeviceSysEx(unit, message, length) != noErr)
+    {
+        I_Printf(VB_ERROR, "MIDI_SendLongMsg: MusicDeviceSysEx failed");
+    }
+}
+
+int MIDI_CountDevices(void)
+{
+    Init();
+    return array_size(devices);
+}
+
+const char *MIDI_GetDeviceName(int device)
+{
+    if (device >= array_size(devices))
+    {
+        return NULL;
+    }
+    return devices[device].name;
+}
+
+#define CHECK_ERR(stmt)                                           \
+    do                                                            \
+    {                                                             \
+        if ((stmt) != noErr)                                      \
+        {                                                         \
+            I_Printf(VB_ERROR, "%s: " #stmt " failed", __func__); \
+            Cleanup();                                            \
+            return false;                                         \
+        }                                                         \
+    } while (0)
+
+static boolean OpenDLSSynth(void)
+{
+#if MAC_OS_X_VERSION_MIN_REQUIRED < 1050
+    ComponentDescription d;
+#else
+    AudioComponentDescription d;
+#endif
+    AUNode synth, output;
+
+    CHECK_ERR(NewAUGraph(&graph));
+
+    // The default output device
+    d.componentType = kAudioUnitType_MusicDevice;
+    d.componentSubType = kAudioUnitSubType_DLSSynth;
+    d.componentManufacturer = kAudioUnitManufacturer_Apple;
+    d.componentFlags = 0;
+    d.componentFlagsMask = 0;
+#if MAC_OS_X_VERSION_MIN_REQUIRED < 1050
+    CHECK_ERR(AUGraphNewNode(graph, &d, 0, NULL, &synth));
+#else
+    CHECK_ERR(AUGraphAddNode(graph, &d, &synth));
+#endif
+
+    // The built-in default (softsynth) music device
+    d.componentType = kAudioUnitType_Output;
+    d.componentSubType = kAudioUnitSubType_DefaultOutput;
+    d.componentManufacturer = kAudioUnitManufacturer_Apple;
+    d.componentFlags = 0;
+    d.componentFlagsMask = 0;
+#if MAC_OS_X_VERSION_MIN_REQUIRED < 1050
+    CHECK_ERR(AUGraphNewNode(graph, &d, 0, NULL, &output));
+#else
+    CHECK_ERR(AUGraphAddNode(graph, &d, &output));
+#endif
+
+    CHECK_ERR(AUGraphConnectNodeInput(graph, synth, 0, output, 0));
+    CHECK_ERR(AUGraphOpen(graph));
+    CHECK_ERR(AUGraphInitialize(graph));
+#if MAC_OS_X_VERSION_MIN_REQUIRED < 1050
+    CHECK_ERR(AUGraphGetNodeInfo(graph, output, NULL, NULL, NULL, &unit));
+#else
+    CHECK_ERR(AUGraphNodeInfo(graph, output, NULL, &unit));
+#endif
+    CHECK_ERR(AUGraphStart(graph));
+
+    return true;
+}
+
+boolean MIDI_OpenDevice(int device)
+{
+    Init();
+    if (device >= array_size(devices))
+    {
+        return false;
+    }
+
+    current_device = device;
+
+    if (current_device == 0)
+    {
+        return OpenDLSSynth();
+    }
+
+    endpoint = MIDIGetDestination(devices[current_device].id);
+
+    // Create a MIDI client and port
+    CHECK_ERR(MIDIClientCreate(CFSTR(PROJECT_NAME), NULL, NULL, &client));
+    CHECK_ERR(MIDIOutputPortCreate(client, CFSTR(PROJECT_NAME"Port"), &port));
+
+    packet_buffer = malloc(PACKET_BUFFER_SIZE);
+
+    return true;
+}
+
+void MIDI_CloseDevice(void)
+{
+    Cleanup();
+}
+
+//---------------------------------------------------------
+//    DUMMY
+//---------------------------------------------------------
 #else
 
-void MIDI_SendShortMsg(byte status, byte channel, byte param1, byte param2)
+void MIDI_SendShortMsg(const byte *message, unsigned int length)
 {
     ;
 }

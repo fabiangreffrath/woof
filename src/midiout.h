@@ -13,7 +13,7 @@
 
 #include "doomtype.h"
 
-void MIDI_SendShortMsg(byte status, byte channel, byte param1, byte param2);
+void MIDI_SendShortMsg(const byte *message, unsigned int length);
 
 void MIDI_SendLongMsg(const byte *message, unsigned int length);
 
