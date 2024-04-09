@@ -1128,6 +1128,11 @@ static void SetDefaultSaveName(int slot)
     char *maplump = MAPNAME(gameepisode, gamemap);
     int maplumpnum = W_CheckNumForName(maplump);
 
+    if (gamemapinfo && U_CheckField(gamemapinfo->label))
+    {
+        maplump = gamemapinfo->label;
+    }
+
     if (!organize_savefiles)
     {
         char *wadname = M_StringDuplicate(W_WadNameForLump(maplumpnum));
