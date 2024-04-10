@@ -142,7 +142,6 @@ static hu_multiline_t w_rate;
 static hu_widget_t widgets[MAX_HUDS][MAX_WIDGETS];
 
 static void HU_ParseHUD (void);
-static void HU_set_centered_message (boolean);
 
 static char       chat_dest[MAXPLAYERS];
 boolean           chat_on;
@@ -335,6 +334,26 @@ static byte* ColorByHealth(int health, int maxhealth, boolean invul)
     return colrngs[CR_BLUE];
 }
 
+// [FG] support centered player messages
+
+static void HU_set_centered_message(void)
+{
+  int i, j;
+
+  for (i = 0; i < MAX_HUDS; i++)
+  {
+    hu_widget_t *const w = widgets[i];
+
+    for (j = 0; w[j].multiline; j++)
+    {
+      if (w[j].multiline == &w_message)
+      {
+        w[j].h_align = message_centered ? align_center : w[j].h_align_orig;
+      }
+    }
+  }
+}
+
 //
 // HU_Init()
 //
@@ -412,7 +431,7 @@ void HU_Init(void)
   HU_InitObituaries();
 
   HU_ParseHUD();
-  HU_set_centered_message(true);
+  HU_set_centered_message();
 
   // [Woof!] prepare player messages for colorization
   for (i = 0; i < arrlen(colorize_strings); i++)
@@ -421,32 +440,6 @@ void HU_Init(void)
   }
 
   HU_ResetMessageColors();
-}
-
-// [FG] support centered player messages
-
-static void HU_set_centered_message(boolean init)
-{
-  int i, j;
-
-  for (i = 0; i < MAX_HUDS; i++)
-  {
-    hu_widget_t *const w = widgets[i];
-
-    for (j = 0; w[j].multiline; j++)
-    {
-      if (w[j].multiline == &w_message)
-      {
-        // [FG] save original alignment
-        if (init)
-        {
-          w[j].h_align_orig = w[j].h_align;
-        }
-
-        w[j].h_align = message_centered ? align_center : w[j].h_align_orig;
-      }
-    }
-  }
 }
 
 static inline void HU_cond_build_widget (hu_multiline_t *const multiline, boolean cond)
@@ -613,7 +606,7 @@ void HU_Start(void)
   // [FG] draw the IDRATE widget exclusively
   w_rate.exclusive = true;
 
-  HU_set_centered_message(false);
+  HU_set_centered_message();
 
   HU_disable_all_widgets();
   HUlib_set_margins();
@@ -1913,6 +1906,9 @@ static boolean HU_ReplaceInWidgets (hu_multiline_t *multiline, int hud, align_t 
       widgets[hud][i].x = x;
       widgets[hud][i].y = y;
 
+      // [FG] save original alignment
+      widgets[hud][i].h_align_orig = widgets[hud][i].h_align;
+
       return true;
     }
   }
@@ -1947,6 +1943,9 @@ static boolean HU_AppendToWidgets (hu_multiline_t *multiline, int hud, align_t h
   widgets[hud][i].v_align = v_align;
   widgets[hud][i].x = x;
   widgets[hud][i].y = y;
+
+  // [FG] save original alignment
+  widgets[hud][i].h_align_orig = widgets[hud][i].h_align;
 
   widgets[hud][i + 1].multiline = NULL;
 
