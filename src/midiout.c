@@ -421,8 +421,8 @@ static void Init(void)
     device.id = -1;
     array_push(devices, device);
 
-    ItemCount num_dest = MIDIGetNumberOfDestinations();
-    for (ItemCount i = 0; i < num_dest; ++i)
+    int num_dest = MIDIGetNumberOfDestinations();
+    for (int i = 0; i < num_dest; ++i)
     {
         MIDIEndpointRef dest = MIDIGetDestination(i);
         if (!dest)
@@ -431,10 +431,10 @@ static void Init(void)
         }
 
         CFStringRef name;
-        if (MIDIObjectGetStringProperty(dest, kMIDIPropertyDisplayName, &name)
+        if (MIDIObjectGetStringProperty(dest, kMIDIPropertyName, &name)
             == noErr)
         {
-            const char *s = CFStringGetCStringPtr(name, kCFStringEncodingUTF8);
+            const char *s = CFStringGetCStringPtr(name, kCFStringEncodingASCII);
             if (s)
             {
                 device.name = M_StringDuplicate(s);
@@ -564,18 +564,6 @@ static boolean OpenDLSSynth(void)
     CHECK_ERR(NewAUGraph(&graph));
 
     // The default output device
-    d.componentType = kAudioUnitType_MusicDevice;
-    d.componentSubType = kAudioUnitSubType_DLSSynth;
-    d.componentManufacturer = kAudioUnitManufacturer_Apple;
-    d.componentFlags = 0;
-    d.componentFlagsMask = 0;
-#if MAC_OS_X_VERSION_MIN_REQUIRED < 1050
-    CHECK_ERR(AUGraphNewNode(graph, &d, 0, NULL, &synth));
-#else
-    CHECK_ERR(AUGraphAddNode(graph, &d, &synth));
-#endif
-
-    // The built-in default (softsynth) music device
     d.componentType = kAudioUnitType_Output;
     d.componentSubType = kAudioUnitSubType_DefaultOutput;
     d.componentManufacturer = kAudioUnitManufacturer_Apple;
@@ -587,13 +575,25 @@ static boolean OpenDLSSynth(void)
     CHECK_ERR(AUGraphAddNode(graph, &d, &output));
 #endif
 
+    // The built-in default (softsynth) music device
+    d.componentType = kAudioUnitType_MusicDevice;
+    d.componentSubType = kAudioUnitSubType_DLSSynth;
+    d.componentManufacturer = kAudioUnitManufacturer_Apple;
+    d.componentFlags = 0;
+    d.componentFlagsMask = 0;
+#if MAC_OS_X_VERSION_MIN_REQUIRED < 1050
+    CHECK_ERR(AUGraphNewNode(graph, &d, 0, NULL, &synth));
+#else
+    CHECK_ERR(AUGraphAddNode(graph, &d, &synth));
+#endif
+
     CHECK_ERR(AUGraphConnectNodeInput(graph, synth, 0, output, 0));
     CHECK_ERR(AUGraphOpen(graph));
     CHECK_ERR(AUGraphInitialize(graph));
 #if MAC_OS_X_VERSION_MIN_REQUIRED < 1050
-    CHECK_ERR(AUGraphGetNodeInfo(graph, output, NULL, NULL, NULL, &unit));
+    CHECK_ERR(AUGraphGetNodeInfo(graph, synth, NULL, NULL, NULL, &unit));
 #else
-    CHECK_ERR(AUGraphNodeInfo(graph, output, NULL, &unit));
+    CHECK_ERR(AUGraphNodeInfo(graph, synth, NULL, &unit));
 #endif
     CHECK_ERR(AUGraphStart(graph));
 
