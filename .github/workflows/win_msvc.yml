@@ -33,7 +33,7 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Latest CMake and Ninja
-      - uses: lukka/get-cmake@latest
+        uses: lukka/get-cmake@latest
 
       - name: Developer Command Prompt
         uses: ilammy/msvc-dev-cmd@v1
