@@ -57,15 +57,13 @@
 #  define FUNCTION_CAST(T, ptr) (T)(ptr)
 #endif
 
-int snd_resampler;
+char *snd_resampler;
 boolean snd_limiter;
 boolean snd_hrtf;
 int snd_absorption;
 int snd_doppler;
 
 boolean oal_use_doppler;
-
-static const char *oal_resamplers[] = {"Nearest", "Linear", "Cubic"};
 
 typedef struct oal_system_s
 {
@@ -199,7 +197,6 @@ void I_OAL_ShutdownSound(void)
 
 static void SetResampler(ALuint *sources)
 {
-    const char *resampler_name = oal_resamplers[snd_resampler];
     LPALGETSTRINGISOFT alGetStringiSOFT = NULL;
     ALint i, num_resamplers, def_resampler;
 
@@ -229,7 +226,7 @@ static void SetResampler(ALuint *sources)
 
     for (i = 0; i < num_resamplers; i++)
     {
-        if (!strcasecmp(resampler_name,
+        if (!strcasecmp(snd_resampler,
                         alGetStringiSOFT(AL_RESAMPLER_NAME_SOFT, i)))
         {
             def_resampler = i;
@@ -238,8 +235,13 @@ static void SetResampler(ALuint *sources)
     }
     if (i == num_resamplers)
     {
-        I_Printf(VB_WARNING, " Failed to find resampler: '%s'.",
-                 resampler_name);
+        I_Printf(VB_WARNING, " Failed to find resampler: '%s'. Valid choices:",
+                 snd_resampler);
+        for (i = 0; i < num_resamplers; i++)
+        {
+            I_Printf(VB_WARNING, "  %s",
+                     alGetStringiSOFT(AL_RESAMPLER_NAME_SOFT, i));
+        }
         return;
     }
 
