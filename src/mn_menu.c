@@ -3105,7 +3105,7 @@ void M_Drawer(void)
             }
 
             if ((patch_lump < 0
-                 || (bigfont_lump >= 0 && (lumpinfo[patch_lump].wad_file != lumpinfo[bigfont_lump].wad_file)))
+                 || (bigfont_lump >= 0 && (lumpinfo[patch_lump].wad_file < lumpinfo[bigfont_lump].wad_file)))
                 && currentMenu->menuitems[i].alttext)
             {
                 currentMenu->lumps_missing++;
