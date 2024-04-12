@@ -192,6 +192,8 @@ static boolean Init(void)
         return true;
     }
 
+    array_clear(ports);
+
     int err;
     snd_seq_client_info_t *cinfo;
     snd_seq_port_info_t *pinfo;
@@ -411,10 +413,7 @@ static int current_device;
 
 static void Init(void)
 {
-    if (array_size(devices))
-    {
-        return;
-    }
+    array_clear(devices);
 
     device_t device;
     device.name = "DLS Synth";

@@ -85,13 +85,11 @@ extern int mouse_acceleration;
 extern int mouse_acceleration_threshold;
 extern int show_endoom;
 #if defined(HAVE_FLUIDSYNTH)
-extern char *soundfont_path;
 extern char *soundfont_dir;
 extern boolean mus_chorus;
 extern boolean mus_reverb;
 extern int mus_gain;
 #endif
-extern char *midi_device;
 extern int midi_complevel;
 extern int midi_reset_type;
 extern int midi_reset_delay;
@@ -490,13 +488,6 @@ default_t defaults[] = {
   },
 
   {
-    "soundfont_path",
-    (config_t *) &soundfont_path, NULL,
-    {.s = ""}, {0}, string, ss_none, wad_no,
-    "FluidSynth current soundfont path"
-  },
-
-  {
     "mus_chorus",
     (config_t *) &mus_chorus, NULL,
     {0}, {0, 1}, number, ss_none, wad_no,
@@ -523,13 +514,6 @@ default_t defaults[] = {
     (config_t *) &opl_gain, NULL,
     {200}, {100, 1000}, number, ss_none, wad_no,
     "fine tune OPL emulation output level (default 200%)"
-  },
-
-  {
-    "midi_device",
-    (config_t *) &midi_device, NULL,
-    {.s = ""}, {0}, string, ss_none, wad_no,
-    "Native MIDI device"
   },
 
   {

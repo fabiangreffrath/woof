@@ -25,10 +25,10 @@
 
 #include "doomstat.h"
 #include "doomtype.h"
-#include "i_oalstream.h"
 #include "i_printf.h"
 #include "i_system.h"
 #include "m_array.h"
+#include "mn_setup.h"
 #include "p_mobj.h"
 #include "sounds.h"
 #include "w_wad.h"
@@ -46,19 +46,16 @@ static const sound_module_t *sound_modules[] =
 
 static const sound_module_t *sound_module;
 
-static music_module_t *native_midi_module = &music_mid_module;
-
-static boolean native_midi;
-
-static stream_module_t *stream_modules[] =
+static music_module_t *music_modules[] =
 {
-#if defined(HAVE_FLUIDSYNTH)
-    &stream_fl_module,
+#if defined(HAVE_ALSA)
+    &music_oal_module,
+    &music_mid_module,
+#else
+    &music_mid_module,
+    &music_oal_module,
 #endif
-    &stream_opl_module,
 };
-
-stream_module_t *midi_stream_module = NULL;
 
 static music_module_t *active_module = NULL;
 
@@ -520,24 +517,12 @@ static void MidiPlayerFallback(void)
 
     midi_player = 0;
 
-    if (native_midi_module)
+    for (int i = 0; i < arrlen(music_modules); ++i)
     {
-        if (native_midi_module->I_InitMusic(0))
+        if (music_modules[i]->I_InitMusic(0))
         {
-            native_midi = true;
-            return;
-        }
-        midi_player = 1;
-    }
-
-    native_midi = false;
-
-    for (int i = 0; i < arrlen(stream_modules); ++i)
-    {
-        if (stream_modules[i]->I_InitStream(0))
-        {
-            midi_player += i;
-            midi_stream_module = stream_modules[i];
+            midi_player = i;
+            active_module = music_modules[i];
             return;
         }
     }
@@ -552,46 +537,31 @@ void I_SetMidiPlayer(int device)
         return;
     }
 
-    int num_devices = 0;
-
     midi_player = 0;
 
-    if (native_midi_module)
+    int count_devices = 0;
+
+    if (active_module)
     {
-        const char **strings = native_midi_module->I_DeviceList(NULL);
-        num_devices = array_size(strings);
-
-        native_midi_module->I_ShutdownMusic();
-
-        if (device < num_devices)
-        {
-            if (native_midi_module->I_InitMusic(device))
-            {
-                native_midi = true;
-                return;
-            }
-        }
-        midi_player = 1;
+        active_module->I_ShutdownMusic();
     }
 
-    native_midi = false;
-
-    for (int i = 0, accum = num_devices; i < arrlen(stream_modules); ++i)
+    for (int i = 0; i < arrlen(music_modules); ++i)
     {
-        const char **strings = stream_modules[i]->I_DeviceList(NULL);
-        num_devices = array_size(strings);
+        const char **strings = music_modules[i]->I_DeviceList();
 
-        if (device >= accum && device < accum + num_devices)
+        if (device >= count_devices
+            && device < count_devices + array_size(strings))
         {
-            midi_player += i;
-            if (stream_modules[i]->I_InitStream(device - accum))
+            if (music_modules[i]->I_InitMusic(device - count_devices))
             {
-                midi_stream_module = stream_modules[i];
+                midi_player = i;
+                active_module = music_modules[i];
                 return;
             }
         }
 
-        accum += num_devices;
+        count_devices += array_size(strings);
     }
 
     MidiPlayerFallback();
@@ -607,50 +577,19 @@ boolean I_InitMusic(void)
     // Always initialize the OpenAL module, it is used for software synth and
     // non-MIDI music streaming.
 
-    music_oal_module.I_InitMusic(0);
-
-    active_module = &music_oal_module;
+    music_oal_module.I_InitMusic(OAL_MUSIC_STEAM);
 
     I_AtExit(I_ShutdownMusic, true);
 
-    int module_index = 0;
-
-    if (native_midi_module)
-    {
-        if (midi_player == 0
-            && native_midi_module->I_InitMusic(DEFAULT_MIDI_DEVICE))
-        {
-            native_midi = true;
-            return true;
-        }
-        module_index = 1;
-    }
-
-    native_midi = false;
-
-    module_index = midi_player - module_index;
-
-    if (module_index < arrlen(stream_modules))
-    {
-        if (stream_modules[module_index]->I_InitStream(DEFAULT_MIDI_DEVICE))
-        {
-            midi_stream_module = stream_modules[module_index];
-            return true;
-        }
-    }
-
-    MidiPlayerFallback();
+    I_SetMidiPlayer(midi_player_menu);
 
     return true;
 }
 
 void I_ShutdownMusic(void)
 {
+    active_module->I_ShutdownMusic();
     music_oal_module.I_ShutdownMusic();
-    if (native_midi && native_midi_module)
-    {
-        native_midi_module->I_ShutdownMusic();
-    }
 }
 
 void I_SetMusicVolume(int volume)
@@ -680,16 +619,17 @@ boolean IsMus(byte *mem, int len)
 
 void *I_RegisterSong(void *data, int size)
 {
-    active_module = &music_oal_module;
-
-    if (native_midi && (IsMid(data, size) || IsMus(data, size)))
+    for (int i = 0; i < arrlen(music_modules); ++i)
     {
-        active_module = native_midi_module;
+        void *result = music_modules[i]->I_RegisterSong(data, size);
+        if (result)
+        {
+            active_module = music_modules[i];
+            active_module->I_SetMusicVolume(snd_MusicVolume);
+            return result;
+        }
     }
-
-    void *result = active_module->I_RegisterSong(data, size);
-    active_module->I_SetMusicVolume(snd_MusicVolume);
-    return result;
+    return NULL;
 }
 
 void I_PlaySong(void *handle, boolean looping)
@@ -710,47 +650,20 @@ void I_UnRegisterSong(void *handle)
 // Get a list of devices for all music modules. Retrieve the selected device, as
 // each module manages and stores its own devices independently.
 
-const char **I_DeviceList(int *current_device)
+const char **I_DeviceList(void)
 {
-    const char **devices = NULL;
+    static const char **devices = NULL;
 
-    *current_device = 0;
+    array_clear(devices);
 
-    int module_index = 0;
-
-    if (native_midi_module)
+    for (int i = 0; i < arrlen(music_modules); ++i)
     {
-        int device;
-        const char **strings = native_midi_module->I_DeviceList(&device);
-
-        if (midi_player == module_index)
-        {
-            *current_device = device;
-        }
-
-        for (int i = 0; i < array_size(strings); ++i)
-        {
-            array_push(devices, strings[i]);
-        }
-        module_index = 1;
-    }
-
-    for (int i = 0; i < arrlen(stream_modules); ++i)
-    {
-        int device;
-        const char **strings = stream_modules[i]->I_DeviceList(&device);
-
-        if (midi_player == module_index)
-        {
-            *current_device = array_size(devices) + device;
-        }
+        const char **strings = music_modules[i]->I_DeviceList();
 
         for (int k = 0; k < array_size(strings); ++k)
         {
             array_push(devices, strings[k]);
         }
-
-        module_index++;
     }
 
     return devices;

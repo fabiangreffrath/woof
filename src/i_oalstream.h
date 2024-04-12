@@ -30,7 +30,7 @@ typedef struct stream_module_s
     void (*I_PlayStream)(boolean looping);
     void (*I_CloseStream)(void);
     void (*I_ShutdownStream)(void);
-    const char **(*I_DeviceList)(int *current_device);
+    const char **(*I_DeviceList)(void);
 } stream_module_t;
 
 extern stream_module_t stream_opl_module;

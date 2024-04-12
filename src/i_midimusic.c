@@ -25,7 +25,6 @@
 #include "i_sound.h"
 #include "i_timer.h"
 #include "m_array.h"
-#include "m_misc.h"
 #include "memio.h"
 #include "midiout.h"
 #include "midifallback.h"
@@ -58,7 +57,6 @@ enum
     RESET_TYPE_XG,
 };
 
-const char *midi_device = "";
 int midi_complevel = COMP_STANDARD;
 int midi_reset_type = RESET_TYPE_GM;
 int midi_reset_delay = 0;
@@ -1237,10 +1235,7 @@ const char **midi_devices = NULL;
 
 static void GetDevices(void)
 {
-    if (array_size(midi_devices))
-    {
-        return;
-    }
+    array_clear(midi_devices);
 
     int num_devs = MIDI_CountDevices();
 
@@ -1256,21 +1251,7 @@ static void GetDevices(void)
 
 static boolean I_MID_InitMusic(int device)
 {
-    if (device == DEFAULT_MIDI_DEVICE)
-    {
-        GetDevices();
-
-        device = 0;
-
-        for (int i = 0; i < array_size(midi_devices); ++i)
-        {
-            if (!strcasecmp(midi_devices[i], midi_device))
-            {
-                device = i;
-                break;
-            }
-        }
-    }
+    GetDevices();
 
     if (!array_size(midi_devices))
     {
@@ -1280,9 +1261,8 @@ static boolean I_MID_InitMusic(int device)
 
     if (device >= array_size(midi_devices))
     {
-        device = 0;
+        return false;
     }
-    midi_device = midi_devices[device];
 
     if (!MIDI_OpenDevice(device))
     {
@@ -1298,7 +1278,7 @@ static boolean I_MID_InitMusic(int device)
 
     music_initialized = true;
 
-    I_Printf(VB_INFO, "MIDI Init: Using '%s'.", midi_device);
+    I_Printf(VB_INFO, "MIDI Init: Using '%s'.", midi_devices[device]);
 
     return true;
 }
@@ -1385,6 +1365,11 @@ static void I_MID_ResumeSong(void *handle)
 static void *I_MID_RegisterSong(void *data, int len)
 {
     if (!music_initialized)
+    {
+        return NULL;
+    }
+
+    if (!IsMid(data, len) && !IsMus(data, len))
     {
         return NULL;
     }
@@ -1489,31 +1474,11 @@ static void I_MID_ShutdownMusic(void)
     music_initialized = false;
 }
 
-static const char **I_MID_DeviceList(int *current_device)
+static const char **I_MID_DeviceList(void)
 {
-    static const char **devices = NULL;
-
-    if (devices)
-    {
-        return devices;
-    }
-
-    if (current_device)
-    {
-        *current_device = 0;
-    }
-
     GetDevices();
 
-    for (int i = 0; i < array_size(midi_devices); ++i)
-    {
-        if (current_device && !strcasecmp(midi_devices[i], midi_device))
-        {
-            *current_device = i;
-        }
-    }
-    devices = midi_devices;
-    return devices;
+    return midi_devices;
 }
 
 music_module_t music_mid_module =
