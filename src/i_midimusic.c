@@ -63,6 +63,10 @@ int midi_complevel = COMP_STANDARD;
 int midi_reset_type = RESET_TYPE_GM;
 int midi_reset_delay = 0;
 
+#define SYSEX_DEFAULT_BUFFER_SIZE 32
+static byte *sysex_buffer;
+static int sysex_buffer_size = SYSEX_DEFAULT_BUFFER_SIZE;
+
 static const byte gm_system_on[] =
 {
     0xF0, 0x7E, 0x7F, 0x09, 0x01, 0xF7
@@ -143,6 +147,11 @@ static void SendShortMsg(byte status, byte channel, byte param1, byte param2)
     MIDI_SendShortMsg(message, sizeof(message));
 }
 
+static void SendLongMsg(const byte *message, unsigned int length)
+{
+    MIDI_SendLongMsg(message, length);
+}
+
 static void SendChannelMsg(const midi_event_t *event, boolean use_param2)
 {
     if (use_param2)
@@ -170,11 +179,6 @@ static void SendNullRPN(const midi_event_t *event)
     SendShortMsg(MIDI_EVENT_CONTROLLER, channel, MIDI_CONTROLLER_RPN_MSB,
                  MIDI_RPN_NULL);
 }
-
-// static void SendNOPMsg(unsigned int delta_time)
-// {
-//     ;
-// }
 
 static void UpdateTempo(const midi_event_t *event)
 {
@@ -304,16 +308,16 @@ static void ResetDevice(void)
             break;
 
         case RESET_TYPE_GS:
-            MIDI_SendLongMsg(gs_reset, sizeof(gs_reset));
+            SendLongMsg(gs_reset, sizeof(gs_reset));
             use_fallback = (midi_complevel != COMP_VANILLA);
             break;
 
         case RESET_TYPE_XG:
-            MIDI_SendLongMsg(xg_system_on, sizeof(xg_system_on));
+            SendLongMsg(xg_system_on, sizeof(xg_system_on));
             break;
 
         default:
-            MIDI_SendLongMsg(gm_system_on, sizeof(gm_system_on));
+            SendLongMsg(gm_system_on, sizeof(gm_system_on));
             break;
     }
 
@@ -477,9 +481,6 @@ static boolean IsSysExReset(const byte *msg, unsigned int length)
     return false;
 }
 
-// Writes a MIDI SysEx message. Call this function from the MIDI thread only,
-// with exclusive access to shared resources.
-
 static void SendSysExMsg(const midi_event_t *event)
 {
     const byte *data = event->data.sysex.data;
@@ -509,11 +510,16 @@ static void SendSysExMsg(const midi_event_t *event)
     }
 
     // Send the SysEx message.
-    byte *message = malloc(length + 1);
-    message[0] = MIDI_EVENT_SYSEX;
-    memcpy(message + 1, data, length);
-    MIDI_SendLongMsg(message, length + 1);
-    free(message);
+    if (length + 1 > sysex_buffer_size)
+    {
+        sysex_buffer_size = length + 1;
+        free(sysex_buffer);
+        sysex_buffer = malloc(sysex_buffer_size);
+        sysex_buffer[0] = MIDI_EVENT_SYSEX;
+    }
+
+    memcpy(sysex_buffer + 1, data, length);
+    SendLongMsg(sysex_buffer, length + 1);
 
     if (IsSysExReset(data, length))
     {
@@ -613,7 +619,6 @@ static void SendEMIDI(const midi_event_t *event, midi_track_t *track,
                     track->emidi_designated = true;
                 }
             }
-            //SendNOPMsg(delta_time);
             break;
 
         case EMIDI_CONTROLLER_TRACK_EXCLUSION:
@@ -636,7 +641,6 @@ static void SendEMIDI(const midi_event_t *event, midi_track_t *track,
                     track->emidi_device_flags &= ~(1U << flag);
                 }
             }
-            //SendNOPMsg(delta_time);
             break;
 
         case EMIDI_CONTROLLER_PROGRAM_CHANGE:
@@ -646,10 +650,6 @@ static void SendEMIDI(const midi_event_t *event, midi_track_t *track,
                 SendProgramMsg(event->data.channel.channel,
                                event->data.channel.param2, fallback);
             }
-            else
-            {
-                //SendNOPMsg(delta_time);
-            }
             break;
 
         case EMIDI_CONTROLLER_VOLUME:
@@ -658,10 +658,6 @@ static void SendEMIDI(const midi_event_t *event, midi_track_t *track,
                 track->emidi_volume = true;
                 SendVolumeMsg(event);
             }
-            else
-            {
-                //SendNOPMsg(delta_time);
-            }
             break;
 
         case EMIDI_CONTROLLER_LOOP_BEGIN:
@@ -669,7 +665,6 @@ static void SendEMIDI(const midi_event_t *event, midi_track_t *track,
             count = (count == 0) ? (-1) : count;
             track->emidi_loop_count = count;
             MIDI_SetLoopPoint(track->iter);
-            // SendNOPMsg(delta_time);
             break;
 
         case EMIDI_CONTROLLER_LOOP_END:
@@ -685,7 +680,6 @@ static void SendEMIDI(const midi_event_t *event, midi_track_t *track,
                     track->emidi_loop_count--;
                 }
             }
-            //SendNOPMsg(delta_time);
             break;
 
         case EMIDI_CONTROLLER_GLOBAL_LOOP_BEGIN:
@@ -699,7 +693,6 @@ static void SendEMIDI(const midi_event_t *event, midi_track_t *track,
                 song.tracks[i].saved_elapsed_time = song.tracks[i].elapsed_time;
             }
             song.saved_elapsed_time = song.elapsed_time;
-            //SendNOPMsg(delta_time);
             break;
 
         case EMIDI_CONTROLLER_GLOBAL_LOOP_END:
@@ -721,13 +714,9 @@ static void SendEMIDI(const midi_event_t *event, midi_track_t *track,
                     }
                 }
             }
-            //SendNOPMsg(delta_time);
             break;
     }
 }
-
-// Writes a MIDI meta message. Call this function from the MIDI thread only,
-// with exclusive access to shared resources.
 
 static void SendMetaMsg(const midi_event_t *event, midi_track_t *track)
 {
@@ -735,7 +724,6 @@ static void SendMetaMsg(const midi_event_t *event, midi_track_t *track)
     {
         case MIDI_META_END_OF_TRACK:
             track->end_of_track = true;
-            //SendNOPMsg(delta_time);
             break;
 
         case MIDI_META_SET_TEMPO:
@@ -747,11 +735,9 @@ static void SendMetaMsg(const midi_event_t *event, midi_track_t *track)
             {
                 CheckFFLoop(event);
             }
-            //SendNOPMsg(delta_time);
             break;
 
         default:
-            //SendNOPMsg(delta_time);
             break;
     }
 }
@@ -765,7 +751,6 @@ static boolean ProcessEvent_Vanilla(const midi_event_t *event,
     switch ((int)event->event_type)
     {
         case MIDI_EVENT_SYSEX:
-            //SendNOPMsg(delta_time);
             return false;
 
         case MIDI_EVENT_META:
@@ -803,7 +788,6 @@ static boolean ProcessEvent_Vanilla(const midi_event_t *event,
                     break;
 
                 default:
-                    //SendNOPMsg(delta_time);
                     break;
             }
             break;
@@ -819,7 +803,6 @@ static boolean ProcessEvent_Vanilla(const midi_event_t *event,
             break;
 
         default:
-            //SendNOPMsg(delta_time);
             break;
     }
 
@@ -846,10 +829,6 @@ static boolean ProcessEvent_Standard(const midi_event_t *event,
             {
                 SendSysExMsg(event);
             }
-            else
-            {
-                //SendNOPMsg(delta_time);
-            }
             return false;
 
         case MIDI_EVENT_META:
@@ -859,8 +838,6 @@ static boolean ProcessEvent_Standard(const midi_event_t *event,
 
     if (track->emidi_designated && (EMIDI_DEVICE & ~track->emidi_device_flags))
     {
-        // Send NOP if this device has been excluded from this track.
-        //SendNOPMsg(delta_time);
         return true;
     }
 
@@ -887,18 +864,13 @@ static boolean ProcessEvent_Standard(const midi_event_t *event,
                     break;
 
                 case MIDI_CONTROLLER_VOLUME_MSB:
-                    if (track->emidi_volume)
-                    {
-                        //SendNOPMsg(delta_time);
-                    }
-                    else
+                    if (track->emidi_volume == 0)
                     {
                         SendVolumeMsg(event);
                     }
                     break;
 
                 case MIDI_CONTROLLER_VOLUME_LSB:
-                    //SendNOPMsg(delta_time);
                     break;
 
                 case MIDI_CONTROLLER_BANK_SELECT_LSB:
@@ -986,10 +958,6 @@ static boolean ProcessEvent_Standard(const midi_event_t *event,
                     {
                         SendChannelMsg(event, true);
                     }
-                    else
-                    {
-                        //SendNOPMsg(delta_time);
-                    }
                     break;
             }
             break;
@@ -1001,11 +969,7 @@ static boolean ProcessEvent_Standard(const midi_event_t *event,
             break;
 
         case MIDI_EVENT_PROGRAM_CHANGE:
-            if (track->emidi_program)
-            {
-                //SendNOPMsg(delta_time);
-            }
-            else
+            if (track->emidi_program == 0)
             {
                 SendProgramMsg(event->data.channel.channel,
                                event->data.channel.param1, &fallback);
@@ -1017,10 +981,6 @@ static boolean ProcessEvent_Standard(const midi_event_t *event,
             {
                 SendChannelMsg(event, true);
             }
-            else
-            {
-                //SendNOPMsg(delta_time);
-            }
             break;
 
         case MIDI_EVENT_CHAN_AFTERTOUCH:
@@ -1028,14 +988,9 @@ static boolean ProcessEvent_Standard(const midi_event_t *event,
             {
                 SendChannelMsg(event, false);
             }
-            else
-            {
-                //SendNOPMsg(delta_time);
-            }
             break;
 
         default:
-            //SendNOPMsg(delta_time);
             break;
     }
 
@@ -1044,15 +999,12 @@ static boolean ProcessEvent_Standard(const midi_event_t *event,
 
 // Function pointer determined by the desired MIDI compatibility level. Set
 // during initialization by the main thread, then called from the MIDI thread
-// only. The calling thread must have exclusive access to the shared resources
-// in this function.
+// only.
 
 static boolean (*ProcessEvent)(const midi_event_t *event,
                               midi_track_t *track) = ProcessEvent_Standard;
 
-// Restarts a song that uses a Final Fantasy or RPG Maker loop point. Call this
-// function from the MIDI thread only, with exclusive access to shared
-// resources.
+// Restarts a song that uses a Final Fantasy or RPG Maker loop point.
 
 static void RestartLoop(void)
 {
@@ -1067,8 +1019,7 @@ static void RestartLoop(void)
     song.elapsed_time = song.saved_elapsed_time;
 }
 
-// Restarts a song that uses standard looping. Call this function from the MIDI
-// thread only, with exclusive access to shared resources.
+// Restarts a song that uses standard looping.
 
 static void RestartTracks(void)
 {
@@ -1091,8 +1042,7 @@ static void RestartTracks(void)
 // The controllers "EMIDI track exclusion" and "RPG Maker loop point" share the
 // same number (CC#111) and are not compatible with each other. As a workaround,
 // allow an RPG Maker loop point only if no other EMIDI events are present. Call
-// this function from the MIDI thread only, before the song starts, with
-// exclusive access to shared resources.
+// this function before the song starts.
 
 static boolean IsRPGLoop(void)
 {
@@ -1133,8 +1083,7 @@ static boolean IsRPGLoop(void)
 }
 
 // Get the next event from the MIDI file, process it or return if the delta
-// time is > 0. Call this function from the MIDI thread only, with exclusive
-// access to shared resources.
+// time is > 0.
 
 static midi_state_t NextEvent(midi_event_t **event, midi_track_t **track,
                               uint64_t *wait_time)
@@ -1344,6 +1293,9 @@ static boolean I_MID_InitMusic(int device)
                                                     : ProcessEvent_Standard;
     MIDI_InitFallback();
 
+    sysex_buffer = malloc(sysex_buffer_size);
+    sysex_buffer[0] = MIDI_EVENT_SYSEX;
+
     music_initialized = true;
 
     I_Printf(VB_INFO, "MIDI Init: Using '%s'.", midi_device);
@@ -1370,10 +1322,7 @@ static void I_MID_SetMusicVolume(int volume)
 
     SDL_LockMutex(music_lock);
     volume_factor = sqrtf((float)volume / 15.0f);
-    if (song.file)
-    {
-        UpdateVolume();
-    }
+    UpdateVolume();
     SDL_UnlockMutex(music_lock);
 }
 
@@ -1534,6 +1483,8 @@ static void I_MID_ShutdownMusic(void)
     ResetDevice();
 
     MIDI_CloseDevice();
+
+    free(sysex_buffer);
 
     music_initialized = false;
 }

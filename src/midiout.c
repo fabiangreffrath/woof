@@ -77,7 +77,7 @@ void MIDI_SendShortMsg(const byte *message, unsigned int length)
 void MIDI_SendLongMsg(const byte *message, unsigned int length)
 {
     MMRESULT result;
-    MIDIHDR sysex = {0};
+    MIDIHDR hdr = {0};
 
     if (length > sysex_buffer_size)
     {
@@ -88,26 +88,26 @@ void MIDI_SendLongMsg(const byte *message, unsigned int length)
 
     memcpy(sysex_buffer, message, length);
 
-    sysex.lpData = (LPSTR)sysex_buffer;
-    sysex.dwBufferLength = length;
-    sysex.dwFlags = 0;
+    hdr.lpData = (LPSTR)sysex_buffer;
+    hdr.dwBufferLength = length;
+    hdr.dwFlags = 0;
 
-    result = midiOutPrepareHeader(hMidiOut, &sysex, sizeof(MIDIHDR));
-    if (result != MMSYSERR_NOERROR )
+    result = midiOutPrepareHeader(hMidiOut, &hdr, sizeof(MIDIHDR));
+    if (result != MMSYSERR_NOERROR)
     {
         MidiError("MIDI_SendLongMsg", result);
         return;
     }
 
-    result = midiOutLongMsg(hMidiOut, &sysex, sizeof(MIDIHDR));
-    if (result != MMSYSERR_NOERROR )
+    result = midiOutLongMsg(hMidiOut, &hdr, sizeof(MIDIHDR));
+    if (result != MMSYSERR_NOERROR)
     {
         MidiError("MIDI_SendLongMsg", result);
         return;
     }
 
     while (MIDIERR_STILLPLAYING
-           == midiOutUnprepareHeader(hMidiOut, &sysex, sizeof(MIDIHDR)))
+           == midiOutUnprepareHeader(hMidiOut, &hdr, sizeof(MIDIHDR)))
     {
         Sleep(1);
     }
@@ -375,7 +375,7 @@ void MIDI_CloseDevice(void)
 }
 
 //---------------------------------------------------------
-//    CoreMIDI
+//    CoreMIDI and DLS Synth
 //---------------------------------------------------------
 #elif defined(__APPLE__)
 
