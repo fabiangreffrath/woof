@@ -455,13 +455,6 @@ default_t defaults[] = {
   },
 
   {
-    "midi_player",
-    (config_t *) &midi_player, NULL,
-    {0}, {0, 2}, number, ss_none, wad_no,
-    "MIDI Player backend (Native if available, FluidSynth if available, OPL Emulation)"
-  },
-
-  {
     "midi_player_menu",
     (config_t *) &midi_player_menu, NULL,
     {0}, {0, UL}, number, ss_none, wad_no,

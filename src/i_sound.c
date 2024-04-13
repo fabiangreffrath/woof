@@ -510,19 +510,14 @@ void I_SetSoundModule(int device)
     }
 }
 
-int midi_player; // current music module
-
 static void MidiPlayerFallback(void)
 {
     // Fall back the the first module that initializes, device 0.
-
-    midi_player = 0;
 
     for (int i = 0; i < arrlen(music_modules); ++i)
     {
         if (music_modules[i]->I_InitMusic(0))
         {
-            midi_player = i;
             active_module = music_modules[i];
             return;
         }
@@ -537,8 +532,6 @@ void I_SetMidiPlayer(int device)
     {
         return;
     }
-
-    midi_player = 0;
 
     int count_devices = 0;
 
@@ -556,7 +549,6 @@ void I_SetMidiPlayer(int device)
         {
             if (music_modules[i]->I_InitMusic(device - count_devices))
             {
-                midi_player = i;
                 active_module = music_modules[i];
                 return;
             }
