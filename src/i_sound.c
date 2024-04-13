@@ -25,6 +25,7 @@
 
 #include "doomstat.h"
 #include "doomtype.h"
+#include "i_oalstream.h"
 #include "i_printf.h"
 #include "i_system.h"
 #include "m_array.h"
@@ -577,7 +578,7 @@ boolean I_InitMusic(void)
     // Always initialize the OpenAL module, it is used for software synth and
     // non-MIDI music streaming.
 
-    music_oal_module.I_InitMusic(OAL_MUSIC_STEAM);
+    I_OAL_InitStream();
 
     I_AtExit(I_ShutdownMusic, true);
 
@@ -589,7 +590,7 @@ boolean I_InitMusic(void)
 void I_ShutdownMusic(void)
 {
     active_module->I_ShutdownMusic();
-    music_oal_module.I_ShutdownMusic();
+    I_OAL_ShutdownStream();
 }
 
 void I_SetMusicVolume(int volume)
@@ -646,9 +647,6 @@ void I_UnRegisterSong(void *handle)
 {
     active_module->I_UnRegisterSong(handle);
 }
-
-// Get a list of devices for all music modules. Retrieve the selected device, as
-// each module manages and stores its own devices independently.
 
 const char **I_DeviceList(void)
 {

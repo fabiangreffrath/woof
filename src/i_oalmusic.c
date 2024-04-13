@@ -192,7 +192,7 @@ static int PlayerThread(void *unused)
     {
         if (!UpdatePlayer())
         {
-            break;
+            SDL_AtomicSet(&player_thread_running, 0);
         }
 
         SDL_Delay(1);
@@ -201,29 +201,9 @@ static int PlayerThread(void *unused)
     return 0;
 }
 
-static boolean I_OAL_InitMusic(int device)
+boolean I_OAL_InitStream(void)
 {
-    if (alcGetCurrentContext() == NULL)
-    {
-        return false;
-    }
-
-    int count_devices = 0;
-
-    for (int i = 0; i < arrlen(midi_stream_modules); ++i)
-    {
-        const char **strings = midi_stream_modules[i]->I_DeviceList();
-
-        if (device >= count_devices
-            && device < count_devices + array_size(strings))
-        {
-            return midi_stream_modules[i]->I_InitStream(device - count_devices);
-        }
-
-        count_devices += array_size(strings);
-    }
-
-    if (device != OAL_MUSIC_STEAM)
+    if (alcGetCurrentContext() == NULL || music_initialized)
     {
         return false;
     }
@@ -258,6 +238,47 @@ static boolean I_OAL_InitMusic(int device)
     music_initialized = true;
 
     return true;
+}
+
+void I_OAL_ShutdownStream(void)
+{
+    if (!music_initialized)
+    {
+        return;
+    }
+
+    stream_xmp_module.I_ShutdownStream();
+
+    alDeleteSources(1, &player.source);
+    alDeleteBuffers(NUM_BUFFERS, player.buffers);
+    if (alGetError() != AL_NO_ERROR)
+    {
+        I_Printf(VB_ERROR, "I_OAL_ShutdownMusic: Failed to delete object IDs.");
+    }
+
+    memset(&player, 0, sizeof(stream_player_t));
+
+    music_initialized = false;
+}
+
+static boolean I_OAL_InitMusic(int device)
+{
+    int count_devices = 0;
+
+    for (int i = 0; i < arrlen(midi_stream_modules); ++i)
+    {
+        const char **strings = midi_stream_modules[i]->I_DeviceList();
+
+        if (device >= count_devices
+            && device < count_devices + array_size(strings))
+        {
+            return midi_stream_modules[i]->I_InitStream(device - count_devices);
+        }
+
+        count_devices += array_size(strings);
+    }
+
+    return false;
 }
 
 int mus_gain = 100;
@@ -379,19 +400,6 @@ static void I_OAL_ShutdownMusic(void)
             return;
         }
     }
-
-    stream_xmp_module.I_ShutdownStream();
-
-    alDeleteSources(1, &player.source);
-    alDeleteBuffers(NUM_BUFFERS, player.buffers);
-    if (alGetError() != AL_NO_ERROR)
-    {
-        I_Printf(VB_ERROR, "I_OAL_ShutdownMusic: Failed to delete object IDs.");
-    }
-
-    memset(&player, 0, sizeof(stream_player_t));
-
-    music_initialized = false;
 }
 
 // Prebuffers some audio from the file, and starts playing the source.

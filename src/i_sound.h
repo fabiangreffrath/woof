@@ -183,8 +183,6 @@ extern struct stream_module_s *midi_stream_module;
 boolean I_InitMusic(void);
 void I_ShutdownMusic(void);
 
-#define OAL_MUSIC_STEAM (-2)
-
 void I_SetMidiPlayer(int device);
 
 // Volume.

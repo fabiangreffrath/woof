@@ -38,4 +38,8 @@ extern stream_module_t stream_fl_module;
 extern stream_module_t stream_snd_module;
 extern stream_module_t stream_xmp_module;
 
+boolean I_OAL_InitStream(void);
+
+void I_OAL_ShutdownStream(void);
+
 #endif
