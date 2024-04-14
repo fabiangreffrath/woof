@@ -11,6 +11,9 @@
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 // GNU General Public License for more details.
 
+#ifndef MIDIOUT_H
+#define MIDIOUT_H
+
 #include "doomtype.h"
 
 void MIDI_SendShortMsg(const byte *message, unsigned int length);
@@ -24,3 +27,5 @@ const char *MIDI_GetDeviceName(int device);
 boolean MIDI_OpenDevice(int device);
 
 void MIDI_CloseDevice(void);
+
+#endif

@@ -34,8 +34,6 @@
 #include "m_io.h"
 
 static HMIDIOUT hMidiOut;
-static byte *sysex_buffer;
-static int sysex_buffer_size;
 
 static void MidiError(const char *prefix, MMRESULT result)
 {
@@ -79,16 +77,7 @@ void MIDI_SendLongMsg(const byte *message, unsigned int length)
     MMRESULT result;
     MIDIHDR hdr = {0};
 
-    if (length > sysex_buffer_size)
-    {
-        sysex_buffer_size = length;
-        free(sysex_buffer);
-        sysex_buffer = malloc(sysex_buffer_size);
-    }
-
-    memcpy(sysex_buffer, message, length);
-
-    hdr.lpData = (LPSTR)sysex_buffer;
+    hdr.lpData = (LPSTR)message;
     hdr.dwBufferLength = length;
     hdr.dwFlags = 0;
 
@@ -145,8 +134,6 @@ boolean MIDI_OpenDevice(int device)
         MidiError("MIDI_OpenDevice", result);
         return false;
     }
-    sysex_buffer_size = MIDI_DEFAULT_BUFFER_SIZE;
-    sysex_buffer = malloc(sysex_buffer_size);
     return true;
 }
 
@@ -157,7 +144,6 @@ void MIDI_CloseDevice(void)
     {
         MidiError("MIDI_CloseDevice", result);
     }
-    free(sysex_buffer);
 }
 
 //---------------------------------------------------------
