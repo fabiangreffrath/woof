@@ -59,6 +59,7 @@ static music_module_t *music_modules[] =
 };
 
 static music_module_t *active_module = NULL;
+static music_module_t *midi_module = NULL;
 
 // haleyjd: safety variables to keep changes to *_card from making
 // these routines think that sound has been initialized when it hasn't
@@ -510,22 +511,6 @@ void I_SetSoundModule(int device)
     }
 }
 
-static void MidiPlayerFallback(void)
-{
-    // Fall back the the first module that initializes, device 0.
-
-    for (int i = 0; i < arrlen(music_modules); ++i)
-    {
-        if (music_modules[i]->I_InitMusic(0))
-        {
-            active_module = music_modules[i];
-            return;
-        }
-    }
-
-    I_Error("MidiPlayerFallback: No music module could be initialized");
-}
-
 void I_SetMidiPlayer(int device)
 {
     if (nomusicparm)
@@ -533,12 +518,12 @@ void I_SetMidiPlayer(int device)
         return;
     }
 
-    int count_devices = 0;
-
-    if (active_module)
+    if (midi_module)
     {
-        active_module->I_ShutdownMusic();
+        midi_module->I_ShutdownMusic();
     }
+
+    int count_devices = 0;
 
     for (int i = 0; i < arrlen(music_modules); ++i)
     {
@@ -549,7 +534,7 @@ void I_SetMidiPlayer(int device)
         {
             if (music_modules[i]->I_InitMusic(device - count_devices))
             {
-                active_module = music_modules[i];
+                midi_module = music_modules[i];
                 return;
             }
         }
@@ -557,7 +542,18 @@ void I_SetMidiPlayer(int device)
         count_devices += array_size(strings);
     }
 
-    MidiPlayerFallback();
+    // Fall back the the first module that initializes, device 0.
+
+    for (int i = 0; i < arrlen(music_modules); ++i)
+    {
+        if (music_modules[i]->I_InitMusic(0))
+        {
+            midi_module = music_modules[i];
+            return;
+        }
+    }
+
+    I_Error("I_SetMidiPlayer: No music module could be initialized");
 }
 
 boolean I_InitMusic(void)
@@ -581,13 +577,20 @@ boolean I_InitMusic(void)
 
 void I_ShutdownMusic(void)
 {
+    if (active_module != midi_module)
+    {
+        midi_module->I_ShutdownMusic();
+    }
     active_module->I_ShutdownMusic();
     I_OAL_ShutdownStream();
 }
 
 void I_SetMusicVolume(int volume)
 {
-    active_module->I_SetMusicVolume(volume);
+    if (active_module)
+    {
+        active_module->I_SetMusicVolume(volume);
+    }
 }
 
 void I_PauseSong(void *handle)

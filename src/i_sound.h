@@ -176,8 +176,6 @@ typedef struct
 extern music_module_t music_oal_module;
 extern music_module_t music_mid_module;
 
-extern struct stream_module_s *midi_stream_module;
-
 boolean I_InitMusic(void);
 void I_ShutdownMusic(void);
 

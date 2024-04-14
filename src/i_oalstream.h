@@ -21,7 +21,7 @@
 
 #include "doomtype.h"
 
-typedef struct stream_module_s
+typedef struct
 {
     boolean (*I_InitStream)(int device);
     boolean (*I_OpenStream)(void *data, ALsizei size, ALenum *format,
