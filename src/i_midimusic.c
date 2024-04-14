@@ -108,6 +108,8 @@ typedef enum
 
 static midi_state_t midi_state;
 
+static midi_state_t old_state;
+
 #define EMIDI_DEVICE (1U << EMIDI_DEVICE_GENERAL_MIDI)
 
 typedef struct
@@ -1343,6 +1345,7 @@ static void I_MID_PauseSong(void *handle)
     }
 
     SDL_LockMutex(music_lock);
+    old_state = midi_state;
     midi_state = STATE_PAUSING;
     SDL_UnlockMutex(music_lock);
 }
@@ -1357,7 +1360,7 @@ static void I_MID_ResumeSong(void *handle)
     SDL_LockMutex(music_lock);
     if (midi_state == STATE_PAUSED)
     {
-        midi_state = STATE_PLAYING;
+        midi_state = old_state;
     }
     SDL_UnlockMutex(music_lock);
 }
