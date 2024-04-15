@@ -3722,9 +3722,8 @@ int MN_StringHeight(const char *string)
 void MN_DrawTitle(int x, int y, const char *patch, const char *alttext)
 {
     int patch_lump = W_CheckNumForName(patch);
-    int bigfont_lump = W_CheckNumForName("DBIGFONT");
 
-    if (patch_lump >= 0 && !(W_IsIWADLump(patch_lump) && bigfont_lump >= 0))
+    if (patch_lump >= 0)
     {
         V_DrawPatch(x, y, W_CacheLumpNum(patch_lump, PU_CACHE));
     }
