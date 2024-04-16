@@ -178,8 +178,6 @@ static boolean Init(void)
         return true;
     }
 
-    array_clear(ports);
-
     int err;
     snd_seq_client_info_t *cinfo;
     snd_seq_port_info_t *pinfo;
@@ -296,11 +294,7 @@ void MIDI_SendLongMsg(const byte *message, unsigned int length)
 
 int MIDI_CountDevices(void)
 {
-    if (!Init())
-    {
-        return 0;
-    }
-
+    Init();
     return array_size(ports);
 }
 
@@ -316,7 +310,7 @@ const char *MIDI_GetDeviceName(int device)
 
 boolean MIDI_OpenDevice(int device)
 {
-    if (!Init() || device > array_size(ports))
+    if (!Init() || device >= array_size(ports))
     {
         return false;
     }
@@ -399,7 +393,10 @@ static int current_device;
 
 static void Init(void)
 {
-    array_clear(devices);
+    if (array_size(devices))
+    {
+        return;
+    }
 
     device_t device;
     device.name = "DLS Synth";
@@ -419,13 +416,20 @@ static void Init(void)
         if (MIDIObjectGetStringProperty(dest, kMIDIPropertyName, &name)
             == noErr)
         {
-            const char *s = CFStringGetCStringPtr(name, kCFStringEncodingASCII);
-            if (s)
+            int len = CFStringGetLength(name);
+            char *s = malloc(len);
+            if (!CFStringGetCString(name, s, len, kCFStringEncodingASCII))
             {
-                device.name = M_StringDuplicate(s);
-                device.id = i;
-                array_push(devices, device);
+                int k;
+                for (k = 0; k < len; ++k)
+                {
+                    s[k] = '?';
+                }
+                s[k] = '\0';
             }
+            device.name = s;
+            device.id = i;
+            array_push(devices, device);
         }
     }
 }

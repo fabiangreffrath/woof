@@ -397,7 +397,10 @@ static const char **I_FL_DeviceList(void)
 {
     static const char **devices = NULL;
 
-    array_clear(devices);
+    if (array_size(devices))
+    {
+        return devices;
+    }
 
     if (W_CheckNumForName("SNDFONT") >= 0)
     {

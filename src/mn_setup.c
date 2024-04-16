@@ -2062,11 +2062,8 @@ static const char **GetMidiDevicesStrings(void)
     return devices;
 }
 
-static void UpdateMidiDevicesStrings(void);
-
 static void SetMidiPlayer(void)
 {
-    UpdateMidiDevicesStrings();
     S_StopMusic();
     I_SetMidiPlayer(midi_player_menu);
     S_SetMusicVolume(snd_MusicVolume);
@@ -3798,16 +3795,11 @@ static void UpdateHUDModeStrings(void)
     selectstrings[str_hudmode] = GetHUDModeStrings();
 }
 
-static void UpdateMidiDevicesStrings(void)
-{
-    selectstrings[str_midi_player] = GetMidiDevicesStrings();
-}
-
 void MN_InitMenuStrings(void)
 {
     UpdateHUDModeStrings();
     selectstrings[str_resolution_scale] = GetResolutionScaleStrings();
-    UpdateMidiDevicesStrings();
+    selectstrings[str_midi_player] = GetMidiDevicesStrings();
     selectstrings[str_mouse_accel] = GetMouseAccelStrings();
 }
 

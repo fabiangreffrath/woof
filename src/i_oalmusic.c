@@ -33,7 +33,7 @@
 #define NUM_BUFFERS    4
 #define BUFFER_SAMPLES 4096
 
-static stream_module_t *stream_modules[] =
+static stream_module_t *all_modules[] =
 {
 #if defined (HAVE_FLUIDSYNTH)
     &stream_fl_module,
@@ -45,7 +45,15 @@ static stream_module_t *stream_modules[] =
 #endif
 };
 
-static stream_module_t *midi_stream_modules[] =
+static stream_module_t *stream_modules[] =
+{
+    &stream_snd_module,
+#if defined(HAVE_LIBXMP)
+    &stream_xmp_module,
+#endif
+};
+
+static stream_module_t *midi_modules[] =
 {
 #if defined (HAVE_FLUIDSYNTH)
     &stream_fl_module,
@@ -231,9 +239,10 @@ boolean I_OAL_InitStream(void)
         alSourcei(player.source, AL_SOURCE_SPATIALIZE_SOFT, AL_FALSE);
     }
 
-    active_module = &stream_snd_module;
-
-    stream_xmp_module.I_InitStream(0);
+    for (int i = 0; i < arrlen(stream_modules); ++i)
+    {
+        stream_modules[i]->I_InitStream(0);
+    }
 
     music_initialized = true;
 
@@ -247,7 +256,10 @@ void I_OAL_ShutdownStream(void)
         return;
     }
 
-    stream_xmp_module.I_ShutdownStream();
+    for (int i = 0; i < arrlen(stream_modules); ++i)
+    {
+        stream_modules[i]->I_ShutdownStream();
+    }
 
     alDeleteSources(1, &player.source);
     alDeleteBuffers(NUM_BUFFERS, player.buffers);
@@ -265,14 +277,14 @@ static boolean I_OAL_InitMusic(int device)
 {
     int count_devices = 0;
 
-    for (int i = 0; i < arrlen(midi_stream_modules); ++i)
+    for (int i = 0; i < arrlen(midi_modules); ++i)
     {
-        const char **strings = midi_stream_modules[i]->I_DeviceList();
+        const char **strings = midi_modules[i]->I_DeviceList();
 
         if (device >= count_devices
             && device < count_devices + array_size(strings))
         {
-            return midi_stream_modules[i]->I_InitStream(device - count_devices);
+            return midi_modules[i]->I_InitStream(device - count_devices);
         }
 
         count_devices += array_size(strings);
@@ -372,7 +384,11 @@ static void I_OAL_UnRegisterSong(void *handle)
         return;
     }
 
-    active_module->I_CloseStream();
+    if (active_module)
+    {
+        active_module->I_CloseStream();
+        active_module = NULL;
+    }
 
     if (player.data)
     {
@@ -391,14 +407,9 @@ static void I_OAL_ShutdownMusic(void)
     I_OAL_StopSong(NULL);
     I_OAL_UnRegisterSong(NULL);
 
-    for (int i = 0; i < arrlen(midi_stream_modules); ++i)
+    for (int i = 0; i < arrlen(midi_modules); ++i)
     {
-        if (active_module == midi_stream_modules[i])
-        {
-            active_module->I_ShutdownStream();
-            active_module = &stream_snd_module;
-            return;
-        }
+        midi_modules[i]->I_ShutdownStream();
     }
 }
 
@@ -411,12 +422,12 @@ static void *I_OAL_RegisterSong(void *data, int len)
         return NULL;
     }
 
-    for (int i = 0; i < arrlen(stream_modules); ++i)
+    for (int i = 0; i < arrlen(all_modules); ++i)
     {
-        if (stream_modules[i]->I_OpenStream(data, len, &player.format,
+        if (all_modules[i]->I_OpenStream(data, len, &player.format,
                                             &player.freq, &player.frame_size))
         {
-            active_module = stream_modules[i];
+            active_module = all_modules[i];
             return (void *)1;
         }
     }
@@ -428,11 +439,14 @@ static const char **I_OAL_DeviceList(void)
 {
     static const char **devices = NULL;
 
-    array_clear(devices);
-
-    for (int i = 0; i < arrlen(midi_stream_modules); ++i)
+    if (array_size(devices))
     {
-        const char **strings = midi_stream_modules[i]->I_DeviceList();
+        return devices;
+    }
+
+    for (int i = 0; i < arrlen(midi_modules); ++i)
+    {
+        const char **strings = midi_modules[i]->I_DeviceList();
 
         for (int k = 0; k < array_size(strings); ++k)
         {

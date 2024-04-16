@@ -1237,7 +1237,10 @@ const char **midi_devices = NULL;
 
 static void GetDevices(void)
 {
-    array_clear(midi_devices);
+    if (array_size(midi_devices))
+    {
+        return;
+    }
 
     int num_devs = MIDI_CountDevices();
 
