@@ -1671,7 +1671,7 @@ static void CreateSurfaces(int w, int h)
 
     I_InitDiskFlash();
 
-    int n = scalefactor > 0 ? 1 : 2;
+    int n = (scalefactor == 1 ? 1 : 2);
     SDL_SetWindowMinimumSize(screen, video.unscaledw * n,
                              use_aspect ? ACTUALHEIGHT * n : SCREENHEIGHT * n);
 
