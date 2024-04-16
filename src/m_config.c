@@ -75,7 +75,7 @@ extern int showMessages;
 extern int show_toggle_messages;
 extern int show_pickup_messages;
 
-extern int window_width, window_height;
+extern int default_window_width, default_window_height;
 extern int window_position_x, window_position_y;
 extern boolean flipcorpses;    // [crispy] randomly flip corpse, blood and death
                                // animation sprites
@@ -132,7 +132,7 @@ default_t defaults[] = {
 
   {
     "current_video_height",
-    (config_t *) &current_video_height, NULL,
+    (config_t *) &default_current_video_height, NULL,
     {600}, {SCREENHEIGHT, UL}, number, ss_none, wad_no,
     "vertical resolution (600p by default)"
   },
@@ -237,7 +237,7 @@ default_t defaults[] = {
   // window width
   {
     "window_width",
-    (config_t *) &window_width, NULL,
+    (config_t *) &default_window_width, NULL,
     {1065}, {0, UL}, number, ss_none, wad_no,
     "window width"
   },
@@ -245,7 +245,7 @@ default_t defaults[] = {
   // window height
   {
     "window_height",
-    (config_t *) &window_height, NULL,
+    (config_t *) &default_window_height, NULL,
     {600}, {0, UL}, number, ss_none, wad_no,
     "window height"
   },
