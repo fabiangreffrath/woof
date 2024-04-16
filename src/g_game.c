@@ -3531,7 +3531,7 @@ void G_ReloadDefaults(boolean keep_demover)
   if ((M_CheckParm("-dog") || M_CheckParm("-dogs")) && demo_version < DV_MBF)
     I_Error("G_ReloadDefaults: Helper dogs require complevel MBF or MBF21.");
 
-  if (startskill == sk_none && !demo_compatibility)
+  if (M_CheckParm("-skill") && startskill == sk_none && !demo_compatibility)
     I_Error("G_ReloadDefaults: '-skill 0' requires complevel Vanilla.");
 
   if (demo_version < DV_MBF)
