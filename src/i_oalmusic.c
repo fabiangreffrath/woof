@@ -158,6 +158,8 @@ static boolean StartPlayer(void)
     alSourceRewind(player.source);
     alSourcei(player.source, AL_BUFFER, 0);
 
+    alSourcePlay(player.source);
+
     active_module->I_PlayStream(player.looping);
 
     // Fill the buffer queue
@@ -348,13 +350,6 @@ static void I_OAL_PlaySong(void *handle, boolean looping)
 
     player.looping = looping;
 
-    alSourcePlay(player.source);
-    if (alGetError() != AL_NO_ERROR)
-    {
-        I_Printf(VB_ERROR, "I_OAL_PlaySong: Error starting playback.");
-        return;
-    }
-
     SDL_AtomicSet(&player_thread_running, 1);
     player_thread_handle = SDL_CreateThread(PlayerThread, NULL, NULL);
 }
@@ -365,8 +360,6 @@ static void I_OAL_StopSong(void *handle)
     {
         return;
     }
-
-    alSourceStop(player.source);
 
     SDL_AtomicSet(&player_thread_running, 0);
     SDL_WaitThread(player_thread_handle, NULL);
