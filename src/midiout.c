@@ -34,6 +34,7 @@
 #include "m_io.h"
 
 static HMIDIOUT hMidiOut;
+static HANDLE hCallbackEvent;
 
 static void MidiError(const char *prefix, MMRESULT result)
 {
@@ -49,6 +50,15 @@ static void MidiError(const char *prefix, MMRESULT result)
     else
     {
         I_Printf(VB_ERROR, "%s: Unknown error", prefix);
+    }
+}
+
+static void CALLBACK MidiOutProc(HMIDIOUT hmo, UINT wMsg, DWORD_PTR dwInstance,
+                                 DWORD_PTR dwParam1, DWORD_PTR dwParam2)
+{
+    if (wMsg == MOM_DONE)
+    {
+        SetEvent(hCallbackEvent);
     }
 }
 
@@ -95,10 +105,13 @@ void MIDI_SendLongMsg(const byte *message, unsigned int length)
         return;
     }
 
-    while (MIDIERR_STILLPLAYING
-           == midiOutUnprepareHeader(hMidiOut, &hdr, sizeof(MIDIHDR)))
+    if (WaitForSingleObject(hCallbackEvent, INFINITE) == WAIT_OBJECT_0)
     {
-        Sleep(1);
+        result = midiOutUnprepareHeader(hMidiOut, &hdr, sizeof(MIDIHDR));
+        if (result != MMSYSERR_NOERROR)
+        {
+            MidiError("MIDI_SendLongMsg", result);
+        }
     }
 }
 
@@ -127,13 +140,15 @@ const char *MIDI_GetDeviceName(int device)
 
 boolean MIDI_OpenDevice(int device)
 {
-    MMRESULT result = midiOutOpen(&hMidiOut, device, (DWORD_PTR)NULL,
-                                  (DWORD_PTR)NULL, CALLBACK_NULL);
+    MMRESULT result = midiOutOpen(&hMidiOut, device, (DWORD_PTR)&MidiOutProc,
+                                  (DWORD_PTR)NULL, CALLBACK_FUNCTION);
     if (result != MMSYSERR_NOERROR)
     {
         MidiError("MIDI_OpenDevice", result);
         return false;
     }
+
+    hCallbackEvent = CreateEvent(NULL, TRUE, FALSE, NULL);
     return true;
 }
 
@@ -144,6 +159,7 @@ void MIDI_CloseDevice(void)
     {
         MidiError("MIDI_CloseDevice", result);
     }
+    CloseHandle(hCallbackEvent);
 }
 
 //---------------------------------------------------------
