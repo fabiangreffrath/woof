@@ -1839,11 +1839,15 @@ int resolution_scale;
 static const char **GetResolutionScaleStrings(void)
 {
     const char **strings = NULL;
-
     resolution_scaling_t rs;
     I_GetResolutionScaling(&rs);
 
     array_push(strings, "100%");
+
+    if (current_video_height == SCREENHEIGHT)
+    {
+        resolution_scale = 0;
+    }
 
     int val = SCREENHEIGHT * 2;
     char buf[8];
@@ -1869,8 +1873,6 @@ static const char **GetResolutionScaleStrings(void)
 
     return strings;
 }
-
-static void UpdateDynamicResolutionItem(void);
 
 static void ResetVideoHeight(void)
 {
@@ -1915,7 +1917,7 @@ static void ResetVideoHeight(void)
         VX_ResetMaxDist();
     }
 
-    UpdateDynamicResolutionItem();
+    MN_UpdateDynamicResolutionItem();
 
     resetneeded = true;
 }
@@ -1932,8 +1934,6 @@ static void UpdateFOV(void)
 {
     setsizeneeded = true; // run R_ExecuteSetViewSize;
 }
-
-static void ToggleUncapped(void);
 
 static void ToggleFullScreen(void)
 {
@@ -1995,7 +1995,7 @@ static setup_menu_t gen_settings1[] = {
     MI_GAP,
 
     {"Uncapped Framerate", S_ONOFF, M_X, M_SPC, {"uncapped"}, m_null, input_null,
-     str_empty, ToggleUncapped},
+     str_empty, MN_UpdateFpsLimitItem},
 
     {"Framerate Limit", S_NUM, M_X, M_SPC, {"fpslimit"}, m_null, input_null,
      str_empty, CoerceFPSLimit},
@@ -2015,6 +2015,11 @@ static setup_menu_t gen_settings1[] = {
 
     MI_END
 };
+
+void MN_DisableResolutionScaleItem(void)
+{
+    DisableItem(true, gen_settings1, "resolution_scale");
+}
 
 static void UpdateSfxVolume(void)
 {
@@ -2345,7 +2350,7 @@ static setup_menu_t *gen_settings[] = {
     gen_settings5, gen_settings6, NULL
 };
 
-static void UpdateDynamicResolutionItem(void)
+void MN_UpdateDynamicResolutionItem(void)
 {
     DisableItem(current_video_height <= DRS_MIN_HEIGHT, gen_settings1,
                 "dynamic_resolution");
@@ -2356,7 +2361,7 @@ static void UpdateAdvancedSoundItems(void)
     DisableItem(snd_module != SND_MODULE_3D, gen_settings2, "snd_hrtf");
 }
 
-static void ToggleUncapped(void)
+void MN_UpdateFpsLimitItem(void)
 {
     DisableItem(!default_uncapped, gen_settings1, "fpslimit");
     setrefreshneeded = true;
@@ -3809,16 +3814,11 @@ void MN_SetupResetMenu(void)
     DisableItem(deh_set_blood_color, enem_settings1, "colored_blood");
     DisableItem(!brightmaps_found || force_brightmaps, gen_settings5,
                 "brightmaps");
-
+    DisableItem(default_current_video_height <= DRS_MIN_HEIGHT, gen_settings1,
+                "dynamic_resolution");
     UpdateInterceptsEmuItem();
-    UpdateDynamicResolutionItem();
     CoerceFPSLimit();
     UpdateCrosshairItems();
     UpdateCenteredWeaponItem();
     UpdateAdvancedSoundItems();
-}
-
-void MN_SetupResetMenuVideo(void)
-{
-    ToggleUncapped();
 }

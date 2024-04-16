@@ -59,7 +59,9 @@
 
 #include "icon.c"
 
-int current_video_height;
+int current_video_height, default_current_video_height;
+static int GetCurrentVideoHeight(void);
+
 boolean dynamic_resolution;
 
 boolean use_vsync; // killough 2/8/98: controls whether vsync is called
@@ -79,7 +81,8 @@ boolean toggle_fullscreen;
 boolean toggle_exclusive_fullscreen;
 
 int video_display = 0; // display index
-int window_width, window_height;
+static int window_width, window_height;
+int default_window_width, default_window_height;
 int window_position_x, window_position_y;
 
 // [AM] Fractional part of the current tic, in the half-open
@@ -1388,6 +1391,10 @@ static void I_InitVideoParms(void)
     // SDL may report native refresh rate as zero.
     native_refresh_rate = mode.refresh_rate;
 
+    current_video_height = default_current_video_height;
+    window_width = default_window_width;
+    window_height = default_window_height;
+
     widescreen = default_widescreen;
     uncapped = default_uncapped;
     grabmouse = default_grabmouse;
@@ -1468,6 +1475,9 @@ static void I_InitVideoParms(void)
     if (p && strcasecmp("-skipsec", myargv[p - 1]))
     {
         scalefactor = tmp_scalefactor;
+        GetCurrentVideoHeight();
+        MN_UpdateDynamicResolutionItem();
+        MN_DisableResolutionScaleItem();
     }
 
     //!
@@ -1492,7 +1502,7 @@ static void I_InitVideoParms(void)
         fullscreen = true;
     }
 
-    MN_SetupResetMenuVideo();
+    MN_UpdateFpsLimitItem();
 }
 
 static void I_InitGraphicsMode(void)
@@ -1597,8 +1607,13 @@ void I_GetResolutionScaling(resolution_scaling_t *rs)
     rs->step = 50;
 }
 
-static int CurrentResolutionHeight(void)
+static int GetCurrentVideoHeight(void)
 {
+    if (scalefactor > 0)
+    {
+        current_video_height = scalefactor * SCREENHEIGHT;
+    }
+
     current_video_height =
         BETWEEN(SCREENHEIGHT, native_height_adjusted, current_video_height);
 
@@ -1656,8 +1671,8 @@ static void CreateSurfaces(int w, int h)
 
     I_InitDiskFlash();
 
-    SDL_SetWindowMinimumSize(screen, video.unscaledw * 2,
-                             use_aspect ? ACTUALHEIGHT * 2 : SCREENHEIGHT * 2);
+    SDL_SetWindowMinimumSize(screen, video.unscaledw,
+                             use_aspect ? ACTUALHEIGHT : SCREENHEIGHT);
 
     if (!fullscreen)
     {
@@ -1686,7 +1701,7 @@ static void I_ReinitGraphicsMode(void)
     window_position_y = 0;
 
     I_InitGraphicsMode();
-    ResetResolution(CurrentResolutionHeight(), true);
+    ResetResolution(GetCurrentVideoHeight(), true);
     CreateSurfaces(video.pitch, video.height);
     ResetLogicalSize();
 }
@@ -1697,12 +1712,9 @@ void I_ResetScreen(void)
 
     widescreen = default_widescreen;
 
-    ResetResolution(CurrentResolutionHeight(), true);
+    ResetResolution(GetCurrentVideoHeight(), true);
     CreateSurfaces(video.pitch, video.height);
     ResetLogicalSize();
-
-    SDL_SetWindowMinimumSize(screen, video.unscaledw * 2,
-                             use_aspect ? ACTUALHEIGHT * 2 : SCREENHEIGHT * 2);
 }
 
 void I_ShutdownGraphics(void)
@@ -1710,6 +1722,13 @@ void I_ShutdownGraphics(void)
     if (!(fullscreen && exclusive_fullscreen))
     {
         SDL_GetWindowPosition(screen, &window_position_x, &window_position_y);
+    }
+
+    if (scalefactor == 0)
+    {
+        default_window_width = window_width;
+        default_window_height = window_height;
+        default_current_video_height = current_video_height;
     }
 
     UpdateGrab();
@@ -1726,7 +1745,7 @@ void I_InitGraphics(void)
 
     I_InitVideoParms();
     I_InitGraphicsMode(); // killough 10/98
-    ResetResolution(CurrentResolutionHeight(), true);
+    ResetResolution(GetCurrentVideoHeight(), true);
     CreateSurfaces(video.pitch, video.height);
     ResetLogicalSize();
 
