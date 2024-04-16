@@ -61,6 +61,7 @@ verbosity_t cfg_verbosity;
 static HANDLE hConsole;
 static DWORD OldMode;
 static boolean vt_mode_enabled = false;
+static UINT OldCodePage;
 
 static void EnableVTMode(void)
 {
@@ -98,6 +99,8 @@ static void RestoreOldMode(void)
 static void I_ShutdownPrintf(void)
 {
 #ifdef _WIN32
+    SetConsoleOutputCP(OldCodePage);
+
     RestoreOldMode();
 #endif
 }
@@ -105,6 +108,9 @@ static void I_ShutdownPrintf(void)
 void I_InitPrintf(void)
 {
 #ifdef _WIN32
+    OldCodePage = GetConsoleOutputCP();
+    SetConsoleOutputCP(CP_UTF8);
+
     EnableVTMode();
 #endif
 
@@ -115,7 +121,7 @@ void I_InitPrintf(void)
     // Print debugging info with maximum verbosity.
     //
 
-    if (M_ParmExists("-verbose") || M_ParmExists("--verbose"))
+    if (M_ParmExists("-verbose"))
     {
         verbosity = VB_MAX;
     }
@@ -125,7 +131,7 @@ void I_InitPrintf(void)
     // Print with minimum verbosity.
     //
 
-    if (M_ParmExists("-quiet") || M_ParmExists("--quiet"))
+    if (M_ParmExists("-quiet"))
     {
         verbosity = VB_ERROR;
     }
