@@ -158,8 +158,6 @@ static boolean StartPlayer(void)
     alSourceRewind(player.source);
     alSourcei(player.source, AL_BUFFER, 0);
 
-    alSourcePlay(player.source);
-
     active_module->I_PlayStream(player.looping);
 
     // Fill the buffer queue
