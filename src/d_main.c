@@ -2344,8 +2344,8 @@ void D_DoomMain(void)
      else
       {
         I_Error("Invalid parameter '%s' for -skill, valid values are 1-5 "
-                "(1: easiest, 5: hardest). "
-                "A skill of 0 disables all monsters.", myargv[p+1]);
+                "(1: easiest, 5: hardest).\n"
+                "In complevel Vanilla, '-skill 0' disables all monsters.", myargv[p+1]);
       }
    }
 
