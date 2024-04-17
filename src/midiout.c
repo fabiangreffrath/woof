@@ -400,7 +400,7 @@ static Byte *packet_buffer = NULL;
 
 typedef struct
 {
-    const char *name;
+    char *name;
     int id;
 } device_t;
 
@@ -432,18 +432,20 @@ static void Init(void)
         if (MIDIObjectGetStringProperty(dest, kMIDIPropertyName, &name)
             == noErr)
         {
-            int len = CFStringGetLength(name);
-            char *s = malloc(len);
-            if (!CFStringGetCString(name, s, len, kCFStringEncodingASCII))
-            {
-                int k;
-                for (k = 0; k < len; ++k)
-                {
-                    s[k] = '?';
-                }
-                s[k] = '\0';
-            }
-            device.name = s;
+            CFIndex length;
+            CFRange range = {0, CFStringGetLength(name)};
+
+            CFStringGetBytes(name, range, kCFStringEncodingASCII, '?', false,
+                             NULL, INT_MAX, &length);
+
+            char *buffer = malloc(length + 1);
+
+            CFStringGetBytes(name, range, kCFStringEncodingASCII, '?', false,
+                             (UInt8 *)buffer, length, NULL);
+
+            buffer[length] = '\0';
+
+            device.name = buffer;
             device.id = i;
             array_push(devices, device);
         }
