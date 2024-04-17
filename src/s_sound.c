@@ -266,11 +266,11 @@ void S_StartSound(const mobj_t *origin, int sfx_id)
     if (pitched_sounds)
     {
         // hacks to vary the sfx pitches
-        if (sfx_id >= sfx_sawup && sfx_id <= sfx_sawhit)
+        if (sfx->pitch_range == PITCHRANGE_HALF)
         {
             pitch += 8 - (M_Random() & 15);
         }
-        else if (sfx_id != sfx_itemup && sfx_id != sfx_tink)
+        else if (sfx->pitch_range == PITCHRANGE_FULL)
         {
             pitch += 16 - (M_Random() & 31);
         }

@@ -474,6 +474,15 @@ void I_InitSound(void)
             from->volume = 0;
         }
     }
+
+    for (int i = sfx_sawup; i <= sfx_sawhit; i++)
+    {
+        S_sfx[i].pitch_range = PITCHRANGE_HALF;
+    }
+    S_sfx[sfx_itemup].pitch_range = PITCHRANGE_NONE;
+    S_sfx[sfx_tink].pitch_range = PITCHRANGE_NONE;
+    S_sfx[sfx_barexp].pitch_range = PITCHRANGE_NONE;
+    S_sfx[sfx_stnmov].pitch_range = PITCHRANGE_NONE;
 }
 
 boolean I_AllowReinitSound(void)
