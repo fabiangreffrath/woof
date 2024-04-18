@@ -272,12 +272,8 @@ static void SendManualVolumeMsg(byte channel, byte volume)
 {
     unsigned int scaled_volume;
 
-    scaled_volume = volume * volume_factor + 0.5f;
-
-    if (scaled_volume > 127)
-    {
-        scaled_volume = 127;
-    }
+    scaled_volume = lroundf((float)volume * volume_factor);
+    scaled_volume = MIN(scaled_volume, 127);
 
     SendControlChange(channel, MIDI_CONTROLLER_VOLUME_MSB, scaled_volume);
 
