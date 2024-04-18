@@ -215,6 +215,35 @@ static void SendChannelMsg(const midi_event_t *event, boolean use_param2)
     }
 }
 
+// Writes a MIDI program change message. If applicable, emulates capital tone
+// fallback (CTF) to fix invalid instruments.
+
+static void SendProgramChange(byte channel, byte program)
+{
+    const byte message[] = {MIDI_EVENT_PROGRAM_CHANGE | channel, program};
+    MIDI_SendShortMsg(message, sizeof(message));
+}
+
+static void SendProgramChangeCTF(byte channel, byte program,
+                                 const midi_fallback_t *fallback)
+{
+    switch (fallback->type)
+    {
+        case FALLBACK_DRUMS:
+            SendProgramChange(channel, fallback->value);
+            break;
+
+        case FALLBACK_BANK_MSB:
+            SendShortMsg(MIDI_EVENT_CONTROLLER, channel,
+                         MIDI_CONTROLLER_BANK_SELECT_MSB, fallback->value);
+            // Fall through.
+
+        default:
+            SendProgramChange(channel, program);
+            break;
+    }
+}
+
 // Writes an RPN message set to NULL (0x7F). Prevents accidental data entry.
 
 static void SendNullRPN(const midi_event_t *event)
@@ -324,7 +353,7 @@ static void ResetNoSysEx(void)
         SendShortMsg(MIDI_EVENT_CONTROLLER, i, MIDI_CONTROLLER_PAN, 64);
         SendShortMsg(MIDI_EVENT_CONTROLLER, i, MIDI_CONTROLLER_BANK_SELECT_MSB, 0);
         SendShortMsg(MIDI_EVENT_CONTROLLER, i, MIDI_CONTROLLER_BANK_SELECT_LSB, 0);
-        SendShortMsg(MIDI_EVENT_PROGRAM_CHANGE, i, 0, 0);
+        SendProgramChange(i, 0);
         SendShortMsg(MIDI_EVENT_CONTROLLER, i, MIDI_CONTROLLER_REVERB, 40);
         SendShortMsg(MIDI_EVENT_CONTROLLER, i, MIDI_CONTROLLER_CHORUS, 0);
     }
@@ -598,30 +627,6 @@ static void SendSysExMsg(const midi_event_t *event)
     }
 }
 
-// Writes a MIDI program change message. If applicable, emulates capital tone
-// fallback to fix invalid instruments.
-
-static void SendProgramMsg(byte channel, byte program,
-                           const midi_fallback_t *fallback)
-{
-    switch ((int)fallback->type)
-    {
-        case FALLBACK_BANK_MSB:
-            SendShortMsg(MIDI_EVENT_CONTROLLER, channel,
-                         MIDI_CONTROLLER_BANK_SELECT_MSB, fallback->value);
-            SendShortMsg(MIDI_EVENT_PROGRAM_CHANGE, channel, program, 0);
-            break;
-
-        case FALLBACK_DRUMS:
-            SendShortMsg(MIDI_EVENT_PROGRAM_CHANGE, channel, fallback->value, 0);
-            break;
-
-        default:
-            SendShortMsg(MIDI_EVENT_PROGRAM_CHANGE, channel, program, 0);
-            break;
-    }
-}
-
 // Sets a Final Fantasy or RPG Maker loop point.
 
 static void SetLoopPoint(void)
@@ -707,8 +712,8 @@ static void SendEMIDI(const midi_event_t *event, midi_track_t *track,
             if (track->emidi_program || track->elapsed_time < ticks_per_beat)
             {
                 track->emidi_program = true;
-                SendProgramMsg(event->data.channel.channel,
-                               event->data.channel.param2, fallback);
+                SendProgramChangeCTF(event->data.channel.channel,
+                                     event->data.channel.param2, fallback);
             }
             break;
 
@@ -1057,8 +1062,8 @@ static boolean ProcessEvent_Standard(const midi_event_t *event,
         case MIDI_EVENT_PROGRAM_CHANGE:
             if (track->emidi_program == 0)
             {
-                SendProgramMsg(event->data.channel.channel,
-                               event->data.channel.param1, &fallback);
+                SendProgramChangeCTF(event->data.channel.channel,
+                                     event->data.channel.param1, &fallback);
             }
             break;
 
