@@ -51,7 +51,7 @@ enum
 
 enum
 {
-    RESET_TYPE_NONE,
+    RESET_TYPE_NO_SYSEX,
     RESET_TYPE_GM,
     RESET_TYPE_GS,
     RESET_TYPE_XG,
@@ -287,10 +287,10 @@ static void SendNotesSoundOff(void)
     }
 }
 
-// Resets commonly used controllers. This is only for a reset type of "none" for
-// devices that don't support SysEx resets.
+// Resets commonly used controllers. This is only for a reset type of "No SysEx"
+// for devices that don't support SysEx resets.
 
-static void ResetControllers(void)
+static void ResetNoSysEx(void)
 {
     int i;
 
@@ -340,8 +340,8 @@ static void ResetDevice(void)
 
     switch (midi_reset_type)
     {
-        case RESET_TYPE_NONE:
-            ResetControllers();
+        case RESET_TYPE_NO_SYSEX:
+            ResetNoSysEx();
             break;
 
         case RESET_TYPE_GS:
@@ -367,7 +367,7 @@ static void ResetDevice(void)
     {
         ResetVolume();
     }
-    else if (midi_reset_type == RESET_TYPE_NONE)
+    else if (midi_reset_type == RESET_TYPE_NO_SYSEX)
     {
         volume_factor = 1.0f;
         ResetVolume();

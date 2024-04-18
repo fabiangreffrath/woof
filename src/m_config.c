@@ -520,7 +520,7 @@ default_t defaults[] = {
     "midi_reset_type",
     (config_t *) &midi_reset_type, NULL,
     {1}, {0, 3}, number, ss_none, wad_no,
-    "SysEx reset for native MIDI (0 = None, 1 = GM, 2 = GS, 3 = XG)"
+    "Reset type for native MIDI (0 = No SysEx, 1 = GM, 2 = GS, 3 = XG)"
   },
 
   {
