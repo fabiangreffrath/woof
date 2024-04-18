@@ -215,6 +215,12 @@ static void SendChannelMsg(const midi_event_t *event, boolean use_param2)
     }
 }
 
+static void SendControlChange(byte channel, byte number, byte value)
+{
+    const byte message[] = {MIDI_EVENT_CONTROLLER | channel, number, value};
+    MIDI_SendShortMsg(message, sizeof(message));
+}
+
 // Writes a MIDI program change message. If applicable, emulates capital tone
 // fallback (CTF) to fix invalid instruments.
 
@@ -234,8 +240,8 @@ static void SendProgramChangeCTF(byte channel, byte program,
             break;
 
         case FALLBACK_BANK_MSB:
-            SendShortMsg(MIDI_EVENT_CONTROLLER, channel,
-                         MIDI_CONTROLLER_BANK_SELECT_MSB, fallback->value);
+            SendControlChange(channel, MIDI_CONTROLLER_BANK_SELECT_MSB,
+                              fallback->value);
             // Fall through.
 
         default:
@@ -249,10 +255,8 @@ static void SendProgramChangeCTF(byte channel, byte program,
 static void SendNullRPN(const midi_event_t *event)
 {
     const byte channel = event->data.channel.channel;
-    SendShortMsg(MIDI_EVENT_CONTROLLER, channel, MIDI_CONTROLLER_RPN_LSB,
-                 MIDI_RPN_NULL);
-    SendShortMsg(MIDI_EVENT_CONTROLLER, channel, MIDI_CONTROLLER_RPN_MSB,
-                 MIDI_RPN_NULL);
+    SendControlChange(channel, MIDI_CONTROLLER_RPN_LSB, MIDI_RPN_NULL);
+    SendControlChange(channel, MIDI_CONTROLLER_RPN_MSB, MIDI_RPN_NULL);
 }
 
 static void UpdateTempo(const midi_event_t *event)
@@ -275,8 +279,7 @@ static void SendManualVolumeMsg(byte channel, byte volume)
         scaled_volume = 127;
     }
 
-    SendShortMsg(MIDI_EVENT_CONTROLLER, channel, MIDI_CONTROLLER_VOLUME_MSB,
-                 scaled_volume);
+    SendControlChange(channel, MIDI_CONTROLLER_VOLUME_MSB, scaled_volume);
 
     channel_volume[channel] = volume;
 }
@@ -321,8 +324,8 @@ static void SendNotesSoundOff(void)
 
     for (i = 0; i < MIDI_CHANNELS_PER_TRACK; ++i)
     {
-        SendShortMsg(MIDI_EVENT_CONTROLLER, i, MIDI_CONTROLLER_ALL_NOTES_OFF, 0);
-        SendShortMsg(MIDI_EVENT_CONTROLLER, i, MIDI_CONTROLLER_ALL_SOUND_OFF, 0);
+        SendControlChange(i, MIDI_CONTROLLER_ALL_NOTES_OFF, 0);
+        SendControlChange(i, MIDI_CONTROLLER_ALL_SOUND_OFF, 0);
     }
 }
 
@@ -335,7 +338,7 @@ static void ResetControllers(void)
 
     for (i = 0; i < MIDI_CHANNELS_PER_TRACK; i++)
     {
-        SendShortMsg(MIDI_EVENT_CONTROLLER, i, MIDI_CONTROLLER_RESET_ALL_CTRLS, 0);
+        SendControlChange(i, MIDI_CONTROLLER_RESET_ALL_CTRLS, 0);
     }
 }
 
@@ -349,13 +352,13 @@ static void ResetNoSysEx(void)
     for (i = 0; i < MIDI_CHANNELS_PER_TRACK; ++i)
     {
         // Reset commonly used controllers.
-        SendShortMsg(MIDI_EVENT_CONTROLLER, i, MIDI_CONTROLLER_RESET_ALL_CTRLS, 0);
-        SendShortMsg(MIDI_EVENT_CONTROLLER, i, MIDI_CONTROLLER_PAN, 64);
-        SendShortMsg(MIDI_EVENT_CONTROLLER, i, MIDI_CONTROLLER_BANK_SELECT_MSB, 0);
-        SendShortMsg(MIDI_EVENT_CONTROLLER, i, MIDI_CONTROLLER_BANK_SELECT_LSB, 0);
+        SendControlChange(i, MIDI_CONTROLLER_RESET_ALL_CTRLS, 0);
+        SendControlChange(i, MIDI_CONTROLLER_PAN, 64);
+        SendControlChange(i, MIDI_CONTROLLER_BANK_SELECT_MSB, 0);
+        SendControlChange(i, MIDI_CONTROLLER_BANK_SELECT_LSB, 0);
         SendProgramChange(i, 0);
-        SendShortMsg(MIDI_EVENT_CONTROLLER, i, MIDI_CONTROLLER_REVERB, 40);
-        SendShortMsg(MIDI_EVENT_CONTROLLER, i, MIDI_CONTROLLER_CHORUS, 0);
+        SendControlChange(i, MIDI_CONTROLLER_REVERB, 40);
+        SendControlChange(i, MIDI_CONTROLLER_CHORUS, 0);
     }
 }
 
@@ -369,16 +372,16 @@ static void ResetPitchBendSensitivity(void)
     for (i = 0; i < MIDI_CHANNELS_PER_TRACK; ++i)
     {
         // Set RPN MSB/LSB to pitch bend sensitivity.
-        SendShortMsg(MIDI_EVENT_CONTROLLER, i, MIDI_CONTROLLER_RPN_LSB, MIDI_RPN_PITCH_BEND_SENS_LSB);
-        SendShortMsg(MIDI_EVENT_CONTROLLER, i, MIDI_CONTROLLER_RPN_MSB, MIDI_RPN_MSB);
+        SendControlChange(i, MIDI_CONTROLLER_RPN_LSB, MIDI_RPN_PITCH_BEND_SENS_LSB);
+        SendControlChange(i, MIDI_CONTROLLER_RPN_MSB, MIDI_RPN_MSB);
 
         // Reset pitch bend sensitivity to +/- 2 semitones and 0 cents.
-        SendShortMsg(MIDI_EVENT_CONTROLLER, i, MIDI_CONTROLLER_DATA_ENTRY_MSB, 2);
-        SendShortMsg(MIDI_EVENT_CONTROLLER, i, MIDI_CONTROLLER_DATA_ENTRY_LSB, 0);
+        SendControlChange(i, MIDI_CONTROLLER_DATA_ENTRY_MSB, 2);
+        SendControlChange(i, MIDI_CONTROLLER_DATA_ENTRY_LSB, 0);
 
         // Set RPN MSB/LSB to null value after data entry.
-        SendShortMsg(MIDI_EVENT_CONTROLLER, i, MIDI_CONTROLLER_RPN_LSB, MIDI_RPN_NULL);
-        SendShortMsg(MIDI_EVENT_CONTROLLER, i, MIDI_CONTROLLER_RPN_MSB, MIDI_RPN_NULL);
+        SendControlChange(i, MIDI_CONTROLLER_RPN_LSB, MIDI_RPN_NULL);
+        SendControlChange(i, MIDI_CONTROLLER_RPN_MSB, MIDI_RPN_NULL);
     }
 }
 
