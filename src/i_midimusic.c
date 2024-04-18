@@ -330,16 +330,16 @@ static void ResetPitchBendSensitivity(void)
     for (i = 0; i < MIDI_CHANNELS_PER_TRACK; ++i)
     {
         // Set RPN MSB/LSB to pitch bend sensitivity.
-        SendShortMsg(MIDI_EVENT_CONTROLLER, i, MIDI_CONTROLLER_RPN_LSB, 0);
-        SendShortMsg(MIDI_EVENT_CONTROLLER, i, MIDI_CONTROLLER_RPN_MSB, 0);
+        SendShortMsg(MIDI_EVENT_CONTROLLER, i, MIDI_CONTROLLER_RPN_LSB, MIDI_RPN_PITCH_BEND_SENS_LSB);
+        SendShortMsg(MIDI_EVENT_CONTROLLER, i, MIDI_CONTROLLER_RPN_MSB, MIDI_RPN_MSB);
 
         // Reset pitch bend sensitivity to +/- 2 semitones and 0 cents.
         SendShortMsg(MIDI_EVENT_CONTROLLER, i, MIDI_CONTROLLER_DATA_ENTRY_MSB, 2);
         SendShortMsg(MIDI_EVENT_CONTROLLER, i, MIDI_CONTROLLER_DATA_ENTRY_LSB, 0);
 
         // Set RPN MSB/LSB to null value after data entry.
-        SendShortMsg(MIDI_EVENT_CONTROLLER, i, MIDI_CONTROLLER_RPN_LSB, 127);
-        SendShortMsg(MIDI_EVENT_CONTROLLER, i, MIDI_CONTROLLER_RPN_MSB, 127);
+        SendShortMsg(MIDI_EVENT_CONTROLLER, i, MIDI_CONTROLLER_RPN_LSB, MIDI_RPN_NULL);
+        SendShortMsg(MIDI_EVENT_CONTROLLER, i, MIDI_CONTROLLER_RPN_MSB, MIDI_RPN_NULL);
     }
 }
 
