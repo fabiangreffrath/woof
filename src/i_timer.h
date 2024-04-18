@@ -44,6 +44,8 @@ void I_EnableWarp(boolean warp);
 // Pause for a specified number of ms
 void I_Sleep(int ms);
 
+void I_SleepUS(uint64_t us);
+
 // Initialize timer
 void I_InitTimer(void);
 

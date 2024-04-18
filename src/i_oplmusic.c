@@ -1503,6 +1503,11 @@ static midi_file_t *midifile;
 static boolean I_OPL_OpenStream(void *data, ALsizei size, ALenum *format,
                                 ALsizei *freq, ALsizei *frame_size)
 {
+    if (!IsMid(data, size) && !IsMus(data, size))
+    {
+        return false;
+    }
+
     if (!music_initialized)
     {
         return false;
@@ -1652,18 +1657,12 @@ static void I_OPL_ShutdownStream(void)
     }
 }
 
-static const char **I_OPL_DeviceList(int *current_device)
+static const char **I_OPL_DeviceList(void)
 {
     static const char **devices = NULL;
-
     if (devices)
     {
         return devices;
-    }
-
-    if (current_device)
-    {
-        *current_device = 0;
     }
     array_push(devices, "OPL3 Emulation");
     return devices;

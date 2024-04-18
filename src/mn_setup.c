@@ -1373,7 +1373,7 @@ static const char *screensize_strings[] = {
 
 static const char *hudtype_strings[] = {"Crispy", "Boom No Bars", "Boom"};
 
-static const char **M_GetHUDModeStrings(void)
+static const char **GetHUDModeStrings(void)
 {
     static const char *crispy_strings[] = {"Off", "Original", "Widescreen"};
     static const char *boom_strings[] = {"Minimal", "Compact", "Distributed"};
@@ -2059,7 +2059,12 @@ int midi_player_menu;
 
 static const char **GetMidiDevicesStrings(void)
 {
-    return I_DeviceList(&midi_player_menu);
+    const char **devices = I_DeviceList();
+    if (midi_player_menu >= array_size(devices))
+    {
+        midi_player_menu = 0;
+    }
+    return devices;
 }
 
 static void SetMidiPlayer(void)
@@ -3791,7 +3796,7 @@ static const char **GetStrings(int id)
 
 static void UpdateHUDModeStrings(void)
 {
-    selectstrings[str_hudmode] = M_GetHUDModeStrings();
+    selectstrings[str_hudmode] = GetHUDModeStrings();
 }
 
 void MN_InitMenuStrings(void)

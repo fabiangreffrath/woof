@@ -26,7 +26,11 @@
 
 #include "config.h"
 
+#if __bool_true_false_are_defined
+typedef int boolean;
+#else
 typedef enum {false, true} boolean;
+#endif
 
 typedef uint8_t byte;
 

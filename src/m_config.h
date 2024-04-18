@@ -18,8 +18,8 @@
 //    
 //-----------------------------------------------------------------------------
 
-#ifndef __M_MISC__
-#define __M_MISC__
+#ifndef __M_CONFIG__
+#define __M_CONFIG__
 
 #include "doomtype.h"
 #include "doomdef.h"
