@@ -2431,7 +2431,7 @@ static void SelectDone(setup_menu_t *ptr)
 {
     ptr->m_flags &= ~S_SELECT;
     ptr->m_flags |= S_HILITE;
-    S_StartSound(NULL, sfx_itemup);
+    S_StartSoundWithPitch(NULL, sfx_itemup, PITCHRANGE_NONE);
     setup_select = false;
     if (print_warning_about_changes) // killough 8/15/98
     {
@@ -2906,7 +2906,7 @@ boolean MN_SetupCursorPostion(int x, int y)
                 if (set_tab_on != i)
                 {
                     set_tab_on = i;
-                    S_StartSound(NULL, sfx_itemup);
+                    S_StartSoundWithPitch(NULL, sfx_itemup, PITCHRANGE_NONE);
                 }
             }
         }
@@ -2932,7 +2932,7 @@ boolean MN_SetupCursorPostion(int x, int y)
             {
                 print_warning_about_changes = false;
                 set_item_on = i;
-                S_StartSound(NULL, sfx_itemup);
+                S_StartSoundWithPitch(NULL, sfx_itemup, PITCHRANGE_NONE);
             }
         }
     }
@@ -2990,7 +2990,7 @@ static void Choice(menu_action_t action)
 
         if (def->location->i != value)
         {
-            S_StartSound(NULL, sfx_stnmov);
+            S_StartSoundWithPitch(NULL, sfx_stnmov, PITCHRANGE_NONE);
         }
         def->location->i = value;
 
@@ -3021,7 +3021,7 @@ static void Choice(menu_action_t action)
 
         if (def->location->i != value)
         {
-            S_StartSound(NULL, sfx_stnmov);
+            S_StartSoundWithPitch(NULL, sfx_stnmov, PITCHRANGE_NONE);
         }
         def->location->i = value;
 
@@ -3449,7 +3449,7 @@ boolean MN_SetupResponder(menu_action_t action, int ch)
 
         current_item->m_flags |= S_SELECT;
         setup_select = true;
-        S_StartSound(NULL, sfx_itemup);
+        S_StartSoundWithPitch(NULL, sfx_itemup, PITCHRANGE_NONE);
         return true;
     }
 
@@ -3621,7 +3621,7 @@ boolean MN_SetupMouseResponder(int x, int y)
             {
                 active_thermo->action();
             }
-            S_StartSound(NULL, sfx_stnmov);
+            S_StartSoundWithPitch(NULL, sfx_stnmov, PITCHRANGE_NONE);
         }
         return true;
     }
@@ -3634,7 +3634,7 @@ boolean MN_SetupMouseResponder(int x, int y)
     if (flags & S_ONOFF) // yes or no setting?
     {
         OnOff();
-        S_StartSound(NULL, sfx_itemup);
+        S_StartSoundWithPitch(NULL, sfx_itemup, PITCHRANGE_NONE);
         return true;
     }
 
@@ -3655,7 +3655,7 @@ boolean MN_SetupMouseResponder(int x, int y)
 
         if (def->location->i != value)
         {
-            S_StartSound(NULL, sfx_stnmov);
+            S_StartSoundWithPitch(NULL, sfx_stnmov, PITCHRANGE_NONE);
         }
         def->location->i = value;
 

@@ -1331,13 +1331,13 @@ void V_ScreenShot(void)
     // players[consoleplayer].message = "screen shot"
 
     // killough 10/98: print error message and change sound effect if error
-    S_StartSound(NULL,
+    S_StartSoundWithPitch(NULL,
                  !success
                  ? displaymsg("%s", errno ? strerror(errno)
                                           : "Could not take screenshot"),
                  sfx_oof
                  : gamemode == commercial ? sfx_radio
-                                          : sfx_tink);
+                                          : sfx_tink, PITCHRANGE_NONE);
 }
 
 //----------------------------------------------------------------------------

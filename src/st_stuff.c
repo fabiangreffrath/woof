@@ -782,7 +782,7 @@ void ST_updateWidgets(void)
     else
     {
       if (!(plyr->keyblinktics & (2*KEYBLINKMASK - 1)))
-        S_StartSound(NULL, sfx_itemup);
+        S_StartSoundWithPitch(NULL, sfx_itemup, PITCHRANGE_NONE);
 
       plyr->keyblinktics--;
 

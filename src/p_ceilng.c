@@ -81,7 +81,7 @@ void T_MoveCeiling (ceiling_t* ceiling)
           case genSilentCrusher:
             break;
           default:
-            S_StartSound((mobj_t *)&ceiling->sector->soundorg, sfx_stnmov);
+            S_StartSoundWithPitch((mobj_t *)&ceiling->sector->soundorg, sfx_stnmov, PITCHRANGE_NONE);
             break;
         }
       }
@@ -145,7 +145,7 @@ void T_MoveCeiling (ceiling_t* ceiling)
           case genSilentCrusher:
             break;
           default:
-            S_StartSound((mobj_t *)&ceiling->sector->soundorg, sfx_stnmov);
+            S_StartSoundWithPitch((mobj_t *)&ceiling->sector->soundorg, sfx_stnmov, PITCHRANGE_NONE);
         }
       }
 

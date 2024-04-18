@@ -262,7 +262,7 @@ void T_MoveFloor(floormove_t* floor)
   );
   
   if (!(leveltime&7))     // make the floormove sound
-    S_StartSound((mobj_t *)&floor->sector->soundorg, sfx_stnmov);
+    S_StartSoundWithPitch((mobj_t *)&floor->sector->soundorg, sfx_stnmov, PITCHRANGE_NONE);
     
   if (res == pastdest)    // if destination height is reached
   {
@@ -413,7 +413,7 @@ void T_MoveElevator(elevator_t* elevator)
 
   // make floor move sound
   if (!(leveltime&7))
-    S_StartSound((mobj_t *)&elevator->sector->soundorg, sfx_stnmov);
+    S_StartSoundWithPitch((mobj_t *)&elevator->sector->soundorg, sfx_stnmov, PITCHRANGE_NONE);
     
   if (res == pastdest)            // if destination height acheived
   {

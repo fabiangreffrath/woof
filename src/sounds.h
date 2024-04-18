@@ -23,12 +23,6 @@
 
 #include "doomtype.h"
 
-typedef enum {
-  PITCHRANGE_FULL,
-  PITCHRANGE_HALF,
-  PITCHRANGE_NONE
-} pitchrange_t;
-
 //
 // SoundFX struct.
 //
@@ -61,8 +55,6 @@ typedef struct sfxinfo_s
 
   // lump number of sfx
   int lumpnum;
-
-  pitchrange_t pitch_range;
 
   boolean cached;
 

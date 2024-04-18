@@ -156,7 +156,7 @@ static void P_BringUpWeapon(player_t *player)
     player->pendingweapon = player->readyweapon;
 
   if (player->pendingweapon == wp_chainsaw)
-    S_StartSound(player->mo, sfx_sawup);
+    S_StartSoundWithPitch(player->mo, sfx_sawup, PITCHRANGE_HALF);
 
   if (player->pendingweapon >= NUMWEAPONS)
   {
@@ -485,7 +485,7 @@ void A_WeaponReady(player_t *player, pspdef_t *psp)
     P_SetMobjState(player->mo, S_PLAY);
 
   if (player->readyweapon == wp_chainsaw && psp->state == &states[S_SAW])
-    S_StartSound(player->mo, sfx_sawidl);
+    S_StartSoundWithPitch(player->mo, sfx_sawidl, PITCHRANGE_HALF);
 
   // check for change
   //  if player is dead, put the weapon away
@@ -720,11 +720,11 @@ void A_Saw(player_t *player, pspdef_t *psp)
 
   if (!linetarget)
     {
-      S_StartSound(player->mo, sfx_sawful);
+      S_StartSoundWithPitch(player->mo, sfx_sawful, PITCHRANGE_HALF);
       return;
     }
 
-  S_StartSound(player->mo, sfx_sawhit);
+  S_StartSoundWithPitch(player->mo, sfx_sawhit, PITCHRANGE_HALF);
 
   // turn to face target
   angle = R_PointToAngle2(player->mo->x, player->mo->y,
