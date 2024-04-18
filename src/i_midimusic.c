@@ -188,6 +188,16 @@ static void SendLongMsg(const byte *message, unsigned int length)
     MIDI_SendLongMsg(message, length);
 }
 
+// Sends a channel message with the second parameter overridden to zero. Only
+// use this function for events that require special handling.
+
+static void SendChannelMsgZero(const midi_event_t *event)
+{
+    const byte message[] = {event->event_type | event->data.channel.channel,
+                            event->data.channel.param1, 0};
+    MIDI_SendShortMsg(message, sizeof(message));
+}
+
 static void SendChannelMsg(const midi_event_t *event, boolean use_param2)
 {
     if (use_param2)
@@ -814,7 +824,7 @@ static boolean ProcessEvent_Vanilla(const midi_event_t *event,
                 case MIDI_CONTROLLER_BANK_SELECT_MSB:
                 case MIDI_CONTROLLER_BANK_SELECT_LSB:
                     // DMX has broken bank select support and runs in GM mode.
-                    SendChannelMsg(event, false);
+                    SendChannelMsgZero(event);
                     break;
 
                 case MIDI_CONTROLLER_MODULATION:
@@ -824,8 +834,6 @@ static boolean ProcessEvent_Vanilla(const midi_event_t *event,
                 case MIDI_CONTROLLER_SOFT_PEDAL:
                 case MIDI_CONTROLLER_REVERB:
                 case MIDI_CONTROLLER_CHORUS:
-                case MIDI_CONTROLLER_ALL_SOUND_OFF:
-                case MIDI_CONTROLLER_ALL_NOTES_OFF:
                     SendChannelMsg(event, true);
                     break;
 
@@ -835,7 +843,14 @@ static boolean ProcessEvent_Vanilla(const midi_event_t *event,
 
                 case MIDI_CONTROLLER_RESET_ALL_CTRLS:
                     // MS GS Wavetable Synth resets volume if param2 isn't zero.
-                    SendChannelMsg(event, false);
+                    // Per MIDI 1.0 Spec, param2 must be zero.
+                    SendChannelMsgZero(event);
+                    break;
+
+                case MIDI_CONTROLLER_ALL_SOUND_OFF:
+                case MIDI_CONTROLLER_ALL_NOTES_OFF:
+                    // Per MIDI 1.0 Spec, param2 must be zero.
+                    SendChannelMsgZero(event);
                     break;
 
                 default:
@@ -907,10 +922,7 @@ static boolean ProcessEvent_Standard(const midi_event_t *event,
                 case MIDI_CONTROLLER_SOFT_PEDAL:
                 case MIDI_CONTROLLER_REVERB:
                 case MIDI_CONTROLLER_CHORUS:
-                case MIDI_CONTROLLER_ALL_SOUND_OFF:
-                case MIDI_CONTROLLER_ALL_NOTES_OFF:
                 case MIDI_CONTROLLER_POLY_MODE_OFF:
-                case MIDI_CONTROLLER_POLY_MODE_ON:
                     SendChannelMsg(event, true);
                     break;
 
@@ -925,8 +937,14 @@ static boolean ProcessEvent_Standard(const midi_event_t *event,
                     break;
 
                 case MIDI_CONTROLLER_BANK_SELECT_LSB:
-                    SendChannelMsg(event,
-                                   fallback.type != FALLBACK_BANK_LSB);
+                    if (fallback.type == FALLBACK_BANK_LSB)
+                    {
+                        SendChannelMsgZero(event);
+                    }
+                    else
+                    {
+                        SendChannelMsg(event, true);
+                    }
                     break;
 
                 case MIDI_CONTROLLER_NRPN_LSB:
@@ -1001,7 +1019,24 @@ static boolean ProcessEvent_Standard(const midi_event_t *event,
 
                 case MIDI_CONTROLLER_RESET_ALL_CTRLS:
                     // MS GS Wavetable Synth resets volume if param2 isn't zero.
-                    SendChannelMsg(event, false);
+                    // Per MIDI 1.0 Spec, param2 must be zero.
+                    SendChannelMsgZero(event);
+                    break;
+
+                case MIDI_CONTROLLER_ALL_SOUND_OFF:
+                case MIDI_CONTROLLER_ALL_NOTES_OFF:
+                case MIDI_CONTROLLER_POLY_MODE_ON:
+                    // Per MIDI 1.0 Spec, param2 must be zero.
+                    SendChannelMsgZero(event);
+                    break;
+
+                case MIDI_CONTROLLER_OMNI_MODE_OFF:
+                case MIDI_CONTROLLER_OMNI_MODE_ON:
+                    if (midi_complevel == COMP_FULL)
+                    {
+                        // Per MIDI 1.0 Spec, param2 must be zero.
+                        SendChannelMsgZero(event);
+                    }
                     break;
 
                 default:
