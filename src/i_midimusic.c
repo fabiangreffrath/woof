@@ -287,6 +287,19 @@ static void SendNotesSoundOff(void)
     }
 }
 
+// Writes "reset all controllers" message for each channel. Despite the name,
+// this only resets some controllers (see MIDI Recommended Practice RP-015).
+
+static void ResetControllers(void)
+{
+    int i;
+
+    for (i = 0; i < MIDI_CHANNELS_PER_TRACK; i++)
+    {
+        SendShortMsg(MIDI_EVENT_CONTROLLER, i, MIDI_CONTROLLER_RESET_ALL_CTRLS, 0);
+    }
+}
+
 // Resets commonly used controllers. This is only for a reset type of "No SysEx"
 // for devices that don't support SysEx resets.
 
@@ -1160,11 +1173,7 @@ static midi_state_t NextEvent(midi_position_t *position)
             }
             else if (song.looping)
             {
-                for (int i = 0; i < MIDI_CHANNELS_PER_TRACK; ++i)
-                {
-                    SendShortMsg(MIDI_EVENT_CONTROLLER, i,
-                                 MIDI_CONTROLLER_RESET_ALL_CTRLS, 0);
-                }
+                ResetControllers();
                 RestartTracks();
                 return STATE_PLAYING;
             }
