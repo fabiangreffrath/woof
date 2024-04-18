@@ -462,8 +462,6 @@ void I_InitSound(void)
         if (from->lumpnum == -1)
         {
             from->link = to;
-            from->pitch = NORM_PITCH;
-            from->volume = 0;
         }
     }
 
