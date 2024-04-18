@@ -16,8 +16,8 @@
 //      [FG] miscellaneous helper functions from Chocolate Doom.
 //
 
-#ifndef __M_MISC2__
-#define __M_MISC2__
+#ifndef __M_MISC__
+#define __M_MISC__
 
 #include <stdarg.h>
 

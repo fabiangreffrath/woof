@@ -1373,7 +1373,7 @@ static const char *screensize_strings[] = {
 
 static const char *hudtype_strings[] = {"Crispy", "Boom No Bars", "Boom"};
 
-static const char **M_GetHUDModeStrings(void)
+static const char **GetHUDModeStrings(void)
 {
     static const char *crispy_strings[] = {"Off", "Original", "Widescreen"};
     static const char *boom_strings[] = {"Minimal", "Compact", "Distributed"};
@@ -1839,11 +1839,15 @@ int resolution_scale;
 static const char **GetResolutionScaleStrings(void)
 {
     const char **strings = NULL;
-
     resolution_scaling_t rs;
     I_GetResolutionScaling(&rs);
 
     array_push(strings, "100%");
+
+    if (current_video_height == SCREENHEIGHT)
+    {
+        resolution_scale = 0;
+    }
 
     int val = SCREENHEIGHT * 2;
     char buf[8];
@@ -1869,8 +1873,6 @@ static const char **GetResolutionScaleStrings(void)
 
     return strings;
 }
-
-static void UpdateDynamicResolutionItem(void);
 
 static void ResetVideoHeight(void)
 {
@@ -1915,7 +1917,7 @@ static void ResetVideoHeight(void)
         VX_ResetMaxDist();
     }
 
-    UpdateDynamicResolutionItem();
+    MN_UpdateDynamicResolutionItem();
 
     resetneeded = true;
 }
@@ -1932,8 +1934,6 @@ static void UpdateFOV(void)
 {
     setsizeneeded = true; // run R_ExecuteSetViewSize;
 }
-
-static void ToggleUncapped(void);
 
 static void ToggleFullScreen(void)
 {
@@ -1995,7 +1995,7 @@ static setup_menu_t gen_settings1[] = {
     MI_GAP,
 
     {"Uncapped Framerate", S_ONOFF, M_X, M_SPC, {"uncapped"}, m_null, input_null,
-     str_empty, ToggleUncapped},
+     str_empty, MN_UpdateFpsLimitItem},
 
     {"Framerate Limit", S_NUM, M_X, M_SPC, {"fpslimit"}, m_null, input_null,
      str_empty, CoerceFPSLimit},
@@ -2015,6 +2015,11 @@ static setup_menu_t gen_settings1[] = {
 
     MI_END
 };
+
+void MN_DisableResolutionScaleItem(void)
+{
+    DisableItem(true, gen_settings1, "resolution_scale");
+}
 
 static void UpdateSfxVolume(void)
 {
@@ -2054,7 +2059,12 @@ int midi_player_menu;
 
 static const char **GetMidiDevicesStrings(void)
 {
-    return I_DeviceList(&midi_player_menu);
+    const char **devices = I_DeviceList();
+    if (midi_player_menu >= array_size(devices))
+    {
+        midi_player_menu = 0;
+    }
+    return devices;
 }
 
 static void SetMidiPlayer(void)
@@ -2345,7 +2355,7 @@ static setup_menu_t *gen_settings[] = {
     gen_settings5, gen_settings6, NULL
 };
 
-static void UpdateDynamicResolutionItem(void)
+void MN_UpdateDynamicResolutionItem(void)
 {
     DisableItem(current_video_height <= DRS_MIN_HEIGHT, gen_settings1,
                 "dynamic_resolution");
@@ -2356,7 +2366,7 @@ static void UpdateAdvancedSoundItems(void)
     DisableItem(snd_module != SND_MODULE_3D, gen_settings2, "snd_hrtf");
 }
 
-static void ToggleUncapped(void)
+void MN_UpdateFpsLimitItem(void)
 {
     DisableItem(!default_uncapped, gen_settings1, "fpslimit");
     setrefreshneeded = true;
@@ -3722,9 +3732,8 @@ int MN_StringHeight(const char *string)
 void MN_DrawTitle(int x, int y, const char *patch, const char *alttext)
 {
     int patch_lump = W_CheckNumForName(patch);
-    int bigfont_lump = W_CheckNumForName("DBIGFONT");
 
-    if (patch_lump >= 0 && !(W_IsIWADLump(patch_lump) && bigfont_lump >= 0))
+    if (patch_lump >= 0)
     {
         V_DrawPatch(x, y, W_CacheLumpNum(patch_lump, PU_CACHE));
     }
@@ -3787,7 +3796,7 @@ static const char **GetStrings(int id)
 
 static void UpdateHUDModeStrings(void)
 {
-    selectstrings[str_hudmode] = M_GetHUDModeStrings();
+    selectstrings[str_hudmode] = GetHUDModeStrings();
 }
 
 void MN_InitMenuStrings(void)
@@ -3810,16 +3819,11 @@ void MN_SetupResetMenu(void)
     DisableItem(deh_set_blood_color, enem_settings1, "colored_blood");
     DisableItem(!brightmaps_found || force_brightmaps, gen_settings5,
                 "brightmaps");
-
+    DisableItem(default_current_video_height <= DRS_MIN_HEIGHT, gen_settings1,
+                "dynamic_resolution");
     UpdateInterceptsEmuItem();
-    UpdateDynamicResolutionItem();
     CoerceFPSLimit();
     UpdateCrosshairItems();
     UpdateCenteredWeaponItem();
     UpdateAdvancedSoundItems();
-}
-
-void MN_SetupResetMenuVideo(void)
-{
-    ToggleUncapped();
 }

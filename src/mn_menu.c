@@ -3092,8 +3092,6 @@ void M_Drawer(void)
     // [FG] check current menu for missing menu graphics lumps - only once
     if (currentMenu->lumps_missing == 0)
     {
-        int bigfont_lump = W_CheckNumForName("DBIGFONT");
-
         for (int i = 0; i < max; i++)
         {
             const char *name = currentMenu->menuitems[i].name;
@@ -3104,9 +3102,7 @@ void M_Drawer(void)
                 patch_lump = W_CheckNumForName(name);
             }
 
-            if ((patch_lump < 0
-                 || (W_IsIWADLump(patch_lump) && bigfont_lump >= 0))
-                && currentMenu->menuitems[i].alttext)
+            if (patch_lump < 0 && currentMenu->menuitems[i].alttext)
             {
                 currentMenu->lumps_missing++;
                 break;

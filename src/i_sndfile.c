@@ -704,7 +704,7 @@ static void I_SND_ShutdownStream(void)
     ;
 }
 
-static const char **I_SND_DeviceList(int *current_device)
+static const char **I_SND_DeviceList(void)
 {
     return NULL;
 }

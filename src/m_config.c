@@ -75,7 +75,7 @@ extern int showMessages;
 extern int show_toggle_messages;
 extern int show_pickup_messages;
 
-extern int window_width, window_height;
+extern int default_window_width, default_window_height;
 extern int window_position_x, window_position_y;
 extern boolean flipcorpses;    // [crispy] randomly flip corpse, blood and death
                                // animation sprites
@@ -85,18 +85,14 @@ extern int mouse_acceleration;
 extern int mouse_acceleration_threshold;
 extern int show_endoom;
 #if defined(HAVE_FLUIDSYNTH)
-extern char *soundfont_path;
 extern char *soundfont_dir;
 extern boolean mus_chorus;
 extern boolean mus_reverb;
 extern int mus_gain;
 #endif
-#if defined(_WIN32)
-extern char *winmm_device;
-extern int winmm_complevel;
-extern int winmm_reset_type;
-extern int winmm_reset_delay;
-#endif
+extern int midi_complevel;
+extern int midi_reset_type;
+extern int midi_reset_delay;
 extern int opl_gain;
 extern boolean demobar;
 extern boolean smoothlight;
@@ -132,7 +128,7 @@ default_t defaults[] = {
 
   {
     "current_video_height",
-    (config_t *) &current_video_height, NULL,
+    (config_t *) &default_current_video_height, NULL,
     {600}, {SCREENHEIGHT, UL}, number, ss_none, wad_no,
     "vertical resolution (600p by default)"
   },
@@ -237,7 +233,7 @@ default_t defaults[] = {
   // window width
   {
     "window_width",
-    (config_t *) &window_width, NULL,
+    (config_t *) &default_window_width, NULL,
     {1065}, {0, UL}, number, ss_none, wad_no,
     "window width"
   },
@@ -245,7 +241,7 @@ default_t defaults[] = {
   // window height
   {
     "window_height",
-    (config_t *) &window_height, NULL,
+    (config_t *) &default_window_height, NULL,
     {600}, {0, UL}, number, ss_none, wad_no,
     "window height"
   },
@@ -459,13 +455,6 @@ default_t defaults[] = {
   },
 
   {
-    "midi_player",
-    (config_t *) &midi_player, NULL,
-    {0}, {0, 2}, number, ss_none, wad_no,
-    "MIDI Player backend (Native if available, FluidSynth if available, OPL Emulation)"
-  },
-
-  {
     "midi_player_menu",
     (config_t *) &midi_player_menu, NULL,
     {0}, {0, UL}, number, ss_none, wad_no,
@@ -476,9 +465,9 @@ default_t defaults[] = {
   {
     "soundfont_dir",
     (config_t *) &soundfont_dir, NULL,
-#if defined(_WIN32)
+#  if defined(_WIN32)
     {.s = "soundfonts"},
-#else
+#  else
     /* RedHat/Fedora/Arch */
     {.s = "/usr/share/soundfonts:"
     /* Debian/Ubuntu/OpenSUSE */
@@ -486,16 +475,9 @@ default_t defaults[] = {
     "/usr/share/sounds/sf3:"
     /* AppImage */
     "../share/" PROJECT_SHORTNAME "/soundfonts"},
-#endif
+#  endif
     {0}, string, ss_none, wad_no,
     "FluidSynth soundfont directories"
-  },
-
-  {
-    "soundfont_path",
-    (config_t *) &soundfont_path, NULL,
-    {.s = ""}, {0}, string, ss_none, wad_no,
-    "FluidSynth current soundfont path"
   },
 
   {
@@ -527,35 +509,26 @@ default_t defaults[] = {
     "fine tune OPL emulation output level (default 200%)"
   },
 
-#if defined(_WIN32)
   {
-    "winmm_device",
-    (config_t *) &winmm_device, NULL,
-    {.s = ""}, {0}, string, ss_none, wad_no,
-    "Native MIDI device"
-  },
-
-  {
-    "winmm_complevel",
-    (config_t *) &winmm_complevel, NULL,
+    "midi_complevel",
+    (config_t *) &midi_complevel, NULL,
     {1}, {0, 2}, number, ss_none, wad_no,
     "Native MIDI compatibility level (0 = Vanilla, 1 = Standard, 2 = Full)"
   },
 
   {
-    "winmm_reset_type",
-    (config_t *) &winmm_reset_type, NULL,
+    "midi_reset_type",
+    (config_t *) &midi_reset_type, NULL,
     {1}, {0, 3}, number, ss_none, wad_no,
     "SysEx reset for native MIDI (0 = None, 1 = GM, 2 = GS, 3 = XG)"
   },
 
   {
-    "winmm_reset_delay",
-    (config_t *) &winmm_reset_delay, NULL,
+    "midi_reset_delay",
+    (config_t *) &midi_reset_delay, NULL,
     {0}, {0, 2000}, number, ss_none, wad_no,
     "Delay after reset for native MIDI (milliseconds)"
   },
-#endif
 
   //
   // QOL features
