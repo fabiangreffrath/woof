@@ -183,11 +183,6 @@ static void SendShortMsg(byte status, byte channel, byte param1, byte param2)
     MIDI_SendShortMsg(message, sizeof(message));
 }
 
-static void SendLongMsg(const byte *message, unsigned int length)
-{
-    MIDI_SendLongMsg(message, length);
-}
-
 // Sends a channel message with the second parameter overridden to zero. Only
 // use this function for events that require special handling.
 
@@ -396,16 +391,16 @@ static void ResetDevice(void)
             break;
 
         case RESET_TYPE_GS:
-            SendLongMsg(gs_reset, sizeof(gs_reset));
+            MIDI_SendLongMsg(gs_reset, sizeof(gs_reset));
             use_fallback = (midi_complevel != COMP_VANILLA);
             break;
 
         case RESET_TYPE_XG:
-            SendLongMsg(xg_system_on, sizeof(xg_system_on));
+            MIDI_SendLongMsg(xg_system_on, sizeof(xg_system_on));
             break;
 
         default:
-            SendLongMsg(gm_system_on, sizeof(gm_system_on));
+            MIDI_SendLongMsg(gm_system_on, sizeof(gm_system_on));
             break;
     }
 
@@ -607,7 +602,7 @@ static void SendSysExMsg(const midi_event_t *event)
     }
 
     memcpy(sysex_buffer + 1, data, length);
-    SendLongMsg(sysex_buffer, length + 1);
+    MIDI_SendLongMsg(sysex_buffer, length + 1);
 
     if (IsSysExReset(data, length))
     {
