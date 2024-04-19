@@ -27,7 +27,6 @@
 
 #define HEADER_CHUNK_ID "MThd"
 #define TRACK_CHUNK_ID  "MTrk"
-#define MAX_BUFFER_SIZE 0x10000
 
 // haleyjd 09/09/10: packing required
 #if defined(_MSC_VER)
@@ -80,10 +79,6 @@ struct midi_file_s
     // All tracks in this file:
     midi_track_t *tracks;
     unsigned int num_tracks;
-
-    // Data buffer used to store data read for SysEx or meta events:
-    byte *buffer;
-    unsigned int buffer_size;
 };
 
 // Check the header of a chunk:
@@ -607,8 +602,6 @@ midi_file_t *MIDI_LoadFile(void *buf, size_t buflen)
 
     file->tracks = NULL;
     file->num_tracks = 0;
-    file->buffer = NULL;
-    file->buffer_size = 0;
 
     // Open file
 
