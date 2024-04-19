@@ -810,13 +810,12 @@ static void SendMetaMsg(const midi_event_t *event, midi_track_t *track)
 // ProcessEvent function for vanilla (DMX MPU-401) compatibility level. Do not
 // call this function directly. See the ProcessEvent function pointer.
 
-static boolean ProcessEvent_Vanilla(const midi_event_t *event,
-                                    midi_track_t *track)
+static void ProcessEvent_Vanilla(const midi_event_t *event, midi_track_t *track)
 {
     switch ((int)event->event_type)
     {
         case MIDI_EVENT_SYSEX:
-            return false;
+            break;
 
         case MIDI_EVENT_META:
             SendMetaMsg(event, track);
@@ -875,15 +874,13 @@ static boolean ProcessEvent_Vanilla(const midi_event_t *event,
         default:
             break;
     }
-
-    return true;
 }
 
 // ProcessEvent function for standard and full MIDI compatibility levels. Do not
 // call this function directly. See the ProcessEvent function pointer.
 
-static boolean ProcessEvent_Standard(const midi_event_t *event,
-                                    midi_track_t *track)
+static void ProcessEvent_Standard(const midi_event_t *event,
+                                  midi_track_t *track)
 {
     midi_fallback_t fallback = {FALLBACK_NONE, 0};
 
@@ -899,16 +896,16 @@ static boolean ProcessEvent_Standard(const midi_event_t *event,
             {
                 SendSysExMsg(event);
             }
-            return false;
+            return;
 
         case MIDI_EVENT_META:
             SendMetaMsg(event, track);
-            return true;
+            return;
     }
 
     if (track->emidi_designated && (EMIDI_DEVICE & ~track->emidi_device_flags))
     {
-        return true;
+        return;
     }
 
     switch ((int)event->event_type)
@@ -1083,16 +1080,14 @@ static boolean ProcessEvent_Standard(const midi_event_t *event,
         default:
             break;
     }
-
-    return true;
 }
 
 // Function pointer determined by the desired MIDI compatibility level. Set
 // during initialization by the main thread, then called from the MIDI thread
 // only.
 
-static boolean (*ProcessEvent)(const midi_event_t *event,
-                              midi_track_t *track) = ProcessEvent_Standard;
+static void (*ProcessEvent)(const midi_event_t *event,
+                            midi_track_t *track) = ProcessEvent_Standard;
 
 // Restarts a song that uses a Final Fantasy or RPG Maker loop point.
 
