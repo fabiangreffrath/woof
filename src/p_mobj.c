@@ -147,7 +147,7 @@ void P_ExplodeMissile (mobj_t* mo)
 
   if (mo->info->deathsound)
     S_StartSoundPitch(mo, mo->info->deathsound,
-                          brainexplode ? PITCH_NONE : PITCH_FULL);
+                      brainexplode ? PITCH_NONE : PITCH_FULL);
 }
 
 //
