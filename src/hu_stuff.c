@@ -1599,8 +1599,8 @@ void HU_Ticker(void)
               message_nottobefuckedwith = true;
               message_on = true;
               message_counter = chat_count; // killough 11/98
-              S_StartSoundWithPitch(0, gamemode == commercial ?
-                              sfx_radio : sfx_tink, PITCHRANGE_NONE);
+              S_StartSoundPitch(0, gamemode == commercial ?
+                              sfx_radio : sfx_tink, PITCH_NONE);
             }
             HUlib_clear_line(&w_inputbuffer[i]);
           }

@@ -652,8 +652,8 @@ void P_TouchSpecialThing(mobj_t *special, mobj_t *toucher)
   P_RemoveMobj (special);
   player->bonuscount += BONUSADD;
 
-  S_StartSoundWithPitch(player->mo, sound, // killough 4/25/98, 12/98
-                        sound == sfx_itemup ? PITCHRANGE_NONE : PITCHRANGE_FULL);
+  S_StartSoundPitch(player->mo, sound, // killough 4/25/98, 12/98
+                        sound == sfx_itemup ? PITCH_NONE : PITCH_FULL);
 }
 
 //

@@ -2212,7 +2212,7 @@ static boolean ShortcutResponder(const event_t *ev)
             return false;
         }
         MN_SizeDisplay(0);
-        S_StartSoundWithPitch(NULL, sfx_stnmov, PITCHRANGE_NONE);
+        S_StartSoundPitch(NULL, sfx_stnmov, PITCH_NONE);
         return true;
     }
 
@@ -2223,7 +2223,7 @@ static boolean ShortcutResponder(const event_t *ev)
             return false;
         }
         MN_SizeDisplay(1);
-        S_StartSoundWithPitch(NULL, sfx_stnmov, PITCHRANGE_NONE);
+        S_StartSoundPitch(NULL, sfx_stnmov, PITCH_NONE);
         return true;
     }
 
@@ -2389,12 +2389,12 @@ static boolean SaveLoadResponder(menu_action_t action, int ch)
         if (M_ToUpper(ch) == 'Y')
         {
             M_DeleteGame(itemOn);
-            S_StartSoundWithPitch(NULL, sfx_itemup, PITCHRANGE_NONE);
+            S_StartSoundPitch(NULL, sfx_itemup, PITCH_NONE);
             delete_verify = false;
         }
         else if (M_ToUpper(ch) == 'N')
         {
-            S_StartSoundWithPitch(NULL, sfx_itemup, PITCHRANGE_NONE);
+            S_StartSoundPitch(NULL, sfx_itemup, PITCH_NONE);
             delete_verify = false;
         }
         return true;
@@ -2498,7 +2498,7 @@ static boolean MouseResponder(void)
         if (current_item->routine)
         {
             current_item->routine(value);
-            S_StartSoundWithPitch(NULL, sfx_stnmov, PITCHRANGE_NONE);
+            S_StartSoundPitch(NULL, sfx_stnmov, PITCH_NONE);
         }
 
         return true;
@@ -2812,7 +2812,7 @@ boolean M_Responder(event_t *ev)
         if (currentMenu->menuitems[itemOn].routine
             && currentMenu->menuitems[itemOn].status == 2)
         {
-            S_StartSoundWithPitch(NULL, sfx_stnmov, PITCHRANGE_NONE);
+            S_StartSoundPitch(NULL, sfx_stnmov, PITCH_NONE);
             currentMenu->menuitems[itemOn].routine(CHOICE_LEFT);
         }
         return true;
@@ -2823,7 +2823,7 @@ boolean M_Responder(event_t *ev)
         if (currentMenu->menuitems[itemOn].routine
             && currentMenu->menuitems[itemOn].status == 2)
         {
-            S_StartSoundWithPitch(NULL, sfx_stnmov, PITCHRANGE_NONE);
+            S_StartSoundPitch(NULL, sfx_stnmov, PITCH_NONE);
             currentMenu->menuitems[itemOn].routine(CHOICE_RIGHT);
         }
         return true;
@@ -2839,7 +2839,7 @@ boolean M_Responder(event_t *ev)
             if (currentMenu->menuitems[itemOn].status == 2)
             {
                 currentMenu->menuitems[itemOn].routine(CHOICE_RIGHT);
-                S_StartSoundWithPitch(NULL, sfx_stnmov, PITCHRANGE_NONE);
+                S_StartSoundPitch(NULL, sfx_stnmov, PITCH_NONE);
             }
             else
             {
@@ -2915,7 +2915,7 @@ boolean M_Responder(event_t *ev)
         {
             if (LoadMenu[itemOn].status)
             {
-                S_StartSoundWithPitch(NULL, sfx_itemup, PITCHRANGE_NONE);
+                S_StartSoundPitch(NULL, sfx_itemup, PITCH_NONE);
                 currentMenu->lastOn = itemOn;
                 delete_verify = true;
                 return true;

@@ -23,9 +23,9 @@
 #include "doomtype.h"
 
 typedef enum {
-  PITCHRANGE_FULL,
-  PITCHRANGE_HALF,
-  PITCHRANGE_NONE
+  PITCH_FULL,
+  PITCH_HALF,
+  PITCH_NONE
 } pitchrange_t;
 
 struct mobj_s;
@@ -49,7 +49,7 @@ void S_Start(void);
 //  using <sound_id> from sounds.h
 //
 void S_StartSound(const struct mobj_s *origin, int sound_id);
-void S_StartSoundWithPitch(const struct mobj_s *origin, int sound_id, const pitchrange_t pitch_range);
+void S_StartSoundPitch(const struct mobj_s *origin, int sound_id, const pitchrange_t pitch_range);
 
 // Stop sound for thing at <origin>
 void S_StopSound(const struct mobj_s *origin);

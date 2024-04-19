@@ -197,7 +197,7 @@ static int S_getChannel(const mobj_t *origin, sfxinfo_t *sfxinfo, int priority,
     return cnum;
 }
 
-void S_StartSoundWithPitch(const mobj_t *origin, int sfx_id, const pitchrange_t pitch_range)
+void S_StartSoundPitch(const mobj_t *origin, int sfx_id, const pitchrange_t pitch_range)
 {
     int sep, pitch, o_priority, priority, singularity, cnum, handle;
     int volumeScale = 127;
@@ -246,11 +246,11 @@ void S_StartSoundWithPitch(const mobj_t *origin, int sfx_id, const pitchrange_t 
     if (pitched_sounds)
     {
         // hacks to vary the sfx pitches
-        if (pitch_range == PITCHRANGE_HALF)
+        if (pitch_range == PITCH_HALF)
         {
             pitch += 8 - (M_Random() & 15);
         }
-        else if (pitch_range == PITCHRANGE_FULL)
+        else if (pitch_range == PITCH_FULL)
         {
             pitch += 16 - (M_Random() & 31);
         }
@@ -311,7 +311,7 @@ void S_StartSoundWithPitch(const mobj_t *origin, int sfx_id, const pitchrange_t 
 
 void S_StartSound(const mobj_t *origin, int sfx_id)
 {
-    S_StartSoundWithPitch(origin, sfx_id, PITCHRANGE_FULL);
+    S_StartSoundPitch(origin, sfx_id, PITCH_FULL);
 }
 
 //
