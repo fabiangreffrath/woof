@@ -177,12 +177,6 @@ static uint64_t CurrentTime(void)
     return I_GetTimeUS() - start_time;
 }
 
-static void SendShortMsg(byte status, byte channel, byte param1, byte param2)
-{
-    const byte message[] = {status | channel, param1, param2};
-    MIDI_SendShortMsg(message, sizeof(message));
-}
-
 // Sends a channel message with the second parameter overridden to zero. Only
 // use this function for events that require special handling.
 
