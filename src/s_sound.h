@@ -48,8 +48,8 @@ void S_Start(void);
 // Start sound for thing at <origin>
 //  using <sound_id> from sounds.h
 //
+void S_StartSound(const struct mobj_s *origin, int sound_id);
 void S_StartSoundWithPitch(const struct mobj_s *origin, int sound_id, const pitchrange_t pitch_range);
-void S_StartSound(const struct mobj_s *origin, int sfx_id);
 
 // Stop sound for thing at <origin>
 void S_StopSound(const struct mobj_s *origin);
