@@ -881,9 +881,6 @@ static void PrepareAutoloadPaths (void)
     if (M_CheckParm("-noautoload"))
         return;
 
-    if (gamemode == shareware)
-        return;
-
     for (i = 0; ; i++)
     {
         autoload_paths = I_Realloc(autoload_paths, (i + 1) * sizeof(*autoload_paths));
