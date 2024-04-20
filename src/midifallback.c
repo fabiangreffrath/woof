@@ -40,53 +40,6 @@ static byte bank_msb[MIDI_CHANNELS_PER_TRACK];
 static byte drum_map[MIDI_CHANNELS_PER_TRACK];
 static boolean selected[MIDI_CHANNELS_PER_TRACK];
 
-static void UpdateDrumMap(const byte *msg, unsigned int length)
-{
-    byte idx;
-    byte checksum;
-
-    // GS allows drums on any channel using SysEx messages.
-    // The message format is F0 followed by:
-    //
-    // 41 10 42 12 40 <ch> 15 <map> <sum> F7
-    //
-    // <ch> is [11-19, 10, 1A-1F] for channels 1-16. Note the position of 10.
-    // <map> is 00-02 for off (normal part), drum map 1, or drum map 2.
-    // <sum> is checksum.
-
-    if (length == 10 &&
-        msg[0] == 0x41 && // Roland
-        msg[1] == 0x10 && // Device ID
-        msg[2] == 0x42 && // GS
-        msg[3] == 0x12 && // DT1
-        msg[4] == 0x40 && // Address MSB
-        msg[6] == 0x15 && // Address LSB
-        msg[9] == 0xF7)   // SysEx EOX
-    {
-        checksum = 128 - ((int)msg[4] + msg[5] + msg[6] + msg[7]) % 128;
-
-        if (msg[8] != checksum)
-        {
-            return;
-        }
-
-        if (msg[5] == 0x10)  // Channel 10
-        {
-            idx = 9;
-        }
-        else if (msg[5] < 0x1A)  // Channels 1-9
-        {
-            idx = (msg[5] & 0x0F) - 1;
-        }
-        else  // Channels 11-16
-        {
-            idx = msg[5] & 0x0F;
-        }
-
-        drum_map[idx] = msg[7];
-    }
-}
-
 static boolean GetProgramFallback(byte idx, byte program,
                                   midi_fallback_t *fallback)
 {
@@ -164,9 +117,15 @@ void MIDI_CheckFallback(const midi_event_t *event, midi_fallback_t *fallback,
     switch ((int)event->event_type)
     {
         case MIDI_EVENT_SYSEX:
-            if (allow_sysex)
+            if (allow_sysex && event->data.sysex.type == MIDI_SYSEX_RHYTHM_PART)
             {
-                UpdateDrumMap(event->data.sysex.data, event->data.sysex.length);
+                // GS allows drums on any channel using SysEx messages.
+                // The message format is:
+                // F0 41 10 42 12 40 <ch> 15 <map> <sum> F7
+                // <ch> is [11-19, 10, 1A-1F] for channels 1-16.
+                // <map> is 00-02 for off (normal part) or drum map 1/2.
+                // <sum> is checksum.
+                drum_map[event->data.sysex.channel] = event->data.sysex.data[8];
             }
             break;
 

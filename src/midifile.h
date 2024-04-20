@@ -134,6 +134,15 @@ typedef enum
     EMIDI_CONTROLLER_GLOBAL_LOOP_END   = 0x77,
 } emidi_controller_t;
 
+typedef enum
+{
+    MIDI_SYSEX_UNSUPPORTED,
+    MIDI_SYSEX_RESET,
+    MIDI_SYSEX_RHYTHM_PART,
+    MIDI_SYSEX_PART_LEVEL,
+    MIDI_SYSEX_OTHER,
+} midi_sysex_type_t;
+
 typedef struct
 {
     // Meta event type:
@@ -151,6 +160,9 @@ typedef struct
 
 typedef struct
 {
+    unsigned int type;
+    unsigned int channel;
+
     // Length:
 
     unsigned int length;

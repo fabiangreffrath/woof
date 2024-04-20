@@ -234,9 +234,13 @@ static boolean ReadChannelEvent(midi_event_t *event, byte event_type,
 
 // Read sysex event:
 
+static midi_sysex_type_t GetSysExType(midi_event_t *event);
+
 static boolean ReadSysExEvent(midi_event_t *event, int event_type,
                               MEMFILE *stream)
 {
+    unsigned int i;
+
     event->event_type = event_type;
 
     if (!ReadVariableLength(&event->data.sysex.length, stream))
@@ -248,14 +252,28 @@ static boolean ReadSysExEvent(midi_event_t *event, int event_type,
 
     // Read the byte sequence:
 
-    event->data.sysex.data = ReadByteSequence(event->data.sysex.length, stream);
+    event->data.sysex.length++; // Extra byte for event type.
+    event->data.sysex.data = malloc(event->data.sysex.length);
 
     if (event->data.sysex.data == NULL)
     {
-        I_Printf(VB_ERROR, "ReadSysExEvent: Failed while reading SysEx event");
+        I_Printf(VB_ERROR, "ReadSysExEvent: Failed to allocate buffer");
         return false;
     }
 
+    event->data.sysex.data[0] = event->event_type;
+
+    for (i = 1; i < event->data.sysex.length; i++)
+    {
+        if (!ReadByte(&event->data.sysex.data[i], stream))
+        {
+            I_Printf(VB_ERROR, "ReadSysExEvent: Failed to read event");
+            free(event->data.sysex.data);
+            return false;
+        }
+    }
+
+    event->data.sysex.type = GetSysExType(event);
     return true;
 }
 
@@ -728,4 +746,141 @@ void MIDI_SetLoopPoint(midi_track_iter_t *iter)
 void MIDI_RestartAtLoopPoint(midi_track_iter_t *iter)
 {
     iter->position = iter->loop_point;
+}
+
+static boolean RolandChecksum(const byte *data)
+{
+    const byte checksum =
+        128 - ((int)data[5] + data[6] + data[7] + data[8]) % 128;
+    return (data[9] == checksum);
+}
+
+static void RolandBlockToChannel(midi_event_t *event)
+{
+    const byte *data = event->data.sysex.data;
+    unsigned int *channel = &event->data.sysex.channel;
+
+    // Convert Roland "block number" to a channel number.
+    // [11-19, 10, 1A-1F] for channels 1-16. Note the position of 10.
+
+    if (data[6] == 0x10) // Channel 10
+    {
+        *channel = 9;
+    }
+    else if (data[6] < 0x1A) // Channels 1-9
+    {
+        *channel = (data[6] & 0x0F) - 1;
+    }
+    else // Channels 11-16
+    {
+        *channel = data[6] & 0x0F;
+    }
+}
+
+static midi_sysex_type_t GetSysExType(midi_event_t *event)
+{
+    const byte *data = event->data.sysex.data;
+    const unsigned int length = event->data.sysex.length;
+    unsigned int address;
+
+    if (length < 2 || data[0] != MIDI_EVENT_SYSEX
+        || data[length - 1] != MIDI_EVENT_SYSEX_SPLIT)
+    {
+        return MIDI_SYSEX_UNSUPPORTED;
+    }
+
+    if (length < 6)
+    {
+        return MIDI_SYSEX_OTHER;
+    }
+
+    switch (data[1])
+    {
+        case 0x7E: // Universal Non-Real Time
+            if (length == 6 && data[3] == 0x09 // General Midi
+                && (data[4] == 0x01 || data[4] == 0x02 || data[4] == 0x03))
+            {
+                // GM System On/Off, GM2 System On
+                // F0 7E <dev> 09 01 F7
+                // F0 7E <dev> 09 02 F7
+                // F0 7E <dev> 09 03 F7
+                return MIDI_SYSEX_RESET;
+            }
+            break;
+
+        case 0x41: // Roland
+            if (length == 11 && data[3] == 0x42 && data[4] == 0x12) // GS DT1
+            {
+                address = (data[5] << 16) | ((data[6] & 0xF0) << 8) | data[7];
+                switch (address)
+                {
+                    case 0x40007F: // Mode Set
+                        if (data[8] == 0x00 && data[9] == 0x41)
+                        {
+                            // GS Reset
+                            // F0 41 <dev> 42 12 40 00 7F 00 41 F7
+                            return MIDI_SYSEX_RESET;
+                        }
+                        break;
+
+                    case 0x00007F: // System Mode Set
+                        if ((data[8] == 0x00 && data[9] == 0x01)
+                            || (data[8] == 0x01 && data[9] == 0x00))
+                        {
+                            // System Mode Set MODE-1, MODE-2
+                            // F0 41 <dev> 42 12 00 00 7F 00 01 F7
+                            // F0 41 <dev> 42 12 00 00 7F 01 00 F7
+                            return MIDI_SYSEX_RESET;
+                        }
+                        break;
+
+                    case 0x401015: // Use for Rhythm Part
+                        if (RolandChecksum(data))
+                        {
+                            // Use for Rhythm Part (Drum Map)
+                            // F0 41 <dev> 42 12 40 <ch> 15 <map> <sum> F7
+                            RolandBlockToChannel(event);
+                            return MIDI_SYSEX_RHYTHM_PART;
+                        }
+                        break;
+
+                    case 0x401019: // Part Level
+                        if (RolandChecksum(data))
+                        {
+                            // Part Level (Channel Volume)
+                            // F0 41 <dev> 42 12 40 <ch> 19 <vol> <sum> F7
+                            RolandBlockToChannel(event);
+                            return MIDI_SYSEX_PART_LEVEL;
+                        }
+                        break;
+                }
+            }
+            break;
+
+        case 0x43: // Yamaha
+            if (length == 9 && data[3] == 0x4C) // XG
+            {
+                address = (data[4] << 16) | (data[5] << 8) | data[6];
+                if ((address == 0x7E || address == 0x7F) && data[7] == 0x00)
+                {
+                    // XG System On, XG All Parameter Reset
+                    // F0 43 <dev> 4C 00 00 7E 00 F7
+                    // F0 43 <dev> 4C 00 00 7F 00 F7
+                    return MIDI_SYSEX_RESET;
+                }
+            }
+            else if (length == 10 && data[3] == 0x2B) // TG300
+            {
+                address = (data[4] << 16) | (data[5] << 8) | data[6];
+                if (address == 0x7F && data[7] == 0x00 && data[8] == 0x01)
+                {
+                    // TG300 All Parameter Reset
+                    // F0 43 <dev> 2B 00 00 7F 00 01 F7
+                    return MIDI_SYSEX_RESET;
+                }
+            }
+            break;
+    }
+
+    return MIDI_SYSEX_OTHER;
 }

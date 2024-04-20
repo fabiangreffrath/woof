@@ -61,10 +61,6 @@ int midi_complevel = COMP_STANDARD;
 int midi_reset_type = RESET_TYPE_GM;
 int midi_reset_delay = 0;
 
-#define SYSEX_DEFAULT_BUFFER_SIZE 32
-static byte *sysex_buffer;
-static int sysex_buffer_size = SYSEX_DEFAULT_BUFFER_SIZE;
-
 static const byte gm_system_on[] =
 {
     0xF0, 0x7E, 0x7F, 0x09, 0x01, 0xF7
@@ -420,198 +416,32 @@ static void ResetDevice(void)
     }
 }
 
-// Normally, volume is controlled by channel volume messages. Roland defined a
-// special SysEx message called "part level" that is equivalent to this. MS GS
-// Wavetable Synth ignores these messages, but other MIDI devices support them.
-// Returns true if there is a match.
-
-static boolean IsPartLevel(const byte *msg, unsigned int length)
-{
-    if (length == 10 &&
-        msg[0] == 0x41 && // Roland
-        msg[2] == 0x42 && // GS
-        msg[3] == 0x12 && // DT1
-        msg[4] == 0x40 && // Address MSB
-        msg[5] >= 0x10 && // Address
-        msg[5] <= 0x1F && // Address
-        msg[6] == 0x19 && // Address LSB
-        msg[9] == 0xF7)   // SysEx EOX
-    {
-        const byte checksum = 128 - ((int)msg[4] + msg[5] + msg[6] + msg[7]) % 128;
-
-        if (msg[8] == checksum)
-        {
-            // GS Part Level (aka Channel Volume)
-            // 41 <dev> 42 12 40 <ch> 19 <vol> <sum> F7
-            return true;
-        }
-    }
-
-    return false;
-}
-
-// Checks if the current SysEx message matches any known SysEx reset message.
-// Returns true if there is a match.
-
-static boolean IsSysExReset(const byte *msg, unsigned int length)
-{
-    if (length < 5)
-    {
-        return false;
-    }
-
-    switch (msg[0])
-    {
-        case 0x41:  // Roland
-            switch (msg[2])
-            {
-                case 0x42:  // GS
-                    switch (msg[3])
-                    {
-                        case 0x12:  // DT1
-                            if (length == 10 &&
-                                msg[4] == 0x00 &&    // Address MSB
-                                msg[5] == 0x00 &&    // Address
-                                msg[6] == 0x7F &&    // Address LSB
-                                ((msg[7] == 0x00 &&  // Data     (MODE-1)
-                                  msg[8] == 0x01)
-                                 ||                  // Checksum (MODE-1)
-                                 (msg[7] == 0x01 &&  // Data     (MODE-2)
-                                  msg[8] == 0x00)))  // Checksum (MODE-2)
-                            {
-                                // SC-88 System Mode Set
-                                // 41 <dev> 42 12 00 00 7F 00 01 F7 (MODE-1)
-                                // 41 <dev> 42 12 00 00 7F 01 00 F7 (MODE-2)
-                                return true;
-                            }
-                            else if (length == 10 &&
-                                     msg[4] == 0x40 &&  // Address MSB
-                                     msg[5] == 0x00 &&  // Address
-                                     msg[6] == 0x7F &&  // Address LSB
-                                     msg[7] == 0x00 &&  // Data (GS Reset)
-                                     msg[8] == 0x41)    // Checksum
-                            {
-                                // GS Reset
-                                // 41 <dev> 42 12 40 00 7F 00 41 F7
-                                return true;
-                            }
-                            break;
-                    }
-                    break;
-            }
-            break;
-
-        case 0x43:  // Yamaha
-            switch (msg[2])
-            {
-                case 0x2B:  // TG300
-                    if (length == 9 &&
-                        msg[3] == 0x00 &&  // Start Address b20 - b14
-                        msg[4] == 0x00 &&  // Start Address b13 - b7
-                        msg[5] == 0x7F &&  // Start Address b6 - b0
-                        msg[6] == 0x00 &&  // Data
-                        msg[7] == 0x01)    // Checksum
-                    {
-                        // TG300 All Parameter Reset
-                        // 43 <dev> 2B 00 00 7F 00 01 F7
-                        return true;
-                    }
-                    break;
-
-                case 0x4C:                                // XG
-                    if (length == 8 &&
-                        msg[3] == 0x00 &&  // Address High
-                        msg[4] == 0x00 &&  // Address Mid
-                        (msg[5] == 0x7E || // Address Low (System On)
-                         msg[5] == 0x7F)
-                        &&                 // Address Low (All Parameter Reset)
-                        msg[6] == 0x00)    // Data
-                    {
-                        // XG System On, XG All Parameter Reset
-                        // 43 <dev> 4C 00 00 7E 00 F7
-                        // 43 <dev> 4C 00 00 7F 00 F7
-                        return true;
-                    }
-                    break;
-            }
-            break;
-
-        case 0x7E:  // Universal Non-Real Time
-            switch (msg[2])
-            {
-                case 0x09:  // General Midi
-                    if (length == 5
-                        && (msg[3] == 0x01 ||  // GM System On
-                            msg[3] == 0x02 ||  // GM System Off
-                            msg[3] == 0x03))   // GM2 System On
-                    {
-                        // GM System On/Off, GM2 System On
-                        // 7E <dev> 09 01 F7
-                        // 7E <dev> 09 02 F7
-                        // 7E <dev> 09 03 F7
-                        return true;
-                    }
-                    break;
-            }
-            break;
-    }
-    return false;
-}
-
 static void SendSysExMsg(const midi_event_t *event)
 {
     const byte *data = event->data.sysex.data;
     const unsigned int length = event->data.sysex.length;
 
-    if (IsPartLevel(data, length))
+    switch (event->data.sysex.type)
     {
-        byte channel;
+        case MIDI_SYSEX_RESET:
+            if (use_fallback)
+            {
+                MIDI_ResetFallback();
+                use_fallback = false;
+            }
+            MIDI_SendLongMsg(data, length);
+            ResetVolume();
+            break;
 
-        // Convert "block number" to a channel number.
-        if (data[5] == 0x10) // Channel 10
-        {
-            channel = 9;
-        }
-        else if (data[5] < 0x1A) // Channels 1-9
-        {
-            channel = (data[5] & 0x0F) - 1;
-        }
-        else // Channels 11-16
-        {
-            channel = data[5] & 0x0F;
-        }
+        case MIDI_SYSEX_RHYTHM_PART:
+        case MIDI_SYSEX_OTHER:
+            MIDI_SendLongMsg(data, length);
+            break;
 
-        // Replace SysEx part level message with channel volume message.
-        SendManualVolumeMsg(channel, data[7]);
-        return;
-    }
-
-    // Send the SysEx message.
-    if (length + 1 > sysex_buffer_size)
-    {
-        sysex_buffer_size = length + 1;
-        free(sysex_buffer);
-        sysex_buffer = malloc(sysex_buffer_size);
-        sysex_buffer[0] = MIDI_EVENT_SYSEX;
-    }
-
-    memcpy(sysex_buffer + 1, data, length);
-    MIDI_SendLongMsg(sysex_buffer, length + 1);
-
-    if (IsSysExReset(data, length))
-    {
-        // SysEx reset also resets volume. Take the default channel volumes
-        // and scale them by the user's volume slider.
-        ResetVolume();
-
-        // Disable instrument fallback and give priority to MIDI file. Fallback
-        // assumes GS (SC-55 level) and the MIDI file could be GM, GM2, XG, or
-        // GS (SC-88 or higher). Preserve the composer's intent.
-        if (use_fallback)
-        {
-            MIDI_ResetFallback();
-            use_fallback = false;
-        }
+        case MIDI_SYSEX_PART_LEVEL:
+            // Replace SysEx part level message with channel volume message.
+            SendManualVolumeMsg(event->data.sysex.channel, data[8]);
+            break;
     }
 }
 
@@ -1348,9 +1178,6 @@ static boolean I_MID_InitMusic(int device)
                                                     : ProcessEvent_Standard;
     MIDI_InitFallback();
 
-    sysex_buffer = malloc(sysex_buffer_size);
-    sysex_buffer[0] = MIDI_EVENT_SYSEX;
-
     music_initialized = true;
 
     I_Printf(VB_INFO, "MIDI Init: Using '%s'.", midi_devices[device]);
@@ -1545,8 +1372,6 @@ static void I_MID_ShutdownMusic(void)
     ResetDevice();
 
     MIDI_CloseDevice();
-
-    free(sysex_buffer);
 
     music_initialized = false;
 }
