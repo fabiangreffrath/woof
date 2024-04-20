@@ -284,8 +284,6 @@ void dsdh_EnsureSFXCapacity(int limit)
     for (int i = old_num_sfx; i < num_sfx; ++i)
     {
         S_sfx[i].priority = 127;
-        S_sfx[i].pitch = -1;
-        S_sfx[i].volume = -1;
         S_sfx[i].lumpnum = -1;
     }
 }

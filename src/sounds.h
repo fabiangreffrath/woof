@@ -50,12 +50,6 @@ typedef struct sfxinfo_s
   // referenced sound if a link
   struct sfxinfo_s *link;
 
-  // pitch if a link
-  int pitch;
-
-  // volume if a link
-  int volume;
-
   // OpenAL buffer id
   unsigned int buffer;
 

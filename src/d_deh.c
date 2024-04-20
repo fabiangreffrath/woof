@@ -2375,10 +2375,10 @@ void deh_procSounds(DEHFILE *fpin, FILE* fpout, char *line)
               ; // ignored
             else
               if (!strcasecmp(key,deh_sfxinfo[4]))  // Zero 2
-                S_sfx[indexnum].pitch = value;
+                ; // ignored
               else
                 if (!strcasecmp(key,deh_sfxinfo[5]))  // Zero 3
-                  S_sfx[indexnum].volume = value;
+                  ; // ignored
                 else
                   if (!strcasecmp(key,deh_sfxinfo[6]))  // Zero 4
                     ; // ignored

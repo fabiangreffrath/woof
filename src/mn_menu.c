@@ -1242,11 +1242,11 @@ static void M_QuitResponse(int ch)
     {
         if (gamemode == commercial)
         {
-            S_StartSound(NULL, quitsounds2[(gametic >> 2) & 7]);
+            M_StartSound(quitsounds2[(gametic >> 2) & 7]);
         }
         else
         {
-            S_StartSound(NULL, quitsounds[(gametic >> 2) & 7]);
+            M_StartSound(quitsounds[(gametic >> 2) & 7]);
         }
         I_WaitVBL(105);
     }
@@ -1417,7 +1417,7 @@ static void M_QuickSaveResponse(int ch)
             SetDefaultSaveName(quickSaveSlot);
         }
         M_DoSave(quickSaveSlot);
-        S_StartSound(NULL, sfx_swtchx);
+        M_StartSound(sfx_swtchx);
     }
 }
 
@@ -1425,7 +1425,7 @@ static void M_QuickSave(void)
 {
     if (!usergame && (!demoplayback || netgame)) // killough 10/98
     {
-        S_StartSound(NULL, sfx_oof);
+        M_StartSound(sfx_oof);
         return;
     }
 
@@ -1455,7 +1455,7 @@ static void M_QuickLoadResponse(int ch)
     if (ch == 'y')
     {
         M_LoadSelect(quickSaveSlot);
-        S_StartSound(NULL, sfx_swtchx);
+        M_StartSound(sfx_swtchx);
     }
 }
 
@@ -1921,7 +1921,7 @@ void MN_Back(void)
 
     currentMenu = currentMenu->prevMenu;
     itemOn = currentMenu->lastOn;
-    S_StartSound(NULL, sfx_swtchn);
+    M_StartSound(sfx_swtchn);
 }
 
 //
@@ -2130,14 +2130,14 @@ static boolean ShortcutResponder(const event_t *ev)
         currentMenu = &HelpDef; // killough 10/98: new help screen
 
         itemOn = 0;
-        S_StartSound(NULL, sfx_swtchn);
+        M_StartSound(sfx_swtchn);
         return true;
     }
 
     if (M_InputActivated(input_savegame)) // Save Game
     {
         MN_StartControlPanel();
-        S_StartSound(NULL, sfx_swtchn);
+        M_StartSound(sfx_swtchn);
         M_SaveGame(0);
         return true;
     }
@@ -2145,7 +2145,7 @@ static boolean ShortcutResponder(const event_t *ev)
     if (M_InputActivated(input_loadgame)) // Load Game
     {
         MN_StartControlPanel();
-        S_StartSound(NULL, sfx_swtchn);
+        M_StartSound(sfx_swtchn);
         M_LoadGame(0);
         return true;
     }
@@ -2155,20 +2155,20 @@ static boolean ShortcutResponder(const event_t *ev)
         MN_StartControlPanel();
         currentMenu = &SoundDef;
         itemOn = sfx_vol;
-        S_StartSound(NULL, sfx_swtchn);
+        M_StartSound(sfx_swtchn);
         return true;
     }
 
     if (M_InputActivated(input_quicksave)) // Quicksave
     {
-        S_StartSound(NULL, sfx_swtchn);
+        M_StartSound(sfx_swtchn);
         M_QuickSave();
         return true;
     }
 
     if (M_InputActivated(input_endgame)) // End game
     {
-        S_StartSound(NULL, sfx_swtchn);
+        M_StartSound(sfx_swtchn);
         M_EndGame(0);
         return true;
     }
@@ -2176,20 +2176,20 @@ static boolean ShortcutResponder(const event_t *ev)
     if (M_InputActivated(input_messages)) // Toggle messages
     {
         M_ChangeMessages(0);
-        S_StartSound(NULL, sfx_swtchn);
+        M_StartSound(sfx_swtchn);
         return true;
     }
 
     if (M_InputActivated(input_quickload)) // Quickload
     {
-        S_StartSound(NULL, sfx_swtchn);
+        M_StartSound(sfx_swtchn);
         M_QuickLoad();
         return true;
     }
 
     if (M_InputActivated(input_quit)) // Quit DOOM
     {
-        S_StartSound(NULL, sfx_swtchn);
+        M_StartSound(sfx_swtchn);
         M_QuitDOOM(0);
         return true;
     }
@@ -2213,7 +2213,7 @@ static boolean ShortcutResponder(const event_t *ev)
             return false;
         }
         MN_SizeDisplay(0);
-        S_StartSound(NULL, sfx_stnmov);
+        M_StartSound(sfx_stnmov);
         return true;
     }
 
@@ -2224,7 +2224,7 @@ static boolean ShortcutResponder(const event_t *ev)
             return false;
         }
         MN_SizeDisplay(1);
-        S_StartSound(NULL, sfx_stnmov);
+        M_StartSound(sfx_stnmov);
         return true;
     }
 
@@ -2286,7 +2286,7 @@ static boolean ShortcutResponder(const event_t *ev)
     if (M_InputActivated(input_setup))
     {
         MN_StartControlPanel();
-        S_StartSound(NULL, sfx_swtchn);
+        M_StartSound(sfx_swtchn);
         SetNextMenu(&SetupDef);
         return true;
     }
@@ -2370,7 +2370,7 @@ static void CursorPosition(void)
             if (highlight_item != cursor)
             {
                 highlight_item = cursor;
-                S_StartSound(NULL, sfx_itemup);
+                M_StartSound(sfx_itemup);
             }
         }
     }
@@ -2390,12 +2390,12 @@ static boolean SaveLoadResponder(menu_action_t action, int ch)
         if (M_ToUpper(ch) == 'Y')
         {
             M_DeleteGame(itemOn);
-            S_StartSound(NULL, sfx_itemup);
+            M_StartSound(sfx_itemup);
             delete_verify = false;
         }
         else if (M_ToUpper(ch) == 'N')
         {
-            S_StartSound(NULL, sfx_itemup);
+            M_StartSound(sfx_itemup);
             delete_verify = false;
         }
         return true;
@@ -2410,7 +2410,7 @@ static boolean SaveLoadResponder(menu_action_t action, int ch)
             savepage--;
             quickSaveSlot = -1;
             M_ReadSaveStrings();
-            S_StartSound(NULL, sfx_pstop);
+            M_StartSound(sfx_pstop);
         }
         return true;
     }
@@ -2421,7 +2421,7 @@ static boolean SaveLoadResponder(menu_action_t action, int ch)
             savepage++;
             quickSaveSlot = -1;
             M_ReadSaveStrings();
-            S_StartSound(NULL, sfx_pstop);
+            M_StartSound(sfx_pstop);
         }
         return true;
     }
@@ -2504,7 +2504,7 @@ static boolean MouseResponder(void)
         if (current_item->routine)
         {
             current_item->routine(value);
-            S_StartSound(NULL, sfx_stnmov);
+            M_StartSound(sfx_stnmov);
         }
 
         return true;
@@ -2536,7 +2536,7 @@ boolean M_Responder(event_t *ev)
             }
             else
             {
-                S_StartSound(NULL, sfx_swtchn);
+                M_StartSound(sfx_swtchn);
                 M_QuitDOOM(0);
             }
             return true;
@@ -2727,7 +2727,7 @@ boolean M_Responder(event_t *ev)
         }
 
         menuactive = false;
-        S_StartSound(NULL, sfx_swtchx);
+        M_StartSound(sfx_swtchx);
         return true;
     }
 
@@ -2758,7 +2758,7 @@ boolean M_Responder(event_t *ev)
             || action == MENU_ESCAPE) // phares
         {
             MN_StartControlPanel();
-            S_StartSound(NULL, sfx_swtchn);
+            M_StartSound(sfx_swtchn);
             return true;
         }
         return false;
@@ -2797,7 +2797,7 @@ boolean M_Responder(event_t *ev)
             {
                 itemOn++;
             }
-            S_StartSound(NULL, sfx_pstop);
+            M_StartSound(sfx_pstop);
         } while (currentMenu->menuitems[itemOn].status == -1);
         return true;
     }
@@ -2814,7 +2814,7 @@ boolean M_Responder(event_t *ev)
             {
                 itemOn--;
             }
-            S_StartSound(NULL, sfx_pstop);
+            M_StartSound(sfx_pstop);
         } while (currentMenu->menuitems[itemOn].status == -1);
         return true;
     }
@@ -2824,7 +2824,7 @@ boolean M_Responder(event_t *ev)
         if (currentMenu->menuitems[itemOn].routine
             && currentMenu->menuitems[itemOn].status == 2)
         {
-            S_StartSound(NULL, sfx_stnmov);
+            M_StartSound(sfx_stnmov);
             currentMenu->menuitems[itemOn].routine(CHOICE_LEFT);
         }
         return true;
@@ -2835,7 +2835,7 @@ boolean M_Responder(event_t *ev)
         if (currentMenu->menuitems[itemOn].routine
             && currentMenu->menuitems[itemOn].status == 2)
         {
-            S_StartSound(NULL, sfx_stnmov);
+            M_StartSound(sfx_stnmov);
             currentMenu->menuitems[itemOn].routine(CHOICE_RIGHT);
         }
         return true;
@@ -2851,17 +2851,17 @@ boolean M_Responder(event_t *ev)
             if (currentMenu->menuitems[itemOn].status == 2)
             {
                 currentMenu->menuitems[itemOn].routine(CHOICE_RIGHT);
-                S_StartSound(NULL, sfx_stnmov);
+                M_StartSound(sfx_stnmov);
             }
             else
             {
                 currentMenu->menuitems[itemOn].routine(itemOn);
-                S_StartSound(NULL, sfx_pistol);
+                M_StartSound(sfx_pistol);
             }
         }
         else
         {
-            S_StartSound(NULL, sfx_oof); // [FG] disabled menu item
+            M_StartSound(sfx_oof); // [FG] disabled menu item
         }
         // jff 3/24/98 remember last skill selected
         //  killough 10/98 moved to skill-specific functions
@@ -2875,7 +2875,7 @@ boolean M_Responder(event_t *ev)
             currentMenu->lastOn = itemOn;
         }
         MN_ClearMenus();
-        S_StartSound(NULL, sfx_swtchx);
+        M_StartSound(sfx_swtchx);
         return true;
     }
 
@@ -2909,12 +2909,12 @@ boolean M_Responder(event_t *ev)
                 currentMenu = currentMenu->prevMenu;
             }
             itemOn = currentMenu->lastOn;
-            S_StartSound(NULL, sfx_swtchn);
+            M_StartSound(sfx_swtchn);
         }
         else
         {
             MN_ClearMenus();
-            S_StartSound(NULL, sfx_swtchx);
+            M_StartSound(sfx_swtchx);
         }
         return true;
     }
@@ -2927,14 +2927,14 @@ boolean M_Responder(event_t *ev)
         {
             if (LoadMenu[itemOn].status)
             {
-                S_StartSound(NULL, sfx_itemup);
+                M_StartSound(sfx_itemup);
                 currentMenu->lastOn = itemOn;
                 delete_verify = true;
                 return true;
             }
             else
             {
-                S_StartSound(NULL, sfx_oof);
+                M_StartSound(sfx_oof);
             }
         }
     }
@@ -2948,7 +2948,7 @@ boolean M_Responder(event_t *ev)
             if (currentMenu->menuitems[i].alphaKey == ch)
             {
                 itemOn = i;
-                S_StartSound(NULL, sfx_pstop);
+                M_StartSound(sfx_pstop);
                 return true;
             }
         }
@@ -2958,7 +2958,7 @@ boolean M_Responder(event_t *ev)
             if (currentMenu->menuitems[i].alphaKey == ch)
             {
                 itemOn = i;
-                S_StartSound(NULL, sfx_pstop);
+                M_StartSound(sfx_pstop);
                 return true;
             }
         }
@@ -3289,6 +3289,11 @@ static void WriteText(int x, int y, const char *string)
         V_DrawPatch(cx, cy, hu_font[c]);
         cx += w;
     }
+}
+
+void M_StartSound(int sound_id)
+{
+    S_StartSoundPitch(NULL, sound_id, PITCH_NONE);
 }
 
 //----------------------------------------------------------------------------

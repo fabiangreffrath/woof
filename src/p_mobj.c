@@ -131,6 +131,9 @@ boolean P_SetMobjState(mobj_t* mobj,statenum_t state)
 
 void P_ExplodeMissile (mobj_t* mo)
 {
+  const int state = mo->state - states;
+  const boolean brainexplode = (state >= S_BRAINEXPLODE1 && state <= S_BRAINEXPLODE3);
+
   mo->momx = mo->momy = mo->momz = 0;
 
   P_SetMobjState(mo, mobjinfo[mo->type].deathstate);
@@ -143,7 +146,8 @@ void P_ExplodeMissile (mobj_t* mo)
   mo->flags &= ~MF_MISSILE;
 
   if (mo->info->deathsound)
-    S_StartSound (mo, mo->info->deathsound);
+    S_StartSoundPitch(mo, mo->info->deathsound,
+                      brainexplode ? PITCH_NONE : PITCH_FULL);
 }
 
 //

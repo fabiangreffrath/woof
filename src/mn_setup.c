@@ -1647,7 +1647,7 @@ static void BarkSound(void)
 {
     if (default_dogs)
     {
-        S_StartSound(NULL, sfx_dgact);
+        M_StartSound(sfx_dgact);
     }
 }
 
@@ -2427,7 +2427,7 @@ static void SelectDone(setup_menu_t *ptr)
 {
     ptr->m_flags &= ~S_SELECT;
     ptr->m_flags |= S_HILITE;
-    S_StartSound(NULL, sfx_itemup);
+    M_StartSound(sfx_itemup);
     setup_select = false;
     if (print_warning_about_changes) // killough 8/15/98
     {
@@ -2902,7 +2902,7 @@ boolean MN_SetupCursorPostion(int x, int y)
                 if (highlight_tab != i)
                 {
                     highlight_tab = i;
-                    S_StartSound(NULL, sfx_itemup);
+                    M_StartSound(sfx_itemup);
                 }
             }
         }
@@ -2927,7 +2927,7 @@ boolean MN_SetupCursorPostion(int x, int y)
             if (highlight_item != i)
             {
                 highlight_item = i;
-                S_StartSound(NULL, sfx_itemup);
+                M_StartSound(sfx_itemup);
             }
         }
     }
@@ -2985,7 +2985,7 @@ static void Choice(menu_action_t action)
 
         if (def->location->i != value)
         {
-            S_StartSound(NULL, sfx_stnmov);
+            M_StartSound(sfx_stnmov);
         }
         def->location->i = value;
 
@@ -3016,7 +3016,7 @@ static void Choice(menu_action_t action)
 
         if (def->location->i != value)
         {
-            S_StartSound(NULL, sfx_stnmov);
+            M_StartSound(sfx_stnmov);
         }
         def->location->i = value;
 
@@ -3266,7 +3266,7 @@ static boolean NextPage(int inc)
         ;
     current_menu[--set_item_on].m_flags |= S_HILITE;
 
-    S_StartSound(NULL, sfx_pstop); // killough 10/98
+    M_StartSound(sfx_pstop); // killough 10/98
     return true;
 }
 
@@ -3433,7 +3433,7 @@ boolean MN_SetupResponder(menu_action_t action, int ch)
 
         if (ItemDisabled(flags))
         {
-            S_StartSound(NULL, sfx_oof);
+            M_StartSound(sfx_oof);
             return true;
         }
         else if (flags & S_NUM)
@@ -3449,7 +3449,7 @@ boolean MN_SetupResponder(menu_action_t action, int ch)
 
         current_item->m_flags |= S_SELECT;
         setup_select = true;
-        S_StartSound(NULL, sfx_itemup);
+        M_StartSound(sfx_itemup);
         return true;
     }
 
@@ -3474,7 +3474,7 @@ boolean MN_SetupResponder(menu_action_t action, int ch)
         default_verify = false;              // phares 4/19/98
         print_warning_about_changes = false; // [FG] reset
         HU_Start(); // catch any message changes // phares 4/19/98
-        S_StartSound(NULL, sfx_swtchx);
+        M_StartSound(sfx_swtchx);
         return true;
     }
 
@@ -3519,7 +3519,7 @@ static boolean SetupTab(void)
         ;
     set_item_on--;
 
-    S_StartSound(NULL, sfx_pstop);
+    M_StartSound(sfx_pstop);
     return true;
 }
 
@@ -3626,7 +3626,7 @@ boolean MN_SetupMouseResponder(int x, int y)
             {
                 active_thermo->action();
             }
-            S_StartSound(NULL, sfx_stnmov);
+            M_StartSound(sfx_stnmov);
         }
         return true;
     }
@@ -3639,7 +3639,7 @@ boolean MN_SetupMouseResponder(int x, int y)
     if (flags & S_ONOFF) // yes or no setting?
     {
         OnOff();
-        S_StartSound(NULL, sfx_itemup);
+        M_StartSound(sfx_itemup);
         return true;
     }
 
@@ -3660,7 +3660,7 @@ boolean MN_SetupMouseResponder(int x, int y)
 
         if (def->location->i != value)
         {
-            S_StartSound(NULL, sfx_stnmov);
+            M_StartSound(sfx_stnmov);
         }
         def->location->i = value;
 
