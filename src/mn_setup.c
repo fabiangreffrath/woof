@@ -165,6 +165,7 @@ boolean default_verify = false;           // verify reset defaults decision
 //
 // current_setup_menu is a pointer to the current setup menu table.
 
+static int highlight_item;
 static int set_item_on; // which setup item is selected?   // phares 3/98
 static setup_menu_t *current_menu; // points to current setup menu table
 static int current_page;           // the index of the current screen in a set
@@ -177,7 +178,7 @@ typedef struct
 } setup_tab_t;
 
 static setup_tab_t *current_tabs;
-static int set_tab_on;
+static int highlight_tab;
 
 // [FG] save the setup menu's itemon value in the S_END element's x coordinate
 
@@ -382,10 +383,7 @@ static void BlinkingArrowLeft(setup_menu_t *s)
 
     if (menu_input == mouse_mode)
     {
-        if (flags & S_HILITE)
-        {
-            strcpy(menu_buffer, "< ");
-        }
+        return;
     }
     else if (flags & (S_CHOICE | S_CRITEM | S_THERMO))
     {
@@ -415,10 +413,7 @@ static void BlinkingArrowRight(setup_menu_t *s)
 
     if (menu_input == mouse_mode)
     {
-        if (flags & S_HILITE)
-        {
-            strcat(menu_buffer, " >");
-        }
+        return;
     }
     else if (flags & (S_CHOICE | S_CRITEM | S_THERMO))
     {
@@ -1033,7 +1028,7 @@ static void SetupMenu(void)
     setup_select = false;
     default_verify = false;
     setup_gather = false;
-    set_tab_on = 0;
+    highlight_tab = 0;
     set_item_on = GetItemOn();
     while (current_menu[set_item_on++].m_flags & S_SKIP)
         ;
@@ -2903,9 +2898,9 @@ boolean MN_SetupCursorPostion(int x, int y)
             {
                 tab->flags |= S_HILITE;
 
-                if (set_tab_on != i)
+                if (highlight_tab != i)
                 {
-                    set_tab_on = i;
+                    highlight_tab = i;
                     S_StartSound(NULL, sfx_itemup);
                 }
             }
@@ -2928,10 +2923,9 @@ boolean MN_SetupCursorPostion(int x, int y)
         {
             item->m_flags |= S_HILITE;
 
-            if (set_item_on != i)
+            if (highlight_item != i)
             {
-                print_warning_about_changes = false;
-                set_item_on = i;
+                highlight_item = i;
                 S_StartSound(NULL, sfx_itemup);
             }
         }
@@ -3262,7 +3256,7 @@ static boolean NextPage(int inc)
     current_item->m_flags &= ~S_HILITE;
 
     SetItemOn(set_item_on);
-    set_tab_on = current_page;
+    highlight_tab = current_page;
     current_menu = setup_screens[setup_screen][current_page];
     set_item_on = GetItemOn();
 
@@ -3287,7 +3281,7 @@ boolean MN_SetupResponder(menu_action_t action, int ch)
 
     if (menu_input != mouse_mode && current_tabs)
     {
-        current_tabs[set_tab_on].flags &= ~S_HILITE;
+        current_tabs[highlight_tab].flags &= ~S_HILITE;
     }
 
     setup_menu_t *current_item = current_menu + set_item_on;
@@ -3505,14 +3499,14 @@ static boolean SetupTab(void)
         return false;
     }
 
-    setup_tab_t *tab = current_tabs + set_tab_on;
+    setup_tab_t *tab = current_tabs + highlight_tab;
 
     if (!(M_InputActivated(input_menu_enter) && tab->flags & S_HILITE))
     {
         return false;
     }
 
-    current_page = set_tab_on;
+    current_page = highlight_tab;
     current_menu = setup_screens[setup_screen][current_page];
     set_item_on = 0;
     while (current_menu[set_item_on++].m_flags & S_SKIP)
@@ -3559,6 +3553,11 @@ boolean MN_SetupMouseResponder(int x, int y)
             }
         }
         active_thermo = NULL;
+    }
+
+    if (M_InputActivated(input_menu_enter))
+    {
+        set_item_on = highlight_item;
     }
 
     setup_menu_t *current_item = current_menu + set_item_on;

@@ -184,6 +184,7 @@ typedef struct menu_s
     int lumps_missing; // [FG] indicate missing menu graphics lumps
 } menu_t;
 
+static int highlight_item;
 static short itemOn;           // menu item skull is on (for Big Font menus)
 static short skullAnimCounter; // skull animation counter
 short whichSkull;              // which skull to draw (he blinks)
@@ -1312,7 +1313,7 @@ static void M_DrawSound(void)
 {
     MN_DrawTitle(60, 38, "M_SVOL", "Sound Volume");
 
-    int index = itemOn + 1;
+    int index = highlight_item + 1;
     menuitem_t *item = &currentMenu->menuitems[index];
     byte *cr;
 
@@ -2366,10 +2367,10 @@ static void CursorPosition(void)
                 cursor--;
             }
 
-            if (itemOn != cursor)
+            if (highlight_item != cursor)
             {
-                itemOn = cursor;
-                S_StartSound(NULL, sfx_pstop);
+                highlight_item = cursor;
+                S_StartSound(NULL, sfx_itemup);
             }
         }
     }
@@ -2440,6 +2441,11 @@ static boolean MouseResponder(void)
     if (setup_active)
     {
         return MN_SetupMouseResponder(mouse_state_x, mouse_state_y);
+    }
+
+    if (M_InputActivated(input_menu_enter))
+    {
+        itemOn = highlight_item;
     }
 
     menuitem_t *current_item = &currentMenu->menuitems[itemOn];
@@ -2768,12 +2774,19 @@ boolean M_Responder(event_t *ev)
         return true;
     }
 
+    if (action >= MENU_UP && action <= MENU_RIGHT)
+    {
+        for (int i = 0; i < currentMenu->numitems; ++i)
+        {
+            currentMenu->menuitems[i].flags &= ~MF_HILITE;
+        }
+    }
+
     // From here on, these navigation keys are used on the BIG FONT menus
     // like the Main Menu.
 
     if (action == MENU_DOWN) // phares 3/7/98
     {
-        currentMenu->menuitems[itemOn].flags &= ~MF_HILITE;
         do
         {
             if (itemOn + 1 > currentMenu->numitems - 1)
@@ -2791,7 +2804,6 @@ boolean M_Responder(event_t *ev)
 
     if (action == MENU_UP) // phares 3/7/98
     {
-        currentMenu->menuitems[itemOn].flags &= ~MF_HILITE;
         do
         {
             if (!itemOn)
