@@ -1029,6 +1029,7 @@ static void SetupMenu(void)
     default_verify = false;
     setup_gather = false;
     highlight_tab = 0;
+    highlight_item = -1;
     set_item_on = GetItemOn();
     while (current_menu[set_item_on++].m_flags & S_SKIP)
         ;
@@ -3282,6 +3283,11 @@ boolean MN_SetupResponder(menu_action_t action, int ch)
     if (menu_input != mouse_mode && current_tabs)
     {
         current_tabs[highlight_tab].flags &= ~S_HILITE;
+    }
+
+    if (highlight_item >= 0 && highlight_item != set_item_on)
+    {
+        current_menu[highlight_item].m_flags &= ~S_HILITE;
     }
 
     setup_menu_t *current_item = current_menu + set_item_on;
