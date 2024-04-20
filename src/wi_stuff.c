@@ -589,10 +589,10 @@ WI_drawOnLnode  // draw stuff at a location by episode/map#
 // ====================================================================
 // WI_initAnimatedBack
 // Purpose: Initialize pointers and styles for background animation
-// Args:    none
+// Args:    firstcall -- [Woof!] check if animations needs to be reset
 // Returns: void
 //
-static void WI_initAnimatedBack(void)
+static void WI_initAnimatedBack(boolean firstcall)
 {
   int   i;
   anim_t* a;
@@ -613,6 +613,10 @@ static void WI_initAnimatedBack(void)
       a = &anims[wbs->epsd][i];
 
       // init variables
+      // [Woof!] Do not reset animation timers upon switching to "Entering" state
+      // via WI_initShowNextLoc. Fixes notable blinking of Tower of Babel drawing
+      // and the rest of animations from being restarted.
+      if (firstcall)
       a->ctr = -1;
   
       // specify the next time to draw it
@@ -1014,7 +1018,7 @@ static void WI_initShowNextLoc(void)
   acceleratestage = 0;
   cnt = SHOWNEXTLOCDELAY * TICRATE;
 
-  WI_initAnimatedBack();
+  WI_initAnimatedBack(false);
 }
 
 
@@ -1168,7 +1172,7 @@ static void WI_initDeathmatchStats(void)
           dm_totals[i] = 0;
         }
     }
-  WI_initAnimatedBack();
+  WI_initAnimatedBack(true);
 }
 
 
@@ -1409,7 +1413,7 @@ static void WI_initNetgameStats(void)
 
   dofrags = !!dofrags; // set to true or false - did we have frags?
 
-  WI_initAnimatedBack();
+  WI_initAnimatedBack(true);
 }
 
 
@@ -1664,7 +1668,7 @@ static void WI_initStats(void)
   cnt_time = cnt_par = cnt_total_time = -1;
   cnt_pause = TICRATE;
 
-  WI_initAnimatedBack();
+  WI_initAnimatedBack(true);
 }
 
 // ====================================================================
