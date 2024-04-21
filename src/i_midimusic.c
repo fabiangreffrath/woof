@@ -88,7 +88,6 @@ static const byte ff_loopEnd[] =
 
 static boolean use_fallback;
 
-#define DEFAULT_VOLUME 100
 static byte channel_volume[MIDI_CHANNELS_PER_TRACK];
 static float volume_factor = 0.0f;
 
@@ -293,7 +292,7 @@ static void ResetVolume(void)
 
     for (i = 0; i < MIDI_CHANNELS_PER_TRACK; ++i)
     {
-        SendManualVolumeMsg(i, DEFAULT_VOLUME);
+        SendManualVolumeMsg(i, MIDI_DEFAULT_VOLUME);
     }
 }
 
@@ -1060,7 +1059,7 @@ static boolean RegisterSong(void)
     }
 
     ticks_per_beat = MIDI_GetFileTimeDivision(song.file);
-    us_per_beat = 500 * 1000; // Default is 120 bpm.
+    us_per_beat = MIDI_DEFAULT_TEMPO;
 
     song.num_tracks = MIDI_NumTracks(song.file);
     song.tracks = calloc(song.num_tracks, sizeof(midi_track_t));

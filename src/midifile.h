@@ -24,6 +24,8 @@ typedef struct midi_file_s midi_file_t;
 typedef struct midi_track_iter_s midi_track_iter_t;
 
 #define MIDI_CHANNELS_PER_TRACK      16
+#define MIDI_DEFAULT_VOLUME          100
+#define MIDI_DEFAULT_TEMPO           500000 // 120 bpm
 
 #define MIDI_RPN_MSB                 0x00
 #define MIDI_RPN_PITCH_BEND_SENS_LSB 0x00
