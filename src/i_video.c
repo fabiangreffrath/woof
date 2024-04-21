@@ -218,6 +218,13 @@ void I_ShowMouseCursor(boolean on)
         state = on;
     }
 
+    if (on)
+    {
+        int w, h;
+        SDL_GetWindowSize(screen, &w, &h);
+        SDL_WarpMouseInWindow(screen, w / 2, h / 2);
+    }
+
     SDL_ShowCursor(on);
 }
 
