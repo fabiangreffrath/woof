@@ -244,4 +244,8 @@ void MIDI_SetLoopPoint(midi_track_iter_t *iter);
 
 void MIDI_RestartAtLoopPoint(midi_track_iter_t *iter);
 
+// Check if this MIDI file contains a valid RPG Maker loop point.
+
+boolean MIDI_RPGLoop(const midi_file_t *file);
+
 #endif /* #ifndef MIDIFILE_H */

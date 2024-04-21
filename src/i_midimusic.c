@@ -947,49 +947,6 @@ static void RestartTracks(void)
     RestartTimer(0);
 }
 
-// The controllers "EMIDI track exclusion" and "RPG Maker loop point" share the
-// same number (CC#111) and are not compatible with each other. As a workaround,
-// allow an RPG Maker loop point only if no other EMIDI events are present. Call
-// this function before the song starts.
-
-static boolean IsRPGLoop(void)
-{
-    unsigned int i;
-    unsigned int num_rpg_events = 0;
-    unsigned int num_emidi_events = 0;
-    midi_event_t *event = NULL;
-
-    for (i = 0; i < song.num_tracks; ++i)
-    {
-        while (MIDI_GetNextEvent(song.tracks[i].iter, &event))
-        {
-            if (event->event_type == MIDI_EVENT_CONTROLLER)
-            {
-                switch (event->data.channel.param1)
-                {
-                    case EMIDI_CONTROLLER_TRACK_EXCLUSION:
-                        num_rpg_events++;
-                        break;
-
-                    case EMIDI_CONTROLLER_TRACK_DESIGNATION:
-                    case EMIDI_CONTROLLER_PROGRAM_CHANGE:
-                    case EMIDI_CONTROLLER_VOLUME:
-                    case EMIDI_CONTROLLER_LOOP_BEGIN:
-                    case EMIDI_CONTROLLER_LOOP_END:
-                    case EMIDI_CONTROLLER_GLOBAL_LOOP_BEGIN:
-                    case EMIDI_CONTROLLER_GLOBAL_LOOP_END:
-                        num_emidi_events++;
-                        break;
-                }
-            }
-        }
-
-        MIDI_RestartIterator(song.tracks[i].iter);
-    }
-
-    return (num_rpg_events == 1 && num_emidi_events == 0);
-}
-
 // Get the next event from the MIDI file, process it or return if the delta
 // time is > 0.
 
@@ -1112,7 +1069,7 @@ static boolean RegisterSong(void)
         song.tracks[i].iter = MIDI_IterateTrack(song.file, i);
     }
 
-    song.rpg_loop = IsRPGLoop();
+    song.rpg_loop = MIDI_RPGLoop(song.file);
     return true;
 }
 

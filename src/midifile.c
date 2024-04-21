@@ -79,6 +79,12 @@ struct midi_file_s
     // All tracks in this file:
     midi_track_t *tracks;
     unsigned int num_tracks;
+
+    // Number of RPG Maker loop events.
+    unsigned int num_rpg_events;
+
+    // Number of EMIDI events, without track exclusion.
+    unsigned int num_emidi_events;
 };
 
 // Check the header of a chunk:
@@ -444,7 +450,35 @@ static boolean ReadTrackHeader(midi_track_t *track, MEMFILE *stream)
     return true;
 }
 
-static boolean ReadTrack(midi_track_t *track, MEMFILE *stream)
+// "EMIDI track exclusion" and "RPG Maker loop point" share the same controller
+// number (CC#111) and are not compatible with each other. Count these events
+// and allow an RPG Maker loop point only if no other EMIDI events are present.
+
+static void CheckUndefinedEvent(midi_file_t *file, const midi_event_t *event)
+{
+    if (event->event_type == MIDI_EVENT_CONTROLLER)
+    {
+        switch (event->data.channel.param1)
+        {
+            case EMIDI_CONTROLLER_TRACK_EXCLUSION:
+                file->num_rpg_events++;
+                break;
+
+            case EMIDI_CONTROLLER_TRACK_DESIGNATION:
+            case EMIDI_CONTROLLER_PROGRAM_CHANGE:
+            case EMIDI_CONTROLLER_VOLUME:
+            case EMIDI_CONTROLLER_LOOP_BEGIN:
+            case EMIDI_CONTROLLER_LOOP_END:
+            case EMIDI_CONTROLLER_GLOBAL_LOOP_BEGIN:
+            case EMIDI_CONTROLLER_GLOBAL_LOOP_END:
+                file->num_emidi_events++;
+                break;
+        }
+    }
+}
+
+static boolean ReadTrack(midi_file_t *file, midi_track_t *track,
+                         MEMFILE *stream)
 {
     midi_event_t *new_events = NULL;
     midi_event_t *event;
@@ -497,6 +531,7 @@ static boolean ReadTrack(midi_track_t *track, MEMFILE *stream)
         }
 
         ++track->num_events;
+        CheckUndefinedEvent(file, event);
 
         // End of track?
 
@@ -543,7 +578,7 @@ static boolean ReadAllTracks(midi_file_t *file, MEMFILE *stream)
 
     for (i = 0; i < file->num_tracks; ++i)
     {
-        if (!ReadTrack(&file->tracks[i], stream))
+        if (!ReadTrack(file, &file->tracks[i], stream))
         {
             return false;
         }
@@ -620,6 +655,8 @@ midi_file_t *MIDI_LoadFile(void *buf, size_t buflen)
 
     file->tracks = NULL;
     file->num_tracks = 0;
+    file->num_rpg_events = 0;
+    file->num_emidi_events = 0;
 
     // Open file
 
@@ -746,6 +783,11 @@ void MIDI_SetLoopPoint(midi_track_iter_t *iter)
 void MIDI_RestartAtLoopPoint(midi_track_iter_t *iter)
 {
     iter->position = iter->loop_point;
+}
+
+boolean MIDI_RPGLoop(const midi_file_t *file)
+{
+    return (file->num_rpg_events == 1 && file->num_emidi_events == 0);
 }
 
 static boolean RolandChecksum(const byte *data)
