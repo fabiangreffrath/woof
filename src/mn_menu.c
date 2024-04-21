@@ -2443,12 +2443,12 @@ static boolean MouseResponder(void)
         return MN_SetupMouseResponder(mouse_state_x, mouse_state_y);
     }
 
-    if (M_InputActivated(input_menu_enter))
+    if (!M_InputActivated(input_menu_enter))
     {
-        itemOn = highlight_item;
+        return true;
     }
 
-    menuitem_t *current_item = &currentMenu->menuitems[itemOn];
+    menuitem_t *current_item = &currentMenu->menuitems[highlight_item];
 
     if (current_item->flags & MF_PAGE)
     {
@@ -2476,6 +2476,8 @@ static boolean MouseResponder(void)
     {
         return true; // eat event
     }
+
+    itemOn = highlight_item;
 
     if (!(current_item->flags & MF_THRM))
     {
