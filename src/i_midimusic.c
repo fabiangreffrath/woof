@@ -124,6 +124,8 @@ typedef struct
 
 typedef struct
 {
+    void *lump_data;
+    int lump_length;
     midi_file_t *file;
     midi_track_t *tracks;
     unsigned int elapsed_time;
@@ -1063,6 +1065,57 @@ static midi_state_t NextEvent(midi_position_t *position)
     return STATE_WAITING;
 }
 
+static boolean RegisterSong(void)
+{
+    if (IsMid(song.lump_data, song.lump_length))
+    {
+        song.file = MIDI_LoadFile(song.lump_data, song.lump_length);
+    }
+    else
+    {
+        // Assume a MUS file and try to convert
+        MEMFILE *instream;
+        MEMFILE *outstream;
+        void *outbuf;
+        size_t outbuf_len;
+
+        instream = mem_fopen_read(song.lump_data, song.lump_length);
+        outstream = mem_fopen_write();
+
+        if (mus2mid(instream, outstream) == 0)
+        {
+            mem_get_buf(outstream, &outbuf, &outbuf_len);
+            song.file = MIDI_LoadFile(outbuf, outbuf_len);
+        }
+        else
+        {
+            song.file = NULL;
+        }
+
+        mem_fclose(instream);
+        mem_fclose(outstream);
+    }
+
+    if (song.file == NULL)
+    {
+        I_Printf(VB_ERROR, "I_MID_RegisterSong: Failed to load MID.");
+        return false;
+    }
+
+    ticks_per_beat = MIDI_GetFileTimeDivision(song.file);
+    us_per_beat = 500 * 1000; // Default is 120 bpm.
+
+    song.num_tracks = MIDI_NumTracks(song.file);
+    song.tracks = calloc(song.num_tracks, sizeof(midi_track_t));
+    for (uint16_t i = 0; i < song.num_tracks; i++)
+    {
+        song.tracks[i].iter = MIDI_IterateTrack(song.file, i);
+    }
+
+    song.rpg_loop = IsRPGLoop();
+    return true;
+}
+
 static int PlayerThread(void *unused)
 {
     SDL_SetThreadPriority(SDL_THREAD_PRIORITY_TIME_CRITICAL);
@@ -1086,8 +1139,12 @@ static int PlayerThread(void *unused)
         switch (midi_state)
         {
             case STATE_STARTUP:
+                if (!RegisterSong())
+                {
+                    midi_state = STATE_STOPPED;
+                    break;
+                }
                 ResetDevice();
-                song.rpg_loop = IsRPGLoop();
                 midi_state = STATE_PLAYING;
                 RestartTimer(0);
                 break;
@@ -1278,51 +1335,8 @@ static void *I_MID_RegisterSong(void *data, int len)
         return NULL;
     }
 
-    if (IsMid(data, len))
-    {
-        song.file = MIDI_LoadFile(data, len);
-    }
-    else
-    {
-        // Assume a MUS file and try to convert
-        MEMFILE *instream;
-        MEMFILE *outstream;
-        void *outbuf;
-        size_t outbuf_len;
-
-        instream = mem_fopen_read(data, len);
-        outstream = mem_fopen_write();
-
-        if (mus2mid(instream, outstream) == 0)
-        {
-            mem_get_buf(outstream, &outbuf, &outbuf_len);
-            song.file = MIDI_LoadFile(outbuf, outbuf_len);
-        }
-        else
-        {
-            song.file = NULL;
-        }
-
-        mem_fclose(instream);
-        mem_fclose(outstream);
-    }
-
-    if (song.file == NULL)
-    {
-        I_Printf(VB_ERROR, "I_MID_RegisterSong: Failed to load MID.");
-        return NULL;
-    }
-
-    ticks_per_beat = MIDI_GetFileTimeDivision(song.file);
-
-    us_per_beat = 500 * 1000; // Default is 120 bpm.
-
-    song.num_tracks = MIDI_NumTracks(song.file);
-    song.tracks = calloc(song.num_tracks, sizeof(midi_track_t));
-    for (int i = 0; i < song.num_tracks; ++i)
-    {
-        song.tracks[i].iter = MIDI_IterateTrack(song.file, i);
-    }
+    song.lump_data = data;
+    song.lump_length = len;
 
     return (void *)1;
 }
@@ -1350,6 +1364,8 @@ static void I_MID_UnRegisterSong(void *handle)
         MIDI_FreeFile(song.file);
         song.file = NULL;
     }
+    song.lump_data = NULL;
+    song.lump_length = 0;
     song.elapsed_time = 0;
     song.saved_elapsed_time = 0;
     song.num_tracks = 0;
