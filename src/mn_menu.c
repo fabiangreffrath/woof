@@ -2376,6 +2376,14 @@ static void CursorPosition(void)
     }
 }
 
+static void ClearHighlightedItems(void)
+{
+    for (int i = 0; i < currentMenu->numitems; ++i)
+    {
+        currentMenu->menuitems[i].flags &= ~MF_HILITE;
+    }
+}
+
 static boolean SaveLoadResponder(menu_action_t action, int ch)
 {
     if (currentMenu != &LoadDef && currentMenu != &SaveDef)
@@ -2613,6 +2621,7 @@ boolean M_Responder(event_t *ev)
         }
         else
         {
+            ClearHighlightedItems();
             I_ShowMouseCursor(false);
         }
     }
@@ -2774,14 +2783,6 @@ boolean M_Responder(event_t *ev)
     if (MN_SetupResponder(action, ch))
     {
         return true;
-    }
-
-    if (action >= MENU_UP && action <= MENU_RIGHT)
-    {
-        for (int i = 0; i < currentMenu->numitems; ++i)
-        {
-            currentMenu->menuitems[i].flags &= ~MF_HILITE;
-        }
     }
 
     // From here on, these navigation keys are used on the BIG FONT menus
