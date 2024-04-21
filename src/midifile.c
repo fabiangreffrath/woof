@@ -286,8 +286,8 @@ static boolean ReadMetaEvent(midi_event_t *event, MEMFILE *stream)
 
     if (!ReadVariableLength(&event->data.meta.length, stream))
     {
-        I_Printf(VB_ERROR, "ReadSysExEvent: Failed to read length of "
-                           "SysEx block");
+        I_Printf(VB_ERROR, "ReadMetaEvent: Failed to read length of "
+                           "meta event block");
         return false;
     }
 
@@ -297,7 +297,7 @@ static boolean ReadMetaEvent(midi_event_t *event, MEMFILE *stream)
 
     if (event->data.meta.data == NULL)
     {
-        I_Printf(VB_ERROR, "ReadSysExEvent: Failed while reading SysEx event");
+        I_Printf(VB_ERROR, "ReadMetaEvent: Failed while reading meta event");
         return false;
     }
 
