@@ -526,8 +526,8 @@ default_t defaults[] = {
   {
     "midi_reset_delay",
     (config_t *) &midi_reset_delay, NULL,
-    {0}, {0, 2000}, number, ss_none, wad_no,
-    "Delay after reset for native MIDI (milliseconds)"
+    {-1}, {-1, 2000}, number, ss_none, wad_no,
+    "Delay after reset for native MIDI (-1 = Auto, 0 = None, 1-2000 = Milliseconds)"
   },
 
   //

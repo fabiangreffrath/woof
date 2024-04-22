@@ -59,7 +59,7 @@ enum
 
 int midi_complevel = COMP_STANDARD;
 int midi_reset_type = RESET_TYPE_GM;
-int midi_reset_delay = 0;
+int midi_reset_delay = -1;
 
 static const byte gm_system_on[] =
 {
@@ -367,11 +367,28 @@ static void ResetPitchBendSensitivity(void)
     }
 }
 
+// Wait time based on bytes sent to the device. For compatibility with hardware
+// devices (e.g. SC-55).
+
+static void ResetDelayBytes(uint32_t length)
+{
+    if (midi_reset_delay == -1)
+    {
+        // MIDI transfer period is 320 us per byte (MIDI 1.0 Electrical Spec
+        // Update CA-033, page 2). Round up value.
+        const uint32_t delay = length * 320 / 1000 + (length * 320 % 1000 != 0);
+        SDL_Delay(delay);
+    }
+}
+
 // Resets the MIDI device. Call this function before each song starts and once
 // at shut down.
 
 static void ResetDevice(void)
 {
+    // For notes/sound off called prior to this function.
+    ResetDelayBytes(96);
+
     MIDI_ResetFallback();
     use_fallback = false;
 
@@ -379,35 +396,48 @@ static void ResetDevice(void)
     {
         case RESET_TYPE_NO_SYSEX:
             ResetNoSysEx();
+            ResetDelayBytes(320);
             break;
 
         case RESET_TYPE_GS:
             MIDI_SendLongMsg(gs_reset, sizeof(gs_reset));
+            ResetDelayBytes(sizeof(gs_reset));
             use_fallback = (midi_complevel != COMP_VANILLA);
             break;
 
         case RESET_TYPE_XG:
             MIDI_SendLongMsg(xg_system_on, sizeof(xg_system_on));
+            ResetDelayBytes(sizeof(xg_system_on));
             break;
 
         default:
             MIDI_SendLongMsg(gm_system_on, sizeof(gm_system_on));
+            ResetDelayBytes(sizeof(gm_system_on));
             break;
+    }
+
+    // Roland/Yamaha require an additional ~50 ms to execute a SysEx reset.
+    if (midi_reset_delay == -1 && midi_reset_type != RESET_TYPE_NO_SYSEX)
+    {
+        I_Sleep(60);
     }
 
     // MS GS Wavetable Synth doesn't reset pitch bend sensitivity.
     ResetPitchBendSensitivity();
+    ResetDelayBytes(288);
 
     // Reset volume (initial playback or on shutdown if no SysEx reset).
     // Scale by slider on initial playback, max on shutdown.
     if (midi_state == STATE_STARTUP)
     {
         ResetVolume();
+        ResetDelayBytes(48);
     }
     else if (midi_reset_type == RESET_TYPE_NO_SYSEX)
     {
         volume_factor = 1.0f;
         ResetVolume();
+        ResetDelayBytes(48);
     }
 
     // Send delay after reset. This is for hardware devices only (e.g. SC-55).
