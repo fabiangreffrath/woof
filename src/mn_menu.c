@@ -258,6 +258,7 @@ static void SetNextMenu(menu_t *menudef)
 {
     currentMenu = menudef;
     itemOn = currentMenu->lastOn;
+    highlight_item = 0;
 }
 
 static menu_t NewDef; // phares 5/04/98
@@ -837,7 +838,9 @@ static void M_DrawSaveLoadBottomLine(void)
     // [crispy] force status bar refresh
     inhelpscreens = true;
 
-    int flags = currentMenu->menuitems[itemOn].flags;
+    int index = (menu_input == mouse_mode ? highlight_item : itemOn);
+
+    int flags = currentMenu->menuitems[index].flags;
     byte *cr = (flags & MF_PAGE) ? cr_bright : NULL;
 
     M_DrawSaveLoadBorder(LoadDef.x, y, cr);
@@ -876,7 +879,9 @@ static void M_DrawLoad(void)
         WriteText(LoadDef.x, LoadDef.y + LINEHEIGHT * i, savegamestrings[i]);
     }
 
-    M_DrawBorderedSnapshot(itemOn);
+    int index = (menu_input == mouse_mode ? highlight_item : itemOn);
+
+    M_DrawBorderedSnapshot(index);
 
     M_DrawSaveLoadBottomLine();
 }
