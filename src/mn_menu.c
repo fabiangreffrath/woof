@@ -2451,11 +2451,6 @@ static boolean MouseResponder(void)
         return MN_SetupMouseResponder(mouse_state_x, mouse_state_y);
     }
 
-    if (!M_InputActivated(input_menu_enter))
-    {
-        return true;
-    }
-
     menuitem_t *current_item = &currentMenu->menuitems[highlight_item];
 
     if (current_item->flags & MF_PAGE)
@@ -2479,13 +2474,15 @@ static boolean MouseResponder(void)
 
     mrect_t *rect = &current_item->rect;
 
-    if (M_InputActivated(input_menu_enter)
-        && !MN_PointInsideRect(rect, mouse_state_x, mouse_state_y))
+    if (M_InputActivated(input_menu_enter))
     {
-        return true; // eat event
-    }
+        if (!MN_PointInsideRect(rect, mouse_state_x, mouse_state_y))
+        {
+            return true; // eat event
+        }
 
-    itemOn = highlight_item;
+        itemOn = highlight_item;
+    }
 
     if (!(current_item->flags & MF_THRM))
     {
