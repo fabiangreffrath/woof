@@ -742,6 +742,7 @@ static void SendEMIDI(const midi_event_t *event, midi_track_t *track,
                         song.tracks[i].end_of_track = song.tracks[i].saved_end_of_track;
                         song.tracks[i].elapsed_time = song.tracks[i].saved_elapsed_time;
                         song.elapsed_time = song.saved_elapsed_time;
+                        RestartTimer(TicksToUS(song.elapsed_time));
                     }
 
                     if (song.tracks[i].emidi_loop_count > 0)
@@ -1074,6 +1075,7 @@ static void RestartTracks(void)
         song.tracks[i].emidi_loop_count = 0;
     }
     song.elapsed_time = 0;
+    RestartTimer(0);
 }
 
 // The controllers "EMIDI track exclusion" and "RPG Maker loop point" share the
