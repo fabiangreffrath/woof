@@ -2581,6 +2581,10 @@ boolean M_Responder(event_t *ev)
             return false;
 
         case ev_keydown:
+            if (menu_input == mouse_mode && M_InputActivated(input_menu_escape))
+            {
+                break;
+            }
             menu_input = key_mode;
             ch = ev->data1;
             break;

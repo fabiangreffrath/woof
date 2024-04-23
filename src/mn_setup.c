@@ -922,14 +922,10 @@ void MN_DrawDelVerify(void)
 
 static void DrawInstructions()
 {
-    int flags = current_menu[set_item_on].m_flags;
+    int index = (menu_input == mouse_mode ? highlight_item : set_item_on);
+    int flags = current_menu[index].m_flags;
 
     if (ItemDisabled(flags) || print_warning_about_changes > 0)
-    {
-        return;
-    }
-
-    if (menu_input == mouse_mode && !(flags & S_HILITE))
     {
         return;
     }
@@ -2926,6 +2922,7 @@ boolean MN_SetupCursorPostion(int x, int y)
 
             if (highlight_item != i)
             {
+                print_warning_about_changes = false;
                 highlight_item = i;
                 M_StartSound(sfx_itemup);
             }
