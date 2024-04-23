@@ -141,6 +141,40 @@ typedef struct
 
 static midi_song_t song;
 
+static uint64_t start_time, pause_time;
+
+static uint64_t TicksToUS(uint32_t ticks)
+{
+    return (uint64_t)ticks * us_per_beat / ticks_per_beat;
+}
+
+static void RestartTimer(uint64_t offset)
+{
+    if (offset)
+    {
+        start_time = I_GetTimeUS() - offset;
+    }
+    else if (pause_time)
+    {
+        start_time += (I_GetTimeUS() - pause_time);
+        pause_time = 0;
+    }
+    else
+    {
+        start_time = I_GetTimeUS();
+    }
+}
+
+static void PauseTimer(void)
+{
+    pause_time = I_GetTimeUS();
+}
+
+static uint64_t CurrentTime(void)
+{
+    return I_GetTimeUS() - start_time;
+}
+
 static void SendShortMsg(byte status, byte channel, byte param1, byte param2)
 {
     const byte message[] = {status | channel, param1, param2};
@@ -1017,6 +1051,7 @@ static void RestartLoop(void)
         song.tracks[i].elapsed_time = song.tracks[i].saved_elapsed_time;
     }
     song.elapsed_time = song.saved_elapsed_time;
+    RestartTimer(TicksToUS(song.elapsed_time));
 }
 
 // Restarts a song that uses standard looping.
@@ -1159,30 +1194,6 @@ static midi_state_t NextEvent(midi_position_t *position)
     return STATE_WAITING;
 }
 
-static uint64_t start_time, pause_time;
-
-static void RestartTimer(void)
-{
-    if (pause_time)
-    {
-        start_time += (I_GetTimeUS() - pause_time);
-    }
-    else
-    {
-        start_time = I_GetTimeUS();
-    }
-}
-
-static void PauseTimer(void)
-{
-    pause_time = I_GetTimeUS();
-}
-
-static uint64_t CurrentTime(void)
-{
-    return I_GetTimeUS() - start_time;
-}
-
 static int PlayerThread(void *unused)
 {
     SDL_SetThreadPriority(SDL_THREAD_PRIORITY_TIME_CRITICAL);
@@ -1210,13 +1221,12 @@ static int PlayerThread(void *unused)
                 ResetDevice();
                 song.rpg_loop = IsRPGLoop();
                 midi_state = STATE_PLAYING;
-                RestartTimer();
+                RestartTimer(0);
                 break;
 
             case STATE_PLAYING:
                 midi_state = NextEvent(&position);
-                elapsed_time =
-                    (uint64_t)song.elapsed_time * us_per_beat / ticks_per_beat;
+                elapsed_time = TicksToUS(song.elapsed_time);
                 break;
 
             case STATE_PAUSING:
@@ -1385,7 +1395,7 @@ static void I_MID_ResumeSong(void *handle)
     SDL_LockMutex(music_lock);
     if (midi_state == STATE_PAUSED)
     {
-        RestartTimer();
+        RestartTimer(0);
         midi_state = old_state;
     }
     SDL_UnlockMutex(music_lock);
