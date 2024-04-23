@@ -184,6 +184,7 @@ typedef struct menu_s
     int lumps_missing; // [FG] indicate missing menu graphics lumps
 } menu_t;
 
+static int highlight_item;
 static short itemOn;           // menu item skull is on (for Big Font menus)
 static short skullAnimCounter; // skull animation counter
 short whichSkull;              // which skull to draw (he blinks)
@@ -257,6 +258,7 @@ static void SetNextMenu(menu_t *menudef)
 {
     currentMenu = menudef;
     itemOn = currentMenu->lastOn;
+    highlight_item = 0;
 }
 
 static menu_t NewDef; // phares 5/04/98
@@ -836,7 +838,9 @@ static void M_DrawSaveLoadBottomLine(void)
     // [crispy] force status bar refresh
     inhelpscreens = true;
 
-    int flags = currentMenu->menuitems[itemOn].flags;
+    int index = (menu_input == mouse_mode ? highlight_item : itemOn);
+
+    int flags = currentMenu->menuitems[index].flags;
     byte *cr = (flags & MF_PAGE) ? cr_bright : NULL;
 
     M_DrawSaveLoadBorder(LoadDef.x, y, cr);
@@ -875,7 +879,9 @@ static void M_DrawLoad(void)
         WriteText(LoadDef.x, LoadDef.y + LINEHEIGHT * i, savegamestrings[i]);
     }
 
-    M_DrawBorderedSnapshot(itemOn);
+    int index = (menu_input == mouse_mode ? highlight_item : itemOn);
+
+    M_DrawBorderedSnapshot(index);
 
     M_DrawSaveLoadBottomLine();
 }
@@ -1312,7 +1318,7 @@ static void M_DrawSound(void)
 {
     MN_DrawTitle(60, 38, "M_SVOL", "Sound Volume");
 
-    int index = itemOn + 1;
+    int index = highlight_item + 1;
     menuitem_t *item = &currentMenu->menuitems[index];
     byte *cr;
 
@@ -2366,12 +2372,20 @@ static void CursorPosition(void)
                 cursor--;
             }
 
-            if (itemOn != cursor)
+            if (highlight_item != cursor)
             {
-                itemOn = cursor;
-                M_StartSound(sfx_pstop);
+                highlight_item = cursor;
+                M_StartSound(sfx_itemup);
             }
         }
+    }
+}
+
+static void ClearHighlightedItems(void)
+{
+    for (int i = 0; i < currentMenu->numitems; ++i)
+    {
+        currentMenu->menuitems[i].flags &= ~MF_HILITE;
     }
 }
 
@@ -2442,7 +2456,7 @@ static boolean MouseResponder(void)
         return MN_SetupMouseResponder(mouse_state_x, mouse_state_y);
     }
 
-    menuitem_t *current_item = &currentMenu->menuitems[itemOn];
+    menuitem_t *current_item = &currentMenu->menuitems[highlight_item];
 
     if (current_item->flags & MF_PAGE)
     {
@@ -2465,10 +2479,14 @@ static boolean MouseResponder(void)
 
     mrect_t *rect = &current_item->rect;
 
-    if (M_InputActivated(input_menu_enter)
-        && !MN_PointInsideRect(rect, mouse_state_x, mouse_state_y))
+    if (M_InputActivated(input_menu_enter))
     {
-        return true; // eat event
+        if (!MN_PointInsideRect(rect, mouse_state_x, mouse_state_y))
+        {
+            return true; // eat event
+        }
+
+        itemOn = highlight_item;
     }
 
     if (!(current_item->flags & MF_THRM))
@@ -2605,6 +2623,7 @@ boolean M_Responder(event_t *ev)
         }
         else
         {
+            ClearHighlightedItems();
             I_ShowMouseCursor(false);
         }
     }
@@ -2773,7 +2792,6 @@ boolean M_Responder(event_t *ev)
 
     if (action == MENU_DOWN) // phares 3/7/98
     {
-        currentMenu->menuitems[itemOn].flags &= ~MF_HILITE;
         do
         {
             if (itemOn + 1 > currentMenu->numitems - 1)
@@ -2791,7 +2809,6 @@ boolean M_Responder(event_t *ev)
 
     if (action == MENU_UP) // phares 3/7/98
     {
-        currentMenu->menuitems[itemOn].flags &= ~MF_HILITE;
         do
         {
             if (!itemOn)
