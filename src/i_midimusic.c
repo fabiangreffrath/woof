@@ -220,6 +220,7 @@ static void UpdateTempo(const midi_event_t *event)
 {
     byte *data = event->data.meta.data;
     us_per_beat = (data[0] << 16) | (data[1] << 8) | data[2];
+    RestartTimer(TicksToUS(song.elapsed_time));
 }
 
 // Writes a MIDI volume message. The value is scaled by the volume slider.
