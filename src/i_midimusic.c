@@ -141,6 +141,12 @@ typedef struct
 
 static midi_song_t song;
 
+typedef struct
+{
+    midi_event_t *event;
+    midi_track_t *track;
+} midi_position_t;
+
 static uint64_t start_time, pause_time;
 
 static uint64_t TicksToUS(uint32_t ticks)
@@ -150,18 +156,14 @@ static uint64_t TicksToUS(uint32_t ticks)
 
 static void RestartTimer(uint64_t offset)
 {
-    if (offset)
-    {
-        start_time = I_GetTimeUS() - offset;
-    }
-    else if (pause_time)
+    if (pause_time)
     {
         start_time += (I_GetTimeUS() - pause_time);
         pause_time = 0;
     }
     else
     {
-        start_time = I_GetTimeUS();
+        start_time = I_GetTimeUS() - offset;
     }
 }
 
@@ -1116,12 +1118,6 @@ static boolean IsRPGLoop(void)
 
     return (num_rpg_events == 1 && num_emidi_events == 0);
 }
-
-typedef struct
-{
-    midi_event_t *event;
-    midi_track_t *track;
-} midi_position_t;
 
 // Get the next event from the MIDI file, process it or return if the delta
 // time is > 0.
