@@ -1130,6 +1130,7 @@ static midi_state_t NextEvent(midi_position_t *position)
     midi_event_t *event = NULL;
     midi_track_t *track = NULL;
     unsigned int min_time = UINT_MAX;
+    unsigned int delta_time;
 
     // Find next event across all tracks.
     for (int i = 0; i < song.num_tracks; ++i)
@@ -1172,6 +1173,7 @@ static midi_state_t NextEvent(midi_position_t *position)
     }
 
     track->elapsed_time = min_time;
+    delta_time = min_time - song.elapsed_time;
     song.elapsed_time = min_time;
 
     if (!MIDI_GetNextEvent(track->iter, &event))
@@ -1188,6 +1190,12 @@ static midi_state_t NextEvent(midi_position_t *position)
         return STATE_PLAYING;
     }
 
+    if (!delta_time)
+    {
+        ProcessEvent(event, track);
+        return STATE_PLAYING;
+    }
+
     position->track = track;
     position->event = event;
     return STATE_WAITING;
@@ -1198,14 +1206,13 @@ static int PlayerThread(void *unused)
     SDL_SetThreadPriority(SDL_THREAD_PRIORITY_TIME_CRITICAL);
 
     midi_position_t position;
-    uint64_t elapsed_time;
     boolean sleep = false;
 
     while (SDL_AtomicGet(&player_thread_running))
     {
         if (sleep)
         {
-            I_SleepUS(1000);
+            I_SleepUS(500);
             sleep = false;
         }
 
@@ -1225,7 +1232,6 @@ static int PlayerThread(void *unused)
 
             case STATE_PLAYING:
                 midi_state = NextEvent(&position);
-                elapsed_time = TicksToUS(song.elapsed_time);
                 break;
 
             case STATE_PAUSING:
@@ -1237,7 +1243,8 @@ static int PlayerThread(void *unused)
 
             case STATE_WAITING:
                 {
-                    int64_t remaining_time = elapsed_time - CurrentTime();
+                    int64_t remaining_time =
+                        TicksToUS(song.elapsed_time) - CurrentTime();
                     if (remaining_time > 1000)
                     {
                         sleep = true;
