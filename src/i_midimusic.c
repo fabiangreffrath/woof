@@ -1159,14 +1159,37 @@ static midi_state_t NextEvent(midi_position_t *position)
     return STATE_WAITING;
 }
 
+static uint64_t start_time, pause_time;
+
+static void RestartTimer(void)
+{
+    if (pause_time)
+    {
+        start_time += (I_GetTimeUS() - pause_time);
+    }
+    else
+    {
+        start_time = I_GetTimeUS();
+    }
+}
+
+static void PauseTimer(void)
+{
+    pause_time = I_GetTimeUS();
+}
+
+static uint64_t CurrentTime(void)
+{
+    return I_GetTimeUS() - start_time;
+}
+
 static int PlayerThread(void *unused)
 {
     SDL_SetThreadPriority(SDL_THREAD_PRIORITY_TIME_CRITICAL);
 
     midi_position_t position;
-    boolean sleep = false;
-    uint64_t start = I_GetTimeUS();
     uint64_t elapsed_time;
+    boolean sleep = false;
 
     while (SDL_AtomicGet(&player_thread_running))
     {
@@ -1187,6 +1210,7 @@ static int PlayerThread(void *unused)
                 ResetDevice();
                 song.rpg_loop = IsRPGLoop();
                 midi_state = STATE_PLAYING;
+                RestartTimer();
                 break;
 
             case STATE_PLAYING:
@@ -1198,13 +1222,13 @@ static int PlayerThread(void *unused)
             case STATE_PAUSING:
                 // Send notes/sound off to prevent hanging notes.
                 SendNotesSoundOff();
+                PauseTimer();
                 midi_state = STATE_PAUSED;
                 break;
 
             case STATE_WAITING:
                 {
-                    int64_t current_time = I_GetTimeUS() - start;
-                    int64_t remaining_time = elapsed_time - current_time;
+                    int64_t remaining_time = elapsed_time - CurrentTime();
                     if (remaining_time > 1000)
                     {
                         sleep = true;
@@ -1361,6 +1385,7 @@ static void I_MID_ResumeSong(void *handle)
     SDL_LockMutex(music_lock);
     if (midi_state == STATE_PAUSED)
     {
+        RestartTimer();
         midi_state = old_state;
     }
     SDL_UnlockMutex(music_lock);
