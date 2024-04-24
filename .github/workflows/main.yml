@@ -42,7 +42,7 @@ jobs:
       - name: Install dependencies (Linux)
         if: runner.os == 'Linux'
         run: |
-          sudo apt-get update
+          sudo apt-get update || true
           sudo apt-get install \
             ninja-build \
             libsdl2-dev \
