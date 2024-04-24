@@ -132,7 +132,6 @@ static void I_XMP_CloseStream(void)
     xmp_stop_module(context);
     xmp_end_player(context);
     xmp_release_module(context);
-    context = NULL;
 }
 
 static void I_XMP_ShutdownStream(void)

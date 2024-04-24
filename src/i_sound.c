@@ -581,11 +581,14 @@ boolean I_InitMusic(void)
 
 void I_ShutdownMusic(void)
 {
-    if (active_module != midi_module)
+    if (active_module)
     {
-        midi_module->I_ShutdownMusic();
+        if (active_module != midi_module)
+        {
+            midi_module->I_ShutdownMusic();
+        }
+        active_module->I_ShutdownMusic();
     }
-    active_module->I_ShutdownMusic();
     I_OAL_ShutdownStream();
 }
 
@@ -599,12 +602,18 @@ void I_SetMusicVolume(int volume)
 
 void I_PauseSong(void *handle)
 {
-    active_module->I_PauseSong(handle);
+    if (active_module)
+    {
+        active_module->I_PauseSong(handle);
+    }
 }
 
 void I_ResumeSong(void *handle)
 {
-    active_module->I_ResumeSong(handle);
+    if (active_module)
+    {
+        active_module->I_ResumeSong(handle);
+    }
 }
 
 boolean IsMid(byte *mem, int len)
@@ -629,22 +638,32 @@ void *I_RegisterSong(void *data, int size)
             return result;
         }
     }
+    active_module = NULL;
     return NULL;
 }
 
 void I_PlaySong(void *handle, boolean looping)
 {
-    active_module->I_PlaySong(handle, looping);
+    if (active_module)
+    {
+        active_module->I_PlaySong(handle, looping);
+    }
 }
 
 void I_StopSong(void *handle)
 {
-    active_module->I_StopSong(handle);
+    if (active_module)
+    {
+        active_module->I_StopSong(handle);
+    }
 }
 
 void I_UnRegisterSong(void *handle)
 {
-    active_module->I_UnRegisterSong(handle);
+    if (active_module)
+    {
+        active_module->I_UnRegisterSong(handle);
+    }
 }
 
 const char **I_DeviceList(void)
