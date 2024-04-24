@@ -51,7 +51,7 @@ enum
 
 enum
 {
-    RESET_TYPE_NONE,
+    RESET_TYPE_NO_SYSEX,
     RESET_TYPE_GM,
     RESET_TYPE_GS,
     RESET_TYPE_XG,
@@ -59,11 +59,7 @@ enum
 
 int midi_complevel = COMP_STANDARD;
 int midi_reset_type = RESET_TYPE_GM;
-int midi_reset_delay = 0;
-
-#define SYSEX_DEFAULT_BUFFER_SIZE 32
-static byte *sysex_buffer;
-static int sysex_buffer_size = SYSEX_DEFAULT_BUFFER_SIZE;
+int midi_reset_delay = -1;
 
 static const byte gm_system_on[] =
 {
@@ -92,7 +88,6 @@ static const byte ff_loopEnd[] =
 
 static boolean use_fallback;
 
-#define DEFAULT_VOLUME 100
 static byte channel_volume[MIDI_CHANNELS_PER_TRACK];
 static float volume_factor = 0.0f;
 
@@ -128,6 +123,8 @@ typedef struct
 
 typedef struct
 {
+    void *lump_data;
+    int lump_length;
     midi_file_t *file;
     midi_track_t *tracks;
     unsigned int elapsed_time;
@@ -177,15 +174,14 @@ static uint64_t CurrentTime(void)
     return I_GetTimeUS() - start_time;
 }
 
-static void SendShortMsg(byte status, byte channel, byte param1, byte param2)
-{
-    const byte message[] = {status | channel, param1, param2};
-    MIDI_SendShortMsg(message, sizeof(message));
-}
+// Sends a channel message with the second parameter overridden to zero. Only
+// use this function for events that require special handling.
 
-static void SendLongMsg(const byte *message, unsigned int length)
+static void SendChannelMsgZero(const midi_event_t *event)
 {
-    MIDI_SendLongMsg(message, length);
+    const byte message[] = {event->event_type | event->data.channel.channel,
+                            event->data.channel.param1, 0};
+    MIDI_SendShortMsg(message, sizeof(message));
 }
 
 static void SendChannelMsg(const midi_event_t *event, boolean use_param2)
@@ -205,15 +201,48 @@ static void SendChannelMsg(const midi_event_t *event, boolean use_param2)
     }
 }
 
+static void SendControlChange(byte channel, byte number, byte value)
+{
+    const byte message[] = {MIDI_EVENT_CONTROLLER | channel, number, value};
+    MIDI_SendShortMsg(message, sizeof(message));
+}
+
+// Writes a MIDI program change message. If applicable, emulates capital tone
+// fallback (CTF) to fix invalid instruments.
+
+static void SendProgramChange(byte channel, byte program)
+{
+    const byte message[] = {MIDI_EVENT_PROGRAM_CHANGE | channel, program};
+    MIDI_SendShortMsg(message, sizeof(message));
+}
+
+static void SendProgramChangeCTF(byte channel, byte program,
+                                 const midi_fallback_t *fallback)
+{
+    switch (fallback->type)
+    {
+        case FALLBACK_DRUMS:
+            SendProgramChange(channel, fallback->value);
+            break;
+
+        case FALLBACK_BANK_MSB:
+            SendControlChange(channel, MIDI_CONTROLLER_BANK_SELECT_MSB,
+                              fallback->value);
+            // Fall through.
+
+        default:
+            SendProgramChange(channel, program);
+            break;
+    }
+}
+
 // Writes an RPN message set to NULL (0x7F). Prevents accidental data entry.
 
 static void SendNullRPN(const midi_event_t *event)
 {
     const byte channel = event->data.channel.channel;
-    SendShortMsg(MIDI_EVENT_CONTROLLER, channel, MIDI_CONTROLLER_RPN_LSB,
-                 MIDI_RPN_NULL);
-    SendShortMsg(MIDI_EVENT_CONTROLLER, channel, MIDI_CONTROLLER_RPN_MSB,
-                 MIDI_RPN_NULL);
+    SendControlChange(channel, MIDI_CONTROLLER_RPN_LSB, MIDI_RPN_NULL);
+    SendControlChange(channel, MIDI_CONTROLLER_RPN_MSB, MIDI_RPN_NULL);
 }
 
 static void UpdateTempo(const midi_event_t *event)
@@ -229,15 +258,10 @@ static void SendManualVolumeMsg(byte channel, byte volume)
 {
     unsigned int scaled_volume;
 
-    scaled_volume = volume * volume_factor + 0.5f;
+    scaled_volume = lroundf((float)volume * volume_factor);
+    scaled_volume = MIN(scaled_volume, 127);
 
-    if (scaled_volume > 127)
-    {
-        scaled_volume = 127;
-    }
-
-    SendShortMsg(MIDI_EVENT_CONTROLLER, channel, MIDI_CONTROLLER_VOLUME_MSB,
-                 scaled_volume);
+    SendControlChange(channel, MIDI_CONTROLLER_VOLUME_MSB, scaled_volume);
 
     channel_volume[channel] = volume;
 }
@@ -268,7 +292,7 @@ static void ResetVolume(void)
 
     for (i = 0; i < MIDI_CHANNELS_PER_TRACK; ++i)
     {
-        SendManualVolumeMsg(i, DEFAULT_VOLUME);
+        SendManualVolumeMsg(i, MIDI_DEFAULT_VOLUME);
     }
 }
 
@@ -282,28 +306,41 @@ static void SendNotesSoundOff(void)
 
     for (i = 0; i < MIDI_CHANNELS_PER_TRACK; ++i)
     {
-        SendShortMsg(MIDI_EVENT_CONTROLLER, i, MIDI_CONTROLLER_ALL_NOTES_OFF, 0);
-        SendShortMsg(MIDI_EVENT_CONTROLLER, i, MIDI_CONTROLLER_ALL_SOUND_OFF, 0);
+        SendControlChange(i, MIDI_CONTROLLER_ALL_NOTES_OFF, 0);
+        SendControlChange(i, MIDI_CONTROLLER_ALL_SOUND_OFF, 0);
     }
 }
 
-// Resets commonly used controllers. This is only for a reset type of "none" for
-// devices that don't support SysEx resets.
+// Writes "reset all controllers" message for each channel. Despite the name,
+// this only resets some controllers (see MIDI Recommended Practice RP-015).
 
 static void ResetControllers(void)
+{
+    int i;
+
+    for (i = 0; i < MIDI_CHANNELS_PER_TRACK; i++)
+    {
+        SendControlChange(i, MIDI_CONTROLLER_RESET_ALL_CTRLS, 0);
+    }
+}
+
+// Resets commonly used controllers. This is only for a reset type of "No SysEx"
+// for devices that don't support SysEx resets.
+
+static void ResetNoSysEx(void)
 {
     int i;
 
     for (i = 0; i < MIDI_CHANNELS_PER_TRACK; ++i)
     {
         // Reset commonly used controllers.
-        SendShortMsg(MIDI_EVENT_CONTROLLER, i, MIDI_CONTROLLER_RESET_ALL_CTRLS, 0);
-        SendShortMsg(MIDI_EVENT_CONTROLLER, i, MIDI_CONTROLLER_PAN, 64);
-        SendShortMsg(MIDI_EVENT_CONTROLLER, i, MIDI_CONTROLLER_BANK_SELECT_MSB, 0);
-        SendShortMsg(MIDI_EVENT_CONTROLLER, i, MIDI_CONTROLLER_BANK_SELECT_LSB, 0);
-        SendShortMsg(MIDI_EVENT_PROGRAM_CHANGE, i, 0, 0);
-        SendShortMsg(MIDI_EVENT_CONTROLLER, i, MIDI_CONTROLLER_REVERB, 40);
-        SendShortMsg(MIDI_EVENT_CONTROLLER, i, MIDI_CONTROLLER_CHORUS, 0);
+        SendControlChange(i, MIDI_CONTROLLER_RESET_ALL_CTRLS, 0);
+        SendControlChange(i, MIDI_CONTROLLER_PAN, 64);
+        SendControlChange(i, MIDI_CONTROLLER_BANK_SELECT_MSB, 0);
+        SendControlChange(i, MIDI_CONTROLLER_BANK_SELECT_LSB, 0);
+        SendProgramChange(i, 0);
+        SendControlChange(i, MIDI_CONTROLLER_REVERB, 40);
+        SendControlChange(i, MIDI_CONTROLLER_CHORUS, 0);
     }
 }
 
@@ -317,16 +354,29 @@ static void ResetPitchBendSensitivity(void)
     for (i = 0; i < MIDI_CHANNELS_PER_TRACK; ++i)
     {
         // Set RPN MSB/LSB to pitch bend sensitivity.
-        SendShortMsg(MIDI_EVENT_CONTROLLER, i, MIDI_CONTROLLER_RPN_LSB, 0);
-        SendShortMsg(MIDI_EVENT_CONTROLLER, i, MIDI_CONTROLLER_RPN_MSB, 0);
+        SendControlChange(i, MIDI_CONTROLLER_RPN_LSB, MIDI_RPN_PITCH_BEND_SENS_LSB);
+        SendControlChange(i, MIDI_CONTROLLER_RPN_MSB, MIDI_RPN_MSB);
 
         // Reset pitch bend sensitivity to +/- 2 semitones and 0 cents.
-        SendShortMsg(MIDI_EVENT_CONTROLLER, i, MIDI_CONTROLLER_DATA_ENTRY_MSB, 2);
-        SendShortMsg(MIDI_EVENT_CONTROLLER, i, MIDI_CONTROLLER_DATA_ENTRY_LSB, 0);
+        SendControlChange(i, MIDI_CONTROLLER_DATA_ENTRY_MSB, 2);
+        SendControlChange(i, MIDI_CONTROLLER_DATA_ENTRY_LSB, 0);
 
         // Set RPN MSB/LSB to null value after data entry.
-        SendShortMsg(MIDI_EVENT_CONTROLLER, i, MIDI_CONTROLLER_RPN_LSB, 127);
-        SendShortMsg(MIDI_EVENT_CONTROLLER, i, MIDI_CONTROLLER_RPN_MSB, 127);
+        SendControlChange(i, MIDI_CONTROLLER_RPN_LSB, MIDI_RPN_NULL);
+        SendControlChange(i, MIDI_CONTROLLER_RPN_MSB, MIDI_RPN_NULL);
+    }
+}
+
+// Wait time based on bytes sent to the device. For compatibility with hardware
+// devices (e.g. SC-55).
+
+static void ResetDelayBytes(uint32_t length)
+{
+    if (midi_reset_delay == -1)
+    {
+        // MIDI transfer period is 320 us per byte (MIDI 1.0 Electrical Spec
+        // Update CA-033, page 2).
+        I_SleepUS(320 * length);
     }
 }
 
@@ -335,42 +385,58 @@ static void ResetPitchBendSensitivity(void)
 
 static void ResetDevice(void)
 {
+    // For notes/sound off called prior to this function.
+    ResetDelayBytes(96);
+
     MIDI_ResetFallback();
     use_fallback = false;
 
     switch (midi_reset_type)
     {
-        case RESET_TYPE_NONE:
-            ResetControllers();
+        case RESET_TYPE_NO_SYSEX:
+            ResetNoSysEx();
+            ResetDelayBytes(320);
             break;
 
         case RESET_TYPE_GS:
-            SendLongMsg(gs_reset, sizeof(gs_reset));
+            MIDI_SendLongMsg(gs_reset, sizeof(gs_reset));
+            ResetDelayBytes(sizeof(gs_reset));
             use_fallback = (midi_complevel != COMP_VANILLA);
             break;
 
         case RESET_TYPE_XG:
-            SendLongMsg(xg_system_on, sizeof(xg_system_on));
+            MIDI_SendLongMsg(xg_system_on, sizeof(xg_system_on));
+            ResetDelayBytes(sizeof(xg_system_on));
             break;
 
         default:
-            SendLongMsg(gm_system_on, sizeof(gm_system_on));
+            MIDI_SendLongMsg(gm_system_on, sizeof(gm_system_on));
+            ResetDelayBytes(sizeof(gm_system_on));
             break;
+    }
+
+    // Roland/Yamaha require an additional ~50 ms to execute a SysEx reset.
+    if (midi_reset_delay == -1 && midi_reset_type != RESET_TYPE_NO_SYSEX)
+    {
+        I_Sleep(60);
     }
 
     // MS GS Wavetable Synth doesn't reset pitch bend sensitivity.
     ResetPitchBendSensitivity();
+    ResetDelayBytes(288);
 
     // Reset volume (initial playback or on shutdown if no SysEx reset).
     // Scale by slider on initial playback, max on shutdown.
     if (midi_state == STATE_STARTUP)
     {
         ResetVolume();
+        ResetDelayBytes(48);
     }
-    else if (midi_reset_type == RESET_TYPE_NONE)
+    else if (midi_reset_type == RESET_TYPE_NO_SYSEX)
     {
         volume_factor = 1.0f;
         ResetVolume();
+        ResetDelayBytes(48);
     }
 
     // Send delay after reset. This is for hardware devices only (e.g. SC-55).
@@ -380,221 +446,31 @@ static void ResetDevice(void)
     }
 }
 
-// Normally, volume is controlled by channel volume messages. Roland defined a
-// special SysEx message called "part level" that is equivalent to this. MS GS
-// Wavetable Synth ignores these messages, but other MIDI devices support them.
-// Returns true if there is a match.
-
-static boolean IsPartLevel(const byte *msg, unsigned int length)
-{
-    if (length == 10 &&
-        msg[0] == 0x41 && // Roland
-        msg[2] == 0x42 && // GS
-        msg[3] == 0x12 && // DT1
-        msg[4] == 0x40 && // Address MSB
-        msg[5] >= 0x10 && // Address
-        msg[5] <= 0x1F && // Address
-        msg[6] == 0x19 && // Address LSB
-        msg[9] == 0xF7)   // SysEx EOX
-    {
-        const byte checksum = 128 - ((int)msg[4] + msg[5] + msg[6] + msg[7]) % 128;
-
-        if (msg[8] == checksum)
-        {
-            // GS Part Level (aka Channel Volume)
-            // 41 <dev> 42 12 40 <ch> 19 <vol> <sum> F7
-            return true;
-        }
-    }
-
-    return false;
-}
-
-// Checks if the current SysEx message matches any known SysEx reset message.
-// Returns true if there is a match.
-
-static boolean IsSysExReset(const byte *msg, unsigned int length)
-{
-    if (length < 5)
-    {
-        return false;
-    }
-
-    switch (msg[0])
-    {
-        case 0x41:  // Roland
-            switch (msg[2])
-            {
-                case 0x42:  // GS
-                    switch (msg[3])
-                    {
-                        case 0x12:  // DT1
-                            if (length == 10 &&
-                                msg[4] == 0x00 &&    // Address MSB
-                                msg[5] == 0x00 &&    // Address
-                                msg[6] == 0x7F &&    // Address LSB
-                                ((msg[7] == 0x00 &&  // Data     (MODE-1)
-                                  msg[8] == 0x01)
-                                 ||                  // Checksum (MODE-1)
-                                 (msg[7] == 0x01 &&  // Data     (MODE-2)
-                                  msg[8] == 0x00)))  // Checksum (MODE-2)
-                            {
-                                // SC-88 System Mode Set
-                                // 41 <dev> 42 12 00 00 7F 00 01 F7 (MODE-1)
-                                // 41 <dev> 42 12 00 00 7F 01 00 F7 (MODE-2)
-                                return true;
-                            }
-                            else if (length == 10 &&
-                                     msg[4] == 0x40 &&  // Address MSB
-                                     msg[5] == 0x00 &&  // Address
-                                     msg[6] == 0x7F &&  // Address LSB
-                                     msg[7] == 0x00 &&  // Data (GS Reset)
-                                     msg[8] == 0x41)    // Checksum
-                            {
-                                // GS Reset
-                                // 41 <dev> 42 12 40 00 7F 00 41 F7
-                                return true;
-                            }
-                            break;
-                    }
-                    break;
-            }
-            break;
-
-        case 0x43:  // Yamaha
-            switch (msg[2])
-            {
-                case 0x2B:  // TG300
-                    if (length == 9 &&
-                        msg[3] == 0x00 &&  // Start Address b20 - b14
-                        msg[4] == 0x00 &&  // Start Address b13 - b7
-                        msg[5] == 0x7F &&  // Start Address b6 - b0
-                        msg[6] == 0x00 &&  // Data
-                        msg[7] == 0x01)    // Checksum
-                    {
-                        // TG300 All Parameter Reset
-                        // 43 <dev> 2B 00 00 7F 00 01 F7
-                        return true;
-                    }
-                    break;
-
-                case 0x4C:                                // XG
-                    if (length == 8 &&
-                        msg[3] == 0x00 &&  // Address High
-                        msg[4] == 0x00 &&  // Address Mid
-                        (msg[5] == 0x7E || // Address Low (System On)
-                         msg[5] == 0x7F)
-                        &&                 // Address Low (All Parameter Reset)
-                        msg[6] == 0x00)    // Data
-                    {
-                        // XG System On, XG All Parameter Reset
-                        // 43 <dev> 4C 00 00 7E 00 F7
-                        // 43 <dev> 4C 00 00 7F 00 F7
-                        return true;
-                    }
-                    break;
-            }
-            break;
-
-        case 0x7E:  // Universal Non-Real Time
-            switch (msg[2])
-            {
-                case 0x09:  // General Midi
-                    if (length == 5
-                        && (msg[3] == 0x01 ||  // GM System On
-                            msg[3] == 0x02 ||  // GM System Off
-                            msg[3] == 0x03))   // GM2 System On
-                    {
-                        // GM System On/Off, GM2 System On
-                        // 7E <dev> 09 01 F7
-                        // 7E <dev> 09 02 F7
-                        // 7E <dev> 09 03 F7
-                        return true;
-                    }
-                    break;
-            }
-            break;
-    }
-    return false;
-}
-
 static void SendSysExMsg(const midi_event_t *event)
 {
     const byte *data = event->data.sysex.data;
     const unsigned int length = event->data.sysex.length;
 
-    if (IsPartLevel(data, length))
+    switch (event->data.sysex.type)
     {
-        byte channel;
-
-        // Convert "block number" to a channel number.
-        if (data[5] == 0x10) // Channel 10
-        {
-            channel = 9;
-        }
-        else if (data[5] < 0x1A) // Channels 1-9
-        {
-            channel = (data[5] & 0x0F) - 1;
-        }
-        else // Channels 11-16
-        {
-            channel = data[5] & 0x0F;
-        }
-
-        // Replace SysEx part level message with channel volume message.
-        SendManualVolumeMsg(channel, data[7]);
-        return;
-    }
-
-    // Send the SysEx message.
-    if (length + 1 > sysex_buffer_size)
-    {
-        sysex_buffer_size = length + 1;
-        free(sysex_buffer);
-        sysex_buffer = malloc(sysex_buffer_size);
-        sysex_buffer[0] = MIDI_EVENT_SYSEX;
-    }
-
-    memcpy(sysex_buffer + 1, data, length);
-    SendLongMsg(sysex_buffer, length + 1);
-
-    if (IsSysExReset(data, length))
-    {
-        // SysEx reset also resets volume. Take the default channel volumes
-        // and scale them by the user's volume slider.
-        ResetVolume();
-
-        // Disable instrument fallback and give priority to MIDI file. Fallback
-        // assumes GS (SC-55 level) and the MIDI file could be GM, GM2, XG, or
-        // GS (SC-88 or higher). Preserve the composer's intent.
-        if (use_fallback)
-        {
-            MIDI_ResetFallback();
-            use_fallback = false;
-        }
-    }
-}
-
-// Writes a MIDI program change message. If applicable, emulates capital tone
-// fallback to fix invalid instruments.
-
-static void SendProgramMsg(byte channel, byte program,
-                           const midi_fallback_t *fallback)
-{
-    switch ((int)fallback->type)
-    {
-        case FALLBACK_BANK_MSB:
-            SendShortMsg(MIDI_EVENT_CONTROLLER, channel,
-                         MIDI_CONTROLLER_BANK_SELECT_MSB, fallback->value);
-            SendShortMsg(MIDI_EVENT_PROGRAM_CHANGE, channel, program, 0);
+        case MIDI_SYSEX_RESET:
+            if (use_fallback)
+            {
+                MIDI_ResetFallback();
+                use_fallback = false;
+            }
+            MIDI_SendLongMsg(data, length);
+            ResetVolume();
             break;
 
-        case FALLBACK_DRUMS:
-            SendShortMsg(MIDI_EVENT_PROGRAM_CHANGE, channel, fallback->value, 0);
+        case MIDI_SYSEX_RHYTHM_PART:
+        case MIDI_SYSEX_OTHER:
+            MIDI_SendLongMsg(data, length);
             break;
 
-        default:
-            SendShortMsg(MIDI_EVENT_PROGRAM_CHANGE, channel, program, 0);
+        case MIDI_SYSEX_PART_LEVEL:
+            // Replace SysEx part level message with channel volume message.
+            SendManualVolumeMsg(event->data.sysex.channel, data[8]);
             break;
     }
 }
@@ -684,8 +560,8 @@ static void SendEMIDI(const midi_event_t *event, midi_track_t *track,
             if (track->emidi_program || track->elapsed_time < ticks_per_beat)
             {
                 track->emidi_program = true;
-                SendProgramMsg(event->data.channel.channel,
-                               event->data.channel.param2, fallback);
+                SendProgramChangeCTF(event->data.channel.channel,
+                                     event->data.channel.param2, fallback);
             }
             break;
 
@@ -783,13 +659,12 @@ static void SendMetaMsg(const midi_event_t *event, midi_track_t *track)
 // ProcessEvent function for vanilla (DMX MPU-401) compatibility level. Do not
 // call this function directly. See the ProcessEvent function pointer.
 
-static boolean ProcessEvent_Vanilla(const midi_event_t *event,
-                                    midi_track_t *track)
+static void ProcessEvent_Vanilla(const midi_event_t *event, midi_track_t *track)
 {
-    switch ((int)event->event_type)
+    switch (event->event_type)
     {
         case MIDI_EVENT_SYSEX:
-            return false;
+            break;
 
         case MIDI_EVENT_META:
             SendMetaMsg(event, track);
@@ -801,7 +676,7 @@ static boolean ProcessEvent_Vanilla(const midi_event_t *event,
                 case MIDI_CONTROLLER_BANK_SELECT_MSB:
                 case MIDI_CONTROLLER_BANK_SELECT_LSB:
                     // DMX has broken bank select support and runs in GM mode.
-                    SendChannelMsg(event, false);
+                    SendChannelMsgZero(event);
                     break;
 
                 case MIDI_CONTROLLER_MODULATION:
@@ -811,8 +686,6 @@ static boolean ProcessEvent_Vanilla(const midi_event_t *event,
                 case MIDI_CONTROLLER_SOFT_PEDAL:
                 case MIDI_CONTROLLER_REVERB:
                 case MIDI_CONTROLLER_CHORUS:
-                case MIDI_CONTROLLER_ALL_SOUND_OFF:
-                case MIDI_CONTROLLER_ALL_NOTES_OFF:
                     SendChannelMsg(event, true);
                     break;
 
@@ -822,7 +695,14 @@ static boolean ProcessEvent_Vanilla(const midi_event_t *event,
 
                 case MIDI_CONTROLLER_RESET_ALL_CTRLS:
                     // MS GS Wavetable Synth resets volume if param2 isn't zero.
-                    SendChannelMsg(event, false);
+                    // Per MIDI 1.0 Spec, param2 must be zero.
+                    SendChannelMsgZero(event);
+                    break;
+
+                case MIDI_CONTROLLER_ALL_SOUND_OFF:
+                case MIDI_CONTROLLER_ALL_NOTES_OFF:
+                    // Per MIDI 1.0 Spec, param2 must be zero.
+                    SendChannelMsgZero(event);
                     break;
 
                 default:
@@ -843,15 +723,13 @@ static boolean ProcessEvent_Vanilla(const midi_event_t *event,
         default:
             break;
     }
-
-    return true;
 }
 
 // ProcessEvent function for standard and full MIDI compatibility levels. Do not
 // call this function directly. See the ProcessEvent function pointer.
 
-static boolean ProcessEvent_Standard(const midi_event_t *event,
-                                    midi_track_t *track)
+static void ProcessEvent_Standard(const midi_event_t *event,
+                                  midi_track_t *track)
 {
     midi_fallback_t fallback = {FALLBACK_NONE, 0};
 
@@ -867,19 +745,19 @@ static boolean ProcessEvent_Standard(const midi_event_t *event,
             {
                 SendSysExMsg(event);
             }
-            return false;
+            return;
 
         case MIDI_EVENT_META:
             SendMetaMsg(event, track);
-            return true;
+            return;
     }
 
     if (track->emidi_designated && (EMIDI_DEVICE & ~track->emidi_device_flags))
     {
-        return true;
+        return;
     }
 
-    switch ((int)event->event_type)
+    switch (event->event_type)
     {
         case MIDI_EVENT_CONTROLLER:
             switch (event->data.channel.param1)
@@ -894,15 +772,12 @@ static boolean ProcessEvent_Standard(const midi_event_t *event,
                 case MIDI_CONTROLLER_SOFT_PEDAL:
                 case MIDI_CONTROLLER_REVERB:
                 case MIDI_CONTROLLER_CHORUS:
-                case MIDI_CONTROLLER_ALL_SOUND_OFF:
-                case MIDI_CONTROLLER_ALL_NOTES_OFF:
                 case MIDI_CONTROLLER_POLY_MODE_OFF:
-                case MIDI_CONTROLLER_POLY_MODE_ON:
                     SendChannelMsg(event, true);
                     break;
 
                 case MIDI_CONTROLLER_VOLUME_MSB:
-                    if (track->emidi_volume == 0)
+                    if (!track->emidi_volume)
                     {
                         SendVolumeMsg(event);
                     }
@@ -912,8 +787,14 @@ static boolean ProcessEvent_Standard(const midi_event_t *event,
                     break;
 
                 case MIDI_CONTROLLER_BANK_SELECT_LSB:
-                    SendChannelMsg(event,
-                                   fallback.type != FALLBACK_BANK_LSB);
+                    if (fallback.type == FALLBACK_BANK_LSB)
+                    {
+                        SendChannelMsgZero(event);
+                    }
+                    else
+                    {
+                        SendChannelMsg(event, true);
+                    }
                     break;
 
                 case MIDI_CONTROLLER_NRPN_LSB:
@@ -988,7 +869,24 @@ static boolean ProcessEvent_Standard(const midi_event_t *event,
 
                 case MIDI_CONTROLLER_RESET_ALL_CTRLS:
                     // MS GS Wavetable Synth resets volume if param2 isn't zero.
-                    SendChannelMsg(event, false);
+                    // Per MIDI 1.0 Spec, param2 must be zero.
+                    SendChannelMsgZero(event);
+                    break;
+
+                case MIDI_CONTROLLER_ALL_SOUND_OFF:
+                case MIDI_CONTROLLER_ALL_NOTES_OFF:
+                case MIDI_CONTROLLER_POLY_MODE_ON:
+                    // Per MIDI 1.0 Spec, param2 must be zero.
+                    SendChannelMsgZero(event);
+                    break;
+
+                case MIDI_CONTROLLER_OMNI_MODE_OFF:
+                case MIDI_CONTROLLER_OMNI_MODE_ON:
+                    if (midi_complevel == COMP_FULL)
+                    {
+                        // Per MIDI 1.0 Spec, param2 must be zero.
+                        SendChannelMsgZero(event);
+                    }
                     break;
 
                 default:
@@ -1007,10 +905,10 @@ static boolean ProcessEvent_Standard(const midi_event_t *event,
             break;
 
         case MIDI_EVENT_PROGRAM_CHANGE:
-            if (track->emidi_program == 0)
+            if (!track->emidi_program)
             {
-                SendProgramMsg(event->data.channel.channel,
-                               event->data.channel.param1, &fallback);
+                SendProgramChangeCTF(event->data.channel.channel,
+                                     event->data.channel.param1, &fallback);
             }
             break;
 
@@ -1031,16 +929,14 @@ static boolean ProcessEvent_Standard(const midi_event_t *event,
         default:
             break;
     }
-
-    return true;
 }
 
 // Function pointer determined by the desired MIDI compatibility level. Set
 // during initialization by the main thread, then called from the MIDI thread
 // only.
 
-static boolean (*ProcessEvent)(const midi_event_t *event,
-                              midi_track_t *track) = ProcessEvent_Standard;
+static void (*ProcessEvent)(const midi_event_t *event,
+                            midi_track_t *track) = ProcessEvent_Standard;
 
 // Restarts a song that uses a Final Fantasy or RPG Maker loop point.
 
@@ -1077,49 +973,6 @@ static void RestartTracks(void)
     }
     song.elapsed_time = 0;
     RestartTimer(0);
-}
-
-// The controllers "EMIDI track exclusion" and "RPG Maker loop point" share the
-// same number (CC#111) and are not compatible with each other. As a workaround,
-// allow an RPG Maker loop point only if no other EMIDI events are present. Call
-// this function before the song starts.
-
-static boolean IsRPGLoop(void)
-{
-    unsigned int i;
-    unsigned int num_rpg_events = 0;
-    unsigned int num_emidi_events = 0;
-    midi_event_t *event = NULL;
-
-    for (i = 0; i < song.num_tracks; ++i)
-    {
-        while (MIDI_GetNextEvent(song.tracks[i].iter, &event))
-        {
-            if (event->event_type == MIDI_EVENT_CONTROLLER)
-            {
-                switch (event->data.channel.param1)
-                {
-                    case EMIDI_CONTROLLER_TRACK_EXCLUSION:
-                        num_rpg_events++;
-                        break;
-
-                    case EMIDI_CONTROLLER_TRACK_DESIGNATION:
-                    case EMIDI_CONTROLLER_PROGRAM_CHANGE:
-                    case EMIDI_CONTROLLER_VOLUME:
-                    case EMIDI_CONTROLLER_LOOP_BEGIN:
-                    case EMIDI_CONTROLLER_LOOP_END:
-                    case EMIDI_CONTROLLER_GLOBAL_LOOP_BEGIN:
-                    case EMIDI_CONTROLLER_GLOBAL_LOOP_END:
-                        num_emidi_events++;
-                        break;
-                }
-            }
-        }
-
-        MIDI_RestartIterator(song.tracks[i].iter);
-    }
-
-    return (num_rpg_events == 1 && num_emidi_events == 0);
 }
 
 // Get the next event from the MIDI file, process it or return if the delta
@@ -1160,11 +1013,7 @@ static midi_state_t NextEvent(midi_position_t *position)
             }
             else if (song.looping)
             {
-                for (int i = 0; i < MIDI_CHANNELS_PER_TRACK; ++i)
-                {
-                    SendShortMsg(MIDI_EVENT_CONTROLLER, i,
-                                 MIDI_CONTROLLER_RESET_ALL_CTRLS, 0);
-                }
+                ResetControllers();
                 RestartTracks();
                 return STATE_PLAYING;
             }
@@ -1201,6 +1050,57 @@ static midi_state_t NextEvent(midi_position_t *position)
     return STATE_WAITING;
 }
 
+static boolean RegisterSong(void)
+{
+    if (IsMid(song.lump_data, song.lump_length))
+    {
+        song.file = MIDI_LoadFile(song.lump_data, song.lump_length);
+    }
+    else
+    {
+        // Assume a MUS file and try to convert
+        MEMFILE *instream;
+        MEMFILE *outstream;
+        void *outbuf;
+        size_t outbuf_len;
+
+        instream = mem_fopen_read(song.lump_data, song.lump_length);
+        outstream = mem_fopen_write();
+
+        if (mus2mid(instream, outstream) == 0)
+        {
+            mem_get_buf(outstream, &outbuf, &outbuf_len);
+            song.file = MIDI_LoadFile(outbuf, outbuf_len);
+        }
+        else
+        {
+            song.file = NULL;
+        }
+
+        mem_fclose(instream);
+        mem_fclose(outstream);
+    }
+
+    if (song.file == NULL)
+    {
+        I_Printf(VB_ERROR, "I_MID_RegisterSong: Failed to load MID.");
+        return false;
+    }
+
+    ticks_per_beat = MIDI_GetFileTimeDivision(song.file);
+    us_per_beat = MIDI_DEFAULT_TEMPO;
+
+    song.num_tracks = MIDI_NumTracks(song.file);
+    song.tracks = calloc(song.num_tracks, sizeof(midi_track_t));
+    for (uint16_t i = 0; i < song.num_tracks; i++)
+    {
+        song.tracks[i].iter = MIDI_IterateTrack(song.file, i);
+    }
+
+    song.rpg_loop = MIDI_RPGLoop(song.file);
+    return true;
+}
+
 static int PlayerThread(void *unused)
 {
     SDL_SetThreadPriority(SDL_THREAD_PRIORITY_TIME_CRITICAL);
@@ -1224,8 +1124,12 @@ static int PlayerThread(void *unused)
         switch (midi_state)
         {
             case STATE_STARTUP:
+                if (!RegisterSong())
+                {
+                    midi_state = STATE_STOPPED;
+                    break;
+                }
                 ResetDevice();
-                song.rpg_loop = IsRPGLoop();
                 midi_state = STATE_PLAYING;
                 RestartTimer(0);
                 break;
@@ -1315,9 +1219,6 @@ static boolean I_MID_InitMusic(int device)
     ProcessEvent = (midi_complevel == COMP_VANILLA) ? ProcessEvent_Vanilla
                                                     : ProcessEvent_Standard;
     MIDI_InitFallback();
-
-    sysex_buffer = malloc(sysex_buffer_size);
-    sysex_buffer[0] = MIDI_EVENT_SYSEX;
 
     music_initialized = true;
 
@@ -1419,51 +1320,8 @@ static void *I_MID_RegisterSong(void *data, int len)
         return NULL;
     }
 
-    if (IsMid(data, len))
-    {
-        song.file = MIDI_LoadFile(data, len);
-    }
-    else
-    {
-        // Assume a MUS file and try to convert
-        MEMFILE *instream;
-        MEMFILE *outstream;
-        void *outbuf;
-        size_t outbuf_len;
-
-        instream = mem_fopen_read(data, len);
-        outstream = mem_fopen_write();
-
-        if (mus2mid(instream, outstream) == 0)
-        {
-            mem_get_buf(outstream, &outbuf, &outbuf_len);
-            song.file = MIDI_LoadFile(outbuf, outbuf_len);
-        }
-        else
-        {
-            song.file = NULL;
-        }
-
-        mem_fclose(instream);
-        mem_fclose(outstream);
-    }
-
-    if (song.file == NULL)
-    {
-        I_Printf(VB_ERROR, "I_MID_RegisterSong: Failed to load MID.");
-        return NULL;
-    }
-
-    ticks_per_beat = MIDI_GetFileTimeDivision(song.file);
-
-    us_per_beat = 500 * 1000; // Default is 120 bpm.
-
-    song.num_tracks = MIDI_NumTracks(song.file);
-    song.tracks = calloc(song.num_tracks, sizeof(midi_track_t));
-    for (int i = 0; i < song.num_tracks; ++i)
-    {
-        song.tracks[i].iter = MIDI_IterateTrack(song.file, i);
-    }
+    song.lump_data = data;
+    song.lump_length = len;
 
     return (void *)1;
 }
@@ -1491,6 +1349,8 @@ static void I_MID_UnRegisterSong(void *handle)
         MIDI_FreeFile(song.file);
         song.file = NULL;
     }
+    song.lump_data = NULL;
+    song.lump_length = 0;
     song.elapsed_time = 0;
     song.saved_elapsed_time = 0;
     song.num_tracks = 0;
@@ -1513,8 +1373,6 @@ static void I_MID_ShutdownMusic(void)
     ResetDevice();
 
     MIDI_CloseDevice();
-
-    free(sysex_buffer);
 
     music_initialized = false;
 }

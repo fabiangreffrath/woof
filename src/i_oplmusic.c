@@ -1417,7 +1417,7 @@ static void InitChannel(opl_channel_data_t *channel)
 
     channel->instrument = &main_instrs[0];
     channel->volume = current_music_volume;
-    channel->volume_base = 100;
+    channel->volume_base = MIDI_DEFAULT_VOLUME;
     if (channel->volume > channel->volume_base)
     {
         channel->volume = channel->volume_base;
@@ -1582,7 +1582,7 @@ static void I_OPL_PlayStream(boolean looping)
     // Default is 120 bpm.
     // TODO: this is wrong
 
-    us_per_beat = 500 * 1000;
+    us_per_beat = MIDI_DEFAULT_TEMPO;
 
     start_music_volume = current_music_volume;
 
