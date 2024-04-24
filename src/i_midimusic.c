@@ -661,7 +661,7 @@ static void SendMetaMsg(const midi_event_t *event, midi_track_t *track)
 
 static void ProcessEvent_Vanilla(const midi_event_t *event, midi_track_t *track)
 {
-    switch ((int)event->event_type)
+    switch (event->event_type)
     {
         case MIDI_EVENT_SYSEX:
             break;
@@ -757,7 +757,7 @@ static void ProcessEvent_Standard(const midi_event_t *event,
         return;
     }
 
-    switch ((int)event->event_type)
+    switch (event->event_type)
     {
         case MIDI_EVENT_CONTROLLER:
             switch (event->data.channel.param1)
