@@ -81,6 +81,8 @@ boolean MN_MenuIsShaded(void);
 
 void MN_SetQuickSaveSlot(int slot);
 
+void MN_InitMidiPlayer(void);
+
 void MN_InitMenuStrings(void);
 
 boolean MN_StartsWithMapIdentifier(char *str);

@@ -93,6 +93,7 @@ void MN_DrawEnemy(void);
 
 extern int resolution_scale;
 extern int midi_player_menu;
+extern const char *midi_player_string;
 
 /////////////////////////////
 //

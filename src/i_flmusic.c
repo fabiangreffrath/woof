@@ -136,7 +136,10 @@ static void GetSoundFonts(void)
 {
     char *left, *p, *dup_path;
 
-    array_clear(soundfonts);
+    if (array_size(soundfonts))
+    {
+        return;
+    }
 
     // Split into individual dirs within the list.
     dup_path = M_StringDuplicate(soundfont_dir);
@@ -413,7 +416,7 @@ static const char **I_FL_DeviceList(void)
     for (int i = 0; i < array_size(soundfonts); ++i)
     {
         char *name = M_StringDuplicate(M_BaseName(soundfonts[i]));
-        if (strlen(name) >= NAME_MAX_LENGTH)
+        if (strlen(name) > NAME_MAX_LENGTH)
         {
             name[NAME_MAX_LENGTH] = '\0';
         }

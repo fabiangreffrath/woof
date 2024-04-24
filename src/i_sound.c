@@ -29,7 +29,6 @@
 #include "i_printf.h"
 #include "i_system.h"
 #include "m_array.h"
-#include "mn_setup.h"
 #include "p_mobj.h"
 #include "sounds.h"
 #include "w_wad.h"
@@ -509,12 +508,14 @@ void I_SetSoundModule(int device)
     }
 }
 
-void I_SetMidiPlayer(int device)
+void I_SetMidiPlayer(int *menu_index)
 {
     if (nomusicparm)
     {
         return;
     }
+
+    const int device = *menu_index;
 
     if (midi_module)
     {
@@ -542,13 +543,20 @@ void I_SetMidiPlayer(int device)
 
     // Fall back the the first module that initializes, device 0.
 
+    count_devices = 0;
+
     for (int i = 0; i < arrlen(music_modules); ++i)
     {
+        const char **strings = music_modules[i]->I_DeviceList();
+
         if (music_modules[i]->I_InitMusic(0))
         {
             midi_module = music_modules[i];
+            *menu_index = count_devices;
             return;
         }
+
+        count_devices += array_size(strings);
     }
 
     I_Error("I_SetMidiPlayer: No music module could be initialized");
@@ -567,8 +575,6 @@ boolean I_InitMusic(void)
     I_OAL_InitStream();
 
     I_AtExit(I_ShutdownMusic, true);
-
-    I_SetMidiPlayer(midi_player_menu);
 
     return true;
 }

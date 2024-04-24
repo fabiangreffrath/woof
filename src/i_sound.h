@@ -179,7 +179,7 @@ extern music_module_t music_mid_module;
 boolean I_InitMusic(void);
 void I_ShutdownMusic(void);
 
-void I_SetMidiPlayer(int device);
+void I_SetMidiPlayer(int *menu_index);
 
 // Volume.
 void I_SetMusicVolume(int volume);

@@ -461,6 +461,13 @@ default_t defaults[] = {
     "MIDI Player menu index"
   },
 
+  {
+    "midi_player_string",
+    (config_t *) &midi_player_string, NULL,
+    {.s = ""}, {0}, string, ss_none, wad_no,
+    "MIDI Player string"
+  },
+
 #if defined(HAVE_FLUIDSYNTH)
   {
     "soundfont_dir",

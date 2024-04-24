@@ -2048,23 +2048,17 @@ static void SetSoundModule(void)
 }
 
 int midi_player_menu;
-
-static const char **GetMidiDevicesStrings(void)
-{
-    const char **devices = I_DeviceList();
-    if (midi_player_menu >= array_size(devices))
-    {
-        midi_player_menu = 0;
-    }
-    return devices;
-}
+const char *midi_player_string = "";
 
 static void SetMidiPlayer(void)
 {
     S_StopMusic();
-    I_SetMidiPlayer(midi_player_menu);
+    I_SetMidiPlayer(&midi_player_menu);
     S_SetMusicVolume(snd_MusicVolume);
     S_RestartMusic();
+
+    const char **strings = GetStrings(str_midi_player);
+    midi_player_string = strings[midi_player_menu];
 }
 
 static setup_menu_t gen_settings2[] = {
@@ -3801,11 +3795,34 @@ static void UpdateHUDModeStrings(void)
     selectstrings[str_hudmode] = GetHUDModeStrings();
 }
 
+void MN_InitMidiPlayer(void)
+{
+    const char **devices = I_DeviceList();
+
+    for (int i = 0; i < array_size(devices); ++i)
+    {
+        if (!strcasecmp(devices[i], midi_player_string))
+        {
+            midi_player_menu = i;
+            break;
+        }
+    }
+
+    if (midi_player_menu >= array_size(devices))
+    {
+        midi_player_menu = 0;
+    }
+
+    I_SetMidiPlayer(&midi_player_menu);
+    midi_player_string = devices[midi_player_menu];
+
+    selectstrings[str_midi_player] = devices;
+}
+
 void MN_InitMenuStrings(void)
 {
     UpdateHUDModeStrings();
     selectstrings[str_resolution_scale] = GetResolutionScaleStrings();
-    selectstrings[str_midi_player] = GetMidiDevicesStrings();
     selectstrings[str_mouse_accel] = GetMouseAccelStrings();
 }
 
