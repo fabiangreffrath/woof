@@ -141,6 +141,42 @@ typedef struct
 
 static midi_song_t song;
 
+typedef struct
+{
+    midi_event_t *event;
+    midi_track_t *track;
+} midi_position_t;
+
+static uint64_t start_time, pause_time;
+
+static uint64_t TicksToUS(uint32_t ticks)
+{
+    return (uint64_t)ticks * us_per_beat / ticks_per_beat;
+}
+
+static void RestartTimer(uint64_t offset)
+{
+    if (pause_time)
+    {
+        start_time += (I_GetTimeUS() - pause_time);
+        pause_time = 0;
+    }
+    else
+    {
+        start_time = I_GetTimeUS() - offset;
+    }
+}
+
+static void PauseTimer(void)
+{
+    pause_time = I_GetTimeUS();
+}
+
+static uint64_t CurrentTime(void)
+{
+    return I_GetTimeUS() - start_time;
+}
+
 static void SendShortMsg(byte status, byte channel, byte param1, byte param2)
 {
     const byte message[] = {status | channel, param1, param2};
@@ -184,6 +220,7 @@ static void UpdateTempo(const midi_event_t *event)
 {
     byte *data = event->data.meta.data;
     us_per_beat = (data[0] << 16) | (data[1] << 8) | data[2];
+    RestartTimer(TicksToUS(song.elapsed_time));
 }
 
 // Writes a MIDI volume message. The value is scaled by the volume slider.
@@ -706,6 +743,7 @@ static void SendEMIDI(const midi_event_t *event, midi_track_t *track,
                         song.tracks[i].end_of_track = song.tracks[i].saved_end_of_track;
                         song.tracks[i].elapsed_time = song.tracks[i].saved_elapsed_time;
                         song.elapsed_time = song.saved_elapsed_time;
+                        RestartTimer(TicksToUS(song.elapsed_time));
                     }
 
                     if (song.tracks[i].emidi_loop_count > 0)
@@ -1017,6 +1055,7 @@ static void RestartLoop(void)
         song.tracks[i].elapsed_time = song.tracks[i].saved_elapsed_time;
     }
     song.elapsed_time = song.saved_elapsed_time;
+    RestartTimer(TicksToUS(song.elapsed_time));
 }
 
 // Restarts a song that uses standard looping.
@@ -1037,6 +1076,7 @@ static void RestartTracks(void)
         song.tracks[i].emidi_loop_count = 0;
     }
     song.elapsed_time = 0;
+    RestartTimer(0);
 }
 
 // The controllers "EMIDI track exclusion" and "RPG Maker loop point" share the
@@ -1085,11 +1125,10 @@ static boolean IsRPGLoop(void)
 // Get the next event from the MIDI file, process it or return if the delta
 // time is > 0.
 
-static midi_state_t NextEvent(midi_event_t **event, midi_track_t **track,
-                              uint64_t *wait_time)
+static midi_state_t NextEvent(midi_position_t *position)
 {
-    midi_event_t *local_event = NULL;
-    midi_track_t *local_track = NULL;
+    midi_event_t *event = NULL;
+    midi_track_t *track = NULL;
     unsigned int min_time = UINT_MAX;
     unsigned int delta_time;
 
@@ -1103,13 +1142,13 @@ static midi_state_t NextEvent(midi_event_t **event, midi_track_t **track,
             if (time < min_time)
             {
                 min_time = time;
-                local_track = &song.tracks[i];
+                track = &song.tracks[i];
             }
         }
     }
 
     // No more events. Restart or stop song.
-    if (local_track == NULL)
+    if (track == NULL)
     {
         if (song.elapsed_time)
         {
@@ -1133,34 +1172,32 @@ static midi_state_t NextEvent(midi_event_t **event, midi_track_t **track,
         return STATE_STOPPED;
     }
 
-    local_track->elapsed_time = min_time;
+    track->elapsed_time = min_time;
     delta_time = min_time - song.elapsed_time;
     song.elapsed_time = min_time;
 
-    if (!MIDI_GetNextEvent(local_track->iter, &local_event))
+    if (!MIDI_GetNextEvent(track->iter, &event))
     {
-        local_track->end_of_track = true;
+        track->end_of_track = true;
         return STATE_PLAYING;
     }
 
     // Restart FF loop after sending all events that share same ticks_per_beat.
-    if (song.ff_restart && MIDI_GetDeltaTime(local_track->iter) > 0)
+    if (song.ff_restart && MIDI_GetDeltaTime(track->iter) > 0)
     {
         song.ff_restart = false;
         RestartLoop();
         return STATE_PLAYING;
     }
 
-    if (delta_time == 0)
+    if (!delta_time)
     {
-        ProcessEvent(local_event, local_track);
+        ProcessEvent(event, track);
         return STATE_PLAYING;
     }
 
-    *track = local_track;
-    *event = local_event;
-    uint64_t us = ((uint64_t)delta_time * us_per_beat) / ticks_per_beat;
-    *wait_time = I_GetTimeUS() + us;
+    position->track = track;
+    position->event = event;
     return STATE_WAITING;
 }
 
@@ -1168,16 +1205,14 @@ static int PlayerThread(void *unused)
 {
     SDL_SetThreadPriority(SDL_THREAD_PRIORITY_TIME_CRITICAL);
 
-    midi_event_t *event = NULL;
-    midi_track_t *track = NULL;
+    midi_position_t position;
     boolean sleep = false;
-    uint64_t wait_time = 0;
 
     while (SDL_AtomicGet(&player_thread_running))
     {
         if (sleep)
         {
-            I_SleepUS(1000);
+            I_SleepUS(500);
             sleep = false;
         }
 
@@ -1192,21 +1227,24 @@ static int PlayerThread(void *unused)
                 ResetDevice();
                 song.rpg_loop = IsRPGLoop();
                 midi_state = STATE_PLAYING;
+                RestartTimer(0);
                 break;
 
             case STATE_PLAYING:
-                midi_state = NextEvent(&event, &track, &wait_time);
+                midi_state = NextEvent(&position);
                 break;
 
             case STATE_PAUSING:
                 // Send notes/sound off to prevent hanging notes.
                 SendNotesSoundOff();
+                PauseTimer();
                 midi_state = STATE_PAUSED;
                 break;
 
             case STATE_WAITING:
                 {
-                    int64_t remaining_time = wait_time - I_GetTimeUS();
+                    int64_t remaining_time =
+                        TicksToUS(song.elapsed_time) - CurrentTime();
                     if (remaining_time > 1000)
                     {
                         sleep = true;
@@ -1216,7 +1254,7 @@ static int PlayerThread(void *unused)
                     {
                         I_SleepUS(remaining_time);
                     }
-                    ProcessEvent(event, track);
+                    ProcessEvent(position.event, position.track);
                     midi_state = STATE_PLAYING;
                 }
                 break;
@@ -1363,6 +1401,7 @@ static void I_MID_ResumeSong(void *handle)
     SDL_LockMutex(music_lock);
     if (midi_state == STATE_PAUSED)
     {
+        RestartTimer(0);
         midi_state = old_state;
     }
     SDL_UnlockMutex(music_lock);
