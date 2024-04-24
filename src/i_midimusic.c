@@ -375,9 +375,8 @@ static void ResetDelayBytes(uint32_t length)
     if (midi_reset_delay == -1)
     {
         // MIDI transfer period is 320 us per byte (MIDI 1.0 Electrical Spec
-        // Update CA-033, page 2). Round up value.
-        const uint32_t delay = length * 320 / 1000 + (length * 320 % 1000 != 0);
-        SDL_Delay(delay);
+        // Update CA-033, page 2).
+        I_SleepUS(320 * length);
     }
 }
 
