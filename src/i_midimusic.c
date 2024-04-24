@@ -778,7 +778,7 @@ static void ProcessEvent_Standard(const midi_event_t *event,
                     break;
 
                 case MIDI_CONTROLLER_VOLUME_MSB:
-                    if (track->emidi_volume == 0)
+                    if (!track->emidi_volume)
                     {
                         SendVolumeMsg(event);
                     }
@@ -906,7 +906,7 @@ static void ProcessEvent_Standard(const midi_event_t *event,
             break;
 
         case MIDI_EVENT_PROGRAM_CHANGE:
-            if (track->emidi_program == 0)
+            if (!track->emidi_program)
             {
                 SendProgramChangeCTF(event->data.channel.channel,
                                      event->data.channel.param1, &fallback);
