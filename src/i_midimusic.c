@@ -632,7 +632,7 @@ static void SendEMIDI(const midi_event_t *event, midi_track_t *track,
     }
 }
 
-static void SendMetaMsg(const midi_event_t *event, midi_track_t *track)
+static void ProcessMetaEvent(const midi_event_t *event, midi_track_t *track)
 {
     switch (event->data.meta.type)
     {
@@ -667,7 +667,7 @@ static void ProcessEvent_Vanilla(const midi_event_t *event, midi_track_t *track)
             break;
 
         case MIDI_EVENT_META:
-            SendMetaMsg(event, track);
+            ProcessMetaEvent(event, track);
             break;
 
         case MIDI_EVENT_CONTROLLER:
@@ -748,7 +748,7 @@ static void ProcessEvent_Standard(const midi_event_t *event,
             return;
 
         case MIDI_EVENT_META:
-            SendMetaMsg(event, track);
+            ProcessMetaEvent(event, track);
             return;
     }
 
