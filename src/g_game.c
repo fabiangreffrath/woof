@@ -4245,8 +4245,11 @@ static size_t WriteCmdLineLump(MEMFILE *stream)
   {
     const char *basename = M_BaseName(wadfiles[i]);
 
-    if (!strcasecmp("brghtmps.lmp", basename))
+    if (!strcasecmp("brghtmps.lmp", basename) ||
+        !strcasecmp("woofhud.lmp", basename))
+    {
       continue;
+    }
 
     if (!has_files)
     {
