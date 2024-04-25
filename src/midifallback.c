@@ -36,7 +36,6 @@ static const byte drums_table[128] =
 static byte variation[128][128];
 static byte bank_msb[MIDI_CHANNELS_PER_TRACK];
 static byte drum_map[MIDI_CHANNELS_PER_TRACK];
-static boolean selected[MIDI_CHANNELS_PER_TRACK];
 
 static boolean GetProgramFallback(byte idx, byte program,
                                   midi_fallback_t *fallback)
@@ -46,13 +45,12 @@ static boolean GetProgramFallback(byte idx, byte program,
         if (bank_msb[idx] == 0 || variation[bank_msb[idx]][program])
         {
             // Found a capital or variation for this bank select MSB.
-            selected[idx] = true;
             return false;
         }
 
         fallback->type = FALLBACK_BANK_MSB;
 
-        if (!selected[idx] || bank_msb[idx] > 63)
+        if (bank_msb[idx] > 63)
         {
             // Fall to capital when no instrument has (successfully)
             // selected this variation or if the variation is above 63.
@@ -93,7 +91,6 @@ static boolean GetProgramFallback(byte idx, byte program,
             // Drums 64-126: standard drum set (0).
             fallback->type = FALLBACK_DRUMS;
             fallback->value = drums_table[program];
-            selected[idx] = true;
 
             I_Printf(VB_DEBUG,
                      "midifallback: warning: ch=%d [prog=%d] "
@@ -133,11 +130,9 @@ void MIDI_CheckFallback(const midi_event_t *event, midi_fallback_t *fallback,
             {
                 case MIDI_CONTROLLER_BANK_SELECT_MSB:
                     bank_msb[idx] = event->data.channel.param2;
-                    selected[idx] = false;
                     break;
 
                 case MIDI_CONTROLLER_BANK_SELECT_LSB:
-                    selected[idx] = false;
                     if (event->data.channel.param2 > 0)
                     {
                         // Bank select LSB > 0 not supported. This also
@@ -186,7 +181,6 @@ void MIDI_ResetFallback(void)
     {
         bank_msb[i] = 0;
         drum_map[i] = 0;
-        selected[i] = false;
     }
 
     // Channel 10 (index 9) is set to drum map 1 by default.
