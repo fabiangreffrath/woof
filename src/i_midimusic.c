@@ -87,8 +87,6 @@ static const byte ff_loopEnd[] =
     'l', 'o', 'o', 'p', 'E', 'n', 'd'
 };
 
-static boolean use_fallback;
-
 static byte channel_volume[MIDI_CHANNELS_PER_TRACK];
 static float volume_factor = 0.0f;
 
@@ -213,28 +211,49 @@ static void SendControlChange(byte channel, byte number, byte value)
 
 static void SendProgramChange(byte channel, byte program)
 {
-    const byte message[] = {MIDI_EVENT_PROGRAM_CHANGE | channel, program};
+    byte message[] = {MIDI_EVENT_PROGRAM_CHANGE | channel, program};
+
+    if (midi_ctf)
+    {
+        const midi_fallback_t fallback = MIDI_ProgramFallback(channel, program);
+
+        if (fallback.type == FALLBACK_DRUMS)
+        {
+            message[1] = fallback.value;
+        }
+        else if (fallback.type == FALLBACK_BANK_MSB)
+        {
+            SendControlChange(channel, MIDI_CONTROLLER_BANK_SELECT_MSB,
+                              fallback.value);
+        }
+    }
+
     MIDI_SendShortMsg(message, sizeof(message));
 }
 
-static void SendProgramChangeCTF(byte channel, byte program,
-                                 const midi_fallback_t *fallback)
+static void SendBankSelectMSB(byte channel, byte value)
 {
-    switch (fallback->type)
+    if (midi_ctf)
     {
-        case FALLBACK_DRUMS:
-            SendProgramChange(channel, fallback->value);
-            break;
-
-        case FALLBACK_BANK_MSB:
-            SendControlChange(channel, MIDI_CONTROLLER_BANK_SELECT_MSB,
-                              fallback->value);
-            // Fall through.
-
-        default:
-            SendProgramChange(channel, program);
-            break;
+        MIDI_UpdateBankMSB(channel, value);
     }
+
+    SendControlChange(channel, MIDI_CONTROLLER_BANK_SELECT_MSB, value);
+}
+
+static void SendBankSelectLSB(byte channel, byte value)
+{
+    if (midi_ctf)
+    {
+        const midi_fallback_t fallback = MIDI_BankLSBFallback(channel, value);
+
+        if (fallback.type == FALLBACK_BANK_LSB)
+        {
+            value = fallback.value;
+        }
+    }
+
+    SendControlChange(channel, MIDI_CONTROLLER_BANK_SELECT_LSB, value);
 }
 
 // Writes an RPN message set to NULL (0x7F). Prevents accidental data entry.
@@ -389,8 +408,10 @@ static void ResetDevice(void)
     // For notes/sound off called prior to this function.
     ResetDelayBytes(96);
 
-    MIDI_ResetFallback();
-    use_fallback = false;
+    if (midi_ctf)
+    {
+        MIDI_ResetFallback();
+    }
 
     switch (midi_reset_type)
     {
@@ -402,7 +423,6 @@ static void ResetDevice(void)
         case RESET_TYPE_GS:
             MIDI_SendLongMsg(gs_reset, sizeof(gs_reset));
             ResetDelayBytes(sizeof(gs_reset));
-            use_fallback = (midi_complevel != COMP_VANILLA);
             break;
 
         case RESET_TYPE_XG:
@@ -455,16 +475,21 @@ static void SendSysExMsg(const midi_event_t *event)
     switch (event->data.sysex.type)
     {
         case MIDI_SYSEX_RESET:
-            if (use_fallback)
+            if (midi_ctf)
             {
                 MIDI_ResetFallback();
-                use_fallback = false;
             }
             MIDI_SendLongMsg(data, length);
             ResetVolume();
             break;
 
         case MIDI_SYSEX_RHYTHM_PART:
+            if (midi_ctf)
+            {
+                MIDI_UpdateDrumMap(event->data.sysex.channel, data[8]);
+            }
+            // Fall through.
+
         case MIDI_SYSEX_OTHER:
             MIDI_SendLongMsg(data, length);
             break;
@@ -508,8 +533,7 @@ static void CheckFFLoop(const midi_event_t *event)
     }
 }
 
-static void SendEMIDI(const midi_event_t *event, midi_track_t *track,
-                      const midi_fallback_t *fallback)
+static void SendEMIDI(const midi_event_t *event, midi_track_t *track)
 {
     unsigned int i;
     unsigned int flag;
@@ -561,8 +585,8 @@ static void SendEMIDI(const midi_event_t *event, midi_track_t *track,
             if (track->emidi_program || track->elapsed_time < ticks_per_beat)
             {
                 track->emidi_program = true;
-                SendProgramChangeCTF(event->data.channel.channel,
-                                     event->data.channel.param2, fallback);
+                SendProgramChange(event->data.channel.channel,
+                                  event->data.channel.param2);
             }
             break;
 
@@ -664,9 +688,6 @@ static void ProcessEvent_Vanilla(const midi_event_t *event, midi_track_t *track)
 {
     switch (event->event_type)
     {
-        case MIDI_EVENT_SYSEX:
-            break;
-
         case MIDI_EVENT_META:
             ProcessMetaEvent(event, track);
             break;
@@ -675,9 +696,19 @@ static void ProcessEvent_Vanilla(const midi_event_t *event, midi_track_t *track)
             switch (event->data.channel.param1)
             {
                 case MIDI_CONTROLLER_BANK_SELECT_MSB:
+                    // DMX has broken bank select support and runs in GM mode.
+                    // Actual behavior (MSB is okay):
+                    //SendBankSelectMSB(event->data.channel.channel,
+                    //                  event->data.channel.param2);
+                    SendBankSelectMSB(event->data.channel.channel, 0);
+                    break;
+
                 case MIDI_CONTROLLER_BANK_SELECT_LSB:
                     // DMX has broken bank select support and runs in GM mode.
-                    SendChannelMsgZero(event);
+                    // Actual behavior (LSB is sent as MSB!):
+                    //SendBankSelectMSB(event->data.channel.channel,
+                    //                  event->data.channel.param2);
+                    SendBankSelectLSB(event->data.channel.channel, 0);
                     break;
 
                 case MIDI_CONTROLLER_MODULATION:
@@ -718,7 +749,8 @@ static void ProcessEvent_Vanilla(const midi_event_t *event, midi_track_t *track)
             break;
 
         case MIDI_EVENT_PROGRAM_CHANGE:
-            SendChannelMsg(event, false);
+            SendProgramChange(event->data.channel.channel,
+                              event->data.channel.param1);
             break;
 
         default:
@@ -732,13 +764,6 @@ static void ProcessEvent_Vanilla(const midi_event_t *event, midi_track_t *track)
 static void ProcessEvent_Standard(const midi_event_t *event,
                                   midi_track_t *track)
 {
-    midi_fallback_t fallback = {FALLBACK_NONE, 0};
-
-    if (use_fallback)
-    {
-        MIDI_CheckFallback(event, &fallback, midi_complevel == COMP_FULL);
-    }
-
     switch ((int)event->event_type)
     {
         case MIDI_EVENT_SYSEX:
@@ -763,7 +788,6 @@ static void ProcessEvent_Standard(const midi_event_t *event,
         case MIDI_EVENT_CONTROLLER:
             switch (event->data.channel.param1)
             {
-                case MIDI_CONTROLLER_BANK_SELECT_MSB:
                 case MIDI_CONTROLLER_MODULATION:
                 case MIDI_CONTROLLER_DATA_ENTRY_MSB:
                 case MIDI_CONTROLLER_PAN:
@@ -787,15 +811,14 @@ static void ProcessEvent_Standard(const midi_event_t *event,
                 case MIDI_CONTROLLER_VOLUME_LSB:
                     break;
 
+                case MIDI_CONTROLLER_BANK_SELECT_MSB:
+                    SendBankSelectMSB(event->data.channel.channel,
+                                      event->data.channel.param2);
+                    break;
+
                 case MIDI_CONTROLLER_BANK_SELECT_LSB:
-                    if (fallback.type == FALLBACK_BANK_LSB)
-                    {
-                        SendChannelMsgZero(event);
-                    }
-                    else
-                    {
-                        SendChannelMsg(event, true);
-                    }
+                    SendBankSelectLSB(event->data.channel.channel,
+                                      event->data.channel.param2);
                     break;
 
                 case MIDI_CONTROLLER_NRPN_LSB:
@@ -865,7 +888,7 @@ static void ProcessEvent_Standard(const midi_event_t *event,
                 case EMIDI_CONTROLLER_LOOP_END:
                 case EMIDI_CONTROLLER_GLOBAL_LOOP_BEGIN:
                 case EMIDI_CONTROLLER_GLOBAL_LOOP_END:
-                    SendEMIDI(event, track, &fallback);
+                    SendEMIDI(event, track);
                     break;
 
                 case MIDI_CONTROLLER_RESET_ALL_CTRLS:
@@ -908,8 +931,8 @@ static void ProcessEvent_Standard(const midi_event_t *event,
         case MIDI_EVENT_PROGRAM_CHANGE:
             if (!track->emidi_program)
             {
-                SendProgramChangeCTF(event->data.channel.channel,
-                                     event->data.channel.param1, &fallback);
+                SendProgramChange(event->data.channel.channel,
+                                  event->data.channel.param1);
             }
             break;
 
@@ -1219,7 +1242,6 @@ static boolean I_MID_InitMusic(int device)
 
     ProcessEvent = (midi_complevel == COMP_VANILLA) ? ProcessEvent_Vanilla
                                                     : ProcessEvent_Standard;
-    MIDI_InitFallback();
 
     music_initialized = true;
 

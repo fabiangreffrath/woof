@@ -35,9 +35,10 @@ typedef struct midi_fallback_t
     byte value;
 } midi_fallback_t;
 
-void MIDI_CheckFallback(const midi_event_t *event, midi_fallback_t *fallback,
-                        boolean allow_sysex);
 void MIDI_ResetFallback(void);
-void MIDI_InitFallback(void);
+void MIDI_UpdateBankMSB(byte idx, byte value);
+void MIDI_UpdateDrumMap(byte idx, byte value);
+midi_fallback_t MIDI_BankLSBFallback(byte idx, byte value);
+midi_fallback_t MIDI_ProgramFallback(byte idx, byte program);
 
 #endif // MIDIFALLBACK_H
