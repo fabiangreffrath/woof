@@ -60,6 +60,7 @@ enum
 int midi_complevel = COMP_STANDARD;
 int midi_reset_type = RESET_TYPE_GM;
 int midi_reset_delay = -1;
+boolean midi_ctf = true;
 
 static const byte gm_system_on[] =
 {

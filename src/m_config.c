@@ -93,6 +93,7 @@ extern int mus_gain;
 extern int midi_complevel;
 extern int midi_reset_type;
 extern int midi_reset_delay;
+extern boolean midi_ctf;
 extern int opl_gain;
 extern boolean demobar;
 extern boolean smoothlight;
@@ -556,6 +557,13 @@ default_t defaults[] = {
     (config_t *) &midi_reset_delay, NULL,
     {-1}, {-1, 2000}, number, ss_none, wad_no,
     "Delay after reset for native MIDI (-1 = Auto, 0 = None, 1-2000 = Milliseconds)"
+  },
+
+  {
+    "midi_ctf",
+    (config_t *) &midi_ctf, NULL,
+    {1}, {0, 1}, number, ss_none, wad_no,
+    "1 to fix invalid instruments by emulating SC-55 capital tone fallback"
   },
 
   //
