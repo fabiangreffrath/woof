@@ -215,6 +215,27 @@ default_t defaults[] = {
     "current video display index"
   },
 
+  {
+    "max_video_width",
+    (config_t *) &max_video_width, NULL,
+    {0}, {SCREENWIDTH, UL}, number, ss_none, wad_no,
+    "maximum horizontal resolution (native by default)"
+  },
+
+  {
+    "max_video_height",
+    (config_t *) &max_video_height, NULL,
+    {0}, {SCREENHEIGHT, UL}, number, ss_none, wad_no,
+    "maximum vertical resolution (native by default)"
+  },
+
+  {
+    "change_display_resolution",
+    (config_t *) &change_display_resolution, NULL,
+    {0}, {0, 1}, number, ss_none, wad_no,
+    "1 to change display resolution with exclusive fullscreen (make sense only with CRT)"
+  },
+
   // window position
   {
     "window_position_x",

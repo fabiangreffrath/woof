@@ -71,9 +71,10 @@ extern boolean drs_skip_frame;
 extern boolean use_vsync; // killough 2/8/98: controls whether vsync is called
 extern boolean disk_icon; // killough 10/98
 
+extern int max_video_width, max_video_height;
 extern int current_video_height, default_current_video_height;
 
-#  define DRS_MIN_HEIGHT 400
+#define DRS_MIN_HEIGHT 400
 extern boolean dynamic_resolution;
 
 extern boolean use_aspect;
@@ -82,6 +83,7 @@ extern boolean uncapped,
 
 extern boolean fullscreen;
 extern boolean exclusive_fullscreen;
+extern boolean change_display_resolution;
 extern int fpslimit; // when uncapped, limit framerate to this value
 extern int fps;
 extern boolean vga_porch_flash; // emulate VGA "porch" behaviour
