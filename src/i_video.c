@@ -70,6 +70,7 @@ boolean uncapped, default_uncapped; // [FG] uncapped rendering frame rate
 int fpslimit; // when uncapped, limit framerate to this value
 boolean fullscreen;
 boolean exclusive_fullscreen;
+boolean change_display_resolution;
 aspect_ratio_mode_t widescreen, default_widescreen; // widescreen mode
 int custom_fov;
 boolean vga_porch_flash; // emulate VGA "porch" behaviour
@@ -106,10 +107,10 @@ static int window_x, window_y;
 static int actualheight;
 static int unscaled_actualheight;
 
-static int native_width;
-static int native_height;
-static int native_height_adjusted;
-static int native_refresh_rate;
+int max_video_width, max_video_height;
+static int max_width, max_height;
+static int max_height_adjusted;
+static int display_refresh_rate;
 
 static boolean use_limiter;
 static int targetrefresh;
@@ -407,7 +408,7 @@ static void UpdateLimiter(void)
 {
     if (uncapped)
     {
-        if (fpslimit >= native_refresh_rate && native_refresh_rate > 0
+        if (fpslimit >= display_refresh_rate && display_refresh_rate > 0
             && use_vsync)
         {
             // SDL will limit framerate using vsync.
@@ -1144,8 +1145,8 @@ static double CurrentAspectRatio(void)
             h = unscaled_actualheight;
             break;
         case RATIO_AUTO:
-            w = native_width;
-            h = native_height;
+            w = max_width;
+            h = max_height;
             break;
         case RATIO_16_10:
             w = 16;
@@ -1355,7 +1356,7 @@ static void I_ResetTargetRefresh(void)
     if (uncapped)
     {
         // SDL may report native refresh rate as zero.
-        targetrefresh = (fpslimit >= TICRATE) ? fpslimit : native_refresh_rate;
+        targetrefresh = (fpslimit >= TICRATE) ? fpslimit : display_refresh_rate;
     }
     else
     {
@@ -1381,22 +1382,41 @@ static void I_InitVideoParms(void)
         I_Error("Error getting display mode: %s", SDL_GetError());
     }
 
-    native_width = mode.w;
-    native_height = mode.h;
+    if (max_video_width && max_video_height)
+    {
+        if (use_aspect && max_video_height < ACTUALHEIGHT)
+        {
+            I_Error("The vertical resolution is too low, turn off the aspect "
+                    "ratio correction.");
+        }
+        double aspect_ratio =
+            (double)max_video_width / (double)max_video_height;
+        if (aspect_ratio < ASPECT_RATIO_MIN)
+        {
+            I_Error("Aspect ratio not supported, set other resolution");
+        }
+        max_width = max_video_width;
+        max_height = max_video_height;
+    }
+    else
+    {
+        max_width = mode.w;
+        max_height = mode.h;
+    }
 
     if (use_aspect)
     {
-        native_height_adjusted = (int)(native_height / 1.2);
+        max_height_adjusted = (int)(max_height / 1.2);
         unscaled_actualheight = ACTUALHEIGHT;
     }
     else
     {
-        native_height_adjusted = native_height;
+        max_height_adjusted = max_height;
         unscaled_actualheight = SCREENHEIGHT;
     }
 
     // SDL may report native refresh rate as zero.
-    native_refresh_rate = mode.refresh_rate;
+    display_refresh_rate = mode.refresh_rate;
 
     current_video_height = default_current_video_height;
     window_width = default_window_width;
@@ -1528,14 +1548,23 @@ static void I_InitGraphicsMode(void)
     {
         if (exclusive_fullscreen)
         {
-            SDL_DisplayMode mode;
-            if (SDL_GetCurrentDisplayMode(video_display, &mode) != 0)
+            if (change_display_resolution && max_video_width
+                && max_video_height)
             {
-                I_Error("Could not get display mode for video display #%d: %s",
-                        video_display, SDL_GetError());
+                w = max_video_width;
+                h = max_video_height;
             }
-            w = mode.w;
-            h = mode.h;
+            else
+            {
+                SDL_DisplayMode mode;
+                if (SDL_GetCurrentDisplayMode(video_display, &mode) != 0)
+                {
+                    I_Error("Could not get display mode for video display #%d: %s",
+                            video_display, SDL_GetError());
+                }
+                w = mode.w;
+                h = mode.h;
+            }
             // [FG] exclusive fullscreen
             flags |= SDL_WINDOW_FULLSCREEN;
         }
@@ -1610,7 +1639,7 @@ static void I_InitGraphicsMode(void)
 
 void I_GetResolutionScaling(resolution_scaling_t *rs)
 {
-    rs->max = native_height_adjusted;
+    rs->max = max_height_adjusted;
     rs->step = 50;
 }
 
@@ -1622,7 +1651,7 @@ static int GetCurrentVideoHeight(void)
     }
 
     current_video_height =
-        BETWEEN(SCREENHEIGHT, native_height_adjusted, current_video_height);
+        BETWEEN(SCREENHEIGHT, max_height_adjusted, current_video_height);
 
     return current_video_height;
 }
