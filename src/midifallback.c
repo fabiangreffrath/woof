@@ -58,7 +58,7 @@ static boolean GetProgramFallback(byte idx, byte program,
             // selected this variation or if the variation is above 63.
             fallback->value = 0;
 
-            I_Printf(VB_WARNING,
+            I_Printf(VB_DEBUG,
                      "midifallback: warning: ch=%d [bank_msb=%d prog=%d] "
                      "falling back to [bank_msb=%d prog=%d]",
                      idx, bank_msb[idx], program, fallback->value, program);
@@ -78,7 +78,7 @@ static boolean GetProgramFallback(byte idx, byte program,
             fallback->value -= 8;
         }
 
-        I_Printf(VB_WARNING,
+        I_Printf(VB_DEBUG,
                  "midifallback: warning: ch=%d [bank_msb=%d prog=%d] "
                  "falling back to [bank_msb=%d prog=%d]",
                  idx, bank_msb[idx], program, fallback->value, program);
@@ -95,7 +95,7 @@ static boolean GetProgramFallback(byte idx, byte program,
             fallback->value = drums_table[program];
             selected[idx] = true;
 
-            I_Printf(VB_WARNING,
+            I_Printf(VB_DEBUG,
                      "midifallback: warning: ch=%d [prog=%d] "
                      "falling back to [prog=%d] (drums)",
                      idx, program, fallback->value);
@@ -145,7 +145,7 @@ void MIDI_CheckFallback(const midi_event_t *event, midi_fallback_t *fallback,
                         fallback->type = FALLBACK_BANK_LSB;
                         fallback->value = 0;
 
-                        I_Printf(VB_WARNING,
+                        I_Printf(VB_DEBUG,
                                  "midifallback: warning: ch=%d [bank_lsb=%d] "
                                  "replaced by [bank_lsb=%d]",
                                  idx, event->data.channel.param2,
