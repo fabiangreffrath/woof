@@ -16,9 +16,7 @@
 //
 
 #include "midifallback.h"
-#include "doomtype.h"
 #include "i_printf.h"
-#include "midifile.h"
 
 static const byte drums_table[128] =
 {
