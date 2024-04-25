@@ -87,6 +87,8 @@ static const byte ff_loopEnd[] =
     'l', 'o', 'o', 'p', 'E', 'n', 'd'
 };
 
+static boolean allow_bank_select;
+
 static byte channel_volume[MIDI_CHANNELS_PER_TRACK];
 static float volume_factor = 0.0f;
 
@@ -233,9 +235,16 @@ static void SendProgramChange(byte channel, byte program)
 
 static void SendBankSelectMSB(byte channel, byte value)
 {
-    if (midi_ctf)
+    if (allow_bank_select)
     {
-        MIDI_UpdateBankMSB(channel, value);
+        if (midi_ctf)
+        {
+            MIDI_UpdateBankMSB(channel, value);
+        }
+    }
+    else
+    {
+        value = 0;
     }
 
     SendControlChange(channel, MIDI_CONTROLLER_BANK_SELECT_MSB, value);
@@ -243,14 +252,22 @@ static void SendBankSelectMSB(byte channel, byte value)
 
 static void SendBankSelectLSB(byte channel, byte value)
 {
-    if (midi_ctf)
+    if (allow_bank_select)
     {
-        const midi_fallback_t fallback = MIDI_BankLSBFallback(channel, value);
-
-        if (fallback.type == FALLBACK_BANK_LSB)
+        if (midi_ctf)
         {
-            value = fallback.value;
+            const midi_fallback_t fallback =
+                MIDI_BankLSBFallback(channel, value);
+
+            if (fallback.type == FALLBACK_BANK_LSB)
+            {
+                value = fallback.value;
+            }
         }
+    }
+    else
+    {
+        value = 0;
     }
 
     SendControlChange(channel, MIDI_CONTROLLER_BANK_SELECT_LSB, value);
@@ -1240,8 +1257,23 @@ static boolean I_MID_InitMusic(int device)
         return false;
     }
 
-    ProcessEvent = (midi_complevel == COMP_VANILLA) ? ProcessEvent_Vanilla
-                                                    : ProcessEvent_Standard;
+    switch (midi_complevel)
+    {
+        case COMP_VANILLA:
+            ProcessEvent = ProcessEvent_Vanilla;
+            allow_bank_select = false;
+            break;
+
+        case COMP_STANDARD:
+            ProcessEvent = ProcessEvent_Standard;
+            allow_bank_select = (midi_reset_type != RESET_TYPE_GM);
+            break;
+
+        case COMP_FULL:
+            ProcessEvent = ProcessEvent_Standard;
+            allow_bank_select = true;
+            break;
+    }
 
     music_initialized = true;
 
