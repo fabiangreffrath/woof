@@ -200,33 +200,20 @@ static void UpdateGrab(void)
 
     if (!grab && currently_grabbed)
     {
+        int w, h;
+
         SetShowCursor(true);
+
+        SDL_GetWindowSize(screen, &w, &h);
+        SDL_WarpMouseInWindow(screen, 3 * w / 4, 4 * h / 5);
     }
 
     currently_grabbed = grab;
 }
 
-void I_ShowMouseCursor(boolean on)
+void I_ShowMouseCursor(boolean toggle)
 {
-    static boolean state = true;
-
-    if (state == on)
-    {
-        return;
-    }
-    else
-    {
-        state = on;
-    }
-
-    if (on)
-    {
-        int w, h;
-        SDL_GetWindowSize(screen, &w, &h);
-        SDL_WarpMouseInWindow(screen, w / 2, h / 2);
-    }
-
-    SDL_ShowCursor(on);
+    SDL_ShowCursor(toggle);
 }
 
 void I_ResetRelativeMouseState(void)

@@ -45,7 +45,9 @@ typedef enum
     key_mode
 } menu_input_mode_t;
 
-extern menu_input_mode_t menu_input;
+extern menu_input_mode_t menu_input, old_menu_input;
+void MN_ResetMouseCursor(void);
+
 extern boolean setup_active;
 extern short whichSkull; // which skull to draw (he blinks)
 extern int saved_screenblocks;

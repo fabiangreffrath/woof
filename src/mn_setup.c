@@ -3058,6 +3058,8 @@ static boolean ChangeEntry(menu_action_t action, int ch)
 
         SelectDone(current_item); // phares 4/17/98
         setup_gather = false;     // finished gathering keys, if any
+        menu_input = old_menu_input;
+        MN_ResetMouseCursor();
         return true;
     }
 
@@ -3089,6 +3091,9 @@ static boolean ChangeEntry(menu_action_t action, int ch)
         // friendly input method (e.g. don't clear value early,
         // allow backspace, and return to original value if bad
         // value is entered).
+
+        menu_input = old_menu_input;
+        MN_ResetMouseCursor();
 
         if (action == MENU_ENTER)
         {
@@ -3161,6 +3166,9 @@ static boolean BindInput(void)
     { // incoming key or button gets bound
         return false;
     }
+
+    menu_input = old_menu_input;
+    MN_ResetMouseCursor();
 
     setup_menu_t *current_item = current_menu + set_item_on;
 
@@ -3281,7 +3289,8 @@ boolean MN_SetupResponder(menu_action_t action, int ch)
         current_menu[highlight_item].m_flags &= ~S_HILITE;
     }
 
-    setup_menu_t *current_item = current_menu + set_item_on;
+    int index = (old_menu_input == mouse_mode ? highlight_item : set_item_on);
+    setup_menu_t *current_item = current_menu + index;
 
     // phares 4/19/98:
     // Catch the response to the 'reset to default?' verification
@@ -3354,6 +3363,8 @@ boolean MN_SetupResponder(menu_action_t action, int ch)
         }
 
         SelectDone(current_item); // phares 4/17/98
+        menu_input = old_menu_input;
+        MN_ResetMouseCursor();
         return true;
     }
 

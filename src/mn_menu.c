@@ -2327,7 +2327,7 @@ static boolean ShortcutResponder(const event_t *ev)
     return false;
 }
 
-menu_input_mode_t menu_input;
+menu_input_mode_t menu_input, old_menu_input;
 
 static int mouse_state_x, mouse_state_y;
 
@@ -2442,6 +2442,23 @@ static boolean SaveLoadResponder(menu_action_t action, int ch)
     return false;
 }
 
+void MN_ResetMouseCursor(void)
+{
+    static boolean state;
+
+    if (menu_input == mouse_mode && !state)
+    {
+        state = true;
+        I_ShowMouseCursor(true);
+    }
+    else if (menu_input != mouse_mode && state)
+    {
+        state = false;
+        ClearHighlightedItems();
+        I_ShowMouseCursor(false);
+    }
+}
+
 static boolean MouseResponder(void)
 {
     if (!menuactive || messageToPrint)
@@ -2449,7 +2466,7 @@ static boolean MouseResponder(void)
         return false;
     }
 
-    I_ShowMouseCursor(true);
+    MN_ResetMouseCursor();
 
     if (setup_active)
     {
@@ -2533,6 +2550,8 @@ boolean M_Responder(event_t *ev)
     static menu_action_t repeat = MENU_NULL;
     menu_action_t action = MENU_NULL;
 
+    old_menu_input = menu_input;
+
     ch = 0; // will be changed to a legit char if we're going to use it here
 
     switch (ev->type)
@@ -2581,10 +2600,6 @@ boolean M_Responder(event_t *ev)
             return false;
 
         case ev_keydown:
-            if (menu_input == mouse_mode && M_InputActivated(input_menu_escape))
-            {
-                break;
-            }
             menu_input = key_mode;
             ch = ev->data1;
             break;
@@ -2617,19 +2632,6 @@ boolean M_Responder(event_t *ev)
 
         default:
             return false;
-    }
-
-    if (menuactive)
-    {
-        if (menu_input == mouse_mode)
-        {
-            I_ShowMouseCursor(true);
-        }
-        else
-        {
-            ClearHighlightedItems();
-            I_ShowMouseCursor(false);
-        }
     }
 
     if (M_InputActivated(input_menu_up))
@@ -2791,6 +2793,11 @@ boolean M_Responder(event_t *ev)
         return true;
     }
 
+    if (menuactive)
+    {
+        MN_ResetMouseCursor();
+    }
+
     // From here on, these navigation keys are used on the BIG FONT menus
     // like the Main Menu.
 
@@ -2885,6 +2892,8 @@ boolean M_Responder(event_t *ev)
         }
         MN_ClearMenus();
         M_StartSound(sfx_swtchx);
+        menu_input = old_menu_input;
+        MN_ResetMouseCursor();
         return true;
     }
 
@@ -2925,6 +2934,8 @@ boolean M_Responder(event_t *ev)
             MN_ClearMenus();
             M_StartSound(sfx_swtchx);
         }
+        menu_input = old_menu_input;
+        MN_ResetMouseCursor();
         return true;
     }
 
