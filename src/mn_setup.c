@@ -3720,7 +3720,15 @@ void MN_SetHUFontKerning(void)
 
 int MN_StringHeight(const char *string)
 {
-    return SHORT(hu_font[0]->height);
+    int height = SHORT(hu_font[0]->height);
+    for (int i = 0; string[i]; ++i)
+    {
+        if (string[i] == '\n')
+        {
+            height += SHORT(hu_font[0]->height);
+        }
+    }
+    return height;
 }
 
 // [FG] alternative text for missing menu graphics lumps
