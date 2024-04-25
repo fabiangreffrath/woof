@@ -15,6 +15,8 @@
 //      MIDI instrument fallback support
 //
 
+#include <string.h>
+
 #include "midifallback.h"
 #include "i_printf.h"
 
