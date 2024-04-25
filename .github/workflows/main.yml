@@ -42,7 +42,7 @@ jobs:
       - name: Install dependencies (Linux)
         if: runner.os == 'Linux'
         run: |
-          sudo apt-get update || true
+          sudo apt-get update
           sudo apt-get install \
             ninja-build \
             libsdl2-dev \
@@ -140,9 +140,7 @@ jobs:
 
     steps:
       - name: Install dependencies
-        run: |
-          sudo apt-get update || true
-          sudo apt-get install cppcheck
+        run: sudo apt-get update && sudo apt-get install cppcheck
 
       - uses: actions/checkout@v4
 
