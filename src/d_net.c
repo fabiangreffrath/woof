@@ -18,6 +18,7 @@
 //
 
 #include "d_loop.h"
+#include "d_main.h"
 #include "d_player.h"
 #include "d_ticcmd.h"
 #include "doomdef.h"
@@ -67,7 +68,6 @@ void D_DoAdvanceDemo(void);
 
 void RunTic(ticcmd_t *cmds, boolean *ingame)
 {
-    extern boolean advancedemo;
     unsigned int i;
 
     // Check for player quits.

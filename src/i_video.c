@@ -169,7 +169,7 @@ static boolean MouseShouldBeGrabbed(void)
 
     // only grab mouse when playing levels (but not demos)
     return (gamestate == GS_LEVEL || gamestate == GS_INTERMISSION)
-           && !demoplayback;
+           && !demoplayback && !advancedemo;
 }
 
 // [FG] mouse grabbing from Chocolate Doom 3.0

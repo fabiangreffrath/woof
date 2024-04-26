@@ -59,6 +59,8 @@ void D_PageDrawer(void);
 void D_AdvanceDemo(void);
 void D_StartTitle(void);
 
+extern boolean advancedemo;
+
 #endif
 
 //----------------------------------------------------------------------------
