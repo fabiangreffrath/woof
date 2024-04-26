@@ -3284,13 +3284,7 @@ boolean MN_SetupResponder(menu_action_t action, int ch)
         current_tabs[highlight_tab].flags &= ~S_HILITE;
     }
 
-    if (highlight_item >= 0 && highlight_item != set_item_on)
-    {
-        current_menu[highlight_item].m_flags &= ~S_HILITE;
-    }
-
-    int index = (old_menu_input == mouse_mode ? highlight_item : set_item_on);
-    setup_menu_t *current_item = current_menu + index;
+    setup_menu_t *current_item = current_menu + set_item_on;
 
     // phares 4/19/98:
     // Catch the response to the 'reset to default?' verification
@@ -3368,6 +3362,26 @@ boolean MN_SetupResponder(menu_action_t action, int ch)
         return true;
     }
 
+    // [FG] clear key bindings with the DEL key
+    if (action == MENU_CLEAR)
+    {
+        int index = (old_menu_input == mouse_mode ? highlight_item : set_item_on);
+        current_item = current_menu + index;
+
+        if (current_item->m_flags & S_INPUT)
+        {
+            M_InputReset(current_item->input_id);
+        }
+        menu_input = old_menu_input;
+        MN_ResetMouseCursor();
+        return true;
+    }
+
+    if (highlight_item >= 0 && highlight_item != set_item_on)
+    {
+        current_menu[highlight_item].m_flags &= ~S_HILITE;
+    }
+
     // Not changing any items on the Setup screens. See if we're
     // navigating the Setup menus or selecting an item to change.
 
@@ -3410,18 +3424,6 @@ boolean MN_SetupResponder(menu_action_t action, int ch)
         } while (current_item->m_flags & S_SKIP);
 
         SelectDone(current_item); // phares 4/17/98
-        return true;
-    }
-
-    // [FG] clear key bindings with the DEL key
-    if (action == MENU_CLEAR)
-    {
-        int flags = current_item->m_flags;
-
-        if (flags & S_INPUT)
-        {
-            M_InputReset(current_item->input_id);
-        }
         return true;
     }
 
