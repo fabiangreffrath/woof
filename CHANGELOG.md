@@ -1,7 +1,9 @@
 **New Features and Improvements**
-* Implement support for native MIDI output on all major platforms (WINMM on Windows, ALSA on Linux, CoreMIDI on MacOS). Recommended to check out [Nuked-SC55](https://github.com/nukeykt/Nuked-SC55/), perfect Roland SC-55 emulation.
-  - Many MIDI features previously only available on Windows now work on all platforms - `midi_complevel`, `midi_reset_type`, EMIDI and RPG Maker/FF loops.
+* Implement support for native MIDI output on all major platforms (WinMM on Windows, ALSA on Linux, Core MIDI on macOS).
+  - As a result, Woof! can output to any software or hardware device that uses a MIDI port and supports General MIDI. [Nuked-SC55](https://github.com/nukeykt/Nuked-SC55/) is recommended for accurate Roland SC-55 emulation.
+  - Features previously exclusive to Windows are now available on all platforms. This includes `midi_complevel`, `midi_reset_type`, full EMIDI support, loop points (Final Fantasy, RPG Maker), and more.
   - Automatic reset delay for better compatibility with Roland and Yamaha hardware. See `midi_reset_delay` config option.
+  - Capital tone fallback to fix songs with invalid instruments. Emulates the behavior of early SC-55 models. See `midi_ctf` config option.
   - Smoother switching between MIDI songs.
 * Context-related sound pitch shifting.
 * Independent keyboard/mouse controls in menus. Mouse movement does not affect keyboard cursor. Various minor improvements.
@@ -24,7 +26,7 @@
 * Parse UMAPINFO lump in IWAD (fix chex3v.wad).
 * Disable compatibility menu items according to command-line parameters.
 * Fix savegames restoring pitch even with freelook disabled.
-* Use safe circle-to-square calculation for gamepad. Fix some odd behavior with analog sticks.
+* Fix gamepad analog movement when using `joy_scale_diagonal_movement`.
 * Fix gamepad initialization in multiplayer.
 * Fix erasing of `align_bottom` HUD widgets.
 * Fix wrong keycard sometimes being displayed in the Boom HUD on Windows (thanks to @xemonix0)
@@ -36,4 +38,4 @@
 **Miscellaneous**
 * Make the build reproducible.
 * AppImage for Linux now supports music in MP3 format.
-* Don't use any of the predefined resampler names - these will be changed in a future release of OpenAL Soft.
+* `snd_resampler` uses strings instead of numbers. Default is "Linear".
