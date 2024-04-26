@@ -1596,6 +1596,17 @@ static int AM_DoorColor(int type)
 // jff 4/3/98 changed mapcolor_xxxx=0 as control to disable feature
 // jff 4/3/98 changed mapcolor_xxxx=-1 to disable drawing line completely
 //
+
+typedef struct
+{
+  mline_t l;
+  int color;
+} am_line_t;
+
+static am_line_t *lines_1S = NULL;
+
+#include "m_array.h"
+
 static void AM_drawWalls(void)
 {
   int i;
@@ -1677,6 +1688,7 @@ static void AM_drawWalls(void)
 
       if (!lines[i].backsector)
       {
+        am_line_t al;
         // jff 1/10/98 add new color for 1S secret sector boundary
         if (mapcolor_secr && //jff 4/3/98 0 is disable
             (
@@ -1684,16 +1696,31 @@ static void AM_drawWalls(void)
              P_IsSecret(lines[i].frontsector)
             )
           )
-          AM_drawMline(&l, mapcolor_secr); // line bounding secret sector
+        {
+          al.l = l;
+          al.color = mapcolor_secr;
+          array_push(lines_1S, al);
+          //AM_drawMline(&l, mapcolor_secr); // line bounding secret sector
+        }
         else if (mapcolor_revsecr &&
             (
              P_WasSecret(lines[i].frontsector) &&
              !P_IsSecret(lines[i].frontsector)
             )
           )
-          AM_drawMline(&l, mapcolor_revsecr); // line bounding revealed secret sector
+        {
+          al.l = l;
+          al.color = mapcolor_revsecr;
+          array_push(lines_1S, al);
+          //AM_drawMline(&l, mapcolor_revsecr); // line bounding revealed secret sector
+        }
         else                               //jff 2/16/98 fixed bug
-          AM_drawMline(&l, mapcolor_wall); // special was cleared
+        {
+          al.l = l;
+          al.color = mapcolor_wall;
+          array_push(lines_1S, al);
+          //AM_drawMline(&l, mapcolor_wall); // special was cleared
+        }
       }
       else
       {
@@ -1784,6 +1811,12 @@ static void AM_drawWalls(void)
       }
     }
   }
+
+  for (int i = 0; i < array_size(lines_1S); ++i)
+  {
+    AM_drawMline(&lines_1S[i].l, lines_1S[i].color);
+  }
+  array_clear(lines_1S);
 }
 
 //
