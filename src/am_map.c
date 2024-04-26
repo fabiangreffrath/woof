@@ -1597,6 +1597,9 @@ static int AM_DoorColor(int type)
 // jff 4/3/98 changed mapcolor_xxxx=-1 to disable drawing line completely
 //
 
+#define M_ARRAY_INIT_CAPACITY 500
+#include "m_array.h"
+
 typedef struct
 {
   mline_t l;
@@ -1604,8 +1607,6 @@ typedef struct
 } am_line_t;
 
 static am_line_t *lines_1S = NULL;
-
-#include "m_array.h"
 
 static void AM_drawWalls(void)
 {
@@ -1688,7 +1689,6 @@ static void AM_drawWalls(void)
 
       if (!lines[i].backsector)
       {
-        am_line_t al;
         // jff 1/10/98 add new color for 1S secret sector boundary
         if (mapcolor_secr && //jff 4/3/98 0 is disable
             (
@@ -1697,10 +1697,8 @@ static void AM_drawWalls(void)
             )
           )
         {
-          al.l = l;
-          al.color = mapcolor_secr;
+          am_line_t al = {l, mapcolor_secr}; // line bounding secret sector
           array_push(lines_1S, al);
-          //AM_drawMline(&l, mapcolor_secr); // line bounding secret sector
         }
         else if (mapcolor_revsecr &&
             (
@@ -1709,17 +1707,13 @@ static void AM_drawWalls(void)
             )
           )
         {
-          al.l = l;
-          al.color = mapcolor_revsecr;
+          am_line_t al = {l, mapcolor_revsecr}; // line bounding revealed secret sector
           array_push(lines_1S, al);
-          //AM_drawMline(&l, mapcolor_revsecr); // line bounding revealed secret sector
         }
         else                               //jff 2/16/98 fixed bug
         {
-          al.l = l;
-          al.color = mapcolor_wall;
+          am_line_t al = {l, mapcolor_wall}; // special was cleared
           array_push(lines_1S, al);
-          //AM_drawMline(&l, mapcolor_wall); // special was cleared
         }
       }
       else
