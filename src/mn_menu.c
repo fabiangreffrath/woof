@@ -2339,7 +2339,7 @@ boolean MN_PointInsideRect(mrect_t *rect, int x, int y)
 
 static void CursorPosition(void)
 {
-    if (!menuactive || messageToPrint)
+    if (!menuactive || messageToPrint || delete_verify)
     {
         return;
     }
@@ -2402,7 +2402,7 @@ static boolean SaveLoadResponder(menu_action_t action, int ch)
     {
         if (M_ToUpper(ch) == 'Y')
         {
-            M_DeleteGame(itemOn);
+            M_DeleteGame(old_menu_input == mouse_mode ? highlight_item : itemOn);
             M_StartSound(sfx_itemup);
             delete_verify = false;
         }
@@ -2461,7 +2461,7 @@ void MN_ResetMouseCursor(void)
 
 static boolean MouseResponder(void)
 {
-    if (!menuactive || messageToPrint)
+    if (!menuactive || messageToPrint || delete_verify)
     {
         return false;
     }
@@ -2949,6 +2949,7 @@ boolean M_Responder(event_t *ev)
             {
                 M_StartSound(sfx_itemup);
                 currentMenu->lastOn = itemOn;
+                menu_input = old_menu_input;
                 delete_verify = true;
                 return true;
             }
