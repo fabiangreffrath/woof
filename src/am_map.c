@@ -1697,8 +1697,8 @@ static void AM_drawWalls(void)
             )
           )
         {
-          am_line_t al = {l, mapcolor_secr}; // line bounding secret sector
-          array_push(lines_1S, al);
+          // line bounding secret sector
+          array_push(lines_1S, ((am_line_t){l, mapcolor_secr}));
         }
         else if (mapcolor_revsecr &&
             (
@@ -1707,13 +1707,13 @@ static void AM_drawWalls(void)
             )
           )
         {
-          am_line_t al = {l, mapcolor_revsecr}; // line bounding revealed secret sector
-          array_push(lines_1S, al);
+          // line bounding revealed secret sector
+          array_push(lines_1S, ((am_line_t){l, mapcolor_revsecr}));
         }
         else                               //jff 2/16/98 fixed bug
         {
-          am_line_t al = {l, mapcolor_wall}; // special was cleared
-          array_push(lines_1S, al);
+          // special was cleared
+          array_push(lines_1S, ((am_line_t){l, mapcolor_wall}));
         }
       }
       else
