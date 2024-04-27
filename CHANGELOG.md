@@ -12,7 +12,7 @@
 * Better support for `-1`, `-2` and `-3` command-line parameters.
 * Added `all-all`, `doom-all`, `doom1-all` and `doom2-all` autoload folders.
 * Allowed autoloading in shareware mode.
-* Unified Vanilla Doom and Boom HUD widgets, and de-hard-coded HUDs -- see `woofhud.lmp` in the `all-all` autoload folder.
+* Unified Vanilla Doom and Boom HUD widgets, which are now configurable -- see `woofhud.lmp` in the `all-all` autoload folder.
 * Added a parser for `Obituary_Deh_Actor` DEHACKED strings (thanks to @SirBofu).
 * Save files now use UMAPINFO labels instead of map markers.
 * Moved secret message higher, and prevented it from disabling the crosshair.
@@ -24,7 +24,7 @@
 * Prevented light scale overflow, fixing dark strips of light on very-close walls.
 * Fixed skies being shifted down a few pixels.
 * Fixed mouse movement after running the game with the `-warp` parameter on Linux.
-* Parsing of UMAPINFO lump in IWADs (fixes _chex3v.wad_).
+* Fixed UMAPINFO lump not being parsed in IWADs (fixes _chex3v.wad_).
 * Compatibility menu items are now disabled according to command-line parameters.
 * Fixed savegames restoring pitch even with freelook disabled.
 * Fixed gamepad analog movement when using `joy_scale_diagonal_movement`.
