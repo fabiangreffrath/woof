@@ -24,6 +24,7 @@
 #include "hu_stuff.h"
 #include "i_gamepad.h"
 #include "i_input.h"
+#include "i_oalsound.h"
 #include "i_sound.h"
 #include "i_timer.h"
 #include "i_video.h"
@@ -304,6 +305,7 @@ enum
 
     str_gamma,
     str_sound_module,
+    str_resampler,
 
     str_mouse_accel,
 
@@ -2082,6 +2084,10 @@ static setup_menu_t gen_settings2[] = {
     // [FG] play sounds in full length
     {"Disable Sound Cutoffs", S_ONOFF, M_X, M_SPC, {"full_sounds"}},
 
+    {"Resampler", S_CHOICE | S_NEXT_LINE, M_X, M_SPC, {"snd_resampler"}, m_null,
+     input_null, str_resampler, I_OAL_SetResampler},
+
+    MI_GAP,
     MI_GAP,
 
     // [FG] music backend
@@ -2090,6 +2096,13 @@ static setup_menu_t gen_settings2[] = {
 
     MI_END
 };
+
+static const char **GetResamplerStrings(void)
+{
+    const char **strings = I_OAL_GetResamplerStrings();
+    DisableItem(!strings, gen_settings2, "snd_resampler");
+    return strings;
+}
 
 void MN_UpdateFreeLook(void)
 {
@@ -3789,6 +3802,7 @@ static const char **selectstrings[] = {
     NULL, // str_midi_player
     gamma_strings,
     sound_module_strings,
+    NULL, // str_resampler
     NULL, // str_mouse_accel
     default_skill_strings,
     default_complevel_strings,
@@ -3845,6 +3859,7 @@ void MN_InitMenuStrings(void)
     UpdateHUDModeStrings();
     selectstrings[str_resolution_scale] = GetResolutionScaleStrings();
     selectstrings[str_mouse_accel] = GetMouseAccelStrings();
+    selectstrings[str_resampler] = GetResamplerStrings();
 }
 
 void MN_SetupResetMenu(void)

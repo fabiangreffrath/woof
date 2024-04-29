@@ -437,8 +437,8 @@ default_t defaults[] = {
   {
     "snd_resampler",
     (config_t *) &snd_resampler, NULL,
-    {.s = "Linear"}, {0}, string, ss_none, wad_no,
-    "Sound resampler"
+    {1}, {0, UL}, number, ss_gen, wad_no,
+    "Sound resampler (0 = Nearest, 1 = Linear, ...)"
   },
 
   {
