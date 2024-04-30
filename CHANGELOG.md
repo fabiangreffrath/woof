@@ -18,6 +18,7 @@
 * Moved secret message higher, and prevented it from disabling the crosshair.
 * Added `snd_limiter` config key to toggle the sound limiter.
 * Restored "Resampler" option in the "General: Audio" menu.
+* The order in which automap lines are drawn has been changed to improve visual consistency.
 
 **Bug Fixes**
 * Fixed error-out with some weapon sprites on some resolutions.
