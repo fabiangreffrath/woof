@@ -73,7 +73,7 @@ void I_ShutdownSound(void);
 //
 
 extern int forceFlipPan;
-extern char *snd_resampler;
+extern int snd_resampler;
 extern boolean snd_limiter;
 extern int snd_module;
 extern boolean snd_hrtf;

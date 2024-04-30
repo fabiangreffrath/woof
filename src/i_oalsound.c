@@ -31,6 +31,7 @@
 #include "i_sound.h"
 #include "m_array.h"
 #include "m_fixed.h"
+#include "m_misc.h"
 #include "sounds.h"
 #include "w_wad.h"
 #include "z_zone.h"
@@ -57,7 +58,7 @@
 #  define FUNCTION_CAST(T, ptr) (T)(ptr)
 #endif
 
-char *snd_resampler;
+int snd_resampler;
 boolean snd_limiter;
 boolean snd_hrtf;
 int snd_absorption;
@@ -195,7 +196,7 @@ void I_OAL_ShutdownSound(void)
     oal = NULL;
 }
 
-static void SetResampler(ALuint *sources)
+void I_OAL_SetResampler(void)
 {
     LPALGETSTRINGISOFT alGetStringiSOFT = NULL;
     ALint i, num_resamplers, def_resampler;
@@ -216,7 +217,6 @@ static void SetResampler(ALuint *sources)
     }
 
     num_resamplers = alGetInteger(AL_NUM_RESAMPLERS_SOFT);
-    def_resampler = alGetInteger(AL_DEFAULT_RESAMPLER_SOFT);
 
     if (!num_resamplers)
     {
@@ -224,34 +224,29 @@ static void SetResampler(ALuint *sources)
         return;
     }
 
+    def_resampler = alGetInteger(AL_DEFAULT_RESAMPLER_SOFT);
+
     for (i = 0; i < num_resamplers; i++)
     {
-        if (!strcasecmp(snd_resampler,
-                        alGetStringiSOFT(AL_RESAMPLER_NAME_SOFT, i)))
+        if (!strcasecmp("Linear", alGetStringiSOFT(AL_RESAMPLER_NAME_SOFT, i)))
         {
             def_resampler = i;
             break;
         }
     }
-    if (i == num_resamplers)
+
+    if (snd_resampler >= num_resamplers)
     {
-        I_Printf(VB_WARNING, " Failed to find resampler: '%s'. Valid choices:",
-                 snd_resampler);
-        for (i = 0; i < num_resamplers; i++)
-        {
-            I_Printf(VB_WARNING, "  %s",
-                     alGetStringiSOFT(AL_RESAMPLER_NAME_SOFT, i));
-        }
-        return;
+        snd_resampler = def_resampler;
     }
 
     for (i = 0; i < MAX_CHANNELS; i++)
     {
-        alSourcei(sources[i], AL_SOURCE_RESAMPLER_SOFT, def_resampler);
+        alSourcei(oal->sources[i], AL_SOURCE_RESAMPLER_SOFT, snd_resampler);
     }
 
     I_Printf(VB_DEBUG, " Using '%s' resampler.",
-             alGetStringiSOFT(AL_RESAMPLER_NAME_SOFT, def_resampler));
+             alGetStringiSOFT(AL_RESAMPLER_NAME_SOFT, snd_resampler));
 }
 
 void I_OAL_ResetSource2D(int channel)
@@ -327,9 +322,38 @@ void I_OAL_UpdateListenerParams(const ALfloat *position,
     alListenerfv(AL_ORIENTATION, orientation);
 }
 
+const char **I_OAL_GetResamplerStrings(void)
+{
+    LPALGETSTRINGISOFT alGetStringiSOFT = NULL;
+    ALint i, num_resamplers;
+    const char **strings = NULL;
+
+    if (alIsExtensionPresent("AL_SOFT_source_resampler") != AL_TRUE)
+    {
+        return NULL;
+    }
+
+    alGetStringiSOFT =
+        FUNCTION_CAST(LPALGETSTRINGISOFT, alGetProcAddress("alGetStringiSOFT"));
+
+    if (!alGetStringiSOFT)
+    {
+        return NULL;
+    }
+
+    num_resamplers = alGetInteger(AL_NUM_RESAMPLERS_SOFT);
+
+    for (i = 0; i < num_resamplers; i++)
+    {
+        array_push(strings, alGetStringiSOFT(AL_RESAMPLER_NAME_SOFT, i));
+    }
+
+    return strings;
+}
+
 static void UpdateUserSoundSettings(void)
 {
-    SetResampler(oal->sources);
+    I_OAL_SetResampler();
 
     if (snd_module == SND_MODULE_3D)
     {

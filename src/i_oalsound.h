@@ -35,6 +35,8 @@ void I_OAL_ShutdownSound(void);
 
 void I_OAL_ShutdownModule(void);
 
+void I_OAL_SetResampler(void);
+
 void I_OAL_ResetSource2D(int channel);
 
 void I_OAL_ResetSource3D(int channel, boolean point_source);
@@ -45,6 +47,8 @@ void I_OAL_UpdateSourceParams(int channel, const ALfloat *position,
 void I_OAL_UpdateListenerParams(const ALfloat *position,
                                 const ALfloat *velocity,
                                 const ALfloat *orientation);
+
+const char **I_OAL_GetResamplerStrings(void);
 
 boolean I_OAL_InitSound(void);
 
