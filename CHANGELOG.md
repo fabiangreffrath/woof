@@ -17,6 +17,7 @@
 * Save files now use UMAPINFO labels instead of map markers.
 * Moved secret message higher, and prevented it from disabling the crosshair.
 * Added `snd_limiter` config key to toggle the sound limiter.
+* Restored "Resampler" option in the "General: Audio" menu.
 
 **Bug Fixes**
 * Fixed error-out with some weapon sprites on some resolutions.
@@ -39,4 +40,3 @@
 **Miscellaneous**
 * Made the build reproducible.
 * AppImage for Linux now supports music in MP3 format.
-* Made `snd_resampler` use strings instead of numbers. Default is "Linear".
