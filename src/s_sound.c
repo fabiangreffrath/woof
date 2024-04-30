@@ -309,11 +309,6 @@ void S_StartSoundPitch(const mobj_t *origin, int sfx_id, const pitchrange_t pitc
     }
 }
 
-void S_StartSound(const mobj_t *origin, int sfx_id)
-{
-    S_StartSoundPitch(origin, sfx_id, PITCH_FULL);
-}
-
 //
 // S_StopSound
 //
