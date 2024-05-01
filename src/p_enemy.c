@@ -2784,7 +2784,7 @@ void A_PlaySound(mobj_t *mo)
 
 void A_RandomJump(mobj_t *mo)
 {
-  if (demo_version < 203)
+  if (demo_version < DV_MBF)
     return;
   if (P_Random(pr_randomjump) < mo->state->misc2)
     P_SetMobjState(mo, mo->state->misc1);
