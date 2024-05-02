@@ -234,7 +234,7 @@ default_t defaults[] = {
     "change_display_resolution",
     (config_t *) &change_display_resolution, NULL,
     {0}, {0, 1}, number, ss_none, wad_no,
-    "1 to change display resolution with exclusive fullscreen (make sense only with CRT)"
+    "1 to change display resolution with exclusive fullscreen (only useful for CRTs)"
   },
 
   // window position
