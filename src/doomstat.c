@@ -64,7 +64,7 @@ overflow_t overflow[EMU_TOTAL] = {
 demo_version_t demo_version;        // killough 7/19/98: Boom version of demo
 
 // v1.1-like pitched sounds
-int pitched_sounds;  // killough 10/98
+boolean pitched_sounds;  // killough 10/98
 
 int translucency;    // killough 10/98
 

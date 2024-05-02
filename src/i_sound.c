@@ -30,8 +30,10 @@
 #include "i_system.h"
 #include "m_array.h"
 #include "p_mobj.h"
+#include "s_sound.h"
 #include "sounds.h"
 #include "w_wad.h"
+#include "m_config.h"
 
 int snd_module;
 
@@ -683,4 +685,36 @@ const char **I_DeviceList(void)
     }
 
     return devices;
+}
+
+void I_BindSoundVariables(void)
+{
+    M_BindIntGen("sfx_volume", &snd_SfxVolume, 8, 0, 15,
+                 "adjust sound effects volume");
+    M_BindIntGen("music_volume", &snd_MusicVolume, 8, 0, 15,
+                 "adjust music volume");
+    M_BindBoolGen("pitched_sounds", &pitched_sounds, false,
+                  "1 to enable variable pitch in sound effects (from id's "
+                  "original code)");
+    M_BindInt("pitch_bend_range", &pitch_bend_range, 120, 100, 300,
+              "variable pitch bend range (100 none, 120 default)");
+    M_BindBoolGen("full_sounds", &full_sounds, false,
+                  "1 to play sounds in full length");
+    M_BindBool("force_flip_pan", &force_flip_pan, false,
+               "1 to force reversal of stereo audio channels");
+    M_BindInt("snd_channels", &default_numChannels, MAX_CHANNELS, 1,
+              MAX_CHANNELS, "number of sound effects handled simultaneously");
+    M_BindIntGen("snd_resampler", &snd_resampler, 1, 0, UL,
+                 "Sound resampler (0 = Nearest, 1 = Linear, ...)");
+    M_BindBool("snd_limiter", &snd_limiter, false,
+               "1 to enable sound output limiter");
+    M_BindIntGen(
+        "snd_module", &snd_module, SND_MODULE_MBF, 0, NUM_SND_MODULES - 1,
+        "Sound module (0 = Standard, 1 = OpenAL 3D, 2 = PC Speaker Sound)");
+    M_BindBoolGen("snd_hrtf", &snd_hrtf, false,
+                  "[OpenAL 3D] Headphones mode (0 = No, 1 = Yes)");
+    M_BindInt("snd_absorption", &snd_absorption, 0, 0, 10,
+              "[OpenAL 3D] Air absorption effect (0 = Off, 10 = Max)");
+    M_BindInt("snd_doppler", &snd_doppler, 0, 0, 10,
+              "[OpenAL 3D] Doppler effect (0 = Off, 10 = Max)");
 }

@@ -114,7 +114,9 @@ extern char *chat_macros[]; // killough 10/98
 //  killough 11/98: entirely restructured to allow options to be modified
 //  from wads, and to consolidate with menu code
 
-default_t defaults[] = {
+default_t *defaults = NULL;
+
+default_t defaults_orig[] = {
 
   { //jff 3/3/98
     "config_help",
@@ -383,98 +385,6 @@ default_t defaults[] = {
   //
   // Sound and music
   //
-
-  {
-    "sfx_volume",
-    (config_t *) &snd_SfxVolume, NULL,
-    {8}, {0,15}, number, ss_none, wad_no,
-    "adjust sound effects volume"
-  },
-
-  {
-    "music_volume",
-    (config_t *) &snd_MusicVolume, NULL,
-    {8}, {0,15}, number, ss_none, wad_no,
-    "adjust music volume"
-  },
-
-  { // killough 2/21/98
-    "pitched_sounds",
-    (config_t *) &pitched_sounds, NULL,
-    {0}, {0,1}, number, ss_gen, wad_yes,
-    "1 to enable variable pitch in sound effects (from id's original code)"
-  },
-
-  {
-    "pitch_bend_range",
-    (config_t *) &pitch_bend_range, NULL,
-    {120}, {100,300}, number, ss_none, wad_yes,
-    "variable pitch bend range (100 none, 120 default)"
-  },
-
-  // [FG] play sounds in full length
-  {
-    "full_sounds",
-    (config_t *) &full_sounds, NULL,
-    {0}, {0, 1}, number, ss_gen, wad_no,
-    "1 to play sounds in full length"
-  },
-
-  {
-    "force_flip_pan",
-    (config_t *) &forceFlipPan, NULL,
-    {0}, {0, 1}, number, ss_none, wad_no,
-    "1 to force reversal of stereo audio channels"
-  },
-
-  { // killough
-    "snd_channels",
-    (config_t *) &default_numChannels, NULL,
-    {MAX_CHANNELS}, {1, MAX_CHANNELS}, 0, ss_gen, wad_no,
-    "number of sound effects handled simultaneously"
-  },
-
-  {
-    "snd_resampler",
-    (config_t *) &snd_resampler, NULL,
-    {1}, {0, UL}, number, ss_gen, wad_no,
-    "Sound resampler (0 = Nearest, 1 = Linear, ...)"
-  },
-
-  {
-    "snd_limiter",
-    (config_t *) &snd_limiter, NULL,
-    {0}, {0, 1}, number, ss_none, wad_no,
-    "1 to enable sound output limiter"
-  },
-
-  {
-    "snd_module",
-    (config_t *) &snd_module, NULL,
-    {SND_MODULE_MBF}, {0, NUM_SND_MODULES - 1}, number, ss_gen, wad_no,
-    "Sound module (0 = Standard, 1 = OpenAL 3D, 2 = PC Speaker Sound)"
-  },
-
-  {
-    "snd_hrtf",
-    (config_t *) &snd_hrtf, NULL,
-    {0}, {0, 1}, number, ss_gen, wad_no,
-    "[OpenAL 3D] Headphones mode (0 = No, 1 = Yes)"
-  },
-
-  {
-    "snd_absorption",
-    (config_t *) &snd_absorption, NULL,
-    {0}, {0, 10}, number, ss_none, wad_no,
-    "[OpenAL 3D] Air absorption effect (0 = Off, 10 = Max)"
-  },
-
-  {
-    "snd_doppler",
-    (config_t *) &snd_doppler, NULL,
-    {0}, {0, 10}, number, ss_none, wad_no,
-    "[OpenAL 3D] Doppler effect (0 = Off, 10 = Max)"
-  },
 
   {
     "midi_player_menu",
@@ -2848,10 +2758,67 @@ default_t defaults[] = {
   {NULL}         // last entry
 };
 
+void M_BindInt(const char *name, int *location,
+               int default_val, int min_val, int max_val,
+               const char *help)
+{
+    default_t item = {name, (config_t *)location, NULL,
+                     {.i = default_val}, {min_val, max_val},
+                     number, ss_none, wad_no, help};
+    array_push(defaults, item);
+}
+
+void M_BindBool(const char *name, boolean *location,
+                boolean default_val, const char *help)
+{
+    default_t item = {name, (config_t *)location, NULL,
+                     {.i = default_val}, {0, 1},
+                     number, ss_none, wad_no, help};
+    array_push(defaults, item);
+}
+
+void M_BindString(const char *name, const char **location,
+                  char *default_val, const char *help)
+{
+    default_t item = {name, (config_t *)location, NULL,
+                     {.s = default_val}, {0},
+                     string, ss_none, wad_no, help};
+    array_push(defaults, item);
+}
+
+void M_BindIntGen(const char *name, int *location,
+                  int default_val, int min_val, int max_val,
+                  const char *help)
+{
+    default_t item = {name, (config_t *)location, NULL,
+                     {.i = default_val}, {min_val, max_val},
+                     number, ss_gen, wad_no, help};
+    array_push(defaults, item);
+}
+
+void M_BindBoolGen(const char *name, boolean *location,
+                   boolean default_val, const char *help)
+{
+    default_t item = {name, (config_t *)location, NULL,
+                     {.i = default_val}, {0, 1},
+                     number, ss_gen, wad_no, help};
+    array_push(defaults, item);
+}
+
+void M_InitConfig(void)
+{
+    I_BindSoundVariables();
+
+    for (int i = 0; i < arrlen(defaults_orig); ++i)
+    {
+        array_push(defaults, defaults_orig[i]);
+    }
+}
+
 static char *defaultfile;
 static boolean defaults_loaded = false; // killough 10/98
 
-#define NUMDEFAULTS ((unsigned)(sizeof defaults / sizeof *defaults - 1))
+//#define NUMDEFAULTS ((unsigned)(sizeof defaults / sizeof *defaults - 1))
 
 // killough 11/98: hash function for name lookup
 static unsigned default_hash(const char *name)
@@ -2861,7 +2828,7 @@ static unsigned default_hash(const char *name)
     {
         hash = hash * 2 + M_ToUpper(*name++);
     }
-    return hash % NUMDEFAULTS;
+    return hash % (array_size(defaults) - 1);
 }
 
 default_t *M_LookupDefault(const char *name)

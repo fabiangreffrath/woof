@@ -29,7 +29,7 @@
 #include "r_main.h"
 #include "tables.h"
 
-int forceFlipPan;
+boolean force_flip_pan;
 
 static boolean I_MBF_AdjustSoundParams(const mobj_t *listener,
                                        const mobj_t *source, int chanvol,
@@ -129,7 +129,7 @@ static boolean I_MBF_AdjustSoundParams(const mobj_t *listener,
 void I_MBF_UpdateSoundParams(int channel, int volume, int separation)
 {
     // SoM 7/1/02: forceFlipPan accounted for here
-    if (forceFlipPan)
+    if (force_flip_pan)
     {
         separation = 254 - separation;
     }

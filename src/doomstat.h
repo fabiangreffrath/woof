@@ -119,7 +119,7 @@ extern int monster_infighting, default_monster_infighting;
 extern int monkeys, default_monkeys;
 
 // v1.1-like pitched sounds
-extern int pitched_sounds;
+extern boolean pitched_sounds;
 
 extern int translucency;
 

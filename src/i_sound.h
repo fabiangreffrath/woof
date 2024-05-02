@@ -72,7 +72,7 @@ void I_ShutdownSound(void);
 //  SFX I/O
 //
 
-extern int forceFlipPan;
+extern boolean force_flip_pan;
 extern int snd_resampler;
 extern boolean snd_limiter;
 extern int snd_module;
@@ -210,6 +210,8 @@ boolean IsMid(byte *mem, int len);
 
 // Determine whether memory block is a .mus file
 boolean IsMus(byte *mem, int len);
+
+void I_BindSoundVariables(void);
 
 #endif
 

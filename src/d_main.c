@@ -2493,6 +2493,8 @@ void D_DoomMain(void)
   if ((p = M_CheckParm("-dumplumps")) && p < myargc-1)
     WritePredefinedLumpWad(myargv[p+1]);
 
+  M_InitConfig();
+
   M_LoadDefaults();  // load before initing other systems
 
   PrintVersion();
