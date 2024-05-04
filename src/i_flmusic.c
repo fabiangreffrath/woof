@@ -22,6 +22,7 @@
 
 #include "config.h"
 #include "i_oalstream.h"
+#include "m_config.h"
 
 #if (FLUIDSYNTH_VERSION_MAJOR < 2 \
      || (FLUIDSYNTH_VERSION_MAJOR == 2 && FLUIDSYNTH_VERSION_MINOR < 2))
@@ -43,9 +44,9 @@ typedef fluid_long_long_t fluid_int_t;
 #include "w_wad.h"
 #include "z_zone.h"
 
-char *soundfont_dir = "";
-boolean mus_chorus;
-boolean mus_reverb;
+static const char *soundfont_dir = "";
+static boolean mus_chorus;
+static boolean mus_reverb;
 
 static fluid_synth_t *synth = NULL;
 static fluid_settings_t *settings = NULL;
@@ -427,6 +428,25 @@ static const char **I_FL_DeviceList(void)
     return devices;
 }
 
+static void I_FL_BindVariables(void)
+{
+    M_BindStr("soundfont_dir", &soundfont_dir,
+#if defined(_WIN32)
+    "soundfonts",
+#else
+    // RedHat/Fedora/Arch
+    "/usr/share/soundfonts:"
+    // Debian/Ubuntu/OpenSUSE
+    "/usr/share/sounds/sf2:"
+    "/usr/share/sounds/sf3:"
+    // AppImage
+    "../share/" PROJECT_SHORTNAME "/soundfonts",
+#endif
+    "FluidSynth soundfont directories");
+    M_BindBool("mus_chorus", &mus_chorus, false, "1 to enable FluidSynth chorus");
+    M_BindBool("mus_reverb", &mus_reverb, false, "1 to enable FluidSynth reverb");
+}
+
 stream_module_t stream_fl_module =
 {
     I_FL_InitStream,
@@ -436,4 +456,5 @@ stream_module_t stream_fl_module =
     I_FL_CloseStream,
     I_FL_ShutdownStream,
     I_FL_DeviceList,
+    I_FL_BindVariables,
 };

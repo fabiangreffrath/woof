@@ -22,9 +22,6 @@
 #define __M_CONFIG__
 
 #include "doomtype.h"
-#include "doomdef.h"
-
-#include "m_input.h"
 
 void M_LoadDefaults(void);
 void M_SaveDefaults(void);
@@ -33,55 +30,18 @@ boolean M_ParseOption(const char *name, boolean wad);    // killough 11/98
 void M_LoadOptions(void);                                // killough 11/98
 
 void M_InitConfig(void);
-void M_BindInt(const char *name, int *location, int default_val, int min_val,
-               int max_val, const char *help);
-void M_BindIntGen(const char *name, int *location, int default_val, int min_val,
-                  int max_val, const char *help);
-void M_BindBoolGen(const char *name, boolean *location,
-                   boolean default_val, const char *help);
-void M_BindBool(const char *name, boolean *location,
-                boolean default_val, const char *help);
-void M_BindString(const char *name, const char **location,
-                  char *default_val, const char *help);
-
-// phares 4/21/98:
-// Moved from m_misc.c so m_menu.c could see it.
-//
-// killough 11/98: totally restructured
-
-// [FG] use a union of integer and string pointer to store config values, instead
-// of type-punning string pointers to integers which won't work on 64-bit systems anyway
-
-typedef union config_u
-{
-  int i;
-  char *s;
-} config_t;
-
-typedef struct default_s
-{
-  const char *name;                   // name
-  config_t *location;                 // default variable
-  config_t *current;                  // possible nondefault variable
-  config_t  defaultvalue;             // built-in default value
-  struct {int min, max;} limit;       // numerical limits
-  enum {number, string, input} type;  // type
-  ss_types setupscreen;               // setup screen this appears on
-  enum {wad_no, wad_yes} wad_allowed; // whether it's allowed in wads
-  const char *help;                   // description of parameter
-
-  int input_id;
-  input_t inputs[NUM_INPUTS];
-
-  // internal fields (initialized implicitly to 0) follow
-
-  struct default_s *first, *next;           // hash table pointers
-  int modified;                             // Whether it's been modified
-  config_t orig_default;                    // Original default, if modified
-  struct setup_menu_s *setup_menu;          // Xref to setup menu item, if any
-} default_t;
-
-extern default_t *defaults;
+void M_BindInt(const char *name, int *location,
+               int default_val, int min_val, int max_val,
+               const char *help);
+void M_BindBool(const char *name, boolean *location, boolean default_val,
+                const char *help);
+void M_BindStr(const char *name, const char **location, char *default_val,
+               const char *help);
+void M_BindIntGen(const char *name, int *location,
+                  int default_val, int min_val, int max_val,
+                  const char *help);
+void M_BindBoolGen(const char *name, boolean *location, boolean default_val,
+                   const char *help);
 
 #define UL (-123456789) /* magic number for no min or max for parameter */
 

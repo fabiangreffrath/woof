@@ -29,13 +29,14 @@
 #include "i_printf.h"
 #include "i_system.h"
 #include "m_array.h"
+#include "mn_menu.h"
 #include "p_mobj.h"
 #include "s_sound.h"
 #include "sounds.h"
 #include "w_wad.h"
 #include "m_config.h"
 
-int snd_module;
+static int snd_module;
 
 static const sound_module_t *sound_modules[] =
 {
@@ -62,6 +63,9 @@ static music_module_t *music_modules[] =
 static music_module_t *active_module = NULL;
 static music_module_t *midi_module = NULL;
 
+static int midi_player_menu;
+static const char *midi_player_string = "";
+
 // haleyjd: safety variables to keep changes to *_card from making
 // these routines think that sound has been initialized when it hasn't
 static boolean snd_init = false;
@@ -77,10 +81,13 @@ typedef struct
     int idnum;
 } channel_info_t;
 
-channel_info_t channelinfo[MAX_CHANNELS];
+static channel_info_t channelinfo[MAX_CHANNELS];
+
+// [FG] variable pitch bend range
+static int pitch_bend_range;
 
 // Pitch to stepping lookup.
-float steptable[256];
+static float steptable[256];
 
 //
 // StopChannel
@@ -175,9 +182,6 @@ void I_ProcessSoundUpdates(void)
 
     sound_module->ProcessUpdates();
 }
-
-// [FG] variable pitch bend range
-int pitch_bend_range;
 
 //
 // I_SetChannels
@@ -294,7 +298,9 @@ int I_StartSound(sfxinfo_t *sfx, int vol, int sep, int pitch)
 
     I_UpdateSoundParams(channel, vol, sep);
 
-    if (sound_module->StartSound(channel, sfx, pitch) == false)
+    float step = (pitch == NORM_PITCH) ? 1.0f : steptable[pitch];
+
+    if (sound_module->StartSound(channel, sfx, step) == false)
     {
         I_Printf(VB_WARNING, "I_StartSound: Error playing sfx.");
         StopChannel(channel);
@@ -433,6 +439,8 @@ void I_InitSound(void)
 
     I_AtExit(I_ShutdownSound, true);
 
+    MN_UpdateAdvancedSoundItems(snd_module != SND_MODULE_3D);
+
     snd_init = true;
 
     if (nosfxparm)
@@ -479,7 +487,7 @@ boolean I_AllowReinitSound(void)
     return sound_module->AllowReinitSound();
 }
 
-void I_SetSoundModule(int device)
+void I_SetSoundModule(void)
 {
     int i;
 
@@ -489,7 +497,7 @@ void I_SetSoundModule(int device)
         return;
     }
 
-    if (device < 0 || device >= arrlen(sound_modules))
+    if (snd_module < 0 || snd_module >= arrlen(sound_modules))
     {
         I_Printf(VB_WARNING, "I_SetSoundModule: Invalid choice.");
         return;
@@ -502,22 +510,24 @@ void I_SetSoundModule(int device)
 
     sound_module->ShutdownModule();
 
-    sound_module = sound_modules[device];
+    sound_module = sound_modules[snd_module];
 
     if (!sound_module->ReinitSound())
     {
         I_Printf(VB_WARNING, "I_SetSoundModule: Failed to reinitialize sound.");
     }
+
+    MN_UpdateAdvancedSoundItems(snd_module != SND_MODULE_3D);
 }
 
-void I_SetMidiPlayer(int *menu_index)
+void I_SetMidiPlayer(void)
 {
     if (nomusicparm)
     {
         return;
     }
 
-    const int device = *menu_index;
+    const int device = midi_player_menu;
 
     if (midi_module)
     {
@@ -536,6 +546,7 @@ void I_SetMidiPlayer(int *menu_index)
             if (music_modules[i]->I_InitMusic(device - count_devices))
             {
                 midi_module = music_modules[i];
+                midi_player_string = strings[device - count_devices];
                 return;
             }
         }
@@ -554,7 +565,8 @@ void I_SetMidiPlayer(int *menu_index)
         if (music_modules[i]->I_InitMusic(0))
         {
             midi_module = music_modules[i];
-            *menu_index = count_devices;
+            midi_player_menu = count_devices;
+            midi_player_string = strings[0];
             return;
         }
 
@@ -577,6 +589,18 @@ boolean I_InitMusic(void)
     I_OAL_InitStream();
 
     I_AtExit(I_ShutdownMusic, true);
+
+    const char **strings = I_DeviceList();
+    for (int i = 0; i < array_size(strings); ++i)
+    {
+        if (!strcasecmp(strings[i], midi_player_string))
+        {
+            midi_player_menu = i;
+            break;
+        }
+    }
+
+    I_SetMidiPlayer();
 
     return true;
 }
@@ -672,7 +696,10 @@ const char **I_DeviceList(void)
 {
     static const char **devices = NULL;
 
-    array_clear(devices);
+    if (array_size(devices))
+    {
+        return devices;
+    }
 
     for (int i = 0; i < arrlen(music_modules); ++i)
     {
@@ -690,31 +717,33 @@ const char **I_DeviceList(void)
 void I_BindSoundVariables(void)
 {
     M_BindIntGen("sfx_volume", &snd_SfxVolume, 8, 0, 15,
-                 "adjust sound effects volume");
+                 "Adjust sound effects volume");
     M_BindIntGen("music_volume", &snd_MusicVolume, 8, 0, 15,
-                 "adjust music volume");
+                 "Adjust music volume");
     M_BindBoolGen("pitched_sounds", &pitched_sounds, false,
-                  "1 to enable variable pitch in sound effects (from id's "
-                  "original code)");
+        "1 to enable variable pitch in sound effects (from id's original code)");
     M_BindInt("pitch_bend_range", &pitch_bend_range, 120, 100, 300,
-              "variable pitch bend range (100 none, 120 default)");
+              "Variable pitch bend range (100 none, 120 default)");
     M_BindBoolGen("full_sounds", &full_sounds, false,
                   "1 to play sounds in full length");
-    M_BindBool("force_flip_pan", &force_flip_pan, false,
-               "1 to force reversal of stereo audio channels");
     M_BindInt("snd_channels", &default_numChannels, MAX_CHANNELS, 1,
-              MAX_CHANNELS, "number of sound effects handled simultaneously");
-    M_BindIntGen("snd_resampler", &snd_resampler, 1, 0, UL,
-                 "Sound resampler (0 = Nearest, 1 = Linear, ...)");
-    M_BindBool("snd_limiter", &snd_limiter, false,
-               "1 to enable sound output limiter");
+              MAX_CHANNELS, "Number of sound effects handled simultaneously");
     M_BindIntGen(
         "snd_module", &snd_module, SND_MODULE_MBF, 0, NUM_SND_MODULES - 1,
         "Sound module (0 = Standard, 1 = OpenAL 3D, 2 = PC Speaker Sound)");
-    M_BindBoolGen("snd_hrtf", &snd_hrtf, false,
-                  "[OpenAL 3D] Headphones mode (0 = No, 1 = Yes)");
-    M_BindInt("snd_absorption", &snd_absorption, 0, 0, 10,
-              "[OpenAL 3D] Air absorption effect (0 = Off, 10 = Max)");
-    M_BindInt("snd_doppler", &snd_doppler, 0, 0, 10,
-              "[OpenAL 3D] Doppler effect (0 = Off, 10 = Max)");
+    for (int i = 0; i < arrlen(sound_modules); ++i)
+    {
+        if (sound_modules[i]->BindVariables)
+        {
+            sound_modules[i]->BindVariables();
+        }
+    }
+    M_BindInt("midi_player_menu", &midi_player_menu, 0, 0, UL,
+              "MIDI Player menu index");
+    M_BindStr("midi_player_string", &midi_player_string, "",
+              "MIDI Player string");
+    for (int i = 0; i < arrlen(music_modules); ++i)
+    {
+        music_modules[i]->BindVariables();
+    }
 }

@@ -30,8 +30,8 @@
 #include "i_sndfile.h"
 #include "i_sound.h"
 #include "m_array.h"
+#include "m_config.h"
 #include "m_fixed.h"
-#include "m_misc.h"
 #include "sounds.h"
 #include "w_wad.h"
 #include "z_zone.h"
@@ -58,12 +58,13 @@
 #  define FUNCTION_CAST(T, ptr) (T)(ptr)
 #endif
 
-int snd_resampler;
-boolean snd_limiter;
-boolean snd_hrtf;
-int snd_absorption;
-int snd_doppler;
+static int snd_resampler;
+static boolean snd_limiter;
+static boolean snd_hrtf;
+static int snd_absorption;
+static int snd_doppler;
 
+static int oal_snd_module;
 boolean oal_use_doppler;
 
 typedef struct oal_system_s
@@ -355,7 +356,7 @@ static void UpdateUserSoundSettings(void)
 {
     I_OAL_SetResampler();
 
-    if (snd_module == SND_MODULE_3D)
+    if (oal_snd_module == SND_MODULE_3D)
     {
         oal->absorption = (ALfloat)snd_absorption / 2.0f;
         alDopplerFactor((ALfloat)snd_doppler * snd_doppler / 100.0f);
@@ -428,7 +429,7 @@ static void PrintDeviceInfo(ALCdevice *device)
 
 static void GetAttribs(ALCint **attribs)
 {
-    const boolean use_3d = (snd_module == SND_MODULE_3D);
+    const boolean use_3d = (oal_snd_module == SND_MODULE_3D);
 
     if (alcIsExtensionPresent(oal->device, "ALC_SOFT_HRTF") == ALC_TRUE)
     {
@@ -457,9 +458,25 @@ static void GetAttribs(ALCint **attribs)
     array_push(*attribs, 0);
 }
 
-boolean I_OAL_InitSound(void)
+void I_OAL_BindSoundVariables(void)
+{
+    M_BindBoolGen("snd_hrtf", &snd_hrtf, false,
+                         "[OpenAL 3D] Headphones mode (0 = No, 1 = Yes)");
+    M_BindIntGen("snd_resampler", &snd_resampler, 1, 0, UL,
+                         "Sound resampler (0 = Nearest, 1 = Linear, ...)");
+    M_BindInt("snd_absorption", &snd_absorption, 0, 0, 10,
+                  "[OpenAL 3D] Air absorption effect (0 = Off, 10 = Max)");
+    M_BindInt("snd_doppler", &snd_doppler, 0, 0, 10,
+                  "[OpenAL 3D] Doppler effect (0 = Off, 10 = Max)");
+    M_BindBool("snd_limiter", &snd_limiter, false,
+                  "1 to enable sound output limiter");
+}
+
+boolean I_OAL_InitSound(int snd_module)
 {
     ALCint *attribs = NULL;
+
+    oal_snd_module = snd_module;
 
     if (oal)
     {
@@ -509,7 +526,7 @@ boolean I_OAL_InitSound(void)
     return true;
 }
 
-boolean I_OAL_ReinitSound(void)
+boolean I_OAL_ReinitSound(int snd_module)
 {
     LPALCRESETDEVICESOFT alcResetDeviceSOFT = NULL;
     ALCint *attribs = NULL;
@@ -520,6 +537,8 @@ boolean I_OAL_ReinitSound(void)
         I_Printf(VB_ERROR, "I_OAL_ReinitSound: OpenAL not initialized.");
         return false;
     }
+
+    oal_snd_module = snd_module;
 
     if (alcIsExtensionPresent(oal->device, "ALC_SOFT_HRTF") != ALC_TRUE)
     {
@@ -723,15 +742,14 @@ boolean I_OAL_CacheSound(sfxinfo_t *sfx)
     return true;
 }
 
-boolean I_OAL_StartSound(int channel, sfxinfo_t *sfx, int pitch)
+boolean I_OAL_StartSound(int channel, sfxinfo_t *sfx, float pitch)
 {
     if (!oal)
     {
         return false;
     }
 
-    alSourcef(oal->sources[channel], AL_PITCH,
-              pitch == NORM_PITCH ? OAL_DEFAULT_PITCH : steptable[pitch]);
+    alSourcef(oal->sources[channel], AL_PITCH, pitch);
 
     alSourcei(oal->sources[channel], AL_BUFFER, sfx->buffer);
 

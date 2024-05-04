@@ -337,7 +337,7 @@ static void InitPCSound(void)
 
 static boolean I_PCS_ReinitSound(void)
 {
-    if (!I_OAL_ReinitSound())
+    if (!I_OAL_ReinitSound(SND_MODULE_PCS))
     {
         return false;
     }
@@ -349,7 +349,7 @@ static boolean I_PCS_ReinitSound(void)
 
 static boolean I_PCS_InitSound(void)
 {
-    if (!I_OAL_InitSound())
+    if (!I_OAL_InitSound(SND_MODULE_PCS))
     {
         return false;
     }
@@ -439,7 +439,7 @@ static void I_PCS_UpdateSoundParams(int channel, int volume, int separation)
     alSourcef(callback_source, AL_GAIN, (float)snd_SfxVolume / 15);
 }
 
-static boolean I_PCS_StartSound(int channel, sfxinfo_t *sfx, int pitch)
+static boolean I_PCS_StartSound(int channel, sfxinfo_t *sfx, float pitch)
 {
     boolean result;
 
@@ -515,4 +515,5 @@ const sound_module_t sound_pcs_module =
     I_PCS_ShutdownModule,
     I_OAL_DeferUpdates,
     I_OAL_ProcessUpdates,
+    NULL,
 };

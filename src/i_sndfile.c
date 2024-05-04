@@ -709,6 +709,11 @@ static const char **I_SND_DeviceList(void)
     return NULL;
 }
 
+static void I_SND_BindVariables(void)
+{
+    ;
+}
+
 stream_module_t stream_snd_module =
 {
     I_SND_InitStream,
@@ -718,4 +723,5 @@ stream_module_t stream_snd_module =
     I_SND_CloseStream,
     I_SND_ShutdownStream,
     I_SND_DeviceList,
+    I_SND_BindVariables,
 };

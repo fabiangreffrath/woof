@@ -2690,7 +2690,6 @@ void D_DoomMain(void)
   I_InitController();
   I_InitSound();
   I_InitMusic();
-  MN_InitMidiPlayer();
 
   I_Printf(VB_INFO, "NET_Init: Init network subsystem.");
   NET_Init();

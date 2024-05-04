@@ -54,7 +54,6 @@
 #include "mn_menu.h"
 #include "m_misc.h"
 #include "m_random.h"
-#include "mn_setup.h"
 #include "mn_snapshot.h"
 #include "m_swap.h" // [FG] LONG
 #include "memio.h"

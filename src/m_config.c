@@ -84,17 +84,6 @@ extern boolean ghost_monsters; // [crispy] resurrected pools of gore ("ghost
 extern int mouse_acceleration;
 extern int mouse_acceleration_threshold;
 extern int show_endoom;
-#if defined(HAVE_FLUIDSYNTH)
-extern char *soundfont_dir;
-extern boolean mus_chorus;
-extern boolean mus_reverb;
-extern int mus_gain;
-#endif
-extern int midi_complevel;
-extern int midi_reset_type;
-extern int midi_reset_delay;
-extern boolean midi_ctf;
-extern int opl_gain;
 extern boolean demobar;
 extern boolean smoothlight;
 extern boolean brightmaps;
@@ -380,100 +369,6 @@ default_t defaults_orig[] = {
     (config_t *) &screenblocks, NULL,
     {10}, {3,11}, number, ss_none, wad_no,
     "initial play screen size"
-  },
-
-  //
-  // Sound and music
-  //
-
-  {
-    "midi_player_menu",
-    (config_t *) &midi_player_menu, NULL,
-    {0}, {0, UL}, number, ss_none, wad_no,
-    "MIDI Player menu index"
-  },
-
-  {
-    "midi_player_string",
-    (config_t *) &midi_player_string, NULL,
-    {.s = ""}, {0}, string, ss_none, wad_no,
-    "MIDI Player string"
-  },
-
-#if defined(HAVE_FLUIDSYNTH)
-  {
-    "soundfont_dir",
-    (config_t *) &soundfont_dir, NULL,
-#  if defined(_WIN32)
-    {.s = "soundfonts"},
-#  else
-    /* RedHat/Fedora/Arch */
-    {.s = "/usr/share/soundfonts:"
-    /* Debian/Ubuntu/OpenSUSE */
-    "/usr/share/sounds/sf2:"
-    "/usr/share/sounds/sf3:"
-    /* AppImage */
-    "../share/" PROJECT_SHORTNAME "/soundfonts"},
-#  endif
-    {0}, string, ss_none, wad_no,
-    "FluidSynth soundfont directories"
-  },
-
-  {
-    "mus_chorus",
-    (config_t *) &mus_chorus, NULL,
-    {0}, {0, 1}, number, ss_none, wad_no,
-    "1 to enable FluidSynth chorus"
-  },
-
-  {
-    "mus_reverb",
-    (config_t *) &mus_reverb, NULL,
-    {0}, {0, 1}, number, ss_none, wad_no,
-    "1 to enable FluidSynth reverb"
-  },
-
-  {
-    "mus_gain",
-    (config_t *) &mus_gain, NULL,
-    {100}, {10, 1000}, number, ss_none, wad_no,
-    "fine tune FluidSynth output level (default 100%)"
-  },
-#endif
-
-  {
-    "opl_gain",
-    (config_t *) &opl_gain, NULL,
-    {200}, {100, 1000}, number, ss_none, wad_no,
-    "fine tune OPL emulation output level (default 200%)"
-  },
-
-  {
-    "midi_complevel",
-    (config_t *) &midi_complevel, NULL,
-    {1}, {0, 2}, number, ss_none, wad_no,
-    "Native MIDI compatibility level (0 = Vanilla, 1 = Standard, 2 = Full)"
-  },
-
-  {
-    "midi_reset_type",
-    (config_t *) &midi_reset_type, NULL,
-    {1}, {0, 3}, number, ss_none, wad_no,
-    "Reset type for native MIDI (0 = No SysEx, 1 = GM, 2 = GS, 3 = XG)"
-  },
-
-  {
-    "midi_reset_delay",
-    (config_t *) &midi_reset_delay, NULL,
-    {-1}, {-1, 2000}, number, ss_none, wad_no,
-    "Delay after reset for native MIDI (-1 = Auto, 0 = None, 1-2000 = Milliseconds)"
-  },
-
-  {
-    "midi_ctf",
-    (config_t *) &midi_ctf, NULL,
-    {1}, {0, 1}, number, ss_none, wad_no,
-    "1 to fix invalid instruments by emulating SC-55 capital tone fallback"
   },
 
   //
@@ -2768,17 +2663,14 @@ void M_BindInt(const char *name, int *location,
     array_push(defaults, item);
 }
 
-void M_BindBool(const char *name, boolean *location,
-                boolean default_val, const char *help)
+void M_BindBool(const char *name, boolean *location, boolean default_val,
+                const char *help)
 {
-    default_t item = {name, (config_t *)location, NULL,
-                     {.i = default_val}, {0, 1},
-                     number, ss_none, wad_no, help};
-    array_push(defaults, item);
+    M_BindInt(name, (int *)location, (int)default_val, 0, 1, help);
 }
 
-void M_BindString(const char *name, const char **location,
-                  char *default_val, const char *help)
+void M_BindStr(const char *name, const char **location, char *default_val,
+               const char *help)
 {
     default_t item = {name, (config_t *)location, NULL,
                      {.s = default_val}, {0},
@@ -2799,10 +2691,7 @@ void M_BindIntGen(const char *name, int *location,
 void M_BindBoolGen(const char *name, boolean *location,
                    boolean default_val, const char *help)
 {
-    default_t item = {name, (config_t *)location, NULL,
-                     {.i = default_val}, {0, 1},
-                     number, ss_gen, wad_no, help};
-    array_push(defaults, item);
+    M_BindIntGen(name, (int *)location, (int)default_val, 0, 1, help);
 }
 
 void M_InitConfig(void)

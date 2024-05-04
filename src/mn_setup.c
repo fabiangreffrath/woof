@@ -2032,12 +2032,8 @@ static const char *sound_module_strings[] = {
 #endif
 };
 
-static void UpdateAdvancedSoundItems(void);
-
 static void SetSoundModule(void)
 {
-    UpdateAdvancedSoundItems();
-
     if (!I_AllowReinitSound())
     {
         // The OpenAL implementation doesn't support the ALC_SOFT_HRTF extension
@@ -2046,21 +2042,15 @@ static void SetSoundModule(void)
         return;
     }
 
-    I_SetSoundModule(snd_module);
+    I_SetSoundModule();
 }
-
-int midi_player_menu;
-const char *midi_player_string = "";
 
 static void SetMidiPlayer(void)
 {
     S_StopMusic();
-    I_SetMidiPlayer(&midi_player_menu);
+    I_SetMidiPlayer();
     S_SetMusicVolume(snd_MusicVolume);
     S_RestartMusic();
-
-    const char **strings = GetStrings(str_midi_player);
-    midi_player_string = strings[midi_player_menu];
 }
 
 static setup_menu_t gen_settings2[] = {
@@ -2360,9 +2350,9 @@ void MN_UpdateDynamicResolutionItem(void)
                 "dynamic_resolution");
 }
 
-static void UpdateAdvancedSoundItems(void)
+void MN_UpdateAdvancedSoundItems(boolean toggle)
 {
-    DisableItem(snd_module != SND_MODULE_3D, gen_settings2, "snd_hrtf");
+    DisableItem(toggle, gen_settings2, "snd_hrtf");
 }
 
 void MN_UpdateFpsLimitItem(void)
@@ -3830,34 +3820,16 @@ static void UpdateHUDModeStrings(void)
     selectstrings[str_hudmode] = GetHUDModeStrings();
 }
 
-void MN_InitMidiPlayer(void)
+static const char **GetMidiPlayerStrings(void)
 {
-    const char **devices = I_DeviceList();
-
-    for (int i = 0; i < array_size(devices); ++i)
-    {
-        if (!strcasecmp(devices[i], midi_player_string))
-        {
-            midi_player_menu = i;
-            break;
-        }
-    }
-
-    if (midi_player_menu >= array_size(devices))
-    {
-        midi_player_menu = 0;
-    }
-
-    I_SetMidiPlayer(&midi_player_menu);
-    midi_player_string = devices[midi_player_menu];
-
-    selectstrings[str_midi_player] = devices;
+    return I_DeviceList();
 }
 
 void MN_InitMenuStrings(void)
 {
     UpdateHUDModeStrings();
     selectstrings[str_resolution_scale] = GetResolutionScaleStrings();
+    selectstrings[str_midi_player] = GetMidiPlayerStrings();
     selectstrings[str_mouse_accel] = GetMouseAccelStrings();
     selectstrings[str_resampler] = GetResamplerStrings();
 }
@@ -3880,5 +3852,4 @@ void MN_SetupResetMenu(void)
     CoerceFPSLimit();
     UpdateCrosshairItems();
     UpdateCenteredWeaponItem();
-    UpdateAdvancedSoundItems();
 }

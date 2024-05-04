@@ -31,6 +31,7 @@ typedef struct
     void (*I_CloseStream)(void);
     void (*I_ShutdownStream)(void);
     const char **(*I_DeviceList)(void);
+    void (*BindVariables)(void);
 } stream_module_t;
 
 extern stream_module_t stream_opl_module;

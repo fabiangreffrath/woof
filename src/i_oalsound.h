@@ -50,15 +50,15 @@ void I_OAL_UpdateListenerParams(const ALfloat *position,
 
 const char **I_OAL_GetResamplerStrings(void);
 
-boolean I_OAL_InitSound(void);
+boolean I_OAL_InitSound(int snd_module);
 
-boolean I_OAL_ReinitSound(void);
+boolean I_OAL_ReinitSound(int snd_module);
 
 boolean I_OAL_AllowReinitSound(void);
 
 boolean I_OAL_CacheSound(struct sfxinfo_s *sfx);
 
-boolean I_OAL_StartSound(int channel, struct sfxinfo_s *sfx, int pitch);
+boolean I_OAL_StartSound(int channel, struct sfxinfo_s *sfx, float pitch);
 
 void I_OAL_StopSound(int channel);
 
@@ -67,5 +67,7 @@ boolean I_OAL_SoundIsPlaying(int channel);
 void I_OAL_SetVolume(int channel, int volume);
 
 void I_OAL_SetPan(int channel, int separation);
+
+void I_OAL_BindSoundVariables(void);
 
 #endif
