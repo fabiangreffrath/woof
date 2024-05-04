@@ -22,24 +22,6 @@
 #include "doomtype.h"
 
 extern boolean joy_enable;                  // Enable game controller.
-extern int joy_layout;                      // Analog stick layout.
-extern int joy_sensitivity_forward;         // Forward axis sensitivity.
-extern int joy_sensitivity_strafe;          // Strafe axis sensitivity.
-extern int joy_sensitivity_turn;            // Turn axis sensitivity.
-extern int joy_sensitivity_look;            // Look axis sensitivity.
-extern int joy_extra_sensitivity_turn;      // Extra turn sensitivity.
-extern int joy_extra_sensitivity_look;      // Extra look sensitivity.
-extern int joy_extra_ramp_time;             // Ramp time for extra sensitivity.
-extern boolean joy_scale_diagonal_movement; // Scale diagonal movement.
-extern int joy_response_curve_movement;     // Movement response curve.
-extern int joy_response_curve_camera;       // Camera response curve.
-extern int joy_deadzone_type_movement;      // Movement deadzone type.
-extern int joy_deadzone_type_camera;        // Camera deadzone type.
-extern int joy_deadzone_movement;           // Movement deadzone percent.
-extern int joy_deadzone_camera;             // Camera deadzone percent.
-extern int joy_threshold_movement;          // Movement outer threshold percent.
-extern int joy_threshold_camera;            // Camera outer threshold percent.
-extern int joy_threshold_trigger;           // Trigger threshold percent.
 extern boolean joy_invert_forward;          // Invert forward axis.
 extern boolean joy_invert_strafe;           // Invert strafe axis.
 extern boolean joy_invert_turn;             // Invert turn axis.
@@ -53,5 +35,7 @@ void I_UpdateAxesData(const struct event_s *ev);
 void I_ResetControllerAxes(void);
 void I_ResetControllerLevel(void);
 void I_ResetController(void);
+
+void I_BindGamepadVariables(void);
 
 #endif

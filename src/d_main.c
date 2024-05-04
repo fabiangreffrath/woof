@@ -46,6 +46,7 @@
 #include "g_game.h"
 #include "hu_stuff.h"
 #include "i_endoom.h"
+#include "i_gamepad.h"
 #include "i_glob.h"
 #include "i_input.h"
 #include "i_printf.h"
@@ -2021,7 +2022,9 @@ static void D_InitConfig(void)
   MN_BindMenuVariables();
 
   I_BindSoundVariables();
+
   M_BindInputVariables();
+  I_BindGamepadVariables();
 
   M_InitConfig();
 }

@@ -31,7 +31,6 @@
 #include "config.h"
 #include "d_main.h"
 #include "doomdef.h"
-#include "doomkeys.h"
 #include "doomstat.h"
 #include "doomtype.h"
 #include "dstrings.h"
@@ -40,7 +39,6 @@
 #include "hu_lib.h" // HU_MAXMESSAGES
 #include "hu_obituary.h"
 #include "hu_stuff.h"
-#include "i_gamepad.h"
 #include "i_printf.h"
 #include "i_system.h"
 #include "i_video.h"
@@ -704,167 +702,6 @@ default_t defaults_orig[] = {
     (config_t *) &traditional_menu, NULL,
     {1}, {0,1}, number, ss_none, wad_yes,
     "1 to use Doom's main menu ordering"
-  },
-
-  {
-    "joy_enable",
-    (config_t *) &joy_enable, NULL,
-    {1}, {0, 1}, number, ss_gen, wad_no,
-    "Enable game controller"
-  },
-
-  {
-    "joy_layout",
-    (config_t *) &joy_layout, NULL,
-    {LAYOUT_DEFAULT}, {0, NUM_LAYOUTS - 1}, number, ss_gen, wad_no,
-    "Analog stick layout (0 = Default, 1 = Swap, 2 = Legacy, 3 = Legacy Swap)"
-  },
-
-  {
-    "joy_sensitivity_forward",
-    (config_t *) &joy_sensitivity_forward, NULL,
-    {50}, {0, 100}, number, ss_gen, wad_no,
-    "Forward axis sensitivity"
-  },
-
-  {
-    "joy_sensitivity_strafe",
-    (config_t *) &joy_sensitivity_strafe, NULL,
-    {50}, {0, 100}, number, ss_gen, wad_no,
-    "Strafe axis sensitivity"
-  },
-
-  {
-    "joy_sensitivity_turn",
-    (config_t *) &joy_sensitivity_turn, NULL,
-    {36}, {0, 100}, number, ss_gen, wad_no,
-    "Turn axis sensitivity"
-  },
-
-  {
-    "joy_sensitivity_look",
-    (config_t *) &joy_sensitivity_look, NULL,
-    {28}, {0, 100}, number, ss_gen, wad_no,
-    "Look axis sensitivity"
-  },
-
-  {
-    "joy_extra_sensitivity_turn",
-    (config_t *) &joy_extra_sensitivity_turn, NULL,
-    {14}, {0, 100}, number, ss_gen, wad_no,
-    "Extra turn sensitivity at outer threshold (joy_threshold_camera)"
-  },
-
-  {
-    "joy_extra_sensitivity_look",
-    (config_t *) &joy_extra_sensitivity_look, NULL,
-    {0}, {0, 100}, number, ss_gen, wad_no,
-    "Extra look sensitivity at outer threshold (joy_threshold_camera)"
-  },
-
-  {
-    "joy_extra_ramp_time",
-    (config_t *) &joy_extra_ramp_time, NULL,
-    {300}, {0,1000}, number, ss_gen, wad_no,
-    "Ramp time for extra sensitivity (0 = Instant, 1000 = 1 second)"
-  },
-
-  {
-    "joy_scale_diagonal_movement",
-    (config_t *) &joy_scale_diagonal_movement, NULL,
-    {1}, {0, 1}, number, ss_gen, wad_no,
-    "Scale diagonal movement (0 = Linear, 1 = Circle to Square)"
-  },
-
-  {
-    "joy_response_curve_movement",
-    (config_t *) &joy_response_curve_movement, NULL,
-    {10}, {10, 30}, number, ss_gen, wad_no,
-    "Movement response curve (10 = Linear, 20 = Squared, 30 = Cubed)"
-  },
-
-  {
-    "joy_response_curve_camera",
-    (config_t *) &joy_response_curve_camera, NULL,
-    {20}, {10, 30}, number, ss_gen, wad_no,
-    "Camera response curve (10 = Linear, 20 = Squared, 30 = Cubed)"
-  },
-
-  {
-    "joy_deadzone_type_movement",
-    (config_t *) &joy_deadzone_type_movement, NULL,
-    {1}, {0, 1}, number, ss_gen, wad_no,
-    "Movement deadzone type (0 = Axial, 1 = Radial)"
-  },
-
-  {
-    "joy_deadzone_type_camera",
-    (config_t *) &joy_deadzone_type_camera, NULL,
-    {1}, {0, 1}, number, ss_gen, wad_no,
-    "Camera deadzone type (0 = Axial, 1 = Radial)"
-  },
-
-  {
-    "joy_deadzone_movement",
-    (config_t *) &joy_deadzone_movement, NULL,
-    {15}, {0, 50}, number, ss_gen, wad_no,
-    "Movement deadzone percent"
-  },
-
-  {
-    "joy_deadzone_camera",
-    (config_t *) &joy_deadzone_camera, NULL,
-    {15}, {0, 50}, number, ss_gen, wad_no,
-    "Camera deadzone percent"
-  },
-
-  {
-    "joy_threshold_movement",
-    (config_t *) &joy_threshold_movement, NULL,
-    {2}, {0, 30}, number, ss_gen, wad_no,
-    "Movement outer threshold percent"
-  },
-
-  {
-    "joy_threshold_camera",
-    (config_t *) &joy_threshold_camera, NULL,
-    {2}, {0, 30}, number, ss_gen, wad_no,
-    "Camera outer threshold percent"
-  },
-
-  {
-    "joy_threshold_trigger",
-    (config_t *) &joy_threshold_trigger, NULL,
-    {12}, {0, 50}, number, ss_gen, wad_no,
-    "Trigger threshold percent"
-  },
-
-  {
-    "joy_invert_forward",
-    (config_t *) &joy_invert_forward, NULL,
-    {0}, {0, 1}, number, ss_gen, wad_no,
-    "Invert forward axis"
-  },
-
-  {
-    "joy_invert_strafe",
-    (config_t *) &joy_invert_strafe, NULL,
-    {0}, {0, 1}, number, ss_gen, wad_no,
-    "Invert strafe axis"
-  },
-
-  {
-    "joy_invert_turn",
-    (config_t *) &joy_invert_turn, NULL,
-    {0}, {0, 1}, number, ss_gen, wad_no,
-    "Invert turn axis"
-  },
-
-  {
-    "joy_invert_look",
-    (config_t *) &joy_invert_look, NULL,
-    {0}, {0, 1}, number, ss_gen, wad_no,
-    "Invert look axis"
   },
 
   {

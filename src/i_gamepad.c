@@ -23,30 +23,31 @@
 #include "doomtype.h"
 #include "g_game.h"
 #include "i_timer.h"
+#include "m_config.h"
 
 #define MIN_DEADZONE 0.00003f // 1/32768
 #define SGNF(x) ((float)((0.0f < (x)) - ((x) < 0.0f)))
 #define REMAP(x, min, max) (((x) - (min)) / ((max) - (min)))
 
 boolean joy_enable;
-int joy_layout;
-int joy_sensitivity_forward;
-int joy_sensitivity_strafe;
-int joy_sensitivity_turn;
-int joy_sensitivity_look;
-int joy_extra_sensitivity_turn;
-int joy_extra_sensitivity_look;
-int joy_extra_ramp_time;
-boolean joy_scale_diagonal_movement;
-int joy_response_curve_movement;
-int joy_response_curve_camera;
-int joy_deadzone_type_movement;
-int joy_deadzone_type_camera;
-int joy_deadzone_movement;
-int joy_deadzone_camera;
-int joy_threshold_movement;
-int joy_threshold_camera;
-int joy_threshold_trigger;
+static int joy_layout;
+static int joy_sensitivity_forward;
+static int joy_sensitivity_strafe;
+static int joy_sensitivity_turn;
+static int joy_sensitivity_look;
+static int joy_extra_sensitivity_turn;
+static int joy_extra_sensitivity_look;
+static int joy_extra_ramp_time;
+static boolean joy_scale_diagonal_movement;
+static int joy_response_curve_movement;
+static int joy_response_curve_camera;
+static int joy_deadzone_type_movement;
+static int joy_deadzone_type_camera;
+static int joy_deadzone_movement;
+static int joy_deadzone_camera;
+static int joy_threshold_movement;
+static int joy_threshold_camera;
+static int joy_threshold_trigger;
 boolean joy_invert_forward;
 boolean joy_invert_strafe;
 boolean joy_invert_turn;
@@ -386,4 +387,49 @@ void I_ResetController(void)
     I_ResetControllerLevel();
     UpdateStickLayout();
     RefreshSettings();
+}
+
+void I_BindGamepadVariables(void)
+{
+    M_BindBool("joy_enable", &joy_enable, true, "Enable game controller");
+    M_BindIntGen("joy_layout", &joy_layout, LAYOUT_DEFAULT, 0, NUM_LAYOUTS - 1,
+        "Analog stick layout (0 = Default, 1 = Swap, 2 = Legacy, 3 = Legacy Swap)");
+    M_BindInt("joy_sensitivity_forward", &joy_sensitivity_forward, 50, 0, 100,
+        "Forward axis sensitivity");
+    M_BindInt("joy_sensitivity_strafe", &joy_sensitivity_strafe, 50, 0, 100,
+        "Strafe axis sensitivity");
+    M_BindIntGen("joy_sensitivity_turn", &joy_sensitivity_turn, 36, 0, 100,
+        "Turn axis sensitivity");
+    M_BindIntGen("joy_sensitivity_look", &joy_sensitivity_look, 28, 0, 100,
+        "Look axis sensitivity");
+    M_BindIntGen("joy_extra_sensitivity_turn", &joy_extra_sensitivity_turn, 14, 0, 100,
+        "Extra turn sensitivity at outer threshold (joy_threshold_camera)");
+    M_BindInt("joy_extra_sensitivity_look", &joy_extra_sensitivity_look, 0, 0, 100,
+        "Extra look sensitivity at outer threshold (joy_threshold_camera)");
+    M_BindInt("joy_extra_ramp_time", &joy_extra_ramp_time, 300, 0, 1000,
+        "Ramp time for extra sensitivity (0 = Instant, 1000 = 1 second)");
+    M_BindBool("joy_scale_diagonal_movement", &joy_scale_diagonal_movement, true,
+        "Scale diagonal movement (0 = Linear, 1 = Circle to Square)");
+    M_BindInt("joy_response_curve_movement", &joy_response_curve_movement, 10, 10, 30,
+        "Movement response curve (10 = Linear, 20 = Squared, 30 = Cubed)");
+    M_BindIntGen("joy_response_curve_camera", &joy_response_curve_camera, 20, 10, 30,
+        "Camera response curve (10 = Linear, 20 = Squared, 30 = Cubed)");
+    M_BindInt("joy_deadzone_type_movement", &joy_deadzone_type_movement, 1, 0, 1,
+        "Movement deadzone type (0 = Axial, 1 = Radial)");
+    M_BindInt("joy_deadzone_type_camera", &joy_deadzone_type_camera, 1, 0, 1,
+        "Camera deadzone type (0 = Axial, 1 = Radial)");
+    M_BindIntGen("joy_deadzone_movement", &joy_deadzone_movement, 15, 0, 50,
+        "Movement deadzone percent");
+    M_BindIntGen("joy_deadzone_camera", &joy_deadzone_camera, 15, 0, 50,
+        "Camera deadzone percent");
+    M_BindInt("joy_threshold_movement", &joy_threshold_movement, 2, 0, 30,
+        "Movement outer threshold percent");
+    M_BindInt("joy_threshold_camera", &joy_threshold_camera, 2, 0, 30,
+        "Camera outer threshold percent");
+    M_BindInt("joy_threshold_trigger", &joy_threshold_trigger, 12, 0, 50,
+        "Trigger threshold percent");
+    M_BindBool("joy_invert_forward", &joy_invert_forward, false, "Invert forward axis");
+    M_BindBool("joy_invert_strafe", &joy_invert_strafe, false, "Invert strafe axis");
+    M_BindBool("joy_invert_turn", &joy_invert_turn, false, "Invert turn axis");
+    M_BindBoolGen("joy_invert_look", &joy_invert_look, false, "Invert look axis");
 }
