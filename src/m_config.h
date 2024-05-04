@@ -15,7 +15,6 @@
 //
 // DESCRIPTION:
 //
-//    
 //-----------------------------------------------------------------------------
 
 #ifndef __M_CONFIG__
@@ -47,6 +46,8 @@ void M_BindBoolGen(const char *name, boolean *location, boolean default_val,
                    const char *help);
 void M_BindBoolGenWad(const char *name, boolean *location, boolean default_val,
                       const char *help);
+
+void M_BindInput(const char *name, int input_id, const char *help);
 
 #define UL (-123456789) /* magic number for no min or max for parameter */
 

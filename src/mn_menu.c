@@ -2287,15 +2287,6 @@ static boolean ShortcutResponder(const event_t *ev)
         return true;
     }
 
-    // killough 10/98: allow key shortcut into Setup menu
-    if (M_InputActivated(input_setup))
-    {
-        MN_StartControlPanel();
-        M_StartSound(sfx_swtchn);
-        SetNextMenu(&SetupDef);
-        return true;
-    }
-
     static boolean fastdemo_timer = false;
 
     // [FG] reload current level / go to next level

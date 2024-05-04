@@ -2021,6 +2021,7 @@ static void D_InitConfig(void)
   MN_BindMenuVariables();
 
   I_BindSoundVariables();
+  M_BindInputVariables();
 
   M_InitConfig();
 }

@@ -224,7 +224,6 @@ typedef struct default_s
   const char *help;                   // description of parameter
 
   int input_id;
-  input_t inputs[NUM_INPUTS];
 
   // internal fields (initialized implicitly to 0) follow
 

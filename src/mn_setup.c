@@ -2541,7 +2541,7 @@ static void ResetDefaults()
                 }
                 else if (current_item->input_id == dp->input_id)
                 {
-                    M_InputSetDefault(dp->input_id, dp->inputs);
+                    M_InputSetDefault(dp->input_id);
                 }
             }
         }
