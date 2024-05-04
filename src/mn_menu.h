@@ -69,8 +69,6 @@ void MN_UpdateDynamicResolutionItem(void);
 void MN_DisableResolutionScaleItem(void);
 void MN_UpdateFpsLimitItem(void);
 
-extern int traditional_menu; // display the menu traditional way
-
 typedef enum
 {
     MENU_BG_OFF,
@@ -78,7 +76,7 @@ typedef enum
     MENU_BG_TEXTURE,
 } backdrop_t;
 
-extern backdrop_t menu_backdrop;
+extern int menu_backdrop;
 boolean MN_MenuIsShaded(void);
 
 void MN_SetQuickSaveSlot(int slot);

@@ -162,11 +162,14 @@ char    *basedefault = NULL;   // default file
 char    *basesavegame = NULL;  // killough 2/16/98: savegame directory
 char    *screenshotdir = NULL; // [FG] screenshot directory
 
-boolean organize_savefiles;
+int organize_savefiles;
 
 boolean coop_spawns = false;
 
-boolean demobar;
+static boolean demobar;
+
+// [FG] colored blood and gibs
+static boolean colored_blood;
 
 void D_ConnectNetGame (void);
 void D_CheckNetGame (void);
@@ -261,7 +264,7 @@ void D_UpdateDeltaTics(void)
 
 // wipegamestate can be set to -1 to force a wipe on the next draw
 gamestate_t    wipegamestate = GS_DEMOSCREEN;
-boolean        screen_melt = true;
+static int     screen_melt = wipe_Melt;
 extern int     showMessages;
 
 void D_Display (void)
@@ -2017,14 +2020,26 @@ static void D_InitConfig(void)
   I_BindVideoVariables();
   R_BindRenderVariables();
 
-  M_BindIntGen("show_endoom", &show_endoom, 0, 0, 2,
+  BIND_INT_GEN(show_endoom, 0, 0, 2,
     "Show ENDOOM screen (0 = Off, 1 = On, 2 = PWAD only)");
-  MN_BindMenuVariables();
+  BIND_BOOL_GEN(demobar, false, "1 to enable demo progress bar");
+  BIND_INT_GEN(screen_melt, wipe_Melt, wipe_None, wipe_Fizzle,
+    "Screen wipe effect (0 = None, 1 = Melt, 2 = Crossfade, 3 = Fizzlefade)");
+  BIND_INT_GEN(organize_savefiles, -1, -1, 1,
+    "1 to organize save files");
+  M_BindStr("net_player_name", &net_player_name, DEFAULT_PLAYER_NAME,
+    "Network setup player name");
 
   I_BindSoundVariables();
 
+  MN_BindMenuVariables();
   M_BindInputVariables();
+  I_BindInputVarianles();
   I_BindGamepadVariables();
+
+  G_BindGameVariables();
+  BIND_BOOL_OPT(colored_blood, false, ss_enem, wad_no,
+    "1 to enable colored blood");
 
   M_InitConfig();
 }

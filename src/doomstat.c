@@ -18,6 +18,7 @@
 //-----------------------------------------------------------------------------
 
 #include "doomstat.h"
+#include "doomtype.h"
 #include "m_misc.h"
 
 // Game Mode - identify IWAD as shareware, retail etc.
@@ -50,8 +51,6 @@ int compatibility, default_compatibility;          // killough 1/31/98
 
 int comp[COMP_TOTAL], default_comp[COMP_TOTAL];    // killough 10/98
 
-invul_mode_t invul_mode;
-
 // [FG] overflow emulation
 overflow_t overflow[EMU_TOTAL] = {
   { true, false, "spechits_overflow"},
@@ -74,45 +73,43 @@ int  default_allow_pushers;  // killough 3/1/98: make local to each game
 int  variable_friction = 1;      // ice & mud               // phares 3/10/98
 int  default_variable_friction;  // killough 3/1/98: make local to each game
 
-int  weapon_recoil;              // weapon recoil                   // phares
-int  default_weapon_recoil;      // killough 3/1/98: make local to each game
+boolean weapon_recoil;          // weapon recoil                   // phares
+boolean default_weapon_recoil;  // killough 3/1/98: make local to each game
 
-int player_bobbing;  // whether player bobs or not          // phares 2/25/98
-int default_player_bobbing;      // killough 3/1/98: make local to each game
+boolean player_bobbing;  // whether player bobs or not          // phares 2/25/98
+boolean default_player_bobbing;      // killough 3/1/98: make local to each game
 
-int monsters_remember=1;        // killough 3/1/98
-int default_monsters_remember=1;
+boolean monsters_remember = true;        // killough 3/1/98
+boolean default_monsters_remember = true;
 
-int monster_infighting=1;       // killough 7/19/98: monster<=>monster attacks
-int default_monster_infighting=1;
+boolean monster_infighting = true;       // killough 7/19/98: monster<=>monster attacks
+boolean default_monster_infighting = true;
 
-int monster_friction=1;       // killough 10/98: monsters affected by friction 
-int default_monster_friction=1;
+boolean monster_friction = true;       // killough 10/98: monsters affected by friction 
+boolean default_monster_friction = true;
 
 // killough 7/19/98: classic Doom BFG
-int classic_bfg, default_classic_bfg;
+boolean classic_bfg, default_classic_bfg;
 
 // killough 7/24/98: Emulation of Press Release version of Doom
 int beta_emulation;
 
 int dogs, default_dogs;         // killough 7/19/98: Marine's best friend :)
-int dog_jumping, default_dog_jumping;   // killough 10/98
+boolean dog_jumping, default_dog_jumping;   // killough 10/98
 
 // killough 8/8/98: distance friends tend to move towards players
 int distfriend = 128, default_distfriend = 128;
 
 // killough 9/8/98: whether monsters are allowed to strafe or retreat
-int monster_backing, default_monster_backing;
+boolean monster_backing, default_monster_backing;
 
 // killough 9/9/98: whether monsters are able to avoid hazards (e.g. crushers)
-int monster_avoid_hazards, default_monster_avoid_hazards;
+boolean monster_avoid_hazards, default_monster_avoid_hazards;
 
 // killough 9/9/98: whether monsters help friends
-int help_friends, default_help_friends;
+boolean help_friends, default_help_friends;
 
-int doom_weapon_toggles; // killough 10/98
-
-int monkeys, default_monkeys;
+boolean monkeys, default_monkeys;
 
 boolean hide_weapon;
 

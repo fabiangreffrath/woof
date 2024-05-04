@@ -20,6 +20,7 @@
 #ifndef __M_CONFIG__
 #define __M_CONFIG__
 
+#include "doomdef.h"
 #include "doomtype.h"
 
 void M_LoadDefaults(void);
@@ -29,23 +30,41 @@ boolean M_ParseOption(const char *name, boolean wad);    // killough 11/98
 void M_LoadOptions(void);                                // killough 11/98
 
 void M_InitConfig(void);
-void M_BindInt(const char *name, int *location,
+void M_BindInt(const char *name, int *location, int *current,
                int default_val, int min_val, int max_val,
+               ss_types screen, wad_allowed_t wad,
                const char *help);
-void M_BindBool(const char *name, boolean *location, boolean default_val,
+#define BIND_INT(name, v, a, b, help) \
+    M_BindInt(#name, &name, NULL, (v), (a), (b), ss_none, wad_no, help)
+#define BIND2_INT(name, v, a, b, help) \
+    M_BindInt(#name, &default_##name, &name, (v), (a), (b), ss_none, wad_no, help)
+#define BIND_INT_OPT(name, v, a, b, screen, wad, help) \
+    M_BindInt(#name, &name, NULL, (v), (a), (b), screen, wad, help)
+#define BIND2_INT_OPT(name, v, a, b, screen, wad, help) \
+    M_BindInt(#name, &default_##name, &name, (v), (a), (b), screen, wad, help)
+#define BIND_INT_GEN(name, v, a, b, help) \
+    M_BindInt(#name, &name, NULL, (v), (a), (b), ss_gen, wad_no, help)
+#define BIND2_INT_GEN(name, v, a, b, help) \
+    M_BindInt(#name, &default_##name, &name, (v), (a), (b), ss_gen, wad_no, help)
+
+void M_BindBool(const char *name, boolean *location, boolean *current,
+                boolean default_val, ss_types screen, wad_allowed_t wad,
                 const char *help);
+#define BIND_BOOL(name, v, help) \
+    M_BindBool(#name, &name, NULL, (v), ss_none, wad_no, help)
+#define BIND2_BOOL(name, v, help) \
+    M_BindBool(#name, &default_##name, &name, (v), ss_none, wad_no, help)
+#define BIND_BOOL_OPT(name, v, screen, wad, help) \
+    M_BindBool(#name, &name, NULL, (v), screen, wad, help)
+#define BIND2_BOOL_OPT(name, v, screen, wad, help) \
+    M_BindBool(#name, &default_##name, &name, (v), screen, wad, help)
+#define BIND_BOOL_GEN(name, v, help) \
+    M_BindBool(#name, &name, NULL, (v), ss_gen, wad_no, help)
+#define BIND2_BOOL_GEN(name, v, help) \
+    M_BindBool(#name, &default_##name, &name, (v), ss_gen, wad_no, help)
+
 void M_BindStr(const char *name, const char **location, char *default_val,
                const char *help);
-void M_BindIntGen(const char *name, int *location,
-                  int default_val, int min_val, int max_val,
-                  const char *help);
-void M_BindIntGenWad(const char *name, int *location,
-                    int default_val, int min_val, int max_val,
-                    const char *help);
-void M_BindBoolGen(const char *name, boolean *location, boolean default_val,
-                   const char *help);
-void M_BindBoolGenWad(const char *name, boolean *location, boolean default_val,
-                      const char *help);
 
 void M_BindInput(const char *name, int input_id, const char *help);
 

@@ -15,7 +15,6 @@
 
 #include "doomdef.h"
 #include "doomtype.h"
-#include "m_input.h"
 
 typedef struct
 {
@@ -48,6 +47,8 @@ typedef enum
 
 extern menu_input_mode_t menu_input, old_menu_input;
 void MN_ResetMouseCursor(void);
+
+extern boolean traditional_menu; // display the menu traditional way
 
 extern boolean setup_active;
 extern short whichSkull; // which skull to draw (he blinks)
@@ -220,7 +221,7 @@ typedef struct default_s
   struct {int min, max;} limit;       // numerical limits
   enum {number, string, input} type;  // type
   ss_types setupscreen;               // setup screen this appears on
-  enum {wad_no, wad_yes} wad_allowed; // whether it's allowed in wads
+  wad_allowed_t wad_allowed;          // whether it's allowed in wads
   const char *help;                   // description of parameter
 
   int input_id;

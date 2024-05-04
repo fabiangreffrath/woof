@@ -460,16 +460,15 @@ static void GetAttribs(ALCint **attribs)
 
 void I_OAL_BindSoundVariables(void)
 {
-    M_BindBoolGen("snd_hrtf", &snd_hrtf, false,
-                         "[OpenAL 3D] Headphones mode (0 = No, 1 = Yes)");
-    M_BindIntGen("snd_resampler", &snd_resampler, 1, 0, UL,
-                         "Sound resampler (0 = Nearest, 1 = Linear, ...)");
-    M_BindInt("snd_absorption", &snd_absorption, 0, 0, 10,
-                  "[OpenAL 3D] Air absorption effect (0 = Off, 10 = Max)");
-    M_BindInt("snd_doppler", &snd_doppler, 0, 0, 10,
-                  "[OpenAL 3D] Doppler effect (0 = Off, 10 = Max)");
-    M_BindBool("snd_limiter", &snd_limiter, false,
-                  "1 to enable sound output limiter");
+    BIND_BOOL_GEN(snd_hrtf, false,
+        "[OpenAL 3D] Headphones mode (0 = No, 1 = Yes)");
+    BIND_INT_GEN(snd_resampler, 1, 0, UL,
+        "Sound resampler (0 = Nearest, 1 = Linear, ...)");
+    BIND_INT(snd_absorption, 0, 0, 10,
+        "[OpenAL 3D] Air absorption effect (0 = Off, 10 = Max)");
+    BIND_INT(snd_doppler, 0, 0, 10,
+        "[OpenAL 3D] Doppler effect (0 = Off, 10 = Max)");
+    BIND_BOOL(snd_limiter, false, "1 to enable sound output limiter");
 }
 
 boolean I_OAL_InitSound(int snd_module)

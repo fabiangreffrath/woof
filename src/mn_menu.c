@@ -73,16 +73,11 @@ extern boolean chat_on; // in heads-up code
 // defaulted values
 //
 
-int mouseSensitivity_horiz;        // has default   //  killough
-int mouseSensitivity_vert;         // has default
-int mouseSensitivity_horiz_strafe; // [FG] strafe
-int mouseSensitivity_vert_look;    // [FG] look
-
 int showMessages; // Show messages has default, 0 = off, 1 = on
 int show_toggle_messages;
 int show_pickup_messages;
 
-int traditional_menu;
+boolean traditional_menu;
 
 // Blocky mode, has default, 0 = high, 1 = normal
 // int     detailLevel;    obsolete -- killough
@@ -120,7 +115,7 @@ boolean menuactive; // The menus are up
 
 static boolean options_active;
 
-backdrop_t menu_backdrop;
+int menu_backdrop;
 
 #define SKULLXOFF        -32
 #define LINEHEIGHT       16
@@ -3025,7 +3020,7 @@ void MN_StartControlPanel(void)
     //  Fix to make "always floating" with menu selections, and to always follow
     //  defaultskill, instead of -skill.
 
-    NewDef.lastOn = defaultskill - 1;
+    NewDef.lastOn = default_skill - 1;
 
     default_verify = 0; // killough 10/98
     menuactive = 1;

@@ -33,6 +33,8 @@ void P_DeathThink(struct player_s *player);
 void P_MovePlayer(struct player_s *player);
 void P_Thrust(struct player_s *player, angle_t angle, fixed_t move);
 
+extern int death_use_action;
+
 #endif // __P_USER__
 
 //----------------------------------------------------------------------------

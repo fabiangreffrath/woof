@@ -576,10 +576,10 @@ void M_InputSetDefault(int id)
     InputSet(id, default_inputs[id], NUM_INPUTS);
 }
 
-#define BIND_INPUT(id, help) M_BindInput(#id, id, help);
-
 void M_BindInputVariables(void)
 {
+#define BIND_INPUT(id, help) M_BindInput(#id, id, help)
+
     BIND_INPUT(input_forward, "Move forward");
     BIND_INPUT(input_backward, "Move backward");
     BIND_INPUT(input_turnright, "Turn right");

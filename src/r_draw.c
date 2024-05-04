@@ -23,6 +23,7 @@
 
 #include "doomdef.h"
 #include "doomstat.h"
+#include "doomtype.h"
 #include "i_system.h"
 #include "i_video.h"
 #include "r_bsp.h"
@@ -609,7 +610,7 @@ static void R_DrawFuzzColumn_block(void)
 
 // [FG] spectre drawing mode: 0 original, 1 blocky (hires)
 
-int fuzzcolumn_mode;
+boolean fuzzcolumn_mode;
 void (*R_DrawFuzzColumn) (void) = R_DrawFuzzColumn_orig;
 void R_SetFuzzColumnMode (void)
 {

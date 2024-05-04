@@ -39,6 +39,7 @@
 #include "r_defs.h"
 #include "r_main.h"
 #include "r_state.h"
+#include "st_stuff.h"
 
 static fixed_t PlayerSlope(player_t *player)
 {
@@ -369,7 +370,6 @@ void P_PlayerThink (player_t* player)
 {
   ticcmd_t*    cmd;
   weapontype_t newweapon;
-  extern boolean palette_changes;
 
   // [AM] Assume we can interpolate at the beginning
   //      of the tic.

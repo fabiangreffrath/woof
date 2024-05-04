@@ -76,6 +76,8 @@ const char *G_GetCurrentComplevelName(void);
 
 int G_GotoNextLevel(int *pEpi, int *pMap);
 
+void G_BindGameVariables(void);
+
 typedef enum
 {
   CL_NONE = -1,
@@ -85,7 +87,7 @@ typedef enum
   CL_MBF21,
 } complevel_t;
 
-extern complevel_t force_complevel, default_complevel;
+extern int force_complevel, default_complevel;
 
 extern int realtic_clock_rate;
 
@@ -93,17 +95,15 @@ extern int realtic_clock_rate;
 extern int  key_escape;
 extern int  key_enter;
 extern int  key_help;
-extern int  autorun;           // always running?                   // phares
-extern boolean autostrafe50;
-extern int  novert;
+extern boolean autorun;           // always running?                   // phares
+extern boolean novert;
 extern boolean mouselook;
 extern boolean padlook;
-extern int  dclick_use; // [FG] double click acts as "use"
 
 extern fixed_t *forwardmove;
 extern fixed_t *sidemove;
 
-extern int  defaultskill;      //jff 3/24/98 default skill
+extern int  default_skill;      //jff 3/24/98 default skill
 extern boolean haswolflevels;  //jff 4/18/98 wolf levels present
 
 extern int  bodyquesize, default_bodyquesize; // killough 2/8/98, 10/98

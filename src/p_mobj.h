@@ -419,9 +419,6 @@ extern int itemrespawntime[];
 extern int iquehead;
 extern int iquetail;
 
-// [FG] colored blood and gibs
-extern boolean colored_blood;
-
 extern boolean direct_vertical_aiming, default_direct_vertical_aiming;
 void P_UpdateDirectVerticalAiming(void);
 

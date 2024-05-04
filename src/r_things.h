@@ -40,6 +40,7 @@ extern fixed_t pspritescale;
 extern fixed_t pspriteiscale;
 
 extern boolean pspr_interp; // weapon bobbing interpolation
+extern boolean flipcorpses;
 
 extern lighttable_t **spritelights;
 

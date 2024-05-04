@@ -55,6 +55,15 @@ extern byte *main_tranmap, *tranmap;
 
 extern int tran_filter_pct;
 
+typedef enum
+{
+  INVUL_VANILLA,
+  INVUL_MBF,
+  INVUL_GRAY,
+} invul_mode_t;
+
+extern int invul_mode;
+
 #endif
 
 //----------------------------------------------------------------------------

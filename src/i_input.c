@@ -23,6 +23,7 @@
 #include "i_gamepad.h"
 #include "i_printf.h"
 #include "i_system.h"
+#include "m_config.h"
 #include "r_main.h"
 
 #define AXIS_BUTTON_DEADZONE (SDL_JOYSTICK_AXIS_MAX / 3)
@@ -469,8 +470,8 @@ void I_DelayEvent(void)
 // exceed the value of mouse_acceleration_threshold, they are multiplied by
 // mouse_acceleration to increase the speed.
 
-int mouse_acceleration;
-int mouse_acceleration_threshold;
+static int mouse_acceleration;
+static int mouse_acceleration_threshold;
 
 static double AccelerateMouse_Thresh(int val)
 {
@@ -591,4 +592,12 @@ void I_HandleKeyboardEvent(SDL_Event *sdlevent)
         default:
             break;
     }
+}
+
+void I_BindInputVarianles(void)
+{
+    BIND_INT_GEN(mouse_acceleration, 10, 0, 40,
+        "Adjust mouse acceleration (0 = 1.0, 40 = 5.0)");
+    BIND_INT(mouse_acceleration_threshold, 10, 0, 32,
+        "Adjust mouse acceleration threshold");
 }

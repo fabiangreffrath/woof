@@ -78,7 +78,6 @@ extern boolean setrefreshneeded;
 extern boolean toggle_fullscreen;
 extern boolean toggle_exclusive_fullscreen;
 extern boolean screenvisible;
-extern boolean default_grabmouse;
 
 extern int gamma2;
 byte I_GetPaletteIndex(byte *palette, int r, int g, int b);

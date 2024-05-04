@@ -114,9 +114,9 @@ extern demo_version_t demo_version;           // killough 7/19/98: Version of de
 #define mbf21 (demo_version == DV_MBF21)
 
 // killough 7/19/98: whether monsters should fight against each other
-extern int monster_infighting, default_monster_infighting;
+extern boolean monster_infighting, default_monster_infighting;
 
-extern int monkeys, default_monkeys;
+extern boolean monkeys, default_monkeys;
 
 // v1.1-like pitched sounds
 extern boolean pitched_sounds;
@@ -165,15 +165,6 @@ enum {
 };
 
 extern int comp[COMP_TOTAL], default_comp[COMP_TOTAL];
-
-typedef enum
-{
-  INVUL_VANILLA,
-  INVUL_MBF,
-  INVUL_GRAY,
-} invul_mode_t;
-
-extern invul_mode_t invul_mode;
 
 // -------------------------------------------
 // Language.
@@ -370,7 +361,7 @@ extern wbstartstruct_t wminfo;
 
 // File handling stuff.
 extern  char   *basedefault;
-extern  boolean organize_savefiles;
+extern  int    organize_savefiles;
 
 // if true, load all graphics at level load
 extern  boolean precache;
@@ -378,11 +369,6 @@ extern  boolean precache;
 // wipegamestate can be set to -1
 //  to force a wipe on the next draw
 extern  gamestate_t     wipegamestate;
-
-extern  int             mouseSensitivity_horiz; // killough
-extern  int             mouseSensitivity_vert;
-extern  int             mouseSensitivity_horiz_strafe; // [FG] strafe
-extern  int             mouseSensitivity_vert_look; // [FG] look
 
 // debug flag to cancel adaptiveness
 extern  boolean         singletics;
@@ -409,42 +395,38 @@ extern int default_allow_pushers;
 extern int variable_friction;  // ice & mud            // phares 3/10/98
 extern int default_variable_friction;
 
-extern int monsters_remember;                          // killough 3/1/98
-extern int default_monsters_remember;
+extern boolean monsters_remember;                          // killough 3/1/98
+extern boolean default_monsters_remember;
 
-extern int weapon_recoil;          // weapon recoil    // phares
-extern int default_weapon_recoil;
+extern boolean weapon_recoil;          // weapon recoil    // phares
+extern boolean default_weapon_recoil;
 
-extern int player_bobbing;  // whether player bobs or not   // phares 2/25/98
-extern int default_player_bobbing;  // killough 3/1/98: make local to each game
+extern boolean player_bobbing;  // whether player bobs or not   // phares 2/25/98
+extern boolean default_player_bobbing;  // killough 3/1/98: make local to each game
 
 // killough 7/19/98: Classic Pre-Beta BFG
-extern int classic_bfg, default_classic_bfg;
+extern boolean classic_bfg, default_classic_bfg;
 
 // killough 7/24/98: Emulation of Press Release version of Doom
 extern int beta_emulation;
 
 extern int dogs, default_dogs;     // killough 7/19/98: Marine's best friend :)
-extern int dog_jumping, default_dog_jumping;   // killough 10/98
+extern boolean dog_jumping, default_dog_jumping;   // killough 10/98
 
 // killough 8/8/98: distance friendly monsters tend to stay from player
 extern int distfriend, default_distfriend;
 
 // killough 9/8/98: whether monsters are allowed to strafe or retreat
-extern int monster_backing, default_monster_backing;
+extern boolean monster_backing, default_monster_backing;
 
 // killough 9/9/98: whether monsters intelligently avoid hazards
-extern int monster_avoid_hazards, default_monster_avoid_hazards;
+extern boolean monster_avoid_hazards, default_monster_avoid_hazards;
 
 // killough 10/98: whether monsters are affected by friction
-extern int monster_friction, default_monster_friction;
+extern boolean monster_friction, default_monster_friction;
 
 // killough 9/9/98: whether monsters help friends
-extern int help_friends, default_help_friends;
-
-extern boolean pistolstart, default_pistolstart;
-
-extern int doom_weapon_toggles;   // killough 10/98
+extern boolean help_friends, default_help_friends;
 
 extern boolean hide_weapon;
 

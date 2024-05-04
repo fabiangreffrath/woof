@@ -85,6 +85,7 @@ extern struct mobj_s *linetarget;     // who got hit (or NULL)
 extern struct msecnode_s *sector_list;                             // phares 3/16/98
 extern fixed_t tmbbox[4];         // phares 3/20/98
 extern struct line_s *blockline;   // killough 8/11/98
+extern boolean hangsolid;
 
 #endif // __P_MAP__
 
