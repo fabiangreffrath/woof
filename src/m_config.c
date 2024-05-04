@@ -49,7 +49,7 @@
 #include "m_io.h"
 #include "m_misc.h"
 #include "mn_menu.h"
-#include "mn_setup.h"
+#include "mn_internal.h"
 #include "net_client.h" // net_player_name
 #include "p_mobj.h"
 #include "p_pspr.h"

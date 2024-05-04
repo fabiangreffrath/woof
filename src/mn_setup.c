@@ -13,7 +13,7 @@
 //  GNU General Public License for more details.
 //
 
-#include "mn_setup.h"
+#include "mn_internal.h"
 #include "am_map.h"
 #include "d_main.h"
 #include "doomdef.h"

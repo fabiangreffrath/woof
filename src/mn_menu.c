@@ -47,7 +47,7 @@
 #include "m_swap.h"
 #include "mn_font.h"
 #include "mn_menu.h"
-#include "mn_setup.h"
+#include "mn_internal.h"
 #include "mn_snapshot.h"
 #include "p_saveg.h"
 #include "r_defs.h"
