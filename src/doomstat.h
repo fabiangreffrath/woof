@@ -121,14 +121,7 @@ extern int monkeys, default_monkeys;
 // v1.1-like pitched sounds
 extern boolean pitched_sounds;
 
-extern int translucency;
-
-enum {
-  TRANSLUCENCY_OFF,
-  TRANSLUCENCY_WALLS,
-  TRANSLUCENCY_THINGS,
-  TRANSLUCENCY_ALL
-};
+extern boolean translucency;
 
 extern int demo_insurance;      // killough 4/5/98
 
@@ -450,8 +443,6 @@ extern int monster_friction, default_monster_friction;
 extern int help_friends, default_help_friends;
 
 extern boolean pistolstart, default_pistolstart;
-
-extern int flashing_hom; // killough 10/98
 
 extern int doom_weapon_toggles;   // killough 10/98
 

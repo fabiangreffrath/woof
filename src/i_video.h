@@ -66,37 +66,18 @@ void I_ToggleVsync(void); // [JN] Calls native SDL vsync toggle
 
 void I_DynamicResolution(void);
 
+extern int current_video_height;
 extern boolean drs_skip_frame;
-
-extern boolean use_vsync; // killough 2/8/98: controls whether vsync is called
-extern boolean disk_icon; // killough 10/98
-
-extern int max_video_width, max_video_height;
-extern int current_video_height, default_current_video_height;
-
 #define DRS_MIN_HEIGHT 400
 extern boolean dynamic_resolution;
-
-extern boolean use_aspect;
-extern boolean uncapped,
-    default_uncapped; // [FG] uncapped rendering frame rate
-
-extern boolean fullscreen;
-extern boolean exclusive_fullscreen;
-extern boolean change_display_resolution;
-extern int fpslimit; // when uncapped, limit framerate to this value
+extern boolean uncapped;
 extern int fps;
-extern boolean vga_porch_flash; // emulate VGA "porch" behaviour
-extern aspect_ratio_mode_t widescreen, default_widescreen; // widescreen mode
 extern int custom_fov;    // Custom FOV set by the player.
-extern int video_display; // display index
-extern boolean screenvisible;
-extern boolean window_focused;
 extern boolean resetneeded;
 extern boolean setrefreshneeded;
-extern boolean smooth_scaling;
 extern boolean toggle_fullscreen;
 extern boolean toggle_exclusive_fullscreen;
+extern boolean screenvisible;
 extern boolean default_grabmouse;
 
 extern int gamma2;
@@ -111,6 +92,8 @@ void I_InitWindowIcon(void);
 
 void I_ShowMouseCursor(boolean toggle);
 void I_ResetRelativeMouseState(void);
+
+void I_BindVideoVariables(void);
 
 #endif
 

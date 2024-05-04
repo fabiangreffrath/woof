@@ -93,8 +93,6 @@ void MN_DrawAutoMap(void);
 void MN_DrawWeapons(void);
 void MN_DrawEnemy(void);
 
-extern int resolution_scale;
-
 /////////////////////////////
 //
 // The following #defines are for the m_flags field of each item on every

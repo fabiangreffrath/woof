@@ -41,6 +41,7 @@
 #include "i_timer.h"
 #include "i_video.h"
 #include "m_argv.h"
+#include "m_config.h"
 #include "m_fixed.h"
 #include "m_io.h"
 #include "mn_menu.h"
@@ -59,39 +60,39 @@
 
 #include "icon.c"
 
-int current_video_height, default_current_video_height;
-static int GetCurrentVideoHeight(void);
+// [AM] Fractional part of the current tic, in the half-open
+//      range of [0.0, 1.0).  Used for interpolation.
+fixed_t fractionaltic;
 
 boolean dynamic_resolution;
 
-boolean use_vsync; // killough 2/8/98: controls whether vsync is called
-boolean use_aspect;
-boolean uncapped, default_uncapped; // [FG] uncapped rendering frame rate
-int fpslimit; // when uncapped, limit framerate to this value
-boolean fullscreen;
-boolean exclusive_fullscreen;
-boolean change_display_resolution;
-aspect_ratio_mode_t widescreen, default_widescreen; // widescreen mode
-int custom_fov;
-boolean vga_porch_flash; // emulate VGA "porch" behaviour
-boolean smooth_scaling;
+int current_video_height;
+static int default_current_video_height;
+static int GetCurrentVideoHeight(void);
 
+boolean uncapped;
+static boolean default_uncapped;
+
+int custom_fov;
+
+int fps; // [FG] FPS counter widget
 boolean resetneeded;
 boolean setrefreshneeded;
 boolean toggle_fullscreen;
 boolean toggle_exclusive_fullscreen;
 
-int video_display = 0; // display index
-static int window_width, window_height;
-int default_window_width, default_window_height;
-int window_position_x, window_position_y;
-
-// [AM] Fractional part of the current tic, in the half-open
-//      range of [0.0, 1.0).  Used for interpolation.
-fixed_t fractionaltic;
-
-boolean disk_icon; // killough 10/98
-int fps;           // [FG] FPS counter widget
+static boolean use_vsync; // killough 2/8/98: controls whether vsync is called
+static boolean use_aspect;
+static int fpslimit; // when uncapped, limit framerate to this value
+static boolean fullscreen;
+static boolean exclusive_fullscreen;
+static boolean change_display_resolution;
+static aspect_ratio_mode_t widescreen;
+static int default_widescreen;
+static boolean vga_porch_flash; // emulate VGA "porch" behaviour
+static boolean smooth_scaling;
+static int video_display = 0; // display index
+static boolean disk_icon; // killough 10/98
 
 // [FG] rendering window, renderer, intermediate ARGB frame buffer and texture
 
@@ -104,20 +105,23 @@ static SDL_Texture *texture_upscaled;
 static SDL_Rect blit_rect = {0};
 
 static int window_x, window_y;
+static int window_width, window_height;
+static int default_window_width, default_window_height;
+static int window_position_x, window_position_y;
+static boolean window_resize;
+static boolean window_focused = true;
+static int scalefactor;
+
 static int actualheight;
 static int unscaled_actualheight;
 
-int max_video_width, max_video_height;
+static int max_video_width, max_video_height;
 static int max_width, max_height;
 static int max_height_adjusted;
 static int display_refresh_rate;
 
 static boolean use_limiter;
 static int targetrefresh;
-
-static boolean window_resize;
-
-static int scalefactor;
 
 // haleyjd 10/08/05: Chocolate DOOM application focus state code added
 
@@ -127,8 +131,6 @@ boolean grabmouse = true, default_grabmouse;
 // Flag indicating whether the screen is currently visible:
 // when the screen isnt visible, don't render the screen
 boolean screenvisible = true;
-
-boolean window_focused = true;
 
 boolean drs_skip_frame;
 
@@ -1340,6 +1342,11 @@ static void I_ResetTargetRefresh(void)
 {
     uncapped = default_uncapped;
 
+    if (fpslimit < TICRATE)
+    {
+        fpslimit = 0;
+    }
+
     if (uncapped)
     {
         // SDL may report native refresh rate as zero.
@@ -1351,6 +1358,7 @@ static void I_ResetTargetRefresh(void)
     }
 
     UpdateLimiter();
+    MN_UpdateFpsLimitItem();
     drs_skip_frame = true;
 }
 
@@ -1490,7 +1498,6 @@ static void I_InitVideoParms(void)
     {
         scalefactor = tmp_scalefactor;
         GetCurrentVideoHeight();
-        MN_UpdateDynamicResolutionItem();
         MN_DisableResolutionScaleItem();
     }
 
@@ -1517,6 +1524,7 @@ static void I_InitVideoParms(void)
     }
 
     MN_UpdateFpsLimitItem();
+    MN_UpdateDynamicResolutionItem();
 }
 
 static void I_InitGraphicsMode(void)
@@ -1777,6 +1785,54 @@ void I_InitGraphics(void)
     SDL_PumpEvents();
     SDL_FlushEvent(SDL_MOUSEMOTION);
     I_ResetRelativeMouseState();
+}
+
+void I_BindVideoVariables(void)
+{
+    M_BindInt("current_video_height", &default_current_video_height,
+              600, SCREENHEIGHT, UL, "Vertical resolution (600p by default)");
+    M_BindBoolGen("dynamic_resolution", &dynamic_resolution, true,
+                  "1 to enable dynamic resolution");
+    M_BindBool("correct_aspect_ratio", &use_aspect, true,
+               "1 to perform aspect ratio correction");
+    M_BindBool("fullscreen", &fullscreen, true, "1 to enable fullscreen");
+    M_BindBoolGen("exclusive_fullscreen", &exclusive_fullscreen, false,
+                  "1 to enable exclusive fullscreen");
+    M_BindBoolGen("use_vsync", &use_vsync, true,
+                  "1 to enable wait for vsync to avoid display tearing");
+    M_BindBoolGen("uncapped", &default_uncapped, true,
+                  "1 to enable uncapped rendering frame rate");
+    M_BindIntGen("fpslimit", &fpslimit, 0, 0, 500,
+                 "Framerate limit in frames per second (< 35 = disable)");
+    M_BindIntGen("widescreen", &default_widescreen,
+                 RATIO_AUTO, 0, NUM_RATIOS - 1,
+                 "Widescreen (0 = Off, 1 = Auto, 2 = 16:10, 3 = 16:9, 4 = 21:9)");
+    M_BindIntGen("fov", &custom_fov, FOV_DEFAULT, FOV_MIN, FOV_MAX,
+                 "Field of view in degrees");
+    M_BindIntGen("gamma2", &gamma2, 9, 0, 17,
+                 "Custom gamma level (0 = -4, 9 = 0, 17 = 4)");
+    M_BindBoolGen("smooth_scaling", &smooth_scaling, true,
+                  "1 to enable smooth pixel scaling");
+
+    M_BindBool("vga_porch_flash", &vga_porch_flash, false,
+               "1 to emulate VGA \"porch\" behaviour");
+    M_BindBool("disk_icon", &disk_icon, false,
+               "1 to enable flashing icon during disk IO");
+    M_BindInt("video_display", &video_display, 0, 0, UL,
+              "Current video display index");
+    M_BindInt("max_video_width", &max_video_width, 0, SCREENWIDTH, UL,
+              "Maximum horizontal resolution (native by default)");
+    M_BindInt("max_video_height", &max_video_height, 0, SCREENHEIGHT, UL,
+              "Maximum vertical resolution (native by default)");
+    M_BindBool("change_display_resolution", &change_display_resolution, false,
+               "1 to change display resolution with exclusive fullscreen (only "
+               "useful for CRTs)");
+    M_BindInt("window_position_x", &window_position_x, 0, UL, UL,
+              "Window position X (0 = Center)");
+    M_BindInt("window_position_y", &window_position_y, 0, UL, UL,
+              "Window position Y (0 = Center)");
+    M_BindInt("window_width", &default_window_width, 1065, 0, UL, "Window width");
+    M_BindInt("window_height", &default_window_height, 600, 0, UL, "Window height");
 }
 
 //----------------------------------------------------------------------------

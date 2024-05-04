@@ -94,6 +94,8 @@ void MN_DrawString(int cx, int cy, int color, const char *ch);
 
 void M_StartSound(int sound_id);
 
+void MN_BindMenuVariables(void);
+
 #endif
 
 //----------------------------------------------------------------------------

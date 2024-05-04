@@ -1828,7 +1828,7 @@ static setup_tab_t gen_tabs[] = {
     {NULL}
 };
 
-int resolution_scale;
+static int resolution_scale;
 
 static const char **GetResolutionScaleStrings(void)
 {
@@ -1939,13 +1939,8 @@ static void ToggleExclusiveFullScreen(void)
     toggle_exclusive_fullscreen = true;
 }
 
-
-static void CoerceFPSLimit(void)
+static void UpdateFPSLimit(void)
 {
-    if (fpslimit < TICRATE)
-    {
-        fpslimit = 0;
-    }
     setrefreshneeded = true;
 }
 
@@ -1989,10 +1984,10 @@ static setup_menu_t gen_settings1[] = {
     MI_GAP,
 
     {"Uncapped Framerate", S_ONOFF, M_X, M_SPC, {"uncapped"}, m_null, input_null,
-     str_empty, MN_UpdateFpsLimitItem},
+     str_empty, UpdateFPSLimit},
 
     {"Framerate Limit", S_NUM, M_X, M_SPC, {"fpslimit"}, m_null, input_null,
-     str_empty, CoerceFPSLimit},
+     str_empty, UpdateFPSLimit},
 
     {"VSync", S_ONOFF, M_X, M_SPC, {"use_vsync"}, m_null, input_null, str_empty,
      I_ToggleVsync},
@@ -2357,8 +2352,7 @@ void MN_UpdateAdvancedSoundItems(boolean toggle)
 
 void MN_UpdateFpsLimitItem(void)
 {
-    DisableItem(!default_uncapped, gen_settings1, "fpslimit");
-    setrefreshneeded = true;
+    DisableItem(!uncapped, gen_settings1, "fpslimit");
 }
 
 void MN_DisableVoxelsRenderingItem(void)
@@ -3846,10 +3840,16 @@ void MN_SetupResetMenu(void)
     DisableItem(deh_set_blood_color, enem_settings1, "colored_blood");
     DisableItem(!brightmaps_found || force_brightmaps, gen_settings5,
                 "brightmaps");
-    DisableItem(default_current_video_height <= DRS_MIN_HEIGHT, gen_settings1,
-                "dynamic_resolution");
     UpdateInterceptsEmuItem();
-    CoerceFPSLimit();
     UpdateCrosshairItems();
     UpdateCenteredWeaponItem();
+}
+
+void MN_BindMenuVariables(void)
+{
+    M_BindInt("resolution_scale", &resolution_scale, 0, 0, UL,
+              "Resolution scale menu index");
+    M_BindIntGen("menu_backdrop", (int *)&menu_backdrop,
+        MENU_BG_DARK, MENU_BG_OFF, MENU_BG_TEXTURE,
+        "Draw menu backdrop (0 = Off, 1 = Dark (default), 2 = Texture)");
 }

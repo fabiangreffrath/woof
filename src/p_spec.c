@@ -56,6 +56,7 @@
 #include "r_plane.h" // killough 10/98
 #include "r_sky.h"   // R_GetSkyColor
 #include "r_state.h"
+#include "r_swirl.h"
 #include "s_sound.h"
 #include "sounds.h"
 #include "st_stuff.h"
@@ -2334,8 +2335,6 @@ boolean         levelTimer;
 int             levelTimeCount;
 boolean         levelFragLimit;      // Ty 03/18/98 Added -frags support
 int             levelFragLimitCount; // Ty 03/18/98 Added -frags support
-
-boolean         r_swirl;
 
 void P_UpdateSpecials (void)
 {

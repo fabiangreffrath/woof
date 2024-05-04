@@ -30,8 +30,10 @@
 #include "am_map.h"
 #include "config.h"
 #include "d_main.h"
+#include "doomdef.h"
 #include "doomkeys.h"
 #include "doomstat.h"
+#include "doomtype.h"
 #include "dstrings.h"
 #include "f_wipe.h"
 #include "g_game.h"
@@ -40,7 +42,6 @@
 #include "hu_stuff.h"
 #include "i_gamepad.h"
 #include "i_printf.h"
-#include "i_sound.h"
 #include "i_system.h"
 #include "i_video.h"
 #include "m_argv.h"
@@ -53,12 +54,9 @@
 #include "net_client.h" // net_player_name
 #include "p_mobj.h"
 #include "p_pspr.h"
-#include "r_data.h"
 #include "r_draw.h" // [FG] fuzzcolumn_mode
 #include "r_main.h"
-#include "r_sky.h" // [FG] stretchsky
 #include "r_voxel.h"
-#include "s_sound.h"
 #include "st_stuff.h"
 #include "v_video.h"
 #include "w_wad.h"
@@ -74,26 +72,18 @@ extern int mouse_y_invert;
 extern int showMessages;
 extern int show_toggle_messages;
 extern int show_pickup_messages;
-
-extern int default_window_width, default_window_height;
-extern int window_position_x, window_position_y;
 extern boolean flipcorpses;    // [crispy] randomly flip corpse, blood and death
                                // animation sprites
 extern boolean ghost_monsters; // [crispy] resurrected pools of gore ("ghost
                                // monsters") are translucent
 extern int mouse_acceleration;
 extern int mouse_acceleration_threshold;
-extern int show_endoom;
 extern boolean demobar;
-extern boolean smoothlight;
-extern boolean brightmaps;
-extern boolean r_swirl;
 extern int death_use_action;
 extern boolean palette_changes;
 extern boolean screen_melt;
 extern boolean hangsolid;
 extern boolean blockmapfix;
-extern int extra_level_brightness;
 
 extern char *chat_macros[]; // killough 10/98
 
@@ -112,263 +102,6 @@ default_t defaults_orig[] = {
     (config_t *) &config_help, NULL,
     {1}, {0,1}, number, ss_none, wad_no,
     "1 to show help strings about each variable in config file"
-  },
-
-  //
-  // Video
-  //
-
-  {
-    "current_video_height",
-    (config_t *) &default_current_video_height, NULL,
-    {600}, {SCREENHEIGHT, UL}, number, ss_none, wad_no,
-    "vertical resolution (600p by default)"
-  },
-
-  {
-    "resolution_scale",
-    (config_t *) &resolution_scale, NULL,
-    {0}, {0, UL}, number, ss_gen, wad_no,
-    "resolution scale menu index"
-  },
-
-  {
-    "dynamic_resolution",
-    (config_t *) &dynamic_resolution, NULL,
-    {1}, {0, 1}, number, ss_gen, wad_no,
-    "1 to enable dynamic resolution"
-  },
-
-  {
-    "correct_aspect_ratio",
-    (config_t *) &use_aspect, NULL,
-    {1}, {0, 1}, number, ss_none, wad_no,
-    "1 to perform aspect ratio correction"
-  },
-
-  // [FG] save fullscren mode
-  {
-    "fullscreen",
-    (config_t *) &fullscreen, NULL,
-    {1}, {0, 1}, number, ss_none, wad_no,
-    "1 to enable fullscreen mode"
-  },
-
-  {
-    "exclusive_fullscreen",
-    (config_t *) &exclusive_fullscreen, NULL,
-    {0}, {0, 1}, number, ss_none, wad_no,
-    "1 to enable exclusive fullscreen mode"
-  },
-
-  {
-    "use_vsync",
-    (config_t *) &use_vsync, NULL,
-    {1}, {0,1}, number, ss_gen, wad_no,
-    "1 to enable wait for vsync to avoid display tearing"
-  },
-
-  // [FG] uncapped rendering frame rate
-  {
-    "uncapped",
-    (config_t *) &default_uncapped, NULL,
-    {1}, {0, 1}, number, ss_gen, wad_no,
-    "1 to enable uncapped rendering frame rate"
-  },
-
-  // framerate limit
-  {
-    "fpslimit",
-    (config_t *) &fpslimit, NULL,
-    {0}, {0, 500}, number, ss_gen, wad_no,
-    "framerate limit in frames per second (< 35 = disable)"
-  },
-
-  // widescreen mode
-  {
-    "widescreen",
-    (config_t *) &default_widescreen, NULL,
-    {RATIO_AUTO}, {RATIO_ORIG, NUM_RATIOS-1}, number, ss_gen, wad_no,
-    "Widescreen (0 = Off, 1 = Auto, 2 = 16:10, 3 = 16:9, 4 = 21:9)"
-  },
-
-  {
-    "fov",
-    (config_t *) &custom_fov, NULL,
-    {FOV_DEFAULT}, {FOV_MIN, FOV_MAX}, number, ss_gen, wad_no,
-    "Field of view in degrees"
-  },
-
-  // display index
-  {
-    "video_display",
-    (config_t *) &video_display, NULL,
-    {0}, {0, UL}, number, ss_none, wad_no,
-    "current video display index"
-  },
-
-  {
-    "max_video_width",
-    (config_t *) &max_video_width, NULL,
-    {0}, {SCREENWIDTH, UL}, number, ss_none, wad_no,
-    "maximum horizontal resolution (native by default)"
-  },
-
-  {
-    "max_video_height",
-    (config_t *) &max_video_height, NULL,
-    {0}, {SCREENHEIGHT, UL}, number, ss_none, wad_no,
-    "maximum vertical resolution (native by default)"
-  },
-
-  {
-    "change_display_resolution",
-    (config_t *) &change_display_resolution, NULL,
-    {0}, {0, 1}, number, ss_none, wad_no,
-    "1 to change display resolution with exclusive fullscreen (make sense only with CRT)"
-  },
-
-  // window position
-  {
-    "window_position_x",
-    (config_t *) &window_position_x, NULL,
-    {0}, {UL, UL}, number, ss_none, wad_no,
-    "window position x"
-  },
-
-  {
-    "window_position_y",
-    (config_t *) &window_position_y, NULL,
-    {0}, {UL, UL}, number, ss_none, wad_no,
-    "window position y"
-  },
-
-  // window width
-  {
-    "window_width",
-    (config_t *) &default_window_width, NULL,
-    {1065}, {0, UL}, number, ss_none, wad_no,
-    "window width"
-  },
-
-  // window height
-  {
-    "window_height",
-    (config_t *) &default_window_height, NULL,
-    {600}, {0, UL}, number, ss_none, wad_no,
-    "window height"
-  },
-
-  {
-    "gamma2",
-    (config_t *) &gamma2, NULL,
-    {9}, {0,17}, number, ss_gen, wad_no,
-    "custom gamma level (0 = -4, 9 = 0, 17 = 4)"
-  },
-
-  {
-    "smooth_scaling",
-    (config_t *) &smooth_scaling, NULL,
-    {1}, {0,1}, number, ss_gen, wad_no,
-    "enable smooth pixel scaling"
-  },
-
-  {
-    "vga_porch_flash",
-    (config_t *) &vga_porch_flash, NULL,
-    {0}, {0, 1}, number, ss_none, wad_no,
-    "1 to emulate VGA \"porch\" behaviour"
-  },
-
-  { // killough 10/98
-    "disk_icon",
-    (config_t *) &disk_icon, NULL,
-    {0}, {0,1}, number, ss_gen, wad_no,
-    "1 to enable flashing icon during disk IO"
-  },
-
-  {
-    "show_endoom",
-    (config_t *) &show_endoom, NULL,
-    {0}, {0,2}, number, ss_gen, wad_no,
-    "show ENDOOM screen (0 = off, 1 = on, 2 = PWAD only)"
-  },
-
-  {
-    "stretchsky",
-    (config_t *) &stretchsky, NULL,
-    {0}, {0,1}, number, ss_gen, wad_no,
-    "1 to stretch short skies"
-  },
-
-  {
-    "linearsky",
-    (config_t *) &linearsky, NULL,
-    {0}, {0,1}, number, ss_gen, wad_no,
-    "1 for linear horizontal sky scrolling "
-  },
-
-  { // phares
-    "translucency",
-    (config_t *) &translucency, NULL,
-    {1}, {0,1}, number, ss_gen, wad_yes,
-    "1 to enable translucency for some things"
-  },
-
-  { // killough 2/21/98
-    "tran_filter_pct",
-    (config_t *) &tran_filter_pct, NULL,
-    {66}, {0,100}, number, ss_gen, wad_yes,
-    "set percentage of foreground/background translucency mix"
-  },
-
-  {
-    "r_swirl",
-    (config_t *) &r_swirl, NULL,
-    {0}, {0,1}, number, ss_gen, wad_yes,
-    "1 to enable swirling animated flats"
-  },
-
-  {
-    "smoothlight",
-    (config_t *) &smoothlight, NULL,
-    {0}, {0,1}, number, ss_gen, wad_yes,
-    "1 to enable smooth diminishing lighting"
-  },
-
-  {
-    "brightmaps",
-    (config_t *) &brightmaps, NULL,
-    {0}, {0,1}, number, ss_gen, wad_yes,
-    "1 to enable brightmaps for textures and sprites"
-  },
-
-  {
-    "extra_level_brightness",
-    (config_t *) &extra_level_brightness, NULL,
-    {0}, {0,4}, number, ss_gen, wad_no,
-    "level brightness"
-  },
-
-  {
-    "menu_backdrop",
-    (config_t *) &menu_backdrop, NULL,
-    {MENU_BG_DARK}, {MENU_BG_OFF, MENU_BG_TEXTURE}, number, ss_gen, wad_no,
-    "draw menu backdrop (0 = off, 1 = dark (default), 2 = texture)"
-  },
-
-  { // killough 10/98
-    "flashing_hom",
-    (config_t *) &flashing_hom, NULL,
-    {1}, {0,1}, number, ss_none, wad_yes,
-    "1 to enable flashing HOM indicator"
-  },
-
-  { // killough 2/21/98: default to 10
-    "screenblocks",
-    (config_t *) &screenblocks, NULL,
-    {10}, {3,11}, number, ss_none, wad_no,
-    "initial play screen size"
   },
 
   //
@@ -2653,20 +2386,28 @@ default_t defaults_orig[] = {
   {NULL}         // last entry
 };
 
+static void BindInt(const char *name, int *location,
+                    int default_val, int min_val, int max_val,
+                    ss_types screen, boolean wad,
+                    const char *help)
+{
+    default_t item = {name, (config_t *)location, NULL,
+                     {.i = default_val}, {min_val, max_val},
+                     number, screen, wad, help};
+    array_push(defaults, item);
+}
+
 void M_BindInt(const char *name, int *location,
                int default_val, int min_val, int max_val,
                const char *help)
 {
-    default_t item = {name, (config_t *)location, NULL,
-                     {.i = default_val}, {min_val, max_val},
-                     number, ss_none, wad_no, help};
-    array_push(defaults, item);
+    BindInt(name, location, default_val, min_val, max_val, ss_none, false, help);
 }
 
 void M_BindBool(const char *name, boolean *location, boolean default_val,
                 const char *help)
 {
-    M_BindInt(name, (int *)location, (int)default_val, 0, 1, help);
+    BindInt(name, (int *)location, (int)default_val, 0, 1, ss_none, false, help);
 }
 
 void M_BindStr(const char *name, const char **location, char *default_val,
@@ -2682,22 +2423,30 @@ void M_BindIntGen(const char *name, int *location,
                   int default_val, int min_val, int max_val,
                   const char *help)
 {
-    default_t item = {name, (config_t *)location, NULL,
-                     {.i = default_val}, {min_val, max_val},
-                     number, ss_gen, wad_no, help};
-    array_push(defaults, item);
+    BindInt(name, location, default_val, min_val, max_val, ss_gen, false, help);
 }
 
-void M_BindBoolGen(const char *name, boolean *location,
-                   boolean default_val, const char *help)
+void M_BindIntGenWad(const char *name, int *location,
+                     int default_val, int min_val, int max_val,
+                     const char *help)
 {
-    M_BindIntGen(name, (int *)location, (int)default_val, 0, 1, help);
+    BindInt(name, location, default_val, min_val, max_val, ss_gen, true, help);
+}
+
+void M_BindBoolGen(const char *name, boolean *location, boolean default_val,
+                   const char *help)
+{
+    BindInt(name, (int *)location, (int)default_val, 0, 1, ss_gen, false, help);
+}
+
+void M_BindBoolGenWad(const char *name, boolean *location, boolean default_val,
+                      const char *help)
+{
+    BindInt(name, (int *)location, (int)default_val, 0, 1, ss_gen, true, help);
 }
 
 void M_InitConfig(void)
 {
-    I_BindSoundVariables();
-
     for (int i = 0; i < arrlen(defaults_orig); ++i)
     {
         array_push(defaults, defaults_orig[i]);

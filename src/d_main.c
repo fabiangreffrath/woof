@@ -1949,7 +1949,7 @@ void D_SetBloodColor(void)
 // killough 2/22/98: Add support for ENDBOOM, which is PC-specific
 // killough 8/1/98: change back to ENDOOM
 
-int show_endoom;
+static int show_endoom;
 
 // Don't show ENDOOM if we have it disabled.
 boolean D_CheckEndDoom(void)
@@ -2009,6 +2009,20 @@ static boolean CheckHaveSSG (void)
   }
 
   return true;
+}
+
+static void D_InitConfig(void)
+{
+  I_BindVideoVariables();
+  R_BindRenderVariables();
+
+  M_BindIntGen("show_endoom", &show_endoom, 0, 0, 2,
+    "Show ENDOOM screen (0 = Off, 1 = On, 2 = PWAD only)");
+  MN_BindMenuVariables();
+
+  I_BindSoundVariables();
+
+  M_InitConfig();
 }
 
 //
@@ -2493,7 +2507,7 @@ void D_DoomMain(void)
   if ((p = M_CheckParm("-dumplumps")) && p < myargc-1)
     WritePredefinedLumpWad(myargv[p+1]);
 
-  M_InitConfig();
+  D_InitConfig();
 
   M_LoadDefaults();  // load before initing other systems
 

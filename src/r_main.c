@@ -38,11 +38,14 @@
 #include "r_defs.h"
 #include "r_draw.h"
 #include "r_main.h"
+#include "r_bmaps.h"
 #include "r_plane.h"
 #include "r_sky.h"
 #include "r_state.h"
+#include "r_swirl.h"
 #include "r_things.h"
 #include "r_voxel.h"
+#include "m_config.h"
 #include "st_stuff.h"
 #include "v_flextran.h"
 #include "v_video.h"
@@ -559,7 +562,7 @@ void R_ExecuteSetViewSize (void)
       scaledviewwidth_nonwide = setblocks * 32;
       scaledviewheight = (setblocks * st_screen / 10) & ~7; // killough 11/98
 
-      if (widescreen)
+      if (video.unscaledw > SCREENWIDTH)
         scaledviewwidth = (scaledviewheight * video.unscaledw / st_screen) & ~7;
       else
         scaledviewwidth = scaledviewwidth_nonwide;
@@ -836,6 +839,7 @@ static void R_ClearStats(void)
   rendered_voxels = 0;
 }
 
+static boolean flashing_hom;
 int autodetect_hom = 0;       // killough 2/7/98: HOM autodetection flag
 
 //
@@ -958,6 +962,30 @@ void R_InitAnyRes(void)
   R_InitSpritesRes();
   R_InitBufferRes();
   R_InitPlanesRes();
+}
+
+void R_BindRenderVariables(void)
+{
+  M_BindIntGen("extra_level_brightness", &extra_level_brightness,
+               0, 0, 4, "Level brightness");
+  M_BindBoolGen("stretchsky", &stretchsky, false, "1 to stretch short skies");
+  M_BindBoolGen("linearsky", &linearsky, false,
+                "1 for linear horizontal sky scrolling");
+  M_BindBoolGen("r_swirl", &r_swirl, false,
+                "1 to enable swirling animated flats");
+  M_BindBoolGen("smoothlight", &smoothlight, false,
+                "1 to enable smooth diminishing lighting");
+  M_BindBoolGen("brightmaps", &brightmaps, false,
+                "1 to enable brightmaps for textures and sprites");
+  M_BindBool("flashing_hom", &flashing_hom, true,
+             "1 to enable flashing HOM indicator");
+  M_BindInt("screenblocks", &screenblocks, 10, 3, 11,
+            "Initial play screen size");
+
+  M_BindBoolGenWad("translucency", &translucency, true,
+                   "1 to enable translucency for some things");
+  M_BindIntGenWad("tran_filter_pct", &tran_filter_pct, 66, 0, 100,
+                  "Set percentage of foreground/background translucency mix");
 }
 
 //----------------------------------------------------------------------------
