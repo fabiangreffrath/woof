@@ -1788,7 +1788,7 @@ void I_InitGraphics(void)
 
 void I_BindVideoVariables(void)
 {
-    BIND2_INT(current_video_height, 600, SCREENHEIGHT, UL,
+    BIND2_NUM(current_video_height, 600, SCREENHEIGHT, UL,
         "Vertical resolution (600p by default)");
     BIND_BOOL_GEN(dynamic_resolution, true, "1 to enable dynamic resolution");
     BIND_BOOL(correct_aspect_ratio, true, "1 to perform aspect ratio correction");
@@ -1797,28 +1797,28 @@ void I_BindVideoVariables(void)
     BIND_BOOL_GEN(use_vsync, true,
         "1 to enable wait for vsync to avoid display tearing");
     BIND2_BOOL_GEN(uncapped, true, "1 to enable uncapped rendering frame rate");
-    BIND_INT_GEN(fpslimit, 0, 0, 500,
+    BIND_NUM_GEN(fpslimit, 0, 0, 500,
         "Framerate limit in frames per second (< 35 = disable)");
-    BIND2_INT_GEN(widescreen, RATIO_AUTO, 0, NUM_RATIOS - 1,
+    BIND2_NUM_GEN(widescreen, RATIO_AUTO, 0, NUM_RATIOS - 1,
         "Widescreen (0 = Off, 1 = Auto, 2 = 16:10, 3 = 16:9, 4 = 21:9)");
-    M_BindInt("fov", &custom_fov, NULL, FOV_DEFAULT, FOV_MIN, FOV_MAX,
+    M_BindNum("fov", &custom_fov, NULL, FOV_DEFAULT, FOV_MIN, FOV_MAX,
         ss_gen, wad_no, "Field of view in degrees");
-    BIND_INT_GEN(gamma2, 9, 0, 17, "Custom gamma level (0 = -4, 9 = 0, 17 = 4)");
+    BIND_NUM_GEN(gamma2, 9, 0, 17, "Custom gamma level (0 = -4, 9 = 0, 17 = 4)");
     BIND_BOOL_GEN(smooth_scaling, true, "1 to enable smooth pixel scaling");
 
     BIND_BOOL(vga_porch_flash, false, "1 to emulate VGA \"porch\" behaviour");
     BIND_BOOL(disk_icon, false, "1 to enable flashing icon during disk IO");
-    BIND_INT(video_display, 0, 0, UL, "Current video display index");
-    BIND_INT(max_video_width, 0, SCREENWIDTH, UL,
+    BIND_NUM(video_display, 0, 0, UL, "Current video display index");
+    BIND_NUM(max_video_width, 0, SCREENWIDTH, UL,
         "Maximum horizontal resolution (native by default)");
-    BIND_INT(max_video_height, 0, SCREENHEIGHT, UL,
+    BIND_NUM(max_video_height, 0, SCREENHEIGHT, UL,
         "Maximum vertical resolution (native by default)");
     BIND_BOOL(change_display_resolution, false,
         "1 to change display resolution with exclusive fullscreen (only useful for CRTs)");
-    BIND_INT(window_position_x, 0, UL, UL, "Window position X (0 = Center)");
-    BIND_INT(window_position_y, 0, UL, UL, "Window position Y (0 = Center)");
-    BIND2_INT(window_width, 1065, 0, UL, "Window width");
-    BIND2_INT(window_height, 600, 0, UL, "Window height");
+    BIND_NUM(window_position_x, 0, UL, UL, "Window position X (0 = Center)");
+    BIND_NUM(window_position_y, 0, UL, UL, "Window position Y (0 = Center)");
+    BIND2_NUM(window_width, 1065, 0, UL, "Window width");
+    BIND2_NUM(window_height, 600, 0, UL, "Window height");
 
     BIND2_BOOL(grabmouse, true, "1 to grab mouse during play");
 }

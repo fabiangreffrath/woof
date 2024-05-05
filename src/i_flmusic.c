@@ -442,7 +442,7 @@ static void I_FL_BindVariables(void)
     // AppImage
     "../share/" PROJECT_SHORTNAME "/soundfonts",
 #endif
-    "FluidSynth soundfont directories");
+    wad_no, "FluidSynth soundfont directories");
     BIND_BOOL(mus_chorus, false, "1 to enable FluidSynth chorus");
     BIND_BOOL(mus_reverb, false, "1 to enable FluidSynth reverb");
 }

@@ -33,6 +33,7 @@
 #include "i_video.h"
 #include "info.h"
 #include "m_cheat.h"
+#include "m_config.h"
 #include "m_misc.h"
 #include "m_random.h"
 #include "m_swap.h"
@@ -202,7 +203,8 @@ static int lu_palette;
 // whether left-side main status bar is active
 static boolean st_statusbaron;
 
-// [crispy] distinguish classic status bar with background and player face from Crispy HUD
+// [crispy] distinguish classic status bar with background and player face
+// from Crispy HUD
 boolean st_crispyhud;
 static boolean st_classicstatusbar;
 
@@ -251,7 +253,7 @@ static patch_t *arms[6][2];
 static st_number_t w_ready;
 
 // [Alaux]
-int hud_animated_counts;
+static boolean hud_animated_counts;
 int st_health = 100;
 int st_armor = 0;
 
@@ -265,8 +267,8 @@ int armor_red;     // armor amount less than which status is red
 int armor_yellow;  // armor amount less than which status is yellow
 int armor_green;   // armor amount above is blue, below is green
 
-int hud_backpack_thresholds; // backpack changes thresholds
-int hud_armor_type; // color of armor depends on type
+boolean hud_backpack_thresholds; // backpack changes thresholds
+boolean hud_armor_type; // color of armor depends on type
 
  // in deathmatch only, summary of frags stats
 static st_number_t w_frags;
@@ -323,7 +325,7 @@ extern char     *mapnames[];
 
 void ST_Stop(void);
 
-int st_solidbackground;
+static boolean st_solidbackground;
 
 static void ST_DrawSolidBackground(int st_x)
 {
@@ -669,8 +671,8 @@ void ST_updateFaceWidget(void)
 
 }
 
-int sts_traditional_keys; // killough 2/28/98: traditional status bar keys
-int hud_blink_keys; // [crispy] blinking key or skull in the status bar
+static boolean sts_traditional_keys; // killough 2/28/98: traditional status bar keys
+static boolean hud_blink_keys; // [crispy] blinking key or skull in the status bar
 
 void ST_SetKeyBlink(player_t* player, int blue, int yellow, int red)
 {
@@ -1472,6 +1474,36 @@ void ST_ResetPalette(void)
 {
   st_palette = -1;
   I_SetPalette(W_CacheLumpNum(lu_palette, PU_CACHE));
+}
+
+void ST_BindSTSVariables(void)
+{
+  BIND_BOOL_OPT(sts_colored_numbers, false, ss_stat, wad_yes,
+    "1 to enable use of color on status bar");
+  BIND_BOOL_OPT(sts_pct_always_gray, false, ss_stat, wad_yes,
+    "1 to make percent signs on status bar always gray");
+  BIND_BOOL_OPT(sts_traditional_keys, false, ss_stat, wad_yes,
+    "1 to make percent signs on status bar always gray");
+  BIND_BOOL_OPT(hud_blink_keys, false, ss_stat, wad_no,
+    "1 to make missing keys blink when trying to trigger linedef actions");
+  BIND_BOOL_OPT(st_solidbackground, false, ss_stat, wad_no,
+    "1 for solid color status bar background in widescreen mode");
+  BIND_BOOL_OPT(hud_animated_counts, false, ss_stat, wad_no,
+    "1 to enable animated health/armor counts");
+  BIND_NUM_OPT(health_red, 25, 0, 200, ss_none, wad_yes,
+    "Amount of health for red to yellow transition");
+  BIND_NUM_OPT(health_yellow, 50, 0, 200, ss_none, wad_yes,
+    "Amount of health for yellow to green transition");
+  BIND_NUM_OPT(health_green, 100, 0, 200, ss_none, wad_yes,
+    "Amount of health for green to blue transition");
+  BIND_NUM_OPT(armor_red, 25, 0, 200, ss_none, wad_yes,
+    "Amount of armor for red to yellow transition");
+  BIND_NUM_OPT(armor_yellow, 50, 0, 200, ss_none, wad_yes,
+    "Amount of armor for yellow to green transition");
+  BIND_NUM_OPT(armor_green, 100, 0, 200, ss_none, wad_yes,
+    "Amount of armor for green to blue transition");
+  BIND_NUM_OPT(ammo_red, 25, 0, 100, ss_none, wad_yes,
+    "Percent of ammo for red to yellow transition");
 }
 
 //----------------------------------------------------------------------------

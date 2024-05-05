@@ -460,10 +460,10 @@ static const char **I_OAL_DeviceList(void)
 
 static void I_OAL_BindVariables(void)
 {
-    BIND_INT(opl_gain, 200, 100, 1000,
+    BIND_NUM(opl_gain, 200, 100, 1000,
         "Fine tune OPL emulation output level (default 200%)");
 #if defined (HAVE_FLUIDSYNTH)
-    BIND_INT(mus_gain, 100, 10, 1000,
+    BIND_NUM(mus_gain, 100, 10, 1000,
         "Fine tune FluidSynth output level (default 100%)");
 #endif
     for (int i = 0; i < arrlen(midi_modules); ++i)

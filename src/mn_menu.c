@@ -73,10 +73,6 @@ extern boolean chat_on; // in heads-up code
 // defaulted values
 //
 
-int showMessages; // Show messages has default, 0 = off, 1 = on
-int show_toggle_messages;
-int show_pickup_messages;
-
 boolean traditional_menu;
 
 // Blocky mode, has default, 0 = high, 1 = normal
@@ -115,7 +111,7 @@ boolean menuactive; // The menus are up
 
 static boolean options_active;
 
-int menu_backdrop;
+backdrop_t menu_backdrop;
 
 #define SKULLXOFF        -32
 #define LINEHEIGHT       16
@@ -1533,9 +1529,9 @@ static void M_ChangeMessages(int choice)
 {
     // warning: unused parameter `int choice'
     choice = 0;
-    showMessages = 1 - showMessages;
+    show_messages = 1 - show_messages;
 
-    if (!showMessages)
+    if (!show_messages)
     {
         displaymsg("%s", s_MSGOFF); // Ty 03/27/98 - externalized
     }

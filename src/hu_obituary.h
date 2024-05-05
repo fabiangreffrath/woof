@@ -18,6 +18,7 @@
 #ifndef __HU_OBITUARY_H__
 #define __HU_OBITUARY_H__
 
+#include "doomtype.h"
 struct mobj_s;
 
 typedef enum
@@ -33,7 +34,7 @@ typedef enum
 void HU_InitObituaries(void);
 void HU_Obituary(struct mobj_s *target, struct mobj_s *source, method_t mod);
 
-extern int show_obituary_messages;
+extern boolean show_obituary_messages;
 extern int hudcolor_obituary;
 
 #endif

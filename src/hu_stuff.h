@@ -53,26 +53,17 @@ void HU_ResetMessageColors(void);
 //jff 2/16/98 hud supported automap colors added
 extern int hudcolor_titl;   // color range of automap level title
 extern int hudcolor_xyco;   // color range of new coords on automap
-//jff 2/16/98 hud text colors, controls added
-extern int hudcolor_mesg;   // color range of scrolling messages
-extern int hudcolor_chat;   // color range of chat lines
-//jff 2/26/98 hud message list color and background enable
-extern int hud_msg_lines;   // number of message lines in window up to 16
-extern int message_list;    // killough 11/98: whether message list is active
-extern int message_timer;   // killough 11/98: timer used for normal messages
-extern int chat_msg_timer;  // killough 11/98: timer used for chat messages
 //jff 2/23/98 hud is currently displayed
-extern int hud_displayed;   // hud is displayed
+extern boolean hud_displayed;   // hud is displayed
 //jff 2/18/98 hud/status control
 extern int hud_active;      // hud mode 0=off, 1=small, 2=full
-extern int hud_secret_message; // "A secret is revealed!" message
+extern boolean hud_secret_message; // "A secret is revealed!" message
 extern int hud_player_coords, hud_level_stats, hud_level_time;
-extern int hud_time_use;
-extern int hud_widget_font;
-extern int hud_widescreen_widgets;
-extern int hud_widget_layout;
-extern boolean message_centered; // center messages
-extern boolean message_colorized; // colorize player messages
+extern boolean hud_widescreen_widgets;
+extern boolean hud_time_use;
+extern boolean show_messages;
+extern boolean show_toggle_messages;
+extern boolean show_pickup_messages;
 
 extern int playback_tic, playback_totaltics;
 
@@ -89,7 +80,6 @@ extern int hud_type;
 extern boolean draw_crispy_hud;
 
 extern int hud_crosshair;
-extern boolean hud_crosshair_health;
 
 enum
 {
@@ -114,11 +104,12 @@ void HU_UpdateCrosshairLock(int x, int y);
 void HU_DrawCrosshair(void);
 
 extern int hud_crosshair_color;
-extern int hud_crosshair_target_color;
 
 #define HU_CROSSHAIRS 10
 extern const char *crosshair_lumps[HU_CROSSHAIRS];
 extern const char *crosshair_strings[HU_CROSSHAIRS];
+
+void HU_BindHUDVariables(void);
 
 #endif
 

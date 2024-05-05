@@ -271,13 +271,6 @@ void P_MovePlayer (player_t* player)
 
 #define ANG5 (ANG90/18)
 
-typedef enum
-{
-  death_use_default,
-  death_use_reload,
-  death_use_nothing
-} death_use_action_t;
-
 death_use_action_t death_use_action;
 
 //

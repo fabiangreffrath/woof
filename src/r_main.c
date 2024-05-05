@@ -966,7 +966,7 @@ void R_InitAnyRes(void)
 
 void R_BindRenderVariables(void)
 {
-  BIND_INT_GEN(extra_level_brightness, 0, 0, 4, "Level brightness");
+  BIND_NUM_GEN(extra_level_brightness, 0, 0, 4, "Level brightness");
   BIND_BOOL_GEN(stretchsky, false, "1 to stretch short skies");
   BIND_BOOL_GEN(linearsky, false, "1 for linear horizontal sky scrolling");
   BIND_BOOL_GEN(r_swirl, false, "1 to enable swirling animated flats");
@@ -974,14 +974,14 @@ void R_BindRenderVariables(void)
   BIND2_BOOL_GEN(voxels_rendering, true, "1 to enable voxels rendering");
   BIND_BOOL_GEN(brightmaps, false,
     "1 to enable brightmaps for textures and sprites");
-  BIND_INT_GEN(invul_mode, INVUL_MBF, INVUL_VANILLA, INVUL_GRAY,
+  BIND_NUM_GEN(invul_mode, INVUL_MBF, INVUL_VANILLA, INVUL_GRAY,
     "Invulnerability effect (0 = Vanilla, 1 = MBF, 2 = Gray)");
   BIND_BOOL(flashing_hom, true, "1 to enable flashing HOM indicator");
-  BIND_INT(screenblocks, 10, 3, 11, "Initial play screen size");
+  BIND_NUM(screenblocks, 10, 3, 11, "Initial play screen size");
 
   BIND_BOOL_OPT(translucency, true, ss_gen, wad_yes,
     "1 to enable translucency for some things");
-  BIND_INT_OPT(tran_filter_pct, 66, 0, 100, ss_gen, wad_yes,
+  BIND_NUM_OPT(tran_filter_pct, 66, 0, 100, ss_gen, wad_yes,
     "Set percentage of foreground/background translucency mix");
 
   BIND_BOOL_OPT(flipcorpses, false, ss_enem, wad_no,

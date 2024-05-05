@@ -33,12 +33,14 @@
 #include "doomdef.h"
 #include "doomstat.h"
 #include "doomtype.h"
-#include "dstrings.h"
-#include "hu_lib.h" // HU_MAXMESSAGES
-#include "hu_obituary.h"
+#include "g_game.h"
 #include "hu_stuff.h"
+#include "i_gamepad.h"
 #include "i_printf.h"
+#include "i_input.h"
+#include "i_sound.h"
 #include "i_system.h"
+#include "i_video.h"
 #include "m_argv.h"
 #include "m_array.h"
 #include "m_config.h"
@@ -49,7 +51,6 @@
 #include "mn_internal.h"
 #include "r_main.h"
 #include "st_stuff.h"
-#include "v_video.h"
 #include "w_wad.h"
 #include "z_zone.h"
 
@@ -57,14 +58,7 @@
 // DEFAULTS
 //
 
-static int config_help; // jff 3/3/98
-// [FG] invert vertical axis
-extern int showMessages;
-extern int show_toggle_messages;
-extern int show_pickup_messages;
-extern boolean palette_changes;
-
-extern char *chat_macros[]; // killough 10/98
+static boolean config_help; // jff 3/3/98
 
 // jff 3/3/98 added min, max, and help string to all entries
 // jff 4/10/98 added isstr field to specify whether value is string or int
@@ -74,737 +68,7 @@ extern char *chat_macros[]; // killough 10/98
 
 default_t *defaults = NULL;
 
-default_t defaults_orig[] = {
-
-  { //jff 3/3/98
-    "config_help",
-    (config_t *) &config_help, NULL,
-    {1}, {0,1}, number, ss_none, wad_no,
-    "1 to show help strings about each variable in config file"
-  },
-
-  //
-  // QOL features
-  //
-
-  {
-    "palette_changes",
-    (config_t *) &palette_changes, NULL,
-    {1}, {0,1}, number, ss_gen, wad_no,
-    "0 to disable palette changes"
-  },
-
-  //
-  // Compatibility
-  //
-
-  {
-    "shorttics",
-    (config_t *) &shorttics, NULL,
-    {0}, {0, 1}, number, ss_none, wad_no,
-    "1 to use low resolution turning."
-  },
-
-  //
-  // Chat macro
-  //
-
-  {
-    "chatmacro0",
-    (config_t *) &chat_macros[0], NULL,
-    {.s = HUSTR_CHATMACRO0}, {0}, string, ss_none, wad_yes,
-    "chat string associated with 0 key"
-  },
-
-  {
-    "chatmacro1",
-    (config_t *) &chat_macros[1], NULL,
-    {.s = HUSTR_CHATMACRO1}, {0}, string, ss_none, wad_yes,
-    "chat string associated with 1 key"
-  },
-
-  {
-    "chatmacro2",
-    (config_t *) &chat_macros[2], NULL,
-    {.s = HUSTR_CHATMACRO2}, {0}, string, ss_none, wad_yes,
-    "chat string associated with 2 key"
-  },
-
-  {
-    "chatmacro3",
-    (config_t *) &chat_macros[3], NULL,
-    {.s = HUSTR_CHATMACRO3}, {0}, string, ss_none, wad_yes,
-    "chat string associated with 3 key"
-  },
-
-  {
-    "chatmacro4",
-    (config_t *) &chat_macros[4], NULL,
-    {.s = HUSTR_CHATMACRO4}, {0}, string, ss_none, wad_yes,
-    "chat string associated with 4 key"
-  },
-
-  {
-    "chatmacro5",
-    (config_t *) &chat_macros[5], NULL,
-    {.s = HUSTR_CHATMACRO5}, {0}, string, ss_none, wad_yes,
-    "chat string associated with 5 key"
-  },
-
-  {
-    "chatmacro6",
-    (config_t *) &chat_macros[6], NULL,
-    {.s = HUSTR_CHATMACRO6}, {0}, string, ss_none, wad_yes,
-    "chat string associated with 6 key"
-  },
-
-  {
-    "chatmacro7",
-    (config_t *) &chat_macros[7], NULL,
-    {.s = HUSTR_CHATMACRO7}, {0}, string, ss_none, wad_yes,
-    "chat string associated with 7 key"
-  },
-
-  {
-    "chatmacro8",
-    (config_t *) &chat_macros[8], NULL,
-    {.s = HUSTR_CHATMACRO8}, {0}, string, ss_none, wad_yes,
-    "chat string associated with 8 key"
-  },
-
-  {
-    "chatmacro9",
-    (config_t *) &chat_macros[9], NULL,
-    {.s = HUSTR_CHATMACRO9}, {0}, string, ss_none, wad_yes,
-    "chat string associated with 9 key"
-  },
-
-  //
-  // Automap
-  //
-
-  //jff 1/7/98 defaults for automap colors
-  //jff 4/3/98 remove -1 in lower range, 0 now disables new map features
-  { // black //jff 4/6/98 new black
-    "mapcolor_back",
-    (config_t *) &mapcolor_back, NULL,
-    {247}, {0,255}, number, ss_none, wad_yes,
-    "color used as background for automap"
-  },
-
-  {  // dk gray
-    "mapcolor_grid",
-    (config_t *) &mapcolor_grid, NULL,
-    {104}, {0,255}, number, ss_none, wad_yes,
-    "color used for automap grid lines"
-  },
-
-  { // red-brown
-    "mapcolor_wall",
-    (config_t *) &mapcolor_wall, NULL,
-    {23}, {0,255}, number, ss_none, wad_yes,
-    "color used for one side walls on automap"
-  },
-
-  { // lt brown
-    "mapcolor_fchg",
-    (config_t *) &mapcolor_fchg, NULL,
-    {55}, {0,255}, number, ss_none, wad_yes,
-    "color used for lines floor height changes across"
-  },
-
-  { // orange
-    "mapcolor_cchg",
-    (config_t *) &mapcolor_cchg, NULL,
-    {215}, {0,255}, number, ss_none, wad_yes,
-    "color used for lines ceiling height changes across"
-  },
-
-  { // white
-    "mapcolor_clsd",
-    (config_t *) &mapcolor_clsd, NULL,
-    {208}, {0,255}, number, ss_none, wad_yes,
-    "color used for lines denoting closed doors, objects"
-  },
-
-  { // red
-    "mapcolor_rkey",
-    (config_t *) &mapcolor_rkey, NULL,
-    {175}, {0,255}, number, ss_none, wad_yes,
-    "color used for red key sprites"
-  },
-
-  { // blue
-    "mapcolor_bkey",
-    (config_t *) &mapcolor_bkey, NULL,
-    {204}, {0,255}, number, ss_none, wad_yes,
-    "color used for blue key sprites"
-  },
-
-  { // yellow
-    "mapcolor_ykey",
-    (config_t *) &mapcolor_ykey, NULL,
-    {231}, {0,255}, number, ss_none, wad_yes,
-    "color used for yellow key sprites"
-  },
-
-  { // red
-    "mapcolor_rdor",
-    (config_t *) &mapcolor_rdor, NULL,
-    {175}, {0,255}, number, ss_none, wad_yes,
-    "color used for closed red doors"
-  },
-
-  { // blue
-    "mapcolor_bdor",
-    (config_t *) &mapcolor_bdor, NULL,
-    {204}, {0,255}, number, ss_none, wad_yes,
-    "color used for closed blue doors"
-  },
-
-  { // yellow
-    "mapcolor_ydor",
-    (config_t *) &mapcolor_ydor, NULL,
-    {231}, {0,255}, number, ss_none, wad_yes,
-    "color used for closed yellow doors"
-  },
-
-  { // dk green
-    "mapcolor_tele",
-    (config_t *) &mapcolor_tele, NULL,
-    {119}, {0,255}, number, ss_none, wad_yes,
-    "color used for teleporter lines"
-  },
-
-  { // purple
-    "mapcolor_secr",
-    (config_t *) &mapcolor_secr, NULL,
-    {252}, {0,255}, number, ss_none, wad_yes,
-    "color used for lines around secret sectors"
-  },
-
-  { // green
-    "mapcolor_revsecr",
-    (config_t *) &mapcolor_revsecr, NULL,
-    {112}, {0,255}, number, ss_none, wad_yes,
-    "color used for lines around revealed secret sectors"
-  },
-
-  { // none
-    "mapcolor_exit",
-    (config_t *) &mapcolor_exit, NULL,
-    {0}, {0,255}, number, ss_none, wad_yes,
-    "color used for exit lines"
-  },
-
-  { // dk gray
-    "mapcolor_unsn",
-    (config_t *) &mapcolor_unsn, NULL,
-    {104}, {0,255}, number, ss_none, wad_yes,
-    "color used for lines not seen without computer map"
-  },
-
-  { // lt gray
-    "mapcolor_flat",
-    (config_t *) &mapcolor_flat, NULL,
-    {88}, {0,255}, number, ss_none, wad_yes,
-    "color used for lines with no height changes"
-  },
-
-  { // green
-    "mapcolor_sprt",
-    (config_t *) &mapcolor_sprt, NULL,
-    {112}, {0,255}, number, ss_none, wad_yes,
-    "color used as things"
-  },
-
-  { // white
-    "mapcolor_hair",
-    (config_t *) &mapcolor_hair, NULL,
-    {208}, {0,255}, number, ss_none, wad_yes,
-    "color used for dot crosshair denoting center of map"
-  },
-
-  { // white
-    "mapcolor_sngl",
-    (config_t *) &mapcolor_sngl, NULL,
-    {208}, {0,255}, number, ss_none, wad_yes,
-    "color used for the single player arrow"
-  },
-
-  { // green
-    "mapcolor_ply1",
-    (config_t *) &mapcolor_plyr[0], NULL,
-    {112}, {0,255}, number, ss_none, wad_yes,
-    "color used for the green player arrow"
-  },
-
-  { // lt gray
-    "mapcolor_ply2",
-    (config_t *) &mapcolor_plyr[1], NULL,
-    {88}, {0,255}, number, ss_none, wad_yes,
-    "color used for the gray player arrow"
-  },
-
-  { // brown
-    "mapcolor_ply3",
-    (config_t *) &mapcolor_plyr[2], NULL,
-    {64}, {0,255}, number, ss_none, wad_yes,
-    "color used for the brown player arrow"
-  },
-
-  { // red
-    "mapcolor_ply4",
-    (config_t *) &mapcolor_plyr[3], NULL,
-    {176}, {0,255}, number, ss_none, wad_yes,
-    "color used for the red player arrow"
-  },
-
-  {  // purple                     // killough 8/8/98
-    "mapcolor_frnd",
-    (config_t *) &mapcolor_frnd, NULL,
-    {252}, {0,255}, number, ss_none, wad_yes,
-    "color used for friends"
-  },
-
-  {
-    "mapcolor_enemy",
-    (config_t *) &mapcolor_enemy, NULL,
-    {177}, {0,255}, number, ss_none, wad_yes,
-    "color used for enemies"
-  },
-
-  {
-    "mapcolor_item",
-    (config_t *) &mapcolor_item, NULL,
-    {231}, {0,255}, number, ss_none, wad_yes,
-    "color used for countable items"
-  },
-
-  {
-    "mapcolor_preset",
-    (config_t *) &mapcolor_preset, NULL,
-    {1}, {0,2}, number, ss_auto, wad_no,
-    "automap color preset (0 = Vanilla Doom, 1 = Boom (default), 2 = ZDoom)"
-  },
-
-  {
-    "map_point_coord",
-    (config_t *) &map_point_coordinates, NULL,
-    {1}, {0,1}, number, ss_auto, wad_yes,
-    "1 to show automap pointer coordinates in non-follow mode"
-  },
-
-  //jff 3/9/98 add option to not show secrets til after found
-  // killough change default, to avoid spoilers and preserve Doom mystery
-  { // show secret after gotten
-    "map_secret_after",
-    (config_t *) &map_secret_after, NULL,
-    {0}, {0,1}, number, ss_auto, wad_yes,
-    "1 to not show secret sectors till after entered"
-  },
-
-  {
-    "map_keyed_door",
-    (config_t *) &map_keyed_door, NULL,
-    {MAP_KEYED_DOOR_COLOR}, {MAP_KEYED_DOOR_OFF, MAP_KEYED_DOOR_FLASH}, number, ss_auto, wad_no,
-    "keyed doors are colored (1) or flashing (2) on the automap"
-  },
-
-  {
-    "map_smooth_lines",
-    (config_t *) &map_smooth_lines, NULL,
-    {1}, {0,1}, number, ss_auto, wad_no,
-    "1 to enable smooth automap lines"
-  },
-
-  {
-    "followplayer",
-    (config_t *) &followplayer, NULL,
-    {1}, {0,1}, number, ss_auto, wad_no,
-    "1 to enable automap follow player mode"
-  },
-
-  {
-    "automapoverlay",
-    (config_t *) &automapoverlay, NULL,
-    {AM_OVERLAY_OFF}, {AM_OVERLAY_OFF,AM_OVERLAY_DARK}, number, ss_auto, wad_no,
-    "automap overlay mode (1 = on, 2 = dark)"
-  },
-
-  {
-    "automaprotate",
-    (config_t *) &automaprotate, NULL,
-    {0}, {0,1}, number, ss_auto, wad_no,
-    "1 to enable automap rotate mode"
-  },
-
-  //jff 1/7/98 end additions for automap
-
-  //jff 2/16/98 defaults for color ranges in hud and status
-
-  { // gold range
-    "hudcolor_titl",
-    (config_t *) &hudcolor_titl, NULL,
-    {CR_GOLD}, {CR_BRICK,CR_NONE}, number, ss_none, wad_yes,
-    "color range used for automap level title"
-  },
-
-  { // green range
-    "hudcolor_xyco",
-    (config_t *) &hudcolor_xyco, NULL,
-    {CR_GREEN}, {CR_BRICK,CR_NONE}, number, ss_none, wad_yes,
-    "color range used for automap coordinates"
-  },
-
-  //
-  // Messages
-  //
-
-  {
-    "show_messages",
-    (config_t *) &showMessages, NULL,
-    {1}, {0,1}, number, ss_none, wad_no,
-    "1 to enable message display"
-  },
-
-  {
-    "show_toggle_messages",
-    (config_t *) &show_toggle_messages, NULL,
-    {1}, {0,1}, number, ss_stat, wad_no,
-    "1 to enable toggle messages"
-  },
-
-  {
-    "show_pickup_messages",
-    (config_t *) &show_pickup_messages, NULL,
-    {1}, {0,1}, number, ss_stat, wad_no,
-    "1 to enable pickup messages"
-  },
-
-  {
-    "show_obituary_messages",
-    (config_t *) &show_obituary_messages, NULL,
-    {1}, {0,1}, number, ss_stat, wad_no,
-    "1 to enable obituaries"
-  },
-
-  // "A secret is revealed!" message
-  {
-    "hud_secret_message",
-    (config_t *) &hud_secret_message, NULL,
-    {1}, {0,1}, number, ss_stat, wad_no,
-    "\"A secret is revealed!\" message"
-  },
-
-  { // red range
-    "hudcolor_mesg",
-    (config_t *) &hudcolor_mesg, NULL,
-    {CR_NONE}, {CR_BRICK,CR_NONE}, number, ss_none, wad_yes,
-    "color range used for messages during play"
-  },
-
-  { // gold range
-    "hudcolor_chat",
-    (config_t *) &hudcolor_chat, NULL,
-    {CR_GOLD}, {CR_BRICK,CR_NONE}, number, ss_none, wad_yes,
-    "color range used for chat messages and entry"
-  },
-
-  {
-    "hudcolor_obituary",
-    (config_t *) &hudcolor_obituary, NULL,
-    {CR_GRAY}, {CR_BRICK,CR_NONE}, number, ss_none, wad_yes,
-    "color range used for obituaries"
-  },
-
-  { // killough 11/98
-    "chat_msg_timer",
-    (config_t *) &chat_msg_timer, NULL,
-    {4000}, {0,UL}, 0, ss_none, wad_yes,
-    "Duration of chat messages (ms)"
-  },
-
-  { // 1 line scrolling window
-    "hud_msg_lines",
-    (config_t *) &hud_msg_lines, NULL,
-    {4}, {1,HU_MAXMESSAGES}, number, ss_none, wad_yes,
-    "number of message lines"
-  },
-
-  {
-    "message_colorized",
-    (config_t *) &message_colorized, NULL,
-    {0}, {0,1}, number, ss_stat, wad_no,
-    "1 to colorize player messages"
-  },
-
-  { // killough 11/98
-    "message_centered",
-    (config_t *) &message_centered, NULL,
-    {0}, {0,1}, number, ss_stat, wad_no,
-    "1 to center messages"
-  },
-
-  { // killough 11/98
-    "message_list",
-    (config_t *) &message_list, NULL,
-    {0}, {0,1}, number, ss_none, wad_yes,
-    "1 means multiline message list is active"
-  },
-
-  { // killough 11/98
-    "message_timer",
-    (config_t *) &message_timer, NULL,
-    {4000}, {0,UL}, 0, ss_none, wad_yes,
-    "Duration of normal Doom messages (ms)"
-  },
-
-  {
-    "default_verbosity",
-    (config_t *) &cfg_verbosity, NULL,
-    {VB_INFO}, {VB_ERROR, VB_MAX - 1}, number, ss_none, wad_no,
-    "verbosity level (1 = errors only, 2 = warnings, 3 = info, 4 = debug)"
-  },
-
-  //
-  // HUD
-  //
-
-  { // no color changes on status bar
-    "sts_colored_numbers",
-    (config_t *) &sts_colored_numbers, NULL,
-    {0}, {0,1}, number, ss_stat, wad_yes,
-    "1 to enable use of color on status bar"
-  },
-
-  {
-    "sts_pct_always_gray",
-    (config_t *) &sts_pct_always_gray, NULL,
-    {0}, {0,1}, number, ss_stat, wad_yes,
-    "1 to make percent signs on status bar always gray"
-  },
-
-  { // killough 2/28/98
-    "sts_traditional_keys",
-    (config_t *) &sts_traditional_keys, NULL,
-    {0}, {0,1}, number, ss_stat, wad_yes,
-    "1 to disable doubled card and skull key display on status bar"
-  },
-
-  {
-    "hud_blink_keys",
-    (config_t *) &hud_blink_keys, NULL,
-    {0}, {0,1}, number, ss_none, wad_yes,
-    "1 to make missing keys blink when trying to trigger linedef actions"
-  },
-
-  {
-    "st_solidbackground",
-    (config_t *) &st_solidbackground, NULL,
-    {0}, {0,1}, number, ss_stat, wad_yes,
-    "1 for solid color status bar background in widescreen mode"
-  },
-
-  { // [Alaux]
-    "hud_animated_counts",
-    (config_t *) &hud_animated_counts, NULL,
-    {0}, {0,1}, number, ss_stat, wad_yes,
-    "1 to enable animated health/armor counts"
-  },
-
-  { // below is red
-    "health_red",
-    (config_t *) &health_red, NULL,
-    {25}, {0,200}, number, ss_none, wad_yes,
-    "amount of health for red to yellow transition"
-  },
-
-  { // below is yellow
-    "health_yellow",
-    (config_t *) &health_yellow, NULL,
-    {50}, {0,200}, number, ss_none, wad_yes,
-    "amount of health for yellow to green transition"
-  },
-
-  { // below is green, above blue
-    "health_green",
-    (config_t *) &health_green, NULL,
-    {100}, {0,200}, number, ss_none, wad_yes,
-    "amount of health for green to blue transition"
-  },
-
-  { // below is red
-    "armor_red",
-    (config_t *) &armor_red, NULL,
-    {25}, {0,200}, number, ss_none, wad_yes,
-    "amount of armor for red to yellow transition"
-  },
-
-  { // below is yellow
-    "armor_yellow",
-    (config_t *) &armor_yellow, NULL,
-    {50}, {0,200}, number, ss_none, wad_yes,
-    "amount of armor for yellow to green transition"
-  },
-
-  { // below is green, above blue
-    "armor_green",
-    (config_t *) &armor_green, NULL,
-    {100}, {0,200}, number, ss_none, wad_yes,
-    "amount of armor for green to blue transition"
-  },
-
-  { // below 25% is red
-    "ammo_red",
-    (config_t *) &ammo_red, NULL,
-    {25}, {0,100}, number, ss_none, wad_yes,
-    "percent of ammo for red to yellow transition"
-  },
-
-  { // below 50% is yellow, above green
-    "ammo_yellow",
-    (config_t *) &ammo_yellow, NULL,
-    {50}, {0,100}, number, ss_none, wad_yes,
-    "percent of ammo for yellow to green transition"
-  },
-
-  { // 0=off, 1=small, 2=full //jff 2/16/98 HUD and status feature controls
-    "hud_active",
-    (config_t *) &hud_active, NULL,
-    {2}, {0,2}, number, ss_stat, wad_yes,
-    "0 for HUD off, 1 for HUD small, 2 for full HUD"
-  },
-
-  {  // whether hud is displayed //jff 2/23/98
-    "hud_displayed",
-    (config_t *) &hud_displayed, NULL,
-    {0}, {0,1}, number, ss_none, wad_yes,
-    "1 to enable display of HUD"
-  },
-
-  // [FG] player coords widget
-  {
-    "hud_player_coords",
-    (config_t *) &hud_player_coords, NULL,
-    {HUD_WIDGET_AUTOMAP}, {HUD_WIDGET_OFF,HUD_WIDGET_ALWAYS}, number, ss_stat, wad_no,
-    "show player coords widget (1 = on Automap, 2 = on HUD, 3 = always)"
-  },
-
-  // [FG] level stats widget
-  {
-    "hud_level_stats",
-    (config_t *) &hud_level_stats, NULL,
-    {HUD_WIDGET_OFF}, {HUD_WIDGET_OFF,HUD_WIDGET_ALWAYS}, number, ss_stat, wad_no,
-    "show level stats (kill, items and secrets) widget (1 = on Automap, 2 = on HUD, 3 = always)"
-  },
-
-  // [FG] level time widget
-  {
-    "hud_level_time",
-    (config_t *) &hud_level_time, NULL,
-    {HUD_WIDGET_OFF}, {HUD_WIDGET_OFF,HUD_WIDGET_ALWAYS}, number, ss_stat, wad_no,
-    "show level time widget (1 = on Automap, 2 = on HUD, 3 = always)"
-  },
-
-  {
-    "hud_time_use",
-    (config_t *) &hud_time_use, NULL,
-    {0}, {0,1}, number, ss_stat, wad_no,
-    "show split time when pressing the use button"
-  },
-
-  // prefer Crispy HUD, Boom HUD without bars, or Boom HUD with bars
-  {
-    "hud_type",
-    (config_t *) &hud_type, NULL,
-    {HUD_TYPE_BOOM}, {HUD_TYPE_CRISPY,NUM_HUD_TYPES-1}, number, ss_stat, wad_no,
-    "Fullscreen HUD (0 = Crispy, 1 = Boom (No Bars), 2 = Boom)"
-  },
-
-  // backpack changes thresholds
-  {
-    "hud_backpack_thresholds",
-    (config_t *) &hud_backpack_thresholds, NULL,
-    {1}, {0,1}, number, ss_stat, wad_no,
-    "backpack changes thresholds"
-  },
-
-  // color of armor depends on type
-  {
-    "hud_armor_type",
-    (config_t *) &hud_armor_type, NULL,
-    {0}, {0,1}, number, ss_stat, wad_no,
-    "color of armor depends on type"
-  },
-
-  {
-    "hud_widget_font",
-    (config_t *) &hud_widget_font, NULL,
-    {HUD_WIDGET_OFF}, {HUD_WIDGET_OFF,HUD_WIDGET_ALWAYS}, number, ss_stat, wad_no,
-    "use standard Doom font for widgets (1 = on Automap, 2 = on HUD, 3 = always)"
-  },
-
-  {
-    "hud_widescreen_widgets",
-    (config_t *) &hud_widescreen_widgets, NULL,
-    {1}, {0,1}, number, ss_stat, wad_no,
-    "arrange widgets on widescreen edges"
-  },
-
-  {
-    "hud_widget_layout",
-    (config_t *) &hud_widget_layout, NULL,
-    {0}, {0,1}, number, ss_stat, wad_no,
-    "Widget layout (0 = Horizontal, 1 = Vertical)"
-  },
-
-  {
-    "hud_crosshair",
-    (config_t *) &hud_crosshair, NULL,
-    {0}, {0,HU_CROSSHAIRS-1}, number, ss_stat, wad_no,
-    "enable crosshair"
-  },
-
-  {
-    "hud_crosshair_health",
-    (config_t *) &hud_crosshair_health, NULL,
-    {0}, {0,1}, number, ss_stat, wad_no,
-    "1 to change crosshair color by player health"
-  },
-
-  {
-    "hud_crosshair_target",
-    (config_t *) &hud_crosshair_target, NULL,
-    {0}, {0,2}, number, ss_stat, wad_no,
-    "change crosshair color on target (1 = highlight, 2 = health)"
-  },
-
-  {
-    "hud_crosshair_lockon",
-    (config_t *) &hud_crosshair_lockon, NULL,
-    {0}, {0,1}, number, ss_stat, wad_no,
-    "1 to lock crosshair on target"
-  },
-
-  {
-    "hud_crosshair_color",
-    (config_t *) &hud_crosshair_color, NULL,
-    {CR_GRAY}, {CR_BRICK,CR_NONE}, number, ss_stat, wad_no,
-    "default crosshair color"
-  },
-
-  {
-    "hud_crosshair_target_color",
-    (config_t *) &hud_crosshair_target_color, NULL,
-    {CR_YELLOW}, {CR_BRICK,CR_NONE}, number, ss_stat, wad_no,
-    "target crosshair color"
-  },
-
-  {NULL}         // last entry
-};
-
-void M_BindInt(const char *name, int *location, int *current,
+void M_BindNum(const char *name, void *location, void *current,
                int default_val, int min_val, int max_val,
                ss_types screen, wad_allowed_t wad,
                const char *help)
@@ -819,38 +83,58 @@ void M_BindBool(const char *name, boolean *location, boolean *current,
                 boolean default_val, ss_types screen, wad_allowed_t wad,
                 const char *help)
 {
-    M_BindInt(name, (int *)location, (int *)current, (int)default_val, 0, 1,
+    M_BindNum(name, location, current, (int)default_val, 0, 1,
               screen, wad, help);
 }
 
-void M_BindStr(const char *name, const char **location, char *default_val,
-               const char *help)
+void M_BindStr(char *name, const char **location, char *default_val,
+               wad_allowed_t wad, const char *help)
 {
-    default_t item = { name, (config_t *)location, NULL,
-                       {.s = default_val}, {0},
-                       string, ss_none, wad_no, help };
+    default_t item = { name, (config_t *)location, NULL, {.s = default_val},
+                       {0}, string, ss_none, wad, help };
     array_push(defaults, item);
 }
 
 void M_BindInput(const char *name, int input_id, const char *help)
 {
-    default_t item = {name, NULL, NULL, {0}, {UL,UL}, input, ss_keys, wad_no,
-                      help, input_id};
+    default_t item = { name, NULL, NULL, {0}, {UL,UL}, input, ss_keys, wad_no,
+                       help, input_id };
     array_push(defaults, item);
 }
 
 void M_InitConfig(void)
 {
-    for (int i = 0; i < arrlen(defaults_orig); ++i)
-    {
-        array_push(defaults, defaults_orig[i]);
-    }
+    BIND_BOOL(config_help, true,
+      "1 to show help strings about each variable in config file");
+
+    I_BindVideoVariables();
+    R_BindRenderVariables();
+
+    I_BindSoundVariables();
+
+    MN_BindMenuVariables();
+    D_BindMiscVariables();
+    G_BindGameVariables();
+
+    G_BindGameInputVariables();
+    I_BindInputVarianles();
+    I_BindGamepadVariables();
+    M_BindInputVariables();
+
+    G_BindEnemVariables();
+    G_BindCompVariables();
+    G_BindWeapVariables();
+
+    HU_BindHUDVariables();
+    ST_BindSTSVariables();
+    AM_BindAutomapVariables();
+
+    default_t last_entry = {NULL};
+    array_push(defaults, last_entry);
 }
 
 static char *defaultfile;
 static boolean defaults_loaded = false; // killough 10/98
-
-//#define NUMDEFAULTS ((unsigned)(sizeof defaults / sizeof *defaults - 1))
 
 // killough 11/98: hash function for name lookup
 static unsigned default_hash(const char *name)

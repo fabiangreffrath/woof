@@ -76,7 +76,11 @@ const char *G_GetCurrentComplevelName(void);
 
 int G_GotoNextLevel(int *pEpi, int *pMap);
 
+void G_BindGameInputVariables(void);
 void G_BindGameVariables(void);
+void G_BindEnemVariables(void);
+void G_BindCompVariables(void);
+void G_BindWeapVariables(void);
 
 typedef enum
 {
@@ -87,7 +91,7 @@ typedef enum
   CL_MBF21,
 } complevel_t;
 
-extern int force_complevel, default_complevel;
+extern complevel_t force_complevel, default_complevel;
 
 extern int realtic_clock_rate;
 

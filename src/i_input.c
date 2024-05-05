@@ -596,8 +596,8 @@ void I_HandleKeyboardEvent(SDL_Event *sdlevent)
 
 void I_BindInputVarianles(void)
 {
-    BIND_INT_GEN(mouse_acceleration, 10, 0, 40,
+    BIND_NUM_GEN(mouse_acceleration, 10, 0, 40,
         "Adjust mouse acceleration (0 = 1.0, 40 = 5.0)");
-    BIND_INT(mouse_acceleration_threshold, 10, 0, 32,
+    BIND_NUM(mouse_acceleration_threshold, 10, 0, 32,
         "Adjust mouse acceleration threshold");
 }

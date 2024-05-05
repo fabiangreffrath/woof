@@ -76,7 +76,7 @@ typedef enum
     MENU_BG_TEXTURE,
 } backdrop_t;
 
-extern int menu_backdrop;
+extern backdrop_t menu_backdrop;
 boolean MN_MenuIsShaded(void);
 
 void MN_SetQuickSaveSlot(int slot);

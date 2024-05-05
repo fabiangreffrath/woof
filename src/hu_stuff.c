@@ -26,13 +26,16 @@
 #include "d_event.h"
 #include "d_items.h"
 #include "d_player.h"
+#include "doomdef.h"
 #include "doomkeys.h"
 #include "doomstat.h"
+#include "doomtype.h"
 #include "dstrings.h"
 #include "hu_lib.h"
 #include "hu_obituary.h"
 #include "hu_stuff.h"
 #include "i_video.h" // fps
+#include "m_config.h"
 #include "m_fixed.h"
 #include "m_input.h"
 #include "m_misc.h"
@@ -57,10 +60,10 @@
 // global heads up display controls
 
 int hud_active;       //jff 2/17/98 controls heads-up display mode 
-int hud_displayed;    //jff 2/23/98 turns heads-up display on/off
-int hud_secret_message; // "A secret is revealed!" message
-int hud_widget_font;
-int hud_widget_layout;
+boolean hud_displayed;    //jff 2/23/98 turns heads-up display on/off
+boolean hud_secret_message; // "A secret is revealed!" message
+static int hud_widget_font;
+static boolean hud_widget_layout;
 
 int hud_type; // Crispy HUD or Boom variants
 boolean draw_crispy_hud;
@@ -75,7 +78,7 @@ boolean draw_crispy_hud;
 #define HU_TITLEP (*mapnamesp[gamemap-1])
 #define HU_TITLET (*mapnamest[gamemap-1])
 
-char *chat_macros[] =    // Ty 03/27/98 - *not* externalized
+static const char *chat_macros[] =    // Ty 03/27/98 - *not* externalized
 {
   HUSTR_CHATMACRO0,
   HUSTR_CHATMACRO1,
@@ -155,23 +158,26 @@ static int        chat_count;        // killough 11/98
 static boolean    secret_on;
 static int        secret_counter;
 
-boolean           message_centered;
-boolean           message_colorized;
+static boolean    message_centered;
+static boolean    message_colorized;
 
-extern int        showMessages;
+boolean           show_messages;
+boolean           show_toggle_messages;
+boolean           show_pickup_messages;
+
 static boolean    headsupactive = false;
 
 //jff 2/16/98 hud supported automap colors added
 int hudcolor_titl;  // color range of automap level title
 int hudcolor_xyco;  // color range of new coords on automap
 //jff 2/16/98 hud text colors, controls added
-int hudcolor_mesg;  // color range of scrolling messages
-int hudcolor_chat;  // color range of chat lines
-int hud_msg_lines;  // number of message lines in window
-int message_list;      // killough 11/98: made global
+static int hudcolor_mesg;  // color range of scrolling messages
+static int hudcolor_chat;  // color range of chat lines
+static int hud_msg_lines;  // number of message lines in window
+static boolean message_list;      // killough 11/98: made global
 
-int message_timer  = HU_MSGTIMEOUT * (1000/TICRATE);     // killough 11/98
-int chat_msg_timer = HU_MSGTIMEOUT * (1000/TICRATE);     // killough 11/98
+static int message_timer  = HU_MSGTIMEOUT * (1000/TICRATE);     // killough 11/98
+static int chat_msg_timer = HU_MSGTIMEOUT * (1000/TICRATE);     // killough 11/98
 
 static void HU_InitCrosshair(void);
 static void HU_StartCrosshair(void);
@@ -1239,11 +1245,11 @@ static void HU_widget_build_rate (void)
 
 // Crosshair
 
-boolean hud_crosshair_health;
+static boolean hud_crosshair_health;
 crosstarget_t hud_crosshair_target;
 boolean hud_crosshair_lockon; // [Alaux] Crosshair locks on target
 int hud_crosshair_color;
-int hud_crosshair_target_color;
+static int hud_crosshair_target_color;
 
 typedef struct
 {
@@ -1405,7 +1411,7 @@ boolean HU_DemoProgressBar(boolean force)
 // [FG] level stats and level time widgets
 int hud_player_coords, hud_level_stats, hud_level_time;
 
-int hud_time_use;
+boolean hud_time_use;
 
 //
 // HU_Drawer()
@@ -1537,7 +1543,7 @@ void HU_Ticker(void)
   // this allows the notification of turning messages off to be seen
   // display message if necessary
 
-  if ((showMessages || message_dontfuckwithme) && plr->message &&
+  if ((show_messages || message_dontfuckwithme) && plr->message &&
       (!message_nottobefuckedwith || message_dontfuckwithme))
   {
     //post the message to the message widget
@@ -1713,7 +1719,7 @@ char HU_dequeueChatChar(void)
 boolean HU_Responder(event_t *ev)
 {
   static char   lastmessage[HU_MAXLINELENGTH+1];
-  char*   macromessage;
+  const char    *macromessage;
   boolean   eatkey = false;
   static boolean  shiftdown = false;
   static boolean  altdown = false;
@@ -2130,6 +2136,96 @@ static void HU_ParseHUD (void)
   }
 
   U_ScanClose(s);
+}
+
+void HU_BindHUDVariables(void)
+{
+  BIND_NUM_OPT(hud_active, 2, 0, 2, ss_stat, wad_yes,
+    "0 for HUD off, 1 for HUD small, 2 for full HUD");
+  BIND_BOOL_OPT(hud_displayed, false, ss_none, wad_yes,
+    "1 to enable display of HUD");
+  BIND_NUM_OPT(hud_player_coords,
+    HUD_WIDGET_AUTOMAP, HUD_WIDGET_OFF, HUD_WIDGET_ALWAYS, ss_stat, wad_no,
+    "Show player coords widget (1 = on Automap, 2 = on HUD, 3 = always)");
+  BIND_NUM_OPT(hud_level_stats,
+    HUD_WIDGET_OFF, HUD_WIDGET_OFF, HUD_WIDGET_ALWAYS, ss_stat, wad_no,
+    "Show level stats (kill, items and secrets) widget (1 = on Automap, 2 = on HUD, 3 = always)");
+  BIND_NUM_OPT(hud_level_time,
+    HUD_WIDGET_OFF, HUD_WIDGET_OFF, HUD_WIDGET_ALWAYS, ss_stat, wad_no,
+    "Show level time widget (1 = on Automap, 2 = on HUD, 3 = always)");
+  BIND_BOOL_OPT(hud_time_use, false, ss_stat, wad_no,
+    "Show split time when pressing the use button");
+  BIND_NUM_OPT(hud_type, HUD_TYPE_BOOM, HUD_TYPE_CRISPY, NUM_HUD_TYPES - 1, ss_stat, wad_no,
+    "Fullscreen HUD (0 = Crispy, 1 = Boom (No Bars), 2 = Boom)");
+  BIND_BOOL_OPT(hud_backpack_thresholds, true, ss_stat, wad_no,
+    "Backpack changes thresholds");
+  BIND_BOOL_OPT(hud_armor_type, false, ss_stat, wad_no,
+    "Color of armor depends on type");
+  BIND_BOOL_OPT(hud_widescreen_widgets, true, ss_stat, wad_no,
+    "Arrange widgets on widescreen edges");
+  BIND_NUM_OPT(hud_widget_font,
+    HUD_WIDGET_OFF, HUD_WIDGET_OFF, HUD_WIDGET_ALWAYS, ss_stat, wad_no,
+    "Use standard Doom font for widgets (1 = on Automap, 2 = on HUD, 3 = always)");
+  BIND_BOOL_OPT(hud_widget_layout, false, ss_stat, wad_no,
+    "Widget layout (0 = Horizontal, 1 = Vertical)");
+  BIND_NUM_OPT(hud_crosshair, 0, 0, HU_CROSSHAIRS - 1, ss_stat, wad_no,
+    "Enable crosshair");
+  BIND_BOOL_OPT(hud_crosshair_health, false, ss_stat, wad_no,
+    "1 to change crosshair color by player health");
+  BIND_NUM_OPT(hud_crosshair_target, 0, 0, 2, ss_stat, wad_no,
+    "Change crosshair color on target (1 = Highlight, 2 = Health)");
+  BIND_BOOL_OPT(hud_crosshair_lockon, false, ss_stat, wad_no,
+    "1 to lock crosshair on target");
+  BIND_NUM_OPT(hud_crosshair_color, CR_GRAY, CR_BRICK, CR_NONE, ss_stat, wad_no,
+    "Default crosshair color");
+  BIND_NUM_OPT(hud_crosshair_target_color, CR_YELLOW, CR_BRICK, CR_NONE,
+    ss_stat, wad_no, "Target crosshair color");
+
+  BIND_NUM_OPT(hudcolor_titl, CR_GOLD, CR_BRICK, CR_NONE, ss_none, wad_yes,
+    "Color range used for automap level title");
+  BIND_NUM_OPT(hudcolor_xyco, CR_GREEN, CR_BRICK, CR_NONE, ss_none, wad_yes,
+    "Color range used for automap coordinates");
+
+  BIND_BOOL(show_messages, true, "1 to enable message display");
+  BIND_BOOL_OPT(hud_secret_message, true, ss_stat, wad_no,
+    "\"A secret is revealed!\" message");
+  BIND_BOOL_OPT(show_toggle_messages, true, ss_stat, wad_no,
+    "1 to enable toggle messages");
+  BIND_BOOL_OPT(show_pickup_messages, true, ss_stat, wad_no,
+    "1 to enable pickup messages");
+  BIND_BOOL_OPT(show_obituary_messages, true, ss_stat, wad_no,
+    "1 to enable obituaries");
+
+  BIND_NUM_OPT(hudcolor_mesg, CR_NONE, CR_BRICK, CR_NONE, ss_none, wad_yes,
+    "Color range used for messages during play");
+  BIND_NUM_OPT(hudcolor_chat, CR_GOLD, CR_BRICK, CR_NONE, ss_none, wad_yes,
+    "Color range used for chat messages and entry");
+  BIND_NUM(hudcolor_obituary, CR_GRAY, CR_BRICK, CR_NONE,
+    "Color range used for obituaries");
+
+  BIND_NUM(message_timer, 4000, 0, UL, "Duration of normal Doom messages (ms)");
+  BIND_NUM(chat_msg_timer, 4000, 0, UL, "Duration of chat messages (ms)");
+  BIND_NUM(hud_msg_lines, 4, 1, HU_MAXMESSAGES, "Number of message lines");
+  BIND_BOOL_OPT(message_colorized, false, ss_stat, wad_no,
+    "1 to colorize player messages");
+  BIND_BOOL_OPT(message_centered, false, ss_stat, wad_no,
+    "1 to center messages");
+  BIND_BOOL(message_list, false, "1 means multiline message list is active");
+
+#define BIND_CHAT(num)                                                     \
+    M_BindStr("chatmacro" #num, &chat_macros[(num)], HUSTR_CHATMACRO##num, \
+              wad_yes, "Chat string associated with " #num " key")
+
+  BIND_CHAT(0);
+  BIND_CHAT(1);
+  BIND_CHAT(2);
+  BIND_CHAT(3);
+  BIND_CHAT(4);
+  BIND_CHAT(5);
+  BIND_CHAT(6);
+  BIND_CHAT(7);
+  BIND_CHAT(8);
+  BIND_CHAT(9);
 }
 
 //----------------------------------------------------------------------------

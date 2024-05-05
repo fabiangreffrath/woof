@@ -392,33 +392,33 @@ void I_ResetController(void)
 void I_BindGamepadVariables(void)
 {
     BIND_BOOL(joy_enable, true, "Enable game controller");
-    BIND_INT_GEN(joy_layout, LAYOUT_DEFAULT, 0, NUM_LAYOUTS - 1,
+    BIND_NUM_GEN(joy_layout, LAYOUT_DEFAULT, 0, NUM_LAYOUTS - 1,
         "Analog stick layout (0 = Default, 1 = Swap, 2 = Legacy, 3 = Legacy Swap)");
-    BIND_INT(joy_sensitivity_forward, 50, 0, 100, "Forward axis sensitivity");
-    BIND_INT(joy_sensitivity_strafe, 50, 0, 100, "Strafe axis sensitivity");
-    BIND_INT_GEN(joy_sensitivity_turn, 36, 0, 100, "Turn axis sensitivity");
-    BIND_INT_GEN(joy_sensitivity_look, 28, 0, 100, "Look axis sensitivity");
-    BIND_INT_GEN(joy_extra_sensitivity_turn, 14, 0, 100,
+    BIND_NUM(joy_sensitivity_forward, 50, 0, 100, "Forward axis sensitivity");
+    BIND_NUM(joy_sensitivity_strafe, 50, 0, 100, "Strafe axis sensitivity");
+    BIND_NUM_GEN(joy_sensitivity_turn, 36, 0, 100, "Turn axis sensitivity");
+    BIND_NUM_GEN(joy_sensitivity_look, 28, 0, 100, "Look axis sensitivity");
+    BIND_NUM_GEN(joy_extra_sensitivity_turn, 14, 0, 100,
         "Extra turn sensitivity at outer threshold (joy_threshold_camera)");
-    BIND_INT(joy_extra_sensitivity_look, 0, 0, 100,
+    BIND_NUM(joy_extra_sensitivity_look, 0, 0, 100,
         "Extra look sensitivity at outer threshold (joy_threshold_camera)");
-    BIND_INT(joy_extra_ramp_time, 300, 0, 1000,
+    BIND_NUM(joy_extra_ramp_time, 300, 0, 1000,
         "Ramp time for extra sensitivity (0 = Instant, 1000 = 1 second)");
     BIND_BOOL(joy_scale_diagonal_movement, true,
         "Scale diagonal movement (0 = Linear, 1 = Circle to Square)");
-    BIND_INT(joy_response_curve_movement, 10, 10, 30,
+    BIND_NUM(joy_response_curve_movement, 10, 10, 30,
         "Movement response curve (10 = Linear, 20 = Squared, 30 = Cubed)");
-    BIND_INT_GEN(joy_response_curve_camera, 20, 10, 30,
+    BIND_NUM_GEN(joy_response_curve_camera, 20, 10, 30,
         "Camera response curve (10 = Linear, 20 = Squared, 30 = Cubed)");
-    BIND_INT(joy_deadzone_type_movement, 1, 0, 1,
+    BIND_NUM(joy_deadzone_type_movement, 1, 0, 1,
         "Movement deadzone type (0 = Axial, 1 = Radial)");
-    BIND_INT(joy_deadzone_type_camera, 1, 0, 1,
+    BIND_NUM(joy_deadzone_type_camera, 1, 0, 1,
         "Camera deadzone type (0 = Axial, 1 = Radial)");
-    BIND_INT_GEN(joy_deadzone_movement, 15, 0, 50, "Movement deadzone percent");
-    BIND_INT_GEN(joy_deadzone_camera, 15, 0, 50, "Camera deadzone percent");
-    BIND_INT(joy_threshold_movement, 2, 0, 30, "Movement outer threshold percent");
-    BIND_INT(joy_threshold_camera, 2, 0, 30, "Camera outer threshold percent");
-    BIND_INT(joy_threshold_trigger, 12, 0, 50, "Trigger threshold percent");
+    BIND_NUM_GEN(joy_deadzone_movement, 15, 0, 50, "Movement deadzone percent");
+    BIND_NUM_GEN(joy_deadzone_camera, 15, 0, 50, "Camera deadzone percent");
+    BIND_NUM(joy_threshold_movement, 2, 0, 30, "Movement outer threshold percent");
+    BIND_NUM(joy_threshold_camera, 2, 0, 30, "Camera outer threshold percent");
+    BIND_NUM(joy_threshold_trigger, 12, 0, 50, "Trigger threshold percent");
     BIND_BOOL(joy_invert_forward, false, "Invert forward axis");
     BIND_BOOL(joy_invert_strafe, false, "Invert strafe axis");
     BIND_BOOL(joy_invert_turn, false, "Invert turn axis");

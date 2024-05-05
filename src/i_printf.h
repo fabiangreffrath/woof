@@ -30,7 +30,7 @@ typedef enum
     VB_MAX
 } verbosity_t;
 
-extern verbosity_t cfg_verbosity;
+extern verbosity_t default_verbosity;
 
 int I_ConsoleStdout(void);
 

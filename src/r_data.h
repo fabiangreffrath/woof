@@ -62,7 +62,7 @@ typedef enum
   INVUL_GRAY,
 } invul_mode_t;
 
-extern int invul_mode;
+extern invul_mode_t invul_mode;
 
 #endif
 

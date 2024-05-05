@@ -46,7 +46,6 @@
 #include "g_game.h"
 #include "hu_stuff.h"
 #include "i_endoom.h"
-#include "i_gamepad.h"
 #include "i_glob.h"
 #include "i_input.h"
 #include "i_printf.h"
@@ -265,7 +264,6 @@ void D_UpdateDeltaTics(void)
 // wipegamestate can be set to -1 to force a wipe on the next draw
 gamestate_t    wipegamestate = GS_DEMOSCREEN;
 static int     screen_melt = wipe_Melt;
-extern int     showMessages;
 
 void D_Display (void)
 {
@@ -2015,35 +2013,6 @@ static boolean CheckHaveSSG (void)
   return true;
 }
 
-static void D_InitConfig(void)
-{
-  I_BindVideoVariables();
-  R_BindRenderVariables();
-
-  BIND_INT_GEN(show_endoom, 0, 0, 2,
-    "Show ENDOOM screen (0 = Off, 1 = On, 2 = PWAD only)");
-  BIND_BOOL_GEN(demobar, false, "1 to enable demo progress bar");
-  BIND_INT_GEN(screen_melt, wipe_Melt, wipe_None, wipe_Fizzle,
-    "Screen wipe effect (0 = None, 1 = Melt, 2 = Crossfade, 3 = Fizzlefade)");
-  BIND_INT_GEN(organize_savefiles, -1, -1, 1,
-    "1 to organize save files");
-  M_BindStr("net_player_name", &net_player_name, DEFAULT_PLAYER_NAME,
-    "Network setup player name");
-
-  I_BindSoundVariables();
-
-  MN_BindMenuVariables();
-  M_BindInputVariables();
-  I_BindInputVarianles();
-  I_BindGamepadVariables();
-
-  G_BindGameVariables();
-  BIND_BOOL_OPT(colored_blood, false, ss_enem, wad_no,
-    "1 to enable colored blood");
-
-  M_InitConfig();
-}
-
 //
 // D_DoomMain
 //
@@ -2526,7 +2495,7 @@ void D_DoomMain(void)
   if ((p = M_CheckParm("-dumplumps")) && p < myargc-1)
     WritePredefinedLumpWad(myargv[p+1]);
 
-  D_InitConfig();
+  M_InitConfig();
 
   M_LoadDefaults();  // load before initing other systems
 
@@ -2948,6 +2917,25 @@ void D_DoomMain(void)
       if (screenvisible)
         D_Display();
     }
+}
+
+void D_BindMiscVariables(void)
+{
+  BIND_NUM_GEN(show_endoom, 0, 0, 2,
+    "Show ENDOOM screen (0 = Off, 1 = On, 2 = PWAD only)");
+  BIND_BOOL_GEN(demobar, false, "1 to enable demo progress bar");
+  BIND_NUM_GEN(screen_melt, wipe_Melt, wipe_None, wipe_Fizzle,
+    "Screen wipe effect (0 = None, 1 = Melt, 2 = Crossfade, 3 = Fizzlefade)");
+  BIND_BOOL_GEN(palette_changes, true, "0 to disable palette changes");
+  BIND_NUM_GEN(organize_savefiles, -1, -1, 1,
+    "1 to organize save files");
+  M_BindStr("net_player_name", &net_player_name, DEFAULT_PLAYER_NAME, wad_no,
+    "Network setup player name");
+  BIND_NUM(default_verbosity, VB_INFO, VB_ERROR, VB_MAX - 1,
+    "Verbosity level (1 = Errors only, 2 = Warnings, 3 = Info, 4 = Debug)");
+
+  BIND_BOOL_OPT(colored_blood, false, ss_enem, wad_no,
+    "1 to enable colored blood");
 }
 
 //----------------------------------------------------------------------------

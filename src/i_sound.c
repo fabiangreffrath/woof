@@ -716,19 +716,19 @@ const char **I_DeviceList(void)
 
 void I_BindSoundVariables(void)
 {
-    M_BindInt("sfx_volume", &snd_SfxVolume, NULL, 8, 0, 15, ss_gen, wad_no,
+    M_BindNum("sfx_volume", &snd_SfxVolume, NULL, 8, 0, 15, ss_gen, wad_no,
         "Adjust sound effects volume");
-    M_BindInt("music_volume", &snd_MusicVolume, NULL, 8, 0, 15, ss_gen, wad_no,
+    M_BindNum("music_volume", &snd_MusicVolume, NULL, 8, 0, 15, ss_gen, wad_no,
         "Adjust music volume");
     BIND_BOOL(pitched_sounds, false,
         "1 to enable variable pitch in sound effects (from id's original code)");
-    BIND_INT(pitch_bend_range, 120, 100, 300,
+    BIND_NUM(pitch_bend_range, 120, 100, 300,
         "Variable pitch bend range (100 none, 120 default)");
     BIND_BOOL_GEN(full_sounds, false, "1 to play sounds in full length");
-    M_BindInt("snd_channels", &default_numChannels, NULL,
+    M_BindNum("snd_channels", &default_numChannels, NULL,
         MAX_CHANNELS, 1, MAX_CHANNELS, ss_none, wad_no,
         "Number of sound effects handled simultaneously");
-    BIND_INT_GEN(snd_module, SND_MODULE_MBF, 0, NUM_SND_MODULES - 1,
+    BIND_NUM_GEN(snd_module, SND_MODULE_MBF, 0, NUM_SND_MODULES - 1,
         "Sound module (0 = Standard, 1 = OpenAL 3D, 2 = PC Speaker Sound)");
     for (int i = 0; i < arrlen(sound_modules); ++i)
     {
@@ -737,8 +737,8 @@ void I_BindSoundVariables(void)
             sound_modules[i]->BindVariables();
         }
     }
-    BIND_INT(midi_player_menu, 0, 0, UL, "MIDI Player menu index");
-    M_BindStr("midi_player_string", &midi_player_string, "",
+    BIND_NUM(midi_player_menu, 0, 0, UL, "MIDI Player menu index");
+    M_BindStr("midi_player_string", &midi_player_string, "", wad_no,
               "MIDI Player string");
     for (int i = 0; i < arrlen(music_modules); ++i)
     {

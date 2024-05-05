@@ -35,6 +35,7 @@
 #include "doomstat.h"
 #include "g_game.h"
 #include "hu_obituary.h"
+#include "hu_stuff.h"
 #include "i_system.h"
 #include "info.h"
 #include "m_argv.h"
@@ -2155,8 +2156,6 @@ int disable_nuke;  // killough 12/98: nukage disabling cheat
 
 static void P_SecretRevealed(player_t *player)
 {
-  extern int hud_secret_message;
-
   if (hud_secret_message && player == &players[consoleplayer])
   {
     player->secretmessage = s_HUSTR_SECRETFOUND;
