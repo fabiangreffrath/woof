@@ -20,6 +20,7 @@
 #include "SDL.h"
 
 #include "doomdef.h"
+#include "doomstat.h"
 #include "doomtype.h"
 #include "i_system.h"
 #include "m_fixed.h"
@@ -122,7 +123,19 @@ int (*I_GetTime)() = I_GetTime_Scaled;
 
 static int I_GetFracTime_Scaled(void)
 {
-    return GetTimeMS_Scaled() * TICRATE % 1000 * FRACUNIT / 1000;
+    static int last_frac, last_gametic;
+
+    int frac = GetTimeMS_Scaled() * TICRATE % 1000 * FRACUNIT / 1000;
+
+    if (frac < last_frac && last_gametic == gametic)
+    {
+        frac = FRACUNIT;
+    }
+
+    last_frac = frac;
+    last_gametic = gametic;
+
+    return frac;
 }
 
 // During a fast demo, no time elapses in between ticks
