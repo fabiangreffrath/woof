@@ -215,19 +215,22 @@ static void InitConnectData(net_connect_data_t *connect_data)
     connect_data->gamemode = gamemode;
     connect_data->gamemission = gamemission;
 
+    if (!shorttics)
+    {
     //!
     // @category demo
     // @help
     //
     // Play with low turning resolution to emulate demo recording.
     //
+        shorttics = M_ParmExists("-shorttics");
+    }
 
     longtics = (demo_compatibility && M_ParmExists("-longtics")) || mbf21;
 
     // Are we recording a demo? Possibly set lowres turn mode
 
-    connect_data->lowres_turn = ((M_ParmExists("-record") && !longtics) ||
-                                 M_ParmExists("-shorttics") || shorttics);
+    connect_data->lowres_turn = (M_ParmExists("-record") && !longtics) || shorttics;
 
     // Read checksums of our WAD directory and dehacked information
 

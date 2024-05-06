@@ -2114,11 +2114,25 @@ void D_DoomMain(void)
   //!
   // @category game
   // @vanilla
+  // @help
   //
   // Disable monsters.
   //
 
-  nomonsters = clnomonsters = M_CheckParm ("-nomonsters");
+  p = M_CheckParm("-nomonsters");
+
+  if (!p)
+  {
+  //!
+  // @category game
+  // @help
+  //
+  // Alias to -nomonsters.
+  //
+    p = M_CheckParm("-nomo");
+  }
+
+  nomonsters = clnomonsters = p;
 
   //!
   // @category game
@@ -2345,6 +2359,32 @@ void D_DoomMain(void)
                 "In complevel Vanilla, '-skill 0' disables all monsters.", myargv[p+1]);
       }
    }
+
+  //!
+  // @category game
+  // @help
+  //
+  // Alias for -skill 4.
+  //
+
+  if (M_ParmExists("-uv"))
+  {
+    startskill = sk_hard;
+    autostart = true;
+  }
+
+  //!
+  // @category game
+  // @help
+  //
+  // Alias for -skill 5.
+  //
+
+  if (M_ParmExists("-nm"))
+  {
+    startskill = sk_nightmare;
+    autostart = true;
+  }
 
   //!
   // @category game
