@@ -971,7 +971,7 @@ void R_BindRenderVariables(void)
   BIND_BOOL_GEN(linearsky, false, "1 for linear horizontal sky scrolling");
   BIND_BOOL_GEN(r_swirl, false, "1 to enable swirling animated flats");
   BIND_BOOL_GEN(smoothlight, false, "1 to enable smooth diminishing lighting");
-  BIND2_BOOL_GEN(voxels_rendering, true, "1 to enable voxels rendering");
+  BIND2_BOOL(voxels_rendering, true, "1 to enable voxels rendering");
   BIND_BOOL_GEN(brightmaps, false,
     "1 to enable brightmaps for textures and sprites");
   BIND_NUM_GEN(invul_mode, INVUL_MBF, INVUL_VANILLA, INVUL_GRAY,

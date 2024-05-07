@@ -716,9 +716,9 @@ const char **I_DeviceList(void)
 
 void I_BindSoundVariables(void)
 {
-    M_BindNum("sfx_volume", &snd_SfxVolume, NULL, 8, 0, 15, ss_gen, wad_no,
+    M_BindNum("sfx_volume", &snd_SfxVolume, NULL, 8, 0, 15, ss_none, wad_no,
         "Adjust sound effects volume");
-    M_BindNum("music_volume", &snd_MusicVolume, NULL, 8, 0, 15, ss_gen, wad_no,
+    M_BindNum("music_volume", &snd_MusicVolume, NULL, 8, 0, 15, ss_none, wad_no,
         "Adjust music volume");
     BIND_BOOL(pitched_sounds, false,
         "1 to enable variable pitch in sound effects (from id's original code)");

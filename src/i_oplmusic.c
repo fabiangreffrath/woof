@@ -1660,7 +1660,7 @@ static void I_OPL_ShutdownStream(void)
 static const char **I_OPL_DeviceList(void)
 {
     static const char **devices = NULL;
-    if (devices)
+    if (array_size(devices))
     {
         return devices;
     }
