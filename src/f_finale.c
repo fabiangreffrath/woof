@@ -381,6 +381,7 @@ void F_TextWrite (void)
   int         c;
   int         cx;
   int         cy;
+  static int deltaw = -1;
   
   // [FG] if interbackdrop does not specify a valid flat, draw it as a patch instead
   if (gamemapinfo && W_CheckNumForName(finaleflat) != -1 &&
@@ -400,6 +401,12 @@ void F_TextWrite (void)
   cx = 10;
   cy = 10;
   ch = finaletext_rw;
+
+  if (deltaw != video.deltaw)
+  {
+    strcpy(finaletext_rw, finaletext);
+    deltaw = video.deltaw;
+  }
       
   count = (int)((finalecount - 10)/Get_TextSpeed());                 // phares
   if (count < 0)
@@ -425,7 +432,7 @@ void F_TextWrite (void)
     }
               
     w = SHORT (hu_font[c]->width);
-    if (cx+w > SCREENWIDTH)
+    if (cx+w > SCREENWIDTH + deltaw)
     {
       // [FG] add line breaks for lines exceeding screenwidth
       if (F_AddLineBreak(ch))
