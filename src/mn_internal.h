@@ -48,6 +48,8 @@ typedef enum
 extern menu_input_mode_t menu_input, old_menu_input;
 void MN_ResetMouseCursor(void);
 
+extern boolean traditional_menu; // display the menu traditional way
+
 extern boolean setup_active;
 extern short whichSkull; // which skull to draw (he blinks)
 extern int saved_screenblocks;
@@ -56,7 +58,6 @@ extern boolean default_verify;
 extern int warning_about_changes, print_warning_about_changes;
 
 void MN_InitDefaults(void);
-void MN_UpdateFreeLook(void);
 extern const char *gamma_strings[];
 void MN_ResetGamma(void);
 void MN_DrawDelVerify(void);
@@ -92,10 +93,6 @@ void MN_DrawStatusHUD(void);
 void MN_DrawAutoMap(void);
 void MN_DrawWeapons(void);
 void MN_DrawEnemy(void);
-
-extern int resolution_scale;
-extern int midi_player_menu;
-extern const char *midi_player_string;
 
 /////////////////////////////
 //
@@ -200,3 +197,41 @@ typedef struct setup_menu_s
     void (*action)(void); // killough 10/98: function to call after changing
     mrect_t rect;
 } setup_menu_t;
+
+// phares 4/21/98: Moved from m_misc.c so m_menu.c could see it.
+//
+// killough 11/98: totally restructured
+
+// [FG] use a union of integer and string pointer to store config values,
+// instead of type-punning string pointers to integers which won't work on
+// 64-bit systems anyway
+
+typedef union config_u
+{
+  int i;
+  char *s;
+} config_t;
+
+typedef struct default_s
+{
+  const char *name;                   // name
+  config_t *location;                 // default variable
+  config_t *current;                  // possible nondefault variable
+  config_t  defaultvalue;             // built-in default value
+  struct {int min, max;} limit;       // numerical limits
+  enum {number, string, input} type;  // type
+  ss_types setupscreen;               // setup screen this appears on
+  wad_allowed_t wad_allowed;          // whether it's allowed in wads
+  const char *help;                   // description of parameter
+
+  int input_id;
+
+  // internal fields (initialized implicitly to 0) follow
+
+  struct default_s *first, *next;           // hash table pointers
+  int modified;                             // Whether it's been modified
+  config_t orig_default;                    // Original default, if modified
+  struct setup_menu_s *setup_menu;          // Xref to setup menu item, if any
+} default_t;
+
+extern default_t *defaults;

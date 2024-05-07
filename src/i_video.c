@@ -41,6 +41,7 @@
 #include "i_timer.h"
 #include "i_video.h"
 #include "m_argv.h"
+#include "m_config.h"
 #include "m_fixed.h"
 #include "m_io.h"
 #include "mn_menu.h"
@@ -59,39 +60,38 @@
 
 #include "icon.c"
 
-int current_video_height, default_current_video_height;
-static int GetCurrentVideoHeight(void);
+// [AM] Fractional part of the current tic, in the half-open
+//      range of [0.0, 1.0).  Used for interpolation.
+fixed_t fractionaltic;
 
 boolean dynamic_resolution;
 
-boolean use_vsync; // killough 2/8/98: controls whether vsync is called
-boolean use_aspect;
-boolean uncapped, default_uncapped; // [FG] uncapped rendering frame rate
-int fpslimit; // when uncapped, limit framerate to this value
-boolean fullscreen;
-boolean exclusive_fullscreen;
-boolean change_display_resolution;
-aspect_ratio_mode_t widescreen, default_widescreen; // widescreen mode
-int custom_fov;
-boolean vga_porch_flash; // emulate VGA "porch" behaviour
-boolean smooth_scaling;
+int current_video_height;
+static int default_current_video_height;
+static int GetCurrentVideoHeight(void);
 
+boolean uncapped;
+static boolean default_uncapped;
+
+int custom_fov;
+
+int fps; // [FG] FPS counter widget
 boolean resetneeded;
 boolean setrefreshneeded;
 boolean toggle_fullscreen;
 boolean toggle_exclusive_fullscreen;
 
-int video_display = 0; // display index
-static int window_width, window_height;
-int default_window_width, default_window_height;
-int window_position_x, window_position_y;
-
-// [AM] Fractional part of the current tic, in the half-open
-//      range of [0.0, 1.0).  Used for interpolation.
-fixed_t fractionaltic;
-
-boolean disk_icon; // killough 10/98
-int fps;           // [FG] FPS counter widget
+static boolean use_vsync; // killough 2/8/98: controls whether vsync is called
+static boolean correct_aspect_ratio;
+static int fpslimit; // when uncapped, limit framerate to this value
+static boolean fullscreen;
+static boolean exclusive_fullscreen;
+static boolean change_display_resolution;
+static int widescreen, default_widescreen;
+static boolean vga_porch_flash; // emulate VGA "porch" behaviour
+static boolean smooth_scaling;
+static int video_display = 0; // display index
+static boolean disk_icon; // killough 10/98
 
 // [FG] rendering window, renderer, intermediate ARGB frame buffer and texture
 
@@ -104,10 +104,17 @@ static SDL_Texture *texture_upscaled;
 static SDL_Rect blit_rect = {0};
 
 static int window_x, window_y;
+static int window_width, window_height;
+static int default_window_width, default_window_height;
+static int window_position_x, window_position_y;
+static boolean window_resize;
+static boolean window_focused = true;
+static int scalefactor;
+
 static int actualheight;
 static int unscaled_actualheight;
 
-int max_video_width, max_video_height;
+static int max_video_width, max_video_height;
 static int max_width, max_height;
 static int max_height_adjusted;
 static int display_refresh_rate;
@@ -115,20 +122,14 @@ static int display_refresh_rate;
 static boolean use_limiter;
 static int targetrefresh;
 
-static boolean window_resize;
-
-static int scalefactor;
-
 // haleyjd 10/08/05: Chocolate DOOM application focus state code added
 
 // Grab the mouse?
-boolean grabmouse = true, default_grabmouse;
+static boolean grabmouse = true, default_grabmouse;
 
 // Flag indicating whether the screen is currently visible:
 // when the screen isnt visible, don't render the screen
 boolean screenvisible = true;
-
-boolean window_focused = true;
 
 boolean drs_skip_frame;
 
@@ -316,7 +317,7 @@ static boolean ToggleFullScreenKeyShortcut(SDL_Keysym *sym)
 
 static void AdjustWindowSize(void)
 {
-    if (!use_aspect)
+    if (!correct_aspect_ratio)
     {
         return;
     }
@@ -1164,7 +1165,7 @@ static void ResetResolution(int height, boolean reset_pitch)
 {
     double aspect_ratio = CurrentAspectRatio();
 
-    actualheight = use_aspect ? (int)(height * 1.2) : height;
+    actualheight = correct_aspect_ratio ? (int)(height * 1.2) : height;
     video.height = height;
 
     video.unscaledw = (int)(unscaled_actualheight * aspect_ratio);
@@ -1340,6 +1341,11 @@ static void I_ResetTargetRefresh(void)
 {
     uncapped = default_uncapped;
 
+    if (fpslimit < TICRATE)
+    {
+        fpslimit = 0;
+    }
+
     if (uncapped)
     {
         // SDL may report native refresh rate as zero.
@@ -1351,6 +1357,7 @@ static void I_ResetTargetRefresh(void)
     }
 
     UpdateLimiter();
+    MN_UpdateFpsLimitItem();
     drs_skip_frame = true;
 }
 
@@ -1371,7 +1378,7 @@ static void I_InitVideoParms(void)
 
     if (max_video_width && max_video_height)
     {
-        if (use_aspect && max_video_height < ACTUALHEIGHT)
+        if (correct_aspect_ratio && max_video_height < ACTUALHEIGHT)
         {
             I_Error("The vertical resolution is too low, turn off the aspect "
                     "ratio correction.");
@@ -1391,7 +1398,7 @@ static void I_InitVideoParms(void)
         max_height = mode.h;
     }
 
-    if (use_aspect)
+    if (correct_aspect_ratio)
     {
         max_height_adjusted = (int)(max_height / 1.2);
         unscaled_actualheight = ACTUALHEIGHT;
@@ -1490,7 +1497,6 @@ static void I_InitVideoParms(void)
     {
         scalefactor = tmp_scalefactor;
         GetCurrentVideoHeight();
-        MN_UpdateDynamicResolutionItem();
         MN_DisableResolutionScaleItem();
     }
 
@@ -1517,6 +1523,7 @@ static void I_InitVideoParms(void)
     }
 
     MN_UpdateFpsLimitItem();
+    MN_UpdateDynamicResolutionItem();
 }
 
 static void I_InitGraphicsMode(void)
@@ -1696,7 +1703,7 @@ static void CreateSurfaces(int w, int h)
 
     int n = (scalefactor == 1 ? 1 : 2);
     SDL_SetWindowMinimumSize(screen, video.unscaledw * n,
-                             use_aspect ? ACTUALHEIGHT * n : SCREENHEIGHT * n);
+                             correct_aspect_ratio ? ACTUALHEIGHT * n : SCREENHEIGHT * n);
 
     if (!fullscreen)
     {
@@ -1777,6 +1784,49 @@ void I_InitGraphics(void)
     SDL_PumpEvents();
     SDL_FlushEvent(SDL_MOUSEMOTION);
     I_ResetRelativeMouseState();
+}
+
+void I_BindVideoVariables(void)
+{
+    M_BindNum("current_video_height", &default_current_video_height,
+              &current_video_height, 600, 200, UL, ss_none, wad_no,
+              "Vertical resolution (600p by default)");
+    BIND_BOOL_GENERAL(dynamic_resolution, true, "1 to enable dynamic resolution");
+    BIND_BOOL(correct_aspect_ratio, true, "1 to perform aspect ratio correction");
+    BIND_BOOL(fullscreen, true, "1 to enable fullscreen");
+    BIND_BOOL(exclusive_fullscreen, false, "1 to enable exclusive fullscreen");
+    BIND_BOOL_GENERAL(use_vsync, true,
+        "1 to enable wait for vsync to avoid display tearing");
+    M_BindBool("uncapped", &default_uncapped, &uncapped, true, ss_gen, wad_no,
+        "1 to enable uncapped rendering frame rate");
+    BIND_NUM_GENERAL(fpslimit, 0, 0, 500,
+        "Framerate limit in frames per second (< 35 = disable)");
+    M_BindNum("widescreen", &default_widescreen, &widescreen, RATIO_AUTO, 0,
+              NUM_RATIOS - 1, ss_gen, wad_no,
+              "Widescreen (0 = Off, 1 = Auto, 2 = 16:10, 3 = 16:9, 4 = 21:9)");
+    M_BindNum("fov", &custom_fov, NULL, FOV_DEFAULT, FOV_MIN, FOV_MAX, ss_gen,
+              wad_no, "Field of view in degrees");
+    BIND_NUM_GENERAL(gamma2, 9, 0, 17, "Custom gamma level (0 = -4, 9 = 0, 17 = 4)");
+    BIND_BOOL_GENERAL(smooth_scaling, true, "1 to enable smooth pixel scaling");
+
+    BIND_BOOL(vga_porch_flash, false, "1 to emulate VGA \"porch\" behaviour");
+    BIND_BOOL(disk_icon, false, "1 to enable flashing icon during disk IO");
+    BIND_NUM(video_display, 0, 0, UL, "Current video display index");
+    BIND_NUM(max_video_width, 0, SCREENWIDTH, UL,
+        "Maximum horizontal resolution (native by default)");
+    BIND_NUM(max_video_height, 0, SCREENHEIGHT, UL,
+        "Maximum vertical resolution (native by default)");
+    BIND_BOOL(change_display_resolution, false,
+        "1 to change display resolution with exclusive fullscreen (only useful for CRTs)");
+    BIND_NUM(window_position_x, 0, UL, UL, "Window position X (0 = Center)");
+    BIND_NUM(window_position_y, 0, UL, UL, "Window position Y (0 = Center)");
+    M_BindNum("window_width", &default_window_width, &window_width, 1065, 0, UL,
+        ss_none, wad_no, "Window width");
+    M_BindNum("window_height", &default_window_height, &window_height, 600, 0, UL,
+        ss_none, wad_no, "Window height");
+
+    M_BindBool("grabmouse", &default_grabmouse, &grabmouse, true, ss_none,
+               wad_no, "1 to grab mouse during play");
 }
 
 //----------------------------------------------------------------------------

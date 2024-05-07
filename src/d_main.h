@@ -50,6 +50,8 @@ void D_PostEvent(struct event_s *ev);
 
 void D_UpdateDeltaTics(void);
 
+void D_BindMiscVariables(void);
+
 //
 // BASE LEVEL
 //

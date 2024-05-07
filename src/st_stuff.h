@@ -63,7 +63,6 @@ void ST_InitRes(void);
 // killough 5/2/98: moved from m_misc.c:
 
 // [Alaux]
-extern int hud_animated_counts;
 extern int st_health;
 extern int st_armor;
 
@@ -75,22 +74,19 @@ extern int armor_yellow;  // armor amount less than which status is yellow
 extern int armor_green;   // armor amount above is blue, below is green
 extern int ammo_red;      // ammo percent less than which status is red
 extern int ammo_yellow;   // ammo percent less is yellow more green
-extern int sts_colored_numbers;// status numbers do not change colors
-extern int sts_pct_always_gray;// status percents do not change colors
-extern int sts_traditional_keys;  // display keys the traditional way
 
-// [crispy] blinking key or skull in the status bar
-extern int hud_blink_keys;
 #define KEYBLINKMASK 0x8
 #define KEYBLINKTICS (7*KEYBLINKMASK)
 extern void ST_SetKeyBlink(struct player_s *player, int blue, int yellow, int red);
 extern int  ST_BlinkKey(struct player_s *player, int index);
 extern int  st_keyorskull[3];
 
-extern int hud_backpack_thresholds; // backpack changes thresholds
-extern int hud_armor_type; // color of armor depends on type
+extern boolean hud_backpack_thresholds; // backpack changes thresholds
+extern boolean hud_armor_type; // color of armor depends on type
 
-extern int st_solidbackground;
+extern boolean palette_changes;
+
+void ST_BindSTSVariables(void);
 
 #endif
 

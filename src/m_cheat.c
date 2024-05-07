@@ -1281,7 +1281,6 @@ static const struct {
   { input_idbeholdi, not_net|not_demo, {cheat_pw},       pw_invisibility },
   { input_idbeholdr, not_net|not_demo, {cheat_pw},       pw_ironfeet },
   { input_idbeholdl, not_dm,           {cheat_pw},       pw_infrared },
-  { input_idrate,    always,           {cheat_rate},     0 },
   { input_iddt,      not_dm,           {cheat_ddt},      0 },
   { input_notarget,  not_net|not_demo, {cheat_notarget}, 0 },
   { input_freeze,    not_net|not_demo, {cheat_freeze},   0 },

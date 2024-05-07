@@ -119,7 +119,7 @@ boolean net_waiting_for_launch = false;
 
 // Name that we send to the server
 
-char *net_player_name = NULL;
+const char *net_player_name = NULL;
 
 // Connected but not participating in the game (observer)
 

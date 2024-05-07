@@ -25,6 +25,7 @@
 #include "i_sound.h"
 #include "i_timer.h"
 #include "m_array.h"
+#include "m_config.h"
 #include "memio.h"
 #include "midiout.h"
 #include "midifallback.h"
@@ -47,6 +48,7 @@ enum
     COMP_VANILLA,
     COMP_STANDARD,
     COMP_FULL,
+    COMP_NUM,
 };
 
 enum
@@ -55,12 +57,13 @@ enum
     RESET_TYPE_GM,
     RESET_TYPE_GS,
     RESET_TYPE_XG,
+    RESET_NUM,
 };
 
-int midi_complevel = COMP_STANDARD;
-int midi_reset_type = RESET_TYPE_GM;
-int midi_reset_delay = -1;
-boolean midi_ctf = true;
+static int midi_complevel = COMP_STANDARD;
+static int midi_reset_type = RESET_TYPE_GM;
+static int midi_reset_delay = -1;
+static boolean midi_ctf = true;
 
 static const byte gm_system_on[] =
 {
@@ -1216,7 +1219,7 @@ static int PlayerThread(void *unused)
     return 0;
 }
 
-const char **midi_devices = NULL;
+static const char **midi_devices = NULL;
 
 static void GetDevices(void)
 {
@@ -1439,6 +1442,18 @@ static const char **I_MID_DeviceList(void)
     return midi_devices;
 }
 
+static void I_MID_BindVariables(void)
+{
+    BIND_NUM(midi_complevel, COMP_STANDARD, 0, COMP_NUM - 1,
+        "Native MIDI compatibility level (0 = Vanilla, 1 = Standard, 2 = Full)");
+    BIND_NUM(midi_reset_type, RESET_TYPE_GM, 0, RESET_NUM - 1,
+        "Reset type for native MIDI (0 = No SysEx, 1 = GM, 2 = GS, 3 = XG)");
+    BIND_NUM(midi_reset_delay, -1, -1, 2000,
+        "Delay after reset for native MIDI (-1 = Auto, 0 = None, 1-2000 = Milliseconds)");
+    BIND_BOOL(midi_ctf, true,
+        "1 to fix invalid instruments by emulating SC-55 capital tone fallback");
+}
+
 music_module_t music_mid_module =
 {
     I_MID_InitMusic,
@@ -1451,4 +1466,5 @@ music_module_t music_mid_module =
     I_MID_StopSong,
     I_MID_UnRegisterSong,
     I_MID_DeviceList,
+    I_MID_BindVariables,
 };

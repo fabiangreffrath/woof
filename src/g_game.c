@@ -33,8 +33,10 @@
 #include "d_player.h"
 #include "d_ticcmd.h"
 #include "doomdata.h"
+#include "doomdef.h"
 #include "doomkeys.h"
 #include "doomstat.h"
+#include "doomtype.h"
 #include "f_finale.h"
 #include "g_game.h"
 #include "hu_obituary.h"
@@ -51,21 +53,23 @@
 #include "m_config.h"
 #include "m_input.h"
 #include "m_io.h"
-#include "mn_menu.h"
 #include "m_misc.h"
 #include "m_random.h"
-#include "mn_setup.h"
-#include "mn_snapshot.h"
 #include "m_swap.h" // [FG] LONG
 #include "memio.h"
+#include "mn_menu.h"
+#include "mn_snapshot.h"
 #include "net_defs.h"
+#include "p_enemy.h"
 #include "p_inter.h"
 #include "p_map.h"
+#include "p_maputl.h"
 #include "p_mobj.h"
 #include "p_pspr.h"
 #include "p_saveg.h"
 #include "p_setup.h"
 #include "p_tick.h"
+#include "p_user.h"
 #include "r_data.h"
 #include "r_defs.h"
 #include "r_draw.h"
@@ -146,17 +150,18 @@ boolean         precache = true;      // if true, load all graphics at start
 wbstartstruct_t wminfo;               // parms for world map / intermission
 boolean         haswolflevels = false;// jff 4/18/98 wolf levels present
 byte            *savebuffer;
-int             autorun = false;      // always running?          // phares
-boolean         autostrafe50;
-int             novert = false;
+boolean         autorun = false;      // always running?          // phares
+static boolean  autostrafe50;
+boolean         novert = false;
 boolean         mouselook = false;
 boolean         padlook = false;
 // killough 4/13/98: Make clock rate adjustable by scale factor
 int             realtic_clock_rate = 100;
+static boolean  doom_weapon_toggles;
 
 complevel_t     force_complevel, default_complevel;
 
-boolean         pistolstart, default_pistolstart;
+static boolean  pistolstart, default_pistolstart;
 
 boolean         strictmode, default_strictmode;
 boolean         force_strictmode;
@@ -170,10 +175,15 @@ static ticcmd_t* last_cmd = NULL;
 //
 int     key_escape = KEY_ESCAPE;                           // phares 4/13/98
 int     key_help = KEY_F1;                                 // phares 4/13/98
+
+static int mouse_sensitivity;
+static int mouse_sensitivity_y;
+static int mouse_sensitivity_strafe; // [FG] strafe
+static int mouse_sensitivity_y_look; // [FG] look
 // [FG] double click acts as "use"
-int     dclick_use;
+static boolean dclick_use;
 // [FG] invert vertical axis
-int     mouse_y_invert;
+static boolean mouse_y_invert;
 
 #define MAXPLMOVE   (forwardmove[1])
 #define TURBOTHRESHOLD  0x32
@@ -220,7 +230,7 @@ int   savegameslot = -1;
 char  savedescription[32];
 
 //jff 3/24/98 declare startskill external, define defaultskill here
-int defaultskill;               //note 1-based
+int default_skill;               //note 1-based
 
 // killough 2/8/98: make corpse queue variable in size
 int    bodyqueslot, bodyquesize, default_bodyquesize; // killough 2/8/98, 10/98
@@ -489,39 +499,39 @@ static int CarryMouseSide(double side)
 
 static double CalcMouseAngle(int mousex)
 {
-  if (!mouseSensitivity_horiz)
+  if (!mouse_sensitivity)
     return 0.0;
 
-  return (I_AccelerateMouse(mousex) * (mouseSensitivity_horiz + 5) * 8 / 10);
+  return (I_AccelerateMouse(mousex) * (mouse_sensitivity + 5) * 8 / 10);
 }
 
 static double CalcMousePitch(int mousey)
 {
   double pitch;
 
-  if (!mouseSensitivity_vert_look)
+  if (!mouse_sensitivity_y_look)
     return 0.0;
 
-  pitch = I_AccelerateMouse(mousey) * (mouseSensitivity_vert_look + 5) * 8 / 10;
+  pitch = I_AccelerateMouse(mousey) * (mouse_sensitivity_y_look + 5) * 8 / 10;
 
   return pitch * FRACUNIT * direction[mouse_y_invert];
 }
 
 static double CalcMouseSide(int mousex)
 {
-  if (!mouseSensitivity_horiz_strafe)
+  if (!mouse_sensitivity_strafe)
     return 0.0;
 
   return (I_AccelerateMouse(mousex) *
-          (mouseSensitivity_horiz_strafe + 5) * 2 / 10);
+          (mouse_sensitivity_strafe + 5) * 2 / 10);
 }
 
 static double CalcMouseVert(int mousey)
 {
-  if (!mouseSensitivity_vert)
+  if (!mouse_sensitivity_y)
     return 0.0;
 
-  return (I_AccelerateMouse(mousey) * (mouseSensitivity_vert + 5) / 10);
+  return (I_AccelerateMouse(mousey) * (mouse_sensitivity_y + 5) / 10);
 }
 
 void G_PrepTiccmd(void)
@@ -3411,8 +3421,8 @@ void G_ReloadDefaults(boolean keep_demover)
 
   //jff 3/24/98 set startskill from defaultskill in config file, unless
   // it has already been set by a -skill parameter
-  if (startskill==sk_default)
-    startskill = (skill_t)(defaultskill-1);
+  if (startskill == sk_default)
+    startskill = (skill_t)(default_skill - 1);
 
   demoplayback = false;
   singledemo = false;            // killough 9/29/98: don't stop after 1 demo
@@ -4470,8 +4480,6 @@ boolean G_CheckDemoStatus(void)
 
 #define MAX_MESSAGE_SIZE 1024
 
-extern int show_toggle_messages, show_pickup_messages;
-
 void doomprintf(player_t *player, msg_category_t category, const char *s, ...)
 {
   static char msg[MAX_MESSAGE_SIZE];
@@ -4490,6 +4498,172 @@ void doomprintf(player_t *player, msg_category_t category, const char *s, ...)
     player->message = msg;
   else
     players[displayplayer].message = msg;  // set new message
+}
+
+void G_BindGameInputVariables(void)
+{
+  BIND_BOOL(autorun, true, "1 to enable autorun");
+  BIND_BOOL_GENERAL(mouselook, false, "1 to enable mouselook");
+  BIND_NUM_GENERAL(mouse_sensitivity, 5, 0, UL,
+    "Adjust horizontal (x) mouse sensitivity for turning");
+  BIND_NUM_GENERAL(mouse_sensitivity_y, 5, 0, UL,
+    "Adjust vertical (y) mouse sensitivity for moving");
+  BIND_NUM_GENERAL(mouse_sensitivity_strafe, 5, 0, UL,
+    "Adjust horizontal (x) mouse sensitivity for strafing");
+  BIND_NUM_GENERAL(mouse_sensitivity_y_look, 5, 0, UL,
+    "Adjust vertical (y) mouse sensitivity for looking");
+  BIND_BOOL_GENERAL(mouse_y_invert, false, "1 to invert vertical axis");
+  BIND_BOOL_GENERAL(dclick_use, true, "Double click acts as \"use\"");
+  BIND_BOOL(novert, true, "1 to disable vertical mouse movement");
+  BIND_BOOL_GENERAL(padlook, false, "1 to enable padlook");
+}
+
+void G_BindGameVariables(void)
+{
+  BIND_BOOL(shorttics, false, "1 to use low resolution turning");
+  BIND_NUM_GENERAL(default_skill, 3, 1, 5,
+    "Selects default skill (1 = ITYTD, 2 = HNTR, 3 = HMP, 4 = UV, 5 = NM)");
+  BIND_NUM_GENERAL(realtic_clock_rate, 100, 10, 1000,
+    "Percentage of normal speed realtic clock runs at");
+  M_BindNum("max_player_corpse", &default_bodyquesize, NULL,
+    32, UL, UL, ss_none, wad_no,
+    "Number of dead bodies in view supported (Negative value = No limit)");
+  BIND_NUM_GENERAL(death_use_action, 0, 0, 2,
+    "\"Use\" button action on death (0 = Default, 1 = Load save, 2 = Nothing)");
+}
+
+void G_BindEnemVariables(void)
+{
+  M_BindNum("player_helpers", &default_dogs, &dogs, 0, 0, 3, ss_enem, wad_yes,
+    "Number of dogs");
+  M_BindBool("ghost_monsters", &ghost_monsters, NULL, true, ss_enem, wad_no,
+             "1 to enable \"ghost monsters\" (resurrected pools of gore are "
+             "translucent)");
+
+  M_BindBool("monsters_remember", &default_monsters_remember, &monsters_remember,
+             true, ss_none, wad_yes,
+             "1 to enable monsters remembering enemies after killing others");
+  M_BindBool("monster_infighting", &default_monster_infighting, &monster_infighting,
+             true, ss_none, wad_yes,
+             "1 to enable monsters fighting against each other when provoked");
+  M_BindBool("monster_backing", &default_monster_backing, &monster_backing,
+             false, ss_none, wad_yes,
+             "1 to enable monsters backing away from targets");
+  M_BindBool("monster_avoid_hazards", &default_monster_avoid_hazards, &monster_avoid_hazards,
+             true, ss_none, wad_yes,
+             "1 to enable monsters to intelligently avoid hazards");
+  M_BindBool("monkeys", &default_monkeys, &monkeys, false, ss_none, wad_yes,
+             "1 to enable monsters to move up/down steep stairs");
+  M_BindBool("monster_friction", &default_monster_friction, &monster_friction,
+             true, ss_none, wad_yes,
+             "1 to enable monsters to be affected by friction");
+  M_BindBool("help_friends", &default_help_friends, &help_friends,
+             false, ss_none, wad_yes, "1 to enable monsters to help dying friends");
+  M_BindNum("friend_distance", &default_distfriend, &distfriend,
+            128, 0, 999, ss_none, wad_yes, "Distance friends stay away");
+  M_BindBool("dog_jumping", &default_dog_jumping, &dog_jumping,
+             true, ss_none, wad_yes, "1 to enable dogs to jump");
+}
+
+void G_BindCompVariables(void)
+{
+  M_BindNum("default_complevel", &default_complevel, NULL,
+            CL_MBF21, CL_VANILLA, CL_MBF21, ss_comp, wad_no,
+            "0 = Vanilla, 1 = Boom, 2 = MBF, 3 = MBF21");
+  M_BindBool("autostrafe50", &autostrafe50, NULL, false, ss_comp, wad_no,
+             "1 to enable auto strafe50");
+  M_BindBool("strictmode", &default_strictmode, &strictmode,
+             false, ss_comp, wad_no, "1 to enable strict mode");
+  M_BindBool("hangsolid", &hangsolid, NULL, false, ss_comp, wad_no,
+             "1 to walk under solid hanging bodies");
+  M_BindBool("blockmapfix", &blockmapfix, NULL, false, ss_comp, wad_no,
+             "1 to enable blockmap bug fix");
+  M_BindBool("checksight12", &checksight12, NULL, false, ss_comp, wad_no,
+             "1 to enable fast blockmap-based line-of-sight calculation");
+  M_BindBool("direct_vertical_aiming", &default_direct_vertical_aiming, &direct_vertical_aiming,
+             false, ss_comp, wad_no, "1 to enable direct vertical aiming");
+  M_BindBool("pistolstart", &default_pistolstart, &pistolstart,
+             false, ss_comp, wad_no, "1 to enable pistol start");
+
+#define BIND_COMP(id, v, help) \
+  M_BindNum(#id, &default_comp[(id)], &comp[(id)], (v), 0, 1, ss_none, wad_yes, help)
+
+  BIND_COMP(comp_zombie,    1, "Zombie players can exit levels");
+  BIND_COMP(comp_infcheat,  0, "Powerup cheats are not infinite duration");
+  BIND_COMP(comp_stairs,    0, "Build stairs exactly the same way that Doom does");
+  BIND_COMP(comp_telefrag,  0, "Monsters can telefrag on MAP30");
+  BIND_COMP(comp_dropoff,   0, "Some objects never move over tall ledges");
+  BIND_COMP(comp_falloff,   0, "Objects don't fall off ledges under their own weight");
+  BIND_COMP(comp_staylift,  0, "Monsters randomly walk off of moving lifts");
+  BIND_COMP(comp_doorstuck, 0, "Monsters get stuck on doortracks");
+  BIND_COMP(comp_pursuit,   1, "Monsters don't give up pursuit of targets");
+  BIND_COMP(comp_vile,      0, "Arch-Vile resurrects invincible ghosts");
+  BIND_COMP(comp_pain,      0, "Pain Elemental limited to 20 lost souls");
+  BIND_COMP(comp_skull,     0, "Lost souls get stuck behind walls");
+  BIND_COMP(comp_blazing,   0, "Blazing doors make double closing sounds");
+  BIND_COMP(comp_doorlight, 0, "Tagged doors don't trigger special lighting");
+  BIND_COMP(comp_god,       0, "God mode isn't absolute");
+  BIND_COMP(comp_skymap,    0, "Sky is unaffected by invulnerability");
+  BIND_COMP(comp_floors,    0, "Use exactly Doom's floor motion behavior");
+  BIND_COMP(comp_model,     0, "Use exactly Doom's linedef trigger model");
+  BIND_COMP(comp_zerotags,  0, "Linedef effects work with sector tag = 0");
+  BIND_COMP(comp_respawn,   0, "Creatures with no spawnpoint respawn at (0,0)");
+  BIND_COMP(comp_ledgeblock, 1, "Ledges block ground enemies");
+  BIND_COMP(comp_friendlyspawn, 1, "A_Spawn new thing inherits friendliness");
+  BIND_COMP(comp_voodooscroller, 0, "Voodoo dolls on slow scrollers move too slowly");
+  BIND_COMP(comp_reservedlineflag, 1, "ML_RESERVED clears extended flags");
+
+#define BIND_EMU(id, v, help) \
+  M_BindBool(#id, &overflow[(id)].enabled, NULL, (v), ss_none, wad_no, help)
+
+  BIND_EMU(emu_spechits, true, "SPECHITS overflow emulation");
+  BIND_EMU(emu_reject, true, "REJECT overflow emulation");
+  M_BindBool("emu_intercepts", &overflow[emu_intercepts].enabled, NULL, true,
+    ss_comp, wad_no, "INTERCEPTS overflow emulation");
+  BIND_EMU(emu_missedbackside, false, "Missed backside emulation");
+  BIND_EMU(emu_donut, true, "Donut overrun emulation");
+}
+
+void G_BindWeapVariables(void)
+{
+  M_BindNum("view_bobbing_pct", &view_bobbing_pct, NULL, 4, 0, 4, ss_weap, wad_no,
+            "Player View Bobbing (0 - 0%, 1 - 25% ... 4 - 100%)");
+  M_BindNum("weapon_bobbing_pct", &weapon_bobbing_pct, NULL,
+            4, 0, 4, ss_weap, wad_no,
+            "Player Weapon Bobbing (0 - 0%, 1 - 25% ... 4 - 100%)");
+  M_BindBool("hide_weapon", &hide_weapon, NULL, false, ss_weap, wad_no,
+             "1 to hide weapon");
+  M_BindNum("center_weapon", &center_weapon, NULL, 0, 0, 2, ss_weap, wad_no,
+            "1 to center the weapon sprite during attack, 2 to keep it bobbing");
+  M_BindBool("weapon_recoilpitch", &weapon_recoilpitch, NULL,
+             false, ss_weap, wad_no,
+             "1 to enable recoil pitch from weapon fire");
+
+  M_BindBool("weapon_recoil", &default_weapon_recoil, &weapon_recoil,
+             false, ss_none, wad_yes,
+             "1 to enable recoil from weapon fire (Boom version)");
+  M_BindBool("doom_weapon_toggles", &doom_weapon_toggles, NULL,
+             true, ss_weap, wad_no,
+             "1 to toggle between SG/SSG and Fist/Chainsaw");
+  M_BindBool("player_bobbing", &default_player_bobbing, &player_bobbing,
+             true, ss_none, wad_no, "1 to enable player bobbing (Boom version");
+
+#define BIND_WEAP(num, v, help) \
+  M_BindNum("weapon_choice_"#num, &weapon_preferences[0][(num) - 1], NULL, \
+      (v), 1, 9, ss_weap, wad_yes, help)
+
+  BIND_WEAP(1, 6, "First choice for weapon (best)");
+  BIND_WEAP(2, 9, "Second choice for weapon");
+  BIND_WEAP(3, 4, "Third choice for weapon");
+  BIND_WEAP(4, 3, "Fourth choice for weapon");
+  BIND_WEAP(5, 2, "Fifth choice for weapon");
+  BIND_WEAP(6, 8, "Sixth choice for weapon");
+  BIND_WEAP(7, 5, "Seventh choice for weapon");
+  BIND_WEAP(8, 7, "Eighth choice for weapon");
+  BIND_WEAP(9, 1, "Ninth choice for weapon (worst)");
+
+  M_BindBool("classic_bfg", &default_classic_bfg, &classic_bfg,
+             false, ss_weap, wad_yes, "1 to enable pre-beta BFG2704");
 }
 
 //----------------------------------------------------------------------------

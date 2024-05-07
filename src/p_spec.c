@@ -35,6 +35,7 @@
 #include "doomstat.h"
 #include "g_game.h"
 #include "hu_obituary.h"
+#include "hu_stuff.h"
 #include "i_system.h"
 #include "info.h"
 #include "m_argv.h"
@@ -56,6 +57,7 @@
 #include "r_plane.h" // killough 10/98
 #include "r_sky.h"   // R_GetSkyColor
 #include "r_state.h"
+#include "r_swirl.h"
 #include "s_sound.h"
 #include "sounds.h"
 #include "st_stuff.h"
@@ -2154,8 +2156,6 @@ int disable_nuke;  // killough 12/98: nukage disabling cheat
 
 static void P_SecretRevealed(player_t *player)
 {
-  extern int hud_secret_message;
-
   if (hud_secret_message && player == &players[consoleplayer])
   {
     player->secretmessage = s_HUSTR_SECRETFOUND;
@@ -2334,8 +2334,6 @@ boolean         levelTimer;
 int             levelTimeCount;
 boolean         levelFragLimit;      // Ty 03/18/98 Added -frags support
 int             levelFragLimitCount; // Ty 03/18/98 Added -frags support
-
-boolean         r_swirl;
 
 void P_UpdateSpecials (void)
 {

@@ -29,7 +29,7 @@
 #include "net_client.h"
 #include "p_mobj.h"
 
-int show_obituary_messages;
+boolean show_obituary_messages;
 int hudcolor_obituary;
 
 // [FG] gender-neutral pronouns
@@ -46,7 +46,7 @@ struct
     {"%r", "they're"},
 };
 
-static char *playerstr[] = {
+static const char *playerstr[] = {
     "Player 1",
     "Player 2",
     "Player 3",

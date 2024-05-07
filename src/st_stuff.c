@@ -33,6 +33,7 @@
 #include "i_video.h"
 #include "info.h"
 #include "m_cheat.h"
+#include "m_config.h"
 #include "m_misc.h"
 #include "m_random.h"
 #include "m_swap.h"
@@ -202,7 +203,8 @@ static int lu_palette;
 // whether left-side main status bar is active
 static boolean st_statusbaron;
 
-// [crispy] distinguish classic status bar with background and player face from Crispy HUD
+// [crispy] distinguish classic status bar with background and player face
+// from Crispy HUD
 boolean st_crispyhud;
 static boolean st_classicstatusbar;
 
@@ -251,7 +253,7 @@ static patch_t *arms[6][2];
 static st_number_t w_ready;
 
 // [Alaux]
-int hud_animated_counts;
+static boolean hud_animated_counts;
 int st_health = 100;
 int st_armor = 0;
 
@@ -265,8 +267,8 @@ int armor_red;     // armor amount less than which status is red
 int armor_yellow;  // armor amount less than which status is yellow
 int armor_green;   // armor amount above is blue, below is green
 
-int hud_backpack_thresholds; // backpack changes thresholds
-int hud_armor_type; // color of armor depends on type
+boolean hud_backpack_thresholds; // backpack changes thresholds
+boolean hud_armor_type; // color of armor depends on type
 
  // in deathmatch only, summary of frags stats
 static st_number_t w_frags;
@@ -323,7 +325,7 @@ extern char     *mapnames[];
 
 void ST_Stop(void);
 
-int st_solidbackground;
+static boolean st_solidbackground;
 
 static void ST_DrawSolidBackground(int st_x)
 {
@@ -669,8 +671,8 @@ void ST_updateFaceWidget(void)
 
 }
 
-int sts_traditional_keys; // killough 2/28/98: traditional status bar keys
-int hud_blink_keys; // [crispy] blinking key or skull in the status bar
+static boolean sts_traditional_keys; // killough 2/28/98: traditional status bar keys
+static boolean hud_blink_keys; // [crispy] blinking key or skull in the status bar
 
 void ST_SetKeyBlink(player_t* player, int blue, int yellow, int red)
 {
@@ -1472,6 +1474,40 @@ void ST_ResetPalette(void)
 {
   st_palette = -1;
   I_SetPalette(W_CacheLumpNum(lu_palette, PU_CACHE));
+}
+
+void ST_BindSTSVariables(void)
+{
+  M_BindBool("sts_colored_numbers", &sts_colored_numbers, NULL,
+             false, ss_stat, wad_yes, "1 to enable use of color on status bar");
+  M_BindBool("sts_pct_always_gray", &sts_pct_always_gray, NULL,
+             false, ss_stat, wad_yes,
+             "1 to make percent signs on status bar always gray");
+  M_BindBool("sts_traditional_keys", &sts_traditional_keys, NULL,
+             false, ss_stat, wad_yes,
+             "1 to make percent signs on status bar always gray");
+  M_BindBool("hud_blink_keys", &hud_blink_keys, NULL,
+             false, ss_stat, wad_no,
+      "1 to make missing keys blink when trying to trigger linedef actions");
+  M_BindBool("st_solidbackground", &st_solidbackground, NULL,
+             false, ss_stat, wad_no,
+             "1 for solid color status bar background in widescreen mode");
+  M_BindBool("hud_animated_counts", &hud_animated_counts, NULL,
+            false, ss_stat, wad_no, "1 to enable animated health/armor counts");
+  M_BindNum("health_red", &health_red, NULL, 25, 0, 200, ss_none, wad_yes,
+            "Amount of health for red to yellow transition");
+  M_BindNum("health_yellow", &health_yellow, NULL, 50, 0, 200, ss_none, wad_yes,
+            "Amount of health for yellow to green transition");
+  M_BindNum("health_green", &health_green, NULL, 100, 0, 200, ss_none, wad_yes,
+            "Amount of health for green to blue transition");
+  M_BindNum("armor_red", &armor_red, NULL, 25, 0, 200, ss_none, wad_yes,
+            "Amount of armor for red to yellow transition");
+  M_BindNum("armor_yellow", &armor_yellow, NULL, 50, 0, 200, ss_none, wad_yes,
+            "Amount of armor for yellow to green transition");
+  M_BindNum("armor_green", &armor_green, NULL, 100, 0, 200, ss_none, wad_yes,
+            "Amount of armor for green to blue transition");
+  M_BindNum("ammo_red", &ammo_red, NULL, 25, 0, 100, ss_none, wad_yes,
+            "Percent of ammo for red to yellow transition");
 }
 
 //----------------------------------------------------------------------------

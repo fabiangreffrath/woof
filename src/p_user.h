@@ -33,6 +33,15 @@ void P_DeathThink(struct player_s *player);
 void P_MovePlayer(struct player_s *player);
 void P_Thrust(struct player_s *player, angle_t angle, fixed_t move);
 
+typedef enum
+{
+  death_use_default,
+  death_use_reload,
+  death_use_nothing
+} death_use_action_t;
+
+extern death_use_action_t death_use_action;
+
 #endif // __P_USER__
 
 //----------------------------------------------------------------------------

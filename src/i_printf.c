@@ -55,7 +55,7 @@ int I_ConsoleStdout(void)
 }
 
 static verbosity_t verbosity = VB_INFO;
-verbosity_t cfg_verbosity;
+verbosity_t default_verbosity;
 
 #ifdef _WIN32
 static HANDLE hConsole;
@@ -114,7 +114,7 @@ void I_InitPrintf(void)
     EnableVTMode();
 #endif
 
-    verbosity = cfg_verbosity;
+    verbosity = default_verbosity;
 
     //!
     //

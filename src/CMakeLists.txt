@@ -60,7 +60,7 @@ set(WOOF_SOURCES
     m_io.c                 m_io.h
     mn_font.c              mn_font.h
     mn_menu.c              mn_menu.h
-    mn_setup.c             mn_setup.h
+    mn_setup.c             mn_internal.h
     m_misc.c               m_misc.h
     m_random.c             m_random.h
     mn_snapshot.c          mn_snapshot.h

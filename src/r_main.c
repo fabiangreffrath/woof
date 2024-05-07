@@ -38,11 +38,14 @@
 #include "r_defs.h"
 #include "r_draw.h"
 #include "r_main.h"
+#include "r_bmaps.h"
 #include "r_plane.h"
 #include "r_sky.h"
 #include "r_state.h"
+#include "r_swirl.h"
 #include "r_things.h"
 #include "r_voxel.h"
+#include "m_config.h"
 #include "st_stuff.h"
 #include "v_flextran.h"
 #include "v_video.h"
@@ -559,7 +562,7 @@ void R_ExecuteSetViewSize (void)
       scaledviewwidth_nonwide = setblocks * 32;
       scaledviewheight = (setblocks * st_screen / 10) & ~7; // killough 11/98
 
-      if (widescreen)
+      if (video.unscaledw > SCREENWIDTH)
         scaledviewwidth = (scaledviewheight * video.unscaledw / st_screen) & ~7;
       else
         scaledviewwidth = scaledviewwidth_nonwide;
@@ -836,6 +839,7 @@ static void R_ClearStats(void)
   rendered_voxels = 0;
 }
 
+static boolean flashing_hom;
 int autodetect_hom = 0;       // killough 2/7/98: HOM autodetection flag
 
 //
@@ -958,6 +962,37 @@ void R_InitAnyRes(void)
   R_InitSpritesRes();
   R_InitBufferRes();
   R_InitPlanesRes();
+}
+
+void R_BindRenderVariables(void)
+{
+  BIND_NUM_GENERAL(extra_level_brightness, 0, 0, 4, "Level brightness");
+  BIND_BOOL_GENERAL(stretchsky, false, "1 to stretch short skies");
+  BIND_BOOL_GENERAL(linearsky, false, "1 for linear horizontal sky scrolling");
+  BIND_BOOL_GENERAL(r_swirl, false, "1 to enable swirling animated flats");
+  BIND_BOOL_GENERAL(smoothlight, false, "1 to enable smooth diminishing lighting");
+  M_BindBool("voxels_rendering", &default_voxels_rendering, &voxels_rendering,
+             true, ss_none, wad_no, "1 to enable voxels rendering");
+  BIND_BOOL_GENERAL(brightmaps, false,
+    "1 to enable brightmaps for textures and sprites");
+  BIND_NUM_GENERAL(invul_mode, INVUL_MBF, INVUL_VANILLA, INVUL_GRAY,
+    "Invulnerability effect (0 = Vanilla, 1 = MBF, 2 = Gray)");
+  BIND_BOOL(flashing_hom, true, "1 to enable flashing HOM indicator");
+  BIND_NUM(screenblocks, 10, 3, 11, "Initial play screen size");
+
+  M_BindBool("translucency", &translucency, NULL, true, ss_gen, wad_yes,
+             "1 to enable translucency for some things");
+  M_BindNum("tran_filter_pct", &tran_filter_pct, NULL,
+            66, 0, 100, ss_gen, wad_yes,
+            "Set percentage of foreground/background translucency mix");
+
+  M_BindBool("flipcorpses", &flipcorpses, NULL, false, ss_enem, wad_no,
+             "1 to enable randomly mirrored death animations");
+  M_BindBool("fuzzcolumn_mode", &fuzzcolumn_mode, NULL, true, ss_enem, wad_no,
+             "0 original, 1 blocky");
+
+  BIND_BOOL(raw_input, true,
+    "Raw gamepad/mouse input for turning/looking (0 = Interpolate, 1 = Raw)");
 }
 
 //----------------------------------------------------------------------------

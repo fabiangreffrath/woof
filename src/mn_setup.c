@@ -13,7 +13,7 @@
 //  GNU General Public License for more details.
 //
 
-#include "mn_setup.h"
+#include "mn_internal.h"
 #include "am_map.h"
 #include "d_main.h"
 #include "doomdef.h"
@@ -1828,7 +1828,7 @@ static setup_tab_t gen_tabs[] = {
     {NULL}
 };
 
-int resolution_scale;
+static int resolution_scale;
 
 static const char **GetResolutionScaleStrings(void)
 {
@@ -1939,13 +1939,8 @@ static void ToggleExclusiveFullScreen(void)
     toggle_exclusive_fullscreen = true;
 }
 
-
-static void CoerceFPSLimit(void)
+static void UpdateFPSLimit(void)
 {
-    if (fpslimit < TICRATE)
-    {
-        fpslimit = 0;
-    }
     setrefreshneeded = true;
 }
 
@@ -1989,10 +1984,10 @@ static setup_menu_t gen_settings1[] = {
     MI_GAP,
 
     {"Uncapped Framerate", S_ONOFF, M_X, M_SPC, {"uncapped"}, m_null, input_null,
-     str_empty, MN_UpdateFpsLimitItem},
+     str_empty, UpdateFPSLimit},
 
     {"Framerate Limit", S_NUM, M_X, M_SPC, {"fpslimit"}, m_null, input_null,
-     str_empty, CoerceFPSLimit},
+     str_empty, UpdateFPSLimit},
 
     {"VSync", S_ONOFF, M_X, M_SPC, {"use_vsync"}, m_null, input_null, str_empty,
      I_ToggleVsync},
@@ -2032,12 +2027,8 @@ static const char *sound_module_strings[] = {
 #endif
 };
 
-static void UpdateAdvancedSoundItems(void);
-
 static void SetSoundModule(void)
 {
-    UpdateAdvancedSoundItems();
-
     if (!I_AllowReinitSound())
     {
         // The OpenAL implementation doesn't support the ALC_SOFT_HRTF extension
@@ -2046,21 +2037,15 @@ static void SetSoundModule(void)
         return;
     }
 
-    I_SetSoundModule(snd_module);
+    I_SetSoundModule();
 }
-
-int midi_player_menu;
-const char *midi_player_string = "";
 
 static void SetMidiPlayer(void)
 {
     S_StopMusic();
-    I_SetMidiPlayer(&midi_player_menu);
+    I_SetMidiPlayer();
     S_SetMusicVolume(snd_MusicVolume);
     S_RestartMusic();
-
-    const char **strings = GetStrings(str_midi_player);
-    midi_player_string = strings[midi_player_menu];
 }
 
 static setup_menu_t gen_settings2[] = {
@@ -2360,15 +2345,14 @@ void MN_UpdateDynamicResolutionItem(void)
                 "dynamic_resolution");
 }
 
-static void UpdateAdvancedSoundItems(void)
+void MN_UpdateAdvancedSoundItems(boolean toggle)
 {
-    DisableItem(snd_module != SND_MODULE_3D, gen_settings2, "snd_hrtf");
+    DisableItem(toggle, gen_settings2, "snd_hrtf");
 }
 
 void MN_UpdateFpsLimitItem(void)
 {
-    DisableItem(!default_uncapped, gen_settings1, "fpslimit");
-    setrefreshneeded = true;
+    DisableItem(!uncapped, gen_settings1, "fpslimit");
 }
 
 void MN_DisableVoxelsRenderingItem(void)
@@ -2557,7 +2541,7 @@ static void ResetDefaults()
                 }
                 else if (current_item->input_id == dp->input_id)
                 {
-                    M_InputSetDefault(dp->input_id, dp->inputs);
+                    M_InputSetDefault(dp->input_id);
                 }
             }
         }
@@ -3830,34 +3814,16 @@ static void UpdateHUDModeStrings(void)
     selectstrings[str_hudmode] = GetHUDModeStrings();
 }
 
-void MN_InitMidiPlayer(void)
+static const char **GetMidiPlayerStrings(void)
 {
-    const char **devices = I_DeviceList();
-
-    for (int i = 0; i < array_size(devices); ++i)
-    {
-        if (!strcasecmp(devices[i], midi_player_string))
-        {
-            midi_player_menu = i;
-            break;
-        }
-    }
-
-    if (midi_player_menu >= array_size(devices))
-    {
-        midi_player_menu = 0;
-    }
-
-    I_SetMidiPlayer(&midi_player_menu);
-    midi_player_string = devices[midi_player_menu];
-
-    selectstrings[str_midi_player] = devices;
+    return I_DeviceList();
 }
 
 void MN_InitMenuStrings(void)
 {
     UpdateHUDModeStrings();
     selectstrings[str_resolution_scale] = GetResolutionScaleStrings();
+    selectstrings[str_midi_player] = GetMidiPlayerStrings();
     selectstrings[str_mouse_accel] = GetMouseAccelStrings();
     selectstrings[str_resampler] = GetResamplerStrings();
 }
@@ -3874,11 +3840,16 @@ void MN_SetupResetMenu(void)
     DisableItem(deh_set_blood_color, enem_settings1, "colored_blood");
     DisableItem(!brightmaps_found || force_brightmaps, gen_settings5,
                 "brightmaps");
-    DisableItem(default_current_video_height <= DRS_MIN_HEIGHT, gen_settings1,
-                "dynamic_resolution");
     UpdateInterceptsEmuItem();
-    CoerceFPSLimit();
     UpdateCrosshairItems();
     UpdateCenteredWeaponItem();
-    UpdateAdvancedSoundItems();
+}
+
+void MN_BindMenuVariables(void)
+{
+    BIND_NUM(resolution_scale, 0, 0, UL, "Resolution scale menu index");
+    BIND_NUM_GENERAL(menu_backdrop, MENU_BG_DARK, MENU_BG_OFF, MENU_BG_TEXTURE,
+        "Draw menu backdrop (0 = Off, 1 = Dark (default), 2 = Texture)");
+    M_BindBool("traditional_menu", &traditional_menu, NULL,
+               true, ss_none, wad_yes, "1 to use Doom's main menu ordering");
 }

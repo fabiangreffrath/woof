@@ -199,6 +199,11 @@ typedef enum {
   ss_max
 } ss_types;
 
+typedef enum {
+  wad_no,
+  wad_yes
+} wad_allowed_t;
+
 // phares 3/20/98:
 //
 // Player friction is variable, based on controlling

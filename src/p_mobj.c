@@ -47,8 +47,6 @@
 #include "v_video.h"
 #include "z_zone.h"
 
-// [FG] colored blood and gibs
-boolean colored_blood;
 boolean direct_vertical_aiming, default_direct_vertical_aiming;
 
 void P_UpdateDirectVerticalAiming(void)

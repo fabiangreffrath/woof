@@ -359,8 +359,8 @@ static unsigned int last_perc_count;
 // Configuration file variable, containing the port number for the
 // adlib chip.
 
-char *snd_dmxoption = "-opl3"; // [crispy] default to OPL3 emulation
-int opl_io_port = 0x388;
+static char *snd_dmxoption = "-opl3"; // [crispy] default to OPL3 emulation
+static int opl_io_port = 0x388;
 
 // If true, OPL sound channels are reversed to their correct arrangement
 // (as intended by the MIDI standard) rather than the backwards one
@@ -1660,12 +1660,17 @@ static void I_OPL_ShutdownStream(void)
 static const char **I_OPL_DeviceList(void)
 {
     static const char **devices = NULL;
-    if (devices)
+    if (array_size(devices))
     {
         return devices;
     }
     array_push(devices, "OPL3 Emulation");
     return devices;
+}
+
+static void I_OPL_BindVariables(void)
+{
+    ;
 }
 
 stream_module_t stream_opl_module =
@@ -1677,4 +1682,5 @@ stream_module_t stream_opl_module =
     I_OPL_CloseStream,
     I_OPL_ShutdownStream,
     I_OPL_DeviceList,
+    I_OPL_BindVariables,
 };

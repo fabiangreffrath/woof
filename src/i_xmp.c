@@ -150,6 +150,11 @@ static const char **I_XMP_DeviceList(void)
     return NULL;
 }
 
+static void I_XMP_BindVariables(void)
+{
+    ;
+}
+
 stream_module_t stream_xmp_module =
 {
     I_XMP_InitStream,
@@ -159,4 +164,5 @@ stream_module_t stream_xmp_module =
     I_XMP_CloseStream,
     I_XMP_ShutdownStream,
     I_XMP_DeviceList,
+    I_XMP_BindVariables,
 };

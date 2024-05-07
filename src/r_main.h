@@ -55,6 +55,8 @@ extern fixed_t  viewheightfrac; // [FG] sprite clipping optimizations
 
 extern int rendered_visplanes, rendered_segs, rendered_vissprites, rendered_voxels;
 
+void R_BindRenderVariables(void);
+
 //
 // Lighting LUT.
 // Used for z-depth cuing per column/row,

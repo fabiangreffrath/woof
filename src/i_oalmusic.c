@@ -26,6 +26,7 @@
 #include "i_printf.h"
 #include "i_sound.h"
 #include "m_array.h"
+#include "m_config.h"
 
 // Define the number of buffers and buffer size (in milliseconds) to use. 4
 // buffers with 4096 samples each gives a nice per-chunk size, and lets the
@@ -293,8 +294,8 @@ static boolean I_OAL_InitMusic(int device)
     return false;
 }
 
-int mus_gain = 100;
-int opl_gain = 200;
+static int mus_gain = 100;
+static int opl_gain = 200;
 
 static void I_OAL_SetMusicVolume(int volume)
 {
@@ -457,6 +458,20 @@ static const char **I_OAL_DeviceList(void)
     return devices;
 }
 
+static void I_OAL_BindVariables(void)
+{
+    BIND_NUM(opl_gain, 200, 100, 1000,
+        "Fine tune OPL emulation output level (default 200%)");
+#if defined (HAVE_FLUIDSYNTH)
+    BIND_NUM(mus_gain, 100, 10, 1000,
+        "Fine tune FluidSynth output level (default 100%)");
+#endif
+    for (int i = 0; i < arrlen(midi_modules); ++i)
+    {
+        midi_modules[i]->BindVariables();
+    }
+}
+
 music_module_t music_oal_module =
 {
     I_OAL_InitMusic,
@@ -469,4 +484,5 @@ music_module_t music_oal_module =
     I_OAL_StopSong,
     I_OAL_UnRegisterSong,
     I_OAL_DeviceList,
+    I_OAL_BindVariables,
 };

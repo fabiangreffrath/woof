@@ -36,7 +36,7 @@
 
 #define HU_GAPX 2
 static int left_margin, right_margin;
-int hud_widescreen_widgets;
+boolean hud_widescreen_widgets;
 
 void HUlib_set_margins (void)
 {
