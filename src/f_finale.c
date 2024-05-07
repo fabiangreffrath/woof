@@ -388,7 +388,7 @@ void F_TextWrite (void)
   {
     V_DrawPatchFullScreen(W_CacheLumpName(finaleflat, PU_LEVEL));
   }
-  else
+  else if ((W_CheckNumForName)(finaleflat, ns_flats) != -1)
   {
     // erase the entire screen to a tiled background
 
