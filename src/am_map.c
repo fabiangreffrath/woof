@@ -2357,26 +2357,28 @@ void AM_ColorPreset(void)
 
 void AM_BindAutomapVariables(void)
 {
-  BIND_BOOL_OPT(followplayer, true, ss_auto, wad_no,
-    "1 to enable automap follow player mode");
-  BIND_NUM_OPT(automapoverlay,
-    AM_OVERLAY_OFF, AM_OVERLAY_OFF, AM_OVERLAY_DARK, ss_auto, wad_no,
-    "Automap overlay mode (1 = On, 2 = Dark)");
-  BIND_BOOL_OPT(automaprotate, false, ss_auto, wad_no,
-    "1 to enable automap rotate mode");
+  M_BindBool("followplayer", &followplayer, NULL, true, ss_auto, wad_no,
+             "1 to enable automap follow player mode");
+  M_BindNum("automapoverlay", &automapoverlay, NULL, AM_OVERLAY_OFF,
+            AM_OVERLAY_OFF, AM_OVERLAY_DARK, ss_auto, wad_no,
+            "Automap overlay mode (1 = On, 2 = Dark)");
+  M_BindBool("automaprotate", &automaprotate, NULL, false, ss_auto, wad_no,
+             "1 to enable automap rotate mode");
 
-  BIND_BOOL_OPT(map_point_coord, true, ss_auto, wad_no,
-    "1 to show automap pointer coordinates in non-follow mode");
-  BIND_BOOL_OPT(map_secret_after, false, ss_auto, wad_no,
-    "1 to not show secret sectors till after entered");
-  BIND_NUM_OPT(map_keyed_door,
-    MAP_KEYED_DOOR_COLOR, MAP_KEYED_DOOR_OFF, MAP_KEYED_DOOR_FLASH, ss_auto, wad_no,
-    "Keyed doors are colored (1) or flashing (2) on the automap");
-  BIND_BOOL_OPT(map_smooth_lines, true, ss_auto, wad_no,
-    "1 to enable smooth automap lines");
+  M_BindBool("map_point_coord", &map_point_coord, NULL, true, ss_auto, wad_no,
+             "1 to show automap pointer coordinates in non-follow mode");
+  M_BindBool("map_secret_after", &map_secret_after, NULL, false, ss_auto, wad_no,
+             "1 to not show secret sectors till after entered");
+  M_BindNum("map_keyed_door", &map_keyed_door, NULL,
+            MAP_KEYED_DOOR_COLOR, MAP_KEYED_DOOR_OFF, MAP_KEYED_DOOR_FLASH,
+            ss_auto, wad_no,
+            "Keyed doors are colored (1) or flashing (2) on the automap");
+  M_BindBool("map_smooth_lines", &map_smooth_lines, NULL, true, ss_auto,
+             wad_no, "1 to enable smooth automap lines");
 
-  BIND_NUM_OPT(mapcolor_preset, 1, 0, 2, ss_auto, wad_no,
-    "Automap color preset (0 = Vanilla Doom, 1 = Boom (default), 2 = ZDoom)");
+  M_BindNum("mapcolor_preset", &mapcolor_preset, NULL, 1, 0, 2, ss_auto, wad_no,
+            "Automap color preset (0 = Vanilla Doom, 1 = Boom (default), "
+            "2 = ZDoom)");
 
 #define BIND_CR(name, v, help) \
   M_BindNum(#name, &name, NULL, (v), 0, 255, ss_none, wad_yes, help)

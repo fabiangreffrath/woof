@@ -2921,21 +2921,21 @@ void D_DoomMain(void)
 
 void D_BindMiscVariables(void)
 {
-  BIND_NUM_GEN(show_endoom, 0, 0, 2,
+  BIND_NUM_GENERAL(show_endoom, 0, 0, 2,
     "Show ENDOOM screen (0 = Off, 1 = On, 2 = PWAD only)");
-  BIND_BOOL_GEN(demobar, false, "1 to enable demo progress bar");
-  BIND_NUM_GEN(screen_melt, wipe_Melt, wipe_None, wipe_Fizzle,
+  BIND_BOOL_GENERAL(demobar, false, "1 to enable demo progress bar");
+  BIND_NUM_GENERAL(screen_melt, wipe_Melt, wipe_None, wipe_Fizzle,
     "Screen wipe effect (0 = None, 1 = Melt, 2 = Crossfade, 3 = Fizzlefade)");
-  BIND_BOOL_GEN(palette_changes, true, "0 to disable palette changes");
-  BIND_NUM_GEN(organize_savefiles, -1, -1, 1,
+  BIND_BOOL_GENERAL(palette_changes, true, "0 to disable palette changes");
+  BIND_NUM_GENERAL(organize_savefiles, -1, -1, 1,
     "1 to organize save files");
   M_BindStr("net_player_name", &net_player_name, DEFAULT_PLAYER_NAME, wad_no,
     "Network setup player name");
   BIND_NUM(default_verbosity, VB_INFO, VB_ERROR, VB_MAX - 1,
     "Verbosity level (1 = Errors only, 2 = Warnings, 3 = Info, 4 = Debug)");
 
-  BIND_BOOL_OPT(colored_blood, false, ss_enem, wad_no,
-    "1 to enable colored blood");
+  M_BindBool("colored_blood", &colored_blood, NULL, false, ss_enem, wad_no,
+             "1 to enable colored blood");
 }
 
 //----------------------------------------------------------------------------

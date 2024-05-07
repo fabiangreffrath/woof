@@ -2140,76 +2140,89 @@ static void HU_ParseHUD (void)
 
 void HU_BindHUDVariables(void)
 {
-  BIND_NUM_OPT(hud_active, 2, 0, 2, ss_stat, wad_yes,
-    "0 for HUD off, 1 for HUD small, 2 for full HUD");
-  BIND_BOOL_OPT(hud_displayed, false, ss_none, wad_yes,
-    "1 to enable display of HUD");
-  BIND_NUM_OPT(hud_player_coords,
-    HUD_WIDGET_AUTOMAP, HUD_WIDGET_OFF, HUD_WIDGET_ALWAYS, ss_stat, wad_no,
-    "Show player coords widget (1 = on Automap, 2 = on HUD, 3 = always)");
-  BIND_NUM_OPT(hud_level_stats,
-    HUD_WIDGET_OFF, HUD_WIDGET_OFF, HUD_WIDGET_ALWAYS, ss_stat, wad_no,
-    "Show level stats (kill, items and secrets) widget (1 = on Automap, 2 = on HUD, 3 = always)");
-  BIND_NUM_OPT(hud_level_time,
-    HUD_WIDGET_OFF, HUD_WIDGET_OFF, HUD_WIDGET_ALWAYS, ss_stat, wad_no,
-    "Show level time widget (1 = on Automap, 2 = on HUD, 3 = always)");
-  BIND_BOOL_OPT(hud_time_use, false, ss_stat, wad_no,
-    "Show split time when pressing the use button");
-  BIND_NUM_OPT(hud_type, HUD_TYPE_BOOM, HUD_TYPE_CRISPY, NUM_HUD_TYPES - 1, ss_stat, wad_no,
-    "Fullscreen HUD (0 = Crispy, 1 = Boom (No Bars), 2 = Boom)");
-  BIND_BOOL_OPT(hud_backpack_thresholds, true, ss_stat, wad_no,
-    "Backpack changes thresholds");
-  BIND_BOOL_OPT(hud_armor_type, false, ss_stat, wad_no,
-    "Color of armor depends on type");
-  BIND_BOOL_OPT(hud_widescreen_widgets, true, ss_stat, wad_no,
-    "Arrange widgets on widescreen edges");
-  BIND_NUM_OPT(hud_widget_font,
-    HUD_WIDGET_OFF, HUD_WIDGET_OFF, HUD_WIDGET_ALWAYS, ss_stat, wad_no,
-    "Use standard Doom font for widgets (1 = on Automap, 2 = on HUD, 3 = always)");
-  BIND_BOOL_OPT(hud_widget_layout, false, ss_stat, wad_no,
-    "Widget layout (0 = Horizontal, 1 = Vertical)");
-  BIND_NUM_OPT(hud_crosshair, 0, 0, HU_CROSSHAIRS - 1, ss_stat, wad_no,
-    "Enable crosshair");
-  BIND_BOOL_OPT(hud_crosshair_health, false, ss_stat, wad_no,
-    "1 to change crosshair color by player health");
-  BIND_NUM_OPT(hud_crosshair_target, 0, 0, 2, ss_stat, wad_no,
-    "Change crosshair color on target (1 = Highlight, 2 = Health)");
-  BIND_BOOL_OPT(hud_crosshair_lockon, false, ss_stat, wad_no,
-    "1 to lock crosshair on target");
-  BIND_NUM_OPT(hud_crosshair_color, CR_GRAY, CR_BRICK, CR_NONE, ss_stat, wad_no,
-    "Default crosshair color");
-  BIND_NUM_OPT(hud_crosshair_target_color, CR_YELLOW, CR_BRICK, CR_NONE,
-    ss_stat, wad_no, "Target crosshair color");
+  M_BindBool("hud_displayed", &hud_displayed, NULL, false, ss_none, wad_yes,
+             "1 to enable display of HUD");
+  M_BindNum("hud_active", &hud_active, NULL, 2, 0, 2, ss_stat, wad_yes,
+            "0 for HUD off, 1 for HUD small, 2 for full HUD");
+  M_BindNum("hud_player_coords", &hud_player_coords, NULL,
+            HUD_WIDGET_AUTOMAP, HUD_WIDGET_OFF, HUD_WIDGET_ALWAYS,
+            ss_stat, wad_no,
+            "Show player coords widget (1 = on Automap, 2 = on HUD, 3 = always)");
+  M_BindNum("hud_level_stats", &hud_level_stats, NULL,
+            HUD_WIDGET_OFF, HUD_WIDGET_OFF, HUD_WIDGET_ALWAYS,
+            ss_stat, wad_no,
+            "Show level stats (kill, items and secrets) widget (1 = on "
+            "Automap, 2 = on HUD, 3 = always)");
+  M_BindNum("hud_level_time", &hud_level_time, NULL,
+            HUD_WIDGET_OFF, HUD_WIDGET_OFF, HUD_WIDGET_ALWAYS,
+            ss_stat, wad_no,
+            "Show level time widget (1 = on Automap, 2 = on HUD, 3 = always)");
+  M_BindBool("hud_time_use", &hud_time_use, NULL, false, ss_stat, wad_no,
+             "Show split time when pressing the use button");
+  M_BindNum("hud_type", &hud_type, NULL,
+            HUD_TYPE_BOOM, HUD_TYPE_CRISPY, NUM_HUD_TYPES - 1,
+            ss_stat, wad_no,
+            "Fullscreen HUD (0 = Crispy, 1 = Boom (No Bars), 2 = Boom)");
+  M_BindBool("hud_backpack_thresholds", &hud_backpack_thresholds, NULL,
+             true, ss_stat, wad_no, "Backpack changes thresholds");
+  M_BindBool("hud_armor_type", &hud_armor_type, NULL, false, ss_stat, wad_no,
+             "Color of armor depends on type");
+  M_BindBool("hud_widescreen_widgets", &hud_widescreen_widgets, NULL,
+             true, ss_stat, wad_no, "Arrange widgets on widescreen edges");
+  M_BindNum("hud_widget_font", &hud_widget_font, NULL,
+            HUD_WIDGET_OFF, HUD_WIDGET_OFF, HUD_WIDGET_ALWAYS,
+            ss_stat, wad_no,
+            "Use standard Doom font for widgets (1 = on Automap, 2 = on HUD, 3 "
+            "= always)");
+  M_BindBool("hud_widget_layout", &hud_widget_layout, NULL,
+             false, ss_stat, wad_no, "Widget layout (0 = Horizontal, 1 = Vertical)");
+  M_BindNum("hud_crosshair", &hud_crosshair, NULL, 0, 0, 10 - 1, ss_stat, wad_no,
+            "Enable crosshair");
+  M_BindBool("hud_crosshair_health", &hud_crosshair_health, NULL,
+             false, ss_stat, wad_no, "1 to change crosshair color by player health");
+  M_BindNum("hud_crosshair_target", &hud_crosshair_target, NULL,
+            0, 0, 2, ss_stat, wad_no,
+            "Change crosshair color on target (1 = Highlight, 2 = Health)");
+  M_BindBool("hud_crosshair_lockon", &hud_crosshair_lockon, NULL,
+             false, ss_stat, wad_no, "1 to lock crosshair on target");
+  M_BindNum("hud_crosshair_color", &hud_crosshair_color, NULL,
+            CR_GRAY, CR_BRICK, CR_NONE, ss_stat, wad_no,
+            "Default crosshair color");
+  M_BindNum("hud_crosshair_target_color", &hud_crosshair_target_color, NULL,
+            CR_YELLOW, CR_BRICK, CR_NONE, ss_stat, wad_no,
+            "Target crosshair color");
 
-  BIND_NUM_OPT(hudcolor_titl, CR_GOLD, CR_BRICK, CR_NONE, ss_none, wad_yes,
-    "Color range used for automap level title");
-  BIND_NUM_OPT(hudcolor_xyco, CR_GREEN, CR_BRICK, CR_NONE, ss_none, wad_yes,
-    "Color range used for automap coordinates");
+  M_BindNum("hudcolor_titl", &hudcolor_titl, NULL,
+            CR_GOLD, CR_BRICK, CR_NONE, ss_none, wad_yes,
+            "Color range used for automap level title");
+  M_BindNum("hudcolor_xyco", &hudcolor_xyco, NULL,
+            CR_GREEN, CR_BRICK, CR_NONE, ss_none, wad_yes,
+            "Color range used for automap coordinates");
 
   BIND_BOOL(show_messages, true, "1 to enable message display");
-  BIND_BOOL_OPT(hud_secret_message, true, ss_stat, wad_no,
-    "\"A secret is revealed!\" message");
-  BIND_BOOL_OPT(show_toggle_messages, true, ss_stat, wad_no,
-    "1 to enable toggle messages");
-  BIND_BOOL_OPT(show_pickup_messages, true, ss_stat, wad_no,
-    "1 to enable pickup messages");
-  BIND_BOOL_OPT(show_obituary_messages, true, ss_stat, wad_no,
-    "1 to enable obituaries");
+  M_BindBool("hud_secret_message", &hud_secret_message, NULL,
+            true, ss_stat, wad_no, "\"A secret is revealed!\" message");
+  M_BindBool("show_toggle_messages", &show_toggle_messages, NULL,
+            true, ss_stat, wad_no, "1 to enable toggle messages");
+  M_BindBool("show_pickup_messages", &show_pickup_messages, NULL,
+             true, ss_stat, wad_no, "1 to enable pickup messages");
+  M_BindBool("show_obituary_messages", &show_obituary_messages, NULL,
+             true, ss_stat, wad_no, "1 to enable obituaries");
 
-  BIND_NUM_OPT(hudcolor_mesg, CR_NONE, CR_BRICK, CR_NONE, ss_none, wad_yes,
-    "Color range used for messages during play");
-  BIND_NUM_OPT(hudcolor_chat, CR_GOLD, CR_BRICK, CR_NONE, ss_none, wad_yes,
-    "Color range used for chat messages and entry");
+  M_BindNum("hudcolor_mesg", &hudcolor_mesg, NULL, CR_NONE, CR_BRICK, CR_NONE,
+            ss_none, wad_yes, "Color range used for messages during play");
+  M_BindNum("hudcolor_chat", &hudcolor_chat, NULL, CR_GOLD, CR_BRICK, CR_NONE,
+            ss_none, wad_yes, "Color range used for chat messages and entry");
   BIND_NUM(hudcolor_obituary, CR_GRAY, CR_BRICK, CR_NONE,
-    "Color range used for obituaries");
+           "Color range used for obituaries");
 
   BIND_NUM(message_timer, 4000, 0, UL, "Duration of normal Doom messages (ms)");
   BIND_NUM(chat_msg_timer, 4000, 0, UL, "Duration of chat messages (ms)");
   BIND_NUM(hud_msg_lines, 4, 1, HU_MAXMESSAGES, "Number of message lines");
-  BIND_BOOL_OPT(message_colorized, false, ss_stat, wad_no,
-    "1 to colorize player messages");
-  BIND_BOOL_OPT(message_centered, false, ss_stat, wad_no,
-    "1 to center messages");
+  M_BindBool("message_colorized", &message_colorized, NULL,
+             false, ss_stat, wad_no, "1 to colorize player messages");
+  M_BindBool("message_centered", &message_centered, NULL,
+             false, ss_stat, wad_no, "1 to center messages");
   BIND_BOOL(message_list, false, "1 means multiline message list is active");
 
 #define BIND_CHAT(num)                                                     \

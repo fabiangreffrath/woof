@@ -460,9 +460,9 @@ static void GetAttribs(ALCint **attribs)
 
 void I_OAL_BindSoundVariables(void)
 {
-    BIND_BOOL_GEN(snd_hrtf, false,
+    BIND_BOOL_GENERAL(snd_hrtf, false,
         "[OpenAL 3D] Headphones mode (0 = No, 1 = Yes)");
-    BIND_NUM_GEN(snd_resampler, 1, 0, UL,
+    BIND_NUM_GENERAL(snd_resampler, 1, 0, UL,
         "Sound resampler (0 = Nearest, 1 = Linear, ...)");
     BIND_NUM(snd_absorption, 0, 0, 10,
         "[OpenAL 3D] Air absorption effect (0 = Off, 10 = Max)");

@@ -724,11 +724,11 @@ void I_BindSoundVariables(void)
         "1 to enable variable pitch in sound effects (from id's original code)");
     BIND_NUM(pitch_bend_range, 120, 100, 300,
         "Variable pitch bend range (100 none, 120 default)");
-    BIND_BOOL_GEN(full_sounds, false, "1 to play sounds in full length");
+    BIND_BOOL_GENERAL(full_sounds, false, "1 to play sounds in full length");
     M_BindNum("snd_channels", &default_numChannels, NULL,
         MAX_CHANNELS, 1, MAX_CHANNELS, ss_none, wad_no,
         "Number of sound effects handled simultaneously");
-    BIND_NUM_GEN(snd_module, SND_MODULE_MBF, 0, NUM_SND_MODULES - 1,
+    BIND_NUM_GENERAL(snd_module, SND_MODULE_MBF, 0, NUM_SND_MODULES - 1,
         "Sound module (0 = Standard, 1 = OpenAL 3D, 2 = PC Speaker Sound)");
     for (int i = 0; i < arrlen(sound_modules); ++i)
     {

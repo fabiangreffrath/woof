@@ -35,34 +35,22 @@ void M_BindNum(const char *name, void *location, void *current,
                int default_val, int min_val, int max_val,
                ss_types screen, wad_allowed_t wad,
                const char *help);
+
 #define BIND_NUM(name, v, a, b, help) \
     M_BindNum(#name, &name, NULL, (v), (a), (b), ss_none, wad_no, help)
-#define BIND2_NUM(name, v, a, b, help) \
-    M_BindNum(#name, &default_##name, &name, (v), (a), (b), ss_none, wad_no, help)
-#define BIND_NUM_OPT(name, v, a, b, screen, wad, help) \
-    M_BindNum(#name, &name, NULL, (v), (a), (b), screen, wad, help)
-#define BIND2_NUM_OPT(name, v, a, b, screen, wad, help) \
-    M_BindNum(#name, &default_##name, &name, (v), (a), (b), screen, wad, help)
-#define BIND_NUM_GEN(name, v, a, b, help) \
+
+#define BIND_NUM_GENERAL(name, v, a, b, help) \
     M_BindNum(#name, &name, NULL, (v), (a), (b), ss_gen, wad_no, help)
-#define BIND2_NUM_GEN(name, v, a, b, help) \
-    M_BindNum(#name, &default_##name, &name, (v), (a), (b), ss_gen, wad_no, help)
 
 void M_BindBool(const char *name, boolean *location, boolean *current,
                 boolean default_val, ss_types screen, wad_allowed_t wad,
                 const char *help);
+
 #define BIND_BOOL(name, v, help) \
     M_BindBool(#name, &name, NULL, (v), ss_none, wad_no, help)
-#define BIND2_BOOL(name, v, help) \
-    M_BindBool(#name, &default_##name, &name, (v), ss_none, wad_no, help)
-#define BIND_BOOL_OPT(name, v, screen, wad, help) \
-    M_BindBool(#name, &name, NULL, (v), screen, wad, help)
-#define BIND2_BOOL_OPT(name, v, screen, wad, help) \
-    M_BindBool(#name, &default_##name, &name, (v), screen, wad, help)
-#define BIND_BOOL_GEN(name, v, help) \
+
+#define BIND_BOOL_GENERAL(name, v, help) \
     M_BindBool(#name, &name, NULL, (v), ss_gen, wad_no, help)
-#define BIND2_BOOL_GEN(name, v, help) \
-    M_BindBool(#name, &default_##name, &name, (v), ss_gen, wad_no, help)
 
 void M_BindStr(char *name, const char **location, char *default_val,
                wad_allowed_t wad, const char *help);
