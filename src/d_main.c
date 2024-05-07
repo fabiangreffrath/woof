@@ -115,7 +115,7 @@ static char *D_dehout(void)
         // @category mod
         // @arg <filename>
         //
-        // Alias for -dehout.
+        // Alias to -dehout.
         //
 
         p = M_CheckParm("-bexout");
@@ -1651,7 +1651,7 @@ static void D_ProcessDehCommandLine(void)
   // @arg <files>
   // @category mod
   //
-  // Alias for -deh.
+  // Alias to -deh.
   //
 
   if (p || (p = M_CheckParm("-bex")))
@@ -2364,7 +2364,7 @@ void D_DoomMain(void)
   // @category game
   // @help
   //
-  // Alias for -skill 4.
+  // Alias to -skill 4.
   //
 
   if (M_ParmExists("-uv"))
@@ -2377,7 +2377,7 @@ void D_DoomMain(void)
   // @category game
   // @help
   //
-  // Alias for -skill 5.
+  // Alias to -skill 5.
   //
 
   if (M_ParmExists("-nm"))
