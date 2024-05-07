@@ -3441,6 +3441,18 @@ void G_ReloadDefaults(boolean keep_demover)
 
     int p = M_CheckParmWithArgs("-complevel", 1);
 
+    if (!p)
+    {
+    //!
+    // @arg <version>
+    // @category compat
+    // @help
+    //
+    // Alias to -complevel.
+    //
+      p = M_CheckParmWithArgs("-cl", 1);
+    }
+
     if (p > 0)
     {
       demover = G_GetNamedComplevel(myargv[p + 1]);
