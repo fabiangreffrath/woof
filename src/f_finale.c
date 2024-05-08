@@ -397,7 +397,7 @@ void F_TextWrite (void)
     }
               
     w = SHORT (hu_font[c]->width);
-    if (cx + w > video.unscaledw)
+    if (cx + w > video.unscaledw - video.deltaw)
     {
       continue;
     }
