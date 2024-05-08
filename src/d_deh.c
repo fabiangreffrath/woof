@@ -3459,9 +3459,9 @@ void PostProcessDeh(void)
   }
 
   // [FG] fix desyncs by SSG-flash correction
-  if (!CheckSafeState(S_DSGUNFLASH1))
+  if (CheckSafeState(S_DSGUNFLASH1) && states[S_DSGUNFLASH1].tics == 5)
   {
-    states[S_DSGUNFLASH1].tics = 5;
+    states[S_DSGUNFLASH1].tics = 4;
   }
 
   dsdh_FreeTables();
