@@ -3387,14 +3387,18 @@ static deh_bexptr null_bexptr = { {NULL}, "(NULL)" };
 
 static boolean CheckSafeState(statenum_t state)
 {
-    statenum_t origstate = state;
+    int count = 0;
 
     for (statenum_t s = state; s != S_NULL; s = states[s].nextstate)
     {
+        // [FG] recursive/nested states
+        if (count++ >= 100)
+        {
+            return false;
+        }
+
         // [crispy] a state with -1 tics never changes
-        if (states[s].tics == -1 ||
-            s == states[s].nextstate ||
-            states[s].nextstate == origstate)
+        if (states[s].tics == -1)
         {
             break;
         }
