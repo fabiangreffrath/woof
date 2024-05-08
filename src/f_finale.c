@@ -52,9 +52,8 @@ int finalecount;
 #define NEWTEXTSPEED 0.01f // new value                         // phares
 #define NEWTEXTWAIT  1000  // new value                         // phares
 
-char*   finaletext;
-char*   finaleflat;
-static char* finaletext_rw = NULL;
+const char *finaletext;
+const char *finaleflat;
 
 void    F_StartCast (void);
 void    F_CastTicker (void);
@@ -218,14 +217,6 @@ void F_StartFinale (void)
 
   finalestage = 0;
   finalecount = 0;
-
-  // [FG] do the "char* vs. const char*" dance
-  if (finaletext_rw)
-  {
-    free(finaletext_rw);
-    finaletext_rw = NULL;
-  }
-  finaletext_rw = M_StringDuplicate(finaletext);
 }
 
 
@@ -353,31 +344,11 @@ void F_Ticker(void)
 // text can be increased, and there's still time to read what's     //   |
 // written.                                                         // phares
 
-// [FG] add line breaks for lines exceeding screenwidth
-static inline boolean F_AddLineBreak (char *c)
-{
-    while (c-- > finaletext_rw)
-    {
-	if (*c == '\n')
-	{
-	    return false;
-	}
-	else
-	if (*c == ' ')
-	{
-	    *c = '\n';
-	    return true;
-	}
-    }
-
-    return false;
-}
-
 void F_TextWrite (void)
 {
   int         w;         // killough 8/9/98: move variables below
   int         count;
-  char*       ch;
+  const char  *ch;
   int         c;
   int         cx;
   int         cy;
@@ -399,7 +370,8 @@ void F_TextWrite (void)
   // draw some of the text onto the screen
   cx = 10;
   cy = 10;
-  ch = finaletext_rw;
+  ch = finaletext;
+
       
   count = (int)((finalecount - 10)/Get_TextSpeed());                 // phares
   if (count < 0)
@@ -425,13 +397,9 @@ void F_TextWrite (void)
     }
               
     w = SHORT (hu_font[c]->width);
-    if (cx+w > SCREENWIDTH)
+    if (cx + w > video.unscaledw - video.deltaw)
     {
-      // [FG] add line breaks for lines exceeding screenwidth
-      if (F_AddLineBreak(ch))
-        continue;
-      else
-      break;
+      continue;
     }
     // [cispy] prevent text from being drawn off-screen vertically
     if (cy + SHORT(hu_font[c]->height) > SCREENHEIGHT)
