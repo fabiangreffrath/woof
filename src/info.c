@@ -159,10 +159,14 @@ state_t original_states[NUMSTATES] = {
   {SPR_SHT2,1,7,{NULL},S_DSNR2},  // S_DSNR1
   {SPR_SHT2,0,3,{NULL},S_DSGUNDOWN},  // S_DSNR2
 
+#ifdef MBF_STRICT
   // killough 8/20/98: reduce first SSG flash frame one tic, to fix
   // Doom II SSG flash bug, in which SSG raises before flash finishes
 
   {SPR_SHT2,8|FF_FULLBRIGHT,4/*killough*/,{A_Light1},S_DSGUNFLASH2}, // S_DSGUNFLASH1
+#else
+  {SPR_SHT2,8|FF_FULLBRIGHT,5,{A_Light1},S_DSGUNFLASH2}, // S_DSGUNFLASH1
+#endif
   {SPR_SHT2,9|FF_FULLBRIGHT,4,{A_Light2},S_LIGHTDONE},  // S_DSGUNFLASH2
   {SPR_CHGG,0,1,{A_WeaponReady},S_CHAIN}, // S_CHAIN
   {SPR_CHGG,0,1,{A_Lower},S_CHAINDOWN}, // S_CHAINDOWN
