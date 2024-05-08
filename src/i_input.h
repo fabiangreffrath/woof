@@ -37,6 +37,6 @@ void I_HandleJoystickEvent(SDL_Event *sdlevent);
 void I_HandleKeyboardEvent(SDL_Event *sdlevent);
 void I_HandleMouseEvent(SDL_Event *sdlevent);
 
-void I_BindInputVarianles(void);
+void I_BindInputVariables(void);
 
 #endif

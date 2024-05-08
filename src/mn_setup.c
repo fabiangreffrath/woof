@@ -3849,7 +3849,7 @@ void MN_BindMenuVariables(void)
 {
     BIND_NUM(resolution_scale, 0, 0, UL, "Resolution scale menu index");
     BIND_NUM_GENERAL(menu_backdrop, MENU_BG_DARK, MENU_BG_OFF, MENU_BG_TEXTURE,
-        "Draw menu backdrop (0 = Off, 1 = Dark (default), 2 = Texture)");
+        "Menu backdrop (0 = Off; 1 = Dark; 2 = Texture)");
     M_BindBool("traditional_menu", &traditional_menu, NULL,
                true, ss_none, wad_yes, "1 to use Doom's main menu ordering");
 }

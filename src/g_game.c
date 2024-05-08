@@ -4505,50 +4505,49 @@ void G_BindGameInputVariables(void)
   BIND_BOOL(autorun, true, "1 to enable autorun");
   BIND_BOOL_GENERAL(mouselook, false, "1 to enable mouselook");
   BIND_NUM_GENERAL(mouse_sensitivity, 5, 0, UL,
-    "Adjust horizontal (x) mouse sensitivity for turning");
+    "Horizontal mouse sensitivity for turning");
   BIND_NUM_GENERAL(mouse_sensitivity_y, 5, 0, UL,
-    "Adjust vertical (y) mouse sensitivity for moving");
+    "Vertical mouse sensitivity for moving");
   BIND_NUM_GENERAL(mouse_sensitivity_strafe, 5, 0, UL,
-    "Adjust horizontal (x) mouse sensitivity for strafing");
+    "Horizontal mouse sensitivity for strafing");
   BIND_NUM_GENERAL(mouse_sensitivity_y_look, 5, 0, UL,
-    "Adjust vertical (y) mouse sensitivity for looking");
-  BIND_BOOL_GENERAL(mouse_y_invert, false, "1 to invert vertical axis");
-  BIND_BOOL_GENERAL(dclick_use, true, "Double click acts as \"use\"");
+    "Vertical mouse sensitivity for looking");
+  BIND_BOOL_GENERAL(mouse_y_invert, false, "1 to invert vertical mouse axis");
+  BIND_BOOL_GENERAL(dclick_use, true, "1 to enable double-click acting as use-button");
   BIND_BOOL(novert, true, "1 to disable vertical mouse movement");
   BIND_BOOL_GENERAL(padlook, false, "1 to enable padlook");
 }
 
 void G_BindGameVariables(void)
 {
-  BIND_BOOL(shorttics, false, "1 to use low resolution turning");
+  BIND_BOOL(shorttics, false, "1 to use low-resolution turning");
   BIND_NUM_GENERAL(default_skill, 3, 1, 5,
-    "Selects default skill (1 = ITYTD, 2 = HNTR, 3 = HMP, 4 = UV, 5 = NM)");
+    "Default skill level (1 = ITYTD; 2 = HNTR; 3 = HMP; 4 = UV; 5 = NM)");
   BIND_NUM_GENERAL(realtic_clock_rate, 100, 10, 1000,
-    "Percentage of normal speed realtic clock runs at");
+    "Game speed percentage");
   M_BindNum("max_player_corpse", &default_bodyquesize, NULL,
     32, UL, UL, ss_none, wad_no,
-    "Number of dead bodies in view supported (Negative value = No limit)");
+    "Maximum number of dead bodies in view (< 0 = No limit)");
   BIND_NUM_GENERAL(death_use_action, 0, 0, 2,
-    "\"Use\" button action on death (0 = Default, 1 = Load save, 2 = Nothing)");
+    "Use-button action upon death (0 = Default; 1 = Load save; 2 = Nothing)");
 }
 
 void G_BindEnemVariables(void)
 {
   M_BindNum("player_helpers", &default_dogs, &dogs, 0, 0, 3, ss_enem, wad_yes,
-    "Number of dogs");
+    "Number of helper dogs");
   M_BindBool("ghost_monsters", &ghost_monsters, NULL, true, ss_enem, wad_no,
-             "1 to enable \"ghost monsters\" (resurrected pools of gore are "
-             "translucent)");
+             "1 to make ghost monsters (resurrected pools of gore) translucent");
 
   M_BindBool("monsters_remember", &default_monsters_remember, &monsters_remember,
              true, ss_none, wad_yes,
-             "1 to enable monsters remembering enemies after killing others");
+             "1 to enable monsters to remember enemies after killing others");
   M_BindBool("monster_infighting", &default_monster_infighting, &monster_infighting,
              true, ss_none, wad_yes,
-             "1 to enable monsters fighting against each other when provoked");
+             "1 to enable monsters to fight against each other when provoked");
   M_BindBool("monster_backing", &default_monster_backing, &monster_backing,
              false, ss_none, wad_yes,
-             "1 to enable monsters backing away from targets");
+             "1 to enable monsters to back away from targets");
   M_BindBool("monster_avoid_hazards", &default_monster_avoid_hazards, &monster_avoid_hazards,
              true, ss_none, wad_yes,
              "1 to enable monsters to intelligently avoid hazards");
@@ -4560,7 +4559,7 @@ void G_BindEnemVariables(void)
   M_BindBool("help_friends", &default_help_friends, &help_friends,
              false, ss_none, wad_yes, "1 to enable monsters to help dying friends");
   M_BindNum("friend_distance", &default_distfriend, &distfriend,
-            128, 0, 999, ss_none, wad_yes, "Distance friends stay away");
+            128, 0, 999, ss_none, wad_yes, "Minimum distance that friends keep between each other");
   M_BindBool("dog_jumping", &default_dog_jumping, &dog_jumping,
              true, ss_none, wad_yes, "1 to enable dogs to jump");
 }
@@ -4569,13 +4568,13 @@ void G_BindCompVariables(void)
 {
   M_BindNum("default_complevel", &default_complevel, NULL,
             CL_MBF21, CL_VANILLA, CL_MBF21, ss_comp, wad_no,
-            "0 = Vanilla, 1 = Boom, 2 = MBF, 3 = MBF21");
+            "Default compatibility level (0 = Vanilla; 1 = Boom; 2 = MBF; 3 = MBF21)");
   M_BindBool("autostrafe50", &autostrafe50, NULL, false, ss_comp, wad_no,
-             "1 to enable auto strafe50");
+             "1 to enable automatic strafe50 (SR50)");
   M_BindBool("strictmode", &default_strictmode, &strictmode,
              false, ss_comp, wad_no, "1 to enable strict mode");
   M_BindBool("hangsolid", &hangsolid, NULL, false, ss_comp, wad_no,
-             "1 to walk under solid hanging bodies");
+             "1 to enable walking under solid hanging bodies");
   M_BindBool("blockmapfix", &blockmapfix, NULL, false, ss_comp, wad_no,
              "1 to enable blockmap bug fix");
   M_BindBool("checksight12", &checksight12, NULL, false, ss_comp, wad_no,
@@ -4616,37 +4615,37 @@ void G_BindCompVariables(void)
 #define BIND_EMU(id, v, help) \
   M_BindBool(#id, &overflow[(id)].enabled, NULL, (v), ss_none, wad_no, help)
 
-  BIND_EMU(emu_spechits, true, "SPECHITS overflow emulation");
-  BIND_EMU(emu_reject, true, "REJECT overflow emulation");
+  BIND_EMU(emu_spechits, true, "SPECHITS-overflow emulation");
+  BIND_EMU(emu_reject, true, "REJECT-overflow emulation");
   M_BindBool("emu_intercepts", &overflow[emu_intercepts].enabled, NULL, true,
-    ss_comp, wad_no, "INTERCEPTS overflow emulation");
-  BIND_EMU(emu_missedbackside, false, "Missed backside emulation");
-  BIND_EMU(emu_donut, true, "Donut overrun emulation");
+    ss_comp, wad_no, "INTERCEPTS-overflow emulation");
+  BIND_EMU(emu_missedbackside, false, "Missed-backside emulation");
+  BIND_EMU(emu_donut, true, "Donut-overrun emulation");
 }
 
 void G_BindWeapVariables(void)
 {
   M_BindNum("view_bobbing_pct", &view_bobbing_pct, NULL, 4, 0, 4, ss_weap, wad_no,
-            "Player View Bobbing (0 - 0%, 1 - 25% ... 4 - 100%)");
+            "Player view bobbing (0 = 0%; 1 = 25%; ... 4 = 100%)");
   M_BindNum("weapon_bobbing_pct", &weapon_bobbing_pct, NULL,
             4, 0, 4, ss_weap, wad_no,
-            "Player Weapon Bobbing (0 - 0%, 1 - 25% ... 4 - 100%)");
+            "Player weapon bobbing (0 = 0%; 1 = 25%; ... 4 = 100%)");
   M_BindBool("hide_weapon", &hide_weapon, NULL, false, ss_weap, wad_no,
              "1 to hide weapon");
   M_BindNum("center_weapon", &center_weapon, NULL, 0, 0, 2, ss_weap, wad_no,
-            "1 to center the weapon sprite during attack, 2 to keep it bobbing");
+            "Weapon alignment while attacking (1 = Centered; 2 = Bobbing)");
   M_BindBool("weapon_recoilpitch", &weapon_recoilpitch, NULL,
              false, ss_weap, wad_no,
              "1 to enable recoil pitch from weapon fire");
 
   M_BindBool("weapon_recoil", &default_weapon_recoil, &weapon_recoil,
              false, ss_none, wad_yes,
-             "1 to enable recoil from weapon fire (Boom version)");
+             "1 to enable physical recoil from weapon fire");
   M_BindBool("doom_weapon_toggles", &doom_weapon_toggles, NULL,
              true, ss_weap, wad_no,
-             "1 to toggle between SG/SSG and Fist/Chainsaw");
+             "1 to allow toggling between SG/SSG and Fist/Chainsaw");
   M_BindBool("player_bobbing", &default_player_bobbing, &player_bobbing,
-             true, ss_none, wad_no, "1 to enable player bobbing (Boom version");
+             true, ss_none, wad_no, "1 to enable physical player bobbing");
 
 #define BIND_WEAP(num, v, help) \
   M_BindNum("weapon_choice_"#num, &weapon_preferences[0][(num) - 1], NULL, \
