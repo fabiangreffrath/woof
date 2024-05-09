@@ -4541,27 +4541,27 @@ void G_BindEnemVariables(void)
 
   M_BindBool("monsters_remember", &default_monsters_remember, &monsters_remember,
              true, ss_none, wad_yes,
-             "Monsters remember their previous target after killing their current one");
+             "Monsters return to their previous target after losing their current one");
   M_BindBool("monster_infighting", &default_monster_infighting, &monster_infighting,
              true, ss_none, wad_yes,
              "Monsters fight against each other when provoked");
   M_BindBool("monster_backing", &default_monster_backing, &monster_backing,
              false, ss_none, wad_yes,
-             "Mnsters back away from melee targets");
+             "Ranged monsters back away from melee targets");
   M_BindBool("monster_avoid_hazards", &default_monster_avoid_hazards, &monster_avoid_hazards,
              true, ss_none, wad_yes,
-             "Monsters avoid harmful areas");
+             "Monsters avoid hazards such as crushing ceilings");
   M_BindBool("monkeys", &default_monkeys, &monkeys, false, ss_none, wad_yes,
              "Monsters move up/down steep stairs");
   M_BindBool("monster_friction", &default_monster_friction, &monster_friction,
              true, ss_none, wad_yes,
-             "Monsters are affected by friction");
+             "Monsters are affected by friction modifiers");
   M_BindBool("help_friends", &default_help_friends, &help_friends,
-             false, ss_none, wad_yes, "Monsters help injured monsters");
+             false, ss_none, wad_yes, "Monsters prefer targets of injured allies");
   M_BindNum("friend_distance", &default_distfriend, &distfriend,
             128, 0, 999, ss_none, wad_yes, "Minimum distance that friends keep between each other");
   M_BindBool("dog_jumping", &default_dog_jumping, &dog_jumping,
-             true, ss_none, wad_yes, "Dogs are able to jump");
+             true, ss_none, wad_yes, "Dogs are able to jump down from high ledges");
 }
 
 void G_BindCompVariables(void)
@@ -4587,28 +4587,28 @@ void G_BindCompVariables(void)
 #define BIND_COMP(id, v, help) \
   M_BindNum(#id, &default_comp[(id)], &comp[(id)], (v), 0, 1, ss_none, wad_yes, help)
 
-  BIND_COMP(comp_zombie,    1, "Zombie players can exit levels");
-  BIND_COMP(comp_infcheat,  0, "Powerup cheats are not infinite duration");
+  BIND_COMP(comp_zombie,    1, "Dead players can trigger linedef actions");
+  BIND_COMP(comp_infcheat,  0, "Powerup cheats don't last forever");
   BIND_COMP(comp_stairs,    0, "Build stairs exactly the same way that Doom does");
-  BIND_COMP(comp_telefrag,  0, "Monsters can telefrag on MAP30");
+  BIND_COMP(comp_telefrag,  0, "Monsters can only telefrag on MAP30");
   BIND_COMP(comp_dropoff,   0, "Some objects never move over tall ledges");
   BIND_COMP(comp_falloff,   0, "Objects don't fall off ledges under their own weight");
   BIND_COMP(comp_staylift,  0, "Monsters randomly walk off of moving lifts");
-  BIND_COMP(comp_doorstuck, 0, "Monsters get stuck on doortracks");
-  BIND_COMP(comp_pursuit,   1, "Monsters don't give up pursuit of targets");
-  BIND_COMP(comp_vile,      0, "Arch-Vile resurrects invincible ghosts");
-  BIND_COMP(comp_pain,      0, "Pain Elemental limited to 20 lost souls");
-  BIND_COMP(comp_skull,     0, "Lost souls get stuck behind walls");
+  BIND_COMP(comp_doorstuck, 0, "Monsters get stuck in door tracks");
+  BIND_COMP(comp_pursuit,   1, "Monsters can infight immediately when alerted");
+  BIND_COMP(comp_vile,      0, "Arch-Vile can create ghost monsters");
+  BIND_COMP(comp_pain,      0, "Pain Elemental is limited to 20 lost souls");
+  BIND_COMP(comp_skull,     0, "Lost souls can spawn past impassable lines");
   BIND_COMP(comp_blazing,   0, "Blazing doors make double closing sounds");
-  BIND_COMP(comp_doorlight, 0, "Tagged doors don't trigger special lighting");
+  BIND_COMP(comp_doorlight, 0, "Door lighting changes are abrupt");
   BIND_COMP(comp_god,       0, "God mode isn't absolute");
-  BIND_COMP(comp_skymap,    0, "Sky is unaffected by invulnerability");
+  BIND_COMP(comp_skymap,    0, "Don't apply invulnerability palette to skies");
   BIND_COMP(comp_floors,    0, "Use exactly Doom's floor motion behavior");
   BIND_COMP(comp_model,     0, "Use exactly Doom's linedef trigger model");
-  BIND_COMP(comp_zerotags,  0, "Linedef effects work with sector tag = 0");
-  BIND_COMP(comp_respawn,   0, "Creatures with no spawnpoint respawn at (0,0)");
-  BIND_COMP(comp_ledgeblock, 1, "Ledges block ground enemies");
-  BIND_COMP(comp_friendlyspawn, 1, "A_Spawn new thing inherits friendliness");
+  BIND_COMP(comp_zerotags,  0, "Linedef actions work on sectors with tag 0");
+  BIND_COMP(comp_respawn,   0, "Monsters not spawned at level start respawn at map origin");
+  BIND_COMP(comp_ledgeblock, 1, "Ledges block monsters");
+  BIND_COMP(comp_friendlyspawn, 1, "Things spawned by A_Spawn inherit friendliness of spawner");
   BIND_COMP(comp_voodooscroller, 0, "Voodoo dolls on slow scrollers move too slowly");
   BIND_COMP(comp_reservedlineflag, 1, "ML_RESERVED clears extended flags");
 
