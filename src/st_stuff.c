@@ -1479,23 +1479,21 @@ void ST_ResetPalette(void)
 void ST_BindSTSVariables(void)
 {
   M_BindBool("sts_colored_numbers", &sts_colored_numbers, NULL,
-             false, ss_stat, wad_yes, "1 to enable colored status-bar numbers");
+             false, ss_stat, wad_yes, "Colored numbers on the status bar");
   M_BindBool("sts_pct_always_gray", &sts_pct_always_gray, NULL,
              false, ss_stat, wad_yes,
-             "1 to make percent signs on status bar always gray");
+             "Percentage signs on the status bar are always gray");
   M_BindBool("sts_traditional_keys", &sts_traditional_keys, NULL,
              false, ss_stat, wad_yes,
-             "1 to enable single-key display on status bar (show last picked-up "
-             "key on each slot");
+             "Show last picked-up key on each key slot on the status bar");
   M_BindBool("hud_blink_keys", &hud_blink_keys, NULL,
              false, ss_stat, wad_no,
-             "1 to enable blinking of missing keys when trying to trigger linedef "
-             "actions");
+             "Make missing keys blink when trying to trigger linedef actions");
   M_BindBool("st_solidbackground", &st_solidbackground, NULL,
              false, ss_stat, wad_no,
-             "1 to enable solid-color status-bar borders in widescreen mode");
+             "Use solid-color borders for the status bar in widescreen mode");
   M_BindBool("hud_animated_counts", &hud_animated_counts, NULL,
-            false, ss_stat, wad_no, "1 to enable animated health/armor counts");
+            false, ss_stat, wad_no, "Animated health/armor counts");
   M_BindNum("health_red", &health_red, NULL, 25, 0, 200, ss_none, wad_yes,
             "Amount of health for red-to-yellow transition");
   M_BindNum("health_yellow", &health_yellow, NULL, 50, 0, 200, ss_none, wad_yes,

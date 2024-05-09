@@ -391,7 +391,7 @@ void I_ResetController(void)
 
 void I_BindGamepadVariables(void)
 {
-    BIND_BOOL(joy_enable, true, "1 to enable game controller");
+    BIND_BOOL(joy_enable, true, "Allow game controller");
     BIND_NUM_GENERAL(joy_layout, LAYOUT_DEFAULT, 0, NUM_LAYOUTS - 1,
         "Analog stick layout (0 = Default; 1 = Swap; 2 = Legacy; 3 = Legacy Swap)");
     BIND_NUM(joy_sensitivity_forward, 50, 0, 100, "Forward axis sensitivity");

@@ -2358,21 +2358,21 @@ void AM_ColorPreset(void)
 void AM_BindAutomapVariables(void)
 {
   M_BindBool("followplayer", &followplayer, NULL, true, ss_auto, wad_no,
-             "1 to make the automap follow the player");
+             "Automap follows the player");
   M_BindNum("automapoverlay", &automapoverlay, NULL, AM_OVERLAY_OFF,
             AM_OVERLAY_OFF, AM_OVERLAY_DARK, ss_auto, wad_no,
             "Automap overlay mode (0 = Off; 1 = On; 2 = Dark)");
   M_BindBool("automaprotate", &automaprotate, NULL, false, ss_auto, wad_no,
-             "1 to enable automap rotation");
+             "Automap rotation");
 
   M_BindBool("map_point_coord", &map_point_coord, NULL, true, ss_auto, wad_no,
-             "1 to show automap pointer coordinates in non-follow mode");
+             "Show automap pointer coordinates in non-follow mode");
   M_BindBool("map_secret_after", &map_secret_after, NULL, false, ss_auto, wad_no,
-             "1 to not show secret sectors until after entering them");
+             "Don't highlight secret sectors on the automap until after entering them");
   M_BindNum("map_keyed_door", &map_keyed_door, NULL,
             MAP_KEYED_DOOR_COLOR, MAP_KEYED_DOOR_OFF, MAP_KEYED_DOOR_FLASH,
             ss_auto, wad_no,
-            "Key-colored doors on the automap (1 = Static; 2 = Flashing)");
+            "Color key-locked doors on the automap (1 = Static; 2 = Flashing)");
   M_BindBool("map_smooth_lines", &map_smooth_lines, NULL, true, ss_auto,
              wad_no, "1 to enable smooth automap lines");
 
@@ -2382,7 +2382,7 @@ void AM_BindAutomapVariables(void)
 #define BIND_CR(name, v, help) \
   M_BindNum(#name, &name, NULL, (v), 0, 255, ss_none, wad_yes, help)
 
-  BIND_CR(mapcolor_back, 247, "Color used for automap background");
+  BIND_CR(mapcolor_back, 247, "Color used for the automap background");
   BIND_CR(mapcolor_grid, 104, "Color used for grid lines");
   BIND_CR(mapcolor_wall, 23, "Color used for one-sided walls");
   BIND_CR(mapcolor_fchg, 55, "Color used for lines across which floor height changes");
@@ -2402,16 +2402,16 @@ void AM_BindAutomapVariables(void)
   BIND_CR(mapcolor_flat, 88, "Color used for lines with no height changes");
   BIND_CR(mapcolor_sprt, 112, "Color used for things");
   BIND_CR(mapcolor_hair, 208, "Color used for the automap pointer/crosshair");
-  BIND_CR(mapcolor_sngl, 208, "Color used for the single-player arrow");
+  BIND_CR(mapcolor_sngl, 208, "Color used for the single player's arrow");
 
 #define BIND_PLR_CR(num, v, help)                                           \
   M_BindNum("mapcolor_ply"#num, &mapcolor_plyr[(num)-1], NULL, (v), 0, 255, \
             ss_none, wad_yes, help)
 
-  BIND_PLR_CR(1, 112, "Color used for the green-player arrow");
-  BIND_PLR_CR(2, 88, "Color used for the gray-player arrow");
-  BIND_PLR_CR(3, 64, "Color used for the brown-player arrow");
-  BIND_PLR_CR(4, 176, "Color used for the red-player arrow");
+  BIND_PLR_CR(1, 112, "Color used for the green player's arrow");
+  BIND_PLR_CR(2, 88, "Color used for the gray player's arrow");
+  BIND_PLR_CR(3, 64, "Color used for the brown player's arrow");
+  BIND_PLR_CR(4, 176, "Color used for the red player's arrow");
 
   BIND_CR(mapcolor_frnd, 252, "Color used for friends");
   BIND_CR(mapcolor_enemy, 177, "Color used for enemies");
