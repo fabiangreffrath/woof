@@ -727,7 +727,7 @@ void I_BindSoundVariables(void)
     BIND_BOOL_GENERAL(full_sounds, false, "Play sounds in full length (prevents cutoffs)");
     M_BindNum("snd_channels", &default_numChannels, NULL,
         MAX_CHANNELS, 1, MAX_CHANNELS, ss_none, wad_no,
-        "Number of sound effects to handle simultaneously");
+        "Maximum number of simultaneous sound effects");
     BIND_NUM_GENERAL(snd_module, SND_MODULE_MBF, 0, NUM_SND_MODULES - 1,
         "Sound module (0 = Standard; 1 = OpenAL 3D; 2 = PC Speaker Sound)");
     for (int i = 0; i < arrlen(sound_modules); ++i)

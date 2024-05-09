@@ -1482,7 +1482,7 @@ void ST_BindSTSVariables(void)
              false, ss_stat, wad_yes, "Colored numbers on the status bar");
   M_BindBool("sts_pct_always_gray", &sts_pct_always_gray, NULL,
              false, ss_stat, wad_yes,
-             "Percentage signs on the status bar are always gray");
+             "Percent signs on the status bar are always gray");
   M_BindBool("sts_traditional_keys", &sts_traditional_keys, NULL,
              false, ss_stat, wad_yes,
              "Show last picked-up key on each key slot on the status bar");

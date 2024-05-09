@@ -1793,10 +1793,10 @@ void I_BindVideoVariables(void)
               "Vertical resolution");
     BIND_BOOL_GENERAL(dynamic_resolution, true, "Dynamic resolution");
     BIND_BOOL(correct_aspect_ratio, true, "Aspect ratio correction");
-    BIND_BOOL(fullscreen, true, "Eullscreen");
+    BIND_BOOL(fullscreen, true, "Fullscreen");
     BIND_BOOL(exclusive_fullscreen, false, "Exclusive fullscreen");
     BIND_BOOL_GENERAL(use_vsync, true,
-        "VSync to avoid display tearing");
+        "Vertical sync to prevent display tearing");
     M_BindBool("uncapped", &default_uncapped, &uncapped, true, ss_gen, wad_no,
         "Uncapped rendering frame rate");
     BIND_NUM_GENERAL(fpslimit, 0, 0, 500,
@@ -1810,7 +1810,7 @@ void I_BindVideoVariables(void)
     BIND_BOOL_GENERAL(smooth_scaling, true, "Smooth pixel scaling");
 
     BIND_BOOL(vga_porch_flash, false, "Emulate VGA \"porch\" behaviour");
-    BIND_BOOL(disk_icon, false, "Flashing icon during disk IO");
+    BIND_BOOL(disk_icon, false, "Flashing icon during disk I/O");
     BIND_NUM(video_display, 0, 0, UL, "Current video display index");
     BIND_NUM(max_video_width, 0, SCREENWIDTH, UL,
         "Maximum horizontal resolution (0 = Native)");

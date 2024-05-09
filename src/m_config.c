@@ -105,7 +105,7 @@ void M_BindInput(const char *name, int input_id, const char *help)
 void M_InitConfig(void)
 {
     BIND_BOOL(config_help, true,
-      "Show help strings about each variable in config file");
+      "Show help strings about each variable in the config file");
 
     I_BindVideoVariables();
     R_BindRenderVariables();

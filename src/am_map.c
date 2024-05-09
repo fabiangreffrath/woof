@@ -2374,7 +2374,7 @@ void AM_BindAutomapVariables(void)
             ss_auto, wad_no,
             "Color key-locked doors on the automap (1 = Static; 2 = Flashing)");
   M_BindBool("map_smooth_lines", &map_smooth_lines, NULL, true, ss_auto,
-             wad_no, "1 to enable smooth automap lines");
+             wad_no, "Smooth automap lines");
 
   M_BindNum("mapcolor_preset", &mapcolor_preset, NULL, 1, 0, 2, ss_auto, wad_no,
             "Automap color preset (0 = Vanilla Doom; 1 = Boom; 2 = ZDoom)");
@@ -2402,7 +2402,7 @@ void AM_BindAutomapVariables(void)
   BIND_CR(mapcolor_flat, 88, "Color used for lines with no height changes");
   BIND_CR(mapcolor_sprt, 112, "Color used for things");
   BIND_CR(mapcolor_hair, 208, "Color used for the automap pointer/crosshair");
-  BIND_CR(mapcolor_sngl, 208, "Color used for the single player's arrow");
+  BIND_CR(mapcolor_sngl, 208, "Color used for the player's arrow (single-player only)");
 
 #define BIND_PLR_CR(num, v, help)                                           \
   M_BindNum("mapcolor_ply"#num, &mapcolor_plyr[(num)-1], NULL, (v), 0, 255, \

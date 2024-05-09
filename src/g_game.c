@@ -4544,7 +4544,7 @@ void G_BindEnemVariables(void)
              "Monsters return to their previous target after losing their current one");
   M_BindBool("monster_infighting", &default_monster_infighting, &monster_infighting,
              true, ss_none, wad_yes,
-             "Monsters fight against each other when provoked");
+             "Monsters fight each other when provoked");
   M_BindBool("monster_backing", &default_monster_backing, &monster_backing,
              false, ss_none, wad_yes,
              "Ranged monsters back away from melee targets");
@@ -4619,7 +4619,7 @@ void G_BindCompVariables(void)
   BIND_EMU(emu_reject, true, "Emulate REJECT overflow");
   M_BindBool("emu_intercepts", &overflow[emu_intercepts].enabled, NULL, true,
     ss_comp, wad_no, "Emulate INTERCEPTS overflow");
-  BIND_EMU(emu_missedbackside, false, "Emulate missed backside");
+  BIND_EMU(emu_missedbackside, false, "Emulate overflow caused by two-sided lines with missing backsides");
   BIND_EMU(emu_donut, true, "Emulate donut overrun");
 }
 

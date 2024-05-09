@@ -414,11 +414,11 @@ void I_BindGamepadVariables(void)
         "Movement deadzone type (0 = Axial; 1 = Radial)");
     BIND_NUM(joy_deadzone_type_camera, 1, 0, 1,
         "Camera deadzone type (0 = Axial; 1 = Radial)");
-    BIND_NUM_GENERAL(joy_deadzone_movement, 15, 0, 50, "Movement deadzone percentage");
-    BIND_NUM_GENERAL(joy_deadzone_camera, 15, 0, 50, "Camera deadzone percentage");
-    BIND_NUM(joy_threshold_movement, 2, 0, 30, "Movement outer threshold percentage");
-    BIND_NUM(joy_threshold_camera, 2, 0, 30, "Camera outer threshold percentage");
-    BIND_NUM(joy_threshold_trigger, 12, 0, 50, "Trigger threshold percentage");
+    BIND_NUM_GENERAL(joy_deadzone_movement, 15, 0, 50, "Movement deadzone percent");
+    BIND_NUM_GENERAL(joy_deadzone_camera, 15, 0, 50, "Camera deadzone percent");
+    BIND_NUM(joy_threshold_movement, 2, 0, 30, "Movement outer threshold percent");
+    BIND_NUM(joy_threshold_camera, 2, 0, 30, "Camera outer threshold percent");
+    BIND_NUM(joy_threshold_trigger, 12, 0, 50, "Trigger threshold percent");
     BIND_BOOL(joy_invert_forward, false, "Invert forward axis");
     BIND_BOOL(joy_invert_strafe, false, "Invert strafe axis");
     BIND_BOOL(joy_invert_turn, false, "Invert turn axis");

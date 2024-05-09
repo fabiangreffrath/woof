@@ -984,7 +984,7 @@ void R_BindRenderVariables(void)
              "Translucency for some things");
   M_BindNum("tran_filter_pct", &tran_filter_pct, NULL,
             66, 0, 100, ss_gen, wad_yes,
-            "Percentage of foreground/background translucency mix");
+            "Percent of foreground/background translucency mix");
 
   M_BindBool("flipcorpses", &flipcorpses, NULL, false, ss_enem, wad_no,
              "Randomly mirrored death animations");

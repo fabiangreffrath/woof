@@ -619,7 +619,7 @@ void M_BindInputVariables(void)
 
     BIND_INPUT(input_soundvolume, "Bring up sound control panel");
     BIND_INPUT(input_hud, "Cycle through HUD layouts");
-    BIND_INPUT(input_quicksave, "Save to last slot saved to");
+    BIND_INPUT(input_quicksave, "Save to last used save slot");
     BIND_INPUT(input_endgame, "End the game");
     BIND_INPUT(input_messages, "Toggle messages");
     BIND_INPUT(input_quickload, "Load from quick-saved game");

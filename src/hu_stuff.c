@@ -2151,7 +2151,7 @@ void HU_BindHUDVariables(void)
   M_BindNum("hud_level_stats", &hud_level_stats, NULL,
             HUD_WIDGET_OFF, HUD_WIDGET_OFF, HUD_WIDGET_ALWAYS,
             ss_stat, wad_no,
-            "Show level stats (kills, items and secrets) widget (1 = On automap; "
+            "Show level stats (kills, items, and secrets) widget (1 = On automap; "
             "2 = On HUD; 3 = Always)");
   M_BindNum("hud_level_time", &hud_level_time, NULL,
             HUD_WIDGET_OFF, HUD_WIDGET_OFF, HUD_WIDGET_ALWAYS,
@@ -2222,7 +2222,7 @@ void HU_BindHUDVariables(void)
   M_BindBool("message_colorized", &message_colorized, NULL,
              false, ss_stat, wad_no, "Colorize player messages");
   M_BindBool("message_centered", &message_centered, NULL,
-             false, ss_stat, wad_no, "Center messages");
+             false, ss_stat, wad_no, "Center messages horizontally");
   BIND_BOOL(message_list, false, "Use message list");
 
 #define BIND_CHAT(num)                                                     \
