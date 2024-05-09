@@ -2849,8 +2849,6 @@ void G_PlayerReborn(int player)
 // because something is occupying it
 //
 
-void P_SpawnPlayer(mapthing_t *mthing);
-
 static boolean G_CheckSpot(int playernum, mapthing_t *mthing)
 {
   fixed_t     x,y;

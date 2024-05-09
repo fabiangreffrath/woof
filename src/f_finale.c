@@ -61,7 +61,6 @@ void    F_CastTicker (void);
 boolean F_CastResponder (event_t *ev);
 void    F_CastDrawer (void);
 
-void WI_checkForAccelerate(void);    // killough 3/28/98: used to
 static int midstage;                 // whether we're in "mid-stage"
 
 boolean using_FMI;
