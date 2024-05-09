@@ -4524,7 +4524,7 @@ void G_BindGameVariables(void)
   BIND_NUM_GENERAL(default_skill, 3, 1, 5,
     "Default skill level (1 = ITYTD; 2 = HNTR; 3 = HMP; 4 = UV; 5 = NM)");
   BIND_NUM_GENERAL(realtic_clock_rate, 100, 10, 1000,
-    "Game speed percentage");
+    "Game speed percent");
   M_BindNum("max_player_corpse", &default_bodyquesize, NULL,
     32, UL, UL, ss_none, wad_no,
     "Maximum number of player corpses (< 0 = No limit)");
