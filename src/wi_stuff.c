@@ -21,12 +21,14 @@
 #include <string.h>
 
 #include "d_event.h"
+#include "d_deh.h"
 #include "d_player.h"
 #include "doomdef.h"
 #include "doomstat.h"
 #include "doomtype.h"
 #include "g_game.h"
 #include "hu_lib.h"
+#include "hu_stuff.h"
 #include "i_printf.h"
 #include "m_misc.h"
 #include "m_random.h"
@@ -41,10 +43,6 @@
 #include "w_wad.h"
 #include "wi_stuff.h"
 #include "z_zone.h"
-
-// Ty 03/17/98: flag that new par times have been loaded in d_deh
-extern boolean deh_pars;  
-extern boolean um_pars;
 
 //
 // Data needed to add patches to full screen intermission pics.
@@ -2130,7 +2128,6 @@ void WI_loadData(void)
 //
 void WI_Drawer (void)
 {
-  extern void WI_DrawTimeWidget(void);
   switch (state)
     {
     case StatCount:

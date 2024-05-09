@@ -23,6 +23,7 @@
 #include "d_player.h"
 #include "doomdef.h"
 #include "doomstat.h"
+#include "dsdhacked.h"
 #include "g_game.h"
 #include "hu_stuff.h"
 #include "i_printf.h"
@@ -66,7 +67,7 @@ boolean P_SetMobjState(mobj_t* mobj,statenum_t state)
 
   // killough 4/9/98: remember states seen, to detect cycles:
 
-  extern statenum_t *seenstate_tab;           // fast transition table
+  // fast transition table
   statenum_t *seenstate = seenstate_tab;      // pointer to table
   static int recursion;                       // detects recursion
   statenum_t i = state;                       // initial state
@@ -1359,8 +1360,6 @@ spawnit:
 // P_SpawnPuff
 //
 
-extern fixed_t attackrange;
-
 void P_SpawnPuff(fixed_t x,fixed_t y,fixed_t z)
 {
   mobj_t* th;
@@ -1497,8 +1496,6 @@ mobj_t* P_SpawnPlayerMissile(mobj_t* source,mobjtype_t type)
 {
   mobj_t *th;
   fixed_t x, y, z, slope = 0;
-
-  extern void A_Recoil(player_t* player);
 
   // see which target is to be aimed at
 

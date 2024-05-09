@@ -65,10 +65,6 @@
 #  include <unistd.h> // [FG] isatty()
 #endif
 
-extern boolean message_dontfuckwithme;
-
-extern boolean chat_on; // in heads-up code
-
 //
 // defaulted values
 //

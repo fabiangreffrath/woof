@@ -27,6 +27,20 @@
 #ifndef __D_DEH__
 #define __D_DEH__
 
+#include "doomtype.h"
+
+extern int deh_maxhealth;
+extern boolean deh_set_maxhealth;
+extern boolean deh_set_blood_color;
+extern boolean deh_pars;
+
+extern char **dehfiles;
+
+extern char **mapnames[];
+extern char **mapnames2[];
+extern char **mapnamesp[];
+extern char **mapnamest[];
+
 //
 //      Ty 03/22/98 - note that we are keeping the english versions and
 //      comments in this file

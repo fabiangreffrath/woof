@@ -39,5 +39,7 @@ void TXT_SDL_SetEventCallback(TxtSDLEventCallbackFunc callback, void *user_data)
 
 void TXT_PreInit(SDL_Window *preset_window, SDL_Renderer *preset_renderer);
 
+extern SDL_Window *TXT_SDLWindow;
+
 #endif /* #ifndef TXT_SDL_H */
 

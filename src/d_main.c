@@ -1912,9 +1912,6 @@ static void D_InitTables(void)
 
 void D_SetMaxHealth(void)
 {
-  extern boolean deh_set_maxhealth;
-  extern int deh_maxhealth;
-
   if (demo_compatibility)
   {
     maxhealth = 100;
@@ -1929,8 +1926,6 @@ void D_SetMaxHealth(void)
 
 void D_SetBloodColor(void)
 {
-  extern boolean deh_set_blood_color;
-
   if (deh_set_blood_color)
     return;
 

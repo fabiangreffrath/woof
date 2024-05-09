@@ -38,6 +38,7 @@
 #include "p_mobj.h"
 #include "p_setup.h"
 #include "p_spec.h"
+#include "p_user.h"
 #include "r_defs.h"
 #include "r_main.h"
 #include "r_state.h"
@@ -1161,7 +1162,6 @@ static void P_HitSlideLine(line_t *ld)
   }
   else
   {
-    extern boolean onground;
     icyfloor = !compatibility &&
     variable_friction &&
     slidemo->player &&

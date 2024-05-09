@@ -200,8 +200,7 @@ fixed_t angleturn[3]   = {640, 1280, 320};  // + slow turn
 boolean gamekeydown[NUMKEYS];
 int     turnheld;       // for accelerative turning
 
-boolean mousearray[NUM_MOUSE_BUTTONS + 1]; // [FG] support more mouse buttons
-boolean *mousebuttons = &mousearray[1];    // allow [-1]
+boolean mousebuttons[NUM_MOUSE_BUTTONS];
 
 // mouse values are used once
 static int mousex;
@@ -221,8 +220,7 @@ static carry_t prevcarry;
 static carry_t carry;
 static ticcmd_t basecmd;
 
-boolean joyarray[NUM_CONTROLLER_BUTTONS + 1]; // [FG] support more joystick buttons
-boolean *joybuttons = &joyarray[1];    // allow [-1]
+boolean joybuttons[NUM_CONTROLLER_BUTTONS];
 
 static const int direction[] = { 1, -1 };
 
@@ -600,7 +598,6 @@ void G_BuildTiccmd(ticcmd_t* cmd)
   int side = 0;
   int newweapon;                                          // phares
 
-  extern boolean boom_weapon_state_injection;
   static boolean done_autoswitch = false;
 
   G_DemoSkipTics();
@@ -963,10 +960,7 @@ static void G_DoLoadLevel(void)
   // by Z_FreeTags() when the previous level ended or player
   // died.
 
-   {
-    extern msecnode_t *headsecnode; // phares 3/25/98
-    headsecnode = NULL;
-   }
+  headsecnode = NULL;
 
   critical = (gameaction == ga_playdemo || demorecording || demoplayback || D_CheckNetConnect());
 
@@ -1001,8 +995,8 @@ static void G_DoLoadLevel(void)
   G_ClearInput();
   sendpause = sendsave = paused = false;
   // [FG] array size!
-  memset (mousearray, 0, sizeof(mousearray));
-  memset (joyarray, 0, sizeof(joyarray));
+  memset (mousebuttons, 0, sizeof(mousebuttons));
+  memset (joybuttons, 0, sizeof(joybuttons));
 
   //jff 4/26/98 wake up the status bar in case were coming out of a DM demo
   // killough 5/13/98: in case netdemo has consoleplayer other than green
@@ -1022,8 +1016,6 @@ static void G_DoLoadLevel(void)
         }
     }
 }
-
-extern int ddt_cheating;
 
 static void G_ReloadLevel(void)
 {
@@ -2209,7 +2201,6 @@ void CheckSaveGame(size_t size)
 // (previously code was scattered around in multiple places)
 
 // [FG] support up to 8 pages of savegames
-extern int savepage;
 
 char* G_SaveGameName(int slot)
 {
@@ -2595,7 +2586,6 @@ void G_CleanScreenshot(void)
 {
   int old_screenblocks;
   boolean old_hide_weapon;
-  extern void ST_ResetPalette(void);
 
   ST_ResetPalette();
 
@@ -2732,7 +2722,6 @@ void G_Ticker(void)
 		  cmd->forwardmove > TURBOTHRESHOLD &&
 		  !(gametic&31) && ((gametic>>5)&3) == i )
 		{
-		  extern char **player_names[];
 		  displaymsg("%s is turbo!", *player_names[i]); // killough 9/29/98
 		}
 
@@ -4249,7 +4238,6 @@ void G_DeferedPlayDemo(char* name)
 
 #define DEMO_FOOTER_SEPARATOR "\n"
 #define NUM_DEMO_FOOTER_LUMPS 4
-extern char **dehfiles;
 
 static size_t WriteCmdLineLump(MEMFILE *stream)
 {

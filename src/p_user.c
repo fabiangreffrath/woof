@@ -30,6 +30,7 @@
 #include "g_game.h"
 #include "hu_stuff.h"
 #include "info.h"
+#include "m_cheat.h"
 #include "m_input.h"
 #include "p_map.h"
 #include "p_mobj.h"
@@ -570,7 +571,6 @@ void P_PlayerThink (player_t* player)
 
   if (player->cheats & CF_MAPCOORDS)
   {
-    extern void cheat_mypos_print();
     cheat_mypos_print();
   }
 

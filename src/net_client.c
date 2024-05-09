@@ -18,6 +18,7 @@
 #include <string.h>
 
 #include "config.h"
+#include "d_loop.h"
 #include "d_ticcmd.h"
 #include "doomtype.h"
 #include "i_printf.h"
@@ -31,8 +32,6 @@
 #include "net_query.h"
 #include "net_server.h"
 #include "net_structrw.h"
-
-extern void D_ReceiveTic(ticcmd_t *ticcmds, boolean *playeringame);
 
 typedef enum
 {
@@ -88,8 +87,6 @@ typedef struct
 
     net_ticdiff_t cmd;
 } net_server_send_t;
-
-extern fixed_t offsetms;
 
 static net_connection_t client_connection;
 static net_clientstate_t client_state;

@@ -36,6 +36,7 @@
 #include "p_saveg.h"
 #include "p_spec.h"
 #include "p_tick.h"
+#include "r_data.h"
 #include "r_defs.h"
 #include "r_state.h"
 #include "w_wad.h" // [FG] W_LumpLength()
@@ -2085,7 +2086,6 @@ void P_UnArchiveWorld (void)
     {
       // [crispy] add overflow guard for the flattranslation[] array
       short floorpic, ceilingpic;
-      extern int numflats;
 
       // killough 10/98: load full floor & ceiling heights, including fractions
 

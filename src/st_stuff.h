@@ -55,6 +55,8 @@ void ST_Start(void);
 void ST_Init(void);
 void ST_Warnings(void);
 
+void ST_ResetPalette(void);
+
 // [crispy] forcefully initialize the status bar backing screen
 void ST_refreshBackground(void);
 
@@ -85,6 +87,8 @@ extern boolean hud_backpack_thresholds; // backpack changes thresholds
 extern boolean hud_armor_type; // color of armor depends on type
 
 extern boolean palette_changes;
+
+extern boolean st_invul;
 
 void ST_BindSTSVariables(void);
 

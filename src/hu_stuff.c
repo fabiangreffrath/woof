@@ -34,6 +34,7 @@
 #include "hu_lib.h"
 #include "hu_obituary.h"
 #include "hu_stuff.h"
+#include "i_timer.h" // time_scale
 #include "i_video.h" // fps
 #include "m_config.h"
 #include "m_fixed.h"
@@ -190,10 +191,6 @@ int hud_crosshair;
 // Ty 03/27/98 - externalized map name arrays - now in d_deh.c
 // and converted to arrays of pointers to char *
 // See modified HUTITLEx macros
-extern char **mapnames[];
-extern char **mapnames2[];
-extern char **mapnamesp[];
-extern char **mapnamest[];
 
 // key tables
 // jff 5/10/98 french support removed, 
@@ -320,8 +317,6 @@ void HU_ResetMessageColors(void)
         UpdateColor(*colorize_strings[i].str, colorize_strings[i].cr);
     }
 }
-
-extern boolean st_invul;
 
 static byte* ColorByHealth(int health, int maxhealth, boolean invul)
 {
@@ -1142,7 +1137,6 @@ static void HU_widget_build_sttime(void)
 {
   char hud_timestr[HU_MAXLINELENGTH/2];
   int offset = 0;
-  extern int time_scale;
 
   if ((hud_level_time & HUD_WIDGET_HUD     && !automapactive) ||
       (hud_level_time & HUD_WIDGET_AUTOMAP &&  automapactive))
