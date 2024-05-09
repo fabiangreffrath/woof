@@ -4596,8 +4596,8 @@ void G_BindCompVariables(void)
   BIND_COMP(comp_staylift,  0, "Monsters randomly walk off of moving lifts");
   BIND_COMP(comp_doorstuck, 0, "Monsters get stuck in door tracks");
   BIND_COMP(comp_pursuit,   1, "Monsters can infight immediately when alerted");
-  BIND_COMP(comp_vile,      0, "Arch-Vile can create ghost monsters");
-  BIND_COMP(comp_pain,      0, "Pain Elemental is limited to 20 lost souls");
+  BIND_COMP(comp_vile,      0, "Arch-Viles can create ghost monsters");
+  BIND_COMP(comp_pain,      0, "Pain Elementals are limited to 20 lost souls");
   BIND_COMP(comp_skull,     0, "Lost souls can spawn past impassable lines");
   BIND_COMP(comp_blazing,   0, "Blazing doors make double closing sounds");
   BIND_COMP(comp_doorlight, 0, "Door lighting changes are abrupt");
