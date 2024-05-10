@@ -392,48 +392,6 @@ static void G_DemoSkipTics(void)
   }
 }
 
-//
-// ApplyQuickstartMouseCache
-// When recording a demo and the map is reloaded, cached mouse input from a
-// circular buffer can be applied prior to the screen wipe. From DSDA-Doom.
-//
-
-static int quickstart_cache_tics;
-static boolean quickstart_queued;
-static short angleturn_cache[TICRATE];
-static int angleturn_cache_index;
-static int mousex_tic;
-
-static boolean ApplyQuickstartMouseCache(int *mousex)
-{
-  if (quickstart_cache_tics < 1)
-  {
-    return false;
-  }
-
-  if (quickstart_queued)
-  {
-    short result = 0;
-    for (int i = 0; i < quickstart_cache_tics; i++)
-    {
-      result += angleturn_cache[i];
-    }
-    *mousex = result;
-    quickstart_queued = false;
-    return true;
-  }
-  else
-  {
-    angleturn_cache[angleturn_cache_index] = mousex_tic;
-    angleturn_cache_index++;
-    if (angleturn_cache_index >= quickstart_cache_tics)
-    {
-      angleturn_cache_index = 0;
-    }
-    return false;
-  }
-}
-
 static int RoundSide_Strict(double side)
 {
   return lround(side * 0.5) * 2; // Even values only.
@@ -576,6 +534,68 @@ static double CalcMouseVert(int mousey)
   return (I_AccelerateMouse(mousey) * (mouse_sensitivity_y + 5) / 10);
 }
 
+//
+// ApplyQuickstartMouseCache
+// When recording a demo and the map is reloaded, cached mouse input from a
+// circular buffer can be applied prior to the screen wipe. From DSDA-Doom.
+//
+
+static int quickstart_cache_tics;
+static boolean quickstart_queued;
+static int mousex_tic;
+
+static void ApplyQuickstartMouseCache(ticcmd_t *cmd, boolean strafe)
+{
+  static short mousex_cache[TICRATE];
+  static short angleturn_cache[TICRATE]; // TODO: exclude gamepad.
+  static int index;
+
+  if (quickstart_cache_tics < 1)
+  {
+    return;
+  }
+
+  if (quickstart_queued)
+  {
+    short result = 0;
+
+    if (strafe)
+    {
+      for (int i = 0; i < quickstart_cache_tics; i++)
+      {
+        result += mousex_cache[i];
+      }
+
+      mousex = result;
+      cmd->angleturn = 0;
+      localview.rawangle = 0.0;
+    }
+    else
+    {
+      for (int i = 0; i < quickstart_cache_tics; i++)
+      {
+        result += angleturn_cache[i];
+      }
+
+      mousex = 0;
+      cmd->angleturn = CarryAngle(result);
+      localview.rawangle = cmd->angleturn;
+    }
+
+    memset(mousex_cache, 0, sizeof(mousex_cache));
+    memset(angleturn_cache, 0, sizeof(angleturn_cache));
+    index = 0;
+
+    quickstart_queued = false;
+  }
+  else
+  {
+    mousex_cache[index] = mousex_tic;
+    angleturn_cache[index] = cmd->angleturn;
+    index = (index + 1) % quickstart_cache_tics;
+  }
+}
+
 void G_PrepTiccmd(void)
 {
   const boolean strafe = M_InputGameActive(input_strafe);
@@ -655,12 +675,7 @@ void G_BuildTiccmd(ticcmd_t* cmd)
   memcpy(cmd, &basecmd, sizeof(*cmd));
   memset(&basecmd, 0, sizeof(basecmd));
 
-  if (ApplyQuickstartMouseCache(&mousex) && mousex && !strafe)
-  {
-    localview.rawangle = -CalcMouseAngle(mousex);
-    cmd->angleturn = CarryAngle(localview.rawangle);
-    mousex = 0;
-  }
+  ApplyQuickstartMouseCache(cmd, strafe);
 
   cmd->consistancy = consistancy[consoleplayer][maketic%BACKUPTICS];
 
