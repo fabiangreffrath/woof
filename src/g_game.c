@@ -392,6 +392,49 @@ static void G_DemoSkipTics(void)
   }
 }
 
+//
+// ApplyQuickstartMouseCache
+// When recording a demo and the map is reloaded, cached mouse input from a
+// circular buffer can be applied prior to the screen wipe. From DSDA-Doom.
+//
+
+static int quickstart_cache_tics;
+static boolean quickstart_queued;
+static short angleturn_cache[TICRATE];
+static int angleturn_cache_index;
+static int mousex_tic;
+
+static boolean ApplyQuickstartMouseCache(int *mousex)
+{
+  if (quickstart_cache_tics < 1)
+  {
+    return false;
+  }
+
+  if (quickstart_queued)
+  {
+    short result = 0;
+    for (int i = 0; i < quickstart_cache_tics; i++)
+    {
+      result += angleturn_cache[i];
+    }
+    *mousex = result;
+    quickstart_queued = false;
+    I_Printf(VB_DEBUG, "ApplyQuickstartMouseCache");
+    return true;
+  }
+  else
+  {
+    angleturn_cache[angleturn_cache_index] = mousex_tic;
+    angleturn_cache_index++;
+    if (angleturn_cache_index >= quickstart_cache_tics)
+    {
+      angleturn_cache_index = 0;
+    }
+    return false;
+  }
+}
+
 static int RoundSide_Strict(double side)
 {
   return lround(side * 0.5) * 2; // Even values only.
@@ -613,6 +656,13 @@ void G_BuildTiccmd(ticcmd_t* cmd)
   memcpy(cmd, &basecmd, sizeof(*cmd));
   memset(&basecmd, 0, sizeof(basecmd));
 
+  if (ApplyQuickstartMouseCache(&mousex) && mousex && !strafe)
+  {
+    localview.rawangle = -CalcMouseAngle(mousex);
+    cmd->angleturn = CarryAngle(localview.rawangle);
+    mousex = 0;
+  }
+
   cmd->consistancy = consistancy[consoleplayer][maketic%BACKUPTICS];
 
   // Composite input
@@ -720,6 +770,7 @@ void G_BuildTiccmd(ticcmd_t* cmd)
   cmd->sidemove = side;
 
   I_ResetControllerAxes();
+  mousex_tic = 0;
   mousex = mousey = 0;
   localview.angle = 0;
   localview.pitch = 0;
@@ -877,6 +928,7 @@ void G_BuildTiccmd(ticcmd_t* cmd)
 void G_ClearInput(void)
 {
   I_ResetControllerLevel();
+  mousex_tic = 0;
   mousex = mousey = 0;
   memset(&localview, 0, sizeof(localview));
   memset(&carry, 0, sizeof(carry));
@@ -1215,6 +1267,7 @@ boolean G_MovementResponder(event_t *ev)
   switch (ev->type)
   {
     case ev_mouse:
+      mousex_tic += ev->data2;
       mousex += ev->data2;
       mousey += ev->data3;
       return true;
@@ -2762,6 +2815,10 @@ void G_Ticker(void)
 	      if (!demoplayback) // ignore in demos
 	      {
 	        gameaction = ga_reloadlevel;
+	        if (demorecording)
+	        {
+	          quickstart_queued = true;
+	        }
 	      }
 	      break;
 
@@ -4520,6 +4577,7 @@ void G_BindGameInputVariables(void)
 
 void G_BindGameVariables(void)
 {
+  BIND_NUM(quickstart_cache_tics, 0, 0, TICRATE, "Quickstart cache tics");
   BIND_BOOL(shorttics, false, "1 to use low resolution turning");
   BIND_NUM_GENERAL(default_skill, 3, 1, 5,
     "Selects default skill (1 = ITYTD, 2 = HNTR, 3 = HMP, 4 = UV, 5 = NM)");
