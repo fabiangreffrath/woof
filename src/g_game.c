@@ -420,7 +420,6 @@ static boolean ApplyQuickstartMouseCache(int *mousex)
     }
     *mousex = result;
     quickstart_queued = false;
-    I_Printf(VB_DEBUG, "ApplyQuickstartMouseCache");
     return true;
   }
   else
