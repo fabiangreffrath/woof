@@ -80,6 +80,7 @@
 #include "st_stuff.h"
 #include "statdump.h"
 #include "u_mapinfo.h"
+#include "v_patch.h"
 #include "v_video.h"
 #include "w_wad.h"
 #include "wi_stuff.h"
@@ -495,19 +496,8 @@ void D_PageDrawer(void)
 {
   if (pagename)
     {
-      int l = W_CheckNumForName(pagename);
-      byte *t = W_CacheLumpNum(l, PU_CACHE);
-      size_t s = W_LumpLength(l);
-      unsigned c = 0;
-      while (s--)
-	c = c*3 + t[s];
-      V_DrawPatchFullScreen((patch_t *) t);
-      if (c==2119826587u || c==2391756584u)
-        // [FG] removed the embedded DOGOVRLY title pic overlay graphic lump
-        if (W_CheckNumForName("DOGOVRLY") > 0)
-        {
-	V_DrawPatch(0, 0, W_CacheLumpName("DOGOVRLY", PU_CACHE));
-        }
+      patch_t *patch = V_CacheLumpNum(W_CheckNumForName(pagename), PU_CACHE);
+      V_DrawPatchFullScreen(patch);
     }
   else
     MN_DrawCredits();

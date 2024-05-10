@@ -43,6 +43,7 @@
 #include "r_main.h"
 #include "r_sky.h"
 #include "r_state.h"
+#include "v_patch.h"
 #include "v_video.h" // cr_dark, cr_shaded
 #include "w_wad.h"
 #include "z_zone.h"
@@ -231,7 +232,7 @@ static void R_GenerateComposite(int texnum)
 
   for (; --i >=0; patch++)
     {
-      patch_t *realpatch = W_CacheLumpNum(patch->patch, PU_CACHE);
+      patch_t *realpatch = V_CacheLumpNum(patch->patch, PU_CACHE);
       int x, x1 = patch->originx, x2 = x1 + SHORT(realpatch->width);
       const int *cofs = realpatch->columnofs - x1;
 
@@ -347,7 +348,7 @@ static void R_GenerateLookup(int texnum, int *const errors)
   while (--i >= 0)
     {
       int pat = patch->patch;
-      const patch_t *realpatch = W_CacheLumpNum(pat, PU_CACHE);
+      const patch_t *realpatch = V_CacheLumpNum(pat, PU_CACHE);
       int x, x1 = patch++->originx, x2 = x1 + SHORT(realpatch->width);
       const int *cofs = realpatch->columnofs - x1;
       
@@ -385,7 +386,7 @@ static void R_GenerateLookup(int texnum, int *const errors)
       for (i = texture->patchcount, patch = texture->patches; --i >= 0;)
 	{
 	  int pat = patch->patch;
-	  const patch_t *realpatch = W_CacheLumpNum(pat, PU_CACHE);
+	  const patch_t *realpatch = V_CacheLumpNum(pat, PU_CACHE);
 	  int x, x1 = patch++->originx, x2 = x1 + SHORT(realpatch->width);
 	  const int *cofs = realpatch->columnofs - x1;
 	  
@@ -832,7 +833,7 @@ void R_InitSpriteLumps(void)
       if (!(i&127))            // killough
         I_PutChar(VB_INFO, '.');
 
-      patch = W_CacheLumpNum(firstspritelump+i, PU_CACHE);
+      patch = V_CacheLumpNum(firstspritelump+i, PU_CACHE);
       spritewidth[i] = SHORT(patch->width)<<FRACBITS;
       spriteoffset[i] = SHORT(patch->leftoffset)<<FRACBITS;
       spritetopoffset[i] = SHORT(patch->topoffset)<<FRACBITS;
@@ -1160,7 +1161,7 @@ void R_PrecacheLevel(void)
 
   for (i = numflats; --i >= 0; )
     if (hitlist[i])
-      W_CacheLumpNum(firstflat + i, PU_CACHE);
+      V_CacheLumpNum(firstflat + i, PU_CACHE);
 
   // Precache textures.
 
@@ -1186,7 +1187,7 @@ void R_PrecacheLevel(void)
         texture_t *texture = textures[i];
         int j = texture->patchcount;
         while (--j >= 0)
-          W_CacheLumpNum(texture->patches[j].patch, PU_CACHE);
+          V_CacheLumpNum(texture->patches[j].patch, PU_CACHE);
       }
 
   // Precache sprites.
@@ -1208,7 +1209,7 @@ void R_PrecacheLevel(void)
             short *sflump = sprites[i].spriteframes[j].lump;
             int k = 7;
             do
-              W_CacheLumpNum(firstspritelump + sflump[k], PU_CACHE);
+              V_CacheLumpNum(firstspritelump + sflump[k], PU_CACHE);
             while (--k >= 0);
           }
       }
@@ -1235,16 +1236,15 @@ boolean R_IsPatchLump (const int lump)
   if (size < 13)
     return false;
 
-  patch = (const patch_t *)W_CacheLumpNum(lump, PU_CACHE);
+  patch = V_CacheLumpNum(lump, PU_CACHE);
 
-  // [FG] detect patches in PNG format early
-  if (!memcmp(patch, "\211PNG\r\n\032\n", 8))
+  if (!patch)
     return false;
 
   width = SHORT(patch->width);
   height = SHORT(patch->height);
 
-  result = (height > 0 && height <= 16384 && width > 0 && width <= 16384 && width < size / 4);
+  result = (height > 0 && height <= 16384 && width > 0 && width <= 16384);
 
   if (result)
   {
@@ -1259,7 +1259,7 @@ boolean R_IsPatchLump (const int lump)
       unsigned int ofs = LONG(patch->columnofs[x]);
 
       // Need one byte for an empty column (but there's patches that don't know that!)
-      if (ofs < (unsigned int)width * 4 + 8 || ofs >= (unsigned int)size)
+      if (ofs < (unsigned int)width * 4 + 8)
       {
         result = false;
         break;

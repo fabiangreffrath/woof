@@ -128,13 +128,15 @@ set(WOOF_SOURCES
     u_mapinfo.c            u_mapinfo.h
     u_scanner.c            u_scanner.h
     v_flextran.c           v_flextran.h
+    v_patch.c              v_patch.h
     v_trans.c              v_trans.h
     v_video.c              v_video.h
     version.c              version.h
     w_wad.c                w_wad.h
     wi_stuff.c             wi_stuff.h
     z_zone.c               z_zone.h
-    ../miniz/miniz.c       ../miniz/miniz.h)
+    ../miniz/miniz.c       ../miniz/miniz.h
+    ../spng/spng.c         ../spng/spng.h)
 
 # Standard target definition
 if(WIN32)
@@ -168,7 +170,7 @@ endif()
 
 target_woof_settings(woof)
 target_include_directories(woof PRIVATE
-        "${CMAKE_CURRENT_BINARY_DIR}/../" "../miniz")
+        "${CMAKE_CURRENT_BINARY_DIR}/../" "../miniz" "../spng")
 
 target_link_libraries(woof PRIVATE
     ${SDL2_LIBRARIES}
@@ -229,7 +231,7 @@ if(WOOF_STRICT)
     target_compile_definitions(woof PRIVATE MBF_STRICT)
 endif()
 
-target_compile_definitions(woof PRIVATE MINIZ_NO_TIME)
+target_compile_definitions(woof PRIVATE MINIZ_NO_TIME SPNG_USE_MINIZ SPNG_STATIC)
 
 set(SETUP_SOURCES
     d_iwad.c                d_iwad.h
