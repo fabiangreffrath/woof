@@ -39,6 +39,7 @@
 #include "d_ticcmd.h"
 #include "doomdef.h"
 #include "doomstat.h"
+#include "doomtype.h"
 #include "dsdhacked.h"
 #include "dstrings.h"
 #include "f_finale.h"
@@ -131,6 +132,7 @@ static void ProcessDehLump(int lumpnum)
 }
 
 char **wadfiles;
+char **sprites_dirs, **colormaps_dirs;
 
 boolean devparm;        // started game with -devparm
 
@@ -414,7 +416,7 @@ void D_Display (void)
     {
       int x = scaledviewx;
       int y = 4;
-      patch_t *patch = W_CacheLumpName("M_PAUSE", PU_CACHE);
+      patch_t *patch = V_CacheLumpName("M_PAUSE", PU_CACHE);
 
       x += (scaledviewwidth - SHORT(patch->width)) / 2 - video.deltaw;
 
@@ -722,7 +724,7 @@ static boolean D_AddZipFile(const char *file)
     if (name[0] == '.')
       continue;
 
-    if (CheckExtensions(name, ".wad", ".pk3", ".lmp", ".ogg", ".flac",
+    if (CheckExtensions(name, ".wad", ".pk3", ".lmp", ".png", ".ogg", ".flac",
                         ".mp3", ".kvx", NULL))
     {
       char *dest = M_StringJoin(tempdir, DIR_SEPARATOR_S, name, NULL);
@@ -825,11 +827,15 @@ char *D_DoomPrefDir(void)
 // Calculate the path to the directory for autoloaded WADs/DEHs.
 // Creates the directory as necessary.
 
-static struct {
+typedef struct
+{
     const char *dir;
     char *(*func)(void);
     boolean createdir;
-} autoload_basedirs[] = {
+} autoload_basedir_t;
+
+static autoload_basedir_t autoload_basedirs[] =
+{
 #if !defined(WIN32)
     {"../share/" PROJECT_SHORTNAME, D_DoomExeDir, false},
 #endif
@@ -837,7 +843,6 @@ static struct {
 #if !defined(_WIN32) || defined(_WIN32_WCE)
     {NULL, D_DoomExeDir, false},
 #endif
-    {NULL, NULL, false},
 };
 
 static char **autoload_paths = NULL;
@@ -860,10 +865,61 @@ static char *GetAutoloadDir(const char *base, const char *iwadname, boolean crea
     return result;
 }
 
+static void PrepareBase(void)
+{
+    #define BASE_FILE_NAME PROJECT_SHORTNAME".pk3"
+    mz_zip_archive zip_archive = {0};
+
+    char *basefile = M_StringJoin(D_DoomPrefDir(), DIR_SEPARATOR_S,
+                                  BASE_FILE_NAME, NULL);
+
+    boolean result = mz_zip_reader_init_file(&zip_archive, basefile, 0);
+
+    if (!result)
+    {
+        result = mz_zip_reader_init_file(&zip_archive,
+          "../share/" PROJECT_SHORTNAME "/" BASE_FILE_NAME , 0);
+        if (!result)
+        {
+            I_Error("PrepareBasePaths: Failed to open %s", basefile);
+        }
+    }
+
+    free(basefile);
+
+    char *basedir = M_TempFile("_"PROJECT_SHORTNAME"_"BASE_FILE_NAME);
+    M_MakeDirectory(basedir);
+
+    for (int i = 0; i < (int)mz_zip_reader_get_num_files(&zip_archive); ++i)
+    {
+        mz_zip_archive_file_stat file_stat = {0};
+
+        mz_zip_reader_file_stat(&zip_archive, i, &file_stat);
+
+        if (file_stat.m_is_directory)
+        {
+            char *dir = M_StringJoin(basedir, DIR_SEPARATOR_S, file_stat.m_filename, NULL);
+            M_MakeDirectory(dir);
+            free(dir);
+            continue;
+        }
+
+        char *dest = M_StringJoin(basedir, DIR_SEPARATOR_S, file_stat.m_filename, NULL);
+
+        if (!mz_zip_reader_extract_to_file(&zip_archive, i, dest, 0))
+        {
+            I_Printf(VB_ERROR, "D_AddZipFile: Failed to extract %s to %s",
+                    file_stat.m_filename, basedir);
+        }
+
+        free(dest);
+    }
+
+    array_push(autoload_paths, basedir);
+}
+
 static void PrepareAutoloadPaths (void)
 {
-    int i;
-
     //!
     // @category mod
     //
@@ -871,32 +927,33 @@ static void PrepareAutoloadPaths (void)
     //
 
     if (M_CheckParm("-noautoload"))
-        return;
-
-    for (i = 0; ; i++)
     {
-        autoload_paths = I_Realloc(autoload_paths, (i + 1) * sizeof(*autoload_paths));
+        return;
+    }
 
-        if (autoload_basedirs[i].dir && autoload_basedirs[i].func)
+    for (int i = 0; i < arrlen(autoload_basedirs); i++)
+    {
+        autoload_basedir_t d = autoload_basedirs[i];
+        char *s;
+
+        if (d.dir && d.func)
         {
-            autoload_paths[i] = M_StringJoin(autoload_basedirs[i].func(), DIR_SEPARATOR_S,
-                                             autoload_basedirs[i].dir, DIR_SEPARATOR_S, "autoload", NULL);
+            s = M_StringJoin(d.func(), DIR_SEPARATOR_S, d.dir, DIR_SEPARATOR_S,
+                             "autoload", NULL);
+            array_push(autoload_paths, s);
         }
-        else if (autoload_basedirs[i].dir)
+        else if (d.dir)
         {
-            autoload_paths[i] = M_StringJoin(autoload_basedirs[i].dir, DIR_SEPARATOR_S, "autoload", NULL);
+            s = M_StringJoin(d.dir, DIR_SEPARATOR_S, "autoload", NULL);
+            array_push(autoload_paths, s);
         }
-        else if (autoload_basedirs[i].func)
+        else if (d.func)
         {
-            autoload_paths[i] = M_StringJoin(autoload_basedirs[i].func(), DIR_SEPARATOR_S, "autoload", NULL);
-        }
-        else
-        {
-            autoload_paths[i] = NULL;
-            break;
+            s = M_StringJoin(d.func(), DIR_SEPARATOR_S, "autoload", NULL);
+            array_push(autoload_paths, s);
         }
 
-        if (autoload_basedirs[i].createdir)
+        if (d.createdir)
         {
             M_MakeDirectory(autoload_paths[i]);
         }
@@ -1694,8 +1751,8 @@ static void AutoLoadWADs(const char *path)
     const char *filename;
 
     glob = I_StartMultiGlob(path, GLOB_FLAG_NOCASE|GLOB_FLAG_SORTED,
-                            "*.wad", "*.lmp", "*.kvx", "*.zip", "*.pk3",
-                            "*.ogg", "*.flac", "*.mp3", NULL);
+                            "*.wad", "*.lmp", "*.png", "*.kvx", "*.zip", "*.pk3",
+                            "*.wav", "*.ogg", "*.flac", "*.mp3", NULL);
     for (;;)
     {
         filename = I_NextGlob(glob);
@@ -1708,17 +1765,18 @@ static void AutoLoadWADs(const char *path)
     }
 
     I_EndGlob(glob);
+
+    array_push(sprites_dirs, M_StringJoin(path, DIR_SEPARATOR_S, "sprites", NULL));
+    array_push(colormaps_dirs, M_StringJoin(path, DIR_SEPARATOR_S, "colormaps", NULL));
 }
 
 static void D_AutoloadIWadDir(void (*AutoLoadFunc)(const char *path))
 {
-  char **base;
-
-  for (base = autoload_paths; base && *base; base++)
+  for (int i = 0; i < array_size(autoload_paths); ++i)
   {
     char *autoload_dir;
 
-    autoload_dir = GetAutoloadDir(*base, "all-all", true);
+    autoload_dir = GetAutoloadDir(autoload_paths[i], "all-all", true);
     AutoLoadFunc(autoload_dir);
     free(autoload_dir);
 
@@ -1729,27 +1787,27 @@ static void D_AutoloadIWadDir(void (*AutoLoadFunc)(const char *path))
     {
       if (local_gamemission < pack_chex)
       {
-        autoload_dir = GetAutoloadDir(*base, "doom-all", true);
+        autoload_dir = GetAutoloadDir(autoload_paths[i], "doom-all", true);
         AutoLoadFunc(autoload_dir);
         free(autoload_dir);
       }
 
       if (local_gamemission == doom)
       {
-        autoload_dir = GetAutoloadDir(*base, "doom1-all", true);
+        autoload_dir = GetAutoloadDir(autoload_paths[i], "doom1-all", true);
         AutoLoadFunc(autoload_dir);
         free(autoload_dir);
       }
       else if (local_gamemission >= doom2 && local_gamemission <= pack_plut)
       {
-        autoload_dir = GetAutoloadDir(*base, "doom2-all", true);
+        autoload_dir = GetAutoloadDir(autoload_paths[i], "doom2-all", true);
         AutoLoadFunc(autoload_dir);
         free(autoload_dir);
       }
     }
 
     // auto-loaded files per IWAD
-    autoload_dir = GetAutoloadDir(*base, M_BaseName(wadfiles[0]), true);
+    autoload_dir = GetAutoloadDir(autoload_paths[i], M_BaseName(wadfiles[0]), true);
     AutoLoadFunc(autoload_dir);
     free(autoload_dir);
   }
@@ -1757,16 +1815,12 @@ static void D_AutoloadIWadDir(void (*AutoLoadFunc)(const char *path))
 
 static void D_AutoloadPWadDir(void (*AutoLoadFunc)(const char *path))
 {
-  int i;
-
-  for (i = 1; i < array_size(wadfiles); ++i)
+  for (int i = 1; i < array_size(wadfiles); ++i)
   {
-    char **base;
-
-    for (base = autoload_paths; base && *base; base++)
+    for (int j = 0; j < array_size(autoload_paths); ++j)
     {
       char *autoload_dir;
-      autoload_dir = GetAutoloadDir(*base, M_BaseName(wadfiles[i]), false);
+      autoload_dir = GetAutoloadDir(autoload_paths[j], M_BaseName(wadfiles[i]), false);
       AutoLoadFunc(autoload_dir);
       free(autoload_dir);
     }
@@ -2234,6 +2288,7 @@ void D_DoomMain(void)
 
   // add wad files from autoload IWAD directories before wads from -file parameter
 
+  PrepareBase();
   PrepareAutoloadPaths();
   D_AutoloadIWadDir(AutoLoadWADs);
 
@@ -2513,18 +2568,6 @@ void D_DoomMain(void)
 
   noblit = M_CheckParm ("-noblit");
 
-  // jff 4/21/98 allow writing predefined lumps out as a wad
-
-  //!
-  // @category mod
-  // @arg <wad>
-  //
-  // Allow writing predefined lumps out as a WAD.
-  //
-
-  if ((p = M_CheckParm("-dumplumps")) && p < myargc-1)
-    WritePredefinedLumpWad(myargv[p+1]);
-
   M_InitConfig();
 
   M_LoadDefaults();  // load before initing other systems
@@ -2701,18 +2744,6 @@ void D_DoomMain(void)
 
   I_Printf(VB_INFO, "R_Init: Init DOOM refresh daemon - ");
   R_Init();
-
-  //!
-  // @category mod
-  // @arg <wad>
-  //
-  // Allow writing generated lumps out as a WAD.
-  //
-
-  if ((p = M_CheckParm("-dumptables")) && p < myargc-1)
-  {
-    WriteGeneratedLumpWad(myargv[p+1]);
-  }
 
   I_Printf(VB_INFO, "P_Init: Init Playloop state.");
   P_Init();

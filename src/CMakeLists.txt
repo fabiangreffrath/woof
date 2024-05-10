@@ -2,8 +2,6 @@ include(WoofSettings)
 
 set(WOOF_SOURCES
     am_map.c               am_map.h
-                           beta.h
-                           cross.h
     d_deh.c                d_deh.h
                            d_englsh.h
                            d_event.h
@@ -17,7 +15,6 @@ set(WOOF_SOURCES
     d_quit.c               d_quit.h
                            d_think.h
                            d_ticcmd.h
-                           dogs.h
                            doomdata.h
                            doomdef.h
     doomstat.c             doomstat.h
@@ -26,7 +23,6 @@ set(WOOF_SOURCES
     dstrings.c             dstrings.h
     f_finale.c             f_finale.h
     f_wipe.c               f_wipe.h
-                           font.h
     g_game.c               g_game.h
     hu_lib.c               hu_lib.h
     hu_obituary.c          hu_obituary.h
@@ -285,6 +281,11 @@ if(WIN32)
         "$<TARGET_FILE_DIR:woof-exe>/woof.exe")
 endif()
 
+add_custom_command(TARGET woof POST_BUILD
+    WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}/base"
+    COMMAND ${CMAKE_COMMAND} -E tar
+    "cvf" "${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_SHORTNAME}.pk3" --format=zip .)
+
 # Files to package in our distribution.
 if(WIN32)
     if(CMAKE_VERSION VERSION_GREATER_EQUAL 3.21 AND NOT VCPKG_TOOLCHAIN)
@@ -299,14 +300,10 @@ if(WIN32)
     endif()
     install(FILES "$<TARGET_FILE_DIR:woof-com>/woof.com" DESTINATION .)
     install(FILES "$<TARGET_FILE_DIR:woof-exe>/woof.exe" DESTINATION .)
+    install(FILES "${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_SHORTNAME}.pk3"
+            DESTINATION .)
 else()
     install(TARGETS woof woof-setup RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
+    install(FILES "${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_SHORTNAME}.pk3"
+            DESTINATION "share/${PROJECT_SHORTNAME}")
 endif()
-
-# Copy autoload directory content to target directory.
-add_custom_command(TARGET woof POST_BUILD
-    COMMAND ${CMAKE_COMMAND} -E make_directory
-    "$<TARGET_FILE_DIR:woof>/autoload"
-    COMMAND ${CMAKE_COMMAND} -E copy_directory
-    "${CMAKE_SOURCE_DIR}/autoload"
-    "$<TARGET_FILE_DIR:woof>/autoload" VERBATIM)

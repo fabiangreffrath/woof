@@ -215,28 +215,6 @@ void V_InitColorTranslation(void)
     }
 }
 
-void WriteGeneratedLumpWad(const char *filename)
-{
-    int i;
-    const size_t num_lumps = arrlen(crdefs);
-    lumpinfo_t *lumps = calloc(num_lumps, sizeof(*lumps));
-
-    for (i = 0; i < num_lumps - 1; i++) // last entry is dummy
-    {
-        M_CopyLumpName(lumps[i].name, crdefs[i].name);
-        lumps[i].data = *crdefs[i].map2;
-        lumps[i].size = 256;
-    }
-
-    M_CopyLumpName(lumps[i].name, "TRANMAP");
-    lumps[i].data = main_tranmap;
-    lumps[i].size = 256 * 256;
-
-    WriteLumpWad(filename, lumps, num_lumps);
-
-    free(lumps);
-}
-
 video_t video;
 
 #define WIDE_SCREENWIDTH 864 // corresponds to 3.6 aspect ratio

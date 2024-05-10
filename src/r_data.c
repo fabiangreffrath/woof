@@ -1161,7 +1161,7 @@ void R_PrecacheLevel(void)
 
   for (i = numflats; --i >= 0; )
     if (hitlist[i])
-      V_CacheLumpNum(firstflat + i, PU_CACHE);
+      W_CacheLumpNum(firstflat + i, PU_CACHE);
 
   // Precache textures.
 

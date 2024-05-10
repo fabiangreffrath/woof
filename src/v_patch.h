@@ -13,6 +13,7 @@
 
 #include "doomtype.h"
 #include "z_zone.h"
+#include "w_wad.h"
 
 #define NO_COLOR_KEY (-1)
 
@@ -20,3 +21,5 @@ struct patch_s *V_LinearToTransPatch(const byte *data, int width, int height,
                                      int color_key, pu_tag tag, void **user);
 
 struct patch_s *V_CacheLumpNum(int lump, pu_tag tag);
+
+#define V_CacheLumpName(name, tag) V_CacheLumpNum(W_GetNumForName(name), (tag))

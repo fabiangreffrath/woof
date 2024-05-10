@@ -45,8 +45,8 @@
 #include "st_stuff.h"
 #include "tables.h"
 #include "v_flextran.h"
+#include "v_patch.h"
 #include "v_video.h"
-#include "w_wad.h"
 #include "z_zone.h"
 
 //jff 1/7/98 default automap colors added
@@ -548,7 +548,7 @@ static void AM_loadPics(void)
   for (i=0;i<10;i++)
   {
     M_snprintf(namebuf, sizeof(namebuf), "AMMNUM%d", i);
-    marknums[i] = W_CacheLumpName(namebuf, PU_STATIC);
+    marknums[i] = V_CacheLumpName(namebuf, PU_STATIC);
   }
 }
 

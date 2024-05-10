@@ -19,6 +19,7 @@
 #include "r_defs.h"
 #include "w_wad.h"
 #include "z_zone.h"
+
 #define M_ARRAY_INIT_CAPACITY 256
 #include "m_array.h"
 
@@ -302,7 +303,6 @@ patch_t *V_CacheLumpNum(int lump, pu_tag tag)
         goto error;
     }
 
-    printf("n_type3_entries: %d\n", trns.n_type3_entries);
     for (int i = 0; i < trns.n_type3_entries; ++i)
     {
         if (trns.type3_alpha[i] < 255)
@@ -316,8 +316,6 @@ patch_t *V_CacheLumpNum(int lump, pu_tag tag)
     uint32_t n_chunks = 0;
     ret = spng_get_unknown_chunks(ctx, NULL, &n_chunks);
 
-    printf("num_chunks: %d\n", n_chunks);
-
     if (ret && ret != SPNG_ECHUNKAVAIL)
     {
         I_Printf(VB_ERROR, "R_CacheNumLump: spng_get_unknown_chunks %s\n", spng_strerror(ret));
@@ -327,7 +325,7 @@ patch_t *V_CacheLumpNum(int lump, pu_tag tag)
     if (n_chunks > 0)
     {
         struct spng_unknown_chunk *chunks = malloc(n_chunks * sizeof(*chunks));
-        ret = spng_get_unknown_chunks(ctx, chunks, &n_chunks);
+        spng_get_unknown_chunks(ctx, chunks, &n_chunks);
         for (int i = 0; i < n_chunks; ++i)
         {
             if (!memcmp(chunks[i].type, "grAb", 4) && chunks[i].length == 8)
@@ -335,12 +333,13 @@ patch_t *V_CacheLumpNum(int lump, pu_tag tag)
                 int *p = chunks[i].data;
                 leftoffset = SWAP_BE32(p[0]);
                 topoffset = SWAP_BE32(p[1]);
+                break;
             }
         }
         free(chunks);
     }
 
-    size_t image_size;
+    size_t image_size = 0;
     ret = spng_decoded_image_size(ctx, SPNG_FMT_PNG, &image_size);
 
     if (ret)

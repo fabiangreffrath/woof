@@ -26,6 +26,7 @@
 struct event_s;
 
 extern char **wadfiles;       // killough 11/98
+extern char **sprites_dirs, **colormaps_dirs;
 
 void D_AddFile(const char *file);
 

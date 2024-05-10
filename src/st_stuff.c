@@ -48,6 +48,7 @@
 #include "st_lib.h"
 #include "st_stuff.h"
 #include "tables.h"
+#include "v_patch.h"
 #include "v_video.h"
 #include "w_wad.h"
 #include "z_zone.h"
@@ -414,7 +415,7 @@ void ST_refreshBackground(void)
             if (scaledviewwidth == video.unscaledw)
             {
                 int x;
-                patch_t *patch = W_CacheLumpName("brdr_b", PU_CACHE);
+                patch_t *patch = V_CacheLumpName("brdr_b", PU_CACHE);
 
                 for (x = 0; x < video.deltaw; x += 8)
                 {
@@ -1088,24 +1089,24 @@ void ST_loadGraphics(void)
   for (i=0;i<10;i++)
     {
       M_snprintf(namebuf, sizeof(namebuf), "STTNUM%d", i);
-      tallnum[i] = (patch_t *) W_CacheLumpName(namebuf, PU_STATIC);
+      tallnum[i] = V_CacheLumpName(namebuf, PU_STATIC);
       M_snprintf(namebuf, sizeof(namebuf), "STYSNUM%d", i);
-      shortnum[i] = (patch_t *) W_CacheLumpName(namebuf, PU_STATIC);
+      shortnum[i] = V_CacheLumpName(namebuf, PU_STATIC);
     }
 
   // Load percent key.
   //Note: why not load STMINUS here, too?
-  tallpercent = (patch_t *) W_CacheLumpName("STTPRCNT", PU_STATIC);
+  tallpercent = V_CacheLumpName("STTPRCNT", PU_STATIC);
 
   // key cards
   for (i=0;i<NUMCARDS+3;i++)  //jff 2/23/98 show both keys too
     {
       M_snprintf(namebuf, sizeof(namebuf), "STKEYS%d", i);
-      keys[i] = (patch_t *) W_CacheLumpName(namebuf, PU_STATIC);
+      keys[i] = V_CacheLumpName(namebuf, PU_STATIC);
     }
 
   // arms background
-  armsbg = (patch_t *) W_CacheLumpName("STARMS", PU_STATIC);
+  armsbg = V_CacheLumpName("STARMS", PU_STATIC);
 
   // arms ownership widgets
   for (i=0;i<6;i++)
@@ -1113,7 +1114,7 @@ void ST_loadGraphics(void)
       M_snprintf(namebuf, sizeof(namebuf), "STGNUM%d", i+2);
 
       // gray #
-      arms[i][0] = (patch_t *) W_CacheLumpName(namebuf, PU_STATIC);
+      arms[i][0] = V_CacheLumpName(namebuf, PU_STATIC);
 
       // yellow #
       arms[i][1] = shortnum[i+2];
@@ -1125,19 +1126,19 @@ void ST_loadGraphics(void)
   for (i=0; i<MAXPLAYERS; i++)
     {
       M_snprintf(namebuf, sizeof(namebuf), "STFB%d", i);
-      faceback[i] = (patch_t *) W_CacheLumpName(namebuf, PU_STATIC);
+      faceback[i] = V_CacheLumpName(namebuf, PU_STATIC);
     }
 
   // status bar background bits
   if (W_CheckNumForName("STBAR") >= 0)
   {
-    sbar  = (patch_t *) W_CacheLumpName("STBAR", PU_STATIC);
+    sbar  = V_CacheLumpName("STBAR", PU_STATIC);
     sbarr = NULL;
   }
   else
   {
-    sbar  = (patch_t *) W_CacheLumpName("STMBARL", PU_STATIC);
-    sbarr = (patch_t *) W_CacheLumpName("STMBARR", PU_STATIC);
+    sbar  = V_CacheLumpName("STMBARL", PU_STATIC);
+    sbarr = V_CacheLumpName("STMBARR", PU_STATIC);
   }
 
   // face states
@@ -1148,21 +1149,21 @@ void ST_loadGraphics(void)
       for (j=0;j<ST_NUMSTRAIGHTFACES;j++)
         {
           M_snprintf(namebuf, sizeof(namebuf), "STFST%d%d", i, j);
-          faces[facenum++] = W_CacheLumpName(namebuf, PU_STATIC);
+          faces[facenum++] = V_CacheLumpName(namebuf, PU_STATIC);
         }
       M_snprintf(namebuf, sizeof(namebuf), "STFTR%d0", i);        // turn right
-      faces[facenum++] = W_CacheLumpName(namebuf, PU_STATIC);
+      faces[facenum++] = V_CacheLumpName(namebuf, PU_STATIC);
       M_snprintf(namebuf, sizeof(namebuf), "STFTL%d0", i);        // turn left
-      faces[facenum++] = W_CacheLumpName(namebuf, PU_STATIC);
+      faces[facenum++] = V_CacheLumpName(namebuf, PU_STATIC);
       M_snprintf(namebuf, sizeof(namebuf), "STFOUCH%d", i);       // ouch!
-      faces[facenum++] = W_CacheLumpName(namebuf, PU_STATIC);
+      faces[facenum++] = V_CacheLumpName(namebuf, PU_STATIC);
       M_snprintf(namebuf, sizeof(namebuf), "STFEVL%d", i);        // evil grin ;)
-      faces[facenum++] = W_CacheLumpName(namebuf, PU_STATIC);
+      faces[facenum++] = V_CacheLumpName(namebuf, PU_STATIC);
       M_snprintf(namebuf, sizeof(namebuf), "STFKILL%d", i);       // pissed off
-      faces[facenum++] = W_CacheLumpName(namebuf, PU_STATIC);
+      faces[facenum++] = V_CacheLumpName(namebuf, PU_STATIC);
     }
-  faces[facenum++] = W_CacheLumpName("STFGOD0", PU_STATIC);
-  faces[facenum++] = W_CacheLumpName("STFDEAD0", PU_STATIC);
+  faces[facenum++] = V_CacheLumpName("STFGOD0", PU_STATIC);
+  faces[facenum++] = V_CacheLumpName("STFDEAD0", PU_STATIC);
 
   // [FG] support face gib animations as in the 3DO/Jaguar/PSX ports
   for (i = 0; i < ST_NUMXDTHFACES; i++)
@@ -1170,7 +1171,7 @@ void ST_loadGraphics(void)
     M_snprintf(namebuf, sizeof(namebuf), "STFXDTH%d", i);
 
     if (W_CheckNumForName(namebuf) != -1)
-      faces[facenum++] = W_CacheLumpName(namebuf, PU_STATIC);
+      faces[facenum++] = V_CacheLumpName(namebuf, PU_STATIC);
     else
       break;
   }
@@ -1399,7 +1400,7 @@ static int StatusBarBufferHeight(void)
 {
   int i;
   int st_height = ST_HEIGHT;
-  patch_t *const patch = W_CacheLumpName("brdr_b", PU_CACHE);
+  patch_t *const patch = V_CacheLumpName("brdr_b", PU_CACHE);
 
   if (patch && SHORT(patch->height) > st_height)
     st_height = SHORT(patch->height);
@@ -1440,7 +1441,7 @@ void ST_InitRes(void)
 void ST_Warnings(void)
 {
   int i;
-  patch_t *const patch = W_CacheLumpName("brdr_b", PU_CACHE);
+  patch_t *const patch = V_CacheLumpName("brdr_b", PU_CACHE);
 
   if (patch && SHORT(patch->height) > ST_HEIGHT)
   {

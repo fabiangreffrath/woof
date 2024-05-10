@@ -50,6 +50,7 @@
 #include "r_plane.h"
 #include "r_voxel.h"
 #include "st_stuff.h"
+#include "v_patch.h"
 #include "v_video.h"
 #include "w_wad.h"
 #include "z_zone.h"
@@ -849,7 +850,7 @@ static void I_InitDiskFlash(void)
     old_data = Z_Malloc(disk.sw * disk.sh * sizeof(*old_data), PU_STATIC, 0);
 
     V_GetBlock(0, 0, disk.sw, disk.sh, temp);
-    V_DrawPatch(-video.deltaw, 0, W_CacheLumpName("STDISK", PU_CACHE));
+    V_DrawPatch(-video.deltaw, 0, V_CacheLumpName("STDISK", PU_CACHE));
     V_GetBlock(0, 0, disk.sw, disk.sh, diskflash);
     V_PutBlock(0, 0, disk.sw, disk.sh, temp);
 
