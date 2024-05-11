@@ -542,15 +542,18 @@ static double CalcMouseVert(int mousey)
 
 static int quickstart_cache_tics;
 static boolean quickstart_queued;
+static float axis_turn_tic;
 static int mousex_tic;
 
 static void ClearQuickstartTic(void)
 {
+  axis_turn_tic = 0.0f;
   mousex_tic = 0;
 }
 
 static void ApplyQuickstartCache(ticcmd_t *cmd, boolean strafe)
 {
+  static float axis_turn_cache[TICRATE];
   static int mousex_cache[TICRATE];
   static short angleturn_cache[TICRATE];
   static int index;
@@ -562,12 +565,14 @@ static void ApplyQuickstartCache(ticcmd_t *cmd, boolean strafe)
 
   if (quickstart_queued)
   {
+    axes[AXIS_TURN] = 0.0f;
     mousex = 0;
 
     if (strafe)
     {
       for (int i = 0; i < quickstart_cache_tics; i++)
       {
+        axes[AXIS_TURN] += axis_turn_cache[i];
         mousex += mousex_cache[i];
       }
 
@@ -587,6 +592,7 @@ static void ApplyQuickstartCache(ticcmd_t *cmd, boolean strafe)
       localview.rawangle = cmd->angleturn;
     }
 
+    memset(axis_turn_cache, 0, sizeof(axis_turn_cache));
     memset(mousex_cache, 0, sizeof(mousex_cache));
     memset(angleturn_cache, 0, sizeof(angleturn_cache));
     index = 0;
@@ -595,6 +601,7 @@ static void ApplyQuickstartCache(ticcmd_t *cmd, boolean strafe)
   }
   else
   {
+    axis_turn_cache[index] = axis_turn_tic;
     mousex_cache[index] = mousex_tic;
     angleturn_cache[index] = cmd->angleturn;
     index = (index + 1) % quickstart_cache_tics;
@@ -611,6 +618,8 @@ void G_PrepTiccmd(void)
   if (I_UseController() && I_CalcControllerAxes())
   {
     D_UpdateDeltaTics();
+
+    axis_turn_tic = axes[AXIS_TURN];
 
     if (axes[AXIS_TURN] && !strafe)
     {
