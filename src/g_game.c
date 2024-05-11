@@ -534,6 +534,68 @@ static double CalcMouseVert(int mousey)
   return (I_AccelerateMouse(mousey) * (mouse_sensitivity_y + 5) / 10);
 }
 
+//
+// ApplyQuickstartMouseCache
+// When recording a demo and the map is reloaded, cached mouse input from a
+// circular buffer can be applied prior to the screen wipe. From DSDA-Doom.
+//
+
+static int quickstart_cache_tics;
+static boolean quickstart_queued;
+static int mousex_tic;
+
+static void ApplyQuickstartMouseCache(ticcmd_t *cmd, boolean strafe)
+{
+  static short mousex_cache[TICRATE];
+  static short angleturn_cache[TICRATE]; // TODO: exclude gamepad.
+  static int index;
+
+  if (quickstart_cache_tics < 1)
+  {
+    return;
+  }
+
+  if (quickstart_queued)
+  {
+    short result = 0;
+
+    if (strafe)
+    {
+      for (int i = 0; i < quickstart_cache_tics; i++)
+      {
+        result += mousex_cache[i];
+      }
+
+      mousex = result;
+      cmd->angleturn = 0;
+      localview.rawangle = 0.0;
+    }
+    else
+    {
+      for (int i = 0; i < quickstart_cache_tics; i++)
+      {
+        result += angleturn_cache[i];
+      }
+
+      mousex = 0;
+      cmd->angleturn = CarryAngle(result);
+      localview.rawangle = cmd->angleturn;
+    }
+
+    memset(mousex_cache, 0, sizeof(mousex_cache));
+    memset(angleturn_cache, 0, sizeof(angleturn_cache));
+    index = 0;
+
+    quickstart_queued = false;
+  }
+  else
+  {
+    mousex_cache[index] = mousex_tic;
+    angleturn_cache[index] = cmd->angleturn;
+    index = (index + 1) % quickstart_cache_tics;
+  }
+}
+
 void G_PrepTiccmd(void)
 {
   const boolean strafe = M_InputGameActive(input_strafe);
@@ -612,6 +674,8 @@ void G_BuildTiccmd(ticcmd_t* cmd)
 
   memcpy(cmd, &basecmd, sizeof(*cmd));
   memset(&basecmd, 0, sizeof(basecmd));
+
+  ApplyQuickstartMouseCache(cmd, strafe);
 
   cmd->consistancy = consistancy[consoleplayer][maketic%BACKUPTICS];
 
@@ -720,6 +784,7 @@ void G_BuildTiccmd(ticcmd_t* cmd)
   cmd->sidemove = side;
 
   I_ResetControllerAxes();
+  mousex_tic = 0;
   mousex = mousey = 0;
   localview.angle = 0;
   localview.pitch = 0;
@@ -877,6 +942,7 @@ void G_BuildTiccmd(ticcmd_t* cmd)
 void G_ClearInput(void)
 {
   I_ResetControllerLevel();
+  mousex_tic = 0;
   mousex = mousey = 0;
   memset(&localview, 0, sizeof(localview));
   memset(&carry, 0, sizeof(carry));
@@ -1215,6 +1281,7 @@ boolean G_MovementResponder(event_t *ev)
   switch (ev->type)
   {
     case ev_mouse:
+      mousex_tic += ev->data2;
       mousex += ev->data2;
       mousey += ev->data3;
       return true;
@@ -2762,6 +2829,10 @@ void G_Ticker(void)
 	      if (!demoplayback) // ignore in demos
 	      {
 	        gameaction = ga_reloadlevel;
+	        if (demorecording)
+	        {
+	          quickstart_queued = true;
+	        }
 	      }
 	      break;
 
@@ -4520,6 +4591,7 @@ void G_BindGameInputVariables(void)
 
 void G_BindGameVariables(void)
 {
+  BIND_NUM(quickstart_cache_tics, 0, 0, TICRATE, "Quickstart cache tics");
   BIND_BOOL(shorttics, false, "1 to use low resolution turning");
   BIND_NUM_GENERAL(default_skill, 3, 1, 5,
     "Selects default skill (1 = ITYTD, 2 = HNTR, 3 = HMP, 4 = UV, 5 = NM)");
