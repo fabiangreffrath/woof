@@ -535,19 +535,24 @@ static double CalcMouseVert(int mousey)
 }
 
 //
-// ApplyQuickstartMouseCache
-// When recording a demo and the map is reloaded, cached mouse input from a
-// circular buffer can be applied prior to the screen wipe. From DSDA-Doom.
+// ApplyQuickstartCache
+// When recording a demo and the map is reloaded, cached input from a circular
+// buffer can be applied prior to the screen wipe. Adapted from DSDA-Doom.
 //
 
 static int quickstart_cache_tics;
 static boolean quickstart_queued;
 static int mousex_tic;
 
-static void ApplyQuickstartMouseCache(ticcmd_t *cmd, boolean strafe)
+static void ClearQuickstartTic(void)
 {
-  static short mousex_cache[TICRATE];
-  static short angleturn_cache[TICRATE]; // TODO: exclude gamepad.
+  mousex_tic = 0;
+}
+
+static void ApplyQuickstartCache(ticcmd_t *cmd, boolean strafe)
+{
+  static int mousex_cache[TICRATE];
+  static short angleturn_cache[TICRATE];
   static int index;
 
   if (quickstart_cache_tics < 1)
@@ -557,27 +562,27 @@ static void ApplyQuickstartMouseCache(ticcmd_t *cmd, boolean strafe)
 
   if (quickstart_queued)
   {
-    short result = 0;
+    mousex = 0;
 
     if (strafe)
     {
       for (int i = 0; i < quickstart_cache_tics; i++)
       {
-        result += mousex_cache[i];
+        mousex += mousex_cache[i];
       }
 
-      mousex = result;
       cmd->angleturn = 0;
       localview.rawangle = 0.0;
     }
     else
     {
+      short result = 0;
+
       for (int i = 0; i < quickstart_cache_tics; i++)
       {
         result += angleturn_cache[i];
       }
 
-      mousex = 0;
       cmd->angleturn = CarryAngle(result);
       localview.rawangle = cmd->angleturn;
     }
@@ -675,7 +680,7 @@ void G_BuildTiccmd(ticcmd_t* cmd)
   memcpy(cmd, &basecmd, sizeof(*cmd));
   memset(&basecmd, 0, sizeof(basecmd));
 
-  ApplyQuickstartMouseCache(cmd, strafe);
+  ApplyQuickstartCache(cmd, strafe);
 
   cmd->consistancy = consistancy[consoleplayer][maketic%BACKUPTICS];
 
@@ -783,8 +788,8 @@ void G_BuildTiccmd(ticcmd_t* cmd)
   cmd->forwardmove = forward;
   cmd->sidemove = side;
 
+  ClearQuickstartTic();
   I_ResetControllerAxes();
-  mousex_tic = 0;
   mousex = mousey = 0;
   localview.angle = 0;
   localview.pitch = 0;
@@ -941,8 +946,8 @@ void G_BuildTiccmd(ticcmd_t* cmd)
 
 void G_ClearInput(void)
 {
+  ClearQuickstartTic();
   I_ResetControllerLevel();
-  mousex_tic = 0;
   mousex = mousey = 0;
   memset(&localview, 0, sizeof(localview));
   memset(&carry, 0, sizeof(carry));
