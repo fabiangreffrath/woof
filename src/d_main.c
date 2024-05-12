@@ -2738,7 +2738,7 @@ void D_DoomMain(void)
   D_CheckNetGame();
 
   G_UpdateSideMove();
-  G_UpdateCarryAngle();
+  G_UpdateAngleFunctions();
   I_UpdateAccelerateMouse();
 
   MN_ResetTimeScale();

@@ -213,7 +213,6 @@ typedef struct carry_s
     double pitch;
     double side;
     double vert;
-    short lowres;
 } carry_t;
 
 static carry_t prevcarry;
@@ -444,8 +443,8 @@ static double CalcControllerAngle(void)
 
 static double CalcControllerPitch(void)
 {
-  const double pitch = angleturn[1] * axes[AXIS_LOOK];
-  return (pitch * FRACUNIT * direction[joy_invert_look]);
+  return (angleturn[1] * axes[AXIS_LOOK] * direction[joy_invert_look]
+          * FRACUNIT);
 }
 
 static int CarryError(double value, const double *prevcarry, double *carry)
@@ -456,30 +455,50 @@ static int CarryError(double value, const double *prevcarry, double *carry)
   return actual;
 }
 
-static short CarryAngle_Full(double angle)
+static short CarryAngleTic_Full(double angle)
 {
   return CarryError(angle, &prevcarry.angle, &carry.angle);
 }
 
-static short CarryAngle_LowRes(double angle)
+static short CarryAngle_Full(double angle)
 {
-  const short desired = CarryAngle_Full(angle) + prevcarry.lowres;
-  // Round to nearest 256 for single byte turning. From Chocolate Doom.
-  const short actual = (desired + 128) & 0xFF00;
-  carry.lowres = desired - actual;
-  return actual;
+  const short fullres = CarryAngleTic_Full(angle);
+  localview.angle = fullres << FRACBITS;
+  return fullres;
 }
 
-static short (*CarryAngle)(double angle) = CarryAngle_Full;
-
-void G_UpdateCarryAngle(void)
+static short CarryAngleTic_LowRes(double angle)
 {
-  CarryAngle = lowres_turn ? CarryAngle_LowRes : CarryAngle_Full;
+  const double fullres = angle + prevcarry.angle;
+  const short lowres = ((short)lround(fullres) + 128) & 0xFF00;
+  carry.angle = fullres - lowres;
+  return lowres;
+}
+
+static short CarryAngle_LowRes(double angle)
+{
+  const short lowres = CarryAngleTic_LowRes(angle);
+  localview.angle = lowres << FRACBITS;
+  return lowres;
+}
+
+static short (*CarryAngleTic)(double angle);
+static short (*CarryAngle)(double angle);
+
+void G_UpdateAngleFunctions(void)
+{
+  CarryAngleTic = lowres_turn ? CarryAngleTic_LowRes : CarryAngleTic_Full;
+  CarryAngle = CarryAngleTic;
+
+  if (uncapped && raw_input && (!netgame || solonet))
+  {
+    CarryAngle = lowres_turn ? CarryAngle_LowRes : CarryAngle_Full;
+  }
 }
 
 static int CarryPitch(double pitch)
 {
-  return CarryError(pitch, &prevcarry.pitch, &carry.pitch);
+  return (localview.pitch = CarryError(pitch, &prevcarry.pitch, &carry.pitch));
 }
 
 static int CarryMouseVert(double vert)
@@ -505,14 +524,11 @@ static double CalcMouseAngle(int mousex)
 
 static double CalcMousePitch(int mousey)
 {
-  double pitch;
-
   if (!mouse_sensitivity_y_look)
     return 0.0;
 
-  pitch = I_AccelerateMouse(mousey) * (mouse_sensitivity_y_look + 5) * 8 / 10;
-
-  return pitch * FRACUNIT * direction[mouse_y_invert];
+  return (I_AccelerateMouse(mousey) * (mouse_sensitivity_y_look + 5) * 8 / 10
+          * direction[mouse_y_invert] * FRACUNIT);
 }
 
 static double CalcMouseSide(int mousex)
@@ -520,8 +536,7 @@ static double CalcMouseSide(int mousex)
   if (!mouse_sensitivity_strafe)
     return 0.0;
 
-  return (I_AccelerateMouse(mousex) *
-          (mouse_sensitivity_strafe + 5) * 2 / 10);
+  return (I_AccelerateMouse(mousex) * (mouse_sensitivity_strafe + 5) * 2 / 10);
 }
 
 static double CalcMouseVert(int mousey)
@@ -586,7 +601,7 @@ static void ApplyQuickstartCache(ticcmd_t *cmd, boolean strafe)
         result += angleturn_cache[i];
       }
 
-      cmd->angleturn = CarryAngle(result);
+      cmd->angleturn = CarryAngleTic(result);
       localview.rawangle = cmd->angleturn;
     }
 
@@ -623,7 +638,6 @@ void G_PrepTiccmd(void)
     {
       localview.rawangle -= CalcControllerAngle() * deltatics;
       cmd->angleturn = CarryAngle(localview.rawangle);
-      localview.angle = cmd->angleturn << 16;
       axes[AXIS_TURN] = 0.0f;
     }
 
@@ -631,7 +645,6 @@ void G_PrepTiccmd(void)
     {
       localview.rawpitch -= CalcControllerPitch() * deltatics;
       cmd->pitch = CarryPitch(localview.rawpitch);
-      localview.pitch = cmd->pitch;
       axes[AXIS_LOOK] = 0.0f;
     }
   }
@@ -642,7 +655,6 @@ void G_PrepTiccmd(void)
   {
     localview.rawangle -= CalcMouseAngle(mousex);
     cmd->angleturn = CarryAngle(localview.rawangle);
-    localview.angle = cmd->angleturn << 16;
     mousex = 0;
   }
 
@@ -650,7 +662,6 @@ void G_PrepTiccmd(void)
   {
     localview.rawpitch += CalcMousePitch(mousey);
     cmd->pitch = CarryPitch(localview.rawpitch);
-    localview.pitch = cmd->pitch;
     mousey = 0;
   }
 }
@@ -778,7 +789,7 @@ void G_BuildTiccmd(ticcmd_t* cmd)
   if (angle)
   {
     const short old_angleturn = cmd->angleturn;
-    cmd->angleturn = CarryAngle(localview.rawangle + angle);
+    cmd->angleturn = CarryAngleTic(localview.rawangle + angle);
     cmd->ticangleturn = cmd->angleturn - old_angleturn;
   }
 
@@ -4597,8 +4608,10 @@ void G_BindGameInputVariables(void)
 
 void G_BindGameVariables(void)
 {
+  BIND_BOOL(raw_input, true,
+    "Raw gamepad/mouse input for turning/looking (0 = Interpolate; 1 = Raw)");
+  BIND_BOOL(shorttics, false, "Always use low-resolution turning");
   BIND_NUM(quickstart_cache_tics, 0, 0, TICRATE, "Quickstart cache tics");
-  BIND_BOOL(shorttics, false, "Low-resolution turning");
   BIND_NUM_GENERAL(default_skill, 3, 1, 5,
     "Default skill level (1 = ITYTD; 2 = HNTR; 3 = HMP; 4 = UV; 5 = NM)");
   BIND_NUM_GENERAL(realtic_clock_rate, 100, 10, 1000,
