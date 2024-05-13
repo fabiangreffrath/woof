@@ -25,6 +25,7 @@
 // animation states (closely tied to the sprites
 // used to represent them, unfortunately).
 #include "p_pspr.h"
+#include "tables.h"
 
 // In addition, the player is just a special
 // case of the generic moving object/actor.
@@ -209,6 +210,9 @@ typedef struct player_s
 
   // DSDA UV Max category requirements
   int maxkilldiscount;
+
+  // Local angle for blending per-frame and per-tic turning.
+  angle_t ticangle, oldticangle;
 
 } player_t;
 

@@ -747,8 +747,8 @@ void R_SetupFrame (player_t *player)
 
     if (use_localview)
     {
-      viewangle = (player->mo->angle + localview.angle - localview.ticangle +
-                   LerpAngle(localview.oldticangle, localview.ticangle));
+      viewangle = (player->mo->angle + localview.angle - player->ticangle +
+                   LerpAngle(player->oldticangle, player->ticangle));
     }
     else
     {

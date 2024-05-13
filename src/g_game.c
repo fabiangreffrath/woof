@@ -779,7 +779,7 @@ void G_BuildTiccmd(ticcmd_t* cmd)
   {
     const short old_angleturn = cmd->angleturn;
     cmd->angleturn = CarryAngle(localview.rawangle + angle);
-    localview.ticangleturn = cmd->angleturn - old_angleturn;
+    cmd->ticangleturn = cmd->angleturn - old_angleturn;
   }
 
   if (forward > MAXPLMOVE)
@@ -1625,6 +1625,7 @@ static void G_PlayerFinishLevel(int player)
   p->centering = false;
   p->slope = 0;
   p->recoilpitch = p->oldrecoilpitch = 0;
+  p->ticangle = p->oldticangle = 0;
 }
 
 // [crispy] format time for level statistics
