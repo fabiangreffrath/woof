@@ -2359,6 +2359,8 @@ void MN_UpdateAdvancedSoundItems(boolean toggle)
 void MN_UpdateFpsLimitItem(void)
 {
     DisableItem(!uncapped, gen_settings1, "fpslimit");
+    G_ClearInput();
+    G_UpdateAngleFunctions();
 }
 
 void MN_DisableVoxelsRenderingItem(void)

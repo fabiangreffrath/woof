@@ -142,6 +142,7 @@ int             max_kill_requirement; // DSDA UV Max category requirements
 int             totalleveltimes; // [FG] total time for all completed levels
 boolean         demorecording;
 boolean         longtics;             // cph's doom 1.91 longtics hack
+boolean         smooth_shorttics;     // Smooth low-resolution turning.
 boolean         shorttics;            // Config key for low resolution turning.
 boolean         lowres_turn;          // low resolution turning for longtics
 boolean         demoplayback;
@@ -467,6 +468,11 @@ static short CarryAngle_Full(double angle)
   return fullres;
 }
 
+static short CarryAngle_SmoothLowRes(double angle)
+{
+  return (localview.angleoffset = (CarryAngle_Full(angle) + 128) & 0xFF00);
+}
+
 static short CarryAngleTic_LowRes(double angle)
 {
   const double fullres = angle + prevcarry.angle;
@@ -482,17 +488,41 @@ static short CarryAngle_LowRes(double angle)
   return lowres;
 }
 
+static void UpdateLocalView_Zero(void)
+{
+  memset(&localview, 0, sizeof(localview));
+}
+
+static void UpdateLocalView_SmoothLowRes(void)
+{
+  localview.angle -= localview.angleoffset << FRACBITS;
+  localview.rawangle -= localview.angleoffset;
+  localview.angleoffset = 0;
+  localview.pitch = 0;
+  localview.rawpitch = 0.0;
+}
+
 static short (*CarryAngleTic)(double angle);
 static short (*CarryAngle)(double angle);
+static void (*UpdateLocalView)(void);
 
 void G_UpdateAngleFunctions(void)
 {
   CarryAngleTic = lowres_turn ? CarryAngleTic_LowRes : CarryAngleTic_Full;
   CarryAngle = CarryAngleTic;
+  UpdateLocalView = UpdateLocalView_Zero;
 
-  if (uncapped && raw_input && (!netgame || solonet))
+  if (raw_input && (!netgame || solonet))
   {
-    CarryAngle = lowres_turn ? CarryAngle_LowRes : CarryAngle_Full;
+    if (lowres_turn && smooth_shorttics)
+    {
+      CarryAngle = CarryAngle_SmoothLowRes;
+      UpdateLocalView = UpdateLocalView_SmoothLowRes;
+    }
+    else if (uncapped)
+    {
+      CarryAngle = lowres_turn ? CarryAngle_LowRes : CarryAngle_Full;
+    }
   }
 }
 
@@ -808,10 +838,7 @@ void G_BuildTiccmd(ticcmd_t* cmd)
   ClearQuickstartTic();
   I_ResetControllerAxes();
   mousex = mousey = 0;
-  localview.angle = 0;
-  localview.pitch = 0;
-  localview.rawangle = 0.0;
-  localview.rawpitch = 0.0;
+  UpdateLocalView();
   prevcarry = carry;
 
   // Buttons
@@ -4610,6 +4637,7 @@ void G_BindGameVariables(void)
 {
   BIND_BOOL(raw_input, true,
     "Raw gamepad/mouse input for turning/looking (0 = Interpolate; 1 = Raw)");
+  BIND_BOOL(smooth_shorttics, false, "Smooth low-resolution turning");
   BIND_BOOL(shorttics, false, "Always use low-resolution turning");
   BIND_NUM(quickstart_cache_tics, 0, 0, TICRATE, "Quickstart cache tics");
   BIND_NUM_GENERAL(default_skill, 3, 1, 5,
