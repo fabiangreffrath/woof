@@ -329,10 +329,6 @@ static int P_IsUnderDamage(mobj_t *actor)
 static fixed_t xspeed[8] = {FRACUNIT,47000,0,-47000,-FRACUNIT,-47000,0,47000};
 static fixed_t yspeed[8] = {0,47000,FRACUNIT,47000,0,-47000,-FRACUNIT,-47000};
 
-// 1/11/98 killough: Limit removed on special lines crossed
-extern  line_t **spechit;          // New code -- killough
-extern  int    numspechit;
-
 static boolean P_Move(mobj_t *actor, boolean dropoff) // killough 9/12/98
 {
   fixed_t tryx, tryy, deltax, deltay;

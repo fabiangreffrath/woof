@@ -43,6 +43,9 @@ extern drawseg_t *ds_p;
 
 extern byte *solidcol;
 
+// killough 4/7/98: indicates doors closed wrt automap bugfix:
+extern int doorclosed;
+
 void R_ClearClipSegs(void);
 void R_ClearDrawSegs(void);
 void R_RenderBSPNode(int bspnum);

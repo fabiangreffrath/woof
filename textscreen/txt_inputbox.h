@@ -71,6 +71,9 @@ txt_inputbox_t *TXT_NewInputBox(char **value, int size);
 
 txt_inputbox_t *TXT_NewIntInputBox(int *value, int size);
 
+extern txt_widget_class_t txt_inputbox_class;
+extern txt_widget_class_t txt_int_inputbox_class;
+
 #endif /* #ifndef TXT_INPUTBOX_H */
 
 

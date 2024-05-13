@@ -48,6 +48,8 @@ boolean HU_DemoProgressBar(boolean force);
 
 void HU_ResetMessageColors(void);
 
+void WI_DrawTimeWidget(void);
+
 // killough 5/2/98: moved from m_misc.c:
 
 //jff 2/16/98 hud supported automap colors added
@@ -65,7 +67,12 @@ extern boolean show_messages;
 extern boolean show_toggle_messages;
 extern boolean show_pickup_messages;
 
+extern boolean chat_on;
+extern boolean message_dontfuckwithme;
+
 extern int playback_tic, playback_totaltics;
+
+extern char **player_names[];
 
 enum
 {

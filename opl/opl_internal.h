@@ -44,6 +44,8 @@ typedef struct
     opl_adjust_callbacks_func adjust_callbacks_func;
 } opl_driver_t;
 
+extern opl_driver_t opl_sdl_driver;
+
 // Sample rate to use when doing software emulation.
 
 extern unsigned int opl_sample_rate;

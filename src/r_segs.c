@@ -661,7 +661,6 @@ void R_StoreWallRange(const int start, const int stop)
       // killough 4/7/98: make doorclosed external variable
 
       {
-        extern int doorclosed;    // killough 1/17/98, 2/8/98, 4/7/98
         if (doorclosed || backsector->interpceilingheight<=frontsector->interpfloorheight)
           {
             ds_p->sprbottomclip = negonearray;

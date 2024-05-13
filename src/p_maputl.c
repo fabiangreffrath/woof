@@ -420,8 +420,6 @@ boolean P_BlockLinesIterator(int x, int y, boolean func(line_t*))
 // killough 5/3/98: reformatted, cleaned up
 
 boolean blockmapfix;
-extern boolean PIT_RadiusAttack(mobj_t* thing);
-extern boolean PIT_ChangeSector(mobj_t* thing);
 
 boolean P_BlockThingsIterator(int x, int y, boolean func(mobj_t*))
 {
@@ -703,8 +701,6 @@ boolean P_TraverseIntercepts(traverser_t func, fixed_t maxfrac)
     }
   return true;                  // everything was traversed
 }
-
-extern fixed_t bulletslope;
 
 // Intercepts Overrun emulation, from PrBoom-plus.
 // Thanks to Andrey Budko (entryway) for researching this and his 

@@ -964,6 +964,8 @@ void P_ShootSpecialLine(struct mobj_s *thing, struct line_s *line);
 void P_CrossSpecialLine(struct line_s *, int side, struct mobj_s *thing,
                         boolean bossaction); // killough 11/98
 
+extern int disable_nuke;  // killough 12/98: nukage disabling cheat
+
 void P_PlayerInSpecialSector(struct player_s *player);
 
 // p_lights

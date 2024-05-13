@@ -58,6 +58,8 @@ extern struct cheat_s {
   boolean deh_modified;                // killough 9/12/98
 } cheat[];
 
+void cheat_mypos_print();
+
 boolean M_CheatResponder(struct event_s *ev);
 
 #endif

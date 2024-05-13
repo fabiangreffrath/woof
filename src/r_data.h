@@ -51,6 +51,8 @@ void R_InvulMode(void);
 
 boolean R_IsPatchLump (const int lump);
 
+extern int numflats;
+
 extern byte *main_tranmap, *tranmap;
 
 extern int tran_filter_pct;

@@ -18,7 +18,6 @@
 //-----------------------------------------------------------------------------
 
 
-#include <ctype.h>
 #include <stdlib.h>
 #include <string.h>
 
@@ -27,6 +26,7 @@
 #include "doomdef.h"
 #include "doomstat.h"
 #include "doomtype.h"
+#include "g_game.h"
 #include "hu_lib.h"
 #include "info.h"
 #include "m_misc.h" // [FG] M_StringDuplicate()
@@ -38,6 +38,7 @@
 #include "u_mapinfo.h"
 #include "v_video.h"
 #include "w_wad.h"
+#include "wi_stuff.h"
 #include "z_zone.h"
 
 // Stage of animation:
@@ -52,18 +53,15 @@ int finalecount;
 #define NEWTEXTSPEED 0.01f // new value                         // phares
 #define NEWTEXTWAIT  1000  // new value                         // phares
 
-const char *finaletext;
-const char *finaleflat;
+static const char *finaletext;
+static const char *finaleflat;
 
 void    F_StartCast (void);
 void    F_CastTicker (void);
 boolean F_CastResponder (event_t *ev);
 void    F_CastDrawer (void);
 
-void WI_checkForAccelerate(void);    // killough 3/28/98: used to
-extern int acceleratestage;          // accelerate intermission screens
 static int midstage;                 // whether we're in "mid-stage"
-extern boolean secretexit;           // whether we've entered a secret map
 
 boolean using_FMI;
 
@@ -371,7 +369,6 @@ void F_TextWrite (void)
   cx = 10;
   cy = 10;
   ch = finaletext;
-
       
   count = (int)((finalecount - 10)/Get_TextSpeed());                 // phares
   if (count < 0)

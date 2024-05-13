@@ -31,6 +31,7 @@
 #include "p_mobj.h"
 #include "p_spec.h"
 #include "p_tick.h"
+#include "r_data.h"
 #include "r_defs.h"
 #include "r_state.h"
 #include "s_sound.h"
@@ -110,8 +111,6 @@ result_e T_MovePlane
             // http://prboom.sourceforge.net/mbf-bugs.html
             if ((flag == true) && demo_compatibility)
             {
-              extern boolean P_ChangeSector(sector_t *sector,boolean crunch);
-
               sector->floorheight = lastpos;
               P_ChangeSector(sector,crush);
               return crushed;
@@ -905,8 +904,6 @@ int EV_BuildStairs
 
 static boolean DonutOverrun(fixed_t *pfloorheight, short *pfloorpic)
 {
-  extern int numflats;
-
   if (demo_compatibility && overflow[emu_donut].enabled)
   {
     overflow[emu_donut].triggered = true;

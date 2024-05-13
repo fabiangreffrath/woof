@@ -1635,11 +1635,6 @@ deh_bexptr deh_bexptrs[] =
   {{NULL},             "A_NULL"},  // Ty 05/16/98
 };
 
-extern byte *defined_codeptr_args;
-
-// to hold startup code pointers from INFO.C
-extern actionf_t *deh_codeptr;
-
 // ====================================================================
 // ProcessDehFile
 // Purpose: Read and process a DEH or BEX file

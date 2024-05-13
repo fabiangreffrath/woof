@@ -18,6 +18,7 @@
 
 #include "d_event.h"
 #include "doomkeys.h"
+#include "g_game.h"
 #include "m_input.h"
 #include "m_config.h"
 
@@ -25,10 +26,6 @@
 #include "m_array.h"
 
 static input_t *composite_inputs[NUM_INPUT_ID];
-
-extern boolean gamekeydown[];
-extern boolean *mousebuttons;
-extern boolean *joybuttons;
 
 static event_t *event;
 
