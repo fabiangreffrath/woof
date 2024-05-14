@@ -133,8 +133,7 @@ set(WOOF_SOURCES
     version.c              version.h
     w_wad.c                w_wad.h
     wi_stuff.c             wi_stuff.h
-    z_zone.c               z_zone.h
-    ../miniz/miniz.c       ../miniz/miniz.h)
+    z_zone.c               z_zone.h)
 
 # Standard target definition
 if(WIN32)
@@ -167,8 +166,7 @@ else()
 endif()
 
 target_woof_settings(woof)
-target_include_directories(woof PRIVATE
-        "${CMAKE_CURRENT_BINARY_DIR}/../" "../miniz")
+target_include_directories(woof PRIVATE "${CMAKE_CURRENT_BINARY_DIR}/../")
 
 target_link_libraries(woof PRIVATE
     ${SDL2_LIBRARIES}
@@ -176,7 +174,8 @@ target_link_libraries(woof PRIVATE
     OpenAL::OpenAL
     SndFile::sndfile
     opl
-    textscreen)
+    textscreen
+    miniz)
 
 # Some platforms require standard libraries to be linked against.
 if(HAVE_LIBM)
@@ -228,8 +227,6 @@ endif()
 if(WOOF_STRICT)
     target_compile_definitions(woof PRIVATE MBF_STRICT)
 endif()
-
-target_compile_definitions(woof PRIVATE MINIZ_NO_TIME)
 
 set(SETUP_SOURCES
     d_iwad.c                d_iwad.h
