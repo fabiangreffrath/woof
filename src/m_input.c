@@ -623,6 +623,8 @@ void M_BindInputVariables(void)
     BIND_INPUT(input_quit, "Quit game");
     BIND_INPUT(input_gamma, "Adjust screen brightness (gamma correction)");
     BIND_INPUT(input_spy, "View from another player's vantage");
+    BIND_INPUT(input_zoomin, "Enlarge display");
+    BIND_INPUT(input_zoomout, "Reduce display");
     BIND_INPUT(input_screenshot, "Take a screenshot");
     BIND_INPUT(input_clean_screenshot, "Take a clean screenshot");
     BIND_INPUT(input_pause, "Pause the game");

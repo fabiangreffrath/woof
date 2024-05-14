@@ -4679,6 +4679,7 @@ void G_BindCompVariables(void)
   BIND_COMP(comp_floors,    0, "Use exactly Doom's floor motion behavior");
   BIND_COMP(comp_model,     0, "Use exactly Doom's linedef trigger model");
   BIND_COMP(comp_zerotags,  0, "Linedef effects work with sector tag = 0");
+  BIND_COMP(comp_soul,      0, "Lost souls bouncing");
   BIND_COMP(comp_respawn,   0, "Creatures with no spawnpoint respawn at (0,0)");
   BIND_COMP(comp_ledgeblock, 1, "Ledges block ground enemies");
   BIND_COMP(comp_friendlyspawn, 1, "A_Spawn new thing inherits friendliness");
