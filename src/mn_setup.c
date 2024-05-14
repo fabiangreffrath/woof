@@ -2307,6 +2307,9 @@ void MN_ResetTimeScale(void)
     I_SetTimeScale(time_scale);
 }
 
+static void UpdateRawInput(void);
+static void UpdateSmoothLowResTurning(void);
+
 static setup_menu_t gen_settings6[] = {
 
     {"Quality of life", S_SKIP | S_TITLE, M_X, M_SPC},
@@ -2329,6 +2332,16 @@ static setup_menu_t gen_settings6[] = {
 
     MI_GAP,
 
+    {"Advanced Input", S_SKIP | S_TITLE, M_X, M_SPC},
+
+    {"Raw Input", S_ONOFF, M_X, M_SPC, {"raw_input"},
+     m_null, input_null, str_empty, UpdateRawInput},
+
+    {"Smooth Low-Res Turning", S_ONOFF, M_X, M_SPC, {"smooth_shorttics"},
+     m_null, input_null, str_empty, UpdateSmoothLowResTurning},
+
+    MI_GAP,
+
     {"Miscellaneous", S_SKIP | S_TITLE, M_X, M_SPC},
 
     {"Game speed", S_NUM | S_STRICT | S_PCT, M_X, M_SPC, {"realtic_clock_rate"},
@@ -2339,6 +2352,32 @@ static setup_menu_t gen_settings6[] = {
 
     MI_END
 };
+
+static void UpdateSmoothLowResTurningItem(void)
+{
+    DisableItem(!raw_input || (netgame && !solonet), gen_settings6,
+                "smooth_shorttics");
+}
+
+void MN_UpdateAdvancedInputItems(void)
+{
+    DisableItem(netgame && !solonet, gen_settings6, "raw_input");
+    UpdateSmoothLowResTurningItem();
+}
+
+static void UpdateRawInput(void)
+{
+    G_ClearInput();
+    G_UpdateAngleFunctions();
+    I_UpdateAccelerateMouse();
+    UpdateSmoothLowResTurningItem();
+}
+
+static void UpdateSmoothLowResTurning(void)
+{
+    G_ClearInput();
+    G_UpdateAngleFunctions();
+}
 
 static setup_menu_t *gen_settings[] = {
     gen_settings1, gen_settings2, gen_settings3, gen_settings4,
