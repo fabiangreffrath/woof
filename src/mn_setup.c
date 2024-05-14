@@ -14,7 +14,9 @@
 //
 
 #include "mn_internal.h"
+
 #include "am_map.h"
+#include "d_deh.h"
 #include "d_main.h"
 #include "doomdef.h"
 #include "doomstat.h"
@@ -3830,8 +3832,6 @@ void MN_InitMenuStrings(void)
 
 void MN_SetupResetMenu(void)
 {
-    extern boolean deh_set_blood_color;
-
     DisableItem(force_strictmode, comp_settings1, "strictmode");
     DisableItem(force_complevel != CL_NONE, comp_settings1, "default_complevel");
     DisableItem(M_ParmExists("-pistolstart"), comp_settings1, "pistolstart");

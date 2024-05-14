@@ -18,7 +18,6 @@
 //-----------------------------------------------------------------------------
 
 
-#include <ctype.h>
 #include <stdlib.h>
 #include <string.h>
 
@@ -27,6 +26,7 @@
 #include "doomdef.h"
 #include "doomstat.h"
 #include "doomtype.h"
+#include "g_game.h"
 #include "hu_lib.h"
 #include "info.h"
 #include "m_misc.h" // [FG] M_StringDuplicate()
@@ -38,6 +38,7 @@
 #include "u_mapinfo.h"
 #include "v_video.h"
 #include "w_wad.h"
+#include "wi_stuff.h"
 #include "z_zone.h"
 
 // Stage of animation:
@@ -52,19 +53,15 @@ int finalecount;
 #define NEWTEXTSPEED 0.01f // new value                         // phares
 #define NEWTEXTWAIT  1000  // new value                         // phares
 
-char*   finaletext;
-char*   finaleflat;
-static char* finaletext_rw = NULL;
+static const char *finaletext;
+static const char *finaleflat;
 
 void    F_StartCast (void);
 void    F_CastTicker (void);
 boolean F_CastResponder (event_t *ev);
 void    F_CastDrawer (void);
 
-void WI_checkForAccelerate(void);    // killough 3/28/98: used to
-extern int acceleratestage;          // accelerate intermission screens
 static int midstage;                 // whether we're in "mid-stage"
-extern boolean secretexit;           // whether we've entered a secret map
 
 boolean using_FMI;
 
@@ -218,14 +215,6 @@ void F_StartFinale (void)
 
   finalestage = 0;
   finalecount = 0;
-
-  // [FG] do the "char* vs. const char*" dance
-  if (finaletext_rw)
-  {
-    free(finaletext_rw);
-    finaletext_rw = NULL;
-  }
-  finaletext_rw = M_StringDuplicate(finaletext);
 }
 
 
@@ -353,31 +342,11 @@ void F_Ticker(void)
 // text can be increased, and there's still time to read what's     //   |
 // written.                                                         // phares
 
-// [FG] add line breaks for lines exceeding screenwidth
-static inline boolean F_AddLineBreak (char *c)
-{
-    while (c-- > finaletext_rw)
-    {
-	if (*c == '\n')
-	{
-	    return false;
-	}
-	else
-	if (*c == ' ')
-	{
-	    *c = '\n';
-	    return true;
-	}
-    }
-
-    return false;
-}
-
 void F_TextWrite (void)
 {
   int         w;         // killough 8/9/98: move variables below
   int         count;
-  char*       ch;
+  const char  *ch;
   int         c;
   int         cx;
   int         cy;
@@ -399,7 +368,7 @@ void F_TextWrite (void)
   // draw some of the text onto the screen
   cx = 10;
   cy = 10;
-  ch = finaletext_rw;
+  ch = finaletext;
       
   count = (int)((finalecount - 10)/Get_TextSpeed());                 // phares
   if (count < 0)
@@ -425,13 +394,9 @@ void F_TextWrite (void)
     }
               
     w = SHORT (hu_font[c]->width);
-    if (cx+w > SCREENWIDTH)
+    if (cx + w > video.unscaledw - video.deltaw)
     {
-      // [FG] add line breaks for lines exceeding screenwidth
-      if (F_AddLineBreak(ch))
-        continue;
-      else
-      break;
+      continue;
     }
     // [cispy] prevent text from being drawn off-screen vertically
     if (cy + SHORT(hu_font[c]->height) > SCREENHEIGHT)

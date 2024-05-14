@@ -32,6 +32,7 @@
 #include "doomstat.h"
 #include "i_video.h"
 #include "p_mobj.h"
+#include "p_pspr.h"
 #include "p_setup.h" // P_SegLengths
 #include "r_bsp.h"
 #include "r_data.h"
@@ -40,6 +41,7 @@
 #include "r_main.h"
 #include "r_bmaps.h"
 #include "r_plane.h"
+#include "r_segs.h"
 #include "r_sky.h"
 #include "r_state.h"
 #include "r_swirl.h"
@@ -72,7 +74,6 @@ double deltatics;
 boolean raw_input;
 fixed_t  viewcos, viewsin;
 player_t *viewplayer;
-extern lighttable_t **walllights;
 fixed_t  viewheightfrac; // [FG] sprite clipping optimizations
 
 static fixed_t focallength, lightfocallength;
@@ -861,7 +862,6 @@ void R_RenderPlayerView (player_t* player)
   if (autodetect_hom)
     { // killough 2/10/98: add flashing red HOM indicators
       pixel_t c[47*47];
-      extern int lastshottic;
       int i , color = !flashing_hom || (gametic % 20) < 9 ? 0xb0 : 0;
       V_FillRect(scaledviewx, scaledviewy, scaledviewwidth, scaledviewheight, color);
       for (i=0;i<47*47;i++)

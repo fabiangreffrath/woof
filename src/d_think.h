@@ -26,7 +26,7 @@ typedef void (*actionf_v)();
 typedef void (*actionf_p1)(void *);
 typedef void (*actionf_p2)(void *, void *);
 
-typedef union
+typedef union actionf_u
 {
   actionf_v v;
   actionf_p1 p1;

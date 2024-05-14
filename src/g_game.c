@@ -200,8 +200,7 @@ fixed_t angleturn[3]   = {640, 1280, 320};  // + slow turn
 boolean gamekeydown[NUMKEYS];
 int     turnheld;       // for accelerative turning
 
-boolean mousearray[NUM_MOUSE_BUTTONS + 1]; // [FG] support more mouse buttons
-boolean *mousebuttons = &mousearray[1];    // allow [-1]
+boolean mousebuttons[NUM_MOUSE_BUTTONS];
 
 // mouse values are used once
 static int mousex;
@@ -221,8 +220,7 @@ static carry_t prevcarry;
 static carry_t carry;
 static ticcmd_t basecmd;
 
-boolean joyarray[NUM_CONTROLLER_BUTTONS + 1]; // [FG] support more joystick buttons
-boolean *joybuttons = &joyarray[1];    // allow [-1]
+boolean joybuttons[NUM_CONTROLLER_BUTTONS];
 
 static const int direction[] = { 1, -1 };
 
@@ -534,6 +532,80 @@ static double CalcMouseVert(int mousey)
   return (I_AccelerateMouse(mousey) * (mouse_sensitivity_y + 5) / 10);
 }
 
+//
+// ApplyQuickstartCache
+// When recording a demo and the map is reloaded, cached input from a circular
+// buffer can be applied prior to the screen wipe. Adapted from DSDA-Doom.
+//
+
+static int quickstart_cache_tics;
+static boolean quickstart_queued;
+static float axis_turn_tic;
+static int mousex_tic;
+
+static void ClearQuickstartTic(void)
+{
+  axis_turn_tic = 0.0f;
+  mousex_tic = 0;
+}
+
+static void ApplyQuickstartCache(ticcmd_t *cmd, boolean strafe)
+{
+  static float axis_turn_cache[TICRATE];
+  static int mousex_cache[TICRATE];
+  static short angleturn_cache[TICRATE];
+  static int index;
+
+  if (quickstart_cache_tics < 1)
+  {
+    return;
+  }
+
+  if (quickstart_queued)
+  {
+    axes[AXIS_TURN] = 0.0f;
+    mousex = 0;
+
+    if (strafe)
+    {
+      for (int i = 0; i < quickstart_cache_tics; i++)
+      {
+        axes[AXIS_TURN] += axis_turn_cache[i];
+        mousex += mousex_cache[i];
+      }
+
+      cmd->angleturn = 0;
+      localview.rawangle = 0.0;
+    }
+    else
+    {
+      short result = 0;
+
+      for (int i = 0; i < quickstart_cache_tics; i++)
+      {
+        result += angleturn_cache[i];
+      }
+
+      cmd->angleturn = CarryAngle(result);
+      localview.rawangle = cmd->angleturn;
+    }
+
+    memset(axis_turn_cache, 0, sizeof(axis_turn_cache));
+    memset(mousex_cache, 0, sizeof(mousex_cache));
+    memset(angleturn_cache, 0, sizeof(angleturn_cache));
+    index = 0;
+
+    quickstart_queued = false;
+  }
+  else
+  {
+    axis_turn_cache[index] = axis_turn_tic;
+    mousex_cache[index] = mousex_tic;
+    angleturn_cache[index] = cmd->angleturn;
+    index = (index + 1) % quickstart_cache_tics;
+  }
+}
+
 void G_PrepTiccmd(void)
 {
   const boolean strafe = M_InputGameActive(input_strafe);
@@ -544,6 +616,8 @@ void G_PrepTiccmd(void)
   if (I_UseController() && I_CalcControllerAxes())
   {
     D_UpdateDeltaTics();
+
+    axis_turn_tic = axes[AXIS_TURN];
 
     if (axes[AXIS_TURN] && !strafe)
     {
@@ -600,7 +674,6 @@ void G_BuildTiccmd(ticcmd_t* cmd)
   int side = 0;
   int newweapon;                                          // phares
 
-  extern boolean boom_weapon_state_injection;
   static boolean done_autoswitch = false;
 
   G_DemoSkipTics();
@@ -612,6 +685,8 @@ void G_BuildTiccmd(ticcmd_t* cmd)
 
   memcpy(cmd, &basecmd, sizeof(*cmd));
   memset(&basecmd, 0, sizeof(basecmd));
+
+  ApplyQuickstartCache(cmd, strafe);
 
   cmd->consistancy = consistancy[consoleplayer][maketic%BACKUPTICS];
 
@@ -719,6 +794,7 @@ void G_BuildTiccmd(ticcmd_t* cmd)
   cmd->forwardmove = forward;
   cmd->sidemove = side;
 
+  ClearQuickstartTic();
   I_ResetControllerAxes();
   mousex = mousey = 0;
   localview.angle = 0;
@@ -876,6 +952,7 @@ void G_BuildTiccmd(ticcmd_t* cmd)
 
 void G_ClearInput(void)
 {
+  ClearQuickstartTic();
   I_ResetControllerLevel();
   mousex = mousey = 0;
   memset(&localview, 0, sizeof(localview));
@@ -963,10 +1040,7 @@ static void G_DoLoadLevel(void)
   // by Z_FreeTags() when the previous level ended or player
   // died.
 
-   {
-    extern msecnode_t *headsecnode; // phares 3/25/98
-    headsecnode = NULL;
-   }
+  headsecnode = NULL;
 
   critical = (gameaction == ga_playdemo || demorecording || demoplayback || D_CheckNetConnect());
 
@@ -1001,8 +1075,8 @@ static void G_DoLoadLevel(void)
   G_ClearInput();
   sendpause = sendsave = paused = false;
   // [FG] array size!
-  memset (mousearray, 0, sizeof(mousearray));
-  memset (joyarray, 0, sizeof(joyarray));
+  memset (mousebuttons, 0, sizeof(mousebuttons));
+  memset (joybuttons, 0, sizeof(joybuttons));
 
   //jff 4/26/98 wake up the status bar in case were coming out of a DM demo
   // killough 5/13/98: in case netdemo has consoleplayer other than green
@@ -1022,8 +1096,6 @@ static void G_DoLoadLevel(void)
         }
     }
 }
-
-extern int ddt_cheating;
 
 static void G_ReloadLevel(void)
 {
@@ -1215,6 +1287,7 @@ boolean G_MovementResponder(event_t *ev)
   switch (ev->type)
   {
     case ev_mouse:
+      mousex_tic += ev->data2;
       mousex += ev->data2;
       mousey += ev->data3;
       return true;
@@ -2209,7 +2282,6 @@ void CheckSaveGame(size_t size)
 // (previously code was scattered around in multiple places)
 
 // [FG] support up to 8 pages of savegames
-extern int savepage;
 
 char* G_SaveGameName(int slot)
 {
@@ -2595,7 +2667,6 @@ void G_CleanScreenshot(void)
 {
   int old_screenblocks;
   boolean old_hide_weapon;
-  extern void ST_ResetPalette(void);
 
   ST_ResetPalette();
 
@@ -2732,7 +2803,6 @@ void G_Ticker(void)
 		  cmd->forwardmove > TURBOTHRESHOLD &&
 		  !(gametic&31) && ((gametic>>5)&3) == i )
 		{
-		  extern char **player_names[];
 		  displaymsg("%s is turbo!", *player_names[i]); // killough 9/29/98
 		}
 
@@ -2762,6 +2832,10 @@ void G_Ticker(void)
 	      if (!demoplayback) // ignore in demos
 	      {
 	        gameaction = ga_reloadlevel;
+	        if (demorecording)
+	        {
+	          quickstart_queued = true;
+	        }
 	      }
 	      break;
 
@@ -2859,8 +2933,6 @@ void G_PlayerReborn(int player)
 // at the given mapthing_t spot
 // because something is occupying it
 //
-
-void P_SpawnPlayer(mapthing_t *mthing);
 
 static boolean G_CheckSpot(int playernum, mapthing_t *mthing)
 {
@@ -4249,7 +4321,6 @@ void G_DeferedPlayDemo(char* name)
 
 #define DEMO_FOOTER_SEPARATOR "\n"
 #define NUM_DEMO_FOOTER_LUMPS 4
-extern char **dehfiles;
 
 static size_t WriteCmdLineLump(MEMFILE *stream)
 {
@@ -4520,6 +4591,7 @@ void G_BindGameInputVariables(void)
 
 void G_BindGameVariables(void)
 {
+  BIND_NUM(quickstart_cache_tics, 0, 0, TICRATE, "Quickstart cache tics");
   BIND_BOOL(shorttics, false, "Low-resolution turning");
   BIND_NUM_GENERAL(default_skill, 3, 1, 5,
     "Default skill level (1 = ITYTD; 2 = HNTR; 3 = HMP; 4 = UV; 5 = NM)");
@@ -4606,6 +4678,7 @@ void G_BindCompVariables(void)
   BIND_COMP(comp_floors,    0, "Use exactly Doom's floor motion behavior");
   BIND_COMP(comp_model,     0, "Use exactly Doom's linedef trigger model");
   BIND_COMP(comp_zerotags,  0, "Linedef actions work on sectors with tag 0");
+  BIND_COMP(comp_soul,      0, "Lost souls bouncing");
   BIND_COMP(comp_respawn,   0, "Monsters not spawned at level start respawn at map origin");
   BIND_COMP(comp_ledgeblock, 1, "Ledges block monsters");
   BIND_COMP(comp_friendlyspawn, 1, "Things spawned by A_Spawn inherit friendliness of spawner");

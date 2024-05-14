@@ -31,6 +31,8 @@ typedef enum
   ShowNextLoc
 } stateenum_t;
 
+extern int acceleratestage;
+
 // Called by main loop, animate the intermission.
 void WI_Ticker (void);
 

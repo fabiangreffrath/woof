@@ -73,6 +73,7 @@ extern mpoint_t *markpoints;
 extern int markpointnum, markpointnum_max;
 extern boolean followplayer;
 extern boolean automap_grid;
+extern int ddt_cheating;
 
 // end changes -- killough 2/22/98
 

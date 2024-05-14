@@ -32,6 +32,7 @@
 #include "p_mobj.h"
 #include "p_pspr.h"
 #include "p_tick.h"
+#include "p_user.h"
 #include "r_main.h"
 #include "s_sound.h"
 #include "sounds.h"
@@ -43,8 +44,6 @@
 #define WEAPONTOP    (FRACUNIT*32)
 
 #define BFGCELLS bfgcells        /* Ty 03/09/98 externalized in p_inter.c */
-
-extern void P_Thrust(player_t *, angle_t, fixed_t);
 
 // The following array holds the recoil values         // phares
 static struct
@@ -796,7 +795,6 @@ void A_FireOldBFG(player_t *player, pspdef_t *psp)
       angle_t an = mo->angle;
       angle_t an1 = ((P_Random(pr_bfg)&127) - 64) * (ANG90/768) + an;
       angle_t an2 = ((P_Random(pr_bfg)&127) - 64) * (ANG90/640) + ANG90;
-      extern int autoaim;
 
       if (autoaim || !beta_emulation)
 	{

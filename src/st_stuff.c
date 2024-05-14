@@ -205,7 +205,7 @@ static boolean st_statusbaron;
 
 // [crispy] distinguish classic status bar with background and player face
 // from Crispy HUD
-boolean st_crispyhud;
+static boolean st_crispyhud;
 static boolean st_classicstatusbar;
 
 // !deathmatch
@@ -316,8 +316,6 @@ int             st_keyorskull[3];
 
 // a random number per tick
 static int      st_randomnumber;
-
-extern char     *mapnames[];
 
 //
 // STATUS BAR CODE

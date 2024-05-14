@@ -22,6 +22,7 @@
 #include "SDL.h"
 
 #include "doomstat.h"
+#include "d_main.h"
 #include "g_game.h"
 #include "i_glob.h"
 #include "i_printf.h"
@@ -33,8 +34,6 @@
 //
 // I_Quit
 //
-
-extern char **tempdirs;
 
 void I_Quit(void)
 {

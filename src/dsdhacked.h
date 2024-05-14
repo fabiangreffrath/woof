@@ -17,6 +17,9 @@
 #ifndef __DSDHACKED__
 #define __DSDHACKED__
 
+#include "doomtype.h"
+#include "info.h"
+
 void dsdh_InitTables(void);
 void dsdh_FreeTables(void);
 
@@ -28,5 +31,9 @@ int dsdh_GetOriginalSpriteIndex(const char *key);
 int dsdh_GetDehSFXIndex(const char *key, size_t length);
 int dsdh_GetDehMusicIndex(const char *key, int length);
 int dsdh_GetOriginalSFXIndex(const char *key);
+
+extern byte *defined_codeptr_args;
+extern union actionf_u *deh_codeptr;
+extern statenum_t *seenstate_tab;
 
 #endif
