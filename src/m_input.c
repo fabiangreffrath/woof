@@ -584,9 +584,9 @@ void M_BindInputVariables(void)
     BIND_INPUT(input_strafeleft, "Strafe left (sideways left)");
     BIND_INPUT(input_straferight, "Strafe right (sideways right)");
     BIND_INPUT(input_speed, "Run (move fast)");
-    BIND_INPUT(input_strafe, "Hold to strafe");
-    BIND_INPUT(input_autorun, "Toggle always run mode");
-    BIND_INPUT(input_reverse, "Spin 180 instantly");
+    BIND_INPUT(input_strafe, "Strafe modifier (hold to strafe instead of turning)");
+    BIND_INPUT(input_autorun, "Toggle always-run mode");
+    BIND_INPUT(input_reverse, "Spin 180 degrees instantly");
     BIND_INPUT(input_use, "Open a door, use a switch");
     BIND_INPUT(input_fire, "Fire current weapon");
     BIND_INPUT(input_prevweapon, "Cycle to the previous weapon");
@@ -595,31 +595,31 @@ void M_BindInputVariables(void)
     BIND_INPUT(input_novert, "Toggle vertical mouse movement");
     BIND_INPUT(input_freelook, "Toggle free look");
 
-    BIND_INPUT(input_weapon1, "Switch to weapon 1 (fist/chainsaw)");
-    BIND_INPUT(input_weapon2, "Switch to weapon 2 (pistol)");
-    BIND_INPUT(input_weapon3, "Switch to weapon 3 (supershotgun/shotgun)");
-    BIND_INPUT(input_weapon4, "Switch to weapon 4 (chaingun)");
-    BIND_INPUT(input_weapon5, "Switch to weapon 5 (rocket launcher)");
-    BIND_INPUT(input_weapon6, "Switch to weapon 6 (plasma rifle)");
-    BIND_INPUT(input_weapon7, "Switch to weapon 7 (bfg9000)");
-    BIND_INPUT(input_weapon8, "Switch to weapon 8 (chainsaw)");
-    BIND_INPUT(input_weapon9, "Switch to weapon 9 (supershotgun)");
-    BIND_INPUT(input_weapontoggle, "Toggle between two most preferred weapons with ammo");
+    BIND_INPUT(input_weapon1, "Switch to weapon 1 (Fist/Chainsaw)");
+    BIND_INPUT(input_weapon2, "Switch to weapon 2 (Pistol)");
+    BIND_INPUT(input_weapon3, "Switch to weapon 3 (Super Shotgun/Shotgun)");
+    BIND_INPUT(input_weapon4, "Switch to weapon 4 (Chaingun)");
+    BIND_INPUT(input_weapon5, "Switch to weapon 5 (Rocket Launcher)");
+    BIND_INPUT(input_weapon6, "Switch to weapon 6 (Plasma Rifle)");
+    BIND_INPUT(input_weapon7, "Switch to weapon 7 (BFG9000)");
+    BIND_INPUT(input_weapon8, "Switch to weapon 8 (Chainsaw)");
+    BIND_INPUT(input_weapon9, "Switch to weapon 9 (Super Shotgun)");
+    BIND_INPUT(input_weapontoggle, "Switch between the two most-preferred weapons with ammo");
 
     BIND_INPUT(input_menu_reloadlevel, "Restart current level/demo");
     BIND_INPUT(input_menu_nextlevel, "Go to next level");
 
-    BIND_INPUT(input_hud_timestats, "Show level stats and time");
+    BIND_INPUT(input_hud_timestats, "Toggle display of level stats and time");
 
     BIND_INPUT(input_savegame, "Save current game");
-    BIND_INPUT(input_loadgame, "Restore from saved games");
+    BIND_INPUT(input_loadgame, "Load saved games");
 
     BIND_INPUT(input_soundvolume, "Bring up sound control panel");
-    BIND_INPUT(input_hud, "Adjust heads up display mode");
-    BIND_INPUT(input_quicksave, "Save to last slot saved");
+    BIND_INPUT(input_hud, "Cycle through HUD layouts");
+    BIND_INPUT(input_quicksave, "Save to last used save slot");
     BIND_INPUT(input_endgame, "End the game");
     BIND_INPUT(input_messages, "Toggle messages");
-    BIND_INPUT(input_quickload, "Load from quick saved game");
+    BIND_INPUT(input_quickload, "Load from quick-saved game");
     BIND_INPUT(input_quit, "Quit game");
     BIND_INPUT(input_gamma, "Adjust screen brightness (gamma correction)");
     BIND_INPUT(input_spy, "View from another player's vantage");
@@ -645,11 +645,11 @@ void M_BindInputVariables(void)
     BIND_INPUT(input_map_zoomin, "Enlarge automap");
     BIND_INPUT(input_map_zoomout, "Reduce automap");
     BIND_INPUT(input_map_mark, "Drop a marker on automap");
-    BIND_INPUT(input_map_clear, "Clear all markers on automap");
-    BIND_INPUT(input_map_gobig, "Max zoom for automap");
+    BIND_INPUT(input_map_clear, "Clear last marker on automap");
+    BIND_INPUT(input_map_gobig, "Toggle max zoom on automap");
     BIND_INPUT(input_map_grid, "Toggle grid display over automap");
-    BIND_INPUT(input_map_overlay, "Toggle overlay mode");
-    BIND_INPUT(input_map_rotate, "Toggle rotate mode");
+    BIND_INPUT(input_map_overlay, "Toggle automap overlay mode");
+    BIND_INPUT(input_map_rotate, "Toggle automap rotation");
 
     BIND_INPUT(input_chat, "Enter a chat message");
     BIND_INPUT(input_chat_dest0, "Chat with player 1");
@@ -658,18 +658,18 @@ void M_BindInputVariables(void)
     BIND_INPUT(input_chat_dest3, "Chat with player 4");
 
     BIND_INPUT(input_iddqd, "Toggle god mode");
-    BIND_INPUT(input_idkfa, "Give ammo/keys");
+    BIND_INPUT(input_idkfa, "Give ammo and keys");
     BIND_INPUT(input_idfa, "Give ammo");
-    BIND_INPUT(input_idclip, "Toggle no clipping mode");
+    BIND_INPUT(input_idclip, "Toggle no-clipping mode");
     BIND_INPUT(input_idbeholdh, "Give health");
-    BIND_INPUT(input_idbeholdm, "Give mega armor");
+    BIND_INPUT(input_idbeholdm, "Give megaarmor");
     BIND_INPUT(input_idbeholdv, "Give invulnerability");
     BIND_INPUT(input_idbeholds, "Give berserk");
     BIND_INPUT(input_idbeholdi, "Give partial invisibility");
     BIND_INPUT(input_idbeholdr, "Give radiation suit");
-    BIND_INPUT(input_idbeholdl, "Give light amplification");
+    BIND_INPUT(input_idbeholdl, "Give light amplification visor");
     BIND_INPUT(input_iddt, "Reveal map");
-    BIND_INPUT(input_notarget, "No target mode");
+    BIND_INPUT(input_notarget, "No-target mode");
     BIND_INPUT(input_freeze, "Freeze mode");
     BIND_INPUT(input_avj, "Fake Archvile Jump");
 }

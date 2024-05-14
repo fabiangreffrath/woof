@@ -1477,35 +1477,35 @@ void ST_ResetPalette(void)
 void ST_BindSTSVariables(void)
 {
   M_BindBool("sts_colored_numbers", &sts_colored_numbers, NULL,
-             false, ss_stat, wad_yes, "1 to enable use of color on status bar");
+             false, ss_stat, wad_yes, "Colored numbers on the status bar");
   M_BindBool("sts_pct_always_gray", &sts_pct_always_gray, NULL,
              false, ss_stat, wad_yes,
-             "1 to make percent signs on status bar always gray");
+             "Percent signs on the status bar are always gray");
   M_BindBool("sts_traditional_keys", &sts_traditional_keys, NULL,
              false, ss_stat, wad_yes,
-             "1 to make percent signs on status bar always gray");
+             "Show last picked-up key on each key slot on the status bar");
   M_BindBool("hud_blink_keys", &hud_blink_keys, NULL,
              false, ss_stat, wad_no,
-      "1 to make missing keys blink when trying to trigger linedef actions");
+             "Make missing keys blink when trying to trigger linedef actions");
   M_BindBool("st_solidbackground", &st_solidbackground, NULL,
              false, ss_stat, wad_no,
-             "1 for solid color status bar background in widescreen mode");
+             "Use solid-color borders for the status bar in widescreen mode");
   M_BindBool("hud_animated_counts", &hud_animated_counts, NULL,
-            false, ss_stat, wad_no, "1 to enable animated health/armor counts");
+            false, ss_stat, wad_no, "Animated health/armor counts");
   M_BindNum("health_red", &health_red, NULL, 25, 0, 200, ss_none, wad_yes,
-            "Amount of health for red to yellow transition");
+            "Amount of health for red-to-yellow transition");
   M_BindNum("health_yellow", &health_yellow, NULL, 50, 0, 200, ss_none, wad_yes,
-            "Amount of health for yellow to green transition");
+            "Amount of health for yellow-to-green transition");
   M_BindNum("health_green", &health_green, NULL, 100, 0, 200, ss_none, wad_yes,
-            "Amount of health for green to blue transition");
+            "Amount of health for green-to-blue transition");
   M_BindNum("armor_red", &armor_red, NULL, 25, 0, 200, ss_none, wad_yes,
-            "Amount of armor for red to yellow transition");
+            "Amount of armor for red-to-yellow transition");
   M_BindNum("armor_yellow", &armor_yellow, NULL, 50, 0, 200, ss_none, wad_yes,
-            "Amount of armor for yellow to green transition");
+            "Amount of armor for yellow-to-green transition");
   M_BindNum("armor_green", &armor_green, NULL, 100, 0, 200, ss_none, wad_yes,
-            "Amount of armor for green to blue transition");
+            "Amount of armor for green-to-blue transition");
   M_BindNum("ammo_red", &ammo_red, NULL, 25, 0, 100, ss_none, wad_yes,
-            "Percent of ammo for red to yellow transition");
+            "Percent of ammo for red-to-yellow transition");
 }
 
 //----------------------------------------------------------------------------

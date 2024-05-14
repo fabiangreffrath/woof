@@ -151,7 +151,7 @@ static boolean I_MBF_ReinitSound(void)
 
 static void I_MBF_BindVariables(void)
 {
-    BIND_BOOL(force_flip_pan, false, "1 to force reversal of stereo audio channels");
+    BIND_BOOL(force_flip_pan, false, "Force reversal of stereo audio channels");
 }
 
 const sound_module_t sound_mbf_module =

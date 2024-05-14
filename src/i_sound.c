@@ -717,19 +717,19 @@ const char **I_DeviceList(void)
 void I_BindSoundVariables(void)
 {
     M_BindNum("sfx_volume", &snd_SfxVolume, NULL, 8, 0, 15, ss_none, wad_no,
-        "Adjust sound effects volume");
+        "Sound effects volume");
     M_BindNum("music_volume", &snd_MusicVolume, NULL, 8, 0, 15, ss_none, wad_no,
-        "Adjust music volume");
+        "Music volume");
     BIND_BOOL(pitched_sounds, false,
-        "1 to enable variable pitch in sound effects (from id's original code)");
+        "Variable pitch for sound effects");
     BIND_NUM(pitch_bend_range, 120, 100, 300,
-        "Variable pitch bend range (100 none, 120 default)");
-    BIND_BOOL_GENERAL(full_sounds, false, "1 to play sounds in full length");
+        "Variable pitch bend range (100 = None)");
+    BIND_BOOL_GENERAL(full_sounds, false, "Play sounds in full length (prevents cutoffs)");
     M_BindNum("snd_channels", &default_numChannels, NULL,
         MAX_CHANNELS, 1, MAX_CHANNELS, ss_none, wad_no,
-        "Number of sound effects handled simultaneously");
+        "Maximum number of simultaneous sound effects");
     BIND_NUM_GENERAL(snd_module, SND_MODULE_MBF, 0, NUM_SND_MODULES - 1,
-        "Sound module (0 = Standard, 1 = OpenAL 3D, 2 = PC Speaker Sound)");
+        "Sound module (0 = Standard; 1 = OpenAL 3D; 2 = PC Speaker Sound)");
     for (int i = 0; i < arrlen(sound_modules); ++i)
     {
         if (sound_modules[i]->BindVariables)
