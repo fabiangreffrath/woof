@@ -4648,7 +4648,7 @@ void G_BindCompVariables(void)
   M_BindBool("hangsolid", &hangsolid, NULL, false, ss_comp, wad_no,
              "Enable walking under solid hanging bodies");
   M_BindBool("blockmapfix", &blockmapfix, NULL, false, ss_comp, wad_no,
-             "Fix blockmap bug");
+             "Fix blockmap bug (improves hit detection)");
   M_BindBool("checksight12", &checksight12, NULL, false, ss_comp, wad_no,
              "Fast blockmap-based line-of-sight calculation");
   M_BindBool("direct_vertical_aiming", &default_direct_vertical_aiming, &direct_vertical_aiming,
@@ -4668,17 +4668,17 @@ void G_BindCompVariables(void)
   BIND_COMP(comp_staylift,  0, "Monsters randomly walk off of moving lifts");
   BIND_COMP(comp_doorstuck, 0, "Monsters get stuck in door tracks");
   BIND_COMP(comp_pursuit,   1, "Monsters can infight immediately when alerted");
-  BIND_COMP(comp_vile,      0, "Arch-Viles can create ghost monsters");
-  BIND_COMP(comp_pain,      0, "Pain Elementals are limited to 20 lost souls");
+  BIND_COMP(comp_vile,      0, "Arch-viles can create ghost monsters");
+  BIND_COMP(comp_pain,      0, "Pain elementals are limited to 20 lost souls");
   BIND_COMP(comp_skull,     0, "Lost souls can spawn past impassable lines");
   BIND_COMP(comp_blazing,   0, "Blazing doors make double closing sounds");
-  BIND_COMP(comp_doorlight, 0, "Door lighting changes are abrupt");
+  BIND_COMP(comp_doorlight, 0, "Door lighting changes are immediate");
   BIND_COMP(comp_god,       0, "God mode isn't absolute");
   BIND_COMP(comp_skymap,    0, "Don't apply invulnerability palette to skies");
   BIND_COMP(comp_floors,    0, "Use exactly Doom's floor motion behavior");
   BIND_COMP(comp_model,     0, "Use exactly Doom's linedef trigger model");
   BIND_COMP(comp_zerotags,  0, "Linedef actions work on sectors with tag 0");
-  BIND_COMP(comp_soul,      0, "Lost souls bouncing");
+  BIND_COMP(comp_soul,      0, "Lost souls bounce on floors and ceilings");
   BIND_COMP(comp_respawn,   0, "Monsters not spawned at level start respawn at map origin");
   BIND_COMP(comp_ledgeblock, 1, "Ledges block monsters");
   BIND_COMP(comp_friendlyspawn, 1, "Things spawned by A_Spawn inherit friendliness of spawner");
@@ -4693,7 +4693,7 @@ void G_BindCompVariables(void)
   M_BindBool("emu_intercepts", &overflow[emu_intercepts].enabled, NULL, true,
     ss_comp, wad_no, "Emulate INTERCEPTS overflow");
   BIND_EMU(emu_missedbackside, false, "Emulate overflow caused by two-sided lines with missing backsides");
-  BIND_EMU(emu_donut, true, "Emulate donut overrun");
+  BIND_EMU(emu_donut, true, "Emulate donut overflow");
 }
 
 void G_BindWeapVariables(void)

@@ -972,7 +972,7 @@ void R_BindRenderVariables(void)
   BIND_BOOL_GENERAL(r_swirl, false, "Swirling animated flats");
   BIND_BOOL_GENERAL(smoothlight, false, "Smooth diminishing lighting");
   M_BindBool("voxels_rendering", &default_voxels_rendering, &voxels_rendering,
-             true, ss_none, wad_no, "Allow rendering of voxels");
+             true, ss_none, wad_no, "Allow voxel models");
   BIND_BOOL_GENERAL(brightmaps, false,
     "Brightmaps for textures and sprites");
   BIND_NUM_GENERAL(invul_mode, INVUL_MBF, INVUL_VANILLA, INVUL_GRAY,

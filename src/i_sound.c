@@ -721,7 +721,7 @@ void I_BindSoundVariables(void)
     M_BindNum("music_volume", &snd_MusicVolume, NULL, 8, 0, 15, ss_none, wad_no,
         "Music volume");
     BIND_BOOL(pitched_sounds, false,
-        "Variable pitch for sound effects (from id's original code)");
+        "Variable pitch for sound effects");
     BIND_NUM(pitch_bend_range, 120, 100, 300,
         "Variable pitch bend range (100 = None)");
     BIND_BOOL_GENERAL(full_sounds, false, "Play sounds in full length (prevents cutoffs)");

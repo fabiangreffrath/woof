@@ -2368,7 +2368,7 @@ void AM_BindAutomapVariables(void)
   M_BindBool("map_point_coord", &map_point_coord, NULL, true, ss_auto, wad_no,
              "Show automap pointer coordinates in non-follow mode");
   M_BindBool("map_secret_after", &map_secret_after, NULL, false, ss_auto, wad_no,
-             "Don't highlight secret sectors on the automap until after entering them");
+             "Don't highlight secret sectors on the automap before they're revealed");
   M_BindNum("map_keyed_door", &map_keyed_door, NULL,
             MAP_KEYED_DOOR_COLOR, MAP_KEYED_DOOR_OFF, MAP_KEYED_DOOR_FLASH,
             ss_auto, wad_no,
@@ -2385,8 +2385,8 @@ void AM_BindAutomapVariables(void)
   BIND_CR(mapcolor_back, 247, "Color used for the automap background");
   BIND_CR(mapcolor_grid, 104, "Color used for grid lines");
   BIND_CR(mapcolor_wall, 23, "Color used for one-sided walls");
-  BIND_CR(mapcolor_fchg, 55, "Color used for lines across which floor height changes");
-  BIND_CR(mapcolor_cchg, 215, "Color used for lines across which ceiling height changes");
+  BIND_CR(mapcolor_fchg, 55, "Color used for lines with floor height changes");
+  BIND_CR(mapcolor_cchg, 215, "Color used for lines with ceiling height changes");
   BIND_CR(mapcolor_clsd, 208, "Color used for lines denoting closed doors, objects");
   BIND_CR(mapcolor_rkey, 175, "Color used for red-key sprites");
   BIND_CR(mapcolor_bkey, 204, "Color used for blue-key sprites");
@@ -2396,7 +2396,7 @@ void AM_BindAutomapVariables(void)
   BIND_CR(mapcolor_ydor, 231, "Color used for closed yellow doors");
   BIND_CR(mapcolor_tele, 119, "Color used for teleporter lines");
   BIND_CR(mapcolor_secr, 252, "Color used for lines around secret sectors");
-  BIND_CR(mapcolor_revsecr, 112, "Color used for lines around entered secret sectors");
+  BIND_CR(mapcolor_revsecr, 112, "Color used for lines around revealed secret sectors");
   BIND_CR(mapcolor_exit, 0, "Color used for exit lines");
   BIND_CR(mapcolor_unsn, 104, "Color used for lines not seen without computer map");
   BIND_CR(mapcolor_flat, 88, "Color used for lines with no height changes");

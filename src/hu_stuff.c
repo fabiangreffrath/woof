@@ -2137,7 +2137,7 @@ void HU_BindHUDVariables(void)
   M_BindBool("hud_displayed", &hud_displayed, NULL, false, ss_none, wad_yes,
              "Display HUD");
   M_BindNum("hud_active", &hud_active, NULL, 2, 0, 2, ss_stat, wad_yes,
-            "HUD layout");
+            "HUD layout (by default: 0 = Minimal; 1 = Compact; 2 = Distributed)");
   M_BindNum("hud_player_coords", &hud_player_coords, NULL,
             HUD_WIDGET_AUTOMAP, HUD_WIDGET_OFF, HUD_WIDGET_ALWAYS,
             ss_stat, wad_no,

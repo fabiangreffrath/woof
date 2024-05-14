@@ -3847,7 +3847,7 @@ void MN_SetupResetMenu(void)
 
 void MN_BindMenuVariables(void)
 {
-    BIND_NUM(resolution_scale, 0, 0, UL, "Position of lever on the resolution scale slider");
+    BIND_NUM(resolution_scale, 0, 0, UL, "Position of resolution scale slider (do not modify)");
     BIND_NUM_GENERAL(menu_backdrop, MENU_BG_DARK, MENU_BG_OFF, MENU_BG_TEXTURE,
         "Menu backdrop (0 = Off; 1 = Dark; 2 = Texture)");
     M_BindBool("traditional_menu", &traditional_menu, NULL,
