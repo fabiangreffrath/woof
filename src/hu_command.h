@@ -13,7 +13,7 @@
 // GNU General Public License for more details.
 //
 // DESCRIPTION:
-//      Command Display HUD Widget
+//      Command History HUD Widget
 //
 
 #ifndef __HU_COMMAND__
@@ -25,13 +25,13 @@
 struct hu_multiline_s;
 struct ticcmd_s;
 
-extern boolean hud_command_display;
+extern boolean hud_command_history;
 extern int hud_command_history_size;
 extern boolean hud_hide_empty_commands;
 
-void HU_InitCommandDisplay(void);
-void HU_ResetCommandDisplay(void);
-void HU_UpdateCommandDisplay(const struct ticcmd_s *cmd);
-void HU_BuildCommandDisplay(struct hu_multiline_s *const multiline);
+void HU_InitCommandHistory(void);
+void HU_ResetCommandHistory(void);
+void HU_UpdateCommandHistory(const struct ticcmd_s *cmd);
+void HU_BuildCommandHistory(struct hu_multiline_s *const multiline);
 
 #endif

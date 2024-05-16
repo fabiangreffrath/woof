@@ -2823,7 +2823,7 @@ void G_Ticker(void)
       if (demoplayback)
         ++playback_tic;
 
-      HU_UpdateCommandDisplay(&players[displayplayer].cmd);
+      HU_UpdateCommandHistory(&players[displayplayer].cmd);
 
       // check for special buttons
       for (i=0; i<MAXPLAYERS; i++)
@@ -3841,7 +3841,7 @@ void G_InitNew(skill_t skill, int episode, int map)
   totalleveltimes = 0;
   playback_tic = 0;
 
-  HU_ResetCommandDisplay();
+  HU_ResetCommandHistory();
 
   //jff 4/16/98 force marks on automap cleared every new level start
   AM_clearMarks();

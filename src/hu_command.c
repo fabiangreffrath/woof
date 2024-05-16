@@ -13,7 +13,7 @@
 // GNU General Public License for more details.
 //
 // DESCRIPTION:
-//      Command Display HUD Widget
+//      Command History HUD Widget
 //
 
 #include <string.h>
@@ -25,7 +25,7 @@
 #include "m_misc.h"
 #include "v_video.h"
 
-boolean hud_command_display;
+boolean hud_command_history;
 int hud_command_history_size;
 boolean hud_hide_empty_commands;
 
@@ -50,7 +50,7 @@ typedef struct hud_cmd_item_s
 static hud_cmd_item_t hud_cmd_items[HU_MAXMESSAGES];
 static hud_cmd_item_t *current = hud_cmd_items;
 
-void HU_InitCommandDisplay(void)
+void HU_InitCommandHistory(void)
 {
     for (int i = 1; i < HU_MAXMESSAGES; i++)
     {
@@ -62,7 +62,7 @@ void HU_InitCommandDisplay(void)
     hud_cmd_items[HU_MAXMESSAGES - 1].next = &hud_cmd_items[0];
 }
 
-void HU_ResetCommandDisplay(void)
+void HU_ResetCommandHistory(void)
 {
     for (int i = 0; i < HU_MAXMESSAGES; i++)
     {
@@ -230,11 +230,11 @@ static void UpdateHudCmdText(hud_cmd_item_t *cmd_disp)
     }
 }
 
-void HU_UpdateCommandDisplay(const ticcmd_t *cmd)
+void HU_UpdateCommandHistory(const ticcmd_t *cmd)
 {
     hud_cmd_t hud_cmd;
 
-    if (!STRICTMODE(hud_command_display))
+    if (!STRICTMODE(hud_command_history))
     {
         return;
     }
@@ -260,7 +260,7 @@ void HU_UpdateCommandDisplay(const ticcmd_t *cmd)
     UpdateHudCmdText(current);
 }
 
-void HU_BuildCommandDisplay(hu_multiline_t *const multiline)
+void HU_BuildCommandHistory(hu_multiline_t *const multiline)
 {
     hud_cmd_item_t *hud_cmd = current;
 

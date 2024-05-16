@@ -430,7 +430,7 @@ void HU_Init(void)
   // [FG] support crosshair patches from extras.wad
   HU_InitCrosshair();
 
-  HU_InitCommandDisplay();
+  HU_InitCommandHistory();
 
   HU_InitObituaries();
 
@@ -614,7 +614,7 @@ void HU_Start(void)
   HUlib_init_multiline(&w_cmd, hud_command_history_size,
                        &boom_font, colrngs[hudcolor_xyco],
                        NULL, HU_widget_build_cmd);
-  // Draw command display bottom up.
+  // Draw command history bottom up.
   w_cmd.bottomup = true;
 
   HU_set_centered_message();
@@ -1249,7 +1249,7 @@ static void HU_widget_build_rate (void)
 
 static void HU_widget_build_cmd(void)
 {
-  HU_BuildCommandDisplay(&w_cmd);
+  HU_BuildCommandHistory(&w_cmd);
 }
 
 // Crosshair
@@ -1466,7 +1466,7 @@ void WI_DrawWidgets(void)
     HUlib_draw_widget(&w);
   }
 
-  if (STRICTMODE(hud_command_display))
+  if (STRICTMODE(hud_command_history))
   {
     hu_widget_t *w = widgets[hud_active];
 
@@ -1660,7 +1660,7 @@ void HU_Ticker(void)
 
   HU_cond_build_widget(&w_fps, plr->cheats & CF_SHOWFPS);
   HU_cond_build_widget(&w_rate, plr->cheats & CF_RENDERSTATS);
-  HU_cond_build_widget(&w_cmd, STRICTMODE(hud_command_display));
+  HU_cond_build_widget(&w_cmd, STRICTMODE(hud_command_history));
 
   if (hud_displayed &&
       scaledviewheight == SCREENHEIGHT &&
@@ -2173,10 +2173,6 @@ void HU_BindHUDVariables(void)
              "Display HUD");
   M_BindNum("hud_active", &hud_active, NULL, 2, 0, 2, ss_stat, wad_yes,
             "HUD layout (by default: 0 = Minimal; 1 = Compact; 2 = Distributed)");
-  M_BindNum("hud_player_coords", &hud_player_coords, NULL,
-            HUD_WIDGET_AUTOMAP, HUD_WIDGET_OFF, HUD_WIDGET_ALWAYS,
-            ss_stat, wad_no,
-            "Show player coordinates widget (1 = On automap; 2 = On HUD; 3 = Always)");
   M_BindNum("hud_level_stats", &hud_level_stats, NULL,
             HUD_WIDGET_OFF, HUD_WIDGET_OFF, HUD_WIDGET_ALWAYS,
             ss_stat, wad_no,
@@ -2186,13 +2182,18 @@ void HU_BindHUDVariables(void)
             HUD_WIDGET_OFF, HUD_WIDGET_OFF, HUD_WIDGET_ALWAYS,
             ss_stat, wad_no,
             "Show level time widget (1 = On automap, 2 = On HUD, 3 = Always)");
+  M_BindNum("hud_player_coords", &hud_player_coords, NULL,
+            HUD_WIDGET_AUTOMAP, HUD_WIDGET_OFF, HUD_WIDGET_ALWAYS,
+            ss_stat, wad_no,
+            "Show player coordinates widget (1 = On automap; 2 = On HUD; 3 = Always)");
+  M_BindBool("hud_command_history", &hud_command_history, NULL, false, ss_stat,
+             wad_no, "Show command history widget");
+  BIND_NUM(hud_command_history_size, 10, 1, HU_MAXMESSAGES,
+           "Number of commands to display for command history widget");
+  BIND_BOOL(hud_hide_empty_commands, true,
+            "Hide empty commands from command history widget");
   M_BindBool("hud_time_use", &hud_time_use, NULL, false, ss_stat, wad_no,
              "Show split time when pressing the use-button");
-  M_BindBool("hud_command_display", &hud_command_display, NULL, false, ss_stat,
-             wad_no, "Command display");
-  BIND_NUM(hud_command_history_size, 10, 1, HU_MAXMESSAGES,
-           "Command history size");
-  BIND_BOOL(hud_hide_empty_commands, true, "Hide empty commands");
   M_BindNum("hud_type", &hud_type, NULL,
             HUD_TYPE_BOOM, HUD_TYPE_CRISPY, NUM_HUD_TYPES - 1,
             ss_stat, wad_no,
