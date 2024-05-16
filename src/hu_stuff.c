@@ -110,6 +110,7 @@ static player_t *plr;
 static hu_font_t big_font = {.space_width = 4, .tab_width = 15, .tab_mask = ~15},
                  sml_font = {.space_width = 5, .tab_width =  7, .tab_mask =  ~7};
 static hu_font_t *doom_font = &big_font, *boom_font = &sml_font;
+static hu_font_t *cmd_font = &sml_font;
 patch_t **hu_font = big_font.patches;
 
 static int CR_BLUE = CR_BLUE1;
@@ -612,7 +613,7 @@ void HU_Start(void)
   w_rate.exclusive = true;
 
   HUlib_init_multiline(&w_cmd, hud_command_history_size,
-                       &boom_font, colrngs[hudcolor_xyco],
+                       &cmd_font, colrngs[hudcolor_xyco],
                        NULL, HU_widget_build_cmd);
   // Draw command history bottom up.
   w_cmd.bottomup = true;
