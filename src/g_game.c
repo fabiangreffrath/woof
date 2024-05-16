@@ -2823,6 +2823,8 @@ void G_Ticker(void)
       if (demoplayback)
         ++playback_tic;
 
+      HU_UpdateCommandDisplay(&players[displayplayer].cmd);
+
       // check for special buttons
       for (i=0; i<MAXPLAYERS; i++)
 	if (playeringame[i] && players[i].cmd.buttons & BT_SPECIAL)
@@ -3838,6 +3840,8 @@ void G_InitNew(skill_t skill, int episode, int map)
   // [FG] total time for all completed levels
   totalleveltimes = 0;
   playback_tic = 0;
+
+  HU_ResetCommandDisplay();
 
   //jff 4/16/98 force marks on automap cleared every new level start
   AM_clearMarks();

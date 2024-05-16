@@ -1438,6 +1438,9 @@ static setup_menu_t stat_settings2[] = {
 
     {"Use-Button Timer", S_ONOFF, M_X, M_SPC, {"hud_time_use"}},
 
+    {"Command Display", S_ONOFF | S_STRICT, M_X, M_SPC, {"hud_command_display"},
+     m_null, input_null, str_empty, HU_ResetCommandDisplay},
+
     MI_GAP,
 
     {"Widget Appearance", S_SKIP | S_TITLE, M_X, M_SPC},

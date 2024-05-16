@@ -4,6 +4,7 @@ monsec topleft
 sttime topleft
 coord topright
 fps topright
+cmd bottomright
 
 hud 1
 rate topleft
@@ -16,6 +17,7 @@ monsec bottomleft
 sttime bottomleft
 coord topright
 fps topright
+cmd bottomright
 
 hud 2
 rate topleft
@@ -28,3 +30,4 @@ monsec bottomleft
 sttime bottomleft
 coord  topright
 fps topright
+cmd bottomright
