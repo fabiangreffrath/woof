@@ -17,8 +17,8 @@ The following lines start with the name of the HUD widget which is to be positio
 Possible values for the HUD widget names:
 
  * "title" or "levelname"
- * "message" (new in Woof! 12.0.0)
- * "secret" (new in Woof! 12.0.0)
+ * "message"
+ * "secret"
  * "armor"
  * "health"
  * "ammo"
@@ -28,6 +28,7 @@ Possible values for the HUD widget names:
  * "sttime" or "time"
  * "coord" or "coords"
  * "fps" or "rate"
+ * "cmd" or "commands"
 
 Possible values for the widget position keywords:
 
@@ -49,13 +50,16 @@ The following example represents the current default alignments of the Boom HUD 
 ```
 hud 0
 title bottomleft
-monsec bottomleft
-sttime bottomleft
+rate topleft
+monsec topleft
+sttime topleft
 coord topright
 fps topright
+cmd bottomright
 
 hud 1
 title bottomleft
+rate topleft
 armor bottomleft
 health bottomleft
 ammo bottomleft
@@ -65,9 +69,11 @@ monsec bottomleft
 sttime bottomleft
 coord topright
 fps topright
+cmd bottomright
 
 hud 2
 title bottomleft
+rate topleft
 health topright
 armor topright
 ammo bottomright
@@ -77,6 +83,7 @@ monsec bottomleft
 sttime bottomleft
 coord topright
 fps topright
+cmd bottomright
 ```
 
 An alternative approach to the distributed HUD, using absolute screen coordinates, could look like this:
