@@ -1055,6 +1055,7 @@ static void G_DoLoadLevel(void)
   P_SetupLevel (gameepisode, gamemap, 0, gameskill);
 
   MN_UpdateFreeLook();
+  HU_UpdateTurnFormat();
 
   // [Woof!] Do not reset chosen player view across levels in multiplayer
   // demo playback. However, it must be reset when starting a new game.

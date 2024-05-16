@@ -49,6 +49,13 @@ typedef struct hud_cmd_item_s
 
 static hud_cmd_item_t hud_cmd_items[HU_MAXMESSAGES];
 static hud_cmd_item_t *current = hud_cmd_items;
+static boolean lowres_turn_format;
+
+void HU_UpdateTurnFormat(void)
+{
+    const boolean playdemo = (gameaction == ga_playdemo || demoplayback);
+    lowres_turn_format = (!playdemo && lowres_turn) || (playdemo && !longtics);
+}
 
 void HU_InitCommandHistory(void)
 {
@@ -77,7 +84,7 @@ static void TicToHudCmd(hud_cmd_t *hud_cmd, const ticcmd_t *cmd)
     hud_cmd->forwardmove = cmd->forwardmove;
     hud_cmd->sidemove = cmd->sidemove;
 
-    if (lowres_turn)
+    if (lowres_turn_format)
     {
         hud_cmd->angleturn = (cmd->angleturn + 128) >> 8;
     }
@@ -171,7 +178,7 @@ static void UpdateHudCmdText(hud_cmd_item_t *cmd_disp)
         i += M_snprintf(buf + i, len - i, "     ");
     }
 
-    if (lowres_turn)
+    if (lowres_turn_format)
     {
         if (hud_cmd->angleturn > 0)
         {

@@ -29,6 +29,7 @@ extern boolean hud_command_history;
 extern int hud_command_history_size;
 extern boolean hud_hide_empty_commands;
 
+void HU_UpdateTurnFormat(void);
 void HU_InitCommandHistory(void);
 void HU_ResetCommandHistory(void);
 void HU_UpdateCommandHistory(const struct ticcmd_s *cmd);
