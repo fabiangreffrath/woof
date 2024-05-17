@@ -935,6 +935,7 @@ void R_RenderPlayerView (player_t* player)
   // The head node is the last node output.
   R_RenderBSPNode (numnodes-1);
 
+  R_NearbySprites ();
   VX_NearbySprites ();
 
   // [FG] update automap while playing

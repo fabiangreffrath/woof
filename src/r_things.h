@@ -57,6 +57,8 @@ void R_ClipVisSprite(vissprite_t *vis, int xl, int xh);
 
 void R_InitSpritesRes(void);
 
+void R_NearbySprites(void);
+
 #endif
 
 //----------------------------------------------------------------------------

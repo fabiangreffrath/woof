@@ -313,6 +313,11 @@ void R_InitSpriteDefs(char **namelist)
 static vissprite_t *vissprites, **vissprite_ptrs;  // killough
 static size_t num_vissprite, num_vissprite_alloc, num_vissprite_ptrs;
 
+#define M_ARRAY_INIT_CAPACITY 128
+#include "m_array.h"
+
+static mobj_t **nearby_sprites = NULL;
+
 //
 // R_InitSprites
 // Called at program start.
@@ -331,13 +336,10 @@ void R_InitSprites(char **namelist)
 // Called at frame start.
 //
 
-static unsigned int render_iter;
-
 void R_ClearSprites (void)
 {
   rendered_vissprites = num_vissprite;
   num_vissprite = 0;            // killough
-  render_iter++;
 }
 
 //
@@ -506,13 +508,6 @@ static void R_ProjectSprite (mobj_t* thing)
   // [FG] moved declarations here
   fixed_t tr_x, tr_y, gxt, gyt, tz;
   fixed_t interpx, interpy, interpz, interpangle;
-
-  if (thing->render_iter == render_iter)
-  {
-    return;
-  }
-
-  thing->render_iter = render_iter;
 
   // andrewj: voxel support
   if (VX_ProjectVoxel (thing))
@@ -749,7 +744,41 @@ void R_AddSprites(sector_t* sec, int lightlevel)
     R_ProjectSprite(thing);
 
   for (msecnode_t *n = sec->touching_thinglist; n; n = n->m_snext)
-    R_ProjectSprite(n->m_thing);
+  {
+    thing = n->m_thing;
+
+    // [FG] sprites in sector have already been projected
+    if (thing->subsector->sector->validcount != validcount)
+    {
+      array_push(nearby_sprites, thing);
+    }
+  }
+}
+
+void R_NearbySprites (void)
+{
+  for (int i = 0; i < array_size(nearby_sprites); i++)
+  {
+    mobj_t *thing = nearby_sprites[i];
+    sector_t* sec = thing->subsector->sector;
+
+    // [FG] sprites in sector have already been projected
+    if (sec->validcount != validcount)
+    {
+      int lightnum = (sec->lightlevel >> LIGHTSEGSHIFT) + extralight;
+
+      if (lightnum < 0)
+        spritelights = scalelight[0];
+      else if (lightnum >= LIGHTLEVELS)
+        spritelights = scalelight[LIGHTLEVELS-1];
+      else
+        spritelights = scalelight[lightnum];
+
+      R_ProjectSprite(thing);
+    }
+  }
+
+  array_clear(nearby_sprites);
 }
 
 //
