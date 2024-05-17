@@ -385,6 +385,8 @@ typedef struct mobj_s
 
     // [FG] height of the sprite in pixels
     int actualheight;
+
+    unsigned int render_iter;
 } mobj_t;
 
 // External declarations (fomerly in p_local.h) -- killough 5/2/98

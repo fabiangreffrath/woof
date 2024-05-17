@@ -331,10 +331,13 @@ void R_InitSprites(char **namelist)
 // Called at frame start.
 //
 
+static unsigned int render_iter;
+
 void R_ClearSprites (void)
 {
   rendered_vissprites = num_vissprite;
   num_vissprite = 0;            // killough
+  render_iter++;
 }
 
 //
@@ -485,7 +488,7 @@ void R_DrawVisSprite(vissprite_t *vis, int x1, int x2)
 
 boolean flipcorpses = false;
 
-void R_ProjectSprite (mobj_t* thing)
+static void R_ProjectSprite (mobj_t* thing)
 {
   fixed_t   gzt;               // killough 3/27/98
   fixed_t   tx, txc;
@@ -503,6 +506,13 @@ void R_ProjectSprite (mobj_t* thing)
   // [FG] moved declarations here
   fixed_t tr_x, tr_y, gxt, gyt, tz;
   fixed_t interpx, interpy, interpz, interpangle;
+
+  if (thing->render_iter == render_iter)
+  {
+    return;
+  }
+
+  thing->render_iter = render_iter;
 
   // andrewj: voxel support
   if (VX_ProjectVoxel (thing))
@@ -737,6 +747,9 @@ void R_AddSprites(sector_t* sec, int lightlevel)
 
   for (thing = sec->thinglist; thing; thing = thing->snext)
     R_ProjectSprite(thing);
+
+  for (msecnode_t *n = sec->touching_thinglist; n; n = n->m_snext)
+    R_ProjectSprite(n->m_thing);
 }
 
 //
