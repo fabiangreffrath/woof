@@ -391,9 +391,9 @@ void I_ResetController(void)
 
 void I_BindGamepadVariables(void)
 {
-    BIND_BOOL(joy_enable, true, "Enable game controller");
+    BIND_BOOL(joy_enable, true, "Allow game controller");
     BIND_NUM_GENERAL(joy_layout, LAYOUT_DEFAULT, 0, NUM_LAYOUTS - 1,
-        "Analog stick layout (0 = Default, 1 = Swap, 2 = Legacy, 3 = Legacy Swap)");
+        "Analog stick layout (0 = Default; 1 = Swap; 2 = Legacy; 3 = Legacy Swap)");
     BIND_NUM(joy_sensitivity_forward, 50, 0, 100, "Forward axis sensitivity");
     BIND_NUM(joy_sensitivity_strafe, 50, 0, 100, "Strafe axis sensitivity");
     BIND_NUM_GENERAL(joy_sensitivity_turn, 36, 0, 100, "Turn axis sensitivity");
@@ -403,17 +403,17 @@ void I_BindGamepadVariables(void)
     BIND_NUM(joy_extra_sensitivity_look, 0, 0, 100,
         "Extra look sensitivity at outer threshold (joy_threshold_camera)");
     BIND_NUM(joy_extra_ramp_time, 300, 0, 1000,
-        "Ramp time for extra sensitivity (0 = Instant, 1000 = 1 second)");
+        "Ramp time for extra sensitivity (0 = Instant; 1000 = 1 second)");
     BIND_BOOL(joy_scale_diagonal_movement, true,
-        "Scale diagonal movement (0 = Linear, 1 = Circle to Square)");
+        "Scale diagonal movement (0 = Linear; 1 = Circle to Square)");
     BIND_NUM(joy_response_curve_movement, 10, 10, 30,
-        "Movement response curve (10 = Linear, 20 = Squared, 30 = Cubed)");
+        "Movement response curve (10 = Linear; 20 = Squared; 30 = Cubed)");
     BIND_NUM_GENERAL(joy_response_curve_camera, 20, 10, 30,
-        "Camera response curve (10 = Linear, 20 = Squared, 30 = Cubed)");
+        "Camera response curve (10 = Linear; 20 = Squared; 30 = Cubed)");
     BIND_NUM(joy_deadzone_type_movement, 1, 0, 1,
-        "Movement deadzone type (0 = Axial, 1 = Radial)");
+        "Movement deadzone type (0 = Axial; 1 = Radial)");
     BIND_NUM(joy_deadzone_type_camera, 1, 0, 1,
-        "Camera deadzone type (0 = Axial, 1 = Radial)");
+        "Camera deadzone type (0 = Axial; 1 = Radial)");
     BIND_NUM_GENERAL(joy_deadzone_movement, 15, 0, 50, "Movement deadzone percent");
     BIND_NUM_GENERAL(joy_deadzone_camera, 15, 0, 50, "Camera deadzone percent");
     BIND_NUM(joy_threshold_movement, 2, 0, 30, "Movement outer threshold percent");

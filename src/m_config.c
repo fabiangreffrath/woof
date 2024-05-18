@@ -105,7 +105,7 @@ void M_BindInput(const char *name, int input_id, const char *help)
 void M_InitConfig(void)
 {
     BIND_BOOL(config_help, true,
-      "1 to show help strings about each variable in config file");
+      "Show help strings about each variable in the config file");
 
     I_BindVideoVariables();
     R_BindRenderVariables();
@@ -117,7 +117,7 @@ void M_InitConfig(void)
     G_BindGameVariables();
 
     G_BindGameInputVariables();
-    I_BindInputVarianles();
+    I_BindInputVariables();
     I_BindGamepadVariables();
     M_BindInputVariables();
 

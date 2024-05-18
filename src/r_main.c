@@ -967,32 +967,32 @@ void R_InitAnyRes(void)
 void R_BindRenderVariables(void)
 {
   BIND_NUM_GENERAL(extra_level_brightness, 0, 0, 4, "Level brightness");
-  BIND_BOOL_GENERAL(stretchsky, false, "1 to stretch short skies");
-  BIND_BOOL_GENERAL(linearsky, false, "1 for linear horizontal sky scrolling");
-  BIND_BOOL_GENERAL(r_swirl, false, "1 to enable swirling animated flats");
-  BIND_BOOL_GENERAL(smoothlight, false, "1 to enable smooth diminishing lighting");
+  BIND_BOOL_GENERAL(stretchsky, false, "Stretch short skies");
+  BIND_BOOL_GENERAL(linearsky, false, "Linear horizontal scrolling for skies");
+  BIND_BOOL_GENERAL(r_swirl, false, "Swirling animated flats");
+  BIND_BOOL_GENERAL(smoothlight, false, "Smooth diminishing lighting");
   M_BindBool("voxels_rendering", &default_voxels_rendering, &voxels_rendering,
-             true, ss_none, wad_no, "1 to enable voxels rendering");
+             true, ss_none, wad_no, "Allow voxel models");
   BIND_BOOL_GENERAL(brightmaps, false,
-    "1 to enable brightmaps for textures and sprites");
+    "Brightmaps for textures and sprites");
   BIND_NUM_GENERAL(invul_mode, INVUL_MBF, INVUL_VANILLA, INVUL_GRAY,
-    "Invulnerability effect (0 = Vanilla, 1 = MBF, 2 = Gray)");
-  BIND_BOOL(flashing_hom, true, "1 to enable flashing HOM indicator");
-  BIND_NUM(screenblocks, 10, 3, 11, "Initial play screen size");
+    "Invulnerability effect (0 = Vanilla; 1 = MBF; 2 = Gray)");
+  BIND_BOOL(flashing_hom, true, "Enable flashing of the HOM indicator");
+  BIND_NUM(screenblocks, 10, 3, 11, "Size of game-world screen");
 
   M_BindBool("translucency", &translucency, NULL, true, ss_gen, wad_yes,
-             "1 to enable translucency for some things");
+             "Translucency for some things");
   M_BindNum("tran_filter_pct", &tran_filter_pct, NULL,
             66, 0, 100, ss_gen, wad_yes,
-            "Set percentage of foreground/background translucency mix");
+            "Percent of foreground/background translucency mix");
 
   M_BindBool("flipcorpses", &flipcorpses, NULL, false, ss_enem, wad_no,
-             "1 to enable randomly mirrored death animations");
+             "Randomly mirrored death animations");
   M_BindBool("fuzzcolumn_mode", &fuzzcolumn_mode, NULL, true, ss_enem, wad_no,
-             "0 original, 1 blocky");
+             "Fuzz rendering (0 = Resolution-dependent; 1 = Blocky)");
 
   BIND_BOOL(raw_input, true,
-    "Raw gamepad/mouse input for turning/looking (0 = Interpolate, 1 = Raw)");
+    "Raw gamepad/mouse input for turning/looking (0 = Interpolate; 1 = Raw)");
 }
 
 //----------------------------------------------------------------------------

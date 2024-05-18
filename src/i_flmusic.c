@@ -443,8 +443,8 @@ static void I_FL_BindVariables(void)
     "../share/" PROJECT_SHORTNAME "/soundfonts",
 #endif
     wad_no, "FluidSynth soundfont directories");
-    BIND_BOOL(mus_chorus, false, "1 to enable FluidSynth chorus");
-    BIND_BOOL(mus_reverb, false, "1 to enable FluidSynth reverb");
+    BIND_BOOL(mus_chorus, false, "FluidSynth chorus");
+    BIND_BOOL(mus_reverb, false, "FluidSynth reverb");
 }
 
 stream_module_t stream_fl_module =
