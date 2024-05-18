@@ -27,4 +27,4 @@ void *I_ZIP_GetHandle(const glob_zip_t *glob);
 
 void *I_ZIP_Open(const char *path);
 void I_ZIP_CloseFiles(void);
-void I_ZIP_ReadFile(void *handle, int index, void *dest, size_t size);
+void I_ZIP_ReadFile(void *handle, int index, void *dest, int size);

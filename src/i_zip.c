@@ -219,7 +219,7 @@ void *I_ZIP_GetHandle(const glob_zip_t *glob)
     return glob->zip;
 }
 
-void I_ZIP_ReadFile(void *handle, int index, void *dest, size_t size)
+void I_ZIP_ReadFile(void *handle, int index, void *dest, int size)
 {
     if (!mz_zip_reader_extract_to_mem(handle, index, dest, size, 0))
     {
