@@ -660,9 +660,7 @@ void V_DrawPatchFullScreen(patch_t *patch)
     // [crispy] fill pillarboxes in widescreen mode
     if (video.unscaledw != NONWIDEWIDTH)
     {
-        V_FillRect(0, 0, video.deltaw, SCREENHEIGHT, v_darkest_color);
-        V_FillRect(video.unscaledw - video.deltaw, 0, video.deltaw,
-                   SCREENHEIGHT, v_darkest_color);
+        V_FillRect(0, 0, video.unscaledw, SCREENHEIGHT, v_darkest_color);
     }
 
     drawcolfunc = V_DrawPatchColumn;
