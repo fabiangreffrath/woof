@@ -24,6 +24,7 @@ jobs:
           - name: Linux GCC
             os: ubuntu-24.04
             compiler: gcc
+            extra-options: -DCMAKE_INSTALL_PREFIX=/usr -DCMAKE_FIND_PACKAGE_PREFER_CONFIG=OFF
             shell: bash
 
           - name: macOS Clang
@@ -90,8 +91,8 @@ jobs:
           CC: ${{ matrix.config.compiler }}
         run: |
           cmake -B build -G Ninja -DCMAKE_BUILD_TYPE=Release \
-                -DCMAKE_INSTALL_PREFIX=/usr \
-                -DENABLE_WERROR=ON -DENABLE_HARDENING=ON -DENABLE_LTO=ON
+                -DENABLE_WERROR=ON -DENABLE_HARDENING=ON -DENABLE_LTO=ON \
+                ${{ matrix.config.extra-options }}
 
       - name: Build
         run: cmake --build build
