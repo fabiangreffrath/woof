@@ -26,11 +26,9 @@
 struct glob_zip_s
 {
     mz_zip_archive *zip;
+    mz_zip_archive_file_stat *stat;
     int next_index;
-    int current_index;
-    char *filename;
     int flags;
-    int size;
     char *directory;
     char **globs;
 };
@@ -66,6 +64,7 @@ glob_zip_t *I_ZIP_StartMultiGlob(void *handle, const char *directory,
     glob_zip_t *result = calloc(1, sizeof(*result));
 
     result->zip = handle;
+    result->stat = calloc(1, sizeof(mz_zip_archive_file_stat));
     if (directory)
     {
         result->directory = M_StringDuplicate(directory);
@@ -98,13 +97,10 @@ glob_zip_t *I_ZIP_StartMultiGlob(void *handle, const char *directory,
 
 void I_ZIP_EndGlob(glob_zip_t *glob)
 {
+    free(glob->stat);
     if (glob->directory)
     {
         free(glob->directory);
-    }
-    if (glob->filename)
-    {
-        free(glob->filename);
     }
     for (int i = 0; i < array_size(glob->globs); ++i)
     {
@@ -165,17 +161,16 @@ const char *I_ZIP_NextGlob(glob_zip_t *glob)
 {
     for (int i = glob->next_index; i < mz_zip_reader_get_num_files(glob->zip); ++i)
     {
-        mz_zip_archive_file_stat file_stat;
-        mz_zip_reader_file_stat(glob->zip, i, &file_stat);
+        mz_zip_reader_file_stat(glob->zip, i, glob->stat);
 
-        if (file_stat.m_is_directory)
+        if (glob->stat->m_is_directory)
         {
             continue;
         }
 
         if (glob->directory)
         {
-            char *dir = M_DirName(file_stat.m_filename);
+            char *dir = M_DirName(glob->stat->m_filename);
             boolean result = M_StringCaseEndsWith(dir, glob->directory);
             free(dir);
             if (!result)
@@ -186,17 +181,10 @@ const char *I_ZIP_NextGlob(glob_zip_t *glob)
 
         for (int j = 0; j < array_size(glob->globs); ++j)
         {
-            if (MatchesGlob(file_stat.m_filename, glob->globs[j], glob->flags))
+            if (MatchesGlob(glob->stat->m_filename, glob->globs[j], glob->flags))
             {
-                glob->current_index = i;
                 glob->next_index = i + 1;
-                glob->size = file_stat.m_uncomp_size;
-                if (glob->filename)
-                {
-                    free(glob->filename);
-                }
-                glob->filename = M_StringDuplicate(file_stat.m_filename);
-                return glob->filename;
+                return glob->stat->m_filename;
             }
         }
     }
@@ -206,12 +194,12 @@ const char *I_ZIP_NextGlob(glob_zip_t *glob)
 
 int I_ZIP_GetIndex(const glob_zip_t *glob)
 {
-    return glob->current_index;
+    return glob->stat->m_file_index;
 }
 
 int I_ZIP_GetSize(const glob_zip_t *glob)
 {
-    return glob->size;
+    return glob->stat->m_uncomp_size;
 }
 
 void *I_ZIP_GetHandle(const glob_zip_t *glob)

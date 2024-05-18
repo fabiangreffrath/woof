@@ -194,11 +194,9 @@ static void AddFile(const char *path) // killough 1/31/98: static, const
         lumpinfo_t item = {0};
         M_CopyLumpName(item.name, fileinfo[i].name);
         item.size = LONG(fileinfo[i].size);
-        item.data = NULL;           // killough 1/31/98
         item.namespace = ns_global; // killough 4/17/98
         item.handle = handle; //  killough 4/25/98
         item.position = LONG(fileinfo[i].filepos);
-        item.zip = NULL;
 
         // [FG] WAD file that contains the lump
         item.wad_file = (is_single ? NULL : wadname);
@@ -263,16 +261,12 @@ static void AddWadInZip(void *handle, const char *name, int index,
         int position = LONG(fileinfo[i].filepos);
         if (position + size > data_size)
         {
-            I_Error("Error reading file from %s", name);
+            I_Error("Error reading lump %d from %s", i, wadname);
         }
         item.size = size;
         item.data = data + position;
-
-        item.handle = 0;
-        item.position = 0;
         item.namespace = ns_global;
-        item.zip = NULL;
-
+ 
         // [FG] WAD file that contains the lump
         item.wad_file = wadname;
         array_push(lumpinfo, item);
@@ -445,11 +439,20 @@ static void AddMultipleDirs(const char *path)
     I_EndGlob(glob);
 
     glob = I_StartMultiGlob(path, GLOB_FLAG_NOCASE | GLOB_FLAG_SORTED, "*.lmp",
-                            "*.wav", "*.ogg", "*.flac", "*.mp3", NULL);
+                            "*.wav", "*.ogg", "*.flac", "*.mp3", "*.mid", NULL);
     AddDir(glob, NULL, NULL);
     I_EndGlob(glob);
 
-    char *s = M_StringJoin(path, DIR_SEPARATOR_S, "sprites", NULL);
+    char *s = M_StringJoin(path, DIR_SEPARATOR_S, "music", NULL);
+    if (M_DirExists(s))
+    {
+        glob = I_StartMultiGlob(s, GLOB_FLAG_NOCASE | GLOB_FLAG_SORTED,
+                                "*.wav", "*.ogg", "*.flac", "*.mp3", "*.mid", NULL);
+        AddDir(glob, NULL, NULL);
+        I_EndGlob(glob);
+    }
+
+    s = M_StringJoin(path, DIR_SEPARATOR_S, "sprites", NULL);
     if (M_DirExists(s))
     {
         glob = I_StartGlob(s, "*.lmp", GLOB_FLAG_NOCASE | GLOB_FLAG_SORTED);
