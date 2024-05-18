@@ -72,11 +72,14 @@ typedef struct
     ns_sprites,
     ns_flats,
     ns_colormaps,
+    ns_voxels,
     ns_hires // [Woof!] namespace to avoid conflicts with high-resolution textures
   } namespace;
 
   int handle;
   int position;
+
+  void *zip;
 
   // [FG] WAD file that contains the lump
   const char *wad_file;
@@ -86,10 +89,13 @@ typedef struct
 extern const size_t num_predefined_lumps;
 extern const lumpinfo_t predefined_lumps[];
 
-extern void       **lumpcache;
 extern lumpinfo_t *lumpinfo;
 extern int        numlumps;
 
+extern const char **wadfiles;
+
+void W_InitPredefineLumps(void);
+void W_AddPath(const char *path);
 void W_InitMultipleFiles(void);
 
 // killough 4/17/98: if W_CheckNumForName() called with only

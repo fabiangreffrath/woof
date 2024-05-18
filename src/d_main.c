@@ -22,7 +22,6 @@
 
 #include <ctype.h>
 #include <limits.h>
-#include <stdarg.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -85,8 +84,6 @@
 #include "wi_stuff.h"
 #include "z_zone.h"
 
-#include "miniz.h"
-
 // DEHacked support - Ty 03/09/97
 // killough 10/98:
 // Add lump number as third argument, for use when filename==NULL
@@ -128,8 +125,6 @@ static void ProcessDehLump(int lumpnum)
 {
   ProcessDehFile(NULL, D_dehout(), lumpnum);
 }
-
-char **wadfiles;
 
 boolean devparm;        // started game with -devparm
 
@@ -670,92 +665,6 @@ void D_StartTitle (void)
   D_AdvanceDemo();
 }
 
-static boolean CheckExtensions(const char *filename, ...)
-{
-    boolean result = false;
-    va_list args;
-
-    va_start(args, filename);
-    while (true)
-    {
-        const char *arg = va_arg(args, const char *);
-        if (arg == NULL || (result = M_StringCaseEndsWith(filename, arg)))
-        {
-            break;
-        }
-    }
-    va_end(args);
-
-    return result;
-}
-
-char **tempdirs = NULL;
-
-static void AutoLoadWADs(const char *path);
-
-static boolean D_AddZipFile(const char *file)
-{
-  int i;
-  mz_zip_archive zip_archive;
-  char *str, *tempdir, counter[8];
-
-  if (!CheckExtensions(file, ".zip", ".pk3", NULL))
-  {
-    return false;
-  }
-
-  memset(&zip_archive, 0, sizeof(zip_archive));
-  if (!mz_zip_reader_init_file(&zip_archive, file, MZ_ZIP_FLAG_DO_NOT_SORT_CENTRAL_DIRECTORY))
-  {
-    I_Error("D_AddZipFile: Failed to open %s", file);
-  }
-
-  M_snprintf(counter, sizeof(counter), "%04d", array_size(tempdirs));
-  str = M_StringJoin("_", counter, "_", PROJECT_SHORTNAME, "_", M_BaseName(file), NULL);
-  tempdir = M_TempFile(str);
-  free(str);
-  M_MakeDirectory(tempdir);
-
-  for (i = 0; i < (int)mz_zip_reader_get_num_files(&zip_archive); ++i)
-  {
-    mz_zip_archive_file_stat file_stat;
-    const char *name;
-
-    mz_zip_reader_file_stat(&zip_archive, i, &file_stat);
-
-    if (file_stat.m_is_directory)
-      continue;
-
-    name = M_BaseName(file_stat.m_filename);
-
-    // [FG] skip "hidden" files
-    if (name[0] == '.')
-      continue;
-
-    if (CheckExtensions(name, ".wad", ".pk3", ".lmp", ".ogg", ".flac",
-                        ".mp3", ".kvx", NULL))
-    {
-      char *dest = M_StringJoin(tempdir, DIR_SEPARATOR_S, name, NULL);
-
-      if (!mz_zip_reader_extract_to_file(&zip_archive, i, dest, 0))
-      {
-        I_Printf(VB_ERROR, "D_AddZipFile: Failed to extract %s to %s",
-                file_stat.m_filename, tempdir);
-      }
-
-      free(dest);
-    }
-  }
-
-  mz_zip_reader_end(&zip_archive);
-
-  AutoLoadWADs(tempdir);
-
-  array_push(tempdirs, tempdir);
-
-  return true;
-}
-
 //
 // D_AddFile
 //
@@ -769,16 +678,7 @@ void D_AddFile(const char *file)
   // [FG] search for PWADs by their filename
   char *path = D_TryFindWADByName(file);
 
-  if (M_StringCaseEndsWith(path, ".kvx"))
-  {
-    array_push(vxfiles, path);
-    return;
-  }
-
-  if (D_AddZipFile(path))
-    return;
-
-  array_push(wadfiles, path);
+  W_AddPath(path);
 }
 
 // killough 10/98: return the name of the program the exe was invoked as
@@ -835,11 +735,13 @@ char *D_DoomPrefDir(void)
 // Calculate the path to the directory for autoloaded WADs/DEHs.
 // Creates the directory as necessary.
 
-static struct {
+typedef struct {
     const char *dir;
     char *(*func)(void);
     boolean createdir;
-} autoload_basedirs[] = {
+} autoload_basedir_t;
+
+static autoload_basedir_t autoload_basedirs[] = {
 #if !defined(WIN32)
     {"../share/" PROJECT_SHORTNAME, D_DoomExeDir, false},
 #endif
@@ -847,7 +749,6 @@ static struct {
 #if !defined(_WIN32) || defined(_WIN32_WCE)
     {NULL, D_DoomExeDir, false},
 #endif
-    {NULL, NULL, false},
 };
 
 static char **autoload_paths = NULL;
@@ -870,10 +771,8 @@ static char *GetAutoloadDir(const char *base, const char *iwadname, boolean crea
     return result;
 }
 
-static void PrepareAutoloadPaths (void)
+static void PrepareAutoloadPaths(void)
 {
-    int i;
-
     //!
     // @category mod
     //
@@ -881,32 +780,32 @@ static void PrepareAutoloadPaths (void)
     //
 
     if (M_CheckParm("-noautoload"))
-        return;
-
-    for (i = 0; ; i++)
     {
-        autoload_paths = I_Realloc(autoload_paths, (i + 1) * sizeof(*autoload_paths));
+        return;
+    }
 
-        if (autoload_basedirs[i].dir && autoload_basedirs[i].func)
+    for (int i = 0; i < arrlen(autoload_basedirs); i++)
+    {
+        autoload_basedir_t d = autoload_basedirs[i];
+
+        if (d.dir && d.func)
         {
-            autoload_paths[i] = M_StringJoin(autoload_basedirs[i].func(), DIR_SEPARATOR_S,
-                                             autoload_basedirs[i].dir, DIR_SEPARATOR_S, "autoload", NULL);
+            array_push(autoload_paths,
+                       M_StringJoin(d.func(), DIR_SEPARATOR_S, d.dir,
+                                    DIR_SEPARATOR_S, "autoload", NULL));
         }
-        else if (autoload_basedirs[i].dir)
+        else if (d.dir)
         {
-            autoload_paths[i] = M_StringJoin(autoload_basedirs[i].dir, DIR_SEPARATOR_S, "autoload", NULL);
+            array_push(autoload_paths,
+                       M_StringJoin(d.dir, DIR_SEPARATOR_S, "autoload", NULL));
         }
-        else if (autoload_basedirs[i].func)
+        else if (d.func)
         {
-            autoload_paths[i] = M_StringJoin(autoload_basedirs[i].func(), DIR_SEPARATOR_S, "autoload", NULL);
-        }
-        else
-        {
-            autoload_paths[i] = NULL;
-            break;
+            array_push(autoload_paths, M_StringJoin(d.func(), DIR_SEPARATOR_S,
+                                                    "autoload", NULL));
         }
 
-        if (autoload_basedirs[i].createdir)
+        if (d.createdir)
         {
             M_MakeDirectory(autoload_paths[i]);
         }
@@ -1159,7 +1058,7 @@ void IdentifyVersion (void)
 static void PrintVersion(void)
 {
   int i;
-  char *iwad = wadfiles[0];
+  const char *iwad = wadfiles[0];
 
   I_Printf(VB_INFO, "IWAD found: %s",iwad); //jff 4/20/98 print only if found
 
@@ -1700,87 +1599,68 @@ static void D_ProcessDehCommandLine(void)
 
 static void AutoLoadWADs(const char *path)
 {
-    glob_t *glob;
-    const char *filename;
-
-    glob = I_StartMultiGlob(path, GLOB_FLAG_NOCASE|GLOB_FLAG_SORTED,
-                            "*.wad", "*.lmp", "*.kvx", "*.zip", "*.pk3",
-                            "*.ogg", "*.flac", "*.mp3", NULL);
-    for (;;)
+    if (M_DirExists(path))
     {
-        filename = I_NextGlob(glob);
-        if (filename == NULL)
-        {
-            break;
-        }
-
-        D_AddFile(filename);
+        I_Printf(VB_INFO, " adding %s", path);
+        W_AddPath(path);
     }
-
-    I_EndGlob(glob);
 }
 
 static void D_AutoloadIWadDir(void (*AutoLoadFunc)(const char *path))
 {
-  char **base;
-
-  for (base = autoload_paths; base && *base; base++)
-  {
-    char *autoload_dir;
-
-    autoload_dir = GetAutoloadDir(*base, "all-all", true);
-    AutoLoadFunc(autoload_dir);
-    free(autoload_dir);
-
-    GameMission_t local_gamemission = D_GetGameMissionByIWADName(M_BaseName(wadfiles[0]));
-
-    // common auto-loaded files for all Doom flavors
-    if (local_gamemission != none)
+    for (int i = 0; i < array_size(autoload_paths); ++i)
     {
-      if (local_gamemission < pack_chex)
-      {
-        autoload_dir = GetAutoloadDir(*base, "doom-all", true);
-        AutoLoadFunc(autoload_dir);
-        free(autoload_dir);
-      }
+        char *dir = GetAutoloadDir(autoload_paths[i], "all-all", true);
+        AutoLoadFunc(dir);
+        free(dir);
 
-      if (local_gamemission == doom)
-      {
-        autoload_dir = GetAutoloadDir(*base, "doom1-all", true);
-        AutoLoadFunc(autoload_dir);
-        free(autoload_dir);
-      }
-      else if (local_gamemission >= doom2 && local_gamemission <= pack_plut)
-      {
-        autoload_dir = GetAutoloadDir(*base, "doom2-all", true);
-        AutoLoadFunc(autoload_dir);
-        free(autoload_dir);
-      }
+        GameMission_t local_gamemission =
+            D_GetGameMissionByIWADName(M_BaseName(wadfiles[0]));
+
+        // common auto-loaded files for all Doom flavors
+        if (local_gamemission != none)
+        {
+            if (local_gamemission < pack_chex)
+            {
+                dir = GetAutoloadDir(autoload_paths[i], "doom-all", true);
+                AutoLoadFunc(dir);
+                free(dir);
+            }
+
+            if (local_gamemission == doom)
+            {
+                dir = GetAutoloadDir(autoload_paths[i], "doom1-all", true);
+                AutoLoadFunc(dir);
+                free(dir);
+            }
+            else if (local_gamemission >= doom2
+                     && local_gamemission <= pack_plut)
+            {
+                dir = GetAutoloadDir(autoload_paths[i], "doom2-all", true);
+                AutoLoadFunc(dir);
+                free(dir);
+            }
+        }
+
+        // auto-loaded files per IWAD
+        dir = GetAutoloadDir(autoload_paths[i], M_BaseName(wadfiles[0]), true);
+        AutoLoadFunc(dir);
+        free(dir);
     }
-
-    // auto-loaded files per IWAD
-    autoload_dir = GetAutoloadDir(*base, M_BaseName(wadfiles[0]), true);
-    AutoLoadFunc(autoload_dir);
-    free(autoload_dir);
-  }
 }
 
 static void D_AutoloadPWadDir(void (*AutoLoadFunc)(const char *path))
 {
-  int i;
-
-  for (i = 1; i < array_size(wadfiles); ++i)
-  {
-    char **base;
-
-    for (base = autoload_paths; base && *base; base++)
+    for (int i = 1; i < array_size(wadfiles); ++i)
     {
-      char *autoload_dir;
-      autoload_dir = GetAutoloadDir(*base, M_BaseName(wadfiles[i]), false);
-      AutoLoadFunc(autoload_dir);
-      free(autoload_dir);
+        for (int j = 0; j < array_size(autoload_paths); ++j)
+        {
+            char *dir = GetAutoloadDir(autoload_paths[j],
+                                       M_BaseName(wadfiles[i]), false);
+            AutoLoadFunc(dir);
+            free(dir);
+        }
     }
-  }
 }
 
 // Load all dehacked patches from the given directory.
@@ -2068,6 +1948,8 @@ void D_DoomMain(void)
 
   // killough 10/98: set default savename based on executable's name
   sprintf(savegamename = malloc(16), "%.4ssav", D_DoomExeName());
+
+  W_InitPredefineLumps();
 
   IdentifyVersion();
 
@@ -2553,7 +2435,8 @@ void D_DoomMain(void)
     if (organize_savefiles)
     {
       int i;
-      char *wadname = wadfiles[0], *oldsavegame = basesavegame;
+      const char *wadname = wadfiles[0];
+      char *oldsavegame = basesavegame;
 
       for (i = mainwadfile; i < array_size(wadfiles); i++)
       {

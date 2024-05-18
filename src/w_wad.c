@@ -18,14 +18,15 @@
 //-----------------------------------------------------------------------------
 
 #include <errno.h>
-#include <ctype.h>
 #include <fcntl.h>
 #include <stdlib.h>
 #include <string.h>
 
-#include "d_main.h" // [FG] wadfiles
+#include "doomtype.h"
+#include "i_glob.h"
 #include "i_printf.h"
 #include "i_system.h"
+#include "i_zip.h"
 #include "m_array.h"
 #include "m_io.h"
 #include "m_misc.h"
@@ -38,9 +39,11 @@
 //
 
 // Location of each lump on disk.
-lumpinfo_t *lumpinfo;
-int        numlumps;         // killough
-void       **lumpcache;      // killough
+lumpinfo_t  *lumpinfo = NULL;
+int         numlumps;         // killough
+static void **lumpcache;      // killough
+
+const char  **wadfiles;
 
 static int W_FileLength(int handle)
 {
@@ -90,7 +93,7 @@ void ExtractFileBase(const char *path, char *dest)
 
 static int *handles = NULL;
 
-static void W_AddFile(const char *name) // killough 1/31/98: static, const
+static void AddFile(const char *path) // killough 1/31/98: static, const
 {
     wadinfo_t header;
     filelump_t *fileinfo;
@@ -100,30 +103,30 @@ static void W_AddFile(const char *name) // killough 1/31/98: static, const
 
     // open the file and add to directory
 
-    handle = M_open(name, O_RDONLY | O_BINARY);
+    handle = M_open(path, O_RDONLY | O_BINARY);
 
     if (handle == -1)
     {
-        if (M_StringCaseEndsWith(name, ".lmp"))
+        if (M_StringCaseEndsWith(path, ".lmp"))
         {
             return;
         }
-        I_Error("Error: couldn't open %s", name); // killough
+        I_Error("Error: couldn't open %s", path); // killough
     }
 
-    I_Printf(VB_INFO, " adding %s", name); // killough 8/8/98
+    I_Printf(VB_INFO, " adding %s", path); // killough 8/8/98
 
     startlump = numlumps;
 
     boolean is_single = false;
 
     // killough:
-    if (!M_StringCaseEndsWith(name, ".wad"))
+    if (!M_StringCaseEndsWith(path, ".wad"))
     {
         // single lump file
         fileinfo = calloc(1, sizeof(*fileinfo));
         fileinfo[0].size = LONG(W_FileLength(handle));
-        ExtractFileBase(name, fileinfo[0].name);
+        ExtractFileBase(path, fileinfo[0].name);
         numlumps++;
         is_single = true;
     }
@@ -132,19 +135,19 @@ static void W_AddFile(const char *name) // killough 1/31/98: static, const
         // WAD file
         if (read(handle, &header, sizeof(header)) == 0)
         {
-            I_Error("Error reading header from %s (%s)", name, strerror(errno));
+            I_Error("Error reading header from %s (%s)", path, strerror(errno));
         }
 
         if (strncmp(header.identification, "IWAD", 4)
             && strncmp(header.identification, "PWAD", 4))
         {
-            I_Error("Wad file %s doesn't have IWAD or PWAD id", name);
+            I_Error("Wad file %s doesn't have IWAD or PWAD id", path);
         }
 
         header.numlumps = LONG(header.numlumps);
         if (header.numlumps == 0)
         {
-            I_Printf(VB_WARNING, "Wad file %s is empty", name);
+            I_Printf(VB_WARNING, "Wad file %s is empty", path);
             close(handle);
             return;
         }
@@ -153,13 +156,13 @@ static void W_AddFile(const char *name) // killough 1/31/98: static, const
         fileinfo = malloc(length);
         if (fileinfo == NULL)
         {
-            I_Error("Failed to allocate file table from %s", name);
+            I_Error("Failed to allocate file table from %s", path);
         }
 
         header.infotableofs = LONG(header.infotableofs);
         if (lseek(handle, header.infotableofs, SEEK_SET) == -1)
         {
-            I_Printf(VB_WARNING, "Error seeking offset from %s (%s)", name,
+            I_Printf(VB_WARNING, "Error seeking offset from %s (%s)", path,
                      strerror(errno));
             close(handle);
             free(fileinfo);
@@ -169,7 +172,7 @@ static void W_AddFile(const char *name) // killough 1/31/98: static, const
         if (read(handle, fileinfo, length) == 0)
         {
             I_Printf(VB_WARNING, "Error reading lump directory from %s (%s)",
-                     name, strerror(errno));
+                     path, strerror(errno));
             close(handle);
             free(fileinfo);
             return;
@@ -180,23 +183,315 @@ static void W_AddFile(const char *name) // killough 1/31/98: static, const
 
     array_push(handles, handle);
 
-    // Fill in lumpinfo
-    lumpinfo = Z_Realloc(lumpinfo, numlumps * sizeof(lumpinfo_t), PU_STATIC, 0);
+    const char *wadname = M_StringDuplicate(M_BaseName(path));
+    array_push(wadfiles, wadname);
 
-    for (int i = startlump, j = 0; i < numlumps; i++, j++)
+    // Fill in lumpinfo
+    array_grow(lumpinfo, numlumps);
+
+    for (int i = 0; i < numlumps - startlump; i++)
     {
-        lumpinfo[i].handle = handle; //  killough 4/25/98
-        lumpinfo[i].position = LONG(fileinfo[j].filepos);
-        lumpinfo[i].size = LONG(fileinfo[j].size);
-        lumpinfo[i].data = NULL;           // killough 1/31/98
-        lumpinfo[i].namespace = ns_global; // killough 4/17/98
-        M_CopyLumpName(lumpinfo[i].name, fileinfo[j].name);
+        lumpinfo_t item = {0};
+        M_CopyLumpName(item.name, fileinfo[i].name);
+        item.size = LONG(fileinfo[i].size);
+        item.data = NULL;           // killough 1/31/98
+        item.namespace = ns_global; // killough 4/17/98
+        item.handle = handle; //  killough 4/25/98
+        item.position = LONG(fileinfo[i].filepos);
+        item.zip = NULL;
 
         // [FG] WAD file that contains the lump
-        lumpinfo[i].wad_file = (is_single ? NULL : name);
+        item.wad_file = (is_single ? NULL : wadname);
+        array_push(lumpinfo, item);
     }
 
     free(fileinfo);
+}
+
+static void AddWadInZip(void *handle, const char *name, int index,
+                        size_t data_size)
+{
+    byte *data = malloc(data_size);
+
+    I_ZIP_ReadFile(handle, index, data, data_size);
+
+    wadinfo_t header;
+
+    if (sizeof(header) > data_size)
+    {
+        I_Error("Error reading header from %s", name);
+    }
+
+    memcpy(&header, data, sizeof(header));
+
+    if (strncmp(header.identification, "IWAD", 4)
+        && strncmp(header.identification, "PWAD", 4))
+    {
+        I_Error("Wad file %s doesn't have IWAD or PWAD id", name);
+    }
+
+    header.numlumps = LONG(header.numlumps);
+    if (header.numlumps == 0)
+    {
+        I_Printf(VB_WARNING, "Wad file %s is empty", name);
+        free(data);
+        return;
+    }
+
+    header.infotableofs = LONG(header.infotableofs);
+    if (header.infotableofs + header.numlumps * sizeof(filelump_t) > data_size)
+    {
+        I_Printf(VB_WARNING, "Error seeking offset from %s", name);
+        free(data);
+        return;
+    }
+
+    filelump_t *fileinfo = (filelump_t *)(data + header.infotableofs);
+
+    const char *wadname = M_StringDuplicate(name);
+    array_push(wadfiles, wadname);
+
+    numlumps += header.numlumps;
+
+    array_grow(lumpinfo, numlumps);
+
+    for (int i = 0; i < header.numlumps; i++)
+    {
+        lumpinfo_t item = {0};
+        M_CopyLumpName(item.name, fileinfo[i].name);
+        int size = LONG(fileinfo[i].size);
+        int position = LONG(fileinfo[i].filepos);
+        if (position + size > data_size)
+        {
+            I_Error("Error reading file from %s", name);
+        }
+        item.size = size;
+        item.data = data + position;
+
+        item.handle = 0;
+        item.position = 0;
+        item.namespace = ns_global;
+        item.zip = NULL;
+
+        // [FG] WAD file that contains the lump
+        item.wad_file = wadname;
+        array_push(lumpinfo, item);
+    }
+}
+
+static void AddMarker(const char *name)
+{
+    lumpinfo_t marker = {0};
+    M_CopyLumpName(marker.name, name);
+    array_push(lumpinfo, marker);
+    numlumps++;
+}
+
+static void AddDir(glob_t *glob, const char *start_marker,
+                      const char *end_marker)
+{
+    int startlump = numlumps;
+
+    while (true)
+    {
+        const char *filename = I_NextGlob(glob);
+        if (filename == NULL)
+        {
+            break;
+        }
+
+        if (startlump == numlumps && start_marker)
+        {
+            AddMarker(start_marker);
+        }
+
+        int handle = M_open(filename, O_RDONLY | O_BINARY);
+        if (handle == -1)
+        {
+            I_Error("Error: couldn't open %s", filename);
+        }
+
+        lumpinfo_t item = {0};
+        item.handle = handle;
+        item.size = LONG(W_FileLength(handle));
+        ExtractFileBase(filename, item.name);
+        item.namespace = ns_global;
+        array_push(lumpinfo, item);
+        numlumps++;
+
+        array_push(handles, handle);
+    }
+
+    if (numlumps > startlump && end_marker)
+    {
+        AddMarker(end_marker);
+    }
+}
+
+static void AddZipDir(glob_zip_t *glob, const char *start_marker,
+                      const char *end_marker)
+{
+    int startlump = numlumps;
+
+    while (true)
+    {
+        const char *filename = I_ZIP_NextGlob(glob);
+        if (filename == NULL)
+        {
+            break;
+        }
+
+        if (startlump == numlumps && start_marker)
+        {
+            AddMarker(start_marker);
+        }
+
+        lumpinfo_t item = {0};
+        item.handle = I_ZIP_GetIndex(glob);
+        item.size = I_ZIP_GetSize(glob);
+        ExtractFileBase(filename, item.name);
+        item.zip = I_ZIP_GetHandle(glob);
+        item.namespace = ns_global;
+        array_push(lumpinfo, item);
+        numlumps++;
+    }
+
+    if (numlumps > startlump && end_marker)
+    {
+        AddMarker(end_marker);
+    }
+}
+
+static boolean AddMultipleZipDirs(const char *path)
+{
+    void *handle = I_ZIP_Open(path);
+    if (!handle)
+    {
+        return false;
+    }
+
+    I_Printf(VB_INFO, " adding %s", path);
+
+    glob_zip_t *glob = I_ZIP_StartMultiGlob(
+        handle, NULL, GLOB_FLAG_NOCASE | GLOB_FLAG_SORTED, "*.wad", NULL);
+    while (true)
+    {
+        const char *wadname = I_ZIP_NextGlob(glob);
+        if (wadname == NULL)
+        {
+            break;
+        }
+        AddWadInZip(handle, wadname, I_ZIP_GetIndex(glob), I_ZIP_GetSize(glob));
+    }
+    I_ZIP_EndGlob(glob);
+
+    glob = I_ZIP_StartMultiGlob(
+        handle, NULL, GLOB_FLAG_NOCASE | GLOB_FLAG_SORTED, "*.lmp", "*.wav",
+        "*.ogg", "*.flac", "*.mp3", "*.mid", NULL);
+    AddZipDir(glob, NULL, NULL);
+    I_ZIP_EndGlob(glob);
+
+    glob = I_ZIP_StartMultiGlob(
+        handle, "music", GLOB_FLAG_NOCASE | GLOB_FLAG_SORTED, "*.wav", "*.ogg",
+        "*.flac", "*.mp3", "*.mid", NULL);
+    AddZipDir(glob, NULL, NULL);
+    I_ZIP_EndGlob(glob);
+
+    glob = I_ZIP_StartMultiGlob(
+        handle, "sprites", GLOB_FLAG_NOCASE | GLOB_FLAG_SORTED, "*.lmp", NULL);
+    AddZipDir(glob, "S_START", "S_END");
+    I_ZIP_EndGlob(glob);
+
+    glob = I_ZIP_StartMultiGlob(
+        handle, "colormaps", GLOB_FLAG_NOCASE | GLOB_FLAG_SORTED, "*.lmp",
+        "*.cmp", NULL);
+    AddZipDir(glob, "C_START", "C_END");
+    I_ZIP_EndGlob(glob);
+
+    glob = I_ZIP_StartMultiGlob(
+        handle, "voxels", GLOB_FLAG_NOCASE | GLOB_FLAG_SORTED, "*.kvx", NULL);
+    AddZipDir(glob, "VX_START", "VX_END");
+    I_ZIP_EndGlob(glob);
+
+    return true;
+}
+
+static void AddMultipleDirs(const char *path)
+{
+    glob_t *glob =
+        I_StartGlob(path, "*.wad", GLOB_FLAG_NOCASE | GLOB_FLAG_SORTED);
+    while (true)
+    {
+        const char *filepath = I_NextGlob(glob);
+        if (filepath == NULL)
+        {
+            break;
+        }
+        AddFile(filepath);
+    }
+    I_EndGlob(glob);
+
+    glob = I_StartMultiGlob(path, GLOB_FLAG_NOCASE | GLOB_FLAG_SORTED, "*.zip",
+                            "*.pk3", NULL);
+    while (true)
+    {
+        const char *filepath = I_NextGlob(glob);
+        if (filepath == NULL)
+        {
+            break;
+        }
+        AddMultipleZipDirs(filepath);
+    }
+    I_EndGlob(glob);
+
+    glob = I_StartMultiGlob(path, GLOB_FLAG_NOCASE | GLOB_FLAG_SORTED, "*.lmp",
+                            "*.wav", "*.ogg", "*.flac", "*.mp3", NULL);
+    AddDir(glob, NULL, NULL);
+    I_EndGlob(glob);
+
+    char *s = M_StringJoin(path, DIR_SEPARATOR_S, "sprites", NULL);
+    if (M_DirExists(s))
+    {
+        glob = I_StartGlob(s, "*.lmp", GLOB_FLAG_NOCASE | GLOB_FLAG_SORTED);
+        AddDir(glob, "S_START", "S_END");
+        I_EndGlob(glob);
+    }
+    free(s);
+    s = M_StringJoin(path, DIR_SEPARATOR_S, "colormaps", NULL);
+    if (M_DirExists(s))
+    {
+        glob = I_StartMultiGlob(s, GLOB_FLAG_NOCASE | GLOB_FLAG_SORTED, "*.lmp",
+                                "*.cmp", NULL);
+        AddDir(glob, "C_START", "C_END");
+        I_EndGlob(glob);
+    }
+    free(s);
+
+    s = M_StringJoin(path, DIR_SEPARATOR_S, "voxels", NULL);
+    if (M_DirExists(s))
+    {
+        glob = I_StartMultiGlob(s, GLOB_FLAG_NOCASE | GLOB_FLAG_SORTED, "*.kvx",
+                                NULL);
+        AddDir(glob, "VX_START", "VX_END");
+        I_EndGlob(glob);
+    }
+    free(s);
+}
+
+void W_AddPath(const char *path)
+{
+    if (M_DirExists(path))
+    {
+        AddMultipleDirs(path);
+    }
+    else
+    {
+        if (AddMultipleZipDirs(path))
+        {
+            return;
+        }
+        AddFile(path);
+    }
 }
 
 // jff 1/23/98 Create routines to reorder the master directory
@@ -384,23 +679,22 @@ int W_GetNumForName (const char* name)     // killough -- const added
 //  does override all earlier ones.
 //
 
-void W_InitMultipleFiles(void)
+void W_InitPredefineLumps(void)
 {
-  int i;
-
   // killough 1/31/98: add predefined lumps first
 
   numlumps = num_predefined_lumps;
 
   // lumpinfo will be realloced as lumps are added
-  lumpinfo = Z_Malloc(numlumps*sizeof(*lumpinfo), PU_STATIC, 0);
+  array_grow(lumpinfo, numlumps);
 
   memcpy(lumpinfo, predefined_lumps, numlumps*sizeof(*lumpinfo));
 
-  // open all the files, load headers, and count lumps
-  for (i = 0; i < array_size(wadfiles); ++i)
-    W_AddFile(wadfiles[i]);
+  array_ptr(lumpinfo)->size += numlumps;
+}
 
+void W_InitMultipleFiles(void)
+{
   if (!numlumps)
     I_Error ("W_InitFiles: no files found");
 
@@ -414,6 +708,8 @@ void W_InitMultipleFiles(void)
 
   // killough 4/4/98: add colormap markers
   W_CoalesceMarkedResource("C_START", "C_END", ns_colormaps);
+
+  W_CoalesceMarkedResource("VX_START", "VX_END", ns_voxels);
 
   // [Woof!] namespace to avoid conflicts with high-resolution textures
   W_CoalesceMarkedResource("HI_START", "HI_END", ns_hires);
@@ -447,29 +743,49 @@ int W_LumpLength (int lump)
 
 void W_ReadLump(int lump, void *dest)
 {
-  lumpinfo_t *l = lumpinfo + lump;
+    lumpinfo_t *l = lumpinfo + lump;
 
 #ifdef RANGECHECK
-  if (lump >= numlumps)
-    I_Error ("W_ReadLump: %i >= numlumps",lump);
+    if (lump >= numlumps)
+    {
+        I_Error("W_ReadLump: %i >= numlumps", lump);
+    }
 #endif
 
-  if (l->data)     // killough 1/31/98: predefined lump data
-    memcpy(dest, l->data, l->size);
-  else if (l->size) // [FG] ignore empty lumps
+    if (l->data) // killough 1/31/98: predefined lump data
     {
-      int c;
-
-      // killough 1/31/98: Reload hack (-wart) removed
-      // killough 10/98: Add flashing disk indicator
-
-      I_BeginRead(l->size);
-      lseek(l->handle, l->position, SEEK_SET);
-      c = read(l->handle, dest, l->size);
-      if (c < l->size)
-        I_Error("W_ReadLump: only read %i of %i on lump %i", c, l->size, lump);
-      I_EndRead();
+        memcpy(dest, l->data, l->size);
+        return;
     }
+
+    if (!l->size)
+    {
+        return;
+    }
+
+    I_BeginRead(l->size);
+
+    if (l->zip)
+    {
+        I_ZIP_ReadFile(l->zip, l->handle, dest, l->size);
+    }
+    else
+    {
+        int c;
+
+        // killough 1/31/98: Reload hack (-wart) removed
+        // killough 10/98: Add flashing disk indicator
+
+        lseek(l->handle, l->position, SEEK_SET);
+        c = read(l->handle, dest, l->size);
+        if (c < l->size)
+        {
+            I_Error("W_ReadLump: only read %i of %i on lump %i", c, l->size,
+                    lump);
+        }
+    }
+
+    I_EndRead();
 }
 
 //
@@ -651,12 +967,12 @@ void W_DemoLumpNameCollision(char **name)
 
 void W_CloseFileDescriptors(void)
 {
-  int i;
+    for (int i = 0; i < array_size(handles); ++i)
+    {
+       close(handles[i]);
+    }
 
-  for (i = 0; i < array_size(handles); ++i)
-  {
-     close(handles[i]);
-  }
+    I_ZIP_CloseFiles();
 }
 
 //----------------------------------------------------------------------------

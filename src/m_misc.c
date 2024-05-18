@@ -50,6 +50,18 @@ boolean M_FileExists(const char *filename)
     }
 }
 
+boolean M_DirExists(const char *path)
+{
+    struct stat st;
+
+    if (M_stat(path, &st) == 0 && S_ISDIR(st.st_mode))
+    {
+        return true;
+    }
+
+    return false;
+}
+
 // Returns the path to a temporary file of the given name, stored
 // inside the system temporary directory.
 //

@@ -49,6 +49,7 @@ set(WOOF_SOURCES
     i_system.c             i_system.h
     i_timer.c              i_timer.h
     i_video.c              i_video.h
+    i_zip.c                i_zip.h
     info.c                 info.h
     m_argv.c               m_argv.h
                            m_array.h
