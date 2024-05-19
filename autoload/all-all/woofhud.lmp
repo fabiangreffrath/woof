@@ -1,5 +1,4 @@
 hud 0
-title bottomleft
 rate topleft
 monsec topleft
 sttime topleft
@@ -8,7 +7,6 @@ fps topright
 cmd bottomright
 
 hud 1
-title bottomleft
 rate topleft
 armor bottomleft
 health bottomleft
@@ -22,7 +20,6 @@ fps topright
 cmd bottomright
 
 hud 2
-title bottomleft
 rate topleft
 health topright
 armor topright
