@@ -1436,6 +1436,10 @@ static setup_menu_t stat_settings2[] = {
     {"Show Player Coords", S_CHOICE | S_STRICT, M_X, M_SPC,
      {"hud_player_coords"}, m_null, input_null, str_show_widgets},
 
+    {"Show Command History", S_ONOFF | S_STRICT, M_X, M_SPC,
+     {"hud_command_history"}, m_null, input_null, str_empty,
+     HU_ResetCommandHistory},
+
     {"Use-Button Timer", S_ONOFF, M_X, M_SPC, {"hud_time_use"}},
 
     MI_GAP,

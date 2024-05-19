@@ -2139,7 +2139,7 @@ void WI_Drawer (void)
         else
           WI_drawStats();
       // [FG] draw Time widget on intermission screen
-      WI_DrawTimeWidget();
+      WI_DrawWidgets();
       break;
   
     case ShowNextLoc:
