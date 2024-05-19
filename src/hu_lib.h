@@ -68,6 +68,7 @@ typedef enum
   // [FG] v_align
   align_top,
   align_bottom,
+  align_secret,
 
   num_aligns,
 } align_t;

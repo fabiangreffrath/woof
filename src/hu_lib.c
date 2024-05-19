@@ -261,6 +261,10 @@ static int vert_align_widget(const hu_widget_t *const w, const hu_multiline_t *c
   {
     return w->y;
   }
+  else if (v_align == align_secret)
+  {
+    return MAX(SCREENHEIGHT - 32, scaledviewheight) / 2 - 32;
+  }
   // [FG] centered and Vanilla widgets are always exclusive,
   //      i.e. they don't allow any other widget on the same line
   else if (h_align == align_center || m->exclusive)

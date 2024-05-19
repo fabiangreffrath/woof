@@ -2060,7 +2060,7 @@ static void HU_ParseHUD (void)
     HU_AddToWidgets(&w_title,   hud, align_direct, align_bottom, 0, 0);
     HU_AddToWidgets(&w_message, hud, align_direct, align_top,    0, 0);
     HU_AddToWidgets(&w_chat,    hud, align_direct, align_top,    0, 0);
-    HU_AddToWidgets(&w_secret , hud, align_center, align_direct, 0, (SCREENHEIGHT - ST_HEIGHT) / 4);
+    HU_AddToWidgets(&w_secret , hud, align_center, align_secret, 0, 0);
   }
 
   if ((lumpnum = W_CheckNumForName("WOOFHUD")) == -1)
