@@ -1,11 +1,14 @@
 hud 0
+title bottomleft
 rate topleft
 monsec topleft
 sttime topleft
 coord topright
 fps topright
+cmd bottomright
 
 hud 1
+title bottomleft
 rate topleft
 armor bottomleft
 health bottomleft
@@ -16,8 +19,10 @@ monsec bottomleft
 sttime bottomleft
 coord topright
 fps topright
+cmd bottomright
 
 hud 2
+title bottomleft
 rate topleft
 health topright
 armor topright
@@ -26,5 +31,6 @@ weapon bottomright
 keys bottomleft
 monsec bottomleft
 sttime bottomleft
-coord  topright
+coord topright
 fps topright
+cmd bottomright
