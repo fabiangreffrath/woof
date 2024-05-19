@@ -26,13 +26,14 @@
 #include "i_glob.h"
 #include "i_printf.h"
 #include "i_system.h"
-#include "i_zip.h"
 #include "m_array.h"
 #include "m_io.h"
 #include "m_misc.h"
 #include "m_swap.h"
 #include "w_wad.h"
 #include "z_zone.h"
+
+#include "miniz.h"
 
 //
 // GLOBALS
@@ -206,12 +207,15 @@ static void AddFile(const char *path) // killough 1/31/98: static, const
     free(fileinfo);
 }
 
-static void AddWadInZip(void *handle, const char *name, int index,
+static void AddWadInZip(mz_zip_archive *zip, const char *name, int index,
                         size_t data_size)
 {
     byte *data = malloc(data_size);
 
-    I_ZIP_ReadFile(handle, index, data, data_size);
+    if (!mz_zip_reader_extract_to_mem(zip, index, data, data_size, 0))
+    {
+        I_Error("AddWadInZip: mz_zip_reader_extract_to_mem failed");
+    }
 
     wadinfo_t header;
 
@@ -281,10 +285,21 @@ static void AddMarker(const char *name)
     numlumps++;
 }
 
-static void AddDir(glob_t *glob, const char *start_marker,
-                      const char *end_marker)
+static void AddDir(const char *path, const char *directory,
+                   const char *start_marker, const char *end_marker)
 {
     int startlump = numlumps;
+
+    char *s = M_StringJoin(path, DIR_SEPARATOR_S, directory, NULL);
+
+    glob_t *glob = I_StartGlob(s, "*.*", GLOB_FLAG_NOCASE | GLOB_FLAG_SORTED);
+
+    free(s);
+
+    if (!glob)
+    {
+        return;
+    }
 
     while (true)
     {
@@ -322,17 +337,46 @@ static void AddDir(glob_t *glob, const char *start_marker,
     }
 }
 
-static void AddZipDir(glob_zip_t *glob, const char *start_marker,
-                      const char *end_marker)
+static void AddZipWads(mz_zip_archive *zip)
+{
+    for (int i = 0; i < mz_zip_reader_get_num_files(zip); ++i)
+    {
+        mz_zip_archive_file_stat stat;
+        mz_zip_reader_file_stat(zip, i, &stat);
+
+        if (stat.m_is_directory)
+        {
+            continue;
+        }
+
+        if (M_StringCaseEndsWith(stat.m_filename, ".wad"))
+        {
+            AddWadInZip(zip, M_BaseName(stat.m_filename), i, stat.m_uncomp_size);
+        }
+    }
+}
+
+static void AddZipDir(mz_zip_archive *zip, const char *path,
+                      const char *start_marker, const char *end_marker)
 {
     int startlump = numlumps;
 
-    while (true)
+    for (int i = 0; i < mz_zip_reader_get_num_files(zip); ++i)
     {
-        const char *filename = I_ZIP_NextGlob(glob);
-        if (filename == NULL)
+        mz_zip_archive_file_stat stat;
+        mz_zip_reader_file_stat(zip, i, &stat);
+
+        if (stat.m_is_directory)
         {
-            break;
+            continue;
+        }
+
+        char *dir = M_DirName(stat.m_filename);
+        boolean result = M_StringCaseEndsWith(dir, path);
+        free(dir);
+        if (!result)
+        {
+            continue;
         }
 
         if (startlump == numlumps && start_marker)
@@ -341,10 +385,10 @@ static void AddZipDir(glob_zip_t *glob, const char *start_marker,
         }
 
         lumpinfo_t item = {0};
-        item.handle = I_ZIP_GetIndex(glob);
-        item.size = I_ZIP_GetSize(glob);
-        ExtractFileBase(filename, item.name);
-        item.zip = I_ZIP_GetHandle(glob);
+        item.handle = i;
+        item.size = stat.m_uncomp_size;
+        ExtractFileBase(stat.m_filename, item.name);
+        item.zip = zip;
         item.namespace = ns_global;
         array_push(lumpinfo, item);
         numlumps++;
@@ -356,61 +400,32 @@ static void AddZipDir(glob_zip_t *glob, const char *start_marker,
     }
 }
 
-static boolean AddMultipleZipDirs(const char *path)
+static mz_zip_archive **zips = NULL;
+
+static boolean AddZipPath(const char *path)
 {
-    void *handle = I_ZIP_Open(path);
-    if (!handle)
+    mz_zip_archive *zip = calloc(1, sizeof(*zip));
+    if (!mz_zip_reader_init_file(zip, path, 0))
     {
         return false;
     }
 
+    array_push(zips, zip);
+
     I_Printf(VB_INFO, " adding %s", path);
 
-    glob_zip_t *glob = I_ZIP_StartMultiGlob(
-        handle, NULL, GLOB_FLAG_NOCASE | GLOB_FLAG_SORTED, "*.wad", NULL);
-    while (true)
-    {
-        const char *wadname = I_ZIP_NextGlob(glob);
-        if (wadname == NULL)
-        {
-            break;
-        }
-        AddWadInZip(handle, wadname, I_ZIP_GetIndex(glob), I_ZIP_GetSize(glob));
-    }
-    I_ZIP_EndGlob(glob);
+    AddZipWads(zip);
 
-    glob = I_ZIP_StartMultiGlob(
-        handle, NULL, GLOB_FLAG_NOCASE | GLOB_FLAG_SORTED, "*.lmp", "*.wav",
-        "*.ogg", "*.flac", "*.mp3", "*.mid", NULL);
-    AddZipDir(glob, NULL, NULL);
-    I_ZIP_EndGlob(glob);
-
-    glob = I_ZIP_StartMultiGlob(
-        handle, "music", GLOB_FLAG_NOCASE | GLOB_FLAG_SORTED, "*.wav", "*.ogg",
-        "*.flac", "*.mp3", "*.mid", NULL);
-    AddZipDir(glob, NULL, NULL);
-    I_ZIP_EndGlob(glob);
-
-    glob = I_ZIP_StartMultiGlob(
-        handle, "sprites", GLOB_FLAG_NOCASE | GLOB_FLAG_SORTED, "*.lmp", NULL);
-    AddZipDir(glob, "S_START", "S_END");
-    I_ZIP_EndGlob(glob);
-
-    glob = I_ZIP_StartMultiGlob(
-        handle, "colormaps", GLOB_FLAG_NOCASE | GLOB_FLAG_SORTED, "*.lmp",
-        "*.cmp", NULL);
-    AddZipDir(glob, "C_START", "C_END");
-    I_ZIP_EndGlob(glob);
-
-    glob = I_ZIP_StartMultiGlob(
-        handle, "voxels", GLOB_FLAG_NOCASE | GLOB_FLAG_SORTED, "*.kvx", NULL);
-    AddZipDir(glob, "VX_START", "VX_END");
-    I_ZIP_EndGlob(glob);
+    AddZipDir(zip, ".", NULL, NULL);
+    AddZipDir(zip, "music", NULL, NULL);
+    AddZipDir(zip, "sprites", "S_START", "S_END");
+    AddZipDir(zip, "colormaps", "C_START", "C_END");
+    AddZipDir(zip, "voxels", "VX_START", "VX_END");
 
     return true;
 }
 
-static void AddMultipleDirs(const char *path)
+static void AddPath(const char *path)
 {
     glob_t *glob =
         I_StartGlob(path, "*.wad", GLOB_FLAG_NOCASE | GLOB_FLAG_SORTED);
@@ -434,62 +449,28 @@ static void AddMultipleDirs(const char *path)
         {
             break;
         }
-        AddMultipleZipDirs(filepath);
+        AddZipPath(filepath);
     }
     I_EndGlob(glob);
 
-    glob = I_StartMultiGlob(path, GLOB_FLAG_NOCASE | GLOB_FLAG_SORTED, "*.lmp",
-                            "*.wav", "*.ogg", "*.flac", "*.mp3", "*.mid", NULL);
-    AddDir(glob, NULL, NULL);
-    I_EndGlob(glob);
+    AddDir(path, ".", NULL, NULL);
+    AddDir(path, "music", NULL, NULL);
+    AddDir(path, "sprites", "S_START", "S_END");
+    AddDir(path, "colormaps", "C_START", "C_END");
+    AddDir(path, "voxels", "VX_START", "VX_END");
 
-    char *s = M_StringJoin(path, DIR_SEPARATOR_S, "music", NULL);
-    if (M_DirExists(s))
-    {
-        glob = I_StartMultiGlob(s, GLOB_FLAG_NOCASE | GLOB_FLAG_SORTED,
-                                "*.wav", "*.ogg", "*.flac", "*.mp3", "*.mid", NULL);
-        AddDir(glob, NULL, NULL);
-        I_EndGlob(glob);
-    }
-
-    s = M_StringJoin(path, DIR_SEPARATOR_S, "sprites", NULL);
-    if (M_DirExists(s))
-    {
-        glob = I_StartGlob(s, "*.lmp", GLOB_FLAG_NOCASE | GLOB_FLAG_SORTED);
-        AddDir(glob, "S_START", "S_END");
-        I_EndGlob(glob);
-    }
-    free(s);
-    s = M_StringJoin(path, DIR_SEPARATOR_S, "colormaps", NULL);
-    if (M_DirExists(s))
-    {
-        glob = I_StartMultiGlob(s, GLOB_FLAG_NOCASE | GLOB_FLAG_SORTED, "*.lmp",
-                                "*.cmp", NULL);
-        AddDir(glob, "C_START", "C_END");
-        I_EndGlob(glob);
-    }
-    free(s);
-
-    s = M_StringJoin(path, DIR_SEPARATOR_S, "voxels", NULL);
-    if (M_DirExists(s))
-    {
-        glob = I_StartMultiGlob(s, GLOB_FLAG_NOCASE | GLOB_FLAG_SORTED, "*.kvx",
-                                NULL);
-        AddDir(glob, "VX_START", "VX_END");
-        I_EndGlob(glob);
-    }
-    free(s);
+    return;
 }
 
 void W_AddPath(const char *path)
 {
     if (M_DirExists(path))
     {
-        AddMultipleDirs(path);
+        AddPath(path);
     }
     else
     {
-        if (AddMultipleZipDirs(path))
+        if (AddZipPath(path))
         {
             return;
         }
@@ -770,7 +751,10 @@ void W_ReadLump(int lump, void *dest)
 
     if (l->zip)
     {
-        I_ZIP_ReadFile(l->zip, l->handle, dest, l->size);
+        if (!mz_zip_reader_extract_to_mem(l->zip, l->handle, dest, l->size, 0))
+        {
+            I_Error("W_ReadLump: mz_zip_reader_extract_to_mem failed");
+        }
     }
     else
     {
@@ -975,7 +959,10 @@ void W_CloseFileDescriptors(void)
        close(handles[i]);
     }
 
-    I_ZIP_CloseFiles();
+    for (int i = 0; i < array_size(zips); ++i)
+    {
+        mz_zip_reader_end(zips[i]);
+    }
 }
 
 //----------------------------------------------------------------------------
