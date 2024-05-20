@@ -370,11 +370,20 @@ static void AddDir(const char *path, const char *directory,
 {
     int startlump = numlumps;
 
-    char *s = M_StringJoin(path, DIR_SEPARATOR_S, directory, NULL);
+    boolean root_directory = strcmp(directory, ".") ? false : true;
 
-    glob_t *glob = I_StartGlob(s, "*.*", GLOB_FLAG_NOCASE | GLOB_FLAG_SORTED);
+    glob_t *glob;
 
-    free(s);
+    if (root_directory)
+    {
+        glob = I_StartGlob(path, "*.*", GLOB_FLAG_NOCASE | GLOB_FLAG_SORTED);
+    }
+    else
+    {
+        char *s = M_StringJoin(path, DIR_SEPARATOR_S, directory, NULL);
+        glob = I_StartGlob(s, "*.*", GLOB_FLAG_NOCASE | GLOB_FLAG_SORTED);
+        free(s);
+    }
 
     if (!glob)
     {
@@ -389,7 +398,7 @@ static void AddDir(const char *path, const char *directory,
             break;
         }
 
-        if (!strcmp(directory, "."))
+        if (root_directory)
         {
             if (M_StringCaseEndsWith(filename, ".wad"))
             {
