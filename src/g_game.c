@@ -4637,7 +4637,7 @@ void G_BindGameVariables(void)
 {
   BIND_BOOL_GENERAL(raw_input, true,
     "Raw gamepad/mouse input for turning/looking (0 = Interpolate; 1 = Raw)");
-  BIND_BOOL_GENERAL(fake_longtics, false,
+  BIND_BOOL_GENERAL(fake_longtics, true,
     "Fake high-resolution turning when using low-resolution turning");
   BIND_BOOL(shorttics, false, "Always use low-resolution turning");
   BIND_NUM(quickstart_cache_tics, 0, 0, TICRATE, "Quickstart cache tics");
