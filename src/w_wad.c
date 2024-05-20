@@ -217,6 +217,8 @@ static void AddWadInZip(mz_zip_archive *zip, const char *name, int index,
         I_Error("AddWadInZip: mz_zip_reader_extract_to_mem failed");
     }
 
+    I_Printf(VB_INFO, " adding %s", name);
+
     wadinfo_t header;
 
     if (sizeof(header) > data_size)
@@ -285,78 +287,7 @@ static void AddMarker(const char *name)
     numlumps++;
 }
 
-static void AddDir(const char *path, const char *directory,
-                   const char *start_marker, const char *end_marker)
-{
-    int startlump = numlumps;
-
-    char *s = M_StringJoin(path, DIR_SEPARATOR_S, directory, NULL);
-
-    glob_t *glob = I_StartGlob(s, "*.*", GLOB_FLAG_NOCASE | GLOB_FLAG_SORTED);
-
-    free(s);
-
-    if (!glob)
-    {
-        return;
-    }
-
-    while (true)
-    {
-        const char *filename = I_NextGlob(glob);
-        if (filename == NULL)
-        {
-            break;
-        }
-
-        if (startlump == numlumps && start_marker)
-        {
-            AddMarker(start_marker);
-        }
-
-        int handle = M_open(filename, O_RDONLY | O_BINARY);
-        if (handle == -1)
-        {
-            I_Error("Error: couldn't open %s", filename);
-        }
-
-        lumpinfo_t item = {0};
-        item.handle = handle;
-        item.size = LONG(W_FileLength(handle));
-        ExtractFileBase(filename, item.name);
-        item.namespace = ns_global;
-        array_push(lumpinfo, item);
-        numlumps++;
-
-        array_push(handles, handle);
-    }
-
-    if (numlumps > startlump && end_marker)
-    {
-        AddMarker(end_marker);
-    }
-}
-
-static void AddZipWads(mz_zip_archive *zip)
-{
-    for (int i = 0; i < mz_zip_reader_get_num_files(zip); ++i)
-    {
-        mz_zip_archive_file_stat stat;
-        mz_zip_reader_file_stat(zip, i, &stat);
-
-        if (stat.m_is_directory)
-        {
-            continue;
-        }
-
-        if (M_StringCaseEndsWith(stat.m_filename, ".wad"))
-        {
-            AddWadInZip(zip, M_BaseName(stat.m_filename), i, stat.m_uncomp_size);
-        }
-    }
-}
-
-static void AddZipDir(mz_zip_archive *zip, const char *path,
+static void AddZipDir(mz_zip_archive *zip, const char *directory,
                       const char *start_marker, const char *end_marker)
 {
     int startlump = numlumps;
@@ -371,12 +302,22 @@ static void AddZipDir(mz_zip_archive *zip, const char *path,
             continue;
         }
 
-        char *dir = M_DirName(stat.m_filename);
-        boolean result = M_StringCaseEndsWith(dir, path);
-        free(dir);
+        char *name = M_DirName(stat.m_filename);
+        boolean result = M_StringCaseEndsWith(name, directory);
+        free(name);
         if (!result)
         {
             continue;
+        }
+
+        if (!strcmp(directory, "."))
+        {
+            if (M_StringCaseEndsWith(stat.m_filename, ".wad"))
+            {
+                AddWadInZip(zip, M_BaseName(stat.m_filename), i,
+                            stat.m_uncomp_size);
+                continue;
+            }
         }
 
         if (startlump == numlumps && start_marker)
@@ -407,14 +348,13 @@ static boolean AddZipPath(const char *path)
     mz_zip_archive *zip = calloc(1, sizeof(*zip));
     if (!mz_zip_reader_init_file(zip, path, 0))
     {
+        free(zip);
         return false;
     }
 
     array_push(zips, zip);
 
     I_Printf(VB_INFO, " adding %s", path);
-
-    AddZipWads(zip);
 
     AddZipDir(zip, ".", NULL, NULL);
     AddZipDir(zip, "music", NULL, NULL);
@@ -425,41 +365,82 @@ static boolean AddZipPath(const char *path)
     return true;
 }
 
+static void AddDir(const char *path, const char *directory,
+                   const char *start_marker, const char *end_marker)
+{
+    int startlump = numlumps;
+
+    char *s = M_StringJoin(path, DIR_SEPARATOR_S, directory, NULL);
+
+    glob_t *glob = I_StartGlob(s, "*.*", GLOB_FLAG_NOCASE | GLOB_FLAG_SORTED);
+
+    free(s);
+
+    if (!glob)
+    {
+        return;
+    }
+
+    while (true)
+    {
+        const char *filename = I_NextGlob(glob);
+        if (filename == NULL)
+        {
+            break;
+        }
+
+        if (!strcmp(directory, "."))
+        {
+            if (M_StringCaseEndsWith(filename, ".wad"))
+            {
+                AddFile(filename);
+                continue;
+            }
+            else if (M_StringCaseEndsWith(filename, ".zip")
+                     || M_StringCaseEndsWith(filename, ".pk3"))
+            {
+                AddZipPath(filename);
+                continue;
+            }
+        }
+
+        if (startlump == numlumps && start_marker)
+        {
+            AddMarker(start_marker);
+        }
+
+        int handle = M_open(filename, O_RDONLY | O_BINARY);
+        if (handle == -1)
+        {
+            I_Error("Error: couldn't open %s", filename);
+        }
+
+        lumpinfo_t item = {0};
+        item.handle = handle;
+        item.size = LONG(W_FileLength(handle));
+        ExtractFileBase(filename, item.name);
+        item.namespace = ns_global;
+        array_push(lumpinfo, item);
+        numlumps++;
+
+        array_push(handles, handle);
+    }
+
+    if (numlumps > startlump && end_marker)
+    {
+        AddMarker(end_marker);
+    }
+}
+
 static void AddPath(const char *path)
 {
-    glob_t *glob =
-        I_StartGlob(path, "*.wad", GLOB_FLAG_NOCASE | GLOB_FLAG_SORTED);
-    while (true)
-    {
-        const char *filepath = I_NextGlob(glob);
-        if (filepath == NULL)
-        {
-            break;
-        }
-        AddFile(filepath);
-    }
-    I_EndGlob(glob);
-
-    glob = I_StartMultiGlob(path, GLOB_FLAG_NOCASE | GLOB_FLAG_SORTED, "*.zip",
-                            "*.pk3", NULL);
-    while (true)
-    {
-        const char *filepath = I_NextGlob(glob);
-        if (filepath == NULL)
-        {
-            break;
-        }
-        AddZipPath(filepath);
-    }
-    I_EndGlob(glob);
+    I_Printf(VB_INFO, " adding %s", path);
 
     AddDir(path, ".", NULL, NULL);
     AddDir(path, "music", NULL, NULL);
     AddDir(path, "sprites", "S_START", "S_END");
     AddDir(path, "colormaps", "C_START", "C_END");
     AddDir(path, "voxels", "VX_START", "VX_END");
-
-    return;
 }
 
 void W_AddPath(const char *path)

@@ -1601,7 +1601,6 @@ static void AutoLoadWADs(const char *path)
 {
     if (M_DirExists(path))
     {
-        I_Printf(VB_INFO, " adding %s", path);
         W_AddPath(path);
     }
 }
