@@ -2355,8 +2355,8 @@ static setup_menu_t gen_settings6[] = {
 
 static void UpdateFakeLongTicsItem(void)
 {
-    DisableItem(!raw_input || (netgame && !solonet), gen_settings6,
-                "fake_longtics");
+    DisableItem(!lowres_turn || !raw_input || (netgame && !solonet),
+                gen_settings6, "fake_longtics");
 }
 
 void MN_UpdateAdvancedInputItems(void)
