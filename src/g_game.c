@@ -142,7 +142,7 @@ int             max_kill_requirement; // DSDA UV Max category requirements
 int             totalleveltimes; // [FG] total time for all completed levels
 boolean         demorecording;
 boolean         longtics;             // cph's doom 1.91 longtics hack
-boolean         smooth_shorttics;     // Smooth low-resolution turning.
+boolean         fake_longtics;        // Fake longtics when using shorttics.
 boolean         shorttics;            // Config key for low resolution turning.
 boolean         lowres_turn;          // low resolution turning for longtics
 boolean         demoplayback;
@@ -468,7 +468,7 @@ static short CarryAngle_Full(double angle)
   return fullres;
 }
 
-static short CarryAngle_SmoothLowRes(double angle)
+static short CarryAngle_FakeLongTics(double angle)
 {
   return (localview.angleoffset = (CarryAngle_Full(angle) + 128) & 0xFF00);
 }
@@ -493,7 +493,7 @@ static void UpdateLocalView_Zero(void)
   memset(&localview, 0, sizeof(localview));
 }
 
-static void UpdateLocalView_SmoothLowRes(void)
+static void UpdateLocalView_FakeLongTics(void)
 {
   localview.angle -= localview.angleoffset << FRACBITS;
   localview.rawangle -= localview.angleoffset;
@@ -514,10 +514,10 @@ void G_UpdateAngleFunctions(void)
 
   if (raw_input && (!netgame || solonet))
   {
-    if (lowres_turn && smooth_shorttics)
+    if (lowres_turn && fake_longtics)
     {
-      CarryAngle = CarryAngle_SmoothLowRes;
-      UpdateLocalView = UpdateLocalView_SmoothLowRes;
+      CarryAngle = CarryAngle_FakeLongTics;
+      UpdateLocalView = UpdateLocalView_FakeLongTics;
     }
     else if (uncapped)
     {
@@ -4637,7 +4637,8 @@ void G_BindGameVariables(void)
 {
   BIND_BOOL_GENERAL(raw_input, true,
     "Raw gamepad/mouse input for turning/looking (0 = Interpolate; 1 = Raw)");
-  BIND_BOOL_GENERAL(smooth_shorttics, false, "Smooth low-resolution turning");
+  BIND_BOOL_GENERAL(fake_longtics, false,
+    "Fake high-resolution turning when using low-resolution turning");
   BIND_BOOL(shorttics, false, "Always use low-resolution turning");
   BIND_NUM(quickstart_cache_tics, 0, 0, TICRATE, "Quickstart cache tics");
   BIND_NUM_GENERAL(default_skill, 3, 1, 5,

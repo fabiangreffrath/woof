@@ -293,8 +293,8 @@ extern  boolean lowres_turn;
 // Config key for low resolution turning.
 extern  boolean shorttics;
 
-// Smooth low-resolution turning.
-extern  boolean smooth_shorttics;
+// Fake longtics when using shorttics.
+extern  boolean fake_longtics;
 
 // cph's doom 1.91 longtics hack
 extern  boolean longtics;

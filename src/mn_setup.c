@@ -2308,7 +2308,7 @@ void MN_ResetTimeScale(void)
 }
 
 static void UpdateRawInput(void);
-static void UpdateSmoothLowResTurning(void);
+static void UpdateFakeLongTics(void);
 
 static setup_menu_t gen_settings6[] = {
 
@@ -2337,8 +2337,8 @@ static setup_menu_t gen_settings6[] = {
     {"Raw Input", S_ONOFF, M_X, M_SPC, {"raw_input"},
      m_null, input_null, str_empty, UpdateRawInput},
 
-    {"Smooth Low-Res Turning", S_ONOFF, M_X, M_SPC, {"smooth_shorttics"},
-     m_null, input_null, str_empty, UpdateSmoothLowResTurning},
+    {"Fake High-Res Turning", S_ONOFF, M_X, M_SPC, {"fake_longtics"},
+     m_null, input_null, str_empty, UpdateFakeLongTics},
 
     MI_GAP,
 
@@ -2353,16 +2353,16 @@ static setup_menu_t gen_settings6[] = {
     MI_END
 };
 
-static void UpdateSmoothLowResTurningItem(void)
+static void UpdateFakeLongTicsItem(void)
 {
     DisableItem(!raw_input || (netgame && !solonet), gen_settings6,
-                "smooth_shorttics");
+                "fake_longtics");
 }
 
 void MN_UpdateAdvancedInputItems(void)
 {
     DisableItem(netgame && !solonet, gen_settings6, "raw_input");
-    UpdateSmoothLowResTurningItem();
+    UpdateFakeLongTicsItem();
 }
 
 static void UpdateRawInput(void)
@@ -2370,10 +2370,10 @@ static void UpdateRawInput(void)
     G_ClearInput();
     G_UpdateAngleFunctions();
     I_UpdateAccelerateMouse();
-    UpdateSmoothLowResTurningItem();
+    UpdateFakeLongTicsItem();
 }
 
-static void UpdateSmoothLowResTurning(void)
+static void UpdateFakeLongTics(void)
 {
     G_ClearInput();
     G_UpdateAngleFunctions();

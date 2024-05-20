@@ -774,7 +774,7 @@ void R_SetupFrame (player_t *player)
     // [crispy] pitch is actual lookdir and weapon pitch
     pitch = player->pitch + player->recoilpitch;
 
-    if (use_localview && lowres_turn && smooth_shorttics)
+    if (use_localview && lowres_turn && fake_longtics)
     {
       viewangle += localview.angle;
     }
