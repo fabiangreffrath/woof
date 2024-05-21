@@ -48,8 +48,6 @@ typedef enum
 extern menu_input_mode_t menu_input, old_menu_input;
 void MN_ResetMouseCursor(void);
 
-extern boolean traditional_menu; // display the menu traditional way
-
 extern boolean setup_active;
 extern short whichSkull; // which skull to draw (he blinks)
 extern int saved_screenblocks;

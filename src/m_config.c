@@ -618,7 +618,6 @@ void M_LoadOptions(void)
     }
 
     MN_Trans();     // reset translucency in case of change
-    MN_ResetMenu(); // reset menu in case of change
 }
 
 //
