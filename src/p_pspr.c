@@ -651,12 +651,12 @@ void A_GunFlash(player_t *player, pspdef_t *psp)
 
 static angle_t saved_angle;
 
-static inline void SavePlayerAngle(player_t *player)
+static void SavePlayerAngle(player_t *player)
 {
   saved_angle = player->mo->angle;
 }
 
-static inline void AddToTicAngle(player_t *player)
+static void AddToTicAngle(player_t *player)
 {
   player->ticangle += player->mo->angle - saved_angle;
 }
