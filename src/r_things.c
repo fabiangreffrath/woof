@@ -709,6 +709,8 @@ static void R_ProjectSprite (mobj_t* thing)
 // During BSP traversal, this adds sprites by sector.
 //
 
+boolean draw_nearby_sprites;
+
 // killough 9/18/98: add lightlevel as parameter, fixing underwater lighting
 void R_AddSprites(sector_t* sec, int lightlevel)
 {
@@ -743,14 +745,17 @@ void R_AddSprites(sector_t* sec, int lightlevel)
   for (thing = sec->thinglist; thing; thing = thing->snext)
     R_ProjectSprite(thing);
 
-  for (msecnode_t *n = sec->touching_thinglist; n; n = n->m_snext)
+  if (CRITICAL(draw_nearby_sprites))
   {
-    thing = n->m_thing;
-
-    // [FG] sprites in sector have already been projected
-    if (thing->subsector->sector->validcount != validcount)
+    for (msecnode_t *n = sec->touching_thinglist; n; n = n->m_snext)
     {
-      array_push(nearby_sprites, thing);
+      thing = n->m_thing;
+
+      // [FG] sprites in sector have already been projected
+      if (thing->subsector->sector->validcount != validcount)
+      {
+        array_push(nearby_sprites, thing);
+      }
     }
   }
 }

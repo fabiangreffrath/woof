@@ -992,6 +992,9 @@ void R_BindRenderVariables(void)
   M_BindBool("fuzzcolumn_mode", &fuzzcolumn_mode, NULL, true, ss_enem, wad_no,
              "Fuzz rendering (0 = Resolution-dependent; 1 = Blocky)");
 
+  BIND_BOOL(draw_nearby_sprites, true,
+    "Draw sprites overlapping into visible sectors");
+
   BIND_BOOL(raw_input, true,
     "Raw gamepad/mouse input for turning/looking (0 = Interpolate; 1 = Raw)");
 }
