@@ -313,6 +313,11 @@ void R_InitSpriteDefs(char **namelist)
 static vissprite_t *vissprites, **vissprite_ptrs;  // killough
 static size_t num_vissprite, num_vissprite_alloc, num_vissprite_ptrs;
 
+#define M_ARRAY_INIT_CAPACITY 128
+#include "m_array.h"
+
+static mobj_t **nearby_sprites = NULL;
+
 //
 // R_InitSprites
 // Called at program start.
@@ -485,7 +490,7 @@ void R_DrawVisSprite(vissprite_t *vis, int x1, int x2)
 
 boolean flipcorpses = false;
 
-void R_ProjectSprite (mobj_t* thing)
+static void R_ProjectSprite (mobj_t* thing)
 {
   fixed_t   gzt;               // killough 3/27/98
   fixed_t   tx, txc;
@@ -704,6 +709,8 @@ void R_ProjectSprite (mobj_t* thing)
 // During BSP traversal, this adds sprites by sector.
 //
 
+boolean draw_nearby_sprites;
+
 // killough 9/18/98: add lightlevel as parameter, fixing underwater lighting
 void R_AddSprites(sector_t* sec, int lightlevel)
 {
@@ -737,6 +744,46 @@ void R_AddSprites(sector_t* sec, int lightlevel)
 
   for (thing = sec->thinglist; thing; thing = thing->snext)
     R_ProjectSprite(thing);
+
+  if (STRICTMODE(draw_nearby_sprites))
+  {
+    for (msecnode_t *n = sec->touching_thinglist; n; n = n->m_snext)
+    {
+      thing = n->m_thing;
+
+      // [FG] sprites in sector have already been projected
+      if (thing->subsector->sector->validcount != validcount)
+      {
+        array_push(nearby_sprites, thing);
+      }
+    }
+  }
+}
+
+void R_NearbySprites (void)
+{
+  for (int i = 0; i < array_size(nearby_sprites); i++)
+  {
+    mobj_t *thing = nearby_sprites[i];
+    sector_t* sec = thing->subsector->sector;
+
+    // [FG] sprites in sector have already been projected
+    if (sec->validcount != validcount)
+    {
+      int lightnum = (sec->lightlevel >> LIGHTSEGSHIFT) + extralight;
+
+      if (lightnum < 0)
+        spritelights = scalelight[0];
+      else if (lightnum >= LIGHTLEVELS)
+        spritelights = scalelight[LIGHTLEVELS-1];
+      else
+        spritelights = scalelight[lightnum];
+
+      R_ProjectSprite(thing);
+    }
+  }
+
+  array_clear(nearby_sprites);
 }
 
 //
