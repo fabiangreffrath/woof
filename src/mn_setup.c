@@ -1436,6 +1436,10 @@ static setup_menu_t stat_settings2[] = {
     {"Show Player Coords", S_CHOICE | S_STRICT, M_X, M_SPC,
      {"hud_player_coords"}, m_null, input_null, str_show_widgets},
 
+    {"Show Command History", S_ONOFF | S_STRICT, M_X, M_SPC,
+     {"hud_command_history"}, m_null, input_null, str_empty,
+     HU_ResetCommandHistory},
+
     {"Use-Button Timer", S_ONOFF, M_X, M_SPC, {"hud_time_use"}},
 
     MI_GAP,
@@ -3850,6 +3854,4 @@ void MN_BindMenuVariables(void)
     BIND_NUM(resolution_scale, 0, 0, UL, "Position of resolution scale slider (do not modify)");
     BIND_NUM_GENERAL(menu_backdrop, MENU_BG_DARK, MENU_BG_OFF, MENU_BG_TEXTURE,
         "Menu backdrop (0 = Off; 1 = Dark; 2 = Texture)");
-    M_BindBool("traditional_menu", &traditional_menu, NULL,
-               true, ss_none, wad_yes, "Use vanilla Doom's ordering for the main menu");
 }

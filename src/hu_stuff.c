@@ -110,6 +110,7 @@ static player_t *plr;
 static hu_font_t big_font = {.space_width = 4, .tab_width = 15, .tab_mask = ~15},
                  sml_font = {.space_width = 5, .tab_width =  7, .tab_mask =  ~7};
 static hu_font_t *doom_font = &big_font, *boom_font = &sml_font;
+static hu_font_t *cmd_font = &sml_font;
 patch_t **hu_font = big_font.patches;
 
 static int CR_BLUE = CR_BLUE1;
@@ -139,6 +140,7 @@ static hu_multiline_t w_sttime; // time above status bar
 static hu_multiline_t w_coord;
 static hu_multiline_t w_fps;
 static hu_multiline_t w_rate;
+static hu_multiline_t w_cmd;
 
 #define MAX_HUDS 3
 #define MAX_WIDGETS 16
@@ -429,6 +431,8 @@ void HU_Init(void)
   // [FG] support crosshair patches from extras.wad
   HU_InitCrosshair();
 
+  HU_InitCommandHistory();
+
   HU_InitObituaries();
 
   HU_ParseHUD();
@@ -496,6 +500,7 @@ static void HU_widget_build_armor (void);
 static void HU_widget_build_coord (void);
 static void HU_widget_build_fps (void);
 static void HU_widget_build_rate (void);
+static void HU_widget_build_cmd(void);
 static void HU_widget_build_health (void);
 static void HU_widget_build_keys (void);
 static void HU_widget_build_frag (void);
@@ -606,6 +611,12 @@ void HU_Start(void)
                        NULL, HU_widget_build_rate);
   // [FG] draw the IDRATE widget exclusively
   w_rate.exclusive = true;
+
+  HUlib_init_multiline(&w_cmd, hud_command_history_size,
+                       &cmd_font, colrngs[hudcolor_xyco],
+                       NULL, HU_widget_build_cmd);
+  // Draw command history bottom up.
+  w_cmd.bottomup = true;
 
   HU_set_centered_message();
 
@@ -1237,6 +1248,11 @@ static void HU_widget_build_rate (void)
   }
 }
 
+static void HU_widget_build_cmd(void)
+{
+  HU_BuildCommandHistory(&w_cmd);
+}
+
 // Crosshair
 
 static boolean hud_crosshair_health;
@@ -1439,16 +1455,34 @@ void HU_Drawer(void)
 }
 
 // [FG] draw Time widget on intermission screen
-void WI_DrawTimeWidget(void)
+void WI_DrawWidgets(void)
 {
-  const hu_widget_t w = {&w_sttime, align_left, align_top};
+  HUlib_reset_align_offsets();
 
   if (hud_level_time & HUD_WIDGET_HUD)
   {
-    HUlib_reset_align_offsets();
+    const hu_widget_t w = {&w_sttime, align_left, align_top};
     // leveltime is already added to totalleveltimes before WI_Start()
     //HU_widget_build_sttime();
     HUlib_draw_widget(&w);
+  }
+
+  if (STRICTMODE(hud_command_history))
+  {
+    hu_widget_t *w = widgets[hud_active];
+
+    while (w->multiline)
+    {
+      if (w->multiline == &w_cmd
+          && ((w->multiline->on && *w->multiline->on) || w->multiline->built))
+      {
+        w_cmd.built = false;
+        HU_cond_build_widget(&w_cmd, true);
+        HUlib_draw_widget(w);
+        break;
+      }
+      w++;
+    }
   }
 }
 
@@ -1627,6 +1661,7 @@ void HU_Ticker(void)
 
   HU_cond_build_widget(&w_fps, plr->cheats & CF_SHOWFPS);
   HU_cond_build_widget(&w_rate, plr->cheats & CF_RENDERSTATS);
+  HU_cond_build_widget(&w_cmd, STRICTMODE(hud_command_history));
 
   if (hud_displayed &&
       scaledviewheight == SCREENHEIGHT &&
@@ -1880,6 +1915,7 @@ static const struct {
     {"coord",  "coords",  &w_coord},
     {"fps",     NULL,     &w_fps},
     {"rate",    NULL,     &w_rate},
+    {"cmd",    "commands", &w_cmd},
     {NULL},
 };
 
@@ -2060,7 +2096,7 @@ static void HU_ParseHUD (void)
     HU_AddToWidgets(&w_title,   hud, align_direct, align_bottom, 0, 0);
     HU_AddToWidgets(&w_message, hud, align_direct, align_top,    0, 0);
     HU_AddToWidgets(&w_chat,    hud, align_direct, align_top,    0, 0);
-    HU_AddToWidgets(&w_secret , hud, align_center, align_direct, 0, (SCREENHEIGHT - ST_HEIGHT) / 4);
+    HU_AddToWidgets(&w_secret , hud, align_center, align_secret, 0, 0);
   }
 
   if ((lumpnum = W_CheckNumForName("WOOFHUD")) == -1)
@@ -2138,10 +2174,6 @@ void HU_BindHUDVariables(void)
              "Display HUD");
   M_BindNum("hud_active", &hud_active, NULL, 2, 0, 2, ss_stat, wad_yes,
             "HUD layout (by default: 0 = Minimal; 1 = Compact; 2 = Distributed)");
-  M_BindNum("hud_player_coords", &hud_player_coords, NULL,
-            HUD_WIDGET_AUTOMAP, HUD_WIDGET_OFF, HUD_WIDGET_ALWAYS,
-            ss_stat, wad_no,
-            "Show player coordinates widget (1 = On automap; 2 = On HUD; 3 = Always)");
   M_BindNum("hud_level_stats", &hud_level_stats, NULL,
             HUD_WIDGET_OFF, HUD_WIDGET_OFF, HUD_WIDGET_ALWAYS,
             ss_stat, wad_no,
@@ -2151,6 +2183,16 @@ void HU_BindHUDVariables(void)
             HUD_WIDGET_OFF, HUD_WIDGET_OFF, HUD_WIDGET_ALWAYS,
             ss_stat, wad_no,
             "Show level time widget (1 = On automap, 2 = On HUD, 3 = Always)");
+  M_BindNum("hud_player_coords", &hud_player_coords, NULL,
+            HUD_WIDGET_AUTOMAP, HUD_WIDGET_OFF, HUD_WIDGET_ALWAYS,
+            ss_stat, wad_no,
+            "Show player coordinates widget (1 = On automap; 2 = On HUD; 3 = Always)");
+  M_BindBool("hud_command_history", &hud_command_history, NULL, false, ss_stat,
+             wad_no, "Show command history widget");
+  BIND_NUM(hud_command_history_size, 10, 1, HU_MAXMESSAGES,
+           "Number of commands to display for command history widget");
+  BIND_BOOL(hud_hide_empty_commands, true,
+            "Hide empty commands from command history widget");
   M_BindBool("hud_time_use", &hud_time_use, NULL, false, ss_stat, wad_no,
              "Show split time when pressing the use-button");
   M_BindNum("hud_type", &hud_type, NULL,

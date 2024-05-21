@@ -417,7 +417,7 @@ void ST_refreshBackground(void)
                 for (x = 0; x < video.deltaw; x += 8)
                 {
                     V_DrawPatch(x - video.deltaw, 0, patch);
-                    V_DrawPatch(SCREENWIDTH + video.deltaw - x - 8, 0, patch);
+                    V_DrawPatch(video.unscaledw - video.deltaw - x - 8, 0, patch);
                 }
             }
         }

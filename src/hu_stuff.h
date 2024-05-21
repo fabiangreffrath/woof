@@ -21,6 +21,7 @@
 
 #include "doomdef.h"
 #include "doomtype.h"
+#include "hu_command.h"
 
 struct event_s;
 struct mobj_s;
@@ -48,7 +49,7 @@ boolean HU_DemoProgressBar(boolean force);
 
 void HU_ResetMessageColors(void);
 
-void WI_DrawTimeWidget(void);
+void WI_DrawWidgets(void);
 
 // killough 5/2/98: moved from m_misc.c:
 
