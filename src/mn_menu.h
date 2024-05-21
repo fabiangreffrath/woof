@@ -64,7 +64,6 @@ void MN_ResetTimeScale(void);
 void MN_DrawCredits(void); // killough 11/98
 void MN_SetHUFontKerning(void);
 void MN_DisableVoxelsRenderingItem(void);
-void MN_UpdateAdvancedInputItems(void);
 void MN_UpdateDynamicResolutionItem(void);
 void MN_DisableResolutionScaleItem(void);
 void MN_UpdateFpsLimitItem(void);
