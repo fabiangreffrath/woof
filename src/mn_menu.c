@@ -1913,6 +1913,7 @@ void MN_Back(void)
 
     currentMenu = currentMenu->prevMenu;
     itemOn = currentMenu->lastOn;
+    highlight_item = 0;
     M_StartSound(sfx_swtchn);
 }
 
@@ -1926,6 +1927,7 @@ void M_Init(void)
     currentMenu = &MainDef;
     menuactive = 0;
     itemOn = currentMenu->lastOn;
+    highlight_item = 0;
     whichSkull = 0;
     skullAnimCounter = 10;
     saved_screenblocks = screenblocks;
@@ -2594,7 +2596,11 @@ boolean M_Responder(event_t *ev)
             break;
 
         case ev_mouseb_up:
-            return MouseResponder();
+            if (menu_input == mouse_mode)
+            {
+                return MouseResponder();
+            }
+            return false;
 
         case ev_mouse_state:
             if (ev->data1 == EV_RESIZE_VIEWPORT && menu_input != mouse_mode)
@@ -2905,6 +2911,7 @@ boolean M_Responder(event_t *ev)
                 currentMenu = currentMenu->prevMenu;
             }
             itemOn = currentMenu->lastOn;
+            highlight_item = 0;
             M_StartSound(sfx_swtchn);
         }
         else
@@ -3018,6 +3025,7 @@ void MN_StartControlPanel(void)
     menuactive = 1;
     currentMenu = &MainDef;              // JDC
     itemOn = currentMenu->lastOn;        // JDC
+    highlight_item = 0;
     print_warning_about_changes = false; // killough 11/98
 
     G_ClearInput();
