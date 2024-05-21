@@ -745,7 +745,7 @@ void R_AddSprites(sector_t* sec, int lightlevel)
   for (thing = sec->thinglist; thing; thing = thing->snext)
     R_ProjectSprite(thing);
 
-  if (CRITICAL(draw_nearby_sprites))
+  if (STRICTMODE(draw_nearby_sprites))
   {
     for (msecnode_t *n = sec->touching_thinglist; n; n = n->m_snext)
     {
