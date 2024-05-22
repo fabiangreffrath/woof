@@ -215,12 +215,7 @@ void P_MovePlayer (player_t* player)
 
   mo->angle += cmd->angleturn << 16;
   onground = mo->z <= mo->floorz;
-
-  if (player == &players[consoleplayer])
-  {
-    localview.ticangle += localview.ticangleturn << 16;
-    localview.ticangleturn = 0;
-  }
+  player->ticangle += cmd->ticangleturn << FRACBITS;
 
   // killough 10/98:
   //
@@ -377,11 +372,7 @@ void P_PlayerThink (player_t* player)
   player->oldviewz = player->viewz;
   player->oldpitch = player->pitch;
   player->oldrecoilpitch = player->recoilpitch;
-
-  if (player == &players[consoleplayer])
-  {
-    localview.oldticangle = localview.ticangle;
-  }
+  player->oldticangle = player->ticangle;
 
   // killough 2/8/98, 3/21/98:
   // (this code is necessary despite questions raised elsewhere in a comment)
@@ -397,6 +388,7 @@ void P_PlayerThink (player_t* player)
   if (player->mo->flags & MF_JUSTATTACKED)
     {
       cmd->angleturn = 0;
+      cmd->ticangleturn = 0;
       cmd->forwardmove = 0xc800/512;
       cmd->sidemove = 0;
       player->mo->flags &= ~MF_JUSTATTACKED;
