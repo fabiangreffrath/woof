@@ -132,6 +132,9 @@ set(WOOF_SOURCES
     v_video.c              v_video.h
     version.c              version.h
     w_wad.c                w_wad.h
+                           w_internal.h
+    w_file.c
+    w_zip.c
     wi_stuff.c             wi_stuff.h
     z_zone.c               z_zone.h)
 

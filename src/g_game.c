@@ -1961,7 +1961,7 @@ static void G_DoPlayDemo(void)
       Z_Free(demobuffer);
   }
 
-  ExtractFileBase(defdemoname,basename);           // killough
+  W_ExtractFileBase(defdemoname,basename);           // killough
 
   lumpnum = W_GetNumForName(basename);
   lumplength = W_LumpLength(lumpnum);

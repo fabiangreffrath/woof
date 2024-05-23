@@ -35,7 +35,7 @@ void I_Quit(void)
 
     SDL_Quit();
 
-    W_CloseFileDescriptors();
+    W_CloseFiles();
 }
 
 void I_QuitFirst(void)

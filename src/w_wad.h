@@ -55,6 +55,31 @@ typedef PACKED_PREFIX struct
 // WADFILE I/O related stuff.
 //
 
+typedef enum
+{
+  ns_global,
+  ns_sprites,
+  ns_flats,
+  ns_colormaps,
+  ns_voxels,
+  ns_hires // [Woof!] namespace to avoid conflicts with high-resolution textures
+} namespace_t;
+
+typedef struct
+{
+    union
+    {
+        void *zip;
+        int descriptor;
+    } p1;
+
+    union
+    {
+        int position;
+        int index;
+    } p2;
+} w_handle_t;
+
 typedef struct
 {
   // WARNING: order of some fields important (see info.c).
@@ -67,19 +92,10 @@ typedef struct
   int index, next;
 
   // killough 4/17/98: namespace tags, to prevent conflicts between resources
-  enum {
-    ns_global=0,
-    ns_sprites,
-    ns_flats,
-    ns_colormaps,
-    ns_voxels,
-    ns_hires // [Woof!] namespace to avoid conflicts with high-resolution textures
-  } namespace;
+  namespace_t namespace;
 
-  int handle;
-  int position;
-
-  void *zip;
+  struct w_module_s *module;
+  w_handle_t handle;
 
   // [FG] WAD file that contains the lump
   const char *wad_file;
@@ -95,7 +111,9 @@ extern int        numlumps;
 extern const char **wadfiles;
 
 void W_InitPredefineLumps(void);
-void W_AddPath(const char *path);
+boolean W_AddPath(const char *path);
+void W_ProcessInWads(const char *name, void (*process)(int lumpnum),
+                     boolean iwad);
 void W_InitMultipleFiles(void);
 
 // killough 4/17/98: if W_CheckNumForName() called with only
@@ -110,7 +128,7 @@ void    *W_CacheLumpNum(int lump, pu_tag tag);
 
 #define W_CacheLumpName(name,tag) W_CacheLumpNum (W_GetNumForName(name),(tag))
 
-void ExtractFileBase(const char *, char *);       // killough
+void W_ExtractFileBase(const char *, char *);       // killough
 unsigned W_LumpNameHash(const char *s);           // killough 1/31/98
 
 void I_BeginRead(unsigned int bytes), I_EndRead(void); // killough 10/98
@@ -129,7 +147,7 @@ boolean W_LumpExistsWithName(int lump, char *name);
 int W_LumpLengthWithName(int lump, char *name);
 void W_DemoLumpNameCollision(char **name);
 
-void W_CloseFileDescriptors(void);
+void W_CloseFiles(void);
 
 #endif
 

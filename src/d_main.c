@@ -678,7 +678,10 @@ void D_AddFile(const char *file)
   // [FG] search for PWADs by their filename
   char *path = D_TryFindWADByName(file);
 
-  W_AddPath(path);
+  if (!W_AddPath(path))
+  {
+    I_Error("Error: Failed to load %s", file);
+  }
 }
 
 // killough 10/98: return the name of the program the exe was invoked as
@@ -1599,10 +1602,24 @@ static void D_ProcessDehCommandLine(void)
 
 static void AutoLoadWADs(const char *path)
 {
-    if (M_DirExists(path))
+    glob_t * glob = I_StartMultiGlob(path, GLOB_FLAG_NOCASE|GLOB_FLAG_SORTED,
+                                     "*.wad", "*.zip", "*.pk3", NULL);
+    for (;;)
     {
-        W_AddPath(path);
+        const char *filename = I_NextGlob(glob);
+        if (filename == NULL)
+        {
+            break;
+        }
+
+        if (!W_AddPath(filename))
+        {
+            I_Error("Error: Failed to load %s", filename);
+        }
     }
+    I_EndGlob(glob);
+
+    W_AddPath(path);
 }
 
 static void D_AutoloadIWadDir(void (*AutoLoadFunc)(const char *path))
@@ -1682,39 +1699,6 @@ static void AutoLoadPatches(const char *path)
     }
 
     I_EndGlob(glob);
-}
-
-// killough 10/98: support .deh from wads
-//
-// A lump named DEHACKED is treated as plaintext of a .deh file embedded in
-// a wad (more portable than reading/writing info.c data directly in a wad).
-//
-// If there are multiple instances of "DEHACKED", we process each, in first
-// to last order (we must reverse the order since they will be stored in
-// last to first order in the chain). Passing NULL as first argument to
-// ProcessDehFile() indicates that the data comes from the lump number
-// indicated by the third argument, instead of from a file.
-
-static void D_ProcessInWad(int i, const char *name, void (*Process)(int lumpnum),
-                           boolean iwad)
-{
-  if (i >= 0)
-  {
-    D_ProcessInWad(lumpinfo[i].next, name, Process, iwad);
-    if (!strncasecmp(lumpinfo[i].name, name, 8) &&
-        lumpinfo[i].namespace == ns_global &&
-        (iwad ? W_IsIWADLump(i) : !W_IsIWADLump(i)))
-    {
-      Process(i);
-    }
-  }
-}
-
-static void D_ProcessInWads(const char *name, void (*Process)(int lumpnum),
-                            boolean iwad)
-{
-  D_ProcessInWad(lumpinfo[W_LumpNameHash(name) % (unsigned)numlumps].index,
-                 name, Process, iwad);
 }
 
 // mbf21: don't want to reorganize info.c structure for a few tweaks...
@@ -2485,7 +2469,7 @@ void D_DoomMain(void)
 
   if (!M_ParmExists("-nodeh"))
   {
-    D_ProcessInWads("DEHACKED", ProcessDehLump, true);
+    W_ProcessInWads("DEHACKED", ProcessDehLump, true);
   }
 
   // process .deh files specified on the command line with -deh or -bex.
@@ -2498,7 +2482,7 @@ void D_DoomMain(void)
   // killough 10/98: now process all deh in wads
   if (!M_ParmExists("-nodeh"))
   {
-    D_ProcessInWads("DEHACKED", ProcessDehLump, false);
+    W_ProcessInWads("DEHACKED", ProcessDehLump, false);
   }
 
   // process .deh files from PWADs autoload directories
@@ -2506,7 +2490,7 @@ void D_DoomMain(void)
 
   PostProcessDeh();
 
-  D_ProcessInWads("BRGHTMPS", R_ParseBrightmaps, false);
+  W_ProcessInWads("BRGHTMPS", R_ParseBrightmaps, false);
 
   I_PutChar(VB_INFO, '\n');     // killough 3/6/98: add a newline, by popular demand :)
 
@@ -2537,7 +2521,7 @@ void D_DoomMain(void)
             I_Error("\nThis is not the registered version.");
     }
 
-  D_ProcessInWads("UMAPDEF", U_ParseMapDefInfo, false);
+  W_ProcessInWads("UMAPDEF", U_ParseMapDefInfo, false);
 
   //!
   // @category mod
@@ -2547,8 +2531,8 @@ void D_DoomMain(void)
 
   if (!M_ParmExists("-nomapinfo"))
   {
-    D_ProcessInWads("UMAPINFO", U_ParseMapInfo, true);
-    D_ProcessInWads("UMAPINFO", U_ParseMapInfo, false);
+    W_ProcessInWads("UMAPINFO", U_ParseMapInfo, true);
+    W_ProcessInWads("UMAPINFO", U_ParseMapInfo, false);
   }
 
   V_InitColorTranslation(); //jff 4/24/98 load color translation lumps
