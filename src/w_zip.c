@@ -24,14 +24,14 @@
 static void AddWadInMem(mz_zip_archive *zip, const char *name, int index,
                         size_t data_size)
 {
+    I_Printf(VB_INFO, " adding %s", name);
+
     byte *data = malloc(data_size);
 
     if (!mz_zip_reader_extract_to_mem(zip, index, data, data_size, 0))
     {
         I_Error("AddWadInZip: mz_zip_reader_extract_to_mem failed");
     }
-
-    I_Printf(VB_INFO, " adding %s", name);
 
     wadinfo_t header;
 

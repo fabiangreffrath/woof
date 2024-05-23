@@ -12,6 +12,7 @@
 // GNU General Public License for more details.
 
 #include <fcntl.h>
+#include <errno.h>
 
 #include "doomtype.h"
 #include "i_glob.h"
@@ -24,11 +25,11 @@
 #include "w_internal.h"
 #include "w_wad.h"
 
-static int FileLength(w_handle_t handle)
+static int FileLength(int descriptor)
 {
    struct stat st;
 
-   if (fstat(handle.p1.descriptor, &st) == -1)
+   if (fstat(descriptor, &st) == -1)
    {
       I_Error("FileLength: failure in fstat\n");
    }
@@ -69,7 +70,7 @@ static w_type_t W_OpenFile(const char *path, w_handle_t *handle)
 
         lumpinfo_t item = {0};
         W_ExtractFileBase(base_path, item.name);
-        item.size = FileLength(local_handle);
+        item.size = FileLength(descriptor);
         item.module = &w_file_module;
         item.handle = local_handle;
         array_push(lumpinfo, item);
@@ -132,16 +133,12 @@ static w_type_t W_OpenFile(const char *path, w_handle_t *handle)
 
     array_push(descriptors, descriptor);
 
-    int startlump = numlumps;
-
     numlumps += header.numlumps;
 
     const char *wadname = M_StringDuplicate(M_BaseName(path));
     array_push(wadfiles, wadname);
 
-    // Fill in lumpinfo
-
-    for (int i = 0; i < numlumps - startlump; i++)
+    for (int i = 0; i < header.numlumps; i++)
     {
         lumpinfo_t item = {0};
         M_CopyLumpName(item.name, fileinfo[i].name);
@@ -211,7 +208,7 @@ static void W_AddDir(w_handle_t handle, const char *path,
 
         lumpinfo_t item = {0};
         W_ExtractFileBase(filename, item.name);
-        item.size = FileLength(handle);
+        item.size = FileLength(descriptor);
 
         item.module = &w_file_module;
         w_handle_t local_handle = {.p1.descriptor = descriptor};

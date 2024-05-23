@@ -29,6 +29,7 @@
 #include "config.h"
 #include "d_deh.h" // Ty 3/27/98 deh declarations
 #include "d_event.h"
+#include "d_iwad.h"
 #include "d_main.h"
 #include "d_player.h"
 #include "d_ticcmd.h"
@@ -1946,10 +1947,9 @@ static void G_DoPlayDemo(void)
 {
   skill_t skill;
   int i, episode, map;
-  char basename[9];
   demo_version_t demover;
   byte *option_p = NULL;      // killough 11/98
-  int lumpnum, lumplength;
+  int demolength;
 
   if (gameaction != ga_loadgame)      // killough 12/98: support -loadgame
     basetic = gametic;  // killough 9/29/98
@@ -1961,17 +1961,26 @@ static void G_DoPlayDemo(void)
       Z_Free(demobuffer);
   }
 
-  W_ExtractFileBase(defdemoname,basename);           // killough
-
-  lumpnum = W_GetNumForName(basename);
-  lumplength = W_LumpLength(lumpnum);
-
-  demobuffer = demo_p = W_CacheLumpNum(lumpnum, PU_STATIC);  // killough
+  char *path = D_TryFindWADByName(defdemoname);
+  if (M_FileExists(path))
+  {
+      M_ReadFile(path, &demobuffer);
+      demolength = M_FileLength(path);
+      demo_p = demobuffer;
+  }
+  else
+  {
+      char lumpname[9] = {0};
+      W_ExtractFileBase(defdemoname, lumpname);           // killough
+      int lumpnum = W_GetNumForName(lumpname);
+      demolength = W_LumpLength(lumpnum);
+      demobuffer = demo_p = W_CacheLumpNum(lumpnum, PU_STATIC);  // killough
+  }
 
   // [FG] ignore too short demo lumps
-  if (lumplength < 0xd)
+  if (demolength < 0xd)
   {
-    I_Printf(VB_WARNING, "G_DoPlayDemo: Short demo lump %s.", basename);
+    I_Printf(VB_WARNING, "G_DoPlayDemo: Short demo lump %s.", defdemoname);
     InvalidDemo();
     return;
   }
@@ -2178,7 +2187,7 @@ static void G_DoPlayDemo(void)
 
   gameaction = ga_nothing;
 
-  maxdemosize = lumplength;
+  maxdemosize = demolength;
 
   // [crispy] demo progress bar
   {
@@ -2194,15 +2203,12 @@ static void G_DoPlayDemo(void)
         ++playerscount;
     }
 
-    while (*demo_ptr != DEMOMARKER && (demo_ptr - demobuffer) < lumplength)
+    while (*demo_ptr != DEMOMARKER && (demo_ptr - demobuffer) < demolength)
     {
       demo_ptr += playerscount * (longtics ? 5 : 4);
       ++playback_totaltics;
     }
   }
-
-  // [FG] report compatibility mode
-  I_Printf(VB_INFO, "G_DoPlayDemo: %.8s (%s)", basename, W_WadNameForLump(lumpnum));
 }
 
 #define VERSIONSIZE   16
@@ -4304,9 +4310,6 @@ void D_CheckNetPlaybackSkip(void);
 
 void G_DeferedPlayDemo(char* name)
 {
-  // [FG] avoid demo lump name collisions
-  W_DemoLumpNameCollision(&name);
-
   defdemoname = name;
   gameaction = ga_playdemo;
 

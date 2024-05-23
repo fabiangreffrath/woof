@@ -145,9 +145,8 @@ boolean W_IsIWADLump (const int lump);
 boolean W_IsWADLump (const int lump);
 boolean W_LumpExistsWithName(int lump, char *name);
 int W_LumpLengthWithName(int lump, char *name);
-void W_DemoLumpNameCollision(char **name);
 
-void W_CloseFiles(void);
+void W_Close(void);
 
 #endif
 

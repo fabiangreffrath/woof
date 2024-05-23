@@ -17,7 +17,6 @@
 //      [FG] miscellaneous helper functions from Chocolate Doom.
 //
 
-#include <ctype.h>
 #include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -60,6 +59,18 @@ boolean M_DirExists(const char *path)
     }
 
     return false;
+}
+
+int M_FileLength(const char *path)
+{
+    struct stat st;
+
+    if (M_stat(path, &st) == -1)
+    {
+        I_Error("M_FileLength: stat error %s", strerror(errno));
+    }
+
+    return st.st_size;
 }
 
 // Returns the path to a temporary file of the given name, stored

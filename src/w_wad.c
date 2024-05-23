@@ -632,48 +632,7 @@ void W_ProcessInWads(const char *name, void (*process)(int lumpnum),
                  name, process, iwad);
 }
 
-// [FG] avoid demo lump name collisions
-void W_DemoLumpNameCollision(char **name)
-{
-  const char *const safename = "DEMO1";
-  char basename[9];
-  int i, lump;
-
-  W_ExtractFileBase(*name, basename);
-
-  // [FG] lumps called DEMO* are considered safe
-  if (!strncasecmp(basename, safename, 4))
-  {
-    return;
-  }
-
-  lump = W_CheckNumForName(basename);
-
-  if (lump >= 0)
-  {
-    for (i = lump - 1; i >= 0; i--)
-    {
-      if (!strncasecmp(lumpinfo[i].name, basename, 8))
-      {
-        break;
-      }
-    }
-
-    if (i >= 0)
-    {
-      I_Printf(VB_WARNING, "Demo lump name collision detected with lump \'%.8s\' from %s.",
-              lumpinfo[i].name, W_WadNameForLump(i));
-
-      // [FG] the DEMO1 lump is almost certainly always a demo lump
-      M_StringCopy(lumpinfo[lump].name, safename, 8);
-      *name = lumpinfo[lump].name;
-
-      W_InitLumpHash();
-    }
-  }
-}
-
-void W_CloseFiles(void)
+void W_Close(void)
 {
     for (int i = 0; i < arrlen(modules); ++i)
     {

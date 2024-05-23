@@ -2179,15 +2179,10 @@ void D_DoomMain(void)
     }
   }
 
-  if (p && p < myargc-1)
-    {
-      char *file = malloc(strlen(myargv[p+1]) + 5);
-      strcpy(file,myargv[p+1]);
-      AddDefaultExtension(file,".lmp");     // killough
-      D_AddFile(file);
-      I_Printf(VB_INFO, "Playing demo %s",file);
-      free(file);
-    }
+  if (p && p < myargc - 1)
+  {
+      I_Printf(VB_INFO, "Playing demo %s", myargv[p + 1]);
+  }
 
   // get skill / episode / map from parms
 
