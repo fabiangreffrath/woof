@@ -33,7 +33,9 @@ static const iwad_t iwads[] = {
     {"tnt.wad",       pack_tnt,      commercial,   "Final Doom: TNT: Evilution"     },
     // "doom.wad" may be retail or registered
     {"doom.wad",      doom,          indetermined, "Doom"                           },
-    {"doom1.wad",     doom,          indetermined, "Doom Shareware"                 },
+    {"doom.wad",      doom,          registered,   "Doom Registered"                },
+    {"doom.wad",      doom,          retail,       "Ultimate Doom"                  },
+    {"doom1.wad",     doom,          shareware,    "Doom Shareware"                 },
     {"doom2f.wad",    doom2,         commercial,   "Doom II: L'Enfer sur Terre"     },
     {"chex.wad",      pack_chex,     retail,       "Chex Quest"                     },
     {"hacx.wad",      pack_hacx,     commercial,   "Hacx"                           },
