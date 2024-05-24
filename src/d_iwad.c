@@ -46,6 +46,14 @@ static const iwad_t iwads[] = {
     {"rekkrsl.wad",   pack_rekkr, retail,       "REKKR: Sunken Land"             },
 };
 
+static const char *const gamemode_str[] = {
+    "Shareware mode",
+    "Registered mode",
+    "Commercial mode",
+    "Retail mode",
+    "Unknown mode"
+};
+
 // "128 IWAD search directories should be enough for anybody".
 
 #define MAX_IWAD_DIRS 128
@@ -872,5 +880,5 @@ const char *D_GetIWADDescription(const char *name, GameMode_t mode,
             return iwads[i].description;
         }
     }
-    return "Unknown";
+    return gamemode_str[mode];
 }
