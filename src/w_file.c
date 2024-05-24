@@ -85,8 +85,6 @@ static void W_FILE_AddDir(w_handle_t handle, const char *path,
             I_Error("Error: opening %s", filename);
         }
 
-        I_Printf(VB_INFO, " adding %s", filename);
-
         lumpinfo_t item = {0};
         W_ExtractFileBase(filename, item.name);
         item.size = FileLength(descriptor);
@@ -111,7 +109,9 @@ static w_type_t W_FILE_Open(const char *path, w_handle_t *handle)
 {
     if (M_DirExists(path))
     {
-        handle->p1.base_path = M_StringDuplicate(path);
+        I_Printf(VB_INFO, " adding files from %s", path);
+
+        handle->p1.base_path = M_DirName(path);
         return W_DIR;
     }
 

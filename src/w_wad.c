@@ -80,7 +80,8 @@ void W_AddMarker(const char *name)
 
 boolean W_SkipFile(const char *filename)
 {
-    static const char *ext[] = { ".wad", ".zip", ".pk3", ".deh", ".txt" };
+    static const char *ext[] = { ".wad", ".zip", ".pk3", ".deh", ".exe",
+                                 ".bat", ".txt" };
 
     for (int i = 0; i < arrlen(ext); ++i)
     {
