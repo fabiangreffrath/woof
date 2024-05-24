@@ -133,9 +133,11 @@ set(WOOF_SOURCES
     v_video.c              v_video.h
     version.c              version.h
     w_wad.c                w_wad.h
+                           w_internal.h
+    w_file.c
+    w_zip.c
     wi_stuff.c             wi_stuff.h
-    z_zone.c               z_zone.h
-    ../miniz/miniz.c       ../miniz/miniz.h)
+    z_zone.c               z_zone.h)
 
 # Standard target definition
 if(WIN32)
@@ -148,11 +150,13 @@ if(WIN32)
     add_executable(woof-com WIN32 ../win32/win_launcher.c
         "${CMAKE_CURRENT_BINARY_DIR}/resource.rc")
     target_woof_settings(woof-com)
+    target_include_directories(woof-com PRIVATE ${SDL2_INCLUDE_DIR})
     target_link_libraries(woof-com PRIVATE ${SDL2_LIBRARIES} woof)
 
     add_executable(woof-exe WIN32 ../win32/win_launcher.c
         "${CMAKE_CURRENT_BINARY_DIR}/resource.rc")
     target_woof_settings(woof-exe)
+    target_include_directories(woof-exe PRIVATE ${SDL2_INCLUDE_DIR})
     target_link_libraries(woof-exe PRIVATE ${SDL2_LIBRARIES} woof)
 
     # MSVC tries to supply a default manifest and complains when it finds ours
@@ -168,8 +172,7 @@ else()
 endif()
 
 target_woof_settings(woof)
-target_include_directories(woof PRIVATE
-        "${CMAKE_CURRENT_BINARY_DIR}/../" "../miniz")
+target_include_directories(woof PRIVATE "${CMAKE_CURRENT_BINARY_DIR}/../")
 
 target_link_libraries(woof PRIVATE
     ${SDL2_LIBRARIES}
@@ -177,7 +180,8 @@ target_link_libraries(woof PRIVATE
     OpenAL::OpenAL
     SndFile::sndfile
     opl
-    textscreen)
+    textscreen
+    miniz)
 
 # Some platforms require standard libraries to be linked against.
 if(HAVE_LIBM)
@@ -229,8 +233,6 @@ endif()
 if(WOOF_STRICT)
     target_compile_definitions(woof PRIVATE MBF_STRICT)
 endif()
-
-target_compile_definitions(woof PRIVATE MINIZ_NO_TIME)
 
 set(SETUP_SOURCES
     d_iwad.c                d_iwad.h

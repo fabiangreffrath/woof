@@ -17,13 +17,12 @@
 //
 //-----------------------------------------------------------------------------
 
-#include <errno.h>
-#include <ctype.h>
-#include <fcntl.h>
 #include <stdlib.h>
 #include <string.h>
 
-#include "d_main.h" // [FG] wadfiles
+#include "doomdef.h"
+#include "doomstat.h"
+#include "doomtype.h"
 #include "i_printf.h"
 #include "i_system.h"
 #include "m_array.h"
@@ -31,6 +30,7 @@
 #include "m_misc.h"
 #include "m_swap.h"
 #include "w_wad.h"
+#include "w_internal.h"
 #include "z_zone.h"
 
 //
@@ -38,19 +38,13 @@
 //
 
 // Location of each lump on disk.
-lumpinfo_t *lumpinfo;
-int        numlumps;         // killough
-void       **lumpcache;      // killough
+lumpinfo_t  *lumpinfo = NULL;
+int         numlumps;         // killough
+static void **lumpcache;      // killough
 
-static int W_FileLength(int handle)
-{
-   struct stat fileinfo;
-   if(fstat(handle,&fileinfo) == -1)
-      I_Error("W_FileLength: failure in fstat\n");
-   return fileinfo.st_size;
-}
+const char  **wadfiles;
 
-void ExtractFileBase(const char *path, char *dest)
+void W_ExtractFileBase(const char *path, char *dest)
 {
   const char *src;
   int length;
@@ -76,128 +70,119 @@ void ExtractFileBase(const char *path, char *dest)
 // LUMP BASED ROUTINES.
 //
 
-//
-// W_AddFile
-// All files are optional, but at least one file must be
-//  found (PWAD, if all required lumps are present).
-// Files with a .wad extension are wadlink files
-//  with multiple lumps.
-// Other files are single lumps with the base filename
-//  for the lump name.
-//
-// Reload hack removed by Lee Killough
-//
-
-static int *handles = NULL;
-
-static void W_AddFile(const char *name) // killough 1/31/98: static, const
+void W_AddMarker(const char *name)
 {
-    wadinfo_t header;
-    filelump_t *fileinfo;
-    int handle;
-    int length;
-    int startlump;
-
-    // open the file and add to directory
-
-    handle = M_open(name, O_RDONLY | O_BINARY);
-
-    if (handle == -1)
-    {
-        if (M_StringCaseEndsWith(name, ".lmp"))
-        {
-            return;
-        }
-        I_Error("Error: couldn't open %s", name); // killough
-    }
-
-    I_Printf(VB_INFO, " adding %s", name); // killough 8/8/98
-
-    startlump = numlumps;
-
-    boolean is_single = false;
-
-    // killough:
-    if (!M_StringCaseEndsWith(name, ".wad"))
-    {
-        // single lump file
-        fileinfo = calloc(1, sizeof(*fileinfo));
-        fileinfo[0].size = LONG(W_FileLength(handle));
-        ExtractFileBase(name, fileinfo[0].name);
-        numlumps++;
-        is_single = true;
-    }
-    else
-    {
-        // WAD file
-        if (read(handle, &header, sizeof(header)) == 0)
-        {
-            I_Error("Error reading header from %s (%s)", name, strerror(errno));
-        }
-
-        if (strncmp(header.identification, "IWAD", 4)
-            && strncmp(header.identification, "PWAD", 4))
-        {
-            I_Error("Wad file %s doesn't have IWAD or PWAD id", name);
-        }
-
-        header.numlumps = LONG(header.numlumps);
-        if (header.numlumps == 0)
-        {
-            I_Printf(VB_WARNING, "Wad file %s is empty", name);
-            close(handle);
-            return;
-        }
-
-        length = header.numlumps * sizeof(filelump_t);
-        fileinfo = malloc(length);
-        if (fileinfo == NULL)
-        {
-            I_Error("Failed to allocate file table from %s", name);
-        }
-
-        header.infotableofs = LONG(header.infotableofs);
-        if (lseek(handle, header.infotableofs, SEEK_SET) == -1)
-        {
-            I_Printf(VB_WARNING, "Error seeking offset from %s (%s)", name,
-                     strerror(errno));
-            close(handle);
-            free(fileinfo);
-            return;
-        }
-
-        if (read(handle, fileinfo, length) == 0)
-        {
-            I_Printf(VB_WARNING, "Error reading lump directory from %s (%s)",
-                     name, strerror(errno));
-            close(handle);
-            free(fileinfo);
-            return;
-        }
-
-        numlumps += header.numlumps;
-    }
-
-    array_push(handles, handle);
-
-    // Fill in lumpinfo
-    lumpinfo = Z_Realloc(lumpinfo, numlumps * sizeof(lumpinfo_t), PU_STATIC, 0);
-
-    for (int i = startlump, j = 0; i < numlumps; i++, j++)
-    {
-        lumpinfo[i].handle = handle; //  killough 4/25/98
-        lumpinfo[i].position = LONG(fileinfo[j].filepos);
-        lumpinfo[i].size = LONG(fileinfo[j].size);
-        lumpinfo[i].data = NULL;           // killough 1/31/98
-        lumpinfo[i].namespace = ns_global; // killough 4/17/98
-        M_CopyLumpName(lumpinfo[i].name, fileinfo[j].name);
-
-        // [FG] WAD file that contains the lump
-        lumpinfo[i].wad_file = (is_single ? NULL : name);
-    }
-
-    free(fileinfo);
+    lumpinfo_t marker = {0};
+    M_CopyLumpName(marker.name, name);
+    array_push(lumpinfo, marker);
+    numlumps++;
 }
+
+boolean W_SkipFile(const char *filename)
+{
+    static const char *ext[] = { ".wad", ".zip", ".pk3", ".deh", ".exe",
+                                 ".bat", ".txt" };
+
+    for (int i = 0; i < arrlen(ext); ++i)
+    {
+        if (M_StringCaseEndsWith(filename, ext[i]))
+        {
+            return true;
+        }
+    }
+    return false;
+}
+
+static struct
+{
+    const char *dir;
+    const char *start_marker;
+    const char *end_marker;
+    namespace_t namespace;
+} subdirs[] = {
+    {"music",     NULL,       NULL,     ns_global   },
+    {"sprites",   "S_START",  "S_END",  ns_sprites  },
+    {"flats",     "F_START",  "F_END",  ns_flats    },
+    {"colormaps", "C_START",  "C_END",  ns_colormaps},
+    {"voxels",    "VX_START", "VX_END", ns_voxels   },
+};
+
+static struct
+{
+    const char *dir;
+    GameMode_t mode;
+    GameMission_t mission;
+} filters[] = {
+    {"filter/doom",                     -1,         -1       },
+    {"filter/doom.id",                  retail,     doom     },
+    {"filter/doom.id",                  commercial, doom2    },
+    {"filter/doom.id.doom2",            commercial, doom2    },
+    {"filter/doom.id.doom2.commercial", commercial, doom2    },
+    {"filter/doom.id.doom2.plutonia",   commercial, pack_plut},
+    {"filter/doom.id.doom2.tnt",        commercial, pack_tnt },
+};
+
+w_module_t *modules[] =
+{
+    &w_zip_module,
+    &w_file_module,
+};
+
+boolean W_AddPath(const char *path)
+{
+    w_handle_t handle = {0};
+    w_type_t result = W_NONE;
+    w_module_t *active_module = NULL;
+
+    for (int i = 0; i < arrlen(modules); ++i)
+    {
+        result = modules[i]->Open(path, &handle);
+
+        if (result == W_FILE)
+        {
+            return true;
+        }
+        else if (result == W_DIR)
+        {
+            active_module = modules[i];
+            break;
+        }
+    }
+
+    if (result == W_NONE)
+    {
+        return false;
+    }
+
+    active_module->AddDir(handle, ".", NULL, NULL);
+
+    for (int i = 0; i < arrlen(subdirs); ++i)
+    {
+        active_module->AddDir(handle, subdirs[i].dir, subdirs[i].start_marker,
+                               subdirs[i].end_marker);
+    }
+
+    for (int i = 0; i < arrlen(filters); ++i)
+    {
+        if ((filters[i].mode >= 0 && filters[i].mode != gamemode)
+            || (filters[i].mission >= 0 && gamemission > doom2
+                && filters[i].mission != gamemission))
+        {
+            continue;
+        }
+
+        for (int j = 0; j < arrlen(subdirs); ++j)
+        {
+            char *s = M_StringJoin(filters[i].dir, "/", subdirs[j].dir, NULL);
+            active_module->AddDir(handle, s, subdirs[j].start_marker,
+                                  subdirs[j].end_marker);
+            free(s);
+        }
+    }
+
+    return true;
+}
+
 
 // jff 1/23/98 Create routines to reorder the master directory
 // putting all flats into one marked block, and all sprites into another.
@@ -384,36 +369,39 @@ int W_GetNumForName (const char* name)     // killough -- const added
 //  does override all earlier ones.
 //
 
-void W_InitMultipleFiles(void)
+void W_InitPredefineLumps(void)
 {
-  int i;
-
   // killough 1/31/98: add predefined lumps first
 
   numlumps = num_predefined_lumps;
 
   // lumpinfo will be realloced as lumps are added
-  lumpinfo = Z_Malloc(numlumps*sizeof(*lumpinfo), PU_STATIC, 0);
+  array_grow(lumpinfo, numlumps);
 
   memcpy(lumpinfo, predefined_lumps, numlumps*sizeof(*lumpinfo));
 
-  // open all the files, load headers, and count lumps
-  for (i = 0; i < array_size(wadfiles); ++i)
-    W_AddFile(wadfiles[i]);
+  array_ptr(lumpinfo)->size += numlumps;
+}
 
+void W_InitMultipleFiles(void)
+{
   if (!numlumps)
     I_Error ("W_InitFiles: no files found");
 
   //jff 1/23/98
   // get all the sprites and flats into one marked block each
   // killough 1/24/98: change interface to use M_START/M_END explicitly
+  // killough 4/4/98: add colormap markers
   // killough 4/17/98: Add namespace tags to each entry
 
-  W_CoalesceMarkedResource("S_START", "S_END", ns_sprites);
-  W_CoalesceMarkedResource("F_START", "F_END", ns_flats);
-
-  // killough 4/4/98: add colormap markers
-  W_CoalesceMarkedResource("C_START", "C_END", ns_colormaps);
+  for (int i = 0; i < arrlen(subdirs); ++i)
+  {
+    if (subdirs[i].namespace != ns_global)
+    {
+      W_CoalesceMarkedResource(subdirs[i].start_marker, subdirs[i].end_marker,
+                               subdirs[i].namespace);
+    }
+  }
 
   // [Woof!] namespace to avoid conflicts with high-resolution textures
   W_CoalesceMarkedResource("HI_START", "HI_END", ns_hires);
@@ -447,29 +435,31 @@ int W_LumpLength (int lump)
 
 void W_ReadLump(int lump, void *dest)
 {
-  lumpinfo_t *l = lumpinfo + lump;
+    lumpinfo_t *info = lumpinfo + lump;
 
 #ifdef RANGECHECK
-  if (lump >= numlumps)
-    I_Error ("W_ReadLump: %i >= numlumps",lump);
+    if (lump >= numlumps)
+    {
+        I_Error("W_ReadLump: %i >= numlumps", lump);
+    }
 #endif
 
-  if (l->data)     // killough 1/31/98: predefined lump data
-    memcpy(dest, l->data, l->size);
-  else if (l->size) // [FG] ignore empty lumps
+    if (!info->size)
     {
-      int c;
-
-      // killough 1/31/98: Reload hack (-wart) removed
-      // killough 10/98: Add flashing disk indicator
-
-      I_BeginRead(l->size);
-      lseek(l->handle, l->position, SEEK_SET);
-      c = read(l->handle, dest, l->size);
-      if (c < l->size)
-        I_Error("W_ReadLump: only read %i of %i on lump %i", c, l->size, lump);
-      I_EndRead();
+        return;
     }
+
+    if (info->data) // killough 1/31/98: predefined lump data
+    {
+        memcpy(dest, info->data, info->size);
+        return;
+    }
+
+    I_BeginRead(info->size);
+
+    info->module->Read(info->handle, dest, info->size);
+
+    I_EndRead();
 }
 
 //
@@ -608,55 +598,47 @@ int W_LumpLengthWithName(int lump, char *name)
   return W_LumpLength(lump);
 }
 
-// [FG] avoid demo lump name collisions
-void W_DemoLumpNameCollision(char **name)
+// killough 10/98: support .deh from wads
+//
+// A lump named DEHACKED is treated as plaintext of a .deh file embedded in
+// a wad (more portable than reading/writing info.c data directly in a wad).
+//
+// If there are multiple instances of "DEHACKED", we process each, in first
+// to last order (we must reverse the order since they will be stored in
+// last to first order in the chain). Passing NULL as first argument to
+// ProcessDehFile() indicates that the data comes from the lump number
+// indicated by the third argument, instead of from a file.
+
+static void ProcessInWad(int i, const char *name, void (*process)(int lumpnum),
+                         boolean iwad)
 {
-  const char *const safename = "DEMO1";
-  char basename[9];
-  int i, lump;
-
-  ExtractFileBase(*name, basename);
-
-  // [FG] lumps called DEMO* are considered safe
-  if (!strncasecmp(basename, safename, 4))
-  {
-    return;
-  }
-
-  lump = W_CheckNumForName(basename);
-
-  if (lump >= 0)
-  {
-    for (i = lump - 1; i >= 0; i--)
-    {
-      if (!strncasecmp(lumpinfo[i].name, basename, 8))
-      {
-        break;
-      }
-    }
-
     if (i >= 0)
     {
-      I_Printf(VB_WARNING, "Demo lump name collision detected with lump \'%.8s\' from %s.",
-              lumpinfo[i].name, W_WadNameForLump(i));
+        ProcessInWad(lumpinfo[i].next, name, process, iwad);
 
-      // [FG] the DEMO1 lump is almost certainly always a demo lump
-      M_StringCopy(lumpinfo[lump].name, safename, 8);
-      *name = lumpinfo[lump].name;
-
-      W_InitLumpHash();
+        if (!strncasecmp(lumpinfo[i].name, name, 8)
+            && lumpinfo[i].namespace == ns_global
+            && (iwad ? lumpinfo[i].wad_file == wadfiles[0]
+                     : lumpinfo[i].wad_file != wadfiles[0]))
+        {
+            process(i);
+        }
     }
-  }
 }
 
-void W_CloseFileDescriptors(void)
+void W_ProcessInWads(const char *name, void (*process)(int lumpnum),
+                     boolean iwad)
 {
-  int i;
+    ProcessInWad(lumpinfo[W_LumpNameHash(name) % (unsigned)numlumps].index,
+                 name, process, iwad);
+}
 
-  for (i = 0; i < array_size(handles); ++i)
-  {
-     close(handles[i]);
-  }
+void W_Close(void)
+{
+    for (int i = 0; i < arrlen(modules); ++i)
+    {
+        modules[i]->Close();
+    }
 }
 
 //----------------------------------------------------------------------------

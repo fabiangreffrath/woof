@@ -18,7 +18,6 @@
 #include "doomdata.h"
 #include "doomstat.h"
 #include "doomtype.h"
-#include "i_glob.h"
 #include "i_printf.h"
 #include "i_video.h"
 #include "info.h"
@@ -41,8 +40,6 @@
 
 static boolean voxels_found;
 boolean voxels_rendering, default_voxels_rendering;
-
-const char ** vxfiles = NULL;
 
 struct Voxel
 {
@@ -247,23 +244,19 @@ static boolean VX_Load (int spr, int frame)
 	if (frame_ch == '\\')
 		frame_ch = '^';
 
-	char filename[256];
+	char lumpname[9] = {0};
 
-	M_snprintf (filename, sizeof(filename), "%s%c.kvx", sprnames[spr], frame_ch);
+	M_snprintf (lumpname, sizeof(lumpname), "%s%c", sprnames[spr], frame_ch);
 
-	int i;
+	int lumpnum = (W_CheckNumForName)(lumpname, ns_voxels);
 
-	for (i = array_size (vxfiles) - 1 ; i >= 0 ; --i)
+	if (lumpnum < 0)
 	{
-		if (!strcasecmp (M_BaseName (vxfiles[i]), filename))
-			break;
+		return false;
 	}
 
-	if (i < 0)
-		return false;
-
-	byte * buf;
-	int len = M_ReadFile (vxfiles[i], &buf);
+	byte *buf = W_CacheLumpNum(lumpnum, PU_STATIC);
+	int len   = W_LumpLength(lumpnum);
 
 	// Note: this may return NULL
 	struct Voxel * v = VX_Decode (buf, len);
@@ -281,33 +274,6 @@ static boolean VX_Load (int spr, int frame)
 
 void VX_Init (void)
 {
-	glob_t * glob;
-
-	glob = I_StartMultiGlob ("voxels", GLOB_FLAG_NOCASE|GLOB_FLAG_SORTED,
-                                 "*.kvx", NULL);
-	for (;;)
-	{
-		const char * filename = I_NextGlob (glob);
-		if (filename == NULL)
-		{
-			break;
-		}
-
-		array_push (vxfiles, filename);
-	}
-
-	I_EndGlob (glob);
-
-	voxels_rendering = default_voxels_rendering;
-
-	if (!array_size (vxfiles))
-	{
-		I_Printf(VB_INFO, "Voxels not found.");
-		voxels_rendering = false;
-		MN_DisableVoxelsRenderingItem();
-		return;
-	}
-
 	int spr, frame;
 
 	all_voxels = Z_Malloc(num_sprites * sizeof(*all_voxels), PU_STATIC, NULL);
@@ -332,12 +298,17 @@ void VX_Init (void)
 		}
 	}
 
-	I_Printf(VB_INFO, "done.");
+	voxels_rendering = default_voxels_rendering;
 
 	if (!voxels_found)
 	{
 		voxels_rendering = false;
 		MN_DisableVoxelsRenderingItem();
+		I_Printf(VB_INFO, "not found.");
+	}
+	else
+	{
+		I_Printf (VB_INFO, "done.");
 	}
 }
 

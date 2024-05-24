@@ -19,7 +19,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "../opl/opl.h"
+#include "opl.h"
 
 #include "doomtype.h"
 #include "i_oalstream.h"

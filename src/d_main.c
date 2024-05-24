@@ -22,7 +22,6 @@
 
 #include <ctype.h>
 #include <limits.h>
-#include <stdarg.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -85,8 +84,6 @@
 #include "wi_stuff.h"
 #include "z_zone.h"
 
-#include "miniz.h"
-
 // DEHacked support - Ty 03/09/97
 // killough 10/98:
 // Add lump number as third argument, for use when filename==NULL
@@ -128,8 +125,6 @@ static void ProcessDehLump(int lumpnum)
 {
   ProcessDehFile(NULL, D_dehout(), lumpnum);
 }
-
-char **wadfiles;
 
 boolean devparm;        // started game with -devparm
 
@@ -670,92 +665,6 @@ void D_StartTitle (void)
   D_AdvanceDemo();
 }
 
-static boolean CheckExtensions(const char *filename, ...)
-{
-    boolean result = false;
-    va_list args;
-
-    va_start(args, filename);
-    while (true)
-    {
-        const char *arg = va_arg(args, const char *);
-        if (arg == NULL || (result = M_StringCaseEndsWith(filename, arg)))
-        {
-            break;
-        }
-    }
-    va_end(args);
-
-    return result;
-}
-
-char **tempdirs = NULL;
-
-static void AutoLoadWADs(const char *path);
-
-static boolean D_AddZipFile(const char *file)
-{
-  int i;
-  mz_zip_archive zip_archive;
-  char *str, *tempdir, counter[8];
-
-  if (!CheckExtensions(file, ".zip", ".pk3", NULL))
-  {
-    return false;
-  }
-
-  memset(&zip_archive, 0, sizeof(zip_archive));
-  if (!mz_zip_reader_init_file(&zip_archive, file, MZ_ZIP_FLAG_DO_NOT_SORT_CENTRAL_DIRECTORY))
-  {
-    I_Error("D_AddZipFile: Failed to open %s", file);
-  }
-
-  M_snprintf(counter, sizeof(counter), "%04d", array_size(tempdirs));
-  str = M_StringJoin("_", counter, "_", PROJECT_SHORTNAME, "_", M_BaseName(file), NULL);
-  tempdir = M_TempFile(str);
-  free(str);
-  M_MakeDirectory(tempdir);
-
-  for (i = 0; i < (int)mz_zip_reader_get_num_files(&zip_archive); ++i)
-  {
-    mz_zip_archive_file_stat file_stat;
-    const char *name;
-
-    mz_zip_reader_file_stat(&zip_archive, i, &file_stat);
-
-    if (file_stat.m_is_directory)
-      continue;
-
-    name = M_BaseName(file_stat.m_filename);
-
-    // [FG] skip "hidden" files
-    if (name[0] == '.')
-      continue;
-
-    if (CheckExtensions(name, ".wad", ".pk3", ".lmp", ".ogg", ".flac",
-                        ".mp3", ".kvx", NULL))
-    {
-      char *dest = M_StringJoin(tempdir, DIR_SEPARATOR_S, name, NULL);
-
-      if (!mz_zip_reader_extract_to_file(&zip_archive, i, dest, 0))
-      {
-        I_Printf(VB_ERROR, "D_AddZipFile: Failed to extract %s to %s",
-                file_stat.m_filename, tempdir);
-      }
-
-      free(dest);
-    }
-  }
-
-  mz_zip_reader_end(&zip_archive);
-
-  AutoLoadWADs(tempdir);
-
-  array_push(tempdirs, tempdir);
-
-  return true;
-}
-
 //
 // D_AddFile
 //
@@ -769,16 +678,10 @@ void D_AddFile(const char *file)
   // [FG] search for PWADs by their filename
   char *path = D_TryFindWADByName(file);
 
-  if (M_StringCaseEndsWith(path, ".kvx"))
+  if (!W_AddPath(path))
   {
-    array_push(vxfiles, path);
-    return;
+    I_Error("Error: Failed to load %s", file);
   }
-
-  if (D_AddZipFile(path))
-    return;
-
-  array_push(wadfiles, path);
 }
 
 // killough 10/98: return the name of the program the exe was invoked as
@@ -835,11 +738,13 @@ char *D_DoomPrefDir(void)
 // Calculate the path to the directory for autoloaded WADs/DEHs.
 // Creates the directory as necessary.
 
-static struct {
+typedef struct {
     const char *dir;
     char *(*func)(void);
     boolean createdir;
-} autoload_basedirs[] = {
+} autoload_basedir_t;
+
+static autoload_basedir_t autoload_basedirs[] = {
 #if !defined(WIN32)
     {"../share/" PROJECT_SHORTNAME, D_DoomExeDir, false},
 #endif
@@ -847,7 +752,6 @@ static struct {
 #if !defined(_WIN32) || defined(_WIN32_WCE)
     {NULL, D_DoomExeDir, false},
 #endif
-    {NULL, NULL, false},
 };
 
 static char **autoload_paths = NULL;
@@ -870,10 +774,8 @@ static char *GetAutoloadDir(const char *base, const char *iwadname, boolean crea
     return result;
 }
 
-static void PrepareAutoloadPaths (void)
+static void PrepareAutoloadPaths(void)
 {
-    int i;
-
     //!
     // @category mod
     //
@@ -881,32 +783,32 @@ static void PrepareAutoloadPaths (void)
     //
 
     if (M_CheckParm("-noautoload"))
-        return;
-
-    for (i = 0; ; i++)
     {
-        autoload_paths = I_Realloc(autoload_paths, (i + 1) * sizeof(*autoload_paths));
+        return;
+    }
 
-        if (autoload_basedirs[i].dir && autoload_basedirs[i].func)
+    for (int i = 0; i < arrlen(autoload_basedirs); i++)
+    {
+        autoload_basedir_t d = autoload_basedirs[i];
+
+        if (d.dir && d.func)
         {
-            autoload_paths[i] = M_StringJoin(autoload_basedirs[i].func(), DIR_SEPARATOR_S,
-                                             autoload_basedirs[i].dir, DIR_SEPARATOR_S, "autoload", NULL);
+            array_push(autoload_paths,
+                       M_StringJoin(d.func(), DIR_SEPARATOR_S, d.dir,
+                                    DIR_SEPARATOR_S, "autoload", NULL));
         }
-        else if (autoload_basedirs[i].dir)
+        else if (d.dir)
         {
-            autoload_paths[i] = M_StringJoin(autoload_basedirs[i].dir, DIR_SEPARATOR_S, "autoload", NULL);
+            array_push(autoload_paths,
+                       M_StringJoin(d.dir, DIR_SEPARATOR_S, "autoload", NULL));
         }
-        else if (autoload_basedirs[i].func)
+        else if (d.func)
         {
-            autoload_paths[i] = M_StringJoin(autoload_basedirs[i].func(), DIR_SEPARATOR_S, "autoload", NULL);
-        }
-        else
-        {
-            autoload_paths[i] = NULL;
-            break;
+            array_push(autoload_paths, M_StringJoin(d.func(), DIR_SEPARATOR_S,
+                                                    "autoload", NULL));
         }
 
-        if (autoload_basedirs[i].createdir)
+        if (d.createdir)
         {
             M_MakeDirectory(autoload_paths[i]);
         }
@@ -1002,67 +904,66 @@ static void CheckIWAD(const char *iwadname)
     }
 }
 
+static boolean CheckMapLump(const char *lumpname, const char *filename)
+{
+    int lumpnum = W_CheckNumForName(lumpname);
+    if (lumpnum >= 0 && lumpinfo[lumpnum].wad_file == filename)
+    {
+        return true;
+    }
+    return false;
+}
+
 static boolean FileContainsMaps(const char *filename)
 {
-    int i;
-    FILE *file = NULL;
-    wadinfo_t header;
-    filelump_t *fileinfo = NULL;
-    boolean ret = false;
-
-    while (ret == false)
+    for (int i = 0; i < U_mapinfo.mapcount; ++i)
     {
-        if (filename == NULL || M_StringCaseEndsWith(filename, ".wad") == false)
+        if (CheckMapLump(U_mapinfo.maps[i].mapname, filename))
         {
-            break;
+            return true;
         }
-
-        file = M_fopen(filename, "rb");
-
-        if (file == NULL)
-        {
-            break;
-        }
-
-        if (fread(&header, sizeof(header), 1, file) != 1)
-        {
-            break;
-        }
-
-        if (strncmp(header.identification, "IWAD", 4) &&
-            strncmp(header.identification, "PWAD", 4))
-        {
-            break;
-        }
-
-        header.numlumps = LONG(header.numlumps);
-        header.infotableofs = LONG(header.infotableofs);
-        fileinfo = malloc(header.numlumps * sizeof(filelump_t));
-
-        if (fseek(file, header.infotableofs, SEEK_SET) ||
-            fread(fileinfo, sizeof(filelump_t), header.numlumps, file) != header.numlumps)
-        {
-            break;
-        }
-
-        for (i = 0; i < header.numlumps; i++)
-        {
-            if (MN_StartsWithMapIdentifier(fileinfo[i].name))
-            {
-                ret = true;
-                break;
-            }
-        }
-
-        break;
     }
 
-    if (fileinfo)
-        free(fileinfo);
-    if (file)
-        fclose(file);
+    if (gamemode == commercial)
+    {
+        for (int m = 1; m < 35; ++m)
+        {
+            if (CheckMapLump(MAPNAME(1, m), filename))
+            {
+                return true;
+            }
+        }
+    }
+    else
+    {
+        for (int e = 1; e < 5; ++e)
+        {
+            for (int m = 1; m < 10; ++m)
+            {
+                if (CheckMapLump(MAPNAME(e, m), filename))
+                {
+                    return true;
+                }
+            }
+        }
+    }
 
-    return ret;
+    return false;
+}
+
+static void PrintVersion(const char *iwad)
+{
+    I_Printf(VB_INFO, "IWAD found: %s", iwad); // jff 4/20/98 print only if
+                                               // found
+
+    I_Printf(VB_INFO, "%s\n", D_GetIWADDescription(M_BaseName(iwad), gamemode,
+                                                   gamemission));
+
+    if (gamemode == indetermined)
+    {
+        I_Printf(VB_WARNING,
+                 "Unknown Game Version, may not work\n"); // killough 8/8/98
+    }
 }
 
 //
@@ -1086,140 +987,86 @@ static boolean FileContainsMaps(const char *filename)
 //
 // jff 4/19/98 rewritten to use a more advanced search algorithm
 
-void IdentifyVersion (void)
+void IdentifyVersion(void)
 {
-  int         i;    //jff 3/24/98 index of args on commandline
-  char *iwad;
+    // get config file from same directory as executable
+    // killough 10/98
 
-  // get config file from same directory as executable
-  // killough 10/98
-  if (basedefault) free(basedefault);
-  basedefault = M_StringJoin(D_DoomPrefDir(), DIR_SEPARATOR_S, D_DoomExeName(), ".cfg", NULL);
+    basedefault = M_StringJoin(D_DoomPrefDir(), DIR_SEPARATOR_S,
+                               D_DoomExeName(), ".cfg", NULL);
 
-  // set save path to -save parm or current dir
+    // set save path to -save parm or current dir
 
-  screenshotdir = M_StringDuplicate("."); // [FG] default to current dir
+    screenshotdir = M_StringDuplicate("."); // [FG] default to current dir
 
-  basesavegame = M_StringDuplicate(D_DoomPrefDir());       //jff 3/27/98 default to current dir
+    basesavegame = M_StringDuplicate(
+        D_DoomPrefDir()); // jff 3/27/98 default to current dir
 
-  //!
-  // @arg <directory>
-  //
-  // Specify a path from which to load and save games. If the directory
-  // does not exist then it will automatically be created.
-  //
+    //!
+    // @arg <directory>
+    //
+    // Specify a path from which to load and save games. If the directory
+    // does not exist then it will automatically be created.
+    //
 
-  i = M_CheckParmWithArgs("-save", 1);
-  if (i > 0)
-  {
-    if (basesavegame)
-      free(basesavegame);
-    basesavegame = M_StringDuplicate(myargv[i + 1]);
-
-    M_MakeDirectory(basesavegame);
-
-    // [FG] fall back to -save parm
-    if (screenshotdir)
-      free(screenshotdir);
-    screenshotdir = M_StringDuplicate(basesavegame);
-  }
-
-  //!
-  // @arg <directory>
-  //
-  // Specify a path to save screenshots. If the directory does not
-  // exist then it will automatically be created.
-  //
-
-  i = M_CheckParmWithArgs("-shotdir", 1);
-  if (i > 0)
-  {
-    if (screenshotdir)
-      free(screenshotdir);
-    screenshotdir = M_StringDuplicate(myargv[i + 1]);
-
-    M_MakeDirectory(screenshotdir);
-  }
-
-  // locate the IWAD and determine game mode from it
-
-  iwad = D_FindIWADFile(&gamemode, &gamemission);
-
-  if (iwad && *iwad)
+    int p = M_CheckParmWithArgs("-save", 1);
+    if (p > 0)
     {
-      if (gamemode == indetermined)
-        CheckIWAD(iwad);
+        if (basesavegame)
+        {
+            free(basesavegame);
+        }
+        basesavegame = M_StringDuplicate(myargv[p + 1]);
 
-      D_AddFile(iwad);
+        M_MakeDirectory(basesavegame);
+
+        // [FG] fall back to -save parm
+        if (screenshotdir)
+        {
+            free(screenshotdir);
+        }
+        screenshotdir = M_StringDuplicate(basesavegame);
     }
-  else
-    I_Error("IWAD not found");
-}
 
-static void PrintVersion(void)
-{
-  int i;
-  char *iwad = wadfiles[0];
+    //!
+    // @arg <directory>
+    //
+    // Specify a path to save screenshots. If the directory does not
+    // exist then it will automatically be created.
+    //
 
-  I_Printf(VB_INFO, "IWAD found: %s",iwad); //jff 4/20/98 print only if found
+    p = M_CheckParmWithArgs("-shotdir", 1);
+    if (p > 0)
+    {
+        if (screenshotdir)
+        {
+            free(screenshotdir);
+        }
+        screenshotdir = M_StringDuplicate(myargv[p + 1]);
 
-  switch(gamemode)
-  {
-    case retail:
-      if (gamemission == pack_chex)
-        I_Printf(VB_INFO, "Chex(R) Quest\n");
-      else if (gamemission == pack_rekkr)
-        I_Printf(VB_INFO, "REKKR\n");
-      else
-      I_Printf(VB_INFO, "Ultimate DOOM version\n");  // killough 8/8/98
-      break;
+        M_MakeDirectory(screenshotdir);
+    }
 
-    case registered:
-      I_Printf(VB_INFO, "DOOM Registered version\n");
-      break;
+    // locate the IWAD and determine game mode from it
 
-    case shareware:
-      I_Printf(VB_INFO, "DOOM Shareware version\n");
-      break;
+    char *iwad = D_FindIWADFile(&gamemode, &gamemission);
 
-    case commercial:
+    if (iwad)
+    {
+        if (gamemode == indetermined)
+        {
+            CheckIWAD(iwad);
+        }
 
-      // joel 10/16/98 Final DOOM fix
-      switch (gamemission)
-      {
-        case pack_hacx:
-          I_Printf(VB_INFO, "HACX: Twitch n' Kill\n");
-          break;
+        PrintVersion(iwad);
 
-        case pack_tnt:
-          I_Printf(VB_INFO, "Final DOOM: TNT - Evilution version\n");
-          break;
-
-        case pack_plut:
-          I_Printf(VB_INFO, "Final DOOM: The Plutonia Experiment version\n");
-          break;
-
-        case doom2:
-        default:
-
-          i = strlen(iwad);
-          if (i>=10 && !strncasecmp(iwad+i-10,"doom2f.wad",10))
-            {
-              language=french;
-              I_Printf(VB_INFO, "DOOM II version, French language\n");  // killough 8/8/98
-            }
-          else
-            I_Printf(VB_INFO, "DOOM II version\n");
-          break;
-      }
-      // joel 10/16/88 end Final DOOM fix
-
-    default:
-      break;
-  }
-
-  if (gamemode == indetermined)
-    I_Printf(VB_WARNING, "Unknown Game Version, may not work\n");  // killough 8/8/98
+        I_Printf(VB_INFO, "W_Init: Init WADfiles.");
+        D_AddFile(iwad);
+    }
+    else
+    {
+        I_Error("IWAD not found");
+    }
 }
 
 // [FG] emulate a specific version of Doom
@@ -1700,87 +1547,81 @@ static void D_ProcessDehCommandLine(void)
 
 static void AutoLoadWADs(const char *path)
 {
-    glob_t *glob;
-    const char *filename;
-
-    glob = I_StartMultiGlob(path, GLOB_FLAG_NOCASE|GLOB_FLAG_SORTED,
-                            "*.wad", "*.lmp", "*.kvx", "*.zip", "*.pk3",
-                            "*.ogg", "*.flac", "*.mp3", NULL);
+    glob_t * glob = I_StartMultiGlob(path, GLOB_FLAG_NOCASE|GLOB_FLAG_SORTED,
+                                     "*.wad", "*.zip", "*.pk3", NULL);
     for (;;)
     {
-        filename = I_NextGlob(glob);
+        const char *filename = I_NextGlob(glob);
         if (filename == NULL)
         {
             break;
         }
 
-        D_AddFile(filename);
+        if (!W_AddPath(filename))
+        {
+            I_Error("Error: Failed to load %s", filename);
+        }
     }
-
     I_EndGlob(glob);
+
+    W_AddPath(path);
 }
 
 static void D_AutoloadIWadDir(void (*AutoLoadFunc)(const char *path))
 {
-  char **base;
-
-  for (base = autoload_paths; base && *base; base++)
-  {
-    char *autoload_dir;
-
-    autoload_dir = GetAutoloadDir(*base, "all-all", true);
-    AutoLoadFunc(autoload_dir);
-    free(autoload_dir);
-
-    GameMission_t local_gamemission = D_GetGameMissionByIWADName(M_BaseName(wadfiles[0]));
-
-    // common auto-loaded files for all Doom flavors
-    if (local_gamemission != none)
+    for (int i = 0; i < array_size(autoload_paths); ++i)
     {
-      if (local_gamemission < pack_chex)
-      {
-        autoload_dir = GetAutoloadDir(*base, "doom-all", true);
-        AutoLoadFunc(autoload_dir);
-        free(autoload_dir);
-      }
+        char *dir = GetAutoloadDir(autoload_paths[i], "all-all", true);
+        AutoLoadFunc(dir);
+        free(dir);
 
-      if (local_gamemission == doom)
-      {
-        autoload_dir = GetAutoloadDir(*base, "doom1-all", true);
-        AutoLoadFunc(autoload_dir);
-        free(autoload_dir);
-      }
-      else if (local_gamemission >= doom2 && local_gamemission <= pack_plut)
-      {
-        autoload_dir = GetAutoloadDir(*base, "doom2-all", true);
-        AutoLoadFunc(autoload_dir);
-        free(autoload_dir);
-      }
+        GameMission_t local_gamemission =
+            D_GetGameMissionByIWADName(M_BaseName(wadfiles[0]));
+
+        // common auto-loaded files for all Doom flavors
+        if (local_gamemission != none)
+        {
+            if (local_gamemission < pack_chex)
+            {
+                dir = GetAutoloadDir(autoload_paths[i], "doom-all", true);
+                AutoLoadFunc(dir);
+                free(dir);
+            }
+
+            if (local_gamemission == doom)
+            {
+                dir = GetAutoloadDir(autoload_paths[i], "doom1-all", true);
+                AutoLoadFunc(dir);
+                free(dir);
+            }
+            else if (local_gamemission >= doom2
+                     && local_gamemission <= pack_plut)
+            {
+                dir = GetAutoloadDir(autoload_paths[i], "doom2-all", true);
+                AutoLoadFunc(dir);
+                free(dir);
+            }
+        }
+
+        // auto-loaded files per IWAD
+        dir = GetAutoloadDir(autoload_paths[i], M_BaseName(wadfiles[0]), true);
+        AutoLoadFunc(dir);
+        free(dir);
     }
-
-    // auto-loaded files per IWAD
-    autoload_dir = GetAutoloadDir(*base, M_BaseName(wadfiles[0]), true);
-    AutoLoadFunc(autoload_dir);
-    free(autoload_dir);
-  }
 }
 
 static void D_AutoloadPWadDir(void (*AutoLoadFunc)(const char *path))
 {
-  int i;
-
-  for (i = 1; i < array_size(wadfiles); ++i)
-  {
-    char **base;
-
-    for (base = autoload_paths; base && *base; base++)
+    for (int i = 1; i < array_size(wadfiles); ++i)
     {
-      char *autoload_dir;
-      autoload_dir = GetAutoloadDir(*base, M_BaseName(wadfiles[i]), false);
-      AutoLoadFunc(autoload_dir);
-      free(autoload_dir);
+        for (int j = 0; j < array_size(autoload_paths); ++j)
+        {
+            char *dir = GetAutoloadDir(autoload_paths[j],
+                                       M_BaseName(wadfiles[i]), false);
+            AutoLoadFunc(dir);
+            free(dir);
+        }
     }
-  }
 }
 
 // Load all dehacked patches from the given directory.
@@ -1803,39 +1644,6 @@ static void AutoLoadPatches(const char *path)
     }
 
     I_EndGlob(glob);
-}
-
-// killough 10/98: support .deh from wads
-//
-// A lump named DEHACKED is treated as plaintext of a .deh file embedded in
-// a wad (more portable than reading/writing info.c data directly in a wad).
-//
-// If there are multiple instances of "DEHACKED", we process each, in first
-// to last order (we must reverse the order since they will be stored in
-// last to first order in the chain). Passing NULL as first argument to
-// ProcessDehFile() indicates that the data comes from the lump number
-// indicated by the third argument, instead of from a file.
-
-static void D_ProcessInWad(int i, const char *name, void (*Process)(int lumpnum),
-                           boolean iwad)
-{
-  if (i >= 0)
-  {
-    D_ProcessInWad(lumpinfo[i].next, name, Process, iwad);
-    if (!strncasecmp(lumpinfo[i].name, name, 8) &&
-        lumpinfo[i].namespace == ns_global &&
-        (iwad ? W_IsIWADLump(i) : !W_IsIWADLump(i)))
-    {
-      Process(i);
-    }
-  }
-}
-
-static void D_ProcessInWads(const char *name, void (*Process)(int lumpnum),
-                            boolean iwad)
-{
-  D_ProcessInWad(lumpinfo[W_LumpNameHash(name) % (unsigned)numlumps].index,
-                 name, Process, iwad);
 }
 
 // mbf21: don't want to reorganize info.c structure for a few tweaks...
@@ -2042,6 +1850,11 @@ void D_DoomMain(void)
     I_SafeExit(0);
   }
 
+  // [FG] initialize logging verbosity early to decide
+  //      if the following lines will get printed or not
+
+  I_InitPrintf();
+
   // Don't check undocumented options if -devparm is set
   if (!M_ParmExists("-devparm"))
   {
@@ -2059,15 +1872,17 @@ void D_DoomMain(void)
 
   if (M_CheckParm("-dedicated") > 0)
   {
-          I_Printf(VB_INFO, "Dedicated server mode.");
-          I_InitTimer();
-          NET_DedicatedServer();
+      I_Printf(VB_INFO, "Dedicated server mode.");
+      I_InitTimer();
+      NET_DedicatedServer();
 
-          // Never returns
+      // Never returns
   }
 
   // killough 10/98: set default savename based on executable's name
   sprintf(savegamename = malloc(16), "%.4ssav", D_DoomExeName());
+
+  W_InitPredefineLumps();
 
   IdentifyVersion();
 
@@ -2274,55 +2089,6 @@ void D_DoomMain(void)
   // add wad files from autoload PWAD directories
 
   D_AutoloadPWadDir(AutoLoadWADs);
-
-  //!
-  // @arg <demo>
-  // @category demo
-  // @vanilla
-  // @help
-  //
-  // Play back the demo named demo.lmp.
-  //
-
-  if (!(p = M_CheckParm("-playdemo")) || p >= myargc-1)    // killough
-  {
-
-    //!
-    // @arg <demo>
-    // @category demo
-    //
-    // Plays the given demo as fast as possible.
-    //
-
-    if ((p = M_CheckParm ("-fastdemo")) && p < myargc-1)   // killough
-      fastdemo = true;             // run at fastest speed possible
-    else
-    {
-      //!
-      // @arg <demo>
-      // @category demo
-      // @vanilla
-      //
-      // Play back the demo named demo.lmp, determining the framerate
-      // of the screen.
-      //
-
-      p = M_CheckParm ("-timedemo");
-
-      if (!p)
-        p = M_CheckParm("-recordfromto");
-    }
-  }
-
-  if (p && p < myargc-1)
-    {
-      char *file = malloc(strlen(myargv[p+1]) + 5);
-      strcpy(file,myargv[p+1]);
-      AddDefaultExtension(file,".lmp");     // killough
-      D_AddFile(file);
-      I_Printf(VB_INFO, "Playing demo %s",file);
-      free(file);
-    }
 
   // get skill / episode / map from parms
 
@@ -2532,54 +2298,9 @@ void D_DoomMain(void)
 
   M_InitConfig();
 
+  I_PutChar(VB_INFO, '\n');
+
   M_LoadDefaults();  // load before initing other systems
-
-  PrintVersion();
-
-  if (!M_CheckParm("-save"))
-  {
-    if (organize_savefiles == -1)
-    {
-      // [FG] check for at least one savegame in the old location
-      glob_t *glob = I_StartMultiGlob(basesavegame,
-                                      GLOB_FLAG_NOCASE|GLOB_FLAG_SORTED,
-                                      "*.dsg", NULL);
-
-      organize_savefiles = (I_NextGlob(glob) == NULL);
-
-      I_EndGlob(glob);
-    }
-
-    if (organize_savefiles)
-    {
-      int i;
-      char *wadname = wadfiles[0], *oldsavegame = basesavegame;
-
-      for (i = mainwadfile; i < array_size(wadfiles); i++)
-      {
-        if (FileContainsMaps(wadfiles[i]))
-        {
-          wadname = wadfiles[i];
-          break;
-        }
-      }
-
-      basesavegame = M_StringJoin(oldsavegame, DIR_SEPARATOR_S,
-                                  "savegames", NULL);
-      free(oldsavegame);
-
-      M_MakeDirectory(basesavegame);
-
-      oldsavegame = basesavegame;
-      basesavegame = M_StringJoin(oldsavegame, DIR_SEPARATOR_S,
-                                  M_BaseName(wadname), NULL);
-      free(oldsavegame);
-
-      M_MakeDirectory(basesavegame);
-    }
-  }
-
-  I_Printf(VB_INFO, "Savegame directory: %s\n", basesavegame);
 
   bodyquesize = default_bodyquesize; // killough 10/98
 
@@ -2587,7 +2308,6 @@ void D_DoomMain(void)
 
   // init subsystems
 
-  I_Printf(VB_INFO, "W_Init: Init WADfiles.");
   W_InitMultipleFiles();
 
   // Check for wolf levels
@@ -2603,7 +2323,7 @@ void D_DoomMain(void)
 
   if (!M_ParmExists("-nodeh"))
   {
-    D_ProcessInWads("DEHACKED", ProcessDehLump, true);
+    W_ProcessInWads("DEHACKED", ProcessDehLump, true);
   }
 
   // process .deh files specified on the command line with -deh or -bex.
@@ -2616,7 +2336,7 @@ void D_DoomMain(void)
   // killough 10/98: now process all deh in wads
   if (!M_ParmExists("-nodeh"))
   {
-    D_ProcessInWads("DEHACKED", ProcessDehLump, false);
+    W_ProcessInWads("DEHACKED", ProcessDehLump, false);
   }
 
   // process .deh files from PWADs autoload directories
@@ -2624,7 +2344,7 @@ void D_DoomMain(void)
 
   PostProcessDeh();
 
-  D_ProcessInWads("BRGHTMPS", R_ParseBrightmaps, false);
+  W_ProcessInWads("BRGHTMPS", R_ParseBrightmaps, false);
 
   I_PutChar(VB_INFO, '\n');     // killough 3/6/98: add a newline, by popular demand :)
 
@@ -2655,7 +2375,7 @@ void D_DoomMain(void)
             I_Error("\nThis is not the registered version.");
     }
 
-  D_ProcessInWads("UMAPDEF", U_ParseMapDefInfo, false);
+  W_ProcessInWads("UMAPDEF", U_ParseMapDefInfo, false);
 
   //!
   // @category mod
@@ -2665,9 +2385,54 @@ void D_DoomMain(void)
 
   if (!M_ParmExists("-nomapinfo"))
   {
-    D_ProcessInWads("UMAPINFO", U_ParseMapInfo, true);
-    D_ProcessInWads("UMAPINFO", U_ParseMapInfo, false);
+    W_ProcessInWads("UMAPINFO", U_ParseMapInfo, true);
+    W_ProcessInWads("UMAPINFO", U_ParseMapInfo, false);
   }
+
+  if (!M_CheckParm("-save"))
+  {
+      if (organize_savefiles == -1)
+      {
+          // [FG] check for at least one savegame in the old location
+          glob_t *glob = I_StartMultiGlob(
+              basesavegame, GLOB_FLAG_NOCASE | GLOB_FLAG_SORTED, "*.dsg", NULL);
+
+          organize_savefiles = (I_NextGlob(glob) == NULL);
+
+          I_EndGlob(glob);
+      }
+
+      if (organize_savefiles)
+      {
+          int i;
+          const char *wadname = wadfiles[0];
+          char *oldsavegame = basesavegame;
+
+          for (i = mainwadfile; i < array_size(wadfiles); i++)
+          {
+              if (FileContainsMaps(wadfiles[i]))
+              {
+                  wadname = wadfiles[i];
+                  break;
+              }
+          }
+
+          basesavegame =
+              M_StringJoin(oldsavegame, DIR_SEPARATOR_S, "savegames", NULL);
+          free(oldsavegame);
+
+          M_MakeDirectory(basesavegame);
+
+          oldsavegame = basesavegame;
+          basesavegame = M_StringJoin(oldsavegame, DIR_SEPARATOR_S,
+                                      M_BaseName(wadname), NULL);
+          free(oldsavegame);
+
+          M_MakeDirectory(basesavegame);
+      }
+  }
+
+  I_Printf(VB_INFO, "Savegame directory: %s\n", basesavegame);
 
   V_InitColorTranslation(); //jff 4/24/98 load color translation lumps
 
@@ -2871,33 +2636,58 @@ void D_DoomMain(void)
     }
   }
 
-  if ((p = M_CheckParm ("-fastdemo")) && ++p < myargc)
-    {                                 // killough
-      fastdemo = true;                // run at fastest speed possible
-      timingdemo = true;              // show stats after quit
+  //!
+  // @arg <demo>
+  // @category demo
+  //
+  // Plays the given demo as fast as possible.
+  //
+
+  if ((p = M_CheckParm("-fastdemo")) && ++p < myargc)
+  {                      // killough
+      fastdemo = true;   // run at fastest speed possible
+      timingdemo = true; // show stats after quit
       G_DeferedPlayDemo(myargv[p]);
-      singledemo = true;              // quit after one demo
-    }
+      singledemo = true; // quit after one demo
+  }
+
+  //!
+  // @arg <demo>
+  // @category demo
+  // @vanilla
+  //
+  // Play back the demo named demo.lmp, determining the framerate
+  // of the screen.
+  //
+
+  else if ((p = M_CheckParm("-timedemo")) && ++p < myargc)
+  {
+      singletics = true;
+      timingdemo = true; // show stats after quit
+      G_DeferedPlayDemo(myargv[p]);
+      singledemo = true; // quit after one demo
+  }
+
+  //!
+  // @arg <demo>
+  // @category demo
+  // @vanilla
+  // @help
+  //
+  // Play back the demo named demo.lmp.
+  //
+
+  else if ((p = M_CheckParm("-playdemo")) && ++p < myargc)
+  {
+      G_DeferedPlayDemo(myargv[p]);
+      singledemo = true; // quit after one demo
+  }
   else
-    if ((p = M_CheckParm("-timedemo")) && ++p < myargc)
-      {
-	singletics = true;
-	timingdemo = true;            // show stats after quit
-	G_DeferedPlayDemo(myargv[p]);
-	singledemo = true;            // quit after one demo
-      }
-    else
-      if ((p = M_CheckParm("-playdemo")) && ++p < myargc)
-	{
-	  G_DeferedPlayDemo(myargv[p]);
-	  singledemo = true;          // quit after one demo
-	}
-	else
-	  {
-	    // [FG] no demo playback
-	    playback_warp = -1;
-	    playback_skiptics = 0;
-	  }
+  {
+      // [FG] no demo playback
+      playback_warp = -1;
+      playback_skiptics = 0;
+  }
 
   if (fastdemo)
   {
@@ -2966,8 +2756,6 @@ void D_BindMiscVariables(void)
     "Organize save files");
   M_BindStr("net_player_name", &net_player_name, DEFAULT_PLAYER_NAME, wad_no,
     "Network setup player name");
-  BIND_NUM(default_verbosity, VB_INFO, VB_ERROR, VB_MAX - 1,
-    "Verbosity level (1 = Errors only; 2 = Warnings; 3 = Info; 4 = Debug)");
 
   M_BindBool("colored_blood", &colored_blood, NULL, false, ss_enem, wad_no,
              "Allow colored blood");

@@ -24,6 +24,8 @@
 #include "doomtype.h"
 
 boolean M_FileExists(const char *file);
+boolean M_DirExists(const char *path);
+int M_FileLength(const char *path);
 char *M_TempFile(const char *s);
 char *M_FileCaseExists(const char *file);
 boolean M_StrToInt(const char *str, int *result);
