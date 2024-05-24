@@ -2140,50 +2140,6 @@ void D_DoomMain(void)
 
   D_AutoloadPWadDir(AutoLoadWADs);
 
-  //!
-  // @arg <demo>
-  // @category demo
-  // @vanilla
-  // @help
-  //
-  // Play back the demo named demo.lmp.
-  //
-
-  if (!(p = M_CheckParm("-playdemo")) || p >= myargc-1)    // killough
-  {
-
-    //!
-    // @arg <demo>
-    // @category demo
-    //
-    // Plays the given demo as fast as possible.
-    //
-
-    if ((p = M_CheckParm ("-fastdemo")) && p < myargc-1)   // killough
-      fastdemo = true;             // run at fastest speed possible
-    else
-    {
-      //!
-      // @arg <demo>
-      // @category demo
-      // @vanilla
-      //
-      // Play back the demo named demo.lmp, determining the framerate
-      // of the screen.
-      //
-
-      p = M_CheckParm ("-timedemo");
-
-      if (!p)
-        p = M_CheckParm("-recordfromto");
-    }
-  }
-
-  if (p && p < myargc - 1)
-  {
-      I_Printf(VB_INFO, "Playing demo %s", myargv[p + 1]);
-  }
-
   // get skill / episode / map from parms
 
   startskill = sk_default; // jff 3/24/98 was sk_medium, just note not picked
@@ -2732,33 +2688,58 @@ void D_DoomMain(void)
     }
   }
 
-  if ((p = M_CheckParm ("-fastdemo")) && ++p < myargc)
-    {                                 // killough
-      fastdemo = true;                // run at fastest speed possible
-      timingdemo = true;              // show stats after quit
+  //!
+  // @arg <demo>
+  // @category demo
+  //
+  // Plays the given demo as fast as possible.
+  //
+
+  if ((p = M_CheckParm("-fastdemo")) && ++p < myargc)
+  {                      // killough
+      fastdemo = true;   // run at fastest speed possible
+      timingdemo = true; // show stats after quit
       G_DeferedPlayDemo(myargv[p]);
-      singledemo = true;              // quit after one demo
-    }
+      singledemo = true; // quit after one demo
+  }
+
+  //!
+  // @arg <demo>
+  // @category demo
+  // @vanilla
+  //
+  // Play back the demo named demo.lmp, determining the framerate
+  // of the screen.
+  //
+
+  else if ((p = M_CheckParm("-timedemo")) && ++p < myargc)
+  {
+      singletics = true;
+      timingdemo = true; // show stats after quit
+      G_DeferedPlayDemo(myargv[p]);
+      singledemo = true; // quit after one demo
+  }
+
+  //!
+  // @arg <demo>
+  // @category demo
+  // @vanilla
+  // @help
+  //
+  // Play back the demo named demo.lmp.
+  //
+
+  else if ((p = M_CheckParm("-playdemo")) && ++p < myargc)
+  {
+      G_DeferedPlayDemo(myargv[p]);
+      singledemo = true; // quit after one demo
+  }
   else
-    if ((p = M_CheckParm("-timedemo")) && ++p < myargc)
-      {
-	singletics = true;
-	timingdemo = true;            // show stats after quit
-	G_DeferedPlayDemo(myargv[p]);
-	singledemo = true;            // quit after one demo
-      }
-    else
-      if ((p = M_CheckParm("-playdemo")) && ++p < myargc)
-	{
-	  G_DeferedPlayDemo(myargv[p]);
-	  singledemo = true;          // quit after one demo
-	}
-	else
-	  {
-	    // [FG] no demo playback
-	    playback_warp = -1;
-	    playback_skiptics = 0;
-	  }
+  {
+      // [FG] no demo playback
+      playback_warp = -1;
+      playback_skiptics = 0;
+  }
 
   if (fastdemo)
   {

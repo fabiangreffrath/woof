@@ -1961,12 +1961,18 @@ static void G_DoPlayDemo(void)
       Z_Free(demobuffer);
   }
 
-  char *path = D_TryFindWADByName(defdemoname);
-  if (M_FileExists(path))
+  char *filename = NULL;
+  if (singledemo)
   {
-      M_ReadFile(path, &demobuffer);
-      demolength = M_FileLength(path);
+      filename = D_FindLMPByName(defdemoname);
+  }
+
+  if (singledemo && filename)
+  {
+      M_ReadFile(filename, &demobuffer);
+      demolength = M_FileLength(filename);
       demo_p = demobuffer;
+      I_Printf(VB_INFO, "G_DoPlayDemo: %s", filename);
   }
   else
   {
@@ -1975,6 +1981,7 @@ static void G_DoPlayDemo(void)
       int lumpnum = W_GetNumForName(lumpname);
       demolength = W_LumpLength(lumpnum);
       demobuffer = demo_p = W_CacheLumpNum(lumpnum, PU_STATIC);  // killough
+      I_Printf(VB_INFO, "G_DoPlayDemo: %s (%s)", lumpname, W_WadNameForLump(lumpnum));
   }
 
   // [FG] ignore too short demo lumps

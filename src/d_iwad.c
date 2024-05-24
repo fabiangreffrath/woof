@@ -718,6 +718,22 @@ char *D_TryFindWADByName(const char *filename)
     }
 }
 
+char *D_FindLMPByName(const char *filename)
+{
+    char *result;
+
+    if (!strrchr(M_BaseName(filename), '.'))
+    {
+        result = FindWithExtensions(filename, ".lmp", NULL);
+    }
+    else
+    {
+        result = D_FindWADByName(filename);
+    }
+
+    return result;
+}
+
 //
 // D_FindIWADFile
 //
