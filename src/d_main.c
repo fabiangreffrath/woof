@@ -951,6 +951,21 @@ static boolean FileContainsMaps(const char *filename)
     return false;
 }
 
+static void PrintVersion(const char *iwad)
+{
+    I_Printf(VB_INFO, "IWAD found: %s", iwad); // jff 4/20/98 print only if
+                                               // found
+
+    I_Printf(VB_INFO, "%s\n", D_GetIWADDescription(M_BaseName(iwad), gamemode,
+                                                   gamemission));
+
+    if (gamemode == indetermined)
+    {
+        I_Printf(VB_WARNING,
+                 "Unknown Game Version, may not work\n"); // killough 8/8/98
+    }
+}
+
 //
 // IdentifyVersion
 //
@@ -972,140 +987,86 @@ static boolean FileContainsMaps(const char *filename)
 //
 // jff 4/19/98 rewritten to use a more advanced search algorithm
 
-void IdentifyVersion (void)
+void IdentifyVersion(void)
 {
-  int         i;    //jff 3/24/98 index of args on commandline
-  char *iwad;
+    // get config file from same directory as executable
+    // killough 10/98
 
-  // get config file from same directory as executable
-  // killough 10/98
-  if (basedefault) free(basedefault);
-  basedefault = M_StringJoin(D_DoomPrefDir(), DIR_SEPARATOR_S, D_DoomExeName(), ".cfg", NULL);
+    basedefault = M_StringJoin(D_DoomPrefDir(), DIR_SEPARATOR_S,
+                               D_DoomExeName(), ".cfg", NULL);
 
-  // set save path to -save parm or current dir
+    // set save path to -save parm or current dir
 
-  screenshotdir = M_StringDuplicate("."); // [FG] default to current dir
+    screenshotdir = M_StringDuplicate("."); // [FG] default to current dir
 
-  basesavegame = M_StringDuplicate(D_DoomPrefDir());       //jff 3/27/98 default to current dir
+    basesavegame = M_StringDuplicate(
+        D_DoomPrefDir()); // jff 3/27/98 default to current dir
 
-  //!
-  // @arg <directory>
-  //
-  // Specify a path from which to load and save games. If the directory
-  // does not exist then it will automatically be created.
-  //
+    //!
+    // @arg <directory>
+    //
+    // Specify a path from which to load and save games. If the directory
+    // does not exist then it will automatically be created.
+    //
 
-  i = M_CheckParmWithArgs("-save", 1);
-  if (i > 0)
-  {
-    if (basesavegame)
-      free(basesavegame);
-    basesavegame = M_StringDuplicate(myargv[i + 1]);
-
-    M_MakeDirectory(basesavegame);
-
-    // [FG] fall back to -save parm
-    if (screenshotdir)
-      free(screenshotdir);
-    screenshotdir = M_StringDuplicate(basesavegame);
-  }
-
-  //!
-  // @arg <directory>
-  //
-  // Specify a path to save screenshots. If the directory does not
-  // exist then it will automatically be created.
-  //
-
-  i = M_CheckParmWithArgs("-shotdir", 1);
-  if (i > 0)
-  {
-    if (screenshotdir)
-      free(screenshotdir);
-    screenshotdir = M_StringDuplicate(myargv[i + 1]);
-
-    M_MakeDirectory(screenshotdir);
-  }
-
-  // locate the IWAD and determine game mode from it
-
-  iwad = D_FindIWADFile(&gamemode, &gamemission);
-
-  if (iwad && *iwad)
+    int p = M_CheckParmWithArgs("-save", 1);
+    if (p > 0)
     {
-      if (gamemode == indetermined)
-        CheckIWAD(iwad);
+        if (basesavegame)
+        {
+            free(basesavegame);
+        }
+        basesavegame = M_StringDuplicate(myargv[p + 1]);
 
-      D_AddFile(iwad);
+        M_MakeDirectory(basesavegame);
+
+        // [FG] fall back to -save parm
+        if (screenshotdir)
+        {
+            free(screenshotdir);
+        }
+        screenshotdir = M_StringDuplicate(basesavegame);
     }
-  else
-    I_Error("IWAD not found");
-}
 
-static void PrintVersion(void)
-{
-  int i;
-  const char *iwad = wadfiles[0];
+    //!
+    // @arg <directory>
+    //
+    // Specify a path to save screenshots. If the directory does not
+    // exist then it will automatically be created.
+    //
 
-  I_Printf(VB_INFO, "IWAD found: %s",iwad); //jff 4/20/98 print only if found
+    p = M_CheckParmWithArgs("-shotdir", 1);
+    if (p > 0)
+    {
+        if (screenshotdir)
+        {
+            free(screenshotdir);
+        }
+        screenshotdir = M_StringDuplicate(myargv[p + 1]);
 
-  switch(gamemode)
-  {
-    case retail:
-      if (gamemission == pack_chex)
-        I_Printf(VB_INFO, "Chex(R) Quest\n");
-      else if (gamemission == pack_rekkr)
-        I_Printf(VB_INFO, "REKKR\n");
-      else
-      I_Printf(VB_INFO, "Ultimate DOOM version\n");  // killough 8/8/98
-      break;
+        M_MakeDirectory(screenshotdir);
+    }
 
-    case registered:
-      I_Printf(VB_INFO, "DOOM Registered version\n");
-      break;
+    // locate the IWAD and determine game mode from it
 
-    case shareware:
-      I_Printf(VB_INFO, "DOOM Shareware version\n");
-      break;
+    char *iwad = D_FindIWADFile(&gamemode, &gamemission);
 
-    case commercial:
+    if (iwad)
+    {
+        if (gamemode == indetermined)
+        {
+            CheckIWAD(iwad);
+        }
 
-      // joel 10/16/98 Final DOOM fix
-      switch (gamemission)
-      {
-        case pack_hacx:
-          I_Printf(VB_INFO, "HACX: Twitch n' Kill\n");
-          break;
+        PrintVersion(iwad);
 
-        case pack_tnt:
-          I_Printf(VB_INFO, "Final DOOM: TNT - Evilution version\n");
-          break;
-
-        case pack_plut:
-          I_Printf(VB_INFO, "Final DOOM: The Plutonia Experiment version\n");
-          break;
-
-        case doom2:
-        default:
-
-          i = strlen(iwad);
-          if (i>=10 && !strncasecmp(iwad+i-10,"doom2f.wad",10))
-            {
-              language=french;
-              I_Printf(VB_INFO, "DOOM II version, French language\n");  // killough 8/8/98
-            }
-          else
-            I_Printf(VB_INFO, "DOOM II version\n");
-          break;
-      }
-      // joel 10/16/88 end Final DOOM fix
-
-    default:
-      break;
-  }
-
-  if (gamemode == indetermined)
-    I_Printf(VB_WARNING, "Unknown Game Version, may not work\n");  // killough 8/8/98
+        I_Printf(VB_INFO, "W_Init: Init WADfiles.");
+        D_AddFile(iwad);
+    }
+    else
+    {
+        I_Error("IWAD not found");
+    }
 }
 
 // [FG] emulate a specific version of Doom
@@ -1889,6 +1850,11 @@ void D_DoomMain(void)
     I_SafeExit(0);
   }
 
+  // [FG] initialize logging verbosity early to decide
+  //      if the following lines will get printed or not
+
+  I_InitPrintf();
+
   // Don't check undocumented options if -devparm is set
   if (!M_ParmExists("-devparm"))
   {
@@ -1906,11 +1872,11 @@ void D_DoomMain(void)
 
   if (M_CheckParm("-dedicated") > 0)
   {
-          I_Printf(VB_INFO, "Dedicated server mode.");
-          I_InitTimer();
-          NET_DedicatedServer();
+      I_Printf(VB_INFO, "Dedicated server mode.");
+      I_InitTimer();
+      NET_DedicatedServer();
 
-          // Never returns
+      // Never returns
   }
 
   // killough 10/98: set default savename based on executable's name
@@ -2332,9 +2298,9 @@ void D_DoomMain(void)
 
   M_InitConfig();
 
-  M_LoadDefaults();  // load before initing other systems
+  I_PutChar(VB_INFO, '\n');
 
-  PrintVersion();
+  M_LoadDefaults();  // load before initing other systems
 
   bodyquesize = default_bodyquesize; // killough 10/98
 
@@ -2342,7 +2308,6 @@ void D_DoomMain(void)
 
   // init subsystems
 
-  I_Printf(VB_INFO, "W_Init: Init WADfiles.");
   W_InitMultipleFiles();
 
   // Check for wolf levels
@@ -2791,8 +2756,6 @@ void D_BindMiscVariables(void)
     "Organize save files");
   M_BindStr("net_player_name", &net_player_name, DEFAULT_PLAYER_NAME, wad_no,
     "Network setup player name");
-  BIND_NUM(default_verbosity, VB_INFO, VB_ERROR, VB_MAX - 1,
-    "Verbosity level (1 = Errors only; 2 = Warnings; 3 = Info; 4 = Debug)");
 
   M_BindBool("colored_blood", &colored_blood, NULL, false, ss_enem, wad_no,
              "Allow colored blood");

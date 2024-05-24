@@ -37,5 +37,7 @@ char *D_FindIWADFile(GameMode_t *mode, GameMission_t *mission);
 boolean D_IsIWADName(const char *name);
 const iwad_t **D_GetIwads(void);
 GameMission_t D_GetGameMissionByIWADName(const char *name);
+const char *D_GetIWADDescription(const char *name, GameMode_t mode,
+                                 GameMission_t mission);
 
 #endif

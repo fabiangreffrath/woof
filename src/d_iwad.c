@@ -720,18 +720,14 @@ char *D_TryFindWADByName(const char *filename)
 
 char *D_FindLMPByName(const char *filename)
 {
-    char *result;
-
     if (!strrchr(M_BaseName(filename), '.'))
     {
-        result = FindWithExtensions(filename, ".lmp", NULL);
+        return FindWithExtensions(filename, ".lmp", NULL);
     }
     else
     {
-        result = D_FindWADByName(filename);
+        return D_FindWADByName(filename);
     }
-
-    return result;
 }
 
 //
@@ -858,4 +854,18 @@ GameMission_t D_GetGameMissionByIWADName(const char *name)
     }
 
     return none;
+}
+
+const char *D_GetIWADDescription(const char *name, GameMode_t mode,
+                                 GameMission_t mission)
+{
+    for (int i = 0; i < arrlen(iwads); ++i)
+    {
+        if (!strcasecmp(name, iwads[i].name) && mode == iwads[i].mode
+            && mission == iwads[i].mission)
+        {
+            return iwads[i].description;
+        }
+    }
+    return "Unknown";
 }

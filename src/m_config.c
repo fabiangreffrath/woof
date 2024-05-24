@@ -698,22 +698,17 @@ void M_LoadDefaults(void)
 
     defaults_loaded = true; // killough 10/98
 
-    // [FG] initialize logging verbosity early to decide
-    //      if the following lines will get printed or not
-
-    I_InitPrintf();
-
     I_Printf(VB_INFO, "M_LoadDefaults: Load system defaults.");
 
     if (f)
     {
-        I_Printf(VB_INFO, " default file: %s\n", defaultfile);
+        I_Printf(VB_INFO, " default file: %s", defaultfile);
         fclose(f);
     }
     else
     {
         I_Printf(VB_WARNING,
-                 " Warning: Cannot read %s -- using built-in defaults\n",
+                 " Warning: Cannot read %s -- using built-in defaults",
                  defaultfile);
     }
 }
