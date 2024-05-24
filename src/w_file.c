@@ -37,18 +37,81 @@ static int FileLength(int descriptor)
    return st.st_size;
 }
 
-static int *descriptors = NULL;
-static char *base_path;
+static void W_FILE_AddDir(w_handle_t handle, const char *path,
+                          const char *start_marker, const char *end_marker)
+{
+    int startlump = numlumps;
 
-static w_type_t W_OpenFile(const char *path, w_handle_t *handle)
+    glob_t *glob;
+
+    if (!strcmp(path, "."))
+    {
+        glob = I_StartGlob(handle.p1.base_path, "*.*",
+                           GLOB_FLAG_NOCASE | GLOB_FLAG_SORTED);
+    }
+    else
+    {
+        char *s = M_StringJoin(handle.p1.base_path, DIR_SEPARATOR_S, path, NULL);
+        glob = I_StartGlob(s, "*.*", GLOB_FLAG_NOCASE | GLOB_FLAG_SORTED);
+        free(s);
+    }
+
+    if (!glob)
+    {
+        return;
+    }
+
+    while (true)
+    {
+        const char *filename = I_NextGlob(glob);
+        if (filename == NULL)
+        {
+            break;
+        }
+
+        if (W_SkipFile(filename))
+        {
+            continue;
+        }
+
+        if (startlump == numlumps && start_marker)
+        {
+            W_AddMarker(start_marker);
+        }
+
+        int descriptor = M_open(filename, O_RDONLY | O_BINARY);
+        if (descriptor == -1)
+        {
+            I_Error("Error: opening %s", filename);
+        }
+
+        I_Printf(VB_INFO, " adding %s", filename);
+
+        lumpinfo_t item = {0};
+        W_ExtractFileBase(filename, item.name);
+        item.size = FileLength(descriptor);
+
+        item.module = &w_file_module;
+        w_handle_t local_handle = {.p1.descriptor = descriptor};
+        item.handle = local_handle;
+
+        array_push(lumpinfo, item);
+        numlumps++;
+    }
+
+    if (numlumps > startlump && end_marker)
+    {
+        W_AddMarker(end_marker);
+    }
+}
+
+static int *descriptors = NULL;
+
+static w_type_t W_FILE_Open(const char *path, w_handle_t *handle)
 {
     if (M_DirExists(path))
     {
-        if (base_path)
-        {
-            free(base_path);
-        }
-        base_path = M_StringDuplicate(path);
+        handle->p1.base_path = M_StringDuplicate(path);
         return W_DIR;
     }
 
@@ -69,7 +132,7 @@ static w_type_t W_OpenFile(const char *path, w_handle_t *handle)
         array_push(descriptors, descriptor);
 
         lumpinfo_t item = {0};
-        W_ExtractFileBase(base_path, item.name);
+        W_ExtractFileBase(path, item.name);
         item.size = FileLength(descriptor);
         item.module = &w_file_module;
         item.handle = local_handle;
@@ -84,8 +147,8 @@ static w_type_t W_OpenFile(const char *path, w_handle_t *handle)
 
     if (read(descriptor, &header, sizeof(header)) == 0)
     {
-        I_Printf(VB_WARNING, "Error reading header from %s (%s)",
-                 base_path, strerror(errno));
+        I_Printf(VB_WARNING, "Error reading header from %s (%s)", path,
+                 strerror(errno));
         close(descriptor);
         return W_NONE;
     }
@@ -100,7 +163,7 @@ static w_type_t W_OpenFile(const char *path, w_handle_t *handle)
     header.numlumps = LONG(header.numlumps);
     if (header.numlumps == 0)
     {
-        I_Printf(VB_WARNING, "Wad file %s is empty", base_path);
+        I_Printf(VB_WARNING, "Wad file %s is empty", path);
         close(descriptor);
         return W_NONE;
     }
@@ -157,74 +220,7 @@ static w_type_t W_OpenFile(const char *path, w_handle_t *handle)
     return W_FILE;
 }
 
-static void W_AddDir(w_handle_t handle, const char *path,
-                     const char *start_marker, const char *end_marker)
-{
-    int startlump = numlumps;
-
-    glob_t *glob;
-
-    if (!strcmp(path, "."))
-    {
-        glob = I_StartGlob(base_path, "*.*", GLOB_FLAG_NOCASE | GLOB_FLAG_SORTED);
-    }
-    else
-    {
-        char *s = M_StringJoin(base_path, DIR_SEPARATOR_S, path, NULL);
-        glob = I_StartGlob(s, "*.*", GLOB_FLAG_NOCASE | GLOB_FLAG_SORTED);
-        free(s);
-    }
-
-    if (!glob)
-    {
-        return;
-    }
-
-    while (true)
-    {
-        const char *filename = I_NextGlob(glob);
-        if (filename == NULL)
-        {
-            break;
-        }
-
-        if (W_SkipFile(filename))
-        {
-            continue;
-        }
-
-        if (startlump == numlumps && start_marker)
-        {
-            W_AddMarker(start_marker);
-        }
-
-        int descriptor = M_open(filename, O_RDONLY | O_BINARY);
-        if (descriptor == -1)
-        {
-            I_Error("Error: opening %s", filename);
-        }
-
-        I_Printf(VB_INFO, " adding %s", filename);
-
-        lumpinfo_t item = {0};
-        W_ExtractFileBase(filename, item.name);
-        item.size = FileLength(descriptor);
-
-        item.module = &w_file_module;
-        w_handle_t local_handle = {.p1.descriptor = descriptor};
-        item.handle = local_handle;
-
-        array_push(lumpinfo, item);
-        numlumps++;
-    }
-
-    if (numlumps > startlump && end_marker)
-    {
-        W_AddMarker(end_marker);
-    }
-}
-
-static void W_ReadFile(w_handle_t handle, void *dest, int size)
+static void W_FILE_Read(w_handle_t handle, void *dest, int size)
 {
     lseek(handle.p1.descriptor, handle.p2.position, SEEK_SET);
     int bytesread = read(handle.p1.descriptor, dest, size);
@@ -234,7 +230,7 @@ static void W_ReadFile(w_handle_t handle, void *dest, int size)
     }
 }
 
-static void W_CloseFiles(void)
+static void W_FILE_Close(void)
 {
     for (int i = 0; i < array_size(descriptors); ++i)
     {
@@ -244,8 +240,8 @@ static void W_CloseFiles(void)
 
 w_module_t w_file_module =
 {
-    W_AddDir,
-    W_OpenFile,
-    W_ReadFile,
-    W_CloseFiles
+    W_FILE_AddDir,
+    W_FILE_Open,
+    W_FILE_Read,
+    W_FILE_Close
 };

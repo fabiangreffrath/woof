@@ -137,8 +137,8 @@ static void W_ZIP_AddDir(w_handle_t handle, const char *path,
         item.size = stat.m_uncomp_size;
 
         item.module = &w_zip_module;
-        w_handle_t handle = {.p1.zip = zip, .p2.index = i};
-        item.handle = handle;
+        w_handle_t local_handle = {.p1.zip = zip, .p2.index = i};
+        item.handle = local_handle;
 
         array_push(lumpinfo, item);
         numlumps++;
@@ -161,6 +161,8 @@ static w_type_t W_ZIP_Open(const char *path, w_handle_t *handle)
         free(zip);
         return W_NONE;
     }
+
+    I_Printf(VB_INFO, " adding %s", path);
 
     handle->p1.zip = zip;
     array_push(zips, zip);

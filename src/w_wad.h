@@ -70,6 +70,7 @@ typedef struct
     union
     {
         void *zip;
+        const char *base_path;
         int descriptor;
     } p1;
 
