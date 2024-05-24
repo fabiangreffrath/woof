@@ -904,67 +904,51 @@ static void CheckIWAD(const char *iwadname)
     }
 }
 
+static boolean CheckMapLump(const char *lumpname, const char *filename)
+{
+    int lumpnum = W_CheckNumForName(lumpname);
+    if (lumpnum >= 0 && lumpinfo[lumpnum].wad_file == filename)
+    {
+        return true;
+    }
+    return false;
+}
+
 static boolean FileContainsMaps(const char *filename)
 {
-    int i;
-    FILE *file = NULL;
-    wadinfo_t header;
-    filelump_t *fileinfo = NULL;
-    boolean ret = false;
-
-    while (ret == false)
+    for (int i = 0; i < U_mapinfo.mapcount; ++i)
     {
-        if (filename == NULL || M_StringCaseEndsWith(filename, ".wad") == false)
+        if (CheckMapLump(U_mapinfo.maps[i].mapname, filename))
         {
-            break;
+            return true;
         }
-
-        file = M_fopen(filename, "rb");
-
-        if (file == NULL)
-        {
-            break;
-        }
-
-        if (fread(&header, sizeof(header), 1, file) != 1)
-        {
-            break;
-        }
-
-        if (strncmp(header.identification, "IWAD", 4) &&
-            strncmp(header.identification, "PWAD", 4))
-        {
-            break;
-        }
-
-        header.numlumps = LONG(header.numlumps);
-        header.infotableofs = LONG(header.infotableofs);
-        fileinfo = malloc(header.numlumps * sizeof(filelump_t));
-
-        if (fseek(file, header.infotableofs, SEEK_SET) ||
-            fread(fileinfo, sizeof(filelump_t), header.numlumps, file) != header.numlumps)
-        {
-            break;
-        }
-
-        for (i = 0; i < header.numlumps; i++)
-        {
-            if (MN_StartsWithMapIdentifier(fileinfo[i].name))
-            {
-                ret = true;
-                break;
-            }
-        }
-
-        break;
     }
 
-    if (fileinfo)
-        free(fileinfo);
-    if (file)
-        fclose(file);
+    if (gamemode == commercial)
+    {
+        for (int m = 1; m < 35; ++m)
+        {
+            if (CheckMapLump(MAPNAME(1, m), filename))
+            {
+                return true;
+            }
+        }
+    }
+    else
+    {
+        for (int e = 1; e < 5; ++e)
+        {
+            for (int m = 1; m < 10; ++m)
+            {
+                if (CheckMapLump(MAPNAME(e, m), filename))
+                {
+                    return true;
+                }
+            }
+        }
+    }
 
-    return ret;
+    return false;
 }
 
 //
@@ -2352,52 +2336,6 @@ void D_DoomMain(void)
 
   PrintVersion();
 
-  if (!M_CheckParm("-save"))
-  {
-    if (organize_savefiles == -1)
-    {
-      // [FG] check for at least one savegame in the old location
-      glob_t *glob = I_StartMultiGlob(basesavegame,
-                                      GLOB_FLAG_NOCASE|GLOB_FLAG_SORTED,
-                                      "*.dsg", NULL);
-
-      organize_savefiles = (I_NextGlob(glob) == NULL);
-
-      I_EndGlob(glob);
-    }
-
-    if (organize_savefiles)
-    {
-      int i;
-      const char *wadname = wadfiles[0];
-      char *oldsavegame = basesavegame;
-
-      for (i = mainwadfile; i < array_size(wadfiles); i++)
-      {
-        if (FileContainsMaps(wadfiles[i]))
-        {
-          wadname = wadfiles[i];
-          break;
-        }
-      }
-
-      basesavegame = M_StringJoin(oldsavegame, DIR_SEPARATOR_S,
-                                  "savegames", NULL);
-      free(oldsavegame);
-
-      M_MakeDirectory(basesavegame);
-
-      oldsavegame = basesavegame;
-      basesavegame = M_StringJoin(oldsavegame, DIR_SEPARATOR_S,
-                                  M_BaseName(wadname), NULL);
-      free(oldsavegame);
-
-      M_MakeDirectory(basesavegame);
-    }
-  }
-
-  I_Printf(VB_INFO, "Savegame directory: %s\n", basesavegame);
-
   bodyquesize = default_bodyquesize; // killough 10/98
 
   // 1/18/98 killough: Z_Init call moved to i_main.c
@@ -2485,6 +2423,51 @@ void D_DoomMain(void)
     W_ProcessInWads("UMAPINFO", U_ParseMapInfo, true);
     W_ProcessInWads("UMAPINFO", U_ParseMapInfo, false);
   }
+
+  if (!M_CheckParm("-save"))
+  {
+      if (organize_savefiles == -1)
+      {
+          // [FG] check for at least one savegame in the old location
+          glob_t *glob = I_StartMultiGlob(
+              basesavegame, GLOB_FLAG_NOCASE | GLOB_FLAG_SORTED, "*.dsg", NULL);
+
+          organize_savefiles = (I_NextGlob(glob) == NULL);
+
+          I_EndGlob(glob);
+      }
+
+      if (organize_savefiles)
+      {
+          int i;
+          const char *wadname = wadfiles[0];
+          char *oldsavegame = basesavegame;
+
+          for (i = mainwadfile; i < array_size(wadfiles); i++)
+          {
+              if (FileContainsMaps(wadfiles[i]))
+              {
+                  wadname = wadfiles[i];
+                  break;
+              }
+          }
+
+          basesavegame =
+              M_StringJoin(oldsavegame, DIR_SEPARATOR_S, "savegames", NULL);
+          free(oldsavegame);
+
+          M_MakeDirectory(basesavegame);
+
+          oldsavegame = basesavegame;
+          basesavegame = M_StringJoin(oldsavegame, DIR_SEPARATOR_S,
+                                      M_BaseName(wadname), NULL);
+          free(oldsavegame);
+
+          M_MakeDirectory(basesavegame);
+      }
+  }
+
+  I_Printf(VB_INFO, "Savegame directory: %s\n", basesavegame);
 
   V_InitColorTranslation(); //jff 4/24/98 load color translation lumps
 
