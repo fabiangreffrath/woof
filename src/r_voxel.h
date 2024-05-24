@@ -21,8 +21,6 @@ void VX_Init (void);
 
 void VX_ClearVoxels (void);
 
-void VX_NearbySprites (void);
-
 struct mobj_s;
 boolean VX_ProjectVoxel (struct mobj_s * thing);
 

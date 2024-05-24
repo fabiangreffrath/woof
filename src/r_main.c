@@ -938,7 +938,6 @@ void R_RenderPlayerView (player_t* player)
   R_RenderBSPNode (numnodes-1);
 
   R_NearbySprites ();
-  VX_NearbySprites ();
 
   // [FG] update automap while playing
   if (automap_on)
