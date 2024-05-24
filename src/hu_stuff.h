@@ -29,6 +29,7 @@ struct mobj_s;
 #define HU_BROADCAST    5
 
 #define HU_MSGTIMEOUT   (4*TICRATE)
+#define HU_MSGTIMEOUT2  (5*TICRATE/2) // [crispy] 2.5 seconds
 
 //
 // Heads up text
@@ -61,6 +62,7 @@ extern boolean hud_displayed;   // hud is displayed
 //jff 2/18/98 hud/status control
 extern int hud_active;      // hud mode 0=off, 1=small, 2=full
 extern boolean hud_secret_message; // "A secret is revealed!" message
+extern boolean hud_map_announce;
 extern int hud_player_coords, hud_level_stats, hud_level_time;
 extern boolean hud_widescreen_widgets;
 extern boolean hud_time_use;

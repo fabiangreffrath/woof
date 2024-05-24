@@ -1492,8 +1492,8 @@ static setup_menu_t stat_settings3[] = {
 };
 
 static setup_menu_t stat_settings4[] = {
-    {"\"A Secret is Revealed!\" Message", S_ONOFF, M_X, M_SPC,
-     {"hud_secret_message"}},
+    {"Announce Revealed Secrets", S_ONOFF, M_X, M_SPC, {"hud_secret_message"}},
+    {"Announce Map Titles",  S_ONOFF, M_X, M_SPC, {"hud_map_announce"}},
     {"Show Toggle Messages", S_ONOFF, M_X, M_SPC, {"show_toggle_messages"}},
     {"Show Pickup Messages", S_ONOFF, M_X, M_SPC, {"show_pickup_messages"}},
     {"Show Obituaries",      S_ONOFF, M_X, M_SPC, {"show_obituary_messages"}},
