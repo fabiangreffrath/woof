@@ -149,7 +149,7 @@ boolean W_AddPath(const char *path)
         }
     }
 
-    if (result == W_NONE)
+    if (result == W_NONE || !active_module)
     {
         return false;
     }
