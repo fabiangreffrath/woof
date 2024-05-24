@@ -317,7 +317,6 @@ void VX_Init (void)
 #define VX_MINZ         (   4 * FRACUNIT)
 #define VX_MAX_DIST     (2048 * FRACUNIT)
 #define VX_MIN_DIST     ( 512 * FRACUNIT)
-#define VX_NEAR_RADIUS  ( 512 * FRACUNIT)
 
 static int vx_max_dist = VX_MAX_DIST;
 
