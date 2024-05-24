@@ -28,20 +28,20 @@
 #include "m_misc.h"
 
 static const iwad_t iwads[] = {
-    {"doom2.wad",     doom2,      commercial,   "Doom II"                        },
-    {"plutonia.wad",  pack_plut,  commercial,   "Final Doom: Plutonia Experiment"},
-    {"tnt.wad",       pack_tnt,   commercial,   "Final Doom: TNT: Evilution"     },
+    {"doom2.wad",     doom2,      commercial,   "DOOM II: Hell on Earth"         },
+    {"plutonia.wad",  pack_plut,  commercial,   "Final DOOM: Plutonia Experiment"},
+    {"tnt.wad",       pack_tnt,   commercial,   "Final DOOM: TNT - Evilution"    },
     // "doom.wad" may be retail or registered
-    {"doom.wad",      doom,       indetermined, "Doom"                           },
-    {"doom.wad",      doom,       registered,   "Doom Registered"                },
-    {"doom.wad",      doom,       retail,       "Ultimate Doom"                  },
-    {"doom1.wad",     doom,       shareware,    "Doom Shareware"                 },
-    {"doom2f.wad",    doom2,      commercial,   "Doom II: L'Enfer sur Terre"     },
+    {"doom.wad",      doom,       indetermined, "DOOM"                           },
+    {"doom.wad",      doom,       registered,   "DOOM Registered"                },
+    {"doom.wad",      doom,       retail,       "The Ultimate DOOM"              },
+    {"doom1.wad",     doom,       shareware,    "DOOM Shareware"                 },
+    {"doom2f.wad",    doom2,      commercial,   "DOOM II: L'Enfer sur Terre"     },
     {"freedoom2.wad", doom2,      commercial,   "Freedoom: Phase 2"              },
     {"freedoom1.wad", doom,       retail,       "Freedoom: Phase 1"              },
     {"freedm.wad",    doom2,      commercial,   "FreeDM"                         },
     {"chex.wad",      pack_chex,  retail,       "Chex Quest"                     },
-    {"hacx.wad",      pack_hacx,  commercial,   "Hacx"                           },
+    {"hacx.wad",      pack_hacx,  commercial,   "HACX: Twitch n' Kill"           },
     {"rekkrsa.wad",   pack_rekkr, retail,       "REKKR"                          },
     {"rekkrsl.wad",   pack_rekkr, retail,       "REKKR: Sunken Land"             },
 };
