@@ -24,7 +24,7 @@
 static void AddWadInMem(mz_zip_archive *zip, const char *name, int index,
                         size_t data_size)
 {
-    I_Printf(VB_INFO, " adding %s", name);
+    I_Printf(VB_INFO, " - adding %s", name);
 
     byte *data = malloc(data_size);
 
