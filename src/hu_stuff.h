@@ -62,7 +62,6 @@ extern boolean hud_displayed;   // hud is displayed
 //jff 2/18/98 hud/status control
 extern int hud_active;      // hud mode 0=off, 1=small, 2=full
 extern boolean hud_secret_message; // "A secret is revealed!" message
-extern boolean hud_map_announce;
 extern int hud_player_coords, hud_level_stats, hud_level_time;
 extern boolean hud_widescreen_widgets;
 extern boolean hud_time_use;

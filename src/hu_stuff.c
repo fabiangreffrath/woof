@@ -168,7 +168,7 @@ boolean           show_messages;
 boolean           show_toggle_messages;
 boolean           show_pickup_messages;
 
-boolean           hud_map_announce;
+static boolean    hud_map_announce;
 static boolean    title_on;
 static int        title_counter;
 
