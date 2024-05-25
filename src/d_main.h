@@ -46,7 +46,7 @@ boolean D_CheckEndDoom(void);
 // Called by IO functions when input is detected.
 void D_PostEvent(struct event_s *ev);
 
-void D_UpdateDeltaTics(void);
+extern boolean input_ready;
 
 void D_BindMiscVariables(void);
 

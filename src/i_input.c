@@ -24,7 +24,6 @@
 #include "i_printf.h"
 #include "i_system.h"
 #include "m_config.h"
-#include "r_main.h"
 
 #define AXIS_BUTTON_DEADZONE (SDL_JOYSTICK_AXIS_MAX / 3)
 
@@ -463,59 +462,6 @@ void I_DelayEvent(void)
 //
 // Read the change in mouse state to generate mouse motion events
 //
-// This is to combine all mouse movement for a tic into one mouse
-// motion event.
-
-// The mouse input values are input directly to the game, but when the values
-// exceed the value of mouse_acceleration_threshold, they are multiplied by
-// mouse_acceleration to increase the speed.
-
-static int mouse_acceleration;
-static int mouse_acceleration_threshold;
-
-static double AccelerateMouse_Thresh(int val)
-{
-    if (val < 0)
-    {
-        return -AccelerateMouse_Thresh(-val);
-    }
-
-    if (val > mouse_acceleration_threshold)
-    {
-        return ((double)(val - mouse_acceleration_threshold)
-                    * (mouse_acceleration + 10) / 10
-                + mouse_acceleration_threshold);
-    }
-    else
-    {
-        return val;
-    }
-}
-
-static double AccelerateMouse_NoThresh(int val)
-{
-    return ((double)val * (mouse_acceleration + 10) / 10);
-}
-
-static double AccelerateMouse_Skip(int val)
-{
-    return val;
-}
-
-double (*I_AccelerateMouse)(int val) = AccelerateMouse_NoThresh;
-
-void I_UpdateAccelerateMouse(void)
-{
-    if (mouse_acceleration)
-    {
-        I_AccelerateMouse =
-            raw_input ? AccelerateMouse_NoThresh : AccelerateMouse_Thresh;
-    }
-    else
-    {
-        I_AccelerateMouse = AccelerateMouse_Skip;
-    }
-}
 
 void I_ReadMouse(void)
 {
@@ -592,12 +538,4 @@ void I_HandleKeyboardEvent(SDL_Event *sdlevent)
         default:
             break;
     }
-}
-
-void I_BindInputVariables(void)
-{
-    BIND_NUM_GENERAL(mouse_acceleration, 10, 0, 40,
-        "Mouse acceleration (0 = 1.0; 40 = 5.0)");
-    BIND_NUM(mouse_acceleration_threshold, 10, 0, 32,
-        "Mouse acceleration threshold");
 }

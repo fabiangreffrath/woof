@@ -106,6 +106,7 @@ extern fixed_t          viewy;
 extern fixed_t          viewz;
 extern angle_t          viewangle;
 extern localview_t      localview; // View orientation offsets for current frame.
+extern boolean          raw_input;
 extern struct player_s  *viewplayer;
 extern angle_t          clipangle;
 extern angle_t          vx_clipangle;
