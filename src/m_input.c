@@ -296,58 +296,50 @@ static const struct
     {KEYP_PERIOD,    "num."      },
 };
 
-static const struct
-{
-    int joyb;
-    const char *name;
-} joyb_names[] = {
-    {CONTROLLER_A,                 "pada"    },
-    {CONTROLLER_B,                 "padb"    },
-    {CONTROLLER_X,                 "padx"    },
-    {CONTROLLER_Y,                 "pady"    },
-    {CONTROLLER_BACK,              "back"    },
-    {CONTROLLER_GUIDE,             "guide"   },
-    {CONTROLLER_START,             "start"   },
-    {CONTROLLER_LEFT_STICK,        "ls"      },
-    {CONTROLLER_RIGHT_STICK,       "rs"      },
-    {CONTROLLER_LEFT_SHOULDER,     "lb"      },
-    {CONTROLLER_RIGHT_SHOULDER,    "rb"      },
-    {CONTROLLER_DPAD_UP,           "padup"   },
-    {CONTROLLER_DPAD_DOWN,         "paddown" },
-    {CONTROLLER_DPAD_LEFT,         "padleft" },
-    {CONTROLLER_DPAD_RIGHT,        "padright"},
-    {CONTROLLER_MISC1,             "misc1"   },
-    {CONTROLLER_PADDLE1,           "paddle1" },
-    {CONTROLLER_PADDLE2,           "paddle2" },
-    {CONTROLLER_PADDLE3,           "paddle3" },
-    {CONTROLLER_PADDLE4,           "paddle4" },
-    {CONTROLLER_TOUCHPAD,          "touch"   },
-    {CONTROLLER_LEFT_TRIGGER,      "lt"      },
-    {CONTROLLER_RIGHT_TRIGGER,     "rt"      },
-    {CONTROLLER_LEFT_STICK_UP,     "lsup"    },
-    {CONTROLLER_LEFT_STICK_DOWN,   "lsdown"  },
-    {CONTROLLER_LEFT_STICK_LEFT,   "lsleft"  },
-    {CONTROLLER_LEFT_STICK_RIGHT,  "lsright" },
-    {CONTROLLER_RIGHT_STICK_UP,    "rsup"    },
-    {CONTROLLER_RIGHT_STICK_DOWN,  "rsdown"  },
-    {CONTROLLER_RIGHT_STICK_LEFT,  "rsleft"  },
-    {CONTROLLER_RIGHT_STICK_RIGHT, "rsright" },
+static const char *joyb_names[] = {
+    [CONTROLLER_A]                 = "pada",
+    [CONTROLLER_B]                 = "padb",
+    [CONTROLLER_X]                 = "padx",
+    [CONTROLLER_Y]                 = "pady",
+    [CONTROLLER_BACK]              = "back",
+    [CONTROLLER_GUIDE]             = "guide",
+    [CONTROLLER_START]             = "start",
+    [CONTROLLER_LEFT_STICK]        = "ls",
+    [CONTROLLER_RIGHT_STICK]       = "rs",
+    [CONTROLLER_LEFT_SHOULDER]     = "lb",
+    [CONTROLLER_RIGHT_SHOULDER]    = "rb",
+    [CONTROLLER_DPAD_UP]           = "padup",
+    [CONTROLLER_DPAD_DOWN]         = "paddown",
+    [CONTROLLER_DPAD_LEFT]         = "padleft",
+    [CONTROLLER_DPAD_RIGHT]        = "padright",
+    [CONTROLLER_MISC1]             = "misc1",
+    [CONTROLLER_PADDLE1]           = "paddle1",
+    [CONTROLLER_PADDLE2]           = "paddle2",
+    [CONTROLLER_PADDLE3]           = "paddle3",
+    [CONTROLLER_PADDLE4]           = "paddle4",
+    [CONTROLLER_TOUCHPAD]          = "touch",
+    [CONTROLLER_LEFT_TRIGGER]      = "lt",
+    [CONTROLLER_RIGHT_TRIGGER]     = "rt",
+    [CONTROLLER_LEFT_STICK_UP]     = "lsup",
+    [CONTROLLER_LEFT_STICK_DOWN]   = "lsdown",
+    [CONTROLLER_LEFT_STICK_LEFT]   = "lsleft",
+    [CONTROLLER_LEFT_STICK_RIGHT]  = "lsright",
+    [CONTROLLER_RIGHT_STICK_UP]    = "rsup",
+    [CONTROLLER_RIGHT_STICK_DOWN]  = "rsdown",
+    [CONTROLLER_RIGHT_STICK_LEFT]  = "rsleft",
+    [CONTROLLER_RIGHT_STICK_RIGHT] = "rsright",
 };
 
-static const struct
-{
-    int mouseb;
-    const char *name;
-} mouseb_names[] = {
-    {MOUSE_BUTTON_LEFT,       "mouse1"    },
-    {MOUSE_BUTTON_RIGHT,      "mouse2"    },
-    {MOUSE_BUTTON_MIDDLE,     "mouse3"    },
-    {MOUSE_BUTTON_X1,         "mouse4"    },
-    {MOUSE_BUTTON_X2,         "mouse5"    },
-    {MOUSE_BUTTON_WHEELUP,    "wheelup"   },
-    {MOUSE_BUTTON_WHEELDOWN,  "wheeldown" },
-    {MOUSE_BUTTON_WHEELLEFT,  "wheelleft" },
-    {MOUSE_BUTTON_WHEELRIGHT, "wheelright"},
+static const char *mouseb_names[] = {
+    [MOUSE_BUTTON_LEFT]       = "mouse1",
+    [MOUSE_BUTTON_RIGHT]      = "mouse2",
+    [MOUSE_BUTTON_MIDDLE]     = "mouse3",
+    [MOUSE_BUTTON_X1]         = "mouse4",
+    [MOUSE_BUTTON_X2]         = "mouse5",
+    [MOUSE_BUTTON_WHEELUP]    = "wheelup",
+    [MOUSE_BUTTON_WHEELDOWN]  = "wheeldown",
+    [MOUSE_BUTTON_WHEELLEFT]  = "wheelleft",
+    [MOUSE_BUTTON_WHEELRIGHT] = "wheelright",
 };
 
 const char *M_GetNameForKey(int key)
@@ -376,12 +368,9 @@ int M_GetKeyForName(const char *name)
 
 const char *M_GetNameForJoyB(int joyb)
 {
-    for (int i = 0; i < arrlen(joyb_names); ++i)
+    if (joyb >= 0 && joyb < arrlen(joyb_names))
     {
-        if (joyb_names[i].joyb == joyb)
-        {
-            return joyb_names[i].name;
-        }
+        return joyb_names[joyb];
     }
     return NULL;
 }
@@ -390,9 +379,9 @@ int M_GetJoyBForName(const char *name)
 {
     for (int i = 0; i < arrlen(joyb_names); ++i)
     {
-        if (strcasecmp(name, joyb_names[i].name) == 0)
+        if (strcasecmp(name, joyb_names[i]) == 0)
         {
-            return joyb_names[i].joyb;
+            return i;
         }
     }
     return -1;
@@ -400,12 +389,9 @@ int M_GetJoyBForName(const char *name)
 
 const char *M_GetNameForMouseB(int mouseb)
 {
-    for (int i = 0; i < arrlen(mouseb_names); ++i)
+    if (mouseb >= 0 && mouseb < arrlen(mouseb_names))
     {
-        if (mouseb_names[i].mouseb == mouseb)
-        {
-            return mouseb_names[i].name;
-        }
+        return mouseb_names[mouseb];
     }
     return NULL;
 }
@@ -414,9 +400,9 @@ int M_GetMouseBForName(const char *name)
 {
     for (int i = 0; i < arrlen(mouseb_names); ++i)
     {
-        if (strcasecmp(name, mouseb_names[i].name) == 0)
+        if (strcasecmp(name, mouseb_names[i]) == 0)
         {
-            return mouseb_names[i].mouseb;
+            return i;
         }
     }
     return -1;
