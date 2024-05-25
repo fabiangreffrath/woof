@@ -909,31 +909,6 @@ static boolean FileContainsMaps(const char *filename)
     return false;
 }
 
-static void PrintDivider(void)
-{
-    for (int i = 0; i < 75; ++i)
-    {
-        I_PutChar(VB_INFO, '=');
-    }
-    I_PutChar(VB_INFO, '\n');
-}
-
-static void PrintVersion(void)
-{
-    PrintDivider();
-
-    const char *desc = D_GetIWADDescription(M_BaseName(wadfiles[0]), gamemode,
-                                                       gamemission);
-    int spaces = 35 - (strlen(desc) / 2);
-    for (int i = 0; i < spaces; ++i)
-    {
-        I_PutChar(VB_INFO, ' ');
-    }
-    I_Printf(VB_INFO, "%s", desc);
-
-    PrintDivider();
-}
-
 //
 // IdentifyVersion
 //
@@ -1034,6 +1009,9 @@ void IdentifyVersion(void)
     {
         CheckIWAD();
     }
+
+    I_Printf(VB_INFO, " - \"%s\" version",
+             D_GetIWADDescription(M_BaseName(wadfiles[0]), gamemode, gamemission));
 }
 
 // [FG] emulate a specific version of Doom
@@ -2057,8 +2035,6 @@ void D_DoomMain(void)
 
   D_AutoloadPWadDir(AutoLoadWADs);
 
-  PrintVersion();
-
   // get skill / episode / map from parms
 
   startskill = sk_default; // jff 3/24/98 was sk_medium, just note not picked
@@ -2267,6 +2243,8 @@ void D_DoomMain(void)
 
   M_InitConfig();
 
+  I_PutChar(VB_INFO, '\n');
+
   M_LoadDefaults();  // load before initing other systems
 
   bodyquesize = default_bodyquesize; // killough 10/98
@@ -2397,7 +2375,7 @@ void D_DoomMain(void)
       }
   }
 
-  I_Printf(VB_INFO, "Savegame directory: %s\n", basesavegame);
+  I_Printf(VB_INFO, "Savegame directory: %s", basesavegame);
 
   V_InitColorTranslation(); //jff 4/24/98 load color translation lumps
 
