@@ -2748,7 +2748,7 @@ void D_BindMiscVariables(void)
 {
   BIND_NUM_GENERAL(show_endoom, 0, 0, 2,
     "Show ENDOOM screen (0 = Off; 1 = On; 2 = PWADs only)");
-  BIND_BOOL_GENERAL(demobar, false, "1 to enable demo progress bar");
+  BIND_BOOL_GENERAL(demobar, false, "Show demo progress bar");
   BIND_NUM_GENERAL(screen_melt, wipe_Melt, wipe_None, wipe_Fizzle,
     "Screen wipe effect (0 = None; 1 = Melt; 2 = Crossfade; 3 = Fizzlefade)");
   BIND_BOOL_GENERAL(palette_changes, true, "Palette changes when taking damage or picking up items");

@@ -2182,7 +2182,7 @@ void HU_BindHUDVariables(void)
   M_BindNum("hud_level_time", &hud_level_time, NULL,
             HUD_WIDGET_OFF, HUD_WIDGET_OFF, HUD_WIDGET_ALWAYS,
             ss_stat, wad_no,
-            "Show level time widget (1 = On automap, 2 = On HUD, 3 = Always)");
+            "Show level time widget (1 = On automap; 2 = On HUD; 3 = Always)");
   M_BindNum("hud_player_coords", &hud_player_coords, NULL,
             HUD_WIDGET_AUTOMAP, HUD_WIDGET_OFF, HUD_WIDGET_ALWAYS,
             ss_stat, wad_no,
@@ -2208,7 +2208,7 @@ void HU_BindHUDVariables(void)
   M_BindNum("hud_widget_font", &hud_widget_font, NULL,
             HUD_WIDGET_OFF, HUD_WIDGET_OFF, HUD_WIDGET_ALWAYS,
             ss_stat, wad_no,
-            "Use standard Doom font for widgets (1 = On automap, 2 = On HUD, 3 "
+            "Use standard Doom font for widgets (1 = On automap; 2 = On HUD; 3 "
             "= Always)");
   M_BindBool("hud_widget_layout", &hud_widget_layout, NULL,
              false, ss_stat, wad_no, "Widget layout (0 = Horizontal; 1 = Vertical)");
