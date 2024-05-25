@@ -21,6 +21,21 @@
 
 #include "miniz.h"
 
+static char *ConvertSlashes(const char *path)
+{
+    char *result = M_StringDuplicate(path);
+
+    for (char *p = result; *p; ++p)
+    {
+        if (*p == '\\')
+        {
+            *p = '/';
+        }
+    }
+
+    return result;
+}
+
 static void AddWadInMem(mz_zip_archive *zip, const char *name, int index,
                         size_t data_size)
 {
@@ -95,6 +110,8 @@ static void W_ZIP_AddDir(w_handle_t handle, const char *path,
 {
     mz_zip_archive *zip = handle.p1.zip;
 
+    char *local_path = ConvertSlashes(path);
+
     int startlump = numlumps;
 
     for (int i = 0; i < mz_zip_reader_get_num_files(zip); ++i)
@@ -108,7 +125,7 @@ static void W_ZIP_AddDir(w_handle_t handle, const char *path,
         }
 
         char *name = M_DirName(stat.m_filename);
-        int result = strcasecmp(name, path);
+        int result = strcasecmp(name, local_path);
         free(name);
         if (result)
         {
@@ -148,6 +165,8 @@ static void W_ZIP_AddDir(w_handle_t handle, const char *path,
     {
         W_AddMarker(end_marker);
     }
+
+    free(local_path);
 }
 
 static mz_zip_archive **zips = NULL;

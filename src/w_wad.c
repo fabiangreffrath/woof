@@ -113,16 +113,12 @@ static struct
     GameMode_t mode;
     GameMission_t mission;
 } filters[] = {
-    {"filter/doom",                     indetermined, none     },
-    {"filter/doom.id",                  indetermined, doom     },
-    {"filter/doom.id.doom1",            indetermined, doom     },
-    {"filter/doom.id.doom1.registered", registered,   doom     },
-    {"filter/doom.id.doom1.ultimate",   retail,       doom     },
-    {"filter/doom.id",                  indetermined, doom2    },
-    {"filter/doom.id.doom2",            indetermined, doom2    },
-    {"filter/doom.id.doom2.commercial", commercial,   doom2    },
-    {"filter/doom.id.doom2.plutonia",   commercial,   pack_plut},
-    {"filter/doom.id.doom2.tnt",        commercial,   pack_tnt },
+    {"doom.id.doom1",            shareware,    doom     },
+    {"doom.id.doom1.registered", registered,   doom     },
+    {"doom.id.doom1.ultimate",   retail,       doom     },
+    {"doom.id.doom2.commercial", commercial,   doom2    },
+    {"doom.id.doom2.plutonia",   commercial,   pack_plut},
+    {"doom.id.doom2.tnt",        commercial,   pack_tnt },
 };
 
 w_module_t *modules[] =
@@ -131,15 +127,35 @@ w_module_t *modules[] =
     &w_file_module,
 };
 
+static void AddDirs(w_module_t *module, w_handle_t handle, const char *base)
+{
+    module->AddDir(handle, base, NULL, NULL);
+
+    for (int i = 0; i < arrlen(subdirs); ++i)
+    {
+        if (base[0] == '.')
+        {
+            module->AddDir(handle, subdirs[i].dir, subdirs[i].start_marker,
+                           subdirs[i].end_marker);
+        }
+        else
+        {
+            char *s = M_StringJoin(base, DIR_SEPARATOR_S, subdirs[i].dir, NULL);
+            module->AddDir(handle, s, subdirs[i].start_marker,
+                           subdirs[i].end_marker);
+            free(s);
+        }
+    }
+}
+
 boolean W_AddPath(const char *path)
 {
     w_handle_t handle = {0};
-    w_type_t result = W_NONE;
     w_module_t *active_module = NULL;
 
     for (int i = 0; i < arrlen(modules); ++i)
     {
-        result = modules[i]->Open(path, &handle);
+        w_type_t result = modules[i]->Open(path, &handle);
 
         if (result == W_FILE)
         {
@@ -152,44 +168,44 @@ boolean W_AddPath(const char *path)
         }
     }
 
-    if (result == W_NONE || !active_module)
+    if (!active_module)
     {
         return false;
     }
 
-    active_module->AddDir(handle, ".", NULL, NULL);
+    AddDirs(active_module, handle, ".");
 
-    for (int i = 0; i < arrlen(subdirs); ++i)
-    {
-        active_module->AddDir(handle, subdirs[i].dir, subdirs[i].start_marker,
-                               subdirs[i].end_marker);
-    }
+    char *dir = NULL;
 
     for (int i = 0; i < arrlen(filters); ++i)
     {
-        if (filters[i].mode != indetermined && filters[i].mode != gamemode)
+        if (filters[i].mode == gamemode && filters[i].mission == gamemission)
         {
-            continue;
-        }
-
-        if (filters[i].mission != none && filters[i].mission != gamemission
-            && !(gamemission > doom2 && filters[i].mission == doom2))
-        {
-            continue;
-        }
-
-        for (int j = 0; j < arrlen(subdirs); ++j)
-        {
-            char *s = M_StringJoin(filters[i].dir, "/", subdirs[j].dir, NULL);
-            active_module->AddDir(handle, s, subdirs[j].start_marker,
-                                  subdirs[j].end_marker);
-            free(s);
+            dir = M_StringJoin("filter", DIR_SEPARATOR_S, filters[i].dir, NULL);
+            break;
         }
     }
 
+    if (!dir)
+    {
+        return true;
+    }
+
+    for (char *p = dir; *p; ++p)
+    {
+        if (*p == '.')
+        {
+            *p = '\0';
+            AddDirs(active_module, handle, dir);
+            *p = '.';
+        }
+    }
+    AddDirs(active_module, handle, dir);
+
+    free(dir);
+
     return true;
 }
-
 
 // jff 1/23/98 Create routines to reorder the master directory
 // putting all flats into one marked block, and all sprites into another.
