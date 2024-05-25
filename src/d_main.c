@@ -793,55 +793,16 @@ static void PrepareAutoloadPaths(void)
 // CheckIWAD
 //
 
-static void CheckIWAD(const char *iwadname)
+static void CheckIWAD(void)
 {
-    int i;
-    FILE *file;
-    wadinfo_t header;
-    filelump_t *fileinfo;
-
-    file = M_fopen(iwadname, "rb");
-
-    if (file == NULL)
+    for (int i = 0; i < numlumps; ++i)
     {
-        I_Error("CheckIWAD: failed to read IWAD %s", iwadname);
-    }
-
-    // read IWAD header
-    if (fread(&header, sizeof(header), 1, file) != 1)
-    {
-        fclose(file);
-        I_Error("CheckIWAD: failed to read header %s", iwadname);
-    }
-
-    if (strncmp(header.identification, "IWAD", 4) &&
-        strncmp(header.identification, "PWAD", 4))
-    {
-        fclose(file);
-        I_Error("Wad file %s doesn't have IWAD or PWAD id\n", iwadname);
-    }
-
-    // read IWAD directory
-    header.numlumps = LONG(header.numlumps);
-    header.infotableofs = LONG(header.infotableofs);
-    fileinfo = malloc(header.numlumps * sizeof(filelump_t));
-
-    if (fseek(file, header.infotableofs, SEEK_SET) ||
-        fread(fileinfo, sizeof(filelump_t), header.numlumps, file) != header.numlumps)
-    {
-        free(fileinfo);
-        fclose(file);
-        I_Error("CheckIWAD: failed to read directory %s", iwadname);
-    }
-
-    for (i = 0; i < header.numlumps; ++i)
-    {
-        if (!strncasecmp(fileinfo[i].name, "MAP01", 8))
+        if (!strncasecmp(lumpinfo[i].name, "MAP01", 8))
         {
             gamemission = doom2;
             break;
         }
-        else if (!strncasecmp(fileinfo[i].name, "E1M1", 8))
+        else if (!strncasecmp(lumpinfo[i].name, "E1M1", 8))
         {
             gamemode = shareware;
             gamemission = doom;
@@ -855,22 +816,19 @@ static void CheckIWAD(const char *iwadname)
     }
     else
     {
-        for (i = 0; i < header.numlumps; ++i)
+        for (int i = 0; i < numlumps; ++i)
         {
-            if (!strncasecmp(fileinfo[i].name, "E4M1", 8))
+            if (!strncasecmp(lumpinfo[i].name, "E4M1", 8))
             {
                 gamemode = retail;
                 break;
             }
-            else if (!strncasecmp(fileinfo[i].name, "E3M1", 8))
+            else if (!strncasecmp(lumpinfo[i].name, "E3M1", 8))
             {
                 gamemode = registered;
             }
         }
     }
-
-    free(fileinfo);
-    fclose(file);
 
     if (gamemode == indetermined)
     {
@@ -923,21 +881,6 @@ static boolean FileContainsMaps(const char *filename)
     }
 
     return false;
-}
-
-static void PrintVersion(const char *iwad)
-{
-    I_Printf(VB_INFO, "IWAD found: %s", iwad); // jff 4/20/98 print only if
-                                               // found
-
-    I_Printf(VB_INFO, "%s\n", D_GetIWADDescription(M_BaseName(iwad), gamemode,
-                                                   gamemission));
-
-    if (gamemode == indetermined)
-    {
-        I_Printf(VB_WARNING,
-                 "Unknown Game Version, may not work\n"); // killough 8/8/98
-    }
 }
 
 //
@@ -1023,24 +966,26 @@ void IdentifyVersion(void)
 
     // locate the IWAD and determine game mode from it
 
-    char *iwad = D_FindIWADFile(&gamemode, &gamemission);
+    char *iwadfile = D_FindIWADFile();
 
-    if (iwad)
-    {
-        if (gamemode == indetermined)
-        {
-            CheckIWAD(iwad);
-        }
-
-        PrintVersion(iwad);
-
-        I_Printf(VB_INFO, "W_Init: Init WADfiles.");
-        D_AddFile(iwad);
-    }
-    else
+    if (!iwadfile)
     {
         I_Error("IWAD not found");
     }
+
+    I_Printf(VB_INFO, "W_Init: Init WADfiles.");
+
+    D_AddFile(iwadfile);
+
+    D_GetModeAndMissionByIWADName(M_BaseName(wadfiles[0]), &gamemode, &gamemission);
+
+    if (gamemode == indetermined)
+    {
+        CheckIWAD();
+    }
+
+    I_Printf(VB_INFO, " - \"%s\" version",
+             D_GetIWADDescription(M_BaseName(wadfiles[0]), gamemode, gamemission));
 }
 
 // [FG] emulate a specific version of Doom
@@ -2320,8 +2265,6 @@ void D_DoomMain(void)
 
   W_ProcessInWads("BRGHTMPS", R_ParseBrightmaps, false);
 
-  I_PutChar(VB_INFO, '\n');     // killough 3/6/98: add a newline, by popular demand :)
-
   // Moved after WAD initialization because we are checking the COMPLVL lump
   G_ReloadDefaults(false); // killough 3/4/98: set defaults just loaded.
   // jff 3/24/98 this sets startskill if it was -1
@@ -2406,7 +2349,7 @@ void D_DoomMain(void)
       }
   }
 
-  I_Printf(VB_INFO, "Savegame directory: %s\n", basesavegame);
+  I_Printf(VB_INFO, "Savegame directory: %s", basesavegame);
 
   V_InitColorTranslation(); //jff 4/24/98 load color translation lumps
 

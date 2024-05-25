@@ -28,20 +28,20 @@
 #include "m_misc.h"
 
 static const iwad_t iwads[] = {
-    {"doom2.wad",     doom2,      commercial,   "Doom II"                        },
-    {"plutonia.wad",  pack_plut,  commercial,   "Final Doom: Plutonia Experiment"},
-    {"tnt.wad",       pack_tnt,   commercial,   "Final Doom: TNT: Evilution"     },
+    {"doom2.wad",     doom2,      commercial,   "DOOM II: Hell on Earth"         },
+    {"plutonia.wad",  pack_plut,  commercial,   "Final DOOM: Plutonia Experiment"},
+    {"tnt.wad",       pack_tnt,   commercial,   "Final DOOM: TNT - Evilution"    },
     // "doom.wad" may be retail or registered
-    {"doom.wad",      doom,       indetermined, "Doom"                           },
-    {"doom.wad",      doom,       registered,   "Doom Registered"                },
-    {"doom.wad",      doom,       retail,       "Ultimate Doom"                  },
-    {"doom1.wad",     doom,       shareware,    "Doom Shareware"                 },
-    {"doom2f.wad",    doom2,      commercial,   "Doom II: L'Enfer sur Terre"     },
+    {"doom.wad",      doom,       indetermined, "DOOM"                           },
+    {"doom.wad",      doom,       registered,   "DOOM Registered"                },
+    {"doom.wad",      doom,       retail,       "The Ultimate DOOM"              },
+    {"doom1.wad",     doom,       shareware,    "DOOM Shareware"                 },
+    {"doom2f.wad",    doom2,      commercial,   "DOOM II: L'Enfer sur Terre"     },
     {"freedoom2.wad", doom2,      commercial,   "Freedoom: Phase 2"              },
     {"freedoom1.wad", doom,       retail,       "Freedoom: Phase 1"              },
     {"freedm.wad",    doom2,      commercial,   "FreeDM"                         },
     {"chex.wad",      pack_chex,  retail,       "Chex Quest"                     },
-    {"hacx.wad",      pack_hacx,  commercial,   "Hacx"                           },
+    {"hacx.wad",      pack_hacx,  commercial,   "HACX: Twitch n' Kill"           },
     {"rekkrsa.wad",   pack_rekkr, retail,       "REKKR"                          },
     {"rekkrsl.wad",   pack_rekkr, retail,       "REKKR: Sunken Land"             },
 };
@@ -747,7 +747,7 @@ char *D_FindLMPByName(const char *filename)
 // D_FindIWADFile
 //
 
-char *D_FindIWADFile(GameMode_t *mode, GameMission_t *mission)
+char *D_FindIWADFile(void)
 {
     char *result;
 
@@ -789,22 +789,6 @@ char *D_FindIWADFile(GameMode_t *mode, GameMission_t *mission)
         for (i = 0; result == NULL && i < arrlen(iwads); ++i)
         {
             result = D_FindWADByName(iwads[i].name);
-        }
-    }
-
-    if (result)
-    {
-        int i;
-        const char *name = M_BaseName(result);
-
-        for (i = 0; i < arrlen(iwads); ++i)
-        {
-            if (!strcasecmp(name, iwads[i].name))
-            {
-                *mode = iwads[i].mode;
-                *mission = iwads[i].mission;
-                break;
-            }
         }
     }
 
@@ -867,6 +851,20 @@ GameMission_t D_GetGameMissionByIWADName(const char *name)
     }
 
     return none;
+}
+
+void D_GetModeAndMissionByIWADName(const char *name, GameMode_t *mode,
+                                   GameMission_t *mission)
+{
+    for (int i = 0; i < arrlen(iwads); ++i)
+    {
+        if (!strcasecmp(name, iwads[i].name))
+        {
+            *mode = iwads[i].mode;
+            *mission = iwads[i].mission;
+            break;
+        }
+    }
 }
 
 const char *D_GetIWADDescription(const char *name, GameMode_t mode,

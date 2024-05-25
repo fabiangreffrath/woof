@@ -113,13 +113,16 @@ static struct
     GameMode_t mode;
     GameMission_t mission;
 } filters[] = {
-    {"filter/doom",                     -1,         -1       },
-    {"filter/doom.id",                  retail,     doom     },
-    {"filter/doom.id",                  commercial, doom2    },
-    {"filter/doom.id.doom2",            commercial, doom2    },
-    {"filter/doom.id.doom2.commercial", commercial, doom2    },
-    {"filter/doom.id.doom2.plutonia",   commercial, pack_plut},
-    {"filter/doom.id.doom2.tnt",        commercial, pack_tnt },
+    {"filter/doom",                     indetermined, none     },
+    {"filter/doom.id",                  indetermined, doom     },
+    {"filter/doom.id.doom1",            indetermined, doom     },
+    {"filter/doom.id.doom1.registered", registered,   doom     },
+    {"filter/doom.id.doom1.ultimate",   retail,       doom     },
+    {"filter/doom.id",                  indetermined, doom2    },
+    {"filter/doom.id.doom2",            indetermined, doom2    },
+    {"filter/doom.id.doom2.commercial", commercial,   doom2    },
+    {"filter/doom.id.doom2.plutonia",   commercial,   pack_plut},
+    {"filter/doom.id.doom2.tnt",        commercial,   pack_tnt },
 };
 
 w_module_t *modules[] =
@@ -164,9 +167,13 @@ boolean W_AddPath(const char *path)
 
     for (int i = 0; i < arrlen(filters); ++i)
     {
-        if ((filters[i].mode >= 0 && filters[i].mode != gamemode)
-            || (filters[i].mission >= 0 && gamemission > doom2
-                && filters[i].mission != gamemission))
+        if (filters[i].mode != indetermined && filters[i].mode != gamemode)
+        {
+            continue;
+        }
+
+        if (filters[i].mission != none && filters[i].mission != gamemission
+            && !(gamemission > doom2 && filters[i].mission == doom2))
         {
             continue;
         }
