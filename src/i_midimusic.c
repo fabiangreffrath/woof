@@ -1490,7 +1490,7 @@ static void I_MID_BindVariables(void)
     BIND_NUM(midi_reset_delay, -1, -1, 2000,
         "Delay after reset for native MIDI (-1 = Auto, 0 = None, 1-2000 = Milliseconds)");
     BIND_BOOL(midi_ctf, true,
-        "1 to fix invalid instruments by emulating SC-55 capital tone fallback");
+        "Fix invalid instruments by emulating SC-55 capital tone fallback");
 }
 
 music_module_t music_mid_module =
