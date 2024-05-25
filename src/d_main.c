@@ -223,38 +223,12 @@ void D_ProcessEvents (void)
     }
 }
 
-static boolean input_ready;
-
-void D_UpdateDeltaTics(void)
-{
-  if (uncapped && raw_input)
-  {
-    static uint64_t last_time;
-    const uint64_t current_time = I_GetTimeUS();
-
-    if (input_ready)
-    {
-      const uint64_t delta_time = current_time - last_time;
-      deltatics = (double)delta_time * TICRATE / 1000000.0;
-      deltatics = BETWEEN(0.0, 1.0, deltatics);
-    }
-    else
-    {
-      deltatics = 0.0;
-    }
-
-    last_time = current_time;
-  }
-  else
-  {
-    deltatics = 1.0;
-  }
-}
-
 //
 // D_Display
 //  draw current display, possibly wiping it from the previous
 //
+
+boolean input_ready;
 
 // wipegamestate can be set to -1 to force a wipe on the next draw
 gamestate_t    wipegamestate = GS_DEMOSCREEN;
@@ -2504,7 +2478,7 @@ void D_DoomMain(void)
 
   G_UpdateSideMove();
   G_UpdateAngleFunctions();
-  I_UpdateAccelerateMouse();
+  G_UpdateAccelerateMouse();
 
   MN_ResetTimeScale();
 

@@ -20,6 +20,7 @@
 #include "doomdef.h"
 #include "doomstat.h"
 #include "doomtype.h"
+#include "g_input.h"
 #include "m_fixed.h"
 
 struct event_s;
@@ -53,8 +54,6 @@ void G_SecretExitLevel(void);
 void G_WorldDone(void);
 void G_Ticker(void);
 void G_ScreenShot(void);
-void G_UpdateSideMove(void);
-void G_UpdateAngleFunctions(void);
 void G_ReloadDefaults(boolean keep_demover); // killough 3/1/98: loads game defaults
 char *G_SaveGameName(int); // killough 3/22/98: sets savegame filename
 char *G_MBFSaveGameName(int); // MBF savegame filename
@@ -104,12 +103,25 @@ extern int  key_escape;
 extern int  key_enter;
 extern int  key_help;
 extern boolean autorun;           // always running?                   // phares
+extern boolean autostrafe50;
 extern boolean novert;
 extern boolean mouselook;
 extern boolean padlook;
 
-extern fixed_t *forwardmove;
+extern int mouse_sensitivity;
+extern int mouse_sensitivity_y;
+extern int mouse_sensitivity_strafe;
+extern int mouse_sensitivity_y_look;
+extern boolean mouse_y_invert;
+extern int mouse_acceleration;
+extern int mouse_acceleration_threshold;
+extern int mousex;
+extern int mousey;
+
+extern fixed_t forwardmove[2];
+extern fixed_t default_sidemove[2];
 extern fixed_t *sidemove;
+extern const fixed_t angleturn[3];
 
 extern int  default_skill;      //jff 3/24/98 default skill
 extern boolean haswolflevels;  //jff 4/18/98 wolf levels present
