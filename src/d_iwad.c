@@ -747,7 +747,7 @@ char *D_FindLMPByName(const char *filename)
 // D_FindIWADFile
 //
 
-char *D_FindIWADFile(GameMode_t *mode, GameMission_t *mission)
+char *D_FindIWADFile(void)
 {
     char *result;
 
@@ -789,22 +789,6 @@ char *D_FindIWADFile(GameMode_t *mode, GameMission_t *mission)
         for (i = 0; result == NULL && i < arrlen(iwads); ++i)
         {
             result = D_FindWADByName(iwads[i].name);
-        }
-    }
-
-    if (result)
-    {
-        int i;
-        const char *name = M_BaseName(result);
-
-        for (i = 0; i < arrlen(iwads); ++i)
-        {
-            if (!strcasecmp(name, iwads[i].name))
-            {
-                *mode = iwads[i].mode;
-                *mission = iwads[i].mission;
-                break;
-            }
         }
     }
 
@@ -867,6 +851,20 @@ GameMission_t D_GetGameMissionByIWADName(const char *name)
     }
 
     return none;
+}
+
+void D_GetModeAndMissionByIWADName(const char *name, GameMode_t *mode,
+                                   GameMission_t *mission)
+{
+    for (int i = 0; i < arrlen(iwads); ++i)
+    {
+        if (!strcasecmp(name, iwads[i].name))
+        {
+            *mode = iwads[i].mode;
+            *mission = iwads[i].mission;
+            break;
+        }
+    }
 }
 
 const char *D_GetIWADDescription(const char *name, GameMode_t mode,

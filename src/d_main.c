@@ -922,14 +922,14 @@ static void PrintVersion(void)
 {
     PrintDivider();
 
-    const char *gamedescription = D_GetIWADDescription(wadfiles[0], gamemode,
+    const char *desc = D_GetIWADDescription(M_BaseName(wadfiles[0]), gamemode,
                                                        gamemission);
-    int spaces = 35 - (strlen(gamedescription) / 2);
+    int spaces = 35 - (strlen(desc) / 2);
     for (int i = 0; i < spaces; ++i)
     {
         I_PutChar(VB_INFO, ' ');
     }
-    I_Printf(VB_INFO, "%s", gamedescription);
+    I_Printf(VB_INFO, "%s", desc);
 
     PrintDivider();
 }
@@ -1017,7 +1017,7 @@ void IdentifyVersion(void)
 
     // locate the IWAD and determine game mode from it
 
-    char *iwadfile = D_FindIWADFile(&gamemode, &gamemission);
+    char *iwadfile = D_FindIWADFile();
 
     if (!iwadfile)
     {
@@ -1025,7 +1025,10 @@ void IdentifyVersion(void)
     }
 
     I_Printf(VB_INFO, "W_Init: Init WADfiles.");
+
     D_AddFile(iwadfile);
+
+    D_GetModeAndMissionByIWADName(M_BaseName(wadfiles[0]), &gamemode, &gamemission);
 
     if (gamemode == indetermined)
     {
