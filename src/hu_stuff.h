@@ -29,6 +29,7 @@ struct mobj_s;
 #define HU_BROADCAST    5
 
 #define HU_MSGTIMEOUT   (4*TICRATE)
+#define HU_MSGTIMEOUT2  (5*TICRATE/2) // [crispy] 2.5 seconds
 
 //
 // Heads up text

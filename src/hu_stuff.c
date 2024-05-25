@@ -168,6 +168,10 @@ boolean           show_messages;
 boolean           show_toggle_messages;
 boolean           show_pickup_messages;
 
+static boolean    hud_map_announce;
+static boolean    title_on;
+static int        title_counter;
+
 static boolean    headsupactive = false;
 
 //jff 2/16/98 hud supported automap colors added
@@ -557,7 +561,7 @@ void HU_Start(void)
   // create the map title widget
   HUlib_init_multiline(&w_title, 1,
                        &doom_font, colrngs[hudcolor_titl],
-                       &automapactive, HU_widget_build_title);
+                       &title_on, HU_widget_build_title);
   // [FG] built only once right here
   w_title.builder();
 
@@ -681,6 +685,11 @@ static void HU_widget_build_title (void)
   if ((n = strchr(s, '\n')))
   {
     *n = '\0';
+  }
+
+  if (hud_map_announce && leveltime == 0)
+  {
+    title_counter = HU_MSGTIMEOUT2;
   }
 
   M_StringConcat(hud_titlestr, s, sizeof(hud_titlestr));
@@ -1564,7 +1573,7 @@ void HU_Ticker(void)
     HUlib_add_string_to_cur_line(&w_secret, plr->secretmessage);
     plr->secretmessage = NULL;
     secret_on = true;
-    secret_counter = 5*TICRATE/2; // [crispy] 2.5 seconds
+    secret_counter = HU_MSGTIMEOUT2;
   }
 
   // if messages on, or "Messages Off" is being displayed
@@ -1646,17 +1655,26 @@ void HU_Ticker(void)
 
   // draw the automap widgets if automap is displayed
 
+  if (title_counter)
+  {
+    title_counter--;
+  }
+
   if (automapactive)
   {
     HU_cond_build_widget(w_stats, hud_level_stats & HUD_WIDGET_AUTOMAP);
     HU_cond_build_widget(&w_sttime, hud_level_time & HUD_WIDGET_AUTOMAP || plr->btuse_tics);
     HU_cond_build_widget(&w_coord, STRICTMODE(hud_player_coords) & HUD_WIDGET_AUTOMAP);
+
+    title_on = true;
   }
   else
   {
     HU_cond_build_widget(w_stats, hud_level_stats & HUD_WIDGET_HUD);
     HU_cond_build_widget(&w_sttime, hud_level_time & HUD_WIDGET_HUD || plr->btuse_tics);
     HU_cond_build_widget(&w_coord, STRICTMODE(hud_player_coords) & HUD_WIDGET_HUD);
+
+    title_on = (title_counter > 0);
   }
 
   HU_cond_build_widget(&w_fps, plr->cheats & CF_SHOWFPS);
@@ -2237,7 +2255,9 @@ void HU_BindHUDVariables(void)
 
   BIND_BOOL(show_messages, true, "Show messages");
   M_BindBool("hud_secret_message", &hud_secret_message, NULL,
-            true, ss_stat, wad_no, "Show secret-revealed message");
+            true, ss_stat, wad_no, "Announce revealed secrets");
+  M_BindBool("hud_map_announce", &hud_map_announce, NULL,
+            false, ss_stat, wad_no, "Announce map titles");
   M_BindBool("show_toggle_messages", &show_toggle_messages, NULL,
             true, ss_stat, wad_no, "Show toggle messages");
   M_BindBool("show_pickup_messages", &show_pickup_messages, NULL,
