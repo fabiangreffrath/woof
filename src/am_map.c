@@ -2297,48 +2297,48 @@ void AM_Drawer (void)
   AM_drawMarks();
 }
 
-int mapcolor_preset;
+am_preset_t mapcolor_preset;
 
 void AM_ColorPreset(void)
 {
   struct
   {
     int *var;
-    int color[3]; // Vanilla Doom, Boom, ZDoom
+    int color[NUM_AM_PRESETS]; // Vanilla Doom, Crispy, Boom, ZDoom
   } mapcolors[] =
   {                                       // ZDoom CVAR name
-    {&mapcolor_back,    {  0, 247, 139}}, // am_backcolor
-    {&mapcolor_grid,    {104, 104,  70}}, // am_gridcolor
-    {&mapcolor_wall,    {176,  23, 239}}, // am_wallcolor
-    {&mapcolor_fchg,    { 64,  55, 135}}, // am_fdwallcolor
-    {&mapcolor_cchg,    {231, 215,  76}}, // am_cdwallcolor
-    {&mapcolor_clsd,    {  0, 208,   0}},
-    {&mapcolor_rkey,    {176, 175, 176}}, // P_GetMapColorForLock()
-    {&mapcolor_bkey,    {200, 204, 200}}, // P_GetMapColorForLock()
-    {&mapcolor_ykey,    {231, 231, 231}}, // P_GetMapColorForLock()
-    {&mapcolor_rdor,    {176, 175, 176}}, // P_GetMapColorForLock()
-    {&mapcolor_bdor,    {200, 204, 200}}, // P_GetMapColorForLock()
-    {&mapcolor_ydor,    {231, 231, 231}}, // P_GetMapColorForLock()
-    {&mapcolor_tele,    {  0, 119, 200}}, // am_intralevelcolor
-    {&mapcolor_secr,    {  0, 252, 251}}, // am_unexploredsecretcolor
-    {&mapcolor_revsecr, {  0, 112, 251}}, // am_secretsectorcolor
-    {&mapcolor_exit,    {  0, 208, 176}}, // am_interlevelcolor
-    {&mapcolor_unsn,    { 99, 104, 100}}, // am_notseencolor
-    {&mapcolor_flat,    { 97,  88,  95}}, // am_tswallcolor
-    {&mapcolor_sprt,    {112, 112,   4}}, // am_thingcolor
-    {&mapcolor_hair,    { 96, 208,  97}}, // am_xhaircolor
-    {&mapcolor_sngl,    {209, 208, 209}}, // am_yourcolor
-    {&mapcolor_plyr[0], {112, 112, 112}},
-    {&mapcolor_plyr[1], { 88,  88,  88}},
-    {&mapcolor_plyr[2], { 64,  64,  64}},
-    {&mapcolor_plyr[3], {176, 176, 176}},
-    {&mapcolor_frnd,    {252, 252,   4}}, // am_thingcolor_friend
-    {&mapcolor_enemy,   {112, 177,   4}}, // am_thingcolor_monster
-    {&mapcolor_item,    {112, 231,   4}}, // am_thingcolor_item
+    {&mapcolor_back,    {  0,   0, 247, 139}}, // am_backcolor
+    {&mapcolor_grid,    {104, 104, 104,  70}}, // am_gridcolor
+    {&mapcolor_wall,    {176, 180,  23, 239}}, // am_wallcolor
+    {&mapcolor_fchg,    { 64,  70,  55, 135}}, // am_fdwallcolor
+    {&mapcolor_cchg,    {231, 163, 215,  76}}, // am_cdwallcolor
+    {&mapcolor_clsd,    {  0,   0, 208,   0}},
+    {&mapcolor_rkey,    {176, 176, 175, 176}}, // P_GetMapColorForLock()
+    {&mapcolor_bkey,    {200, 200, 204, 200}}, // P_GetMapColorForLock()
+    {&mapcolor_ykey,    {231, 231, 231, 231}}, // P_GetMapColorForLock()
+    {&mapcolor_rdor,    {176, 174, 175, 176}}, // P_GetMapColorForLock()
+    {&mapcolor_bdor,    {200, 200, 204, 200}}, // P_GetMapColorForLock()
+    {&mapcolor_ydor,    {231, 229, 231, 231}}, // P_GetMapColorForLock()
+    {&mapcolor_tele,    {  0, 120, 119, 200}}, // am_intralevelcolor
+    {&mapcolor_secr,    {  0,  -1, 252, 251}}, // am_unexploredsecretcolor
+    {&mapcolor_revsecr, {  0,  -1, 112, 251}}, // am_secretsectorcolor
+    {&mapcolor_exit,    {  0, 209, 208, 176}}, // am_interlevelcolor
+    {&mapcolor_unsn,    { 99,  99, 104, 100}}, // am_notseencolor
+    {&mapcolor_flat,    { 97,  97,  88,  95}}, // am_tswallcolor
+    {&mapcolor_sprt,    {112, 112, 112,   4}}, // am_thingcolor
+    {&mapcolor_hair,    { 96,  96, 208,  97}}, // am_xhaircolor
+    {&mapcolor_sngl,    {209, 209, 208, 209}}, // am_yourcolor
+    {&mapcolor_plyr[0], {112, 112, 112, 112}},
+    {&mapcolor_plyr[1], { 88,  88,  88,  88}},
+    {&mapcolor_plyr[2], { 64,  64,  64,  64}},
+    {&mapcolor_plyr[3], {176, 176, 176, 176}},
+    {&mapcolor_frnd,    {252, 252, 252,   4}}, // am_thingcolor_friend
+    {&mapcolor_enemy,   {112, 112, 177,   4}}, // am_thingcolor_monster
+    {&mapcolor_item,    {112, 112, 231,   4}}, // am_thingcolor_item
 
-    {&hudcolor_titl,    {CR_NONE, CR_GOLD, CR_GRAY}}, // DrawAutomapHUD()
+    {&hudcolor_titl,    {CR_NONE, CR_GOLD, CR_GOLD, CR_GRAY}}, // DrawAutomapHUD()
 
-    {NULL,              {  0,   0,   0}},
+    {NULL,              {  0,   0,   0,   0}},
   };
 
   int i;
@@ -2352,6 +2352,14 @@ void AM_ColorPreset(void)
   if (automapactive && menu_backdrop != MENU_BG_TEXTURE)
   {
     HU_Start();
+  }
+
+  // [crispy] Make secret wall colors independent from PLAYPAL color indexes
+  if (mapcolor_preset == AM_PRESET_CRISPY)
+  {
+    byte *playpal = W_CacheLumpName("PLAYPAL", PU_CACHE);
+    mapcolor_secr = I_GetPaletteIndex(playpal, 255, 0, 255);
+    mapcolor_revsecr = I_GetPaletteIndex(playpal, 119, 255, 111);
   }
 }
 
@@ -2376,7 +2384,8 @@ void AM_BindAutomapVariables(void)
   M_BindBool("map_smooth_lines", &map_smooth_lines, NULL, true, ss_auto,
              wad_no, "Smooth automap lines");
 
-  M_BindNum("mapcolor_preset", &mapcolor_preset, NULL, 1, 0, 2, ss_auto, wad_no,
+  M_BindNum("mapcolor_preset", &mapcolor_preset, NULL, AM_PRESET_BOOM,
+            AM_PRESET_VANILLA, AM_PRESET_ZDOOM, ss_auto, wad_no,
             "Automap color preset (0 = Vanilla Doom; 1 = Boom; 2 = ZDoom)");
 
 #define BIND_CR(name, v, help) \
