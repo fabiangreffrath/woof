@@ -15,12 +15,14 @@
 
 #include "v_fmt.h"
 
+#include <stdlib.h>
 #include <string.h>
 
 #include "doomtype.h"
 #include "i_printf.h"
 #include "m_swap.h"
 #include "r_defs.h"
+#include "v_video.h"
 #include "w_wad.h"
 #include "z_zone.h"
 
@@ -237,21 +239,55 @@ patch_t *V_LinearToTransPatch(const byte *data, int width, int height,
     return (patch_t *)output;
 }
 
-static patch_t *InvisibleSprite(int lump, pu_tag tag)
+static byte *FillCheckerBoardPattern(int width, int height)
 {
-    static const patch_t *patch;
-    static int size;
+    const int size = width * height;
 
-    if (!patch)
+    byte *buffer = malloc(size);
+    memset(buffer, v_darkest_color, size);
+
+    for (byte *p = buffer; p < buffer + size; p += 8)
     {
-        int num = (W_CheckNumForName)("TNT1A0", ns_sprites);
-        size = W_LumpLength(num);
-        patch = W_CacheLumpNum(num, PU_STATIC);
+        memset(p, v_lightest_color, 8);
+
+        if (((p - buffer) + 16) % (8 * 64) == 0)
+        {
+            p += 16;
+        }
+        else if (((p - buffer) + 8) % (8 * 64) != 0)
+        {
+            p += 8;
+        }
     }
 
-    Z_Malloc(size, tag, &lumpcache[lump]);
-    memcpy(lumpcache[lump], patch, size);
+    return buffer;
+}
 
+static void *CheckerBoardFlat(int lump, pu_tag tag)
+{
+    static byte *buffer;
+
+    if (!buffer)
+    {
+        buffer = FillCheckerBoardPattern(64, 64);
+    }
+
+    const int size = 64 * 64;
+    Z_Malloc(size, tag, &lumpcache[lump]);
+    memcpy(lumpcache[lump], buffer, size);
+    return lumpcache[lump];
+}
+
+static patch_t *CheckerBoardPatch(int lump, pu_tag tag)
+{
+    static byte *buffer;
+
+    if (!buffer)
+    {
+        buffer = FillCheckerBoardPattern(64, 128);
+    }
+
+    V_LinearToTransPatch(buffer, 64, 128, NO_COLOR_KEY, tag, &lumpcache[lump]);
     return lumpcache[lump];
 }
 
@@ -392,7 +428,7 @@ patch_t *V_CachePatchNum(int lump, pu_tag tag)
 error:
     spng_ctx_free(ctx);
     Z_Free(buffer);
-    return InvisibleSprite(lump, tag);
+    return CheckerBoardPatch(lump, tag);
 }
 
 void *V_CacheFlatNum(int lump, pu_tag tag)
@@ -472,7 +508,6 @@ void *V_CacheFlatNum(int lump, pu_tag tag)
 error:
     spng_ctx_free(ctx);
     Z_Free(buffer);
-    Z_Calloc(1, 64 * 64, tag, &lumpcache[lump]);
-    return lumpcache[lump];
+    return CheckerBoardFlat(lump, tag);
 }
 
