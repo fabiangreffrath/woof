@@ -22,6 +22,7 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "am_map.h"
 #include "d_deh.h" /* Ty 03/27/98 - externalization of mapnamesx arrays */
 #include "d_event.h"
 #include "d_items.h"
@@ -694,7 +695,18 @@ static void HU_widget_build_title (void)
 
   M_StringConcat(hud_titlestr, s, sizeof(hud_titlestr));
 
-  HUlib_add_string_to_cur_line(&w_title, hud_titlestr);
+  // [crispy] print the map title in white from the first colon onward
+  if (mapcolor_preset == AM_PRESET_CRISPY ||
+      mapcolor_preset == AM_PRESET_ZDOOM)
+  {
+    s = M_StringReplace(hud_titlestr, ":", (const char[]){ ':', '\x1b', '0'+CR_GRAY, '\0' });
+    HUlib_add_string_to_cur_line(&w_title, s);
+    free(s);
+  }
+  else
+  {
+    HUlib_add_string_to_cur_line(&w_title, hud_titlestr);
+  }
 }
 
 // do the hud ammo display

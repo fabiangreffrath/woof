@@ -25,6 +25,16 @@
 
 struct event_s;
 
+typedef enum {
+  AM_PRESET_VANILLA,
+  AM_PRESET_CRISPY,
+  AM_PRESET_BOOM,
+  AM_PRESET_ZDOOM,
+  NUM_AM_PRESETS
+} am_preset_t;
+
+extern am_preset_t mapcolor_preset;
+
 // Used by ST StatusBar stuff.
 #define AM_MSGHEADER (('a'<<24)+('m'<<16))
 #define AM_MSGENTERED (AM_MSGHEADER | ('e'<<8))
