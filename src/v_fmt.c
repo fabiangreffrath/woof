@@ -57,8 +57,8 @@ typedef struct
     r += 4
 
 //
-// Converts a linear graphic to a patch with transparency. Mostly mostly
-// straight from SLADE.
+// Converts a linear graphic to a patch with transparency. Mostly straight
+// from SLADE.
 //
 patch_t *V_LinearToTransPatch(const byte *data, int width, int height,
                               int color_key, pu_tag tag, void **user)
@@ -419,10 +419,7 @@ void *V_CacheFlatNum(int lump, pu_tag tag)
     // Ignore and don't calculate chunk CRC's
     spng_set_crc_action(ctx, SPNG_CRC_USE, SPNG_CRC_USE);
 
-    // Set memory usage limits for storing standard and unknown chunks,
-    // this is important when reading untrusted files!
-    const size_t limit = 1024 * 1024 * 64;
-    spng_set_chunk_limits(ctx, limit, limit);
+    spng_set_chunk_limits(ctx, PNG_MEM_LIMIT, PNG_MEM_LIMIT);
 
     spng_set_png_buffer(ctx, buffer, W_LumpLength(lump));
 
@@ -473,9 +470,7 @@ void *V_CacheFlatNum(int lump, pu_tag tag)
 error:
     spng_ctx_free(ctx);
     Z_Free(buffer);
-
     Z_Calloc(1, 64 * 64, tag, &lumpcache[lump]);
-
     return lumpcache[lump];
 }
 
