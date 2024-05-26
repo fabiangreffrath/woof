@@ -24,11 +24,36 @@
 #include "i_timer.h"
 #include "i_video.h"
 #include "p_mobj.h"
+#include "r_main.h"
 #include "r_state.h"
 
 //
 // Local View
 //
+
+boolean G_UseLocalView(const player_t *player)
+{
+    return ((raw_input || (lowres_turn && fake_longtics))
+            && player == &players[consoleplayer]
+            && player->playerstate != PST_DEAD
+            && !player->mo->reactiontime
+            && !demoplayback
+            && (!netgame || solonet));
+}
+
+angle_t (*G_CalcViewAngle)(const player_t *player);
+
+static angle_t CalcViewAngle_RawInput(const player_t *player)
+{
+    return (player->mo->angle + localview.angle - player->ticangle
+            + LerpAngle(player->oldticangle, player->ticangle));
+}
+
+static angle_t CalcViewAngle_LerpFakeLongTics(const player_t *player)
+{
+    return LerpAngle(player->mo->oldangle + localview.oldlerpangle,
+                     player->mo->angle + localview.lerpangle);
+}
 
 void (*G_UpdateLocalView)(void);
 
@@ -44,6 +69,8 @@ static void UpdateLocalView_FakeLongTics(void)
     localview.angleoffset = 0;
     localview.pitch = 0;
     localview.rawpitch = 0.0;
+    localview.oldlerpangle = localview.lerpangle;
+    localview.lerpangle = localview.angle;
 }
 
 //
@@ -151,15 +178,21 @@ void G_UpdateAngleFunctions(void)
     CarryAngleTic = lowres_turn ? CarryAngleTic_LowRes : CarryAngleTic_Full;
     CarryAngle = CarryAngleTic;
     G_UpdateLocalView = G_ClearLocalView;
+    G_CalcViewAngle = CalcViewAngle_RawInput;
 
-    if (raw_input && (!netgame || solonet))
+    if (!netgame || solonet)
     {
         if (lowres_turn && fake_longtics)
         {
             CarryAngle = CarryAngle_FakeLongTics;
             G_UpdateLocalView = UpdateLocalView_FakeLongTics;
+
+            if (uncapped && !raw_input)
+            {
+                G_CalcViewAngle = CalcViewAngle_LerpFakeLongTics;
+            }
         }
-        else if (uncapped)
+        else if (uncapped && raw_input)
         {
             CarryAngle = lowres_turn ? CarryAngle_LowRes : CarryAngle_Full;
         }

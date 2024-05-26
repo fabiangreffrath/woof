@@ -25,6 +25,8 @@ struct ticcmd_s;
 
 // Local View
 
+boolean G_UseLocalView(const struct player_s *player);
+extern angle_t (*G_CalcViewAngle)(const struct player_s *player);
 extern void (*G_UpdateLocalView)(void);
 void G_ClearLocalView(void);
 

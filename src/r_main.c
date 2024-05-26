@@ -30,6 +30,7 @@
 #include "doomdata.h"
 #include "doomdef.h"
 #include "doomstat.h"
+#include "g_input.h"
 #include "i_video.h"
 #include "p_mobj.h"
 #include "p_pspr.h"
@@ -696,24 +697,6 @@ subsector_t *R_PointInSubsector(fixed_t x, fixed_t y)
   return &subsectors[nodenum & ~NF_SUBSECTOR];
 }
 
-static inline boolean CheckLocalView(const player_t *player)
-{
-  return (
-    // Don't use localview when interpolation is preferred.
-    raw_input &&
-    // Don't use localview if the player is spying.
-    player == &players[consoleplayer] &&
-    // Don't use localview if the player is dead.
-    player->playerstate != PST_DEAD &&
-    // Don't use localview if the player just teleported.
-    !player->mo->reactiontime &&
-    // Don't use localview if a demo is playing.
-    !demoplayback &&
-    // Don't use localview during a netgame (single-player or solo-net only).
-    (!netgame || solonet)
-  );
-}
-
 //
 // R_SetupFrame
 //
@@ -722,7 +705,7 @@ void R_SetupFrame (player_t *player)
 {
   int i, cm;
   fixed_t pitch;
-  const boolean use_localview = CheckLocalView(player);
+  const boolean use_localview = G_UseLocalView(player);
 
   viewplayer = player;
   // [AM] Interpolate the player camera if the feature is enabled.
@@ -743,8 +726,7 @@ void R_SetupFrame (player_t *player)
 
     if (use_localview)
     {
-      viewangle = (player->mo->angle + localview.angle - player->ticangle +
-                   LerpAngle(player->oldticangle, player->ticangle));
+      viewangle = G_CalcViewAngle(player);
     }
     else
     {
@@ -773,7 +755,7 @@ void R_SetupFrame (player_t *player)
     // [crispy] pitch is actual lookdir and weapon pitch
     pitch = player->pitch + player->recoilpitch;
 
-    if (use_localview && lowres_turn && fake_longtics)
+    if (use_localview)
     {
       viewangle += localview.angle;
     }
