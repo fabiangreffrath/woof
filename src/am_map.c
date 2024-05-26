@@ -2386,7 +2386,7 @@ void AM_BindAutomapVariables(void)
 
   M_BindNum("mapcolor_preset", &mapcolor_preset, NULL, AM_PRESET_BOOM,
             AM_PRESET_VANILLA, AM_PRESET_ZDOOM, ss_auto, wad_no,
-            "Automap color preset (0 = Vanilla Doom; 1 = Boom; 2 = ZDoom)");
+            "Automap color preset (0 = Vanilla Doom; 1 = Crispy Doom; 2 = Boom; 3 = ZDoom)");
 
 #define BIND_CR(name, v, help) \
   M_BindNum(#name, &name, NULL, (v), 0, 255, ss_none, wad_yes, help)
