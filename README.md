@@ -210,6 +210,10 @@ Copyright:
  © 2013-2014 RAD Game Tools and Valve Software.  
 License: [MIT](https://opensource.org/licenses/MIT)
 
+Files: `spng/*`  
+Copyright: © 2018-2023 Randy <randy408@protonmail.com>.  
+License: [BSD-2-Clause](https://opensource.org/license/bsd-2-clause)
+
 Files: `opl/*`  
 Copyright:  
  © 2005-2014 Simon Howard;  
