@@ -121,7 +121,7 @@ static struct
     {"doom.id.doom2.tnt",        commercial,   pack_tnt },
 };
 
-w_module_t *modules[] =
+static w_module_t *modules[] =
 {
     &w_zip_module,
     &w_file_module,

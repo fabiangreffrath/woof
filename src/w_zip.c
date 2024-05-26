@@ -21,19 +21,15 @@
 
 #include "miniz.h"
 
-static char *ConvertSlashes(const char *path)
+static void ConvertSlashes(char *path)
 {
-    char *result = M_StringDuplicate(path);
-
-    for (char *p = result; *p; ++p)
+    for (char *p = path; *p; ++p)
     {
         if (*p == '\\')
         {
             *p = '/';
         }
     }
-
-    return result;
 }
 
 static void AddWadInMem(mz_zip_archive *zip, const char *name, int index,
@@ -110,31 +106,42 @@ static void W_ZIP_AddDir(w_handle_t handle, const char *path,
 {
     mz_zip_archive *zip = handle.p1.zip;
 
-    char *local_path = ConvertSlashes(path);
+    boolean root_directory = (path[0] == '.');
+
+    int index = 0;
+
+    if (!root_directory)
+    {
+        char *local_path = M_StringJoin(path, "/", NULL);
+        ConvertSlashes(local_path);
+
+        index = mz_zip_reader_locate_file(zip, local_path, NULL, 0);
+
+        free(local_path);
+
+        if (index < 0)
+        {
+            return;
+        }
+
+        ++index;
+    }
 
     int startlump = numlumps;
 
-    for (int i = 0; i < mz_zip_reader_get_num_files(zip); ++i)
+    for ( ; index < mz_zip_reader_get_num_files(zip); ++index)
     {
         mz_zip_archive_file_stat stat;
-        mz_zip_reader_file_stat(zip, i, &stat);
+        mz_zip_reader_file_stat(zip, index, &stat);
 
         if (stat.m_is_directory)
         {
-            continue;
+            break;
         }
 
-        char *name = M_DirName(stat.m_filename);
-        int result = strcasecmp(name, local_path);
-        free(name);
-        if (result)
+        if (root_directory && M_StringCaseEndsWith(stat.m_filename, ".wad"))
         {
-            continue;
-        }
-
-        if (!strcmp(path, ".") && M_StringCaseEndsWith(stat.m_filename, ".wad"))
-        {
-            AddWadInMem(zip, M_BaseName(stat.m_filename), i, stat.m_uncomp_size);
+            AddWadInMem(zip, M_BaseName(stat.m_filename), index, stat.m_uncomp_size);
             continue;
         }
 
@@ -154,7 +161,7 @@ static void W_ZIP_AddDir(w_handle_t handle, const char *path,
         item.size = stat.m_uncomp_size;
 
         item.module = &w_zip_module;
-        w_handle_t local_handle = {.p1.zip = zip, .p2.index = i};
+        w_handle_t local_handle = {.p1.zip = zip, .p2.index = index};
         item.handle = local_handle;
 
         array_push(lumpinfo, item);
@@ -165,8 +172,6 @@ static void W_ZIP_AddDir(w_handle_t handle, const char *path,
     {
         W_AddMarker(end_marker);
     }
-
-    free(local_path);
 }
 
 static mz_zip_archive **zips = NULL;
