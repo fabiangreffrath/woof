@@ -134,15 +134,28 @@ static void W_ZIP_AddDir(w_handle_t handle, const char *path,
         mz_zip_archive_file_stat stat;
         mz_zip_reader_file_stat(zip, index, &stat);
 
-        if (stat.m_is_directory)
-        {
-            break;
-        }
+        boolean root_file = (strrchr(stat.m_filename, '/') == NULL);
 
-        if (root_directory && M_StringCaseEndsWith(stat.m_filename, ".wad"))
+        if (root_directory)
         {
-            AddWadInMem(zip, M_BaseName(stat.m_filename), index, stat.m_uncomp_size);
-            continue;
+            if (!root_file)
+            {
+                continue;
+            }
+
+            if (M_StringCaseEndsWith(stat.m_filename, ".wad"))
+            {
+                AddWadInMem(zip, M_BaseName(stat.m_filename), index,
+                            stat.m_uncomp_size);
+                continue;
+            }
+        }
+        else
+        {
+            if (stat.m_is_directory || root_file)
+            {
+                break;
+            }
         }
 
         if (W_SkipFile(stat.m_filename))
