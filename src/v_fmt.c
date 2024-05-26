@@ -1,4 +1,6 @@
 //
+// SLADE - It's a Doom Editor
+// Copyright(C) 2008 - 2019 Simon Judd
 // Copyright(C) 2024 Roman Fomin
 //
 // This program is free software; you can redistribute it and/or
@@ -55,8 +57,8 @@ typedef struct
     r += 4
 
 //
-// Converts a linear graphic to a patch with transparency. Mostly straight
-// from psxwadgen, which is mostly straight from SLADE.
+// Converts a linear graphic to a patch with transparency. Mostly mostly
+// straight from SLADE.
 //
 patch_t *V_LinearToTransPatch(const byte *data, int width, int height,
                               int color_key, pu_tag tag, void **user)

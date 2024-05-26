@@ -1,4 +1,6 @@
 //
+// SLADE - It's a Doom Editor
+// Copyright(C) 2008 - 2019 Simon Judd
 // Copyright(C) 2024 Roman Fomin
 //
 // This program is free software; you can redistribute it and/or
