@@ -273,8 +273,9 @@ patch_t *V_CachePatchNum(int lump, pu_tag tag)
     }
 
     void *buffer = W_CacheLumpNum(lump, tag);
+    int buffer_length = W_LumpLength(lump);
 
-    if (memcmp(buffer, "\211PNG\r\n\032\n", 8))
+    if (buffer_length < 8 || memcmp(buffer, "\211PNG\r\n\032\n", 8))
     {
         return buffer;
     }
@@ -288,7 +289,7 @@ patch_t *V_CachePatchNum(int lump, pu_tag tag)
 
     spng_set_option(ctx, SPNG_KEEP_UNKNOWN_CHUNKS, 1);
 
-    spng_set_png_buffer(ctx, buffer, W_LumpLength(lump));
+    spng_set_png_buffer(ctx, buffer, buffer_length);
 
     struct spng_ihdr ihdr = {0};
     int ret = spng_get_ihdr(ctx, &ihdr);
@@ -408,8 +409,9 @@ void *V_CacheFlatNum(int lump, pu_tag tag)
     }
 
     void *buffer = W_CacheLumpNum(lump, tag);
+    int buffer_length = W_LumpLength(lump);
 
-    if (memcmp(buffer, "\211PNG\r\n\032\n", 8))
+    if (buffer_length < 8 || memcmp(buffer, "\211PNG\r\n\032\n", 8))
     {
         return buffer;
     }
@@ -421,7 +423,7 @@ void *V_CacheFlatNum(int lump, pu_tag tag)
 
     spng_set_chunk_limits(ctx, PNG_MEM_LIMIT, PNG_MEM_LIMIT);
 
-    spng_set_png_buffer(ctx, buffer, W_LumpLength(lump));
+    spng_set_png_buffer(ctx, buffer, buffer_length);
 
     struct spng_ihdr ihdr = {0};
     int ret = spng_get_ihdr(ctx, &ihdr);
