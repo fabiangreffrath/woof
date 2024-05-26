@@ -239,55 +239,23 @@ patch_t *V_LinearToTransPatch(const byte *data, int width, int height,
     return (patch_t *)output;
 }
 
-static byte *FillCheckerBoardPattern(int width, int height)
+static patch_t *DummyPatch(int lump, pu_tag tag)
 {
-    const int size = width * height;
+    int num = (W_CheckNumForName)("TNT1A0", ns_sprites);
+    int len = W_LumpLength(num);
+    patch_t *dummy = W_CacheLumpNum(num, PU_CACHE);
 
-    byte *buffer = malloc(size);
-    memset(buffer, v_darkest_color, size);
-
-    for (byte *p = buffer; p < buffer + size; p += 8)
-    {
-        memset(p, v_lightest_color, 8);
-
-        if (((p - buffer) + 16) % (8 * 64) == 0)
-        {
-            p += 16;
-        }
-        else if (((p - buffer) + 8) % (8 * 64) != 0)
-        {
-            p += 8;
-        }
-    }
-
-    return buffer;
-}
-
-static void *CheckerBoardFlat(int lump, pu_tag tag)
-{
-    static byte *buffer;
-
-    if (!buffer)
-    {
-        buffer = FillCheckerBoardPattern(64, 64);
-    }
-
-    const int size = 64 * 64;
-    Z_Malloc(size, tag, &lumpcache[lump]);
-    memcpy(lumpcache[lump], buffer, size);
+    Z_Malloc(len, tag, &lumpcache[lump]);
+    memcpy(lumpcache[lump], dummy, len);
     return lumpcache[lump];
 }
 
-static patch_t *CheckerBoardPatch(int lump, pu_tag tag)
+static void *DummyFlat(int lump, pu_tag tag)
 {
-    static byte *buffer;
+    const int size = 64 * 64;
 
-    if (!buffer)
-    {
-        buffer = FillCheckerBoardPattern(64, 128);
-    }
-
-    V_LinearToTransPatch(buffer, 64, 128, NO_COLOR_KEY, tag, &lumpcache[lump]);
+    Z_Malloc(size, tag, &lumpcache[lump]);
+    memset(lumpcache[lump], v_darkest_color, size);
     return lumpcache[lump];
 }
 
@@ -428,7 +396,7 @@ patch_t *V_CachePatchNum(int lump, pu_tag tag)
 error:
     spng_ctx_free(ctx);
     Z_Free(buffer);
-    return CheckerBoardPatch(lump, tag);
+    return DummyPatch(lump, tag);
 }
 
 void *V_CacheFlatNum(int lump, pu_tag tag)
@@ -508,6 +476,6 @@ void *V_CacheFlatNum(int lump, pu_tag tag)
 error:
     spng_ctx_free(ctx);
     Z_Free(buffer);
-    return CheckerBoardFlat(lump, tag);
+    return DummyFlat(lump, tag);
 }
 
