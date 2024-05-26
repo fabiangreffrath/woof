@@ -2297,6 +2297,14 @@ void AM_Drawer (void)
   AM_drawMarks();
 }
 
+typedef enum {
+  AM_PRESET_VANILLA,
+  AM_PRESET_CRISPY,
+  AM_PRESET_BOOM,
+  AM_PRESET_ZDOOM,
+  NUM_AM_PRESETS
+} am_preset_t;
+
 am_preset_t mapcolor_preset;
 
 void AM_ColorPreset(void)
