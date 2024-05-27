@@ -37,14 +37,14 @@ static int FileLength(int descriptor)
    return st.st_size;
 }
 
-static void W_FILE_AddDir(w_handle_t handle, const char *path,
-                          const char *start_marker, const char *end_marker)
+static boolean W_FILE_AddDir(w_handle_t handle, const char *path,
+                             const char *start_marker, const char *end_marker)
 {
     int startlump = numlumps;
 
     glob_t *glob;
 
-    if (!strcmp(path, "."))
+    if (path[0] == '.')
     {
         glob = I_StartGlob(handle.p1.base_path, "*.*",
                            GLOB_FLAG_NOCASE | GLOB_FLAG_SORTED);
@@ -58,7 +58,7 @@ static void W_FILE_AddDir(w_handle_t handle, const char *path,
 
     if (!glob)
     {
-        return;
+        return false;
     }
 
     while (true)
@@ -103,6 +103,8 @@ static void W_FILE_AddDir(w_handle_t handle, const char *path,
     {
         W_AddMarker(end_marker);
     }
+
+    return true;
 }
 
 static int *descriptors = NULL;

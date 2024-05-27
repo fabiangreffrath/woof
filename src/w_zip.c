@@ -101,8 +101,8 @@ static void AddWadInMem(mz_zip_archive *zip, const char *name, int index,
     }
 }
 
-static void W_ZIP_AddDir(w_handle_t handle, const char *path,
-                         const char *start_marker, const char *end_marker)
+static boolean W_ZIP_AddDir(w_handle_t handle, const char *path,
+                            const char *start_marker, const char *end_marker)
 {
     mz_zip_archive *zip = handle.p1.zip;
 
@@ -121,7 +121,7 @@ static void W_ZIP_AddDir(w_handle_t handle, const char *path,
 
         if (index < 0)
         {
-            return;
+            return false;
         }
 
         ++index;
@@ -185,6 +185,8 @@ static void W_ZIP_AddDir(w_handle_t handle, const char *path,
     {
         W_AddMarker(end_marker);
     }
+
+    return true;
 }
 
 static mz_zip_archive **zips = NULL;

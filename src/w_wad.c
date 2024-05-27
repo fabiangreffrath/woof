@@ -129,7 +129,10 @@ static w_module_t *modules[] =
 
 static void AddDirs(w_module_t *module, w_handle_t handle, const char *base)
 {
-    module->AddDir(handle, base, NULL, NULL);
+    if (!module->AddDir(handle, base, NULL, NULL))
+    {
+        return;
+    }
 
     for (int i = 0; i < arrlen(subdirs); ++i)
     {

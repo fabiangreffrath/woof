@@ -25,8 +25,8 @@ typedef enum
 
 typedef struct w_module_s
 {
-    void (*AddDir)(w_handle_t handle, const char *path,
-                   const char *start_marker, const char *end_marker);
+    boolean (*AddDir)(w_handle_t handle, const char *path,
+                      const char *start_marker, const char *end_marker);
     w_type_t (*Open)(const char *path, w_handle_t *handle);
     void (*Read)(w_handle_t handle, void *dest, int size);
     void (*Close)(void);
