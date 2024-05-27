@@ -70,7 +70,6 @@ fixed_t  skyiscale;
 fixed_t  viewx, viewy, viewz;
 angle_t  viewangle;
 localview_t localview;
-double deltatics;
 boolean raw_input;
 fixed_t  viewcos, viewsin;
 player_t *viewplayer;

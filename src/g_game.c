@@ -390,38 +390,6 @@ static void G_DemoSkipTics(void)
   }
 }
 
-static int CalcControllerForward(int speed)
-{
-  const int forward = lroundf(forwardmove[speed] * axes[AXIS_FORWARD] *
-                              direction[joy_invert_forward]);
-  return BETWEEN(-forwardmove[speed], forwardmove[speed], forward);
-}
-
-static int CalcControllerSideTurn(int speed)
-{
-  const int side = G_RoundSide(forwardmove[speed] * axes[AXIS_TURN] *
-                             direction[joy_invert_turn]);
-  return BETWEEN(-forwardmove[speed], forwardmove[speed], side);
-}
-
-static int CalcControllerSideStrafe(int speed)
-{
-  const int side = G_RoundSide(forwardmove[speed] * axes[AXIS_STRAFE] *
-                             direction[joy_invert_strafe]);
-  return BETWEEN(-sidemove[speed], sidemove[speed], side);
-}
-
-static double CalcControllerAngle(void)
-{
-  return (angleturn[1] * axes[AXIS_TURN] * direction[joy_invert_turn]);
-}
-
-static double CalcControllerPitch(void)
-{
-  return (angleturn[1] * axes[AXIS_LOOK] * direction[joy_invert_look]
-          * FRACUNIT);
-}
-
 static int CarryError(double value, const double *prevcarry, double *carry)
 {
   const double desired = value + *prevcarry;
@@ -636,20 +604,19 @@ void G_PrepTiccmd(void)
 
   if (I_UseController() && I_CalcControllerAxes())
   {
-    D_UpdateDeltaTics();
-
+    G_UpdateDeltaTics();
     axis_turn_tic = axes[AXIS_TURN];
 
     if (axes[AXIS_TURN] && !strafe)
     {
-      localview.rawangle -= CalcControllerAngle() * deltatics;
+      localview.rawangle -= G_CalcControllerAngle();
       cmd->angleturn = CarryAngle(localview.rawangle);
       axes[AXIS_TURN] = 0.0f;
     }
 
     if (axes[AXIS_LOOK] && padlook)
     {
-      localview.rawpitch -= CalcControllerPitch() * deltatics;
+      localview.rawpitch -= G_CalcControllerPitch();
       cmd->pitch = CarryPitch(localview.rawpitch);
       axes[AXIS_LOOK] = 0.0f;
     }
@@ -762,17 +729,17 @@ void G_BuildTiccmd(ticcmd_t* cmd)
   {
     if (axes[AXIS_TURN] && strafe && !cmd->angleturn)
     {
-      side += CalcControllerSideTurn(speed);
+      side += G_CalcControllerSideTurn(speed);
     }
 
     if (axes[AXIS_STRAFE])
     {
-      side += CalcControllerSideStrafe(speed);
+      side += G_CalcControllerSideStrafe(speed);
     }
 
     if (axes[AXIS_FORWARD])
     {
-      forward -= CalcControllerForward(speed);
+      forward -= G_CalcControllerForward(speed);
     }
   }
 

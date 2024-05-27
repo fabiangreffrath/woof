@@ -23,4 +23,13 @@
 extern int (*G_RoundSide)(double side);
 void G_UpdateSideMove(void);
 
+// Gamepad
+
+void G_UpdateDeltaTics(void);
+double G_CalcControllerAngle(void);
+double G_CalcControllerPitch(void);
+int G_CalcControllerSideTurn(int speed);
+int G_CalcControllerSideStrafe(int speed);
+int G_CalcControllerForward(int speed);
+
 #endif
