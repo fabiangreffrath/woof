@@ -25,7 +25,6 @@
 #include "hu_lib.h"
 #include "hu_stuff.h"
 #include "i_gamepad.h"
-#include "i_input.h"
 #include "i_oalsound.h"
 #include "i_sound.h"
 #include "i_timer.h"
@@ -2140,26 +2139,33 @@ static setup_menu_t gen_settings3[] = {
      str_empty, MN_UpdateFreeLook},
 
     // [FG] invert vertical axis
-    {"Invert Look", S_ONOFF, CNTR_X, M_SPC, {"mouse_y_invert"}},
+    {"Invert Look", S_ONOFF, CNTR_X, M_SPC,
+     {"mouse_y_invert"}, m_null, input_null, str_empty,
+     G_UpdateMouseVariables},
 
     MI_GAP,
 
     {"Turn Sensitivity", S_THERMO | S_THRM_SIZE11, CNTR_X, M_THRM_SPC,
-     {"mouse_sensitivity"}},
+     {"mouse_sensitivity"}, m_null, input_null, str_empty,
+     G_UpdateMouseVariables},
 
     {"Look Sensitivity", S_THERMO | S_THRM_SIZE11, CNTR_X, M_THRM_SPC,
-     {"mouse_sensitivity_y_look"}},
+     {"mouse_sensitivity_y_look"}, m_null, input_null, str_empty,
+     G_UpdateMouseVariables},
 
     {"Move Sensitivity", S_THERMO | S_THRM_SIZE11, CNTR_X, M_THRM_SPC,
-     {"mouse_sensitivity_y"}},
+     {"mouse_sensitivity_y"}, m_null, input_null, str_empty,
+     G_UpdateMouseVariables},
 
     {"Strafe Sensitivity", S_THERMO | S_THRM_SIZE11, CNTR_X, M_THRM_SPC,
-     {"mouse_sensitivity_strafe"}},
+     {"mouse_sensitivity_strafe"}, m_null, input_null, str_empty,
+     G_UpdateMouseVariables},
 
     MI_GAP,
 
-    {"Mouse acceleration", S_THERMO, CNTR_X, M_THRM_SPC, {"mouse_acceleration"},
-     m_null, input_null, str_mouse_accel, I_UpdateAccelerateMouse},
+    {"Mouse acceleration", S_THERMO, CNTR_X, M_THRM_SPC,
+     {"mouse_acceleration"}, m_null, input_null, str_mouse_accel,
+     G_UpdateMouseVariables},
 
     MI_END
 };

@@ -22,6 +22,7 @@
 #include "i_gamepad.h"
 #include "i_timer.h"
 #include "i_video.h"
+#include "m_config.h"
 #include "r_main.h"
 
 //
@@ -118,4 +119,128 @@ int G_CalcControllerForward(int speed)
     const int forward = lroundf(forwardmove[speed] * axes[AXIS_FORWARD]
                                 * direction[joy_invert_forward]);
     return BETWEEN(-forwardmove[speed], forwardmove[speed], forward);
+}
+
+//
+// Mouse
+//
+
+static int mouse_sensitivity;
+static int mouse_sensitivity_y;
+static int mouse_sensitivity_strafe; // [FG] strafe
+static int mouse_sensitivity_y_look; // [FG] look
+static boolean mouse_y_invert;       // [FG] invert vertical axis
+static int mouse_acceleration;
+static int mouse_acceleration_threshold;
+
+static double mouse_sens_angle;
+static double mouse_sens_pitch;
+static double mouse_sens_side;
+static double mouse_sens_vert;
+static double mouse_scale;
+
+static double AccelerateMouse_Skip(int val)
+{
+    return val;
+}
+
+static double AccelerateMouse_RawInput(int val)
+{
+    return (val * mouse_scale);
+}
+
+static double AccelerateMouse_Chocolate(int val)
+{
+    if (val < 0)
+    {
+        return -AccelerateMouse_Chocolate(-val);
+    }
+
+    if (val > mouse_acceleration_threshold)
+    {
+        return ((val - mouse_acceleration_threshold) * mouse_scale
+                + mouse_acceleration_threshold);
+    }
+    else
+    {
+        return val;
+    }
+}
+
+static double (*AccelerateMouse)(int val);
+
+void G_UpdateMouseVariables(void)
+{
+    mouse_sens_angle = 0.0;
+    mouse_sens_pitch = 0.0;
+    mouse_sens_side = 0.0;
+    mouse_sens_vert = 0.0;
+    mouse_scale = 1.0;
+    AccelerateMouse = AccelerateMouse_Skip;
+
+    if (mouse_sensitivity)
+    {
+        mouse_sens_angle = (double)(mouse_sensitivity + 5) * 8 / 10;
+    }
+
+    if (mouse_sensitivity_y_look)
+    {
+        mouse_sens_pitch = ((double)(mouse_sensitivity_y_look + 5) * 8 / 10
+                            * direction[mouse_y_invert] * FRACUNIT);
+    }
+
+    if (mouse_sensitivity_strafe)
+    {
+        mouse_sens_side = (double)(mouse_sensitivity_strafe + 5) * 2 / 10;
+    }
+
+    if (mouse_sensitivity_y)
+    {
+        mouse_sens_vert = (double)(mouse_sensitivity_y + 5) / 10;
+    }
+
+    if (mouse_acceleration)
+    {
+        mouse_scale = (double)(mouse_acceleration + 10) / 10;
+        AccelerateMouse = raw_input ? AccelerateMouse_RawInput
+                                    : AccelerateMouse_Chocolate;
+    }
+}
+
+double G_CalcMouseAngle(int mousex)
+{
+    return (AccelerateMouse(mousex) * mouse_sens_angle);
+}
+
+double G_CalcMousePitch(int mousey)
+{
+    return (AccelerateMouse(mousey) * mouse_sens_pitch);
+}
+
+double G_CalcMouseSide(int mousex)
+{
+    return (AccelerateMouse(mousex) * mouse_sens_side);
+}
+
+double G_CalcMouseVert(int mousey)
+{
+    return (AccelerateMouse(mousey) * mouse_sens_vert);
+}
+
+void G_BindMouseVariables(void)
+{
+    BIND_NUM_GENERAL(mouse_sensitivity, 5, 0, UL,
+        "Horizontal mouse sensitivity for turning");
+    BIND_NUM_GENERAL(mouse_sensitivity_y, 5, 0, UL,
+        "Vertical mouse sensitivity for moving");
+    BIND_NUM_GENERAL(mouse_sensitivity_strafe, 5, 0, UL,
+        "Horizontal mouse sensitivity for strafing");
+    BIND_NUM_GENERAL(mouse_sensitivity_y_look, 5, 0, UL,
+        "Vertical mouse sensitivity for looking");
+    BIND_NUM_GENERAL(mouse_acceleration, 10, 0, 40,
+        "Mouse acceleration (0 = 1.0; 40 = 5.0)");
+    BIND_NUM(mouse_acceleration_threshold, 10, 0, 32,
+        "Mouse acceleration threshold");
+    BIND_BOOL_GENERAL(mouse_y_invert, false,
+        "Invert vertical mouse axis");
 }

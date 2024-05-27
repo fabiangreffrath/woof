@@ -178,14 +178,8 @@ static ticcmd_t* last_cmd = NULL;
 int     key_escape = KEY_ESCAPE;                           // phares 4/13/98
 int     key_help = KEY_F1;                                 // phares 4/13/98
 
-static int mouse_sensitivity;
-static int mouse_sensitivity_y;
-static int mouse_sensitivity_strafe; // [FG] strafe
-static int mouse_sensitivity_y_look; // [FG] look
 // [FG] double click acts as "use"
 static boolean dclick_use;
-// [FG] invert vertical axis
-static boolean mouse_y_invert;
 
 #define MAXPLMOVE   (forwardmove[1])
 #define TURBOTHRESHOLD  0x32
@@ -221,8 +215,6 @@ static carry_t carry;
 static ticcmd_t basecmd;
 
 boolean joybuttons[NUM_CONTROLLER_BUTTONS];
-
-static const int direction[] = { 1, -1 };
 
 int   savegameslot = -1;
 char  savedescription[32];
@@ -488,39 +480,6 @@ static int CarryMouseSide(double side)
   return actual;
 }
 
-static double CalcMouseAngle(int mousex)
-{
-  if (!mouse_sensitivity)
-    return 0.0;
-
-  return (I_AccelerateMouse(mousex) * (mouse_sensitivity + 5) * 8 / 10);
-}
-
-static double CalcMousePitch(int mousey)
-{
-  if (!mouse_sensitivity_y_look)
-    return 0.0;
-
-  return (I_AccelerateMouse(mousey) * (mouse_sensitivity_y_look + 5) * 8 / 10
-          * direction[mouse_y_invert] * FRACUNIT);
-}
-
-static double CalcMouseSide(int mousex)
-{
-  if (!mouse_sensitivity_strafe)
-    return 0.0;
-
-  return (I_AccelerateMouse(mousex) * (mouse_sensitivity_strafe + 5) * 2 / 10);
-}
-
-static double CalcMouseVert(int mousey)
-{
-  if (!mouse_sensitivity_y)
-    return 0.0;
-
-  return (I_AccelerateMouse(mousey) * (mouse_sensitivity_y + 5) / 10);
-}
-
 //
 // ApplyQuickstartCache
 // When recording a demo and the map is reloaded, cached input from a circular
@@ -626,14 +585,14 @@ void G_PrepTiccmd(void)
 
   if (mousex && !strafe)
   {
-    localview.rawangle -= CalcMouseAngle(mousex);
+    localview.rawangle -= G_CalcMouseAngle(mousex);
     cmd->angleturn = CarryAngle(localview.rawangle);
     mousex = 0;
   }
 
   if (mousey && mouselook)
   {
-    localview.rawpitch += CalcMousePitch(mousey);
+    localview.rawpitch += G_CalcMousePitch(mousey);
     cmd->pitch = CarryPitch(localview.rawpitch);
     mousey = 0;
   }
@@ -747,13 +706,13 @@ void G_BuildTiccmd(ticcmd_t* cmd)
 
   if (mousex && strafe && !cmd->angleturn)
   {
-    const double mouseside = CalcMouseSide(mousex);
+    const double mouseside = G_CalcMouseSide(mousex);
     side += CarryMouseSide(mouseside);
   }
 
   if (mousey && !mouselook && !novert)
   {
-    const double mousevert = CalcMouseVert(mousey);
+    const double mousevert = G_CalcMouseVert(mousey);
     forward += CarryMouseVert(mousevert);
   }
 
@@ -4571,15 +4530,6 @@ void G_BindGameInputVariables(void)
 {
   BIND_BOOL(autorun, true, "Always run");
   BIND_BOOL_GENERAL(mouselook, false, "Mouselook");
-  BIND_NUM_GENERAL(mouse_sensitivity, 5, 0, UL,
-    "Horizontal mouse sensitivity for turning");
-  BIND_NUM_GENERAL(mouse_sensitivity_y, 5, 0, UL,
-    "Vertical mouse sensitivity for moving");
-  BIND_NUM_GENERAL(mouse_sensitivity_strafe, 5, 0, UL,
-    "Horizontal mouse sensitivity for strafing");
-  BIND_NUM_GENERAL(mouse_sensitivity_y_look, 5, 0, UL,
-    "Vertical mouse sensitivity for looking");
-  BIND_BOOL_GENERAL(mouse_y_invert, false, "Invert vertical mouse axis");
   BIND_BOOL_GENERAL(dclick_use, true, "Double-click acts as use-button");
   BIND_BOOL(novert, true, "Disable vertical mouse movement");
   BIND_BOOL_GENERAL(padlook, false, "Padlook");

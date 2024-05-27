@@ -32,4 +32,13 @@ int G_CalcControllerSideTurn(int speed);
 int G_CalcControllerSideStrafe(int speed);
 int G_CalcControllerForward(int speed);
 
+// Mouse
+
+void G_UpdateMouseVariables(void);
+double G_CalcMouseAngle(int mousex);
+double G_CalcMousePitch(int mousey);
+double G_CalcMouseSide(int mousex);
+double G_CalcMouseVert(int mousey);
+void G_BindMouseVariables(void);
+
 #endif

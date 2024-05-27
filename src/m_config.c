@@ -37,7 +37,6 @@
 #include "hu_stuff.h"
 #include "i_gamepad.h"
 #include "i_printf.h"
-#include "i_input.h"
 #include "i_sound.h"
 #include "i_system.h"
 #include "i_video.h"
@@ -117,7 +116,7 @@ void M_InitConfig(void)
     G_BindGameVariables();
 
     G_BindGameInputVariables();
-    I_BindInputVariables();
+    G_BindMouseVariables();
     I_BindGamepadVariables();
     M_BindInputVariables();
 
