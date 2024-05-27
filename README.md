@@ -211,7 +211,7 @@ Copyright:
 License: [MIT](https://opensource.org/licenses/MIT)
 
 Files: `spng/*`  
-Copyright: © 2018-2023 Randy <randy408@protonmail.com>.  
+Copyright: © 2018-2023 Randy.  
 License: [BSD-2-Clause](https://opensource.org/license/bsd-2-clause)
 
 Files: `opl/*`  
