@@ -107,7 +107,7 @@ patch_t *V_LinearToTransPatch(const byte *data, int width, int height,
 
             // If the current pixel is not transparent, add it to the current
             // post
-            if (color_key == -1 || data[offset] != color_key)
+            if (data[offset] != color_key)
             {
                 // If we're not currently building a post, begin one and set its
                 // offset
@@ -236,6 +236,59 @@ patch_t *V_LinearToTransPatch(const byte *data, int width, int height,
     array_free(columns);
 
     // Done!
+    return (patch_t *)output;
+}
+
+patch_t *V_LinearToPatch(byte *data, int width, int height, int tag,
+                         void **user)
+{
+    size_t size = 0;
+    size += 4 * sizeof(int16_t);                     // 4 header shorts
+    size += width * sizeof(int32_t);                 // offsets table
+    size += width * (height + sizeof(column_t) + 3); // 2 pad bytes and cap
+
+    byte *output = Z_Malloc(size, tag, user);
+
+    byte *rover = output;
+
+    // write header fields
+    PUTSHORT(rover, width);
+    PUTSHORT(rover, height);
+    // This is written to afterwards
+    PUTSHORT(rover, 0);
+    PUTSHORT(rover, 0);
+
+    // set starting position of column offsets table, and skip over it
+    byte *col_offsets = rover;
+    rover += width * sizeof(int32_t);
+
+    for (int x = 0; x < width; ++x)
+    {
+        // write column offset to offset table
+        PUTLONG(col_offsets, rover - output);
+
+        // column_t topdelta
+        PUTBYTE(rover, 0);
+        // column_t length
+        PUTBYTE(rover, height);
+
+        // pad byte
+        ++rover;
+
+        byte *src = data + x;
+        for (int y = 0; y < height; ++y)
+        {
+            PUTBYTE(rover, *src);
+            src += width;
+        }
+
+        // pad byte
+        ++rover;
+
+        // Write 255 cap byte
+        PUTBYTE(rover, 0xff);
+    }
+
     return (patch_t *)output;
 }
 
@@ -381,14 +434,22 @@ patch_t *V_CachePatchNum(int lump, pu_tag tag)
         goto error;
     }
 
+    spng_ctx_free(ctx);
     Z_Free(buffer);
 
-    patch_t *patch = V_LinearToTransPatch(image, ihdr.width, ihdr.height,
-                                          color_key, tag, &lumpcache[lump]);
+    patch_t *patch;
+    if (color_key == NO_COLOR_KEY)
+    {
+        patch = V_LinearToPatch(image, ihdr.width, ihdr.height, tag,
+                                &lumpcache[lump]);
+    }
+    else
+    {
+        patch = V_LinearToTransPatch(image, ihdr.width, ihdr.height, color_key,
+                                     tag, &lumpcache[lump]);
+    }
     patch->leftoffset = leftoffset;
     patch->topoffset = topoffset;
-
-    spng_ctx_free(ctx);
     free(image);
 
     return lumpcache[lump];
