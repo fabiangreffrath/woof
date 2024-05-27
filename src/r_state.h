@@ -94,6 +94,8 @@ typedef struct localview_s
     double rawangle;
     double rawpitch;
     angle_t angle;
+    angle_t oldlerpangle;
+    angle_t lerpangle;
     fixed_t pitch;
     short angleoffset;
 } localview_t;

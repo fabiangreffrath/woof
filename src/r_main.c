@@ -700,8 +700,6 @@ subsector_t *R_PointInSubsector(fixed_t x, fixed_t y)
 static inline boolean CheckLocalView(const player_t *player)
 {
   return (
-    // Don't use localview when interpolation is preferred.
-    raw_input &&
     // Don't use localview if the player is spying.
     player == &players[consoleplayer] &&
     // Don't use localview if the player is dead.
@@ -742,17 +740,22 @@ void R_SetupFrame (player_t *player)
     viewy = LerpFixed(player->mo->oldy, player->mo->y);
     viewz = LerpFixed(player->oldviewz, player->viewz);
 
-    if (use_localview)
+    if (use_localview && raw_input)
     {
       viewangle = (player->mo->angle + localview.angle - player->ticangle +
                    LerpAngle(player->oldticangle, player->ticangle));
+    }
+    else if (use_localview && !raw_input && lowres_turn && fake_longtics)
+    {
+      viewangle = LerpAngle(player->mo->oldangle + localview.oldlerpangle,
+                            player->mo->angle + localview.lerpangle);
     }
     else
     {
       viewangle = LerpAngle(player->mo->oldangle, player->mo->angle);
     }
 
-    if (use_localview && !player->centering)
+    if (use_localview && raw_input && !player->centering)
     {
       pitch = player->pitch + localview.pitch;
       pitch = BETWEEN(-MAX_PITCH_ANGLE, MAX_PITCH_ANGLE, pitch);

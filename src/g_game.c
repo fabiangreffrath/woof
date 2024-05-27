@@ -501,6 +501,8 @@ static void UpdateLocalView_FakeLongTics(void)
   localview.angleoffset = 0;
   localview.pitch = 0;
   localview.rawpitch = 0.0;
+  localview.oldlerpangle = localview.lerpangle;
+  localview.lerpangle = localview.angle;
 }
 
 static short (*CarryAngleTic)(double angle);
@@ -513,14 +515,14 @@ void G_UpdateAngleFunctions(void)
   CarryAngle = CarryAngleTic;
   UpdateLocalView = UpdateLocalView_Zero;
 
-  if (raw_input && (!netgame || solonet))
+  if (!netgame || solonet)
   {
     if (lowres_turn && fake_longtics)
     {
       CarryAngle = CarryAngle_FakeLongTics;
       UpdateLocalView = UpdateLocalView_FakeLongTics;
     }
-    else if (uncapped)
+    else if (uncapped && raw_input)
     {
       CarryAngle = lowres_turn ? CarryAngle_LowRes : CarryAngle_Full;
     }
