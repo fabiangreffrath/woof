@@ -118,6 +118,9 @@ extern angle_t          rw_normalangle;
 // [FG] linear horizontal sky scrolling
 extern angle_t          *linearskyangle;
 
+// Default sky scrolling.
+extern angle_t          *defaultskyangle;
+
 // angle to line origin
 extern int              rw_angle1;
 

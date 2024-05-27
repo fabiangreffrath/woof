@@ -49,6 +49,9 @@ extern int      linecount;
 extern int      loopcount;
 extern fixed_t  viewheightfrac; // [FG] sprite clipping optimizations
 
+extern boolean fovsky;
+extern int skyoffsety;
+
 //
 // Rendering stats
 //

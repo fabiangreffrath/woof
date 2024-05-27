@@ -100,6 +100,9 @@ angle_t *xtoviewangle = NULL;   // killough 2/8/98
 // [FG] linear horizontal sky scrolling
 angle_t *linearskyangle = NULL;
 
+// Default sky scrolling.
+angle_t *defaultskyangle = NULL;
+
 int LIGHTLEVELS;
 int LIGHTSEGSHIFT;
 int LIGHTBRIGHT;
@@ -270,6 +273,63 @@ static int scaledviewwidth_nonwide, viewwidth_nonwide;
 static fixed_t centerxfrac_nonwide;
 
 //
+// CalcSkyAngle
+//
+
+boolean fovsky;
+int skyoffsety;
+
+static void CalcSkyAngle(fixed_t slopefrac)
+{
+  int i, t, x;
+  fixed_t skyslopefrac, skyfocallength;
+  double linearskyfactor;
+
+  if (fovsky)
+  {
+    skyslopefrac = slopefrac;
+    skyfocallength = focallength;
+  }
+  else
+  {
+    const int fov = (atan((double)centerxfrac / centerxfrac_nonwide)
+                     * FINEANGLES / M_PI);
+    skyslopefrac = finetangent[FINEANGLES / 4 + fov / 2];
+    skyfocallength = FixedDiv(centerxfrac_nonwide,
+                              finetangent[FINEANGLES / 4 + FIELDOFVIEW / 2]);
+  }
+
+  for (i = 0; i < FINEANGLES / 2; i++)
+  {
+    if (finetangent[i] > skyslopefrac)
+      t = -1;
+    else if (finetangent[i] < -skyslopefrac)
+      t = viewwidth + 1;
+    else
+    {
+      t = FixedMul(finetangent[i], skyfocallength);
+      t = (centerxfrac - t + FRACUNIT - 1) >> FRACBITS;
+      if (t < -1)
+        t = -1;
+      else if (t > viewwidth + 1)
+        t = viewwidth + 1;
+    }
+    viewangletox[i] = t;
+  }
+
+  linearskyfactor = FIXED2DOUBLE(skyslopefrac) * ANG90;
+
+  for (x = 0; x <= viewwidth; x++)
+  {
+    for (i = 0; viewangletox[i] > x; i++)
+      ;
+    defaultskyangle[x] = (i << ANGLETOFINESHIFT) - ANG90;
+    // [FG] linear horizontal sky scrolling
+    linearskyangle[x] = (0.5 - x / (double)viewwidth) * linearskyfactor;
+  }
+}
+
+//
 // R_InitTextureMapping
 //
 // killough 5/2/98: reformatted
@@ -279,7 +339,6 @@ static void R_InitTextureMapping(void)
   register int i,x;
   fixed_t slopefrac;
   angle_t fov;
-  double linearskyfactor;
 
   // Use tangent table to generate viewangletox:
   //  viewangletox will give the next greatest x
@@ -312,6 +371,8 @@ static void R_InitTextureMapping(void)
     projection = centerxfrac / slope;
   }
 
+  CalcSkyAngle(slopefrac);
+
   for (i=0 ; i<FINEANGLES/2 ; i++)
     {
       int t;
@@ -337,15 +398,11 @@ static void R_InitTextureMapping(void)
   //  xtoviewangle will give the smallest view angle
   //  that maps to x.
 
-  linearskyfactor = FIXED2DOUBLE(slopefrac) * ANG90;
-
   for (x=0; x<=viewwidth; x++)
     {
       for (i=0; viewangletox[i] > x; i++)
         ;
       xtoviewangle[x] = (i<<ANGLETOFINESHIFT)-ANG90;
-      // [FG] linear horizontal sky scrolling
-      linearskyangle[x] = (0.5 - x / (double)viewwidth) * linearskyfactor;
     }
     
   // Take out the fencepost cases from viewangletox.
@@ -494,10 +551,19 @@ static void R_SetupFreelook(void)
   fixed_t dy;
   int i;
 
+  skyoffsety = 0;
+
   if (viewpitch)
   {
-    dy = FixedMul(projection, -finetangent[(ANG90 - viewpitch) >> ANGLETOFINESHIFT]);
-    dy = (fixed_t)((int64_t)dy * SCREENHEIGHT / ACTUALHEIGHT);
+    const fixed_t fine = -finetangent[(ANG90 - viewpitch) >> ANGLETOFINESHIFT];
+    dy = (int64_t)FixedMul(projection, fine) * SCREENHEIGHT / ACTUALHEIGHT;
+
+    if (!fovsky)
+    {
+      const fixed_t skydy = ((int64_t)FixedMul(centerxfrac_nonwide, fine)
+                             * SCREENHEIGHT / ACTUALHEIGHT);
+      skyoffsety = (dy >> FRACBITS) - (skydy >> FRACBITS);
+    }
   }
   else
   {
@@ -611,7 +677,7 @@ void R_ExecuteSetViewSize (void)
   while (FixedMul(pspriteiscale, pspritescale) < FRACUNIT)
     pspriteiscale++;
 
-  if (custom_fov == FOV_DEFAULT)
+  if (custom_fov == FOV_DEFAULT || !fovsky)
   {
     skyiscale = FixedDiv(SCREENWIDTH, viewwidth_nonwide);
   }
@@ -970,6 +1036,7 @@ void R_BindRenderVariables(void)
   BIND_NUM_GENERAL(extra_level_brightness, 0, 0, 4, "Level brightness");
   BIND_BOOL_GENERAL(stretchsky, false, "Stretch short skies");
   BIND_BOOL_GENERAL(linearsky, false, "Linear horizontal scrolling for skies");
+  BIND_BOOL_GENERAL(fovsky, false, "FOV affects skies");
   BIND_BOOL_GENERAL(r_swirl, false, "Swirling animated flats");
   BIND_BOOL_GENERAL(smoothlight, false, "Smooth diminishing lighting");
   M_BindBool("voxels_rendering", &default_voxels_rendering, &voxels_rendering,

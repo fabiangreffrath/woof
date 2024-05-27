@@ -314,7 +314,7 @@ void R_DrawSkyColumn(void)
   dest = ylookup[dc_yl] + columnofs[dc_x];
 
   fracstep = dc_iscale; 
-  frac = dc_texturemid + (dc_yl - centery) * fracstep;
+  frac = dc_texturemid + (dc_yl - centery + skyoffsety) * fracstep;
 
   {
     const byte *source = dc_source;

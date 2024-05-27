@@ -108,7 +108,8 @@ static angle_t *xtoskyangle;
 //
 void R_InitPlanes (void)
 {
-  xtoskyangle = linearsky ? linearskyangle : xtoviewangle;
+  xtoskyangle = linearsky ? linearskyangle
+                          : (fovsky ? xtoviewangle : defaultskyangle);
 }
 
 void R_InitPlanesRes(void)
@@ -141,7 +142,8 @@ void R_InitPlanesRes(void)
 
   openings = Z_Calloc(1, video.width * video.height * sizeof(*openings), PU_STATIC, NULL);
 
-  xtoskyangle = linearsky ? linearskyangle : xtoviewangle;
+  xtoskyangle = linearsky ? linearskyangle
+                          : (fovsky ? xtoviewangle : defaultskyangle);
 }
 
 void R_InitVisplanesRes(void)

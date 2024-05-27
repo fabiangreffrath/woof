@@ -2213,6 +2213,12 @@ static setup_menu_t gen_settings4[] = {
     MI_END
 };
 
+static void InitPlanes(void)
+{
+    R_InitPlanes();
+    setsizeneeded = true;
+}
+
 static void SmoothLight(void)
 {
     setsmoothlight = true;
@@ -2243,7 +2249,10 @@ static setup_menu_t gen_settings5[] = {
      m_null, input_null, str_empty, R_InitSkyMap},
 
     {"Linear Sky Scrolling", S_ONOFF, M_X, M_SPC, {"linearsky"},
-     m_null, input_null, str_empty, R_InitPlanes},
+     m_null, input_null, str_empty, InitPlanes},
+
+    {"FOV Affects Skies", S_ONOFF, M_X, M_SPC, {"fovsky"},
+     m_null, input_null, str_empty, InitPlanes},
 
     {"Swirling Flats", S_ONOFF, M_X, M_SPC, {"r_swirl"}},
 
