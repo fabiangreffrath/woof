@@ -2332,17 +2332,17 @@ void AM_ColorPreset(void)
     {&mapcolor_revsecr, {  0,  -1, 112, 251}}, // am_secretsectorcolor
     {&mapcolor_exit,    {  0, 209, 208, 176}}, // am_interlevelcolor
     {&mapcolor_unsn,    { 99,  99, 104, 100}}, // am_notseencolor
-    {&mapcolor_flat,    { 97,  97,  88,  95}}, // am_tswallcolor
+    {&mapcolor_flat,    { 96,  96,  88,  95}}, // am_tswallcolor
     {&mapcolor_sprt,    {112, 112, 112,   4}}, // am_thingcolor
     {&mapcolor_hair,    { 96,  96, 208,  97}}, // am_xhaircolor
     {&mapcolor_sngl,    {209, 209, 208, 209}}, // am_yourcolor
     {&mapcolor_plyr[0], {112, 112, 112, 112}},
-    {&mapcolor_plyr[1], { 88,  88,  88,  88}},
+    {&mapcolor_plyr[1], { 96,  96,  88,  88}},
     {&mapcolor_plyr[2], { 64,  64,  64,  64}},
     {&mapcolor_plyr[3], {176, 176, 176, 176}},
     {&mapcolor_frnd,    {252, 252, 252,   4}}, // am_thingcolor_friend
-    {&mapcolor_enemy,   {112, 112, 177,   4}}, // am_thingcolor_monster
-    {&mapcolor_item,    {112, 112, 231,   4}}, // am_thingcolor_item
+    {&mapcolor_enemy,   {112, 176, 177,   4}}, // am_thingcolor_monster
+    {&mapcolor_item,    {112, 231, 231,   4}}, // am_thingcolor_item
 
     {&hudcolor_titl,    {CR_NONE, CR_GOLD, CR_GOLD, CR_GRAY}}, // DrawAutomapHUD()
 
