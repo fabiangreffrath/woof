@@ -153,7 +153,7 @@ wbstartstruct_t wminfo;               // parms for world map / intermission
 boolean         haswolflevels = false;// jff 4/18/98 wolf levels present
 byte            *savebuffer;
 boolean         autorun = false;      // always running?          // phares
-boolean         autostrafe50;
+static boolean  autostrafe50;
 boolean         novert = false;
 boolean         mouselook = false;
 boolean         padlook = false;
@@ -178,16 +178,14 @@ static ticcmd_t* last_cmd = NULL;
 int     key_escape = KEY_ESCAPE;                           // phares 4/13/98
 int     key_help = KEY_F1;                                 // phares 4/13/98
 
-int mouse_sensitivity;
-int mouse_sensitivity_y;
-int mouse_sensitivity_strafe; // [FG] strafe
-int mouse_sensitivity_y_look; // [FG] look
+static int mouse_sensitivity;
+static int mouse_sensitivity_y;
+static int mouse_sensitivity_strafe; // [FG] strafe
+static int mouse_sensitivity_y_look; // [FG] look
 // [FG] double click acts as "use"
 static boolean dclick_use;
 // [FG] invert vertical axis
-boolean mouse_y_invert;
-int mouse_acceleration;
-int mouse_acceleration_threshold;
+static boolean mouse_y_invert;
 
 #define MAXPLMOVE   (forwardmove[1])
 #define TURBOTHRESHOLD  0x32
@@ -195,10 +193,11 @@ int mouse_acceleration_threshold;
 #define QUICKREVERSE 32768 // 180 degree reverse                    // phares
 #define NUMKEYS   256
 
-fixed_t forwardmove[2] = {0x19, 0x32};
-fixed_t default_sidemove[2] = {0x18, 0x28};
+static fixed_t default_forwardmove[2] = {0x19, 0x32};
+static fixed_t default_sidemove[2] = {0x18, 0x28};
+fixed_t *forwardmove = default_forwardmove;
 fixed_t *sidemove = default_sidemove;
-const fixed_t angleturn[3] = {640, 1280, 320};  // + slow turn
+fixed_t angleturn[3]   = {640, 1280, 320};  // + slow turn
 
 boolean gamekeydown[NUMKEYS];
 int     turnheld;       // for accelerative turning
@@ -206,13 +205,25 @@ int     turnheld;       // for accelerative turning
 boolean mousebuttons[NUM_MOUSE_BUTTONS];
 
 // mouse values are used once
-int mousex;
-int mousey;
+static int mousex;
+static int mousey;
 boolean dclick;
 
+typedef struct carry_s
+{
+    double angle;
+    double pitch;
+    double side;
+    double vert;
+} carry_t;
+
+static carry_t prevcarry;
+static carry_t carry;
 static ticcmd_t basecmd;
 
 boolean joybuttons[NUM_CONTROLLER_BUTTONS];
+
+static const int direction[] = { 1, -1 };
 
 int   savegameslot = -1;
 char  savedescription[32];
@@ -380,6 +391,267 @@ static void G_DemoSkipTics(void)
   }
 }
 
+static int RoundSide_Strict(double side)
+{
+  return lround(side * 0.5) * 2; // Even values only.
+}
+
+static int RoundSide_Full(double side)
+{
+  return lround(side);
+}
+
+static int (*RoundSide)(double side) = RoundSide_Full;
+
+void G_UpdateSideMove(void)
+{
+  if (strictmode || (netgame && !solonet))
+  {
+    RoundSide = RoundSide_Strict;
+    sidemove = default_sidemove;
+  }
+  else
+  {
+    RoundSide = RoundSide_Full;
+    sidemove = autostrafe50 ? default_forwardmove : default_sidemove;
+  }
+}
+
+static int CalcControllerForward(int speed)
+{
+  const int forward = lroundf(forwardmove[speed] * axes[AXIS_FORWARD] *
+                              direction[joy_invert_forward]);
+  return BETWEEN(-forwardmove[speed], forwardmove[speed], forward);
+}
+
+static int CalcControllerSideTurn(int speed)
+{
+  const int side = RoundSide(forwardmove[speed] * axes[AXIS_TURN] *
+                             direction[joy_invert_turn]);
+  return BETWEEN(-forwardmove[speed], forwardmove[speed], side);
+}
+
+static int CalcControllerSideStrafe(int speed)
+{
+  const int side = RoundSide(forwardmove[speed] * axes[AXIS_STRAFE] *
+                             direction[joy_invert_strafe]);
+  return BETWEEN(-sidemove[speed], sidemove[speed], side);
+}
+
+static double CalcControllerAngle(void)
+{
+  return (angleturn[1] * axes[AXIS_TURN] * direction[joy_invert_turn]);
+}
+
+static double CalcControllerPitch(void)
+{
+  return (angleturn[1] * axes[AXIS_LOOK] * direction[joy_invert_look]
+          * FRACUNIT);
+}
+
+static int CarryError(double value, const double *prevcarry, double *carry)
+{
+  const double desired = value + *prevcarry;
+  const int actual = lround(desired);
+  *carry = desired - actual;
+  return actual;
+}
+
+static short CarryAngleTic_Full(double angle)
+{
+  return CarryError(angle, &prevcarry.angle, &carry.angle);
+}
+
+static short CarryAngle_Full(double angle)
+{
+  const short fullres = CarryAngleTic_Full(angle);
+  localview.angle = fullres << FRACBITS;
+  return fullres;
+}
+
+static short CarryAngle_FakeLongTics(double angle)
+{
+  return (localview.angleoffset = (CarryAngle_Full(angle) + 128) & 0xFF00);
+}
+
+static short CarryAngleTic_LowRes(double angle)
+{
+  const double fullres = angle + prevcarry.angle;
+  const short lowres = ((short)lround(fullres) + 128) & 0xFF00;
+  carry.angle = fullres - lowres;
+  return lowres;
+}
+
+static short CarryAngle_LowRes(double angle)
+{
+  const short lowres = CarryAngleTic_LowRes(angle);
+  localview.angle = lowres << FRACBITS;
+  return lowres;
+}
+
+static void UpdateLocalView_Zero(void)
+{
+  memset(&localview, 0, sizeof(localview));
+}
+
+static void UpdateLocalView_FakeLongTics(void)
+{
+  localview.angle -= localview.angleoffset << FRACBITS;
+  localview.rawangle -= localview.angleoffset;
+  localview.angleoffset = 0;
+  localview.pitch = 0;
+  localview.rawpitch = 0.0;
+}
+
+static short (*CarryAngleTic)(double angle);
+static short (*CarryAngle)(double angle);
+static void (*UpdateLocalView)(void);
+
+void G_UpdateAngleFunctions(void)
+{
+  CarryAngleTic = lowres_turn ? CarryAngleTic_LowRes : CarryAngleTic_Full;
+  CarryAngle = CarryAngleTic;
+  UpdateLocalView = UpdateLocalView_Zero;
+
+  if (raw_input && (!netgame || solonet))
+  {
+    if (lowres_turn && fake_longtics)
+    {
+      CarryAngle = CarryAngle_FakeLongTics;
+      UpdateLocalView = UpdateLocalView_FakeLongTics;
+    }
+    else if (uncapped)
+    {
+      CarryAngle = lowres_turn ? CarryAngle_LowRes : CarryAngle_Full;
+    }
+  }
+}
+
+static int CarryPitch(double pitch)
+{
+  return (localview.pitch = CarryError(pitch, &prevcarry.pitch, &carry.pitch));
+}
+
+static int CarryMouseVert(double vert)
+{
+  return CarryError(vert, &prevcarry.vert, &carry.vert);
+}
+
+static int CarryMouseSide(double side)
+{
+  const double desired = side + prevcarry.side;
+  const int actual = RoundSide(desired);
+  carry.side = desired - actual;
+  return actual;
+}
+
+static double CalcMouseAngle(int mousex)
+{
+  if (!mouse_sensitivity)
+    return 0.0;
+
+  return (I_AccelerateMouse(mousex) * (mouse_sensitivity + 5) * 8 / 10);
+}
+
+static double CalcMousePitch(int mousey)
+{
+  if (!mouse_sensitivity_y_look)
+    return 0.0;
+
+  return (I_AccelerateMouse(mousey) * (mouse_sensitivity_y_look + 5) * 8 / 10
+          * direction[mouse_y_invert] * FRACUNIT);
+}
+
+static double CalcMouseSide(int mousex)
+{
+  if (!mouse_sensitivity_strafe)
+    return 0.0;
+
+  return (I_AccelerateMouse(mousex) * (mouse_sensitivity_strafe + 5) * 2 / 10);
+}
+
+static double CalcMouseVert(int mousey)
+{
+  if (!mouse_sensitivity_y)
+    return 0.0;
+
+  return (I_AccelerateMouse(mousey) * (mouse_sensitivity_y + 5) / 10);
+}
+
+//
+// ApplyQuickstartCache
+// When recording a demo and the map is reloaded, cached input from a circular
+// buffer can be applied prior to the screen wipe. Adapted from DSDA-Doom.
+//
+
+static int quickstart_cache_tics;
+static boolean quickstart_queued;
+static float axis_turn_tic;
+static int mousex_tic;
+
+static void ClearQuickstartTic(void)
+{
+  axis_turn_tic = 0.0f;
+  mousex_tic = 0;
+}
+
+static void ApplyQuickstartCache(ticcmd_t *cmd, boolean strafe)
+{
+  static float axis_turn_cache[TICRATE];
+  static int mousex_cache[TICRATE];
+  static short angleturn_cache[TICRATE];
+  static int index;
+
+  if (quickstart_cache_tics < 1)
+  {
+    return;
+  }
+
+  if (quickstart_queued)
+  {
+    axes[AXIS_TURN] = 0.0f;
+    mousex = 0;
+
+    if (strafe)
+    {
+      for (int i = 0; i < quickstart_cache_tics; i++)
+      {
+        axes[AXIS_TURN] += axis_turn_cache[i];
+        mousex += mousex_cache[i];
+      }
+
+      cmd->angleturn = 0;
+      localview.rawangle = 0.0;
+    }
+    else
+    {
+      short result = 0;
+
+      for (int i = 0; i < quickstart_cache_tics; i++)
+      {
+        result += angleturn_cache[i];
+      }
+
+      cmd->angleturn = CarryAngleTic(result);
+      localview.rawangle = cmd->angleturn;
+    }
+
+    memset(axis_turn_cache, 0, sizeof(axis_turn_cache));
+    memset(mousex_cache, 0, sizeof(mousex_cache));
+    memset(angleturn_cache, 0, sizeof(angleturn_cache));
+    index = 0;
+
+    quickstart_queued = false;
+  }
+  else
+  {
+    axis_turn_cache[index] = axis_turn_tic;
+    mousex_cache[index] = mousex_tic;
+    angleturn_cache[index] = cmd->angleturn;
+    index = (index + 1) % quickstart_cache_tics;
+  }
+}
+
 void G_PrepTiccmd(void)
 {
   const boolean strafe = M_InputGameActive(input_strafe);
@@ -389,18 +661,21 @@ void G_PrepTiccmd(void)
 
   if (I_UseController() && I_CalcControllerAxes())
   {
-    G_UpdateDeltaTics();
+    D_UpdateDeltaTics();
+
     axis_turn_tic = axes[AXIS_TURN];
 
     if (axes[AXIS_TURN] && !strafe)
     {
-      cmd->angleturn = G_CalcControllerAngle();
+      localview.rawangle -= CalcControllerAngle() * deltatics;
+      cmd->angleturn = CarryAngle(localview.rawangle);
       axes[AXIS_TURN] = 0.0f;
     }
 
     if (axes[AXIS_LOOK] && padlook)
     {
-      cmd->pitch = G_CalcControllerPitch();
+      localview.rawpitch -= CalcControllerPitch() * deltatics;
+      cmd->pitch = CarryPitch(localview.rawpitch);
       axes[AXIS_LOOK] = 0.0f;
     }
   }
@@ -409,13 +684,15 @@ void G_PrepTiccmd(void)
 
   if (mousex && !strafe)
   {
-    cmd->angleturn = G_CalcMouseAngle();
+    localview.rawangle -= CalcMouseAngle(mousex);
+    cmd->angleturn = CarryAngle(localview.rawangle);
     mousex = 0;
   }
 
   if (mousey && mouselook)
   {
-    cmd->pitch = G_CalcMousePitch();
+    localview.rawpitch += CalcMousePitch(mousey);
+    cmd->pitch = CarryPitch(localview.rawpitch);
     mousey = 0;
   }
 }
@@ -451,7 +728,7 @@ void G_BuildTiccmd(ticcmd_t* cmd)
   memcpy(cmd, &basecmd, sizeof(*cmd));
   memset(&basecmd, 0, sizeof(basecmd));
 
-  G_ApplyQuickstartCache(cmd, strafe);
+  ApplyQuickstartCache(cmd, strafe);
 
   cmd->consistancy = consistancy[consoleplayer][maketic%BACKUPTICS];
 
@@ -510,17 +787,17 @@ void G_BuildTiccmd(ticcmd_t* cmd)
   {
     if (axes[AXIS_TURN] && strafe && !cmd->angleturn)
     {
-      side += G_CalcControllerSideTurn(speed);
+      side += CalcControllerSideTurn(speed);
     }
 
     if (axes[AXIS_STRAFE])
     {
-      side += G_CalcControllerSideStrafe(speed);
+      side += CalcControllerSideStrafe(speed);
     }
 
     if (axes[AXIS_FORWARD])
     {
-      forward -= G_CalcControllerForward(speed);
+      forward -= CalcControllerForward(speed);
     }
   }
 
@@ -528,19 +805,23 @@ void G_BuildTiccmd(ticcmd_t* cmd)
 
   if (mousex && strafe && !cmd->angleturn)
   {
-    side += G_CalcMouseSide();
+    const double mouseside = CalcMouseSide(mousex);
+    side += CarryMouseSide(mouseside);
   }
 
   if (mousey && !mouselook && !novert)
   {
-    forward += G_CalcMouseVert();
+    const double mousevert = CalcMouseVert(mousey);
+    forward += CarryMouseVert(mousevert);
   }
 
   // Update/reset
 
   if (angle)
   {
-    G_UpdateTicAngleTurn(cmd, angle);
+    const short old_angleturn = cmd->angleturn;
+    cmd->angleturn = CarryAngleTic(localview.rawangle + angle);
+    cmd->ticangleturn = cmd->angleturn - old_angleturn;
   }
 
   if (forward > MAXPLMOVE)
@@ -555,11 +836,11 @@ void G_BuildTiccmd(ticcmd_t* cmd)
   cmd->forwardmove = forward;
   cmd->sidemove = side;
 
-  G_ClearQuickstartTic();
+  ClearQuickstartTic();
   I_ResetControllerAxes();
   mousex = mousey = 0;
-  G_UpdateLocalView();
-  G_UpdateCarry();
+  UpdateLocalView();
+  prevcarry = carry;
 
   // Buttons
 
@@ -710,11 +991,12 @@ void G_BuildTiccmd(ticcmd_t* cmd)
 
 void G_ClearInput(void)
 {
-  G_ClearQuickstartTic();
+  ClearQuickstartTic();
   I_ResetControllerLevel();
   mousex = mousey = 0;
-  G_ClearLocalView();
-  G_ClearCarry();
+  memset(&localview, 0, sizeof(localview));
+  memset(&carry, 0, sizeof(carry));
+  memset(&prevcarry, 0, sizeof(prevcarry));
   memset(&basecmd, 0, sizeof(basecmd));
 }
 
@@ -4355,10 +4637,6 @@ void G_BindGameInputVariables(void)
     "Horizontal mouse sensitivity for strafing");
   BIND_NUM_GENERAL(mouse_sensitivity_y_look, 5, 0, UL,
     "Vertical mouse sensitivity for looking");
-  BIND_NUM_GENERAL(mouse_acceleration, 10, 0, 40,
-    "Mouse acceleration (0 = 1.0; 40 = 5.0)");
-  BIND_NUM(mouse_acceleration_threshold, 10, 0, 32,
-    "Mouse acceleration threshold");
   BIND_BOOL_GENERAL(mouse_y_invert, false, "Invert vertical mouse axis");
   BIND_BOOL_GENERAL(dclick_use, true, "Double-click acts as use-button");
   BIND_BOOL(novert, true, "Disable vertical mouse movement");

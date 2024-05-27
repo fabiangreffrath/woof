@@ -153,6 +153,9 @@ inline static angle_t LerpAngle(angle_t oangle, angle_t nangle)
     }
 }
 
+extern double deltatics;
+extern boolean raw_input;
+
 extern int autodetect_hom;
 
 #endif

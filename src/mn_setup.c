@@ -25,6 +25,7 @@
 #include "hu_lib.h"
 #include "hu_stuff.h"
 #include "i_gamepad.h"
+#include "i_input.h"
 #include "i_oalsound.h"
 #include "i_sound.h"
 #include "i_timer.h"
@@ -2158,7 +2159,7 @@ static setup_menu_t gen_settings3[] = {
     MI_GAP,
 
     {"Mouse acceleration", S_THERMO, CNTR_X, M_THRM_SPC, {"mouse_acceleration"},
-     m_null, input_null, str_mouse_accel, G_UpdateAccelerateMouse},
+     m_null, input_null, str_mouse_accel, I_UpdateAccelerateMouse},
 
     MI_END
 };
