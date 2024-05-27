@@ -455,21 +455,23 @@ void *V_CacheFlatNum(int lump, pu_tag tag)
         goto error;
     }
 
-    Z_Free(buffer);
-
-    void *image = Z_Malloc(image_size, tag, &lumpcache[lump]);
-
+    void *image = malloc(image_size);
     ret = spng_decode_image(ctx, image, image_size, SPNG_FMT_PNG, 0);
 
     if (ret)
     {
         I_Printf(VB_ERROR, "V_CacheFlatNum: spng_decode_image %s",
                  spng_strerror(ret));
-        Z_Free(image);
+        free(image);
         goto error;
     }
 
     spng_ctx_free(ctx);
+    Z_Free(buffer);
+
+    Z_Malloc(image_size, tag, &lumpcache[lump]);
+    memcpy(lumpcache[lump], image, image_size);
+    free(image);
 
     return lumpcache[lump];
 
