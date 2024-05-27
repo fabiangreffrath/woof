@@ -28,6 +28,7 @@ set(WOOF_SOURCES
     f_wipe.c               f_wipe.h
                            font.h
     g_game.c               g_game.h
+    g_input.c              g_input.h
     hu_command.c           hu_command.h
     hu_lib.c               hu_lib.h
     hu_obituary.c          hu_obituary.h
