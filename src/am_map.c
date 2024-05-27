@@ -2297,6 +2297,14 @@ void AM_Drawer (void)
   AM_drawMarks();
 }
 
+typedef enum {
+  AM_PRESET_VANILLA,
+  AM_PRESET_CRISPY,
+  AM_PRESET_BOOM,
+  AM_PRESET_ZDOOM,
+  NUM_AM_PRESETS
+} am_preset_t;
+
 am_preset_t mapcolor_preset;
 
 void AM_ColorPreset(void)
@@ -2336,7 +2344,7 @@ void AM_ColorPreset(void)
     {&mapcolor_enemy,   {112, 112, 177,   4}}, // am_thingcolor_monster
     {&mapcolor_item,    {112, 112, 231,   4}}, // am_thingcolor_item
 
-    {&hudcolor_titl,    {CR_NONE, CR_GOLD, CR_GOLD, CR_NONE}}, // DrawAutomapHUD()
+    {&hudcolor_titl,    {CR_NONE, CR_GOLD, CR_GOLD, CR_GRAY}}, // DrawAutomapHUD()
 
     {NULL,              {  0,   0,   0,   0}},
   };
