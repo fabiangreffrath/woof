@@ -41,18 +41,18 @@ static int RoundSide_Full(double side)
     return lround(side);
 }
 
-int (*G_RoundSide)(double side);
+static int (*RoundSide)(double side);
 
 void G_UpdateSideMove(void)
 {
     if (strictmode || (netgame && !solonet))
     {
-        G_RoundSide = RoundSide_Strict;
+        RoundSide = RoundSide_Strict;
         sidemove = default_sidemove;
     }
     else
     {
-        G_RoundSide = RoundSide_Full;
+        RoundSide = RoundSide_Full;
         sidemove = autostrafe50 ? forwardmove : default_sidemove;
     }
 }
@@ -155,7 +155,7 @@ int G_CarryPitch(double pitch)
 int G_CarrySide(double side)
 {
     const double desired = side + prevcarry.side;
-    const int actual = G_RoundSide(desired);
+    const int actual = RoundSide(desired);
     carry.side = desired - actual;
     return actual;
 }
@@ -212,15 +212,15 @@ double G_CalcControllerPitch(void)
 
 int G_CalcControllerSideTurn(int speed)
 {
-    const int side = G_RoundSide(forwardmove[speed] * axes[AXIS_TURN]
-                                 * direction[joy_invert_turn]);
+    const int side = RoundSide(forwardmove[speed] * axes[AXIS_TURN]
+                               * direction[joy_invert_turn]);
     return BETWEEN(-forwardmove[speed], forwardmove[speed], side);
 }
 
 int G_CalcControllerSideStrafe(int speed)
 {
-    const int side = G_RoundSide(forwardmove[speed] * axes[AXIS_STRAFE]
-                                 * direction[joy_invert_strafe]);
+    const int side = RoundSide(forwardmove[speed] * axes[AXIS_STRAFE]
+                               * direction[joy_invert_strafe]);
     return BETWEEN(-sidemove[speed], sidemove[speed], side);
 }
 

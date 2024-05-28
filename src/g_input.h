@@ -20,7 +20,6 @@
 
 // Side Movement
 
-extern int (*G_RoundSide)(double side);
 void G_UpdateSideMove(void);
 
 // Error Accumulation
