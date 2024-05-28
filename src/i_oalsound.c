@@ -410,6 +410,9 @@ static void SetEqualizer(void)
     alGenEffects(1, &uiEffect);
     alEffecti(uiEffect, AL_EFFECT_TYPE, AL_EFFECT_EQUALIZER);
 
+    // Gains vary from 0.126 up to 7.943, which means from -18dB attenuation
+    // up to +18dB amplification, i.e. 20*log10(gain).
+
     for (int i = 0; i < 4; i++)
     {
         gain_levels[i] = BETWEEN(0.126, 7.943, gain_levels_pct[i]/100.f);
