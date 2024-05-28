@@ -20,6 +20,7 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "config.h"
 #include "doomdef.h"
 #include "doomstat.h"
 #include "doomtype.h"
@@ -395,14 +396,22 @@ int W_GetNumForName (const char* name)     // killough -- const added
 
 static w_handle_t base_handle;
 
-void W_InitBaseFile(void)
+boolean W_InitBaseFile(const char *path)
 {
-    if (w_zip_module.Open("woof.pk3", &base_handle) == W_NONE)
+    char *filename =
+        M_StringJoin(path, DIR_SEPARATOR_S, PROJECT_SHORTNAME ".pk3", NULL);
+
+    w_type_t result = w_zip_module.Open(filename, &base_handle);
+
+    free(filename);
+
+    if (result == W_DIR)
     {
-        I_Error("Error: woof.pk3 not found");
+        AddDirs(&w_zip_module, base_handle, "all-all");
+        return true;
     }
 
-    AddDirs(&w_zip_module, base_handle, "all-all");
+    return false;
 }
 
 void W_AddBaseDir(const char *path)

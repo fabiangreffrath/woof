@@ -108,7 +108,7 @@ extern void       **lumpcache;
 
 extern const char **wadfiles;
 
-void W_InitBaseFile(void);
+boolean W_InitBaseFile(const char *path);
 void W_AddBaseDir(const char *path);
 boolean W_AddPath(const char *path);
 void W_ProcessInWads(const char *name, void (*process)(int lumpnum),

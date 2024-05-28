@@ -720,9 +720,9 @@ typedef struct {
     const char *dir;
     char *(*func)(void);
     boolean createdir;
-} autoload_basedir_t;
+} basedir_t;
 
-static autoload_basedir_t autoload_basedirs[] = {
+static basedir_t basedirs[] = {
 #if !defined(WIN32)
     {"../share/" PROJECT_SHORTNAME, D_DoomExeDir, false},
 #endif
@@ -731,6 +731,39 @@ static autoload_basedir_t autoload_basedirs[] = {
     {NULL, D_DoomExeDir, false},
 #endif
 };
+
+static void LoadBaseFile(void)
+{
+    I_Printf(VB_INFO, "W_Init: Init WADfiles.");
+
+    for (int i = 0; i < arrlen(basedirs); ++i)
+    {
+        basedir_t d = basedirs[i];
+        boolean result = false;
+
+        if (d.dir && d.func)
+        {
+            char *s = M_StringJoin(d.func(), DIR_SEPARATOR_S, d.dir, NULL);
+            result = W_InitBaseFile(s);
+            free(s);
+        }
+        else if (d.dir)
+        {
+            result = W_InitBaseFile(d.dir);
+        }
+        else if (d.func)
+        {
+            result = W_InitBaseFile(d.func());
+        }
+
+        if (result)
+        {
+            return;
+        }
+    }
+
+    I_Error(PROJECT_SHORTNAME ".pk3 not found");
+}
 
 static char **autoload_paths = NULL;
 
@@ -765,9 +798,9 @@ static void PrepareAutoloadPaths(void)
         return;
     }
 
-    for (int i = 0; i < arrlen(autoload_basedirs); i++)
+    for (int i = 0; i < arrlen(basedirs); i++)
     {
-        autoload_basedir_t d = autoload_basedirs[i];
+        basedir_t d = basedirs[i];
 
         if (d.dir && d.func)
         {
@@ -976,8 +1009,6 @@ void IdentifyVersion(void)
     {
         I_Error("IWAD not found");
     }
-
-    I_Printf(VB_INFO, "W_Init: Init WADfiles.");
 
     D_AddFile(iwadfile);
 
@@ -1827,7 +1858,7 @@ void D_DoomMain(void)
   // killough 10/98: set default savename based on executable's name
   sprintf(savegamename = malloc(16), "%.4ssav", D_DoomExeName());
 
-  W_InitBaseFile();
+  LoadBaseFile();
 
   IdentifyVersion();
 
