@@ -1490,16 +1490,28 @@ static void AutoLoadWADs(const char *path)
     W_AddPath(path);
 }
 
-static void D_AutoloadIWadDir(void (*AutoLoadFunc)(const char *path))
+static void LoadIWadBase(void)
 {
+    GameMission_t local_gamemission =
+        D_GetGameMissionByIWADName(M_BaseName(wadfiles[0]));
+
+    if (local_gamemission < pack_chex)
+    {
+        W_AddBaseDir("doom-all");
+    }
+    W_AddBaseDir(M_BaseName(wadfiles[0]));
+}
+
+static void AutoloadIWadDir(void (*AutoLoadFunc)(const char *path))
+{
+    GameMission_t local_gamemission =
+        D_GetGameMissionByIWADName(M_BaseName(wadfiles[0]));
+
     for (int i = 0; i < array_size(autoload_paths); ++i)
     {
         char *dir = GetAutoloadDir(autoload_paths[i], "all-all", true);
         AutoLoadFunc(dir);
         free(dir);
-
-        GameMission_t local_gamemission =
-            D_GetGameMissionByIWADName(M_BaseName(wadfiles[0]));
 
         // common auto-loaded files for all Doom flavors
         if (local_gamemission != none)
@@ -1533,10 +1545,20 @@ static void D_AutoloadIWadDir(void (*AutoLoadFunc)(const char *path))
     }
 }
 
-static void D_AutoloadPWadDir(void (*AutoLoadFunc)(const char *path))
+static void LoadPWadBase(void)
 {
     for (int i = 1; i < array_size(wadfiles); ++i)
     {
+        W_AddBaseDir(wadfiles[i]);
+    }
+}
+
+static void AutoloadPWadDir(void (*AutoLoadFunc)(const char *path))
+{
+    for (int i = 1; i < array_size(wadfiles); ++i)
+    {
+        W_AddBaseDir(wadfiles[i]);
+
         for (int j = 0; j < array_size(autoload_paths); ++j)
         {
             char *dir = GetAutoloadDir(autoload_paths[j],
@@ -1805,7 +1827,7 @@ void D_DoomMain(void)
   // killough 10/98: set default savename based on executable's name
   sprintf(savegamename = malloc(16), "%.4ssav", D_DoomExeName());
 
-  W_InitPredefineLumps();
+  W_InitBaseFile();
 
   IdentifyVersion();
 
@@ -1977,8 +1999,9 @@ void D_DoomMain(void)
 
   // add wad files from autoload IWAD directories before wads from -file parameter
 
+  LoadIWadBase();
   PrepareAutoloadPaths();
-  D_AutoloadIWadDir(AutoLoadWADs);
+  AutoloadIWadDir(AutoLoadWADs);
 
   // add any files specified on the command line with -file wadfile
   // to the wad list
@@ -2011,7 +2034,8 @@ void D_DoomMain(void)
 
   // add wad files from autoload PWAD directories
 
-  D_AutoloadPWadDir(AutoLoadWADs);
+  LoadPWadBase();
+  AutoloadPWadDir(AutoLoadWADs);
 
   // get skill / episode / map from parms
 
@@ -2207,18 +2231,6 @@ void D_DoomMain(void)
 
   noblit = M_CheckParm ("-noblit");
 
-  // jff 4/21/98 allow writing predefined lumps out as a wad
-
-  //!
-  // @category mod
-  // @arg <wad>
-  //
-  // Allow writing predefined lumps out as a WAD.
-  //
-
-  if ((p = M_CheckParm("-dumplumps")) && p < myargc-1)
-    WritePredefinedLumpWad(myargv[p+1]);
-
   M_InitConfig();
 
   I_PutChar(VB_INFO, '\n');
@@ -2254,7 +2266,7 @@ void D_DoomMain(void)
 
   // process deh in wads and .deh files from autoload directory
   // before deh in wads from -file parameter
-  D_AutoloadIWadDir(AutoLoadPatches);
+  AutoloadIWadDir(AutoLoadPatches);
 
   // killough 10/98: now process all deh in wads
   if (!M_ParmExists("-nodeh"))
@@ -2263,7 +2275,7 @@ void D_DoomMain(void)
   }
 
   // process .deh files from PWADs autoload directories
-  D_AutoloadPWadDir(AutoLoadPatches);
+  AutoloadPWadDir(AutoLoadPatches);
 
   PostProcessDeh();
 
@@ -2392,18 +2404,6 @@ void D_DoomMain(void)
 
   I_Printf(VB_INFO, "R_Init: Init DOOM refresh daemon - ");
   R_Init();
-
-  //!
-  // @category mod
-  // @arg <wad>
-  //
-  // Allow writing generated lumps out as a WAD.
-  //
-
-  if ((p = M_CheckParm("-dumptables")) && p < myargc-1)
-  {
-    WriteGeneratedLumpWad(myargv[p+1]);
-  }
 
   I_Printf(VB_INFO, "P_Init: Init Playloop state.");
   P_Init();

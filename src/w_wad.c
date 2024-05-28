@@ -26,9 +26,7 @@
 #include "i_printf.h"
 #include "i_system.h"
 #include "m_array.h"
-#include "m_io.h"
 #include "m_misc.h"
-#include "m_swap.h"
 #include "w_wad.h"
 #include "w_internal.h"
 #include "z_zone.h"
@@ -395,18 +393,21 @@ int W_GetNumForName (const char* name)     // killough -- const added
 //  does override all earlier ones.
 //
 
-void W_InitPredefineLumps(void)
+static w_handle_t base_handle;
+
+void W_InitBaseFile(void)
 {
-  // killough 1/31/98: add predefined lumps first
+    if (w_zip_module.Open("woof.pk3", &base_handle) == W_NONE)
+    {
+        I_Error("Error: woof.pk3 not found");
+    }
 
-  numlumps = num_predefined_lumps;
+    AddDirs(&w_zip_module, base_handle, "all-all");
+}
 
-  // lumpinfo will be realloced as lumps are added
-  array_grow(lumpinfo, numlumps);
-
-  memcpy(lumpinfo, predefined_lumps, numlumps*sizeof(*lumpinfo));
-
-  array_ptr(lumpinfo)->size += numlumps;
+void W_AddBaseDir(const char *path)
+{
+    AddDirs(&w_zip_module, base_handle, path);
 }
 
 void W_InitMultipleFiles(void)
@@ -509,73 +510,6 @@ void *W_CacheLumpNum(int lump, pu_tag tag)
 }
 
 // W_CacheLumpName macroized in w_wad.h -- killough
-
-// WritePredefinedLumpWad
-// Args: Filename - string with filename to write to
-// Returns: void
-//
-// If the user puts a -dumplumps switch on the command line, we will
-// write all those predefined lumps above out into a pwad.  User
-// supplies the pwad name.
-//
-// killough 4/22/98: make endian-independent, remove tab chars
-// haleyjd 01/21/05: rewritten to use stdio
-//
-void WriteLumpWad(const char *filename, const lumpinfo_t *lumps, const size_t num_lumps)
-{
-   FILE *file;
-   char *fn;
-   
-   if(!filename || !*filename)  // check for null pointer or empty name
-      return;  // early return
-
-   fn = malloc(strlen(filename) + 5);  // we may have to add ".wad" to the name they pass
-
-   AddDefaultExtension(strcpy(fn, filename), ".wad");
-
-   // The following code writes a PWAD from the predefined lumps array
-   // How to write a PWAD will not be explained here.
-   if((file = M_fopen(fn, "wb")))
-   {
-      wadinfo_t header = { "PWAD" };
-      size_t filepos = sizeof(wadinfo_t) + num_lumps * sizeof(filelump_t);
-      int i;
-      
-      header.numlumps     = LONG(num_lumps);
-      header.infotableofs = LONG(sizeof(header));
-      
-      // write header
-      fwrite(&header, 1, sizeof(header), file);
-      
-      // write directory
-      for(i = 0; i < num_lumps; i++)
-      {
-         filelump_t fileinfo = { 0 };
-         
-         fileinfo.filepos = LONG(filepos);
-         fileinfo.size    = LONG(lumps[i].size);
-         M_CopyLumpName(fileinfo.name, lumps[i].name);
-         
-         fwrite(&fileinfo, 1, sizeof(fileinfo), file);
-
-         filepos += lumps[i].size;
-      }
-      
-      // write lumps
-      for(i = 0; i < num_lumps; i++)
-         fwrite(lumps[i].data, 1, lumps[i].size, file);
-      
-      fclose(file);
-      I_Success("Internal lumps wad, %s written, exiting\n", filename);
-   }
-   I_Error("Cannot open internal lumps wad %s for output\n", filename);
-   free(fn);
-}
-
-void WritePredefinedLumpWad(const char *filename)
-{
-    WriteLumpWad(filename, predefined_lumps, num_predefined_lumps);
-}
 
 // [FG] name of the WAD file that contains the lump
 const char *W_WadNameForLump (const int lump)

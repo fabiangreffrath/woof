@@ -1298,18 +1298,14 @@ const char *crosshair_strings[HU_CROSSHAIRS] =
 
 static void HU_InitCrosshair(void)
 {
-  int i, j;
-
-  for (i = 1; i < HU_CROSSHAIRS; i++)
+  for (int i = 1; i < HU_CROSSHAIRS; i++)
   {
-    j = W_CheckNumForName(crosshair_lumps[i]);
-    if (j >= num_predefined_lumps)
-    {
-      if (R_IsPatchLump(j))
-        crosshair_strings[i] = crosshair_lumps[i];
-      else
-        crosshair_lumps[i] = NULL;
-    }
+    int lump = W_CheckNumForName(crosshair_lumps[i]);
+
+    if (R_IsPatchLump(lump))
+      crosshair_strings[i] = crosshair_lumps[i];
+    else
+      crosshair_lumps[i] = NULL;
   }
 }
 
