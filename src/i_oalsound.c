@@ -374,6 +374,8 @@ static void SetEqualizer(void)
         return;
     }
 
+    // Check the actual number of Auxiliary Sends available on each Source.
+
     alcGetIntegerv(oal->device, ALC_MAX_AUXILIARY_SENDS, 1, &iSends);
 
     if (iSends < 1)
