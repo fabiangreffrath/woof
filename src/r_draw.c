@@ -433,10 +433,10 @@ static const int fuzzoffset[FUZZTABLE] = {
   0,0,-1,0,0,-1,0 
 }; 
 
-static int fuzzpos = 0; 
+static unsigned int fuzzpos = 0;
 
 // [crispy] draw fuzz effect independent of rendering frame rate
-static int fuzzpos_tic;
+static unsigned int fuzzpos_tic;
 
 void R_SetFuzzPosTic(void)
 {
