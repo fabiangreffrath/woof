@@ -734,8 +734,6 @@ static basedir_t basedirs[] = {
 
 static void LoadBaseFile(void)
 {
-    I_Printf(VB_INFO, "W_Init: Init WADfiles.");
-
     for (int i = 0; i < arrlen(basedirs); ++i)
     {
         basedir_t d = basedirs[i];
@@ -1855,6 +1853,8 @@ void D_DoomMain(void)
 
   // killough 10/98: set default savename based on executable's name
   sprintf(savegamename = malloc(16), "%.4ssav", D_DoomExeName());
+
+  I_Printf(VB_INFO, "W_Init: Init WADfiles.");
 
   LoadBaseFile();
 
