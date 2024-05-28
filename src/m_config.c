@@ -591,7 +591,8 @@ void M_LoadOptions(void)
 
     if (!M_CheckParm("-nooptions"))
     {
-        if ((lump = W_CheckNumForName("OPTIONS")) != -1)
+        lump = W_CheckNumForName("OPTIONS");
+        if (lump != -1)
         {
             int size = W_LumpLength(lump), buflen = 0;
             char *buf = NULL, *p,
@@ -605,7 +606,8 @@ void M_LoadOptions(void)
                 {
                     buf = I_Realloc(buf, buflen = len + 1);
                 }
-                strncpy(buf, p, len)[len] = 0;
+                strncpy(buf, p, len);
+                buf[len] = 0;
                 p += len;
                 size -= len;
                 M_ParseOption(buf, true);
