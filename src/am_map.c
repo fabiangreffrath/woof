@@ -2305,7 +2305,7 @@ typedef enum {
   NUM_AM_PRESETS
 } am_preset_t;
 
-am_preset_t mapcolor_preset;
+static am_preset_t mapcolor_preset;
 
 void AM_ColorPreset(void)
 {
@@ -2314,7 +2314,7 @@ void AM_ColorPreset(void)
     int *var;
     int color[NUM_AM_PRESETS]; // Vanilla Doom, Crispy, Boom, ZDoom
   } mapcolors[] =
-  {                                       // ZDoom CVAR name
+  {                                            // ZDoom CVAR name
     {&mapcolor_back,    {  0,   0, 247, 139}}, // am_backcolor
     {&mapcolor_grid,    {104, 104, 104,  70}}, // am_gridcolor
     {&mapcolor_wall,    {176, 180,  23, 239}}, // am_wallcolor
@@ -2345,13 +2345,9 @@ void AM_ColorPreset(void)
     {&mapcolor_item,    {112, 231, 231,   4}}, // am_thingcolor_item
 
     {&hudcolor_titl,    {CR_NONE, CR_GOLD, CR_GOLD, CR_GRAY}}, // DrawAutomapHUD()
-
-    {NULL,              {  0,   0,   0,   0}},
   };
 
-  int i;
-
-  for (i = 0; mapcolors[i].var; i++)
+  for (int i = 0; i < arrlen(mapcolors); i++)
   {
     *mapcolors[i].var = mapcolors[i].color[mapcolor_preset];
   }
