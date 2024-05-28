@@ -51,7 +51,7 @@ static char *ExecReadOutput(char **argv)
 {
     char *result;
     int completed;
-    int pid, status, result_len;
+    int pid, status = 0, result_len;
     int pipefd[2];
 
     if (pipe(pipefd) != 0)
