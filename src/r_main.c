@@ -722,18 +722,20 @@ void R_SetupFrame (player_t *player)
   int i, cm;
   fixed_t pitch;
   const boolean use_localview = CheckLocalView(player);
+  const boolean camera_ready = (
+    // Don't interpolate on the first tic of a level,
+    // otherwise oldviewz might be garbage.
+    leveltime > 1 &&
+    // Don't interpolate if the player did something
+    // that would necessitate turning it off for a tic.
+    player->mo->interp == true &&
+    // Don't interpolate during a paused state
+    leveltime > oldleveltime
+  );
 
   viewplayer = player;
   // [AM] Interpolate the player camera if the feature is enabled.
-  if (uncapped &&
-      // Don't interpolate on the first tic of a level,
-      // otherwise oldviewz might be garbage.
-      leveltime > 1 &&
-      // Don't interpolate if the player did something
-      // that would necessitate turning it off for a tic.
-      player->mo->interp == true &&
-      // Don't interpolate during a paused state
-      leveltime > oldleveltime)
+  if (uncapped && camera_ready)
   {
     // Interpolate player camera from their old position to their current one.
     viewx = LerpFixed(player->mo->oldx, player->mo->x);
@@ -777,7 +779,7 @@ void R_SetupFrame (player_t *player)
     // [crispy] pitch is actual lookdir and weapon pitch
     pitch = player->pitch + player->recoilpitch;
 
-    if (use_localview && lowres_turn && fake_longtics)
+    if (camera_ready && use_localview && lowres_turn && fake_longtics)
     {
       viewangle += localview.angle;
     }
