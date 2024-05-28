@@ -108,6 +108,18 @@ endif()
 # Python 3
 find_package(Python3 COMPONENTS Interpreter)
 
+option(ENABLE_CPPCHECK "Enable cppcheck" OFF)
+if (ENABLE_CPPCHECK)
+    find_program(CMAKE_C_CPPCHECK NAMES cppcheck)
+    if (CMAKE_C_CPPCHECK)
+        list(APPEND CMAKE_C_CPPCHECK
+            "--enable=warning"
+            "--force"
+            "--quiet"
+            "--std=c99")
+    endif()
+endif()
+
 configure_file(config.h.in config.h)
 
 if(WIN32)

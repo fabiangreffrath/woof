@@ -45,6 +45,7 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install \
+            cppcheck \
             ninja-build \
             libsdl2-dev \
             libsdl2-net-dev \
@@ -132,16 +133,27 @@ jobs:
 
   cppcheck:
     name: Cppcheck
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
 
     steps:
       - name: Install dependencies
-        run: sudo apt-get update && sudo apt-get install cppcheck
+        run: |
+          sudo apt-get update
+          sudo apt-get install \
+            cppcheck \
+            ninja-build \
+            libsdl2-dev \
+            libsdl2-net-dev \
+            libopenal-dev \
+            libsndfile1-dev \
+            libfluidsynth-dev \
+            libxmp-dev
 
       - uses: actions/checkout@v4
 
-      - name: Run cppcheck
-        shell: bash
+      - name: Configure
         run: |
-          cppcheck --version
-          cppcheck --error-exitcode=1 -j4 -q --force -D__GNUC__ -U_MSC_VER -U_WIN32 -Isrc opl src setup textscreen
+          cmake -B build -G Ninja -DENABLE_CPPCHECK=ON
+
+      - name: Build
+        run: cmake --build build
