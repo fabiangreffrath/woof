@@ -113,11 +113,13 @@ if (ENABLE_CPPCHECK)
     find_program(CMAKE_C_CPPCHECK NAMES cppcheck)
     if (CMAKE_C_CPPCHECK)
         list(APPEND CMAKE_C_CPPCHECK
-            "--enable=all"
+            "--error-exitcode=1"
+            "--enable=warning"
             "--inconclusive"
             "--inline-suppr"
+            "--quiet"
             "--std=c99"
-            "--template='{file}:{line}: warning: {id} ({severity}): {message}'")
+            "--library=posix")
     endif()
 endif()
 
