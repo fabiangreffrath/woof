@@ -22,6 +22,7 @@
 #include "efx.h"
 
 #include <math.h>
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
@@ -63,6 +64,7 @@ static boolean snd_limiter;
 static boolean snd_hrtf;
 static int snd_absorption;
 static int snd_doppler;
+static const char *snd_equalizer;
 
 static int oal_snd_module;
 boolean oal_use_doppler;
@@ -81,6 +83,14 @@ typedef struct oal_system_s
 static oal_system_t *oal;
 static LPALDEFERUPDATESSOFT alDeferUpdatesSOFT;
 static LPALPROCESSUPDATESSOFT alProcessUpdatesSOFT;
+
+#define EQUALIZER_DEFAULT "100 100 100 100"
+static LPALGENAUXILIARYEFFECTSLOTS alGenAuxiliaryEffectSlots;
+static LPALGENEFFECTS alGenEffects;
+static LPALEFFECTI alEffecti;
+static LPALEFFECTF alEffectf;
+static LPALAUXILIARYEFFECTSLOTI alAuxiliaryEffectSloti;
+static LPALGENFILTERS alGenFilters;
 
 void I_OAL_DeferUpdates(void)
 {
@@ -352,6 +362,73 @@ const char **I_OAL_GetResamplerStrings(void)
     return strings;
 }
 
+static void SetEqualizer(void)
+{
+    ALuint uiEffectSlot, uiEffect, uiFilter;
+    ALCint iSends = 0;
+    int gain_levels_pct[4] = {0};
+    float gain_levels[4] = {0.f};
+
+    if (!oal || !oal->EXT_EFX)
+    {
+        return;
+    }
+
+    alcGetIntegerv(oal->device, ALC_MAX_AUXILIARY_SENDS, 1, &iSends);
+
+    if (iSends < 1)
+    {
+        return;
+    }
+
+    if (strcmp(snd_equalizer, EQUALIZER_DEFAULT) == 0 ||
+        sscanf(snd_equalizer, "%d %d %d %d",
+               &gain_levels_pct[0], &gain_levels_pct[1],
+               &gain_levels_pct[2], &gain_levels_pct[3]) != 4)
+    {
+        return;
+    }
+
+    alGenAuxiliaryEffectSlots = FUNCTION_CAST(LPALGENAUXILIARYEFFECTSLOTS, alGetProcAddress("alGenAuxiliaryEffectSlots"));
+    alGenEffects = FUNCTION_CAST(LPALGENEFFECTS, alGetProcAddress("alGenEffects"));
+    alEffecti = FUNCTION_CAST(LPALEFFECTI, alGetProcAddress("alEffecti"));
+    alEffectf = FUNCTION_CAST(LPALEFFECTF, alGetProcAddress("alEffectf"));
+    alAuxiliaryEffectSloti = FUNCTION_CAST(LPALAUXILIARYEFFECTSLOTI, alGetProcAddress("alAuxiliaryEffectSloti"));
+    alGenFilters = FUNCTION_CAST(LPALGENFILTERS, alGetProcAddress("alGenFilters"));
+
+    if (!alGenAuxiliaryEffectSlots ||
+        !alGenEffects ||
+        !alEffecti ||
+        !alEffectf ||
+        !alAuxiliaryEffectSloti ||
+        !alGenFilters)
+    {
+        return;
+    }
+
+    alGenAuxiliaryEffectSlots(1, &uiEffectSlot);
+    alGenEffects(1, &uiEffect);
+    alEffecti(uiEffect, AL_EFFECT_TYPE, AL_EFFECT_EQUALIZER);
+
+    for (int i = 0; i < 4; i++)
+    {
+        gain_levels[i] = BETWEEN(0.126, 7.943, gain_levels_pct[i]/100.f);
+    }
+
+    alEffectf(uiEffect, AL_EQUALIZER_LOW_GAIN, gain_levels[0]);
+    alEffectf(uiEffect, AL_EQUALIZER_MID1_GAIN, gain_levels[1]);
+    alEffectf(uiEffect, AL_EQUALIZER_MID2_GAIN, gain_levels[2]);
+    alEffectf(uiEffect, AL_EQUALIZER_HIGH_GAIN, gain_levels[3]);
+
+    alAuxiliaryEffectSloti(uiEffectSlot, AL_EFFECTSLOT_EFFECT, uiEffect);
+    alGenFilters(1, &uiFilter);
+
+    for (int i = 0; i < MAX_CHANNELS; i++)
+    {
+        alSource3i(oal->sources[i], AL_AUXILIARY_SEND_FILTER, uiEffectSlot, 0, uiFilter);
+    }
+}
+
 static void UpdateUserSoundSettings(void)
 {
     I_OAL_SetResampler();
@@ -469,6 +546,8 @@ void I_OAL_BindSoundVariables(void)
     BIND_NUM(snd_doppler, 0, 0, 10,
         "[OpenAL 3D] Doppler effect (0 = Off; 10 = Max)");
     BIND_BOOL(snd_limiter, false, "Use sound output limiter");
+    M_BindStr("snd_equalizer", &snd_equalizer, EQUALIZER_DEFAULT,
+        wad_no, "Equalizer gain percent (low mid1 mid2 high)");
 }
 
 boolean I_OAL_InitSound(int snd_module)
@@ -521,6 +600,7 @@ boolean I_OAL_InitSound(int snd_module)
         (alIsExtensionPresent("AL_EXT_SOURCE_RADIUS") == AL_TRUE);
     InitDeferred();
     ResetParams();
+    SetEqualizer();
 
     return true;
 }
