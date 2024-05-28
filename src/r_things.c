@@ -42,6 +42,7 @@
 #include "r_things.h"
 #include "r_voxel.h"
 #include "tables.h"
+#include "v_fmt.h"
 #include "v_video.h"
 #include "w_wad.h"
 #include "z_zone.h"
@@ -426,7 +427,7 @@ void R_DrawVisSprite(vissprite_t *vis, int x1, int x2)
   column_t *column;
   int      texturecolumn;
   fixed_t  frac;
-  patch_t  *patch = W_CacheLumpNum (vis->patch+firstspritelump, PU_CACHE);
+  patch_t  *patch = V_CachePatchNum (vis->patch+firstspritelump, PU_CACHE);
 
   dc_colormap[0] = vis->colormap[0];
   dc_colormap[1] = vis->colormap[1];

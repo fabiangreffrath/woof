@@ -40,7 +40,7 @@
 // Location of each lump on disk.
 lumpinfo_t  *lumpinfo = NULL;
 int         numlumps;         // killough
-static void **lumpcache;      // killough
+void        **lumpcache;      // killough
 
 const char  **wadfiles;
 

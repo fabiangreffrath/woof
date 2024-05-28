@@ -180,9 +180,6 @@ void V_DrawBackground(const char *patchname);
 
 int V_BloodColor(int blood);
 
-struct patch_s *V_LinearToTransPatch(const byte *data, int width, int height,
-                                     int color_key);
-
 void V_ScreenShot(void);
 
 #endif

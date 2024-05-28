@@ -31,8 +31,8 @@
 #include "r_draw.h"
 #include "r_main.h"
 #include "r_state.h"
+#include "v_fmt.h"
 #include "v_video.h"
-#include "w_wad.h"
 #include "z_zone.h"
 
 //
@@ -862,38 +862,38 @@ void R_DrawBorder (int x, int y, int w, int h)
   int i, j;
   patch_t *patch;
 
-  patch = W_CacheLumpName("brdr_t", PU_CACHE);
+  patch = V_CachePatchName("brdr_t", PU_CACHE);
   for (i = 0; i < w; i += 8)
     V_DrawPatch(x + i - video.deltaw, y - 8, patch);
 
-  patch = W_CacheLumpName("brdr_b", PU_CACHE);
+  patch = V_CachePatchName("brdr_b", PU_CACHE);
   for (i = 0; i < w; i += 8)
     V_DrawPatch(x + i - video.deltaw, y + h, patch);
 
-  patch = W_CacheLumpName("brdr_l", PU_CACHE);
+  patch = V_CachePatchName("brdr_l", PU_CACHE);
   for (j = 0; j < h; j += 8)
     V_DrawPatch(x - 8 - video.deltaw, y + j, patch);
 
-  patch = W_CacheLumpName("brdr_r", PU_CACHE);
+  patch = V_CachePatchName("brdr_r", PU_CACHE);
   for (j = 0; j < h; j += 8)
     V_DrawPatch(x + w - video.deltaw, y + j, patch);
 
   // Draw beveled edge. 
   V_DrawPatch(x - 8 - video.deltaw,
               y - 8,
-              W_CacheLumpName("brdr_tl", PU_CACHE));
+              V_CachePatchName("brdr_tl", PU_CACHE));
     
   V_DrawPatch(x + w - video.deltaw,
               y - 8,
-              W_CacheLumpName("brdr_tr", PU_CACHE));
+              V_CachePatchName("brdr_tr", PU_CACHE));
     
   V_DrawPatch(x - 8 - video.deltaw,
               y + h,
-              W_CacheLumpName("brdr_bl", PU_CACHE));
+              V_CachePatchName("brdr_bl", PU_CACHE));
     
   V_DrawPatch(x + w - video.deltaw,
               y + h,
-              W_CacheLumpName("brdr_br", PU_CACHE));
+              V_CachePatchName("brdr_br", PU_CACHE));
 }
 
 void R_FillBackScreen (void)

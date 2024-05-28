@@ -24,7 +24,7 @@
 #include "i_system.h"
 #include "m_fixed.h"
 #include "tables.h"
-#include "w_wad.h"
+#include "v_fmt.h"
 #include "z_zone.h"
 
 boolean r_swirl;
@@ -117,7 +117,7 @@ byte *R_DistortedFlat(int flatnum)
         char *normalflat;
         int i;
 
-        normalflat = W_CacheLumpNum(flatnum, PU_STATIC);
+        normalflat = V_CacheFlatNum(flatnum, PU_STATIC);
 
         for (i = 0; i < FLATSIZE; i++)
         {

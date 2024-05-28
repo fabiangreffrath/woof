@@ -108,6 +108,7 @@ extern const lumpinfo_t predefined_lumps[];
 
 extern lumpinfo_t *lumpinfo;
 extern int        numlumps;
+extern void       **lumpcache;
 
 extern const char **wadfiles;
 
