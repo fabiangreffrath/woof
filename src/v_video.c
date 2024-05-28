@@ -40,6 +40,7 @@
 #include "r_state.h"
 #include "s_sound.h"
 #include "sounds.h"
+#include "v_fmt.h"
 #include "v_trans.h"
 #include "v_video.h"
 #include "w_wad.h" // needed for color translation lump lookup
@@ -998,7 +999,7 @@ void V_ShadeScreen(void)
 void V_DrawBackground(const char *patchname)
 {
     const byte *src =
-        W_CacheLumpNum(firstflat + R_FlatNumForName(patchname), PU_CACHE);
+        V_CacheFlatNum(firstflat + R_FlatNumForName(patchname), PU_CACHE);
 
     V_TileBlock64(0, video.unscaledw, SCREENHEIGHT, src);
 }

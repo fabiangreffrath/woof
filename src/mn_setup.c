@@ -49,6 +49,7 @@
 #include "r_voxel.h"
 #include "s_sound.h"
 #include "sounds.h"
+#include "v_fmt.h"
 #include "v_video.h"
 #include "w_wad.h"
 #include "z_zone.h"
@@ -501,7 +502,7 @@ static void DrawItem(setup_menu_t *s, int accum_y)
         // Draw the blinking version in tune with the blinking skull otherwise
 
         const int index = (flags & (S_HILITE | S_SELECT)) ? whichSkull : 0;
-        patch_t *patch = W_CacheLumpName(reset_button_name[index], PU_CACHE);
+        patch_t *patch = V_CachePatchName(reset_button_name[index], PU_CACHE);
         rect->x = x;
         rect->y = y;
         rect->w = SHORT(patch->width);
@@ -579,16 +580,16 @@ static void DrawSetupThermo(int x, int y, int width, int size, int dot,
     int i;
 
     xx = x;
-    V_DrawPatchTranslated(xx, y, W_CacheLumpName("M_THERML", PU_CACHE), cr);
+    V_DrawPatchTranslated(xx, y, V_CachePatchName("M_THERML", PU_CACHE), cr);
     xx += M_THRM_STEP;
 
-    patch_t *patch = W_CacheLumpName("M_THERMM", PU_CACHE);
+    patch_t *patch = V_CachePatchName("M_THERMM", PU_CACHE);
     for (i = 0; i < width + 1; i++)
     {
         V_DrawPatchTranslated(xx, y, patch, cr);
         xx += M_THRM_STEP;
     }
-    V_DrawPatchTranslated(xx, y, W_CacheLumpName("M_THERMR", PU_CACHE), cr);
+    V_DrawPatchTranslated(xx, y, V_CachePatchName("M_THERMR", PU_CACHE), cr);
 
     if (dot > size)
     {
@@ -598,7 +599,7 @@ static void DrawSetupThermo(int x, int y, int width, int size, int dot,
     int step = width * M_THRM_STEP * FRACUNIT / size;
 
     V_DrawPatchTranslated(x + M_THRM_STEP + dot * step / FRACUNIT, y,
-                          W_CacheLumpName("M_THERMO", PU_CACHE), cr);
+                          V_CachePatchName("M_THERMO", PU_CACHE), cr);
 }
 
 static void DrawSetting(setup_menu_t *s, int accum_y)
@@ -892,7 +893,7 @@ static void DrawScreenItems(setup_menu_t *src)
 static void DrawDefVerify()
 {
     V_DrawPatch(VERIFYBOXXORG, VERIFYBOXYORG,
-                W_CacheLumpName("M_VBOX", PU_CACHE));
+                V_CachePatchName("M_VBOX", PU_CACHE));
 
     // The blinking messages is keyed off of the blinking of the
     // cursor skull.
@@ -907,7 +908,7 @@ static void DrawDefVerify()
 void MN_DrawDelVerify(void)
 {
     V_DrawPatch(VERIFYBOXXORG, VERIFYBOXYORG,
-                W_CacheLumpName("M_VBOX", PU_CACHE));
+                V_CachePatchName("M_VBOX", PU_CACHE));
 
     if (whichSkull)
     {
@@ -1546,7 +1547,7 @@ void MN_DrawStatusHUD(void)
     if (hud_crosshair && current_page == 2)
     {
         patch_t *patch =
-            W_CacheLumpName(crosshair_lumps[hud_crosshair], PU_CACHE);
+            V_CachePatchName(crosshair_lumps[hud_crosshair], PU_CACHE);
 
         int x = XH_X + 85 - SHORT(patch->width) / 2;
         int y = M_Y + M_SPC / 2 - SHORT(patch->height) / 2 - 1;
@@ -3756,7 +3757,7 @@ void MN_DrawTitle(int x, int y, const char *patch, const char *alttext)
 
     if (patch_lump >= 0)
     {
-        V_DrawPatch(x, y, W_CacheLumpNum(patch_lump, PU_CACHE));
+        V_DrawPatch(x, y, V_CachePatchNum(patch_lump, PU_CACHE));
     }
     else
     {

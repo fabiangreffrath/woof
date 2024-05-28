@@ -31,6 +31,8 @@
 #define M_ARRAY_INIT_CAPACITY 256
 #include "m_array.h"
 
+#define NO_COLOR_KEY (-1)
+
 typedef struct
 {
     byte row_off;
@@ -296,7 +298,7 @@ static patch_t *DummyPatch(int lump, pu_tag tag)
 {
     int num = (W_CheckNumForName)("TNT1A0", ns_sprites);
     int len = W_LumpLength(num);
-    patch_t *dummy = W_CacheLumpNum(num, PU_CACHE);
+    patch_t *dummy = V_CachePatchNum(num, PU_CACHE);
 
     Z_Malloc(len, tag, &lumpcache[lump]);
     memcpy(lumpcache[lump], dummy, len);

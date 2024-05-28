@@ -36,6 +36,7 @@
 #include "s_sound.h"
 #include "sounds.h"
 #include "u_mapinfo.h"
+#include "v_fmt.h"
 #include "v_video.h"
 #include "w_wad.h"
 #include "wi_stuff.h"
@@ -355,7 +356,7 @@ void F_TextWrite (void)
   if (gamemapinfo && W_CheckNumForName(finaleflat) != -1 &&
       (W_CheckNumForName)(finaleflat, ns_flats) == -1)
   {
-    V_DrawPatchFullScreen(W_CacheLumpName(finaleflat, PU_LEVEL));
+    V_DrawPatchFullScreen(V_CachePatchName(finaleflat, PU_LEVEL));
   }
   else if ((W_CheckNumForName)(finaleflat, ns_flats) != -1)
   {
@@ -661,7 +662,7 @@ void F_CastDrawer (void)
   patch_t*            patch;
     
   // erase the entire screen to a background
-  V_DrawPatchFullScreen (W_CacheLumpName (bgcastcall, PU_CACHE)); // Ty 03/30/98 bg texture extern
+  V_DrawPatchFullScreen (V_CachePatchName (bgcastcall, PU_CACHE)); // Ty 03/30/98 bg texture extern
 
   F_CastPrint (castorder[castnum].name);
     
@@ -671,7 +672,7 @@ void F_CastDrawer (void)
   lump = sprframe->lump[0];
   flip = (boolean)sprframe->flip[0];
                         
-  patch = W_CacheLumpNum (lump+firstspritelump, PU_CACHE);
+  patch = V_CachePatchNum (lump+firstspritelump, PU_CACHE);
   if (flip)
     V_DrawPatchFlipped (160, 170, patch);
   else
@@ -691,8 +692,8 @@ void F_BunnyScroll (void)
   static int  laststage;
   int         offset;
 
-  p1 = W_CacheLumpName ("PFUB2", PU_LEVEL);
-  p2 = W_CacheLumpName ("PFUB1", PU_LEVEL);
+  p1 = V_CachePatchName ("PFUB2", PU_LEVEL);
+  p2 = V_CachePatchName ("PFUB1", PU_LEVEL);
 
   scrolled = 320 - (finalecount-230)/2;
   if (scrolled > 320)
@@ -722,7 +723,7 @@ void F_BunnyScroll (void)
   {
     V_DrawPatch ((SCREENWIDTH-13*8)/2,
                  (SCREENHEIGHT-8*8)/2,
-                 W_CacheLumpName ("END0",PU_CACHE));
+                 V_CachePatchName ("END0",PU_CACHE));
     laststage = 0;
     return;
   }
@@ -739,7 +740,7 @@ void F_BunnyScroll (void)
   M_snprintf(name, sizeof(name), "END%i", stage);
   V_DrawPatch ((SCREENWIDTH-13*8)/2,
                (SCREENHEIGHT-8*8)/2,
-               W_CacheLumpName (name,PU_CACHE));
+               V_CachePatchName (name,PU_CACHE));
 }
 
 
@@ -760,7 +761,7 @@ void F_Drawer (void)
     }
     else
     {
-      V_DrawPatchFullScreen(W_CacheLumpName(gamemapinfo->endpic, PU_CACHE));
+      V_DrawPatchFullScreen(V_CachePatchName(gamemapinfo->endpic, PU_CACHE));
     }
     return;
   }
@@ -779,18 +780,18 @@ void F_Drawer (void)
     {
       case 1:
            if ( gamemode == retail || gamemode == commercial )
-             V_DrawPatchFullScreen (W_CacheLumpName("CREDIT",PU_CACHE));
+             V_DrawPatchFullScreen (V_CachePatchName("CREDIT",PU_CACHE));
            else
-             V_DrawPatchFullScreen (W_CacheLumpName("HELP2",PU_CACHE));
+             V_DrawPatchFullScreen (V_CachePatchName("HELP2",PU_CACHE));
            break;
       case 2:
-           V_DrawPatchFullScreen (W_CacheLumpName("VICTORY2",PU_CACHE));
+           V_DrawPatchFullScreen (V_CachePatchName("VICTORY2",PU_CACHE));
            break;
       case 3:
            F_BunnyScroll ();
            break;
       case 4:
-           V_DrawPatchFullScreen (W_CacheLumpName("ENDPIC",PU_CACHE));
+           V_DrawPatchFullScreen (V_CachePatchName("ENDPIC",PU_CACHE));
            break;
     }
   }

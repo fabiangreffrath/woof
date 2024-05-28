@@ -79,6 +79,7 @@
 #include "st_stuff.h"
 #include "statdump.h"
 #include "u_mapinfo.h"
+#include "v_fmt.h"
 #include "v_video.h"
 #include "w_wad.h"
 #include "wi_stuff.h"
@@ -382,7 +383,7 @@ void D_Display (void)
     {
       int x = scaledviewx;
       int y = 4;
-      patch_t *patch = W_CacheLumpName("M_PAUSE", PU_CACHE);
+      patch_t *patch = V_CachePatchName("M_PAUSE", PU_CACHE);
 
       x += (scaledviewwidth - SHORT(patch->width)) / 2 - video.deltaw;
 
@@ -464,6 +465,8 @@ void D_PageDrawer(void)
 {
   if (pagename)
     {
+      V_DrawPatchFullScreen(V_CachePatchName(pagename, PU_CACHE));
+#if 0
       int l = W_CheckNumForName(pagename);
       byte *t = W_CacheLumpNum(l, PU_CACHE);
       size_t s = W_LumpLength(l);
@@ -477,6 +480,7 @@ void D_PageDrawer(void)
         {
 	V_DrawPatch(0, 0, W_CacheLumpName("DOGOVRLY", PU_CACHE));
         }
+#endif
     }
   else
     MN_DrawCredits();
