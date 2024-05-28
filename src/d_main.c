@@ -1588,8 +1588,6 @@ static void AutoloadPWadDir(void (*AutoLoadFunc)(const char *path))
 {
     for (int i = 1; i < array_size(wadfiles); ++i)
     {
-        W_AddBaseDir(wadfiles[i]);
-
         for (int j = 0; j < array_size(autoload_paths); ++j)
         {
             char *dir = GetAutoloadDir(autoload_paths[j],
