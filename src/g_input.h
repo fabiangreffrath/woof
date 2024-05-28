@@ -23,6 +23,17 @@
 extern int (*G_RoundSide)(double side);
 void G_UpdateSideMove(void);
 
+// Error Accumulation
+
+void G_UpdateCarry(void);
+void G_ClearCarry(void);
+extern short (*G_CarryAngleTic)(double angle);
+extern short (*G_CarryAngle)(double angle);
+void G_UpdateAngleFunctions(void);
+int G_CarryPitch(double pitch);
+int G_CarrySide(double side);
+int G_CarryVert(double vert);
+
 // Gamepad
 
 void G_UpdateDeltaTics(void);

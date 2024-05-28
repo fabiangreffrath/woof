@@ -202,16 +202,6 @@ static int mousex;
 static int mousey;
 boolean dclick;
 
-typedef struct carry_s
-{
-    double angle;
-    double pitch;
-    double side;
-    double vert;
-} carry_t;
-
-static carry_t prevcarry;
-static carry_t carry;
 static ticcmd_t basecmd;
 
 boolean joybuttons[NUM_CONTROLLER_BUTTONS];
@@ -382,85 +372,6 @@ static void G_DemoSkipTics(void)
   }
 }
 
-static int CarryError(double value, const double *prevcarry, double *carry)
-{
-  const double desired = value + *prevcarry;
-  const int actual = lround(desired);
-  *carry = desired - actual;
-  return actual;
-}
-
-static short CarryAngleTic_Full(double angle)
-{
-  return CarryError(angle, &prevcarry.angle, &carry.angle);
-}
-
-static short CarryAngle_Full(double angle)
-{
-  const short fullres = CarryAngleTic_Full(angle);
-  localview.angle = fullres << FRACBITS;
-  return fullres;
-}
-
-static short CarryAngle_FakeLongTics(double angle)
-{
-  return (localview.angleoffset = (CarryAngle_Full(angle) + 128) & 0xFF00);
-}
-
-static short CarryAngleTic_LowRes(double angle)
-{
-  const double fullres = angle + prevcarry.angle;
-  const short lowres = ((short)lround(fullres) + 128) & 0xFF00;
-  carry.angle = fullres - lowres;
-  return lowres;
-}
-
-static short CarryAngle_LowRes(double angle)
-{
-  const short lowres = CarryAngleTic_LowRes(angle);
-  localview.angle = lowres << FRACBITS;
-  return lowres;
-}
-
-static short (*CarryAngleTic)(double angle);
-static short (*CarryAngle)(double angle);
-
-void G_UpdateAngleFunctions(void)
-{
-  CarryAngleTic = lowres_turn ? CarryAngleTic_LowRes : CarryAngleTic_Full;
-  CarryAngle = CarryAngleTic;
-
-  if (!netgame || solonet)
-  {
-    if (lowres_turn && fake_longtics)
-    {
-      CarryAngle = CarryAngle_FakeLongTics;
-    }
-    else if (uncapped && raw_input)
-    {
-      CarryAngle = lowres_turn ? CarryAngle_LowRes : CarryAngle_Full;
-    }
-  }
-}
-
-static int CarryPitch(double pitch)
-{
-  return (localview.pitch = CarryError(pitch, &prevcarry.pitch, &carry.pitch));
-}
-
-static int CarryMouseVert(double vert)
-{
-  return CarryError(vert, &prevcarry.vert, &carry.vert);
-}
-
-static int CarryMouseSide(double side)
-{
-  const double desired = side + prevcarry.side;
-  const int actual = G_RoundSide(desired);
-  carry.side = desired - actual;
-  return actual;
-}
-
 static void ClearLocalView(void)
 {
   memset(&localview, 0, sizeof(localview));
@@ -545,7 +456,7 @@ static void ApplyQuickstartCache(ticcmd_t *cmd, boolean strafe)
         result += angleturn_cache[i];
       }
 
-      cmd->angleturn = CarryAngleTic(result);
+      cmd->angleturn = G_CarryAngleTic(result);
       localview.rawangle = cmd->angleturn;
     }
 
@@ -580,14 +491,14 @@ void G_PrepTiccmd(void)
     if (axes[AXIS_TURN] && !strafe)
     {
       localview.rawangle -= G_CalcControllerAngle();
-      cmd->angleturn = CarryAngle(localview.rawangle);
+      cmd->angleturn = G_CarryAngle(localview.rawangle);
       axes[AXIS_TURN] = 0.0f;
     }
 
     if (axes[AXIS_LOOK] && padlook)
     {
       localview.rawpitch -= G_CalcControllerPitch();
-      cmd->pitch = CarryPitch(localview.rawpitch);
+      cmd->pitch = G_CarryPitch(localview.rawpitch);
       axes[AXIS_LOOK] = 0.0f;
     }
   }
@@ -597,14 +508,14 @@ void G_PrepTiccmd(void)
   if (mousex && !strafe)
   {
     localview.rawangle -= G_CalcMouseAngle(mousex);
-    cmd->angleturn = CarryAngle(localview.rawangle);
+    cmd->angleturn = G_CarryAngle(localview.rawangle);
     mousex = 0;
   }
 
   if (mousey && mouselook)
   {
     localview.rawpitch += G_CalcMousePitch(mousey);
-    cmd->pitch = CarryPitch(localview.rawpitch);
+    cmd->pitch = G_CarryPitch(localview.rawpitch);
     mousey = 0;
   }
 }
@@ -718,13 +629,13 @@ void G_BuildTiccmd(ticcmd_t* cmd)
   if (mousex && strafe && !cmd->angleturn)
   {
     const double mouseside = G_CalcMouseSide(mousex);
-    side += CarryMouseSide(mouseside);
+    side += G_CarrySide(mouseside);
   }
 
   if (mousey && !mouselook && !novert)
   {
     const double mousevert = G_CalcMouseVert(mousey);
-    forward += CarryMouseVert(mousevert);
+    forward += G_CarryVert(mousevert);
   }
 
   // Update/reset
@@ -732,7 +643,7 @@ void G_BuildTiccmd(ticcmd_t* cmd)
   if (angle)
   {
     const short old_angleturn = cmd->angleturn;
-    cmd->angleturn = CarryAngleTic(localview.rawangle + angle);
+    cmd->angleturn = G_CarryAngleTic(localview.rawangle + angle);
     cmd->ticangleturn = cmd->angleturn - old_angleturn;
   }
 
@@ -752,7 +663,7 @@ void G_BuildTiccmd(ticcmd_t* cmd)
   I_ResetControllerAxes();
   mousex = mousey = 0;
   UpdateLocalView();
-  prevcarry = carry;
+  G_UpdateCarry();
 
   // Buttons
 
@@ -907,8 +818,7 @@ void G_ClearInput(void)
   I_ResetControllerLevel();
   mousex = mousey = 0;
   ClearLocalView();
-  memset(&carry, 0, sizeof(carry));
-  memset(&prevcarry, 0, sizeof(prevcarry));
+  G_ClearCarry();
   memset(&basecmd, 0, sizeof(basecmd));
 }
 
