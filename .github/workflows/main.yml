@@ -152,7 +152,7 @@ jobs:
 
       - name: Configure
         run: |
-          cmake -B build -G Ninja -DCMAKE_EXPORT_COMPILE_COMMANDS=1 \
+          cmake -B build -G Ninja -DCMAKE_EXPORT_COMPILE_COMMANDS=ON \
                 -DCMAKE_FIND_PACKAGE_PREFER_CONFIG=OFF
 
       - name: Run Cppcheck
@@ -166,6 +166,6 @@ jobs:
             --inline-suppr \
             --std=c99 \
             --suppress=memleak \
-            --project=".\build\compile_commands.json" \
+            --project="${{ github.workspace }}/build/compile_commands.json" \
             -i"${{ github.workspace }}/miniz" \
             -i"${{ github.workspace }}/spng"
