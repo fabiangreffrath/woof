@@ -34,6 +34,7 @@ struct event_s;
 
 #define MBF21_GAME_OPTION_SIZE (21 + MBF21_COMP_TOTAL)
 
+void G_UpdateLocalViewFunction(void);
 void G_PrepTiccmd(void);
 void G_ClearInput(void);
 boolean G_MovementResponder(struct event_s *ev);

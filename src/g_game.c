@@ -422,38 +422,19 @@ static short CarryAngle_LowRes(double angle)
   return lowres;
 }
 
-static void UpdateLocalView_Zero(void)
-{
-  memset(&localview, 0, sizeof(localview));
-}
-
-static void UpdateLocalView_FakeLongTics(void)
-{
-  localview.angle -= localview.angleoffset << FRACBITS;
-  localview.rawangle -= localview.angleoffset;
-  localview.angleoffset = 0;
-  localview.pitch = 0;
-  localview.rawpitch = 0.0;
-  localview.oldlerpangle = localview.lerpangle;
-  localview.lerpangle = localview.angle;
-}
-
 static short (*CarryAngleTic)(double angle);
 static short (*CarryAngle)(double angle);
-static void (*UpdateLocalView)(void);
 
 void G_UpdateAngleFunctions(void)
 {
   CarryAngleTic = lowres_turn ? CarryAngleTic_LowRes : CarryAngleTic_Full;
   CarryAngle = CarryAngleTic;
-  UpdateLocalView = UpdateLocalView_Zero;
 
   if (!netgame || solonet)
   {
     if (lowres_turn && fake_longtics)
     {
       CarryAngle = CarryAngle_FakeLongTics;
-      UpdateLocalView = UpdateLocalView_FakeLongTics;
     }
     else if (uncapped && raw_input)
     {
@@ -478,6 +459,36 @@ static int CarryMouseSide(double side)
   const int actual = G_RoundSide(desired);
   carry.side = desired - actual;
   return actual;
+}
+
+static void ClearLocalView(void)
+{
+  memset(&localview, 0, sizeof(localview));
+}
+
+static void UpdateLocalView_FakeLongTics(void)
+{
+  localview.angle -= localview.angleoffset << FRACBITS;
+  localview.rawangle -= localview.angleoffset;
+  localview.angleoffset = 0;
+  localview.pitch = 0;
+  localview.rawpitch = 0.0;
+  localview.oldlerpangle = localview.lerpangle;
+  localview.lerpangle = localview.angle;
+}
+
+static void (*UpdateLocalView)(void);
+
+void G_UpdateLocalViewFunction(void)
+{
+  if (lowres_turn && fake_longtics && (!netgame || solonet))
+  {
+    UpdateLocalView = UpdateLocalView_FakeLongTics;
+  }
+  else
+  {
+    UpdateLocalView = ClearLocalView;
+  }
 }
 
 //
@@ -895,7 +906,7 @@ void G_ClearInput(void)
   ClearQuickstartTic();
   I_ResetControllerLevel();
   mousex = mousey = 0;
-  memset(&localview, 0, sizeof(localview));
+  ClearLocalView();
   memset(&carry, 0, sizeof(carry));
   memset(&prevcarry, 0, sizeof(prevcarry));
   memset(&basecmd, 0, sizeof(basecmd));
