@@ -713,6 +713,36 @@ static inline boolean CheckLocalView(const player_t *player)
   );
 }
 
+static angle_t CalcViewAngle_RawInput(const player_t *player)
+{
+  return (player->mo->angle + localview.angle - player->ticangle +
+          LerpAngle(player->oldticangle, player->ticangle));
+}
+
+static angle_t CalcViewAngle_LerpFakeLongTics(const player_t *player)
+{
+  return LerpAngle(player->mo->oldangle + localview.oldlerpangle,
+                   player->mo->angle + localview.lerpangle);
+}
+
+static angle_t (*CalcViewAngle)(const player_t *player);
+
+void R_UpdateViewAngleFunction(void)
+{
+  if (raw_input)
+  {
+    CalcViewAngle = CalcViewAngle_RawInput;
+  }
+  else if (lowres_turn && fake_longtics)
+  {
+    CalcViewAngle = CalcViewAngle_LerpFakeLongTics;
+  }
+  else
+  {
+    CalcViewAngle = NULL;
+  }
+}
+
 //
 // R_SetupFrame
 //
@@ -742,15 +772,9 @@ void R_SetupFrame (player_t *player)
     viewy = LerpFixed(player->mo->oldy, player->mo->y);
     viewz = LerpFixed(player->oldviewz, player->viewz);
 
-    if (use_localview && raw_input)
+    if (use_localview && CalcViewAngle)
     {
-      viewangle = (player->mo->angle + localview.angle - player->ticangle +
-                   LerpAngle(player->oldticangle, player->ticangle));
-    }
-    else if (use_localview && !raw_input && lowres_turn && fake_longtics)
-    {
-      viewangle = LerpAngle(player->mo->oldangle + localview.oldlerpangle,
-                            player->mo->angle + localview.lerpangle);
+      viewangle = CalcViewAngle(player);
     }
     else
     {
