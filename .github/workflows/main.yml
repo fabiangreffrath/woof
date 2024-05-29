@@ -168,4 +168,5 @@ jobs:
             --suppress=memleak \
             --project="${{ github.workspace }}/build/compile_commands.json" \
             -i"${{ github.workspace }}/miniz" \
-            -i"${{ github.workspace }}/spng"
+            -i"${{ github.workspace }}/spng" \
+            -D__GNUC__
