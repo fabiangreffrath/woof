@@ -915,7 +915,6 @@ static void HU_widget_build_weapon (void)
 
     ammo = plr->ammo[weaponinfo[w].ammo];
     fullammo = plr->maxammo[weaponinfo[w].ammo];
-    ammopct = 0;
 
     // skip weapons not currently posessed
     if (!plr->weaponowned[w])
