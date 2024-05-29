@@ -29,10 +29,6 @@
 // * Peters <colin@fu.is.saga-u.ac.jp>
 //
 
-#ifndef _MSC_VER
-#error i_opndir.c is for Microsoft Visual C++ only
-#endif
-
 #include <stdlib.h>
 #include <errno.h>
 #include <string.h>

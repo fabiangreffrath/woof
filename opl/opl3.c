@@ -185,7 +185,7 @@ static Bit16s OPL3_EnvelopeCalcExp(Bit32u level)
     {
         level = 0x1fff;
     }
-    return (exprom[level & 0xff] << 1) >> (level >> 8);
+    return ((unsigned)(exprom[level & 0xff] << 1)) >> (level >> 8);
 }
 
 static Bit16s OPL3_EnvelopeCalcSin0(Bit16u phase, Bit16u envelope)
