@@ -152,8 +152,20 @@ jobs:
 
       - name: Configure
         run: |
-          cmake -B build -G Ninja -DENABLE_CPPCHECK=ON \
+          cmake -B build -G Ninja -DCMAKE_EXPORT_COMPILE_COMMANDS=1 \
                 -DCMAKE_FIND_PACKAGE_PREFER_CONFIG=OFF
 
-      - name: Build
-        run: cmake --build build
+      - name: Run Cppcheck
+        run: |
+          mkdir cppcheck_cache
+          cppcheck -j4  --cppcheck-build-dir="cppcheck_cache" \
+            --quiet \
+            --error-exitcode=1 \
+            --check-level=exhaustive \
+            --inconclusive \
+            --inline-suppr \
+            --std=c99 \
+            --suppress=memleak \
+            --project=".\build\compile_commands.json" \
+            -i"${{ github.workspace }}/miniz" \
+            -i"${{ github.workspace }}/spng"

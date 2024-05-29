@@ -74,6 +74,7 @@ static char *ExecReadOutput(char **argv)
     // Wait until the program has completed and (if it was successful)
     // a full line has been read.
 
+    status = 0;
     result = NULL;
     result_len = 0;
     completed = 0;
