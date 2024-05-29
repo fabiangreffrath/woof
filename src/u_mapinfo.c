@@ -231,7 +231,7 @@ static void UpdateMapEntry(mapentry_t *mape, mapentry_t *newe)
     }
     if (newe->author)
     {
-        strcpy(mape->author, newe->author);
+        ReplaceString(&mape->author, newe->author);
     }
     if (newe->intertext)
     {
