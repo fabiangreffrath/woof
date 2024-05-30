@@ -2,8 +2,6 @@ include(WoofSettings)
 
 set(WOOF_SOURCES
     am_map.c               am_map.h
-                           beta.h
-                           cross.h
     d_deh.c                d_deh.h
                            d_englsh.h
                            d_event.h
@@ -17,7 +15,6 @@ set(WOOF_SOURCES
     d_quit.c               d_quit.h
                            d_think.h
                            d_ticcmd.h
-                           dogs.h
                            doomdata.h
                            doomdef.h
     doomstat.c             doomstat.h
@@ -26,7 +23,6 @@ set(WOOF_SOURCES
     dstrings.c             dstrings.h
     f_finale.c             f_finale.h
     f_wipe.c               f_wipe.h
-                           font.h
     g_game.c               g_game.h
     g_input.c              g_input.h
     hu_command.c           hu_command.h
@@ -275,6 +271,11 @@ if(MSVC)
     target_link_options(woof-setup PRIVATE "/MANIFEST:NO")
 endif()
 
+add_custom_command(TARGET woof POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E tar cf
+    "$<TARGET_FILE_DIR:woof>/woof.pk3" --format=zip .
+    WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}/base")
+
 # Install
 #
 # Rename woof-com and woof-exe executables.
@@ -303,14 +304,9 @@ if(WIN32)
     endif()
     install(FILES "$<TARGET_FILE_DIR:woof-com>/woof.com" DESTINATION .)
     install(FILES "$<TARGET_FILE_DIR:woof-exe>/woof.exe" DESTINATION .)
+    install(FILES "$<TARGET_FILE_DIR:woof>/woof.pk3" DESTINATION .)
 else()
     install(TARGETS woof woof-setup RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
+    install(FILES "$<TARGET_FILE_DIR:woof>/woof.pk3"
+            DESTINATION "share/${PROJECT_SHORTNAME}")
 endif()
-
-# Copy autoload directory content to target directory.
-add_custom_command(TARGET woof POST_BUILD
-    COMMAND ${CMAKE_COMMAND} -E make_directory
-    "$<TARGET_FILE_DIR:woof>/autoload"
-    COMMAND ${CMAKE_COMMAND} -E copy_directory
-    "${CMAKE_SOURCE_DIR}/autoload"
-    "$<TARGET_FILE_DIR:woof>/autoload" VERBATIM)

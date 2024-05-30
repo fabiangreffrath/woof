@@ -102,17 +102,14 @@ typedef struct
   const char *wad_file;
 } lumpinfo_t;
 
-// killough 1/31/98: predefined lumps
-extern const size_t num_predefined_lumps;
-extern const lumpinfo_t predefined_lumps[];
-
 extern lumpinfo_t *lumpinfo;
 extern int        numlumps;
 extern void       **lumpcache;
 
 extern const char **wadfiles;
 
-void W_InitPredefineLumps(void);
+boolean W_InitBaseFile(const char *path);
+void W_AddBaseDir(const char *path);
 boolean W_AddPath(const char *path);
 void W_ProcessInWads(const char *name, void (*process)(int lumpnum),
                      boolean iwad);
@@ -134,11 +131,6 @@ void W_ExtractFileBase(const char *, char *);       // killough
 unsigned W_LumpNameHash(const char *s);           // killough 1/31/98
 
 void I_BeginRead(unsigned int bytes), I_EndRead(void); // killough 10/98
-
-// Function to write all predefined lumps to a PWAD if requested
-extern void WriteLumpWad(const char *filename, const lumpinfo_t *lumps, const size_t num_lumps);
-extern void WritePredefinedLumpWad(const char *filename); // jff 5/6/98
-extern void WriteGeneratedLumpWad(const char *filename);
 
 // [FG] name of the WAD file that contains the lump
 const char *W_WadNameForLump (const int lump);
