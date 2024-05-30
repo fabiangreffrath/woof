@@ -128,6 +128,7 @@ glob_t *I_StartMultiGlob(const char *directory, int flags, const char *glob,
         if (new_globs == NULL)
         {
             FreeStringList(globs, num_globs);
+            return NULL;
         }
         globs = new_globs;
         globs[num_globs] = M_StringDuplicate(arg);
