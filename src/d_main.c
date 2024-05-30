@@ -743,7 +743,7 @@ static void LoadBaseFile(void)
 
         if (d.dir && d.func)
         {
-            char *s = M_StringJoin(d.func(), DIR_SEPARATOR_S, d.dir, NULL);
+            char *s = M_StringJoin(d.func(), DIR_SEPARATOR_S, d.dir);
             result = W_InitBaseFile(s);
             free(s);
         }

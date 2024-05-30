@@ -399,7 +399,7 @@ static w_handle_t base_handle;
 boolean W_InitBaseFile(const char *path)
 {
     char *filename =
-        M_StringJoin(path, DIR_SEPARATOR_S, PROJECT_SHORTNAME ".pk3", NULL);
+        M_StringJoin(path, DIR_SEPARATOR_S, PROJECT_SHORTNAME ".pk3");
 
     w_type_t result = w_zip_module.Open(filename, &base_handle);
 
