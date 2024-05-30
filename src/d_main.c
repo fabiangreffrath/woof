@@ -241,7 +241,7 @@ void D_Display (void)
   static boolean menuactivestate = false;
   static boolean inhelpscreensstate = false;
   static boolean fullscreen = false;
-  static gamestate_t oldgamestate = -1;
+  static gamestate_t oldgamestate = GS_NONE;
   static int borderdrawcount;
   int wipestart;
   boolean done, wipe, redrawsbar;
@@ -296,7 +296,7 @@ void D_Display (void)
   if (setsizeneeded)                // change the view size if needed
     {
       R_ExecuteSetViewSize();
-      oldgamestate = -1;            // force background redraw
+      oldgamestate = GS_NONE;            // force background redraw
       borderdrawcount = 3;
     }
 
@@ -328,6 +328,8 @@ void D_Display (void)
       break;
     case GS_DEMOSCREEN:
       D_PageDrawer();
+      break;
+    case GS_NONE:
       break;
     }
 
@@ -741,7 +743,7 @@ static char *GetAutoloadDir(const char *base, const char *iwadname, boolean crea
 
     lower = M_StringDuplicate(iwadname);
     M_StringToLower(lower);
-    result = M_StringJoin(base, DIR_SEPARATOR_S, lower, NULL);
+    result = M_StringJoin(base, DIR_SEPARATOR_S, lower);
     free(lower);
 
     if (createdir)
@@ -773,17 +775,17 @@ static void PrepareAutoloadPaths(void)
         {
             array_push(autoload_paths,
                        M_StringJoin(d.func(), DIR_SEPARATOR_S, d.dir,
-                                    DIR_SEPARATOR_S, "autoload", NULL));
+                                    DIR_SEPARATOR_S, "autoload"));
         }
         else if (d.dir)
         {
             array_push(autoload_paths,
-                       M_StringJoin(d.dir, DIR_SEPARATOR_S, "autoload", NULL));
+                       M_StringJoin(d.dir, DIR_SEPARATOR_S, "autoload"));
         }
         else if (d.func)
         {
             array_push(autoload_paths, M_StringJoin(d.func(), DIR_SEPARATOR_S,
-                                                    "autoload", NULL));
+                                                    "autoload"));
         }
 
         if (d.createdir)
@@ -914,8 +916,7 @@ void IdentifyVersion(void)
     // killough 10/98
 
     basedefault = M_StringJoin(D_DoomPrefDir(), DIR_SEPARATOR_S,
-                               D_DoomExeName(), ".cfg", NULL);
-
+                               D_DoomExeName(), ".cfg");
     // set save path to -save parm or current dir
 
     screenshotdir = M_StringDuplicate("."); // [FG] default to current dir
@@ -1471,7 +1472,7 @@ static void D_ProcessDehCommandLine(void)
 static void AutoLoadWADs(const char *path)
 {
     glob_t * glob = I_StartMultiGlob(path, GLOB_FLAG_NOCASE|GLOB_FLAG_SORTED,
-                                     "*.wad", "*.zip", "*.pk3", NULL);
+                                     "*.wad", "*.zip", "*.pk3");
     for (;;)
     {
         const char *filename = I_NextGlob(glob);
@@ -1555,7 +1556,7 @@ static void AutoLoadPatches(const char *path)
     glob_t *glob;
 
     glob = I_StartMultiGlob(path, GLOB_FLAG_NOCASE|GLOB_FLAG_SORTED,
-                            "*.deh", "*.bex", NULL);
+                            "*.deh", "*.bex");
     for (;;)
     {
         filename = I_NextGlob(glob);
@@ -2316,7 +2317,7 @@ void D_DoomMain(void)
       {
           // [FG] check for at least one savegame in the old location
           glob_t *glob = I_StartMultiGlob(
-              basesavegame, GLOB_FLAG_NOCASE | GLOB_FLAG_SORTED, "*.dsg", NULL);
+              basesavegame, GLOB_FLAG_NOCASE | GLOB_FLAG_SORTED, "*.dsg");
 
           organize_savefiles = (I_NextGlob(glob) == NULL);
 
@@ -2339,14 +2340,14 @@ void D_DoomMain(void)
           }
 
           basesavegame =
-              M_StringJoin(oldsavegame, DIR_SEPARATOR_S, "savegames", NULL);
+              M_StringJoin(oldsavegame, DIR_SEPARATOR_S, "savegames");
           free(oldsavegame);
 
           M_MakeDirectory(basesavegame);
 
           oldsavegame = basesavegame;
           basesavegame = M_StringJoin(oldsavegame, DIR_SEPARATOR_S,
-                                      M_BaseName(wadname), NULL);
+                                      M_BaseName(wadname));
           free(oldsavegame);
 
           M_MakeDirectory(basesavegame);

@@ -130,9 +130,13 @@ jobs:
           allowUpdates: true
           artifacts: build/*.appimage
 
-  cppcheck:
-    name: Cppcheck
+  linter:
+    name: ${{ matrix.name }}
     runs-on: ubuntu-24.04
+    strategy:
+      fail-fast: false
+      matrix:
+        name: [Cppcheck , Clang-Tidy]
 
     steps:
       - name: Install dependencies
@@ -156,6 +160,7 @@ jobs:
                 -DCMAKE_FIND_PACKAGE_PREFER_CONFIG=OFF
 
       - name: Run Cppcheck
+        if: ${{ matrix.name == 'Cppcheck' }}
         run: |
           mkdir cppcheck_cache
           cppcheck -j4  --cppcheck-build-dir="cppcheck_cache" \
@@ -170,3 +175,10 @@ jobs:
             -i"${{ github.workspace }}/miniz" \
             -i"${{ github.workspace }}/spng" \
             -D__GNUC__
+
+      - name: Run Clang-Tidy
+        if: ${{ matrix.name == 'Clang-Tidy' }}
+        run: |
+          run-clang-tidy -j4 -quiet \
+            -checks="-*,clang-analyzer-*,-clang-analyzer-cplusplus*,-clang-analyzer-security*" \
+            -p build

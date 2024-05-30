@@ -222,9 +222,8 @@ result_e T_MovePlane
           }
           else
           {
-            lastpos = sector->ceilingheight;
             sector->ceilingheight += speed;
-            flag = P_CheckSector(sector,crush); //jff 3/19/98 use faster chk
+            P_CheckSector(sector,crush); //jff 3/19/98 use faster chk
           }
           break;
       }
@@ -751,7 +750,6 @@ int EV_BuildStairs
   int ssec = -1;
   int minssec = -1;
 
-  secnum = -1;
   rtn = 0;
 
 // [FG] Compatibility bug in EV_BuildStairs

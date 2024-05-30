@@ -156,7 +156,6 @@ void MN_WriteSnapshot(byte *p)
     p += snapshot_len;
 
     memcpy(p, current_snapshot, snapshot_size);
-    p += snapshot_size;
 }
 
 // [FG] draw snapshot for the n'th savegame, if no snapshot is found

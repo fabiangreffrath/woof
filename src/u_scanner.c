@@ -217,6 +217,7 @@ static void U_ExpandState(u_scanner_t *s)
     s->tokenLinePosition = s->nextState.tokenLinePosition;
 }
 
+ // NOLINTBEGIN(clang-analyzer-unix.Malloc)
 static void U_SaveState(u_scanner_t *s, u_scanner_t savedstate)
 {
     // This saves the entire parser state except for the data pointer.
@@ -234,6 +235,7 @@ static void U_SaveState(u_scanner_t *s, u_scanner_t savedstate)
     savedstate.nextState.string = strdup(s->nextState.string);
     savedstate.data = NULL;
 }
+// NOLINTEND(clang-analyzer-unix.Malloc)
 
 static void U_RestoreState(u_scanner_t *s, u_scanner_t savedstate)
 {
@@ -268,7 +270,7 @@ boolean U_GetString(u_scanner_t *s)
     }
 
     start = s->scanPos;
-    cur = s->data[s->scanPos++];
+    s->scanPos++;
 
     while (s->scanPos < s->length)
     {

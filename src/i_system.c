@@ -203,7 +203,6 @@ boolean I_GetMemoryValue(unsigned int offset, void *value, int size)
         int p, i, val;
 
         firsttime = false;
-        i = 0;
 
         //!
         // @category compat

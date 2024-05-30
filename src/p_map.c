@@ -1530,7 +1530,7 @@ static boolean PTR_AimTraverse (intercept_t *in)
 //
 static boolean PTR_ShootTraverse(intercept_t *in)
 {
-  fixed_t slope, dist, thingtopslope, thingbottomslope, x, y, z, frac;
+  fixed_t dist, thingtopslope, thingbottomslope, x, y, z, frac;
   mobj_t *th;
 
   if (in->isaline)
@@ -1551,15 +1551,15 @@ static boolean PTR_ShootTraverse(intercept_t *in)
 	  // backsector can be NULL when emulating missing back side.
 	  if (li->backsector == NULL)
 	  {
-	    if ((slope = FixedDiv(openbottom - shootz , dist)) <= aimslope &&
-	        (slope = FixedDiv(opentop - shootz , dist)) >= aimslope)
+	    if (FixedDiv(openbottom - shootz , dist) <= aimslope &&
+	        FixedDiv(opentop - shootz , dist) >= aimslope)
 	      return true;      // shot continues
 	  }
 	  else
 	  if ((li->frontsector->floorheight==li->backsector->floorheight ||
-	       (slope = FixedDiv(openbottom - shootz , dist)) <= aimslope) &&
+	       FixedDiv(openbottom - shootz , dist) <= aimslope) &&
 	      (li->frontsector->ceilingheight==li->backsector->ceilingheight ||
-	       (slope = FixedDiv (opentop - shootz , dist)) >= aimslope))
+	       FixedDiv (opentop - shootz , dist) >= aimslope))
 	    return true;      // shot continues
 	}
 
@@ -2178,7 +2178,7 @@ msecnode_t *headsecnode = NULL;
 
 static msecnode_t *P_GetSecnode(void)
 {
-  msecnode_t *node = headsecnode;
+  msecnode_t *node;
 
   return headsecnode ?
     node = headsecnode, headsecnode = node->m_snext, node :

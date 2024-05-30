@@ -202,7 +202,7 @@ void M_SaveDefaults(void)
     }
 
     tmpfile = M_StringJoin(D_DoomPrefDir(), DIR_SEPARATOR_S, "tmp",
-                           D_DoomExeName(), ".cfg", NULL);
+                           D_DoomExeName(), ".cfg");
 
     errno = 0;
     if (!(f = M_fopen(tmpfile, "w"))) // killough 9/21/98
