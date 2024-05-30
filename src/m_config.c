@@ -116,6 +116,7 @@ void M_InitConfig(void)
     G_BindGameVariables();
 
     G_BindGameInputVariables();
+    G_BindMouseVariables();
     I_BindGamepadVariables();
     M_BindInputVariables();
 

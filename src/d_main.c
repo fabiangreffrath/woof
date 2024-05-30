@@ -2455,7 +2455,9 @@ void D_DoomMain(void)
 
   G_UpdateSideMove();
   G_UpdateAngleFunctions();
-  G_UpdateAccelerateMouse();
+  G_UpdateLocalViewFunction();
+  G_UpdateMouseVariables();
+  R_UpdateViewAngleFunction();
 
   MN_ResetTimeScale();
 

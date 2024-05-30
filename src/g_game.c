@@ -178,16 +178,8 @@ static ticcmd_t* last_cmd = NULL;
 int     key_escape = KEY_ESCAPE;                           // phares 4/13/98
 int     key_help = KEY_F1;                                 // phares 4/13/98
 
-int mouse_sensitivity;
-int mouse_sensitivity_y;
-int mouse_sensitivity_strafe; // [FG] strafe
-int mouse_sensitivity_y_look; // [FG] look
 // [FG] double click acts as "use"
 static boolean dclick_use;
-// [FG] invert vertical axis
-boolean mouse_y_invert;
-int mouse_acceleration;
-int mouse_acceleration_threshold;
 
 #define MAXPLMOVE   (forwardmove[1])
 #define TURBOTHRESHOLD  0x32
@@ -206,8 +198,8 @@ int     turnheld;       // for accelerative turning
 boolean mousebuttons[NUM_MOUSE_BUTTONS];
 
 // mouse values are used once
-int mousex;
-int mousey;
+static int mousex;
+static int mousey;
 boolean dclick;
 
 static ticcmd_t basecmd;
@@ -380,6 +372,110 @@ static void G_DemoSkipTics(void)
   }
 }
 
+static void ClearLocalView(void)
+{
+  memset(&localview, 0, sizeof(localview));
+}
+
+static void UpdateLocalView_FakeLongTics(void)
+{
+  localview.angle -= localview.angleoffset << FRACBITS;
+  localview.rawangle -= localview.angleoffset;
+  localview.angleoffset = 0;
+  localview.pitch = 0;
+  localview.rawpitch = 0.0;
+  localview.oldlerpangle = localview.lerpangle;
+  localview.lerpangle = localview.angle;
+}
+
+static void (*UpdateLocalView)(void);
+
+void G_UpdateLocalViewFunction(void)
+{
+  if (lowres_turn && fake_longtics && (!netgame || solonet))
+  {
+    UpdateLocalView = UpdateLocalView_FakeLongTics;
+  }
+  else
+  {
+    UpdateLocalView = ClearLocalView;
+  }
+}
+
+//
+// ApplyQuickstartCache
+// When recording a demo and the map is reloaded, cached input from a circular
+// buffer can be applied prior to the screen wipe. Adapted from DSDA-Doom.
+//
+
+static int quickstart_cache_tics;
+static boolean quickstart_queued;
+static float axis_turn_tic;
+static int mousex_tic;
+
+static void ClearQuickstartTic(void)
+{
+  axis_turn_tic = 0.0f;
+  mousex_tic = 0;
+}
+
+static void ApplyQuickstartCache(ticcmd_t *cmd, boolean strafe)
+{
+  static float axis_turn_cache[TICRATE];
+  static int mousex_cache[TICRATE];
+  static short angleturn_cache[TICRATE];
+  static int index;
+
+  if (quickstart_cache_tics < 1)
+  {
+    return;
+  }
+
+  if (quickstart_queued)
+  {
+    axes[AXIS_TURN] = 0.0f;
+    mousex = 0;
+
+    if (strafe)
+    {
+      for (int i = 0; i < quickstart_cache_tics; i++)
+      {
+        axes[AXIS_TURN] += axis_turn_cache[i];
+        mousex += mousex_cache[i];
+      }
+
+      cmd->angleturn = 0;
+      localview.rawangle = 0.0;
+    }
+    else
+    {
+      short result = 0;
+
+      for (int i = 0; i < quickstart_cache_tics; i++)
+      {
+        result += angleturn_cache[i];
+      }
+
+      cmd->angleturn = G_CarryAngleTic(result);
+      localview.rawangle = cmd->angleturn;
+    }
+
+    memset(axis_turn_cache, 0, sizeof(axis_turn_cache));
+    memset(mousex_cache, 0, sizeof(mousex_cache));
+    memset(angleturn_cache, 0, sizeof(angleturn_cache));
+    index = 0;
+
+    quickstart_queued = false;
+  }
+  else
+  {
+    axis_turn_cache[index] = axis_turn_tic;
+    mousex_cache[index] = mousex_tic;
+    angleturn_cache[index] = cmd->angleturn;
+    index = (index + 1) % quickstart_cache_tics;
+  }
+}
+
 void G_PrepTiccmd(void)
 {
   const boolean strafe = M_InputGameActive(input_strafe);
@@ -394,13 +490,15 @@ void G_PrepTiccmd(void)
 
     if (axes[AXIS_TURN] && !strafe)
     {
-      cmd->angleturn = G_CalcControllerAngle();
+      localview.rawangle -= G_CalcControllerAngle();
+      cmd->angleturn = G_CarryAngle(localview.rawangle);
       axes[AXIS_TURN] = 0.0f;
     }
 
     if (axes[AXIS_LOOK] && padlook)
     {
-      cmd->pitch = G_CalcControllerPitch();
+      localview.rawpitch -= G_CalcControllerPitch();
+      cmd->pitch = G_CarryPitch(localview.rawpitch);
       axes[AXIS_LOOK] = 0.0f;
     }
   }
@@ -409,13 +507,15 @@ void G_PrepTiccmd(void)
 
   if (mousex && !strafe)
   {
-    cmd->angleturn = G_CalcMouseAngle();
+    localview.rawangle -= G_CalcMouseAngle(mousex);
+    cmd->angleturn = G_CarryAngle(localview.rawangle);
     mousex = 0;
   }
 
   if (mousey && mouselook)
   {
-    cmd->pitch = G_CalcMousePitch();
+    localview.rawpitch += G_CalcMousePitch(mousey);
+    cmd->pitch = G_CarryPitch(localview.rawpitch);
     mousey = 0;
   }
 }
@@ -451,7 +551,7 @@ void G_BuildTiccmd(ticcmd_t* cmd)
   memcpy(cmd, &basecmd, sizeof(*cmd));
   memset(&basecmd, 0, sizeof(basecmd));
 
-  G_ApplyQuickstartCache(cmd, strafe);
+  ApplyQuickstartCache(cmd, strafe);
 
   cmd->consistancy = consistancy[consoleplayer][maketic%BACKUPTICS];
 
@@ -528,19 +628,23 @@ void G_BuildTiccmd(ticcmd_t* cmd)
 
   if (mousex && strafe && !cmd->angleturn)
   {
-    side += G_CalcMouseSide();
+    const double mouseside = G_CalcMouseSide(mousex);
+    side += G_CarrySide(mouseside);
   }
 
   if (mousey && !mouselook && !novert)
   {
-    forward += G_CalcMouseVert();
+    const double mousevert = G_CalcMouseVert(mousey);
+    forward += G_CarryVert(mousevert);
   }
 
   // Update/reset
 
   if (angle)
   {
-    G_UpdateTicAngleTurn(cmd, angle);
+    const short old_angleturn = cmd->angleturn;
+    cmd->angleturn = G_CarryAngleTic(localview.rawangle + angle);
+    cmd->ticangleturn = cmd->angleturn - old_angleturn;
   }
 
   if (forward > MAXPLMOVE)
@@ -555,10 +659,10 @@ void G_BuildTiccmd(ticcmd_t* cmd)
   cmd->forwardmove = forward;
   cmd->sidemove = side;
 
-  G_ClearQuickstartTic();
+  ClearQuickstartTic();
   I_ResetControllerAxes();
   mousex = mousey = 0;
-  G_UpdateLocalView();
+  UpdateLocalView();
   G_UpdateCarry();
 
   // Buttons
@@ -710,10 +814,10 @@ void G_BuildTiccmd(ticcmd_t* cmd)
 
 void G_ClearInput(void)
 {
-  G_ClearQuickstartTic();
+  ClearQuickstartTic();
   I_ResetControllerLevel();
   mousex = mousey = 0;
-  G_ClearLocalView();
+  ClearLocalView();
   G_ClearCarry();
   memset(&basecmd, 0, sizeof(basecmd));
 }
@@ -4347,19 +4451,6 @@ void G_BindGameInputVariables(void)
 {
   BIND_BOOL(autorun, true, "Always run");
   BIND_BOOL_GENERAL(mouselook, false, "Mouselook");
-  BIND_NUM_GENERAL(mouse_sensitivity, 5, 0, UL,
-    "Horizontal mouse sensitivity for turning");
-  BIND_NUM_GENERAL(mouse_sensitivity_y, 5, 0, UL,
-    "Vertical mouse sensitivity for moving");
-  BIND_NUM_GENERAL(mouse_sensitivity_strafe, 5, 0, UL,
-    "Horizontal mouse sensitivity for strafing");
-  BIND_NUM_GENERAL(mouse_sensitivity_y_look, 5, 0, UL,
-    "Vertical mouse sensitivity for looking");
-  BIND_NUM_GENERAL(mouse_acceleration, 10, 0, 40,
-    "Mouse acceleration (0 = 1.0; 40 = 5.0)");
-  BIND_NUM(mouse_acceleration_threshold, 10, 0, 32,
-    "Mouse acceleration threshold");
-  BIND_BOOL_GENERAL(mouse_y_invert, false, "Invert vertical mouse axis");
   BIND_BOOL_GENERAL(dclick_use, true, "Double-click acts as use-button");
   BIND_BOOL(novert, true, "Disable vertical mouse movement");
   BIND_BOOL_GENERAL(padlook, false, "Padlook");
