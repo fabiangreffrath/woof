@@ -116,7 +116,7 @@ static boolean W_ZIP_AddDir(w_handle_t handle, const char *path,
     {
         ConvertSlashes(dir);
 
-        char *s = M_StringJoin(dir, "/", NULL);
+        char *s = M_StringJoin(dir, "/");
         index = mz_zip_reader_locate_file(zip, s, NULL, 0);
         free(s);
 

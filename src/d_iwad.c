@@ -369,7 +369,7 @@ static void CheckInstallRootPaths(void)
         for (j = 0; j < arrlen(root_path_subdirs); ++j)
         {
             subpath = M_StringJoin(install_path, DIR_SEPARATOR_S,
-                                   root_path_subdirs[j], NULL);
+                                   root_path_subdirs[j]);
             AddIWADDir(subpath);
         }
 
@@ -395,7 +395,7 @@ static void CheckSteamEdition(void)
     for (i = 0; i < arrlen(steam_install_subdirs); ++i)
     {
         subpath = M_StringJoin(install_path, DIR_SEPARATOR_S,
-                               steam_install_subdirs[i], NULL);
+                               steam_install_subdirs[i]);
 
         AddIWADDir(subpath);
     }
@@ -451,7 +451,7 @@ static void AddIWADPath(const char *path, const char *suffix)
             // as another iwad dir
             *p = '\0';
 
-            AddIWADDir(M_StringJoin(left, suffix, NULL));
+            AddIWADDir(M_StringJoin(left, suffix));
             left = p + 1;
         }
         else
@@ -460,7 +460,7 @@ static void AddIWADPath(const char *path, const char *suffix)
         }
     }
 
-    AddIWADDir(M_StringJoin(left, suffix, NULL));
+    AddIWADDir(M_StringJoin(left, suffix));
 
     free(dup_path);
 }
@@ -491,14 +491,14 @@ static void AddXdgDirs(void)
             homedir = "/";
         }
 
-        tmp_env = M_StringJoin(homedir, "/.local/share", NULL);
+        tmp_env = M_StringJoin(homedir, "/.local/share");
         env = tmp_env;
     }
 
     // We support $XDG_DATA_HOME/games/doom (which will usually be
     // ~/.local/share/games/doom) as a user-writeable extension to
     // the usual /usr/share/games/doom location.
-    AddIWADDir(M_StringJoin(env, "/games/doom", NULL));
+    AddIWADDir(M_StringJoin(env, "/games/doom"));
     free(tmp_env);
 
     // Quote:
@@ -542,7 +542,7 @@ static void AddSteamDirs(void)
     {
         homedir = "/";
     }
-    steampath = M_StringJoin(homedir, "/.steam/root/steamapps/common", NULL);
+    steampath = M_StringJoin(homedir, "/.steam/root/steamapps/common");
 
     AddIWADPath(steampath, "/Doom 2/base");
     AddIWADPath(steampath, "/Master Levels of Doom/doom2");
@@ -658,7 +658,7 @@ char *D_FindWADByName(const char *name)
 
         // Construct a string for the full path
 
-        path = M_StringJoin(iwad_dirs[i], DIR_SEPARATOR_S, name, NULL);
+        path = M_StringJoin(iwad_dirs[i], DIR_SEPARATOR_S, name);
 
         probe = M_FileCaseExists(path);
         if (probe != NULL)
@@ -674,21 +674,19 @@ char *D_FindWADByName(const char *name)
     return NULL;
 }
 
-static char *FindWithExtensions(const char *filename, ...)
+#define FindWithExtensions(filename, ...)                               \
+    FindWithExtensionsInternal(filename, (const char *[]){__VA_ARGS__}, \
+                               sizeof((const char *[]){__VA_ARGS__})    \
+                                   / sizeof(const char *))
+
+static char *FindWithExtensionsInternal(const char *filename,
+                                        const char *ext[], size_t n)
 {
     char *path = NULL;
-    va_list args;
 
-    va_start(args, filename);
-    while (true)
+    for (int i = 0; i < n; ++i)
     {
-        const char *arg = va_arg(args, const char *);
-        if (arg == NULL)
-        {
-            break;
-        }
-
-        char *s = M_StringJoin(filename, arg, NULL);
+        char *s = M_StringJoin(filename, ext[i]);
         path = D_FindWADByName(s);
         free(s);
         if (path != NULL)
@@ -696,7 +694,6 @@ static char *FindWithExtensions(const char *filename, ...)
             break;
         }
     }
-    va_end(args);
 
     return path;
 }
@@ -714,7 +711,7 @@ char *D_TryFindWADByName(const char *filename)
 
     if (!strrchr(M_BaseName(filename), '.'))
     {
-        result = FindWithExtensions(filename, ".wad", ".zip", ".lmp", NULL);
+        result = FindWithExtensions(filename, ".wad", ".zip", ".lmp");
     }
     else
     {
@@ -735,7 +732,7 @@ char *D_FindLMPByName(const char *filename)
 {
     if (!strrchr(M_BaseName(filename), '.'))
     {
-        return FindWithExtensions(filename, ".lmp", NULL);
+        return FindWithExtensions(filename, ".lmp");
     }
     else
     {

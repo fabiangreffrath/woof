@@ -1094,7 +1094,7 @@ void V_ScreenShot(void)
             if (screenshotname)
               free(screenshotname);
             screenshotname = M_StringJoin(screenshotdir, DIR_SEPARATOR_S,
-                                          lbmname, NULL);
+                                          lbmname);
         }
         while (!M_access(screenshotname,0) && --tries);
 

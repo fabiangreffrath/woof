@@ -143,7 +143,7 @@ static void AddDirs(w_module_t *module, w_handle_t handle, const char *base)
         }
         else
         {
-            char *s = M_StringJoin(base, DIR_SEPARATOR_S, subdirs[i].dir, NULL);
+            char *s = M_StringJoin(base, DIR_SEPARATOR_S, subdirs[i].dir);
             module->AddDir(handle, s, subdirs[i].start_marker,
                            subdirs[i].end_marker);
             free(s);
@@ -184,7 +184,7 @@ boolean W_AddPath(const char *path)
     {
         if (filters[i].mode == gamemode && filters[i].mission == gamemission)
         {
-            dir = M_StringJoin("filter", DIR_SEPARATOR_S, filters[i].dir, NULL);
+            dir = M_StringJoin("filter", DIR_SEPARATOR_S, filters[i].dir);
             break;
         }
     }
