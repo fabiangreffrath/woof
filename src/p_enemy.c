@@ -492,7 +492,7 @@ static boolean P_SmartMove(mobj_t *actor)
       P_Random(pr_dropoff) < 235)
     dropoff = 2;
 
-  if (!P_Move(actor, dropoff))
+  if (!P_Move(actor, !!dropoff))
     return false;
 
   // killough 9/9/98: avoid crushing ceilings or other damaging areas
