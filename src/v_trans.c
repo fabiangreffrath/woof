@@ -148,7 +148,6 @@ static void rgb_to_hsv(vect *rgb, vect *hsv)
     else
     {
         s = 0.0;
-        h = 0.0;
     }
     if (s < CTOLERANCE)
     {
