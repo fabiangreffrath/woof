@@ -750,7 +750,6 @@ int EV_BuildStairs
   int ssec = -1;
   int minssec = -1;
 
-  secnum = -1;
   rtn = 0;
 
 // [FG] Compatibility bug in EV_BuildStairs
