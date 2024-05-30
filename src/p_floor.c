@@ -222,7 +222,6 @@ result_e T_MovePlane
           }
           else
           {
-            lastpos = sector->ceilingheight;
             sector->ceilingheight += speed;
             flag = P_CheckSector(sector,crush); //jff 3/19/98 use faster chk
           }
