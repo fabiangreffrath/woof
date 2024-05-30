@@ -270,7 +270,7 @@ boolean U_GetString(u_scanner_t *s)
     }
 
     start = s->scanPos;
-    cur = s->data[s->scanPos++];
+    s->scanPos++;
 
     while (s->scanPos < s->length)
     {
