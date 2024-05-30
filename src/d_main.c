@@ -241,7 +241,7 @@ void D_Display (void)
   static boolean menuactivestate = false;
   static boolean inhelpscreensstate = false;
   static boolean fullscreen = false;
-  static gamestate_t oldgamestate = -1;
+  static gamestate_t oldgamestate = GS_NONE;
   static int borderdrawcount;
   int wipestart;
   boolean done, wipe, redrawsbar;
@@ -296,7 +296,7 @@ void D_Display (void)
   if (setsizeneeded)                // change the view size if needed
     {
       R_ExecuteSetViewSize();
-      oldgamestate = -1;            // force background redraw
+      oldgamestate = GS_NONE;            // force background redraw
       borderdrawcount = 3;
     }
 
@@ -328,6 +328,8 @@ void D_Display (void)
       break;
     case GS_DEMOSCREEN:
       D_PageDrawer();
+      break;
+    case GS_NONE:
       break;
     }
 
