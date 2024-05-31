@@ -2726,6 +2726,7 @@ boolean M_Responder(event_t *ev)
             messageRoutine(ch);
         }
 
+        G_ClearInput();
         menuactive = false;
         M_StartSound(sfx_swtchx);
         return true;
