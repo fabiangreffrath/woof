@@ -92,8 +92,9 @@ void R_DrawViewBorder(void);
 
 void R_InitBufferRes(void);
 
-extern boolean shade_screen;
 void R_InitDrawFunctions(void);
+
+void R_ShadeScreen(boolean toggle);
 
 #endif
 

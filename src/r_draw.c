@@ -712,7 +712,7 @@ void (*R_DrawColumn)(void) = DrawColumn;
 void (*R_DrawTLColumn)(void) = DrawTLColumn;
 void (*R_DrawSpan)(void) = DrawSpan;
 
-boolean shade_screen;
+static boolean shade_screen;
 
 void R_InitDrawFunctions(void)
 {
@@ -744,6 +744,17 @@ void R_InitDrawFunctions(void)
         R_DrawTLColumn = DrawTLColumn;
         R_DrawSpan = DrawSpan;
     }
+}
+
+void R_ShadeScreen(boolean toggle)
+{
+    if (shade_screen == toggle)
+    {
+        return;
+    }
+
+    shade_screen = toggle;
+    R_InitDrawFunctions();
 }
 
 void R_InitBufferRes(void)

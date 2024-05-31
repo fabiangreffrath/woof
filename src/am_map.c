@@ -677,8 +677,7 @@ void AM_Stop (void)
   ST_Responder(&st_notify);
   stopped = true;
 
-  shade_screen = false;
-  R_InitDrawFunctions();
+  R_ShadeScreen(false);
 }
 
 //
@@ -2281,9 +2280,6 @@ void AM_Drawer (void)
     }
   }
 
-  shade_screen = false;
-  R_InitDrawFunctions();
-
   if (automapoverlay == AM_OVERLAY_OFF)
   {
     AM_clearFB(mapcolor_back);       //jff 1/5/98 background default color
@@ -2291,10 +2287,7 @@ void AM_Drawer (void)
   }
   // [Alaux] Dark automap overlay
   else if (automapoverlay == AM_OVERLAY_DARK && !MN_MenuIsShaded())
-  {
-    shade_screen = true;
-    R_InitDrawFunctions();
-  }
+    R_ShadeScreen(true);
 
   if (automap_grid)                  // killough 2/28/98: change var name
     AM_drawGrid(mapcolor_grid);      //jff 1/7/98 grid default color

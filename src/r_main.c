@@ -676,7 +676,6 @@ void R_Init (void)
   R_SetFuzzColumnMode();
 
   colfunc = R_DrawColumn;
-  shade_screen = false;
   R_InitDrawFunctions();
 }
 
