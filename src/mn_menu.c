@@ -1893,6 +1893,8 @@ void MN_ClearMenus(void)
 {
     menuactive = 0;
     options_active = false;
+    shade_screen = false;
+    R_InitDrawFunctions();
     print_warning_about_changes = 0; // killough 8/15/98
     default_verify = 0;              // killough 10/98
 
@@ -3073,7 +3075,13 @@ void M_Drawer(void)
     if (MN_MenuIsShaded())
     {
         inhelpscreens = true;
-        V_ShadeScreen();
+        shade_screen = true;
+        R_InitDrawFunctions();
+    }
+    else
+    {
+        shade_screen = false;
+        R_InitDrawFunctions();
     }
 
     if (currentMenu->routine)

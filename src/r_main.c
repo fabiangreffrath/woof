@@ -126,7 +126,7 @@ int extralight;                           // bumped light from gun blasts
 
 int extra_level_brightness;               // level brightness feature
 
-void (*colfunc)(void) = R_DrawColumn;     // current column draw function
+void (*colfunc)(void);                    // current column draw function
 
 //
 // R_PointOnSide
@@ -674,6 +674,10 @@ void R_Init (void)
 
   // [FG] spectre drawing mode
   R_SetFuzzColumnMode();
+
+  colfunc = R_DrawColumn;
+  shade_screen = false;
+  R_InitDrawFunctions();
 }
 
 //

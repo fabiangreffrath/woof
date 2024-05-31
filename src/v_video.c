@@ -952,22 +952,6 @@ void V_PutBlock(int x, int y, int width, int height, byte *src)
     }
 }
 
-void V_ShadeScreen(void)
-{
-    int x, y;
-
-    byte *dest = dest_screen;
-
-    for (y = 0; y < video.height; y++)
-    {
-        for (x = 0; x < video.width; x++)
-        {
-            dest[x] = colormaps[0][20 * 256 + dest[x]];
-        }
-        dest += linesize;
-    }
-}
-
 //
 // V_DrawBackground
 // Fills the back screen with a pattern

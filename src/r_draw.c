@@ -27,6 +27,7 @@
 #include "i_system.h"
 #include "i_video.h"
 #include "r_bsp.h"
+#include "r_bmaps.h"
 #include "r_defs.h"
 #include "r_draw.h"
 #include "r_main.h"
@@ -62,9 +63,11 @@ static int  linesize;  // killough 11/98
 //
 
 byte translations[3][256];
- 
+
 byte *tranmap;          // translucency filter maps 256x256   // phares 
 byte *main_tranmap;     // killough 4/11/98
+
+static byte *darkcolormap;
 
 // Backing buffer containing the bezel drawn around the screen and surrounding
 // background.
@@ -92,97 +95,76 @@ byte    dc_skycolor;
 //  will always have constant z depth.
 // Thus a special case loop for very fast rendering can
 //  be used. It has also been used with Wolfenstein 3D.
-// 
+//
 
-void R_DrawColumn (void) 
-{ 
-  int              count; 
-  register byte    *dest;            // killough
-  register fixed_t frac;            // killough
-  fixed_t          fracstep;     
+#define R_DRAW(NAME, SRCPIXEL)                                          \
+    static void Draw##NAME(void)                                        \
+    {                                                                   \
+        int count;                                                      \
+        byte *dest;                                                     \
+        fixed_t frac;                                                   \
+        fixed_t fracstep;                                               \
+                                                                        \
+        count = dc_yh - dc_yl + 1;                                      \
+                                                                        \
+        if (count <= 0)                                                 \
+            return;                                                     \
+                                                                        \
+        dest = ylookup[dc_yl] + columnofs[dc_x];                        \
+                                                                        \
+        fracstep = dc_iscale;                                           \
+        frac = dc_texturemid + (dc_yl - centery) * fracstep;            \
+        {                                                               \
+            const byte *source = dc_source;                             \
+            lighttable_t *const *colormap = dc_colormap;                \
+            int heightmask = dc_texheight - 1;                          \
+                                                                        \
+            if (dc_texheight & heightmask)                              \
+            {                                                           \
+                heightmask++;                                           \
+                heightmask <<= FRACBITS;                                \
+                                                                        \
+                if (frac < 0)                                           \
+                    while ((frac += heightmask) < 0)                    \
+                        ;                                               \
+                else                                                    \
+                    while (frac >= heightmask)                          \
+                        frac -= heightmask;                             \
+                do                                                      \
+                {                                                       \
+                    byte src = source[frac >> FRACBITS];                \
+                    *dest = SRCPIXEL;                                   \
+                    dest += linesize;                                   \
+                    if ((frac += fracstep) >= heightmask)               \
+                        frac -= heightmask;                             \
+                } while (--count);                                      \
+            }                                                           \
+            else                                                        \
+            {                                                           \
+                while ((count -= 2) >= 0)                               \
+                {                                                       \
+                    byte src = source[(frac >> FRACBITS) & heightmask]; \
+                    *dest = SRCPIXEL;                                   \
+                    dest += linesize;                                   \
+                    frac += fracstep;                                   \
+                    src = source[(frac >> FRACBITS) & heightmask];      \
+                    *dest = SRCPIXEL;                                   \
+                    dest += linesize;                                   \
+                    frac += fracstep;                                   \
+                }                                                       \
+                if (count & 1)                                          \
+                {                                                       \
+                    byte src = source[(frac >> FRACBITS) & heightmask]; \
+                    *dest = SRCPIXEL;                                   \
+                }                                                       \
+            }                                                           \
+        }                                                               \
+    }
 
-  count = dc_yh - dc_yl + 1; 
-
-  if (count <= 0)    // Zero length, column does not exceed a pixel.
-    return; 
-                                 
-#ifdef RANGECHECK 
-  if ((unsigned)dc_x >= video.width
-      || dc_yl < 0
-      || dc_yh >= video.height) 
-    I_Error ("R_DrawColumn: %i to %i at %i", dc_yl, dc_yh, dc_x); 
-#endif 
-
-  // Framebuffer destination address.
-  // Use ylookup LUT to avoid multiply with ScreenWidth.
-  // Use columnofs LUT for subwindows? 
-
-  dest = ylookup[dc_yl] + columnofs[dc_x];  
-
-  // Determine scaling, which is the only mapping to be done.
-
-  fracstep = dc_iscale; 
-  frac = dc_texturemid + (dc_yl-centery)*fracstep; 
-
-  // Inner loop that does the actual texture mapping,
-  //  e.g. a DDA-lile scaling.
-  // This is as fast as it gets.       (Yeah, right!!! -- killough)
-  //
-  // killough 2/1/98: more performance tuning
-
-  {
-    register const byte *source = dc_source;            
-    register lighttable_t *const *colormap = dc_colormap;
-    register int heightmask = dc_texheight-1;
-    register const byte *brightmap = dc_brightmap;
-    if (dc_texheight & heightmask)   // not a power of 2 -- killough
-      {
-        heightmask++;
-        heightmask <<= FRACBITS;
-          
-        if (frac < 0)
-          while ((frac += heightmask) <  0);
-        else
-          while (frac >= heightmask)
-            frac -= heightmask;
-          
-        do
-          {
-            // Re-map color indices from wall texture column
-            //  using a lighting/special effects LUT.
-            
-            // heightmask is the Tutti-Frutti fix -- killough
-            
-            // [crispy] brightmaps
-            byte src = source[frac>>FRACBITS];
-            *dest = colormap[brightmap[src]][src];
-            dest += linesize;                     // killough 11/98
-            if ((frac += fracstep) >= heightmask)
-              frac -= heightmask;
-          } 
-        while (--count);
-      }
-    else
-      {
-        while ((count-=2)>=0)   // texture height is a power of 2 -- killough
-          {
-            byte src = source[(frac>>FRACBITS) & heightmask];
-            *dest = colormap[brightmap[src]][src];
-            dest += linesize;   // killough 11/98
-            frac += fracstep;
-            src = source[(frac>>FRACBITS) & heightmask];
-            *dest = colormap[brightmap[src]][src];
-            dest += linesize;   // killough 11/98
-            frac += fracstep;
-          }
-        if (count & 1)
-        {
-          byte src = source[(frac>>FRACBITS) & heightmask];
-          *dest = colormap[brightmap[src]][src];
-        }
-      }
-  }
-} 
+R_DRAW(Column, colormap[0][src])
+R_DRAW(ColumnDark, darkcolormap[colormap[0][src]])
+R_DRAW(ColumnBrightmap, colormap[dc_brightmap[src]][src])
+R_DRAW(ColumnBrightmapDark, darkcolormap[colormap[dc_brightmap[src]][src]])
 
 // Here is the version of R_DrawColumn that deals with translucent  // phares
 // textures and sprites. It's identical to R_DrawColumn except      //    |
@@ -196,97 +178,12 @@ void R_DrawColumn (void)
 // opaque' decision is made outside this routine, not down where the
 // actual code differences are.
 
-void R_DrawTLColumn (void)                                           
-{ 
-  int              count; 
-  register byte    *dest;           // killough
-  register fixed_t frac;            // killough
-  fixed_t          fracstep;
-
-  count = dc_yh - dc_yl + 1; 
-
-  // Zero length, column does not exceed a pixel.
-  if (count <= 0)
-    return; 
-                                 
-#ifdef RANGECHECK 
-  if ((unsigned)dc_x >= video.width
-      || dc_yl < 0
-      || dc_yh >= video.height) 
-    I_Error ("R_DrawColumn: %i to %i at %i", dc_yl, dc_yh, dc_x); 
-#endif 
-
-  // Framebuffer destination address.
-  // Use ylookup LUT to avoid multiply with ScreenWidth.
-  // Use columnofs LUT for subwindows? 
-
-  dest = ylookup[dc_yl] + columnofs[dc_x];  
-  
-  // Determine scaling,
-  //  which is the only mapping to be done.
-
-  fracstep = dc_iscale; 
-  frac = dc_texturemid + (dc_yl-centery)*fracstep; 
-
-  // Inner loop that does the actual texture mapping,
-  //  e.g. a DDA-lile scaling.
-  // This is as fast as it gets.       (Yeah, right!!! -- killough)
-  //
-  // killough 2/1/98, 2/21/98: more performance tuning
-  
-  {
-    register const byte *source = dc_source;            
-    register lighttable_t *const *colormap = dc_colormap;
-    register int heightmask = dc_texheight-1;
-    register const byte *brightmap = dc_brightmap;
-    if (dc_texheight & heightmask)   // not a power of 2 -- killough
-      {
-        heightmask++;
-        heightmask <<= FRACBITS;
-          
-        if (frac < 0)
-          while ((frac += heightmask) <  0);
-        else
-          while (frac >= heightmask)
-            frac -= heightmask;
-        
-        do
-          {
-            // Re-map color indices from wall texture column
-            //  using a lighting/special effects LUT.
-            
-            // heightmask is the Tutti-Frutti fix -- killough
-              
-            // [crispy] brightmaps
-            byte src = source[frac>>FRACBITS];
-            *dest = tranmap[(*dest<<8)+colormap[brightmap[src]][src]]; // phares
-            dest += linesize;          // killough 11/98
-            if ((frac += fracstep) >= heightmask)
-              frac -= heightmask;
-          } 
-        while (--count);
-      }
-    else
-      {
-        while ((count-=2)>=0)   // texture height is a power of 2 -- killough
-          {
-            byte src = source[(frac>>FRACBITS) & heightmask];
-            *dest = tranmap[(*dest<<8)+colormap[brightmap[src]][src]]; // phares
-            dest += linesize;   // killough 11/98
-            frac += fracstep;
-            src = source[(frac>>FRACBITS) & heightmask];
-            *dest = tranmap[(*dest<<8)+colormap[brightmap[src]][src]]; // phares
-            dest += linesize;   // killough 11/98
-            frac += fracstep;
-          }
-        if (count & 1)
-        {
-          byte src = source[(frac>>FRACBITS) & heightmask];
-          *dest = tranmap[(*dest<<8)+colormap[brightmap[src]][src]]; // phares
-        }
-      }
-  }
-} 
+R_DRAW(TLColumn, tranmap[(*dest << 8) + colormap[0][src]])
+R_DRAW(TLColumnDark, darkcolormap[tranmap[(*dest << 8) + colormap[0][src]]])
+R_DRAW(TLColumnBrightmap,
+       tranmap[(*dest << 8) + colormap[dc_brightmap[src]][src]])
+R_DRAW(TLColumnBrightmapDark,
+       darkcolormap[tranmap[(*dest << 8) + colormap[dc_brightmap[src]][src]]])
 
 //
 // Sky drawing: for showing just a color above the texture
@@ -734,79 +631,120 @@ fixed_t ds_xstep;
 fixed_t ds_ystep;
 
 // start of a 64*64 tile image 
-byte *ds_source;        
+byte *ds_source;
 
-void R_DrawSpan (void) 
-{ 
-  byte *source;
-  byte **colormap;
-  byte *dest;
-  const byte *brightmap;
-    
-  unsigned count;
-  unsigned spot; 
-  unsigned xtemp;
-  unsigned ytemp;
-                
-  source = ds_source;
-  colormap = ds_colormap;
-  dest = ylookup[ds_y] + columnofs[ds_x1];       
-  brightmap = ds_brightmap;
-  count = ds_x2 - ds_x1 + 1; 
-        
-  // [FG] fix flat distortion towards the right of the screen
-  while (count >= 4)
-    { 
-      byte src;
-      ytemp = (ds_yfrac >> 10) & 0x0FC0;
-      xtemp = (ds_xfrac >> 16) & 0x003F;
-      spot = xtemp | ytemp;
-      ds_xfrac += ds_xstep;
-      ds_yfrac += ds_ystep;
-      src = source[spot];
-      dest[0] = colormap[brightmap[src]][src];
+#define R_DRAW_SPAN(NAME, SRCPIXEL)              \
+    static void DrawSpan##NAME(void)             \
+    {                                            \
+        byte *source;                            \
+        byte **colormap;                         \
+        byte *dest;                              \
+                                                 \
+        unsigned count;                          \
+        unsigned spot;                           \
+        unsigned xtemp;                          \
+        unsigned ytemp;                          \
+                                                 \
+        source = ds_source;                      \
+        colormap = ds_colormap;                  \
+        dest = ylookup[ds_y] + columnofs[ds_x1]; \
+        count = ds_x2 - ds_x1 + 1;               \
+                                                 \
+        while (count >= 4)                       \
+        {                                        \
+            byte src;                            \
+            ytemp = (ds_yfrac >> 10) & 0x0FC0;   \
+            xtemp = (ds_xfrac >> 16) & 0x003F;   \
+            spot = xtemp | ytemp;                \
+            ds_xfrac += ds_xstep;                \
+            ds_yfrac += ds_ystep;                \
+            src = source[spot];                  \
+            dest[0] = SRCPIXEL;                  \
+                                                 \
+            ytemp = (ds_yfrac >> 10) & 0x0FC0;   \
+            xtemp = (ds_xfrac >> 16) & 0x003F;   \
+            spot = xtemp | ytemp;                \
+            ds_xfrac += ds_xstep;                \
+            ds_yfrac += ds_ystep;                \
+            src = source[spot];                  \
+            dest[1] = SRCPIXEL;                  \
+                                                 \
+            ytemp = (ds_yfrac >> 10) & 0x0FC0;   \
+            xtemp = (ds_xfrac >> 16) & 0x003F;   \
+            spot = xtemp | ytemp;                \
+            ds_xfrac += ds_xstep;                \
+            ds_yfrac += ds_ystep;                \
+            src = source[spot];                  \
+            dest[2] = SRCPIXEL;                  \
+                                                 \
+            ytemp = (ds_yfrac >> 10) & 0x0FC0;   \
+            xtemp = (ds_xfrac >> 16) & 0x003F;   \
+            spot = xtemp | ytemp;                \
+            ds_xfrac += ds_xstep;                \
+            ds_yfrac += ds_ystep;                \
+            src = source[spot];                  \
+            dest[3] = SRCPIXEL;                  \
+                                                 \
+            dest += 4;                           \
+            count -= 4;                          \
+        }                                        \
+                                                 \
+        while (count)                            \
+        {                                        \
+            byte src;                            \
+            ytemp = (ds_yfrac >> 10) & 0x0FC0;   \
+            xtemp = (ds_xfrac >> 16) & 0x003F;   \
+            spot = xtemp | ytemp;                \
+            ds_xfrac += ds_xstep;                \
+            ds_yfrac += ds_ystep;                \
+            src = source[spot];                  \
+            *dest++ = SRCPIXEL;                  \
+            count--;                             \
+        }                                        \
+    }
 
-      ytemp = (ds_yfrac >> 10) & 0x0FC0;
-      xtemp = (ds_xfrac >> 16) & 0x003F;
-      spot = xtemp | ytemp;
-      ds_xfrac += ds_xstep;
-      ds_yfrac += ds_ystep;
-      src = source[spot];
-      dest[1] = colormap[brightmap[src]][src];
-        
-      ytemp = (ds_yfrac >> 10) & 0x0FC0;
-      xtemp = (ds_xfrac >> 16) & 0x003F;
-      spot = xtemp | ytemp;
-      ds_xfrac += ds_xstep;
-      ds_yfrac += ds_ystep;
-      src = source[spot];
-      dest[2] = colormap[brightmap[src]][src];
-        
-      ytemp = (ds_yfrac >> 10) & 0x0FC0;
-      xtemp = (ds_xfrac >> 16) & 0x003F;
-      spot = xtemp | ytemp;
-      ds_xfrac += ds_xstep;
-      ds_yfrac += ds_ystep;
-      src = source[spot];
-      dest[3] = colormap[brightmap[src]][src];
-                
-      dest += 4;
-      count -= 4;
-    } 
+R_DRAW_SPAN( , colormap[0][src])
+R_DRAW_SPAN(Dark, darkcolormap[colormap[0][src]])
+R_DRAW_SPAN(Brightmap, colormap[ds_brightmap[src]][src])
+R_DRAW_SPAN(BrightmapDark, darkcolormap[colormap[ds_brightmap[src]][src]])
 
-  while (count)
-    { 
-      byte src;
-      ytemp = (ds_yfrac >> 10) & 0x0FC0;
-      xtemp = (ds_xfrac >> 16) & 0x003F;
-      spot = xtemp | ytemp;
-      ds_xfrac += ds_xstep;
-      ds_yfrac += ds_ystep;
-      src = source[spot];
-      *dest++ = colormap[brightmap[src]][src];
-      count--;
-    } 
-} 
+void (*R_DrawColumn)(void) = DrawColumn;
+void (*R_DrawTLColumn)(void) = DrawTLColumn;
+void (*R_DrawSpan)(void) = DrawSpan;
+
+boolean shade_screen;
+
+void R_InitDrawFunctions(void)
+{
+    boolean local_brightmaps = (STRICTMODE(brightmaps) || force_brightmaps);
+
+    darkcolormap = &colormaps[0][20 * 256];
+
+    if (local_brightmaps && shade_screen)
+    {
+        R_DrawColumn = DrawColumnBrightmapDark;
+        R_DrawTLColumn = DrawTLColumnBrightmapDark;
+        R_DrawSpan = DrawSpanBrightmapDark;
+    }
+    else if (local_brightmaps && !shade_screen)
+    {
+        R_DrawColumn = DrawColumnBrightmap;
+        R_DrawTLColumn = DrawTLColumnBrightmap;
+        R_DrawSpan = DrawSpanBrightmap;
+    }
+    else if (shade_screen && !local_brightmaps)
+    {
+        R_DrawColumn = DrawColumnDark;
+        R_DrawTLColumn = DrawTLColumnDark;
+        R_DrawSpan = DrawSpanDark;
+    }
+    else
+    {
+        R_DrawColumn = DrawColumn;
+        R_DrawTLColumn = DrawTLColumn;
+        R_DrawSpan = DrawSpan;
+    }
+}
 
 void R_InitBufferRes(void)
 {

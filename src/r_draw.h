@@ -39,8 +39,8 @@ extern const byte *dc_brightmap;
 // The span blitting interface.
 // Hook in assembler or system specific BLT here.
 
-void R_DrawColumn(void);
-void R_DrawTLColumn(void);      // drawing translucent textures // phares
+extern void (*R_DrawColumn)(void);
+extern void (*R_DrawTLColumn)(void);      // drawing translucent textures // phares
 extern void (*R_DrawFuzzColumn)(void);    // The Spectre/Invisibility effect.
 
 // [crispy] draw fuzz effect independent of rendering frame rate
@@ -75,7 +75,7 @@ extern byte *dc_translation;
 extern const byte *ds_brightmap;
 
 // Span blitting for rows, floor/ceiling. No Spectre effect needed.
-void R_DrawSpan(void);
+extern void (*R_DrawSpan)(void);
 
 void R_InitBuffer(void);
 
@@ -91,6 +91,9 @@ void R_DrawBorder(int x, int y, int w, int h);
 void R_DrawViewBorder(void);
 
 void R_InitBufferRes(void);
+
+extern boolean shade_screen;
+void R_InitDrawFunctions(void);
 
 #endif
 
