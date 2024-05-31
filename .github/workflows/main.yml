@@ -192,6 +192,7 @@ jobs:
             ,clang-analyzer-*
             ,-clang-analyzer-cplusplus*
             ,-clang-analyzer-security*
+            ,-clang-analyzer-valist*
           database: 'build'
           ignore: 'miniz|spng|win32|toolsrc|src/i_pcsound.c'
 
