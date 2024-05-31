@@ -56,7 +56,7 @@ void R_DrawSkyColumn(void);
 // Draw with color translation tables, for player sprite rendering,
 //  Green/Red/Blue/Indigo shirts.
 
-void R_DrawTranslatedColumn(void);
+extern void (*R_DrawTranslatedColumn)(void);
 
 extern lighttable_t *ds_colormap[2];
 
