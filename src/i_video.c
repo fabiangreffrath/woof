@@ -220,6 +220,8 @@ void I_ShowMouseCursor(boolean toggle)
 
 void I_ResetRelativeMouseState(void)
 {
+    SDL_PumpEvents();
+    SDL_FlushEvent(SDL_MOUSEMOTION);
     SDL_GetRelativeMouseState(NULL, NULL);
 }
 
@@ -1782,8 +1784,6 @@ void I_InitGraphics(void)
     ResetLogicalSize();
 
     // clear out events waiting at the start and center the mouse
-    SDL_PumpEvents();
-    SDL_FlushEvent(SDL_MOUSEMOTION);
     I_ResetRelativeMouseState();
 }
 
