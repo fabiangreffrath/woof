@@ -178,7 +178,23 @@ jobs:
 
       - name: Run Clang-Tidy
         if: ${{ matrix.name == 'Clang-Tidy' }}
-        run: |
-          run-clang-tidy -j4 -quiet \
-            -checks="-*,clang-analyzer-*,-clang-analyzer-cplusplus*,-clang-analyzer-security*" \
-            -p build
+        uses: cpp-linter/cpp-linter-action@v2
+        id: cpp-linter
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          version: 18
+          step-summary: true
+          files-changed-only: false
+          style: ''  # disable clang-format checks.
+          tidy-checks: >-
+            -*
+            ,clang-analyzer-*
+            ,-clang-analyzer-cplusplus*
+            ,-clang-analyzer-security*
+          database: 'build'
+          ignore: 'miniz|spng|win32|toolsrc|src/i_pcsound.c'
+
+      - name: Fail fast?!
+        if: steps.cpp-linter.outputs.clang-tidy-checks-failed > 0
+        run: exit 1
