@@ -497,7 +497,6 @@ static void R_SetupFreelook(void)
   if (viewpitch)
   {
     dy = FixedMul(projection, -finetangent[(ANG90 - viewpitch) >> ANGLETOFINESHIFT]);
-    dy = (fixed_t)((int64_t)dy * SCREENHEIGHT / ACTUALHEIGHT);
   }
   else
   {
