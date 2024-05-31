@@ -35,6 +35,7 @@ int G_CarryVert(double vert);
 
 // Gamepad
 
+void G_UpdateControllerVariables(void);
 void G_UpdateDeltaTics(void);
 double G_CalcControllerAngle(void);
 double G_CalcControllerPitch(void);

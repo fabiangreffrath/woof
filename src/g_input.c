@@ -171,6 +171,14 @@ int G_CarryVert(double vert)
 
 static const int direction[] = {1, -1};
 static double deltatics;
+static double joy_scale_angle;
+static double joy_scale_pitch;
+
+void G_UpdateControllerVariables(void)
+{
+    joy_scale_angle = angleturn[1] * direction[joy_invert_turn];
+    joy_scale_pitch = angleturn[1] * direction[joy_invert_look] * FRACUNIT;
+}
 
 void G_UpdateDeltaTics(void)
 {
@@ -200,14 +208,12 @@ void G_UpdateDeltaTics(void)
 
 double G_CalcControllerAngle(void)
 {
-    return (angleturn[1] * axes[AXIS_TURN] * direction[joy_invert_turn]
-            * deltatics);
+    return (axes[AXIS_TURN] * joy_scale_angle * deltatics);
 }
 
 double G_CalcControllerPitch(void)
 {
-    return (angleturn[1] * axes[AXIS_LOOK] * direction[joy_invert_look]
-            * deltatics * FRACUNIT);
+    return (axes[AXIS_LOOK] * joy_scale_pitch * deltatics);
 }
 
 int G_CalcControllerSideTurn(int speed)
