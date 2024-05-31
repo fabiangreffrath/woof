@@ -178,6 +178,11 @@ void G_UpdateControllerVariables(void)
 {
     joy_scale_angle = angleturn[1] * direction[joy_invert_turn];
     joy_scale_pitch = angleturn[1] * direction[joy_invert_look] * FRACUNIT;
+
+    if (correct_aspect_ratio)
+    {
+        joy_scale_pitch /= 1.2;
+    }
 }
 
 void G_UpdateDeltaTics(void)
@@ -303,6 +308,11 @@ void G_UpdateMouseVariables(void)
     {
         mouse_sens_pitch = ((double)(mouse_sensitivity_y_look + 5) * 8 / 10
                             * direction[mouse_y_invert] * FRACUNIT);
+
+        if (correct_aspect_ratio)
+        {
+            mouse_sens_pitch /= 1.2;
+        }
     }
 
     if (mouse_sensitivity_strafe)

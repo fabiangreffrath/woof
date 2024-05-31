@@ -83,7 +83,7 @@ boolean toggle_fullscreen;
 boolean toggle_exclusive_fullscreen;
 
 static boolean use_vsync; // killough 2/8/98: controls whether vsync is called
-static boolean correct_aspect_ratio;
+boolean correct_aspect_ratio;
 static int fpslimit; // when uncapped, limit framerate to this value
 static boolean fullscreen;
 static boolean exclusive_fullscreen;
