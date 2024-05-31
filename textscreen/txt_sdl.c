@@ -44,6 +44,12 @@ typedef struct
 // Fonts:
 
 #include "fonts/normal.h"
+
+static const txt_font_t normal_font =
+{
+    "normal", normal_font_data, 8, 16,
+};
+
 #include "fonts/codepage.h"
 
 // Time between character blinks in ms
