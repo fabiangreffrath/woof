@@ -1900,7 +1900,6 @@ void MN_ClearMenus(void)
     //     sendpause = true;
 
     G_ClearInput();
-    I_ResetRelativeMouseState();
 }
 
 void MN_Back(void)

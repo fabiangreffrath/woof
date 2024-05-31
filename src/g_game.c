@@ -820,6 +820,7 @@ void G_ClearInput(void)
   ClearLocalView();
   G_ClearCarry();
   memset(&basecmd, 0, sizeof(basecmd));
+  I_ResetRelativeMouseState();
 }
 
 //
