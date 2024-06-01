@@ -271,6 +271,9 @@ void D_Display (void)
     }
   }
 
+  if (MN_MenuIsShaded())
+    V_ShadeScreen(true);
+
   redrawsbar = false;
 
   wipe = false;
@@ -394,6 +397,8 @@ void D_Display (void)
 
       V_DrawPatch(x, y, patch);
     }
+
+  V_ShadeScreen(false);
 
   // menus go directly to the screen
   M_Drawer();          // menu is drawn even on top of everything
