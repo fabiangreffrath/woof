@@ -317,6 +317,8 @@ static void M_DrawMainMenu(void)
 
     options_active = false;
 
+    R_ShadeScreen(false);
+
     V_DrawPatch(94, 2, V_CachePatchName("M_DOOM", PU_CACHE));
 }
 
