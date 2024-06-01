@@ -45,24 +45,17 @@
 //  and the total size == width*height*depth/8.,
 //
 
-int  scaledviewwidth;
-int  scaledviewheight;        // killough 11/98
-int  scaledviewx;
-int  scaledviewy;
-int  viewwidth;
-int  viewheight;
-int  viewwindowx;
-int  viewwindowy; 
+int scaledviewwidth;
+int scaledviewheight; // killough 11/98
+int scaledviewx;
+int scaledviewy;
+int viewwidth;
+int viewheight;
+int viewwindowx;
+int viewwindowy;
 static byte **ylookup = NULL;
-static int  *columnofs = NULL;
-static int  linesize;  // killough 11/98
-
-// Color tables for different players,
-//  translate a limited part to another
-//  (color ramps used for  suit colors).
-//
-
-byte translations[3][256];
+static int *columnofs = NULL;
+static int linesize; // killough 11/98
 
 byte *tranmap;          // translucency filter maps 256x256   // phares 
 byte *main_tranmap;     // killough 4/11/98
@@ -80,14 +73,14 @@ static pixel_t *background_buffer = NULL;
 //
 
 lighttable_t *dc_colormap[2]; // [crispy] brightmaps
-int     dc_x; 
-int     dc_yl; 
-int     dc_yh; 
-fixed_t dc_iscale; 
+int dc_x;
+int dc_yl;
+int dc_yh;
+fixed_t dc_iscale;
 fixed_t dc_texturemid;
-int     dc_texheight;    // killough
-byte    *dc_source;      // first pixel in a column (possibly virtual) 
-byte    dc_skycolor;
+int dc_texheight; // killough
+byte *dc_source;  // first pixel in a column (possibly virtual)
+byte dc_skycolor;
 
 //
 // A column is a vertical slice/span from a wall texture that,
@@ -97,60 +90,75 @@ byte    dc_skycolor;
 //  be used. It has also been used with Wolfenstein 3D.
 //
 
-#define DRAW_COLUMN(NAME, SRCPIXEL)                                    \
-    static void DrawColumn##NAME(void)                                 \
-    {                                                                  \
-        int count = dc_yh - dc_yl + 1;                                 \
-                                                                       \
-        if (count <= 0)                                                \
-            return;                                                    \
-                                                                       \
-        byte *dest = ylookup[dc_yl] + columnofs[dc_x];                 \
-                                                                       \
-        const fixed_t fracstep = dc_iscale;                            \
-        fixed_t frac = dc_texturemid + (dc_yl - centery) * fracstep;   \
-                                                                       \
-        int heightmask = dc_texheight - 1;                             \
-                                                                       \
-        if (dc_texheight & heightmask)                                 \
-        {                                                              \
-            heightmask++;                                              \
-            heightmask <<= FRACBITS;                                   \
-                                                                       \
-            if (frac < 0)                                              \
-                while ((frac += heightmask) < 0)                       \
-                    ;                                                  \
-            else                                                       \
-                while (frac >= heightmask)                             \
-                    frac -= heightmask;                                \
-            do                                                         \
-            {                                                          \
-                byte src = dc_source[frac >> FRACBITS];                \
-                *dest = SRCPIXEL;                                      \
-                dest += linesize;                                      \
-                if ((frac += fracstep) >= heightmask)                  \
-                    frac -= heightmask;                                \
-            } while (--count);                                         \
-        }                                                              \
-        else                                                           \
-        {                                                              \
-            while ((count -= 2) >= 0)                                  \
-            {                                                          \
-                byte src = dc_source[(frac >> FRACBITS) & heightmask]; \
-                *dest = SRCPIXEL;                                      \
-                dest += linesize;                                      \
-                frac += fracstep;                                      \
-                src = dc_source[(frac >> FRACBITS) & heightmask];      \
-                *dest = SRCPIXEL;                                      \
-                dest += linesize;                                      \
-                frac += fracstep;                                      \
-            }                                                          \
-            if (count & 1)                                             \
-            {                                                          \
-                byte src = dc_source[(frac >> FRACBITS) & heightmask]; \
-                *dest = SRCPIXEL;                                      \
-            }                                                          \
-        }                                                              \
+// Inner loop that does the actual texture mapping,
+//  e.g. a DDA-lile scaling.
+// This is as fast as it gets.       (Yeah, right!!! -- killough)
+//
+// killough 2/1/98: more performance tuning
+
+// heightmask is the Tutti-Frutti fix -- killough
+
+#define DRAW_COLUMN(NAME, SRCPIXEL)                                      \
+    static void DrawColumn##NAME(void)                                   \
+    {                                                                    \
+        int count = dc_yh - dc_yl + 1;                                   \
+                                                                         \
+        if (count <= 0)                                                  \
+            return;                                                      \
+                                                                         \
+        if ((unsigned)dc_x >= video.width || dc_yl < 0                   \
+            || dc_yh >= video.height)                                    \
+        {                                                                \
+            I_Error("DrawColumn" #NAME ": %i to %i at %i", dc_yl, dc_yh, \
+                    dc_x);                                               \
+        }                                                                \
+                                                                         \
+        byte *dest = ylookup[dc_yl] + columnofs[dc_x];                   \
+                                                                         \
+        const fixed_t fracstep = dc_iscale;                              \
+        fixed_t frac = dc_texturemid + (dc_yl - centery) * fracstep;     \
+                                                                         \
+        int heightmask = dc_texheight - 1;                               \
+                                                                         \
+        if (dc_texheight & heightmask)                                   \
+        {                                                                \
+            heightmask++;                                                \
+            heightmask <<= FRACBITS;                                     \
+                                                                         \
+            if (frac < 0)                                                \
+                while ((frac += heightmask) < 0)                         \
+                    ;                                                    \
+            else                                                         \
+                while (frac >= heightmask)                               \
+                    frac -= heightmask;                                  \
+            do                                                           \
+            {                                                            \
+                byte src = dc_source[frac >> FRACBITS];                  \
+                *dest = SRCPIXEL;                                        \
+                dest += linesize;                                        \
+                if ((frac += fracstep) >= heightmask)                    \
+                    frac -= heightmask;                                  \
+            } while (--count);                                           \
+        }                                                                \
+        else                                                             \
+        {                                                                \
+            while ((count -= 2) >= 0)                                    \
+            {                                                            \
+                byte src = dc_source[(frac >> FRACBITS) & heightmask];   \
+                *dest = SRCPIXEL;                                        \
+                dest += linesize;                                        \
+                frac += fracstep;                                        \
+                src = dc_source[(frac >> FRACBITS) & heightmask];        \
+                *dest = SRCPIXEL;                                        \
+                dest += linesize;                                        \
+                frac += fracstep;                                        \
+            }                                                            \
+            if (count & 1)                                               \
+            {                                                            \
+                byte src = dc_source[(frac >> FRACBITS) & heightmask];   \
+                *dest = SRCPIXEL;                                        \
+            }                                                            \
+        }                                                                \
     }
 
 DRAW_COLUMN(, dc_colormap[0][src])
@@ -170,177 +178,198 @@ DRAW_COLUMN(BrightmapDark, darkcolormap[dc_colormap[dc_brightmap[src]][src]])
 // opaque' decision is made outside this routine, not down where the
 // actual code differences are.
 
-DRAW_COLUMN(TL, tranmap[(*dest << 8) + dc_colormap[0][src]])
-DRAW_COLUMN(TLDark, darkcolormap[tranmap[(*dest << 8) + dc_colormap[0][src]]])
+DRAW_COLUMN(TL,
+    tranmap[(*dest << 8) + dc_colormap[0][src]])
+DRAW_COLUMN(TLDark,
+    darkcolormap[tranmap[(*dest << 8) + dc_colormap[0][src]]])
 DRAW_COLUMN(TLBrightmap,
-            tranmap[(*dest << 8) + dc_colormap[dc_brightmap[src]][src]])
-DRAW_COLUMN(
-    TLBrightmapDark,
+    tranmap[(*dest << 8) + dc_colormap[dc_brightmap[src]][src]])
+DRAW_COLUMN(TLBrightmapDark,
     darkcolormap[tranmap[(*dest << 8) + dc_colormap[dc_brightmap[src]][src]]])
 
 //
 // Sky drawing: for showing just a color above the texture
 // Taken from Eternity Engine eternity-engine/source/r_draw.c:L170-234
-//
+
 void R_DrawSkyColumn(void)
 {
-  int count;
-  byte *dest;
-  fixed_t frac;
-  fixed_t fracstep;
+    int count = dc_yh - dc_yl + 1;
 
-  count = dc_yh - dc_yl + 1;
-
-  if (count <= 0)
-    return;
+    if (count <= 0)
+    {
+        return;
+    }
 
 #ifdef RANGECHECK
-  if ((unsigned)dc_x >= video.width
-    || dc_yl < 0
-    || dc_yh >= video.height)
-    I_Error ("R_DrawSkyColumn: %i to %i at %i", dc_yl, dc_yh, dc_x);
+    if ((unsigned)dc_x >= video.width || dc_yl < 0 || dc_yh >= video.height)
+    {
+        I_Error("R_DrawSkyColumn: %i to %i at %i", dc_yl, dc_yh, dc_x);
+    }
 #endif
 
-  dest = ylookup[dc_yl] + columnofs[dc_x];
+    byte *dest = ylookup[dc_yl] + columnofs[dc_x];
 
-  fracstep = dc_iscale; 
-  frac = dc_texturemid + (dc_yl - centery) * fracstep;
+    const fixed_t fracstep = dc_iscale;
+    fixed_t frac = dc_texturemid + (dc_yl - centery) * fracstep;
 
-  {
     const byte *source = dc_source;
     const lighttable_t *colormap = dc_colormap[0];
     const byte skycolor = dc_skycolor;
-    int heightmask = dc_texheight - 1;
 
     // Fill in the median color here
     // Have two intermediary fade lines, using the main_tranmap structure
+
     int i, n;
 
     if (frac < -2 * FRACUNIT)
-      {
+    {
         n = (-frac - 2 * FRACUNIT + fracstep - 1) / fracstep;
         if (n > count)
-          n = count;
+        {
+            n = count;
+        }
 
         for (i = 0; i < n; ++i)
-          {
-            *dest = colormap[skycolor];
+        {
+            *dest = darkcolormap[colormap[skycolor]];
             dest += linesize;
             frac += fracstep;
-          }
+        }
 
         if (!(count -= n))
-          return;
-      }
+        {
+            return;
+        }
+    }
 
     if (frac < -FRACUNIT)
-      {
+    {
         n = (-frac - FRACUNIT + fracstep - 1) / fracstep;
         if (n > count)
-          n = count;
+        {
+            n = count;
+        }
 
         for (i = 0; i < n; ++i)
-          {
-            *dest = main_tranmap[(main_tranmap[(colormap[source[0]] << 8) +
-                                                colormap[skycolor]
-                                              ] << 8
-                                  ) + colormap[skycolor]
-                                ];
+        {
+            *dest = darkcolormap
+                [main_tranmap[(main_tranmap[(colormap[source[0]] << 8)
+                                            + colormap[skycolor]]
+                                << 8)
+                              + colormap[skycolor]]];
             dest += linesize;
             frac += fracstep;
-          }
+        }
 
         if (!(count -= n))
-          return;
-      }
+        {
+            return;
+        }
+    }
 
     // Now it's on the edge
     if (frac < 0)
-      {
+    {
         n = (-frac + fracstep - 1) / fracstep;
         if (n > count)
-          n = count;
+        {
+            n = count;
+        }
 
         for (i = 0; i < n; ++i)
-          {
-            *dest = main_tranmap[(colormap[source[0]] << 8) + colormap[skycolor]];
+        {
+            *dest = darkcolormap[main_tranmap[(colormap[source[0]] << 8)
+                                              + colormap[skycolor]]];
             dest += linesize;
             frac += fracstep;
-          }
+        }
 
         if (!(count -= n))
-          return;
-      }
+        {
+            return;
+        }
+    }
 
-    if (dc_texheight & heightmask)   // not a power of 2 -- killough
-      {
+    int heightmask = dc_texheight - 1;
+
+    if (dc_texheight & heightmask) // not a power of 2 -- killough
+    {
         heightmask++;
         heightmask <<= FRACBITS;
 
         while (frac >= heightmask)
-          frac -= heightmask;
+        {
+            frac -= heightmask;
+        }
 
         do
-          {
-            *dest = colormap[source[frac>>FRACBITS]];
-            dest += linesize;                     // killough 11/98
+        {
+            *dest = darkcolormap[colormap[source[frac >> FRACBITS]]];
+            dest += linesize; // killough 11/98
             if ((frac += fracstep) >= heightmask)
-              frac -= heightmask;
-          } 
-        while (--count);
-      }
+            {
+                frac -= heightmask;
+            }
+        } while (--count);
+    }
     else
-      {
-        while ((count-=2)>=0)   // texture height is a power of 2 -- killough
-          {
-            *dest = colormap[source[(frac>>FRACBITS) & heightmask]];
-            dest += linesize;   // killough 11/98
+    {
+        while ((count -= 2) >= 0) // texture height is a power of 2 -- killough
+        {
+            *dest =
+                darkcolormap[colormap[source[(frac >> FRACBITS) & heightmask]]];
+            dest += linesize; // killough 11/98
             frac += fracstep;
-            *dest = colormap[source[(frac>>FRACBITS) & heightmask]];
-            dest += linesize;   // killough 11/98
+            *dest =
+                darkcolormap[colormap[source[(frac >> FRACBITS) & heightmask]]];
+            dest += linesize; // killough 11/98
             frac += fracstep;
-          }
+        }
         if (count & 1)
-          *dest = colormap[source[(frac>>FRACBITS) & heightmask]];
-      }
-  }
+        {
+            *dest =
+                darkcolormap[colormap[source[(frac >> FRACBITS) & heightmask]]];
+        }
+    }
 }
 
 //
 // Spectre/Invisibility.
 //
 
-#define FUZZTABLE 50 
+#define FUZZTABLE 50
+#define FUZZOFF 1
 
 // killough 11/98: convert fuzzoffset to be screenwidth-independent
-static const int fuzzoffset[FUZZTABLE] = {
-  0,-1,0,-1,0,0,-1,
-  0,0,-1,0,0,0,-1,
-  0,0,0,-1,-1,-1,-1,
-  0,-1,-1,0,0,0,0,-1,
-  0,-1,0,0,-1,-1,0,
-  0,-1,-1,-1,-1,0,0,
-  0,0,-1,0,0,-1,0 
-}; 
+static const int fuzzoffset[FUZZTABLE] =
+{
+    FUZZOFF,-FUZZOFF,FUZZOFF,-FUZZOFF,FUZZOFF,FUZZOFF,-FUZZOFF,
+    FUZZOFF,FUZZOFF,-FUZZOFF,FUZZOFF,FUZZOFF,FUZZOFF,-FUZZOFF,
+    FUZZOFF,FUZZOFF,FUZZOFF,-FUZZOFF,-FUZZOFF,-FUZZOFF,-FUZZOFF,
+    FUZZOFF,-FUZZOFF,-FUZZOFF,FUZZOFF,FUZZOFF,FUZZOFF,FUZZOFF,-FUZZOFF,
+    FUZZOFF,-FUZZOFF,FUZZOFF,FUZZOFF,-FUZZOFF,-FUZZOFF,FUZZOFF,
+    FUZZOFF,-FUZZOFF,-FUZZOFF,-FUZZOFF,-FUZZOFF,FUZZOFF,FUZZOFF,
+    FUZZOFF,FUZZOFF,-FUZZOFF,FUZZOFF,FUZZOFF,-FUZZOFF,FUZZOFF
+};
 
-static int fuzzpos = 0; 
+static int fuzzpos = 0;
 
 // [crispy] draw fuzz effect independent of rendering frame rate
 static int fuzzpos_tic;
 
 void R_SetFuzzPosTic(void)
 {
-  // [crispy] prevent the animation from remaining static
-  if (fuzzpos == fuzzpos_tic)
-  {
-    fuzzpos = (fuzzpos + 1) % FUZZTABLE;
-  }
-  fuzzpos_tic = fuzzpos;
+    // [crispy] prevent the animation from remaining static
+    if (fuzzpos == fuzzpos_tic)
+    {
+        fuzzpos = (fuzzpos + 1) % FUZZTABLE;
+    }
+    fuzzpos_tic = fuzzpos;
 }
 
 void R_SetFuzzPosDraw(void)
 {
-  fuzzpos = fuzzpos_tic;
+    fuzzpos = fuzzpos_tic;
 }
 
 //
@@ -353,161 +382,170 @@ void R_SetFuzzPosDraw(void)
 //
 
 static void R_DrawFuzzColumn_orig(void)
-{ 
-  int      count; 
-  byte     *dest; 
-  boolean  cutoff = false;
+{
+    boolean cutoff = false;
 
-  // Adjust borders. Low... 
-  if (!dc_yl) 
-    dc_yl = 1;
+    // Adjust borders. Low...
+    if (!dc_yl)
+    {
+        dc_yl = 1;
+    }
 
-  // .. and high.
-  if (dc_yh == viewheight-1) 
-  {
-    dc_yh = viewheight - 2; 
-    cutoff = true;
-  }
-                 
-  count = dc_yh - dc_yl; 
+    // .. and high.
+    if (dc_yh == viewheight - 1)
+    {
+        dc_yh = viewheight - 2;
+        cutoff = true;
+    }
 
-  // Zero length.
-  if (count < 0) 
-    return; 
-    
-#ifdef RANGECHECK 
-  if ((unsigned) dc_x >= video.width
-      || dc_yl < 0 
-      || dc_yh >= video.height)
-    I_Error ("R_DrawFuzzColumn: %i to %i at %i",
-             dc_yl, dc_yh, dc_x);
+    int count = dc_yh - dc_yl;
+
+    // Zero length.
+    if (count < 0)
+    {
+        return;
+    }
+
+#ifdef RANGECHECK
+    if ((unsigned)dc_x >= video.width || dc_yl < 0 || dc_yh >= video.height)
+    {
+        I_Error("R_DrawFuzzColumn: %i to %i at %i", dc_yl, dc_yh, dc_x);
+    }
 #endif
 
-  // Keep till detailshift bug in blocky mode fixed,
-  //  or blocky mode removed.
+    // Keep till detailshift bug in blocky mode fixed,
+    //  or blocky mode removed.
 
-  // Does not work with blocky mode.
-  dest = ylookup[dc_yl] + columnofs[dc_x];
-  
-  // Looks like an attempt at dithering,
-  // using the colormap #6 (of 0-31, a bit brighter than average).
+    // Does not work with blocky mode.
+    byte *dest = ylookup[dc_yl] + columnofs[dc_x];
 
-  count++;        // killough 1/99: minor tuning
+    // Looks like an attempt at dithering,
+    // using the colormap #6 (of 0-31, a bit brighter than average).
 
-  do 
+    count++; // killough 1/99: minor tuning
+
+    do
     {
-      // Lookup framebuffer, and retrieve
-      // a pixel that is either one row
-      // above or below the current one.
-      // Add index from colormap to index.
-      // killough 3/20/98: use fullcolormap instead of colormaps
-      // killough 11/98: use linesize
+        // Lookup framebuffer, and retrieve
+        // a pixel that is either one row
+        // above or below the current one.
+        // Add index from colormap to index.
+        // killough 3/20/98: use fullcolormap instead of colormaps
+        // killough 11/98: use linesize
 
-      // fraggle 1/8/2000: fix with the bugfix from lees
-      // why_i_left_doom.html
+        // fraggle 1/8/2000: fix with the bugfix from lees
+        // why_i_left_doom.html
 
-      *dest = fullcolormap[6*256+dest[fuzzoffset[fuzzpos++] ? -linesize : linesize]];
-      dest += linesize;             // killough 11/98
+        *dest =
+            fullcolormap[6 * 256
+                         + dest[fuzzoffset[fuzzpos++] ? -linesize : linesize]];
+        dest += linesize; // killough 11/98
 
-      // Clamp table lookup index.
-      fuzzpos &= ((unsigned)(fuzzpos - FUZZTABLE)) >> (8*sizeof fuzzpos-1); //killough 1/99
-    } 
-  while (--count);
+        // Clamp table lookup index.
+        fuzzpos &= ((unsigned)(fuzzpos - FUZZTABLE))
+                   >> (8 * sizeof fuzzpos - 1); // killough 1/99
+    } while (--count);
 
-  // [crispy] if the line at the bottom had to be cut off,
-  // draw one extra line using only pixels of that line and the one above
-  if (cutoff)
-  {
-    *dest = fullcolormap[6*256+dest[linesize*fuzzoffset[fuzzpos]]];
-  }
+    // [crispy] if the line at the bottom had to be cut off,
+    // draw one extra line using only pixels of that line and the one above
+    if (cutoff)
+    {
+        *dest = fullcolormap[6 * 256 + dest[linesize * fuzzoffset[fuzzpos]]];
+    }
 }
 
 // [FG] "blocky" spectre drawing for hires mode
 
 static void R_DrawFuzzColumn_block(void)
 {
-  int count;
-  byte *dest;
-  boolean cutoff = false;
-  const int nx = video.xscale >> FRACBITS;
-  const int ny = video.yscale >> FRACBITS;
+    boolean cutoff = false;
+    const int nx = video.xscale >> FRACBITS;
+    const int ny = video.yscale >> FRACBITS;
 
-  if (dc_x % nx)
-    return;
+    if (dc_x % nx)
+    {
+        return;
+    }
 
-  dc_yl += ny;
-  dc_yl -= dc_yl % ny;
-  dc_yh -= dc_yh % ny;
+    dc_yl += ny;
+    dc_yl -= dc_yl % ny;
+    dc_yh -= dc_yh % ny;
 
-  if (!dc_yl)
-    dc_yl = ny;
+    if (!dc_yl)
+    {
+        dc_yl = ny;
+    }
 
-  if (dc_yh >= viewheight - ny)
-  {
-    dc_yh = viewheight - 2 * ny;
-    cutoff = true;
-  }
+    if (dc_yh >= viewheight - ny)
+    {
+        dc_yh = viewheight - 2 * ny;
+        cutoff = true;
+    }
 
-  count = dc_yh - dc_yl;
+    int count = dc_yh - dc_yl;
 
-  if (count < 0)
-    return;
+    if (count < 0)
+    {
+        return;
+    }
 
 #ifdef RANGECHECK
-  if ((unsigned) dc_x >= video.width
-      || dc_yl < 0
-      || dc_yh >= video.height)
-    I_Error ("R_DrawFuzzColumn: %i to %i at %i",
-             dc_yl, dc_yh, dc_x);
+    if ((unsigned)dc_x >= video.width || dc_yl < 0 || dc_yh >= video.height)
+    {
+        I_Error("R_DrawFuzzColumn: %i to %i at %i", dc_yl, dc_yh, dc_x);
+    }
 #endif
 
-  dest = ylookup[dc_yl] + columnofs[dc_x];
+    byte *dest = ylookup[dc_yl] + columnofs[dc_x];
 
-  count += ny;
+    count += ny;
 
-  do
+    do
     {
-      // [FG] draw only even pixels as (nx * ny) squares
-      //      using the same fuzzoffset value
-      const int offset = fuzzoffset[fuzzpos] ? -ny * linesize : ny * linesize;
-      const byte fuzz = fullcolormap[6 * 256 + dest[offset]];
-      int i;
+        // [FG] draw only even pixels as (nx * ny) squares
+        //      using the same fuzzoffset value
+        const int offset = fuzzoffset[fuzzpos] ? -ny * linesize : ny * linesize;
+        const byte fuzz = fullcolormap[6 * 256 + dest[offset]];
 
-      for (i = 0; i < ny && count - i > 0; i++)
-      {
-        memset(dest, fuzz, nx);
-        dest += linesize;
-      }
+        for (int i = 0; i < ny && count - i > 0; i++)
+        {
+            memset(dest, fuzz, nx);
+            dest += linesize;
+        }
 
-      fuzzpos++;
-      fuzzpos &= ((unsigned)(fuzzpos - FUZZTABLE)) >> (8 * sizeof(fuzzpos) - 1);
-    }
-  while ((count -= ny) > 0);
+        fuzzpos++;
+        fuzzpos &=
+            ((unsigned)(fuzzpos - FUZZTABLE)) >> (8 * sizeof(fuzzpos) - 1);
+    } while ((count -= ny) > 0);
 
-  if (cutoff)
+    if (cutoff)
     {
-      const int offset = ny * linesize * fuzzoffset[fuzzpos];
-      const byte fuzz = fullcolormap[6 * 256 + dest[offset]];
-      int i;
+        const int offset = ny * linesize * fuzzoffset[fuzzpos];
+        const byte fuzz = fullcolormap[6 * 256 + dest[offset]];
 
-      for (i = 0; i < ny; i++)
-      {
-        memset(dest, fuzz, nx);
-        dest += linesize;
-      }
+        for (int i = 0; i < ny; i++)
+        {
+            memset(dest, fuzz, nx);
+            dest += linesize;
+        }
     }
 }
 
 // [FG] spectre drawing mode: 0 original, 1 blocky (hires)
 
 boolean fuzzcolumn_mode;
-void (*R_DrawFuzzColumn) (void) = R_DrawFuzzColumn_orig;
-void R_SetFuzzColumnMode (void)
+void (*R_DrawFuzzColumn)(void) = R_DrawFuzzColumn_orig;
+
+void R_SetFuzzColumnMode(void)
 {
-  if (fuzzcolumn_mode && current_video_height > SCREENHEIGHT)
-    R_DrawFuzzColumn = R_DrawFuzzColumn_block;
-  else
-    R_DrawFuzzColumn = R_DrawFuzzColumn_orig;
+    if (fuzzcolumn_mode && current_video_height > SCREENHEIGHT)
+    {
+        R_DrawFuzzColumn = R_DrawFuzzColumn_block;
+    }
+    else
+    {
+        R_DrawFuzzColumn = R_DrawFuzzColumn_orig;
+    }
 }
 
 //
@@ -522,11 +560,14 @@ void R_SetFuzzColumnMode (void)
 
 byte *dc_translation, *translationtables;
 
-DRAW_COLUMN(TR, dc_colormap[0][dc_translation[src]])
-DRAW_COLUMN(TRDark, darkcolormap[dc_colormap[0][dc_translation[src]]])
-DRAW_COLUMN(TRBrightmap, dc_colormap[dc_brightmap[src]][dc_translation[src]])
+DRAW_COLUMN(TR,
+    dc_colormap[0][dc_translation[src]])
+DRAW_COLUMN(TRDark,
+    darkcolormap[dc_colormap[0][dc_translation[src]]])
+DRAW_COLUMN(TRBrightmap,
+    dc_colormap[dc_brightmap[src]][dc_translation[src]])
 DRAW_COLUMN(TRBrightmapDark,
-            darkcolormap[dc_colormap[dc_brightmap[src]][dc_translation[src]]])
+    darkcolormap[dc_colormap[dc_brightmap[src]][dc_translation[src]]])
 
 //
 // R_InitTranslationTables
@@ -536,25 +577,30 @@ DRAW_COLUMN(TRBrightmapDark,
 // Could be read from a lump instead.
 //
 
-void R_InitTranslationTables (void)
+void R_InitTranslationTables(void)
 {
-  int i;
-        
-  // killough 5/2/98:
-  // Remove dependency of colormaps aligned on 256-byte boundary
+    int i;
 
-  translationtables = Z_Malloc(256*3, PU_STATIC, 0);
-    
-  // translate just the 16 green colors
-  for (i=0; i<256; i++)
-    if (i >= 0x70 && i<= 0x7f)
-      {   // map green ramp to gray, brown, red
-        translationtables[i] = 0x60 + (i&0xf);
-        translationtables [i+256] = 0x40 + (i&0xf);
-        translationtables [i+512] = 0x20 + (i&0xf);
-      }
-    else  // Keep all other colors as is.
-      translationtables[i]=translationtables[i+256]=translationtables[i+512]=i;
+    // killough 5/2/98:
+    // Remove dependency of colormaps aligned on 256-byte boundary
+
+    translationtables = Z_Malloc(256 * 3, PU_STATIC, 0);
+
+    // translate just the 16 green colors
+    for (i = 0; i < 256; i++)
+    {
+        if (i >= 0x70 && i <= 0x7f)
+        { // map green ramp to gray, brown, red
+            translationtables[i] = 0x60 + (i & 0xf);
+            translationtables[i + 256] = 0x40 + (i & 0xf);
+            translationtables[i + 512] = 0x20 + (i & 0xf);
+        }
+        else // Keep all other colors as is.
+        {
+            translationtables[i] = translationtables[i + 256] =
+                translationtables[i + 512] = i;
+        }
+    }
 }
 
 //
@@ -570,29 +616,29 @@ void R_InitTranslationTables (void)
 //  and the inner loop has to step in texture space u and v.
 //
 
-int  ds_y; 
-int  ds_x1; 
-int  ds_x2;
+int ds_y;
+int ds_x1;
+int ds_x2;
 
 lighttable_t *ds_colormap[2];
 const byte *ds_brightmap;
 
-fixed_t ds_xfrac; 
-fixed_t ds_yfrac; 
-fixed_t ds_xstep; 
+fixed_t ds_xfrac;
+fixed_t ds_yfrac;
+fixed_t ds_xstep;
 fixed_t ds_ystep;
 
-// start of a 64*64 tile image 
+// start of a 64*64 tile image
 byte *ds_source;
 
 #define R_DRAW_SPAN(NAME, SRCPIXEL)                    \
     static void DrawSpan##NAME(void)                   \
     {                                                  \
         byte *dest = ylookup[ds_y] + columnofs[ds_x1]; \
+                                                       \
         unsigned count = ds_x2 - ds_x1 + 1;            \
                                                        \
-        unsigned xtemp, ytemp;                         \
-        unsigned spot;                                 \
+        unsigned xtemp, ytemp, spot;                   \
                                                        \
         while (count >= 4)                             \
         {                                              \
@@ -647,7 +693,7 @@ byte *ds_source;
         }                                              \
     }
 
-R_DRAW_SPAN( , ds_colormap[0][src])
+R_DRAW_SPAN(, ds_colormap[0][src])
 R_DRAW_SPAN(Dark, darkcolormap[ds_colormap[0][src]])
 R_DRAW_SPAN(Brightmap, ds_colormap[ds_brightmap[src]][src])
 R_DRAW_SPAN(BrightmapDark, darkcolormap[ds_colormap[ds_brightmap[src]][src]])
@@ -663,7 +709,14 @@ void R_InitDrawFunctions(void)
 {
     boolean local_brightmaps = (STRICTMODE(brightmaps) || force_brightmaps);
 
-    darkcolormap = &colormaps[0][20 * 256];
+    if (shade_screen)
+    {
+        darkcolormap = &colormaps[0][20 * 256];
+    }
+    else
+    {
+        darkcolormap = colormaps[0];
+    }
 
     if (local_brightmaps && shade_screen)
     {
@@ -708,14 +761,23 @@ void R_ShadeScreen(boolean toggle)
 
 void R_InitBufferRes(void)
 {
-  if (solidcol) Z_Free(solidcol);
-  if (columnofs) Z_Free(columnofs);
-  if (ylookup) Z_Free(ylookup);
+    if (solidcol)
+    {
+        Z_Free(solidcol);
+    }
+    if (columnofs)
+    {
+        Z_Free(columnofs);
+    }
+    if (ylookup)
+    {
+        Z_Free(ylookup);
+    }
 
-  columnofs = Z_Malloc(video.width * sizeof(*columnofs), PU_STATIC, NULL);
-  ylookup = Z_Malloc(video.height * sizeof(*ylookup), PU_STATIC, NULL);
+    columnofs = Z_Malloc(video.width * sizeof(*columnofs), PU_STATIC, NULL);
+    ylookup = Z_Malloc(video.height * sizeof(*ylookup), PU_STATIC, NULL);
 
-  solidcol = Z_Calloc(1, video.width * sizeof(*solidcol), PU_STATIC, NULL);
+    solidcol = Z_Calloc(1, video.width * sizeof(*solidcol), PU_STATIC, NULL);
 }
 
 //
@@ -728,91 +790,103 @@ void R_InitBufferRes(void)
 
 void R_InitBuffer(void)
 {
-  int i;
+    int i;
 
-  linesize = video.pitch;    // killough 11/98
+    linesize = video.pitch; // killough 11/98
 
-  // Handle resize,
-  //  e.g. smaller view windows
-  //  with border and/or status bar.
+    // Handle resize,
+    //  e.g. smaller view windows
+    //  with border and/or status bar.
 
-  // Column offset. For windows.
+    // Column offset. For windows.
 
-  for (i = viewwidth; i--; )   // killough 11/98
-    columnofs[i] = viewwindowx + i;
+    for (i = viewwidth; i--;) // killough 11/98
+    {
+        columnofs[i] = viewwindowx + i;
+    }
 
-  // Same with base row offset.
+    // Same with base row offset.
 
-  // Preclaculate all row offsets.
+    // Preclaculate all row offsets.
 
-  for (i = viewheight; i--; )
-    ylookup[i] = I_VideoBuffer + (i + viewwindowy) * linesize; // killough 11/98
+    for (i = viewheight; i--;)
+    {
+        ylookup[i] =
+            I_VideoBuffer + (i + viewwindowy) * linesize; // killough 11/98
+    }
 
-  if (background_buffer != NULL)
-  {
-    Z_Free(background_buffer);
-    background_buffer = NULL;
-  }
+    if (background_buffer != NULL)
+    {
+        Z_Free(background_buffer);
+        background_buffer = NULL;
+    }
 }
 
-void R_DrawBorder (int x, int y, int w, int h)
+void R_DrawBorder(int x, int y, int w, int h)
 {
-  int i, j;
-  patch_t *patch;
+    int i, j;
+    patch_t *patch;
 
-  patch = V_CachePatchName("brdr_t", PU_CACHE);
-  for (i = 0; i < w; i += 8)
-    V_DrawPatch(x + i - video.deltaw, y - 8, patch);
+    patch = V_CachePatchName("brdr_t", PU_CACHE);
+    for (i = 0; i < w; i += 8)
+    {
+        V_DrawPatch(x + i - video.deltaw, y - 8, patch);
+    }
 
-  patch = V_CachePatchName("brdr_b", PU_CACHE);
-  for (i = 0; i < w; i += 8)
-    V_DrawPatch(x + i - video.deltaw, y + h, patch);
+    patch = V_CachePatchName("brdr_b", PU_CACHE);
+    for (i = 0; i < w; i += 8)
+    {
+        V_DrawPatch(x + i - video.deltaw, y + h, patch);
+    }
 
-  patch = V_CachePatchName("brdr_l", PU_CACHE);
-  for (j = 0; j < h; j += 8)
-    V_DrawPatch(x - 8 - video.deltaw, y + j, patch);
+    patch = V_CachePatchName("brdr_l", PU_CACHE);
+    for (j = 0; j < h; j += 8)
+    {
+        V_DrawPatch(x - 8 - video.deltaw, y + j, patch);
+    }
 
-  patch = V_CachePatchName("brdr_r", PU_CACHE);
-  for (j = 0; j < h; j += 8)
-    V_DrawPatch(x + w - video.deltaw, y + j, patch);
+    patch = V_CachePatchName("brdr_r", PU_CACHE);
+    for (j = 0; j < h; j += 8)
+    {
+        V_DrawPatch(x + w - video.deltaw, y + j, patch);
+    }
 
-  // Draw beveled edge. 
-  V_DrawPatch(x - 8 - video.deltaw,
-              y - 8,
-              V_CachePatchName("brdr_tl", PU_CACHE));
-    
-  V_DrawPatch(x + w - video.deltaw,
-              y - 8,
-              V_CachePatchName("brdr_tr", PU_CACHE));
-    
-  V_DrawPatch(x - 8 - video.deltaw,
-              y + h,
-              V_CachePatchName("brdr_bl", PU_CACHE));
-    
-  V_DrawPatch(x + w - video.deltaw,
-              y + h,
-              V_CachePatchName("brdr_br", PU_CACHE));
+    // Draw beveled edge.
+    V_DrawPatch(x - 8 - video.deltaw, y - 8,
+                V_CachePatchName("brdr_tl", PU_CACHE));
+
+    V_DrawPatch(x + w - video.deltaw, y - 8,
+                V_CachePatchName("brdr_tr", PU_CACHE));
+
+    V_DrawPatch(x - 8 - video.deltaw, y + h,
+                V_CachePatchName("brdr_bl", PU_CACHE));
+
+    V_DrawPatch(x + w - video.deltaw, y + h,
+                V_CachePatchName("brdr_br", PU_CACHE));
 }
 
-void R_FillBackScreen (void)
+void R_FillBackScreen(void)
 {
-  if (scaledviewwidth == video.unscaledw)
-    return;
+    if (scaledviewwidth == video.unscaledw)
+    {
+        return;
+    }
 
-  // Allocate the background buffer if necessary
-  if (background_buffer == NULL)
-  {
-    int size = video.pitch * video.height;
-    background_buffer = Z_Malloc(size * sizeof(*background_buffer), PU_STATIC, NULL);
-  }
+    // Allocate the background buffer if necessary
+    if (background_buffer == NULL)
+    {
+        int size = video.pitch * video.height;
+        background_buffer =
+            Z_Malloc(size * sizeof(*background_buffer), PU_STATIC, NULL);
+    }
 
-  V_UseBuffer(background_buffer);
+    V_UseBuffer(background_buffer);
 
-  V_DrawBackground(gamemode == commercial ? "GRNROCK" : "FLOOR7_2");
+    V_DrawBackground(gamemode == commercial ? "GRNROCK" : "FLOOR7_2");
 
-  R_DrawBorder(scaledviewx, scaledviewy, scaledviewwidth, scaledviewheight);
+    R_DrawBorder(scaledviewx, scaledviewy, scaledviewwidth, scaledviewheight);
 
-  V_RestoreBuffer();
+    V_RestoreBuffer();
 }
 
 //
@@ -821,10 +895,12 @@ void R_FillBackScreen (void)
 
 void R_VideoErase(int x, int y, int w, int h)
 {
-  if (background_buffer == NULL)
-    return;
+    if (background_buffer == NULL)
+    {
+        return;
+    }
 
-  V_CopyRect(x, y, background_buffer, w, h, x, y);
+    V_CopyRect(x, y, background_buffer, w, h, x, y);
 }
 
 //
@@ -839,19 +915,22 @@ void R_VideoErase(int x, int y, int w, int h)
 
 void R_DrawViewBorder(void)
 {
-  if (scaledviewwidth == video.unscaledw || background_buffer == NULL)
-    return;
+    if (scaledviewwidth == video.unscaledw || background_buffer == NULL)
+    {
+        return;
+    }
 
-  // copy top
-  R_VideoErase(0, 0, video.unscaledw, scaledviewy);
+    // copy top
+    R_VideoErase(0, 0, video.unscaledw, scaledviewy);
 
-  // copy sides
-  R_VideoErase(0, scaledviewy, scaledviewx, scaledviewheight);
-  R_VideoErase(scaledviewx + scaledviewwidth, scaledviewy, scaledviewx,
-               scaledviewheight);
+    // copy sides
+    R_VideoErase(0, scaledviewy, scaledviewx, scaledviewheight);
+    R_VideoErase(scaledviewx + scaledviewwidth, scaledviewy, scaledviewx,
+                 scaledviewheight);
 
-  // copy bottom
-  R_VideoErase(0, scaledviewy + scaledviewheight, video.unscaledw, scaledviewy);
+    // copy bottom
+    R_VideoErase(0, scaledviewy + scaledviewheight, video.unscaledw,
+                 scaledviewy);
 }
 
 //----------------------------------------------------------------------------
