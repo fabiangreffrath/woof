@@ -245,7 +245,7 @@ static byte *translation;
 static byte *translation1, *translation2;
 
 static boolean shade_screen;
-static byte *darkcolormap;
+static byte *v_darkcolormap;
 
 static void (*drawcolfunc)(const patch_column_t *patchcol);
 
@@ -287,9 +287,9 @@ static void (*drawcolfunc)(const patch_column_t *patchcol);
     }
 
 DRAW_COLUMN(, source[frac >> FRACBITS])
-DRAW_COLUMN(Dark, darkcolormap[source[frac >> FRACBITS]])
+DRAW_COLUMN(Dark, v_darkcolormap[source[frac >> FRACBITS]])
 DRAW_COLUMN(TR, translation[source[frac >> FRACBITS]])
-DRAW_COLUMN(TRDark, darkcolormap[translation[source[frac >> FRACBITS]]])
+DRAW_COLUMN(TRDark, v_darkcolormap[translation[source[frac >> FRACBITS]]])
 DRAW_COLUMN(TRTR, translation2[translation1[source[frac >> FRACBITS]]])
 
 static void DrawMaskedColumn(patch_column_t *patchcol, const int ytop,
@@ -543,11 +543,11 @@ void V_ShadeScreen(boolean toggle)
 
     if (shade_screen)
     {
-        darkcolormap = &colormaps[0][20 * 256];
+        v_darkcolormap = &colormaps[0][20 * 256];
     }
     else
     {
-        darkcolormap = colormaps[0];
+        v_darkcolormap = colormaps[0];
     }
     R_FillBackScreen();
 }
@@ -794,7 +794,7 @@ void V_TileBlock64(int line, int width, int height, const byte *src)
         while (w--)
         {
             xtex = (xfrac >> FRACBITS) & 63;
-            *row++ = darkcolormap[src[ytex + xtex]];
+            *row++ = v_darkcolormap[src[ytex + xtex]];
             xfrac += video.xstep;
         }
 
@@ -918,7 +918,7 @@ void V_Init(void)
     y2lookup[SCREENHEIGHT - 1] = video.height - 1;
     y1lookup[SCREENHEIGHT] = y2lookup[SCREENHEIGHT] = video.height;
 
-    darkcolormap = colormaps[0];
+    v_darkcolormap = colormaps[0];
 }
 
 // Set the buffer that the code draws to.
