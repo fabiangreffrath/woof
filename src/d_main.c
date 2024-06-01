@@ -274,6 +274,12 @@ void D_Display (void)
   if (MN_MenuIsShaded())
     V_ShadeScreen(true);
 
+  if ((automapactive && automapoverlay == AM_OVERLAY_DARK)
+      || MN_MenuIsShaded())
+    R_ShadeScreen(true);
+  else
+    R_ShadeScreen(false);
+
   redrawsbar = false;
 
   wipe = false;
