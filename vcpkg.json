@@ -1,9 +1,37 @@
 {
   "$schema": "https://raw.githubusercontent.com/microsoft/vcpkg-tool/main/docs/vcpkg.schema.json",
   "dependencies": [
-    "sdl2",
+    {
+        "name": "sdl2",
+        "features": [
+            {
+              "name": "vulkan",
+              "platform": "linux"
+            },
+            {
+              "name": "wayland",
+              "platform": "linux"
+            },
+            {
+              "name": "x11",
+              "platform": "linux"
+            },
+            {
+              "name": "ibus",
+              "platform": "linux"
+            }
+        ]
+    },
     "sdl2-net",
-    "openal-soft",
+    {
+        "name": "openal-soft",
+        "features": [
+            {
+              "name": "pipewire",
+              "platform": "linux"
+            }
+        ]
+    },
     "libsndfile",
     {
         "name": "fluidsynth",
