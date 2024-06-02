@@ -317,8 +317,6 @@ static void M_DrawMainMenu(void)
 
     options_active = false;
 
-    R_ShadeScreen(false);
-
     V_DrawPatch(94, 2, V_CachePatchName("M_DOOM", PU_CACHE));
 }
 
@@ -1893,9 +1891,11 @@ static void M_Setup(int choice)
 
 void MN_ClearMenus(void)
 {
+    // force status bar refresh
+    inhelpscreens = true;
+
     menuactive = 0;
     options_active = false;
-    R_ShadeScreen(false);
     print_warning_about_changes = 0; // killough 8/15/98
     default_verify = 0;              // killough 10/98
 
