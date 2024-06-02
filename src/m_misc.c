@@ -362,7 +362,7 @@ boolean M_StringCopy(char *dest, const char *src, size_t dest_size)
     if (dest_size >= 1)
     {
         dest[dest_size - 1] = '\0';
-        strncpy(dest, src, dest_size - 1);
+        memcpy(dest, src, dest_size - 1);
     }
     else
     {
