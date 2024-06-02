@@ -22,7 +22,7 @@ jobs:
       matrix:
         config:
           - name: Linux GCC
-            os: ubuntu-latest
+            os: ubuntu-22.04
             triplet: x64-linux-dynamic-release
             artifact-name: AppImage
             artifact-path: build/*.appimage
@@ -50,13 +50,28 @@ jobs:
           sudo apt-get update
           sudo apt-get install \
             ninja-build \
-            libx11-dev \
-            libxft-dev \
-            libxext-dev \
+            libdbus-1-dev \
+            libdecor-0-dev \
+            libdrm-dev \
+            libegl-dev \
+            libgbm-dev \
+            libgl-dev \
+            libgles-dev \
+            libibus-1.0-dev \
+            libudev-dev \
             libwayland-dev \
+            libx11-dev \
+            libxcursor-dev \
+            libxext-dev \
+            libxfixes-dev \
+            libxi-dev \
+            libxinerama-dev \
             libxkbcommon-dev \
-            libegl1-mesa-dev \
-            libibus-1.0-dev
+            libxrandr-dev \
+            libxss-dev \
+            libxt-dev \
+            libxv-dev \
+            libxxf86vm-dev
 
       - name: Developer Command Prompt
         if: runner.os == 'Windows'
@@ -87,7 +102,7 @@ jobs:
         run: |
           cmake -B build -G Ninja -DCMAKE_BUILD_TYPE=Release `
             -DENABLE_WERROR=ON -DENABLE_LTO=ON `
-            -DCMAKE_TOOLCHAIN_FILE="C:/vcpkg/scripts/buildsystems/vcpkg.cmake" `
+            -DCMAKE_TOOLCHAIN_FILE="${env:VCPKG_INSTALLATION_ROOT}/scripts/buildsystems/vcpkg.cmake" `
             -DVCPKG_OVERLAY_TRIPLETS="cmake/triplets" `
             -DVCPKG_TARGET_TRIPLET=${{ matrix.config.triplet }} `
             -DCMAKE_POLICY_DEFAULT_CMP0091=NEW -DCMAKE_MSVC_RUNTIME_LIBRARY=MultiThreaded `
