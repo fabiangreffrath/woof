@@ -70,7 +70,7 @@ jobs:
         shell: bash
         run: |
           cmake -B build -G Ninja -DCMAKE_BUILD_TYPE=Release \
-            -DENABLE_WERROR=ON -DENABLE_LTO=ON \
+            -DENABLE_WERROR=ON -DENABLE_HARDENING=ON -DENABLE_LTO=ON \
             -DCMAKE_TOOLCHAIN_FILE="$VCPKG_INSTALLATION_ROOT/scripts/buildsystems/vcpkg.cmake" \
             -DVCPKG_OVERLAY_TRIPLETS="cmake/triplets" \
             -DVCPKG_TARGET_TRIPLET=${{ matrix.config.triplet }} \
