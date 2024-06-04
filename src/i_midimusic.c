@@ -1188,7 +1188,7 @@ static int PlayerThread(void *unused)
 {
     SDL_SetThreadPriority(SDL_THREAD_PRIORITY_TIME_CRITICAL);
 
-    midi_position_t position;
+    midi_position_t position = {0};
     boolean sleep = false;
 
     while (SDL_AtomicGet(&player_thread_running))

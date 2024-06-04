@@ -30,7 +30,6 @@
 #include "doomdata.h"
 #include "doomdef.h"
 #include "doomstat.h"
-#include "g_input.h"
 #include "i_video.h"
 #include "p_mobj.h"
 #include "p_pspr.h"
@@ -498,7 +497,6 @@ static void R_SetupFreelook(void)
   if (viewpitch)
   {
     dy = FixedMul(projection, -finetangent[(ANG90 - viewpitch) >> ANGLETOFINESHIFT]);
-    dy = (fixed_t)((int64_t)dy * SCREENHEIGHT / ACTUALHEIGHT);
   }
   else
   {
@@ -697,6 +695,52 @@ subsector_t *R_PointInSubsector(fixed_t x, fixed_t y)
   return &subsectors[nodenum & ~NF_SUBSECTOR];
 }
 
+static inline boolean CheckLocalView(const player_t *player)
+{
+  return (
+    // Don't use localview if the player is spying.
+    player == &players[consoleplayer] &&
+    // Don't use localview if the player is dead.
+    player->playerstate != PST_DEAD &&
+    // Don't use localview if the player just teleported.
+    !player->mo->reactiontime &&
+    // Don't use localview if a demo is playing.
+    !demoplayback &&
+    // Don't use localview during a netgame (single-player or solo-net only).
+    (!netgame || solonet)
+  );
+}
+
+static angle_t CalcViewAngle_RawInput(const player_t *player)
+{
+  return (player->mo->angle + localview.angle - player->ticangle +
+          LerpAngle(player->oldticangle, player->ticangle));
+}
+
+static angle_t CalcViewAngle_LerpFakeLongTics(const player_t *player)
+{
+  return LerpAngle(player->mo->oldangle + localview.oldlerpangle,
+                   player->mo->angle + localview.lerpangle);
+}
+
+static angle_t (*CalcViewAngle)(const player_t *player);
+
+void R_UpdateViewAngleFunction(void)
+{
+  if (raw_input)
+  {
+    CalcViewAngle = CalcViewAngle_RawInput;
+  }
+  else if (lowres_turn && fake_longtics)
+  {
+    CalcViewAngle = CalcViewAngle_LerpFakeLongTics;
+  }
+  else
+  {
+    CalcViewAngle = NULL;
+  }
+}
+
 //
 // R_SetupFrame
 //
@@ -705,35 +749,37 @@ void R_SetupFrame (player_t *player)
 {
   int i, cm;
   fixed_t pitch;
-  const boolean use_localview = G_UseLocalView(player);
+  const boolean use_localview = CheckLocalView(player);
+  const boolean camera_ready = (
+    // Don't interpolate on the first tic of a level,
+    // otherwise oldviewz might be garbage.
+    leveltime > 1 &&
+    // Don't interpolate if the player did something
+    // that would necessitate turning it off for a tic.
+    player->mo->interp == true &&
+    // Don't interpolate during a paused state
+    leveltime > oldleveltime
+  );
 
   viewplayer = player;
   // [AM] Interpolate the player camera if the feature is enabled.
-  if (uncapped &&
-      // Don't interpolate on the first tic of a level,
-      // otherwise oldviewz might be garbage.
-      leveltime > 1 &&
-      // Don't interpolate if the player did something
-      // that would necessitate turning it off for a tic.
-      player->mo->interp == true &&
-      // Don't interpolate during a paused state
-      leveltime > oldleveltime)
+  if (uncapped && camera_ready)
   {
     // Interpolate player camera from their old position to their current one.
     viewx = LerpFixed(player->mo->oldx, player->mo->x);
     viewy = LerpFixed(player->mo->oldy, player->mo->y);
     viewz = LerpFixed(player->oldviewz, player->viewz);
 
-    if (use_localview)
+    if (use_localview && CalcViewAngle)
     {
-      viewangle = G_CalcViewAngle(player);
+      viewangle = CalcViewAngle(player);
     }
     else
     {
       viewangle = LerpAngle(player->mo->oldangle, player->mo->angle);
     }
 
-    if (use_localview && !player->centering)
+    if (use_localview && raw_input && !player->centering)
     {
       pitch = player->pitch + localview.pitch;
       pitch = BETWEEN(-MAX_PITCH_ANGLE, MAX_PITCH_ANGLE, pitch);
@@ -755,7 +801,7 @@ void R_SetupFrame (player_t *player)
     // [crispy] pitch is actual lookdir and weapon pitch
     pitch = player->pitch + player->recoilpitch;
 
-    if (use_localview)
+    if (camera_ready && use_localview && lowres_turn && fake_longtics)
     {
       viewangle += localview.angle;
     }

@@ -106,12 +106,12 @@ static void ScanDir(const char *dir)
     // [FG] relative to the executable directory
     if (dir[0] == '.')
     {
-        rel = M_StringJoin(D_DoomExeDir(), DIR_SEPARATOR_S, dir, NULL);
+        rel = M_StringJoin(D_DoomExeDir(), DIR_SEPARATOR_S, dir);
         dir = rel;
     }
 
     glob = I_StartMultiGlob(dir, GLOB_FLAG_NOCASE | GLOB_FLAG_SORTED, "*.sf2",
-                            "*.sf3", NULL);
+                            "*.sf3");
 
     while (1)
     {
@@ -270,7 +270,7 @@ static boolean I_FL_InitStream(int device)
         char *errmsg;
         errmsg = M_StringJoin(
             "Error loading FluidSynth soundfont: ",
-            lumpnum >= 0 ? "SNDFONT lump" : soundfonts[device], NULL);
+            lumpnum >= 0 ? "SNDFONT lump" : soundfonts[device]);
         SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_WARNING, PROJECT_STRING, errmsg,
                                  NULL);
         free(errmsg);
@@ -421,7 +421,7 @@ static const char **I_FL_DeviceList(void)
         {
             name[NAME_MAX_LENGTH] = '\0';
         }
-        array_push(devices, M_StringJoin("FluidSynth (", name, ")", NULL));
+        array_push(devices, M_StringJoin("FluidSynth (", name, ")"));
         free(name);
     }
 

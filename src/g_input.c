@@ -23,61 +23,13 @@
 #include "i_gamepad.h"
 #include "i_timer.h"
 #include "i_video.h"
-#include "p_mobj.h"
+#include "m_config.h"
 #include "r_main.h"
 #include "r_state.h"
 
 //
-// Local View
-//
-
-boolean G_UseLocalView(const player_t *player)
-{
-    return ((raw_input || (lowres_turn && fake_longtics))
-            && player == &players[consoleplayer]
-            && player->playerstate != PST_DEAD
-            && !player->mo->reactiontime
-            && !demoplayback
-            && (!netgame || solonet));
-}
-
-angle_t (*G_CalcViewAngle)(const player_t *player);
-
-static angle_t CalcViewAngle_RawInput(const player_t *player)
-{
-    return (player->mo->angle + localview.angle - player->ticangle
-            + LerpAngle(player->oldticangle, player->ticangle));
-}
-
-static angle_t CalcViewAngle_LerpFakeLongTics(const player_t *player)
-{
-    return LerpAngle(player->mo->oldangle + localview.oldlerpangle,
-                     player->mo->angle + localview.lerpangle);
-}
-
-void (*G_UpdateLocalView)(void);
-
-void G_ClearLocalView(void)
-{
-    memset(&localview, 0, sizeof(localview));
-}
-
-static void UpdateLocalView_FakeLongTics(void)
-{
-    localview.angle -= localview.angleoffset << FRACBITS;
-    localview.rawangle -= localview.angleoffset;
-    localview.angleoffset = 0;
-    localview.pitch = 0;
-    localview.rawpitch = 0.0;
-    localview.oldlerpangle = localview.lerpangle;
-    localview.lerpangle = localview.angle;
-}
-
-//
 // Side Movement
 //
-
-static int (*RoundSide)(double side);
 
 static int RoundSide_Strict(double side)
 {
@@ -88,6 +40,8 @@ static int RoundSide_Full(double side)
 {
     return lround(side);
 }
+
+static int (*RoundSide)(double side);
 
 void G_UpdateSideMove(void)
 {
@@ -107,9 +61,6 @@ void G_UpdateSideMove(void)
 // Error Accumulation
 //
 
-// Round to nearest 256 for single byte turning. From Chocolate Doom.
-#define BYTE_TURN(x) (((x) + 128) & 0xFF00)
-
 typedef struct
 {
     double angle;
@@ -119,8 +70,6 @@ typedef struct
 } carry_t;
 
 static carry_t prevcarry, carry;
-static short (*CarryAngleTic)(double angle);
-static short (*CarryAngle)(double angle);
 
 void G_UpdateCarry(void)
 {
@@ -153,6 +102,9 @@ static short CarryAngle_Full(double angle)
     return fullres;
 }
 
+// Round to nearest 256 for single byte turning. From Chocolate Doom.
+#define BYTE_TURN(x) (((x) + 128) & 0xFF00)
+
 static short CarryAngle_FakeLongTics(double angle)
 {
     return (localview.angleoffset = BYTE_TURN(CarryAngle_Full(angle)));
@@ -173,39 +125,34 @@ static short CarryAngle_LowRes(double angle)
     return lowres;
 }
 
+short (*G_CarryAngleTic)(double angle);
+short (*G_CarryAngle)(double angle);
+
 void G_UpdateAngleFunctions(void)
 {
-    CarryAngleTic = lowres_turn ? CarryAngleTic_LowRes : CarryAngleTic_Full;
-    CarryAngle = CarryAngleTic;
-    G_UpdateLocalView = G_ClearLocalView;
-    G_CalcViewAngle = CalcViewAngle_RawInput;
+    G_CarryAngleTic = lowres_turn ? CarryAngleTic_LowRes : CarryAngleTic_Full;
+    G_CarryAngle = G_CarryAngleTic;
 
     if (!netgame || solonet)
     {
         if (lowres_turn && fake_longtics)
         {
-            CarryAngle = CarryAngle_FakeLongTics;
-            G_UpdateLocalView = UpdateLocalView_FakeLongTics;
-
-            if (uncapped && !raw_input)
-            {
-                G_CalcViewAngle = CalcViewAngle_LerpFakeLongTics;
-            }
+            G_CarryAngle = CarryAngle_FakeLongTics;
         }
         else if (uncapped && raw_input)
         {
-            CarryAngle = lowres_turn ? CarryAngle_LowRes : CarryAngle_Full;
+            G_CarryAngle = lowres_turn ? CarryAngle_LowRes : CarryAngle_Full;
         }
     }
 }
 
-static int CarryPitch(double pitch)
+int G_CarryPitch(double pitch)
 {
     return (localview.pitch =
                 CarryError(pitch, &prevcarry.pitch, &carry.pitch));
 }
 
-static int CarrySide(double side)
+int G_CarrySide(double side)
 {
     const double desired = side + prevcarry.side;
     const int actual = RoundSide(desired);
@@ -213,7 +160,7 @@ static int CarrySide(double side)
     return actual;
 }
 
-static int CarryVert(double vert)
+int G_CarryVert(double vert)
 {
     return CarryError(vert, &prevcarry.vert, &carry.vert);
 }
@@ -224,6 +171,19 @@ static int CarryVert(double vert)
 
 static const int direction[] = {1, -1};
 static double deltatics;
+static double joy_scale_angle;
+static double joy_scale_pitch;
+
+void G_UpdateControllerVariables(void)
+{
+    joy_scale_angle = angleturn[1] * direction[joy_invert_turn];
+    joy_scale_pitch = angleturn[1] * direction[joy_invert_look] * FRACUNIT;
+
+    if (correct_aspect_ratio)
+    {
+        joy_scale_pitch /= 1.2;
+    }
+}
 
 void G_UpdateDeltaTics(void)
 {
@@ -251,37 +211,33 @@ void G_UpdateDeltaTics(void)
     }
 }
 
-short G_CalcControllerAngle(void)
+double G_CalcControllerAngle(void)
 {
-    localview.rawangle -= (deltatics * axes[AXIS_TURN] * angleturn[1]
-                           * direction[joy_invert_turn]);
-    return CarryAngle(localview.rawangle);
+    return (axes[AXIS_TURN] * joy_scale_angle * deltatics);
 }
 
-int G_CalcControllerPitch(void)
+double G_CalcControllerPitch(void)
 {
-    localview.rawpitch -= (deltatics * axes[AXIS_LOOK] * angleturn[1]
-                           * direction[joy_invert_look] * FRACUNIT);
-    return CarryPitch(localview.rawpitch);
+    return (axes[AXIS_LOOK] * joy_scale_pitch * deltatics);
 }
 
 int G_CalcControllerSideTurn(int speed)
 {
-    const int side = RoundSide(axes[AXIS_TURN] * forwardmove[speed]
+    const int side = RoundSide(forwardmove[speed] * axes[AXIS_TURN]
                                * direction[joy_invert_turn]);
     return BETWEEN(-forwardmove[speed], forwardmove[speed], side);
 }
 
 int G_CalcControllerSideStrafe(int speed)
 {
-    const int side = RoundSide(axes[AXIS_STRAFE] * forwardmove[speed]
+    const int side = RoundSide(forwardmove[speed] * axes[AXIS_STRAFE]
                                * direction[joy_invert_strafe]);
     return BETWEEN(-sidemove[speed], sidemove[speed], side);
 }
 
 int G_CalcControllerForward(int speed)
 {
-    const int forward = lroundf(axes[AXIS_FORWARD] * forwardmove[speed]
+    const int forward = lroundf(forwardmove[speed] * axes[AXIS_FORWARD]
                                 * direction[joy_invert_forward]);
     return BETWEEN(-forwardmove[speed], forwardmove[speed], forward);
 }
@@ -290,19 +246,40 @@ int G_CalcControllerForward(int speed)
 // Mouse
 //
 
-static double (*AccelerateMouse)(int val);
+static int mouse_sensitivity;
+static int mouse_sensitivity_y;
+static int mouse_sensitivity_strafe; // [FG] strafe
+static int mouse_sensitivity_y_look; // [FG] look
+static boolean mouse_y_invert;       // [FG] invert vertical axis
+static int mouse_acceleration;
+static int mouse_acceleration_threshold;
 
-static double AccelerateMouse_Threshold(int val)
+static double mouse_sens_angle;
+static double mouse_sens_pitch;
+static double mouse_sens_side;
+static double mouse_sens_vert;
+static double mouse_scale;
+
+static double AccelerateMouse_Skip(int val)
+{
+    return val;
+}
+
+static double AccelerateMouse_RawInput(int val)
+{
+    return (val * mouse_scale);
+}
+
+static double AccelerateMouse_Chocolate(int val)
 {
     if (val < 0)
     {
-        return -AccelerateMouse_Threshold(-val);
+        return -AccelerateMouse_Chocolate(-val);
     }
 
     if (val > mouse_acceleration_threshold)
     {
-        return ((double)(val - mouse_acceleration_threshold)
-                * (mouse_acceleration + 10) / 10
+        return ((val - mouse_acceleration_threshold) * mouse_scale
                 + mouse_acceleration_threshold);
     }
     else
@@ -311,179 +288,85 @@ static double AccelerateMouse_Threshold(int val)
     }
 }
 
-static double AccelerateMouse_NoThreshold(int val)
-{
-    return ((double)val * (mouse_acceleration + 10) / 10);
-}
+static double (*AccelerateMouse)(int val);
 
-static double AccelerateMouse_Skip(int val)
+void G_UpdateMouseVariables(void)
 {
-    return val;
-}
+    mouse_sens_angle = 0.0;
+    mouse_sens_pitch = 0.0;
+    mouse_sens_side = 0.0;
+    mouse_sens_vert = 0.0;
+    mouse_scale = 1.0;
+    AccelerateMouse = AccelerateMouse_Skip;
 
-void G_UpdateAccelerateMouse(void)
-{
-    if (mouse_acceleration)
-    {
-        AccelerateMouse = raw_input ? AccelerateMouse_NoThreshold
-                                    : AccelerateMouse_Threshold;
-    }
-    else
-    {
-        AccelerateMouse = AccelerateMouse_Skip;
-    }
-}
-
-short G_CalcMouseAngle(void)
-{
     if (mouse_sensitivity)
     {
-        localview.rawangle -= (AccelerateMouse(mousex)
-                               * (mouse_sensitivity + 5) * 8 / 10);
-        return CarryAngle(localview.rawangle);
+        mouse_sens_angle = (double)(mouse_sensitivity + 5) * 8 / 10;
     }
-    else
-    {
-        return 0;
-    }
-}
 
-int G_CalcMousePitch(void)
-{
     if (mouse_sensitivity_y_look)
     {
-        localview.rawpitch += (AccelerateMouse(mousey)
-                               * (mouse_sensitivity_y_look + 5) * 8 / 10
-                               * direction[mouse_y_invert] * FRACUNIT);
-        return CarryPitch(localview.rawpitch);
-    }
-    else
-    {
-        return 0;
-    }
-}
+        mouse_sens_pitch = ((double)(mouse_sensitivity_y_look + 5) * 8 / 10
+                            * direction[mouse_y_invert] * FRACUNIT);
 
-int G_CalcMouseSide(void)
-{
+        if (correct_aspect_ratio)
+        {
+            mouse_sens_pitch /= 1.2;
+        }
+    }
+
     if (mouse_sensitivity_strafe)
     {
-        const double side = (AccelerateMouse(mousex)
-                             * (mouse_sensitivity_strafe + 5) * 2 / 10);
-        return CarrySide(side);
+        mouse_sens_side = (double)(mouse_sensitivity_strafe + 5) * 2 / 10;
     }
-    else
-    {
-        return 0;
-    }
-}
 
-int G_CalcMouseVert(void)
-{
     if (mouse_sensitivity_y)
     {
-        const double vert = (AccelerateMouse(mousey)
-                             * (mouse_sensitivity_y + 5) / 10);
-        return CarryVert(vert);
+        mouse_sens_vert = (double)(mouse_sensitivity_y + 5) / 10;
     }
-    else
+
+    if (mouse_acceleration)
     {
-        return 0;
+        mouse_scale = (double)(mouse_acceleration + 10) / 10;
+        AccelerateMouse = raw_input ? AccelerateMouse_RawInput
+                                    : AccelerateMouse_Chocolate;
     }
 }
 
-//
-// Composite Turn
-//
-
-static angle_t saved_angle;
-
-void G_SavePlayerAngle(const player_t *player)
+double G_CalcMouseAngle(int mousex)
 {
-    saved_angle = player->mo->angle;
+    return (AccelerateMouse(mousex) * mouse_sens_angle);
 }
 
-void G_AddToTicAngle(player_t *player)
+double G_CalcMousePitch(int mousey)
 {
-    player->ticangle += player->mo->angle - saved_angle;
+    return (AccelerateMouse(mousey) * mouse_sens_pitch);
 }
 
-void G_UpdateTicAngleTurn(ticcmd_t *cmd, int angle)
+double G_CalcMouseSide(int mousex)
 {
-    const short old_angleturn = cmd->angleturn;
-    cmd->angleturn = CarryAngleTic(localview.rawangle + angle);
-    cmd->ticangleturn = cmd->angleturn - old_angleturn;
+    return (AccelerateMouse(mousex) * mouse_sens_side);
 }
 
-//
-// Quickstart Cache
-// When recording a demo and the map is reloaded, cached input from a circular
-// buffer can be applied prior to the screen wipe. Adapted from DSDA-Doom.
-//
-
-int quickstart_cache_tics;
-boolean quickstart_queued;
-float axis_turn_tic;
-int mousex_tic;
-
-void G_ClearQuickstartTic(void)
+double G_CalcMouseVert(int mousey)
 {
-    axis_turn_tic = 0.0f;
-    mousex_tic = 0;
+    return (AccelerateMouse(mousey) * mouse_sens_vert);
 }
 
-void G_ApplyQuickstartCache(ticcmd_t *cmd, boolean strafe)
+void G_BindMouseVariables(void)
 {
-    static float axis_turn_cache[TICRATE];
-    static int mousex_cache[TICRATE];
-    static short angleturn_cache[TICRATE];
-    static int index;
-
-    if (quickstart_cache_tics < 1)
-    {
-        return;
-    }
-
-    if (quickstart_queued)
-    {
-        axes[AXIS_TURN] = 0.0f;
-        mousex = 0;
-
-        if (strafe)
-        {
-            for (int i = 0; i < quickstart_cache_tics; i++)
-            {
-                axes[AXIS_TURN] += axis_turn_cache[i];
-                mousex += mousex_cache[i];
-            }
-
-            cmd->angleturn = 0;
-            localview.rawangle = 0.0;
-        }
-        else
-        {
-            short result = 0;
-
-            for (int i = 0; i < quickstart_cache_tics; i++)
-            {
-                result += angleturn_cache[i];
-            }
-
-            cmd->angleturn = CarryAngleTic(result);
-            localview.rawangle = cmd->angleturn;
-        }
-
-        memset(axis_turn_cache, 0, sizeof(axis_turn_cache));
-        memset(mousex_cache, 0, sizeof(mousex_cache));
-        memset(angleturn_cache, 0, sizeof(angleturn_cache));
-        index = 0;
-
-        quickstart_queued = false;
-    }
-    else
-    {
-        axis_turn_cache[index] = axis_turn_tic;
-        mousex_cache[index] = mousex_tic;
-        angleturn_cache[index] = cmd->angleturn;
-        index = (index + 1) % quickstart_cache_tics;
-    }
+    BIND_NUM_GENERAL(mouse_sensitivity, 5, 0, UL,
+        "Horizontal mouse sensitivity for turning");
+    BIND_NUM_GENERAL(mouse_sensitivity_y, 5, 0, UL,
+        "Vertical mouse sensitivity for moving");
+    BIND_NUM_GENERAL(mouse_sensitivity_strafe, 5, 0, UL,
+        "Horizontal mouse sensitivity for strafing");
+    BIND_NUM_GENERAL(mouse_sensitivity_y_look, 5, 0, UL,
+        "Vertical mouse sensitivity for looking");
+    BIND_NUM_GENERAL(mouse_acceleration, 10, 0, 40,
+        "Mouse acceleration (0 = 1.0; 40 = 5.0)");
+    BIND_NUM(mouse_acceleration_threshold, 10, 0, 32,
+        "Mouse acceleration threshold");
+    BIND_BOOL_GENERAL(mouse_y_invert, false,
+        "Invert vertical mouse axis");
 }

@@ -22,7 +22,6 @@
 #include "d_items.h"
 #include "d_player.h"
 #include "doomstat.h"
-#include "g_input.h"
 #include "i_printf.h"
 #include "i_video.h" // uncapped
 #include "m_random.h"
@@ -650,6 +649,18 @@ void A_GunFlash(player_t *player, pspdef_t *psp)
 // WEAPON ATTACKS
 //
 
+static angle_t saved_angle;
+
+static void SavePlayerAngle(player_t *player)
+{
+  saved_angle = player->mo->angle;
+}
+
+static void AddToTicAngle(player_t *player)
+{
+  player->ticangle += player->mo->angle - saved_angle;
+}
+
 //
 // A_Punch
 //
@@ -686,10 +697,10 @@ void A_Punch(player_t *player, pspdef_t *psp)
 
   // turn to face target
 
-  G_SavePlayerAngle(player);
+  SavePlayerAngle(player);
   player->mo->angle = R_PointToAngle2(player->mo->x, player->mo->y,
                                       linetarget->x, linetarget->y);
-  G_AddToTicAngle(player);
+  AddToTicAngle(player);
 }
 
 //
@@ -732,7 +743,7 @@ void A_Saw(player_t *player, pspdef_t *psp)
   angle = R_PointToAngle2(player->mo->x, player->mo->y,
                           linetarget->x, linetarget->y);
 
-  G_SavePlayerAngle(player);
+  SavePlayerAngle(player);
   if (angle - player->mo->angle > ANG180)
     if ((signed int) (angle - player->mo->angle) < -ANG90/20)
       player->mo->angle = angle + ANG90/21;
@@ -743,7 +754,7 @@ void A_Saw(player_t *player, pspdef_t *psp)
       player->mo->angle = angle - ANG90/21;
     else
       player->mo->angle += ANG90/20;
-  G_AddToTicAngle(player);
+  AddToTicAngle(player);
 
   player->mo->flags |= MF_JUSTATTACKED;
 }
@@ -1307,9 +1318,9 @@ void A_WeaponMeleeAttack(player_t *player, pspdef_t *psp)
   S_StartSound(player->mo, hitsound);
 
   // turn to face target
-  G_SavePlayerAngle(player);
+  SavePlayerAngle(player);
   player->mo->angle = R_PointToAngle2(player->mo->x, player->mo->y, linetarget->x, linetarget->y);
-  G_AddToTicAngle(player);
+  AddToTicAngle(player);
 }
 
 //

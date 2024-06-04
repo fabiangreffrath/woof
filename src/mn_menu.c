@@ -1900,7 +1900,6 @@ void MN_ClearMenus(void)
     //     sendpause = true;
 
     G_ClearInput();
-    I_ResetRelativeMouseState();
 }
 
 void MN_Back(void)
@@ -2727,6 +2726,7 @@ boolean M_Responder(event_t *ev)
             messageRoutine(ch);
         }
 
+        G_ClearInput();
         menuactive = false;
         M_StartSound(sfx_swtchx);
         return true;

@@ -45,16 +45,7 @@
 static fixed_t PlayerSlope(player_t *player)
 {
   const fixed_t pitch = player->pitch;
-
-  if (pitch)
-  {
-    const fixed_t slope = -finetangent[(ANG90 - pitch) >> ANGLETOFINESHIFT];
-    return (fixed_t)((int64_t)slope * SCREENHEIGHT / ACTUALHEIGHT);
-  }
-  else
-  {
-    return 0;
-  }
+  return pitch ? -finetangent[(ANG90 - pitch) >> ANGLETOFINESHIFT] : 0;
 }
 
 // Index of the special effects (INVUL inverse) map.

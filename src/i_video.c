@@ -83,7 +83,7 @@ boolean toggle_fullscreen;
 boolean toggle_exclusive_fullscreen;
 
 static boolean use_vsync; // killough 2/8/98: controls whether vsync is called
-static boolean correct_aspect_ratio;
+boolean correct_aspect_ratio;
 static int fpslimit; // when uncapped, limit framerate to this value
 static boolean fullscreen;
 static boolean exclusive_fullscreen;
@@ -220,6 +220,8 @@ void I_ShowMouseCursor(boolean toggle)
 
 void I_ResetRelativeMouseState(void)
 {
+    SDL_PumpEvents();
+    SDL_FlushEvent(SDL_MOUSEMOTION);
     SDL_GetRelativeMouseState(NULL, NULL);
 }
 
@@ -747,7 +749,7 @@ void I_FinishUpdate(void)
         // Update FPS counter every second
         if (time >= 1000000)
         {
-            fps = (frame_counter * 1000000) / time;
+            fps = ((uint64_t)frame_counter * 1000000) / time;
             frame_counter = 0;
             last_time = frametime_start;
         }
@@ -1782,8 +1784,6 @@ void I_InitGraphics(void)
     ResetLogicalSize();
 
     // clear out events waiting at the start and center the mouse
-    SDL_PumpEvents();
-    SDL_FlushEvent(SDL_MOUSEMOTION);
     I_ResetRelativeMouseState();
 }
 

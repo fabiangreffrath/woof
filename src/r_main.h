@@ -111,6 +111,7 @@ struct subsector_s *R_PointInSubsector(fixed_t x, fixed_t y);
 // REFRESH - the actual rendering functions.
 //
 
+void R_UpdateViewAngleFunction(void);
 void R_RenderPlayerView(struct player_s *player);   // Called by G_Drawer.
 void R_Init(void);                           // Called by startup code.
 void R_SetViewSize(int blocks);              // Called by M_Responder.
@@ -152,6 +153,8 @@ inline static angle_t LerpAngle(angle_t oangle, angle_t nangle)
             return oangle + (angle_t)((nangle - oangle) * FIXED2DOUBLE(fractionaltic));
     }
 }
+
+extern boolean raw_input;
 
 extern int autodetect_hom;
 

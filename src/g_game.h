@@ -34,6 +34,7 @@ struct event_s;
 
 #define MBF21_GAME_OPTION_SIZE (21 + MBF21_COMP_TOTAL)
 
+void G_UpdateLocalViewFunction(void);
 void G_PrepTiccmd(void);
 void G_ClearInput(void);
 boolean G_MovementResponder(struct event_s *ev);
@@ -107,16 +108,6 @@ extern boolean autostrafe50;
 extern boolean novert;
 extern boolean mouselook;
 extern boolean padlook;
-
-extern int mouse_sensitivity;
-extern int mouse_sensitivity_y;
-extern int mouse_sensitivity_strafe;
-extern int mouse_sensitivity_y_look;
-extern boolean mouse_y_invert;
-extern int mouse_acceleration;
-extern int mouse_acceleration_threshold;
-extern int mousex;
-extern int mousey;
 
 extern fixed_t forwardmove[2];
 extern fixed_t default_sidemove[2];

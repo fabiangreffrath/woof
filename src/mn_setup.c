@@ -2139,26 +2139,33 @@ static setup_menu_t gen_settings3[] = {
      str_empty, MN_UpdateFreeLook},
 
     // [FG] invert vertical axis
-    {"Invert Look", S_ONOFF, CNTR_X, M_SPC, {"mouse_y_invert"}},
+    {"Invert Look", S_ONOFF, CNTR_X, M_SPC,
+     {"mouse_y_invert"}, m_null, input_null, str_empty,
+     G_UpdateMouseVariables},
 
     MI_GAP,
 
     {"Turn Sensitivity", S_THERMO | S_THRM_SIZE11, CNTR_X, M_THRM_SPC,
-     {"mouse_sensitivity"}},
+     {"mouse_sensitivity"}, m_null, input_null, str_empty,
+     G_UpdateMouseVariables},
 
     {"Look Sensitivity", S_THERMO | S_THRM_SIZE11, CNTR_X, M_THRM_SPC,
-     {"mouse_sensitivity_y_look"}},
+     {"mouse_sensitivity_y_look"}, m_null, input_null, str_empty,
+     G_UpdateMouseVariables},
 
     {"Move Sensitivity", S_THERMO | S_THRM_SIZE11, CNTR_X, M_THRM_SPC,
-     {"mouse_sensitivity_y"}},
+     {"mouse_sensitivity_y"}, m_null, input_null, str_empty,
+     G_UpdateMouseVariables},
 
     {"Strafe Sensitivity", S_THERMO | S_THRM_SIZE11, CNTR_X, M_THRM_SPC,
-     {"mouse_sensitivity_strafe"}},
+     {"mouse_sensitivity_strafe"}, m_null, input_null, str_empty,
+     G_UpdateMouseVariables},
 
     MI_GAP,
 
-    {"Mouse acceleration", S_THERMO, CNTR_X, M_THRM_SPC, {"mouse_acceleration"},
-     m_null, input_null, str_mouse_accel, G_UpdateAccelerateMouse},
+    {"Mouse acceleration", S_THERMO, CNTR_X, M_THRM_SPC,
+     {"mouse_acceleration"}, m_null, input_null, str_mouse_accel,
+     G_UpdateMouseVariables},
 
     MI_END
 };
@@ -2182,7 +2189,8 @@ static setup_menu_t gen_settings4[] = {
     {"Free Look", S_ONOFF, CNTR_X, M_SPC, {"padlook"}, m_null, input_null,
      str_empty, MN_UpdateFreeLook},
 
-    {"Invert Look", S_ONOFF, CNTR_X, M_SPC, {"joy_invert_look"}},
+    {"Invert Look", S_ONOFF, CNTR_X, M_SPC, {"joy_invert_look"},
+     m_null, input_null, str_empty, G_UpdateControllerVariables},
 
     MI_GAP,
 

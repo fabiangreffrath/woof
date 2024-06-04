@@ -40,7 +40,13 @@ boolean M_StringCopy(char *dest, const char *src, size_t dest_size);
 boolean M_StringConcat(char *dest, const char *src, size_t dest_size);
 char *M_StringReplace(const char *haystack, const char *needle,
                       const char *replacement);
-char *M_StringJoin(const char *s, ...);
+
+char *M_StringJoinInternal(const char *s[], size_t n);
+#define M_StringJoin(...)                                      \
+    M_StringJoinInternal((const char *[]){__VA_ARGS__},        \
+                         sizeof((const char *[]){__VA_ARGS__}) \
+                             / sizeof(const char *))
+
 boolean M_StringEndsWith(const char *s, const char *suffix);
 boolean M_StringCaseEndsWith(const char *s, const char *suffix);
 int M_vsnprintf(char *buf, size_t buf_len, const char *s, va_list args)

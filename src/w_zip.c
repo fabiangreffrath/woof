@@ -106,21 +106,23 @@ static boolean W_ZIP_AddDir(w_handle_t handle, const char *path,
 {
     mz_zip_archive *zip = handle.p1.zip;
 
-    boolean root_directory = (path[0] == '.');
+    boolean is_root = (path[0] == '.');
 
     int index = 0;
 
-    if (!root_directory)
+    char *dir = M_StringDuplicate(path);
+
+    if (!is_root)
     {
-        char *local_path = M_StringJoin(path, "/", NULL);
-        ConvertSlashes(local_path);
+        ConvertSlashes(dir);
 
-        index = mz_zip_reader_locate_file(zip, local_path, NULL, 0);
-
-        free(local_path);
+        char *s = M_StringJoin(dir, "/");
+        index = mz_zip_reader_locate_file(zip, s, NULL, 0);
+        free(s);
 
         if (index < 0)
         {
+            free(dir);
             return false;
         }
 
@@ -129,33 +131,42 @@ static boolean W_ZIP_AddDir(w_handle_t handle, const char *path,
 
     int startlump = numlumps;
 
+    char *subdir = NULL;
+
     for ( ; index < mz_zip_reader_get_num_files(zip); ++index)
     {
         mz_zip_archive_file_stat stat;
         mz_zip_reader_file_stat(zip, index, &stat);
 
-        boolean root_file = (strrchr(stat.m_filename, '/') == NULL);
-
-        if (root_directory)
+        if (stat.m_is_directory)
         {
-            if (!root_file)
+            if (subdir)
             {
-                continue;
+                free(subdir);
             }
-
-            if (M_StringCaseEndsWith(stat.m_filename, ".wad"))
-            {
-                AddWadInMem(zip, M_BaseName(stat.m_filename), index,
-                            stat.m_uncomp_size);
-                continue;
-            }
+            subdir = M_StringDuplicate(stat.m_filename);
+            subdir[strlen(subdir) - 1] = '\0';
+            continue;
         }
-        else
+
+        char *name = M_DirName(stat.m_filename);
+        if (subdir && !strcasecmp(name, subdir))
         {
-            if (stat.m_is_directory || root_file)
-            {
-                break;
-            }
+            free(name);
+            continue;
+        }
+        else if (strcasecmp(name, dir))
+        {
+            free(name);
+            break;
+        }
+        free(name);
+
+        if (is_root && M_StringCaseEndsWith(stat.m_filename, ".wad"))
+        {
+            AddWadInMem(zip, M_BaseName(stat.m_filename), index,
+                        stat.m_uncomp_size);
+            continue;
         }
 
         if (W_SkipFile(stat.m_filename))
@@ -186,6 +197,11 @@ static boolean W_ZIP_AddDir(w_handle_t handle, const char *path,
         W_AddMarker(end_marker);
     }
 
+    if (subdir)
+    {
+        free(subdir);
+    }
+    free(dir);
     return true;
 }
 

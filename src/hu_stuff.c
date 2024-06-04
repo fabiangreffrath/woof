@@ -915,7 +915,6 @@ static void HU_widget_build_weapon (void)
 
     ammo = plr->ammo[weaponinfo[w].ammo];
     fullammo = plr->maxammo[weaponinfo[w].ammo];
-    ammopct = 0;
 
     // skip weapons not currently posessed
     if (!plr->weaponowned[w])
@@ -1298,18 +1297,14 @@ const char *crosshair_strings[HU_CROSSHAIRS] =
 
 static void HU_InitCrosshair(void)
 {
-  int i, j;
-
-  for (i = 1; i < HU_CROSSHAIRS; i++)
+  for (int i = 1; i < HU_CROSSHAIRS; i++)
   {
-    j = W_CheckNumForName(crosshair_lumps[i]);
-    if (j >= num_predefined_lumps)
-    {
-      if (R_IsPatchLump(j))
-        crosshair_strings[i] = crosshair_lumps[i];
-      else
-        crosshair_lumps[i] = NULL;
-    }
+    int lump = W_CheckNumForName(crosshair_lumps[i]);
+
+    if (R_IsPatchLump(lump))
+      crosshair_strings[i] = crosshair_lumps[i];
+    else
+      crosshair_lumps[i] = NULL;
   }
 }
 
@@ -1355,9 +1350,9 @@ static void HU_UpdateCrosshair(void)
     if (!direct_vertical_aiming && (ammo == am_misl || ammo == am_cell))
     {
       if (!linetarget)
-        P_AimLineAttack(plr->mo, an += 1<<26, range, CROSSHAIR_AIM);
+        P_AimLineAttack(plr->mo, an + (1<<26), range, CROSSHAIR_AIM);
       if (!linetarget)
-        P_AimLineAttack(plr->mo, an -= 2<<26, range, CROSSHAIR_AIM);
+        P_AimLineAttack(plr->mo, an - (1<<26), range, CROSSHAIR_AIM);
     }
     overflow[emu_intercepts].enabled = intercepts_overflow_enabled;
 

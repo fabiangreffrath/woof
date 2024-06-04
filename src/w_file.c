@@ -51,7 +51,7 @@ static boolean W_FILE_AddDir(w_handle_t handle, const char *path,
     }
     else
     {
-        char *s = M_StringJoin(handle.p1.base_path, DIR_SEPARATOR_S, path, NULL);
+        char *s = M_StringJoin(handle.p1.base_path, DIR_SEPARATOR_S, path);
         glob = I_StartGlob(s, "*.*", GLOB_FLAG_NOCASE | GLOB_FLAG_SORTED);
         free(s);
     }

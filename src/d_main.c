@@ -241,7 +241,7 @@ void D_Display (void)
   static boolean menuactivestate = false;
   static boolean inhelpscreensstate = false;
   static boolean fullscreen = false;
-  static gamestate_t oldgamestate = -1;
+  static gamestate_t oldgamestate = GS_NONE;
   static int borderdrawcount;
   int wipestart;
   boolean done, wipe, redrawsbar;
@@ -296,7 +296,7 @@ void D_Display (void)
   if (setsizeneeded)                // change the view size if needed
     {
       R_ExecuteSetViewSize();
-      oldgamestate = -1;            // force background redraw
+      oldgamestate = GS_NONE;            // force background redraw
       borderdrawcount = 3;
     }
 
@@ -328,6 +328,8 @@ void D_Display (void)
       break;
     case GS_DEMOSCREEN:
       D_PageDrawer();
+      break;
+    case GS_NONE:
       break;
     }
 
@@ -720,9 +722,9 @@ typedef struct {
     const char *dir;
     char *(*func)(void);
     boolean createdir;
-} autoload_basedir_t;
+} basedir_t;
 
-static autoload_basedir_t autoload_basedirs[] = {
+static basedir_t basedirs[] = {
 #if !defined(WIN32)
     {"../share/" PROJECT_SHORTNAME, D_DoomExeDir, false},
 #endif
@@ -731,6 +733,37 @@ static autoload_basedir_t autoload_basedirs[] = {
     {NULL, D_DoomExeDir, false},
 #endif
 };
+
+static void LoadBaseFile(void)
+{
+    for (int i = 0; i < arrlen(basedirs); ++i)
+    {
+        basedir_t d = basedirs[i];
+        boolean result = false;
+
+        if (d.dir && d.func)
+        {
+            char *s = M_StringJoin(d.func(), DIR_SEPARATOR_S, d.dir);
+            result = W_InitBaseFile(s);
+            free(s);
+        }
+        else if (d.dir)
+        {
+            result = W_InitBaseFile(d.dir);
+        }
+        else if (d.func)
+        {
+            result = W_InitBaseFile(d.func());
+        }
+
+        if (result)
+        {
+            return;
+        }
+    }
+
+    I_Error(PROJECT_SHORTNAME ".pk3 not found");
+}
 
 static char **autoload_paths = NULL;
 
@@ -741,7 +774,7 @@ static char *GetAutoloadDir(const char *base, const char *iwadname, boolean crea
 
     lower = M_StringDuplicate(iwadname);
     M_StringToLower(lower);
-    result = M_StringJoin(base, DIR_SEPARATOR_S, lower, NULL);
+    result = M_StringJoin(base, DIR_SEPARATOR_S, lower);
     free(lower);
 
     if (createdir)
@@ -765,25 +798,25 @@ static void PrepareAutoloadPaths(void)
         return;
     }
 
-    for (int i = 0; i < arrlen(autoload_basedirs); i++)
+    for (int i = 0; i < arrlen(basedirs); i++)
     {
-        autoload_basedir_t d = autoload_basedirs[i];
+        basedir_t d = basedirs[i];
 
         if (d.dir && d.func)
         {
             array_push(autoload_paths,
                        M_StringJoin(d.func(), DIR_SEPARATOR_S, d.dir,
-                                    DIR_SEPARATOR_S, "autoload", NULL));
+                                    DIR_SEPARATOR_S, "autoload"));
         }
         else if (d.dir)
         {
             array_push(autoload_paths,
-                       M_StringJoin(d.dir, DIR_SEPARATOR_S, "autoload", NULL));
+                       M_StringJoin(d.dir, DIR_SEPARATOR_S, "autoload"));
         }
         else if (d.func)
         {
             array_push(autoload_paths, M_StringJoin(d.func(), DIR_SEPARATOR_S,
-                                                    "autoload", NULL));
+                                                    "autoload"));
         }
 
         if (d.createdir)
@@ -914,8 +947,7 @@ void IdentifyVersion(void)
     // killough 10/98
 
     basedefault = M_StringJoin(D_DoomPrefDir(), DIR_SEPARATOR_S,
-                               D_DoomExeName(), ".cfg", NULL);
-
+                               D_DoomExeName(), ".cfg");
     // set save path to -save parm or current dir
 
     screenshotdir = M_StringDuplicate("."); // [FG] default to current dir
@@ -976,8 +1008,6 @@ void IdentifyVersion(void)
     {
         I_Error("IWAD not found");
     }
-
-    I_Printf(VB_INFO, "W_Init: Init WADfiles.");
 
     D_AddFile(iwadfile);
 
@@ -1471,7 +1501,7 @@ static void D_ProcessDehCommandLine(void)
 static void AutoLoadWADs(const char *path)
 {
     glob_t * glob = I_StartMultiGlob(path, GLOB_FLAG_NOCASE|GLOB_FLAG_SORTED,
-                                     "*.wad", "*.zip", "*.pk3", NULL);
+                                     "*.wad", "*.zip", "*.pk3");
     for (;;)
     {
         const char *filename = I_NextGlob(glob);
@@ -1490,16 +1520,28 @@ static void AutoLoadWADs(const char *path)
     W_AddPath(path);
 }
 
-static void D_AutoloadIWadDir(void (*AutoLoadFunc)(const char *path))
+static void LoadIWadBase(void)
 {
+    GameMission_t local_gamemission =
+        D_GetGameMissionByIWADName(M_BaseName(wadfiles[0]));
+
+    if (local_gamemission < pack_chex)
+    {
+        W_AddBaseDir("doom-all");
+    }
+    W_AddBaseDir(M_BaseName(wadfiles[0]));
+}
+
+static void AutoloadIWadDir(void (*AutoLoadFunc)(const char *path))
+{
+    GameMission_t local_gamemission =
+        D_GetGameMissionByIWADName(M_BaseName(wadfiles[0]));
+
     for (int i = 0; i < array_size(autoload_paths); ++i)
     {
         char *dir = GetAutoloadDir(autoload_paths[i], "all-all", true);
         AutoLoadFunc(dir);
         free(dir);
-
-        GameMission_t local_gamemission =
-            D_GetGameMissionByIWADName(M_BaseName(wadfiles[0]));
 
         // common auto-loaded files for all Doom flavors
         if (local_gamemission != none)
@@ -1533,7 +1575,15 @@ static void D_AutoloadIWadDir(void (*AutoLoadFunc)(const char *path))
     }
 }
 
-static void D_AutoloadPWadDir(void (*AutoLoadFunc)(const char *path))
+static void LoadPWadBase(void)
+{
+    for (int i = 1; i < array_size(wadfiles); ++i)
+    {
+        W_AddBaseDir(wadfiles[i]);
+    }
+}
+
+static void AutoloadPWadDir(void (*AutoLoadFunc)(const char *path))
 {
     for (int i = 1; i < array_size(wadfiles); ++i)
     {
@@ -1555,7 +1605,7 @@ static void AutoLoadPatches(const char *path)
     glob_t *glob;
 
     glob = I_StartMultiGlob(path, GLOB_FLAG_NOCASE|GLOB_FLAG_SORTED,
-                            "*.deh", "*.bex", NULL);
+                            "*.deh", "*.bex");
     for (;;)
     {
         filename = I_NextGlob(glob);
@@ -1805,7 +1855,9 @@ void D_DoomMain(void)
   // killough 10/98: set default savename based on executable's name
   sprintf(savegamename = malloc(16), "%.4ssav", D_DoomExeName());
 
-  W_InitPredefineLumps();
+  I_Printf(VB_INFO, "W_Init: Init WADfiles.");
+
+  LoadBaseFile();
 
   IdentifyVersion();
 
@@ -1977,8 +2029,9 @@ void D_DoomMain(void)
 
   // add wad files from autoload IWAD directories before wads from -file parameter
 
+  LoadIWadBase();
   PrepareAutoloadPaths();
-  D_AutoloadIWadDir(AutoLoadWADs);
+  AutoloadIWadDir(AutoLoadWADs);
 
   // add any files specified on the command line with -file wadfile
   // to the wad list
@@ -2011,7 +2064,8 @@ void D_DoomMain(void)
 
   // add wad files from autoload PWAD directories
 
-  D_AutoloadPWadDir(AutoLoadWADs);
+  LoadPWadBase();
+  AutoloadPWadDir(AutoLoadWADs);
 
   // get skill / episode / map from parms
 
@@ -2207,18 +2261,6 @@ void D_DoomMain(void)
 
   noblit = M_CheckParm ("-noblit");
 
-  // jff 4/21/98 allow writing predefined lumps out as a wad
-
-  //!
-  // @category mod
-  // @arg <wad>
-  //
-  // Allow writing predefined lumps out as a WAD.
-  //
-
-  if ((p = M_CheckParm("-dumplumps")) && p < myargc-1)
-    WritePredefinedLumpWad(myargv[p+1]);
-
   M_InitConfig();
 
   I_PutChar(VB_INFO, '\n');
@@ -2254,7 +2296,7 @@ void D_DoomMain(void)
 
   // process deh in wads and .deh files from autoload directory
   // before deh in wads from -file parameter
-  D_AutoloadIWadDir(AutoLoadPatches);
+  AutoloadIWadDir(AutoLoadPatches);
 
   // killough 10/98: now process all deh in wads
   if (!M_ParmExists("-nodeh"))
@@ -2263,7 +2305,7 @@ void D_DoomMain(void)
   }
 
   // process .deh files from PWADs autoload directories
-  D_AutoloadPWadDir(AutoLoadPatches);
+  AutoloadPWadDir(AutoLoadPatches);
 
   PostProcessDeh();
 
@@ -2316,7 +2358,7 @@ void D_DoomMain(void)
       {
           // [FG] check for at least one savegame in the old location
           glob_t *glob = I_StartMultiGlob(
-              basesavegame, GLOB_FLAG_NOCASE | GLOB_FLAG_SORTED, "*.dsg", NULL);
+              basesavegame, GLOB_FLAG_NOCASE | GLOB_FLAG_SORTED, "*.dsg");
 
           organize_savefiles = (I_NextGlob(glob) == NULL);
 
@@ -2339,14 +2381,14 @@ void D_DoomMain(void)
           }
 
           basesavegame =
-              M_StringJoin(oldsavegame, DIR_SEPARATOR_S, "savegames", NULL);
+              M_StringJoin(oldsavegame, DIR_SEPARATOR_S, "savegames");
           free(oldsavegame);
 
           M_MakeDirectory(basesavegame);
 
           oldsavegame = basesavegame;
           basesavegame = M_StringJoin(oldsavegame, DIR_SEPARATOR_S,
-                                      M_BaseName(wadname), NULL);
+                                      M_BaseName(wadname));
           free(oldsavegame);
 
           M_MakeDirectory(basesavegame);
@@ -2393,18 +2435,6 @@ void D_DoomMain(void)
   I_Printf(VB_INFO, "R_Init: Init DOOM refresh daemon - ");
   R_Init();
 
-  //!
-  // @category mod
-  // @arg <wad>
-  //
-  // Allow writing generated lumps out as a WAD.
-  //
-
-  if ((p = M_CheckParm("-dumptables")) && p < myargc-1)
-  {
-    WriteGeneratedLumpWad(myargv[p+1]);
-  }
-
   I_Printf(VB_INFO, "P_Init: Init Playloop state.");
   P_Init();
 
@@ -2425,7 +2455,10 @@ void D_DoomMain(void)
 
   G_UpdateSideMove();
   G_UpdateAngleFunctions();
-  G_UpdateAccelerateMouse();
+  G_UpdateLocalViewFunction();
+  G_UpdateControllerVariables();
+  G_UpdateMouseVariables();
+  R_UpdateViewAngleFunction();
 
   MN_ResetTimeScale();
 

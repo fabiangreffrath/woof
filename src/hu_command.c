@@ -229,11 +229,11 @@ static void UpdateHudCmdText(hud_cmd_item_t *cmd_disp)
 
     if (hud_cmd->change)
     {
-        i += M_snprintf(buf + i, len - i, "C%d", hud_cmd->change);
+        M_snprintf(buf + i, len - i, "C%d", hud_cmd->change);
     }
     else
     {
-        i += M_snprintf(buf + i, len - i, "  ");
+        M_snprintf(buf + i, len - i, "  ");
     }
 }
 

@@ -938,7 +938,7 @@ void R_InitTranMap(int progress)
   else
     {   // Compose a default transparent filter map based on PLAYPAL.
       unsigned char *playpal = W_CacheLumpName("PLAYPAL", PU_STATIC);
-      char *fname = M_StringJoin(D_DoomPrefDir(), DIR_SEPARATOR_S, "tranmap.dat", NULL);
+      char *fname = M_StringJoin(D_DoomPrefDir(), DIR_SEPARATOR_S, "tranmap.dat");
       struct {
         unsigned char pct;
         unsigned char playpal[256*3]; // [FG] a palette has 256 colors saved as byte triples

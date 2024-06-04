@@ -18,18 +18,6 @@
 #ifndef __G_INPUT__
 #define __G_INPUT__
 
-#include "doomtype.h"
-
-struct player_s;
-struct ticcmd_s;
-
-// Local View
-
-boolean G_UseLocalView(const struct player_s *player);
-extern angle_t (*G_CalcViewAngle)(const struct player_s *player);
-extern void (*G_UpdateLocalView)(void);
-void G_ClearLocalView(void);
-
 // Side Movement
 
 void G_UpdateSideMove(void);
@@ -38,38 +26,30 @@ void G_UpdateSideMove(void);
 
 void G_UpdateCarry(void);
 void G_ClearCarry(void);
+extern short (*G_CarryAngleTic)(double angle);
+extern short (*G_CarryAngle)(double angle);
 void G_UpdateAngleFunctions(void);
+int G_CarryPitch(double pitch);
+int G_CarrySide(double side);
+int G_CarryVert(double vert);
 
 // Gamepad
 
+void G_UpdateControllerVariables(void);
 void G_UpdateDeltaTics(void);
-short G_CalcControllerAngle(void);
-int G_CalcControllerPitch(void);
+double G_CalcControllerAngle(void);
+double G_CalcControllerPitch(void);
 int G_CalcControllerSideTurn(int speed);
 int G_CalcControllerSideStrafe(int speed);
 int G_CalcControllerForward(int speed);
 
 // Mouse
 
-void G_UpdateAccelerateMouse(void);
-short G_CalcMouseAngle(void);
-int G_CalcMousePitch(void);
-int G_CalcMouseSide(void);
-int G_CalcMouseVert(void);
-
-// Composite Turn
-
-void G_SavePlayerAngle(const struct player_s *player);
-void G_AddToTicAngle(struct player_s *player);
-void G_UpdateTicAngleTurn(struct ticcmd_s *cmd, int angle);
-
-// Quickstart Cache
-
-extern int quickstart_cache_tics;
-extern boolean quickstart_queued;
-extern float axis_turn_tic;
-extern int mousex_tic;
-void G_ClearQuickstartTic(void);
-void G_ApplyQuickstartCache(struct ticcmd_s *cmd, boolean strafe);
+void G_UpdateMouseVariables(void);
+double G_CalcMouseAngle(int mousex);
+double G_CalcMousePitch(int mousey);
+double G_CalcMouseSide(int mousex);
+double G_CalcMouseVert(int mousey);
+void G_BindMouseVariables(void);
 
 #endif
