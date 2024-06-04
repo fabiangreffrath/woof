@@ -692,7 +692,7 @@ void I_OAL_BindSoundVariables(void)
     BIND_BOOL(snd_limiter, false, "Use sound output limiter");
 
     BIND_NUM(snd_equalizer, EQ_PRESET_OFF, EQ_PRESET_OFF, EQ_PRESET_MID,
-        "Equalizer preset (0 = Off; 1 = Bass; 2 = Bass+Treble; 3 = Mid");
+        "Equalizer preset (0 = Off; 1 = Bass; 2 = Bass+Treb; 3 = Mid");
     BIND_NUM(snd_eq_low_gain, 100, 13, 794,
         "Equalizer low frequency range gain precent");
     BIND_NUM(snd_eq_mid1_gain, 100, 13, 794,

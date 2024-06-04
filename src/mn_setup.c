@@ -2055,7 +2055,7 @@ static void SetMidiPlayer(void)
     S_RestartMusic();
 }
 
-static const char *equalizer_preset_strings[] = {"Off", "Bass", "Bass+Treble", "Mid"};
+static const char *equalizer_preset_strings[] = {"Off", "Bass", "Bass+Treb", "Mid"};
 
 static setup_menu_t gen_settings2[] = {
 
