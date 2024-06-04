@@ -526,12 +526,12 @@ void I_OAL_SetEqualizer(void)
         // Gains vary from 0.126 up to 7.943, which means from -18dB attenuation
         // up to +18dB amplification, i.e. 20*log10(gain).
 
-        #define GAIN_PCT(pct) ((ALfloat)BETWEEN(0.126f, 7.943f, pct/100.f))
+        #define DB_TO_GAIN(db) ((ALfloat)BETWEEN(0.126f, 7.943f, pow(10.f, db/20.f)))
 
-        alEffectf(uiEffect, AL_EQUALIZER_LOW_GAIN, GAIN_PCT(snd_eq_low_gain));
-        alEffectf(uiEffect, AL_EQUALIZER_MID1_GAIN, GAIN_PCT(snd_eq_mid1_gain));
-        alEffectf(uiEffect, AL_EQUALIZER_MID2_GAIN, GAIN_PCT(snd_eq_mid2_gain));
-        alEffectf(uiEffect, AL_EQUALIZER_HIGH_GAIN, GAIN_PCT(snd_eq_high_gain));
+        alEffectf(uiEffect, AL_EQUALIZER_LOW_GAIN, DB_TO_GAIN(snd_eq_low_gain));
+        alEffectf(uiEffect, AL_EQUALIZER_MID1_GAIN, DB_TO_GAIN(snd_eq_mid1_gain));
+        alEffectf(uiEffect, AL_EQUALIZER_MID2_GAIN, DB_TO_GAIN(snd_eq_mid2_gain));
+        alEffectf(uiEffect, AL_EQUALIZER_HIGH_GAIN, DB_TO_GAIN(snd_eq_high_gain));
 
         alEffectf(uiEffect, AL_EQUALIZER_LOW_CUTOFF, (ALfloat)snd_eq_low_cutoff);
         alEffectf(uiEffect, AL_EQUALIZER_HIGH_CUTOFF, (ALfloat)snd_eq_high_cutoff);
@@ -556,10 +556,10 @@ void I_OAL_EqualizerPreset(void)
         int val[NUM_EQ_PRESETS];
     } eq_presets[] =
     {                        // Off, Bass, Bass+Treb, Mid
-        {&snd_eq_low_gain,    {   0,  120,  120,    0}},
-        {&snd_eq_mid1_gain,   {   0,  120,    0,  120}},
-        {&snd_eq_mid2_gain,   {   0,    0,    0,  120}},
-        {&snd_eq_high_gain,   {   0,   80,  120,    0}},
+        {&snd_eq_low_gain,    {   0,    2,    2,    0}},
+        {&snd_eq_mid1_gain,   {   0,    1,    0,    2}},
+        {&snd_eq_mid2_gain,   {   0,    0,    0,    2}},
+        {&snd_eq_high_gain,   {   0,   -2,    2,    0}},
         {&snd_eq_low_cutoff,  { 200,  200,  200,  200}},
         {&snd_eq_high_cutoff, {6000, 6000, 6000, 6000}},
     };
@@ -693,14 +693,14 @@ void I_OAL_BindSoundVariables(void)
 
     BIND_NUM(snd_equalizer, EQ_PRESET_OFF, EQ_PRESET_OFF, EQ_PRESET_MID,
         "Equalizer preset (0 = Off; 1 = Bass; 2 = Bass+Treb; 3 = Mid");
-    BIND_NUM(snd_eq_low_gain, 100, 13, 794,
-        "Equalizer low frequency range gain precent");
-    BIND_NUM(snd_eq_mid1_gain, 100, 13, 794,
-        "Equalizer mid1 frequency range gain precent");
-    BIND_NUM(snd_eq_mid2_gain, 100, 13, 794,
-        "Equalizer mid2 frequency range gain precent");
-    BIND_NUM(snd_eq_high_gain, 100, 13, 794,
-        "Equalizer high frequency range gain precent");
+    BIND_NUM(snd_eq_low_gain, 0, -18, 18,
+        "Equalizer low frequency range gain [dB]");
+    BIND_NUM(snd_eq_mid1_gain, 0, -18, 18,
+        "Equalizer mid1 frequency range gain [dB]");
+    BIND_NUM(snd_eq_mid2_gain, 0, -18, 18,
+        "Equalizer mid2 frequency range gain [dB]");
+    BIND_NUM(snd_eq_high_gain, 0, -18, 18,
+        "Equalizer high frequency range gain [dB]");
     BIND_NUM(snd_eq_low_cutoff, 200, 50, 800,
         "Equalizer low cut-off frequency");
     BIND_NUM(snd_eq_high_cutoff, 6000, 4000, 16000,
