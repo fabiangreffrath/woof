@@ -94,6 +94,8 @@ static LPALAUXILIARYEFFECTSLOTI alAuxiliaryEffectSloti;
 static LPALGENFILTERS alGenFilters;
 static LPALDELETEFILTERS alDeleteFilters;
 static LPALISFILTER alIsFilter;
+static LPALFILTERI alFilteri;
+static LPALFILTERF alFilterf;
 
 void I_OAL_DeferUpdates(void)
 {
@@ -450,6 +452,14 @@ void I_OAL_SetEqualizer(void)
     {
         alIsFilter = FUNCTION_CAST(LPALISFILTER, alGetProcAddress("alIsFilter"));
     }
+    if (!alFilteri)
+    {
+        alFilteri = FUNCTION_CAST(LPALFILTERI, alGetProcAddress("alFilteri"));
+    }
+    if (!alFilterf)
+    {
+        alFilterf = FUNCTION_CAST(LPALFILTERF, alGetProcAddress("alFilterf"));
+    }
 
     if (!alGenAuxiliaryEffectSlots ||
         !alDeleteAuxiliaryEffectSlots ||
@@ -462,7 +472,9 @@ void I_OAL_SetEqualizer(void)
         !alAuxiliaryEffectSloti ||
         !alGenFilters ||
         !alDeleteFilters ||
-        !alIsFilter)
+        !alIsFilter ||
+        !alFilteri ||
+        !alFilterf)
     {
         return;
     }
@@ -471,6 +483,7 @@ void I_OAL_SetEqualizer(void)
     {
         for (int i = 0; i < MAX_CHANNELS; i++)
         {
+            alSourcei(oal->sources[i], AL_DIRECT_FILTER, AL_FILTER_NULL);
             alSource3i(oal->sources[i], AL_AUXILIARY_SEND_FILTER, AL_EFFECTSLOT_NULL, 0, AL_FILTER_NULL);
         }
 
@@ -506,6 +519,10 @@ void I_OAL_SetEqualizer(void)
 
         alEffecti(uiEffect, AL_EFFECT_TYPE, AL_EFFECT_EQUALIZER);
 
+        // AL_LOWPASS_GAIN actually controls overall gain for the filter it's
+        // applied to (OpenAL Effects Extension Guide 1.1, pp. 16-17, 135).
+        alFilteri(uiFilter, AL_FILTER_TYPE, AL_FILTER_LOWPASS);
+
         // Gains vary from 0.126 up to 7.943, which means from -18dB attenuation
         // up to +18dB amplification, i.e. 20*log10(gain).
 
@@ -523,6 +540,9 @@ void I_OAL_SetEqualizer(void)
 
         for (int i = 0; i < MAX_CHANNELS; i++)
         {
+            alFilterf(uiFilter, AL_LOWPASS_GAIN, 0.0f); // Mute the dry path.
+            alSourcei(oal->sources[i], AL_DIRECT_FILTER, uiFilter);
+            alFilterf(uiFilter, AL_LOWPASS_GAIN, 1.0f); // Keep the wet path.
             alSource3i(oal->sources[i], AL_AUXILIARY_SEND_FILTER, uiEffectSlot, 0, uiFilter);
         }
     }
