@@ -91,7 +91,6 @@ static oal_system_t *oal;
 static LPALDEFERUPDATESSOFT alDeferUpdatesSOFT;
 static LPALPROCESSUPDATESSOFT alProcessUpdatesSOFT;
 
-#define EQUALIZER_DEFAULT "100 100 100 100"
 static LPALGENAUXILIARYEFFECTSLOTS alGenAuxiliaryEffectSlots;
 static LPALGENEFFECTS alGenEffects;
 static LPALEFFECTI alEffecti;
