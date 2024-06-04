@@ -65,14 +65,6 @@ static boolean snd_hrtf;
 static int snd_absorption;
 static int snd_doppler;
 
-static boolean snd_equalizer;
-static int snd_eq_low_gain;
-static int snd_eq_mid1_gain;
-static int snd_eq_mid2_gain;
-static int snd_eq_high_gain;
-static int snd_eq_low_cutoff;
-static int snd_eq_high_cutoff;
-
 static int oal_snd_module;
 boolean oal_use_doppler;
 
@@ -374,6 +366,22 @@ const char **I_OAL_GetResamplerStrings(void)
     return strings;
 }
 
+typedef enum {
+    EQ_PRESET_OFF,
+    EQ_PRESET_BASS,
+    EQ_PRESET_BASSTREB,
+    EQ_PRESET_MID,
+    NUM_EQ_PRESETS
+} eq_preset_t;
+
+static eq_preset_t snd_equalizer;
+static int snd_eq_low_gain;
+static int snd_eq_mid1_gain;
+static int snd_eq_mid2_gain;
+static int snd_eq_high_gain;
+static int snd_eq_low_cutoff;
+static int snd_eq_high_cutoff;
+
 void I_OAL_SetEqualizer(void)
 {
     static ALuint uiEffectSlot = AL_INVALID;
@@ -460,29 +468,27 @@ void I_OAL_SetEqualizer(void)
         return;
     }
 
-    if (!snd_equalizer)
+    if (alIsAuxiliaryEffectSlot(uiEffectSlot))
     {
-        if (alIsAuxiliaryEffectSlot(uiEffectSlot))
+        for (int i = 0; i < MAX_CHANNELS; i++)
         {
-            for (int i = 0; i < MAX_CHANNELS; i++)
-            {
-                alSource3i(oal->sources[i], AL_AUXILIARY_SEND_FILTER, AL_EFFECTSLOT_NULL, 0, AL_FILTER_NULL);
-            }
-
-            alDeleteAuxiliaryEffectSlots(1, &uiEffectSlot);
+            alSource3i(oal->sources[i], AL_AUXILIARY_SEND_FILTER, AL_EFFECTSLOT_NULL, 0, AL_FILTER_NULL);
         }
 
-        if (alIsEffect(uiEffect))
-        {
-            alDeleteEffects(1, &uiEffect);
-        }
-
-        if (alIsFilter(uiFilter))
-        {
-            alDeleteFilters(1, &uiFilter);
-        }
+        alDeleteAuxiliaryEffectSlots(1, &uiEffectSlot);
     }
-    else
+
+    if (alIsEffect(uiEffect))
+    {
+        alDeleteEffects(1, &uiEffect);
+    }
+
+    if (alIsFilter(uiFilter))
+    {
+        alDeleteFilters(1, &uiFilter);
+    }
+
+    if (snd_equalizer != EQ_PRESET_OFF)
     {
         if (!alIsAuxiliaryEffectSlot(uiEffectSlot))
         {
@@ -512,7 +518,7 @@ void I_OAL_SetEqualizer(void)
         alEffectf(uiEffect, AL_EQUALIZER_HIGH_GAIN, DB_TO_GAIN(snd_eq_high_gain));
 
         alEffectf(uiEffect, AL_EQUALIZER_LOW_CUTOFF, (ALfloat)snd_eq_low_cutoff);
-        alEffectf(uiEffect, AL_EQUALIZER_HIGH_GAIN, (ALfloat)snd_eq_high_cutoff);
+        alEffectf(uiEffect, AL_EQUALIZER_HIGH_CUTOFF, (ALfloat)snd_eq_high_cutoff);
 
         alAuxiliaryEffectSloti(uiEffectSlot, AL_EFFECTSLOT_EFFECT, uiEffect);
 
@@ -521,7 +527,30 @@ void I_OAL_SetEqualizer(void)
             alSource3i(oal->sources[i], AL_AUXILIARY_SEND_FILTER, uiEffectSlot, 0, uiFilter);
         }
     }
+}
 
+void I_OAL_EqualizerPreset(void)
+{
+    struct
+    {
+        int *var;
+        int val[NUM_EQ_PRESETS];
+    } eq_presets[] =
+    {                        // Off, Bass, Bass+Treb, Mid
+        {&snd_eq_low_gain,    {   0,    2,    2,    0}},
+        {&snd_eq_mid1_gain,   {   0,    1,    0,    2}},
+        {&snd_eq_mid2_gain,   {   0,    0,    0,    2}},
+        {&snd_eq_high_gain,   {   0,   -2,    2,    0}},
+        {&snd_eq_low_cutoff,  { 200,  200,  200,  200}},
+        {&snd_eq_high_cutoff, {6000, 6000, 6000, 6000}},
+    };
+
+    for (int i = 0; i < arrlen(eq_presets); i++)
+    {
+        *eq_presets[i].var = eq_presets[i].val[snd_equalizer];
+    }
+
+    I_OAL_SetEqualizer();
 }
 
 static void UpdateUserSoundSettings(void)
@@ -643,7 +672,8 @@ void I_OAL_BindSoundVariables(void)
         "[OpenAL 3D] Doppler effect (0 = Off; 10 = Max)");
     BIND_BOOL(snd_limiter, false, "Use sound output limiter");
 
-    BIND_BOOL(snd_equalizer, false, "Use equalizer");
+    BIND_NUM(snd_equalizer, EQ_PRESET_OFF, EQ_PRESET_OFF, EQ_PRESET_MID,
+        "Equalizer preset (0 = Off; 1 = Bass; 2 = Bass+Treble; 3 = Mid");
     BIND_NUM(snd_eq_low_gain, 0, -18, 18,
         "Equalizer low frequency range gain [dB]");
     BIND_NUM(snd_eq_mid1_gain, 0, -18, 18,

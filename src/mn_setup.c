@@ -308,6 +308,7 @@ enum
     str_gamma,
     str_sound_module,
     str_resampler,
+    str_equalizer_preset,
 
     str_mouse_accel,
 
@@ -2054,6 +2055,8 @@ static void SetMidiPlayer(void)
     S_RestartMusic();
 }
 
+static const char *equalizer_preset_strings[] = {"Off", "Bass", "Bass+Treble", "Mid"};
+
 static setup_menu_t gen_settings2[] = {
 
     {"Sound Volume", S_THERMO, M_X_THRM8, M_THRM_SPC, {"sfx_volume"},
@@ -2075,8 +2078,8 @@ static setup_menu_t gen_settings2[] = {
     // [FG] play sounds in full length
     {"Disable Sound Cutoffs", S_ONOFF, M_X, M_SPC, {"full_sounds"}},
 
-    {"Apply Equalizer", S_ONOFF, M_X, M_SPC, {"snd_equalizer"}, m_null, input_null,
-     str_empty, I_OAL_SetEqualizer},
+    {"Equalizer Preset", S_CHOICE, M_X, M_SPC, {"snd_equalizer"}, m_null, input_null,
+     str_equalizer_preset, I_OAL_EqualizerPreset},
 
     {"Resampler", S_CHOICE | S_NEXT_LINE, M_X, M_SPC, {"snd_resampler"}, m_null,
      input_null, str_resampler, I_OAL_SetResampler},
@@ -3806,6 +3809,7 @@ static const char **selectstrings[] = {
     gamma_strings,
     sound_module_strings,
     NULL, // str_resampler
+    equalizer_preset_strings,
     NULL, // str_mouse_accel
     default_skill_strings,
     default_complevel_strings,

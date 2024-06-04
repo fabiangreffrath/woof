@@ -72,4 +72,6 @@ void I_OAL_BindSoundVariables(void);
 
 void I_OAL_SetEqualizer(void);
 
+void I_OAL_EqualizerPreset(void);
+
 #endif
