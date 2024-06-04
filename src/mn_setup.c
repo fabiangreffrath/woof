@@ -2075,6 +2075,9 @@ static setup_menu_t gen_settings2[] = {
     // [FG] play sounds in full length
     {"Disable Sound Cutoffs", S_ONOFF, M_X, M_SPC, {"full_sounds"}},
 
+    {"Apply Equalizer", S_ONOFF, M_X, M_SPC, {"snd_equalizer"}, m_null, input_null,
+     str_empty, I_OAL_SetEqualizer},
+
     {"Resampler", S_CHOICE | S_NEXT_LINE, M_X, M_SPC, {"snd_resampler"}, m_null,
      input_null, str_resampler, I_OAL_SetResampler},
 

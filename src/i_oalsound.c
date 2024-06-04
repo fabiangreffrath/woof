@@ -92,11 +92,17 @@ static LPALDEFERUPDATESSOFT alDeferUpdatesSOFT;
 static LPALPROCESSUPDATESSOFT alProcessUpdatesSOFT;
 
 static LPALGENAUXILIARYEFFECTSLOTS alGenAuxiliaryEffectSlots;
+static LPALDELETEAUXILIARYEFFECTSLOTS alDeleteAuxiliaryEffectSlots;
+static LPALISAUXILIARYEFFECTSLOT alIsAuxiliaryEffectSlot;
 static LPALGENEFFECTS alGenEffects;
+static LPALDELETEEFFECTS alDeleteEffects;
+static LPALISEFFECT alIsEffect;
 static LPALEFFECTI alEffecti;
 static LPALEFFECTF alEffectf;
 static LPALAUXILIARYEFFECTSLOTI alAuxiliaryEffectSloti;
 static LPALGENFILTERS alGenFilters;
+static LPALDELETEFILTERS alDeleteFilters;
+static LPALISFILTER alIsFilter;
 
 void I_OAL_DeferUpdates(void)
 {
@@ -368,9 +374,11 @@ const char **I_OAL_GetResamplerStrings(void)
     return strings;
 }
 
-static void SetEqualizer(void)
+void I_OAL_SetEqualizer(void)
 {
-    ALuint uiEffectSlot, uiEffect, uiFilter;
+    static ALuint uiEffectSlot = AL_INVALID;
+    static ALuint uiEffect = AL_INVALID;
+    static ALuint uiFilter = AL_INVALID;
     ALCint iSends = 0;
 
     if (!oal || !oal->EXT_EFX)
@@ -387,57 +395,139 @@ static void SetEqualizer(void)
         return;
     }
 
-    if (!snd_equalizer)
+    if (!alGenAuxiliaryEffectSlots)
     {
-        return;
+        alGenAuxiliaryEffectSlots = FUNCTION_CAST(LPALGENAUXILIARYEFFECTSLOTS, alGetProcAddress("alGenAuxiliaryEffectSlots"));
+    }
+    if (!alDeleteAuxiliaryEffectSlots)
+    {
+        alDeleteAuxiliaryEffectSlots = FUNCTION_CAST(LPALDELETEAUXILIARYEFFECTSLOTS, alGetProcAddress("alDeleteAuxiliaryEffectSlots"));
+    }
+    if (!alIsAuxiliaryEffectSlot)
+    {
+        alIsAuxiliaryEffectSlot = FUNCTION_CAST(LPALISAUXILIARYEFFECTSLOT, alGetProcAddress("alIsAuxiliaryEffectSlot"));
+    }
+    if (!alGenEffects)
+    {
+        alGenEffects = FUNCTION_CAST(LPALGENEFFECTS, alGetProcAddress("alGenEffects"));
+    }
+    if (!alDeleteEffects)
+    {
+        alDeleteEffects = FUNCTION_CAST(LPALDELETEEFFECTS, alGetProcAddress("alDeleteEffects"));
+    }
+    if (!alIsEffect)
+    {
+        alIsEffect = FUNCTION_CAST(LPALISEFFECT, alGetProcAddress("alIsEffect"));
+    }
+    if (!alEffecti)
+    {
+        alEffecti = FUNCTION_CAST(LPALEFFECTI, alGetProcAddress("alEffecti"));
+    }
+    if (!alEffectf)
+    {
+        alEffectf = FUNCTION_CAST(LPALEFFECTF, alGetProcAddress("alEffectf"));
+    }
+    if (!alAuxiliaryEffectSloti)
+    {
+        alAuxiliaryEffectSloti = FUNCTION_CAST(LPALAUXILIARYEFFECTSLOTI, alGetProcAddress("alAuxiliaryEffectSloti"));
+    }
+    if (!alGenFilters)
+    {
+        alGenFilters = FUNCTION_CAST(LPALGENFILTERS, alGetProcAddress("alGenFilters"));
+    }
+    if (!alDeleteFilters)
+    {
+        alDeleteFilters = FUNCTION_CAST(LPALDELETEFILTERS, alGetProcAddress("alDeleteFilters"));
+    }
+    if (!alIsFilter)
+    {
+        alIsFilter = FUNCTION_CAST(LPALISFILTER, alGetProcAddress("alIsFilter"));
     }
 
-    alGenAuxiliaryEffectSlots = FUNCTION_CAST(LPALGENAUXILIARYEFFECTSLOTS, alGetProcAddress("alGenAuxiliaryEffectSlots"));
-    alGenEffects = FUNCTION_CAST(LPALGENEFFECTS, alGetProcAddress("alGenEffects"));
-    alEffecti = FUNCTION_CAST(LPALEFFECTI, alGetProcAddress("alEffecti"));
-    alEffectf = FUNCTION_CAST(LPALEFFECTF, alGetProcAddress("alEffectf"));
-    alAuxiliaryEffectSloti = FUNCTION_CAST(LPALAUXILIARYEFFECTSLOTI, alGetProcAddress("alAuxiliaryEffectSloti"));
-    alGenFilters = FUNCTION_CAST(LPALGENFILTERS, alGetProcAddress("alGenFilters"));
-
     if (!alGenAuxiliaryEffectSlots ||
+        !alDeleteAuxiliaryEffectSlots ||
+        !alIsAuxiliaryEffectSlot ||
         !alGenEffects ||
+        !alDeleteEffects ||
+        !alIsEffect ||
         !alEffecti ||
         !alEffectf ||
         !alAuxiliaryEffectSloti ||
-        !alGenFilters)
+        !alGenFilters ||
+        !alDeleteFilters ||
+        !alIsFilter)
     {
         return;
     }
 
-    alGenAuxiliaryEffectSlots(1, &uiEffectSlot);
-    alGenEffects(1, &uiEffect);
-    alEffecti(uiEffect, AL_EFFECT_TYPE, AL_EFFECT_EQUALIZER);
-
-    // Gains vary from 0.126 up to 7.943, which means from -18dB attenuation
-    // up to +18dB amplification, i.e. 20*log10(gain).
-
-    #define DB_TO_GAIN(db) ((ALfloat)pow(10.f,db/20.f))
-
-    alEffectf(uiEffect, AL_EQUALIZER_LOW_GAIN, DB_TO_GAIN(snd_eq_low_gain));
-    alEffectf(uiEffect, AL_EQUALIZER_MID1_GAIN, DB_TO_GAIN(snd_eq_mid1_gain));
-    alEffectf(uiEffect, AL_EQUALIZER_MID2_GAIN, DB_TO_GAIN(snd_eq_mid2_gain));
-    alEffectf(uiEffect, AL_EQUALIZER_HIGH_GAIN, DB_TO_GAIN(snd_eq_high_gain));
-
-    alEffectf(uiEffect, AL_EQUALIZER_LOW_CUTOFF, (ALfloat)snd_eq_low_cutoff);
-    alEffectf(uiEffect, AL_EQUALIZER_HIGH_GAIN, (ALfloat)snd_eq_high_cutoff);
-
-    alAuxiliaryEffectSloti(uiEffectSlot, AL_EFFECTSLOT_EFFECT, uiEffect);
-    alGenFilters(1, &uiFilter);
-
-    for (int i = 0; i < MAX_CHANNELS; i++)
+    if (!snd_equalizer)
     {
-        alSource3i(oal->sources[i], AL_AUXILIARY_SEND_FILTER, uiEffectSlot, 0, uiFilter);
+        if (alIsAuxiliaryEffectSlot(uiEffectSlot))
+        {
+            for (int i = 0; i < MAX_CHANNELS; i++)
+            {
+                alSource3i(oal->sources[i], AL_AUXILIARY_SEND_FILTER, AL_EFFECTSLOT_NULL, 0, AL_FILTER_NULL);
+            }
+
+            alDeleteAuxiliaryEffectSlots(1, &uiEffectSlot);
+        }
+
+        if (alIsEffect(uiEffect))
+        {
+            alDeleteEffects(1, &uiEffect);
+        }
+
+        if (alIsFilter(uiFilter))
+        {
+            alDeleteFilters(1, &uiFilter);
+        }
     }
+    else
+    {
+        if (!alIsAuxiliaryEffectSlot(uiEffectSlot))
+        {
+            alGenAuxiliaryEffectSlots(1, &uiEffectSlot);
+        }
+
+        if (!alIsEffect(uiEffect))
+        {
+            alGenEffects(1, &uiEffect);
+        }
+
+        if (!alIsFilter(uiFilter))
+        {
+            alGenFilters(1, &uiFilter);
+        }
+
+        alEffecti(uiEffect, AL_EFFECT_TYPE, AL_EFFECT_EQUALIZER);
+
+        // Gains vary from 0.126 up to 7.943, which means from -18dB attenuation
+        // up to +18dB amplification, i.e. 20*log10(gain).
+
+        #define DB_TO_GAIN(db) ((ALfloat)BETWEEN(0.126f, 7.943f, pow(10.f, db/20.f)))
+
+        alEffectf(uiEffect, AL_EQUALIZER_LOW_GAIN, DB_TO_GAIN(snd_eq_low_gain));
+        alEffectf(uiEffect, AL_EQUALIZER_MID1_GAIN, DB_TO_GAIN(snd_eq_mid1_gain));
+        alEffectf(uiEffect, AL_EQUALIZER_MID2_GAIN, DB_TO_GAIN(snd_eq_mid2_gain));
+        alEffectf(uiEffect, AL_EQUALIZER_HIGH_GAIN, DB_TO_GAIN(snd_eq_high_gain));
+
+        alEffectf(uiEffect, AL_EQUALIZER_LOW_CUTOFF, (ALfloat)snd_eq_low_cutoff);
+        alEffectf(uiEffect, AL_EQUALIZER_HIGH_GAIN, (ALfloat)snd_eq_high_cutoff);
+
+        alAuxiliaryEffectSloti(uiEffectSlot, AL_EFFECTSLOT_EFFECT, uiEffect);
+
+        for (int i = 0; i < MAX_CHANNELS; i++)
+        {
+            alSource3i(oal->sources[i], AL_AUXILIARY_SEND_FILTER, uiEffectSlot, 0, uiFilter);
+        }
+    }
+
 }
 
 static void UpdateUserSoundSettings(void)
 {
     I_OAL_SetResampler();
+    I_OAL_SetEqualizer();
 
     if (oal_snd_module == SND_MODULE_3D)
     {
@@ -618,7 +708,6 @@ boolean I_OAL_InitSound(int snd_module)
         (alIsExtensionPresent("AL_EXT_SOURCE_RADIUS") == AL_TRUE);
     InitDeferred();
     ResetParams();
-    SetEqualizer();
 
     return true;
 }
