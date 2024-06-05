@@ -362,10 +362,14 @@ typedef enum {
 
 static eq_preset_t snd_equalizer;
 static int snd_eq_low_gain;
-static int snd_eq_mid1_gain;
-static int snd_eq_mid2_gain;
-static int snd_eq_high_gain;
 static int snd_eq_low_cutoff;
+static int snd_eq_mid1_gain;
+static int snd_eq_mid1_center;
+static int snd_eq_mid1_width;
+static int snd_eq_mid2_gain;
+static int snd_eq_mid2_center;
+static int snd_eq_mid2_width;
+static int snd_eq_high_gain;
 static int snd_eq_high_cutoff;
 
 static LPALGENAUXILIARYEFFECTSLOTS alGenAuxiliaryEffectSlots;
@@ -536,13 +540,24 @@ static void SetEqualizer(void)
         // up to +18dB amplification, i.e. 20*log10(gain).
 
         #define DB_TO_GAIN(db) ((ALfloat)BETWEEN(0.126f, 7.943f, pow(10.f, db/20.f)))
+        #define OCTAVE(x) ((ALfloat)BETWEEN(0.01f, 1.0f, (ALfloat)(x) / 100.0f))
 
+        // Low
         alEffectf(uiEffect, AL_EQUALIZER_LOW_GAIN, DB_TO_GAIN(snd_eq_low_gain));
-        alEffectf(uiEffect, AL_EQUALIZER_MID1_GAIN, DB_TO_GAIN(snd_eq_mid1_gain));
-        alEffectf(uiEffect, AL_EQUALIZER_MID2_GAIN, DB_TO_GAIN(snd_eq_mid2_gain));
-        alEffectf(uiEffect, AL_EQUALIZER_HIGH_GAIN, DB_TO_GAIN(snd_eq_high_gain));
-
         alEffectf(uiEffect, AL_EQUALIZER_LOW_CUTOFF, (ALfloat)snd_eq_low_cutoff);
+
+        // Mid 1
+        alEffectf(uiEffect, AL_EQUALIZER_MID1_GAIN, DB_TO_GAIN(snd_eq_mid1_gain));
+        alEffectf(uiEffect, AL_EQUALIZER_MID1_CENTER, (ALfloat)snd_eq_mid1_center);
+        alEffectf(uiEffect, AL_EQUALIZER_MID1_WIDTH, OCTAVE(snd_eq_mid1_width));
+
+        // Mid 2
+        alEffectf(uiEffect, AL_EQUALIZER_MID2_GAIN, DB_TO_GAIN(snd_eq_mid2_gain));
+        alEffectf(uiEffect, AL_EQUALIZER_MID2_CENTER, (ALfloat)snd_eq_mid2_center);
+        alEffectf(uiEffect, AL_EQUALIZER_MID2_WIDTH, OCTAVE(snd_eq_mid2_width));
+
+        // High
+        alEffectf(uiEffect, AL_EQUALIZER_HIGH_GAIN, DB_TO_GAIN(snd_eq_high_gain));
         alEffectf(uiEffect, AL_EQUALIZER_HIGH_CUTOFF, (ALfloat)snd_eq_high_cutoff);
 
         alAuxiliaryEffectSloti(uiEffectSlot, AL_EFFECTSLOT_EFFECT, uiEffect);
@@ -567,13 +582,23 @@ void I_OAL_EqualizerPreset(void)
         int *var;
         int val[NUM_EQ_PRESETS];
     } eq_presets[] =
-    {                        // Off, Bass, Bass+Treb, Mid
-        {&snd_eq_low_gain,    {   0,    2,    2,    0}},
-        {&snd_eq_mid1_gain,   {   0,    1,    0,    2}},
-        {&snd_eq_mid2_gain,   {   0,    0,    0,    2}},
-        {&snd_eq_high_gain,   {   0,   -2,    2,    0}},
-        {&snd_eq_low_cutoff,  { 200,  200,  200,  200}},
-        {&snd_eq_high_cutoff, {6000, 6000, 6000, 6000}},
+    {   // Low                  Off, Bass, Bass+Treb, Mid
+        {&snd_eq_low_gain,    {    0,     2,     2,     0}}, // -18 to 18
+        {&snd_eq_low_cutoff,  {  200,   200,   200,   200}}, // 50 to 800
+
+        // Mid 1
+        {&snd_eq_mid1_gain,   {    0,     1,     0,     2}}, // -18 to 18
+        {&snd_eq_mid1_center, {  500,   500,   500,   500}}, // 200 to 3000
+        {&snd_eq_mid1_width,  {  100,   100,   100,   100}}, // 1 to 100
+
+        // Mid 2
+        {&snd_eq_mid2_gain,   {    0,     0,     0,     2}}, // -18 to 18
+        {&snd_eq_mid2_center, { 3000,  3000,  3000,  3000}}, // 1000 to 8000
+        {&snd_eq_mid2_width,  {  100,   100,   100,   100}}, // 1 to 100
+
+        // High
+        {&snd_eq_high_gain,   {    0,    -2,     2,     0}}, // -18 to 18
+        {&snd_eq_high_cutoff, { 6000,  6000,  6000,  6000}}, // 4000 to 16000
     };
 
     for (int i = 0; i < arrlen(eq_presets); i++)
@@ -705,18 +730,34 @@ void I_OAL_BindSoundVariables(void)
 
     BIND_NUM(snd_equalizer, EQ_PRESET_OFF, EQ_PRESET_OFF, EQ_PRESET_MID,
         "Equalizer preset (0 = Off; 1 = Bass; 2 = Bass+Treb; 3 = Mid");
+
+    // Low
     BIND_NUM(snd_eq_low_gain, 0, -18, 18,
         "Equalizer low frequency range gain [dB]");
+    BIND_NUM(snd_eq_low_cutoff, 200, 50, 800,
+        "Equalizer low cut-off frequency [Hz]");
+
+    // Mid 1
     BIND_NUM(snd_eq_mid1_gain, 0, -18, 18,
         "Equalizer mid1 frequency range gain [dB]");
+    BIND_NUM(snd_eq_mid1_center, 500, 200, 3000,
+        "Equalizer mid1 center frequency [Hz]");
+    BIND_NUM(snd_eq_mid1_width, 100, 1, 100,
+        "Equalizer mid1 bandwidth [octave] (1 = 0.01; 100 = 1.0)");
+
+    // Mid 2
     BIND_NUM(snd_eq_mid2_gain, 0, -18, 18,
         "Equalizer mid2 frequency range gain [dB]");
+    BIND_NUM(snd_eq_mid2_center, 3000, 1000, 8000,
+        "Equalizer mid2 center frequency [Hz]");
+    BIND_NUM(snd_eq_mid2_width, 100, 1, 100,
+        "Equalizer mid2 bandwidth [octave] (1 = 0.01; 100 = 1.0)");
+
+    // High
     BIND_NUM(snd_eq_high_gain, 0, -18, 18,
         "Equalizer high frequency range gain [dB]");
-    BIND_NUM(snd_eq_low_cutoff, 200, 50, 800,
-        "Equalizer low cut-off frequency");
     BIND_NUM(snd_eq_high_cutoff, 6000, 4000, 16000,
-        "Equalizer high cut-off frequency");
+        "Equalizer high cut-off frequency [Hz]");
 }
 
 boolean I_OAL_InitSound(int snd_module)
