@@ -82,21 +82,6 @@ static oal_system_t *oal;
 static LPALDEFERUPDATESSOFT alDeferUpdatesSOFT;
 static LPALPROCESSUPDATESSOFT alProcessUpdatesSOFT;
 
-static LPALGENAUXILIARYEFFECTSLOTS alGenAuxiliaryEffectSlots;
-static LPALDELETEAUXILIARYEFFECTSLOTS alDeleteAuxiliaryEffectSlots;
-static LPALISAUXILIARYEFFECTSLOT alIsAuxiliaryEffectSlot;
-static LPALGENEFFECTS alGenEffects;
-static LPALDELETEEFFECTS alDeleteEffects;
-static LPALISEFFECT alIsEffect;
-static LPALEFFECTI alEffecti;
-static LPALEFFECTF alEffectf;
-static LPALAUXILIARYEFFECTSLOTI alAuxiliaryEffectSloti;
-static LPALGENFILTERS alGenFilters;
-static LPALDELETEFILTERS alDeleteFilters;
-static LPALISFILTER alIsFilter;
-static LPALFILTERI alFilteri;
-static LPALFILTERF alFilterf;
-
 void I_OAL_DeferUpdates(void)
 {
     if (!oal)
@@ -383,11 +368,23 @@ static int snd_eq_high_gain;
 static int snd_eq_low_cutoff;
 static int snd_eq_high_cutoff;
 
-void I_OAL_SetEqualizer(void)
+static LPALGENAUXILIARYEFFECTSLOTS alGenAuxiliaryEffectSlots;
+static LPALDELETEAUXILIARYEFFECTSLOTS alDeleteAuxiliaryEffectSlots;
+static LPALISAUXILIARYEFFECTSLOT alIsAuxiliaryEffectSlot;
+static LPALGENEFFECTS alGenEffects;
+static LPALDELETEEFFECTS alDeleteEffects;
+static LPALISEFFECT alIsEffect;
+static LPALEFFECTI alEffecti;
+static LPALEFFECTF alEffectf;
+static LPALAUXILIARYEFFECTSLOTI alAuxiliaryEffectSloti;
+static LPALGENFILTERS alGenFilters;
+static LPALDELETEFILTERS alDeleteFilters;
+static LPALISFILTER alIsFilter;
+static LPALFILTERI alFilteri;
+static LPALFILTERF alFilterf;
+
+static void InitEqualizer(void)
 {
-    static ALuint uiEffectSlot = AL_INVALID;
-    static ALuint uiEffect = AL_INVALID;
-    static ALuint uiFilter = AL_INVALID;
     ALCint iSends = 0;
 
     if (!oal || !oal->EXT_EFX)
@@ -460,6 +457,13 @@ void I_OAL_SetEqualizer(void)
     {
         alFilterf = FUNCTION_CAST(LPALFILTERF, alGetProcAddress("alFilterf"));
     }
+}
+
+void I_OAL_SetEqualizer(void)
+{
+    static ALuint uiEffectSlot = AL_INVALID;
+    static ALuint uiEffect = AL_INVALID;
+    static ALuint uiFilter = AL_INVALID;
 
     if (!alGenAuxiliaryEffectSlots ||
         !alDeleteAuxiliaryEffectSlots ||
@@ -478,6 +482,8 @@ void I_OAL_SetEqualizer(void)
     {
         return;
     }
+
+    // Unload all effects first.
 
     if (alIsAuxiliaryEffectSlot(uiEffectSlot))
     {
@@ -500,6 +506,8 @@ void I_OAL_SetEqualizer(void)
         alDeleteFilters(1, &uiFilter);
     }
 
+    // Apply equalizer effect.
+
     if (snd_equalizer != EQ_PRESET_OFF)
     {
         if (!alIsAuxiliaryEffectSlot(uiEffectSlot))
@@ -521,6 +529,7 @@ void I_OAL_SetEqualizer(void)
 
         // AL_LOWPASS_GAIN actually controls overall gain for the filter it's
         // applied to (OpenAL Effects Extension Guide 1.1, pp. 16-17, 135).
+
         alFilteri(uiFilter, AL_FILTER_TYPE, AL_FILTER_LOWPASS);
 
         // Gains vary from 0.126 up to 7.943, which means from -18dB attenuation
@@ -540,9 +549,12 @@ void I_OAL_SetEqualizer(void)
 
         for (int i = 0; i < MAX_CHANNELS; i++)
         {
-            alFilterf(uiFilter, AL_LOWPASS_GAIN, 0.0f); // Mute the dry path.
+            // Mute the dry path.
+            alFilterf(uiFilter, AL_LOWPASS_GAIN, 0.0f);
             alSourcei(oal->sources[i], AL_DIRECT_FILTER, uiFilter);
-            alFilterf(uiFilter, AL_LOWPASS_GAIN, 1.0f); // Keep the wet path.
+
+            // Keep the wet path.
+            alFilterf(uiFilter, AL_LOWPASS_GAIN, 1.0f);
             alSource3i(oal->sources[i], AL_AUXILIARY_SEND_FILTER, uiEffectSlot, 0, uiFilter);
         }
     }
@@ -755,6 +767,8 @@ boolean I_OAL_InitSound(int snd_module)
         (alcIsExtensionPresent(oal->device, "ALC_EXT_EFX") == ALC_TRUE);
     oal->EXT_SOURCE_RADIUS =
         (alIsExtensionPresent("AL_EXT_SOURCE_RADIUS") == AL_TRUE);
+
+    InitEqualizer();
     InitDeferred();
     ResetParams();
 
