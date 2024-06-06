@@ -436,12 +436,14 @@ static void R_DrawFuzzColumn_orig(void)
 
         *dest =
             fullcolormap[6 * 256
-                         + dest[fuzzoffset[fuzzpos++] ? -linesize : linesize]];
+                         + dest[fuzzoffset[fuzzpos] ? -linesize : linesize]];
         dest += linesize; // killough 11/98
 
-        // Clamp table lookup index.
-        fuzzpos &= ((unsigned)(fuzzpos - FUZZTABLE))
-                   >> (8 * sizeof fuzzpos - 1); // killough 1/99
+        ++fuzzpos;
+
+        if (fuzzpos == FUZZTABLE)
+            fuzzpos = 0;
+
     } while (--count);
 
     // [crispy] if the line at the bottom had to be cut off,
@@ -511,9 +513,11 @@ static void R_DrawFuzzColumn_block(void)
             dest += linesize;
         }
 
-        fuzzpos++;
-        fuzzpos &=
-            ((unsigned)(fuzzpos - FUZZTABLE)) >> (8 * sizeof(fuzzpos) - 1);
+        ++fuzzpos;
+
+        if (fuzzpos == FUZZTABLE)
+            fuzzpos = 0;
+
     } while ((count -= ny) > 0);
 
     if (cutoff)
