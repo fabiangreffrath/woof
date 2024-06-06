@@ -725,6 +725,35 @@ static void I_ResetTargetRefresh(void);
  #define I_CpuPause()
 #endif
 
+static void I_WaitUntil(uint64_t target_time)
+{
+    while (true)
+    {
+        uint64_t current_time = I_GetTimeUS();
+        uint64_t elapsed_time = current_time - frametime_start;
+        uint64_t remaining_time = 0;
+
+        I_CpuPause();
+
+        if (elapsed_time >= target_time)
+        {
+            frametime_start = current_time;
+            break;
+        }
+
+        remaining_time = target_time - elapsed_time;
+
+        if (remaining_time > 1000)
+        {
+            I_SleepUS(500);
+        }
+        else
+        {
+            I_Sleep(0); // yield
+        }
+    }
+}
+
 void I_FinishUpdate(void)
 {
     if (noblit)
@@ -790,29 +819,7 @@ void I_FinishUpdate(void)
 
     if (use_limiter)
     {
-        uint64_t target_time = 1000000ull / targetrefresh;
-
-        while (true)
-        {
-            uint64_t current_time = I_GetTimeUS();
-            uint64_t elapsed_time = current_time - frametime_start;
-            uint64_t remaining_time = 0;
-
-            I_CpuPause();
-
-            if (elapsed_time >= target_time)
-            {
-                frametime_start = current_time;
-                break;
-            }
-
-            remaining_time = target_time - elapsed_time;
-
-            if (remaining_time > 1000)
-            {
-                I_Sleep((remaining_time - 1000) / 1000);
-            }
-        }
+        I_WaitUntil(1000000ull / targetrefresh);
     }
     else
     {
