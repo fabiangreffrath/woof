@@ -1891,6 +1891,9 @@ static void M_Setup(int choice)
 
 void MN_ClearMenus(void)
 {
+    // force status bar refresh
+    inhelpscreens = true;
+
     menuactive = 0;
     options_active = false;
     print_warning_about_changes = 0; // killough 8/15/98
@@ -3068,12 +3071,6 @@ void M_Drawer(void)
     if (!menuactive)
     {
         return;
-    }
-
-    if (MN_MenuIsShaded())
-    {
-        inhelpscreens = true;
-        V_ShadeScreen();
     }
 
     if (currentMenu->routine)
