@@ -523,10 +523,11 @@ static boolean OpenFile(sndfile_t *file, void *data, sf_count_t size)
 
 static void FadeInOutMono16(short *data, ALsizei size, ALsizei freq)
 {
+    const int len = size / sizeof(short);
     const int fadelen = freq * FADETIME / 1000000;
     int i;
 
-    if ((!data[0] && !data[size - 1]) || size / sizeof(short) < fadelen)
+    if ((!data[0] && !data[len - 1]) || len < fadelen)
     {
         return;
     }
@@ -534,17 +535,18 @@ static void FadeInOutMono16(short *data, ALsizei size, ALsizei freq)
     for (i = 0; i < fadelen; i++)
     {
         data[i] = data[i] * i / fadelen;
-        data[size - 1 - i] = data[size - 1 - i] * i / fadelen;
+        data[len - 1 - i] = data[len - 1 - i] * i / fadelen;
     }
 }
 
 static void FadeInOutMonoFloat32(float *data, ALsizei size, ALsizei freq)
 {
+    const int len = size / sizeof(float);
     const int fadelen = freq * FADETIME / 1000000;
     int i;
 
-    if ((fabsf(data[0]) < 0.000001f && fabsf(data[size - 1]) < 0.000001f)
-        || size / sizeof(float) < fadelen)
+    if ((fabsf(data[0]) < 0.000001f && fabsf(data[len - 1]) < 0.000001f)
+        || len < fadelen)
     {
         return;
     }
@@ -552,7 +554,7 @@ static void FadeInOutMonoFloat32(float *data, ALsizei size, ALsizei freq)
     for (i = 0; i < fadelen; i++)
     {
         data[i] = data[i] * i / fadelen;
-        data[size - 1 - i] = data[size - 1 - i] * i / fadelen;
+        data[len - 1 - i] = data[len - 1 - i] * i / fadelen;
     }
 }
 
