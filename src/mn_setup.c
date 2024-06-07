@@ -2252,7 +2252,8 @@ static setup_menu_t gen_settings5[] = {
 
     {"Voxels", S_ONOFF | S_STRICT, M_X, M_SPC, {"voxels_rendering"}},
 
-    {"Brightmaps", S_ONOFF | S_STRICT, M_X, M_SPC, {"brightmaps"}},
+    {"Brightmaps", S_ONOFF | S_STRICT, M_X, M_SPC, {"brightmaps"},
+     m_null, input_null, str_empty, R_InitDrawFunctions},
 
     {"Stretch Short Skies", S_ONOFF, M_X, M_SPC, {"stretchsky"},
      m_null, input_null, str_empty, R_InitSkyMap},

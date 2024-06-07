@@ -24,7 +24,7 @@ jobs:
           - name: Linux GCC
             os: ubuntu-24.04
             compiler: gcc
-            extra-options: -DCMAKE_INSTALL_PREFIX=/usr -DCMAKE_FIND_PACKAGE_PREFER_CONFIG=OFF
+            extra-options: -DCMAKE_FIND_PACKAGE_PREFER_CONFIG=OFF
             shell: bash
 
           - name: macOS Clang
@@ -108,27 +108,6 @@ jobs:
         run: |
           cd build
           cpack
-
-      - name: Upload AppImage
-        if: runner.os == 'Linux'
-        uses: actions/upload-artifact@v4
-        with:
-          name: Woof-AppImage
-          path: build/*.appimage
-
-      - name: Extract Version Number
-        if: ${{ contains(github.ref, 'tags') && runner.os == 'Linux' }}
-        shell: bash
-        run: echo "VERSION=${GITHUB_REF##*_}" >> $GITHUB_ENV
-
-      - name: Release
-        if: ${{ contains(github.ref, 'tags') && runner.os == 'Linux' }}
-        uses: ncipollo/release-action@v1
-        with:
-          name: Woof! ${{ env.VERSION }}
-          bodyFile: CHANGELOG.md
-          allowUpdates: true
-          artifacts: build/*.appimage
 
   linter:
     name: ${{ matrix.name }}

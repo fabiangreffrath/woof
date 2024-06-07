@@ -1,0 +1,130 @@
+name: Build Packages
+
+on:
+  push:
+    branches: [ master ]
+    tags: ['*']
+    paths-ignore: ['**.md']
+  pull_request:
+    branches: [ master ]
+    paths-ignore: ['**.md']
+  workflow_dispatch:
+
+env:
+  VCPKG_BINARY_SOURCES: "clear;x-gha,readwrite"
+
+jobs:
+  build:
+    name: ${{ matrix.config.name }}
+    runs-on: ${{ matrix.config.os }}
+
+    strategy:
+      matrix:
+        config:
+          - name: Linux GCC
+            os: ubuntu-22.04
+            triplet: x64-linux-dynamic-release
+            artifact-name: AppImage
+            artifact-path: build/*.appimage
+
+          - name: MSVC x64
+            os: windows-latest
+            arch: x64
+            triplet: x64-windows-static-release
+            artifact-name: Win-64
+            artifact-path: build/*.zip
+
+          - name: MSVC x86
+            os: windows-latest
+            arch: x86
+            triplet: x86-windows-static-release
+            artifact-name: Win-32
+            artifact-path: build/*.zip
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install dependencies (Linux)
+        if: runner.os == 'Linux'
+        run: |
+          sudo sed -i 's/# deb-src/deb-src/' /etc/apt/sources.list
+          sudo apt-get update
+          sudo apt-get install ninja-build
+          sudo apt-get build-dep libsdl2-dev
+
+      - name: Developer Command Prompt
+        if: runner.os == 'Windows'
+        uses: ilammy/msvc-dev-cmd@v1
+        with:
+          arch: ${{ matrix.config.arch }}
+
+      - name: Export GitHub Actions cache environment variables
+        uses: actions/github-script@v7
+        with:
+          script: |
+            core.exportVariable('ACTIONS_CACHE_URL', process.env.ACTIONS_CACHE_URL || '');
+            core.exportVariable('ACTIONS_RUNTIME_TOKEN', process.env.ACTIONS_RUNTIME_TOKEN || '');
+
+      - name: Configure (Linux)
+        if: runner.os == 'Linux'
+        shell: bash
+        run: |
+          cmake -B build -G Ninja -DCMAKE_BUILD_TYPE=Release \
+            -DENABLE_WERROR=ON -DENABLE_HARDENING=ON -DENABLE_LTO=ON \
+            -DCMAKE_TOOLCHAIN_FILE="$VCPKG_INSTALLATION_ROOT/scripts/buildsystems/vcpkg.cmake" \
+            -DVCPKG_OVERLAY_TRIPLETS="cmake/triplets" \
+            -DVCPKG_TARGET_TRIPLET=${{ matrix.config.triplet }} \
+            -DCMAKE_INSTALL_PREFIX=/usr
+
+      - name: Configure (Windows)
+        if: runner.os == 'Windows'
+        run: |
+          cmake -B build -G Ninja -DCMAKE_BUILD_TYPE=Release `
+            -DENABLE_WERROR=ON -DENABLE_LTO=ON `
+            -DCMAKE_TOOLCHAIN_FILE="${env:VCPKG_INSTALLATION_ROOT}/scripts/buildsystems/vcpkg.cmake" `
+            -DVCPKG_OVERLAY_TRIPLETS="cmake/triplets" `
+            -DVCPKG_TARGET_TRIPLET=${{ matrix.config.triplet }} `
+            -DCMAKE_POLICY_DEFAULT_CMP0091=NEW -DCMAKE_MSVC_RUNTIME_LIBRARY=MultiThreaded `
+            -DCMAKE_IGNORE_PATH="C:/Strawberry/perl/bin;C:/Strawberry/c/lib"
+
+      - name: Build
+        run: cmake --build build --config "Release"
+
+      - name: Test
+        if: github.event_name == 'workflow_dispatch'
+        run: |
+          cd demotest
+          pip install pyyaml joblib
+          python demotest --jobs 4 --port ../build/src/woof
+
+      - name: Package (Linux)
+        if: runner.os == 'Linux'
+        run: |
+          export LD_LIBRARY_PATH="${LD_LIBRARY_PATH}:${{ github.workspace }}/build/vcpkg_installed/${{ matrix.config.triplet }}/lib"
+          cd build
+          cpack
+
+      - name: Package (Windows)
+        if: runner.os == 'Windows'
+        run: |
+          cd build
+          cpack
+
+      - name: Upload Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.config.artifact-name }}
+          path: ${{ matrix.config.artifact-path }}
+
+      - name: Extract Version Number
+        shell: bash
+        run: echo "VERSION=${GITHUB_REF##*_}" >> $GITHUB_ENV
+
+      - name: Release
+        if: ${{ contains(github.ref, 'tags') }}
+        uses: ncipollo/release-action@v1
+        with:
+          name: Woof! ${{ env.VERSION }}
+          bodyFile: CHANGELOG.md
+          allowUpdates: true
+          artifacts: ${{ matrix.config.artifact-path }}
