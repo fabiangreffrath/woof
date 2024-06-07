@@ -615,15 +615,25 @@ static void FadeInOutMono8(byte *data, ALsizei size, ALsizei freq)
     const int fadelen = freq * FADETIME / 1000000;
     int i;
 
-    if ((data[0] == 128 && data[size - 1] == 128) || size < fadelen)
+    if (size < fadelen)
     {
         return;
     }
 
-    for (i = 0; i < fadelen; i++)
+    if (data[0] != 128)
     {
-        data[i] = (data[i] - 128) * i / fadelen + 128;
-        data[size - 1 - i] = (data[size - 1 - i] - 128) * i / fadelen + 128;
+        for (i = 0; i < fadelen; i++)
+        {
+            data[i] = (data[i] - 128) * i / fadelen + 128;
+        }
+    }
+
+    if (data[size - 1] != 128)
+    {
+        for (i = 0; i < fadelen; i++)
+        {
+            data[size - 1 - i] = (data[size - 1 - i] - 128) * i / fadelen + 128;
+        }
     }
 }
 
