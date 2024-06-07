@@ -361,6 +361,7 @@ typedef enum {
 } eq_preset_t;
 
 static eq_preset_t snd_equalizer;
+static int snd_eq_preamp;
 static int snd_eq_low_gain;
 static int snd_eq_low_cutoff;
 static int snd_eq_mid1_gain;
@@ -463,7 +464,7 @@ static void InitEqualizer(void)
     }
 }
 
-static void SetEqualizer(void)
+void I_OAL_SetEqualizer(void)
 {
     static ALuint uiEffectSlot = AL_INVALID;
     static ALuint uiEffect = AL_INVALID;
@@ -539,25 +540,27 @@ static void SetEqualizer(void)
         // Gains vary from 0.126 up to 7.943, which means from -18dB attenuation
         // up to +18dB amplification, i.e. 20*log10(gain).
 
-        #define DB_TO_GAIN(db) ((ALfloat)BETWEEN(0.126f, 7.943f, pow(10.f, db/20.f)))
+        #define DB_TO_GAIN(db) powf(10.0f, (db)/20.0f)
+        #define EQ_GAIN(db) ((ALfloat)BETWEEN(0.126f, 7.943f, DB_TO_GAIN(db)))
+        #define LP_GAIN(db) ((ALfloat)BETWEEN(0.001f, 1.0f, DB_TO_GAIN(db)))
         #define OCTAVE(x) ((ALfloat)BETWEEN(0.01f, 1.0f, (ALfloat)(x) / 100.0f))
 
         // Low
-        alEffectf(uiEffect, AL_EQUALIZER_LOW_GAIN, DB_TO_GAIN(snd_eq_low_gain));
+        alEffectf(uiEffect, AL_EQUALIZER_LOW_GAIN, EQ_GAIN(snd_eq_low_gain));
         alEffectf(uiEffect, AL_EQUALIZER_LOW_CUTOFF, (ALfloat)snd_eq_low_cutoff);
 
         // Mid 1
-        alEffectf(uiEffect, AL_EQUALIZER_MID1_GAIN, DB_TO_GAIN(snd_eq_mid1_gain));
+        alEffectf(uiEffect, AL_EQUALIZER_MID1_GAIN, EQ_GAIN(snd_eq_mid1_gain));
         alEffectf(uiEffect, AL_EQUALIZER_MID1_CENTER, (ALfloat)snd_eq_mid1_center);
         alEffectf(uiEffect, AL_EQUALIZER_MID1_WIDTH, OCTAVE(snd_eq_mid1_width));
 
         // Mid 2
-        alEffectf(uiEffect, AL_EQUALIZER_MID2_GAIN, DB_TO_GAIN(snd_eq_mid2_gain));
+        alEffectf(uiEffect, AL_EQUALIZER_MID2_GAIN, EQ_GAIN(snd_eq_mid2_gain));
         alEffectf(uiEffect, AL_EQUALIZER_MID2_CENTER, (ALfloat)snd_eq_mid2_center);
         alEffectf(uiEffect, AL_EQUALIZER_MID2_WIDTH, OCTAVE(snd_eq_mid2_width));
 
         // High
-        alEffectf(uiEffect, AL_EQUALIZER_HIGH_GAIN, DB_TO_GAIN(snd_eq_high_gain));
+        alEffectf(uiEffect, AL_EQUALIZER_HIGH_GAIN, EQ_GAIN(snd_eq_high_gain));
         alEffectf(uiEffect, AL_EQUALIZER_HIGH_CUTOFF, (ALfloat)snd_eq_high_cutoff);
 
         alAuxiliaryEffectSloti(uiEffectSlot, AL_EFFECTSLOT_EFFECT, uiEffect);
@@ -569,7 +572,7 @@ static void SetEqualizer(void)
             alSourcei(oal->sources[i], AL_DIRECT_FILTER, uiFilter);
 
             // Keep the wet path.
-            alFilterf(uiFilter, AL_LOWPASS_GAIN, 1.0f);
+            alFilterf(uiFilter, AL_LOWPASS_GAIN, LP_GAIN(snd_eq_preamp));
             alSource3i(oal->sources[i], AL_AUXILIARY_SEND_FILTER, uiEffectSlot, 0, uiFilter);
         }
     }
@@ -582,7 +585,10 @@ void I_OAL_EqualizerPreset(void)
         int *var;
         int val[NUM_EQ_PRESETS];
     } eq_presets[] =
-    {   // Low                  Off, Bass, Bass+Treb, Mid
+    {   // Preamp               Off, Bass, Bass+Treb, Mid
+        {&snd_eq_preamp,      {    0,    -4,    -4,    -5}}, // -60 to 0
+
+        // Low
         {&snd_eq_low_gain,    {    0,     4,     4,     0}}, // -18 to 18
         {&snd_eq_low_cutoff,  {  200,   200,   200,   200}}, // 50 to 800
 
@@ -606,13 +612,13 @@ void I_OAL_EqualizerPreset(void)
         *eq_presets[i].var = eq_presets[i].val[snd_equalizer];
     }
 
-    SetEqualizer();
+    I_OAL_SetEqualizer();
 }
 
 static void UpdateUserSoundSettings(void)
 {
     I_OAL_SetResampler();
-    SetEqualizer();
+    I_OAL_SetEqualizer();
 
     if (oal_snd_module == SND_MODULE_3D)
     {
@@ -730,6 +736,8 @@ void I_OAL_BindSoundVariables(void)
 
     BIND_NUM(snd_equalizer, EQ_PRESET_OFF, EQ_PRESET_OFF, EQ_PRESET_MID,
         "Equalizer preset (0 = Off; 1 = Bass; 2 = Bass+Treb; 3 = Mid");
+    BIND_NUM(snd_eq_preamp, 0, -60, 0,
+        "Equalizer preamp gain [dB]");
 
     // Low
     BIND_NUM(snd_eq_low_gain, 0, -18, 18,
