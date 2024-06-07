@@ -464,7 +464,7 @@ static void InitEqualizer(void)
     }
 }
 
-static void SetEqualizer(void)
+void I_OAL_SetEqualizer(void)
 {
     static ALuint uiEffectSlot = AL_INVALID;
     static ALuint uiEffect = AL_INVALID;
@@ -612,13 +612,13 @@ void I_OAL_EqualizerPreset(void)
         *eq_presets[i].var = eq_presets[i].val[snd_equalizer];
     }
 
-    SetEqualizer();
+    I_OAL_SetEqualizer();
 }
 
 static void UpdateUserSoundSettings(void)
 {
     I_OAL_SetResampler();
-    SetEqualizer();
+    I_OAL_SetEqualizer();
 
     if (oal_snd_module == SND_MODULE_3D)
     {

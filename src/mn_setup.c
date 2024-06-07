@@ -1828,6 +1828,7 @@ void MN_DrawCompat(void)
 static setup_tab_t gen_tabs[] = {
     {"video"},
     {"audio"},
+    {"eq"},
     {"mouse"},
     {"gamepad"},
     {"display"},
@@ -2094,6 +2095,45 @@ static setup_menu_t gen_settings2[] = {
     MI_END
 };
 
+static setup_menu_t gen_settings_eq[] = {
+    {"Preamp dB", S_THERMO | S_THRM_SIZE11, M_X_THRM11, M_THRM_SPC,
+     {"snd_eq_preamp"}, m_null, input_null, str_empty, I_OAL_SetEqualizer},
+
+    {"Low Gain dB", S_THERMO | S_THRM_SIZE11, M_X_THRM11, M_THRM_SPC,
+     {"snd_eq_low_gain"}, m_null, input_null, str_empty, I_OAL_SetEqualizer},
+
+    {"Mid 1 Gain dB", S_THERMO | S_THRM_SIZE11, M_X_THRM11, M_THRM_SPC,
+     {"snd_eq_mid1_gain"}, m_null, input_null, str_empty, I_OAL_SetEqualizer},
+
+    {"Mid 2 Gain dB", S_THERMO | S_THRM_SIZE11, M_X_THRM11, M_THRM_SPC,
+     {"snd_eq_mid2_gain"}, m_null, input_null, str_empty, I_OAL_SetEqualizer},
+
+    {"High Gain dB", S_THERMO | S_THRM_SIZE11, M_X_THRM11, M_THRM_SPC,
+     {"snd_eq_high_gain"}, m_null, input_null, str_empty, I_OAL_SetEqualizer},
+
+
+    {"Low Cutoff Hz", S_THERMO | S_THRM_SIZE11, M_X_THRM11, M_THRM_SPC,
+     {"snd_eq_low_cutoff"}, m_null, input_null, str_empty, I_OAL_SetEqualizer},
+
+    {"Mid 1 Center Hz", S_THERMO | S_THRM_SIZE11, M_X_THRM11, M_THRM_SPC,
+     {"snd_eq_mid1_center"}, m_null, input_null, str_empty, I_OAL_SetEqualizer},
+
+    {"Mid 2 Center Hz", S_THERMO | S_THRM_SIZE11, M_X_THRM11, M_THRM_SPC,
+     {"snd_eq_mid2_center"}, m_null, input_null, str_empty, I_OAL_SetEqualizer},
+
+    {"High Cutoff Hz", S_THERMO | S_THRM_SIZE11, M_X_THRM11, M_THRM_SPC,
+     {"snd_eq_high_cutoff"}, m_null, input_null, str_empty, I_OAL_SetEqualizer},
+
+
+    {"Mid 1 Width Oct", S_THERMO | S_THRM_SIZE11, M_X_THRM11, M_THRM_SPC,
+     {"snd_eq_mid1_width"}, m_null, input_null, str_empty, I_OAL_SetEqualizer},
+
+    {"Mid 2 Width Oct", S_THERMO | S_THRM_SIZE11, M_X_THRM11, M_THRM_SPC,
+     {"snd_eq_mid2_width"}, m_null, input_null, str_empty, I_OAL_SetEqualizer},
+
+    MI_END
+};
+
 static const char **GetResamplerStrings(void)
 {
     const char **strings = I_OAL_GetResamplerStrings();
@@ -2355,7 +2395,7 @@ static setup_menu_t gen_settings6[] = {
 };
 
 static setup_menu_t *gen_settings[] = {
-    gen_settings1, gen_settings2, gen_settings3, gen_settings4,
+    gen_settings1, gen_settings2, gen_settings_eq, gen_settings3, gen_settings4,
     gen_settings5, gen_settings6, NULL
 };
 
