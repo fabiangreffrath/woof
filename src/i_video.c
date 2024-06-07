@@ -725,7 +725,7 @@ static void I_ResetTargetRefresh(void);
  #define I_CpuPause()
 #endif
 
-static void I_WaitUntil(uint64_t target_time)
+NOINLINE static void I_WaitUntil(uint64_t target_time)
 {
     while (true)
     {

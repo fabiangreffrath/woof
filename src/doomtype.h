@@ -95,10 +95,13 @@ typedef byte lighttable_t;
 
 #if defined(__GNUC__) || defined(__clang__)
  #define NORETURN __attribute__((noreturn))
+ #define NOINLINE __attribute__((noinline))
 #elif defined (_MSC_VER)
  #define NORETURN __declspec(noreturn)
+ #define NOINLINE __declspec(noinline)
 #else
  #define NORETURN
+ #define NOINLINE
 #endif
 
 // The packed attribute forces structures to be packed into the minimum
