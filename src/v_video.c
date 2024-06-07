@@ -918,7 +918,10 @@ void V_Init(void)
     y2lookup[SCREENHEIGHT - 1] = video.height - 1;
     y1lookup[SCREENHEIGHT] = y2lookup[SCREENHEIGHT] = video.height;
 
-    v_darkcolormap = colormaps[0];
+    if (!v_darkcolormap)
+    {
+        v_darkcolormap = colormaps[0];
+    }
 }
 
 // Set the buffer that the code draws to.
