@@ -109,6 +109,13 @@ jobs:
           cd build
           cpack
 
+      - name: Upload Artifacts
+        if: runner.os == 'Windows'
+        uses: actions/upload-artifact@v4
+        with:
+          name: MSYS2-UCRT64
+          path: build/*.zip
+
   linter:
     name: ${{ matrix.name }}
     runs-on: ubuntu-24.04
