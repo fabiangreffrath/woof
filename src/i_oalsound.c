@@ -580,36 +580,6 @@ boolean I_OAL_AllowReinitSound(void)
     return (alcIsExtensionPresent(oal->device, "ALC_SOFT_HRTF") == ALC_TRUE);
 }
 
-//
-// IsPaddedSound
-//
-// DMX sounds use 16 bytes of padding before and after the real sound. The
-// padding bytes are equal to the first or last real byte, respectively.
-// Reference: https://www.doomworld.com/forum/post/949486
-//
-static boolean IsPaddedSound(const byte *data, int size)
-{
-    const int sound_end = size - DMXPADSIZE;
-    int i;
-
-    for (i = 0; i < DMXPADSIZE; i++)
-    {
-        // Check padding before sound.
-        if (data[i] != data[DMXPADSIZE])
-        {
-            return false;
-        }
-
-        // Check padding after sound.
-        if (data[sound_end + i] != data[sound_end - 1])
-        {
-            return false;
-        }
-    }
-
-    return true;
-}
-
 static void FadeInOutMono8(byte *data, ALsizei size, ALsizei freq)
 {
     const int fadelen = freq * FADETIME / 1000000;
@@ -686,19 +656,18 @@ boolean I_OAL_CacheSound(sfxinfo_t *sfx)
 
             sampledata = lumpdata + DMXHDRSIZE;
 
-            if (IsPaddedSound(sampledata, size))
-            {
-                // Ignore DMX padding.
-                sampledata += DMXPADSIZE;
-                size -= DMXPADSIZE * 2;
-            }
+            // DMX skips the first and last 16 bytes of data. Custom sounds may
+            // be created with tools that aren't aware of this, which means part
+            // of the waveform is cut off. We compensate for this by fading in
+            // or out sounds that start or end at a non-zero amplitude to
+            // prevent clicking.
+            // Reference: https://www.doomworld.com/forum/post/949486
+            sampledata += DMXPADSIZE;
+            size -= DMXPADSIZE * 2;
+            FadeInOutMono8(sampledata, size, freq);
 
             // All Doom sounds are 8-bit
             format = AL_FORMAT_MONO8;
-
-            // Fade in sounds that start at a non-zero amplitude to prevent
-            // clicking.
-            FadeInOutMono8(sampledata, size, freq);
         }
         else
         {
