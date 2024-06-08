@@ -817,7 +817,7 @@ void I_FinishUpdate(void)
 
     if (use_limiter)
     {
-        I_WaitUntil(1000000ull / targetrefresh);
+        I_WaitUntil(1000000u / targetrefresh);
     }
     else
     {
