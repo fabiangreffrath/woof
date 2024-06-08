@@ -729,9 +729,8 @@ NOINLINE static void I_WaitUntil(uint64_t target_time)
 {
     while (true)
     {
-        uint64_t current_time = I_GetTimeUS();
-        uint64_t elapsed_time = current_time - frametime_start;
-        uint64_t remaining_time = 0;
+        const uint64_t current_time = I_GetTimeUS();
+        const uint64_t elapsed_time = current_time - frametime_start;
 
         I_CpuPause();
 
@@ -741,9 +740,7 @@ NOINLINE static void I_WaitUntil(uint64_t target_time)
             break;
         }
 
-        remaining_time = target_time - elapsed_time;
-
-        if (remaining_time > 1000)
+        if (target_time - elapsed_time > 1000)
         {
             I_SleepUS(500);
         }
