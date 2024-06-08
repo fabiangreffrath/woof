@@ -610,19 +610,30 @@ static boolean IsPaddedSound(const byte *data, int size)
     return true;
 }
 
-static void FadeInMono8(byte *data, ALsizei size, ALsizei freq)
+static void FadeInOutMono8(byte *data, ALsizei size, ALsizei freq)
 {
     const int fadelen = freq * FADETIME / 1000000;
     int i;
 
-    if (data[0] == 128 || size < fadelen)
+    if (size < fadelen)
     {
         return;
     }
 
-    for (i = 0; i < fadelen; i++)
+    if (data[0] != 128)
     {
-        data[i] = (data[i] - 128) * i / fadelen + 128;
+        for (i = 0; i < fadelen; i++)
+        {
+            data[i] = (data[i] - 128) * i / fadelen + 128;
+        }
+    }
+
+    if (data[size - 1] != 128)
+    {
+        for (i = 0; i < fadelen; i++)
+        {
+            data[size - 1 - i] = (data[size - 1 - i] - 128) * i / fadelen + 128;
+        }
     }
 }
 
@@ -687,7 +698,7 @@ boolean I_OAL_CacheSound(sfxinfo_t *sfx)
 
             // Fade in sounds that start at a non-zero amplitude to prevent
             // clicking.
-            FadeInMono8(sampledata, size, freq);
+            FadeInOutMono8(sampledata, size, freq);
         }
         else
         {
