@@ -786,7 +786,8 @@ void I_FinishUpdate(void)
         // Update FPS counter every second
         if (time >= 1000000)
         {
-            fps = ((uint64_t)frame_counter * 1000000) / time;
+            float secs = time * 1e-6f;
+            fps = (frame_counter / secs) + 0.5f;
             frame_counter = 0;
             last_time = frametime_start;
         }
