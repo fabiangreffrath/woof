@@ -1787,6 +1787,7 @@ void I_InitGraphics(void)
     {
         I_Error("Failed to initialize video: %s", SDL_GetError());
     }
+    SDL_SetHint("SDL_HINT_RENDER_BATCHING", "0");
 
     I_AtExit(I_ShutdownGraphics, true);
 
