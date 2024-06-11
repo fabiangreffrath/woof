@@ -725,6 +725,32 @@ static void I_ResetTargetRefresh(void);
  #define I_CpuPause()
 #endif
 
+NOINLINE static void I_WaitUntil(uint64_t target_time)
+{
+    while (true)
+    {
+        const uint64_t current_time = I_GetTimeUS();
+        const uint64_t elapsed_time = current_time - frametime_start;
+
+        I_CpuPause();
+
+        if (elapsed_time >= target_time)
+        {
+            frametime_start = current_time;
+            break;
+        }
+
+        if (target_time - elapsed_time > 1000)
+        {
+            I_SleepUS(500);
+        }
+        else
+        {
+            I_Sleep(0); // yield
+        }
+    }
+}
+
 void I_FinishUpdate(void)
 {
     if (noblit)
@@ -760,7 +786,8 @@ void I_FinishUpdate(void)
         // Update FPS counter every second
         if (time >= 1000000)
         {
-            fps = ((uint64_t)frame_counter * 1000000) / time;
+            float secs = time * 1e-6f;
+            fps = (frame_counter / secs) + 0.5f;
             frame_counter = 0;
             last_time = frametime_start;
         }
@@ -790,29 +817,7 @@ void I_FinishUpdate(void)
 
     if (use_limiter)
     {
-        uint64_t target_time = 1000000ull / targetrefresh;
-
-        while (true)
-        {
-            uint64_t current_time = I_GetTimeUS();
-            uint64_t elapsed_time = current_time - frametime_start;
-            uint64_t remaining_time = 0;
-
-            I_CpuPause();
-
-            if (elapsed_time >= target_time)
-            {
-                frametime_start = current_time;
-                break;
-            }
-
-            remaining_time = target_time - elapsed_time;
-
-            if (remaining_time > 1000)
-            {
-                I_Sleep((remaining_time - 1000) / 1000);
-            }
-        }
+        I_WaitUntil(1000000u / targetrefresh);
     }
     else
     {
