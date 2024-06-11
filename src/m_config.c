@@ -688,7 +688,7 @@ void M_LoadDefaults(void)
 
     if ((f = M_fopen(defaultfile, "r")))
     {
-        char s[256];
+        char s[1024];
 
         while (fgets(s, sizeof s, f))
         {

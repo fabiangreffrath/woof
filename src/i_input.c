@@ -250,6 +250,23 @@ void I_InitController(void)
     I_AtExit(I_ShutdownController, true);
 }
 
+static void UpdateControllerMapping(void)
+{
+    if (joy_mapping[0] == '\0')
+    {
+        return;
+    }
+
+    if (SDL_GameControllerAddMapping(joy_mapping) == -1)
+    {
+        I_Printf(VB_WARNING, "Failed to add game controller mapping");
+    }
+    else
+    {
+        I_Printf(VB_INFO, "Updated game controller mapping");
+    }
+}
+
 void I_OpenController(int which)
 {
     if (controller)
@@ -281,6 +298,7 @@ void I_OpenController(int which)
 
     if (controller)
     {
+        UpdateControllerMapping();
         EnableControllerEvents();
     }
 }

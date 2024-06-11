@@ -30,6 +30,7 @@
 #define REMAP(x, min, max) (((x) - (min)) / ((max) - (min)))
 
 boolean joy_enable;
+const char *joy_mapping = "";
 static int joy_layout;
 static int joy_sensitivity_forward;
 static int joy_sensitivity_strafe;
@@ -392,6 +393,8 @@ void I_ResetController(void)
 void I_BindGamepadVariables(void)
 {
     BIND_BOOL(joy_enable, true, "Allow game controller");
+    M_BindStr("joy_mapping", &joy_mapping, "", wad_no,
+        "Game controller mapping string");
     BIND_NUM_GENERAL(joy_layout, LAYOUT_DEFAULT, 0, NUM_LAYOUTS - 1,
         "Analog stick layout (0 = Default; 1 = Swap; 2 = Legacy; 3 = Legacy Swap)");
     BIND_NUM(joy_sensitivity_forward, 50, 0, 100, "Forward axis sensitivity");

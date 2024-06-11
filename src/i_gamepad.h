@@ -22,6 +22,7 @@
 #include "doomtype.h"
 
 extern boolean joy_enable;                  // Enable game controller.
+extern const char *joy_mapping;             // Game controller mapping string.
 extern boolean joy_invert_forward;          // Invert forward axis.
 extern boolean joy_invert_strafe;           // Invert strafe axis.
 extern boolean joy_invert_turn;             // Invert turn axis.
