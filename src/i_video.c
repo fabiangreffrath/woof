@@ -227,6 +227,7 @@ void I_ResetRelativeMouseState(void)
 
 static void UpdatePriority(void)
 {
+    return;
     const boolean active = (screenvisible && window_focused);
 #if defined(_WIN32)
     SetPriorityClass(GetCurrentProcess(), active ? ABOVE_NORMAL_PRIORITY_CLASS
