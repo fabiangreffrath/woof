@@ -586,25 +586,25 @@ void I_OAL_EqualizerPreset(void)
         int val[NUM_EQ_PRESETS];
     } eq_presets[] =
     {   // Preamp               Off, Bass, Bass+Treb, Mid
-        {&snd_eq_preamp,      {    0,    -4,    -4,    -5}}, // -60 to 0
+        {&snd_eq_preamp,      {    0,     0,     0,     0}}, // -60 to 0
 
         // Low
-        {&snd_eq_low_gain,    {    0,     4,     4,     0}}, // -18 to 18
-        {&snd_eq_low_cutoff,  {  200,   200,   200,   200}}, // 50 to 800
+        {&snd_eq_low_gain,    {    0,     4,     0,    -2}}, // -18 to 18
+        {&snd_eq_low_cutoff,  {  200,   125,   200,   125}}, // 50 to 800
 
         // Mid 1
-        {&snd_eq_mid1_gain,   {    0,     2,     0,     4}}, // -18 to 18
-        {&snd_eq_mid1_center, {  500,   500,   500,   500}}, // 200 to 3000
+        {&snd_eq_mid1_gain,   {    0,     1,     3,     3}}, // -18 to 18
+        {&snd_eq_mid1_center, {  500,   200,   250,   650}}, // 200 to 3000
         {&snd_eq_mid1_width,  {  100,   100,   100,   100}}, // 1 to 100
 
         // Mid 2
-        {&snd_eq_mid2_gain,   {    0,     0,     0,     4}}, // -18 to 18
-        {&snd_eq_mid2_center, { 3000,  3000,  3000,  3000}}, // 1000 to 8000
+        {&snd_eq_mid2_gain,   {    0,     0,     1,     3}}, // -18 to 18
+        {&snd_eq_mid2_center, { 3000,  3000,  3000,  1550}}, // 1000 to 8000
         {&snd_eq_mid2_width,  {  100,   100,   100,   100}}, // 1 to 100
 
         // High
-        {&snd_eq_high_gain,   {    0,    -4,     4,     0}}, // -18 to 18
-        {&snd_eq_high_cutoff, { 6000,  6000,  6000,  6000}}, // 4000 to 16000
+        {&snd_eq_high_gain,   {    0,     2,     5,     1}}, // -18 to 18
+        {&snd_eq_high_cutoff, { 6000,  8000,  6000, 10000}}, // 4000 to 16000
     };
 
     for (int i = 0; i < arrlen(eq_presets); i++)
