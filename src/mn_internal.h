@@ -100,7 +100,7 @@ void MN_DrawEnemy(void);
 #define S_HILITE      0x00000001 // Cursor is sitting on this item
 #define S_SELECT      0x00000002 // We're changing this item
 #define S_TITLE       0x00000004 // Title item
-
+#define S_SUBMENU     0x00000008
 #define S_CRITEM      0x00000010 // Message color
 #define S_RESET       0x00000020 // Reset to Defaults Button
 #define S_INPUT       0x00000040 // Composite input
@@ -136,7 +136,7 @@ void MN_DrawEnemy(void);
 
 #define S_SHOWDESC                                                       \
     (S_TITLE | S_ONOFF | S_CRITEM | S_RESET | S_INPUT | S_WEAP | S_NUM   \
-     | S_CREDIT | S_CHOICE | S_THERMO)
+     | S_CREDIT | S_CHOICE | S_THERMO | S_SUBMENU)
 
 #define S_SHOWSET \
     (S_ONOFF | S_CRITEM | S_INPUT | S_WEAP | S_NUM | S_CHOICE | S_THERMO)
@@ -187,6 +187,7 @@ typedef struct setup_menu_s
         void *var;             // generic variable
         char *name;            // name
         struct default_s *def; // default[] table entry
+        struct setup_menu_s *menu;
     } var;
 
     setup_group m_group;  // group
