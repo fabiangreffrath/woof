@@ -714,17 +714,6 @@ static unsigned int disk_to_draw, disk_to_restore;
 static void CreateUpscaledTexture(boolean force);
 static void I_ResetTargetRefresh(void);
 
-//
-// I_CpuPause
-//  Avoids a performance penalty on exit from busy-wait loops. This should be
-//  called on every iteration of the loop and positioned near the loop exit.
-//
-#if SDL_VERSION_ATLEAST(2, 24, 0)
- #define I_CpuPause() SDL_CPUPauseInstruction()
-#else
- #define I_CpuPause()
-#endif
-
 void I_FinishUpdate(void)
 {
     if (noblit)
@@ -796,9 +785,6 @@ void I_FinishUpdate(void)
         {
             uint64_t current_time = I_GetTimeUS();
             uint64_t elapsed_time = current_time - frametime_start;
-            uint64_t remaining_time = 0;
-
-            I_CpuPause();
 
             if (elapsed_time >= target_time)
             {
@@ -806,11 +792,9 @@ void I_FinishUpdate(void)
                 break;
             }
 
-            remaining_time = target_time - elapsed_time;
-
-            if (remaining_time > 1000)
+            if (target_time - elapsed_time > 1000)
             {
-                I_Sleep((remaining_time - 1000) / 1000);
+                I_SleepUS(500);
             }
         }
     }
