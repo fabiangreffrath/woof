@@ -739,7 +739,7 @@ NOINLINE static void I_WaitUntil(uint64_t target_time)
     // No code here - this loop is sensitive to instruction alignment
     //
 #ifdef __GNUC__
-#pragma GCC unroll 0
+#pragma GCC unroll 1
 #endif
     while (true)
     {
