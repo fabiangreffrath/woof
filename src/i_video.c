@@ -732,7 +732,9 @@ static void I_ResetTargetRefresh(void);
 #endif
 
 NOINLINE static void I_WaitUntil(uint64_t target_time)
-{
+{   //
+    // No code here - this loop is sensitive to instruction alignment
+    //
     while (true)
     {
         const uint64_t current_time = I_GetTimeUS();
