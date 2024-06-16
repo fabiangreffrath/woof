@@ -731,10 +731,16 @@ static void I_ResetTargetRefresh(void);
  #define I_CpuPause()
 #endif
 
+#ifdef _MSC_VER
+#pragma optimize("s", on) // Don't unroll the wait loop
+#endif
 NOINLINE static void I_WaitUntil(uint64_t target_time)
 {   //
     // No code here - this loop is sensitive to instruction alignment
     //
+#ifdef __GNUC__
+#pragma GCC unroll 0
+#endif
     while (true)
     {
         const uint64_t current_time = I_GetTimeUS();
@@ -758,6 +764,9 @@ NOINLINE static void I_WaitUntil(uint64_t target_time)
         }
     }
 }
+#ifdef _MSC_VER
+#pragma optimize("", on) // Restore previous settings
+#endif
 
 void I_FinishUpdate(void)
 {
