@@ -831,6 +831,13 @@ static void cheat_spechits()
         case 126:
         case 174:
         case 195:
+        // [FG] do not trigger silent teleporters
+        case 207:
+        case 208:
+        case 209:
+        case 210:
+        case 268:
+        case 269:
         {
           continue;
         }
