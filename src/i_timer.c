@@ -148,7 +148,14 @@ void I_InitTimer(void)
 
 #ifdef _WIN32
     // Create an unnamed waitable timer.
+#  ifdef CREATE_WAITABLE_TIMER_HIGH_RESOLUTION
+    hTimer = CreateWaitableTimerEx(NULL, NULL,
+                                   CREATE_WAITABLE_TIMER_MANUAL_RESET
+                                   | CREATE_WAITABLE_TIMER_HIGH_RESOLUTION,
+                                   TIMER_ALL_ACCESS);
+#  else
     hTimer = CreateWaitableTimer(NULL, TRUE, NULL);
+#  endif
     if (hTimer == NULL)
     {
         I_Error("I_InitTimer: CreateWaitableTimer failed");
