@@ -29,6 +29,11 @@ function(_checked_add_link_option FLAG)
     endif()
 endfunction()
 
+if(MSVC)
+    # Disable function-level linking
+    _checked_add_compile_option(/Gy-)
+endif()
+
 # Parameters we want to check for on all compilers.
 #
 # Note that we want to check for these, even on MSVC, because some compilers

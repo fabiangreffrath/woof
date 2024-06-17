@@ -85,6 +85,7 @@ boolean toggle_exclusive_fullscreen;
 static boolean use_vsync; // killough 2/8/98: controls whether vsync is called
 boolean correct_aspect_ratio;
 static int fpslimit; // when uncapped, limit framerate to this value
+static boolean cpu_priority;
 static boolean fullscreen;
 static boolean exclusive_fullscreen;
 static boolean change_display_resolution;
@@ -227,6 +228,11 @@ void I_ResetRelativeMouseState(void)
 
 static void UpdatePriority(void)
 {
+    if (!cpu_priority)
+    {
+        return;
+    }
+
     const boolean active = (screenvisible && window_focused);
 #if defined(_WIN32)
     SetPriorityClass(GetCurrentProcess(), active ? ABOVE_NORMAL_PRIORITY_CLASS
@@ -725,6 +731,43 @@ static void I_ResetTargetRefresh(void);
  #define I_CpuPause()
 #endif
 
+#ifdef _MSC_VER
+#pragma optimize("s", on) // Don't unroll the wait loop
+#endif
+NOINLINE static void I_WaitUntil(uint64_t target_time)
+{   //
+    // No code here - this loop is sensitive to instruction alignment
+    //
+#ifdef __GNUC__
+#pragma GCC unroll 1
+#endif
+    while (true)
+    {
+        const uint64_t current_time = I_GetTimeUS();
+        const uint64_t elapsed_time = current_time - frametime_start;
+
+        I_CpuPause();
+
+        if (elapsed_time >= target_time)
+        {
+            frametime_start = current_time;
+            break;
+        }
+
+        if (target_time - elapsed_time > 1000)
+        {
+            I_SleepUS(500);
+        }
+        else
+        {
+            I_Sleep(0); // yield
+        }
+    }
+}
+#ifdef _MSC_VER
+#pragma optimize("", on) // Restore previous settings
+#endif
+
 void I_FinishUpdate(void)
 {
     if (noblit)
@@ -760,7 +803,8 @@ void I_FinishUpdate(void)
         // Update FPS counter every second
         if (time >= 1000000)
         {
-            fps = ((uint64_t)frame_counter * 1000000) / time;
+            float secs = time * 1e-6f;
+            fps = (frame_counter / secs) + 0.5f;
             frame_counter = 0;
             last_time = frametime_start;
         }
@@ -790,29 +834,7 @@ void I_FinishUpdate(void)
 
     if (use_limiter)
     {
-        uint64_t target_time = 1000000ull / targetrefresh;
-
-        while (true)
-        {
-            uint64_t current_time = I_GetTimeUS();
-            uint64_t elapsed_time = current_time - frametime_start;
-            uint64_t remaining_time = 0;
-
-            I_CpuPause();
-
-            if (elapsed_time >= target_time)
-            {
-                frametime_start = current_time;
-                break;
-            }
-
-            remaining_time = target_time - elapsed_time;
-
-            if (remaining_time > 1000)
-            {
-                I_Sleep((remaining_time - 1000) / 1000);
-            }
-        }
+        I_WaitUntil(1000000u / targetrefresh);
     }
     else
     {
@@ -1816,6 +1838,8 @@ void I_BindVideoVariables(void)
         "Uncapped rendering frame rate");
     BIND_NUM_GENERAL(fpslimit, 0, 0, 500,
         "Framerate limit in frames per second (< 35 = Disable)");
+    BIND_BOOL(cpu_priority, true,
+        "Run at higher priority (may increase input latency)");
     M_BindNum("widescreen", &default_widescreen, &widescreen, RATIO_AUTO, 0,
               NUM_RATIOS - 1, ss_gen, wad_no,
               "Widescreen (0 = Off; 1 = Auto; 2 = 16:10; 3 = 16:9; 4 = 21:9)");
