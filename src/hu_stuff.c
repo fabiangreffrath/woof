@@ -1155,7 +1155,7 @@ static void HU_widget_build_monsec(void)
 
 static void HU_widget_build_sttime(void)
 {
-  char hud_timestr[HU_MAXLINELENGTH/2];
+  char hud_timestr[HU_MAXLINELENGTH/2] = {0};
   int offset = 0;
 
   if ((hud_level_time & HUD_WIDGET_HUD     && !automapactive) ||
