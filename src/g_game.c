@@ -1150,9 +1150,9 @@ boolean G_MovementResponder(event_t *ev)
   switch (ev->type)
   {
     case ev_mouse:
-      mousex_tic += ev->data2;
-      mousex += ev->data2;
-      mousey += ev->data3;
+      mousex_tic += ev->data1;
+      mousex += ev->data1;
+      mousey -= ev->data2;
       return true;
 
     case ev_joystick:

@@ -465,19 +465,14 @@ void I_DelayEvent(void)
 
 void I_ReadMouse(void)
 {
-    int x, y;
-    static event_t ev;
+    static event_t ev = {.type = ev_mouse};
 
-    SDL_GetRelativeMouseState(&x, &y);
+    SDL_GetRelativeMouseState(&ev.data1, &ev.data2);
 
-    if (x != 0 || y != 0)
+    if (ev.data1 || ev.data2)
     {
-        ev.type = ev_mouse;
-        ev.data1 = 0;
-        ev.data2 = x;
-        ev.data3 = -y;
-
         D_PostEvent(&ev);
+        ev.data1 = ev.data2 = 0;
     }
 }
 
