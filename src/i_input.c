@@ -87,14 +87,43 @@ static void AxisToButtons(event_t *ev)
     AxisToButton(ev->data4, &axisbuttons[3], CONTROLLER_RIGHT_STICK_UP);
 }
 
-void I_UpdateJoystick(boolean axis_buttons)
+static void TriggerToButton(int value, boolean *trigger_on, int trigger_type)
 {
     static event_t ev;
 
-    if (controller == NULL)
+    if (value > trigger_threshold && !*trigger_on)
+    {
+        *trigger_on = true;
+        ev.type = ev_joyb_down;
+    }
+    else if (value <= trigger_threshold && *trigger_on)
+    {
+        *trigger_on = false;
+        ev.type = ev_joyb_up;
+    }
+    else
     {
         return;
     }
+
+    ev.data1 = trigger_type;
+    D_PostEvent(&ev);
+}
+
+static void TriggerToButtons(void)
+{
+    static boolean left_trigger_on;
+    static boolean right_trigger_on;
+
+    TriggerToButton(GetAxisState(SDL_CONTROLLER_AXIS_TRIGGERLEFT),
+                    &left_trigger_on, CONTROLLER_LEFT_TRIGGER);
+    TriggerToButton(GetAxisState(SDL_CONTROLLER_AXIS_TRIGGERRIGHT),
+                    &right_trigger_on, CONTROLLER_RIGHT_TRIGGER);
+}
+
+void I_UpdateJoystick(boolean axis_buttons)
+{
+    static event_t ev;
 
     ev.data1 = GetAxisState(SDL_CONTROLLER_AXIS_LEFTX);
     ev.data2 = GetAxisState(SDL_CONTROLLER_AXIS_LEFTY);
@@ -108,16 +137,16 @@ void I_UpdateJoystick(boolean axis_buttons)
 
     ev.type = ev_joystick;
     D_PostEvent(&ev);
+
+    if (axis_buttons)
+    {
+        TriggerToButtons();
+    }
 }
 
 void I_UpdateJoystickMenu(void)
 {
     static event_t ev;
-
-    if (controller == NULL)
-    {
-        return;
-    }
 
     ev.data1 = GetAxisState(SDL_CONTROLLER_AXIS_LEFTX);
     ev.data2 = GetAxisState(SDL_CONTROLLER_AXIS_LEFTY);
@@ -127,6 +156,8 @@ void I_UpdateJoystickMenu(void)
     AxisToButtons(&ev);
     ev.type = ev_joystick_state;
     D_PostEvent(&ev);
+
+    TriggerToButtons();
 }
 
 static void UpdateJoystickButtonState(unsigned int button, boolean on)
@@ -145,75 +176,33 @@ static void UpdateJoystickButtonState(unsigned int button, boolean on)
     D_PostEvent(&event);
 }
 
-static void UpdateControllerAxisState(unsigned int value, boolean left_trigger)
-{
-    int button;
-    static event_t event;
-    static boolean left_trigger_on;
-    static boolean right_trigger_on;
-
-    if (left_trigger)
-    {
-        if (value > trigger_threshold && !left_trigger_on)
-        {
-            left_trigger_on = true;
-            event.type = ev_joyb_down;
-        }
-        else if (value <= trigger_threshold && left_trigger_on)
-        {
-            left_trigger_on = false;
-            event.type = ev_joyb_up;
-        }
-        else
-        {
-            return;
-        }
-
-        button = CONTROLLER_LEFT_TRIGGER;
-    }
-    else
-    {
-        if (value > trigger_threshold && !right_trigger_on)
-        {
-            right_trigger_on = true;
-            event.type = ev_joyb_down;
-        }
-        else if (value <= trigger_threshold && right_trigger_on)
-        {
-            right_trigger_on = false;
-            event.type = ev_joyb_up;
-        }
-        else
-        {
-            return;
-        }
-
-        button = CONTROLLER_RIGHT_TRIGGER;
-    }
-
-    event.data1 = button;
-    D_PostEvent(&event);
-}
-
 boolean I_UseController(void)
 {
-    return (controller && joy_enable);
+    return (controller != NULL);
 }
 
 static void EnableControllerEvents(void)
 {
-    SDL_EventState(SDL_CONTROLLERAXISMOTION, SDL_ENABLE);
+    SDL_EventState(SDL_JOYHATMOTION, SDL_ENABLE);
+    SDL_EventState(SDL_JOYBUTTONDOWN, SDL_ENABLE);
+    SDL_EventState(SDL_JOYBUTTONUP, SDL_ENABLE);
     SDL_EventState(SDL_CONTROLLERBUTTONDOWN, SDL_ENABLE);
     SDL_EventState(SDL_CONTROLLERBUTTONUP, SDL_ENABLE);
 }
 
 static void DisableControllerEvents(void)
 {
-    SDL_EventState(SDL_CONTROLLERAXISMOTION, SDL_IGNORE);
+    SDL_EventState(SDL_JOYHATMOTION, SDL_IGNORE);
+    SDL_EventState(SDL_JOYBUTTONDOWN, SDL_IGNORE);
+    SDL_EventState(SDL_JOYBUTTONUP, SDL_IGNORE);
     SDL_EventState(SDL_CONTROLLERBUTTONDOWN, SDL_IGNORE);
     SDL_EventState(SDL_CONTROLLERBUTTONUP, SDL_IGNORE);
 
     // Always ignore unsupported game controller events.
+    SDL_EventState(SDL_JOYAXISMOTION, SDL_IGNORE);
+    SDL_EventState(SDL_JOYBALLMOTION, SDL_IGNORE);
+    SDL_EventState(SDL_JOYBATTERYUPDATED, SDL_IGNORE);
+    SDL_EventState(SDL_CONTROLLERAXISMOTION, SDL_IGNORE);
     SDL_EventState(SDL_CONTROLLERDEVICEREMAPPED, SDL_IGNORE);
     SDL_EventState(SDL_CONTROLLERTOUCHPADDOWN, SDL_IGNORE);
     SDL_EventState(SDL_CONTROLLERTOUCHPADMOTION, SDL_IGNORE);
@@ -230,7 +219,6 @@ void I_InitController(void)
 {
     if (!joy_enable)
     {
-        SDL_GameControllerEventState(SDL_IGNORE);
         return;
     }
 
@@ -242,7 +230,6 @@ void I_InitController(void)
         return;
     }
 
-    SDL_GameControllerEventState(SDL_ENABLE);
     DisableControllerEvents();
 
     I_Printf(VB_INFO, "I_InitController: Initialize game controller.");
@@ -308,17 +295,6 @@ void I_HandleJoystickEvent(SDL_Event *sdlevent)
 
         case SDL_CONTROLLERBUTTONUP:
             UpdateJoystickButtonState(sdlevent->cbutton.button, false);
-            break;
-
-        case SDL_CONTROLLERAXISMOTION:
-            if (sdlevent->caxis.axis == SDL_CONTROLLER_AXIS_TRIGGERLEFT)
-            {
-                UpdateControllerAxisState(sdlevent->caxis.value, true);
-            }
-            else if (sdlevent->caxis.axis == SDL_CONTROLLER_AXIS_TRIGGERRIGHT)
-            {
-                UpdateControllerAxisState(sdlevent->caxis.value, false);
-            }
             break;
 
         default:

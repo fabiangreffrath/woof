@@ -462,7 +462,6 @@ static void ProcessEvent(SDL_Event *ev)
 
         case SDL_CONTROLLERBUTTONDOWN:
         case SDL_CONTROLLERBUTTONUP:
-        case SDL_CONTROLLERAXISMOTION:
             if (I_UseController())
             {
                 I_HandleJoystickEvent(ev);
