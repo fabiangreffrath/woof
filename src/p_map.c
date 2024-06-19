@@ -940,6 +940,8 @@ boolean P_TryMove(mobj_t *thing, fixed_t x, fixed_t y, boolean dropoff)
 	      P_PointOnLineSide(thing->x, thing->y, spechit[numspechit]))
 	    P_CrossSpecialLine(spechit[numspechit], oldside, thing, false);
 	}
+    // There are checks elsewhere for numspechit == 0, so we don't want to
+    // leave numspechit == -1.
     numspechit = 0;
   }
 
