@@ -516,6 +516,55 @@ static void I_GetEvent(void)
     }
 }
 
+static void UpdateMouseMenu(void)
+{
+    static event_t ev;
+    static int oldx, oldy;
+    static SDL_Rect old_rect;
+    int x, y, w, h;
+
+    SDL_GetMouseState(&x, &y);
+
+    SDL_GetWindowSize(screen, &w, &h);
+
+    SDL_Rect rect;
+    SDL_RenderGetViewport(renderer, &rect);
+    if (SDL_RectEquals(&rect, &old_rect))
+    {
+        ev.data1 = 0;
+    }
+    else
+    {
+        old_rect = rect;
+        ev.data1 = EV_RESIZE_VIEWPORT;
+    }
+
+    float scalex, scaley;
+    SDL_RenderGetScale(renderer, &scalex, &scaley);
+
+    int deltax = rect.x * scalex;
+    int deltay = rect.y * scaley;
+
+    x = (x - deltax) * video.unscaledw / (w - deltax * 2);
+    y = (y - deltay) * SCREENHEIGHT / (h - deltay * 2);
+
+    if (x != oldx || y != oldy)
+    {
+        oldx = x;
+        oldy = y;
+    }
+    else
+    {
+        return;
+    }
+
+    ev.type = ev_mouse_state;
+    ev.data2 = x;
+    ev.data3 = y;
+
+    D_PostEvent(&ev);
+}
+
 //
 // I_StartTic
 //
@@ -525,67 +574,24 @@ void I_StartTic(void)
 
     if (menuactive)
     {
+        UpdateMouseMenu();
+
         if (I_UseController())
         {
             I_UpdateJoystickMenu();
         }
-
-        static event_t ev;
-        static int oldx, oldy;
-        static SDL_Rect old_rect;
-        int x, y, w, h;
-
-        SDL_GetMouseState(&x, &y);
-
-        SDL_GetWindowSize(screen, &w, &h);
-
-        SDL_Rect rect;
-        SDL_RenderGetViewport(renderer, &rect);
-        if (SDL_RectEquals(&rect, &old_rect))
-        {
-            ev.data1 = 0;
-        }
-        else
-        {
-            old_rect = rect;
-            ev.data1 = EV_RESIZE_VIEWPORT;
-        }
-
-        float scalex, scaley;
-        SDL_RenderGetScale(renderer, &scalex, &scaley);
-
-        int deltax = rect.x * scalex;
-        int deltay = rect.y * scaley;
-
-        x = (x - deltax) * video.unscaledw / (w - deltax * 2);
-        y = (y - deltay) * SCREENHEIGHT / (h - deltay * 2);
-
-        if (x != oldx || y != oldy)
-        {
-            oldx = x;
-            oldy = y;
-        }
-        else
-        {
-            return;
-        }
-
-        ev.type = ev_mouse_state;
-        ev.data2 = x;
-        ev.data3 = y;
-
-        D_PostEvent(&ev);
-        return;
     }
-
-    if (window_focused)
+    else
     {
-        I_ReadMouse();
-    }
+        if (window_focused)
+        {
+            I_ReadMouse();
+        }
 
-    if (I_UseController())
-    {
-        I_UpdateJoystick(true);
+        if (I_UseController())
+        {
+            I_UpdateJoystick(true);
+        }
     }
 }
 
