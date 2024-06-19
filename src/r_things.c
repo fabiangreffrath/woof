@@ -691,10 +691,8 @@ static void R_ProjectSprite (mobj_t* thing)
       vis->colormap[1] = fullcolormap;
     }
 
-  const byte *tmp_brightmap = R_BrightmapForState(thing->state - states);
-  if (tmp_brightmap != nobrightmap)
-    vis->brightmap = tmp_brightmap;
-  else
+  vis->brightmap = R_BrightmapForState(thing->state - states);
+  if (vis->brightmap == nobrightmap)
     vis->brightmap = R_BrightmapForSprite(thing->sprite);
 
   // [Alaux] Lock crosshair on target
