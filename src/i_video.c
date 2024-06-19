@@ -1781,6 +1781,9 @@ void I_InitGraphics(void)
     CreateSurfaces(video.pitch, video.height);
     ResetLogicalSize();
 
+    // Mouse motion is based on SDL_GetRelativeMouseState() values only.
+    SDL_EventState(SDL_MOUSEMOTION, SDL_IGNORE);
+
     // clear out events waiting at the start and center the mouse
     I_ResetRelativeMouseState();
 }
