@@ -21,7 +21,7 @@
 
 #include "doomtype.h"
 
-enum evtype_s;
+enum evtype_e;
 
 boolean I_UseController(void);
 void I_InitController(void);
@@ -29,7 +29,7 @@ void I_OpenController(int which);
 void I_CloseController(int which);
 
 void I_ReadMouse(void);
-void I_UpdateJoystick(enum evtype_s type, boolean axis_buttons);
+void I_UpdateJoystick(enum evtype_e type, boolean axis_buttons);
 
 void I_DelayEvent(void);
 void I_HandleJoystickEvent(SDL_Event *sdlevent);

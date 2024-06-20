@@ -26,7 +26,7 @@
 //
 
 // Input event types.
-typedef enum evtype_s
+typedef enum evtype_e
 {
   ev_keydown,
   ev_keyup,
