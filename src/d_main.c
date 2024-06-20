@@ -153,6 +153,9 @@ int     startloadgame;
 
 boolean advancedemo;
 
+// Store demo, do not accept any inputs.
+//static boolean storedemo;
+
 char    *basedefault = NULL;   // default file
 char    *basesavegame = NULL;  // killough 2/16/98: savegame directory
 char    *screenshotdir = NULL; // [FG] screenshot directory
@@ -224,7 +227,7 @@ void D_PostEvent(event_t *ev)
 void D_ProcessEvents (void)
 {
   // IF STORE DEMO, DO NOT ACCEPT INPUT
-  if (gamemode != commercial || W_CheckNumForName("map01") >= 0)
+  //if (!storedemo)
     for (; eventtail != eventhead; eventtail = (eventtail+1) & (MAXEVENTS-1))
     {
       M_InputTrackEvent(events+eventtail);
@@ -2492,6 +2495,11 @@ void D_DoomMain(void)
   I_Printf(VB_INFO, "ST_Init: Init status bar.");
   ST_Init();
   ST_Warnings();
+
+  // If Doom II without a MAP01 lump, this is a store demo.
+  // Moved this here so that MAP01 isn't constantly looked up
+  // in the main loop.
+  //storedemo = (gamemode == commercial && W_CheckNumForName("map01") < 0);
 
   // andrewj: voxel support
   I_Printf(VB_INFO, "VX_Init: ");
