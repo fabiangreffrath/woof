@@ -121,43 +121,23 @@ static void TriggerToButtons(void)
                     &right_trigger_on, CONTROLLER_RIGHT_TRIGGER);
 }
 
-void I_UpdateJoystick(boolean axis_buttons)
+void I_UpdateJoystick(evtype_t type, boolean axis_buttons)
 {
     static event_t ev;
 
+    ev.type = type;
     ev.data1 = GetAxisState(SDL_CONTROLLER_AXIS_LEFTX);
     ev.data2 = GetAxisState(SDL_CONTROLLER_AXIS_LEFTY);
     ev.data3 = GetAxisState(SDL_CONTROLLER_AXIS_RIGHTX);
     ev.data4 = GetAxisState(SDL_CONTROLLER_AXIS_RIGHTY);
+
+    D_PostEvent(&ev);
 
     if (axis_buttons)
     {
         AxisToButtons(&ev);
-    }
-
-    ev.type = ev_joystick;
-    D_PostEvent(&ev);
-
-    if (axis_buttons)
-    {
         TriggerToButtons();
     }
-}
-
-void I_UpdateJoystickMenu(void)
-{
-    static event_t ev;
-
-    ev.data1 = GetAxisState(SDL_CONTROLLER_AXIS_LEFTX);
-    ev.data2 = GetAxisState(SDL_CONTROLLER_AXIS_LEFTY);
-    ev.data3 = GetAxisState(SDL_CONTROLLER_AXIS_RIGHTX);
-    ev.data4 = GetAxisState(SDL_CONTROLLER_AXIS_RIGHTY);
-
-    AxisToButtons(&ev);
-    ev.type = ev_joystick_state;
-    D_PostEvent(&ev);
-
-    TriggerToButtons();
 }
 
 static void UpdateJoystickButtonState(unsigned int button, boolean on)

@@ -577,7 +577,7 @@ void I_StartTic(void)
 
         if (I_UseController())
         {
-            I_UpdateJoystickMenu();
+            I_UpdateJoystick(ev_joystick_state, true);
         }
     }
     else
@@ -589,7 +589,7 @@ void I_StartTic(void)
 
         if (I_UseController())
         {
-            I_UpdateJoystick(true);
+            I_UpdateJoystick(ev_joystick, true);
         }
     }
 }
@@ -605,7 +605,7 @@ void I_StartDisplay(void)
 
     if (I_UseController())
     {
-        I_UpdateJoystick(false);
+        I_UpdateJoystick(ev_joystick, false);
     }
 }
 
