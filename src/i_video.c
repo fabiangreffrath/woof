@@ -236,6 +236,34 @@ static void UpdatePriority(void)
                                  : SDL_THREAD_PRIORITY_NORMAL);
 }
 
+// Fix alt+tab and Windows key when using exclusive fullscreen.
+#ifdef _WIN32
+#define NOBLIT (noblit || skip_finish || resetneeded)
+static boolean d3d_renderer = true;
+static boolean skip_finish;
+
+static void FocusGained(void)
+{
+    if (skip_finish)
+    {
+        skip_finish = false;
+        resetneeded = true;
+    }
+}
+
+static void FocusLost(void)
+{
+    if (!skip_finish && exclusive_fullscreen && fullscreen && d3d_renderer)
+    {
+        skip_finish = true;
+    }
+}
+#else
+#define NOBLIT noblit
+#define FocusGained()
+#define FocusLost()
+#endif
+
 // [FG] window event handling from Chocolate Doom 3.0
 
 static void HandleWindowEvent(SDL_WindowEvent *event)
@@ -265,11 +293,13 @@ static void HandleWindowEvent(SDL_WindowEvent *event)
 
         case SDL_WINDOWEVENT_FOCUS_GAINED:
             window_focused = true;
+            FocusGained();
             UpdatePriority();
             break;
 
         case SDL_WINDOWEVENT_FOCUS_LOST:
             window_focused = false;
+            FocusLost();
             UpdatePriority();
             break;
 
@@ -739,7 +769,7 @@ static void I_ResetTargetRefresh(void);
 
 void I_FinishUpdate(void)
 {
-    if (noblit)
+    if (NOBLIT)
     {
         return;
     }
@@ -1649,6 +1679,9 @@ static void I_InitGraphicsMode(void)
     if (SDL_GetRendererInfo(renderer, &info) == 0)
     {
         I_Printf(VB_DEBUG, "SDL render driver: %s", info.name);
+#ifdef _WIN32
+        d3d_renderer = !strncmp(info.name, "direct3d", strlen(info.name));
+#endif
     }
 
     UpdateLimiter();
