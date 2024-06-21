@@ -1410,7 +1410,9 @@ static void I_InitVideoParms(void)
             (double)max_video_width / (double)max_video_height;
         if (aspect_ratio < ASPECT_RATIO_MIN)
         {
-            I_Error("Aspect ratio not supported, set other resolution");
+            I_Printf(VB_ERROR, "Aspect ratio not supported, set other resolution");
+            max_video_width = mode.w;
+            max_video_height = mode.h;
         }
         max_width = max_video_width;
         max_height = max_video_height;
