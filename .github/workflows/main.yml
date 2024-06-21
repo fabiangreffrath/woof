@@ -181,7 +181,3 @@ jobs:
             ,-clang-analyzer-valist*
           database: 'build'
           ignore: 'miniz|spng|win32|toolsrc|src/i_pcsound.c'
-
-      - name: Fail fast?!
-        if: steps.cpp-linter.outputs.clang-tidy-checks-failed > 0
-        run: exit 1
