@@ -1684,6 +1684,9 @@ static void I_InitGraphicsMode(void)
 #endif
     }
 
+    SDL_PumpEvents();
+    SDL_FlushEvent(SDL_WINDOWEVENT);
+
     UpdateLimiter();
 }
 
