@@ -714,7 +714,10 @@ void F_BunnyScroll (void)
 
   if (SHORT(p2->width) == SCREENWIDTH)
   {
-    V_FillRect(0, 0, video.unscaledw, SCREENHEIGHT, v_darkest_color);
+    V_FillRect(0, 0, video.deltaw, SCREENHEIGHT, v_darkest_color);
+    V_FillRect(video.deltaw + SCREENWIDTH, 0,
+               video.unscaledw - (video.deltaw + SCREENWIDTH), SCREENHEIGHT,
+               v_darkest_color);
   }
 
   if (finalecount < 1130)
