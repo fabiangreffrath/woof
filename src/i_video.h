@@ -93,6 +93,8 @@ void I_InitWindowIcon(void);
 void I_ShowMouseCursor(boolean toggle);
 void I_ResetRelativeMouseState(void);
 
+void I_UpdatePriority(boolean active);
+
 void I_BindVideoVariables(void);
 
 #endif

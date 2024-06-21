@@ -225,9 +225,8 @@ void I_ResetRelativeMouseState(void)
     SDL_GetRelativeMouseState(NULL, NULL);
 }
 
-static void UpdatePriority(void)
+void I_UpdatePriority(boolean active)
 {
-    const boolean active = (screenvisible && window_focused);
 #if defined(_WIN32)
     SetPriorityClass(GetCurrentProcess(), active ? ABOVE_NORMAL_PRIORITY_CLASS
                                                  : NORMAL_PRIORITY_CLASS);
@@ -235,6 +234,34 @@ static void UpdatePriority(void)
     SDL_SetThreadPriority(active ? SDL_THREAD_PRIORITY_HIGH
                                  : SDL_THREAD_PRIORITY_NORMAL);
 }
+
+// Fix alt+tab and Windows key when using exclusive fullscreen.
+#ifdef _WIN32
+#define NOBLIT (noblit || skip_finish || resetneeded)
+static boolean d3d_renderer = true;
+static boolean skip_finish;
+
+static void FocusGained(void)
+{
+    if (skip_finish)
+    {
+        skip_finish = false;
+        resetneeded = true;
+    }
+}
+
+static void FocusLost(void)
+{
+    if (!skip_finish && exclusive_fullscreen && fullscreen && d3d_renderer)
+    {
+        skip_finish = true;
+    }
+}
+#else
+#define NOBLIT noblit
+#define FocusGained()
+#define FocusLost()
+#endif
 
 // [FG] window event handling from Chocolate Doom 3.0
 
@@ -248,13 +275,11 @@ static void HandleWindowEvent(SDL_WindowEvent *event)
 
         case SDL_WINDOWEVENT_MINIMIZED:
             screenvisible = false;
-            UpdatePriority();
             break;
 
         case SDL_WINDOWEVENT_MAXIMIZED:
         case SDL_WINDOWEVENT_RESTORED:
             screenvisible = true;
-            UpdatePriority();
             break;
 
         // Update the value of window_focused when we get a focus event
@@ -265,12 +290,14 @@ static void HandleWindowEvent(SDL_WindowEvent *event)
 
         case SDL_WINDOWEVENT_FOCUS_GAINED:
             window_focused = true;
-            UpdatePriority();
+            FocusGained();
+            I_UpdatePriority(true);
             break;
 
         case SDL_WINDOWEVENT_FOCUS_LOST:
             window_focused = false;
-            UpdatePriority();
+            FocusLost();
+            I_UpdatePriority(false);
             break;
 
         // We want to save the user's preferred monitor to use for running the
@@ -739,7 +766,7 @@ static void I_ResetTargetRefresh(void);
 
 void I_FinishUpdate(void)
 {
-    if (noblit)
+    if (NOBLIT)
     {
         return;
     }
@@ -1651,7 +1678,13 @@ static void I_InitGraphicsMode(void)
     if (SDL_GetRendererInfo(renderer, &info) == 0)
     {
         I_Printf(VB_DEBUG, "SDL render driver: %s", info.name);
+#ifdef _WIN32
+        d3d_renderer = !strncmp(info.name, "direct3d", strlen(info.name));
+#endif
     }
+
+    SDL_PumpEvents();
+    SDL_FlushEvent(SDL_WINDOWEVENT);
 
     UpdateLimiter();
 }

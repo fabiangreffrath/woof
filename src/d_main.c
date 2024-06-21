@@ -1824,6 +1824,8 @@ void D_DoomMain(void)
 
   I_AtExitPrio(I_ErrorMsg,  true,  "I_ErrorMsg",  exit_priority_verylast);
 
+  I_UpdatePriority(true);
+
 #if defined(_WIN32)
   // [FG] compose a proper command line from loose file paths passed as
   // arguments to allow for loading WADs and DEHACKED patches by drag-and-drop
