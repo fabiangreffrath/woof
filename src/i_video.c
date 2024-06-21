@@ -643,7 +643,7 @@ static void UpdateRender(void)
     }
 }
 
-static uint64_t frametime_start, frametime;
+static uint64_t frametime_start, frametime_withoutpresent;
 
 static void ResetResolution(int height, boolean reset_pitch);
 static void ResetLogicalSize(void);
@@ -651,7 +651,7 @@ static void ResetLogicalSize(void);
 void I_DynamicResolution(void)
 {
     if (!dynamic_resolution || current_video_height <= DRS_MIN_HEIGHT
-        || frametime == 0 || targetrefresh <= 0
+        || frametime_withoutpresent == 0 || targetrefresh <= 0
         || menuactive)
     {
         return;
@@ -659,7 +659,7 @@ void I_DynamicResolution(void)
 
     if (drs_skip_frame)
     {
-        frametime_start = frametime = 0;
+        frametime_start = frametime_withoutpresent = 0;
         drs_skip_frame = false;
         return;
     }
@@ -667,8 +667,9 @@ void I_DynamicResolution(void)
     static int frame_counter;
     static double averagepercent;
 
-    double target = 1.0 / targetrefresh;
-    double actual = frametime / 1000000.0;
+    // 1.25 milliseconds for SDL render present
+    double target = (1.0 / targetrefresh) - 0.00125;
+    double actual = frametime_withoutpresent / 1000000.0;
 
     double actualpercent = actual / target;
 
@@ -778,12 +779,12 @@ void I_FinishUpdate(void)
 
     UpdateRender();
 
-    SDL_RenderPresent(renderer);
-
     if (frametime_start)
     {
-        frametime = I_GetTimeUS() - frametime_start;
+        frametime_withoutpresent = I_GetTimeUS() - frametime_start;
     }
+
+    SDL_RenderPresent(renderer);
 
     I_RestoreDiskBackground();
 
