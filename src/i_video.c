@@ -680,13 +680,10 @@ void I_DynamicResolution(void)
     int newheight = 0;
     int oldheight = video.height;
 
-    // Decrease the resolution quickly, increase only when the average frame
-    // time is stable for the `targetrefresh` number of frames.
-
     frame_counter++;
     averagepercent = (averagepercent + actualpercent) / frame_counter;
 
-    if (actualpercent > DRS_GREATER)
+    if (actualpercent > DRS_GREATER && frame_counter > targetrefresh)
     {
         double reduction = (actualpercent - DRS_GREATER) * 0.4;
         newheight = (int)MAX(DRS_MIN_HEIGHT, oldheight - oldheight * reduction);
@@ -709,7 +706,7 @@ void I_DynamicResolution(void)
 
     if (newheight > current_video_height)
     {
-        newheight -= DRS_STEP;
+        newheight = current_video_height;
     }
 
     if (newheight == oldheight)
