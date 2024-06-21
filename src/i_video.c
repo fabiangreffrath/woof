@@ -225,9 +225,8 @@ void I_ResetRelativeMouseState(void)
     SDL_GetRelativeMouseState(NULL, NULL);
 }
 
-static void UpdatePriority(void)
+void I_UpdatePriority(boolean active)
 {
-    const boolean active = (screenvisible && window_focused);
 #if defined(_WIN32)
     SetPriorityClass(GetCurrentProcess(), active ? ABOVE_NORMAL_PRIORITY_CLASS
                                                  : NORMAL_PRIORITY_CLASS);
@@ -276,13 +275,11 @@ static void HandleWindowEvent(SDL_WindowEvent *event)
 
         case SDL_WINDOWEVENT_MINIMIZED:
             screenvisible = false;
-            UpdatePriority();
             break;
 
         case SDL_WINDOWEVENT_MAXIMIZED:
         case SDL_WINDOWEVENT_RESTORED:
             screenvisible = true;
-            UpdatePriority();
             break;
 
         // Update the value of window_focused when we get a focus event
@@ -294,13 +291,13 @@ static void HandleWindowEvent(SDL_WindowEvent *event)
         case SDL_WINDOWEVENT_FOCUS_GAINED:
             window_focused = true;
             FocusGained();
-            UpdatePriority();
+            I_UpdatePriority(true);
             break;
 
         case SDL_WINDOWEVENT_FOCUS_LOST:
             window_focused = false;
             FocusLost();
-            UpdatePriority();
+            I_UpdatePriority(false);
             break;
 
         // We want to save the user's preferred monitor to use for running the
