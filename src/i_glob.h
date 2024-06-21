@@ -18,6 +18,8 @@
 #ifndef __I_GLOB__
 #define __I_GLOB__
 
+#include <stddef.h>
+
 #define GLOB_FLAG_NOCASE 0x01
 #define GLOB_FLAG_SORTED 0x02
 
