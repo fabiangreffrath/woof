@@ -2189,7 +2189,8 @@ static setup_menu_t gen_settings4[] = {
     {"Free Look", S_ONOFF, CNTR_X, M_SPC, {"padlook"}, m_null, input_null,
      str_empty, MN_UpdateFreeLook},
 
-    {"Invert Look", S_ONOFF, CNTR_X, M_SPC, {"joy_invert_look"}},
+    {"Invert Look", S_ONOFF, CNTR_X, M_SPC, {"joy_invert_look"},
+     m_null, input_null, str_empty, G_UpdateControllerVariables},
 
     MI_GAP,
 
@@ -2245,7 +2246,8 @@ static setup_menu_t gen_settings5[] = {
 
     {"Voxels", S_ONOFF | S_STRICT, M_X, M_SPC, {"voxels_rendering"}},
 
-    {"Brightmaps", S_ONOFF | S_STRICT, M_X, M_SPC, {"brightmaps"}},
+    {"Brightmaps", S_ONOFF | S_STRICT, M_X, M_SPC, {"brightmaps"},
+     m_null, input_null, str_empty, R_InitDrawFunctions},
 
     {"Stretch Short Skies", S_ONOFF, M_X, M_SPC, {"stretchsky"},
      m_null, input_null, str_empty, R_InitSkyMap},

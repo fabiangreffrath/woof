@@ -931,6 +931,7 @@ boolean P_TryMove(mobj_t *thing, fixed_t x, fixed_t y, boolean dropoff)
   // killough 11/98: simplified
 
   if (!(thing->flags & (MF_TELEPORT | MF_NOCLIP)))
+  {
     while (numspechit--)
       if (spechit[numspechit]->special)  // see if the line was crossed
 	{
@@ -939,6 +940,10 @@ boolean P_TryMove(mobj_t *thing, fixed_t x, fixed_t y, boolean dropoff)
 	      P_PointOnLineSide(thing->x, thing->y, spechit[numspechit]))
 	    P_CrossSpecialLine(spechit[numspechit], oldside, thing, false);
 	}
+    // There are checks elsewhere for numspechit == 0, so we don't want to
+    // leave numspechit == -1.
+    numspechit = 0;
+  }
 
   return true;
 }

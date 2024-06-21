@@ -810,6 +810,8 @@ static void cheat_spechits()
     plyr->cards[i] = true;
   }
 
+  P_MapStart();
+
   for (i = 0; i < numlines; i++)
   {
     if (lines[i].special)
@@ -829,6 +831,13 @@ static void cheat_spechits()
         case 126:
         case 174:
         case 195:
+        // [FG] do not trigger silent teleporters
+        case 207:
+        case 208:
+        case 209:
+        case 210:
+        case 268:
+        case 269:
         {
           continue;
         }
@@ -938,6 +947,8 @@ static void cheat_spechits()
     dummy.tag = 666;
     speciallines += EV_DoDoor(&dummy, doorOpen);
   }
+
+  P_MapEnd();
 
   displaymsg("%d Special Action%s Triggered", speciallines, speciallines == 1 ? "" : "s");
 }

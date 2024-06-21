@@ -440,6 +440,10 @@ static boolean P_Move(mobj_t *actor, boolean dropoff) // killough 9/12/98
         if (P_UseSpecialLine(actor, spechit[numspechit], 0, false))
 	  good |= spechit[numspechit] == blockline ? 1 : 2;
 
+      // There are checks elsewhere for numspechit == 0, so we don't want to
+      // leave numspechit == -1.
+      numspechit = 0;
+
       // [FG] compatibility maze here
       // Boom v2.01 and orig. Doom return "good"
       // Boom v2.02 and LxDoom return good && (P_Random(pr_trywalk)&3)

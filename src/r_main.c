@@ -126,7 +126,7 @@ int extralight;                           // bumped light from gun blasts
 
 int extra_level_brightness;               // level brightness feature
 
-void (*colfunc)(void) = R_DrawColumn;     // current column draw function
+void (*colfunc)(void);                    // current column draw function
 
 //
 // R_PointOnSide
@@ -497,7 +497,6 @@ static void R_SetupFreelook(void)
   if (viewpitch)
   {
     dy = FixedMul(projection, -finetangent[(ANG90 - viewpitch) >> ANGLETOFINESHIFT]);
-    dy = (fixed_t)((int64_t)dy * SCREENHEIGHT / ACTUALHEIGHT);
   }
   else
   {
@@ -674,6 +673,9 @@ void R_Init (void)
 
   // [FG] spectre drawing mode
   R_SetFuzzColumnMode();
+
+  colfunc = R_DrawColumn;
+  R_InitDrawFunctions();
 }
 
 //

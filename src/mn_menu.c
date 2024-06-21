@@ -867,7 +867,10 @@ static void M_DrawLoad(void)
 
     int index = (menu_input == mouse_mode ? highlight_item : itemOn);
 
-    M_DrawBorderedSnapshot(index);
+    if (index < load_page)
+    {
+        M_DrawBorderedSnapshot(index);
+    }
 
     M_DrawSaveLoadBottomLine();
 }
@@ -1092,7 +1095,12 @@ static void M_DrawSave(void)
         WriteText(LoadDef.x + i, LoadDef.y + LINEHEIGHT * saveSlot, "_");
     }
 
-    M_DrawBorderedSnapshot(itemOn);
+    int index = (menu_input == mouse_mode ? highlight_item : itemOn);
+
+    if (index < load_page)
+    {
+        M_DrawBorderedSnapshot(index);
+    }
 
     M_DrawSaveLoadBottomLine();
 }
@@ -1887,6 +1895,9 @@ static void M_Setup(int choice)
 
 void MN_ClearMenus(void)
 {
+    // force status bar refresh
+    inhelpscreens = true;
+
     menuactive = 0;
     options_active = false;
     print_warning_about_changes = 0; // killough 8/15/98
@@ -1896,7 +1907,6 @@ void MN_ClearMenus(void)
     //     sendpause = true;
 
     G_ClearInput();
-    I_ResetRelativeMouseState();
 }
 
 void MN_Back(void)
@@ -2449,15 +2459,21 @@ static boolean MouseResponder(void)
 
     menuitem_t *current_item = &currentMenu->menuitems[highlight_item];
 
+    mrect_t *rect = &current_item->rect;
+
     if (current_item->flags & MF_PAGE)
     {
         if (M_InputActivated(input_menu_enter))
         {
-            if (savepage == savepage_max)
+            int dot = mouse_state_x - video.deltaw * 2 - rect->x;
+            if (dot >= rect->w / 2)
             {
-                savepage = -1;
+                SaveLoadResponder(MENU_RIGHT, 0);
             }
-            SaveLoadResponder(MENU_RIGHT, 0);
+            else
+            {
+                SaveLoadResponder(MENU_LEFT, 0);
+            }
             return true;
         }
         return false;
@@ -2468,7 +2484,7 @@ static boolean MouseResponder(void)
         current_item++;
     }
 
-    mrect_t *rect = &current_item->rect;
+    rect = &current_item->rect;
 
     if (M_InputActivated(input_menu_enter))
     {
@@ -2723,6 +2739,7 @@ boolean M_Responder(event_t *ev)
             messageRoutine(ch);
         }
 
+        G_ClearInput();
         menuactive = false;
         M_StartSound(sfx_swtchx);
         return true;
@@ -3064,12 +3081,6 @@ void M_Drawer(void)
     if (!menuactive)
     {
         return;
-    }
-
-    if (MN_MenuIsShaded())
-    {
-        inhelpscreens = true;
-        V_ShadeScreen();
     }
 
     if (currentMenu->routine)

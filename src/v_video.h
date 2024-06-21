@@ -170,11 +170,11 @@ void V_PutBlock(int x, int y, int width, int height, pixel_t *src);
 
 void V_FillRect(int x, int y, int width, int height, byte color);
 
-void V_ShadeScreen(void);
-
 void V_TileBlock64(int line, int width, int height, const byte *src);
 
 void V_DrawBackground(const char *patchname);
+
+void V_ShadeScreen(boolean toggle);
 
 // [FG] colored blood and gibs
 

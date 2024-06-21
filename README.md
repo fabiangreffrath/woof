@@ -40,7 +40,7 @@ If you turn the [Doom logo upside down](https://www.reddit.com/r/Doom/comments/8
  * Adjustable field of view (FOV).
  * Support for voxels in KVX format.
  * 3D audio, supporting stereo and up to 7.1 surround sound with an optional HRTF mode, as well as PC speaker emulation.
- * Several music backends: native MIDI on Windows and macOS, FluidSynth with a bundled soundfont, built-in OPL3 emulator. Digital music and sound formats supported by libsndfile, module music supported by libxmp.
+ * Several music backends: native MIDI, FluidSynth with a bundled soundfont, built-in OPL3 emulator. Digital music and sound formats supported by libsndfile, module music supported by libxmp.
  * Modern gamepad support.
  * Mouselook.
  * Autoload directories.
@@ -156,7 +156,7 @@ Copyright:
  © 2020 Alex Mayfield;  
  © 2020-2024 Fabian Greffrath;  
  © 2020-2024 Roman Fomin;  
- © 2021 Ryan Krafnick;  
+ © 2021-2022 Ryan Krafnick;  
  © 2022-2024 Alaux;  
  © 2022-2024 ceski;  
  © 2023 Andrew Apted;  

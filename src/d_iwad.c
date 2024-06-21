@@ -35,6 +35,8 @@ static const iwad_t iwads[] = {
     {"doom.wad",      doom,       indetermined, "DOOM"                           },
     {"doom.wad",      doom,       registered,   "DOOM Registered"                },
     {"doom.wad",      doom,       retail,       "The Ultimate DOOM"              },
+    // "doomu.wad" alias to allow retail wad to coexist with registered in the same folder
+    {"doomu.wad",     doom,       retail,       "The Ultimate DOOM"              },
     {"doom1.wad",     doom,       shareware,    "DOOM Shareware"                 },
     {"doom2f.wad",    doom2,      commercial,   "DOOM II: L'Enfer sur Terre"     },
     {"freedoom2.wad", doom2,      commercial,   "Freedoom: Phase 2"              },

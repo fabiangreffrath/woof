@@ -15,14 +15,12 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "doomdata.h"
 #include "doomstat.h"
 #include "doomtype.h"
 #include "i_printf.h"
 #include "i_video.h"
 #include "info.h"
 #include "m_array.h"
-#include "m_bbox.h"
 #include "m_fixed.h"
 #include "mn_menu.h"
 #include "m_misc.h"
@@ -909,7 +907,7 @@ static void VX_DrawColumn (vissprite_t * spr, int x, int y)
 					uy = clip_y1;
 
 				byte src = slab[0];
-				byte pix = spr->colormap[spr->brightmap[src]][src];
+				byte pix = r_darkcolormap[spr->colormap[spr->brightmap[src]][src]];
 
 				for (; uy < uy1 ; uy += FRACUNIT)
 				{
@@ -924,7 +922,7 @@ static void VX_DrawColumn (vissprite_t * spr, int x, int y)
 					uy = clip_y2;
 
 				byte src = slab[len - 1];
-				byte pix = spr->colormap[spr->brightmap[src]][src];
+				byte pix = r_darkcolormap[spr->colormap[spr->brightmap[src]][src]];
 
 				for (; uy > uy2 ; uy -= FRACUNIT)
 				{
@@ -944,7 +942,7 @@ static void VX_DrawColumn (vissprite_t * spr, int x, int y)
 					if (i >= len) i = len - 1;
 
 					byte src = slab[i];
-					byte pix = spr->colormap[spr->brightmap[src]][src];
+					byte pix = r_darkcolormap[spr->colormap[spr->brightmap[src]][src]];
 
 					dest[(uy >> FRACBITS) * linesize + (ux >> FRACBITS)] = pix;
 				}

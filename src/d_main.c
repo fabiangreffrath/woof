@@ -191,20 +191,29 @@ void D_PostEvent(event_t *ev)
   switch (ev->type)
   {
     case ev_mouse:
+      if (uncapped && raw_input)
+      {
+        G_MovementResponder(ev);
+        G_PrepMouseTiccmd();
+        return;
+      }
+      break;
+
     case ev_joystick:
       if (uncapped && raw_input)
       {
         G_MovementResponder(ev);
-        G_PrepTiccmd();
-        break;
+        G_PrepControllerTiccmd();
+        return;
       }
-      // Fall through.
+      break;
 
     default:
-      events[eventhead++] = *ev;
-      eventhead &= MAXEVENTS-1;
       break;
   }
+
+  events[eventhead++] = *ev;
+  eventhead &= MAXEVENTS - 1;
 }
 
 //
@@ -214,8 +223,6 @@ void D_PostEvent(event_t *ev)
 
 void D_ProcessEvents (void)
 {
-  // IF STORE DEMO, DO NOT ACCEPT INPUT
-  if (gamemode != commercial || W_CheckNumForName("map01") >= 0)
     for (; eventtail != eventhead; eventtail = (eventtail+1) & (MAXEVENTS-1))
     {
       M_InputTrackEvent(events+eventtail);
@@ -270,6 +277,15 @@ void D_Display (void)
       I_StartDisplay();
     }
   }
+
+  if (MN_MenuIsShaded())
+    V_ShadeScreen(true);
+
+  if ((automapactive && automapoverlay == AM_OVERLAY_DARK)
+      || MN_MenuIsShaded())
+    R_ShadeScreen(true);
+  else
+    R_ShadeScreen(false);
 
   redrawsbar = false;
 
@@ -394,6 +410,8 @@ void D_Display (void)
 
       V_DrawPatch(x, y, patch);
     }
+
+  V_ShadeScreen(false);
 
   // menus go directly to the screen
   M_Drawer();          // menu is drawn even on top of everything
@@ -2456,6 +2474,7 @@ void D_DoomMain(void)
   G_UpdateSideMove();
   G_UpdateAngleFunctions();
   G_UpdateLocalViewFunction();
+  G_UpdateControllerVariables();
   G_UpdateMouseVariables();
   R_UpdateViewAngleFunction();
 

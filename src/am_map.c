@@ -39,6 +39,7 @@
 #include "p_setup.h"
 #include "p_spec.h"
 #include "r_defs.h"
+#include "r_draw.h"
 #include "r_main.h"
 #include "r_state.h"
 #include "r_things.h"
@@ -297,6 +298,19 @@ static void AM_rotate(int64_t *x, int64_t *y, angle_t a);
 static void AM_rotatePoint(mpoint_t *pt);
 static mpoint_t mapcenter;
 static angle_t mapangle;
+
+enum
+{
+  PAN_UP,
+  PAN_DOWN,
+  PAN_LEFT,
+  PAN_RIGHT,
+  ZOOM_IN,
+  ZOOM_OUT,
+  STATE_NUM
+};
+
+static int buttons_state[STATE_NUM] = { 0 };
 
 //
 // AM_activateNewScale()
@@ -671,6 +685,8 @@ void AM_Stop (void)
 {
   static event_t st_notify = { 0, ev_keyup, AM_MSGEXITED };
 
+  memset(buttons_state, 0, sizeof(buttons_state));
+
   AM_unloadPics();
   automapactive = false;
   ST_Responder(&st_notify);
@@ -735,19 +751,6 @@ static void AM_maxOutWindowScale(void)
   scale_ftom = FixedDiv(FRACUNIT, scale_mtof);
   AM_activateNewScale();
 }
-
-enum
-{
-  PAN_UP,
-  PAN_DOWN,
-  PAN_LEFT,
-  PAN_RIGHT,
-  ZOOM_IN,
-  ZOOM_OUT,
-  STATE_NUM
-};
-
-static int buttons_state[STATE_NUM] = { 0 };
 
 //
 // AM_Responder()
@@ -842,7 +845,6 @@ boolean AM_Responder
     {
       bigstate = 0;
       viewactive = true;
-      memset(buttons_state, 0, sizeof(buttons_state));
       AM_Stop ();
     }
     else if (M_InputActivated(input_map_gobig))
@@ -2277,14 +2279,11 @@ void AM_Drawer (void)
     }
   }
 
-  if (!automapoverlay)
+  if (automapoverlay == AM_OVERLAY_OFF)
   {
     AM_clearFB(mapcolor_back);       //jff 1/5/98 background default color
     pspr_interp = false;
   }
-  // [Alaux] Dark automap overlay
-  else if (automapoverlay == AM_OVERLAY_DARK && !MN_MenuIsShaded())
-    V_ShadeScreen();
 
   if (automap_grid)                  // killough 2/28/98: change var name
     AM_drawGrid(mapcolor_grid);      //jff 1/7/98 grid default color
