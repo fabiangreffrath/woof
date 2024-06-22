@@ -708,13 +708,10 @@ void I_DynamicResolution(void)
     int newheight = 0;
     int oldheight = video.height;
 
-    // Decrease the resolution quickly, increase only when the average frame
-    // time is stable for the `targetrefresh` number of frames.
-
     frame_counter++;
     averagepercent = (averagepercent + actualpercent) / frame_counter;
 
-    if (actualpercent > DRS_GREATER)
+    if (actualpercent > DRS_GREATER && frame_counter > targetrefresh / 4)
     {
         double reduction = (actualpercent - DRS_GREATER) * 0.4;
         newheight = (int)MAX(DRS_MIN_HEIGHT, oldheight - oldheight * reduction);
@@ -737,7 +734,7 @@ void I_DynamicResolution(void)
 
     if (newheight > current_video_height)
     {
-        newheight -= DRS_STEP;
+        newheight = current_video_height;
     }
 
     if (newheight == oldheight)
@@ -1829,7 +1826,6 @@ void I_InitGraphics(void)
     {
         I_Error("Failed to initialize video: %s", SDL_GetError());
     }
-    SDL_SetHint("SDL_HINT_RENDER_BATCHING", "0");
 
     I_AtExit(I_ShutdownGraphics, true);
 
