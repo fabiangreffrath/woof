@@ -135,6 +135,8 @@ static hu_multiline_t w_health; //jff 2/16/98 new health widget for hud
 static hu_multiline_t w_keys;   //jff 2/16/98 new keys widget for hud
 static hu_multiline_t w_weapon; //jff 2/16/98 new weapon widget for hud
 
+static hu_multiline_t w_compact;
+
 // [FG] extra Boom widgets, that need to be explicitly enabled
 static hu_multiline_t w_monsec; //jff 2/16/98 new kill/secret widget for hud
 static hu_multiline_t w_sttime; // time above status bar
@@ -325,21 +327,28 @@ void HU_ResetMessageColors(void)
     }
 }
 
-static byte* ColorByHealth(int health, int maxhealth, boolean invul)
+static crange_idx_e CRByHealth(int health, int maxhealth, boolean invul)
 {
   if (invul)
-    return colrngs[CR_GRAY];
+    return CR_GRAY;
 
   health = 100 * health / maxhealth;
 
   if (health < health_red)
-    return colrngs[CR_RED];
+    return CR_RED;
   else if (health < health_yellow)
-    return colrngs[CR_GOLD];
+    return CR_GOLD;
   else if (health <= health_green)
-    return colrngs[CR_GREEN];
+    return CR_GREEN;
   else
-    return colrngs[CR_BLUE];
+    return CR_BLUE;
+}
+
+static byte* ColorByHealth(int health, int maxhealth, boolean invul)
+{
+  const crange_idx_e cr = CRByHealth(health, maxhealth, invul);
+
+  return colrngs[cr];
 }
 
 // [FG] support centered player messages
@@ -513,6 +522,7 @@ static void HU_widget_build_monsec(void);
 static void HU_widget_build_sttime(void);
 static void HU_widget_build_title (void);
 static void HU_widget_build_weapon (void);
+static void HU_widget_build_compact (void);
 
 static hu_multiline_t *w_stats;
 
@@ -590,6 +600,10 @@ void HU_Start(void)
   HUlib_init_multiline(&w_keys, 1,
                        &boom_font, colrngs[CR_GRAY],
                        NULL, deathmatch ? HU_widget_build_frag : HU_widget_build_keys);
+
+  HUlib_init_multiline(&w_compact, hud_widget_layout ? 3 : 1,
+                       &boom_font, colrngs[CR_GRAY],
+                       NULL, HU_widget_build_compact);
 
   // create the hud monster/secret widget
   HUlib_init_multiline(&w_monsec, hud_widget_layout ? 3 : 1,
@@ -699,6 +713,23 @@ static void HU_widget_build_title (void)
 }
 
 // do the hud ammo display
+static crange_idx_e CRByAmmo(const int ammo, const int fullammo, int ammopct)
+{
+  // backpack changes thresholds (ammo widget)
+  if (plr->backpack && !hud_backpack_thresholds && fullammo)
+    ammopct = (100 * ammo) / (fullammo / 2);
+
+  // set the display color from the percentage of total ammo held
+  if (ammopct < ammo_red)
+    return CR_RED;
+  else if (ammopct < ammo_yellow)
+    return CR_GOLD;
+  else if (ammopct > 100) // more than max threshold w/o backpack
+    return CR_BLUE;
+  else
+    return CR_GREEN;
+}
+
 static void HU_widget_build_ammo (void)
 {
   char hud_ammostr[HU_MAXLINELENGTH] = "AMM ";
@@ -753,19 +784,8 @@ static void HU_widget_build_ammo (void)
     // build the numeric amount init string
     M_snprintf(hud_ammostr + i, sizeof(hud_ammostr), "%3d/%3d", ammo, fullammo);
 
-    // backpack changes thresholds (ammo widget)
-    if (plr->backpack && !hud_backpack_thresholds && fullammo)
-      ammopct = (100 * ammo) / (fullammo / 2);
-
-    // set the display color from the percentage of total ammo held
-    if (ammopct < ammo_red)
-      w_ammo.cr = colrngs[CR_RED];
-    else if (ammopct < ammo_yellow)
-      w_ammo.cr = colrngs[CR_GOLD];
-    else if (ammopct > 100) // more than max threshold w/o backpack
-      w_ammo.cr = colrngs[CR_BLUE];
-    else
-      w_ammo.cr = colrngs[CR_GREEN];
+    const crange_idx_e cr = CRByAmmo(ammo, fullammo, ammopct);
+    w_ammo.cr = colrngs[cr];
   }
 
   // transfer the init string to the widget
@@ -819,6 +839,31 @@ static void HU_widget_build_health (void)
 }
 
 // do the hud armor display
+static crange_idx_e CRByArmor(void)
+{
+  // color of armor depends on type
+  if (hud_armor_type)
+  {
+    return
+      st_invul ? CR_GRAY :
+      (plr->armortype == 0) ? CR_RED :
+      (plr->armortype == 1) ? CR_GREEN :
+      CR_BLUE;
+  }
+  else
+  {
+    const int armor = plr->armorpoints;
+
+    // set the display color from the amount of armor posessed
+    return
+      st_invul ? CR_GRAY :
+      (armor < armor_red) ? CR_RED :
+      (armor < armor_yellow) ? CR_GOLD :
+      (armor <= armor_green) ? CR_GREEN :
+      CR_BLUE;
+  }
+}
+
 static void HU_widget_build_armor (void)
 {
   char hud_armorstr[HU_MAXLINELENGTH] = "ARM ";
@@ -857,31 +902,75 @@ static void HU_widget_build_armor (void)
   // build the numeric amount init string
   M_snprintf(hud_armorstr + i, sizeof(hud_armorstr), "%3d", st_armor);
 
-  // color of armor depends on type
-  if (hud_armor_type)
-  {
-    w_armor.cr =
-      st_invul ? colrngs[CR_GRAY] :
-      (plr->armortype == 0) ? colrngs[CR_RED] :
-      (plr->armortype == 1) ? colrngs[CR_GREEN] :
-      colrngs[CR_BLUE];
-  }
-  else
-  {
-    int armor = plr->armorpoints;
-    
-    // set the display color from the amount of armor posessed
-    w_armor.cr =
-      st_invul ? colrngs[CR_GRAY] :
-      (armor < armor_red) ? colrngs[CR_RED] :
-      (armor < armor_yellow) ? colrngs[CR_GOLD] :
-      (armor <= armor_green) ? colrngs[CR_GREEN] :
-      colrngs[CR_BLUE];
-  }
+  const crange_idx_e cr = CRByArmor();
+  w_armor.cr = colrngs[cr];
 
   // transfer the init string to the widget
   HUlib_add_string_to_cur_line(&w_armor, hud_armorstr);
 }
+
+static void HU_widget_build_compact (void)
+{
+  char hud_compactstr[HU_MAXLINELENGTH];
+
+  const crange_idx_e cr_health = CRByHealth(plr->health, 100, st_invul);
+  const crange_idx_e cr_armor = CRByArmor();
+
+  const ammotype_t ammotype = weaponinfo[plr->readyweapon].ammo;
+  const int ammo = plr->ammo[ammotype];
+  const int fullammo = plr->maxammo[ammotype];
+  const boolean noammo = (ammotype == am_noammo || fullammo == 0);
+
+  if (hud_widget_layout)
+  {
+    M_snprintf(hud_compactstr, sizeof(hud_compactstr),
+    "\x1b%cHEL\t%d", '0'+cr_health, st_health);
+    HUlib_add_string_to_cur_line(&w_compact, hud_compactstr);
+
+    M_snprintf(hud_compactstr, sizeof(hud_compactstr),
+    "\x1b%cARM\t%d", '0'+cr_armor, st_armor);
+    HUlib_add_string_to_cur_line(&w_compact, hud_compactstr);
+
+    if (noammo)
+    {
+      M_snprintf(hud_compactstr, sizeof(hud_compactstr),
+      "\x1b%cAMM\tN/A", '0'+CR_GRAY);
+    }
+    else
+    {
+      const int ammopct = (100 * ammo) / fullammo;
+      const crange_idx_e cr_ammo = CRByAmmo(ammo, fullammo, ammopct);
+
+      M_snprintf(hud_compactstr, sizeof(hud_compactstr),
+      "\x1b%cAMM\t%d/%d", '0'+cr_ammo, ammo, fullammo);
+    }
+    HUlib_add_string_to_cur_line(&w_compact, hud_compactstr);
+  }
+  else
+  {
+    if (noammo)
+    {
+      M_snprintf(hud_compactstr, sizeof(hud_compactstr),
+      "\x1b%cHEL %d \x1b%cARM %d \x1b%cAMM N/A",
+      '0'+cr_health, st_health,
+      '0'+cr_armor, st_armor,
+      '0'+CR_GRAY);
+    }
+    else
+    {
+      const int ammopct = (100 * ammo) / fullammo;
+      const crange_idx_e cr_ammo = CRByAmmo(ammo, fullammo, ammopct);
+
+      M_snprintf(hud_compactstr, sizeof(hud_compactstr),
+      "\x1b%cHEL %d \x1b%cARM %d \x1b%cAMM %d/%d",
+      '0'+cr_health, st_health,
+      '0'+cr_armor, st_armor,
+      '0'+cr_ammo, ammo, fullammo);
+    }
+    HUlib_add_string_to_cur_line(&w_compact, hud_compactstr);
+  }
+}
+
 
 // do the hud weapon display
 static void HU_widget_build_weapon (void)
@@ -1684,15 +1773,24 @@ void HU_Ticker(void)
     if (hud_type == HUD_TYPE_CRISPY)
     {
       if (hud_active > 0)
+      {
         draw_crispy_hud = true;
+      }
     }
     else
     {
-      HU_cond_build_widget(&w_weapon, true);
-      HU_cond_build_widget(&w_armor, true);
-      HU_cond_build_widget(&w_health, true);
-      HU_cond_build_widget(&w_ammo, true);
-      HU_cond_build_widget(&w_keys, true);
+      if (hud_active > 0)
+      {
+        HU_cond_build_widget(&w_weapon, true);
+        HU_cond_build_widget(&w_armor, true);
+        HU_cond_build_widget(&w_health, true);
+        HU_cond_build_widget(&w_ammo, true);
+        HU_cond_build_widget(&w_keys, true);
+      }
+      else
+      {
+        HU_cond_build_widget(&w_compact, true);
+      }
     }
   }
 
@@ -1923,6 +2021,8 @@ static const struct {
     {"health",  NULL,     &w_health},
     {"keys",    NULL,     &w_keys},
     {"weapon", "weapons", &w_weapon},
+
+    {"compact", NULL,     &w_compact},
 
     {"monsec", "stats",   &w_monsec},
     {"sttime", "time",    &w_sttime},
