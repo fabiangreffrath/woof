@@ -4,7 +4,7 @@ Woof! supports the WOOFHUD lump to customize the appearance of the extended Boom
 
 ## Description
 
-The Boom HUD shows information about the player's health, armor, weapons, ammo and keys using different widgets, i.e. lines of text and symbols. It is usually made visible by hitting the <kbd>F5</kbd> key, and repeatedly hitting the <kbd>F5</kbd> key toggles through three different modes: the "minimal" mode which only shows the most basic information by default, the "compact" mode which shows all information in the lower left corner of the screen and the "distributed" mode which shows information spread across the corners of the screen.
+The Boom HUD shows information about the player's health, armor, weapons, ammo and keys using different widgets, i.e. lines of text and symbols. It is usually made visible by hitting the <kbd>F5</kbd> key, and repeatedly hitting the <kbd>F5</kbd> key toggles through three different modes: the "minimal" mode which shows only the most basic information, the "compact" mode which shows all information in the lower left corner of the screen and the "distributed" mode which shows information spread across the corners of the screen.
 
 The WOOFHUD lump can be used to modify the positions of these widgets for each mode.
 This lump may either get embedded into a PWAD, or provided by the user on the command line or through the autoload feature.
@@ -104,7 +104,7 @@ fps 224 16
 
 The "title" widget is only visible if the Automap is enabled. The "monsec", "sttime" and "coord" widgets are only visible if they are explicitly enabled in the Options menu (separately for Automap and HUD). The "fps" widget is only visible if the SHOWFPS cheat is enabled.
 
-The "compact" widget is a minimal widget showing health, armor and ammo information only. It is enabled by default in the minimal Boom HUD mode.
+The "compact" widget is a minimal widget showing only health, armor and ammo information. It is enabled by default in the minimal Boom HUD mode.
 
 A centered widget does not allow for any other left or right aligned widget on the same line.
 
