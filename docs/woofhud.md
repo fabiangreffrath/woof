@@ -50,8 +50,8 @@ The following example represents the current default alignments of the Boom HUD 
 
 ```
 hud 0
-compact bottomleft
 rate topleft
+compact bottomleft
 monsec topleft
 sttime topleft
 coord topright
