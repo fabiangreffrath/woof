@@ -1779,18 +1779,13 @@ void HU_Ticker(void)
     }
     else
     {
-      if (hud_active > 0)
-      {
-        HU_cond_build_widget(&w_weapon, true);
-        HU_cond_build_widget(&w_armor, true);
-        HU_cond_build_widget(&w_health, true);
-        HU_cond_build_widget(&w_ammo, true);
-        HU_cond_build_widget(&w_keys, true);
-      }
-      else
-      {
-        HU_cond_build_widget(&w_compact, true);
-      }
+      HU_cond_build_widget(&w_weapon, true);
+      HU_cond_build_widget(&w_armor, true);
+      HU_cond_build_widget(&w_health, true);
+      HU_cond_build_widget(&w_ammo, true);
+      HU_cond_build_widget(&w_keys, true);
+
+      HU_cond_build_widget(&w_compact, true);
     }
   }
 
