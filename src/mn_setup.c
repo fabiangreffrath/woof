@@ -308,6 +308,7 @@ enum
     str_gamma,
     str_sound_module,
     str_resampler,
+    str_equalizer_preset,
 
     str_mouse_accel,
 
@@ -2054,6 +2055,8 @@ static void SetMidiPlayer(void)
     S_RestartMusic();
 }
 
+static const char *equalizer_preset_strings[] = {"Off", "Classical", "Rock", "Vocal"};
+
 static setup_menu_t gen_settings2[] = {
 
     {"Sound Volume", S_THERMO, M_X_THRM8, M_THRM_SPC, {"sfx_volume"},
@@ -2075,6 +2078,9 @@ static setup_menu_t gen_settings2[] = {
     // [FG] play sounds in full length
     {"Disable Sound Cutoffs", S_ONOFF, M_X, M_SPC, {"full_sounds"}},
 
+    {"Equalizer Preset", S_CHOICE, M_X, M_SPC, {"snd_equalizer"}, m_null, input_null,
+     str_equalizer_preset, I_OAL_EqualizerPreset},
+
     {"Resampler", S_CHOICE | S_NEXT_LINE, M_X, M_SPC, {"snd_resampler"}, m_null,
      input_null, str_resampler, I_OAL_SetResampler},
 
@@ -2087,6 +2093,47 @@ static setup_menu_t gen_settings2[] = {
 
     MI_END
 };
+
+/*
+static setup_menu_t gen_settings_eq[] = {
+    {"Preamp dB", S_THERMO | S_THRM_SIZE11, M_X_THRM11, M_THRM_SPC,
+     {"snd_eq_preamp"}, m_null, input_null, str_empty, I_OAL_SetEqualizer},
+
+    {"Low Gain dB", S_THERMO | S_THRM_SIZE11, M_X_THRM11, M_THRM_SPC,
+     {"snd_eq_low_gain"}, m_null, input_null, str_empty, I_OAL_SetEqualizer},
+
+    {"Mid 1 Gain dB", S_THERMO | S_THRM_SIZE11, M_X_THRM11, M_THRM_SPC,
+     {"snd_eq_mid1_gain"}, m_null, input_null, str_empty, I_OAL_SetEqualizer},
+
+    {"Mid 2 Gain dB", S_THERMO | S_THRM_SIZE11, M_X_THRM11, M_THRM_SPC,
+     {"snd_eq_mid2_gain"}, m_null, input_null, str_empty, I_OAL_SetEqualizer},
+
+    {"High Gain dB", S_THERMO | S_THRM_SIZE11, M_X_THRM11, M_THRM_SPC,
+     {"snd_eq_high_gain"}, m_null, input_null, str_empty, I_OAL_SetEqualizer},
+
+
+    {"Low Cutoff Hz", S_THERMO | S_THRM_SIZE11, M_X_THRM11, M_THRM_SPC,
+     {"snd_eq_low_cutoff"}, m_null, input_null, str_empty, I_OAL_SetEqualizer},
+
+    {"Mid 1 Center Hz", S_THERMO | S_THRM_SIZE11, M_X_THRM11, M_THRM_SPC,
+     {"snd_eq_mid1_center"}, m_null, input_null, str_empty, I_OAL_SetEqualizer},
+
+    {"Mid 2 Center Hz", S_THERMO | S_THRM_SIZE11, M_X_THRM11, M_THRM_SPC,
+     {"snd_eq_mid2_center"}, m_null, input_null, str_empty, I_OAL_SetEqualizer},
+
+    {"High Cutoff Hz", S_THERMO | S_THRM_SIZE11, M_X_THRM11, M_THRM_SPC,
+     {"snd_eq_high_cutoff"}, m_null, input_null, str_empty, I_OAL_SetEqualizer},
+
+
+    {"Mid 1 Width Oct", S_THERMO | S_THRM_SIZE11, M_X_THRM11, M_THRM_SPC,
+     {"snd_eq_mid1_width"}, m_null, input_null, str_empty, I_OAL_SetEqualizer},
+
+    {"Mid 2 Width Oct", S_THERMO | S_THRM_SIZE11, M_X_THRM11, M_THRM_SPC,
+     {"snd_eq_mid2_width"}, m_null, input_null, str_empty, I_OAL_SetEqualizer},
+
+    MI_END
+};
+*/
 
 static const char **GetResamplerStrings(void)
 {
@@ -3804,6 +3851,7 @@ static const char **selectstrings[] = {
     gamma_strings,
     sound_module_strings,
     NULL, // str_resampler
+    equalizer_preset_strings,
     NULL, // str_mouse_accel
     default_skill_strings,
     default_complevel_strings,
