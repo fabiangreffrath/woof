@@ -1828,7 +1828,6 @@ void MN_DrawCompat(void)
 static setup_tab_t gen_tabs[] = {
     {"video"},
     {"audio"},
-    {"eq"},
     {"mouse"},
     {"gamepad"},
     {"display"},
@@ -2095,6 +2094,7 @@ static setup_menu_t gen_settings2[] = {
     MI_END
 };
 
+/*
 static setup_menu_t gen_settings_eq[] = {
     {"Preamp dB", S_THERMO | S_THRM_SIZE11, M_X_THRM11, M_THRM_SPC,
      {"snd_eq_preamp"}, m_null, input_null, str_empty, I_OAL_SetEqualizer},
@@ -2133,6 +2133,7 @@ static setup_menu_t gen_settings_eq[] = {
 
     MI_END
 };
+*/
 
 static const char **GetResamplerStrings(void)
 {
@@ -2396,7 +2397,7 @@ static setup_menu_t gen_settings6[] = {
 };
 
 static setup_menu_t *gen_settings[] = {
-    gen_settings1, gen_settings2, gen_settings_eq, gen_settings3, gen_settings4,
+    gen_settings1, gen_settings2, gen_settings3, gen_settings4,
     gen_settings5, gen_settings6, NULL
 };
 
