@@ -586,7 +586,7 @@ void I_OAL_EqualizerPreset(void)
         int val[NUM_EQ_PRESETS];
     } eq_presets[] =
     {   // Preamp               Off, Classical, Rock, Vocal
-        {&snd_eq_preamp,      {    0,     0,     0,     0}}, // -60 to 0
+        {&snd_eq_preamp,      {    0,    -4,    -5,    -4}}, // -60 to 0
 
         // Low
         {&snd_eq_low_gain,    {    0,     4,     0,    -2}}, // -18 to 18
