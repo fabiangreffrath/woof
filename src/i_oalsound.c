@@ -354,9 +354,9 @@ const char **I_OAL_GetResamplerStrings(void)
 
 typedef enum {
     EQ_PRESET_OFF,
-    EQ_PRESET_BASS,
-    EQ_PRESET_BASSTREB,
-    EQ_PRESET_MID,
+    EQ_PRESET_CLASSICAL,
+    EQ_PRESET_ROCK,
+    EQ_PRESET_VOCAL,
     NUM_EQ_PRESETS
 } eq_preset_t;
 
@@ -585,7 +585,7 @@ void I_OAL_EqualizerPreset(void)
         int *var;
         int val[NUM_EQ_PRESETS];
     } eq_presets[] =
-    {   // Preamp               Off, Bass, Bass+Treb, Mid
+    {   // Preamp               Off, Classical, Rock, Vocal
         {&snd_eq_preamp,      {    0,     0,     0,     0}}, // -60 to 0
 
         // Low
@@ -734,8 +734,8 @@ void I_OAL_BindSoundVariables(void)
         "[OpenAL 3D] Doppler effect (0 = Off; 10 = Max)");
     BIND_BOOL(snd_limiter, false, "Use sound output limiter");
 
-    BIND_NUM(snd_equalizer, EQ_PRESET_OFF, EQ_PRESET_OFF, EQ_PRESET_MID,
-        "Equalizer preset (0 = Off; 1 = Bass; 2 = Bass+Treb; 3 = Mid");
+    BIND_NUM(snd_equalizer, EQ_PRESET_OFF, EQ_PRESET_OFF, EQ_PRESET_VOCAL,
+        "Equalizer preset (0 = Off; 1 = Classical; 2 = Rock; 3 = Vocal");
     BIND_NUM(snd_eq_preamp, 0, -60, 0,
         "Equalizer preamp gain [dB]");
 
