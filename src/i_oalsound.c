@@ -58,6 +58,8 @@
 #  define FUNCTION_CAST(T, ptr) (T)(ptr)
 #endif
 
+#define ALFUNC(T, ptr) (ptr = FUNCTION_CAST(T, alGetProcAddress(#ptr)))
+
 static int snd_resampler;
 static boolean snd_limiter;
 static boolean snd_hrtf;
@@ -119,10 +121,8 @@ static void InitDeferred(void)
 
     if (alIsExtensionPresent("AL_SOFT_deferred_updates") == AL_TRUE)
     {
-        alDeferUpdatesSOFT = FUNCTION_CAST(
-            LPALDEFERUPDATESSOFT, alGetProcAddress("alDeferUpdatesSOFT"));
-        alProcessUpdatesSOFT = FUNCTION_CAST(
-            LPALPROCESSUPDATESSOFT, alGetProcAddress("alProcessUpdatesSOFT"));
+        ALFUNC(LPALDEFERUPDATESSOFT, alDeferUpdatesSOFT);
+        ALFUNC(LPALPROCESSUPDATESSOFT, alProcessUpdatesSOFT);
 
         if (alDeferUpdatesSOFT && alProcessUpdatesSOFT)
         {
@@ -208,8 +208,7 @@ void I_OAL_SetResampler(void)
         return;
     }
 
-    alGetStringiSOFT =
-        FUNCTION_CAST(LPALGETSTRINGISOFT, alGetProcAddress("alGetStringiSOFT"));
+    ALFUNC(LPALGETSTRINGISOFT, alGetStringiSOFT);
 
     if (!alGetStringiSOFT)
     {
@@ -334,8 +333,7 @@ const char **I_OAL_GetResamplerStrings(void)
         return NULL;
     }
 
-    alGetStringiSOFT =
-        FUNCTION_CAST(LPALGETSTRINGISOFT, alGetProcAddress("alGetStringiSOFT"));
+    ALFUNC(LPALGETSTRINGISOFT, alGetStringiSOFT);
 
     if (!alGetStringiSOFT)
     {
@@ -406,62 +404,20 @@ static void InitEqualizer(void)
         return;
     }
 
-    if (!alGenAuxiliaryEffectSlots)
-    {
-        alGenAuxiliaryEffectSlots = FUNCTION_CAST(LPALGENAUXILIARYEFFECTSLOTS, alGetProcAddress("alGenAuxiliaryEffectSlots"));
-    }
-    if (!alDeleteAuxiliaryEffectSlots)
-    {
-        alDeleteAuxiliaryEffectSlots = FUNCTION_CAST(LPALDELETEAUXILIARYEFFECTSLOTS, alGetProcAddress("alDeleteAuxiliaryEffectSlots"));
-    }
-    if (!alIsAuxiliaryEffectSlot)
-    {
-        alIsAuxiliaryEffectSlot = FUNCTION_CAST(LPALISAUXILIARYEFFECTSLOT, alGetProcAddress("alIsAuxiliaryEffectSlot"));
-    }
-    if (!alGenEffects)
-    {
-        alGenEffects = FUNCTION_CAST(LPALGENEFFECTS, alGetProcAddress("alGenEffects"));
-    }
-    if (!alDeleteEffects)
-    {
-        alDeleteEffects = FUNCTION_CAST(LPALDELETEEFFECTS, alGetProcAddress("alDeleteEffects"));
-    }
-    if (!alIsEffect)
-    {
-        alIsEffect = FUNCTION_CAST(LPALISEFFECT, alGetProcAddress("alIsEffect"));
-    }
-    if (!alEffecti)
-    {
-        alEffecti = FUNCTION_CAST(LPALEFFECTI, alGetProcAddress("alEffecti"));
-    }
-    if (!alEffectf)
-    {
-        alEffectf = FUNCTION_CAST(LPALEFFECTF, alGetProcAddress("alEffectf"));
-    }
-    if (!alAuxiliaryEffectSloti)
-    {
-        alAuxiliaryEffectSloti = FUNCTION_CAST(LPALAUXILIARYEFFECTSLOTI, alGetProcAddress("alAuxiliaryEffectSloti"));
-    }
-    if (!alGenFilters)
-    {
-        alGenFilters = FUNCTION_CAST(LPALGENFILTERS, alGetProcAddress("alGenFilters"));
-    }
-    if (!alDeleteFilters)
-    {
-        alDeleteFilters = FUNCTION_CAST(LPALDELETEFILTERS, alGetProcAddress("alDeleteFilters"));
-    }
-    if (!alIsFilter)
-    {
-        alIsFilter = FUNCTION_CAST(LPALISFILTER, alGetProcAddress("alIsFilter"));
-    }
-    if (!alFilteri)
-    {
-        alFilteri = FUNCTION_CAST(LPALFILTERI, alGetProcAddress("alFilteri"));
-    }
-    if (!alFilterf)
-    {
-        alFilterf = FUNCTION_CAST(LPALFILTERF, alGetProcAddress("alFilterf"));
-    }
+    ALFUNC(LPALGENAUXILIARYEFFECTSLOTS, alGenAuxiliaryEffectSlots);
+    ALFUNC(LPALDELETEAUXILIARYEFFECTSLOTS, alDeleteAuxiliaryEffectSlots);
+    ALFUNC(LPALISAUXILIARYEFFECTSLOT, alIsAuxiliaryEffectSlot);
+    ALFUNC(LPALGENEFFECTS, alGenEffects);
+    ALFUNC(LPALDELETEEFFECTS, alDeleteEffects);
+    ALFUNC(LPALISEFFECT, alIsEffect);
+    ALFUNC(LPALEFFECTI, alEffecti);
+    ALFUNC(LPALEFFECTF, alEffectf);
+    ALFUNC(LPALAUXILIARYEFFECTSLOTI, alAuxiliaryEffectSloti);
+    ALFUNC(LPALGENFILTERS, alGenFilters);
+    ALFUNC(LPALDELETEFILTERS, alDeleteFilters);
+    ALFUNC(LPALISFILTER, alIsFilter);
+    ALFUNC(LPALFILTERI, alFilteri);
+    ALFUNC(LPALFILTERF, alFilterf);
 }
 
 void I_OAL_SetEqualizer(void)
@@ -515,21 +471,9 @@ void I_OAL_SetEqualizer(void)
 
     if (snd_equalizer != EQ_PRESET_OFF)
     {
-        if (!alIsAuxiliaryEffectSlot(uiEffectSlot))
-        {
-            alGenAuxiliaryEffectSlots(1, &uiEffectSlot);
-        }
-
-        if (!alIsEffect(uiEffect))
-        {
-            alGenEffects(1, &uiEffect);
-        }
-
-        if (!alIsFilter(uiFilter))
-        {
-            alGenFilters(1, &uiFilter);
-        }
-
+        alGenAuxiliaryEffectSlots(1, &uiEffectSlot);
+        alGenEffects(1, &uiEffect);
+        alGenFilters(1, &uiFilter);
         alEffecti(uiEffect, AL_EFFECT_TYPE, AL_EFFECT_EQUALIZER);
 
         // AL_LOWPASS_GAIN actually controls overall gain for the filter it's
