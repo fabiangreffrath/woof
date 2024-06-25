@@ -451,7 +451,8 @@ void I_OAL_SetEqualizer(void)
         for (int i = 0; i < MAX_CHANNELS; i++)
         {
             alSourcei(oal->sources[i], AL_DIRECT_FILTER, AL_FILTER_NULL);
-            alSource3i(oal->sources[i], AL_AUXILIARY_SEND_FILTER, AL_EFFECTSLOT_NULL, 0, AL_FILTER_NULL);
+            alSource3i(oal->sources[i], AL_AUXILIARY_SEND_FILTER,
+                       AL_EFFECTSLOT_NULL, 0, AL_FILTER_NULL);
         }
 
         alDeleteAuxiliaryEffectSlots(1, &uiEffectSlot);
@@ -467,58 +468,61 @@ void I_OAL_SetEqualizer(void)
         alDeleteFilters(1, &uiFilter);
     }
 
+    if (snd_equalizer == EQ_PRESET_OFF)
+    {
+        return;
+    }
+
     // Apply equalizer effect.
 
-    if (snd_equalizer != EQ_PRESET_OFF)
+    alGenAuxiliaryEffectSlots(1, &uiEffectSlot);
+    alGenEffects(1, &uiEffect);
+    alGenFilters(1, &uiFilter);
+    alEffecti(uiEffect, AL_EFFECT_TYPE, AL_EFFECT_EQUALIZER);
+
+    // AL_LOWPASS_GAIN actually controls overall gain for the filter it's
+    // applied to (OpenAL Effects Extension Guide 1.1, pp. 16-17, 135).
+
+    alFilteri(uiFilter, AL_FILTER_TYPE, AL_FILTER_LOWPASS);
+
+    // Gains vary from 0.251 up to 3.981, which means from -12dB attenuation
+    // up to +12dB amplification, i.e. 20*log10(gain).
+
+    #define DB_TO_GAIN(db) powf(10.0f, (db) / 20.0f)
+    #define EQ_GAIN(db) ((ALfloat)BETWEEN(0.251f, 3.981f, DB_TO_GAIN(db)))
+    #define LP_GAIN(db) ((ALfloat)BETWEEN(0.063f, 1.0f, DB_TO_GAIN(db)))
+    #define OCTAVE(x) ((ALfloat)BETWEEN(0.01f, 1.0f, (x) / 100.0f))
+
+    // Low
+    alEffectf(uiEffect, AL_EQUALIZER_LOW_GAIN, EQ_GAIN(snd_eq_low_gain));
+    alEffectf(uiEffect, AL_EQUALIZER_LOW_CUTOFF, (ALfloat)snd_eq_low_cutoff);
+
+    // Mid 1
+    alEffectf(uiEffect, AL_EQUALIZER_MID1_GAIN, EQ_GAIN(snd_eq_mid1_gain));
+    alEffectf(uiEffect, AL_EQUALIZER_MID1_CENTER, (ALfloat)snd_eq_mid1_center);
+    alEffectf(uiEffect, AL_EQUALIZER_MID1_WIDTH, OCTAVE(snd_eq_mid1_width));
+
+    // Mid 2
+    alEffectf(uiEffect, AL_EQUALIZER_MID2_GAIN, EQ_GAIN(snd_eq_mid2_gain));
+    alEffectf(uiEffect, AL_EQUALIZER_MID2_CENTER, (ALfloat)snd_eq_mid2_center);
+    alEffectf(uiEffect, AL_EQUALIZER_MID2_WIDTH, OCTAVE(snd_eq_mid2_width));
+
+    // High
+    alEffectf(uiEffect, AL_EQUALIZER_HIGH_GAIN, EQ_GAIN(snd_eq_high_gain));
+    alEffectf(uiEffect, AL_EQUALIZER_HIGH_CUTOFF, (ALfloat)snd_eq_high_cutoff);
+
+    alAuxiliaryEffectSloti(uiEffectSlot, AL_EFFECTSLOT_EFFECT, uiEffect);
+
+    for (int i = 0; i < MAX_CHANNELS; i++)
     {
-        alGenAuxiliaryEffectSlots(1, &uiEffectSlot);
-        alGenEffects(1, &uiEffect);
-        alGenFilters(1, &uiFilter);
-        alEffecti(uiEffect, AL_EFFECT_TYPE, AL_EFFECT_EQUALIZER);
+        // Mute the dry path.
+        alFilterf(uiFilter, AL_LOWPASS_GAIN, 0.0f);
+        alSourcei(oal->sources[i], AL_DIRECT_FILTER, uiFilter);
 
-        // AL_LOWPASS_GAIN actually controls overall gain for the filter it's
-        // applied to (OpenAL Effects Extension Guide 1.1, pp. 16-17, 135).
-
-        alFilteri(uiFilter, AL_FILTER_TYPE, AL_FILTER_LOWPASS);
-
-        // Gains vary from 0.251 up to 3.981, which means from -12dB attenuation
-        // up to +12dB amplification, i.e. 20*log10(gain).
-
-        #define DB_TO_GAIN(db) powf(10.0f, (db)/20.0f)
-        #define EQ_GAIN(db) ((ALfloat)BETWEEN(0.251f, 3.981f, DB_TO_GAIN(db)))
-        #define LP_GAIN(db) ((ALfloat)BETWEEN(0.063f, 1.0f, DB_TO_GAIN(db)))
-        #define OCTAVE(x) ((ALfloat)BETWEEN(0.01f, 1.0f, (ALfloat)(x) / 100.0f))
-
-        // Low
-        alEffectf(uiEffect, AL_EQUALIZER_LOW_GAIN, EQ_GAIN(snd_eq_low_gain));
-        alEffectf(uiEffect, AL_EQUALIZER_LOW_CUTOFF, (ALfloat)snd_eq_low_cutoff);
-
-        // Mid 1
-        alEffectf(uiEffect, AL_EQUALIZER_MID1_GAIN, EQ_GAIN(snd_eq_mid1_gain));
-        alEffectf(uiEffect, AL_EQUALIZER_MID1_CENTER, (ALfloat)snd_eq_mid1_center);
-        alEffectf(uiEffect, AL_EQUALIZER_MID1_WIDTH, OCTAVE(snd_eq_mid1_width));
-
-        // Mid 2
-        alEffectf(uiEffect, AL_EQUALIZER_MID2_GAIN, EQ_GAIN(snd_eq_mid2_gain));
-        alEffectf(uiEffect, AL_EQUALIZER_MID2_CENTER, (ALfloat)snd_eq_mid2_center);
-        alEffectf(uiEffect, AL_EQUALIZER_MID2_WIDTH, OCTAVE(snd_eq_mid2_width));
-
-        // High
-        alEffectf(uiEffect, AL_EQUALIZER_HIGH_GAIN, EQ_GAIN(snd_eq_high_gain));
-        alEffectf(uiEffect, AL_EQUALIZER_HIGH_CUTOFF, (ALfloat)snd_eq_high_cutoff);
-
-        alAuxiliaryEffectSloti(uiEffectSlot, AL_EFFECTSLOT_EFFECT, uiEffect);
-
-        for (int i = 0; i < MAX_CHANNELS; i++)
-        {
-            // Mute the dry path.
-            alFilterf(uiFilter, AL_LOWPASS_GAIN, 0.0f);
-            alSourcei(oal->sources[i], AL_DIRECT_FILTER, uiFilter);
-
-            // Keep the wet path.
-            alFilterf(uiFilter, AL_LOWPASS_GAIN, LP_GAIN(snd_eq_preamp));
-            alSource3i(oal->sources[i], AL_AUXILIARY_SEND_FILTER, uiEffectSlot, 0, uiFilter);
-        }
+        // Keep the wet path.
+        alFilterf(uiFilter, AL_LOWPASS_GAIN, LP_GAIN(snd_eq_preamp));
+        alSource3i(oal->sources[i], AL_AUXILIARY_SEND_FILTER, uiEffectSlot, 0,
+                   uiFilter);
     }
 }
 
