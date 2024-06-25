@@ -933,17 +933,17 @@ static void HU_widget_build_compact (void)
   if (hud_widget_layout)
   {
     M_snprintf(hud_stringbuffer, sizeof(hud_stringbuffer),
-    "\x1b%cHEL\t\x1b%c%3d", '0'+CR_GRAY, '0'+cr_health, st_health);
+    "\x1b%cHEL \x1b%c%3d", '0'+CR_GRAY, '0'+cr_health, st_health);
     HUlib_add_string_to_cur_line(&w_compact, hud_stringbuffer);
 
     M_snprintf(hud_stringbuffer, sizeof(hud_stringbuffer),
-    "\x1b%cARM\t\x1b%c%3d", '0'+CR_GRAY, '0'+cr_armor, st_armor);
+    "\x1b%cARM \x1b%c%3d", '0'+CR_GRAY, '0'+cr_armor, st_armor);
     HUlib_add_string_to_cur_line(&w_compact, hud_stringbuffer);
 
     if (noammo)
     {
       M_snprintf(hud_stringbuffer, sizeof(hud_stringbuffer),
-      "\x1b%cAMM\tN/A", '0'+CR_GRAY);
+      "\x1b%cAMM N/A", '0'+CR_GRAY);
     }
     else
     {
@@ -951,7 +951,7 @@ static void HU_widget_build_compact (void)
       const crange_idx_e cr_ammo = CRByAmmo(ammo, fullammo, ammopct);
 
       M_snprintf(hud_stringbuffer, sizeof(hud_stringbuffer),
-      "\x1b%cAMM\t\x1b%c%3d/%3d", '0'+CR_GRAY, '0'+cr_ammo, ammo, fullammo);
+      "\x1b%cAMM \x1b%c%3d/%3d", '0'+CR_GRAY, '0'+cr_ammo, ammo, fullammo);
     }
     HUlib_add_string_to_cur_line(&w_compact, hud_stringbuffer);
   }
@@ -960,9 +960,9 @@ static void HU_widget_build_compact (void)
     if (noammo)
     {
       M_snprintf(hud_stringbuffer, sizeof(hud_stringbuffer),
-      "\x1b%cHEL %3d \x1b%cARM %3d \x1b%cAMM N/A",
-      '0'+cr_health, st_health,
-      '0'+cr_armor, st_armor,
+      "\x1b%cHEL \x1b%c%3d \x1b%cARM \x1b%c%3d \x1b%cAMM N/A",
+      '0'+CR_GRAY, '0'+cr_health, st_health,
+      '0'+CR_GRAY, '0'+cr_armor, st_armor,
       '0'+CR_GRAY);
     }
     else
