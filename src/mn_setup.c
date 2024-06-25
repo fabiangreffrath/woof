@@ -441,6 +441,11 @@ static void BlinkingArrowRight(setup_menu_t *s)
 
 static void DrawTabs(void)
 {
+    if (!current_tabs)
+    {
+        return;
+    }
+
     setup_tab_t *tabs = current_tabs;
 
     int width = 0;
@@ -889,6 +894,32 @@ static void DrawScreenItems(setup_menu_t *src)
 
 #define VERIFYBOXXORG 66
 #define VERIFYBOXYORG 88
+
+static void DrawWindow(int x, int y, int w, int h)
+{
+    x += video.deltaw;
+
+#define PAL_GRAY1  91
+#define PAL_GRAY2  98
+#define PAL_GRAY3 105
+
+    V_FillRect(x + 3, y + 3, w, h, 0);
+
+    V_FillRect(x,         y,         w + 6, 1,     PAL_GRAY1);
+    V_FillRect(x,         y,         1,     h + 6, PAL_GRAY1);
+    V_FillRect(x + w + 3, y + 2,     1,     h + 2, PAL_GRAY1);
+    V_FillRect(x + 2,     y + h + 3, w + 2, 1,     PAL_GRAY1);
+
+    V_FillRect(x + 1,     y + 1,     w + 4, 1,     PAL_GRAY2);
+    V_FillRect(x + w + 4, y + 1,     1,     h + 4, PAL_GRAY2);
+    V_FillRect(x + 1,     y + h + 4, w + 4, 1,     PAL_GRAY2);
+    V_FillRect(x + 1,     y + 1,     1,     h + 4, PAL_GRAY2);
+
+    V_FillRect(x + 2,     y + 2,     w + 2, 1,     PAL_GRAY3);
+    V_FillRect(x + 2,     y + 2,     1,     h + 2, PAL_GRAY3);
+    V_FillRect(x + w + 5, y,         1,     h + 6, PAL_GRAY3);
+    V_FillRect(x,         y + h + 5, w + 6, 1,     PAL_GRAY3);
+}
 
 static void DrawDefVerify()
 {
@@ -2054,6 +2085,12 @@ static void SetMidiPlayer(void)
     S_RestartMusic();
 }
 
+static setup_menu_t eq[] = {
+    {"Eq", S_SKIP | S_TITLE, M_X, M_SPC},
+
+    MI_END
+};
+
 static setup_menu_t gen_settings2[] = {
 
     {"Sound Volume", S_THERMO, M_X_THRM8, M_THRM_SPC, {"sfx_volume"},
@@ -2079,6 +2116,10 @@ static setup_menu_t gen_settings2[] = {
      input_null, str_resampler, I_OAL_SetResampler},
 
     MI_GAP,
+    MI_GAP,
+
+    {"Eq", S_SUBMENU, M_X, M_SPC, {eq}},
+
     MI_GAP,
 
     // [FG] music backend
@@ -2406,6 +2447,12 @@ void MN_DrawGeneral(void)
     DrawBackground("FLOOR4_6"); // Draw background
     MN_DrawTitle(114, 2, "M_GENERL", "General");
     DrawTabs();
+
+    if (current_menu == eq)
+    {
+        DrawWindow(30, 30, 240, 120);
+    }
+
     DrawInstructions();
     DrawScreenItems(current_menu);
 
@@ -3317,6 +3364,15 @@ boolean MN_SetupResponder(menu_action_t action, int ch)
             default_verify = false;
             SelectDone(current_item);
         }
+        return true;
+    }
+
+    if ((current_item->m_flags & S_SUBMENU) && action == MENU_ENTER)
+    {
+        current_page = 0;
+        current_menu = current_item->var.menu;
+        current_tabs = NULL;
+        SetupMenu();
         return true;
     }
 
