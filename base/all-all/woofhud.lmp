@@ -1,5 +1,6 @@
 hud 0
 rate topleft
+compact bottomleft
 monsec topleft
 sttime topleft
 coord topright
