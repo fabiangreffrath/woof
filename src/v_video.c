@@ -184,7 +184,7 @@ void V_InitColorTranslation(void)
         {
             for (i = 0; i < 256; i++)
             {
-                if (((*p->map_orig)[i] != (char)i) || (keepgray && i == 109))
+                if (((*p->map_orig)[i] != (byte)i) || (keepgray && i == 109))
                 {
                     (*p->map2)[i] = (*p->map_orig)[i];
                 }

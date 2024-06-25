@@ -690,7 +690,10 @@ static void R_ProjectSprite (mobj_t* thing)
       vis->colormap[0] = spritelights[index];
       vis->colormap[1] = fullcolormap;
     }
-  vis->brightmap = R_BrightmapForSprite(thing->sprite);
+
+  vis->brightmap = R_BrightmapForState(thing->state - states);
+  if (vis->brightmap == nobrightmap)
+    vis->brightmap = R_BrightmapForSprite(thing->sprite);
 
   // [Alaux] Lock crosshair on target
   if (STRICTMODE(hud_crosshair_lockon) && thing == crosshair_target)

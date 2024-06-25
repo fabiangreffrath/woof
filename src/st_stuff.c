@@ -1507,6 +1507,8 @@ void ST_BindSTSVariables(void)
             "Amount of armor for green-to-blue transition");
   M_BindNum("ammo_red", &ammo_red, NULL, 25, 0, 100, ss_none, wad_yes,
             "Percent of ammo for red-to-yellow transition");
+  M_BindNum("ammo_yellow", &ammo_yellow, NULL, 50, 0, 100, ss_none, wad_yes,
+            "Percent of ammo for yellow-to-green transition");
 }
 
 //----------------------------------------------------------------------------

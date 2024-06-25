@@ -39,7 +39,7 @@ boolean force_brightmaps;
 
 #define COLORMASK_SIZE 256
 
-static const byte nobrightmap[COLORMASK_SIZE] = {0};
+const byte nobrightmap[COLORMASK_SIZE] = {0};
 
 const byte *dc_brightmap = nobrightmap;
 

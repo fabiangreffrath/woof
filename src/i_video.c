@@ -225,9 +225,8 @@ void I_ResetRelativeMouseState(void)
     SDL_GetRelativeMouseState(NULL, NULL);
 }
 
-static void UpdatePriority(void)
+void I_UpdatePriority(boolean active)
 {
-    const boolean active = (screenvisible && window_focused);
 #if defined(_WIN32)
     SetPriorityClass(GetCurrentProcess(), active ? ABOVE_NORMAL_PRIORITY_CLASS
                                                  : NORMAL_PRIORITY_CLASS);
@@ -235,6 +234,34 @@ static void UpdatePriority(void)
     SDL_SetThreadPriority(active ? SDL_THREAD_PRIORITY_HIGH
                                  : SDL_THREAD_PRIORITY_NORMAL);
 }
+
+// Fix alt+tab and Windows key when using exclusive fullscreen.
+#ifdef _WIN32
+#define NOBLIT (noblit || skip_finish || resetneeded)
+static boolean d3d_renderer = true;
+static boolean skip_finish;
+
+static void FocusGained(void)
+{
+    if (skip_finish)
+    {
+        skip_finish = false;
+        resetneeded = true;
+    }
+}
+
+static void FocusLost(void)
+{
+    if (!skip_finish && exclusive_fullscreen && fullscreen && d3d_renderer)
+    {
+        skip_finish = true;
+    }
+}
+#else
+#define NOBLIT noblit
+#define FocusGained()
+#define FocusLost()
+#endif
 
 // [FG] window event handling from Chocolate Doom 3.0
 
@@ -248,13 +275,11 @@ static void HandleWindowEvent(SDL_WindowEvent *event)
 
         case SDL_WINDOWEVENT_MINIMIZED:
             screenvisible = false;
-            UpdatePriority();
             break;
 
         case SDL_WINDOWEVENT_MAXIMIZED:
         case SDL_WINDOWEVENT_RESTORED:
             screenvisible = true;
-            UpdatePriority();
             break;
 
         // Update the value of window_focused when we get a focus event
@@ -265,12 +290,14 @@ static void HandleWindowEvent(SDL_WindowEvent *event)
 
         case SDL_WINDOWEVENT_FOCUS_GAINED:
             window_focused = true;
-            UpdatePriority();
+            FocusGained();
+            I_UpdatePriority(true);
             break;
 
         case SDL_WINDOWEVENT_FOCUS_LOST:
             window_focused = false;
-            UpdatePriority();
+            FocusLost();
+            I_UpdatePriority(false);
             break;
 
         // We want to save the user's preferred monitor to use for running the
@@ -426,76 +453,142 @@ void I_ToggleVsync(void)
     UpdateLimiter();
 }
 
-// killough 3/22/98: rewritten to use interrupt-driven keyboard queue
+static void ProcessEvent(SDL_Event *ev)
+{
+    switch (ev->type)
+    {
+        case SDL_KEYDOWN:
+            if (ToggleFullScreenKeyShortcut(&ev->key.keysym))
+            {
+                fullscreen = !fullscreen;
+                toggle_fullscreen = true;
+                break;
+            }
+            // deliberate fall-though
+
+        case SDL_KEYUP:
+            I_HandleKeyboardEvent(ev);
+            break;
+
+        case SDL_MOUSEBUTTONDOWN:
+        case SDL_MOUSEBUTTONUP:
+        case SDL_MOUSEWHEEL:
+            if (window_focused)
+            {
+                I_HandleMouseEvent(ev);
+            }
+            break;
+
+        case SDL_CONTROLLERDEVICEADDED:
+            I_OpenController(ev->cdevice.which);
+            break;
+
+        case SDL_CONTROLLERDEVICEREMOVED:
+            I_CloseController(ev->cdevice.which);
+            break;
+
+        case SDL_CONTROLLERBUTTONDOWN:
+        case SDL_CONTROLLERBUTTONUP:
+            if (I_UseController())
+            {
+                I_HandleJoystickEvent(ev);
+            }
+            break;
+
+        case SDL_QUIT:
+            {
+                static event_t event;
+                event.type = ev_quit;
+                D_PostEvent(&event);
+            }
+            break;
+
+        case SDL_WINDOWEVENT:
+            if (ev->window.windowID == SDL_GetWindowID(screen))
+            {
+                HandleWindowEvent(&ev->window);
+            }
+            break;
+
+        default:
+            break;
+    }
+}
+
+#define NUM_PEEP 32
 
 static void I_GetEvent(void)
 {
-    SDL_Event sdlevent;
+    static SDL_Event sdlevents[NUM_PEEP];
 
     I_DelayEvent();
 
-    while (SDL_PollEvent(&sdlevent))
+    SDL_PumpEvents();
+
+    while (true)
     {
-        switch (sdlevent.type)
+        const int num_events = SDL_PeepEvents(sdlevents, NUM_PEEP, SDL_GETEVENT,
+                                              SDL_FIRSTEVENT, SDL_LASTEVENT);
+
+        if (num_events < 1)
         {
-            case SDL_KEYDOWN:
-                if (ToggleFullScreenKeyShortcut(&sdlevent.key.keysym))
-                {
-                    fullscreen = !fullscreen;
-                    toggle_fullscreen = true;
-                    break;
-                }
-                // deliberate fall-though
+            break;
+        }
 
-            case SDL_KEYUP:
-                I_HandleKeyboardEvent(&sdlevent);
-                break;
-
-            case SDL_MOUSEBUTTONDOWN:
-            case SDL_MOUSEBUTTONUP:
-            case SDL_MOUSEWHEEL:
-                if (window_focused)
-                {
-                    I_HandleMouseEvent(&sdlevent);
-                }
-                break;
-
-            case SDL_CONTROLLERDEVICEADDED:
-                I_OpenController(sdlevent.cdevice.which);
-                break;
-
-            case SDL_CONTROLLERDEVICEREMOVED:
-                I_CloseController(sdlevent.cdevice.which);
-                break;
-
-            case SDL_CONTROLLERBUTTONDOWN:
-            case SDL_CONTROLLERBUTTONUP:
-            case SDL_CONTROLLERAXISMOTION:
-                if (I_UseController())
-                {
-                    I_HandleJoystickEvent(&sdlevent);
-                }
-                break;
-
-            case SDL_QUIT:
-                {
-                    static event_t event;
-                    event.type = ev_quit;
-                    D_PostEvent(&event);
-                }
-                break;
-
-            case SDL_WINDOWEVENT:
-                if (sdlevent.window.windowID == SDL_GetWindowID(screen))
-                {
-                    HandleWindowEvent(&sdlevent.window);
-                }
-                break;
-
-            default:
-                break;
+        for (int i = 0; i < num_events; i++)
+        {
+            ProcessEvent(&sdlevents[i]);
         }
     }
+}
+
+static void UpdateMouseMenu(void)
+{
+    static event_t ev;
+    static int oldx, oldy;
+    static SDL_Rect old_rect;
+    int x, y, w, h;
+
+    SDL_GetMouseState(&x, &y);
+
+    SDL_GetWindowSize(screen, &w, &h);
+
+    SDL_Rect rect;
+    SDL_RenderGetViewport(renderer, &rect);
+    if (SDL_RectEquals(&rect, &old_rect))
+    {
+        ev.data1 = 0;
+    }
+    else
+    {
+        old_rect = rect;
+        ev.data1 = EV_RESIZE_VIEWPORT;
+    }
+
+    float scalex, scaley;
+    SDL_RenderGetScale(renderer, &scalex, &scaley);
+
+    int deltax = rect.x * scalex;
+    int deltay = rect.y * scaley;
+
+    x = (x - deltax) * video.unscaledw / (w - deltax * 2);
+    y = (y - deltay) * SCREENHEIGHT / (h - deltay * 2);
+
+    if (x != oldx || y != oldy)
+    {
+        oldx = x;
+        oldy = y;
+    }
+    else
+    {
+        return;
+    }
+
+    ev.type = ev_mouse_state;
+    ev.data2 = x;
+    ev.data3 = y;
+
+    D_PostEvent(&ev);
 }
 
 //
@@ -507,67 +600,24 @@ void I_StartTic(void)
 
     if (menuactive)
     {
+        UpdateMouseMenu();
+
         if (I_UseController())
         {
-            I_UpdateJoystickMenu();
+            I_UpdateJoystick(ev_joystick_state, true);
         }
-
-        static event_t ev;
-        static int oldx, oldy;
-        static SDL_Rect old_rect;
-        int x, y, w, h;
-
-        SDL_GetMouseState(&x, &y);
-
-        SDL_GetWindowSize(screen, &w, &h);
-
-        SDL_Rect rect;
-        SDL_RenderGetViewport(renderer, &rect);
-        if (SDL_RectEquals(&rect, &old_rect))
-        {
-            ev.data1 = 0;
-        }
-        else
-        {
-            old_rect = rect;
-            ev.data1 = EV_RESIZE_VIEWPORT;
-        }
-
-        float scalex, scaley;
-        SDL_RenderGetScale(renderer, &scalex, &scaley);
-
-        int deltax = rect.x * scalex;
-        int deltay = rect.y * scaley;
-
-        x = (x - deltax) * video.unscaledw / (w - deltax * 2);
-        y = (y - deltay) * SCREENHEIGHT / (h - deltay * 2);
-
-        if (x != oldx || y != oldy)
-        {
-            oldx = x;
-            oldy = y;
-        }
-        else
-        {
-            return;
-        }
-
-        ev.type = ev_mouse_state;
-        ev.data2 = x;
-        ev.data3 = y;
-
-        D_PostEvent(&ev);
-        return;
     }
-
-    if (window_focused)
+    else
     {
-        I_ReadMouse();
-    }
+        if (window_focused)
+        {
+            I_ReadMouse();
+        }
 
-    if (I_UseController())
-    {
-        I_UpdateJoystick(true);
+        if (I_UseController())
+        {
+            I_UpdateJoystick(ev_joystick, true);
+        }
     }
 }
 
@@ -582,7 +632,7 @@ void I_StartDisplay(void)
 
     if (I_UseController())
     {
-        I_UpdateJoystick(false);
+        I_UpdateJoystick(ev_joystick, false);
     }
 }
 
@@ -658,13 +708,10 @@ void I_DynamicResolution(void)
     int newheight = 0;
     int oldheight = video.height;
 
-    // Decrease the resolution quickly, increase only when the average frame
-    // time is stable for the `targetrefresh` number of frames.
-
     frame_counter++;
     averagepercent = (averagepercent + actualpercent) / frame_counter;
 
-    if (actualpercent > DRS_GREATER)
+    if (actualpercent > DRS_GREATER && frame_counter > targetrefresh / 4)
     {
         double reduction = (actualpercent - DRS_GREATER) * 0.4;
         newheight = (int)MAX(DRS_MIN_HEIGHT, oldheight - oldheight * reduction);
@@ -687,7 +734,7 @@ void I_DynamicResolution(void)
 
     if (newheight > current_video_height)
     {
-        newheight -= DRS_STEP;
+        newheight = current_video_height;
     }
 
     if (newheight == oldheight)
@@ -714,20 +761,9 @@ static unsigned int disk_to_draw, disk_to_restore;
 static void CreateUpscaledTexture(boolean force);
 static void I_ResetTargetRefresh(void);
 
-//
-// I_CpuPause
-//  Avoids a performance penalty on exit from busy-wait loops. This should be
-//  called on every iteration of the loop and positioned near the loop exit.
-//
-#if SDL_VERSION_ATLEAST(2, 24, 0)
- #define I_CpuPause() SDL_CPUPauseInstruction()
-#else
- #define I_CpuPause()
-#endif
-
 void I_FinishUpdate(void)
 {
-    if (noblit)
+    if (NOBLIT)
     {
         return;
     }
@@ -796,9 +832,6 @@ void I_FinishUpdate(void)
         {
             uint64_t current_time = I_GetTimeUS();
             uint64_t elapsed_time = current_time - frametime_start;
-            uint64_t remaining_time = 0;
-
-            I_CpuPause();
 
             if (elapsed_time >= target_time)
             {
@@ -806,11 +839,9 @@ void I_FinishUpdate(void)
                 break;
             }
 
-            remaining_time = target_time - elapsed_time;
-
-            if (remaining_time > 1000)
+            if (target_time - elapsed_time > 1000)
             {
-                I_Sleep((remaining_time - 1000) / 1000);
+                I_SleepUS(500);
             }
         }
     }
@@ -1403,7 +1434,9 @@ static void I_InitVideoParms(void)
             (double)max_video_width / (double)max_video_height;
         if (aspect_ratio < ASPECT_RATIO_MIN)
         {
-            I_Error("Aspect ratio not supported, set other resolution");
+            I_Printf(VB_ERROR, "Aspect ratio not supported, set other resolution");
+            max_video_width = mode.w;
+            max_video_height = mode.h;
         }
         max_width = max_video_width;
         max_height = max_video_height;
@@ -1642,7 +1675,13 @@ static void I_InitGraphicsMode(void)
     if (SDL_GetRendererInfo(renderer, &info) == 0)
     {
         I_Printf(VB_DEBUG, "SDL render driver: %s", info.name);
+#ifdef _WIN32
+        d3d_renderer = !strncmp(info.name, "direct3d", strlen(info.name));
+#endif
     }
+
+    SDL_PumpEvents();
+    SDL_FlushEvent(SDL_WINDOWEVENT);
 
     UpdateLimiter();
 }
@@ -1795,6 +1834,9 @@ void I_InitGraphics(void)
     ResetResolution(GetCurrentVideoHeight(), true);
     CreateSurfaces(video.pitch, video.height);
     ResetLogicalSize();
+
+    // Mouse motion is based on SDL_GetRelativeMouseState() values only.
+    SDL_EventState(SDL_MOUSEMOTION, SDL_IGNORE);
 
     // clear out events waiting at the start and center the mouse
     I_ResetRelativeMouseState();

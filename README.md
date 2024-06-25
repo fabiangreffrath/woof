@@ -163,17 +163,6 @@ Copyright:
  © 2023 liPillON.  
 License: [GPL-2.0+](https://www.gnu.org/licenses/old-licenses/gpl-2.0.html)
 
-Files: `src/beta.h`  
-Copyright: © 2001-2019 Contributors to the Freedoom project.  
-License: [BSD-3-Clause](https://opensource.org/licenses/BSD-3-Clause)
-
-Files: `src/dogs.h`  
-Copyright:  
- © 2017 Nash Muhandes;  
- © apolloaiello;  
- © TobiasKosmos.  
-License: [CC-BY-3.0](https://creativecommons.org/licenses/by/3.0/) and [CC0-1.0](https://creativecommons.org/publicdomain/zero/1.0/)
-
 Files: `src/nano_bsp.*`  
 Copyright: © 2023 Andrew Apted.  
 License: [MIT](https://opensource.org/licenses/MIT)
@@ -195,6 +184,17 @@ Copyright:
  © 1999 by id Software, Chi Hoang, Lee Killough, Jim Flynn, Rand Phares, Ty Halderman;  
  © 2013 James Haley et al.  
 License: [GPL-3.0+](https://www.gnu.org/licenses/gpl-3.0)
+
+Files: `base/all-all/sprites/pls*`  
+Copyright: © 2001-2019 Contributors to the Freedoom project.  
+License: [BSD-3-Clause](https://opensource.org/licenses/BSD-3-Clause)
+
+Files: `base/all-all/dsdg*, base/all-all/sprites/dog*`  
+Copyright:  
+ © 2017 Nash Muhandes;  
+ © apolloaiello;  
+ © TobiasKosmos.  
+License: [CC-BY-3.0](https://creativecommons.org/licenses/by/3.0/) and [CC0-1.0](https://creativecommons.org/publicdomain/zero/1.0/)
 
 Files: `cmake/FindSDL2.cmake, cmake/FindSDL2_net.cmake`  
 Copyright: © 2018 Alex Mayfield.  

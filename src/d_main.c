@@ -191,20 +191,29 @@ void D_PostEvent(event_t *ev)
   switch (ev->type)
   {
     case ev_mouse:
+      if (uncapped && raw_input)
+      {
+        G_MovementResponder(ev);
+        G_PrepMouseTiccmd();
+        return;
+      }
+      break;
+
     case ev_joystick:
       if (uncapped && raw_input)
       {
         G_MovementResponder(ev);
-        G_PrepTiccmd();
-        break;
+        G_PrepControllerTiccmd();
+        return;
       }
-      // Fall through.
+      break;
 
     default:
-      events[eventhead++] = *ev;
-      eventhead &= MAXEVENTS-1;
       break;
   }
+
+  events[eventhead++] = *ev;
+  eventhead &= MAXEVENTS - 1;
 }
 
 //
@@ -214,8 +223,6 @@ void D_PostEvent(event_t *ev)
 
 void D_ProcessEvents (void)
 {
-  // IF STORE DEMO, DO NOT ACCEPT INPUT
-  if (gamemode != commercial || W_CheckNumForName("map01") >= 0)
     for (; eventtail != eventhead; eventtail = (eventtail+1) & (MAXEVENTS-1))
     {
       M_InputTrackEvent(events+eventtail);
@@ -1816,6 +1823,8 @@ void D_DoomMain(void)
   I_AtExitPrio(I_Quit,      true,  "I_Quit",      exit_priority_last);
 
   I_AtExitPrio(I_ErrorMsg,  true,  "I_ErrorMsg",  exit_priority_verylast);
+
+  I_UpdatePriority(true);
 
 #if defined(_WIN32)
   // [FG] compose a proper command line from loose file paths passed as

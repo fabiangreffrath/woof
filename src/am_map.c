@@ -299,6 +299,19 @@ static void AM_rotatePoint(mpoint_t *pt);
 static mpoint_t mapcenter;
 static angle_t mapangle;
 
+enum
+{
+  PAN_UP,
+  PAN_DOWN,
+  PAN_LEFT,
+  PAN_RIGHT,
+  ZOOM_IN,
+  ZOOM_OUT,
+  STATE_NUM
+};
+
+static int buttons_state[STATE_NUM] = { 0 };
+
 //
 // AM_activateNewScale()
 //
@@ -672,6 +685,8 @@ void AM_Stop (void)
 {
   static event_t st_notify = { 0, ev_keyup, AM_MSGEXITED };
 
+  memset(buttons_state, 0, sizeof(buttons_state));
+
   AM_unloadPics();
   automapactive = false;
   ST_Responder(&st_notify);
@@ -736,19 +751,6 @@ static void AM_maxOutWindowScale(void)
   scale_ftom = FixedDiv(FRACUNIT, scale_mtof);
   AM_activateNewScale();
 }
-
-enum
-{
-  PAN_UP,
-  PAN_DOWN,
-  PAN_LEFT,
-  PAN_RIGHT,
-  ZOOM_IN,
-  ZOOM_OUT,
-  STATE_NUM
-};
-
-static int buttons_state[STATE_NUM] = { 0 };
 
 //
 // AM_Responder()
@@ -843,7 +845,6 @@ boolean AM_Responder
     {
       bigstate = 0;
       viewactive = true;
-      memset(buttons_state, 0, sizeof(buttons_state));
       AM_Stop ();
     }
     else if (M_InputActivated(input_map_gobig))

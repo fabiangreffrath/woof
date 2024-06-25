@@ -476,47 +476,43 @@ static void ApplyQuickstartCache(ticcmd_t *cmd, boolean strafe)
   }
 }
 
-void G_PrepTiccmd(void)
+void G_PrepMouseTiccmd(void)
 {
-  const boolean strafe = M_InputGameActive(input_strafe);
-  ticcmd_t *cmd = &basecmd;
-
-  // Gamepad
-
-  if (I_UseController() && I_CalcControllerAxes())
-  {
-    G_UpdateDeltaTics();
-    axis_turn_tic = axes[AXIS_TURN];
-
-    if (axes[AXIS_TURN] && !strafe)
-    {
-      localview.rawangle -= G_CalcControllerAngle();
-      cmd->angleturn = G_CarryAngle(localview.rawangle);
-      axes[AXIS_TURN] = 0.0f;
-    }
-
-    if (axes[AXIS_LOOK] && padlook)
-    {
-      localview.rawpitch -= G_CalcControllerPitch();
-      cmd->pitch = G_CarryPitch(localview.rawpitch);
-      axes[AXIS_LOOK] = 0.0f;
-    }
-  }
-
-  // Mouse
-
-  if (mousex && !strafe)
+  if (mousex && !M_InputGameActive(input_strafe))
   {
     localview.rawangle -= G_CalcMouseAngle(mousex);
-    cmd->angleturn = G_CarryAngle(localview.rawangle);
+    basecmd.angleturn = G_CarryAngle(localview.rawangle);
     mousex = 0;
   }
 
   if (mousey && mouselook)
   {
     localview.rawpitch += G_CalcMousePitch(mousey);
-    cmd->pitch = G_CarryPitch(localview.rawpitch);
+    basecmd.pitch = G_CarryPitch(localview.rawpitch);
     mousey = 0;
+  }
+}
+
+void G_PrepControllerTiccmd(void)
+{
+  if (I_UseController() && I_CalcControllerAxes())
+  {
+    G_UpdateDeltaTics();
+    axis_turn_tic = axes[AXIS_TURN];
+
+    if (axes[AXIS_TURN] && !M_InputGameActive(input_strafe))
+    {
+      localview.rawangle -= G_CalcControllerAngle();
+      basecmd.angleturn = G_CarryAngle(localview.rawangle);
+      axes[AXIS_TURN] = 0.0f;
+    }
+
+    if (axes[AXIS_LOOK] && padlook)
+    {
+      localview.rawpitch -= G_CalcControllerPitch();
+      basecmd.pitch = G_CarryPitch(localview.rawpitch);
+      axes[AXIS_LOOK] = 0.0f;
+    }
   }
 }
 
@@ -545,7 +541,8 @@ void G_BuildTiccmd(ticcmd_t* cmd)
 
   if (!uncapped || !raw_input)
   {
-    G_PrepTiccmd();
+    G_PrepMouseTiccmd();
+    G_PrepControllerTiccmd();
   }
 
   memcpy(cmd, &basecmd, sizeof(*cmd));
@@ -1150,9 +1147,9 @@ boolean G_MovementResponder(event_t *ev)
   switch (ev->type)
   {
     case ev_mouse:
-      mousex_tic += ev->data2;
-      mousex += ev->data2;
-      mousey += ev->data3;
+      mousex_tic += ev->data1;
+      mousex += ev->data1;
+      mousey -= ev->data2;
       return true;
 
     case ev_joystick:
