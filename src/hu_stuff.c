@@ -122,10 +122,7 @@ static char hud_stringbuffer[HU_MAXLINELENGTH];
 
 static inline void InitStringBuffer(const char *const s)
 {
-  if (!s)
-    hud_stringbuffer[0] = '\0';
-  else
-    strncpy(hud_stringbuffer, s, sizeof(hud_stringbuffer));
+  strncpy(hud_stringbuffer, s, sizeof(hud_stringbuffer));
 }
 
 // [FG] Vanilla widgets point to a boolean variable (*on) to determine
@@ -662,7 +659,7 @@ void HU_Start(void)
 
 static void HU_widget_build_title (void)
 {
-  InitStringBuffer(NULL);
+  InitStringBuffer("");
 
   char *s, *n;
 
@@ -1257,7 +1254,7 @@ static void HU_widget_build_monsec(void)
 
 static void HU_widget_build_sttime(void)
 {
-  InitStringBuffer(NULL);
+  InitStringBuffer("");
 
   int offset = 0;
 
