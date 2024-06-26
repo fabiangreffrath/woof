@@ -1048,7 +1048,8 @@ static void HU_widget_build_weapon (void)
 
 static void HU_widget_build_keys (void)
 {
-  InitStringBuffer((char[]){ 'K', 'E', 'Y', '\x1b', '0'+CR_NONE, ' ', '\0' });
+  const char hud_keysstr[] = { 'K', 'E', 'Y', '\x1b', '0'+CR_NONE, ' ', '\0' };
+  InitStringBuffer(hud_keysstr);
 
   int i = 6, k;
 
@@ -1120,7 +1121,8 @@ static inline int HU_top (int i, const int idx1, const int top1)
 
 static void HU_widget_build_frag (void)
 {
-  InitStringBuffer((char[]){ 'F', 'R', 'G', '\x1b', '0'+CR_ORIG, ' ', '\0' });
+  const char hud_fragstr[] = { 'F', 'R', 'G', '\x1b', '0'+CR_ORIG, ' ', '\0' };
+  InitStringBuffer(hud_fragstr);
 
   int i = 6, k;
 
