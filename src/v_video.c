@@ -267,7 +267,8 @@ static void (*drawcolfunc)(const patch_column_t *patchcol);
         byte *dest = V_ADDRESS(dest_screen, patchcol->x, patchcol->y1);       \
                                                                               \
         const fixed_t fracstep = patchcol->step;                              \
-        fixed_t frac = patchcol->frac + ((patchcol->y1 * fracstep) & 0xFFFF); \
+        fixed_t frac =                                                        \
+            patchcol->frac + ((patchcol->y1 * fracstep) & FRACMASK);          \
                                                                               \
         const byte *source = patchcol->source;                                \
                                                                               \
@@ -423,11 +424,11 @@ static void DrawPatchInternal(int x, int y, patch_t *patch, boolean flipped)
     // us just below patch->width << 16
     if (flipped)
     {
-        startfrac = (w << 16) - ((x1 * iscale) & 0xffff) - 1;
+        startfrac = (w << 16) - ((x1 * iscale) & FRACMASK) - 1;
     }
     else
     {
-        startfrac = (x1 * iscale) & 0xffff;
+        startfrac = (x1 * iscale) & FRACMASK;
     }
 
     if (patchcol.x > x1)

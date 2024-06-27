@@ -819,7 +819,7 @@ static void VX_DrawColumn (vissprite_t * spr, int x, int y)
 	byte * dest = I_VideoBuffer + viewwindowy * linesize + viewwindowx;
 
 	// iterate over screen columns
-	fixed_t ux = ((Ax - 1) | (FRACUNIT - 1)) + 1;
+	fixed_t ux = ((Ax - 1) | FRACMASK) + 1;
 
 	for (; ux < ((Cx > Bx) ? Cx : Bx) ; ux += FRACUNIT)
 	{
@@ -901,7 +901,7 @@ static void VX_DrawColumn (vissprite_t * spr, int x, int y)
 			{
 				fixed_t uy = centeryfrac - FixedMul (top_z, wscale);
 
-				uy = ((uy - 1) | (FRACUNIT - 1)) + 1;
+				uy = ((uy - 1) | FRACMASK) + 1;
 
 				if (uy < clip_y1)
 					uy = clip_y1;
@@ -932,7 +932,7 @@ static void VX_DrawColumn (vissprite_t * spr, int x, int y)
 
 			if (has_side)
 			{
-				fixed_t uy = ((uy1 - 1) | (FRACUNIT - 1)) + 1;
+				fixed_t uy = ((uy1 - 1) | FRACMASK) + 1;
 
 				for (; uy <= uy2 ; uy += FRACUNIT)
 				{

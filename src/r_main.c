@@ -323,7 +323,7 @@ static void R_InitTextureMapping(void)
       else
         {
           t = FixedMul(finetangent[i], focallength);
-          t = (centerxfrac - t + FRACUNIT-1) >> FRACBITS;
+          t = (centerxfrac - t + FRACMASK) >> FRACBITS;
           if (t < -1)
             t = -1;
           else

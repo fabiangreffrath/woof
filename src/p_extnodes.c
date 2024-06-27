@@ -450,7 +450,7 @@ static void P_LoadSegs_XGLN(byte *data)
             line = (unsigned short)SHORT(ml->linedef);
             side = ml->side;
 
-            if (line == 0xffff)
+            if (line == FRACMASK)
             {
                 line = 0xffffffff;
             }
