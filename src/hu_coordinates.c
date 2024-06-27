@@ -34,7 +34,7 @@
 #define BLOCK_COLOR(x, a, b, c) \
     (x >= c ? CR_RED : x >= b ? CR_BLUE1 : x >= a ? CR_GREEN : CR_GRAY)
 
-#define WIDGET_WIDTH 18
+#define WIDGET_WIDTH 17
 
 typedef struct
 {
@@ -71,12 +71,12 @@ static split_fixed_t SplitFixed(fixed_t x)
 
     result.negative = x < 0;
     result.base = x >> FRACBITS;
-    result.frac = x & 0xFFFF;
+    result.frac = x & (FRACUNIT - 1);
 
     if (result.negative && result.frac)
     {
         result.base++;
-        result.frac = 0xFFFF - result.frac + 1;
+        result.frac = FRACUNIT - result.frac;
     }
 
     return result;
@@ -86,8 +86,8 @@ static split_angle_t SplitAngle(angle_t x)
 {
     split_angle_t result;
 
-    result.base = x >> 24;
-    result.frac = (x >> 16) & 0xFF;
+    result.base = x >> (FRACBITS + 8);
+    result.frac = (x >> FRACBITS) & 0xFF;
 
     return result;
 }
@@ -106,16 +106,10 @@ static void FixedToString(hu_multiline_t *const w_coord, const char *label,
 
     if (value.frac)
     {
-        if (value.negative && !value.base)
-        {
-            M_snprintf(buf + pos, len - pos, "%s: -%d.%05d", label, value.base,
-                       value.frac);
-        }
-        else
-        {
-            M_snprintf(buf + pos, len - pos, "%s: %d.%05d", label, value.base,
-                       value.frac);
-        }
+        const char *sign = (value.negative && !value.base) ? "-" : "";
+
+        M_snprintf(buf + pos, len - pos, "%s: %s%d.%05d", label, sign,
+                   value.base, value.frac);
     }
     else
     {
@@ -165,16 +159,10 @@ static void ComponentToString(hu_multiline_t *const w_coord, const char *label,
 
     if (value.frac)
     {
-        if (value.negative && !value.base)
-        {
-            M_snprintf(buf + pos, len - pos, "%s: -%d.%03d", label, value.base,
-                       1000 * value.frac / 0xFFFF);
-        }
-        else
-        {
-            M_snprintf(buf + pos, len - pos, "%s: %d.%03d", label, value.base,
-                       1000 * value.frac / 0xFFFF);
-        }
+        const char *sign = (value.negative && !value.base) ? "-" : "";
+
+        M_snprintf(buf + pos, len - pos, "%s: %s%d.%03d", label, sign,
+                   value.base, 1000 * value.frac / (FRACUNIT - 1));
     }
     else
     {

@@ -112,7 +112,7 @@ static player_t *plr;
 static hu_font_t big_font = {.space_width = 4, .tab_width = 15, .tab_mask = ~15},
                  sml_font = {.space_width = 5, .tab_width =  7, .tab_mask =  ~7};
 static hu_font_t *doom_font = &big_font, *boom_font = &sml_font;
-static hu_font_t *cmd_font = &sml_font;
+static hu_font_t *monospaced_font = &sml_font;
 patch_t **hu_font = big_font.patches;
 
 static int CR_BLUE = CR_BLUE1;
@@ -628,7 +628,7 @@ void HU_Start(void)
   if (hud_player_coords == HUD_WIDGET_ADVANCED)
   {
     HUlib_init_multiline(&w_coord, 12,
-                         &cmd_font, colrngs[CR_GRAY],
+                         &monospaced_font, colrngs[CR_GRAY],
                          NULL, HU_widget_build_coord);
   }
   else
@@ -649,7 +649,7 @@ void HU_Start(void)
   w_rate.exclusive = true;
 
   HUlib_init_multiline(&w_cmd, hud_command_history_size,
-                       &cmd_font, colrngs[hudcolor_xyco],
+                       &monospaced_font, colrngs[hudcolor_xyco],
                        NULL, HU_widget_build_cmd);
   // Draw command history bottom up.
   w_cmd.bottomup = true;
@@ -2321,7 +2321,7 @@ void HU_BindHUDVariables(void)
   M_BindNum("hud_player_coords", &hud_player_coords, NULL,
             HUD_WIDGET_AUTOMAP, HUD_WIDGET_OFF, HUD_WIDGET_ADVANCED,
             ss_stat, wad_no,
-            "Show player coordinates widget (1 = On automap; 2 = On HUD; 3 = Always, 4 = Advanced)");
+            "Show player coordinates widget (1 = On automap; 2 = On HUD; 3 = Always; 4 = Advanced)");
   M_BindBool("hud_command_history", &hud_command_history, NULL, false, ss_stat,
              wad_no, "Show command history widget");
   BIND_NUM(hud_command_history_size, 10, 1, HU_MAXMESSAGES,

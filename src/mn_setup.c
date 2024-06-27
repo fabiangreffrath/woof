@@ -295,7 +295,7 @@ enum
     str_hudtype,
     str_hudmode,
     str_show_widgets,
-    str_show_coords,
+    str_show_adv_widgets,
     str_crosshair,
     str_crosshair_target,
     str_hudcolor,
@@ -1424,8 +1424,8 @@ static setup_menu_t stat_settings1[] = {
 };
 
 static const char *show_widgets_strings[] = {"Off", "Automap", "HUD", "Always"};
-static const char *show_coords_strings[] = {"Off", "Automap", "HUD", "Always",
-                                            "Advanced"};
+static const char *show_adv_widgets_strings[] = {"Off", "Automap", "HUD",
+                                                 "Always", "Advanced"};
 
 static setup_menu_t stat_settings2[] = {
 
@@ -1438,7 +1438,7 @@ static setup_menu_t stat_settings2[] = {
      m_null, input_null, str_show_widgets},
 
     {"Show Player Coords", S_CHOICE | S_STRICT, M_X, M_SPC,
-     {"hud_player_coords"}, m_null, input_null, str_show_coords, HU_Start},
+     {"hud_player_coords"}, m_null, input_null, str_show_adv_widgets, HU_Start},
 
     {"Show Command History", S_ONOFF | S_STRICT, M_X, M_SPC,
      {"hud_command_history"}, m_null, input_null, str_empty,
@@ -3843,7 +3843,7 @@ static const char **selectstrings[] = {
     hudtype_strings,
     NULL, // str_hudmode
     show_widgets_strings,
-    show_coords_strings,
+    show_adv_widgets_strings,
     crosshair_strings,
     crosshair_target_strings,
     hudcolor_strings,
