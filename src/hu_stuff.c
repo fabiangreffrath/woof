@@ -118,6 +118,13 @@ static int CR_BLUE = CR_BLUE1;
 
 // widgets
 
+static char hud_stringbuffer[HU_MAXLINELENGTH];
+
+static inline void InitStringBuffer(const char *const s)
+{
+  strncpy(hud_stringbuffer, s, sizeof(hud_stringbuffer));
+}
+
 // [FG] Vanilla widgets point to a boolean variable (*on) to determine
 //      if they are enabled, always big_font, mostly left-aligned
 static hu_multiline_t w_title;
@@ -652,7 +659,8 @@ void HU_Start(void)
 
 static void HU_widget_build_title (void)
 {
-  char hud_titlestr[HU_MAXLINELENGTH] = "";
+  InitStringBuffer("");
+
   char *s, *n;
 
   if (gamemapinfo && gamemapinfo->levelname)
@@ -664,7 +672,7 @@ static void HU_widget_build_title (void)
 
     if (s == gamemapinfo->mapname || U_CheckField(s))
     {
-      M_snprintf(hud_titlestr, sizeof(hud_titlestr), "%s: ", s);
+      M_snprintf(hud_stringbuffer, sizeof(hud_stringbuffer), "%s: ", s);
     }
     s = gamemapinfo->levelname;
   }
@@ -707,9 +715,9 @@ static void HU_widget_build_title (void)
     title_counter = HU_MSGTIMEOUT2;
   }
 
-  M_StringConcat(hud_titlestr, s, sizeof(hud_titlestr));
+  M_StringConcat(hud_stringbuffer, s, sizeof(hud_stringbuffer));
 
-  HUlib_add_string_to_cur_line(&w_title, hud_titlestr);
+  HUlib_add_string_to_cur_line(&w_title, hud_stringbuffer);
 }
 
 // do the hud ammo display
@@ -732,7 +740,8 @@ static crange_idx_e CRByAmmo(const int ammo, const int fullammo, int ammopct)
 
 static void HU_widget_build_ammo (void)
 {
-  char hud_ammostr[HU_MAXLINELENGTH] = "AMM ";
+  InitStringBuffer("AMM ");
+
   int fullammo = plr->maxammo[weaponinfo[plr->readyweapon].ammo];
   int i = 4;
 
@@ -741,9 +750,9 @@ static void HU_widget_build_ammo (void)
   {
     if (hud_type == HUD_TYPE_BOOM)
     {
-      strcat(hud_ammostr, "\x7f\x7f\x7f\x7f\x7f\x7f\x7f");
+      strcat(hud_stringbuffer, "\x7f\x7f\x7f\x7f\x7f\x7f\x7f");
     }
-    strcat(hud_ammostr, "N/A");
+    strcat(hud_stringbuffer, "N/A");
     w_ammo.cr = colrngs[CR_GRAY];
   }
   else
@@ -757,7 +766,7 @@ static void HU_widget_build_ammo (void)
     {
       // full bargraph chars
       for (i = 4; i < 4 + ammobars / 4;)
-        hud_ammostr[i++] = 123;
+        hud_stringbuffer[i++] = 123;
 
       // plus one last character with 0, 1, 2, 3 bars
       switch (ammobars % 4)
@@ -765,37 +774,38 @@ static void HU_widget_build_ammo (void)
         case 0:
           break;
         case 1:
-          hud_ammostr[i++] = 126;
+          hud_stringbuffer[i++] = 126;
           break;
         case 2:
-          hud_ammostr[i++] = 125;
+          hud_stringbuffer[i++] = 125;
           break;
         case 3:
-          hud_ammostr[i++] = 124;
+          hud_stringbuffer[i++] = 124;
           break;
       }
 
       // pad string with blank bar characters
       while (i < 4 + 7)
-        hud_ammostr[i++] = 127;
-      hud_ammostr[i] = '\0';
+        hud_stringbuffer[i++] = 127;
+      hud_stringbuffer[i] = '\0';
     }
 
     // build the numeric amount init string
-    M_snprintf(hud_ammostr + i, sizeof(hud_ammostr), "%3d/%3d", ammo, fullammo);
+    M_snprintf(hud_stringbuffer + i, sizeof(hud_stringbuffer), "%3d/%3d", ammo, fullammo);
 
     const crange_idx_e cr = CRByAmmo(ammo, fullammo, ammopct);
     w_ammo.cr = colrngs[cr];
   }
 
   // transfer the init string to the widget
-  HUlib_add_string_to_cur_line(&w_ammo, hud_ammostr);
+  HUlib_add_string_to_cur_line(&w_ammo, hud_stringbuffer);
 }
 
 // do the hud health display
 static void HU_widget_build_health (void)
 {
-  char hud_healthstr[HU_MAXLINELENGTH] = "HEL ";
+  InitStringBuffer("HEL ");
+
   int i = 4;
   int healthbars = (st_health > 100) ? 25 : (st_health / 4);
 
@@ -804,7 +814,7 @@ static void HU_widget_build_health (void)
   {
     // full bargraph chars
     for (i = 4; i < 4 + healthbars / 4;)
-      hud_healthstr[i++] = 123;
+      hud_stringbuffer[i++] = 123;
 
     // plus one last character with 0, 1, 2, 3 bars
     switch (healthbars % 4)
@@ -812,30 +822,30 @@ static void HU_widget_build_health (void)
       case 0:
         break;
       case 1:
-        hud_healthstr[i++] = 126;
+        hud_stringbuffer[i++] = 126;
         break;
       case 2:
-        hud_healthstr[i++] = 125;
+        hud_stringbuffer[i++] = 125;
         break;
       case 3:
-        hud_healthstr[i++] = 124;
+        hud_stringbuffer[i++] = 124;
         break;
     }
 
     // pad string with blank bar characters
     while (i < 4 + 7)
-      hud_healthstr[i++] = 127;
-    hud_healthstr[i] = '\0';
+      hud_stringbuffer[i++] = 127;
+    hud_stringbuffer[i] = '\0';
   }
 
   // build the numeric amount init string
-  M_snprintf(hud_healthstr + i, sizeof(hud_healthstr), "%3d", st_health);
+  M_snprintf(hud_stringbuffer + i, sizeof(hud_stringbuffer), "%3d", st_health);
 
   // set the display color from the amount of health posessed
   w_health.cr = ColorByHealth(plr->health, 100, st_invul);
 
   // transfer the init string to the widget
-  HUlib_add_string_to_cur_line(&w_health, hud_healthstr);
+  HUlib_add_string_to_cur_line(&w_health, hud_stringbuffer);
 }
 
 // do the hud armor display
@@ -866,7 +876,8 @@ static crange_idx_e CRByArmor(void)
 
 static void HU_widget_build_armor (void)
 {
-  char hud_armorstr[HU_MAXLINELENGTH] = "ARM ";
+  InitStringBuffer("ARM ");
+
   int i = 4;
   int armorbars = (st_armor > 100) ? 25 : (st_armor / 4);
 
@@ -875,7 +886,7 @@ static void HU_widget_build_armor (void)
   {
     // full bargraph chars
     for (i = 4; i < 4 + armorbars / 4;)
-      hud_armorstr[i++] = 123;
+      hud_stringbuffer[i++] = 123;
 
     // plus one last character with 0, 1, 2, 3 bars
     switch (armorbars % 4)
@@ -883,36 +894,34 @@ static void HU_widget_build_armor (void)
       case 0:
         break;
       case 1:
-        hud_armorstr[i++] = 126;
+        hud_stringbuffer[i++] = 126;
         break;
       case 2:
-        hud_armorstr[i++] = 125;
+        hud_stringbuffer[i++] = 125;
         break;
       case 3:
-        hud_armorstr[i++] = 124;
+        hud_stringbuffer[i++] = 124;
         break;
     }
 
     // pad string with blank bar characters
     while (i < 4 + 7)
-      hud_armorstr[i++] = 127;
-    hud_armorstr[i] = '\0';
+      hud_stringbuffer[i++] = 127;
+    hud_stringbuffer[i] = '\0';
   }
 
   // build the numeric amount init string
-  M_snprintf(hud_armorstr + i, sizeof(hud_armorstr), "%3d", st_armor);
+  M_snprintf(hud_stringbuffer + i, sizeof(hud_stringbuffer), "%3d", st_armor);
 
   const crange_idx_e cr = CRByArmor();
   w_armor.cr = colrngs[cr];
 
   // transfer the init string to the widget
-  HUlib_add_string_to_cur_line(&w_armor, hud_armorstr);
+  HUlib_add_string_to_cur_line(&w_armor, hud_stringbuffer);
 }
 
 static void HU_widget_build_compact (void)
 {
-  char hud_compactstr[HU_MAXLINELENGTH];
-
   const crange_idx_e cr_health = CRByHealth(plr->health, 100, st_invul);
   const crange_idx_e cr_armor = CRByArmor();
 
@@ -923,17 +932,17 @@ static void HU_widget_build_compact (void)
 
   if (hud_widget_layout)
   {
-    M_snprintf(hud_compactstr, sizeof(hud_compactstr),
+    M_snprintf(hud_stringbuffer, sizeof(hud_stringbuffer),
     "\x1b%cHEL \x1b%c%3d", '0'+CR_GRAY, '0'+cr_health, st_health);
-    HUlib_add_string_to_cur_line(&w_compact, hud_compactstr);
+    HUlib_add_string_to_cur_line(&w_compact, hud_stringbuffer);
 
-    M_snprintf(hud_compactstr, sizeof(hud_compactstr),
+    M_snprintf(hud_stringbuffer, sizeof(hud_stringbuffer),
     "\x1b%cARM \x1b%c%3d", '0'+CR_GRAY, '0'+cr_armor, st_armor);
-    HUlib_add_string_to_cur_line(&w_compact, hud_compactstr);
+    HUlib_add_string_to_cur_line(&w_compact, hud_stringbuffer);
 
     if (noammo)
     {
-      M_snprintf(hud_compactstr, sizeof(hud_compactstr),
+      M_snprintf(hud_stringbuffer, sizeof(hud_stringbuffer),
       "\x1b%cAMM N/A", '0'+CR_GRAY);
     }
     else
@@ -941,16 +950,16 @@ static void HU_widget_build_compact (void)
       const int ammopct = (100 * ammo) / fullammo;
       const crange_idx_e cr_ammo = CRByAmmo(ammo, fullammo, ammopct);
 
-      M_snprintf(hud_compactstr, sizeof(hud_compactstr),
+      M_snprintf(hud_stringbuffer, sizeof(hud_stringbuffer),
       "\x1b%cAMM \x1b%c%3d/%3d", '0'+CR_GRAY, '0'+cr_ammo, ammo, fullammo);
     }
-    HUlib_add_string_to_cur_line(&w_compact, hud_compactstr);
+    HUlib_add_string_to_cur_line(&w_compact, hud_stringbuffer);
   }
   else
   {
     if (noammo)
     {
-      M_snprintf(hud_compactstr, sizeof(hud_compactstr),
+      M_snprintf(hud_stringbuffer, sizeof(hud_stringbuffer),
       "\x1b%cHEL \x1b%c%3d \x1b%cARM \x1b%c%3d \x1b%cAMM N/A",
       '0'+CR_GRAY, '0'+cr_health, st_health,
       '0'+CR_GRAY, '0'+cr_armor, st_armor,
@@ -961,21 +970,21 @@ static void HU_widget_build_compact (void)
       const int ammopct = (100 * ammo) / fullammo;
       const crange_idx_e cr_ammo = CRByAmmo(ammo, fullammo, ammopct);
 
-      M_snprintf(hud_compactstr, sizeof(hud_compactstr),
+      M_snprintf(hud_stringbuffer, sizeof(hud_stringbuffer),
       "\x1b%cHEL \x1b%c%3d \x1b%cARM \x1b%c%3d \x1b%cAMM \x1b%c%3d/%3d",
       '0'+CR_GRAY, '0'+cr_health, st_health,
       '0'+CR_GRAY, '0'+cr_armor, st_armor,
       '0'+CR_GRAY, '0'+cr_ammo, ammo, fullammo);
     }
-    HUlib_add_string_to_cur_line(&w_compact, hud_compactstr);
+    HUlib_add_string_to_cur_line(&w_compact, hud_stringbuffer);
   }
 }
-
 
 // do the hud weapon display
 static void HU_widget_build_weapon (void)
 {
-  char hud_weapstr[HU_MAXLINELENGTH] = "WEA ";
+  InitStringBuffer("WEA ");
+
   int i = 4, w, ammo, fullammo, ammopct;
 
   // do each weapon that exists in current gamemode
@@ -1016,30 +1025,32 @@ static void HU_widget_build_weapon (void)
     ammopct = fullammo ? (100 * ammo) / fullammo : 100;
 
     // display each weapon number in a color related to the ammo for it
-    hud_weapstr[i++] = '\x1b'; //jff 3/26/98 use ESC not '\' for paths
+    hud_stringbuffer[i++] = '\x1b'; //jff 3/26/98 use ESC not '\' for paths
     if (weaponinfo[w].ammo == am_noammo) //jff 3/14/98 show berserk on HUD
-      hud_weapstr[i++] = (w == wp_fist && !plr->powers[pw_strength]) ? '0'+CR_GRAY : '0'+CR_GREEN;
+      hud_stringbuffer[i++] = (w == wp_fist && !plr->powers[pw_strength]) ? '0'+CR_GRAY : '0'+CR_GREEN;
     else if (ammopct < ammo_red)
-      hud_weapstr[i++] = '0'+CR_RED;
+      hud_stringbuffer[i++] = '0'+CR_RED;
     else if (ammopct < ammo_yellow)
-      hud_weapstr[i++] = '0'+CR_GOLD;
+      hud_stringbuffer[i++] = '0'+CR_GOLD;
     else if (ammopct > 100) // more than max threshold w/o backpack
-      hud_weapstr[i++] = '0'+CR_BLUE;
+      hud_stringbuffer[i++] = '0'+CR_BLUE;
     else
-      hud_weapstr[i++] = '0'+CR_GREEN;
+      hud_stringbuffer[i++] = '0'+CR_GREEN;
 
-    hud_weapstr[i++] = '0'+w+1;
-    hud_weapstr[i++] = ' ';
-    hud_weapstr[i] = '\0';
+    hud_stringbuffer[i++] = '0'+w+1;
+    hud_stringbuffer[i++] = ' ';
+    hud_stringbuffer[i] = '\0';
   }
 
   // transfer the init string to the widget
-  HUlib_add_string_to_cur_line(&w_weapon, hud_weapstr);
+  HUlib_add_string_to_cur_line(&w_weapon, hud_stringbuffer);
 }
 
 static void HU_widget_build_keys (void)
 {
-  char hud_keysstr[HU_MAXLINELENGTH] = { 'K', 'E', 'Y', '\x1b', '0'+CR_NONE, ' ', '\0' };
+  const char hud_keysstr[] = { 'K', 'E', 'Y', '\x1b', '0'+CR_NONE, ' ', '\0' };
+  InitStringBuffer(hud_keysstr);
+
   int i = 6, k;
 
   // build text string whose characters call out graphic keys
@@ -1049,9 +1060,9 @@ static void HU_widget_build_keys (void)
     if (!plr->cards[k])
       continue;
 
-    hud_keysstr[i++] = HU_FONTEND + k + 1; // key number plus HU_FONTEND is char for key
-    hud_keysstr[i++] = ' ';   // spacing
-    hud_keysstr[i++] = ' ';
+    hud_stringbuffer[i++] = HU_FONTEND + k + 1; // key number plus HU_FONTEND is char for key
+    hud_stringbuffer[i++] = ' ';   // spacing
+    hud_stringbuffer[i++] = ' ';
   }
 
   // [Alaux] Blink missing keys *after* possessed keys
@@ -1079,18 +1090,18 @@ static void HU_widget_build_keys (void)
         continue;
     }
 
-    hud_keysstr[i++] = HU_FONTEND + k + 1;
-    hud_keysstr[i++] = ' ';
-    hud_keysstr[i++] = ' ';
+    hud_stringbuffer[i++] = HU_FONTEND + k + 1;
+    hud_stringbuffer[i++] = ' ';
+    hud_stringbuffer[i++] = ' ';
   }
 
-  hud_keysstr[i] = '\0';
+  hud_stringbuffer[i] = '\0';
 
   // transfer the built string (frags or key title) to the widget
-  HUlib_add_string_to_cur_line(&w_keys, hud_keysstr);
+  HUlib_add_string_to_cur_line(&w_keys, hud_stringbuffer);
 }
 
-static inline int HU_top (char *const fragstr, int i, const int idx1, const int top1)
+static inline int HU_top (int i, const int idx1, const int top1)
 {
   if (idx1 > -1)
   {
@@ -1099,18 +1110,20 @@ static inline int HU_top (char *const fragstr, int i, const int idx1, const int 
     M_snprintf(numbuf, sizeof(numbuf), "%5d", top1);
     // make frag count in player's color via escape code
 
-    fragstr[i++] = '\x1b'; //jff 3/26/98 use ESC not '\' for paths
-    fragstr[i++] = '0' + plyrcoltran[idx1 & 3];
+    hud_stringbuffer[i++] = '\x1b'; //jff 3/26/98 use ESC not '\' for paths
+    hud_stringbuffer[i++] = '0' + plyrcoltran[idx1 & 3];
     s = numbuf;
     while (*s)
-      fragstr[i++] = *s++;
+      hud_stringbuffer[i++] = *s++;
   }
   return i;
 }
 
 static void HU_widget_build_frag (void)
 {
-  char hud_fragstr[HU_MAXLINELENGTH] = { 'F', 'R', 'G', '\x1b', '0'+CR_ORIG, ' ', '\0' };
+  const char hud_fragstr[] = { 'F', 'R', 'G', '\x1b', '0'+CR_ORIG, ' ', '\0' };
+  InitStringBuffer(hud_fragstr);
+
   int i = 6, k;
 
   int top1 = -999, top2 = -999, top3 = -999, top4 = -999;
@@ -1162,29 +1175,28 @@ static void HU_widget_build_frag (void)
 
   // if the biggest number exists,
   // put it in the init string
-  i = HU_top(hud_fragstr, i, idx1, top1);
+  i = HU_top(i, idx1, top1);
 
   // if the second biggest number exists,
   // put it in the init string
-  i = HU_top(hud_fragstr, i, idx2, top2);
+  i = HU_top(i, idx2, top2);
 
   // if the third biggest number exists,
   // put it in the init string
-  i = HU_top(hud_fragstr, i, idx3, top3);
+  i = HU_top(i, idx3, top3);
 
   // if the fourth biggest number exists,
   // put it in the init string
-  i = HU_top(hud_fragstr, i, idx4, top4);
+  i = HU_top(i, idx4, top4);
 
-  hud_fragstr[i] = '\0';
+  hud_stringbuffer[i] = '\0';
 
   // transfer the built string (frags or key title) to the widget
-  HUlib_add_string_to_cur_line(&w_keys, hud_fragstr);
+  HUlib_add_string_to_cur_line(&w_keys, hud_stringbuffer);
 }
 
 static void HU_widget_build_monsec(void)
 {
-  char hud_monsecstr[HU_MAXLINELENGTH];
   int i;
   int fullkillcount, fullitemcount, fullsecretcount;
   int killcolor, itemcolor, secretcolor;
@@ -1218,33 +1230,34 @@ static void HU_widget_build_monsec(void)
 
   if (hud_widget_layout)
   {
-    M_snprintf(hud_monsecstr, sizeof(hud_monsecstr),
+    M_snprintf(hud_stringbuffer, sizeof(hud_stringbuffer),
       "\x1b%cK\t\x1b%c%d/%d", ('0'+CR_RED), killcolor, fullkillcount, max_kill_requirement);
-    HUlib_add_string_to_cur_line(&w_monsec, hud_monsecstr);
+    HUlib_add_string_to_cur_line(&w_monsec, hud_stringbuffer);
 
-    M_snprintf(hud_monsecstr, sizeof(hud_monsecstr),
+    M_snprintf(hud_stringbuffer, sizeof(hud_stringbuffer),
       "\x1b%cI\t\x1b%c%d/%d", ('0'+CR_RED), itemcolor, fullitemcount, totalitems);
-    HUlib_add_string_to_cur_line(&w_monsec, hud_monsecstr);
+    HUlib_add_string_to_cur_line(&w_monsec, hud_stringbuffer);
 
-    M_snprintf(hud_monsecstr, sizeof(hud_monsecstr),
+    M_snprintf(hud_stringbuffer, sizeof(hud_stringbuffer),
       "\x1b%cS\t\x1b%c%d/%d", ('0'+CR_RED), secretcolor, fullsecretcount, totalsecret);
-    HUlib_add_string_to_cur_line(&w_monsec, hud_monsecstr);
+    HUlib_add_string_to_cur_line(&w_monsec, hud_stringbuffer);
   }
   else
   {
-    M_snprintf(hud_monsecstr, sizeof(hud_monsecstr),
+    M_snprintf(hud_stringbuffer, sizeof(hud_stringbuffer),
       "\x1b%cK \x1b%c%d/%d \x1b%cI \x1b%c%d/%d \x1b%cS \x1b%c%d/%d",
       '0'+CR_RED, killcolor, fullkillcount, max_kill_requirement,
       '0'+CR_RED, itemcolor, fullitemcount, totalitems,
       '0'+CR_RED, secretcolor, fullsecretcount, totalsecret);
 
-    HUlib_add_string_to_cur_line(&w_monsec, hud_monsecstr);
+    HUlib_add_string_to_cur_line(&w_monsec, hud_stringbuffer);
   }
 }
 
 static void HU_widget_build_sttime(void)
 {
-  char hud_timestr[HU_MAXLINELENGTH/2] = {0};
+  InitStringBuffer("");
+
   int offset = 0;
 
   if ((hud_level_time & HUD_WIDGET_HUD     && !automapactive) ||
@@ -1252,7 +1265,7 @@ static void HU_widget_build_sttime(void)
   {
     if (time_scale != 100)
     {
-      offset += M_snprintf(hud_timestr, sizeof(hud_timestr), "\x1b%c%d%% ",
+      offset += M_snprintf(hud_stringbuffer, sizeof(hud_stringbuffer), "\x1b%c%d%% ",
                            '0'+CR_BLUE, time_scale);
     }
 
@@ -1260,14 +1273,14 @@ static void HU_widget_build_sttime(void)
     {
       const int time = (totalleveltimes + leveltime) / TICRATE;
 
-      offset += M_snprintf(hud_timestr + offset, sizeof(hud_timestr),
+      offset += M_snprintf(hud_stringbuffer + offset, sizeof(hud_stringbuffer),
                            "\x1b%c%d:%02d ",
                            '0'+CR_GREEN, time/60, time%60);
     }
 
     if (!plr->btuse_tics)
     {
-      M_snprintf(hud_timestr + offset, sizeof(hud_timestr), "\x1b%c%d:%05.2f\t",
+      M_snprintf(hud_stringbuffer + offset, sizeof(hud_stringbuffer), "\x1b%c%d:%05.2f\t",
                  '0'+CR_GRAY, leveltime / TICRATE / 60,
                  (float)(leveltime % (60 * TICRATE)) / TICRATE);
     }
@@ -1275,12 +1288,12 @@ static void HU_widget_build_sttime(void)
 
   if (plr->btuse_tics)
   {
-    M_snprintf(hud_timestr + offset, sizeof(hud_timestr), "\x1b%cU %d:%05.2f\t",
+    M_snprintf(hud_stringbuffer + offset, sizeof(hud_stringbuffer), "\x1b%cU %d:%05.2f\t",
                '0'+CR_GOLD, plr->btuse / TICRATE / 60, 
                (float)(plr->btuse % (60 * TICRATE)) / TICRATE);
   }
 
-  HUlib_add_string_to_cur_line(&w_sttime, hud_timestr);
+  HUlib_add_string_to_cur_line(&w_sttime, hud_stringbuffer);
 }
 
 void HU_widget_rebuild_sttime(void)
@@ -1290,7 +1303,6 @@ void HU_widget_rebuild_sttime(void)
 
 static void HU_widget_build_coord (void)
 {
-  char hud_coordstr[HU_MAXLINELENGTH];
   fixed_t x,y,z; // killough 10/98:
   void AM_Coordinates(const mobj_t *, fixed_t *, fixed_t *, fixed_t *);
 
@@ -1300,49 +1312,45 @@ static void HU_widget_build_coord (void)
   //jff 2/16/98 output new coord display
   if (hud_widget_layout)
   {
-    M_snprintf(hud_coordstr, sizeof(hud_coordstr), "X\t\x1b%c%d", '0'+CR_GRAY, x >> FRACBITS);
-    HUlib_add_string_to_cur_line(&w_coord, hud_coordstr);
+    M_snprintf(hud_stringbuffer, sizeof(hud_stringbuffer), "X\t\x1b%c%d", '0'+CR_GRAY, x >> FRACBITS);
+    HUlib_add_string_to_cur_line(&w_coord, hud_stringbuffer);
 
-    M_snprintf(hud_coordstr, sizeof(hud_coordstr), "Y\t\x1b%c%d", '0'+CR_GRAY, y >> FRACBITS);
-    HUlib_add_string_to_cur_line(&w_coord, hud_coordstr);
+    M_snprintf(hud_stringbuffer, sizeof(hud_stringbuffer), "Y\t\x1b%c%d", '0'+CR_GRAY, y >> FRACBITS);
+    HUlib_add_string_to_cur_line(&w_coord, hud_stringbuffer);
 
-    M_snprintf(hud_coordstr, sizeof(hud_coordstr), "Z\t\x1b%c%d", '0'+CR_GRAY, z >> FRACBITS);
-    HUlib_add_string_to_cur_line(&w_coord, hud_coordstr);
+    M_snprintf(hud_stringbuffer, sizeof(hud_stringbuffer), "Z\t\x1b%c%d", '0'+CR_GRAY, z >> FRACBITS);
+    HUlib_add_string_to_cur_line(&w_coord, hud_stringbuffer);
   }
   else
   {
-    M_snprintf(hud_coordstr, sizeof(hud_coordstr), "X \x1b%c%d \x1b%cY \x1b%c%d \x1b%cZ \x1b%c%d",
+    M_snprintf(hud_stringbuffer, sizeof(hud_stringbuffer), "X \x1b%c%d \x1b%cY \x1b%c%d \x1b%cZ \x1b%c%d",
             '0'+CR_GRAY, x >> FRACBITS, '0'+hudcolor_xyco,
             '0'+CR_GRAY, y >> FRACBITS, '0'+hudcolor_xyco,
             '0'+CR_GRAY, z >> FRACBITS);
 
-    HUlib_add_string_to_cur_line(&w_coord, hud_coordstr);
+    HUlib_add_string_to_cur_line(&w_coord, hud_stringbuffer);
   }
 }
 
 static void HU_widget_build_fps (void)
 {
-  char hud_fpsstr[HU_MAXLINELENGTH/4];
-
-  M_snprintf(hud_fpsstr, sizeof(hud_fpsstr), "\x1b%c%d \x1b%cFPS",
+  M_snprintf(hud_stringbuffer, sizeof(hud_stringbuffer), "\x1b%c%d \x1b%cFPS",
              '0'+CR_GRAY, fps, '0'+CR_ORIG);
-  HUlib_add_string_to_cur_line(&w_fps, hud_fpsstr);
+  HUlib_add_string_to_cur_line(&w_fps, hud_stringbuffer);
 }
 
 static void HU_widget_build_rate (void)
 {
-  char hud_ratestr[HU_MAXLINELENGTH];
-
-  M_snprintf(hud_ratestr, sizeof(hud_ratestr),
+  M_snprintf(hud_stringbuffer, sizeof(hud_stringbuffer),
              "Sprites %4d Segs %4d Visplanes %4d   \x1b%cFPS %3d %dx%d\x1b%c",
              rendered_vissprites, rendered_segs, rendered_visplanes,
              '0'+CR_GRAY, fps, video.width, video.height, '0'+CR_ORIG);
-  HUlib_add_string_to_cur_line(&w_rate, hud_ratestr);
+  HUlib_add_string_to_cur_line(&w_rate, hud_stringbuffer);
 
   if (voxels_rendering)
   {
-    M_snprintf(hud_ratestr, sizeof(hud_ratestr), " Voxels %4d", rendered_voxels);
-    HUlib_add_string_to_cur_line(&w_rate, hud_ratestr);
+    M_snprintf(hud_stringbuffer, sizeof(hud_stringbuffer), " Voxels %4d", rendered_voxels);
+    HUlib_add_string_to_cur_line(&w_rate, hud_stringbuffer);
   }
 }
 
