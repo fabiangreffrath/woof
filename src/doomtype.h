@@ -50,9 +50,11 @@ typedef byte lighttable_t;
 #if !HAVE_DECL_STRCASECMP || !HAVE_DECL_STRNCASECMP
   #include <string.h>
   #if !HAVE_DECL_STRCASECMP
+    #undef strcasecmp
     #define strcasecmp stricmp
   #endif
   #if !HAVE_DECL_STRNCASECMP
+    #undef strncasecmp
     #define strncasecmp strnicmp
   #endif
 #else
