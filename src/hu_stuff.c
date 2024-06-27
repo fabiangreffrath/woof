@@ -31,6 +31,7 @@
 #include "doomstat.h"
 #include "doomtype.h"
 #include "dstrings.h"
+#include "hu_coordinates.h"
 #include "hu_lib.h"
 #include "hu_obituary.h"
 #include "hu_stuff.h"
@@ -111,7 +112,7 @@ static player_t *plr;
 static hu_font_t big_font = {.space_width = 4, .tab_width = 15, .tab_mask = ~15},
                  sml_font = {.space_width = 5, .tab_width =  7, .tab_mask =  ~7};
 static hu_font_t *doom_font = &big_font, *boom_font = &sml_font;
-static hu_font_t *cmd_font = &sml_font;
+static hu_font_t *monospaced_font = &sml_font;
 patch_t **hu_font = big_font.patches;
 
 static int CR_BLUE = CR_BLUE1;
@@ -624,9 +625,18 @@ void HU_Start(void)
                        NULL, HU_widget_build_sttime);
 
   // create the automaps coordinate widget
-  HUlib_init_multiline(&w_coord, hud_widget_layout ? 3 : 1,
-                       &boom_font, colrngs[hudcolor_xyco],
-                       NULL, HU_widget_build_coord);
+  if (hud_player_coords == HUD_WIDGET_ADVANCED)
+  {
+    HUlib_init_multiline(&w_coord, 12,
+                         &monospaced_font, colrngs[CR_GRAY],
+                         NULL, HU_widget_build_coord);
+  }
+  else
+  {
+    HUlib_init_multiline(&w_coord, hud_widget_layout ? 3 : 1,
+                         &boom_font, colrngs[hudcolor_xyco],
+                         NULL, HU_widget_build_coord);
+  }
 
   HUlib_init_multiline(&w_fps, 1,
                        &boom_font, colrngs[hudcolor_xyco],
@@ -639,7 +649,7 @@ void HU_Start(void)
   w_rate.exclusive = true;
 
   HUlib_init_multiline(&w_cmd, hud_command_history_size,
-                       &cmd_font, colrngs[hudcolor_xyco],
+                       &monospaced_font, colrngs[hudcolor_xyco],
                        NULL, HU_widget_build_cmd);
   // Draw command history bottom up.
   w_cmd.bottomup = true;
@@ -1306,6 +1316,13 @@ static void HU_widget_build_coord (void)
   fixed_t x,y,z; // killough 10/98:
   void AM_Coordinates(const mobj_t *, fixed_t *, fixed_t *, fixed_t *);
 
+  if (hud_player_coords == HUD_WIDGET_ADVANCED)
+  {
+    HU_BuildCoordinatesEx(&w_coord, plr->mo, hud_stringbuffer,
+                          sizeof(hud_stringbuffer));
+    return;
+  }
+
   // killough 10/98: allow coordinates to display non-following pointer
   AM_Coordinates(plr->mo, &x, &y, &z);
 
@@ -1757,7 +1774,8 @@ void HU_Ticker(void)
   {
     HU_cond_build_widget(w_stats, hud_level_stats & HUD_WIDGET_AUTOMAP);
     HU_cond_build_widget(&w_sttime, hud_level_time & HUD_WIDGET_AUTOMAP || plr->btuse_tics);
-    HU_cond_build_widget(&w_coord, STRICTMODE(hud_player_coords) & HUD_WIDGET_AUTOMAP);
+    HU_cond_build_widget(&w_coord, STRICTMODE(hud_player_coords == HUD_WIDGET_AUTOMAP
+                                              || hud_player_coords >= HUD_WIDGET_ALWAYS));
 
     title_on = true;
   }
@@ -1765,7 +1783,7 @@ void HU_Ticker(void)
   {
     HU_cond_build_widget(w_stats, hud_level_stats & HUD_WIDGET_HUD);
     HU_cond_build_widget(&w_sttime, hud_level_time & HUD_WIDGET_HUD || plr->btuse_tics);
-    HU_cond_build_widget(&w_coord, STRICTMODE(hud_player_coords) & HUD_WIDGET_HUD);
+    HU_cond_build_widget(&w_coord, STRICTMODE(hud_player_coords >= HUD_WIDGET_HUD));
 
     title_on = (title_counter > 0);
   }
@@ -2301,9 +2319,9 @@ void HU_BindHUDVariables(void)
             ss_stat, wad_no,
             "Show level time widget (1 = On automap; 2 = On HUD; 3 = Always)");
   M_BindNum("hud_player_coords", &hud_player_coords, NULL,
-            HUD_WIDGET_AUTOMAP, HUD_WIDGET_OFF, HUD_WIDGET_ALWAYS,
+            HUD_WIDGET_AUTOMAP, HUD_WIDGET_OFF, HUD_WIDGET_ADVANCED,
             ss_stat, wad_no,
-            "Show player coordinates widget (1 = On automap; 2 = On HUD; 3 = Always)");
+            "Show player coordinates widget (1 = On automap; 2 = On HUD; 3 = Always; 4 = Advanced)");
   M_BindBool("hud_command_history", &hud_command_history, NULL, false, ss_stat,
              wad_no, "Show command history widget");
   BIND_NUM(hud_command_history_size, 10, 1, HU_MAXMESSAGES,
