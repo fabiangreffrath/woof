@@ -92,10 +92,14 @@ static split_angle_t SplitAngle(angle_t x)
     return result;
 }
 
-static void BuildString(hu_multiline_t *const w_coord, char *buf, int len)
+static void BuildString(hu_multiline_t *const w_coord, char *buf, int len,
+                        int pos)
 {
-    const char *s = buf;
-    M_snprintf(buf, len, "%-*s", WIDGET_WIDTH, s);
+    if (WIDGET_WIDTH > pos)
+    {
+        M_snprintf(buf + pos, len - pos, "%-*s", WIDGET_WIDTH - pos, "");
+    }
+
     HUlib_add_string_keep_space(w_coord, buf);
 }
 
@@ -108,15 +112,15 @@ static void FixedToString(hu_multiline_t *const w_coord, const char *label,
     {
         const char *sign = (value.negative && !value.base) ? "-" : "";
 
-        M_snprintf(buf + pos, len - pos, "%s: %s%d.%05d", label, sign,
-                   value.base, value.frac);
+        pos += M_snprintf(buf + pos, len - pos, "%s: %s%d.%05d", label, sign,
+                          value.base, value.frac);
     }
     else
     {
-        M_snprintf(buf + pos, len - pos, "%s: %d", label, value.base);
+        pos += M_snprintf(buf + pos, len - pos, "%s: %d", label, value.base);
     }
 
-    BuildString(w_coord, buf, len);
+    BuildString(w_coord, buf, len, pos);
 }
 
 static void AngleToString(hu_multiline_t *const w_coord, const char *label,
@@ -126,15 +130,15 @@ static void AngleToString(hu_multiline_t *const w_coord, const char *label,
 
     if (value.frac)
     {
-        M_snprintf(buf + pos, len - pos, "%s: %d.%03d", label, value.base,
-                   value.frac);
+        pos += M_snprintf(buf + pos, len - pos, "%s: %d.%03d", label,
+                          value.base, value.frac);
     }
     else
     {
-        M_snprintf(buf + pos, len - pos, "%s: %d", label, value.base);
+        pos += M_snprintf(buf + pos, len - pos, "%s: %d", label, value.base);
     }
 
-    BuildString(w_coord, buf, len);
+    BuildString(w_coord, buf, len, pos);
 }
 
 static void MagnitudeToString(hu_multiline_t *const w_coord, const char *label,
@@ -142,14 +146,14 @@ static void MagnitudeToString(hu_multiline_t *const w_coord, const char *label,
 {
     if (x)
     {
-        M_snprintf(buf + pos, len - pos, "%s: %.3f", label, x);
+        pos += M_snprintf(buf + pos, len - pos, "%s: %.3f", label, x);
     }
     else
     {
-        M_snprintf(buf + pos, len - pos, "%s: 0", label);
+        pos += M_snprintf(buf + pos, len - pos, "%s: 0", label);
     }
 
-    BuildString(w_coord, buf, len);
+    BuildString(w_coord, buf, len, pos);
 }
 
 static void ComponentToString(hu_multiline_t *const w_coord, const char *label,
@@ -161,15 +165,15 @@ static void ComponentToString(hu_multiline_t *const w_coord, const char *label,
     {
         const char *sign = (value.negative && !value.base) ? "-" : "";
 
-        M_snprintf(buf + pos, len - pos, "%s: %s%d.%03d", label, sign,
-                   value.base, 1000 * value.frac / (FRACUNIT - 1));
+        pos += M_snprintf(buf + pos, len - pos, "%s: %s%d.%03d", label, sign,
+                          value.base, 1000 * value.frac / (FRACUNIT - 1));
     }
     else
     {
-        M_snprintf(buf + pos, len - pos, "%s: %d", label, value.base);
+        pos += M_snprintf(buf + pos, len - pos, "%s: %d", label, value.base);
     }
 
-    BuildString(w_coord, buf, len);
+    BuildString(w_coord, buf, len, pos);
 }
 
 void HU_BuildCoordinatesEx(hu_multiline_t *const w_coord, const mobj_t *mo,
