@@ -94,10 +94,9 @@ static split_angle_t SplitAngle(angle_t x)
 
 static void BuildString(hu_multiline_t *const w_coord, char *buf, int len)
 {
-    char *s = M_StringDuplicate(buf);
+    const char *s = buf;
     M_snprintf(buf, len, "%-*s", WIDGET_WIDTH, s);
     HUlib_add_string_keep_space(w_coord, buf);
-    free(s);
 }
 
 static void FixedToString(hu_multiline_t *const w_coord, const char *label,
