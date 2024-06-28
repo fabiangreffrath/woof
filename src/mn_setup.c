@@ -22,6 +22,7 @@
 #include "doomstat.h"
 #include "doomtype.h"
 #include "g_game.h"
+#include "hu_crosshair.h"
 #include "hu_lib.h"
 #include "hu_stuff.h"
 #include "i_gamepad.h"
