@@ -397,6 +397,7 @@ static void I_ToggleFullScreen(void)
     {
         flags |= SDL_WINDOW_FULLSCREEN_DESKTOP;
         SDL_SetWindowGrab(screen, SDL_TRUE);
+        SDL_SetWindowResizable(screen, SDL_FALSE);
     }
 
     SDL_SetWindowFullscreen(screen, flags);
@@ -408,6 +409,7 @@ static void I_ToggleFullScreen(void)
     {
         SDL_SetWindowGrab(screen, SDL_FALSE);
         AdjustWindowSize();
+        SDL_SetWindowResizable(screen, SDL_TRUE);
         SDL_SetWindowSize(screen, window_width, window_height);
     }
 }
@@ -1581,7 +1583,6 @@ static void I_InitGraphicsMode(void)
     uint32_t flags = 0;
 
     // [FG] window flags
-    flags |= SDL_WINDOW_RESIZABLE;
     flags |= SDL_WINDOW_ALLOW_HIGHDPI;
 
     w = window_width;
@@ -1638,6 +1639,10 @@ static void I_InitGraphicsMode(void)
     if (fullscreen)
     {
         SDL_SetWindowGrab(screen, SDL_TRUE);
+    }
+    else
+    {
+        SDL_SetWindowResizable(screen, SDL_TRUE);
     }
 
     flags = 0;
