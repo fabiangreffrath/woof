@@ -71,7 +71,7 @@ static split_fixed_t SplitFixed(fixed_t x)
 
     result.negative = x < 0;
     result.base = x >> FRACBITS;
-    result.frac = x & (FRACUNIT - 1);
+    result.frac = x & FRACMASK;
 
     if (result.negative && result.frac)
     {
@@ -166,7 +166,7 @@ static void ComponentToString(hu_multiline_t *const w_coord, const char *label,
         const char *sign = (value.negative && !value.base) ? "-" : "";
 
         pos += M_snprintf(buf + pos, len - pos, "%s: %s%d.%03d", label, sign,
-                          value.base, 1000 * value.frac / (FRACUNIT - 1));
+                          value.base, 1000 * value.frac / FRACMASK);
     }
     else
     {

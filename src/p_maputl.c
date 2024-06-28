@@ -776,8 +776,8 @@ static void InterceptsMemoryOverrun(int location, int value)
                 if (intercepts_overrun[i].int16_array)
                 {
                     index = (location - offset) / 2;
-                    ((short *) addr)[index] = value & 0xffff;
-                    ((short *) addr)[index + 1] = (value >> 16) & 0xffff;
+                    ((short *) addr)[index] = value & FRACMASK;
+                    ((short *) addr)[index + 1] = (value >> 16) & FRACMASK;
                 }
                 else
                 {
@@ -873,14 +873,14 @@ boolean P_PathTraverse(fixed_t x1, fixed_t y1, fixed_t x2, fixed_t y2,
   if (xt2 > xt1)
     {
       mapxstep = 1;
-      partial = FRACUNIT - ((x1>>MAPBTOFRAC)&(FRACUNIT-1));
+      partial = FRACUNIT - ((x1>>MAPBTOFRAC)&FRACMASK);
       ystep = FixedDiv (y2-y1,abs(x2-x1));
     }
   else
     if (xt2 < xt1)
       {
         mapxstep = -1;
-        partial = (x1>>MAPBTOFRAC)&(FRACUNIT-1);
+        partial = (x1>>MAPBTOFRAC)&FRACMASK;
         ystep = FixedDiv (y2-y1,abs(x2-x1));
       }
     else
@@ -895,14 +895,14 @@ boolean P_PathTraverse(fixed_t x1, fixed_t y1, fixed_t x2, fixed_t y2,
   if (yt2 > yt1)
     {
       mapystep = 1;
-      partial = FRACUNIT - ((y1>>MAPBTOFRAC)&(FRACUNIT-1));
+      partial = FRACUNIT - ((y1>>MAPBTOFRAC)&FRACMASK);
       xstep = FixedDiv (x2-x1,abs(y2-y1));
     }
   else
     if (yt2 < yt1)
       {
         mapystep = -1;
-        partial = (y1>>MAPBTOFRAC)&(FRACUNIT-1);
+        partial = (y1>>MAPBTOFRAC)&FRACMASK;
         xstep = FixedDiv (x2-x1,abs(y2-y1));
       }
     else
@@ -1274,13 +1274,13 @@ boolean P_SightPathTraverse(fixed_t x1, fixed_t y1, fixed_t x2, fixed_t y2)
   if (xt2 > xt1)
   {
     mapxstep = 1;
-    partial = FRACUNIT - ((x1>>MAPBTOFRAC)&(FRACUNIT-1));
+    partial = FRACUNIT - ((x1>>MAPBTOFRAC)&FRACMASK);
     ystep = FixedDiv (y2-y1,abs(x2-x1));
   }
   else if (xt2 < xt1)
   {
     mapxstep = -1;
-    partial = (x1>>MAPBTOFRAC)&(FRACUNIT-1);
+    partial = (x1>>MAPBTOFRAC)&FRACMASK;
     ystep = FixedDiv (y2-y1,abs(x2-x1));
   }
   else
@@ -1295,13 +1295,13 @@ boolean P_SightPathTraverse(fixed_t x1, fixed_t y1, fixed_t x2, fixed_t y2)
   if (yt2 > yt1)
   {
     mapystep = 1;
-    partial = FRACUNIT - ((y1>>MAPBTOFRAC)&(FRACUNIT-1));
+    partial = FRACUNIT - ((y1>>MAPBTOFRAC)&FRACMASK);
     xstep = FixedDiv (x2-x1,abs(y2-y1));
   }
   else if (yt2 < yt1)
   {
     mapystep = -1;
-    partial = (y1>>MAPBTOFRAC)&(FRACUNIT-1);
+    partial = (y1>>MAPBTOFRAC)&FRACMASK;
     xstep = FixedDiv (x2-x1,abs(y2-y1));
   }
   else
