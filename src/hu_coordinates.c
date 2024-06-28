@@ -76,7 +76,7 @@ static split_fixed_t SplitFixed(fixed_t x)
     if (result.negative && result.frac)
     {
         result.base++;
-        result.frac = FRACMASK - result.frac + 1;
+        result.frac = FRACUNIT - result.frac;
     }
 
     return result;
