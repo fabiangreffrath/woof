@@ -324,11 +324,20 @@ void D_Display (void)
     case GS_LEVEL:
       if (!gametic)
         break;
-      if (automap_on)
+      if (automapactive)
       {
-        // [FG] update automap while playing
-        R_RenderPlayerView (&players[displayplayer]);
-        AM_Drawer();
+        static overlay_t last_automapoverlay;
+        if (!automapoverlay)
+        {
+          // [FG] update automap while playing
+          R_RenderPlayerView(&players[displayplayer]);
+          AM_Drawer();
+          if (last_automapoverlay && scaledviewheight == 200)
+          {
+            redrawsbar = true;
+          }
+        }
+        last_automapoverlay = automapoverlay;
       }
       if (wipe || (scaledviewheight != 200 && fullscreen) // killough 11/98
           || (inhelpscreensstate && !inhelpscreens))
