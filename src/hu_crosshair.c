@@ -72,10 +72,13 @@ void HU_InitCrosshair(void)
   {
     int lump = W_CheckNumForName(crosshair_lumps[i]);
 
-    if (R_IsPatchLump(lump))
-      crosshair_strings[i] = crosshair_lumps[i];
-    else
-      crosshair_lumps[i] = NULL;
+    if (W_IsWADLump(lump))
+    {
+      if (R_IsPatchLump(lump))
+        crosshair_strings[i] = crosshair_lumps[i];
+      else
+        crosshair_lumps[i] = NULL;
+    }
   }
 }
 
