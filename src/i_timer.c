@@ -36,6 +36,7 @@ HANDLE hTimer = NULL;
 static uint64_t basecounter = 0;
 static uint64_t basecounter_scaled = 0;
 static uint64_t basefreq = 0;
+static double baseperiod_us = 0.;
 
 static int MSToTic(uint32_t time)
 {
@@ -59,16 +60,9 @@ int I_GetTimeMS(void)
     return ((counter - basecounter) * 1000ull) / basefreq;
 }
 
-uint64_t I_GetTimeUS(void)
+double I_GetTimeUS(void)
 {
-    uint64_t counter = SDL_GetPerformanceCounter();
-
-    if (basecounter == 0)
-    {
-        basecounter = counter;
-    }
-
-    return ((counter - basecounter) * 1000000ull) / basefreq;
+    return (int64_t)SDL_GetPerformanceCounter() * baseperiod_us;
 }
 
 int time_scale = 100;
@@ -167,6 +161,7 @@ void I_InitTimer(void)
     I_AtExit(I_ShutdownTimer, true);
 
     basefreq = SDL_GetPerformanceFrequency();
+    baseperiod_us = 1e6 / basefreq;
 
     I_GetTime = I_GetTime_Scaled;
     I_GetFracTime = I_GetFracTime_Scaled;
@@ -212,11 +207,11 @@ void I_Sleep(int ms)
     SDL_Delay(ms);
 }
 
-void I_SleepUS(uint64_t us)
+void I_SleepUS(int us)
 {
 #if defined(_WIN32)
     LARGE_INTEGER liDueTime;
-    liDueTime.QuadPart = -(LONGLONG)(us * 1000 / 100);
+    liDueTime.QuadPart = -(LONGLONG)(us * 10);
     if (SetWaitableTimer(hTimer, &liDueTime, 0, NULL, NULL, 0))
     {
         WaitForSingleObject(hTimer, INFINITE);

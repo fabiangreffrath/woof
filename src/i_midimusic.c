@@ -147,19 +147,19 @@ typedef struct
     midi_track_t *track;
 } midi_position_t;
 
-static uint64_t start_time, pause_time;
+static double start_time, pause_time;
 
-static uint64_t TicksToUS(uint32_t ticks)
+static double TicksToUS(uint32_t ticks)
 {
-    return (uint64_t)ticks * us_per_beat / ticks_per_beat;
+    return (double)ticks * us_per_beat / ticks_per_beat;
 }
 
-static void RestartTimer(uint64_t offset)
+static void RestartTimer(double offset)
 {
-    if (pause_time)
+    if (pause_time != 0.)
     {
         start_time += (I_GetTimeUS() - pause_time);
-        pause_time = 0;
+        pause_time = 0.;
     }
     else
     {
@@ -172,7 +172,7 @@ static void PauseTimer(void)
     pause_time = I_GetTimeUS();
 }
 
-static uint64_t CurrentTime(void)
+static double CurrentTime(void)
 {
     return I_GetTimeUS() - start_time;
 }
