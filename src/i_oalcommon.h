@@ -13,7 +13,7 @@
 // GNU General Public License for more details.
 //
 // DESCRIPTION:
-//      System interface for OpenAL sound.
+//      OpenAL sound and equalizer.
 //
 
 #ifndef __I_OALCOMMON__

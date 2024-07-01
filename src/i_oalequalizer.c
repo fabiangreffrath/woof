@@ -13,7 +13,7 @@
 // GNU General Public License for more details.
 //
 // DESCRIPTION:
-//      System interface for OpenAL sound.
+//      OpenAL equalizer.
 //
 
 #include "al.h"
