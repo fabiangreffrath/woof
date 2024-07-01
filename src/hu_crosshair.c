@@ -13,7 +13,7 @@
 //  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 //  GNU General Public License for more details.
 //
-// DESCRIPTION:  Heads-up displays
+// DESCRIPTION:  Crosshair HUD component
 //
 //-----------------------------------------------------------------------------
 
@@ -34,8 +34,6 @@
 static player_t *plr;
 
 int hud_crosshair;
-
-// Crosshair
 
 crosstarget_t hud_crosshair_target;
 boolean hud_crosshair_health;
