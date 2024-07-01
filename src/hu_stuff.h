@@ -99,7 +99,7 @@ enum
 
 void HU_BindHUDVariables(void);
 
-byte* ColorByHealth(int health, int maxhealth, boolean invul);
+byte* HU_ColorByHealth(int health, int maxhealth, boolean invul);
 
 #endif
 

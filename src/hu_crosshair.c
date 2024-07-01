@@ -105,7 +105,7 @@ void HU_UpdateCrosshair(void)
   crosshair.y = (screenblocks <= 10) ? (SCREENHEIGHT-ST_HEIGHT)/2 : SCREENHEIGHT/2;
 
   if (hud_crosshair_health)
-    crosshair.cr = ColorByHealth(plr->health, 100, st_invul);
+    crosshair.cr = HU_ColorByHealth(plr->health, 100, st_invul);
   else
     crosshair.cr = colrngs[hud_crosshair_color];
 
@@ -137,7 +137,7 @@ void HU_UpdateCrosshair(void)
       // [Alaux] Color crosshair by target health
       if (hud_crosshair_target == crosstarget_health)
       {
-        crosshair.cr = ColorByHealth(crosshair_target->health, crosshair_target->info->spawnhealth, false);
+        crosshair.cr = HU_ColorByHealth(crosshair_target->health, crosshair_target->info->spawnhealth, false);
       }
       else
       {

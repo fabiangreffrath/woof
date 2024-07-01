@@ -339,7 +339,7 @@ static crange_idx_e CRByHealth(int health, int maxhealth, boolean invul)
     return CR_BLUE;
 }
 
-byte* ColorByHealth(int health, int maxhealth, boolean invul)
+byte* HU_ColorByHealth(int health, int maxhealth, boolean invul)
 {
   const crange_idx_e cr = CRByHealth(health, maxhealth, invul);
 
@@ -839,7 +839,7 @@ static void HU_widget_build_health (void)
   M_snprintf(hud_stringbuffer + i, sizeof(hud_stringbuffer), "%3d", st_health);
 
   // set the display color from the amount of health posessed
-  w_health.cr = ColorByHealth(plr->health, 100, st_invul);
+  w_health.cr = HU_ColorByHealth(plr->health, 100, st_invul);
 
   // transfer the init string to the widget
   HUlib_add_string_to_cur_line(&w_health, hud_stringbuffer);
