@@ -26,9 +26,9 @@ extern int hud_crosshair;
 // [Alaux] Lock crosshair on target
 typedef enum
 {
-  crosstarget_off,
-  crosstarget_highlight,
-  crosstarget_health, // [Alaux] Color crosshair by target health
+    crosstarget_off,
+    crosstarget_highlight,
+    crosstarget_health, // [Alaux] Color crosshair by target health
 } crosstarget_t;
 
 extern crosstarget_t hud_crosshair_target;
