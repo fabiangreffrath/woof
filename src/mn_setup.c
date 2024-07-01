@@ -25,6 +25,7 @@
 #include "hu_lib.h"
 #include "hu_stuff.h"
 #include "i_gamepad.h"
+#include "i_oalequalizer.h"
 #include "i_oalsound.h"
 #include "i_sound.h"
 #include "i_timer.h"
