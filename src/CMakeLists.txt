@@ -38,6 +38,8 @@ set(WOOF_SOURCES
     i_main.c
     i_mbfsound.c
     i_midimusic.c
+                           i_oalcommon.h
+    i_oalequalizer.c       i_oalequalizer.h
     i_oalmusic.c
     i_oalsound.c           i_oalsound.h
                            i_oalstream.h
