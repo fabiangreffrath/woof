@@ -31,7 +31,7 @@
 #include "v_fmt.h"
 #include "v_video.h"
 
-static player_t *plr;
+static player_t *plr = players;
 
 int hud_crosshair;
 
