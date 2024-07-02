@@ -189,13 +189,13 @@ void G_UpdateDeltaTics(void)
 {
     if (uncapped && raw_input)
     {
-        static uint64_t last_time;
-        const uint64_t current_time = I_GetTimeUS();
+        static double last_time;
+        const double current_time = I_GetTimeUS();
 
         if (input_ready)
         {
-            const uint64_t delta_time = current_time - last_time;
-            deltatics = (double)delta_time * TICRATE / 1000000.0;
+            const double delta_time = current_time - last_time;
+            deltatics = delta_time * TICRATE * 1e-6;
             deltatics = BETWEEN(0.0, 1.0, deltatics);
         }
         else

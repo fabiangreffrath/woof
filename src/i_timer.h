@@ -32,7 +32,7 @@ extern int (*I_GetFracTime)(void);
 // [FG] Same as I_GetTime, but returns time in milliseconds
 int I_GetTimeMS(void);
 
-uint64_t I_GetTimeUS(void);
+double I_GetTimeUS(void);
 
 void I_SetTimeScale(int scale);
 
@@ -44,7 +44,7 @@ void I_EnableWarp(boolean warp);
 // Pause for a specified number of ms
 void I_Sleep(int ms);
 
-void I_SleepUS(uint64_t us);
+void I_SleepUS(int us);
 
 // Initialize timer
 void I_InitTimer(void);

@@ -672,7 +672,7 @@ static void UpdateRender(void)
     }
 }
 
-static uint64_t frametime_start, frametime_withoutpresent;
+static double frametime_start, frametime_withoutpresent;
 
 static void ResetResolution(int height, boolean reset_pitch);
 static void ResetLogicalSize(void);
@@ -680,7 +680,7 @@ static void ResetLogicalSize(void);
 void I_DynamicResolution(void)
 {
     if (!dynamic_resolution || current_video_height <= DRS_MIN_HEIGHT
-        || frametime_withoutpresent == 0 || targetrefresh <= 0
+        || frametime_withoutpresent == 0. || targetrefresh <= 0
         || menuactive)
     {
         return;
@@ -688,7 +688,7 @@ void I_DynamicResolution(void)
 
     if (drs_skip_frame)
     {
-        frametime_start = frametime_withoutpresent = 0;
+        frametime_start = frametime_withoutpresent = 0.;
         drs_skip_frame = false;
         return;
     }
@@ -698,7 +698,7 @@ void I_DynamicResolution(void)
 
     // 1.25 milliseconds for SDL render present
     double target = (1.0 / targetrefresh) - 0.00125;
-    double actual = frametime_withoutpresent / 1000000.0;
+    double actual = frametime_withoutpresent * 1e-6;
 
     double actualpercent = actual / target;
 
@@ -787,8 +787,8 @@ void I_FinishUpdate(void)
     // [FG] [AM] Real FPS counter
     if (frametime_start)
     {
-        static uint64_t last_time;
-        uint64_t time;
+        static double last_time;
+        double time;
         static int frame_counter;
 
         frame_counter++;
@@ -796,9 +796,9 @@ void I_FinishUpdate(void)
         time = frametime_start - last_time;
 
         // Update FPS counter every second
-        if (time >= 1000000)
+        if (time >= 1e6)
         {
-            fps = ((uint64_t)frame_counter * 1000000) / time;
+            fps = frame_counter * 1e6 / time + 0.5;
             frame_counter = 0;
             last_time = frametime_start;
         }
@@ -828,12 +828,12 @@ void I_FinishUpdate(void)
 
     if (use_limiter)
     {
-        uint64_t target_time = 1000000ull / targetrefresh;
+        double target_time = 1e6 / targetrefresh;
 
         while (true)
         {
-            uint64_t current_time = I_GetTimeUS();
-            uint64_t elapsed_time = current_time - frametime_start;
+            double current_time = I_GetTimeUS();
+            double elapsed_time = current_time - frametime_start;
 
             if (elapsed_time >= target_time)
             {
