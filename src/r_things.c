@@ -24,7 +24,7 @@
 #include "d_player.h"
 #include "doomdef.h"
 #include "doomstat.h"
-#include "hu_stuff.h" // [Alaux] Lock crosshair on target
+#include "hu_crosshair.h" // [Alaux] Lock crosshair on target
 #include "i_printf.h"
 #include "i_system.h"
 #include "i_video.h"

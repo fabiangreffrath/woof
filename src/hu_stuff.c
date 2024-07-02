@@ -25,40 +25,31 @@
 #include "d_deh.h" /* Ty 03/27/98 - externalization of mapnamesx arrays */
 #include "d_event.h"
 #include "d_items.h"
-#include "d_player.h"
-#include "doomdef.h"
 #include "doomkeys.h"
 #include "doomstat.h"
-#include "doomtype.h"
 #include "dstrings.h"
 #include "hu_coordinates.h"
+#include "hu_crosshair.h"
 #include "hu_lib.h"
 #include "hu_obituary.h"
 #include "hu_stuff.h"
 #include "i_timer.h" // time_scale
 #include "i_video.h" // fps
 #include "m_config.h"
-#include "m_fixed.h"
 #include "m_input.h"
 #include "m_misc.h"
 #include "m_swap.h"
-#include "p_map.h" // crosshair (linetarget)
 #include "p_mobj.h"
-#include "r_data.h"
-#include "r_defs.h"
 #include "r_main.h"
 #include "r_state.h"
 #include "r_voxel.h"
 #include "s_sound.h"
 #include "sounds.h"
 #include "st_stuff.h" /* jff 2/16/98 need loc of status bar */
-#include "tables.h"
 #include "u_mapinfo.h"
 #include "u_scanner.h"
 #include "v_fmt.h"
 #include "v_video.h"
-#include "w_wad.h"
-#include "z_zone.h"
 
 // global heads up display controls
 
@@ -196,10 +187,6 @@ static boolean message_list;      // killough 11/98: made global
 
 static int message_timer  = HU_MSGTIMEOUT * (1000/TICRATE);     // killough 11/98
 static int chat_msg_timer = HU_MSGTIMEOUT * (1000/TICRATE);     // killough 11/98
-
-static void HU_InitCrosshair(void);
-static void HU_StartCrosshair(void);
-int hud_crosshair;
 
 //
 // Builtin map names.
@@ -352,7 +339,7 @@ static crange_idx_e CRByHealth(int health, int maxhealth, boolean invul)
     return CR_BLUE;
 }
 
-static byte* ColorByHealth(int health, int maxhealth, boolean invul)
+byte* HU_ColorByHealth(int health, int maxhealth, boolean invul)
 {
   const crange_idx_e cr = CRByHealth(health, maxhealth, invul);
 
@@ -852,7 +839,7 @@ static void HU_widget_build_health (void)
   M_snprintf(hud_stringbuffer + i, sizeof(hud_stringbuffer), "%3d", st_health);
 
   // set the display color from the amount of health posessed
-  w_health.cr = ColorByHealth(plr->health, 100, st_invul);
+  w_health.cr = HU_ColorByHealth(plr->health, 100, st_invul);
 
   // transfer the init string to the widget
   HUlib_add_string_to_cur_line(&w_health, hud_stringbuffer);
@@ -1374,146 +1361,6 @@ static void HU_widget_build_rate (void)
 static void HU_widget_build_cmd(void)
 {
   HU_BuildCommandHistory(&w_cmd);
-}
-
-// Crosshair
-
-static boolean hud_crosshair_health;
-crosstarget_t hud_crosshair_target;
-boolean hud_crosshair_lockon; // [Alaux] Crosshair locks on target
-int hud_crosshair_color;
-static int hud_crosshair_target_color;
-
-typedef struct
-{
-  patch_t *patch;
-  int w, h, x, y;
-  byte *cr;
-} crosshair_t;
-
-static crosshair_t crosshair;
-
-const char *crosshair_lumps[HU_CROSSHAIRS] =
-{
-  NULL,
-  "CROSS00", "CROSS01", "CROSS02", "CROSS03",
-  "CROSS04", "CROSS05", "CROSS06", "CROSS07",
-  "CROSS08"
-};
-
-const char *crosshair_strings[HU_CROSSHAIRS] =
-{
-  "Off",
-  "Cross", "Angle", "Dot", "Big Cross",
-  "Circle", "Big Circle", "Chevron", "Chevrons",
-  "Arcs"
-};
-
-static void HU_InitCrosshair(void)
-{
-  for (int i = 1; i < HU_CROSSHAIRS; i++)
-  {
-    int lump = W_CheckNumForName(crosshair_lumps[i]);
-
-    if (R_IsPatchLump(lump))
-      crosshair_strings[i] = crosshair_lumps[i];
-    else
-      crosshair_lumps[i] = NULL;
-  }
-}
-
-static void HU_StartCrosshair(void)
-{
-  if (crosshair.patch)
-    Z_ChangeTag(crosshair.patch, PU_CACHE);
-
-  if (crosshair_lumps[hud_crosshair])
-  {
-    crosshair.patch = V_CachePatchName(crosshair_lumps[hud_crosshair], PU_STATIC);
-
-    crosshair.w = SHORT(crosshair.patch->width)/2;
-    crosshair.h = SHORT(crosshair.patch->height)/2;
-  }
-  else
-    crosshair.patch = NULL;
-}
-
-mobj_t *crosshair_target; // [Alaux] Lock crosshair on target
-
-static void HU_UpdateCrosshair(void)
-{
-  crosshair.x = SCREENWIDTH/2;
-  crosshair.y = (screenblocks <= 10) ? (SCREENHEIGHT-ST_HEIGHT)/2 : SCREENHEIGHT/2;
-
-  if (hud_crosshair_health)
-    crosshair.cr = ColorByHealth(plr->health, 100, st_invul);
-  else
-    crosshair.cr = colrngs[hud_crosshair_color];
-
-  if (STRICTMODE(hud_crosshair_target || hud_crosshair_lockon))
-  {
-    angle_t an = plr->mo->angle;
-    ammotype_t ammo = weaponinfo[plr->readyweapon].ammo;
-    fixed_t range = (ammo == am_noammo) ? MELEERANGE : 16*64*FRACUNIT;
-    boolean intercepts_overflow_enabled = overflow[emu_intercepts].enabled;
-
-    crosshair_target = linetarget = NULL;
-
-    overflow[emu_intercepts].enabled = false;
-    P_AimLineAttack(plr->mo, an, range, CROSSHAIR_AIM);
-    if (!direct_vertical_aiming && (ammo == am_misl || ammo == am_cell))
-    {
-      if (!linetarget)
-        P_AimLineAttack(plr->mo, an + (1<<26), range, CROSSHAIR_AIM);
-      if (!linetarget)
-        P_AimLineAttack(plr->mo, an - (1<<26), range, CROSSHAIR_AIM);
-    }
-    overflow[emu_intercepts].enabled = intercepts_overflow_enabled;
-
-    if (linetarget && !(linetarget->flags & MF_SHADOW))
-      crosshair_target = linetarget;
-
-    if (hud_crosshair_target && crosshair_target)
-    {
-      // [Alaux] Color crosshair by target health
-      if (hud_crosshair_target == crosstarget_health)
-      {
-        crosshair.cr = ColorByHealth(crosshair_target->health, crosshair_target->info->spawnhealth, false);
-      }
-      else
-      {
-        crosshair.cr = colrngs[hud_crosshair_target_color];
-      }
-    }
-  }
-}
-
-void HU_UpdateCrosshairLock(int x, int y)
-{
-  int w = (crosshair.w * video.xscale) >> FRACBITS;
-  int h = (crosshair.h * video.yscale) >> FRACBITS;
-
-  x = viewwindowx + BETWEEN(w, viewwidth  - w - 1, x);
-  y = viewwindowy + BETWEEN(h, viewheight - h - 1, y);
-
-  crosshair.x = (x << FRACBITS) / video.xscale - video.deltaw;
-  crosshair.y = (y << FRACBITS) / video.yscale;
-}
-
-void HU_DrawCrosshair(void)
-{
-  if (plr->playerstate != PST_LIVE ||
-      automapactive ||
-      menuactive ||
-      paused)
-  {
-    return;
-  }
-
-  if (crosshair.patch)
-    V_DrawPatchTranslated(crosshair.x - crosshair.w,
-                          crosshair.y - crosshair.h,
-                          crosshair.patch, crosshair.cr);
 }
 
 // [crispy] print a bar indicating demo progress at the bottom of the screen
