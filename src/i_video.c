@@ -1197,6 +1197,10 @@ static double CurrentAspectRatio(void)
             w = 21;
             h = 9;
             break;
+        case RATIO_32_9:
+            w = 32;
+            h = 9;
+            break;
         default:
             w = 16;
             h = 9;
@@ -1864,7 +1868,7 @@ void I_BindVideoVariables(void)
         "Framerate limit in frames per second (< 35 = Disable)");
     M_BindNum("widescreen", &default_widescreen, &widescreen, RATIO_AUTO, 0,
               NUM_RATIOS - 1, ss_gen, wad_no,
-              "Widescreen (0 = Off; 1 = Auto; 2 = 16:10; 3 = 16:9; 4 = 21:9)");
+              "Widescreen (0 = Off; 1 = Auto; 2 = 16:10; 3 = 16:9; 4 = 21:9; 5 = 32:9)");
     M_BindNum("fov", &custom_fov, NULL, FOV_DEFAULT, FOV_MIN, FOV_MAX, ss_gen,
               wad_no, "Field of view in degrees");
     BIND_NUM_GENERAL(gamma2, 9, 0, 17, "Custom gamma level (0 = -4; 9 = 0; 17 = 4)");
