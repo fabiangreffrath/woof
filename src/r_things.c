@@ -554,7 +554,7 @@ static void R_ProjectSprite (mobj_t* thing)
   tx = -(gyt+gxt);
 
   // too far off the side?
-  if (abs(tx)>((int64_t) tz<<2))
+  if (abs(tx) / max_project_slope > tz)
     return;
 
   xscale = FixedDiv(projection, tz);
@@ -600,14 +600,14 @@ static void R_ProjectSprite (mobj_t* thing)
   // calculate edges of the shape
   // [crispy] fix sprite offsets for mirrored sprites
   tx -= flip ? spritewidth[lump] - spriteoffset[lump] : spriteoffset[lump];
-  x1 = (centerxfrac + FixedMul(tx,xscale)) >>FRACBITS;
+  x1 = (centerxfrac + FixedMul64(tx,xscale)) >>FRACBITS;
 
     // off the right side?
   if (x1 > viewwidth)
     return;
 
   tx +=  spritewidth[lump];
-  x2 = ((centerxfrac + FixedMul(tx,xscale)) >> FRACBITS) - 1;
+  x2 = ((centerxfrac + FixedMul64(tx,xscale)) >> FRACBITS) - 1;
 
     // off the left side
   if (x2 < 0)
