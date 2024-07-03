@@ -549,8 +549,6 @@ static void R_ProjectSprite (mobj_t* thing)
   if (tz < MINZ || tz > MAXZ)
     return;
 
-  xscale = FixedDiv(projection, tz);
-
   gxt = -FixedMul(tr_x,viewsin);
   gyt = FixedMul(tr_y,viewcos);
   tx = -(gyt+gxt);
@@ -558,6 +556,8 @@ static void R_ProjectSprite (mobj_t* thing)
   // too far off the side?
   if (abs(tx)>((int64_t) tz<<2))
     return;
+
+  xscale = FixedDiv(projection, tz);
 
     // decide which patch to use for sprite relative to player
   if ((unsigned) thing->sprite >= num_sprites)
