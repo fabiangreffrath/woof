@@ -927,8 +927,8 @@ void R_DrawViewBorder(void)
 
     // copy sides
     R_VideoErase(0, scaledviewy, scaledviewx, scaledviewheight);
-    R_VideoErase(scaledviewx + scaledviewwidth, scaledviewy, scaledviewx,
-                 scaledviewheight);
+    int side = scaledviewx + scaledviewwidth;
+    R_VideoErase(side, scaledviewy, video.unscaledw - side, scaledviewheight);
 
     // copy bottom
     R_VideoErase(0, scaledviewy + scaledviewheight, video.unscaledw,
