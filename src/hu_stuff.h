@@ -101,6 +101,8 @@ void HU_BindHUDVariables(void);
 
 byte* HU_ColorByHealth(int health, int maxhealth, boolean invul);
 
+extern int speedometer;
+
 #endif
 
 //----------------------------------------------------------------------------

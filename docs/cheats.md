@@ -100,6 +100,9 @@ Toggle printing the FPS in the upper right corner.
 `RATE`  
 Toggle the display of rendering stats, including frame rate and the current number of segs, visplanes, and sprites.
 
+`SPEED`
+Toggle the speedometer. Repeating the cheat cycles through different units: map units per second, kilometers per hour, and miles per hour.
+
 ## Beta cheats
 
 These cheats only work in MBF `-beta` emulation mode.
