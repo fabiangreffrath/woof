@@ -788,7 +788,8 @@ static void HU_widget_build_ammo (void)
     }
 
     // build the numeric amount init string
-    M_snprintf(hud_stringbuffer + i, sizeof(hud_stringbuffer), "%3d/%3d", ammo, fullammo);
+    M_snprintf(hud_stringbuffer + i, sizeof(hud_stringbuffer) - i,
+               "%3d/%3d", ammo, fullammo);
 
     const crange_idx_e cr = CRByAmmo(ammo, fullammo, ammopct);
     w_ammo.cr = colrngs[cr];
@@ -836,7 +837,8 @@ static void HU_widget_build_health (void)
   }
 
   // build the numeric amount init string
-  M_snprintf(hud_stringbuffer + i, sizeof(hud_stringbuffer), "%3d", st_health);
+  M_snprintf(hud_stringbuffer + i, sizeof(hud_stringbuffer) - i,
+             "%3d", st_health);
 
   // set the display color from the amount of health posessed
   w_health.cr = HU_ColorByHealth(plr->health, 100, st_invul);
@@ -908,7 +910,7 @@ static void HU_widget_build_armor (void)
   }
 
   // build the numeric amount init string
-  M_snprintf(hud_stringbuffer + i, sizeof(hud_stringbuffer), "%3d", st_armor);
+  M_snprintf(hud_stringbuffer + i, sizeof(hud_stringbuffer) - i, "%3d", st_armor);
 
   const crange_idx_e cr = CRByArmor();
   w_armor.cr = colrngs[cr];
@@ -1270,14 +1272,15 @@ static void HU_widget_build_sttime(void)
     {
       const int time = (totalleveltimes + leveltime) / TICRATE;
 
-      offset += M_snprintf(hud_stringbuffer + offset, sizeof(hud_stringbuffer),
+      offset += M_snprintf(hud_stringbuffer + offset, sizeof(hud_stringbuffer) - offset,
                            "\x1b%c%d:%02d ",
                            '0'+CR_GREEN, time/60, time%60);
     }
 
     if (!plr->btuse_tics)
     {
-      M_snprintf(hud_stringbuffer + offset, sizeof(hud_stringbuffer), "\x1b%c%d:%05.2f\t",
+      M_snprintf(hud_stringbuffer + offset, sizeof(hud_stringbuffer) - offset,
+                 "\x1b%c%d:%05.2f\t",
                  '0'+CR_GRAY, leveltime / TICRATE / 60,
                  (float)(leveltime % (60 * TICRATE)) / TICRATE);
     }
@@ -1285,7 +1288,8 @@ static void HU_widget_build_sttime(void)
 
   if (plr->btuse_tics)
   {
-    M_snprintf(hud_stringbuffer + offset, sizeof(hud_stringbuffer), "\x1b%cU %d:%05.2f\t",
+    M_snprintf(hud_stringbuffer + offset, sizeof(hud_stringbuffer) - offset,
+               "\x1b%cU %d:%05.2f\t",
                '0'+CR_GOLD, plr->btuse / TICRATE / 60, 
                (float)(plr->btuse % (60 * TICRATE)) / TICRATE);
   }
