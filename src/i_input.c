@@ -181,7 +181,9 @@ static void DisableControllerEvents(void)
     // Always ignore unsupported game controller events.
     SDL_EventState(SDL_JOYAXISMOTION, SDL_IGNORE);
     SDL_EventState(SDL_JOYBALLMOTION, SDL_IGNORE);
+#if SDL_VERSION_ATLEAST(2, 24, 0)
     SDL_EventState(SDL_JOYBATTERYUPDATED, SDL_IGNORE);
+#endif
     SDL_EventState(SDL_CONTROLLERAXISMOTION, SDL_IGNORE);
     SDL_EventState(SDL_CONTROLLERDEVICEREMAPPED, SDL_IGNORE);
     SDL_EventState(SDL_CONTROLLERTOUCHPADDOWN, SDL_IGNORE);
