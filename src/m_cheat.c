@@ -30,6 +30,7 @@
 #include "doomdef.h"
 #include "doomstat.h"
 #include "g_game.h"
+#include "hu_stuff.h"
 #include "info.h"
 #include "m_cheat.h"
 #include "m_fixed.h"
@@ -107,6 +108,7 @@ static void cheat_reveal_item();
 static void cheat_autoaim();      // killough 7/19/98
 static void cheat_tst();
 static void cheat_showfps(); // [FG] FPS counter widget
+static void cheat_speed();
 
 //-----------------------------------------------------------------------------
 //
@@ -324,6 +326,9 @@ struct cheat_s cheat[] = {
   {"showfps",    NULL,                always,
    {cheat_showfps} },
 
+  {"speed",      NULL,                always,
+   {cheat_speed} },
+
   {NULL}                 // end-of-list marker
 };
 
@@ -333,6 +338,11 @@ struct cheat_s cheat[] = {
 static void cheat_showfps()
 {
   plyr->cheats ^= CF_SHOWFPS;
+}
+
+static void cheat_speed()
+{
+  speedometer = STRICTMODE((speedometer + 1) % 4);
 }
 
 // killough 7/19/98: Autoaiming optional in beta emulation mode
