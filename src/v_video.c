@@ -219,7 +219,7 @@ void V_InitColorTranslation(void)
 
 video_t video;
 
-#define WIDE_SCREENWIDTH 864 // corresponds to 3.6 aspect ratio
+#define WIDE_SCREENWIDTH 864 // Up to 32:9 aspect ratio (3.6).
 
 static int x1lookup[WIDE_SCREENWIDTH + 1];
 static int y1lookup[SCREENHEIGHT + 1];

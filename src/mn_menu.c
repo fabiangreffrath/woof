@@ -763,7 +763,7 @@ static void M_DrawBorderedSnapshot(int n)
     const char *txt = "n/a";
 
     const int snapshot_x =
-        MAX((video.deltaw + SaveDef.x + SKULLXOFF - snapshot_width) / 2, 8);
+        MAX(video.deltaw + SaveDef.x + SKULLXOFF - snapshot_width - 8, 8);
     const int snapshot_y =
         LoadDef.y
         + MAX((load_end * LINEHEIGHT - snapshot_height) * n / load_end, 0);

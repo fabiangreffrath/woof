@@ -564,7 +564,7 @@ boolean VX_ProjectVoxel (mobj_t * thing)
 	else
 	{
 		// too far off the side?  if so, ignore it
-		if (ty > (64 * FRACUNIT) && abs(tx) / 4 > ty)
+		if (ty > (64 * FRACUNIT) && abs(tx) / max_project_slope > ty)
 			return true;
 
 		xscale = FixedDiv (projection, ty);

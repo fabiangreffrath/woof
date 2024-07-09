@@ -74,6 +74,7 @@ boolean raw_input;
 fixed_t  viewcos, viewsin;
 player_t *viewplayer;
 fixed_t  viewheightfrac; // [FG] sprite clipping optimizations
+int max_project_slope = 4;
 
 static fixed_t focallength, lightfocallength;
 
@@ -270,6 +271,26 @@ static int scaledviewwidth_nonwide, viewwidth_nonwide;
 static fixed_t centerxfrac_nonwide;
 
 //
+// CalcMaxProjectSlope
+// Calculate the minimum divider needed to provide at least 45 degrees of FOV
+// padding. For fast rejection during sprite/voxel projection.
+//
+
+static void CalcMaxProjectSlope(int fov)
+{
+  max_project_slope = 16;
+
+  for (int i = 1; i < 16; i++)
+  {
+    if (atan(i) * FINEANGLES / M_PI - fov >= FINEANGLES / 8)
+    {
+      max_project_slope = i;
+      break;
+    }
+  }
+}
+
+//
 // R_InitTextureMapping
 //
 // killough 5/2/98: reformatted
@@ -359,6 +380,7 @@ static void R_InitTextureMapping(void)
   clipangle = xtoviewangle[0];
 
   vx_clipangle = clipangle - ((fov << ANGLETOFINESHIFT) - ANG90);
+  CalcMaxProjectSlope(fov);
 }
 
 //
