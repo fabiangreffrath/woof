@@ -73,15 +73,15 @@ typedef byte lighttable_t;
 
 #define arrlen(array) (sizeof(array) / sizeof(*array))
 
-#ifndef MIN
- #define MIN(a,b) (((a)<(b))?(a):(b))
-#endif
-#ifndef MAX
- #define MAX(a,b) (((a)>(b))?(a):(b))
-#endif
-#ifndef BETWEEN
- #define BETWEEN(l,u,x) ((l)>(x)?(l):(x)>(u)?(u):(x))
-#endif
+#define MIN(a, b) (((a) < (b)) ? (a) : (b))
+
+#define MAX(a, b) (((a) > (b)) ? (a) : (b))
+
+#define BETWEEN(l, u, x) ((l) > (x) ? (l) : (x) > (u) ? (u) : (x))
+
+#define DIV_ROUND_CLOSEST(n, d)                             \
+        ((((n) < 0) == ((d) < 0)) ? (((n) + (d) / 2) / (d)) \
+                                  : (((n) - (d) / 2) / (d)))
 
 #if defined(_MSC_VER) && !defined(__cplusplus)
 #define inline __inline
