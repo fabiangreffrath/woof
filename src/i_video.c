@@ -44,6 +44,7 @@
 #include "m_config.h"
 #include "m_fixed.h"
 #include "m_io.h"
+#include "m_misc.h"
 #include "mn_menu.h"
 #include "r_draw.h"
 #include "r_main.h"
@@ -1631,7 +1632,9 @@ static void I_InitGraphicsMode(void)
 
     // [FG] create rendering window
 
-    screen = SDL_CreateWindow(PROJECT_STRING, window_x, window_y, w, h, flags);
+    char *title = M_StringJoin(gamedescription, " - ", PROJECT_STRING);
+    screen = SDL_CreateWindow(title, window_x, window_y, w, h, flags);
+    free(title);
 
     if (screen == NULL)
     {

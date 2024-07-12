@@ -968,6 +968,8 @@ static boolean FileContainsMaps(const char *filename)
 //
 // jff 4/19/98 rewritten to use a more advanced search algorithm
 
+const char *gamedescription = NULL;
+
 void IdentifyVersion(void)
 {
     // get config file from same directory as executable
@@ -1045,8 +1047,8 @@ void IdentifyVersion(void)
         CheckIWAD();
     }
 
-    I_Printf(VB_INFO, " - \"%s\" version",
-             D_GetIWADDescription(M_BaseName(wadfiles[0]), gamemode, gamemission));
+    gamedescription = D_GetIWADDescription(M_BaseName(wadfiles[0]), gamemode, gamemission);
+    I_Printf(VB_INFO, " - \"%s\" version", gamedescription);
 }
 
 // [FG] emulate a specific version of Doom
