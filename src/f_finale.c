@@ -690,34 +690,40 @@ void F_BunnyScroll (void)
   char        name[16];
   int         stage;
   static int  laststage;
-  int         offset;
 
-  p1 = V_CachePatchName ("PFUB2", PU_LEVEL);
-  p2 = V_CachePatchName ("PFUB1", PU_LEVEL);
+  p1 = V_CachePatchName ("PFUB1", PU_LEVEL);
+  p2 = V_CachePatchName ("PFUB2", PU_LEVEL);
 
   scrolled = 320 - (finalecount-230)/2;
-  if (scrolled > 320)
-      scrolled = 320;
-  if (scrolled < 0)
-      scrolled = 0;
 
-  offset = 0;
-  if (SHORT(p2->width) != SCREENWIDTH)
+  int p1offset = (video.unscaledw - SHORT(p1->width) + 1) / 2;
+  if (SHORT(p1->width) == 320)
   {
-    offset = video.deltaw;
+      p1offset += (SHORT(p2->width) - 320) / 2;
   }
 
-  if (scrolled > 0)
-    V_DrawPatch(320 - scrolled - offset, 0, p2);
-  if (scrolled < 320)
-    V_DrawPatch(-scrolled - offset, 0, p1);
+  int p2offset = (video.unscaledw - SHORT(p2->width) + 1) / 2;
 
-  if (SHORT(p2->width) == SCREENWIDTH)
+  if (scrolled <= 0)
   {
-    V_FillRect(0, 0, video.deltaw, SCREENHEIGHT, v_darkest_color);
-    V_FillRect(video.deltaw + SCREENWIDTH, 0,
-               video.unscaledw - (video.deltaw + SCREENWIDTH), SCREENHEIGHT,
-               v_darkest_color);
+      V_DrawPatch(p2offset - video.deltaw, 0, p2);
+  }
+  else if (scrolled >= 320)
+  {
+      V_DrawPatch(p1offset - video.deltaw, 0, p1);
+      V_DrawPatch(-320 + p2offset - video.deltaw, 0, p2);
+  }
+  else
+  {
+      V_DrawPatch(320 - scrolled + p1offset - video.deltaw, 0, p1);
+      V_DrawPatch(-scrolled + p2offset - video.deltaw, 0, p2);
+  }
+
+  if (p2offset > 0)
+  {
+      V_FillRect(0, 0, p2offset, SCREENHEIGHT, v_darkest_color);
+      V_FillRect(p2offset + SHORT(p2->width), 0, p2offset, SCREENHEIGHT,
+                 v_darkest_color);
   }
 
   if (finalecount < 1130)
