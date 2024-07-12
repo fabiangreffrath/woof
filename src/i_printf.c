@@ -218,6 +218,11 @@ void I_Printf(verbosity_t prio, const char *msg, ...)
     {
         whole_line = false;
     }
+
+    if (stream == stdout && whole_line)
+    {
+        fflush(stream);
+    }
 }
 
 void I_PutChar(verbosity_t prio, int c)
@@ -227,5 +232,10 @@ void I_PutChar(verbosity_t prio, int c)
         putchar(c);
 
         whole_line = (c == '\n');
+    }
+
+    if (whole_line)
+    {
+        fflush(stdout);
     }
 }
