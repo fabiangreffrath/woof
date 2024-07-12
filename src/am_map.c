@@ -2017,7 +2017,7 @@ static void AM_drawPlayers(void)
       color = mapcolor_plyr[their_color];   //jff 1/6/98 use default color
 
     // [crispy] interpolate other player arrows
-    if (uncapped && leveltime > oldleveltime)
+    if (uncapped && leveltime > oldleveltime && p->mo->interp)
     {
         pt.x = LerpFixed(p->mo->oldx, p->mo->x) >> FRACTOMAPBITS;
         pt.y = LerpFixed(p->mo->oldy, p->mo->y) >> FRACTOMAPBITS;
@@ -2081,7 +2081,7 @@ static void AM_drawThings
       }
 
       // [crispy] interpolate thing triangles movement
-      if (leveltime > oldleveltime)
+      if (uncapped && leveltime > oldleveltime && t->interp)
       {
         pt.x = LerpFixed(t->oldx, t->x) >> FRACTOMAPBITS;
         pt.y = LerpFixed(t->oldy, t->y) >> FRACTOMAPBITS;
