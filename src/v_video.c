@@ -445,12 +445,14 @@ static void DrawPatchInternal(int x, int y, patch_t *patch, boolean flipped)
         {
             texturecolumn = startfrac >> FRACBITS;
 
-#ifdef RANGECHECK
-            if (texturecolumn < 0 || texturecolumn >= w)
+            if (texturecolumn < 0)
             {
-                I_Error("V_DrawPatchInt: bad texturecolumn %d", texturecolumn);
+                continue;
             }
-#endif
+            else if (texturecolumn >= w)
+            {
+                break;
+            }
 
             column = (column_t *)((byte *)patch
                                   + LONG(patch->columnofs[texturecolumn]));
