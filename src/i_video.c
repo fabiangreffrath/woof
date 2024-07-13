@@ -88,7 +88,8 @@ static int fpslimit; // when uncapped, limit framerate to this value
 static boolean fullscreen;
 static boolean exclusive_fullscreen;
 static boolean change_display_resolution;
-static int widescreen, default_widescreen;
+static int widescreen;
+int default_widescreen;
 static boolean vga_porch_flash; // emulate VGA "porch" behaviour
 static boolean smooth_scaling;
 static int video_display = 0; // display index
@@ -1927,20 +1928,20 @@ static int curr_test_res;
 
 boolean I_ChangeRes(void)
 {
-    native_width  = native_res[curr_test_res].w;
-    native_height = native_res[curr_test_res].h;
+    if (curr_test_res == arrlen(native_res))
+        return false;
 
-    native_height_adjusted = (int)(native_height / 1.2);
+    max_width  = native_res[curr_test_res].w;
+    max_height = native_res[curr_test_res].h;
 
-    printf("I_ChangeRes: %dx%d\n", native_width, native_height);
-    ResetResolution(native_height_adjusted, true);
+    max_height_adjusted = (int)(max_height / 1.2);
+
+    printf("I_ChangeRes: %dx%d\n", max_width, max_height);
+    ResetResolution(max_height_adjusted, true);
     CreateSurfaces(video.pitch, video.height);
     ResetLogicalSize();
 
     curr_test_res++;
-
-    if (curr_test_res == arrlen(native_res))
-        return false;
 
     return true;
 }
@@ -1950,7 +1951,7 @@ void I_CheckHOM(void)
     if (I_VideoBuffer[video.width - 1] == 0xb0)
     {
         I_Printf(VB_WARNING, "HOM: native %dx%d, video %dx%d, fov %d",
-                 native_width, native_height, video.width, video.height,
+                 max_width, max_height, video.width, video.height,
                  custom_fov);
     }
 }

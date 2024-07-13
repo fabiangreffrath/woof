@@ -98,6 +98,7 @@ void I_UpdatePriority(boolean active);
 
 void I_BindVideoVariables(void);
 
+extern int default_widescreen;
 boolean I_ChangeRes(void);
 void I_CheckHOM(void);
 
