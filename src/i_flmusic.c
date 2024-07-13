@@ -38,6 +38,7 @@ typedef fluid_long_long_t fluid_int_t;
 #include "i_printf.h"
 #include "i_sound.h"
 #include "m_array.h"
+#include "m_io.h"
 #include "m_misc.h"
 #include "memio.h"
 #include "mus2mid.h"
@@ -100,8 +101,35 @@ static fluid_long_long_t FL_sftell(void *handle)
 
 static void ScanDir(const char *dir)
 {
+    const char usr_share[] = "/usr/share";
     char *rel = NULL;
     glob_t *glob;
+
+    // [FG] replace global "/usr/share" with user's "~/.local/share"
+    if (strncmp(dir, usr_share, strlen(usr_share)) == 0)
+    {
+        char *home_dir = M_getenv("XDG_DATA_HOME");
+
+        if (home_dir == NULL)
+        {
+            home_dir = M_getenv("HOME");
+        }
+
+        if (home_dir)
+        {
+            char *local_share = M_StringJoin(home_dir, "/.local/share");
+            char *local_dir = M_StringReplace(dir, usr_share, local_share);
+
+            // [FG] do not trigger this code path again
+            if (strncmp(local_dir, usr_share, strlen(usr_share)) != 0)
+            {
+                ScanDir(local_dir);
+            }
+
+            free(local_dir);
+            free(local_share);
+        }
+    }
 
     // [FG] relative to the executable directory
     if (dir[0] == '.')
