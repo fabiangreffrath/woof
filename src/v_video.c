@@ -519,7 +519,7 @@ void V_DrawPatchTRTR(int x, int y, patch_t *patch, byte *outr1, byte *outr2)
 
 void V_DrawPatchFullScreen(patch_t *patch)
 {
-    const int x = (video.unscaledw - SHORT(patch->width)) / 2;
+    const int x = DivRoundClosest(video.unscaledw - SHORT(patch->width), 2);
 
     patch->leftoffset = 0;
     patch->topoffset = 0;
