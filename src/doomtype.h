@@ -79,9 +79,10 @@ typedef byte lighttable_t;
 
 #define BETWEEN(l, u, x) ((l) > (x) ? (l) : (x) > (u) ? (u) : (x))
 
-#define DIV_ROUND_CLOSEST(n, d)                             \
-        ((((n) < 0) == ((d) < 0)) ? (((n) + (d) / 2) / (d)) \
-                                  : (((n) - (d) / 2) / (d)))
+inline static int DivRoundClosest(const int n, const int d)
+{
+    return ((n < 0) == (d < 0)) ? ((n + d / 2) / d) : ((n - d / 2) / d);
+}
 
 #if defined(_MSC_VER) && !defined(__cplusplus)
 #define inline __inline
