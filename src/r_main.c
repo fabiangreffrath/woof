@@ -33,17 +33,22 @@
 #include "doomstat.h"
 #include "i_video.h"
 #include "p_mobj.h"
+#include "p_pspr.h"
 #include "p_setup.h" // P_SegLengths
 #include "r_bsp.h"
 #include "r_data.h"
 #include "r_defs.h"
 #include "r_draw.h"
 #include "r_main.h"
+#include "r_bmaps.h"
 #include "r_plane.h"
+#include "r_segs.h"
 #include "r_sky.h"
 #include "r_state.h"
+#include "r_swirl.h"
 #include "r_things.h"
 #include "r_voxel.h"
+#include "m_config.h"
 #include "st_stuff.h"
 #include "v_flextran.h"
 #include "v_video.h"
@@ -66,12 +71,11 @@ fixed_t  skyiscale;
 fixed_t  viewx, viewy, viewz;
 angle_t  viewangle;
 localview_t localview;
-double deltatics;
 boolean raw_input;
 fixed_t  viewcos, viewsin;
 player_t *viewplayer;
-extern lighttable_t **walllights;
 fixed_t  viewheightfrac; // [FG] sprite clipping optimizations
+int max_project_slope = 4;
 
 static fixed_t focallength, lightfocallength;
 
@@ -124,7 +128,7 @@ int extralight;                           // bumped light from gun blasts
 
 int extra_level_brightness;               // level brightness feature
 
-void (*colfunc)(void) = R_DrawColumn;     // current column draw function
+void (*colfunc)(void);                    // current column draw function
 
 //
 // R_PointOnSide
@@ -268,6 +272,26 @@ static int scaledviewwidth_nonwide, viewwidth_nonwide;
 static fixed_t centerxfrac_nonwide;
 
 //
+// CalcMaxProjectSlope
+// Calculate the minimum divider needed to provide at least 45 degrees of FOV
+// padding. For fast rejection during sprite/voxel projection.
+//
+
+static void CalcMaxProjectSlope(int fov)
+{
+  max_project_slope = 16;
+
+  for (int i = 1; i < 16; i++)
+  {
+    if (atan(i) * FINEANGLES / M_PI - fov >= FINEANGLES / 8)
+    {
+      max_project_slope = i;
+      break;
+    }
+  }
+}
+
+//
 // R_InitTextureMapping
 //
 // killough 5/2/98: reformatted
@@ -321,7 +345,7 @@ static void R_InitTextureMapping(void)
       else
         {
           t = FixedMul(finetangent[i], focallength);
-          t = (centerxfrac - t + FRACUNIT-1) >> FRACBITS;
+          t = (centerxfrac - t + FRACMASK) >> FRACBITS;
           if (t < -1)
             t = -1;
           else
@@ -357,6 +381,7 @@ static void R_InitTextureMapping(void)
   clipangle = xtoviewangle[0];
 
   vx_clipangle = clipangle - ((fov << ANGLETOFINESHIFT) - ANG90);
+  CalcMaxProjectSlope(fov);
 }
 
 //
@@ -450,7 +475,7 @@ void R_InitLightTables (void)
       for (j=0; j<MAXLIGHTZ; j++)
         {
           int scale = FixedDiv ((SCREENWIDTH/2*FRACUNIT), (j+1)<<LIGHTZSHIFT);
-          int t, level = startmap - (scale >>= LIGHTSCALESHIFT)/DISTMAP;
+          int t, level = startmap - (scale >> LIGHTSCALESHIFT)/DISTMAP;
 
           if (level < 0)
             level = 0;
@@ -495,7 +520,6 @@ static void R_SetupFreelook(void)
   if (viewpitch)
   {
     dy = FixedMul(projection, -finetangent[(ANG90 - viewpitch) >> ANGLETOFINESHIFT]);
-    dy = (fixed_t)((int64_t)dy * SCREENHEIGHT / ACTUALHEIGHT);
   }
   else
   {
@@ -560,7 +584,7 @@ void R_ExecuteSetViewSize (void)
       scaledviewwidth_nonwide = setblocks * 32;
       scaledviewheight = (setblocks * st_screen / 10) & ~7; // killough 11/98
 
-      if (widescreen)
+      if (video.unscaledw > SCREENWIDTH)
         scaledviewwidth = (scaledviewheight * video.unscaledw / st_screen) & ~7;
       else
         scaledviewwidth = scaledviewwidth_nonwide;
@@ -672,6 +696,9 @@ void R_Init (void)
 
   // [FG] spectre drawing mode
   R_SetFuzzColumnMode();
+
+  colfunc = R_DrawColumn;
+  R_InitDrawFunctions();
 }
 
 //
@@ -697,8 +724,6 @@ subsector_t *R_PointInSubsector(fixed_t x, fixed_t y)
 static inline boolean CheckLocalView(const player_t *player)
 {
   return (
-    // Don't use localview when interpolation is preferred.
-    raw_input &&
     // Don't use localview if the player is spying.
     player == &players[consoleplayer] &&
     // Don't use localview if the player is dead.
@@ -712,6 +737,36 @@ static inline boolean CheckLocalView(const player_t *player)
   );
 }
 
+static angle_t CalcViewAngle_RawInput(const player_t *player)
+{
+  return (player->mo->angle + localview.angle - player->ticangle +
+          LerpAngle(player->oldticangle, player->ticangle));
+}
+
+static angle_t CalcViewAngle_LerpFakeLongTics(const player_t *player)
+{
+  return LerpAngle(player->mo->oldangle + localview.oldlerpangle,
+                   player->mo->angle + localview.lerpangle);
+}
+
+static angle_t (*CalcViewAngle)(const player_t *player);
+
+void R_UpdateViewAngleFunction(void)
+{
+  if (raw_input)
+  {
+    CalcViewAngle = CalcViewAngle_RawInput;
+  }
+  else if (lowres_turn && fake_longtics)
+  {
+    CalcViewAngle = CalcViewAngle_LerpFakeLongTics;
+  }
+  else
+  {
+    CalcViewAngle = NULL;
+  }
+}
+
 //
 // R_SetupFrame
 //
@@ -720,39 +775,37 @@ void R_SetupFrame (player_t *player)
 {
   int i, cm;
   fixed_t pitch;
+  const boolean use_localview = CheckLocalView(player);
+  const boolean camera_ready = (
+    // Don't interpolate on the first tic of a level,
+    // otherwise oldviewz might be garbage.
+    leveltime > 1 &&
+    // Don't interpolate if the player did something
+    // that would necessitate turning it off for a tic.
+    player->mo->interp == true &&
+    // Don't interpolate during a paused state
+    leveltime > oldleveltime
+  );
 
   viewplayer = player;
   // [AM] Interpolate the player camera if the feature is enabled.
-  if (uncapped &&
-      // Don't interpolate on the first tic of a level,
-      // otherwise oldviewz might be garbage.
-      leveltime > 1 &&
-      // Don't interpolate if the player did something
-      // that would necessitate turning it off for a tic.
-      player->mo->interp == true &&
-      // Don't interpolate during a paused state
-      leveltime > oldleveltime)
+  if (uncapped && camera_ready)
   {
-    // Use localview unless the player or game is in an invalid state, in which
-    // case fall back to interpolation.
-    const boolean use_localview = CheckLocalView(player);
-
     // Interpolate player camera from their old position to their current one.
     viewx = LerpFixed(player->mo->oldx, player->mo->x);
     viewy = LerpFixed(player->mo->oldy, player->mo->y);
     viewz = LerpFixed(player->oldviewz, player->viewz);
 
-    if (use_localview)
+    if (use_localview && CalcViewAngle)
     {
-      viewangle = (player->mo->angle + localview.angle - localview.ticangle +
-                   LerpAngle(localview.oldticangle, localview.ticangle));
+      viewangle = CalcViewAngle(player);
     }
     else
     {
       viewangle = LerpAngle(player->mo->oldangle, player->mo->angle);
     }
 
-    if (use_localview && !player->centering)
+    if (use_localview && raw_input && !player->centering)
     {
       pitch = player->pitch + localview.pitch;
       pitch = BETWEEN(-MAX_PITCH_ANGLE, MAX_PITCH_ANGLE, pitch);
@@ -773,6 +826,11 @@ void R_SetupFrame (player_t *player)
     viewangle = player->mo->angle;
     // [crispy] pitch is actual lookdir and weapon pitch
     pitch = player->pitch + player->recoilpitch;
+
+    if (camera_ready && use_localview && lowres_turn && fake_longtics)
+    {
+      viewangle += localview.angle;
+    }
   }
 
   if (pitch != viewpitch)
@@ -837,6 +895,7 @@ static void R_ClearStats(void)
   rendered_voxels = 0;
 }
 
+static boolean flashing_hom;
 int autodetect_hom = 0;       // killough 2/7/98: HOM autodetection flag
 
 //
@@ -864,7 +923,6 @@ void R_RenderPlayerView (player_t* player)
   if (autodetect_hom)
     { // killough 2/10/98: add flashing red HOM indicators
       pixel_t c[47*47];
-      extern int lastshottic;
       int i , color = !flashing_hom || (gametic % 20) < 9 ? 0xb0 : 0;
       V_FillRect(scaledviewx, scaledviewy, scaledviewwidth, scaledviewheight, color);
       for (i=0;i<47*47;i++)
@@ -938,7 +996,7 @@ void R_RenderPlayerView (player_t* player)
   // The head node is the last node output.
   R_RenderBSPNode (numnodes-1);
 
-  VX_NearbySprites ();
+  R_NearbySprites ();
 
   // [FG] update automap while playing
   if (automap_on)
@@ -968,6 +1026,37 @@ void R_InitAnyRes(void)
   R_InitSpritesRes();
   R_InitBufferRes();
   R_InitPlanesRes();
+}
+
+void R_BindRenderVariables(void)
+{
+  BIND_NUM_GENERAL(extra_level_brightness, 0, 0, 4, "Level brightness");
+  BIND_BOOL_GENERAL(stretchsky, false, "Stretch short skies");
+  BIND_BOOL_GENERAL(linearsky, false, "Linear horizontal scrolling for skies");
+  BIND_BOOL_GENERAL(r_swirl, false, "Swirling animated flats");
+  BIND_BOOL_GENERAL(smoothlight, false, "Smooth diminishing lighting");
+  M_BindBool("voxels_rendering", &default_voxels_rendering, &voxels_rendering,
+             true, ss_none, wad_no, "Allow voxel models");
+  BIND_BOOL_GENERAL(brightmaps, false,
+    "Brightmaps for textures and sprites");
+  BIND_NUM_GENERAL(invul_mode, INVUL_MBF, INVUL_VANILLA, INVUL_GRAY,
+    "Invulnerability effect (0 = Vanilla; 1 = MBF; 2 = Gray)");
+  BIND_BOOL(flashing_hom, true, "Enable flashing of the HOM indicator");
+  BIND_NUM(screenblocks, 10, 3, 11, "Size of game-world screen");
+
+  M_BindBool("translucency", &translucency, NULL, true, ss_gen, wad_yes,
+             "Translucency for some things");
+  M_BindNum("tran_filter_pct", &tran_filter_pct, NULL,
+            66, 0, 100, ss_gen, wad_yes,
+            "Percent of foreground/background translucency mix");
+
+  M_BindBool("flipcorpses", &flipcorpses, NULL, false, ss_enem, wad_no,
+             "Randomly mirrored death animations");
+  M_BindBool("fuzzcolumn_mode", &fuzzcolumn_mode, NULL, true, ss_enem, wad_no,
+             "Fuzz rendering (0 = Resolution-dependent; 1 = Blocky)");
+
+  BIND_BOOL(draw_nearby_sprites, true,
+    "Draw sprites overlapping into visible sectors");
 }
 
 //----------------------------------------------------------------------------

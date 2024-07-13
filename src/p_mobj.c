@@ -23,6 +23,7 @@
 #include "d_player.h"
 #include "doomdef.h"
 #include "doomstat.h"
+#include "dsdhacked.h"
 #include "g_game.h"
 #include "hu_stuff.h"
 #include "i_printf.h"
@@ -47,8 +48,6 @@
 #include "v_video.h"
 #include "z_zone.h"
 
-// [FG] colored blood and gibs
-boolean colored_blood;
 boolean direct_vertical_aiming, default_direct_vertical_aiming;
 
 void P_UpdateDirectVerticalAiming(void)
@@ -68,7 +67,7 @@ boolean P_SetMobjState(mobj_t* mobj,statenum_t state)
 
   // killough 4/9/98: remember states seen, to detect cycles:
 
-  extern statenum_t *seenstate_tab;           // fast transition table
+  // fast transition table
   statenum_t *seenstate = seenstate_tab;      // pointer to table
   static int recursion;                       // detects recursion
   statenum_t i = state;                       // initial state
@@ -131,6 +130,9 @@ boolean P_SetMobjState(mobj_t* mobj,statenum_t state)
 
 void P_ExplodeMissile (mobj_t* mo)
 {
+  const int state = mo->state - states;
+  const boolean brainexplode = (state >= S_BRAINEXPLODE1 && state <= S_BRAINEXPLODE3);
+
   mo->momx = mo->momy = mo->momz = 0;
 
   P_SetMobjState(mo, mobjinfo[mo->type].deathstate);
@@ -143,7 +145,8 @@ void P_ExplodeMissile (mobj_t* mo)
   mo->flags &= ~MF_MISSILE;
 
   if (mo->info->deathsound)
-    S_StartSound (mo, mo->info->deathsound);
+    S_StartSoundPitch(mo, mo->info->deathsound,
+                      brainexplode ? PITCH_NONE : PITCH_FULL);
 }
 
 //
@@ -1286,6 +1289,8 @@ spawnit:
 
   z = mobjinfo[i].flags & MF_SPAWNCEILING ? ONCEILINGZ : ONFLOORZ;
 
+  // Because of DSDHacked, allow `i` values outside enum mobjtype_t range
+  // NOLINTNEXTLINE(clang-analyzer-optin.core.EnumCastOutOfRange)
   mobj = P_SpawnMobj (x,y,z, i);
   mobj->spawnpoint = *mthing;
 
@@ -1356,8 +1361,6 @@ spawnit:
 //
 // P_SpawnPuff
 //
-
-extern fixed_t attackrange;
 
 void P_SpawnPuff(fixed_t x,fixed_t y,fixed_t z)
 {
@@ -1495,8 +1498,6 @@ mobj_t* P_SpawnPlayerMissile(mobj_t* source,mobjtype_t type)
 {
   mobj_t *th;
   fixed_t x, y, z, slope = 0;
-
-  extern void A_Recoil(player_t* player);
 
   // see which target is to be aimed at
 

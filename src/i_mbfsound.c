@@ -24,12 +24,13 @@
 #include "doomtype.h"
 #include "i_oalsound.h"
 #include "i_sound.h"
+#include "m_config.h"
 #include "m_fixed.h"
 #include "p_mobj.h"
 #include "r_main.h"
 #include "tables.h"
 
-int forceFlipPan;
+static boolean force_flip_pan;
 
 static boolean I_MBF_AdjustSoundParams(const mobj_t *listener,
                                        const mobj_t *source, int chanvol,
@@ -129,7 +130,7 @@ static boolean I_MBF_AdjustSoundParams(const mobj_t *listener,
 void I_MBF_UpdateSoundParams(int channel, int volume, int separation)
 {
     // SoM 7/1/02: forceFlipPan accounted for here
-    if (forceFlipPan)
+    if (force_flip_pan)
     {
         separation = 254 - separation;
     }
@@ -138,10 +139,25 @@ void I_MBF_UpdateSoundParams(int channel, int volume, int separation)
     I_OAL_SetPan(channel, separation);
 }
 
+static boolean I_MBF_InitSound(void)
+{
+    return I_OAL_InitSound(SND_MODULE_MBF);
+}
+
+static boolean I_MBF_ReinitSound(void)
+{
+    return I_OAL_ReinitSound(SND_MODULE_MBF);
+}
+
+static void I_MBF_BindVariables(void)
+{
+    BIND_BOOL(force_flip_pan, false, "Force reversal of stereo audio channels");
+}
+
 const sound_module_t sound_mbf_module =
 {
-    I_OAL_InitSound,
-    I_OAL_ReinitSound,
+    I_MBF_InitSound,
+    I_MBF_ReinitSound,
     I_OAL_AllowReinitSound,
     I_OAL_CacheSound,
     I_MBF_AdjustSoundParams,
@@ -154,4 +170,5 @@ const sound_module_t sound_mbf_module =
     I_OAL_ShutdownModule,
     I_OAL_DeferUpdates,
     I_OAL_ProcessUpdates,
+    I_MBF_BindVariables,
 };

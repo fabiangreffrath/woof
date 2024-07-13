@@ -43,13 +43,6 @@ typedef enum {
   none
 } GameMission_t;
 
-typedef enum
-{
-    vanilla,    // Vanilla Doom
-    freedoom,   // FreeDoom: Phase 1 + 2 and FreeDM
-    miniwad     // miniwad
-} GameVariant_t;
-
 // Identify language to use, software localization.
 typedef enum {
   english,
@@ -95,6 +88,7 @@ typedef enum
 // at the intermission screen, the game final animation, or a demo.
 
 typedef enum {
+  GS_NONE = -1,
   GS_LEVEL,
   GS_INTERMISSION,
   GS_FINALE,
@@ -205,6 +199,11 @@ typedef enum {
   ss_comp,      // killough 10/98
   ss_max
 } ss_types;
+
+typedef enum {
+  wad_no,
+  wad_yes
+} wad_allowed_t;
 
 // phares 3/20/98:
 //

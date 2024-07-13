@@ -24,4 +24,6 @@
 
 byte *R_DistortedFlat(int flatnum);
 
+extern boolean r_swirl;
+
 #endif

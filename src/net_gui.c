@@ -65,7 +65,7 @@ static void OpenWaitDialog(void)
     txt_window_action_t *cancel;
 
     char *title =
-        M_StringJoin(PROJECT_STRING, ": Waiting for game start...", NULL);
+        M_StringJoin(PROJECT_STRING, ": Waiting for game start...");
 
     TXT_SetDesktopTitle(title);
 

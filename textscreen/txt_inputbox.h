@@ -30,6 +30,8 @@
  * Input box widgets can be of an integer or string type.
  */
 
+#include <stddef.h>
+
 typedef struct txt_inputbox_s txt_inputbox_t;
 
 #include "txt_widget.h"
@@ -70,6 +72,9 @@ txt_inputbox_t *TXT_NewInputBox(char **value, int size);
  */
 
 txt_inputbox_t *TXT_NewIntInputBox(int *value, int size);
+
+extern txt_widget_class_t txt_inputbox_class;
+extern txt_widget_class_t txt_int_inputbox_class;
 
 #endif /* #ifndef TXT_INPUTBOX_H */
 

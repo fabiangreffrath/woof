@@ -53,7 +53,7 @@ extern struct patch_s **hu_font;
 #define HU_MAXLINELENGTH 120
 
 //jff 2/26/98 maximum number of messages allowed in refresh list
-#define HU_MAXMESSAGES 8
+#define HU_MAXMESSAGES 20
 
 typedef enum
 {
@@ -68,6 +68,7 @@ typedef enum
   // [FG] v_align
   align_top,
   align_bottom,
+  align_secret,
 
   num_aligns,
 } align_t;
@@ -81,7 +82,7 @@ typedef struct
   // [FG] length in chars
   int len;
 
-  // [FG] length in chars
+  // [FG] width in pixels
   int width;
 
 } hu_line_t;
@@ -105,6 +106,7 @@ typedef struct hu_multiline_s
   boolean built;
 
   boolean exclusive;
+  boolean bottomup;
 
 } hu_multiline_t;
 
@@ -133,6 +135,7 @@ void HUlib_clear_all_lines (hu_multiline_t *const m);
 
 void HUlib_add_string_to_cur_line (hu_multiline_t *const m, const char *s);
 void HUlib_add_strings_to_cur_line (hu_multiline_t *const m, const char *prefix, const char *s);
+void HUlib_add_string_keep_space(hu_multiline_t *const m, const char *s);
 
 void HUlib_draw_widget (const hu_widget_t *const w);
 

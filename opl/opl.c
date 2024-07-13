@@ -24,8 +24,6 @@
 
 //#define OPL_DEBUG_TRACE
 
-extern opl_driver_t opl_sdl_driver;
-
 static opl_driver_t *drivers[] =
 {
     &opl_sdl_driver,

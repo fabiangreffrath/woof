@@ -148,7 +148,6 @@ static void rgb_to_hsv(vect *rgb, vect *hsv)
     else
     {
         s = 0.0;
-        h = 0.0;
     }
     if (s < CTOLERANCE)
     {
@@ -229,7 +228,7 @@ byte V_Colorize(byte *playpal, int cr, byte source)
             // hsv.x = (50. * hsv.z + 30. * (1. - hsv.z))/360.;
             hsv.x = (7.0 + 53.0 * hsv.z) / 360.0;
             hsv.y = 1.0 - 0.4 * hsv.z;
-            hsv.z = 0.2 + 0.8 * hsv.z;
+            hsv.z = MIN(hsv.z, 0.2) + 0.8 * hsv.z;
         }
         else if (cr == CR_RED || cr == CR_BRICK)
         {
@@ -247,7 +246,7 @@ byte V_Colorize(byte *playpal, int cr, byte source)
             if (cr == CR_BLUE1)
             {
                 hsv.y = 1.0 - 0.5 * hsv.z;
-                hsv.z = 0.5 + 0.5 * hsv.z;
+                hsv.z = MIN(hsv.z, 0.5) + 0.5 * hsv.z;
             }
         }
         else if (cr == CR_ORANGE || cr == CR_TAN || cr == CR_BROWN)
@@ -265,7 +264,7 @@ byte V_Colorize(byte *playpal, int cr, byte source)
             else
             {
                 hsv.y = (hsv.z < 0.6) ? 1.0 : (2.2 - 2.0 * hsv.z);
-                hsv.z = 0.5 + 0.5 * hsv.z;
+                hsv.z = MIN(hsv.z, 0.5) + 0.5 * hsv.z;
             }
         }
         else if (cr == CR_YELLOW)

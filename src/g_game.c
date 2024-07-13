@@ -29,12 +29,15 @@
 #include "config.h"
 #include "d_deh.h" // Ty 3/27/98 deh declarations
 #include "d_event.h"
+#include "d_iwad.h"
 #include "d_main.h"
 #include "d_player.h"
 #include "d_ticcmd.h"
 #include "doomdata.h"
+#include "doomdef.h"
 #include "doomkeys.h"
 #include "doomstat.h"
+#include "doomtype.h"
 #include "f_finale.h"
 #include "g_game.h"
 #include "hu_obituary.h"
@@ -51,21 +54,23 @@
 #include "m_config.h"
 #include "m_input.h"
 #include "m_io.h"
-#include "mn_menu.h"
 #include "m_misc.h"
 #include "m_random.h"
-#include "mn_setup.h"
-#include "mn_snapshot.h"
 #include "m_swap.h" // [FG] LONG
 #include "memio.h"
+#include "mn_menu.h"
+#include "mn_snapshot.h"
 #include "net_defs.h"
+#include "p_enemy.h"
 #include "p_inter.h"
 #include "p_map.h"
+#include "p_maputl.h"
 #include "p_mobj.h"
 #include "p_pspr.h"
 #include "p_saveg.h"
 #include "p_setup.h"
 #include "p_tick.h"
+#include "p_user.h"
 #include "r_data.h"
 #include "r_defs.h"
 #include "r_draw.h"
@@ -138,6 +143,7 @@ int             max_kill_requirement; // DSDA UV Max category requirements
 int             totalleveltimes; // [FG] total time for all completed levels
 boolean         demorecording;
 boolean         longtics;             // cph's doom 1.91 longtics hack
+boolean         fake_longtics;        // Fake longtics when using shorttics.
 boolean         shorttics;            // Config key for low resolution turning.
 boolean         lowres_turn;          // low resolution turning for longtics
 boolean         demoplayback;
@@ -146,17 +152,18 @@ boolean         precache = true;      // if true, load all graphics at start
 wbstartstruct_t wminfo;               // parms for world map / intermission
 boolean         haswolflevels = false;// jff 4/18/98 wolf levels present
 byte            *savebuffer;
-int             autorun = false;      // always running?          // phares
+boolean         autorun = false;      // always running?          // phares
 boolean         autostrafe50;
-int             novert = false;
+boolean         novert = false;
 boolean         mouselook = false;
 boolean         padlook = false;
 // killough 4/13/98: Make clock rate adjustable by scale factor
 int             realtic_clock_rate = 100;
+static boolean  doom_weapon_toggles;
 
 complevel_t     force_complevel, default_complevel;
 
-boolean         pistolstart, default_pistolstart;
+static boolean  pistolstart, default_pistolstart;
 
 boolean         strictmode, default_strictmode;
 boolean         force_strictmode;
@@ -170,10 +177,9 @@ static ticcmd_t* last_cmd = NULL;
 //
 int     key_escape = KEY_ESCAPE;                           // phares 4/13/98
 int     key_help = KEY_F1;                                 // phares 4/13/98
+
 // [FG] double click acts as "use"
-int     dclick_use;
-// [FG] invert vertical axis
-int     mouse_y_invert;
+static boolean dclick_use;
 
 #define MAXPLMOVE   (forwardmove[1])
 #define TURBOTHRESHOLD  0x32
@@ -181,46 +187,30 @@ int     mouse_y_invert;
 #define QUICKREVERSE 32768 // 180 degree reverse                    // phares
 #define NUMKEYS   256
 
-static fixed_t default_forwardmove[2] = {0x19, 0x32};
-static fixed_t default_sidemove[2] = {0x18, 0x28};
-fixed_t *forwardmove = default_forwardmove;
+fixed_t forwardmove[2] = {0x19, 0x32};
+fixed_t default_sidemove[2] = {0x18, 0x28};
 fixed_t *sidemove = default_sidemove;
-fixed_t angleturn[3]   = {640, 1280, 320};  // + slow turn
+const fixed_t angleturn[3] = {640, 1280, 320};  // + slow turn
 
 boolean gamekeydown[NUMKEYS];
 int     turnheld;       // for accelerative turning
 
-boolean mousearray[NUM_MOUSE_BUTTONS + 1]; // [FG] support more mouse buttons
-boolean *mousebuttons = &mousearray[1];    // allow [-1]
+boolean mousebuttons[NUM_MOUSE_BUTTONS];
 
 // mouse values are used once
 static int mousex;
 static int mousey;
 boolean dclick;
 
-typedef struct carry_s
-{
-    double angle;
-    double pitch;
-    double side;
-    double vert;
-    short lowres;
-} carry_t;
-
-static carry_t prevcarry;
-static carry_t carry;
 static ticcmd_t basecmd;
 
-boolean joyarray[NUM_CONTROLLER_BUTTONS + 1]; // [FG] support more joystick buttons
-boolean *joybuttons = &joyarray[1];    // allow [-1]
-
-static const int direction[] = { 1, -1 };
+boolean joybuttons[NUM_CONTROLLER_BUTTONS];
 
 int   savegameslot = -1;
 char  savedescription[32];
 
 //jff 3/24/98 declare startskill external, define defaultskill here
-int defaultskill;               //note 1-based
+int default_skill;               //note 1-based
 
 // killough 2/8/98: make corpse queue variable in size
 int    bodyqueslot, bodyquesize, default_bodyquesize; // killough 2/8/98, 10/98
@@ -382,192 +372,147 @@ static void G_DemoSkipTics(void)
   }
 }
 
-static int RoundSide_Strict(double side)
+static void ClearLocalView(void)
 {
-  return lround(side * 0.5) * 2; // Even values only.
+  memset(&localview, 0, sizeof(localview));
 }
 
-static int RoundSide_Full(double side)
+static void UpdateLocalView_FakeLongTics(void)
 {
-  return lround(side);
+  localview.angle -= localview.angleoffset << FRACBITS;
+  localview.rawangle -= localview.angleoffset;
+  localview.angleoffset = 0;
+  localview.pitch = 0;
+  localview.rawpitch = 0.0;
+  localview.oldlerpangle = localview.lerpangle;
+  localview.lerpangle = localview.angle;
 }
 
-static int (*RoundSide)(double side) = RoundSide_Full;
+static void (*UpdateLocalView)(void);
 
-void G_UpdateSideMove(void)
+void G_UpdateLocalViewFunction(void)
 {
-  if (strictmode || (netgame && !solonet))
+  if (lowres_turn && fake_longtics && (!netgame || solonet))
   {
-    RoundSide = RoundSide_Strict;
-    sidemove = default_sidemove;
+    UpdateLocalView = UpdateLocalView_FakeLongTics;
   }
   else
   {
-    RoundSide = RoundSide_Full;
-    sidemove = autostrafe50 ? default_forwardmove : default_sidemove;
+    UpdateLocalView = ClearLocalView;
   }
 }
 
-static int CalcControllerForward(int speed)
+//
+// ApplyQuickstartCache
+// When recording a demo and the map is reloaded, cached input from a circular
+// buffer can be applied prior to the screen wipe. Adapted from DSDA-Doom.
+//
+
+static int quickstart_cache_tics;
+static boolean quickstart_queued;
+static float axis_turn_tic;
+static int mousex_tic;
+
+static void ClearQuickstartTic(void)
 {
-  const int forward = lroundf(forwardmove[speed] * axes[AXIS_FORWARD] *
-                              direction[joy_invert_forward]);
-  return BETWEEN(-forwardmove[speed], forwardmove[speed], forward);
+  axis_turn_tic = 0.0f;
+  mousex_tic = 0;
 }
 
-static int CalcControllerSideTurn(int speed)
+static void ApplyQuickstartCache(ticcmd_t *cmd, boolean strafe)
 {
-  const int side = RoundSide(forwardmove[speed] * axes[AXIS_TURN] *
-                             direction[joy_invert_turn]);
-  return BETWEEN(-forwardmove[speed], forwardmove[speed], side);
-}
+  static float axis_turn_cache[TICRATE];
+  static int mousex_cache[TICRATE];
+  static short angleturn_cache[TICRATE];
+  static int index;
 
-static int CalcControllerSideStrafe(int speed)
-{
-  const int side = RoundSide(forwardmove[speed] * axes[AXIS_STRAFE] *
-                             direction[joy_invert_strafe]);
-  return BETWEEN(-sidemove[speed], sidemove[speed], side);
-}
-
-static double CalcControllerAngle(void)
-{
-  return (angleturn[1] * axes[AXIS_TURN] * direction[joy_invert_turn]);
-}
-
-static double CalcControllerPitch(void)
-{
-  const double pitch = angleturn[1] * axes[AXIS_LOOK];
-  return (pitch * FRACUNIT * direction[joy_invert_look]);
-}
-
-static int CarryError(double value, const double *prevcarry, double *carry)
-{
-  const double desired = value + *prevcarry;
-  const int actual = lround(desired);
-  *carry = desired - actual;
-  return actual;
-}
-
-static short CarryAngle_Full(double angle)
-{
-  return CarryError(angle, &prevcarry.angle, &carry.angle);
-}
-
-static short CarryAngle_LowRes(double angle)
-{
-  const short desired = CarryAngle_Full(angle) + prevcarry.lowres;
-  // Round to nearest 256 for single byte turning. From Chocolate Doom.
-  const short actual = (desired + 128) & 0xFF00;
-  carry.lowres = desired - actual;
-  return actual;
-}
-
-static short (*CarryAngle)(double angle) = CarryAngle_Full;
-
-void G_UpdateCarryAngle(void)
-{
-  CarryAngle = lowres_turn ? CarryAngle_LowRes : CarryAngle_Full;
-}
-
-static int CarryPitch(double pitch)
-{
-  return CarryError(pitch, &prevcarry.pitch, &carry.pitch);
-}
-
-static int CarryMouseVert(double vert)
-{
-  return CarryError(vert, &prevcarry.vert, &carry.vert);
-}
-
-static int CarryMouseSide(double side)
-{
-  const double desired = side + prevcarry.side;
-  const int actual = RoundSide(desired);
-  carry.side = desired - actual;
-  return actual;
-}
-
-static double CalcMouseAngle(int mousex)
-{
-  if (!mouseSensitivity_horiz)
-    return 0.0;
-
-  return (I_AccelerateMouse(mousex) * (mouseSensitivity_horiz + 5) * 8 / 10);
-}
-
-static double CalcMousePitch(int mousey)
-{
-  double pitch;
-
-  if (!mouseSensitivity_vert_look)
-    return 0.0;
-
-  pitch = I_AccelerateMouse(mousey) * (mouseSensitivity_vert_look + 5) * 8 / 10;
-
-  return pitch * FRACUNIT * direction[mouse_y_invert];
-}
-
-static double CalcMouseSide(int mousex)
-{
-  if (!mouseSensitivity_horiz_strafe)
-    return 0.0;
-
-  return (I_AccelerateMouse(mousex) *
-          (mouseSensitivity_horiz_strafe + 5) * 2 / 10);
-}
-
-static double CalcMouseVert(int mousey)
-{
-  if (!mouseSensitivity_vert)
-    return 0.0;
-
-  return (I_AccelerateMouse(mousey) * (mouseSensitivity_vert + 5) / 10);
-}
-
-void G_PrepTiccmd(void)
-{
-  const boolean strafe = M_InputGameActive(input_strafe);
-  ticcmd_t *cmd = &basecmd;
-
-  // Gamepad
-
-  if (I_UseController() && I_CalcControllerAxes())
+  if (quickstart_cache_tics < 1)
   {
-    D_UpdateDeltaTics();
-
-    if (axes[AXIS_TURN] && !strafe)
-    {
-      localview.rawangle -= CalcControllerAngle() * deltatics;
-      cmd->angleturn = CarryAngle(localview.rawangle);
-      localview.angle = cmd->angleturn << 16;
-      axes[AXIS_TURN] = 0.0f;
-    }
-
-    if (axes[AXIS_LOOK] && padlook)
-    {
-      localview.rawpitch -= CalcControllerPitch() * deltatics;
-      cmd->pitch = CarryPitch(localview.rawpitch);
-      localview.pitch = cmd->pitch;
-      axes[AXIS_LOOK] = 0.0f;
-    }
+    return;
   }
 
-  // Mouse
-
-  if (mousex && !strafe)
+  if (quickstart_queued)
   {
-    localview.rawangle -= CalcMouseAngle(mousex);
-    cmd->angleturn = CarryAngle(localview.rawangle);
-    localview.angle = cmd->angleturn << 16;
+    axes[AXIS_TURN] = 0.0f;
+    mousex = 0;
+
+    if (strafe)
+    {
+      for (int i = 0; i < quickstart_cache_tics; i++)
+      {
+        axes[AXIS_TURN] += axis_turn_cache[i];
+        mousex += mousex_cache[i];
+      }
+
+      cmd->angleturn = 0;
+      localview.rawangle = 0.0;
+    }
+    else
+    {
+      short result = 0;
+
+      for (int i = 0; i < quickstart_cache_tics; i++)
+      {
+        result += angleturn_cache[i];
+      }
+
+      cmd->angleturn = G_CarryAngleTic(result);
+      localview.rawangle = cmd->angleturn;
+    }
+
+    memset(axis_turn_cache, 0, sizeof(axis_turn_cache));
+    memset(mousex_cache, 0, sizeof(mousex_cache));
+    memset(angleturn_cache, 0, sizeof(angleturn_cache));
+    index = 0;
+
+    quickstart_queued = false;
+  }
+  else
+  {
+    axis_turn_cache[index] = axis_turn_tic;
+    mousex_cache[index] = mousex_tic;
+    angleturn_cache[index] = cmd->angleturn;
+    index = (index + 1) % quickstart_cache_tics;
+  }
+}
+
+void G_PrepMouseTiccmd(void)
+{
+  if (mousex && !M_InputGameActive(input_strafe))
+  {
+    localview.rawangle -= G_CalcMouseAngle(mousex);
+    basecmd.angleturn = G_CarryAngle(localview.rawangle);
     mousex = 0;
   }
 
   if (mousey && mouselook)
   {
-    localview.rawpitch += CalcMousePitch(mousey);
-    cmd->pitch = CarryPitch(localview.rawpitch);
-    localview.pitch = cmd->pitch;
+    localview.rawpitch += G_CalcMousePitch(mousey);
+    basecmd.pitch = G_CarryPitch(localview.rawpitch);
     mousey = 0;
+  }
+}
+
+void G_PrepControllerTiccmd(void)
+{
+  if (I_UseController() && I_CalcControllerAxes())
+  {
+    G_UpdateDeltaTics();
+    axis_turn_tic = axes[AXIS_TURN];
+
+    if (axes[AXIS_TURN] && !M_InputGameActive(input_strafe))
+    {
+      localview.rawangle -= G_CalcControllerAngle();
+      basecmd.angleturn = G_CarryAngle(localview.rawangle);
+      axes[AXIS_TURN] = 0.0f;
+    }
+
+    if (axes[AXIS_LOOK] && padlook)
+    {
+      localview.rawpitch -= G_CalcControllerPitch();
+      basecmd.pitch = G_CarryPitch(localview.rawpitch);
+      axes[AXIS_LOOK] = 0.0f;
+    }
   }
 }
 
@@ -590,18 +535,20 @@ void G_BuildTiccmd(ticcmd_t* cmd)
   int side = 0;
   int newweapon;                                          // phares
 
-  extern boolean boom_weapon_state_injection;
   static boolean done_autoswitch = false;
 
   G_DemoSkipTics();
 
   if (!uncapped || !raw_input)
   {
-    G_PrepTiccmd();
+    G_PrepMouseTiccmd();
+    G_PrepControllerTiccmd();
   }
 
   memcpy(cmd, &basecmd, sizeof(*cmd));
   memset(&basecmd, 0, sizeof(basecmd));
+
+  ApplyQuickstartCache(cmd, strafe);
 
   cmd->consistancy = consistancy[consoleplayer][maketic%BACKUPTICS];
 
@@ -660,17 +607,17 @@ void G_BuildTiccmd(ticcmd_t* cmd)
   {
     if (axes[AXIS_TURN] && strafe && !cmd->angleturn)
     {
-      side += CalcControllerSideTurn(speed);
+      side += G_CalcControllerSideTurn(speed);
     }
 
     if (axes[AXIS_STRAFE])
     {
-      side += CalcControllerSideStrafe(speed);
+      side += G_CalcControllerSideStrafe(speed);
     }
 
     if (axes[AXIS_FORWARD])
     {
-      forward -= CalcControllerForward(speed);
+      forward -= G_CalcControllerForward(speed);
     }
   }
 
@@ -678,14 +625,14 @@ void G_BuildTiccmd(ticcmd_t* cmd)
 
   if (mousex && strafe && !cmd->angleturn)
   {
-    const double mouseside = CalcMouseSide(mousex);
-    side += CarryMouseSide(mouseside);
+    const double mouseside = G_CalcMouseSide(mousex);
+    side += G_CarrySide(mouseside);
   }
 
   if (mousey && !mouselook && !novert)
   {
-    const double mousevert = CalcMouseVert(mousey);
-    forward += CarryMouseVert(mousevert);
+    const double mousevert = G_CalcMouseVert(mousey);
+    forward += G_CarryVert(mousevert);
   }
 
   // Update/reset
@@ -693,8 +640,8 @@ void G_BuildTiccmd(ticcmd_t* cmd)
   if (angle)
   {
     const short old_angleturn = cmd->angleturn;
-    cmd->angleturn = CarryAngle(localview.rawangle + angle);
-    localview.ticangleturn = cmd->angleturn - old_angleturn;
+    cmd->angleturn = G_CarryAngleTic(localview.rawangle + angle);
+    cmd->ticangleturn = cmd->angleturn - old_angleturn;
   }
 
   if (forward > MAXPLMOVE)
@@ -709,13 +656,11 @@ void G_BuildTiccmd(ticcmd_t* cmd)
   cmd->forwardmove = forward;
   cmd->sidemove = side;
 
+  ClearQuickstartTic();
   I_ResetControllerAxes();
   mousex = mousey = 0;
-  localview.angle = 0;
-  localview.pitch = 0;
-  localview.rawangle = 0.0;
-  localview.rawpitch = 0.0;
-  prevcarry = carry;
+  UpdateLocalView();
+  G_UpdateCarry();
 
   // Buttons
 
@@ -866,12 +811,13 @@ void G_BuildTiccmd(ticcmd_t* cmd)
 
 void G_ClearInput(void)
 {
+  ClearQuickstartTic();
   I_ResetControllerLevel();
   mousex = mousey = 0;
-  memset(&localview, 0, sizeof(localview));
-  memset(&carry, 0, sizeof(carry));
-  memset(&prevcarry, 0, sizeof(prevcarry));
+  ClearLocalView();
+  G_ClearCarry();
   memset(&basecmd, 0, sizeof(basecmd));
+  I_ResetRelativeMouseState();
 }
 
 //
@@ -953,10 +899,7 @@ static void G_DoLoadLevel(void)
   // by Z_FreeTags() when the previous level ended or player
   // died.
 
-   {
-    extern msecnode_t *headsecnode; // phares 3/25/98
-    headsecnode = NULL;
-   }
+  headsecnode = NULL;
 
   critical = (gameaction == ga_playdemo || demorecording || demoplayback || D_CheckNetConnect());
 
@@ -971,6 +914,7 @@ static void G_DoLoadLevel(void)
   P_SetupLevel (gameepisode, gamemap, 0, gameskill);
 
   MN_UpdateFreeLook();
+  HU_UpdateTurnFormat();
 
   // [Woof!] Do not reset chosen player view across levels in multiplayer
   // demo playback. However, it must be reset when starting a new game.
@@ -991,8 +935,8 @@ static void G_DoLoadLevel(void)
   G_ClearInput();
   sendpause = sendsave = paused = false;
   // [FG] array size!
-  memset (mousearray, 0, sizeof(mousearray));
-  memset (joyarray, 0, sizeof(joyarray));
+  memset (mousebuttons, 0, sizeof(mousebuttons));
+  memset (joybuttons, 0, sizeof(joybuttons));
 
   //jff 4/26/98 wake up the status bar in case were coming out of a DM demo
   // killough 5/13/98: in case netdemo has consoleplayer other than green
@@ -1012,8 +956,6 @@ static void G_DoLoadLevel(void)
         }
     }
 }
-
-extern int ddt_cheating;
 
 static void G_ReloadLevel(void)
 {
@@ -1205,8 +1147,9 @@ boolean G_MovementResponder(event_t *ev)
   switch (ev->type)
   {
     case ev_mouse:
-      mousex += ev->data2;
-      mousey += ev->data3;
+      mousex_tic += ev->data1;
+      mousex += ev->data1;
+      mousey -= ev->data2;
       return true;
 
     case ev_joystick:
@@ -1541,6 +1484,7 @@ static void G_PlayerFinishLevel(int player)
   p->centering = false;
   p->slope = 0;
   p->recoilpitch = p->oldrecoilpitch = 0;
+  p->ticangle = p->oldticangle = 0;
 }
 
 // [crispy] format time for level statistics
@@ -1863,10 +1807,9 @@ static void G_DoPlayDemo(void)
 {
   skill_t skill;
   int i, episode, map;
-  char basename[9];
   demo_version_t demover;
   byte *option_p = NULL;      // killough 11/98
-  int lumpnum, lumplength;
+  int demolength;
 
   if (gameaction != ga_loadgame)      // killough 12/98: support -loadgame
     basetic = gametic;  // killough 9/29/98
@@ -1878,17 +1821,33 @@ static void G_DoPlayDemo(void)
       Z_Free(demobuffer);
   }
 
-  ExtractFileBase(defdemoname,basename);           // killough
+  char *filename = NULL;
+  if (singledemo)
+  {
+      filename = D_FindLMPByName(defdemoname);
+  }
 
-  lumpnum = W_GetNumForName(basename);
-  lumplength = W_LumpLength(lumpnum);
-
-  demobuffer = demo_p = W_CacheLumpNum(lumpnum, PU_STATIC);  // killough
+  if (singledemo && filename)
+  {
+      M_ReadFile(filename, &demobuffer);
+      demolength = M_FileLength(filename);
+      demo_p = demobuffer;
+      I_Printf(VB_INFO, "G_DoPlayDemo: %s", filename);
+  }
+  else
+  {
+      char lumpname[9] = {0};
+      W_ExtractFileBase(defdemoname, lumpname);           // killough
+      int lumpnum = W_GetNumForName(lumpname);
+      demolength = W_LumpLength(lumpnum);
+      demobuffer = demo_p = W_CacheLumpNum(lumpnum, PU_STATIC);  // killough
+      I_Printf(VB_INFO, "G_DoPlayDemo: %s (%s)", lumpname, W_WadNameForLump(lumpnum));
+  }
 
   // [FG] ignore too short demo lumps
-  if (lumplength < 0xd)
+  if (demolength < 0xd)
   {
-    I_Printf(VB_WARNING, "G_DoPlayDemo: Short demo lump %s.", basename);
+    I_Printf(VB_WARNING, "G_DoPlayDemo: Short demo lump %s.", defdemoname);
     InvalidDemo();
     return;
   }
@@ -2095,7 +2054,7 @@ static void G_DoPlayDemo(void)
 
   gameaction = ga_nothing;
 
-  maxdemosize = lumplength;
+  maxdemosize = demolength;
 
   // [crispy] demo progress bar
   {
@@ -2111,15 +2070,12 @@ static void G_DoPlayDemo(void)
         ++playerscount;
     }
 
-    while (*demo_ptr != DEMOMARKER && (demo_ptr - demobuffer) < lumplength)
+    while (*demo_ptr != DEMOMARKER && (demo_ptr - demobuffer) < demolength)
     {
       demo_ptr += playerscount * (longtics ? 5 : 4);
       ++playback_totaltics;
     }
   }
-
-  // [FG] report compatibility mode
-  I_Printf(VB_INFO, "G_DoPlayDemo: %.8s (%s)", basename, W_WadNameForLump(lumpnum));
 }
 
 #define VERSIONSIZE   16
@@ -2199,7 +2155,6 @@ void CheckSaveGame(size_t size)
 // (previously code was scattered around in multiple places)
 
 // [FG] support up to 8 pages of savegames
-extern int savepage;
 
 char* G_SaveGameName(int slot)
 {
@@ -2208,14 +2163,14 @@ char* G_SaveGameName(int slot)
   char buf[16] = {0};
   sprintf(buf, "%.7s%d.dsg", savegamename, 10*savepage+slot);
 
-  return M_StringJoin(basesavegame, DIR_SEPARATOR_S, buf, NULL);
+  return M_StringJoin(basesavegame, DIR_SEPARATOR_S, buf);
 }
 
 char* G_MBFSaveGameName(int slot)
 {
    char buf[16] = {0};
    sprintf(buf, "MBFSAV%d.dsg", 10*savepage+slot);
-   return M_StringJoin(basesavegame, DIR_SEPARATOR_S, buf, NULL);
+   return M_StringJoin(basesavegame, DIR_SEPARATOR_S, buf);
 }
 
 // killough 12/98:
@@ -2585,7 +2540,6 @@ void G_CleanScreenshot(void)
 {
   int old_screenblocks;
   boolean old_hide_weapon;
-  extern void ST_ResetPalette(void);
 
   ST_ResetPalette();
 
@@ -2722,7 +2676,6 @@ void G_Ticker(void)
 		  cmd->forwardmove > TURBOTHRESHOLD &&
 		  !(gametic&31) && ((gametic>>5)&3) == i )
 		{
-		  extern char **player_names[];
 		  displaymsg("%s is turbo!", *player_names[i]); // killough 9/29/98
 		}
 
@@ -2743,6 +2696,8 @@ void G_Ticker(void)
       if (demoplayback)
         ++playback_tic;
 
+      HU_UpdateCommandHistory(&players[displayplayer].cmd);
+
       // check for special buttons
       for (i=0; i<MAXPLAYERS; i++)
 	if (playeringame[i] && players[i].cmd.buttons & BT_SPECIAL)
@@ -2752,6 +2707,10 @@ void G_Ticker(void)
 	      if (!demoplayback) // ignore in demos
 	      {
 	        gameaction = ga_reloadlevel;
+	        if (demorecording)
+	        {
+	          quickstart_queued = true;
+	        }
 	      }
 	      break;
 
@@ -2849,8 +2808,6 @@ void G_PlayerReborn(int player)
 // at the given mapthing_t spot
 // because something is occupying it
 //
-
-void P_SpawnPlayer(mapthing_t *mthing);
 
 static boolean G_CheckSpot(int playernum, mapthing_t *mthing)
 {
@@ -3411,8 +3368,8 @@ void G_ReloadDefaults(boolean keep_demover)
 
   //jff 3/24/98 set startskill from defaultskill in config file, unless
   // it has already been set by a -skill parameter
-  if (startskill==sk_default)
-    startskill = (skill_t)(defaultskill-1);
+  if (startskill == sk_default)
+    startskill = (skill_t)(default_skill - 1);
 
   demoplayback = false;
   singledemo = false;            // killough 9/29/98: don't stop after 1 demo
@@ -3440,6 +3397,18 @@ void G_ReloadDefaults(boolean keep_demover)
     //
 
     int p = M_CheckParmWithArgs("-complevel", 1);
+
+    if (!p)
+    {
+    //!
+    // @arg <version>
+    // @category compat
+    // @help
+    //
+    // Alias to -complevel.
+    //
+      p = M_CheckParmWithArgs("-cl", 1);
+    }
 
     if (p > 0)
     {
@@ -3530,6 +3499,9 @@ void G_ReloadDefaults(boolean keep_demover)
 
   if ((M_CheckParm("-dog") || M_CheckParm("-dogs")) && demo_version < DV_MBF)
     I_Error("G_ReloadDefaults: Helper dogs require complevel MBF or MBF21.");
+
+  if (M_CheckParm("-skill") && startskill == sk_none && !demo_compatibility)
+    I_Error("G_ReloadDefaults: '-skill 0' requires complevel Vanilla.");
 
   if (demo_version < DV_MBF)
   {
@@ -3646,7 +3618,7 @@ int G_ValidateMapName(const char *mapname, int *pEpi, int *pMap)
     return 0;
   strncpy(mapuname, mapname, 8);
   mapuname[8] = 0;
-  M_ForceUppercase(mapuname);
+  M_StringToUpper(mapuname);
 
   if (gamemode != commercial)
   {
@@ -3741,6 +3713,8 @@ void G_InitNew(skill_t skill, int episode, int map)
   // [FG] total time for all completed levels
   totalleveltimes = 0;
   playback_tic = 0;
+
+  HU_ResetCommandHistory();
 
   //jff 4/16/98 force marks on automap cleared every new level start
   AM_clearMarks();
@@ -4207,9 +4181,6 @@ void D_CheckNetPlaybackSkip(void);
 
 void G_DeferedPlayDemo(char* name)
 {
-  // [FG] avoid demo lump name collisions
-  W_DemoLumpNameCollision(&name);
-
   defdemoname = name;
   gameaction = ga_playdemo;
 
@@ -4224,7 +4195,6 @@ void G_DeferedPlayDemo(char* name)
 
 #define DEMO_FOOTER_SEPARATOR "\n"
 #define NUM_DEMO_FOOTER_LUMPS 4
-extern char **dehfiles;
 
 static size_t WriteCmdLineLump(MEMFILE *stream)
 {
@@ -4234,7 +4204,7 @@ static size_t WriteCmdLineLump(MEMFILE *stream)
 
   long pos = mem_ftell(stream);
 
-  tmp = M_StringJoin("-iwad \"", M_BaseName(wadfiles[0]), "\"", NULL);
+  tmp = M_StringJoin("-iwad \"", M_BaseName(wadfiles[0]), "\"");
   mem_fputs(tmp, stream);
   free(tmp);
 
@@ -4242,8 +4212,11 @@ static size_t WriteCmdLineLump(MEMFILE *stream)
   {
     const char *basename = M_BaseName(wadfiles[i]);
 
-    if (!strcasecmp("brghtmps.lmp", basename))
+    if (!strcasecmp("brghtmps.lmp", basename) ||
+        !strcasecmp("woofhud.lmp", basename))
+    {
       continue;
+    }
 
     if (!has_files)
     {
@@ -4251,7 +4224,7 @@ static size_t WriteCmdLineLump(MEMFILE *stream)
       has_files = true;
     }
 
-    tmp = M_StringJoin(" \"", basename, "\"", NULL);
+    tmp = M_StringJoin(" \"", basename, "\"");
     mem_fputs(tmp, stream);
     free(tmp);
   }
@@ -4261,7 +4234,7 @@ static size_t WriteCmdLineLump(MEMFILE *stream)
     mem_fputs(" -deh", stream);
     for (i = 0; i < array_size(dehfiles); ++i)
     {
-      tmp = M_StringJoin(" \"", M_BaseName(dehfiles[i]), "\"", NULL);
+      tmp = M_StringJoin(" \"", M_BaseName(dehfiles[i]), "\"");
       mem_fputs(tmp, stream);
       free(tmp);
     }
@@ -4452,8 +4425,6 @@ boolean G_CheckDemoStatus(void)
 
 #define MAX_MESSAGE_SIZE 1024
 
-extern int show_toggle_messages, show_pickup_messages;
-
 void doomprintf(player_t *player, msg_category_t category, const char *s, ...)
 {
   static char msg[MAX_MESSAGE_SIZE];
@@ -4472,6 +4443,168 @@ void doomprintf(player_t *player, msg_category_t category, const char *s, ...)
     player->message = msg;
   else
     players[displayplayer].message = msg;  // set new message
+}
+
+void G_BindGameInputVariables(void)
+{
+  BIND_BOOL(autorun, true, "Always run");
+  BIND_BOOL_GENERAL(mouselook, false, "Mouselook");
+  BIND_BOOL_GENERAL(dclick_use, true, "Double-click acts as use-button");
+  BIND_BOOL(novert, true, "Disable vertical mouse movement");
+  BIND_BOOL_GENERAL(padlook, false, "Padlook");
+}
+
+void G_BindGameVariables(void)
+{
+  BIND_BOOL(raw_input, true,
+    "Raw gamepad/mouse input for turning/looking (0 = Interpolate; 1 = Raw)");
+  BIND_BOOL(fake_longtics, true,
+    "Fake high-resolution turning when using low-resolution turning");
+  BIND_BOOL(shorttics, false, "Always use low-resolution turning");
+  BIND_NUM(quickstart_cache_tics, 0, 0, TICRATE, "Quickstart cache tics");
+  BIND_NUM_GENERAL(default_skill, 3, 1, 5,
+    "Default skill level (1 = ITYTD; 2 = HNTR; 3 = HMP; 4 = UV; 5 = NM)");
+  BIND_NUM_GENERAL(realtic_clock_rate, 100, 10, 1000,
+    "Game speed percent");
+  M_BindNum("max_player_corpse", &default_bodyquesize, NULL,
+    32, UL, UL, ss_none, wad_no,
+    "Maximum number of player corpses (< 0 = No limit)");
+  BIND_NUM_GENERAL(death_use_action, 0, 0, 2,
+    "Use-button action upon death (0 = Default; 1 = Load save; 2 = Nothing)");
+}
+
+void G_BindEnemVariables(void)
+{
+  M_BindNum("player_helpers", &default_dogs, &dogs, 0, 0, 3, ss_enem, wad_yes,
+    "Number of helper dogs to spawn at map start");
+  M_BindBool("ghost_monsters", &ghost_monsters, NULL, true, ss_enem, wad_no,
+             "Make ghost monsters (resurrected pools of gore) translucent");
+
+  M_BindBool("monsters_remember", &default_monsters_remember, &monsters_remember,
+             true, ss_none, wad_yes,
+             "Monsters return to their previous target after losing their current one");
+  M_BindBool("monster_infighting", &default_monster_infighting, &monster_infighting,
+             true, ss_none, wad_yes,
+             "Monsters fight each other when provoked");
+  M_BindBool("monster_backing", &default_monster_backing, &monster_backing,
+             false, ss_none, wad_yes,
+             "Ranged monsters back away from melee targets");
+  M_BindBool("monster_avoid_hazards", &default_monster_avoid_hazards, &monster_avoid_hazards,
+             true, ss_none, wad_yes,
+             "Monsters avoid hazards such as crushing ceilings");
+  M_BindBool("monkeys", &default_monkeys, &monkeys, false, ss_none, wad_yes,
+             "Monsters move up/down steep stairs");
+  M_BindBool("monster_friction", &default_monster_friction, &monster_friction,
+             true, ss_none, wad_yes,
+             "Monsters are affected by friction modifiers");
+  M_BindBool("help_friends", &default_help_friends, &help_friends,
+             false, ss_none, wad_yes, "Monsters prefer targets of injured allies");
+  M_BindNum("friend_distance", &default_distfriend, &distfriend,
+            128, 0, 999, ss_none, wad_yes, "Minimum distance that friends keep between each other");
+  M_BindBool("dog_jumping", &default_dog_jumping, &dog_jumping,
+             true, ss_none, wad_yes, "Dogs are able to jump down from high ledges");
+}
+
+void G_BindCompVariables(void)
+{
+  M_BindNum("default_complevel", &default_complevel, NULL,
+            CL_MBF21, CL_VANILLA, CL_MBF21, ss_comp, wad_no,
+            "Default compatibility level (0 = Vanilla; 1 = Boom; 2 = MBF; 3 = MBF21)");
+  M_BindBool("autostrafe50", &autostrafe50, NULL, false, ss_comp, wad_no,
+             "Automatic strafe50 (SR50)");
+  M_BindBool("strictmode", &default_strictmode, &strictmode,
+             false, ss_comp, wad_no, "Strict mode");
+  M_BindBool("hangsolid", &hangsolid, NULL, false, ss_comp, wad_no,
+             "Enable walking under solid hanging bodies");
+  M_BindBool("blockmapfix", &blockmapfix, NULL, false, ss_comp, wad_no,
+             "Fix blockmap bug (improves hit detection)");
+  M_BindBool("checksight12", &checksight12, NULL, false, ss_comp, wad_no,
+             "Fast blockmap-based line-of-sight calculation");
+  M_BindBool("direct_vertical_aiming", &default_direct_vertical_aiming, &direct_vertical_aiming,
+             false, ss_comp, wad_no, "Direct vertical aiming");
+  M_BindBool("pistolstart", &default_pistolstart, &pistolstart,
+             false, ss_comp, wad_no, "Pistol start");
+
+#define BIND_COMP(id, v, help) \
+  M_BindNum(#id, &default_comp[(id)], &comp[(id)], (v), 0, 1, ss_none, wad_yes, help)
+
+  BIND_COMP(comp_zombie,    1, "Dead players can trigger linedef actions");
+  BIND_COMP(comp_infcheat,  0, "Powerup cheats don't last forever");
+  BIND_COMP(comp_stairs,    0, "Build stairs exactly the same way that Doom does");
+  BIND_COMP(comp_telefrag,  0, "Monsters can only telefrag on MAP30");
+  BIND_COMP(comp_dropoff,   0, "Some objects never move over tall ledges");
+  BIND_COMP(comp_falloff,   0, "Objects don't fall off ledges under their own weight");
+  BIND_COMP(comp_staylift,  0, "Monsters randomly walk off of moving lifts");
+  BIND_COMP(comp_doorstuck, 0, "Monsters get stuck in door tracks");
+  BIND_COMP(comp_pursuit,   1, "Monsters can infight immediately when alerted");
+  BIND_COMP(comp_vile,      0, "Arch-viles can create ghost monsters");
+  BIND_COMP(comp_pain,      0, "Pain elementals are limited to 20 lost souls");
+  BIND_COMP(comp_skull,     0, "Lost souls can spawn past impassable lines");
+  BIND_COMP(comp_blazing,   0, "Blazing doors make double closing sounds");
+  BIND_COMP(comp_doorlight, 0, "Door lighting changes are immediate");
+  BIND_COMP(comp_god,       0, "God mode isn't absolute");
+  BIND_COMP(comp_skymap,    0, "Don't apply invulnerability palette to skies");
+  BIND_COMP(comp_floors,    0, "Use exactly Doom's floor motion behavior");
+  BIND_COMP(comp_model,     0, "Use exactly Doom's linedef trigger model");
+  BIND_COMP(comp_zerotags,  0, "Linedef actions work on sectors with tag 0");
+  BIND_COMP(comp_soul,      0, "Lost souls bounce on floors and ceilings");
+  BIND_COMP(comp_respawn,   0, "Monsters not spawned at level start respawn at map origin");
+  BIND_COMP(comp_ledgeblock, 1, "Ledges block monsters");
+  BIND_COMP(comp_friendlyspawn, 1, "Things spawned by A_Spawn inherit friendliness of spawner");
+  BIND_COMP(comp_voodooscroller, 0, "Voodoo dolls on slow scrollers move too slowly");
+  BIND_COMP(comp_reservedlineflag, 1, "ML_RESERVED clears extended flags");
+
+#define BIND_EMU(id, v, help) \
+  M_BindBool(#id, &overflow[(id)].enabled, NULL, (v), ss_none, wad_no, help)
+
+  BIND_EMU(emu_spechits, true, "Emulate SPECHITS overflow");
+  BIND_EMU(emu_reject, true, "Emulate REJECT overflow");
+  M_BindBool("emu_intercepts", &overflow[emu_intercepts].enabled, NULL, true,
+    ss_comp, wad_no, "Emulate INTERCEPTS overflow");
+  BIND_EMU(emu_missedbackside, false, "Emulate overflow caused by two-sided lines with missing backsides");
+  BIND_EMU(emu_donut, true, "Emulate donut overflow");
+}
+
+void G_BindWeapVariables(void)
+{
+  M_BindNum("view_bobbing_pct", &view_bobbing_pct, NULL, 4, 0, 4, ss_weap, wad_no,
+            "Player view bobbing (0 = 0%; 1 = 25%; ... 4 = 100%)");
+  M_BindNum("weapon_bobbing_pct", &weapon_bobbing_pct, NULL,
+            4, 0, 4, ss_weap, wad_no,
+            "Player weapon bobbing (0 = 0%; 1 = 25%; ... 4 = 100%)");
+  M_BindBool("hide_weapon", &hide_weapon, NULL, false, ss_weap, wad_no,
+             "Disable rendering of weapon sprites");
+  M_BindNum("center_weapon", &center_weapon, NULL, 0, 0, 2, ss_weap, wad_no,
+            "Weapon alignment while attacking (1 = Centered; 2 = Bobbing)");
+  M_BindBool("weapon_recoilpitch", &weapon_recoilpitch, NULL,
+             false, ss_weap, wad_no,
+             "Recoil pitch from weapon fire");
+
+  M_BindBool("weapon_recoil", &default_weapon_recoil, &weapon_recoil,
+             false, ss_none, wad_yes,
+             "Physical recoil from weapon fire (affects compatibility)");
+  M_BindBool("doom_weapon_toggles", &doom_weapon_toggles, NULL,
+             true, ss_weap, wad_no,
+             "Allow toggling between SG/SSG and Fist/Chainsaw");
+  M_BindBool("player_bobbing", &default_player_bobbing, &player_bobbing,
+             true, ss_none, wad_no, "Physical player bobbing (affects compatibility)");
+
+#define BIND_WEAP(num, v, help) \
+  M_BindNum("weapon_choice_"#num, &weapon_preferences[0][(num) - 1], NULL, \
+      (v), 1, 9, ss_weap, wad_yes, help)
+
+  BIND_WEAP(1, 6, "First choice for weapon (best)");
+  BIND_WEAP(2, 9, "Second choice for weapon");
+  BIND_WEAP(3, 4, "Third choice for weapon");
+  BIND_WEAP(4, 3, "Fourth choice for weapon");
+  BIND_WEAP(5, 2, "Fifth choice for weapon");
+  BIND_WEAP(6, 8, "Sixth choice for weapon");
+  BIND_WEAP(7, 5, "Seventh choice for weapon");
+  BIND_WEAP(8, 7, "Eighth choice for weapon");
+  BIND_WEAP(9, 1, "Ninth choice for weapon (worst)");
+
+  M_BindBool("classic_bfg", &default_classic_bfg, &classic_bfg,
+             false, ss_weap, wad_yes, "Use pre-beta BFG2704");
 }
 
 //----------------------------------------------------------------------------

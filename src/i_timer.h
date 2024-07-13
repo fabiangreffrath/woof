@@ -44,10 +44,14 @@ void I_EnableWarp(boolean warp);
 // Pause for a specified number of ms
 void I_Sleep(int ms);
 
+void I_SleepUS(uint64_t us);
+
 // Initialize timer
 void I_InitTimer(void);
 
 // Wait for vertical retrace or pause a bit.
 void I_WaitVBL(int count);
+
+extern int time_scale;
 
 #endif

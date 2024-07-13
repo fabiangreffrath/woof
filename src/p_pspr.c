@@ -32,6 +32,7 @@
 #include "p_mobj.h"
 #include "p_pspr.h"
 #include "p_tick.h"
+#include "p_user.h"
 #include "r_main.h"
 #include "s_sound.h"
 #include "sounds.h"
@@ -43,8 +44,6 @@
 #define WEAPONTOP    (FRACUNIT*32)
 
 #define BFGCELLS bfgcells        /* Ty 03/09/98 externalized in p_inter.c */
-
-extern void P_Thrust(player_t *, angle_t, fixed_t);
 
 // The following array holds the recoil values         // phares
 static struct
@@ -80,8 +79,6 @@ void A_Recoil(player_t* player)
 
 static void P_SetPsprite(player_t *player, int position, statenum_t stnum)
 {
-  P_SetPspritePtr(player, &player->psprites[position], stnum);
-
   if (position == ps_weapon)
   {
     const weaponinfo_t wp = weaponinfo[player->readyweapon];
@@ -91,6 +88,8 @@ static void P_SetPsprite(player_t *player, int position, statenum_t stnum)
     else if (stnum == wp.downstate)
       player->switching = weapswitch_lowering;
   }
+
+  P_SetPspritePtr(player, &player->psprites[position], stnum);
 }
 
 //
@@ -156,7 +155,7 @@ static void P_BringUpWeapon(player_t *player)
     player->pendingweapon = player->readyweapon;
 
   if (player->pendingweapon == wp_chainsaw)
-    S_StartSound(player->mo, sfx_sawup);
+    S_StartSoundPitch(player->mo, sfx_sawup, PITCH_HALF);
 
   if (player->pendingweapon >= NUMWEAPONS)
   {
@@ -485,7 +484,7 @@ void A_WeaponReady(player_t *player, pspdef_t *psp)
     P_SetMobjState(player->mo, S_PLAY);
 
   if (player->readyweapon == wp_chainsaw && psp->state == &states[S_SAW])
-    S_StartSound(player->mo, sfx_sawidl);
+    S_StartSoundPitch(player->mo, sfx_sawidl, PITCH_HALF);
 
   // check for change
   //  if player is dead, put the weapon away
@@ -650,6 +649,18 @@ void A_GunFlash(player_t *player, pspdef_t *psp)
 // WEAPON ATTACKS
 //
 
+static angle_t saved_angle;
+
+static void SavePlayerAngle(player_t *player)
+{
+  saved_angle = player->mo->angle;
+}
+
+static void AddToTicAngle(player_t *player)
+{
+  player->ticangle += player->mo->angle - saved_angle;
+}
+
 //
 // A_Punch
 //
@@ -686,8 +697,10 @@ void A_Punch(player_t *player, pspdef_t *psp)
 
   // turn to face target
 
+  SavePlayerAngle(player);
   player->mo->angle = R_PointToAngle2(player->mo->x, player->mo->y,
                                       linetarget->x, linetarget->y);
+  AddToTicAngle(player);
 }
 
 //
@@ -720,16 +733,17 @@ void A_Saw(player_t *player, pspdef_t *psp)
 
   if (!linetarget)
     {
-      S_StartSound(player->mo, sfx_sawful);
+      S_StartSoundPitch(player->mo, sfx_sawful, PITCH_HALF);
       return;
     }
 
-  S_StartSound(player->mo, sfx_sawhit);
+  S_StartSoundPitch(player->mo, sfx_sawhit, PITCH_HALF);
 
   // turn to face target
   angle = R_PointToAngle2(player->mo->x, player->mo->y,
                           linetarget->x, linetarget->y);
 
+  SavePlayerAngle(player);
   if (angle - player->mo->angle > ANG180)
     if ((signed int) (angle - player->mo->angle) < -ANG90/20)
       player->mo->angle = angle + ANG90/21;
@@ -740,6 +754,7 @@ void A_Saw(player_t *player, pspdef_t *psp)
       player->mo->angle = angle - ANG90/21;
     else
       player->mo->angle += ANG90/20;
+  AddToTicAngle(player);
 
   player->mo->flags |= MF_JUSTATTACKED;
 }
@@ -796,7 +811,6 @@ void A_FireOldBFG(player_t *player, pspdef_t *psp)
       angle_t an = mo->angle;
       angle_t an1 = ((P_Random(pr_bfg)&127) - 64) * (ANG90/768) + an;
       angle_t an2 = ((P_Random(pr_bfg)&127) - 64) * (ANG90/640) + ANG90;
-      extern int autoaim;
 
       if (autoaim || !beta_emulation)
 	{
@@ -1304,7 +1318,9 @@ void A_WeaponMeleeAttack(player_t *player, pspdef_t *psp)
   S_StartSound(player->mo, hitsound);
 
   // turn to face target
+  SavePlayerAngle(player);
   player->mo->angle = R_PointToAngle2(player->mo->x, player->mo->y, linetarget->x, linetarget->y);
+  AddToTicAngle(player);
 }
 
 //

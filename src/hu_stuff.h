@@ -21,6 +21,7 @@
 
 #include "doomdef.h"
 #include "doomtype.h"
+#include "hu_command.h"
 
 struct event_s;
 struct mobj_s;
@@ -28,6 +29,7 @@ struct mobj_s;
 #define HU_BROADCAST    5
 
 #define HU_MSGTIMEOUT   (4*TICRATE)
+#define HU_MSGTIMEOUT2  (5*TICRATE/2) // [crispy] 2.5 seconds
 
 //
 // Heads up text
@@ -48,33 +50,31 @@ boolean HU_DemoProgressBar(boolean force);
 
 void HU_ResetMessageColors(void);
 
+void WI_DrawWidgets(void);
+
 // killough 5/2/98: moved from m_misc.c:
 
 //jff 2/16/98 hud supported automap colors added
 extern int hudcolor_titl;   // color range of automap level title
 extern int hudcolor_xyco;   // color range of new coords on automap
-//jff 2/16/98 hud text colors, controls added
-extern int hudcolor_mesg;   // color range of scrolling messages
-extern int hudcolor_chat;   // color range of chat lines
-//jff 2/26/98 hud message list color and background enable
-extern int hud_msg_lines;   // number of message lines in window up to 16
-extern int message_list;    // killough 11/98: whether message list is active
-extern int message_timer;   // killough 11/98: timer used for normal messages
-extern int chat_msg_timer;  // killough 11/98: timer used for chat messages
 //jff 2/23/98 hud is currently displayed
-extern int hud_displayed;   // hud is displayed
+extern boolean hud_displayed;   // hud is displayed
 //jff 2/18/98 hud/status control
 extern int hud_active;      // hud mode 0=off, 1=small, 2=full
-extern int hud_secret_message; // "A secret is revealed!" message
+extern boolean hud_secret_message; // "A secret is revealed!" message
 extern int hud_player_coords, hud_level_stats, hud_level_time;
-extern int hud_time_use;
-extern int hud_widget_font;
-extern int hud_widescreen_widgets;
-extern int hud_widget_layout;
-extern boolean message_centered; // center messages
-extern boolean message_colorized; // colorize player messages
+extern boolean hud_widescreen_widgets;
+extern boolean hud_time_use;
+extern boolean show_messages;
+extern boolean show_toggle_messages;
+extern boolean show_pickup_messages;
+
+extern boolean chat_on;
+extern boolean message_dontfuckwithme;
 
 extern int playback_tic, playback_totaltics;
+
+extern char **player_names[];
 
 enum
 {
@@ -88,37 +88,20 @@ enum
 extern int hud_type;
 extern boolean draw_crispy_hud;
 
-extern int hud_crosshair;
-extern boolean hud_crosshair_health;
-
 enum
 {
   HUD_WIDGET_OFF,
   HUD_WIDGET_AUTOMAP,
   HUD_WIDGET_HUD,
   HUD_WIDGET_ALWAYS,
+  HUD_WIDGET_ADVANCED,
 };
 
-typedef enum
-{
-  crosstarget_off,
-  crosstarget_highlight,
-  crosstarget_health, // [Alaux] Color crosshair by target health
-} crosstarget_t;
-extern crosstarget_t hud_crosshair_target;
+void HU_BindHUDVariables(void);
 
-// [Alaux] Lock crosshair on target
-extern boolean hud_crosshair_lockon;
-extern struct mobj_s *crosshair_target;
-void HU_UpdateCrosshairLock(int x, int y);
-void HU_DrawCrosshair(void);
+byte* HU_ColorByHealth(int health, int maxhealth, boolean invul);
 
-extern int hud_crosshair_color;
-extern int hud_crosshair_target_color;
-
-#define HU_CROSSHAIRS 10
-extern const char *crosshair_lumps[HU_CROSSHAIRS];
-extern const char *crosshair_strings[HU_CROSSHAIRS];
+extern int speedometer;
 
 #endif
 

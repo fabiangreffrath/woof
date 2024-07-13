@@ -30,11 +30,14 @@
 #include "doomdef.h"
 #include "doomstat.h"
 #include "g_game.h"
+#include "hu_stuff.h"
 #include "info.h"
 #include "m_cheat.h"
 #include "m_fixed.h"
 #include "m_input.h"
 #include "m_misc.h"
+#include "mn_menu.h"
+#include "p_action.h"
 #include "p_inter.h"
 #include "p_map.h"
 #include "p_mobj.h"
@@ -42,6 +45,7 @@
 #include "p_spec.h" // SPECHITS
 #include "p_tick.h"
 #include "r_defs.h"
+#include "r_main.h"
 #include "r_state.h"
 #include "s_sound.h"
 #include "sounds.h"
@@ -104,6 +108,7 @@ static void cheat_reveal_item();
 static void cheat_autoaim();      // killough 7/19/98
 static void cheat_tst();
 static void cheat_showfps(); // [FG] FPS counter widget
+static void cheat_speed();
 
 //-----------------------------------------------------------------------------
 //
@@ -321,6 +326,9 @@ struct cheat_s cheat[] = {
   {"showfps",    NULL,                always,
    {cheat_showfps} },
 
+  {"speed",      NULL,                always,
+   {cheat_speed} },
+
   {NULL}                 // end-of-list marker
 };
 
@@ -332,10 +340,14 @@ static void cheat_showfps()
   plyr->cheats ^= CF_SHOWFPS;
 }
 
+static void cheat_speed()
+{
+  speedometer = STRICTMODE((speedometer + 1) % 4);
+}
+
 // killough 7/19/98: Autoaiming optional in beta emulation mode
 static void cheat_autoaim()
 {
-  extern int autoaim;
   displaymsg((autoaim=!autoaim) ?
     "Projectile autoaiming on" : 
     "Projectile autoaiming off");
@@ -417,7 +429,6 @@ static void cheat_god()
   {
     signed int an;
     mapthing_t mt = {0};
-    extern void P_SpawnPlayer (mapthing_t* mthing);
 
     P_MapStart();
     mt.x = plyr->mo->x >> FRACBITS;
@@ -723,8 +734,6 @@ static void cheat_friction()
                                                "Variable Friction disabled");
 }
 
-extern const char *default_skill_strings[];
-
 static void cheat_skill0()
 {
   displaymsg("Skill: %s", default_skill_strings[gameskill + 1]);
@@ -769,7 +778,6 @@ static void cheat_massacre()    // jff 2/01/98 kill all monsters
 
   int killcount=0;
   thinker_t *currentthinker=&thinkercap;
-  extern void A_PainDie(mobj_t *);
   // killough 7/20/98: kill friendly monsters only if no others to kill
   int mask = MF_FRIEND;
   P_MapStart();
@@ -812,6 +820,8 @@ static void cheat_spechits()
     plyr->cards[i] = true;
   }
 
+  P_MapStart();
+
   for (i = 0; i < numlines; i++)
   {
     if (lines[i].special)
@@ -831,6 +841,13 @@ static void cheat_spechits()
         case 126:
         case 174:
         case 195:
+        // [FG] do not trigger silent teleporters
+        case 207:
+        case 208:
+        case 209:
+        case 210:
+        case 268:
+        case 269:
         {
           continue;
         }
@@ -941,6 +958,8 @@ static void cheat_spechits()
     speciallines += EV_DoDoor(&dummy, doorOpen);
   }
 
+  P_MapEnd();
+
   displaymsg("%d Special Action%s Triggered", speciallines, speciallines == 1 ? "" : "s");
 }
 
@@ -948,7 +967,6 @@ static void cheat_spechits()
 // killough 3/26/98: emulate Doom better
 static void cheat_ddt()
 {
-  extern int ddt_cheating;
   if (automapactive)
     ddt_cheating = (ddt_cheating+1) % 3;
 }
@@ -993,7 +1011,6 @@ static void cheat_reveal_secret()
 static void cheat_cycle_mobj(mobj_t **last_mobj, int *last_count,
                              int flags, int alive)
 {
-  extern int init_thinkers_count;
   thinker_t *th, *start_th;
 
   // If the thinkers have been wiped, addresses are invalid
@@ -1055,7 +1072,6 @@ static void cheat_reveal_item()
 // killough 2/7/98: HOM autodetection
 static void cheat_hom()
 {
-  extern int autodetect_hom;           // Ty 03/27/98 - *not* externalized
   displaymsg((autodetect_hom = !autodetect_hom) ? "HOM Detection On" :
     "HOM Detection Off");
 }
@@ -1164,7 +1180,6 @@ static void cheat_pitch()
 
 static void cheat_nuke()
 {
-  extern int disable_nuke;
   displaymsg((disable_nuke = !disable_nuke) ? "Nukage Disabled" :
     "Nukage Enabled");
 }
@@ -1203,13 +1218,13 @@ boolean M_FindCheats(int key)
 
   if (argsleft)
     {
-      *arg++ = tolower(key);             // store key in arg buffer
+      *arg++ = M_ToLower(key);             // store key in arg buffer
       if (!--argsleft)                   // if last key in arg list,
         cheat[cht].func.s(argbuf);       // process the arg buffer
       return 1;                          // affirmative response
     }
 
-  key = tolower(key) - 'a';
+  key = M_ToLower(key) - 'a';
   if (key < 0 || key >= 32)              // ignore most non-alpha cheat letters
     {
       sr = 0;        // clear shift register
@@ -1225,7 +1240,7 @@ boolean M_FindCheats(int key)
           const char *p; // [FG] char!
           for (p=cheat[i].cheat; *p; p++)
             {
-              unsigned key = tolower(*p)-'a';  // convert to 0-31
+              unsigned key = M_ToLower(*p)-'a';  // convert to 0-31
               if (key >= 32)            // ignore most non-alpha cheat letters
                 continue;
               c = (c<<5) + key;         // shift key into code
@@ -1281,7 +1296,6 @@ static const struct {
   { input_idbeholdi, not_net|not_demo, {cheat_pw},       pw_invisibility },
   { input_idbeholdr, not_net|not_demo, {cheat_pw},       pw_ironfeet },
   { input_idbeholdl, not_dm,           {cheat_pw},       pw_infrared },
-  { input_idrate,    always,           {cheat_rate},     0 },
   { input_iddt,      not_dm,           {cheat_ddt},      0 },
   { input_notarget,  not_net|not_demo, {cheat_notarget}, 0 },
   { input_freeze,    not_net|not_demo, {cheat_freeze},   0 },

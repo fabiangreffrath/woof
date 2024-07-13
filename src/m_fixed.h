@@ -31,6 +31,7 @@
 #define FRACBITS 16
 #define FRACUNIT (1<<FRACBITS)
 #define FIXED2DOUBLE(x) ((x)/(double)FRACUNIT)
+#define FRACMASK (FRACUNIT - 1)
 
 typedef int fixed_t;
 
@@ -41,6 +42,11 @@ typedef int fixed_t;
 inline static fixed_t FixedMul(fixed_t a, fixed_t b)
 {
   return (fixed_t)((int64_t) a*b >> FRACBITS);
+}
+
+inline static int64_t FixedMul64(int64_t a, int64_t b)
+{
+  return (a * b >> FRACBITS);
 }
 
 //

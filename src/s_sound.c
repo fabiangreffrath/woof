@@ -44,7 +44,6 @@ typedef struct channel_s
     sfxinfo_t *sfxinfo;   // sound information (if null, channel avail.)
     const mobj_t *origin; // origin of sound
     int volume;           // volume scale value for effect -- haleyjd 05/29/06
-    int pitch;            // pitch modifier -- haleyjd 06/03/06
     int handle;           // handle of the sound being played
     int o_priority;       // haleyjd 09/27/06: stored priority value
     int priority;         // current priority value
@@ -117,8 +116,7 @@ static void S_StopChannel(int cnum)
 // haleyjd: added priority scaling
 //
 static int S_AdjustSoundParams(const mobj_t *listener, const mobj_t *source,
-                               int chanvol, int *vol, int *sep, int *pitch,
-                               int *pri)
+                               int chanvol, int *vol, int *sep, int *pri)
 {
     return I_AdjustSoundParams(listener, source, chanvol, vol, sep, pri);
 }
@@ -199,7 +197,7 @@ static int S_getChannel(const mobj_t *origin, sfxinfo_t *sfxinfo, int priority,
     return cnum;
 }
 
-void S_StartSound(const mobj_t *origin, int sfx_id)
+void S_StartSoundPitch(const mobj_t *origin, int sfx_id, const pitchrange_t pitch_range)
 {
     int sep, pitch, o_priority, priority, singularity, cnum, handle;
     int volumeScale = 127;
@@ -229,25 +227,7 @@ void S_StartSound(const mobj_t *origin, int sfx_id)
     sfx = &S_sfx[sfx_id];
 
     // Initialize sound parameters
-    if (sfx->link)
-    {
-        pitch = sfx->pitch;
-        volumeScale += sfx->volume;
-    }
-    else
-    {
-        pitch = NORM_PITCH;
-    }
-
-    // haleyjd 09/29/06: rangecheck volumeScale now!
-    if (volumeScale < 0)
-    {
-        volumeScale = 0;
-    }
-    else if (volumeScale > 127)
-    {
-        volumeScale = 127;
-    }
+    pitch = NORM_PITCH;
 
     // haleyjd: modified so that priority value is always used
     // haleyjd: also modified to get and store proper singularity value
@@ -258,7 +238,7 @@ void S_StartSound(const mobj_t *origin, int sfx_id)
     // killough 3/7/98, 4/25/98: code rearranged slightly
 
     if (!S_AdjustSoundParams(players[displayplayer].mo, origin, volumeScale,
-                             &volume, &sep, &pitch, &priority))
+                             &volume, &sep, &priority))
     {
         return;
     }
@@ -266,11 +246,11 @@ void S_StartSound(const mobj_t *origin, int sfx_id)
     if (pitched_sounds)
     {
         // hacks to vary the sfx pitches
-        if (sfx_id >= sfx_sawup && sfx_id <= sfx_sawhit)
+        if (pitch_range == PITCH_HALF)
         {
             pitch += 8 - (M_Random() & 15);
         }
-        else if (sfx_id != sfx_itemup && sfx_id != sfx_tink)
+        else if (pitch_range == PITCH_FULL)
         {
             pitch += 16 - (M_Random() & 31);
         }
@@ -316,10 +296,8 @@ void S_StartSound(const mobj_t *origin, int sfx_id)
         channels[cnum].handle = handle;
 
         // haleyjd 05/29/06: record volume scale value
-        // haleyjd 06/03/06: record pitch too (wtf is going on here??)
         // haleyjd 09/27/06: store priority and singularity values (!!!)
         channels[cnum].volume = volumeScale;
-        channels[cnum].pitch = pitch;
         channels[cnum].o_priority = o_priority; // original priority
         channels[cnum].priority = priority;     // scaled priority
         channels[cnum].singularity = singularity;
@@ -454,7 +432,6 @@ void S_UpdateSounds(const mobj_t *listener)
             {
                 // initialize parameters
                 int volume = snd_SfxVolume;
-                int pitch = c->pitch; // haleyjd 06/03/06: use channel's pitch!
                 int sep = NORM_SEP;
                 int pri = c->o_priority; // haleyjd 09/27/06: priority
 
@@ -464,7 +441,7 @@ void S_UpdateSounds(const mobj_t *listener)
                 if (c->origin && listener != c->origin) // killough 3/20/98
                 {
                     if (!S_AdjustSoundParams(listener, c->origin, c->volume,
-                                             &volume, &sep, &pitch, &pri))
+                                             &volume, &sep, &pri))
                     {
                         S_StopChannel(cnum);
                     }
@@ -484,16 +461,6 @@ void S_UpdateSounds(const mobj_t *listener)
 
     I_UpdateListenerParams(listener);
     I_ProcessSoundUpdates();
-}
-
-void S_UpdateMusic(void)
-{
-    if (nomusicparm)
-    {
-        return;
-    }
-
-    I_UpdateMusic();
 }
 
 void S_SetMusicVolume(int volume)

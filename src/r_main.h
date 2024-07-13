@@ -48,12 +48,15 @@ extern int      validcount;
 extern int      linecount;
 extern int      loopcount;
 extern fixed_t  viewheightfrac; // [FG] sprite clipping optimizations
+extern int      max_project_slope;
 
 //
 // Rendering stats
 //
 
 extern int rendered_visplanes, rendered_segs, rendered_vissprites, rendered_voxels;
+
+void R_BindRenderVariables(void);
 
 //
 // Lighting LUT.
@@ -109,6 +112,7 @@ struct subsector_s *R_PointInSubsector(fixed_t x, fixed_t y);
 // REFRESH - the actual rendering functions.
 //
 
+void R_UpdateViewAngleFunction(void);
 void R_RenderPlayerView(struct player_s *player);   // Called by G_Drawer.
 void R_Init(void);                           // Called by startup code.
 void R_SetViewSize(int blocks);              // Called by M_Responder.
@@ -151,8 +155,9 @@ inline static angle_t LerpAngle(angle_t oangle, angle_t nangle)
     }
 }
 
-extern double deltatics;
 extern boolean raw_input;
+
+extern int autodetect_hom;
 
 #endif
 

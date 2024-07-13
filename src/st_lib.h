@@ -22,8 +22,13 @@
 
 #include "doomtype.h"
 
+#define LARGENUMBER 1994
+
 // We are referring to patches.
 struct patch_s;
+
+extern boolean sts_colored_numbers;// status numbers do not change colors
+extern boolean sts_pct_always_gray;// status percents do not change colors
 
 //
 // Typedefs of widgets

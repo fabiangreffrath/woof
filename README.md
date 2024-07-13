@@ -40,7 +40,7 @@ If you turn the [Doom logo upside down](https://www.reddit.com/r/Doom/comments/8
  * Adjustable field of view (FOV).
  * Support for voxels in KVX format.
  * 3D audio, supporting stereo and up to 7.1 surround sound with an optional HRTF mode, as well as PC speaker emulation.
- * Several music backends: native MIDI on Windows and macOS, FluidSynth with a bundled soundfont, built-in OPL3 emulator. Digital music and sound formats supported by libsndfile, module music supported by libxmp.
+ * Several music backends: native MIDI, FluidSynth with a bundled soundfont, built-in OPL3 emulator. Digital music and sound formats supported by libsndfile, module music supported by libxmp.
  * Modern gamepad support.
  * Mouselook.
  * Autoload directories.
@@ -156,23 +156,12 @@ Copyright:
  © 2020 Alex Mayfield;  
  © 2020-2024 Fabian Greffrath;  
  © 2020-2024 Roman Fomin;  
- © 2021 Ryan Krafnick;  
+ © 2021-2022 Ryan Krafnick;  
  © 2022-2024 Alaux;  
  © 2022-2024 ceski;  
  © 2023 Andrew Apted;  
  © 2023 liPillON.  
 License: [GPL-2.0+](https://www.gnu.org/licenses/old-licenses/gpl-2.0.html)
-
-Files: `src/beta.h`  
-Copyright: © 2001-2019 Contributors to the Freedoom project.  
-License: [BSD-3-Clause](https://opensource.org/licenses/BSD-3-Clause)
-
-Files: `src/dogs.h`  
-Copyright:  
- © 2017 Nash Muhandes;  
- © apolloaiello;  
- © TobiasKosmos.  
-License: [CC-BY-3.0](https://creativecommons.org/licenses/by/3.0/) and [CC0-1.0](https://creativecommons.org/publicdomain/zero/1.0/)
 
 Files: `src/nano_bsp.*`  
 Copyright: © 2023 Andrew Apted.  
@@ -196,6 +185,17 @@ Copyright:
  © 2013 James Haley et al.  
 License: [GPL-3.0+](https://www.gnu.org/licenses/gpl-3.0)
 
+Files: `base/all-all/sprites/pls*`  
+Copyright: © 2001-2019 Contributors to the Freedoom project.  
+License: [BSD-3-Clause](https://opensource.org/licenses/BSD-3-Clause)
+
+Files: `base/all-all/dsdg*, base/all-all/sprites/dog*`  
+Copyright:  
+ © 2017 Nash Muhandes;  
+ © apolloaiello;  
+ © TobiasKosmos.  
+License: [CC-BY-3.0](https://creativecommons.org/licenses/by/3.0/) and [CC0-1.0](https://creativecommons.org/publicdomain/zero/1.0/)
+
 Files: `cmake/FindSDL2.cmake, cmake/FindSDL2_net.cmake`  
 Copyright: © 2018 Alex Mayfield.  
 License: [BSD-3-Clause](https://opensource.org/licenses/BSD-3-Clause)
@@ -209,6 +209,10 @@ Copyright:
  © 2010-2014 Rich Geldreich and Tenacious Software LLC;  
  © 2013-2014 RAD Game Tools and Valve Software.  
 License: [MIT](https://opensource.org/licenses/MIT)
+
+Files: `spng/*`  
+Copyright: © 2018-2023 Randy.  
+License: [BSD-2-Clause](https://opensource.org/license/bsd-2-clause)
 
 Files: `opl/*`  
 Copyright:  

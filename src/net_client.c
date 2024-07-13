@@ -18,6 +18,7 @@
 #include <string.h>
 
 #include "config.h"
+#include "d_loop.h"
 #include "d_ticcmd.h"
 #include "doomtype.h"
 #include "i_printf.h"
@@ -31,8 +32,6 @@
 #include "net_query.h"
 #include "net_server.h"
 #include "net_structrw.h"
-
-extern void D_ReceiveTic(ticcmd_t *ticcmds, boolean *playeringame);
 
 typedef enum
 {
@@ -89,8 +88,6 @@ typedef struct
     net_ticdiff_t cmd;
 } net_server_send_t;
 
-extern fixed_t offsetms;
-
 static net_connection_t client_connection;
 static net_clientstate_t client_state;
 static net_addr_t *server_addr;
@@ -119,7 +116,7 @@ boolean net_waiting_for_launch = false;
 
 // Name that we send to the server
 
-char *net_player_name = NULL;
+const char *net_player_name = NULL;
 
 // Connected but not participating in the game (observer)
 

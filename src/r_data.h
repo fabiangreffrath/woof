@@ -51,9 +51,20 @@ void R_InvulMode(void);
 
 boolean R_IsPatchLump (const int lump);
 
+extern int numflats;
+
 extern byte *main_tranmap, *tranmap;
 
 extern int tran_filter_pct;
+
+typedef enum
+{
+  INVUL_VANILLA,
+  INVUL_MBF,
+  INVUL_GRAY,
+} invul_mode_t;
+
+extern invul_mode_t invul_mode;
 
 #endif
 

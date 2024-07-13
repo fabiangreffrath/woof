@@ -61,6 +61,8 @@ void    P_RadiusAttack(struct mobj_s *spot, struct mobj_s *source,
                        int damage, int distance);
 boolean P_CheckPosition(struct mobj_s *thing, fixed_t x, fixed_t y);
 
+boolean P_ChangeSector(struct sector_s *sector,boolean crunch);
+
 //jff 3/19/98 P_CheckSector(): new routine to replace P_ChangeSector()
 boolean P_CheckSector(struct sector_s *sector, boolean crunch);
 void    P_DelSeclist(struct msecnode_s *);                          // phares 3/16/98
@@ -74,6 +76,9 @@ void    P_ApplyTorque(struct mobj_s *mo);                          // killough 9
 void    P_MapStart(void);
 void    P_MapEnd(void);
 
+boolean PIT_RadiusAttack(struct mobj_s *thing);
+boolean PIT_ChangeSector(struct mobj_s* thing);
+
 // If "floatok" true, move would be ok if within "tmfloorz - tmceilingz".
 extern boolean floatok;
 extern boolean felldown;   // killough 11/98: indicates object pushed off ledge
@@ -83,8 +88,16 @@ extern struct line_s *ceilingline;
 extern struct line_s *floorline;      // killough 8/23/98
 extern struct mobj_s *linetarget;     // who got hit (or NULL)
 extern struct msecnode_s *sector_list;                             // phares 3/16/98
+extern struct msecnode_s *headsecnode;
 extern fixed_t tmbbox[4];         // phares 3/20/98
 extern struct line_s *blockline;   // killough 8/11/98
+extern boolean hangsolid;
+
+// 1/11/98 killough: Limit removed on special lines crossed
+extern struct line_s **spechit;
+extern int numspechit;
+
+extern fixed_t attackrange;
 
 #endif // __P_MAP__
 

@@ -24,6 +24,8 @@ typedef struct midi_file_s midi_file_t;
 typedef struct midi_track_iter_s midi_track_iter_t;
 
 #define MIDI_CHANNELS_PER_TRACK      16
+#define MIDI_DEFAULT_VOLUME          100
+#define MIDI_DEFAULT_TEMPO           500000 // 120 bpm
 
 #define MIDI_RPN_MSB                 0x00
 #define MIDI_RPN_PITCH_BEND_SENS_LSB 0x00
@@ -77,6 +79,8 @@ typedef enum
     MIDI_CONTROLLER_RESET_ALL_CTRLS = 0x79,
     MIDI_CONTROLLER_ALL_NOTES_OFF   = 0x7B,
 
+    MIDI_CONTROLLER_OMNI_MODE_OFF   = 0x7C,
+    MIDI_CONTROLLER_OMNI_MODE_ON    = 0x7D,
     MIDI_CONTROLLER_POLY_MODE_OFF   = 0x7E,
     MIDI_CONTROLLER_POLY_MODE_ON    = 0x7F,
 } midi_controller_t;
@@ -132,6 +136,15 @@ typedef enum
     EMIDI_CONTROLLER_GLOBAL_LOOP_END   = 0x77,
 } emidi_controller_t;
 
+typedef enum
+{
+    MIDI_SYSEX_UNSUPPORTED,
+    MIDI_SYSEX_RESET,
+    MIDI_SYSEX_RHYTHM_PART,
+    MIDI_SYSEX_PART_LEVEL,
+    MIDI_SYSEX_OTHER,
+} midi_sysex_type_t;
+
 typedef struct
 {
     // Meta event type:
@@ -149,6 +162,9 @@ typedef struct
 
 typedef struct
 {
+    unsigned int type;
+    unsigned int channel;
+
     // Length:
 
     unsigned int length;
@@ -229,5 +245,9 @@ void MIDI_SetLoopPoint(midi_track_iter_t *iter);
 // Set position to saved loop point.
 
 void MIDI_RestartAtLoopPoint(midi_track_iter_t *iter);
+
+// Check if this MIDI file contains a valid RPG Maker loop point.
+
+boolean MIDI_RPGLoop(const midi_file_t *file);
 
 #endif /* #ifndef MIDIFILE_H */

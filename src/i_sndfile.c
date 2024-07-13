@@ -521,35 +521,59 @@ static boolean OpenFile(sndfile_t *file, void *data, sf_count_t size)
     return true;
 }
 
-static void FadeInMono16(short *data, ALsizei size, ALsizei freq)
+static void FadeInOutMono16(short *data, ALsizei size, ALsizei freq)
 {
+    const int len = size / sizeof(short);
     const int fadelen = freq * FADETIME / 1000000;
     int i;
 
-    if (!data[0] || size / sizeof(short) < fadelen)
+    if (len < fadelen)
     {
         return;
     }
 
-    for (i = 0; i < fadelen; i++)
+    if (data[0])
     {
-        data[i] = data[i] * i / fadelen;
+        for (i = 0; i < fadelen; i++)
+        {
+            data[i] = data[i] * i / fadelen;
+        }
+    }
+
+    if (data[len - 1])
+    {
+        for (i = 0; i < fadelen; i++)
+        {
+            data[len - 1 - i] = data[len - 1 - i] * i / fadelen;
+        }
     }
 }
 
-static void FadeInMonoFloat32(float *data, ALsizei size, ALsizei freq)
+static void FadeInOutMonoFloat32(float *data, ALsizei size, ALsizei freq)
 {
+    const int len = size / sizeof(float);
     const int fadelen = freq * FADETIME / 1000000;
     int i;
 
-    if (fabsf(data[0]) < 0.000001f || size / sizeof(float) < fadelen)
+    if (len < fadelen)
     {
         return;
     }
 
-    for (i = 0; i < fadelen; i++)
+    if (fabsf(data[0]) > 0.000001f)
     {
-        data[i] = data[i] * i / fadelen;
+        for (i = 0; i < fadelen; i++)
+        {
+            data[i] = data[i] * i / fadelen;
+        }
+    }
+
+    if (fabsf(data[len - 1]) > 0.000001f)
+    {
+        for (i = 0; i < fadelen; i++)
+        {
+            data[len - 1 - i] = data[len - 1 - i] * i / fadelen;
+        }
     }
 }
 
@@ -596,11 +620,11 @@ boolean I_SND_LoadFile(void *data, ALenum *format, byte **wavdata,
     // Fade in sounds that start at a non-zero amplitude to prevent clicking.
     if (*format == AL_FORMAT_MONO16)
     {
-        FadeInMono16(local_wavdata, *size, *freq);
+        FadeInOutMono16(local_wavdata, *size, *freq);
     }
     else if (*format == AL_FORMAT_MONO_FLOAT32)
     {
-        FadeInMonoFloat32(local_wavdata, *size, *freq);
+        FadeInOutMonoFloat32(local_wavdata, *size, *freq);
     }
 
     *wavdata = local_wavdata;
@@ -704,9 +728,14 @@ static void I_SND_ShutdownStream(void)
     ;
 }
 
-static const char **I_SND_DeviceList(int *current_device)
+static const char **I_SND_DeviceList(void)
 {
     return NULL;
+}
+
+static void I_SND_BindVariables(void)
+{
+    ;
 }
 
 stream_module_t stream_snd_module =
@@ -718,4 +747,5 @@ stream_module_t stream_snd_module =
     I_SND_CloseStream,
     I_SND_ShutdownStream,
     I_SND_DeviceList,
+    I_SND_BindVariables,
 };

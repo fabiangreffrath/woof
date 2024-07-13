@@ -24,7 +24,17 @@
 #include "i_system.h"
 #include "m_fixed.h"
 
+#ifdef _WIN32
+#define WIN32_LEAN_AND_MEAN
+#include <windows.h>
+
+HANDLE hTimer = NULL;
+#else
+#include <unistd.h>
+#endif
+
 static uint64_t basecounter = 0;
+static uint64_t basecounter_scaled = 0;
 static uint64_t basefreq = 0;
 
 static int MSToTic(uint32_t time)
@@ -69,12 +79,12 @@ static uint64_t GetPerfCounter_Scaled(void)
 
     counter = SDL_GetPerformanceCounter() * time_scale / 100;
 
-    if (basecounter == 0)
+    if (basecounter_scaled == 0)
     {
-        basecounter = counter;
+        basecounter_scaled = counter;
     }
 
-    return counter - basecounter;
+    return counter - basecounter_scaled;
 }
 
 static uint32_t GetTimeMS_Scaled(void)
@@ -83,12 +93,12 @@ static uint32_t GetTimeMS_Scaled(void)
 
     counter = SDL_GetPerformanceCounter() * time_scale / 100;
 
-    if (basecounter == 0)
+    if (basecounter_scaled == 0)
     {
-        basecounter = counter;
+        basecounter_scaled = counter;
     }
 
-    return ((counter - basecounter) * 1000ull) / basefreq;
+    return ((counter - basecounter_scaled) * 1000ull) / basefreq;
 }
 
 int I_GetTime_RealTime(void)
@@ -136,6 +146,24 @@ void I_InitTimer(void)
         I_Error("I_InitTimer: Failed to initialize timer: %s", SDL_GetError());
     }
 
+#ifdef _WIN32
+    // Create an unnamed waitable timer.
+    hTimer = CreateWaitableTimerEx(NULL, NULL,
+                                   CREATE_WAITABLE_TIMER_MANUAL_RESET
+                                   | CREATE_WAITABLE_TIMER_HIGH_RESOLUTION,
+                                   TIMER_ALL_ACCESS);
+
+    if (hTimer == NULL)
+    {
+        hTimer = CreateWaitableTimer(NULL, TRUE, NULL);
+    }
+
+    if (hTimer == NULL)
+    {
+        I_Error("I_InitTimer: CreateWaitableTimer failed");
+    }
+#endif
+
     I_AtExit(I_ShutdownTimer, true);
 
     basefreq = SDL_GetPerformanceFrequency();
@@ -152,7 +180,7 @@ void I_SetTimeScale(int scale)
 
     time_scale = scale;
 
-    basecounter += (GetPerfCounter_Scaled() - counter);
+    basecounter_scaled += (GetPerfCounter_Scaled() - counter);
 }
 
 void I_SetFastdemoTimer(boolean on)
@@ -170,7 +198,7 @@ void I_SetFastdemoTimer(boolean on)
 
         counter = TicToCounter(I_GetTime_FastDemo());
 
-        basecounter += (GetPerfCounter_Scaled() - counter);
+        basecounter_scaled += (GetPerfCounter_Scaled() - counter);
 
         I_GetTime = I_GetTime_Scaled;
         I_GetFracTime = I_GetFracTime_Scaled;
@@ -182,6 +210,20 @@ void I_SetFastdemoTimer(boolean on)
 void I_Sleep(int ms)
 {
     SDL_Delay(ms);
+}
+
+void I_SleepUS(uint64_t us)
+{
+#if defined(_WIN32)
+    LARGE_INTEGER liDueTime;
+    liDueTime.QuadPart = -(LONGLONG)(us * 1000 / 100);
+    if (SetWaitableTimer(hTimer, &liDueTime, 0, NULL, NULL, 0))
+    {
+        WaitForSingleObject(hTimer, INFINITE);
+    }
+#else
+    usleep(us);
+#endif
 }
 
 void I_WaitVBL(int count)

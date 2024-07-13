@@ -57,15 +57,16 @@ void MN_StartControlPanel(void);
 
 void MN_ForcedLoadGame(const char *msg); // killough 5/15/98: forced loadgames
 void MN_Trans(void);     // killough 11/98: reset translucency
-void MN_ResetMenu(void); // killough 11/98: reset main menu ordering
 void MN_SetupResetMenu(void);
-void MN_SetupResetMenuVideo(void);
+void MN_UpdateFreeLook(void);
+void MN_UpdateAdvancedSoundItems(boolean toggle);
 void MN_ResetTimeScale(void);
 void MN_DrawCredits(void); // killough 11/98
 void MN_SetHUFontKerning(void);
 void MN_DisableVoxelsRenderingItem(void);
-
-extern int traditional_menu; // display the menu traditional way
+void MN_UpdateDynamicResolutionItem(void);
+void MN_DisableResolutionScaleItem(void);
+void MN_UpdateFpsLimitItem(void);
 
 typedef enum
 {
@@ -77,6 +78,10 @@ typedef enum
 extern backdrop_t menu_backdrop;
 boolean MN_MenuIsShaded(void);
 
+extern int savepage;
+
+extern const char *default_skill_strings[];
+
 void MN_SetQuickSaveSlot(int slot);
 
 void MN_InitMenuStrings(void);
@@ -87,6 +92,10 @@ extern boolean inhelpscreens;
 
 int MN_GetPixelWidth(const char *ch);
 void MN_DrawString(int cx, int cy, int color, const char *ch);
+
+void M_StartSound(int sound_id);
+
+void MN_BindMenuVariables(void);
 
 #endif
 

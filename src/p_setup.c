@@ -1197,13 +1197,13 @@ boolean P_LoadBlockMap (int lump)
 
       blockmaplump[0] = SHORT(wadblockmaplump[0]);
       blockmaplump[1] = SHORT(wadblockmaplump[1]);
-      blockmaplump[2] = (long)(SHORT(wadblockmaplump[2])) & 0xffff;
-      blockmaplump[3] = (long)(SHORT(wadblockmaplump[3])) & 0xffff;
+      blockmaplump[2] = (long)(SHORT(wadblockmaplump[2])) & FRACMASK;
+      blockmaplump[3] = (long)(SHORT(wadblockmaplump[3])) & FRACMASK;
 
       for (i=4 ; i<count ; i++)
         {
           short t = SHORT(wadblockmaplump[i]);          // killough 3/1/98
-          blockmaplump[i] = t == -1 ? -1l : (long) t & 0xffff;
+          blockmaplump[i] = t == -1 ? -1l : (long) t & FRACMASK;
         }
 
       Z_Free(wadblockmaplump);

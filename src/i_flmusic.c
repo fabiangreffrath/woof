@@ -22,6 +22,7 @@
 
 #include "config.h"
 #include "i_oalstream.h"
+#include "m_config.h"
 
 #if (FLUIDSYNTH_VERSION_MAJOR < 2 \
      || (FLUIDSYNTH_VERSION_MAJOR == 2 && FLUIDSYNTH_VERSION_MINOR < 2))
@@ -43,10 +44,9 @@ typedef fluid_long_long_t fluid_int_t;
 #include "w_wad.h"
 #include "z_zone.h"
 
-const char *soundfont_path = "";
-char *soundfont_dir = "";
-boolean mus_chorus;
-boolean mus_reverb;
+static const char *soundfont_dir = "";
+static boolean mus_chorus;
+static boolean mus_reverb;
 
 static fluid_synth_t *synth = NULL;
 static fluid_settings_t *settings = NULL;
@@ -106,12 +106,12 @@ static void ScanDir(const char *dir)
     // [FG] relative to the executable directory
     if (dir[0] == '.')
     {
-        rel = M_StringJoin(D_DoomExeDir(), DIR_SEPARATOR_S, dir, NULL);
+        rel = M_StringJoin(D_DoomExeDir(), DIR_SEPARATOR_S, dir);
         dir = rel;
     }
 
     glob = I_StartMultiGlob(dir, GLOB_FLAG_NOCASE | GLOB_FLAG_SORTED, "*.sf2",
-                            "*.sf3", NULL);
+                            "*.sf3");
 
     while (1)
     {
@@ -254,40 +254,23 @@ static boolean I_FL_InitStream(int device)
     }
     else
     {
-        if (device == DEFAULT_MIDI_DEVICE)
+        GetSoundFonts();
+
+        if (device >= array_size(soundfonts))
         {
-            GetSoundFonts();
-
-            device = 0;
-
-            for (int i = 0; i < array_size(soundfonts); ++i)
-            {
-                if (!strcasecmp(soundfonts[i], soundfont_path))
-                {
-                    device = i;
-                    break;
-                }
-            }
+            FreeSynthAndSettings();
+            return false;
         }
 
-        if (array_size(soundfonts))
-        {
-            if (device >= array_size(soundfonts))
-            {
-                device = 0;
-            }
-            soundfont_path = soundfonts[device];
-        }
-
-        sf_id = fluid_synth_sfload(synth, soundfont_path, true);
+        sf_id = fluid_synth_sfload(synth, soundfonts[device], true);
     }
 
     if (sf_id == FLUID_FAILED)
     {
         char *errmsg;
-        errmsg =
-            M_StringJoin("Error loading FluidSynth soundfont: ",
-                         lumpnum >= 0 ? "SNDFONT lump" : soundfont_path, NULL);
+        errmsg = M_StringJoin(
+            "Error loading FluidSynth soundfont: ",
+            lumpnum >= 0 ? "SNDFONT lump" : soundfonts[device]);
         SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_WARNING, PROJECT_STRING, errmsg,
                                  NULL);
         free(errmsg);
@@ -296,7 +279,7 @@ static boolean I_FL_InitStream(int device)
     }
 
     I_Printf(VB_INFO, "FluidSynth Init: Using '%s'.",
-             lumpnum >= 0 ? "SNDFONT lump" : soundfont_path);
+             lumpnum >= 0 ? "SNDFONT lump" : soundfonts[device]);
 
     return true;
 }
@@ -304,6 +287,11 @@ static boolean I_FL_InitStream(int device)
 static boolean I_FL_OpenStream(void *data, ALsizei size, ALenum *format,
                                ALsizei *freq, ALsizei *frame_size)
 {
+    if (!IsMid(data, size) && !IsMus(data, size))
+    {
+        return false;
+    }
+
     if (!synth)
     {
         return false;
@@ -409,18 +397,13 @@ static void I_FL_ShutdownStream(void)
 
 #define NAME_MAX_LENGTH 25
 
-static const char **I_FL_DeviceList(int *current_device)
+static const char **I_FL_DeviceList(void)
 {
     static const char **devices = NULL;
 
-    if (devices)
+    if (array_size(devices))
     {
         return devices;
-    }
-
-    if (current_device)
-    {
-        *current_device = 0;
     }
 
     if (W_CheckNumForName("SNDFONT") >= 0)
@@ -434,20 +417,34 @@ static const char **I_FL_DeviceList(int *current_device)
     for (int i = 0; i < array_size(soundfonts); ++i)
     {
         char *name = M_StringDuplicate(M_BaseName(soundfonts[i]));
-        if (strlen(name) >= NAME_MAX_LENGTH)
+        if (strlen(name) > NAME_MAX_LENGTH)
         {
             name[NAME_MAX_LENGTH] = '\0';
         }
-
-        array_push(devices, M_StringJoin("FluidSynth (", name, ")", NULL));
-
-        if (current_device && !strcasecmp(soundfonts[i], soundfont_path))
-        {
-            *current_device = i;
-        }
+        array_push(devices, M_StringJoin("FluidSynth (", name, ")"));
         free(name);
     }
+
     return devices;
+}
+
+static void I_FL_BindVariables(void)
+{
+    M_BindStr("soundfont_dir", &soundfont_dir,
+#if defined(_WIN32)
+    "soundfonts",
+#else
+    // RedHat/Fedora/Arch
+    "/usr/share/soundfonts:"
+    // Debian/Ubuntu/OpenSUSE
+    "/usr/share/sounds/sf2:"
+    "/usr/share/sounds/sf3:"
+    // AppImage
+    "../share/" PROJECT_SHORTNAME "/soundfonts",
+#endif
+    wad_no, "FluidSynth soundfont directories");
+    BIND_BOOL(mus_chorus, false, "FluidSynth chorus");
+    BIND_BOOL(mus_reverb, false, "FluidSynth reverb");
 }
 
 stream_module_t stream_fl_module =
@@ -459,4 +456,5 @@ stream_module_t stream_fl_module =
     I_FL_CloseStream,
     I_FL_ShutdownStream,
     I_FL_DeviceList,
+    I_FL_BindVariables,
 };

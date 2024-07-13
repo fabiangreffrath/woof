@@ -319,7 +319,7 @@ static void I_3D_UpdateListenerParams(const mobj_t *listener)
     I_OAL_UpdateListenerParams(lis.position, lis.velocity, lis.orientation);
 }
 
-static boolean I_3D_StartSound(int channel, sfxinfo_t *sfx, int pitch)
+static boolean I_3D_StartSound(int channel, sfxinfo_t *sfx, float pitch)
 {
     if (src.use_3d)
     {
@@ -333,10 +333,20 @@ static boolean I_3D_StartSound(int channel, sfxinfo_t *sfx, int pitch)
     return I_OAL_StartSound(channel, sfx, pitch);
 }
 
+static boolean I_3D_InitSound(void)
+{
+    return I_OAL_InitSound(SND_MODULE_3D);
+}
+
+static boolean I_3D_ReinitSound(void)
+{
+    return I_OAL_ReinitSound(SND_MODULE_3D);
+}
+
 const sound_module_t sound_3d_module =
 {
-    I_OAL_InitSound,
-    I_OAL_ReinitSound,
+    I_3D_InitSound,
+    I_3D_ReinitSound,
     I_OAL_AllowReinitSound,
     I_OAL_CacheSound,
     I_3D_AdjustSoundParams,
@@ -349,4 +359,5 @@ const sound_module_t sound_3d_module =
     I_OAL_ShutdownModule,
     I_OAL_DeferUpdates,
     I_OAL_ProcessUpdates,
+    I_OAL_BindSoundVariables,
 };

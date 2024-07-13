@@ -16,27 +16,37 @@
 //      [FG] miscellaneous helper functions from Chocolate Doom.
 //
 
-#ifndef __M_MISC2__
-#define __M_MISC2__
+#ifndef __M_MISC__
+#define __M_MISC__
 
 #include <stdarg.h>
 
 #include "doomtype.h"
 
 boolean M_FileExists(const char *file);
+boolean M_DirExists(const char *path);
+int M_FileLength(const char *path);
 char *M_TempFile(const char *s);
 char *M_FileCaseExists(const char *file);
 boolean M_StrToInt(const char *str, int *result);
 char *M_DirName(const char *path);
 const char *M_BaseName(const char *path);
-void M_ForceUppercase(char *text);
-void M_ForceLowercase(char *text);
+char M_ToUpper(const char c);
+void M_StringToUpper(char *text);
+char M_ToLower(const char c);
+void M_StringToLower(char *text);
 char *M_StringDuplicate(const char *orig);
 boolean M_StringCopy(char *dest, const char *src, size_t dest_size);
 boolean M_StringConcat(char *dest, const char *src, size_t dest_size);
 char *M_StringReplace(const char *haystack, const char *needle,
                       const char *replacement);
-char *M_StringJoin(const char *s, ...);
+
+char *M_StringJoinInternal(const char *s[], size_t n);
+#define M_StringJoin(...)                                      \
+    M_StringJoinInternal((const char *[]){__VA_ARGS__},        \
+                         sizeof((const char *[]){__VA_ARGS__}) \
+                             / sizeof(const char *))
+
 boolean M_StringEndsWith(const char *s, const char *suffix);
 boolean M_StringCaseEndsWith(const char *s, const char *suffix);
 int M_vsnprintf(char *buf, size_t buf_len, const char *s, va_list args)

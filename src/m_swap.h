@@ -37,6 +37,8 @@
 #define SHORT(x)  ((signed short) SDL_SwapLE16(x))
 #define LONG(x)   ((signed int) SDL_SwapLE32(x))
 
+#define SWAP_BE32(x) ((signed int) SDL_SwapBE32(x))
+
 #endif
 
 //----------------------------------------------------------------------------

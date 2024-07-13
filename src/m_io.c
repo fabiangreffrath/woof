@@ -305,9 +305,10 @@ int M_stat(const char *path, struct stat *buf)
 
     // The _wstat() function expects a struct _stat* parameter that is
     // incompatible with struct stat*. We copy only the required compatible
-    // field.
+    // fields.
     buf->st_mode = wbuf.st_mode;
     buf->st_mtime = wbuf.st_mtime;
+    buf->st_size = wbuf.st_size;
 
     free(wpath);
 

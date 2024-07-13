@@ -30,6 +30,7 @@
 #include "g_game.h"
 #include "hu_stuff.h"
 #include "info.h"
+#include "m_cheat.h"
 #include "m_input.h"
 #include "p_map.h"
 #include "p_mobj.h"
@@ -39,20 +40,12 @@
 #include "r_defs.h"
 #include "r_main.h"
 #include "r_state.h"
+#include "st_stuff.h"
 
 static fixed_t PlayerSlope(player_t *player)
 {
   const fixed_t pitch = player->pitch;
-
-  if (pitch)
-  {
-    const fixed_t slope = -finetangent[(ANG90 - pitch) >> ANGLETOFINESHIFT];
-    return (fixed_t)((int64_t)slope * SCREENHEIGHT / ACTUALHEIGHT);
-  }
-  else
-  {
-    return 0;
-  }
+  return pitch ? -finetangent[(ANG90 - pitch) >> ANGLETOFINESHIFT] : 0;
 }
 
 // Index of the special effects (INVUL inverse) map.
@@ -213,12 +206,7 @@ void P_MovePlayer (player_t* player)
 
   mo->angle += cmd->angleturn << 16;
   onground = mo->z <= mo->floorz;
-
-  if (player == &players[consoleplayer])
-  {
-    localview.ticangle += localview.ticangleturn << 16;
-    localview.ticangleturn = 0;
-  }
+  player->ticangle += cmd->ticangleturn << FRACBITS;
 
   // killough 10/98:
   //
@@ -269,13 +257,6 @@ void P_MovePlayer (player_t* player)
 }
 
 #define ANG5 (ANG90/18)
-
-typedef enum
-{
-  death_use_default,
-  death_use_reload,
-  death_use_nothing
-} death_use_action_t;
 
 death_use_action_t death_use_action;
 
@@ -369,7 +350,6 @@ void P_PlayerThink (player_t* player)
 {
   ticcmd_t*    cmd;
   weapontype_t newweapon;
-  extern boolean palette_changes;
 
   // [AM] Assume we can interpolate at the beginning
   //      of the tic.
@@ -383,11 +363,7 @@ void P_PlayerThink (player_t* player)
   player->oldviewz = player->viewz;
   player->oldpitch = player->pitch;
   player->oldrecoilpitch = player->recoilpitch;
-
-  if (player == &players[consoleplayer])
-  {
-    localview.oldticangle = localview.ticangle;
-  }
+  player->oldticangle = player->ticangle;
 
   // killough 2/8/98, 3/21/98:
   // (this code is necessary despite questions raised elsewhere in a comment)
@@ -403,6 +379,7 @@ void P_PlayerThink (player_t* player)
   if (player->mo->flags & MF_JUSTATTACKED)
     {
       cmd->angleturn = 0;
+      cmd->ticangleturn = 0;
       cmd->forwardmove = 0xc800/512;
       cmd->sidemove = 0;
       player->mo->flags &= ~MF_JUSTATTACKED;
@@ -577,7 +554,6 @@ void P_PlayerThink (player_t* player)
 
   if (player->cheats & CF_MAPCOORDS)
   {
-    extern void cheat_mypos_print();
     cheat_mypos_print();
   }
 

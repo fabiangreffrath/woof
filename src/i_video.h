@@ -26,7 +26,7 @@
 #define FOV_DEFAULT      90
 #define FOV_MIN          60
 #define FOV_MAX          120
-#define ASPECT_RATIO_MAX 2.4  // Up to 21:9. TODO: Support up to 3.6 (32:9).
+#define ASPECT_RATIO_MAX 3.6 // Up to 32:9 aspect ratio.
 #define ASPECT_RATIO_MIN (4.0 / 3.0)
 
 typedef enum
@@ -36,6 +36,7 @@ typedef enum
     RATIO_16_10,
     RATIO_16_9,
     RATIO_21_9,
+    RATIO_32_9,
     NUM_RATIOS
 } aspect_ratio_mode_t;
 
@@ -66,35 +67,19 @@ void I_ToggleVsync(void); // [JN] Calls native SDL vsync toggle
 
 void I_DynamicResolution(void);
 
-extern boolean drs_skip_frame;
-
-extern boolean use_vsync; // killough 2/8/98: controls whether vsync is called
-extern boolean disk_icon; // killough 10/98
 extern int current_video_height;
-
-#  define DRS_MIN_HEIGHT 400
+extern boolean drs_skip_frame;
+#define DRS_MIN_HEIGHT 400
 extern boolean dynamic_resolution;
-
-extern boolean use_aspect;
-extern boolean uncapped,
-    default_uncapped; // [FG] uncapped rendering frame rate
-
-extern boolean fullscreen;
-extern boolean exclusive_fullscreen;
-extern int fpslimit; // when uncapped, limit framerate to this value
+extern boolean uncapped;
 extern int fps;
-extern boolean vga_porch_flash; // emulate VGA "porch" behaviour
-extern aspect_ratio_mode_t widescreen, default_widescreen; // widescreen mode
 extern int custom_fov;    // Custom FOV set by the player.
-extern int video_display; // display index
-extern boolean screenvisible;
-extern boolean window_focused;
 extern boolean resetneeded;
 extern boolean setrefreshneeded;
-extern boolean smooth_scaling;
 extern boolean toggle_fullscreen;
 extern boolean toggle_exclusive_fullscreen;
-extern boolean default_grabmouse;
+extern boolean correct_aspect_ratio;
+extern boolean screenvisible;
 
 extern int gamma2;
 byte I_GetPaletteIndex(byte *palette, int r, int g, int b);
@@ -106,8 +91,12 @@ void *I_GetSDLRenderer(void);
 
 void I_InitWindowIcon(void);
 
-void I_ShowMouseCursor(boolean on);
+void I_ShowMouseCursor(boolean toggle);
 void I_ResetRelativeMouseState(void);
+
+void I_UpdatePriority(boolean active);
+
+void I_BindVideoVariables(void);
 
 boolean I_ChangeRes(void);
 void I_CheckHOM(void);

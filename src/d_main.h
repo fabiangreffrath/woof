@@ -25,8 +25,6 @@
 
 struct event_s;
 
-extern char **wadfiles;       // killough 11/98
-
 void D_AddFile(const char *file);
 
 char *D_DoomExeName(void);      // killough 10/98: executable's name
@@ -48,7 +46,9 @@ boolean D_CheckEndDoom(void);
 // Called by IO functions when input is detected.
 void D_PostEvent(struct event_s *ev);
 
-void D_UpdateDeltaTics(void);
+extern boolean input_ready;
+
+void D_BindMiscVariables(void);
 
 //
 // BASE LEVEL
@@ -60,6 +60,7 @@ void D_AdvanceDemo(void);
 void D_StartTitle(void);
 
 extern boolean run_test;
+extern boolean advancedemo;
 
 #endif
 

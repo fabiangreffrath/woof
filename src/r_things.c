@@ -24,7 +24,7 @@
 #include "d_player.h"
 #include "doomdef.h"
 #include "doomstat.h"
-#include "hu_stuff.h" // [Alaux] Lock crosshair on target
+#include "hu_crosshair.h" // [Alaux] Lock crosshair on target
 #include "i_printf.h"
 #include "i_system.h"
 #include "i_video.h"
@@ -42,11 +42,13 @@
 #include "r_things.h"
 #include "r_voxel.h"
 #include "tables.h"
+#include "v_fmt.h"
 #include "v_video.h"
 #include "w_wad.h"
 #include "z_zone.h"
 
 #define MINZ        (FRACUNIT*4)
+#define MAXZ        (FRACUNIT*8192)
 #define BASEYCENTER 100
 
 typedef struct {
@@ -312,6 +314,11 @@ void R_InitSpriteDefs(char **namelist)
 static vissprite_t *vissprites, **vissprite_ptrs;  // killough
 static size_t num_vissprite, num_vissprite_alloc, num_vissprite_ptrs;
 
+#define M_ARRAY_INIT_CAPACITY 128
+#include "m_array.h"
+
+static mobj_t **nearby_sprites = NULL;
+
 //
 // R_InitSprites
 // Called at program start.
@@ -386,7 +393,7 @@ void R_DrawMaskedColumn(column_t *column)
       bottomscreen = topscreen + spryscale*column->length;
 
       // Here's where "sparkles" come in -- killough:
-      dc_yl = (int)((topscreen+FRACUNIT-1)>>FRACBITS); // [FG] 64-bit integer math
+      dc_yl = (int)((topscreen+FRACMASK)>>FRACBITS); // [FG] 64-bit integer math
       dc_yh = (int)((bottomscreen-1)>>FRACBITS); // [FG] 64-bit integer math
 
       if (dc_yh >= mfloorclip[dc_x])
@@ -420,7 +427,7 @@ void R_DrawVisSprite(vissprite_t *vis, int x1, int x2)
   column_t *column;
   int      texturecolumn;
   fixed_t  frac;
-  patch_t  *patch = W_CacheLumpNum (vis->patch+firstspritelump, PU_CACHE);
+  patch_t  *patch = V_CachePatchNum (vis->patch+firstspritelump, PU_CACHE);
 
   dc_colormap[0] = vis->colormap[0];
   dc_colormap[1] = vis->colormap[1];
@@ -465,10 +472,10 @@ void R_DrawVisSprite(vissprite_t *vis, int x1, int x2)
     {
       texturecolumn = frac>>FRACBITS;
 
-#ifdef RANGECHECK
-      if (texturecolumn < 0 || texturecolumn >= SHORT(patch->width))
-        I_Error ("R_DrawSpriteRange: bad texturecolumn");
-#endif
+      if (texturecolumn < 0)
+        continue;
+      else if (texturecolumn >= SHORT(patch->width))
+        break;
 
       column = (column_t *)((byte *) patch +
                             LONG(patch->columnofs[texturecolumn]));
@@ -484,7 +491,7 @@ void R_DrawVisSprite(vissprite_t *vis, int x1, int x2)
 
 boolean flipcorpses = false;
 
-void R_ProjectSprite (mobj_t* thing)
+static void R_ProjectSprite (mobj_t* thing)
 {
   fixed_t   gzt;               // killough 3/27/98
   fixed_t   tx, txc;
@@ -539,18 +546,18 @@ void R_ProjectSprite (mobj_t* thing)
   tz = gxt-gyt;
 
   // thing is behind view plane?
-  if (tz < MINZ)
+  if (tz < MINZ || tz > MAXZ)
     return;
-
-  xscale = FixedDiv(projection, tz);
 
   gxt = -FixedMul(tr_x,viewsin);
   gyt = FixedMul(tr_y,viewcos);
   tx = -(gyt+gxt);
 
   // too far off the side?
-  if (abs(tx)>((int64_t) tz<<2))
+  if (abs(tx) / max_project_slope > tz)
     return;
+
+  xscale = FixedDiv(projection, tz);
 
     // decide which patch to use for sprite relative to player
   if ((unsigned) thing->sprite >= num_sprites)
@@ -593,14 +600,14 @@ void R_ProjectSprite (mobj_t* thing)
   // calculate edges of the shape
   // [crispy] fix sprite offsets for mirrored sprites
   tx -= flip ? spritewidth[lump] - spriteoffset[lump] : spriteoffset[lump];
-  x1 = (centerxfrac + FixedMul(tx,xscale)) >>FRACBITS;
+  x1 = (centerxfrac + FixedMul64(tx,xscale)) >>FRACBITS;
 
     // off the right side?
   if (x1 > viewwidth)
     return;
 
   tx +=  spritewidth[lump];
-  x2 = ((centerxfrac + FixedMul(tx,xscale)) >> FRACBITS) - 1;
+  x2 = ((centerxfrac + FixedMul64(tx,xscale)) >> FRACBITS) - 1;
 
     // off the left side
   if (x2 < 0)
@@ -683,7 +690,10 @@ void R_ProjectSprite (mobj_t* thing)
       vis->colormap[0] = spritelights[index];
       vis->colormap[1] = fullcolormap;
     }
-  vis->brightmap = R_BrightmapForSprite(thing->sprite);
+
+  vis->brightmap = R_BrightmapForState(thing->state - states);
+  if (vis->brightmap == nobrightmap)
+    vis->brightmap = R_BrightmapForSprite(thing->sprite);
 
   // [Alaux] Lock crosshair on target
   if (STRICTMODE(hud_crosshair_lockon) && thing == crosshair_target)
@@ -702,6 +712,8 @@ void R_ProjectSprite (mobj_t* thing)
 // R_AddSprites
 // During BSP traversal, this adds sprites by sector.
 //
+
+boolean draw_nearby_sprites;
 
 // killough 9/18/98: add lightlevel as parameter, fixing underwater lighting
 void R_AddSprites(sector_t* sec, int lightlevel)
@@ -736,6 +748,46 @@ void R_AddSprites(sector_t* sec, int lightlevel)
 
   for (thing = sec->thinglist; thing; thing = thing->snext)
     R_ProjectSprite(thing);
+
+  if (STRICTMODE(draw_nearby_sprites))
+  {
+    for (msecnode_t *n = sec->touching_thinglist; n; n = n->m_snext)
+    {
+      thing = n->m_thing;
+
+      // [FG] sprites in sector have already been projected
+      if (thing->subsector->sector->validcount != validcount)
+      {
+        array_push(nearby_sprites, thing);
+      }
+    }
+  }
+}
+
+void R_NearbySprites (void)
+{
+  for (int i = 0; i < array_size(nearby_sprites); i++)
+  {
+    mobj_t *thing = nearby_sprites[i];
+    sector_t* sec = thing->subsector->sector;
+
+    // [FG] sprites in sector have already been projected
+    if (sec->validcount != validcount)
+    {
+      int lightnum = (sec->lightlevel >> LIGHTSEGSHIFT) + extralight;
+
+      if (lightnum < 0)
+        spritelights = scalelight[0];
+      else if (lightnum >= LIGHTLEVELS)
+        spritelights = scalelight[LIGHTLEVELS-1];
+      else
+        spritelights = scalelight[lightnum];
+
+      R_ProjectSprite(thing);
+    }
+  }
+
+  array_clear(nearby_sprites);
 }
 
 //

@@ -26,7 +26,11 @@
 
 #include "config.h"
 
+#if __bool_true_false_are_defined
+typedef int boolean;
+#else
 typedef enum {false, true} boolean;
+#endif
 
 typedef uint8_t byte;
 
@@ -46,9 +50,11 @@ typedef byte lighttable_t;
 #if !HAVE_DECL_STRCASECMP || !HAVE_DECL_STRNCASECMP
   #include <string.h>
   #if !HAVE_DECL_STRCASECMP
+    #undef strcasecmp
     #define strcasecmp stricmp
   #endif
   #if !HAVE_DECL_STRNCASECMP
+    #undef strncasecmp
     #define strncasecmp strnicmp
   #endif
 #else
@@ -67,15 +73,16 @@ typedef byte lighttable_t;
 
 #define arrlen(array) (sizeof(array) / sizeof(*array))
 
-#ifndef MIN
- #define MIN(a,b) (((a)<(b))?(a):(b))
-#endif
-#ifndef MAX
- #define MAX(a,b) (((a)>(b))?(a):(b))
-#endif
-#ifndef BETWEEN
- #define BETWEEN(l,u,x) ((l)>(x)?(l):(x)>(u)?(u):(x))
-#endif
+#define MIN(a, b) (((a) < (b)) ? (a) : (b))
+
+#define MAX(a, b) (((a) > (b)) ? (a) : (b))
+
+#define BETWEEN(l, u, x) ((l) > (x) ? (l) : (x) > (u) ? (u) : (x))
+
+inline static int DivRoundClosest(const int n, const int d)
+{
+    return ((n < 0) == (d < 0)) ? ((n + d / 2) / d) : ((n - d / 2) / d);
+}
 
 #if defined(_MSC_VER) && !defined(__cplusplus)
 #define inline __inline

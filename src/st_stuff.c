@@ -33,6 +33,7 @@
 #include "i_video.h"
 #include "info.h"
 #include "m_cheat.h"
+#include "m_config.h"
 #include "m_misc.h"
 #include "m_random.h"
 #include "m_swap.h"
@@ -47,6 +48,7 @@
 #include "st_lib.h"
 #include "st_stuff.h"
 #include "tables.h"
+#include "v_fmt.h"
 #include "v_video.h"
 #include "w_wad.h"
 #include "z_zone.h"
@@ -202,8 +204,9 @@ static int lu_palette;
 // whether left-side main status bar is active
 static boolean st_statusbaron;
 
-// [crispy] distinguish classic status bar with background and player face from Crispy HUD
-boolean st_crispyhud;
+// [crispy] distinguish classic status bar with background and player face
+// from Crispy HUD
+static boolean st_crispyhud;
 static boolean st_classicstatusbar;
 
 // !deathmatch
@@ -251,7 +254,7 @@ static patch_t *arms[6][2];
 static st_number_t w_ready;
 
 // [Alaux]
-int hud_animated_counts;
+static boolean hud_animated_counts;
 int st_health = 100;
 int st_armor = 0;
 
@@ -265,8 +268,8 @@ int armor_red;     // armor amount less than which status is red
 int armor_yellow;  // armor amount less than which status is yellow
 int armor_green;   // armor amount above is blue, below is green
 
-int hud_backpack_thresholds; // backpack changes thresholds
-int hud_armor_type; // color of armor depends on type
+boolean hud_backpack_thresholds; // backpack changes thresholds
+boolean hud_armor_type; // color of armor depends on type
 
  // in deathmatch only, summary of frags stats
 static st_number_t w_frags;
@@ -315,15 +318,13 @@ int             st_keyorskull[3];
 // a random number per tick
 static int      st_randomnumber;
 
-extern char     *mapnames[];
-
 //
 // STATUS BAR CODE
 //
 
 void ST_Stop(void);
 
-int st_solidbackground;
+static boolean st_solidbackground;
 
 static void ST_DrawSolidBackground(int st_x)
 {
@@ -404,7 +405,7 @@ void ST_refreshBackground(void)
             // in widescreen mode
             const char *name = (gamemode == commercial) ? "GRNROCK" : "FLOOR7_2";
 
-            const byte *src = W_CacheLumpNum(firstflat + R_FlatNumForName(name), PU_CACHE);
+            const byte *src = V_CacheFlatNum(firstflat + R_FlatNumForName(name), PU_CACHE);
 
             V_TileBlock64(SCREENHEIGHT - ST_HEIGHT, video.unscaledw, ST_HEIGHT, src);
 
@@ -412,12 +413,12 @@ void ST_refreshBackground(void)
             if (scaledviewwidth == video.unscaledw)
             {
                 int x;
-                patch_t *patch = W_CacheLumpName("brdr_b", PU_CACHE);
+                patch_t *patch = V_CachePatchName("brdr_b", PU_CACHE);
 
                 for (x = 0; x < video.deltaw; x += 8)
                 {
                     V_DrawPatch(x - video.deltaw, 0, patch);
-                    V_DrawPatch(SCREENWIDTH + video.deltaw - x - 8, 0, patch);
+                    V_DrawPatch(video.unscaledw - video.deltaw - x - 8, 0, patch);
                 }
             }
         }
@@ -669,8 +670,8 @@ void ST_updateFaceWidget(void)
 
 }
 
-int sts_traditional_keys; // killough 2/28/98: traditional status bar keys
-int hud_blink_keys; // [crispy] blinking key or skull in the status bar
+static boolean sts_traditional_keys; // killough 2/28/98: traditional status bar keys
+static boolean hud_blink_keys; // [crispy] blinking key or skull in the status bar
 
 void ST_SetKeyBlink(player_t* player, int blue, int yellow, int red)
 {
@@ -730,9 +731,10 @@ int ST_BlinkKey(player_t* player, int index)
   return -1;
 }
 
+static int largeammo = LARGENUMBER; // means "n/a"
+
 void ST_updateWidgets(void)
 {
-  static int  largeammo = 1994; // means "n/a"
   int         i;
 
   // must redirect the pointer if the ready weapon has changed.
@@ -781,7 +783,7 @@ void ST_updateWidgets(void)
     else
     {
       if (!(plyr->keyblinktics & (2*KEYBLINKMASK - 1)))
-        S_StartSound(NULL, sfx_itemup);
+        S_StartSoundPitch(NULL, sfx_itemup, PITCH_NONE);
 
       plyr->keyblinktics--;
 
@@ -1085,24 +1087,24 @@ void ST_loadGraphics(void)
   for (i=0;i<10;i++)
     {
       M_snprintf(namebuf, sizeof(namebuf), "STTNUM%d", i);
-      tallnum[i] = (patch_t *) W_CacheLumpName(namebuf, PU_STATIC);
+      tallnum[i] = V_CachePatchName(namebuf, PU_STATIC);
       M_snprintf(namebuf, sizeof(namebuf), "STYSNUM%d", i);
-      shortnum[i] = (patch_t *) W_CacheLumpName(namebuf, PU_STATIC);
+      shortnum[i] = V_CachePatchName(namebuf, PU_STATIC);
     }
 
   // Load percent key.
   //Note: why not load STMINUS here, too?
-  tallpercent = (patch_t *) W_CacheLumpName("STTPRCNT", PU_STATIC);
+  tallpercent = V_CachePatchName("STTPRCNT", PU_STATIC);
 
   // key cards
   for (i=0;i<NUMCARDS+3;i++)  //jff 2/23/98 show both keys too
     {
       M_snprintf(namebuf, sizeof(namebuf), "STKEYS%d", i);
-      keys[i] = (patch_t *) W_CacheLumpName(namebuf, PU_STATIC);
+      keys[i] = V_CachePatchName(namebuf, PU_STATIC);
     }
 
   // arms background
-  armsbg = (patch_t *) W_CacheLumpName("STARMS", PU_STATIC);
+  armsbg = V_CachePatchName("STARMS", PU_STATIC);
 
   // arms ownership widgets
   for (i=0;i<6;i++)
@@ -1110,7 +1112,7 @@ void ST_loadGraphics(void)
       M_snprintf(namebuf, sizeof(namebuf), "STGNUM%d", i+2);
 
       // gray #
-      arms[i][0] = (patch_t *) W_CacheLumpName(namebuf, PU_STATIC);
+      arms[i][0] = V_CachePatchName(namebuf, PU_STATIC);
 
       // yellow #
       arms[i][1] = shortnum[i+2];
@@ -1122,19 +1124,19 @@ void ST_loadGraphics(void)
   for (i=0; i<MAXPLAYERS; i++)
     {
       M_snprintf(namebuf, sizeof(namebuf), "STFB%d", i);
-      faceback[i] = (patch_t *) W_CacheLumpName(namebuf, PU_STATIC);
+      faceback[i] = V_CachePatchName(namebuf, PU_STATIC);
     }
 
   // status bar background bits
   if (W_CheckNumForName("STBAR") >= 0)
   {
-    sbar  = (patch_t *) W_CacheLumpName("STBAR", PU_STATIC);
+    sbar  = V_CachePatchName("STBAR", PU_STATIC);
     sbarr = NULL;
   }
   else
   {
-    sbar  = (patch_t *) W_CacheLumpName("STMBARL", PU_STATIC);
-    sbarr = (patch_t *) W_CacheLumpName("STMBARR", PU_STATIC);
+    sbar  = V_CachePatchName("STMBARL", PU_STATIC);
+    sbarr = V_CachePatchName("STMBARR", PU_STATIC);
   }
 
   // face states
@@ -1145,21 +1147,21 @@ void ST_loadGraphics(void)
       for (j=0;j<ST_NUMSTRAIGHTFACES;j++)
         {
           M_snprintf(namebuf, sizeof(namebuf), "STFST%d%d", i, j);
-          faces[facenum++] = W_CacheLumpName(namebuf, PU_STATIC);
+          faces[facenum++] = V_CachePatchName(namebuf, PU_STATIC);
         }
       M_snprintf(namebuf, sizeof(namebuf), "STFTR%d0", i);        // turn right
-      faces[facenum++] = W_CacheLumpName(namebuf, PU_STATIC);
+      faces[facenum++] = V_CachePatchName(namebuf, PU_STATIC);
       M_snprintf(namebuf, sizeof(namebuf), "STFTL%d0", i);        // turn left
-      faces[facenum++] = W_CacheLumpName(namebuf, PU_STATIC);
+      faces[facenum++] = V_CachePatchName(namebuf, PU_STATIC);
       M_snprintf(namebuf, sizeof(namebuf), "STFOUCH%d", i);       // ouch!
-      faces[facenum++] = W_CacheLumpName(namebuf, PU_STATIC);
+      faces[facenum++] = V_CachePatchName(namebuf, PU_STATIC);
       M_snprintf(namebuf, sizeof(namebuf), "STFEVL%d", i);        // evil grin ;)
-      faces[facenum++] = W_CacheLumpName(namebuf, PU_STATIC);
+      faces[facenum++] = V_CachePatchName(namebuf, PU_STATIC);
       M_snprintf(namebuf, sizeof(namebuf), "STFKILL%d", i);       // pissed off
-      faces[facenum++] = W_CacheLumpName(namebuf, PU_STATIC);
+      faces[facenum++] = V_CachePatchName(namebuf, PU_STATIC);
     }
-  faces[facenum++] = W_CacheLumpName("STFGOD0", PU_STATIC);
-  faces[facenum++] = W_CacheLumpName("STFDEAD0", PU_STATIC);
+  faces[facenum++] = V_CachePatchName("STFGOD0", PU_STATIC);
+  faces[facenum++] = V_CachePatchName("STFDEAD0", PU_STATIC);
 
   // [FG] support face gib animations as in the 3DO/Jaguar/PSX ports
   for (i = 0; i < ST_NUMXDTHFACES; i++)
@@ -1167,7 +1169,7 @@ void ST_loadGraphics(void)
     M_snprintf(namebuf, sizeof(namebuf), "STFXDTH%d", i);
 
     if (W_CheckNumForName(namebuf) != -1)
-      faces[facenum++] = W_CacheLumpName(namebuf, PU_STATIC);
+      faces[facenum++] = V_CachePatchName(namebuf, PU_STATIC);
     else
       break;
   }
@@ -1214,7 +1216,9 @@ void ST_createWidgets(void)
                 ST_AMMOX - distributed_delta,
                 ST_AMMOY,
                 tallnum,
-                &plyr->ammo[weaponinfo[plyr->readyweapon].ammo],
+                weaponinfo[plyr->readyweapon].ammo != am_noammo ?
+                &plyr->ammo[weaponinfo[plyr->readyweapon].ammo] :
+                &largeammo,
                 &st_statusbaron,
                 ST_AMMOWIDTH );
 
@@ -1435,7 +1439,7 @@ void ST_InitRes(void)
 void ST_Warnings(void)
 {
   int i;
-  patch_t *const patch = W_CacheLumpName("brdr_b", PU_CACHE);
+  patch_t *const patch = V_CachePatchName("brdr_b", PU_CACHE);
 
   if (patch && SHORT(patch->height) > ST_HEIGHT)
   {
@@ -1469,6 +1473,42 @@ void ST_ResetPalette(void)
 {
   st_palette = -1;
   I_SetPalette(W_CacheLumpNum(lu_palette, PU_CACHE));
+}
+
+void ST_BindSTSVariables(void)
+{
+  M_BindBool("sts_colored_numbers", &sts_colored_numbers, NULL,
+             false, ss_stat, wad_yes, "Colored numbers on the status bar");
+  M_BindBool("sts_pct_always_gray", &sts_pct_always_gray, NULL,
+             false, ss_stat, wad_yes,
+             "Percent signs on the status bar are always gray");
+  M_BindBool("sts_traditional_keys", &sts_traditional_keys, NULL,
+             false, ss_stat, wad_yes,
+             "Show last picked-up key on each key slot on the status bar");
+  M_BindBool("hud_blink_keys", &hud_blink_keys, NULL,
+             false, ss_stat, wad_no,
+             "Make missing keys blink when trying to trigger linedef actions");
+  M_BindBool("st_solidbackground", &st_solidbackground, NULL,
+             false, ss_stat, wad_no,
+             "Use solid-color borders for the status bar in widescreen mode");
+  M_BindBool("hud_animated_counts", &hud_animated_counts, NULL,
+            false, ss_stat, wad_no, "Animated health/armor counts");
+  M_BindNum("health_red", &health_red, NULL, 25, 0, 200, ss_none, wad_yes,
+            "Amount of health for red-to-yellow transition");
+  M_BindNum("health_yellow", &health_yellow, NULL, 50, 0, 200, ss_none, wad_yes,
+            "Amount of health for yellow-to-green transition");
+  M_BindNum("health_green", &health_green, NULL, 100, 0, 200, ss_none, wad_yes,
+            "Amount of health for green-to-blue transition");
+  M_BindNum("armor_red", &armor_red, NULL, 25, 0, 200, ss_none, wad_yes,
+            "Amount of armor for red-to-yellow transition");
+  M_BindNum("armor_yellow", &armor_yellow, NULL, 50, 0, 200, ss_none, wad_yes,
+            "Amount of armor for yellow-to-green transition");
+  M_BindNum("armor_green", &armor_green, NULL, 100, 0, 200, ss_none, wad_yes,
+            "Amount of armor for green-to-blue transition");
+  M_BindNum("ammo_red", &ammo_red, NULL, 25, 0, 100, ss_none, wad_yes,
+            "Percent of ammo for red-to-yellow transition");
+  M_BindNum("ammo_yellow", &ammo_yellow, NULL, 50, 0, 100, ss_none, wad_yes,
+            "Percent of ammo for yellow-to-green transition");
 }
 
 //----------------------------------------------------------------------------

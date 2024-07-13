@@ -29,11 +29,14 @@
 #include "i_printf.h"
 #include "i_system.h"
 #include "m_array.h"
+#include "mn_menu.h"
 #include "p_mobj.h"
+#include "s_sound.h"
 #include "sounds.h"
 #include "w_wad.h"
+#include "m_config.h"
 
-int snd_module;
+static int snd_module;
 
 static const sound_module_t *sound_modules[] =
 {
@@ -46,28 +49,22 @@ static const sound_module_t *sound_modules[] =
 
 static const sound_module_t *sound_module;
 
-static music_module_t *native_midi_module =
-#if defined(_WIN32)
-    &music_win_module;
-#elif defined(__APPLE__)
-    &music_mac_module;
-#else
-    NULL;
-#endif
-
-static boolean native_midi;
-
-static stream_module_t *stream_modules[] =
+static music_module_t *music_modules[] =
 {
-#if defined(HAVE_FLUIDSYNTH)
-    &stream_fl_module,
+#if defined(HAVE_ALSA)
+    &music_oal_module,
+    &music_mid_module,
+#else
+    &music_mid_module,
+    &music_oal_module,
 #endif
-    &stream_opl_module,
 };
 
-stream_module_t *midi_stream_module = NULL;
-
 static music_module_t *active_module = NULL;
+static music_module_t *midi_module = NULL;
+
+static int midi_player_menu;
+static const char *midi_player_string = "";
 
 // haleyjd: safety variables to keep changes to *_card from making
 // these routines think that sound has been initialized when it hasn't
@@ -84,10 +81,13 @@ typedef struct
     int idnum;
 } channel_info_t;
 
-channel_info_t channelinfo[MAX_CHANNELS];
+static channel_info_t channelinfo[MAX_CHANNELS];
+
+// [FG] variable pitch bend range
+static int pitch_bend_range;
 
 // Pitch to stepping lookup.
-float steptable[256];
+static float steptable[256];
 
 //
 // StopChannel
@@ -182,9 +182,6 @@ void I_ProcessSoundUpdates(void)
 
     sound_module->ProcessUpdates();
 }
-
-// [FG] variable pitch bend range
-int pitch_bend_range;
 
 //
 // I_SetChannels
@@ -301,7 +298,9 @@ int I_StartSound(sfxinfo_t *sfx, int vol, int sep, int pitch)
 
     I_UpdateSoundParams(channel, vol, sep);
 
-    if (sound_module->StartSound(channel, sfx, pitch) == false)
+    float step = (pitch == NORM_PITCH) ? 1.0f : steptable[pitch];
+
+    if (sound_module->StartSound(channel, sfx, step) == false)
     {
         I_Printf(VB_WARNING, "I_StartSound: Error playing sfx.");
         StopChannel(channel);
@@ -440,6 +439,8 @@ void I_InitSound(void)
 
     I_AtExit(I_ShutdownSound, true);
 
+    MN_UpdateAdvancedSoundItems(snd_module != SND_MODULE_3D);
+
     snd_init = true;
 
     if (nosfxparm)
@@ -470,8 +471,6 @@ void I_InitSound(void)
         if (from->lumpnum == -1)
         {
             from->link = to;
-            from->pitch = NORM_PITCH;
-            from->volume = 0;
         }
     }
 }
@@ -488,7 +487,7 @@ boolean I_AllowReinitSound(void)
     return sound_module->AllowReinitSound();
 }
 
-void I_SetSoundModule(int device)
+void I_SetSoundModule(void)
 {
     int i;
 
@@ -498,7 +497,7 @@ void I_SetSoundModule(int device)
         return;
     }
 
-    if (device < 0 || device >= arrlen(sound_modules))
+    if (snd_module < 0 || snd_module >= arrlen(sound_modules))
     {
         I_Printf(VB_WARNING, "I_SetSoundModule: Invalid choice.");
         return;
@@ -511,97 +510,70 @@ void I_SetSoundModule(int device)
 
     sound_module->ShutdownModule();
 
-    sound_module = sound_modules[device];
+    sound_module = sound_modules[snd_module];
 
     if (!sound_module->ReinitSound())
     {
         I_Printf(VB_WARNING, "I_SetSoundModule: Failed to reinitialize sound.");
     }
+
+    MN_UpdateAdvancedSoundItems(snd_module != SND_MODULE_3D);
 }
 
-int midi_player; // current music module
-
-static void MidiPlayerFallback(void)
-{
-    // Fall back the the first module that initializes, device 0.
-
-    midi_player = 0;
-
-    if (native_midi_module)
-    {
-        if (native_midi_module->I_InitMusic(0))
-        {
-            native_midi = true;
-            return;
-        }
-        midi_player = 1;
-    }
-
-    native_midi = false;
-
-    for (int i = 0; i < arrlen(stream_modules); ++i)
-    {
-        if (stream_modules[i]->I_InitStream(0))
-        {
-            midi_player += i;
-            midi_stream_module = stream_modules[i];
-            return;
-        }
-    }
-
-    I_Error("MidiPlayerFallback: No music module could be initialized");
-}
-
-void I_SetMidiPlayer(int device)
+void I_SetMidiPlayer(void)
 {
     if (nomusicparm)
     {
         return;
     }
 
-    int num_devices = 0;
+    const int device = midi_player_menu;
 
-    midi_player = 0;
-
-    if (native_midi_module)
+    if (midi_module)
     {
-        const char **strings = native_midi_module->I_DeviceList(NULL);
-        num_devices = array_size(strings);
-
-        native_midi_module->I_ShutdownMusic();
-
-        if (device < num_devices)
-        {
-            if (native_midi_module->I_InitMusic(device))
-            {
-                native_midi = true;
-                return;
-            }
-        }
-        midi_player = 1;
+        midi_module->I_ShutdownMusic();
     }
 
-    native_midi = false;
+    int count_devices = 0;
 
-    for (int i = 0, accum = num_devices; i < arrlen(stream_modules); ++i)
+    for (int i = 0; i < arrlen(music_modules); ++i)
     {
-        const char **strings = stream_modules[i]->I_DeviceList(NULL);
-        num_devices = array_size(strings);
+        const char **strings = music_modules[i]->I_DeviceList();
 
-        if (device >= accum && device < accum + num_devices)
+        if (device >= count_devices
+            && device < count_devices + array_size(strings))
         {
-            midi_player += i;
-            if (stream_modules[i]->I_InitStream(device - accum))
+            if (music_modules[i]->I_InitMusic(device - count_devices))
             {
-                midi_stream_module = stream_modules[i];
+                midi_module = music_modules[i];
+                midi_player_string = strings[device - count_devices];
                 return;
             }
         }
 
-        accum += num_devices;
+        count_devices += array_size(strings);
     }
 
-    MidiPlayerFallback();
+    // Fall back the the first module that initializes, device 0.
+
+    count_devices = 0;
+
+    for (int i = 0; i < arrlen(music_modules); ++i)
+    {
+        const char **strings = music_modules[i]->I_DeviceList();
+
+        if (music_modules[i]->I_InitMusic(0))
+        {
+            midi_module = music_modules[i];
+            midi_player_menu = count_devices;
+            midi_player_string = strings[0];
+            return;
+        }
+
+        count_devices += array_size(strings);
+    }
+
+    I_Error("I_SetMidiPlayer: No music module could be initialized");
 }
 
 boolean I_InitMusic(void)
@@ -614,65 +586,60 @@ boolean I_InitMusic(void)
     // Always initialize the OpenAL module, it is used for software synth and
     // non-MIDI music streaming.
 
-    music_oal_module.I_InitMusic(0);
-
-    active_module = &music_oal_module;
+    I_OAL_InitStream();
 
     I_AtExit(I_ShutdownMusic, true);
 
-    int module_index = 0;
-
-    if (native_midi_module)
+    const char **strings = I_DeviceList();
+    for (int i = 0; i < array_size(strings); ++i)
     {
-        if (midi_player == 0
-            && native_midi_module->I_InitMusic(DEFAULT_MIDI_DEVICE))
+        if (!strcasecmp(strings[i], midi_player_string))
         {
-            native_midi = true;
-            return true;
-        }
-        module_index = 1;
-    }
-
-    native_midi = false;
-
-    module_index = midi_player - module_index;
-
-    if (module_index < arrlen(stream_modules))
-    {
-        if (stream_modules[module_index]->I_InitStream(DEFAULT_MIDI_DEVICE))
-        {
-            midi_stream_module = stream_modules[module_index];
-            return true;
+            midi_player_menu = i;
+            break;
         }
     }
 
-    MidiPlayerFallback();
+    I_SetMidiPlayer();
 
     return true;
 }
 
 void I_ShutdownMusic(void)
 {
-    music_oal_module.I_ShutdownMusic();
-    if (native_midi && native_midi_module)
+    if (active_module)
     {
-        native_midi_module->I_ShutdownMusic();
+        if (active_module != midi_module)
+        {
+            midi_module->I_ShutdownMusic();
+        }
+        active_module->I_ShutdownMusic();
     }
+    I_OAL_ShutdownStream();
 }
 
 void I_SetMusicVolume(int volume)
 {
-    active_module->I_SetMusicVolume(volume);
+    if (active_module)
+    {
+        active_module->I_SetMusicVolume(volume);
+    }
 }
 
 void I_PauseSong(void *handle)
 {
-    active_module->I_PauseSong(handle);
+    if (active_module)
+    {
+        active_module->I_PauseSong(handle);
+    }
 }
 
 void I_ResumeSong(void *handle)
 {
-    active_module->I_ResumeSong(handle);
+    if (active_module)
+    {
+        active_module->I_ResumeSong(handle);
+    }
 }
 
 boolean IsMid(byte *mem, int len)
@@ -687,83 +654,94 @@ boolean IsMus(byte *mem, int len)
 
 void *I_RegisterSong(void *data, int size)
 {
-    active_module = &music_oal_module;
-
-    if (native_midi && (IsMid(data, size) || IsMus(data, size)))
+    for (int i = 0; i < arrlen(music_modules); ++i)
     {
-        active_module = native_midi_module;
+        void *result = music_modules[i]->I_RegisterSong(data, size);
+        if (result)
+        {
+            active_module = music_modules[i];
+            active_module->I_SetMusicVolume(snd_MusicVolume);
+            return result;
+        }
     }
-
-    void *result = active_module->I_RegisterSong(data, size);
-    active_module->I_SetMusicVolume(snd_MusicVolume);
-    return result;
+    active_module = NULL;
+    return NULL;
 }
 
 void I_PlaySong(void *handle, boolean looping)
 {
-    active_module->I_PlaySong(handle, looping);
-}
-
-void I_UpdateMusic(void)
-{
-    active_module->I_UpdateMusic();
+    if (active_module)
+    {
+        active_module->I_PlaySong(handle, looping);
+    }
 }
 
 void I_StopSong(void *handle)
 {
-    active_module->I_StopSong(handle);
+    if (active_module)
+    {
+        active_module->I_StopSong(handle);
+    }
 }
 
 void I_UnRegisterSong(void *handle)
 {
-    active_module->I_UnRegisterSong(handle);
+    if (active_module)
+    {
+        active_module->I_UnRegisterSong(handle);
+    }
 }
 
-// Get a list of devices for all music modules. Retrieve the selected device, as
-// each module manages and stores its own devices independently.
-
-const char **I_DeviceList(int *current_device)
+const char **I_DeviceList(void)
 {
-    const char **devices = NULL;
+    static const char **devices = NULL;
 
-    *current_device = 0;
-
-    int module_index = 0;
-
-    if (native_midi_module)
+    if (array_size(devices))
     {
-        int device;
-        const char **strings = native_midi_module->I_DeviceList(&device);
-
-        if (midi_player == module_index)
-        {
-            *current_device = device;
-        }
-
-        for (int i = 0; i < array_size(strings); ++i)
-        {
-            array_push(devices, strings[i]);
-        }
-        module_index = 1;
+        return devices;
     }
 
-    for (int i = 0; i < arrlen(stream_modules); ++i)
+    for (int i = 0; i < arrlen(music_modules); ++i)
     {
-        int device;
-        const char **strings = stream_modules[i]->I_DeviceList(&device);
-
-        if (midi_player == module_index)
-        {
-            *current_device = array_size(devices) + device;
-        }
+        const char **strings = music_modules[i]->I_DeviceList();
 
         for (int k = 0; k < array_size(strings); ++k)
         {
             array_push(devices, strings[k]);
         }
-
-        module_index++;
     }
 
     return devices;
+}
+
+void I_BindSoundVariables(void)
+{
+    M_BindNum("sfx_volume", &snd_SfxVolume, NULL, 8, 0, 15, ss_none, wad_no,
+        "Sound effects volume");
+    M_BindNum("music_volume", &snd_MusicVolume, NULL, 8, 0, 15, ss_none, wad_no,
+        "Music volume");
+    BIND_BOOL(pitched_sounds, false,
+        "Variable pitch for sound effects");
+    BIND_NUM(pitch_bend_range, 120, 100, 300,
+        "Variable pitch bend range (100 = None)");
+    BIND_BOOL_GENERAL(full_sounds, false, "Play sounds in full length (prevents cutoffs)");
+    M_BindNum("snd_channels", &default_numChannels, NULL,
+        MAX_CHANNELS, 1, MAX_CHANNELS, ss_none, wad_no,
+        "Maximum number of simultaneous sound effects");
+    BIND_NUM_GENERAL(snd_module, SND_MODULE_MBF, 0, NUM_SND_MODULES - 1,
+        "Sound module (0 = Standard; 1 = OpenAL 3D; 2 = PC Speaker Sound)");
+    for (int i = 0; i < arrlen(sound_modules); ++i)
+    {
+        if (sound_modules[i]->BindVariables)
+        {
+            sound_modules[i]->BindVariables();
+        }
+    }
+    BIND_NUM(midi_player_menu, 0, 0, UL, "MIDI Player menu index");
+    M_BindStr("midi_player_string", &midi_player_string, "", wad_no,
+              "MIDI Player string");
+    for (int i = 0; i < arrlen(music_modules); ++i)
+    {
+        music_modules[i]->BindVariables();
+    }
 }

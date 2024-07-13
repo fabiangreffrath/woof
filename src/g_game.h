@@ -20,6 +20,7 @@
 #include "doomdef.h"
 #include "doomstat.h"
 #include "doomtype.h"
+#include "g_input.h"
 #include "m_fixed.h"
 
 struct event_s;
@@ -33,7 +34,9 @@ struct event_s;
 
 #define MBF21_GAME_OPTION_SIZE (21 + MBF21_COMP_TOTAL)
 
-void G_PrepTiccmd(void);
+void G_UpdateLocalViewFunction(void);
+void G_PrepMouseTiccmd(void);
+void G_PrepControllerTiccmd(void);
 void G_ClearInput(void);
 boolean G_MovementResponder(struct event_s *ev);
 boolean G_Responder(struct event_s *ev);
@@ -53,8 +56,6 @@ void G_SecretExitLevel(void);
 void G_WorldDone(void);
 void G_Ticker(void);
 void G_ScreenShot(void);
-void G_UpdateSideMove(void);
-void G_UpdateCarryAngle(void);
 void G_ReloadDefaults(boolean keep_demover); // killough 3/1/98: loads game defaults
 char *G_SaveGameName(int); // killough 3/22/98: sets savegame filename
 char *G_MBFSaveGameName(int); // MBF savegame filename
@@ -76,6 +77,12 @@ const char *G_GetCurrentComplevelName(void);
 
 int G_GotoNextLevel(int *pEpi, int *pMap);
 
+void G_BindGameInputVariables(void);
+void G_BindGameVariables(void);
+void G_BindEnemVariables(void);
+void G_BindCompVariables(void);
+void G_BindWeapVariables(void);
+
 typedef enum
 {
   CL_NONE = -1,
@@ -89,21 +96,26 @@ extern complevel_t force_complevel, default_complevel;
 
 extern int realtic_clock_rate;
 
+extern boolean gamekeydown[];
+extern boolean mousebuttons[];
+extern boolean joybuttons[];
+
 // killough 5/2/98: moved from m_misc.c:
 extern int  key_escape;
 extern int  key_enter;
 extern int  key_help;
-extern int  autorun;           // always running?                   // phares
+extern boolean autorun;           // always running?                   // phares
 extern boolean autostrafe50;
-extern int  novert;
+extern boolean novert;
 extern boolean mouselook;
 extern boolean padlook;
-extern int  dclick_use; // [FG] double click acts as "use"
 
-extern fixed_t *forwardmove;
+extern fixed_t forwardmove[2];
+extern fixed_t default_sidemove[2];
 extern fixed_t *sidemove;
+extern const fixed_t angleturn[3];
 
-extern int  defaultskill;      //jff 3/24/98 default skill
+extern int  default_skill;      //jff 3/24/98 default skill
 extern boolean haswolflevels;  //jff 4/18/98 wolf levels present
 
 extern int  bodyquesize, default_bodyquesize; // killough 2/8/98, 10/98
@@ -112,6 +124,9 @@ extern int  bodyquesize, default_bodyquesize; // killough 2/8/98, 10/98
 // Par times (new item with BOOM) - from g_game.c
 extern int pars[][10];  // hardcoded array size
 extern int cpars[];     // hardcoded array size
+extern boolean um_pars;
+
+extern boolean secretexit;
 
 #endif
 

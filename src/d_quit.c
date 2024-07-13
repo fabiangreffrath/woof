@@ -16,17 +16,12 @@
 //    Exit functions.
 //
 
-#include <errno.h>
-#include <string.h>
 
 #include "SDL.h"
 
 #include "doomstat.h"
 #include "g_game.h"
-#include "i_glob.h"
-#include "i_printf.h"
 #include "m_array.h"
-#include "m_io.h"
 #include "m_config.h"
 #include "w_wad.h"
 
@@ -34,53 +29,13 @@
 // I_Quit
 //
 
-extern char **tempdirs;
-
 void I_Quit(void)
 {
-    int i;
-
     SDL_QuitSubSystem(SDL_INIT_VIDEO);
 
     SDL_Quit();
 
-    if (!tempdirs)
-    {
-        return;
-    }
-
-    W_CloseFileDescriptors();
-
-    for (i = 0; i < array_size(tempdirs); ++i)
-    {
-        glob_t *glob;
-        const char *filename;
-
-        glob = I_StartMultiGlob(
-            tempdirs[i], GLOB_FLAG_NOCASE | GLOB_FLAG_SORTED, "*.*", NULL);
-        for (;;)
-        {
-            filename = I_NextGlob(glob);
-            if (filename == NULL)
-            {
-                break;
-            }
-
-            if (M_remove(filename))
-            {
-                I_Printf(VB_ERROR, "Failed to delete temporary file: %s (%s)",
-                         filename, strerror(errno));
-            }
-        }
-
-        I_EndGlob(glob);
-
-        if (M_rmdir(tempdirs[i]))
-        {
-            I_Printf(VB_ERROR, "Failed to delete temporary directory: %s (%s)",
-                     tempdirs[i], strerror(errno));
-        }
-    }
+    W_Close();
 }
 
 void I_QuitFirst(void)

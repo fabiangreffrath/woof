@@ -91,13 +91,13 @@ extern side_t           *sides;
 
 typedef struct localview_s
 {
-    angle_t oldticangle;
-    angle_t ticangle;
-    short ticangleturn;
     double rawangle;
     double rawpitch;
     angle_t angle;
-    int pitch;
+    angle_t oldlerpangle;
+    angle_t lerpangle;
+    fixed_t pitch;
+    short angleoffset;
 } localview_t;
 
 //

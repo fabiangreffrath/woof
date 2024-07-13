@@ -22,8 +22,9 @@ jobs:
       matrix:
         config:
           - name: Linux GCC
-            os: ubuntu-latest
+            os: ubuntu-24.04
             compiler: gcc
+            extra-options: -DCMAKE_FIND_PACKAGE_PREFER_CONFIG=OFF
             shell: bash
 
           - name: macOS Clang
@@ -51,11 +52,6 @@ jobs:
             libsndfile1-dev \
             libfluidsynth-dev \
             libxmp-dev
-          sudo sed -e 's/jammy/lunar/g;s/22/23/g' -i /etc/apt/sources.list /etc/apt/sources.list.d/*
-          sudo apt-get update
-          sudo apt-get install \
-            libflac-dev \
-            libsndfile1-dev
 
       - name: Install dependencies (macOS)
         if: runner.os == 'macOS'
@@ -95,8 +91,8 @@ jobs:
           CC: ${{ matrix.config.compiler }}
         run: |
           cmake -B build -G Ninja -DCMAKE_BUILD_TYPE=Release \
-                -DCMAKE_INSTALL_PREFIX=/usr \
-                -DENABLE_WERROR=ON -DENABLE_HARDENING=ON -DENABLE_LTO=ON
+                -DENABLE_WERROR=ON -DENABLE_HARDENING=ON -DENABLE_LTO=ON \
+                ${{ matrix.config.extra-options }}
 
       - name: Build
         run: cmake --build build
@@ -113,39 +109,75 @@ jobs:
           cd build
           cpack
 
-      - name: Upload AppImage
-        if: runner.os == 'Linux'
+      - name: Upload Artifacts
+        if: runner.os == 'Windows'
         uses: actions/upload-artifact@v4
         with:
-          name: Woof-AppImage
-          path: build/*.appimage
+          name: MSYS2-UCRT64
+          path: build/*.zip
 
-      - name: Extract Version Number
-        if: ${{ contains(github.ref, 'tags') && runner.os == 'Linux' }}
-        shell: bash
-        run: echo "VERSION=${GITHUB_REF##*_}" >> $GITHUB_ENV
-
-      - name: Release
-        if: ${{ contains(github.ref, 'tags') && runner.os == 'Linux' }}
-        uses: ncipollo/release-action@v1
-        with:
-          name: Woof! ${{ env.VERSION }}
-          bodyFile: CHANGELOG.md
-          allowUpdates: true
-          artifacts: build/*.appimage
-
-  cppcheck:
-    name: Cppcheck
-    runs-on: ubuntu-latest
+  linter:
+    name: ${{ matrix.name }}
+    runs-on: ubuntu-24.04
+    strategy:
+      fail-fast: false
+      matrix:
+        name: [Cppcheck , Clang-Tidy]
 
     steps:
       - name: Install dependencies
-        run: sudo apt-get update && sudo apt-get install cppcheck
+        run: |
+          sudo apt-get update
+          sudo apt-get install \
+            cppcheck \
+            ninja-build \
+            libsdl2-dev \
+            libsdl2-net-dev \
+            libopenal-dev \
+            libsndfile1-dev \
+            libfluidsynth-dev \
+            libxmp-dev
 
       - uses: actions/checkout@v4
 
-      - name: Run cppcheck
-        shell: bash
+      - name: Configure
         run: |
-          cppcheck --version
-          cppcheck --error-exitcode=1 -j4 -q --force -D__GNUC__ -U_MSC_VER -U_WIN32 -Isrc opl src setup textscreen
+          cmake -B build -G Ninja -DCMAKE_EXPORT_COMPILE_COMMANDS=ON \
+                -DCMAKE_FIND_PACKAGE_PREFER_CONFIG=OFF
+
+      - name: Run Cppcheck
+        if: ${{ matrix.name == 'Cppcheck' }}
+        run: |
+          mkdir cppcheck_cache
+          cppcheck -j4  --cppcheck-build-dir="cppcheck_cache" \
+            --quiet \
+            --error-exitcode=1 \
+            --check-level=exhaustive \
+            --inconclusive \
+            --inline-suppr \
+            --std=c99 \
+            --suppress="memleak:${{ github.workspace }}/src/u_scanner.c" \
+            --project="${{ github.workspace }}/build/compile_commands.json" \
+            -i"${{ github.workspace }}/miniz" \
+            -i"${{ github.workspace }}/spng" \
+            -D__GNUC__
+
+      - name: Run Clang-Tidy
+        if: ${{ matrix.name == 'Clang-Tidy' }}
+        uses: cpp-linter/cpp-linter-action@v2
+        id: cpp-linter
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          version: 18
+          step-summary: true
+          files-changed-only: false
+          style: ''  # disable clang-format checks.
+          tidy-checks: >-
+            -*
+            ,clang-analyzer-*
+            ,-clang-analyzer-cplusplus*
+            ,-clang-analyzer-security*
+            ,-clang-analyzer-valist*
+          database: 'build'
+          ignore: 'miniz|spng|win32|toolsrc|src/i_pcsound.c'

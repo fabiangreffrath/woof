@@ -116,19 +116,17 @@ musicinfo_t original_S_music[] = {
 // killough 12/98: 
 // Reimplemented 'singularity' flag, adjusting many sounds below
 
-#define SOUND_LINK(n, s, p, l, i) \
+#define SOUND_LINK(n, s, p, l) \
   {.name = n, \
    .singularity = s, \
    .priority = p, \
    .link = l ? &original_S_sfx[l] : NULL, \
-   .pitch = i, \
-   .volume = -1, \
    .buffer = 0, \
    .lumpnum = -1, \
    .cached = false}
 
 #define SOUND(n, s, p) \
-  SOUND_LINK(n, s, p, 0, -1)
+  SOUND_LINK(n, s, p, 0)
 
 sfxinfo_t original_S_sfx[NUMSFX] = {
   SOUND("none",   sg_none,    0), // S_sfx[0] needs to be a dummy for odd reasons.
@@ -218,7 +216,7 @@ sfxinfo_t original_S_sfx[NUMSFX] = {
   SOUND("punch",  sg_none,   64),
   SOUND("hoof",   sg_none,   70),
   SOUND("metal",  sg_none,   70),
-  SOUND_LINK("chgun", sg_none, 64, sfx_pistol, 150),
+  SOUND_LINK("chgun", sg_none, 64, sfx_pistol),
   SOUND("tink",   sg_none,   60),
   SOUND("bdopn",  sg_none,  100),
   SOUND("bdcls",  sg_none,  100),

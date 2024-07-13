@@ -62,6 +62,8 @@ void AM_EnableSmoothLines(void);
 
 void AM_ColorPreset(void);
 
+void AM_BindAutomapVariables(void);
+
 typedef struct
 {
  int64_t x,y;
@@ -69,55 +71,11 @@ typedef struct
 
 extern mpoint_t *markpoints;
 extern int markpointnum, markpointnum_max;
-extern int followplayer;
-extern int automap_grid;
+extern boolean followplayer;
+extern boolean automap_grid;
+extern int ddt_cheating;
 
 // end changes -- killough 2/22/98
-
-// killough 5/2/98: moved from m_misc.c
-
-//jff 1/7/98 automap colors added
-extern int mapcolor_back;     // map background
-extern int mapcolor_grid;     // grid lines color
-extern int mapcolor_wall;     // normal 1s wall color
-extern int mapcolor_fchg;     // line at floor height change color
-extern int mapcolor_cchg;     // line at ceiling height change color
-extern int mapcolor_clsd;     // line at sector with floor=ceiling color
-extern int mapcolor_rkey;     // red key color
-extern int mapcolor_bkey;     // blue key color
-extern int mapcolor_ykey;     // yellow key color
-extern int mapcolor_rdor;     // red door color (diff from keys to allow option)
-extern int mapcolor_bdor;     // blue door color (of enabling one not other)
-extern int mapcolor_ydor;     // yellow door color
-extern int mapcolor_tele;     // teleporter line color
-extern int mapcolor_secr;     // secret sector boundary color
-extern int mapcolor_revsecr;  // revealed secret sector boundary color
-//jff 4/23/98
-extern int mapcolor_exit;     // exit line
-extern int mapcolor_unsn;     // computer map unseen line color
-extern int mapcolor_flat;     // line with no floor/ceiling changes
-extern int mapcolor_sprt;     // general sprite color
-extern int mapcolor_hair;     // crosshair color
-extern int mapcolor_sngl;     // single player arrow color
-extern int mapcolor_plyr[4];  // colors for player arrows in multiplayer
-extern int mapcolor_frnd;     // killough 8/8/98: colors for friends
-extern int mapcolor_enemy;
-extern int mapcolor_item;
-extern int mapcolor_preset;
-//jff 3/9/98
-extern int map_secret_after;  // secrets do not appear til after bagged
-
-enum {
-  MAP_KEYED_DOOR_OFF,
-  MAP_KEYED_DOOR_COLOR,
-  MAP_KEYED_DOOR_FLASH
-};
-
-extern int map_keyed_door; // keyed doors are colored or flashing
-
-extern int map_smooth_lines;
-
-extern int map_point_coordinates;  // killough 10/98
 
 #endif
 

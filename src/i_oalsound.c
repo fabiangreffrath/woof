@@ -25,11 +25,14 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "i_oalcommon.h"
+#include "i_oalequalizer.h"
 #include "i_oalsound.h"
 #include "i_printf.h"
 #include "i_sndfile.h"
 #include "i_sound.h"
 #include "m_array.h"
+#include "m_config.h"
 #include "m_fixed.h"
 #include "sounds.h"
 #include "w_wad.h"
@@ -47,38 +50,16 @@
 
 #define VOL_TO_GAIN(x)          ((ALfloat)(x) / 127)
 
-// C doesn't allow casting between function and non-function pointer types, so
-// with C99 we need to use a union to reinterpret the pointer type. Pre-C99
-// still needs to use a normal cast and live with the warning (C++ is fine with
-// a regular reinterpret_cast).
-#if __STDC_VERSION__ >= 199901L
-#  define FUNCTION_CAST(T, ptr) (union{void *p; T f;}){ptr}.f
-#else
-#  define FUNCTION_CAST(T, ptr) (T)(ptr)
-#endif
+static int snd_resampler;
+static boolean snd_limiter;
+static boolean snd_hrtf;
+static int snd_absorption;
+static int snd_doppler;
 
-int snd_resampler;
-boolean snd_limiter;
-boolean snd_hrtf;
-int snd_absorption;
-int snd_doppler;
-
+static int oal_snd_module;
 boolean oal_use_doppler;
 
-static const char *oal_resamplers[] = {"Nearest", "Linear", "Cubic"};
-
-typedef struct oal_system_s
-{
-    ALCdevice *device;
-    ALCcontext *context;
-    ALuint *sources;
-    boolean SOFT_source_spatialize;
-    boolean EXT_EFX;
-    boolean EXT_SOURCE_RADIUS;
-    ALfloat absorption;
-} oal_system_t;
-
-static oal_system_t *oal;
+oal_system_t *oal;
 static LPALDEFERUPDATESSOFT alDeferUpdatesSOFT;
 static LPALPROCESSUPDATESSOFT alProcessUpdatesSOFT;
 
@@ -119,10 +100,8 @@ static void InitDeferred(void)
 
     if (alIsExtensionPresent("AL_SOFT_deferred_updates") == AL_TRUE)
     {
-        alDeferUpdatesSOFT = FUNCTION_CAST(
-            LPALDEFERUPDATESSOFT, alGetProcAddress("alDeferUpdatesSOFT"));
-        alProcessUpdatesSOFT = FUNCTION_CAST(
-            LPALPROCESSUPDATESSOFT, alGetProcAddress("alProcessUpdatesSOFT"));
+        ALFUNC(LPALDEFERUPDATESSOFT, alDeferUpdatesSOFT);
+        ALFUNC(LPALPROCESSUPDATESSOFT, alProcessUpdatesSOFT);
 
         if (alDeferUpdatesSOFT && alProcessUpdatesSOFT)
         {
@@ -197,9 +176,8 @@ void I_OAL_ShutdownSound(void)
     oal = NULL;
 }
 
-static void SetResampler(ALuint *sources)
+void I_OAL_SetResampler(void)
 {
-    const char *resampler_name = oal_resamplers[snd_resampler];
     LPALGETSTRINGISOFT alGetStringiSOFT = NULL;
     ALint i, num_resamplers, def_resampler;
 
@@ -209,8 +187,7 @@ static void SetResampler(ALuint *sources)
         return;
     }
 
-    alGetStringiSOFT =
-        FUNCTION_CAST(LPALGETSTRINGISOFT, alGetProcAddress("alGetStringiSOFT"));
+    ALFUNC(LPALGETSTRINGISOFT, alGetStringiSOFT);
 
     if (!alGetStringiSOFT)
     {
@@ -219,7 +196,6 @@ static void SetResampler(ALuint *sources)
     }
 
     num_resamplers = alGetInteger(AL_NUM_RESAMPLERS_SOFT);
-    def_resampler = alGetInteger(AL_DEFAULT_RESAMPLER_SOFT);
 
     if (!num_resamplers)
     {
@@ -227,29 +203,29 @@ static void SetResampler(ALuint *sources)
         return;
     }
 
+    def_resampler = alGetInteger(AL_DEFAULT_RESAMPLER_SOFT);
+
     for (i = 0; i < num_resamplers; i++)
     {
-        if (!strcasecmp(resampler_name,
-                        alGetStringiSOFT(AL_RESAMPLER_NAME_SOFT, i)))
+        if (!strcasecmp("Linear", alGetStringiSOFT(AL_RESAMPLER_NAME_SOFT, i)))
         {
             def_resampler = i;
             break;
         }
     }
-    if (i == num_resamplers)
+
+    if (snd_resampler >= num_resamplers)
     {
-        I_Printf(VB_WARNING, " Failed to find resampler: '%s'.",
-                 resampler_name);
-        return;
+        snd_resampler = def_resampler;
     }
 
     for (i = 0; i < MAX_CHANNELS; i++)
     {
-        alSourcei(sources[i], AL_SOURCE_RESAMPLER_SOFT, def_resampler);
+        alSourcei(oal->sources[i], AL_SOURCE_RESAMPLER_SOFT, snd_resampler);
     }
 
     I_Printf(VB_DEBUG, " Using '%s' resampler.",
-             alGetStringiSOFT(AL_RESAMPLER_NAME_SOFT, def_resampler));
+             alGetStringiSOFT(AL_RESAMPLER_NAME_SOFT, snd_resampler));
 }
 
 void I_OAL_ResetSource2D(int channel)
@@ -325,11 +301,40 @@ void I_OAL_UpdateListenerParams(const ALfloat *position,
     alListenerfv(AL_ORIENTATION, orientation);
 }
 
+const char **I_OAL_GetResamplerStrings(void)
+{
+    LPALGETSTRINGISOFT alGetStringiSOFT = NULL;
+    ALint i, num_resamplers;
+    const char **strings = NULL;
+
+    if (alIsExtensionPresent("AL_SOFT_source_resampler") != AL_TRUE)
+    {
+        return NULL;
+    }
+
+    ALFUNC(LPALGETSTRINGISOFT, alGetStringiSOFT);
+
+    if (!alGetStringiSOFT)
+    {
+        return NULL;
+    }
+
+    num_resamplers = alGetInteger(AL_NUM_RESAMPLERS_SOFT);
+
+    for (i = 0; i < num_resamplers; i++)
+    {
+        array_push(strings, alGetStringiSOFT(AL_RESAMPLER_NAME_SOFT, i));
+    }
+
+    return strings;
+}
+
 static void UpdateUserSoundSettings(void)
 {
-    SetResampler(oal->sources);
+    I_OAL_SetResampler();
+    I_OAL_SetEqualizer();
 
-    if (snd_module == SND_MODULE_3D)
+    if (oal_snd_module == SND_MODULE_3D)
     {
         oal->absorption = (ALfloat)snd_absorption / 2.0f;
         alDopplerFactor((ALfloat)snd_doppler * snd_doppler / 100.0f);
@@ -402,7 +407,7 @@ static void PrintDeviceInfo(ALCdevice *device)
 
 static void GetAttribs(ALCint **attribs)
 {
-    const boolean use_3d = (snd_module == SND_MODULE_3D);
+    const boolean use_3d = (oal_snd_module == SND_MODULE_3D);
 
     if (alcIsExtensionPresent(oal->device, "ALC_SOFT_HRTF") == ALC_TRUE)
     {
@@ -431,9 +436,57 @@ static void GetAttribs(ALCint **attribs)
     array_push(*attribs, 0);
 }
 
-boolean I_OAL_InitSound(void)
+void I_OAL_BindSoundVariables(void)
+{
+    BIND_BOOL_GENERAL(snd_hrtf, false,
+        "[OpenAL 3D] Headphones mode (0 = No; 1 = Yes)");
+    BIND_NUM_GENERAL(snd_resampler, 1, 0, UL,
+        "Sound resampler (0 = Nearest; 1 = Linear; ...)");
+    BIND_NUM(snd_absorption, 0, 0, 10,
+        "[OpenAL 3D] Air absorption effect (0 = Off; 10 = Max)");
+    BIND_NUM(snd_doppler, 0, 0, 10,
+        "[OpenAL 3D] Doppler effect (0 = Off; 10 = Max)");
+    BIND_BOOL(snd_limiter, false, "Use sound output limiter");
+
+    BIND_NUM(snd_equalizer, EQ_PRESET_OFF, EQ_PRESET_OFF, EQ_PRESET_VOCAL,
+        "Equalizer preset (0 = Off; 1 = Classical; 2 = Rock; 3 = Vocal");
+    BIND_NUM(snd_eq_preamp, 0, -24, 0,
+        "Equalizer preamp gain [dB]");
+
+    // Low
+    BIND_NUM(snd_eq_low_gain, 0, -12, 12,
+        "Equalizer low frequency range gain [dB]");
+    BIND_NUM(snd_eq_low_cutoff, 200, 50, 800,
+        "Equalizer low cut-off frequency [Hz]");
+
+    // Mid 1
+    BIND_NUM(snd_eq_mid1_gain, 0, -12, 12,
+        "Equalizer mid1 frequency range gain [dB]");
+    BIND_NUM(snd_eq_mid1_center, 500, 200, 3000,
+        "Equalizer mid1 center frequency [Hz]");
+    BIND_NUM(snd_eq_mid1_width, 100, 1, 100,
+        "Equalizer mid1 bandwidth [octave] (1 = 0.01; 100 = 1.0)");
+
+    // Mid 2
+    BIND_NUM(snd_eq_mid2_gain, 0, -12, 12,
+        "Equalizer mid2 frequency range gain [dB]");
+    BIND_NUM(snd_eq_mid2_center, 3000, 1000, 8000,
+        "Equalizer mid2 center frequency [Hz]");
+    BIND_NUM(snd_eq_mid2_width, 100, 1, 100,
+        "Equalizer mid2 bandwidth [octave] (1 = 0.01; 100 = 1.0)");
+
+    // High
+    BIND_NUM(snd_eq_high_gain, 0, -12, 12,
+        "Equalizer high frequency range gain [dB]");
+    BIND_NUM(snd_eq_high_cutoff, 6000, 4000, 16000,
+        "Equalizer high cut-off frequency [Hz]");
+}
+
+boolean I_OAL_InitSound(int snd_module)
 {
     ALCint *attribs = NULL;
+
+    oal_snd_module = snd_module;
 
     if (oal)
     {
@@ -477,13 +530,15 @@ boolean I_OAL_InitSound(void)
         (alcIsExtensionPresent(oal->device, "ALC_EXT_EFX") == ALC_TRUE);
     oal->EXT_SOURCE_RADIUS =
         (alIsExtensionPresent("AL_EXT_SOURCE_RADIUS") == AL_TRUE);
+
+    I_OAL_InitEqualizer();
     InitDeferred();
     ResetParams();
 
     return true;
 }
 
-boolean I_OAL_ReinitSound(void)
+boolean I_OAL_ReinitSound(int snd_module)
 {
     LPALCRESETDEVICESOFT alcResetDeviceSOFT = NULL;
     ALCint *attribs = NULL;
@@ -494,6 +549,8 @@ boolean I_OAL_ReinitSound(void)
         I_Printf(VB_ERROR, "I_OAL_ReinitSound: OpenAL not initialized.");
         return false;
     }
+
+    oal_snd_module = snd_module;
 
     if (alcIsExtensionPresent(oal->device, "ALC_SOFT_HRTF") != ALC_TRUE)
     {
@@ -536,49 +593,30 @@ boolean I_OAL_AllowReinitSound(void)
     return (alcIsExtensionPresent(oal->device, "ALC_SOFT_HRTF") == ALC_TRUE);
 }
 
-//
-// IsPaddedSound
-//
-// DMX sounds use 16 bytes of padding before and after the real sound. The
-// padding bytes are equal to the first or last real byte, respectively.
-// Reference: https://www.doomworld.com/forum/post/949486
-//
-static boolean IsPaddedSound(const byte *data, int size)
-{
-    const int sound_end = size - DMXPADSIZE;
-    int i;
-
-    for (i = 0; i < DMXPADSIZE; i++)
-    {
-        // Check padding before sound.
-        if (data[i] != data[DMXPADSIZE])
-        {
-            return false;
-        }
-
-        // Check padding after sound.
-        if (data[sound_end + i] != data[sound_end - 1])
-        {
-            return false;
-        }
-    }
-
-    return true;
-}
-
-static void FadeInMono8(byte *data, ALsizei size, ALsizei freq)
+static void FadeInOutMono8(byte *data, ALsizei size, ALsizei freq)
 {
     const int fadelen = freq * FADETIME / 1000000;
     int i;
 
-    if (data[0] == 128 || size < fadelen)
+    if (size < fadelen)
     {
         return;
     }
 
-    for (i = 0; i < fadelen; i++)
+    if (data[0] != 128)
     {
-        data[i] = (data[i] - 128) * i / fadelen + 128;
+        for (i = 0; i < fadelen; i++)
+        {
+            data[i] = (data[i] - 128) * i / fadelen + 128;
+        }
+    }
+
+    if (data[size - 1] != 128)
+    {
+        for (i = 0; i < fadelen; i++)
+        {
+            data[size - 1 - i] = (data[size - 1 - i] - 128) * i / fadelen + 128;
+        }
     }
 }
 
@@ -631,19 +669,18 @@ boolean I_OAL_CacheSound(sfxinfo_t *sfx)
 
             sampledata = lumpdata + DMXHDRSIZE;
 
-            if (IsPaddedSound(sampledata, size))
-            {
-                // Ignore DMX padding.
-                sampledata += DMXPADSIZE;
-                size -= DMXPADSIZE * 2;
-            }
+            // DMX skips the first and last 16 bytes of data. Custom sounds may
+            // be created with tools that aren't aware of this, which means part
+            // of the waveform is cut off. We compensate for this by fading in
+            // or out sounds that start or end at a non-zero amplitude to
+            // prevent clicking.
+            // Reference: https://www.doomworld.com/forum/post/949486
+            sampledata += DMXPADSIZE;
+            size -= DMXPADSIZE * 2;
+            FadeInOutMono8(sampledata, size, freq);
 
             // All Doom sounds are 8-bit
             format = AL_FORMAT_MONO8;
-
-            // Fade in sounds that start at a non-zero amplitude to prevent
-            // clicking.
-            FadeInMono8(sampledata, size, freq);
         }
         else
         {
@@ -697,15 +734,14 @@ boolean I_OAL_CacheSound(sfxinfo_t *sfx)
     return true;
 }
 
-boolean I_OAL_StartSound(int channel, sfxinfo_t *sfx, int pitch)
+boolean I_OAL_StartSound(int channel, sfxinfo_t *sfx, float pitch)
 {
     if (!oal)
     {
         return false;
     }
 
-    alSourcef(oal->sources[channel], AL_PITCH,
-              pitch == NORM_PITCH ? OAL_DEFAULT_PITCH : steptable[pitch]);
+    alSourcef(oal->sources[channel], AL_PITCH, pitch);
 
     alSourcei(oal->sources[channel], AL_BUFFER, sfx->buffer);
 

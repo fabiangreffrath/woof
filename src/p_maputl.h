@@ -84,6 +84,8 @@ extern fixed_t openrange;
 extern fixed_t lowfloor;
 extern divline_t trace;
 
+extern boolean blockmapfix;
+
 #endif  // __P_MAPUTL__
 
 //----------------------------------------------------------------------------

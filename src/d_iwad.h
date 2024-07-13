@@ -26,16 +26,20 @@ typedef struct
     const char *name;
     GameMission_t mission;
     GameMode_t mode;
-    GameVariant_t variant;
     const char *description;
 } iwad_t;
 
 char *D_DoomExeDir(void); // killough 2/16/98: path to executable's dir
 char *D_FindWADByName(const char *filename);
 char *D_TryFindWADByName(const char *filename);
-char *D_FindIWADFile(GameMode_t *mode, GameMission_t *mission,
-                     GameVariant_t *variant);
+char *D_FindLMPByName(const char *filename);
+char *D_FindIWADFile(void);
 boolean D_IsIWADName(const char *name);
 const iwad_t **D_GetIwads(void);
+GameMission_t D_GetGameMissionByIWADName(const char *name);
+void D_GetModeAndMissionByIWADName(const char *name, GameMode_t *mode,
+                                   GameMission_t *mission);
+const char *D_GetIWADDescription(const char *name, GameMode_t mode,
+                                 GameMission_t mission);
 
 #endif

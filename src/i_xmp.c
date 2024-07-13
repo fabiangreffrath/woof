@@ -60,6 +60,11 @@ static void PrintError(int e)
 
 static boolean I_XMP_InitStream(int device)
 {
+    if (context)
+    {
+        return true;
+    }
+
     context = xmp_create_context();
 
     if (!context)
@@ -140,9 +145,14 @@ static void I_XMP_ShutdownStream(void)
     context = NULL;
 }
 
-static const char **I_XMP_DeviceList(int *current_device)
+static const char **I_XMP_DeviceList(void)
 {
     return NULL;
+}
+
+static void I_XMP_BindVariables(void)
+{
+    ;
 }
 
 stream_module_t stream_xmp_module =
@@ -154,4 +164,5 @@ stream_module_t stream_xmp_module =
     I_XMP_CloseStream,
     I_XMP_ShutdownStream,
     I_XMP_DeviceList,
+    I_XMP_BindVariables,
 };

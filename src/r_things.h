@@ -40,8 +40,11 @@ extern fixed_t pspritescale;
 extern fixed_t pspriteiscale;
 
 extern boolean pspr_interp; // weapon bobbing interpolation
+extern boolean flipcorpses;
 
 extern lighttable_t **spritelights;
+
+extern boolean draw_nearby_sprites;
 
 void R_DrawMaskedColumn(column_t *column);
 void R_SortVisSprites(void);
@@ -55,6 +58,8 @@ void R_DrawMasked(void);
 void R_ClipVisSprite(vissprite_t *vis, int xl, int xh);
 
 void R_InitSpritesRes(void);
+
+void R_NearbySprites(void);
 
 #endif
 

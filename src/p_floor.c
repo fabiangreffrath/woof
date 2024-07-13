@@ -31,6 +31,7 @@
 #include "p_mobj.h"
 #include "p_spec.h"
 #include "p_tick.h"
+#include "r_data.h"
 #include "r_defs.h"
 #include "r_state.h"
 #include "s_sound.h"
@@ -110,8 +111,6 @@ result_e T_MovePlane
             // http://prboom.sourceforge.net/mbf-bugs.html
             if ((flag == true) && demo_compatibility)
             {
-              extern boolean P_ChangeSector(sector_t *sector,boolean crunch);
-
               sector->floorheight = lastpos;
               P_ChangeSector(sector,crush);
               return crushed;
@@ -223,9 +222,8 @@ result_e T_MovePlane
           }
           else
           {
-            lastpos = sector->ceilingheight;
             sector->ceilingheight += speed;
-            flag = P_CheckSector(sector,crush); //jff 3/19/98 use faster chk
+            P_CheckSector(sector,crush); //jff 3/19/98 use faster chk
           }
           break;
       }
@@ -262,7 +260,7 @@ void T_MoveFloor(floormove_t* floor)
   );
   
   if (!(leveltime&7))     // make the floormove sound
-    S_StartSound((mobj_t *)&floor->sector->soundorg, sfx_stnmov);
+    S_StartSoundPitch((mobj_t *)&floor->sector->soundorg, sfx_stnmov, PITCH_NONE);
     
   if (res == pastdest)    // if destination height is reached
   {
@@ -413,7 +411,7 @@ void T_MoveElevator(elevator_t* elevator)
 
   // make floor move sound
   if (!(leveltime&7))
-    S_StartSound((mobj_t *)&elevator->sector->soundorg, sfx_stnmov);
+    S_StartSoundPitch((mobj_t *)&elevator->sector->soundorg, sfx_stnmov, PITCH_NONE);
     
   if (res == pastdest)            // if destination height acheived
   {
@@ -752,7 +750,6 @@ int EV_BuildStairs
   int ssec = -1;
   int minssec = -1;
 
-  secnum = -1;
   rtn = 0;
 
 // [FG] Compatibility bug in EV_BuildStairs
@@ -905,8 +902,6 @@ int EV_BuildStairs
 
 static boolean DonutOverrun(fixed_t *pfloorheight, short *pfloorpic)
 {
-  extern int numflats;
-
   if (demo_compatibility && overflow[emu_donut].enabled)
   {
     overflow[emu_donut].triggered = true;

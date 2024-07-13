@@ -23,13 +23,12 @@
 #include "m_swap.h"
 #include "r_defs.h"
 #include "v_video.h"
+#include "v_fmt.h"
 #include "w_wad.h"
 #include "z_zone.h"
 
-int sts_colored_numbers; //jff 2/18/98 control to disable status color changes
-int sts_pct_always_gray; // killough 2/21/98: always gray %'s? bug or feature?
-
-extern boolean st_crispyhud;
+boolean sts_colored_numbers; //jff 2/18/98 control to disable status color changes
+boolean sts_pct_always_gray; // killough 2/21/98: always gray %'s? bug or feature?
 
 patch_t*    sttminus;
 
@@ -44,7 +43,7 @@ void STlib_init(void)
 {
   // [FG] allow playing with the Doom v1.2 IWAD which is missing the STTMINUS lump
   if (W_CheckNumForName("STTMINUS") >= 0)
-  sttminus = (patch_t *) W_CacheLumpName("STTMINUS", PU_STATIC);
+  sttminus = V_CachePatchName("STTMINUS", PU_STATIC);
   else
     sttminus = NULL;
 }
@@ -112,7 +111,7 @@ static void STlib_drawNum
   }
 
   // if non-number, do not draw it
-  if (num == 1994)
+  if (num == LARGENUMBER)
     return;
 
   //jff 2/16/98 add color translation to digit output

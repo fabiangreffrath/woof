@@ -55,6 +55,32 @@ typedef PACKED_PREFIX struct
 // WADFILE I/O related stuff.
 //
 
+typedef enum
+{
+  ns_global,
+  ns_sprites,
+  ns_flats,
+  ns_colormaps,
+  ns_voxels,
+  ns_hires // [Woof!] namespace to avoid conflicts with high-resolution textures
+} namespace_t;
+
+typedef struct
+{
+    union
+    {
+        void *zip;
+        const char *base_path;
+        int descriptor;
+    } p1;
+
+    union
+    {
+        int position;
+        int index;
+    } p2;
+} w_handle_t;
+
 typedef struct
 {
   // WARNING: order of some fields important (see info.c).
@@ -67,29 +93,26 @@ typedef struct
   int index, next;
 
   // killough 4/17/98: namespace tags, to prevent conflicts between resources
-  enum {
-    ns_global=0,
-    ns_sprites,
-    ns_flats,
-    ns_colormaps,
-    ns_hires // [Woof!] namespace to avoid conflicts with high-resolution textures
-  } namespace;
+  namespace_t namespace;
 
-  int handle;
-  int position;
+  struct w_module_s *module;
+  w_handle_t handle;
 
   // [FG] WAD file that contains the lump
   const char *wad_file;
 } lumpinfo_t;
 
-// killough 1/31/98: predefined lumps
-extern const size_t num_predefined_lumps;
-extern const lumpinfo_t predefined_lumps[];
-
-extern void       **lumpcache;
 extern lumpinfo_t *lumpinfo;
 extern int        numlumps;
+extern void       **lumpcache;
 
+extern const char **wadfiles;
+
+boolean W_InitBaseFile(const char *path);
+void W_AddBaseDir(const char *path);
+boolean W_AddPath(const char *path);
+void W_ProcessInWads(const char *name, void (*process)(int lumpnum),
+                     boolean iwad);
 void W_InitMultipleFiles(void);
 
 // killough 4/17/98: if W_CheckNumForName() called with only
@@ -104,15 +127,10 @@ void    *W_CacheLumpNum(int lump, pu_tag tag);
 
 #define W_CacheLumpName(name,tag) W_CacheLumpNum (W_GetNumForName(name),(tag))
 
-void ExtractFileBase(const char *, char *);       // killough
+void W_ExtractFileBase(const char *, char *);       // killough
 unsigned W_LumpNameHash(const char *s);           // killough 1/31/98
 
 void I_BeginRead(unsigned int bytes), I_EndRead(void); // killough 10/98
-
-// Function to write all predefined lumps to a PWAD if requested
-extern void WriteLumpWad(const char *filename, const lumpinfo_t *lumps, const size_t num_lumps);
-extern void WritePredefinedLumpWad(const char *filename); // jff 5/6/98
-extern void WriteGeneratedLumpWad(const char *filename);
 
 // [FG] name of the WAD file that contains the lump
 const char *W_WadNameForLump (const int lump);
@@ -121,9 +139,8 @@ boolean W_IsIWADLump (const int lump);
 boolean W_IsWADLump (const int lump);
 boolean W_LumpExistsWithName(int lump, char *name);
 int W_LumpLengthWithName(int lump, char *name);
-void W_DemoLumpNameCollision(char **name);
 
-void W_CloseFileDescriptors(void);
+void W_Close(void);
 
 #endif
 

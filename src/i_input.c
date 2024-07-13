@@ -23,7 +23,7 @@
 #include "i_gamepad.h"
 #include "i_printf.h"
 #include "i_system.h"
-#include "r_main.h"
+#include "m_config.h"
 
 #define AXIS_BUTTON_DEADZONE (SDL_JOYSTICK_AXIS_MAX / 3)
 
@@ -87,46 +87,57 @@ static void AxisToButtons(event_t *ev)
     AxisToButton(ev->data4, &axisbuttons[3], CONTROLLER_RIGHT_STICK_UP);
 }
 
-void I_UpdateJoystick(boolean axis_buttons)
+static void TriggerToButton(int value, boolean *trigger_on, int trigger_type)
 {
     static event_t ev;
 
-    if (controller == NULL)
+    if (value > trigger_threshold && !*trigger_on)
+    {
+        *trigger_on = true;
+        ev.type = ev_joyb_down;
+    }
+    else if (value <= trigger_threshold && *trigger_on)
+    {
+        *trigger_on = false;
+        ev.type = ev_joyb_up;
+    }
+    else
     {
         return;
     }
 
+    ev.data1 = trigger_type;
+    D_PostEvent(&ev);
+}
+
+static void TriggerToButtons(void)
+{
+    static boolean left_trigger_on;
+    static boolean right_trigger_on;
+
+    TriggerToButton(GetAxisState(SDL_CONTROLLER_AXIS_TRIGGERLEFT),
+                    &left_trigger_on, CONTROLLER_LEFT_TRIGGER);
+    TriggerToButton(GetAxisState(SDL_CONTROLLER_AXIS_TRIGGERRIGHT),
+                    &right_trigger_on, CONTROLLER_RIGHT_TRIGGER);
+}
+
+void I_UpdateJoystick(evtype_t type, boolean axis_buttons)
+{
+    static event_t ev;
+
+    ev.type = type;
     ev.data1 = GetAxisState(SDL_CONTROLLER_AXIS_LEFTX);
     ev.data2 = GetAxisState(SDL_CONTROLLER_AXIS_LEFTY);
     ev.data3 = GetAxisState(SDL_CONTROLLER_AXIS_RIGHTX);
     ev.data4 = GetAxisState(SDL_CONTROLLER_AXIS_RIGHTY);
+
+    D_PostEvent(&ev);
 
     if (axis_buttons)
     {
         AxisToButtons(&ev);
+        TriggerToButtons();
     }
-
-    ev.type = ev_joystick;
-    D_PostEvent(&ev);
-}
-
-void I_UpdateJoystickMenu(void)
-{
-    static event_t ev;
-
-    if (controller == NULL)
-    {
-        return;
-    }
-
-    ev.data1 = GetAxisState(SDL_CONTROLLER_AXIS_LEFTX);
-    ev.data2 = GetAxisState(SDL_CONTROLLER_AXIS_LEFTY);
-    ev.data3 = GetAxisState(SDL_CONTROLLER_AXIS_RIGHTX);
-    ev.data4 = GetAxisState(SDL_CONTROLLER_AXIS_RIGHTY);
-
-    AxisToButtons(&ev);
-    ev.type = ev_joystick_state;
-    D_PostEvent(&ev);
 }
 
 static void UpdateJoystickButtonState(unsigned int button, boolean on)
@@ -145,75 +156,35 @@ static void UpdateJoystickButtonState(unsigned int button, boolean on)
     D_PostEvent(&event);
 }
 
-static void UpdateControllerAxisState(unsigned int value, boolean left_trigger)
-{
-    int button;
-    static event_t event;
-    static boolean left_trigger_on;
-    static boolean right_trigger_on;
-
-    if (left_trigger)
-    {
-        if (value > trigger_threshold && !left_trigger_on)
-        {
-            left_trigger_on = true;
-            event.type = ev_joyb_down;
-        }
-        else if (value <= trigger_threshold && left_trigger_on)
-        {
-            left_trigger_on = false;
-            event.type = ev_joyb_up;
-        }
-        else
-        {
-            return;
-        }
-
-        button = CONTROLLER_LEFT_TRIGGER;
-    }
-    else
-    {
-        if (value > trigger_threshold && !right_trigger_on)
-        {
-            right_trigger_on = true;
-            event.type = ev_joyb_down;
-        }
-        else if (value <= trigger_threshold && right_trigger_on)
-        {
-            right_trigger_on = false;
-            event.type = ev_joyb_up;
-        }
-        else
-        {
-            return;
-        }
-
-        button = CONTROLLER_RIGHT_TRIGGER;
-    }
-
-    event.data1 = button;
-    D_PostEvent(&event);
-}
-
 boolean I_UseController(void)
 {
-    return (controller && joy_enable);
+    return (controller != NULL);
 }
 
 static void EnableControllerEvents(void)
 {
-    SDL_EventState(SDL_CONTROLLERAXISMOTION, SDL_ENABLE);
+    SDL_EventState(SDL_JOYHATMOTION, SDL_ENABLE);
+    SDL_EventState(SDL_JOYBUTTONDOWN, SDL_ENABLE);
+    SDL_EventState(SDL_JOYBUTTONUP, SDL_ENABLE);
     SDL_EventState(SDL_CONTROLLERBUTTONDOWN, SDL_ENABLE);
     SDL_EventState(SDL_CONTROLLERBUTTONUP, SDL_ENABLE);
 }
 
 static void DisableControllerEvents(void)
 {
-    SDL_EventState(SDL_CONTROLLERAXISMOTION, SDL_IGNORE);
+    SDL_EventState(SDL_JOYHATMOTION, SDL_IGNORE);
+    SDL_EventState(SDL_JOYBUTTONDOWN, SDL_IGNORE);
+    SDL_EventState(SDL_JOYBUTTONUP, SDL_IGNORE);
     SDL_EventState(SDL_CONTROLLERBUTTONDOWN, SDL_IGNORE);
     SDL_EventState(SDL_CONTROLLERBUTTONUP, SDL_IGNORE);
 
     // Always ignore unsupported game controller events.
+    SDL_EventState(SDL_JOYAXISMOTION, SDL_IGNORE);
+    SDL_EventState(SDL_JOYBALLMOTION, SDL_IGNORE);
+#if SDL_VERSION_ATLEAST(2, 24, 0)
+    SDL_EventState(SDL_JOYBATTERYUPDATED, SDL_IGNORE);
+#endif
+    SDL_EventState(SDL_CONTROLLERAXISMOTION, SDL_IGNORE);
     SDL_EventState(SDL_CONTROLLERDEVICEREMAPPED, SDL_IGNORE);
     SDL_EventState(SDL_CONTROLLERTOUCHPADDOWN, SDL_IGNORE);
     SDL_EventState(SDL_CONTROLLERTOUCHPADMOTION, SDL_IGNORE);
@@ -230,7 +201,6 @@ void I_InitController(void)
 {
     if (!joy_enable)
     {
-        SDL_GameControllerEventState(SDL_IGNORE);
         return;
     }
 
@@ -242,7 +212,6 @@ void I_InitController(void)
         return;
     }
 
-    SDL_GameControllerEventState(SDL_ENABLE);
     DisableControllerEvents();
 
     I_Printf(VB_INFO, "I_InitController: Initialize game controller.");
@@ -308,17 +277,6 @@ void I_HandleJoystickEvent(SDL_Event *sdlevent)
 
         case SDL_CONTROLLERBUTTONUP:
             UpdateJoystickButtonState(sdlevent->cbutton.button, false);
-            break;
-
-        case SDL_CONTROLLERAXISMOTION:
-            if (sdlevent->caxis.axis == SDL_CONTROLLER_AXIS_TRIGGERLEFT)
-            {
-                UpdateControllerAxisState(sdlevent->caxis.value, true);
-            }
-            else if (sdlevent->caxis.axis == SDL_CONTROLLER_AXIS_TRIGGERRIGHT)
-            {
-                UpdateControllerAxisState(sdlevent->caxis.value, false);
-            }
             break;
 
         default:
@@ -462,75 +420,17 @@ void I_DelayEvent(void)
 //
 // Read the change in mouse state to generate mouse motion events
 //
-// This is to combine all mouse movement for a tic into one mouse
-// motion event.
-
-// The mouse input values are input directly to the game, but when the values
-// exceed the value of mouse_acceleration_threshold, they are multiplied by
-// mouse_acceleration to increase the speed.
-
-int mouse_acceleration;
-int mouse_acceleration_threshold;
-
-static double AccelerateMouse_Thresh(int val)
-{
-    if (val < 0)
-    {
-        return -AccelerateMouse_Thresh(-val);
-    }
-
-    if (val > mouse_acceleration_threshold)
-    {
-        return ((double)(val - mouse_acceleration_threshold)
-                    * (mouse_acceleration + 10) / 10
-                + mouse_acceleration_threshold);
-    }
-    else
-    {
-        return val;
-    }
-}
-
-static double AccelerateMouse_NoThresh(int val)
-{
-    return ((double)val * (mouse_acceleration + 10) / 10);
-}
-
-static double AccelerateMouse_Skip(int val)
-{
-    return val;
-}
-
-double (*I_AccelerateMouse)(int val) = AccelerateMouse_NoThresh;
-
-void I_UpdateAccelerateMouse(void)
-{
-    if (mouse_acceleration)
-    {
-        I_AccelerateMouse =
-            raw_input ? AccelerateMouse_NoThresh : AccelerateMouse_Thresh;
-    }
-    else
-    {
-        I_AccelerateMouse = AccelerateMouse_Skip;
-    }
-}
 
 void I_ReadMouse(void)
 {
-    int x, y;
-    static event_t ev;
+    static event_t ev = {.type = ev_mouse};
 
-    SDL_GetRelativeMouseState(&x, &y);
+    SDL_GetRelativeMouseState(&ev.data1, &ev.data2);
 
-    if (x != 0 || y != 0)
+    if (ev.data1 || ev.data2)
     {
-        ev.type = ev_mouse;
-        ev.data1 = 0;
-        ev.data2 = x;
-        ev.data3 = -y;
-
         D_PostEvent(&ev);
+        ev.data1 = ev.data2 = 0;
     }
 }
 

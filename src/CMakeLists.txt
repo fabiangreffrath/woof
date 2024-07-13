@@ -2,8 +2,6 @@ include(WoofSettings)
 
 set(WOOF_SOURCES
     am_map.c               am_map.h
-                           beta.h
-                           cross.h
     d_deh.c                d_deh.h
                            d_englsh.h
                            d_event.h
@@ -17,7 +15,6 @@ set(WOOF_SOURCES
     d_quit.c               d_quit.h
                            d_think.h
                            d_ticcmd.h
-                           dogs.h
                            doomdata.h
                            doomdef.h
     doomstat.c             doomstat.h
@@ -26,8 +23,11 @@ set(WOOF_SOURCES
     dstrings.c             dstrings.h
     f_finale.c             f_finale.h
     f_wipe.c               f_wipe.h
-                           font.h
     g_game.c               g_game.h
+    g_input.c              g_input.h
+    hu_command.c           hu_command.h
+    hu_coordinates.c       hu_coordinates.h
+    hu_crosshair.c         hu_crosshair.h
     hu_lib.c               hu_lib.h
     hu_obituary.c          hu_obituary.h
     hu_stuff.c             hu_stuff.h
@@ -38,6 +38,9 @@ set(WOOF_SOURCES
     i_input.c              i_input.h
     i_main.c
     i_mbfsound.c
+    i_midimusic.c
+                           i_oalcommon.h
+    i_oalequalizer.c       i_oalequalizer.h
     i_oalmusic.c
     i_oalsound.c           i_oalsound.h
                            i_oalstream.h
@@ -59,7 +62,7 @@ set(WOOF_SOURCES
     m_io.c                 m_io.h
     mn_font.c              mn_font.h
     mn_menu.c              mn_menu.h
-    mn_setup.c             mn_setup.h
+    mn_setup.c             mn_internal.h
     m_misc.c               m_misc.h
     m_random.c             m_random.h
     mn_snapshot.c          mn_snapshot.h
@@ -67,6 +70,7 @@ set(WOOF_SOURCES
     memio.c                memio.h
     midifallback.c         midifallback.h
     midifile.c             midifile.h
+    midiout.c              midiout.h
     mus2mid.c              mus2mid.h
     nano_bsp.c             nano_bsp.h
     net_client.c           net_client.h
@@ -126,13 +130,16 @@ set(WOOF_SOURCES
     u_mapinfo.c            u_mapinfo.h
     u_scanner.c            u_scanner.h
     v_flextran.c           v_flextran.h
+    v_fmt.c                v_fmt.h
     v_trans.c              v_trans.h
     v_video.c              v_video.h
     version.c              version.h
     w_wad.c                w_wad.h
+                           w_internal.h
+    w_file.c
+    w_zip.c
     wi_stuff.c             wi_stuff.h
-    z_zone.c               z_zone.h
-    ../miniz/miniz.c       ../miniz/miniz.h)
+    z_zone.c               z_zone.h)
 
 # Standard target definition
 if(WIN32)
@@ -145,11 +152,13 @@ if(WIN32)
     add_executable(woof-com WIN32 ../win32/win_launcher.c
         "${CMAKE_CURRENT_BINARY_DIR}/resource.rc")
     target_woof_settings(woof-com)
+    target_include_directories(woof-com PRIVATE ${SDL2_INCLUDE_DIR})
     target_link_libraries(woof-com PRIVATE ${SDL2_LIBRARIES} woof)
 
     add_executable(woof-exe WIN32 ../win32/win_launcher.c
         "${CMAKE_CURRENT_BINARY_DIR}/resource.rc")
     target_woof_settings(woof-exe)
+    target_include_directories(woof-exe PRIVATE ${SDL2_INCLUDE_DIR})
     target_link_libraries(woof-exe PRIVATE ${SDL2_LIBRARIES} woof)
 
     # MSVC tries to supply a default manifest and complains when it finds ours
@@ -165,8 +174,7 @@ else()
 endif()
 
 target_woof_settings(woof)
-target_include_directories(woof PRIVATE
-        "${CMAKE_CURRENT_BINARY_DIR}/../" "../miniz")
+target_include_directories(woof PRIVATE "${CMAKE_CURRENT_BINARY_DIR}/../")
 
 target_link_libraries(woof PRIVATE
     ${SDL2_LIBRARIES}
@@ -174,7 +182,9 @@ target_link_libraries(woof PRIVATE
     OpenAL::OpenAL
     SndFile::sndfile
     opl
-    textscreen)
+    textscreen
+    miniz
+    spng)
 
 # Some platforms require standard libraries to be linked against.
 if(HAVE_LIBM)
@@ -186,7 +196,6 @@ if(HAVE_AL_BUFFER_CALLBACK)
 endif()
 
 if(WIN32)
-    target_sources(woof PRIVATE i_winmusic.c)
     target_include_directories(woof PRIVATE "../win32")
     target_link_libraries(woof PRIVATE winmm)
     if(MSVC)
@@ -196,9 +205,15 @@ if(WIN32)
 endif()
 
 if(APPLE)
-    target_sources(woof PRIVATE i_macmusic.c)
     target_link_libraries(woof PRIVATE
-        -Wl,-framework,AudioToolbox -Wl,-framework,AudioUnit -Wl,-framework,CoreServices)
+        -Wl,-framework,AudioToolbox -Wl,-framework,AudioUnit
+        -Wl,-framework,CoreServices -Wl,-framework,CoreAudio
+        -Wl,-framework,CoreMIDI)
+endif()
+
+if(ALSA_FOUND)
+    target_include_directories(woof PRIVATE ${ALSA_INCLUDE_DIR})
+    target_link_libraries(woof PRIVATE ALSA::ALSA)
 endif()
 
 if(FluidSynth_FOUND)
@@ -221,8 +236,6 @@ endif()
 if(WOOF_STRICT)
     target_compile_definitions(woof PRIVATE MBF_STRICT)
 endif()
-
-target_compile_definitions(woof PRIVATE MINIZ_NO_TIME)
 
 set(SETUP_SOURCES
     d_iwad.c                d_iwad.h
@@ -262,6 +275,11 @@ if(MSVC)
     target_link_options(woof-setup PRIVATE "/MANIFEST:NO")
 endif()
 
+add_custom_command(TARGET woof POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E tar cf
+    "$<TARGET_FILE_DIR:woof>/woof.pk3" --format=zip .
+    WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}/base")
+
 # Install
 #
 # Rename woof-com and woof-exe executables.
@@ -290,14 +308,9 @@ if(WIN32)
     endif()
     install(FILES "$<TARGET_FILE_DIR:woof-com>/woof.com" DESTINATION .)
     install(FILES "$<TARGET_FILE_DIR:woof-exe>/woof.exe" DESTINATION .)
+    install(FILES "$<TARGET_FILE_DIR:woof>/woof.pk3" DESTINATION .)
 else()
     install(TARGETS woof woof-setup RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
+    install(FILES "$<TARGET_FILE_DIR:woof>/woof.pk3"
+            DESTINATION "share/${PROJECT_SHORTNAME}")
 endif()
-
-# Copy autoload directory content to target directory.
-add_custom_command(TARGET woof POST_BUILD
-    COMMAND ${CMAKE_COMMAND} -E make_directory
-    "$<TARGET_FILE_DIR:woof>/autoload"
-    COMMAND ${CMAKE_COMMAND} -E copy_directory
-    "${CMAKE_SOURCE_DIR}/autoload"
-    "$<TARGET_FILE_DIR:woof>/autoload" VERBATIM)

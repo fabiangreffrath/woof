@@ -16,16 +16,18 @@
 // DESCRIPTION:
 //     Load and draw ZDoom FON2 fonts
 
-#include <ctype.h>
 #include <stdlib.h>
 #include <string.h>
 
 #include "doomtype.h"
 #include "i_video.h"
+#include "m_misc.h"
 #include "m_swap.h"
 #include "r_defs.h"
+#include "v_fmt.h"
 #include "v_video.h"
 #include "w_wad.h"
+#include "z_zone.h"
 
 typedef struct
 {
@@ -156,7 +158,7 @@ boolean MN_LoadFon2(const byte *gfx_data, int size)
         }
 
         chars[i].patch = V_LinearToTransPatch(data, chars[i].width, height,
-                                              color_key);
+                                              color_key, PU_STATIC, NULL);
         free(data);
     }
 
@@ -179,7 +181,7 @@ boolean MN_DrawFon2String(int x, int y, byte *cr, const char *str)
     {
         c = *str++;
 
-        c = (upper ? toupper(c) : c) - firstc;
+        c = (upper ? M_ToUpper(c) : c) - firstc;
         if (c < 0 || c >= numchars)
         {
             cx += FON2_SPACE;
@@ -214,7 +216,7 @@ int MN_GetFon2PixelWidth(const char *str)
     {
         c = *str++;
 
-        c = (upper ? toupper(c) : c) - firstc;
+        c = (upper ? M_ToUpper(c) : c) - firstc;
         if (c < 0 || c > numchars)
         {
             len += FON2_SPACE; // space

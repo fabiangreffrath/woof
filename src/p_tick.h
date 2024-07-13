@@ -48,6 +48,8 @@ typedef enum {
 
 extern thinker_t thinkerclasscap[];
 
+extern int init_thinkers_count;
+
 #endif
 
 //----------------------------------------------------------------------------

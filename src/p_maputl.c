@@ -420,8 +420,6 @@ boolean P_BlockLinesIterator(int x, int y, boolean func(line_t*))
 // killough 5/3/98: reformatted, cleaned up
 
 boolean blockmapfix;
-extern boolean PIT_RadiusAttack(mobj_t* thing);
-extern boolean PIT_ChangeSector(mobj_t* thing);
 
 boolean P_BlockThingsIterator(int x, int y, boolean func(mobj_t*))
 {
@@ -704,8 +702,6 @@ boolean P_TraverseIntercepts(traverser_t func, fixed_t maxfrac)
   return true;                  // everything was traversed
 }
 
-extern fixed_t bulletslope;
-
 // Intercepts Overrun emulation, from PrBoom-plus.
 // Thanks to Andrey Budko (entryway) for researching this and his 
 // implementation of Intercepts Overrun emulation in PrBoom-plus
@@ -780,8 +776,8 @@ static void InterceptsMemoryOverrun(int location, int value)
                 if (intercepts_overrun[i].int16_array)
                 {
                     index = (location - offset) / 2;
-                    ((short *) addr)[index] = value & 0xffff;
-                    ((short *) addr)[index + 1] = (value >> 16) & 0xffff;
+                    ((short *) addr)[index] = value & FRACMASK;
+                    ((short *) addr)[index + 1] = (value >> 16) & FRACMASK;
                 }
                 else
                 {
@@ -877,14 +873,14 @@ boolean P_PathTraverse(fixed_t x1, fixed_t y1, fixed_t x2, fixed_t y2,
   if (xt2 > xt1)
     {
       mapxstep = 1;
-      partial = FRACUNIT - ((x1>>MAPBTOFRAC)&(FRACUNIT-1));
+      partial = FRACUNIT - ((x1>>MAPBTOFRAC)&FRACMASK);
       ystep = FixedDiv (y2-y1,abs(x2-x1));
     }
   else
     if (xt2 < xt1)
       {
         mapxstep = -1;
-        partial = (x1>>MAPBTOFRAC)&(FRACUNIT-1);
+        partial = (x1>>MAPBTOFRAC)&FRACMASK;
         ystep = FixedDiv (y2-y1,abs(x2-x1));
       }
     else
@@ -899,14 +895,14 @@ boolean P_PathTraverse(fixed_t x1, fixed_t y1, fixed_t x2, fixed_t y2,
   if (yt2 > yt1)
     {
       mapystep = 1;
-      partial = FRACUNIT - ((y1>>MAPBTOFRAC)&(FRACUNIT-1));
+      partial = FRACUNIT - ((y1>>MAPBTOFRAC)&FRACMASK);
       xstep = FixedDiv (x2-x1,abs(y2-y1));
     }
   else
     if (yt2 < yt1)
       {
         mapystep = -1;
-        partial = (y1>>MAPBTOFRAC)&(FRACUNIT-1);
+        partial = (y1>>MAPBTOFRAC)&FRACMASK;
         xstep = FixedDiv (x2-x1,abs(y2-y1));
       }
     else
@@ -1278,13 +1274,13 @@ boolean P_SightPathTraverse(fixed_t x1, fixed_t y1, fixed_t x2, fixed_t y2)
   if (xt2 > xt1)
   {
     mapxstep = 1;
-    partial = FRACUNIT - ((x1>>MAPBTOFRAC)&(FRACUNIT-1));
+    partial = FRACUNIT - ((x1>>MAPBTOFRAC)&FRACMASK);
     ystep = FixedDiv (y2-y1,abs(x2-x1));
   }
   else if (xt2 < xt1)
   {
     mapxstep = -1;
-    partial = (x1>>MAPBTOFRAC)&(FRACUNIT-1);
+    partial = (x1>>MAPBTOFRAC)&FRACMASK;
     ystep = FixedDiv (y2-y1,abs(x2-x1));
   }
   else
@@ -1299,13 +1295,13 @@ boolean P_SightPathTraverse(fixed_t x1, fixed_t y1, fixed_t x2, fixed_t y2)
   if (yt2 > yt1)
   {
     mapystep = 1;
-    partial = FRACUNIT - ((y1>>MAPBTOFRAC)&(FRACUNIT-1));
+    partial = FRACUNIT - ((y1>>MAPBTOFRAC)&FRACMASK);
     xstep = FixedDiv (x2-x1,abs(y2-y1));
   }
   else if (yt2 < yt1)
   {
     mapystep = -1;
-    partial = (y1>>MAPBTOFRAC)&(FRACUNIT-1);
+    partial = (y1>>MAPBTOFRAC)&FRACMASK;
     xstep = FixedDiv (x2-x1,abs(y2-y1));
   }
   else

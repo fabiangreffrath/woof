@@ -19,7 +19,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "../opl/opl.h"
+#include "opl.h"
 
 #include "doomtype.h"
 #include "i_oalstream.h"
@@ -359,8 +359,8 @@ static unsigned int last_perc_count;
 // Configuration file variable, containing the port number for the
 // adlib chip.
 
-char *snd_dmxoption = "-opl3"; // [crispy] default to OPL3 emulation
-int opl_io_port = 0x388;
+static char *snd_dmxoption = "-opl3"; // [crispy] default to OPL3 emulation
+static int opl_io_port = 0x388;
 
 // If true, OPL sound channels are reversed to their correct arrangement
 // (as intended by the MIDI standard) rather than the backwards one
@@ -1417,7 +1417,7 @@ static void InitChannel(opl_channel_data_t *channel)
 
     channel->instrument = &main_instrs[0];
     channel->volume = current_music_volume;
-    channel->volume_base = 100;
+    channel->volume_base = MIDI_DEFAULT_VOLUME;
     if (channel->volume > channel->volume_base)
     {
         channel->volume = channel->volume_base;
@@ -1503,6 +1503,11 @@ static midi_file_t *midifile;
 static boolean I_OPL_OpenStream(void *data, ALsizei size, ALenum *format,
                                 ALsizei *freq, ALsizei *frame_size)
 {
+    if (!IsMid(data, size) && !IsMus(data, size))
+    {
+        return false;
+    }
+
     if (!music_initialized)
     {
         return false;
@@ -1577,7 +1582,7 @@ static void I_OPL_PlayStream(boolean looping)
     // Default is 120 bpm.
     // TODO: this is wrong
 
-    us_per_beat = 500 * 1000;
+    us_per_beat = MIDI_DEFAULT_TEMPO;
 
     start_music_volume = current_music_volume;
 
@@ -1652,21 +1657,20 @@ static void I_OPL_ShutdownStream(void)
     }
 }
 
-static const char **I_OPL_DeviceList(int *current_device)
+static const char **I_OPL_DeviceList(void)
 {
     static const char **devices = NULL;
-
-    if (devices)
+    if (array_size(devices))
     {
         return devices;
     }
-
-    if (current_device)
-    {
-        *current_device = 0;
-    }
     array_push(devices, "OPL3 Emulation");
     return devices;
+}
+
+static void I_OPL_BindVariables(void)
+{
+    ;
 }
 
 stream_module_t stream_opl_module =
@@ -1678,4 +1682,5 @@ stream_module_t stream_opl_module =
     I_OPL_CloseStream,
     I_OPL_ShutdownStream,
     I_OPL_DeviceList,
+    I_OPL_BindVariables,
 };

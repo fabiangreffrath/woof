@@ -1,0 +1,37 @@
+hud 0
+rate topleft
+compact bottomleft
+monsec topleft
+sttime topleft
+coord topright
+fps topright
+cmd bottomright
+speed bottomcenter
+
+hud 1
+rate topleft
+armor bottomleft
+health bottomleft
+ammo bottomleft
+weapon bottomleft
+keys bottomleft
+monsec bottomleft
+sttime bottomleft
+coord topright
+fps topright
+cmd bottomright
+speed bottomcenter
+
+hud 2
+rate topleft
+health topright
+armor topright
+ammo bottomright
+weapon bottomright
+keys bottomleft
+monsec bottomleft
+sttime bottomleft
+coord topright
+fps topright
+cmd bottomright
+speed bottomcenter

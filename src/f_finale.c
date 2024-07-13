@@ -18,7 +18,6 @@
 //-----------------------------------------------------------------------------
 
 
-#include <ctype.h>
 #include <stdlib.h>
 #include <string.h>
 
@@ -27,6 +26,7 @@
 #include "doomdef.h"
 #include "doomstat.h"
 #include "doomtype.h"
+#include "g_game.h"
 #include "hu_lib.h"
 #include "info.h"
 #include "m_misc.h" // [FG] M_StringDuplicate()
@@ -36,8 +36,10 @@
 #include "s_sound.h"
 #include "sounds.h"
 #include "u_mapinfo.h"
+#include "v_fmt.h"
 #include "v_video.h"
 #include "w_wad.h"
+#include "wi_stuff.h"
 #include "z_zone.h"
 
 // Stage of animation:
@@ -52,19 +54,15 @@ int finalecount;
 #define NEWTEXTSPEED 0.01f // new value                         // phares
 #define NEWTEXTWAIT  1000  // new value                         // phares
 
-char*   finaletext;
-char*   finaleflat;
-static char* finaletext_rw = NULL;
+static const char *finaletext;
+static const char *finaleflat;
 
 void    F_StartCast (void);
 void    F_CastTicker (void);
 boolean F_CastResponder (event_t *ev);
 void    F_CastDrawer (void);
 
-void WI_checkForAccelerate(void);    // killough 3/28/98: used to
-extern int acceleratestage;          // accelerate intermission screens
 static int midstage;                 // whether we're in "mid-stage"
-extern boolean secretexit;           // whether we've entered a secret map
 
 boolean using_FMI;
 
@@ -218,14 +216,6 @@ void F_StartFinale (void)
 
   finalestage = 0;
   finalecount = 0;
-
-  // [FG] do the "char* vs. const char*" dance
-  if (finaletext_rw)
-  {
-    free(finaletext_rw);
-    finaletext_rw = NULL;
-  }
-  finaletext_rw = M_StringDuplicate(finaletext);
 }
 
 
@@ -353,31 +343,11 @@ void F_Ticker(void)
 // text can be increased, and there's still time to read what's     //   |
 // written.                                                         // phares
 
-// [FG] add line breaks for lines exceeding screenwidth
-static inline boolean F_AddLineBreak (char *c)
-{
-    while (c-- > finaletext_rw)
-    {
-	if (*c == '\n')
-	{
-	    return false;
-	}
-	else
-	if (*c == ' ')
-	{
-	    *c = '\n';
-	    return true;
-	}
-    }
-
-    return false;
-}
-
 void F_TextWrite (void)
 {
   int         w;         // killough 8/9/98: move variables below
   int         count;
-  char*       ch;
+  const char  *ch;
   int         c;
   int         cx;
   int         cy;
@@ -386,9 +356,9 @@ void F_TextWrite (void)
   if (gamemapinfo && W_CheckNumForName(finaleflat) != -1 &&
       (W_CheckNumForName)(finaleflat, ns_flats) == -1)
   {
-    V_DrawPatchFullScreen(W_CacheLumpName(finaleflat, PU_LEVEL));
+    V_DrawPatchFullScreen(V_CachePatchName(finaleflat, PU_LEVEL));
   }
-  else
+  else if ((W_CheckNumForName)(finaleflat, ns_flats) != -1)
   {
     // erase the entire screen to a tiled background
 
@@ -399,7 +369,7 @@ void F_TextWrite (void)
   // draw some of the text onto the screen
   cx = 10;
   cy = 10;
-  ch = finaletext_rw;
+  ch = finaletext;
       
   count = (int)((finalecount - 10)/Get_TextSpeed());                 // phares
   if (count < 0)
@@ -417,7 +387,7 @@ void F_TextWrite (void)
       continue;
     }
               
-    c = toupper(c) - HU_FONTSTART;
+    c = M_ToUpper(c) - HU_FONTSTART;
     if (c < 0 || c> HU_FONTSIZE)
     {
       cx += 4;
@@ -425,13 +395,9 @@ void F_TextWrite (void)
     }
               
     w = SHORT (hu_font[c]->width);
-    if (cx+w > SCREENWIDTH)
+    if (cx + w > video.unscaledw - video.deltaw)
     {
-      // [FG] add line breaks for lines exceeding screenwidth
-      if (F_AddLineBreak(ch))
-        continue;
-      else
-      break;
+      continue;
     }
     // [cispy] prevent text from being drawn off-screen vertically
     if (cy + SHORT(hu_font[c]->height) > SCREENHEIGHT)
@@ -650,7 +616,7 @@ void F_CastPrint (char* text)
     c = *ch++;
     if (!c)
       break;
-    c = toupper(c) - HU_FONTSTART;
+    c = M_ToUpper(c) - HU_FONTSTART;
     if (c < 0 || c> HU_FONTSIZE)
     {
       width += 4;
@@ -669,7 +635,7 @@ void F_CastPrint (char* text)
     c = *ch++;
     if (!c)
       break;
-    c = toupper(c) - HU_FONTSTART;
+    c = M_ToUpper(c) - HU_FONTSTART;
     if (c < 0 || c> HU_FONTSIZE)
     {
       cx += 4;
@@ -696,7 +662,7 @@ void F_CastDrawer (void)
   patch_t*            patch;
     
   // erase the entire screen to a background
-  V_DrawPatchFullScreen (W_CacheLumpName (bgcastcall, PU_CACHE)); // Ty 03/30/98 bg texture extern
+  V_DrawPatchFullScreen (V_CachePatchName (bgcastcall, PU_CACHE)); // Ty 03/30/98 bg texture extern
 
   F_CastPrint (castorder[castnum].name);
     
@@ -706,7 +672,7 @@ void F_CastDrawer (void)
   lump = sprframe->lump[0];
   flip = (boolean)sprframe->flip[0];
                         
-  patch = W_CacheLumpNum (lump+firstspritelump, PU_CACHE);
+  patch = V_CachePatchNum (lump+firstspritelump, PU_CACHE);
   if (flip)
     V_DrawPatchFlipped (160, 170, patch);
   else
@@ -724,33 +690,40 @@ void F_BunnyScroll (void)
   char        name[16];
   int         stage;
   static int  laststage;
-  int         offset;
 
-  p1 = W_CacheLumpName ("PFUB2", PU_LEVEL);
-  p2 = W_CacheLumpName ("PFUB1", PU_LEVEL);
+  p1 = V_CachePatchName ("PFUB1", PU_LEVEL);
+  p2 = V_CachePatchName ("PFUB2", PU_LEVEL);
 
   scrolled = 320 - (finalecount-230)/2;
-  if (scrolled > 320)
-      scrolled = 320;
-  if (scrolled < 0)
-      scrolled = 0;
 
-  offset = 0;
-  if (SHORT(p2->width) != SCREENWIDTH)
+  int p1offset = DivRoundClosest(video.unscaledw - SHORT(p1->width), 2);
+  if (SHORT(p1->width) == 320)
   {
-    offset = video.deltaw;
+      p1offset += (SHORT(p2->width) - 320) / 2;
   }
 
-  if (scrolled > 0)
-    V_DrawPatch(320 - scrolled - offset, 0, p2);
-  if (scrolled < 320)
-    V_DrawPatch(-scrolled - offset, 0, p1);
+  int p2offset = DivRoundClosest(video.unscaledw - SHORT(p2->width), 2);
 
-  if (SHORT(p2->width) == SCREENWIDTH)
+  if (scrolled <= 0)
   {
-    V_FillRect(0, 0, video.deltaw, SCREENHEIGHT, v_darkest_color);
-    V_FillRect(video.unscaledw - video.deltaw, 0,
-               video.deltaw, SCREENHEIGHT, v_darkest_color);
+      V_DrawPatch(p2offset - video.deltaw, 0, p2);
+  }
+  else if (scrolled >= 320)
+  {
+      V_DrawPatch(p1offset - video.deltaw, 0, p1);
+      V_DrawPatch(-320 + p2offset - video.deltaw, 0, p2);
+  }
+  else
+  {
+      V_DrawPatch(320 - scrolled + p1offset - video.deltaw, 0, p1);
+      V_DrawPatch(-scrolled + p2offset - video.deltaw, 0, p2);
+  }
+
+  if (p2offset > 0)
+  {
+      V_FillRect(0, 0, p2offset, SCREENHEIGHT, v_darkest_color);
+      V_FillRect(p2offset + SHORT(p2->width), 0, p2offset, SCREENHEIGHT,
+                 v_darkest_color);
   }
 
   if (finalecount < 1130)
@@ -759,7 +732,7 @@ void F_BunnyScroll (void)
   {
     V_DrawPatch ((SCREENWIDTH-13*8)/2,
                  (SCREENHEIGHT-8*8)/2,
-                 W_CacheLumpName ("END0",PU_CACHE));
+                 V_CachePatchName ("END0",PU_CACHE));
     laststage = 0;
     return;
   }
@@ -776,7 +749,7 @@ void F_BunnyScroll (void)
   M_snprintf(name, sizeof(name), "END%i", stage);
   V_DrawPatch ((SCREENWIDTH-13*8)/2,
                (SCREENHEIGHT-8*8)/2,
-               W_CacheLumpName (name,PU_CACHE));
+               V_CachePatchName (name,PU_CACHE));
 }
 
 
@@ -797,7 +770,7 @@ void F_Drawer (void)
     }
     else
     {
-      V_DrawPatchFullScreen(W_CacheLumpName(gamemapinfo->endpic, PU_CACHE));
+      V_DrawPatchFullScreen(V_CachePatchName(gamemapinfo->endpic, PU_CACHE));
     }
     return;
   }
@@ -816,18 +789,18 @@ void F_Drawer (void)
     {
       case 1:
            if ( gamemode == retail || gamemode == commercial )
-             V_DrawPatchFullScreen (W_CacheLumpName("CREDIT",PU_CACHE));
+             V_DrawPatchFullScreen (V_CachePatchName("CREDIT",PU_CACHE));
            else
-             V_DrawPatchFullScreen (W_CacheLumpName("HELP2",PU_CACHE));
+             V_DrawPatchFullScreen (V_CachePatchName("HELP2",PU_CACHE));
            break;
       case 2:
-           V_DrawPatchFullScreen (W_CacheLumpName("VICTORY2",PU_CACHE));
+           V_DrawPatchFullScreen (V_CachePatchName("VICTORY2",PU_CACHE));
            break;
       case 3:
            F_BunnyScroll ();
            break;
       case 4:
-           V_DrawPatchFullScreen (W_CacheLumpName("ENDPIC",PU_CACHE));
+           V_DrawPatchFullScreen (V_CachePatchName("ENDPIC",PU_CACHE));
            break;
     }
   }
