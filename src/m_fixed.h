@@ -24,6 +24,14 @@
 #include <stdlib.h> // abs()
 #include <stdint.h> // int64_t
 
+// VS 2019 and later provide a [64]/[32] intrinsic
+#if defined(_MSC_VER) && _MSC_VER >= 1920 && (defined(_M_X64) || defined(_M_IX86))
+  #include <immintrin.h>
+  #define DIV64(a,b) (_div64((a),(b),NULL))
+#else
+  #define DIV64(a,b) ((fixed_t)((a)/(b)))
+#endif
+
 //
 // Fixed point, 32bit as 16.16.
 //
@@ -57,7 +65,7 @@ inline static fixed_t FixedDiv(fixed_t a, fixed_t b)
 {
   // [FG] avoid 31-bit shift (from Chocolate Doom)
   return (abs(a)>>14) >= abs(b) ? ((a^b) < 0 ? INT_MIN : INT_MAX) :
-    (fixed_t)(((int64_t) a << FRACBITS) / b);
+    DIV64((int64_t) a << FRACBITS, b);
 }
 
 #endif
