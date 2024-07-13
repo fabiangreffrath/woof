@@ -32,6 +32,7 @@
 #include "d_event.h"
 #include "d_main.h"
 #include "doomdef.h"
+#include "doomkeys.h"
 #include "doomstat.h"
 #include "doomtype.h"
 #include "dstrings.h"
@@ -2536,6 +2537,7 @@ boolean M_Responder(event_t *ev)
 {
     int ch;
     static int joywait = 0;
+    static boolean shiftdown = false;
 
     static menu_action_t repeat = MENU_NULL;
     menu_action_t action = MENU_NULL;
@@ -2543,6 +2545,12 @@ boolean M_Responder(event_t *ev)
     old_menu_input = menu_input;
 
     ch = 0; // will be changed to a legit char if we're going to use it here
+
+    if (ev->data1 == KEY_RSHIFT)
+    {
+        shiftdown = (ev->type == ev_keydown);
+        return false;
+    }
 
     switch (ev->type)
     {
@@ -2702,7 +2710,8 @@ boolean M_Responder(event_t *ev)
         }
         else
         {
-            ch = M_ToUpper(ch);
+            if (shiftdown || (ch >= 'a' && ch <= 'z'))
+                ch = shiftxform[ch];
 
             if (ch >= 32 && ch <= 127 && saveCharIndex < SAVESTRINGSIZE - 1
                 && MN_StringWidth(savegamestrings[saveSlot])
