@@ -30,7 +30,7 @@
 
   #define div64_32(a, b) _div64((a), (b), NULL)
 
-#elif defined(__GNUC__)
+#elif defined(__GNUC__) && defined(_M_X64)
 
   inline static int32_t div64_32(int64_t a, int32_t b)
   {
@@ -84,7 +84,7 @@ inline static fixed_t FixedDiv(fixed_t a, fixed_t b)
     // [FG] avoid 31-bit shift (from Chocolate Doom)
     if ((abs(a) >> 14) >= abs(b))
     {
-       return (a ^ b) < 0 ? INT_MIN : INT_MAX;
+        return (a ^ b) < 0 ? INT_MIN : INT_MAX;
     }
     else
     {
