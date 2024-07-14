@@ -830,6 +830,7 @@ void I_FinishUpdate(void)
     if (use_limiter)
     {
         uint64_t target_time = 1000000ull / targetrefresh;
+        uint64_t last_pump = 0;
 
         while (true)
         {
@@ -842,7 +843,14 @@ void I_FinishUpdate(void)
                 break;
             }
 
-            if (target_time - elapsed_time > 1000)
+            uint64_t remaining_time = target_time - elapsed_time;
+
+            if (remaining_time > 200 && current_time - last_pump > 200)
+            {
+                last_pump = current_time;
+                SDL_PumpEvents();
+            }
+            else if (remaining_time > 1000)
             {
                 I_SleepUS(500);
             }
