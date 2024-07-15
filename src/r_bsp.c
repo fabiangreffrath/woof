@@ -306,10 +306,13 @@ static void R_MaybeInterpolateSector(sector_t* sector)
             sector->interpceilingheight = sector->ceilingheight;
         }
 
-        if (sector->oldscrollgametic == gametic - 1)
+        if (sector->old_floor_offs_gametic == gametic - 1)
         {
             sector->floor_xoffs = LerpFixed(sector->old_floor_xoffs, sector->base_floor_xoffs);
             sector->floor_yoffs = LerpFixed(sector->old_floor_yoffs, sector->base_floor_yoffs);
+        }
+        if (sector->old_ceil_offs_gametic == gametic - 1)
+        {
             sector->ceiling_xoffs = LerpFixed(sector->old_ceiling_xoffs, sector->base_ceiling_xoffs);
             sector->ceiling_yoffs = LerpFixed(sector->old_ceiling_yoffs, sector->base_ceiling_yoffs);
         }

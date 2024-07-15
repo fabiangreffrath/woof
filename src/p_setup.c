@@ -357,7 +357,8 @@ void P_LoadSectors (int lump)
       // [FG] inhibit sector interpolation during the 0th gametic
       ss->oldceilgametic = -1;
       ss->oldfloorgametic = -1;
-      ss->oldscrollgametic = -1;
+      ss->old_ceil_offs_gametic = -1;
+      ss->old_floor_offs_gametic = -1;
     }
 
   Z_Free (data);
