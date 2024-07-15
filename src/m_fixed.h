@@ -24,12 +24,30 @@
 #include <stdlib.h> // abs()
 #include <stdint.h> // int64_t
 
-// VS 2019 and later provide a [64]/[32] intrinsic
-#if defined(_MSC_VER) && _MSC_VER >= 1920 && (defined(_M_X64) || defined(_M_IX86))
-  #include <immintrin.h>
-  #define DIV64(a,b) (_div64((a),(b),NULL))
+#include "config.h"
+
+#if defined(HAVE__DIV64)
+
+  #define div64_32(a, b) _div64((a), (b), NULL)
+
+#elif defined(__GNUC__) && defined(_M_X64)
+
+  inline static int32_t div64_32(int64_t a, int32_t b)
+  {
+      if (__builtin_constant_p(b))
+      {
+          return a / b;
+      }
+      int32_t lo = a;
+      int32_t hi = a >> 32;
+      asm("idivl %[divisor]" : "+a" (lo), "+d" (hi) : [divisor] "rm" (b));
+      return lo;
+  }
+
 #else
-  #define DIV64(a,b) ((fixed_t)((a)/(b)))
+
+  #define div64_32(a, b) ((fixed_t)((a) / (b)))
+
 #endif
 
 //
@@ -49,12 +67,12 @@ typedef int fixed_t;
 
 inline static fixed_t FixedMul(fixed_t a, fixed_t b)
 {
-  return (fixed_t)((int64_t) a*b >> FRACBITS);
+    return (fixed_t)((int64_t) a * b >> FRACBITS);
 }
 
 inline static int64_t FixedMul64(int64_t a, int64_t b)
 {
-  return (a * b >> FRACBITS);
+    return (a * b >> FRACBITS);
 }
 
 //
@@ -63,9 +81,15 @@ inline static int64_t FixedMul64(int64_t a, int64_t b)
 
 inline static fixed_t FixedDiv(fixed_t a, fixed_t b)
 {
-  // [FG] avoid 31-bit shift (from Chocolate Doom)
-  return (abs(a)>>14) >= abs(b) ? ((a^b) < 0 ? INT_MIN : INT_MAX) :
-    DIV64((int64_t) a << FRACBITS, b);
+    // [FG] avoid 31-bit shift (from Chocolate Doom)
+    if ((abs(a) >> 14) >= abs(b))
+    {
+        return (a ^ b) < 0 ? INT_MIN : INT_MAX;
+    }
+    else
+    {
+        return div64_32((int64_t) a << FRACBITS, b);
+    }
 }
 
 #endif
