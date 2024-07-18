@@ -278,10 +278,8 @@ static void CalcRadial(axes_t *ax, float *xaxis, float *yaxis)
 static void (*CalcMovement)(axes_t *ax, float *xaxis, float *yaxis);
 static void (*CalcCamera)(axes_t *ax, float *xaxis, float *yaxis);
 
-boolean I_CalcControllerAxes(void)
+void I_CalcControllerAxes(void)
 {
-    boolean camera_update = false;
-
     if (movement.x.data || movement.y.data)
     {
         CalcMovement(&movement, &axes[AXIS_STRAFE], &axes[AXIS_FORWARD]);
@@ -301,11 +299,7 @@ boolean I_CalcControllerAxes(void)
 
         camera.x.data = 0;
         camera.y.data = 0;
-
-        camera_update = true;
     }
-
-    return camera_update;
 }
 
 void I_UpdateAxesData(const event_t *ev)

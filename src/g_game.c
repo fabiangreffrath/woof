@@ -491,8 +491,9 @@ void G_PrepMouseTiccmd(void)
 
 void G_PrepControllerTiccmd(void)
 {
-  if (I_UseController() && I_CalcControllerAxes())
+  if (I_UseController())
   {
+    I_CalcControllerAxes();
     G_UpdateDeltaTics();
     axis_turn_tic = axes[AXIS_TURN];
 
