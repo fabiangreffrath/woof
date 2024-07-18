@@ -1306,7 +1306,7 @@ boolean M_CheatResponder(event_t *ev)
 {
   int i;
 
-  if (strictmode)
+  if (strictmode && demorecording)
     return false;
 
   if (ev->type == ev_keydown && M_FindCheats(ev->data1))
