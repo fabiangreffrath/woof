@@ -342,7 +342,7 @@ static void cheat_showfps()
 
 static void cheat_speed()
 {
-  speedometer = STRICTMODE((speedometer + 1) % 4);
+  speedometer = (speedometer + 1) % 4;
 }
 
 // killough 7/19/98: Autoaiming optional in beta emulation mode

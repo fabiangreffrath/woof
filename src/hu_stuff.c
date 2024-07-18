@@ -1666,7 +1666,7 @@ void HU_Ticker(void)
   HU_cond_build_widget(&w_fps, plr->cheats & CF_SHOWFPS);
   HU_cond_build_widget(&w_rate, plr->cheats & CF_RENDERSTATS);
   HU_cond_build_widget(&w_cmd, STRICTMODE(hud_command_history));
-  HU_cond_build_widget(&w_speed, STRICTMODE(speedometer > 0));
+  HU_cond_build_widget(&w_speed, speedometer > 0);
 
   if (hud_displayed &&
       scaledviewheight == SCREENHEIGHT &&
