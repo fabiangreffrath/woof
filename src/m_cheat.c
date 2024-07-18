@@ -225,7 +225,7 @@ struct cheat_s cheat[] = {
   {"iddt",       "Map cheat",         not_dm,
    {cheat_ddt} },        // killough 2/07/98: moved from am_map.c
 
-  {"iddst",      NULL,                always,
+  {"iddst",      NULL,                not_dm,
    {cheat_reveal_secret} },
 
   {"iddkt",      NULL,                not_dm,
@@ -326,7 +326,7 @@ struct cheat_s cheat[] = {
   {"showfps",    NULL,                always,
    {cheat_showfps} },
 
-  {"speed",      NULL,                always,
+  {"speed",      NULL,                not_dm,
    {cheat_speed} },
 
   {NULL}                 // end-of-list marker
