@@ -2159,14 +2159,38 @@ char* G_SaveGameName(int slot)
   char buf[16] = {0};
   sprintf(buf, "%.7s%d.dsg", savegamename, 10*savepage+slot);
 
-  return M_StringJoin(basesavegame, DIR_SEPARATOR_S, buf);
+  char *filename = M_StringJoin(basesavegame, DIR_SEPARATOR_S, buf);
+  char *existing = M_FileCaseExists(filename);
+
+  if (existing)
+  {
+    free(filename);
+    return existing;
+  }
+  else
+  {
+    M_StringToLower((char *)M_BaseName(filename));
+    return filename;
+  }
 }
 
 char* G_MBFSaveGameName(int slot)
 {
-   char buf[16] = {0};
-   sprintf(buf, "MBFSAV%d.dsg", 10*savepage+slot);
-   return M_StringJoin(basesavegame, DIR_SEPARATOR_S, buf);
+  char buf[16] = {0};
+  sprintf(buf, "MBFSAV%d.dsg", 10*savepage+slot);
+
+  char *filename = M_StringJoin(basesavegame, DIR_SEPARATOR_S, buf);
+  char *existing = M_FileCaseExists(filename);
+
+  if (existing)
+  {
+    free(filename);
+    return existing;
+  }
+  else
+  {
+    return filename;
+  }
 }
 
 // killough 12/98:
