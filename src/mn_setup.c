@@ -2234,8 +2234,8 @@ static setup_menu_t gen_settings3[] = {
     MI_END
 };
 
-static const char *layout_strings[] = {"Default", "Swap", "Legacy",
-                                       "Legacy Swap"};
+static const char *layout_strings[] = {"Default",     "Southpaw",
+                                       "Legacy",      "Legacy Southpaw"};
 
 static const char *curve_strings[] = {
     "",       "",    "",    "",        "",    "",    "",

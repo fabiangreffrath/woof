@@ -331,11 +331,11 @@ static void UpdateStickLayout(void)
     int *layouts[NUM_LAYOUTS][NUM_AXES] = {
         // Default
         {&movement.x.data, &movement.y.data, &camera.x.data, &camera.y.data},
-        // Swap
+        // Southpaw
         {&camera.x.data, &camera.y.data, &movement.x.data, &movement.y.data},
         // Legacy
         {&camera.x.data, &movement.y.data, &movement.x.data, &camera.y.data},
-        // Legacy Swap
+        // Legacy Southpaw
         {&movement.x.data, &camera.y.data, &camera.x.data, &movement.y.data},
     };
 
@@ -386,7 +386,7 @@ void I_BindGamepadVariables(void)
 {
     BIND_BOOL(joy_enable, true, "Allow game controller");
     BIND_NUM_GENERAL(joy_layout, LAYOUT_DEFAULT, 0, NUM_LAYOUTS - 1,
-        "Analog stick layout (0 = Default; 1 = Swap; 2 = Legacy; 3 = Legacy Swap)");
+        "Analog stick layout (0 = Default; 1 = Southpaw; 2 = Legacy; 3 = Legacy Southpaw)");
     BIND_NUM(joy_sensitivity_forward, 50, 0, 100, "Forward axis sensitivity");
     BIND_NUM(joy_sensitivity_strafe, 50, 0, 100, "Strafe axis sensitivity");
     BIND_NUM_GENERAL(joy_sensitivity_turn, 36, 0, 100, "Turn axis sensitivity");
