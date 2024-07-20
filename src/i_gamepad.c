@@ -26,6 +26,7 @@
 #include "m_config.h"
 
 #define MIN_DEADZONE 0.00003f // 1/32768
+#define MIN_F 0.000001f
 #define SGNF(x) ((float)((0.0f < (x)) - ((x) < 0.0f)))
 #define REMAP(x, min, max) (((x) - (min)) / ((max) - (min)))
 
@@ -133,14 +134,12 @@ static void CalcExtraScale(axes_t *ax, float magnitude)
 // https://squircular.blogspot.com/2015/09/fg-squircle-mapping.html
 //
 
-#define MIN_C2S 0.000001f
-
 static void CircleToSquare(float *x, float *y)
 {
     const float u = *x;
     const float v = *y;
 
-    if (fabsf(u) > MIN_C2S && fabsf(v) > MIN_C2S)
+    if (fabsf(u) > MIN_F && fabsf(v) > MIN_F)
     {
         const float uv = u * v;
         const float sgnuv = SGNF(uv);
@@ -229,7 +228,7 @@ static void CalcAxial(axes_t *ax, float *xaxis, float *yaxis)
     const float y_axial = CalcAxialValue(ax, y_input);
     const float axial_mag = sqrtf(x_axial * x_axial + y_axial * y_axial);
 
-    if (axial_mag > 0.000001f)
+    if (axial_mag > MIN_F)
     {
         float scaled_mag;
 
