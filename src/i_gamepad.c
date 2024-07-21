@@ -279,7 +279,7 @@ static void CalcRadial(axes_t *ax, float *xaxis, float *yaxis)
 static void (*CalcMovement)(axes_t *ax, float *xaxis, float *yaxis);
 static void (*CalcCamera)(axes_t *ax, float *xaxis, float *yaxis);
 
-void I_CalcControllerAxes(void)
+void I_CalcGamepadAxes(void)
 {
     if (movement.x.data || movement.y.data)
     {
@@ -311,14 +311,14 @@ void I_UpdateAxesData(const event_t *ev)
     *axes_data[AXIS_RIGHTY] = ev->data4;
 }
 
-void I_ResetControllerAxes(void)
+void I_ResetGamepadAxes(void)
 {
     memset(axes, 0, sizeof(axes));
 }
 
-void I_ResetControllerLevel(void)
+void I_ResetGamepadState(void)
 {
-    I_ResetControllerAxes();
+    I_ResetGamepadAxes();
     movement.x.data = 0;
     movement.y.data = 0;
     camera.x.data = 0;
@@ -377,9 +377,9 @@ static void RefreshSettings(void)
     trigger_threshold = SDL_JOYSTICK_AXIS_MAX * joy_trigger_deadzone / 100;
 }
 
-void I_ResetController(void)
+void I_ResetGamepad(void)
 {
-    I_ResetControllerLevel();
+    I_ResetGamepadState();
     UpdateStickLayout();
     RefreshSettings();
 }

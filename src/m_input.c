@@ -297,37 +297,37 @@ static const struct
 };
 
 static const char *joyb_names[] = {
-    [CONTROLLER_A]                 = "pada",
-    [CONTROLLER_B]                 = "padb",
-    [CONTROLLER_X]                 = "padx",
-    [CONTROLLER_Y]                 = "pady",
-    [CONTROLLER_BACK]              = "back",
-    [CONTROLLER_GUIDE]             = "guide",
-    [CONTROLLER_START]             = "start",
-    [CONTROLLER_LEFT_STICK]        = "ls",
-    [CONTROLLER_RIGHT_STICK]       = "rs",
-    [CONTROLLER_LEFT_SHOULDER]     = "lb",
-    [CONTROLLER_RIGHT_SHOULDER]    = "rb",
-    [CONTROLLER_DPAD_UP]           = "padup",
-    [CONTROLLER_DPAD_DOWN]         = "paddown",
-    [CONTROLLER_DPAD_LEFT]         = "padleft",
-    [CONTROLLER_DPAD_RIGHT]        = "padright",
-    [CONTROLLER_MISC1]             = "misc1",
-    [CONTROLLER_PADDLE1]           = "paddle1",
-    [CONTROLLER_PADDLE2]           = "paddle2",
-    [CONTROLLER_PADDLE3]           = "paddle3",
-    [CONTROLLER_PADDLE4]           = "paddle4",
-    [CONTROLLER_TOUCHPAD]          = "touch",
-    [CONTROLLER_LEFT_TRIGGER]      = "lt",
-    [CONTROLLER_RIGHT_TRIGGER]     = "rt",
-    [CONTROLLER_LEFT_STICK_UP]     = "lsup",
-    [CONTROLLER_LEFT_STICK_DOWN]   = "lsdown",
-    [CONTROLLER_LEFT_STICK_LEFT]   = "lsleft",
-    [CONTROLLER_LEFT_STICK_RIGHT]  = "lsright",
-    [CONTROLLER_RIGHT_STICK_UP]    = "rsup",
-    [CONTROLLER_RIGHT_STICK_DOWN]  = "rsdown",
-    [CONTROLLER_RIGHT_STICK_LEFT]  = "rsleft",
-    [CONTROLLER_RIGHT_STICK_RIGHT] = "rsright",
+    [GAMEPAD_A]                    = "pada",
+    [GAMEPAD_B]                    = "padb",
+    [GAMEPAD_X]                    = "padx",
+    [GAMEPAD_Y]                    = "pady",
+    [GAMEPAD_BACK]                 = "back",
+    [GAMEPAD_GUIDE]                = "guide",
+    [GAMEPAD_START]                = "start",
+    [GAMEPAD_LEFT_STICK]           = "ls",
+    [GAMEPAD_RIGHT_STICK]          = "rs",
+    [GAMEPAD_LEFT_SHOULDER]        = "lb",
+    [GAMEPAD_RIGHT_SHOULDER]       = "rb",
+    [GAMEPAD_DPAD_UP]              = "padup",
+    [GAMEPAD_DPAD_DOWN]            = "paddown",
+    [GAMEPAD_DPAD_LEFT]            = "padleft",
+    [GAMEPAD_DPAD_RIGHT]           = "padright",
+    [GAMEPAD_MISC1]                = "misc1",
+    [GAMEPAD_PADDLE1]              = "paddle1",
+    [GAMEPAD_PADDLE2]              = "paddle2",
+    [GAMEPAD_PADDLE3]              = "paddle3",
+    [GAMEPAD_PADDLE4]              = "paddle4",
+    [GAMEPAD_TOUCHPAD]             = "touch",
+    [GAMEPAD_LEFT_TRIGGER]         = "lt",
+    [GAMEPAD_RIGHT_TRIGGER]        = "rt",
+    [GAMEPAD_LEFT_STICK_UP]        = "lsup",
+    [GAMEPAD_LEFT_STICK_DOWN]      = "lsdown",
+    [GAMEPAD_LEFT_STICK_LEFT]      = "lsleft",
+    [GAMEPAD_LEFT_STICK_RIGHT]     = "lsright",
+    [GAMEPAD_RIGHT_STICK_UP]       = "rsup",
+    [GAMEPAD_RIGHT_STICK_DOWN]     = "rsdown",
+    [GAMEPAD_RIGHT_STICK_LEFT]     = "rsleft",
+    [GAMEPAD_RIGHT_STICK_RIGHT]    = "rsright",
 };
 
 static const char *mouseb_names[] = {
@@ -417,59 +417,59 @@ void M_InputPredefined(void)
 {
     input_t right[] = {
         {INPUT_KEY,    KEY_RIGHTARROW             },
-        {INPUT_JOYB,   CONTROLLER_DPAD_RIGHT      },
-        {INPUT_JOYB,   CONTROLLER_LEFT_STICK_RIGHT},
-        {INPUT_JOYB,   CONTROLLER_RIGHT_SHOULDER  },
+        {INPUT_JOYB,   GAMEPAD_DPAD_RIGHT         },
+        {INPUT_JOYB,   GAMEPAD_LEFT_STICK_RIGHT   },
+        {INPUT_JOYB,   GAMEPAD_RIGHT_SHOULDER     },
         {INPUT_MOUSEB, MOUSE_BUTTON_WHEELDOWN     }
     };
     InputSet(input_menu_right, right, arrlen(right));
 
     input_t left[] = {
         {INPUT_KEY,    KEY_LEFTARROW             },
-        {INPUT_JOYB,   CONTROLLER_DPAD_LEFT      },
-        {INPUT_JOYB,   CONTROLLER_LEFT_STICK_LEFT},
-        {INPUT_JOYB,   CONTROLLER_LEFT_SHOULDER  },
+        {INPUT_JOYB,   GAMEPAD_DPAD_LEFT         },
+        {INPUT_JOYB,   GAMEPAD_LEFT_STICK_LEFT   },
+        {INPUT_JOYB,   GAMEPAD_LEFT_SHOULDER     },
         {INPUT_MOUSEB, MOUSE_BUTTON_WHEELUP      },
     };
     InputSet(input_menu_left, left, arrlen(left));
 
     input_t up[] = {
         {INPUT_KEY,  KEY_UPARROW             },
-        {INPUT_JOYB, CONTROLLER_DPAD_UP      },
-        {INPUT_JOYB, CONTROLLER_LEFT_STICK_UP}
+        {INPUT_JOYB, GAMEPAD_DPAD_UP         },
+        {INPUT_JOYB, GAMEPAD_LEFT_STICK_UP   }
     };
     InputSet(input_menu_up, up, arrlen(up));
 
     input_t down[] = {
         {INPUT_KEY,  KEY_DOWNARROW             },
-        {INPUT_JOYB, CONTROLLER_DPAD_DOWN      },
-        {INPUT_JOYB, CONTROLLER_LEFT_STICK_DOWN}
+        {INPUT_JOYB, GAMEPAD_DPAD_DOWN         },
+        {INPUT_JOYB, GAMEPAD_LEFT_STICK_DOWN   }
     };
     InputSet(input_menu_down, down, arrlen(down));
 
     input_t back[] = {
         {INPUT_KEY,    KEY_BACKSPACE     },
-        {INPUT_JOYB,   CONTROLLER_B      },
+        {INPUT_JOYB,   GAMEPAD_B         },
         {INPUT_MOUSEB, MOUSE_BUTTON_RIGHT}
     };
     InputSet(input_menu_backspace, back, arrlen(back));
 
     input_t esc[] = {
         {INPUT_KEY,  KEY_ESCAPE      },
-        {INPUT_JOYB, CONTROLLER_START}
+        {INPUT_JOYB, GAMEPAD_START   }
     };
     InputSet(input_menu_escape, esc, arrlen(esc));
 
     input_t enter[] = {
         {INPUT_KEY,    KEY_ENTER        },
-        {INPUT_JOYB,   CONTROLLER_A     },
+        {INPUT_JOYB,   GAMEPAD_A        },
         {INPUT_MOUSEB, MOUSE_BUTTON_LEFT}
     };
     InputSet(input_menu_enter, enter, arrlen(enter));
 
     input_t clear[] = {
         {INPUT_KEY,  KEY_DEL     },
-        {INPUT_JOYB, CONTROLLER_Y}
+        {INPUT_JOYB, GAMEPAD_Y   }
     };
     InputSet(input_menu_clear, clear, arrlen(clear));
 
@@ -491,17 +491,17 @@ static input_t default_inputs[NUM_INPUT_ID][NUM_INPUTS] =
     [input_strafe]      = { {INPUT_KEY, KEY_RALT},
                             {INPUT_MOUSEB, MOUSE_BUTTON_RIGHT} },
     [input_autorun]     = { {INPUT_KEY, KEY_CAPSLOCK},
-                            {INPUT_JOYB, CONTROLLER_LEFT_STICK} },
+                            {INPUT_JOYB, GAMEPAD_LEFT_STICK} },
     [input_reverse]     = { {INPUT_KEY, '/'} },
     [input_use]         = { {INPUT_KEY,' '},
-                            {INPUT_JOYB, CONTROLLER_A} },
+                            {INPUT_JOYB, GAMEPAD_A} },
     [input_fire]        = { {INPUT_KEY, KEY_RCTRL},
                             {INPUT_MOUSEB, MOUSE_BUTTON_LEFT},
-                            {INPUT_JOYB, CONTROLLER_RIGHT_TRIGGER} },
+                            {INPUT_JOYB, GAMEPAD_RIGHT_TRIGGER} },
     [input_prevweapon]  = { {INPUT_MOUSEB, MOUSE_BUTTON_WHEELDOWN},
-                            {INPUT_JOYB, CONTROLLER_LEFT_SHOULDER} },
+                            {INPUT_JOYB, GAMEPAD_LEFT_SHOULDER} },
     [input_nextweapon]  = { {INPUT_MOUSEB, MOUSE_BUTTON_WHEELUP},
-                            {INPUT_JOYB, CONTROLLER_RIGHT_SHOULDER} },
+                            {INPUT_JOYB, GAMEPAD_RIGHT_SHOULDER} },
     [input_weapon1]     = { {INPUT_KEY, '1'} },
     [input_weapon2]     = { {INPUT_KEY, '2'} },
     [input_weapon3]     = { {INPUT_KEY, '3'} },
@@ -530,7 +530,7 @@ static input_t default_inputs[NUM_INPUT_ID][NUM_INPUTS] =
     [input_pause]       = { {INPUT_KEY, KEY_PAUSE} },
 
     [input_map]         = { {INPUT_KEY, KEY_TAB},
-                            {INPUT_JOYB, CONTROLLER_Y} },
+                            {INPUT_JOYB, GAMEPAD_Y} },
     [input_map_up]      = { {INPUT_KEY, KEY_UPARROW} },
     [input_map_down]    = { {INPUT_KEY, KEY_DOWNARROW} },
     [input_map_left]    = { {INPUT_KEY, KEY_LEFTARROW} },

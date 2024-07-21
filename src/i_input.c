@@ -27,14 +27,14 @@
 
 #define AXIS_BUTTON_DEADZONE (SDL_JOYSTICK_AXIS_MAX / 3)
 
-static SDL_GameController *controller;
-static int controller_index = -1;
+static SDL_GameController *gamepad;
+static int gamepad_index = -1;
 
 // [FG] adapt joystick button and axis handling from Chocolate Doom 3.0
 
 static int GetAxisState(int axis)
 {
-    return SDL_GameControllerGetAxis(controller, axis);
+    return SDL_GameControllerGetAxis(gamepad, axis);
 }
 
 static void AxisToButton(int value, int *state, int direction)
@@ -81,10 +81,10 @@ static int axisbuttons[] = {-1, -1, -1, -1};
 
 static void AxisToButtons(event_t *ev)
 {
-    AxisToButton(ev->data1, &axisbuttons[0], CONTROLLER_LEFT_STICK_LEFT);
-    AxisToButton(ev->data2, &axisbuttons[1], CONTROLLER_LEFT_STICK_UP);
-    AxisToButton(ev->data3, &axisbuttons[2], CONTROLLER_RIGHT_STICK_LEFT);
-    AxisToButton(ev->data4, &axisbuttons[3], CONTROLLER_RIGHT_STICK_UP);
+    AxisToButton(ev->data1, &axisbuttons[0], GAMEPAD_LEFT_STICK_LEFT);
+    AxisToButton(ev->data2, &axisbuttons[1], GAMEPAD_LEFT_STICK_UP);
+    AxisToButton(ev->data3, &axisbuttons[2], GAMEPAD_RIGHT_STICK_LEFT);
+    AxisToButton(ev->data4, &axisbuttons[3], GAMEPAD_RIGHT_STICK_UP);
 }
 
 static void TriggerToButton(int value, boolean *trigger_on, int trigger_type)
@@ -116,12 +116,12 @@ static void TriggerToButtons(void)
     static boolean right_trigger_on;
 
     TriggerToButton(GetAxisState(SDL_CONTROLLER_AXIS_TRIGGERLEFT),
-                    &left_trigger_on, CONTROLLER_LEFT_TRIGGER);
+                    &left_trigger_on, GAMEPAD_LEFT_TRIGGER);
     TriggerToButton(GetAxisState(SDL_CONTROLLER_AXIS_TRIGGERRIGHT),
-                    &right_trigger_on, CONTROLLER_RIGHT_TRIGGER);
+                    &right_trigger_on, GAMEPAD_RIGHT_TRIGGER);
 }
 
-void I_UpdateJoystick(evtype_t type, boolean axis_buttons)
+void I_UpdateGamepad(evtype_t type, boolean axis_buttons)
 {
     static event_t ev;
 
@@ -140,7 +140,7 @@ void I_UpdateJoystick(evtype_t type, boolean axis_buttons)
     }
 }
 
-static void UpdateJoystickButtonState(unsigned int button, boolean on)
+static void UpdateGamepadButtonState(unsigned int button, boolean on)
 {
     static event_t event;
     if (on)
@@ -156,12 +156,12 @@ static void UpdateJoystickButtonState(unsigned int button, boolean on)
     D_PostEvent(&event);
 }
 
-boolean I_UseController(void)
+boolean I_UseGamepad(void)
 {
-    return (controller != NULL);
+    return (gamepad != NULL);
 }
 
-static void EnableControllerEvents(void)
+static void EnableGamepadEvents(void)
 {
     SDL_EventState(SDL_JOYHATMOTION, SDL_ENABLE);
     SDL_EventState(SDL_JOYBUTTONDOWN, SDL_ENABLE);
@@ -170,7 +170,7 @@ static void EnableControllerEvents(void)
     SDL_EventState(SDL_CONTROLLERBUTTONUP, SDL_ENABLE);
 }
 
-static void DisableControllerEvents(void)
+static void DisableGamepadEvents(void)
 {
     SDL_EventState(SDL_JOYHATMOTION, SDL_IGNORE);
     SDL_EventState(SDL_JOYBUTTONDOWN, SDL_IGNORE);
@@ -178,7 +178,7 @@ static void DisableControllerEvents(void)
     SDL_EventState(SDL_CONTROLLERBUTTONDOWN, SDL_IGNORE);
     SDL_EventState(SDL_CONTROLLERBUTTONUP, SDL_IGNORE);
 
-    // Always ignore unsupported game controller events.
+    // Always ignore unsupported gamepad events.
     SDL_EventState(SDL_JOYAXISMOTION, SDL_IGNORE);
     SDL_EventState(SDL_JOYBALLMOTION, SDL_IGNORE);
 #if SDL_VERSION_ATLEAST(2, 24, 0)
@@ -192,12 +192,12 @@ static void DisableControllerEvents(void)
     SDL_EventState(SDL_CONTROLLERSENSORUPDATE, SDL_IGNORE);
 }
 
-static void I_ShutdownController(void)
+static void I_ShutdownGamepad(void)
 {
     SDL_QuitSubSystem(SDL_INIT_GAMECONTROLLER);
 }
 
-void I_InitController(void)
+void I_InitGamepad(void)
 {
     if (!joy_enable)
     {
@@ -207,76 +207,75 @@ void I_InitController(void)
     if (SDL_Init(SDL_INIT_GAMECONTROLLER) < 0)
     {
         I_Printf(VB_WARNING,
-                 "I_InitController: Failed to initialize game controller: %s",
+                 "I_InitGamepad: Failed to initialize gamepad: %s",
                  SDL_GetError());
         return;
     }
 
-    DisableControllerEvents();
+    DisableGamepadEvents();
 
-    I_Printf(VB_INFO, "I_InitController: Initialize game controller.");
+    I_Printf(VB_INFO, "I_InitGamepad: Initialize gamepad.");
 
-    I_AtExit(I_ShutdownController, true);
+    I_AtExit(I_ShutdownGamepad, true);
 }
 
-void I_OpenController(int which)
+void I_OpenGamepad(int which)
 {
-    if (controller)
+    if (gamepad)
     {
         return;
     }
 
     if (SDL_IsGameController(which))
     {
-        controller = SDL_GameControllerOpen(which);
-        if (controller)
+        gamepad = SDL_GameControllerOpen(which);
+        if (gamepad)
         {
-            controller_index = which;
+            gamepad_index = which;
             I_Printf(VB_INFO,
-                     "I_OpenController: Found a valid game controller"
-                     ", named: %s",
-                     SDL_GameControllerName(controller));
+                     "I_OpenGamepad: Found a valid gamepad, named: %s",
+                     SDL_GameControllerName(gamepad));
         }
     }
 
-    if (controller == NULL)
+    if (gamepad == NULL)
     {
         I_Printf(VB_ERROR,
-                 "I_OpenController: Could not open game controller %i: %s",
+                 "I_OpenGamepad: Could not open gamepad %i: %s",
                  which, SDL_GetError());
     }
 
-    I_ResetController();
+    I_ResetGamepad();
 
-    if (controller)
+    if (gamepad)
     {
-        EnableControllerEvents();
+        EnableGamepadEvents();
     }
 }
 
-void I_CloseController(int which)
+void I_CloseGamepad(int which)
 {
-    if (controller != NULL && controller_index == which)
+    if (gamepad != NULL && gamepad_index == which)
     {
-        SDL_GameControllerClose(controller);
-        controller = NULL;
-        controller_index = -1;
+        SDL_GameControllerClose(gamepad);
+        gamepad = NULL;
+        gamepad_index = -1;
     }
 
-    DisableControllerEvents();
-    I_ResetController();
+    DisableGamepadEvents();
+    I_ResetGamepad();
 }
 
-void I_HandleJoystickEvent(SDL_Event *sdlevent)
+void I_HandleGamepadEvent(SDL_Event *sdlevent)
 {
     switch (sdlevent->type)
     {
         case SDL_CONTROLLERBUTTONDOWN:
-            UpdateJoystickButtonState(sdlevent->cbutton.button, true);
+            UpdateGamepadButtonState(sdlevent->cbutton.button, true);
             break;
 
         case SDL_CONTROLLERBUTTONUP:
-            UpdateJoystickButtonState(sdlevent->cbutton.button, false);
+            UpdateGamepadButtonState(sdlevent->cbutton.button, false);
             break;
 
         default:
