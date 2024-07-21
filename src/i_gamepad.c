@@ -32,23 +32,23 @@
 
 boolean joy_enable;
 static int joy_layout;
-static int joy_sensitivity_forward;
-static int joy_sensitivity_strafe;
-static int joy_sensitivity_turn;
-static int joy_sensitivity_look;
-static int joy_extra_sensitivity_turn;
-static int joy_extra_sensitivity_look;
-static int joy_extra_ramp_time;
-static boolean joy_scale_diagonal_movement;
-static int joy_response_curve_movement;
-static int joy_response_curve_camera;
-static int joy_deadzone_type_movement;
-static int joy_deadzone_type_camera;
-static int joy_deadzone_movement;
-static int joy_deadzone_camera;
-static int joy_threshold_movement;
-static int joy_threshold_camera;
-static int joy_threshold_trigger;
+static int joy_forward_sensitivity;
+static int joy_strafe_sensitivity;
+static int joy_turn_sensitivity;
+static int joy_look_sensitivity;
+static int joy_outer_turn_sensitivity;
+static int joy_outer_look_sensitivity;
+static int joy_outer_ramp_time;
+static int joy_scale_diagonal_movement;
+static int joy_movement_curve;
+static int joy_camera_curve;
+static int joy_movement_deadzone_type;
+static int joy_camera_deadzone_type;
+static int joy_movement_inner_deadzone;
+static int joy_camera_inner_deadzone;
+static int joy_movement_outer_deadzone;
+static int joy_camera_outer_deadzone;
+static int joy_trigger_deadzone;
 boolean joy_invert_forward;
 boolean joy_invert_strafe;
 boolean joy_invert_turn;
@@ -58,26 +58,26 @@ static int *axes_data[NUM_AXES]; // Pointers to ev_joystick event data.
 float axes[NUM_AXES];
 int trigger_threshold;
 
-typedef struct axis_s
+typedef struct
 {
-    int data;           // ev_joystick event data.
-    float sens;         // Sensitivity.
-    float extra;        // Extra sensitivity.
+    int data;                   // ev_joystick event data.
+    float sens;                 // Sensitivity.
+    float extra_sens;           // Extra sensitivity.
 } axis_t;
 
-typedef struct axes_s
+typedef struct
 {
     axis_t x;
     axis_t y;
-    float exponent;     // Exponent for response curve.
-    float deadzone;     // Normalized deadzone.
-    float threshold;    // Normalized outer threshold.
-    boolean useextra;   // Using extra sensitivity?
-    float extrascale;   // Scaling factor for extra sensitivity.
+    float exponent;             // Exponent for response curve.
+    float inner_deadzone;       // Normalized inner deadzone.
+    float outer_deadzone;       // Normalized outer deadzone.
+    boolean extra_active;       // Using extra sensitivity?
+    float extra_scale;          // Scaling factor for extra sensitivity.
 } axes_t;
 
-static axes_t movement; // Strafe/Forward
-static axes_t camera;   // Turn/Look
+static axes_t movement;         // Strafe/Forward
+static axes_t camera;           // Turn/Look
 
 static void CalcExtraScale(axes_t *ax, float magnitude)
 {
@@ -86,22 +86,22 @@ static void CalcExtraScale(axes_t *ax, float magnitude)
         return;
     }
 
-    if ((joy_extra_sensitivity_turn || joy_extra_sensitivity_look) &&
-        magnitude > ax->threshold)
+    if ((joy_outer_turn_sensitivity || joy_outer_look_sensitivity) &&
+        magnitude > ax->outer_deadzone)
     {
-        if (joy_extra_ramp_time)
+        if (joy_outer_ramp_time)
         {
             static int start_time;
             static int elapsed_time;
 
-            if (ax->useextra)
+            if (ax->extra_active)
             {
-                if (elapsed_time < joy_extra_ramp_time)
+                if (elapsed_time < joy_outer_ramp_time)
                 {
                     // Continue ramp.
                     elapsed_time = I_GetTimeMS() - start_time;
-                    ax->extrascale = (float)elapsed_time / joy_extra_ramp_time;
-                    ax->extrascale = BETWEEN(0.0f, 1.0f, ax->extrascale);
+                    ax->extra_scale = (float)elapsed_time / joy_outer_ramp_time;
+                    ax->extra_scale = BETWEEN(0.0f, 1.0f, ax->extra_scale);
                 }
             }
             else
@@ -109,22 +109,22 @@ static void CalcExtraScale(axes_t *ax, float magnitude)
                 // Start ramp.
                 start_time = I_GetTimeMS();
                 elapsed_time = 0;
-                ax->extrascale = 0.0f;
-                ax->useextra = true;
+                ax->extra_scale = 0.0f;
+                ax->extra_active = true;
             }
         }
         else
         {
             // Instant ramp.
-            ax->extrascale = 1.0f;
-            ax->useextra = true;
+            ax->extra_scale = 1.0f;
+            ax->extra_active = true;
         }
     }
     else
     {
         // Reset ramp.
-        ax->extrascale = 0.0f;
-        ax->useextra = false;
+        ax->extra_scale = 0.0f;
+        ax->extra_active = false;
     }
 }
 
@@ -184,17 +184,18 @@ static void ApplySensitivity(const axes_t *ax, float *xaxis, float *yaxis)
         }
         else // camera
         {
-            *xaxis *= (ax->x.sens + ax->extrascale * ax->x.extra);
-            *yaxis *= (ax->y.sens + ax->extrascale * ax->y.extra);
+            *xaxis *= ax->x.sens + ax->extra_scale * ax->x.extra_sens;
+            *yaxis *= ax->y.sens + ax->extra_scale * ax->y.extra_sens;
         }
     }
 }
 
 static float CalcAxialValue(axes_t *ax, float input)
 {
-    if (fabsf(input) > ax->deadzone)
+    if (fabsf(input) > ax->inner_deadzone)
     {
-        return (SGNF(input) * REMAP(fabsf(input), ax->deadzone, ax->threshold));
+        return (SGNF(input)
+                * REMAP(fabsf(input), ax->inner_deadzone, ax->outer_deadzone));
     }
     else
     {
@@ -254,9 +255,10 @@ static void CalcRadial(axes_t *ax, float *xaxis, float *yaxis)
     const float y_input = GetInputValue(ax->y.data);
     const float input_mag = sqrtf(x_input * x_input + y_input * y_input);
 
-    if (input_mag > ax->deadzone)
+    if (input_mag > ax->inner_deadzone)
     {
-        float scaled_mag = REMAP(input_mag, ax->deadzone, ax->threshold);
+        float scaled_mag =
+            REMAP(input_mag, ax->inner_deadzone, ax->outer_deadzone);
 
         scaled_mag = BETWEEN(0.0f, 1.0f, scaled_mag);
         scaled_mag = powf(scaled_mag, ax->exponent);
@@ -321,8 +323,8 @@ void I_ResetControllerLevel(void)
     movement.y.data = 0;
     camera.x.data = 0;
     camera.y.data = 0;
-    camera.extrascale = 0.0f;
-    camera.useextra = false;
+    camera.extra_scale = 0.0f;
+    camera.extra_active = false;
 }
 
 static void UpdateStickLayout(void)
@@ -349,30 +351,30 @@ static void RefreshSettings(void)
 {
     void *axes_func[] = {CalcAxial, CalcRadial};
 
-    CalcMovement = axes_func[joy_deadzone_type_movement];
-    CalcCamera = axes_func[joy_deadzone_type_camera];
+    CalcMovement = axes_func[joy_movement_deadzone_type];
+    CalcCamera = axes_func[joy_camera_deadzone_type];
 
-    movement.x.sens = joy_sensitivity_strafe / 50.0f;
-    movement.y.sens = joy_sensitivity_forward / 50.0f;
+    movement.x.sens = joy_strafe_sensitivity / 50.0f;
+    movement.y.sens = joy_forward_sensitivity / 50.0f;
 
-    camera.x.sens = joy_sensitivity_turn / 50.0f;
-    camera.y.sens = joy_sensitivity_look / 50.0f;
+    camera.x.sens = joy_turn_sensitivity / 50.0f;
+    camera.y.sens = joy_look_sensitivity / 50.0f;
 
-    camera.x.extra = joy_extra_sensitivity_turn / 50.0f;
-    camera.y.extra = joy_extra_sensitivity_look / 50.0f;
+    camera.x.extra_sens = joy_outer_turn_sensitivity / 50.0f;
+    camera.y.extra_sens = joy_outer_look_sensitivity / 50.0f;
 
-    movement.exponent = joy_response_curve_movement / 10.0f;
-    camera.exponent = joy_response_curve_camera / 10.0f;
+    movement.exponent = joy_movement_curve / 10.0f;
+    camera.exponent = joy_camera_curve / 10.0f;
 
-    movement.deadzone = joy_deadzone_movement / 100.0f;
-    camera.deadzone = joy_deadzone_camera / 100.0f;
-    movement.deadzone = MAX(MIN_DEADZONE, movement.deadzone);
-    camera.deadzone = MAX(MIN_DEADZONE, camera.deadzone);
+    movement.inner_deadzone = joy_movement_inner_deadzone / 100.0f;
+    camera.inner_deadzone = joy_camera_inner_deadzone / 100.0f;
+    movement.inner_deadzone = MAX(MIN_DEADZONE, movement.inner_deadzone);
+    camera.inner_deadzone = MAX(MIN_DEADZONE, camera.inner_deadzone);
 
-    movement.threshold = 1.0f - joy_threshold_movement / 100.0f;
-    camera.threshold = 1.0f - joy_threshold_camera / 100.0f;
+    movement.outer_deadzone = 1.0f - joy_movement_outer_deadzone / 100.0f;
+    camera.outer_deadzone = 1.0f - joy_camera_outer_deadzone / 100.0f;
 
-    trigger_threshold = SDL_JOYSTICK_AXIS_MAX * joy_threshold_trigger / 100;
+    trigger_threshold = SDL_JOYSTICK_AXIS_MAX * joy_trigger_deadzone / 100;
 }
 
 void I_ResetController(void)
@@ -384,36 +386,50 @@ void I_ResetController(void)
 
 void I_BindGamepadVariables(void)
 {
-    BIND_BOOL(joy_enable, true, "Allow game controller");
+    BIND_BOOL(joy_enable, true, "Enable gamepad");
     BIND_NUM_GENERAL(joy_layout, LAYOUT_DEFAULT, 0, NUM_LAYOUTS - 1,
-        "Analog stick layout (0 = Default; 1 = Southpaw; 2 = Legacy; 3 = Legacy Southpaw)");
-    BIND_NUM(joy_sensitivity_forward, 50, 0, 100, "Forward axis sensitivity");
-    BIND_NUM(joy_sensitivity_strafe, 50, 0, 100, "Strafe axis sensitivity");
-    BIND_NUM_GENERAL(joy_sensitivity_turn, 36, 0, 100, "Turn axis sensitivity");
-    BIND_NUM_GENERAL(joy_sensitivity_look, 28, 0, 100, "Look axis sensitivity");
-    BIND_NUM_GENERAL(joy_extra_sensitivity_turn, 14, 0, 100,
-        "Extra turn sensitivity at outer threshold (joy_threshold_camera)");
-    BIND_NUM(joy_extra_sensitivity_look, 0, 0, 100,
-        "Extra look sensitivity at outer threshold (joy_threshold_camera)");
-    BIND_NUM(joy_extra_ramp_time, 300, 0, 1000,
-        "Ramp time for extra sensitivity (0 = Instant; 1000 = 1 second)");
-    BIND_BOOL(joy_scale_diagonal_movement, true,
+        "Analog stick layout (0 = Default; 1 = Southpaw; 2 = Legacy; "
+        "3 = Legacy Southpaw)");
+    BIND_NUM(joy_forward_sensitivity, 50, 0, 100,
+        "Forward sensitivity");
+    BIND_NUM(joy_strafe_sensitivity, 50, 0, 100,
+        "Strafe sensitivity");
+    BIND_NUM_GENERAL(joy_turn_sensitivity, 36, 0, 100,
+        "Turn sensitivity");
+    BIND_NUM_GENERAL(joy_look_sensitivity, 28, 0, 100,
+        "Look sensitivity");
+    BIND_NUM(joy_outer_turn_sensitivity, 14, 0, 100,
+        "Extra turn sensitivity at outer deadzone (joy_camera_outer_deadzone)");
+    BIND_NUM(joy_outer_look_sensitivity, 0, 0, 100,
+        "Extra look sensitivity at outer deadzone (joy_camera_outer_deadzone)");
+    BIND_NUM(joy_outer_ramp_time, 300, 0, 1000,
+        "Ramp time for extra sensitivity [milliseconds]");
+    BIND_NUM(joy_scale_diagonal_movement, 1, 0, 1,
         "Scale diagonal movement (0 = Linear; 1 = Circle to Square)");
-    BIND_NUM(joy_response_curve_movement, 10, 10, 30,
+    BIND_NUM(joy_movement_curve, 10, 10, 30,
         "Movement response curve (10 = Linear; 20 = Squared; 30 = Cubed)");
-    BIND_NUM_GENERAL(joy_response_curve_camera, 20, 10, 30,
+    BIND_NUM_GENERAL(joy_camera_curve, 20, 10, 30,
         "Camera response curve (10 = Linear; 20 = Squared; 30 = Cubed)");
-    BIND_NUM(joy_deadzone_type_movement, 1, 0, 1,
+    BIND_NUM(joy_movement_deadzone_type, 1, 0, 1,
         "Movement deadzone type (0 = Axial; 1 = Radial)");
-    BIND_NUM(joy_deadzone_type_camera, 1, 0, 1,
+    BIND_NUM(joy_camera_deadzone_type, 1, 0, 1,
         "Camera deadzone type (0 = Axial; 1 = Radial)");
-    BIND_NUM_GENERAL(joy_deadzone_movement, 15, 0, 50, "Movement deadzone percent");
-    BIND_NUM_GENERAL(joy_deadzone_camera, 15, 0, 50, "Camera deadzone percent");
-    BIND_NUM(joy_threshold_movement, 2, 0, 30, "Movement outer threshold percent");
-    BIND_NUM(joy_threshold_camera, 2, 0, 30, "Camera outer threshold percent");
-    BIND_NUM(joy_threshold_trigger, 12, 0, 50, "Trigger threshold percent");
-    BIND_BOOL(joy_invert_forward, false, "Invert forward axis");
-    BIND_BOOL(joy_invert_strafe, false, "Invert strafe axis");
-    BIND_BOOL(joy_invert_turn, false, "Invert turn axis");
-    BIND_BOOL_GENERAL(joy_invert_look, false, "Invert look axis");
+    BIND_NUM_GENERAL(joy_movement_inner_deadzone, 15, 0, 50,
+        "Movement inner deadzone [percent]");
+    BIND_NUM_GENERAL(joy_camera_inner_deadzone, 15, 0, 50,
+        "Camera inner deadzone [percent]");
+    BIND_NUM(joy_movement_outer_deadzone, 2, 0, 30,
+        "Movement outer deadzone [percent]");
+    BIND_NUM(joy_camera_outer_deadzone, 2, 0, 30,
+        "Camera outer deadzone [percent]");
+    BIND_NUM(joy_trigger_deadzone, 12, 0, 50,
+        "Trigger deadzone [percent]");
+    BIND_BOOL(joy_invert_forward, false,
+        "Invert forward axis");
+    BIND_BOOL(joy_invert_strafe, false,
+        "Invert strafe axis");
+    BIND_BOOL(joy_invert_turn, false,
+        "Invert turn axis");
+    BIND_BOOL_GENERAL(joy_invert_look, false,
+        "Invert look axis");
 }

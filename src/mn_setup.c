@@ -2246,42 +2246,41 @@ static const char *curve_strings[] = {
 };
 
 static setup_menu_t gen_settings4[] = {
+    {"Stick Layout",S_CHOICE, CNTR_X, M_SPC,
+     {"joy_layout"}, m_null, input_null, str_layout,
+     I_ResetController},
 
-    {"Stick Layout",S_CHOICE, CNTR_X, M_SPC, {"joy_layout"}, m_null, input_null,
-     str_layout, I_ResetController},
+    {"Free Look", S_ONOFF, CNTR_X, M_SPC,
+     {"padlook"}, m_null, input_null, str_empty,
+     MN_UpdatePadLook},
 
-    {"Free Look", S_ONOFF, CNTR_X, M_SPC, {"padlook"}, m_null, input_null,
-     str_empty, MN_UpdatePadLook},
-
-    {"Invert Look", S_ONOFF, CNTR_X, M_SPC, {"joy_invert_look"},
-     m_null, input_null, str_empty, G_UpdateControllerVariables},
+    {"Invert Look", S_ONOFF, CNTR_X, M_SPC,
+     {"joy_invert_look"}, m_null, input_null, str_empty,
+     G_UpdateControllerVariables},
 
     MI_GAP,
 
     {"Turn Sensitivity", S_THERMO | S_THRM_SIZE11, CNTR_X, M_THRM_SPC,
-     {"joy_sensitivity_turn"}, m_null, input_null, str_empty, I_ResetController},
+     {"joy_turn_sensitivity"}, m_null, input_null, str_empty,
+     I_ResetController},
 
     {"Look Sensitivity", S_THERMO | S_THRM_SIZE11, CNTR_X, M_THRM_SPC,
-     {"joy_sensitivity_look"}, m_null, input_null, str_empty, I_ResetController},
+     {"joy_look_sensitivity"}, m_null, input_null, str_empty,
+     I_ResetController},
 
-    {"Extra Turn Sensitivity", S_THERMO | S_THRM_SIZE11, CNTR_X, M_THRM_SPC,
-     {"joy_extra_sensitivity_turn"}, m_null, input_null, str_empty,
+    {"Response Curve", S_THERMO, CNTR_X, M_THRM_SPC,
+     {"joy_camera_curve"}, m_null, input_null, str_curve,
      I_ResetController},
 
     MI_GAP,
 
-    {"Movement Curve", S_THERMO, CNTR_X, M_THRM_SPC,
-     {"joy_response_curve_movement"}, m_null, input_null, str_curve,
+    {"Movement Deadzone", S_THERMO | S_PCT, CNTR_X, M_THRM_SPC,
+     {"joy_movement_inner_deadzone"}, m_null, input_null, str_empty,
      I_ResetController},
 
-    {"Camera Curve", S_THERMO, CNTR_X, M_THRM_SPC, {"joy_response_curve_camera"},
-     m_null, input_null, str_curve, I_ResetController},
-
-    {"Movement Deadzone", S_THERMO | S_PCT, CNTR_X, M_THRM_SPC,
-     {"joy_deadzone_movement"}, m_null, input_null, str_empty, I_ResetController},
-
     {"Camera Deadzone", S_THERMO | S_PCT, CNTR_X, M_THRM_SPC,
-     {"joy_deadzone_camera"}, m_null, input_null, str_empty, I_ResetController},
+     {"joy_camera_inner_deadzone"}, m_null, input_null, str_empty,
+     I_ResetController},
 
     MI_END
 };
