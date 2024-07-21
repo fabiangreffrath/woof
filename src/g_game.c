@@ -779,7 +779,7 @@ void G_BuildTiccmd(ticcmd_t* cmd)
   }
 
   // special buttons
-  if (sendpause)
+  if (sendpause && gameaction != ga_newgame)
     {
       sendpause = false;
       cmd->buttons = BT_SPECIAL | (BTS_PAUSE & BT_SPECIALMASK);
