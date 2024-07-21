@@ -203,7 +203,7 @@ void D_PostEvent(event_t *ev)
       if (uncapped && raw_input)
       {
         G_MovementResponder(ev);
-        G_PrepControllerTiccmd();
+        G_PrepGamepadTiccmd();
         return;
       }
       break;
@@ -2471,7 +2471,7 @@ void D_DoomMain(void)
 
   I_Printf(VB_INFO, "I_Init: Setting up machine state.");
   I_InitTimer();
-  I_InitController();
+  I_InitGamepad();
   I_InitSound();
   I_InitMusic();
 
@@ -2487,7 +2487,7 @@ void D_DoomMain(void)
   G_UpdateSideMove();
   G_UpdateAngleFunctions();
   G_UpdateLocalViewFunction();
-  G_UpdateControllerVariables();
+  G_UpdateGamepadVariables();
   G_UpdateMouseVariables();
   R_UpdateViewAngleFunction();
 

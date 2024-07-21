@@ -23,16 +23,16 @@
 
 enum evtype_e;
 
-boolean I_UseController(void);
-void I_InitController(void);
-void I_OpenController(int which);
-void I_CloseController(int which);
+boolean I_UseGamepad(void);
+void I_InitGamepad(void);
+void I_OpenGamepad(int which);
+void I_CloseGamepad(int which);
 
 void I_ReadMouse(void);
-void I_UpdateJoystick(enum evtype_e type, boolean axis_buttons);
+void I_UpdateGamepad(enum evtype_e type, boolean axis_buttons);
 
 void I_DelayEvent(void);
-void I_HandleJoystickEvent(SDL_Event *sdlevent);
+void I_HandleGamepadEvent(SDL_Event *sdlevent);
 void I_HandleKeyboardEvent(SDL_Event *sdlevent);
 void I_HandleMouseEvent(SDL_Event *sdlevent);
 

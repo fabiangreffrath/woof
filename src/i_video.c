@@ -483,18 +483,18 @@ static void ProcessEvent(SDL_Event *ev)
             break;
 
         case SDL_CONTROLLERDEVICEADDED:
-            I_OpenController(ev->cdevice.which);
+            I_OpenGamepad(ev->cdevice.which);
             break;
 
         case SDL_CONTROLLERDEVICEREMOVED:
-            I_CloseController(ev->cdevice.which);
+            I_CloseGamepad(ev->cdevice.which);
             break;
 
         case SDL_CONTROLLERBUTTONDOWN:
         case SDL_CONTROLLERBUTTONUP:
-            if (I_UseController())
+            if (I_UseGamepad())
             {
-                I_HandleJoystickEvent(ev);
+                I_HandleGamepadEvent(ev);
             }
             break;
 
@@ -605,9 +605,9 @@ void I_StartTic(void)
     {
         UpdateMouseMenu();
 
-        if (I_UseController())
+        if (I_UseGamepad())
         {
-            I_UpdateJoystick(ev_joystick_state, true);
+            I_UpdateGamepad(ev_joystick_state, true);
         }
     }
     else
@@ -617,9 +617,9 @@ void I_StartTic(void)
             I_ReadMouse();
         }
 
-        if (I_UseController())
+        if (I_UseGamepad())
         {
-            I_UpdateJoystick(ev_joystick, true);
+            I_UpdateGamepad(ev_joystick, true);
         }
     }
 }
@@ -633,9 +633,9 @@ void I_StartDisplay(void)
         I_ReadMouse();
     }
 
-    if (I_UseController())
+    if (I_UseGamepad())
     {
-        I_UpdateJoystick(ev_joystick, false);
+        I_UpdateGamepad(ev_joystick, false);
     }
 }
 

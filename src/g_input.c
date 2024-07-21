@@ -174,7 +174,7 @@ static double deltatics;
 static double joy_scale_angle;
 static double joy_scale_pitch;
 
-void G_UpdateControllerVariables(void)
+void G_UpdateGamepadVariables(void)
 {
     joy_scale_angle = angleturn[1] * direction[joy_invert_turn];
     joy_scale_pitch = angleturn[1] * direction[joy_invert_look] * FRACUNIT;
@@ -211,31 +211,31 @@ void G_UpdateDeltaTics(void)
     }
 }
 
-double G_CalcControllerAngle(void)
+double G_CalcGamepadAngle(void)
 {
     return (axes[AXIS_TURN] * joy_scale_angle * deltatics);
 }
 
-double G_CalcControllerPitch(void)
+double G_CalcGamepadPitch(void)
 {
     return (axes[AXIS_LOOK] * joy_scale_pitch * deltatics);
 }
 
-int G_CalcControllerSideTurn(int speed)
+int G_CalcGamepadSideTurn(int speed)
 {
     const int side = RoundSide(forwardmove[speed] * axes[AXIS_TURN]
                                * direction[joy_invert_turn]);
     return BETWEEN(-forwardmove[speed], forwardmove[speed], side);
 }
 
-int G_CalcControllerSideStrafe(int speed)
+int G_CalcGamepadSideStrafe(int speed)
 {
     const int side = RoundSide(forwardmove[speed] * axes[AXIS_STRAFE]
                                * direction[joy_invert_strafe]);
     return BETWEEN(-sidemove[speed], sidemove[speed], side);
 }
 
-int G_CalcControllerForward(int speed)
+int G_CalcGamepadForward(int speed)
 {
     const int forward = lroundf(forwardmove[speed] * axes[AXIS_FORWARD]
                                 * direction[joy_invert_forward]);

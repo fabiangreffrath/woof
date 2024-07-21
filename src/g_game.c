@@ -204,7 +204,7 @@ boolean dclick;
 
 static ticcmd_t basecmd;
 
-boolean joybuttons[NUM_CONTROLLER_BUTTONS];
+boolean joybuttons[NUM_GAMEPAD_BUTTONS];
 
 int   savegameslot = -1;
 char  savedescription[32];
@@ -489,24 +489,24 @@ void G_PrepMouseTiccmd(void)
   }
 }
 
-void G_PrepControllerTiccmd(void)
+void G_PrepGamepadTiccmd(void)
 {
-  if (I_UseController())
+  if (I_UseGamepad())
   {
-    I_CalcControllerAxes();
+    I_CalcGamepadAxes();
     G_UpdateDeltaTics();
     axis_turn_tic = axes[AXIS_TURN];
 
     if (axes[AXIS_TURN] && !M_InputGameActive(input_strafe))
     {
-      localview.rawangle -= G_CalcControllerAngle();
+      localview.rawangle -= G_CalcGamepadAngle();
       basecmd.angleturn = G_CarryAngle(localview.rawangle);
       axes[AXIS_TURN] = 0.0f;
     }
 
     if (axes[AXIS_LOOK] && padlook)
     {
-      localview.rawpitch -= G_CalcControllerPitch();
+      localview.rawpitch -= G_CalcGamepadPitch();
       basecmd.pitch = G_CarryPitch(localview.rawpitch);
       axes[AXIS_LOOK] = 0.0f;
     }
@@ -539,7 +539,7 @@ void G_BuildTiccmd(ticcmd_t* cmd)
   if (!uncapped || !raw_input)
   {
     G_PrepMouseTiccmd();
-    G_PrepControllerTiccmd();
+    G_PrepGamepadTiccmd();
   }
 
   memcpy(cmd, &basecmd, sizeof(*cmd));
@@ -600,21 +600,21 @@ void G_BuildTiccmd(ticcmd_t* cmd)
 
   // Gamepad
 
-  if (I_UseController())
+  if (I_UseGamepad())
   {
     if (axes[AXIS_TURN] && strafe && !cmd->angleturn)
     {
-      side += G_CalcControllerSideTurn(speed);
+      side += G_CalcGamepadSideTurn(speed);
     }
 
     if (axes[AXIS_STRAFE])
     {
-      side += G_CalcControllerSideStrafe(speed);
+      side += G_CalcGamepadSideStrafe(speed);
     }
 
     if (axes[AXIS_FORWARD])
     {
-      forward -= G_CalcControllerForward(speed);
+      forward -= G_CalcGamepadForward(speed);
     }
   }
 
@@ -654,7 +654,7 @@ void G_BuildTiccmd(ticcmd_t* cmd)
   cmd->sidemove = side;
 
   ClearQuickstartTic();
-  I_ResetControllerAxes();
+  I_ResetGamepadAxes();
   mousex = mousey = 0;
   UpdateLocalView();
   G_UpdateCarry();
@@ -809,7 +809,7 @@ void G_BuildTiccmd(ticcmd_t* cmd)
 void G_ClearInput(void)
 {
   ClearQuickstartTic();
-  I_ResetControllerLevel();
+  I_ResetGamepadState();
   mousex = mousey = 0;
   ClearLocalView();
   G_ClearCarry();
@@ -1085,7 +1085,7 @@ int G_GotoNextLevel(int *pEpi, int *pMap)
 static boolean G_StrictModeSkipEvent(event_t *ev)
 {
   static boolean enable_mouse = false;
-  static boolean enable_controller = false;
+  static boolean enable_gamepad = false;
   static boolean first_event = true;
 
   if (!strictmode || !demorecording)
@@ -1108,24 +1108,24 @@ static boolean G_StrictModeSkipEvent(event_t *ev)
         if (first_event)
         {
           first_event = false;
-          enable_controller = true;
+          enable_gamepad = true;
         }
-        return !enable_controller;
+        return !enable_gamepad;
 
     case ev_joystick:
         if (first_event)
         {
           I_UpdateAxesData(ev);
-          I_CalcControllerAxes();
+          I_CalcGamepadAxes();
           if (axes[AXIS_STRAFE] || axes[AXIS_FORWARD] || axes[AXIS_TURN] ||
               axes[AXIS_LOOK])
           {
             first_event = false;
-            enable_controller = true;
+            enable_gamepad = true;
           }
-          I_ResetControllerLevel();
+          I_ResetGamepadState();
         }
-        return !enable_controller;
+        return !enable_gamepad;
 
     default:
         break;
@@ -1299,12 +1299,12 @@ boolean G_Responder(event_t* ev)
       return true;
 
     case ev_joyb_down:
-      if (ev->data1 < NUM_CONTROLLER_BUTTONS)
+      if (ev->data1 < NUM_GAMEPAD_BUTTONS)
         joybuttons[ev->data1] = true;
       return true;
 
     case ev_joyb_up:
-      if (ev->data1 < NUM_CONTROLLER_BUTTONS)
+      if (ev->data1 < NUM_GAMEPAD_BUTTONS)
         joybuttons[ev->data1] = false;
       return true;
 

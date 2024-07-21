@@ -2248,7 +2248,7 @@ static const char *curve_strings[] = {
 static setup_menu_t gen_settings4[] = {
     {"Stick Layout",S_CHOICE, CNTR_X, M_SPC,
      {"joy_layout"}, m_null, input_null, str_layout,
-     I_ResetController},
+     I_ResetGamepad},
 
     {"Free Look", S_ONOFF, CNTR_X, M_SPC,
      {"padlook"}, m_null, input_null, str_empty,
@@ -2256,31 +2256,31 @@ static setup_menu_t gen_settings4[] = {
 
     {"Invert Look", S_ONOFF, CNTR_X, M_SPC,
      {"joy_invert_look"}, m_null, input_null, str_empty,
-     G_UpdateControllerVariables},
+     G_UpdateGamepadVariables},
 
     MI_GAP,
 
     {"Turn Sensitivity", S_THERMO | S_THRM_SIZE11, CNTR_X, M_THRM_SPC,
      {"joy_turn_sensitivity"}, m_null, input_null, str_empty,
-     I_ResetController},
+     I_ResetGamepad},
 
     {"Look Sensitivity", S_THERMO | S_THRM_SIZE11, CNTR_X, M_THRM_SPC,
      {"joy_look_sensitivity"}, m_null, input_null, str_empty,
-     I_ResetController},
+     I_ResetGamepad},
 
     {"Response Curve", S_THERMO, CNTR_X, M_THRM_SPC,
      {"joy_camera_curve"}, m_null, input_null, str_curve,
-     I_ResetController},
+     I_ResetGamepad},
 
     MI_GAP,
 
     {"Movement Deadzone", S_THERMO | S_PCT, CNTR_X, M_THRM_SPC,
      {"joy_movement_inner_deadzone"}, m_null, input_null, str_empty,
-     I_ResetController},
+     I_ResetGamepad},
 
     {"Camera Deadzone", S_THERMO | S_PCT, CNTR_X, M_THRM_SPC,
      {"joy_camera_inner_deadzone"}, m_null, input_null, str_empty,
-     I_ResetController},
+     I_ResetGamepad},
 
     MI_END
 };
