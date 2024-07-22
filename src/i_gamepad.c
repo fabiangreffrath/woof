@@ -281,6 +281,9 @@ static void (*CalcCamera)(axes_t *ax, float *xaxis, float *yaxis);
 
 void I_CalcGamepadAxes(void)
 {
+    static uint64_t last_time;
+    const uint64_t current_time = I_GetTimeUS();
+
     if (movement.x.data || movement.y.data)
     {
         CalcMovement(&movement, &axes[AXIS_STRAFE], &axes[AXIS_FORWARD]);
@@ -301,6 +304,9 @@ void I_CalcGamepadAxes(void)
         camera.x.data = 0;
         camera.y.data = 0;
     }
+
+    G_UpdateDeltaTics(current_time - last_time);
+    last_time = current_time;
 }
 
 void I_UpdateAxesData(const event_t *ev)

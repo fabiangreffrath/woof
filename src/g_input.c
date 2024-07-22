@@ -185,25 +185,12 @@ void G_UpdateGamepadVariables(void)
     }
 }
 
-void G_UpdateDeltaTics(void)
+void G_UpdateDeltaTics(uint64_t delta_time)
 {
     if (uncapped && raw_input)
     {
-        static uint64_t last_time;
-        const uint64_t current_time = I_GetTimeUS();
-
-        if (input_ready)
-        {
-            const uint64_t delta_time = current_time - last_time;
-            deltatics = (double)delta_time * TICRATE / 1000000.0;
-            deltatics = BETWEEN(0.0, 1.0, deltatics);
-        }
-        else
-        {
-            deltatics = 0.0;
-        }
-
-        last_time = current_time;
+        deltatics = (double)delta_time * TICRATE * 1.0e-6;
+        deltatics = BETWEEN(0.0, 1.0, deltatics);
     }
     else
     {

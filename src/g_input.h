@@ -36,7 +36,7 @@ int G_CarryVert(double vert);
 // Gamepad
 
 void G_UpdateGamepadVariables(void);
-void G_UpdateDeltaTics(void);
+void G_UpdateDeltaTics(uint64_t delta_time);
 double G_CalcGamepadAngle(void);
 double G_CalcGamepadPitch(void);
 int G_CalcGamepadSideTurn(int speed);
