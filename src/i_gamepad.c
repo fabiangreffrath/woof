@@ -284,26 +284,13 @@ void I_CalcGamepadAxes(void)
     static uint64_t last_time;
     const uint64_t current_time = I_GetTimeUS();
 
-    if (movement.x.data || movement.y.data)
-    {
-        CalcMovement(&movement, &axes[AXIS_STRAFE], &axes[AXIS_FORWARD]);
+    CalcMovement(&movement, &axes[AXIS_STRAFE], &axes[AXIS_FORWARD]);
+    movement.x.data = 0;
+    movement.y.data = 0;
 
-        movement.x.data = 0;
-        movement.y.data = 0;
-    }
-
-    if (camera.x.data || camera.y.data)
-    {
-        if (!padlook)
-        {
-            camera.y.data = 0;
-        }
-
-        CalcCamera(&camera, &axes[AXIS_TURN], &axes[AXIS_LOOK]);
-
-        camera.x.data = 0;
-        camera.y.data = 0;
-    }
+    CalcCamera(&camera, &axes[AXIS_TURN], &axes[AXIS_LOOK]);
+    camera.x.data = 0;
+    camera.y.data = 0;
 
     G_UpdateDeltaTics(current_time - last_time);
     last_time = current_time;
@@ -315,6 +302,11 @@ void I_UpdateAxesData(const event_t *ev)
     *axes_data[AXIS_LEFTY] = ev->data2;
     *axes_data[AXIS_RIGHTX] = ev->data3;
     *axes_data[AXIS_RIGHTY] = ev->data4;
+
+    if (!padlook)
+    {
+        camera.y.data = 0;
+    }
 }
 
 void I_ResetGamepadAxes(void)
