@@ -71,6 +71,7 @@ typedef struct
     uint64_t last_time;         // Last update time (us).
     axis_t x;
     axis_t y;
+    uint64_t ramp_time;         // Ramp time for extra sensitivity (us).
     float exponent;             // Exponent for response curve.
     float inner_deadzone;       // Normalized inner deadzone.
     float outer_deadzone;       // Normalized outer deadzone.
@@ -88,28 +89,28 @@ static void CalcExtraScale(axes_t *ax, float magnitude)
         return;
     }
 
-    if ((joy_outer_turn_sensitivity || joy_outer_look_sensitivity) &&
-        magnitude > ax->outer_deadzone)
+    if ((ax->x.extra_sens > 0.0f || ax->y.extra_sens > 0.0f)
+        && magnitude > ax->outer_deadzone)
     {
-        if (joy_outer_ramp_time)
+        if (ax->ramp_time > 0)
         {
-            static int start_time;
-            static int elapsed_time;
+            static uint64_t start_time;
+            static uint64_t elapsed_time;
 
             if (ax->extra_active)
             {
-                if (elapsed_time < joy_outer_ramp_time)
+                if (elapsed_time < ax->ramp_time)
                 {
                     // Continue ramp.
-                    elapsed_time = I_GetTimeMS() - start_time;
-                    ax->extra_scale = (float)elapsed_time / joy_outer_ramp_time;
-                    ax->extra_scale = BETWEEN(0.0f, 1.0f, ax->extra_scale);
+                    elapsed_time = ax->time - start_time;
+                    elapsed_time = BETWEEN(0, ax->ramp_time, elapsed_time);
+                    ax->extra_scale = (float)elapsed_time / ax->ramp_time;
                 }
             }
             else
             {
                 // Start ramp.
-                start_time = I_GetTimeMS();
+                start_time = ax->time;
                 elapsed_time = 0;
                 ax->extra_scale = 0.0f;
                 ax->extra_active = true;
@@ -362,6 +363,7 @@ static void RefreshSettings(void)
 
     camera.x.extra_sens = joy_outer_turn_sensitivity / 50.0f;
     camera.y.extra_sens = joy_outer_look_sensitivity / 50.0f;
+    camera.ramp_time = joy_outer_ramp_time * 1000;
 
     movement.exponent = joy_movement_curve / 10.0f;
     camera.exponent = joy_camera_curve / 10.0f;
