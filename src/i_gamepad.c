@@ -72,9 +72,11 @@ typedef struct
     axis_t x;
     axis_t y;
     uint64_t ramp_time;         // Ramp time for extra sensitivity (us).
+    boolean circle_to_square;   // Circle to square correction?
     float exponent;             // Exponent for response curve.
     float inner_deadzone;       // Normalized inner deadzone.
     float outer_deadzone;       // Normalized outer deadzone.
+    boolean max_mag;            // Max magnitude?
     boolean extra_active;       // Using extra sensitivity?
     float extra_scale;          // Scaling factor for extra sensitivity.
 } axes_t;
@@ -82,15 +84,9 @@ typedef struct
 static axes_t movement;         // Strafe/Forward
 static axes_t camera;           // Turn/Look
 
-static void CalcExtraScale(axes_t *ax, float magnitude)
+static void CalcExtraScale(axes_t *ax)
 {
-    if (ax != &camera)
-    {
-        return;
-    }
-
-    if ((ax->x.extra_sens > 0.0f || ax->y.extra_sens > 0.0f)
-        && magnitude > ax->outer_deadzone)
+    if ((ax->x.extra_sens > 0.0f || ax->y.extra_sens > 0.0f) && ax->max_mag)
     {
         if (ax->ramp_time > 0)
         {
@@ -171,38 +167,56 @@ static void CircleToSquare(float *x, float *y)
     }
 }
 
-static void ApplySensitivity(const axes_t *ax, float *xaxis, float *yaxis)
+static void ScaleMovement(axes_t *ax, float *xaxis, float *yaxis)
 {
     if (*xaxis || *yaxis)
     {
-        if (ax == &movement)
+        if (ax->circle_to_square)
         {
-            if (joy_scale_diagonal_movement)
-            {
-                CircleToSquare(xaxis, yaxis);
-            }
-
-            *xaxis *= ax->x.sens;
-            *yaxis *= ax->y.sens;
+            CircleToSquare(xaxis, yaxis);
         }
-        else // camera
+
+        *xaxis *= ax->x.sens;
+        *yaxis *= ax->y.sens;
+    }
+}
+
+static void ScaleCamera(axes_t *ax, float *xaxis, float *yaxis)
+{
+    CalcExtraScale(ax);
+
+    if (*xaxis || *yaxis)
+    {
+        *xaxis *= ax->x.sens + ax->extra_scale * ax->x.extra_sens;
+
+        if (padlook)
         {
-            *xaxis *= ax->x.sens + ax->extra_scale * ax->x.extra_sens;
             *yaxis *= ax->y.sens + ax->extra_scale * ax->y.extra_sens;
+        }
+        else
+        {
+            *yaxis = 0.0f;
         }
     }
 }
 
 static float CalcAxialValue(axes_t *ax, float input)
 {
-    if (fabsf(input) > ax->inner_deadzone)
+    const float input_mag = fabsf(input);
+
+    if (input_mag <= ax->inner_deadzone)
     {
-        return (SGNF(input)
-                * REMAP(fabsf(input), ax->inner_deadzone, ax->outer_deadzone));
+        return 0.0f;
+    }
+    else if (input_mag >= ax->outer_deadzone)
+    {
+        return SGNF(input);
     }
     else
     {
-        return 0.0f;
+        float scale = REMAP(input_mag, ax->inner_deadzone, ax->outer_deadzone);
+        scale = powf(scale, ax->exponent) / input_mag;
+        return (input * scale);
     }
 }
 
@@ -228,28 +242,9 @@ static void CalcAxial(axes_t *ax, float *xaxis, float *yaxis)
     const float y_input = GetInputValue(ax->y.data);
     const float input_mag = sqrtf(x_input * x_input + y_input * y_input);
 
-    const float x_axial = CalcAxialValue(ax, x_input);
-    const float y_axial = CalcAxialValue(ax, y_input);
-    const float axial_mag = sqrtf(x_axial * x_axial + y_axial * y_axial);
-
-    if (axial_mag > MIN_F)
-    {
-        float scaled_mag;
-
-        scaled_mag = BETWEEN(0.0f, 1.0f, axial_mag);
-        scaled_mag = powf(scaled_mag, ax->exponent);
-
-        *xaxis = scaled_mag * x_axial / axial_mag;
-        *yaxis = scaled_mag * y_axial / axial_mag;
-    }
-    else
-    {
-        *xaxis = 0.0f;
-        *yaxis = 0.0f;
-    }
-
-    CalcExtraScale(ax, input_mag);
-    ApplySensitivity(ax, xaxis, yaxis);
+    *xaxis = CalcAxialValue(ax, x_input);
+    *yaxis = CalcAxialValue(ax, y_input);
+    ax->max_mag = (input_mag >= ax->outer_deadzone);
 }
 
 static void CalcRadial(axes_t *ax, float *xaxis, float *yaxis)
@@ -258,25 +253,26 @@ static void CalcRadial(axes_t *ax, float *xaxis, float *yaxis)
     const float y_input = GetInputValue(ax->y.data);
     const float input_mag = sqrtf(x_input * x_input + y_input * y_input);
 
-    if (input_mag > ax->inner_deadzone)
+    if (input_mag <= ax->inner_deadzone)
     {
-        float scaled_mag =
-            REMAP(input_mag, ax->inner_deadzone, ax->outer_deadzone);
-
-        scaled_mag = BETWEEN(0.0f, 1.0f, scaled_mag);
-        scaled_mag = powf(scaled_mag, ax->exponent);
-
-        *xaxis = scaled_mag * x_input / input_mag;
-        *yaxis = scaled_mag * y_input / input_mag;
+        *xaxis = 0.0f;
+        *xaxis = 0.0f;
+        ax->max_mag = false;
+    }
+    else if (input_mag >= ax->outer_deadzone)
+    {
+        *xaxis = x_input / input_mag;
+        *yaxis = y_input / input_mag;
+        ax->max_mag = true;
     }
     else
     {
-        *xaxis = 0.0f;
-        *yaxis = 0.0f;
+        float scale = REMAP(input_mag, ax->inner_deadzone, ax->outer_deadzone);
+        scale = powf(scale, ax->exponent) / input_mag;
+        *xaxis = x_input * scale;
+        *yaxis = y_input * scale;
+        ax->max_mag = false;
     }
-
-    CalcExtraScale(ax, input_mag);
-    ApplySensitivity(ax, xaxis, yaxis);
 }
 
 static void (*CalcMovement)(axes_t *ax, float *xaxis, float *yaxis);
@@ -293,9 +289,11 @@ static void ResetData(void)
 void I_CalcGamepadAxes(void)
 {
     CalcMovement(&movement, &axes[AXIS_STRAFE], &axes[AXIS_FORWARD]);
+    ScaleMovement(&movement, &axes[AXIS_STRAFE], &axes[AXIS_FORWARD]);
 
     camera.time = I_GetTimeUS();
     CalcCamera(&camera, &axes[AXIS_TURN], &axes[AXIS_LOOK]);
+    ScaleCamera(&camera, &axes[AXIS_TURN], &axes[AXIS_LOOK]);
     G_UpdateDeltaTics(camera.time - camera.last_time);
     camera.last_time = camera.time;
 
@@ -308,11 +306,6 @@ void I_UpdateAxesData(const event_t *ev)
     *axes_data[AXIS_LEFTY] = ev->data2;
     *axes_data[AXIS_RIGHTX] = ev->data3;
     *axes_data[AXIS_RIGHTY] = ev->data4;
-
-    if (!padlook)
-    {
-        camera.y.data = 0;
-    }
 }
 
 void I_ResetGamepadAxes(void)
@@ -330,7 +323,6 @@ void I_ResetGamepadState(void)
 
 static void UpdateStickLayout(void)
 {
-    int i;
     int *layouts[NUM_LAYOUTS][NUM_AXES] = {
         // Default
         {&movement.x.data, &movement.y.data, &camera.x.data, &camera.y.data},
@@ -342,7 +334,7 @@ static void UpdateStickLayout(void)
         {&movement.x.data, &camera.y.data, &camera.x.data, &movement.y.data},
     };
 
-    for (i = 0; i < NUM_AXES; i++)
+    for (int i = 0; i < NUM_AXES; i++)
     {
         axes_data[i] = layouts[joy_layout][i];
     }
@@ -364,6 +356,8 @@ static void RefreshSettings(void)
     camera.x.extra_sens = joy_outer_turn_sensitivity / 50.0f;
     camera.y.extra_sens = joy_outer_look_sensitivity / 50.0f;
     camera.ramp_time = joy_outer_ramp_time * 1000;
+
+    movement.circle_to_square = (joy_scale_diagonal_movement > 0);
 
     movement.exponent = joy_movement_curve / 10.0f;
     camera.exponent = joy_camera_curve / 10.0f;
