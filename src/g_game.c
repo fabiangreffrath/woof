@@ -494,7 +494,6 @@ void G_PrepGamepadTiccmd(void)
   if (I_UseGamepad())
   {
     I_CalcGamepadAxes();
-    G_UpdateDeltaTics();
     axis_turn_tic = axes[AXIS_TURN];
 
     if (axes[AXIS_TURN] && !M_InputGameActive(input_strafe))

@@ -236,8 +236,6 @@ void D_ProcessEvents (void)
 //  draw current display, possibly wiping it from the previous
 //
 
-boolean input_ready;
-
 // wipegamestate can be set to -1 to force a wipe on the next draw
 gamestate_t    wipegamestate = GS_DEMOSCREEN;
 static int     screen_melt = wipe_Melt;
@@ -265,14 +263,12 @@ void D_Display (void)
   if (nodrawers)                    // for comparative timing / profiling
     return;
 
-  input_ready = (!menuactive && gamestate == GS_LEVEL && !paused);
-
   if (uncapped)
   {
     // [AM] Figure out how far into the current tic we're in as a fixed_t.
     fractionaltic = I_GetFracTime();
 
-    if (input_ready && raw_input)
+    if (!menuactive && gamestate == GS_LEVEL && !paused && raw_input)
     {
       I_StartDisplay();
     }
