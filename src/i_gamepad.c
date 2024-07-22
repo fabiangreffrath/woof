@@ -67,6 +67,8 @@ typedef struct
 
 typedef struct
 {
+    uint64_t time;              // Update time (us).
+    uint64_t last_time;         // Last update time (us).
     axis_t x;
     axis_t y;
     float exponent;             // Exponent for response curve.
@@ -279,21 +281,24 @@ static void CalcRadial(axes_t *ax, float *xaxis, float *yaxis)
 static void (*CalcMovement)(axes_t *ax, float *xaxis, float *yaxis);
 static void (*CalcCamera)(axes_t *ax, float *xaxis, float *yaxis);
 
-void I_CalcGamepadAxes(void)
+static void ResetData(void)
 {
-    static uint64_t last_time;
-    const uint64_t current_time = I_GetTimeUS();
-
-    CalcMovement(&movement, &axes[AXIS_STRAFE], &axes[AXIS_FORWARD]);
     movement.x.data = 0;
     movement.y.data = 0;
-
-    CalcCamera(&camera, &axes[AXIS_TURN], &axes[AXIS_LOOK]);
     camera.x.data = 0;
     camera.y.data = 0;
+}
 
-    G_UpdateDeltaTics(current_time - last_time);
-    last_time = current_time;
+void I_CalcGamepadAxes(void)
+{
+    CalcMovement(&movement, &axes[AXIS_STRAFE], &axes[AXIS_FORWARD]);
+
+    camera.time = I_GetTimeUS();
+    CalcCamera(&camera, &axes[AXIS_TURN], &axes[AXIS_LOOK]);
+    G_UpdateDeltaTics(camera.time - camera.last_time);
+    camera.last_time = camera.time;
+
+    ResetData();
 }
 
 void I_UpdateAxesData(const event_t *ev)
@@ -317,10 +322,7 @@ void I_ResetGamepadAxes(void)
 void I_ResetGamepadState(void)
 {
     I_ResetGamepadAxes();
-    movement.x.data = 0;
-    movement.y.data = 0;
-    camera.x.data = 0;
-    camera.y.data = 0;
+    ResetData();
     camera.extra_scale = 0.0f;
     camera.extra_active = false;
 }
