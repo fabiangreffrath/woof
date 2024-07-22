@@ -394,15 +394,15 @@ void I_BindGamepadVariables(void)
         "Forward sensitivity");
     BIND_NUM(joy_strafe_sensitivity, 50, 0, 100,
         "Strafe sensitivity");
-    BIND_NUM_GENERAL(joy_turn_sensitivity, 36, 0, 100,
+    BIND_NUM_GENERAL(joy_turn_sensitivity, 50, 0, 100,
         "Turn sensitivity");
-    BIND_NUM_GENERAL(joy_look_sensitivity, 28, 0, 100,
+    BIND_NUM_GENERAL(joy_look_sensitivity, 50, 0, 100,
         "Look sensitivity");
-    BIND_NUM(joy_outer_turn_sensitivity, 14, 0, 100,
+    BIND_NUM(joy_outer_turn_sensitivity, 0, 0, 100,
         "Extra turn sensitivity at outer deadzone (joy_camera_outer_deadzone)");
     BIND_NUM(joy_outer_look_sensitivity, 0, 0, 100,
         "Extra look sensitivity at outer deadzone (joy_camera_outer_deadzone)");
-    BIND_NUM(joy_outer_ramp_time, 300, 0, 1000,
+    BIND_NUM(joy_outer_ramp_time, 200, 0, 1000,
         "Ramp time for extra sensitivity [milliseconds]");
     BIND_NUM(joy_scale_diagonal_movement, 1, 0, 1,
         "Scale diagonal movement (0 = Linear; 1 = Circle to Square)");
@@ -418,11 +418,11 @@ void I_BindGamepadVariables(void)
         "Movement inner deadzone [percent]");
     BIND_NUM_GENERAL(joy_camera_inner_deadzone, 15, 0, 50,
         "Camera inner deadzone [percent]");
-    BIND_NUM(joy_movement_outer_deadzone, 2, 0, 30,
+    BIND_NUM(joy_movement_outer_deadzone, 5, 0, 30,
         "Movement outer deadzone [percent]");
-    BIND_NUM(joy_camera_outer_deadzone, 2, 0, 30,
+    BIND_NUM(joy_camera_outer_deadzone, 5, 0, 30,
         "Camera outer deadzone [percent]");
-    BIND_NUM(joy_trigger_deadzone, 12, 0, 50,
+    BIND_NUM(joy_trigger_deadzone, 15, 0, 50,
         "Trigger deadzone [percent]");
     BIND_BOOL(joy_invert_forward, false,
         "Invert forward axis");
