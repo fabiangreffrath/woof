@@ -161,6 +161,16 @@ boolean I_UseGamepad(void)
     return (gamepad != NULL);
 }
 
+void I_FlushGamepadEvents(void)
+{
+    SDL_PumpEvents();
+    SDL_FlushEvent(SDL_JOYHATMOTION);
+    SDL_FlushEvent(SDL_JOYBUTTONDOWN);
+    SDL_FlushEvent(SDL_JOYBUTTONUP);
+    SDL_FlushEvent(SDL_CONTROLLERBUTTONDOWN);
+    SDL_FlushEvent(SDL_CONTROLLERBUTTONUP);
+}
+
 static void EnableGamepadEvents(void)
 {
     SDL_EventState(SDL_JOYHATMOTION, SDL_ENABLE);
