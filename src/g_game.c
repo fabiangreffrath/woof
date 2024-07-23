@@ -493,10 +493,12 @@ void G_PrepGamepadTiccmd(void)
 {
   if (I_UseGamepad())
   {
-    I_CalcGamepadAxes();
+    const boolean strafe = M_InputGameActive(input_strafe);
+
+    I_CalcGamepadAxes(strafe);
     axis_turn_tic = axes[AXIS_TURN];
 
-    if (axes[AXIS_TURN] && !M_InputGameActive(input_strafe))
+    if (axes[AXIS_TURN] && !strafe)
     {
       localview.rawangle -= G_CalcGamepadAngle();
       basecmd.angleturn = G_CarryAngle(localview.rawangle);
@@ -1115,7 +1117,7 @@ static boolean G_StrictModeSkipEvent(event_t *ev)
         if (first_event)
         {
           I_UpdateAxesData(ev);
-          I_CalcGamepadAxes();
+          I_CalcGamepadAxes(M_InputGameActive(input_strafe));
           if (axes[AXIS_STRAFE] || axes[AXIS_FORWARD] || axes[AXIS_TURN] ||
               axes[AXIS_LOOK])
           {
