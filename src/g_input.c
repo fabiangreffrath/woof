@@ -174,17 +174,6 @@ static double deltatics;
 static double joy_scale_angle;
 static double joy_scale_pitch;
 
-void G_UpdateGamepadVariables(void)
-{
-    joy_scale_angle = angleturn[1] * direction[joy_invert_turn];
-    joy_scale_pitch = angleturn[1] * direction[joy_invert_look] * FRACUNIT;
-
-    if (correct_aspect_ratio)
-    {
-        joy_scale_pitch /= 1.2;
-    }
-}
-
 void G_UpdateDeltaTics(uint64_t delta_time)
 {
     if (uncapped && raw_input)
@@ -198,9 +187,38 @@ void G_UpdateDeltaTics(uint64_t delta_time)
     }
 }
 
-double G_CalcGamepadAngle(void)
+static double CalcGamepadAngle_Standard(void)
 {
     return (axes[AXIS_TURN] * joy_scale_angle * deltatics);
+}
+
+static double CalcGamepadAngle_Flick(void)
+{
+    return (axes[AXIS_TURN] * direction[joy_invert_turn]);
+}
+
+double (*G_CalcGamepadAngle)(void);
+
+void G_UpdateGamepadVariables(void)
+{
+    if (I_UseStandardLayout())
+    {
+        joy_scale_angle = angleturn[1] * direction[joy_invert_turn];
+        joy_scale_pitch = angleturn[1] * direction[joy_invert_look] * FRACUNIT;
+
+        if (correct_aspect_ratio)
+        {
+            joy_scale_pitch /= 1.2;
+        }
+
+        G_CalcGamepadAngle = CalcGamepadAngle_Standard;
+    }
+    else
+    {
+        joy_scale_angle = 0.0;
+        joy_scale_pitch = 0.0;
+        G_CalcGamepadAngle = CalcGamepadAngle_Flick;
+    }
 }
 
 double G_CalcGamepadPitch(void)

@@ -2235,7 +2235,8 @@ static setup_menu_t gen_settings3[] = {
 };
 
 static const char *layout_strings[] = {"Default",     "Southpaw",
-                                       "Legacy",      "Legacy Southpaw"};
+                                       "Legacy",      "Legacy Southpaw",
+                                       "Flick Stick", "Flick Stick Southpaw"};
 
 static const char *curve_strings[] = {
     "",       "",    "",    "",        "",    "",    "",
@@ -2256,7 +2257,7 @@ static setup_menu_t gen_settings4[] = {
 
     {"Invert Look", S_ONOFF, CNTR_X, M_SPC,
      {"joy_invert_look"}, m_null, input_null, str_empty,
-     G_UpdateGamepadVariables},
+     I_ResetGamepad},
 
     MI_GAP,
 
