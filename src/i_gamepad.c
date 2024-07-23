@@ -18,10 +18,9 @@
 
 #include <math.h>
 
-#include "d_event.h"
-#include "doomkeys.h"
-#include "doomtype.h"
 #include "g_game.h"
+#include "i_gamepad.h"
+#include "i_input.h"
 #include "i_timer.h"
 #include "m_config.h"
 
@@ -591,6 +590,7 @@ void I_ResetGamepad(void)
     UpdateStickLayout();
     RefreshSettings();
     G_UpdateGamepadVariables();
+    I_FlushGamepadEvents();
 }
 
 void I_BindGamepadVariables(void)

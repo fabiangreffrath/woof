@@ -24,6 +24,7 @@
 enum evtype_e;
 
 boolean I_UseGamepad(void);
+void I_FlushGamepadEvents(void);
 void I_InitGamepad(void);
 void I_OpenGamepad(int which);
 void I_CloseGamepad(int which);
