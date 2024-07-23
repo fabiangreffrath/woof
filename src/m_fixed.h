@@ -30,7 +30,7 @@
 
   #define div64_32(a, b) _div64((a), (b), NULL)
 
-#elif defined(__GNUC__) && defined(_M_X64)
+#elif defined(__GNUC__) && defined(__x86_64__)
 
   inline static int32_t div64_32(int64_t a, int32_t b)
   {
