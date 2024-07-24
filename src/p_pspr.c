@@ -159,7 +159,6 @@ static void P_BringUpWeapon(player_t *player)
 
   if (player->pendingweapon >= NUMWEAPONS)
   {
-    player->pendingweapon = NUMWEAPONS;
     I_Printf(VB_WARNING, "P_BringUpWeapon: weaponinfo overrun has occurred.");
   }
 
