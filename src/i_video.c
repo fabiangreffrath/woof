@@ -492,9 +492,11 @@ static void ProcessEvent(SDL_Event *ev)
 
         case SDL_CONTROLLERBUTTONDOWN:
         case SDL_CONTROLLERBUTTONUP:
+        case SDL_CONTROLLERTOUCHPADDOWN:
+        case SDL_CONTROLLERTOUCHPADUP:
             if (I_UseGamepad())
             {
-                I_HandleGamepadEvent(ev);
+                I_HandleGamepadEvent(ev, menuactive);
             }
             break;
 
