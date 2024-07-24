@@ -140,6 +140,32 @@ void I_UpdateGamepad(evtype_t type, boolean axis_buttons)
     }
 }
 
+static void UpdateTouchState(boolean menu, boolean on)
+{
+    static event_t ev = {.data1 = GAMEPAD_TOUCHPAD_TOUCH};
+
+    if (on)
+    {
+        if (!menu)
+        {
+            ev.type = ev_joyb_down;
+            D_PostEvent(&ev);
+        }
+    }
+    else if (menu) // Allow separate "touch" and "press" bindings.
+    {
+        ev.type = ev_joyb_down;
+        D_PostEvent(&ev);
+        ev.type = ev_joyb_up;
+        D_PostEvent(&ev);
+    }
+    else
+    {
+        ev.type = ev_joyb_up;
+        D_PostEvent(&ev);
+    }
+}
+
 static void UpdateGamepadButtonState(unsigned int button, boolean on)
 {
     static event_t event;
@@ -169,6 +195,22 @@ void I_FlushGamepadEvents(void)
     SDL_FlushEvent(SDL_JOYBUTTONUP);
     SDL_FlushEvent(SDL_CONTROLLERBUTTONDOWN);
     SDL_FlushEvent(SDL_CONTROLLERBUTTONUP);
+    SDL_FlushEvent(SDL_CONTROLLERTOUCHPADDOWN);
+    SDL_FlushEvent(SDL_CONTROLLERTOUCHPADUP);
+}
+
+static void SetTouchEventState(boolean condition)
+{
+    if (condition && gamepad && SDL_GameControllerGetNumTouchpads(gamepad) > 0)
+    {
+        SDL_EventState(SDL_CONTROLLERTOUCHPADDOWN, SDL_ENABLE);
+        SDL_EventState(SDL_CONTROLLERTOUCHPADUP, SDL_ENABLE);
+    }
+    else
+    {
+        SDL_EventState(SDL_CONTROLLERTOUCHPADDOWN, SDL_IGNORE);
+        SDL_EventState(SDL_CONTROLLERTOUCHPADUP, SDL_IGNORE);
+    }
 }
 
 static void EnableGamepadEvents(void)
@@ -178,6 +220,7 @@ static void EnableGamepadEvents(void)
     SDL_EventState(SDL_JOYBUTTONUP, SDL_ENABLE);
     SDL_EventState(SDL_CONTROLLERBUTTONDOWN, SDL_ENABLE);
     SDL_EventState(SDL_CONTROLLERBUTTONUP, SDL_ENABLE);
+    SetTouchEventState(true);
 }
 
 static void DisableGamepadEvents(void)
@@ -187,6 +230,7 @@ static void DisableGamepadEvents(void)
     SDL_EventState(SDL_JOYBUTTONUP, SDL_IGNORE);
     SDL_EventState(SDL_CONTROLLERBUTTONDOWN, SDL_IGNORE);
     SDL_EventState(SDL_CONTROLLERBUTTONUP, SDL_IGNORE);
+    SetTouchEventState(false);
 
     // Always ignore unsupported gamepad events.
     SDL_EventState(SDL_JOYAXISMOTION, SDL_IGNORE);
@@ -196,9 +240,7 @@ static void DisableGamepadEvents(void)
 #endif
     SDL_EventState(SDL_CONTROLLERAXISMOTION, SDL_IGNORE);
     SDL_EventState(SDL_CONTROLLERDEVICEREMAPPED, SDL_IGNORE);
-    SDL_EventState(SDL_CONTROLLERTOUCHPADDOWN, SDL_IGNORE);
     SDL_EventState(SDL_CONTROLLERTOUCHPADMOTION, SDL_IGNORE);
-    SDL_EventState(SDL_CONTROLLERTOUCHPADUP, SDL_IGNORE);
     SDL_EventState(SDL_CONTROLLERSENSORUPDATE, SDL_IGNORE);
 }
 
@@ -276,7 +318,7 @@ void I_CloseGamepad(int which)
     I_ResetGamepad();
 }
 
-void I_HandleGamepadEvent(SDL_Event *sdlevent)
+void I_HandleGamepadEvent(SDL_Event *sdlevent, boolean menu)
 {
     switch (sdlevent->type)
     {
@@ -286,6 +328,14 @@ void I_HandleGamepadEvent(SDL_Event *sdlevent)
 
         case SDL_CONTROLLERBUTTONUP:
             UpdateGamepadButtonState(sdlevent->cbutton.button, false);
+            break;
+
+        case SDL_CONTROLLERTOUCHPADDOWN:
+            UpdateTouchState(menu, true);
+            break;
+
+        case SDL_CONTROLLERTOUCHPADUP:
+            UpdateTouchState(menu, false);
             break;
 
         default:
