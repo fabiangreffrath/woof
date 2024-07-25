@@ -1310,7 +1310,7 @@ static menu_t SoundDef = {sound_end, &MainDef, SoundMenu, M_DrawSound,
 
 static void M_DrawSound(void)
 {
-    MN_DrawTitle(60, 38, "M_SVOL", "Sound Volume");
+    MN_DrawTitle(-1, 38, "M_SVOL", "Sound Volume");
 
     int index = highlight_item + 1;
     menuitem_t *item = &currentMenu->menuitems[index];
@@ -1873,7 +1873,7 @@ void MN_SetNextMenuAlt(ss_types type)
 
 static void M_DrawSetup(void)
 {
-    MN_DrawTitle(108, 15, "M_OPTTTL", "OPTIONS");
+    MN_DrawTitle(-1, 15, "M_OPTTTL", "OPTIONS");
 }
 
 /////////////////////////////
