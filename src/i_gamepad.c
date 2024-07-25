@@ -69,6 +69,7 @@ boolean joy_invert_look;
 static int joy_flick_mode;
 static int joy_flick_time;
 static int joy_flick_smoothing;
+static int joy_flick_rotation_speed;
 static int joy_flick_deadzone;
 static int joy_flick_forward_deadzone;
 static int joy_flick_snap;
@@ -116,6 +117,7 @@ typedef struct flick_s
     float time;                 // Time required to execute a flick (us).
     float lower_smooth;         // Lower smoothing threshold (rotations/s).
     float upper_smooth;         // Upper smoothing threshold (rotations/s).
+    float rotation_speed;       // Rotation speed.
     float deadzone;             // Normalized outer deadzone.
     float forward_deadzone;     // Forward deadzone angle (radians).
     float snap;                 // Snap angle (radians).
@@ -422,7 +424,8 @@ static void CalcFlickStick(axes_t *ax, float *xaxis, float *yaxis)
             if (flick.mode != MODE_FLICK_ONLY)
             {
                 const float last_angle = atan2f(flick.lastx, -flick.lasty);
-                const float delta_angle = WrapAngle(angle - last_angle);
+                const float delta_angle = WrapAngle(angle - last_angle)
+                                          * flick.rotation_speed;
                 output_angle = SmoothTurn(ax, delta_angle);
             }
         }
@@ -600,6 +603,7 @@ static void RefreshSettings(void)
     flick.time = joy_flick_time * 1000.0f;
     flick.upper_smooth = joy_flick_smoothing / 10.0f;
     flick.lower_smooth = flick.upper_smooth * 0.5f;
+    flick.rotation_speed = joy_flick_rotation_speed / 10.0f;
     flick.deadzone = joy_flick_deadzone / 100.0f;
     flick.deadzone = MIN(flick.deadzone, MAX_F);
     flick.forward_deadzone = joy_flick_forward_deadzone * PI_F / 180.0f;
@@ -670,6 +674,8 @@ void I_BindGamepadVariables(void)
     BIND_NUM(joy_flick_smoothing, 8, 0, 50,
         "Flick rotation smoothing threshold "
         "(0 = Off; 50 = 5.0 rotations/second)");
+    BIND_NUM(joy_flick_rotation_speed, 10, 0, 50,
+        "Flick rotation speed (0 = 0.0x; 50 = 5.0x)");
     BIND_NUM(joy_flick_deadzone, 90, 0, 100,
         "Flick deadzone relative to camera deadzone [percent]");
     BIND_NUM(joy_flick_forward_deadzone, 7, 0, 45,
