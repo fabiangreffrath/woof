@@ -34,6 +34,15 @@
 #define SGNF(x) ((float)((0.0f < (x)) - ((x) < 0.0f)))
 #define REMAP(x, min, max) (((x) - (min)) / ((max) - (min)))
 
+typedef enum
+{
+    MODE_DEFAULT,
+    MODE_FLICK_ONLY,
+    MODE_ROTATE_ONLY,
+
+    NUM_FLICK_MODES
+} flick_mode_t;
+
 boolean joy_enable;
 static int joy_layout;
 static int joy_forward_sensitivity;
@@ -57,6 +66,7 @@ boolean joy_invert_forward;
 boolean joy_invert_strafe;
 boolean joy_invert_turn;
 boolean joy_invert_look;
+static int joy_flick_mode;
 static int joy_flick_time;
 static int joy_flick_smoothing;
 static int joy_flick_deadzone;
@@ -102,6 +112,7 @@ typedef struct flick_s
     int index;                  // Smoothing sample index.
     float samples[NUM_SAMPLES]; // Smoothing samples.
 
+    flick_mode_t mode;          // Flick mode.
     float time;                 // Time required to execute a flick (us).
     float lower_smooth;         // Lower smoothing threshold (rotations/s).
     float upper_smooth;         // Upper smoothing threshold (rotations/s).
@@ -408,28 +419,35 @@ static void CalcFlickStick(axes_t *ax, float *xaxis, float *yaxis)
 
         if (flick.active) // Turn after flick.
         {
-            const float last_angle = atan2f(flick.lastx, -flick.lasty);
-            const float delta_angle = WrapAngle(angle - last_angle);
-            output_angle = SmoothTurn(ax, delta_angle);
+            if (flick.mode != MODE_FLICK_ONLY)
+            {
+                const float last_angle = atan2f(flick.lastx, -flick.lasty);
+                const float delta_angle = WrapAngle(angle - last_angle);
+                output_angle = SmoothTurn(ax, delta_angle);
+            }
         }
         else // Start flick.
         {
             flick.active = true;
-            flick.start_time = ax->time;
 
-            if (flick.snap > 0.0f)
+            if (flick.mode != MODE_ROTATE_ONLY)
             {
-                angle = roundf(angle / flick.snap) * flick.snap;
-            }
+                flick.start_time = ax->time;
 
-            if (fabsf(angle) <= flick.forward_deadzone)
-            {
-                angle = 0.0f;
-            }
+                if (STRICTMODE(flick.snap > 0.0f))
+                {
+                    angle = roundf(angle / flick.snap) * flick.snap;
+                }
 
-            flick.target_angle = angle;
-            flick.percent = 0.0f;
-            ResetFlickSmoothing();
+                if (fabsf(angle) <= flick.forward_deadzone)
+                {
+                    angle = 0.0f;
+                }
+
+                flick.target_angle = angle;
+                flick.percent = 0.0f;
+                ResetFlickSmoothing();
+            }
         }
     }
     else // Stop turning.
@@ -437,11 +455,14 @@ static void CalcFlickStick(axes_t *ax, float *xaxis, float *yaxis)
         flick.active = false;
     }
 
-    // Continue flick.
-    const float last_percent = flick.percent;
-    const float raw_percent = (ax->time - flick.start_time) / flick.time;
-    flick.percent = EaseOut(raw_percent);
-    output_angle += (flick.percent - last_percent) * flick.target_angle;
+    if (flick.mode != MODE_ROTATE_ONLY)
+    {
+        // Continue flick.
+        const float last_percent = flick.percent;
+        const float raw_percent = (ax->time - flick.start_time) / flick.time;
+        flick.percent = EaseOut(raw_percent);
+        output_angle += (flick.percent - last_percent) * flick.target_angle;
+    }
 
     *xaxis = RAD2TIC(output_angle);
 
@@ -575,6 +596,7 @@ static void RefreshSettings(void)
 
     trigger_threshold = SDL_JOYSTICK_AXIS_MAX * joy_trigger_deadzone / 100;
 
+    flick.mode = joy_flick_mode;
     flick.time = joy_flick_time * 1000.0f;
     flick.upper_smooth = joy_flick_smoothing / 10.0f;
     flick.lower_smooth = flick.upper_smooth * 0.5f;
@@ -641,6 +663,8 @@ void I_BindGamepadVariables(void)
         "Invert turn axis");
     BIND_BOOL_GENERAL(joy_invert_look, false,
         "Invert look axis");
+    BIND_NUM(joy_flick_mode, MODE_DEFAULT, MODE_DEFAULT, NUM_FLICK_MODES - 1,
+        "Flick mode (0 = Default; 1 = Flick Only; 2 = Rotate Only)");
     BIND_NUM(joy_flick_time, 100, 100, 500,
         "Flick time [milliseconds]");
     BIND_NUM(joy_flick_smoothing, 8, 0, 50,
