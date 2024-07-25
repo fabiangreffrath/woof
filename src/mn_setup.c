@@ -1216,7 +1216,7 @@ void MN_DrawKeybnd(void)
     // Set up the Key Binding screen
 
     DrawBackground("FLOOR4_6"); // Draw background
-    MN_DrawTitle(-1, M_Y_TITLE, "M_KEYBND", "Key Bindings");
+    MN_DrawTitle(M_X_CENTER, M_Y_TITLE, "M_KEYBND", "Key Bindings");
     DrawTabs();
     DrawInstructions();
     DrawScreenItems(current_menu);
@@ -1317,7 +1317,7 @@ void MN_DrawWeapons(void)
     inhelpscreens = true; // killough 4/6/98: Force status bar redraw
 
     DrawBackground("FLOOR4_6"); // Draw background
-    MN_DrawTitle(-1, M_Y_TITLE, "M_WEAP", "Weapons");
+    MN_DrawTitle(M_X_CENTER, M_Y_TITLE, "M_WEAP", "Weapons");
     DrawTabs();
     DrawInstructions();
     DrawScreenItems(current_menu);
@@ -1546,7 +1546,7 @@ void MN_DrawStatusHUD(void)
     inhelpscreens = true; // killough 4/6/98: Force status bar redraw
 
     DrawBackground("FLOOR4_6"); // Draw background
-    MN_DrawTitle(-1, M_Y_TITLE, "M_STAT", "Status Bar/HUD");
+    MN_DrawTitle(M_X_CENTER, M_Y_TITLE, "M_STAT", "Status Bar/HUD");
     DrawTabs();
     DrawInstructions();
     DrawScreenItems(current_menu);
@@ -1637,7 +1637,7 @@ void MN_DrawAutoMap(void)
     inhelpscreens = true; // killough 4/6/98: Force status bar redraw
 
     DrawBackground("FLOOR4_6"); // Draw background
-    MN_DrawTitle(-1, M_Y_TITLE, "M_AUTO", "Automap");
+    MN_DrawTitle(M_X_CENTER, M_Y_TITLE, "M_AUTO", "Automap");
     DrawInstructions();
     DrawScreenItems(current_menu);
 
@@ -1719,7 +1719,7 @@ void MN_DrawEnemy(void)
     inhelpscreens = true;
 
     DrawBackground("FLOOR4_6"); // Draw background
-    MN_DrawTitle(-1, M_Y_TITLE, "M_ENEM", "Enemies");
+    MN_DrawTitle(M_X_CENTER, M_Y_TITLE, "M_ENEM", "Enemies");
     DrawInstructions();
     DrawScreenItems(current_menu);
 
@@ -1813,7 +1813,7 @@ void MN_DrawCompat(void)
     inhelpscreens = true;
 
     DrawBackground("FLOOR4_6"); // Draw background
-    MN_DrawTitle(-1, M_Y_TITLE, "M_COMPAT", "Compatibility");
+    MN_DrawTitle(M_X_CENTER, M_Y_TITLE, "M_COMPAT", "Compatibility");
     DrawInstructions();
     DrawScreenItems(current_menu);
 
@@ -2457,7 +2457,7 @@ void MN_DrawGeneral(void)
     inhelpscreens = true;
 
     DrawBackground("FLOOR4_6"); // Draw background
-    MN_DrawTitle(-1, M_Y_TITLE, "M_GENERL", "General");
+    MN_DrawTitle(M_X_CENTER, M_Y_TITLE, "M_GENERL", "General");
     DrawTabs();
     DrawInstructions();
     DrawScreenItems(current_menu);
@@ -2933,7 +2933,7 @@ void MN_DrawCredits(void) // killough 10/98: credit screen
     M_snprintf(mbftext_s, sizeof(mbftext_s), PROJECT_STRING);
     inhelpscreens = true;
     DrawBackground(gamemode == shareware ? "CEIL5_1" : "MFLR8_4");
-    MN_DrawTitle(-1, 9, "MBFTEXT", mbftext_s);
+    MN_DrawTitle(M_X_CENTER, 9, "MBFTEXT", mbftext_s);
     DrawScreenItems(cred_settings);
 }
 
@@ -3820,7 +3820,8 @@ void MN_DrawTitle(int x, int y, const char *patch, const char *alttext)
     if (patch_lump >= 0)
     {
         patch_t *patch = V_CachePatchNum(patch_lump, PU_CACHE);
-        V_DrawPatch(x == -1 ? SCREENWIDTH / 2 - patch->width / 2 : x, y, patch);
+        V_DrawPatch(x == M_X_CENTER ? SCREENWIDTH / 2 - patch->width / 2 : x,
+                    y, patch);
     }
     else
     {
