@@ -70,6 +70,8 @@ boolean MN_PointInsideRect(mrect_t *rect, int x, int y);
 void MN_ClearMenus(void);
 void MN_Back(void);
 
+#define M_X_CENTER (-1)
+
 // [FG] alternative text for missing menu graphics lumps
 void MN_DrawTitle(int x, int y, const char *patch, const char *alttext);
 void MN_DrawStringCR(int cx, int cy, byte *cr1, byte *cr2, const char *ch);
