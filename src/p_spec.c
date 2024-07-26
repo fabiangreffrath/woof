@@ -1188,7 +1188,7 @@ void P_CrossSpecialLine(line_t *line, int side, mobj_t *thing, boolean bossactio
 
   if (!thing->player || bossaction)
     {
-      ok = 0;
+      ok = bossaction;
       switch(line->special)
         {
         case 39:      // teleport trigger
