@@ -36,6 +36,7 @@ HANDLE hTimer = NULL;
 static uint64_t basecounter = 0;
 static uint64_t basecounter_scaled = 0;
 static uint64_t basefreq = 0;
+static double baseperiod_ms = 0.;
 static double baseperiod_us = 0.;
 
 static int MSToTic(uint32_t time)
@@ -57,7 +58,7 @@ int I_GetTimeMS(void)
         basecounter = counter;
     }
 
-    return ((counter - basecounter) * 1000ull) / basefreq;
+    return (int64_t)(counter - basecounter) * baseperiod_ms;
 }
 
 double I_GetTimeUS(void)
@@ -92,7 +93,7 @@ static uint32_t GetTimeMS_Scaled(void)
         basecounter_scaled = counter;
     }
 
-    return ((counter - basecounter_scaled) * 1000ull) / basefreq;
+    return (int64_t)(counter - basecounter_scaled) * baseperiod_ms;
 }
 
 int I_GetTime_RealTime(void)
@@ -161,6 +162,7 @@ void I_InitTimer(void)
     I_AtExit(I_ShutdownTimer, true);
 
     basefreq = SDL_GetPerformanceFrequency();
+    baseperiod_ms = 1e3 / basefreq;
     baseperiod_us = 1e6 / basefreq;
 
     I_GetTime = I_GetTime_Scaled;
