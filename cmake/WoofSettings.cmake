@@ -29,6 +29,12 @@ function(_checked_add_link_option FLAG)
     endif()
 endfunction()
 
+if(MSVC)
+    _checked_add_compile_option(/fp:fast)
+else()
+    _checked_add_compile_option(-ffast-math)
+endif()
+
 # Parameters we want to check for on all compilers.
 #
 # Note that we want to check for these, even on MSVC, because some compilers
