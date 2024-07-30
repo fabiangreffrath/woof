@@ -257,9 +257,7 @@ static fixed_t  max_w;          // max_x-min_x,
 static fixed_t  max_h;          // max_y-min_y
 
 // based on player size
-static fixed_t  min_w;
-static fixed_t  min_h;
-
+static const fixed_t min_h = 2 * MAPPLAYERRADIUS; // const? never changed?
 
 static fixed_t  min_scale_mtof; // used to tell when to stop zooming out
 static fixed_t  max_scale_mtof; // used to tell when to stop zooming in
@@ -409,11 +407,25 @@ static void AM_addMark(void)
 //
 // Passed nothing, returns nothing
 //
+
+static void AM_setMinMaxScale(void)
+{
+  const fixed_t a = FixedDiv(f_w << FRACBITS, max_w);
+  const fixed_t b = FixedDiv(f_h << FRACBITS, max_h);
+
+  min_scale_mtof = (a < b) ? a : b;
+  max_scale_mtof = FixedDiv(f_h << FRACBITS, min_h);
+
+  if (scale_mtof > max_scale_mtof)
+    scale_mtof = max_scale_mtof;
+
+  if (scale_mtof < min_scale_mtof)
+    scale_mtof = min_scale_mtof;
+}
+
 static void AM_findMinMaxBoundaries(void)
 {
   int i;
-  fixed_t a;
-  fixed_t b;
 
   min_x = min_y =  INT_MAX;
   max_x = max_y = -INT_MAX;
@@ -435,14 +447,7 @@ static void AM_findMinMaxBoundaries(void)
   max_w = (max_x >>= FRACTOMAPBITS) - (min_x >>= FRACTOMAPBITS);
   max_h = (max_y >>= FRACTOMAPBITS) - (min_y >>= FRACTOMAPBITS);
 
-  min_w = 2*MAPPLAYERRADIUS; // const? never changed?
-  min_h = 2*MAPPLAYERRADIUS;
-
-  a = FixedDiv(f_w<<FRACBITS, max_w);
-  b = FixedDiv(f_h<<FRACBITS, max_h);
-
-  min_scale_mtof = a < b ? a : b;
-  max_scale_mtof = FixedDiv(f_h<<FRACBITS, 2*MAPPLAYERRADIUS);
+  AM_setMinMaxScale();
 }
 
 void AM_SetMapCenter(fixed_t x, fixed_t y)
@@ -630,6 +635,9 @@ void AM_ResetScreenSize(void)
   {
     // Change the scaling multipliers
     scale_mtof = FixedDiv(f_w << FRACBITS, m_w);
+
+    AM_setMinMaxScale();
+
     scale_ftom = FixedDiv(FRACUNIT, scale_mtof);
   }
 
