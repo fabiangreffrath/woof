@@ -60,7 +60,7 @@ static void AxisToButton(int value, int *state, int direction)
         if (*state != -1)
         {
             static event_t up;
-            up.data1 = *state;
+            up.data1.i = *state;
             up.type = ev_joyb_up;
             D_PostEvent(&up);
         }
@@ -68,7 +68,7 @@ static void AxisToButton(int value, int *state, int direction)
         if (button != -1)
         {
             static event_t down;
-            down.data1 = button;
+            down.data1.i = button;
             down.type = ev_joyb_down;
             D_PostEvent(&down);
         }
@@ -81,10 +81,10 @@ static int axisbuttons[] = {-1, -1, -1, -1};
 
 static void AxisToButtons(event_t *ev)
 {
-    AxisToButton(ev->data1, &axisbuttons[0], GAMEPAD_LEFT_STICK_LEFT);
-    AxisToButton(ev->data2, &axisbuttons[1], GAMEPAD_LEFT_STICK_UP);
-    AxisToButton(ev->data3, &axisbuttons[2], GAMEPAD_RIGHT_STICK_LEFT);
-    AxisToButton(ev->data4, &axisbuttons[3], GAMEPAD_RIGHT_STICK_UP);
+    AxisToButton(ev->data1.i, &axisbuttons[0], GAMEPAD_LEFT_STICK_LEFT);
+    AxisToButton(ev->data2.i, &axisbuttons[1], GAMEPAD_LEFT_STICK_UP);
+    AxisToButton(ev->data3.i, &axisbuttons[2], GAMEPAD_RIGHT_STICK_LEFT);
+    AxisToButton(ev->data4.i, &axisbuttons[3], GAMEPAD_RIGHT_STICK_UP);
 }
 
 static void TriggerToButton(int value, boolean *trigger_on, int trigger_type)
@@ -106,7 +106,7 @@ static void TriggerToButton(int value, boolean *trigger_on, int trigger_type)
         return;
     }
 
-    ev.data1 = trigger_type;
+    ev.data1.i = trigger_type;
     D_PostEvent(&ev);
 }
 
@@ -126,10 +126,10 @@ void I_UpdateGamepad(evtype_t type, boolean axis_buttons)
     static event_t ev;
 
     ev.type = type;
-    ev.data1 = GetAxisState(SDL_CONTROLLER_AXIS_LEFTX);
-    ev.data2 = GetAxisState(SDL_CONTROLLER_AXIS_LEFTY);
-    ev.data3 = GetAxisState(SDL_CONTROLLER_AXIS_RIGHTX);
-    ev.data4 = GetAxisState(SDL_CONTROLLER_AXIS_RIGHTY);
+    ev.data1.i = GetAxisState(SDL_CONTROLLER_AXIS_LEFTX);
+    ev.data2.i = GetAxisState(SDL_CONTROLLER_AXIS_LEFTY);
+    ev.data3.i = GetAxisState(SDL_CONTROLLER_AXIS_RIGHTX);
+    ev.data4.i = GetAxisState(SDL_CONTROLLER_AXIS_RIGHTY);
 
     D_PostEvent(&ev);
 
@@ -142,7 +142,7 @@ void I_UpdateGamepad(evtype_t type, boolean axis_buttons)
 
 static void UpdateTouchState(boolean menu, boolean on)
 {
-    static event_t ev = {.data1 = GAMEPAD_TOUCHPAD_TOUCH};
+    static event_t ev = {.data1.i = GAMEPAD_TOUCHPAD_TOUCH};
 
     if (on)
     {
@@ -178,7 +178,7 @@ static void UpdateGamepadButtonState(unsigned int button, boolean on)
         event.type = ev_joyb_up;
     }
 
-    event.data1 = button;
+    event.data1.i = button;
     D_PostEvent(&event);
 }
 
@@ -424,8 +424,8 @@ static void UpdateMouseButtonState(unsigned int button, boolean on,
 
     // Post an event with the new button state.
 
-    event.data1 = button;
-    event.data2 = dclick;
+    event.data1.i = button;
+    event.data2.i = dclick;
     D_PostEvent(&event);
 }
 
@@ -459,20 +459,20 @@ static void MapMouseWheelToButtons(SDL_MouseWheelEvent wheel)
 
     // post a button down event
     down.type = ev_mouseb_down;
-    down.data1 = button;
+    down.data1.i = button;
     D_PostEvent(&down);
 
     // hold button for one tic, required for checks in G_BuildTiccmd
     delay_event.type = ev_mouseb_up;
-    delay_event.data1 = button;
+    delay_event.data1.i = button;
 }
 
 void I_DelayEvent(void)
 {
-    if (delay_event.data1)
+    if (delay_event.data1.i)
     {
         D_PostEvent(&delay_event);
-        delay_event.data1 = 0;
+        delay_event.data1.i = 0;
     }
 }
 
@@ -484,12 +484,12 @@ void I_ReadMouse(void)
 {
     static event_t ev = {.type = ev_mouse};
 
-    SDL_GetRelativeMouseState(&ev.data1, &ev.data2);
+    SDL_GetRelativeMouseState(&ev.data1.i, &ev.data2.i);
 
-    if (ev.data1 || ev.data2)
+    if (ev.data1.i || ev.data2.i)
     {
         D_PostEvent(&ev);
-        ev.data1 = ev.data2 = 0;
+        ev.data1.i = ev.data2.i = 0;
     }
 }
 
@@ -523,9 +523,9 @@ void I_HandleKeyboardEvent(SDL_Event *sdlevent)
     {
         case SDL_KEYDOWN:
             event.type = ev_keydown;
-            event.data1 = TranslateKey(sdlevent->key.keysym.scancode);
+            event.data1.i = TranslateKey(sdlevent->key.keysym.scancode);
 
-            if (event.data1 != 0)
+            if (event.data1.i != 0)
             {
                 D_PostEvent(&event);
             }
@@ -533,7 +533,7 @@ void I_HandleKeyboardEvent(SDL_Event *sdlevent)
 
         case SDL_KEYUP:
             event.type = ev_keyup;
-            event.data1 = TranslateKey(sdlevent->key.keysym.scancode);
+            event.data1.i = TranslateKey(sdlevent->key.keysym.scancode);
 
             // data2/data3 are initialized to zero for ev_keyup.
             // For ev_keydown it's the shifted Unicode character
@@ -541,7 +541,7 @@ void I_HandleKeyboardEvent(SDL_Event *sdlevent)
             // key releases it should do so based on data1
             // (key ID), not the printable char.
 
-            if (event.data1 != 0)
+            if (event.data1.i != 0)
             {
                 D_PostEvent(&event);
             }

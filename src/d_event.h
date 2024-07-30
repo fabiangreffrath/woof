@@ -21,6 +21,8 @@
 #ifndef __D_EVENT__
 #define __D_EVENT__
 
+#include "doomtype.h"
+
 //
 // Event handling.
 //
@@ -44,14 +46,20 @@ typedef enum evtype_e
   ev_quit,
 } evtype_t;
 
+typedef union evdata_u
+{
+  int32_t i;
+  float f;
+} evdata_t;
+
 // Event structure.
 typedef struct event_s
 {
-  evtype_t  type;
-  int       data1;    // keys / mouse/joystick buttons / left axis x
-  int       data2;    // mouse/mouse clicks / left axis y
-  int       data3;    // mouse / right axis x
-  int       data4;    // right axis y
+  evtype_t type;
+  evdata_t data1; // keys / mouse/joystick buttons / left axis x
+  evdata_t data2; // mouse/mouse clicks / left axis y
+  evdata_t data3; // mouse / right axis x
+  evdata_t data4; // right axis y
 } event_t;
 
 #define EV_RESIZE_VIEWPORT 1

@@ -1145,9 +1145,9 @@ boolean G_MovementResponder(event_t *ev)
   switch (ev->type)
   {
     case ev_mouse:
-      mousex_tic += ev->data1;
-      mousex += ev->data1;
-      mousey -= ev->data2;
+      mousex_tic += ev->data1.i;
+      mousex += ev->data1.i;
+      mousey -= ev->data2.i;
       return true;
 
     case ev_joystick:
@@ -1261,7 +1261,7 @@ boolean G_Responder(event_t* ev)
 
   if (dclick_use && ev->type == ev_mouseb_down &&
       (M_InputActivated(input_strafe) || M_InputActivated(input_forward)) &&
-      ev->data2 >= 2 && (ev->data2 % 2) == 0)
+      ev->data2.i >= 2 && (ev->data2.i % 2) == 0)
   {
     dclick = true;
   }
@@ -1280,33 +1280,33 @@ boolean G_Responder(event_t* ev)
   switch (ev->type)
     {
     case ev_keydown:
-	if (ev->data1 <NUMKEYS)
-	  gamekeydown[ev->data1] = true;
+      if (ev->data1.i < NUMKEYS)
+        gamekeydown[ev->data1.i] = true;
       return true;    // eat key down events
 
     case ev_keyup:
-      if (ev->data1 <NUMKEYS)
-        gamekeydown[ev->data1] = false;
+      if (ev->data1.i < NUMKEYS)
+        gamekeydown[ev->data1.i] = false;
       return false;   // always let key up events filter down
 
     case ev_mouseb_down:
-      if (ev->data1 < NUM_MOUSE_BUTTONS)
-        mousebuttons[ev->data1] = true;
+      if (ev->data1.i < NUM_MOUSE_BUTTONS)
+        mousebuttons[ev->data1.i] = true;
       return true;
 
     case ev_mouseb_up:
-      if (ev->data1 < NUM_MOUSE_BUTTONS)
-        mousebuttons[ev->data1] = false;
+      if (ev->data1.i < NUM_MOUSE_BUTTONS)
+        mousebuttons[ev->data1.i] = false;
       return true;
 
     case ev_joyb_down:
-      if (ev->data1 < NUM_GAMEPAD_BUTTONS)
-        joybuttons[ev->data1] = true;
+      if (ev->data1.i < NUM_GAMEPAD_BUTTONS)
+        joybuttons[ev->data1.i] = true;
       return true;
 
     case ev_joyb_up:
-      if (ev->data1 < NUM_GAMEPAD_BUTTONS)
-        joybuttons[ev->data1] = false;
+      if (ev->data1.i < NUM_GAMEPAD_BUTTONS)
+        joybuttons[ev->data1.i] = false;
       return true;
 
     default:

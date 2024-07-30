@@ -111,11 +111,11 @@ boolean M_InputActivated(int id)
     switch (event->type)
     {
         case ev_keydown:
-            return InputMatch(id, INPUT_KEY, event->data1);
+            return InputMatch(id, INPUT_KEY, event->data1.i);
         case ev_mouseb_down:
-            return InputMatch(id, INPUT_MOUSEB, event->data1);
+            return InputMatch(id, INPUT_MOUSEB, event->data1.i);
         case ev_joyb_down:
-            return InputMatch(id, INPUT_JOYB, event->data1);
+            return InputMatch(id, INPUT_JOYB, event->data1.i);
         default:
             return false;
     }
@@ -126,11 +126,11 @@ boolean M_InputDeactivated(int id)
     switch (event->type)
     {
         case ev_keyup:
-            return InputMatch(id, INPUT_KEY, event->data1);
+            return InputMatch(id, INPUT_KEY, event->data1.i);
         case ev_mouseb_up:
-            return InputMatch(id, INPUT_MOUSEB, event->data1);
+            return InputMatch(id, INPUT_MOUSEB, event->data1.i);
         case ev_joyb_up:
-            return InputMatch(id, INPUT_JOYB, event->data1);
+            return InputMatch(id, INPUT_JOYB, event->data1.i);
         default:
             return false;
     }
@@ -141,11 +141,11 @@ boolean M_InputAddActivated(int id)
     switch (event->type)
     {
         case ev_keydown:
-            return M_InputAddKey(id, event->data1);
+            return M_InputAddKey(id, event->data1.i);
         case ev_mouseb_down:
-            return M_InputAddMouseB(id, event->data1);
+            return M_InputAddMouseB(id, event->data1.i);
         case ev_joyb_down:
-            return M_InputAddJoyB(id, event->data1);
+            return M_InputAddJoyB(id, event->data1.i);
         default:
             return false;
     }
@@ -156,13 +156,13 @@ void M_InputRemoveActivated(int id)
     switch (event->type)
     {
         case ev_keydown:
-            InputRemove(id, INPUT_KEY, event->data1);
+            InputRemove(id, INPUT_KEY, event->data1.i);
             break;
         case ev_mouseb_down:
-            InputRemove(id, INPUT_MOUSEB, event->data1);
+            InputRemove(id, INPUT_MOUSEB, event->data1.i);
             break;
         case ev_joyb_down:
-            InputRemove(id, INPUT_JOYB, event->data1);
+            InputRemove(id, INPUT_JOYB, event->data1.i);
             break;
         default:
             break;

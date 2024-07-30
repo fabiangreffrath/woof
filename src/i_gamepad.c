@@ -524,10 +524,10 @@ void I_CalcGamepadAxes(boolean strafe)
 
 void I_UpdateAxesData(const event_t *ev)
 {
-    *axes_data[AXIS_LEFTX] = ev->data1;
-    *axes_data[AXIS_LEFTY] = ev->data2;
-    *axes_data[AXIS_RIGHTX] = ev->data3;
-    *axes_data[AXIS_RIGHTY] = ev->data4;
+    *axes_data[AXIS_LEFTX] = ev->data1.i;
+    *axes_data[AXIS_LEFTY] = ev->data2.i;
+    *axes_data[AXIS_RIGHTX] = ev->data3.i;
+    *axes_data[AXIS_RIGHTY] = ev->data4.i;
 }
 
 void I_ResetGamepadAxes(void)

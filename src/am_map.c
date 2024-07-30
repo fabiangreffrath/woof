@@ -518,7 +518,7 @@ static void AM_changeWindowLoc(void)
 //
 void AM_initVariables(void)
 {
-  static event_t st_notify = { ev_keyup, AM_MSGENTERED };
+  static event_t st_notify = {.type = ev_keyup, .data1.i = AM_MSGENTERED};
 
   automapactive = true;
 
@@ -691,7 +691,7 @@ static void AM_LevelInit(void)
 //
 void AM_Stop (void)
 {
-  static event_t st_notify = { 0, ev_keyup, AM_MSGEXITED };
+  static event_t st_notify = {.type = 0, .data1.i = ev_keyup, .data2.i = AM_MSGEXITED};
 
   memset(buttons_state, 0, sizeof(buttons_state));
 
@@ -829,7 +829,7 @@ boolean AM_Responder
         rc = false;
     else if (M_InputActivated(input_map_zoomout))
     {
-      if (ev->type == ev_mouseb_down && M_IsMouseWheel(ev->data1))
+      if (ev->type == ev_mouseb_down && M_IsMouseWheel(ev->data1.i))
       {
         mousewheelzoom = true;
         mtof_zoommul = m_zoomout_mouse;
@@ -840,7 +840,7 @@ boolean AM_Responder
     }
     else if (M_InputActivated(input_map_zoomin))
     {
-      if (ev->type == ev_mouseb_down && M_IsMouseWheel(ev->data1))
+      if (ev->type == ev_mouseb_down && M_IsMouseWheel(ev->data1.i))
       {
         mousewheelzoom = true;
         mtof_zoommul = m_zoomin_mouse;
