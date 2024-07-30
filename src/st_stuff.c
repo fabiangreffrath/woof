@@ -450,9 +450,9 @@ void ST_refreshBackground(void)
 boolean ST_Responder(event_t *ev)
 {
   // Filter automap on/off.
-  if (ev->type == ev_keyup && (ev->data1 & 0xffff0000) == AM_MSGHEADER)
+  if (ev->type == ev_keyup && (ev->data1.i & 0xffff0000) == AM_MSGHEADER)
     {
-      if (ev->data1 == AM_MSGENTERED)
+      if (ev->data1.i == AM_MSGENTERED)
       {
         st_firsttime = true;
       }

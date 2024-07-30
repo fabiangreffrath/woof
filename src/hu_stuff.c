@@ -1767,19 +1767,19 @@ boolean HU_Responder(event_t *ev)
 
   static int    num_nobrainers = 0;
 
-  c = (ev->type == ev_keydown) ? ev->data1 : 0;
+  c = (ev->type == ev_keydown) ? ev->data1.i : 0;
 
   numplayers = 0;
   for (i=0 ; i<MAXPLAYERS ; i++)
     numplayers += playeringame[i];
 
-  if (ev->data1 == KEY_RSHIFT)
+  if (ev->data1.i == KEY_RSHIFT)
     {
       shiftdown = ev->type == ev_keydown;
       return false;
     }
 
-  if (ev->data1 == KEY_RALT)
+  if (ev->data1.i == KEY_RALT)
     {
       altdown = ev->type == ev_keydown;
       return false;

@@ -562,12 +562,12 @@ static void UpdateMouseMenu(void)
     SDL_RenderGetViewport(renderer, &rect);
     if (SDL_RectEquals(&rect, &old_rect))
     {
-        ev.data1 = 0;
+        ev.data1.i = 0;
     }
     else
     {
         old_rect = rect;
-        ev.data1 = EV_RESIZE_VIEWPORT;
+        ev.data1.i = EV_RESIZE_VIEWPORT;
     }
 
     float scalex, scaley;
@@ -590,8 +590,8 @@ static void UpdateMouseMenu(void)
     }
 
     ev.type = ev_mouse_state;
-    ev.data2 = x;
-    ev.data3 = y;
+    ev.data2.i = x;
+    ev.data3.i = y;
 
     D_PostEvent(&ev);
 }
