@@ -3564,6 +3564,11 @@ boolean MN_SetupResponder(menu_action_t action, int ch)
         }
     }
 
+    if (highlight_item != set_item_on)
+    {
+        current_menu[set_item_on].m_flags |= S_HILITE;
+    }
+
     return false;
 
 } // End of Setup Screen processing
