@@ -33,6 +33,7 @@
 
 enum
 {
+    LAYOUT_OFF,
     LAYOUT_DEFAULT,
     LAYOUT_SOUTHPAW,
     LAYOUT_LEGACY,
@@ -44,7 +45,7 @@ enum
 };
 
 boolean joy_enable;
-static int joy_layout;
+static int joy_stick_layout;
 static int joy_forward_sensitivity;
 static int joy_strafe_sensitivity;
 static int joy_turn_sensitivity;
@@ -74,9 +75,14 @@ int trigger_threshold;
 static axes_t movement;         // Strafe/Forward
 static axes_t camera;           // Turn/Look
 
+boolean I_UseStickLayout(void)
+{
+    return (joy_stick_layout > LAYOUT_OFF);
+}
+
 boolean I_StandardLayout(void)
 {
-    return (joy_layout < LAYOUT_FLICK_STICK);
+    return (joy_stick_layout < LAYOUT_FLICK_STICK);
 }
 
 static void CalcExtraScale(axes_t *ax)
@@ -326,6 +332,8 @@ void I_UpdateAxesData(const event_t *ev)
 static void UpdateStickLayout(void)
 {
     int *layouts[NUM_LAYOUTS][NUM_AXES] = {
+        // Off
+        {&movement.x.data, &movement.y.data, &camera.x.data, &camera.y.data},
         // Default
         {&movement.x.data, &movement.y.data, &camera.x.data, &camera.y.data},
         // Southpaw
@@ -342,7 +350,7 @@ static void UpdateStickLayout(void)
 
     for (int i = 0; i < NUM_AXES; i++)
     {
-        axes_data[i] = layouts[joy_layout][i];
+        axes_data[i] = layouts[joy_stick_layout][i];
     }
 }
 
@@ -420,9 +428,9 @@ static void RefreshSettings(void)
 void I_BindGamepadVariables(void)
 {
     BIND_BOOL(joy_enable, true, "Enable gamepad");
-    BIND_NUM_GENERAL(joy_layout, LAYOUT_DEFAULT, 0, NUM_LAYOUTS - 1,
-        "Analog stick layout (0 = Default; 1 = Southpaw; 2 = Legacy; "
-        "3 = Legacy Southpaw; 4 = Flick Stick; 5 = Flick Stick Southpaw)");
+    BIND_NUM_GENERAL(joy_stick_layout, LAYOUT_DEFAULT, 0, NUM_LAYOUTS - 1,
+        "Analog stick layout (0 = Off; 1 = Default; 2 = Southpaw; 3 = Legacy; "
+        "4 = Legacy Southpaw; 5 = Flick Stick; 6 = Flick Stick Southpaw)");
     BIND_NUM(joy_forward_sensitivity, 50, 0, 100,
         "Forward sensitivity");
     BIND_NUM(joy_strafe_sensitivity, 50, 0, 100,
