@@ -298,6 +298,7 @@ void I_CalcGamepadAxes(boolean strafe)
         CalcCamera(&camera, &axes[AXIS_TURN], &axes[AXIS_LOOK]);
         motion.stick_moving = (axes[AXIS_TURN] || axes[AXIS_LOOK]);
         flick.reset = true;
+        ScaleCamera(&camera, &axes[AXIS_TURN], &axes[AXIS_LOOK]);
     }
     else
     {
@@ -309,8 +310,6 @@ void I_CalcGamepadAxes(boolean strafe)
         I_CalcFlickStick(&camera, &axes[AXIS_TURN], &axes[AXIS_LOOK]);
         motion.stick_moving = flick.active;
     }
-
-    ScaleCamera(&camera, &axes[AXIS_TURN], &axes[AXIS_LOOK]);
 
     ResetData();
     G_UpdateDeltaTics(camera.time - camera.last_time);
