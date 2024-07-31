@@ -2310,13 +2310,11 @@ static setup_menu_t gen_settings4[] = {
 
 static void UpdateGamepadSensitivityItems(void)
 {
-    boolean condition = !I_UseStickLayout();
+    const boolean condition = !I_UseStickLayout();
     DisableItem(condition, gen_settings4, "padlook");
     DisableItem(condition, gen_settings4, "joy_invert_look");
     DisableItem(condition, gen_settings4, "joy_movement_inner_deadzone");
     DisableItem(condition, gen_settings4, "joy_camera_inner_deadzone");
-
-    condition = (!I_UseStickLayout() || !I_StandardLayout());
     DisableItem(condition, gen_settings4, "joy_turn_sensitivity");
     DisableItem(condition, gen_settings4, "joy_look_sensitivity");
     DisableItem(condition, gen_settings4, "joy_camera_curve");
