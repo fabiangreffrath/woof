@@ -989,6 +989,7 @@ void I_SetPalette(byte *palette)
         colors[i].r = gamma[*palette++];
         colors[i].g = gamma[*palette++];
         colors[i].b = gamma[*palette++];
+        colors[i].a = 0xffu;
     }
 
     SDL_SetPaletteColors(screenbuffer->format->palette, colors, 0, 256);
