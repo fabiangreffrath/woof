@@ -45,6 +45,7 @@
 #include "g_game.h"
 #include "hu_stuff.h"
 #include "i_endoom.h"
+#include "i_gamepad.h"
 #include "i_glob.h"
 #include "i_input.h"
 #include "i_printf.h"
@@ -204,6 +205,15 @@ void D_PostEvent(event_t *ev)
       {
         G_MovementResponder(ev);
         G_PrepGamepadTiccmd();
+        return;
+      }
+      break;
+
+    case ev_gyro:
+      if (uncapped && raw_input)
+      {
+        G_MovementResponder(ev);
+        G_PrepGyroTiccmd();
         return;
       }
       break;

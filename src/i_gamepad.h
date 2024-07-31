@@ -19,7 +19,34 @@
 
 #include "d_event.h"
 #include "doomkeys.h"
-#include "doomtype.h"
+
+#define PI_F 3.1415927f
+#define RAD2TIC(x) ((x) * 32768.0f / PI_F) // Radians to ticcmd angle.
+#define LENGTH_F(x, y) sqrtf((x) * (x) + (y) * (y))
+
+typedef struct axis_s
+{
+    int data;                   // ev_joystick event data.
+    float sens;                 // Sensitivity.
+    float extra_sens;           // Extra sensitivity.
+} axis_t;
+
+typedef struct axes_s
+{
+    uint64_t time;              // Update time (us).
+    uint64_t last_time;         // Last update time (us).
+    axis_t x;
+    axis_t y;
+    boolean max_mag;            // Max magnitude?
+    boolean extra_active;       // Using extra sensitivity?
+    float extra_scale;          // Scaling factor for extra sensitivity.
+
+    uint64_t ramp_time;         // Ramp time for extra sensitivity (us).
+    boolean circle_to_square;   // Circle to square correction?
+    float exponent;             // Exponent for response curve.
+    float inner_deadzone;       // Normalized inner deadzone.
+    float outer_deadzone;       // Normalized outer deadzone.
+} axes_t;
 
 extern boolean joy_enable;                  // Enable gamepad.
 extern boolean joy_invert_forward;          // Invert forward axis.
@@ -30,7 +57,8 @@ extern boolean joy_invert_look;             // Invert look axis.
 extern float axes[NUM_AXES];        // Calculated gamepad values.
 extern int trigger_threshold;       // Trigger threshold (axis resolution).
 
-boolean I_UseStandardLayout(void);
+boolean I_StandardLayout(void);
+void I_CalcRadial(axes_t *ax, float *xaxis, float *yaxis);
 void I_CalcGamepadAxes(boolean strafe);
 void I_UpdateAxesData(const struct event_s *ev);
 void I_ResetGamepadAxes(void);

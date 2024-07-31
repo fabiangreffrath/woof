@@ -43,6 +43,7 @@
 #include "hu_obituary.h"
 #include "hu_stuff.h"
 #include "i_gamepad.h"
+#include "i_gyro.h"
 #include "i_input.h"
 #include "i_printf.h"
 #include "i_system.h"
@@ -407,17 +408,20 @@ void G_UpdateLocalViewFunction(void)
 static int quickstart_cache_tics;
 static boolean quickstart_queued;
 static float axis_turn_tic;
+static float gyro_turn_tic;
 static int mousex_tic;
 
 static void ClearQuickstartTic(void)
 {
   axis_turn_tic = 0.0f;
+  gyro_turn_tic = 0.0f;
   mousex_tic = 0;
 }
 
 static void ApplyQuickstartCache(ticcmd_t *cmd, boolean strafe)
 {
   static float axis_turn_cache[TICRATE];
+  static float gyro_turn_cache[TICRATE];
   static int mousex_cache[TICRATE];
   static short angleturn_cache[TICRATE];
   static int index;
@@ -430,6 +434,7 @@ static void ApplyQuickstartCache(ticcmd_t *cmd, boolean strafe)
   if (quickstart_queued)
   {
     axes[AXIS_TURN] = 0.0f;
+    gyro_axes[GYRO_TURN] = 0.0f;
     mousex = 0;
 
     if (strafe)
@@ -437,6 +442,7 @@ static void ApplyQuickstartCache(ticcmd_t *cmd, boolean strafe)
       for (int i = 0; i < quickstart_cache_tics; i++)
       {
         axes[AXIS_TURN] += axis_turn_cache[i];
+        gyro_axes[GYRO_TURN] += gyro_turn_cache[i];
         mousex += mousex_cache[i];
       }
 
@@ -457,6 +463,7 @@ static void ApplyQuickstartCache(ticcmd_t *cmd, boolean strafe)
     }
 
     memset(axis_turn_cache, 0, sizeof(axis_turn_cache));
+    memset(gyro_turn_cache, 0, sizeof(gyro_turn_cache));
     memset(mousex_cache, 0, sizeof(mousex_cache));
     memset(angleturn_cache, 0, sizeof(angleturn_cache));
     index = 0;
@@ -466,6 +473,7 @@ static void ApplyQuickstartCache(ticcmd_t *cmd, boolean strafe)
   else
   {
     axis_turn_cache[index] = axis_turn_tic;
+    gyro_turn_cache[index] = gyro_turn_tic;
     mousex_cache[index] = mousex_tic;
     angleturn_cache[index] = cmd->angleturn;
     index = (index + 1) % quickstart_cache_tics;
@@ -514,6 +522,29 @@ void G_PrepGamepadTiccmd(void)
   }
 }
 
+void G_PrepGyroTiccmd(void)
+{
+  if (I_UseGamepad())
+  {
+    I_CalcGyroAxes(M_InputGameActive(input_strafe));
+    gyro_turn_tic = gyro_axes[GYRO_TURN];
+
+    if (gyro_axes[GYRO_TURN])
+    {
+      localview.rawangle += gyro_axes[GYRO_TURN];
+      basecmd.angleturn = G_CarryAngle(localview.rawangle);
+      gyro_axes[GYRO_TURN] = 0.0f;
+    }
+
+    if (gyro_axes[GYRO_LOOK])
+    {
+      localview.rawpitch += gyro_axes[GYRO_LOOK] * FRACUNIT;
+      basecmd.pitch = G_CarryPitch(localview.rawpitch);
+      gyro_axes[GYRO_LOOK] = 0.0f;
+    }
+  }
+}
+
 //
 // G_BuildTiccmd
 // Builds a ticcmd from all of the available inputs
@@ -541,6 +572,7 @@ void G_BuildTiccmd(ticcmd_t* cmd)
   {
     G_PrepMouseTiccmd();
     G_PrepGamepadTiccmd();
+    G_PrepGyroTiccmd();
   }
 
   memcpy(cmd, &basecmd, sizeof(*cmd));
@@ -656,6 +688,7 @@ void G_BuildTiccmd(ticcmd_t* cmd)
 
   ClearQuickstartTic();
   I_ResetGamepadAxes();
+  I_ResetGyroAxes();
   mousex = mousey = 0;
   UpdateLocalView();
   G_UpdateCarry();
@@ -811,6 +844,7 @@ void G_ClearInput(void)
 {
   ClearQuickstartTic();
   I_ResetGamepadState();
+  I_FlushGamepadSensorEvents();
   mousex = mousey = 0;
   ClearLocalView();
   G_ClearCarry();
@@ -1128,6 +1162,20 @@ static boolean G_StrictModeSkipEvent(event_t *ev)
         }
         return !enable_gamepad;
 
+    case ev_gyro:
+        if (first_event)
+        {
+          I_UpdateGyroData(ev);
+          I_CalcGyroAxes(M_InputGameActive(input_strafe));
+          if (gyro_axes[GYRO_TURN] || gyro_axes[GYRO_LOOK])
+          {
+            first_event = false;
+            enable_gamepad = true;
+          }
+          I_ResetGamepadState();
+        }
+        return !enable_gamepad;
+
     default:
         break;
   }
@@ -1152,6 +1200,10 @@ boolean G_MovementResponder(event_t *ev)
 
     case ev_joystick:
       I_UpdateAxesData(ev);
+      return true;
+
+    case ev_gyro:
+      I_UpdateGyroData(ev);
       return true;
 
     default:

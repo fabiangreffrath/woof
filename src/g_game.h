@@ -37,6 +37,7 @@ struct event_s;
 void G_UpdateLocalViewFunction(void);
 void G_PrepMouseTiccmd(void);
 void G_PrepGamepadTiccmd(void);
+void G_PrepGyroTiccmd(void);
 void G_ClearInput(void);
 boolean G_MovementResponder(struct event_s *ev);
 boolean G_Responder(struct event_s *ev);

@@ -201,7 +201,7 @@ double (*G_CalcGamepadAngle)(void);
 
 void G_UpdateGamepadVariables(void)
 {
-    if (I_UseStandardLayout())
+    if (I_StandardLayout())
     {
         joy_scale_angle = angleturn[1] * direction[joy_invert_turn];
         joy_scale_pitch = angleturn[1] * direction[joy_invert_look] * FRACUNIT;

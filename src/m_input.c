@@ -494,6 +494,8 @@ static input_t default_inputs[NUM_INPUT_ID][NUM_INPUTS] =
     [input_autorun]     = { {INPUT_KEY, KEY_CAPSLOCK},
                             {INPUT_JOYB, GAMEPAD_LEFT_STICK} },
     [input_reverse]     = { {INPUT_KEY, '/'} },
+    [input_gyro]        = { {INPUT_JOYB, GAMEPAD_TOUCHPAD_TOUCH},
+                            {INPUT_JOYB, GAMEPAD_LEFT_TRIGGER} },
     [input_use]         = { {INPUT_KEY,' '},
                             {INPUT_JOYB, GAMEPAD_A} },
     [input_fire]        = { {INPUT_KEY, KEY_RCTRL},
@@ -574,6 +576,7 @@ void M_BindInputVariables(void)
     BIND_INPUT(input_strafe, "Strafe modifier (hold to strafe instead of turning)");
     BIND_INPUT(input_autorun, "Toggle always-run mode");
     BIND_INPUT(input_reverse, "Spin 180 degrees instantly");
+    BIND_INPUT(input_gyro, "Gyro button");
     BIND_INPUT(input_use, "Open a door, use a switch");
     BIND_INPUT(input_fire, "Fire current weapon");
     BIND_INPUT(input_prevweapon, "Cycle to the previous weapon");
