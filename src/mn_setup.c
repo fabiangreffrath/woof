@@ -2250,9 +2250,15 @@ static void UpdateStickLayout(void)
     I_ResetGamepad();
 }
 
-static const char *layout_strings[] = {"Default",     "Southpaw",
-                                       "Legacy",      "Legacy Southpaw",
-                                       "Flick Stick", "Flick Stick Southpaw"};
+static const char *layout_strings[] = {
+    "Off",
+    "Default",
+    "Southpaw",
+    "Legacy",
+    "Legacy Southpaw",
+    "Flick Stick",
+    "Flick Stick Southpaw",
+};
 
 static const char *curve_strings[] = {
     "",       "",    "",    "",        "",    "",    "",
@@ -2264,7 +2270,7 @@ static const char *curve_strings[] = {
 
 static setup_menu_t gen_settings4[] = {
     {"Stick Layout",S_CHOICE, CNTR_X, M_SPC,
-     {"joy_layout"}, m_null, input_null, str_layout,
+     {"joy_stick_layout"}, m_null, input_null, str_layout,
      UpdateStickLayout},
 
     {"Free Look", S_ONOFF, CNTR_X, M_SPC,
@@ -2304,9 +2310,16 @@ static setup_menu_t gen_settings4[] = {
 
 static void UpdateGamepadSensitivityItems(void)
 {
-    DisableItem(!I_StandardLayout(), gen_settings4, "joy_turn_sensitivity");
-    DisableItem(!I_StandardLayout(), gen_settings4, "joy_look_sensitivity");
-    DisableItem(!I_StandardLayout(), gen_settings4, "joy_camera_curve");
+    boolean condition = !I_UseStickLayout();
+    DisableItem(condition, gen_settings4, "padlook");
+    DisableItem(condition, gen_settings4, "joy_invert_look");
+    DisableItem(condition, gen_settings4, "joy_movement_inner_deadzone");
+    DisableItem(condition, gen_settings4, "joy_camera_inner_deadzone");
+
+    condition = (!I_UseStickLayout() || !I_StandardLayout());
+    DisableItem(condition, gen_settings4, "joy_turn_sensitivity");
+    DisableItem(condition, gen_settings4, "joy_look_sensitivity");
+    DisableItem(condition, gen_settings4, "joy_camera_curve");
 }
 
 static void UpdateGyroItems(void);

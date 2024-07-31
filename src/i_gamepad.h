@@ -57,6 +57,7 @@ extern boolean joy_invert_look;             // Invert look axis.
 extern float axes[NUM_AXES];        // Calculated gamepad values.
 extern int trigger_threshold;       // Trigger threshold (axis resolution).
 
+boolean I_UseStickLayout(void);
 boolean I_StandardLayout(void);
 void I_CalcRadial(axes_t *ax, float *xaxis, float *yaxis);
 void I_CalcGamepadAxes(boolean strafe);

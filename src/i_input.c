@@ -127,16 +127,23 @@ void I_UpdateGamepad(evtype_t type, boolean axis_buttons)
     static event_t ev;
 
     ev.type = type;
-    ev.data1.i = GetAxisState(SDL_CONTROLLER_AXIS_LEFTX);
-    ev.data2.i = GetAxisState(SDL_CONTROLLER_AXIS_LEFTY);
-    ev.data3.i = GetAxisState(SDL_CONTROLLER_AXIS_RIGHTX);
-    ev.data4.i = GetAxisState(SDL_CONTROLLER_AXIS_RIGHTY);
 
-    D_PostEvent(&ev);
+    if (I_UseStickLayout() || type == ev_joystick_state)
+    {
+        ev.data1.i = GetAxisState(SDL_CONTROLLER_AXIS_LEFTX);
+        ev.data2.i = GetAxisState(SDL_CONTROLLER_AXIS_LEFTY);
+        ev.data3.i = GetAxisState(SDL_CONTROLLER_AXIS_RIGHTX);
+        ev.data4.i = GetAxisState(SDL_CONTROLLER_AXIS_RIGHTY);
+        D_PostEvent(&ev);
+
+        if (axis_buttons)
+        {
+            AxisToButtons(&ev);
+        }
+    }
 
     if (axis_buttons)
     {
-        AxisToButtons(&ev);
         TriggerToButtons();
     }
 }
