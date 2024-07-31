@@ -636,6 +636,7 @@ void M_BindInputVariables(void)
     BIND_INPUT(input_map_grid, "Toggle grid display over automap");
     BIND_INPUT(input_map_overlay, "Toggle automap overlay mode");
     BIND_INPUT(input_map_rotate, "Toggle automap rotation");
+    BIND_INPUT(input_map_mousepan, "Shift automap with the mouse");
 
     BIND_INPUT(input_chat, "Enter a chat message");
     BIND_INPUT(input_chat_dest0, "Chat with player 1");

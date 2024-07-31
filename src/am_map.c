@@ -129,7 +129,7 @@ static int m_zoomin_mouse = M2_ZOOMIN;
 static int m_zoomout_mouse = M2_ZOOMOUT;
 static boolean mousewheelzoom;
 
-static boolean scrollmode;
+static boolean mousepan;
 
 // translates between frame-buffer and map distances
 // [FG] fix int overflow that causes map and grid lines to disappear
@@ -488,7 +488,7 @@ static void AM_changeWindowLoc(void)
     incy = m_paninc.y;
   }
 
-  if (scrollmode)
+  if (mousepan)
   {
     m_paninc.x = 0;
     m_paninc.y = 0;
@@ -925,9 +925,9 @@ boolean AM_Responder
       automaprotate = !automaprotate;
       togglemsg("%s", automaprotate ? s_AMSTR_ROTATEON : s_AMSTR_ROTATEOFF);
     }
-    else if (M_InputActivated(input_strafe))
+    else if (M_InputActivated(input_map_mousepan))
     {
-      scrollmode = true;
+      mousepan = true;
     }
     else
     {
@@ -968,16 +968,16 @@ boolean AM_Responder
     {
       buttons_state[ZOOM_IN] = 0;
     }
-    else if (M_InputDeactivated(input_strafe))
+    else if (M_InputDeactivated(input_map_mousepan))
     {
-      scrollmode = false;
+      mousepan = false;
     }
   }
 
   m_paninc.x = 0;
   m_paninc.y = 0;
 
-  if (scrollmode && ev->type == ev_mouse)
+  if (mousepan && ev->type == ev_mouse)
   {
     m_paninc.x -= (int)G_CalcMouseSide(ev->data1) * MAPUNIT;
     m_paninc.y += (int)G_CalcMouseVert(ev->data2) * MAPUNIT;
