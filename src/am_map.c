@@ -977,14 +977,11 @@ boolean AM_Responder
   m_paninc.x = 0;
   m_paninc.y = 0;
 
-  if (scrollmode)
+  if (scrollmode && ev->type == ev_mouse)
   {
-    if (ev->type == ev_mouse)
-    {
-      m_paninc.x -= (int)G_CalcMouseSide(ev->data1) * MAPUNIT;
-      m_paninc.y += (int)G_CalcMouseVert(ev->data2) * MAPUNIT;
-      rc = true;
-    }
+    m_paninc.x -= (int)G_CalcMouseSide(ev->data1) * MAPUNIT;
+    m_paninc.y += (int)G_CalcMouseVert(ev->data2) * MAPUNIT;
+    rc = true;
   }
   else if (!followplayer)
   {
