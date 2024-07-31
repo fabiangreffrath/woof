@@ -986,8 +986,7 @@ boolean AM_Responder
       rc = true;
     }
   }
-
-  if (!followplayer)
+  else if (!followplayer)
   {
     int scaled_f_paninc = (f_paninc * video.xscale) >> FRACBITS;
     if (buttons_state[PAN_RIGHT])
