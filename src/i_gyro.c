@@ -56,7 +56,8 @@
 
 typedef enum
 {
-    SPACE_LOCAL,
+    SPACE_LOCAL_TURN,
+    SPACE_LOCAL_LEAN,
     SPACE_PLAYER,
 
     NUM_SPACES
@@ -264,9 +265,14 @@ static void SmoothGyro_Full(void)
 
 static void (*ApplyGyroSpace)(void);
 
-static void ApplyGyroSpace_Local(void)
+static void ApplyGyroSpace_LocalTurn(void)
 {
     // no-op
+}
+
+static void ApplyGyroSpace_LocalLean(void)
+{
+    motion.gyro.y = -motion.gyro.z;
 }
 
 static void ApplyGyroSpace_Player(void)
@@ -288,7 +294,14 @@ static void ApplyGyroSpace_Player(void)
 // http://gyrowiki.jibbsmart.com/blog:finding-gravity-with-sensor-fusion
 //
 
-static void CalcGravityVector(void)
+static void (*CalcGravityVector)(void);
+
+static void CalcGravityVector_Skip(void)
+{
+    // no-op
+}
+
+static void CalcGravityVector_Full(void)
 {
     // Convert gyro input to reverse rotation.
     const float angle_speed = vec_length(&motion.gyro);
@@ -422,7 +435,23 @@ void I_ResetGyro(void)
 
 void I_RefreshGyroSettings(void)
 {
-    ApplyGyroSpace = gyro_space ? ApplyGyroSpace_Player : ApplyGyroSpace_Local;
+    switch (gyro_space)
+    {
+        case SPACE_LOCAL_TURN:
+            CalcGravityVector = CalcGravityVector_Skip;
+            ApplyGyroSpace = ApplyGyroSpace_LocalTurn;
+            break;
+
+        case SPACE_LOCAL_LEAN:
+            CalcGravityVector = CalcGravityVector_Skip;
+            ApplyGyroSpace = ApplyGyroSpace_LocalLean;
+            break;
+
+        default: // SPACE_PLAYER
+            CalcGravityVector = CalcGravityVector_Full;
+            ApplyGyroSpace = ApplyGyroSpace_Player;
+            break;
+    }
 
     motion.button_action = gyro_button_action;
     motion.stick_action = gyro_stick_action;
@@ -450,8 +479,8 @@ void I_BindGyroVaribales(void)
 {
     BIND_BOOL_GENERAL(gyro_enable, false,
         "Enable gamepad gyro aiming");
-    BIND_NUM_GENERAL(gyro_space, SPACE_PLAYER, SPACE_LOCAL, NUM_SPACES - 1,
-        "Gyro space (0 = Local; 1 = Player)");
+    BIND_NUM_GENERAL(gyro_space, SPACE_PLAYER, 0, NUM_SPACES - 1,
+        "Gyro space (0 = Local Turn; 1 = Local Lean ; 2 = Player)");
     BIND_NUM_GENERAL(gyro_button_action,
         ACTION_ENABLE, ACTION_NONE, NUM_ACTIONS - 1,
         "Gyro button action (0 = None; 1 = Disable Gyro; 2 = Enable Gyro)");
