@@ -1372,7 +1372,7 @@ static void CreateUpscaledTexture(boolean force)
     // screen.
 
     texture_upscaled = SDL_CreateTexture(
-        renderer, SDL_GetWindowPixelFormat(screen), SDL_TEXTUREACCESS_TARGET,
+        renderer, SDL_PIXELFORMAT_ARGB8888, SDL_TEXTUREACCESS_TARGET,
         w_upscale * screen_width, h_upscale * screen_height);
 
     SDL_SetTextureScaleMode(texture_upscaled, SDL_ScaleModeLinear);
@@ -1750,7 +1750,7 @@ static void CreateSurfaces(int w, int h)
         uint32_t rmask, gmask, bmask, amask;
         int bpp;
 
-        SDL_PixelFormatEnumToMasks(SDL_GetWindowPixelFormat(screen), &bpp,
+        SDL_PixelFormatEnumToMasks(SDL_PIXELFORMAT_ARGB8888, &bpp,
                                    &rmask, &gmask, &bmask, &amask);
         argbbuffer =
             SDL_CreateRGBSurface(0, w, h, bpp, rmask, gmask, bmask, amask);
@@ -1766,7 +1766,7 @@ static void CreateSurfaces(int w, int h)
         SDL_DestroyTexture(texture);
     }
 
-    texture = SDL_CreateTexture(renderer, SDL_GetWindowPixelFormat(screen),
+    texture = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_ARGB8888,
                                 SDL_TEXTUREACCESS_STREAMING, w, h);
 
     SDL_SetTextureScaleMode(texture, SDL_ScaleModeNearest);
