@@ -41,7 +41,7 @@ If you turn the [Doom logo upside down](https://www.reddit.com/r/Doom/comments/8
  * Support for voxels in KVX format.
  * 3D audio, supporting stereo and up to 7.1 surround sound with an optional HRTF mode, as well as PC speaker emulation.
  * Several music backends: native MIDI, FluidSynth with a bundled soundfont, built-in OPL3 emulator. Digital music and sound formats supported by libsndfile, module music supported by libxmp.
- * Modern gamepad support.
+ * Modern gamepad support, including gyro controls and the flick stick control scheme.
  * Mouselook.
  * Autoload directories.
  * Savegame backward compatibility up to `MBF.EXE`.
@@ -162,6 +162,13 @@ Copyright:
  © 2023 Andrew Apted;  
  © 2023 liPillON.  
 License: [GPL-2.0+](https://www.gnu.org/licenses/old-licenses/gpl-2.0.html)
+
+Files: `src/i_flickstick.*, src/i_gyro.*`  
+Copyright:  
+ © 2018-2021 Julian "Jibb" Smart;  
+ © 2021-2024 Nicolas Lessard;  
+ © 2024 ceski.  
+License: [MIT](https://opensource.org/licenses/MIT)
 
 Files: `src/nano_bsp.*`  
 Copyright: © 2023 Andrew Apted.  
