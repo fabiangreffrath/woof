@@ -33,8 +33,10 @@ set(WOOF_SOURCES
     hu_stuff.c             hu_stuff.h
     i_3dsound.c
     i_endoom.c             i_endoom.h
+    i_flickstick.c         i_flickstick.h
     i_gamepad.c            i_gamepad.h
     i_glob.c               i_glob.h
+    i_gyro.c               i_gyro.h
     i_input.c              i_input.h
     i_main.c
     i_mbfsound.c
@@ -67,6 +69,7 @@ set(WOOF_SOURCES
     m_random.c             m_random.h
     mn_snapshot.c          mn_snapshot.h
                            m_swap.h
+                           m_vector.h
     memio.c                memio.h
     midifallback.c         midifallback.h
     midifile.c             midifile.h

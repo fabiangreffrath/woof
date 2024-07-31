@@ -36,6 +36,7 @@ enum
     input_strafe,
     input_autorun,
     input_reverse,
+    input_gyro,
     input_use,
     input_fire,
     input_prevweapon,

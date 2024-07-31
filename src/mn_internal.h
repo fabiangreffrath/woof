@@ -158,7 +158,7 @@ typedef enum
     m_null, // Has no meaning; not applicable
     m_scrn, // A key can not be assigned to more than one action
     m_map,  // in the same group. A key can be assigned to one
-            // action in one group, and another action in another.
+    m_gyro, // action in one group, and another action in another.
 } setup_group;
 
 /////////////////////////////

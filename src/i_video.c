@@ -500,6 +500,13 @@ static void ProcessEvent(SDL_Event *ev)
             }
             break;
 
+        case SDL_CONTROLLERSENSORUPDATE:
+            if (I_UseGamepad())
+            {
+                I_HandleSensorEvent(ev);
+            }
+            break;
+
         case SDL_QUIT:
             {
                 static event_t event;
@@ -521,11 +528,10 @@ static void ProcessEvent(SDL_Event *ev)
 }
 
 #define NUM_PEEP 32
+static SDL_Event sdlevents[NUM_PEEP];
 
 static void I_GetEvent(void)
 {
-    static SDL_Event sdlevents[NUM_PEEP];
-
     I_DelayEvent();
 
     SDL_PumpEvents();
@@ -543,6 +549,26 @@ static void I_GetEvent(void)
         for (int i = 0; i < num_events; i++)
         {
             ProcessEvent(&sdlevents[i]);
+        }
+    }
+}
+
+static void I_GetSensorEvent(void)
+{
+    while (true)
+    {
+        const int num_events = SDL_PeepEvents(sdlevents, NUM_PEEP, SDL_GETEVENT,
+                                              SDL_CONTROLLERSENSORUPDATE,
+                                              SDL_CONTROLLERSENSORUPDATE);
+
+        if (num_events < 1)
+        {
+            break;
+        }
+
+        for (int i = 0; i < num_events; i++)
+        {
+            I_HandleSensorEvent(&sdlevents[i]);
         }
     }
 }
@@ -637,6 +663,7 @@ void I_StartDisplay(void)
 
     if (I_UseGamepad())
     {
+        I_GetSensorEvent();
         I_UpdateGamepad(ev_joystick, false);
     }
 }

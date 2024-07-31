@@ -18,6 +18,8 @@
 #ifndef __G_INPUT__
 #define __G_INPUT__
 
+#include "doomtype.h"
+
 // Side Movement
 
 void G_UpdateSideMove(void);

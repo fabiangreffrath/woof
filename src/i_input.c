@@ -21,6 +21,7 @@
 #include "doomkeys.h"
 #include "doomtype.h"
 #include "i_gamepad.h"
+#include "i_gyro.h"
 #include "i_printf.h"
 #include "i_system.h"
 #include "m_config.h"
@@ -187,6 +188,12 @@ boolean I_UseGamepad(void)
     return (gamepad != NULL);
 }
 
+void I_FlushGamepadSensorEvents(void)
+{
+    SDL_PumpEvents();
+    SDL_FlushEvent(SDL_CONTROLLERSENSORUPDATE);
+}
+
 void I_FlushGamepadEvents(void)
 {
     SDL_PumpEvents();
@@ -197,6 +204,23 @@ void I_FlushGamepadEvents(void)
     SDL_FlushEvent(SDL_CONTROLLERBUTTONUP);
     SDL_FlushEvent(SDL_CONTROLLERTOUCHPADDOWN);
     SDL_FlushEvent(SDL_CONTROLLERTOUCHPADUP);
+    I_FlushGamepadSensorEvents();
+}
+
+void I_SetSensorEventState(boolean condition)
+{
+    if (condition && gamepad
+        && SDL_GameControllerHasSensor(gamepad, SDL_SENSOR_ACCEL)
+        && SDL_GameControllerHasSensor(gamepad, SDL_SENSOR_GYRO))
+    {
+        SDL_GameControllerSetSensorEnabled(gamepad, SDL_SENSOR_ACCEL, SDL_TRUE);
+        SDL_GameControllerSetSensorEnabled(gamepad, SDL_SENSOR_GYRO, SDL_TRUE);
+        SDL_EventState(SDL_CONTROLLERSENSORUPDATE, SDL_ENABLE);
+    }
+    else
+    {
+        SDL_EventState(SDL_CONTROLLERSENSORUPDATE, SDL_IGNORE);
+    }
 }
 
 static void SetTouchEventState(boolean condition)
@@ -221,6 +245,7 @@ static void EnableGamepadEvents(void)
     SDL_EventState(SDL_CONTROLLERBUTTONDOWN, SDL_ENABLE);
     SDL_EventState(SDL_CONTROLLERBUTTONUP, SDL_ENABLE);
     SetTouchEventState(true);
+    I_SetSensorEventState(gyro_enable);
 }
 
 static void DisableGamepadEvents(void)
@@ -231,6 +256,7 @@ static void DisableGamepadEvents(void)
     SDL_EventState(SDL_CONTROLLERBUTTONDOWN, SDL_IGNORE);
     SDL_EventState(SDL_CONTROLLERBUTTONUP, SDL_IGNORE);
     SetTouchEventState(false);
+    I_SetSensorEventState(false);
 
     // Always ignore unsupported gamepad events.
     SDL_EventState(SDL_JOYAXISMOTION, SDL_IGNORE);
@@ -241,7 +267,6 @@ static void DisableGamepadEvents(void)
     SDL_EventState(SDL_CONTROLLERAXISMOTION, SDL_IGNORE);
     SDL_EventState(SDL_CONTROLLERDEVICEREMAPPED, SDL_IGNORE);
     SDL_EventState(SDL_CONTROLLERTOUCHPADMOTION, SDL_IGNORE);
-    SDL_EventState(SDL_CONTROLLERSENSORUPDATE, SDL_IGNORE);
 }
 
 static void I_ShutdownGamepad(void)
@@ -316,6 +341,69 @@ void I_CloseGamepad(int which)
 
     DisableGamepadEvents();
     I_ResetGamepad();
+}
+
+static uint64_t GetSensorTimeUS(const SDL_ControllerSensorEvent *csensor)
+{
+#if SDL_VERSION_ATLEAST(2, 26, 0)
+    if (csensor->timestamp_us)
+    {
+        return csensor->timestamp_us;
+    }
+    else
+#endif
+    {
+        return (uint64_t)csensor->timestamp * 1000;
+    }
+}
+
+static float GetDeltaTime(const SDL_ControllerSensorEvent *csensor,
+                          uint64_t *last_time)
+{
+    const uint64_t sens_time = GetSensorTimeUS(csensor);
+    const float dt = *last_time ? (sens_time - *last_time) * 1.0e-6f : 0.0f;
+    *last_time = sens_time;
+    return dt;
+}
+
+static void UpdateGyroState(const SDL_ControllerSensorEvent *csensor)
+{
+    static event_t ev = {.type = ev_gyro};
+    static uint64_t last_time;
+
+    ev.data1.f = GetDeltaTime(csensor, &last_time);
+    ev.data2.f = csensor->data[0];
+    ev.data3.f = csensor->data[1];
+    ev.data4.f = csensor->data[2];
+
+    D_PostEvent(&ev);
+}
+
+static void UpdateAccelState(const SDL_ControllerSensorEvent *csensor)
+{
+    static float data[3];
+    data[0] = csensor->data[0] / SDL_STANDARD_GRAVITY;
+    data[1] = csensor->data[1] / SDL_STANDARD_GRAVITY;
+    data[2] = csensor->data[2] / SDL_STANDARD_GRAVITY;
+
+    I_UpdateAccelData(data);
+}
+
+void I_HandleSensorEvent(SDL_Event *sdlevent)
+{
+    switch (sdlevent->csensor.sensor)
+    {
+        case SDL_SENSOR_ACCEL:
+            UpdateAccelState(&sdlevent->csensor);
+            break;
+
+        case SDL_SENSOR_GYRO:
+            UpdateGyroState(&sdlevent->csensor);
+            break;
+
+        default:
+            break;
+    }
 }
 
 void I_HandleGamepadEvent(SDL_Event *sdlevent, boolean menu)

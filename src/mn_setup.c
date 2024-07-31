@@ -26,6 +26,8 @@
 #include "hu_lib.h"
 #include "hu_stuff.h"
 #include "i_gamepad.h"
+#include "i_gyro.h"
+#include "i_input.h"
 #include "i_oalequalizer.h"
 #include "i_oalsound.h"
 #include "i_sound.h"
@@ -315,6 +317,11 @@ enum
     str_equalizer_preset,
 
     str_mouse_accel,
+
+    str_gyro_space,
+    str_gyro_action,
+    str_gyro_sens,
+    str_gyro_accel,
 
     str_default_skill,
     str_default_complevel,
@@ -1073,8 +1080,8 @@ static setup_menu_t keys_settings1[] = {
     {"Turn Left",    S_INPUT, KB_X, M_SPC, {0}, m_scrn, input_turnleft},
     {"Turn Right",   S_INPUT, KB_X, M_SPC, {0}, m_scrn, input_turnright},
     {"180 Turn",     S_INPUT | S_STRICT, KB_X, M_SPC, {0}, m_scrn, input_reverse},
+    {"Gyro",         S_INPUT, KB_X, M_SPC, {0}, m_gyro, input_gyro},
     MI_GAP,
-    {"Toggles",   S_SKIP | S_TITLE, KB_X, M_SPC},
     {"Autorun",   S_INPUT, KB_X, M_SPC, {0}, m_scrn, input_autorun},
     {"Free Look", S_INPUT, KB_X, M_SPC, {0}, m_scrn, input_freelook},
     {"Vertmouse", S_INPUT, KB_X, M_SPC, {0}, m_scrn, input_novert},
@@ -1836,7 +1843,8 @@ static setup_tab_t gen_tabs[] = {
     {"video"},
     {"audio"},
     {"mouse"},
-    {"gamepad"},
+    {"pad"},
+    {"gyro"},
     {"display"},
     {"misc"},
     {NULL}
@@ -2234,6 +2242,14 @@ static setup_menu_t gen_settings3[] = {
     MI_END
 };
 
+static void UpdateGamepadSensitivityItems(void);
+
+static void UpdateStickLayout(void)
+{
+    UpdateGamepadSensitivityItems();
+    I_ResetGamepad();
+}
+
 static const char *layout_strings[] = {"Default",     "Southpaw",
                                        "Legacy",      "Legacy Southpaw",
                                        "Flick Stick", "Flick Stick Southpaw"};
@@ -2249,7 +2265,7 @@ static const char *curve_strings[] = {
 static setup_menu_t gen_settings4[] = {
     {"Stick Layout",S_CHOICE, CNTR_X, M_SPC,
      {"joy_layout"}, m_null, input_null, str_layout,
-     I_ResetGamepad},
+     UpdateStickLayout},
 
     {"Free Look", S_ONOFF, CNTR_X, M_SPC,
      {"padlook"}, m_null, input_null, str_empty,
@@ -2285,6 +2301,128 @@ static setup_menu_t gen_settings4[] = {
 
     MI_END
 };
+
+static void UpdateGamepadSensitivityItems(void)
+{
+    DisableItem(!I_StandardLayout(), gen_settings4, "joy_turn_sensitivity");
+    DisableItem(!I_StandardLayout(), gen_settings4, "joy_look_sensitivity");
+    DisableItem(!I_StandardLayout(), gen_settings4, "joy_camera_curve");
+}
+
+static void UpdateGyroItems(void);
+
+static void UpdateGyro(void)
+{
+    UpdateGyroItems();
+    I_SetSensorEventState(gyro_enable);
+    I_ResetGamepad();
+}
+
+static const char *gyro_space_strings[] = {
+    "Local",
+    "Player",
+};
+
+static const char *gyro_action_strings[] = {
+    "None",
+    "Disable Gyro",
+    "Enable Gyro",
+};
+
+#define GYRO_SENS_STRINGS_SIZE (100 + 1)
+
+static const char **GetGyroSensitivityStrings(void)
+{
+    static const char *strings[GYRO_SENS_STRINGS_SIZE];
+    char buf[8];
+
+    for (int i = 0; i < GYRO_SENS_STRINGS_SIZE; i++)
+    {
+        M_snprintf(buf, sizeof(buf), "%1d.%1d", i / 10, i % 10);
+        strings[i] = M_StringDuplicate(buf);
+    }
+    return strings;
+}
+
+#define GYRO_ACCEL_STRINGS_SIZE (40 + 1)
+
+static const char **GetGyroAccelStrings(void)
+{
+    static const char *strings[GYRO_ACCEL_STRINGS_SIZE] = {
+        [10] = "Off",
+        [15] = "Low",
+        [20] = "Medium",
+        [40] = "High",
+    };
+    char buf[8];
+
+    for (int i = 0; i < GYRO_ACCEL_STRINGS_SIZE; i++)
+    {
+        if (i < 10)
+        {
+            strings[i] = "";
+        }
+        else if (i == 10 || i == 15 || i == 20 || i == 40)
+        {
+            continue;
+        }
+        else
+        {
+            M_snprintf(buf, sizeof(buf), "%1d.%1d", i / 10, i % 10);
+            strings[i] = M_StringDuplicate(buf);
+        }
+    }
+    return strings;
+}
+
+static setup_menu_t gen_gyro[] = {
+    {"Gyro Aiming", S_ONOFF, CNTR_X, M_SPC,
+     {"gyro_enable"}, m_null, input_null, str_empty,
+     UpdateGyro},
+
+    {"Gyro Space", S_CHOICE, CNTR_X, M_SPC,
+     {"gyro_space"}, m_null, input_null, str_gyro_space,
+     I_ResetGamepad},
+
+    {"Gyro Button Action", S_CHOICE, CNTR_X, M_SPC,
+     {"gyro_button_action"}, m_null, input_null, str_gyro_action,
+     I_ResetGamepad},
+
+    {"Camera Stick Action", S_CHOICE, CNTR_X, M_SPC,
+     {"gyro_stick_action"}, m_null, input_null, str_gyro_action,
+     I_ResetGamepad},
+
+    MI_GAP,
+
+    {"Turn Sensitivity", S_THERMO | S_THRM_SIZE11, CNTR_X, M_THRM_SPC,
+     {"gyro_turn_sensitivity"}, m_null, input_null, str_gyro_sens,
+     I_ResetGamepad},
+
+    {"Look Sensitivity", S_THERMO | S_THRM_SIZE11, CNTR_X, M_THRM_SPC,
+     {"gyro_look_sensitivity"}, m_null, input_null, str_gyro_sens,
+     I_ResetGamepad},
+
+    {"Acceleration", S_THERMO, CNTR_X, M_THRM_SPC,
+     {"gyro_acceleration"}, m_null, input_null, str_gyro_accel,
+     I_ResetGamepad},
+
+    {"Smoothing", S_THERMO, CNTR_X, M_THRM_SPC,
+     {"gyro_smooth_threshold"}, m_null, input_null, str_empty,
+     I_ResetGamepad},
+
+    MI_END
+};
+
+static void UpdateGyroItems(void)
+{
+    DisableItem(!gyro_enable, gen_gyro, "gyro_space");
+    DisableItem(!gyro_enable, gen_gyro, "gyro_button_action");
+    DisableItem(!gyro_enable, gen_gyro, "gyro_stick_action");
+    DisableItem(!gyro_enable, gen_gyro, "gyro_turn_sensitivity");
+    DisableItem(!gyro_enable, gen_gyro, "gyro_look_sensitivity");
+    DisableItem(!gyro_enable, gen_gyro, "gyro_acceleration");
+    DisableItem(!gyro_enable, gen_gyro, "gyro_smooth_threshold");
+}
 
 static void SmoothLight(void)
 {
@@ -2414,7 +2552,7 @@ static setup_menu_t gen_settings6[] = {
 };
 
 static setup_menu_t *gen_settings[] = {
-    gen_settings1, gen_settings2, gen_settings3, gen_settings4,
+    gen_settings1, gen_settings2, gen_settings3, gen_settings4, gen_gyro,
     gen_settings5, gen_settings6, NULL
 };
 
@@ -3878,6 +4016,10 @@ static const char **selectstrings[] = {
     NULL, // str_resampler
     equalizer_preset_strings,
     NULL, // str_mouse_accel
+    gyro_space_strings,
+    gyro_action_strings,
+    NULL, // str_gyro_sens
+    NULL, // str_gyro_accel
     default_skill_strings,
     default_complevel_strings,
     endoom_strings,
@@ -3915,6 +4057,8 @@ void MN_InitMenuStrings(void)
     selectstrings[str_resolution_scale] = GetResolutionScaleStrings();
     selectstrings[str_midi_player] = GetMidiPlayerStrings();
     selectstrings[str_mouse_accel] = GetMouseAccelStrings();
+    selectstrings[str_gyro_sens] = GetGyroSensitivityStrings();
+    selectstrings[str_gyro_accel] = GetGyroAccelStrings();
     selectstrings[str_resampler] = GetResamplerStrings();
 }
 
@@ -3931,6 +4075,8 @@ void MN_SetupResetMenu(void)
     UpdateInterceptsEmuItem();
     UpdateCrosshairItems();
     UpdateCenteredWeaponItem();
+    UpdateGamepadSensitivityItems();
+    UpdateGyroItems();
 }
 
 void MN_BindMenuVariables(void)

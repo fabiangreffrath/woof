@@ -24,7 +24,9 @@
 enum evtype_e;
 
 boolean I_UseGamepad(void);
+void I_FlushGamepadSensorEvents(void);
 void I_FlushGamepadEvents(void);
+void I_SetSensorEventState(boolean condition);
 void I_InitGamepad(void);
 void I_OpenGamepad(int which);
 void I_CloseGamepad(int which);
@@ -33,6 +35,7 @@ void I_ReadMouse(void);
 void I_UpdateGamepad(enum evtype_e type, boolean axis_buttons);
 
 void I_DelayEvent(void);
+void I_HandleSensorEvent(SDL_Event *sdlevent);
 void I_HandleGamepadEvent(SDL_Event *sdlevent, boolean menu);
 void I_HandleKeyboardEvent(SDL_Event *sdlevent);
 void I_HandleMouseEvent(SDL_Event *sdlevent);
