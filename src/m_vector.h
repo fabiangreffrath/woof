@@ -20,6 +20,8 @@
 
 #include <math.h>
 
+#include "doomtype.h"
+
 typedef struct
 {
     float x;
@@ -83,6 +85,16 @@ inline static vec vec_negative(const vec *v)
 inline static vec vec_scale(const vec *v, float scalar)
 {
     return (vec){v->x * scalar, v->y * scalar, v->z * scalar};
+}
+
+//
+// Clamps each vector component.
+//
+inline static vec vec_clamp(float min, float max, const vec *v)
+{
+    return (vec){BETWEEN(min, max, v->x),
+                 BETWEEN(min, max, v->y),
+                 BETWEEN(min, max, v->z)};
 }
 
 //

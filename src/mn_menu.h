@@ -99,6 +99,8 @@ void M_StartSound(int sound_id);
 
 void MN_BindMenuVariables(void);
 
+void M_CancelGyroCalibration(void);
+
 #endif
 
 //----------------------------------------------------------------------------

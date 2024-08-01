@@ -49,7 +49,10 @@ typedef struct motion_s
 {
     float delta_time;                   // Gyro delta time (seconds).
     vec gyro;                           // Gyro pitch, yaw, roll.
+    vec gyro_offset;                    // Calibration offsets for gyro.
     vec accel;                          // Accelerometer x, y, z.
+    float accel_magnitude;              // Accelerometer magnitude.
+    boolean calibrating;                // Currently calibrating?
     vec gravity;                        // Gravity vector.
     vec smooth_accel;                   // Smoothed acceleration.
     float shakiness;                    // Shakiness.
@@ -70,13 +73,23 @@ typedef struct motion_s
     float max_yaw_sens;                 // Max yaw sensitivity.
     float accel_min_thresh;             // Lower threshold for accel (rad/s).
     float accel_max_thresh;             // Upper threshold for accel (rad/s).
-
-    float accel_magnitude; // TODO: calibration
 } motion_t;
 
 extern boolean gyro_enable;             // Enable gamepad gyro aiming.
 extern float gyro_axes[NUM_GYRO_AXES];  // Calculated gyro values.
 extern motion_t motion;
+
+typedef enum gyro_calibration_state_e
+{
+    GYRO_CALIBRATION_INACTIVE,
+    GYRO_CALIBRATION_ACTIVE,
+    GYRO_CALIBRATION_COMPLETE,
+} gyro_calibration_state_t;
+
+gyro_calibration_state_t I_GetGyroCalibrationState(void);
+boolean I_DefaultGyroCalibration(void);
+void I_ClearGyroCalibration(void);
+void I_UpdateGyroCalibrationState(void);
 
 void I_CalcGyroAxes(boolean strafe);
 void I_UpdateGyroData(const struct event_s *ev);

@@ -36,6 +36,13 @@
 #include "m_config.h"
 #include "m_input.h"
 
+#define CALBITS 24 // 8.24 fixed-point.
+#define CALUNIT (1 << CALBITS)
+#define CAL2CFG(x) ((x) * (double)CALUNIT)
+#define CFG2CAL(x) ((x) / (double)CALUNIT)
+
+#define DEFAULT_ACCEL 1.0f // Default accelerometer magnitude.
+
 #define SMOOTH_HALF_TIME 4.0f // 1/0.25
 
 #define SHAKINESS_MAX_THRESH 0.4f
@@ -79,9 +86,135 @@ static int gyro_accel_max_threshold;
 static int gyro_smooth_threshold;
 static int gyro_smooth_time;
 static int gyro_tightening;
+static fixed_t gyro_calibration_a;
+static fixed_t gyro_calibration_x;
+static fixed_t gyro_calibration_y;
+static fixed_t gyro_calibration_z;
 
 float gyro_axes[NUM_GYRO_AXES];
 motion_t motion;
+
+typedef struct
+{
+    gyro_calibration_state_t state;
+    int start_time;
+    int finish_time;
+    int accel_count;
+    int gyro_count;
+    float accel_sum;
+    vec gyro_sum;
+} calibration_t;
+
+calibration_t cal;
+
+gyro_calibration_state_t I_GetGyroCalibrationState(void)
+{
+    return cal.state;
+}
+
+boolean I_DefaultGyroCalibration(void)
+{
+    return (!gyro_calibration_a && !gyro_calibration_x && !gyro_calibration_y
+            && !gyro_calibration_z);
+}
+
+void I_ClearGyroCalibration(void)
+{
+    memset(&cal, 0, sizeof(cal));
+    motion.accel_magnitude = DEFAULT_ACCEL;
+    motion.gyro_offset = (vec){0.0f, 0.0f, 0.0f};
+    gyro_calibration_a = 0;
+    gyro_calibration_x = 0;
+    gyro_calibration_y = 0;
+    gyro_calibration_z = 0;
+}
+
+static void LoadCalibration(void)
+{
+    motion.accel_magnitude = CFG2CAL(gyro_calibration_a) + DEFAULT_ACCEL;
+    motion.gyro_offset.x = CFG2CAL(gyro_calibration_x);
+    motion.gyro_offset.y = CFG2CAL(gyro_calibration_y);
+    motion.gyro_offset.z = CFG2CAL(gyro_calibration_z);
+
+    I_Printf(VB_DEBUG, "Gyro calibration loaded: a: %f x: %f y: %f z: %f",
+             motion.accel_magnitude, motion.gyro_offset.x, motion.gyro_offset.y,
+             motion.gyro_offset.z);
+}
+
+static void SaveCalibration(void)
+{
+    gyro_calibration_a = CAL2CFG(motion.accel_magnitude - DEFAULT_ACCEL);
+    gyro_calibration_x = CAL2CFG(motion.gyro_offset.x);
+    gyro_calibration_y = CAL2CFG(motion.gyro_offset.y);
+    gyro_calibration_z = CAL2CFG(motion.gyro_offset.z);
+}
+
+static void ProcessAccelCalibration(void)
+{
+    cal.accel_count++;
+    cal.accel_sum += vec_length(&motion.accel);
+}
+
+static void ProcessGyroCalibration(void)
+{
+    cal.gyro_count++;
+    cal.gyro_sum = vec_add(&cal.gyro_sum, &motion.gyro);
+}
+
+static void PostProcessCalibration(void)
+{
+    if (!cal.accel_count || !cal.gyro_count)
+    {
+        return;
+    }
+
+    motion.accel_magnitude = cal.accel_sum / cal.accel_count;
+    motion.accel_magnitude = BETWEEN(0.0f, 2.0f, motion.accel_magnitude);
+
+    motion.gyro_offset = vec_scale(&cal.gyro_sum, 1.0f / cal.gyro_count);
+    motion.gyro_offset = vec_clamp(-1.0f, 1.0f, &motion.gyro_offset);
+
+    SaveCalibration();
+
+    I_Printf(VB_DEBUG,
+             "Gyro calibration updated: a: %f x: %f y: %f z: %f accel_count: "
+             "%d gyro_count: %d",
+             motion.accel_magnitude, motion.gyro_offset.x, motion.gyro_offset.y,
+             motion.gyro_offset.z, cal.accel_count, cal.gyro_count);
+}
+
+void I_UpdateGyroCalibrationState(void)
+{
+    switch (cal.state)
+    {
+        case GYRO_CALIBRATION_INACTIVE:
+            if (!motion.calibrating)
+            {
+                motion.calibrating = true;
+                I_ClearGyroCalibration();
+                cal.state = GYRO_CALIBRATION_ACTIVE;
+                cal.start_time = I_GetTimeMS();
+            }
+            break;
+
+        case GYRO_CALIBRATION_ACTIVE:
+            if (I_GetTimeMS() - cal.start_time > 1000)
+            {
+                motion.calibrating = false;
+                PostProcessCalibration();
+                cal.state = GYRO_CALIBRATION_COMPLETE;
+                cal.finish_time = I_GetTimeMS();
+            }
+            break;
+
+        case GYRO_CALIBRATION_COMPLETE:
+            if (I_GetTimeMS() - cal.finish_time > 1000)
+            {
+                cal.state = GYRO_CALIBRATION_INACTIVE;
+            }
+            break;
+    }
+}
 
 static boolean GyroActive(void)
 {
@@ -408,6 +541,11 @@ static void CalcGravityVector_Full(void)
     }
 }
 
+static void ApplyCalibration(void)
+{
+    motion.gyro = vec_subtract(&motion.gyro, &motion.gyro_offset);
+}
+
 //
 // I_UpdateGyroData
 //
@@ -422,8 +560,12 @@ void I_UpdateGyroData(const event_t *ev)
     motion.gyro.y = ev->data3.f; // yaw
     motion.gyro.z = ev->data4.f; // roll
 
-    // TODO: calibration
+    if (motion.calibrating)
+    {
+        ProcessGyroCalibration();
+    }
 
+    ApplyCalibration();
     CalcGravityVector();
     ApplyGyroSpace();
 
@@ -444,6 +586,11 @@ void I_UpdateAccelData(const float *data)
     motion.accel.x = data[0];
     motion.accel.y = data[1];
     motion.accel.z = data[2];
+
+    if (motion.calibrating)
+    {
+        ProcessAccelCalibration();
+    }
 }
 
 static void ResetGyroData(void)
@@ -469,8 +616,6 @@ void I_ResetGyro(void)
     motion.index = 0;
     memset(motion.pitch_samples, 0, sizeof(motion.pitch_samples));
     memset(motion.yaw_samples, 0, sizeof(motion.yaw_samples));
-
-    motion.accel_magnitude = 1.0f; // TODO: calibration
 }
 
 void I_RefreshGyroSettings(void)
@@ -518,6 +663,8 @@ void I_RefreshGyroSettings(void)
 
     TightenGyro = gyro_tightening ? TightenGyro_Full : TightenGyro_Skip;
     motion.tightening = gyro_tightening * PI_F / 180.0f;
+
+    LoadCalibration();
 }
 
 void I_BindGyroVaribales(void)
@@ -549,4 +696,9 @@ void I_BindGyroVaribales(void)
         "Gyro smoothing time [milliseconds]");
     BIND_NUM(gyro_tightening, 0, 0, 50,
         "Gyro tightening threshold [degrees/second]");
+
+    BIND_NUM(gyro_calibration_a, 0, UL, UL, "Accelerometer calibration");
+    BIND_NUM(gyro_calibration_x, 0, UL, UL, "Gyro calibration (x-axis)");
+    BIND_NUM(gyro_calibration_y, 0, UL, UL, "Gyro calibration (y-axis)");
+    BIND_NUM(gyro_calibration_z, 0, UL, UL, "Gyro calibration (z-axis)");
 }

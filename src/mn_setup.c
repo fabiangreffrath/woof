@@ -152,6 +152,23 @@ static void DisableItem(boolean condition, setup_menu_t *menu, const char *item)
     I_Error("Item \"%s\" not found in menu", item);
 }
 
+static void DisableItemFunc(boolean condition, setup_menu_t *menu, void *func)
+{
+    while (!(menu->m_flags & S_END))
+    {
+        if (menu->var.func == func)
+        {
+            menu->m_flags = condition ? (menu->m_flags | S_DISABLE)
+                                      : (menu->m_flags & ~S_DISABLE);
+            return;
+        }
+
+        menu++;
+    }
+
+    I_Error("Menu item function not found");
+}
+
 /////////////////////////////
 //
 // booleans for setup screens
@@ -165,6 +182,7 @@ static boolean set_weapon_active = false; // in weapons setup screen
 static boolean setup_select = false;      // changing an item
 static boolean setup_gather = false;      // gathering keys for value
 boolean default_verify = false;           // verify reset defaults decision
+static boolean block_input;
 
 /////////////////////////////
 //
@@ -500,6 +518,14 @@ static void DrawTabs(void)
     }
 }
 
+static int GetItemColor(int flags)
+{
+    return (flags & S_TITLE    ? CR_TITLE
+            : flags & S_SELECT ? CR_SELECT
+            : flags & S_HILITE ? CR_HILITE
+                               : CR_ITEM); // killough 10/98
+}
+
 static void DrawItem(setup_menu_t *s, int accum_y)
 {
     int x = s->m_x;
@@ -534,10 +560,7 @@ static void DrawItem(setup_menu_t *s, int accum_y)
 
     int w = 0;
     const char *text = s->m_text;
-    int color = flags & S_TITLE    ? CR_TITLE
-                : flags & S_SELECT ? CR_SELECT
-                : flags & S_HILITE ? CR_HILITE
-                                   : CR_ITEM; // killough 10/98
+    const int color = GetItemColor(flags);
 
     if (!(flags & S_NEXT_LINE))
     {
@@ -621,6 +644,17 @@ static void DrawSetting(setup_menu_t *s, int accum_y)
     if (!(flags & S_DIRECT))
     {
         y = accum_y;
+    }
+
+    if (flags & S_FUNC)
+    {
+        // A menu item with the S_FUNC flag has no setting, so draw an
+        // ellipsis to the right of the item with the same color.
+        const int color = GetItemColor(flags);
+        sprintf(menu_buffer, ". . .");
+        BlinkingArrowRight(s);
+        DrawMenuStringEx(flags, x, y, color);
+        return;
     }
 
     // Determine color of the text. This may or may not be used
@@ -929,6 +963,45 @@ void MN_DrawDelVerify(void)
     }
 }
 
+static void DrawNotification(const char *text, int color)
+{
+    patch_t *patch = V_CachePatchName("M_VBOX", PU_CACHE);
+    int x = (SCREENWIDTH - patch->width) / 2;
+    int y = (SCREENHEIGHT - patch->height) / 2;
+    V_DrawPatch(x, y, patch);
+
+    x = (SCREENWIDTH - MN_GetPixelWidth(text)) / 2;
+    y = (SCREENHEIGHT - MN_StringHeight(text)) / 2;
+    MN_DrawString(x, y, color, text);
+}
+
+static void UpdateGyroCalibrationItems(void);
+
+static void DrawGyroCalibration(void)
+{
+    switch (I_GetGyroCalibrationState())
+    {
+        case GYRO_CALIBRATION_INACTIVE:
+            break;
+
+        case GYRO_CALIBRATION_ACTIVE:
+            block_input = true;
+            DrawNotification("Calibrating, please wait...", CR_GRAY);
+            I_UpdateGyroCalibrationState();
+            break;
+
+        case GYRO_CALIBRATION_COMPLETE:
+            DrawNotification("Calibration complete!", CR_GREEN);
+            I_UpdateGyroCalibrationState();
+            if (I_GetGyroCalibrationState() == GYRO_CALIBRATION_INACTIVE)
+            {
+                block_input = false;
+                UpdateGyroCalibrationItems();
+            }
+            break;
+    }
+}
+
 /////////////////////////////
 //
 // phares 4/18/98:
@@ -939,7 +1012,8 @@ void MN_DrawDelVerify(void)
 static void DrawInstructions()
 {
     int index = (menu_input == mouse_mode ? highlight_item : set_item_on);
-    int flags = current_menu[index].m_flags;
+    const setup_menu_t *item = &current_menu[index];
+    const int flags = item->m_flags;
 
     if (ItemDisabled(flags) || print_warning_about_changes > 0)
     {
@@ -951,7 +1025,11 @@ static void DrawInstructions()
 
     const char *s = "";
 
-    if (setup_select)
+    if (item->desc)
+    {
+        s = item->desc;
+    }
+    else if (setup_select)
     {
         if (flags & S_INPUT)
         {
@@ -2388,6 +2466,8 @@ static const char **GetGyroAccelStrings(void)
     return strings;
 }
 
+static void ClearGyroCalibration(void);
+
 static setup_menu_t gen_gyro[] = {
     {"Gyro Aiming", S_ONOFF, CNTR_X, M_SPC,
      {"gyro_enable"}, m_null, input_null, str_empty,
@@ -2423,8 +2503,21 @@ static setup_menu_t gen_gyro[] = {
      {"gyro_smooth_threshold"}, m_null, input_null, str_empty,
      I_ResetGamepad},
 
+    MI_GAP,
+
+    {"Calibrate", S_FUNC, CNTR_X, M_SPC, {I_UpdateGyroCalibrationState},
+     .desc = "Place gamepad on a flat surface"},
+
+    {"Clear Calibration", S_FUNC, CNTR_X, M_SPC, {ClearGyroCalibration}},
+
     MI_END
 };
+
+static void UpdateGyroCalibrationItems(void)
+{
+    DisableItemFunc(!gyro_enable || I_DefaultGyroCalibration(), gen_gyro,
+                    ClearGyroCalibration);
+}
 
 static void UpdateGyroItems(void)
 {
@@ -2435,6 +2528,14 @@ static void UpdateGyroItems(void)
     DisableItem(!gyro_enable, gen_gyro, "gyro_look_sensitivity");
     DisableItem(!gyro_enable, gen_gyro, "gyro_acceleration");
     DisableItem(!gyro_enable, gen_gyro, "gyro_smooth_threshold");
+    DisableItemFunc(!gyro_enable, gen_gyro, I_UpdateGyroCalibrationState);
+    UpdateGyroCalibrationItems();
+}
+
+static void ClearGyroCalibration(void)
+{
+    I_ClearGyroCalibration();
+    UpdateGyroCalibrationItems();
 }
 
 static void SmoothLight(void)
@@ -2623,6 +2724,11 @@ void MN_DrawGeneral(void)
     DrawTabs();
     DrawInstructions();
     DrawScreenItems(current_menu);
+
+    if (current_menu == gen_gyro)
+    {
+        DrawGyroCalibration();
+    }
 
     // If the Reset Button has been selected, an "Are you sure?" message
     // is overlayed across everything else.
@@ -3106,6 +3212,11 @@ boolean MN_SetupCursorPostion(int x, int y)
         return false;
     }
 
+    if (block_input)
+    {
+        return true;
+    }
+
     if (current_tabs)
     {
         for (int i = 0; current_tabs[i].text; ++i)
@@ -3508,6 +3619,11 @@ boolean MN_SetupResponder(menu_action_t action, int ch)
         return false;
     }
 
+    if (block_input)
+    {
+        return true;
+    }
+
     if (menu_input != mouse_mode && current_tabs)
     {
         current_tabs[highlight_tab].flags &= ~S_HILITE;
@@ -3518,6 +3634,22 @@ boolean MN_SetupResponder(menu_action_t action, int ch)
     if (menu_input != mouse_mode)
     {
        current_item->m_flags |= S_HILITE;
+    }
+
+    if ((current_item->m_flags & S_FUNC) && action == MENU_ENTER)
+    {
+        if (ItemDisabled(current_item->m_flags))
+        {
+            M_StartSound(sfx_oof);
+            return true;
+        }
+        else if (current_item->var.func)
+        {
+            current_item->var.func();
+        }
+
+        M_StartSound(sfx_itemup);
+        return true;
     }
 
     // phares 4/19/98:
@@ -3766,6 +3898,11 @@ boolean MN_SetupMouseResponder(int x, int y)
     if (!setup_active || setup_select)
     {
         return false;
+    }
+
+    if (block_input)
+    {
+        return true;
     }
 
     if (SetupTab())
