@@ -52,6 +52,16 @@ inline static vec vec_subtract(const vec *a, const vec *b)
 }
 
 //
+// Cross product of two vectors.
+//
+inline static vec vec_crossproduct(const vec *a, const vec *b)
+{
+    return (vec){a->y * b->z - a->z * b->y,
+                 a->z * b->x - a->x * b->z,
+                 a->x * b->y - a->y * b->x};
+}
+
+//
 // Dot product of two vectors.
 //
 inline static float vec_dotproduct(const vec *a, const vec *b)

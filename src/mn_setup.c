@@ -2332,7 +2332,8 @@ static void UpdateGyro(void)
 static const char *gyro_space_strings[] = {
     "Local Turn",
     "Local Lean",
-    "Player",
+    "Player Turn",
+    "Player Lean",
 };
 
 static const char *gyro_action_strings[] = {
