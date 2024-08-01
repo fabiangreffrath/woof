@@ -3353,6 +3353,11 @@ boolean MN_SetupResponder(menu_action_t action, int ch)
 
     setup_menu_t *current_item = current_menu + set_item_on;
 
+    if (menu_input != mouse_mode)
+    {
+       current_item->m_flags |= S_HILITE;
+    }
+
     // phares 4/19/98:
     // Catch the response to the 'reset to default?' verification
     // screen
