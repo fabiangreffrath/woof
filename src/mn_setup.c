@@ -337,7 +337,7 @@ enum
 
     str_mouse_accel,
 
-    str_gyro_space,
+    str_gyro_aiming,
     str_gyro_action,
     str_gyro_sens,
     str_gyro_accel,
@@ -2398,18 +2398,19 @@ static void UpdateGamepadSensitivityItems(void)
 
 static void UpdateGyroItems(void);
 
-static void UpdateGyro(void)
+static void UpdateGyroAiming(void)
 {
     UpdateGyroItems();
-    I_SetSensorEventState(gyro_enable);
+    I_SetSensorEventState(gyro_aiming > GYRO_AIMING_OFF);
     I_ResetGamepad();
 }
 
-static const char *gyro_space_strings[] = {
-    "Local Turn",
-    "Local Lean",
+static const char *gyro_aiming_strings[] = {
+    "Off",
     "Player Turn",
     "Player Lean",
+    "Local Turn",
+    "Local Lean",
 };
 
 static const char *gyro_action_strings[] = {
@@ -2467,13 +2468,9 @@ static const char **GetGyroAccelStrings(void)
 static void UpdateGyroSteadying(void);
 
 static setup_menu_t gen_gyro[] = {
-    {"Gyro Aiming", S_ONOFF, CNTR_X, M_SPC,
-     {"gyro_enable"}, m_null, input_null, str_empty,
-     UpdateGyro},
-
-    {"Gyro Space", S_CHOICE, CNTR_X, M_SPC,
-     {"gyro_space"}, m_null, input_null, str_gyro_space,
-     I_ResetGamepad},
+    {"Gyro Aiming", S_CHOICE, CNTR_X, M_SPC,
+     {"gyro_aiming"}, m_null, input_null, str_gyro_aiming,
+     UpdateGyroAiming},
 
     {"Gyro Button Action", S_CHOICE, CNTR_X, M_SPC,
      {"gyro_button_action"}, m_null, input_null, str_gyro_action,
@@ -2517,14 +2514,13 @@ static void UpdateGyroSteadying(void)
 
 static void UpdateGyroItems(void)
 {
-    DisableItem(!gyro_enable, gen_gyro, "gyro_space");
-    DisableItem(!gyro_enable, gen_gyro, "gyro_button_action");
-    DisableItem(!gyro_enable, gen_gyro, "gyro_stick_action");
-    DisableItem(!gyro_enable, gen_gyro, "gyro_turn_sensitivity");
-    DisableItem(!gyro_enable, gen_gyro, "gyro_look_sensitivity");
-    DisableItem(!gyro_enable, gen_gyro, "gyro_acceleration");
-    DisableItem(!gyro_enable, gen_gyro, "gyro_smooth_threshold");
-    DisableItemFunc(!gyro_enable, gen_gyro, I_UpdateGyroCalibrationState);
+    DisableItem(!gyro_aiming, gen_gyro, "gyro_button_action");
+    DisableItem(!gyro_aiming, gen_gyro, "gyro_stick_action");
+    DisableItem(!gyro_aiming, gen_gyro, "gyro_turn_sensitivity");
+    DisableItem(!gyro_aiming, gen_gyro, "gyro_look_sensitivity");
+    DisableItem(!gyro_aiming, gen_gyro, "gyro_acceleration");
+    DisableItem(!gyro_aiming, gen_gyro, "gyro_smooth_threshold");
+    DisableItemFunc(!gyro_aiming, gen_gyro, I_UpdateGyroCalibrationState);
 }
 
 static void SmoothLight(void)
@@ -4155,7 +4151,7 @@ static const char **selectstrings[] = {
     NULL, // str_resampler
     equalizer_preset_strings,
     NULL, // str_mouse_accel
-    gyro_space_strings,
+    gyro_aiming_strings,
     gyro_action_strings,
     NULL, // str_gyro_sens
     NULL, // str_gyro_accel

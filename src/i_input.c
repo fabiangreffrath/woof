@@ -252,7 +252,7 @@ static void EnableGamepadEvents(void)
     SDL_EventState(SDL_CONTROLLERBUTTONDOWN, SDL_ENABLE);
     SDL_EventState(SDL_CONTROLLERBUTTONUP, SDL_ENABLE);
     SetTouchEventState(true);
-    I_SetSensorEventState(gyro_enable);
+    I_SetSensorEventState(gyro_aiming > GYRO_AIMING_OFF);
 }
 
 static void DisableGamepadEvents(void)
