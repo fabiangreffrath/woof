@@ -658,12 +658,12 @@ void I_RefreshGyroSettings(void)
 
     SmoothGyro = (gyro_smooth_threshold && gyro_smooth_time) ? SmoothGyro_Full
                                                              : SmoothGyro_Skip;
-    motion.upper_smooth = gyro_smooth_threshold * PI_F / 180.0f;
+    motion.upper_smooth = gyro_smooth_threshold / 10.0f * PI_F / 180.0f;
     motion.lower_smooth = motion.upper_smooth * 0.5f;
     motion.smooth_time = gyro_smooth_time / 1000.0f;
 
     TightenGyro = gyro_tightening ? TightenGyro_Full : TightenGyro_Skip;
-    motion.tightening = gyro_tightening * PI_F / 180.0f;
+    motion.tightening = gyro_tightening / 10.0f * PI_F / 180.0f;
 }
 
 void I_BindGyroVaribales(void)
@@ -688,12 +688,14 @@ void I_BindGyroVaribales(void)
         "Lower threshold for applying gyro acceleration [degrees/second]");
     BIND_NUM(gyro_accel_max_threshold, 75, 0, 200,
         "Upper threshold for applying gyro acceleration [degrees/second]");
-    BIND_NUM_GENERAL(gyro_smooth_threshold, 5, 0, 50,
-        "Gyro smoothing threshold [degrees/second]");
+    BIND_NUM_GENERAL(gyro_smooth_threshold, 30, 0, 100,
+        "Gyro steadying: smoothing threshold "
+        "(0 = Off; 100 = 10.0 degrees/second)");
     BIND_NUM(gyro_smooth_time, 125, 0, 500,
-        "Gyro smoothing time [milliseconds]");
-    BIND_NUM(gyro_tightening, 5, 0, 50,
-        "Gyro tightening threshold [degrees/second]");
+        "Gyro steadying: smoothing time [milliseconds]");
+    BIND_NUM(gyro_tightening, 30, 0, 100,
+        "Gyro steadying: tightening threshold "
+        "(0 = Off; 100 = 10.0 degrees/second)");
 
     BIND_NUM(gyro_calibration_a, 0, UL, UL, "Accelerometer calibration");
     BIND_NUM(gyro_calibration_x, 0, UL, UL, "Gyro calibration (x-axis)");

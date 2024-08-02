@@ -2465,7 +2465,11 @@ static const char **GetGyroAccelStrings(void)
     return strings;
 }
 
-static void UpdateGyroSteadying(void);
+static void UpdateGyroSteadying(void)
+{
+    I_UpdateGyroSteadying();
+    I_ResetGamepad();
+}
 
 static setup_menu_t gen_gyro[] = {
     {"Gyro Aiming", S_CHOICE, CNTR_X, M_SPC,
@@ -2495,7 +2499,7 @@ static setup_menu_t gen_gyro[] = {
      I_ResetGamepad},
 
     {"Steadying", S_THERMO, CNTR_X, M_THRM_SPC,
-     {"gyro_smooth_threshold"}, m_null, input_null, str_empty,
+     {"gyro_smooth_threshold"}, m_null, input_null, str_gyro_sens,
      UpdateGyroSteadying},
 
     MI_GAP,
@@ -2505,12 +2509,6 @@ static setup_menu_t gen_gyro[] = {
 
     MI_END
 };
-
-static void UpdateGyroSteadying(void)
-{
-    I_UpdateGyroSteadying();
-    I_ResetGamepad();
-}
 
 static void UpdateGyroItems(void)
 {
