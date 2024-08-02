@@ -1297,10 +1297,10 @@ int P_GroupLines (void)
       sector->lines -= sector->linecount;
 
       // set the degenmobj_t to the middle of the bounding box
-      sector->soundorg.x = (sector->blockbox[BOXRIGHT] + 
-			    sector->blockbox[BOXLEFT])/2;
-      sector->soundorg.y = (sector->blockbox[BOXTOP] + 
-			    sector->blockbox[BOXBOTTOM])/2;
+      sector->soundorg.x =
+          sector->blockbox[BOXRIGHT] / 2 + sector->blockbox[BOXLEFT] / 2;
+      sector->soundorg.y =
+          sector->blockbox[BOXTOP] / 2 + sector->blockbox[BOXBOTTOM] / 2;
 
       sector->soundorg.thinker.function.p1 = (actionf_p1)P_DegenMobjThinker;
 
