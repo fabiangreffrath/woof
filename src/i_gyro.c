@@ -107,7 +107,7 @@ boolean I_DefaultGyroCalibration(void)
             && !gyro_calibration_z);
 }
 
-void I_ClearGyroCalibration(void)
+static void ClearGyroCalibration(void)
 {
     memset(&cal, 0, sizeof(cal));
     motion.accel_magnitude = DEFAULT_ACCEL;
@@ -118,7 +118,7 @@ void I_ClearGyroCalibration(void)
     gyro_calibration_z = 0;
 }
 
-static void LoadCalibration(void)
+void I_LoadGyroCalibration(void)
 {
     motion.accel_magnitude = CFG2CAL(gyro_calibration_a) + DEFAULT_ACCEL;
     motion.gyro_offset.x = CFG2CAL(gyro_calibration_x);
@@ -180,7 +180,7 @@ void I_UpdateGyroCalibrationState(void)
             if (!motion.calibrating)
             {
                 motion.calibrating = true;
-                I_ClearGyroCalibration();
+                ClearGyroCalibration();
                 cal.state = GYRO_CALIBRATION_ACTIVE;
                 cal.start_time = I_GetTimeMS();
             }
@@ -664,8 +664,6 @@ void I_RefreshGyroSettings(void)
 
     TightenGyro = gyro_tightening ? TightenGyro_Full : TightenGyro_Skip;
     motion.tightening = gyro_tightening * PI_F / 180.0f;
-
-    LoadCalibration();
 }
 
 void I_BindGyroVaribales(void)

@@ -333,6 +333,7 @@ void I_OpenGamepad(int which)
 
     if (gamepad)
     {
+        I_LoadGyroCalibration();
         EnableGamepadEvents();
     }
 }
