@@ -99,7 +99,7 @@ typedef enum gyro_calibration_state_e
 
 gyro_calibration_state_t I_GetGyroCalibrationState(void);
 boolean I_DefaultGyroCalibration(void);
-void I_ClearGyroCalibration(void);
+void I_LoadGyroCalibration(void);
 void I_UpdateGyroCalibrationState(void);
 
 void I_CalcGyroAxes(boolean strafe);
