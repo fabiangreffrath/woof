@@ -75,7 +75,18 @@ typedef struct motion_s
     float accel_max_thresh;             // Upper threshold for accel (rad/s).
 } motion_t;
 
-extern boolean gyro_enable;             // Enable gamepad gyro aiming.
+typedef enum gyro_aiming_e
+{
+    GYRO_AIMING_OFF,
+    GYRO_AIMING_PLAYER_TURN,
+    GYRO_AIMING_PLAYER_LEAN,
+    GYRO_AIMING_LOCAL_TURN,
+    GYRO_AIMING_LOCAL_LEAN,
+
+    NUM_GYRO_AIMING,
+} gyro_aiming_t;
+
+extern gyro_aiming_t gyro_aiming;       // Gamepad gyro aiming.
 extern float gyro_axes[NUM_GYRO_AXES];  // Calculated gyro values.
 extern motion_t motion;
 

@@ -64,18 +64,7 @@
 
 #define SGNF2(x) ((x) < 0.0f ? -1.0f : 1.0f) // Doesn't return zero.
 
-typedef enum
-{
-    SPACE_LOCAL_TURN,
-    SPACE_LOCAL_LEAN,
-    SPACE_PLAYER_TURN,
-    SPACE_PLAYER_LEAN,
-
-    NUM_SPACES
-} space_t;
-
-boolean gyro_enable;
-static int gyro_space;
+gyro_aiming_t gyro_aiming;
 static int gyro_button_action;
 static int gyro_stick_action;
 static int gyro_turn_sensitivity;
@@ -402,7 +391,7 @@ static void SmoothGyro_Full(void)
 
 static void (*ApplyGyroSpace)(void);
 
-static void ApplyGyroSpace_LocalTurn(void)
+static void ApplyGyroSpace_Skip(void)
 {
     // no-op
 }
@@ -627,26 +616,31 @@ void I_UpdateGyroSteadying(void)
 
 void I_RefreshGyroSettings(void)
 {
-    switch (gyro_space)
+    switch (gyro_aiming)
     {
-        case SPACE_LOCAL_TURN:
-            CalcGravityVector = CalcGravityVector_Skip;
-            ApplyGyroSpace = ApplyGyroSpace_LocalTurn;
+        case GYRO_AIMING_PLAYER_TURN:
+            CalcGravityVector = CalcGravityVector_Full;
+            ApplyGyroSpace = ApplyGyroSpace_PlayerTurn;
             break;
 
-        case SPACE_LOCAL_LEAN:
-            CalcGravityVector = CalcGravityVector_Skip;
-            ApplyGyroSpace = ApplyGyroSpace_LocalLean;
-            break;
-
-        case SPACE_PLAYER_LEAN:
+        case GYRO_AIMING_PLAYER_LEAN:
             CalcGravityVector = CalcGravityVector_Full;
             ApplyGyroSpace = ApplyGyroSpace_PlayerLean;
             break;
 
-        default: // SPACE_PLAYER_TURN
-            CalcGravityVector = CalcGravityVector_Full;
-            ApplyGyroSpace = ApplyGyroSpace_PlayerTurn;
+        case GYRO_AIMING_LOCAL_TURN:
+            CalcGravityVector = CalcGravityVector_Skip;
+            ApplyGyroSpace = ApplyGyroSpace_Skip;
+            break;
+
+        case GYRO_AIMING_LOCAL_LEAN:
+            CalcGravityVector = CalcGravityVector_Skip;
+            ApplyGyroSpace = ApplyGyroSpace_LocalLean;
+            break;
+
+        default: // GYRO_AIMING_OFF
+            CalcGravityVector = CalcGravityVector_Skip;
+            ApplyGyroSpace = ApplyGyroSpace_Skip;
             break;
     }
 
@@ -676,11 +670,10 @@ void I_RefreshGyroSettings(void)
 
 void I_BindGyroVaribales(void)
 {
-    BIND_BOOL_GENERAL(gyro_enable, false,
-        "Enable gamepad gyro aiming");
-    BIND_NUM_GENERAL(gyro_space, SPACE_PLAYER_TURN, 0, NUM_SPACES - 1,
-        "Gyro space (0 = Local Turn; 1 = Local Lean; 2 = Player Turn; "
-        "3 = Player Lean)");
+    BIND_NUM_GENERAL(gyro_aiming,
+        GYRO_AIMING_OFF, GYRO_AIMING_OFF, NUM_GYRO_AIMING - 1,
+        "Gamepad gyro aiming (0 = Off; 1 = Player Turn; 2 = Player Lean; "
+        "3 = Local Turn; 4 = Local Lean)");
     BIND_NUM_GENERAL(gyro_button_action,
         ACTION_ENABLE, ACTION_NONE, NUM_ACTIONS - 1,
         "Gyro button action (0 = None; 1 = Disable Gyro; 2 = Enable Gyro)");
