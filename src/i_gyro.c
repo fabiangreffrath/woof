@@ -618,6 +618,13 @@ void I_ResetGyro(void)
     memset(motion.yaw_samples, 0, sizeof(motion.yaw_samples));
 }
 
+void I_UpdateGyroSteadying(void)
+{
+    // Menu item for gyro "steadying" controls both smoothing threshold and
+    // tightening threshold.
+    gyro_tightening = gyro_smooth_threshold;
+}
+
 void I_RefreshGyroSettings(void)
 {
     switch (gyro_space)

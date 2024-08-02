@@ -96,6 +96,7 @@ void I_UpdateGyroData(const struct event_s *ev);
 void I_UpdateAccelData(const float *data);
 void I_ResetGyroAxes(void);
 void I_ResetGyro(void);
+void I_UpdateGyroSteadying(void);
 void I_RefreshGyroSettings(void);
 
 void I_BindGyroVaribales(void);
