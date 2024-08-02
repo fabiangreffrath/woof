@@ -129,7 +129,7 @@ static void DisableItem(boolean condition, setup_menu_t *menu, const char *item)
 {
     while (!(menu->m_flags & S_END))
     {
-        if (!(menu->m_flags & (S_SKIP | S_RESET)))
+        if (!(menu->m_flags & (S_SKIP | S_RESET | S_FUNC)))
         {
             if (strcasecmp(menu->var.def->name, item) == 0)
             {
@@ -156,7 +156,8 @@ static void DisableItemFunc(boolean condition, setup_menu_t *menu, void *func)
 {
     while (!(menu->m_flags & S_END))
     {
-        if (menu->var.func == func)
+        if ((menu->m_flags & S_FUNC) && menu->var.func
+            && menu->var.func == func)
         {
             menu->m_flags = condition ? (menu->m_flags | S_DISABLE)
                                       : (menu->m_flags & ~S_DISABLE);
