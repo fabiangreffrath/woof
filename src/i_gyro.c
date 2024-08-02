@@ -694,7 +694,7 @@ void I_BindGyroVaribales(void)
         "Gyro smoothing threshold [degrees/second]");
     BIND_NUM(gyro_smooth_time, 125, 0, 500,
         "Gyro smoothing time [milliseconds]");
-    BIND_NUM(gyro_tightening, 0, 0, 50,
+    BIND_NUM(gyro_tightening, 5, 0, 50,
         "Gyro tightening threshold [degrees/second]");
 
     BIND_NUM(gyro_calibration_a, 0, UL, UL, "Accelerometer calibration");
