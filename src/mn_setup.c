@@ -975,8 +975,6 @@ static void DrawNotification(const char *text, int color)
     MN_DrawString(x, y, color, text);
 }
 
-static void UpdateGyroCalibrationItems(void);
-
 static void DrawGyroCalibration(void)
 {
     switch (I_GetGyroCalibrationState())
@@ -996,7 +994,6 @@ static void DrawGyroCalibration(void)
             if (I_GetGyroCalibrationState() == GYRO_CALIBRATION_INACTIVE)
             {
                 block_input = false;
-                UpdateGyroCalibrationItems();
             }
             break;
     }
@@ -2466,8 +2463,6 @@ static const char **GetGyroAccelStrings(void)
     return strings;
 }
 
-static void ClearGyroCalibration(void);
-
 static setup_menu_t gen_gyro[] = {
     {"Gyro Aiming", S_ONOFF, CNTR_X, M_SPC,
      {"gyro_enable"}, m_null, input_null, str_empty,
@@ -2508,16 +2503,8 @@ static setup_menu_t gen_gyro[] = {
     {"Calibrate", S_FUNC, CNTR_X, M_SPC, {I_UpdateGyroCalibrationState},
      .desc = "Place gamepad on a flat surface"},
 
-    {"Clear Calibration", S_FUNC, CNTR_X, M_SPC, {ClearGyroCalibration}},
-
     MI_END
 };
-
-static void UpdateGyroCalibrationItems(void)
-{
-    DisableItemFunc(!gyro_enable || I_DefaultGyroCalibration(), gen_gyro,
-                    ClearGyroCalibration);
-}
 
 static void UpdateGyroItems(void)
 {
@@ -2529,13 +2516,6 @@ static void UpdateGyroItems(void)
     DisableItem(!gyro_enable, gen_gyro, "gyro_acceleration");
     DisableItem(!gyro_enable, gen_gyro, "gyro_smooth_threshold");
     DisableItemFunc(!gyro_enable, gen_gyro, I_UpdateGyroCalibrationState);
-    UpdateGyroCalibrationItems();
-}
-
-static void ClearGyroCalibration(void)
-{
-    I_ClearGyroCalibration();
-    UpdateGyroCalibrationItems();
 }
 
 static void SmoothLight(void)
