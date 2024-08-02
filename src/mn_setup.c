@@ -2481,8 +2481,6 @@ static setup_menu_t gen_gyro[] = {
      {"gyro_stick_action"}, m_null, input_null, str_gyro_action,
      I_ResetGamepad},
 
-    MI_GAP,
-
     {"Turn Sensitivity", S_THERMO | S_THRM_SIZE11, CNTR_X, M_THRM_SPC,
      {"gyro_turn_sensitivity"}, m_null, input_null, str_gyro_sens,
      I_ResetGamepad},
@@ -2497,6 +2495,10 @@ static setup_menu_t gen_gyro[] = {
 
     {"Smoothing", S_THERMO, CNTR_X, M_THRM_SPC,
      {"gyro_smooth_threshold"}, m_null, input_null, str_empty,
+     I_ResetGamepad},
+
+    {"Tightening", S_THERMO, CNTR_X, M_THRM_SPC,
+     {"gyro_tightening"}, m_null, input_null, str_empty,
      I_ResetGamepad},
 
     MI_GAP,
@@ -2516,6 +2518,7 @@ static void UpdateGyroItems(void)
     DisableItem(!gyro_enable, gen_gyro, "gyro_look_sensitivity");
     DisableItem(!gyro_enable, gen_gyro, "gyro_acceleration");
     DisableItem(!gyro_enable, gen_gyro, "gyro_smooth_threshold");
+    DisableItem(!gyro_enable, gen_gyro, "gyro_tightening");
     DisableItemFunc(!gyro_enable, gen_gyro, I_UpdateGyroCalibrationState);
 }
 
