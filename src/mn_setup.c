@@ -2486,12 +2486,12 @@ static setup_menu_t gen_gyro[] = {
 
     MI_GAP,
 
-    {"Turn Sensitivity", S_THERMO | S_THRM_SIZE11, CNTR_X, M_THRM_SPC,
-     {"gyro_turn_sensitivity"}, m_null, input_null, str_gyro_sens,
+    {"Turn Speed", S_THERMO | S_THRM_SIZE11, CNTR_X, M_THRM_SPC,
+     {"gyro_turn_speed"}, m_null, input_null, str_gyro_sens,
      I_ResetGamepad},
 
-    {"Look Sensitivity", S_THERMO | S_THRM_SIZE11, CNTR_X, M_THRM_SPC,
-     {"gyro_look_sensitivity"}, m_null, input_null, str_gyro_sens,
+    {"Look Speed", S_THERMO | S_THRM_SIZE11, CNTR_X, M_THRM_SPC,
+     {"gyro_look_speed"}, m_null, input_null, str_gyro_sens,
      I_ResetGamepad},
 
     {"Acceleration", S_THERMO, CNTR_X, M_THRM_SPC,
@@ -2514,8 +2514,8 @@ static void UpdateGyroItems(void)
 {
     DisableItem(!gyro_aiming, gen_gyro, "gyro_button_action");
     DisableItem(!gyro_aiming, gen_gyro, "gyro_stick_action");
-    DisableItem(!gyro_aiming, gen_gyro, "gyro_turn_sensitivity");
-    DisableItem(!gyro_aiming, gen_gyro, "gyro_look_sensitivity");
+    DisableItem(!gyro_aiming, gen_gyro, "gyro_turn_speed");
+    DisableItem(!gyro_aiming, gen_gyro, "gyro_look_speed");
     DisableItem(!gyro_aiming, gen_gyro, "gyro_acceleration");
     DisableItem(!gyro_aiming, gen_gyro, "gyro_smooth_threshold");
     DisableItemFunc(!gyro_aiming, gen_gyro, I_UpdateGyroCalibrationState);
