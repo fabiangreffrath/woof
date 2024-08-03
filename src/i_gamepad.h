@@ -20,6 +20,9 @@
 #include "d_event.h"
 #include "doomkeys.h"
 
+#define DEFAULT_SPEED 240 // degrees/second.
+#define DEG2TICCMD (32768.0 / 180.0)
+#define ANALOG_MULT (DEFAULT_SPEED * DEG2TICCMD / TICRATE)
 #define PI_F 3.1415927f
 #define RAD2TIC(x) ((x) * 32768.0f / PI_F) // Radians to ticcmd angle.
 #define LENGTH_F(x, y) sqrtf((x) * (x) + (y) * (y))

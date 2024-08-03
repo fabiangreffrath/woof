@@ -46,12 +46,12 @@ enum
 
 boolean joy_enable;
 static int joy_stick_layout;
-static int joy_forward_sensitivity;
-static int joy_strafe_sensitivity;
-static int joy_turn_sensitivity;
-static int joy_look_sensitivity;
-static int joy_outer_turn_sensitivity;
-static int joy_outer_look_sensitivity;
+static int joy_forward_speed;
+static int joy_strafe_speed;
+static int joy_turn_speed;
+static int joy_look_speed;
+static int joy_outer_turn_speed;
+static int joy_outer_look_speed;
 static int joy_outer_ramp_time;
 static int joy_scale_diagonal_movement;
 static int joy_movement_curve;
@@ -395,14 +395,14 @@ static void RefreshSettings(void)
     CalcMovement = axes_func[joy_movement_deadzone_type];
     CalcCamera = axes_func[joy_camera_deadzone_type];
 
-    movement.x.sens = joy_strafe_sensitivity / 50.0f;
-    movement.y.sens = joy_forward_sensitivity / 50.0f;
+    movement.x.sens = joy_strafe_speed / 10.0f;
+    movement.y.sens = joy_forward_speed / 10.0f;
 
-    camera.x.sens = joy_turn_sensitivity / 50.0f;
-    camera.y.sens = joy_look_sensitivity / 50.0f;
+    camera.x.sens = joy_turn_speed / (float)DEFAULT_SPEED;
+    camera.y.sens = joy_look_speed / (float)DEFAULT_SPEED;
 
-    camera.x.extra_sens = joy_outer_turn_sensitivity / 50.0f;
-    camera.y.extra_sens = joy_outer_look_sensitivity / 50.0f;
+    camera.x.extra_sens = joy_outer_turn_speed / (float)DEFAULT_SPEED;
+    camera.y.extra_sens = joy_outer_look_speed / (float)DEFAULT_SPEED;
     camera.ramp_time = joy_outer_ramp_time * 1000;
 
     movement.circle_to_square = (joy_scale_diagonal_movement > 0);
@@ -430,20 +430,20 @@ void I_BindGamepadVariables(void)
     BIND_NUM_GENERAL(joy_stick_layout, LAYOUT_DEFAULT, 0, NUM_LAYOUTS - 1,
         "Analog stick layout (0 = Off; 1 = Default; 2 = Southpaw; 3 = Legacy; "
         "4 = Legacy Southpaw; 5 = Flick Stick; 6 = Flick Stick Southpaw)");
-    BIND_NUM(joy_forward_sensitivity, 50, 0, 100,
-        "Forward sensitivity");
-    BIND_NUM(joy_strafe_sensitivity, 50, 0, 100,
-        "Strafe sensitivity");
-    BIND_NUM_GENERAL(joy_turn_sensitivity, 50, 0, 100,
-        "Turn sensitivity");
-    BIND_NUM_GENERAL(joy_look_sensitivity, 50, 0, 100,
-        "Look sensitivity");
-    BIND_NUM(joy_outer_turn_sensitivity, 0, 0, 100,
-        "Extra turn sensitivity at outer deadzone (joy_camera_outer_deadzone)");
-    BIND_NUM(joy_outer_look_sensitivity, 0, 0, 100,
-        "Extra look sensitivity at outer deadzone (joy_camera_outer_deadzone)");
+    BIND_NUM(joy_forward_speed, 10, 0, 20,
+        "Forward speed (0 = 0.0x; 20 = 2.0x)");
+    BIND_NUM(joy_strafe_speed, 10, 0, 20,
+        "Strafe speed (0 = 0.0x; 20 = 2.0x)");
+    BIND_NUM_GENERAL(joy_turn_speed, DEFAULT_SPEED, 0, 720,
+        "Turn speed [degrees/second]");
+    BIND_NUM_GENERAL(joy_look_speed, lround(DEFAULT_SPEED * 0.54), 0, 720,
+        "Look speed [degrees/second]");
+    BIND_NUM(joy_outer_turn_speed, 0, 0, 720,
+        "Extra turn speed at outer deadzone [degrees/second]");
+    BIND_NUM(joy_outer_look_speed, 0, 0, 720,
+        "Extra look speed at outer deadzone [degrees/second]");
     BIND_NUM(joy_outer_ramp_time, 200, 0, 1000,
-        "Ramp time for extra sensitivity [milliseconds]");
+        "Ramp time for extra speed [milliseconds]");
     BIND_NUM(joy_scale_diagonal_movement, 1, 0, 1,
         "Scale diagonal movement (0 = Linear; 1 = Circle to Square)");
     BIND_NUM(joy_movement_curve, 10, 10, 30,

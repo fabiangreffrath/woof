@@ -2359,12 +2359,12 @@ static setup_menu_t gen_settings4[] = {
 
     MI_GAP,
 
-    {"Turn Sensitivity", S_THERMO | S_THRM_SIZE11, CNTR_X, M_THRM_SPC,
-     {"joy_turn_sensitivity"}, m_null, input_null, str_empty,
+    {"Turn Speed", S_THERMO | S_THRM_SIZE11, CNTR_X, M_THRM_SPC,
+     {"joy_turn_speed"}, m_null, input_null, str_empty,
      I_ResetGamepad},
 
-    {"Look Sensitivity", S_THERMO | S_THRM_SIZE11, CNTR_X, M_THRM_SPC,
-     {"joy_look_sensitivity"}, m_null, input_null, str_empty,
+    {"Look Speed", S_THERMO | S_THRM_SIZE11, CNTR_X, M_THRM_SPC,
+     {"joy_look_speed"}, m_null, input_null, str_empty,
      I_ResetGamepad},
 
     {"Response Curve", S_THERMO, CNTR_X, M_THRM_SPC,
@@ -2391,8 +2391,8 @@ static void UpdateGamepadSensitivityItems(void)
     DisableItem(condition, gen_settings4, "joy_invert_look");
     DisableItem(condition, gen_settings4, "joy_movement_inner_deadzone");
     DisableItem(condition, gen_settings4, "joy_camera_inner_deadzone");
-    DisableItem(condition, gen_settings4, "joy_turn_sensitivity");
-    DisableItem(condition, gen_settings4, "joy_look_sensitivity");
+    DisableItem(condition, gen_settings4, "joy_turn_speed");
+    DisableItem(condition, gen_settings4, "joy_look_speed");
     DisableItem(condition, gen_settings4, "joy_camera_curve");
 }
 

@@ -203,8 +203,8 @@ void G_UpdateGamepadVariables(void)
 {
     if (I_StandardLayout())
     {
-        joy_scale_angle = angleturn[1] * direction[joy_invert_turn];
-        joy_scale_pitch = angleturn[1] * direction[joy_invert_look] * FRACUNIT;
+        joy_scale_angle = ANALOG_MULT * direction[joy_invert_turn];
+        joy_scale_pitch = ANALOG_MULT * direction[joy_invert_look] * FRACUNIT;
 
         if (correct_aspect_ratio)
         {
