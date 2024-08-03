@@ -44,7 +44,7 @@ enum
     NUM_LAYOUTS
 };
 
-boolean joy_enable;
+static boolean joy_enable;
 static int joy_stick_layout;
 static int joy_forward_speed;
 static int joy_strafe_speed;
@@ -74,6 +74,54 @@ int trigger_threshold;
 
 static axes_t movement;         // Strafe/Forward
 static axes_t camera;           // Turn/Look
+
+static int raw[NUM_AXES];       // Raw data for menu indicators.
+static int *raw_ptr[NUM_AXES];  // Pointers to raw data.
+
+static float GetInputValue(int value);
+
+float I_GetRawAxesScale(boolean move)
+{
+    *raw_ptr[AXIS_LEFTX] = I_GetAxisState(SDL_CONTROLLER_AXIS_LEFTX);
+    *raw_ptr[AXIS_LEFTY] = I_GetAxisState(SDL_CONTROLLER_AXIS_LEFTY);
+    *raw_ptr[AXIS_RIGHTX] = I_GetAxisState(SDL_CONTROLLER_AXIS_RIGHTX);
+    *raw_ptr[AXIS_RIGHTY] = I_GetAxisState(SDL_CONTROLLER_AXIS_RIGHTY);
+
+    const float x = GetInputValue(raw[move ? AXIS_STRAFE : AXIS_TURN]);
+    const float y = GetInputValue(raw[move ? AXIS_FORWARD : AXIS_LOOK]);
+    const float length = LENGTH_F(x, y);
+    return BETWEEN(0.0f, 0.5f, length) / 0.5f;
+}
+
+static void UpdateRawLayout(void)
+{
+    int *raw_layouts[NUM_LAYOUTS][NUM_AXES] = {
+        // Off
+        {&raw[AXIS_STRAFE], &raw[AXIS_FORWARD], &raw[AXIS_TURN], &raw[AXIS_LOOK]},
+        // Default
+        {&raw[AXIS_STRAFE], &raw[AXIS_FORWARD], &raw[AXIS_TURN], &raw[AXIS_LOOK]},
+        // Southpaw
+        {&raw[AXIS_TURN], &raw[AXIS_LOOK], &raw[AXIS_STRAFE], &raw[AXIS_FORWARD]},
+        // Legacy
+        {&raw[AXIS_TURN], &raw[AXIS_FORWARD], &raw[AXIS_STRAFE], &raw[AXIS_LOOK]},
+        // Legacy Southpaw
+        {&raw[AXIS_STRAFE], &raw[AXIS_LOOK], &raw[AXIS_TURN], &raw[AXIS_FORWARD]},
+        // Flick Stick
+        {&raw[AXIS_STRAFE], &raw[AXIS_FORWARD], &raw[AXIS_TURN], &raw[AXIS_LOOK]},
+        // Flick Stick Southpaw
+        {&raw[AXIS_TURN], &raw[AXIS_LOOK], &raw[AXIS_STRAFE], &raw[AXIS_FORWARD]},
+    };
+
+    for (int i = 0; i < NUM_AXES; i++)
+    {
+        raw_ptr[i] = raw_layouts[joy_stick_layout][i];
+    }
+}
+
+boolean I_GamepadEnabled(void)
+{
+    return joy_enable;
+}
 
 boolean I_UseStickLayout(void)
 {
@@ -351,6 +399,8 @@ static void UpdateStickLayout(void)
     {
         axes_data[i] = layouts[joy_stick_layout][i];
     }
+
+    UpdateRawLayout();
 }
 
 static void ResetData(void)

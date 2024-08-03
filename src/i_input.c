@@ -33,7 +33,7 @@ static int gamepad_index = -1;
 
 // [FG] adapt joystick button and axis handling from Chocolate Doom 3.0
 
-static int GetAxisState(int axis)
+int I_GetAxisState(int axis)
 {
     return SDL_GameControllerGetAxis(gamepad, axis);
 }
@@ -116,9 +116,9 @@ static void TriggerToButtons(void)
     static boolean left_trigger_on;
     static boolean right_trigger_on;
 
-    TriggerToButton(GetAxisState(SDL_CONTROLLER_AXIS_TRIGGERLEFT),
+    TriggerToButton(I_GetAxisState(SDL_CONTROLLER_AXIS_TRIGGERLEFT),
                     &left_trigger_on, GAMEPAD_LEFT_TRIGGER);
-    TriggerToButton(GetAxisState(SDL_CONTROLLER_AXIS_TRIGGERRIGHT),
+    TriggerToButton(I_GetAxisState(SDL_CONTROLLER_AXIS_TRIGGERRIGHT),
                     &right_trigger_on, GAMEPAD_RIGHT_TRIGGER);
 }
 
@@ -130,10 +130,10 @@ void I_UpdateGamepad(evtype_t type, boolean axis_buttons)
 
     if (I_UseStickLayout() || type == ev_joystick_state)
     {
-        ev.data1.i = GetAxisState(SDL_CONTROLLER_AXIS_LEFTX);
-        ev.data2.i = GetAxisState(SDL_CONTROLLER_AXIS_LEFTY);
-        ev.data3.i = GetAxisState(SDL_CONTROLLER_AXIS_RIGHTX);
-        ev.data4.i = GetAxisState(SDL_CONTROLLER_AXIS_RIGHTY);
+        ev.data1.i = I_GetAxisState(SDL_CONTROLLER_AXIS_LEFTX);
+        ev.data2.i = I_GetAxisState(SDL_CONTROLLER_AXIS_LEFTY);
+        ev.data3.i = I_GetAxisState(SDL_CONTROLLER_AXIS_RIGHTX);
+        ev.data4.i = I_GetAxisState(SDL_CONTROLLER_AXIS_RIGHTY);
         D_PostEvent(&ev);
 
         if (axis_buttons)
@@ -252,7 +252,7 @@ static void EnableGamepadEvents(void)
     SDL_EventState(SDL_CONTROLLERBUTTONDOWN, SDL_ENABLE);
     SDL_EventState(SDL_CONTROLLERBUTTONUP, SDL_ENABLE);
     SetTouchEventState(true);
-    I_SetSensorEventState(gyro_aiming > GYRO_AIMING_OFF);
+    I_SetSensorEventState(I_UseGyroAiming());
 }
 
 static void DisableGamepadEvents(void)
@@ -283,7 +283,7 @@ static void I_ShutdownGamepad(void)
 
 void I_InitGamepad(void)
 {
-    if (!joy_enable)
+    if (!I_GamepadEnabled())
     {
         return;
     }

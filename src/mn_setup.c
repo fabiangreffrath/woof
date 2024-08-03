@@ -609,8 +609,40 @@ static char
 // displays the appropriate setting value: yes/no, a key binding, a number,
 // a paint chip, etc.
 
-static void DrawSetupThermo(int x, int y, int width, int size, int dot,
-                            byte *cr)
+static void (*DrawIndicator)(const setup_menu_t *s, int x, int y, int width);
+
+static void DrawIndicator_Dot(const setup_menu_t *s, int x, int y, int width)
+{
+    const int flags = s->m_flags;
+
+    if ((flags & S_HILITE) && !(flags & (S_END | S_SKIP | S_RESET | S_FUNC)))
+    {
+        const char *name = s->var.def->name;
+        float scale = 0.0f;
+
+        if (!strcasecmp(name, "joy_movement_inner_deadzone"))
+        {
+            scale = I_GetRawAxesScale(true);
+        }
+        else if (!strcasecmp(name, "joy_camera_inner_deadzone"))
+        {
+            scale = I_GetRawAxesScale(false);
+        }
+        else if (!strcasecmp(name, "gyro_smooth_threshold"))
+        {
+            scale = I_GetRawGyroScale();
+        }
+
+        if (scale > 0.0f)
+        {
+            x += lroundf(width * scale);
+            MN_DrawString(x, y, CR_GRAY, ".");
+        }
+    }
+}
+
+static void DrawSetupThermo(const setup_menu_t *s, int x, int y, int width,
+                            int size, int dot, byte *cr)
 {
     int xx;
     int i;
@@ -633,6 +665,11 @@ static void DrawSetupThermo(int x, int y, int width, int size, int dot,
     }
 
     int step = width * M_THRM_STEP * FRACUNIT / size;
+
+    if (DrawIndicator)
+    {
+        DrawIndicator(s, x + M_THRM_STEP, y + 1, xx - x - 2 * M_THRM_STEP);
+    }
 
     V_DrawPatchTranslated(x + M_THRM_STEP + dot * step / FRACUNIT, y,
                           V_CachePatchName("M_THERMO", PU_CACHE), cr);
@@ -853,7 +890,7 @@ static void DrawSetting(setup_menu_t *s, int accum_y)
         rect->y = y;
         rect->w = (width + 2) * M_THRM_STEP;
         rect->h = M_THRM_HEIGHT;
-        DrawSetupThermo(x, y, width, max - min, thrm_val - min, cr);
+        DrawSetupThermo(s, x, y, width, max - min, thrm_val - min, cr);
 
         if (strings)
         {
@@ -2386,7 +2423,7 @@ static setup_menu_t gen_settings4[] = {
 
 static void UpdateGamepadSensitivityItems(void)
 {
-    const boolean condition = (!I_UseStickLayout() || !joy_enable);
+    const boolean condition = (!I_UseStickLayout() || !I_GamepadEnabled());
     DisableItem(condition, gen_settings4, "padlook");
     DisableItem(condition, gen_settings4, "joy_invert_look");
     DisableItem(condition, gen_settings4, "joy_movement_inner_deadzone");
@@ -2401,7 +2438,7 @@ static void UpdateGyroItems(void);
 static void UpdateGyroAiming(void)
 {
     UpdateGyroItems();
-    I_SetSensorEventState(gyro_aiming > GYRO_AIMING_OFF);
+    I_SetSensorEventState(I_UseGyroAiming());
     I_ResetGamepad();
 }
 
@@ -2512,7 +2549,7 @@ static setup_menu_t gen_gyro[] = {
 
 static void UpdateGyroItems(void)
 {
-    const boolean condition = (!gyro_aiming || !joy_enable);
+    const boolean condition = (!I_UseGyroAiming() || !I_GamepadEnabled());
     DisableItem(condition, gen_gyro, "gyro_button_action");
     DisableItem(condition, gen_gyro, "gyro_stick_action");
     DisableItem(condition, gen_gyro, "gyro_turn_speed");
@@ -2524,9 +2561,9 @@ static void UpdateGyroItems(void)
 
 static void UpdateAllGamepadItems(void)
 {
-    DisableItem(!joy_enable, gen_gyro, "gyro_aiming");
+    DisableItem(!I_GamepadEnabled(), gen_gyro, "gyro_aiming");
     UpdateGyroItems();
-    DisableItem(!joy_enable, gen_settings4, "joy_stick_layout");
+    DisableItem(!I_GamepadEnabled(), gen_settings4, "joy_stick_layout");
     UpdateGamepadSensitivityItems();
 }
 
@@ -2715,6 +2752,18 @@ void MN_DrawGeneral(void)
     MN_DrawTitle(M_X_CENTER, M_Y_TITLE, "M_GENERL", "General");
     DrawTabs();
     DrawInstructions();
+
+    if (I_UseGamepad()
+        && ((current_menu == gen_settings4 && I_UseStickLayout())
+            || (current_menu == gen_gyro && I_UseGyroAiming())))
+    {
+        DrawIndicator = DrawIndicator_Dot;
+    }
+    else
+    {
+        DrawIndicator = NULL;
+    }
+
     DrawScreenItems(current_menu);
 
     if (current_menu == gen_gyro)

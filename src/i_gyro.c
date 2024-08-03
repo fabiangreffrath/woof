@@ -64,7 +64,18 @@
 
 #define SGNF2(x) ((x) < 0.0f ? -1.0f : 1.0f) // Doesn't return zero.
 
-gyro_aiming_t gyro_aiming;
+enum
+{
+    GYRO_AIMING_OFF,
+    GYRO_AIMING_PLAYER_TURN,
+    GYRO_AIMING_PLAYER_LEAN,
+    GYRO_AIMING_LOCAL_TURN,
+    GYRO_AIMING_LOCAL_LEAN,
+
+    NUM_GYRO_AIMING,
+};
+
+static int gyro_aiming;
 static int gyro_button_action;
 static int gyro_stick_action;
 static int gyro_turn_speed;
@@ -203,6 +214,11 @@ void I_UpdateGyroCalibrationState(void)
             }
             break;
     }
+}
+
+boolean I_UseGyroAiming(void)
+{
+    return (gyro_aiming > GYRO_AIMING_OFF);
 }
 
 static boolean GyroActive(void)
@@ -382,6 +398,20 @@ static void SmoothGyro_Full(void)
     motion.gyro.y = raw_yaw + smooth_yaw;
 }
 
+static float raw[2];
+
+float I_GetRawGyroScale(void)
+{
+    const float deg_per_sec = LENGTH_F(raw[0], raw[1]) * 180.0f / PI_F;
+    return BETWEEN(0.0f, 10.0f, deg_per_sec) / 10.0f;
+}
+
+static void SaveRawGyroData(void)
+{
+    raw[0] = motion.gyro.x;
+    raw[1] = motion.gyro.y;
+}
+
 //
 // Gyro Space
 //
@@ -557,6 +587,8 @@ void I_UpdateGyroData(const event_t *ev)
     ApplyCalibration();
     CalcGravityVector();
     ApplyGyroSpace();
+
+    SaveRawGyroData();
 
     SmoothGyro();
     TightenGyro();
