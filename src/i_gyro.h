@@ -75,18 +75,6 @@ typedef struct motion_s
     float accel_max_thresh;             // Upper threshold for accel (rad/s).
 } motion_t;
 
-typedef enum gyro_aiming_e
-{
-    GYRO_AIMING_OFF,
-    GYRO_AIMING_PLAYER_TURN,
-    GYRO_AIMING_PLAYER_LEAN,
-    GYRO_AIMING_LOCAL_TURN,
-    GYRO_AIMING_LOCAL_LEAN,
-
-    NUM_GYRO_AIMING,
-} gyro_aiming_t;
-
-extern gyro_aiming_t gyro_aiming;       // Gamepad gyro aiming.
 extern float gyro_axes[NUM_GYRO_AXES];  // Calculated gyro values.
 extern motion_t motion;
 
@@ -102,6 +90,8 @@ boolean I_DefaultGyroCalibration(void);
 void I_LoadGyroCalibration(void);
 void I_UpdateGyroCalibrationState(void);
 
+boolean I_UseGyroAiming(void);
+float I_GetRawGyroScale(void);
 void I_CalcGyroAxes(boolean strafe);
 void I_UpdateGyroData(const struct event_s *ev);
 void I_UpdateAccelData(const float *data);

@@ -51,7 +51,6 @@ typedef struct axes_s
     float outer_deadzone;       // Normalized outer deadzone.
 } axes_t;
 
-extern boolean joy_enable;                  // Enable gamepad.
 extern boolean joy_invert_forward;          // Invert forward axis.
 extern boolean joy_invert_strafe;           // Invert strafe axis.
 extern boolean joy_invert_turn;             // Invert turn axis.
@@ -60,6 +59,8 @@ extern boolean joy_invert_look;             // Invert look axis.
 extern float axes[NUM_AXES];        // Calculated gamepad values.
 extern int trigger_threshold;       // Trigger threshold (axis resolution).
 
+float I_GetRawAxesScale(boolean move);
+boolean I_GamepadEnabled(void);
 boolean I_UseStickLayout(void);
 boolean I_StandardLayout(void);
 void I_CalcRadial(axes_t *ax, float *xaxis, float *yaxis);

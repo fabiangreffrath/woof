@@ -23,6 +23,7 @@
 
 enum evtype_e;
 
+int I_GetAxisState(int axis);
 boolean I_UseGamepad(void);
 void I_FlushGamepadSensorEvents(void);
 void I_FlushGamepadEvents(void);
