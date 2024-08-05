@@ -1756,7 +1756,8 @@ setup_menu_t comp_settings1[] = {
     {"Compatibility-breaking Features", S_SKIP | S_TITLE, M_X, M_SPC},
 
     {"Direct Vertical Aiming", S_ONOFF | S_STRICT, M_X, M_SPC,
-     {"direct_vertical_aiming"}},
+     {"direct_vertical_aiming"}, m_null, input_null, str_empty,
+     P_UpdateDirectVerticalAiming},
 
     {"Auto Strafe 50", S_ONOFF | S_STRICT, M_X, M_SPC,
      {"autostrafe50"}, m_null, input_null, str_empty, G_UpdateSideMove},
@@ -2148,11 +2149,11 @@ static const char **GetResamplerStrings(void)
     return strings;
 }
 
-void MN_UpdateFreeLook(void)
+void MN_UpdateFreeLook(boolean condition)
 {
     P_UpdateDirectVerticalAiming();
 
-    if (!mouselook && !padlook)
+    if (condition)
     {
         for (int i = 0; i < MAXPLAYERS; ++i)
         {
@@ -2162,6 +2163,16 @@ void MN_UpdateFreeLook(void)
             }
         }
     }
+}
+
+void MN_UpdateMouseLook(void)
+{
+    MN_UpdateFreeLook(!mouselook);
+}
+
+void MN_UpdatePadLook(void)
+{
+    MN_UpdateFreeLook(!padlook);
 }
 
 #define MOUSE_ACCEL_STRINGS_SIZE (40 + 1)
@@ -2189,7 +2200,7 @@ static setup_menu_t gen_settings3[] = {
     {"Double-Click to \"Use\"", S_ONOFF, CNTR_X, M_SPC, {"dclick_use"}},
 
     {"Free Look", S_ONOFF, CNTR_X, M_SPC, {"mouselook"}, m_null, input_null,
-     str_empty, MN_UpdateFreeLook},
+     str_empty, MN_UpdateMouseLook},
 
     // [FG] invert vertical axis
     {"Invert Look", S_ONOFF, CNTR_X, M_SPC,
@@ -2240,7 +2251,7 @@ static setup_menu_t gen_settings4[] = {
      str_layout, I_ResetController},
 
     {"Free Look", S_ONOFF, CNTR_X, M_SPC, {"padlook"}, m_null, input_null,
-     str_empty, MN_UpdateFreeLook},
+     str_empty, MN_UpdatePadLook},
 
     {"Invert Look", S_ONOFF, CNTR_X, M_SPC, {"joy_invert_look"},
      m_null, input_null, str_empty, G_UpdateControllerVariables},

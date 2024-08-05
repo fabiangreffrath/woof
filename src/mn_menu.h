@@ -58,7 +58,9 @@ void MN_StartControlPanel(void);
 void MN_ForcedLoadGame(const char *msg); // killough 5/15/98: forced loadgames
 void MN_Trans(void);     // killough 11/98: reset translucency
 void MN_SetupResetMenu(void);
-void MN_UpdateFreeLook(void);
+void MN_UpdateFreeLook(boolean condition);
+void MN_UpdateMouseLook(void);
+void MN_UpdatePadLook(void);
 void MN_UpdateAdvancedSoundItems(boolean toggle);
 void MN_ResetTimeScale(void);
 void MN_DrawCredits(void); // killough 11/98
