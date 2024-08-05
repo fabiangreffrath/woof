@@ -909,7 +909,7 @@ static void G_DoLoadLevel(void)
 
   P_SetupLevel (gameepisode, gamemap, 0, gameskill);
 
-  MN_UpdateFreeLook();
+  MN_UpdateFreeLook(!mouselook && !padlook);
   HU_UpdateTurnFormat();
 
   // [Woof!] Do not reset chosen player view across levels in multiplayer
@@ -3474,7 +3474,6 @@ void G_ReloadDefaults(boolean keep_demover)
   }
 
   G_UpdateSideMove();
-  P_UpdateDirectVerticalAiming();
 
   pistolstart = default_pistolstart;
 

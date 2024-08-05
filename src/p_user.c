@@ -248,7 +248,7 @@ void P_MovePlayer (player_t* player)
 	P_SetMobjState(mo,S_PLAY_RUN1);
     }
 
-  if (!menuactive && !demoplayback)
+  if (!menuactive && !demoplayback && !player->centering)
   {
     player->pitch += cmd->pitch;
     player->pitch = BETWEEN(-MAX_PITCH_ANGLE, MAX_PITCH_ANGLE, player->pitch);
