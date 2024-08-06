@@ -25,10 +25,12 @@
 #include "i_printf.h"
 #include "i_system.h"
 #include "m_config.h"
+#include "mn_menu.h"
 
 #define AXIS_BUTTON_DEADZONE (SDL_JOYSTICK_AXIS_MAX / 3)
 
 static SDL_GameController *gamepad;
+static boolean gyro_supported;
 
 // [FG] adapt joystick button and axis handling from Chocolate Doom 3.0
 
@@ -194,6 +196,11 @@ boolean I_UseGamepad(void)
     return (gamepad != NULL);
 }
 
+boolean I_GyroSupported(void)
+{
+    return gyro_supported;
+}
+
 void I_FlushGamepadSensorEvents(void)
 {
     SDL_PumpEvents();
@@ -215,9 +222,11 @@ void I_FlushGamepadEvents(void)
 
 void I_SetSensorEventState(boolean condition)
 {
-    if (condition && gamepad
-        && SDL_GameControllerHasSensor(gamepad, SDL_SENSOR_ACCEL)
-        && SDL_GameControllerHasSensor(gamepad, SDL_SENSOR_GYRO))
+    gyro_supported =
+        (gamepad && SDL_GameControllerHasSensor(gamepad, SDL_SENSOR_ACCEL)
+         && SDL_GameControllerHasSensor(gamepad, SDL_SENSOR_GYRO));
+
+    if (condition && gyro_supported)
     {
         SDL_GameControllerSetSensorEnabled(gamepad, SDL_SENSOR_ACCEL, SDL_TRUE);
         SDL_GameControllerSetSensorEnabled(gamepad, SDL_SENSOR_GYRO, SDL_TRUE);
@@ -321,6 +330,7 @@ void I_OpenGamepad(int which)
             I_ResetGamepad();
             I_LoadGyroCalibration();
             EnableGamepadEvents();
+            MN_UpdateAllGamepadItems();
         }
     }
 
@@ -348,6 +358,7 @@ void I_CloseGamepad(SDL_JoystickID instance_id)
         gamepad = NULL;
         DisableGamepadEvents();
         I_ResetGamepad();
+        MN_UpdateAllGamepadItems();
     }
 }
 
