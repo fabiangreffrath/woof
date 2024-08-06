@@ -30,7 +30,7 @@ void I_FlushGamepadEvents(void);
 void I_SetSensorEventState(boolean condition);
 void I_InitGamepad(void);
 void I_OpenGamepad(int which);
-void I_CloseGamepad(int which);
+void I_CloseGamepad(SDL_JoystickID instance_id);
 
 void I_ReadMouse(void);
 void I_UpdateGamepad(enum evtype_e type, boolean axis_buttons);

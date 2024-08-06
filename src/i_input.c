@@ -29,7 +29,6 @@
 #define AXIS_BUTTON_DEADZONE (SDL_JOYSTICK_AXIS_MAX / 3)
 
 static SDL_GameController *gamepad;
-static int gamepad_index = -1;
 
 // [FG] adapt joystick button and axis handling from Chocolate Doom 3.0
 
@@ -315,10 +314,13 @@ void I_OpenGamepad(int which)
         gamepad = SDL_GameControllerOpen(which);
         if (gamepad)
         {
-            gamepad_index = which;
             I_Printf(VB_INFO,
                      "I_OpenGamepad: Found a valid gamepad, named: %s",
                      SDL_GameControllerName(gamepad));
+
+            I_ResetGamepad();
+            I_LoadGyroCalibration();
+            EnableGamepadEvents();
         }
     }
 
@@ -328,27 +330,25 @@ void I_OpenGamepad(int which)
                  "I_OpenGamepad: Could not open gamepad %i: %s",
                  which, SDL_GetError());
     }
-
-    I_ResetGamepad();
-
-    if (gamepad)
-    {
-        I_LoadGyroCalibration();
-        EnableGamepadEvents();
-    }
 }
 
-void I_CloseGamepad(int which)
+void I_CloseGamepad(SDL_JoystickID instance_id)
 {
-    if (gamepad != NULL && gamepad_index == which)
+    if (gamepad == NULL)
+    {
+        return;
+    }
+
+    SDL_JoystickID active_instance_id =
+        SDL_JoystickInstanceID(SDL_GameControllerGetJoystick(gamepad));
+
+    if (instance_id == active_instance_id)
     {
         SDL_GameControllerClose(gamepad);
         gamepad = NULL;
-        gamepad_index = -1;
+        DisableGamepadEvents();
+        I_ResetGamepad();
     }
-
-    DisableGamepadEvents();
-    I_ResetGamepad();
 }
 
 static uint64_t GetSensorTimeUS(const SDL_ControllerSensorEvent *csensor)
