@@ -25,6 +25,7 @@ enum evtype_e;
 
 int I_GetAxisState(int axis);
 boolean I_UseGamepad(void);
+boolean I_GyroSupported(void);
 void I_FlushGamepadSensorEvents(void);
 void I_FlushGamepadEvents(void);
 void I_SetSensorEventState(boolean condition);

@@ -2355,11 +2355,11 @@ static setup_menu_t gen_settings3[] = {
     MI_END
 };
 
-static void UpdateGamepadSensitivityItems(void);
+static void UpdateGamepadItems(void);
 
 static void UpdateStickLayout(void)
 {
-    UpdateGamepadSensitivityItems();
+    UpdateGamepadItems();
     I_ResetGamepad();
 }
 
@@ -2421,22 +2421,32 @@ static setup_menu_t gen_settings4[] = {
     MI_END
 };
 
-static void UpdateGamepadSensitivityItems(void)
+static void UpdateGamepadItems(void)
 {
-    const boolean condition = (!I_UseStickLayout() || !I_GamepadEnabled());
-    DisableItem(condition, gen_settings4, "padlook");
+    boolean condition =
+        (!I_UseGamepad() || !I_GamepadEnabled() || !I_UseStickLayout());
+
     DisableItem(condition, gen_settings4, "joy_invert_look");
     DisableItem(condition, gen_settings4, "joy_movement_inner_deadzone");
     DisableItem(condition, gen_settings4, "joy_camera_inner_deadzone");
     DisableItem(condition, gen_settings4, "joy_turn_speed");
     DisableItem(condition, gen_settings4, "joy_look_speed");
     DisableItem(condition, gen_settings4, "joy_camera_curve");
+
+    // Allow padlook toggle when the gamepad is using gyro, even if the
+    // stick layout is set to off.
+    condition = ((!I_UseGamepad() || !I_GamepadEnabled())
+                 || (!I_UseStickLayout()
+                     && (!I_UseGyroAiming() || !I_GyroSupported())));
+
+    DisableItem(condition, gen_settings4, "padlook");
 }
 
 static void UpdateGyroItems(void);
 
 static void UpdateGyroAiming(void)
 {
+    UpdateGamepadItems(); // Update padlook.
     UpdateGyroItems();
     I_SetSensorEventState(I_UseGyroAiming());
     I_ResetGamepad();
@@ -2549,7 +2559,9 @@ static setup_menu_t gen_gyro[] = {
 
 static void UpdateGyroItems(void)
 {
-    const boolean condition = (!I_UseGyroAiming() || !I_GamepadEnabled());
+    const boolean condition = (!I_UseGamepad() || !I_GamepadEnabled()
+                               || !I_UseGyroAiming() || !I_GyroSupported());
+
     DisableItem(condition, gen_gyro, "gyro_button_action");
     DisableItem(condition, gen_gyro, "gyro_stick_action");
     DisableItem(condition, gen_gyro, "gyro_turn_speed");
@@ -2559,12 +2571,15 @@ static void UpdateGyroItems(void)
     DisableItemFunc(condition, gen_gyro, I_UpdateGyroCalibrationState);
 }
 
-static void UpdateAllGamepadItems(void)
+void MN_UpdateAllGamepadItems(void)
 {
-    DisableItem(!I_GamepadEnabled(), gen_gyro, "gyro_aiming");
+    const boolean condition = (!I_UseGamepad() || !I_GamepadEnabled());
+
+    DisableItem(condition, gen_settings4, "joy_stick_layout");
+    UpdateGamepadItems();
+
+    DisableItem(condition || !I_GyroSupported(), gen_gyro, "gyro_aiming");
     UpdateGyroItems();
-    DisableItem(!I_GamepadEnabled(), gen_settings4, "joy_stick_layout");
-    UpdateGamepadSensitivityItems();
 }
 
 static void SmoothLight(void)
@@ -4266,7 +4281,7 @@ void MN_SetupResetMenu(void)
     UpdateInterceptsEmuItem();
     UpdateCrosshairItems();
     UpdateCenteredWeaponItem();
-    UpdateAllGamepadItems();
+    MN_UpdateAllGamepadItems();
 }
 
 void MN_BindMenuVariables(void)
