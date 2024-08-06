@@ -769,7 +769,7 @@ static void DrawSetting(setup_menu_t *s, int accum_y)
                     break;
                 case INPUT_JOYB:
                     offset += sprintf(menu_buffer + offset, "%s",
-                                      M_GetNameForJoyB(inputs[i].value));
+                                      M_GetPlatformName(inputs[i].value));
                     break;
                 default:
                     break;
@@ -1046,6 +1046,7 @@ static void DrawGyroCalibration(void)
 
 static void DrawInstructions()
 {
+    static char joyb_buf[64];
     int index = (menu_input == mouse_mode ? highlight_item : set_item_on);
     const setup_menu_t *item = &current_menu[index];
     const int flags = item->m_flags;
@@ -1074,7 +1075,9 @@ static void DrawInstructions()
         {
             if (menu_input == pad_mode)
             {
-                s = "[ PadA ] to toggle";
+                M_snprintf(joyb_buf, sizeof(joyb_buf), "[ %s ] to toggle",
+                           M_GetPlatformName(GAMEPAD_A));
+                s = joyb_buf;
             }
             else
             {
@@ -1085,7 +1088,10 @@ static void DrawInstructions()
         {
             if (menu_input == pad_mode)
             {
-                s = "[ Left/Right ] to choose, [ PadB ] to cancel";
+                M_snprintf(joyb_buf, sizeof(joyb_buf),
+                           "[ Left/Right ] to choose, [ %s ] to cancel",
+                           M_GetPlatformName(GAMEPAD_B));
+                s = joyb_buf;
             }
             else
             {
@@ -1115,7 +1121,11 @@ static void DrawInstructions()
                     s = "[ Del ] to clear";
                     break;
                 case pad_mode:
-                    s = "[ PadA ] to change, [ PadY ] to clear";
+                    M_snprintf(joyb_buf, sizeof(joyb_buf),
+                               "[ %s ] to change, [ %s ] to clear",
+                               M_GetPlatformName(GAMEPAD_A),
+                               M_GetPlatformName(GAMEPAD_Y));
+                    s = joyb_buf;
                     break;
                 default:
                 case key_mode:
@@ -1132,7 +1142,11 @@ static void DrawInstructions()
             switch (menu_input)
             {
                 case pad_mode:
-                    s = "[ PadA ] to change, [ PadB ] to return";
+                    M_snprintf(joyb_buf, sizeof(joyb_buf),
+                               "[ %s ] to change, [ %s ] to return",
+                               M_GetPlatformName(GAMEPAD_A),
+                               M_GetPlatformName(GAMEPAD_B));
+                    s = joyb_buf;
                     break;
                 case key_mode:
                     s = "[ Enter ] to change";

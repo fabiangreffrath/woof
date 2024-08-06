@@ -21,6 +21,7 @@
 #include "g_game.h"
 #include "m_input.h"
 #include "m_config.h"
+#include "m_misc.h"
 
 #define M_ARRAY_INIT_CAPACITY NUM_INPUTS
 #include "m_array.h"
@@ -296,7 +297,11 @@ static const struct
     {KEYP_PERIOD,    "num."      },
 };
 
-static const char *joyb_names[] = {
+#define JOYB_LEN 16
+#define JOYB_COPY(x, y) M_StringCopy(joyb_platform_names[(x)], (y), JOYB_LEN)
+static char joyb_platform_names[NUM_GAMEPAD_BUTTONS][JOYB_LEN];
+
+static const char joyb_names[NUM_GAMEPAD_BUTTONS][JOYB_LEN] = {
     [GAMEPAD_A]                    = "pada",
     [GAMEPAD_B]                    = "padb",
     [GAMEPAD_X]                    = "padx",
@@ -330,6 +335,100 @@ static const char *joyb_names[] = {
     [GAMEPAD_RIGHT_STICK_LEFT]     = "rsleft",
     [GAMEPAD_RIGHT_STICK_RIGHT]    = "rsright",
 };
+
+void M_UpdatePlatform(joy_platform_t platform)
+{
+    for (int i = 0; i < arrlen(joyb_names); i++)
+    {
+        JOYB_COPY(i, joyb_names[i]);
+    }
+
+    switch ((int)platform)
+    {
+        case PLATFORM_AUTO:
+        case PLATFORM_XBOX360:
+            break;
+
+        case PLATFORM_XBOXONE:
+            JOYB_COPY(GAMEPAD_BACK, "view");
+            JOYB_COPY(GAMEPAD_GUIDE, "xbbutton");
+            JOYB_COPY(GAMEPAD_START, "menu");
+            break;
+
+        case PLATFORM_PS3:
+        case PLATFORM_PS4:
+        case PLATFORM_PS5:
+            JOYB_COPY(GAMEPAD_A, "cross");
+            JOYB_COPY(GAMEPAD_B, "circle");
+            JOYB_COPY(GAMEPAD_X, "square");
+            JOYB_COPY(GAMEPAD_Y, "triangle");
+            JOYB_COPY(GAMEPAD_GUIDE, "psbutton");
+            JOYB_COPY(GAMEPAD_LEFT_STICK, "L3");
+            JOYB_COPY(GAMEPAD_RIGHT_STICK, "R3");
+            JOYB_COPY(GAMEPAD_LEFT_SHOULDER, "L1");
+            JOYB_COPY(GAMEPAD_RIGHT_SHOULDER, "R1");
+            JOYB_COPY(GAMEPAD_LEFT_TRIGGER, "L2");
+            JOYB_COPY(GAMEPAD_RIGHT_TRIGGER, "R2");
+            switch ((int)platform)
+            {
+                case PLATFORM_PS3:
+                    JOYB_COPY(GAMEPAD_BACK, "select");
+                    JOYB_COPY(GAMEPAD_START, "start");
+                    break;
+
+                case PLATFORM_PS4:
+                    JOYB_COPY(GAMEPAD_BACK, "share");
+                    JOYB_COPY(GAMEPAD_START, "options");
+                    break;
+
+                case PLATFORM_PS5:
+                    JOYB_COPY(GAMEPAD_BACK, "create");
+                    JOYB_COPY(GAMEPAD_START, "options");
+                    JOYB_COPY(GAMEPAD_MISC1, "mute");
+                    break;
+            }
+            break;
+
+        case PLATFORM_SWITCH_PRO:
+        case PLATFORM_SWITCH_JOYCON_LEFT:
+        case PLATFORM_SWITCH_JOYCON_RIGHT:
+        case PLATFORM_SWITCH_JOYCON_PAIR:
+            JOYB_COPY(GAMEPAD_BACK, "pad-");
+            JOYB_COPY(GAMEPAD_GUIDE, "padhome");
+            JOYB_COPY(GAMEPAD_START, "pad+");
+            JOYB_COPY(GAMEPAD_MISC1, "capture");
+            JOYB_COPY(GAMEPAD_LEFT_TRIGGER, "ZL");
+            JOYB_COPY(GAMEPAD_RIGHT_TRIGGER, "ZR");
+            switch ((int)platform)
+            {
+                case PLATFORM_SWITCH_JOYCON_LEFT:
+                    JOYB_COPY(GAMEPAD_GUIDE, "capture");
+                    JOYB_COPY(GAMEPAD_START, "pad-");
+                    JOYB_COPY(GAMEPAD_LEFT_SHOULDER, "L.SL");
+                    JOYB_COPY(GAMEPAD_RIGHT_SHOULDER, "L.SR");
+                    JOYB_COPY(GAMEPAD_PADDLE2, "LB");
+                    JOYB_COPY(GAMEPAD_PADDLE4, "ZL");
+                    break;
+
+                case PLATFORM_SWITCH_JOYCON_RIGHT:
+                    JOYB_COPY(GAMEPAD_GUIDE, "padhome");
+                    JOYB_COPY(GAMEPAD_START, "pad+");
+                    JOYB_COPY(GAMEPAD_LEFT_SHOULDER, "R.SL");
+                    JOYB_COPY(GAMEPAD_RIGHT_SHOULDER, "R.SR");
+                    JOYB_COPY(GAMEPAD_PADDLE1, "RB");
+                    JOYB_COPY(GAMEPAD_PADDLE3, "ZR");
+                    break;
+
+                case PLATFORM_SWITCH_JOYCON_PAIR:
+                    JOYB_COPY(GAMEPAD_PADDLE1, "R.SR");
+                    JOYB_COPY(GAMEPAD_PADDLE2, "L.SL");
+                    JOYB_COPY(GAMEPAD_PADDLE3, "R.SL");
+                    JOYB_COPY(GAMEPAD_PADDLE4, "L.SR");
+                    break;
+            }
+            break;
+    }
+}
 
 static const char *mouseb_names[] = {
     [MOUSE_BUTTON_LEFT]       = "mouse1",
@@ -365,6 +464,15 @@ int M_GetKeyForName(const char *name)
         }
     }
     return 0;
+}
+
+const char *M_GetPlatformName(int joyb)
+{
+    if (joyb >= 0 && joyb < arrlen(joyb_platform_names))
+    {
+        return joyb_platform_names[joyb];
+    }
+    return NULL;
 }
 
 const char *M_GetNameForJoyB(int joyb)

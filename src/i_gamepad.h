@@ -27,6 +27,25 @@
 #define RAD2TIC(x) ((x) * 32768.0f / PI_F) // Radians to ticcmd angle.
 #define LENGTH_F(x, y) sqrtf((x) * (x) + (y) * (y))
 
+typedef enum joy_platform_e
+{
+    PLATFORM_AUTO,
+    PLATFORM_XBOX360,
+    PLATFORM_XBOXONE,
+    PLATFORM_PS3,
+    PLATFORM_PS4,
+    PLATFORM_PS5,
+    PLATFORM_SWITCH,
+
+    NUM_PLATFORMS,
+
+    // Internal only:
+    PLATFORM_SWITCH_PRO,
+    PLATFORM_SWITCH_JOYCON_LEFT,
+    PLATFORM_SWITCH_JOYCON_RIGHT,
+    PLATFORM_SWITCH_JOYCON_PAIR,
+} joy_platform_t;
+
 typedef struct axis_s
 {
     int data;                   // ev_joystick event data.
@@ -51,6 +70,7 @@ typedef struct axes_s
     float outer_deadzone;       // Normalized outer deadzone.
 } axes_t;
 
+extern joy_platform_t joy_platform;         // Gamepad platform (button names).
 extern boolean joy_invert_forward;          // Invert forward axis.
 extern boolean joy_invert_strafe;           // Invert strafe axis.
 extern boolean joy_invert_turn;             // Invert turn axis.
