@@ -25,6 +25,7 @@
 #include "i_printf.h"
 #include "i_system.h"
 #include "m_config.h"
+#include "m_input.h"
 #include "mn_menu.h"
 
 #define AXIS_BUTTON_DEADZONE (SDL_JOYSTICK_AXIS_MAX / 3)
@@ -201,6 +202,87 @@ boolean I_GyroSupported(void)
     return gyro_supported;
 }
 
+static joy_platform_t GetSwitchSubPlatform(void)
+{
+    if (gamepad != NULL)
+    {
+        switch (SDL_GameControllerGetType(gamepad))
+        {
+            case SDL_CONTROLLER_TYPE_NINTENDO_SWITCH_PRO:
+                return PLATFORM_SWITCH_PRO;
+
+            case SDL_CONTROLLER_TYPE_NINTENDO_SWITCH_JOYCON_LEFT:
+                return PLATFORM_SWITCH_JOYCON_LEFT;
+
+            case SDL_CONTROLLER_TYPE_NINTENDO_SWITCH_JOYCON_RIGHT:
+                return PLATFORM_SWITCH_JOYCON_RIGHT;
+
+            case SDL_CONTROLLER_TYPE_NINTENDO_SWITCH_JOYCON_PAIR:
+                return PLATFORM_SWITCH_JOYCON_PAIR;
+
+            default:
+                break;
+        }
+    }
+
+    return PLATFORM_SWITCH_PRO;
+}
+
+static void UpdatePlatform(void)
+{
+    joy_platform_t platform = joy_platform;
+
+    if (platform == PLATFORM_AUTO)
+    {
+        if (gamepad == NULL)
+        {
+            platform = PLATFORM_XBOX360;
+        }
+        else
+        {
+            switch (SDL_GameControllerGetType(gamepad))
+            {
+                case SDL_CONTROLLER_TYPE_XBOX360:
+                    platform = PLATFORM_XBOX360;
+                    break;
+
+                case SDL_CONTROLLER_TYPE_XBOXONE:
+                    platform = PLATFORM_XBOXONE;
+                    break;
+
+                case SDL_CONTROLLER_TYPE_PS3:
+                    platform = PLATFORM_PS3;
+                    break;
+
+                case SDL_CONTROLLER_TYPE_PS4:
+                    platform = PLATFORM_PS4;
+                    break;
+
+                case SDL_CONTROLLER_TYPE_PS5:
+                    platform = PLATFORM_PS5;
+                    break;
+
+                case SDL_CONTROLLER_TYPE_NINTENDO_SWITCH_PRO:
+                case SDL_CONTROLLER_TYPE_NINTENDO_SWITCH_JOYCON_PAIR:
+                case SDL_CONTROLLER_TYPE_NINTENDO_SWITCH_JOYCON_LEFT:
+                case SDL_CONTROLLER_TYPE_NINTENDO_SWITCH_JOYCON_RIGHT:
+                    platform = GetSwitchSubPlatform();
+                    break;
+
+                default:
+                    platform = PLATFORM_XBOX360;
+                    break;
+            }
+        }
+    }
+    else if (platform == PLATFORM_SWITCH)
+    {
+        platform = GetSwitchSubPlatform();
+    }
+
+    M_UpdatePlatform(platform);
+}
+
 void I_FlushGamepadSensorEvents(void)
 {
     SDL_PumpEvents();
@@ -291,6 +373,8 @@ static void I_ShutdownGamepad(void)
 
 void I_InitGamepad(void)
 {
+    UpdatePlatform();
+
     if (!I_GamepadEnabled())
     {
         return;
@@ -329,6 +413,7 @@ void I_OpenGamepad(int which)
 
             I_ResetGamepad();
             I_LoadGyroCalibration();
+            UpdatePlatform();
             EnableGamepadEvents();
             MN_UpdateAllGamepadItems();
         }
@@ -357,6 +442,7 @@ void I_CloseGamepad(SDL_JoystickID instance_id)
         SDL_GameControllerClose(gamepad);
         gamepad = NULL;
         DisableGamepadEvents();
+        UpdatePlatform();
         I_ResetGamepad();
         MN_UpdateAllGamepadItems();
     }

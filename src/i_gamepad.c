@@ -45,6 +45,7 @@ enum
 };
 
 static boolean joy_enable;
+joy_platform_t joy_platform;
 static int joy_stick_layout;
 static int joy_forward_speed;
 static int joy_strafe_speed;
@@ -477,6 +478,9 @@ static void RefreshSettings(void)
 void I_BindGamepadVariables(void)
 {
     BIND_BOOL(joy_enable, true, "Enable gamepad");
+    BIND_NUM(joy_platform, PLATFORM_AUTO, PLATFORM_AUTO, NUM_PLATFORMS - 1,
+        "Gamepad platform (0 = Auto; 1 = Xbox 360; 2 = Xbox One/Series; "
+        "3 = Playstation 3; 4 = Playstation 4; 5 = Playstation 5; 6 = Switch)");
     BIND_NUM_GENERAL(joy_stick_layout, LAYOUT_DEFAULT, 0, NUM_LAYOUTS - 1,
         "Analog stick layout (0 = Off; 1 = Default; 2 = Southpaw; 3 = Legacy; "
         "4 = Legacy Southpaw; 5 = Flick Stick; 6 = Flick Stick Southpaw)");
