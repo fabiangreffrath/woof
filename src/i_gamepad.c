@@ -81,7 +81,7 @@ static int *raw_ptr[NUM_AXES];  // Pointers to raw data.
 
 static float GetInputValue(int value);
 
-float I_GetRawAxesScale(boolean move)
+void I_GetRawAxesScaleMenu(boolean move, float *scale, float *limit)
 {
     *raw_ptr[AXIS_LEFTX] = I_GetAxisState(SDL_CONTROLLER_AXIS_LEFTX);
     *raw_ptr[AXIS_LEFTY] = I_GetAxisState(SDL_CONTROLLER_AXIS_LEFTY);
@@ -91,7 +91,9 @@ float I_GetRawAxesScale(boolean move)
     const float x = GetInputValue(raw[move ? AXIS_STRAFE : AXIS_TURN]);
     const float y = GetInputValue(raw[move ? AXIS_FORWARD : AXIS_LOOK]);
     const float length = LENGTH_F(x, y);
-    return BETWEEN(0.0f, 0.5f, length) / 0.5f;
+
+    *scale = BETWEEN(0.0f, 0.5f, length) / 0.5f;
+    *limit = (move ? movement.inner_deadzone : camera.inner_deadzone) / 0.5f;
 }
 
 static void UpdateRawLayout(void)
