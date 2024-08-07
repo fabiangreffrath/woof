@@ -24,6 +24,7 @@
 #include "i_gyro.h"
 #include "i_printf.h"
 #include "i_system.h"
+#include "i_timer.h"
 #include "m_config.h"
 #include "m_input.h"
 #include "mn_menu.h"
@@ -153,26 +154,40 @@ void I_UpdateGamepad(evtype_t type, boolean axis_buttons)
 static void UpdateTouchState(boolean menu, boolean on)
 {
     static event_t ev = {.data1.i = GAMEPAD_TOUCHPAD_TOUCH};
+    static int touch_time;
 
     if (on)
     {
-        if (!menu)
+        if (menu)
+        {
+            touch_time = I_GetTimeMS();
+        }
+        else
         {
             ev.type = ev_joyb_down;
             D_PostEvent(&ev);
         }
     }
-    else if (menu) // Allow separate "touch" and "press" bindings.
-    {
-        ev.type = ev_joyb_down;
-        D_PostEvent(&ev);
-        ev.type = ev_joyb_up;
-        D_PostEvent(&ev);
-    }
     else
     {
-        ev.type = ev_joyb_up;
-        D_PostEvent(&ev);
+        if (menu)
+        {
+            // Allow separate "touch" and "press" bindings. Touch binding is
+            // registered after 100 ms to prevent accidental activation.
+            if (I_GetTimeMS() - touch_time > 100)
+            {
+
+                ev.type = ev_joyb_down;
+                D_PostEvent(&ev);
+                ev.type = ev_joyb_up;
+                D_PostEvent(&ev);
+            }
+        }
+        else
+        {
+            ev.type = ev_joyb_up;
+            D_PostEvent(&ev);
+        }
     }
 }
 
