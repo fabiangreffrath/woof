@@ -3728,13 +3728,14 @@ boolean MN_SetupResponder(menu_action_t action, int ch)
 
     if (default_verify)
     {
-        if (M_ToUpper(ch) == 'Y')
+        if (M_ToUpper(ch) == 'Y' || action == MENU_ENTER)
         {
             ResetDefaults();
             default_verify = false;
             SelectDone(current_item);
         }
-        else if (M_ToUpper(ch) == 'N')
+        else if (M_ToUpper(ch) == 'N' || action == MENU_BACKSPACE
+                 || action == MENU_ESCAPE)
         {
             default_verify = false;
             SelectDone(current_item);
