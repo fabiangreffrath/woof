@@ -346,18 +346,18 @@ void I_CalcGamepadAxes(boolean strafe)
     {
         CalcCamera(&camera, &axes[AXIS_TURN], &axes[AXIS_LOOK]);
         I_SetStickMoving(axes[AXIS_TURN] || axes[AXIS_LOOK]);
-        flick.reset = true;
+        I_SetPendingFlickStickReset(true);
         ScaleCamera(&camera, &axes[AXIS_TURN], &axes[AXIS_LOOK]);
     }
     else
     {
-        if (flick.reset)
+        if (I_PendingFlickStickReset())
         {
             I_ResetFlickStick();
         }
 
         I_CalcFlickStick(&camera, &axes[AXIS_TURN], &axes[AXIS_LOOK]);
-        I_SetStickMoving(flick.active);
+        I_SetStickMoving(I_FlickStickActive());
     }
 
     ResetData();
