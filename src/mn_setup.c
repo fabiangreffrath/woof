@@ -2462,7 +2462,7 @@ static void UpdateGyroAiming(void)
 {
     UpdateGamepadItems(); // Update padlook.
     UpdateGyroItems();
-    I_SetSensorEventState(I_UseGyroAiming());
+    I_SetSensorsEnabled(I_UseGyroAiming());
     I_ResetGamepad();
 }
 

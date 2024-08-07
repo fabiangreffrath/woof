@@ -553,26 +553,6 @@ static void I_GetEvent(void)
     }
 }
 
-static void I_GetSensorEvent(void)
-{
-    while (true)
-    {
-        const int num_events = SDL_PeepEvents(sdlevents, NUM_PEEP, SDL_GETEVENT,
-                                              SDL_CONTROLLERSENSORUPDATE,
-                                              SDL_CONTROLLERSENSORUPDATE);
-
-        if (num_events < 1)
-        {
-            break;
-        }
-
-        for (int i = 0; i < num_events; i++)
-        {
-            I_HandleSensorEvent(&sdlevents[i]);
-        }
-    }
-}
-
 static void UpdateMouseMenu(void)
 {
     static event_t ev;
@@ -647,6 +627,7 @@ void I_StartTic(void)
 
         if (I_UseGamepad())
         {
+            I_ReadGyro();
             I_UpdateGamepad(ev_joystick, true);
         }
     }
@@ -663,7 +644,7 @@ void I_StartDisplay(void)
 
     if (I_UseGamepad())
     {
-        I_GetSensorEvent();
+        I_ReadGyro();
         I_UpdateGamepad(ev_joystick, false);
     }
 }

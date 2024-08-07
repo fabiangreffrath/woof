@@ -125,6 +125,27 @@ static void TriggerToButtons(void)
                     &right_trigger_on, GAMEPAD_RIGHT_TRIGGER);
 }
 
+void I_ReadGyro(void)
+{
+    if (I_UseGyroAiming() && gyro_supported)
+    {
+        static event_t ev = {.type = ev_gyro};
+        static float data[3];
+
+        SDL_GameControllerGetSensorData(gamepad, SDL_SENSOR_ACCEL, data, 3);
+        data[0] /= SDL_STANDARD_GRAVITY;
+        data[1] /= SDL_STANDARD_GRAVITY;
+        data[2] /= SDL_STANDARD_GRAVITY;
+        I_UpdateAccelData(data);
+
+        SDL_GameControllerGetSensorData(gamepad, SDL_SENSOR_GYRO, data, 3);
+        ev.data1.f = data[0];
+        ev.data2.f = data[1];
+        ev.data3.f = data[2];
+        D_PostEvent(&ev);
+    }
+}
+
 void I_UpdateGamepad(evtype_t type, boolean axis_buttons)
 {
     static event_t ev;
@@ -319,6 +340,16 @@ void I_FlushGamepadEvents(void)
 
 void I_SetSensorEventState(boolean condition)
 {
+    if (I_GamepadEnabled())
+    {
+        SDL_EventState(SDL_CONTROLLERSENSORUPDATE,
+                       condition && gyro_supported ? SDL_ENABLE : SDL_IGNORE);
+        I_FlushGamepadSensorEvents();
+    }
+}
+
+void I_SetSensorsEnabled(boolean condition)
+{
     gyro_supported =
         (gamepad && SDL_GameControllerHasSensor(gamepad, SDL_SENSOR_ACCEL)
          && SDL_GameControllerHasSensor(gamepad, SDL_SENSOR_GYRO));
@@ -327,11 +358,11 @@ void I_SetSensorEventState(boolean condition)
     {
         SDL_GameControllerSetSensorEnabled(gamepad, SDL_SENSOR_ACCEL, SDL_TRUE);
         SDL_GameControllerSetSensorEnabled(gamepad, SDL_SENSOR_GYRO, SDL_TRUE);
-        SDL_EventState(SDL_CONTROLLERSENSORUPDATE, SDL_ENABLE);
     }
-    else
+    else if (gamepad)
     {
-        SDL_EventState(SDL_CONTROLLERSENSORUPDATE, SDL_IGNORE);
+        SDL_GameControllerSetSensorEnabled(gamepad, SDL_SENSOR_ACCEL, SDL_FALSE);
+        SDL_GameControllerSetSensorEnabled(gamepad, SDL_SENSOR_GYRO, SDL_FALSE);
     }
 }
 
@@ -357,7 +388,7 @@ static void EnableGamepadEvents(void)
     SDL_EventState(SDL_CONTROLLERBUTTONDOWN, SDL_ENABLE);
     SDL_EventState(SDL_CONTROLLERBUTTONUP, SDL_ENABLE);
     SetTouchEventState(true);
-    I_SetSensorEventState(I_UseGyroAiming());
+    I_SetSensorsEnabled(I_UseGyroAiming());
 }
 
 static void DisableGamepadEvents(void)
@@ -368,7 +399,7 @@ static void DisableGamepadEvents(void)
     SDL_EventState(SDL_CONTROLLERBUTTONDOWN, SDL_IGNORE);
     SDL_EventState(SDL_CONTROLLERBUTTONUP, SDL_IGNORE);
     SetTouchEventState(false);
-    I_SetSensorEventState(false);
+    I_SetSensorsEnabled(false);
 
     // Always ignore unsupported gamepad events.
     SDL_EventState(SDL_JOYAXISMOTION, SDL_IGNORE);
@@ -379,6 +410,7 @@ static void DisableGamepadEvents(void)
     SDL_EventState(SDL_CONTROLLERAXISMOTION, SDL_IGNORE);
     SDL_EventState(SDL_CONTROLLERDEVICEREMAPPED, SDL_IGNORE);
     SDL_EventState(SDL_CONTROLLERTOUCHPADMOTION, SDL_IGNORE);
+    SDL_EventState(SDL_CONTROLLERSENSORUPDATE, SDL_IGNORE);
 }
 
 static void I_ShutdownGamepad(void)
@@ -481,9 +513,9 @@ static float GetDeltaTime(const SDL_ControllerSensorEvent *csensor,
                           uint64_t *last_time)
 {
     const uint64_t sens_time = GetSensorTimeUS(csensor);
-    const float dt = *last_time ? (sens_time - *last_time) * 1.0e-6f : 0.0f;
+    const float dt = (sens_time - *last_time) * 1.0e-6f;
     *last_time = sens_time;
-    return dt;
+    return BETWEEN(0.0f, 0.05f, dt);
 }
 
 static void UpdateGyroState(const SDL_ControllerSensorEvent *csensor)
@@ -491,10 +523,10 @@ static void UpdateGyroState(const SDL_ControllerSensorEvent *csensor)
     static event_t ev = {.type = ev_gyro};
     static uint64_t last_time;
 
-    ev.data1.f = GetDeltaTime(csensor, &last_time);
-    ev.data2.f = csensor->data[0];
-    ev.data3.f = csensor->data[1];
-    ev.data4.f = csensor->data[2];
+    ev.data1.f = csensor->data[0];
+    ev.data2.f = csensor->data[1];
+    ev.data3.f = csensor->data[2];
+    ev.data4.f = GetDeltaTime(csensor, &last_time);
 
     D_PostEvent(&ev);
 }

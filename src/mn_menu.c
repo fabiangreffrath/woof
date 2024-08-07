@@ -38,6 +38,7 @@
 #include "g_game.h"
 #include "hu_lib.h"
 #include "hu_stuff.h"
+#include "i_input.h"
 #include "i_printf.h"
 #include "i_system.h"
 #include "i_timer.h"
@@ -1915,6 +1916,7 @@ void MN_ClearMenus(void)
     // if (!netgame && usergame && paused)
     //     sendpause = true;
 
+    I_SetSensorEventState(false);
     G_ClearInput();
 }
 
@@ -2749,6 +2751,7 @@ boolean M_Responder(event_t *ev)
             messageRoutine(ch);
         }
 
+        I_SetSensorEventState(false);
         G_ClearInput();
         menuactive = false;
         M_StartSound(sfx_swtchx);
@@ -3032,6 +3035,7 @@ void MN_StartControlPanel(void)
     highlight_item = 0;
     print_warning_about_changes = false; // killough 11/98
 
+    I_SetSensorEventState(true);
     G_ClearInput();
 }
 

@@ -47,6 +47,7 @@ typedef enum action_e
 
 typedef struct motion_s
 {
+    uint64_t last_time;                 // Last update time (us).
     float delta_time;                   // Gyro delta time (seconds).
     vec gyro;                           // Gyro pitch, yaw, roll.
     vec gyro_offset;                    // Calibration offsets for gyro.
@@ -86,7 +87,6 @@ typedef enum gyro_calibration_state_e
 } gyro_calibration_state_t;
 
 gyro_calibration_state_t I_GetGyroCalibrationState(void);
-boolean I_DefaultGyroCalibration(void);
 void I_LoadGyroCalibration(void);
 void I_UpdateGyroCalibrationState(void);
 

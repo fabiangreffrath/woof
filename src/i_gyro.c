@@ -28,6 +28,7 @@
 #include <string.h>
 
 #include "i_gyro.h"
+#include "i_input.h"
 #include "i_printf.h"
 #include "g_game.h"
 #include "i_gamepad.h"
@@ -110,12 +111,6 @@ calibration_t cal;
 gyro_calibration_state_t I_GetGyroCalibrationState(void)
 {
     return cal.state;
-}
-
-boolean I_DefaultGyroCalibration(void)
-{
-    return (!gyro_calibration_a && !gyro_calibration_x && !gyro_calibration_y
-            && !gyro_calibration_z);
 }
 
 static void ClearGyroCalibration(void)
@@ -565,6 +560,14 @@ static void ApplyCalibration(void)
     motion.gyro = vec_subtract(&motion.gyro, &motion.gyro_offset);
 }
 
+static float GetDeltaTime(void)
+{
+    const uint64_t current_time = I_GetTimeUS();
+    float delta_time = (current_time - motion.last_time) * 1.0e-6f;
+    motion.last_time = current_time;
+    return BETWEEN(0.0f, 0.05f, delta_time);
+}
+
 //
 // I_UpdateGyroData
 //
@@ -574,13 +577,14 @@ static void ApplyCalibration(void)
 
 void I_UpdateGyroData(const event_t *ev)
 {
-    motion.delta_time = ev->data1.f;
-    motion.gyro.x = ev->data2.f; // pitch
-    motion.gyro.y = ev->data3.f; // yaw
-    motion.gyro.z = ev->data4.f; // roll
+    motion.delta_time = GetDeltaTime();
+    motion.gyro.x = ev->data1.f; // pitch
+    motion.gyro.y = ev->data2.f; // yaw
+    motion.gyro.z = ev->data3.f; // roll
 
     if (motion.calibrating)
     {
+        motion.delta_time = ev->data4.f;
         ProcessGyroCalibration();
     }
 
