@@ -36,6 +36,7 @@
 #include "i_video.h"
 #include "m_config.h"
 #include "m_input.h"
+#include "m_vector.h"
 
 #define CALBITS 24 // 8.24 fixed-point.
 #define CALUNIT (1 << CALBITS)
@@ -43,6 +44,8 @@
 #define CFG2CAL(x) ((x) / (double)CALUNIT)
 
 #define DEFAULT_ACCEL 1.0f // Default accelerometer magnitude.
+
+#define NUM_SAMPLES 256 // Smoothing samples.
 
 #define SMOOTH_HALF_TIME 4.0f // 1/0.25
 
@@ -76,6 +79,15 @@ enum
     NUM_GYRO_AIMING,
 };
 
+typedef enum
+{
+    ACTION_NONE,
+    ACTION_DISABLE,
+    ACTION_ENABLE,
+
+    NUM_ACTIONS
+} action_t;
+
 static int gyro_aiming;
 static int gyro_button_action;
 static int gyro_stick_action;
@@ -93,7 +105,39 @@ static fixed_t gyro_calibration_y;
 static fixed_t gyro_calibration_z;
 
 float gyro_axes[NUM_GYRO_AXES];
-motion_t motion;
+
+typedef struct motion_s
+{
+    uint64_t last_time;                 // Last update time (us).
+    float delta_time;                   // Gyro delta time (seconds).
+    vec gyro;                           // Gyro pitch, yaw, roll.
+    vec gyro_offset;                    // Calibration offsets for gyro.
+    vec accel;                          // Accelerometer x, y, z.
+    float accel_magnitude;              // Accelerometer magnitude.
+    boolean calibrating;                // Currently calibrating?
+    vec gravity;                        // Gravity vector.
+    vec smooth_accel;                   // Smoothed acceleration.
+    float shakiness;                    // Shakiness.
+    boolean stick_moving;               // Moving the camera stick?
+    int index;                          // Smoothing sample index.
+    float pitch_samples[NUM_SAMPLES];   // Pitch smoothing samples.
+    float yaw_samples[NUM_SAMPLES];     // Yaw smoothing samples.
+
+    action_t button_action;             // Gyro button action.
+    action_t stick_action;              // Camera stick action.
+    float smooth_time;                  // Smoothing window (seconds);
+    float lower_smooth;                 // Lower smoothing threshold (rad/s).
+    float upper_smooth;                 // Upper smoothing threshold (rad/s).
+    float tightening;                   // Tightening threshold (rad/s).
+    float min_pitch_sens;               // Min pitch sensitivity.
+    float max_pitch_sens;               // Max pitch sensitivity.
+    float min_yaw_sens;                 // Min yaw sensitivity.
+    float max_yaw_sens;                 // Max yaw sensitivity.
+    float accel_min_thresh;             // Lower threshold for accel (rad/s).
+    float accel_max_thresh;             // Upper threshold for accel (rad/s).
+} motion_t;
+
+static motion_t motion;
 
 typedef struct
 {
@@ -214,6 +258,11 @@ void I_UpdateGyroCalibrationState(void)
 boolean I_UseGyroAiming(void)
 {
     return (gyro_aiming > GYRO_AIMING_OFF);
+}
+
+void I_SetStickMoving(boolean condition)
+{
+    motion.stick_moving = condition;
 }
 
 static boolean GyroActive(void)

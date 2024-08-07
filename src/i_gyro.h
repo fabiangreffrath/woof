@@ -30,54 +30,10 @@
 
 #include "doomkeys.h"
 #include "doomtype.h"
-#include "m_vector.h"
-
-#define NUM_SAMPLES 256
 
 struct event_s;
 
-typedef enum action_e
-{
-    ACTION_NONE,
-    ACTION_DISABLE,
-    ACTION_ENABLE,
-
-    NUM_ACTIONS
-} action_t;
-
-typedef struct motion_s
-{
-    uint64_t last_time;                 // Last update time (us).
-    float delta_time;                   // Gyro delta time (seconds).
-    vec gyro;                           // Gyro pitch, yaw, roll.
-    vec gyro_offset;                    // Calibration offsets for gyro.
-    vec accel;                          // Accelerometer x, y, z.
-    float accel_magnitude;              // Accelerometer magnitude.
-    boolean calibrating;                // Currently calibrating?
-    vec gravity;                        // Gravity vector.
-    vec smooth_accel;                   // Smoothed acceleration.
-    float shakiness;                    // Shakiness.
-    boolean stick_moving;               // Moving the camera stick?
-    int index;                          // Smoothing sample index.
-    float pitch_samples[NUM_SAMPLES];   // Pitch smoothing samples.
-    float yaw_samples[NUM_SAMPLES];     // Yaw smoothing samples.
-
-    action_t button_action;             // Gyro button action.
-    action_t stick_action;              // Camera stick action.
-    float smooth_time;                  // Smoothing window (seconds);
-    float lower_smooth;                 // Lower smoothing threshold (rad/s).
-    float upper_smooth;                 // Upper smoothing threshold (rad/s).
-    float tightening;                   // Tightening threshold (rad/s).
-    float min_pitch_sens;               // Min pitch sensitivity.
-    float max_pitch_sens;               // Max pitch sensitivity.
-    float min_yaw_sens;                 // Min yaw sensitivity.
-    float max_yaw_sens;                 // Max yaw sensitivity.
-    float accel_min_thresh;             // Lower threshold for accel (rad/s).
-    float accel_max_thresh;             // Upper threshold for accel (rad/s).
-} motion_t;
-
 extern float gyro_axes[NUM_GYRO_AXES];  // Calculated gyro values.
-extern motion_t motion;
 
 typedef enum gyro_calibration_state_e
 {
@@ -91,6 +47,7 @@ void I_LoadGyroCalibration(void);
 void I_UpdateGyroCalibrationState(void);
 
 boolean I_UseGyroAiming(void);
+void I_SetStickMoving(boolean condition);
 float I_GetRawGyroScale(void);
 void I_CalcGyroAxes(boolean strafe);
 void I_UpdateGyroData(const struct event_s *ev);
