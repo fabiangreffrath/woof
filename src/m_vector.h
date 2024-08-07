@@ -132,7 +132,7 @@ inline static vec vec_normalize(const vec *v)
 //
 // Is this a zero vector?
 //
-inline static int is_zero_vec(const vec *v)
+inline static boolean is_zero_vec(const vec *v)
 {
     return (v->x == 0.0f && v->y == 0.0f && v->z == 0.0f);
 }

@@ -527,11 +527,11 @@ static void ProcessEvent(SDL_Event *ev)
     }
 }
 
-#define NUM_PEEP 32
-static SDL_Event sdlevents[NUM_PEEP];
-
 static void I_GetEvent(void)
 {
+    #define NUM_PEEP 32
+    static SDL_Event sdlevents[NUM_PEEP];
+
     I_DelayEvent();
 
     SDL_PumpEvents();

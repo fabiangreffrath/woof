@@ -345,10 +345,6 @@ void M_UpdatePlatform(joy_platform_t platform)
 
     switch ((int)platform)
     {
-        case PLATFORM_AUTO:
-        case PLATFORM_XBOX360:
-            break;
-
         case PLATFORM_XBOXONE:
             JOYB_COPY(GAMEPAD_BACK, "view");
             JOYB_COPY(GAMEPAD_GUIDE, "xbbutton");
