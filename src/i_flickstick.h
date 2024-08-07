@@ -30,42 +30,11 @@
 
 #include "doomtype.h"
 
-#define NUM_SAMPLES 256
-
 struct axes_s;
 
-typedef enum flick_mode_e
-{
-    MODE_DEFAULT,
-    MODE_FLICK_ONLY,
-    MODE_ROTATE_ONLY,
-
-    NUM_FLICK_MODES
-} flick_mode_t;
-
-typedef struct flick_s
-{
-    boolean reset;              // Reset pending?
-    boolean active;             // Flick or rotation active?
-    float lastx;                // Last read x input.
-    float lasty;                // Last read y input.
-    uint64_t start_time;        // Time when flick started (us).
-    float target_angle;         // Target angle for current flick (radians).
-    float percent;              // Percent complete for current flick.
-    int index;                  // Smoothing sample index.
-    float samples[NUM_SAMPLES]; // Smoothing samples.
-
-    flick_mode_t mode;          // Flick mode.
-    float time;                 // Time required to execute a flick (us).
-    float lower_smooth;         // Lower smoothing threshold (rotations/s).
-    float upper_smooth;         // Upper smoothing threshold (rotations/s).
-    float rotation_speed;       // Rotation speed.
-    float deadzone;             // Normalized outer deadzone.
-    float forward_deadzone;     // Forward deadzone angle (radians).
-    float snap;                 // Snap angle (radians).
-} flick_t;
-
-extern flick_t flick;
+boolean I_FlickStickActive(void);
+boolean I_PendingFlickStickReset(void);
+void I_SetPendingFlickStickReset(boolean condition);
 
 void I_CalcFlickStick(struct axes_s *ax, float *xaxis, float *yaxis);
 void I_ResetFlickStick(void);
