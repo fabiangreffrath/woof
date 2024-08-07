@@ -48,7 +48,7 @@ void I_UpdateGyroCalibrationState(void);
 
 boolean I_UseGyroAiming(void);
 void I_SetStickMoving(boolean condition);
-float I_GetRawGyroScale(void);
+void I_GetRawGyroScaleMenu(float *scale, float *limit);
 void I_CalcGyroAxes(boolean strafe);
 void I_UpdateGyroData(const struct event_s *ev);
 void I_UpdateAccelData(const float *data);

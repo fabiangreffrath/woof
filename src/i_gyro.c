@@ -444,10 +444,42 @@ static void SmoothGyro_Full(void)
 
 static float raw[2];
 
-float I_GetRawGyroScale(void)
+static float SmoothGyroScaleMenu(float raw_scale)
+{
+    #define SCALE_SMOOTH_TIME 0.125f
+    static int scale_index;
+    static float scale_samples[NUM_SAMPLES];
+    static uint64_t last_time;
+
+    scale_index = (scale_index + (NUM_SAMPLES - 1)) % NUM_SAMPLES;
+    scale_samples[scale_index] = raw_scale;
+
+    uint64_t current_time = I_GetTimeUS();
+    float delta_time = (current_time - last_time) * 1.0e-6f;
+    delta_time = BETWEEN(1.0e-6f, SCALE_SMOOTH_TIME, delta_time);
+    last_time = current_time;
+
+    int max_samples = lroundf(SCALE_SMOOTH_TIME / delta_time);
+    max_samples = BETWEEN(1, NUM_SAMPLES, max_samples);
+
+    float smooth_scale = scale_samples[scale_index] / max_samples;
+
+    for (int i = 1; i < max_samples; i++)
+    {
+        const int index = (scale_index + i) % NUM_SAMPLES;
+        smooth_scale += scale_samples[index] / max_samples;
+    }
+
+    return BETWEEN(0.0f, 1.0f, smooth_scale);
+}
+
+void I_GetRawGyroScaleMenu(float *scale, float *limit)
 {
     const float deg_per_sec = LENGTH_F(raw[0], raw[1]) * 180.0f / PI_F;
-    return BETWEEN(0.0f, 10.0f, deg_per_sec) / 10.0f;
+    const float raw_scale = BETWEEN(0.0f, 10.0f, deg_per_sec) / 10.0f;
+    // Smooth the result for accessibility reasons.
+    *scale = SmoothGyroScaleMenu(raw_scale);
+    *limit = gyro_smooth_threshold / 100.0f;
 }
 
 static void SaveRawGyroData(void)

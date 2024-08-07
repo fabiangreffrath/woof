@@ -611,7 +611,7 @@ static char
 
 static void (*DrawIndicator)(const setup_menu_t *s, int x, int y, int width);
 
-static void DrawIndicator_Dot(const setup_menu_t *s, int x, int y, int width)
+static void DrawIndicator_Meter(const setup_menu_t *s, int x, int y, int width)
 {
     const int flags = s->m_flags;
 
@@ -619,24 +619,28 @@ static void DrawIndicator_Dot(const setup_menu_t *s, int x, int y, int width)
     {
         const char *name = s->var.def->name;
         float scale = 0.0f;
+        float limit = 0.0f;
 
         if (!strcasecmp(name, "joy_movement_inner_deadzone"))
         {
-            scale = I_GetRawAxesScale(true);
+            I_GetRawAxesScaleMenu(true, &scale, &limit);
         }
         else if (!strcasecmp(name, "joy_camera_inner_deadzone"))
         {
-            scale = I_GetRawAxesScale(false);
+            I_GetRawAxesScaleMenu(false, &scale, &limit);
         }
         else if (!strcasecmp(name, "gyro_smooth_threshold"))
         {
-            scale = I_GetRawGyroScale();
+            I_GetRawGyroScaleMenu(&scale, &limit);
         }
 
         if (scale > 0.0f)
         {
-            x += lroundf(width * scale);
-            MN_DrawString(x, y, CR_GRAY, ".");
+            const byte shade = cr_shaded[v_lightest_color];
+            const byte color = scale < limit    ? cr_green[shade]
+                               : scale >= 0.99f ? cr_red[shade]
+                                                : cr_gold[shade];
+            V_FillRect(x, y, lroundf(width * scale), 1, color);
         }
     }
 }
@@ -668,7 +672,8 @@ static void DrawSetupThermo(const setup_menu_t *s, int x, int y, int width,
 
     if (DrawIndicator)
     {
-        DrawIndicator(s, x + M_THRM_STEP, y + 1, xx - x - 2 * M_THRM_STEP);
+        DrawIndicator(s, x + M_THRM_STEP + video.deltaw, y + patch->height / 2,
+                      xx - x - M_THRM_STEP);
     }
 
     V_DrawPatchTranslated(x + M_THRM_STEP + dot * step / FRACUNIT, y,
@@ -2786,7 +2791,7 @@ void MN_DrawGeneral(void)
         && ((current_menu == gen_settings4 && I_UseStickLayout())
             || (current_menu == gen_gyro && I_UseGyroAiming())))
     {
-        DrawIndicator = DrawIndicator_Dot;
+        DrawIndicator = DrawIndicator_Meter;
     }
     else
     {
