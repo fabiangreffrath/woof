@@ -270,18 +270,10 @@ static void UpdatePlatform(void)
 
     if (platform == PLATFORM_AUTO)
     {
-        if (gamepad == NULL)
+        if (gamepad != NULL)
         {
-            platform = PLATFORM_XBOX360;
-        }
-        else
-        {
-            switch (SDL_GameControllerGetType(gamepad))
+            switch ((int)SDL_GameControllerGetType(gamepad))
             {
-                case SDL_CONTROLLER_TYPE_XBOX360:
-                    platform = PLATFORM_XBOX360;
-                    break;
-
                 case SDL_CONTROLLER_TYPE_XBOXONE:
                     platform = PLATFORM_XBOXONE;
                     break;
@@ -303,10 +295,6 @@ static void UpdatePlatform(void)
                 case SDL_CONTROLLER_TYPE_NINTENDO_SWITCH_JOYCON_LEFT:
                 case SDL_CONTROLLER_TYPE_NINTENDO_SWITCH_JOYCON_RIGHT:
                     platform = GetSwitchSubPlatform();
-                    break;
-
-                default:
-                    platform = PLATFORM_XBOX360;
                     break;
             }
         }
