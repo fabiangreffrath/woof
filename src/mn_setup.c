@@ -3458,7 +3458,8 @@ static boolean ChangeEntry(menu_action_t action, int ch)
     int flags = current_item->m_flags;
     default_t *def = current_item->var.def;
 
-    if (action == MENU_ESCAPE) // Exit key = no change
+    if (action == MENU_ESCAPE  // Exit key = no change
+        || (action == MENU_BACKSPACE && !(flags & S_INPUT)))
     {
         if (flags & (S_CHOICE | S_CRITEM | S_THERMO) && setup_cancel != -1)
         {
