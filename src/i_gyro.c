@@ -84,8 +84,7 @@ typedef enum
     ACTION_NONE,
     ACTION_DISABLE,
     ACTION_ENABLE,
-
-    NUM_ACTIONS
+    ACTION_INVERT,
 } action_t;
 
 static int gyro_aiming;
@@ -320,6 +319,13 @@ void I_CalcGyroAxes(boolean strafe)
         else
         {
             gyro_axes[GYRO_LOOK] = 0.0f;
+        }
+
+        if (motion.button_action == ACTION_INVERT
+            && M_InputGameActive(input_gyro))
+        {
+            gyro_axes[GYRO_TURN] = -gyro_axes[GYRO_TURN];
+            gyro_axes[GYRO_LOOK] = -gyro_axes[GYRO_LOOK];
         }
     }
     else
@@ -790,10 +796,11 @@ void I_BindGyroVaribales(void)
         "Gamepad gyro aiming (0 = Off; 1 = Player Turn; 2 = Player Lean; "
         "3 = Local Turn; 4 = Local Lean)");
     BIND_NUM_GENERAL(gyro_button_action,
-        ACTION_ENABLE, ACTION_NONE, NUM_ACTIONS - 1,
-        "Gyro button action (0 = None; 1 = Disable Gyro; 2 = Enable Gyro)");
+        ACTION_ENABLE, ACTION_NONE, ACTION_INVERT,
+        "Gyro button action (0 = None; 1 = Disable Gyro; 2 = Enable Gyro; "
+        "3 = Invert)");
     BIND_NUM_GENERAL(gyro_stick_action,
-        ACTION_NONE, ACTION_NONE, NUM_ACTIONS - 1,
+        ACTION_NONE, ACTION_NONE, ACTION_ENABLE,
         "Camera stick action (0 = None; 1 = Disable Gyro; 2 = Enable Gyro)");
     BIND_NUM_GENERAL(gyro_turn_speed, 10, 0, 100,
         "Gyro turn speed (0 = 0.0x; 100 = 10.0x)");
