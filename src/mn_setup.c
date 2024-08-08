@@ -2483,6 +2483,7 @@ static const char *gyro_action_strings[] = {
     "None",
     "Disable Gyro",
     "Enable Gyro",
+    "Invert"
 };
 
 #define GYRO_SENS_STRINGS_SIZE (100 + 1)
