@@ -101,7 +101,7 @@ jobs:
         if: github.event_name == 'workflow_dispatch'
         run: |
           cd demotest
-          pip install pyyaml joblib
+          pip --break-system-packages install pyyaml joblib
           python3 demotest --jobs 4 --port ../build/src/woof
 
       - name: Install
