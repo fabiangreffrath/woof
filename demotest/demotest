@@ -9,7 +9,11 @@ from zipfile import ZipFile
 from argparse import ArgumentParser
 
 import yaml
-from joblib import Parallel, delayed
+try:
+    from joblib import Parallel, delayed
+    have_joblib = True
+except ImportError:
+    have_joblib = False
 
 EXTRACT_DIR = 'extract'
 EXPECTED_DIR = 'expected'
@@ -105,7 +109,10 @@ def run_program(args):
     os.environ['SDL_VIDEODRIVER'] = 'dummy'
     os.environ['DOOMWADDIR'] = str(Path(Path().resolve(), EXTRACT_DIR))
 
-    Parallel(n_jobs=args.jobs)(delayed(call_port)(source_port, record) for record in config)
+    if have_joblib:
+        Parallel(n_jobs=args.jobs)(delayed(call_port)(source_port, record) for record in config)
+    else:
+        for record in config: call_port(source_port, record)
 
     differecies = False
 
