@@ -100,8 +100,10 @@ static void TicToHudCmd(hud_cmd_t *hud_cmd, const ticcmd_t *cmd)
 
         if (cmd->buttons & BT_CHANGE)
         {
+            const int bt_weaponmask = demo_compatibility ?
+                                      BT_WEAPONMASK_OLD : BT_WEAPONMASK;
             hud_cmd->change =
-                1 + ((cmd->buttons & BT_WEAPONMASK) >> BT_WEAPONSHIFT);
+                1 + ((cmd->buttons & bt_weaponmask) >> BT_WEAPONSHIFT);
         }
         else
         {
