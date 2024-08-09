@@ -51,7 +51,8 @@ jobs:
             libopenal-dev \
             libsndfile1-dev \
             libfluidsynth-dev \
-            libxmp-dev
+            libxmp-dev \
+            pipx
 
       - name: Install dependencies (macOS)
         if: runner.os == 'macOS'
@@ -63,7 +64,8 @@ jobs:
             openal-soft \
             libsndfile \
             fluid-synth \
-            libxmp
+            libxmp \
+            pipx
 
       - name: Install dependencies (MSYS2)
         if: matrix.config.shell == 'msys2 {0}'
@@ -101,7 +103,7 @@ jobs:
         if: github.event_name == 'workflow_dispatch'
         run: |
           cd demotest
-          pip install pyyaml joblib
+          pipx install pyyaml joblib | pip install pyyaml joblib
           python3 demotest --jobs 4 --port ../build/src/woof
 
       - name: Install
