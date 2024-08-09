@@ -1309,7 +1309,7 @@ boolean M_CheatResponder(event_t *ev)
   if (strictmode && demorecording)
     return false;
 
-  if (ev->type == ev_keydown && M_FindCheats(ev->data1))
+  if (ev->type == ev_keydown && M_FindCheats(ev->data1.i))
     return true;
 
   for (i = 0; i < arrlen(cheat_input); ++i)

@@ -483,18 +483,27 @@ static void ProcessEvent(SDL_Event *ev)
             break;
 
         case SDL_CONTROLLERDEVICEADDED:
-            I_OpenController(ev->cdevice.which);
+            I_OpenGamepad(ev->cdevice.which);
             break;
 
         case SDL_CONTROLLERDEVICEREMOVED:
-            I_CloseController(ev->cdevice.which);
+            I_CloseGamepad(ev->cdevice.which);
             break;
 
         case SDL_CONTROLLERBUTTONDOWN:
         case SDL_CONTROLLERBUTTONUP:
-            if (I_UseController())
+        case SDL_CONTROLLERTOUCHPADDOWN:
+        case SDL_CONTROLLERTOUCHPADUP:
+            if (I_UseGamepad())
             {
-                I_HandleJoystickEvent(ev);
+                I_HandleGamepadEvent(ev, menuactive);
+            }
+            break;
+
+        case SDL_CONTROLLERSENSORUPDATE:
+            if (I_UseGamepad())
+            {
+                I_HandleSensorEvent(ev);
             }
             break;
 
@@ -518,10 +527,9 @@ static void ProcessEvent(SDL_Event *ev)
     }
 }
 
-#define NUM_PEEP 32
-
 static void I_GetEvent(void)
 {
+    #define NUM_PEEP 32
     static SDL_Event sdlevents[NUM_PEEP];
 
     I_DelayEvent();
@@ -560,12 +568,12 @@ static void UpdateMouseMenu(void)
     SDL_RenderGetViewport(renderer, &rect);
     if (SDL_RectEquals(&rect, &old_rect))
     {
-        ev.data1 = 0;
+        ev.data1.i = 0;
     }
     else
     {
         old_rect = rect;
-        ev.data1 = EV_RESIZE_VIEWPORT;
+        ev.data1.i = EV_RESIZE_VIEWPORT;
     }
 
     float scalex, scaley;
@@ -588,8 +596,8 @@ static void UpdateMouseMenu(void)
     }
 
     ev.type = ev_mouse_state;
-    ev.data2 = x;
-    ev.data3 = y;
+    ev.data2.i = x;
+    ev.data3.i = y;
 
     D_PostEvent(&ev);
 }
@@ -605,9 +613,9 @@ void I_StartTic(void)
     {
         UpdateMouseMenu();
 
-        if (I_UseController())
+        if (I_UseGamepad())
         {
-            I_UpdateJoystick(ev_joystick_state, true);
+            I_UpdateGamepad(ev_joystick_state, true);
         }
     }
     else
@@ -617,9 +625,10 @@ void I_StartTic(void)
             I_ReadMouse();
         }
 
-        if (I_UseController())
+        if (I_UseGamepad())
         {
-            I_UpdateJoystick(ev_joystick, true);
+            I_ReadGyro();
+            I_UpdateGamepad(ev_joystick, true);
         }
     }
 }
@@ -633,9 +642,10 @@ void I_StartDisplay(void)
         I_ReadMouse();
     }
 
-    if (I_UseController())
+    if (I_UseGamepad())
     {
-        I_UpdateJoystick(ev_joystick, false);
+        I_ReadGyro();
+        I_UpdateGamepad(ev_joystick, false);
     }
 }
 

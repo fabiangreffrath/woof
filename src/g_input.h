@@ -18,6 +18,8 @@
 #ifndef __G_INPUT__
 #define __G_INPUT__
 
+#include "doomtype.h"
+
 // Side Movement
 
 void G_UpdateSideMove(void);
@@ -35,13 +37,13 @@ int G_CarryVert(double vert);
 
 // Gamepad
 
-void G_UpdateControllerVariables(void);
-void G_UpdateDeltaTics(void);
-double G_CalcControllerAngle(void);
-double G_CalcControllerPitch(void);
-int G_CalcControllerSideTurn(int speed);
-int G_CalcControllerSideStrafe(int speed);
-int G_CalcControllerForward(int speed);
+void G_UpdateGamepadVariables(void);
+void G_UpdateDeltaTics(uint64_t delta_time);
+extern double (*G_CalcGamepadAngle)(void);
+double G_CalcGamepadPitch(void);
+int G_CalcGamepadSideTurn(int speed);
+int G_CalcGamepadSideStrafe(int speed);
+int G_CalcGamepadForward(int speed);
 
 // Mouse
 
