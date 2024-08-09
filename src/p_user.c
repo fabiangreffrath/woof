@@ -482,6 +482,7 @@ void P_PlayerThink (player_t* player)
 
       if (demo_compatibility)
 	{ // compatibility mode -- required for old demos -- killough
+	  newweapon = (cmd->buttons & BT_WEAPONMASK_OLD) >> BT_WEAPONSHIFT;
 	  if (newweapon == wp_fist && player->weaponowned[wp_chainsaw] &&
 	      (player->readyweapon != wp_chainsaw ||
 	       !player->powers[pw_strength]))
