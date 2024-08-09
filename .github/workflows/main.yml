@@ -97,11 +97,15 @@ jobs:
       - name: Build
         run: cmake --build build
 
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+
       - name: Test
         if: github.event_name == 'workflow_dispatch'
         run: |
           cd demotest
-          PIP_BREAK_SYSTEM_PACKAGES=1 pip install pyyaml joblib
+          pip install pyyaml joblib
           python3 demotest --jobs 4 --port ../build/src/woof
 
       - name: Install
