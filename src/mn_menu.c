@@ -38,6 +38,7 @@
 #include "g_game.h"
 #include "hu_lib.h"
 #include "hu_stuff.h"
+#include "i_printf.h"
 #include "i_system.h"
 #include "i_timer.h"
 #include "i_video.h"
@@ -467,6 +468,8 @@ enum
     ep_end
 } episodes_e;
 
+#define MAX_EPISODES 10 // [FG] UMAPINFO spec says 8, but oh well...
+
 // The definitions of the Episodes menu
 
 #define M_Y_EPISODES 63
@@ -474,7 +477,7 @@ enum
 #define EPISODES_RECT(n) \
     {0, M_Y_EPISODES + (n) * LINEHEIGHT, SCREENWIDTH, LINEHEIGHT}
 
-static menuitem_t EpisodeMenu[] = // added a few free entries for UMAPINFO
+static menuitem_t EpisodeMenu[MAX_EPISODES] = // added a few free entries for UMAPINFO
 {
     {1, "M_EPI1", M_Episode, 'k', "Knee-Deep in the Dead", EPISODES_RECT(0)},
     {1, "M_EPI2", M_Episode, 't', "The Shores of Hell",    EPISODES_RECT(1)},
@@ -483,7 +486,9 @@ static menuitem_t EpisodeMenu[] = // added a few free entries for UMAPINFO
     {1, "",       M_Episode, '0', NULL, EPISODES_RECT(4)},
     {1, "",       M_Episode, '0', NULL, EPISODES_RECT(5)},
     {1, "",       M_Episode, '0', NULL, EPISODES_RECT(6)},
-    {1, "",       M_Episode, '0', NULL, EPISODES_RECT(7)}
+    {1, "",       M_Episode, '0', NULL, EPISODES_RECT(7)},
+    {1, "",       M_Episode, '0', NULL, EPISODES_RECT(8)},
+    {1, "",       M_Episode, '0', NULL, EPISODES_RECT(9)}
 };
 
 static menu_t EpiDef = {
@@ -497,8 +502,8 @@ static menu_t EpiDef = {
 
 // This is for customized episode menus
 boolean EpiCustom;
-static short EpiMenuMap[] = {1, 1, 1, 1, -1, -1, -1, -1};
-static short EpiMenuEpi[] = {1, 2, 3, 4, -1, -1, -1, -1};
+static short EpiMenuMap[MAX_EPISODES] = {1, 1, 1, 1, -1, -1, -1, -1, -1, -1};
+static short EpiMenuEpi[MAX_EPISODES] = {1, 2, 3, 4, -1, -1, -1, -1, -1, -1};
 
 //
 //    M_Episode
@@ -527,7 +532,11 @@ void M_AddEpisode(const char *map, const char *gfx, const char *txt,
         }
     }
 
-    if (EpiDef.numitems >= 8)
+    if (EpiDef.numitems == 8)
+    {
+        I_Printf(VB_WARNING, "M_AddEpisode: UMAPINFO spec limit of 8 episodes exceeded!");
+    }
+    else if (EpiDef.numitems >= MAX_EPISODES)
     {
         return;
     }
@@ -547,7 +556,7 @@ void M_AddEpisode(const char *map, const char *gfx, const char *txt,
     }
     else
     {
-        EpiDef.y = 63 - (EpiDef.numitems - 4) * (LINEHEIGHT / 2);
+        EpiDef.y = MAX(25, 63 - (EpiDef.numitems - 4) * (LINEHEIGHT / 2));
     }
 }
 
