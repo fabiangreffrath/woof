@@ -52,7 +52,8 @@ jobs:
             libsndfile1-dev \
             libfluidsynth-dev \
             libxmp-dev \
-            pipx
+            python3-joblib \
+            python3-yaml
 
       - name: Install dependencies (macOS)
         if: runner.os == 'macOS'
@@ -65,7 +66,7 @@ jobs:
             libsndfile \
             fluid-synth \
             libxmp \
-            pipx
+            pyyaml
 
       - name: Install dependencies (MSYS2)
         if: matrix.config.shell == 'msys2 {0}'
@@ -75,7 +76,6 @@ jobs:
           update: false
           install: >-
             diffutils
-            ${{ matrix.config.msys-env }}-python-pip
             ${{ matrix.config.msys-env }}-gcc
             ${{ matrix.config.msys-env }}-cmake
             ${{ matrix.config.msys-env }}-ninja
@@ -85,6 +85,8 @@ jobs:
             ${{ matrix.config.msys-env }}-libsndfile
             ${{ matrix.config.msys-env }}-fluidsynth
             ${{ matrix.config.msys-env }}-libxmp
+            ${{ matrix.config.msys-env }}-python-yaml
+            ${{ matrix.config.msys-env }}-python-joblib
 
       - uses: actions/checkout@v4
 
@@ -103,7 +105,6 @@ jobs:
         if: github.event_name == 'workflow_dispatch'
         run: |
           cd demotest
-          pipx install pyyaml joblib | pip install pyyaml joblib
           python3 demotest --jobs 4 --port ../build/src/woof
 
       - name: Install
