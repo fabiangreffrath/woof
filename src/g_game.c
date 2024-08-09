@@ -363,6 +363,8 @@ static void G_DemoSkipTics(void)
     {
       playback_skiptics = 0;
       G_EnableWarp(false);
+      if (fastdemo)
+        I_SetFastdemoTimer(true);
       S_RestartMusic();
     }
   }
