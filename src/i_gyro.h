@@ -46,7 +46,7 @@ gyro_calibration_state_t I_GetGyroCalibrationState(void);
 void I_LoadGyroCalibration(void);
 void I_UpdateGyroCalibrationState(void);
 
-boolean I_UseGyroAiming(void);
+boolean I_GyroEnabled(void);
 void I_SetStickMoving(boolean condition);
 void I_GetRawGyroScaleMenu(float *scale, float *limit);
 void I_CalcGyroAxes(boolean strafe);

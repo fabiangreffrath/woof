@@ -337,7 +337,7 @@ enum
 
     str_mouse_accel,
 
-    str_gyro_aiming,
+    str_gyro_space,
     str_gyro_action,
     str_gyro_sens,
     str_gyro_accel,
@@ -2454,9 +2454,9 @@ static void UpdateGamepadItems(void)
 
     // Allow padlook toggle when the gamepad is using gyro, even if the
     // stick layout is set to off.
-    condition = ((!I_UseGamepad() || !I_GamepadEnabled())
-                 || (!I_UseStickLayout()
-                     && (!I_UseGyroAiming() || !I_GyroSupported())));
+    condition =
+        (!I_UseGamepad() || !I_GamepadEnabled()
+         || (!I_UseStickLayout() && (!I_GyroEnabled() || !I_GyroSupported())));
 
     DisableItem(condition, gen_settings4, "padlook");
 }
@@ -2467,16 +2467,15 @@ static void UpdateGyroAiming(void)
 {
     UpdateGamepadItems(); // Update padlook.
     UpdateGyroItems();
-    I_SetSensorsEnabled(I_UseGyroAiming());
+    I_SetSensorsEnabled(I_GyroEnabled());
     I_ResetGamepad();
 }
 
-static const char *gyro_aiming_strings[] = {
-    "Off",
-    "Player Turn",
-    "Player Lean",
+static const char *gyro_space_strings[] = {
     "Local Turn",
     "Local Lean",
+    "Player Turn",
+    "Player Lean",
 };
 
 static const char *gyro_action_strings[] = {
@@ -2539,9 +2538,13 @@ static void UpdateGyroSteadying(void)
 }
 
 static setup_menu_t gen_gyro[] = {
-    {"Gyro Aiming", S_CHOICE, CNTR_X, M_SPC,
-     {"gyro_aiming"}, m_null, input_null, str_gyro_aiming,
+    {"Gyro Aiming", S_ONOFF, CNTR_X, M_SPC,
+     {"gyro_enable"}, m_null, input_null, str_empty,
      UpdateGyroAiming},
+
+    {"Gyro Space", S_CHOICE, CNTR_X, M_SPC,
+     {"gyro_space"}, m_null, input_null, str_gyro_space,
+     I_ResetGamepad},
 
     {"Gyro Button Action", S_CHOICE, CNTR_X, M_SPC,
      {"gyro_button_action"}, m_null, input_null, str_gyro_action,
@@ -2580,8 +2583,9 @@ static setup_menu_t gen_gyro[] = {
 static void UpdateGyroItems(void)
 {
     const boolean condition = (!I_UseGamepad() || !I_GamepadEnabled()
-                               || !I_UseGyroAiming() || !I_GyroSupported());
+                               || !I_GyroEnabled() || !I_GyroSupported());
 
+    DisableItem(condition, gen_gyro, "gyro_space");
     DisableItem(condition, gen_gyro, "gyro_button_action");
     DisableItem(condition, gen_gyro, "gyro_stick_action");
     DisableItem(condition, gen_gyro, "gyro_turn_speed");
@@ -2598,7 +2602,7 @@ void MN_UpdateAllGamepadItems(void)
     DisableItem(condition, gen_settings4, "joy_stick_layout");
     UpdateGamepadItems();
 
-    DisableItem(condition || !I_GyroSupported(), gen_gyro, "gyro_aiming");
+    DisableItem(condition || !I_GyroSupported(), gen_gyro, "gyro_enable");
     UpdateGyroItems();
 }
 
@@ -2790,7 +2794,7 @@ void MN_DrawGeneral(void)
 
     if (I_UseGamepad()
         && ((current_menu == gen_settings4 && I_UseStickLayout())
-            || (current_menu == gen_gyro && I_UseGyroAiming())))
+            || (current_menu == gen_gyro && I_GyroEnabled())))
     {
         DrawIndicator = DrawIndicator_Meter;
     }
@@ -4244,7 +4248,7 @@ static const char **selectstrings[] = {
     NULL, // str_resampler
     equalizer_preset_strings,
     NULL, // str_mouse_accel
-    gyro_aiming_strings,
+    gyro_space_strings,
     gyro_action_strings,
     NULL, // str_gyro_sens
     NULL, // str_gyro_accel

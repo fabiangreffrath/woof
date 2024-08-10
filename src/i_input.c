@@ -127,7 +127,7 @@ static void TriggerToButtons(void)
 
 void I_ReadGyro(void)
 {
-    if (I_UseGyroAiming() && gyro_supported)
+    if (I_GyroEnabled() && gyro_supported)
     {
         static event_t ev = {.type = ev_gyro};
         static float data[3];
@@ -376,7 +376,7 @@ static void EnableGamepadEvents(void)
     SDL_EventState(SDL_CONTROLLERBUTTONDOWN, SDL_ENABLE);
     SDL_EventState(SDL_CONTROLLERBUTTONUP, SDL_ENABLE);
     SetTouchEventState(true);
-    I_SetSensorsEnabled(I_UseGyroAiming());
+    I_SetSensorsEnabled(I_GyroEnabled());
 }
 
 static void DisableGamepadEvents(void)
