@@ -26,6 +26,8 @@
 #include "hu_lib.h"
 #include "hu_stuff.h"
 #include "i_gamepad.h"
+#include "i_gyro.h"
+#include "i_input.h"
 #include "i_oalequalizer.h"
 #include "i_oalsound.h"
 #include "i_sound.h"
@@ -127,7 +129,7 @@ static void DisableItem(boolean condition, setup_menu_t *menu, const char *item)
 {
     while (!(menu->m_flags & S_END))
     {
-        if (!(menu->m_flags & (S_SKIP | S_RESET)))
+        if (!(menu->m_flags & (S_SKIP | S_RESET | S_FUNC)))
         {
             if (strcasecmp(menu->var.def->name, item) == 0)
             {
@@ -150,6 +152,24 @@ static void DisableItem(boolean condition, setup_menu_t *menu, const char *item)
     I_Error("Item \"%s\" not found in menu", item);
 }
 
+static void DisableItemFunc(boolean condition, setup_menu_t *menu, void *func)
+{
+    while (!(menu->m_flags & S_END))
+    {
+        if ((menu->m_flags & S_FUNC) && menu->var.func
+            && menu->var.func == func)
+        {
+            menu->m_flags = condition ? (menu->m_flags | S_DISABLE)
+                                      : (menu->m_flags & ~S_DISABLE);
+            return;
+        }
+
+        menu++;
+    }
+
+    I_Error("Menu item function not found");
+}
+
 /////////////////////////////
 //
 // booleans for setup screens
@@ -163,6 +183,7 @@ static boolean set_weapon_active = false; // in weapons setup screen
 static boolean setup_select = false;      // changing an item
 static boolean setup_gather = false;      // gathering keys for value
 boolean default_verify = false;           // verify reset defaults decision
+static boolean block_input;
 
 /////////////////////////////
 //
@@ -315,6 +336,11 @@ enum
     str_equalizer_preset,
 
     str_mouse_accel,
+
+    str_gyro_space,
+    str_gyro_action,
+    str_gyro_sens,
+    str_gyro_accel,
 
     str_default_skill,
     str_default_complevel,
@@ -493,6 +519,14 @@ static void DrawTabs(void)
     }
 }
 
+static int GetItemColor(int flags)
+{
+    return (flags & S_TITLE    ? CR_TITLE
+            : flags & S_SELECT ? CR_SELECT
+            : flags & S_HILITE ? CR_HILITE
+                               : CR_ITEM); // killough 10/98
+}
+
 static void DrawItem(setup_menu_t *s, int accum_y)
 {
     int x = s->m_x;
@@ -527,10 +561,7 @@ static void DrawItem(setup_menu_t *s, int accum_y)
 
     int w = 0;
     const char *text = s->m_text;
-    int color = flags & S_TITLE    ? CR_TITLE
-                : flags & S_SELECT ? CR_SELECT
-                : flags & S_HILITE ? CR_HILITE
-                                   : CR_ITEM; // killough 10/98
+    const int color = GetItemColor(flags);
 
     if (!(flags & S_NEXT_LINE))
     {
@@ -578,8 +609,44 @@ static char
 // displays the appropriate setting value: yes/no, a key binding, a number,
 // a paint chip, etc.
 
-static void DrawSetupThermo(int x, int y, int width, int size, int dot,
-                            byte *cr)
+static void (*DrawIndicator)(const setup_menu_t *s, int x, int y, int width);
+
+static void DrawIndicator_Meter(const setup_menu_t *s, int x, int y, int width)
+{
+    const int flags = s->m_flags;
+
+    if ((flags & S_HILITE) && !(flags & (S_END | S_SKIP | S_RESET | S_FUNC)))
+    {
+        const char *name = s->var.def->name;
+        float scale = 0.0f;
+        float limit = 0.0f;
+
+        if (!strcasecmp(name, "joy_movement_inner_deadzone"))
+        {
+            I_GetRawAxesScaleMenu(true, &scale, &limit);
+        }
+        else if (!strcasecmp(name, "joy_camera_inner_deadzone"))
+        {
+            I_GetRawAxesScaleMenu(false, &scale, &limit);
+        }
+        else if (!strcasecmp(name, "gyro_smooth_threshold"))
+        {
+            I_GetRawGyroScaleMenu(&scale, &limit);
+        }
+
+        if (scale > 0.0f)
+        {
+            const byte shade = cr_shaded[v_lightest_color];
+            const byte color = scale < limit    ? cr_green[shade]
+                               : scale >= 0.99f ? cr_red[shade]
+                                                : cr_gold[shade];
+            V_FillRect(x, y, lroundf(width * scale), 1, color);
+        }
+    }
+}
+
+static void DrawSetupThermo(const setup_menu_t *s, int x, int y, int width,
+                            int size, int dot, byte *cr)
 {
     int xx;
     int i;
@@ -603,6 +670,12 @@ static void DrawSetupThermo(int x, int y, int width, int size, int dot,
 
     int step = width * M_THRM_STEP * FRACUNIT / size;
 
+    if (DrawIndicator)
+    {
+        DrawIndicator(s, x + M_THRM_STEP + video.deltaw, y + patch->height / 2,
+                      xx - x - M_THRM_STEP);
+    }
+
     V_DrawPatchTranslated(x + M_THRM_STEP + dot * step / FRACUNIT, y,
                           V_CachePatchName("M_THERMO", PU_CACHE), cr);
 }
@@ -614,6 +687,17 @@ static void DrawSetting(setup_menu_t *s, int accum_y)
     if (!(flags & S_DIRECT))
     {
         y = accum_y;
+    }
+
+    if (flags & S_FUNC)
+    {
+        // A menu item with the S_FUNC flag has no setting, so draw an
+        // ellipsis to the right of the item with the same color.
+        const int color = GetItemColor(flags);
+        sprintf(menu_buffer, ". . .");
+        BlinkingArrowRight(s);
+        DrawMenuStringEx(flags, x, y, color);
+        return;
     }
 
     // Determine color of the text. This may or may not be used
@@ -690,7 +774,7 @@ static void DrawSetting(setup_menu_t *s, int accum_y)
                     break;
                 case INPUT_JOYB:
                     offset += sprintf(menu_buffer + offset, "%s",
-                                      M_GetNameForJoyB(inputs[i].value));
+                                      M_GetPlatformName(inputs[i].value));
                     break;
                 default:
                     break;
@@ -811,7 +895,7 @@ static void DrawSetting(setup_menu_t *s, int accum_y)
         rect->y = y;
         rect->w = (width + 2) * M_THRM_STEP;
         rect->h = M_THRM_HEIGHT;
-        DrawSetupThermo(x, y, width, max - min, thrm_val - min, cr);
+        DrawSetupThermo(s, x, y, width, max - min, thrm_val - min, cr);
 
         if (strings)
         {
@@ -922,6 +1006,42 @@ void MN_DrawDelVerify(void)
     }
 }
 
+static void DrawNotification(const char *text, int color)
+{
+    patch_t *patch = V_CachePatchName("M_VBOX", PU_CACHE);
+    int x = (SCREENWIDTH - patch->width) / 2;
+    int y = (SCREENHEIGHT - patch->height) / 2;
+    V_DrawPatch(x, y, patch);
+
+    x = (SCREENWIDTH - MN_GetPixelWidth(text)) / 2;
+    y = (SCREENHEIGHT - MN_StringHeight(text)) / 2;
+    MN_DrawString(x, y, color, text);
+}
+
+static void DrawGyroCalibration(void)
+{
+    switch (I_GetGyroCalibrationState())
+    {
+        case GYRO_CALIBRATION_INACTIVE:
+            break;
+
+        case GYRO_CALIBRATION_ACTIVE:
+            block_input = true;
+            DrawNotification("Calibrating, please wait...", CR_GRAY);
+            I_UpdateGyroCalibrationState();
+            break;
+
+        case GYRO_CALIBRATION_COMPLETE:
+            DrawNotification("Calibration complete!", CR_GREEN);
+            I_UpdateGyroCalibrationState();
+            if (I_GetGyroCalibrationState() == GYRO_CALIBRATION_INACTIVE)
+            {
+                block_input = false;
+            }
+            break;
+    }
+}
+
 /////////////////////////////
 //
 // phares 4/18/98:
@@ -931,8 +1051,10 @@ void MN_DrawDelVerify(void)
 
 static void DrawInstructions()
 {
+    static char joyb_buf[64];
     int index = (menu_input == mouse_mode ? highlight_item : set_item_on);
-    int flags = current_menu[index].m_flags;
+    const setup_menu_t *item = &current_menu[index];
+    const int flags = item->m_flags;
 
     if (ItemDisabled(flags) || print_warning_about_changes > 0)
     {
@@ -944,7 +1066,11 @@ static void DrawInstructions()
 
     const char *s = "";
 
-    if (setup_select)
+    if (item->desc)
+    {
+        s = item->desc;
+    }
+    else if (setup_select)
     {
         if (flags & S_INPUT)
         {
@@ -954,7 +1080,9 @@ static void DrawInstructions()
         {
             if (menu_input == pad_mode)
             {
-                s = "[ PadA ] to toggle";
+                M_snprintf(joyb_buf, sizeof(joyb_buf), "[ %s ] to toggle",
+                           M_GetPlatformName(GAMEPAD_A));
+                s = joyb_buf;
             }
             else
             {
@@ -965,7 +1093,10 @@ static void DrawInstructions()
         {
             if (menu_input == pad_mode)
             {
-                s = "[ Left/Right ] to choose, [ PadB ] to cancel";
+                M_snprintf(joyb_buf, sizeof(joyb_buf),
+                           "[ Left/Right ] to choose, [ %s ] to cancel",
+                           M_GetPlatformName(GAMEPAD_B));
+                s = joyb_buf;
             }
             else
             {
@@ -995,7 +1126,11 @@ static void DrawInstructions()
                     s = "[ Del ] to clear";
                     break;
                 case pad_mode:
-                    s = "[ PadA ] to change, [ PadY ] to clear";
+                    M_snprintf(joyb_buf, sizeof(joyb_buf),
+                               "[ %s ] to change, [ %s ] to clear",
+                               M_GetPlatformName(GAMEPAD_A),
+                               M_GetPlatformName(GAMEPAD_Y));
+                    s = joyb_buf;
                     break;
                 default:
                 case key_mode:
@@ -1012,7 +1147,11 @@ static void DrawInstructions()
             switch (menu_input)
             {
                 case pad_mode:
-                    s = "[ PadA ] to change, [ PadB ] to return";
+                    M_snprintf(joyb_buf, sizeof(joyb_buf),
+                               "[ %s ] to change, [ %s ] to return",
+                               M_GetPlatformName(GAMEPAD_A),
+                               M_GetPlatformName(GAMEPAD_B));
+                    s = joyb_buf;
                     break;
                 case key_mode:
                     s = "[ Enter ] to change";
@@ -1073,8 +1212,8 @@ static setup_menu_t keys_settings1[] = {
     {"Turn Left",    S_INPUT, KB_X, M_SPC, {0}, m_scrn, input_turnleft},
     {"Turn Right",   S_INPUT, KB_X, M_SPC, {0}, m_scrn, input_turnright},
     {"180 Turn",     S_INPUT | S_STRICT, KB_X, M_SPC, {0}, m_scrn, input_reverse},
+    {"Gyro",         S_INPUT, KB_X, M_SPC, {0}, m_gyro, input_gyro},
     MI_GAP,
-    {"Toggles",   S_SKIP | S_TITLE, KB_X, M_SPC},
     {"Autorun",   S_INPUT, KB_X, M_SPC, {0}, m_scrn, input_autorun},
     {"Free Look", S_INPUT, KB_X, M_SPC, {0}, m_scrn, input_freelook},
     {"Vertmouse", S_INPUT, KB_X, M_SPC, {0}, m_scrn, input_novert},
@@ -1836,7 +1975,8 @@ static setup_tab_t gen_tabs[] = {
     {"video"},
     {"audio"},
     {"mouse"},
-    {"gamepad"},
+    {"pad"},
+    {"gyro"},
     {"display"},
     {"misc"},
     {NULL}
@@ -2234,8 +2374,23 @@ static setup_menu_t gen_settings3[] = {
     MI_END
 };
 
-static const char *layout_strings[] = {"Default", "Swap", "Legacy",
-                                       "Legacy Swap"};
+static void UpdateGamepadItems(void);
+
+static void UpdateStickLayout(void)
+{
+    UpdateGamepadItems();
+    I_ResetGamepad();
+}
+
+static const char *layout_strings[] = {
+    "Off",
+    "Default",
+    "Southpaw",
+    "Legacy",
+    "Legacy Southpaw",
+    "Flick Stick",
+    "Flick Stick Southpaw",
+};
 
 static const char *curve_strings[] = {
     "",       "",    "",    "",        "",    "",    "",
@@ -2246,45 +2401,210 @@ static const char *curve_strings[] = {
 };
 
 static setup_menu_t gen_settings4[] = {
+    {"Stick Layout",S_CHOICE, CNTR_X, M_SPC,
+     {"joy_stick_layout"}, m_null, input_null, str_layout,
+     UpdateStickLayout},
 
-    {"Stick Layout",S_CHOICE, CNTR_X, M_SPC, {"joy_layout"}, m_null, input_null,
-     str_layout, I_ResetController},
+    {"Free Look", S_ONOFF, CNTR_X, M_SPC,
+     {"padlook"}, m_null, input_null, str_empty,
+     MN_UpdatePadLook},
 
-    {"Free Look", S_ONOFF, CNTR_X, M_SPC, {"padlook"}, m_null, input_null,
-     str_empty, MN_UpdatePadLook},
-
-    {"Invert Look", S_ONOFF, CNTR_X, M_SPC, {"joy_invert_look"},
-     m_null, input_null, str_empty, G_UpdateControllerVariables},
-
-    MI_GAP,
-
-    {"Turn Sensitivity", S_THERMO | S_THRM_SIZE11, CNTR_X, M_THRM_SPC,
-     {"joy_sensitivity_turn"}, m_null, input_null, str_empty, I_ResetController},
-
-    {"Look Sensitivity", S_THERMO | S_THRM_SIZE11, CNTR_X, M_THRM_SPC,
-     {"joy_sensitivity_look"}, m_null, input_null, str_empty, I_ResetController},
-
-    {"Extra Turn Sensitivity", S_THERMO | S_THRM_SIZE11, CNTR_X, M_THRM_SPC,
-     {"joy_extra_sensitivity_turn"}, m_null, input_null, str_empty,
-     I_ResetController},
+    {"Invert Look", S_ONOFF, CNTR_X, M_SPC,
+     {"joy_invert_look"}, m_null, input_null, str_empty,
+     I_ResetGamepad},
 
     MI_GAP,
 
-    {"Movement Curve", S_THERMO, CNTR_X, M_THRM_SPC,
-     {"joy_response_curve_movement"}, m_null, input_null, str_curve,
-     I_ResetController},
+    {"Turn Speed", S_THERMO | S_THRM_SIZE11, CNTR_X, M_THRM_SPC,
+     {"joy_turn_speed"}, m_null, input_null, str_empty,
+     I_ResetGamepad},
 
-    {"Camera Curve", S_THERMO, CNTR_X, M_THRM_SPC, {"joy_response_curve_camera"},
-     m_null, input_null, str_curve, I_ResetController},
+    {"Look Speed", S_THERMO | S_THRM_SIZE11, CNTR_X, M_THRM_SPC,
+     {"joy_look_speed"}, m_null, input_null, str_empty,
+     I_ResetGamepad},
+
+    {"Response Curve", S_THERMO, CNTR_X, M_THRM_SPC,
+     {"joy_camera_curve"}, m_null, input_null, str_curve,
+     I_ResetGamepad},
+
+    MI_GAP,
 
     {"Movement Deadzone", S_THERMO | S_PCT, CNTR_X, M_THRM_SPC,
-     {"joy_deadzone_movement"}, m_null, input_null, str_empty, I_ResetController},
+     {"joy_movement_inner_deadzone"}, m_null, input_null, str_empty,
+     I_ResetGamepad},
 
     {"Camera Deadzone", S_THERMO | S_PCT, CNTR_X, M_THRM_SPC,
-     {"joy_deadzone_camera"}, m_null, input_null, str_empty, I_ResetController},
+     {"joy_camera_inner_deadzone"}, m_null, input_null, str_empty,
+     I_ResetGamepad},
 
     MI_END
 };
+
+static void UpdateGamepadItems(void)
+{
+    boolean condition =
+        (!I_UseGamepad() || !I_GamepadEnabled() || !I_UseStickLayout());
+
+    DisableItem(condition, gen_settings4, "joy_invert_look");
+    DisableItem(condition, gen_settings4, "joy_movement_inner_deadzone");
+    DisableItem(condition, gen_settings4, "joy_camera_inner_deadzone");
+    DisableItem(condition, gen_settings4, "joy_turn_speed");
+    DisableItem(condition, gen_settings4, "joy_look_speed");
+    DisableItem(condition, gen_settings4, "joy_camera_curve");
+
+    // Allow padlook toggle when the gamepad is using gyro, even if the
+    // stick layout is set to off.
+    condition =
+        (!I_UseGamepad() || !I_GamepadEnabled()
+         || (!I_UseStickLayout() && (!I_GyroEnabled() || !I_GyroSupported())));
+
+    DisableItem(condition, gen_settings4, "padlook");
+}
+
+static void UpdateGyroItems(void);
+
+static void UpdateGyroAiming(void)
+{
+    UpdateGamepadItems(); // Update padlook.
+    UpdateGyroItems();
+    I_SetSensorsEnabled(I_GyroEnabled());
+    I_ResetGamepad();
+}
+
+static const char *gyro_space_strings[] = {
+    "Local Turn",
+    "Local Lean",
+    "Player Turn",
+    "Player Lean",
+};
+
+static const char *gyro_action_strings[] = {
+    "None",
+    "Disable Gyro",
+    "Enable Gyro",
+    "Invert"
+};
+
+#define GYRO_SENS_STRINGS_SIZE (100 + 1)
+
+static const char **GetGyroSensitivityStrings(void)
+{
+    static const char *strings[GYRO_SENS_STRINGS_SIZE];
+    char buf[8];
+
+    for (int i = 0; i < GYRO_SENS_STRINGS_SIZE; i++)
+    {
+        M_snprintf(buf, sizeof(buf), "%1d.%1d", i / 10, i % 10);
+        strings[i] = M_StringDuplicate(buf);
+    }
+    return strings;
+}
+
+#define GYRO_ACCEL_STRINGS_SIZE (40 + 1)
+
+static const char **GetGyroAccelStrings(void)
+{
+    static const char *strings[GYRO_ACCEL_STRINGS_SIZE] = {
+        [10] = "Off",
+        [15] = "Low",
+        [20] = "Medium",
+        [40] = "High",
+    };
+    char buf[8];
+
+    for (int i = 0; i < GYRO_ACCEL_STRINGS_SIZE; i++)
+    {
+        if (i < 10)
+        {
+            strings[i] = "";
+        }
+        else if (i == 10 || i == 15 || i == 20 || i == 40)
+        {
+            continue;
+        }
+        else
+        {
+            M_snprintf(buf, sizeof(buf), "%1d.%1d", i / 10, i % 10);
+            strings[i] = M_StringDuplicate(buf);
+        }
+    }
+    return strings;
+}
+
+static void UpdateGyroSteadying(void)
+{
+    I_UpdateGyroSteadying();
+    I_ResetGamepad();
+}
+
+static setup_menu_t gen_gyro[] = {
+    {"Gyro Aiming", S_ONOFF, CNTR_X, M_SPC,
+     {"gyro_enable"}, m_null, input_null, str_empty,
+     UpdateGyroAiming},
+
+    {"Gyro Space", S_CHOICE, CNTR_X, M_SPC,
+     {"gyro_space"}, m_null, input_null, str_gyro_space,
+     I_ResetGamepad},
+
+    {"Gyro Button Action", S_CHOICE, CNTR_X, M_SPC,
+     {"gyro_button_action"}, m_null, input_null, str_gyro_action,
+     I_ResetGamepad},
+
+    {"Camera Stick Action", S_CHOICE, CNTR_X, M_SPC,
+     {"gyro_stick_action"}, m_null, input_null, str_gyro_action,
+     I_ResetGamepad},
+
+    MI_GAP,
+
+    {"Turn Speed", S_THERMO | S_THRM_SIZE11, CNTR_X, M_THRM_SPC,
+     {"gyro_turn_speed"}, m_null, input_null, str_gyro_sens,
+     I_ResetGamepad},
+
+    {"Look Speed", S_THERMO | S_THRM_SIZE11, CNTR_X, M_THRM_SPC,
+     {"gyro_look_speed"}, m_null, input_null, str_gyro_sens,
+     I_ResetGamepad},
+
+    {"Acceleration", S_THERMO, CNTR_X, M_THRM_SPC,
+     {"gyro_acceleration"}, m_null, input_null, str_gyro_accel,
+     I_ResetGamepad},
+
+    {"Steadying", S_THERMO, CNTR_X, M_THRM_SPC,
+     {"gyro_smooth_threshold"}, m_null, input_null, str_gyro_sens,
+     UpdateGyroSteadying},
+
+    MI_GAP,
+
+    {"Calibrate", S_FUNC, CNTR_X, M_SPC, {I_UpdateGyroCalibrationState},
+     .desc = "Place gamepad on a flat surface"},
+
+    MI_END
+};
+
+static void UpdateGyroItems(void)
+{
+    const boolean condition = (!I_UseGamepad() || !I_GamepadEnabled()
+                               || !I_GyroEnabled() || !I_GyroSupported());
+
+    DisableItem(condition, gen_gyro, "gyro_space");
+    DisableItem(condition, gen_gyro, "gyro_button_action");
+    DisableItem(condition, gen_gyro, "gyro_stick_action");
+    DisableItem(condition, gen_gyro, "gyro_turn_speed");
+    DisableItem(condition, gen_gyro, "gyro_look_speed");
+    DisableItem(condition, gen_gyro, "gyro_acceleration");
+    DisableItem(condition, gen_gyro, "gyro_smooth_threshold");
+    DisableItemFunc(condition, gen_gyro, I_UpdateGyroCalibrationState);
+}
+
+void MN_UpdateAllGamepadItems(void)
+{
+    const boolean condition = (!I_UseGamepad() || !I_GamepadEnabled());
+
+    DisableItem(condition, gen_settings4, "joy_stick_layout");
+    UpdateGamepadItems();
+
+    DisableItem(condition || !I_GyroSupported(), gen_gyro, "gyro_enable");
+    UpdateGyroItems();
+}
 
 static void SmoothLight(void)
 {
@@ -2414,7 +2734,7 @@ static setup_menu_t gen_settings6[] = {
 };
 
 static setup_menu_t *gen_settings[] = {
-    gen_settings1, gen_settings2, gen_settings3, gen_settings4,
+    gen_settings1, gen_settings2, gen_settings3, gen_settings4, gen_gyro,
     gen_settings5, gen_settings6, NULL
 };
 
@@ -2471,7 +2791,24 @@ void MN_DrawGeneral(void)
     MN_DrawTitle(M_X_CENTER, M_Y_TITLE, "M_GENERL", "General");
     DrawTabs();
     DrawInstructions();
+
+    if (I_UseGamepad()
+        && ((current_menu == gen_settings4 && I_UseStickLayout())
+            || (current_menu == gen_gyro && I_GyroEnabled())))
+    {
+        DrawIndicator = DrawIndicator_Meter;
+    }
+    else
+    {
+        DrawIndicator = NULL;
+    }
+
     DrawScreenItems(current_menu);
+
+    if (current_menu == gen_gyro)
+    {
+        DrawGyroCalibration();
+    }
 
     // If the Reset Button has been selected, an "Are you sure?" message
     // is overlayed across everything else.
@@ -2955,6 +3292,11 @@ boolean MN_SetupCursorPostion(int x, int y)
         return false;
     }
 
+    if (block_input)
+    {
+        return true;
+    }
+
     if (current_tabs)
     {
         for (int i = 0; current_tabs[i].text; ++i)
@@ -3126,7 +3468,8 @@ static boolean ChangeEntry(menu_action_t action, int ch)
     int flags = current_item->m_flags;
     default_t *def = current_item->var.def;
 
-    if (action == MENU_ESCAPE) // Exit key = no change
+    if (action == MENU_ESCAPE  // Exit key = no change
+        || (action == MENU_BACKSPACE && !(flags & S_INPUT)))
     {
         if (flags & (S_CHOICE | S_CRITEM | S_THERMO) && setup_cancel != -1)
         {
@@ -3357,6 +3700,11 @@ boolean MN_SetupResponder(menu_action_t action, int ch)
         return false;
     }
 
+    if (block_input)
+    {
+        return true;
+    }
+
     if (menu_input != mouse_mode && current_tabs)
     {
         current_tabs[highlight_tab].flags &= ~S_HILITE;
@@ -3369,19 +3717,36 @@ boolean MN_SetupResponder(menu_action_t action, int ch)
        current_item->m_flags |= S_HILITE;
     }
 
+    if ((current_item->m_flags & S_FUNC) && action == MENU_ENTER)
+    {
+        if (ItemDisabled(current_item->m_flags))
+        {
+            M_StartSound(sfx_oof);
+            return true;
+        }
+        else if (current_item->var.func)
+        {
+            current_item->var.func();
+        }
+
+        M_StartSound(sfx_itemup);
+        return true;
+    }
+
     // phares 4/19/98:
     // Catch the response to the 'reset to default?' verification
     // screen
 
     if (default_verify)
     {
-        if (M_ToUpper(ch) == 'Y')
+        if (M_ToUpper(ch) == 'Y' || action == MENU_ENTER)
         {
             ResetDefaults();
             default_verify = false;
             SelectDone(current_item);
         }
-        else if (M_ToUpper(ch) == 'N')
+        else if (M_ToUpper(ch) == 'N' || action == MENU_BACKSPACE
+                 || action == MENU_ESCAPE)
         {
             default_verify = false;
             SelectDone(current_item);
@@ -3615,6 +3980,11 @@ boolean MN_SetupMouseResponder(int x, int y)
     if (!setup_active || setup_select)
     {
         return false;
+    }
+
+    if (block_input)
+    {
+        return true;
     }
 
     if (SetupTab())
@@ -3878,6 +4248,10 @@ static const char **selectstrings[] = {
     NULL, // str_resampler
     equalizer_preset_strings,
     NULL, // str_mouse_accel
+    gyro_space_strings,
+    gyro_action_strings,
+    NULL, // str_gyro_sens
+    NULL, // str_gyro_accel
     default_skill_strings,
     default_complevel_strings,
     endoom_strings,
@@ -3915,6 +4289,8 @@ void MN_InitMenuStrings(void)
     selectstrings[str_resolution_scale] = GetResolutionScaleStrings();
     selectstrings[str_midi_player] = GetMidiPlayerStrings();
     selectstrings[str_mouse_accel] = GetMouseAccelStrings();
+    selectstrings[str_gyro_sens] = GetGyroSensitivityStrings();
+    selectstrings[str_gyro_accel] = GetGyroAccelStrings();
     selectstrings[str_resampler] = GetResamplerStrings();
 }
 
@@ -3931,6 +4307,7 @@ void MN_SetupResetMenu(void)
     UpdateInterceptsEmuItem();
     UpdateCrosshairItems();
     UpdateCenteredWeaponItem();
+    MN_UpdateAllGamepadItems();
 }
 
 void MN_BindMenuVariables(void)

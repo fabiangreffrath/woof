@@ -38,6 +38,7 @@
 #include "g_game.h"
 #include "hu_lib.h"
 #include "hu_stuff.h"
+#include "i_input.h"
 #include "i_printf.h"
 #include "i_system.h"
 #include "i_timer.h"
@@ -1915,6 +1916,7 @@ void MN_ClearMenus(void)
     // if (!netgame && usergame && paused)
     //     sendpause = true;
 
+    I_SetSensorEventState(false);
     G_ClearInput();
 }
 
@@ -2601,7 +2603,7 @@ boolean M_Responder(event_t *ev)
 
         case ev_keydown:
             menu_input = key_mode;
-            ch = ev->data1;
+            ch = ev->data1.i;
             break;
 
         case ev_keyup:
@@ -2623,13 +2625,13 @@ boolean M_Responder(event_t *ev)
             return false;
 
         case ev_mouse_state:
-            if (ev->data1 == EV_RESIZE_VIEWPORT && menu_input != mouse_mode)
+            if (ev->data1.i == EV_RESIZE_VIEWPORT && menu_input != mouse_mode)
             {
                 return true;
             }
             menu_input = mouse_mode;
-            mouse_state_x = ev->data2;
-            mouse_state_y = ev->data3;
+            mouse_state_x = ev->data2.i;
+            mouse_state_y = ev->data3.i;
             CursorPosition();
             MouseResponder();
             return true;
@@ -2749,6 +2751,7 @@ boolean M_Responder(event_t *ev)
             messageRoutine(ch);
         }
 
+        I_SetSensorEventState(false);
         G_ClearInput();
         menuactive = false;
         M_StartSound(sfx_swtchx);
@@ -3032,6 +3035,7 @@ void MN_StartControlPanel(void)
     highlight_item = 0;
     print_warning_about_changes = false; // killough 11/98
 
+    I_SetSensorEventState(true);
     G_ClearInput();
 }
 

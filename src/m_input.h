@@ -18,6 +18,7 @@
 #define __M_INPUT__
 
 #include "doomtype.h"
+#include "i_gamepad.h"
 
 struct event_s;
 
@@ -36,6 +37,7 @@ enum
     input_strafe,
     input_autorun,
     input_reverse,
+    input_gyro,
     input_use,
     input_fire,
     input_prevweapon,
@@ -171,6 +173,8 @@ void M_InputSetDefault(int id);
 const char *M_GetNameForKey(int key);
 int M_GetKeyForName(const char *name);
 
+void M_UpdatePlatform(joy_platform_t platform);
+const char *M_GetPlatformName(int joyb);
 const char *M_GetNameForJoyB(int joyb);
 int M_GetJoyBForName(const char *name);
 
