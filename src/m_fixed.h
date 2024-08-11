@@ -82,7 +82,7 @@ inline static int64_t FixedMul64(int64_t a, int64_t b)
 inline static fixed_t FixedDiv(fixed_t a, fixed_t b)
 {
     // [FG] avoid 31-bit shift (from Chocolate Doom)
-    if ((abs(a) >> 14) >= abs(b))
+    if (((unsigned)abs(a) >> 14) >= (unsigned)abs(b))
     {
         return (a ^ b) < 0 ? INT_MIN : INT_MAX;
     }
