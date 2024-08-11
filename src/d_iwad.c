@@ -232,6 +232,13 @@ static registry_value_t root_path_keys[] =
         SOFTWARE_KEY "\\GOG.com\\Games\\1426071866",
         "PATH"
     },
+
+    // DOOM + DOOM II
+    {
+        HKEY_LOCAL_MACHINE,
+        SOFTWARE_KEY "\\GOG.com\\Games\\1413291984",
+        "INSTALLPATH"
+    },
 };
 
 // Subdirectories of the above install path, where IWADs are installed.
@@ -255,16 +262,18 @@ static registry_value_t steam_install_location =
 
 static char *steam_install_subdirs[] =
 {
-    "steamapps\\common\\doom 2\\base", "steamapps\\common\\final doom\\base",
-    "steamapps\\common\\ultimate doom\\base",
-
-    // From Doom 3: BFG Edition:
-
+    "steamapps\\common\\Doom 2\\base",
+    "steamapps\\common\\Doom 2\\rerelease\\DOOM II_Data\\StreamingAssets",
+    "steamapps\\common\\Doom 2\\finaldoombase",
+    "steamapps\\common\\Doom 2\\masterbase\\doom2",
+    "steamapps\\common\\Final Doom\\base",
+    "steamapps\\common\\Master Levels of Doom\\doom2",
+    "steamapps\\common\\Ultimate Doom\\base",
+    "steamapps\\common\\Ultimate Doom\\base\\doom2",
+    "steamapps\\common\\Ultimate Doom\\rerelease",
+    "steamapps\\common\\Ultimate Doom\\rerelease\\DOOM_Data\\StreamingAssets",
     "steamapps\\common\\DOOM 3 BFG Edition\\base\\wads",
-
-    "steamapps\\common\\ultimate doom\\rerelease\\DOOM_Data\\StreamingAssets",
-    "steamapps\\common\\doom 2\\rerelease\\DOOM II_Data\\StreamingAssets",
-    "steamapps\\common\\doom 2\\finaldoombase"
+    "steamapps\\common\\DOOMEternal\\base\\classicwads",
 };
 
 static char *GetRegistryString(registry_value_t *reg_val)
