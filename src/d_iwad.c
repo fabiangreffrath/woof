@@ -237,7 +237,7 @@ static registry_value_t root_path_keys[] =
     {
         HKEY_LOCAL_MACHINE,
         SOFTWARE_KEY "\\GOG.com\\Games\\1413291984",
-        "INSTALLPATH"
+        "PATH"
     },
 };
 
