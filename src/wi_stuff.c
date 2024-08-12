@@ -2284,7 +2284,10 @@ void WI_Start(wbstartstruct_t* wbstartstruct)
           WI_ParseInterlevel(wbs->lastmapinfo->exitanim, &interlevel_exiting);
           exitpic = interlevel_exiting.background_lump;
       }
+  }
 
+  if (wbs->nextmapinfo)
+  {
       if (wbs->nextmapinfo->enterpic[0])
       {
           enterpic = wbs->nextmapinfo->enterpic;
