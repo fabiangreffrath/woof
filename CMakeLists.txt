@@ -81,6 +81,7 @@ find_package(SndFile 1.0.29 REQUIRED)
 if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
     find_package(ALSA REQUIRED)
 endif()
+find_package(cJSON REQUIRED)
 
 if(ALSA_FOUND)
     set(HAVE_ALSA TRUE)

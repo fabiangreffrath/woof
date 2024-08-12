@@ -24,6 +24,7 @@
 // of other structs: items (internal inventory),
 // animation states (closely tied to the sprites
 // used to represent them, unfortunately).
+#include "doomtype.h"
 #include "p_pspr.h"
 #include "tables.h"
 
@@ -214,6 +215,8 @@ typedef struct player_s
   // Local angle for blending per-frame and per-tic turning.
   angle_t ticangle, oldticangle;
 
+  boolean *visitedlevels;
+
 } player_t;
 
 
@@ -232,7 +235,7 @@ typedef struct
   int         stime; 
   int         frags[4];
   int         score;  // current score on entry, modified on return
-  
+  boolean     *visited;
 } wbplayerstruct_t;
 
 typedef struct wbstartstruct_s
@@ -245,7 +248,8 @@ typedef struct wbstartstruct_s
   // previous and next levels, origin 0
   int         last;
   int         next;   
-  int         nextep;	// for when MAPINFO progression crosses into another episode.
+  // for when MAPINFO progression crosses into another episode.
+  int         nextep;
   struct mapentry_s *lastmapinfo;
   struct mapentry_s *nextmapinfo;
     

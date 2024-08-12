@@ -30,6 +30,7 @@
 #include "hu_lib.h"
 #include "hu_stuff.h"
 #include "i_printf.h"
+#include "m_array.h"
 #include "m_misc.h"
 #include "m_random.h"
 #include "m_swap.h"
@@ -42,6 +43,7 @@
 #include "v_fmt.h"
 #include "v_video.h"
 #include "w_wad.h"
+#include "wi_interlvl.h"
 #include "wi_stuff.h"
 #include "z_zone.h"
 
@@ -385,10 +387,60 @@ static int    num_lnames;
 
 static const char *exitpic, *enterpic;
 
+static interlevel_t interlevel_exiting, interlevel_entering;
+
 //
 // CODE
 //
 
+boolean CheckConditions(interlevelcond_t *conditions)
+{
+    boolean result = false;
+
+    for (int i = 0; i < array_size(conditions); ++i)
+    {
+        interlevelcond_t cond = conditions[i];
+
+        switch (cond.condition)
+        {
+            case AnimCondition_MapNumGreater:
+                result &= (wbs->last + 1 > cond.param);
+                break;
+
+            case AnimCondition_MapNumEqual:
+                result &= (wbs->last + 1 == cond.param);
+                break;
+
+            case AnimCondition_MapVisited:
+                result &= !!wbs->plyr[consoleplayer].visited[cond.param];
+                break;
+
+            case AnimCondition_MapNotSecret:
+                // TODO
+                break;
+
+            case AnimCondition_SecretVisited:
+                result &= !!wbs->didsecret;
+                break;
+
+            case AnimCondition_FitsInFrame:
+                // TODO tally screen
+                break;
+
+            case AnimCondition_IsExiting:
+                // TODO result &= !enteringcondition;
+                break;
+
+            case AnimCondition_IsEntering:
+                // TODO result &= enteringcondition;
+                break;
+
+            default:
+                break;
+        }
+    }
+    return result;
+}
 
 // ====================================================================
 // WI_slamBackground
@@ -2218,8 +2270,31 @@ void WI_Start(wbstartstruct_t* wbstartstruct)
 {
   WI_initVariables(wbstartstruct);
 
-  exitpic = (wbs->lastmapinfo && wbs->lastmapinfo->exitpic[0]) ? wbs->lastmapinfo->exitpic : NULL;
-  enterpic = (wbs->nextmapinfo && wbs->nextmapinfo->enterpic[0]) ? wbs->nextmapinfo->enterpic : NULL;
+  exitpic = NULL;
+  enterpic = NULL;
+
+  if (wbs->lastmapinfo)
+  {
+      if (wbs->lastmapinfo->exitpic[0])
+      {
+          exitpic = wbs->lastmapinfo->exitpic;
+      }
+      if (wbs->lastmapinfo->exitanim[0])
+      {
+          WI_ParseInterlevel(wbs->lastmapinfo->exitanim, &interlevel_exiting);
+          exitpic = interlevel_exiting.background_lump;
+      }
+
+      if (wbs->nextmapinfo->enterpic[0])
+      {
+          enterpic = wbs->nextmapinfo->enterpic;
+      }
+      if (wbs->lastmapinfo->enteranim[0])
+      {
+          WI_ParseInterlevel(wbs->lastmapinfo->enteranim, &interlevel_entering);
+          enterpic = interlevel_entering.background_lump;
+      }
+  }
 
   WI_loadData();
 

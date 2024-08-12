@@ -46,6 +46,8 @@ typedef struct mapentry_s
     char endpic[9];
     char exitpic[9];
     char enterpic[9];
+    char exitanim[9];
+    char enteranim[9];
     char interbackdrop[9];
     char intermusic[9];
     int partime;

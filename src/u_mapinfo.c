@@ -273,6 +273,14 @@ static void UpdateMapEntry(mapentry_t *mape, mapentry_t *newe)
     {
         strcpy(mape->enterpic, newe->enterpic);
     }
+    if (newe->exitanim[0])
+    {
+        strcpy(mape->exitanim, newe->exitanim);
+    }
+    if (newe->enteranim[0])
+    {
+        strcpy(mape->enteranim, newe->enteranim);
+    }
     if (newe->interbackdrop[0])
     {
         strcpy(mape->interbackdrop, newe->interbackdrop);
@@ -554,6 +562,14 @@ static int ParseStandardProperty(u_scanner_t *s, mapentry_t *mape)
     else if (!strcasecmp(pname, "enterpic"))
     {
         status = ParseLumpName(s, mape->enterpic);
+    }
+    else if (!strcasecmp(pname, "exitanim"))
+    {
+        status = ParseLumpName(s, mape->exitanim);
+    }
+    else if (!strcasecmp(pname, "enteranim"))
+    {
+        status = ParseLumpName(s, mape->enteranim);
     }
     else if (!strcasecmp(pname, "nointermission"))
     {
