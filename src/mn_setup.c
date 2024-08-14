@@ -4326,12 +4326,12 @@ void MN_DrawTitle(int x, int y, const char *patch, const char *alttext)
     {
         // patch doesn't exist, draw some text in place of it
         if (!MN_DrawFon2String(
-                SCREENWIDTH / 2 - MN_GetFon2PixelWidth(alttext) / 2,
+                (SCREENWIDTH - MN_GetFon2PixelWidth(alttext)) / 2,
                 y, NULL, alttext))
         {
             M_snprintf(menu_buffer, sizeof(menu_buffer), "%s", alttext);
             DrawMenuString(
-                SCREENWIDTH / 2 - MN_StringWidth(alttext) / 2,
+                (SCREENWIDTH - MN_GetPixelWidth(alttext)) / 2,
                 y + 8 - MN_StringHeight(alttext) / 2, // assumes patch height 16
                 CR_TITLE);
         }
