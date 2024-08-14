@@ -97,6 +97,7 @@ static boolean default_reset;
 #define Y_BUTTON          (SCREENHEIGHT - 15 - 3)
 
 #define CNTR_X            162
+#define OFF_CNTR_X        (CNTR_X + 53)
 
 #define M_WRAP            (SCREENWIDTH - CNTR_X - 8)
 #define M_SPC             9
@@ -2705,39 +2706,48 @@ static const char *endoom_strings[] = {"off", "on", "PWAD only"};
 
 static setup_menu_t gen_settings5[] = {
 
-    {"Smooth Pixel Scaling", S_ONOFF, M_X, M_SPC, {"smooth_scaling"},
-     m_null, input_null, str_empty, ResetVideo},
+    {"Smooth Pixel Scaling", S_ONOFF, OFF_CNTR_X, M_SPC,
+     {"smooth_scaling"}, m_null, input_null, str_empty,
+     ResetVideo},
 
-    {"Sprite Translucency", S_ONOFF | S_STRICT, M_X, M_SPC, {"translucency"}},
+    {"Sprite Translucency", S_ONOFF | S_STRICT, OFF_CNTR_X, M_SPC,
+     {"translucency"}},
 
-    {"Translucency Filter", S_NUM | S_ACTION | S_PCT, M_X, M_SPC,
-     {"tran_filter_pct"}, m_null, input_null, str_empty, MN_Trans},
-
-    MI_GAP,
-
-    {"Voxels", S_ONOFF | S_STRICT, M_X, M_SPC, {"voxels_rendering"}},
-
-    {"Brightmaps", S_ONOFF | S_STRICT, M_X, M_SPC, {"brightmaps"},
-     m_null, input_null, str_empty, R_InitDrawFunctions},
-
-    {"Stretch Short Skies", S_ONOFF, M_X, M_SPC, {"stretchsky"},
-     m_null, input_null, str_empty, R_InitSkyMap},
-
-    {"Linear Sky Scrolling", S_ONOFF, M_X, M_SPC, {"linearsky"},
-     m_null, input_null, str_empty, R_InitPlanes},
-
-    {"Swirling Flats", S_ONOFF, M_X, M_SPC, {"r_swirl"}},
-
-    {"Smooth Diminishing Lighting", S_ONOFF, M_X, M_SPC, {"smoothlight"},
-     m_null, input_null, str_empty, SmoothLight},
+    {"Translucency Filter", S_NUM | S_ACTION | S_PCT, OFF_CNTR_X, M_SPC,
+     {"tran_filter_pct"}, m_null, input_null, str_empty,
+     MN_Trans},
 
     MI_GAP,
 
-    {"Menu Backdrop", S_CHOICE, M_X, M_SPC, {"menu_backdrop"},
-     m_null, input_null, str_menu_backdrop},
+    {"Voxels", S_ONOFF | S_STRICT, OFF_CNTR_X, M_SPC,
+     {"voxels_rendering"}},
 
-    {"Show ENDOOM Screen", S_CHOICE, M_X, M_SPC, {"show_endoom"},
-     m_null, input_null, str_endoom},
+    {"Brightmaps", S_ONOFF | S_STRICT, OFF_CNTR_X, M_SPC,
+     {"brightmaps"}, m_null, input_null, str_empty,
+     R_InitDrawFunctions},
+
+    {"Stretch Short Skies", S_ONOFF, OFF_CNTR_X, M_SPC,
+     {"stretchsky"}, m_null, input_null, str_empty,
+     R_InitSkyMap},
+
+    {"Linear Sky Scrolling", S_ONOFF, OFF_CNTR_X, M_SPC,
+     {"linearsky"}, m_null, input_null, str_empty,
+     R_InitPlanes},
+
+    {"Swirling Flats", S_ONOFF, OFF_CNTR_X, M_SPC,
+     {"r_swirl"}},
+
+    {"Smooth Diminishing Lighting", S_ONOFF, OFF_CNTR_X, M_SPC,
+     {"smoothlight"}, m_null, input_null, str_empty,
+     SmoothLight},
+
+    MI_GAP,
+
+    {"Menu Backdrop", S_CHOICE, OFF_CNTR_X, M_SPC,
+     {"menu_backdrop"}, m_null, input_null, str_menu_backdrop},
+
+    {"Show ENDOOM Screen", S_CHOICE, OFF_CNTR_X, M_SPC,
+     {"show_endoom"}, m_null, input_null, str_endoom},
 
     MI_END
 };
