@@ -1808,29 +1808,29 @@ static const char *automap_keyed_door_strings[] = {"Off", "On", "Flashing"};
 
 static setup_menu_t auto_settings1[] = {
 
-    {"Modes", S_SKIP | S_TITLE, M_X, M_SPC},
+    {"Modes", S_SKIP | S_TITLE, H_X, M_SPC},
 
-    {"Follow Player",   S_ONOFF,  M_X, M_SPC, {"followplayer"}},
-    {"Rotate Automap",  S_ONOFF,  M_X, M_SPC, {"automaprotate"}},
-    {"Overlay Automap", S_CHOICE, M_X, M_SPC, {"automapoverlay"},
+    {"Follow Player",   S_ONOFF,  H_X, M_SPC, {"followplayer"}},
+    {"Rotate Automap",  S_ONOFF,  H_X, M_SPC, {"automaprotate"}},
+    {"Overlay Automap", S_CHOICE, H_X, M_SPC, {"automapoverlay"},
      m_null, input_null, str_overlay},
 
     // killough 10/98
-    {"Coords Follow Pointer", S_ONOFF, M_X, M_SPC, {"map_point_coord"}},
+    {"Coords Follow Pointer", S_ONOFF, H_X, M_SPC, {"map_point_coord"}},
 
     MI_GAP,
 
-    {"Miscellaneous", S_SKIP | S_TITLE, M_X, M_SPC},
+    {"Miscellaneous", S_SKIP | S_TITLE, H_X, M_SPC},
 
-    {"Color Preset", S_CHOICE | S_COSMETIC, M_X, M_SPC, {"mapcolor_preset"},
+    {"Color Preset", S_CHOICE | S_COSMETIC, H_X, M_SPC, {"mapcolor_preset"},
      m_null , input_null, str_automap_preset, AM_ColorPreset},
 
-    {"Smooth automap lines", S_ONOFF, M_X, M_SPC, {"map_smooth_lines"},
+    {"Smooth automap lines", S_ONOFF, H_X, M_SPC, {"map_smooth_lines"},
      m_null, input_null, str_empty, AM_EnableSmoothLines},
 
-    {"Show Found Secrets Only", S_ONOFF, M_X, M_SPC, {"map_secret_after"}},
+    {"Show Found Secrets Only", S_ONOFF, H_X, M_SPC, {"map_secret_after"}},
 
-    {"Color Keyed Doors", S_CHOICE, M_X, M_SPC, {"map_keyed_door"},
+    {"Color Keyed Doors", S_CHOICE, H_X, M_SPC, {"map_keyed_door"},
      m_null, input_null, str_automap_keyed_door},
 
     MI_RESET,
