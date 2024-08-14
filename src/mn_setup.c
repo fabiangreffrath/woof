@@ -718,10 +718,10 @@ static void WrapSettingString(setup_menu_t *s, int x, int y, int color)
             {
                 char old_c = ptr[ptr_index];
                 ptr[ptr_index] = '\0';
-                pixel_width += MN_GetPixelWidth(ptr);
+                const int word_pixel_width = MN_GetPixelWidth(ptr);
                 ptr[ptr_index] = old_c;
 
-                if (line_pixel_width + pixel_width > M_WRAP)
+                if (line_pixel_width + pixel_width + word_pixel_width > M_WRAP)
                 {
                     menu_buffer[index] = '\n';
                     line_pixel_width = 0;
