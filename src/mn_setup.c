@@ -1653,35 +1653,39 @@ static const char *show_adv_widgets_strings[] = {"Off", "Automap", "HUD",
 
 static setup_menu_t stat_settings2[] = {
 
-    {"Widget Types", S_SKIP | S_TITLE, M_X, M_SPC},
+    {"Widget Types", S_SKIP | S_TITLE, H_X, M_SPC},
 
-    {"Show Level Stats", S_CHOICE, M_X, M_SPC, {"hud_level_stats"},
-     m_null, input_null, str_show_widgets},
+    {"Show Level Stats", S_CHOICE, H_X, M_SPC,
+     {"hud_level_stats"}, m_null, input_null, str_show_widgets},
 
-    {"Show Level Time", S_CHOICE, M_X, M_SPC, {"hud_level_time"},
-     m_null, input_null, str_show_widgets},
+    {"Show Level Time", S_CHOICE, H_X, M_SPC,
+     {"hud_level_time"}, m_null, input_null, str_show_widgets},
 
-    {"Show Player Coords", S_CHOICE | S_STRICT, M_X, M_SPC,
-     {"hud_player_coords"}, m_null, input_null, str_show_adv_widgets, HU_Start},
+    {"Show Player Coords", S_CHOICE | S_STRICT, H_X, M_SPC,
+     {"hud_player_coords"}, m_null, input_null, str_show_adv_widgets,
+     HU_Start},
 
-    {"Show Command History", S_ONOFF | S_STRICT, M_X, M_SPC,
+    {"Show Command History", S_ONOFF | S_STRICT, H_X, M_SPC,
      {"hud_command_history"}, m_null, input_null, str_empty,
      HU_ResetCommandHistory},
 
-    {"Use-Button Timer", S_ONOFF, M_X, M_SPC, {"hud_time_use"}},
+    {"Use-Button Timer", S_ONOFF, H_X, M_SPC,
+     {"hud_time_use"}},
 
     MI_GAP,
 
-    {"Widget Appearance", S_SKIP | S_TITLE, M_X, M_SPC},
+    {"Widget Appearance", S_SKIP | S_TITLE, H_X, M_SPC},
 
-    {"Use Doom Font", S_CHOICE, M_X, M_SPC, {"hud_widget_font"},
-     m_null, input_null, str_show_widgets},
+    {"Use Doom Font", S_CHOICE, H_X, M_SPC,
+     {"hud_widget_font"}, m_null, input_null, str_show_widgets},
 
-    {"Widescreen Alignment", S_ONOFF, M_X, M_SPC, {"hud_widescreen_widgets"},
-     m_null, input_null, str_empty, HU_Start},
+    {"Widescreen Alignment", S_ONOFF, H_X, M_SPC,
+     {"hud_widescreen_widgets"}, m_null, input_null, str_empty,
+     HU_Start},
 
-    {"Vertical Layout", S_ONOFF, M_X, M_SPC, {"hud_widget_layout"},
-     m_null, input_null, str_empty, HU_Start},
+    {"Vertical Layout", S_ONOFF, H_X, M_SPC,
+     {"hud_widget_layout"}, m_null, input_null, str_empty,
+     HU_Start},
 
     MI_END
 };
