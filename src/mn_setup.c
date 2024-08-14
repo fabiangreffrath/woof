@@ -1470,20 +1470,22 @@ static const char *bobbing_pct_strings[] = {"0%", "25%", "50%", "75%", "100%"};
 
 static setup_menu_t weap_settings1[] = {
 
-    {"View Bob", S_THERMO | S_THRM_SIZE4, M_X_THRM4, M_THRM_SPC,
+    {"View Bob", S_THERMO, CNTR_X, M_THRM_SPC,
      {"view_bobbing_pct"}, m_null, input_null, str_bobbing_pct},
 
-    {"Weapon Bob", S_THERMO | S_THRM_SIZE4, M_X_THRM4, M_THRM_SPC,
+    {"Weapon Bob", S_THERMO, CNTR_X, M_THRM_SPC,
      {"weapon_bobbing_pct"}, m_null, input_null, str_bobbing_pct,
      UpdateCenteredWeaponItem},
 
+    MI_GAP,
+
     // [FG] centered or bobbing weapon sprite
-    {"Weapon Alignment", S_CHOICE | S_STRICT, M_X, M_SPC,
+    {"Weapon Alignment", S_CHOICE | S_STRICT, CNTR_X, M_SPC,
      {"center_weapon"}, m_null, input_null, str_center_weapon},
 
-    {"Hide Weapon", S_ONOFF | S_STRICT, M_X, M_SPC, {"hide_weapon"}},
+    {"Hide Weapon", S_ONOFF | S_STRICT, CNTR_X, M_SPC, {"hide_weapon"}},
 
-    {"Weapon Recoil", S_ONOFF, M_X, M_SPC, {"weapon_recoilpitch"}},
+    {"Weapon Recoil", S_ONOFF, CNTR_X, M_SPC, {"weapon_recoilpitch"}},
 
     MI_RESET,
 
