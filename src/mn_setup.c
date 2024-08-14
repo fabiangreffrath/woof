@@ -1699,7 +1699,7 @@ static const char *hudcolor_strings[] = {
     "ORANGE", "YELLOW", "BLUE2", "BLACK", "PURPLE", "WHITE", "NONE"
 };
 
-#define XH_X (M_X - 33)
+#define XH_X (H_X - 33)
 
 static setup_menu_t stat_settings3[] = {
 
