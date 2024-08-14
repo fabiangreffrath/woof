@@ -2799,33 +2799,37 @@ void MN_ResetTimeScale(void)
 
 static setup_menu_t gen_settings6[] = {
 
-    {"Quality of life", S_SKIP | S_TITLE, M_X, M_SPC},
+    {"Quality of life", S_SKIP | S_TITLE, OFF_CNTR_X, M_SPC},
 
-    {"Screen wipe effect", S_CHOICE | S_STRICT, M_X, M_SPC, {"screen_melt"},
-     m_null, input_null, str_screen_melt},
+    {"Screen wipe effect", S_CHOICE | S_STRICT, OFF_CNTR_X, M_SPC,
+     {"screen_melt"}, m_null, input_null, str_screen_melt},
 
-    {"On death action", S_CHOICE, M_X, M_SPC, {"death_use_action"},
-     m_null, input_null, str_death_use_action},
+    {"On death action", S_CHOICE, OFF_CNTR_X, M_SPC,
+     {"death_use_action"}, m_null, input_null, str_death_use_action},
 
-    {"Demo progress bar", S_ONOFF, M_X, M_SPC, {"demobar"}},
+    {"Demo progress bar", S_ONOFF, OFF_CNTR_X, M_SPC,
+     {"demobar"}},
 
-    {"Screen flashes", S_ONOFF | S_STRICT, M_X, M_SPC, {"palette_changes"}},
+    {"Screen flashes", S_ONOFF | S_STRICT, OFF_CNTR_X, M_SPC,
+     {"palette_changes"}},
 
-    {"Invulnerability effect", S_CHOICE | S_STRICT, M_X, M_SPC, {"invul_mode"},
-     m_null, input_null, str_invul_mode, R_InvulMode},
+    {"Invulnerability effect", S_CHOICE | S_STRICT, OFF_CNTR_X, M_SPC,
+     {"invul_mode"}, m_null, input_null, str_invul_mode,
+     R_InvulMode},
 
-    {"Organize save files", S_ONOFF | S_PRGWARN, M_X, M_SPC,
+    {"Organize save files", S_ONOFF | S_PRGWARN, OFF_CNTR_X, M_SPC,
      {"organize_savefiles"}},
 
     MI_GAP,
 
-    {"Miscellaneous", S_SKIP | S_TITLE, M_X, M_SPC},
+    {"Miscellaneous", S_SKIP | S_TITLE, OFF_CNTR_X, M_SPC},
 
-    {"Game speed", S_NUM | S_STRICT | S_PCT, M_X, M_SPC, {"realtic_clock_rate"},
-     m_null, input_null, str_empty, MN_ResetTimeScale},
+    {"Game speed", S_NUM | S_STRICT | S_PCT, OFF_CNTR_X, M_SPC,
+     {"realtic_clock_rate"}, m_null, input_null, str_empty,
+     MN_ResetTimeScale},
 
-    {"Default Skill", S_CHOICE | S_LEVWARN, M_X, M_SPC, {"default_skill"},
-     m_null, input_null, str_default_skill},
+    {"Default Skill", S_CHOICE | S_LEVWARN, OFF_CNTR_X, M_SPC,
+     {"default_skill"}, m_null, input_null, str_default_skill},
 
     MI_END
 };
