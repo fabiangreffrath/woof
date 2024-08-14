@@ -60,6 +60,8 @@
 
 static int M_GetKeyString(int c, int offset);
 static void DrawMenuString(int cx, int cy, int color);
+static void DrawMenuStringBuffer(int flags, int x, int y, int color,
+                                 const char *buffer);
 static void DrawMenuStringEx(int flags, int x, int y, int color);
 
 int warning_about_changes, print_warning_about_changes;
@@ -94,6 +96,9 @@ static boolean default_reset;
 #define X_BUTTON          301
 #define Y_BUTTON          (SCREENHEIGHT - 15 - 3)
 
+#define CNTR_X            162
+
+#define M_WRAP            (SCREENWIDTH - CNTR_X - 8)
 #define M_SPC             9
 #define M_X               240
 #define M_Y               (29 + M_SPC)
@@ -563,10 +568,7 @@ static void DrawItem(setup_menu_t *s, int accum_y)
     const char *text = s->m_text;
     const int color = GetItemColor(flags);
 
-    if (!(flags & S_NEXT_LINE))
-    {
-        BlinkingArrowLeft(s);
-    }
+    BlinkingArrowLeft(s);
 
     // killough 10/98: support left-justification:
     strcat(menu_buffer, text);
@@ -579,7 +581,7 @@ static void DrawItem(setup_menu_t *s, int accum_y)
     rect->x = 0;
     rect->y = y;
     rect->w = SCREENWIDTH;
-    rect->h = M_SPC;
+    rect->h = M_SPC * MAX(1, s->lines);
 
     if (flags & S_THERMO)
     {
@@ -678,6 +680,93 @@ static void DrawSetupThermo(const setup_menu_t *s, int x, int y, int width,
 
     V_DrawPatchTranslated(x + M_THRM_STEP + dot * step / FRACUNIT, y,
                           V_CachePatchName("M_THERMO", PU_CACHE), cr);
+}
+
+static void WrapSettingString(setup_menu_t *s, int x, int y, int color)
+{
+    const int flags = s->m_flags;
+    s->rect.y = y;
+
+    if (MN_GetPixelWidth(menu_buffer) <= M_WRAP)
+    {
+        BlinkingArrowRight(s);
+        DrawMenuStringEx(flags, x, y, color);
+        return;
+    }
+
+    int index = 0;
+    int line_pixel_width = 0;
+
+    while (menu_buffer[index] != '\0')
+    {
+        char c[2] = {0};
+        c[0] = menu_buffer[index];
+        int pixel_width = MN_GetPixelWidth(c);
+
+        if (menu_buffer[index] == ' ')
+        {
+            char *ptr = &menu_buffer[index + 1];
+            int ptr_index = 0;
+
+            while (ptr[ptr_index] != '\0' && ptr[ptr_index] != ' ')
+            {
+                ptr_index++;
+            }
+
+            if (ptr_index)
+            {
+                char old_c = ptr[ptr_index];
+                ptr[ptr_index] = '\0';
+                pixel_width += MN_GetPixelWidth(ptr);
+                ptr[ptr_index] = old_c;
+
+                if (line_pixel_width + pixel_width > M_WRAP)
+                {
+                    menu_buffer[index] = '\n';
+                    line_pixel_width = 0;
+                    pixel_width = 0;
+                }
+            }
+        }
+
+        index++;
+        line_pixel_width += pixel_width;
+    }
+
+    BlinkingArrowRight(s);
+    const int length = index;
+    index = 0;
+    s->lines = 0;
+
+    while (index < length)
+    {
+        int offset = 0;
+
+        while (menu_buffer[index + offset] != '\0'
+               && menu_buffer[index + offset] != '\n')
+        {
+            offset++;
+        }
+
+        if (offset)
+        {
+            if (menu_buffer[index + offset] == '\n')
+            {
+                menu_buffer[index + offset] = '\0';
+                offset++;
+            }
+
+            DrawMenuStringBuffer(flags, x, y, color, &menu_buffer[index]);
+            y += M_SPC;
+            s->lines++;
+        }
+        else
+        {
+            break;
+        }
+
+        index += offset;
+    }
 }
 
 static void DrawSetting(setup_menu_t *s, int accum_y)
@@ -813,27 +902,19 @@ static void DrawSetting(setup_menu_t *s, int accum_y)
     if (flags & (S_CHOICE | S_CRITEM))
     {
         int i = s->var.def->location->i;
-        mrect_t *rect = &s->rect;
-        int width;
         const char **strings = GetStrings(s->strings_id);
 
         menu_buffer[0] = '\0';
-
-        if (flags & S_NEXT_LINE)
-        {
-            BlinkingArrowLeft(s);
-        }
 
         if (i >= 0 && strings)
         {
             strcat(menu_buffer, strings[i]);
         }
-        width = MN_GetPixelWidth(menu_buffer);
-        if (flags & S_NEXT_LINE)
+
+        if (flags & S_WRAP_LINE)
         {
-            y += M_SPC;
-            x = M_X - width - 4;
-            rect->y = y;
+            WrapSettingString(s, x, y, color);
+            return;
         }
 
         BlinkingArrowRight(s);
@@ -2206,37 +2287,45 @@ static const char *equalizer_preset_strings[] = {"Off", "Classical", "Rock", "Vo
 
 static setup_menu_t gen_settings2[] = {
 
-    {"Sound Volume", S_THERMO, M_X_THRM8, M_THRM_SPC, {"sfx_volume"},
-     m_null, input_null, str_empty, UpdateSfxVolume},
+    {"Sound Volume", S_THERMO, CNTR_X, M_THRM_SPC,
+     {"sfx_volume"}, m_null, input_null, str_empty,
+     UpdateSfxVolume},
 
-    {"Music Volume", S_THERMO, M_X_THRM8, M_THRM_SPC, {"music_volume"},
-     m_null, input_null, str_empty, UpdateMusicVolume},
+    {"Music Volume", S_THERMO, CNTR_X, M_THRM_SPC,
+     {"music_volume"}, m_null, input_null, str_empty,
+     UpdateMusicVolume},
 
     MI_GAP,
 
-    {"Sound Module", S_CHOICE, M_X, M_SPC, {"snd_module"}, m_null, input_null,
-     str_sound_module, SetSoundModule},
+    {"Sound Module", S_CHOICE, CNTR_X, M_SPC,
+     {"snd_module"}, m_null, input_null, str_sound_module,
+     SetSoundModule},
 
-    {"Headphones Mode", S_ONOFF, M_X, M_SPC, {"snd_hrtf"}, m_null, input_null,
-     str_empty, SetSoundModule},
+    {"Headphones Mode", S_ONOFF, CNTR_X, M_SPC,
+     {"snd_hrtf"}, m_null, input_null, str_empty,
+     SetSoundModule},
 
-    {"Pitch-Shifted Sounds", S_ONOFF, M_X, M_SPC, {"pitched_sounds"}},
+    {"Pitch-Shifting", S_ONOFF, CNTR_X, M_SPC,
+     {"pitched_sounds"}},
 
     // [FG] play sounds in full length
-    {"Disable Sound Cutoffs", S_ONOFF, M_X, M_SPC, {"full_sounds"}},
+    {"Disable Cutoffs", S_ONOFF, CNTR_X, M_SPC,
+     {"full_sounds"}},
 
-    {"Equalizer Preset", S_CHOICE, M_X, M_SPC, {"snd_equalizer"}, m_null, input_null,
-     str_equalizer_preset, I_OAL_EqualizerPreset},
+    {"Equalizer Preset", S_CHOICE, CNTR_X, M_SPC,
+     {"snd_equalizer"}, m_null, input_null, str_equalizer_preset,
+     I_OAL_EqualizerPreset},
 
-    {"Resampler", S_CHOICE | S_NEXT_LINE, M_X, M_SPC, {"snd_resampler"}, m_null,
-     input_null, str_resampler, I_OAL_SetResampler},
+    {"Resampler", S_CHOICE, CNTR_X, M_SPC,
+     {"snd_resampler"}, m_null, input_null, str_resampler,
+     I_OAL_SetResampler},
 
-    MI_GAP,
     MI_GAP,
 
     // [FG] music backend
-    {"MIDI player", S_CHOICE | S_ACTION | S_NEXT_LINE, M_X, M_SPC,
-     {"midi_player_menu"}, m_null, input_null, str_midi_player, SetMidiPlayer},
+    {"MIDI Player", S_CHOICE | S_ACTION | S_WRAP_LINE, CNTR_X, M_SPC,
+     {"midi_player_menu"}, m_null, input_null, str_midi_player,
+     SetMidiPlayer},
 
     MI_END
 };
@@ -2332,8 +2421,6 @@ static const char **GetMouseAccelStrings(void)
     }
     return strings;
 }
-
-#define CNTR_X 162
 
 static setup_menu_t gen_settings3[] = {
     // [FG] double click to "use"
@@ -3131,27 +3218,33 @@ static void DrawMenuString(int cx, int cy, int color)
     MN_DrawString(cx, cy, color, menu_buffer);
 }
 
-static void DrawMenuStringEx(int flags, int x, int y, int color)
+static void DrawMenuStringBuffer(int flags, int x, int y, int color,
+                                 const char *buffer)
 {
     if (ItemDisabled(flags))
     {
-        MN_DrawStringCR(x, y, cr_dark, NULL, menu_buffer);
+        MN_DrawStringCR(x, y, cr_dark, NULL, buffer);
     }
     else if (flags & S_HILITE)
     {
         if (color == CR_NONE)
         {
-            MN_DrawStringCR(x, y, cr_bright, NULL, menu_buffer);
+            MN_DrawStringCR(x, y, cr_bright, NULL, buffer);
         }
         else
         {
-            MN_DrawStringCR(x, y, colrngs[color], cr_bright, menu_buffer);
+            MN_DrawStringCR(x, y, colrngs[color], cr_bright, buffer);
         }
     }
     else
     {
-        DrawMenuString(x, y, color);
+        MN_DrawString(x, y, color, buffer);
     }
+}
+
+static void DrawMenuStringEx(int flags, int x, int y, int color)
+{
+    DrawMenuStringBuffer(flags, x, y, color, menu_buffer);
 }
 
 // M_GetPixelWidth() returns the number of pixels in the width of
