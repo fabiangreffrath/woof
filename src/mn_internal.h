@@ -120,7 +120,7 @@ void MN_DrawEnemy(void);
 #define S_DISABLE     0x00040000 // Disable item
 #define S_COSMETIC    0x00080000 // Don't warn about change, always load from OPTIONS lump
 #define S_THERMO      0x00100000 // Thermo bar (default size 8)
-#define S_NEXT_LINE   0x00200000 // Two lines menu items
+#define S_WRAP_LINE   0x00200000 // Wrap long menu items relative to M_WRAP
 #define S_STRICT      0x00400000 // Disable in strict mode
 #define S_BOOM        0x00800000 // Disable if complevel < boom
 #define S_VANILLA     0x01000000 // Disable if complevel != vanilla
@@ -198,6 +198,7 @@ typedef struct setup_menu_s
     int strings_id;       // [FG] selection of choices
     void (*action)(void); // killough 10/98: function to call after changing
     mrect_t rect;
+    int lines;            // number of lines for rect, always > 0
     char *desc;           // overrides default description
 } setup_menu_t;
 

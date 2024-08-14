@@ -60,6 +60,8 @@
 
 static int M_GetKeyString(int c, int offset);
 static void DrawMenuString(int cx, int cy, int color);
+static void DrawMenuStringBuffer(int flags, int x, int y, int color,
+                                 const char *buffer);
 static void DrawMenuStringEx(int flags, int x, int y, int color);
 
 int warning_about_changes, print_warning_about_changes;
@@ -94,6 +96,10 @@ static boolean default_reset;
 #define X_BUTTON          301
 #define Y_BUTTON          (SCREENHEIGHT - 15 - 3)
 
+#define CNTR_X            162
+#define OFF_CNTR_X        (CNTR_X + 53)
+
+#define M_WRAP            (SCREENWIDTH - CNTR_X - 8)
 #define M_SPC             9
 #define M_X               240
 #define M_Y               (29 + M_SPC)
@@ -563,10 +569,7 @@ static void DrawItem(setup_menu_t *s, int accum_y)
     const char *text = s->m_text;
     const int color = GetItemColor(flags);
 
-    if (!(flags & S_NEXT_LINE))
-    {
-        BlinkingArrowLeft(s);
-    }
+    BlinkingArrowLeft(s);
 
     // killough 10/98: support left-justification:
     strcat(menu_buffer, text);
@@ -579,7 +582,7 @@ static void DrawItem(setup_menu_t *s, int accum_y)
     rect->x = 0;
     rect->y = y;
     rect->w = SCREENWIDTH;
-    rect->h = M_SPC;
+    rect->h = M_SPC * MAX(1, s->lines);
 
     if (flags & S_THERMO)
     {
@@ -678,6 +681,93 @@ static void DrawSetupThermo(const setup_menu_t *s, int x, int y, int width,
 
     V_DrawPatchTranslated(x + M_THRM_STEP + dot * step / FRACUNIT, y,
                           V_CachePatchName("M_THERMO", PU_CACHE), cr);
+}
+
+static void WrapSettingString(setup_menu_t *s, int x, int y, int color)
+{
+    const int flags = s->m_flags;
+    s->rect.y = y;
+
+    if (MN_GetPixelWidth(menu_buffer) <= M_WRAP)
+    {
+        BlinkingArrowRight(s);
+        DrawMenuStringEx(flags, x, y, color);
+        return;
+    }
+
+    int index = 0;
+    int line_pixel_width = 0;
+
+    while (menu_buffer[index] != '\0')
+    {
+        char c[2] = {0};
+        c[0] = menu_buffer[index];
+        int pixel_width = MN_GetPixelWidth(c);
+
+        if (menu_buffer[index] == ' ')
+        {
+            char *ptr = &menu_buffer[index + 1];
+            int ptr_index = 0;
+
+            while (ptr[ptr_index] != '\0' && ptr[ptr_index] != ' ')
+            {
+                ptr_index++;
+            }
+
+            if (ptr_index)
+            {
+                char old_c = ptr[ptr_index];
+                ptr[ptr_index] = '\0';
+                const int word_pixel_width = MN_GetPixelWidth(ptr);
+                ptr[ptr_index] = old_c;
+
+                if (line_pixel_width + pixel_width + word_pixel_width > M_WRAP)
+                {
+                    menu_buffer[index] = '\n';
+                    line_pixel_width = 0;
+                    pixel_width = 0;
+                }
+            }
+        }
+
+        index++;
+        line_pixel_width += pixel_width;
+    }
+
+    BlinkingArrowRight(s);
+    const int length = index;
+    index = 0;
+    s->lines = 0;
+
+    while (index < length)
+    {
+        int offset = 0;
+
+        while (menu_buffer[index + offset] != '\0'
+               && menu_buffer[index + offset] != '\n')
+        {
+            offset++;
+        }
+
+        if (offset)
+        {
+            if (menu_buffer[index + offset] == '\n')
+            {
+                menu_buffer[index + offset] = '\0';
+                offset++;
+            }
+
+            DrawMenuStringBuffer(flags, x, y, color, &menu_buffer[index]);
+            y += M_SPC;
+            s->lines++;
+        }
+        else
+        {
+            break;
+        }
+
+        index += offset;
+    }
 }
 
 static void DrawSetting(setup_menu_t *s, int accum_y)
@@ -813,27 +903,19 @@ static void DrawSetting(setup_menu_t *s, int accum_y)
     if (flags & (S_CHOICE | S_CRITEM))
     {
         int i = s->var.def->location->i;
-        mrect_t *rect = &s->rect;
-        int width;
         const char **strings = GetStrings(s->strings_id);
 
         menu_buffer[0] = '\0';
-
-        if (flags & S_NEXT_LINE)
-        {
-            BlinkingArrowLeft(s);
-        }
 
         if (i >= 0 && strings)
         {
             strcat(menu_buffer, strings[i]);
         }
-        width = MN_GetPixelWidth(menu_buffer);
-        if (flags & S_NEXT_LINE)
+
+        if (flags & S_WRAP_LINE)
         {
-            y += M_SPC;
-            x = M_X - width - 4;
-            rect->y = y;
+            WrapSettingString(s, x, y, color);
+            return;
         }
 
         BlinkingArrowRight(s);
@@ -1388,20 +1470,22 @@ static const char *bobbing_pct_strings[] = {"0%", "25%", "50%", "75%", "100%"};
 
 static setup_menu_t weap_settings1[] = {
 
-    {"View Bob", S_THERMO | S_THRM_SIZE4, M_X_THRM4, M_THRM_SPC,
+    {"View Bob", S_THERMO, CNTR_X, M_THRM_SPC,
      {"view_bobbing_pct"}, m_null, input_null, str_bobbing_pct},
 
-    {"Weapon Bob", S_THERMO | S_THRM_SIZE4, M_X_THRM4, M_THRM_SPC,
+    {"Weapon Bob", S_THERMO, CNTR_X, M_THRM_SPC,
      {"weapon_bobbing_pct"}, m_null, input_null, str_bobbing_pct,
      UpdateCenteredWeaponItem},
 
+    MI_GAP,
+
     // [FG] centered or bobbing weapon sprite
-    {"Weapon Alignment", S_CHOICE | S_STRICT, M_X, M_SPC,
+    {"Weapon Alignment", S_CHOICE | S_STRICT, CNTR_X, M_SPC,
      {"center_weapon"}, m_null, input_null, str_center_weapon},
 
-    {"Hide Weapon", S_ONOFF | S_STRICT, M_X, M_SPC, {"hide_weapon"}},
+    {"Hide Weapon", S_ONOFF | S_STRICT, CNTR_X, M_SPC, {"hide_weapon"}},
 
-    {"Weapon Recoil", S_ONOFF, M_X, M_SPC, {"weapon_recoilpitch"}},
+    {"Weapon Recoil", S_ONOFF, CNTR_X, M_SPC, {"weapon_recoilpitch"}},
 
     MI_RESET,
 
@@ -1409,20 +1493,20 @@ static setup_menu_t weap_settings1[] = {
 };
 
 static setup_menu_t weap_settings2[] = {
-    {"1St Choice Weapon", S_WEAP | S_BOOM, M_X, M_SPC, {"weapon_choice_1"}},
-    {"2Nd Choice Weapon", S_WEAP | S_BOOM, M_X, M_SPC, {"weapon_choice_2"}},
-    {"3Rd Choice Weapon", S_WEAP | S_BOOM, M_X, M_SPC, {"weapon_choice_3"}},
-    {"4Th Choice Weapon", S_WEAP | S_BOOM, M_X, M_SPC, {"weapon_choice_4"}},
-    {"5Th Choice Weapon", S_WEAP | S_BOOM, M_X, M_SPC, {"weapon_choice_5"}},
-    {"6Th Choice Weapon", S_WEAP | S_BOOM, M_X, M_SPC, {"weapon_choice_6"}},
-    {"7Th Choice Weapon", S_WEAP | S_BOOM, M_X, M_SPC, {"weapon_choice_7"}},
-    {"8Th Choice Weapon", S_WEAP | S_BOOM, M_X, M_SPC, {"weapon_choice_8"}},
-    {"9Th Choice Weapon", S_WEAP | S_BOOM, M_X, M_SPC, {"weapon_choice_9"}},
+    {"1St Choice Weapon", S_WEAP | S_BOOM, OFF_CNTR_X, M_SPC, {"weapon_choice_1"}},
+    {"2Nd Choice Weapon", S_WEAP | S_BOOM, OFF_CNTR_X, M_SPC, {"weapon_choice_2"}},
+    {"3Rd Choice Weapon", S_WEAP | S_BOOM, OFF_CNTR_X, M_SPC, {"weapon_choice_3"}},
+    {"4Th Choice Weapon", S_WEAP | S_BOOM, OFF_CNTR_X, M_SPC, {"weapon_choice_4"}},
+    {"5Th Choice Weapon", S_WEAP | S_BOOM, OFF_CNTR_X, M_SPC, {"weapon_choice_5"}},
+    {"6Th Choice Weapon", S_WEAP | S_BOOM, OFF_CNTR_X, M_SPC, {"weapon_choice_6"}},
+    {"7Th Choice Weapon", S_WEAP | S_BOOM, OFF_CNTR_X, M_SPC, {"weapon_choice_7"}},
+    {"8Th Choice Weapon", S_WEAP | S_BOOM, OFF_CNTR_X, M_SPC, {"weapon_choice_8"}},
+    {"9Th Choice Weapon", S_WEAP | S_BOOM, OFF_CNTR_X, M_SPC, {"weapon_choice_9"}},
     MI_GAP,
-    {"Use Weapon Toggles", S_ONOFF | S_BOOM, M_X, M_SPC, {"doom_weapon_toggles"}},
+    {"Use Weapon Toggles", S_ONOFF | S_BOOM, OFF_CNTR_X, M_SPC, {"doom_weapon_toggles"}},
     MI_GAP,
     // killough 8/8/98
-    {"Pre-Beta BFG", S_ONOFF | S_STRICT, M_X, M_SPC, {"classic_bfg"}},
+    {"Pre-Beta BFG", S_ONOFF | S_STRICT, OFF_CNTR_X, M_SPC, {"classic_bfg"}},
     MI_END
 };
 
@@ -1571,35 +1655,39 @@ static const char *show_adv_widgets_strings[] = {"Off", "Automap", "HUD",
 
 static setup_menu_t stat_settings2[] = {
 
-    {"Widget Types", S_SKIP | S_TITLE, M_X, M_SPC},
+    {"Widget Types", S_SKIP | S_TITLE, H_X, M_SPC},
 
-    {"Show Level Stats", S_CHOICE, M_X, M_SPC, {"hud_level_stats"},
-     m_null, input_null, str_show_widgets},
+    {"Show Level Stats", S_CHOICE, H_X, M_SPC,
+     {"hud_level_stats"}, m_null, input_null, str_show_widgets},
 
-    {"Show Level Time", S_CHOICE, M_X, M_SPC, {"hud_level_time"},
-     m_null, input_null, str_show_widgets},
+    {"Show Level Time", S_CHOICE, H_X, M_SPC,
+     {"hud_level_time"}, m_null, input_null, str_show_widgets},
 
-    {"Show Player Coords", S_CHOICE | S_STRICT, M_X, M_SPC,
-     {"hud_player_coords"}, m_null, input_null, str_show_adv_widgets, HU_Start},
+    {"Show Player Coords", S_CHOICE | S_STRICT, H_X, M_SPC,
+     {"hud_player_coords"}, m_null, input_null, str_show_adv_widgets,
+     HU_Start},
 
-    {"Show Command History", S_ONOFF | S_STRICT, M_X, M_SPC,
+    {"Show Command History", S_ONOFF | S_STRICT, H_X, M_SPC,
      {"hud_command_history"}, m_null, input_null, str_empty,
      HU_ResetCommandHistory},
 
-    {"Use-Button Timer", S_ONOFF, M_X, M_SPC, {"hud_time_use"}},
+    {"Use-Button Timer", S_ONOFF, H_X, M_SPC,
+     {"hud_time_use"}},
 
     MI_GAP,
 
-    {"Widget Appearance", S_SKIP | S_TITLE, M_X, M_SPC},
+    {"Widget Appearance", S_SKIP | S_TITLE, H_X, M_SPC},
 
-    {"Use Doom Font", S_CHOICE, M_X, M_SPC, {"hud_widget_font"},
-     m_null, input_null, str_show_widgets},
+    {"Use Doom Font", S_CHOICE, H_X, M_SPC,
+     {"hud_widget_font"}, m_null, input_null, str_show_widgets},
 
-    {"Widescreen Alignment", S_ONOFF, M_X, M_SPC, {"hud_widescreen_widgets"},
-     m_null, input_null, str_empty, HU_Start},
+    {"Widescreen Alignment", S_ONOFF, H_X, M_SPC,
+     {"hud_widescreen_widgets"}, m_null, input_null, str_empty,
+     HU_Start},
 
-    {"Vertical Layout", S_ONOFF, M_X, M_SPC, {"hud_widget_layout"},
-     m_null, input_null, str_empty, HU_Start},
+    {"Vertical Layout", S_ONOFF, H_X, M_SPC,
+     {"hud_widget_layout"}, m_null, input_null, str_empty,
+     HU_Start},
 
     MI_END
 };
@@ -1613,7 +1701,7 @@ static const char *hudcolor_strings[] = {
     "ORANGE", "YELLOW", "BLUE2", "BLACK", "PURPLE", "WHITE", "NONE"
 };
 
-#define XH_X (M_X - 33)
+#define XH_X (H_X - 33)
 
 static setup_menu_t stat_settings3[] = {
 
@@ -1638,13 +1726,13 @@ static setup_menu_t stat_settings3[] = {
 };
 
 static setup_menu_t stat_settings4[] = {
-    {"Announce Revealed Secrets", S_ONOFF, M_X, M_SPC, {"hud_secret_message"}},
-    {"Announce Map Titles",  S_ONOFF, M_X, M_SPC, {"hud_map_announce"}},
-    {"Show Toggle Messages", S_ONOFF, M_X, M_SPC, {"show_toggle_messages"}},
-    {"Show Pickup Messages", S_ONOFF, M_X, M_SPC, {"show_pickup_messages"}},
-    {"Show Obituaries",      S_ONOFF, M_X, M_SPC, {"show_obituary_messages"}},
-    {"Center Messages",      S_ONOFF, M_X, M_SPC, {"message_centered"}},
-    {"Colorize Messages",    S_ONOFF, M_X, M_SPC, {"message_colorized"},
+    {"Announce Revealed Secrets", S_ONOFF, H_X, M_SPC, {"hud_secret_message"}},
+    {"Announce Map Titles",  S_ONOFF, H_X, M_SPC, {"hud_map_announce"}},
+    {"Show Toggle Messages", S_ONOFF, H_X, M_SPC, {"show_toggle_messages"}},
+    {"Show Pickup Messages", S_ONOFF, H_X, M_SPC, {"show_pickup_messages"}},
+    {"Show Obituaries",      S_ONOFF, H_X, M_SPC, {"show_obituary_messages"}},
+    {"Center Messages",      S_ONOFF, H_X, M_SPC, {"message_centered"}},
+    {"Colorize Messages",    S_ONOFF, H_X, M_SPC, {"message_colorized"},
      m_null, input_null, str_empty, HU_ResetMessageColors},
     MI_END
 };
@@ -1722,29 +1810,29 @@ static const char *automap_keyed_door_strings[] = {"Off", "On", "Flashing"};
 
 static setup_menu_t auto_settings1[] = {
 
-    {"Modes", S_SKIP | S_TITLE, M_X, M_SPC},
+    {"Modes", S_SKIP | S_TITLE, H_X, M_SPC},
 
-    {"Follow Player",   S_ONOFF,  M_X, M_SPC, {"followplayer"}},
-    {"Rotate Automap",  S_ONOFF,  M_X, M_SPC, {"automaprotate"}},
-    {"Overlay Automap", S_CHOICE, M_X, M_SPC, {"automapoverlay"},
+    {"Follow Player",   S_ONOFF,  H_X, M_SPC, {"followplayer"}},
+    {"Rotate Automap",  S_ONOFF,  H_X, M_SPC, {"automaprotate"}},
+    {"Overlay Automap", S_CHOICE, H_X, M_SPC, {"automapoverlay"},
      m_null, input_null, str_overlay},
 
     // killough 10/98
-    {"Coords Follow Pointer", S_ONOFF, M_X, M_SPC, {"map_point_coord"}},
+    {"Coords Follow Pointer", S_ONOFF, H_X, M_SPC, {"map_point_coord"}},
 
     MI_GAP,
 
-    {"Miscellaneous", S_SKIP | S_TITLE, M_X, M_SPC},
+    {"Miscellaneous", S_SKIP | S_TITLE, H_X, M_SPC},
 
-    {"Color Preset", S_CHOICE | S_COSMETIC, M_X, M_SPC, {"mapcolor_preset"},
+    {"Color Preset", S_CHOICE | S_COSMETIC, H_X, M_SPC, {"mapcolor_preset"},
      m_null , input_null, str_automap_preset, AM_ColorPreset},
 
-    {"Smooth automap lines", S_ONOFF, M_X, M_SPC, {"map_smooth_lines"},
+    {"Smooth automap lines", S_ONOFF, H_X, M_SPC, {"map_smooth_lines"},
      m_null, input_null, str_empty, AM_EnableSmoothLines},
 
-    {"Show Found Secrets Only", S_ONOFF, M_X, M_SPC, {"map_secret_after"}},
+    {"Show Found Secrets Only", S_ONOFF, H_X, M_SPC, {"map_secret_after"}},
 
-    {"Color Keyed Doors", S_CHOICE, M_X, M_SPC, {"map_keyed_door"},
+    {"Color Keyed Doors", S_CHOICE, H_X, M_SPC, {"map_keyed_door"},
      m_null, input_null, str_automap_keyed_door},
 
     MI_RESET,
@@ -2206,37 +2294,45 @@ static const char *equalizer_preset_strings[] = {"Off", "Classical", "Rock", "Vo
 
 static setup_menu_t gen_settings2[] = {
 
-    {"Sound Volume", S_THERMO, M_X_THRM8, M_THRM_SPC, {"sfx_volume"},
-     m_null, input_null, str_empty, UpdateSfxVolume},
+    {"Sound Volume", S_THERMO, CNTR_X, M_THRM_SPC,
+     {"sfx_volume"}, m_null, input_null, str_empty,
+     UpdateSfxVolume},
 
-    {"Music Volume", S_THERMO, M_X_THRM8, M_THRM_SPC, {"music_volume"},
-     m_null, input_null, str_empty, UpdateMusicVolume},
+    {"Music Volume", S_THERMO, CNTR_X, M_THRM_SPC,
+     {"music_volume"}, m_null, input_null, str_empty,
+     UpdateMusicVolume},
 
     MI_GAP,
 
-    {"Sound Module", S_CHOICE, M_X, M_SPC, {"snd_module"}, m_null, input_null,
-     str_sound_module, SetSoundModule},
+    {"Sound Module", S_CHOICE, CNTR_X, M_SPC,
+     {"snd_module"}, m_null, input_null, str_sound_module,
+     SetSoundModule},
 
-    {"Headphones Mode", S_ONOFF, M_X, M_SPC, {"snd_hrtf"}, m_null, input_null,
-     str_empty, SetSoundModule},
+    {"Headphones Mode", S_ONOFF, CNTR_X, M_SPC,
+     {"snd_hrtf"}, m_null, input_null, str_empty,
+     SetSoundModule},
 
-    {"Pitch-Shifted Sounds", S_ONOFF, M_X, M_SPC, {"pitched_sounds"}},
+    {"Pitch-Shifting", S_ONOFF, CNTR_X, M_SPC,
+     {"pitched_sounds"}},
 
     // [FG] play sounds in full length
-    {"Disable Sound Cutoffs", S_ONOFF, M_X, M_SPC, {"full_sounds"}},
+    {"Disable Cutoffs", S_ONOFF, CNTR_X, M_SPC,
+     {"full_sounds"}},
 
-    {"Equalizer Preset", S_CHOICE, M_X, M_SPC, {"snd_equalizer"}, m_null, input_null,
-     str_equalizer_preset, I_OAL_EqualizerPreset},
+    {"Equalizer Preset", S_CHOICE, CNTR_X, M_SPC,
+     {"snd_equalizer"}, m_null, input_null, str_equalizer_preset,
+     I_OAL_EqualizerPreset},
 
-    {"Resampler", S_CHOICE | S_NEXT_LINE, M_X, M_SPC, {"snd_resampler"}, m_null,
-     input_null, str_resampler, I_OAL_SetResampler},
+    {"Resampler", S_CHOICE, CNTR_X, M_SPC,
+     {"snd_resampler"}, m_null, input_null, str_resampler,
+     I_OAL_SetResampler},
 
-    MI_GAP,
     MI_GAP,
 
     // [FG] music backend
-    {"MIDI player", S_CHOICE | S_ACTION | S_NEXT_LINE, M_X, M_SPC,
-     {"midi_player_menu"}, m_null, input_null, str_midi_player, SetMidiPlayer},
+    {"MIDI Player", S_CHOICE | S_ACTION | S_WRAP_LINE, CNTR_X, M_SPC,
+     {"midi_player_menu"}, m_null, input_null, str_midi_player,
+     SetMidiPlayer},
 
     MI_END
 };
@@ -2333,8 +2429,6 @@ static const char **GetMouseAccelStrings(void)
     return strings;
 }
 
-#define CNTR_X 162
-
 static setup_menu_t gen_settings3[] = {
     // [FG] double click to "use"
     {"Double-Click to \"Use\"", S_ONOFF, CNTR_X, M_SPC, {"dclick_use"}},
@@ -2367,7 +2461,7 @@ static setup_menu_t gen_settings3[] = {
 
     MI_GAP,
 
-    {"Mouse acceleration", S_THERMO, CNTR_X, M_THRM_SPC,
+    {"Acceleration", S_THERMO, CNTR_X, M_THRM_SPC,
      {"mouse_acceleration"}, m_null, input_null, str_mouse_accel,
      G_UpdateMouseVariables},
 
@@ -2618,39 +2712,48 @@ static const char *endoom_strings[] = {"off", "on", "PWAD only"};
 
 static setup_menu_t gen_settings5[] = {
 
-    {"Smooth Pixel Scaling", S_ONOFF, M_X, M_SPC, {"smooth_scaling"},
-     m_null, input_null, str_empty, ResetVideo},
+    {"Smooth Pixel Scaling", S_ONOFF, OFF_CNTR_X, M_SPC,
+     {"smooth_scaling"}, m_null, input_null, str_empty,
+     ResetVideo},
 
-    {"Sprite Translucency", S_ONOFF | S_STRICT, M_X, M_SPC, {"translucency"}},
+    {"Sprite Translucency", S_ONOFF | S_STRICT, OFF_CNTR_X, M_SPC,
+     {"translucency"}},
 
-    {"Translucency Filter", S_NUM | S_ACTION | S_PCT, M_X, M_SPC,
-     {"tran_filter_pct"}, m_null, input_null, str_empty, MN_Trans},
-
-    MI_GAP,
-
-    {"Voxels", S_ONOFF | S_STRICT, M_X, M_SPC, {"voxels_rendering"}},
-
-    {"Brightmaps", S_ONOFF | S_STRICT, M_X, M_SPC, {"brightmaps"},
-     m_null, input_null, str_empty, R_InitDrawFunctions},
-
-    {"Stretch Short Skies", S_ONOFF, M_X, M_SPC, {"stretchsky"},
-     m_null, input_null, str_empty, R_InitSkyMap},
-
-    {"Linear Sky Scrolling", S_ONOFF, M_X, M_SPC, {"linearsky"},
-     m_null, input_null, str_empty, R_InitPlanes},
-
-    {"Swirling Flats", S_ONOFF, M_X, M_SPC, {"r_swirl"}},
-
-    {"Smooth Diminishing Lighting", S_ONOFF, M_X, M_SPC, {"smoothlight"},
-     m_null, input_null, str_empty, SmoothLight},
+    {"Translucency Filter", S_NUM | S_ACTION | S_PCT, OFF_CNTR_X, M_SPC,
+     {"tran_filter_pct"}, m_null, input_null, str_empty,
+     MN_Trans},
 
     MI_GAP,
 
-    {"Menu Backdrop", S_CHOICE, M_X, M_SPC, {"menu_backdrop"},
-     m_null, input_null, str_menu_backdrop},
+    {"Voxels", S_ONOFF | S_STRICT, OFF_CNTR_X, M_SPC,
+     {"voxels_rendering"}},
 
-    {"Show ENDOOM Screen", S_CHOICE, M_X, M_SPC, {"show_endoom"},
-     m_null, input_null, str_endoom},
+    {"Brightmaps", S_ONOFF | S_STRICT, OFF_CNTR_X, M_SPC,
+     {"brightmaps"}, m_null, input_null, str_empty,
+     R_InitDrawFunctions},
+
+    {"Stretch Short Skies", S_ONOFF, OFF_CNTR_X, M_SPC,
+     {"stretchsky"}, m_null, input_null, str_empty,
+     R_InitSkyMap},
+
+    {"Linear Sky Scrolling", S_ONOFF, OFF_CNTR_X, M_SPC,
+     {"linearsky"}, m_null, input_null, str_empty,
+     R_InitPlanes},
+
+    {"Swirling Flats", S_ONOFF, OFF_CNTR_X, M_SPC,
+     {"r_swirl"}},
+
+    {"Smooth Diminishing Lighting", S_ONOFF, OFF_CNTR_X, M_SPC,
+     {"smoothlight"}, m_null, input_null, str_empty,
+     SmoothLight},
+
+    MI_GAP,
+
+    {"Menu Backdrop", S_CHOICE, OFF_CNTR_X, M_SPC,
+     {"menu_backdrop"}, m_null, input_null, str_menu_backdrop},
+
+    {"Show ENDOOM Screen", S_CHOICE, OFF_CNTR_X, M_SPC,
+     {"show_endoom"}, m_null, input_null, str_endoom},
 
     MI_END
 };
@@ -2702,33 +2805,37 @@ void MN_ResetTimeScale(void)
 
 static setup_menu_t gen_settings6[] = {
 
-    {"Quality of life", S_SKIP | S_TITLE, M_X, M_SPC},
+    {"Quality of life", S_SKIP | S_TITLE, OFF_CNTR_X, M_SPC},
 
-    {"Screen wipe effect", S_CHOICE | S_STRICT, M_X, M_SPC, {"screen_melt"},
-     m_null, input_null, str_screen_melt},
+    {"Screen wipe effect", S_CHOICE | S_STRICT, OFF_CNTR_X, M_SPC,
+     {"screen_melt"}, m_null, input_null, str_screen_melt},
 
-    {"On death action", S_CHOICE, M_X, M_SPC, {"death_use_action"},
-     m_null, input_null, str_death_use_action},
+    {"On death action", S_CHOICE, OFF_CNTR_X, M_SPC,
+     {"death_use_action"}, m_null, input_null, str_death_use_action},
 
-    {"Demo progress bar", S_ONOFF, M_X, M_SPC, {"demobar"}},
+    {"Demo progress bar", S_ONOFF, OFF_CNTR_X, M_SPC,
+     {"demobar"}},
 
-    {"Screen flashes", S_ONOFF | S_STRICT, M_X, M_SPC, {"palette_changes"}},
+    {"Screen flashes", S_ONOFF | S_STRICT, OFF_CNTR_X, M_SPC,
+     {"palette_changes"}},
 
-    {"Invulnerability effect", S_CHOICE | S_STRICT, M_X, M_SPC, {"invul_mode"},
-     m_null, input_null, str_invul_mode, R_InvulMode},
+    {"Invulnerability effect", S_CHOICE | S_STRICT, OFF_CNTR_X, M_SPC,
+     {"invul_mode"}, m_null, input_null, str_invul_mode,
+     R_InvulMode},
 
-    {"Organize save files", S_ONOFF | S_PRGWARN, M_X, M_SPC,
+    {"Organize save files", S_ONOFF | S_PRGWARN, OFF_CNTR_X, M_SPC,
      {"organize_savefiles"}},
 
     MI_GAP,
 
-    {"Miscellaneous", S_SKIP | S_TITLE, M_X, M_SPC},
+    {"Miscellaneous", S_SKIP | S_TITLE, OFF_CNTR_X, M_SPC},
 
-    {"Game speed", S_NUM | S_STRICT | S_PCT, M_X, M_SPC, {"realtic_clock_rate"},
-     m_null, input_null, str_empty, MN_ResetTimeScale},
+    {"Game speed", S_NUM | S_STRICT | S_PCT, OFF_CNTR_X, M_SPC,
+     {"realtic_clock_rate"}, m_null, input_null, str_empty,
+     MN_ResetTimeScale},
 
-    {"Default Skill", S_CHOICE | S_LEVWARN, M_X, M_SPC, {"default_skill"},
-     m_null, input_null, str_default_skill},
+    {"Default Skill", S_CHOICE | S_LEVWARN, OFF_CNTR_X, M_SPC,
+     {"default_skill"}, m_null, input_null, str_default_skill},
 
     MI_END
 };
@@ -3131,27 +3238,33 @@ static void DrawMenuString(int cx, int cy, int color)
     MN_DrawString(cx, cy, color, menu_buffer);
 }
 
-static void DrawMenuStringEx(int flags, int x, int y, int color)
+static void DrawMenuStringBuffer(int flags, int x, int y, int color,
+                                 const char *buffer)
 {
     if (ItemDisabled(flags))
     {
-        MN_DrawStringCR(x, y, cr_dark, NULL, menu_buffer);
+        MN_DrawStringCR(x, y, cr_dark, NULL, buffer);
     }
     else if (flags & S_HILITE)
     {
         if (color == CR_NONE)
         {
-            MN_DrawStringCR(x, y, cr_bright, NULL, menu_buffer);
+            MN_DrawStringCR(x, y, cr_bright, NULL, buffer);
         }
         else
         {
-            MN_DrawStringCR(x, y, colrngs[color], cr_bright, menu_buffer);
+            MN_DrawStringCR(x, y, colrngs[color], cr_bright, buffer);
         }
     }
     else
     {
-        DrawMenuString(x, y, color);
+        MN_DrawString(x, y, color, buffer);
     }
+}
+
+static void DrawMenuStringEx(int flags, int x, int y, int color)
+{
+    DrawMenuStringBuffer(flags, x, y, color, menu_buffer);
 }
 
 // M_GetPixelWidth() returns the number of pixels in the width of
