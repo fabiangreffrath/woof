@@ -26,6 +26,7 @@
 #include <string.h>
 
 #include "d_items.h"
+#include "d_main.h"
 #include "d_think.h"
 #include "doomdef.h"
 #include "doomtype.h"
@@ -1101,6 +1102,51 @@ char **mapnamest[] = // TNT WAD map names.
   &s_THUSTR_30,
   &s_THUSTR_31,
   &s_THUSTR_32,
+};
+
+// Strings for dehacked replacements of the startup banner
+//
+// These are from the original source: some of them are perhaps
+// not used in any dehacked patches
+
+static const char *const banners[] =
+{
+    // doom2.wad
+    "                         "
+    "DOOM 2: Hell on Earth v%i.%i"
+    "                           ",
+    // doom2.wad v1.666
+    "                         "
+    "DOOM 2: Hell on Earth v%i.%i66"
+    "                          ",
+    // doom1.wad
+    "                            "
+    "DOOM Shareware Startup v%i.%i"
+    "                           ",
+    // doom.wad
+    "                            "
+    "DOOM Registered Startup v%i.%i"
+    "                           ",
+    // Registered DOOM uses this
+    "                          "
+    "DOOM System Startup v%i.%i"
+    "                          ",
+    // Doom v1.666
+    "                          "
+    "DOOM System Startup v%i.%i66"
+    "                          "
+    // doom.wad (Ultimate DOOM)
+    "                         "
+    "The Ultimate DOOM Startup v%i.%i"
+    "                        ",
+    // tnt.wad
+    "                     "
+    "DOOM 2: TNT - Evilution v%i.%i"
+    "                           ",
+    // plutonia.wad
+    "                   "
+    "DOOM 2: Plutonia Experiment v%i.%i"
+    "                           ",
 };
 
 // Function prototypes
@@ -3136,6 +3182,43 @@ boolean deh_procStringSub(char *key, char *lookfor, char *newstring, FILE *fpout
           break;
         }
     }
+
+  if (!found)
+  {
+    for (i = 0; i < arrlen(banners); i++)
+    {
+      found = !strcasecmp(banners[i], lookfor);
+
+      if (found)
+      {
+        const int version = 109;
+        char *deh_gamename = M_StringDuplicate(newstring);
+
+        // We need to expand to include the Doom version number
+        // We also need to cut off spaces to get the basic name
+
+        char *fmt = strstr(deh_gamename, "%i");
+        if (fmt)
+        {
+            *fmt++ = '0' + version / 100;
+            memmove(fmt, fmt + 1, strlen(fmt));
+
+            fmt = strstr(fmt, "%i");
+            if (fmt)
+            {
+              *fmt++ = '0' + version % 100;
+              memmove(fmt, fmt + 1, strlen(fmt));
+            }
+        }
+
+        rstrip(deh_gamename);
+        gamedescription = ptr_lstrip(deh_gamename);
+
+        break;
+      }
+    }
+  }
+
   if (!found)
     if (fpout) fprintf(fpout,
                        "Could not find '%.12s'\n",key ? key: lookfor);
