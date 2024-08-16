@@ -318,6 +318,9 @@ struct cheat_s cheat[] = {
 
   {"tst",        NULL,                not_net | not_demo | beta_only,
    {cheat_tst} },
+// nocheckin
+  { "t",         NULL,                always,
+   {cheat_tst} },
 
   {"nc",         NULL,                not_net | not_demo | beta_only,
    {cheat_noclip} },

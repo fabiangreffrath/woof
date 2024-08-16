@@ -787,6 +787,14 @@ static void I_ResetTargetRefresh(void);
 
 void I_FinishUpdate(void)
 {
+    // nocheckin
+    boolean ff = (players[0].cheats & CF_GODMODE) != 0;
+    if (ff != full_frame)
+    {
+        full_frame = ff;
+        UpdateViewport();
+    }
+
     if (NOBLIT)
     {
         return;
@@ -1420,6 +1428,9 @@ static void UpdateViewport(void)
 {
     int w, h;
 
+     // nocheckin
+    boolean prevmargins = has_margins;
+
     if (full_frame
         && SDL_GetRendererOutputSize(renderer, &w, &h) == 0
         && fabs((double)w / h - CurrentAspectRatio()) < .002)
@@ -1438,6 +1449,10 @@ static void UpdateViewport(void)
     {
         UpdateMarginState();
     }
+
+    // nocheckin
+    if (has_margins != prevmargins)
+        I_Printf(VB_ALWAYS, "has_margins=%d", has_margins);
 }
 
 static void ResetLogicalSize(void)
@@ -1901,6 +1916,9 @@ void I_ShutdownGraphics(void)
 
 void I_InitGraphics(void)
 {
+    // nocheckin
+    full_frame ? players[0].cheats |= CF_GODMODE : 0;
+
     if (SDL_Init(SDL_INIT_VIDEO) < 0)
     {
         I_Error("Failed to initialize video: %s", SDL_GetError());
