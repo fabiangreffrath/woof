@@ -3183,7 +3183,7 @@ boolean deh_procStringSub(char *key, char *lookfor, char *newstring, FILE *fpout
         }
     }
 
-  if (!found)
+  if (!found && lookfor)
   {
     for (i = 0; i < arrlen(banners); i++)
     {
