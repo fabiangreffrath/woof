@@ -147,8 +147,10 @@ static void ParseLevelLayer(cJSON *json, interlevellayer_t *out)
     out->conditions = conditions;
 }
 
-boolean WI_ParseInterlevel(const char *lumpname, interlevel_t *out)
+interlevel_t *WI_ParseInterlevel(const char *lumpname)
 {
+    interlevel_t *out = calloc(1, sizeof(*out));
+
     cJSON *json = cJSON_Parse(W_CacheLumpName(lumpname, PU_CACHE));
     if (json == NULL)
     {
@@ -157,15 +159,17 @@ boolean WI_ParseInterlevel(const char *lumpname, interlevel_t *out)
         {
             I_Printf(VB_ERROR, "Error before: %s\n", error_ptr);
         }
+        free(out);
         cJSON_Delete(json);
-        return false;
+        return NULL;
     }
 
     cJSON *data = cJSON_GetObjectItemCaseSensitive(json, "data");
     if (!cJSON_IsObject(data))
     {
+        free(out);
         cJSON_Delete(json);
-        return false;
+        return NULL;
     }
 
     cJSON *music = cJSON_GetObjectItemCaseSensitive(data, "music");
@@ -173,8 +177,9 @@ boolean WI_ParseInterlevel(const char *lumpname, interlevel_t *out)
 
     if (!cJSON_IsString(music) || !cJSON_IsString(backgroundimage))
     {
+        free(out);
         cJSON_Delete(json);
-        return false;
+        return NULL;
     }
 
     out->music_lump = M_StringDuplicate(music->valuestring);
@@ -197,7 +202,7 @@ boolean WI_ParseInterlevel(const char *lumpname, interlevel_t *out)
     }
 
     cJSON_Delete(json);
-    return true;
+    return out;
 }
 
 void WI_FreeInterLevel(interlevel_t *in)

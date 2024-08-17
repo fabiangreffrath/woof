@@ -102,7 +102,7 @@ typedef struct interlevel_s
     interlevellayer_t *anim_layers;
 } interlevel_t;
 
-boolean WI_ParseInterlevel(const char *lumpname, interlevel_t *out);
+interlevel_t *WI_ParseInterlevel(const char *lumpname);
 
 void WI_FreeInterLevel(interlevel_t *in);
 

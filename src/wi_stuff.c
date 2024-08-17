@@ -387,7 +387,7 @@ static int    num_lnames;
 
 static const char *exitpic, *enterpic;
 
-static interlevel_t interlevel_exiting, interlevel_entering;
+static interlevel_t *interlevel_exiting, *interlevel_entering;
 
 //
 // CODE
@@ -2281,8 +2281,11 @@ void WI_Start(wbstartstruct_t* wbstartstruct)
       }
       if (wbs->lastmapinfo->exitanim[0])
       {
-          WI_ParseInterlevel(wbs->lastmapinfo->exitanim, &interlevel_exiting);
-          exitpic = interlevel_exiting.background_lump;
+          interlevel_exiting = WI_ParseInterlevel(wbs->lastmapinfo->exitanim);
+          if (interlevel_exiting)
+          {
+              exitpic = interlevel_exiting->background_lump;
+          }
       }
   }
 
@@ -2294,8 +2297,11 @@ void WI_Start(wbstartstruct_t* wbstartstruct)
       }
       if (wbs->lastmapinfo->enteranim[0])
       {
-          WI_ParseInterlevel(wbs->lastmapinfo->enteranim, &interlevel_entering);
-          enterpic = interlevel_entering.background_lump;
+          interlevel_entering = WI_ParseInterlevel(wbs->lastmapinfo->enteranim);
+          if (interlevel_entering)
+          {
+              enterpic = interlevel_entering->background_lump;
+          }
       }
   }
 
