@@ -724,7 +724,7 @@ void I_DynamicResolution(void)
     frame_counter++;
     averagepercent = (averagepercent + actualpercent) / frame_counter;
 
-    if (actualpercent > DRS_GREATER && frame_counter > targetrefresh / 4)
+    if (actualpercent > DRS_GREATER)
     {
         double reduction = (actualpercent - DRS_GREATER) * 0.4;
         newheight = (int)MAX(DRS_MIN_HEIGHT, oldheight - oldheight * reduction);
