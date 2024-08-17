@@ -3191,13 +3191,14 @@ boolean deh_procStringSub(char *key, char *lookfor, char *newstring, FILE *fpout
 
       if (found)
       {
-        const int version = 109;
+        const int version = DV_VANILLA; // We only support version 1.9 of Vanilla Doom
         char *deh_gamename = M_StringDuplicate(newstring);
+        char *fmt = deh_gamename;
 
-        // We need to expand to include the Doom version number
-        // We also need to cut off spaces to get the basic name
+        // Expand "%i" in deh_gamename to include the Doom version number
+        // We cannot use sprintf() here, because deh_gamename isn't a string literal
 
-        char *fmt = strstr(deh_gamename, "%i");
+        fmt = strstr(fmt, "%i");
         if (fmt)
         {
             *fmt++ = '0' + version / 100;
@@ -3210,6 +3211,8 @@ boolean deh_procStringSub(char *key, char *lookfor, char *newstring, FILE *fpout
               memmove(fmt, fmt + 1, strlen(fmt));
             }
         }
+
+        // Cut off trailing and leading spaces to get the basic name
 
         rstrip(deh_gamename);
         gamedescription = ptr_lstrip(deh_gamename);
