@@ -123,20 +123,20 @@ static boolean W_ZIP_AddDir(w_handle_t handle, const char *path,
             continue;
         }
 
-        char *name = M_DirName(stat.m_filename);
-        if (!is_root && strcasecmp(name, dir))
-        {
-            free(name);
-            continue;
-        }
-        free(name);
-
         if (is_root && M_StringCaseEndsWith(stat.m_filename, ".wad"))
         {
             AddWadInMem(zip, M_BaseName(stat.m_filename), index,
                         stat.m_uncomp_size);
             continue;
         }
+
+        char *name = M_DirName(stat.m_filename);
+        if (strcasecmp(name, dir))
+        {
+            free(name);
+            continue;
+        }
+        free(name);
 
         if (W_SkipFile(stat.m_filename))
         {
