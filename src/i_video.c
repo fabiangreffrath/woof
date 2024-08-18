@@ -1014,6 +1014,7 @@ void I_SetPalette(byte *palette)
         // emulating VGA "porch" behaviour
         SDL_SetRenderDrawColor(renderer, colors[0].r, colors[0].g, colors[0].b,
                                SDL_ALPHA_OPAQUE);
+        SDL_RenderClear(renderer);
     }
 }
 
@@ -1406,6 +1407,9 @@ static void UpdateViewport(void)
 
     SDL_RenderSetScale(renderer, 1.0f, 1.0f);
 
+    float scalex = (float)w / video.width;
+    float scaley = (float)h / actualheight;
+
     if (fabs(want_aspect - real_aspect) < 0.0001)
     {
         viewport.w = w;
@@ -1413,25 +1417,19 @@ static void UpdateViewport(void)
     }
     else if (want_aspect > real_aspect)
     {
-        float scale = (float)w / video.width;
-        viewport.x = 0;
         viewport.w = w;
-        viewport.h = (int)floor(actualheight * scale);
+        viewport.h = (int)floor(actualheight * scalex);
         viewport.y = (h - viewport.h) / 2;
     }
     else
     {
-        float scale = (float)h / actualheight;
-        viewport.y = 0;
         viewport.h = h;
-        viewport.w = (int)floor(video.width * scale);
+        viewport.w = (int)floor(video.width * scaley);
         viewport.x = (w - viewport.w) / 2;
     }
 
     SDL_RenderSetViewport(renderer, &viewport);
 
-    float scalex = (float)w / video.width;
-    float scaley = (float)h / actualheight;
     SDL_RenderSetScale(renderer, scalex, scaley);
 
     SDL_RenderClear(renderer);
