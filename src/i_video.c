@@ -1433,6 +1433,8 @@ static void UpdateViewport(void)
     float scalex = (float)w / video.width;
     float scaley = (float)h / actualheight;
     SDL_RenderSetScale(renderer, scalex, scaley);
+
+    SDL_RenderClear(renderer);
 }
 
 static void ResetLogicalSize(void)
