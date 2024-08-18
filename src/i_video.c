@@ -264,6 +264,8 @@ static void FocusLost(void)
 #define FocusLost()
 #endif
 
+static void UpdateViewport(void);
+
 // [FG] window event handling from Chocolate Doom 3.0
 
 static void HandleWindowEvent(SDL_WindowEvent *event)
@@ -313,6 +315,7 @@ static void HandleWindowEvent(SDL_WindowEvent *event)
                 SDL_GetWindowPosition(screen, &window_x, &window_y);
             }
             window_resize = true;
+            UpdateViewport();
             break;
 
         case SDL_WINDOWEVENT_MOVED:
@@ -413,6 +416,8 @@ static void I_ToggleFullScreen(void)
         SDL_SetWindowResizable(screen, SDL_TRUE);
         SDL_SetWindowSize(screen, window_width, window_height);
     }
+
+    UpdateViewport();
 }
 
 static void I_ToggleExclusiveFullScreen(void)
@@ -662,7 +667,6 @@ static void UpdateRender(void)
     SDL_LowerBlit(screenbuffer, &blit_rect, argbbuffer, &blit_rect);
     SDL_UpdateTexture(texture, &blit_rect, argbbuffer->pixels,
                       argbbuffer->pitch);
-    SDL_RenderClear(renderer);
 
     if (texture_upscaled)
     {
@@ -1389,15 +1393,54 @@ static void CreateUpscaledTexture(boolean force)
     SDL_SetTextureScaleMode(texture_upscaled, SDL_ScaleModeLinear);
 }
 
+static void UpdateViewport(void)
+{
+    int w, h;
+
+    SDL_GetRendererOutputSize(renderer, &w, &h);
+
+    double real_aspect = (double)w / h;
+    double want_aspect = CurrentAspectRatio();
+
+    SDL_Rect viewport = {0};
+
+    SDL_RenderSetScale(renderer, 1.0f, 1.0f);
+
+    if (fabs(want_aspect - real_aspect) < 0.0001)
+    {
+        viewport.w = w;
+        viewport.h = h;
+    }
+    else if (want_aspect > real_aspect)
+    {
+        float scale = (float)w / video.width;
+        viewport.x = 0;
+        viewport.w = w;
+        viewport.h = (int)floor(actualheight * scale);
+        viewport.y = (h - viewport.h) / 2;
+    }
+    else
+    {
+        float scale = (float)h / actualheight;
+        viewport.y = 0;
+        viewport.h = h;
+        viewport.w = (int)floor(video.width * scale);
+        viewport.x = (w - viewport.w) / 2;
+    }
+
+    SDL_RenderSetViewport(renderer, &viewport);
+
+    float scalex = (float)w / video.width;
+    float scaley = (float)h / actualheight;
+    SDL_RenderSetScale(renderer, scalex, scaley);
+}
+
 static void ResetLogicalSize(void)
 {
     blit_rect.w = video.width;
     blit_rect.h = video.height;
 
-    if (SDL_RenderSetLogicalSize(renderer, video.width, actualheight))
-    {
-        I_Printf(VB_ERROR, "Failed to set logical size: %s", SDL_GetError());
-    }
+    UpdateViewport();
 
     if (smooth_scaling)
     {
