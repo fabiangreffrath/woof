@@ -264,6 +264,7 @@ static void FocusLost(void)
 #define FocusLost()
 #endif
 
+static boolean letterboxed;
 static void UpdateViewport(void);
 
 // [FG] window event handling from Chocolate Doom 3.0
@@ -668,6 +669,11 @@ static void UpdateRender(void)
     SDL_UpdateTexture(texture, &blit_rect, argbbuffer->pixels,
                       argbbuffer->pitch);
 
+    if (letterboxed)
+    {
+        SDL_RenderClear(renderer);
+    }
+
     if (texture_upscaled)
     {
         // Render this intermediate texture into the upscaled texture
@@ -1014,7 +1020,6 @@ void I_SetPalette(byte *palette)
         // emulating VGA "porch" behaviour
         SDL_SetRenderDrawColor(renderer, colors[0].r, colors[0].g, colors[0].b,
                                SDL_ALPHA_OPAQUE);
-        SDL_RenderClear(renderer);
     }
 }
 
@@ -1397,42 +1402,42 @@ static void CreateUpscaledTexture(boolean force)
 static void UpdateViewport(void)
 {
     int w, h;
-
     SDL_GetRendererOutputSize(renderer, &w, &h);
 
     double real_aspect = (double)w / h;
     double want_aspect = CurrentAspectRatio();
 
-    SDL_Rect viewport = {0};
-
-    SDL_RenderSetScale(renderer, 1.0f, 1.0f);
-
     float scalex = (float)w / video.width;
     float scaley = (float)h / actualheight;
+
+    // Clear the scale because we're setting viewport in output coordinates
+    SDL_RenderSetScale(renderer, 1.0f, 1.0f);
+
+    SDL_Rect viewport = {0};
 
     if (fabs(want_aspect - real_aspect) < 0.0001)
     {
         viewport.w = w;
         viewport.h = h;
+        letterboxed = false;
     }
     else if (want_aspect > real_aspect)
     {
         viewport.w = w;
         viewport.h = (int)floor(actualheight * scalex);
         viewport.y = (h - viewport.h) / 2;
+        letterboxed = true;
     }
     else
     {
         viewport.h = h;
         viewport.w = (int)floor(video.width * scaley);
         viewport.x = (w - viewport.w) / 2;
+        letterboxed = true;
     }
 
     SDL_RenderSetViewport(renderer, &viewport);
-
     SDL_RenderSetScale(renderer, scalex, scaley);
-
-    SDL_RenderClear(renderer);
 }
 
 static void ResetLogicalSize(void)
