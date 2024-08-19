@@ -58,6 +58,17 @@ check_include_file("dirent.h" HAVE_DIRENT_H)
 check_symbol_exists(strcasecmp "strings.h" HAVE_DECL_STRCASECMP)
 check_symbol_exists(strncasecmp "strings.h" HAVE_DECL_STRNCASECMP)
 check_c_source_compiles("
+    #include <windows.h>
+    int main()
+    {
+        CreateWaitableTimerEx(NULL, NULL, CREATE_WAITABLE_TIMER_HIGH_RESOLUTION,
+                              TIMER_ALL_ACCESS);
+        return 0;
+    }
+  "
+  HAVE_HIGH_RES_TIMER
+)
+check_c_source_compiles("
     #include <immintrin.h>
     int main()
     {
