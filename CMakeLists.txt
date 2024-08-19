@@ -57,7 +57,16 @@ check_library_exists(m pow "" HAVE_LIBM)
 check_include_file("dirent.h" HAVE_DIRENT_H)
 check_symbol_exists(strcasecmp "strings.h" HAVE_DECL_STRCASECMP)
 check_symbol_exists(strncasecmp "strings.h" HAVE_DECL_STRNCASECMP)
-check_symbol_exists(CREATE_WAITABLE_TIMER_HIGH_RESOLUTION "windows.h" HAVE_HIGH_RES_TIMER)
+check_c_source_compiles("
+    #include <windows.h>
+    int main()
+    {
+        CreateWaitableTimerEx(NULL, NULL, CREATE_WAITABLE_TIMER_HIGH_RESOLUTION);
+        return 0;
+    }
+  "
+  HAVE_HIGH_RES_TIMER
+)
 check_c_source_compiles("
     #include <immintrin.h>
     int main()
