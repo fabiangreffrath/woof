@@ -61,7 +61,8 @@ check_c_source_compiles("
     #include <windows.h>
     int main()
     {
-        CreateWaitableTimerEx(NULL, NULL, CREATE_WAITABLE_TIMER_HIGH_RESOLUTION);
+        CreateWaitableTimerEx(NULL, NULL, CREATE_WAITABLE_TIMER_HIGH_RESOLUTION,
+                              TIMER_ALL_ACCESS);
         return 0;
     }
   "
