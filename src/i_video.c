@@ -1407,8 +1407,6 @@ static void UpdateViewport(void)
     double real_aspect = (double)w / h;
     double want_aspect = CurrentAspectRatio();
 
-    float scale;
-
     // Clear the scale because we're setting viewport in output coordinates
     SDL_RenderSetScale(renderer, 1.0f, 1.0f);
 
@@ -1416,18 +1414,26 @@ static void UpdateViewport(void)
 
     if (fabs(want_aspect - real_aspect) < 0.0001)
     {
-        scale = (float)w / video.width;
+        float scalex = (float)w / video.width;
+        float scaley = (float)h / actualheight;
         viewport.w = w;
         viewport.h = h;
+        SDL_RenderSetViewport(renderer, &viewport);
+        SDL_RenderSetScale(renderer, scalex, scaley);
         letterboxed = false;
+        return;
     }
-    else if (want_aspect > real_aspect)
+
+    float scale;
+
+    letterboxed = true;
+
+    if (want_aspect > real_aspect)
     {
         scale = (float)w / video.width;
         viewport.w = w;
         viewport.h = (int)floor(actualheight * scale);
         viewport.y = (h - viewport.h) / 2;
-        letterboxed = true;
     }
     else
     {
@@ -1435,7 +1441,6 @@ static void UpdateViewport(void)
         viewport.h = h;
         viewport.w = (int)floor(video.width * scale);
         viewport.x = (w - viewport.w) / 2;
-        letterboxed = true;
     }
 
     SDL_RenderSetViewport(renderer, &viewport);
