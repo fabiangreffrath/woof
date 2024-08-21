@@ -187,7 +187,6 @@ typedef struct setup_menu_s
 
     union // killough 11/98: The first field is a union of several types
     {
-        void *var;             // generic variable
         char *name;            // name
         struct default_s *def; // default[] table entry
     } var;

@@ -137,8 +137,9 @@ static void DisableItem(boolean condition, setup_menu_t *menu, const char *item)
     {
         if (!(menu->m_flags & (S_SKIP | S_RESET)))
         {
-            if (!strcasecmp(menu->var.name, item)
-                || !strcasecmp(menu->var.def->name, item))
+            if (((menu->m_flags & S_HASDEFPTR)
+                 && !strcasecmp(menu->var.def->name, item))
+                || !strcasecmp(menu->m_text, item))
             {
                 if (condition)
                 {
@@ -1133,7 +1134,7 @@ static void DrawInstructions()
 
     if (flags & S_FUNC)
     {
-        if (!strcmp(item->var.name, "gyro_calibrate"))
+        if (!strcasecmp(item->m_text, "Calibrate"))
         {
             s = "Place gamepad on a flat surface";
         }
@@ -2655,7 +2656,7 @@ static setup_menu_t gen_gyro[] = {
     MI_GAP,
 
     {"Calibrate", S_FUNC, CNTR_X, M_SPC,
-      {"gyro_calibrate"}, m_null, input_null, str_empty,
+      {NULL}, m_null, input_null, str_empty,
       I_UpdateGyroCalibrationState},
 
     MI_END
@@ -2673,7 +2674,7 @@ static void UpdateGyroItems(void)
     DisableItem(condition, gen_gyro, "gyro_look_speed");
     DisableItem(condition, gen_gyro, "gyro_acceleration");
     DisableItem(condition, gen_gyro, "gyro_smooth_threshold");
-    DisableItem(condition, gen_gyro, "gyro_calibrate");
+    DisableItem(condition, gen_gyro, "Calibrate");
 }
 
 void MN_UpdateAllGamepadItems(void)
