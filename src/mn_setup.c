@@ -1151,7 +1151,7 @@ static void DrawInstructions()
     {
         s = "Place gamepad on a flat surface";
     }
-    if (setup_select)
+    else if (setup_select)
     {
         if (flags & S_INPUT)
         {
