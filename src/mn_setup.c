@@ -1134,7 +1134,7 @@ static void DrawInstructions()
 
     if (flags & S_ALTDESC)
     {
-        s = item->desc;
+        s = item->altdesc;
     }
     else if (setup_select)
     {
@@ -2615,7 +2615,7 @@ static setup_menu_t gen_gyro[] = {
 
     {"Calibrate", S_FUNC | S_ALTDESC, CNTR_X, M_SPC,
      .action = I_UpdateGyroCalibrationState,
-     .desc = "Place gamepad on a flat surface"},
+     .altdesc = "Place gamepad on a flat surface"},
 
     MI_END
 };
