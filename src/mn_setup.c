@@ -1132,9 +1132,9 @@ static void DrawInstructions()
 
     const char *s = "";
 
-    if (flags & S_ALTDESC)
+    if (item->desc)
     {
-        s = item->altdesc;
+        s = item->desc;
     }
     else if (setup_select)
     {
@@ -2613,9 +2613,9 @@ static setup_menu_t gen_gyro[] = {
 
     MI_GAP,
 
-    {"Calibrate", S_FUNC | S_ALTDESC, CNTR_X, M_SPC,
+    {"Calibrate", S_FUNC, CNTR_X, M_SPC,
      .action = I_UpdateGyroCalibrationState,
-     .altdesc = "Place gamepad on a flat surface"},
+     .desc = "Place gamepad on a flat surface"},
 
     MI_END
 };
@@ -3727,10 +3727,16 @@ static boolean NextPage(int inc)
     current_menu = setup_screens[setup_screen][current_page];
     set_item_on = GetItemOn();
 
+    highlight_item = 0;
+
     print_warning_about_changes = false; // killough 10/98
     while (current_menu[set_item_on++].m_flags & S_SKIP)
         ;
-    current_menu[--set_item_on].m_flags |= S_HILITE;
+    --set_item_on;
+    if (menu_input != mouse_mode)
+    {
+        current_menu[set_item_on].m_flags |= S_HILITE;
+    }
 
     M_StartSound(sfx_pstop); // killough 10/98
     return true;
