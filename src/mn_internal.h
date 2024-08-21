@@ -102,7 +102,7 @@ void MN_DrawEnemy(void);
 #define S_HILITE      0x00000001 // Cursor is sitting on this item
 #define S_SELECT      0x00000002 // We're changing this item
 #define S_TITLE       0x00000004 // Title item
-#define S_CALIBR      0x00000008 // Calibration item
+#define S_FUNC        0x00000008 // Non-config item
 #define S_CRITEM      0x00000010 // Message color
 #define S_RESET       0x00000020 // Reset to Defaults Button
 #define S_INPUT       0x00000040 // Composite input
@@ -138,11 +138,11 @@ void MN_DrawEnemy(void);
 
 #define S_SHOWDESC                                                       \
     (S_TITLE | S_ONOFF | S_CRITEM | S_RESET | S_INPUT | S_WEAP | S_NUM   \
-     | S_CREDIT | S_CHOICE | S_THERMO | S_CALIBR)
+     | S_CREDIT | S_CHOICE | S_THERMO | S_FUNC)
 
 #define S_SHOWSET \
     (S_ONOFF | S_CRITEM | S_INPUT | S_WEAP | S_NUM | S_CHOICE | S_THERMO \
-     | S_CALIBR)
+     | S_FUNC)
 
 #define S_HASDEFPTR \
     (S_ONOFF | S_NUM | S_WEAP | S_CRITEM | S_CHOICE | S_THERMO)
