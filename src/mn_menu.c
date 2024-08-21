@@ -2164,7 +2164,7 @@ static boolean ShortcutResponder(const event_t *ev)
     {
         MN_StartControlPanel();
         currentMenu = &SoundDef;
-        itemOn = sfx_vol;
+        itemOn = currentMenu->lastOn;
         M_StartSound(sfx_swtchn);
         return true;
     }
