@@ -122,14 +122,14 @@ static boolean default_reset;
 
 // Final entry
 #define MI_END \
-    {0, S_SKIP | S_END}
+    {NULL, S_SKIP | S_END}
 
 // Button for resetting to defaults
 #define MI_RESET \
-    {0, S_RESET, X_BUTTON, Y_BUTTON}
+    {NULL, S_RESET, X_BUTTON, Y_BUTTON}
 
 #define MI_GAP \
-    {"", S_SKIP, 0, M_SPC}
+    {NULL, S_SKIP, 0, M_SPC}
 
 static void DisableItem(boolean condition, setup_menu_t *menu, const char *item)
 {
@@ -1132,12 +1132,9 @@ static void DrawInstructions()
 
     const char *s = "";
 
-    if (flags & S_FUNC)
+    if (item->desc)
     {
-        if (!strcasecmp(item->m_text, "Calibrate"))
-        {
-            s = "Place gamepad on a flat surface";
-        }
+        s = item->desc;
     }
     else if (setup_select)
     {
@@ -1457,18 +1454,17 @@ static const char *bobbing_pct_strings[] = {"0%", "25%", "50%", "75%", "100%"};
 
 static setup_menu_t weap_settings1[] = {
 
-    {"View Bob", S_THERMO, CNTR_X, M_THRM_SPC,
-     {"view_bobbing_pct"}, m_null, input_null, str_bobbing_pct},
+    {"View Bob", S_THERMO, CNTR_X, M_THRM_SPC, {"view_bobbing_pct"},
+     .strings_id = str_bobbing_pct},
 
-    {"Weapon Bob", S_THERMO, CNTR_X, M_THRM_SPC,
-     {"weapon_bobbing_pct"}, m_null, input_null, str_bobbing_pct,
-     UpdateCenteredWeaponItem},
+    {"Weapon Bob", S_THERMO, CNTR_X, M_THRM_SPC, {"weapon_bobbing_pct"},
+     .strings_id = str_bobbing_pct, .action = UpdateCenteredWeaponItem},
 
     MI_GAP,
 
     // [FG] centered or bobbing weapon sprite
-    {"Weapon Alignment", S_CHOICE | S_STRICT, CNTR_X, M_SPC,
-     {"center_weapon"}, m_null, input_null, str_center_weapon},
+    {"Weapon Alignment", S_CHOICE | S_STRICT, CNTR_X, M_SPC, {"center_weapon"},
+     .strings_id = str_center_weapon},
 
     {"Hide Weapon", S_ONOFF | S_STRICT, CNTR_X, M_SPC, {"hide_weapon"}},
 
@@ -1599,7 +1595,7 @@ static void UpdateHUDModeStrings(void);
 static setup_menu_t stat_settings1[] = {
 
     {"Screen Size", S_THERMO, H_X_THRM8, M_THRM_SPC, {"screenblocks"},
-     m_null, input_null, str_screensize, SizeDisplayAlt},
+     .strings_id = str_screensize, .action = SizeDisplayAlt},
 
     MI_GAP,
 
@@ -1615,11 +1611,11 @@ static setup_menu_t stat_settings1[] = {
 
     {"Fullscreen HUD", S_SKIP | S_TITLE, H_X, M_SPC},
 
-    {"HUD Type", S_CHOICE, H_X, M_SPC, {"hud_type"}, m_null, input_null,
-     str_hudtype, UpdateHUDModeStrings},
+    {"HUD Type", S_CHOICE, H_X, M_SPC, {"hud_type"},
+     .strings_id = str_hudtype, .action = UpdateHUDModeStrings},
 
-    {"HUD Mode", S_CHOICE, H_X, M_SPC, {"hud_active"}, m_null, input_null,
-     str_hudmode},
+    {"HUD Mode", S_CHOICE, H_X, M_SPC, {"hud_active"},
+     .strings_id = str_hudmode},
 
     MI_GAP,
 
@@ -1644,37 +1640,33 @@ static setup_menu_t stat_settings2[] = {
 
     {"Widget Types", S_SKIP | S_TITLE, H_X, M_SPC},
 
-    {"Show Level Stats", S_CHOICE, H_X, M_SPC,
-     {"hud_level_stats"}, m_null, input_null, str_show_widgets},
+    {"Show Level Stats", S_CHOICE, H_X, M_SPC, {"hud_level_stats"},
+     .strings_id = str_show_widgets},
 
-    {"Show Level Time", S_CHOICE, H_X, M_SPC,
-     {"hud_level_time"}, m_null, input_null, str_show_widgets},
+    {"Show Level Time", S_CHOICE, H_X, M_SPC, {"hud_level_time"},
+     .strings_id = str_show_widgets},
 
     {"Show Player Coords", S_CHOICE | S_STRICT, H_X, M_SPC,
-     {"hud_player_coords"}, m_null, input_null, str_show_adv_widgets,
-     HU_Start},
+     {"hud_player_coords"}, .strings_id = str_show_adv_widgets,
+     .action = HU_Start},
 
     {"Show Command History", S_ONOFF | S_STRICT, H_X, M_SPC,
-     {"hud_command_history"}, m_null, input_null, str_empty,
-     HU_ResetCommandHistory},
+     {"hud_command_history"}, .action = HU_ResetCommandHistory},
 
-    {"Use-Button Timer", S_ONOFF, H_X, M_SPC,
-     {"hud_time_use"}},
+    {"Use-Button Timer", S_ONOFF, H_X, M_SPC, {"hud_time_use"}},
 
     MI_GAP,
 
     {"Widget Appearance", S_SKIP | S_TITLE, H_X, M_SPC},
 
-    {"Use Doom Font", S_CHOICE, H_X, M_SPC,
-     {"hud_widget_font"}, m_null, input_null, str_show_widgets},
+    {"Use Doom Font", S_CHOICE, H_X, M_SPC, {"hud_widget_font"},
+     .strings_id = str_show_widgets},
 
-    {"Widescreen Alignment", S_ONOFF, H_X, M_SPC,
-     {"hud_widescreen_widgets"}, m_null, input_null, str_empty,
-     HU_Start},
+    {"Widescreen Alignment", S_ONOFF, H_X, M_SPC, {"hud_widescreen_widgets"},
+     .action = HU_Start},
 
-    {"Vertical Layout", S_ONOFF, H_X, M_SPC,
-     {"hud_widget_layout"}, m_null, input_null, str_empty,
-     HU_Start},
+    {"Vertical Layout", S_ONOFF, H_X, M_SPC, {"hud_widget_layout"},
+     .action = HU_Start},
 
     MI_END
 };
@@ -1693,21 +1685,20 @@ static const char *hudcolor_strings[] = {
 static setup_menu_t stat_settings3[] = {
 
     {"Crosshair", S_CHOICE, XH_X, M_SPC, {"hud_crosshair"},
-     m_null, input_null, str_crosshair, UpdateCrosshairItems},
+     .strings_id = str_crosshair, .action = UpdateCrosshairItems},
 
     {"Color By Player Health", S_ONOFF | S_STRICT, XH_X, M_SPC, {"hud_crosshair_health"}},
 
-    {"Color By Target", S_CHOICE | S_STRICT, XH_X, M_SPC,
-     {"hud_crosshair_target"}, m_null, input_null, str_crosshair_target,
-     UpdateCrosshairItems},
+    {"Color By Target", S_CHOICE | S_STRICT, XH_X, M_SPC, {"hud_crosshair_target"},
+     .strings_id = str_crosshair_target, .action = UpdateCrosshairItems},
 
     {"Lock On Target", S_ONOFF | S_STRICT, XH_X, M_SPC, {"hud_crosshair_lockon"}},
 
     {"Default Color", S_CRITEM, XH_X, M_SPC, {"hud_crosshair_color"},
-     m_null, input_null, str_hudcolor},
+     .strings_id = str_hudcolor},
 
     {"Highlight Color", S_CRITEM | S_STRICT, XH_X, M_SPC,
-     {"hud_crosshair_target_color"}, m_null, input_null, str_hudcolor},
+     {"hud_crosshair_target_color"}, .strings_id = str_hudcolor},
 
     MI_END
 };
@@ -1720,7 +1711,7 @@ static setup_menu_t stat_settings4[] = {
     {"Show Obituaries",      S_ONOFF, H_X, M_SPC, {"show_obituary_messages"}},
     {"Center Messages",      S_ONOFF, H_X, M_SPC, {"message_centered"}},
     {"Colorize Messages",    S_ONOFF, H_X, M_SPC, {"message_colorized"},
-     m_null, input_null, str_empty, HU_ResetMessageColors},
+     .action = HU_ResetMessageColors},
     MI_END
 };
 
@@ -1802,7 +1793,7 @@ static setup_menu_t auto_settings1[] = {
     {"Follow Player",   S_ONOFF,  H_X, M_SPC, {"followplayer"}},
     {"Rotate Automap",  S_ONOFF,  H_X, M_SPC, {"automaprotate"}},
     {"Overlay Automap", S_CHOICE, H_X, M_SPC, {"automapoverlay"},
-     m_null, input_null, str_overlay},
+     .strings_id = str_overlay},
 
     // killough 10/98
     {"Coords Follow Pointer", S_ONOFF, H_X, M_SPC, {"map_point_coord"}},
@@ -1812,15 +1803,15 @@ static setup_menu_t auto_settings1[] = {
     {"Miscellaneous", S_SKIP | S_TITLE, H_X, M_SPC},
 
     {"Color Preset", S_CHOICE | S_COSMETIC, H_X, M_SPC, {"mapcolor_preset"},
-     m_null , input_null, str_automap_preset, AM_ColorPreset},
+     .strings_id = str_automap_preset, .action = AM_ColorPreset},
 
     {"Smooth automap lines", S_ONOFF, H_X, M_SPC, {"map_smooth_lines"},
-     m_null, input_null, str_empty, AM_EnableSmoothLines},
+     .action = AM_EnableSmoothLines},
 
     {"Show Found Secrets Only", S_ONOFF, H_X, M_SPC, {"map_secret_after"}},
 
     {"Color Keyed Doors", S_CHOICE, H_X, M_SPC, {"map_keyed_door"},
-     m_null, input_null, str_automap_keyed_door},
+     .strings_id = str_automap_keyed_door},
 
     MI_RESET,
 
@@ -1879,20 +1870,18 @@ static void BarkSound(void)
 static setup_menu_t enem_settings1[] = {
 
     {"Helper Dogs", S_MBF | S_THERMO | S_THRM_SIZE4 | S_LEVWARN | S_ACTION,
-     M_X_THRM4, M_THRM_SPC, {"player_helpers"}, m_null, input_null,
-     str_empty, BarkSound},
+     M_X_THRM4, M_THRM_SPC, {"player_helpers"}, .action = BarkSound},
 
     MI_GAP,
 
     {"Cosmetic", S_SKIP | S_TITLE, M_X, M_SPC},
 
     // [FG] colored blood and gibs
-    {"Colored Blood", S_ONOFF | S_STRICT, M_X, M_SPC,
-     {"colored_blood"}, m_null, input_null, str_overlay, D_SetBloodColor},
+    {"Colored Blood", S_ONOFF | S_STRICT, M_X, M_SPC, {"colored_blood"},
+     .action = D_SetBloodColor},
 
     // [crispy] randomly flip corpse, blood and death animation sprites
-    {"Randomly Mirrored Corpses", S_ONOFF | S_STRICT, M_X, M_SPC,
-     {"flipcorpses"}},
+    {"Randomly Mirrored Corpses", S_ONOFF | S_STRICT, M_X, M_SPC, {"flipcorpses"}},
 
     // [crispy] resurrected pools of gore ("ghost monsters") are translucent
     {"Translucent Ghost Monsters", S_ONOFF | S_STRICT | S_VANILLA, M_X, M_SPC,
@@ -1900,7 +1889,7 @@ static setup_menu_t enem_settings1[] = {
 
     // [FG] spectre drawing mode
     {"Blocky Spectre Drawing", S_ONOFF, M_X, M_SPC, {"fuzzcolumn_mode"},
-     m_null, input_null, str_overlay, R_SetFuzzColumnMode},
+     .action = R_SetFuzzColumnMode},
 
     MI_RESET,
 
@@ -1960,8 +1949,8 @@ static void UpdateInterceptsEmuItem(void);
 setup_menu_t comp_settings1[] = {
 
     {"Default Compatibility Level", S_CHOICE | S_LEVWARN, M_X, M_SPC,
-     {"default_complevel"}, m_null, input_null, str_default_complevel,
-     UpdateInterceptsEmuItem},
+     {"default_complevel"}, .strings_id = str_default_complevel,
+     .action = UpdateInterceptsEmuItem},
 
     {"Strict Mode", S_ONOFF | S_LEVWARN, M_X, M_SPC, {"strictmode"}},
 
@@ -1970,11 +1959,10 @@ setup_menu_t comp_settings1[] = {
     {"Compatibility-breaking Features", S_SKIP | S_TITLE, M_X, M_SPC},
 
     {"Direct Vertical Aiming", S_ONOFF | S_STRICT, M_X, M_SPC,
-     {"direct_vertical_aiming"}, m_null, input_null, str_empty,
-     P_UpdateDirectVerticalAiming},
+     {"direct_vertical_aiming"}, .action = P_UpdateDirectVerticalAiming},
 
-    {"Auto Strafe 50", S_ONOFF | S_STRICT, M_X, M_SPC,
-     {"autostrafe50"}, m_null, input_null, str_empty, G_UpdateSideMove},
+    {"Auto Strafe 50", S_ONOFF | S_STRICT, M_X, M_SPC, {"autostrafe50"},
+     .action = G_UpdateSideMove},
 
     {"Pistol Start", S_ONOFF | S_STRICT, M_X, M_SPC, {"pistolstart"}},
 
@@ -1984,13 +1972,13 @@ setup_menu_t comp_settings1[] = {
      {"blockmapfix"}},
 
     {"Fast Line-of-Sight Calculation", S_ONOFF | S_STRICT, M_X, M_SPC,
-     {"checksight12"}, m_null, input_null, str_empty, P_UpdateCheckSight},
+     {"checksight12"}, .action = P_UpdateCheckSight},
 
     {"Walk Under Solid Hanging Bodies", S_ONOFF | S_STRICT, M_X, M_SPC,
      {"hangsolid"}},
 
     {"Emulate INTERCEPTS overflow", S_ONOFF | S_VANILLA, M_X, M_SPC,
-     {"emu_intercepts"}, m_null, input_null, str_empty, UpdateInterceptsEmuItem},
+     {"emu_intercepts"}, .action = UpdateInterceptsEmuItem},
 
     MI_RESET,
 
@@ -2192,39 +2180,39 @@ void MN_ResetGamma(void)
 static setup_menu_t gen_settings1[] = {
 
     {"Resolution Scale", S_THERMO | S_THRM_SIZE11 | S_ACTION, M_X_THRM11,
-     M_THRM_SPC, {"resolution_scale"}, m_null, input_null, str_resolution_scale,
-     ResetVideoHeight},
+     M_THRM_SPC, {"resolution_scale"}, .strings_id = str_resolution_scale,
+     .action = ResetVideoHeight},
 
     {"Dynamic Resolution", S_ONOFF, M_X, M_SPC, {"dynamic_resolution"},
-     m_null, input_null, str_empty, ResetVideoHeight},
+     .action = ResetVideoHeight},
 
-    {"Widescreen", S_CHOICE, M_X, M_SPC, {"widescreen"}, m_null, input_null,
-     str_widescreen, ResetVideo},
+    {"Widescreen", S_CHOICE, M_X, M_SPC, {"widescreen"},
+     .strings_id = str_widescreen, .action = ResetVideo},
 
-    {"FOV", S_THERMO, M_X_THRM8, M_THRM_SPC, {"fov"}, m_null, input_null,
-     str_empty, UpdateFOV},
+    {"FOV", S_THERMO, M_X_THRM8, M_THRM_SPC, {"fov"},
+     .action = UpdateFOV},
 
-    {"Fullscreen", S_ONOFF, M_X, M_SPC, {"fullscreen"}, m_null, input_null,
-     str_empty, ToggleFullScreen},
+    {"Fullscreen", S_ONOFF, M_X, M_SPC, {"fullscreen"},
+     .action = ToggleFullScreen},
 
     {"Exclusive Fullscreen", S_ONOFF, M_X, M_SPC, {"exclusive_fullscreen"},
-     m_null, input_null, str_empty, ToggleExclusiveFullScreen},
+     .action = ToggleExclusiveFullScreen},
 
     MI_GAP,
 
-    {"Uncapped Framerate", S_ONOFF, M_X, M_SPC, {"uncapped"}, m_null, input_null,
-     str_empty, UpdateFPSLimit},
+    {"Uncapped Framerate", S_ONOFF, M_X, M_SPC, {"uncapped"},
+     .action = UpdateFPSLimit},
 
-    {"Framerate Limit", S_NUM, M_X, M_SPC, {"fpslimit"}, m_null, input_null,
-     str_empty, UpdateFPSLimit},
+    {"Framerate Limit", S_NUM, M_X, M_SPC, {"fpslimit"},
+     .action = UpdateFPSLimit},
 
-    {"VSync", S_ONOFF, M_X, M_SPC, {"use_vsync"}, m_null, input_null, str_empty,
-     I_ToggleVsync},
+    {"VSync", S_ONOFF, M_X, M_SPC, {"use_vsync"},
+     .action = I_ToggleVsync},
 
     MI_GAP,
 
     {"Gamma Correction", S_THERMO, M_X_THRM8, M_THRM_SPC, {"gamma2"},
-     m_null, input_null, str_gamma, MN_ResetGamma},
+     .strings_id = str_gamma, .action = MN_ResetGamma},
 
     {"Level Brightness", S_THERMO | S_THRM_SIZE4 | S_STRICT, M_X_THRM4,
      M_THRM_SPC, {"extra_level_brightness"}},
@@ -2281,45 +2269,37 @@ static const char *equalizer_preset_strings[] = {"Off", "Classical", "Rock", "Vo
 
 static setup_menu_t gen_settings2[] = {
 
-    {"Sound Volume", S_THERMO, CNTR_X, M_THRM_SPC,
-     {"sfx_volume"}, m_null, input_null, str_empty,
-     UpdateSfxVolume},
+    {"Sound Volume", S_THERMO, CNTR_X, M_THRM_SPC, {"sfx_volume"},
+     .action = UpdateSfxVolume},
 
-    {"Music Volume", S_THERMO, CNTR_X, M_THRM_SPC,
-     {"music_volume"}, m_null, input_null, str_empty,
-     UpdateMusicVolume},
+    {"Music Volume", S_THERMO, CNTR_X, M_THRM_SPC, {"music_volume"},
+     .action = UpdateMusicVolume},
 
     MI_GAP,
 
-    {"Sound Module", S_CHOICE, CNTR_X, M_SPC,
-     {"snd_module"}, m_null, input_null, str_sound_module,
-     SetSoundModule},
+    {"Sound Module", S_CHOICE, CNTR_X, M_SPC, {"snd_module"},
+     .strings_id = str_sound_module, .action = SetSoundModule},
 
-    {"Headphones Mode", S_ONOFF, CNTR_X, M_SPC,
-     {"snd_hrtf"}, m_null, input_null, str_empty,
-     SetSoundModule},
+    {"Headphones Mode", S_ONOFF, CNTR_X, M_SPC, {"snd_hrtf"}, 
+     .action = SetSoundModule},
 
-    {"Pitch-Shifting", S_ONOFF, CNTR_X, M_SPC,
-     {"pitched_sounds"}},
+    {"Pitch-Shifting", S_ONOFF, CNTR_X, M_SPC, {"pitched_sounds"}},
 
     // [FG] play sounds in full length
-    {"Disable Cutoffs", S_ONOFF, CNTR_X, M_SPC,
-     {"full_sounds"}},
+    {"Disable Cutoffs", S_ONOFF, CNTR_X, M_SPC, {"full_sounds"}},
 
-    {"Equalizer Preset", S_CHOICE, CNTR_X, M_SPC,
-     {"snd_equalizer"}, m_null, input_null, str_equalizer_preset,
-     I_OAL_EqualizerPreset},
+    {"Equalizer Preset", S_CHOICE, CNTR_X, M_SPC, {"snd_equalizer"},
+     .strings_id = str_equalizer_preset, .action = I_OAL_EqualizerPreset},
 
-    {"Resampler", S_CHOICE, CNTR_X, M_SPC,
-     {"snd_resampler"}, m_null, input_null, str_resampler,
-     I_OAL_SetResampler},
+    {"Resampler", S_CHOICE, CNTR_X, M_SPC, {"snd_resampler"},
+     .strings_id = str_resampler, .action = I_OAL_SetResampler},
 
     MI_GAP,
 
     // [FG] music backend
     {"MIDI Player", S_CHOICE | S_ACTION | S_WRAP_LINE, CNTR_X, M_SPC,
-     {"midi_player_menu"}, m_null, input_null, str_midi_player,
-     SetMidiPlayer},
+     {"midi_player_menu"}, .strings_id = str_midi_player,
+     .action = SetMidiPlayer},
 
     MI_END
 };
@@ -2420,37 +2400,31 @@ static setup_menu_t gen_settings3[] = {
     // [FG] double click to "use"
     {"Double-Click to \"Use\"", S_ONOFF, CNTR_X, M_SPC, {"dclick_use"}},
 
-    {"Free Look", S_ONOFF, CNTR_X, M_SPC, {"mouselook"}, m_null, input_null,
-     str_empty, MN_UpdateMouseLook},
+    {"Free Look", S_ONOFF, CNTR_X, M_SPC, {"mouselook"},
+     .action = MN_UpdateMouseLook},
 
     // [FG] invert vertical axis
-    {"Invert Look", S_ONOFF, CNTR_X, M_SPC,
-     {"mouse_y_invert"}, m_null, input_null, str_empty,
-     G_UpdateMouseVariables},
+    {"Invert Look", S_ONOFF, CNTR_X, M_SPC, {"mouse_y_invert"},
+     .action = G_UpdateMouseVariables},
 
     MI_GAP,
 
     {"Turn Sensitivity", S_THERMO | S_THRM_SIZE11, CNTR_X, M_THRM_SPC,
-     {"mouse_sensitivity"}, m_null, input_null, str_empty,
-     G_UpdateMouseVariables},
+     {"mouse_sensitivity"}, .action = G_UpdateMouseVariables},
 
     {"Look Sensitivity", S_THERMO | S_THRM_SIZE11, CNTR_X, M_THRM_SPC,
-     {"mouse_sensitivity_y_look"}, m_null, input_null, str_empty,
-     G_UpdateMouseVariables},
+     {"mouse_sensitivity_y_look"}, .action = G_UpdateMouseVariables},
 
     {"Move Sensitivity", S_THERMO | S_THRM_SIZE11, CNTR_X, M_THRM_SPC,
-     {"mouse_sensitivity_y"}, m_null, input_null, str_empty,
-     G_UpdateMouseVariables},
+     {"mouse_sensitivity_y"}, .action = G_UpdateMouseVariables},
 
     {"Strafe Sensitivity", S_THERMO | S_THRM_SIZE11, CNTR_X, M_THRM_SPC,
-     {"mouse_sensitivity_strafe"}, m_null, input_null, str_empty,
-     G_UpdateMouseVariables},
+     {"mouse_sensitivity_strafe"}, .action = G_UpdateMouseVariables},
 
     MI_GAP,
 
-    {"Acceleration", S_THERMO, CNTR_X, M_THRM_SPC,
-     {"mouse_acceleration"}, m_null, input_null, str_mouse_accel,
-     G_UpdateMouseVariables},
+    {"Acceleration", S_THERMO, CNTR_X, M_THRM_SPC, {"mouse_acceleration"},
+     .strings_id = str_mouse_accel, .action = G_UpdateMouseVariables},
 
     MI_END
 };
@@ -2482,41 +2456,33 @@ static const char *curve_strings[] = {
 };
 
 static setup_menu_t gen_settings4[] = {
-    {"Stick Layout",S_CHOICE, CNTR_X, M_SPC,
-     {"joy_stick_layout"}, m_null, input_null, str_layout,
-     UpdateStickLayout},
+    {"Stick Layout",S_CHOICE, CNTR_X, M_SPC, {"joy_stick_layout"},
+     .strings_id = str_layout, .action = UpdateStickLayout},
 
-    {"Free Look", S_ONOFF, CNTR_X, M_SPC,
-     {"padlook"}, m_null, input_null, str_empty,
-     MN_UpdatePadLook},
+    {"Free Look", S_ONOFF, CNTR_X, M_SPC, {"padlook"},
+     .action = MN_UpdatePadLook},
 
-    {"Invert Look", S_ONOFF, CNTR_X, M_SPC,
-     {"joy_invert_look"}, m_null, input_null, str_empty,
-     I_ResetGamepad},
+    {"Invert Look", S_ONOFF, CNTR_X, M_SPC, {"joy_invert_look"},
+     .action = I_ResetGamepad},
 
     MI_GAP,
 
     {"Turn Speed", S_THERMO | S_THRM_SIZE11, CNTR_X, M_THRM_SPC,
-     {"joy_turn_speed"}, m_null, input_null, str_empty,
-     I_ResetGamepad},
+     {"joy_turn_speed"}, .action = I_ResetGamepad},
 
     {"Look Speed", S_THERMO | S_THRM_SIZE11, CNTR_X, M_THRM_SPC,
-     {"joy_look_speed"}, m_null, input_null, str_empty,
-     I_ResetGamepad},
+     {"joy_look_speed"}, .action = I_ResetGamepad},
 
     {"Response Curve", S_THERMO, CNTR_X, M_THRM_SPC,
-     {"joy_camera_curve"}, m_null, input_null, str_curve,
-     I_ResetGamepad},
+     {"joy_camera_curve"}, .strings_id = str_curve, .action = I_ResetGamepad},
 
     MI_GAP,
 
     {"Movement Deadzone", S_THERMO | S_PCT, CNTR_X, M_THRM_SPC,
-     {"joy_movement_inner_deadzone"}, m_null, input_null, str_empty,
-     I_ResetGamepad},
+     {"joy_movement_inner_deadzone"}, .action = I_ResetGamepad},
 
     {"Camera Deadzone", S_THERMO | S_PCT, CNTR_X, M_THRM_SPC,
-     {"joy_camera_inner_deadzone"}, m_null, input_null, str_empty,
-     I_ResetGamepad},
+     {"joy_camera_inner_deadzone"}, .action = I_ResetGamepad},
 
     MI_END
 };
@@ -2619,45 +2585,37 @@ static void UpdateGyroSteadying(void)
 }
 
 static setup_menu_t gen_gyro[] = {
-    {"Gyro Aiming", S_ONOFF, CNTR_X, M_SPC,
-     {"gyro_enable"}, m_null, input_null, str_empty,
-     UpdateGyroAiming},
+    {"Gyro Aiming", S_ONOFF, CNTR_X, M_SPC, {"gyro_enable"},
+     .action = UpdateGyroAiming},
 
-    {"Gyro Space", S_CHOICE, CNTR_X, M_SPC,
-     {"gyro_space"}, m_null, input_null, str_gyro_space,
-     I_ResetGamepad},
+    {"Gyro Space", S_CHOICE, CNTR_X, M_SPC, {"gyro_space"},
+     .strings_id = str_gyro_space, .action = I_ResetGamepad},
 
-    {"Gyro Button Action", S_CHOICE, CNTR_X, M_SPC,
-     {"gyro_button_action"}, m_null, input_null, str_gyro_action,
-     I_ResetGamepad},
+    {"Gyro Button Action", S_CHOICE, CNTR_X, M_SPC, {"gyro_button_action"},
+     .strings_id = str_gyro_action, .action = I_ResetGamepad},
 
-    {"Camera Stick Action", S_CHOICE, CNTR_X, M_SPC,
-     {"gyro_stick_action"}, m_null, input_null, str_gyro_action,
-     I_ResetGamepad},
+    {"Camera Stick Action", S_CHOICE, CNTR_X, M_SPC, {"gyro_stick_action"},
+     .strings_id = str_gyro_action, .action = I_ResetGamepad},
 
     MI_GAP,
 
     {"Turn Speed", S_THERMO | S_THRM_SIZE11, CNTR_X, M_THRM_SPC,
-     {"gyro_turn_speed"}, m_null, input_null, str_gyro_sens,
-     I_ResetGamepad},
+     {"gyro_turn_speed"}, .strings_id = str_gyro_sens, .action = I_ResetGamepad},
 
     {"Look Speed", S_THERMO | S_THRM_SIZE11, CNTR_X, M_THRM_SPC,
-     {"gyro_look_speed"}, m_null, input_null, str_gyro_sens,
-     I_ResetGamepad},
+     {"gyro_look_speed"}, .strings_id = str_gyro_sens, .action = I_ResetGamepad},
 
-    {"Acceleration", S_THERMO, CNTR_X, M_THRM_SPC,
-     {"gyro_acceleration"}, m_null, input_null, str_gyro_accel,
-     I_ResetGamepad},
+    {"Acceleration", S_THERMO, CNTR_X, M_THRM_SPC, {"gyro_acceleration"},
+     .strings_id = str_gyro_accel, .action = I_ResetGamepad},
 
-    {"Steadying", S_THERMO, CNTR_X, M_THRM_SPC,
-     {"gyro_smooth_threshold"}, m_null, input_null, str_gyro_sens,
-     UpdateGyroSteadying},
+    {"Steadying", S_THERMO, CNTR_X, M_THRM_SPC, {"gyro_smooth_threshold"},
+     .strings_id = str_gyro_sens, .action = UpdateGyroSteadying},
 
     MI_GAP,
 
     {"Calibrate", S_FUNC, CNTR_X, M_SPC,
-      {NULL}, m_null, input_null, str_empty,
-      I_UpdateGyroCalibrationState},
+     .action = I_UpdateGyroCalibrationState,
+     .desc = "Place gamepad on a flat surface"},
 
     MI_END
 };
@@ -2700,48 +2658,40 @@ static const char *endoom_strings[] = {"off", "on", "PWAD only"};
 
 static setup_menu_t gen_settings5[] = {
 
-    {"Smooth Pixel Scaling", S_ONOFF, OFF_CNTR_X, M_SPC,
-     {"smooth_scaling"}, m_null, input_null, str_empty,
-     ResetVideo},
+    {"Smooth Pixel Scaling", S_ONOFF, OFF_CNTR_X, M_SPC, {"smooth_scaling"},
+     .action = ResetVideo},
 
     {"Sprite Translucency", S_ONOFF | S_STRICT, OFF_CNTR_X, M_SPC,
      {"translucency"}},
 
     {"Translucency Filter", S_NUM | S_ACTION | S_PCT, OFF_CNTR_X, M_SPC,
-     {"tran_filter_pct"}, m_null, input_null, str_empty,
-     MN_Trans},
+     {"tran_filter_pct"}, .action = MN_Trans},
 
     MI_GAP,
 
-    {"Voxels", S_ONOFF | S_STRICT, OFF_CNTR_X, M_SPC,
-     {"voxels_rendering"}},
+    {"Voxels", S_ONOFF | S_STRICT, OFF_CNTR_X, M_SPC, {"voxels_rendering"}},
 
-    {"Brightmaps", S_ONOFF | S_STRICT, OFF_CNTR_X, M_SPC,
-     {"brightmaps"}, m_null, input_null, str_empty,
-     R_InitDrawFunctions},
+    {"Brightmaps", S_ONOFF | S_STRICT, OFF_CNTR_X, M_SPC, {"brightmaps"},
+     .action = R_InitDrawFunctions},
 
-    {"Stretch Short Skies", S_ONOFF, OFF_CNTR_X, M_SPC,
-     {"stretchsky"}, m_null, input_null, str_empty,
-     R_InitSkyMap},
+    {"Stretch Short Skies", S_ONOFF, OFF_CNTR_X, M_SPC, {"stretchsky"},
+     .action = R_InitSkyMap},
 
-    {"Linear Sky Scrolling", S_ONOFF, OFF_CNTR_X, M_SPC,
-     {"linearsky"}, m_null, input_null, str_empty,
-     R_InitPlanes},
+    {"Linear Sky Scrolling", S_ONOFF, OFF_CNTR_X, M_SPC, {"linearsky"},
+     .action = R_InitPlanes},
 
-    {"Swirling Flats", S_ONOFF, OFF_CNTR_X, M_SPC,
-     {"r_swirl"}},
+    {"Swirling Flats", S_ONOFF, OFF_CNTR_X, M_SPC, {"r_swirl"}},
 
-    {"Smooth Diminishing Lighting", S_ONOFF, OFF_CNTR_X, M_SPC,
-     {"smoothlight"}, m_null, input_null, str_empty,
-     SmoothLight},
+    {"Smooth Diminishing Lighting", S_ONOFF, OFF_CNTR_X, M_SPC, {"smoothlight"},
+     .action = SmoothLight},
 
     MI_GAP,
 
-    {"Menu Backdrop", S_CHOICE, OFF_CNTR_X, M_SPC,
-     {"menu_backdrop"}, m_null, input_null, str_menu_backdrop},
+    {"Menu Backdrop", S_CHOICE, OFF_CNTR_X, M_SPC, {"menu_backdrop"},
+    .strings_id = str_menu_backdrop},
 
-    {"Show ENDOOM Screen", S_CHOICE, OFF_CNTR_X, M_SPC,
-     {"show_endoom"}, m_null, input_null, str_endoom},
+    {"Show ENDOOM Screen", S_CHOICE, OFF_CNTR_X, M_SPC, {"show_endoom"},
+    .strings_id = str_endoom},
 
     MI_END
 };
@@ -2796,20 +2746,18 @@ static setup_menu_t gen_settings6[] = {
     {"Quality of life", S_SKIP | S_TITLE, OFF_CNTR_X, M_SPC},
 
     {"Screen wipe effect", S_CHOICE | S_STRICT, OFF_CNTR_X, M_SPC,
-     {"screen_melt"}, m_null, input_null, str_screen_melt},
+     {"screen_melt"}, .strings_id = str_screen_melt},
 
-    {"On death action", S_CHOICE, OFF_CNTR_X, M_SPC,
-     {"death_use_action"}, m_null, input_null, str_death_use_action},
+    {"On death action", S_CHOICE, OFF_CNTR_X, M_SPC, {"death_use_action"},
+     .strings_id = str_death_use_action},
 
-    {"Demo progress bar", S_ONOFF, OFF_CNTR_X, M_SPC,
-     {"demobar"}},
+    {"Demo progress bar", S_ONOFF, OFF_CNTR_X, M_SPC, {"demobar"}},
 
     {"Screen flashes", S_ONOFF | S_STRICT, OFF_CNTR_X, M_SPC,
      {"palette_changes"}},
 
     {"Invulnerability effect", S_CHOICE | S_STRICT, OFF_CNTR_X, M_SPC,
-     {"invul_mode"}, m_null, input_null, str_invul_mode,
-     R_InvulMode},
+     {"invul_mode"}, .strings_id = str_invul_mode, .action = R_InvulMode},
 
     {"Organize save files", S_ONOFF | S_PRGWARN, OFF_CNTR_X, M_SPC,
      {"organize_savefiles"}},
@@ -2819,11 +2767,10 @@ static setup_menu_t gen_settings6[] = {
     {"Miscellaneous", S_SKIP | S_TITLE, OFF_CNTR_X, M_SPC},
 
     {"Game speed", S_NUM | S_STRICT | S_PCT, OFF_CNTR_X, M_SPC,
-     {"realtic_clock_rate"}, m_null, input_null, str_empty,
-     MN_ResetTimeScale},
+     {"realtic_clock_rate"}, .action = MN_ResetTimeScale},
 
     {"Default Skill", S_CHOICE | S_LEVWARN, OFF_CNTR_X, M_SPC,
-     {"default_skill"}, m_null, input_null, str_default_skill},
+     {"default_skill"}, .strings_id = str_default_skill},
 
     MI_END
 };
@@ -3780,10 +3727,16 @@ static boolean NextPage(int inc)
     current_menu = setup_screens[setup_screen][current_page];
     set_item_on = GetItemOn();
 
+    highlight_item = 0;
+
     print_warning_about_changes = false; // killough 10/98
     while (current_menu[set_item_on++].m_flags & S_SKIP)
         ;
-    current_menu[--set_item_on].m_flags |= S_HILITE;
+    --set_item_on;
+    if (menu_input != mouse_mode)
+    {
+        current_menu[set_item_on].m_flags |= S_HILITE;
+    }
 
     M_StartSound(sfx_pstop); // killough 10/98
     return true;
