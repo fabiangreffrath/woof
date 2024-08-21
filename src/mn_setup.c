@@ -135,7 +135,7 @@ static void DisableItem(boolean condition, setup_menu_t *menu, const char *item)
 {
     while (!(menu->m_flags & S_END))
     {
-        if (!(menu->m_flags & (S_SKIP | S_RESET | S_FUNC)))
+        if (!(menu->m_flags & (S_SKIP | S_RESET | S_CALIBR)))
         {
             if (strcasecmp(menu->var.def->name, item) == 0)
             {
@@ -158,12 +158,11 @@ static void DisableItem(boolean condition, setup_menu_t *menu, const char *item)
     I_Error("Item \"%s\" not found in menu", item);
 }
 
-static void DisableItemFunc(boolean condition, setup_menu_t *menu, void *func)
+static void DisableItemCalibr(boolean condition, setup_menu_t *menu)
 {
     while (!(menu->m_flags & S_END))
     {
-        if ((menu->m_flags & S_FUNC) && menu->var.func
-            && menu->var.func == func)
+        if (menu->m_flags & S_CALIBR)
         {
             menu->m_flags = condition ? (menu->m_flags | S_DISABLE)
                                       : (menu->m_flags & ~S_DISABLE);
@@ -618,7 +617,7 @@ static void DrawIndicator_Meter(const setup_menu_t *s, int x, int y, int width)
 {
     const int flags = s->m_flags;
 
-    if ((flags & S_HILITE) && !(flags & (S_END | S_SKIP | S_RESET | S_FUNC)))
+    if ((flags & S_HILITE) && !(flags & (S_END | S_SKIP | S_RESET | S_CALIBR)))
     {
         const char *name = s->var.def->name;
         float scale = 0.0f;
@@ -779,9 +778,9 @@ static void DrawSetting(setup_menu_t *s, int accum_y)
         y = accum_y;
     }
 
-    if (flags & S_FUNC)
+    if (flags & S_CALIBR)
     {
-        // A menu item with the S_FUNC flag has no setting, so draw an
+        // A menu item with the S_CALIBR flag has no setting, so draw an
         // ellipsis to the right of the item with the same color.
         const int color = GetItemColor(flags);
         sprintf(menu_buffer, ". . .");
@@ -1148,11 +1147,11 @@ static void DrawInstructions()
 
     const char *s = "";
 
-    if (item->desc)
+    if (flags & S_CALIBR)
     {
-        s = item->desc;
+        s = "Place gamepad on a flat surface";
     }
-    else if (setup_select)
+    if (setup_select)
     {
         if (flags & S_INPUT)
         {
@@ -2668,8 +2667,9 @@ static setup_menu_t gen_gyro[] = {
 
     MI_GAP,
 
-    {"Calibrate", S_FUNC, CNTR_X, M_SPC, {I_UpdateGyroCalibrationState},
-     .desc = "Place gamepad on a flat surface"},
+    {"Calibrate", S_CALIBR, CNTR_X, M_SPC,
+      {NULL}, m_null, input_null, str_empty,
+      I_UpdateGyroCalibrationState},
 
     MI_END
 };
@@ -2686,7 +2686,7 @@ static void UpdateGyroItems(void)
     DisableItem(condition, gen_gyro, "gyro_look_speed");
     DisableItem(condition, gen_gyro, "gyro_acceleration");
     DisableItem(condition, gen_gyro, "gyro_smooth_threshold");
-    DisableItemFunc(condition, gen_gyro, I_UpdateGyroCalibrationState);
+    DisableItemCalibr(condition, gen_gyro);
 }
 
 void MN_UpdateAllGamepadItems(void)
@@ -3830,16 +3830,16 @@ boolean MN_SetupResponder(menu_action_t action, int ch)
        current_item->m_flags |= S_HILITE;
     }
 
-    if ((current_item->m_flags & S_FUNC) && action == MENU_ENTER)
+    if ((current_item->m_flags & S_CALIBR) && action == MENU_ENTER)
     {
         if (ItemDisabled(current_item->m_flags))
         {
             M_StartSound(sfx_oof);
             return true;
         }
-        else if (current_item->var.func)
+        else
         {
-            current_item->var.func();
+            current_item->action();
         }
 
         M_StartSound(sfx_itemup);
