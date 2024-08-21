@@ -102,7 +102,7 @@ void MN_DrawEnemy(void);
 #define S_HILITE      0x00000001 // Cursor is sitting on this item
 #define S_SELECT      0x00000002 // We're changing this item
 #define S_TITLE       0x00000004 // Title item
-#define S_FUNC        0x00000008 // Call var.func() on MENU_ENTER
+#define S_FUNC        0x00000008 // Non-config item
 #define S_CRITEM      0x00000010 // Message color
 #define S_RESET       0x00000020 // Reset to Defaults Button
 #define S_INPUT       0x00000040 // Composite input
@@ -187,10 +187,8 @@ typedef struct setup_menu_s
 
     union // killough 11/98: The first field is a union of several types
     {
-        void *var;             // generic variable
         char *name;            // name
         struct default_s *def; // default[] table entry
-        void (*func)(void);    // called on MENU_ENTER with S_FUNC flag
     } var;
 
     setup_group m_group;  // group
@@ -199,7 +197,6 @@ typedef struct setup_menu_s
     void (*action)(void); // killough 10/98: function to call after changing
     mrect_t rect;
     int lines;            // number of lines for rect, always > 0
-    char *desc;           // overrides default description
 } setup_menu_t;
 
 // phares 4/21/98: Moved from m_misc.c so m_menu.c could see it.

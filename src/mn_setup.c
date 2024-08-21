@@ -135,9 +135,11 @@ static void DisableItem(boolean condition, setup_menu_t *menu, const char *item)
 {
     while (!(menu->m_flags & S_END))
     {
-        if (!(menu->m_flags & (S_SKIP | S_RESET | S_FUNC)))
+        if (!(menu->m_flags & (S_SKIP | S_RESET)))
         {
-            if (strcasecmp(menu->var.def->name, item) == 0)
+            if (((menu->m_flags & S_HASDEFPTR)
+                 && !strcasecmp(menu->var.def->name, item))
+                || !strcasecmp(menu->m_text, item))
             {
                 if (condition)
                 {
@@ -156,24 +158,6 @@ static void DisableItem(boolean condition, setup_menu_t *menu, const char *item)
     }
 
     I_Error("Item \"%s\" not found in menu", item);
-}
-
-static void DisableItemFunc(boolean condition, setup_menu_t *menu, void *func)
-{
-    while (!(menu->m_flags & S_END))
-    {
-        if ((menu->m_flags & S_FUNC) && menu->var.func
-            && menu->var.func == func)
-        {
-            menu->m_flags = condition ? (menu->m_flags | S_DISABLE)
-                                      : (menu->m_flags & ~S_DISABLE);
-            return;
-        }
-
-        menu++;
-    }
-
-    I_Error("Menu item function not found");
 }
 
 /////////////////////////////
@@ -1148,9 +1132,12 @@ static void DrawInstructions()
 
     const char *s = "";
 
-    if (item->desc)
+    if (flags & S_FUNC)
     {
-        s = item->desc;
+        if (!strcasecmp(item->m_text, "Calibrate"))
+        {
+            s = "Place gamepad on a flat surface";
+        }
     }
     else if (setup_select)
     {
@@ -2668,8 +2655,9 @@ static setup_menu_t gen_gyro[] = {
 
     MI_GAP,
 
-    {"Calibrate", S_FUNC, CNTR_X, M_SPC, {I_UpdateGyroCalibrationState},
-     .desc = "Place gamepad on a flat surface"},
+    {"Calibrate", S_FUNC, CNTR_X, M_SPC,
+      {NULL}, m_null, input_null, str_empty,
+      I_UpdateGyroCalibrationState},
 
     MI_END
 };
@@ -2686,7 +2674,7 @@ static void UpdateGyroItems(void)
     DisableItem(condition, gen_gyro, "gyro_look_speed");
     DisableItem(condition, gen_gyro, "gyro_acceleration");
     DisableItem(condition, gen_gyro, "gyro_smooth_threshold");
-    DisableItemFunc(condition, gen_gyro, I_UpdateGyroCalibrationState);
+    DisableItem(condition, gen_gyro, "Calibrate");
 }
 
 void MN_UpdateAllGamepadItems(void)
@@ -3835,9 +3823,9 @@ boolean MN_SetupResponder(menu_action_t action, int ch)
             M_StartSound(sfx_oof);
             return true;
         }
-        else if (current_item->var.func)
+        else if (current_item->action)
         {
-            current_item->var.func();
+            current_item->action();
         }
 
         M_StartSound(sfx_itemup);
