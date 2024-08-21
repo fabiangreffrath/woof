@@ -130,6 +130,7 @@ void MN_DrawEnemy(void);
 #define S_MBF         0x10000000 // Disable if complevel < mbf
 #define S_THRM_SIZE4  0x20000000 // Thermo bar size 4
 #define S_PCT         0x40000000 // Show % sign
+#define S_ALTDESC     0x80000000 // Alternative default description
 
 // S_SHOWDESC  = the set of items whose description should be displayed
 // S_SHOWSET   = the set of items whose setting should be displayed
@@ -197,6 +198,7 @@ typedef struct setup_menu_s
     void (*action)(void); // killough 10/98: function to call after changing
     mrect_t rect;
     int lines;            // number of lines for rect, always > 0
+    const char *desc;     // alternative default description
 } setup_menu_t;
 
 // phares 4/21/98: Moved from m_misc.c so m_menu.c could see it.
