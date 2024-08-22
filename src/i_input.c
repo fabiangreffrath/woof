@@ -19,6 +19,7 @@
 #include "d_event.h"
 #include "d_main.h"
 #include "doomkeys.h"
+#include "doomstat.h"
 #include "doomtype.h"
 #include "i_gamepad.h"
 #include "i_gyro.h"
@@ -352,6 +353,8 @@ void I_SetSensorsEnabled(boolean condition)
         SDL_GameControllerSetSensorEnabled(gamepad, SDL_SENSOR_ACCEL, SDL_FALSE);
         SDL_GameControllerSetSensorEnabled(gamepad, SDL_SENSOR_GYRO, SDL_FALSE);
     }
+
+    I_SetSensorEventState(condition && menuactive);
 }
 
 static void SetTouchEventState(boolean condition)
@@ -398,7 +401,6 @@ static void DisableGamepadEvents(void)
     SDL_EventState(SDL_CONTROLLERAXISMOTION, SDL_IGNORE);
     SDL_EventState(SDL_CONTROLLERDEVICEREMAPPED, SDL_IGNORE);
     SDL_EventState(SDL_CONTROLLERTOUCHPADMOTION, SDL_IGNORE);
-    SDL_EventState(SDL_CONTROLLERSENSORUPDATE, SDL_IGNORE);
 }
 
 static void I_ShutdownGamepad(void)
