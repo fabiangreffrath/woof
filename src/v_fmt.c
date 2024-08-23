@@ -20,6 +20,7 @@
 
 #include "doomtype.h"
 #include "i_printf.h"
+#include "i_video.h"
 #include "m_swap.h"
 #include "r_defs.h"
 #include "v_video.h"
@@ -339,6 +340,8 @@ patch_t *V_CachePatchNum(int lump, pu_tag tag)
         return buffer;
     }
 
+    byte *image = NULL, *translate = NULL;
+
     spng_ctx *ctx = spng_ctx_new(0);
 
     // Ignore and don't calculate chunk CRC's
@@ -386,6 +389,25 @@ patch_t *V_CachePatchNum(int lump, pu_tag tag)
         }
     }
 
+    struct spng_plte plte = {0};
+    ret = spng_get_plte(ctx, &plte);
+
+    if (ret)
+    {
+        I_Printf(VB_ERROR, "V_CachePatchNum: spng_get_plte %s\n",
+                 spng_strerror(ret));
+        goto error;
+    }
+
+    // Build translation table for palette.
+    byte *playpal = W_CacheLumpName("PLAYPAL", PU_CACHE);
+    translate = malloc(plte.n_entries);
+    for (int i = 0; i < plte.n_entries; ++i)
+    {
+        struct spng_plte_entry *e = &plte.entries[i];
+        translate[i] = I_GetPaletteIndex(playpal, e->red, e->green, e->blue);
+    }
+
     int leftoffset = 0, topoffset = 0;
     uint32_t n_chunks = 0;
     ret = spng_get_unknown_chunks(ctx, NULL, &n_chunks);
@@ -424,16 +446,19 @@ patch_t *V_CachePatchNum(int lump, pu_tag tag)
         goto error;
     }
 
-    byte *image = malloc(image_size);
-
+    image = malloc(image_size);
     ret = spng_decode_image(ctx, image, image_size, SPNG_FMT_PNG, 0);
 
     if (ret)
     {
         I_Printf(VB_ERROR, "V_CachePatchNum: spng_decode_image %s",
                  spng_strerror(ret));
-        free(image);
         goto error;
+    }
+
+    for (int i = 0; i < image_size; ++i)
+    {
+        image[i] = translate[image[i]];
     }
 
     spng_ctx_free(ctx);
@@ -453,12 +478,21 @@ patch_t *V_CachePatchNum(int lump, pu_tag tag)
     patch->leftoffset = leftoffset;
     patch->topoffset = topoffset;
     free(image);
+    free(translate);
 
     return lumpcache[lump];
 
 error:
     spng_ctx_free(ctx);
     Z_Free(buffer);
+    if (image)
+    {
+        free(image);
+    }
+    if (translate)
+    {
+        free(translate);
+    }
     return DummyPatch(lump, tag);
 }
 
@@ -482,6 +516,8 @@ void *V_CacheFlatNum(int lump, pu_tag tag)
     {
         return buffer;
     }
+
+    byte *image = NULL, *translate = NULL;
 
     spng_ctx *ctx = spng_ctx_new(0);
 
@@ -508,6 +544,25 @@ void *V_CacheFlatNum(int lump, pu_tag tag)
         goto error;
     }
 
+    struct spng_plte plte = {0};
+    ret = spng_get_plte(ctx, &plte);
+
+    if (ret)
+    {
+        I_Printf(VB_ERROR, "V_CacheFlatNum: spng_get_plte %s\n",
+                 spng_strerror(ret));
+        goto error;
+    }
+
+    // Build translation table for palette.
+    byte *playpal = W_CacheLumpName("PLAYPAL", PU_CACHE);
+    translate = malloc(plte.n_entries);
+    for (int i = 0; i < plte.n_entries; ++i)
+    {
+        struct spng_plte_entry *e = &plte.entries[i];
+        translate[i] = I_GetPaletteIndex(playpal, e->red, e->green, e->blue);
+    }
+
     size_t image_size = 0;
     ret = spng_decoded_image_size(ctx, SPNG_FMT_PNG, &image_size);
 
@@ -518,14 +573,18 @@ void *V_CacheFlatNum(int lump, pu_tag tag)
         goto error;
     }
 
-    void *image = malloc(image_size);
+    image = malloc(image_size);
     ret = spng_decode_image(ctx, image, image_size, SPNG_FMT_PNG, 0);
+
+    for (int i = 0; i < image_size; ++i)
+    {
+        image[i] = translate[image[i]];
+    }
 
     if (ret)
     {
         I_Printf(VB_ERROR, "V_CacheFlatNum: spng_decode_image %s",
                  spng_strerror(ret));
-        free(image);
         goto error;
     }
 
@@ -535,12 +594,21 @@ void *V_CacheFlatNum(int lump, pu_tag tag)
     Z_Malloc(image_size, tag, &lumpcache[lump]);
     memcpy(lumpcache[lump], image, image_size);
     free(image);
+    free(translate);
 
     return lumpcache[lump];
 
 error:
     spng_ctx_free(ctx);
     Z_Free(buffer);
+    if (image)
+    {
+        free(image);
+    }
+    if (translate)
+    {
+        free(translate);
+    }
     return DummyFlat(lump, tag);
 }
 
