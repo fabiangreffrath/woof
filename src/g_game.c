@@ -2618,6 +2618,9 @@ void G_CleanScreenshot(void)
 
   ST_ResetPalette();
 
+  if (gamestate != GS_LEVEL)
+      return;
+
   old_screenblocks = screenblocks;
   old_hide_weapon = hide_weapon;
   hide_weapon = true;
