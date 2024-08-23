@@ -517,8 +517,6 @@ void D_PageDrawer(void)
         }
 #endif
     }
-  else
-    MN_DrawCredits();
 }
 
 //
@@ -588,15 +586,6 @@ static struct
       {G_DeferedPlayDemo, "demo2"},
       {G_DeferedPlayDemo, "demo2"},
       {G_DeferedPlayDemo, "demo2"},
-    },
-
-    // [FG] swap third and fifth state in the sequence,
-    //      so that a WAD's credit screen gets precedence over Woof!'s own
-    {
-      {D_SetPageName, NULL},
-      {D_SetPageName, NULL},
-      {D_SetPageName, NULL},
-      {D_SetPageName, NULL},
     },
 
     {
