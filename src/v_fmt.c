@@ -576,16 +576,16 @@ void *V_CacheFlatNum(int lump, pu_tag tag)
     image = malloc(image_size);
     ret = spng_decode_image(ctx, image, image_size, SPNG_FMT_PNG, 0);
 
-    for (int i = 0; i < image_size; ++i)
-    {
-        image[i] = translate[image[i]];
-    }
-
     if (ret)
     {
         I_Printf(VB_ERROR, "V_CacheFlatNum: spng_decode_image %s",
                  spng_strerror(ret));
         goto error;
+    }
+
+    for (int i = 0; i < image_size; ++i)
+    {
+        image[i] = translate[image[i]];
     }
 
     spng_ctx_free(ctx);
