@@ -498,25 +498,7 @@ void D_PageTicker(void)
 
 void D_PageDrawer(void)
 {
-  if (pagename)
-    {
-      V_DrawPatchFullScreen(V_CachePatchName(pagename, PU_CACHE));
-#if 0
-      int l = W_CheckNumForName(pagename);
-      byte *t = W_CacheLumpNum(l, PU_CACHE);
-      size_t s = W_LumpLength(l);
-      unsigned c = 0;
-      while (s--)
-	c = c*3 + t[s];
-      V_DrawPatchFullScreen((patch_t *) t);
-      if (c==2119826587u || c==2391756584u)
-        // [FG] removed the embedded DOGOVRLY title pic overlay graphic lump
-        if (W_CheckNumForName("DOGOVRLY") > 0)
-        {
-	V_DrawPatch(0, 0, W_CacheLumpName("DOGOVRLY", PU_CACHE));
-        }
-#endif
-    }
+  V_DrawPatchFullScreen(V_CachePatchName(pagename, PU_CACHE));
 }
 
 //
@@ -529,132 +511,107 @@ void D_AdvanceDemo (void)
   advancedemo = true;
 }
 
-// killough 11/98: functions to perform demo sequences
-
-static void D_SetPageName(char *name)
-{
-  pagename = name;
-}
-
-static void D_DrawTitle1(char *name)
-{
-  S_StartMusic(mus_intro);
-  pagetic = (TICRATE*170)/35;
-  D_SetPageName(name);
-}
-
-static void D_DrawTitle2(char *name)
-{
-  S_StartMusic(mus_dm2ttl);
-  D_SetPageName(name);
-}
-
-// killough 11/98: tabulate demo sequences
-
-static struct 
-{
-  void (*func)(char *);
-  char *name;
-} const demostates[][4] =
-  {
-    {
-      {D_DrawTitle1, "TITLEPIC"},
-      {D_DrawTitle1, "TITLEPIC"},
-      {D_DrawTitle2, "TITLEPIC"},
-      {D_DrawTitle1, "TITLEPIC"},
-    },
-
-    {
-      {G_DeferedPlayDemo, "demo1"},
-      {G_DeferedPlayDemo, "demo1"},
-      {G_DeferedPlayDemo, "demo1"},
-      {G_DeferedPlayDemo, "demo1"},
-    },
-
-    // [FG] swap third and fifth state in the sequence,
-    //      so that a WAD's credit screen gets precedence over Woof!'s own
-    //      (also, show the credit screen for The Ultimate Doom)
-    {
-      {D_SetPageName, "HELP2"},
-      {D_SetPageName, "HELP2"},
-      {D_SetPageName, "CREDIT"},
-      {D_SetPageName, "CREDIT"},
-    },
-
-    {
-      {G_DeferedPlayDemo, "demo2"},
-      {G_DeferedPlayDemo, "demo2"},
-      {G_DeferedPlayDemo, "demo2"},
-      {G_DeferedPlayDemo, "demo2"},
-    },
-
-    {
-      {G_DeferedPlayDemo, "demo3"},
-      {G_DeferedPlayDemo, "demo3"},
-      {G_DeferedPlayDemo, "demo3"},
-      {G_DeferedPlayDemo, "demo3"},
-    },
-
-    {
-      {NULL},
-      {NULL},
-      // Andrey Budko
-      // Both Plutonia and TNT are commercial like Doom2,
-      // but in difference from Doom2, they have demo4 in demo cycle.
-      {G_DeferedPlayDemo, "demo4"},
-      {D_SetPageName, "CREDIT"},
-    },
-
-    {
-      {NULL},
-      {NULL},
-      {NULL},
-      {G_DeferedPlayDemo, "demo4"},
-    },
-
-    {
-      {NULL},
-      {NULL},
-      {NULL},
-      {NULL},
-    }
-  };
-
 //
 // This cycles through the demo sequences.
+// FIXME - version dependend demo numbers?
 //
-// killough 11/98: made table-driven
 
 void D_DoAdvanceDemo(void)
 {
-  char *name;
-  players[consoleplayer].playerstate = PST_LIVE;  // not reborn
-  advancedemo = usergame = paused = false;
-  gameaction = ga_nothing;
+    players[consoleplayer].playerstate = PST_LIVE; // not reborn
+    advancedemo = false;
+    usergame = false; // no save / end game here
+    paused = false;
+    gameaction = ga_nothing;
 
-  pagetic = TICRATE * 11;         // killough 11/98: default behavior
-  gamestate = GS_DEMOSCREEN;
+    // The Ultimate Doom executable changed the demo sequence to add
+    // a DEMO4 demo.  Final Doom was based on Ultimate, so also
+    // includes this change; however, the Final Doom IWADs do not
+    // include a DEMO4 lump, so the game bombs out with an error
+    // when it reaches this point in the demo sequence.
 
-  if (!demostates[++demosequence][gamemode].func)
-    demosequence = 0;
+    // However! There is an alternate version of Final Doom that
+    // includes a fixed executable.
 
-  name = demostates[demosequence][gamemode].name;
-  if (name && W_CheckNumForName(name) < 0)
-  {
-    // [FG] the BFG Edition IWADs have no TITLEPIC lump, use DMENUPIC instead
-    if (!strcasecmp(name, "TITLEPIC"))
+    if (W_CheckNumForName("DEMO4") >= 0)
     {
-      name = "DMENUPIC";
+        demosequence = (demosequence + 1) % 7;
     }
-    // [FG] do not even attempt to play DEMO4 if it is not available
-    else if (!strcasecmp(name, "demo4"))
+    else
     {
-      demosequence = 0;
-      name = demostates[demosequence][gamemode].name;
+        demosequence = (demosequence + 1) % 6;
     }
-  }
 
-  demostates[demosequence][gamemode].func(name);
+    switch (demosequence)
+    {
+        case 0:
+            if (gamemode == commercial)
+            {
+                pagetic = TICRATE * 11;
+            }
+            else
+            {
+                pagetic = 170;
+            }
+            gamestate = GS_DEMOSCREEN;
+            pagename = "TITLEPIC";
+            if (gamemode == commercial)
+            {
+                S_StartMusic(mus_dm2ttl);
+            }
+            else
+            {
+                S_StartMusic(mus_intro);
+            }
+            break;
+        case 1:
+            G_DeferedPlayDemo("DEMO1");
+            break;
+        case 2:
+            pagetic = 200;
+            gamestate = GS_DEMOSCREEN;
+            pagename = "CREDIT";
+            break;
+        case 3:
+            G_DeferedPlayDemo("DEMO2");
+            break;
+        case 4:
+            gamestate = GS_DEMOSCREEN;
+            if (gamemode == commercial)
+            {
+                pagetic = TICRATE * 11;
+                pagename = "TITLEPIC";
+                S_StartMusic(mus_dm2ttl);
+            }
+            else
+            {
+                pagetic = 200;
+
+                if (gameversion >= exe_ultimate)
+                {
+                    pagename = "CREDIT";
+                }
+                else
+                {
+                    pagename = "HELP2";
+                }
+            }
+            break;
+        case 5:
+            G_DeferedPlayDemo("DEMO3");
+            break;
+        // THE DEFINITIVE DOOM Special Edition demo
+        case 6:
+            G_DeferedPlayDemo("DEMO4");
+            break;
+    }
+
+    // The Doom 3: BFG Edition version of doom2.wad does not have a
+    // TITLETPIC lump.
+    if (!strcasecmp(pagename, "TITLEPIC") && W_CheckNumForName("TITLEPIC") < 0)
+    {
+        pagename = "DMENUPIC";
+    }
 }
 
 //
