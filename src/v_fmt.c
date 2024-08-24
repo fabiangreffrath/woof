@@ -334,10 +334,32 @@ static boolean InitPNG(png_t *png, void *buffer, int buffer_length)
     spng_ctx *ctx = spng_ctx_new(0);
 
     // Ignore and don't calculate chunk CRC's
-    spng_set_crc_action(ctx, SPNG_CRC_USE, SPNG_CRC_USE);
-    spng_set_chunk_limits(ctx, PNG_MEM_LIMIT, PNG_MEM_LIMIT);
+    int ret = spng_set_crc_action(ctx, SPNG_CRC_USE, SPNG_CRC_USE);
 
-    spng_set_png_buffer(ctx, buffer, buffer_length);
+    if (ret)
+    {
+        I_Printf(VB_ERROR, "InitPNG: spng_set_crc_action %s\n",
+                 spng_strerror(ret));
+        return false;
+    }
+
+    ret = spng_set_chunk_limits(ctx, PNG_MEM_LIMIT, PNG_MEM_LIMIT);
+
+    if (ret)
+    {
+        I_Printf(VB_ERROR, "InitPNG: spng_set_chunk_limits %s\n",
+                 spng_strerror(ret));
+        return false;
+    }
+
+    ret = spng_set_png_buffer(ctx, buffer, buffer_length);
+
+    if (ret)
+    {
+        I_Printf(VB_ERROR, "InitPNG: spng_set_png_buffer %s\n",
+                 spng_strerror(ret));
+        return false;
+    }
 
     png->ctx = ctx;
 
@@ -374,11 +396,12 @@ static boolean DecodePNG(png_t *png)
         case SPNG_COLOR_TYPE_INDEXED:
             fmt = SPNG_FMT_PNG;
             break;
-        case SPNG_COLOR_TYPE_TRUECOLOR_ALPHA:
-            fmt = SPNG_FMT_RGBA8;
+        case SPNG_COLOR_TYPE_GRAYSCALE:
+        case SPNG_COLOR_TYPE_TRUECOLOR:
+            fmt = SPNG_FMT_RGB8;
             break;
         default:
-            fmt = SPNG_FMT_RGB8;
+            fmt = SPNG_FMT_RGBA8;
             break;
     }
 
