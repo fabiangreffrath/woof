@@ -13,15 +13,19 @@
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 // GNU General Public License for more details.
 
+#ifndef V_FMT_H
+#define V_FMT_H
+
 #include "doomtype.h"
 #include "z_zone.h"
 #include "w_wad.h"
 
 struct patch_s *V_LinearToTransPatch(const byte *data, int width, int height,
-                                     int color_key, pu_tag tag, void **user);
+                                     int *output_size, int color_key,
+                                     pu_tag tag, void **user);
 
-struct patch_s *V_LinearToPatch(byte *data, int width, int height, int tag,
-                                void **user);
+struct patch_s *V_LinearToPatch(byte *data, int width, int height,
+                                int *output_size, int tag, void **user);
 
 struct patch_s *V_CachePatchNum(int lump, pu_tag tag);
 
@@ -31,3 +35,7 @@ inline static struct patch_s *V_CachePatchName(const char *name, pu_tag tag)
 }
 
 void *V_CacheFlatNum(int lump, pu_tag tag);
+
+int V_LumpSize(int lump);
+
+#endif

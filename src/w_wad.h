@@ -87,6 +87,7 @@ typedef struct
 
   char  name[8];
   int   size;
+  int   fmt_size;
   const void *data;     // killough 1/31/98: points to predefined lump data
 
   // killough 1/31/98: hash table fields, used for ultra-fast hash table lookup

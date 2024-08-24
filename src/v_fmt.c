@@ -66,7 +66,8 @@ typedef struct
 // from SLADE.
 //
 patch_t *V_LinearToTransPatch(const byte *data, int width, int height,
-                              int color_key, pu_tag tag, void **user)
+                              int *output_size, int color_key, pu_tag tag,
+                              void **user)
 {
     vcolumn_t *columns = NULL;
 
@@ -238,12 +239,17 @@ patch_t *V_LinearToTransPatch(const byte *data, int width, int height,
 
     array_free(columns);
 
+    if (*output_size)
+    {
+        *output_size = size;
+    }
+
     // Done!
     return (patch_t *)output;
 }
 
-patch_t *V_LinearToPatch(byte *data, int width, int height, int tag,
-                         void **user)
+patch_t *V_LinearToPatch(byte *data, int width, int height, int *output_size,
+                         int tag, void **user)
 {
     size_t size = 0;
     size += 4 * sizeof(int16_t);                     // 4 header shorts
@@ -290,6 +296,11 @@ patch_t *V_LinearToPatch(byte *data, int width, int height, int tag,
 
         // Write 255 cap byte
         PUTBYTE(rover, 0xff);
+    }
+
+    if (*output_size)
+    {
+        *output_size = size;
     }
 
     return (patch_t *)output;
@@ -572,7 +583,7 @@ static void TranslatePatch(patch_t *patch, const byte *translate)
 
     for (int i = 0; i < width; i++)
     {
-        size_t offset = patch->columnofs[i];
+        int offset = LONG(patch->columnofs[i]);
         byte *rover = (byte *)patch + offset;
 
         while (*rover != 0xff)
@@ -680,13 +691,14 @@ patch_t *V_CachePatchNum(int lump, pu_tag tag)
     patch_t *patch;
     if (png.color_key == NO_COLOR_KEY)
     {
-        patch = V_LinearToPatch(png.image, png.width, png.height, tag,
-                                &lumpcache[lump]);
+        patch = V_LinearToPatch(png.image, png.width, png.height,
+                                &lumpinfo[lump].fmt_size, tag, &lumpcache[lump]);
     }
     else
     {
         patch = V_LinearToTransPatch(png.image, png.width, png.height,
-                                     png.color_key, tag, &lumpcache[lump]);
+                                     &lumpinfo[lump].fmt_size, png.color_key,
+                                     tag, &lumpcache[lump]);
     }
     patch->leftoffset = leftoffset;
     patch->topoffset = topoffset;
@@ -762,3 +774,13 @@ error:
     return DummyFlat(lump, tag);
 }
 
+int V_LumpSize(int lump)
+{
+    if (lump >= numlumps)
+    {
+        I_Error("V_LumpFmtSize: %i >= numlumps", lump);
+    }
+
+    return lumpinfo[lump].fmt_size ? lumpinfo[lump].fmt_size
+                                   : lumpinfo[lump].size;
+}
