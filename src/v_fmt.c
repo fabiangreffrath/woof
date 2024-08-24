@@ -324,7 +324,6 @@ typedef struct
     int width;
     int height;
     int color_key;
-    boolean need_translation;
 } png_t;
 
 // Set memory usage limits for storing standard and unknown chunks,
@@ -553,8 +552,11 @@ static boolean DecodePNG(png_t *png)
 
         if (need_translation)
         {
-            png->need_translation = true;
             png->translate = translate;
+        }
+        else
+        {
+            free(translate);
         }
 
         png->image = image;
@@ -689,7 +691,7 @@ patch_t *V_CachePatchNum(int lump, pu_tag tag)
     patch->leftoffset = leftoffset;
     patch->topoffset = topoffset;
 
-    if (png.need_translation)
+    if (png.translate)
     {
         TranslatePatch(patch, png.translate);
     }
@@ -737,7 +739,7 @@ void *V_CacheFlatNum(int lump, pu_tag tag)
         goto error;
     }
 
-    if (png.need_translation)
+    if (png.translate)
     {
         for (int i = 0; i < png.image_size; ++i)
         {
