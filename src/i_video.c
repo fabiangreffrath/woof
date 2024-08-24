@@ -1029,26 +1029,28 @@ byte I_GetPaletteIndex(byte *palette, int r, int g, int b)
 {
     byte best;
     int best_diff, diff;
-    int i;
+    int i, dr, dg, db;
 
     best = 0;
     best_diff = INT_MAX;
 
     for (i = 0; i < 256; ++i)
     {
-        diff = (r - palette[3 * i + 0]) * (r - palette[3 * i + 0])
-               + (g - palette[3 * i + 1]) * (g - palette[3 * i + 1])
-               + (b - palette[3 * i + 2]) * (b - palette[3 * i + 2]);
+        dr = r - *palette++;
+        dg = g - *palette++;
+        db = b - *palette++;
+
+        diff = dr * dr + dg * dg + db * db;
 
         if (diff < best_diff)
         {
+            if (!diff)
+            {
+                return i;
+            }
+
             best = i;
             best_diff = diff;
-        }
-
-        if (diff == 0)
-        {
-            break;
         }
     }
 
