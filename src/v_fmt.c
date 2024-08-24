@@ -319,10 +319,12 @@ typedef struct
 {
     spng_ctx *ctx;
     byte *image;
+    byte *translate;
     size_t image_size;
     int width;
     int height;
     int color_key;
+    boolean need_translation;
 } png_t;
 
 // Set memory usage limits for storing standard and unknown chunks,
@@ -372,6 +374,10 @@ static void FreePNG(png_t *png)
     if (png->image)
     {
         free(png->image);
+    }
+    if (png->translate)
+    {
+        free(png->translate);
     }
 }
 
@@ -522,7 +528,7 @@ static boolean DecodePNG(png_t *png)
             return false;
         }
 
-        byte translate[256];
+        byte *translate = malloc(plte.n_entries);
         boolean need_translation = false;
         byte *palette = playpal;
 
@@ -547,14 +553,8 @@ static boolean DecodePNG(png_t *png)
 
         if (need_translation)
         {
-            if (png->color_key != NO_COLOR_KEY)
-            {
-                png->color_key = translate[png->color_key];
-            }
-            for (int i = 0; i < image_size; ++i)
-            {
-                image[i] = translate[image[i]];
-            }
+            png->need_translation = true;
+            png->translate = translate;
         }
 
         png->image = image;
@@ -562,6 +562,31 @@ static boolean DecodePNG(png_t *png)
     }
 
     return true;
+}
+
+static void TranslatePatch(patch_t *patch, const byte *translate)
+{
+    int width = SHORT(patch->width);
+
+    for (int i = 0; i < width; i++)
+    {
+        size_t offset = patch->columnofs[i];
+        byte *rover = (byte *)patch + offset;
+
+        while (*rover != 0xff)
+        {
+            int count = *(rover + 1);
+            byte *src = rover + 3;
+
+            while (count--)
+            {
+                *src = translate[*src];
+                ++src;
+            }
+
+            rover = src + 1;
+        }
+    }
 }
 
 patch_t *V_CachePatchNum(int lump, pu_tag tag)
@@ -664,6 +689,11 @@ patch_t *V_CachePatchNum(int lump, pu_tag tag)
     patch->leftoffset = leftoffset;
     patch->topoffset = topoffset;
 
+    if (png.need_translation)
+    {
+        TranslatePatch(patch, png.translate);
+    }
+
     FreePNG(&png);
 
     return lumpcache[lump];
@@ -705,6 +735,14 @@ void *V_CacheFlatNum(int lump, pu_tag tag)
     if (!DecodePNG(&png))
     {
         goto error;
+    }
+
+    if (png.need_translation)
+    {
+        for (int i = 0; i < png.image_size; ++i)
+        {
+            png.image[i] = png.translate[png.image[i]];
+        }
     }
 
     Z_Free(buffer);
