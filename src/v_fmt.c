@@ -322,21 +322,21 @@ static void GetPalette(uniform_quantizer_t *q)
 {
     byte *roller = q->palette;
 
-    for (int i = 0; i < arrlen(q->red_slots); ++i)
+    for (int rs = 0; rs < arrlen(q->red_slots); ++rs)
     {
-        for (int j = 0; j < arrlen(q->green_slots); ++j)
+        for (int gs = 0; gs < arrlen(q->green_slots); ++gs)
         {
-            for (int k = 0; k < arrlen(q->blue_slots); ++k)
+            for (int bs = 0; bs < arrlen(q->blue_slots); ++bs)
             {
-                *roller++ = GetAverage(&q->red_slots[i]);
-                *roller++ = GetAverage(&q->green_slots[j]);
-                *roller++ = GetAverage(&q->blue_slots[k]);
+                *roller++ = GetAverage(&q->red_slots[rs]);
+                *roller++ = GetAverage(&q->green_slots[gs]);
+                *roller++ = GetAverage(&q->blue_slots[bs]);
             }
         }
     }
 }
 
-static int GetPaletteIndex(uniform_quantizer_t *q, int r, int g, int b)
+static int GetPaletteIndex(int r, int g, int b)
 {
     int red_index = r >> 5;
     int green_index = g >> 5;
@@ -416,8 +416,7 @@ static boolean DecodePNG(png_t *png)
 
     if (ret)
     {
-        I_Printf(VB_ERROR, "DecodeImage: spng_get_ihdr %s\n",
-                 spng_strerror(ret));
+        I_Printf(VB_ERROR, "DecodePNG: spng_get_ihdr %s\n", spng_strerror(ret));
         return false;
     }
 
@@ -444,7 +443,7 @@ static boolean DecodePNG(png_t *png)
 
     if (ret)
     {
-        I_Printf(VB_ERROR, "DecodeImage: spng_decoded_image_size %s",
+        I_Printf(VB_ERROR, "DecodePNG: spng_decoded_image_size %s",
                  spng_strerror(ret));
         return false;
     }
@@ -454,7 +453,7 @@ static boolean DecodePNG(png_t *png)
 
     if (ret)
     {
-        I_Printf(VB_ERROR, "DecodeImage: spng_decode_image %s",
+        I_Printf(VB_ERROR, "DecodePNG: spng_decode_image %s",
                  spng_strerror(ret));
         free(image);
         return false;
@@ -501,7 +500,7 @@ static boolean DecodePNG(png_t *png)
             int g = *roller++;
             int b = *roller++;
 
-            indexed_image[i] = translate[GetPaletteIndex(&q, r, g, b)];
+            indexed_image[i] = translate[GetPaletteIndex(r, g, b)];
         }
 
         free(image);
@@ -580,7 +579,7 @@ static boolean DecodePNG(png_t *png)
                 continue;
             }
 
-            indexed_image[i] = translate[GetPaletteIndex(&q, r, g, b)];
+            indexed_image[i] = translate[GetPaletteIndex(r, g, b)];
         }
 
         free(image);
@@ -595,7 +594,7 @@ static boolean DecodePNG(png_t *png)
 
         if (ret)
         {
-            I_Printf(VB_ERROR, "DecodeImage: spng_get_plte %s\n",
+            I_Printf(VB_ERROR, "DecodePNG: spng_get_plte %s\n",
                      spng_strerror(ret));
             return false;
         }
