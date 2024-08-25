@@ -285,5 +285,5 @@ byte V_Colorize(byte *playpal, int cr, byte source)
     rgb.y *= 255.0;
     rgb.z *= 255.0;
 
-    return I_GetPaletteIndex(playpal, (int)rgb.x, (int)rgb.y, (int)rgb.z);
+    return I_GetNearestColor(playpal, (int)rgb.x, (int)rgb.y, (int)rgb.z);
 }

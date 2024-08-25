@@ -2369,8 +2369,8 @@ void AM_ColorPreset(void)
   if (mapcolor_preset == AM_PRESET_CRISPY)
   {
     byte *playpal = W_CacheLumpName("PLAYPAL", PU_CACHE);
-    mapcolor_secr = I_GetPaletteIndex(playpal, 255, 0, 255);
-    mapcolor_revsecr = I_GetPaletteIndex(playpal, 119, 255, 111);
+    mapcolor_secr = I_GetNearestColor(playpal, 255, 0, 255);
+    mapcolor_revsecr = I_GetNearestColor(playpal, 119, 255, 111);
   }
 }
 
