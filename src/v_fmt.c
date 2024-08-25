@@ -268,6 +268,82 @@ static void *DummyFlat(int lump, pu_tag tag)
     return lumpcache[lump];
 }
 
+// Uniform Color Quantization
+//
+// Each color component axis (red, green and blue) is divided into a few fixed
+// segments (8-8-4 in 256 colors). Each found color is placed into a
+// corresponding segment slot. After all the colors are added, an average
+// color is calculated for each slot. Those are the colors of the palette.
+
+typedef struct
+{
+    int value;
+    int pixel_count;
+} color_slot_t;
+
+static void AddValue(color_slot_t *s, int component)
+{
+    s->value += component;
+    s->pixel_count++;
+}
+
+static int GetAverage(color_slot_t *s)
+{
+    int result = 0;
+
+    if (s->pixel_count > 0)
+    {
+        result = (s->pixel_count == 1) ? s->value : (s->value / s->pixel_count);
+    }
+
+    return result;
+}
+
+typedef struct
+{
+    color_slot_t red_slots[8];
+    color_slot_t green_slots[8];
+    color_slot_t blue_slots[4];
+
+    byte palette[768];
+} uniform_quantizer_t;
+
+static void AddColor(uniform_quantizer_t *q, int r, int g, int b)
+{
+    int red_index = r >> 5;
+    int green_index = g >> 5;
+    int blue_index = b >> 6;
+    AddValue(&q->red_slots[red_index], r);
+    AddValue(&q->green_slots[green_index], g);
+    AddValue(&q->blue_slots[blue_index], b);
+}
+
+static void GetPalette(uniform_quantizer_t *q)
+{
+    byte *roller = q->palette;
+
+    for (int i = 0; i < arrlen(q->red_slots); ++i)
+    {
+        for (int j = 0; j < arrlen(q->green_slots); ++j)
+        {
+            for (int k = 0; k < arrlen(q->blue_slots); ++k)
+            {
+                *roller++ = GetAverage(&q->red_slots[i]);
+                *roller++ = GetAverage(&q->green_slots[j]);
+                *roller++ = GetAverage(&q->blue_slots[k]);
+            }
+        }
+    }
+}
+
+static int GetPaletteIndex(uniform_quantizer_t *q, int r, int g, int b)
+{
+    int red_index = r >> 5;
+    int green_index = g >> 5;
+    int blue_index = b >> 6;
+    return (red_index << 5) + (green_index << 2) + blue_index;
+}
+
 typedef struct
 {
     spng_ctx *ctx;
@@ -391,6 +467,8 @@ static boolean DecodePNG(png_t *png)
         int indexed_size = image_size / 3;
         byte *indexed_image = malloc(indexed_size);
 
+        uniform_quantizer_t q = {0};
+
         byte *roller = image;
 
         for (int i = 0; i < indexed_size; ++i)
@@ -399,7 +477,31 @@ static boolean DecodePNG(png_t *png)
             int g = *roller++;
             int b = *roller++;
 
-            indexed_image[i] = I_GetPaletteIndex(playpal, r, g, b);
+            AddColor(&q, r, g, b);
+        }
+
+        GetPalette(&q);
+
+        byte translate[256];
+        byte *palette = q.palette;
+        for (int i = 0; i < 256; ++i)
+        {
+            int r = *palette++;
+            int g = *palette++;
+            int b = *palette++;
+
+            translate[i] = I_GetNearestColor(playpal, r, g, b);
+        }
+
+        roller = image;
+
+        for (int i = 0; i < indexed_size; ++i)
+        {
+            int r = *roller++;
+            int g = *roller++;
+            int b = *roller++;
+
+            indexed_image[i] = translate[GetPaletteIndex(&q, r, g, b)];
         }
 
         free(image);
@@ -412,6 +514,8 @@ static boolean DecodePNG(png_t *png)
         int indexed_size = image_size / 4;
         byte *indexed_image = malloc(indexed_size);
 
+        uniform_quantizer_t q = {0};
+
         byte *roller = image;
 
         byte used_colors[256] = {0};
@@ -423,22 +527,34 @@ static boolean DecodePNG(png_t *png)
             int g = *roller++;
             int b = *roller++;
             int a = *roller++;
-
             if (a < 255)
             {
                 has_alpha = true;
                 continue;
             }
 
-            byte c = I_GetPaletteIndex(playpal, r, g, b);
-            used_colors[c] = 1;
-            indexed_image[i] = c;
+            AddColor(&q, r, g, b);
         }
+
+        GetPalette(&q);
+
+        byte translate[256];
+        byte *palette = q.palette;
+        for (int i = 0; i < 256; ++i)
+        {
+            int r = *palette++;
+            int g = *palette++;
+            int b = *palette++;
+
+            byte c = I_GetNearestColor(playpal, r, g, b);
+            used_colors[c] = 1;
+            translate[i] = c;
+        }
+
+        int color_key = NO_COLOR_KEY;
 
         if (has_alpha)
         {
-            int color_key = NO_COLOR_KEY;
-
             for (int i = 0; i < 256; ++i)
             {
                 if (used_colors[i] == 0)
@@ -447,20 +563,24 @@ static boolean DecodePNG(png_t *png)
                     break;
                 }
             }
+            png->color_key = color_key;
+        }
 
-            if (color_key != NO_COLOR_KEY)
+        roller = image;
+
+        for (int i = 0; i < indexed_size; ++i)
+        {
+            int r = *roller++;
+            int g = *roller++;
+            int b = *roller++;
+            int a = *roller++;
+            if (a < 255)
             {
-                roller = image;
-                for (int i = 0; i < indexed_size; ++i)
-                {
-                    roller += 3;
-                    if (*roller++ < 255)
-                    {
-                        indexed_image[i] = color_key;
-                    }
-                }
-                png->color_key = color_key;
+                indexed_image[i] = color_key;
+                continue;
             }
+
+            indexed_image[i] = translate[GetPaletteIndex(&q, r, g, b)];
         }
 
         free(image);
@@ -500,7 +620,7 @@ static boolean DecodePNG(png_t *png)
 
             need_translation = true;
             translate[i] =
-                I_GetPaletteIndex(playpal, e->red, e->green, e->blue);
+                I_GetNearestColor(playpal, e->red, e->green, e->blue);
         }
 
         if (need_translation)
