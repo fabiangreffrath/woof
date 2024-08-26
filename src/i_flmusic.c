@@ -32,7 +32,8 @@ typedef long fluid_long_long_t;
 typedef fluid_long_long_t fluid_int_t;
 #endif
 
-#include "d_iwad.h" // [FG] D_DoomExeDir()
+#include "d_iwad.h"
+#include "d_main.h"
 #include "doomtype.h"
 #include "i_glob.h"
 #include "i_printf.h"
@@ -102,7 +103,6 @@ static fluid_long_long_t FL_sftell(void *handle)
 static void ScanDir(const char *dir)
 {
     const char usr_share[] = "/usr/share";
-    char *rel = NULL;
     glob_t *glob;
 
     // [FG] replace global "/usr/share" with user's "~/.local/share"
@@ -131,12 +131,31 @@ static void ScanDir(const char *dir)
         }
     }
 
-    // [FG] relative to the executable directory
     if (dir[0] == '.')
     {
-        rel = M_StringJoin(D_DoomExeDir(), DIR_SEPARATOR_S, dir);
-        dir = rel;
+        char *rel;
+
+        // [FG] relative to the executable directory
+        if (strncmp(dir, D_DoomExeDir(), strlen(D_DoomExeDir())) != 0)
+        {
+            rel = M_StringJoin(D_DoomExeDir(), DIR_SEPARATOR_S, dir);
+            ScanDir(rel);
+            free(rel);
+        }
+
+        // [FG] relative to the config directory
+        if (strcmp(D_DoomExeDir(), D_DoomPrefDir()) != 0 &&
+            strncmp(dir, D_DoomPrefDir(), strlen(D_DoomPrefDir())) != 0)
+        {
+            rel = M_StringJoin(D_DoomPrefDir(), DIR_SEPARATOR_S, dir);
+            ScanDir(rel);
+            free(rel);
+        }
+
+        return;
     }
+
+    I_Printf(VB_DEBUG, "Scanning for soundfonts in %s", dir);
 
     glob = I_StartMultiGlob(dir, GLOB_FLAG_NOCASE | GLOB_FLAG_SORTED, "*.sf2",
                             "*.sf3");
@@ -154,11 +173,6 @@ static void ScanDir(const char *dir)
     }
 
     I_EndGlob(glob);
-
-    if (rel)
-    {
-        free(rel);
-    }
 }
 
 static void GetSoundFonts(void)
@@ -462,6 +476,7 @@ static void I_FL_BindVariables(void)
 #if defined(_WIN32)
     "soundfonts",
 #else
+    "./soundfonts:",
     // RedHat/Fedora/Arch
     "/usr/share/soundfonts:"
     // Debian/Ubuntu/OpenSUSE
