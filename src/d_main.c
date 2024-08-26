@@ -704,7 +704,7 @@ typedef struct {
 } basedir_t;
 
 static basedir_t basedirs[] = {
-#if !defined(WIN32)
+#if !defined(_WIN32)
     {"../share/" PROJECT_SHORTNAME, D_DoomExeDir, false},
 #endif
     {NULL, D_DoomPrefDir, true},
