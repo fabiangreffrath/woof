@@ -129,8 +129,7 @@ static void ScanDir(const char *dir)
                 free(local_dir);
             }
         }
-
-        if (dir[0] == '.')
+        else if (dir[0] == '.')
         {
             // [FG] relative to the executable directory
             char *rel = M_StringJoin(D_DoomExeDir(), DIR_SEPARATOR_S, dir);
@@ -144,6 +143,9 @@ static void ScanDir(const char *dir)
                 ScanDir(rel);
                 free(rel);
             }
+
+            recursion = false;
+            return;
         }
 
         recursion = false;
