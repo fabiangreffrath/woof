@@ -134,7 +134,7 @@ static void ScanDir(const char *dir, boolean recursion)
             free(rel);
 
             // [FG] relative to the config directory (if different)
-            if (strcmp(D_DoomExeDir(), D_DoomPrefDir()) != 0)
+            if (dir[1] != '.' && strcmp(D_DoomExeDir(), D_DoomPrefDir()) != 0)
             {
                 rel = M_StringJoin(D_DoomPrefDir(), DIR_SEPARATOR_S, dir);
                 ScanDir(rel, true);
