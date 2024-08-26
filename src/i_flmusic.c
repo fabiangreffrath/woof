@@ -100,12 +100,15 @@ static fluid_long_long_t FL_sftell(void *handle)
     return mem_ftell((MEMFILE *)handle);
 }
 
-static void ScanDir(const char *dir, boolean recursive)
+static void ScanDir(const char *dir)
 {
+    static boolean recursion = false;
     glob_t *glob;
 
-    if (!recursive)
+    if (recursion == false)
     {
+        recursion = true;
+
         // [FG] replace global "/usr/share" with user's "~/.local/share"
         const char usr_share[] = "/usr/share";
         if (strncmp(dir, usr_share, strlen(usr_share)) == 0)
@@ -122,7 +125,7 @@ static void ScanDir(const char *dir, boolean recursive)
                 char *local_share = M_StringJoin(home_dir, "/.local/share");
                 char *local_dir = M_StringReplace(dir, usr_share, local_share);
                 free(local_share);
-                ScanDir(local_dir, true);
+                ScanDir(local_dir);
                 free(local_dir);
             }
         }
@@ -131,17 +134,19 @@ static void ScanDir(const char *dir, boolean recursive)
         {
             // [FG] relative to the executable directory
             char *rel = M_StringJoin(D_DoomExeDir(), DIR_SEPARATOR_S, dir);
-            ScanDir(rel, true);
+            ScanDir(rel);
             free(rel);
 
             // [FG] relative to the config directory
             if (strcmp(D_DoomExeDir(), D_DoomPrefDir()) != 0)
             {
                 rel = M_StringJoin(D_DoomPrefDir(), DIR_SEPARATOR_S, dir);
-                ScanDir(rel, true);
+                ScanDir(rel);
                 free(rel);
             }
         }
+
+        recursion = false;
     }
 
     I_Printf(VB_DEBUG, "Scanning for soundfonts in %s", dir);
@@ -187,7 +192,7 @@ static void GetSoundFonts(void)
             // as another soundfont dir
             *p = '\0';
 
-            ScanDir(left, false);
+            ScanDir(left);
 
             left = p + 1;
         }
@@ -197,7 +202,7 @@ static void GetSoundFonts(void)
         }
     }
 
-    ScanDir(left, false);
+    ScanDir(left);
 
     free(dup_path);
 }
