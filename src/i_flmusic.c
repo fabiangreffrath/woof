@@ -476,7 +476,7 @@ static void I_FL_BindVariables(void)
 #if defined(_WIN32)
     "soundfonts",
 #else
-    "./soundfonts:",
+    "./soundfonts:"
     // RedHat/Fedora/Arch
     "/usr/share/soundfonts:"
     // Debian/Ubuntu/OpenSUSE
