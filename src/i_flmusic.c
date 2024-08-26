@@ -100,59 +100,50 @@ static fluid_long_long_t FL_sftell(void *handle)
     return mem_ftell((MEMFILE *)handle);
 }
 
-static void ScanDir(const char *dir)
+static void ScanDir(const char *dir, boolean recursive)
 {
-    const char usr_share[] = "/usr/share";
     glob_t *glob;
 
-    // [FG] replace global "/usr/share" with user's "~/.local/share"
-    if (strncmp(dir, usr_share, strlen(usr_share)) == 0)
+    if (!recursive)
     {
-        char *home_dir = M_getenv("XDG_DATA_HOME");
-
-        if (home_dir == NULL)
+        // [FG] replace global "/usr/share" with user's "~/.local/share"
+        const char usr_share[] = "/usr/share";
+        if (strncmp(dir, usr_share, strlen(usr_share)) == 0)
         {
-            home_dir = M_getenv("HOME");
-        }
+            char *home_dir = M_getenv("XDG_DATA_HOME");
 
-        if (home_dir)
-        {
-            char *local_share = M_StringJoin(home_dir, "/.local/share");
-            char *local_dir = M_StringReplace(dir, usr_share, local_share);
-
-            // [FG] do not trigger this code path again
-            if (strncmp(local_dir, usr_share, strlen(usr_share)) != 0)
+            if (home_dir == NULL)
             {
-                ScanDir(local_dir);
+                home_dir = M_getenv("HOME");
             }
 
-            free(local_dir);
-            free(local_share);
+            if (home_dir)
+            {
+                char *local_share = M_StringJoin(home_dir, "/.local/share");
+                char *local_dir = M_StringReplace(dir, usr_share, local_share);
+
+                ScanDir(local_dir, true);
+
+                free(local_dir);
+                free(local_share);
+            }
         }
-    }
 
-    if (dir[0] == '.')
-    {
-        char *rel;
-
-        // [FG] relative to the executable directory
-        if (strncmp(dir, D_DoomExeDir(), strlen(D_DoomExeDir())) != 0)
+        if (dir[0] == '.')
         {
-            rel = M_StringJoin(D_DoomExeDir(), DIR_SEPARATOR_S, dir);
-            ScanDir(rel);
+            // [FG] relative to the executable directory
+            char *rel = M_StringJoin(D_DoomExeDir(), DIR_SEPARATOR_S, dir);
+            ScanDir(rel, true);
             free(rel);
-        }
 
-        // [FG] relative to the config directory
-        if (strcmp(D_DoomExeDir(), D_DoomPrefDir()) != 0 &&
-            strncmp(dir, D_DoomPrefDir(), strlen(D_DoomPrefDir())) != 0)
-        {
-            rel = M_StringJoin(D_DoomPrefDir(), DIR_SEPARATOR_S, dir);
-            ScanDir(rel);
-            free(rel);
+            // [FG] relative to the config directory
+            if (strcmp(D_DoomExeDir(), D_DoomPrefDir()) != 0)
+            {
+                rel = M_StringJoin(D_DoomPrefDir(), DIR_SEPARATOR_S, dir);
+                ScanDir(rel, true);
+                free(rel);
+            }
         }
-
-        return;
     }
 
     I_Printf(VB_DEBUG, "Scanning for soundfonts in %s", dir);
@@ -198,7 +189,7 @@ static void GetSoundFonts(void)
             // as another soundfont dir
             *p = '\0';
 
-            ScanDir(left);
+            ScanDir(left, false);
 
             left = p + 1;
         }
@@ -208,7 +199,7 @@ static void GetSoundFonts(void)
         }
     }
 
-    ScanDir(left);
+    ScanDir(left, false);
 
     free(dup_path);
 }
