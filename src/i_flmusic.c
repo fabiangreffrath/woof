@@ -121,11 +121,9 @@ static void ScanDir(const char *dir, boolean recursive)
             {
                 char *local_share = M_StringJoin(home_dir, "/.local/share");
                 char *local_dir = M_StringReplace(dir, usr_share, local_share);
-
-                ScanDir(local_dir, true);
-
-                free(local_dir);
                 free(local_share);
+                ScanDir(local_dir, true);
+                free(local_dir);
             }
         }
 
