@@ -293,7 +293,7 @@ static int GetAverage(color_slot_t *s)
 
     if (s->pixel_count > 0)
     {
-        result = (s->pixel_count == 1) ? s->value : (s->value / s->pixel_count);
+        result = s->value / s->pixel_count;
     }
 
     return result;
