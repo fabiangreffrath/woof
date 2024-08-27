@@ -82,7 +82,7 @@ extern boolean correct_aspect_ratio;
 extern boolean screenvisible;
 
 extern int gamma2;
-byte I_GetPaletteIndex(byte *palette, int r, int g, int b);
+byte I_GetNearestColor(byte *palette, int r, int g, int b);
 
 boolean I_WritePNGfile(char *filename); // [FG] screenshots in PNG format
 

@@ -111,7 +111,7 @@ static byte R_SkyBlendColor(int tex)
   b = colors[width/3].b;
   Z_Free(colors);
 
-  return I_GetPaletteIndex(pal, r, g, b);
+  return I_GetNearestColor(pal, r, g, b);
 }
 
 typedef struct skycolor_s

@@ -370,7 +370,7 @@ static void ST_DrawSolidBackground(int st_x)
     b /= 2 * depth * (v1 - v0);
 
     // [FG] tune down to half saturation (for empiric reasons)
-    col = I_GetPaletteIndex(pal, r/2, g/2, b/2);
+    col = I_GetNearestColor(pal, r/2, g/2, b/2);
 
     V_FillRect(0, v0, video.unscaledw, v1 - v0, col);
   }
