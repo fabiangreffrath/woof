@@ -665,15 +665,11 @@ void I_StartFrame(void)
 
 static void UpdateRender(void)
 {
-    void *pixels;
-    int pitch;
-
-    SDL_LockTexture(texture, &blit_rect, &pixels, &pitch);
-
-    argbbuffer->pixels = pixels;
-    argbbuffer->pitch = pitch;
+    SDL_LockTexture(texture, &blit_rect, &argbbuffer->pixels,
+        &argbbuffer->pitch);
 
     SDL_LowerBlit(screenbuffer, &blit_rect, argbbuffer, &blit_rect);
+
     SDL_UnlockTexture(texture);
 
     if (letterboxed)
