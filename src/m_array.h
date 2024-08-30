@@ -18,6 +18,9 @@
 // array_push(), array_grow() and array_free() may change the buffer pointer,
 // and any previously-taken pointers should be considered invalidated.
 
+#ifndef M_ARRAY_H
+#define M_ARRAY_H
+
 #include <stddef.h>
 #include <stdlib.h>
 
@@ -25,6 +28,18 @@
 
 #ifndef M_ARRAY_INIT_CAPACITY
 #  define M_ARRAY_INIT_CAPACITY 8
+#endif
+
+#ifndef M_ARRAY_MALLOC
+#  define M_ARRAY_MALLOC(size) malloc((size))
+#endif
+
+#ifndef M_ARRAY_REALLOC
+#  define M_ARRAY_REALLOC(ptr, size) I_Realloc((ptr), (size))
+#endif
+
+#ifndef M_ARRAY_FREE
+#  define M_ARRAY_FREE(ptr) free((ptr))
 #endif
 
 typedef struct
@@ -73,15 +88,18 @@ inline static void array_clear(const void *v)
         (v)[array_ptr((v))->size++] = (e);                                  \
     } while (0)
 
-#define array_free(v)             \
-    do                            \
-    {                             \
-        if (v)                    \
-        {                         \
-            free(array_ptr((v))); \
-            (v) = NULL;           \
-        }                         \
+#define array_free(v)                     \
+    do                                    \
+    {                                     \
+        if (v)                            \
+        {                                 \
+            M_ARRAY_FREE(array_ptr((v))); \
+            (v) = NULL;                   \
+        }                                 \
     } while (0)
+
+#define array_foreach(ptr, v) \
+    for (ptr = (v); ptr != &(v)[array_size((v))]; ++ptr)
 
 inline static void *M_ArrayGrow(void *v, size_t esize, int n)
 {
@@ -90,15 +108,18 @@ inline static void *M_ArrayGrow(void *v, size_t esize, int n)
     if (v)
     {
         p = array_ptr(v);
-        p = I_Realloc(p, sizeof(m_array_buffer_t) + (p->capacity + n) * esize);
+        p = M_ARRAY_REALLOC(p, sizeof(m_array_buffer_t)
+                                   + (p->capacity + n) * esize);
         p->capacity += n;
     }
     else
     {
-        p = malloc(sizeof(m_array_buffer_t) + n * esize);
+        p = M_ARRAY_MALLOC(sizeof(m_array_buffer_t) + n * esize);
         p->capacity = n;
         p->size = 0;
     }
 
     return p->buffer;
 }
+
+#endif // M_ARRAY_H
