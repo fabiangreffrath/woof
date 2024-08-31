@@ -1227,7 +1227,7 @@ static void WI_initNoState(void)
 {
   state = NoState;
   acceleratestage = 0;
-  cnt = 10;
+  cnt = animation ? SHOWNEXTLOCDELAY * TICRATE : 10;
 }
 
 
@@ -1241,7 +1241,7 @@ static void WI_updateNoState(void)
 {
   WI_updateAnimatedBack();
 
-  if (!--cnt)
+  if (!--cnt || (animation && acceleratestage))
     {
       WI_End();
       G_WorldDone();
