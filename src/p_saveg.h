@@ -56,7 +56,8 @@ typedef enum saveg_compat_e
   saveg_mbf,
   saveg_woof510,
   saveg_woof600,
-  saveg_current, // saveg_woof1300
+  saveg_woof1300,
+  saveg_current, // saveg_woof1500
 } saveg_compat_t;
 
 extern saveg_compat_t saveg_compat;

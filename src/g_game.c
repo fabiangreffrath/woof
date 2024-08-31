@@ -1822,6 +1822,13 @@ frommapinfo:
     StatCopy(&wminfo);
   }
 
+  for (int i = 0; i < MAXPLAYERS; ++i)
+  {
+     array_push(players[i].visitedlevels, gamemap);
+     players[i].num_visitedlevels = array_size(players[i].visitedlevels);
+  }
+  wminfo.visitedlevels = players[consoleplayer].visitedlevels;
+
   WI_Start (&wminfo);
 }
 
@@ -2133,7 +2140,7 @@ static void G_DoPlayDemo(void)
 // killough 2/22/98: version id string format for savegames
 #define VERSIONID "MBF %d"
 
-#define CURRENT_SAVE_VERSION "Woof 13.0.0"
+#define CURRENT_SAVE_VERSION "Woof 15.0.0"
 
 static char *savename = NULL;
 
@@ -2432,6 +2439,7 @@ static void G_DoLoadGame(void)
 
   CheckSaveVersion(vcheck, saveg_mbf);
   CheckSaveVersion("Woof 6.0.0", saveg_woof600);
+  CheckSaveVersion("Woof 13.0.0", saveg_woof1300);
   CheckSaveVersion(CURRENT_SAVE_VERSION, saveg_current);
 
   // killough 2/22/98: Friendly savegame version difference message

@@ -16,11 +16,20 @@
 #include <stdlib.h>
 #include "doomtype.h"
 #include "i_printf.h"
-#include "m_array.h"
-#include "m_misc.h"
 #include "w_wad.h"
+#include "z_zone.h"
+
+#define M_ARRAY_MALLOC(size) Z_Malloc(size, PU_LEVEL, NULL)
+#define M_ARRAY_REALLOC(ptr, size) Z_Realloc(ptr, size, PU_LEVEL, NULL)
+#define M_ARRAY_FREE(ptr) Z_Free(ptr)
+#include "m_array.h"
 
 #include "cjson/cJSON.h"
+
+static char *WI_StringDuplicate(const char *orig)
+{
+    return strcpy(Z_Malloc(strlen(orig) + 1, PU_LEVEL, NULL), orig);
+}
 
 static boolean ParseCondition(cJSON *json, interlevelcond_t *out)
 {
@@ -48,7 +57,7 @@ static boolean ParseFrame(cJSON *json, interlevelframe_t *out)
     {
         return false;
     }
-    out->image_lump = M_StringDuplicate(image_lump->valuestring);
+    out->image_lump = WI_StringDuplicate(image_lump->valuestring);
 
     cJSON *type = cJSON_GetObjectItemCaseSensitive(json, "type");
     if (!cJSON_IsNumber(type))
@@ -62,14 +71,14 @@ static boolean ParseFrame(cJSON *json, interlevelframe_t *out)
     {
         return false;
     }
-    out->duration = duration->valueint;
+    out->duration = duration->valuedouble;
 
     cJSON *maxduration = cJSON_GetObjectItemCaseSensitive(json, "maxduration");
     if (!cJSON_IsNumber(maxduration))
     {
         return false;
     }
-    out->maxduration = maxduration->valueint;
+    out->maxduration = maxduration->valuedouble;
 
     return true;
 }
@@ -149,7 +158,7 @@ static void ParseLevelLayer(cJSON *json, interlevellayer_t *out)
 
 interlevel_t *WI_ParseInterlevel(const char *lumpname)
 {
-    interlevel_t *out = calloc(1, sizeof(*out));
+    interlevel_t *out = Z_Calloc(1, sizeof(*out), PU_LEVEL, NULL);
 
     cJSON *json = cJSON_Parse(W_CacheLumpName(lumpname, PU_CACHE));
     if (json == NULL)
@@ -157,7 +166,8 @@ interlevel_t *WI_ParseInterlevel(const char *lumpname)
         const char *error_ptr = cJSON_GetErrorPtr();
         if (error_ptr != NULL)
         {
-            I_Printf(VB_ERROR, "Error before: %s\n", error_ptr);
+            I_Printf(VB_ERROR, "WI_ParseInterlevel: Error before: %s\n",
+                     error_ptr);
         }
         free(out);
         cJSON_Delete(json);
@@ -173,7 +183,8 @@ interlevel_t *WI_ParseInterlevel(const char *lumpname)
     }
 
     cJSON *music = cJSON_GetObjectItemCaseSensitive(data, "music");
-    cJSON *backgroundimage = cJSON_GetObjectItemCaseSensitive(data, "backgroundimage");
+    cJSON *backgroundimage =
+        cJSON_GetObjectItemCaseSensitive(data, "backgroundimage");
 
     if (!cJSON_IsString(music) || !cJSON_IsString(backgroundimage))
     {
@@ -182,47 +193,25 @@ interlevel_t *WI_ParseInterlevel(const char *lumpname)
         return NULL;
     }
 
-    out->music_lump = M_StringDuplicate(music->valuestring);
-    out->background_lump = M_StringDuplicate(backgroundimage->valuestring);
+    out->music_lump = WI_StringDuplicate(music->valuestring);
+    out->background_lump = WI_StringDuplicate(backgroundimage->valuestring);
 
     cJSON *js_layers = cJSON_GetObjectItemCaseSensitive(data, "layers");
     cJSON *js_layer = NULL;
 
     if (!cJSON_IsNull(js_layers))
     {
-        interlevellayer_t *anim_layers = NULL;
+        interlevellayer_t *layers = NULL;
 
         cJSON_ArrayForEach(js_layer, js_layers)
         {
-            interlevellayer_t anim_layer = {0};
-            ParseLevelLayer(js_layer, &anim_layer);
-            array_push(anim_layers, anim_layer);
+            interlevellayer_t layer = {0};
+            ParseLevelLayer(js_layer, &layer);
+            array_push(layers, layer);
         }
-        out->anim_layers = anim_layers;
+        out->layers = layers;
     }
 
     cJSON_Delete(json);
     return out;
-}
-
-void WI_FreeInterLevel(interlevel_t *in)
-{
-    free(in->music_lump);
-    free(in->background_lump);
-
-    for (int i = 0; i < array_size(in->anim_layers); ++i)
-    {
-        for (int j = 0; j < array_size(in->anim_layers[i].anims); ++j)
-        {
-            for (int k = 0; k < array_size(in->anim_layers[i].anims[j].frames); ++k)
-            {
-                free(in->anim_layers[i].anims[j].frames[k].image_lump);
-            }
-            array_free(in->anim_layers[i].anims[j].frames);
-            array_free(in->anim_layers[i].anims[j].conditions);
-        }
-        array_free(in->anim_layers[i].anims);
-        array_free(in->anim_layers[i].conditions);
-    }
-    array_free(in->anim_layers);
 }

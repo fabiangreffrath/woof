@@ -28,6 +28,7 @@
 #include "doomstat.h"
 #include "i_system.h"
 #include "info.h"
+#include "m_array.h"
 #include "m_random.h"
 #include "p_enemy.h"
 #include "p_maputl.h"
@@ -973,6 +974,21 @@ static void saveg_read_player_t(player_t *str)
         str->slope = 0;
         str->maxkilldiscount = 0;
     }
+
+    if (saveg_compat > saveg_woof1300)
+    {
+        str->num_visitedlevels = saveg_read32();
+        array_clear(str->visitedlevels);
+        for (int i = 0; i < str->num_visitedlevels; ++i)
+        {
+            array_push(str->visitedlevels, saveg_read32());
+        }
+    }
+    else
+    {
+        str->num_visitedlevels = 0;
+        array_free(str->visitedlevels);
+    }
 }
 
 static void saveg_write_player_t(player_t *str)
@@ -1125,6 +1141,15 @@ static void saveg_write_player_t(player_t *str)
 
     // [Woof!]: int maxkilldiscount;
     saveg_write32(str->maxkilldiscount);
+
+    // [Woof!]: int num_visitedlevels;
+    saveg_write32(str->num_visitedlevels);
+
+    // [Woof!]: int *visitedlevels;
+    for (int i = 0; i < str->num_visitedlevels; ++i)
+    {
+        saveg_write32(str->visitedlevels[i]);
+    }
 }
 
 

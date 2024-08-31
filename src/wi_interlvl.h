@@ -14,11 +14,10 @@
 #ifndef WI_INTERLVL
 #define WI_INTERLVL
 
-#include "doomtype.h"
-
 typedef enum
 {
     AnimCondition_None,
+
     AnimCondition_MapNumGreater, // Checks: Current/next map number.
                                  // Parameter: map number
 
@@ -34,18 +33,12 @@ typedef enum
     AnimCondition_SecretVisited, // Checks: Any secret map visited.
                                  // Parameter: none
 
-    AnimCondition_IsExiting, // Checks: Victory screen type
-                             // Parameter: none
-
-    AnimCondition_IsEntering, // Checks: Victory screen type
-                              // Parameter: none
-
-    AnimCondition_Max,
-
-    // Here be dragons. Non-standard conditions.
     AnimCondition_FitsInFrame, // Checks: Patch dimensions.
                                // Parameter: group number, allowing only one
                                // condition of this type to succeed per group
+
+    AnimCondition_IsEntering, // Checks: Victory screen type
+                              // Parameter: none
 } animcondition_t;
 
 typedef enum
@@ -54,15 +47,7 @@ typedef enum
     Frame_Infinite                  = 0x0001,
     Frame_FixedDuration             = 0x0002,
     Frame_RandomDuration            = 0x0004,
-
     Frame_RandomStart               = 0x1000,
-
-    Frame_Valid                     = 0x100F,
-
-    // Non-standard flags
-    Frame_AdjustForWidescreen       = 0x8000000,
-
-    Frame_Background                = Frame_Infinite | Frame_AdjustForWidescreen
 } frametype_t;
 
 typedef struct interlevelcond_s
@@ -74,19 +59,18 @@ typedef struct interlevelcond_s
 typedef struct interlevelframe_s
 {
     char *image_lump;
+    int image_lumpnum;
     frametype_t type;
-    int duration;
-    int maxduration;
-    int lumpname_animindex;
-    int lumpname_animframe;
+    double duration;
+    double maxduration;
 } interlevelframe_t;
 
 typedef struct interlevelanim_s
 {
     interlevelframe_t *frames;
+    interlevelcond_t *conditions;
     int x_pos;
     int y_pos;
-    interlevelcond_t *conditions;
 } interlevelanim_t;
 
 typedef struct interlevellayer_s
@@ -99,11 +83,9 @@ typedef struct interlevel_s
 {
     char *music_lump;
     char *background_lump;
-    interlevellayer_t *anim_layers;
+    interlevellayer_t *layers;
 } interlevel_t;
 
 interlevel_t *WI_ParseInterlevel(const char *lumpname);
-
-void WI_FreeInterLevel(interlevel_t *in);
 
 #endif

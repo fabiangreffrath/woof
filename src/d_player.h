@@ -215,7 +215,8 @@ typedef struct player_s
   // Local angle for blending per-frame and per-tic turning.
   angle_t ticangle, oldticangle;
 
-  boolean *visitedlevels;
+  int num_visitedlevels;
+  int *visitedlevels;
 
 } player_t;
 
@@ -235,7 +236,6 @@ typedef struct
   int         stime; 
   int         frags[4];
   int         score;  // current score on entry, modified on return
-  boolean     *visited;
 } wbplayerstruct_t;
 
 typedef struct wbstartstruct_s
@@ -268,6 +268,8 @@ typedef struct wbstartstruct_s
 
   // [FG] total time for all completed levels
   int totaltimes;
+
+  int *visitedlevels;
 
 } wbstartstruct_t;
 
