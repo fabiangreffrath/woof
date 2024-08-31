@@ -201,18 +201,15 @@ interlevel_t *WI_ParseInterlevel(const char *lumpname)
     cJSON *js_layers = cJSON_GetObjectItemCaseSensitive(data, "layers");
     cJSON *js_layer = NULL;
 
-    if (!cJSON_IsNull(js_layers))
-    {
-        interlevellayer_t *layers = NULL;
+    interlevellayer_t *layers = NULL;
 
-        cJSON_ArrayForEach(js_layer, js_layers)
-        {
-            interlevellayer_t layer = {0};
-            ParseLevelLayer(js_layer, &layer);
-            array_push(layers, layer);
-        }
-        out->layers = layers;
+    cJSON_ArrayForEach(js_layer, js_layers)
+    {
+        interlevellayer_t layer = {0};
+        ParseLevelLayer(js_layer, &layer);
+        array_push(layers, layer);
     }
+    out->layers = layers;
 
     cJSON_Delete(json);
     return out;

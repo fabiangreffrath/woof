@@ -423,7 +423,7 @@ static boolean enteringcondition;
 
 static boolean CheckConditions(interlevelcond_t *conditions)
 {
-    boolean conditionsmet = array_size(conditions) > 0;
+    boolean conditionsmet = true;
 
     int map = enteringcondition ? (wbs->next + 1) : (wbs->last + 1);
 
@@ -652,6 +652,17 @@ static boolean SetupAnimation(void)
     }
 
     return true;
+}
+
+static boolean NextLocAnimation(void)
+{
+    if (animation && animation->entering_states
+        && !(demorecording || demoplayback))
+    {
+        return true;
+    }
+
+    return false;
 }
 
 // ====================================================================
@@ -1240,15 +1251,7 @@ static void WI_initNoState(void)
 {
   state = NoState;
   acceleratestage = 0;
-
-  if (animation && wbs->next != 0 && !(demorecording || demoplayback))
-  {
-      cnt = SHOWNEXTLOCDELAY * TICRATE;
-  }
-  else
-  {
-      cnt = 10;
-  }
+  cnt = 10;
 }
 
 
@@ -1262,7 +1265,7 @@ static void WI_updateNoState(void)
 {
   WI_updateAnimatedBack();
 
-  if (!--cnt || (animation && acceleratestage))
+  if (!--cnt)
     {
       WI_End();
       G_WorldDone();
@@ -1554,6 +1557,8 @@ static void WI_updateDeathmatchStats(void)
           {   
             S_StartSound(0, sfx_slop);
 
+            if (NextLocAnimation())
+              WI_initShowNextLoc();
             if ( gamemode == commercial)
               WI_initNoState();
             else
@@ -1857,6 +1862,9 @@ static void WI_updateNetgameStats(void)
               if (acceleratestage)
                 {
                   S_StartSound(0, sfx_sgcock);
+
+                  if (NextLocAnimation())
+                    WI_initShowNextLoc();
                   if ( gamemode == commercial )
                     WI_initNoState();
                   else
@@ -2075,7 +2083,9 @@ static void WI_updateStats(void)
                 {
                   S_StartSound(0, sfx_sgcock);
 
-                  if (gamemode == commercial)
+                  if (NextLocAnimation())
+                    WI_initShowNextLoc();
+                  else if (gamemode == commercial)
                     WI_initNoState();
                   else
                     WI_initShowNextLoc();

@@ -331,10 +331,10 @@ struct cheat_s cheat[] = {
   {"speed",      NULL,                not_dm,
    {cheat_speed} },
 
-  {"nextmap",    NULL,                not_net | not_demo,
+  {"nextmap",    NULL,                always,
    {cheat_normalexit} },
 
-  {"nextsecret", NULL,                not_net | not_demo,
+  {"nextsecret", NULL,                always,
    {cheat_secretexit} },
 
   {NULL}                 // end-of-list marker
