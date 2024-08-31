@@ -409,7 +409,7 @@ typedef struct
     wi_animationstate_t *exiting_states;
     wi_animationstate_t *entering_states;
 
-    wi_animationstate_t *current_states;
+    wi_animationstate_t *states;
     int background_lumpnum;
 } wi_animation_t;
 
@@ -426,6 +426,11 @@ static boolean CheckConditions(interlevelcond_t *conditions)
     boolean conditionsmet = array_size(conditions) > 0;
 
     int map = enteringcondition ? (wbs->next + 1) : (wbs->last + 1);
+
+    if (gamemode == commercial)
+    {
+        map -= (MN_GetEpisodeMap(map) - 1);
+    }
 
     interlevelcond_t *cond;
     array_foreach(cond, conditions)
@@ -444,7 +449,14 @@ static boolean CheckConditions(interlevelcond_t *conditions)
                 conditionsmet = false;
                 for (int i = 0; i < array_size(wbs->visitedlevels); ++i)
                 {
-                    if (wbs->visitedlevels[i] == cond->param)
+                    int map = wbs->visitedlevels[i];
+
+                    if (gamemode == commercial)
+                    {
+                        map -= (MN_GetEpisodeMap(map) - 1);
+                    }
+
+                    if (map == cond->param)
                     {
                         conditionsmet = true;
                         break;
@@ -546,22 +558,22 @@ static boolean UpdateAnimaion(boolean entering)
         return false;
     }
 
-    animation->current_states = NULL;
+    animation->states = NULL;
 
     if (!entering)
     {
-        animation->current_states = animation->exiting_states;
+        animation->states = animation->exiting_states;
         animation->background_lumpnum =
             W_CheckNumForName(animation->interlevel_exiting->background_lump);
     }
     else
     {
-        animation->current_states = animation->entering_states;
+        animation->states = animation->entering_states;
         animation->background_lumpnum =
             W_CheckNumForName(animation->interlevel_entering->background_lump);
     }
 
-    UpdateAnimationStates(animation->current_states);
+    UpdateAnimationStates(animation->states);
 
     return true;
 }
@@ -577,7 +589,7 @@ static boolean DrawAnimation(void)
         V_CachePatchNum(animation->background_lumpnum, PU_CACHE));
 
     wi_animationstate_t *state;
-    array_foreach(state, animation->current_states)
+    array_foreach(state, animation->states)
     {
         interlevelframe_t *frame = &state->frames[state->frame_index];
         patch_t *patch = V_CachePatchNum(frame->image_lumpnum, PU_CACHE);
@@ -606,6 +618,7 @@ static wi_animationstate_t *SetupAnimationStates(interlevellayer_t *layers)
             {
                 continue;
             }
+
             wi_animationstate_t state = {0};
             state.x_pos = anim->x_pos;
             state.y_pos = anim->y_pos;

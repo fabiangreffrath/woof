@@ -517,6 +517,32 @@ void M_ClearEpisodes(void)
     NewDef.prevMenu = &MainDef;
 }
 
+int MN_GetEpisodeMap(int map)
+{
+    int best = INT_MAX;
+    int best_index = 0;
+
+    for (int i = 0; i < arrlen(EpiMenuMap); ++i)
+    {
+        if (EpiMenuMap[i] > map)
+        {
+            continue;
+        }
+
+        if (EpiMenuMap[i] > 0 && EpiMenuMap[i] <= map)
+        {
+            int diff = map - EpiMenuMap[i];
+            if (diff < best)
+            {
+                best = diff;
+                best_index = i;
+            }
+        }
+    }
+
+    return EpiMenuMap[best_index];
+}
+
 void M_AddEpisode(const char *map, const char *gfx, const char *txt,
                   const char *alpha)
 {
