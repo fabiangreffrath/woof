@@ -109,6 +109,8 @@ static void cheat_autoaim();      // killough 7/19/98
 static void cheat_tst();
 static void cheat_showfps(); // [FG] FPS counter widget
 static void cheat_speed();
+static void cheat_normalexit();
+static void cheat_secretexit();
 
 //-----------------------------------------------------------------------------
 //
@@ -329,6 +331,12 @@ struct cheat_s cheat[] = {
   {"speed",      NULL,                not_dm,
    {cheat_speed} },
 
+  {"nextmap",    NULL,                not_net | not_demo,
+   {cheat_normalexit} },
+
+  {"nextsecret", NULL,                not_net | not_demo,
+   {cheat_secretexit} },
+
   {NULL}                 // end-of-list marker
 };
 
@@ -343,6 +351,16 @@ static void cheat_showfps()
 static void cheat_speed()
 {
   speedometer = (speedometer + 1) % 4;
+}
+
+static void cheat_normalexit()
+{
+  G_ExitLevel();
+}
+
+static void cheat_secretexit()
+{
+  G_SecretExitLevel();
 }
 
 // killough 7/19/98: Autoaiming optional in beta emulation mode
