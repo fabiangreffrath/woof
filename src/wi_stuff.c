@@ -1227,7 +1227,15 @@ static void WI_initNoState(void)
 {
   state = NoState;
   acceleratestage = 0;
-  cnt = animation ? SHOWNEXTLOCDELAY * TICRATE : 10;
+
+  if (animation && wbs->next != 0 && !(demorecording || demorecording))
+  {
+      cnt = SHOWNEXTLOCDELAY * TICRATE;
+  }
+  else
+  {
+      cnt = 10;
+  }
 }
 
 
