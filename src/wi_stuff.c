@@ -2507,15 +2507,7 @@ void WI_Start(wbstartstruct_t* wbstartstruct)
 
   exitpic = NULL;
   enterpic = NULL;
-
-  if (wbs->lastmapinfo || wbs->nextmapinfo)
-  {
-      animation = Z_Calloc(1, sizeof(*animation), PU_LEVEL, NULL);
-  }
-  else
-  {
-      animation = NULL;
-  }
+  animation = NULL;
 
   if (wbs->lastmapinfo)
   {
@@ -2525,6 +2517,10 @@ void WI_Start(wbstartstruct_t* wbstartstruct)
       }
       if (wbs->lastmapinfo->exitanim[0])
       {
+          if (!animation)
+          {
+              animation = Z_Calloc(1, sizeof(*animation), PU_LEVEL, NULL);
+          }
           animation->interlevel_exiting =
               WI_ParseInterlevel(wbs->lastmapinfo->exitanim);
       }
@@ -2538,6 +2534,10 @@ void WI_Start(wbstartstruct_t* wbstartstruct)
       }
       if (wbs->lastmapinfo->enteranim[0])
       {
+          if (!animation)
+          {
+              animation = Z_Calloc(1, sizeof(*animation), PU_LEVEL, NULL);
+          }
           animation->interlevel_entering =
               WI_ParseInterlevel(wbs->lastmapinfo->enteranim);
       }
