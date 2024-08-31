@@ -33,9 +33,8 @@ typedef enum
     AnimCondition_SecretVisited, // Checks: Any secret map visited.
                                  // Parameter: none
 
-    AnimCondition_FitsInFrame, // Checks: Patch dimensions.
-                               // Parameter: group number, allowing only one
-                               // condition of this type to succeed per group
+    AnimCondition_Tally, // Checks: Victory screen type
+                         // Parameter: none
 
     AnimCondition_IsEntering, // Checks: Victory screen type
                               // Parameter: none

@@ -472,8 +472,8 @@ static boolean CheckConditions(interlevelcond_t *conditions)
                 conditionsmet = !!wbs->didsecret;
                 break;
 
-            case AnimCondition_FitsInFrame:
-                // TODO tally screen
+            case AnimCondition_Tally:
+                conditionsmet = !enteringcondition;
                 break;
 
             case AnimCondition_IsEntering:
