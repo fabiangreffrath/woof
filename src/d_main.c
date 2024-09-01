@@ -1167,7 +1167,6 @@ void FindResponseFile (void)
 // [FG] compose a proper command line from loose file paths passed as arguments
 // to allow for loading WADs and DEHACKED patches by drag-and-drop
 
-#if defined(_WIN32)
 enum
 {
     FILETYPE_UNKNOWN = 0x0,
@@ -1346,8 +1345,13 @@ static void M_AddLooseFiles(void)
         if (strlen(arg) < 3 ||
             arg[0] == '-' ||
             arg[0] == '@' ||
+#if defined (_WIN32)
             ((!isalpha(arg[0]) || arg[1] != ':' || arg[2] != '\\') &&
-            (arg[0] != '\\' || arg[1] != '\\')))
+            (arg[0] != '\\' || arg[1] != '\\'))
+#else
+            (arg[0] != '/' && arg[0] != '.')
+#endif
+          )
         {
             free(arguments);
             return;
@@ -1407,7 +1411,6 @@ static void M_AddLooseFiles(void)
 
     myargv = newargv;
 }
-#endif
 
 // killough 10/98: moved code to separate function
 
@@ -1789,11 +1792,9 @@ void D_DoomMain(void)
 
   I_UpdatePriority(true);
 
-#if defined(_WIN32)
   // [FG] compose a proper command line from loose file paths passed as
   // arguments to allow for loading WADs and DEHACKED patches by drag-and-drop
   M_AddLooseFiles();
-#endif
 
   //!
   //
