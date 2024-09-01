@@ -506,7 +506,12 @@ static void UpdateAnimationStates(wi_animationstate_t *states)
     {
         interlevelframe_t *frame = &state->frames[state->frame_index];
 
-        frame->image_lumpnum = W_CheckNumForName(frame->image_lump);
+        int lumpnum = W_CheckNumForName(frame->image_lump);
+        if (lumpnum < 0)
+        {
+            lumpnum = (W_CheckNumForName)(frame->image_lump, ns_sprites);
+        }
+        frame->image_lumpnum = lumpnum;
 
         if (frame->type & Frame_Infinite)
         {
