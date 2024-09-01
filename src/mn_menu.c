@@ -517,6 +517,8 @@ void M_ClearEpisodes(void)
     NewDef.prevMenu = &MainDef;
 }
 
+// Find the nearest map with the definition of an episode.
+
 int MN_GetEpisodeMap(int map)
 {
     int best = INT_MAX;
