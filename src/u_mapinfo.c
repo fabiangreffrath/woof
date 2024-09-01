@@ -23,7 +23,9 @@
 
 #include "doomdef.h"
 #include "doomstat.h"
+#include "doomtype.h"
 #include "i_system.h"
+#include "m_array.h"
 #include "m_misc.h"
 #include "u_mapinfo.h"
 #include "u_scanner.h"
@@ -39,6 +41,14 @@ int G_ValidateMapName(const char *mapname, int *pEpi, int *pMap);
 umapinfo_t U_mapinfo;
 
 umapinfo_t default_mapinfo;
+
+typedef struct
+{
+    int episode;
+    int map;
+} level_t;
+
+static level_t *secretlevels;
 
 static const char *const ActorNames[] =
 {
@@ -497,11 +507,13 @@ static int ParseStandardProperty(u_scanner_t *s, mapentry_t *mape)
     else if (!strcasecmp(pname, "nextsecret"))
     {
         status = ParseLumpName(s, mape->nextsecret);
-        if (!G_ValidateMapName(mape->nextsecret, NULL, NULL))
+        level_t level = {0};
+        if (!G_ValidateMapName(mape->nextsecret, &level.episode, &level.map))
         {
             U_Error(s, "Invalid map name %s", mape->nextsecret);
             status = 0;
         }
+        array_push(secretlevels, level);
     }
     else if (!strcasecmp(pname, "levelpic"))
     {
@@ -862,4 +874,17 @@ void U_ParseMapInfo(int lumpnum)
 boolean U_CheckField(char *str)
 {
     return str && str[0] && strcmp(str, "-");
+}
+
+boolean U_IsSecretMap(int episode, int map)
+{
+    level_t *level;
+    array_foreach(level, secretlevels)
+    {
+        if (level->episode == episode && level->map == map)
+        {
+            return true;
+        }
+    }
+    return false;
 }

@@ -386,9 +386,9 @@ static int    num_lnames;
 
 static const char *exitpic, *enterpic;
 
-#define M_ARRAY_MALLOC(size) Z_Malloc(size, PU_LEVEL, NULL)
-#define M_ARRAY_REALLOC(ptr, size) Z_Realloc(ptr, size, PU_LEVEL, NULL)
-#define M_ARRAY_FREE(ptr) Z_Free(ptr)
+#define M_ARRAY_MALLOC(size) Z_Malloc((size), PU_LEVEL, NULL)
+#define M_ARRAY_REALLOC(ptr, size) Z_Realloc((ptr), (size), PU_LEVEL, NULL)
+#define M_ARRAY_FREE(ptr) Z_Free((ptr))
 #include "m_array.h"
 
 typedef struct
@@ -397,7 +397,7 @@ typedef struct
     int x_pos;
     int y_pos;
     int frame_index;
-    boolean frame_next;
+    boolean frame_start;
     int duration_left;
 } wi_animationstate_t;
 
@@ -419,13 +419,13 @@ static wi_animation_t *animation;
 // CODE
 //
 
-static boolean enteringcondition;
-
-static boolean CheckConditions(interlevelcond_t *conditions)
+static boolean CheckConditions(interlevelcond_t *conditions,
+                               boolean enteringcondition)
 {
     boolean conditionsmet = true;
 
     int map = enteringcondition ? (wbs->next + 1) : (wbs->last + 1);
+    int episode = enteringcondition ? (wbs->nextep + 1) : (wbs->epsd + 1);
 
     if (gamemode == commercial)
     {
@@ -449,14 +449,14 @@ static boolean CheckConditions(interlevelcond_t *conditions)
                 conditionsmet = false;
                 for (int i = 0; i < array_size(wbs->visitedlevels); ++i)
                 {
-                    int map = wbs->visitedlevels[i];
+                    int visitedmap = wbs->visitedlevels[i];
 
                     if (gamemode == commercial)
                     {
-                        map -= (MN_GetEpisodeMap(map) - 1);
+                        visitedmap -= (MN_GetEpisodeMap(visitedmap) - 1);
                     }
 
-                    if (map == cond->param)
+                    if (visitedmap == cond->param)
                     {
                         conditionsmet = true;
                         break;
@@ -465,11 +465,11 @@ static boolean CheckConditions(interlevelcond_t *conditions)
                 break;
 
             case AnimCondition_MapNotSecret:
-                // TODO
+                conditionsmet = !U_IsSecretMap(episode, map);
                 break;
 
             case AnimCondition_SecretVisited:
-                conditionsmet = !!wbs->didsecret;
+                conditionsmet = wbs->didsecret;
                 break;
 
             case AnimCondition_Tally:
@@ -487,56 +487,53 @@ static boolean CheckConditions(interlevelcond_t *conditions)
     return conditionsmet;
 }
 
-static int GetFrameDuration(interlevelframe_t *frame)
-{
-    int tics;
-
-    switch (frame->type)
-    {
-        case Frame_Infinite:
-            tics = -1;
-            break;
-        case Frame_FixedDuration:
-            tics = frame->duration * TICRATE;
-            break;
-        case Frame_RandomDuration:
-            {
-                int maxtics = frame->maxduration * TICRATE;
-                int rand = M_Random() % maxtics;
-                tics = MIN(rand, maxtics);
-            }
-            break;
-        default:
-            tics = -1;
-            break;
-    }
-
-    return tics;
-}
-
 static void UpdateAnimationStates(wi_animationstate_t *states)
 {
     wi_animationstate_t *state;
     array_foreach(state, states)
     {
-        if (state->duration_left < 0)
+        interlevelframe_t *frame = &state->frames[state->frame_index];
+
+        frame->image_lumpnum = W_CheckNumForName(frame->image_lump);
+
+        if (frame->type & Frame_Infinite)
         {
             continue;
         }
 
         if (state->duration_left == 0)
         {
-            interlevelframe_t *frame = &state->frames[state->frame_index];
-
-            state->duration_left = GetFrameDuration(frame);
-            frame->image_lumpnum = W_CheckNumForName(frame->image_lump);
-
-            if (state->duration_left < 0)
+            int tics = 1;
+            switch (frame->type)
             {
-                continue;
+                case Frame_RandomStart:
+                    if (state->frame_start)
+                    {
+                        int maxtics = frame->duration * TICRATE;
+                        tics = M_Random() % maxtics;
+                        break;
+                    }
+                    // fall through
+                case Frame_FixedDuration:
+                    tics = frame->duration * TICRATE;
+                    break;
+
+                case Frame_RandomDuration:
+                    {
+                        int maxtics = frame->maxduration * TICRATE;
+                        int mintics = frame->duration * TICRATE;
+                        tics = M_Random() % maxtics;
+                        tics = BETWEEN(mintics, maxtics, tics);
+                    }
+                    break;
+
+                default:
+                    break;
             }
 
-            if (state->frame_next)
+            state->duration_left = MAX(tics, 1);
+
+            if (!state->frame_start)
             {
                 state->frame_index++;
                 if (state->frame_index == array_size(state->frames))
@@ -547,11 +544,11 @@ static void UpdateAnimationStates(wi_animationstate_t *states)
         }
 
         state->duration_left--;
-        state->frame_next = true;
+        state->frame_start = false;
     }
 }
 
-static boolean UpdateAnimaion(boolean entering)
+static boolean UpdateAnimaion(boolean enteringcondition)
 {
     if (!animation)
     {
@@ -560,13 +557,13 @@ static boolean UpdateAnimaion(boolean entering)
 
     animation->states = NULL;
 
-    if (!entering)
+    if (!enteringcondition && animation->interlevel_exiting)
     {
         animation->states = animation->exiting_states;
         animation->background_lumpnum =
             W_CheckNumForName(animation->interlevel_exiting->background_lump);
     }
-    else
+    else if (animation->interlevel_entering)
     {
         animation->states = animation->entering_states;
         animation->background_lumpnum =
@@ -599,14 +596,15 @@ static boolean DrawAnimation(void)
     return true;
 }
 
-static wi_animationstate_t *SetupAnimationStates(interlevellayer_t *layers)
+static wi_animationstate_t *SetupAnimationStates(interlevellayer_t *layers,
+                                                 boolean enteringcondition)
 {
     wi_animationstate_t *states = NULL;
 
     interlevellayer_t *layer;
     array_foreach(layer, layers)
     {
-        if (!CheckConditions(layer->conditions))
+        if (!CheckConditions(layer->conditions, enteringcondition))
         {
             continue;
         }
@@ -614,7 +612,7 @@ static wi_animationstate_t *SetupAnimationStates(interlevellayer_t *layers)
         interlevelanim_t *anim;
         array_foreach(anim, layer->anims)
         {
-            if (!CheckConditions(anim->conditions))
+            if (!CheckConditions(anim->conditions, enteringcondition))
             {
                 continue;
             }
@@ -623,6 +621,7 @@ static wi_animationstate_t *SetupAnimationStates(interlevellayer_t *layers)
             state.x_pos = anim->x_pos;
             state.y_pos = anim->y_pos;
             state.frames = anim->frames;
+            state.frame_start = true;
             array_push(states, state);
         }
     }
@@ -639,16 +638,14 @@ static boolean SetupAnimation(void)
 
     if (animation->interlevel_exiting)
     {
-        enteringcondition = false;
         animation->exiting_states =
-            SetupAnimationStates(animation->interlevel_exiting->layers);
+            SetupAnimationStates(animation->interlevel_exiting->layers, false);
     }
 
     if (animation->interlevel_entering)
     {
-        enteringcondition = true;
         animation->entering_states =
-            SetupAnimationStates(animation->interlevel_entering->layers);
+            SetupAnimationStates(animation->interlevel_entering->layers, true);
     }
 
     return true;

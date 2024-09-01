@@ -21,9 +21,9 @@
 #include "w_wad.h"
 #include "z_zone.h"
 
-#define M_ARRAY_MALLOC(size) Z_Malloc(size, PU_LEVEL, NULL)
-#define M_ARRAY_REALLOC(ptr, size) Z_Realloc(ptr, size, PU_LEVEL, NULL)
-#define M_ARRAY_FREE(ptr) Z_Free(ptr)
+#define M_ARRAY_MALLOC(size) Z_Malloc((size), PU_LEVEL, NULL)
+#define M_ARRAY_REALLOC(ptr, size) Z_Realloc((ptr), (size), PU_LEVEL, NULL)
+#define M_ARRAY_FREE(ptr) Z_Free((ptr))
 #include "m_array.h"
 
 #include "cjson/cJSON.h"
@@ -168,8 +168,10 @@ interlevel_t *WI_ParseInterlevel(const char *lumpname)
         const char *error_ptr = cJSON_GetErrorPtr();
         if (error_ptr != NULL)
         {
+            char error_buf[32] = {0};
+            memcpy(error_buf, error_ptr, sizeof(error_buf) - 1);
             I_Printf(VB_ERROR, "WI_ParseInterlevel: Error before: %s\n",
-                     error_ptr);
+                     error_buf);
         }
         free(out);
         cJSON_Delete(json);
@@ -200,7 +202,6 @@ interlevel_t *WI_ParseInterlevel(const char *lumpname)
 
     cJSON *js_layers = cJSON_GetObjectItemCaseSensitive(data, "layers");
     cJSON *js_layer = NULL;
-
     interlevellayer_t *layers = NULL;
 
     cJSON_ArrayForEach(js_layer, js_layers)

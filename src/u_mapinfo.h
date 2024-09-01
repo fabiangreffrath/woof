@@ -76,4 +76,6 @@ void U_ParseMapDefInfo(int lumpnum);
 
 void U_ParseMapInfo(int lumpnum);
 
+boolean U_IsSecretMap(int episode, int map);
+
 #endif

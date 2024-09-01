@@ -236,6 +236,7 @@ typedef struct
   int         stime; 
   int         frags[4];
   int         score;  // current score on entry, modified on return
+
 } wbplayerstruct_t;
 
 typedef struct wbstartstruct_s
