@@ -536,10 +536,12 @@ static void UpdateAnimationStates(wi_animationstate_t *states)
                     break;
 
                 case Frame_RandomDuration:
-                    int maxtics = frame->maxduration * TICRATE;
-                    int mintics = frame->duration * TICRATE;
-                    tics = M_Random() % maxtics;
-                    tics = BETWEEN(mintics, maxtics, tics);
+                    {
+                        int maxtics = frame->maxduration * TICRATE;
+                        int mintics = frame->duration * TICRATE;
+                        tics = M_Random() % maxtics;
+                        tics = BETWEEN(mintics, maxtics, tics);
+                    }
                     break;
 
                 default:
