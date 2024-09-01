@@ -1,8 +1,10 @@
 [Desktop Entry]
 Name=Woof!
-Exec=woof
+Exec=woof %F
 Icon=woof
+TryExec=woof
 Type=Application
 Comment=Continuation of the Boom/MBF bloodline of Doom source ports
 Categories=Game;ActionGame;
+MimeType=application/x-doom-wad;
 Keywords=first;person;shooter;vanilla;doom;boom;mbf;
