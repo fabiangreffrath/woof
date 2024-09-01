@@ -427,9 +427,14 @@ static boolean CheckConditions(interlevelcond_t *conditions,
     int map = enteringcondition ? (wbs->next + 1) : (wbs->last + 1);
     int episode = enteringcondition ? (wbs->nextep + 1) : (wbs->epsd + 1);
 
+    int episodemap;
     if (gamemode == commercial)
     {
-        map -= (MN_GetEpisodeMap(map) - 1);
+        episodemap = map - (MN_GetEpisodeMap(map) - 1);
+    }
+    else
+    {
+        episodemap = map;
     }
 
     interlevelcond_t *cond;
@@ -438,18 +443,25 @@ static boolean CheckConditions(interlevelcond_t *conditions,
         switch (cond->condition)
         {
             case AnimCondition_MapNumGreater:
-                conditionsmet = (map > cond->param);
+                conditionsmet = (episodemap > cond->param);
                 break;
 
             case AnimCondition_MapNumEqual:
-                conditionsmet = (map == cond->param);
+                conditionsmet = (episodemap == cond->param);
                 break;
 
             case AnimCondition_MapVisited:
                 conditionsmet = false;
-                for (int i = 0; i < array_size(wbs->visitedlevels); ++i)
+
+                level_t *level;
+                array_foreach(level, wbs->visitedlevels)
                 {
-                    int visitedmap = wbs->visitedlevels[i];
+                    if (episode != level->episode)
+                    {
+                        continue;
+                    }
+
+                    int visitedmap = level->map;
 
                     if (gamemode == commercial)
                     {
@@ -519,12 +531,10 @@ static void UpdateAnimationStates(wi_animationstate_t *states)
                     break;
 
                 case Frame_RandomDuration:
-                    {
-                        int maxtics = frame->maxduration * TICRATE;
-                        int mintics = frame->duration * TICRATE;
-                        tics = M_Random() % maxtics;
-                        tics = BETWEEN(mintics, maxtics, tics);
-                    }
+                    int maxtics = frame->maxduration * TICRATE;
+                    int mintics = frame->duration * TICRATE;
+                    tics = M_Random() % maxtics;
+                    tics = BETWEEN(mintics, maxtics, tics);
                     break;
 
                 default:

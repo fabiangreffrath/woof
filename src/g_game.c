@@ -1824,8 +1824,9 @@ frommapinfo:
 
   for (int i = 0; i < MAXPLAYERS; ++i)
   {
-     array_push(players[i].visitedlevels, gamemap);
-     players[i].num_visitedlevels = array_size(players[i].visitedlevels);
+      level_t level = {gameepisode, gamemap};
+      array_push(players[i].visitedlevels, level);
+      players[i].num_visitedlevels = array_size(players[i].visitedlevels);
   }
   wminfo.visitedlevels = players[consoleplayer].visitedlevels;
 

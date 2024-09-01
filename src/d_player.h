@@ -53,6 +53,11 @@ typedef enum
 
 } playerstate_t;
 
+typedef struct
+{
+    int episode;
+    int map;
+} level_t;
 
 //
 // Player internal flags, for cheats and debug.
@@ -216,7 +221,7 @@ typedef struct player_s
   angle_t ticangle, oldticangle;
 
   int num_visitedlevels;
-  int *visitedlevels;
+  level_t *visitedlevels;
 
 } player_t;
 
@@ -270,7 +275,7 @@ typedef struct wbstartstruct_s
   // [FG] total time for all completed levels
   int totaltimes;
 
-  int *visitedlevels;
+  level_t *visitedlevels;
 
 } wbstartstruct_t;
 

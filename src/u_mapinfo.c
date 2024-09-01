@@ -42,12 +42,6 @@ umapinfo_t U_mapinfo;
 
 umapinfo_t default_mapinfo;
 
-typedef struct
-{
-    int episode;
-    int map;
-} level_t;
-
 static level_t *secretlevels;
 
 static const char *const ActorNames[] =

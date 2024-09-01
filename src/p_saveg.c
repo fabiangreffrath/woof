@@ -977,17 +977,23 @@ static void saveg_read_player_t(player_t *str)
 
     if (saveg_compat > saveg_woof1300)
     {
+        // [Woof!]: int num_visitedlevels;
         str->num_visitedlevels = saveg_read32();
+
+        // [Woof!]: level_t *visitedlevels;
         array_clear(str->visitedlevels);
         for (int i = 0; i < str->num_visitedlevels; ++i)
         {
-            array_push(str->visitedlevels, saveg_read32());
+            level_t level = {0};
+            level.episode = saveg_read32();
+            level.map = saveg_read32();
+            array_push(str->visitedlevels, level);
         }
     }
     else
     {
         str->num_visitedlevels = 0;
-        array_free(str->visitedlevels);
+        array_clear(str->visitedlevels);
     }
 }
 
@@ -1145,10 +1151,12 @@ static void saveg_write_player_t(player_t *str)
     // [Woof!]: int num_visitedlevels;
     saveg_write32(str->num_visitedlevels);
 
-    // [Woof!]: int *visitedlevels;
-    for (int i = 0; i < str->num_visitedlevels; ++i)
+    // [Woof!]: level_t *visitedlevels;
+    level_t *level;
+    array_foreach(level, str->visitedlevels)
     {
-        saveg_write32(str->visitedlevels[i]);
+        saveg_write32(level->episode);
+        saveg_write32(level->map);
     }
 }
 
