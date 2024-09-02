@@ -1245,7 +1245,7 @@ static void M_QuitResponse(int ch)
     {
         return;
     }
-    if (D_CheckEndDoom() &&           // play quit sound only if showing ENDOOM
+    if (D_AllowQuitSound() &&
         (!netgame || demoplayback) && // killough 12/98
         !nosfxparm)                   // avoid delay if no sound card
     {

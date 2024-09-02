@@ -43,7 +43,7 @@ extern boolean clfastparm; // checkparm of -fast
 void D_SetMaxHealth(void);
 void D_SetBloodColor(void);
 
-boolean D_CheckEndDoom(void);
+boolean D_AllowQuitSound(void);
 
 // Called by IO functions when input is detected.
 void D_PostEvent(struct event_s *ev);
