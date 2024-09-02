@@ -563,7 +563,7 @@ static void UpdateAnimationStates(wi_animationstate_t *states)
     }
 }
 
-static boolean UpdateAnimaion(boolean enteringcondition)
+static boolean UpdateAnimation(boolean enteringcondition)
 {
     if (!animation)
     {
@@ -934,7 +934,7 @@ static void WI_updateAnimatedBack(void)
   int   i;
   anim_t* a;
 
-  if (UpdateAnimaion(state != StatCount))
+  if (UpdateAnimation(state != StatCount))
   {
       return;
   }
@@ -2554,14 +2554,14 @@ void WI_Start(wbstartstruct_t* wbstartstruct)
       {
           enterpic = wbs->nextmapinfo->enterpic;
       }
-      if (wbs->lastmapinfo->enteranim[0])
+      if (wbs->nextmapinfo->enteranim[0])
       {
           if (!animation)
           {
               animation = Z_Calloc(1, sizeof(*animation), PU_LEVEL, NULL);
           }
           animation->interlevel_entering =
-              WI_ParseInterlevel(wbs->lastmapinfo->enteranim);
+              WI_ParseInterlevel(wbs->nextmapinfo->enteranim);
       }
   }
 
