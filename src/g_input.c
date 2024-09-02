@@ -146,10 +146,11 @@ void G_UpdateAngleFunctions(void)
     }
 }
 
-int G_CarryPitch(double pitch)
+short G_CarryPitch(double pitch)
 {
-    return (localview.pitch =
-                CarryError(pitch, &prevcarry.pitch, &carry.pitch));
+    const short result = CarryError(pitch, &prevcarry.pitch, &carry.pitch);
+    localview.pitch = result << FRACBITS;
+    return result;
 }
 
 int G_CarrySide(double side)
@@ -204,7 +205,7 @@ void G_UpdateGamepadVariables(void)
     if (I_StandardLayout())
     {
         joy_scale_angle = ANALOG_MULT * direction[joy_invert_turn];
-        joy_scale_pitch = ANALOG_MULT * direction[joy_invert_look] * FRACUNIT;
+        joy_scale_pitch = ANALOG_MULT * direction[joy_invert_look];
 
         if (correct_aspect_ratio)
         {
@@ -312,7 +313,7 @@ void G_UpdateMouseVariables(void)
     if (mouse_sensitivity_y_look)
     {
         mouse_sens_pitch = ((double)(mouse_sensitivity_y_look + 5) * 8 / 10
-                            * direction[mouse_y_invert] * FRACUNIT);
+                            * direction[mouse_y_invert]);
 
         if (correct_aspect_ratio)
         {
