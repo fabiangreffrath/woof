@@ -1,7 +1,4 @@
-include(CheckLibraryExists)
-include(CheckIncludeFile)
-include(CheckSymbolExists)
-include(CheckCSourceCompiles)
+cmake_minimum_required(VERSION 3.18)
 
 # Adds the cmake directory to the CMake include path.
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
@@ -9,8 +6,6 @@ list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 # X_VCPKG_APPLOCAL_DEPS_INSTALL automatically installs dependencies.
 set(CMAKE_POLICY_DEFAULT_CMP0077 NEW)
 set(X_VCPKG_APPLOCAL_DEPS_INSTALL ON)
-
-cmake_minimum_required(VERSION 3.9)
 
 project("Woof"
     VERSION 14.5.0
@@ -51,6 +46,11 @@ endif()
 # Toggle-able defines added at compile-time.
 option(WOOF_RANGECHECK "Enable bounds-checking of performance-sensitive functions" ON)
 option(WOOF_STRICT "Prefer original MBF code paths over demo compatiblity with PrBoom+" OFF)
+
+include(CheckLibraryExists)
+include(CheckIncludeFile)
+include(CheckSymbolExists)
+include(CheckCSourceCompiles)
 
 # Compiler environment requirements.
 check_library_exists(m pow "" HAVE_LIBM)
@@ -127,6 +127,33 @@ if(libxmp_FOUND)
     endif()
 endif()
 
+include(WoofSettings)
+include(FetchContent)
+
+FetchContent_Declare(miniz
+    URL https://github.com/richgel999/miniz/releases/download/3.0.2/miniz-3.0.2.zip
+    URL_HASH SHA256=ada38db0b703a56d3dd6d57bf84a9c5d664921d870d8fea4db153979fb5332c5
+    DOWNLOAD_EXTRACT_TIMESTAMP TRUE)
+
+FetchContent_MakeAvailable(miniz)
+
+add_library(miniz STATIC ${miniz_SOURCE_DIR}/miniz.c)
+target_compile_definitions(miniz PRIVATE MINIZ_NO_TIME)
+target_include_directories(miniz INTERFACE ${miniz_SOURCE_DIR})
+
+FetchContent_Declare(spng
+    URL https://github.com/randy408/libspng/archive/v0.7.4.zip
+    URL_HASH SHA256=7a8906b527976f2d926254558351e92a8b229d32f03300489c69f3188d31c86e
+    SOURCE_SUBDIR spng
+    DOWNLOAD_EXTRACT_TIMESTAMP TRUE)
+
+FetchContent_MakeAvailable(spng)
+
+add_library(spng STATIC ${spng_SOURCE_DIR}/spng/spng.c)
+target_compile_definitions(spng PRIVATE SPNG_USE_MINIZ INTERFACE SPNG_STATIC)
+target_include_directories(spng INTERFACE ${spng_SOURCE_DIR}/spng)
+target_link_libraries(spng miniz)
+
 # Python 3
 find_package(Python3 COMPONENTS Interpreter)
 
@@ -201,8 +228,6 @@ include(CPack)
 add_subdirectory(data)
 add_subdirectory(opl)
 add_subdirectory(textscreen)
-add_subdirectory(miniz)
-add_subdirectory(spng)
 add_subdirectory(src)
 add_subdirectory(setup)
 add_subdirectory(docs)
