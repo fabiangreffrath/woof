@@ -1711,14 +1711,18 @@ void D_SetBloodColor(void)
 // killough 2/22/98: Add support for ENDBOOM, which is PC-specific
 // killough 8/1/98: change back to ENDOOM
 
-static int show_endoom;
+typedef enum {
+  EXIT_SEQUENCE_OFF,          // Skip sound, skip ENDOOM.
+  EXIT_SEQUENCE_SOUND_ONLY,   // Play sound, skip ENDOOM.
+  EXIT_SEQUENCE_PWAD_ENDOOM,  // Play sound, show ENDOOM for PWADs only.
+  EXIT_SEQUENCE_ON            // Play sound, show ENDOOM.
+} exit_sequence_t;
 
-// Don't show ENDOOM if we have it disabled.
-boolean D_CheckEndDoom(void)
+static exit_sequence_t exit_sequence;
+
+boolean D_AllowQuitSound(void)
 {
-  int lumpnum = W_CheckNumForName("ENDOOM");
-
-  return (show_endoom == 1 || (show_endoom == 2 && !W_IsIWADLump(lumpnum)));
+  return (exit_sequence != EXIT_SEQUENCE_OFF);
 }
 
 static void D_ShowEndDoom(void)
@@ -1729,9 +1733,16 @@ static void D_ShowEndDoom(void)
   I_Endoom(endoom);
 }
 
+static boolean AllowEndDoom(void)
+{
+  return (exit_sequence == EXIT_SEQUENCE_ON
+          || (exit_sequence == EXIT_SEQUENCE_PWAD_ENDOOM
+              && !W_IsIWADLump(W_CheckNumForName("ENDOOM"))));
+}
+
 static void D_EndDoom(void)
 {
-  if (D_CheckEndDoom())
+  if (AllowEndDoom())
   {
     D_ShowEndDoom();
   }
@@ -2684,8 +2695,8 @@ void D_DoomMain(void)
 
 void D_BindMiscVariables(void)
 {
-  BIND_NUM_GENERAL(show_endoom, 0, 0, 2,
-    "Show ENDOOM screen (0 = Off; 1 = On; 2 = PWADs only)");
+  BIND_NUM_GENERAL(exit_sequence, 0, 0, EXIT_SEQUENCE_ON,
+    "Exit sequence (0 = Off; 1 = Sound Only; 2 = PWAD ENDOOM; 3 = On)");
   BIND_BOOL_GENERAL(demobar, false, "Show demo progress bar");
   BIND_NUM_GENERAL(screen_melt, wipe_Melt, wipe_None, wipe_Fizzle,
     "Screen wipe effect (0 = None; 1 = Melt; 2 = Crossfade; 3 = Fizzlefade)");
