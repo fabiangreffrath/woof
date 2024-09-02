@@ -224,7 +224,12 @@ void I_UpdateGyroCalibrationState(void)
     switch (cal.state)
     {
         case GYRO_CALIBRATION_INACTIVE:
-            if (!motion.calibrating)
+            cal.state = GYRO_CALIBRATION_STARTING;
+            cal.start_time = I_GetTimeMS();
+            break;
+
+        case GYRO_CALIBRATION_STARTING:
+            if (I_GetTimeMS() - cal.start_time > 1500)
             {
                 motion.calibrating = true;
                 ClearGyroCalibration();
@@ -234,7 +239,7 @@ void I_UpdateGyroCalibrationState(void)
             break;
 
         case GYRO_CALIBRATION_ACTIVE:
-            if (I_GetTimeMS() - cal.start_time > 1000)
+            if (I_GetTimeMS() - cal.start_time > 3000)
             {
                 motion.calibrating = false;
                 PostProcessCalibration();
@@ -244,7 +249,7 @@ void I_UpdateGyroCalibrationState(void)
             break;
 
         case GYRO_CALIBRATION_COMPLETE:
-            if (I_GetTimeMS() - cal.finish_time > 1000)
+            if (I_GetTimeMS() - cal.finish_time > 1500)
             {
                 cal.state = GYRO_CALIBRATION_INACTIVE;
             }
