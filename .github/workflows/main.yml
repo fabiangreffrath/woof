@@ -162,8 +162,7 @@ jobs:
             --std=c99 \
             --suppress="memleak:${{ github.workspace }}/src/u_scanner.c" \
             --project="${{ github.workspace }}/build/compile_commands.json" \
-            -i"${{ github.workspace }}/miniz" \
-            -i"${{ github.workspace }}/spng" \
+            -i"${{ github.workspace }}/build" \
             -D__GNUC__
 
       - name: Run Clang-Tidy
@@ -184,4 +183,4 @@ jobs:
             ,-clang-analyzer-security*
             ,-clang-analyzer-valist*
           database: 'build'
-          ignore: 'miniz|spng|win32|toolsrc|src/i_pcsound.c'
+          ignore: 'win32|toolsrc|src/i_pcsound.c'
