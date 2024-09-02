@@ -38,6 +38,7 @@ extern float gyro_axes[NUM_GYRO_AXES];  // Calculated gyro values.
 typedef enum gyro_calibration_state_e
 {
     GYRO_CALIBRATION_INACTIVE,
+    GYRO_CALIBRATION_STARTING,
     GYRO_CALIBRATION_ACTIVE,
     GYRO_CALIBRATION_COMPLETE,
 } gyro_calibration_state_t;

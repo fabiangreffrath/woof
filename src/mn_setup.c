@@ -1091,8 +1091,13 @@ static void DrawGyroCalibration(void)
         case GYRO_CALIBRATION_INACTIVE:
             break;
 
-        case GYRO_CALIBRATION_ACTIVE:
+        case GYRO_CALIBRATION_STARTING:
             block_input = true;
+            DrawNotification("Starting calibration...", CR_GRAY);
+            I_UpdateGyroCalibrationState();
+            break;
+
+        case GYRO_CALIBRATION_ACTIVE:
             DrawNotification("Calibrating, please wait...", CR_GRAY);
             I_UpdateGyroCalibrationState();
             break;
