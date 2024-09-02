@@ -424,17 +424,23 @@ static boolean CheckConditions(interlevelcond_t *conditions,
 {
     boolean conditionsmet = true;
 
-    int map = enteringcondition ? (wbs->next + 1) : (wbs->last + 1);
-    int episode = enteringcondition ? (wbs->nextep + 1) : (wbs->epsd + 1);
+    int map_number, map, episode;
 
-    int episodemap;
-    if (gamemode == commercial)
     {
-        episodemap = map - (MN_GetEpisodeMap(map) - 1);
-    }
-    else
-    {
-        episodemap = map;
+        mapentry_t *mape;
+        if (enteringcondition)
+        {
+            mape = wbs->nextmapinfo;
+            map = wbs->next + 1;
+            episode = wbs->nextep + 1;
+        }
+        else
+        {
+            mape = wbs->lastmapinfo;
+            map = wbs->last + 1;
+            episode = wbs->epsd + 1;
+        }
+        map_number = mape->map_number ? mape->map_number : mape->all_number;
     }
 
     interlevelcond_t *cond;
@@ -443,11 +449,11 @@ static boolean CheckConditions(interlevelcond_t *conditions,
         switch (cond->condition)
         {
             case AnimCondition_MapNumGreater:
-                conditionsmet = (episodemap > cond->param);
+                conditionsmet = (map_number > cond->param);
                 break;
 
             case AnimCondition_MapNumEqual:
-                conditionsmet = (episodemap == cond->param);
+                conditionsmet = (map_number == cond->param);
                 break;
 
             case AnimCondition_MapVisited:
@@ -456,19 +462,11 @@ static boolean CheckConditions(interlevelcond_t *conditions,
                 level_t *level;
                 array_foreach(level, wbs->visitedlevels)
                 {
-                    if (episode != level->episode)
-                    {
-                        continue;
-                    }
+                    mapentry_t *mape =
+                        G_LookupMapinfo(level->episode, level->map);
 
-                    int visitedmap = level->map;
-
-                    if (gamemode == commercial)
-                    {
-                        visitedmap -= (MN_GetEpisodeMap(visitedmap) - 1);
-                    }
-
-                    if (visitedmap == cond->param)
+                    if ((mape->map_number && mape->map_number == cond->param)
+                        || mape->all_number == cond->param)
                     {
                         conditionsmet = true;
                         break;

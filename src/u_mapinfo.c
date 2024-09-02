@@ -478,6 +478,7 @@ static int ParseStandardProperty(u_scanner_t *s, mapentry_t *mape)
             }
 
             M_AddEpisode(mape->mapname, lumpname, alttext, key);
+            mape->flags |= MapInfo_Episode;
 
             if (alttext)
             {
@@ -531,6 +532,7 @@ static int ParseStandardProperty(u_scanner_t *s, mapentry_t *mape)
         if (s->sc_boolean)
         {
             strcpy(mape->endpic, "$CAST");
+            mape->flags |= MapInfo_Endgame;
         }
         else
         {
@@ -543,6 +545,7 @@ static int ParseStandardProperty(u_scanner_t *s, mapentry_t *mape)
         if (s->sc_boolean)
         {
             strcpy(mape->endpic, "$BUNNY");
+            mape->flags |= MapInfo_Endgame;
         }
         else
         {
@@ -555,6 +558,7 @@ static int ParseStandardProperty(u_scanner_t *s, mapentry_t *mape)
         if (s->sc_boolean)
         {
             strcpy(mape->endpic, "!");
+            mape->flags |= MapInfo_Endgame;
         }
         else
         {
@@ -881,4 +885,33 @@ boolean U_IsSecretMap(int episode, int map)
         }
     }
     return false;
+}
+
+void U_BuildEpisodes(void)
+{
+    boolean episode_started;
+    int current_map_number = 1, all_number = 1;
+
+    for (int i = 0; i < U_mapinfo.mapcount; ++i)
+    {
+        mapentry_t *mape = &U_mapinfo.maps[i];
+
+        if (mape->flags & MapInfo_Episode)
+        {
+            episode_started = true;
+            current_map_number = 1;
+        }
+
+        if (episode_started)
+        {
+            mape->map_number = current_map_number++;
+        }
+
+        if (mape->flags & MapInfo_Endgame)
+        {
+            episode_started = false;
+        }
+
+        mape->all_number = all_number++;
+    }
 }
