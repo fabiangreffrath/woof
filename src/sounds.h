@@ -27,6 +27,13 @@
 // SoundFX struct.
 //
 
+typedef struct sfxrumble_s
+{
+  float *low;     // Pointer to array of low frequency rumble values.
+  float *high;    // Pointer to array of high frequency rumble values.
+  int ticlength;  // Array size equal to sound duration in tics.
+} sfxrumble_t;
+
 typedef struct sfxinfo_s
 {
   // up to 6-character name
@@ -57,6 +64,8 @@ typedef struct sfxinfo_s
   int lumpnum;
 
   boolean cached;
+
+  sfxrumble_t rumble;
 
 } sfxinfo_t;
 

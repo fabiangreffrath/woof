@@ -218,6 +218,12 @@ Copyright:
  © 2013-2018 Alexey Khokholov (Nuke.YKT).  
 License: [GPL-2.0+](https://www.gnu.org/licenses/old-licenses/gpl-2.0.html)
 
+Files: `pffft/*`  
+Copyright:  
+ © 2004 The University Corporation for Atmospheric Research ("UCAR");  
+ © 2013 Julien Pommier.  
+License: [FFTPACK License](https://bitbucket.org/jpommier/pffft/src/master/pffft.h)
+
 Files: `soundfonts/TimGM6mb.sf2`  
 Copyright:  
  © 2004 Tim Brechbill;  

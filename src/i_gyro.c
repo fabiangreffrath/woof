@@ -32,6 +32,7 @@
 #include "i_printf.h"
 #include "g_game.h"
 #include "i_gamepad.h"
+#include "i_rumble.h"
 #include "i_timer.h"
 #include "i_video.h"
 #include "m_config.h"
@@ -224,6 +225,7 @@ void I_UpdateGyroCalibrationState(void)
     switch (cal.state)
     {
         case GYRO_CALIBRATION_INACTIVE:
+            I_DisableRumble();
             cal.state = GYRO_CALIBRATION_STARTING;
             cal.start_time = I_GetTimeMS();
             break;
@@ -252,6 +254,7 @@ void I_UpdateGyroCalibrationState(void)
             if (I_GetTimeMS() - cal.finish_time > 1500)
             {
                 cal.state = GYRO_CALIBRATION_INACTIVE;
+                I_UpdateRumbleEnabled();
             }
             break;
     }

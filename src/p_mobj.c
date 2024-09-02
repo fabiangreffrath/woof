@@ -145,8 +145,16 @@ void P_ExplodeMissile (mobj_t* mo)
   mo->flags &= ~MF_MISSILE;
 
   if (mo->info->deathsound)
-    S_StartSoundPitch(mo, mo->info->deathsound,
-                      brainexplode ? PITCH_NONE : PITCH_FULL);
+  {
+    if (brainexplode)
+    {
+      S_StartSoundPitch(mo, mo->info->deathsound, PITCH_NONE);
+    }
+    else
+    {
+      S_StartSoundOrigin(mo->target, mo, mo->info->deathsound);
+    }
+  }
 }
 
 //
@@ -1533,7 +1541,7 @@ mobj_t* P_SpawnPlayerMissile(mobj_t* source,mobjtype_t type)
   th = P_SpawnMobj (x,y,z, type);
 
   if (th->info->seesound)
-    S_StartSound (th, th->info->seesound);
+    S_StartSoundSource(source, th, th->info->seesound);
 
   P_SetTarget(&th->target, source);   // killough 11/98
   th->angle = an;

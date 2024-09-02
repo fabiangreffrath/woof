@@ -25,6 +25,7 @@
 #include "doomdef.h"
 #include "doomstat.h"
 #include "i_printf.h"
+#include "i_rumble.h"
 #include "i_sound.h"
 #include "i_system.h"
 #include "m_misc.h"
@@ -197,7 +198,8 @@ static int S_getChannel(const mobj_t *origin, sfxinfo_t *sfxinfo, int priority,
     return cnum;
 }
 
-void S_StartSoundPitch(const mobj_t *origin, int sfx_id, const pitchrange_t pitch_range)
+static void StartSound(const mobj_t *origin, int sfx_id,
+                       pitchrange_t pitch_range, rumble_type_t rumble_type)
 {
     int sep, pitch, o_priority, priority, singularity, cnum, handle;
     int volumeScale = 127;
@@ -302,11 +304,89 @@ void S_StartSoundPitch(const mobj_t *origin, int sfx_id, const pitchrange_t pitc
         channels[cnum].priority = priority;     // scaled priority
         channels[cnum].singularity = singularity;
         channels[cnum].idnum = I_SoundID(handle); // unique instance id
+
+        if (rumble_type != RUMBLE_NONE)
+        {
+            I_StartRumble(players[displayplayer].mo, origin, sfx, handle,
+                          rumble_type);
+        }
     }
     else // haleyjd: the sound didn't start, so clear the channel info
     {
         memset(&channels[cnum], 0, sizeof(channel_t));
     }
+}
+
+void S_StartSoundPitch(const mobj_t *origin, int sfx_id,
+                       pitchrange_t pitch_range)
+{
+    StartSound(origin, sfx_id, pitch_range, RUMBLE_NONE);
+}
+
+static boolean IsRumblePlayer(const mobj_t *mo)
+{
+    return (I_RumbleEnabled() && mo && mo == players[displayplayer].mo);
+}
+
+static rumble_type_t RumbleType(const mobj_t *mo, rumble_type_t rumble_type)
+{
+    return (IsRumblePlayer(mo) ? rumble_type : RUMBLE_NONE);
+}
+
+void S_StartSoundPitchEx(const mobj_t *origin, int sfx_id,
+                         pitchrange_t pitch_range)
+{
+    StartSound(origin, sfx_id, pitch_range, RumbleType(origin, RUMBLE_PLAYER));
+}
+
+void S_StartSoundBFG(const mobj_t *origin, int sfx_id)
+{
+    StartSound(origin, sfx_id, PITCH_FULL, RumbleType(origin, RUMBLE_BFG));
+}
+
+static rumble_type_t RumbleTypePreset(const mobj_t *origin, int sfx_id)
+{
+    if (IsRumblePlayer(origin))
+    {
+        switch (sfx_id)
+        {
+            case sfx_itemup:
+                return RUMBLE_ITEMUP;
+            case sfx_wpnup:
+                return RUMBLE_WPNUP;
+            case sfx_getpow:
+                return RUMBLE_GETPOW;
+            case sfx_oof:
+                return RUMBLE_OOF;
+        }
+    }
+    return RUMBLE_NONE;
+}
+
+void S_StartSoundPreset(const mobj_t *origin, int sfx_id,
+                        pitchrange_t pitch_range)
+{
+    StartSound(origin, sfx_id, pitch_range, RumbleTypePreset(origin, sfx_id));
+}
+
+void S_StartSoundPain(const mobj_t *origin, int sfx_id)
+{
+    StartSound(origin, sfx_id, PITCH_FULL, RumbleType(origin, RUMBLE_PAIN));
+}
+
+void S_StartSoundHitFloor(const mobj_t *origin, int sfx_id)
+{
+    StartSound(origin, sfx_id, PITCH_FULL, RumbleType(origin, RUMBLE_HITFLOOR));
+}
+
+void S_StartSoundSource(const mobj_t *source, const mobj_t *origin, int sfx_id)
+{
+    StartSound(origin, sfx_id, PITCH_FULL, RumbleType(source, RUMBLE_PLAYER));
+}
+
+void S_StartSoundOrigin(const mobj_t *source, const mobj_t *origin, int sfx_id)
+{
+    StartSound(origin, sfx_id, PITCH_FULL, RumbleType(source, RUMBLE_ORIGIN));
 }
 
 //
@@ -451,6 +531,8 @@ void S_UpdateSounds(const mobj_t *listener)
                         c->priority = pri; // haleyjd
                     }
                 }
+
+                I_UpdateRumbleParams(listener, c->origin, c->handle);
             }
             else // if channel is allocated but sound has stopped, free it
             {
@@ -461,6 +543,7 @@ void S_UpdateSounds(const mobj_t *listener)
 
     I_UpdateListenerParams(listener);
     I_ProcessSoundUpdates();
+    I_UpdateRumble();
 }
 
 void S_SetMusicVolume(int volume)

@@ -207,7 +207,7 @@ boolean P_GiveWeapon(player_t *player, weapontype_t weapon, boolean dropped)
       P_GiveAmmo(player, weaponinfo[weapon].ammo, deathmatch ? 5 : 2);
 
       player->pendingweapon = weapon;
-      S_StartSound(player->mo, sfx_wpnup); // killough 4/25/98, 12/98
+      S_StartSoundPreset(player->mo, sfx_wpnup, PITCH_FULL); // killough 4/25/98, 12/98
       return false;
     }
 
@@ -652,8 +652,8 @@ void P_TouchSpecialThing(mobj_t *special, mobj_t *toucher)
   P_RemoveMobj (special);
   player->bonuscount += BONUSADD;
 
-  S_StartSoundPitch(player->mo, sound, // killough 4/25/98, 12/98
-                    sound == sfx_itemup ? PITCH_NONE : PITCH_FULL);
+  S_StartSoundPreset(player->mo, sound, // killough 4/25/98, 12/98
+                     sound == sfx_itemup ? PITCH_NONE : PITCH_FULL);
 }
 
 //

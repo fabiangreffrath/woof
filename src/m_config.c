@@ -39,6 +39,7 @@
 #include "i_gamepad.h"
 #include "i_gyro.h"
 #include "i_printf.h"
+#include "i_rumble.h"
 #include "i_sound.h"
 #include "i_system.h"
 #include "i_video.h"
@@ -121,6 +122,7 @@ void M_InitConfig(void)
     G_BindMouseVariables();
 
     I_BindGamepadVariables();
+    I_BindRumbleVariables();
     I_BindFlickStickVariables();
     I_BindGyroVaribales();
 
