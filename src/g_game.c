@@ -538,7 +538,7 @@ void G_PrepGyroTiccmd(void)
 
     if (gyro_axes[GYRO_LOOK])
     {
-      localview.rawpitch += gyro_axes[GYRO_LOOK] * FRACUNIT;
+      localview.rawpitch += gyro_axes[GYRO_LOOK];
       basecmd.pitch = G_CarryPitch(localview.rawpitch);
       gyro_axes[GYRO_LOOK] = 0.0f;
     }

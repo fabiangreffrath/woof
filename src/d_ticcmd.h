@@ -36,7 +36,7 @@ typedef struct ticcmd_s
     byte	chatchar;
     byte	buttons;
 
-    int pitch;
+    short pitch;
     short ticangleturn; // Local angle delta for composite input only.
 } ticcmd_t;
 
