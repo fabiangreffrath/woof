@@ -1,0 +1,3 @@
+[submodule "third-party/spng"]
+	path = third-party/spng
+	url = https://github.com/randy408/libspng.git

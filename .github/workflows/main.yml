@@ -85,6 +85,8 @@ jobs:
             ${{ matrix.config.msys-env }}-libxmp
 
       - uses: actions/checkout@v4
+        with:
+          submodules: true
 
       - name: Configure
         env:
@@ -143,6 +145,8 @@ jobs:
             libxmp-dev
 
       - uses: actions/checkout@v4
+        with:
+          submodules: true
 
       - name: Configure
         run: |
@@ -162,8 +166,7 @@ jobs:
             --std=c99 \
             --suppress="memleak:${{ github.workspace }}/src/u_scanner.c" \
             --project="${{ github.workspace }}/build/compile_commands.json" \
-            -i"${{ github.workspace }}/miniz" \
-            -i"${{ github.workspace }}/spng" \
+            -i"${{ github.workspace }}/third-party" \
             -D__GNUC__
 
       - name: Run Clang-Tidy
@@ -184,4 +187,4 @@ jobs:
             ,-clang-analyzer-security*
             ,-clang-analyzer-valist*
           database: 'build'
-          ignore: 'miniz|spng|win32|toolsrc|src/i_pcsound.c'
+          ignore: 'third-party|win32|toolsrc|src/i_pcsound.c'
