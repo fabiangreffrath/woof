@@ -813,6 +813,7 @@ void *V_CacheFlatNum(int lump, pu_tag tag)
 
     Z_Free(buffer);
 
+    lumpinfo[lump].fmt_size = png.image_size;
     Z_Malloc(png.image_size, tag, &lumpcache[lump]);
     memcpy(lumpcache[lump], png.image, png.image_size);
 
