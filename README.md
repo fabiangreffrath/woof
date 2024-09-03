@@ -211,13 +211,13 @@ Files: `data/woof.ico, data/woof.png, src/icon.c, data/setup.ico, data/woof-setu
 Copyright: © 2020-2022 Julia Nechaevskaya.  
 License: [CC-BY-3.0](https://creativecommons.org/licenses/by/3.0/)
 
-Files: `miniz/*`  
+Files: `third-party/miniz/*`  
 Copyright:  
  © 2010-2014 Rich Geldreich and Tenacious Software LLC;  
  © 2013-2014 RAD Game Tools and Valve Software.  
 License: [MIT](https://opensource.org/licenses/MIT)
 
-Files: `spng/*`  
+Files: `third-party/spng/*`  
 Copyright: © 2018-2023 Randy.  
 License: [BSD-2-Clause](https://opensource.org/license/bsd-2-clause)
 
