@@ -76,7 +76,6 @@ extern umapinfo_t U_mapinfo;
 extern umapinfo_t default_mapinfo;
 
 extern boolean EpiCustom;
-int MN_GetEpisodeMap(int map);
 
 mapentry_t *G_LookupMapinfo(int episode, int map);
 
