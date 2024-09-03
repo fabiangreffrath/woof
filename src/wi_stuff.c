@@ -571,6 +571,7 @@ static boolean UpdateAnimation(boolean enteringcondition)
     }
 
     animation->states = NULL;
+    animation->background_lumpnum = -1;
 
     if (!enteringcondition && animation->interlevel_exiting)
     {
@@ -597,8 +598,11 @@ static boolean DrawAnimation(void)
         return false;
     }
 
-    V_DrawPatchFullScreen(
-        V_CachePatchNum(animation->background_lumpnum, PU_CACHE));
+    if (animation->background_lumpnum >= 0)
+    {
+        V_DrawPatchFullScreen(
+            V_CachePatchNum(animation->background_lumpnum, PU_CACHE));
+    }
 
     wi_animationstate_t *state;
     array_foreach(state, animation->states)

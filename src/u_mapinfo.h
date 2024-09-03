@@ -32,9 +32,8 @@ typedef struct
 
 typedef enum
 {
-    MapInfo_None       = 0x0001,
-    MapInfo_Episode    = 0x0002,
-    MapInfo_Endgame    = 0x0004,
+    MapInfo_Episode    = 0x0001,
+    MapInfo_Endgame    = 0x0002,
 } mapinfo_flags_t;
 
 typedef struct mapentry_s
