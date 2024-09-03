@@ -130,3 +130,34 @@ jobs:
           bodyFile: CHANGELOG.md
           allowUpdates: true
           artifacts: ${{ matrix.config.artifact-path }}
+
+  sources:
+    if: ${{ contains(github.ref, 'tags') }}
+    name: Release sources
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: true
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+
+      - name: Archive
+        run: |
+          pip install git-archive-all
+          git-archive-all woof-sources.tar.gz
+
+      - name: Extract Version Number
+        shell: bash
+        run: echo "VERSION=${GITHUB_REF##*_}" >> $GITHUB_ENV
+
+      - name: Release
+        uses: ncipollo/release-action@v1
+        with:
+          name: Woof! ${{ env.VERSION }}
+          bodyFile: CHANGELOG.md
+          allowUpdates: true
+          artifacts: woof-sources.tar.gz
