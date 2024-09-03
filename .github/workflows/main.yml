@@ -51,7 +51,8 @@ jobs:
             libopenal-dev \
             libsndfile1-dev \
             libfluidsynth-dev \
-            libxmp-dev
+            libxmp-dev \
+            libcjson-dev
 
       - name: Install dependencies (macOS)
         if: runner.os == 'macOS'
@@ -63,7 +64,8 @@ jobs:
             openal-soft \
             libsndfile \
             fluid-synth \
-            libxmp
+            libxmp \
+            cjson
 
       - name: Install dependencies (MSYS2)
         if: matrix.config.shell == 'msys2 {0}'
@@ -83,6 +85,7 @@ jobs:
             ${{ matrix.config.msys-env }}-libsndfile
             ${{ matrix.config.msys-env }}-fluidsynth
             ${{ matrix.config.msys-env }}-libxmp
+            ${{ matrix.config.msys-env }}-cjson
 
       - uses: actions/checkout@v4
 
@@ -140,7 +143,8 @@ jobs:
             libopenal-dev \
             libsndfile1-dev \
             libfluidsynth-dev \
-            libxmp-dev
+            libxmp-dev \
+            libcjson-dev
 
       - uses: actions/checkout@v4
 

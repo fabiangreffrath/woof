@@ -30,6 +30,13 @@ typedef struct
     int tag;
 } bossaction_t;
 
+typedef enum
+{
+    MapInfo_None       = 0x0001,
+    MapInfo_Episode    = 0x0002,
+    MapInfo_Endgame    = 0x0004,
+} mapinfo_flags_t;
+
 typedef struct mapentry_s
 {
     char *mapname;
@@ -46,9 +53,14 @@ typedef struct mapentry_s
     char endpic[9];
     char exitpic[9];
     char enterpic[9];
+    char exitanim[9];
+    char enteranim[9];
     char interbackdrop[9];
     char intermusic[9];
     int partime;
+    mapinfo_flags_t flags;
+    int map_number;
+    int all_number;
     boolean nointermission;
     int numbossactions;
     bossaction_t *bossactions;
@@ -64,6 +76,7 @@ extern umapinfo_t U_mapinfo;
 extern umapinfo_t default_mapinfo;
 
 extern boolean EpiCustom;
+
 mapentry_t *G_LookupMapinfo(int episode, int map);
 
 boolean U_CheckField(char *str);
@@ -71,5 +84,9 @@ boolean U_CheckField(char *str);
 void U_ParseMapDefInfo(int lumpnum);
 
 void U_ParseMapInfo(int lumpnum);
+
+void U_BuildEpisodes(void);
+
+boolean U_IsSecretMap(int episode, int map);
 
 #endif

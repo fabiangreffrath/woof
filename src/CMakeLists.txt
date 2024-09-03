@@ -142,6 +142,7 @@ set(WOOF_SOURCES
     w_file.c
     w_zip.c
     wi_stuff.c             wi_stuff.h
+    wi_interlvl.c          wi_interlvl.h
     z_zone.c               z_zone.h)
 
 # Standard target definition
@@ -187,7 +188,8 @@ target_link_libraries(woof PRIVATE
     opl
     textscreen
     miniz
-    spng)
+    spng
+    cjson)
 
 # Some platforms require standard libraries to be linked against.
 if(HAVE_LIBM)

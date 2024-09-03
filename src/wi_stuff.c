@@ -42,6 +42,7 @@
 #include "v_fmt.h"
 #include "v_video.h"
 #include "w_wad.h"
+#include "wi_interlvl.h"
 #include "wi_stuff.h"
 #include "z_zone.h"
 
@@ -385,10 +386,296 @@ static int    num_lnames;
 
 static const char *exitpic, *enterpic;
 
+#define M_ARRAY_MALLOC(size) Z_Malloc((size), PU_LEVEL, NULL)
+#define M_ARRAY_REALLOC(ptr, size) Z_Realloc((ptr), (size), PU_LEVEL, NULL)
+#define M_ARRAY_FREE(ptr) Z_Free((ptr))
+#include "m_array.h"
+
+typedef struct
+{
+    interlevelframe_t *frames;
+    int x_pos;
+    int y_pos;
+    int frame_index;
+    boolean frame_start;
+    int duration_left;
+} wi_animationstate_t;
+
+typedef struct
+{
+    interlevel_t *interlevel_exiting;
+    interlevel_t *interlevel_entering;
+
+    wi_animationstate_t *exiting_states;
+    wi_animationstate_t *entering_states;
+
+    wi_animationstate_t *states;
+    int background_lumpnum;
+} wi_animation_t;
+
+static wi_animation_t *animation;
+
 //
 // CODE
 //
 
+static boolean CheckConditions(interlevelcond_t *conditions,
+                               boolean enteringcondition)
+{
+    boolean conditionsmet = true;
+
+    int map_number, map, episode;
+
+    {
+        mapentry_t *mape;
+        if (enteringcondition)
+        {
+            mape = wbs->nextmapinfo;
+            map = wbs->next + 1;
+            episode = wbs->nextep + 1;
+        }
+        else
+        {
+            mape = wbs->lastmapinfo;
+            map = wbs->last + 1;
+            episode = wbs->epsd + 1;
+        }
+        map_number = mape->map_number ? mape->map_number : mape->all_number;
+    }
+
+    interlevelcond_t *cond;
+    array_foreach(cond, conditions)
+    {
+        switch (cond->condition)
+        {
+            case AnimCondition_MapNumGreater:
+                conditionsmet = (map_number > cond->param);
+                break;
+
+            case AnimCondition_MapNumEqual:
+                conditionsmet = (map_number == cond->param);
+                break;
+
+            case AnimCondition_MapVisited:
+                conditionsmet = false;
+
+                level_t *level;
+                array_foreach(level, wbs->visitedlevels)
+                {
+                    mapentry_t *mape =
+                        G_LookupMapinfo(level->episode, level->map);
+
+                    if ((mape->map_number && mape->map_number == cond->param)
+                        || mape->all_number == cond->param)
+                    {
+                        conditionsmet = true;
+                        break;
+                    }
+                }
+                break;
+
+            case AnimCondition_MapNotSecret:
+                conditionsmet = !U_IsSecretMap(episode, map);
+                break;
+
+            case AnimCondition_SecretVisited:
+                conditionsmet = wbs->didsecret;
+                break;
+
+            case AnimCondition_Tally:
+                conditionsmet = !enteringcondition;
+                break;
+
+            case AnimCondition_IsEntering:
+                conditionsmet = enteringcondition;
+                break;
+
+            default:
+                break;
+        }
+    }
+    return conditionsmet;
+}
+
+static void UpdateAnimationStates(wi_animationstate_t *states)
+{
+    wi_animationstate_t *state;
+    array_foreach(state, states)
+    {
+        interlevelframe_t *frame = &state->frames[state->frame_index];
+
+        int lumpnum = W_CheckNumForName(frame->image_lump);
+        if (lumpnum < 0)
+        {
+            lumpnum = (W_CheckNumForName)(frame->image_lump, ns_sprites);
+        }
+        frame->image_lumpnum = lumpnum;
+
+        if (frame->type & Frame_Infinite)
+        {
+            continue;
+        }
+
+        if (state->duration_left == 0)
+        {
+            int tics = 1;
+            switch (frame->type)
+            {
+                case Frame_RandomStart:
+                    if (state->frame_start)
+                    {
+                        int maxtics = frame->duration * TICRATE;
+                        tics = M_Random() % maxtics;
+                        break;
+                    }
+                    // fall through
+                case Frame_FixedDuration:
+                    tics = frame->duration * TICRATE;
+                    break;
+
+                case Frame_RandomDuration:
+                    {
+                        int maxtics = frame->maxduration * TICRATE;
+                        int mintics = frame->duration * TICRATE;
+                        tics = M_Random() % maxtics;
+                        tics = BETWEEN(mintics, maxtics, tics);
+                    }
+                    break;
+
+                default:
+                    break;
+            }
+
+            state->duration_left = MAX(tics, 1);
+
+            if (!state->frame_start)
+            {
+                state->frame_index++;
+                if (state->frame_index == array_size(state->frames))
+                {
+                    state->frame_index = 0;
+                }
+            }
+        }
+
+        state->duration_left--;
+        state->frame_start = false;
+    }
+}
+
+static boolean UpdateAnimation(boolean enteringcondition)
+{
+    if (!animation)
+    {
+        return false;
+    }
+
+    animation->states = NULL;
+
+    if (!enteringcondition && animation->interlevel_exiting)
+    {
+        animation->states = animation->exiting_states;
+        animation->background_lumpnum =
+            W_CheckNumForName(animation->interlevel_exiting->background_lump);
+    }
+    else if (animation->interlevel_entering)
+    {
+        animation->states = animation->entering_states;
+        animation->background_lumpnum =
+            W_CheckNumForName(animation->interlevel_entering->background_lump);
+    }
+
+    UpdateAnimationStates(animation->states);
+
+    return true;
+}
+
+static boolean DrawAnimation(void)
+{
+    if (!animation)
+    {
+        return false;
+    }
+
+    V_DrawPatchFullScreen(
+        V_CachePatchNum(animation->background_lumpnum, PU_CACHE));
+
+    wi_animationstate_t *state;
+    array_foreach(state, animation->states)
+    {
+        interlevelframe_t *frame = &state->frames[state->frame_index];
+        patch_t *patch = V_CachePatchNum(frame->image_lumpnum, PU_CACHE);
+        V_DrawPatch(state->x_pos, state->y_pos, patch);
+    }
+
+    return true;
+}
+
+static wi_animationstate_t *SetupAnimationStates(interlevellayer_t *layers,
+                                                 boolean enteringcondition)
+{
+    wi_animationstate_t *states = NULL;
+
+    interlevellayer_t *layer;
+    array_foreach(layer, layers)
+    {
+        if (!CheckConditions(layer->conditions, enteringcondition))
+        {
+            continue;
+        }
+
+        interlevelanim_t *anim;
+        array_foreach(anim, layer->anims)
+        {
+            if (!CheckConditions(anim->conditions, enteringcondition))
+            {
+                continue;
+            }
+
+            wi_animationstate_t state = {0};
+            state.x_pos = anim->x_pos;
+            state.y_pos = anim->y_pos;
+            state.frames = anim->frames;
+            state.frame_start = true;
+            array_push(states, state);
+        }
+    }
+
+    return states;
+}
+
+static boolean SetupAnimation(void)
+{
+    if (!animation)
+    {
+        return false;
+    }
+
+    if (animation->interlevel_exiting)
+    {
+        animation->exiting_states =
+            SetupAnimationStates(animation->interlevel_exiting->layers, false);
+    }
+
+    if (animation->interlevel_entering)
+    {
+        animation->entering_states =
+            SetupAnimationStates(animation->interlevel_entering->layers, true);
+    }
+
+    return true;
+}
+
+static boolean NextLocAnimation(void)
+{
+    if (animation && animation->entering_states
+        && !(demorecording || demoplayback))
+    {
+        return true;
+    }
+
+    return false;
+}
 
 // ====================================================================
 // WI_slamBackground
@@ -596,6 +883,11 @@ static void WI_initAnimatedBack(boolean firstcall)
   int   i;
   anim_t* a;
 
+  if (SetupAnimation())
+  {
+      return;
+  }
+
   if (exitpic)
     return;
   if (enterpic && entering)
@@ -616,7 +908,7 @@ static void WI_initAnimatedBack(boolean firstcall)
       // via WI_initShowNextLoc. Fixes notable blinking of Tower of Babel drawing
       // and the rest of animations from being restarted.
       if (firstcall)
-      a->ctr = -1;
+        a->ctr = -1;
   
       // specify the next time to draw it
       if (a->type == ANIM_ALWAYS)
@@ -641,6 +933,11 @@ static void WI_updateAnimatedBack(void)
 {
   int   i;
   anim_t* a;
+
+  if (UpdateAnimation(state != StatCount))
+  {
+      return;
+  }
 
   if (exitpic)
     return;
@@ -703,6 +1000,11 @@ static void WI_drawAnimatedBack(void)
 {
   int     i;
   anim_t*   a;
+
+  if (DrawAnimation())
+  {
+      return;
+  }
 
   if (exitpic)
     return;
@@ -1267,6 +1569,8 @@ static void WI_updateDeathmatchStats(void)
           {   
             S_StartSound(0, sfx_slop);
 
+            if (NextLocAnimation())
+              WI_initShowNextLoc();
             if ( gamemode == commercial)
               WI_initNoState();
             else
@@ -1570,6 +1874,9 @@ static void WI_updateNetgameStats(void)
               if (acceleratestage)
                 {
                   S_StartSound(0, sfx_sgcock);
+
+                  if (NextLocAnimation())
+                    WI_initShowNextLoc();
                   if ( gamemode == commercial )
                     WI_initNoState();
                   else
@@ -1788,7 +2095,9 @@ static void WI_updateStats(void)
                 {
                   S_StartSound(0, sfx_sgcock);
 
-                  if (gamemode == commercial)
+                  if (NextLocAnimation())
+                    WI_initShowNextLoc();
+                  else if (gamemode == commercial)
                     WI_initNoState();
                   else
                     WI_initShowNextLoc();
@@ -2218,8 +2527,43 @@ void WI_Start(wbstartstruct_t* wbstartstruct)
 {
   WI_initVariables(wbstartstruct);
 
-  exitpic = (wbs->lastmapinfo && wbs->lastmapinfo->exitpic[0]) ? wbs->lastmapinfo->exitpic : NULL;
-  enterpic = (wbs->nextmapinfo && wbs->nextmapinfo->enterpic[0]) ? wbs->nextmapinfo->enterpic : NULL;
+  exitpic = NULL;
+  enterpic = NULL;
+  animation = NULL;
+
+  if (wbs->lastmapinfo)
+  {
+      if (wbs->lastmapinfo->exitpic[0])
+      {
+          exitpic = wbs->lastmapinfo->exitpic;
+      }
+      if (wbs->lastmapinfo->exitanim[0])
+      {
+          if (!animation)
+          {
+              animation = Z_Calloc(1, sizeof(*animation), PU_LEVEL, NULL);
+          }
+          animation->interlevel_exiting =
+              WI_ParseInterlevel(wbs->lastmapinfo->exitanim);
+      }
+  }
+
+  if (wbs->nextmapinfo)
+  {
+      if (wbs->nextmapinfo->enterpic[0])
+      {
+          enterpic = wbs->nextmapinfo->enterpic;
+      }
+      if (wbs->nextmapinfo->enteranim[0])
+      {
+          if (!animation)
+          {
+              animation = Z_Calloc(1, sizeof(*animation), PU_LEVEL, NULL);
+          }
+          animation->interlevel_entering =
+              WI_ParseInterlevel(wbs->nextmapinfo->enteranim);
+      }
+  }
 
   WI_loadData();
 

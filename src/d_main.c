@@ -2345,6 +2345,7 @@ void D_DoomMain(void)
   {
     W_ProcessInWads("UMAPINFO", U_ParseMapInfo, true);
     W_ProcessInWads("UMAPINFO", U_ParseMapInfo, false);
+    U_BuildEpisodes();
   }
 
   if (!M_CheckParm("-save"))

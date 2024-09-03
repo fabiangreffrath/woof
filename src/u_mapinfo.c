@@ -23,7 +23,9 @@
 
 #include "doomdef.h"
 #include "doomstat.h"
+#include "doomtype.h"
 #include "i_system.h"
+#include "m_array.h"
 #include "m_misc.h"
 #include "u_mapinfo.h"
 #include "u_scanner.h"
@@ -39,6 +41,8 @@ int G_ValidateMapName(const char *mapname, int *pEpi, int *pMap);
 umapinfo_t U_mapinfo;
 
 umapinfo_t default_mapinfo;
+
+static level_t *secretlevels;
 
 static const char *const ActorNames[] =
 {
@@ -273,6 +277,14 @@ static void UpdateMapEntry(mapentry_t *mape, mapentry_t *newe)
     {
         strcpy(mape->enterpic, newe->enterpic);
     }
+    if (newe->exitanim[0])
+    {
+        strcpy(mape->exitanim, newe->exitanim);
+    }
+    if (newe->enteranim[0])
+    {
+        strcpy(mape->enteranim, newe->enteranim);
+    }
     if (newe->interbackdrop[0])
     {
         strcpy(mape->interbackdrop, newe->interbackdrop);
@@ -466,6 +478,7 @@ static int ParseStandardProperty(u_scanner_t *s, mapentry_t *mape)
             }
 
             M_AddEpisode(mape->mapname, lumpname, alttext, key);
+            mape->flags |= MapInfo_Episode;
 
             if (alttext)
             {
@@ -489,11 +502,13 @@ static int ParseStandardProperty(u_scanner_t *s, mapentry_t *mape)
     else if (!strcasecmp(pname, "nextsecret"))
     {
         status = ParseLumpName(s, mape->nextsecret);
-        if (!G_ValidateMapName(mape->nextsecret, NULL, NULL))
+        level_t level = {0};
+        if (!G_ValidateMapName(mape->nextsecret, &level.episode, &level.map))
         {
             U_Error(s, "Invalid map name %s", mape->nextsecret);
             status = 0;
         }
+        array_push(secretlevels, level);
     }
     else if (!strcasecmp(pname, "levelpic"))
     {
@@ -517,6 +532,7 @@ static int ParseStandardProperty(u_scanner_t *s, mapentry_t *mape)
         if (s->sc_boolean)
         {
             strcpy(mape->endpic, "$CAST");
+            mape->flags |= MapInfo_Endgame;
         }
         else
         {
@@ -529,6 +545,7 @@ static int ParseStandardProperty(u_scanner_t *s, mapentry_t *mape)
         if (s->sc_boolean)
         {
             strcpy(mape->endpic, "$BUNNY");
+            mape->flags |= MapInfo_Endgame;
         }
         else
         {
@@ -541,6 +558,7 @@ static int ParseStandardProperty(u_scanner_t *s, mapentry_t *mape)
         if (s->sc_boolean)
         {
             strcpy(mape->endpic, "!");
+            mape->flags |= MapInfo_Endgame;
         }
         else
         {
@@ -554,6 +572,14 @@ static int ParseStandardProperty(u_scanner_t *s, mapentry_t *mape)
     else if (!strcasecmp(pname, "enterpic"))
     {
         status = ParseLumpName(s, mape->enterpic);
+    }
+    else if (!strcasecmp(pname, "exitanim"))
+    {
+        status = ParseLumpName(s, mape->exitanim);
+    }
+    else if (!strcasecmp(pname, "enteranim"))
+    {
+        status = ParseLumpName(s, mape->enteranim);
     }
     else if (!strcasecmp(pname, "nointermission"))
     {
@@ -846,4 +872,46 @@ void U_ParseMapInfo(int lumpnum)
 boolean U_CheckField(char *str)
 {
     return str && str[0] && strcmp(str, "-");
+}
+
+boolean U_IsSecretMap(int episode, int map)
+{
+    level_t *level;
+    array_foreach(level, secretlevels)
+    {
+        if (level->episode == episode && level->map == map)
+        {
+            return true;
+        }
+    }
+    return false;
+}
+
+void U_BuildEpisodes(void)
+{
+    boolean episode_started;
+    int current_map_number = 1, all_number = 1;
+
+    for (int i = 0; i < U_mapinfo.mapcount; ++i)
+    {
+        mapentry_t *mape = &U_mapinfo.maps[i];
+
+        if (mape->flags & MapInfo_Episode)
+        {
+            episode_started = true;
+            current_map_number = 1;
+        }
+
+        if (episode_started)
+        {
+            mape->map_number = current_map_number++;
+        }
+
+        if (mape->flags & MapInfo_Endgame)
+        {
+            episode_started = false;
+        }
+
+        mape->all_number = all_number++;
+    }
 }
