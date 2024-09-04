@@ -21,6 +21,7 @@
 #include <math.h>
 #include <string.h>
 
+#include "doomstat.h"
 #include "i_gamepad.h"
 #include "i_rumble.h"
 #include "i_sound.h"
@@ -544,7 +545,7 @@ void I_ResetAllRumbleChannels(void)
 
 void I_UpdateRumble(void)
 {
-    if (!rumble.enabled)
+    if (!rumble.enabled || menuactive || demoplayback)
     {
         return;
     }
@@ -617,7 +618,7 @@ static boolean CalcChannelScale(const mobj_t *listener, const mobj_t *origin,
 void I_UpdateRumbleParams(const mobj_t *listener, const mobj_t *origin,
                           int handle)
 {
-    if (!rumble.enabled)
+    if (!rumble.enabled || menuactive || demoplayback)
     {
         return;
     }
@@ -712,7 +713,8 @@ static boolean GetSFXParams(const mobj_t *listener, const sfxinfo_t *sfx,
 void I_StartRumble(const mobj_t *listener, const mobj_t *origin,
                    const sfxinfo_t *sfx, int handle, rumble_type_t rumble_type)
 {
-    if (!rumble.enabled || !sfx || !sfx->rumble.low || !sfx->rumble.high)
+    if (!rumble.enabled || menuactive || demoplayback || !sfx
+        || !sfx->rumble.low || !sfx->rumble.high)
     {
         return;
     }
