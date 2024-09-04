@@ -2494,17 +2494,17 @@ void A_BabyMetal(mobj_t *mo)
 
 void A_OpenShotgun2(player_t *player, pspdef_t *psp)
 {
-  S_StartSoundEx(player->mo, sfx_dbopn);
+  S_StartSound(player->mo, sfx_dbopn);
 }
 
 void A_LoadShotgun2(player_t *player, pspdef_t *psp)
 {
-  S_StartSoundEx(player->mo, sfx_dbload);
+  S_StartSound(player->mo, sfx_dbload);
 }
 
 void A_CloseShotgun2(player_t *player, pspdef_t *psp)
 {
-  S_StartSoundEx(player->mo, sfx_dbcls);
+  S_StartSound(player->mo, sfx_dbcls);
   A_ReFire(player,psp);
 }
 
