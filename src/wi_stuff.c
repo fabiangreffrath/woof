@@ -410,7 +410,7 @@ typedef struct
     wi_animationstate_t *entering_states;
 
     wi_animationstate_t *states;
-    int background_lumpnum;
+    char *background_lump;
 } wi_animation_t;
 
 static wi_animation_t *animation;
@@ -504,13 +504,6 @@ static void UpdateAnimationStates(wi_animationstate_t *states)
     {
         interlevelframe_t *frame = &state->frames[state->frame_index];
 
-        int lumpnum = W_CheckNumForName(frame->image_lump);
-        if (lumpnum < 0)
-        {
-            lumpnum = (W_CheckNumForName)(frame->image_lump, ns_sprites);
-        }
-        frame->image_lumpnum = lumpnum;
-
         if (frame->type & Frame_Infinite)
         {
             continue;
@@ -571,19 +564,19 @@ static boolean UpdateAnimation(boolean enteringcondition)
     }
 
     animation->states = NULL;
-    animation->background_lumpnum = -1;
+    animation->background_lump = NULL;
 
     if (!enteringcondition && animation->interlevel_exiting)
     {
         animation->states = animation->exiting_states;
-        animation->background_lumpnum =
-            W_CheckNumForName(animation->interlevel_exiting->background_lump);
+        animation->background_lump =
+            animation->interlevel_exiting->background_lump;
     }
     else if (animation->interlevel_entering)
     {
         animation->states = animation->entering_states;
-        animation->background_lumpnum =
-            W_CheckNumForName(animation->interlevel_entering->background_lump);
+        animation->background_lump =
+            animation->interlevel_entering->background_lump;
     }
 
     UpdateAnimationStates(animation->states);
@@ -598,18 +591,23 @@ static boolean DrawAnimation(void)
         return false;
     }
 
-    if (animation->background_lumpnum >= 0)
+    if (animation->background_lump)
     {
         V_DrawPatchFullScreen(
-            V_CachePatchNum(animation->background_lumpnum, PU_CACHE));
+            V_CachePatchName(animation->background_lump, PU_CACHE));
     }
 
     wi_animationstate_t *state;
     array_foreach(state, animation->states)
     {
         interlevelframe_t *frame = &state->frames[state->frame_index];
-        patch_t *patch = V_CachePatchNum(frame->image_lumpnum, PU_CACHE);
-        V_DrawPatch(state->x_pos, state->y_pos, patch);
+        int lumpnum = W_CheckNumForName(frame->image_lump);
+        if (lumpnum < 0)
+        {
+            lumpnum = (W_CheckNumForName)(frame->image_lump, ns_sprites);
+        }
+        V_DrawPatch(state->x_pos, state->y_pos,
+                    V_CachePatchNum(lumpnum, PU_CACHE));
     }
 
     return true;
