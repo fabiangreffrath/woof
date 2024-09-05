@@ -29,6 +29,7 @@
 #include "i_printf.h"
 #include "i_rumble.h"
 #include "i_system.h"
+#include "i_timer.h"
 #include "m_array.h"
 #include "mn_menu.h"
 #include "p_mobj.h"
@@ -453,6 +454,7 @@ void I_InitSound(void)
 
     // [FG] precache all sound effects
 
+    const uint64_t precache_start = I_GetTimeUS();
     I_Printf(VB_INFO, " Precaching all sound effects... ");
     for (int i = 1; i < num_sfx; i++)
     {
@@ -464,6 +466,8 @@ void I_InitSound(void)
         sound_module->CacheSound(&S_sfx[i]);
     }
     I_Printf(VB_INFO, "done.");
+    I_Printf(VB_DEBUG, " Precache time: %d us",
+             (int)(I_GetTimeUS() - precache_start));
 
     // [FG] add links for likely missing sounds
     for (int i = 0; i < arrlen(sfx_subst); i++)
