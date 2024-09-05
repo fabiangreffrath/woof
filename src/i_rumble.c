@@ -655,7 +655,7 @@ void I_UpdateRumbleParams(const mobj_t *listener, const mobj_t *origin,
 
 static float ScaleHitFloor(const mobj_t *listener)
 {
-    if (listener->momz >= -8 * GRAVITY)
+    if (!listener || listener->momz >= -8 * GRAVITY)
     {
         return 0.25f;
     }
