@@ -26,6 +26,7 @@ jobs:
             triplet: x64-linux-dynamic-release
             artifact-name: AppImage
             artifact-path: build/*.appimage
+            extra-options: -DCMAKE_INSTALL_PREFIX=/usr
 
           - name: MSVC x64
             os: windows-latest
@@ -33,6 +34,10 @@ jobs:
             triplet: x64-windows-static-release
             artifact-name: Win-64
             artifact-path: build/*.zip
+            extra-options: >-
+              -DCMAKE_POLICY_DEFAULT_CMP0091=NEW
+              -DCMAKE_MSVC_RUNTIME_LIBRARY=MultiThreaded
+              -DCMAKE_IGNORE_PATH="C:/Strawberry/perl/bin;C:/Strawberry/c/lib"
 
           - name: MSVC x86
             os: windows-latest
@@ -40,6 +45,10 @@ jobs:
             triplet: x86-windows-static-release
             artifact-name: Win-32
             artifact-path: build/*.zip
+            extra-options: >-
+              -DCMAKE_POLICY_DEFAULT_CMP0091=NEW
+              -DCMAKE_MSVC_RUNTIME_LIBRARY=MultiThreaded
+              -DCMAKE_IGNORE_PATH="C:/Strawberry/perl/bin;C:/Strawberry/c/lib"
 
     steps:
       - uses: actions/checkout@v4
@@ -65,7 +74,12 @@ jobs:
             core.exportVariable('ACTIONS_CACHE_URL', process.env.ACTIONS_CACHE_URL || '');
             core.exportVariable('ACTIONS_RUNTIME_TOKEN', process.env.ACTIONS_RUNTIME_TOKEN || '');
 
-      - name: Update vcpkg
+      - name: Setup vcpkg
+        shell: bash
+        run: |
+          echo "VCPKG_ROOT=${VCPKG_INSTALLATION_ROOT}" >> $GITHUB_ENV
+
+      - name: Update vcpkg (Linux)
         if: runner.os == 'Linux'
         run: |
           cd "$VCPKG_INSTALLATION_ROOT"
@@ -73,27 +87,16 @@ jobs:
           git pull
           ./bootstrap-vcpkg.sh
 
-      - name: Configure (Linux)
-        if: runner.os == 'Linux'
+      - name: Configure
         shell: bash
-        run: |
-          cmake -B build -G Ninja -DCMAKE_BUILD_TYPE=Release \
-            -DENABLE_WERROR=ON -DENABLE_HARDENING=ON -DENABLE_LTO=ON \
-            -DCMAKE_TOOLCHAIN_FILE="$VCPKG_INSTALLATION_ROOT/scripts/buildsystems/vcpkg.cmake" \
-            -DVCPKG_OVERLAY_TRIPLETS="cmake/triplets" \
-            -DVCPKG_TARGET_TRIPLET=${{ matrix.config.triplet }} \
-            -DCMAKE_INSTALL_PREFIX=/usr
-
-      - name: Configure (Windows)
-        if: runner.os == 'Windows'
-        run: |
-          cmake -B build -G Ninja -DCMAKE_BUILD_TYPE=Release `
-            -DENABLE_WERROR=ON -DENABLE_LTO=ON `
-            -DCMAKE_TOOLCHAIN_FILE="${env:VCPKG_INSTALLATION_ROOT}/scripts/buildsystems/vcpkg.cmake" `
-            -DVCPKG_OVERLAY_TRIPLETS="cmake/triplets" `
-            -DVCPKG_TARGET_TRIPLET=${{ matrix.config.triplet }} `
-            -DCMAKE_POLICY_DEFAULT_CMP0091=NEW -DCMAKE_MSVC_RUNTIME_LIBRARY=MultiThreaded `
-            -DCMAKE_IGNORE_PATH="C:/Strawberry/perl/bin;C:/Strawberry/c/lib"
+        run: >-
+          cmake -B build -G Ninja
+          -DCMAKE_BUILD_TYPE=Release
+          -DENABLE_WERROR=ON -DENABLE_HARDENING=ON -DENABLE_LTO=ON
+          -DCMAKE_TOOLCHAIN_FILE="${{ env.VCPKG_ROOT }}/scripts/buildsystems/vcpkg.cmake"
+          -DVCPKG_OVERLAY_TRIPLETS="cmake/triplets"
+          -DVCPKG_TARGET_TRIPLET=${{ matrix.config.triplet }}
+          ${{ matrix.config.extra-options }}
 
       - name: Build
         run: cmake --build build --config "Release"
@@ -125,6 +128,7 @@ jobs:
           path: ${{ matrix.config.artifact-path }}
 
       - name: Extract Version Number
+        if: ${{ contains(github.ref, 'tags') }}
         shell: bash
         run: echo "VERSION=${GITHUB_REF##*_}" >> $GITHUB_ENV
 

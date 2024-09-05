@@ -178,7 +178,7 @@ jobs:
         with:
           version: 18
           step-summary: true
-          files-changed-only: false
+          files-changed-only: true
           style: ''  # disable clang-format checks.
           tidy-checks: >-
             -*
