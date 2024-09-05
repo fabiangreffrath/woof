@@ -38,6 +38,13 @@ typedef enum
 
     RUMBLE_PLAYER,
     RUMBLE_ORIGIN,
+
+    RUMBLE_PISTOL,
+    RUMBLE_SHOTGUN,
+    RUMBLE_SSG,
+    RUMBLE_CGUN,
+    RUMBLE_ROCKET,
+    RUMBLE_PLASMA,
     RUMBLE_BFG,
 } rumble_type_t;
 

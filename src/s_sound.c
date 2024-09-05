@@ -339,6 +339,26 @@ void S_StartSoundPitchEx(const mobj_t *origin, int sfx_id,
     StartSound(origin, sfx_id, pitch_range, RumbleType(origin, RUMBLE_PLAYER));
 }
 
+void S_StartSoundPistol(const mobj_t *origin, int sfx_id)
+{
+    StartSound(origin, sfx_id, PITCH_FULL, RumbleType(origin, RUMBLE_PISTOL));
+}
+
+void S_StartSoundShotgun(const mobj_t *origin, int sfx_id)
+{
+    StartSound(origin, sfx_id, PITCH_FULL, RumbleType(origin, RUMBLE_SHOTGUN));
+}
+
+void S_StartSoundSSG(const mobj_t *origin, int sfx_id)
+{
+    StartSound(origin, sfx_id, PITCH_FULL, RumbleType(origin, RUMBLE_SSG));
+}
+
+void S_StartSoundCGun(const mobj_t *origin, int sfx_id)
+{
+    StartSound(origin, sfx_id, PITCH_FULL, RumbleType(origin, RUMBLE_CGUN));
+}
+
 void S_StartSoundBFG(const mobj_t *origin, int sfx_id)
 {
     StartSound(origin, sfx_id, PITCH_FULL, RumbleType(origin, RUMBLE_BFG));
@@ -382,6 +402,36 @@ void S_StartSoundHitFloor(const mobj_t *origin, int sfx_id)
 void S_StartSoundSource(const mobj_t *source, const mobj_t *origin, int sfx_id)
 {
     StartSound(origin, sfx_id, PITCH_FULL, RumbleType(source, RUMBLE_PLAYER));
+}
+
+static rumble_type_t RumbleTypeMissile(const mobj_t *source,
+                                       const mobj_t *origin)
+{
+    if (IsRumblePlayer(source))
+    {
+        if (origin)
+        {
+            switch (origin->type)
+            {
+                case MT_ROCKET:
+                    return RUMBLE_ROCKET;
+                case MT_PLASMA:
+                case MT_PLASMA1:
+                case MT_PLASMA2:
+                    return RUMBLE_PLASMA;
+
+                default:
+                    break;
+            }
+        }
+        return RUMBLE_PLAYER;
+    }
+    return RUMBLE_NONE;
+}
+
+void S_StartSoundMissile(const mobj_t *source, const mobj_t *origin, int sfx_id)
+{
+    StartSound(origin, sfx_id, PITCH_FULL, RumbleTypeMissile(source, origin));
 }
 
 void S_StartSoundOrigin(const mobj_t *source, const mobj_t *origin, int sfx_id)

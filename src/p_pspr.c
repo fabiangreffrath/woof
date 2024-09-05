@@ -929,7 +929,7 @@ void P_GunShot(mobj_t *mo, boolean accurate)
 
 void A_FirePistol(player_t *player, pspdef_t *psp)
 {
-  S_StartSoundEx(player->mo, sfx_pistol);
+  S_StartSoundPistol(player->mo, sfx_pistol);
 
   P_SetMobjState(player->mo, S_PLAY_ATK2);
   P_SubtractAmmo(player, 1);
@@ -948,7 +948,7 @@ void A_FireShotgun(player_t *player, pspdef_t *psp)
 {
   int i;
 
-  S_StartSoundEx(player->mo, sfx_shotgn);
+  S_StartSoundShotgun(player->mo, sfx_shotgn);
   P_SetMobjState(player->mo, S_PLAY_ATK2);
 
   P_SubtractAmmo(player, 1);
@@ -970,7 +970,7 @@ void A_FireShotgun2(player_t *player, pspdef_t *psp)
 {
   int i;
 
-  S_StartSoundEx(player->mo, sfx_dshtgn);
+  S_StartSoundSSG(player->mo, sfx_dshtgn);
   P_SetMobjState(player->mo, S_PLAY_ATK2);
   P_SubtractAmmo(player, 2);
 
@@ -998,7 +998,7 @@ void A_FireShotgun2(player_t *player, pspdef_t *psp)
 
 void A_FireCGun(player_t *player, pspdef_t *psp)
 {
-  S_StartSoundEx(player->mo, sfx_pistol);
+  S_StartSoundCGun(player->mo, sfx_pistol);
 
   if (!player->ammo[weaponinfo[player->readyweapon].ammo])
     return;

@@ -1541,7 +1541,7 @@ mobj_t* P_SpawnPlayerMissile(mobj_t* source,mobjtype_t type)
   th = P_SpawnMobj (x,y,z, type);
 
   if (th->info->seesound)
-    S_StartSoundSource(source, th, th->info->seesound);
+    S_StartSoundMissile(source, th, th->info->seesound);
 
   P_SetTarget(&th->target, source);   // killough 11/98
   th->angle = an;

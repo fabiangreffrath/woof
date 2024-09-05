@@ -58,6 +58,10 @@ void S_StartSoundPitch(const struct mobj_s *origin, int sfx_id,
 #define S_StartSoundEx(o, i) S_StartSoundPitchEx((o), (i), PITCH_FULL)
 void S_StartSoundPitchEx(const struct mobj_s *origin, int sfx_id,
                          pitchrange_t pitch_range);
+void S_StartSoundPistol(const struct mobj_s *origin, int sfx_id);
+void S_StartSoundShotgun(const struct mobj_s *origin, int sfx_id);
+void S_StartSoundSSG(const struct mobj_s *origin, int sfx_id);
+void S_StartSoundCGun(const struct mobj_s *origin, int sfx_id);
 void S_StartSoundBFG(const struct mobj_s *origin, int sfx_id);
 
 // Thing at <origin> emits sound. Rumbles preset if displayplayer is <origin>.
@@ -70,6 +74,8 @@ void S_StartSoundHitFloor(const struct mobj_s *origin, int sfx_id);
 // Rumbles if displayplayer is <source>.
 void S_StartSoundSource(const struct mobj_s *source,
                         const struct mobj_s *origin, int sfx_id);
+void S_StartSoundMissile(const struct mobj_s *source,
+                         const struct mobj_s *origin, int sfx_id);
 
 // Thing at <source> causes sound. Thing at <origin> emits sound.
 // Rumbles if displayplayer is <source>, based on distance to <origin>.

@@ -107,6 +107,25 @@ static const rumble_preset_t presets[] = {
     [RUMBLE_HITFLOOR] = {rumble_hitfloor, arrlen(rumble_hitfloor)},
 };
 
+static const float default_scale[] = {
+    [RUMBLE_NONE]     = 0.0f,
+    [RUMBLE_ITEMUP]   = 1.0f,
+    [RUMBLE_WPNUP]    = 1.0f,
+    [RUMBLE_GETPOW]   = 1.0f,
+    [RUMBLE_OOF]      = 1.0f,
+    [RUMBLE_PAIN]     = 1.0f,
+    [RUMBLE_HITFLOOR] = 0.0f,
+    [RUMBLE_PLAYER]   = 1.0f,
+    [RUMBLE_ORIGIN]   = 0.8f,
+    [RUMBLE_PISTOL]   = 0.55f,
+    [RUMBLE_SHOTGUN]  = 1.0f,
+    [RUMBLE_SSG]      = 1.25f,
+    [RUMBLE_CGUN]     = 0.55f,
+    [RUMBLE_ROCKET]   = 1.15f,
+    [RUMBLE_PLASMA]   = 0.75f,
+    [RUMBLE_BFG]      = 1.0f,
+};
+
 static void ResetChannel(int handle)
 {
     rumble_channel_t *node = &rumble.channels[handle];
@@ -695,6 +714,12 @@ static boolean GetSFXParams(const mobj_t *listener, const sfxinfo_t *sfx,
 
         case RUMBLE_PLAYER:
         case RUMBLE_ORIGIN:
+        case RUMBLE_PISTOL:
+        case RUMBLE_SHOTGUN:
+        case RUMBLE_SSG:
+        case RUMBLE_CGUN:
+        case RUMBLE_ROCKET:
+        case RUMBLE_PLASMA:
         case RUMBLE_BFG:
             node->low = sfx->rumble.low;
             node->high = sfx->rumble.high;
@@ -739,7 +764,7 @@ void I_StartRumble(const mobj_t *listener, const mobj_t *origin,
     }
 
     node->type = rumble_type;
-    node->scale = 1.0f;
+    node->scale = default_scale[node->type];
 
     if (CalcChannelScale(listener, origin, node)
         && GetSFXParams(listener, sfx, node))
