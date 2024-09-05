@@ -241,13 +241,11 @@ boolean I_GyroSupported(void)
 
 static joy_platform_t GetSwitchSubPlatform(void)
 {
+#if SDL_VERSION_ATLEAST(2, 24, 0)
     if (gamepad != NULL)
     {
         switch (SDL_GameControllerGetType(gamepad))
         {
-            case SDL_CONTROLLER_TYPE_NINTENDO_SWITCH_PRO:
-                return PLATFORM_SWITCH_PRO;
-
             case SDL_CONTROLLER_TYPE_NINTENDO_SWITCH_JOYCON_LEFT:
                 return PLATFORM_SWITCH_JOYCON_LEFT;
 
@@ -261,6 +259,7 @@ static joy_platform_t GetSwitchSubPlatform(void)
                 break;
         }
     }
+#endif
 
     return PLATFORM_SWITCH_PRO;
 }
@@ -292,9 +291,11 @@ static void UpdatePlatform(void)
                     break;
 
                 case SDL_CONTROLLER_TYPE_NINTENDO_SWITCH_PRO:
+#if SDL_VERSION_ATLEAST(2, 24, 0)
                 case SDL_CONTROLLER_TYPE_NINTENDO_SWITCH_JOYCON_PAIR:
                 case SDL_CONTROLLER_TYPE_NINTENDO_SWITCH_JOYCON_LEFT:
                 case SDL_CONTROLLER_TYPE_NINTENDO_SWITCH_JOYCON_RIGHT:
+#endif
                     platform = GetSwitchSubPlatform();
                     break;
             }
