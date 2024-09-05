@@ -2475,9 +2475,6 @@ static setup_menu_t gen_settings4[] = {
     {"Stick Layout",S_CHOICE, CNTR_X, M_SPC, {"joy_stick_layout"},
      .strings_id = str_layout, .action = UpdateStickLayout},
 
-    {"Rumble", S_CHOICE, CNTR_X, M_SPC, {"joy_rumble"},
-     .strings_id = str_rumble, .action = UpdateRumble},
-
     {"Free Look", S_ONOFF, CNTR_X, M_SPC, {"padlook"},
      .action = MN_UpdatePadLook},
 
@@ -2502,6 +2499,9 @@ static setup_menu_t gen_settings4[] = {
 
     {"Camera Deadzone", S_THERMO | S_PCT, CNTR_X, M_THRM_SPC,
      {"joy_camera_inner_deadzone"}, .action = I_ResetGamepad},
+
+    {"Rumble", S_THERMO, CNTR_X, M_THRM_SPC, {"joy_rumble"},
+     .strings_id = str_rumble, .action = UpdateRumble},
 
     MI_END
 };
