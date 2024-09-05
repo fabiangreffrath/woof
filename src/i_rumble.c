@@ -31,12 +31,11 @@
 #include "w_wad.h"
 
 #define MAX_RUMBLE_COUNT 4
-#define MAX_RUMBLE_SCALE 3
 #define MAX_RUMBLE_SDL   0xFFFF
-#define RUMBLE_DURATION  60
+#define RUMBLE_DURATION  1000
 #define R_CLOSE          64.0f
 #define R_CLIP           320.0f
-#define MAX_PWAD_TICS    15
+#define RUMBLE_TICS      7
 
 static int joy_rumble;
 static int last_rumble;
@@ -73,19 +72,24 @@ typedef struct
     float *out;
     float *window;
     int size;
+    float amp_scale;
+    float freq_scale;
+    int start;
+    int end;
 } fft_t;
 
 static fft_t fft;
 
 // Rumble pattern presets.
 
-static const float rumble_itemup[] = {0.12f};
-static const float rumble_wpnup[] = {0.12f, 0.07f, 0.04f, 0.16f};
-static const float rumble_getpow[] = {0.07f, 0.14f, 0.16f, 0.14f};
-static const float rumble_oof[] = {0.14f, 0.12f};
-static const float rumble_pain[] = {0.12f, 0.31f, 0.26f, 0.22f, 0.32f, 0.34f};
-static const float rumble_hitfloor[] = {0.48f, 0.45f, 0.40f, 0.35f,
-                                        0.30f, 0.25f, 0.20f, 0.15f};
+static const float rumble_itemup[] = {0.12f, 0.0f};
+static const float rumble_wpnup[] = {0.12f, 0.07f, 0.04f, 0.16f, 0.0f};
+static const float rumble_getpow[] = {0.07f, 0.14f, 0.16f, 0.14f, 0.0f};
+static const float rumble_oof[] = {0.14f, 0.12f, 0.0f};
+static const float rumble_pain[] = {0.12f, 0.31f, 0.26f, 0.22f,
+                                    0.32f, 0.34f, 0.0f};
+static const float rumble_hitfloor[] = {0.48f, 0.45f, 0.40f, 0.35f, 0.30f,
+                                        0.25f, 0.20f, 0.15f, 0.0f};
 
 typedef struct
 {
@@ -285,12 +289,19 @@ static void InitFFT(int rate, int step)
     fft.window = pffft_aligned_malloc(size);
 
     const float mult = 2.0f * PI_F / (fft.size - 1.0f);
+    float sum = 0.0f;
 
     for (int i = 0; i < fft.size; i++)
     {
         // Hann window.
         fft.window[i] = 0.5f * (1.0f - cosf(i * mult));
+        sum += fft.window[i];
     }
+
+    fft.amp_scale = 2.0f / sum;
+    fft.freq_scale = 0.5f * rate / fft.size;
+    fft.start = lroundf(ceilf(100.0f / fft.freq_scale * 0.5f)) * 2;
+    fft.end = lroundf(ceilf(0.9f * 0.5f * rate / fft.freq_scale * 0.5f)) * 2;
 }
 
 static float Normalize_Mono8(const void *data, int pos)
@@ -313,9 +324,13 @@ static float Normalize_Mono32(const void *data, int pos)
 
 static float (*Normalize)(const void *data, int pos);
 
-static float CalcPeakFFT(const byte *data, int rate, int pos)
+static void CalcPeakFFT(const byte *data, int rate, int length, int pos,
+                        float *amp, float *freq)
 {
-    for (int i = 0; i < fft.size; i++)
+    const int remaining = length - pos;
+    const int size = MIN(fft.size, remaining);
+
+    for (int i = 0; i < size; i++)
     {
         // Fill input buffer with data.
         fft.in[i] = Normalize(data, pos + i);
@@ -324,20 +339,21 @@ static float CalcPeakFFT(const byte *data, int rate, int pos)
         fft.in[i] *= fft.window[i];
     }
 
-    // Forward transform.
-    pffft_transform_ordered(fft.setup, fft.in, fft.out, NULL, PFFFT_FORWARD);
-    const float scale = 1.0f / fft.size;
-
-    for (int i = 0; i < fft.size; i++)
+    for (int i = size; i < fft.size; i++)
     {
-        fft.out[i] *= scale;
+        // Fill remaining space with zeros.
+        fft.in[i] = 0.0f;
     }
 
-    // Find index of max value.
-    float max_value = 0.0f;
-    int max_index = 0;
+    // Forward transform.
+    pffft_transform_ordered(fft.setup, fft.in, fft.out, NULL, PFFFT_FORWARD);
 
-    for (int i = 0; i < fft.size; i += 2)
+    // Find index of max value.
+    int max_index = fft.start;
+    float max_value = fft.out[max_index] * fft.out[max_index]
+                      + fft.out[max_index + 1] * fft.out[max_index + 1];
+
+    for (int i = fft.start + 2; i < fft.end; i += 2)
     {
         // PFFFT returns interleaved values.
         const float current_value =
@@ -350,81 +366,60 @@ static float CalcPeakFFT(const byte *data, int rate, int pos)
         }
     }
 
-    return (0.5f * rate * max_index / fft.size);
+    *amp = sqrtf(max_value) * fft.amp_scale;
+    *freq = max_index * fft.freq_scale;
 }
 
-static boolean SfxToRumble(const byte *data, int rate, int length,
-                           int ticlength, float **low, float **high)
+static void SfxToRumble(const byte *data, int rate, int length,
+                        float **low, float **high, int *ticlength)
 {
-    float *freq_peak = malloc(sizeof(float) * ticlength);
-    float freq_scale = 0.0f;
-    int freq_count = 0;
-    const int step = rate / TICRATE;
+    const int ticlen = *ticlength - 1;
+    *low = malloc(sizeof(float) * (ticlen + 1));
+    *high = malloc(sizeof(float) * (ticlen + 1));
+    (*low)[ticlen] = 0.0f;
+    (*high)[ticlen] = 0.0f;
 
+    const int step = rate / TICRATE;
     InitFFT(rate, step);
 
-    for (int i = 0; i < ticlength; i++)
+    for (int i = 0; i < ticlen; i++)
     {
         const int pos = i * step;
+        float amp_peak, freq_peak;
+        CalcPeakFFT(data, rate, length, pos, &amp_peak, &freq_peak);
 
-        if (pos + fft.size < length)
+        if (amp_peak > 0.0001f)
         {
-            freq_peak[i] = CalcPeakFFT(data, rate, pos);
+            float weight = (freq_peak - 640.0f) * 0.00625f; // 1/160
+            weight = BETWEEN(-1.0f, 1.0f, weight);
+
+            const float dBFS = 20.0f * log10f(amp_peak) + 6.0f;
+            const float dBFS_low = dBFS - 6.0f * weight;
+            const float dBFS_high = dBFS + 6.0f * weight;
+
+            (*low)[i] = powf(10.0f, MIN(dBFS_low, -12.0f) * 0.05f);
+            (*high)[i] = powf(10.0f, MIN(dBFS_high, -12.0f) * 0.05f);
         }
         else
         {
-            freq_peak[i] = 0.0f;
-        }
-
-        if (freq_peak[i] > 0.0f)
-        {
-            freq_scale += freq_peak[i];
-            freq_count++;
+            (*low)[i] = 0.0f;
+            (*high)[i] = 0.0f;
         }
     }
 
-    if (freq_count > 0)
+    for (int i = 0; i < ticlen; i++)
     {
-        freq_scale = freq_count / freq_scale;
-        *low = malloc(sizeof(float) * ticlength);
-        *high = malloc(sizeof(float) * ticlength);
-
-        for (int i = 0; i < ticlength; i++)
+        if ((*low)[i] > 0.0f || (*high)[i] > 0.0f)
         {
-            float scale = 0.0f;
-
-            if (freq_peak[i] > 0.0f)
-            {
-                const int pos = i * step;
-
-                for (int j = 0; j < step; j++)
-                {
-                    const float val = Normalize(data, pos + j);
-                    scale += val * val;
-                }
-            }
-
-            if (scale > 0.0f)
-            {
-                scale = sqrtf(scale / step);
-                scale = MIN(scale, 0.25f);
-
-                float weight = freq_peak[i] * freq_scale;
-                weight = BETWEEN(0.5f, 2.0f, weight);
-
-                (*low)[i] = scale / weight;
-                (*high)[i] = scale * weight;
-            }
-            else
-            {
-                (*low)[i] = 0.0f;
-                (*high)[i] = 0.0f;
-            }
+            return;
         }
     }
 
-    free(freq_peak);
-    return (freq_count > 0);
+    free(*low);
+    free(*high);
+    *low = NULL;
+    *high = NULL;
+    *ticlength = 0;
 }
 
 static int GetMonoLength(const sfxinfo_t *sfx, int size)
@@ -461,21 +456,19 @@ void I_CacheRumble(sfxinfo_t *sfx, int format, const byte *data, int size,
     }
 
     const int length = GetMonoLength(sfx, size);
-    const int ticlength = length * TICRATE / rate;
+    int ticlength = length * TICRATE / rate;
 
     if (!length || !ticlength)
     {
         return;
     }
 
+    ticlength++;
     float *low, *high;
-
-    if (SfxToRumble(data, rate, length, ticlength, &low, &high))
-    {
-        sfx->rumble.low = low;
-        sfx->rumble.high = high;
-        sfx->rumble.ticlength = ticlength;
-    }
+    SfxToRumble(data, rate, length, &low, &high, &ticlength);
+    sfx->rumble.low = low;
+    sfx->rumble.high = high;
+    sfx->rumble.ticlength = ticlength;
 }
 
 boolean I_RumbleEnabled(void)
@@ -496,14 +489,13 @@ void I_RumbleMenuFeedback(void)
     }
 
     last_rumble = joy_rumble;
-    const uint16_t test = (uint16_t)(rumble.scale * 0.5f);
-    SDL_GameControllerRumble(rumble.gamepad, test, test, RUMBLE_DURATION * 2);
+    const uint16_t test = (uint16_t)(rumble.scale * 0.25f);
+    SDL_GameControllerRumble(rumble.gamepad, test, test, 125);
 }
 
 void I_UpdateRumbleEnabled(void)
 {
-    const float scale[] = {0.0f, 0.1f, 0.4f, 1.0f};
-    rumble.scale = scale[joy_rumble] * MAX_RUMBLE_SDL;
+    rumble.scale = 0.2f * joy_rumble * MAX_RUMBLE_SDL;
     rumble.enabled = (joy_rumble && rumble.supported);
 }
 
@@ -543,6 +535,32 @@ void I_ResetAllRumbleChannels(void)
     SDL_GameControllerRumble(rumble.gamepad, 0, 0, 0);
 }
 
+static void GetNodeScale(const rumble_channel_t *node, float *scale_down,
+                         float *scale)
+{
+    *scale = node->scale;
+
+    if (node->type == RUMBLE_BFG)
+    {
+        if (node->pos > 40)
+        {
+            *scale *= 1.0f - (float)(node->pos - 40) / (node->ticlength - 40);
+        }
+    }
+    else if (node->pos > RUMBLE_TICS)
+    {
+        *scale *= 1.0f - (node->pos - RUMBLE_TICS) / 3.0f;
+    }
+
+    *scale = MAX(*scale, 0.0f);
+
+    if (node->type != RUMBLE_ORIGIN)
+    {
+        *scale *= *scale_down;
+        *scale_down *= 0.1f;
+    }
+}
+
 void I_UpdateRumble(void)
 {
     if (!rumble.enabled || menuactive || demoplayback)
@@ -553,21 +571,16 @@ void I_UpdateRumble(void)
     float scale_low = 0.0f;
     float scale_high = 0.0f;
     float scale_down = 1.0f;
+    float scale;
     rumble_channel_t *base = &rumble.base;
     rumble_channel_t *node, *next;
 
     for (node = base->next; node != base; node = next)
     {
         next = node->next;
-
-        scale_low += node->low[node->pos] * node->scale * scale_down;
-        scale_high += node->high[node->pos] * node->scale * scale_down;
-
-        if (node->type != RUMBLE_ORIGIN || node->scale > 0.9f)
-        {
-            scale_down *= 0.1f;
-        }
-
+        GetNodeScale(node, &scale_down, &scale);
+        scale_low += node->low[node->pos] * scale;
+        scale_high += node->high[node->pos] * scale;
         node->pos++;
 
         if (node->pos >= node->ticlength)
@@ -577,13 +590,10 @@ void I_UpdateRumble(void)
         }
     }
 
-    if (scale_low == 0.0f && scale_high == 0.0f)
-    {
-        return;
-    }
-
-    const uint16_t low = lroundf(MIN(scale_low, 1.0f) * rumble.scale);
-    const uint16_t high = lroundf(MIN(scale_high, 1.0f) * rumble.scale);
+    scale_low *= rumble.scale;
+    scale_high *= rumble.scale;
+    const uint16_t low = lroundf(MIN(scale_low, MAX_RUMBLE_SDL));
+    const uint16_t high = lroundf(MIN(scale_high, MAX_RUMBLE_SDL));
     SDL_GameControllerRumble(rumble.gamepad, low, high, RUMBLE_DURATION);
 }
 
@@ -662,11 +672,6 @@ static float ScaleHitFloor(const mobj_t *listener)
     }
 }
 
-static int ClampTics(int lumpnum, int tics)
-{
-    return (W_IsIWADLump(lumpnum) ? tics : MIN(tics, MAX_PWAD_TICS));
-}
-
 static boolean GetSFXParams(const mobj_t *listener, const sfxinfo_t *sfx,
                             rumble_channel_t *node)
 {
@@ -690,11 +695,6 @@ static boolean GetSFXParams(const mobj_t *listener, const sfxinfo_t *sfx,
 
         case RUMBLE_PLAYER:
         case RUMBLE_ORIGIN:
-            node->low = sfx->rumble.low;
-            node->high = sfx->rumble.high;
-            node->ticlength = ClampTics(sfx->lumpnum, sfx->rumble.ticlength);
-            break;
-
         case RUMBLE_BFG:
             node->low = sfx->rumble.low;
             node->high = sfx->rumble.high;
@@ -767,6 +767,6 @@ void I_DisableRumble(void)
 
 void I_BindRumbleVariables(void)
 {
-    BIND_NUM_GENERAL(joy_rumble, 0, 0, MAX_RUMBLE_SCALE,
-        "Rumble intensity (0 = Off; 1 = Low; 2 = Medium; 3 = High)");
+    BIND_NUM_GENERAL(joy_rumble, 5, 0, 10,
+        "Rumble intensity (0 = Off; 10 = 100%)");
 }
