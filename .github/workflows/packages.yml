@@ -66,10 +66,12 @@ jobs:
             core.exportVariable('ACTIONS_RUNTIME_TOKEN', process.env.ACTIONS_RUNTIME_TOKEN || '');
 
       - name: Update vcpkg
-        shell: bash
+        if: runner.os == 'Linux'
         run: |
-          cd $VCPKG_INSTALLATION_ROOT
+          cd "$VCPKG_INSTALLATION_ROOT"
+          git stash
           git pull
+          ./bootstrap-vcpkg.sh
 
       - name: Configure (Linux)
         if: runner.os == 'Linux'
