@@ -36,6 +36,7 @@
 #define R_CLOSE          64.0f
 #define R_CLIP           320.0f
 #define RUMBLE_TICS      7
+#define MAX_TICLENGTH    70 // TICRATE * 2
 
 static int joy_rumble;
 static int last_rumble;
@@ -483,6 +484,7 @@ void I_CacheRumble(sfxinfo_t *sfx, int format, const byte *data, int size,
     }
 
     ticlength++;
+    ticlength = MIN(ticlength, MAX_TICLENGTH);
     float *low, *high;
     SfxToRumble(data, rate, length, &low, &high, &ticlength);
     sfx->rumble.low = low;
