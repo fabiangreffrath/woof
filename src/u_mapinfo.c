@@ -889,7 +889,7 @@ boolean U_IsSecretMap(int episode, int map)
 
 void U_BuildEpisodes(void)
 {
-    boolean episode_started;
+    boolean episode_started = false;
     int current_map_number = 1, all_number = 1;
 
     for (int i = 0; i < U_mapinfo.mapcount; ++i)
