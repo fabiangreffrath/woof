@@ -2692,11 +2692,6 @@ static setup_menu_t gen_settings5[] = {
     {"Smooth Diminishing Lighting", S_ONOFF, OFF_CNTR_X, M_SPC, {"smoothlight"},
      .action = SmoothLight},
 
-    MI_GAP,
-
-    {"Menu Backdrop", S_CHOICE, OFF_CNTR_X, M_SPC, {"menu_backdrop"},
-    .strings_id = str_menu_backdrop},
-
     MI_END
 };
 
