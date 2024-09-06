@@ -2697,9 +2697,6 @@ static setup_menu_t gen_settings5[] = {
     {"Menu Backdrop", S_CHOICE, OFF_CNTR_X, M_SPC, {"menu_backdrop"},
     .strings_id = str_menu_backdrop},
 
-    {"Exit Sequence", S_CHOICE, OFF_CNTR_X, M_SPC, {"exit_sequence"},
-    .strings_id = str_exit_sequence},
-
     MI_END
 };
 
@@ -2778,6 +2775,9 @@ static setup_menu_t gen_settings6[] = {
 
     {"Default Skill", S_CHOICE | S_LEVWARN, OFF_CNTR_X, M_SPC,
      {"default_skill"}, .strings_id = str_default_skill},
+
+    {"Exit Sequence", S_CHOICE, OFF_CNTR_X, M_SPC, {"exit_sequence"},
+    .strings_id = str_exit_sequence},
 
     MI_END
 };
