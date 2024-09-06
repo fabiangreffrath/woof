@@ -52,8 +52,7 @@ jobs:
             libsndfile1-dev \
             libfluidsynth-dev \
             libxmp-dev \
-            libcjson-dev \
-            libfftw3-dev
+            libcjson-dev
 
       - name: Install dependencies (macOS)
         if: runner.os == 'macOS'
@@ -66,8 +65,7 @@ jobs:
             libsndfile \
             fluid-synth \
             libxmp \
-            cjson \
-            fftw
+            cjson
 
       - name: Install dependencies (MSYS2)
         if: matrix.config.shell == 'msys2 {0}'
@@ -88,7 +86,6 @@ jobs:
             ${{ matrix.config.msys-env }}-fluidsynth
             ${{ matrix.config.msys-env }}-libxmp
             ${{ matrix.config.msys-env }}-cjson
-            ${{ matrix.config.msys-env }}-fftw
 
       - uses: actions/checkout@v4
 
@@ -147,8 +144,7 @@ jobs:
             libsndfile1-dev \
             libfluidsynth-dev \
             libxmp-dev \
-            libcjson-dev \
-            libfftw3-dev
+            libcjson-dev
 
       - uses: actions/checkout@v4
 

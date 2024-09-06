@@ -1,0 +1,5 @@
+include(WoofSettings)
+add_library(pffft STATIC pffft.c pffft.h)
+target_woof_settings(pffft)
+target_include_directories(pffft INTERFACE ".")
+target_link_libraries(pffft)
