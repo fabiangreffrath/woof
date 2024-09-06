@@ -218,12 +218,6 @@ Copyright:
  © 2013-2018 Alexey Khokholov (Nuke.YKT).  
 License: [GPL-2.0+](https://www.gnu.org/licenses/old-licenses/gpl-2.0.html)
 
-Files: `pffft/*`  
-Copyright:  
- © 2004 The University Corporation for Atmospheric Research ("UCAR");  
- © 2013 Julien Pommier.  
-License: [FFTPACK License](https://bitbucket.org/jpommier/pffft/src/master/pffft.h)
-
 Files: `soundfonts/TimGM6mb.sf2`  
 Copyright:  
  © 2004 Tim Brechbill;  
@@ -242,6 +236,12 @@ Copyright:
  © 2010-2014 Rich Geldreich and Tenacious Software LLC;  
  © 2013-2014 RAD Game Tools and Valve Software.  
 License: [MIT](https://opensource.org/licenses/MIT)
+
+Files: `third-party/pffft/*`  
+Copyright:  
+ © 2004 The University Corporation for Atmospheric Research ("UCAR");  
+ © 2013 Julien Pommier.  
+License: [FFTPACK License](https://bitbucket.org/jpommier/pffft/src/master/pffft.h)
 
 Files: `third-party/spng/*`  
 Copyright: © 2018-2023 Randy.  
