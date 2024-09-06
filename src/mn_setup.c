@@ -336,7 +336,6 @@ enum
     str_default_complevel,
     str_exit_sequence,
     str_death_use_action,
-    str_menu_backdrop,
     str_widescreen,
     str_bobbing_pct,
     str_screen_melt,
@@ -2657,8 +2656,6 @@ static void SmoothLight(void)
     setsizeneeded = true; // run R_ExecuteSetViewSize
 }
 
-static const char *menu_backdrop_strings[] = {"Off", "Dark", "Texture"};
-
 static const char *exit_sequence_strings[] = {
     "Off", "Sound Only", "PWAD ENDOOM", "On"
 };
@@ -4216,7 +4213,6 @@ static const char **selectstrings[] = {
     default_complevel_strings,
     exit_sequence_strings,
     death_use_action_strings,
-    menu_backdrop_strings,
     widescreen_strings,
     bobbing_pct_strings,
     screen_melt_strings,
