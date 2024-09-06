@@ -336,7 +336,6 @@ enum
     str_default_complevel,
     str_exit_sequence,
     str_death_use_action,
-    str_menu_backdrop,
     str_widescreen,
     str_bobbing_pct,
     str_screen_melt,
@@ -2657,8 +2656,6 @@ static void SmoothLight(void)
     setsizeneeded = true; // run R_ExecuteSetViewSize
 }
 
-static const char *menu_backdrop_strings[] = {"Off", "Dark", "Texture"};
-
 static const char *exit_sequence_strings[] = {
     "Off", "Sound Only", "PWAD ENDOOM", "On"
 };
@@ -2691,14 +2688,6 @@ static setup_menu_t gen_settings5[] = {
 
     {"Smooth Diminishing Lighting", S_ONOFF, OFF_CNTR_X, M_SPC, {"smoothlight"},
      .action = SmoothLight},
-
-    MI_GAP,
-
-    {"Menu Backdrop", S_CHOICE, OFF_CNTR_X, M_SPC, {"menu_backdrop"},
-    .strings_id = str_menu_backdrop},
-
-    {"Exit Sequence", S_CHOICE, OFF_CNTR_X, M_SPC, {"exit_sequence"},
-    .strings_id = str_exit_sequence},
 
     MI_END
 };
@@ -2778,6 +2767,9 @@ static setup_menu_t gen_settings6[] = {
 
     {"Default Skill", S_CHOICE | S_LEVWARN, OFF_CNTR_X, M_SPC,
      {"default_skill"}, .strings_id = str_default_skill},
+
+    {"Exit Sequence", S_CHOICE, OFF_CNTR_X, M_SPC, {"exit_sequence"},
+    .strings_id = str_exit_sequence},
 
     MI_END
 };
@@ -4221,7 +4213,6 @@ static const char **selectstrings[] = {
     default_complevel_strings,
     exit_sequence_strings,
     death_use_action_strings,
-    menu_backdrop_strings,
     widescreen_strings,
     bobbing_pct_strings,
     screen_melt_strings,
