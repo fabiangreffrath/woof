@@ -128,6 +128,12 @@ if(libxmp_FOUND)
     endif()
 endif()
 
+find_package(FFTW3f)
+
+if(FFTW3f_FOUND)
+    set(HAVE_FFTW3 TRUE)
+endif()
+
 # Python 3
 find_package(Python3 COMPONENTS Interpreter)
 
@@ -202,7 +208,6 @@ include(CPack)
 add_subdirectory(data)
 add_subdirectory(opl)
 add_subdirectory(textscreen)
-add_subdirectory(pffft)
 add_subdirectory(third-party)
 add_subdirectory(src)
 add_subdirectory(setup)

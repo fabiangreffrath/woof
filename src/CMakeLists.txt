@@ -187,7 +187,6 @@ target_link_libraries(woof PRIVATE
     OpenAL::OpenAL
     SndFile::sndfile
     opl
-    pffft
     textscreen
     miniz
     spng
@@ -231,6 +230,11 @@ endif()
 if(libxmp_FOUND)
     target_sources(woof PRIVATE i_xmp.c)
     target_link_libraries(woof PRIVATE libxmp::xmp)
+endif()
+
+if(FFTW3f_FOUND)
+    target_sources(woof PRIVATE i_rumble.c)
+    target_link_libraries(woof PRIVATE FFTW3::fftw3f)
 endif()
 
 # Optional features.

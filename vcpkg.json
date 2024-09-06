@@ -42,6 +42,7 @@
         "name": "libxmp",
         "default-features": false
     },
-    "cjson"
+    "cjson",
+    "fftw3"
   ]
 }

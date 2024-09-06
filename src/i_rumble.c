@@ -15,8 +15,11 @@
 //      Gamepad rumble.
 //
 
+#include "config.h"
+#ifdef HAVE_FFTW3
+
 #include "alext.h"
-#include "pffft.h"
+#include "fftw3.h"
 
 #include <math.h>
 #include <string.h>
@@ -68,10 +71,11 @@ static rumble_t rumble;
 
 typedef struct
 {
-    PFFFT_Setup *setup;
+    boolean init;
+    fftwf_plan plan;
     float *in;
-    float *out;
     float *window;
+    fftwf_complex *out;
     int size;
     float amp_scale;
     float freq_scale;
@@ -207,29 +211,30 @@ static void AddNode(int handle)
 
 static void FreeFFT(void)
 {
+    if (fft.init)
+    {
+        fftwf_destroy_plan(fft.plan);
+    }
+
+    if (fft.in)
+    {
+        fftwf_free(fft.in);
+        fft.in = NULL;
+    }
+
     if (fft.window)
     {
-        pffft_aligned_free(fft.window);
+        fftwf_free(fft.window);
         fft.window = NULL;
     }
 
     if (fft.out)
     {
-        pffft_aligned_free(fft.out);
+        fftwf_free(fft.out);
         fft.out = NULL;
     }
 
-    if (fft.in)
-    {
-        pffft_aligned_free(fft.in);
-        fft.in = NULL;
-    }
-
-    if (fft.setup)
-    {
-        pffft_destroy_setup(fft.setup);
-        fft.setup = NULL;
-    }
+    fft.init = false;
 }
 
 void I_ShutdownRumble(void)
@@ -297,16 +302,15 @@ static void InitFFT(int rate, int step)
     last_rate = rate;
     FreeFFT();
 
-    // FFT size must be a power of two (see pffft.h).
+    // Set FFT size to a power of two for speed.
     const uint32_t step2 = RoundUpPowerOfTwo(step);
     fft.size = BETWEEN(128, 8192, step2);
 
-    fft.setup = pffft_new_setup(fft.size, PFFFT_REAL);
+    fft.in = fftwf_malloc(sizeof(*fft.in) * fft.size);
+    fft.window = fftwf_malloc(sizeof(*fft.window) * fft.size);
+    fft.out = fftwf_malloc(sizeof(*fft.out) * (fft.size / 2 + 1));
 
-    const size_t size = sizeof(float) * fft.size;
-    fft.in = pffft_aligned_malloc(size);
-    fft.out = pffft_aligned_malloc(size);
-    fft.window = pffft_aligned_malloc(size);
+    fft.plan = fftwf_plan_dft_r2c_1d(fft.size, fft.in, fft.out, FFTW_ESTIMATE);
 
     const float mult = 2.0f * PI_F / (fft.size - 1.0f);
     float sum = 0.0f;
@@ -319,9 +323,10 @@ static void InitFFT(int rate, int step)
     }
 
     fft.amp_scale = 2.0f / sum;
-    fft.freq_scale = 0.5f * rate / fft.size;
-    fft.start = lroundf(ceilf(100.0f / fft.freq_scale * 0.5f)) * 2;
-    fft.end = lroundf(ceilf(0.9f * 0.5f * rate / fft.freq_scale * 0.5f)) * 2;
+    fft.freq_scale = (float)rate / fft.size;
+    fft.start = lroundf(ceilf(100.0f / fft.freq_scale));
+    fft.end = lroundf(ceilf(0.9f * 0.5f * rate / fft.freq_scale));
+    fft.init = true;
 }
 
 static float Normalize_Mono8(const void *data, int pos)
@@ -366,18 +371,17 @@ static void CalcPeakFFT(const byte *data, int rate, int length, int pos,
     }
 
     // Forward transform.
-    pffft_transform_ordered(fft.setup, fft.in, fft.out, NULL, PFFFT_FORWARD);
+    fftwf_execute(fft.plan);
 
     // Find index of max value.
     int max_index = fft.start;
-    float max_value = fft.out[max_index] * fft.out[max_index]
-                      + fft.out[max_index + 1] * fft.out[max_index + 1];
+    float max_value = fft.out[max_index][0] * fft.out[max_index][0]
+                      + fft.out[max_index][1] * fft.out[max_index][1];
 
-    for (int i = fft.start + 2; i < fft.end; i += 2)
+    for (int i = fft.start + 1; i < fft.end; i++)
     {
-        // PFFFT returns interleaved values.
         const float current_value =
-            fft.out[i] * fft.out[i] + fft.out[i + 1] * fft.out[i + 1];
+            fft.out[i][0] * fft.out[i][0] + fft.out[i][1] * fft.out[i][1];
 
         if (max_value < current_value)
         {
@@ -791,6 +795,90 @@ void I_DisableRumble(void)
     ResetAllChannels();
     SDL_GameControllerRumble(rumble.gamepad, 0, 0, 0);
 }
+
+#else // DUMMY
+
+#include "i_rumble.h"
+#include "m_config.h"
+#include "p_mobj.h"
+#include "sounds.h"
+
+static int joy_rumble;
+
+void I_ShutdownRumble(void)
+{
+    ;
+}
+
+void I_InitRumble(void)
+{
+    ;
+}
+
+void I_CacheRumble(sfxinfo_t *sfx, int format, const byte *data, int size,
+                   int rate)
+{
+    ;
+}
+
+boolean I_RumbleEnabled(void)
+{
+    return false;
+}
+
+boolean I_RumbleSupported(void)
+{
+    return false;
+}
+
+void I_RumbleMenuFeedback(void)
+{
+    ;
+}
+
+void I_UpdateRumbleEnabled(void)
+{
+    ;
+}
+
+void I_SetRumbleSupported(SDL_GameController *gamepad)
+{
+    ;
+}
+
+void I_ResetRumbleChannel(int handle)
+{
+    ;
+}
+
+void I_ResetAllRumbleChannels(void)
+{
+    ;
+}
+
+void I_UpdateRumble(void)
+{
+    ;
+}
+
+void I_UpdateRumbleParams(const mobj_t *listener, const mobj_t *origin,
+                          int handle)
+{
+    ;
+}
+
+void I_StartRumble(const mobj_t *listener, const mobj_t *origin,
+                   const sfxinfo_t *sfx, int handle, rumble_type_t rumble_type)
+{
+    ;
+}
+
+void I_DisableRumble(void)
+{
+    ;
+}
+
+#endif // HAVE_FFTW3
 
 void I_BindRumbleVariables(void)
 {

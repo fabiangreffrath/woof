@@ -93,6 +93,7 @@ The following build system and libraries need to be installed:
  * [cJSON](https://github.com/DaveGamble/cJSON)
  * [fluidsynth](https://github.com/FluidSynth/fluidsynth) (>= 2.2.0, optional)
  * [libxmp](https://github.com/libxmp/libxmp) (optional)
+ * [fftw3](https://github.com/FFTW/fftw3) (optional)
  
 Usually your distribution should have the corresponding packages in its repositories, and if your distribution has "dev" versions of those libraries, those are the ones you'll need.
 
@@ -217,12 +218,6 @@ Copyright:
  © 2005-2014 Simon Howard;  
  © 2013-2018 Alexey Khokholov (Nuke.YKT).  
 License: [GPL-2.0+](https://www.gnu.org/licenses/old-licenses/gpl-2.0.html)
-
-Files: `pffft/*`  
-Copyright:  
- © 2004 The University Corporation for Atmospheric Research ("UCAR");  
- © 2013 Julien Pommier.  
-License: [FFTPACK License](https://bitbucket.org/jpommier/pffft/src/master/pffft.h)
 
 Files: `soundfonts/TimGM6mb.sf2`  
 Copyright:  
