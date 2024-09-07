@@ -155,7 +155,7 @@ static void P_BringUpWeapon(player_t *player)
     player->pendingweapon = player->readyweapon;
 
   if (player->pendingweapon == wp_chainsaw)
-    S_StartSoundPitch(player->mo, sfx_sawup, PITCH_HALF);
+    S_StartSoundPitchEx(player->mo, sfx_sawup, PITCH_HALF);
 
   if (player->pendingweapon >= NUMWEAPONS)
   {
@@ -695,7 +695,7 @@ void A_Punch(player_t *player, pspdef_t *psp)
   if (!linetarget)
     return;
 
-  S_StartSound(player->mo, sfx_punch);
+  S_StartSoundEx(player->mo, sfx_punch);
 
   // turn to face target
 
@@ -735,11 +735,11 @@ void A_Saw(player_t *player, pspdef_t *psp)
 
   if (!linetarget)
     {
-      S_StartSoundPitch(player->mo, sfx_sawful, PITCH_HALF);
+      S_StartSoundPitchEx(player->mo, sfx_sawful, PITCH_HALF);
       return;
     }
 
-  S_StartSoundPitch(player->mo, sfx_sawhit, PITCH_HALF);
+  S_StartSoundPitchEx(player->mo, sfx_sawhit, PITCH_HALF);
 
   // turn to face target
   angle = R_PointToAngle2(player->mo->x, player->mo->y,
@@ -929,7 +929,7 @@ void P_GunShot(mobj_t *mo, boolean accurate)
 
 void A_FirePistol(player_t *player, pspdef_t *psp)
 {
-  S_StartSound(player->mo, sfx_pistol);
+  S_StartSoundPistol(player->mo, sfx_pistol);
 
   P_SetMobjState(player->mo, S_PLAY_ATK2);
   P_SubtractAmmo(player, 1);
@@ -948,7 +948,7 @@ void A_FireShotgun(player_t *player, pspdef_t *psp)
 {
   int i;
 
-  S_StartSound(player->mo, sfx_shotgn);
+  S_StartSoundShotgun(player->mo, sfx_shotgn);
   P_SetMobjState(player->mo, S_PLAY_ATK2);
 
   P_SubtractAmmo(player, 1);
@@ -970,7 +970,7 @@ void A_FireShotgun2(player_t *player, pspdef_t *psp)
 {
   int i;
 
-  S_StartSound(player->mo, sfx_dshtgn);
+  S_StartSoundSSG(player->mo, sfx_dshtgn);
   P_SetMobjState(player->mo, S_PLAY_ATK2);
   P_SubtractAmmo(player, 2);
 
@@ -998,7 +998,7 @@ void A_FireShotgun2(player_t *player, pspdef_t *psp)
 
 void A_FireCGun(player_t *player, pspdef_t *psp)
 {
-  S_StartSound(player->mo, sfx_pistol);
+  S_StartSoundCGun(player->mo, sfx_pistol);
 
   if (!player->ammo[weaponinfo[player->readyweapon].ammo])
     return;
@@ -1079,7 +1079,7 @@ void A_BFGSpray(mobj_t *mo)
 
 void A_BFGsound(player_t *player, pspdef_t *psp)
 {
-  S_StartSound(player->mo, sfx_bfg);
+  S_StartSoundBFG(player->mo, sfx_bfg);
 }
 
 //
@@ -1317,7 +1317,7 @@ void A_WeaponMeleeAttack(player_t *player, pspdef_t *psp)
     return;
 
   // un-missed!
-  S_StartSound(player->mo, hitsound);
+  S_StartSoundEx(player->mo, hitsound);
 
   // turn to face target
   SavePlayerAngle(player);
@@ -1336,7 +1336,8 @@ void A_WeaponSound(player_t *player, pspdef_t *psp)
   if (!mbf21 || !psp->state)
     return;
 
-  S_StartSound(psp->state->args[1] ? NULL : player->mo, psp->state->args[0]);
+  S_StartSoundOrigin(player->mo, (psp->state->args[1] ? NULL : player->mo),
+                     psp->state->args[0]);
 }
 
 //

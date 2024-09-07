@@ -46,6 +46,7 @@
 #include "i_gyro.h"
 #include "i_input.h"
 #include "i_printf.h"
+#include "i_rumble.h"
 #include "i_system.h"
 #include "i_timer.h"
 #include "i_video.h"
@@ -850,6 +851,7 @@ void G_ClearInput(void)
   G_ClearCarry();
   memset(&basecmd, 0, sizeof(basecmd));
   I_ResetRelativeMouseState();
+  I_ResetAllRumbleChannels();
 }
 
 //
@@ -3020,8 +3022,8 @@ static boolean G_CheckSpot(int playernum, mapthing_t *mthing)
                      ss->sector->floorheight, MT_TFOG);
   }
 
-  if (players[consoleplayer].viewz != 1)
-    S_StartSound(mo, sfx_telept);  // don't start sound on first frame
+  if (players[consoleplayer].viewz != 1) // don't start sound on first frame
+    S_StartSoundSource(players[consoleplayer].mo, mo, sfx_telept);
 
   return true;
 }

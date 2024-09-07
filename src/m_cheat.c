@@ -440,7 +440,7 @@ static void cheat_god()
     // [crispy] spawn a teleport fog
     an = plyr->mo->angle >> ANGLETOFINESHIFT;
     P_SpawnMobj(plyr->mo->x+20*finecosine[an], plyr->mo->y+20*finesine[an], plyr->mo->z, MT_TFOG);
-    S_StartSound(plyr->mo, sfx_slop);
+    S_StartSoundEx(plyr->mo, sfx_slop);
     P_MapEnd();
 
     // Fix reviving as "zombie" if god mode was already enabled

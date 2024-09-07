@@ -24,6 +24,7 @@
 #include "i_gamepad.h"
 #include "i_gyro.h"
 #include "i_printf.h"
+#include "i_rumble.h"
 #include "i_system.h"
 #include "i_timer.h"
 #include "m_config.h"
@@ -406,6 +407,7 @@ static void DisableGamepadEvents(void)
 
 static void I_ShutdownGamepad(void)
 {
+    I_ShutdownRumble();
     SDL_QuitSubSystem(SDL_INIT_GAMECONTROLLER);
 }
 
@@ -431,6 +433,7 @@ void I_InitGamepad(void)
     }
 
     DisableGamepadEvents();
+    I_InitRumble();
 
     I_Printf(VB_INFO, "I_InitGamepad: Initialize gamepad.");
 
@@ -453,6 +456,7 @@ void I_OpenGamepad(int which)
                      "I_OpenGamepad: Found a valid gamepad, named: %s",
                      SDL_GameControllerName(gamepad));
 
+            I_SetRumbleSupported(gamepad);
             I_ResetGamepad();
             I_LoadGyroCalibration();
             UpdatePlatform();
@@ -483,6 +487,7 @@ void I_CloseGamepad(SDL_JoystickID instance_id)
     {
         SDL_GameControllerClose(gamepad);
         gamepad = NULL;
+        I_SetRumbleSupported(NULL);
         DisableGamepadEvents();
         UpdatePlatform();
         I_ResetGamepad();

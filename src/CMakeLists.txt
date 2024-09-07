@@ -48,6 +48,7 @@ set(WOOF_SOURCES
                            i_oalstream.h
     i_oplmusic.c
     i_printf.c             i_printf.h
+    i_rumble.c             i_rumble.h
     i_sndfile.c            i_sndfile.h
     i_sound.c              i_sound.h
     i_system.c             i_system.h
@@ -186,6 +187,7 @@ target_link_libraries(woof PRIVATE
     OpenAL::OpenAL
     SndFile::sndfile
     opl
+    pffft
     textscreen
     miniz
     spng

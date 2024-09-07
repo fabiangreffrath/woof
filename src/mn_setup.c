@@ -30,6 +30,7 @@
 #include "i_input.h"
 #include "i_oalequalizer.h"
 #include "i_oalsound.h"
+#include "i_rumble.h"
 #include "i_sound.h"
 #include "i_timer.h"
 #include "i_video.h"
@@ -303,6 +304,7 @@ enum
 {
     str_empty,
     str_layout,
+    str_rumble,
     str_curve,
     str_center_weapon,
     str_screensize,
@@ -2451,6 +2453,16 @@ static const char *layout_strings[] = {
     "Flick Stick Southpaw",
 };
 
+static void UpdateRumble(void)
+{
+    I_UpdateRumbleEnabled();
+    I_RumbleMenuFeedback();
+}
+
+static const char *rumble_strings[] = {
+    "Off", "10%", "20%", "30%", "40%", "50%", "60%", "70%", "80%", "90%", "100%"
+};
+
 static const char *curve_strings[] = {
     "",       "",    "",    "",        "",    "",    "",
     "",       "",    "", // Dummy values, start at 1.0.
@@ -2468,6 +2480,9 @@ static setup_menu_t gen_settings4[] = {
 
     {"Invert Look", S_ONOFF, CNTR_X, M_SPC, {"joy_invert_look"},
      .action = I_ResetGamepad},
+
+    {"Rumble", S_THERMO, CNTR_X, M_THRM_SPC, {"joy_rumble"},
+     .strings_id = str_rumble, .action = UpdateRumble},
 
     MI_GAP,
 
@@ -2494,14 +2509,9 @@ static setup_menu_t gen_settings4[] = {
 static void UpdateGamepadItems(void)
 {
     boolean condition =
-        (!I_UseGamepad() || !I_GamepadEnabled() || !I_UseStickLayout());
+        (!I_UseGamepad() || !I_GamepadEnabled() || !I_RumbleSupported());
 
-    DisableItem(condition, gen_settings4, "joy_invert_look");
-    DisableItem(condition, gen_settings4, "joy_movement_inner_deadzone");
-    DisableItem(condition, gen_settings4, "joy_camera_inner_deadzone");
-    DisableItem(condition, gen_settings4, "joy_turn_speed");
-    DisableItem(condition, gen_settings4, "joy_look_speed");
-    DisableItem(condition, gen_settings4, "joy_camera_curve");
+    DisableItem(condition, gen_settings4, "joy_rumble");
 
     // Allow padlook toggle when the gamepad is using gyro, even if the
     // stick layout is set to off.
@@ -2510,6 +2520,14 @@ static void UpdateGamepadItems(void)
          || (!I_UseStickLayout() && (!I_GyroEnabled() || !I_GyroSupported())));
 
     DisableItem(condition, gen_settings4, "padlook");
+
+    condition = (!I_UseGamepad() || !I_GamepadEnabled() || !I_UseStickLayout());
+    DisableItem(condition, gen_settings4, "joy_invert_look");
+    DisableItem(condition, gen_settings4, "joy_movement_inner_deadzone");
+    DisableItem(condition, gen_settings4, "joy_camera_inner_deadzone");
+    DisableItem(condition, gen_settings4, "joy_turn_speed");
+    DisableItem(condition, gen_settings4, "joy_look_speed");
+    DisableItem(condition, gen_settings4, "joy_camera_curve");
 }
 
 static void UpdateGyroItems(void);
@@ -4193,6 +4211,7 @@ void MN_DrawTitle(int x, int y, const char *patch, const char *alttext)
 static const char **selectstrings[] = {
     NULL, // str_empty
     layout_strings,
+    rumble_strings,
     curve_strings,
     center_weapon_strings,
     screensize_strings,

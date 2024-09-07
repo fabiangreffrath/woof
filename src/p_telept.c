@@ -92,12 +92,10 @@ int EV_Teleport(line_t *line, int side, mobj_t *thing)
           S_StartSound(P_SpawnMobj(oldx, oldy, oldz, MT_TFOG), sfx_telept);
 
           // spawn teleport fog and emit sound at destination
-          S_StartSound(P_SpawnMobj(m->x +
-                                    20*finecosine[m->angle>>ANGLETOFINESHIFT],
-                                   m->y +
-                                    20*finesine[m->angle>>ANGLETOFINESHIFT],
-                                   thing->z, MT_TFOG),
-                       sfx_telept);
+          fixed_t fog_x = m->x + 20 * finecosine[m->angle >> ANGLETOFINESHIFT];
+          fixed_t fog_y = m->y + 20 * finesine[m->angle >> ANGLETOFINESHIFT];
+          mobj_t *fog_mo = P_SpawnMobj(fog_x, fog_y, thing->z, MT_TFOG);
+          S_StartSoundSource(thing, fog_mo, sfx_telept);
 
           if (thing->player)       // don't move for a bit // killough 10/98
 	    // killough 10/98: beta teleporters were a bit faster

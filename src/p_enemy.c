@@ -2197,13 +2197,13 @@ void A_Scream(mobj_t *actor)
 
 void A_XScream(mobj_t *actor)
 {
-  S_StartSound(actor, sfx_slop);
+  S_StartSoundEx(actor, sfx_slop);
 }
 
 void A_Pain(mobj_t *actor)
 {
   if (actor->info->painsound)
-    S_StartSound(actor, actor->info->painsound);
+    S_StartSoundPain(actor, actor->info->painsound);
 }
 
 void A_Fall(mobj_t *actor)
@@ -2709,7 +2709,7 @@ void A_PlayerScream(mobj_t *mo)
   int sound = sfx_pldeth;  // Default death sound.
   if (gamemode != shareware && mo->health < -50) // killough 12/98
     sound = sfx_pdiehi;   // IF THE PLAYER DIES LESS THAN -50% WITHOUT GIBBING
-  S_StartSound(mo, sound);
+  S_StartSoundEx(mo, sound);
 }
 
 //
@@ -2790,7 +2790,7 @@ void A_PlaySound(mobj_t *mo)
 {
   if (demo_version < DV_MBF)
     return;
-  S_StartSound(mo->state->misc2 ? NULL : mo, mo->state->misc1);
+  S_StartSoundOrigin(mo, mo->state->misc2 ? NULL : mo, mo->state->misc1);
 }
 
 void A_RandomJump(mobj_t *mo)

@@ -235,7 +235,7 @@ void P_HitFloor (mobj_t *mo, int oof)
     {sfx_lavsml, sfx_lvsiz}   // terrain_lava
   };
 
-  S_StartSound(mo, hitsound[terrain][oof]);
+  S_StartSoundHitFloor(mo, hitsound[terrain][oof]);
 }
 
 ///////////////////////////////////////////////////////////////

@@ -1178,7 +1178,7 @@ static void P_HitSlideLine(line_t *ld)
     {
       if (icyfloor && abs(tmymove) > abs(tmxmove))
 	{
-	  S_StartSound(slidemo,sfx_oof); // oooff!
+	  S_StartSoundPreset(slidemo, sfx_oof, PITCH_FULL); // oooff!
 	  tmxmove /= 2; // absorb half the momentum
 	  tmymove = -tmymove/2;
 	}
@@ -1191,7 +1191,7 @@ static void P_HitSlideLine(line_t *ld)
     {
       if (icyfloor && abs(tmxmove) > abs(tmymove))
 	{
-	  S_StartSound(slidemo,sfx_oof); // oooff!
+	  S_StartSoundPreset(slidemo, sfx_oof, PITCH_FULL); // oooff!
 	  tmxmove = -tmxmove/2; // absorb half the momentum
 	  tmymove /= 2;
 	}
@@ -1223,7 +1223,7 @@ static void P_HitSlideLine(line_t *ld)
 
   if (icyfloor && deltaangle > ANG45 && deltaangle < ANG90+ANG45)
     {
-      S_StartSound(slidemo,sfx_oof); // oooff!
+      S_StartSoundPreset(slidemo, sfx_oof, PITCH_FULL); // oooff!
       moveangle = lineangle - deltaangle;
       movelen /= 2; // absorb
       moveangle >>= ANGLETOFINESHIFT;

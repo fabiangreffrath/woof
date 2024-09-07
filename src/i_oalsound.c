@@ -29,6 +29,7 @@
 #include "i_oalequalizer.h"
 #include "i_oalsound.h"
 #include "i_printf.h"
+#include "i_rumble.h"
 #include "i_sndfile.h"
 #include "i_sound.h"
 #include "m_array.h"
@@ -713,6 +714,7 @@ boolean I_OAL_CacheSound(sfxinfo_t *sfx)
 
         sfx->buffer = buffer;
         sfx->cached = true;
+        I_CacheRumble(sfx, format, sampledata, size, freq);
     }
 
     // don't need original lump data any more
