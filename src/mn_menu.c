@@ -43,6 +43,7 @@
 #include "i_system.h"
 #include "i_timer.h"
 #include "i_video.h"
+#include "m_argv.h"
 #include "m_input.h"
 #include "m_io.h"
 #include "m_misc.h"
@@ -619,7 +620,8 @@ static menuitem_t NewGameMenu[] = {
     {1, "M_ROUGH", M_ChooseSkill, 'h', "Hey, not too rough.",   NEW_GAME_RECT(1)},
     {1, "M_HURT",  M_ChooseSkill, 'h', "Hurt me plenty.",       NEW_GAME_RECT(2)},
     {1, "M_ULTRA", M_ChooseSkill, 'u', "Ultra-Violence.",       NEW_GAME_RECT(3)},
-    {1, "M_NMARE", M_ChooseSkill, 'n', "Nightmare!",            NEW_GAME_RECT(4)}
+    {1, "M_NMARE", M_ChooseSkill, 'n', "Nightmare!",            NEW_GAME_RECT(4)},
+    {0, "",        M_ChooseSkill,  0,  NULL,                    NEW_GAME_RECT(5)},
 };
 
 static menu_t NewDef = {
@@ -693,6 +695,24 @@ static void M_VerifyNightmare(int ch)
 
 static void M_ChooseSkill(int choice)
 {
+    if (!M_ParmExists("-coop_spawns"))
+    {
+        coop_spawns = false;
+    }
+
+    if (W_CheckNumForName("M_ANME") >= 0)
+    {
+        if (choice == violence + 1)
+        {
+            coop_spawns = true;
+        }
+
+        if (choice > violence)
+        {
+            choice--;
+        }
+    }
+
     if (choice == nightmare)
     { // Ty 03/27/98 - externalized
         M_StartMessage(s_NIGHTMARE, M_VerifyNightmare, true);
@@ -1992,6 +2012,13 @@ void M_Init(void)
         ReadDef1.y = 165;
         HelpDef.y = 165;
         ReadMenu1[0].routine = M_FinishReadThis;
+    }
+
+    if (W_CheckNumForName("M_ANME") >= 0) // coop spawns skill
+    {
+        NewGameMenu[newg_end] = NewGameMenu[nightmare];
+        NewGameMenu[nightmare] = (menuitem_t){1, "M_ANME", M_ChooseSkill, 'a', "", NEW_GAME_RECT(4)};
+        NewDef.numitems = newg_end + 1;
     }
 
     // Versions of doom.exe before the Ultimate Doom release only had
