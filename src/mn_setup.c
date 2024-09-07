@@ -3281,7 +3281,11 @@ boolean MN_SetupCursorPostion(int x, int y)
 
         item->m_flags &= ~S_HILITE;
 
-        if (MN_PointInsideRect(&item->rect, x, y))
+        mrect_t rect = item->rect;
+        rect.x = 0;
+        rect.w = SCREENWIDTH;
+
+        if (MN_PointInsideRect(&rect, x, y))
         {
             item->m_flags |= S_HILITE;
 
