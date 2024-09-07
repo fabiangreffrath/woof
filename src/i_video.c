@@ -35,6 +35,7 @@
 #include "d_main.h"
 #include "doomdef.h"
 #include "doomstat.h"
+#include "g_game.h"
 #include "i_input.h"
 #include "i_printf.h"
 #include "i_system.h"
@@ -1486,7 +1487,7 @@ static void I_ResetTargetRefresh(void)
     }
     else
     {
-        targetrefresh = TICRATE;
+        targetrefresh = TICRATE * realtic_clock_rate / 100;
     }
 
     UpdateLimiter();
