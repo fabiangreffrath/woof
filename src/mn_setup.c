@@ -2218,7 +2218,7 @@ static setup_menu_t gen_settings1[] = {
     {"Gamma Correction", S_THERMO, M_X_THRM8, M_THRM_SPC, {"gamma2"},
      .strings_id = str_gamma, .action = MN_ResetGamma},
 
-    {"Level Brightness", S_THERMO | S_THRM_SIZE4 | S_STRICT, M_X_THRM4,
+    {"Extra Lighting", S_THERMO | S_THRM_SIZE4 | S_STRICT, M_X_THRM4,
      M_THRM_SPC, {"extra_level_brightness"}},
 
     MI_RESET,
