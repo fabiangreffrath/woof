@@ -3282,8 +3282,12 @@ boolean MN_SetupCursorPostion(int x, int y)
         item->m_flags &= ~S_HILITE;
 
         mrect_t rect = item->rect;
-        rect.x = 0;
-        rect.w = SCREENWIDTH;
+
+        if (item->m_flags & S_THERMO)
+        {
+            rect.x = 0;
+            rect.w = SCREENWIDTH;
+        }
 
         if (MN_PointInsideRect(&rect, x, y))
         {
