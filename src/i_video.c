@@ -1835,6 +1835,7 @@ static void CreateSurfaces(int w, int h)
 
     SDL_SetTextureScaleMode(texture, SDL_ScaleModeNearest);
 
+    Z_FreeTag(PU_RENDERER);
     R_InitAnyRes();
     ST_InitRes();
 

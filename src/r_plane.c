@@ -113,19 +113,19 @@ void R_InitPlanes (void)
 
 void R_InitPlanesRes(void)
 {
-  floorclip = Z_Calloc(1, video.width * sizeof(*floorclip), PU_VALLOC, NULL);
-  ceilingclip = Z_Calloc(1, video.width * sizeof(*ceilingclip), PU_VALLOC, NULL);
-  spanstart = Z_Calloc(1, video.height * sizeof(*spanstart), PU_VALLOC, NULL);
+  floorclip = Z_Calloc(1, video.width * sizeof(*floorclip), PU_RENDERER, NULL);
+  ceilingclip = Z_Calloc(1, video.width * sizeof(*ceilingclip), PU_RENDERER, NULL);
+  spanstart = Z_Calloc(1, video.height * sizeof(*spanstart), PU_RENDERER, NULL);
 
-  cachedheight = Z_Calloc(1, video.height * sizeof(*cachedheight), PU_VALLOC, NULL);
-  cacheddistance = Z_Calloc(1, video.height * sizeof(*cacheddistance), PU_VALLOC, NULL);
-  cachedxstep = Z_Calloc(1, video.height * sizeof(*cachedxstep), PU_VALLOC, NULL);
-  cachedystep = Z_Calloc(1, video.height * sizeof(*cachedystep), PU_VALLOC, NULL);
+  cachedheight = Z_Calloc(1, video.height * sizeof(*cachedheight), PU_RENDERER, NULL);
+  cacheddistance = Z_Calloc(1, video.height * sizeof(*cacheddistance), PU_RENDERER, NULL);
+  cachedxstep = Z_Calloc(1, video.height * sizeof(*cachedxstep), PU_RENDERER, NULL);
+  cachedystep = Z_Calloc(1, video.height * sizeof(*cachedystep), PU_RENDERER, NULL);
 
-  yslope = Z_Calloc(1, video.height * sizeof(*yslope), PU_VALLOC, NULL);
-  distscale = Z_Calloc(1, video.width * sizeof(*distscale), PU_VALLOC, NULL);
+  yslope = Z_Calloc(1, video.height * sizeof(*yslope), PU_RENDERER, NULL);
+  distscale = Z_Calloc(1, video.width * sizeof(*distscale), PU_RENDERER, NULL);
 
-  openings = Z_Calloc(1, video.width * video.height * sizeof(*openings), PU_VALLOC, NULL);
+  openings = Z_Calloc(1, video.width * video.height * sizeof(*openings), PU_RENDERER, NULL);
 
   xtoskyangle = linearsky ? linearskyangle : xtoviewangle;
 }

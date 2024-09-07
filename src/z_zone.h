@@ -33,6 +33,7 @@
 typedef enum {
   PU_STATIC,
   PU_LEVEL,
+  PU_RENDERER,
   PU_VALLOC,
   PU_CACHE,
   /* Must always be last -- killough */

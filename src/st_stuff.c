@@ -1428,7 +1428,7 @@ void ST_InitRes(void)
   int height = V_ScaleY(StatusBarBufferHeight());
 
   // killough 11/98: allocate enough for hires
-  st_backing_screen = Z_Malloc(video.pitch * height * sizeof(*st_backing_screen), PU_VALLOC, 0);
+  st_backing_screen = Z_Malloc(video.pitch * height * sizeof(*st_backing_screen), PU_RENDERER, 0);
 }
 
 void ST_Warnings(void)
