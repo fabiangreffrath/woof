@@ -2481,6 +2481,9 @@ static setup_menu_t gen_settings4[] = {
     {"Invert Look", S_ONOFF, CNTR_X, M_SPC, {"joy_invert_look"},
      .action = I_ResetGamepad},
 
+    {"Rumble", S_THERMO, CNTR_X, M_THRM_SPC, {"joy_rumble"},
+     .strings_id = str_rumble, .action = UpdateRumble},
+
     MI_GAP,
 
     {"Turn Speed", S_THERMO | S_THRM_SIZE11, CNTR_X, M_THRM_SPC,
@@ -2499,9 +2502,6 @@ static setup_menu_t gen_settings4[] = {
 
     {"Camera Deadzone", S_THERMO | S_PCT, CNTR_X, M_THRM_SPC,
      {"joy_camera_inner_deadzone"}, .action = I_ResetGamepad},
-
-    {"Rumble", S_THERMO, CNTR_X, M_THRM_SPC, {"joy_rumble"},
-     .strings_id = str_rumble, .action = UpdateRumble},
 
     MI_END
 };
