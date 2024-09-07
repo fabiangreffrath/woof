@@ -119,19 +119,12 @@ static int maxframe;
 
 void R_InitSpritesRes(void)
 {
-  if (xtoviewangle) Z_Free(xtoviewangle);
-  if (linearskyangle) Z_Free(linearskyangle);
-  if (negonearray) Z_Free(negonearray);
-  if (screenheightarray) Z_Free(screenheightarray);
+  xtoviewangle = Z_Calloc(1, (video.width + 1) * sizeof(*xtoviewangle), PU_VALLOC, NULL);
+  linearskyangle = Z_Calloc(1, (video.width + 1) * sizeof(*linearskyangle), PU_VALLOC, NULL);
+  negonearray = Z_Calloc(1, video.width * sizeof(*negonearray), PU_VALLOC, NULL);
+  screenheightarray = Z_Calloc(1, video.width * sizeof(*screenheightarray), PU_VALLOC, NULL);
 
-  xtoviewangle = Z_Calloc(1, (video.width + 1) * sizeof(*xtoviewangle), PU_STATIC, NULL);
-  linearskyangle = Z_Calloc(1, (video.width + 1) * sizeof(*linearskyangle), PU_STATIC, NULL);
-  negonearray = Z_Calloc(1, video.width * sizeof(*negonearray), PU_STATIC, NULL);
-  screenheightarray = Z_Calloc(1, video.width * sizeof(*screenheightarray), PU_STATIC, NULL);
-
-  if (clipbot) Z_Free(clipbot);
-
-  clipbot = Z_Calloc(1, 2 * video.width * sizeof(*clipbot), PU_STATIC, NULL);
+  clipbot = Z_Calloc(1, 2 * video.width * sizeof(*clipbot), PU_VALLOC, NULL);
   cliptop = clipbot + video.width;
 }
 

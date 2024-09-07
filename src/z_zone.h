@@ -48,6 +48,8 @@ void Z_ChangeTag(void *ptr, pu_tag tag);
 void *Z_Calloc(size_t n, size_t n2, pu_tag tag, void **user);
 void *Z_Realloc(void *p, size_t n, pu_tag tag, void **user);
 
+char *Z_StrDup(const char *orig, pu_tag tag);
+
 #endif
 
 //----------------------------------------------------------------------------
