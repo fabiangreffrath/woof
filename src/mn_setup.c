@@ -2520,7 +2520,8 @@ static const char *curve_strings[] = {
 };
 
 static setup_menu_t gen_settings4[] = {
-    {"Stick Layout",S_CHOICE, CNTR_X, M_SPC, {"joy_stick_layout"},
+
+    {"Stick Layout", S_CHOICE, CNTR_X, M_SPC, {"joy_stick_layout"},
      .strings_id = str_layout, .action = UpdateStickLayout},
 
     {"Free Look", S_ONOFF, CNTR_X, M_SPC, {"padlook"},
@@ -2655,6 +2656,7 @@ static void UpdateGyroSteadying(void)
 }
 
 static setup_menu_t gen_gyro[] = {
+
     {"Gyro Aiming", S_ONOFF, CNTR_X, M_SPC, {"gyro_enable"},
      .action = UpdateGyroAiming},
 
