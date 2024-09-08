@@ -13,6 +13,8 @@
 //  GNU General Public License for more details.
 //
 
+#include <stdarg.h>
+
 #include "mn_internal.h"
 
 #include "am_map.h"
@@ -1121,14 +1123,23 @@ static void DrawGyroCalibration(void)
 //
 // killough 8/15/98: rewritten
 
+static const char *HelpString(const char *fmt, ...) PRINTF_ATTR(1, 2)
+{
+    static char buf[64];
+    va_list args;
+    va_start(args, fmt);
+    M_vsnprintf(buf, sizeof(buf), fmt, args);
+    va_end(args);
+    return buf;
+}
+
 static void DrawInstructions()
 {
-    static char joyb_buf[64];
     int index = (menu_input == mouse_mode ? highlight_item : set_item_on);
     const setup_menu_t *item = &current_menu[index];
     const int flags = item->m_flags;
 
-    if (ItemDisabled(flags) || print_warning_about_changes > 0)
+    if (print_warning_about_changes > 0)
     {
         return;
     }
@@ -1137,8 +1148,22 @@ static void DrawInstructions()
     // are changing an item or just sitting on it.
 
     const char *s = "";
+    const char *first, *second;
 
-    if (item->desc)
+    if (ItemDisabled(flags))
+    {
+        if (help_input == pad_mode)
+        {
+            second = M_GetPlatformName(GAMEPAD_B);
+        }
+        else
+        {
+            second = M_GetNameForKey(KEY_BACKSPACE);
+        }
+
+        s = HelpString("[ %s ] Back", second);
+    }
+    else if (item->desc)
     {
         s = item->desc;
     }
@@ -1150,30 +1175,31 @@ static void DrawInstructions()
         }
         else if (flags & S_ONOFF)
         {
-            if (menu_input == pad_mode)
+            if (help_input == pad_mode)
             {
-                M_snprintf(joyb_buf, sizeof(joyb_buf), "[ %s ] to toggle",
-                           M_GetPlatformName(GAMEPAD_A));
-                s = joyb_buf;
+                first = M_GetPlatformName(GAMEPAD_A);
+                second = M_GetPlatformName(GAMEPAD_B);
             }
             else
             {
-                s = "[ Enter ] to toggle, [ Esc ] to cancel";
+                first = M_GetNameForKey(KEY_ENTER);
+                second = M_GetNameForKey(KEY_ESCAPE);
             }
+
+            s = HelpString("[ %s ] Toggle, [ %s ] Cancel", first, second);
         }
         else if (flags & (S_CHOICE | S_CRITEM | S_THERMO))
         {
-            if (menu_input == pad_mode)
+            if (help_input == pad_mode)
             {
-                M_snprintf(joyb_buf, sizeof(joyb_buf),
-                           "[ Left/Right ] to choose, [ %s ] to cancel",
-                           M_GetPlatformName(GAMEPAD_B));
-                s = joyb_buf;
+                second = M_GetPlatformName(GAMEPAD_B);
             }
             else
             {
-                s = "[ Left/Right ] to choose, [ Esc ] to cancel";
+                second = M_GetNameForKey(KEY_ESCAPE);
             }
+
+            s = HelpString("[ Left/Right ] Choose, [ %s ] Cancel", second);
         }
         else if (flags & S_NUM)
         {
@@ -1185,52 +1211,64 @@ static void DrawInstructions()
         }
         else if (flags & S_RESET)
         {
-            s = "Restore defaults";
+            if (help_input == pad_mode)
+            {
+                first = M_GetPlatformName(GAMEPAD_A);
+                second = M_GetPlatformName(GAMEPAD_B);
+            }
+            else
+            {
+                first = M_GetNameForKey(KEY_ENTER);
+                second = M_GetNameForKey(KEY_ESCAPE);
+            }
+
+            s = HelpString("[ %s ] OK, [ %s ] Cancel", first, second);
         }
     }
     else
     {
         if (flags & S_INPUT)
         {
-            switch (menu_input)
+            if (help_input == pad_mode)
             {
-                case mouse_mode:
-                    s = "[ Del ] to clear";
-                    break;
-                case pad_mode:
-                    M_snprintf(joyb_buf, sizeof(joyb_buf),
-                               "[ %s ] to change, [ %s ] to clear",
-                               M_GetPlatformName(GAMEPAD_A),
-                               M_GetPlatformName(GAMEPAD_Y));
-                    s = joyb_buf;
-                    break;
-                default:
-                case key_mode:
-                    s = "[ Enter ] to change, [ Del ] to clear";
-                    break;
+                first = M_GetPlatformName(GAMEPAD_A);
+                second = M_GetPlatformName(GAMEPAD_Y);
             }
+            else
+            {
+                first = M_GetNameForKey(KEY_ENTER);
+                second = M_GetNameForKey(KEY_DEL);
+            }
+
+            s = HelpString("[ %s ] Change, [ %s ] Clear", first, second);
         }
         else if (flags & S_RESET)
         {
-            s = "Restore defaults";
+            if (help_input == pad_mode)
+            {
+                first = M_GetPlatformName(GAMEPAD_A);
+            }
+            else
+            {
+                first = M_GetNameForKey(KEY_ENTER);
+            }
+
+            s = HelpString("[ %s ] Restore defaults", first);
         }
         else
         {
-            switch (menu_input)
+            if (help_input == pad_mode)
             {
-                case pad_mode:
-                    M_snprintf(joyb_buf, sizeof(joyb_buf),
-                               "[ %s ] to change, [ %s ] to return",
-                               M_GetPlatformName(GAMEPAD_A),
-                               M_GetPlatformName(GAMEPAD_B));
-                    s = joyb_buf;
-                    break;
-                case key_mode:
-                    s = "[ Enter ] to change";
-                    break;
-                default:
-                    break;
+                first = M_GetPlatformName(GAMEPAD_A);
+                second = M_GetPlatformName(GAMEPAD_B);
             }
+            else
+            {
+                first = M_GetNameForKey(KEY_ENTER);
+                second = M_GetNameForKey(KEY_BACKSPACE);
+            }
+
+            s = HelpString("[ %s ] Change, [ %s ] Back", first, second);
         }
     }
 
@@ -3456,6 +3494,7 @@ static boolean ChangeEntry(menu_action_t action, int ch)
 
         SelectDone(current_item); // phares 4/17/98
         setup_gather = false;     // finished gathering keys, if any
+        help_input = old_help_input;
         menu_input = old_menu_input;
         MN_ResetMouseCursor();
         return true;
@@ -3490,6 +3529,7 @@ static boolean ChangeEntry(menu_action_t action, int ch)
         // allow backspace, and return to original value if bad
         // value is entered).
 
+        help_input = old_help_input;
         menu_input = old_menu_input;
         MN_ResetMouseCursor();
 
@@ -3565,6 +3605,7 @@ static boolean BindInput(void)
         return false;
     }
 
+    help_input = old_help_input;
     menu_input = old_menu_input;
     MN_ResetMouseCursor();
 
@@ -3788,6 +3829,7 @@ boolean MN_SetupResponder(menu_action_t action, int ch)
         }
 
         SelectDone(current_item); // phares 4/17/98
+        help_input = old_help_input;
         menu_input = old_menu_input;
         MN_ResetMouseCursor();
         return true;
@@ -3803,6 +3845,7 @@ boolean MN_SetupResponder(menu_action_t action, int ch)
         {
             M_InputReset(current_item->input_id);
         }
+        help_input = old_help_input;
         menu_input = old_menu_input;
         MN_ResetMouseCursor();
         return true;
