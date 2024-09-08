@@ -1131,14 +1131,14 @@ typedef enum
 
 static menu_help_t menu_help;
 
-static const char *HelpString(const char *fmt, ...) PRINTF_ATTR(1, 2)
+static void PRINTF_ATTR(2, 3) HelpString(const char **s, const char *fmt, ...)
 {
     static char buf[64];
     va_list args;
     va_start(args, fmt);
     M_vsnprintf(buf, sizeof(buf), fmt, args);
     va_end(args);
-    return buf;
+    *s = buf;
 }
 
 static void DrawInstructions()
@@ -1171,7 +1171,7 @@ static void DrawInstructions()
             second = M_GetNameForKey(KEY_BACKSPACE);
         }
 
-        s = HelpString("[ %s ] Back", second);
+        HelpString(&s, "[ %s ] Back", second);
     }
     else if (item->desc)
     {
@@ -1196,7 +1196,7 @@ static void DrawInstructions()
                 second = M_GetNameForKey(KEY_ESCAPE);
             }
 
-            s = HelpString("[ %s ] Toggle, [ %s ] Cancel", first, second);
+            HelpString(&s, "[ %s ] Toggle, [ %s ] Cancel", first, second);
         }
         else if (flags & (S_CHOICE | S_CRITEM | S_THERMO))
         {
@@ -1209,7 +1209,7 @@ static void DrawInstructions()
                 second = M_GetNameForKey(KEY_ESCAPE);
             }
 
-            s = HelpString("[ Left/Right ] Choose, [ %s ] Cancel", second);
+            HelpString(&s, "[ Left/Right ] Choose, [ %s ] Cancel", second);
         }
         else if (flags & S_NUM)
         {
@@ -1232,7 +1232,7 @@ static void DrawInstructions()
                 second = M_GetNameForKey(KEY_ESCAPE);
             }
 
-            s = HelpString("[ %s ] OK, [ %s ] Cancel", first, second);
+            HelpString(&s, "[ %s ] OK, [ %s ] Cancel", first, second);
         }
     }
     else
@@ -1250,7 +1250,7 @@ static void DrawInstructions()
                 second = M_GetNameForKey(KEY_DEL);
             }
 
-            s = HelpString("[ %s ] Change, [ %s ] Clear", first, second);
+            HelpString(&s, "[ %s ] Change, [ %s ] Clear", first, second);
         }
         else if (flags & S_RESET)
         {
@@ -1263,7 +1263,7 @@ static void DrawInstructions()
                 first = M_GetNameForKey(KEY_ENTER);
             }
 
-            s = HelpString("[ %s ] Restore defaults", first);
+            HelpString(&s, "[ %s ] Restore defaults", first);
         }
         else
         {
@@ -1278,7 +1278,7 @@ static void DrawInstructions()
                 second = M_GetNameForKey(KEY_BACKSPACE);
             }
 
-            s = HelpString("[ %s ] Change, [ %s ] Back", first, second);
+            HelpString(&s, "[ %s ] Change, [ %s ] Back", first, second);
         }
     }
 
