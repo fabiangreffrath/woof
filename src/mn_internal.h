@@ -45,6 +45,7 @@ typedef enum
     key_mode
 } menu_input_mode_t;
 
+extern menu_input_mode_t help_input, old_help_input; // pad_mode or key_mode.
 extern menu_input_mode_t menu_input, old_menu_input;
 void MN_ResetMouseCursor(void);
 

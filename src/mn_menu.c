@@ -2323,6 +2323,7 @@ static boolean ShortcutResponder(const event_t *ev)
     return false;
 }
 
+menu_input_mode_t help_input, old_help_input;
 menu_input_mode_t menu_input, old_menu_input;
 
 static int mouse_state_x, mouse_state_y;
@@ -2396,13 +2397,14 @@ static boolean SaveLoadResponder(menu_action_t action, int ch)
 
     if (delete_verify)
     {
-        if (M_ToUpper(ch) == 'Y')
+        if (M_ToUpper(ch) == 'Y' || action == MENU_ENTER)
         {
             M_DeleteGame(old_menu_input == mouse_mode ? highlight_item : itemOn);
             M_StartSound(sfx_itemup);
             delete_verify = false;
         }
-        else if (M_ToUpper(ch) == 'N')
+        else if (M_ToUpper(ch) == 'N' || action == MENU_BACKSPACE
+                 || action == MENU_ESCAPE)
         {
             M_StartSound(sfx_itemup);
             delete_verify = false;
@@ -2552,6 +2554,7 @@ boolean M_Responder(event_t *ev)
     static menu_action_t repeat = MENU_NULL;
     menu_action_t action = MENU_NULL;
 
+    old_help_input = help_input;
     old_menu_input = menu_input;
 
     ch = 0; // will be changed to a legit char if we're going to use it here
@@ -2588,6 +2591,7 @@ boolean M_Responder(event_t *ev)
             break;
 
         case ev_joyb_down:
+            help_input = pad_mode;
             menu_input = pad_mode;
             break;
 
@@ -2602,6 +2606,7 @@ boolean M_Responder(event_t *ev)
             return false;
 
         case ev_keydown:
+            help_input = key_mode;
             menu_input = key_mode;
             ch = ev->data1.i;
             break;
@@ -2900,6 +2905,7 @@ boolean M_Responder(event_t *ev)
         }
         MN_ClearMenus();
         M_StartSound(sfx_swtchx);
+        help_input = old_help_input;
         menu_input = old_menu_input;
         MN_ResetMouseCursor();
         return true;
@@ -2943,6 +2949,7 @@ boolean M_Responder(event_t *ev)
             MN_ClearMenus();
             M_StartSound(sfx_swtchx);
         }
+        help_input = old_help_input;
         menu_input = old_menu_input;
         MN_ResetMouseCursor();
         return true;
@@ -2958,6 +2965,7 @@ boolean M_Responder(event_t *ev)
             {
                 M_StartSound(sfx_itemup);
                 currentMenu->lastOn = itemOn;
+                help_input = old_help_input;
                 menu_input = old_menu_input;
                 delete_verify = true;
                 return true;

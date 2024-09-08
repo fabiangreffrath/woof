@@ -1043,46 +1043,44 @@ static void DrawScreenItems(setup_menu_t *src)
 // Data used to draw the "are you sure?" dialogue box when resetting
 // to defaults.
 
-#define VERIFYBOXXORG 66
-#define VERIFYBOXYORG 88
-
-static void DrawDefVerify()
-{
-    V_DrawPatch(VERIFYBOXXORG, VERIFYBOXYORG,
-                V_CachePatchName("M_VBOX", PU_CACHE));
-
-    // The blinking messages is keyed off of the blinking of the
-    // cursor skull.
-
-    if (whichSkull) // blink the text
-    {
-        strcpy(menu_buffer, "Restore defaults? (Y or N)");
-        DrawMenuString(VERIFYBOXXORG + 8, VERIFYBOXYORG + 8, CR_RED);
-    }
-}
-
-void MN_DrawDelVerify(void)
-{
-    V_DrawPatch(VERIFYBOXXORG, VERIFYBOXYORG,
-                V_CachePatchName("M_VBOX", PU_CACHE));
-
-    if (whichSkull)
-    {
-        MN_DrawString(VERIFYBOXXORG + 8, VERIFYBOXYORG + 8, CR_RED,
-                      "Delete savegame? (Y or N)");
-    }
-}
-
-static void DrawNotification(const char *text, int color)
+static void DrawDefVerify(void)
 {
     patch_t *patch = V_CachePatchName("M_VBOX", PU_CACHE);
     int x = (SCREENWIDTH - patch->width) / 2;
     int y = (SCREENHEIGHT - patch->height) / 2;
     V_DrawPatch(x, y, patch);
 
-    x = (SCREENWIDTH - MN_GetPixelWidth(text)) / 2;
-    y = (SCREENHEIGHT - MN_StringHeight(text)) / 2;
-    MN_DrawString(x, y, color, text);
+    // The blinking messages is keyed off of the blinking of the
+    // cursor skull.
+
+    if (whichSkull) // blink the text
+    {
+        const char *text = "Restore defaults? (Y/N)";
+        strcpy(menu_buffer, text);
+        x = (SCREENWIDTH - MN_GetPixelWidth(text)) / 2;
+        y = (SCREENHEIGHT - MN_StringHeight(text)) / 2;
+        DrawMenuString(x, y, CR_RED);
+    }
+}
+
+static void DrawNotification(const char *text, int color, boolean blink)
+{
+    patch_t *patch = V_CachePatchName("M_VBOX", PU_CACHE);
+    int x = (SCREENWIDTH - patch->width) / 2;
+    int y = (SCREENHEIGHT - patch->height) / 2;
+    V_DrawPatch(x, y, patch);
+
+    if (!blink || whichSkull)
+    {
+        x = (SCREENWIDTH - MN_GetPixelWidth(text)) / 2;
+        y = (SCREENHEIGHT - MN_StringHeight(text)) / 2;
+        MN_DrawString(x, y, color, text);
+    }
+}
+
+void MN_DrawDelVerify(void)
+{
+    DrawNotification("Delete savegame? (Y/N)", CR_RED, true);
 }
 
 static void DrawGyroCalibration(void)
@@ -1094,17 +1092,17 @@ static void DrawGyroCalibration(void)
 
         case GYRO_CALIBRATION_STARTING:
             block_input = true;
-            DrawNotification("Starting calibration...", CR_GRAY);
+            DrawNotification("Starting calibration...", CR_GRAY, false);
             I_UpdateGyroCalibrationState();
             break;
 
         case GYRO_CALIBRATION_ACTIVE:
-            DrawNotification("Calibrating, please wait...", CR_GRAY);
+            DrawNotification("Calibrating, please wait...", CR_GRAY, false);
             I_UpdateGyroCalibrationState();
             break;
 
         case GYRO_CALIBRATION_COMPLETE:
-            DrawNotification("Calibration complete!", CR_GREEN);
+            DrawNotification("Calibration complete!", CR_GREEN, false);
             I_UpdateGyroCalibrationState();
             if (I_GetGyroCalibrationState() == GYRO_CALIBRATION_INACTIVE)
             {
@@ -1121,14 +1119,23 @@ static void DrawGyroCalibration(void)
 //
 // killough 8/15/98: rewritten
 
-static void DrawInstructions()
+typedef enum
 {
-    static char joyb_buf[64];
+    MENU_HELP_OFF,
+    MENU_HELP_AUTO,
+    MENU_HELP_KEY,
+    MENU_HELP_PAD
+} menu_help_t;
+
+static menu_help_t menu_help;
+
+static void DrawInstructions(void)
+{
     int index = (menu_input == mouse_mode ? highlight_item : set_item_on);
     const setup_menu_t *item = &current_menu[index];
     const int flags = item->m_flags;
 
-    if (ItemDisabled(flags) || print_warning_about_changes > 0)
+    if (menu_help == MENU_HELP_OFF || print_warning_about_changes > 0)
     {
         return;
     }
@@ -1136,101 +1143,135 @@ static void DrawInstructions()
     // There are different instruction messages depending on whether you
     // are changing an item or just sitting on it.
 
-    const char *s = "";
+    char s[80];
+    s[0] = '\0';
+    const char *first, *second;
+    const boolean pad = ((menu_help == MENU_HELP_AUTO && help_input == pad_mode)
+                         || menu_help == MENU_HELP_PAD);
 
-    if (item->desc)
+    if (ItemDisabled(flags))
     {
-        s = item->desc;
+        if (pad)
+        {
+            second = M_GetPlatformName(GAMEPAD_B);
+        }
+        else
+        {
+            second = M_GetNameForKey(KEY_BACKSPACE);
+        }
+
+        M_snprintf(s, sizeof(s), "[ %s ] Back", second);
+    }
+    else if (item->desc)
+    {
+        M_snprintf(s, sizeof(s), "%s", item->desc);
     }
     else if (setup_select)
     {
         if (flags & S_INPUT)
         {
-            s = "Press key or button to bind/unbind";
+            M_snprintf(s, sizeof(s), "Press key or button to bind/unbind");
         }
         else if (flags & S_ONOFF)
         {
-            if (menu_input == pad_mode)
+            if (pad)
             {
-                M_snprintf(joyb_buf, sizeof(joyb_buf), "[ %s ] to toggle",
-                           M_GetPlatformName(GAMEPAD_A));
-                s = joyb_buf;
+                first = M_GetPlatformName(GAMEPAD_A);
+                second = M_GetPlatformName(GAMEPAD_B);
             }
             else
             {
-                s = "[ Enter ] to toggle, [ Esc ] to cancel";
+                first = M_GetNameForKey(KEY_ENTER);
+                second = M_GetNameForKey(KEY_ESCAPE);
             }
+
+            M_snprintf(s, sizeof(s), "[ %s ] Toggle, [ %s ] Cancel", first,
+                       second);
         }
         else if (flags & (S_CHOICE | S_CRITEM | S_THERMO))
         {
-            if (menu_input == pad_mode)
+            if (pad)
             {
-                M_snprintf(joyb_buf, sizeof(joyb_buf),
-                           "[ Left/Right ] to choose, [ %s ] to cancel",
-                           M_GetPlatformName(GAMEPAD_B));
-                s = joyb_buf;
+                second = M_GetPlatformName(GAMEPAD_B);
             }
             else
             {
-                s = "[ Left/Right ] to choose, [ Esc ] to cancel";
+                second = M_GetNameForKey(KEY_ESCAPE);
             }
+
+            M_snprintf(s, sizeof(s), "[ Left/Right ] Choose, [ %s ] Cancel",
+                       second);
         }
         else if (flags & S_NUM)
         {
-            s = "Enter value";
+            M_snprintf(s, sizeof(s), "Enter value");
         }
         else if (flags & S_WEAP)
         {
-            s = "Enter weapon number";
+            M_snprintf(s, sizeof(s), "Enter weapon number");
         }
         else if (flags & S_RESET)
         {
-            s = "Restore defaults";
+            if (pad)
+            {
+                first = M_GetPlatformName(GAMEPAD_A);
+                second = M_GetPlatformName(GAMEPAD_B);
+            }
+            else
+            {
+                first = M_GetNameForKey(KEY_ENTER);
+                second = M_GetNameForKey(KEY_ESCAPE);
+            }
+
+            M_snprintf(s, sizeof(s), "[ %s ] OK, [ %s ] Cancel", first, second);
         }
     }
     else
     {
         if (flags & S_INPUT)
         {
-            switch (menu_input)
+            if (pad)
             {
-                case mouse_mode:
-                    s = "[ Del ] to clear";
-                    break;
-                case pad_mode:
-                    M_snprintf(joyb_buf, sizeof(joyb_buf),
-                               "[ %s ] to change, [ %s ] to clear",
-                               M_GetPlatformName(GAMEPAD_A),
-                               M_GetPlatformName(GAMEPAD_Y));
-                    s = joyb_buf;
-                    break;
-                default:
-                case key_mode:
-                    s = "[ Enter ] to change, [ Del ] to clear";
-                    break;
+                first = M_GetPlatformName(GAMEPAD_A);
+                second = M_GetPlatformName(GAMEPAD_Y);
             }
+            else
+            {
+                first = M_GetNameForKey(KEY_ENTER);
+                second = M_GetNameForKey(KEY_DEL);
+            }
+
+            M_snprintf(s, sizeof(s), "[ %s ] Change, [ %s ] Clear", first,
+                       second);
         }
         else if (flags & S_RESET)
         {
-            s = "Restore defaults";
+            if (pad)
+            {
+                first = M_GetPlatformName(GAMEPAD_A);
+            }
+            else
+            {
+                first = M_GetNameForKey(KEY_ENTER);
+            }
+
+            M_snprintf(s, sizeof(s), "[ %s ] Restore defaults", first);
         }
         else
         {
-            switch (menu_input)
+            if (pad)
             {
-                case pad_mode:
-                    M_snprintf(joyb_buf, sizeof(joyb_buf),
-                               "[ %s ] to change, [ %s ] to return",
-                               M_GetPlatformName(GAMEPAD_A),
-                               M_GetPlatformName(GAMEPAD_B));
-                    s = joyb_buf;
-                    break;
-                case key_mode:
-                    s = "[ Enter ] to change";
-                    break;
-                default:
-                    break;
+                first = M_GetPlatformName(GAMEPAD_A);
+                second = M_GetPlatformName(GAMEPAD_B);
             }
+            else
+            {
+                first = M_GetNameForKey(KEY_ENTER);
+                second = M_GetNameForKey(KEY_BACKSPACE);
+            }
+
+            M_snprintf(s, sizeof(s), "[ %s ] Change, [ %s ] Back", first,
+                       second);
         }
     }
 
@@ -2185,42 +2226,42 @@ void MN_ResetGamma(void)
 
 static setup_menu_t gen_settings1[] = {
 
-    {"Resolution Scale", S_THERMO | S_THRM_SIZE11 | S_ACTION, M_X_THRM11,
+    {"Resolution Scale", S_THERMO | S_THRM_SIZE11 | S_ACTION, CNTR_X,
      M_THRM_SPC, {"resolution_scale"}, .strings_id = str_resolution_scale,
      .action = ResetVideoHeight},
 
-    {"Dynamic Resolution", S_ONOFF, M_X, M_SPC, {"dynamic_resolution"},
+    {"Dynamic Resolution", S_ONOFF, CNTR_X, M_SPC, {"dynamic_resolution"},
      .action = ResetVideoHeight},
 
-    {"Widescreen", S_CHOICE, M_X, M_SPC, {"widescreen"},
+    {"Widescreen", S_CHOICE, CNTR_X, M_SPC, {"widescreen"},
      .strings_id = str_widescreen, .action = ResetVideo},
 
-    {"FOV", S_THERMO, M_X_THRM8, M_THRM_SPC, {"fov"},
-     .action = UpdateFOV},
-
-    {"Fullscreen", S_ONOFF, M_X, M_SPC, {"fullscreen"},
+    {"Fullscreen", S_ONOFF, CNTR_X, M_SPC, {"fullscreen"},
      .action = ToggleFullScreen},
 
-    {"Exclusive Fullscreen", S_ONOFF, M_X, M_SPC, {"exclusive_fullscreen"},
+    {"Exclusive Fullscreen", S_ONOFF, CNTR_X, M_SPC, {"exclusive_fullscreen"},
      .action = ToggleExclusiveFullScreen},
 
     MI_GAP,
 
-    {"Uncapped Framerate", S_ONOFF, M_X, M_SPC, {"uncapped"},
+    {"Uncapped FPS", S_ONOFF, CNTR_X, M_SPC, {"uncapped"},
      .action = UpdateFPSLimit},
 
-    {"Framerate Limit", S_NUM, M_X, M_SPC, {"fpslimit"},
+    {"FPS Limit", S_NUM, CNTR_X, M_SPC, {"fpslimit"},
      .action = UpdateFPSLimit},
 
-    {"VSync", S_ONOFF, M_X, M_SPC, {"use_vsync"},
+    {"VSync", S_ONOFF, CNTR_X, M_SPC, {"use_vsync"},
      .action = I_ToggleVsync},
 
     MI_GAP,
 
-    {"Gamma Correction", S_THERMO, M_X_THRM8, M_THRM_SPC, {"gamma2"},
+    {"FOV", S_THERMO | S_THRM_SIZE11, CNTR_X, M_THRM_SPC, {"fov"},
+     .action = UpdateFOV},
+
+    {"Gamma Correction", S_THERMO, CNTR_X, M_THRM_SPC, {"gamma2"},
      .strings_id = str_gamma, .action = MN_ResetGamma},
 
-    {"Extra Lighting", S_THERMO | S_THRM_SIZE4 | S_STRICT, M_X_THRM4,
+    {"Extra Lighting", S_THERMO | S_STRICT, CNTR_X,
      M_THRM_SPC, {"extra_level_brightness"}},
 
     MI_RESET,
@@ -2472,7 +2513,8 @@ static const char *curve_strings[] = {
 };
 
 static setup_menu_t gen_settings4[] = {
-    {"Stick Layout",S_CHOICE, CNTR_X, M_SPC, {"joy_stick_layout"},
+
+    {"Stick Layout", S_CHOICE, CNTR_X, M_SPC, {"joy_stick_layout"},
      .strings_id = str_layout, .action = UpdateStickLayout},
 
     {"Free Look", S_ONOFF, CNTR_X, M_SPC, {"padlook"},
@@ -2607,6 +2649,7 @@ static void UpdateGyroSteadying(void)
 }
 
 static setup_menu_t gen_gyro[] = {
+
     {"Gyro Aiming", S_ONOFF, CNTR_X, M_SPC, {"gyro_enable"},
      .action = UpdateGyroAiming},
 
@@ -3456,6 +3499,7 @@ static boolean ChangeEntry(menu_action_t action, int ch)
 
         SelectDone(current_item); // phares 4/17/98
         setup_gather = false;     // finished gathering keys, if any
+        help_input = old_help_input;
         menu_input = old_menu_input;
         MN_ResetMouseCursor();
         return true;
@@ -3490,6 +3534,7 @@ static boolean ChangeEntry(menu_action_t action, int ch)
         // allow backspace, and return to original value if bad
         // value is entered).
 
+        help_input = old_help_input;
         menu_input = old_menu_input;
         MN_ResetMouseCursor();
 
@@ -3565,6 +3610,7 @@ static boolean BindInput(void)
         return false;
     }
 
+    help_input = old_help_input;
     menu_input = old_menu_input;
     MN_ResetMouseCursor();
 
@@ -3788,6 +3834,7 @@ boolean MN_SetupResponder(menu_action_t action, int ch)
         }
 
         SelectDone(current_item); // phares 4/17/98
+        help_input = old_help_input;
         menu_input = old_menu_input;
         MN_ResetMouseCursor();
         return true;
@@ -3803,6 +3850,7 @@ boolean MN_SetupResponder(menu_action_t action, int ch)
         {
             M_InputReset(current_item->input_id);
         }
+        help_input = old_help_input;
         menu_input = old_menu_input;
         MN_ResetMouseCursor();
         return true;
@@ -4298,4 +4346,6 @@ void MN_BindMenuVariables(void)
     BIND_NUM(resolution_scale, 0, 0, UL, "Position of resolution scale slider (do not modify)");
     BIND_NUM_GENERAL(menu_backdrop, MENU_BG_DARK, MENU_BG_OFF, MENU_BG_TEXTURE,
         "Menu backdrop (0 = Off; 1 = Dark; 2 = Texture)");
+    BIND_NUM_GENERAL(menu_help, MENU_HELP_AUTO, MENU_HELP_OFF, MENU_HELP_PAD,
+        "Menu help (0 = Off; 1 = Auto; 2 = Always Keyboard; 3 = Always Gamepad)");
 }
