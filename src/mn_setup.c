@@ -1144,6 +1144,7 @@ static void DrawInstructions(void)
     // are changing an item or just sitting on it.
 
     char s[80];
+    s[0] = '\0';
     const char *first, *second;
     const boolean pad = ((menu_help == MENU_HELP_AUTO && help_input == pad_mode)
                          || menu_help == MENU_HELP_PAD);
