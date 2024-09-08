@@ -2233,42 +2233,42 @@ void MN_ResetGamma(void)
 
 static setup_menu_t gen_settings1[] = {
 
-    {"Resolution Scale", S_THERMO | S_THRM_SIZE11 | S_ACTION, M_X_THRM11,
+    {"Resolution Scale", S_THERMO | S_THRM_SIZE11 | S_ACTION, CNTR_X,
      M_THRM_SPC, {"resolution_scale"}, .strings_id = str_resolution_scale,
      .action = ResetVideoHeight},
 
-    {"Dynamic Resolution", S_ONOFF, M_X, M_SPC, {"dynamic_resolution"},
+    {"Dynamic Resolution", S_ONOFF, CNTR_X, M_SPC, {"dynamic_resolution"},
      .action = ResetVideoHeight},
 
-    {"Widescreen", S_CHOICE, M_X, M_SPC, {"widescreen"},
+    {"Widescreen", S_CHOICE, CNTR_X, M_SPC, {"widescreen"},
      .strings_id = str_widescreen, .action = ResetVideo},
 
-    {"FOV", S_THERMO, M_X_THRM8, M_THRM_SPC, {"fov"},
-     .action = UpdateFOV},
-
-    {"Fullscreen", S_ONOFF, M_X, M_SPC, {"fullscreen"},
+    {"Fullscreen", S_ONOFF, CNTR_X, M_SPC, {"fullscreen"},
      .action = ToggleFullScreen},
 
-    {"Exclusive Fullscreen", S_ONOFF, M_X, M_SPC, {"exclusive_fullscreen"},
+    {"Exclusive Fullscreen", S_ONOFF, CNTR_X, M_SPC, {"exclusive_fullscreen"},
      .action = ToggleExclusiveFullScreen},
 
     MI_GAP,
 
-    {"Uncapped Framerate", S_ONOFF, M_X, M_SPC, {"uncapped"},
+    {"Uncapped FPS", S_ONOFF, CNTR_X, M_SPC, {"uncapped"},
      .action = UpdateFPSLimit},
 
-    {"Framerate Limit", S_NUM, M_X, M_SPC, {"fpslimit"},
+    {"FPS Limit", S_NUM, CNTR_X, M_SPC, {"fpslimit"},
      .action = UpdateFPSLimit},
 
-    {"VSync", S_ONOFF, M_X, M_SPC, {"use_vsync"},
+    {"VSync", S_ONOFF, CNTR_X, M_SPC, {"use_vsync"},
      .action = I_ToggleVsync},
 
     MI_GAP,
 
-    {"Gamma Correction", S_THERMO, M_X_THRM8, M_THRM_SPC, {"gamma2"},
+    {"FOV", S_THERMO | S_THRM_SIZE11, CNTR_X, M_THRM_SPC, {"fov"},
+     .action = UpdateFOV},
+
+    {"Gamma Correction", S_THERMO, CNTR_X, M_THRM_SPC, {"gamma2"},
      .strings_id = str_gamma, .action = MN_ResetGamma},
 
-    {"Extra Lighting", S_THERMO | S_THRM_SIZE4 | S_STRICT, M_X_THRM4,
+    {"Extra Lighting", S_THERMO | S_STRICT, CNTR_X,
      M_THRM_SPC, {"extra_level_brightness"}},
 
     MI_RESET,
