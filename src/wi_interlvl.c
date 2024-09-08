@@ -13,9 +13,6 @@
 
 #include "wi_interlvl.h"
 
-#include <stdlib.h>
-#include <string.h>
-
 #include "doomtype.h"
 #include "i_printf.h"
 #include "w_wad.h"
@@ -27,11 +24,6 @@
 #include "m_array.h"
 
 #include "cjson/cJSON.h"
-
-static char *WI_StringDuplicate(const char *orig)
-{
-    return strcpy(Z_Malloc(strlen(orig) + 1, PU_LEVEL, NULL), orig);
-}
 
 static boolean ParseCondition(cJSON *json, interlevelcond_t *out)
 {
@@ -59,7 +51,7 @@ static boolean ParseFrame(cJSON *json, interlevelframe_t *out)
     {
         return false;
     }
-    out->image_lump = WI_StringDuplicate(image_lump->valuestring);
+    out->image_lump = Z_StrDup(image_lump->valuestring, PU_LEVEL);
 
     cJSON *type = cJSON_GetObjectItemCaseSensitive(json, "type");
     if (!cJSON_IsNumber(type))
@@ -160,20 +152,14 @@ static void ParseLevelLayer(cJSON *json, interlevellayer_t *out)
 
 interlevel_t *WI_ParseInterlevel(const char *lumpname)
 {
-    interlevel_t *out = Z_Calloc(1, sizeof(*out), PU_LEVEL, NULL);
-
     cJSON *json = cJSON_Parse(W_CacheLumpName(lumpname, PU_CACHE));
     if (json == NULL)
     {
         const char *error_ptr = cJSON_GetErrorPtr();
         if (error_ptr != NULL)
         {
-            char error_buf[32] = {0};
-            memcpy(error_buf, error_ptr, sizeof(error_buf) - 1);
-            I_Printf(VB_ERROR, "WI_ParseInterlevel: Error before: %s\n",
-                     error_buf);
+            I_Printf(VB_ERROR, "Error parsing %s", lumpname);
         }
-        free(out);
         cJSON_Delete(json);
         return NULL;
     }
@@ -181,7 +167,6 @@ interlevel_t *WI_ParseInterlevel(const char *lumpname)
     cJSON *data = cJSON_GetObjectItemCaseSensitive(json, "data");
     if (!cJSON_IsObject(data))
     {
-        free(out);
         cJSON_Delete(json);
         return NULL;
     }
@@ -192,13 +177,14 @@ interlevel_t *WI_ParseInterlevel(const char *lumpname)
 
     if (!cJSON_IsString(music) || !cJSON_IsString(backgroundimage))
     {
-        free(out);
         cJSON_Delete(json);
         return NULL;
     }
 
-    out->music_lump = WI_StringDuplicate(music->valuestring);
-    out->background_lump = WI_StringDuplicate(backgroundimage->valuestring);
+    interlevel_t *out = Z_Calloc(1, sizeof(*out), PU_LEVEL, NULL);
+
+    out->music_lump = Z_StrDup(music->valuestring, PU_LEVEL);
+    out->background_lump = Z_StrDup(backgroundimage->valuestring, PU_LEVEL);
 
     cJSON *js_layers = cJSON_GetObjectItemCaseSensitive(data, "layers");
     cJSON *js_layer = NULL;

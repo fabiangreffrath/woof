@@ -763,23 +763,9 @@ void R_ShadeScreen(boolean toggle)
 
 void R_InitBufferRes(void)
 {
-    if (solidcol)
-    {
-        Z_Free(solidcol);
-    }
-    if (columnofs)
-    {
-        Z_Free(columnofs);
-    }
-    if (ylookup)
-    {
-        Z_Free(ylookup);
-    }
-
-    columnofs = Z_Malloc(video.width * sizeof(*columnofs), PU_STATIC, NULL);
-    ylookup = Z_Malloc(video.height * sizeof(*ylookup), PU_STATIC, NULL);
-
-    solidcol = Z_Calloc(1, video.width * sizeof(*solidcol), PU_STATIC, NULL);
+    columnofs = Z_Malloc(video.width * sizeof(*columnofs), PU_RENDERER, NULL);
+    ylookup = Z_Malloc(video.height * sizeof(*ylookup), PU_RENDERER, NULL);
+    solidcol = Z_Calloc(1, video.width * sizeof(*solidcol), PU_RENDERER, NULL);
 }
 
 //
