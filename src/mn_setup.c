@@ -1123,6 +1123,16 @@ static void DrawGyroCalibration(void)
 //
 // killough 8/15/98: rewritten
 
+typedef enum
+{
+    MENU_HELP_OFF,
+    MENU_HELP_AUTO,
+    MENU_HELP_KEY,
+    MENU_HELP_PAD
+} menu_help_t;
+
+static menu_help_t menu_help;
+
 static const char *HelpString(const char *fmt, ...) PRINTF_ATTR(1, 2)
 {
     static char buf[64];
@@ -1139,7 +1149,7 @@ static void DrawInstructions()
     const setup_menu_t *item = &current_menu[index];
     const int flags = item->m_flags;
 
-    if (print_warning_about_changes > 0)
+    if (menu_help == MENU_HELP_OFF || print_warning_about_changes > 0)
     {
         return;
     }
@@ -1149,10 +1159,12 @@ static void DrawInstructions()
 
     const char *s = "";
     const char *first, *second;
+    const boolean pad = ((menu_help == MENU_HELP_AUTO && help_input == pad_mode)
+                         || menu_help == MENU_HELP_PAD);
 
     if (ItemDisabled(flags))
     {
-        if (help_input == pad_mode)
+        if (pad)
         {
             second = M_GetPlatformName(GAMEPAD_B);
         }
@@ -1175,7 +1187,7 @@ static void DrawInstructions()
         }
         else if (flags & S_ONOFF)
         {
-            if (help_input == pad_mode)
+            if (pad)
             {
                 first = M_GetPlatformName(GAMEPAD_A);
                 second = M_GetPlatformName(GAMEPAD_B);
@@ -1190,7 +1202,7 @@ static void DrawInstructions()
         }
         else if (flags & (S_CHOICE | S_CRITEM | S_THERMO))
         {
-            if (help_input == pad_mode)
+            if (pad)
             {
                 second = M_GetPlatformName(GAMEPAD_B);
             }
@@ -1211,7 +1223,7 @@ static void DrawInstructions()
         }
         else if (flags & S_RESET)
         {
-            if (help_input == pad_mode)
+            if (pad)
             {
                 first = M_GetPlatformName(GAMEPAD_A);
                 second = M_GetPlatformName(GAMEPAD_B);
@@ -1229,7 +1241,7 @@ static void DrawInstructions()
     {
         if (flags & S_INPUT)
         {
-            if (help_input == pad_mode)
+            if (pad)
             {
                 first = M_GetPlatformName(GAMEPAD_A);
                 second = M_GetPlatformName(GAMEPAD_Y);
@@ -1244,7 +1256,7 @@ static void DrawInstructions()
         }
         else if (flags & S_RESET)
         {
-            if (help_input == pad_mode)
+            if (pad)
             {
                 first = M_GetPlatformName(GAMEPAD_A);
             }
@@ -1257,7 +1269,7 @@ static void DrawInstructions()
         }
         else
         {
-            if (help_input == pad_mode)
+            if (pad)
             {
                 first = M_GetPlatformName(GAMEPAD_A);
                 second = M_GetPlatformName(GAMEPAD_B);
@@ -4341,4 +4353,6 @@ void MN_BindMenuVariables(void)
     BIND_NUM(resolution_scale, 0, 0, UL, "Position of resolution scale slider (do not modify)");
     BIND_NUM_GENERAL(menu_backdrop, MENU_BG_DARK, MENU_BG_OFF, MENU_BG_TEXTURE,
         "Menu backdrop (0 = Off; 1 = Dark; 2 = Texture)");
+    BIND_NUM_GENERAL(menu_help, MENU_HELP_AUTO, MENU_HELP_OFF, MENU_HELP_PAD,
+        "Menu help (0 = Off; 1 = Auto; 2 = Always Keyboard; 3 = Always Gamepad)");
 }
