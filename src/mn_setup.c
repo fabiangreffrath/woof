@@ -13,8 +13,6 @@
 //  GNU General Public License for more details.
 //
 
-#include <stdarg.h>
-
 #include "mn_internal.h"
 
 #include "am_map.h"
