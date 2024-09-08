@@ -47,6 +47,7 @@ char *M_StringJoinInternal(const char *s[], size_t n);
                          sizeof((const char *[]){__VA_ARGS__}) \
                              / sizeof(const char *))
 
+boolean M_StringStartsWith(const char *s, const char *prefix);
 boolean M_StringEndsWith(const char *s, const char *suffix);
 boolean M_StringCaseEndsWith(const char *s, const char *suffix);
 int M_vsnprintf(char *buf, size_t buf_len, const char *s, va_list args)

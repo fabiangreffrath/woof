@@ -393,6 +393,14 @@ boolean M_StringConcat(char *dest, const char *src, size_t dest_size)
     return M_StringCopy(dest + offset, src, dest_size - offset);
 }
 
+// Returns true if 's' begins with the specified prefix.
+
+boolean M_StringStartsWith(const char *s, const char *prefix)
+{
+    return strlen(s) >= strlen(prefix)
+           && strncmp(s, prefix, strlen(prefix)) == 0;
+}
+
 // Returns true if 's' ends with the specified suffix.
 
 boolean M_StringEndsWith(const char *s, const char *suffix)
