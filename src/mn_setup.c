@@ -1045,46 +1045,44 @@ static void DrawScreenItems(setup_menu_t *src)
 // Data used to draw the "are you sure?" dialogue box when resetting
 // to defaults.
 
-#define VERIFYBOXXORG 66
-#define VERIFYBOXYORG 88
-
-static void DrawDefVerify()
-{
-    V_DrawPatch(VERIFYBOXXORG, VERIFYBOXYORG,
-                V_CachePatchName("M_VBOX", PU_CACHE));
-
-    // The blinking messages is keyed off of the blinking of the
-    // cursor skull.
-
-    if (whichSkull) // blink the text
-    {
-        strcpy(menu_buffer, "Restore defaults? (Y or N)");
-        DrawMenuString(VERIFYBOXXORG + 8, VERIFYBOXYORG + 8, CR_RED);
-    }
-}
-
-void MN_DrawDelVerify(void)
-{
-    V_DrawPatch(VERIFYBOXXORG, VERIFYBOXYORG,
-                V_CachePatchName("M_VBOX", PU_CACHE));
-
-    if (whichSkull)
-    {
-        MN_DrawString(VERIFYBOXXORG + 8, VERIFYBOXYORG + 8, CR_RED,
-                      "Delete savegame? (Y or N)");
-    }
-}
-
-static void DrawNotification(const char *text, int color)
+static void DrawDefVerify(void)
 {
     patch_t *patch = V_CachePatchName("M_VBOX", PU_CACHE);
     int x = (SCREENWIDTH - patch->width) / 2;
     int y = (SCREENHEIGHT - patch->height) / 2;
     V_DrawPatch(x, y, patch);
 
-    x = (SCREENWIDTH - MN_GetPixelWidth(text)) / 2;
-    y = (SCREENHEIGHT - MN_StringHeight(text)) / 2;
-    MN_DrawString(x, y, color, text);
+    // The blinking messages is keyed off of the blinking of the
+    // cursor skull.
+
+    if (whichSkull) // blink the text
+    {
+        const char *text = "Restore defaults? (Y/N)";
+        strcpy(menu_buffer, text);
+        x = (SCREENWIDTH - MN_GetPixelWidth(text)) / 2;
+        y = (SCREENHEIGHT - MN_StringHeight(text)) / 2;
+        DrawMenuString(x, y, CR_RED);
+    }
+}
+
+static void DrawNotification(const char *text, int color, boolean blink)
+{
+    patch_t *patch = V_CachePatchName("M_VBOX", PU_CACHE);
+    int x = (SCREENWIDTH - patch->width) / 2;
+    int y = (SCREENHEIGHT - patch->height) / 2;
+    V_DrawPatch(x, y, patch);
+
+    if (!blink || whichSkull)
+    {
+        x = (SCREENWIDTH - MN_GetPixelWidth(text)) / 2;
+        y = (SCREENHEIGHT - MN_StringHeight(text)) / 2;
+        MN_DrawString(x, y, color, text);
+    }
+}
+
+void MN_DrawDelVerify(void)
+{
+    DrawNotification("Delete savegame? (Y/N)", CR_RED, true);
 }
 
 static void DrawGyroCalibration(void)
@@ -1096,17 +1094,17 @@ static void DrawGyroCalibration(void)
 
         case GYRO_CALIBRATION_STARTING:
             block_input = true;
-            DrawNotification("Starting calibration...", CR_GRAY);
+            DrawNotification("Starting calibration...", CR_GRAY, false);
             I_UpdateGyroCalibrationState();
             break;
 
         case GYRO_CALIBRATION_ACTIVE:
-            DrawNotification("Calibrating, please wait...", CR_GRAY);
+            DrawNotification("Calibrating, please wait...", CR_GRAY, false);
             I_UpdateGyroCalibrationState();
             break;
 
         case GYRO_CALIBRATION_COMPLETE:
-            DrawNotification("Calibration complete!", CR_GREEN);
+            DrawNotification("Calibration complete!", CR_GREEN, false);
             I_UpdateGyroCalibrationState();
             if (I_GetGyroCalibrationState() == GYRO_CALIBRATION_INACTIVE)
             {
