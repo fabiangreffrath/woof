@@ -1131,17 +1131,7 @@ typedef enum
 
 static menu_help_t menu_help;
 
-static void PRINTF_ATTR(2, 3) HelpString(const char **s, const char *fmt, ...)
-{
-    static char buf[64];
-    va_list args;
-    va_start(args, fmt);
-    M_vsnprintf(buf, sizeof(buf), fmt, args);
-    va_end(args);
-    *s = buf;
-}
-
-static void DrawInstructions()
+static void DrawInstructions(void)
 {
     int index = (menu_input == mouse_mode ? highlight_item : set_item_on);
     const setup_menu_t *item = &current_menu[index];
@@ -1155,7 +1145,7 @@ static void DrawInstructions()
     // There are different instruction messages depending on whether you
     // are changing an item or just sitting on it.
 
-    const char *s = "";
+    char s[80];
     const char *first, *second;
     const boolean pad = ((menu_help == MENU_HELP_AUTO && help_input == pad_mode)
                          || menu_help == MENU_HELP_PAD);
@@ -1171,17 +1161,17 @@ static void DrawInstructions()
             second = M_GetNameForKey(KEY_BACKSPACE);
         }
 
-        HelpString(&s, "[ %s ] Back", second);
+        M_snprintf(s, sizeof(s), "[ %s ] Back", second);
     }
     else if (item->desc)
     {
-        s = item->desc;
+        M_snprintf(s, sizeof(s), "%s", item->desc);
     }
     else if (setup_select)
     {
         if (flags & S_INPUT)
         {
-            s = "Press key or button to bind/unbind";
+            M_snprintf(s, sizeof(s), "Press key or button to bind/unbind");
         }
         else if (flags & S_ONOFF)
         {
@@ -1196,7 +1186,8 @@ static void DrawInstructions()
                 second = M_GetNameForKey(KEY_ESCAPE);
             }
 
-            HelpString(&s, "[ %s ] Toggle, [ %s ] Cancel", first, second);
+            M_snprintf(s, sizeof(s), "[ %s ] Toggle, [ %s ] Cancel", first,
+                       second);
         }
         else if (flags & (S_CHOICE | S_CRITEM | S_THERMO))
         {
@@ -1209,15 +1200,16 @@ static void DrawInstructions()
                 second = M_GetNameForKey(KEY_ESCAPE);
             }
 
-            HelpString(&s, "[ Left/Right ] Choose, [ %s ] Cancel", second);
+            M_snprintf(s, sizeof(s), "[ Left/Right ] Choose, [ %s ] Cancel",
+                       second);
         }
         else if (flags & S_NUM)
         {
-            s = "Enter value";
+            M_snprintf(s, sizeof(s), "Enter value");
         }
         else if (flags & S_WEAP)
         {
-            s = "Enter weapon number";
+            M_snprintf(s, sizeof(s), "Enter weapon number");
         }
         else if (flags & S_RESET)
         {
@@ -1232,7 +1224,7 @@ static void DrawInstructions()
                 second = M_GetNameForKey(KEY_ESCAPE);
             }
 
-            HelpString(&s, "[ %s ] OK, [ %s ] Cancel", first, second);
+            M_snprintf(s, sizeof(s), "[ %s ] OK, [ %s ] Cancel", first, second);
         }
     }
     else
@@ -1250,7 +1242,8 @@ static void DrawInstructions()
                 second = M_GetNameForKey(KEY_DEL);
             }
 
-            HelpString(&s, "[ %s ] Change, [ %s ] Clear", first, second);
+            M_snprintf(s, sizeof(s), "[ %s ] Change, [ %s ] Clear", first,
+                       second);
         }
         else if (flags & S_RESET)
         {
@@ -1263,7 +1256,7 @@ static void DrawInstructions()
                 first = M_GetNameForKey(KEY_ENTER);
             }
 
-            HelpString(&s, "[ %s ] Restore defaults", first);
+            M_snprintf(s, sizeof(s), "[ %s ] Restore defaults", first);
         }
         else
         {
@@ -1278,7 +1271,8 @@ static void DrawInstructions()
                 second = M_GetNameForKey(KEY_BACKSPACE);
             }
 
-            HelpString(&s, "[ %s ] Change, [ %s ] Back", first, second);
+            M_snprintf(s, sizeof(s), "[ %s ] Change, [ %s ] Back", first,
+                       second);
         }
     }
 
