@@ -16,21 +16,22 @@
 // to be interrogated.
 //
 
-#include <stdarg.h>
 #include <stdlib.h>
 #include <string.h>
 
 #include "config.h"
-#include "doomtype.h"
 #include "i_glob.h"
 #include "m_io.h"
 #include "m_misc.h"
 
-#if defined(_MSC_VER)
-// For Visual C++, we need to include the win_opendir module.
+#if defined(_WIN32)
 #  include "win_opendir.h"
+#  ifndef S_ISDIR
+#    define S_ISDIR(m) (((m) & S_IFMT) == S_IFDIR)
+#  endif
 #elif defined(HAVE_DIRENT_H)
 #  include <dirent.h>
+#  include <sys/stat.h>
 #elif defined(__WATCOMC__)
 // Watcom has the same API in a different header.
 #  include <direct.h>
@@ -46,13 +47,13 @@
 // not all systems.
 static boolean IsDirectory(char *dir, struct dirent *de)
 {
-#  if defined(_DIRENT_HAVE_D_TYPE)
+#if defined(_DIRENT_HAVE_D_TYPE)
     if (de->d_type != DT_UNKNOWN && de->d_type != DT_LNK)
     {
         return de->d_type == DT_DIR;
     }
     else
-#  endif
+#endif
     {
         char *filename;
         struct stat sb;
@@ -100,7 +101,6 @@ glob_t *I_StartMultiGlobInternal(const char *directory, int flags,
 {
     char **globs;
     glob_t *result;
-    char *directory_native;
 
     globs = malloc(num_globs * sizeof(*globs));
     if (globs == NULL)
@@ -120,18 +120,15 @@ glob_t *I_StartMultiGlobInternal(const char *directory, int flags,
         return NULL;
     }
 
-    directory_native = M_ConvertUtf8ToSysNativeMB(directory);
-
-    result->dir = opendir(directory_native);
+    result->dir = opendir(directory);
     if (result->dir == NULL)
     {
         FreeStringList(globs, num_globs);
         free(result);
-        free(directory_native);
         return NULL;
     }
 
-    result->directory = directory_native;
+    result->directory = M_StringDuplicate(directory);
     result->globs = globs;
     result->num_globs = num_globs;
     result->flags = flags;
@@ -225,7 +222,6 @@ static boolean MatchesAnyGlob(const char *name, glob_t *glob)
 static char *NextGlob(glob_t *glob)
 {
     struct dirent *de;
-    char *temp, *ret;
 
     do
     {
@@ -238,13 +234,7 @@ static char *NextGlob(glob_t *glob)
              || !MatchesAnyGlob(de->d_name, glob));
 
     // Return the fully-qualified path, not just the bare filename.
-    temp = M_StringJoin(glob->directory, DIR_SEPARATOR_S, de->d_name);
-
-    ret = M_ConvertSysNativeMBToUtf8(temp);
-
-    free(temp);
-
-    return ret;
+    return M_StringJoin(glob->directory, DIR_SEPARATOR_S, de->d_name, NULL);
 }
 
 static void ReadAllFilenames(glob_t *glob)

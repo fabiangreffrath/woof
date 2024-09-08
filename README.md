@@ -248,4 +248,5 @@ Copyright: © 2018-2023 Randy.
 License: [BSD-2-Clause](https://opensource.org/license/bsd-2-clause)
 
 Files: `win32/win_opendir.*`  
-License: public-domain
+Copyright: 2019 win32ports
+License: [MIT](https://opensource.org/licenses/MIT)
