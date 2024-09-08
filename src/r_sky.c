@@ -27,6 +27,7 @@
 #include "m_fixed.h"
 #include "r_data.h"
 #include "r_sky.h"
+#include "r_skydefs.h"
 #include "r_state.h" // [FG] textureheight[]
 #include "w_wad.h"
 #include "z_zone.h"
@@ -42,13 +43,19 @@ int skyflatnum;
 int skytexture = -1; // [crispy] initialize
 int skytexturemid;
 
+static skydef_t *skydef;
+
 //
 // R_InitSkyMap
 // Called whenever the view size changes.
 //
 void R_InitSkyMap (void)
 {
-  int skyheight;
+  skydef = R_ParseSkyDefs();
+  if (skydef)
+  {
+      return;
+  }
 
   // [crispy] initialize
   if (skytexture == -1)
@@ -58,7 +65,7 @@ void R_InitSkyMap (void)
   R_GetSkyColor(skytexture);
 
   // [FG] stretch short skies
-  skyheight = textureheight[skytexture]>>FRACBITS;
+  int skyheight = textureheight[skytexture] >> FRACBITS;
 
   if (stretchsky && skyheight < 200)
     skytexturemid = -28*FRACUNIT;
