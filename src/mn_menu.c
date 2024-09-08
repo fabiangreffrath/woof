@@ -2114,6 +2114,7 @@ static boolean ShortcutResponder(const event_t *ev)
         realtic_clock_rate = BETWEEN(10, 1000, realtic_clock_rate);
         displaymsg("Game Speed: %d", realtic_clock_rate);
         I_SetTimeScale(realtic_clock_rate);
+        setrefreshneeded = true;
     }
 
     if (M_InputActivated(input_speed_down) && !D_CheckNetConnect()
@@ -2123,6 +2124,7 @@ static boolean ShortcutResponder(const event_t *ev)
         realtic_clock_rate = BETWEEN(10, 1000, realtic_clock_rate);
         displaymsg("Game Speed: %d", realtic_clock_rate);
         I_SetTimeScale(realtic_clock_rate);
+        setrefreshneeded = true;
     }
 
     if (M_InputActivated(input_speed_default) && !D_CheckNetConnect()
