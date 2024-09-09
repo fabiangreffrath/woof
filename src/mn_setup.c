@@ -175,6 +175,7 @@ static boolean setup_select = false;      // changing an item
 static boolean setup_gather = false;      // gathering keys for value
 boolean default_verify = false;           // verify reset defaults decision
 static boolean block_input;
+boolean setup_active_secondary;
 
 /////////////////////////////
 //
@@ -1291,6 +1292,12 @@ static void SetupMenu(void)
     while (current_menu[set_item_on++].m_flags & S_SKIP)
         ;
     current_menu[--set_item_on].m_flags |= S_HILITE;
+}
+
+static void SetupMenuSecondary(void)
+{
+    setup_active_secondary = true;
+    SetupMenu();
 }
 
 /////////////////////////////
@@ -2997,7 +3004,7 @@ static void SetPageIndex(const int y)
 //
 // killough 10/98: rewritten to fix bugs and warn about pending changes
 
-static void ResetDefaults()
+static void ResetDefaults(ss_types reset_screen)
 {
     default_t *dp;
     int warn = 0;
@@ -3013,12 +3020,12 @@ static void ResetDefaults()
 
     for (dp = defaults; dp->name; dp++)
     {
-        if (dp->setupscreen != setup_screen)
+        if (dp->setupscreen != reset_screen)
         {
             continue;
         }
 
-        setup_menu_t **screens = setup_screens[setup_screen];
+        setup_menu_t **screens = setup_screens[reset_screen];
 
         for (; *screens; screens++)
         {
@@ -3075,6 +3082,11 @@ static void ResetDefaults()
     {
         warn_about_changes(warn);
     }
+}
+
+static void ResetDefaultsSecondary(void)
+{
+    // Placeholder.
 }
 
 //
@@ -3772,7 +3784,8 @@ boolean MN_SetupResponder(menu_action_t action, int ch)
     {
         if (M_ToUpper(ch) == 'Y' || action == MENU_ENTER)
         {
-            ResetDefaults();
+            ResetDefaults(setup_screen);
+            ResetDefaultsSecondary();
             default_verify = false;
             SelectDone(current_item);
         }
@@ -3946,14 +3959,24 @@ boolean MN_SetupResponder(menu_action_t action, int ch)
         if (action == MENU_ESCAPE) // Clear all menus
         {
             MN_ClearMenus();
+            setup_active = false;
+            setup_active_secondary = false;
         }
-        else if (action == MENU_BACKSPACE)
+        else
         {
-            MN_Back();
+            if (setup_active_secondary)
+            {
+                MN_BackSecondary();
+                setup_active_secondary = false;
+            }
+            else
+            {
+                MN_Back();
+                setup_active = false;
+            }
         }
 
         current_item->m_flags &= ~(S_HILITE | S_SELECT); // phares 4/19/98
-        setup_active = false;
         set_keybnd_active = false;
         set_weapon_active = false;
         default_verify = false;              // phares 4/19/98

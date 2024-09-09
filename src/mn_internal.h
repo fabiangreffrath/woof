@@ -70,6 +70,7 @@ void MN_SetNextMenuAlt(ss_types type);
 boolean MN_PointInsideRect(mrect_t *rect, int x, int y);
 void MN_ClearMenus(void);
 void MN_Back(void);
+void MN_BackSecondary(void);
 
 #define M_X_CENTER (-1)
 
