@@ -2796,6 +2796,8 @@ void MN_ResetTimeScale(void)
     }
 
     I_SetTimeScale(time_scale);
+
+    setrefreshneeded = true;
 }
 
 static setup_menu_t gen_settings6[] = {
