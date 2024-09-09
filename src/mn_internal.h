@@ -95,6 +95,7 @@ void MN_DrawStatusHUD(void);
 void MN_DrawAutoMap(void);
 void MN_DrawWeapons(void);
 void MN_DrawEnemy(void);
+void MN_DrawGyro(void);
 
 /////////////////////////////
 //

@@ -2092,8 +2092,7 @@ static setup_tab_t gen_tabs[] = {
     {"video"},
     {"audio"},
     {"mouse"},
-    {"pad"},
-    {"gyro"},
+    {"gamepad"},
     {"display"},
     {"misc"},
     {NULL}
@@ -2519,7 +2518,11 @@ static const char *curve_strings[] = {
     "2.4",    "2.5", "2.6", "2.7",     "2.8", "2.9", "Cubed"
 };
 
+static void MN_Gyro(void);
+
 static setup_menu_t gen_settings4[] = {
+
+    {"Gyro Options", S_FUNC, CNTR_X, M_SPC, .action = MN_Gyro},
 
     {"Stick Layout", S_CHOICE, CNTR_X, M_SPC, {"joy_stick_layout"},
      .strings_id = str_layout, .action = UpdateStickLayout},
@@ -2557,20 +2560,15 @@ static setup_menu_t gen_settings4[] = {
 
 static void UpdateGamepadItems(void)
 {
-    boolean condition =
-        (!I_UseGamepad() || !I_GamepadEnabled() || !I_RumbleSupported());
+    const boolean gamepad = (I_UseGamepad() && I_GamepadEnabled());
+    const boolean gyro = (I_GyroEnabled() && I_GyroSupported());
+    const boolean sticks = I_UseStickLayout();
+    const boolean condition = (!gamepad || !sticks);
 
-    DisableItem(condition, gen_settings4, "joy_rumble");
-
-    // Allow padlook toggle when the gamepad is using gyro, even if the
-    // stick layout is set to off.
-    condition =
-        (!I_UseGamepad() || !I_GamepadEnabled()
-         || (!I_UseStickLayout() && (!I_GyroEnabled() || !I_GyroSupported())));
-
-    DisableItem(condition, gen_settings4, "padlook");
-
-    condition = (!I_UseGamepad() || !I_GamepadEnabled() || !I_UseStickLayout());
+    DisableItem(!gamepad || !I_GyroSupported(), gen_settings4, "Gyro Options");
+    DisableItem(!gamepad || !I_RumbleSupported(), gen_settings4, "joy_rumble");
+    DisableItem(!gamepad || (!sticks && !gyro), gen_settings4, "padlook");
+    DisableItem(!gamepad, gen_settings4, "joy_stick_layout");
     DisableItem(condition, gen_settings4, "joy_invert_look");
     DisableItem(condition, gen_settings4, "joy_movement_inner_deadzone");
     DisableItem(condition, gen_settings4, "joy_camera_inner_deadzone");
@@ -2583,7 +2581,7 @@ static void UpdateGyroItems(void);
 
 static void UpdateGyroAiming(void)
 {
-    UpdateGamepadItems(); // Update padlook.
+    UpdateGamepadItems(); // Update "Gyro Options" and padlook.
     UpdateGyroItems();
     I_SetSensorsEnabled(I_GyroEnabled());
     I_ResetGamepad();
@@ -2655,7 +2653,7 @@ static void UpdateGyroSteadying(void)
     I_ResetGamepad();
 }
 
-static setup_menu_t gen_gyro[] = {
+static setup_menu_t gyro_settings1[] = {
 
     {"Gyro Aiming", S_ONOFF, CNTR_X, M_SPC, {"gyro_enable"},
      .action = UpdateGyroAiming},
@@ -2692,30 +2690,63 @@ static setup_menu_t gen_gyro[] = {
     MI_END
 };
 
+static setup_menu_t *gyro_settings[] = {gyro_settings1, NULL};
+
 static void UpdateGyroItems(void)
 {
-    const boolean condition = (!I_UseGamepad() || !I_GamepadEnabled()
-                               || !I_GyroEnabled() || !I_GyroSupported());
+    const boolean gamepad = (I_UseGamepad() && I_GamepadEnabled());
+    const boolean gyro = (I_GyroEnabled() && I_GyroSupported());
+    const boolean condition = (!gamepad || !gyro);
 
-    DisableItem(condition, gen_gyro, "gyro_space");
-    DisableItem(condition, gen_gyro, "gyro_button_action");
-    DisableItem(condition, gen_gyro, "gyro_stick_action");
-    DisableItem(condition, gen_gyro, "gyro_turn_speed");
-    DisableItem(condition, gen_gyro, "gyro_look_speed");
-    DisableItem(condition, gen_gyro, "gyro_acceleration");
-    DisableItem(condition, gen_gyro, "gyro_smooth_threshold");
-    DisableItem(condition, gen_gyro, "Calibrate");
+    DisableItem(!gamepad || !I_GyroSupported(), gyro_settings1, "gyro_enable");
+    DisableItem(condition, gyro_settings1, "gyro_space");
+    DisableItem(condition, gyro_settings1, "gyro_button_action");
+    DisableItem(condition, gyro_settings1, "gyro_stick_action");
+    DisableItem(condition, gyro_settings1, "gyro_turn_speed");
+    DisableItem(condition, gyro_settings1, "gyro_look_speed");
+    DisableItem(condition, gyro_settings1, "gyro_acceleration");
+    DisableItem(condition, gyro_settings1, "gyro_smooth_threshold");
+    DisableItem(condition, gyro_settings1, "Calibrate");
 }
 
 void MN_UpdateAllGamepadItems(void)
 {
-    const boolean condition = (!I_UseGamepad() || !I_GamepadEnabled());
-
-    DisableItem(condition, gen_settings4, "joy_stick_layout");
     UpdateGamepadItems();
-
-    DisableItem(condition || !I_GyroSupported(), gen_gyro, "gyro_enable");
     UpdateGyroItems();
+}
+
+static void MN_Gyro(void)
+{
+    SetItemOn(set_item_on);
+    SetPageIndex(current_page);
+
+    MN_SetNextMenuAlt(ss_gyro);
+    setup_screen = ss_gyro;
+    current_page = GetPageIndex(gyro_settings);
+    current_menu = gyro_settings[current_page];
+    current_tabs = NULL;
+    SetupMenuSecondary();
+}
+
+void MN_DrawGyro(void)
+{
+    inhelpscreens = true;
+
+    DrawBackground("FLOOR4_6");
+    MN_DrawTitle(M_X_CENTER, M_Y_TITLE, "M_GENERL", "General");
+    DrawInstructions();
+
+    if (I_UseGamepad() && I_GyroEnabled())
+    {
+        DrawIndicator = DrawIndicator_Meter;
+    }
+    else
+    {
+        DrawIndicator = NULL;
+    }
+
+    DrawScreenItems(current_menu);
+    DrawGyroCalibration();
 }
 
 static void SmoothLight(void)
@@ -2845,7 +2876,7 @@ static setup_menu_t gen_settings6[] = {
 };
 
 static setup_menu_t *gen_settings[] = {
-    gen_settings1, gen_settings2, gen_settings3, gen_settings4, gen_gyro,
+    gen_settings1, gen_settings2, gen_settings3, gen_settings4,
     gen_settings5, gen_settings6, NULL
 };
 
@@ -2903,9 +2934,7 @@ void MN_DrawGeneral(void)
     DrawTabs();
     DrawInstructions();
 
-    if (I_UseGamepad()
-        && ((current_menu == gen_settings4 && I_UseStickLayout())
-            || (current_menu == gen_gyro && I_GyroEnabled())))
+    if (I_UseGamepad() && current_menu == gen_settings4 && I_UseStickLayout())
     {
         DrawIndicator = DrawIndicator_Meter;
     }
@@ -2915,11 +2944,6 @@ void MN_DrawGeneral(void)
     }
 
     DrawScreenItems(current_menu);
-
-    if (current_menu == gen_gyro)
-    {
-        DrawGyroCalibration();
-    }
 
     // If the Reset Button has been selected, an "Are you sure?" message
     // is overlayed across everything else.
@@ -2962,6 +2986,7 @@ static setup_menu_t **setup_screens[] = {
     enem_settings,
     gen_settings, // killough 10/98
     comp_settings,
+    gyro_settings,
 };
 
 // [FG] save the index of the current screen in the first page's S_END element's
@@ -3086,7 +3111,10 @@ static void ResetDefaults(ss_types reset_screen)
 
 static void ResetDefaultsSecondary(void)
 {
-    // Placeholder.
+    if (setup_screen == ss_gen)
+    {
+        ResetDefaults(ss_gyro);
+    }
 }
 
 //

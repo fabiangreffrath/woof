@@ -1867,11 +1867,19 @@ static menu_t CompatDef = // killough 10/98
     0
 };
 
+static menu_t GyroDef = {
+    generic_setup_end,  // numitems
+    &SetupDef,          // prevMenu
+    Generic_Setup,      // menuitems
+    MN_DrawGyro,        // routine
+    34, 5,              // x, y (skull drawn here)
+};
+
 void MN_SetNextMenuAlt(ss_types type)
 {
     static menu_t *setup_defs[] = {
         &KeybndDef, &WeaponDef,  &StatusHUDDef, &AutoMapDef,
-        &EnemyDef,  &GeneralDef, &CompatDef,
+        &EnemyDef,  &GeneralDef, &CompatDef,    &GyroDef,
     };
 
     SetNextMenu(setup_defs[type]);

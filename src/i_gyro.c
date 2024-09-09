@@ -790,32 +790,38 @@ void I_RefreshGyroSettings(void)
     motion.tightening = gyro_tightening / 10.0f * PI_F / 180.0f;
 }
 
+#define BIND_NUM_GYRO(name, v, a, b, help) \
+    M_BindNum(#name, &name, NULL, (v), (a), (b), ss_gyro, wad_no, help)
+
+#define BIND_BOOL_GYRO(name, v, help) \
+    M_BindBool(#name, &name, NULL, (v), ss_gyro, wad_no, help)
+
 void I_BindGyroVaribales(void)
 {
-    BIND_BOOL_GENERAL(gyro_enable, false,
+    BIND_BOOL_GYRO(gyro_enable, false,
         "Enable gamepad gyro aiming");
-    BIND_NUM_GENERAL(gyro_space,
+    BIND_NUM_GYRO(gyro_space,
         SPACE_PLAYER_TURN, SPACE_LOCAL_TURN, SPACE_PLAYER_LEAN,
         "Gyro space (0 = Local Turn; 1 = Local Lean; 2 = Player Turn; "
         "3 = Player Lean)");
-    BIND_NUM_GENERAL(gyro_button_action,
+    BIND_NUM_GYRO(gyro_button_action,
         ACTION_ENABLE, ACTION_NONE, ACTION_INVERT,
         "Gyro button action (0 = None; 1 = Disable Gyro; 2 = Enable Gyro; "
         "3 = Invert)");
-    BIND_NUM_GENERAL(gyro_stick_action,
+    BIND_NUM_GYRO(gyro_stick_action,
         ACTION_NONE, ACTION_NONE, ACTION_ENABLE,
         "Camera stick action (0 = None; 1 = Disable Gyro; 2 = Enable Gyro)");
-    BIND_NUM_GENERAL(gyro_turn_speed, 10, 0, 100,
+    BIND_NUM_GYRO(gyro_turn_speed, 10, 0, 100,
         "Gyro turn speed (0 = 0.0x; 100 = 10.0x)");
-    BIND_NUM_GENERAL(gyro_look_speed, 10, 0, 100,
+    BIND_NUM_GYRO(gyro_look_speed, 10, 0, 100,
         "Gyro look speed (0 = 0.0x; 100 = 10.0x)");
-    BIND_NUM_GENERAL(gyro_acceleration, 20, 10, 40,
+    BIND_NUM_GYRO(gyro_acceleration, 20, 10, 40,
         "Gyro acceleration multiplier (10 = 1.0x; 40 = 4.0x)");
     BIND_NUM(gyro_accel_min_threshold, 0, 0, 200,
         "Lower threshold for applying gyro acceleration [degrees/second]");
     BIND_NUM(gyro_accel_max_threshold, 75, 0, 200,
         "Upper threshold for applying gyro acceleration [degrees/second]");
-    BIND_NUM_GENERAL(gyro_smooth_threshold, 30, 0, 100,
+    BIND_NUM_GYRO(gyro_smooth_threshold, 30, 0, 100,
         "Gyro steadying: smoothing threshold "
         "(0 = Off; 100 = 10.0 degrees/second)");
     BIND_NUM(gyro_smooth_time, 125, 0, 500,
