@@ -1095,11 +1095,19 @@ static void DrawGyroCalibration(void)
             block_input = true;
             DrawNotification("Starting calibration...", CR_GRAY, false);
             I_UpdateGyroCalibrationState();
+            if (I_GetGyroCalibrationState() == GYRO_CALIBRATION_ACTIVE)
+            {
+                M_StartSound(sfx_pstop);
+            }
             break;
 
         case GYRO_CALIBRATION_ACTIVE:
             DrawNotification("Calibrating, please wait...", CR_GRAY, false);
             I_UpdateGyroCalibrationState();
+            if (I_GetGyroCalibrationState() == GYRO_CALIBRATION_COMPLETE)
+            {
+                M_StartSound(sfx_pstop);
+            }
             break;
 
         case GYRO_CALIBRATION_COMPLETE:
@@ -1107,6 +1115,7 @@ static void DrawGyroCalibration(void)
             I_UpdateGyroCalibrationState();
             if (I_GetGyroCalibrationState() == GYRO_CALIBRATION_INACTIVE)
             {
+                M_StartSound(sfx_swtchx);
                 block_input = false;
             }
             break;
@@ -3800,7 +3809,7 @@ boolean MN_SetupResponder(menu_action_t action, int ch)
             current_item->action();
         }
 
-        M_StartSound(sfx_itemup);
+        M_StartSound(sfx_pistol);
         return true;
     }
 
