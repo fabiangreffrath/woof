@@ -23,6 +23,7 @@
 #include "m_fixed.h"
 
 struct visplane_s;
+struct fire_s;
 
 // killough 10/98: special mask indicates sky flat comes from sidedef
 #define PL_SKYFLAT (0x80000000)
@@ -49,6 +50,8 @@ struct visplane_s *R_DupPlane(const struct visplane_s *pl, int start, int stop);
 void R_InitPlanesRes(void);
 
 void R_InitVisplanesRes(void);
+
+void R_SetupFire(struct fire_s *fire);
 
 #endif
 

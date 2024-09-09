@@ -24,9 +24,11 @@
 #include <stdlib.h>
 
 #include "i_video.h"
+#include "m_array.h"
 #include "m_fixed.h"
 #include "r_data.h"
 #include "r_sky.h"
+#include "r_plane.h"
 #include "r_skydefs.h"
 #include "r_state.h" // [FG] textureheight[]
 #include "w_wad.h"
@@ -43,7 +45,7 @@ int skyflatnum;
 int skytexture = -1; // [crispy] initialize
 int skytexturemid;
 
-static skydef_t *skydef;
+sky_t *skydef = NULL;
 
 //
 // R_InitSkyMap
@@ -51,10 +53,24 @@ static skydef_t *skydef;
 //
 void R_InitSkyMap (void)
 {
-  skydef = R_ParseSkyDefs();
-  if (skydef)
+  skydefs_t *skydefs = R_ParseSkyDefs();
+  if (skydefs)
   {
-      return;
+      skydef = NULL;
+
+      sky_t *sky;
+      array_foreach(sky, skydefs->skies)
+      {
+          if (skytexture == R_CheckTextureNumForName(sky->skytex.name))
+          {
+              skydef = sky;
+              if (sky->type == SkyType_Fire)
+              {
+                  R_SetupFire(&sky->fire);
+              }
+              break;
+          }
+      }
   }
 
   // [crispy] initialize

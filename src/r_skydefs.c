@@ -76,7 +76,7 @@ static boolean ParseSky(cJSON *json, sky_t *out)
     {
         return false;
     }
-    out->background = background;
+    out->skytex = background;
 
     cJSON *js_fire = cJSON_GetObjectItemCaseSensitive(json, "fire");
     fire_t fire = {0};
@@ -103,7 +103,7 @@ static boolean ParseFlatMap(cJSON *json, flatmap_t *out)
     return true;
 }
 
-skydef_t *R_ParseSkyDefs(void)
+skydefs_t *R_ParseSkyDefs(void)
 {
     int lumpnum = W_CheckNumForName("SKYDEFS");
     if (lumpnum < 0)
@@ -126,7 +126,7 @@ skydef_t *R_ParseSkyDefs(void)
         return NULL;
     }
 
-    skydef_t *out = calloc(1, sizeof(*out));
+    skydefs_t *out = calloc(1, sizeof(*out));
 
     cJSON *js_skies = cJSON_GetObjectItemCaseSensitive(data, "skies");
     cJSON *js_sky = NULL;

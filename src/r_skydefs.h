@@ -2,16 +2,14 @@
 #ifndef R_SKYDEFS_H
 #define R_SKYDEFS_H
 
-#include "m_fixed.h"
-
 typedef enum
 {
-    sky_normal,
-    sky_fire,
-    sky_withforeground,
+    SkyType_Normal,
+    SkyType_Fire,
+    SkyType_WithForeground,
 } skytype_t;
 
-typedef struct
+typedef struct fire_s
 {
     int *palette;
     double updatetime;
@@ -20,17 +18,17 @@ typedef struct
 typedef struct
 {
     const char *name;
-    fixed_t mid;
-    fixed_t scrollx;
-    fixed_t scrolly;
-    fixed_t scalex;
-    fixed_t scaley;
+    double mid;
+    double scrollx;
+    double scrolly;
+    double scalex;
+    double scaley;
 } skytex_t;
 
-typedef struct
+typedef struct sky_s
 {
     skytype_t type;
-    skytex_t background;
+    skytex_t skytex;
     fire_t fire;
     skytex_t foreground;
 } sky_t;
@@ -45,8 +43,8 @@ typedef struct
 {
     sky_t *skies;
     flatmap_t *flatmapping;
-} skydef_t;
+} skydefs_t;
 
-skydef_t *R_ParseSkyDefs(void);
+skydefs_t *R_ParseSkyDefs(void);
 
 #endif
