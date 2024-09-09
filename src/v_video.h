@@ -174,7 +174,7 @@ void V_TileBlock64(int line, int width, int height, const byte *src);
 
 void V_DrawBackground(const char *patchname);
 
-void V_ShadeScreen(boolean toggle);
+void V_ShadeScreen(void);
 
 // [FG] colored blood and gibs
 

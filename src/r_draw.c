@@ -60,8 +60,6 @@ static int linesize; // killough 11/98
 byte *tranmap;          // translucency filter maps 256x256   // phares 
 byte *main_tranmap;     // killough 4/11/98
 
-byte *r_darkcolormap;
-
 // Backing buffer containing the bezel drawn around the screen and surrounding
 // background.
 
@@ -162,9 +160,7 @@ byte dc_skycolor;
     }
 
 DRAW_COLUMN(, dc_colormap[0][src])
-DRAW_COLUMN(Dark, r_darkcolormap[dc_colormap[0][src]])
 DRAW_COLUMN(Brightmap, dc_colormap[dc_brightmap[src]][src])
-DRAW_COLUMN(BrightmapDark, r_darkcolormap[dc_colormap[dc_brightmap[src]][src]])
 
 // Here is the version of R_DrawColumn that deals with translucent  // phares
 // textures and sprites. It's identical to R_DrawColumn except      //    |
@@ -180,12 +176,8 @@ DRAW_COLUMN(BrightmapDark, r_darkcolormap[dc_colormap[dc_brightmap[src]][src]])
 
 DRAW_COLUMN(TL,
     tranmap[(*dest << 8) + dc_colormap[0][src]])
-DRAW_COLUMN(TLDark,
-    r_darkcolormap[tranmap[(*dest << 8) + dc_colormap[0][src]]])
 DRAW_COLUMN(TLBrightmap,
     tranmap[(*dest << 8) + dc_colormap[dc_brightmap[src]][src]])
-DRAW_COLUMN(TLBrightmapDark,
-    r_darkcolormap[tranmap[(*dest << 8) + dc_colormap[dc_brightmap[src]][src]]])
 
 //
 // Sky drawing: for showing just a color above the texture
@@ -231,7 +223,7 @@ void R_DrawSkyColumn(void)
 
         for (i = 0; i < n; ++i)
         {
-            *dest = r_darkcolormap[colormap[skycolor]];
+            *dest = colormap[skycolor];
             dest += linesize;
             frac += fracstep;
         }
@@ -252,11 +244,10 @@ void R_DrawSkyColumn(void)
 
         for (i = 0; i < n; ++i)
         {
-            *dest = r_darkcolormap
-                [main_tranmap[(main_tranmap[(colormap[source[0]] << 8)
-                                            + colormap[skycolor]]
-                                << 8)
-                              + colormap[skycolor]]];
+            *dest = main_tranmap
+                [(main_tranmap[(colormap[source[0]] << 8) + colormap[skycolor]]
+                  << 8)
+                 + colormap[skycolor]];
             dest += linesize;
             frac += fracstep;
         }
@@ -278,8 +269,8 @@ void R_DrawSkyColumn(void)
 
         for (i = 0; i < n; ++i)
         {
-            *dest = r_darkcolormap[main_tranmap[(colormap[source[0]] << 8)
-                                              + colormap[skycolor]]];
+            *dest =
+                main_tranmap[(colormap[source[0]] << 8) + colormap[skycolor]];
             dest += linesize;
             frac += fracstep;
         }
@@ -304,7 +295,7 @@ void R_DrawSkyColumn(void)
 
         do
         {
-            *dest = r_darkcolormap[colormap[source[frac >> FRACBITS]]];
+            *dest = colormap[source[frac >> FRACBITS]];
             dest += linesize; // killough 11/98
             if ((frac += fracstep) >= heightmask)
             {
@@ -316,19 +307,16 @@ void R_DrawSkyColumn(void)
     {
         while ((count -= 2) >= 0) // texture height is a power of 2 -- killough
         {
-            *dest =
-                r_darkcolormap[colormap[source[(frac >> FRACBITS) & heightmask]]];
+            *dest = colormap[source[(frac >> FRACBITS) & heightmask]];
             dest += linesize; // killough 11/98
             frac += fracstep;
-            *dest =
-                r_darkcolormap[colormap[source[(frac >> FRACBITS) & heightmask]]];
+            *dest = colormap[source[(frac >> FRACBITS) & heightmask]];
             dest += linesize; // killough 11/98
             frac += fracstep;
         }
         if (count & 1)
         {
-            *dest =
-                r_darkcolormap[colormap[source[(frac >> FRACBITS) & heightmask]]];
+            *dest = colormap[source[(frac >> FRACBITS) & heightmask]];
         }
     }
 }
@@ -564,12 +552,8 @@ byte *dc_translation, *translationtables;
 
 DRAW_COLUMN(TR,
     dc_colormap[0][dc_translation[src]])
-DRAW_COLUMN(TRDark,
-    r_darkcolormap[dc_colormap[0][dc_translation[src]]])
 DRAW_COLUMN(TRBrightmap,
     dc_colormap[dc_brightmap[src]][dc_translation[src]])
-DRAW_COLUMN(TRBrightmapDark,
-    r_darkcolormap[dc_colormap[dc_brightmap[src]][dc_translation[src]]])
 
 //
 // R_InitTranslationTables
@@ -696,50 +680,23 @@ byte *ds_source;
     }
 
 R_DRAW_SPAN(, ds_colormap[0][src])
-R_DRAW_SPAN(Dark, r_darkcolormap[ds_colormap[0][src]])
 R_DRAW_SPAN(Brightmap, ds_colormap[ds_brightmap[src]][src])
-R_DRAW_SPAN(BrightmapDark, r_darkcolormap[ds_colormap[ds_brightmap[src]][src]])
 
 void (*R_DrawColumn)(void) = DrawColumn;
 void (*R_DrawTLColumn)(void) = DrawColumnTL;
 void (*R_DrawTranslatedColumn)(void) = DrawColumnTR;
 void (*R_DrawSpan)(void) = DrawSpan;
 
-static boolean shade_screen;
-
 void R_InitDrawFunctions(void)
 {
     boolean local_brightmaps = (STRICTMODE(brightmaps) || force_brightmaps);
 
-    if (shade_screen)
-    {
-        r_darkcolormap = &colormaps[0][20 * 256];
-    }
-    else
-    {
-        r_darkcolormap = colormaps[0];
-    }
-
-    if (local_brightmaps && shade_screen)
-    {
-        R_DrawColumn = DrawColumnBrightmapDark;
-        R_DrawTLColumn = DrawColumnTLBrightmapDark;
-        R_DrawTranslatedColumn = DrawColumnTRBrightmapDark;
-        R_DrawSpan = DrawSpanBrightmapDark;
-    }
-    else if (local_brightmaps && !shade_screen)
+    if (local_brightmaps)
     {
         R_DrawColumn = DrawColumnBrightmap;
         R_DrawTLColumn = DrawColumnTLBrightmap;
         R_DrawTranslatedColumn = DrawColumnTRBrightmap;
         R_DrawSpan = DrawSpanBrightmap;
-    }
-    else if (shade_screen && !local_brightmaps)
-    {
-        R_DrawColumn = DrawColumnDark;
-        R_DrawTLColumn = DrawColumnTLDark;
-        R_DrawTranslatedColumn = DrawColumnTRDark;
-        R_DrawSpan = DrawSpanDark;
     }
     else
     {
@@ -748,17 +705,6 @@ void R_InitDrawFunctions(void)
         R_DrawTranslatedColumn = DrawColumnTR;
         R_DrawSpan = DrawSpan;
     }
-}
-
-void R_ShadeScreen(boolean toggle)
-{
-    if (shade_screen == toggle)
-    {
-        return;
-    }
-
-    shade_screen = toggle;
-    R_InitDrawFunctions();
 }
 
 void R_InitBufferRes(void)
