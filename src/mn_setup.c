@@ -2327,7 +2327,7 @@ static void SetMidiPlayer(void)
     S_RestartMusic();
 }
 
-static const char *equalizer_preset_strings[] = {"Off", "Classical", "Rock", "Vocal"};
+static void MN_Equalizer(void);
 
 static setup_menu_t gen_settings2[] = {
 
@@ -2350,11 +2350,10 @@ static setup_menu_t gen_settings2[] = {
     // [FG] play sounds in full length
     {"Disable Cutoffs", S_ONOFF, CNTR_X, M_SPC, {"full_sounds"}},
 
-    {"Equalizer Preset", S_CHOICE, CNTR_X, M_SPC, {"snd_equalizer"},
-     .strings_id = str_equalizer_preset, .action = I_OAL_EqualizerPreset},
-
     {"Resampler", S_CHOICE, CNTR_X, M_SPC, {"snd_resampler"},
      .strings_id = str_resampler, .action = I_OAL_SetResampler},
+
+    {"Equalizer", S_FUNC, CNTR_X, M_SPC, .action = MN_Equalizer},
 
     MI_GAP,
 
@@ -2366,52 +2365,101 @@ static setup_menu_t gen_settings2[] = {
     MI_END
 };
 
-/*
-static setup_menu_t gen_settings_eq[] = {
-    {"Preamp dB", S_THERMO | S_THRM_SIZE11, M_X_THRM11, M_THRM_SPC,
-     {"snd_eq_preamp"}, m_null, input_null, str_empty, I_OAL_SetEqualizer},
-
-    {"Low Gain dB", S_THERMO | S_THRM_SIZE11, M_X_THRM11, M_THRM_SPC,
-     {"snd_eq_low_gain"}, m_null, input_null, str_empty, I_OAL_SetEqualizer},
-
-    {"Mid 1 Gain dB", S_THERMO | S_THRM_SIZE11, M_X_THRM11, M_THRM_SPC,
-     {"snd_eq_mid1_gain"}, m_null, input_null, str_empty, I_OAL_SetEqualizer},
-
-    {"Mid 2 Gain dB", S_THERMO | S_THRM_SIZE11, M_X_THRM11, M_THRM_SPC,
-     {"snd_eq_mid2_gain"}, m_null, input_null, str_empty, I_OAL_SetEqualizer},
-
-    {"High Gain dB", S_THERMO | S_THRM_SIZE11, M_X_THRM11, M_THRM_SPC,
-     {"snd_eq_high_gain"}, m_null, input_null, str_empty, I_OAL_SetEqualizer},
-
-
-    {"Low Cutoff Hz", S_THERMO | S_THRM_SIZE11, M_X_THRM11, M_THRM_SPC,
-     {"snd_eq_low_cutoff"}, m_null, input_null, str_empty, I_OAL_SetEqualizer},
-
-    {"Mid 1 Center Hz", S_THERMO | S_THRM_SIZE11, M_X_THRM11, M_THRM_SPC,
-     {"snd_eq_mid1_center"}, m_null, input_null, str_empty, I_OAL_SetEqualizer},
-
-    {"Mid 2 Center Hz", S_THERMO | S_THRM_SIZE11, M_X_THRM11, M_THRM_SPC,
-     {"snd_eq_mid2_center"}, m_null, input_null, str_empty, I_OAL_SetEqualizer},
-
-    {"High Cutoff Hz", S_THERMO | S_THRM_SIZE11, M_X_THRM11, M_THRM_SPC,
-     {"snd_eq_high_cutoff"}, m_null, input_null, str_empty, I_OAL_SetEqualizer},
-
-
-    {"Mid 1 Width Oct", S_THERMO | S_THRM_SIZE11, M_X_THRM11, M_THRM_SPC,
-     {"snd_eq_mid1_width"}, m_null, input_null, str_empty, I_OAL_SetEqualizer},
-
-    {"Mid 2 Width Oct", S_THERMO | S_THRM_SIZE11, M_X_THRM11, M_THRM_SPC,
-     {"snd_eq_mid2_width"}, m_null, input_null, str_empty, I_OAL_SetEqualizer},
-
-    MI_END
-};
-*/
-
 static const char **GetResamplerStrings(void)
 {
     const char **strings = I_OAL_GetResamplerStrings();
     DisableItem(!strings, gen_settings2, "snd_resampler");
     return strings;
+}
+
+static const char *equalizer_preset_strings[] = {
+    "Off", "Classical", "Rock", "Vocal", "Custom"
+};
+
+#define M_THRM_SPC_EQ (M_THRM_HEIGHT - 1)
+#define M_SPC_EQ 8
+#define MI_GAP_EQ {NULL, S_SKIP, 0, 4}
+
+static setup_menu_t eq_settings1[] = {
+    {"Equalizer", S_CHOICE, CNTR_X, M_SPC_EQ, {"snd_equalizer"},
+     .strings_id = str_equalizer_preset, .action = I_OAL_EqualizerPreset},
+
+    MI_GAP_EQ,
+
+    {"Preamp dB", S_THERMO, CNTR_X, M_THRM_SPC_EQ,
+     {"snd_eq_preamp"}, .action = I_OAL_EqualizerPreset},
+
+    MI_GAP_EQ,
+
+    {"Low Gain dB", S_THERMO, CNTR_X, M_THRM_SPC_EQ,
+     {"snd_eq_low_gain"}, .action = I_OAL_EqualizerPreset},
+
+    {"Mid 1 Gain dB", S_THERMO, CNTR_X, M_THRM_SPC_EQ,
+     {"snd_eq_mid1_gain"}, .action = I_OAL_EqualizerPreset},
+
+    {"Mid 2 Gain dB", S_THERMO, CNTR_X, M_THRM_SPC_EQ,
+     {"snd_eq_mid2_gain"}, .action = I_OAL_EqualizerPreset},
+
+    {"High Gain dB", S_THERMO, CNTR_X, M_THRM_SPC_EQ,
+     {"snd_eq_high_gain"}, .action = I_OAL_EqualizerPreset},
+
+    MI_GAP_EQ,
+
+    {"Low Cutoff Hz", S_THERMO, CNTR_X, M_THRM_SPC_EQ,
+     {"snd_eq_low_cutoff"}, .action = I_OAL_EqualizerPreset},
+
+    {"Mid 1 Center Hz", S_THERMO, CNTR_X, M_THRM_SPC_EQ,
+     {"snd_eq_mid1_center"}, .action = I_OAL_EqualizerPreset},
+
+    {"Mid 2 Center Hz", S_THERMO, CNTR_X, M_THRM_SPC_EQ,
+     {"snd_eq_mid2_center"}, .action = I_OAL_EqualizerPreset},
+
+    {"High Cutoff Hz", S_THERMO, CNTR_X, M_THRM_SPC_EQ,
+     {"snd_eq_high_cutoff"}, .action = I_OAL_EqualizerPreset},
+
+    MI_END
+};
+
+static setup_menu_t *eq_settings[] = {eq_settings1, NULL};
+
+void MN_UpdateEqualizerItems(void)
+{
+    const boolean condition = !I_OAL_CustomEqualizer();
+
+    DisableItem(!I_OAL_EqualizerInitialized(), gen_settings2, "Equalizer");
+    DisableItem(!I_OAL_EqualizerInitialized(), eq_settings1, "snd_equalizer");
+    DisableItem(condition, eq_settings1, "snd_eq_preamp");
+    DisableItem(condition, eq_settings1, "snd_eq_low_gain");
+    DisableItem(condition, eq_settings1, "snd_eq_low_cutoff");
+    DisableItem(condition, eq_settings1, "snd_eq_mid1_gain");
+    DisableItem(condition, eq_settings1, "snd_eq_mid1_center");
+    DisableItem(condition, eq_settings1, "snd_eq_mid2_gain");
+    DisableItem(condition, eq_settings1, "snd_eq_mid2_center");
+    DisableItem(condition, eq_settings1, "snd_eq_high_gain");
+    DisableItem(condition, eq_settings1, "snd_eq_high_cutoff");
+}
+
+static void MN_Equalizer(void)
+{
+    SetItemOn(set_item_on);
+    SetPageIndex(current_page);
+
+    MN_SetNextMenuAlt(ss_eq);
+    setup_screen = ss_eq;
+    current_page = GetPageIndex(eq_settings);
+    current_menu = eq_settings[current_page];
+    current_tabs = NULL;
+    SetupMenuSecondary();
+}
+
+void MN_DrawEqualizer(void)
+{
+    inhelpscreens = true;
+
+    DrawBackground("FLOOR4_6");
+    MN_DrawTitle(M_X_CENTER, M_Y_TITLE, "M_GENERL", "General");
+    DrawInstructions();
+    DrawScreenItems(current_menu);
 }
 
 void MN_UpdateFreeLook(boolean condition)
@@ -2995,6 +3043,7 @@ static setup_menu_t **setup_screens[] = {
     enem_settings,
     gen_settings, // killough 10/98
     comp_settings,
+    eq_settings,
     gyro_settings,
 };
 
@@ -3122,6 +3171,7 @@ static void ResetDefaultsSecondary(void)
 {
     if (setup_screen == ss_gen)
     {
+        ResetDefaults(ss_eq);
         ResetDefaults(ss_gyro);
     }
 }
@@ -4401,6 +4451,7 @@ void MN_SetupResetMenu(void)
     UpdateCrosshairItems();
     UpdateCenteredWeaponItem();
     MN_UpdateAllGamepadItems();
+    MN_UpdateEqualizerItems();
 }
 
 void MN_BindMenuVariables(void)

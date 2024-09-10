@@ -19,31 +19,15 @@
 #ifndef __I_OALEQUALIZER__
 #define __I_OALEQUALIZER__
 
-typedef enum {
-    EQ_PRESET_OFF,
-    EQ_PRESET_CLASSICAL,
-    EQ_PRESET_ROCK,
-    EQ_PRESET_VOCAL,
-    NUM_EQ_PRESETS
-} eq_preset_t;
+#include "doomtype.h"
 
-extern eq_preset_t snd_equalizer;
-extern int snd_eq_preamp;
-extern int snd_eq_low_gain;
-extern int snd_eq_low_cutoff;
-extern int snd_eq_mid1_gain;
-extern int snd_eq_mid1_center;
-extern int snd_eq_mid1_width;
-extern int snd_eq_mid2_gain;
-extern int snd_eq_mid2_center;
-extern int snd_eq_mid2_width;
-extern int snd_eq_high_gain;
-extern int snd_eq_high_cutoff;
-
+boolean I_OAL_EqualizerInitialized(void);
+boolean I_OAL_CustomEqualizer(void);
+void I_OAL_ShutdownEqualizer(void);
 void I_OAL_InitEqualizer(void);
-
 void I_OAL_SetEqualizer(void);
-
 void I_OAL_EqualizerPreset(void);
+
+void I_BindEqualizerVariables(void);
 
 #endif
