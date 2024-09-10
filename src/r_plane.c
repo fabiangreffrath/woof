@@ -382,19 +382,19 @@ static void R_MakeSpans(int x, unsigned int t1, unsigned int b1, unsigned int t2
     spanstart[b2--] = x;
 }
 
-#define FIRE_WIDTH     64
+#define FIRE_WIDTH     128
 #define FIRE_HEIGHT    256
 
-static byte fire_indexes[FIRE_WIDTH * FIRE_HEIGHT];
+static byte fire_indices[FIRE_WIDTH * FIRE_HEIGHT];
 
 static byte fire_pixels[FIRE_WIDTH * FIRE_HEIGHT];
 
-void PrepareFirePixels(fire_t *fire)
+static void PrepareFirePixels(fire_t *fire)
 {
     byte *rover = fire_pixels;
     for (int x = 0; x < FIRE_WIDTH; x++)
     {
-        byte *src = fire_indexes + x;
+        byte *src = fire_indices + x;
         for (int y = 0; y < FIRE_HEIGHT; y++)
         {
             *rover++ = fire->palette[*src];
@@ -405,23 +405,23 @@ void PrepareFirePixels(fire_t *fire)
 
 static void SpreadFire(void)
 {
-    for(int x = 0; x < FIRE_WIDTH; ++x)
+    for (int x = 0; x < FIRE_WIDTH; ++x)
     {
         for (int y = 1; y < FIRE_HEIGHT; ++y)
         {
             int src = y * FIRE_WIDTH + x;
 
-            int index = fire_indexes[src];
+            int index = fire_indices[src];
 
             if (!index)
             {
-                fire_indexes[src - FIRE_WIDTH] = 0;
+                fire_indices[src - FIRE_WIDTH] = 0;
             }
             else
             {
-                int rand_index = M_Random() % 3;
+                int rand_index = M_Random() & 3;
                 int dst = src - rand_index + 1;
-                fire_indexes[dst - FIRE_WIDTH] = index - (rand_index & 1);
+                fire_indices[dst - FIRE_WIDTH] = index - (rand_index & 1);
             }
         }
     }
@@ -429,19 +429,20 @@ static void SpreadFire(void)
 
 void R_SetupFire(fire_t *fire)
 {
-    memset(fire_indexes, 0, FIRE_WIDTH * FIRE_HEIGHT);
+    memset(fire_indices, 0, FIRE_WIDTH * FIRE_HEIGHT);
 
     int last = array_size(fire->palette) - 1;
 
     for (int i = 0; i < FIRE_WIDTH; ++i)
     {
-        fire_indexes[(FIRE_HEIGHT - 1) * FIRE_WIDTH + i] = last;
+        fire_indices[(FIRE_HEIGHT - 1) * FIRE_WIDTH + i] = last;
     }
 
     for (int i = 0; i < 64; ++i)
     {
         SpreadFire();
     }
+    PrepareFirePixels(fire);
 }
 
 static byte *GetFireColumn(int col)

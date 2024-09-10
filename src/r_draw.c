@@ -373,9 +373,10 @@ void R_DrawSkyColumnMasked(void)
 
         do
         {
-            if (source[frac >> FRACBITS])
+            byte src = source[frac >> FRACBITS];
+            if (src)
             {
-                *dest = colormap[source[frac >> FRACBITS]];
+                *dest = colormap[src];
             }
             dest += linesize; // killough 11/98
             if ((frac += fracstep) >= heightmask)
@@ -388,24 +389,27 @@ void R_DrawSkyColumnMasked(void)
     {
         while ((count -= 2) >= 0) // texture height is a power of 2 -- killough
         {
-            if (source[(frac >> FRACBITS) & heightmask])
+            byte src = source[(frac >> FRACBITS) & heightmask];
+            if (src)
             {
-                *dest = colormap[source[(frac >> FRACBITS) & heightmask]];
+                *dest = colormap[src];
             }
             dest += linesize; // killough 11/98
             frac += fracstep;
-            if (source[(frac >> FRACBITS) & heightmask])
+            src = source[(frac >> FRACBITS) & heightmask];
+            if (src)
             {
-                *dest = colormap[source[(frac >> FRACBITS) & heightmask]];
+                *dest = colormap[src];
             }
             dest += linesize; // killough 11/98
             frac += fracstep;
         }
         if (count & 1)
         {
-            if (source[(frac >> FRACBITS) & heightmask])
+            byte src = source[(frac >> FRACBITS) & heightmask];
+            if (src)
             {
-                *dest = colormap[source[(frac >> FRACBITS) & heightmask]];
+                *dest = colormap[src];
             }
         }
     }
