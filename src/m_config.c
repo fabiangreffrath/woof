@@ -38,6 +38,7 @@
 #include "i_flickstick.h"
 #include "i_gamepad.h"
 #include "i_gyro.h"
+#include "i_oalequalizer.h"
 #include "i_printf.h"
 #include "i_rumble.h"
 #include "i_sound.h"
@@ -113,6 +114,7 @@ void M_InitConfig(void)
     R_BindRenderVariables();
 
     I_BindSoundVariables();
+    I_BindEqualizerVariables();
 
     MN_BindMenuVariables();
     D_BindMiscVariables();

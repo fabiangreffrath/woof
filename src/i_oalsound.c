@@ -143,9 +143,9 @@ void I_OAL_ShutdownModule(void)
 
 void I_OAL_ShutdownSound(void)
 {
-    int i;
+    I_OAL_ShutdownEqualizer();
 
-    for (i = 0; i < MAX_CHANNELS; ++i)
+    for (int i = 0; i < MAX_CHANNELS; ++i)
     {
         I_OAL_StopSound(i);
     }
@@ -448,39 +448,6 @@ void I_OAL_BindSoundVariables(void)
     BIND_NUM(snd_doppler, 0, 0, 10,
         "[OpenAL 3D] Doppler effect (0 = Off; 10 = Max)");
     BIND_BOOL(snd_limiter, false, "Use sound output limiter");
-
-    BIND_NUM(snd_equalizer, EQ_PRESET_OFF, EQ_PRESET_OFF, EQ_PRESET_VOCAL,
-        "Equalizer preset (0 = Off; 1 = Classical; 2 = Rock; 3 = Vocal");
-    BIND_NUM(snd_eq_preamp, 0, -24, 0,
-        "Equalizer preamp gain [dB]");
-
-    // Low
-    BIND_NUM(snd_eq_low_gain, 0, -12, 12,
-        "Equalizer low frequency range gain [dB]");
-    BIND_NUM(snd_eq_low_cutoff, 200, 50, 800,
-        "Equalizer low cut-off frequency [Hz]");
-
-    // Mid 1
-    BIND_NUM(snd_eq_mid1_gain, 0, -12, 12,
-        "Equalizer mid1 frequency range gain [dB]");
-    BIND_NUM(snd_eq_mid1_center, 500, 200, 3000,
-        "Equalizer mid1 center frequency [Hz]");
-    BIND_NUM(snd_eq_mid1_width, 100, 1, 100,
-        "Equalizer mid1 bandwidth [octave] (1 = 0.01; 100 = 1.0)");
-
-    // Mid 2
-    BIND_NUM(snd_eq_mid2_gain, 0, -12, 12,
-        "Equalizer mid2 frequency range gain [dB]");
-    BIND_NUM(snd_eq_mid2_center, 3000, 1000, 8000,
-        "Equalizer mid2 center frequency [Hz]");
-    BIND_NUM(snd_eq_mid2_width, 100, 1, 100,
-        "Equalizer mid2 bandwidth [octave] (1 = 0.01; 100 = 1.0)");
-
-    // High
-    BIND_NUM(snd_eq_high_gain, 0, -12, 12,
-        "Equalizer high frequency range gain [dB]");
-    BIND_NUM(snd_eq_high_cutoff, 6000, 4000, 16000,
-        "Equalizer high cut-off frequency [Hz]");
 }
 
 boolean I_OAL_InitSound(int snd_module)

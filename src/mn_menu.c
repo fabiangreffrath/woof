@@ -1781,7 +1781,7 @@ static menuitem_t Generic_Setup[] = {
 // with the main Setup screen.
 
 static menu_t SetupDef = {
-    ss_max,        // number of Setup Menu items (Key Bindings, etc.)
+    ss_comp + 1,   // number of Setup Menu items (Key Bindings, etc.)
     &MainDef,      // menu to return to when BACKSPACE is hit on this menu
     SetupMenu,     // definition of items to show on the Setup Screen
     M_DrawSetup,   // program that draws the Setup Screen
@@ -1867,11 +1867,27 @@ static menu_t CompatDef = // killough 10/98
     0
 };
 
+static menu_t EqualizerDef = {
+    generic_setup_end,  // numitems
+    &SetupDef,          // prevMenu
+    Generic_Setup,      // menuitems
+    MN_DrawEqualizer,   // routine
+    34, 5,              // x, y (skull drawn here)
+};
+
+static menu_t GyroDef = {
+    generic_setup_end,  // numitems
+    &SetupDef,          // prevMenu
+    Generic_Setup,      // menuitems
+    MN_DrawGyro,        // routine
+    34, 5,              // x, y (skull drawn here)
+};
+
 void MN_SetNextMenuAlt(ss_types type)
 {
     static menu_t *setup_defs[] = {
-        &KeybndDef, &WeaponDef,  &StatusHUDDef, &AutoMapDef,
-        &EnemyDef,  &GeneralDef, &CompatDef,
+        &KeybndDef,  &WeaponDef, &StatusHUDDef, &AutoMapDef, &EnemyDef,
+        &GeneralDef, &CompatDef, &EqualizerDef, &GyroDef,
     };
 
     SetNextMenu(setup_defs[type]);
@@ -1920,17 +1936,35 @@ void MN_ClearMenus(void)
     G_ClearInput();
 }
 
-void MN_Back(void)
+static boolean MenuBack(void)
 {
     if (!currentMenu->prevMenu)
     {
-        return;
+        return false;
     }
 
     currentMenu = currentMenu->prevMenu;
     itemOn = currentMenu->lastOn;
     highlight_item = 0;
     M_StartSound(sfx_swtchn);
+    return true;
+}
+
+void MN_Back(void)
+{
+    MenuBack();
+}
+
+void MN_BackSecondary(void)
+{
+    if (MenuBack())
+    {
+        if (currentMenu->menuitems && currentMenu->numitems > itemOn
+            && currentMenu->menuitems[itemOn].routine)
+        {
+            currentMenu->menuitems[itemOn].routine(0);
+        }
+    }
 }
 
 //
