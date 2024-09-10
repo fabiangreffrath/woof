@@ -2353,7 +2353,7 @@ static setup_menu_t gen_settings2[] = {
     {"Resampler", S_CHOICE, CNTR_X, M_SPC, {"snd_resampler"},
      .strings_id = str_resampler, .action = I_OAL_SetResampler},
 
-    {"Equalizer", S_FUNC, CNTR_X, M_SPC, .action = MN_Equalizer},
+    {"Equalizer Options", S_FUNC, CNTR_X, M_SPC, .action = MN_Equalizer},
 
     MI_GAP,
 
@@ -2381,7 +2381,7 @@ static const char *equalizer_preset_strings[] = {
 #define MI_GAP_EQ {NULL, S_SKIP, 0, 4}
 
 static setup_menu_t eq_settings1[] = {
-    {"Equalizer", S_CHOICE, CNTR_X, M_SPC_EQ, {"snd_equalizer"},
+    {"Preset", S_CHOICE, CNTR_X, M_SPC_EQ, {"snd_equalizer"},
      .strings_id = str_equalizer_preset, .action = I_OAL_EqualizerPreset},
 
     MI_GAP_EQ,
@@ -2426,7 +2426,7 @@ void MN_UpdateEqualizerItems(void)
 {
     const boolean condition = !I_OAL_CustomEqualizer();
 
-    DisableItem(!I_OAL_EqualizerInitialized(), gen_settings2, "Equalizer");
+    DisableItem(!I_OAL_EqualizerInitialized(), gen_settings2, "Equalizer Options");
     DisableItem(!I_OAL_EqualizerInitialized(), eq_settings1, "snd_equalizer");
     DisableItem(condition, eq_settings1, "snd_eq_preamp");
     DisableItem(condition, eq_settings1, "snd_eq_low_gain");
@@ -2439,6 +2439,8 @@ void MN_UpdateEqualizerItems(void)
     DisableItem(condition, eq_settings1, "snd_eq_high_cutoff");
 }
 
+static setup_tab_t equalizer_tabs[] = {{"Equalizer"}, {NULL}};
+
 static void MN_Equalizer(void)
 {
     SetItemOn(set_item_on);
@@ -2448,7 +2450,7 @@ static void MN_Equalizer(void)
     setup_screen = ss_eq;
     current_page = GetPageIndex(eq_settings);
     current_menu = eq_settings[current_page];
-    current_tabs = NULL;
+    current_tabs = equalizer_tabs;
     SetupMenuSecondary();
 }
 
@@ -2458,6 +2460,7 @@ void MN_DrawEqualizer(void)
 
     DrawBackground("FLOOR4_6");
     MN_DrawTitle(M_X_CENTER, M_Y_TITLE, "M_GENERL", "General");
+    DrawTabs();
     DrawInstructions();
     DrawScreenItems(current_menu);
 }
@@ -2772,6 +2775,8 @@ void MN_UpdateAllGamepadItems(void)
     UpdateGyroItems();
 }
 
+static setup_tab_t gyro_tabs[] = {{"Gyro"}, {NULL}};
+
 static void MN_Gyro(void)
 {
     SetItemOn(set_item_on);
@@ -2781,7 +2786,7 @@ static void MN_Gyro(void)
     setup_screen = ss_gyro;
     current_page = GetPageIndex(gyro_settings);
     current_menu = gyro_settings[current_page];
-    current_tabs = NULL;
+    current_tabs = gyro_tabs;
     SetupMenuSecondary();
 }
 
@@ -2791,6 +2796,7 @@ void MN_DrawGyro(void)
 
     DrawBackground("FLOOR4_6");
     MN_DrawTitle(M_X_CENTER, M_Y_TITLE, "M_GENERL", "General");
+    DrawTabs();
     DrawInstructions();
 
     if (I_UseGamepad() && I_GyroEnabled())
