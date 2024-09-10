@@ -3065,13 +3065,6 @@ boolean MN_MenuIsShaded(void)
 
 void M_Drawer(void)
 {
-    inhelpscreens = false;
-
-    if (MN_MenuIsShaded())
-    {
-        V_ShadeScreen();
-    }
-
     // Horiz. & Vertically center string and print it.
     // killough 9/29/98: simplified code, removed 40-character width limit
     if (messageToPrint)
@@ -3111,6 +3104,12 @@ void M_Drawer(void)
     if (!menuactive)
     {
         return;
+    }
+
+    if (MN_MenuIsShaded())
+    {
+        inhelpscreens = true;
+        V_ShadeScreen();
     }
 
     if (currentMenu->routine)
