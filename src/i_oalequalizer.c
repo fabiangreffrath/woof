@@ -310,8 +310,7 @@ void I_OAL_EqualizerPreset(void)
     {
         RestoreCustomPreset();
     }
-    else if (default_equalizer != EQ_PRESET_CUSTOM
-             && snd_equalizer == EQ_PRESET_CUSTOM)
+    else if (snd_equalizer == EQ_PRESET_CUSTOM)
     {
         BackupCustomPreset();
     }
