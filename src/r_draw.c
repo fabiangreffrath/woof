@@ -321,6 +321,96 @@ void R_DrawSkyColumn(void)
     }
 }
 
+void R_DrawSkyColumnMasked(void)
+{
+    int count = dc_yh - dc_yl + 1;
+
+    if (count <= 0)
+    {
+        return;
+    }
+
+#ifdef RANGECHECK
+    if ((unsigned)dc_x >= video.width || dc_yl < 0 || dc_yh >= video.height)
+    {
+        I_Error("R_DrawSkyColumn: %i to %i at %i", dc_yl, dc_yh, dc_x);
+    }
+#endif
+
+    byte *dest = ylookup[dc_yl] + columnofs[dc_x];
+
+    const fixed_t fracstep = dc_iscale;
+    fixed_t frac = dc_texturemid + (dc_yl - centery) * fracstep;
+
+    const byte *source = dc_source;
+    const lighttable_t *colormap = dc_colormap[0];
+    int heightmask = dc_texheight - 1;
+
+    // Skip above-areas
+    if (frac < 0)
+    {
+        int n = (-frac + fracstep - 1) / fracstep;
+
+        if (n > count)
+            n = count;
+
+        if (!(count -= n))
+            return;
+
+        dest += linesize * n;
+        frac += fracstep * n;
+    }
+
+    if (dc_texheight & heightmask) // not a power of 2 -- killough
+    {
+        heightmask++;
+        heightmask <<= FRACBITS;
+
+        while (frac >= heightmask)
+        {
+            frac -= heightmask;
+        }
+
+        do
+        {
+            if (source[frac >> FRACBITS])
+            {
+                *dest = colormap[source[frac >> FRACBITS]];
+            }
+            dest += linesize; // killough 11/98
+            if ((frac += fracstep) >= heightmask)
+            {
+                frac -= heightmask;
+            }
+        } while (--count);
+    }
+    else
+    {
+        while ((count -= 2) >= 0) // texture height is a power of 2 -- killough
+        {
+            if (source[(frac >> FRACBITS) & heightmask])
+            {
+                *dest = colormap[source[(frac >> FRACBITS) & heightmask]];
+            }
+            dest += linesize; // killough 11/98
+            frac += fracstep;
+            if (source[(frac >> FRACBITS) & heightmask])
+            {
+                *dest = colormap[source[(frac >> FRACBITS) & heightmask]];
+            }
+            dest += linesize; // killough 11/98
+            frac += fracstep;
+        }
+        if (count & 1)
+        {
+            if (source[(frac >> FRACBITS) & heightmask])
+            {
+                *dest = colormap[source[(frac >> FRACBITS) & heightmask]];
+            }
+        }
+    }
+}
+
 //
 // Spectre/Invisibility.
 //

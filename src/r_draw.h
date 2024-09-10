@@ -52,6 +52,7 @@ extern boolean fuzzcolumn_mode;
 void R_SetFuzzColumnMode(void);
 
 void R_DrawSkyColumn(void);
+void R_DrawSkyColumnMasked(void);
 
 // Draw with color translation tables, for player sprite rendering,
 //  Green/Red/Blue/Indigo shirts.

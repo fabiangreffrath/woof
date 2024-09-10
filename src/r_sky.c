@@ -47,13 +47,21 @@ int skytexturemid;
 
 sky_t *skydef = NULL;
 
+static skydefs_t *skydefs;
+
 //
 // R_InitSkyMap
 // Called whenever the view size changes.
 //
 void R_InitSkyMap (void)
 {
-  skydefs_t *skydefs = R_ParseSkyDefs();
+  static boolean run_once = true;
+  if (run_once)
+  {
+      skydefs = R_ParseSkyDefs();
+      run_once = false;
+  }
+
   if (skydefs)
   {
       skydef = NULL;

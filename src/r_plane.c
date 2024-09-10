@@ -41,6 +41,7 @@
 #include "i_system.h"
 #include "i_timer.h"
 #include "m_array.h"
+#include "m_fixed.h"
 #include "m_random.h"
 #include "r_bmaps.h" // [crispy] R_BrightmapForTexName()
 #include "r_data.h"
@@ -455,20 +456,20 @@ static byte *GetFireColumn(int col)
 
 static void DrawSkyFire(visplane_t *pl, fire_t *fire)
 {
-    static int timer;
+    static int time;
 
     int updatetime = fire->updatetime * 1000;
 
-    if (I_GetTimeMS() - timer >= updatetime)
+    if (I_GetTimeMS() - time >= updatetime)
     {
-        timer = I_GetTimeMS();
+        time = I_GetTimeMS();
         SpreadFire();
         PrepareFirePixels(fire);
     }
 
     dc_colormap[0] = dc_colormap[1] = fullcolormap;
 
-    dc_texturemid = 200 * FRACUNIT;
+    dc_texturemid = -28 * FRACUNIT;
     dc_iscale = skyiscale;
     dc_texheight = FIRE_HEIGHT;
 
@@ -491,9 +492,18 @@ static void DrawSkyTex(visplane_t *pl, skytex_t *skytex)
 {
     int texture = R_TextureNumForName(skytex->name);
 
+    dc_colormap[0] = dc_colormap[1] = fullcolormap;
+
     dc_texturemid = skytex->mid * FRACUNIT;
     dc_texheight = textureheight[texture] >> FRACBITS;
     dc_iscale = skyiscale;
+
+    skytex->curr_scrollx += skytex->scrollx * FRACUNIT;
+    skytex->curr_scrolly += skytex->scrolly * FRACUNIT;
+
+    dc_texturemid += skytex->curr_scrolly;
+
+    angle_t an = viewangle + FixedToAngle(skytex->curr_scrollx);
 
     for (int x = pl->minx; x <= pl->maxx; x++)
     {
@@ -503,7 +513,7 @@ static void DrawSkyTex(visplane_t *pl, skytex_t *skytex)
 
         if (dc_yl != USHRT_MAX && dc_yl <= dc_yh)
         {
-            dc_source = R_GetColumnMod2(texture, (viewangle + xtoskyangle[x])
+            dc_source = R_GetColumnMod2(texture, (an + xtoskyangle[x])
                                                      >> ANGLETOSKYSHIFT);
             colfunc();
         }
@@ -522,7 +532,7 @@ static void DrawSkyDef(visplane_t *pl)
 
     if (skydef->type == SkyType_WithForeground)
     {
-        colfunc = R_DrawMasked;
+        colfunc = R_DrawSkyColumnMasked;
         DrawSkyTex(pl, &skydef->foreground);
         colfunc = R_DrawColumn;
     }

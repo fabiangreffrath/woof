@@ -1,3 +1,15 @@
+//
+// Copyright(C) 2024 Roman Fomin
+//
+// This program is free software; you can redistribute it and/or
+// modify it under the terms of the GNU General Public License
+// as published by the Free Software Foundation; either version 2
+// of the License, or (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
 
 #include "r_skydefs.h"
 
@@ -82,13 +94,16 @@ static boolean ParseSky(cJSON *json, sky_t *out)
     fire_t fire = {0};
     if (!ParseFire(js_fire, &fire))
     {
-        return false;
+        //return false;
     }
     out->fire = fire;
 
-    cJSON *js_foreground = cJSON_GetObjectItemCaseSensitive(json, "foreground");
+    cJSON *js_foreground = cJSON_GetObjectItemCaseSensitive(json, "foregroundtex");
     skytex_t foreground = {0};
-    ParseSkyTex(js_foreground, &foreground);
+    if (!ParseSkyTex(js_foreground, &foreground))
+    {
+        //return false;
+    }
     out->foreground = foreground;
 
     return true;

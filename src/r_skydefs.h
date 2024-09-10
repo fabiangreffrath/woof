@@ -1,6 +1,21 @@
+//
+// Copyright(C) 2024 Roman Fomin
+//
+// This program is free software; you can redistribute it and/or
+// modify it under the terms of the GNU General Public License
+// as published by the Free Software Foundation; either version 2
+// of the License, or (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
 
 #ifndef R_SKYDEFS_H
 #define R_SKYDEFS_H
+
+#include "doomtype.h"
+#include "m_fixed.h"
 
 typedef enum
 {
@@ -11,7 +26,7 @@ typedef enum
 
 typedef struct fire_s
 {
-    int *palette;
+    byte *palette;
     double updatetime;
 } fire_t;
 
@@ -20,7 +35,9 @@ typedef struct
     const char *name;
     double mid;
     double scrollx;
+    fixed_t curr_scrollx;
     double scrolly;
+    fixed_t curr_scrolly;
     double scalex;
     double scaley;
 } skytex_t;
