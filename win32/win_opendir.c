@@ -170,7 +170,6 @@ static DIR *__internal_opendir(wchar_t *wname, int size)
 {
     struct __dir *data = NULL;
     struct dirent *tmp_entries = NULL;
-    static char default_char = '?';
     static wchar_t *suffix = L"\\*.*";
     static int extra_prefix = 4; /* use prefix "\\?\" to handle long file names */
     static int extra_suffix = 4; /* use suffix "\*.*" to find everything */
@@ -222,7 +221,7 @@ static DIR *__internal_opendir(wchar_t *wname, int size)
     {
         WideCharToMultiByte(CP_UTF8, 0, w32fd.cFileName, -1,
                             data->entries[data->index].d_name, NAME_MAX,
-                            &default_char, NULL);
+                            NULL, NULL);
 
         memcpy(wname + size, w32fd.cFileName, sizeof(wchar_t) * NAME_MAX);
 
