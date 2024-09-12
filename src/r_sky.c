@@ -22,8 +22,8 @@
 //-----------------------------------------------------------------------------
 
 #include <stdlib.h>
+#include <string.h>
 
-#include "doomdef.h"
 #include "doomtype.h"
 #include "i_video.h"
 #include "m_array.h"
@@ -107,8 +107,6 @@ static void SetupFire(fire_t *fire)
         SpreadFire();
     }
     PrepareFirePixels(fire);
-
-    fire->duration_left = fire->updatetime * TICRATE;
 }
 
 byte *R_GetFireColumn(int col)
@@ -158,14 +156,27 @@ void R_UpdateSky(void)
     {
         fire_t *fire = &sky->fire;
 
-        fire->duration_left--;
-
-        if (fire->duration_left == 0)
+        if (fire->tics_left == 0)
         {
             SpreadFire();
             PrepareFirePixels(fire);
-            fire->duration_left = fire->updatetime * TICRATE;
+            fire->tics_left = fire->updatetime;
         }
+
+        fire->tics_left--;
+
+        return;
+    }
+
+    skytex_t *background = &sky->skytex;
+    background->currx += background->scrollx;
+    background->curry += background->scrolly;
+
+    if (sky->type == SkyType_WithForeground)
+    {
+        skytex_t *foreground = &sky->foreground;
+        foreground->currx += foreground->scrollx;
+        foreground->curry += foreground->scrolly;
     }
 }
 

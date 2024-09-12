@@ -27,20 +27,20 @@ typedef enum
 typedef struct fire_s
 {
     byte *palette;
-    double updatetime;
-    int duration_left;
+    int updatetime;
+    int tics_left;
 } fire_t;
 
 typedef struct
 {
     const char *name;
     double mid;
-    double scrollx;
-    fixed_t curr_scrollx;
-    double scrolly;
-    fixed_t curr_scrolly;
-    double scalex;
-    double scaley;
+    fixed_t scrollx;
+    fixed_t currx;
+    fixed_t scrolly;
+    fixed_t curry;
+    fixed_t scalex;
+    fixed_t scaley;
 } skytex_t;
 
 typedef struct sky_s

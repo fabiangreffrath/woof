@@ -414,14 +414,11 @@ static void DrawSkyTex(visplane_t *pl, skytex_t *skytex)
 
     dc_texturemid = skytex->mid * FRACUNIT;
     dc_texheight = textureheight[texture] >> FRACBITS;
-    dc_iscale = skyiscale;
+    dc_iscale = FixedMul(skyiscale, skytex->scaley);
 
-    skytex->curr_scrollx += skytex->scrollx * FRACUNIT;
-    skytex->curr_scrolly += skytex->scrolly * FRACUNIT;
+    dc_texturemid += skytex->curry;
 
-    dc_texturemid += skytex->curr_scrolly;
-
-    angle_t an = viewangle + FixedToAngle(skytex->curr_scrollx);
+    angle_t an = viewangle + FixedToAngle(skytex->currx);
 
     for (int x = pl->minx; x <= pl->maxx; x++)
     {
@@ -453,6 +450,7 @@ static void DrawSkyDef(visplane_t *pl)
         tranmap = W_CacheLumpName("SKYTRAN", PU_CACHE);
         colfunc = R_DrawTLColumn;
         DrawSkyTex(pl, &sky->foreground);
+        tranmap = main_tranmap;
         colfunc = R_DrawColumn;
     }
 }

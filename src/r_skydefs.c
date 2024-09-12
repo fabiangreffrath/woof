@@ -13,9 +13,11 @@
 
 #include "r_skydefs.h"
 
+#include "doomdef.h"
 #include "doomtype.h"
 #include "i_printf.h"
 #include "m_array.h"
+#include "m_fixed.h"
 #include "m_misc.h"
 #include "w_wad.h"
 
@@ -28,7 +30,7 @@ static boolean ParseFire(cJSON *json, fire_t *out)
     {
         return false;
     }
-    out->updatetime = updatetime->valuedouble;
+    out->updatetime = updatetime->valuedouble * TICRATE;
 
     cJSON *palette = cJSON_GetObjectItemCaseSensitive(json, "palette");
     if (!cJSON_IsArray(palette))
@@ -59,17 +61,18 @@ static boolean ParseSkyTex(cJSON *json, skytex_t *out)
     cJSON *scrolly = cJSON_GetObjectItemCaseSensitive(json, "scrolly");
     cJSON *scalex = cJSON_GetObjectItemCaseSensitive(json, "scalex");
     cJSON *scaley = cJSON_GetObjectItemCaseSensitive(json, "scaley");
-    if (!cJSON_IsNumber(mid) 
+    if (!cJSON_IsNumber(mid)
         || !cJSON_IsNumber(scrollx) || !cJSON_IsNumber(scrolly)
         || !cJSON_IsNumber(scalex)  || !cJSON_IsNumber(scaley))
     {
         return false;
     }
     out->mid = mid->valuedouble;
-    out->scrollx = scrollx->valuedouble;
-    out->scrolly = scrolly->valuedouble;
-    out->scalex = scalex->valuedouble;
-    out->scaley = scaley->valuedouble;
+    const double ticratescale = 1.0 / TICRATE;
+    out->scrollx = (scrollx->valuedouble * ticratescale) * FRACUNIT;
+    out->scrolly = (scrolly->valuedouble * ticratescale) * FRACUNIT;
+    out->scalex = scalex->valuedouble * FRACUNIT;
+    out->scaley = (1.0 / scaley->valuedouble) * FRACUNIT;
 
     return true;
 }
