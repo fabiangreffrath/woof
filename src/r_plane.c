@@ -39,10 +39,7 @@
 #include "doomstat.h"
 #include "doomtype.h"
 #include "i_system.h"
-#include "i_timer.h"
-#include "m_array.h"
 #include "m_fixed.h"
-#include "m_random.h"
 #include "r_bmaps.h" // [crispy] R_BrightmapForTexName()
 #include "r_data.h"
 #include "r_defs.h"
@@ -53,7 +50,6 @@
 #include "r_skydefs.h"
 #include "r_state.h"
 #include "r_swirl.h" // [crispy] R_DistortedFlat()
-#include "r_things.h"
 #include "tables.h"
 #include "v_fmt.h"
 #include "v_video.h"

@@ -23,7 +23,6 @@
 #include "m_fixed.h"
 
 struct visplane_s;
-struct fire_s;
 
 // killough 10/98: special mask indicates sky flat comes from sidedef
 #define PL_SKYFLAT (0x80000000)
