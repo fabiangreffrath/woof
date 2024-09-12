@@ -1010,6 +1010,22 @@ int P_CheckTag(line_t *line)
   return 0;
 }
 
+boolean P_IsDeathExit(sector_t *sector)
+{
+  if (sector->special < 32)
+  {
+    return (sector->special == 11);
+  }
+  else if (mbf21 && sector->special & DEATH_MASK)
+  {
+    const int i = (sector->special & DAMAGE_MASK) >> DAMAGE_SHIFT;
+
+    return (i == 2 || i == 3);
+  }
+
+  return false;
+}
+
 //
 // P_IsSecret()
 //

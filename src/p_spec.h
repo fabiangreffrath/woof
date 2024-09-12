@@ -810,6 +810,8 @@ boolean P_CanUnlockGenDoor(struct line_s *line, struct player_s *player);
 
 int P_SectorActive(special_e t, struct sector_s *s);
 
+boolean P_IsDeathExit(struct sector_s *sec);
+
 boolean P_IsSecret(struct sector_s *sec);
 
 boolean P_WasSecret(struct sector_s *sec);
