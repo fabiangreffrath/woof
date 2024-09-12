@@ -57,6 +57,7 @@
 #include "tables.h"
 #include "v_fmt.h"
 #include "v_video.h"
+#include "w_wad.h"
 #include "z_zone.h"
 
 #define MAXVISPLANES 128    /* must be a power of 2 */
@@ -449,7 +450,8 @@ static void DrawSkyDef(visplane_t *pl)
 
     if (sky->type == SkyType_WithForeground)
     {
-        colfunc = R_DrawSkyColumnMasked;
+        tranmap = W_CacheLumpName("SKYTRAN", PU_CACHE);
+        colfunc = R_DrawTLColumn;
         DrawSkyTex(pl, &sky->foreground);
         colfunc = R_DrawColumn;
     }
