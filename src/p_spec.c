@@ -2414,6 +2414,8 @@ void P_UpdateSpecials (void)
 
   // [crispy] draw fuzz effect independent of rendering frame rate
   R_SetFuzzPosTic();
+
+  R_UpdateSky();
 }
 
 //////////////////////////////////////////////////////////////////////

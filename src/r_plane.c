@@ -382,92 +382,8 @@ static void R_MakeSpans(int x, unsigned int t1, unsigned int b1, unsigned int t2
     spanstart[b2--] = x;
 }
 
-#define FIRE_WIDTH     128
-#define FIRE_HEIGHT    256
-
-static byte fire_indices[FIRE_WIDTH * FIRE_HEIGHT];
-
-static byte fire_pixels[FIRE_WIDTH * FIRE_HEIGHT];
-
-static void PrepareFirePixels(fire_t *fire)
-{
-    byte *rover = fire_pixels;
-    for (int x = 0; x < FIRE_WIDTH; x++)
-    {
-        byte *src = fire_indices + x;
-        for (int y = 0; y < FIRE_HEIGHT; y++)
-        {
-            *rover++ = fire->palette[*src];
-            src += FIRE_WIDTH;
-        }
-    }
-}
-
-static void SpreadFire(void)
-{
-    for (int x = 0; x < FIRE_WIDTH; ++x)
-    {
-        for (int y = 1; y < FIRE_HEIGHT; ++y)
-        {
-            int src = y * FIRE_WIDTH + x;
-
-            int index = fire_indices[src];
-
-            if (!index)
-            {
-                fire_indices[src - FIRE_WIDTH] = 0;
-            }
-            else
-            {
-                int rand_index = M_Random() & 3;
-                int dst = src - rand_index + 1;
-                fire_indices[dst - FIRE_WIDTH] = index - (rand_index & 1);
-            }
-        }
-    }
-}
-
-void R_SetupFire(fire_t *fire)
-{
-    memset(fire_indices, 0, FIRE_WIDTH * FIRE_HEIGHT);
-
-    int last = array_size(fire->palette) - 1;
-
-    for (int i = 0; i < FIRE_WIDTH; ++i)
-    {
-        fire_indices[(FIRE_HEIGHT - 1) * FIRE_WIDTH + i] = last;
-    }
-
-    for (int i = 0; i < 64; ++i)
-    {
-        SpreadFire();
-    }
-    PrepareFirePixels(fire);
-}
-
-static byte *GetFireColumn(int col)
-{
-    while (col < 0)
-    {
-        col += FIRE_WIDTH;
-    }
-    col %= FIRE_WIDTH;
-    return &fire_pixels[col * FIRE_HEIGHT];
-}
-
 static void DrawSkyFire(visplane_t *pl, fire_t *fire)
 {
-    static int time;
-
-    int updatetime = fire->updatetime * 1000;
-
-    if (I_GetTimeMS() - time >= updatetime)
-    {
-        time = I_GetTimeMS();
-        SpreadFire();
-        PrepareFirePixels(fire);
-    }
-
     dc_colormap[0] = dc_colormap[1] = fullcolormap;
 
     dc_texturemid = -28 * FRACUNIT;
@@ -482,8 +398,8 @@ static void DrawSkyFire(visplane_t *pl, fire_t *fire)
 
         if (dc_yl != USHRT_MAX && dc_yl <= dc_yh)
         {
-            dc_source =
-                GetFireColumn((viewangle + xtoskyangle[x]) >> ANGLETOSKYSHIFT);
+            dc_source = R_GetFireColumn((viewangle + xtoskyangle[x])
+                                        >> ANGLETOSKYSHIFT);
             colfunc();
         }
     }
@@ -523,18 +439,18 @@ static void DrawSkyTex(visplane_t *pl, skytex_t *skytex)
 
 static void DrawSkyDef(visplane_t *pl)
 {
-    if (skydef->type == SkyType_Fire)
+    if (sky->type == SkyType_Fire)
     {
-        DrawSkyFire(pl, &skydef->fire);
+        DrawSkyFire(pl, &sky->fire);
         return;
     }
 
-    DrawSkyTex(pl, &skydef->skytex);
+    DrawSkyTex(pl, &sky->skytex);
 
-    if (skydef->type == SkyType_WithForeground)
+    if (sky->type == SkyType_WithForeground)
     {
         colfunc = R_DrawSkyColumnMasked;
-        DrawSkyTex(pl, &skydef->foreground);
+        DrawSkyTex(pl, &sky->foreground);
         colfunc = R_DrawColumn;
     }
 }
@@ -659,7 +575,7 @@ static void do_draw_plane(visplane_t *pl)
 
     // sky flat
 
-    if (pl->picnum == skyflatnum && skydef)
+    if (pl->picnum == skyflatnum && sky)
     {
         DrawSkyDef(pl);
         return;

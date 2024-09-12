@@ -51,8 +51,6 @@ void R_InitPlanesRes(void);
 
 void R_InitVisplanesRes(void);
 
-void R_SetupFire(struct fire_s *fire);
-
 #endif
 
 //----------------------------------------------------------------------------

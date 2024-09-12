@@ -92,17 +92,17 @@ static boolean ParseSky(cJSON *json, sky_t *out)
 
     cJSON *js_fire = cJSON_GetObjectItemCaseSensitive(json, "fire");
     fire_t fire = {0};
-    if (!ParseFire(js_fire, &fire))
+    if (!cJSON_IsNull(js_fire))
     {
-        //return false;
+        ParseFire(js_fire, &fire);
     }
     out->fire = fire;
 
     cJSON *js_foreground = cJSON_GetObjectItemCaseSensitive(json, "foregroundtex");
     skytex_t foreground = {0};
-    if (!ParseSkyTex(js_foreground, &foreground))
+    if (!cJSON_IsNull(js_foreground))
     {
-        //return false;
+        ParseSkyTex(js_foreground, &foreground);
     }
     out->foreground = foreground;
 

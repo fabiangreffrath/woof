@@ -28,6 +28,7 @@ typedef struct fire_s
 {
     byte *palette;
     double updatetime;
+    int duration_left;
 } fire_t;
 
 typedef struct
