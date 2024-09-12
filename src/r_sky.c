@@ -152,6 +152,11 @@ static void InitSky(void)
 
 void R_UpdateSky(void)
 {
+    if (!sky)
+    {
+        return;
+    }
+
     if (sky->type == SkyType_Fire)
     {
         fire_t *fire = &sky->fire;
