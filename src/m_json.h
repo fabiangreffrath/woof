@@ -23,9 +23,9 @@ const char *JS_GetString(json_t *json);
 int JS_GetArraySize(json_t *json);
 json_t *JS_GetArrayItem(json_t *json, int index);
 
-#define JS_ArrayForEach(element, array)                       \
-    for (int __index = 0; __index < JS_GetArraySize((array)), \
-             (element) = JS_GetArrayItem((array), __index);   \
+#define JS_ArrayForEach(element, array)                                       \
+    for (int __index = 0; __index < JS_GetArraySize((array))                  \
+                          && ((element) = JS_GetArrayItem((array), __index)); \
          ++__index)
 
 #endif
