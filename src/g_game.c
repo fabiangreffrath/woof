@@ -260,16 +260,6 @@ static boolean WeaponSelectable(weapontype_t weapon)
         return false;
     }
 
-    // Can't select the fist if we have the chainsaw, unless
-    // we also have the berserk pack.
-
-    if (weapon == wp_fist
-     && players[consoleplayer].weaponowned[wp_chainsaw]
-     && !players[consoleplayer].powers[pw_strength])
-    {
-        return false;
-    }
-
     return true;
 }
 
@@ -310,7 +300,7 @@ static int G_NextWeapon(int direction)
         i = (i + arrlen(weapon_order_table)) % arrlen(weapon_order_table);
     } while (i != start_i && !WeaponSelectable(weapon_order_table[i].weapon));
 
-    return demo_compatibility ? weapon_order_table[i].weapon_num : weapon_order_table[i].weapon;
+    return weapon_order_table[i].weapon_num;
 }
 
 // [FG] toggle demo warp mode
@@ -752,7 +742,7 @@ void G_BuildTiccmd(ticcmd_t* cmd)
         M_InputGameActive(input_weapon6) && gamemode != shareware ? wp_plasma :
         M_InputGameActive(input_weapon7) && gamemode != shareware ? wp_bfg :
         M_InputGameActive(input_weapon8) ? wp_chainsaw :
-        M_InputGameActive(input_weapon9) && have_ssg ? wp_supershotgun :
+        M_InputGameActive(input_weapon9) && !demo_compatibility && have_ssg ? wp_supershotgun :
         wp_nochange;
 
       // killough 3/22/98: For network and demo consistency with the
@@ -769,7 +759,7 @@ void G_BuildTiccmd(ticcmd_t* cmd)
       // killough 10/98: make SG/SSG and Fist/Chainsaw
       // weapon toggles optional
       
-      if (!demo_compatibility && !next_weapon)
+      if (!demo_compatibility)
         {
           const player_t *player = &players[consoleplayer];
 
