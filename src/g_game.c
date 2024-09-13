@@ -221,16 +221,20 @@ int    bodyqueslot, bodyquesize, default_bodyquesize; // killough 2/8/98, 10/98
 
 static int next_weapon = 0;
 
-static const weapontype_t weapon_order_table[] = {
-    wp_fist,
-    wp_chainsaw,
-    wp_pistol,
-    wp_shotgun,
-    wp_supershotgun,
-    wp_chaingun,
-    wp_missile,
-    wp_plasma,
-    wp_bfg
+static const struct
+{
+    weapontype_t weapon;
+    weapontype_t weapon_num;
+} weapon_order_table[] = {
+    { wp_fist,            wp_fist },
+    { wp_chainsaw,        wp_fist },
+    { wp_pistol,          wp_pistol },
+    { wp_shotgun,         wp_shotgun },
+    { wp_supershotgun,    wp_shotgun },
+    { wp_chaingun,        wp_chaingun },
+    { wp_missile,         wp_missile },
+    { wp_plasma,          wp_plasma },
+    { wp_bfg,             wp_bfg }
 };
 
 static boolean WeaponSelectable(weapontype_t weapon)
@@ -288,7 +292,7 @@ static int G_NextWeapon(int direction)
 
     for (i=0; i<arrlen(weapon_order_table); ++i)
     {
-        if (weapon_order_table[i] == weapon)
+        if (weapon_order_table[i].weapon == weapon)
         {
             break;
         }
@@ -305,9 +309,9 @@ static int G_NextWeapon(int direction)
     {
         i += direction;
         i = (i + arrlen(weapon_order_table)) % arrlen(weapon_order_table);
-    } while (i != start_i && !WeaponSelectable(weapon_order_table[i]));
+    } while (i != start_i && !WeaponSelectable(weapon_order_table[i].weapon));
 
-    return weapon_order_table[i];
+    return demo_compatibility ? weapon_order_table[i].weapon_num : weapon_order_table[i].weapon;
 }
 
 // [FG] toggle demo warp mode
