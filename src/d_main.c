@@ -450,8 +450,6 @@ void D_Display (void)
       I_FinishUpdate();             // page flip or blit buffer
     }
   while (!done);
-
-  drs_skip_frame = true; // skip DRS after wipe
 }
 
 //
