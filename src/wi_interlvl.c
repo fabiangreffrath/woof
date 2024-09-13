@@ -155,11 +155,7 @@ interlevel_t *WI_ParseInterlevel(const char *lumpname)
     cJSON *json = cJSON_Parse(W_CacheLumpName(lumpname, PU_CACHE));
     if (json == NULL)
     {
-        const char *error_ptr = cJSON_GetErrorPtr();
-        if (error_ptr != NULL)
-        {
-            I_Printf(VB_ERROR, "Error parsing %s", lumpname);
-        }
+        I_Printf(VB_ERROR, "Error parsing %s", lumpname);
         cJSON_Delete(json);
         return NULL;
     }

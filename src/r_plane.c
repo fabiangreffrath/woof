@@ -39,6 +39,7 @@
 #include "doomstat.h"
 #include "doomtype.h"
 #include "i_system.h"
+#include "m_fixed.h"
 #include "r_bmaps.h" // [crispy] R_BrightmapForTexName()
 #include "r_data.h"
 #include "r_defs.h"
@@ -46,11 +47,13 @@
 #include "r_main.h"
 #include "r_plane.h"
 #include "r_sky.h"
+#include "r_skydefs.h"
 #include "r_state.h"
 #include "r_swirl.h" // [crispy] R_DistortedFlat()
 #include "tables.h"
 #include "v_fmt.h"
 #include "v_video.h"
+#include "w_wad.h"
 #include "z_zone.h"
 
 #define MAXVISPLANES 128    /* must be a power of 2 */
@@ -264,19 +267,19 @@ static visplane_t *new_visplane(unsigned hash)
 
 visplane_t *R_DupPlane(const visplane_t *pl, int start, int stop)
 {
-      unsigned hash = visplane_hash(pl->picnum, pl->lightlevel, pl->height);
-      visplane_t *new_pl = new_visplane(hash);
+    unsigned hash = visplane_hash(pl->picnum, pl->lightlevel, pl->height);
+    visplane_t *new_pl = new_visplane(hash);
 
-      new_pl->height = pl->height;
-      new_pl->picnum = pl->picnum;
-      new_pl->lightlevel = pl->lightlevel;
-      new_pl->xoffs = pl->xoffs;           // killough 2/28/98
-      new_pl->yoffs = pl->yoffs;
-      new_pl->minx = start;
-      new_pl->maxx = stop;
-      memset(new_pl->top, UCHAR_MAX, video.width * sizeof(*new_pl->top));
+    new_pl->height = pl->height;
+    new_pl->picnum = pl->picnum;
+    new_pl->lightlevel = pl->lightlevel;
+    new_pl->xoffs = pl->xoffs;           // killough 2/28/98
+    new_pl->yoffs = pl->yoffs;
+    new_pl->minx = start;
+    new_pl->maxx = stop;
+    memset(new_pl->top, UCHAR_MAX, video.width * sizeof(*new_pl->top));
 
-      return new_pl;
+    return new_pl;
 }
 
 //
@@ -376,152 +379,260 @@ static void R_MakeSpans(int x, unsigned int t1, unsigned int b1, unsigned int t2
     spanstart[b2--] = x;
 }
 
+static void DrawSkyFire(visplane_t *pl, fire_t *fire)
+{
+    dc_colormap[0] = dc_colormap[1] = fullcolormap;
+
+    dc_texturemid = -28 * FRACUNIT;
+    dc_iscale = skyiscale;
+    dc_texheight = FIRE_HEIGHT;
+
+    for (int x = pl->minx; x <= pl->maxx; x++)
+    {
+        dc_x = x;
+        dc_yl = pl->top[x];
+        dc_yh = pl->bottom[x];
+
+        if (dc_yl != USHRT_MAX && dc_yl <= dc_yh)
+        {
+            dc_source = R_GetFireColumn((viewangle + xtoskyangle[x])
+                                        >> ANGLETOSKYSHIFT);
+            colfunc();
+        }
+    }
+}
+
+static void DrawSkyTex(visplane_t *pl, skytex_t *skytex)
+{
+    int texture = R_TextureNumForName(skytex->name);
+
+    dc_colormap[0] = dc_colormap[1] = fullcolormap;
+
+    dc_texturemid = skytex->mid * FRACUNIT;
+    dc_texheight = textureheight[texture] >> FRACBITS;
+    dc_iscale = FixedMul(skyiscale, skytex->scaley);
+
+    dc_texturemid += skytex->curry;
+
+    angle_t an = viewangle + FixedToAngle(skytex->currx);
+
+    for (int x = pl->minx; x <= pl->maxx; x++)
+    {
+        dc_x = x;
+        dc_yl = pl->top[x];
+        dc_yh = pl->bottom[x];
+
+        if (dc_yl != USHRT_MAX && dc_yl <= dc_yh)
+        {
+            dc_source = R_GetColumnMod2(texture, (an + xtoskyangle[x])
+                                                     >> ANGLETOSKYSHIFT);
+            colfunc();
+        }
+    }
+}
+
+static void DrawSkyDef(visplane_t *pl)
+{
+    if (sky->type == SkyType_Fire)
+    {
+        DrawSkyFire(pl, &sky->fire);
+        return;
+    }
+
+    DrawSkyTex(pl, &sky->skytex);
+
+    if (sky->type == SkyType_WithForeground)
+    {
+        // Special tranmap to avoid custom render path to render sky
+        // transparently. See id24 SKYDEFS spec.
+        tranmap = W_CacheLumpName("SKYTRAN", PU_CACHE);
+        colfunc = R_DrawTLColumn;
+        DrawSkyTex(pl, &sky->foreground);
+        tranmap = main_tranmap;
+        colfunc = R_DrawColumn;
+    }
+}
+
+static void do_draw_mbf_sky(visplane_t *pl)
+{
+    int texture;
+    angle_t an, flip;
+    boolean vertically_scrolling = false;
+
+    // killough 10/98: allow skies to come from sidedefs.
+    // Allows scrolling and/or animated skies, as well as
+    // arbitrary multiple skies per level without having
+    // to use info lumps.
+
+    an = viewangle;
+
+    if (pl->picnum & PL_SKYFLAT)
+    {
+        // Sky Linedef
+        const line_t *l = &lines[pl->picnum & ~PL_SKYFLAT];
+
+        // Sky transferred from first sidedef
+        const side_t *s = *l->sidenum + sides;
+
+        if (s->baserowoffset - s->oldrowoffset)
+        {
+            vertically_scrolling = true;
+        }
+
+        // Texture comes from upper texture of reference sidedef
+        texture = texturetranslation[s->toptexture];
+
+        // Horizontal offset is turned into an angle offset,
+        // to allow sky rotation as well as careful positioning.
+        // However, the offset is scaled very small, so that it
+        // allows a long-period of sky rotation.
+
+        an += s->textureoffset;
+
+        // Vertical offset allows careful sky positioning.
+
+        dc_texturemid = s->rowoffset - 28 * FRACUNIT;
+
+        // We sometimes flip the picture horizontally.
+        //
+        // Doom always flipped the picture, so we make it optional,
+        // to make it easier to use the new feature, while to still
+        // allow old sky textures to be used.
+
+        flip = l->special == 272 ? 0u : ~0u;
+    }
+    else // Normal Doom sky, only one allowed per level
+    {
+        dc_texturemid = skytexturemid; // Default y-offset
+        texture = skytexture;          // Default texture
+        flip = 0;                      // Doom flips it
+    }
+
+    // Sky is always drawn full bright, i.e. colormaps[0] is used.
+    // Because of this hack, sky is not affected by INVUL inverse mapping.
+    //
+    // killough 7/19/98: fix hack to be more realistic:
+
+    if (STRICTMODE_COMP(comp_skymap)
+        || !(dc_colormap[0] = dc_colormap[1] = fixedcolormap))
+    {
+        dc_colormap[0] = dc_colormap[1] = fullcolormap; // killough 3/20/98
+    }
+
+    dc_texheight = textureheight[texture] >> FRACBITS; // killough
+    dc_iscale = skyiscale;
+
+    // [FG] stretch short skies
+    boolean stretch = (stretchsky && dc_texheight < 200);
+    if (stretch || !vertically_scrolling)
+    {
+        if (stretch)
+        {
+            dc_iscale = dc_iscale * dc_texheight / SKYSTRETCH_HEIGHT;
+            dc_texturemid = dc_texturemid * dc_texheight / SKYSTRETCH_HEIGHT;
+        }
+
+        // Make sure the fade-to-color effect doesn't happen too early
+        fixed_t diff = dc_texturemid - SCREENHEIGHT / 2 * FRACUNIT;
+        if (diff < 0)
+        {
+            diff += textureheight[texture];
+            diff %= textureheight[texture];
+            dc_texturemid = SCREENHEIGHT / 2 * FRACUNIT + diff;
+        }
+        dc_skycolor = R_GetSkyColor(texture);
+        colfunc = R_DrawSkyColumn;
+    }
+
+    // killough 10/98: Use sky scrolling offset, and possibly flip picture
+    for (int x = pl->minx; x <= pl->maxx; x++)
+    {
+        dc_x = x;
+        dc_yl = pl->top[x];
+        dc_yh = pl->bottom[x];
+
+        if (dc_yl != USHRT_MAX && dc_yl <= dc_yh)
+        {
+            dc_source = R_GetColumnMod2(texture, ((an + xtoskyangle[x]) ^ flip)
+                                                     >> ANGLETOSKYSHIFT);
+            colfunc();
+        }
+    }
+
+    colfunc = R_DrawColumn;
+}
+
 // New function, by Lee Killough
 
 static void do_draw_plane(visplane_t *pl)
 {
-  register int x;
-  if (pl->minx <= pl->maxx)
-  {
-    if (pl->picnum == skyflatnum || pl->picnum & PL_SKYFLAT)  // sky flat
-      {
-	int texture;
-	angle_t an, flip;
-	boolean vertically_scrolling = false;
-	boolean stretch;
+    if (pl->minx > pl->maxx)
+    {
+        return;
+    }
 
-	// killough 10/98: allow skies to come from sidedefs.
-	// Allows scrolling and/or animated skies, as well as
-	// arbitrary multiple skies per level without having
-	// to use info lumps.
+    // sky flat
 
-	an = viewangle;
+    if (pl->picnum == skyflatnum && sky)
+    {
+        DrawSkyDef(pl);
+        return;
+    }
 
-	if (pl->picnum & PL_SKYFLAT)
-	  { 
-	    // Sky Linedef
-	    const line_t *l = &lines[pl->picnum & ~PL_SKYFLAT];
+    if (pl->picnum == skyflatnum || pl->picnum & PL_SKYFLAT)
+    {
+        do_draw_mbf_sky(pl);
+        return;
+    }
 
-	    // Sky transferred from first sidedef
-	    const side_t *s = *l->sidenum + sides;
+    // regular flat
 
-	    if (s->baserowoffset - s->oldrowoffset)
-	      vertically_scrolling = true;
+    int stop, light;
+    boolean swirling = (flattranslation[pl->picnum] == -1);
 
-	    // Texture comes from upper texture of reference sidedef
-	    texture = texturetranslation[s->toptexture];
+    // [crispy] add support for SMMU swirling flats
+    if (swirling)
+    {
+        ds_source = R_DistortedFlat(firstflat + pl->picnum);
+        ds_brightmap = R_BrightmapForFlatNum(pl->picnum);
+    }
+    else
+    {
+        ds_source = V_CacheFlatNum(
+            firstflat + flattranslation[pl->picnum], PU_STATIC);
+        ds_brightmap =
+            R_BrightmapForFlatNum(flattranslation[pl->picnum]);
+    }
 
-	    // Horizontal offset is turned into an angle offset,
-	    // to allow sky rotation as well as careful positioning.
-	    // However, the offset is scaled very small, so that it
-	    // allows a long-period of sky rotation.
+    xoffs = pl->xoffs; // killough 2/28/98: Add offsets
+    yoffs = pl->yoffs;
+    planeheight = abs(pl->height - viewz);
+    light = (pl->lightlevel >> LIGHTSEGSHIFT) + extralight;
 
-	    an += s->textureoffset;
+    if (light >= LIGHTLEVELS)
+    {
+        light = LIGHTLEVELS - 1;
+    }
 
-	    // Vertical offset allows careful sky positioning.
+    if (light < 0)
+    {
+        light = 0;
+    }
 
-	    dc_texturemid = s->rowoffset - 28*FRACUNIT;
+    stop = pl->maxx + 1;
+    planezlight = zlight[light];
+    pl->top[pl->minx - 1] = pl->top[stop] = USHRT_MAX;
 
-	    // We sometimes flip the picture horizontally.
-	    //
-	    // Doom always flipped the picture, so we make it optional,
-	    // to make it easier to use the new feature, while to still
-	    // allow old sky textures to be used.
+    for (int x = pl->minx; x <= stop; x++)
+    {
+        R_MakeSpans(x, pl->top[x - 1], pl->bottom[x - 1], pl->top[x],
+                    pl->bottom[x]);
+    }
 
-	    flip = l->special==272 ? 0u : ~0u;
-	  }
-	else 	 // Normal Doom sky, only one allowed per level
-	  {
-	    dc_texturemid = skytexturemid;    // Default y-offset
-	    texture = skytexture;             // Default texture
-	    flip = 0;                         // Doom flips it
-	  }
-
-        // Sky is always drawn full bright, i.e. colormaps[0] is used.
-        // Because of this hack, sky is not affected by INVUL inverse mapping.
-	//
-	// killough 7/19/98: fix hack to be more realistic:
-
-	if (STRICTMODE_COMP(comp_skymap) || !(dc_colormap[0] = dc_colormap[1] = fixedcolormap))
-	  dc_colormap[0] = dc_colormap[1] = fullcolormap;          // killough 3/20/98
-
-        dc_texheight = textureheight[texture]>>FRACBITS; // killough
-        dc_iscale = skyiscale;
-
-        // [FG] stretch short skies
-        stretch = (stretchsky && dc_texheight < 200);
-        if (stretch || !vertically_scrolling)
-        {
-          fixed_t diff;
-
-          if (stretch)
-          {
-            dc_iscale = dc_iscale * dc_texheight / SKYSTRETCH_HEIGHT;
-            dc_texturemid = dc_texturemid * dc_texheight / SKYSTRETCH_HEIGHT;
-          }
-
-          // Make sure the fade-to-color effect doesn't happen too early
-          diff = dc_texturemid - SCREENHEIGHT / 2 * FRACUNIT;
-          if (diff < 0)
-          {
-            diff += textureheight[texture];
-            diff %= textureheight[texture];
-            dc_texturemid = SCREENHEIGHT / 2 * FRACUNIT + diff;
-          }
-          dc_skycolor = R_GetSkyColor(texture);
-          colfunc = R_DrawSkyColumn;
-        }
-
-	// killough 10/98: Use sky scrolling offset, and possibly flip picture
-        for (x = pl->minx; (dc_x = x) <= pl->maxx; x++)
-          if ((dc_yl = pl->top[x]) != USHRT_MAX && dc_yl <= (dc_yh = pl->bottom[x]))
-            {
-              dc_source = R_GetColumnMod2(texture, ((an + xtoskyangle[x])^flip) >>
-				         ANGLETOSKYSHIFT);
-              colfunc();
-            }
-
-        colfunc = R_DrawColumn;
-      }
-    else      // regular flat
-      {
-        int stop, light;
-        boolean swirling = (flattranslation[pl->picnum] == -1);
-
-        // [crispy] add support for SMMU swirling flats
-        if (swirling)
-        {
-          ds_source = R_DistortedFlat(firstflat + pl->picnum);
-          ds_brightmap = R_BrightmapForFlatNum(pl->picnum);
-        }
-        else
-        {
-        ds_source = V_CacheFlatNum(firstflat + flattranslation[pl->picnum],
-                                   PU_STATIC);
-        ds_brightmap = R_BrightmapForFlatNum(flattranslation[pl->picnum]);
-        }
-
-        xoffs = pl->xoffs;  // killough 2/28/98: Add offsets
-        yoffs = pl->yoffs;
-        planeheight = abs(pl->height-viewz);
-        light = (pl->lightlevel >> LIGHTSEGSHIFT) + extralight;
-
-        if (light >= LIGHTLEVELS)
-          light = LIGHTLEVELS-1;
-
-        if (light < 0)
-          light = 0;
-
-        stop = pl->maxx + 1;
-        planezlight = zlight[light];
-        pl->top[pl->minx-1] = pl->top[stop] = USHRT_MAX;
-
-        for (x = pl->minx ; x <= stop ; x++)
-          R_MakeSpans(x,pl->top[x-1],pl->bottom[x-1],pl->top[x],pl->bottom[x]);
-
-        if (!swirling) Z_ChangeTag (ds_source, PU_CACHE);
-      }
-  }
+    if (!swirling)
+    {
+        Z_ChangeTag(ds_source, PU_CACHE);
+    }
 }
 
 //

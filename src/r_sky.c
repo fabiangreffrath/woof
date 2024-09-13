@@ -22,11 +22,16 @@
 //-----------------------------------------------------------------------------
 
 #include <stdlib.h>
+#include <string.h>
 
+#include "doomtype.h"
 #include "i_video.h"
+#include "m_array.h"
 #include "m_fixed.h"
+#include "m_random.h"
 #include "r_data.h"
 #include "r_sky.h"
+#include "r_skydefs.h"
 #include "r_state.h" // [FG] textureheight[]
 #include "w_wad.h"
 #include "z_zone.h"
@@ -42,13 +47,153 @@ int skyflatnum;
 int skytexture = -1; // [crispy] initialize
 int skytexturemid;
 
+sky_t *sky = NULL;
+
+// PSX fire sky, description: https://fabiensanglard.net/doom_fire_psx/
+
+static byte fire_indices[FIRE_WIDTH * FIRE_HEIGHT];
+
+static byte fire_pixels[FIRE_WIDTH * FIRE_HEIGHT];
+
+static void PrepareFirePixels(fire_t *fire)
+{
+    byte *rover = fire_pixels;
+    for (int x = 0; x < FIRE_WIDTH; x++)
+    {
+        byte *src = fire_indices + x;
+        for (int y = 0; y < FIRE_HEIGHT; y++)
+        {
+            *rover++ = fire->palette[*src];
+            src += FIRE_WIDTH;
+        }
+    }
+}
+
+static void SpreadFire(void)
+{
+    for (int x = 0; x < FIRE_WIDTH; ++x)
+    {
+        for (int y = 1; y < FIRE_HEIGHT; ++y)
+        {
+            int src = y * FIRE_WIDTH + x;
+
+            int index = fire_indices[src];
+
+            if (!index)
+            {
+                fire_indices[src - FIRE_WIDTH] = 0;
+            }
+            else
+            {
+                int rand_index = M_Random() & 3;
+                int dst = src - rand_index + 1;
+                fire_indices[dst - FIRE_WIDTH] = index - (rand_index & 1);
+            }
+        }
+    }
+}
+
+static void SetupFire(fire_t *fire)
+{
+    memset(fire_indices, 0, FIRE_WIDTH * FIRE_HEIGHT);
+
+    int last = array_size(fire->palette) - 1;
+
+    for (int i = 0; i < FIRE_WIDTH; ++i)
+    {
+        fire_indices[(FIRE_HEIGHT - 1) * FIRE_WIDTH + i] = last;
+    }
+
+    for (int i = 0; i < 64; ++i)
+    {
+        SpreadFire();
+    }
+    PrepareFirePixels(fire);
+}
+
+byte *R_GetFireColumn(int col)
+{
+    while (col < 0)
+    {
+        col += FIRE_WIDTH;
+    }
+    col %= FIRE_WIDTH;
+    return &fire_pixels[col * FIRE_HEIGHT];
+}
+
+static void InitSky(void)
+{
+    static skydefs_t *skydefs;
+
+    static boolean run_once = true;
+    if (run_once)
+    {
+        skydefs = R_ParseSkyDefs();
+        run_once = false;
+    }
+
+    if (!skydefs)
+    {
+        return;
+    }
+
+    array_foreach(sky, skydefs->skies)
+    {
+        if (skytexture == R_CheckTextureNumForName(sky->skytex.name))
+        {
+            if (sky->type == SkyType_Fire)
+            {
+                SetupFire(&sky->fire);
+            }
+            return;
+        }
+    }
+
+    sky = NULL;
+}
+
+void R_UpdateSky(void)
+{
+    if (!sky)
+    {
+        return;
+    }
+
+    if (sky->type == SkyType_Fire)
+    {
+        fire_t *fire = &sky->fire;
+
+        if (fire->tics_left == 0)
+        {
+            SpreadFire();
+            PrepareFirePixels(fire);
+            fire->tics_left = fire->updatetime;
+        }
+
+        fire->tics_left--;
+
+        return;
+    }
+
+    skytex_t *background = &sky->skytex;
+    background->currx += background->scrollx;
+    background->curry += background->scrolly;
+
+    if (sky->type == SkyType_WithForeground)
+    {
+        skytex_t *foreground = &sky->foreground;
+        foreground->currx += foreground->scrollx;
+        foreground->curry += foreground->scrolly;
+    }
+}
+
 //
 // R_InitSkyMap
 // Called whenever the view size changes.
 //
 void R_InitSkyMap (void)
 {
-  int skyheight;
+  InitSky();
 
   // [crispy] initialize
   if (skytexture == -1)
@@ -58,7 +203,7 @@ void R_InitSkyMap (void)
   R_GetSkyColor(skytexture);
 
   // [FG] stretch short skies
-  skyheight = textureheight[skytexture]>>FRACBITS;
+  int skyheight = textureheight[skytexture] >> FRACBITS;
 
   if (stretchsky && skyheight < 200)
     skytexturemid = -28*FRACUNIT;
