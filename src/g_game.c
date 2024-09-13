@@ -261,6 +261,16 @@ static boolean WeaponSelectable(weapontype_t weapon)
         return false;
     }
 
+    // Can't select the fist if we have the chainsaw, unless
+    // we also have the berserk pack.
+
+    if (demo_compatibility && weapon == wp_fist
+     && players[consoleplayer].weaponowned[wp_chainsaw]
+     && !players[consoleplayer].powers[pw_strength])
+    {
+        return false;
+    }
+
     return true;
 }
 
@@ -301,7 +311,10 @@ static int G_NextWeapon(int direction)
         i = (i + arrlen(weapon_order_table)) % arrlen(weapon_order_table);
     } while (i != start_i && !WeaponSelectable(weapon_order_table[i].weapon));
 
-    return weapon_order_table[i].weapon_num;
+    if (!demo_compatibility)
+        return weapon_order_table[i].weapon;
+    else
+        return weapon_order_table[i].weapon_num;
 }
 
 // [FG] toggle demo warp mode
