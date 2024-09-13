@@ -1549,6 +1549,8 @@ static setup_menu_t weap_settings2[] = {
     {"8Th Choice Weapon", S_WEAP | S_BOOM, OFF_CNTR_X, M_SPC, {"weapon_choice_8"}},
     {"9Th Choice Weapon", S_WEAP | S_BOOM, OFF_CNTR_X, M_SPC, {"weapon_choice_9"}},
     MI_GAP,
+    {"Use Weapon Toggles", S_ONOFF | S_BOOM, OFF_CNTR_X, M_SPC, {"doom_weapon_toggles"}},
+    MI_GAP,
     // killough 8/8/98
     {"Pre-Beta BFG", S_ONOFF | S_STRICT, OFF_CNTR_X, M_SPC, {"classic_bfg"}},
     MI_END

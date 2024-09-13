@@ -161,6 +161,7 @@ boolean         mouselook = false;
 boolean         padlook = false;
 // killough 4/13/98: Make clock rate adjustable by scale factor
 int             realtic_clock_rate = 100;
+static boolean  doom_weapon_toggles;
 
 complevel_t     force_complevel, default_complevel;
 
@@ -759,7 +760,7 @@ void G_BuildTiccmd(ticcmd_t* cmd)
       // killough 10/98: make SG/SSG and Fist/Chainsaw
       // weapon toggles optional
       
-      if (!demo_compatibility)
+      if (!demo_compatibility && doom_weapon_toggles)
         {
           const player_t *player = &players[consoleplayer];
 
@@ -4664,6 +4665,9 @@ void G_BindWeapVariables(void)
   M_BindBool("weapon_recoil", &default_weapon_recoil, &weapon_recoil,
              false, ss_none, wad_yes,
              "Physical recoil from weapon fire (affects compatibility)");
+  M_BindBool("doom_weapon_toggles", &doom_weapon_toggles, NULL,
+             true, ss_weap, wad_no,
+             "Allow toggling between SG/SSG and Fist/Chainsaw");
   M_BindBool("player_bobbing", &default_player_bobbing, &player_bobbing,
              true, ss_none, wad_no, "Physical player bobbing (affects compatibility)");
 
