@@ -443,6 +443,8 @@ static void DrawSkyDef(visplane_t *pl)
 
     if (sky->type == SkyType_WithForeground)
     {
+        // Special tranmap to avoid custom render path to render sky
+        // transparently. See id24 SKYDEFS spec.
         tranmap = W_CacheLumpName("SKYTRAN", PU_CACHE);
         colfunc = R_DrawTLColumn;
         DrawSkyTex(pl, &sky->foreground);

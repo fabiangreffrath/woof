@@ -49,6 +49,8 @@ int skytexturemid;
 
 sky_t *sky = NULL;
 
+// PSX fire sky, description: https://fabiensanglard.net/doom_fire_psx/
+
 static byte fire_indices[FIRE_WIDTH * FIRE_HEIGHT];
 
 static byte fire_pixels[FIRE_WIDTH * FIRE_HEIGHT];
