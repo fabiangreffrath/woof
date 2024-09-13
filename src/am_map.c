@@ -1703,8 +1703,12 @@ static void AM_drawWalls(void)
 
       if (!lines[i].backsector)
       {
+        if (mapcolor_exit && P_IsDeathExit(lines[i].frontsector))
+        {
+          array_push(lines_1S, ((am_line_t){l, keyed_door_flash ? mapcolor_grid : mapcolor_exit}));
+        }
         // jff 1/10/98 add new color for 1S secret sector boundary
-        if (mapcolor_secr && //jff 4/3/98 0 is disable
+        else if (mapcolor_secr && //jff 4/3/98 0 is disable
             (
              !map_secret_after &&
              P_IsSecret(lines[i].frontsector)
@@ -1756,6 +1760,13 @@ static void AM_drawWalls(void)
         {
           AM_drawMline(&l, mapcolor_clsd);      // non-secret closed door
         } //jff 1/6/98 show secret sector 2S lines
+        else if (mapcolor_exit &&
+            (P_IsDeathExit(lines[i].frontsector) ||
+             P_IsDeathExit(lines[i].backsector))
+        )
+        {
+          AM_drawMline(&l, keyed_door_flash ? mapcolor_grid : mapcolor_exit);
+        }
         else if
         (
             mapcolor_secr && //jff 2/16/98 fixed bug
