@@ -23,6 +23,7 @@
 #include "f_wipe.h"
 #include "i_video.h"
 #include "m_random.h"
+#include "r_main.h"
 #include "v_flextran.h"
 #include "v_video.h"
 #include "z_zone.h"
@@ -33,10 +34,10 @@
 // when they try to scale up the original logic to higher resolutions.
 
 // Number of "falling columns" on the screen.
-static int num_columns;
+static int wipe_columns;
 
 // Distance a column falls before it reaches the bottom of the screen.
-#define COLUMN_MAX_Y 200
+#define WIPE_ROWS 200
 
 //
 // SCREEN WIPE PACKAGE
@@ -45,18 +46,6 @@ static int num_columns;
 static byte *wipe_scr_start;
 static byte *wipe_scr_end;
 static byte *wipe_scr;
-
-static void wipe_shittyColMajorXform(byte *array, int width, int height)
-{
-  byte *dest = Z_Malloc(width*height, PU_STATIC, 0);
-  int x, y;
-
-  for(y=0;y<height;y++)
-    for(x=0;x<width;x++)
-      dest[x*height+y] = array[y*width+x];
-  memcpy(array, dest, width*height);
-  Z_Free(dest);
-}
 
 // [FG] cross-fading screen wipe implementation
 
@@ -102,99 +91,162 @@ static int wipe_exit(int width, int height, int ticks)
   return 0;
 }
 
-static int *col_y;
+static int *ybuff1, *ybuff2;
+static int *curry, *prevy;
 
 static int wipe_initMelt(int width, int height, int ticks)
 {
-  int i;
+    wipe_columns = video.unscaledw / 2;
 
-  num_columns = video.unscaledw / 2;
+    ybuff1 = Z_Malloc(wipe_columns * sizeof(*ybuff1), PU_STATIC, NULL);
+    ybuff2 = Z_Malloc(wipe_columns * sizeof(*ybuff2), PU_STATIC, NULL);
 
-  col_y = Z_Malloc(num_columns * sizeof(*col_y), PU_STATIC, NULL);
+    curry = ybuff1;
+    prevy = ybuff2;
 
-  // copy start screen to main screen
-  V_PutBlock(0, 0, width, height, wipe_scr_start);
+    // copy start screen to main screen
+    V_PutBlock(0, 0, width, height, wipe_scr_start);
 
-  // makes this wipe faster (in theory)
-  // to have stuff in column-major format
-  wipe_shittyColMajorXform(wipe_scr_start, width, height);
-  wipe_shittyColMajorXform(wipe_scr_end, width, height);
-
-  // setup initial column positions (y<0 => not ready to scroll yet)
-  col_y[0] = -(M_Random()%16);
-  for (i=1;i<num_columns;i++)
+    // setup initial column positions (y<0 => not ready to scroll yet)
+    curry[0] = -(M_Random() % 16);
+    for (int i = 1; i < wipe_columns; i++)
     {
-      int r = (M_Random()%3) - 1;
-      col_y[i] = col_y[i-1] + r;
-      if (col_y[i] > 0)
-        col_y[i] = 0;
-      else
-        if (col_y[i] == -16)
-          col_y[i] = -15;
+        int r = (M_Random() % 3) - 1;
+        curry[i] = curry[i - 1] + r;
+        if (curry[i] > 0)
+        {
+            curry[i] = 0;
+        }
+        else if (curry[i] == -16)
+        {
+            curry[i] = -15;
+        }
     }
-  return 0;
+
+    memcpy(prevy, curry, sizeof(int) * wipe_columns);
+
+    return 0;
 }
 
 static int wipe_doMelt(int width, int height, int ticks)
 {
-  boolean done = true;
-  int x, y, xfactor, yfactor;
+    boolean done = true;
 
-  while (ticks--)
-    for (x=0;x<num_columns;x++)
-      if (col_y[x]<0)
-        {
-          col_y[x]++;
-          done = false;
-        }
-      else if (col_y[x] < COLUMN_MAX_Y)
-        {
-          int dy = (col_y[x] < 16) ? col_y[x]+1 : 8;
-          if (col_y[x]+dy >= COLUMN_MAX_Y)
-            dy = COLUMN_MAX_Y - col_y[x];
-          col_y[x] += dy;
-          done = false;
-        }
-
-  xfactor = (width + num_columns - 1) / num_columns;
-  yfactor = (height + COLUMN_MAX_Y - 1) / COLUMN_MAX_Y;
-
-  for (x = 0; x < width; x++)
-  {
-    byte *s, *d;
-    int scroff = col_y[x / xfactor] * yfactor;
-    if (scroff > height)
-      scroff = height;
-
-    d = wipe_scr + x;
-    s = wipe_scr_end + x * height;
-    for (y = 0; y < scroff; ++y)
+    if (ticks > 0)
     {
-      *d = *s;
-      d += video.pitch;
-      s++;
+        while (ticks--)
+        {
+            int *temp = prevy;
+            prevy = curry;
+            curry = temp;
+
+            for (int col = 0; col < wipe_columns; ++col)
+            {
+                if (prevy[col] < 0)
+                {
+                    curry[col] = prevy[col] + 1;
+                    done = false;
+                }
+                else if (prevy[col] < WIPE_ROWS)
+                {
+                    int dy = (prevy[col] < 16) ? prevy[col] + 1 : 8;
+                    curry[col] = MIN(prevy[col] + dy, WIPE_ROWS);
+
+                    done = false;
+                }
+                else
+                {
+                    curry[col] = WIPE_ROWS;
+                }
+            }
+        }
     }
-    s = wipe_scr_start + x * height;
-    for (; y < height; ++y)
+    else
     {
-      *d = *s;
-      d += video.pitch;
-      s++;
+        for (int col = 0; col < wipe_columns; ++col)
+        {
+            done &= curry[col] >= WIPE_ROWS;
+        }
     }
-  }
-  return done;
+
+    return done;
+}
+
+int wipe_renderMelt(int width, int height, int ticks)
+{
+    boolean done = true;
+
+    // Scale up and then down to handle arbitrary dimensions with integer math
+    int vertblocksize = height * 100 / WIPE_ROWS;
+    int horizblocksize = width * 100 / wipe_columns;
+    int currcol;
+    int currcolend;
+    int currrow;
+
+    V_UseBuffer(wipe_scr);
+    V_PutBlock(0, 0, width, height, wipe_scr_end);
+    V_RestoreBuffer();
+
+    for (int col = 0; col < wipe_columns; ++col)
+    {
+        int current = FixedToInt(
+            LerpFixed(IntToFixed(prevy[col]), IntToFixed(curry[col])));
+
+        if (current < 0)
+        {
+            currcol = col * horizblocksize / 100;
+            currcolend = (col + 1) * horizblocksize / 100;
+            for (; currcol < currcolend; ++currcol)
+            {
+                pixel_t *source = wipe_scr_start + currcol;
+                pixel_t *dest = wipe_scr + currcol;
+
+                for (int i = 0; i < height; ++i)
+                {
+                    *dest = *source;
+                    dest += video.pitch;
+                    source += width;
+                }
+            }
+        }
+        else if (current < WIPE_ROWS)
+        {
+            currcol = col * horizblocksize / 100;
+            currcolend = (col + 1) * horizblocksize / 100;
+
+            currrow = current * vertblocksize / 100;
+
+            for (; currcol < currcolend; ++currcol)
+            {
+                pixel_t *source = wipe_scr_start + currcol;
+                pixel_t *dest = wipe_scr + currcol + (currrow * video.pitch);
+
+                for (int i = 0; i < height - currrow; ++i)
+                {
+                    *dest = *source;
+                    dest += video.pitch;
+                    source += width;
+                }
+            }
+
+            done = false;
+        }
+    }
+
+    return done;
 }
 
 static int wipe_exitMelt(int width, int height, int ticks)
 {
-  Z_Free(col_y);
+  Z_Free(ybuff1);
+  Z_Free(ybuff2);
   wipe_exit(width, height, ticks);
   return 0;
 }
 
 int wipe_StartScreen(int x, int y, int width, int height)
 {
-  int size = video.width * video.height;
+  int size = width * height;
   wipe_scr_start = Z_Malloc(size * sizeof(*wipe_scr_start), PU_STATIC, NULL);
   I_ReadScreen(wipe_scr_start);
   return 0;
@@ -202,14 +254,14 @@ int wipe_StartScreen(int x, int y, int width, int height)
 
 int wipe_EndScreen(int x, int y, int width, int height)
 {
-  int size = video.width * video.height;
+  int size = width * height;
   wipe_scr_end = Z_Malloc(size * sizeof(*wipe_scr_end), PU_STATIC, NULL);
   I_ReadScreen(wipe_scr_end);
   V_DrawBlock(x, y, width, height, wipe_scr_start); // restore start scr.
   return 0;
 }
 
-static int wipe_NOP(int x, int y, int t)
+static int wipe_NOP(int width, int height, int tics)
 {
   return 0;
 }
@@ -266,7 +318,7 @@ static unsigned int lastrndval;
 static int wipe_initFizzle(int width, int height, int ticks)
 {
     int rndbits_x = log2_ceil(video.unscaledw);
-    rndbits_y = log2_ceil(COLUMN_MAX_Y);
+    rndbits_y = log2_ceil(WIPE_ROWS);
 
     int rndbits = rndbits_x + rndbits_y;
     if (rndbits < 17)
@@ -285,7 +337,7 @@ static int wipe_initFizzle(int width, int height, int ticks)
 
 static int wipe_doFizzle(int width, int height, int ticks)
 {
-    const int pixperframe = (video.unscaledw * COLUMN_MAX_Y) >> 5;
+    const int pixperframe = (video.unscaledw * WIPE_ROWS) >> 5;
     unsigned int rndval = lastrndval;
 
     for (unsigned p = 0; p < pixperframe; p++)
@@ -299,7 +351,7 @@ static int wipe_doFizzle(int width, int height, int ticks)
 
         rndval = (rndval >> 1) ^ (rndval & 1 ? 0 : rndmask);
 
-        if (x >= video.unscaledw || y >= COLUMN_MAX_Y)
+        if (x >= video.unscaledw || y >= WIPE_ROWS)
         {
             if (rndval == 0) // entire sequence has been completed
             {
@@ -338,15 +390,19 @@ static int wipe_doFizzle(int width, int height, int ticks)
 static int (*const wipes[])(int, int, int) = {
   wipe_NOP,
   wipe_NOP,
+  wipe_NOP,
   wipe_exit,
   wipe_initMelt,
   wipe_doMelt,
+  wipe_renderMelt,
   wipe_exitMelt,
   wipe_initColorXForm,
   wipe_doColorXForm,
+  wipe_NOP,
   wipe_exit,
   wipe_initFizzle,
   wipe_doFizzle,
+  wipe_NOP,
   wipe_exit,
 };
 
@@ -355,18 +411,19 @@ int wipe_ScreenWipe(int wipeno, int x, int y, int width, int height, int ticks)
 {
   static boolean go;                               // when zero, stop the wipe
 
-  width = video.width;
-  height = video.height;
-
   if (!go)                                         // initial stuff
     {
       go = 1;
       wipe_scr = I_VideoBuffer;
-      wipes[wipeno*3](width, height, ticks);
+      wipes[wipeno*4](width, height, ticks);
     }
-  if (wipes[wipeno*3+1](width, height, ticks))     // final stuff
+
+  int rc = wipes[wipeno*4+1](width, height, ticks);
+  wipes[wipeno*4+2](width, height, ticks);
+
+  if (rc)     // final stuff
     {
-      wipes[wipeno*3+2](width, height, ticks);
+      wipes[wipeno*4+3](width, height, ticks);
       go = 0;
     }
   return !go;
