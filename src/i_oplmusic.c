@@ -629,7 +629,7 @@ static void InitVoices(void)
         voices[i].index = i % OPL_NUM_VOICES;
         voices[i].op1 = voice_operators[0][i % OPL_NUM_VOICES];
         voices[i].op2 = voice_operators[1][i % OPL_NUM_VOICES];
-        voices[i].array = (i / OPL_NUM_VOICES) << 8;
+        voices[i].array = (i / OPL_NUM_VOICES) << (opl_opl3mode ? 8 : 9);
         voices[i].current_instr = NULL;
 
         // Add this voice to the freelist.
