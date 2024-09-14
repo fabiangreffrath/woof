@@ -21,7 +21,7 @@
 
 #include "opl.h"
 
-typedef int (*opl_init_func)(unsigned int port_base, int *num_chips);
+typedef int (*opl_init_func)(unsigned int port_base, int num_chips);
 typedef void (*opl_shutdown_func)(void);
 typedef unsigned int (*opl_read_port_func)(int chip, opl_port_t port);
 typedef void (*opl_write_port_func)(int chip, opl_port_t port, unsigned int value);

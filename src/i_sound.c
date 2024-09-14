@@ -550,7 +550,6 @@ void I_SetMidiPlayer(void)
             {
                 midi_module = music_modules[i];
                 midi_player_string = strings[device - count_devices];
-                MN_UpdateAdvancedMusicItems(strcasecmp(midi_player_string, "OPL3 Emulation"));
                 return;
             }
         }
@@ -571,7 +570,6 @@ void I_SetMidiPlayer(void)
             midi_module = music_modules[i];
             midi_player_menu = count_devices;
             midi_player_string = strings[0];
-            MN_UpdateAdvancedMusicItems(strcasecmp(midi_player_string, "OPL3 Emulation"));
             return;
         }
 

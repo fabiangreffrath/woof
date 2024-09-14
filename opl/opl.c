@@ -32,7 +32,6 @@ static opl_driver_t *drivers[] =
 
 static opl_driver_t *driver = NULL;
 
-static int num_opl_chips = 1;
 unsigned int opl_sample_rate = OPL_SAMPLE_RATE;
 
 //
@@ -43,7 +42,7 @@ unsigned int opl_sample_rate = OPL_SAMPLE_RATE;
 // true if an OPL is detected.
 
 static opl_init_result_t InitDriver(opl_driver_t *_driver,
-                                    unsigned int port_base, int *num_chips)
+                                    unsigned int port_base, int num_chips)
 {
     // Initialize the driver.
 
@@ -51,7 +50,6 @@ static opl_init_result_t InitDriver(opl_driver_t *_driver,
     {
         return OPL_INIT_NONE;
     }
-    num_opl_chips = *num_chips;
 
     // The driver was initialized okay, so we now have somewhere
     // to write to.  It doesn't mean there's an OPL chip there,
@@ -67,7 +65,7 @@ static opl_init_result_t InitDriver(opl_driver_t *_driver,
 
 // Find a driver automatically by trying each in the list.
 
-static opl_init_result_t AutoSelectDriver(unsigned int port_base, int *num_chips)
+static opl_init_result_t AutoSelectDriver(unsigned int port_base, int num_chips)
 {
     int i;
     opl_init_result_t result;
@@ -89,7 +87,7 @@ static opl_init_result_t AutoSelectDriver(unsigned int port_base, int *num_chips
 // Initialize the OPL library. Return value indicates type of OPL chip
 // detected, if any.
 
-opl_init_result_t OPL_Init(unsigned int port_base, int *num_chips)
+opl_init_result_t OPL_Init(unsigned int port_base, int num_chips)
 {
     char *driver_name;
     int i;

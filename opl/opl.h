@@ -71,13 +71,15 @@ typedef enum
 #define OPL_MS     ((uint64_t) 1000)
 #define OPL_US     ((uint64_t) 1)
 
+extern int num_opl_chips;
+
 //
 // Low-level functions.
 //
 
 // Initialize the OPL subsystem.
 
-opl_init_result_t OPL_Init(unsigned int port_base, int *num_chips);
+opl_init_result_t OPL_Init(unsigned int port_base, int num_chips);
 
 // Shut down the OPL subsystem.
 

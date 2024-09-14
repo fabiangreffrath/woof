@@ -362,7 +362,7 @@ static unsigned int last_perc_count;
 
 static char *snd_dmxoption = "-opl3"; // [crispy] default to OPL3 emulation
 static int opl_io_port = 0x388;
-static int num_opl_chips = 1;
+int num_opl_chips = 1;
 
 // If true, OPL sound channels are reversed to their correct arrangement
 // (as intended by the MIDI standard) rather than the backwards one
@@ -1449,14 +1449,12 @@ static boolean I_OPL_InitStream(int device)
 
     OPL_SetSampleRate(OPL_SAMPLE_RATE);
 
-    chip_type = OPL_Init(opl_io_port, &num_opl_chips);
+    chip_type = OPL_Init(opl_io_port, num_opl_chips);
     if (chip_type == OPL_INIT_NONE)
     {
         I_Printf(VB_ERROR, "Dude.  The Adlib isn't responding.");
         return false;
     }
-    if (num_opl_chips > OPL_MAX_CHIPS)
-        num_opl_chips = OPL_MAX_CHIPS;
 
     // The DMXOPTION variable must be set to enable OPL3 support.
     // As an extension, we also allow it to be set from the config file.
@@ -1676,7 +1674,7 @@ static const char **I_OPL_DeviceList(void)
 
 static void I_OPL_BindVariables(void)
 {
-    BIND_NUM(num_opl_chips, 1, 1, 6,
+    BIND_NUM(num_opl_chips, 1, 1, OPL_MAX_CHIPS,
         "[OPL3 Emulation] Number of chips to emulate (1-6)");
     BIND_BOOL(opl_stereo_correct, false,
         "[OPL3 Emulation] Use MIDI-correct stereo channel polarity");

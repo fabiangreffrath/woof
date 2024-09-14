@@ -50,7 +50,6 @@ static uint64_t pause_offset;
 
 // OPL software emulator structure.
 
-static int num_opl_chips;
 static opl3_chip opl_chips[OPL_MAX_CHIPS];
 static int opl_opl3mode;
 
@@ -150,8 +149,8 @@ int OPL_FillBuffer(byte *buffer, int buffer_samples)
                 mix[1] += sample[1];
             }
 
-            cursor[0] = mix[0] < -32768 ? -32768 : mix[0] > 32767 ? 32767 : mix[0];
-            cursor[1] = mix[1] < -32768 ? -32768 : mix[1] > 32767 ? 32767 : mix[1];
+            cursor[0] = BETWEEN(-32768, 32767, mix[0]);
+            cursor[1] = BETWEEN(-32768, 32767, mix[1]);
             cursor += 2;
         }
         //OPL3_GenerateStream(&opl_chip, (Bit16s *)(buffer + filled * 4), nsamples);
@@ -178,11 +177,8 @@ static void OPL_SDL_Shutdown(void)
     */
 }
 
-static int OPL_SDL_Init(unsigned int port_base, int *num_chips)
+static int OPL_SDL_Init(unsigned int port_base, int num_chips)
 {
-    num_opl_chips = *num_chips < 1 ? 1 : *num_chips > OPL_MAX_CHIPS ? OPL_MAX_CHIPS : *num_chips;
-    *num_chips = num_opl_chips;
-
     opl_sdl_paused = 0;
     pause_offset = 0;
 
