@@ -773,7 +773,7 @@ void G_BuildTiccmd(ticcmd_t* cmd)
       // killough 10/98: make SG/SSG and Fist/Chainsaw
       // weapon toggles optional
       
-      if (!demo_compatibility && doom_weapon_toggles)
+      if (!demo_compatibility && doom_weapon_toggles && !next_weapon)
         {
           const player_t *player = &players[consoleplayer];
 
