@@ -38,6 +38,7 @@ typedef enum
     OPL_REGISTER_PORT_OPL3 = 2
 } opl_port_t;
 
+#define OPL_SAMPLE_RATE     49716
 #define OPL_MAX_CHIPS       6
 
 #define OPL_NUM_OPERATORS   21

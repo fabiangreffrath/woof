@@ -33,7 +33,7 @@ static opl_driver_t *drivers[] =
 static opl_driver_t *driver = NULL;
 
 static int num_opl_chips = 1;
-unsigned int opl_sample_rate = 49716;
+unsigned int opl_sample_rate = OPL_SAMPLE_RATE;
 
 //
 // Init/shutdown code.

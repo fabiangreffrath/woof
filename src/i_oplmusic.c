@@ -1447,7 +1447,7 @@ static boolean I_OPL_InitStream(int device)
     char *dmxoption;
     opl_init_result_t chip_type;
 
-    OPL_SetSampleRate(SND_SAMPLERATE);
+    OPL_SetSampleRate(OPL_SAMPLE_RATE);
 
     chip_type = OPL_Init(opl_io_port, &num_opl_chips);
     if (chip_type == OPL_INIT_NONE)
@@ -1554,7 +1554,7 @@ static boolean I_OPL_OpenStream(void *data, ALsizei size, ALenum *format,
     }
 
     *format = AL_FORMAT_STEREO16;
-    *freq = SND_SAMPLERATE;
+    *freq = OPL_SAMPLE_RATE;
     *frame_size = 2 * sizeof(short);
 
     return true;
