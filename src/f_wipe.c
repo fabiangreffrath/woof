@@ -189,8 +189,16 @@ int wipe_renderMelt(int width, int height, int ticks)
 
     for (int col = 0; col < wipe_columns; ++col)
     {
-        int current = FixedToInt(
-            LerpFixed(IntToFixed(prevy[col]), IntToFixed(curry[col])));
+        int current;
+        if (uncapped)
+        {
+            current = FixedToInt(
+                LerpFixed(IntToFixed(prevy[col]), IntToFixed(curry[col])));
+        }
+        else
+        {
+            current = curry[col];
+        }
 
         if (current < 0)
         {
