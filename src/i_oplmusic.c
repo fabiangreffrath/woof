@@ -360,7 +360,7 @@ static unsigned int last_perc_count;
 // Configuration file variable, containing the port number for the
 // adlib chip.
 
-static char *snd_dmxoption = "-opl3-reverse"; // [crispy] default to OPL3 emulation
+static char *snd_dmxoption = "-opl3"; // [crispy] default to OPL3 emulation
 static int opl_io_port = 0x388;
 static int num_opl_chips = 1;
 
@@ -1461,6 +1461,12 @@ static boolean I_OPL_InitStream(int device)
     // The DMXOPTION variable must be set to enable OPL3 support.
     // As an extension, we also allow it to be set from the config file.
     dmxoption = M_getenv("DMXOPTION");
+
+    // Secret, undocumented DMXOPTION that reverses the stereo channels
+    // into their correct orientation.
+    if (dmxoption != NULL && strstr(dmxoption, "-reverse") != NULL)
+        opl_stereo_correct = true;
+
     if (dmxoption == NULL)
     {
         dmxoption = snd_dmxoption != NULL ? snd_dmxoption : "";
@@ -1476,10 +1482,6 @@ static boolean I_OPL_InitStream(int device)
         opl_opl3mode = 0;
         num_opl_voices = OPL_NUM_VOICES * num_opl_chips;
     }
-
-    // Secret, undocumented DMXOPTION that reverses the stereo channels
-    // into their correct orientation.
-    opl_stereo_correct = strstr(dmxoption, "-reverse") != NULL;
 
     // Initialize all registers.
 
@@ -1676,6 +1678,8 @@ static void I_OPL_BindVariables(void)
 {
     BIND_NUM(num_opl_chips, 1, 1, 6,
         "[OPL3 Emulation] Number of chips to emulate (1-6)");
+    BIND_BOOL(opl_stereo_correct, false,
+        "[OPL3 Emulation] Use MIDI-correct stereo channel polarity");
 }
 
 stream_module_t stream_opl_module =
