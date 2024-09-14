@@ -2362,6 +2362,9 @@ static setup_menu_t gen_settings2[] = {
      {"midi_player_menu"}, .strings_id = str_midi_player,
      .action = SetMidiPlayer},
 
+    {"Number of OPL Chips", S_THERMO, CNTR_X, M_THRM_SPC, {"num_opl_chips"},
+     .action = SetMidiPlayer},
+
     MI_END
 };
 
@@ -2952,6 +2955,11 @@ void MN_UpdateDynamicResolutionItem(void)
 void MN_UpdateAdvancedSoundItems(boolean toggle)
 {
     DisableItem(toggle, gen_settings2, "snd_hrtf");
+}
+
+void MN_UpdateAdvancedMusicItems(boolean toggle)
+{
+    DisableItem(toggle, gen_settings2, "num_opl_chips");
 }
 
 void MN_UpdateFpsLimitItem(void)

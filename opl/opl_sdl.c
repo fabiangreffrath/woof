@@ -50,7 +50,8 @@ static uint64_t pause_offset;
 
 // OPL software emulator structure.
 
-static opl3_chip opl_chip;
+static int num_opl_chips;
+static opl3_chip opl_chips[OPL_MAX_CHIPS];
 static int opl_opl3mode;
 
 // Register number that was written.
@@ -137,7 +138,23 @@ int OPL_FillBuffer(byte *buffer, int buffer_samples)
         }
 
         // Add emulator output to buffer.
-        OPL3_GenerateStream(&opl_chip, (Bit16s *)(buffer + filled * 4), nsamples);
+        Bit16s *cursor = (Bit16s *)(buffer + filled * 4);
+        for (int s = 0; s < nsamples; ++s)
+        {
+            Bit32s mix[2] = {0, 0};
+            for (int c = 0; c < num_opl_chips; ++c)
+            {
+                Bit16s sample[2];
+                OPL3_GenerateResampled(&opl_chips[c], sample);
+                mix[0] += sample[0];
+                mix[1] += sample[1];
+            }
+
+            cursor[0] = mix[0] < -32768 ? -32768 : mix[0] > 32767 ? 32767 : mix[0];
+            cursor[1] = mix[1] < -32768 ? -32768 : mix[1] > 32767 ? 32767 : mix[1];
+            cursor += 2;
+        }
+        //OPL3_GenerateStream(&opl_chip, (Bit16s *)(buffer + filled * 4), nsamples);
         filled += nsamples;
 
         // Invoke callbacks for this point in time.
@@ -161,8 +178,11 @@ static void OPL_SDL_Shutdown(void)
     */
 }
 
-static int OPL_SDL_Init(unsigned int port_base)
+static int OPL_SDL_Init(unsigned int port_base, int *num_chips)
 {
+    num_opl_chips = *num_chips < 1 ? 1 : *num_chips > OPL_MAX_CHIPS ? OPL_MAX_CHIPS : *num_chips;
+    *num_chips = num_opl_chips;
+
     opl_sdl_paused = 0;
     pause_offset = 0;
 
@@ -179,13 +199,14 @@ static int OPL_SDL_Init(unsigned int port_base)
 
     // Create the emulator structure:
 
-    OPL3_Reset(&opl_chip, mixing_freq);
+    for (int c = 0; c < num_opl_chips; ++c)
+        OPL3_Reset(&opl_chips[c], mixing_freq);
     opl_opl3mode = 0;
 
     return 1;
 }
 
-static unsigned int OPL_SDL_PortRead(opl_port_t port)
+static unsigned int OPL_SDL_PortRead(int chip, opl_port_t port)
 {
     unsigned int result = 0;
 
@@ -193,6 +214,9 @@ static unsigned int OPL_SDL_PortRead(opl_port_t port)
     {
         return 0xff;
     }
+
+    if (chip > 0)
+        return result;
 
     if (timer1.enabled && current_time > timer1.expire_time)
     {
@@ -224,18 +248,26 @@ static void OPLTimer_CalculateEndTime(opl_timer_t *timer)
     }
 }
 
-static void WriteRegister(unsigned int reg_num, unsigned int value)
+static void WriteRegister(int chip, unsigned int reg_num, unsigned int value)
 {
     switch (reg_num)
     {
         case OPL_REG_TIMER1:
-            timer1.value = value;
-            OPLTimer_CalculateEndTime(&timer1);
+            // Only allow timers on the first chip
+            if (chip == 0)
+            {
+                timer1.value = value;
+                OPLTimer_CalculateEndTime(&timer1);
+            }
             break;
 
         case OPL_REG_TIMER2:
-            timer2.value = value;
-            OPLTimer_CalculateEndTime(&timer2);
+            // Only allow timers on the first chip
+            if (chip == 0)
+            {
+                timer2.value = value;
+                OPLTimer_CalculateEndTime(&timer2);
+            }
             break;
 
         case OPL_REG_TIMER_CTRL:
@@ -258,19 +290,25 @@ static void WriteRegister(unsigned int reg_num, unsigned int value)
                     OPLTimer_CalculateEndTime(&timer2);
                 }
             }
-
             break;
 
         case OPL_REG_NEW:
-            opl_opl3mode = value & 0x01;
+            // Keep all chips synchronized with the first chip's opl3 mode
+            if (chip == 0)
+            {
+                for (int c = 0; c < num_opl_chips; ++c)
+                    OPL3_WriteRegBuffered(&opl_chips[c], reg_num, value);
+                opl_opl3mode = value & 0x01;
+            }
+            break;
 
         default:
-            OPL3_WriteRegBuffered(&opl_chip, reg_num, value);
+            OPL3_WriteRegBuffered(&opl_chips[chip], reg_num, value);
             break;
     }
 }
 
-static void OPL_SDL_PortWrite(opl_port_t port, unsigned int value)
+static void OPL_SDL_PortWrite(int chip, opl_port_t port, unsigned int value)
 {
     if (port == OPL_REGISTER_PORT)
     {
@@ -282,7 +320,7 @@ static void OPL_SDL_PortWrite(opl_port_t port, unsigned int value)
     }
     else if (port == OPL_DATA_PORT)
     {
-        WriteRegister(register_num, value);
+        WriteRegister(chip, register_num, value);
     }
 }
 
