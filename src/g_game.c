@@ -3226,26 +3226,26 @@ demo_version_t G_GetNamedComplevel(const char *arg)
 {
     const struct
     {
-        demo_version_t demover;
         const char *const name;
+        demo_version_t demover;
         int exe;
     } named_complevel[] = {
-        {DV_VANILLA, "vanilla",  exe_indetermined},
-        {DV_VANILLA, "doom2",    exe_doom_1_9    },
-        {DV_VANILLA, "1.9",      exe_doom_1_9    },
-        {DV_VANILLA, "2",        exe_doom_1_9    },
-        {DV_VANILLA, "ultimate", exe_ultimate    },
-        {DV_VANILLA, "3",        exe_ultimate    },
-        {DV_VANILLA, "final",    exe_final       },
-        {DV_VANILLA, "tnt",      exe_final       },
-        {DV_VANILLA, "plutonia", exe_final       },
-        {DV_VANILLA, "4",        exe_final       },
-        {DV_BOOM,    "boom",     exe_indetermined},
-        {DV_BOOM,    "9",        exe_indetermined},
-        {DV_MBF,     "mbf",      exe_indetermined},
-        {DV_MBF,     "11",       exe_indetermined},
-        {DV_MBF21,   "mbf21",    exe_indetermined},
-        {DV_MBF21,   "21",       exe_indetermined},
+        {"vanilla",  DV_VANILLA, exe_indetermined},
+        {"doom2",    DV_VANILLA, exe_doom_1_9    },
+        {"1.9",      DV_VANILLA, exe_doom_1_9    },
+        {"2",        DV_VANILLA, exe_doom_1_9    },
+        {"ultimate", DV_VANILLA, exe_ultimate    },
+        {"3",        DV_VANILLA, exe_ultimate    },
+        {"final",    DV_VANILLA, exe_final       },
+        {"tnt",      DV_VANILLA, exe_final       },
+        {"plutonia", DV_VANILLA, exe_final       },
+        {"4",        DV_VANILLA, exe_final       },
+        {"boom",     DV_BOOM,    exe_indetermined},
+        {"9",        DV_BOOM,    exe_indetermined},
+        {"mbf",      DV_MBF,     exe_indetermined},
+        {"11",       DV_MBF,     exe_indetermined},
+        {"mbf21",    DV_MBF21,   exe_indetermined},
+        {"21",       DV_MBF21,   exe_indetermined},
     };
 
     for (int i = 0; i < arrlen(named_complevel); i++)
