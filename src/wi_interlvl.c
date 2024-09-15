@@ -153,10 +153,10 @@ static void ParseLevelLayer(json_t *json, interlevellayer_t *out)
 
 interlevel_t *WI_ParseInterlevel(const char *lumpname)
 {
-    json_t *json = JS_Open(W_CacheLumpName(lumpname, PU_CACHE));
+    json_t *json = JS_Open("interlevel", (version_t){1, 0, 0},
+                           W_CacheLumpName(lumpname, PU_CACHE));
     if (json == NULL)
     {
-        I_Printf(VB_ERROR, "Error parsing %s", lumpname);
         JS_Close(json);
         return NULL;
     }

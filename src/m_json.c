@@ -13,11 +13,55 @@
 
 #include "m_json.h"
 
+#include <stdio.h>
+#include "i_printf.h"
+
 #include "cjson/cJSON.h"
 
-json_t *JS_Open(const char *data)
+json_t *JS_Open(const char *type, version_t version, const char *data)
 {
-    return cJSON_Parse(data);
+    const char *s;
+
+    json_t *json = cJSON_Parse(data);
+    if (json == NULL)
+    {
+        I_Printf(VB_ERROR, "%s: error before %s", type, cJSON_GetErrorPtr());
+        return NULL;
+    }
+
+    json_t *js_type = JS_GetObject(json, "type");
+    if (!JS_IsString(js_type))
+    {
+        I_Printf(VB_ERROR, "%s: no type string", type);
+        return NULL;
+    }
+
+    s = JS_GetString(js_type);
+    if (strcmp(s, type))
+    {
+        I_Printf(VB_ERROR, "%s: wrong type %s", type, s);
+        return NULL;
+    }
+
+    json_t *js_version = JS_GetObject(json, "version");
+    if (!JS_IsString(js_version))
+    {
+        I_Printf(VB_ERROR, "%s: no version string", type);
+        return NULL;
+    }
+
+    s = JS_GetString(js_version);
+    version_t v = {0};
+    sscanf(s, "%d.%d.%d", &v.major, &v.minor, &v.revision);
+    if (v.major != version.major || v.minor != version.minor
+        || v.revision != version.revision)
+    {
+        I_Printf(VB_ERROR, "%s: wrong version %d.%d.%d", type, v.major, v.minor,
+                 v.revision);
+        return NULL;
+    }
+
+    return json;
 }
 
 void JS_Close(json_t *json)

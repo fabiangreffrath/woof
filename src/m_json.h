@@ -18,7 +18,14 @@
 
 typedef struct cJSON json_t;
 
-json_t *JS_Open(const char *data);
+typedef struct
+{
+    int major;
+    int minor;
+    int revision;
+} version_t;
+
+json_t *JS_Open(const char *type, version_t version, const char *data);
 void JS_Close(json_t *json);
 
 json_t *JS_GetObject(json_t *json, const char *string);

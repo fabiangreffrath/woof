@@ -136,10 +136,10 @@ skydefs_t *R_ParseSkyDefs(void)
         return NULL;
     }
 
-    json_t *json = JS_Open(W_CacheLumpNum(lumpnum, PU_CACHE));
+    json_t *json = JS_Open("skydefs", (version_t){1, 0, 0},
+                           W_CacheLumpNum(lumpnum, PU_CACHE));
     if (json == NULL)
     {
-        I_Printf(VB_ERROR, "JSON: Error parsing SKYDEFS");
         JS_Close(json);
         return NULL;
     }
