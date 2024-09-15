@@ -14,6 +14,7 @@
 #include "m_json.h"
 
 #include <stdio.h>
+#include <string.h>
 #include "i_printf.h"
 
 #include "cjson/cJSON.h"
