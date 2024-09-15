@@ -41,6 +41,7 @@ typedef enum
 } death_use_action_t;
 
 extern death_use_action_t death_use_action;
+extern boolean activate_death_use_action;
 
 extern boolean onground; // whether player is on ground or in air
 

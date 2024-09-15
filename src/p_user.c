@@ -31,7 +31,6 @@
 #include "hu_stuff.h"
 #include "info.h"
 #include "m_cheat.h"
-#include "m_input.h"
 #include "p_map.h"
 #include "p_mobj.h"
 #include "p_pspr.h"
@@ -39,7 +38,6 @@
 #include "p_user.h"
 #include "r_defs.h"
 #include "r_main.h"
-#include "r_state.h"
 #include "st_stuff.h"
 
 static fixed_t PlayerSlope(player_t *player)
@@ -259,6 +257,7 @@ void P_MovePlayer (player_t* player)
 #define ANG5 (ANG90/18)
 
 death_use_action_t death_use_action;
+boolean activate_death_use_action;
 
 //
 // P_DeathThink
@@ -316,29 +315,20 @@ void P_DeathThink (player_t* player)
 
   if (player->cmd.buttons & BT_USE)
   {
-    if (demorecording || demoplayback || netgame)
-      player->playerstate = PST_REBORN;
-    else switch(death_use_action)
+    player->playerstate = PST_REBORN;
+  }
+
+  if (activate_death_use_action && death_use_action == death_use_reload)
+  {
+    activate_death_use_action = false;
+    if (savegameslot >= 0)
     {
-      case death_use_default:
-        player->playerstate = PST_REBORN;
-        break;
-      case death_use_reload:
-        if (savegameslot >= 0)
-        {
-          char *file = G_SaveGameName(savegameslot);
-          G_LoadGame(file, savegameslot, false);
-          free(file);
-          // [Woof!] prevent on-death-action reloads from activating specials
-          M_InputGameDeactivate(input_use);
-        }
-        else
-          player->playerstate = PST_REBORN;
-        break;
-      case death_use_nothing:
-      default:
-        break;
+      char *file = G_SaveGameName(savegameslot);
+      G_LoadGame(file, savegameslot, false);
+      free(file);
     }
+    else
+      player->playerstate = PST_REBORN;
   }
 }
 
