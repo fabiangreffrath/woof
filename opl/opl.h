@@ -38,6 +38,9 @@ typedef enum
     OPL_REGISTER_PORT_OPL3 = 2
 } opl_port_t;
 
+#define OPL_SAMPLE_RATE     49716
+#define OPL_MAX_CHIPS       6
+
 #define OPL_NUM_OPERATORS   21
 #define OPL_NUM_VOICES      9
 
@@ -68,13 +71,15 @@ typedef enum
 #define OPL_MS     ((uint64_t) 1000)
 #define OPL_US     ((uint64_t) 1)
 
+extern int num_opl_chips;
+
 //
 // Low-level functions.
 //
 
 // Initialize the OPL subsystem.
 
-opl_init_result_t OPL_Init(unsigned int port_base);
+opl_init_result_t OPL_Init(unsigned int port_base, int num_chips);
 
 // Shut down the OPL subsystem.
 
@@ -86,11 +91,11 @@ void OPL_SetSampleRate(unsigned int rate);
 
 // Write to one of the OPL I/O ports:
 
-void OPL_WritePort(opl_port_t port, unsigned int value);
+void OPL_WritePort(int chip, opl_port_t port, unsigned int value);
 
 // Read from one of the OPL I/O ports:
 
-unsigned int OPL_ReadPort(opl_port_t port);
+unsigned int OPL_ReadPort(int chip, opl_port_t port);
 
 //
 // Higher-level functions.
@@ -98,11 +103,11 @@ unsigned int OPL_ReadPort(opl_port_t port);
 
 // Read the cuurrent status byte of the OPL chip.
 
-unsigned int OPL_ReadStatus(void);
+unsigned int OPL_ReadStatus(int chip);
 
 // Write to an OPL register.
 
-void OPL_WriteRegister(int reg, int value);
+void OPL_WriteRegister(int chip, int reg, int value);
 
 // Initialize all registers, performed on startup.
 
