@@ -15,6 +15,8 @@
 //     OPL SDL interface.
 //
 
+#include <stdlib.h>
+
 #include "doomtype.h"
 #include "opl.h"
 #include "opl3.h"
@@ -22,6 +24,9 @@
 #include "opl_queue.h"
 
 #define MAX_SOUND_SLICE_TIME 100 /* ms */
+
+#define OPL_SILENCE_THRESHOLD   36
+#define OPL_CHIP_TIMEOUT        (OPL_SAMPLE_RATE / 2)
 
 typedef struct
 {
@@ -51,6 +56,8 @@ static uint64_t pause_offset;
 // OPL software emulator structure.
 
 static opl3_chip opl_chips[OPL_MAX_CHIPS];
+static uint32_t opl_chip_keys[OPL_MAX_CHIPS];
+static uint32_t opl_chip_timeouts[OPL_MAX_CHIPS];
 static int opl_opl3mode;
 
 // Register number that was written.
@@ -143,16 +150,31 @@ int OPL_FillBuffer(byte *buffer, int buffer_samples)
             Bit32s mix[2] = {0, 0};
             for (int c = 0; c < num_opl_chips; ++c)
             {
-                Bit16s sample[2];
-                OPL3_Generate(&opl_chips[c], sample);
-                mix[0] += sample[0];
-                mix[1] += sample[1];
+                // Reset chip timeout if any channels are active
+                if (opl_chip_keys[c])
+                    opl_chip_timeouts[c] = 0;
+
+                // Run the chip if it hasn't timed out or if it has pending register writes
+                if (opl_chip_timeouts[c] < OPL_CHIP_TIMEOUT || (opl_chips[c].writebuf[opl_chips[c].writebuf_cur].reg & 0x200))
+                {
+                    Bit16s sample[2];
+                    OPL3_Generate(&opl_chips[c], sample);
+                    mix[0] += sample[0];
+                    mix[1] += sample[1];
+
+                    // Reset chip timeout if it breaks the silence threshold
+                    if (MAX(abs(sample[0]), abs(sample[1])) > OPL_SILENCE_THRESHOLD)
+                        opl_chip_timeouts[c] = 0;
+                    else
+                        opl_chip_timeouts[c]++;
+                }
             }
 
             cursor[0] = BETWEEN(-32768, 32767, mix[0]);
             cursor[1] = BETWEEN(-32768, 32767, mix[1]);
             cursor += 2;
         }
+
         //OPL3_GenerateStream(&opl_chip, (Bit16s *)(buffer + filled * 4), nsamples);
         filled += nsamples;
 
@@ -197,6 +219,12 @@ static int OPL_SDL_Init(unsigned int port_base, int num_chips)
     for (int c = 0; c < num_opl_chips; ++c)
         OPL3_Reset(&opl_chips[c], OPL_SAMPLE_RATE);
     opl_opl3mode = 0;
+
+    for (int c = 0; c < OPL_MAX_CHIPS; ++c)
+    {
+        opl_chip_keys[c] = 0;
+        opl_chip_timeouts[c] = OPL_CHIP_TIMEOUT;
+    }
 
     return 1;
 }
@@ -298,6 +326,16 @@ static void WriteRegister(int chip, unsigned int reg_num, unsigned int value)
             break;
 
         default:
+            // Keep track of which channels are keyed-on so we know when the chip is in use
+            if ((reg_num & 0xff) >= 0xb0 && (reg_num & 0xff) <= 0xb8)
+            {
+                uint32_t key_bit = 1 << (((reg_num & 0x100) ? 9 : 0) + (reg_num & 0xf));
+                if (value & (1 << 5))
+                    opl_chip_keys[chip] |= key_bit;
+                else
+                    opl_chip_keys[chip] &= ~key_bit;
+            }
+
             OPL3_WriteRegBuffered(&opl_chips[chip], reg_num, value);
             break;
     }

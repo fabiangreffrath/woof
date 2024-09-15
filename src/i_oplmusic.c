@@ -403,22 +403,37 @@ static opl_voice_t *GetFreeVoice(void)
         return NULL;
     }
 
-    // Remove from free list
+    // Determine how many chips are needed based on current voice allocation
+    int used_chips = ((voice_alloced_num / (OPL_NUM_VOICES * (opl_opl3mode + 1)))) + 1;
 
-    result = voice_free_list[0];
-
-    voice_free_num--;
-
-    for (i = 0; i < voice_free_num; i++)
+    // Find the oldest available voice on one of the chips that are already being used.
+    // By preferring lower chips over higher ones, we allow higher chips to enter an
+    // idle state if they're not needed and save CPU time.
+    // If only 1 chip is emulated, this allocation pattern is identical to vanilla
+    for (int v = 0; v < voice_free_num; ++v)
     {
-        voice_free_list[i] = voice_free_list[i + 1];
+        if ((voice_free_list[v]->array >> 9) < used_chips)
+        {
+            // Remove from free list
+
+            result = voice_free_list[v];
+
+            voice_free_num--;
+
+            for (i = v; i < voice_free_num; i++)
+            {
+                voice_free_list[i] = voice_free_list[i + 1];
+            }
+
+            // Add to allocated list
+
+            voice_alloced_list[voice_alloced_num++] = result;
+
+            return result;
+        }
     }
 
-    // Add to allocated list
-
-    voice_alloced_list[voice_alloced_num++] = result;
-
-    return result;
+    return NULL;
 }
 
 // Release a voice back to the freelist.
