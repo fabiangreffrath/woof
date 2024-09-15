@@ -136,18 +136,18 @@ skydefs_t *R_ParseSkyDefs(void)
         return NULL;
     }
 
-    json_t *json = JS_Parse(W_CacheLumpNum(lumpnum, PU_CACHE));
+    json_t *json = JS_Open(W_CacheLumpNum(lumpnum, PU_CACHE));
     if (json == NULL)
     {
         I_Printf(VB_ERROR, "JSON: Error parsing SKYDEFS");
-        JS_Free(json);
+        JS_Close(json);
         return NULL;
     }
 
     json_t *data = JS_GetObject(json, "data");
     if (JS_IsNull(data))
     {
-        JS_Free(json);
+        JS_Close(json);
         return NULL;
     }
 
@@ -175,6 +175,6 @@ skydefs_t *R_ParseSkyDefs(void)
         }
     }
 
-    JS_Free(json);
+    JS_Close(json);
     return out;
 }
