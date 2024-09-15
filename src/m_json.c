@@ -53,11 +53,11 @@ json_t *JS_Open(const char *type, version_t version, const char *data)
     s = JS_GetString(js_version);
     version_t v = {0};
     sscanf(s, "%d.%d.%d", &v.major, &v.minor, &v.revision);
-    if (v.major != version.major || v.minor != version.minor
-        || v.revision != version.revision)
+    if (!(v.major == version.major && v.minor == version.minor
+          && v.revision == version.revision))
     {
-        I_Printf(VB_ERROR, "%s: wrong version %d.%d.%d", type, v.major, v.minor,
-                 v.revision);
+        I_Printf(VB_ERROR, "%s: unsupported version %d.%d.%d", type, v.major,
+                 v.minor, v.revision);
         return NULL;
     }
 
