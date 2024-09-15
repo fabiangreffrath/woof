@@ -62,7 +62,7 @@ static int register_num = 0;
 static opl_timer_t timer1 = { 12500, 0, 0, 0 };
 static opl_timer_t timer2 = { 3125, 0, 0, 0 };
 
-static int mixing_freq, mixing_channels;
+static int mixing_channels;
 
 // Advance time by the specified number of samples, invoking any
 // callback functions as appropriate.
@@ -75,7 +75,7 @@ static void AdvanceTime(unsigned int nsamples)
 
     // Advance time.
 
-    us = ((uint64_t) nsamples * OPL_SECOND) / mixing_freq;
+    us = ((uint64_t) nsamples * OPL_SECOND) / OPL_SAMPLE_RATE;
     current_time += us;
 
     if (opl_sdl_paused)
@@ -127,7 +127,7 @@ int OPL_FillBuffer(byte *buffer, int buffer_samples)
         {
             next_callback_time = OPL_Queue_Peek(callback_queue) + pause_offset;
 
-            nsamples = (next_callback_time - current_time) * mixing_freq;
+            nsamples = (next_callback_time - current_time) * OPL_SAMPLE_RATE;
             nsamples = (nsamples + OPL_SECOND - 1) / OPL_SECOND;
 
             if (nsamples > buffer_samples - filled)
@@ -144,7 +144,7 @@ int OPL_FillBuffer(byte *buffer, int buffer_samples)
             for (int c = 0; c < num_opl_chips; ++c)
             {
                 Bit16s sample[2];
-                OPL3_GenerateResampled(&opl_chips[c], sample);
+                OPL3_Generate(&opl_chips[c], sample);
                 mix[0] += sample[0];
                 mix[1] += sample[1];
             }
@@ -191,12 +191,11 @@ static int OPL_SDL_Init(unsigned int port_base, int num_chips)
 
     // Only supports AUDIO_S16SYS
     mixing_channels = 2;
-    mixing_freq = opl_sample_rate;
 
     // Create the emulator structure:
 
     for (int c = 0; c < num_opl_chips; ++c)
-        OPL3_Reset(&opl_chips[c], mixing_freq);
+        OPL3_Reset(&opl_chips[c], OPL_SAMPLE_RATE);
     opl_opl3mode = 0;
 
     return 1;

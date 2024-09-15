@@ -1447,8 +1447,6 @@ static boolean I_OPL_InitStream(int device)
     char *dmxoption;
     opl_init_result_t chip_type;
 
-    OPL_SetSampleRate(OPL_SAMPLE_RATE);
-
     chip_type = OPL_Init(opl_io_port, num_opl_chips);
     if (chip_type == OPL_INIT_NONE)
     {
