@@ -2176,6 +2176,7 @@ static boolean ShortcutResponder(const event_t *ev)
 
         currentMenu = &HelpDef; // killough 10/98: new help screen
 
+        currentMenu->prevMenu = NULL;
         itemOn = 0;
         M_StartSound(sfx_swtchn);
         return true;
