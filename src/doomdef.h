@@ -176,6 +176,33 @@ typedef enum {
   NUMPOWERS,
 } powertype_t;
 
+typedef enum
+{
+    item_noitem = -1,
+    item_messageonly,
+    item_bluecard,
+    item_yellowcard,
+    item_redcard,
+    item_blueskull,
+    item_yellowskull,
+    item_redskull,
+    item_backpack,
+    item_healthbonus,
+    item_stimpack,
+    item_medikit,
+    item_soulsphere,
+    item_megasphere,
+    item_armorbonus,
+    item_greenarmor,
+    item_bluearmor,
+    item_areamap,
+    item_lightamp,
+    item_berserk,
+    item_invisibility,
+    item_radsuit,
+    item_invulnerability,
+} itemtype_t;
+
 // Power up durations (how many seconds till expiration).
 typedef enum {
   INVULNTICS  = (30*TICRATE),

@@ -22,6 +22,7 @@
 #ifndef __P_USER__
 #define __P_USER__
 
+#include "doomdef.h"
 #include "m_fixed.h"
 #include "tables.h"
 
@@ -41,6 +42,8 @@ typedef enum
 } death_use_action_t;
 
 extern death_use_action_t death_use_action;
+
+boolean P_EvaluateItemOwned(itemtype_t item, struct player_s *player);
 
 extern boolean onground; // whether player is on ground or in air
 

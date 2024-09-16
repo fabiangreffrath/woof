@@ -28,10 +28,12 @@
 #include "d_player.h"
 #include "doomdef.h"
 #include "doomstat.h"
+#include "doomtype.h"
 #include "hu_stuff.h" // [FG] hud_displayed
 #include "i_printf.h"
 #include "i_video.h"
 #include "info.h"
+#include "m_array.h"
 #include "m_cheat.h"
 #include "m_config.h"
 #include "m_misc.h"
@@ -39,6 +41,7 @@
 #include "m_swap.h"
 #include "mn_menu.h"
 #include "p_mobj.h"
+#include "p_user.h"
 #include "r_data.h"
 #include "r_defs.h"
 #include "r_main.h"
@@ -47,6 +50,7 @@
 #include "sounds.h"
 #include "st_lib.h"
 #include "st_stuff.h"
+#include "st_sbardef.h"
 #include "tables.h"
 #include "v_fmt.h"
 #include "v_video.h"
@@ -318,9 +322,144 @@ int             st_keyorskull[3];
 // a random number per tick
 static int      st_randomnumber;
 
+static sbardefs_t *sbardef;
+
 //
 // STATUS BAR CODE
 //
+
+static boolean CheckConditions(sbarcondition_t *conditions, player_t *player)
+{
+    boolean result = true;
+    int currsessiontype = netgame ? MIN(deathmatch + 1, 2) : 0;
+    // boolean compacthud = frame_width < frame_adjusted_width;
+
+    sbarcondition_t *cond;
+    array_foreach(cond, conditions)
+    {
+        switch (cond->condition)
+        {
+            case sbc_weaponowned:
+                result &= !!player->weaponowned[cond->param];
+                break;
+
+            case sbc_weaponselected:
+                result &= player->readyweapon == cond->param;
+                break;
+
+            case sbc_weaponnotselected:
+                result &= player->readyweapon != cond->param;
+                break;
+
+            case sbc_weaponhasammo:
+                result &= weaponinfo[cond->param].ammo != am_noammo;
+                break;
+
+            case sbc_selectedweaponhasammo:
+                result &= weaponinfo[player->readyweapon].ammo != am_noammo;
+                break;
+
+            case sbc_selectedweaponammotype:
+                result &=
+                    weaponinfo[player->readyweapon].ammo == cond->param;
+                break;
+
+            case sbc_weaponslotowned:
+                {
+                    // TODO
+                    // boolean owned = false;
+                    // for( const weaponinfo_t* weapon : weaponinfo.All() )
+                    // {
+                    //     if( weapon->slot == condition.param &&
+                    //     player->weaponowned[ weapon->index ] )
+                    //     {
+                    //         owned = true;
+                    //         break;
+                    //     }
+                    // }
+                    // result &= owned;
+                }
+                break;
+
+            case sbc_weaponslotnotowned:
+                {
+                    // TODO
+                    // bool notowned = true;
+                    // for( const weaponinfo_t* weapon : weaponinfo.All() )
+                    // {
+                    //     if( weapon->slot == condition.param &&
+                    //     player->weaponowned[ weapon->index ] )
+                    //     {
+                    //         notowned = false;
+                    //         break;
+                    //     }
+                    // }
+                    // result &= notowned;
+                }
+                break;
+
+            case sbc_weaponslotselected:
+                // TODO
+                // result &= weaponinfo[ player->readyweapon ].slot ==
+                // condition.param;
+                break;
+
+            case sbc_weaponslotnotselected:
+                // TODO
+                // result &= weaponinfo[ player->readyweapon ].slot !=
+                // condition.param;
+                break;
+
+            case sbc_itemowned:
+                result &=
+                    !!P_EvaluateItemOwned((itemtype_t)cond->param, player);
+                break;
+
+            case sbc_itemnotowned:
+                result &=
+                    !P_EvaluateItemOwned((itemtype_t)cond->param, player);
+                break;
+
+            case sbc_featurelevelgreaterequal:
+                // result &= featureslookup[ (int32_t)gameversion ] >=
+                // condition.param;
+                break;
+
+            case sbc_featurelevelless:
+                // result &= featureslookup[ (int32_t)gameversion ] <
+                // condition.param ;
+                break;
+
+            case sbc_sessiontypeeequal:
+                result &= currsessiontype == cond->param;
+                break;
+
+            case sbc_sessiontypenotequal:
+                result &= currsessiontype != cond->param;
+                break;
+
+            case sbc_modeeequal:
+                result &= gamemode == (cond->param + 1);
+                break;
+
+            case sbc_modenotequal:
+                result &= gamemode != (cond->param + 1);
+                break;
+
+            case sbc_hudmodeequal:
+                // TODO
+                // result &= ( !!condition->param == compacthud );
+                break;
+
+            case sbc_none:
+            default:
+                result = false;
+                break;
+        }
+    }
+
+    return result;
+}
 
 void ST_Stop(void);
 
@@ -1420,6 +1559,8 @@ static int StatusBarBufferHeight(void)
 
 void ST_Init(void)
 {
+  sbardef = ST_ParseSbarDef();
+
   ST_loadData();
 }
 

@@ -1,0 +1,266 @@
+
+#include "st_sbardef.h"
+
+#include <stdlib.h>
+
+#include "doomdef.h"
+#include "doomtype.h"
+#include "i_printf.h"
+#include "m_array.h"
+#include "m_json.h"
+#include "v_fmt.h"
+
+static boolean ParseSbarCondition(json_t *json, sbarcondition_t *out)
+{
+    json_t *condition = JS_GetObject(json, "condition");
+    json_t *param = JS_GetObject(json, "param");
+    if (!JS_IsNumber(condition) || !JS_IsNumber(param))
+    {
+        return false;
+    }
+    out->condition = JS_GetInteger(condition);
+    out->param = JS_GetInteger(param);
+
+    return true;
+}
+
+static boolean ParseSbarFrame(json_t *json, sbarframe_t *out)
+{
+    json_t *lump = JS_GetObject(json, "lump");
+    if (!JS_IsString(lump))
+    {
+        return false;
+    }
+    out->lump = JS_GetString(lump);
+
+    json_t *duration = JS_GetObject(json, "duration");
+    if (!JS_IsNumber(duration))
+    {
+        return false;
+    }
+    out->duration = JS_GetNumber(duration) * TICRATE;
+    return true;
+}
+
+static boolean ParseSbarElem(json_t *json, sbarelem_t *out);
+
+static boolean ParseSbarElemType(json_t *json, sbarelementtype_t type,
+                                 sbarelem_t *out)
+{
+    out->elemtype = type;
+
+    json_t *x_pos = JS_GetObject(json, "x");
+    json_t *y_pos = JS_GetObject(json, "y");
+    json_t *alignment = JS_GetObject(json, "alignment");
+    if (!JS_IsNumber(x_pos) || !JS_IsNumber(y_pos) || !JS_IsNumber(alignment))
+    {
+        return false;
+    }
+    out->x_pos = JS_GetInteger(x_pos);
+    out->y_pos = JS_GetInteger(y_pos);
+    out->alignment = JS_GetInteger(alignment);
+
+    json_t *tranmap = JS_GetObject(json, "tranmap");
+    json_t *translation = JS_GetObject(json, "translation");
+    if (!JS_IsString(tranmap) || !JS_IsString(translation))
+    {
+        return false;
+    }
+    out->tranmap = JS_GetString(tranmap);
+    out->translation = JS_GetString(translation);
+
+    json_t *js_conditions = JS_GetObject(json, "conditions");
+    json_t *js_condition = NULL;
+    JS_ArrayForEach(js_condition, js_conditions)
+    {
+        sbarcondition_t condition = {0};
+        if (ParseSbarCondition(js_condition, &condition))
+        {
+            array_push(out->conditions, condition);
+        }
+    }
+
+    json_t *js_children = JS_GetObject(json, "children");
+    json_t *js_child = NULL;
+    JS_ArrayForEach(js_child, js_children)
+    {
+        sbarelem_t elem = {0};
+        if (ParseSbarElem(js_child, &elem))
+        {
+            array_push(out->children, elem);
+        }
+    }
+
+    switch (type)
+    {
+        case sbe_graphic:
+            json_t *patch = JS_GetObject(json, "patch");
+            if (!JS_IsString(patch))
+            {
+                return false;
+            }
+            out->patch = V_CachePatchName(JS_GetString(patch), PU_STATIC);
+            break;
+
+        case sbe_animation:
+            json_t *js_frames = JS_GetObject(json, "frames");
+            json_t *js_frame = NULL;
+            JS_ArrayForEach(js_frame, js_frames)
+            {
+                sbarframe_t frame = {0};
+                if (ParseSbarFrame(js_frame, &frame))
+                {
+                    array_push(out->frames, frame);
+                }
+            }
+            break;
+
+        case sbe_number:
+        case sbe_percent:
+            json_t *font = JS_GetObject(json, "font");
+            if (!JS_IsString(font))
+            {
+                return false;
+            }
+            out->font = JS_GetString(font);
+
+            json_t *numbertype = JS_GetObject(json, "numbertype");
+            json_t *param = JS_GetObject(json, "param");
+            json_t *maxlength = JS_GetObject(json, "maxlength");
+            if (!JS_IsNumber(numbertype) || !JS_IsNumber(param)
+                || !JS_IsNumber(maxlength))
+            {
+                return false;
+            }
+            out->numbertype = JS_GetInteger(numbertype);
+            out->param = JS_GetInteger(param);
+            out->maxlength = JS_GetInteger(maxlength);
+
+        default:
+            break;
+    }
+    return true;
+}
+
+static const char *names[] =
+{
+    [sbe_canvas] = "canvas",
+    [sbe_graphic] = "graphic",
+    [sbe_animation] = "animation",
+    [sbe_face] = "face",
+    [sbe_facebackground] = "facebackground",
+    [sbe_number] = "number",
+    [sbe_percent] = "percent"
+};
+
+static boolean ParseSbarElem(json_t *json, sbarelem_t *out)
+{
+    for (sbarelementtype_t i = sbe_none + 1; i < sbe_max; ++i)
+    {
+        json_t *obj = JS_GetObject(json, names[i]);
+        if (obj && JS_IsObject(obj))
+        {
+            return ParseSbarElemType(obj, i, out);
+        }
+    }
+
+    return false;
+}
+
+static boolean ParseNumberFont(json_t *json, numberfont_t *out)
+{
+    json_t *name = JS_GetObject(json, "name");
+    json_t *stem = JS_GetObject(json, "stem");
+    if (!JS_IsString(name) || !JS_IsString(stem))
+    {
+        return false;
+    }
+    out->name = JS_GetString(name);
+    out->stem = JS_GetString(stem);
+
+    json_t *type = JS_GetObject(json, "type");
+    if (!JS_IsNumber(type))
+    {
+        return false;
+    }
+    out->type = JS_GetInteger(type);
+
+    return true;
+}
+
+static boolean ParseStatusBar(json_t *json, statusbar_t *out)
+{
+    json_t *height = JS_GetObject(json, "height");
+    json_t *fullscreenrender = JS_GetObject(json, "fullscreenrender");
+    if (!JS_IsNumber(height) || !JS_IsBoolean(fullscreenrender))
+    {
+        return false;
+    }
+    out->height = JS_GetInteger(height);
+    out->fullscreenrender = JS_GetBoolean(fullscreenrender);
+
+    json_t *fillflat = JS_GetObject(json, "fillflat");
+    if (!JS_IsString(json))
+    {
+        return false;
+    }
+    out->fillflat = JS_GetString(fillflat);
+
+    json_t *js_children = JS_GetObject(json, "children");
+    json_t *js_child = NULL;
+    JS_ArrayForEach(js_child, js_children)
+    {
+        sbarelem_t elem = {0};
+        if (ParseSbarElem(js_child, &elem))
+        {
+            array_push(out->children, elem);
+        }
+    }
+
+    return true;
+}
+
+sbardefs_t *ST_ParseSbarDef(void)
+{
+    json_t *json = JS_Open("SBARDEF", "statusbar", (version_t){1, 0, 0});
+    if (json == NULL)
+    {
+        return NULL;
+    }
+
+    json_t *data = JS_GetObject(json, "data");
+    if (JS_IsNull(data) || !JS_IsObject(data))
+    {
+        I_Printf(VB_ERROR, "SBARDEF: no data");
+        JS_Close(json);
+        return NULL;
+    }
+
+    sbardefs_t *out = calloc(1, sizeof(*out));
+
+    json_t *js_numberfonts = JS_GetObject(data, "numberfonts");
+    json_t *js_numberfont = NULL;
+
+    JS_ArrayForEach(js_numberfont, js_numberfonts)
+    {
+        numberfont_t numberfont = {0};
+        if (ParseNumberFont(js_numberfont, &numberfont))
+        {
+            array_push(out->numberfonts, numberfont);
+        }
+    }
+
+    json_t *js_statusbars = JS_GetObject(data, "statusbars");
+    json_t *js_statusbar = NULL;
+
+    JS_ArrayForEach(js_statusbar, js_statusbars)
+    {
+        statusbar_t statusbar = {0};
+        if (ParseStatusBar(js_statusbar, &statusbar))
+        {
+            array_push(out->statusbars, statusbar);
+        }
+    }
+
+    return out;
+}

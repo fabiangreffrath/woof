@@ -130,6 +130,7 @@ set(WOOF_SOURCES
     s_sound.c              s_sound.h
     sounds.c               sounds.h
     st_lib.c               st_lib.h
+    st_sbardef.c           st_sbardef.h
     st_stuff.c             st_stuff.h
     statdump.c             statdump.h
     tables.c               tables.h
