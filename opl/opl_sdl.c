@@ -25,8 +25,9 @@
 
 #define MAX_SOUND_SLICE_TIME 100 /* ms */
 
-#define OPL_SILENCE_THRESHOLD   36
-#define OPL_CHIP_TIMEOUT        (OPL_SAMPLE_RATE / 2)
+#define OPL_SILENCE_THRESHOLD   36  // Allow for a worst case of +/-1 ripple in all 36 operators.
+#define OPL_CHIP_TIMEOUT        (OPL_SAMPLE_RATE / 2)   // 0.5 seconds of silence with no key-on
+                                                        // should be enough to ensure chip is "off"
 
 typedef struct
 {
