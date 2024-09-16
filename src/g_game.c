@@ -546,6 +546,28 @@ void G_PrepGyroTiccmd(void)
   }
 }
 
+static boolean FilterDeathUseAction(void)
+{
+    if (players[consoleplayer].playerstate & PST_DEAD)
+    {
+        switch (death_use_action)
+        {
+            case death_use_nothing:
+                return true;
+            case death_use_reload:
+                if (!demoplayback && !demorecording && !netgame)
+                {
+                    activate_death_use_reload = true;
+                }
+                return true;
+            default:
+                break;
+        }
+    }
+
+    return false;
+}
+
 //
 // G_BuildTiccmd
 // Builds a ticcmd from all of the available inputs
@@ -703,7 +725,8 @@ void G_BuildTiccmd(ticcmd_t* cmd)
 
   if (M_InputGameActive(input_use)) // [FG] mouse button for "use"
     {
-      cmd->buttons |= BT_USE;
+      if (!FilterDeathUseAction())
+        cmd->buttons |= BT_USE;
       // clear double clicks if hit use button
       dclick = false;
     }
@@ -811,7 +834,8 @@ void G_BuildTiccmd(ticcmd_t* cmd)
   if (dclick)
   {
     dclick = false;
-    cmd->buttons |= BT_USE;
+    if (!FilterDeathUseAction())
+      cmd->buttons |= BT_USE;
   }
 
   // special buttons
