@@ -108,6 +108,46 @@ static void AdvanceTime(unsigned int nsamples)
     }
 }
 
+
+// Awaken a dormant OPL chip, or keep an active one active
+// When a chip is re-activated after being idle, we need to bring its
+// internal global timers back into synch with the main chip to avoid
+// possible beating artifacts
+
+static void WakeUpChip (int chip)
+{
+    // If the chip has timed out, we need to resync it
+    if (opl_chip_timeouts[chip] >= OPL_CHIP_TIMEOUT)
+    {
+        // Find an active chip to synchronize with; will usually be chip 0
+        int sync = -1;
+        for (int c = 0; c < OPL_MAX_CHIPS; ++c)
+        {
+            if (opl_chip_timeouts[c] < OPL_CHIP_TIMEOUT)
+            {
+                sync = c;
+                break;
+            }
+        }
+
+        if (sync >= 0)
+        {
+            // Synchronize the LFOs
+            opl_chips[chip].vibpos = opl_chips[sync].vibpos;
+            opl_chips[chip].tremolopos = opl_chips[sync].tremolopos;
+            opl_chips[chip].timer = opl_chips[sync].timer;
+
+            // Synchronize the envelope clock
+            opl_chips[chip].eg_state = opl_chips[sync].eg_state;
+            opl_chips[chip].eg_timer = opl_chips[sync].eg_timer;
+            opl_chips[chip].eg_timerrem = opl_chips[sync].eg_timerrem;
+        }
+    }
+
+    opl_chip_timeouts[chip] = 0;
+}
+
+
 // Callback function to fill a new sound buffer:
 
 int OPL_FillBuffer(byte *buffer, int buffer_samples)
@@ -153,9 +193,9 @@ int OPL_FillBuffer(byte *buffer, int buffer_samples)
             {
                 // Reset chip timeout if any channels are active
                 if (opl_chip_keys[c])
-                    opl_chip_timeouts[c] = 0;
+                    WakeUpChip(c);
 
-                // Run the chip if it hasn't timed out or if it has pending register writes
+                // Run the chip if it's active or if it has pending register writes
                 if (opl_chip_timeouts[c] < OPL_CHIP_TIMEOUT || (opl_chips[c].writebuf[opl_chips[c].writebuf_cur].reg & 0x200))
                 {
                     Bit16s sample[2];
@@ -165,7 +205,7 @@ int OPL_FillBuffer(byte *buffer, int buffer_samples)
 
                     // Reset chip timeout if it breaks the silence threshold
                     if (MAX(abs(sample[0]), abs(sample[1])) > OPL_SILENCE_THRESHOLD)
-                        opl_chip_timeouts[c] = 0;
+                        WakeUpChip(c);
                     else
                         opl_chip_timeouts[c]++;
                 }
