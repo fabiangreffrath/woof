@@ -241,7 +241,7 @@ static boolean WeaponSelectable(weapontype_t weapon)
 {
     // Can't select the super shotgun in Doom 1.
 
-    if (weapon == wp_supershotgun && !have_ssg)
+    if (weapon == wp_supershotgun && !ALLOW_SSG)
     {
         return false;
     }
@@ -780,7 +780,7 @@ void G_BuildTiccmd(ticcmd_t* cmd)
         M_InputGameActive(input_weapon6) && gamemode != shareware ? wp_plasma :
         M_InputGameActive(input_weapon7) && gamemode != shareware ? wp_bfg :
         M_InputGameActive(input_weapon8) ? wp_chainsaw :
-        M_InputGameActive(input_weapon9) && !demo_compatibility && have_ssg ? wp_supershotgun :
+        M_InputGameActive(input_weapon9) && !demo_compatibility && ALLOW_SSG ? wp_supershotgun :
         wp_nochange;
 
       // killough 3/22/98: For network and demo consistency with the
@@ -818,7 +818,7 @@ void G_BuildTiccmd(ticcmd_t* cmd)
           // in use, or if the SSG is not already in use and the
           // player prefers it.
 
-          if (newweapon == wp_shotgun && have_ssg &&
+          if (newweapon == wp_shotgun && ALLOW_SSG &&
               player->weaponowned[wp_supershotgun] &&
               (!player->weaponowned[wp_shotgun] ||
                player->readyweapon == wp_shotgun ||

@@ -236,7 +236,7 @@ static int P_SwitchWeaponMBF21(player_t *player)
         checkweapon = wp_chainsaw;
         break;
       case 9:
-        if (have_ssg)
+        if (ALLOW_SSG)
           checkweapon = wp_supershotgun;
         break;
     }
@@ -315,7 +315,7 @@ int P_SwitchWeapon(player_t *player)
           newweapon = wp_chainsaw;
         break;
       case 9:
-        if (player->weaponowned[wp_supershotgun] && have_ssg &&
+        if (player->weaponowned[wp_supershotgun] && ALLOW_SSG &&
             player->ammo[am_shell] >= (demo_compatibility ? 3 : 2))
           newweapon = wp_supershotgun;
         break;

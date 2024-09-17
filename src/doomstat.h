@@ -69,6 +69,7 @@ extern char *MAPNAME(int e, int m);
 extern  boolean modifiedgame;
 
 extern boolean have_ssg;
+#define ALLOW_SSG (gamemode == commercial || CRITICAL(have_ssg))
 
 // compatibility with old engines (monster behavior, metrics, etc.)
 extern int compatibility, default_compatibility;          // killough 1/31/98
