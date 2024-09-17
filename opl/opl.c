@@ -32,8 +32,6 @@ static opl_driver_t *drivers[] =
 
 static opl_driver_t *driver = NULL;
 
-unsigned int opl_sample_rate = OPL_SAMPLE_RATE;
-
 //
 // Init/shutdown code.
 //
@@ -139,11 +137,6 @@ void OPL_Shutdown(void)
 }
 
 // Set the sample rate used for software OPL emulation.
-
-void OPL_SetSampleRate(unsigned int rate)
-{
-    opl_sample_rate = rate;
-}
 
 void OPL_WritePort(int chip, opl_port_t port, unsigned int value)
 {

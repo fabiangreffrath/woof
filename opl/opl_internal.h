@@ -48,7 +48,5 @@ extern opl_driver_t opl_sdl_driver;
 
 // Sample rate to use when doing software emulation.
 
-extern unsigned int opl_sample_rate;
-
 #endif /* #ifndef OPL_INTERNAL_H */
 
