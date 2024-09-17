@@ -318,6 +318,23 @@ static int G_NextWeapon(int direction)
         return weapon_order_table[i].weapon_num;
 }
 
+static weapontype_t LastWeapon(void)
+{
+    const weapontype_t weapon = players[consoleplayer].lastweapon;
+
+    if (weapon < wp_fist || weapon >= NUMWEAPONS || !WeaponSelectable(weapon))
+    {
+        return wp_nochange;
+    }
+
+    if (demo_compatibility && weapon == wp_supershotgun)
+    {
+        return wp_shotgun;
+    }
+
+    return weapon;
+}
+
 static weapontype_t WeaponSSG(void)
 {
     const player_t *player = &players[consoleplayer];
@@ -787,6 +804,10 @@ void G_BuildTiccmd(ticcmd_t* cmd)
     done_autoswitch = true;
     boom_weapon_state_injection = false;
     newweapon = P_SwitchWeapon(&players[consoleplayer]);           // phares
+  }
+  else if (M_InputGameActive(input_lastweapon))
+  {
+    newweapon = LastWeapon();
   }
   else
     {                                 // phares 02/26/98: Added gamemode checks
@@ -2937,6 +2958,7 @@ void G_PlayerReborn(int player)
   p->usedown = p->attackdown = true;  // don't do anything immediately
   p->playerstate = PST_LIVE;
   p->health = initial_health;  // Ty 03/12/98 - use dehacked values
+  p->lastweapon = wp_fist;
   p->readyweapon = p->pendingweapon = wp_pistol;
   p->weaponowned[wp_fist] = true;
   p->weaponowned[wp_pistol] = true;

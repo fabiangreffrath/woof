@@ -588,6 +588,7 @@ void A_Lower(player_t *player, pspdef_t *psp)
 
   if (player->pendingweapon < NUMWEAPONS || !mbf21)
   {
+    player->lastweapon = player->readyweapon;
     player->readyweapon = player->pendingweapon;
   }
 

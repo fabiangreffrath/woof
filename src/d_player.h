@@ -223,6 +223,9 @@ typedef struct player_s
   int num_visitedlevels;
   level_t *visitedlevels;
 
+  // Last used weapon (last readyweapon).
+  weapontype_t lastweapon;
+
 } player_t;
 
 

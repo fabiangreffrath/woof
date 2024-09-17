@@ -1361,6 +1361,7 @@ static setup_menu_t keys_settings2[] = {
     {"Chainsaw", S_INPUT, KB_X, M_SPC, {0}, m_scrn, input_weapon8},
     {"SSG",      S_INPUT, KB_X, M_SPC, {0}, m_scrn, input_weapon9},
     {"Best",     S_INPUT, KB_X, M_SPC, {0}, m_scrn, input_weapontoggle},
+    {"Last",     S_INPUT, KB_X, M_SPC, {0}, m_scrn, input_lastweapon},
     MI_GAP,
     // [FG] prev/next weapon keys and buttons
     {"Prev", S_INPUT, KB_X, M_SPC, {0}, m_scrn, input_prevweapon},

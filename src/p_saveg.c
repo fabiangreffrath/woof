@@ -989,11 +989,15 @@ static void saveg_read_player_t(player_t *str)
             level.map = saveg_read32();
             array_push(str->visitedlevels, level);
         }
+
+        // [Woof!]: weapontype_t lastweapon;
+        str->lastweapon = saveg_read_enum();
     }
     else
     {
         str->num_visitedlevels = 0;
         array_clear(str->visitedlevels);
+        str->lastweapon = wp_nochange;
     }
 }
 
@@ -1158,6 +1162,9 @@ static void saveg_write_player_t(player_t *str)
         saveg_write32(level->episode);
         saveg_write32(level->map);
     }
+
+    // [Woof!]: weapontype_t lastweapon;
+    saveg_write_enum(str->lastweapon);
 }
 
 
