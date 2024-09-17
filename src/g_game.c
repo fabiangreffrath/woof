@@ -318,6 +318,29 @@ static int G_NextWeapon(int direction)
         return weapon_order_table[i].weapon_num;
 }
 
+static weapontype_t WeaponSSG(void)
+{
+    const player_t *player = &players[consoleplayer];
+
+    if (!ALLOW_SSG || !player->weaponowned[wp_supershotgun])
+    {
+        return wp_nochange;
+    }
+
+    if (!demo_compatibility)
+    {
+        return wp_supershotgun;
+    }
+
+    if (player->pendingweapon != wp_supershotgun
+        && player->readyweapon != wp_supershotgun)
+    {
+        return wp_shotgun;
+    }
+
+    return wp_nochange;
+}
+
 // [FG] toggle demo warp mode
 void G_EnableWarp(boolean warp)
 {
@@ -780,7 +803,7 @@ void G_BuildTiccmd(ticcmd_t* cmd)
         M_InputGameActive(input_weapon6) && gamemode != shareware ? wp_plasma :
         M_InputGameActive(input_weapon7) && gamemode != shareware ? wp_bfg :
         M_InputGameActive(input_weapon8) ? wp_chainsaw :
-        M_InputGameActive(input_weapon9) && !demo_compatibility && ALLOW_SSG ? wp_supershotgun :
+        M_InputGameActive(input_weapon9) ? WeaponSSG() :
         wp_nochange;
 
       // killough 3/22/98: For network and demo consistency with the
