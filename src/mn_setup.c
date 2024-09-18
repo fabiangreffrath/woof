@@ -1540,20 +1540,21 @@ static setup_menu_t weap_settings1[] = {
 };
 
 static setup_menu_t weap_settings2[] = {
-    {"1St Choice Weapon", S_WEAP | S_BOOM, OFF_CNTR_X, M_SPC, {"weapon_choice_1"}},
-    {"2Nd Choice Weapon", S_WEAP | S_BOOM, OFF_CNTR_X, M_SPC, {"weapon_choice_2"}},
-    {"3Rd Choice Weapon", S_WEAP | S_BOOM, OFF_CNTR_X, M_SPC, {"weapon_choice_3"}},
-    {"4Th Choice Weapon", S_WEAP | S_BOOM, OFF_CNTR_X, M_SPC, {"weapon_choice_4"}},
-    {"5Th Choice Weapon", S_WEAP | S_BOOM, OFF_CNTR_X, M_SPC, {"weapon_choice_5"}},
-    {"6Th Choice Weapon", S_WEAP | S_BOOM, OFF_CNTR_X, M_SPC, {"weapon_choice_6"}},
-    {"7Th Choice Weapon", S_WEAP | S_BOOM, OFF_CNTR_X, M_SPC, {"weapon_choice_7"}},
-    {"8Th Choice Weapon", S_WEAP | S_BOOM, OFF_CNTR_X, M_SPC, {"weapon_choice_8"}},
-    {"9Th Choice Weapon", S_WEAP | S_BOOM, OFF_CNTR_X, M_SPC, {"weapon_choice_9"}},
+    {"1St Choice Weapon", S_WEAP | S_BOOM, M_X, M_SPC, {"weapon_choice_1"}},
+    {"2Nd Choice Weapon", S_WEAP | S_BOOM, M_X, M_SPC, {"weapon_choice_2"}},
+    {"3Rd Choice Weapon", S_WEAP | S_BOOM, M_X, M_SPC, {"weapon_choice_3"}},
+    {"4Th Choice Weapon", S_WEAP | S_BOOM, M_X, M_SPC, {"weapon_choice_4"}},
+    {"5Th Choice Weapon", S_WEAP | S_BOOM, M_X, M_SPC, {"weapon_choice_5"}},
+    {"6Th Choice Weapon", S_WEAP | S_BOOM, M_X, M_SPC, {"weapon_choice_6"}},
+    {"7Th Choice Weapon", S_WEAP | S_BOOM, M_X, M_SPC, {"weapon_choice_7"}},
+    {"8Th Choice Weapon", S_WEAP | S_BOOM, M_X, M_SPC, {"weapon_choice_8"}},
+    {"9Th Choice Weapon", S_WEAP | S_BOOM, M_X, M_SPC, {"weapon_choice_9"}},
     MI_GAP,
-    {"Use Weapon Toggles", S_ONOFF | S_BOOM, OFF_CNTR_X, M_SPC, {"doom_weapon_toggles"}},
+    {"Same Key Toggles Weapons", S_ONOFF | S_BOOM, M_X, M_SPC, {"doom_weapon_toggles"}},
+    {"Cycle Through All Weapons", S_ONOFF | S_BOOM, M_X, M_SPC, {"full_weapon_cycle"}},
     MI_GAP,
     // killough 8/8/98
-    {"Pre-Beta BFG", S_ONOFF | S_STRICT, OFF_CNTR_X, M_SPC, {"classic_bfg"}},
+    {"Pre-Beta BFG", S_ONOFF | S_STRICT, M_X, M_SPC, {"classic_bfg"}},
     MI_END
 };
 

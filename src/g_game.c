@@ -162,6 +162,7 @@ boolean         padlook = false;
 // killough 4/13/98: Make clock rate adjustable by scale factor
 int             realtic_clock_rate = 100;
 static boolean  doom_weapon_toggles;
+static boolean  full_weapon_cycle;
 
 complevel_t     force_complevel, default_complevel;
 
@@ -594,6 +595,57 @@ void G_PrepGyroTiccmd(void)
   }
 }
 
+static void AdjustWeaponSelection(int *newweapon)
+{
+    // killough 3/22/98: For network and demo consistency with the
+    // new weapons preferences, we must do the weapons switches here
+    // instead of in p_user.c. But for old demos we must do it in
+    // p_user.c according to the old rules. Therefore demo_compatibility
+    // determines where the weapons switch is made.
+
+    // killough 2/8/98:
+    // Allow user to switch to fist even if they have chainsaw.
+    // Switch to fist or chainsaw based on preferences.
+    // Switch to shotgun or SSG based on preferences.
+    //
+    // killough 10/98: make SG/SSG and Fist/Chainsaw
+    // weapon toggles optional
+
+    const player_t *player = &players[consoleplayer];
+
+    // only select chainsaw from '1' if it's owned, it's
+    // not already in use, and the player prefers it or
+    // the fist is already in use, or the player does not
+    // have the berserker strength.
+
+    if (*newweapon == wp_fist
+        && player->weaponowned[wp_chainsaw]
+        && player->readyweapon != wp_chainsaw
+        && (player->readyweapon == wp_fist
+            || !player->powers[pw_strength]
+            || P_WeaponPreferred(wp_chainsaw, wp_fist)))
+    {
+        *newweapon = wp_chainsaw;
+    }
+
+    // Select SSG from '3' only if it's owned and the player
+    // does not have a shotgun, or if the shotgun is already
+    // in use, or if the SSG is not already in use and the
+    // player prefers it.
+
+    if (*newweapon == wp_shotgun && ALLOW_SSG
+        && player->weaponowned[wp_supershotgun]
+        && (!player->weaponowned[wp_shotgun]
+            || player->readyweapon == wp_shotgun
+            || (player->readyweapon != wp_supershotgun
+                && P_WeaponPreferred(wp_supershotgun, wp_shotgun))))
+    {
+        *newweapon = wp_supershotgun;
+    }
+
+    // killough 2/8/98, 3/22/98 -- end of weapon selection changes
+}
+
 static boolean FilterDeathUseAction(void)
 {
     if (players[consoleplayer].playerstate & PST_DEAD)
@@ -809,12 +861,18 @@ void G_BuildTiccmd(ticcmd_t* cmd)
   {
     newweapon = LastWeapon();
   }
+  else if (gamestate == GS_LEVEL && next_weapon != 0)
+  {
+    // [FG] prev/next weapon keys and buttons
+    newweapon = G_NextWeapon(next_weapon);
+
+    if (!demo_compatibility && !full_weapon_cycle)
+    {
+      AdjustWeaponSelection(&newweapon);
+    }
+  }
   else
     {                                 // phares 02/26/98: Added gamemode checks
-      // [FG] prev/next weapon keys and buttons
-      if (gamestate == GS_LEVEL && next_weapon != 0)
-        newweapon = G_NextWeapon(next_weapon);
-      else
       newweapon =
         M_InputGameActive(input_weapon1) ? wp_fist :    // killough 5/2/98: reformatted
         M_InputGameActive(input_weapon2) ? wp_pistol :
@@ -827,50 +885,10 @@ void G_BuildTiccmd(ticcmd_t* cmd)
         M_InputGameActive(input_weapon9) ? WeaponSSG() :
         wp_nochange;
 
-      // killough 3/22/98: For network and demo consistency with the
-      // new weapons preferences, we must do the weapons switches here
-      // instead of in p_user.c. But for old demos we must do it in
-      // p_user.c according to the old rules. Therefore demo_compatibility
-      // determines where the weapons switch is made.
-
-      // killough 2/8/98:
-      // Allow user to switch to fist even if they have chainsaw.
-      // Switch to fist or chainsaw based on preferences.
-      // Switch to shotgun or SSG based on preferences.
-      //
-      // killough 10/98: make SG/SSG and Fist/Chainsaw
-      // weapon toggles optional
-      
       if (!demo_compatibility && doom_weapon_toggles)
         {
-          const player_t *player = &players[consoleplayer];
-
-          // only select chainsaw from '1' if it's owned, it's
-          // not already in use, and the player prefers it or
-          // the fist is already in use, or the player does not
-          // have the berserker strength.
-
-          if (newweapon==wp_fist && player->weaponowned[wp_chainsaw] &&
-              player->readyweapon!=wp_chainsaw &&
-              (player->readyweapon==wp_fist ||
-               !player->powers[pw_strength] ||
-               P_WeaponPreferred(wp_chainsaw, wp_fist)))
-            newweapon = wp_chainsaw;
-
-          // Select SSG from '3' only if it's owned and the player
-          // does not have a shotgun, or if the shotgun is already
-          // in use, or if the SSG is not already in use and the
-          // player prefers it.
-
-          if (newweapon == wp_shotgun && ALLOW_SSG &&
-              player->weaponowned[wp_supershotgun] &&
-              (!player->weaponowned[wp_shotgun] ||
-               player->readyweapon == wp_shotgun ||
-               (player->readyweapon != wp_supershotgun &&
-                P_WeaponPreferred(wp_supershotgun, wp_shotgun))))
-            newweapon = wp_supershotgun;
+          AdjustWeaponSelection(&newweapon);
         }
-      // killough 2/8/98, 3/22/98 -- end of weapon selection changes
     }
 
   if (newweapon != wp_nochange)
@@ -4751,6 +4769,9 @@ void G_BindWeapVariables(void)
   M_BindBool("doom_weapon_toggles", &doom_weapon_toggles, NULL,
              true, ss_weap, wad_no,
              "Allow toggling between SG/SSG and Fist/Chainsaw");
+  M_BindBool("full_weapon_cycle", &full_weapon_cycle, NULL,
+             false, ss_weap, wad_no,
+             "Cycle through all weapons");
   M_BindBool("player_bobbing", &default_player_bobbing, &player_bobbing,
              true, ss_none, wad_no, "Physical player bobbing (affects compatibility)");
 
