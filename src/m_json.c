@@ -147,3 +147,13 @@ const char *JS_GetString(json_t *json)
 {
     return json->valuestring;
 }
+
+const char *JS_GetStringValue(json_t *json, const char *string)
+{
+    json_t *obj = JS_GetObject(json, string);
+    if (JS_IsString(obj))
+    {
+        return json->valuestring;
+    }
+    return NULL;
+}

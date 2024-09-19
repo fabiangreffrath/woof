@@ -1,6 +1,7 @@
 
 #include "st_sbardef.h"
 
+#include <stdio.h>
 #include <stdlib.h>
 
 #include "doomdef.h"
@@ -8,7 +9,26 @@
 #include "i_printf.h"
 #include "m_array.h"
 #include "m_json.h"
+#include "m_swap.h"
+#include "r_defs.h"
 #include "v_fmt.h"
+#include "w_wad.h"
+#include "z_zone.h"
+
+static patch_t *CachePatchName(const char *name)
+{
+    int lumpnum = W_CheckNumForName(name);
+    if (lumpnum < 0)
+    {
+        lumpnum = (W_CheckNumForName)(name, ns_sprites);
+        if (lumpnum < 0)
+        {
+            I_Printf(VB_ERROR, "SBARDEF: patch %s not found", name);
+            return NULL;
+        }
+    }
+    return V_CachePatchNum(lumpnum, PU_STATIC);
+}
 
 static boolean ParseSbarCondition(json_t *json, sbarcondition_t *out)
 {
@@ -31,7 +51,7 @@ static boolean ParseSbarFrame(json_t *json, sbarframe_t *out)
     {
         return false;
     }
-    out->lump = JS_GetString(lump);
+    out->patch = CachePatchName(JS_GetString(lump));
 
     json_t *duration = JS_GetObject(json, "duration");
     if (!JS_IsNumber(duration))
@@ -60,14 +80,8 @@ static boolean ParseSbarElemType(json_t *json, sbarelementtype_t type,
     out->y_pos = JS_GetInteger(y_pos);
     out->alignment = JS_GetInteger(alignment);
 
-    json_t *tranmap = JS_GetObject(json, "tranmap");
-    json_t *translation = JS_GetObject(json, "translation");
-    if (!JS_IsString(tranmap) || !JS_IsString(translation))
-    {
-        return false;
-    }
-    out->tranmap = JS_GetString(tranmap);
-    out->translation = JS_GetString(translation);
+    out->tranmap = JS_GetStringValue(json, "tranmap");
+    out->translation = JS_GetStringValue(json, "translation");
 
     json_t *js_conditions = JS_GetObject(json, "conditions");
     json_t *js_condition = NULL;
@@ -94,47 +108,63 @@ static boolean ParseSbarElemType(json_t *json, sbarelementtype_t type,
     switch (type)
     {
         case sbe_graphic:
-            json_t *patch = JS_GetObject(json, "patch");
-            if (!JS_IsString(patch))
             {
-                return false;
+                json_t *patch = JS_GetObject(json, "patch");
+                if (!JS_IsString(patch))
+                {
+                    return false;
+                }
+                out->patch = CachePatchName(JS_GetString(patch));
             }
-            out->patch = V_CachePatchName(JS_GetString(patch), PU_STATIC);
             break;
 
         case sbe_animation:
-            json_t *js_frames = JS_GetObject(json, "frames");
-            json_t *js_frame = NULL;
-            JS_ArrayForEach(js_frame, js_frames)
             {
-                sbarframe_t frame = {0};
-                if (ParseSbarFrame(js_frame, &frame))
+                json_t *js_frames = JS_GetObject(json, "frames");
+                json_t *js_frame = NULL;
+                JS_ArrayForEach(js_frame, js_frames)
                 {
-                    array_push(out->frames, frame);
+                    sbarframe_t frame = {0};
+                    if (ParseSbarFrame(js_frame, &frame))
+                    {
+                        array_push(out->frames, frame);
+                    }
                 }
             }
             break;
 
+        case sbe_face:
+            out->priority = 0;
+            out->lastattackdown = -1;
+            out->oldhealth = -1;
+            out->lasthealthcalc = 0;
+            out->faceindex = 0;
+            out->facecount = 0;
+            break;
+
         case sbe_number:
         case sbe_percent:
-            json_t *font = JS_GetObject(json, "font");
-            if (!JS_IsString(font))
             {
-                return false;
-            }
-            out->font = JS_GetString(font);
+                json_t *font = JS_GetObject(json, "font");
+                if (!JS_IsString(font))
+                {
+                    return false;
+                }
+                out->numfont = JS_GetString(font);
 
-            json_t *numbertype = JS_GetObject(json, "numbertype");
-            json_t *param = JS_GetObject(json, "param");
-            json_t *maxlength = JS_GetObject(json, "maxlength");
-            if (!JS_IsNumber(numbertype) || !JS_IsNumber(param)
-                || !JS_IsNumber(maxlength))
-            {
-                return false;
+                json_t *numbertype = JS_GetObject(json, "type");
+                json_t *param = JS_GetObject(json, "param");
+                json_t *maxlength = JS_GetObject(json, "maxlength");
+                if (!JS_IsNumber(numbertype) || !JS_IsNumber(param)
+                    || !JS_IsNumber(maxlength))
+                {
+                    return false;
+                }
+                out->numtype = JS_GetInteger(numbertype);
+                out->numparam = JS_GetInteger(param);
+                out->maxlength = JS_GetInteger(maxlength);
             }
-            out->numbertype = JS_GetInteger(numbertype);
-            out->param = JS_GetInteger(param);
-            out->maxlength = JS_GetInteger(maxlength);
+            break;
 
         default:
             break;
@@ -185,6 +215,51 @@ static boolean ParseNumberFont(json_t *json, numberfont_t *out)
     }
     out->type = JS_GetInteger(type);
 
+    char lump[9] = {0};
+    boolean found = false;
+    int maxwidth = 0;
+
+    for (int num = 0; num < 10; ++num)
+    {
+        snprintf(lump, sizeof(lump), "%sNUM%d", out->stem, num);
+        found = W_CheckNumForName(lump);
+        if (found < 0)
+        {
+            I_Printf(VB_ERROR, "SBARDEF: patch \"%s\" not found", lump);
+            return false;
+        }
+        out->numbers[num] = V_CachePatchNum(found, PU_STATIC);
+        maxwidth = MAX(maxwidth, SHORT(out->numbers[num]->width));
+    }
+
+    snprintf(lump, sizeof(lump), "%sMINUS", out->stem);
+    found = W_CheckNumForName(lump);
+    if (found >= 0)
+    {
+        out->minus = V_CachePatchNum(found, PU_STATIC);
+        maxwidth = MAX(maxwidth, SHORT(out->minus->width));
+    }
+
+    snprintf(lump, sizeof(lump), "%sPRCNT", out->stem);
+    found = W_CheckNumForName(lump);
+    if (found >= 0)
+    {
+        out->percent = V_CachePatchNum(found, PU_STATIC);
+        maxwidth = MAX(maxwidth, SHORT(out->percent->width));
+    }
+
+    switch (out->type)
+    {
+        case sbf_mono0:
+            out->monowidth = SHORT(out->numbers[0]->width);
+            break;
+        case sbf_monomax:
+            out->monowidth = maxwidth;
+            break;
+        default:
+            break;
+    }
+
     return true;
 }
 
@@ -199,12 +274,7 @@ static boolean ParseStatusBar(json_t *json, statusbar_t *out)
     out->height = JS_GetInteger(height);
     out->fullscreenrender = JS_GetBoolean(fullscreenrender);
 
-    json_t *fillflat = JS_GetObject(json, "fillflat");
-    if (!JS_IsString(json))
-    {
-        return false;
-    }
-    out->fillflat = JS_GetString(fillflat);
+    out->fillflat = JS_GetStringValue(json, "fillflat");
 
     json_t *js_children = JS_GetObject(json, "children");
     json_t *js_child = NULL;

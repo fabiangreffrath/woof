@@ -91,11 +91,12 @@ typedef enum
 
 typedef struct
 {
-    const char *lump;
+    patch_t *patch;
     int duration;
 } sbarframe_t;
 
 typedef struct sbarelem_s sbarelem_t;
+typedef struct numberfont_s numberfont_t;
 
 struct sbarelem_s
 {
@@ -113,12 +114,26 @@ struct sbarelem_s
 
     // animation
     sbarframe_t *frames;
+    int frame_index;
+    int duration_left;
 
     // number, percent
-    const char *font;
-    sbarnumbertype_t numbertype;
-    int param;
+    const char *numfont;
+    sbarnumbertype_t numtype;
+    numberfont_t *font;
+    int numparam;
     int maxlength;
+    int number;
+    int xoffset;
+    int numnumbers;
+
+    // face
+    int priority;
+    int faceindex;
+    int facecount;
+    int lasthealthcalc;
+    int oldhealth;
+    int lastattackdown;
 };
 
 typedef struct
@@ -129,7 +144,7 @@ typedef struct
     sbarelem_t *children;
 } statusbar_t;
 
-typedef struct sbarnumfont_t
+struct numberfont_s
 {
     const char *name;
     numfonttype_t type;
@@ -138,7 +153,7 @@ typedef struct sbarnumfont_t
     patch_t *numbers[10];
     patch_t *percent;
     patch_t *minus;
-} numberfont_t;
+};
 
 typedef struct
 {

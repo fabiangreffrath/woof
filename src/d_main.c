@@ -360,6 +360,9 @@ void D_Display (void)
     R_RenderPlayerView (&players[displayplayer]);
 
   if (gamestate == GS_LEVEL && gametic)
+    ST_Drawer(true, true);
+
+  if (gamestate == GS_LEVEL && gametic)
     HU_Drawer ();
 
   // clean up border stuff

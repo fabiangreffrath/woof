@@ -324,9 +324,47 @@ static int      st_randomnumber;
 
 static sbardefs_t *sbardef;
 
+static patch_t **facepatches = NULL;
+
 //
 // STATUS BAR CODE
 //
+
+static void LoadFacePathes(void)
+{
+    char lump[9] = {0};
+
+    for (int painface = 0; painface < ST_NUMPAINFACES; ++painface)
+    {
+        for (int straightface = 0; straightface < ST_NUMSTRAIGHTFACES;
+             ++straightface)
+        {
+            snprintf(lump, sizeof(lump), "STFST%d%d", painface, straightface);
+            array_push(facepatches, V_CachePatchName(lump, PU_STATIC));
+        }
+
+        snprintf(lump, sizeof(lump), "STFTR%d0", painface); // turn right
+        array_push(facepatches, V_CachePatchName(lump, PU_STATIC));
+
+        snprintf(lump, sizeof(lump), "STFTL%d0", painface); // turn left
+        array_push(facepatches, V_CachePatchName(lump, PU_STATIC));
+
+        snprintf(lump, sizeof(lump), "STFOUCH%d", painface); // ouch!
+        array_push(facepatches, V_CachePatchName(lump, PU_STATIC));
+
+        snprintf(lump, sizeof(lump), "STFEVL%d", painface); // evil grin ;)
+        array_push(facepatches, V_CachePatchName(lump, PU_STATIC));
+
+        snprintf(lump, sizeof(lump), "STFKILL%d", painface); // pissed off
+        array_push(facepatches, V_CachePatchName(lump, PU_STATIC));
+    }
+
+    snprintf(lump, sizeof(lump), "STFGOD0");
+    array_push(facepatches, V_CachePatchName(lump, PU_STATIC));
+
+    snprintf(lump, sizeof(lump), "STFDEAD0");
+    array_push(facepatches, V_CachePatchName(lump, PU_STATIC));
+}
 
 static boolean CheckConditions(sbarcondition_t *conditions, player_t *player)
 {
@@ -448,7 +486,8 @@ static boolean CheckConditions(sbarcondition_t *conditions, player_t *player)
 
             case sbc_hudmodeequal:
                 // TODO
-                // result &= ( !!condition->param == compacthud );
+                // result &= ( !!cond->param == compacthud );
+                result &= (!!cond->param == false);
                 break;
 
             case sbc_none:
@@ -459,6 +498,499 @@ static boolean CheckConditions(sbarcondition_t *conditions, player_t *player)
     }
 
     return result;
+}
+
+static int ResolveNumber(sbarnumbertype_t number, int param, player_t *player)
+{
+    int result = 0;
+    switch (number)
+    {
+        case sbn_health:
+            result = player->health;
+            break;
+
+        case sbn_armor:
+            result = player->armorpoints;
+            break;
+
+        case sbn_frags:
+            for (int p = 0; p < MAXPLAYERS; ++p)
+            {
+                result += player->frags[p];
+            }
+            break;
+
+        case sbn_ammo:
+            result = player->ammo[param];
+            break;
+
+        case sbn_ammoselected:
+            result = player->ammo[weaponinfo[player->readyweapon].ammo];
+            break;
+
+        case sbn_maxammo:
+            result = player->maxammo[param];
+            break;
+
+        case sbn_weaponammo:
+            result = player->ammo[weaponinfo[param].ammo];
+            break;
+
+        case sbn_weaponmaxammo:
+            result = player->maxammo[weaponinfo[param].ammo];
+            break;
+
+        case sbn_none:
+        default:
+            break;
+    }
+
+    return result;
+}
+
+static int CalcPainOffset(sbarelem_t *elem)
+{
+    int health = plyr->health > 100 ? 100 : plyr->health;
+    elem->lasthealthcalc =
+        ST_FACESTRIDE * (((100 - health) * ST_NUMPAINFACES) / 101);
+    elem->oldhealth = health;
+    return elem->lasthealthcalc;
+}
+
+static void UpdateFace(sbarelem_t *elem)
+{
+    player_t *player = &players[displayplayer];
+
+    if (elem->priority < 10)
+    {
+        // dead
+        if (!player->health)
+        {
+            elem->priority = 9;
+            elem->faceindex = ST_DEADFACE;
+            elem->facecount = 1;
+        }
+    }
+
+    if (elem->priority < 9)
+    {
+        if (player->bonuscount)
+        {
+            // picking up bonus
+            boolean doevilgrin = false;
+
+            for (int i = 0; i < NUMWEAPONS; ++i)
+            {
+                if (oldweaponsowned[i] != player->weaponowned[i])
+                {
+                    doevilgrin = true;
+                    oldweaponsowned[i] = player->weaponowned[i];
+                }
+            }
+
+            if (doevilgrin)
+            {
+                // evil grin if just picked up weapon
+                elem->priority = 8;
+                elem->facecount = ST_EVILGRINCOUNT;
+                elem->faceindex = CalcPainOffset(elem) + ST_EVILGRINOFFSET;
+            }
+        }
+    }
+
+    if (elem->priority < 8)
+    {
+        if (player->damagecount && player->attacker
+            && player->attacker != player->mo)
+        {
+            // being attacked
+            elem->priority = 7;
+
+            angle_t diffangle = 0;
+            boolean right = false;
+
+            if (player->health - elem->oldhealth > ST_MUCHPAIN)
+            {
+                elem->facecount = ST_TURNCOUNT;
+                elem->faceindex = CalcPainOffset(elem) + ST_OUCHOFFSET;
+            }
+            else
+            {
+                angle_t badguyangle =
+                    R_PointToAngle2(player->mo->x, player->mo->y,
+                                     player->attacker->x, player->attacker->y);
+
+                if (badguyangle > player->mo->angle)
+                {
+                    // whether right or left
+                    diffangle = badguyangle - player->mo->angle;
+                    right = diffangle > ANG180;
+                }
+                else
+                {
+                    // whether left or right
+                    diffangle = player->mo->angle - badguyangle;
+                    right = diffangle <= ANG180;
+                } // confusing, aint it?
+
+                elem->facecount = ST_TURNCOUNT;
+                elem->faceindex = CalcPainOffset(elem);
+
+                if (diffangle < ANG45)
+                {
+                    // head-on
+                    elem->faceindex += ST_RAMPAGEOFFSET;
+                }
+                else if (right)
+                {
+                    // turn face right
+                    elem->faceindex += ST_TURNOFFSET;
+                }
+                else
+                {
+                    // turn face left
+                    elem->faceindex += ST_TURNOFFSET + 1;
+                }
+            }
+        }
+    }
+
+    if (elem->priority < 7)
+    {
+        // getting hurt because of your own damn stupidity
+        if (player->damagecount)
+        {
+            if (player->health - elem->oldhealth > ST_MUCHPAIN)
+            {
+                elem->priority = 7;
+                elem->facecount = ST_TURNCOUNT;
+                elem->faceindex = CalcPainOffset(elem) + ST_OUCHOFFSET;
+            }
+            else
+            {
+                elem->priority = 6;
+                elem->facecount = ST_TURNCOUNT;
+                elem->faceindex = CalcPainOffset(elem) + ST_RAMPAGEOFFSET;
+            }
+        }
+    }
+
+    if (elem->priority < 6)
+    {
+        // rapid firing
+        if (player->attackdown)
+        {
+            if (elem->lastattackdown == -1)
+            {
+                elem->lastattackdown = ST_RAMPAGEDELAY;
+            }
+            else if (!--elem->lastattackdown)
+            {
+                elem->priority = 5;
+                elem->faceindex = CalcPainOffset(elem) + ST_RAMPAGEOFFSET;
+                elem->facecount = 1;
+                elem->lastattackdown = 1;
+            }
+        }
+        else
+        {
+            elem->lastattackdown = -1;
+        }
+    }
+
+    if (elem->priority < 5)
+    {
+        // invulnerability
+        if ((player->cheats & CF_GODMODE) || player->powers[pw_invulnerability])
+        {
+            elem->priority = 4;
+            elem->faceindex = ST_GODFACE;
+            elem->facecount = 1;
+        }
+    }
+
+    // look left or look right if the facecount has timed out
+    if (!elem->facecount)
+    {
+        elem->faceindex = CalcPainOffset(elem) + (M_Random() % 3);
+        elem->facecount = ST_STRAIGHTFACECOUNT;
+        elem->priority = 0;
+    }
+
+    --elem->facecount;
+}
+
+static void UpdateNumber(sbarelem_t *elem)
+{
+    player_t *player = &players[displayplayer];
+    int number = ResolveNumber(elem->numtype, elem->numparam, player);
+    int power = (number < 0 ? elem->maxlength - 1 : elem->maxlength);
+    int max = (int)pow(10.0, power) - 1;
+    int numglyphs = 0;
+    int numnumbers = 0;
+
+    numberfont_t *font;
+    array_foreach(font, sbardef->numberfonts)
+    {
+        if (!strcmp(font->name, elem->numfont))
+        {
+            break;
+        }
+    }
+
+    if (number < 0 && font->minus != NULL)
+    {
+        number = MAX(-max, number);
+        numnumbers = (int)log10(-number) + 1;
+        numglyphs = numnumbers + 1;
+    }
+    else
+    {
+        number = BETWEEN(0, max, number);
+        numnumbers = numglyphs = number != 0 ? ((int)log10(number) + 1) : 1;
+    }
+
+    if (elem->elemtype == sbe_percent && font->percent != NULL)
+    {
+        ++numglyphs;
+    }
+
+    int totalwidth = font->monowidth * numglyphs;
+    if (font->type == sbf_proportional)
+    {
+        totalwidth = 0;
+        if (number < 0 && font->minus != NULL)
+        {
+            totalwidth += SHORT(font->minus->width);
+        }
+        int tempnum = number;
+        while (tempnum > 0)
+        {
+            int workingnum = tempnum % 10;
+            totalwidth = SHORT(font->numbers[workingnum]->width);
+            tempnum /= 10;
+        }
+        if (elem->elemtype == sbe_percent && font->percent != NULL)
+        {
+            totalwidth += SHORT(font->percent->width);
+        }
+    }
+
+    elem->xoffset = 0;
+    if (elem->alignment & sbe_h_middle)
+    {
+        elem->xoffset -= (totalwidth >> 1);
+    }
+    else if (elem->alignment & sbe_h_right)
+    {
+        elem->xoffset -= totalwidth;
+    }
+
+    elem->font = font;
+    elem->number = number;
+    elem->numnumbers = numnumbers;
+}
+
+static void DrawPatch(int x, int y, sbaralignment_t alignment, patch_t *patch)
+{
+    if (!patch)
+    {
+        return;
+    }
+
+    int width = SHORT(patch->width);
+    int height = SHORT(patch->height);
+
+    if (alignment & sbe_h_middle)
+    {
+        x -= (width >> 1);
+    }
+    else if (alignment & sbe_h_right)
+    {
+        x -= width;
+    }
+
+    if (alignment & sbe_v_middle)
+    {
+        y -= (height >> 1);
+    }
+    else if (alignment & sbe_v_bottom)
+    {
+        y -= height;
+    }
+
+    V_DrawPatch(x, y, patch);
+}
+
+static void DrawGlyph(int x, int y, sbarelem_t *elem, patch_t *glyph)
+{
+    numberfont_t *font = elem->font;
+    int width =
+        (font->type == sbf_proportional) ? SHORT(glyph->width) : font->monowidth;
+    int widthdiff =
+        (font->type != sbf_proportional) ? (SHORT(glyph->width) - width) : 0;
+
+    if (elem->alignment & sbe_h_middle)
+    {
+        elem->xoffset += ((width + widthdiff) >> 1);
+    }
+    else if (elem->alignment & sbe_h_right)
+    {
+        elem->xoffset += (width + widthdiff);
+    }
+
+    DrawPatch(x + elem->xoffset, y, elem->alignment, glyph);
+
+    if (elem->alignment & sbe_h_middle)
+    {
+        elem->xoffset += (width - ((width - widthdiff) >> 1));
+    }
+    else if (elem->alignment & sbe_h_right)
+    {
+        elem->xoffset += -widthdiff;
+    }
+    else
+    {
+        elem->xoffset += width;
+    }
+}
+
+static void DrawNumber(int x, int y, sbarelem_t *elem)
+{
+    int number = elem->number;
+    int base_xoffset = elem->xoffset;
+    numberfont_t *font = elem->font;
+
+    if (number < 0 && font->minus != NULL)
+    {
+        DrawGlyph(x, y, elem, font->minus);
+        number = -number;
+    }
+
+    int glyphindex = elem->numnumbers;
+    while (glyphindex > 0)
+    {
+        int glyphbase = (int)pow(10.0, --glyphindex);
+        int workingnum = number / glyphbase;
+        DrawGlyph(x, y, elem, font->numbers[workingnum]);
+        number -= (workingnum * glyphbase);
+    }
+
+    if (elem->elemtype == sbe_percent && font->percent != NULL)
+    {
+        DrawGlyph(x, y, elem, font->percent);
+    }
+
+    elem->xoffset = base_xoffset;
+}
+
+static void UpdateAnimation(sbarelem_t *elem)
+{
+    if (elem->duration_left == 0)
+    {
+        elem->frame_index++;
+        if (elem->frame_index == array_size(elem->frames))
+        {
+            elem->frame_index = 0;
+        }
+        elem->duration_left = elem->frames[elem->frame_index].duration;
+    }
+
+    elem->duration_left--;
+}
+
+static void UpdateElem(sbarelem_t *elem)
+{
+    switch (elem->elemtype)
+    {
+        case sbe_face:
+            UpdateFace(elem);
+            break;
+        case sbe_animation:
+            UpdateAnimation(elem);
+            break;
+        case sbe_number:
+        case sbe_percent:
+            UpdateNumber(elem);
+            break;
+        default:
+            break;
+    }
+
+    sbarelem_t *child;
+    array_foreach(child, elem->children)
+    {
+        UpdateElem(child);
+    }
+}
+
+static void UpdateStatusBar(void)
+{
+    statusbar_t *statusbar;
+    array_foreach(statusbar, sbardef->statusbars)
+    {
+        sbarelem_t *child;
+        array_foreach(child, statusbar->children)
+        {
+            UpdateElem(child);
+        }
+    }
+}
+
+static void DrawElem(int x, int y, sbarelem_t *elem)
+{
+    x += elem->x_pos;
+    y += elem->y_pos;
+
+    if (CheckConditions(elem->conditions, &players[displayplayer]))
+    {
+        switch (elem->elemtype)
+        {
+            case sbe_graphic:
+                DrawPatch(x, y, elem->alignment, elem->patch);
+                break;
+
+            case sbe_face:
+                {
+                    patch_t *patch = facepatches[elem->faceindex];
+                    DrawPatch(x, y, elem->alignment, patch);
+                }
+                break;
+
+            case sbe_animation:
+                {
+                    patch_t *patch = elem->frames[elem->frame_index].patch;
+                    DrawPatch(x, y, elem->alignment, patch);
+                }
+                break;
+
+            case sbe_number:
+            case sbe_percent:
+                DrawNumber(x, y, elem);
+                break;
+
+            default:
+                break;
+        }
+
+        sbarelem_t *child;
+        array_foreach(child, elem->children)
+        {
+            DrawElem(x, y, child);
+        }
+    }
+}
+
+static void DrawStatusBar(void)
+{
+    int barindex = MAX(screenblocks - 10, 0);
+    statusbar_t *statusbar = &sbardef->statusbars[barindex];
+
+    sbarelem_t *child;
+    array_foreach(child, statusbar->children)
+    {
+        DrawElem(0, SCREENHEIGHT - statusbar->height, child);
+    }
 }
 
 void ST_Stop(void);
@@ -1006,6 +1538,12 @@ static void ST_doPaletteStuff(void);
 
 void ST_Ticker(void)
 {
+  if (sbardef)
+  {
+      UpdateStatusBar();
+      return;
+  }
+
   st_health = SmoothCount(st_health, plyr->health);
   st_armor  = SmoothCount(st_armor, plyr->armorpoints);
   
@@ -1196,6 +1734,12 @@ static void ST_MoveHud (void);
 
 void ST_Drawer(boolean fullscreen, boolean refresh)
 {
+  if (sbardef)
+  {
+      DrawStatusBar();
+      return;
+  }
+
   st_statusbaron = !fullscreen || automap_on;
   // [crispy] immediately redraw status bar after help screens have been shown
   st_firsttime = st_firsttime || refresh || inhelpscreens;
@@ -1560,6 +2104,10 @@ static int StatusBarBufferHeight(void)
 void ST_Init(void)
 {
   sbardef = ST_ParseSbarDef();
+  if (sbardef)
+  {
+      LoadFacePathes();
+  }
 
   ST_loadData();
 }
