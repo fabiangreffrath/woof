@@ -330,6 +330,20 @@ static patch_t **facepatches = NULL;
 // STATUS BAR CODE
 //
 
+patch_t *CachePatchName(const char *name)
+{
+    int lumpnum = W_CheckNumForName(name);
+    if (lumpnum < 0)
+    {
+        lumpnum = (W_CheckNumForName)(name, ns_sprites);
+        if (lumpnum < 0)
+        {
+            return NULL;
+        }
+    }
+    return V_CachePatchNum(lumpnum, PU_STATIC);
+}
+
 static void LoadFacePatches(void)
 {
     char lump[9] = {0};
@@ -550,7 +564,8 @@ static int ResolveNumber(sbarnumbertype_t number, int param, player_t *player)
 
 static int CalcPainOffset(sbarelem_t *elem)
 {
-    int health = plyr->health > 100 ? 100 : plyr->health;
+    player_t *player = &players[displayplayer];
+    int health = player->health > 100 ? 100 : player->health;
     elem->lasthealthcalc =
         ST_FACESTRIDE * (((100 - health) * ST_NUMPAINFACES) / 101);
     elem->oldhealth = health;
@@ -734,7 +749,7 @@ static void UpdateNumber(sbarelem_t *elem)
     {
         array_foreach(font, sbardef->numberfonts)
         {
-            if (!strcmp(font->name, elem->fontname))
+            if (!strcmp(font->name, elem->font_name))
             {
                 break;
             }
@@ -843,6 +858,59 @@ static void UpdateStatusBar(void)
         array_foreach(child, statusbar->children)
         {
             UpdateElem(child);
+        }
+    }
+}
+
+static void RefreshElem(sbarelem_t *elem)
+{
+    switch (elem->elemtype)
+    {
+        case sbe_graphic:
+            elem->patch = CachePatchName(elem->patch_name);
+            break;
+
+        case sbe_face:
+            elem->priority = 0;
+            elem->faceindex = 0;
+            elem->facecount = 0;
+            elem->lasthealthcalc = 0;
+            elem->oldhealth = -1;
+            elem->lastattackdown = -1;
+            break;
+
+        case sbe_animation:
+            {
+                sbarframe_t *frame;
+                array_foreach(frame, elem->frames)
+                {
+                    frame->patch = CachePatchName(frame->patch_name);
+                }
+                elem->frame_index = 0;
+                elem->duration_left = 0;
+            }
+            break;
+
+        default:
+            break;
+    }
+
+    sbarelem_t *child;
+    array_foreach(child, elem->children)
+    {
+        RefreshElem(child);
+    }
+}
+
+static void RefreshStatusBar(void)
+{
+    statusbar_t *statusbar;
+    array_foreach(statusbar, sbardef->statusbars)
+    {
+        sbarelem_t *child;
+        array_foreach(child, statusbar->children)
+        {
+            RefreshElem(child);
         }
     }
 }
@@ -1579,71 +1647,84 @@ boolean palette_changes = true;
 
 static void ST_doPaletteStuff(void)
 {
-  int         palette;
-  byte*       pal;
-  int cnt = plyr->damagecount;
+    player_t *player = &players[displayplayer];
+    int cnt = player->damagecount;
+    int numpal;
 
-  // killough 7/14/98: beta version did not cause red berserk palette
-  if (!beta_emulation)
-
-  if (plyr->powers[pw_strength])
+    // killough 7/14/98: beta version did not cause red berserk palette
+    if (!beta_emulation)
     {
-      // slowly fade the berzerk out
-      int bzc = 12 - (plyr->powers[pw_strength]>>6);
-      if (bzc > cnt)
-        cnt = bzc;
+
+        if (player->powers[pw_strength])
+        {
+            // slowly fade the berzerk out
+            int bzc = 12 - (player->powers[pw_strength] >> 6);
+            if (bzc > cnt)
+            {
+                cnt = bzc;
+            }
+        }
     }
 
-  if (STRICTMODE(!palette_changes))
-  {
-    palette = 0;
-  }
-  else
-  if (cnt)
-  {
-    // In Chex Quest, the player never sees red. Instead, the radiation suit
-    // palette is used to tint the screen green, as though the player is being
-    // covered in goo by an attacking flemoid.
-    if (gameversion == exe_chex)
+    if (STRICTMODE(!palette_changes))
     {
-      palette = RADIATIONPAL;
+        numpal = 0;
+    }
+    else if (cnt)
+    {
+        // In Chex Quest, the player never sees red. Instead, the radiation suit
+        // palette is used to tint the screen green, as though the player is
+        // being covered in goo by an attacking flemoid.
+        if (gameversion == exe_chex)
+        {
+            numpal = RADIATIONPAL;
+        }
+        else
+        {
+            numpal = (cnt + 7) >> 3;
+            if (numpal >= NUMREDPALS)
+            {
+                numpal = NUMREDPALS - 1;
+            }
+            // [crispy] tune down a bit so the menu remains legible
+            if (menuactive || paused)
+            {
+                numpal >>= 1;
+            }
+            numpal += STARTREDPALS;
+        }
+    }
+    else if (player->bonuscount)
+    {
+        numpal = (player->bonuscount + 7) >> 3;
+        if (numpal >= NUMBONUSPALS)
+        {
+            numpal = NUMBONUSPALS - 1;
+        }
+        numpal += STARTBONUSPALS;
+    }
+    // killough 7/14/98: beta version did not cause green palette
+    else if (beta_emulation)
+    {
+        numpal = 0;
+    }
+    else if (player->powers[pw_ironfeet] > 4 * 32
+             || player->powers[pw_ironfeet] & 8)
+    {
+        numpal = RADIATIONPAL;
     }
     else
     {
-      palette = (cnt+7)>>3;
-      if (palette >= NUMREDPALS)
-        palette = NUMREDPALS-1;
-      // [crispy] tune down a bit so the menu remains legible
-      if (menuactive || paused)
-        palette >>= 1;
-      palette += STARTREDPALS;
+        numpal = 0;
     }
-  }
-  else
-    if (plyr->bonuscount)
-      {
-        palette = (plyr->bonuscount+7)>>3;
-        if (palette >= NUMBONUSPALS)
-          palette = NUMBONUSPALS-1;
-        palette += STARTBONUSPALS;
-      }
-    else
-      // killough 7/14/98: beta version did not cause green palette
-      if (beta_emulation)
-        palette = 0;
-      else
-      if (plyr->powers[pw_ironfeet] > 4*32 || plyr->powers[pw_ironfeet] & 8)
-        palette = RADIATIONPAL;
-      else
-        palette = 0;
 
-  if (palette != st_palette)
+    if (numpal != st_palette)
     {
-      st_palette = palette;
-      // haleyjd: must cast to byte *, arith. on void pointer is
-      // a GNU C extension
-      pal = (byte *)W_CacheLumpNum(lu_palette, PU_CACHE) + palette*768;
-      I_SetPalette (pal);
+        st_palette = numpal;
+        // haleyjd: must cast to byte *, arith. on void pointer is
+        // a GNU C extension
+        byte *pal = (byte *)W_CacheLumpNum(lu_palette, PU_CACHE) + numpal * 768;
+        I_SetPalette(pal);
     }
 }
 
@@ -2076,6 +2157,11 @@ static boolean st_stopped = true;
 
 void ST_Start(void)
 {
+  if (sbardef)
+  {
+      RefreshStatusBar();
+      return;
+  }
   if (!st_stopped)
     ST_Stop();
   ST_initData();
@@ -2085,6 +2171,10 @@ void ST_Start(void)
 
 void ST_Stop(void)
 {
+  if (sbardef)
+  {
+      return;
+  }
   if (st_stopped)
     return;
   if (!nodrawers)
@@ -2122,6 +2212,8 @@ void ST_Init(void)
   if (sbardef)
   {
       LoadFacePatches();
+      lu_palette = W_GetNumForName ("PLAYPAL");
+      return;
   }
 
   ST_loadData();

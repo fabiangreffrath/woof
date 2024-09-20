@@ -91,6 +91,7 @@ typedef enum
 
 typedef struct
 {
+    const char *patch_name;
     patch_t *patch;
     int duration;
 } sbarframe_t;
@@ -110,6 +111,7 @@ struct sbarelem_s
     sbarelem_t *children;
 
     // graphic
+    const char *patch_name;
     patch_t *patch;
 
     // animation
@@ -118,9 +120,9 @@ struct sbarelem_s
     int duration_left;
 
     // number, percent
-    const char *fontname;
-    sbarnumbertype_t numtype;
+    const char *font_name;
     numberfont_t *font;
+    sbarnumbertype_t numtype;
     int numparam;
     int maxlength;
     int number;

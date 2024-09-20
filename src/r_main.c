@@ -673,9 +673,6 @@ void R_ExecuteSetViewSize (void)
         }
     }
 
-  // [crispy] forcefully initialize the status bar backing screen
-  ST_refreshBackground();
-
   pspr_interp = false;
 }
 

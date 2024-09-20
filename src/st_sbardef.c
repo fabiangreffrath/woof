@@ -15,21 +15,6 @@
 #include "w_wad.h"
 #include "z_zone.h"
 
-static patch_t *CachePatchName(const char *name)
-{
-    int lumpnum = W_CheckNumForName(name);
-    if (lumpnum < 0)
-    {
-        lumpnum = (W_CheckNumForName)(name, ns_sprites);
-        if (lumpnum < 0)
-        {
-            I_Printf(VB_ERROR, "SBARDEF: patch %s not found", name);
-            return NULL;
-        }
-    }
-    return V_CachePatchNum(lumpnum, PU_STATIC);
-}
-
 static boolean ParseSbarCondition(json_t *json, sbarcondition_t *out)
 {
     json_t *condition = JS_GetObject(json, "condition");
@@ -51,7 +36,7 @@ static boolean ParseSbarFrame(json_t *json, sbarframe_t *out)
     {
         return false;
     }
-    out->patch = CachePatchName(JS_GetString(lump));
+    out->patch_name = JS_GetString(lump);
 
     json_t *duration = JS_GetObject(json, "duration");
     if (!JS_IsNumber(duration))
@@ -114,7 +99,7 @@ static boolean ParseSbarElemType(json_t *json, sbarelementtype_t type,
                 {
                     return false;
                 }
-                out->patch = CachePatchName(JS_GetString(patch));
+                out->patch_name = JS_GetString(patch);
             }
             break;
 
@@ -146,7 +131,7 @@ static boolean ParseSbarElemType(json_t *json, sbarelementtype_t type,
                 {
                     return false;
                 }
-                out->fontname = JS_GetString(font);
+                out->font_name = JS_GetString(font);
 
                 json_t *numbertype = JS_GetObject(json, "type");
                 json_t *param = JS_GetObject(json, "param");
@@ -212,7 +197,7 @@ static boolean ParseNumberFont(json_t *json, numberfont_t *out)
     out->type = JS_GetInteger(type);
 
     char lump[9] = {0};
-    boolean found = false;
+    int found;
     int maxwidth = 0;
 
     for (int num = 0; num < 10; ++num)
