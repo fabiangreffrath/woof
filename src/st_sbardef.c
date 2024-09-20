@@ -1,7 +1,6 @@
 
 #include "st_sbardef.h"
 
-#include <stdio.h>
 #include <stdlib.h>
 
 #include "doomdef.h"
@@ -9,6 +8,7 @@
 #include "i_printf.h"
 #include "m_array.h"
 #include "m_json.h"
+#include "m_misc.h"
 #include "m_swap.h"
 #include "r_defs.h"
 #include "v_fmt.h"
@@ -217,7 +217,7 @@ static boolean ParseNumberFont(json_t *json, numberfont_t *out)
 
     for (int num = 0; num < 10; ++num)
     {
-        snprintf(lump, sizeof(lump), "%sNUM%d", out->stem, num);
+        M_snprintf(lump, sizeof(lump), "%sNUM%d", out->stem, num);
         found = W_CheckNumForName(lump);
         if (found < 0)
         {
@@ -228,7 +228,7 @@ static boolean ParseNumberFont(json_t *json, numberfont_t *out)
         maxwidth = MAX(maxwidth, SHORT(out->numbers[num]->width));
     }
 
-    snprintf(lump, sizeof(lump), "%sMINUS", out->stem);
+    M_snprintf(lump, sizeof(lump), "%sMINUS", out->stem);
     found = W_CheckNumForName(lump);
     if (found >= 0)
     {
@@ -236,7 +236,7 @@ static boolean ParseNumberFont(json_t *json, numberfont_t *out)
         maxwidth = MAX(maxwidth, SHORT(out->minus->width));
     }
 
-    snprintf(lump, sizeof(lump), "%sPRCNT", out->stem);
+    M_snprintf(lump, sizeof(lump), "%sPRCNT", out->stem);
     found = W_CheckNumForName(lump);
     if (found >= 0)
     {

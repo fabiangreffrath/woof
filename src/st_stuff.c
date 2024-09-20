@@ -339,30 +339,30 @@ static void LoadFacePatches(void)
         for (int straightface = 0; straightface < ST_NUMSTRAIGHTFACES;
              ++straightface)
         {
-            snprintf(lump, sizeof(lump), "STFST%d%d", painface, straightface);
+            M_snprintf(lump, sizeof(lump), "STFST%d%d", painface, straightface);
             array_push(facepatches, V_CachePatchName(lump, PU_STATIC));
         }
 
-        snprintf(lump, sizeof(lump), "STFTR%d0", painface); // turn right
+        M_snprintf(lump, sizeof(lump), "STFTR%d0", painface); // turn right
         array_push(facepatches, V_CachePatchName(lump, PU_STATIC));
 
-        snprintf(lump, sizeof(lump), "STFTL%d0", painface); // turn left
+        M_snprintf(lump, sizeof(lump), "STFTL%d0", painface); // turn left
         array_push(facepatches, V_CachePatchName(lump, PU_STATIC));
 
-        snprintf(lump, sizeof(lump), "STFOUCH%d", painface); // ouch!
+        M_snprintf(lump, sizeof(lump), "STFOUCH%d", painface); // ouch!
         array_push(facepatches, V_CachePatchName(lump, PU_STATIC));
 
-        snprintf(lump, sizeof(lump), "STFEVL%d", painface); // evil grin ;)
+        M_snprintf(lump, sizeof(lump), "STFEVL%d", painface); // evil grin ;)
         array_push(facepatches, V_CachePatchName(lump, PU_STATIC));
 
-        snprintf(lump, sizeof(lump), "STFKILL%d", painface); // pissed off
+        M_snprintf(lump, sizeof(lump), "STFKILL%d", painface); // pissed off
         array_push(facepatches, V_CachePatchName(lump, PU_STATIC));
     }
 
-    snprintf(lump, sizeof(lump), "STFGOD0");
+    M_snprintf(lump, sizeof(lump), "STFGOD0");
     array_push(facepatches, V_CachePatchName(lump, PU_STATIC));
 
-    snprintf(lump, sizeof(lump), "STFDEAD0");
+    M_snprintf(lump, sizeof(lump), "STFDEAD0");
     array_push(facepatches, V_CachePatchName(lump, PU_STATIC));
 }
 
