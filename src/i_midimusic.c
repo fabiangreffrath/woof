@@ -1237,10 +1237,6 @@ static int PlayerThread(void *unused)
                         sleep = true;
                         break;
                     }
-                    if (remaining_time > 0)
-                    {
-                        I_SleepUS(remaining_time);
-                    }
                     ProcessEvent(position.event, position.track);
                     midi_state = STATE_PLAYING;
                 }
