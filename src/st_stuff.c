@@ -836,13 +836,14 @@ static void UpdateElem(sbarelem_t *elem)
 
 static void UpdateStatusBar(void)
 {
-    int barindex = MAX(screenblocks - 10, 0);
-    statusbar_t *statusbar = &sbardef->statusbars[barindex];
-
-    sbarelem_t *child;
-    array_foreach(child, statusbar->children)
+    statusbar_t *statusbar;
+    array_foreach(statusbar, sbardef->statusbars)
     {
-        UpdateElem(child);
+        sbarelem_t *child;
+        array_foreach(child, statusbar->children)
+        {
+            UpdateElem(child);
+        }
     }
 }
 
