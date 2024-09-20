@@ -134,12 +134,8 @@ static boolean ParseSbarElemType(json_t *json, sbarelementtype_t type,
             break;
 
         case sbe_face:
-            out->priority = 0;
             out->lastattackdown = -1;
             out->oldhealth = -1;
-            out->lasthealthcalc = 0;
-            out->faceindex = 0;
-            out->facecount = 0;
             break;
 
         case sbe_number:
@@ -150,7 +146,7 @@ static boolean ParseSbarElemType(json_t *json, sbarelementtype_t type,
                 {
                     return false;
                 }
-                out->numfont = JS_GetString(font);
+                out->fontname = JS_GetString(font);
 
                 json_t *numbertype = JS_GetObject(json, "type");
                 json_t *param = JS_GetObject(json, "param");
@@ -172,7 +168,7 @@ static boolean ParseSbarElemType(json_t *json, sbarelementtype_t type,
     return true;
 }
 
-static const char *names[] =
+static const char *sbe_names[] =
 {
     [sbe_canvas] = "canvas",
     [sbe_graphic] = "graphic",
@@ -185,12 +181,12 @@ static const char *names[] =
 
 static boolean ParseSbarElem(json_t *json, sbarelem_t *out)
 {
-    for (sbarelementtype_t i = sbe_none + 1; i < sbe_max; ++i)
+    for (sbarelementtype_t type = sbe_none + 1; type < sbe_max; ++type)
     {
-        json_t *obj = JS_GetObject(json, names[i]);
+        json_t *obj = JS_GetObject(json, sbe_names[type]);
         if (obj && JS_IsObject(obj))
         {
-            return ParseSbarElemType(obj, i, out);
+            return ParseSbarElemType(obj, type, out);
         }
     }
 

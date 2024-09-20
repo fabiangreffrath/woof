@@ -330,7 +330,7 @@ static patch_t **facepatches = NULL;
 // STATUS BAR CODE
 //
 
-static void LoadFacePathes(void)
+static void LoadFacePatches(void)
 {
     char lump[9] = {0};
 
@@ -734,7 +734,7 @@ static void UpdateNumber(sbarelem_t *elem)
     {
         array_foreach(font, sbardef->numberfonts)
         {
-            if (!strcmp(font->name, elem->numfont))
+            if (!strcmp(font->name, elem->fontname))
             {
                 break;
             }
@@ -792,6 +792,58 @@ static void UpdateNumber(sbarelem_t *elem)
     elem->font = font;
     elem->number = number;
     elem->numnumbers = numnumbers;
+}
+
+static void UpdateAnimation(sbarelem_t *elem)
+{
+    if (elem->duration_left == 0)
+    {
+        ++elem->frame_index;
+        if (elem->frame_index == array_size(elem->frames))
+        {
+            elem->frame_index = 0;
+        }
+        elem->duration_left = elem->frames[elem->frame_index].duration;
+    }
+
+    --elem->duration_left;
+}
+
+static void UpdateElem(sbarelem_t *elem)
+{
+    switch (elem->elemtype)
+    {
+        case sbe_face:
+            UpdateFace(elem);
+            break;
+        case sbe_animation:
+            UpdateAnimation(elem);
+            break;
+        case sbe_number:
+        case sbe_percent:
+            UpdateNumber(elem);
+            break;
+        default:
+            break;
+    }
+
+    sbarelem_t *child;
+    array_foreach(child, elem->children)
+    {
+        UpdateElem(child);
+    }
+}
+
+static void UpdateStatusBar(void)
+{
+    int barindex = MAX(screenblocks - 10, 0);
+    statusbar_t *statusbar = &sbardef->statusbars[barindex];
+
+    sbarelem_t *child;
+    array_foreach(child, statusbar->children)
+    {
+        UpdateElem(child);
+    }
 }
 
 static void DrawPatch(int x, int y, sbaralignment_t alignment, patch_t *patch)
@@ -893,58 +945,6 @@ static void DrawNumber(int x, int y, sbarelem_t *elem)
     }
 
     elem->xoffset = base_xoffset;
-}
-
-static void UpdateAnimation(sbarelem_t *elem)
-{
-    if (elem->duration_left == 0)
-    {
-        elem->frame_index++;
-        if (elem->frame_index == array_size(elem->frames))
-        {
-            elem->frame_index = 0;
-        }
-        elem->duration_left = elem->frames[elem->frame_index].duration;
-    }
-
-    elem->duration_left--;
-}
-
-static void UpdateElem(sbarelem_t *elem)
-{
-    switch (elem->elemtype)
-    {
-        case sbe_face:
-            UpdateFace(elem);
-            break;
-        case sbe_animation:
-            UpdateAnimation(elem);
-            break;
-        case sbe_number:
-        case sbe_percent:
-            UpdateNumber(elem);
-            break;
-        default:
-            break;
-    }
-
-    sbarelem_t *child;
-    array_foreach(child, elem->children)
-    {
-        UpdateElem(child);
-    }
-}
-
-static void UpdateStatusBar(void)
-{
-    int barindex = MAX(screenblocks - 10, 0);
-    statusbar_t *statusbar = &sbardef->statusbars[barindex];
-
-    sbarelem_t *child;
-    array_foreach(child, statusbar->children)
-    {
-        UpdateElem(child);
-    }
 }
 
 static void DrawElem(int x, int y, sbarelem_t *elem)
@@ -2120,7 +2120,7 @@ void ST_Init(void)
   sbardef = ST_ParseSbarDef();
   if (sbardef)
   {
-      LoadFacePathes();
+      LoadFacePatches();
   }
 
   ST_loadData();

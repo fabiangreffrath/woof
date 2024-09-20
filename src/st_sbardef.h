@@ -118,7 +118,7 @@ struct sbarelem_s
     int duration_left;
 
     // number, percent
-    const char *numfont;
+    const char *fontname;
     sbarnumbertype_t numtype;
     numberfont_t *font;
     int numparam;
