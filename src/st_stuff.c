@@ -729,12 +729,15 @@ static void UpdateNumber(sbarelem_t *elem)
     int numglyphs = 0;
     int numnumbers = 0;
 
-    numberfont_t *font;
-    array_foreach(font, sbardef->numberfonts)
+    numberfont_t *font = elem->font;
+    if (font == NULL)
     {
-        if (!strcmp(font->name, elem->numfont))
+        array_foreach(font, sbardef->numberfonts)
         {
-            break;
+            if (!strcmp(font->name, elem->numfont))
+            {
+                break;
+            }
         }
     }
 
@@ -825,10 +828,18 @@ static void DrawPatch(int x, int y, sbaralignment_t alignment, patch_t *patch)
 static void DrawGlyph(int x, int y, sbarelem_t *elem, patch_t *glyph)
 {
     numberfont_t *font = elem->font;
-    int width =
-        (font->type == sbf_proportional) ? SHORT(glyph->width) : font->monowidth;
-    int widthdiff =
-        (font->type != sbf_proportional) ? (SHORT(glyph->width) - width) : 0;
+    int width, widthdiff;
+
+    if (font->type == sbf_proportional)
+    {
+        width = SHORT(glyph->width);
+        widthdiff = 0;
+    }
+    else
+    {
+        width = font->monowidth;
+        widthdiff = SHORT(glyph->width) - width;
+    }
 
     if (elem->alignment & sbe_h_middle)
     {
@@ -926,14 +937,13 @@ static void UpdateElem(sbarelem_t *elem)
 
 static void UpdateStatusBar(void)
 {
-    statusbar_t *statusbar;
-    array_foreach(statusbar, sbardef->statusbars)
+    int barindex = MAX(screenblocks - 10, 0);
+    statusbar_t *statusbar = &sbardef->statusbars[barindex];
+
+    sbarelem_t *child;
+    array_foreach(child, statusbar->children)
     {
-        sbarelem_t *child;
-        array_foreach(child, statusbar->children)
-        {
-            UpdateElem(child);
-        }
+        UpdateElem(child);
     }
 }
 
@@ -1541,6 +1551,10 @@ void ST_Ticker(void)
   if (sbardef)
   {
       UpdateStatusBar();
+      if (!nodrawers)
+      {
+          ST_doPaletteStuff();
+      }
       return;
   }
 
