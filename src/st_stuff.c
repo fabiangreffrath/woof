@@ -535,7 +535,10 @@ static int ResolveNumber(sbarnumbertype_t number, int param, player_t *player)
             break;
 
         case sbn_ammo:
-            result = player->ammo[param];
+            if (param >= 0 && param < NUMAMMO)
+            {
+                result = player->ammo[param];
+            }
             break;
 
         case sbn_ammoselected:
@@ -543,15 +546,24 @@ static int ResolveNumber(sbarnumbertype_t number, int param, player_t *player)
             break;
 
         case sbn_maxammo:
-            result = player->maxammo[param];
+            if (param >= 0 && param < NUMAMMO)
+            {
+                result = player->maxammo[param];
+            }
             break;
 
         case sbn_weaponammo:
-            result = player->ammo[weaponinfo[param].ammo];
+            if (param >= 0 && param < NUMWEAPONS)
+            {
+                result = player->ammo[weaponinfo[param].ammo];
+            }
             break;
 
         case sbn_weaponmaxammo:
-            result = player->maxammo[weaponinfo[param].ammo];
+            if (param >= 0 && param < NUMWEAPONS)
+            {
+                result = player->maxammo[weaponinfo[param].ammo];
+            }
             break;
 
         case sbn_none:
