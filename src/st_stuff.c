@@ -322,7 +322,7 @@ int             st_keyorskull[3];
 // a random number per tick
 static int      st_randomnumber;
 
-static sbardefs_t *sbardef;
+static sbardef_t *sbardef;
 
 static patch_t **facepatches = NULL;
 
@@ -578,28 +578,30 @@ static int CalcPainOffset(sbarelem_t *elem)
 {
     player_t *player = &players[displayplayer];
     int health = player->health > 100 ? 100 : player->health;
-    elem->lasthealthcalc =
+    int lasthealthcalc =
         ST_FACESTRIDE * (((100 - health) * ST_NUMPAINFACES) / 101);
     elem->oldhealth = health;
-    return elem->lasthealthcalc;
+    return lasthealthcalc;
 }
 
 static void UpdateFace(sbarelem_t *elem)
 {
     player_t *player = &players[displayplayer];
+    static int priority;
+    static int lastattackdown = -1;
 
-    if (elem->priority < 10)
+    if (priority < 10)
     {
         // dead
         if (!player->health)
         {
-            elem->priority = 9;
+            priority = 9;
             elem->faceindex = ST_DEADFACE;
             elem->facecount = 1;
         }
     }
 
-    if (elem->priority < 9)
+    if (priority < 9)
     {
         if (player->bonuscount)
         {
@@ -618,20 +620,20 @@ static void UpdateFace(sbarelem_t *elem)
             if (doevilgrin)
             {
                 // evil grin if just picked up weapon
-                elem->priority = 8;
+                priority = 8;
                 elem->facecount = ST_EVILGRINCOUNT;
                 elem->faceindex = CalcPainOffset(elem) + ST_EVILGRINOFFSET;
             }
         }
     }
 
-    if (elem->priority < 8)
+    if (priority < 8)
     {
         if (player->damagecount && player->attacker
             && player->attacker != player->mo)
         {
             // being attacked
-            elem->priority = 7;
+            priority = 7;
 
             angle_t diffangle = 0;
             boolean right = false;
@@ -682,55 +684,55 @@ static void UpdateFace(sbarelem_t *elem)
         }
     }
 
-    if (elem->priority < 7)
+    if (priority < 7)
     {
         // getting hurt because of your own damn stupidity
         if (player->damagecount)
         {
             if (player->health - elem->oldhealth > ST_MUCHPAIN)
             {
-                elem->priority = 7;
+                priority = 7;
                 elem->facecount = ST_TURNCOUNT;
                 elem->faceindex = CalcPainOffset(elem) + ST_OUCHOFFSET;
             }
             else
             {
-                elem->priority = 6;
+                priority = 6;
                 elem->facecount = ST_TURNCOUNT;
                 elem->faceindex = CalcPainOffset(elem) + ST_RAMPAGEOFFSET;
             }
         }
     }
 
-    if (elem->priority < 6)
+    if (priority < 6)
     {
         // rapid firing
         if (player->attackdown)
         {
-            if (elem->lastattackdown == -1)
+            if (lastattackdown == -1)
             {
-                elem->lastattackdown = ST_RAMPAGEDELAY;
+                lastattackdown = ST_RAMPAGEDELAY;
             }
-            else if (!--elem->lastattackdown)
+            else if (!--lastattackdown)
             {
-                elem->priority = 5;
+                priority = 5;
                 elem->faceindex = CalcPainOffset(elem) + ST_RAMPAGEOFFSET;
                 elem->facecount = 1;
-                elem->lastattackdown = 1;
+                lastattackdown = 1;
             }
         }
         else
         {
-            elem->lastattackdown = -1;
+            lastattackdown = -1;
         }
     }
 
-    if (elem->priority < 5)
+    if (priority < 5)
     {
         // invulnerability
         if ((player->cheats & CF_GODMODE) || player->powers[pw_invulnerability])
         {
-            elem->priority = 4;
+            priority = 4;
             elem->faceindex = ST_GODFACE;
             elem->facecount = 1;
         }
@@ -741,7 +743,7 @@ static void UpdateFace(sbarelem_t *elem)
     {
         elem->faceindex = CalcPainOffset(elem) + (M_Random() % 3);
         elem->facecount = ST_STRAIGHTFACECOUNT;
-        elem->priority = 0;
+        priority = 0;
     }
 
     --elem->facecount;
@@ -883,12 +885,9 @@ static void RefreshElem(sbarelem_t *elem)
             break;
 
         case sbe_face:
-            elem->priority = 0;
             elem->faceindex = 0;
             elem->facecount = 0;
-            elem->lasthealthcalc = 0;
             elem->oldhealth = -1;
-            elem->lastattackdown = -1;
             break;
 
         case sbe_animation:

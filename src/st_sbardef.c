@@ -1,3 +1,15 @@
+//
+// Copyright(C) 2024 Roman Fomin
+//
+// This program is free software; you can redistribute it and/or
+// modify it under the terms of the GNU General Public License
+// as published by the Free Software Foundation; either version 2
+// of the License, or (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
 
 #include "st_sbardef.h"
 
@@ -118,11 +130,6 @@ static boolean ParseSbarElemType(json_t *json, sbarelementtype_t type,
             }
             break;
 
-        case sbe_face:
-            out->lastattackdown = -1;
-            out->oldhealth = -1;
-            break;
-
         case sbe_number:
         case sbe_percent:
             {
@@ -133,15 +140,15 @@ static boolean ParseSbarElemType(json_t *json, sbarelementtype_t type,
                 }
                 out->font_name = JS_GetString(font);
 
-                json_t *numbertype = JS_GetObject(json, "type");
+                json_t *type = JS_GetObject(json, "type");
                 json_t *param = JS_GetObject(json, "param");
                 json_t *maxlength = JS_GetObject(json, "maxlength");
-                if (!JS_IsNumber(numbertype) || !JS_IsNumber(param)
+                if (!JS_IsNumber(type) || !JS_IsNumber(param)
                     || !JS_IsNumber(maxlength))
                 {
                     return false;
                 }
-                out->numtype = JS_GetInteger(numbertype);
+                out->numtype = JS_GetInteger(type);
                 out->numparam = JS_GetInteger(param);
                 out->maxlength = JS_GetInteger(maxlength);
             }
@@ -271,7 +278,7 @@ static boolean ParseStatusBar(json_t *json, statusbar_t *out)
     return true;
 }
 
-sbardefs_t *ST_ParseSbarDef(void)
+sbardef_t *ST_ParseSbarDef(void)
 {
     json_t *json = JS_Open("SBARDEF", "statusbar", (version_t){1, 0, 0});
     if (json == NULL)
@@ -287,7 +294,7 @@ sbardefs_t *ST_ParseSbarDef(void)
         return NULL;
     }
 
-    sbardefs_t *out = calloc(1, sizeof(*out));
+    sbardef_t *out = calloc(1, sizeof(*out));
 
     json_t *js_numberfonts = JS_GetObject(data, "numberfonts");
     json_t *js_numberfont = NULL;
