@@ -392,7 +392,10 @@ static boolean CheckConditions(sbarcondition_t *conditions, player_t *player)
         switch (cond->condition)
         {
             case sbc_weaponowned:
-                result &= !!player->weaponowned[cond->param];
+                if (cond->param >= 0 && cond->param < NUMWEAPONS)
+                {
+                    result &= !!player->weaponowned[cond->param];
+                }
                 break;
 
             case sbc_weaponselected:
@@ -418,48 +421,42 @@ static boolean CheckConditions(sbarcondition_t *conditions, player_t *player)
 
             case sbc_weaponslotowned:
                 {
-                    // TODO
-                    // boolean owned = false;
-                    // for( const weaponinfo_t* weapon : weaponinfo.All() )
-                    // {
-                    //     if( weapon->slot == condition.param &&
-                    //     player->weaponowned[ weapon->index ] )
-                    //     {
-                    //         owned = true;
-                    //         break;
-                    //     }
-                    // }
-                    // result &= owned;
+                    boolean owned = false;
+                    for (int i = 0; i < NUMWEAPONS; ++i)
+                    {
+                        if (weaponinfo[i].slot == cond->param
+                            && player->weaponowned[i])
+                        {
+                            owned = true;
+                            break;
+                        }
+                    }
+                    result &= owned;
                 }
                 break;
 
             case sbc_weaponslotnotowned:
                 {
-                    // TODO
-                    // bool notowned = true;
-                    // for( const weaponinfo_t* weapon : weaponinfo.All() )
-                    // {
-                    //     if( weapon->slot == condition.param &&
-                    //     player->weaponowned[ weapon->index ] )
-                    //     {
-                    //         notowned = false;
-                    //         break;
-                    //     }
-                    // }
-                    // result &= notowned;
+                    boolean notowned = true;
+                    for (int i = 0; i < NUMWEAPONS; ++i)
+                    {
+                        if (weaponinfo[i].slot == cond->param
+                            && player->weaponowned[i])
+                        {
+                            notowned = false;
+                            break;
+                        }
+                    }
+                    result &= notowned;
                 }
                 break;
 
             case sbc_weaponslotselected:
-                // TODO
-                // result &= weaponinfo[ player->readyweapon ].slot ==
-                // condition.param;
+                result &= weaponinfo[player->readyweapon].slot == cond->param;
                 break;
 
             case sbc_weaponslotnotselected:
-                // TODO
-                // result &= weaponinfo[ player->readyweapon ].slot !=
-                // condition.param;
+                result &= weaponinfo[player->readyweapon].slot != cond->param;
                 break;
 
             case sbc_itemowned:
@@ -473,13 +470,11 @@ static boolean CheckConditions(sbarcondition_t *conditions, player_t *player)
                 break;
 
             case sbc_featurelevelgreaterequal:
-                // result &= featureslookup[ (int32_t)gameversion ] >=
-                // condition.param;
+                // ignore
                 break;
 
             case sbc_featurelevelless:
-                // result &= featureslookup[ (int32_t)gameversion ] <
-                // condition.param ;
+                // ignore
                 break;
 
             case sbc_sessiontypeeequal:
@@ -1029,45 +1024,47 @@ static void DrawNumber(int x, int y, sbarelem_t *elem)
 
 static void DrawElem(int x, int y, sbarelem_t *elem)
 {
+    if (!CheckConditions(elem->conditions, &players[displayplayer]))
+    {
+        return;
+    }
+
     x += elem->x_pos;
     y += elem->y_pos;
 
-    if (CheckConditions(elem->conditions, &players[displayplayer]))
+    switch (elem->elemtype)
     {
-        switch (elem->elemtype)
-        {
-            case sbe_graphic:
-                DrawPatch(x, y, elem->alignment, elem->patch);
-                break;
+        case sbe_graphic:
+            DrawPatch(x, y, elem->alignment, elem->patch);
+            break;
 
-            case sbe_face:
-                {
-                    patch_t *patch = facepatches[elem->faceindex];
-                    DrawPatch(x, y, elem->alignment, patch);
-                }
-                break;
+        case sbe_face:
+            {
+                patch_t *patch = facepatches[elem->faceindex];
+                DrawPatch(x, y, elem->alignment, patch);
+            }
+            break;
 
-            case sbe_animation:
-                {
-                    patch_t *patch = elem->frames[elem->frame_index].patch;
-                    DrawPatch(x, y, elem->alignment, patch);
-                }
-                break;
+        case sbe_animation:
+            {
+                patch_t *patch = elem->frames[elem->frame_index].patch;
+                DrawPatch(x, y, elem->alignment, patch);
+            }
+            break;
 
-            case sbe_number:
-            case sbe_percent:
-                DrawNumber(x, y, elem);
-                break;
+        case sbe_number:
+        case sbe_percent:
+            DrawNumber(x, y, elem);
+            break;
 
-            default:
-                break;
-        }
+        default:
+            break;
+    }
 
-        sbarelem_t *child;
-        array_foreach(child, elem->children)
-        {
-            DrawElem(x, y, child);
-        }
+    sbarelem_t *child;
+    array_foreach(child, elem->children)
+    {
+        DrawElem(x, y, child);
     }
 }
 
@@ -1660,7 +1657,7 @@ static void ST_doPaletteStuff(void)
 {
     player_t *player = &players[displayplayer];
     int cnt = player->damagecount;
-    int numpal;
+    int palette_index;
 
     // killough 7/14/98: beta version did not cause red berserk palette
     if (!beta_emulation)
@@ -1679,7 +1676,7 @@ static void ST_doPaletteStuff(void)
 
     if (STRICTMODE(!palette_changes))
     {
-        numpal = 0;
+        palette_index = 0;
     }
     else if (cnt)
     {
@@ -1688,54 +1685,55 @@ static void ST_doPaletteStuff(void)
         // being covered in goo by an attacking flemoid.
         if (gameversion == exe_chex)
         {
-            numpal = RADIATIONPAL;
+            palette_index = RADIATIONPAL;
         }
         else
         {
-            numpal = (cnt + 7) >> 3;
-            if (numpal >= NUMREDPALS)
+            palette_index = (cnt + 7) >> 3;
+            if (palette_index >= NUMREDPALS)
             {
-                numpal = NUMREDPALS - 1;
+                palette_index = NUMREDPALS - 1;
             }
             // [crispy] tune down a bit so the menu remains legible
             if (menuactive || paused)
             {
-                numpal >>= 1;
+                palette_index >>= 1;
             }
-            numpal += STARTREDPALS;
+            palette_index += STARTREDPALS;
         }
     }
     else if (player->bonuscount)
     {
-        numpal = (player->bonuscount + 7) >> 3;
-        if (numpal >= NUMBONUSPALS)
+        palette_index = (player->bonuscount + 7) >> 3;
+        if (palette_index >= NUMBONUSPALS)
         {
-            numpal = NUMBONUSPALS - 1;
+            palette_index = NUMBONUSPALS - 1;
         }
-        numpal += STARTBONUSPALS;
+        palette_index += STARTBONUSPALS;
     }
     // killough 7/14/98: beta version did not cause green palette
     else if (beta_emulation)
     {
-        numpal = 0;
+        palette_index = 0;
     }
     else if (player->powers[pw_ironfeet] > 4 * 32
              || player->powers[pw_ironfeet] & 8)
     {
-        numpal = RADIATIONPAL;
+        palette_index = RADIATIONPAL;
     }
     else
     {
-        numpal = 0;
+        palette_index = 0;
     }
 
-    if (numpal != st_palette)
+    if (palette_index != st_palette)
     {
-        st_palette = numpal;
+        st_palette = palette_index;
         // haleyjd: must cast to byte *, arith. on void pointer is
         // a GNU C extension
-        byte *pal = (byte *)W_CacheLumpNum(lu_palette, PU_CACHE) + numpal * 768;
-        I_SetPalette(pal);
+        byte *palette =
+            (byte *)W_CacheLumpNum(lu_palette, PU_CACHE) + palette_index * 768;
+        I_SetPalette(palette);
     }
 }
 
