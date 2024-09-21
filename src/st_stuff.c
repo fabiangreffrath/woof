@@ -1068,10 +1068,60 @@ static void DrawElem(int x, int y, sbarelem_t *elem)
     }
 }
 
+boolean st_refresh_background = true;
+
+static void DrawBackground(const char *name)
+{
+    if (!st_refresh_background)
+    {
+        V_CopyRect(0, 0, st_backing_screen, video.unscaledw, ST_HEIGHT, 0,
+                   ST_Y);
+        return;
+    }
+
+    V_UseBuffer(st_backing_screen);
+
+    if (!name)
+    {
+        name = (gamemode == commercial) ? "GRNROCK" : "FLOOR7_2";
+    }
+
+    byte *flat = V_CacheFlatNum(firstflat + R_FlatNumForName(name), PU_CACHE);
+
+    V_TileBlock64(ST_Y, video.unscaledw, ST_HEIGHT, flat);
+
+    if (screenblocks == 10)
+    {
+        patch_t *patch = V_CachePatchName("brdr_b", PU_CACHE);
+        for (int x = 0; x < video.unscaledw; x += 8)
+        {
+            V_DrawPatch(x - video.deltaw, 0, patch);
+        }
+    }
+
+    V_RestoreBuffer();
+
+    V_CopyRect(0, 0, st_backing_screen, video.unscaledw, ST_HEIGHT, 0, ST_Y);
+
+    st_refresh_background = false;
+}
+
 static void DrawStatusBar(void)
 {
+    static int old_barindex = -1;
+
     int barindex = MAX(screenblocks - 10, 0);
     statusbar_t *statusbar = &sbardef->statusbars[barindex];
+
+    if (!statusbar->fullscreenrender)
+    {
+        if (old_barindex != barindex)
+        {
+            st_refresh_background = true;
+            old_barindex = barindex;
+        }
+        DrawBackground(statusbar->fillflat);
+    }
 
     sbarelem_t *child;
     array_foreach(child, statusbar->children)
@@ -2230,10 +2280,10 @@ void ST_Init(void)
 
 void ST_InitRes(void)
 {
-  int height = V_ScaleY(StatusBarBufferHeight());
-
-  // killough 11/98: allocate enough for hires
-  st_backing_screen = Z_Malloc(video.pitch * height * sizeof(*st_backing_screen), PU_RENDERER, 0);
+    // killough 11/98: allocate enough for hires
+    st_backing_screen =
+        Z_Malloc(video.pitch * V_ScaleY(ST_HEIGHT) * sizeof(*st_backing_screen),
+                 PU_RENDERER, 0);
 }
 
 void ST_Warnings(void)

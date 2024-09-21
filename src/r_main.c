@@ -673,6 +673,8 @@ void R_ExecuteSetViewSize (void)
         }
     }
 
+  st_refresh_background = true;
+
   pspr_interp = false;
 }
 
