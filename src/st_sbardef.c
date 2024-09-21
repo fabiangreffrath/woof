@@ -24,6 +24,7 @@
 #include "m_swap.h"
 #include "r_defs.h"
 #include "v_fmt.h"
+#include "v_video.h"
 #include "w_wad.h"
 #include "z_zone.h"
 
@@ -79,6 +80,8 @@ static boolean ParseSbarElemType(json_t *json, sbarelementtype_t type,
 
     out->tranmap = JS_GetStringValue(json, "tranmap");
     out->translation = JS_GetStringValue(json, "translation");
+
+    out->cr = out->translation ? V_CRByName(out->translation) : CR_NONE;
 
     json_t *js_conditions = JS_GetObject(json, "conditions");
     json_t *js_condition = NULL;

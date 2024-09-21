@@ -16,6 +16,7 @@
 
 #include "doomtype.h"
 #include "r_defs.h"
+#include "v_video.h"
 
 typedef enum
 {
@@ -47,6 +48,11 @@ typedef enum
     sbc_modeeequal,
     sbc_modenotequal,
     sbc_hudmodeequal,
+    // Woof!
+    sbc_healthgreaterequal,
+    sbc_ammogreaterequal_percent,
+    sbc_armorgreaterequal,
+    sbc_boomtranslation,
 
     sbc_max,
 } sbarconditiontype_t;
@@ -119,6 +125,7 @@ struct sbarelem_s
     sbaralignment_t alignment;
     const char *tranmap;
     const char *translation;
+    crange_idx_e cr;
     sbarcondition_t *conditions;
     sbarelem_t *children;
 

@@ -86,6 +86,8 @@ typedef enum
 
 // jff 1/16/98 end palette color range additions
 
+crange_idx_e V_CRByName(const char *name);
+
 extern pixel_t *I_VideoBuffer;
 
 // jff 4/24/98 loads color translation lumps

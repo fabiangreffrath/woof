@@ -139,6 +139,18 @@ int V_BloodColor(int blood)
     return bloodcolor[blood];
 }
 
+crange_idx_e V_CRByName(const char *name)
+{
+    for (const crdef_t *p = crdefs; p->name; ++p)
+    {
+        if (!strcmp(p->name, name))
+        {
+            return p - crdefs;
+        }
+    }
+    return CR_NONE;
+}
+
 int v_lightest_color, v_darkest_color;
 
 byte invul_gray[256];

@@ -407,7 +407,10 @@ static boolean CheckConditions(sbarcondition_t *conditions, player_t *player)
                 break;
 
             case sbc_weaponhasammo:
-                result &= weaponinfo[cond->param].ammo != am_noammo;
+                if (cond->param >= 0 && cond->param < NUMWEAPONS)
+                {
+                    result &= weaponinfo[cond->param].ammo != am_noammo;
+                }
                 break;
 
             case sbc_selectedweaponhasammo:
@@ -497,6 +500,31 @@ static boolean CheckConditions(sbarcondition_t *conditions, player_t *player)
                 // TODO
                 // result &= ( !!cond->param == compacthud );
                 result &= (!!cond->param == false);
+                break;
+
+            // Woof! additions
+            case sbc_healthgreaterequal:
+                result &= player->health >= cond->param;
+                break;
+
+            case sbc_ammogreaterequal_percent:
+                {
+                    ammotype_t type = weaponinfo[player->readyweapon].ammo;
+                    if (type != am_noammo)
+                    {
+                        result &=
+                            (player->ammo[type] * 100 / player->maxammo[type])
+                            >= cond->param;
+                    }
+                }
+                break;
+
+            case sbc_armorgreaterequal:
+                result &= player->armorpoints >= cond->param;
+                break;
+
+            case sbc_boomtranslation:
+                result &= sts_colored_numbers == cond->param;
                 break;
 
             case sbc_none:
@@ -921,7 +949,8 @@ static void RefreshStatusBar(void)
     }
 }
 
-static void DrawPatch(int x, int y, sbaralignment_t alignment, patch_t *patch)
+static void DrawPatch(int x, int y, sbaralignment_t alignment, patch_t *patch,
+                      crange_idx_e cr)
 {
     if (!patch)
     {
@@ -949,7 +978,7 @@ static void DrawPatch(int x, int y, sbaralignment_t alignment, patch_t *patch)
         y -= height;
     }
 
-    V_DrawPatch(x, y, patch);
+    V_DrawPatchTranslated(x, y, patch, colrngs[cr]);
 }
 
 static void DrawGlyph(int x, int y, sbarelem_t *elem, patch_t *glyph)
@@ -977,7 +1006,7 @@ static void DrawGlyph(int x, int y, sbarelem_t *elem, patch_t *glyph)
         elem->xoffset += (width + widthdiff);
     }
 
-    DrawPatch(x + elem->xoffset, y, elem->alignment, glyph);
+    DrawPatch(x + elem->xoffset, y, elem->alignment, glyph, elem->cr);
 
     if (elem->alignment & sbe_h_middle)
     {
@@ -1035,20 +1064,20 @@ static void DrawElem(int x, int y, sbarelem_t *elem)
     switch (elem->elemtype)
     {
         case sbe_graphic:
-            DrawPatch(x, y, elem->alignment, elem->patch);
+            DrawPatch(x, y, elem->alignment, elem->patch, elem->cr);
             break;
 
         case sbe_face:
             {
                 patch_t *patch = facepatches[elem->faceindex];
-                DrawPatch(x, y, elem->alignment, patch);
+                DrawPatch(x, y, elem->alignment, patch, elem->cr);
             }
             break;
 
         case sbe_animation:
             {
                 patch_t *patch = elem->frames[elem->frame_index].patch;
-                DrawPatch(x, y, elem->alignment, patch);
+                DrawPatch(x, y, elem->alignment, patch, elem->cr);
             }
             break;
 
@@ -2239,30 +2268,6 @@ void ST_Stop(void)
   if (!nodrawers)
     I_SetPalette (W_CacheLumpNum (lu_palette, PU_CACHE));
   st_stopped = true;
-}
-
-static int StatusBarBufferHeight(void)
-{
-  int i;
-  int st_height = ST_HEIGHT;
-  patch_t *const patch = W_CacheLumpName("brdr_b", PU_CACHE);
-
-  if (patch && SHORT(patch->height) > st_height)
-    st_height = SHORT(patch->height);
-
-  if (sbar && SHORT(sbar->height) > st_height)
-    st_height = SHORT(sbar->height);
-
-  if (armsbg && SHORT(armsbg->height) > st_height)
-    st_height = SHORT(armsbg->height);
-
-  for (i = 0; i < MAXPLAYERS; i++)
-  {
-    if (faceback[i] && SHORT(faceback[i]->height) > st_height)
-      st_height = SHORT(faceback[i]->height);
-  }
-
-  return st_height;
 }
 
 void ST_Init(void)
