@@ -798,7 +798,7 @@ static void WI_drawEL(void)
   {
     patch_t* lpic = V_CachePatchName(wbs->nextmapinfo->levelpic, PU_CACHE);
 
-    if (SHORT(lnames[wbs->next]->height) < SCREENHEIGHT)
+    if (SHORT(lpic->height) < SCREENHEIGHT)
       y += (5 * SHORT(lpic->height)) / 4;
 
     V_DrawPatch((SCREENWIDTH - SHORT(lpic->width))/2, y, lpic);
