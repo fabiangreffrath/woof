@@ -44,7 +44,7 @@
 #include "mn_font.h"
 #include "mn_menu.h"
 #include "p_mobj.h"
-#include "r_bmaps.h"
+#include "r_brightmaps.h"
 #include "r_data.h"
 #include "r_defs.h"
 #include "r_draw.h"
@@ -2837,8 +2837,7 @@ static setup_menu_t gen_settings5[] = {
 
     {"Voxels", S_ONOFF | S_STRICT, OFF_CNTR_X, M_SPC, {"voxels_rendering"}},
 
-    {"Brightmaps", S_ONOFF | S_STRICT, OFF_CNTR_X, M_SPC, {"brightmaps"},
-     .action = R_InitDrawFunctions},
+    {"Brightmaps", S_ONOFF | S_STRICT, OFF_CNTR_X, M_SPC, {"brightmaps"}},
 
     {"Stretch Short Skies", S_ONOFF, OFF_CNTR_X, M_SPC, {"stretchsky"},
      .action = R_InitSkyMap},
@@ -4451,8 +4450,6 @@ void MN_SetupResetMenu(void)
     DisableItem(M_ParmExists("-uncapped") || M_ParmExists("-nouncapped"),
                 gen_settings1, "uncapped");
     DisableItem(deh_set_blood_color, enem_settings1, "colored_blood");
-    DisableItem(!brightmaps_found || force_brightmaps, gen_settings5,
-                "brightmaps");
     UpdateInterceptsEmuItem();
     UpdateCrosshairItems();
     UpdateCenteredWeaponItem();

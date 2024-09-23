@@ -40,7 +40,6 @@
 #include "doomtype.h"
 #include "i_system.h"
 #include "m_fixed.h"
-#include "r_bmaps.h" // [crispy] R_BrightmapForTexName()
 #include "r_data.h"
 #include "r_defs.h"
 #include "r_draw.h"
@@ -381,7 +380,7 @@ static void R_MakeSpans(int x, unsigned int t1, unsigned int b1, unsigned int t2
 
 static void DrawSkyFire(visplane_t *pl, fire_t *fire)
 {
-    dc_colormap[0] = dc_colormap[1] = fullcolormap;
+    dc_colormap = dc_lightlevels[0] = fullcolormap;
 
     dc_texturemid = -28 * FRACUNIT;
     dc_iscale = skyiscale;
@@ -406,7 +405,7 @@ static void DrawSkyTex(visplane_t *pl, skytex_t *skytex)
 {
     int texture = R_TextureNumForName(skytex->name);
 
-    dc_colormap[0] = dc_colormap[1] = fullcolormap;
+    dc_colormap = dc_lightlevels[1] = fullcolormap;
 
     dc_texturemid = skytex->mid * FRACUNIT;
     dc_texheight = textureheight[texture] >> FRACBITS;
@@ -514,9 +513,9 @@ static void do_draw_mbf_sky(visplane_t *pl)
     // killough 7/19/98: fix hack to be more realistic:
 
     if (STRICTMODE_COMP(comp_skymap)
-        || !(dc_colormap[0] = dc_colormap[1] = fixedcolormap))
+        || !(dc_colormap = dc_lightlevels[0] = fixedcolormap))
     {
-        dc_colormap[0] = dc_colormap[1] = fullcolormap; // killough 3/20/98
+        dc_colormap = dc_lightlevels[0] = fullcolormap; // killough 3/20/98
     }
 
     dc_texheight = textureheight[texture] >> FRACBITS; // killough
@@ -594,14 +593,11 @@ static void do_draw_plane(visplane_t *pl)
     if (swirling)
     {
         ds_source = R_DistortedFlat(firstflat + pl->picnum);
-        ds_brightmap = R_BrightmapForFlatNum(pl->picnum);
     }
     else
     {
         ds_source = V_CacheFlatNum(
             firstflat + flattranslation[pl->picnum], PU_STATIC);
-        ds_brightmap =
-            R_BrightmapForFlatNum(flattranslation[pl->picnum]);
     }
 
     xoffs = pl->xoffs; // killough 2/28/98: Add offsets

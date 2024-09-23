@@ -27,7 +27,6 @@
 #include "i_system.h"
 #include "i_video.h"
 #include "r_bsp.h"
-#include "r_bmaps.h"
 #include "r_defs.h"
 #include "r_draw.h"
 #include "r_main.h"
@@ -70,7 +69,8 @@ static pixel_t *background_buffer = NULL;
 // Source is the top of the column to scale.
 //
 
-lighttable_t *dc_colormap[2]; // [crispy] brightmaps
+lighttable_t *dc_colormap;
+lighttable_t *dc_lightlevels[33];
 int dc_x;
 int dc_yl;
 int dc_yh;
@@ -78,6 +78,7 @@ fixed_t dc_iscale;
 fixed_t dc_texturemid;
 int dc_texheight; // killough
 byte *dc_source;  // first pixel in a column (possibly virtual)
+byte *dc_brightmap;
 byte dc_skycolor;
 
 //
@@ -131,7 +132,7 @@ byte dc_skycolor;
                     frac -= heightmask;                                  \
             do                                                           \
             {                                                            \
-                byte src = dc_source[frac >> FRACBITS];                  \
+                int src = frac >> FRACBITS;                              \
                 *dest = SRCPIXEL;                                        \
                 dest += linesize;                                        \
                 if ((frac += fracstep) >= heightmask)                    \
@@ -142,25 +143,25 @@ byte dc_skycolor;
         {                                                                \
             while ((count -= 2) >= 0)                                    \
             {                                                            \
-                byte src = dc_source[(frac >> FRACBITS) & heightmask];   \
+                int src = (frac >> FRACBITS) & heightmask;               \
                 *dest = SRCPIXEL;                                        \
                 dest += linesize;                                        \
                 frac += fracstep;                                        \
-                src = dc_source[(frac >> FRACBITS) & heightmask];        \
+                src = (frac >> FRACBITS) & heightmask;                   \
                 *dest = SRCPIXEL;                                        \
                 dest += linesize;                                        \
                 frac += fracstep;                                        \
             }                                                            \
             if (count & 1)                                               \
             {                                                            \
-                byte src = dc_source[(frac >> FRACBITS) & heightmask];   \
+                int src = (frac >> FRACBITS) & heightmask;               \
                 *dest = SRCPIXEL;                                        \
             }                                                            \
         }                                                                \
     }
 
-DRAW_COLUMN(, dc_colormap[0][src])
-DRAW_COLUMN(Brightmap, dc_colormap[dc_brightmap[src]][src])
+DRAW_COLUMN(, dc_colormap[dc_source[src]])
+DRAW_COLUMN(Brightmap, dc_lightlevels[dc_brightmap[src]][dc_source[src]])
 
 // Here is the version of R_DrawColumn that deals with translucent  // phares
 // textures and sprites. It's identical to R_DrawColumn except      //    |
@@ -175,9 +176,9 @@ DRAW_COLUMN(Brightmap, dc_colormap[dc_brightmap[src]][src])
 // actual code differences are.
 
 DRAW_COLUMN(TL,
-    tranmap[(*dest << 8) + dc_colormap[0][src]])
+    tranmap[(*dest << 8) + dc_colormap[dc_source[src]]])
 DRAW_COLUMN(TLBrightmap,
-    tranmap[(*dest << 8) + dc_colormap[dc_brightmap[src]][src]])
+    tranmap[(*dest << 8) + dc_lightlevels[dc_brightmap[src]][dc_source[src]]])
 
 //
 // Sky drawing: for showing just a color above the texture
@@ -205,7 +206,7 @@ void R_DrawSkyColumn(void)
     fixed_t frac = dc_texturemid + (dc_yl - centery) * fracstep;
 
     const byte *source = dc_source;
-    const lighttable_t *colormap = dc_colormap[0];
+    const lighttable_t *colormap = dc_colormap;
     const byte skycolor = dc_skycolor;
 
     // Fill in the median color here
@@ -551,9 +552,9 @@ void R_SetFuzzColumnMode(void)
 byte *dc_translation, *translationtables;
 
 DRAW_COLUMN(TR,
-    dc_colormap[0][dc_translation[src]])
+    dc_colormap[dc_translation[src]])
 DRAW_COLUMN(TRBrightmap,
-    dc_colormap[dc_brightmap[src]][dc_translation[src]])
+    dc_lightlevels[dc_brightmap[src]][dc_translation[src]])
 
 //
 // R_InitTranslationTables
@@ -680,23 +681,22 @@ byte *ds_source;
     }
 
 R_DRAW_SPAN(, ds_colormap[0][src])
-R_DRAW_SPAN(Brightmap, ds_colormap[ds_brightmap[src]][src])
+//R_DRAW_SPAN(Brightmap, ds_colormap[ds_brightmap[src]][src])
 
 void (*R_DrawColumn)(void) = DrawColumn;
 void (*R_DrawTLColumn)(void) = DrawColumnTL;
 void (*R_DrawTranslatedColumn)(void) = DrawColumnTR;
 void (*R_DrawSpan)(void) = DrawSpan;
 
-void R_InitDrawFunctions(void)
+void R_BrightmapFunctions(boolean enable)
 {
-    boolean local_brightmaps = (STRICTMODE(brightmaps) || force_brightmaps);
-
-    if (local_brightmaps)
+    if (enable)
     {
         R_DrawColumn = DrawColumnBrightmap;
         R_DrawTLColumn = DrawColumnTLBrightmap;
         R_DrawTranslatedColumn = DrawColumnTRBrightmap;
-        R_DrawSpan = DrawSpanBrightmap;
+        //R_DrawSpan = DrawSpanBrightmap;
+        R_DrawSpan = DrawSpan;
     }
     else
     {

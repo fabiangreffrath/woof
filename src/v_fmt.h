@@ -33,6 +33,8 @@ inline static struct patch_s *V_CachePatchName(const char *name, pu_tag tag)
 
 void *V_CacheFlatNum(int lump, pu_tag tag);
 
+byte *V_DecodeBrightMap(byte *buffer, int buffer_length);
+
 int V_LumpSize(int lump);
 
 #endif

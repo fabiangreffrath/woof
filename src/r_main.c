@@ -39,7 +39,7 @@
 #include "r_defs.h"
 #include "r_draw.h"
 #include "r_main.h"
-#include "r_bmaps.h"
+#include "r_brightmaps.h"
 #include "r_plane.h"
 #include "r_segs.h"
 #include "r_sky.h"
@@ -696,8 +696,8 @@ void R_Init (void)
   // [FG] spectre drawing mode
   R_SetFuzzColumnMode();
 
+  R_BrightmapFunctions(false);
   colfunc = R_DrawColumn;
-  R_InitDrawFunctions();
 }
 
 //
