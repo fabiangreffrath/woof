@@ -30,7 +30,7 @@ boolean brightmaps;
 
 static patch_t *spr_brightmaps[NUMSPRITES][MAX_FRAMES][MAX_ROTATIONS];
 
-struct patch_s *R_GetBrightmap(int sprite, int frame, int rotation)
+patch_t *R_GetBrightmap(int sprite, int frame, int rotation)
 {
     if (!brightmaps)
     {
