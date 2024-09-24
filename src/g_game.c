@@ -1316,6 +1316,15 @@ boolean G_MovementResponder(event_t *ev)
 
 boolean G_Responder(event_t* ev)
 {
+  // killough 9/29/98: reformatted
+  if (gamestate == GS_LEVEL
+      && (HU_Responder(ev) || // chat ate the event
+          ST_Responder(ev) || // status window ate it
+          AM_Responder(ev)))  // automap ate it
+  {
+    return true;
+  }
+
   if (M_ShortcutResponder(ev))
   {
     return true;
@@ -1350,12 +1359,6 @@ boolean G_Responder(event_t* ev)
     sendreload = true;
     return true;
   }
-
-  // killough 9/29/98: reformatted
-  if (gamestate == GS_LEVEL && (HU_Responder(ev) ||  // chat ate the event
-				ST_Responder(ev) ||  // status window ate it
-				AM_Responder(ev)))   // automap ate it
-    return true;
 
   // any other key pops up menu if in demos
   //
