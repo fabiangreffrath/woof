@@ -492,7 +492,7 @@ void I_BindGamepadVariables(void)
         "Strafe speed (0 = 0.0x; 20 = 2.0x)");
     BIND_NUM_GENERAL(joy_turn_speed, DEFAULT_SPEED, 0, 720,
         "Turn speed [degrees/second]");
-    BIND_NUM_GENERAL(joy_look_speed, lround(DEFAULT_SPEED * 0.54), 0, 720,
+    BIND_NUM_GENERAL(joy_look_speed, DEFAULT_SPEED * 9 / 16, 0, 720,
         "Look speed [degrees/second]");
     BIND_NUM(joy_outer_turn_speed, 0, 0, 720,
         "Extra turn speed at outer deadzone [degrees/second]");
