@@ -90,6 +90,7 @@
 #include "version.h"
 #include "w_wad.h"
 #include "wi_stuff.h"
+#include "ws_stuff.h"
 #include "z_zone.h"
 
 #define SAVEGAMESIZE  0x20000
@@ -188,7 +189,6 @@ static boolean dclick_use;
 #define TURBOTHRESHOLD  0x32
 #define SLOWTURNTICS  6
 #define QUICKREVERSE 32768 // 180 degree reverse                    // phares
-#define NUMKEYS   256
 
 fixed_t forwardmove[2] = {0x19, 0x32};
 fixed_t default_sidemove[2] = {0x18, 0x28};
@@ -857,6 +857,10 @@ void G_BuildTiccmd(ticcmd_t* cmd)
     boom_weapon_state_injection = false;
     newweapon = P_SwitchWeapon(&players[consoleplayer]);           // phares
   }
+  else if (WS_SlotSelected())
+  {
+    newweapon = WS_SlotWeapon();
+  }
   else if (M_InputGameActive(input_lastweapon))
   {
     newweapon = LastWeapon();
@@ -899,6 +903,7 @@ void G_BuildTiccmd(ticcmd_t* cmd)
 
     // [FG] prev/next weapon keys and buttons
     next_weapon = 0;
+    WS_ClearSharedEvent();
 
   // [FG] double click acts as "use"
   if (dclick)
@@ -946,6 +951,7 @@ void G_ClearInput(void)
   memset(&basecmd, 0, sizeof(basecmd));
   I_ResetRelativeMouseState();
   I_ResetAllRumbleChannels();
+  WS_Reset();
 }
 
 //
@@ -1316,11 +1322,14 @@ boolean G_MovementResponder(event_t *ev)
 
 boolean G_Responder(event_t* ev)
 {
+  WS_UpdateState(ev);
+
   // killough 9/29/98: reformatted
   if (gamestate == GS_LEVEL
       && (HU_Responder(ev) || // chat ate the event
           ST_Responder(ev) || // status window ate it
-          AM_Responder(ev)))  // automap ate it
+          AM_Responder(ev) || // automap ate it
+          WS_Responder(ev)))  // weapon slots ate it
   {
     return true;
   }

@@ -146,6 +146,7 @@ set(WOOF_SOURCES
     w_zip.c
     wi_stuff.c             wi_stuff.h
     wi_interlvl.c          wi_interlvl.h
+    ws_stuff.c             ws_stuff.h
     z_zone.c               z_zone.h)
 
 # Standard target definition

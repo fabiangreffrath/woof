@@ -55,6 +55,7 @@
 #include "r_main.h"
 #include "st_stuff.h"
 #include "w_wad.h"
+#include "ws_stuff.h"
 #include "z_zone.h"
 
 //
@@ -133,6 +134,7 @@ void M_InitConfig(void)
     G_BindEnemVariables();
     G_BindCompVariables();
     G_BindWeapVariables();
+    WS_BindVariables();
 
     HU_BindHUDVariables();
     ST_BindSTSVariables();
