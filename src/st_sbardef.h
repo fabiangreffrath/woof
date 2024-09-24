@@ -48,12 +48,6 @@ typedef enum
     sbc_modeeequal,
     sbc_modenotequal,
     sbc_hudmodeequal,
-    // Woof!
-    sbc_healthgreaterequal,
-    sbc_ammogreaterequal_percent,
-    sbc_armorgreaterequal,
-    sbc_boomtranslation,
-
     sbc_max,
 } sbarconditiontype_t;
 
@@ -126,6 +120,7 @@ struct sbarelem_s
     const char *tranmap;
     const char *translation;
     crange_idx_e cr;
+    crange_idx_e crboom;
     sbarcondition_t *conditions;
     sbarelem_t *children;
 

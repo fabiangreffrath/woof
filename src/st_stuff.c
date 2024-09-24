@@ -502,31 +502,6 @@ static boolean CheckConditions(sbarcondition_t *conditions, player_t *player)
                 result &= (!!cond->param == false);
                 break;
 
-            // Woof! additions
-            case sbc_healthgreaterequal:
-                result &= player->health >= cond->param;
-                break;
-
-            case sbc_ammogreaterequal_percent:
-                {
-                    ammotype_t type = weaponinfo[player->readyweapon].ammo;
-                    if (type != am_noammo)
-                    {
-                        result &=
-                            (player->ammo[type] * 100 / player->maxammo[type])
-                            >= cond->param;
-                    }
-                }
-                break;
-
-            case sbc_armorgreaterequal:
-                result &= player->armorpoints >= cond->param;
-                break;
-
-            case sbc_boomtranslation:
-                result &= sts_colored_numbers == cond->param;
-                break;
-
             case sbc_none:
             default:
                 result = false;
@@ -861,19 +836,113 @@ static void UpdateAnimation(sbarelem_t *elem)
     --elem->duration_left;
 }
 
-static void UpdateElem(sbarelem_t *elem)
+static void UpdateBoomColors(sbarelem_t *elem, player_t *player)
+{
+    if (!sts_colored_numbers)
+    {
+        elem->crboom = CR_NONE;
+        return;
+    }
+
+    int invul = (player->powers[pw_invulnerability] > 4 * 32
+                 || player->powers[pw_invulnerability] & 8)
+                || player->cheats & CF_GODMODE;
+
+    crange_idx_e cr;
+
+    switch (elem->numtype)
+    {
+        case sbn_health:
+            {
+                int health = player->health;
+                if (invul)
+                    cr = CR_GRAY;
+                else if (health < health_red)
+                    cr = CR_RED;
+                else if (health < health_yellow)
+                    cr = CR_GOLD;
+                else if (health <= health_green)
+                    cr = CR_GREEN;
+                else
+                    cr = CR_BLUE2;
+            }
+            break;
+        case sbn_armor:
+            if (hud_armor_type)
+            {
+                if (invul)
+                    cr = CR_GRAY;
+                else if (!player->armortype)
+                    cr = CR_RED;
+                else if (player->armortype == 1)
+                    cr = CR_GREEN;
+                else
+                    cr = CR_BLUE2;
+            }
+            else
+            {
+                int armor = player->armorpoints;
+                if (invul)
+                    cr = CR_GRAY;
+                else if (armor < armor_red)
+                    cr = CR_RED;
+                else if (armor < armor_yellow)
+                    cr = CR_GOLD;
+                else if (armor <= armor_green)
+                    cr = CR_GREEN;
+                else
+                    cr = CR_BLUE2;
+            }
+            break;
+        case sbn_ammoselected:
+            {
+                ammotype_t type = weaponinfo[player->readyweapon].ammo;
+                if (type == am_noammo)
+                {
+                    return;
+                }
+
+                int maxammo = player->maxammo[type];
+                int ammo = player->ammo[type];
+
+                // backpack changes thresholds
+                if (player->backpack && !hud_backpack_thresholds)
+                {
+                    maxammo /= 2;
+                }
+
+                if (ammo * 100 < ammo_red * maxammo)
+                    cr = CR_RED;
+                else if (ammo * 100 < ammo_yellow * maxammo)
+                    cr = CR_GOLD;
+                else if (ammo > maxammo)
+                    cr = CR_BLUE2;
+                else
+                    cr = CR_GREEN;
+            }
+            break;
+        default:
+            cr = CR_NONE;
+            break;
+    }
+
+    elem->crboom = cr;
+}
+
+static void UpdateElem(sbarelem_t *elem, player_t *player)
 {
     switch (elem->elemtype)
     {
         case sbe_face:
-            UpdateFace(elem);
+            UpdateFace(elem, player);
             break;
         case sbe_animation:
             UpdateAnimation(elem);
             break;
         case sbe_number:
         case sbe_percent:
-            UpdateNumber(elem);
+            UpdateBoomColors(elem, player);
+            UpdateNumber(elem, player);
             break;
         default:
             break;
@@ -882,19 +951,21 @@ static void UpdateElem(sbarelem_t *elem)
     sbarelem_t *child;
     array_foreach(child, elem->children)
     {
-        UpdateElem(child);
+        UpdateElem(child, player);
     }
 }
 
 static void UpdateStatusBar(void)
 {
+    player_t *player = &players[displayplayer];
+
     statusbar_t *statusbar;
     array_foreach(statusbar, sbardef->statusbars)
     {
         sbarelem_t *child;
         array_foreach(child, statusbar->children)
         {
-            UpdateElem(child);
+            UpdateElem(child, player);
         }
     }
 }
@@ -1006,7 +1077,8 @@ static void DrawGlyph(int x, int y, sbarelem_t *elem, patch_t *glyph)
         elem->xoffset += (width + widthdiff);
     }
 
-    DrawPatch(x + elem->xoffset, y, elem->alignment, glyph, elem->cr);
+    DrawPatch(x + elem->xoffset, y, elem->alignment, glyph,
+              elem->crboom == CR_NONE ? elem->cr : elem->crboom);
 
     if (elem->alignment & sbe_h_middle)
     {
@@ -1045,15 +1117,21 @@ static void DrawNumber(int x, int y, sbarelem_t *elem)
 
     if (elem->elemtype == sbe_percent && font->percent != NULL)
     {
+        crange_idx_e oldcr = elem->crboom;
+        if (sts_pct_always_gray)
+        {
+            elem->crboom = CR_GRAY;
+        }
         DrawGlyph(x, y, elem, font->percent);
+        elem->crboom = oldcr;
     }
 
     elem->xoffset = base_xoffset;
 }
 
-static void DrawElem(int x, int y, sbarelem_t *elem)
+static void DrawElem(int x, int y, sbarelem_t *elem, player_t *player)
 {
-    if (!CheckConditions(elem->conditions, &players[displayplayer]))
+    if (!CheckConditions(elem->conditions, player))
     {
         return;
     }
