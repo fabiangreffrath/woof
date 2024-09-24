@@ -282,10 +282,12 @@ if(MSVC)
     target_link_options(woof-setup PRIVATE "/MANIFEST:NO")
 endif()
 
-add_custom_command(TARGET woof POST_BUILD
+add_custom_target(woof-base
     COMMAND ${CMAKE_COMMAND} -E tar cf
-    "$<TARGET_FILE_DIR:woof>/woof.pk3" --format=zip .
+    "${CMAKE_CURRENT_BINARY_DIR}/woof.pk3" --format=zip .
     WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}/base")
+
+add_dependencies(woof woof-base)
 
 # Install
 #
@@ -313,9 +315,10 @@ if(WIN32)
     else()
         install(TARGETS woof woof-setup RUNTIME DESTINATION .)
     endif()
-    install(FILES "$<TARGET_FILE_DIR:woof-com>/woof.com" DESTINATION .)
-    install(FILES "$<TARGET_FILE_DIR:woof-exe>/woof.exe" DESTINATION .)
-    install(FILES "$<TARGET_FILE_DIR:woof>/woof.pk3" DESTINATION .)
+    install(FILES "$<TARGET_FILE_DIR:woof-com>/woof.com"
+                  "$<TARGET_FILE_DIR:woof-exe>/woof.exe"
+                  "$<TARGET_FILE_DIR:woof>/woof.pk3"
+            DESTINATION .)
 else()
     install(TARGETS woof woof-setup RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
     install(FILES "$<TARGET_FILE_DIR:woof>/woof.pk3"
