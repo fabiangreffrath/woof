@@ -384,6 +384,7 @@ static boolean CheckConditions(sbarcondition_t *conditions, player_t *player)
 {
     boolean result = true;
     int currsessiontype = netgame ? MIN(deathmatch + 1, 2) : 0;
+    // TODO
     // boolean compacthud = frame_width < frame_adjusted_width;
 
     sbarcondition_t *cond;
@@ -572,9 +573,8 @@ static int ResolveNumber(sbarnumbertype_t number, int param, player_t *player)
     return result;
 }
 
-static int CalcPainOffset(sbarelem_t *elem)
+static int CalcPainOffset(sbarelem_t *elem, player_t *player)
 {
-    player_t *player = &players[displayplayer];
     int health = player->health > 100 ? 100 : player->health;
     int lasthealthcalc =
         ST_FACESTRIDE * (((100 - health) * ST_NUMPAINFACES) / 101);
@@ -582,9 +582,8 @@ static int CalcPainOffset(sbarelem_t *elem)
     return lasthealthcalc;
 }
 
-static void UpdateFace(sbarelem_t *elem)
+static void UpdateFace(sbarelem_t *elem, player_t *player)
 {
-    player_t *player = &players[displayplayer];
     static int priority;
     static int lastattackdown = -1;
 
@@ -620,7 +619,7 @@ static void UpdateFace(sbarelem_t *elem)
                 // evil grin if just picked up weapon
                 priority = 8;
                 elem->facecount = ST_EVILGRINCOUNT;
-                elem->faceindex = CalcPainOffset(elem) + ST_EVILGRINOFFSET;
+                elem->faceindex = CalcPainOffset(elem, player) + ST_EVILGRINOFFSET;
             }
         }
     }
@@ -639,7 +638,7 @@ static void UpdateFace(sbarelem_t *elem)
             if (player->health - elem->oldhealth > ST_MUCHPAIN)
             {
                 elem->facecount = ST_TURNCOUNT;
-                elem->faceindex = CalcPainOffset(elem) + ST_OUCHOFFSET;
+                elem->faceindex = CalcPainOffset(elem, player) + ST_OUCHOFFSET;
             }
             else
             {
@@ -661,7 +660,7 @@ static void UpdateFace(sbarelem_t *elem)
                 } // confusing, aint it?
 
                 elem->facecount = ST_TURNCOUNT;
-                elem->faceindex = CalcPainOffset(elem);
+                elem->faceindex = CalcPainOffset(elem, player);
 
                 if (diffangle < ANG45)
                 {
@@ -691,13 +690,13 @@ static void UpdateFace(sbarelem_t *elem)
             {
                 priority = 7;
                 elem->facecount = ST_TURNCOUNT;
-                elem->faceindex = CalcPainOffset(elem) + ST_OUCHOFFSET;
+                elem->faceindex = CalcPainOffset(elem, player) + ST_OUCHOFFSET;
             }
             else
             {
                 priority = 6;
                 elem->facecount = ST_TURNCOUNT;
-                elem->faceindex = CalcPainOffset(elem) + ST_RAMPAGEOFFSET;
+                elem->faceindex = CalcPainOffset(elem, player) + ST_RAMPAGEOFFSET;
             }
         }
     }
@@ -714,7 +713,7 @@ static void UpdateFace(sbarelem_t *elem)
             else if (!--lastattackdown)
             {
                 priority = 5;
-                elem->faceindex = CalcPainOffset(elem) + ST_RAMPAGEOFFSET;
+                elem->faceindex = CalcPainOffset(elem, player) + ST_RAMPAGEOFFSET;
                 elem->facecount = 1;
                 lastattackdown = 1;
             }
@@ -739,7 +738,7 @@ static void UpdateFace(sbarelem_t *elem)
     // look left or look right if the facecount has timed out
     if (!elem->facecount)
     {
-        elem->faceindex = CalcPainOffset(elem) + (M_Random() % 3);
+        elem->faceindex = CalcPainOffset(elem, player) + (M_Random() % 3);
         elem->facecount = ST_STRAIGHTFACECOUNT;
         priority = 0;
     }
@@ -747,9 +746,8 @@ static void UpdateFace(sbarelem_t *elem)
     --elem->facecount;
 }
 
-static void UpdateNumber(sbarelem_t *elem)
+static void UpdateNumber(sbarelem_t *elem, player_t *player)
 {
-    player_t *player = &players[displayplayer];
     int number = ResolveNumber(elem->numtype, elem->numparam, player);
     int power = (number < 0 ? elem->maxlength - 1 : elem->maxlength);
     int max = (int)pow(10.0, power) - 1;
@@ -1171,7 +1169,7 @@ static void DrawElem(int x, int y, sbarelem_t *elem, player_t *player)
     sbarelem_t *child;
     array_foreach(child, elem->children)
     {
-        DrawElem(x, y, child);
+        DrawElem(x, y, child, player);
     }
 }
 
@@ -1215,6 +1213,8 @@ static void DrawBackground(const char *name)
 
 static void DrawStatusBar(void)
 {
+    player_t *player = &players[displayplayer];
+
     static int old_barindex = -1;
 
     int barindex = MAX(screenblocks - 10, 0);
@@ -1233,7 +1233,7 @@ static void DrawStatusBar(void)
     sbarelem_t *child;
     array_foreach(child, statusbar->children)
     {
-        DrawElem(0, SCREENHEIGHT - statusbar->height, child);
+        DrawElem(0, SCREENHEIGHT - statusbar->height, child, player);
     }
 }
 
