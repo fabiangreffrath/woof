@@ -1316,6 +1316,11 @@ boolean G_MovementResponder(event_t *ev)
 
 boolean G_Responder(event_t* ev)
 {
+  if (M_ShortcutResponder(ev))
+  {
+    return true;
+  }
+
   // allow spy mode changes even during the demo
   // killough 2/22/98: even during DM demo
   //
