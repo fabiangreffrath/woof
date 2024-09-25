@@ -305,6 +305,9 @@ enum
 {
     str_empty,
     str_layout,
+    str_flick_snap,
+    str_ms_time,
+    str_movement_type,
     str_rumble,
     str_curve,
     str_center_weapon,
@@ -2580,14 +2583,18 @@ static const char *curve_strings[] = {
     "2.4",    "2.5", "2.6", "2.7",     "2.8", "2.9", "Cubed"
 };
 
+static void MN_PadAdv(void);
 static void MN_Gyro(void);
+
+#define MI_GAP_GAMEPAD {NULL, S_SKIP, 0, 6}
 
 static setup_menu_t gen_settings4[] = {
 
+    {"Advanced Options", S_FUNC, CNTR_X, M_SPC, .action = MN_PadAdv},
+
     {"Gyro Options", S_FUNC, CNTR_X, M_SPC, .action = MN_Gyro},
 
-    {"Stick Layout", S_CHOICE, CNTR_X, M_SPC, {"joy_stick_layout"},
-     .strings_id = str_layout, .action = UpdateStickLayout},
+    MI_GAP_GAMEPAD,
 
     {"Free Look", S_ONOFF, CNTR_X, M_SPC, {"padlook"},
      .action = MN_UpdatePadLook},
@@ -2595,10 +2602,7 @@ static setup_menu_t gen_settings4[] = {
     {"Invert Look", S_ONOFF, CNTR_X, M_SPC, {"joy_invert_look"},
      .action = I_ResetGamepad},
 
-    {"Rumble", S_THERMO, CNTR_X, M_THRM_SPC, {"joy_rumble"},
-     .strings_id = str_rumble, .action = UpdateRumble},
-
-    MI_GAP,
+    MI_GAP_GAMEPAD,
 
     {"Turn Speed", S_THERMO | S_THRM_SIZE11, CNTR_X, M_THRM_SPC,
      {"joy_turn_speed"}, .action = I_ResetGamepad},
@@ -2606,10 +2610,7 @@ static setup_menu_t gen_settings4[] = {
     {"Look Speed", S_THERMO | S_THRM_SIZE11, CNTR_X, M_THRM_SPC,
      {"joy_look_speed"}, .action = I_ResetGamepad},
 
-    {"Response Curve", S_THERMO, CNTR_X, M_THRM_SPC,
-     {"joy_camera_curve"}, .strings_id = str_curve, .action = I_ResetGamepad},
-
-    MI_GAP,
+    MI_GAP_GAMEPAD,
 
     {"Movement Deadzone", S_THERMO | S_PCT, CNTR_X, M_THRM_SPC,
      {"joy_movement_inner_deadzone"}, .action = I_ResetGamepad},
@@ -2617,26 +2618,115 @@ static setup_menu_t gen_settings4[] = {
     {"Camera Deadzone", S_THERMO | S_PCT, CNTR_X, M_THRM_SPC,
      {"joy_camera_inner_deadzone"}, .action = I_ResetGamepad},
 
+    MI_GAP_GAMEPAD,
+
+    {"Rumble", S_THERMO, CNTR_X, M_THRM_SPC, {"joy_rumble"},
+     .strings_id = str_rumble, .action = UpdateRumble},
+
     MI_END
 };
+
+static const char *movement_type_strings[] = {
+    "Normalized", "Faster Diagonals"
+};
+
+#define MS_TIME_STRINGS_SIZE (50 + 1)
+
+static const char **GetMsTimeStrings(void)
+{
+    static const char *strings[MS_TIME_STRINGS_SIZE];
+    char buf[8];
+
+    for (int i = 0; i < MS_TIME_STRINGS_SIZE; ++i)
+    {
+        M_snprintf(buf, sizeof(buf), "%d ms", i * 10);
+        strings[i] = M_StringDuplicate(buf);
+    }
+    return strings;
+}
+
+static const char *flick_snap_strings[] = {"Off", "4-Way", "8-Way"};
+
+static setup_menu_t padadv_settings1[] = {
+
+    {"Stick Layout", S_CHOICE, CNTR_X, M_SPC, {"joy_stick_layout"},
+     .strings_id = str_layout, .action = UpdateStickLayout},
+
+    {"Flick Snap", S_CHOICE | S_STRICT, CNTR_X, M_SPC, {"joy_flick_snap"},
+     .strings_id = str_flick_snap, .action = I_ResetGamepad},
+
+    {"Flick Time", S_THERMO, CNTR_X, M_THRM_SPC, {"joy_flick_time"},
+     .strings_id = str_ms_time, .action = I_ResetGamepad},
+
+    MI_GAP,
+
+    {"Movement Type", S_CHOICE, CNTR_X, M_SPC,
+     {"joy_scale_diagonal_movement"}, .strings_id = str_movement_type,
+     .action = I_ResetGamepad},
+
+    MI_GAP,
+
+    {"Movement Curve", S_THERMO, CNTR_X, M_THRM_SPC, {"joy_movement_curve"},
+     .strings_id = str_curve, .action = I_ResetGamepad},
+
+    {"Camera Curve", S_THERMO, CNTR_X, M_THRM_SPC, {"joy_camera_curve"},
+     .strings_id = str_curve, .action = I_ResetGamepad},
+
+    MI_END
+};
+
+static setup_menu_t *padadv_settings[] = {padadv_settings1, NULL};
+
+static setup_tab_t padadv_tabs[] = {{"Advanced"}, {NULL}};
+
+static void MN_PadAdv(void)
+{
+    SetItemOn(set_item_on);
+    SetPageIndex(current_page);
+
+    MN_SetNextMenuAlt(ss_padadv);
+    setup_screen = ss_padadv;
+    current_page = GetPageIndex(padadv_settings);
+    current_menu = padadv_settings[current_page];
+    current_tabs = padadv_tabs;
+    SetupMenuSecondary();
+}
+
+void MN_DrawPadAdv(void)
+{
+    inhelpscreens = true;
+
+    DrawBackground("FLOOR4_6");
+    MN_DrawTitle(M_X_CENTER, M_Y_TITLE, "M_GENERL", "General");
+    DrawTabs();
+    DrawInstructions();
+    DrawScreenItems(current_menu);
+}
 
 static void UpdateGamepadItems(void)
 {
     const boolean gamepad = (I_UseGamepad() && I_GamepadEnabled());
     const boolean gyro = (I_GyroEnabled() && I_GyroSupported());
     const boolean sticks = I_UseStickLayout();
+    const boolean flick = (gamepad && sticks && !I_StandardLayout());
     const boolean condition = (!gamepad || !sticks);
 
+    DisableItem(!gamepad, gen_settings4, "Advanced Options");
     DisableItem(!gamepad || !I_GyroSupported(), gen_settings4, "Gyro Options");
     DisableItem(!gamepad || !I_RumbleSupported(), gen_settings4, "joy_rumble");
     DisableItem(!gamepad || (!sticks && !gyro), gen_settings4, "padlook");
-    DisableItem(!gamepad, gen_settings4, "joy_stick_layout");
     DisableItem(condition, gen_settings4, "joy_invert_look");
     DisableItem(condition, gen_settings4, "joy_movement_inner_deadzone");
     DisableItem(condition, gen_settings4, "joy_camera_inner_deadzone");
     DisableItem(condition, gen_settings4, "joy_turn_speed");
     DisableItem(condition, gen_settings4, "joy_look_speed");
-    DisableItem(condition, gen_settings4, "joy_camera_curve");
+
+    DisableItem(!gamepad, padadv_settings1, "joy_stick_layout");
+    DisableItem(!flick, padadv_settings1, "joy_flick_snap");
+    DisableItem(!flick, padadv_settings1, "joy_flick_time");
+    DisableItem(condition, padadv_settings1, "joy_scale_diagonal_movement");
+    DisableItem(condition, padadv_settings1, "joy_movement_curve");
+    DisableItem(condition, padadv_settings1, "joy_camera_curve");
 }
 
 static void UpdateGyroItems(void);
@@ -3052,6 +3142,7 @@ static setup_menu_t **setup_screens[] = {
     gen_settings, // killough 10/98
     comp_settings,
     eq_settings,
+    padadv_settings,
     gyro_settings,
 };
 
@@ -3180,6 +3271,7 @@ static void ResetDefaultsSecondary(void)
     if (setup_screen == ss_gen)
     {
         ResetDefaults(ss_eq);
+        ResetDefaults(ss_padadv);
         ResetDefaults(ss_gyro);
     }
 }
@@ -4379,6 +4471,9 @@ void MN_DrawTitle(int x, int y, const char *patch, const char *alttext)
 static const char **selectstrings[] = {
     NULL, // str_empty
     layout_strings,
+    flick_snap_strings,
+    NULL, // str_ms_time
+    movement_type_strings,
     rumble_strings,
     curve_strings,
     center_weapon_strings,
@@ -4440,6 +4535,7 @@ void MN_InitMenuStrings(void)
     selectstrings[str_resolution_scale] = GetResolutionScaleStrings();
     selectstrings[str_midi_player] = GetMidiPlayerStrings();
     selectstrings[str_mouse_accel] = GetMouseAccelStrings();
+    selectstrings[str_ms_time] = GetMsTimeStrings();
     selectstrings[str_gyro_sens] = GetGyroSensitivityStrings();
     selectstrings[str_gyro_accel] = GetGyroAccelStrings();
     selectstrings[str_resampler] = GetResamplerStrings();

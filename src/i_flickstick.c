@@ -256,7 +256,7 @@ void I_ResetFlickStick(void)
 void I_RefreshFlickStickSettings(void)
 {
     flick.mode = joy_flick_mode;
-    flick.time = joy_flick_time * 1000.0f;
+    flick.time = joy_flick_time * 10000.0f;
     flick.upper_smooth = joy_flick_rotation_smooth / 10.0f;
     flick.lower_smooth = flick.upper_smooth * 0.5f;
     flick.rotation_speed = joy_flick_rotation_speed / 10.0f;
@@ -270,8 +270,8 @@ void I_BindFlickStickVariables(void)
 {
     BIND_NUM(joy_flick_mode, MODE_DEFAULT, MODE_DEFAULT, NUM_FLICK_MODES - 1,
         "Flick mode (0 = Default; 1 = Flick Only; 2 = Rotate Only)");
-    BIND_NUM(joy_flick_time, 100, 100, 500,
-        "Flick time [milliseconds]");
+    BIND_NUM(joy_flick_time, 10, 10, 50,
+        "Flick time (10 = 100 ms; 50 = 500 ms)");
     BIND_NUM(joy_flick_rotation_smooth, 8, 0, 50,
         "Flick rotation smoothing threshold "
         "(0 = Off; 50 = 5.0 rotations/second)");

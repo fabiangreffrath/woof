@@ -198,6 +198,7 @@ typedef enum {
   ss_gen,       // killough 10/98
   ss_comp,      // killough 10/98
   ss_eq,
+  ss_padadv,
   ss_gyro,
   ss_max
 } ss_types;
