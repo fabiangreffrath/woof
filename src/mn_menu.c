@@ -1875,6 +1875,14 @@ static menu_t EqualizerDef = {
     34, 5,              // x, y (skull drawn here)
 };
 
+static menu_t PadAdvDef = {
+    generic_setup_end,  // numitems
+    &SetupDef,          // prevMenu
+    Generic_Setup,      // menuitems
+    MN_DrawPadAdv,      // routine
+    34, 5,              // x, y (skull drawn here)
+};
+
 static menu_t GyroDef = {
     generic_setup_end,  // numitems
     &SetupDef,          // prevMenu
@@ -1887,7 +1895,7 @@ void MN_SetNextMenuAlt(ss_types type)
 {
     static menu_t *setup_defs[] = {
         &KeybndDef,  &WeaponDef, &StatusHUDDef, &AutoMapDef, &EnemyDef,
-        &GeneralDef, &CompatDef, &EqualizerDef, &GyroDef,
+        &GeneralDef, &CompatDef, &EqualizerDef, &PadAdvDef,  &GyroDef,
     };
 
     SetNextMenu(setup_defs[type]);
