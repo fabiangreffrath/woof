@@ -148,17 +148,14 @@ void I_InitTimer(void)
 
 #ifdef _WIN32
     // Create an unnamed waitable timer.
-    hTimer = NULL;
   #ifdef HAVE_HIGH_RES_TIMER
     hTimer = CreateWaitableTimerEx(NULL, NULL,
                                    CREATE_WAITABLE_TIMER_MANUAL_RESET
                                    | CREATE_WAITABLE_TIMER_HIGH_RESOLUTION,
                                    TIMER_ALL_ACCESS);
+  #else
+    hTimer = CreateWaitableTimer(NULL, TRUE, NULL);
   #endif
-    if (hTimer == NULL)
-    {
-        hTimer = CreateWaitableTimer(NULL, TRUE, NULL);
-    }
 
     if (hTimer == NULL)
     {
@@ -218,7 +215,7 @@ void I_SleepUS(uint64_t us)
 {
 #if defined(_WIN32)
     LARGE_INTEGER liDueTime;
-    liDueTime.QuadPart = -(LONGLONG)(us * 1000 / 100);
+    liDueTime.QuadPart = -(LONGLONG)(us * 10);
     if (SetWaitableTimer(hTimer, &liDueTime, 0, NULL, NULL, 0))
     {
         WaitForSingleObject(hTimer, INFINITE);

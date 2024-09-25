@@ -42,6 +42,7 @@ typedef enum
 } death_use_action_t;
 
 extern death_use_action_t death_use_action;
+extern boolean activate_death_use_reload;
 
 boolean P_EvaluateItemOwned(itemtype_t item, struct player_s *player);
 

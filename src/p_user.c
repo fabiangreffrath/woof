@@ -32,7 +32,6 @@
 #include "hu_stuff.h"
 #include "info.h"
 #include "m_cheat.h"
-#include "m_input.h"
 #include "p_map.h"
 #include "p_mobj.h"
 #include "p_pspr.h"
@@ -259,6 +258,7 @@ void P_MovePlayer (player_t* player)
 #define ANG5 (ANG90/18)
 
 death_use_action_t death_use_action;
+boolean activate_death_use_reload;
 
 //
 // P_DeathThink
@@ -316,29 +316,21 @@ void P_DeathThink (player_t* player)
 
   if (player->cmd.buttons & BT_USE)
   {
-    if (demorecording || demoplayback || netgame)
-      player->playerstate = PST_REBORN;
-    else switch(death_use_action)
+    player->playerstate = PST_REBORN;
+  }
+
+  if (activate_death_use_reload)
+  {
+    activate_death_use_reload = false;
+
+    if (savegameslot >= 0)
     {
-      case death_use_default:
-        player->playerstate = PST_REBORN;
-        break;
-      case death_use_reload:
-        if (savegameslot >= 0)
-        {
-          char *file = G_SaveGameName(savegameslot);
-          G_LoadGame(file, savegameslot, false);
-          free(file);
-          // [Woof!] prevent on-death-action reloads from activating specials
-          M_InputGameDeactivate(input_use);
-        }
-        else
-          player->playerstate = PST_REBORN;
-        break;
-      case death_use_nothing:
-      default:
-        break;
+      char *file = G_SaveGameName(savegameslot);
+      G_LoadGame(file, savegameslot, false);
+      free(file);
     }
+    else
+      player->playerstate = PST_REBORN;
   }
 }
 
@@ -487,7 +479,7 @@ void P_PlayerThink (player_t* player)
 	      (player->readyweapon != wp_chainsaw ||
 	       !player->powers[pw_strength]))
 	    newweapon = wp_chainsaw;
-	  if (have_ssg &&
+	  if (ALLOW_SSG &&
 	      newweapon == wp_shotgun &&
 	      player->weaponowned[wp_supershotgun] &&
 	      player->readyweapon != wp_supershotgun)

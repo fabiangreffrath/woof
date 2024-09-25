@@ -15,6 +15,8 @@
 //     OPL SDL interface.
 //
 
+#include <stdlib.h>
+
 #include "doomtype.h"
 #include "opl.h"
 #include "opl3.h"
@@ -22,6 +24,10 @@
 #include "opl_queue.h"
 
 #define MAX_SOUND_SLICE_TIME 100 /* ms */
+
+#define OPL_SILENCE_THRESHOLD   36  // Allow for a worst case of +/-1 ripple in all 36 operators.
+#define OPL_CHIP_TIMEOUT        (OPL_SAMPLE_RATE / 2)   // 0.5 seconds of silence with no key-on
+                                                        // should be enough to ensure chip is "off"
 
 typedef struct
 {
@@ -51,6 +57,8 @@ static uint64_t pause_offset;
 // OPL software emulator structure.
 
 static opl3_chip opl_chips[OPL_MAX_CHIPS];
+static uint32_t opl_chip_keys[OPL_MAX_CHIPS];
+static uint32_t opl_chip_timeouts[OPL_MAX_CHIPS];
 static int opl_opl3mode;
 
 // Register number that was written.
@@ -62,7 +70,7 @@ static int register_num = 0;
 static opl_timer_t timer1 = { 12500, 0, 0, 0 };
 static opl_timer_t timer2 = { 3125, 0, 0, 0 };
 
-static int mixing_freq, mixing_channels;
+static int mixing_channels;
 
 // Advance time by the specified number of samples, invoking any
 // callback functions as appropriate.
@@ -75,7 +83,7 @@ static void AdvanceTime(unsigned int nsamples)
 
     // Advance time.
 
-    us = ((uint64_t) nsamples * OPL_SECOND) / mixing_freq;
+    us = ((uint64_t) nsamples * OPL_SECOND) / OPL_SAMPLE_RATE;
     current_time += us;
 
     if (opl_sdl_paused)
@@ -99,6 +107,39 @@ static void AdvanceTime(unsigned int nsamples)
         callback(callback_data);
     }
 }
+
+
+// When a chip is re-activated after being idle, we need to bring its
+// internal global timers back into synch with the main chip to avoid
+// possible beating artifacts
+
+static void ResyncChip (int chip)
+{
+    // Find an active chip to synchronize with; will usually be chip 0
+    int sync = -1;
+    for (int c = 0; c < OPL_MAX_CHIPS; ++c)
+    {
+        if (opl_chip_timeouts[c] < OPL_CHIP_TIMEOUT)
+        {
+            sync = c;
+            break;
+        }
+    }
+
+    if (sync >= 0)
+    {
+        // Synchronize the LFOs
+        opl_chips[chip].vibpos = opl_chips[sync].vibpos;
+        opl_chips[chip].tremolopos = opl_chips[sync].tremolopos;
+        opl_chips[chip].timer = opl_chips[sync].timer;
+
+        // Synchronize the envelope clock
+        opl_chips[chip].eg_state = opl_chips[sync].eg_state;
+        opl_chips[chip].eg_timer = opl_chips[sync].eg_timer;
+        opl_chips[chip].eg_timerrem = opl_chips[sync].eg_timerrem;
+    }
+}
+
 
 // Callback function to fill a new sound buffer:
 
@@ -127,7 +168,7 @@ int OPL_FillBuffer(byte *buffer, int buffer_samples)
         {
             next_callback_time = OPL_Queue_Peek(callback_queue) + pause_offset;
 
-            nsamples = (next_callback_time - current_time) * mixing_freq;
+            nsamples = (next_callback_time - current_time) * OPL_SAMPLE_RATE;
             nsamples = (nsamples + OPL_SECOND - 1) / OPL_SECOND;
 
             if (nsamples > buffer_samples - filled)
@@ -140,19 +181,44 @@ int OPL_FillBuffer(byte *buffer, int buffer_samples)
         Bit16s *cursor = (Bit16s *)(buffer + filled * 4);
         for (int s = 0; s < nsamples; ++s)
         {
+            // Check for chip activations before we generate the sample
+            for (int c = 0; c < num_opl_chips; ++c)
+            {
+                // Reset chip timeout if any channels are active
+                if (opl_chip_keys[c])
+                {
+                    // Resync is necessary if the chip was idle
+                    if (opl_chip_timeouts[c] >= OPL_CHIP_TIMEOUT)
+                        ResyncChip(c);
+                    opl_chip_timeouts[c] = 0;
+                }
+            }
+
+            // Generate a sample from each chip and mix them
             Bit32s mix[2] = {0, 0};
             for (int c = 0; c < num_opl_chips; ++c)
             {
-                Bit16s sample[2];
-                OPL3_GenerateResampled(&opl_chips[c], sample);
-                mix[0] += sample[0];
-                mix[1] += sample[1];
+                // Run the chip if it's active or if it has pending register writes
+                if (opl_chip_timeouts[c] < OPL_CHIP_TIMEOUT || (opl_chips[c].writebuf[opl_chips[c].writebuf_cur].reg & 0x200))
+                {
+                    Bit16s sample[2];
+                    OPL3_Generate(&opl_chips[c], sample);
+                    mix[0] += sample[0];
+                    mix[1] += sample[1];
+
+                    // Reset chip timeout if it breaks the silence threshold
+                    if (MAX(abs(sample[0]), abs(sample[1])) > OPL_SILENCE_THRESHOLD)
+                        opl_chip_timeouts[c] = 0;
+                    else
+                        opl_chip_timeouts[c]++;
+                }
             }
 
             cursor[0] = BETWEEN(-32768, 32767, mix[0]);
             cursor[1] = BETWEEN(-32768, 32767, mix[1]);
             cursor += 2;
         }
+
         //OPL3_GenerateStream(&opl_chip, (Bit16s *)(buffer + filled * 4), nsamples);
         filled += nsamples;
 
@@ -191,13 +257,18 @@ static int OPL_SDL_Init(unsigned int port_base, int num_chips)
 
     // Only supports AUDIO_S16SYS
     mixing_channels = 2;
-    mixing_freq = opl_sample_rate;
 
     // Create the emulator structure:
 
     for (int c = 0; c < num_opl_chips; ++c)
-        OPL3_Reset(&opl_chips[c], mixing_freq);
+        OPL3_Reset(&opl_chips[c], OPL_SAMPLE_RATE);
     opl_opl3mode = 0;
+
+    for (int c = 0; c < OPL_MAX_CHIPS; ++c)
+    {
+        opl_chip_keys[c] = 0;
+        opl_chip_timeouts[c] = OPL_CHIP_TIMEOUT;
+    }
 
     return 1;
 }
@@ -299,6 +370,16 @@ static void WriteRegister(int chip, unsigned int reg_num, unsigned int value)
             break;
 
         default:
+            // Keep track of which channels are keyed-on so we know when the chip is in use
+            if ((reg_num & 0xff) >= 0xb0 && (reg_num & 0xff) <= 0xb8)
+            {
+                uint32_t key_bit = 1 << (((reg_num & 0x100) ? 9 : 0) + (reg_num & 0xf));
+                if (value & (1 << 5))
+                    opl_chip_keys[chip] |= key_bit;
+                else
+                    opl_chip_keys[chip] &= ~key_bit;
+            }
+
             OPL3_WriteRegBuffered(&opl_chips[chip], reg_num, value);
             break;
     }

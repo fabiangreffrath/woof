@@ -1013,7 +1013,7 @@ static void HU_widget_build_weapon (void)
         break;
       case retail:
       case registered:
-        if (w >= wp_supershotgun && !have_ssg)
+        if (w >= wp_supershotgun && !ALLOW_SSG)
           ok = 0;
         break;
       default:

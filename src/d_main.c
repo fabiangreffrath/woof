@@ -84,6 +84,7 @@
 #include "v_video.h"
 #include "w_wad.h"
 #include "wi_stuff.h"
+#include "ws_stuff.h"
 #include "z_zone.h"
 
 // DEHacked support - Ty 03/09/97
@@ -288,7 +289,7 @@ void D_Display (void)
   if (gamestate != wipegamestate && (strictmode || screen_melt))
     {
       wipe = true;
-      wipe_StartScreen(0, 0, video.unscaledw, SCREENHEIGHT);
+      wipe_StartScreen(0, 0, video.width, video.height);
     }
 
   if (!wipe)
@@ -418,29 +419,24 @@ void D_Display (void)
     }
 
   // wipe update
-  wipe_EndScreen(0, 0, video.unscaledw, SCREENHEIGHT);
+  wipe_EndScreen(0, 0, video.width, video.height);
 
   wipestart = I_GetTime () - 1;
 
   do
     {
-      int nowtime, tics;
-      do
-        {
-          I_Sleep(1);
-          nowtime = I_GetTime();
-          tics = nowtime - wipestart;
-        }
-      while (!tics);
-      wipestart = nowtime;
+      int nowtime = I_GetTime();
+      int tics = nowtime - wipestart;
+
+      fractionaltic = I_GetFracTime();
+
       done = wipe_ScreenWipe(strictmode ? wipe_Melt : screen_melt,
-                             0, 0, video.unscaledw, SCREENHEIGHT, tics);
+                             0, 0, video.width, video.height, tics);
+      wipestart = nowtime;
       M_Drawer();                   // menu is drawn even on top of wipes
       I_FinishUpdate();             // page flip or blit buffer
     }
   while (!done);
-
-  drs_skip_frame = true; // skip DRS after wipe
 }
 
 //
@@ -2430,6 +2426,7 @@ void D_DoomMain(void)
   G_UpdateGamepadVariables();
   G_UpdateMouseVariables();
   R_UpdateViewAngleFunction();
+  WS_Init();
 
   MN_ResetTimeScale();
 

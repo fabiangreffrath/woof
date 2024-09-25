@@ -35,6 +35,7 @@
 
 static SDL_GameController *gamepad;
 static boolean gyro_supported;
+static joy_platform_t platform;
 
 // [FG] adapt joystick button and axis handling from Chocolate Doom 3.0
 
@@ -265,9 +266,27 @@ static joy_platform_t GetSwitchSubPlatform(void)
     return PLATFORM_SWITCH_PRO;
 }
 
+void I_GetFaceButtons(int *buttons)
+{
+    if (platform < PLATFORM_SWITCH)
+    {
+        buttons[0] = GAMEPAD_Y;
+        buttons[1] = GAMEPAD_A;
+        buttons[2] = GAMEPAD_X;
+        buttons[3] = GAMEPAD_B;
+    }
+    else
+    {
+        buttons[0] = GAMEPAD_X;
+        buttons[1] = GAMEPAD_B;
+        buttons[2] = GAMEPAD_Y;
+        buttons[3] = GAMEPAD_A;
+    }
+}
+
 static void UpdatePlatform(void)
 {
-    joy_platform_t platform = joy_platform;
+    platform = joy_platform;
 
     if (platform == PLATFORM_AUTO)
     {

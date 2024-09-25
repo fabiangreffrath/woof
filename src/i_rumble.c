@@ -794,6 +794,6 @@ void I_DisableRumble(void)
 
 void I_BindRumbleVariables(void)
 {
-    BIND_NUM_GENERAL(joy_rumble, 5, 0, 10,
+    BIND_NUM_GENERAL(joy_rumble, 0, 0, 10,
         "Rumble intensity (0 = Off; 10 = 100%)");
 }

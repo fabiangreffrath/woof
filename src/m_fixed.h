@@ -44,6 +44,10 @@
 #define FRACUNIT (1<<FRACBITS)
 #define FIXED2DOUBLE(x) ((x)/(double)FRACUNIT)
 #define FRACMASK (FRACUNIT - 1)
+#define FRACFILL(x, o) ((x) | ((o) < 0 ? (FRACMASK << (32 - FRACBITS)) : 0))
+
+#define IntToFixed(x) ((x) << FRACBITS)
+#define FixedToInt(x) FRACFILL((x) >> FRACBITS, (x))
 
 typedef int fixed_t;
 
