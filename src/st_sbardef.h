@@ -24,7 +24,7 @@ typedef enum
     sbf_mono0,
     sbf_monomax,
     sbf_proportional,
-} numfonttype_t;
+} fonttype_t;
 
 typedef enum
 {
@@ -89,9 +89,21 @@ typedef enum
     sbe_facebackground,
     sbe_number,
     sbe_percent,
+    sbe_widget,
 
     sbe_max,
 } sbarelementtype_t;
+
+typedef enum
+{
+    sbw_monsec,
+    sbw_time,
+    sbw_coord,
+    sbw_fps,
+    sbw_rate,
+    sbw_cmd,
+    sbw_speed,
+} sbarwidgettype_t;
 
 typedef enum
 {
@@ -117,6 +129,7 @@ typedef struct
 
 typedef struct sbarelem_s sbarelem_t;
 typedef struct numberfont_s numberfont_t;
+typedef struct hudfont_s hudfont_t;
 
 struct sbarelem_s
 {
@@ -142,7 +155,7 @@ struct sbarelem_s
 
     // number, percent
     const char *font_name;
-    numberfont_t *font;
+    numberfont_t *numfont;
     sbarnumbertype_t numtype;
     int numparam;
     int maxlength;
@@ -155,6 +168,12 @@ struct sbarelem_s
     int faceindex;
     int facecount;
     int oldhealth;
+
+    // widget
+    sbarwidgettype_t widgettype;
+    hudfont_t *hudfont;
+    const char *string;
+    int totalwidth;
 };
 
 typedef struct
@@ -168,7 +187,7 @@ typedef struct
 struct numberfont_s
 {
     const char *name;
-    numfonttype_t type;
+    fonttype_t type;
     const char *stem;
     int monowidth;
     patch_t *numbers[10];
@@ -176,9 +195,27 @@ struct numberfont_s
     patch_t *minus;
 };
 
+#define HU_FONTSTART    '!'     /* the first font characters */
+#define HU_FONTEND      (0x7f)  /*jff 2/16/98 '_' the last font characters */
+
+// Calculate # of glyphs in font.
+#define HU_FONTSIZE     (HU_FONTEND - HU_FONTSTART + 1)
+#define SPACEWIDTH      4
+
+struct hudfont_s
+{
+    const char *name;
+    fonttype_t type;
+    const char *stem;
+    int monowidth;
+    int maxheight;
+    patch_t *characters[HU_FONTSIZE];
+};
+
 typedef struct
 {
     numberfont_t *numberfonts;
+    hudfont_t *hudfonts;
     statusbar_t *statusbars;
 } sbardef_t;
 

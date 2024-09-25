@@ -384,7 +384,7 @@ void HU_Init(void)
     M_snprintf(buffer, sizeof(buffer), "STCFN%.3d", j);
     if (W_CheckNumForName(buffer) != -1)
       big_font.patches[i] = V_CachePatchName(buffer, PU_STATIC);
-
+/*
     if ('0' <= j && j <= '9')
     {
       M_snprintf(buffer, sizeof(buffer), "DIG%.1d", j - 48);
@@ -406,7 +406,7 @@ void HU_Init(void)
       if (W_CheckNumForName(buffer) != -1)
         sml_font.patches[i] = V_CachePatchName(buffer, PU_STATIC);
     }
-
+*/
     // [FG] small font available, big font unavailable
     if (big_font.patches[i] == NULL && sml_font.patches[i] != NULL)
     {

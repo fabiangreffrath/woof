@@ -310,7 +310,7 @@ void D_Display (void)
     }
 
   if (gamestate == GS_LEVEL && gametic)
-    HU_Erase();
+    ST_Erase();
 
   switch (gamestate)                // do buffered drawing
     {
@@ -368,8 +368,8 @@ void D_Display (void)
         borderdrawcount = 3;
       if (borderdrawcount)
         {
-          R_DrawViewBorder ();    // erase old menu stuff
-          HU_Drawer ();
+          R_DrawViewBorder();    // erase old menu stuff
+          ST_Drawer();
           borderdrawcount--;
         }
     }

@@ -82,6 +82,7 @@ static boolean ParseSbarElemType(json_t *json, sbarelementtype_t type,
     out->translation = JS_GetStringValue(json, "translation");
 
     out->cr = out->translation ? V_CRByName(out->translation) : CR_NONE;
+    out->crboom = CR_NONE;
 
     json_t *js_conditions = JS_GetObject(json, "conditions");
     json_t *js_condition = NULL;
@@ -157,6 +158,24 @@ static boolean ParseSbarElemType(json_t *json, sbarelementtype_t type,
             }
             break;
 
+        case sbe_widget:
+             {
+                json_t *font = JS_GetObject(json, "font");
+                if (!JS_IsString(font))
+                {
+                    return false;
+                }
+                out->font_name = JS_GetString(font);
+
+                json_t *type = JS_GetObject(json, "type");
+                if (!JS_IsNumber(type))
+                {
+                    return false;
+                }
+                out->widgettype = JS_GetInteger(type);
+            }
+            break;
+
         default:
             break;
     }
@@ -171,7 +190,8 @@ static const char *sbe_names[] =
     [sbe_face] = "face",
     [sbe_facebackground] = "facebackground",
     [sbe_number] = "number",
-    [sbe_percent] = "percent"
+    [sbe_percent] = "percent",
+    [sbe_widget] = "widget"
 };
 
 static boolean ParseSbarElem(json_t *json, sbarelem_t *out)
@@ -254,6 +274,60 @@ static boolean ParseNumberFont(json_t *json, numberfont_t *out)
     return true;
 }
 
+static boolean ParseHUDFont(json_t *json, hudfont_t *out)
+{
+    json_t *name = JS_GetObject(json, "name");
+    json_t *stem = JS_GetObject(json, "stem");
+    if (!JS_IsString(name) || !JS_IsString(stem))
+    {
+        return false;
+    }
+    out->name = JS_GetString(name);
+    out->stem = JS_GetString(stem);
+
+    json_t *type = JS_GetObject(json, "type");
+    if (!JS_IsNumber(type))
+    {
+        return false;
+    }
+    out->type = JS_GetInteger(type);
+
+    char lump[9] = {0};
+    int found;
+    int maxwidth = 0;
+    int maxheight = 0;
+
+    for (int i = 0; i < HU_FONTSIZE; ++i)
+    {
+        M_snprintf(lump, sizeof(lump), "%s%03d", out->stem, i + 33);
+        found = W_CheckNumForName(lump);
+        if (found < 0)
+        {
+            out->characters[i] = NULL;
+            continue;
+        }
+        out->characters[i] = V_CachePatchNum(found, PU_STATIC);
+        maxwidth = MAX(maxwidth, SHORT(out->characters[i]->width));
+        maxheight = MAX(maxheight, SHORT(out->characters[i]->height));
+    }
+
+    out->maxheight = maxheight;
+
+    switch (out->type)
+    {
+        case sbf_mono0:
+            out->monowidth = SHORT(out->characters[0]->width);
+            break;
+        case sbf_monomax:
+            out->monowidth = maxwidth;
+            break;
+        default:
+            break;
+    }
+
+    return true;
+}
+
 static boolean ParseStatusBar(json_t *json, statusbar_t *out)
 {
     json_t *height = JS_GetObject(json, "height");
@@ -308,6 +382,18 @@ sbardef_t *ST_ParseSbarDef(void)
         if (ParseNumberFont(js_numberfont, &numberfont))
         {
             array_push(out->numberfonts, numberfont);
+        }
+    }
+
+    json_t *js_hudfonts = JS_GetObject(data, "hudfonts");
+    json_t *js_hudfont = NULL;
+
+    JS_ArrayForEach(js_hudfont, js_hudfonts)
+    {
+        hudfont_t hudfont = {0};
+        if (ParseHUDFont(js_hudfont, &hudfont))
+        {
+            array_push(out->hudfonts, hudfont);
         }
     }
 

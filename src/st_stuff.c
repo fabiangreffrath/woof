@@ -29,7 +29,6 @@
 #include "doomdef.h"
 #include "doomstat.h"
 #include "doomtype.h"
-#include "hu_stuff.h" // [FG] hud_displayed
 #include "i_video.h"
 #include "info.h"
 #include "m_array.h"
@@ -42,11 +41,13 @@
 #include "p_user.h"
 #include "r_data.h"
 #include "r_defs.h"
+#include "r_draw.h"
 #include "r_main.h"
 #include "r_state.h"
 #include "s_sound.h"
 #include "st_stuff.h"
 #include "st_sbardef.h"
+#include "st_widgets.h"
 #include "tables.h"
 #include "v_fmt.h"
 #include "v_video.h"
@@ -635,7 +636,7 @@ static void UpdateNumber(sbarelem_t *elem, player_t *player)
     int numglyphs = 0;
     int numnumbers = 0;
 
-    numberfont_t *font = elem->font;
+    numberfont_t *font = elem->numfont;
     if (font == NULL)
     {
         array_foreach(font, sbardef->numberfonts)
@@ -695,9 +696,64 @@ static void UpdateNumber(sbarelem_t *elem, player_t *player)
         elem->xoffset -= totalwidth;
     }
 
-    elem->font = font;
+    elem->numfont = font;
     elem->number = number;
     elem->numnumbers = numnumbers;
+}
+
+static void UpdateString(sbarelem_t *elem)
+{
+    int numglyphs = 0;
+
+    hudfont_t *font = elem->hudfont;
+    if (font == NULL)
+    {
+        array_foreach(font, sbardef->hudfonts)
+        {
+            if (!strcmp(font->name, elem->font_name))
+            {
+                break;
+            }
+        }
+    }
+
+    numglyphs = strlen(elem->string);
+
+    int totalwidth = font->monowidth * numglyphs;
+    if (font->type == sbf_proportional)
+    {
+        totalwidth = 0;
+        for (int i = 0; i < numglyphs; ++i)
+        {
+            int ch = elem->string[i];
+            ch = M_ToUpper(ch) - HU_FONTSTART;
+            if (ch < 0 || ch > HU_FONTSIZE)
+            {
+                totalwidth += SPACEWIDTH;
+                continue;
+            }
+            patch_t *patch = font->characters[ch];
+            if (patch == NULL)
+            {
+                totalwidth += SPACEWIDTH;
+                continue;
+            }
+            totalwidth += SHORT(patch->width);
+        }
+    }
+
+    elem->xoffset = 0;
+    if (elem->alignment & sbe_h_middle)
+    {
+        elem->xoffset -= (totalwidth >> 1);
+    }
+    else if (elem->alignment & sbe_h_right)
+    {
+        elem->xoffset -= totalwidth;
+    }
+
+    elem->hudfont = font;
+    elem->totalwidth = totalwidth;
 }
 
 static void UpdateAnimation(sbarelem_t *elem)
@@ -807,6 +863,29 @@ static void UpdateBoomColors(sbarelem_t *elem, player_t *player)
     elem->crboom = cr;
 }
 
+static void UpdateWidget(sbarelem_t *elem, player_t *player)
+{
+    switch (elem->widgettype)
+    {
+        case sbw_monsec:
+            UpdateMonSec(elem);
+            UpdateString(elem);
+            break;
+        case sbw_time:
+            UpdateStTime(elem, player);
+            UpdateString(elem);
+            break;
+        case sbw_coord:
+        case sbw_fps:
+        case sbw_rate:
+        case sbw_cmd:
+        case sbw_speed:
+            break;
+        default:
+            break;
+    }
+}
+
 static void UpdateElem(sbarelem_t *elem, player_t *player)
 {
     switch (elem->elemtype)
@@ -814,14 +893,21 @@ static void UpdateElem(sbarelem_t *elem, player_t *player)
         case sbe_face:
             UpdateFace(elem, player);
             break;
+
         case sbe_animation:
             UpdateAnimation(elem);
             break;
+
         case sbe_number:
         case sbe_percent:
             UpdateBoomColors(elem, player);
             UpdateNumber(elem, player);
             break;
+
+        case sbe_widget:
+            UpdateWidget(elem, player);
+            break;
+
         default:
             break;
     }
@@ -846,7 +932,7 @@ static void UpdateStatusBar(player_t *player)
     }
 }
 
-static void RefreshElem(sbarelem_t *elem)
+static void ResetElem(sbarelem_t *elem)
 {
     switch (elem->elemtype)
     {
@@ -884,11 +970,11 @@ static void RefreshElem(sbarelem_t *elem)
     sbarelem_t *child;
     array_foreach(child, elem->children)
     {
-        RefreshElem(child);
+        ResetElem(child);
     }
 }
 
-static void RefreshStatusBar(void)
+static void ResetStatusBar(void)
 {
     statusbar_t *statusbar;
     array_foreach(statusbar, sbardef->statusbars)
@@ -896,7 +982,7 @@ static void RefreshStatusBar(void)
         sbarelem_t *child;
         array_foreach(child, statusbar->children)
         {
-            RefreshElem(child);
+            ResetElem(child);
         }
     }
 }
@@ -945,20 +1031,20 @@ static void DrawPatch(int x, int y, sbaralignment_t alignment, patch_t *patch,
     V_DrawPatchTranslated(x, y, patch, colrngs[cr]);
 }
 
-static void DrawGlyph(int x, int y, sbarelem_t *elem, patch_t *glyph)
+static void DrawGlyph(int x, int y, sbarelem_t *elem, fonttype_t fonttype,
+                      int monowidth, patch_t *glyph)
 {
-    numberfont_t *font = elem->font;
     int width, widthdiff;
 
-    if (font->type == sbf_proportional)
+    if (fonttype == sbf_proportional)
     {
-        width = SHORT(glyph->width);
+        width = glyph ? SHORT(glyph->width) : SPACEWIDTH;
         widthdiff = 0;
     }
     else
     {
-        width = font->monowidth;
-        widthdiff = SHORT(glyph->width) - width;
+        width = monowidth;
+        widthdiff = glyph ? SHORT(glyph->width) - width : SPACEWIDTH - width;
     }
 
     if (elem->alignment & sbe_h_middle)
@@ -970,8 +1056,11 @@ static void DrawGlyph(int x, int y, sbarelem_t *elem, patch_t *glyph)
         elem->xoffset += (width + widthdiff);
     }
 
-    DrawPatch(x + elem->xoffset, y, elem->alignment, glyph,
-              elem->crboom == CR_NONE ? elem->cr : elem->crboom);
+    if (glyph)
+    {
+        DrawPatch(x + elem->xoffset, y, elem->alignment, glyph,
+                  elem->crboom == CR_NONE ? elem->cr : elem->crboom);
+    }
 
     if (elem->alignment & sbe_h_middle)
     {
@@ -991,11 +1080,11 @@ static void DrawNumber(int x, int y, sbarelem_t *elem)
 {
     int number = elem->number;
     int base_xoffset = elem->xoffset;
-    numberfont_t *font = elem->font;
+    numberfont_t *font = elem->numfont;
 
     if (number < 0 && font->minus != NULL)
     {
-        DrawGlyph(x, y, elem, font->minus);
+        DrawGlyph(x, y, elem, font->type, font->monowidth, font->minus);
         number = -number;
     }
 
@@ -1004,7 +1093,7 @@ static void DrawNumber(int x, int y, sbarelem_t *elem)
     {
         int glyphbase = (int)pow(10.0, --glyphindex);
         int workingnum = number / glyphbase;
-        DrawGlyph(x, y, elem, font->numbers[workingnum]);
+        DrawGlyph(x, y, elem, font->type, font->monowidth, font->numbers[workingnum]);
         number -= (workingnum * glyphbase);
     }
 
@@ -1015,8 +1104,48 @@ static void DrawNumber(int x, int y, sbarelem_t *elem)
         {
             elem->crboom = CR_GRAY;
         }
-        DrawGlyph(x, y, elem, font->percent);
+        DrawGlyph(x, y, elem, font->type, font->monowidth, font->percent);
         elem->crboom = oldcr;
+    }
+
+    elem->xoffset = base_xoffset;
+}
+
+static void DrawString(int x, int y, sbarelem_t *elem)
+{
+    int base_xoffset = elem->xoffset;
+    hudfont_t *font = elem->hudfont;
+
+    const char *str = elem->string;
+    while (*str)
+    {
+        int ch = *str++;
+
+        if (ch == '\x1b')
+        {
+            if (str)
+            {
+                ch = *str++;
+                if (ch >= '0' && ch <= '0' + CR_NONE)
+                {
+                    elem->cr = ch - '0';
+                }
+                continue;
+            }
+        }
+
+        ch = M_ToUpper(ch) - HU_FONTSTART;
+
+        patch_t *glyph;
+        if (ch < 0 || ch > HU_FONTSIZE)
+        {
+            glyph = NULL;
+        }
+        else
+        {
+            glyph = font->characters[ch];
+        }
+        DrawGlyph(x, y, elem, font->type, font->monowidth, glyph);
     }
 
     elem->xoffset = base_xoffset;
@@ -1055,6 +1184,10 @@ static void DrawElem(int x, int y, sbarelem_t *elem, player_t *player)
         case sbe_number:
         case sbe_percent:
             DrawNumber(x, y, elem);
+            break;
+
+        case sbe_widget:
+            DrawString(x, y, elem);
             break;
 
         default:
@@ -1106,27 +1239,26 @@ static void DrawBackground(const char *name)
     st_refresh_background = false;
 }
 
+static int currbar;
+
 static void DrawStatusBar(void)
 {
     player_t *player = &players[displayplayer];
 
-    static int old_barindex = -1;
-
-    int barindex = MAX(screenblocks - 10, 0);
+    int bar = MAX(screenblocks - 10, 0);
 
     if (automapactive && automapoverlay == AM_OVERLAY_OFF)
     {
-        barindex = 0;
+        bar = 0;
     }
 
-    statusbar_t *statusbar = &sbardef->statusbars[barindex];
+    statusbar_t *statusbar = &sbardef->statusbars[bar];
 
     if (!statusbar->fullscreenrender)
     {
-        if (old_barindex != barindex)
+        if (currbar != bar)
         {
             st_refresh_background = true;
-            old_barindex = barindex;
         }
         DrawBackground(statusbar->fillflat);
     }
@@ -1138,6 +1270,56 @@ static void DrawStatusBar(void)
     array_foreach(child, statusbar->children)
     {
         DrawElem(0, SCREENHEIGHT - statusbar->height, child, player);
+    }
+
+    currbar = bar;
+}
+
+static void EraseElem(int x, int y, sbarelem_t *elem, player_t *player)
+{
+    if (!CheckConditions(elem->conditions, player))
+    {
+        return;
+    }
+
+    x += elem->x_pos;
+    y += elem->y_pos;
+
+    if (elem->elemtype == sbe_widget)
+    {
+        int height = elem->hudfont->maxheight;
+        if (y > scaledviewy && y < scaledviewy + scaledviewheight - height)
+        {
+            R_VideoErase(0, y, scaledviewx, height);
+            R_VideoErase(scaledviewx + scaledviewwidth, y, scaledviewx, height);
+        }
+        else
+        {
+            R_VideoErase(0, y, video.unscaledw, height);
+        }
+    }
+
+    sbarelem_t *child;
+    array_foreach(child, elem->children)
+    {
+        EraseElem(x, y, child, player);
+    }
+}
+
+void ST_Erase(void)
+{
+    if (!sbardef)
+    {
+        return;
+    }
+
+    player_t *player = &players[displayplayer];
+    statusbar_t *statusbar = &sbardef->statusbars[currbar];
+
+    sbarelem_t *child;
+    array_foreach(child, statusbar->children)
+    {
+        EraseElem(0, SCREENHEIGHT - statusbar->height, child, player);
     }
 }
 
@@ -1391,7 +1573,7 @@ void ST_Start(void)
     {
         return;
     }
-    RefreshStatusBar();
+    ResetStatusBar();
 }
 
 void ST_Init(void)
