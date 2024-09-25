@@ -749,7 +749,7 @@ weapontype_t WS_SlotWeapon(void)
 void WS_BindVariables(void)
 {
     BIND_NUM_WEAP(weapon_slots_activation,
-        WS_ALWAYS_ON, WS_OFF, NUM_WS_ACTIVATION - 1,
+        WS_OFF, WS_OFF, NUM_WS_ACTIVATION - 1,
         "Weapon slots activation (0 = Off; 1 = Hold \"Last\"; 2 = Always On)");
 
     BIND_NUM_WEAP(weapon_slots_selection,
