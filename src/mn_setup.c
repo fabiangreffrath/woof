@@ -2812,8 +2812,6 @@ static void MN_PadAdv(void)
 
 void MN_DrawPadAdv(void)
 {
-    inhelpscreens = true;
-
     DrawBackground("FLOOR4_6");
     MN_DrawTitle(M_X_CENTER, M_Y_TITLE, "M_GENERL", "General");
     DrawTabs();

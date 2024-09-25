@@ -855,9 +855,9 @@ static void HU_widget_build_health (void)
 }
 
 // do the hud armor display
+/*
 static crange_idx_e CRByArmor(void)
 {
-/*
   // color of armor depends on type
   if (hud_armor_type)
   {
@@ -879,8 +879,8 @@ static crange_idx_e CRByArmor(void)
       (armor <= armor_green) ? CR_GREEN :
       CR_BLUE;
   }
-*/
 }
+*/
 
 static void HU_widget_build_armor (void)
 {
