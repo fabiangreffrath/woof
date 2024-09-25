@@ -1477,8 +1477,6 @@ void MN_KeyBindings(int choice)
 
 void MN_DrawKeybnd(void)
 {
-    inhelpscreens = true; // killough 4/6/98: Force status bar redraw
-
     // Set up the Key Binding screen
 
     DrawBackground("FLOOR4_6"); // Draw background
@@ -1581,8 +1579,6 @@ void MN_Weapons(int choice)
 
 void MN_DrawWeapons(void)
 {
-    inhelpscreens = true; // killough 4/6/98: Force status bar redraw
-
     DrawBackground("FLOOR4_6"); // Draw background
     MN_DrawTitle(M_X_CENTER, M_Y_TITLE, "M_WEAP", "Weapons");
     DrawTabs();
@@ -1774,8 +1770,6 @@ void MN_StatusBar(int choice)
 
 void MN_DrawStatusHUD(void)
 {
-    inhelpscreens = true; // killough 4/6/98: Force status bar redraw
-
     DrawBackground("FLOOR4_6"); // Draw background
     MN_DrawTitle(M_X_CENTER, M_Y_TITLE, "M_STAT", "Status Bar/HUD");
     DrawTabs();
@@ -1865,8 +1859,6 @@ void MN_Automap(int choice)
 
 void MN_DrawAutoMap(void)
 {
-    inhelpscreens = true; // killough 4/6/98: Force status bar redraw
-
     DrawBackground("FLOOR4_6"); // Draw background
     MN_DrawTitle(M_X_CENTER, M_Y_TITLE, "M_AUTO", "Automap");
     DrawInstructions();
@@ -1945,8 +1937,6 @@ void MN_Enemy(int choice)
 
 void MN_DrawEnemy(void)
 {
-    inhelpscreens = true;
-
     DrawBackground("FLOOR4_6"); // Draw background
     MN_DrawTitle(M_X_CENTER, M_Y_TITLE, "M_ENEM", "Enemies");
     DrawInstructions();
@@ -2039,8 +2029,6 @@ void MN_Compat(int choice)
 
 void MN_DrawCompat(void)
 {
-    inhelpscreens = true;
-
     DrawBackground("FLOOR4_6"); // Draw background
     MN_DrawTitle(M_X_CENTER, M_Y_TITLE, "M_COMPAT", "Compatibility");
     DrawInstructions();
@@ -2419,8 +2407,6 @@ static void MN_Equalizer(void)
 
 void MN_DrawEqualizer(void)
 {
-    inhelpscreens = true;
-
     DrawBackground("FLOOR4_6");
     MN_DrawTitle(M_X_CENTER, M_Y_TITLE, "M_GENERL", "General");
     DrawTabs();
@@ -2755,8 +2741,6 @@ static void MN_Gyro(void)
 
 void MN_DrawGyro(void)
 {
-    inhelpscreens = true;
-
     DrawBackground("FLOOR4_6");
     MN_DrawTitle(M_X_CENTER, M_Y_TITLE, "M_GENERL", "General");
     DrawTabs();
@@ -2953,8 +2937,6 @@ void MN_General(int choice)
 
 void MN_DrawGeneral(void)
 {
-    inhelpscreens = true;
-
     DrawBackground("FLOOR4_6"); // Draw background
     MN_DrawTitle(M_X_CENTER, M_Y_TITLE, "M_GENERL", "General");
     DrawTabs();

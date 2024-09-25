@@ -91,8 +91,6 @@ void MN_InitMenuStrings(void);
 
 boolean MN_StartsWithMapIdentifier(char *str);
 
-extern boolean inhelpscreens;
-
 int MN_GetPixelWidth(const char *ch);
 void MN_DrawString(int cx, int cy, int color, const char *ch);
 

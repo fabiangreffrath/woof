@@ -86,7 +86,6 @@ enum
 };
 
 extern int hud_type;
-extern boolean draw_crispy_hud;
 
 enum
 {

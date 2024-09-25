@@ -36,7 +36,6 @@
 #include "mn_menu.h"
 #include "r_defs.h"
 #include "s_sound.h"
-#include "st_lib.h"
 #include "sounds.h"
 #include "u_mapinfo.h"
 #include "v_fmt.h"
@@ -45,6 +44,8 @@
 #include "wi_interlvl.h"
 #include "wi_stuff.h"
 #include "z_zone.h"
+
+#define LARGENUMBER 1994
 
 //
 // Data needed to add patches to full screen intermission pics.

@@ -109,9 +109,11 @@ void HU_UpdateCrosshair(void)
     crosshair.y = (screenblocks <= 10) ? (SCREENHEIGHT - ST_HEIGHT) / 2
                                        : SCREENHEIGHT / 2;
 
+    boolean invul = (plr->cheats & CF_GODMODE) || plr->powers[pw_invulnerability];
+
     if (hud_crosshair_health)
     {
-        crosshair.cr = HU_ColorByHealth(plr->health, 100, st_invul);
+        crosshair.cr = HU_ColorByHealth(plr->health, 100, invul);
     }
     else
     {

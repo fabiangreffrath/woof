@@ -956,9 +956,6 @@ static void G_DoLoadLevel(void)
   {
     displayplayer = consoleplayer;    // view the guy you are playing
   }
-  // [Alaux] Update smooth count values
-  st_health = players[displayplayer].health;
-  st_armor  = players[displayplayer].armorpoints;
   gameaction = ga_nothing;
 
   // Set the initial listener parameters using the player's initial state.
@@ -2584,11 +2581,6 @@ static void G_DoLoadGame(void)
 
   // done
   Z_Free(savebuffer);
-
-  // [Alaux] Update smooth count values;
-  // the same procedure is done in G_LoadLevel, but we have to repeat it here
-  st_health = players[displayplayer].health;
-  st_armor  = players[displayplayer].armorpoints;
 
   if (setsizeneeded)
     R_ExecuteSetViewSize();

@@ -46,14 +46,13 @@ boolean ST_Responder(struct event_s *ev);
 void ST_Ticker(void);
 
 // Called by main loop.
-void ST_Drawer(boolean fullscreen, boolean refresh);
+void ST_Drawer(void);
 
 // Called when the console player is spawned on each level.
 void ST_Start(void);
 
 // Called by startup code.
 void ST_Init(void);
-void ST_Warnings(void);
 
 void ST_ResetPalette(void);
 
@@ -62,10 +61,6 @@ extern boolean st_refresh_background;
 void ST_InitRes(void);
 
 // killough 5/2/98: moved from m_misc.c:
-
-// [Alaux]
-extern int st_health;
-extern int st_armor;
 
 extern int health_red;    // health amount less than which status is red
 extern int health_yellow; // health amount less than which status is yellow
@@ -86,8 +81,6 @@ extern boolean hud_backpack_thresholds; // backpack changes thresholds
 extern boolean hud_armor_type; // color of armor depends on type
 
 extern boolean palette_changes;
-
-extern boolean st_invul;
 
 void ST_BindSTSVariables(void);
 

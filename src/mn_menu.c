@@ -98,8 +98,6 @@ static int saveCharIndex; // which char we're editing
 // old save description before edit
 static char saveOldString[SAVESTRINGSIZE];
 
-boolean inhelpscreens; // indicates we are in or just left a help screen
-
 boolean menuactive; // The menus are up
 
 static boolean options_active;
@@ -310,9 +308,6 @@ static menu_t MainDef = {
 
 static void M_DrawMainMenu(void)
 {
-    // [crispy] force status bar refresh
-    inhelpscreens = true;
-
     options_active = false;
 
     V_DrawPatch(94, 2, V_CachePatchName("M_DOOM", PU_CACHE));
@@ -418,8 +413,6 @@ static void M_FinishHelp(int choice) // killough 10/98
 
 static void M_DrawReadThis1(void)
 {
-    inhelpscreens = true;
-
     V_DrawPatchFullScreen(V_CachePatchName("HELP2", PU_CACHE));
 }
 
@@ -430,8 +423,6 @@ static void M_DrawReadThis1(void)
 
 static void M_DrawReadThis2(void)
 {
-    inhelpscreens = true;
-
     // We only ever draw the second page if this is
     // gameversion == exe_doom_1_9 and gamemode == registered
 
@@ -440,8 +431,6 @@ static void M_DrawReadThis2(void)
 
 static void M_DrawReadThisCommercial(void)
 {
-    inhelpscreens = true;
-
     V_DrawPatchFullScreen(V_CachePatchName("HELP", PU_CACHE));
 }
 
@@ -559,9 +548,6 @@ void M_AddEpisode(const char *map, const char *gfx, const char *txt,
 
 static void M_DrawEpisode(void)
 {
-    // [crispy] force status bar refresh
-    inhelpscreens = true;
-
     MN_DrawTitle(54, EpiDef.y - 25, "M_EPISOD", "Which Episode?");
 }
 
@@ -633,9 +619,6 @@ static menu_t NewDef = {
 
 static void M_DrawNewGame(void)
 {
-    // [crispy] force status bar refresh
-    inhelpscreens = true;
-
     MN_DrawTitle(96, 14, "M_NEWG", "NEW GAME");
     MN_DrawTitle(54, 38, "M_SKILL", "Choose Skill Level:");
 }
@@ -826,9 +809,6 @@ static void M_DrawSaveLoadBottomLine(void)
 {
     char pagestr[16];
     const int y = LoadDef.y + LINEHEIGHT * load_page;
-
-    // [crispy] force status bar refresh
-    inhelpscreens = true;
 
     int index = (menu_input == mouse_mode ? highlight_item : itemOn);
 
@@ -1672,8 +1652,6 @@ static void M_ExtHelp(int choice)
 static void M_DrawExtHelp(void)
 {
     char namebfr[] = "HELPnn"; // [FG] char array!
-
-    inhelpscreens = true; // killough 5/1/98
     namebfr[4] = extended_help_index / 10 + 0x30;
     namebfr[5] = extended_help_index % 10 + 0x30;
     V_DrawPatchFullScreen(V_CachePatchName(namebfr, PU_CACHE));
@@ -1697,7 +1675,6 @@ static void M_DrawHelp(void)
         helplump = W_CheckNumForName("HELP1");
     }
 
-    inhelpscreens = true; // killough 10/98
     V_DrawPatchFullScreen(V_CachePatchNum(helplump, PU_CACHE));
 }
 
@@ -1905,9 +1882,6 @@ static void M_Setup(int choice)
 
 void MN_ClearMenus(void)
 {
-    // force status bar refresh
-    inhelpscreens = true;
-
     menuactive = 0;
     options_active = false;
     print_warning_about_changes = 0; // killough 8/15/98
@@ -3121,7 +3095,6 @@ void M_Drawer(void)
 
     if (MN_MenuIsShaded())
     {
-        inhelpscreens = true;
         V_ShadeScreen();
     }
 

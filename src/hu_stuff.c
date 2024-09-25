@@ -60,7 +60,6 @@ static int hud_widget_font;
 static boolean hud_widget_layout;
 
 int hud_type; // Crispy HUD or Boom variants
-boolean draw_crispy_hud;
 
 //
 // Locally used constants, shortcuts.
@@ -808,6 +807,7 @@ static void HU_widget_build_ammo (void)
 // do the hud health display
 static void HU_widget_build_health (void)
 {
+/*
   InitStringBuffer("HEL ");
 
   int i = 4;
@@ -851,11 +851,13 @@ static void HU_widget_build_health (void)
 
   // transfer the init string to the widget
   HUlib_add_string_to_cur_line(&w_health, hud_stringbuffer);
+*/
 }
 
 // do the hud armor display
 static crange_idx_e CRByArmor(void)
 {
+/*
   // color of armor depends on type
   if (hud_armor_type)
   {
@@ -877,10 +879,12 @@ static crange_idx_e CRByArmor(void)
       (armor <= armor_green) ? CR_GREEN :
       CR_BLUE;
   }
+*/
 }
 
 static void HU_widget_build_armor (void)
 {
+/*
   InitStringBuffer("ARM ");
 
   int i = 4;
@@ -923,10 +927,12 @@ static void HU_widget_build_armor (void)
 
   // transfer the init string to the widget
   HUlib_add_string_to_cur_line(&w_armor, hud_stringbuffer);
+*/
 }
 
 static void HU_widget_build_compact (void)
 {
+/*
   const crange_idx_e cr_health = CRByHealth(plr->health, 100, st_invul);
   const crange_idx_e cr_armor = CRByArmor();
 
@@ -983,6 +989,7 @@ static void HU_widget_build_compact (void)
     }
     HUlib_add_string_to_cur_line(&w_compact, hud_stringbuffer);
   }
+*/
 }
 
 // do the hud weapon display
@@ -1441,11 +1448,6 @@ void HU_Drawer(void)
     }
     w++;
   }
-
-  if (draw_crispy_hud)
-  {
-    ST_Drawer (false, true);
-  }
 }
 
 // [FG] draw Time widget on intermission screen
@@ -1523,7 +1525,6 @@ void HU_Ticker(void)
   plr = &players[displayplayer];         // killough 3/7/98
 
   HU_disable_all_widgets();
-  draw_crispy_hud = false;
 
   if ((automapactive && hud_widget_font == 1) || 
       (!automapactive && hud_widget_font == 2) ||
@@ -1674,10 +1675,6 @@ void HU_Ticker(void)
   {
     if (hud_type == HUD_TYPE_CRISPY)
     {
-      if (hud_active > 0)
-      {
-        draw_crispy_hud = true;
-      }
     }
     else
     {

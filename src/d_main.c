@@ -254,11 +254,10 @@ void D_Display (void)
 {
   static boolean viewactivestate = false;
   static boolean menuactivestate = false;
-  static boolean inhelpscreensstate = false;
   static gamestate_t oldgamestate = GS_NONE;
   static int borderdrawcount;
   int wipestart;
-  boolean done, wipe, redrawsbar;
+  boolean done, wipe;
 
   if (demobar && PLAYBACK_SKIP)
   {
@@ -282,8 +281,6 @@ void D_Display (void)
       I_StartDisplay();
     }
   }
-
-  redrawsbar = false;
 
   wipe = false;
 
@@ -345,10 +342,10 @@ void D_Display (void)
 
   // draw the view directly
   if (gamestate == GS_LEVEL && automap_off && gametic)
-    R_RenderPlayerView (&players[displayplayer]);
-
-  if (gamestate == GS_LEVEL && gametic)
-    ST_Drawer(true, true);
+    {
+      R_RenderPlayerView(&players[displayplayer]);
+      ST_Drawer();
+    }
 
   if (gamestate == GS_LEVEL && gametic)
     HU_Drawer ();
@@ -379,18 +376,16 @@ void D_Display (void)
 
   menuactivestate = menuactive;
   viewactivestate = viewactive;
-  inhelpscreensstate = inhelpscreens;
   oldgamestate = wipegamestate = gamestate;
 
   if (gamestate == GS_LEVEL && automapactive && automapoverlay)
     {
       AM_Drawer();
-      ST_Drawer(scaledviewheight == 200, redrawsbar);
+      ST_Drawer();
       HU_Drawer();
 
-      // [crispy] force redraw of status bar and border
+      // [crispy] force redraw of border
       viewactivestate = false;
-      inhelpscreensstate = true;
     }
 
   // draw pause pic
@@ -2447,7 +2442,6 @@ void D_DoomMain(void)
 
   I_Printf(VB_INFO, "ST_Init: Init status bar.");
   ST_Init();
-  ST_Warnings();
 
   // andrewj: voxel support
   I_Printf(VB_INFO, "VX_Init: ");
