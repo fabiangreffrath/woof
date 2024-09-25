@@ -76,10 +76,6 @@
 // int     detailLevel;    obsolete -- killough
 int screenblocks; // has default
 
-int saved_screenblocks;
-
-static int screenSize; // temp for screenblocks (0-9)
-
 static int quickSaveSlot; // -1 = no quicksave slot picked!
 
 static int messageToPrint; // 1 = message to be printed
@@ -1568,28 +1564,16 @@ void MN_SizeDisplay(int choice)
     switch (choice)
     {
         case 0:
-            if (screenSize > 0)
-            {
-                screenblocks--;
-                screenSize--;
-                hud_displayed = 0;
-            }
+            screenblocks--;
             break;
         case 1:
-            if (screenSize < 8)
-            {
-                screenblocks++;
-                screenSize++;
-            }
-            else
-            {
-                hud_displayed = !hud_displayed;
-                HU_disable_all_widgets();
-            }
+            screenblocks++;
+            break;
+        default:
             break;
     }
+    screenblocks = BETWEEN(3, 11, screenblocks);
     R_SetViewSize(screenblocks /*, detailLevel obsolete -- killough */);
-    saved_screenblocks = screenblocks;
 }
 
 /////////////////////////////////////////////////////////////////////////////
@@ -1980,8 +1964,6 @@ void M_Init(void)
     highlight_item = 0;
     whichSkull = 0;
     skullAnimCounter = 10;
-    saved_screenblocks = screenblocks;
-    screenSize = screenblocks - 3;
     messageToPrint = 0;
     messageString = NULL;
     messageLastMenuActive = menuactive;
@@ -2283,19 +2265,15 @@ static boolean ShortcutResponder(const event_t *ev)
             return false; // HUD mode control
         }
 
-        if (screenSize < 8) // function on default F5
+        if (screenblocks < 11)
         {
-            while (screenSize < 8 || !hud_displayed) // make hud visible
-            {
-                MN_SizeDisplay(1); // when configuring it
-            }
+            screenblocks = 11;
         }
         else
         {
-            hud_displayed = 1;                 // jff 3/3/98 turn hud on
-            hud_active = (hud_active + 1) % 3; // cycle hud_active
-            HU_disable_all_widgets();
+            screenblocks = 10;
         }
+        MN_SizeDisplay(-1);
         return true;
     }
 

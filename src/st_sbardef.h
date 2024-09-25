@@ -28,6 +28,13 @@ typedef enum
 
 typedef enum
 {
+    sbm_none,
+    sbm_compact,
+    sbm_wide,
+} sbarmode_t;
+
+typedef enum
+{
     sbc_none = -1,
     sbc_weaponowned,
     sbc_weaponselected,

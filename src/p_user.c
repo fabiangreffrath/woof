@@ -608,11 +608,7 @@ boolean P_EvaluateItemOwned(itemtype_t item, player_t *player)
             return player->cards[item - item_bluecard] != 0;
 
         case item_backpack:
-            return 0; // TODO
-            // return player->maxammo[player->readyweapon]
-            //        == weaponinfo[player->readyweapon]
-            //               .AmmoInfo()
-            //               .maxupgradedammo;
+            return player->backpack;
 
         case item_greenarmor:
         case item_bluearmor:

@@ -309,8 +309,6 @@ enum
     str_curve,
     str_center_weapon,
     str_screensize,
-    str_hudtype,
-    str_hudmode,
     str_show_widgets,
     str_show_adv_widgets,
     str_crosshair,
@@ -1614,25 +1612,7 @@ static setup_tab_t stat_tabs[] = {
 
 static void SizeDisplayAlt(void)
 {
-    int choice = -1;
-
-    if (screenblocks > saved_screenblocks)
-    {
-        choice = 1;
-    }
-    else if (screenblocks < saved_screenblocks)
-    {
-        choice = 0;
-    }
-
-    screenblocks = saved_screenblocks;
-
-    if (choice != -1)
-    {
-        MN_SizeDisplay(choice);
-    }
-
-    hud_displayed = (screenblocks == 11);
+    MN_SizeDisplay(-1);
 }
 
 static const char *screensize_strings[] = {
@@ -1640,17 +1620,6 @@ static const char *screensize_strings[] = {
     "Status Bar", "Status Bar", "Status Bar", "Status Bar",
     "Status Bar", "Status Bar", "Status Bar", "Fullscreen"
 };
-
-static const char *hudtype_strings[] = {"Crispy", "Boom No Bars", "Boom"};
-
-static const char **GetHUDModeStrings(void)
-{
-    static const char *crispy_strings[] = {"Off", "Original", "Widescreen"};
-    static const char *boom_strings[] = {"Minimal", "Compact", "Distributed"};
-    return hud_type ? boom_strings : crispy_strings;
-}
-
-static void UpdateHUDModeStrings(void);
 
 #define H_X_THRM8 (M_X_THRM8 - 14)
 #define H_X       (M_X - 14)
@@ -1672,13 +1641,7 @@ static setup_menu_t stat_settings1[] = {
 
     MI_GAP,
 
-    {"Fullscreen HUD", S_SKIP | S_TITLE, H_X, M_SPC},
-
-    {"HUD Type", S_CHOICE, H_X, M_SPC, {"hud_type"},
-     .strings_id = str_hudtype, .action = UpdateHUDModeStrings},
-
-    {"HUD Mode", S_CHOICE, H_X, M_SPC, {"hud_active"},
-     .strings_id = str_hudmode},
+    {"Widescreen Mode", S_ONOFF, H_X, M_SPC, {"st_widescreen_mode"}},
 
     MI_GAP,
 
@@ -4381,8 +4344,6 @@ static const char **selectstrings[] = {
     curve_strings,
     center_weapon_strings,
     screensize_strings,
-    hudtype_strings,
-    NULL, // str_hudmode
     show_widgets_strings,
     show_adv_widgets_strings,
     crosshair_strings,
@@ -4422,11 +4383,6 @@ static const char **GetStrings(int id)
     return NULL;
 }
 
-static void UpdateHUDModeStrings(void)
-{
-    selectstrings[str_hudmode] = GetHUDModeStrings();
-}
-
 static const char **GetMidiPlayerStrings(void)
 {
     return I_DeviceList();
@@ -4434,7 +4390,6 @@ static const char **GetMidiPlayerStrings(void)
 
 void MN_InitMenuStrings(void)
 {
-    UpdateHUDModeStrings();
     selectstrings[str_resolution_scale] = GetResolutionScaleStrings();
     selectstrings[str_midi_player] = GetMidiPlayerStrings();
     selectstrings[str_mouse_accel] = GetMouseAccelStrings();

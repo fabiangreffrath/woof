@@ -255,7 +255,6 @@ void D_Display (void)
   static boolean viewactivestate = false;
   static boolean menuactivestate = false;
   static boolean inhelpscreensstate = false;
-  static boolean fullscreen = false;
   static gamestate_t oldgamestate = GS_NONE;
   static int borderdrawcount;
   int wipestart;
@@ -323,24 +322,13 @@ void D_Display (void)
         break;
       if (automapactive)
       {
-        static overlay_t last_automapoverlay;
         if (!automapoverlay)
         {
           // [FG] update automap while playing
           R_RenderPlayerView(&players[displayplayer]);
           AM_Drawer();
-          if (last_automapoverlay && scaledviewheight == 200)
-          {
-            redrawsbar = true;
-          }
         }
-        last_automapoverlay = automapoverlay;
       }
-      if (wipe || (scaledviewheight != 200 && fullscreen) // killough 11/98
-          || (inhelpscreensstate && !inhelpscreens))
-        redrawsbar = true;              // just put away the help screen
-      ST_Drawer(scaledviewheight == 200, redrawsbar );    // killough 11/98
-      fullscreen = scaledviewheight == 200;               // killough 11/98
       break;
     case GS_INTERMISSION:
       WI_Drawer();
