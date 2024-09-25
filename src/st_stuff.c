@@ -513,17 +513,54 @@ static boolean CheckConditions(sbarcondition_t *conditions, player_t *player)
     return result;
 }
 
-static int ResolveNumber(sbarnumbertype_t number, int param, player_t *player)
+// [Alaux]
+static int SmoothCount(int shownval, int realval)
+{
+    int step = realval - shownval;
+
+    if (!hud_animated_counts || !step)
+    {
+        return realval;
+    }
+    else
+    {
+        int sign = step / abs(step);
+        step = BETWEEN(1, 7, abs(step) / 20);
+        shownval += (step + 1) * sign;
+
+        if ((sign > 0 && shownval > realval)
+            || (sign < 0 && shownval < realval))
+        {
+            shownval = realval;
+        }
+
+        return shownval;
+    }
+}
+
+static int ResolveNumber(sbarelem_t *elem, player_t *player)
 {
     int result = 0;
-    switch (number)
+    int param = elem->numparam;
+
+    switch (elem->numtype)
     {
         case sbn_health:
-            result = player->health;
+            if (elem->oldvalue == -1)
+            {
+                elem->oldvalue = player->health;
+            }
+            result = SmoothCount(elem->oldvalue, player->health);
+            elem->oldvalue = result;
             break;
 
         case sbn_armor:
-            result = player->armorpoints;
+            if (elem->oldvalue == -1)
+            {
+                elem->oldvalue = player->armorpoints;
+            }
+            result = SmoothCount(elem->oldvalue, player->armorpoints);
+            elem->oldvalue = result;
             break;
 
         case sbn_frags:
@@ -748,7 +785,7 @@ static void UpdateFace(sbarelem_t *elem, player_t *player)
 
 static void UpdateNumber(sbarelem_t *elem, player_t *player)
 {
-    int number = ResolveNumber(elem->numtype, elem->numparam, player);
+    int number = ResolveNumber(elem, player);
     int power = (number < 0 ? elem->maxlength - 1 : elem->maxlength);
     int max = (int)pow(10.0, power) - 1;
     int numglyphs = 0;
@@ -842,9 +879,8 @@ static void UpdateBoomColors(sbarelem_t *elem, player_t *player)
         return;
     }
 
-    int invul = (player->powers[pw_invulnerability] > 4 * 32
-                 || player->powers[pw_invulnerability] & 8)
-                || player->cheats & CF_GODMODE;
+    boolean invul = (player->powers[pw_invulnerability]
+                     || player->cheats & CF_GODMODE);
 
     crange_idx_e cr;
 
@@ -992,6 +1028,11 @@ static void RefreshElem(sbarelem_t *elem)
                 elem->frame_index = 0;
                 elem->duration_left = 0;
             }
+            break;
+
+        case sbe_number:
+        case sbe_percent:
+            elem->oldvalue = -1;
             break;
 
         default:
@@ -1750,31 +1791,6 @@ void ST_updateWidgets(void)
         st_fragscount -= plyr->frags[i];
     }
 
-}
-
-// [Alaux]
-static int SmoothCount(int shownval, int realval)
-{
-  int step = realval - shownval;
-
-  if (!hud_animated_counts || !step)
-  {
-    return realval;
-  }
-  else
-  {
-    int sign = step / abs(step);
-    step = BETWEEN(1, 7, abs(step) / 20);
-    shownval += (step+1)*sign;
-  
-    if (  (sign > 0 && shownval > realval)
-        ||(sign < 0 && shownval < realval))
-    {
-      shownval = realval;
-    }
-
-    return shownval;
-  }
 }
 
 boolean st_invul;

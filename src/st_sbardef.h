@@ -142,6 +142,7 @@ struct sbarelem_s
     int number;
     int xoffset;
     int numnumbers;
+    int oldvalue;
 
     // face
     int faceindex;
