@@ -57,6 +57,7 @@
 #include "v_fmt.h"
 #include "v_video.h"
 #include "w_wad.h"
+#include "ws_stuff.h"
 #include "z_zone.h"
 
 static int M_GetKeyString(int c, int offset);
@@ -131,6 +132,9 @@ static boolean default_reset;
 
 #define MI_GAP \
     {NULL, S_SKIP, 0, M_SPC}
+
+#define MI_GAP_HALF \
+    {NULL, S_SKIP, 0, M_SPC / 2}
 
 static void DisableItem(boolean condition, setup_menu_t *menu, const char *item)
 {
@@ -322,6 +326,9 @@ enum
     str_overlay,
     str_automap_preset,
     str_automap_keyed_door,
+    str_weapon_slots_activation,
+    str_weapon_slots_selection,
+    str_weapon_slots,
 
     str_resolution_scale,
     str_midi_player,
@@ -1508,6 +1515,7 @@ void MN_DrawKeybnd(void)
 
 static setup_tab_t weap_tabs[] = {
     {"cosmetic"},
+    {"slots"},
     {"preferences"},
     {NULL}
 };
@@ -1542,7 +1550,160 @@ static setup_menu_t weap_settings1[] = {
     MI_END
 };
 
+static const char *weapon_slots_activation_strings[] = {
+    "Off", "Hold \"Last\"", "Always On"
+};
+
+static const char *weapon_slots_selection_strings[] = {
+    "D-Pad", "Face Buttons", "1-4 Keys"
+};
+
+static const char **GetWeaponSlotStrings(void)
+{
+    static const char *vanilla_doom_strings[] = {
+        "--", "Chainsaw/Fist", "Pistol", "Shotgun", "Chaingun",
+        "Rocket", "Plasma", "BFG", "Chainsaw/Fist", "Shotgun"
+    };
+    static const char *vanilla_doom2_strings[] = {
+        "--", "Chainsaw/Fist", "Pistol", "SSG/Shotgun", "Chaingun",
+        "Rocket", "Plasma", "BFG", "Chainsaw/Fist", "SSG/Shotgun"
+    };
+    static const char *full_doom2_strings[] = {
+        "--", "Fist", "Pistol", "Shotgun", "Chaingun",
+        "Rocket", "Plasma", "BFG", "Chainsaw", "SSG"
+    };
+
+    if (force_complevel == CL_VANILLA || default_complevel == CL_VANILLA)
+    {
+        return (ALLOW_SSG ? vanilla_doom2_strings : vanilla_doom_strings);
+    }
+    else
+    {
+        return full_doom2_strings;
+    }
+}
+
+#define WS_BUF_SiZE 80
+static char slot_labels[NUM_WS_SLOTS * NUM_WS_WEAPS][WS_BUF_SiZE];
+
+static void UpdateWeaponSlotLabels(void)
+{
+    const char *keys[NUM_WS_SLOTS];
+    int buttons[NUM_WS_SLOTS];
+
+    switch (WS_Selection())
+    {
+        case WS_SELECT_DPAD:
+            keys[0] = M_GetPlatformName(GAMEPAD_DPAD_UP);
+            keys[1] = M_GetPlatformName(GAMEPAD_DPAD_DOWN);
+            keys[2] = M_GetPlatformName(GAMEPAD_DPAD_LEFT);
+            keys[3] = M_GetPlatformName(GAMEPAD_DPAD_RIGHT);
+            break;
+
+        case WS_SELECT_FACE_BUTTONS:
+            I_GetFaceButtons(buttons);
+            keys[0] = M_GetPlatformName(buttons[0]);
+            keys[1] = M_GetPlatformName(buttons[1]);
+            keys[2] = M_GetPlatformName(buttons[2]);
+            keys[3] = M_GetPlatformName(buttons[3]);
+            break;
+
+        default: // WS_SELECT_1234
+            keys[0] = "1-Key";
+            keys[1] = "2-Key";
+            keys[2] = "3-Key";
+            keys[3] = "4-Key";
+            break;
+    }
+
+    const char *pos[NUM_WS_WEAPS] = {"1st", "2nd", "3rd"};
+    int num = 0;
+
+    for (int i = 0; i < NUM_WS_SLOTS; i++)
+    {
+        M_snprintf(slot_labels[num++], WS_BUF_SiZE, "%s %s", keys[i], pos[0]);
+
+        for (int j = 1; j < NUM_WS_WEAPS; j++)
+        {
+            M_snprintf(slot_labels[num++], WS_BUF_SiZE, "%s", pos[j]);
+        }
+    }
+}
+
+static void UpdateWeaponSlotItems(void);
+
+static void UpdateWeaponSlotActivation(void)
+{
+    WS_Reset();
+    UpdateWeaponSlotItems();
+}
+
+static void UpdateWeaponSlotSelection(void)
+{
+    WS_UpdateSelection();
+    WS_Reset();
+    UpdateWeaponSlotLabels();
+}
+
+static void UpdateWeaponSlots(void)
+{
+    WS_UpdateSlots();
+    WS_Reset();
+}
+
+#define MI_WEAPON_SLOT(i, s)                                      \
+    {slot_labels[i], S_CHOICE, CNTR_X, M_SPC, {s},                \
+     .strings_id = str_weapon_slots, .action = UpdateWeaponSlots}
+
 static setup_menu_t weap_settings2[] = {
+
+    {"Enable Slots", S_CHOICE, CNTR_X, M_SPC, {"weapon_slots_activation"},
+     .strings_id = str_weapon_slots_activation,
+     .action = UpdateWeaponSlotActivation},
+
+    {"Select Slots", S_CHOICE, CNTR_X, M_SPC, {"weapon_slots_selection"},
+     .strings_id = str_weapon_slots_selection,
+     .action = UpdateWeaponSlotSelection},
+
+    MI_GAP_HALF,
+    MI_WEAPON_SLOT(0, "weapon_slots_1_1"),
+    MI_WEAPON_SLOT(1, "weapon_slots_1_2"),
+    MI_WEAPON_SLOT(2, "weapon_slots_1_3"),
+    MI_GAP_HALF,
+    MI_WEAPON_SLOT(3, "weapon_slots_2_1"),
+    MI_WEAPON_SLOT(4, "weapon_slots_2_2"),
+    MI_WEAPON_SLOT(5, "weapon_slots_2_3"),
+    MI_GAP_HALF,
+    MI_WEAPON_SLOT(6, "weapon_slots_3_1"),
+    MI_WEAPON_SLOT(7, "weapon_slots_3_2"),
+    MI_WEAPON_SLOT(8, "weapon_slots_3_3"),
+    MI_GAP_HALF,
+    MI_WEAPON_SLOT(9, "weapon_slots_4_1"),
+    MI_WEAPON_SLOT(10, "weapon_slots_4_2"),
+    MI_WEAPON_SLOT(11, "weapon_slots_4_3"),
+    MI_END
+};
+
+static void UpdateWeaponSlotItems(void)
+{
+    const boolean condition = !WS_Enabled();
+
+    DisableItem(condition, weap_settings2, "weapon_slots_selection");
+    DisableItem(condition, weap_settings2, "weapon_slots_1_1");
+    DisableItem(condition, weap_settings2, "weapon_slots_1_2");
+    DisableItem(condition, weap_settings2, "weapon_slots_1_3");
+    DisableItem(condition, weap_settings2, "weapon_slots_2_1");
+    DisableItem(condition, weap_settings2, "weapon_slots_2_2");
+    DisableItem(condition, weap_settings2, "weapon_slots_2_3");
+    DisableItem(condition, weap_settings2, "weapon_slots_3_1");
+    DisableItem(condition, weap_settings2, "weapon_slots_3_2");
+    DisableItem(condition, weap_settings2, "weapon_slots_3_3");
+    DisableItem(condition, weap_settings2, "weapon_slots_4_1");
+    DisableItem(condition, weap_settings2, "weapon_slots_4_2");
+    DisableItem(condition, weap_settings2, "weapon_slots_4_3");
+}
+
+static setup_menu_t weap_settings3[] = {
     {"1St Choice Weapon", S_WEAP | S_BOOM, M_X, M_SPC, {"weapon_choice_1"}},
     {"2Nd Choice Weapon", S_WEAP | S_BOOM, M_X, M_SPC, {"weapon_choice_2"}},
     {"3Rd Choice Weapon", S_WEAP | S_BOOM, M_X, M_SPC, {"weapon_choice_3"}},
@@ -1561,7 +1722,9 @@ static setup_menu_t weap_settings2[] = {
     MI_END
 };
 
-static setup_menu_t *weap_settings[] = {weap_settings1, weap_settings2, NULL};
+static setup_menu_t *weap_settings[] = {
+    weap_settings1, weap_settings2, weap_settings3, NULL
+};
 
 static void UpdateCenteredWeaponItem(void)
 {
@@ -2013,12 +2176,19 @@ static const char *default_complevel_strings[] = {
 };
 
 static void UpdateInterceptsEmuItem(void);
+static void UpdateWeaponSlotStrings(void);
+
+static void UpdateDefaultCompatibilityLevel(void)
+{
+    UpdateInterceptsEmuItem();
+    UpdateWeaponSlotStrings();
+}
 
 setup_menu_t comp_settings1[] = {
 
     {"Default Compatibility Level", S_CHOICE | S_LEVWARN, M_X, M_SPC,
      {"default_complevel"}, .strings_id = str_default_complevel,
-     .action = UpdateInterceptsEmuItem},
+     .action = UpdateDefaultCompatibilityLevel},
 
     {"Strict Mode", S_ONOFF | S_LEVWARN, M_X, M_SPC, {"strictmode"}},
 
@@ -2383,18 +2553,17 @@ static const char *equalizer_preset_strings[] = {
 
 #define M_THRM_SPC_EQ (M_THRM_HEIGHT - 1)
 #define M_SPC_EQ 8
-#define MI_GAP_EQ {NULL, S_SKIP, 0, 4}
 
 static setup_menu_t eq_settings1[] = {
     {"Preset", S_CHOICE, CNTR_X, M_SPC_EQ, {"snd_equalizer"},
      .strings_id = str_equalizer_preset, .action = I_OAL_EqualizerPreset},
 
-    MI_GAP_EQ,
+    MI_GAP_HALF,
 
     {"Preamp dB", S_THERMO, CNTR_X, M_THRM_SPC_EQ,
      {"snd_eq_preamp"}, .action = I_OAL_EqualizerPreset},
 
-    MI_GAP_EQ,
+    MI_GAP_HALF,
 
     {"Low Gain dB", S_THERMO, CNTR_X, M_THRM_SPC_EQ,
      {"snd_eq_low_gain"}, .action = I_OAL_EqualizerPreset},
@@ -2408,7 +2577,7 @@ static setup_menu_t eq_settings1[] = {
     {"High Gain dB", S_THERMO, CNTR_X, M_THRM_SPC_EQ,
      {"snd_eq_high_gain"}, .action = I_OAL_EqualizerPreset},
 
-    MI_GAP_EQ,
+    MI_GAP_HALF,
 
     {"Low Cutoff Hz", S_THERMO, CNTR_X, M_THRM_SPC_EQ,
      {"snd_eq_low_cutoff"}, .action = I_OAL_EqualizerPreset},
@@ -2863,6 +3032,7 @@ static void UpdateGyroItems(void)
 
 void MN_UpdateAllGamepadItems(void)
 {
+    UpdateWeaponSlotSelection();
     UpdateGamepadItems();
     UpdateGyroItems();
 }
@@ -4488,6 +4658,9 @@ static const char **selectstrings[] = {
     overlay_strings,
     automap_preset_strings,
     automap_keyed_door_strings,
+    weapon_slots_activation_strings,
+    weapon_slots_selection_strings,
+    NULL, // str_weapon_slots
     NULL, // str_resolution_scale
     NULL, // str_midi_player
     gamma_strings,
@@ -4524,6 +4697,11 @@ static void UpdateHUDModeStrings(void)
     selectstrings[str_hudmode] = GetHUDModeStrings();
 }
 
+static void UpdateWeaponSlotStrings(void)
+{
+    selectstrings[str_weapon_slots] = GetWeaponSlotStrings();
+}
+
 static const char **GetMidiPlayerStrings(void)
 {
     return I_DeviceList();
@@ -4532,6 +4710,8 @@ static const char **GetMidiPlayerStrings(void)
 void MN_InitMenuStrings(void)
 {
     UpdateHUDModeStrings();
+    UpdateWeaponSlotLabels();
+    UpdateWeaponSlotStrings();
     selectstrings[str_resolution_scale] = GetResolutionScaleStrings();
     selectstrings[str_midi_player] = GetMidiPlayerStrings();
     selectstrings[str_mouse_accel] = GetMouseAccelStrings();
@@ -4554,7 +4734,9 @@ void MN_SetupResetMenu(void)
     UpdateInterceptsEmuItem();
     UpdateCrosshairItems();
     UpdateCenteredWeaponItem();
-    MN_UpdateAllGamepadItems();
+    UpdateGamepadItems();
+    UpdateGyroItems();
+    UpdateWeaponSlotItems();
     MN_UpdateEqualizerItems();
 }
 

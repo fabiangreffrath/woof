@@ -84,6 +84,7 @@
 #include "v_video.h"
 #include "w_wad.h"
 #include "wi_stuff.h"
+#include "ws_stuff.h"
 #include "z_zone.h"
 
 // DEHacked support - Ty 03/09/97
@@ -2439,6 +2440,7 @@ void D_DoomMain(void)
   G_UpdateGamepadVariables();
   G_UpdateMouseVariables();
   R_UpdateViewAngleFunction();
+  WS_Init();
 
   MN_ResetTimeScale();
 

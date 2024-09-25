@@ -2108,7 +2108,7 @@ void M_Ticker(void)
 // action based on the state of the system.
 //
 
-static boolean ShortcutResponder(const event_t *ev)
+boolean M_ShortcutResponder(const event_t *ev)
 {
     // If there is no active menu displayed...
 
@@ -2821,11 +2821,6 @@ boolean M_Responder(event_t *ev)
     {
         clean_screenshot = true;
         G_ScreenShot();
-    }
-
-    if (ShortcutResponder(ev))
-    {
-        return true;
     }
 
     // Pop-up Main menu?

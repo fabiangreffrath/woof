@@ -52,6 +52,7 @@
 #include "tables.h"
 #include "u_mapinfo.h"
 #include "w_wad.h"
+#include "ws_stuff.h"
 
 #define plyr (players+consoleplayer)     /* the console player */
 
@@ -1311,6 +1312,9 @@ boolean M_CheatResponder(event_t *ev)
 
   if (ev->type == ev_keydown && M_FindCheats(ev->data1.i))
     return true;
+
+  if (WS_Override())
+    return false;
 
   for (i = 0; i < arrlen(cheat_input); ++i)
   {
