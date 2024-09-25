@@ -331,14 +331,16 @@ boolean WS_HoldOverride(void)
 }
 
 //
-// WS_ClearSharedEvent
+// WS_UpdateStateTic
 //
-void WS_ClearSharedEvent(void)
+void WS_UpdateStateTic(void)
 {
     if (shared_event.restored)
     {
         ResetSharedEvent();
     }
+
+    state.current_slot = NULL;
 }
 
 static void RestoreSharedEvent(void)
@@ -425,7 +427,6 @@ static boolean UpdateSelection(const event_t *ev)
             {
                 state.selected = false;
                 state.input_key = -1;
-                state.current_slot = NULL;
             }
             break;
 
@@ -723,7 +724,6 @@ weapontype_t WS_SlotWeapon(void)
     const weapontype_t current_weapon = CurrentWeapon(player);
     const weapontype_t *slot_weapons = state.current_slot->weapons;
     const int num_weapons = state.current_slot->num_weapons;
-    state.current_slot = NULL;
 
     if (!demo_compatibility)
     {

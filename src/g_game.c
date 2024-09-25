@@ -903,7 +903,7 @@ void G_BuildTiccmd(ticcmd_t* cmd)
 
     // [FG] prev/next weapon keys and buttons
     next_weapon = 0;
-    WS_ClearSharedEvent();
+    WS_UpdateStateTic();
 
   // [FG] double click acts as "use"
   if (dclick)
