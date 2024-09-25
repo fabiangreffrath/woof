@@ -266,11 +266,14 @@ void I_RefreshFlickStickSettings(void)
     flick.snap = joy_flick_snap ? PI_F / powf(2.0f, joy_flick_snap) : 0.0f;
 }
 
+#define BIND_NUM_PADADV(name, v, a, b, help) \
+    M_BindNum(#name, &name, NULL, (v), (a), (b), ss_padadv, wad_no, help)
+
 void I_BindFlickStickVariables(void)
 {
     BIND_NUM(joy_flick_mode, MODE_DEFAULT, MODE_DEFAULT, NUM_FLICK_MODES - 1,
         "Flick mode (0 = Default; 1 = Flick Only; 2 = Rotate Only)");
-    BIND_NUM(joy_flick_time, 10, 10, 50,
+    BIND_NUM_PADADV(joy_flick_time, 10, 10, 50,
         "Flick time (10 = 100 ms; 50 = 500 ms)");
     BIND_NUM(joy_flick_rotation_smooth, 8, 0, 50,
         "Flick rotation smoothing threshold "
@@ -281,6 +284,6 @@ void I_BindFlickStickVariables(void)
         "Flick deadzone relative to camera deadzone [percent]");
     BIND_NUM(joy_flick_forward_deadzone, 7, 0, 45,
         "Forward angle range where flicks are disabled [degrees]");
-    BIND_NUM(joy_flick_snap, 0, 0, 2,
+    BIND_NUM_PADADV(joy_flick_snap, 0, 0, 2,
         "Snap to cardinal directions (0 = Off; 1 = 4-way; 2 = 8-way)");
 }

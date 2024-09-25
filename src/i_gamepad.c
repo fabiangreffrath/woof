@@ -477,13 +477,16 @@ static void RefreshSettings(void)
     I_RefreshGyroSettings();
 }
 
+#define BIND_NUM_PADADV(name, v, a, b, help) \
+    M_BindNum(#name, &name, NULL, (v), (a), (b), ss_padadv, wad_no, help)
+
 void I_BindGamepadVariables(void)
 {
     BIND_BOOL(joy_enable, true, "Enable gamepad");
     BIND_NUM(joy_platform, PLATFORM_AUTO, PLATFORM_AUTO, NUM_PLATFORMS - 1,
         "Gamepad platform (0 = Auto; 1 = Xbox 360; 2 = Xbox One/Series; "
         "3 = Playstation 3; 4 = Playstation 4; 5 = Playstation 5; 6 = Switch)");
-    BIND_NUM_GENERAL(joy_stick_layout, LAYOUT_DEFAULT, 0, NUM_LAYOUTS - 1,
+    BIND_NUM_PADADV(joy_stick_layout, LAYOUT_DEFAULT, 0, NUM_LAYOUTS - 1,
         "Analog stick layout (0 = Off; 1 = Default; 2 = Southpaw; 3 = Legacy; "
         "4 = Legacy Southpaw; 5 = Flick Stick; 6 = Flick Stick Southpaw)");
     BIND_NUM(joy_forward_speed, 10, 0, 20,
@@ -500,11 +503,11 @@ void I_BindGamepadVariables(void)
         "Extra look speed at outer deadzone [degrees/second]");
     BIND_NUM(joy_outer_ramp_time, 200, 0, 1000,
         "Ramp time for extra speed [milliseconds]");
-    BIND_NUM(joy_scale_diagonal_movement, 1, 0, 1,
+    BIND_NUM_PADADV(joy_scale_diagonal_movement, 1, 0, 1,
         "Scale diagonal movement (0 = Linear; 1 = Circle to Square)");
-    BIND_NUM(joy_movement_curve, 10, 10, 30,
+    BIND_NUM_PADADV(joy_movement_curve, 10, 10, 30,
         "Movement response curve (10 = Linear; 20 = Squared; 30 = Cubed)");
-    BIND_NUM_GENERAL(joy_camera_curve, 20, 10, 30,
+    BIND_NUM_PADADV(joy_camera_curve, 20, 10, 30,
         "Camera response curve (10 = Linear; 20 = Squared; 30 = Cubed)");
     BIND_NUM(joy_movement_deadzone_type, 1, 0, 1,
         "Movement deadzone type (0 = Axial; 1 = Radial)");
