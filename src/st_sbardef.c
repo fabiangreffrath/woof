@@ -299,7 +299,7 @@ static boolean ParseHUDFont(json_t *json, hudfont_t *out)
 
     for (int i = 0; i < HU_FONTSIZE; ++i)
     {
-        M_snprintf(lump, sizeof(lump), "%s%03d", out->stem, i + 33);
+        M_snprintf(lump, sizeof(lump), "%s%03d", out->stem, i + HU_FONTSTART);
         found = W_CheckNumForName(lump);
         if (found < 0)
         {
