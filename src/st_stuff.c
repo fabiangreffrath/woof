@@ -837,6 +837,11 @@ static void UpdateBoomColors(sbarelem_t *elem, player_t *player)
                 }
 
                 int maxammo = player->maxammo[type];
+                if (maxammo == 0)
+                {
+                    return;
+                }
+
                 int ammo = player->ammo[type];
 
                 // backpack changes thresholds
