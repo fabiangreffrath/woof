@@ -138,6 +138,16 @@ double JS_GetNumber(json_t *json)
     return json->valuedouble;
 }
 
+double JS_GetNumberValue(json_t *json, const char *string)
+{
+    json_t *obj = JS_GetObject(json, string);
+    if (JS_IsNumber(obj))
+    {
+        return obj->valuedouble;
+    }
+    return 0;
+}
+
 int JS_GetInteger(json_t *json)
 {
     return json->valueint;

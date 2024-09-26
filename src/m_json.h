@@ -39,6 +39,7 @@ boolean JS_IsArray(json_t *json);
 
 boolean JS_GetBoolean(json_t *json);
 double JS_GetNumber(json_t *json);
+double JS_GetNumberValue(json_t *json, const char *string);
 int JS_GetInteger(json_t *json);
 const char *JS_GetString(json_t *json);
 const char *JS_GetStringValue(json_t *json, const char *string);

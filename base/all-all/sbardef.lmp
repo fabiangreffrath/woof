@@ -866,6 +866,21 @@
               "conditions": null,
               "children": null
             }
+          },
+          {
+            "widget":
+            {
+              "x": 0,
+              "y": 0,
+              "alignment": 16,
+              "tranmap": null,
+              "translation": null,
+              "type": 7,
+              "font": "ConFont",
+              "duration": 4,
+              "conditions": null,
+              "children": null
+            }
           }
         ]
       },
@@ -943,7 +958,7 @@
                   {
                     "x": 292,
                     "y": 189,
-                    "alignment": 16,
+                    "alignment": 32,
                     "patch": "CLIPA0",
                     "tranmap": null,
                     "translation": null,
@@ -962,7 +977,7 @@
                   {
                     "x": 295,
                     "y": 186,
-                    "alignment": 16,
+                    "alignment": 32,
                     "patch": "SHELA0",
                     "tranmap": null,
                     "translation": null,
@@ -981,7 +996,7 @@
                   {
                     "x": 297,
                     "y": 192,
-                    "alignment": 16,
+                    "alignment": 32,
                     "patch": "FTNKA0",
                     "tranmap": null,
                     "translation": null,
@@ -1000,7 +1015,7 @@
                   {
                     "x": 295,
                     "y": 195,
-                    "alignment": 16,
+                    "alignment": 32,
                     "patch": "ROCKA0",
                     "tranmap": null,
                     "translation": null,
@@ -1019,7 +1034,7 @@
                   {
                     "x": 285,
                     "y": 175,
-                    "alignment": 18,
+                    "alignment": 34,
                     "font": "BigRed",
                     "tranmap": null,
                     "translation": null,
@@ -1095,7 +1110,7 @@
                   {
                     "x": 300,
                     "y": 5,
-                    "alignment": 18,
+                    "alignment": 34,
                     "font": "BigRed",
                     "tranmap": null,
                     "translation": null,
@@ -1128,7 +1143,7 @@
                         {
                           "x": 0,
                           "y": 0,
-                          "alignment": 0,
+                          "alignment": 32,
                           "patch": "STKEYS0",
                           "tranmap": null,
                           "translation": null,
@@ -1151,7 +1166,7 @@
                         {
                           "x": 0,
                           "y": 0,
-                          "alignment": 16,
+                          "alignment": 32,
                           "patch": "STKEYS3",
                           "tranmap": null,
                           "translation": null,
@@ -1174,7 +1189,7 @@
                         {
                           "x": 0,
                           "y": 0,
-                          "alignment": 16,
+                          "alignment": 32,
                           "patch": "STKEYS3",
                           "tranmap": null,
                           "translation": null,
@@ -1201,7 +1216,7 @@
                         {
                           "x": 0,
                           "y": 0,
-                          "alignment": 16,
+                          "alignment": 32,
                           "patch": "STKEYS6",
                           "tranmap": null,
                           "translation": null,
@@ -1228,7 +1243,7 @@
                         {
                           "x": 0,
                           "y": 10,
-                          "alignment": 16,
+                          "alignment": 32,
                           "patch": "STKEYS1",
                           "tranmap": null,
                           "translation": null,
@@ -1251,7 +1266,7 @@
                         {
                           "x": 0,
                           "y": 10,
-                          "alignment": 16,
+                          "alignment": 32,
                           "patch": "STKEYS4",
                           "tranmap": null,
                           "translation": null,
@@ -1274,7 +1289,7 @@
                         {
                           "x": 0,
                           "y": 10,
-                          "alignment": 16,
+                          "alignment": 32,
                           "patch": "STKEYS4",
                           "tranmap": null,
                           "translation": null,
@@ -1301,7 +1316,7 @@
                         {
                           "x": 0,
                           "y": 10,
-                          "alignment": 16,
+                          "alignment": 32,
                           "patch": "STKEYS7",
                           "tranmap": null,
                           "translation": null,
@@ -1328,7 +1343,7 @@
                         {
                           "x": 0,
                           "y": 20,
-                          "alignment": 16,
+                          "alignment": 32,
                           "patch": "STKEYS2",
                           "tranmap": null,
                           "translation": null,
@@ -1351,7 +1366,7 @@
                         {
                           "x": 0,
                           "y": 20,
-                          "alignment": 16,
+                          "alignment": 32,
                           "patch": "STKEYS5",
                           "tranmap": null,
                           "translation": null,
@@ -1374,7 +1389,7 @@
                         {
                           "x": 0,
                           "y": 20,
-                          "alignment": 16,
+                          "alignment": 32,
                           "patch": "STKEYS5",
                           "tranmap": null,
                           "translation": null,
@@ -1401,7 +1416,7 @@
                         {
                           "x": 0,
                           "y": 20,
-                          "alignment": 16,
+                          "alignment": 32,
                           "patch": "STKEYS8",
                           "tranmap": null,
                           "translation": null,
@@ -1450,6 +1465,21 @@
                     "translation": null,
                     "type": 1,
                     "font": "SmallFont",
+                    "conditions": null,
+                    "children": null
+                  }
+                },
+                {
+                  "widget":
+                  {
+                    "x": 0,
+                    "y": 0,
+                    "alignment": 16,
+                    "tranmap": null,
+                    "translation": null,
+                    "type": 7,
+                    "font": "ConFont",
+                    "duration": 4,
                     "conditions": null,
                     "children": null
                   }

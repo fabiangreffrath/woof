@@ -25,6 +25,45 @@
 #define RED_S   "\x1b\x36"
 #define BLUE_S  "\x1b\x37"
 
+void UpdateMessage(sbarelem_t *elem, player_t *player)
+{
+    if (!player->message)
+    {
+        elem->string = "";
+        return;
+    }
+
+    static char string[80];
+    static int duration_left;
+
+    if (duration_left > 0 && player->message[0])
+    {
+        duration_left = elem->duration;
+        M_StringCopy(string, player->message, sizeof(string));
+        player->message[0] = '\0';
+    }
+
+    if (duration_left == 0)
+    {
+        if (player->message[0])
+        {
+            duration_left = elem->duration;
+            M_StringCopy(string, player->message, sizeof(string));
+            player->message[0] = '\0';
+        }
+        else
+        {
+            string[0] = '\0';
+        }
+    }
+    else
+    {
+        --duration_left;
+    }
+
+    elem->string = string;
+}
+
 void UpdateMonSec(sbarelem_t *elem)
 {
     static char string[80];

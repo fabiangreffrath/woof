@@ -876,6 +876,10 @@ static void UpdateWidget(sbarelem_t *elem, player_t *player)
 {
     switch (elem->widgettype)
     {
+        case sbw_message:
+            UpdateMessage(elem, player);
+            UpdateString(elem);
+            break;
         case sbw_monsec:
             UpdateMonSec(elem);
             UpdateString(elem);
@@ -1025,13 +1029,13 @@ static void DrawPatch(int x, int y, sbaralignment_t alignment, patch_t *patch,
         y -= height;
     }
 
-    if (st_layout == st_wide && (alignment & sbe_wide))
+    if (st_layout == st_wide)
     {
-        if (x < SCREENWIDTH / 2)
+        if (alignment & sbe_wide_left)
         {
             x -= video.deltaw;
         }
-        else
+        if (alignment & sbe_wide_right)
         {
             x += video.deltaw;
         }
@@ -1248,27 +1252,23 @@ static void DrawBackground(const char *name)
     st_refresh_background = false;
 }
 
-static int currbar;
+static int current_barindex;
 
 static void DrawStatusBar(void)
 {
     player_t *player = &players[displayplayer];
 
-    int bar = MAX(screenblocks - 10, 0);
+    int barindex = MAX(screenblocks - 10, 0);
 
     if (automapactive && automapoverlay == AM_OVERLAY_OFF)
     {
-        bar = 0;
+        barindex = 0;
     }
 
-    statusbar_t *statusbar = &sbardef->statusbars[bar];
+    statusbar_t *statusbar = &sbardef->statusbars[barindex];
 
     if (!statusbar->fullscreenrender)
     {
-        if (currbar != bar)
-        {
-            st_refresh_background = true;
-        }
         DrawBackground(statusbar->fillflat);
     }
 
@@ -1278,7 +1278,7 @@ static void DrawStatusBar(void)
         DrawElem(0, SCREENHEIGHT - statusbar->height, child, player);
     }
 
-    currbar = bar;
+    current_barindex = barindex;
 }
 
 static void EraseElem(int x, int y, sbarelem_t *elem, player_t *player)
@@ -1320,7 +1320,7 @@ void ST_Erase(void)
     }
 
     player_t *player = &players[displayplayer];
-    statusbar_t *statusbar = &sbardef->statusbars[currbar];
+    statusbar_t *statusbar = &sbardef->statusbars[current_barindex];
 
     sbarelem_t *child;
     array_foreach(child, statusbar->children)

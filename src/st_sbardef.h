@@ -98,6 +98,8 @@ typedef enum
     sbw_rate,
     sbw_cmd,
     sbw_speed,
+
+    sbw_message,
 } sbarwidgettype_t;
 
 typedef enum
@@ -115,7 +117,8 @@ typedef enum
     sbe_v_mask = 0x0C,
 
     // Woof!
-    sbe_wide = 0x10,
+    sbe_wide_left = 0x10,
+    sbe_wide_right = 0x20,
 } sbaralignment_t;
 
 typedef struct
@@ -174,6 +177,9 @@ struct sbarelem_s
     hudfont_t *hudfont;
     const char *string;
     int totalwidth;
+
+    // message
+    int duration;
 };
 
 typedef struct

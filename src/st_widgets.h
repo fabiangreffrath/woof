@@ -17,6 +17,7 @@
 struct sbarelem_s;
 struct player_s;
 
+void UpdateMessage(struct sbarelem_s *elem, struct player_s *player);
 void UpdateMonSec(struct sbarelem_s *elem);
 void UpdateStTime(struct sbarelem_s *elem, struct player_s *player);
 

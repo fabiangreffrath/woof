@@ -173,6 +173,11 @@ static boolean ParseSbarElemType(json_t *json, sbarelementtype_t type,
                     return false;
                 }
                 out->widgettype = JS_GetInteger(type);
+
+                if (out->widgettype == sbw_message)
+                {
+                    out->duration = JS_GetNumberValue(json, "duration") * TICRATE;
+                }
             }
             break;
 

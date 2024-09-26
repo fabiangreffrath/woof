@@ -1545,7 +1545,7 @@ void HU_Ticker(void)
     HUlib_add_key_to_cur_line(&w_chat, KEY_BACKSPACE);
     bscounter = 8;
   }
-
+/*
   // tick down message counter if message is up
   if (message_counter && !--message_counter)
     message_on = message_nottobefuckedwith = false;
@@ -1591,7 +1591,7 @@ void HU_Ticker(void)
     // clear the flag that "Messages Off" is being posted
     message_dontfuckwithme = 0;
   }
-
+*/
   // check for incoming chat characters
   if (netgame)
   {
