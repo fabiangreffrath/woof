@@ -28,13 +28,6 @@ typedef enum
 
 typedef enum
 {
-    sbm_none,
-    sbm_compact,
-    sbm_wide,
-} sbarmode_t;
-
-typedef enum
-{
     sbc_none = -1,
     sbc_weaponowned,
     sbc_weaponselected,
@@ -89,6 +82,8 @@ typedef enum
     sbe_facebackground,
     sbe_number,
     sbe_percent,
+
+    // Woof!
     sbe_widget,
 
     sbe_max,
@@ -118,6 +113,9 @@ typedef enum
     sbe_v_bottom = 0x08,
 
     sbe_v_mask = 0x0C,
+
+    // Woof!
+    sbe_wide = 0x10,
 } sbaralignment_t;
 
 typedef struct
@@ -168,6 +166,8 @@ struct sbarelem_s
     int faceindex;
     int facecount;
     int oldhealth;
+
+    // Woof!
 
     // widget
     sbarwidgettype_t widgettype;

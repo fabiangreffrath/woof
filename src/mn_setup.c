@@ -316,6 +316,7 @@ enum
     str_curve,
     str_center_weapon,
     str_screensize,
+    str_stlayout,
     str_show_widgets,
     str_show_adv_widgets,
     str_crosshair,
@@ -1776,13 +1777,17 @@ static setup_tab_t stat_tabs[] = {
 
 static void SizeDisplayAlt(void)
 {
-    MN_SizeDisplay(-1);
+    R_SetViewSize(screenblocks);
 }
 
 static const char *screensize_strings[] = {
     "",           "",           "",           "Status Bar",
     "Status Bar", "Status Bar", "Status Bar", "Status Bar",
     "Status Bar", "Status Bar", "Status Bar", "Fullscreen"
+};
+
+static const char *st_layout_strings[] = {
+    "Original", "Wide"
 };
 
 #define H_X_THRM8 (M_X_THRM8 - 14)
@@ -1795,6 +1800,11 @@ static setup_menu_t stat_settings1[] = {
 
     MI_GAP,
 
+    {"Layout", S_CHOICE, H_X, M_SPC, {"st_layout"},
+     .strings_id = str_stlayout},
+
+    MI_GAP,
+
     {"Status Bar", S_SKIP | S_TITLE, H_X, M_SPC},
 
     {"Colored Numbers", S_ONOFF | S_COSMETIC, H_X, M_SPC, {"sts_colored_numbers"}},
@@ -1802,12 +1812,6 @@ static setup_menu_t stat_settings1[] = {
     {"Gray Percent Sign", S_ONOFF | S_COSMETIC, H_X, M_SPC, {"sts_pct_always_gray"}},
 
     {"Solid Background Color", S_ONOFF, H_X, M_SPC, {"st_solidbackground"}},
-
-    MI_GAP,
-
-    {"Widescreen Mode", S_ONOFF, H_X, M_SPC, {"st_widescreen_mode"}},
-
-    MI_GAP,
 
     {"Backpack Shifts Ammo Color", S_ONOFF, H_X, M_SPC, {"hud_backpack_thresholds"}},
 
@@ -4591,6 +4595,7 @@ static const char **selectstrings[] = {
     curve_strings,
     center_weapon_strings,
     screensize_strings,
+    st_layout_strings,
     show_widgets_strings,
     show_adv_widgets_strings,
     crosshair_strings,

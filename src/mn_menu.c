@@ -1539,7 +1539,7 @@ static void M_ChangeMessages(int choice)
 // hud_displayed is toggled by + or = in fullscreen
 // hud_displayed is cleared by -
 
-void MN_SizeDisplay(int choice)
+static void M_SizeDisplay(int choice)
 {
     switch (choice)
     {
@@ -2224,7 +2224,7 @@ boolean M_ShortcutResponder(const event_t *ev)
         {
             return false;
         }
-        MN_SizeDisplay(0);
+        M_SizeDisplay(0);
         M_StartSound(sfx_stnmov);
         return true;
     }
@@ -2235,7 +2235,7 @@ boolean M_ShortcutResponder(const event_t *ev)
         {                               // key_hud==key_zoomin
             return false;
         }
-        MN_SizeDisplay(1);
+        M_SizeDisplay(1);
         M_StartSound(sfx_stnmov);
         return true;
     }
@@ -2255,7 +2255,7 @@ boolean M_ShortcutResponder(const event_t *ev)
         {
             screenblocks = 10;
         }
-        MN_SizeDisplay(-1);
+        R_SetViewSize(screenblocks);
         return true;
     }
 

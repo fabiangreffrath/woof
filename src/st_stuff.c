@@ -129,9 +129,13 @@ int st_keyorskull[3];
 
 static sbardef_t *sbardef;
 
-static boolean st_widescreen_mode;
+typedef enum
+{
+    st_original,
+    st_wide
+} st_layout_t;
 
-static sbarmode_t sbarmode;
+static st_layout_t st_layout;
 
 static patch_t **facepatches = NULL;
 
@@ -1021,7 +1025,7 @@ static void DrawPatch(int x, int y, sbaralignment_t alignment, patch_t *patch,
         y -= height;
     }
 
-    if (sbarmode == sbm_wide && !(alignment & sbe_h_middle))
+    if (st_layout == st_wide && (alignment & sbe_wide))
     {
         if (x < SCREENWIDTH / 2)
         {
@@ -1267,9 +1271,6 @@ static void DrawStatusBar(void)
         }
         DrawBackground(statusbar->fillflat);
     }
-
-    sbarmode =
-        statusbar->fullscreenrender && st_widescreen_mode ? sbm_wide : sbm_none;
 
     sbarelem_t *child;
     array_foreach(child, statusbar->children)
@@ -1605,8 +1606,8 @@ void ST_ResetPalette(void)
 
 void ST_BindSTSVariables(void)
 {
-  M_BindBool("st_widescreen_mode", &st_widescreen_mode, NULL,
-             false, ss_stat, wad_no, "Widescreen HUD");
+  M_BindNum("st_layout", &st_layout, NULL,  st_wide, st_original, st_wide,
+             ss_stat, wad_no, "HUD layout");
   M_BindBool("sts_colored_numbers", &sts_colored_numbers, NULL,
              false, ss_stat, wad_yes, "Colored numbers on the status bar");
   M_BindBool("sts_pct_always_gray", &sts_pct_always_gray, NULL,

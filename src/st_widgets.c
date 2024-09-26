@@ -60,11 +60,11 @@ void UpdateMonSec(sbarelem_t *elem)
     int itemcolor =
         (fullitemcount >= totalitems) ? '0' + CR_BLUE1 : '0' + CR_GRAY;
 
-    M_snprintf(string, sizeof(string),
-               RED_S"K \x1b%c%d/%d "RED_S"I \x1b%c%d/%d "RED_S"S \x1b%c%d/%d",
-               killcolor, fullkillcount, max_kill_requirement,
-               itemcolor, fullitemcount, totalitems,
-               secretcolor, fullsecretcount, totalsecret);
+    M_snprintf(
+        string, sizeof(string),
+        RED_S "K \x1b%c%d/%d " RED_S "I \x1b%c%d/%d " RED_S "S \x1b%c%d/%d",
+        killcolor, fullkillcount, max_kill_requirement, itemcolor,
+        fullitemcount, totalitems, secretcolor, fullsecretcount, totalsecret);
 
     elem->string = string;
 }
@@ -79,31 +79,29 @@ void UpdateStTime(sbarelem_t *elem, player_t *player)
 
     if (time_scale != 100)
     {
-        offset += M_snprintf(string, sizeof(string), BLUE_S"%d%% ", time_scale);
+        offset +=
+            M_snprintf(string, sizeof(string), BLUE_S "%d%% ", time_scale);
     }
 
     if (totalleveltimes)
     {
         const int time = (totalleveltimes + leveltime) / TICRATE;
 
-        offset += M_snprintf(
-            string + offset, sizeof(string) - offset,
-            GREEN_S"%d:%02d ", time / 60, time % 60);
+        offset += M_snprintf(string + offset, sizeof(string) - offset,
+                             GREEN_S "%d:%02d ", time / 60, time % 60);
     }
 
     if (!player->btuse_tics)
     {
-        M_snprintf(string + offset,
-                   sizeof(string) - offset, GRAY_S"%d:%05.2f\t",
-                   leveltime / TICRATE / 60,
+        M_snprintf(string + offset, sizeof(string) - offset,
+                   GRAY_S "%d:%05.2f\t", leveltime / TICRATE / 60,
                    (float)(leveltime % (60 * TICRATE)) / TICRATE);
     }
 
     if (player->btuse_tics)
     {
         M_snprintf(string + offset, sizeof(string) - offset,
-                   GOLD_S"U %d:%05.2f\t",
-                   player->btuse / TICRATE / 60,
+                   GOLD_S "U %d:%05.2f\t", player->btuse / TICRATE / 60,
                    (float)(player->btuse % (60 * TICRATE)) / TICRATE);
     }
 
