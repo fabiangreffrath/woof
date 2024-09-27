@@ -2847,19 +2847,13 @@ static void MN_Gyro(void);
 
 static setup_menu_t gen_settings4[] = {
 
-    {"Advanced Options", S_FUNC, CNTR_X, M_SPC, .action = MN_PadAdv},
-
-    {"Gyro Options", S_FUNC, CNTR_X, M_SPC, .action = MN_Gyro},
-
-    MI_GAP_EX(6),
-
     {"Free Look", S_ONOFF, CNTR_X, M_SPC, {"padlook"},
      .action = MN_UpdatePadLook},
 
     {"Invert Look", S_ONOFF, CNTR_X, M_SPC, {"joy_invert_look"},
      .action = I_ResetGamepad},
 
-    MI_GAP_EX(6),
+    MI_GAP_EX(4),
 
     {"Turn Speed", S_THERMO | S_THRM_SIZE11, CNTR_X, M_THRM_SPC,
      {"joy_turn_speed"}, .action = I_ResetGamepad},
@@ -2867,7 +2861,7 @@ static setup_menu_t gen_settings4[] = {
     {"Look Speed", S_THERMO | S_THRM_SIZE11, CNTR_X, M_THRM_SPC,
      {"joy_look_speed"}, .action = I_ResetGamepad},
 
-    MI_GAP_EX(6),
+    MI_GAP_EX(4),
 
     {"Movement Deadzone", S_THERMO | S_PCT, CNTR_X, M_THRM_SPC,
      {"joy_movement_inner_deadzone"}, .action = I_ResetGamepad},
@@ -2875,10 +2869,16 @@ static setup_menu_t gen_settings4[] = {
     {"Camera Deadzone", S_THERMO | S_PCT, CNTR_X, M_THRM_SPC,
      {"joy_camera_inner_deadzone"}, .action = I_ResetGamepad},
 
-    MI_GAP_EX(6),
+    MI_GAP_EX(4),
 
     {"Rumble", S_THERMO, CNTR_X, M_THRM_SPC, {"joy_rumble"},
      .strings_id = str_rumble, .action = UpdateRumble},
+
+    MI_GAP,
+
+    {"Advanced Options", S_FUNC, CNTR_X, M_SPC, .action = MN_PadAdv},
+
+    {"Gyro Options", S_FUNC, CNTR_X, M_SPC, .action = MN_Gyro},
 
     MI_END
 };
