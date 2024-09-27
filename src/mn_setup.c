@@ -756,6 +756,11 @@ static void WrapSettingString(setup_menu_t *s, int x, int y, int color)
             DrawMenuStringBuffer(flags, x, y, color, &menu_buffer[index]);
             y += M_SPC;
             s->lines++;
+
+            if (s->lines > 1)
+            {
+                break;
+            }
         }
         else
         {
