@@ -441,7 +441,7 @@ static const char **I_FL_DeviceList(void)
 
     if (W_CheckNumForName("SNDFONT") >= 0)
     {
-        array_push(devices, "FluidSynth (SNDFONT)");
+        array_push(devices, "FluidSynth: SNDFONT");
         return devices;
     }
 
@@ -454,7 +454,7 @@ static const char **I_FL_DeviceList(void)
         {
             name[NAME_MAX_LENGTH] = '\0';
         }
-        array_push(devices, M_StringJoin("FluidSynth (", name, ")"));
+        array_push(devices, M_StringJoin("FluidSynth: ", name));
         free(name);
     }
 
