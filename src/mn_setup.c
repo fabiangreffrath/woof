@@ -337,6 +337,8 @@ enum
     str_sound_module,
     str_resampler,
     str_equalizer_preset,
+    str_midi_complevel,
+    str_midi_reset_type,
 
     str_mouse_accel,
 
@@ -2507,6 +2509,7 @@ static void SetMidiPlayer(void)
     S_RestartMusic();
 }
 
+static void MN_Midi(void);
 static void MN_Equalizer(void);
 
 static setup_menu_t gen_settings2[] = {
@@ -2517,7 +2520,7 @@ static setup_menu_t gen_settings2[] = {
     {"Music Volume", S_THERMO, CNTR_X, M_THRM_SPC, {"music_volume"},
      .action = UpdateMusicVolume},
 
-    MI_GAP,
+    MI_GAP_EX(6),
 
     {"Sound Module", S_CHOICE, CNTR_X, M_SPC, {"snd_module"},
      .strings_id = str_sound_module, .action = SetSoundModule},
@@ -2533,14 +2536,18 @@ static setup_menu_t gen_settings2[] = {
     {"Resampler", S_CHOICE, CNTR_X, M_SPC, {"snd_resampler"},
      .strings_id = str_resampler, .action = I_OAL_SetResampler},
 
-    {"Equalizer Options", S_FUNC, CNTR_X, M_SPC, .action = MN_Equalizer},
-
-    MI_GAP,
+    MI_GAP_EX(6),
 
     // [FG] music backend
-    {"MIDI Player", S_CHOICE | S_ACTION | S_WRAP_LINE, CNTR_X, M_SPC,
+    {"MIDI Player", S_CHOICE | S_ACTION | S_WRAP_LINE, CNTR_X, M_SPC * 2,
      {"midi_player_menu"}, .strings_id = str_midi_player,
      .action = SetMidiPlayer},
+
+    MI_GAP_EX(6),
+
+    {"MIDI Options", S_FUNC, CNTR_X, M_SPC, .action = MN_Midi},
+
+    {"Equalizer Options", S_FUNC, CNTR_X, M_SPC, .action = MN_Equalizer},
 
     MI_END
 };
@@ -2550,6 +2557,84 @@ static const char **GetResamplerStrings(void)
     const char **strings = I_OAL_GetResamplerStrings();
     DisableItem(!strings, gen_settings2, "snd_resampler");
     return strings;
+}
+
+static const char *midi_complevel_strings[] = {
+    "Vanilla", "Standard", "Full"
+};
+
+static const char *midi_reset_type_strings[] = {
+    "No SysEx", "General MIDI", "Roland GS", "Yamaha XG"
+};
+
+static setup_menu_t midi_settings1[] = {
+
+    {"Native MIDI Gain", S_THERMO | S_PCT, CNTR_X, M_THRM_SPC,
+     {"midi_gain"}, .action = UpdateMusicVolume},
+
+    {"Native MIDI Reset", S_CHOICE | S_ACTION, CNTR_X, M_SPC,
+     {"midi_reset_type"}, .strings_id = str_midi_reset_type,
+     .action = SetMidiPlayer},
+
+    {"Compatibility Level", S_CHOICE | S_ACTION, CNTR_X, M_SPC,
+     {"midi_complevel"}, .strings_id = str_midi_complevel,
+     .action = SetMidiPlayer},
+
+    {"SC-55 CTF Emulation", S_ONOFF, CNTR_X, M_SPC, {"midi_ctf"},
+     .action = SetMidiPlayer},
+
+    MI_GAP,
+
+#if defined (HAVE_FLUIDSYNTH)
+    {"FluidSynth Gain", S_THERMO | S_PCT, CNTR_X, M_THRM_SPC, {"mus_gain"},
+     .action = UpdateMusicVolume},
+
+    {"FluidSynth Reverb", S_ONOFF, CNTR_X, M_SPC, {"mus_reverb"},
+     .action = SetMidiPlayer},
+
+    {"FluidSynth Chorus", S_ONOFF, CNTR_X, M_SPC, {"mus_chorus"},
+     .action = SetMidiPlayer},
+
+    MI_GAP,
+#endif
+
+    {"OPL3 Gain", S_THERMO | S_PCT, CNTR_X, M_THRM_SPC, {"opl_gain"},
+     .action = UpdateMusicVolume},
+
+    {"OPL3 Number of Chips", S_THERMO | S_THRM_SIZE4 | S_ACTION, CNTR_X,
+     M_THRM_SPC, {"num_opl_chips"}, .action = SetMidiPlayer},
+
+    {"OPL3 Reverse Stereo", S_ONOFF, CNTR_X, M_SPC,
+     {"opl_stereo_correct"}, .action = SetMidiPlayer},
+
+    MI_END
+};
+
+static setup_menu_t *midi_settings[] = {midi_settings1, NULL};
+
+static setup_tab_t midi_tabs[] = {{"MIDI"}, {NULL}};
+
+static void MN_Midi(void)
+{
+    SetItemOn(set_item_on);
+    SetPageIndex(current_page);
+
+    MN_SetNextMenuAlt(ss_midi);
+    setup_screen = ss_midi;
+    current_page = GetPageIndex(midi_settings);
+    current_menu = midi_settings[current_page];
+    current_tabs = midi_tabs;
+    SetupMenuSecondary();
+}
+void MN_DrawMidi(void)
+{
+    inhelpscreens = true;
+
+    DrawBackground("FLOOR4_6");
+    MN_DrawTitle(M_X_CENTER, M_Y_TITLE, "M_GENERL", "General");
+    DrawTabs();
+    DrawInstructions();
+    DrawScreenItems(current_menu);
 }
 
 static const char *equalizer_preset_strings[] = {
@@ -3314,6 +3399,7 @@ static setup_menu_t **setup_screens[] = {
     enem_settings,
     gen_settings, // killough 10/98
     comp_settings,
+    midi_settings,
     eq_settings,
     padadv_settings,
     gyro_settings,
@@ -3443,6 +3529,7 @@ static void ResetDefaultsSecondary(void)
 {
     if (setup_screen == ss_gen)
     {
+        ResetDefaults(ss_midi);
         ResetDefaults(ss_eq);
         ResetDefaults(ss_padadv);
         ResetDefaults(ss_gyro);
@@ -4670,6 +4757,8 @@ static const char **selectstrings[] = {
     sound_module_strings,
     NULL, // str_resampler
     equalizer_preset_strings,
+    midi_complevel_strings,
+    midi_reset_type_strings,
     NULL, // str_mouse_accel
     gyro_space_strings,
     gyro_action_strings,
