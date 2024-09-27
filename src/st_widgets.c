@@ -33,10 +33,10 @@ void UpdateMessage(sbe_widget_t *widget, player_t *player)
         return;
     }
 
-    static char string[128];
+    static char string[120];
     static int duration_left;
 
-    if (duration_left > 0 && player->message[0])
+    if (player->message[0])
     {
         duration_left = widget->duration;
         M_StringCopy(string, player->message, sizeof(string));
@@ -45,16 +45,31 @@ void UpdateMessage(sbe_widget_t *widget, player_t *player)
 
     if (duration_left == 0)
     {
-        if (player->message[0])
-        {
-            duration_left = widget->duration;
-            M_StringCopy(string, player->message, sizeof(string));
-            player->message[0] = '\0';
-        }
-        else
-        {
-            string[0] = '\0';
-        }
+        string[0] = '\0';
+    }
+    else
+    {
+        --duration_left;
+    }
+
+    widget->string = string;
+}
+
+void UpdateSecretMessage(sbe_widget_t *widget, player_t *player)
+{
+    static char string[80];
+    static int duration_left;
+
+    if (player->secretmessage)
+    {
+        duration_left = widget->duration;
+        M_StringCopy(string, player->secretmessage, sizeof(string));
+        player->secretmessage = NULL;
+    }
+
+    if (duration_left == 0)
+    {
+        string[0] = '\0';
     }
     else
     {
@@ -66,7 +81,7 @@ void UpdateMessage(sbe_widget_t *widget, player_t *player)
 
 void UpdateMonSec(sbe_widget_t *widget)
 {
-    static char string[80];
+    static char string[120];
 
     string[0] = '\0';
 
@@ -99,11 +114,11 @@ void UpdateMonSec(sbe_widget_t *widget)
     int itemcolor =
         (fullitemcount >= totalitems) ? '0' + CR_BLUE1 : '0' + CR_GRAY;
 
-    M_snprintf(
-        string, sizeof(string),
+    M_snprintf(string, sizeof(string),
         RED_S "K \x1b%c%d/%d " RED_S "I \x1b%c%d/%d " RED_S "S \x1b%c%d/%d",
-        killcolor, fullkillcount, max_kill_requirement, itemcolor,
-        fullitemcount, totalitems, secretcolor, fullsecretcount, totalsecret);
+        killcolor, fullkillcount, max_kill_requirement,
+        itemcolor, fullitemcount, totalitems,
+        secretcolor, fullsecretcount, totalsecret);
 
     widget->string = string;
 }
@@ -136,8 +151,7 @@ void UpdateStTime(sbe_widget_t *widget, player_t *player)
                    GRAY_S "%d:%05.2f\t", leveltime / TICRATE / 60,
                    (float)(leveltime % (60 * TICRATE)) / TICRATE);
     }
-
-    if (player->btuse_tics)
+    else
     {
         M_snprintf(string + offset, sizeof(string) - offset,
                    GOLD_S "U %d:%05.2f\t", player->btuse / TICRATE / 60,

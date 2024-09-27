@@ -182,10 +182,17 @@ static boolean ParseSbarElemType(json_t *json, sbarelementtype_t type,
                 }
                 widget->type = JS_GetInteger(type);
 
-                if (widget->type == sbw_message)
+                switch (widget->type)
                 {
-                    widget->duration = JS_GetNumberValue(json, "duration") * TICRATE;
+                    case sbw_message:
+                    case sbw_secret:
+                        widget->duration =
+                            JS_GetNumberValue(json, "duration") * TICRATE;
+                        break;
+                    default:
+                        break;
                 }
+
                 out->pointer.widget = widget;
             }
             break;
@@ -352,43 +359,60 @@ static boolean ParseHUDFont(json_t *json, hudfont_t *out)
     return true;
 }
 
-static sbe_widget_t message = {
-    .type = sbw_message,
-    .font_name = "ConFont",
-    .duration = 4 * TICRATE
-};
-
-static sbe_widget_t monsec = {
-    .type = sbw_monsec,
-    .font_name = "SmallFont"
-};
-
-static sbe_widget_t time = {
-    .type = sbw_time,
-    .font_name = "SmallFont"
-};
-
 static sbarelem_t default_widgets[] = {
     {
         .type = sbe_widget,
         .x_pos = 0,
         .y_pos = 0,
         .alignment = sbe_wide_left,
-        .pointer.widget = &message
+        .pointer.widget = &(sbe_widget_t)
+        {
+            .type = sbw_message,
+            .font_name = "ConFont",
+            .duration = 4 * TICRATE
+        },
+        .cr = CR_NONE,
+        .crboom = CR_NONE
+    },
+    {
+        .type = sbe_widget,
+        .x_pos = 160,
+        .y_pos = 52,
+        .alignment = sbe_h_middle,
+        .pointer.widget = &(sbe_widget_t)
+        {
+            .type = sbw_secret,
+            .font_name = "ConFont",
+            .duration = 2.5 * TICRATE
+        },
+        .cr = CR_GOLD,
+        .crboom = CR_NONE
     },
     {
         .type = sbe_widget,
         .x_pos = 0,
         .y_pos = 160,
         .alignment = sbe_wide_left,
-        .pointer.widget = &monsec
+        .pointer.widget = &(sbe_widget_t)
+        {
+            .type = sbw_monsec,
+            .font_name = "SmallFont"
+        },
+        .cr = CR_NONE,
+        .crboom = CR_NONE
     },
     {
         .type = sbe_widget,
         .x_pos = 0,
         .y_pos = 153,
         .alignment = sbe_wide_left,
-        .pointer.widget = &time
+        .pointer.widget = &(sbe_widget_t)
+        {
+            .type = sbw_time,
+            .font_name = "SmallFont"
+        },
+        .cr = CR_NONE,
+        .crboom = CR_NONE
     }
 };
 
@@ -422,11 +446,7 @@ static boolean ParseStatusBar(json_t *json, statusbar_t *out,
         for (int i = 0; i < arrlen(default_widgets); ++i)
         {
             sbarelem_t elem = default_widgets[i];
-            if (!out->fullscreenrender)
-            {
-                elem.y_pos += (out->height - 200);
-            }
-            elem.cr = elem.crboom = CR_NONE;
+            elem.y_pos += (out->height - 200);
             array_push(out->children, elem);
         }
     }

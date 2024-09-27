@@ -100,6 +100,7 @@ typedef enum
     sbw_speed,
 
     sbw_message,
+    sbw_secret,
 } sbarwidgettype_t;
 
 typedef enum

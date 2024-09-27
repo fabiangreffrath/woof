@@ -888,15 +888,15 @@ static void UpdateWidget(sbarelem_t *elem, player_t *player)
     {
         case sbw_message:
             UpdateMessage(widget, player);
-            UpdateString(elem);
+            break;
+        case sbw_secret:
+            UpdateSecretMessage(widget, player);
             break;
         case sbw_monsec:
             UpdateMonSec(widget);
-            UpdateString(elem);
             break;
         case sbw_time:
             UpdateStTime(widget, player);
-            UpdateString(elem);
             break;
         case sbw_coord:
         case sbw_fps:
@@ -907,6 +907,8 @@ static void UpdateWidget(sbarelem_t *elem, player_t *player)
         default:
             break;
     }
+
+    UpdateString(elem);
 }
 
 static void UpdateElem(sbarelem_t *elem, player_t *player)

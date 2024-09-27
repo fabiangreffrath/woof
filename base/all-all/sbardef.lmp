@@ -881,6 +881,21 @@
               "conditions": null,
               "children": null
             }
+          },
+          {
+            "widget":
+            {
+              "x": 160,
+              "y": 52,
+              "alignment": 1,
+              "tranmap": null,
+              "translation": "CRGOLD",
+              "type": 8,
+              "font": "ConFont",
+              "duration": 2.5,
+              "conditions": null,
+              "children": null
+            }
           }
         ]
       },
@@ -1480,6 +1495,21 @@
                     "type": 7,
                     "font": "ConFont",
                     "duration": 4,
+                    "conditions": null,
+                    "children": null
+                  }
+                },
+                {
+                  "widget":
+                  {
+                    "x": 160,
+                    "y": 68,
+                    "alignment": 1,
+                    "tranmap": null,
+                    "translation": "CRGOLD",
+                    "type": 8,
+                    "font": "ConFont",
+                    "duration": 2.5,
                     "conditions": null,
                     "children": null
                   }
