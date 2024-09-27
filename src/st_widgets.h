@@ -14,11 +14,11 @@
 #ifndef ST_WIDGETS_H
 #define ST_WIDGETS_H
 
-struct sbarelem_s;
+struct sbe_widget_s;
 struct player_s;
 
-void UpdateMessage(struct sbarelem_s *elem, struct player_s *player);
-void UpdateMonSec(struct sbarelem_s *elem);
-void UpdateStTime(struct sbarelem_s *elem, struct player_s *player);
+void UpdateMessage(struct sbe_widget_s *widget, struct player_s *player);
+void UpdateMonSec(struct sbe_widget_s *widget);
+void UpdateStTime(struct sbe_widget_s *widget, struct player_s *player);
 
 #endif

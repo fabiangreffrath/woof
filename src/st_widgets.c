@@ -25,11 +25,11 @@
 #define RED_S   "\x1b\x36"
 #define BLUE_S  "\x1b\x37"
 
-void UpdateMessage(sbarelem_t *elem, player_t *player)
+void UpdateMessage(sbe_widget_t *widget, player_t *player)
 {
     if (!player->message)
     {
-        elem->string = "";
+        widget->string = "";
         return;
     }
 
@@ -38,7 +38,7 @@ void UpdateMessage(sbarelem_t *elem, player_t *player)
 
     if (duration_left > 0 && player->message[0])
     {
-        duration_left = elem->duration;
+        duration_left = widget->duration;
         M_StringCopy(string, player->message, sizeof(string));
         player->message[0] = '\0';
     }
@@ -47,7 +47,7 @@ void UpdateMessage(sbarelem_t *elem, player_t *player)
     {
         if (player->message[0])
         {
-            duration_left = elem->duration;
+            duration_left = widget->duration;
             M_StringCopy(string, player->message, sizeof(string));
             player->message[0] = '\0';
         }
@@ -61,10 +61,10 @@ void UpdateMessage(sbarelem_t *elem, player_t *player)
         --duration_left;
     }
 
-    elem->string = string;
+    widget->string = string;
 }
 
-void UpdateMonSec(sbarelem_t *elem)
+void UpdateMonSec(sbe_widget_t *widget)
 {
     static char string[80];
 
@@ -105,10 +105,10 @@ void UpdateMonSec(sbarelem_t *elem)
         killcolor, fullkillcount, max_kill_requirement, itemcolor,
         fullitemcount, totalitems, secretcolor, fullsecretcount, totalsecret);
 
-    elem->string = string;
+    widget->string = string;
 }
 
-void UpdateStTime(sbarelem_t *elem, player_t *player)
+void UpdateStTime(sbe_widget_t *widget, player_t *player)
 {
     static char string[80];
 
@@ -144,5 +144,5 @@ void UpdateStTime(sbarelem_t *elem, player_t *player)
                    (float)(player->btuse % (60 * TICRATE)) / TICRATE);
     }
 
-    elem->string = string;
+    widget->string = string;
 }

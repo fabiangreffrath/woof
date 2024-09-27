@@ -132,54 +132,75 @@ typedef struct sbarelem_s sbarelem_t;
 typedef struct numberfont_s numberfont_t;
 typedef struct hudfont_s hudfont_t;
 
-struct sbarelem_s
+typedef struct
 {
-    sbarelementtype_t elemtype;
-    int x_pos;
-    int y_pos;
-    sbaralignment_t alignment;
-    const char *tranmap;
-    const char *translation;
-    crange_idx_e cr;
-    crange_idx_e crboom;
-    sbarcondition_t *conditions;
-    sbarelem_t *children;
-
-    // graphic
     const char *patch_name;
     patch_t *patch;
+} sbe_graphic_t;
 
-    // animation
+typedef struct
+{
     sbarframe_t *frames;
     int frame_index;
     int duration_left;
+} sbe_animation_t;
 
-    // number, percent
+typedef struct
+{
     const char *font_name;
-    numberfont_t *numfont;
-    sbarnumbertype_t numtype;
-    int numparam;
+    numberfont_t *font;
+    sbarnumbertype_t type;
+    int param;
     int maxlength;
-    int number;
-    int xoffset;
-    int numnumbers;
+    int value;
+    int numvalues;
     int oldvalue;
+} sbe_number_t;
 
-    // face
+typedef struct
+{
     int faceindex;
     int facecount;
     int oldhealth;
+} sbe_face_t;
 
-    // Woof!
-
-    // widget
-    sbarwidgettype_t widgettype;
-    hudfont_t *hudfont;
+typedef struct sbe_widget_s
+{
+    sbarwidgettype_t type;
+    const char *font_name;
+    hudfont_t *font;
     const char *string;
     int totalwidth;
 
     // message
     int duration;
+} sbe_widget_t;
+
+struct sbarelem_s
+{
+    sbarelementtype_t type;
+    int x_pos;
+    int y_pos;
+    sbaralignment_t alignment;
+    const char *tranmap;
+    const char *translation;
+    sbarcondition_t *conditions;
+    sbarelem_t *children;
+
+    crange_idx_e cr;
+    crange_idx_e crboom;
+    int xoffset;
+
+    union
+    {
+        sbe_graphic_t *graphic;
+        sbe_animation_t *animation;
+        sbe_number_t *number;
+        sbe_face_t *face;
+
+        // Woof!
+        sbe_widget_t *widget;
+    } pointer;
 };
 
 typedef struct

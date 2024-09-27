@@ -370,29 +370,29 @@ static int SmoothCount(int shownval, int realval)
     }
 }
 
-static int ResolveNumber(sbarelem_t *elem, player_t *player)
+static int ResolveNumber(sbe_number_t *number, player_t *player)
 {
     int result = 0;
-    int param = elem->numparam;
+    int param = number->param;
 
-    switch (elem->numtype)
+    switch (number->type)
     {
         case sbn_health:
-            if (elem->oldvalue == -1)
+            if (number->oldvalue == -1)
             {
-                elem->oldvalue = player->health;
+                number->oldvalue = player->health;
             }
-            result = SmoothCount(elem->oldvalue, player->health);
-            elem->oldvalue = result;
+            result = SmoothCount(number->oldvalue, player->health);
+            number->oldvalue = result;
             break;
 
         case sbn_armor:
-            if (elem->oldvalue == -1)
+            if (number->oldvalue == -1)
             {
-                elem->oldvalue = player->armorpoints;
+                number->oldvalue = player->armorpoints;
             }
-            result = SmoothCount(elem->oldvalue, player->armorpoints);
-            elem->oldvalue = result;
+            result = SmoothCount(number->oldvalue, player->armorpoints);
+            number->oldvalue = result;
             break;
 
         case sbn_frags:
@@ -442,12 +442,12 @@ static int ResolveNumber(sbarelem_t *elem, player_t *player)
     return result;
 }
 
-static int CalcPainOffset(sbarelem_t *elem, player_t *player)
+static int CalcPainOffset(sbe_face_t *face, player_t *player)
 {
     int health = player->health > 100 ? 100 : player->health;
     int lasthealthcalc =
         ST_FACESTRIDE * (((100 - health) * ST_NUMPAINFACES) / 101);
-    elem->oldhealth = health;
+    face->oldhealth = health;
     return lasthealthcalc;
 }
 
@@ -465,7 +465,7 @@ static int DeadFace(player_t *player)
     return ST_DEADFACE;
 }
 
-static void UpdateFace(sbarelem_t *elem, player_t *player)
+static void UpdateFace(sbe_face_t *face, player_t *player)
 {
     static int priority;
     static int lastattackdown = -1;
@@ -476,8 +476,8 @@ static void UpdateFace(sbarelem_t *elem, player_t *player)
         if (!player->health)
         {
             priority = 9;
-            elem->faceindex = DeadFace(player);
-            elem->facecount = 1;
+            face->faceindex = DeadFace(player);
+            face->facecount = 1;
         }
     }
 
@@ -501,8 +501,8 @@ static void UpdateFace(sbarelem_t *elem, player_t *player)
             {
                 // evil grin if just picked up weapon
                 priority = 8;
-                elem->facecount = ST_EVILGRINCOUNT;
-                elem->faceindex = CalcPainOffset(elem, player) + ST_EVILGRINOFFSET;
+                face->facecount = ST_EVILGRINCOUNT;
+                face->faceindex = CalcPainOffset(face, player) + ST_EVILGRINOFFSET;
             }
         }
     }
@@ -519,12 +519,12 @@ static void UpdateFace(sbarelem_t *elem, player_t *player)
             boolean right = false;
 
             // [FG] show "Ouch Face" as intended
-            if (player->health - elem->oldhealth > ST_MUCHPAIN)
+            if (player->health - face->oldhealth > ST_MUCHPAIN)
             {
                 // [FG] raise "Ouch Face" priority
                 priority = 8;
-                elem->facecount = ST_TURNCOUNT;
-                elem->faceindex = CalcPainOffset(elem, player) + ST_OUCHOFFSET;
+                face->facecount = ST_TURNCOUNT;
+                face->faceindex = CalcPainOffset(face, player) + ST_OUCHOFFSET;
             }
             else
             {
@@ -545,23 +545,23 @@ static void UpdateFace(sbarelem_t *elem, player_t *player)
                     right = diffangle <= ANG180;
                 } // confusing, aint it?
 
-                elem->facecount = ST_TURNCOUNT;
-                elem->faceindex = CalcPainOffset(elem, player);
+                face->facecount = ST_TURNCOUNT;
+                face->faceindex = CalcPainOffset(face, player);
 
                 if (diffangle < ANG45)
                 {
                     // head-on
-                    elem->faceindex += ST_RAMPAGEOFFSET;
+                    face->faceindex += ST_RAMPAGEOFFSET;
                 }
                 else if (right)
                 {
                     // turn face right
-                    elem->faceindex += ST_TURNOFFSET;
+                    face->faceindex += ST_TURNOFFSET;
                 }
                 else
                 {
                     // turn face left
-                    elem->faceindex += ST_TURNOFFSET + 1;
+                    face->faceindex += ST_TURNOFFSET + 1;
                 }
             }
         }
@@ -572,17 +572,17 @@ static void UpdateFace(sbarelem_t *elem, player_t *player)
         // getting hurt because of your own damn stupidity
         if (player->damagecount)
         {
-            if (player->health - elem->oldhealth > ST_MUCHPAIN)
+            if (player->health - face->oldhealth > ST_MUCHPAIN)
             {
                 priority = 7;
-                elem->facecount = ST_TURNCOUNT;
-                elem->faceindex = CalcPainOffset(elem, player) + ST_OUCHOFFSET;
+                face->facecount = ST_TURNCOUNT;
+                face->faceindex = CalcPainOffset(face, player) + ST_OUCHOFFSET;
             }
             else
             {
                 priority = 6;
-                elem->facecount = ST_TURNCOUNT;
-                elem->faceindex = CalcPainOffset(elem, player) + ST_RAMPAGEOFFSET;
+                face->facecount = ST_TURNCOUNT;
+                face->faceindex = CalcPainOffset(face, player) + ST_RAMPAGEOFFSET;
             }
         }
     }
@@ -599,8 +599,8 @@ static void UpdateFace(sbarelem_t *elem, player_t *player)
             else if (!--lastattackdown)
             {
                 priority = 5;
-                elem->faceindex = CalcPainOffset(elem, player) + ST_RAMPAGEOFFSET;
-                elem->facecount = 1;
+                face->faceindex = CalcPainOffset(face, player) + ST_RAMPAGEOFFSET;
+                face->facecount = 1;
                 lastattackdown = 1;
             }
         }
@@ -616,75 +616,77 @@ static void UpdateFace(sbarelem_t *elem, player_t *player)
         if ((player->cheats & CF_GODMODE) || player->powers[pw_invulnerability])
         {
             priority = 4;
-            elem->faceindex = ST_GODFACE;
-            elem->facecount = 1;
+            face->faceindex = ST_GODFACE;
+            face->facecount = 1;
         }
     }
 
     // look left or look right if the facecount has timed out
-    if (!elem->facecount)
+    if (!face->facecount)
     {
-        elem->faceindex = CalcPainOffset(elem, player) + (M_Random() % 3);
-        elem->facecount = ST_STRAIGHTFACECOUNT;
+        face->faceindex = CalcPainOffset(face, player) + (M_Random() % 3);
+        face->facecount = ST_STRAIGHTFACECOUNT;
         priority = 0;
     }
 
-    --elem->facecount;
+    --face->facecount;
 }
 
 static void UpdateNumber(sbarelem_t *elem, player_t *player)
 {
-    int number = ResolveNumber(elem, player);
-    int power = (number < 0 ? elem->maxlength - 1 : elem->maxlength);
-    int max = (int)pow(10.0, power) - 1;
-    int numglyphs = 0;
-    int numnumbers = 0;
+    sbe_number_t *number = elem->pointer.number;
 
-    numberfont_t *font = elem->numfont;
+    int value = ResolveNumber(number, player);
+    int power = (value < 0 ? number->maxlength - 1 : number->maxlength);
+    int max = (int)pow(10.0, power) - 1;
+    int valglyphs = 0;
+    int numvalues = 0;
+
+    numberfont_t *font = number->font;
     if (font == NULL)
     {
         array_foreach(font, sbardef->numberfonts)
         {
-            if (!strcmp(font->name, elem->font_name))
+            if (!strcmp(font->name, number->font_name))
             {
                 break;
             }
         }
     }
 
-    if (number < 0 && font->minus != NULL)
+    if (value < 0 && font->minus != NULL)
     {
-        number = MAX(-max, number);
-        numnumbers = (int)log10(-number) + 1;
-        numglyphs = numnumbers + 1;
+        value = MAX(-max, value);
+        numvalues = (int)log10(-value) + 1;
+        valglyphs = numvalues + 1;
     }
     else
     {
-        number = BETWEEN(0, max, number);
-        numnumbers = numglyphs = number != 0 ? ((int)log10(number) + 1) : 1;
+        value = BETWEEN(0, max, value);
+        numvalues = valglyphs = value != 0 ? ((int)log10(value) + 1) : 1;
     }
 
-    if (elem->elemtype == sbe_percent && font->percent != NULL)
+    if (elem->type == sbe_percent && font->percent != NULL)
     {
-        ++numglyphs;
+        ++valglyphs;
     }
 
-    int totalwidth = font->monowidth * numglyphs;
+    int totalwidth = font->monowidth * valglyphs;
     if (font->type == sbf_proportional)
     {
         totalwidth = 0;
-        if (number < 0 && font->minus != NULL)
+        if (value < 0 && font->minus != NULL)
         {
             totalwidth += SHORT(font->minus->width);
         }
-        int tempnum = number;
+        int tempnum = value;
         while (tempnum > 0)
         {
             int workingnum = tempnum % 10;
             totalwidth = SHORT(font->numbers[workingnum]->width);
             tempnum /= 10;
         }
-        if (elem->elemtype == sbe_percent && font->percent != NULL)
+        if (elem->type == sbe_percent && font->percent != NULL)
         {
             totalwidth += SHORT(font->percent->width);
         }
@@ -700,28 +702,30 @@ static void UpdateNumber(sbarelem_t *elem, player_t *player)
         elem->xoffset -= totalwidth;
     }
 
-    elem->numfont = font;
-    elem->number = number;
-    elem->numnumbers = numnumbers;
+    number->font = font;
+    number->value = value;
+    number->numvalues = numvalues;
 }
 
 static void UpdateString(sbarelem_t *elem)
 {
+    sbe_widget_t *widget = elem->pointer.widget;
+
     int numglyphs = 0;
 
-    hudfont_t *font = elem->hudfont;
+    hudfont_t *font = widget->font;
     if (font == NULL)
     {
         array_foreach(font, sbardef->hudfonts)
         {
-            if (!strcmp(font->name, elem->font_name))
+            if (!strcmp(font->name, widget->font_name))
             {
                 break;
             }
         }
     }
 
-    numglyphs = strlen(elem->string);
+    numglyphs = strlen(widget->string);
 
     int totalwidth = font->monowidth * numglyphs;
     if (font->type == sbf_proportional)
@@ -729,7 +733,7 @@ static void UpdateString(sbarelem_t *elem)
         totalwidth = 0;
         for (int i = 0; i < numglyphs; ++i)
         {
-            int ch = elem->string[i];
+            int ch = widget->string[i];
             ch = M_ToUpper(ch) - HU_FONTSTART;
             if (ch < 0 || ch > HU_FONTSIZE)
             {
@@ -756,23 +760,25 @@ static void UpdateString(sbarelem_t *elem)
         elem->xoffset -= totalwidth;
     }
 
-    elem->hudfont = font;
-    elem->totalwidth = totalwidth;
+    widget->font = font;
+    widget->totalwidth = totalwidth;
 }
 
 static void UpdateAnimation(sbarelem_t *elem)
 {
-    if (elem->duration_left == 0)
+    sbe_animation_t *animation = elem->pointer.animation;
+
+    if (animation->duration_left == 0)
     {
-        ++elem->frame_index;
-        if (elem->frame_index == array_size(elem->frames))
+        ++animation->frame_index;
+        if (animation->frame_index == array_size(animation->frames))
         {
-            elem->frame_index = 0;
+            animation->frame_index = 0;
         }
-        elem->duration_left = elem->frames[elem->frame_index].duration;
+        animation->duration_left = animation->frames[animation->frame_index].duration;
     }
 
-    --elem->duration_left;
+    --animation->duration_left;
 }
 
 static void UpdateBoomColors(sbarelem_t *elem, player_t *player)
@@ -783,12 +789,14 @@ static void UpdateBoomColors(sbarelem_t *elem, player_t *player)
         return;
     }
 
+    sbe_number_t *number = elem->pointer.number;
+
     boolean invul = (player->powers[pw_invulnerability]
                      || player->cheats & CF_GODMODE);
 
     crange_idx_e cr;
 
-    switch (elem->numtype)
+    switch (number->type)
     {
         case sbn_health:
             {
@@ -874,18 +882,20 @@ static void UpdateBoomColors(sbarelem_t *elem, player_t *player)
 
 static void UpdateWidget(sbarelem_t *elem, player_t *player)
 {
-    switch (elem->widgettype)
+    sbe_widget_t *widget = elem->pointer.widget;
+
+    switch (widget->type)
     {
         case sbw_message:
-            UpdateMessage(elem, player);
+            UpdateMessage(widget, player);
             UpdateString(elem);
             break;
         case sbw_monsec:
-            UpdateMonSec(elem);
+            UpdateMonSec(widget);
             UpdateString(elem);
             break;
         case sbw_time:
-            UpdateStTime(elem, player);
+            UpdateStTime(widget, player);
             UpdateString(elem);
             break;
         case sbw_coord:
@@ -901,10 +911,10 @@ static void UpdateWidget(sbarelem_t *elem, player_t *player)
 
 static void UpdateElem(sbarelem_t *elem, player_t *player)
 {
-    switch (elem->elemtype)
+    switch (elem->type)
     {
         case sbe_face:
-            UpdateFace(elem, player);
+            UpdateFace(elem->pointer.face, player);
             break;
 
         case sbe_animation:
@@ -947,33 +957,40 @@ static void UpdateStatusBar(player_t *player)
 
 static void ResetElem(sbarelem_t *elem)
 {
-    switch (elem->elemtype)
+    switch (elem->type)
     {
         case sbe_graphic:
-            elem->patch = CachePatchName(elem->patch_name);
+            {
+                sbe_graphic_t *graphic = elem->pointer.graphic;
+                graphic->patch = CachePatchName(graphic->patch_name);
+            }
             break;
 
         case sbe_face:
-            elem->faceindex = 0;
-            elem->facecount = 0;
-            elem->oldhealth = -1;
+            {
+                sbe_face_t *face = elem->pointer.face;
+                face->faceindex = 0;
+                face->facecount = 0;
+                face->oldhealth = -1;
+            }
             break;
 
         case sbe_animation:
             {
+                sbe_animation_t *animation = elem->pointer.animation;
                 sbarframe_t *frame;
-                array_foreach(frame, elem->frames)
+                array_foreach(frame, animation->frames)
                 {
                     frame->patch = CachePatchName(frame->patch_name);
                 }
-                elem->frame_index = 0;
-                elem->duration_left = 0;
+                animation->frame_index = 0;
+                animation->duration_left = 0;
             }
             break;
 
         case sbe_number:
         case sbe_percent:
-            elem->oldvalue = -1;
+            elem->pointer.number->oldvalue = -1;
             break;
 
         default:
@@ -1091,26 +1108,28 @@ static void DrawGlyph(int x, int y, sbarelem_t *elem, fonttype_t fonttype,
 
 static void DrawNumber(int x, int y, sbarelem_t *elem)
 {
-    int number = elem->number;
-    int base_xoffset = elem->xoffset;
-    numberfont_t *font = elem->numfont;
+    sbe_number_t *number = elem->pointer.number;
 
-    if (number < 0 && font->minus != NULL)
+    int value = number->value;
+    int base_xoffset = elem->xoffset;
+    numberfont_t *font = number->font;
+
+    if (value < 0 && font->minus != NULL)
     {
         DrawGlyph(x, y, elem, font->type, font->monowidth, font->minus);
-        number = -number;
+        value = -value;
     }
 
-    int glyphindex = elem->numnumbers;
+    int glyphindex = number->numvalues;
     while (glyphindex > 0)
     {
         int glyphbase = (int)pow(10.0, --glyphindex);
-        int workingnum = number / glyphbase;
+        int workingnum = value / glyphbase;
         DrawGlyph(x, y, elem, font->type, font->monowidth, font->numbers[workingnum]);
-        number -= (workingnum * glyphbase);
+        value -= (workingnum * glyphbase);
     }
 
-    if (elem->elemtype == sbe_percent && font->percent != NULL)
+    if (elem->type == sbe_percent && font->percent != NULL)
     {
         crange_idx_e oldcr = elem->crboom;
         if (sts_pct_always_gray)
@@ -1126,10 +1145,12 @@ static void DrawNumber(int x, int y, sbarelem_t *elem)
 
 static void DrawString(int x, int y, sbarelem_t *elem)
 {
-    int base_xoffset = elem->xoffset;
-    hudfont_t *font = elem->hudfont;
+    sbe_widget_t *widget = elem->pointer.widget;
 
-    const char *str = elem->string;
+    int base_xoffset = elem->xoffset;
+    hudfont_t *font = widget->font;
+
+    const char *str = widget->string;
     while (*str)
     {
         int ch = *str++;
@@ -1174,22 +1195,27 @@ static void DrawElem(int x, int y, sbarelem_t *elem, player_t *player)
     x += elem->x_pos;
     y += elem->y_pos;
 
-    switch (elem->elemtype)
+    switch (elem->type)
     {
         case sbe_graphic:
-            DrawPatch(x, y, elem->alignment, elem->patch, elem->cr);
+            {
+                sbe_graphic_t *graphic = elem->pointer.graphic;
+                DrawPatch(x, y, elem->alignment, graphic->patch, elem->cr);
+            }
             break;
 
         case sbe_face:
             {
-                patch_t *patch = facepatches[elem->faceindex];
-                DrawPatch(x, y, elem->alignment, patch, elem->cr);
+                sbe_face_t *face = elem->pointer.face;
+                DrawPatch(x, y, elem->alignment, facepatches[face->faceindex],
+                          elem->cr);
             }
             break;
 
         case sbe_animation:
             {
-                patch_t *patch = elem->frames[elem->frame_index].patch;
+                sbe_animation_t *animation = elem->pointer.animation;
+                patch_t *patch = animation->frames[animation->frame_index].patch;
                 DrawPatch(x, y, elem->alignment, patch, elem->cr);
             }
             break;
@@ -1291,9 +1317,11 @@ static void EraseElem(int x, int y, sbarelem_t *elem, player_t *player)
     x += elem->x_pos;
     y += elem->y_pos;
 
-    if (elem->elemtype == sbe_widget)
+    if (elem->type == sbe_widget)
     {
-        int height = elem->hudfont->maxheight;
+        hudfont_t *font = elem->pointer.widget->font;
+        int height = font->maxheight;
+
         if (y > scaledviewy && y < scaledviewy + scaledviewheight - height)
         {
             R_VideoErase(0, y, scaledviewx, height);

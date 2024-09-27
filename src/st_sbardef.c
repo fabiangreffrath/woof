@@ -65,7 +65,7 @@ static boolean ParseSbarElem(json_t *json, sbarelem_t *out);
 static boolean ParseSbarElemType(json_t *json, sbarelementtype_t type,
                                  sbarelem_t *out)
 {
-    out->elemtype = type;
+    out->type = type;
 
     json_t *x_pos = JS_GetObject(json, "x");
     json_t *y_pos = JS_GetObject(json, "y");
@@ -110,17 +110,20 @@ static boolean ParseSbarElemType(json_t *json, sbarelementtype_t type,
     {
         case sbe_graphic:
             {
+                sbe_graphic_t *graphic = calloc(1, sizeof(*graphic));
                 json_t *patch = JS_GetObject(json, "patch");
                 if (!JS_IsString(patch))
                 {
                     return false;
                 }
-                out->patch_name = JS_GetString(patch);
+                graphic->patch_name = JS_GetString(patch);
+                out->pointer.graphic = graphic;
             }
             break;
 
         case sbe_animation:
             {
+                sbe_animation_t *animation = calloc(1, sizeof(*animation));
                 json_t *js_frames = JS_GetObject(json, "frames");
                 json_t *js_frame = NULL;
                 JS_ArrayForEach(js_frame, js_frames)
@@ -128,21 +131,23 @@ static boolean ParseSbarElemType(json_t *json, sbarelementtype_t type,
                     sbarframe_t frame = {0};
                     if (ParseSbarFrame(js_frame, &frame))
                     {
-                        array_push(out->frames, frame);
+                        array_push(animation->frames, frame);
                     }
                 }
+                out->pointer.animation = animation;
             }
             break;
 
         case sbe_number:
         case sbe_percent:
             {
+                sbe_number_t *number = calloc(1, sizeof(*number));
                 json_t *font = JS_GetObject(json, "font");
                 if (!JS_IsString(font))
                 {
                     return false;
                 }
-                out->font_name = JS_GetString(font);
+                number->font_name = JS_GetString(font);
 
                 json_t *type = JS_GetObject(json, "type");
                 json_t *param = JS_GetObject(json, "param");
@@ -152,32 +157,43 @@ static boolean ParseSbarElemType(json_t *json, sbarelementtype_t type,
                 {
                     return false;
                 }
-                out->numtype = JS_GetInteger(type);
-                out->numparam = JS_GetInteger(param);
-                out->maxlength = JS_GetInteger(maxlength);
+                number->type = JS_GetInteger(type);
+                number->param = JS_GetInteger(param);
+                number->maxlength = JS_GetInteger(maxlength);
+                out->pointer.number = number;
             }
             break;
 
         case sbe_widget:
              {
+                sbe_widget_t *widget = calloc(1, sizeof(*widget));
+
                 json_t *font = JS_GetObject(json, "font");
                 if (!JS_IsString(font))
                 {
                     return false;
                 }
-                out->font_name = JS_GetString(font);
+                widget->font_name = JS_GetString(font);
 
                 json_t *type = JS_GetObject(json, "type");
                 if (!JS_IsNumber(type))
                 {
                     return false;
                 }
-                out->widgettype = JS_GetInteger(type);
+                widget->type = JS_GetInteger(type);
 
-                if (out->widgettype == sbw_message)
+                if (widget->type == sbw_message)
                 {
-                    out->duration = JS_GetNumberValue(json, "duration") * TICRATE;
+                    widget->duration = JS_GetNumberValue(json, "duration") * TICRATE;
                 }
+                out->pointer.widget = widget;
+            }
+            break;
+
+        case sbe_face:
+            {
+                sbe_face_t *face = calloc(1, sizeof(*face));
+                out->pointer.face = face;
             }
             break;
 
@@ -336,31 +352,43 @@ static boolean ParseHUDFont(json_t *json, hudfont_t *out)
     return true;
 }
 
+static sbe_widget_t message = {
+    .type = sbw_message,
+    .font_name = "ConFont",
+    .duration = 4 * TICRATE
+};
+
+static sbe_widget_t monsec = {
+    .type = sbw_monsec,
+    .font_name = "SmallFont"
+};
+
+static sbe_widget_t time = {
+    .type = sbw_time,
+    .font_name = "SmallFont"
+};
+
 static sbarelem_t default_widgets[] = {
     {
-        .elemtype = sbe_widget,
+        .type = sbe_widget,
         .x_pos = 0,
         .y_pos = 0,
         .alignment = sbe_wide_left,
-        .widgettype = sbw_message,
-        .font_name = "ConFont",
-        .duration = 4 * TICRATE
+        .pointer.widget = &message
     },
     {
-        .elemtype = sbe_widget,
+        .type = sbe_widget,
         .x_pos = 0,
         .y_pos = 160,
         .alignment = sbe_wide_left,
-        .widgettype = sbw_monsec,
-        .font_name = "SmallFont",
+        .pointer.widget = &monsec
     },
     {
-        .elemtype = sbe_widget,
+        .type = sbe_widget,
         .x_pos = 0,
         .y_pos = 153,
         .alignment = sbe_wide_left,
-        .widgettype = sbw_time,
-        .font_name = "SmallFont",
+        .pointer.widget = &time
     }
 };
 
