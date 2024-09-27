@@ -33,7 +33,7 @@ void UpdateMessage(sbarelem_t *elem, player_t *player)
         return;
     }
 
-    static char string[80];
+    static char string[128];
     static int duration_left;
 
     if (duration_left > 0 && player->message[0])

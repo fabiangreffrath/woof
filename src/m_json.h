@@ -25,6 +25,8 @@ typedef struct
     int revision;
 } version_t;
 
+boolean JS_GetVersion(json_t *json, version_t *version);
+
 json_t *JS_Open(const char *lump, const char *type, version_t maxversion);
 void JS_Close(json_t *json);
 

@@ -161,7 +161,7 @@ static int        message_counter;
 static int        message_count;     // killough 11/98
 static int        chat_count;        // killough 11/98
 static boolean    secret_on;
-static int        secret_counter;
+//static int        secret_counter;
 
 static boolean    message_centered;
 static boolean    message_colorized;

@@ -279,24 +279,8 @@ static boolean ParseNumberFont(json_t *json, numberfont_t *out)
     return true;
 }
 
-static boolean ParseHUDFont(json_t *json, hudfont_t *out)
+static void LoadHUDFont(hudfont_t *out)
 {
-    json_t *name = JS_GetObject(json, "name");
-    json_t *stem = JS_GetObject(json, "stem");
-    if (!JS_IsString(name) || !JS_IsString(stem))
-    {
-        return false;
-    }
-    out->name = JS_GetString(name);
-    out->stem = JS_GetString(stem);
-
-    json_t *type = JS_GetObject(json, "type");
-    if (!JS_IsNumber(type))
-    {
-        return false;
-    }
-    out->type = JS_GetInteger(type);
-
     char lump[9] = {0};
     int found;
     int maxwidth = 0;
@@ -329,11 +313,59 @@ static boolean ParseHUDFont(json_t *json, hudfont_t *out)
         default:
             break;
     }
+}
+
+static boolean ParseHUDFont(json_t *json, hudfont_t *out)
+{
+    json_t *name = JS_GetObject(json, "name");
+    json_t *stem = JS_GetObject(json, "stem");
+    if (!JS_IsString(name) || !JS_IsString(stem))
+    {
+        return false;
+    }
+    out->name = JS_GetString(name);
+    out->stem = JS_GetString(stem);
+
+    json_t *type = JS_GetObject(json, "type");
+    if (!JS_IsNumber(type))
+    {
+        return false;
+    }
+    out->type = JS_GetInteger(type);
 
     return true;
 }
 
-static boolean ParseStatusBar(json_t *json, statusbar_t *out)
+static sbarelem_t default_widgets[] = {
+    {
+        .elemtype = sbe_widget,
+        .x_pos = 0,
+        .y_pos = 0,
+        .alignment = sbe_wide_left,
+        .widgettype = sbw_message,
+        .font_name = "ConFont",
+        .duration = 4 * TICRATE
+    },
+    {
+        .elemtype = sbe_widget,
+        .x_pos = 0,
+        .y_pos = 160,
+        .alignment = sbe_wide_left,
+        .widgettype = sbw_monsec,
+        .font_name = "SmallFont",
+    },
+    {
+        .elemtype = sbe_widget,
+        .x_pos = 0,
+        .y_pos = 153,
+        .alignment = sbe_wide_left,
+        .widgettype = sbw_time,
+        .font_name = "SmallFont",
+    }
+};
+
+static boolean ParseStatusBar(json_t *json, statusbar_t *out,
+                              boolean load_defaults)
 {
     json_t *height = JS_GetObject(json, "height");
     json_t *fullscreenrender = JS_GetObject(json, "fullscreenrender");
@@ -357,15 +389,50 @@ static boolean ParseStatusBar(json_t *json, statusbar_t *out)
         }
     }
 
+    if (load_defaults)
+    {
+        for (int i = 0; i < arrlen(default_widgets); ++i)
+        {
+            sbarelem_t elem = default_widgets[i];
+            if (!out->fullscreenrender)
+            {
+                elem.y_pos += (out->height - 200);
+            }
+            elem.cr = elem.crboom = CR_NONE;
+            array_push(out->children, elem);
+        }
+    }
+
     return true;
 }
 
+static hudfont_t default_hudfonts[] = {
+      {
+        .name = "ConFont",
+        .type = sbf_proportional,
+        .stem = "STCFN"
+      },
+      {
+        .name = "SmallFont",
+        .type = sbf_mono0,
+        .stem = "DIG"
+      }
+};
+
 sbardef_t *ST_ParseSbarDef(void)
 {
-    json_t *json = JS_Open("SBARDEF", "statusbar", (version_t){1, 0, 0});
+    json_t *json = JS_Open("SBARDEF", "statusbar", (version_t){1, 1, 0});
     if (json == NULL)
     {
         return NULL;
+    }
+
+    boolean load_defaults = false;
+    version_t v = {0};
+    JS_GetVersion(json, &v);
+    if (v.major == 1 && v.minor < 1)
+    {
+        load_defaults = true;
     }
 
     json_t *data = JS_GetObject(json, "data");
@@ -398,7 +465,17 @@ sbardef_t *ST_ParseSbarDef(void)
         hudfont_t hudfont = {0};
         if (ParseHUDFont(js_hudfont, &hudfont))
         {
+            LoadHUDFont(&hudfont);
             array_push(out->hudfonts, hudfont);
+        }
+    }
+
+    if (load_defaults)
+    {
+        for (int i = 0; i < arrlen(default_hudfonts); ++i)
+        {
+            LoadHUDFont(&default_hudfonts[i]);
+            array_push(out->hudfonts, default_hudfonts[i]);
         }
     }
 
@@ -408,7 +485,7 @@ sbardef_t *ST_ParseSbarDef(void)
     JS_ArrayForEach(js_statusbar, js_statusbars)
     {
         statusbar_t statusbar = {0};
-        if (ParseStatusBar(js_statusbar, &statusbar))
+        if (ParseStatusBar(js_statusbar, &statusbar, load_defaults))
         {
             array_push(out->statusbars, statusbar);
         }

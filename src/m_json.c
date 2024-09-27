@@ -22,6 +22,24 @@
 
 #include "cjson/cJSON.h"
 
+boolean JS_GetVersion(json_t *json, version_t *version)
+{
+    json_t *js_version = JS_GetObject(json, "version");
+    if (!JS_IsString(js_version))
+    {
+        return false;
+    }
+
+    const char *string = JS_GetString(js_version);
+    if (sscanf(string, "%d.%d.%d", &version->major, &version->minor,
+               &version->revision) == 3)
+    {
+        return true;
+    }
+
+    return false;
+}
+
 json_t *JS_Open(const char *lump, const char *type, version_t maxversion)
 {
     int lumpnum = W_CheckNumForName(lump);
@@ -55,16 +73,13 @@ json_t *JS_Open(const char *lump, const char *type, version_t maxversion)
         return NULL;
     }
 
-    json_t *js_version = JS_GetObject(json, "version");
-    if (!JS_IsString(js_version))
+    version_t v = {0};
+    if (!JS_GetVersion(json, &v))
     {
         I_Printf(VB_ERROR, "%s: no version string", lump);
         return NULL;
     }
 
-    s = JS_GetString(js_version);
-    version_t v = {0};
-    sscanf(s, "%d.%d.%d", &v.major, &v.minor, &v.revision);
     if ((maxversion.major < v.major
          || (maxversion.major <= v.major && maxversion.minor < v.minor)
          || (maxversion.major <= v.major && maxversion.minor <= v.minor
