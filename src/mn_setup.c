@@ -2439,7 +2439,7 @@ static setup_menu_t gen_settings1[] = {
     {"Exclusive Fullscreen", S_ONOFF, CNTR_X, M_SPC, {"exclusive_fullscreen"},
      .action = ToggleExclusiveFullScreen},
 
-    MI_GAP,
+    MI_GAP_EX(6),
 
     {"Uncapped FPS", S_ONOFF, CNTR_X, M_SPC, {"uncapped"},
      .action = UpdateFPSLimit},
@@ -2450,7 +2450,7 @@ static setup_menu_t gen_settings1[] = {
     {"VSync", S_ONOFF, CNTR_X, M_SPC, {"use_vsync"},
      .action = I_ToggleVsync},
 
-    MI_GAP,
+    MI_GAP_EX(5),
 
     {"FOV", S_THERMO | S_THRM_SIZE11, CNTR_X, M_THRM_SPC, {"fov"},
      .action = UpdateFOV},
