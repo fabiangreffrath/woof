@@ -101,6 +101,7 @@ typedef enum
 
     sbw_message,
     sbw_secret,
+    sbw_chat,
 } sbarwidgettype_t;
 
 typedef enum

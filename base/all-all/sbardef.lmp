@@ -885,6 +885,20 @@
           {
             "widget":
             {
+              "x": 0,
+              "y": 8,
+              "alignment": 16,
+              "tranmap": null,
+              "translation": "CRGOLD",
+              "type": 9,
+              "font": "ConFont",
+              "conditions": null,
+              "children": null
+            }
+          },
+          {
+            "widget":
+            {
               "x": 160,
               "y": 52,
               "alignment": 1,
@@ -1495,6 +1509,20 @@
                     "type": 7,
                     "font": "ConFont",
                     "duration": 4,
+                    "conditions": null,
+                    "children": null
+                  }
+                },
+                {
+                  "widget":
+                  {
+                    "x": 0,
+                    "y": 8,
+                    "alignment": 16,
+                    "tranmap": null,
+                    "translation": "CRGOLD",
+                    "type": 9,
+                    "font": "ConFont",
                     "conditions": null,
                     "children": null
                   }

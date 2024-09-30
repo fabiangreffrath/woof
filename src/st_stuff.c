@@ -889,6 +889,9 @@ static void UpdateWidget(sbarelem_t *elem, player_t *player)
         case sbw_message:
             UpdateMessage(widget, player);
             break;
+        case sbw_chat:
+            UpdateChat(widget);
+            break;
         case sbw_secret:
             UpdateSecretMessage(widget, player);
             break;
@@ -900,8 +903,6 @@ static void UpdateWidget(sbarelem_t *elem, player_t *player)
             break;
         case sbw_coord:
         case sbw_fps:
-        case sbw_rate:
-        case sbw_cmd:
         case sbw_speed:
             break;
         default:
@@ -1424,6 +1425,10 @@ boolean ST_Responder(event_t *ev)
     {
         return false;
     }
+    else if (MessagesResponder(ev))
+    {
+        return true;
+    }
     else // if a user keypress...
     {
         return M_CheatResponder(ev); // Try cheat responder in m_cheat.c
@@ -1582,6 +1587,12 @@ void ST_Ticker(void)
     if (!sbardef)
     {
         return;
+    }
+
+    // check for incoming chat characters
+    if (netgame)
+    {
+        UpdateChatMessage();
     }
 
     player_t *player = &players[displayplayer];

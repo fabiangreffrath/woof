@@ -152,7 +152,7 @@ static hu_widget_t widgets[MAX_HUDS][MAX_WIDGETS];
 static void HU_ParseHUD (void);
 
 static char       chat_dest[MAXPLAYERS];
-boolean           chat_on;
+//boolean           chat_on;
 static boolean    message_on;
 static boolean    has_message;       // killough 12/98
 boolean           message_dontfuckwithme;
@@ -200,7 +200,7 @@ static int chat_msg_timer = HU_MSGTIMEOUT * (1000/TICRATE);     // killough 11/9
 // jff 5/10/98 french support removed, 
 // as it was not being used and couldn't be easily tested
 //
-const char shiftxform[] =
+static const char shiftxform[] =
 {
   0,
   1, 2, 3, 4, 5, 6, 7, 8, 9, 10,
@@ -1433,21 +1433,21 @@ boolean hud_time_use;
 //
 void HU_Drawer(void)
 {
-  hu_widget_t *w = widgets[hud_active];
+  // hu_widget_t *w = widgets[hud_active];
 
-  if (hud_pending)
-    return;
+  // if (hud_pending)
+  //   return;
 
-  HUlib_reset_align_offsets();
+  // HUlib_reset_align_offsets();
 
-  while (w->multiline)
-  {
-    if ((w->multiline->on && *w->multiline->on) || w->multiline->built)
-    {
-      HUlib_draw_widget(w);
-    }
-    w++;
-  }
+  // while (w->multiline)
+  // {
+  //   if ((w->multiline->on && *w->multiline->on) || w->multiline->built)
+  //   {
+  //     HUlib_draw_widget(w);
+  //   }
+  //   w++;
+  // }
 }
 
 // [FG] draw Time widget on intermission screen
@@ -1538,14 +1538,14 @@ void HU_Ticker(void)
     boom_font = &sml_font;
     CR_BLUE = CR_BLUE1;
   }
-
+/*
   // wait a few tics before sending a backspace character
   if (bsdown && bscounter++ > 9)
   {
     HUlib_add_key_to_cur_line(&w_chat, KEY_BACKSPACE);
     bscounter = 8;
   }
-/*
+
   // tick down message counter if message is up
   if (message_counter && !--message_counter)
     message_on = message_nottobefuckedwith = false;
@@ -1592,6 +1592,7 @@ void HU_Ticker(void)
     message_dontfuckwithme = 0;
   }
 */
+/*
   // check for incoming chat characters
   if (netgame)
   {
@@ -1638,6 +1639,7 @@ void HU_Ticker(void)
       }
     }
   }
+*/
 
   // draw the automap widgets if automap is displayed
 
@@ -1729,19 +1731,19 @@ void HU_queueChatChar(char c)
 //
 // Passed nothing, returns the character dequeued
 //
-char HU_dequeueChatChar(void)
-{
-  char c;
+// char ST_DequeueChatChar(void)
+// {
+//   char c;
 
-  if (head != tail)
-    {
-      c = chatchars[tail++];
-      tail &= QUEUESIZE-1;
-    }
-  else
-    c = 0;
-  return c;
-}
+//   if (head != tail)
+//     {
+//       c = chatchars[tail++];
+//       tail &= QUEUESIZE-1;
+//     }
+//   else
+//     c = 0;
+//   return c;
+// }
 
 //
 // HU_Responder()
@@ -1753,6 +1755,7 @@ char HU_dequeueChatChar(void)
 
 boolean HU_Responder(event_t *ev)
 {
+/*
   static char   lastmessage[HU_MAXLINELENGTH+1];
   const char    *macromessage;
   boolean   eatkey = false;
@@ -1895,6 +1898,8 @@ boolean HU_Responder(event_t *ev)
           }
       }
   return eatkey;
+*/
+  return false;
 }
 
 // [FG] dynamic HUD alignment

@@ -376,6 +376,19 @@ static sbarelem_t default_widgets[] = {
     },
     {
         .type = sbe_widget,
+        .x_pos = 0,
+        .y_pos = 12,
+        .alignment = sbe_wide_left,
+        .pointer.widget = &(sbe_widget_t)
+        {
+            .type = sbw_chat,
+            .font_name = "ConFont"
+        },
+        .cr = CR_GOLD,
+        .crboom = CR_NONE
+    },
+    {
+        .type = sbe_widget,
         .x_pos = 160,
         .y_pos = 52,
         .alignment = sbe_h_middle,

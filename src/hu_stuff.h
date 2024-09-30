@@ -43,7 +43,6 @@ boolean HU_Responder(struct event_s *ev);
 
 void HU_Ticker(void);
 void HU_Drawer(void);
-char HU_dequeueChatChar(void);
 void HU_Erase(void);
 
 boolean HU_DemoProgressBar(boolean force);
@@ -70,7 +69,6 @@ extern boolean show_toggle_messages;
 extern boolean show_pickup_messages;
 
 extern boolean chat_on;
-extern boolean message_dontfuckwithme;
 
 extern int playback_tic, playback_totaltics;
 

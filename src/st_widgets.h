@@ -14,12 +14,21 @@
 #ifndef ST_WIDGETS_H
 #define ST_WIDGETS_H
 
+#include "doomtype.h"
+
 struct sbe_widget_s;
 struct player_s;
+struct event_s;
 
 void UpdateMessage(struct sbe_widget_s *widget, struct player_s *player);
 void UpdateSecretMessage(struct sbe_widget_s *widget, struct player_s *player);
 void UpdateMonSec(struct sbe_widget_s *widget);
 void UpdateStTime(struct sbe_widget_s *widget, struct player_s *player);
+
+void UpdateChatMessage(void);
+void UpdateChat(struct sbe_widget_s *widget);
+boolean MessagesResponder(struct event_s *ev);
+
+char ST_DequeueChatChar(void);
 
 #endif

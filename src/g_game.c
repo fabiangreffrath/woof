@@ -83,6 +83,7 @@
 #include "s_sound.h"
 #include "sounds.h"
 #include "st_stuff.h"
+#include "st_widgets.h"
 #include "statdump.h" // [FG] StatCopy()
 #include "tables.h"
 #include "u_mapinfo.h"
@@ -818,7 +819,7 @@ void G_BuildTiccmd(ticcmd_t* cmd)
 
   // Buttons
 
-  cmd->chatchar = HU_dequeueChatChar();
+  cmd->chatchar = ST_DequeueChatChar();
 
   if (M_InputGameActive(input_fire))
     cmd->buttons |= BT_ATTACK;

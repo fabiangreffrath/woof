@@ -1526,8 +1526,6 @@ static void M_ChangeMessages(int choice)
     {
         displaymsg("%s", s_MSGON); // Ty 03/27/98 - externalized
     }
-
-    message_dontfuckwithme = true;
 }
 
 /////////////////////////////
