@@ -17,6 +17,7 @@
 #include <string.h>
 #include "doomtype.h"
 #include "i_printf.h"
+#include "m_misc.h"
 #include "w_wad.h"
 #include "z_zone.h"
 
@@ -178,7 +179,7 @@ const char *JS_GetStringValue(json_t *json, const char *string)
     json_t *obj = JS_GetObject(json, string);
     if (JS_IsString(obj))
     {
-        return obj->valuestring;
+        return M_StringDuplicate(obj->valuestring);
     }
     return NULL;
 }

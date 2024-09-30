@@ -27,6 +27,7 @@
 
 struct event_s;
 struct player_s;
+struct patch_s;
 
 // Size of statusbar.
 // Now sensitive for scaling.
@@ -83,6 +84,10 @@ extern boolean hud_backpack_thresholds; // backpack changes thresholds
 extern boolean hud_armor_type; // color of armor depends on type
 
 extern boolean palette_changes;
+
+extern struct patch_s **hu_font;
+
+void WI_DrawWidgets(void);
 
 void ST_BindSTSVariables(void);
 

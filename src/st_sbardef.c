@@ -49,7 +49,7 @@ static boolean ParseSbarFrame(json_t *json, sbarframe_t *out)
     {
         return false;
     }
-    out->patch_name = JS_GetString(lump);
+    out->patch_name = M_StringDuplicate(JS_GetString(lump));
 
     json_t *duration = JS_GetObject(json, "duration");
     if (!JS_IsNumber(duration))
@@ -116,7 +116,7 @@ static boolean ParseSbarElemType(json_t *json, sbarelementtype_t type,
                 {
                     return false;
                 }
-                graphic->patch_name = JS_GetString(patch);
+                graphic->patch_name = M_StringDuplicate(JS_GetString(patch));
                 out->pointer.graphic = graphic;
             }
             break;
@@ -147,7 +147,7 @@ static boolean ParseSbarElemType(json_t *json, sbarelementtype_t type,
                 {
                     return false;
                 }
-                number->font_name = JS_GetString(font);
+                number->font_name = M_StringDuplicate(JS_GetString(font));
 
                 json_t *type = JS_GetObject(json, "type");
                 json_t *param = JS_GetObject(json, "param");
@@ -173,7 +173,7 @@ static boolean ParseSbarElemType(json_t *json, sbarelementtype_t type,
                 {
                     return false;
                 }
-                widget->font_name = JS_GetString(font);
+                widget->font_name = M_StringDuplicate(JS_GetString(font));
 
                 json_t *type = JS_GetObject(json, "type");
                 if (!JS_IsNumber(type))
@@ -244,8 +244,8 @@ static boolean ParseNumberFont(json_t *json, numberfont_t *out)
     {
         return false;
     }
-    out->name = JS_GetString(name);
-    out->stem = JS_GetString(stem);
+    out->name = M_StringDuplicate(JS_GetString(name));
+    out->stem = M_StringDuplicate(JS_GetString(stem));
 
     json_t *type = JS_GetObject(json, "type");
     if (!JS_IsNumber(type))
@@ -346,8 +346,8 @@ static boolean ParseHUDFont(json_t *json, hudfont_t *out)
     {
         return false;
     }
-    out->name = JS_GetString(name);
-    out->stem = JS_GetString(stem);
+    out->name = M_StringDuplicate(JS_GetString(name));
+    out->stem = M_StringDuplicate(JS_GetString(stem));
 
     json_t *type = JS_GetObject(json, "type");
     if (!JS_IsNumber(type))
@@ -359,78 +359,7 @@ static boolean ParseHUDFont(json_t *json, hudfont_t *out)
     return true;
 }
 
-static sbarelem_t default_widgets[] = {
-    {
-        .type = sbe_widget,
-        .x_pos = 0,
-        .y_pos = 0,
-        .alignment = sbe_wide_left,
-        .pointer.widget = &(sbe_widget_t)
-        {
-            .type = sbw_message,
-            .font_name = "ConFont",
-            .duration = 4 * TICRATE
-        },
-        .cr = CR_NONE,
-        .crboom = CR_NONE
-    },
-    {
-        .type = sbe_widget,
-        .x_pos = 0,
-        .y_pos = 12,
-        .alignment = sbe_wide_left,
-        .pointer.widget = &(sbe_widget_t)
-        {
-            .type = sbw_chat,
-            .font_name = "ConFont"
-        },
-        .cr = CR_GOLD,
-        .crboom = CR_NONE
-    },
-    {
-        .type = sbe_widget,
-        .x_pos = 160,
-        .y_pos = 52,
-        .alignment = sbe_h_middle,
-        .pointer.widget = &(sbe_widget_t)
-        {
-            .type = sbw_secret,
-            .font_name = "ConFont",
-            .duration = 2.5 * TICRATE
-        },
-        .cr = CR_GOLD,
-        .crboom = CR_NONE
-    },
-    {
-        .type = sbe_widget,
-        .x_pos = 0,
-        .y_pos = 160,
-        .alignment = sbe_wide_left,
-        .pointer.widget = &(sbe_widget_t)
-        {
-            .type = sbw_monsec,
-            .font_name = "SmallFont"
-        },
-        .cr = CR_NONE,
-        .crboom = CR_NONE
-    },
-    {
-        .type = sbe_widget,
-        .x_pos = 0,
-        .y_pos = 153,
-        .alignment = sbe_wide_left,
-        .pointer.widget = &(sbe_widget_t)
-        {
-            .type = sbw_time,
-            .font_name = "SmallFont"
-        },
-        .cr = CR_NONE,
-        .crboom = CR_NONE
-    }
-};
-
-static boolean ParseStatusBar(json_t *json, statusbar_t *out,
-                              boolean load_defaults)
+static boolean ParseStatusBar(json_t *json, statusbar_t *out)
 {
     json_t *height = JS_GetObject(json, "height");
     json_t *fullscreenrender = JS_GetObject(json, "fullscreenrender");
@@ -454,31 +383,8 @@ static boolean ParseStatusBar(json_t *json, statusbar_t *out,
         }
     }
 
-    if (load_defaults)
-    {
-        for (int i = 0; i < arrlen(default_widgets); ++i)
-        {
-            sbarelem_t elem = default_widgets[i];
-            elem.y_pos += (out->height - 200);
-            array_push(out->children, elem);
-        }
-    }
-
     return true;
 }
-
-static hudfont_t default_hudfonts[] = {
-      {
-        .name = "ConFont",
-        .type = sbf_proportional,
-        .stem = "STCFN"
-      },
-      {
-        .name = "SmallFont",
-        .type = sbf_mono0,
-        .stem = "DIG"
-      }
-};
 
 sbardef_t *ST_ParseSbarDef(void)
 {
@@ -531,26 +437,63 @@ sbardef_t *ST_ParseSbarDef(void)
         }
     }
 
-    if (load_defaults)
-    {
-        for (int i = 0; i < arrlen(default_hudfonts); ++i)
-        {
-            LoadHUDFont(&default_hudfonts[i]);
-            array_push(out->hudfonts, default_hudfonts[i]);
-        }
-    }
-
     json_t *js_statusbars = JS_GetObject(data, "statusbars");
     json_t *js_statusbar = NULL;
 
     JS_ArrayForEach(js_statusbar, js_statusbars)
     {
         statusbar_t statusbar = {0};
-        if (ParseStatusBar(js_statusbar, &statusbar, load_defaults))
+        if (ParseStatusBar(js_statusbar, &statusbar))
         {
             array_push(out->statusbars, statusbar);
         }
     }
+
+    JS_Close(json);
+
+    if (!load_defaults)
+    {
+        return out;
+    }
+
+    json = JS_Open("SBHUDDEF", "hud", (version_t){1, 0, 0});
+    if (json == NULL)
+    {
+        return NULL;
+    }
+
+    data = JS_GetObject(json, "data");
+
+    js_hudfonts = JS_GetObject(data, "hudfonts");
+    js_hudfont = NULL;
+    JS_ArrayForEach(js_hudfont, js_hudfonts)
+    {
+        hudfont_t hudfont = {0};
+        if (ParseHUDFont(js_hudfont, &hudfont))
+        {
+            LoadHUDFont(&hudfont);
+            array_push(out->hudfonts, hudfont);
+        }
+    }
+
+    statusbar_t *statusbar;
+    array_foreach(statusbar, out->statusbars)
+    {
+        json_t *js_widgets = JS_GetObject(data, "widgets");
+        json_t *js_widget = NULL;
+
+        JS_ArrayForEach(js_widget, js_widgets)
+        {
+            sbarelem_t elem = {0};
+            if (ParseSbarElem(js_widget, &elem))
+            {
+                elem.y_pos += (statusbar->height - 200);
+                array_push(statusbar->children, elem);
+            }
+        }
+    }
+
+    JS_Close(json);
 
     return out;
 }

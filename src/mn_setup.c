@@ -13,6 +13,7 @@
 //  GNU General Public License for more details.
 //
 
+#include "hu_command.h"
 #include "mn_internal.h"
 
 #include "am_map.h"
@@ -23,8 +24,6 @@
 #include "doomtype.h"
 #include "g_game.h"
 #include "hu_crosshair.h"
-#include "hu_lib.h"
-#include "hu_stuff.h"
 #include "i_gamepad.h"
 #include "i_gyro.h"
 #include "i_input.h"
@@ -53,7 +52,10 @@
 #include "r_sky.h"   // [FG] R_InitSkyMap()
 #include "r_voxel.h"
 #include "s_sound.h"
+#include "st_sbardef.h"
+#include "st_stuff.h"
 #include "sounds.h"
+#include "st_widgets.h"
 #include "v_fmt.h"
 #include "v_video.h"
 #include "w_wad.h"
@@ -1813,8 +1815,6 @@ static setup_menu_t stat_settings1[] = {
 
     {"Solid Background Color", S_ONOFF, H_X, M_SPC, {"st_solidbackground"}},
 
-    {"Backpack Shifts Ammo Color", S_ONOFF, H_X, M_SPC, {"hud_backpack_thresholds"}},
-
     {"Armor Color Matches Type", S_ONOFF, H_X, M_SPC, {"hud_armor_type"}},
 
     {"Animated Health/Armor Count", S_ONOFF, H_X, M_SPC, {"hud_animated_counts"}},
@@ -1841,26 +1841,12 @@ static setup_menu_t stat_settings2[] = {
      .strings_id = str_show_widgets},
 
     {"Show Player Coords", S_CHOICE | S_STRICT, H_X, M_SPC,
-     {"hud_player_coords"}, .strings_id = str_show_adv_widgets,
-     .action = HU_Start},
+     {"hud_player_coords"}, .strings_id = str_show_adv_widgets},
 
     {"Show Command History", S_ONOFF | S_STRICT, H_X, M_SPC,
      {"hud_command_history"}, .action = HU_ResetCommandHistory},
 
     {"Use-Button Timer", S_ONOFF, H_X, M_SPC, {"hud_time_use"}},
-
-    MI_GAP,
-
-    {"Widget Appearance", S_SKIP | S_TITLE, H_X, M_SPC},
-
-    {"Use Doom Font", S_CHOICE, H_X, M_SPC, {"hud_widget_font"},
-     .strings_id = str_show_widgets},
-
-    {"Widescreen Alignment", S_ONOFF, H_X, M_SPC, {"hud_widescreen_widgets"},
-     .action = HU_Start},
-
-    {"Vertical Layout", S_ONOFF, H_X, M_SPC, {"hud_widget_layout"},
-     .action = HU_Start},
 
     MI_END
 };
@@ -1903,9 +1889,8 @@ static setup_menu_t stat_settings4[] = {
     {"Show Toggle Messages", S_ONOFF, H_X, M_SPC, {"show_toggle_messages"}},
     {"Show Pickup Messages", S_ONOFF, H_X, M_SPC, {"show_pickup_messages"}},
     {"Show Obituaries",      S_ONOFF, H_X, M_SPC, {"show_obituary_messages"}},
-    {"Center Messages",      S_ONOFF, H_X, M_SPC, {"message_centered"}},
     {"Colorize Messages",    S_ONOFF, H_X, M_SPC, {"message_colorized"},
-     .action = HU_ResetMessageColors},
+     .action = ST_ResetMessageColors},
     MI_END
 };
 
@@ -4285,7 +4270,6 @@ boolean MN_SetupResponder(menu_action_t action, int ch)
         set_weapon_active = false;
         default_verify = false;              // phares 4/19/98
         print_warning_about_changes = false; // [FG] reset
-        HU_Start(); // catch any message changes // phares 4/19/98
         M_StartSound(sfx_swtchx);
         return true;
     }

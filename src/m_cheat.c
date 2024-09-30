@@ -30,7 +30,6 @@
 #include "doomdef.h"
 #include "doomstat.h"
 #include "g_game.h"
-#include "hu_stuff.h"
 #include "info.h"
 #include "m_cheat.h"
 #include "m_fixed.h"
@@ -49,6 +48,7 @@
 #include "r_state.h"
 #include "s_sound.h"
 #include "sounds.h"
+#include "st_widgets.h"
 #include "tables.h"
 #include "u_mapinfo.h"
 #include "w_wad.h"
@@ -611,10 +611,10 @@ static void cheat_clev0()
   int epsd, map;
   char *cur, *next;
 
-  cur = M_StringDuplicate(MAPNAME(gameepisode, gamemap));
+  cur = M_StringDuplicate(MapName(gameepisode, gamemap));
 
   G_GotoNextLevel(&epsd, &map);
-  next = MAPNAME(epsd, map);
+  next = MapName(epsd, map);
 
   if (W_CheckNumForName(next) != -1)
     displaymsg("Current: %s, Next: %s", cur, next);
@@ -657,7 +657,7 @@ static void cheat_clev(char *buf)
       epsd = 1;
     }
 
-    next = MAPNAME(epsd, map);
+    next = MapName(epsd, map);
 
     if (W_CheckNumForName(next) == -1)
     {

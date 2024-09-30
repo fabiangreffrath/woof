@@ -63,7 +63,7 @@ typedef struct
 
 extern GameVersions_t gameversions[];
 
-extern char *MAPNAME(int e, int m);
+extern char *MapName(int e, int m);
 
 // Set if homebrew PWAD stuff has been added.
 extern  boolean modifiedgame;

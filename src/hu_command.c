@@ -21,8 +21,9 @@
 #include "d_event.h"
 #include "doomstat.h"
 #include "hu_command.h"
-#include "i_printf.h"
 #include "m_misc.h"
+#include "st_sbardef.h"
+#include "st_widgets.h"
 #include "v_video.h"
 
 boolean hud_command_history;
@@ -267,13 +268,14 @@ void HU_UpdateCommandHistory(const ticcmd_t *cmd)
     UpdateHudCmdText(current);
 }
 
-void HU_BuildCommandHistory(hu_multiline_t *const multiline)
+void HU_BuildCommandHistory(sbe_widget_t *widget)
 {
     hud_cmd_item_t *hud_cmd = current;
 
+    ST_ClearLines(widget);
     for (int i = 0; i < hud_command_history_size; i++)
     {
-        HUlib_add_string_keep_space(multiline, hud_cmd->buf);
+        ST_AddLine(widget, hud_cmd->buf);
         hud_cmd = hud_cmd->prev;
     }
 }

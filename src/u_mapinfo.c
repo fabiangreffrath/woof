@@ -835,7 +835,7 @@ void U_ParseMapInfo(int lumpnum)
 
                 G_ValidateMapName(parsed.mapname, &ep, &map);
 
-                strcpy(parsed.nextmap, MAPNAME(ep, map + 1));
+                strcpy(parsed.nextmap, MapName(ep, map + 1));
             }
         }
 

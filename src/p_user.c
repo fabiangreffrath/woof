@@ -22,14 +22,12 @@
 #include <stdlib.h>
 
 #include "d_event.h"
-#include "d_items.h"
 #include "d_player.h"
 #include "d_ticcmd.h"
 #include "doomdef.h"
 #include "doomstat.h"
 #include "doomtype.h"
 #include "g_game.h"
-#include "hu_stuff.h"
 #include "info.h"
 #include "m_cheat.h"
 #include "p_map.h"
@@ -40,6 +38,7 @@
 #include "r_defs.h"
 #include "r_main.h"
 #include "st_stuff.h"
+#include "st_widgets.h"
 
 static fixed_t PlayerSlope(player_t *player)
 {

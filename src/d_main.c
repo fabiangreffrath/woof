@@ -43,9 +43,7 @@
 #include "f_finale.h"
 #include "f_wipe.h"
 #include "g_game.h"
-#include "hu_stuff.h"
 #include "i_endoom.h"
-#include "i_gamepad.h"
 #include "i_glob.h"
 #include "i_input.h"
 #include "i_printf.h"
@@ -78,6 +76,7 @@
 #include "s_sound.h"
 #include "sounds.h"
 #include "st_stuff.h"
+#include "st_widgets.h"
 #include "statdump.h"
 #include "u_mapinfo.h"
 #include "v_fmt.h"
@@ -262,7 +261,7 @@ void D_Display (void)
 
   if (demobar && PLAYBACK_SKIP)
   {
-    if (HU_DemoProgressBar(false))
+    if (ST_DemoProgressBar(false))
     {
       I_FinishUpdate();
       return;
@@ -326,6 +325,7 @@ void D_Display (void)
           R_RenderPlayerView(&players[displayplayer]);
           AM_Drawer();
         }
+        ST_Drawer();
       }
       break;
     case GS_INTERMISSION:
@@ -347,9 +347,6 @@ void D_Display (void)
       R_RenderPlayerView(&players[displayplayer]);
       ST_Drawer();
     }
-
-  if (gamestate == GS_LEVEL && gametic)
-    HU_Drawer ();
 
   // clean up border stuff
   if (gamestate != oldgamestate && gamestate != GS_LEVEL)
@@ -383,7 +380,6 @@ void D_Display (void)
     {
       AM_Drawer();
       ST_Drawer();
-      HU_Drawer();
 
       // [crispy] force redraw of border
       viewactivestate = false;
@@ -409,7 +405,7 @@ void D_Display (void)
   NetUpdate();         // send out any new accumulation
 
   if (demobar && demoplayback)
-    HU_DemoProgressBar(true);
+    ST_DemoProgressBar(true);
 
   // normal update
   if (!wipe)
@@ -847,7 +843,7 @@ static boolean FileContainsMaps(const char *filename)
     {
         for (int m = 1; m < 35; ++m)
         {
-            if (CheckMapLump(MAPNAME(1, m), filename))
+            if (CheckMapLump(MapName(1, m), filename))
             {
                 return true;
             }
@@ -859,7 +855,7 @@ static boolean FileContainsMaps(const char *filename)
         {
             for (int m = 1; m < 10; ++m)
             {
-                if (CheckMapLump(MAPNAME(e, m), filename))
+                if (CheckMapLump(MapName(e, m), filename))
                 {
                     return true;
                 }
@@ -2434,11 +2430,10 @@ void D_DoomMain(void)
   S_Init(snd_SfxVolume /* *8 */, snd_MusicVolume /* *8*/ );
 
   I_Printf(VB_INFO, "HU_Init: Setting up heads up display.");
-  HU_Init();
-  MN_SetHUFontKerning();
 
   I_Printf(VB_INFO, "ST_Init: Init status bar.");
   ST_Init();
+  MN_SetHUFontKerning();
 
   // andrewj: voxel support
   I_Printf(VB_INFO, "VX_Init: ");

@@ -19,13 +19,9 @@
 #ifndef __HU_COORDINATES__
 #define __HU_COORDINATES__
 
-#include "doomtype.h"
-#include "hu_lib.h"
-
-struct hu_multiline_s;
+struct sbe_widget_s;
 struct mobj_s;
 
-void HU_BuildCoordinatesEx(struct hu_multiline_s *const w_coord,
-                           const struct mobj_s *mo, char *buf, int len);
+void HU_BuildCoordinatesEx(struct sbe_widget_s *widget, const struct mobj_s *mo);
 
 #endif

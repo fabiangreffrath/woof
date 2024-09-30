@@ -25,12 +25,12 @@
     "hudfonts":
     [
       {
-        "name": "ConFont",
+        "name": "Console",
         "type": 2,
         "stem": "STCFN"
       },
       {
-        "name": "SmallFont",
+        "name": "Digits",
         "type": 0,
         "stem": "DIG"
       }
@@ -848,8 +848,14 @@
               "tranmap": null,
               "translation": null,
               "type": 0,
-              "font": "SmallFont",
-              "conditions": null,
+              "font": "Digits",
+              "conditions":
+              [
+                {
+                  "condition": 19,
+                  "param": 6
+                }
+              ],
               "children": null
             }
           },
@@ -862,7 +868,109 @@
               "tranmap": null,
               "translation": null,
               "type": 1,
-              "font": "SmallFont",
+              "font": "Digits",
+              "conditions":
+              [
+                {
+                  "condition": 19,
+                  "param": 6
+                }
+              ],
+              "children": null
+            }
+          },
+          {
+            "widget":
+            {
+              "x": 0,
+              "y": 152,
+              "alignment": 16,
+              "tranmap": null,
+              "translation": null,
+              "type": 0,
+              "font": "Digits",
+              "conditions":
+              [
+                {
+                  "condition": 19,
+                  "param": 1
+                }
+              ],
+              "children": null
+            }
+          },
+          {
+            "widget":
+            {
+              "x": 0,
+              "y": 146,
+              "alignment": 16,
+              "tranmap": null,
+              "translation": null,
+              "type": 1,
+              "font": "Digits",
+              "conditions":
+              [
+                {
+                  "condition": 19,
+                  "param": 1
+                }
+              ],
+              "children": null
+            }
+          },
+          {
+            "widget":
+            {
+              "x": 320,
+              "y": 8,
+              "alignment": 34,
+              "tranmap": null,
+              "translation": null,
+              "type": 2,
+              "font": "Digits",
+              "conditions": null,
+              "children": null
+            }
+          },
+          {
+            "widget":
+            {
+              "x": 320,
+              "y": 0,
+              "alignment": 34,
+              "tranmap": null,
+              "translation": null,
+              "type": 3,
+              "font": "Digits",
+              "conditions": null,
+              "children": null
+            }
+          },
+          {
+            "widget":
+            {
+              "x": 0,
+              "y": 8,
+              "alignment": 0,
+              "tranmap": null,
+              "translation": null,
+              "type": 4,
+              "font": "Digits",
+              "conditions": null,
+              "children": null
+            }
+          },
+          {
+            "widget":
+            {
+              "x": 320,
+              "y": 167,
+              "alignment": 42,
+              "tranmap": null,
+              "translation": null,
+              "type": 5,
+              "font": "Digits",
               "conditions": null,
               "children": null
             }
@@ -876,7 +984,7 @@
               "tranmap": null,
               "translation": null,
               "type": 7,
-              "font": "ConFont",
+              "font": "Console",
               "duration": 4,
               "conditions": null,
               "children": null
@@ -891,7 +999,7 @@
               "tranmap": null,
               "translation": "CRGOLD",
               "type": 9,
-              "font": "ConFont",
+              "font": "Console",
               "conditions": null,
               "children": null
             }
@@ -905,9 +1013,83 @@
               "tranmap": null,
               "translation": "CRGOLD",
               "type": 8,
-              "font": "ConFont",
+              "font": "Console",
               "duration": 2.5,
               "conditions": null,
+              "children": null
+            }
+          },
+          {
+            "widget":
+            {
+              "x": 160,
+              "y": 167,
+              "alignment": 9,
+              "tranmap": null,
+              "translation": null,
+              "type": 6,
+              "font": "Digits",
+              "conditions": null,
+              "children": null
+            }
+          },
+          {
+            "widget":
+            {
+              "x": 0,
+              "y": 160,
+              "alignment": 16,
+              "tranmap": null,
+              "translation": "CRGOLD",
+              "type": 10,
+              "font": "Console",
+              "conditions":
+              [
+                {
+                  "condition": 19,
+                  "param": 1
+                }
+              ],
+              "children": null
+            }
+          },
+          {
+            "widget":
+            {
+              "x": 160,
+              "y": 160,
+              "alignment": 1,
+              "tranmap": null,
+              "translation": "CRGOLD",
+              "type": 10,
+              "font": "Console",
+              "conditions":
+              [
+                {
+                  "condition": 19,
+                  "param": 2
+                }
+              ],
+              "children": null
+            }
+          },
+          {
+            "widget":
+            {
+              "x": 0,
+              "y": 160,
+              "alignment": 16,
+              "tranmap": null,
+              "translation": "CRGOLD",
+              "type": 10,
+              "font": "Console",
+              "conditions":
+              [
+                {
+                  "condition": 19,
+                  "param": 1
+                }
+              ],
               "children": null
             }
           }
@@ -1479,7 +1661,7 @@
                     "tranmap": null,
                     "translation": null,
                     "type": 0,
-                    "font": "SmallFont",
+                    "font": "Digits",
                     "conditions": null,
                     "children": null
                   }
@@ -1493,7 +1675,77 @@
                     "tranmap": null,
                     "translation": null,
                     "type": 1,
-                    "font": "SmallFont",
+                    "font": "Digits",
+                    "conditions": null,
+                    "children": null
+                  }
+                },
+                {
+                  "widget":
+                  {
+                    "x": 320,
+                    "y": 8,
+                    "alignment": 34,
+                    "tranmap": null,
+                    "translation": null,
+                    "type": 2,
+                    "font": "Digits",
+                    "conditions": null,
+                    "children": null
+                  }
+                },
+                {
+                  "widget":
+                  {
+                    "x": 320,
+                    "y": 0,
+                    "alignment": 34,
+                    "tranmap": null,
+                    "translation": null,
+                    "type": 3,
+                    "font": "Digits",
+                    "conditions": null,
+                    "children": null
+                  }
+                },
+                {
+                  "widget":
+                  {
+                    "x": 0,
+                    "y": 8,
+                    "alignment": 0,
+                    "tranmap": null,
+                    "translation": null,
+                    "type": 4,
+                    "font": "Digits",
+                    "conditions": null,
+                    "children": null
+                  }
+                },
+                {
+                  "widget":
+                  {
+                    "x": 320,
+                    "y": 167,
+                    "alignment": 42,
+                    "tranmap": null,
+                    "translation": null,
+                    "type": 5,
+                    "font": "Digits",
+                    "conditions": null,
+                    "children": null
+                  }
+                },
+                {
+                  "widget":
+                  {
+                    "x": 160,
+                    "y": 167,
+                    "alignment": 9,
+                    "tranmap": null,
+                    "translation": null,
+                    "type": 6,
+                    "font": "Digits",
                     "conditions": null,
                     "children": null
                   }
@@ -1507,22 +1759,8 @@
                     "tranmap": null,
                     "translation": null,
                     "type": 7,
-                    "font": "ConFont",
+                    "font": "Console",
                     "duration": 4,
-                    "conditions": null,
-                    "children": null
-                  }
-                },
-                {
-                  "widget":
-                  {
-                    "x": 0,
-                    "y": 8,
-                    "alignment": 16,
-                    "tranmap": null,
-                    "translation": "CRGOLD",
-                    "type": 9,
-                    "font": "ConFont",
                     "conditions": null,
                     "children": null
                   }
@@ -1536,9 +1774,43 @@
                     "tranmap": null,
                     "translation": "CRGOLD",
                     "type": 8,
-                    "font": "ConFont",
+                    "font": "Console",
                     "duration": 2.5,
                     "conditions": null,
+                    "children": null
+                  }
+                },
+                {
+                  "widget":
+                  {
+                    "x": 0,
+                    "y": 8,
+                    "alignment": 16,
+                    "tranmap": null,
+                    "translation": "CRGOLD",
+                    "type": 9,
+                    "font": "Console",
+                    "conditions": null,
+                    "children": null
+                  }
+                },
+                {
+                  "widget":
+                  {
+                    "x": 160,
+                    "y": 200,
+                    "alignment": 9,
+                    "tranmap": null,
+                    "translation": "CRGOLD",
+                    "type": 10,
+                    "font": "Console",
+                    "conditions":
+                    [
+                      {
+                        "condition": 19,
+                        "param": 2
+                      }
+                    ],
                     "children": null
                   }
                 }

@@ -16,19 +16,57 @@
 
 #include "doomtype.h"
 
+struct sbarelem_s;
 struct sbe_widget_s;
 struct player_s;
 struct event_s;
 
-void UpdateMessage(struct sbe_widget_s *widget, struct player_s *player);
-void UpdateSecretMessage(struct sbe_widget_s *widget, struct player_s *player);
-void UpdateMonSec(struct sbe_widget_s *widget);
-void UpdateStTime(struct sbe_widget_s *widget, struct player_s *player);
+#define HU_MAXMESSAGES   20
+#define HU_MAXLINELENGTH 120
 
-void UpdateChatMessage(void);
-void UpdateChat(struct sbe_widget_s *widget);
-boolean MessagesResponder(struct event_s *ev);
+typedef enum
+{
+    HUD_WIDGET_OFF,
+    HUD_WIDGET_AUTOMAP,
+    HUD_WIDGET_HUD,
+    HUD_WIDGET_ALWAYS,
+    HUD_WIDGET_ADVANCED,
+} widgetstate_t;
+
+extern boolean show_messages;
+extern boolean show_toggle_messages;
+extern boolean show_pickup_messages;
+extern boolean hud_secret_message; // "A secret is revealed!" message
+
+extern boolean chat_on;
+
+extern widgetstate_t hud_level_stats;
+extern widgetstate_t hud_level_time;
+extern int hudcolor_titl;
+extern int hudcolor_xyco;
+
+extern boolean hud_time_use;
+
+void ST_ResetTitle(void);
+
+void ST_ClearLines(struct sbe_widget_s *widget);
+void ST_AddLine(struct sbe_widget_s *widget, const char *string);
+void ST_UpdateWidget(struct sbarelem_s *elem, struct player_s *player);
+
+void ST_UpdateChatMessage(void);
+boolean ST_MessagesResponder(struct event_s *ev);
 
 char ST_DequeueChatChar(void);
+
+extern char **player_names[];
+extern int speedometer;
+
+extern int playback_tic, playback_totaltics;
+boolean ST_DemoProgressBar(boolean force);
+
+void ST_InitWidgets(void);
+void ST_ResetMessageColors(void);
+
+void ST_BindHUDVariables(void);
 
 #endif

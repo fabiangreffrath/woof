@@ -25,7 +25,6 @@
 #include "doomstat.h"
 #include "dsdhacked.h"
 #include "g_game.h"
-#include "hu_stuff.h"
 #include "i_printf.h"
 #include "info.h"
 #include "m_random.h"
@@ -1143,7 +1142,6 @@ void P_SpawnPlayer (mapthing_t* mthing)
   if (mthing->type-1 == consoleplayer)
     {
       ST_Start(); // wake up the status bar
-      HU_Start(); // wake up the heads up text
     }
 }
 

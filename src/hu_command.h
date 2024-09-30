@@ -20,10 +20,9 @@
 #define __HU_COMMAND__
 
 #include "doomtype.h"
-#include "hu_lib.h"
 
-struct hu_multiline_s;
 struct ticcmd_s;
+struct sbe_widget_s;
 
 extern boolean hud_command_history;
 extern int hud_command_history_size;
@@ -33,6 +32,6 @@ void HU_UpdateTurnFormat(void);
 void HU_InitCommandHistory(void);
 void HU_ResetCommandHistory(void);
 void HU_UpdateCommandHistory(const struct ticcmd_s *cmd);
-void HU_BuildCommandHistory(struct hu_multiline_s *const multiline);
+void HU_BuildCommandHistory(struct sbe_widget_s *widget);
 
 #endif

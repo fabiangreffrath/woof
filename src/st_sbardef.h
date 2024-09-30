@@ -48,6 +48,10 @@ typedef enum
     sbc_modeeequal,
     sbc_modenotequal,
     sbc_hudmodeequal,
+
+    // Woof!
+    sbc_mode,
+
     sbc_max,
 } sbarconditiontype_t;
 
@@ -56,6 +60,14 @@ typedef struct
     sbarconditiontype_t condition;
     int param;
 } sbarcondition_t;
+
+typedef enum
+{
+    sbc_mode_none,
+    sbc_mode_automap = 0x01,
+    sbc_mode_overlay = 0x02,
+    sbc_mode_hud     = 0x04,
+} sbc_mode_t;
 
 typedef enum
 {
@@ -102,6 +114,7 @@ typedef enum
     sbw_message,
     sbw_secret,
     sbw_chat,
+    sbw_title,
 } sbarwidgettype_t;
 
 typedef enum
@@ -157,6 +170,7 @@ typedef struct
     int value;
     int numvalues;
     int oldvalue;
+    int xoffset;
 } sbe_number_t;
 
 typedef struct
@@ -166,13 +180,19 @@ typedef struct
     int oldhealth;
 } sbe_face_t;
 
+typedef struct
+{
+    const char *string;
+    int totalwidth;
+    int xoffset;
+} widgetline_t;
+
 typedef struct sbe_widget_s
 {
     sbarwidgettype_t type;
     const char *font_name;
     hudfont_t *font;
-    const char *string;
-    int totalwidth;
+    widgetline_t *lines;
 
     // message
     int duration;
@@ -191,7 +211,6 @@ struct sbarelem_s
 
     crange_idx_e cr;
     crange_idx_e crboom;
-    int xoffset;
 
     union
     {

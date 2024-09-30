@@ -36,8 +36,6 @@
 #include "doomtype.h"
 #include "dstrings.h"
 #include "g_game.h"
-#include "hu_lib.h"
-#include "hu_stuff.h"
 #include "i_input.h"
 #include "i_printf.h"
 #include "i_system.h"
@@ -57,6 +55,9 @@
 #include "r_main.h"
 #include "s_sound.h"
 #include "sounds.h"
+#include "st_sbardef.h"
+#include "st_stuff.h"
+#include "st_widgets.h"
 #include "u_mapinfo.h"
 #include "v_fmt.h"
 #include "v_video.h"
@@ -1111,7 +1112,7 @@ void MN_SetQuickSaveSlot(int slot)
 // [FG] generate a default save slot name when the user saves to an empty slot
 static void SetDefaultSaveName(int slot)
 {
-    char *maplump = MAPNAME(gameepisode, gamemap);
+    char *maplump = MapName(gameepisode, gamemap);
     int maplumpnum = W_CheckNumForName(maplump);
 
     if (gamemapinfo && U_CheckField(gamemapinfo->label))

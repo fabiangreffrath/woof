@@ -29,6 +29,8 @@
 #include "doomdef.h"
 #include "doomstat.h"
 #include "doomtype.h"
+#include "hu_command.h"
+#include "hu_obituary.h"
 #include "i_video.h"
 #include "info.h"
 #include "m_array.h"
@@ -39,6 +41,7 @@
 #include "m_swap.h"
 #include "p_mobj.h"
 #include "p_user.h"
+#include "hu_crosshair.h"
 #include "r_data.h"
 #include "r_defs.h"
 #include "r_draw.h"
@@ -333,6 +336,25 @@ static boolean CheckConditions(sbarcondition_t *conditions, player_t *player)
                 // TODO
                 // result &= ( !!cond->param == compacthud );
                 result &= (!!cond->param == false);
+                break;
+
+            case sbc_mode:
+                {
+                    int enabled = 0;
+                    if (cond->param & sbc_mode_overlay)
+                    {
+                        enabled |= (automapactive && automapoverlay);
+                    }
+                    else if (cond->param & sbc_mode_automap)
+                    {
+                        enabled |= (automapactive && !automapoverlay);
+                    }
+                    if (cond->param & sbc_mode_hud)
+                    {
+                        enabled |= !automapactive;
+                    }
+                    result &= (enabled > 0);
+                }
                 break;
 
             case sbc_none:
@@ -692,14 +714,14 @@ static void UpdateNumber(sbarelem_t *elem, player_t *player)
         }
     }
 
-    elem->xoffset = 0;
+    number->xoffset = 0;
     if (elem->alignment & sbe_h_middle)
     {
-        elem->xoffset -= (totalwidth >> 1);
+        number->xoffset -= (totalwidth >> 1);
     }
     else if (elem->alignment & sbe_h_right)
     {
-        elem->xoffset -= totalwidth;
+        number->xoffset -= totalwidth;
     }
 
     number->font = font;
@@ -707,11 +729,9 @@ static void UpdateNumber(sbarelem_t *elem, player_t *player)
     number->numvalues = numvalues;
 }
 
-static void UpdateString(sbarelem_t *elem)
+static void UpdateLines(sbarelem_t *elem)
 {
     sbe_widget_t *widget = elem->pointer.widget;
-
-    int numglyphs = 0;
 
     hudfont_t *font = widget->font;
     if (font == NULL)
@@ -725,43 +745,56 @@ static void UpdateString(sbarelem_t *elem)
         }
     }
 
-    numglyphs = strlen(widget->string);
-
-    int totalwidth = font->monowidth * numglyphs;
-    if (font->type == sbf_proportional)
+    widgetline_t *line;
+    array_foreach(line, widget->lines)
     {
-        totalwidth = 0;
-        for (int i = 0; i < numglyphs; ++i)
+        int totalwidth = 0;
+
+        const char *str = line->string;
+        while (*str)
         {
-            int ch = widget->string[i];
-            ch = M_ToUpper(ch) - HU_FONTSTART;
-            if (ch < 0 || ch > HU_FONTSIZE)
+            int ch = *str++;
+            if (ch == '\x1b' && str)
             {
-                totalwidth += SPACEWIDTH;
+                ++str;
                 continue;
             }
-            patch_t *patch = font->characters[ch];
-            if (patch == NULL)
-            {
-                totalwidth += SPACEWIDTH;
-                continue;
-            }
-            totalwidth += SHORT(patch->width);
-        }
-    }
 
-    elem->xoffset = 0;
-    if (elem->alignment & sbe_h_middle)
-    {
-        elem->xoffset -= (totalwidth >> 1);
-    }
-    else if (elem->alignment & sbe_h_right)
-    {
-        elem->xoffset -= totalwidth;
+            if (font->type == sbf_proportional)
+            {
+                ch = M_ToUpper(ch) - HU_FONTSTART;
+                if (ch < 0 || ch > HU_FONTSIZE)
+                {
+                    totalwidth += SPACEWIDTH;
+                    continue;
+                }
+                patch_t *patch = font->characters[ch];
+                if (patch == NULL)
+                {
+                    totalwidth += SPACEWIDTH;
+                    continue;
+                }
+                totalwidth += SHORT(patch->width);
+            }
+            else
+            {
+                totalwidth += font->monowidth;
+            }
+        }
+
+        line->xoffset = 0;
+        if (elem->alignment & sbe_h_middle)
+        {
+            line->xoffset -= (totalwidth >> 1);
+        }
+        else if (elem->alignment & sbe_h_right)
+        {
+            line->xoffset -= totalwidth;
+        }
+        line->totalwidth = totalwidth;
     }
 
     widget->font = font;
-    widget->totalwidth = totalwidth;
 }
 
 static void UpdateAnimation(sbarelem_t *elem)
@@ -857,7 +890,7 @@ static void UpdateBoomColors(sbarelem_t *elem, player_t *player)
                 int ammo = player->ammo[type];
 
                 // backpack changes thresholds
-                if (player->backpack && !hud_backpack_thresholds)
+                if (player->backpack)
                 {
                     maxammo /= 2;
                 }
@@ -880,38 +913,6 @@ static void UpdateBoomColors(sbarelem_t *elem, player_t *player)
     elem->crboom = cr;
 }
 
-static void UpdateWidget(sbarelem_t *elem, player_t *player)
-{
-    sbe_widget_t *widget = elem->pointer.widget;
-
-    switch (widget->type)
-    {
-        case sbw_message:
-            UpdateMessage(widget, player);
-            break;
-        case sbw_chat:
-            UpdateChat(widget);
-            break;
-        case sbw_secret:
-            UpdateSecretMessage(widget, player);
-            break;
-        case sbw_monsec:
-            UpdateMonSec(widget);
-            break;
-        case sbw_time:
-            UpdateStTime(widget, player);
-            break;
-        case sbw_coord:
-        case sbw_fps:
-        case sbw_speed:
-            break;
-        default:
-            break;
-    }
-
-    UpdateString(elem);
-}
-
 static void UpdateElem(sbarelem_t *elem, player_t *player)
 {
     switch (elem->type)
@@ -931,7 +932,8 @@ static void UpdateElem(sbarelem_t *elem, player_t *player)
             break;
 
         case sbe_widget:
-            UpdateWidget(elem, player);
+            ST_UpdateWidget(elem, player);
+            UpdateLines(elem);
             break;
 
         default:
@@ -1018,6 +1020,8 @@ static void ResetStatusBar(void)
             ResetElem(child);
         }
     }
+
+    ST_ResetTitle();
 }
 
 static void DrawPatch(int x, int y, sbaralignment_t alignment, patch_t *patch,
@@ -1064,48 +1068,98 @@ static void DrawPatch(int x, int y, sbaralignment_t alignment, patch_t *patch,
     V_DrawPatchTranslated(x, y, patch, colrngs[cr]);
 }
 
-static void DrawGlyph(int x, int y, sbarelem_t *elem, fonttype_t fonttype,
-                      int monowidth, patch_t *glyph)
+static void DrawGlyphNumber(int x, int y, sbarelem_t *elem, patch_t *glyph)
 {
+    sbe_number_t *number = elem->pointer.number;
+    numberfont_t *font = number->font;
+
     int width, widthdiff;
 
-    if (fonttype == sbf_proportional)
+    if (font->type == sbf_proportional)
     {
         width = glyph ? SHORT(glyph->width) : SPACEWIDTH;
         widthdiff = 0;
     }
     else
     {
-        width = monowidth;
+        width = font->monowidth;
         widthdiff = glyph ? SHORT(glyph->width) - width : SPACEWIDTH - width;
     }
 
     if (elem->alignment & sbe_h_middle)
     {
-        elem->xoffset += ((width + widthdiff) >> 1);
+        number->xoffset += ((width + widthdiff) >> 1);
     }
     else if (elem->alignment & sbe_h_right)
     {
-        elem->xoffset += (width + widthdiff);
+        number->xoffset += (width + widthdiff);
     }
 
     if (glyph)
     {
-        DrawPatch(x + elem->xoffset, y, elem->alignment, glyph,
+        DrawPatch(x + number->xoffset, y, elem->alignment, glyph,
                   elem->crboom == CR_NONE ? elem->cr : elem->crboom);
     }
 
     if (elem->alignment & sbe_h_middle)
     {
-        elem->xoffset += (width - ((width - widthdiff) >> 1));
+        number->xoffset += (width - ((width - widthdiff) >> 1));
     }
     else if (elem->alignment & sbe_h_right)
     {
-        elem->xoffset += -widthdiff;
+        number->xoffset += -widthdiff;
     }
     else
     {
-        elem->xoffset += width;
+        number->xoffset += width;
+    }
+}
+
+static void DrawGlyphLine(int x, int y, sbarelem_t *elem, widgetline_t *line,
+                          patch_t *glyph)
+{
+    sbe_widget_t *widget = elem->pointer.widget;
+    hudfont_t *font = widget->font;
+
+    int width, widthdiff;
+
+    if (font->type == sbf_proportional)
+    {
+        width = glyph ? SHORT(glyph->width) : SPACEWIDTH;
+        widthdiff = 0;
+    }
+    else
+    {
+        width = font->monowidth;
+        widthdiff = glyph ? SHORT(glyph->width) - width : 0;
+    }
+
+    if (elem->alignment & sbe_h_middle)
+    {
+        line->xoffset += ((width + widthdiff) >> 1);
+    }
+    else if (elem->alignment & sbe_h_right)
+    {
+        line->xoffset += (width + widthdiff);
+    }
+
+    if (glyph)
+    {
+        DrawPatch(x + line->xoffset, y, elem->alignment, glyph,
+                  elem->crboom == CR_NONE ? elem->cr : elem->crboom);
+    }
+
+    if (elem->alignment & sbe_h_middle)
+    {
+        line->xoffset += (width - ((width - widthdiff) >> 1));
+    }
+    else if (elem->alignment & sbe_h_right)
+    {
+        line->xoffset += -widthdiff;
+    }
+    else
+    {
+        line->xoffset += width;
     }
 }
 
@@ -1114,12 +1168,12 @@ static void DrawNumber(int x, int y, sbarelem_t *elem)
     sbe_number_t *number = elem->pointer.number;
 
     int value = number->value;
-    int base_xoffset = elem->xoffset;
+    int base_xoffset = number->xoffset;
     numberfont_t *font = number->font;
 
     if (value < 0 && font->minus != NULL)
     {
-        DrawGlyph(x, y, elem, font->type, font->monowidth, font->minus);
+        DrawGlyphNumber(x, y, elem, font->minus);
         value = -value;
     }
 
@@ -1128,7 +1182,7 @@ static void DrawNumber(int x, int y, sbarelem_t *elem)
     {
         int glyphbase = (int)pow(10.0, --glyphindex);
         int workingnum = value / glyphbase;
-        DrawGlyph(x, y, elem, font->type, font->monowidth, font->numbers[workingnum]);
+        DrawGlyphNumber(x, y, elem, font->numbers[workingnum]);
         value -= (workingnum * glyphbase);
     }
 
@@ -1139,53 +1193,70 @@ static void DrawNumber(int x, int y, sbarelem_t *elem)
         {
             elem->crboom = CR_GRAY;
         }
-        DrawGlyph(x, y, elem, font->type, font->monowidth, font->percent);
+        DrawGlyphNumber(x, y, elem, font->percent);
         elem->crboom = oldcr;
     }
 
-    elem->xoffset = base_xoffset;
+    number->xoffset = base_xoffset;
 }
 
-static void DrawString(int x, int y, sbarelem_t *elem)
+static void DrawLines(int x, int y, sbarelem_t *elem)
 {
     sbe_widget_t *widget = elem->pointer.widget;
 
-    int base_xoffset = elem->xoffset;
-    hudfont_t *font = widget->font;
+    int cr = elem->cr;
 
-    const char *str = widget->string;
-    while (*str)
+    widgetline_t *line;
+    array_foreach(line, widget->lines)
     {
-        int ch = *str++;
 
-        if (ch == '\x1b')
+        int base_xoffset = line->xoffset;
+        hudfont_t *font = widget->font;
+
+        const char *str = line->string;
+        while (*str)
         {
-            if (str)
+            int ch = *str++;
+
+            if (ch == '\x1b' && str)
             {
                 ch = *str++;
                 if (ch >= '0' && ch <= '0' + CR_NONE)
                 {
                     elem->cr = ch - '0';
                 }
+                else if (ch == '0' + CR_ORIG)
+                {
+                    elem->cr = cr;
+                }
                 continue;
             }
+
+            ch = M_ToUpper(ch) - HU_FONTSTART;
+
+            patch_t *glyph;
+            if (ch < 0 || ch > HU_FONTSIZE)
+            {
+                glyph = NULL;
+            }
+            else
+            {
+                glyph = font->characters[ch];
+            }
+            DrawGlyphLine(x, y, elem, line, glyph);
         }
 
-        ch = M_ToUpper(ch) - HU_FONTSTART;
-
-        patch_t *glyph;
-        if (ch < 0 || ch > HU_FONTSIZE)
+        if (elem->alignment & sbe_v_bottom)
         {
-            glyph = NULL;
+            y -= font->maxheight;
         }
         else
         {
-            glyph = font->characters[ch];
+            y += font->maxheight;
         }
-        DrawGlyph(x, y, elem, font->type, font->monowidth, glyph);
-    }
 
-    elem->xoffset = base_xoffset;
+        line->xoffset = base_xoffset;
+    }
 }
 
 static void DrawElem(int x, int y, sbarelem_t *elem, player_t *player)
@@ -1229,7 +1300,7 @@ static void DrawElem(int x, int y, sbarelem_t *elem, player_t *player)
             break;
 
         case sbe_widget:
-            DrawString(x, y, elem);
+            DrawLines(x, y, elem);
             break;
 
         default:
@@ -1322,8 +1393,19 @@ static void EraseElem(int x, int y, sbarelem_t *elem, player_t *player)
 
     if (elem->type == sbe_widget)
     {
-        hudfont_t *font = elem->pointer.widget->font;
-        int height = font->maxheight;
+        sbe_widget_t *widget = elem->pointer.widget;
+        hudfont_t *font = widget->font;
+
+        int height = 0;
+        widgetline_t *line;
+        array_foreach(line, widget->lines)
+        {
+            if (elem->alignment & sbe_v_bottom)
+            {
+                y -= font->maxheight;
+            }
+            height += font->maxheight;
+        }
 
         if (y > scaledviewy && y < scaledviewy + scaledviewheight - height)
         {
@@ -1425,7 +1507,7 @@ boolean ST_Responder(event_t *ev)
     {
         return false;
     }
-    else if (MessagesResponder(ev))
+    else if (ST_MessagesResponder(ev))
     {
         return true;
     }
@@ -1592,12 +1674,17 @@ void ST_Ticker(void)
     // check for incoming chat characters
     if (netgame)
     {
-        UpdateChatMessage();
+        ST_UpdateChatMessage();
     }
 
     player_t *player = &players[displayplayer];
 
     UpdateStatusBar(player);
+
+    if (hud_crosshair)
+    {
+        HU_UpdateCrosshair();
+    }
 
     if (!nodrawers)
     {
@@ -1611,7 +1698,13 @@ void ST_Drawer(void)
     {
         return;
     }
+
     DrawStatusBar();
+
+    if (hud_crosshair)
+    {
+        HU_DrawCrosshair();
+    }
 }
 
 void ST_Start(void)
@@ -1620,16 +1713,41 @@ void ST_Start(void)
     {
         return;
     }
+
     ResetStatusBar();
+
+    if (hud_crosshair)
+    {
+        HU_StartCrosshair();
+    }
 }
+
+patch_t **hu_font;
 
 void ST_Init(void)
 {
     sbardef = ST_ParseSbarDef();
+
     if (sbardef)
     {
         LoadFacePatches();
     }
+
+    hudfont_t *hudfont;
+    array_foreach(hudfont, sbardef->hudfonts)
+    {
+        if (!strcmp(hudfont->name, "Console"))
+        {
+            hu_font = hudfont->characters;
+            break;
+        }
+    }
+
+    HU_InitCrosshair();
+    HU_InitCommandHistory();
+    HU_InitObituaries();
+
+    ST_InitWidgets();
 }
 
 void ST_InitRes(void)
@@ -1645,6 +1763,38 @@ void ST_ResetPalette(void)
     I_SetPalette(W_CacheLumpName("PLAYPAL", PU_CACHE));
 }
 
+static sbarelem_t st_time_elem =
+{
+    .type = sbe_widget,
+    .alignment = sbe_wide_left,
+    .pointer.widget = &(sbe_widget_t)
+    {
+        .type = sbw_time,
+        .font_name = "Digits"
+    },
+    .cr = CR_NONE,
+    .crboom = CR_NONE
+};
+
+// [FG] draw Time widget on intermission screen
+void WI_DrawWidgets(void)
+{
+    if (!sbardef)
+    {
+        return;
+    }
+
+    player_t *player = &players[displayplayer];
+
+    if (hud_level_time & HUD_WIDGET_HUD)
+    {
+        // leveltime is already added to totalleveltimes before WI_Start()
+        ST_UpdateWidget(&st_time_elem, player);
+        UpdateLines(&st_time_elem);
+        DrawLines(0, 0, &st_time_elem);
+    }
+}
+
 void ST_BindSTSVariables(void)
 {
   M_BindNum("st_layout", &st_layout, NULL,  st_wide, st_original, st_wide,
@@ -1654,9 +1804,6 @@ void ST_BindSTSVariables(void)
   M_BindBool("sts_pct_always_gray", &sts_pct_always_gray, NULL,
              false, ss_stat, wad_yes,
              "Percent signs on the status bar are always gray");
-  M_BindBool("sts_traditional_keys", &sts_traditional_keys, NULL,
-             false, ss_stat, wad_yes,
-             "Show last picked-up key on each key slot on the status bar");
   M_BindBool("hud_blink_keys", &hud_blink_keys, NULL,
              false, ss_stat, wad_no,
              "Make missing keys blink when trying to trigger linedef actions");
@@ -1665,6 +1812,8 @@ void ST_BindSTSVariables(void)
              "Use solid-color borders for the status bar in widescreen mode");
   M_BindBool("hud_animated_counts", &hud_animated_counts, NULL,
             false, ss_stat, wad_no, "Animated health/armor counts");
+  M_BindBool("hud_armor_type", &hud_armor_type, NULL, false, ss_stat, wad_no,
+             "Armor count is colored based on armor type");
   M_BindNum("health_red", &health_red, NULL, 25, 0, 200, ss_none, wad_yes,
             "Amount of health for red-to-yellow transition");
   M_BindNum("health_yellow", &health_yellow, NULL, 50, 0, 200, ss_none, wad_yes,
@@ -1681,6 +1830,22 @@ void ST_BindSTSVariables(void)
             "Percent of ammo for red-to-yellow transition");
   M_BindNum("ammo_yellow", &ammo_yellow, NULL, 50, 0, 100, ss_none, wad_yes,
             "Percent of ammo for yellow-to-green transition");
+
+  M_BindNum("hud_crosshair", &hud_crosshair, NULL, 0, 0, 10 - 1, ss_stat, wad_no,
+            "Crosshair");
+  M_BindBool("hud_crosshair_health", &hud_crosshair_health, NULL,
+             false, ss_stat, wad_no, "Change crosshair color based on player health");
+  M_BindNum("hud_crosshair_target", &hud_crosshair_target, NULL,
+            0, 0, 2, ss_stat, wad_no,
+            "Change crosshair color when locking on target (1 = Highlight; 2 = Health)");
+  M_BindBool("hud_crosshair_lockon", &hud_crosshair_lockon, NULL,
+             false, ss_stat, wad_no, "Lock crosshair on target");
+  M_BindNum("hud_crosshair_color", &hud_crosshair_color, NULL,
+            CR_GRAY, CR_BRICK, CR_NONE, ss_stat, wad_no,
+            "Default crosshair color");
+  M_BindNum("hud_crosshair_target_color", &hud_crosshair_target_color, NULL,
+            CR_YELLOW, CR_BRICK, CR_NONE, ss_stat, wad_no,
+            "Crosshair color when aiming at target");
 }
 
 //----------------------------------------------------------------------------
