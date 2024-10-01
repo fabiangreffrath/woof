@@ -85,6 +85,12 @@ static boolean message_review;
 
 static void UpdateMessage(sbe_widget_t *widget, player_t *player)
 {
+    if (!player->message)
+    {
+        ST_ClearLines(widget);
+        return;
+    }
+
     static char string[120];
     static int duration_left;
     static boolean overwrite = true;

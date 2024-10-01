@@ -85,6 +85,9 @@ typedef enum
     CR_LIMIT   // 16 //jff 2/27/98 added for range check
 } crange_idx_e;
 
+#define ORIG_S  "\x1b\x2f"
+#define BRICK_S "\x1b\x30"
+#define TAN_S   "\x1b\x31"
 #define GRAY_S  "\x1b\x32"
 #define GREEN_S "\x1b\x33"
 #define BROWN_S "\x1b\x34"
