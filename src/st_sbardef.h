@@ -236,7 +236,6 @@ struct numberfont_s
 {
     const char *name;
     fonttype_t type;
-    const char *stem;
     int monowidth;
     patch_t *numbers[10];
     patch_t *percent;
@@ -254,7 +253,6 @@ struct hudfont_s
 {
     const char *name;
     fonttype_t type;
-    const char *stem;
     int monowidth;
     int maxheight;
     patch_t *characters[HU_FONTSIZE];

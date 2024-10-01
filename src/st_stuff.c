@@ -113,17 +113,16 @@ static boolean sts_colored_numbers;
 static boolean sts_pct_always_gray;
 
 //jff 2/16/98 status color change levels
-int ammo_red;      // ammo percent less than which status is red
-int ammo_yellow;   // ammo percent less is yellow more green
-int health_red;    // health amount less than which status is red
-int health_yellow; // health amount less than which status is yellow
-int health_green;  // health amount above is blue, below is green
-int armor_red;     // armor amount less than which status is red
-int armor_yellow;  // armor amount less than which status is yellow
-int armor_green;   // armor amount above is blue, below is green
+static int ammo_red;      // ammo percent less than which status is red
+static int ammo_yellow;   // ammo percent less is yellow more green
+int health_red;           // health amount less than which status is red
+int health_yellow;        // health amount less than which status is yellow
+int health_green;         // health amount above is blue, below is green
+static int armor_red;     // armor amount less than which status is red
+static int armor_yellow;  // armor amount less than which status is yellow
+static int armor_green;   // armor amount above is blue, below is green
 
-boolean hud_backpack_thresholds; // backpack changes thresholds
-boolean hud_armor_type; // color of armor depends on type
+static boolean hud_armor_type; // color of armor depends on type
 
 // used for evil grin
 static boolean  oldweaponsowned[NUMWEAPONS];
@@ -149,7 +148,7 @@ static int have_xdthfaces;
 // STATUS BAR CODE
 //
 
-patch_t *CachePatchName(const char *name)
+static patch_t *CachePatchName(const char *name)
 {
     int lumpnum = W_CheckNumForName(name);
     if (lumpnum < 0)
@@ -1210,7 +1209,6 @@ static void DrawLines(int x, int y, sbarelem_t *elem)
     widgetline_t *line;
     array_foreach(line, widget->lines)
     {
-
         int base_xoffset = line->xoffset;
         hudfont_t *font = widget->font;
 

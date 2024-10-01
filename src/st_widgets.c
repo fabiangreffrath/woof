@@ -888,7 +888,7 @@ static char* PrepareColor(const char *str, const char *col)
     char *str_replace, col_replace[16];
 
     M_snprintf(col_replace, sizeof(col_replace),
-               "\x1b%c%s\x1b%c", '0'+CR_ORIG, col, '0'+CR_ORIG);
+               ORIG_S "%s" ORIG_S, col);
     str_replace = M_StringReplace(str, col, col_replace);
 
     return str_replace;

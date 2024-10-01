@@ -239,13 +239,17 @@ static boolean ParseSbarElem(json_t *json, sbarelem_t *out)
 static boolean ParseNumberFont(json_t *json, numberfont_t *out)
 {
     json_t *name = JS_GetObject(json, "name");
-    json_t *stem = JS_GetObject(json, "stem");
-    if (!JS_IsString(name) || !JS_IsString(stem))
+    if (!JS_IsString(name))
     {
         return false;
     }
     out->name = M_StringDuplicate(JS_GetString(name));
-    out->stem = M_StringDuplicate(JS_GetString(stem));
+
+    const char *stem = JS_GetStringRef(json, "stem");
+    if (!stem)
+    {
+        return false;
+    }
 
     json_t *type = JS_GetObject(json, "type");
     if (!JS_IsNumber(type))
@@ -260,7 +264,7 @@ static boolean ParseNumberFont(json_t *json, numberfont_t *out)
 
     for (int num = 0; num < 10; ++num)
     {
-        M_snprintf(lump, sizeof(lump), "%sNUM%d", out->stem, num);
+        M_snprintf(lump, sizeof(lump), "%sNUM%d", stem, num);
         found = W_CheckNumForName(lump);
         if (found < 0)
         {
@@ -271,7 +275,7 @@ static boolean ParseNumberFont(json_t *json, numberfont_t *out)
         maxwidth = MAX(maxwidth, SHORT(out->numbers[num]->width));
     }
 
-    M_snprintf(lump, sizeof(lump), "%sMINUS", out->stem);
+    M_snprintf(lump, sizeof(lump), "%sMINUS", stem);
     found = W_CheckNumForName(lump);
     if (found >= 0)
     {
@@ -279,7 +283,7 @@ static boolean ParseNumberFont(json_t *json, numberfont_t *out)
         maxwidth = MAX(maxwidth, SHORT(out->minus->width));
     }
 
-    M_snprintf(lump, sizeof(lump), "%sPRCNT", out->stem);
+    M_snprintf(lump, sizeof(lump), "%sPRCNT", stem);
     found = W_CheckNumForName(lump);
     if (found >= 0)
     {
@@ -302,8 +306,28 @@ static boolean ParseNumberFont(json_t *json, numberfont_t *out)
     return true;
 }
 
-static void LoadHUDFont(hudfont_t *out)
+static boolean ParseHUDFont(json_t *json, hudfont_t *out)
 {
+    json_t *name = JS_GetObject(json, "name");
+    if (!JS_IsString(name))
+    {
+        return false;
+    }
+    out->name = M_StringDuplicate(JS_GetString(name));
+
+    const char *stem = JS_GetStringRef(json, "stem");
+    if (!stem)
+    {
+        return false;
+    }
+
+    json_t *type = JS_GetObject(json, "type");
+    if (!JS_IsNumber(type))
+    {
+        return false;
+    }
+    out->type = JS_GetInteger(type);
+
     char lump[9] = {0};
     int found;
     int maxwidth = 0;
@@ -311,7 +335,7 @@ static void LoadHUDFont(hudfont_t *out)
 
     for (int i = 0; i < HU_FONTSIZE; ++i)
     {
-        M_snprintf(lump, sizeof(lump), "%s%03d", out->stem, i + HU_FONTSTART);
+        M_snprintf(lump, sizeof(lump), "%s%03d", stem, i + HU_FONTSTART);
         found = W_CheckNumForName(lump);
         if (found < 0)
         {
@@ -336,25 +360,6 @@ static void LoadHUDFont(hudfont_t *out)
         default:
             break;
     }
-}
-
-static boolean ParseHUDFont(json_t *json, hudfont_t *out)
-{
-    json_t *name = JS_GetObject(json, "name");
-    json_t *stem = JS_GetObject(json, "stem");
-    if (!JS_IsString(name) || !JS_IsString(stem))
-    {
-        return false;
-    }
-    out->name = M_StringDuplicate(JS_GetString(name));
-    out->stem = M_StringDuplicate(JS_GetString(stem));
-
-    json_t *type = JS_GetObject(json, "type");
-    if (!JS_IsNumber(type))
-    {
-        return false;
-    }
-    out->type = JS_GetInteger(type);
 
     return true;
 }
@@ -370,7 +375,7 @@ static boolean ParseStatusBar(json_t *json, statusbar_t *out)
     out->height = JS_GetInteger(height);
     out->fullscreenrender = JS_GetBoolean(fullscreenrender);
 
-    out->fillflat = JS_GetStringValue(json, "fillflat");
+    out->fillflat = JS_GetStringCopy(json, "fillflat");
 
     json_t *js_children = JS_GetObject(json, "children");
     json_t *js_child = NULL;
@@ -432,7 +437,6 @@ sbardef_t *ST_ParseSbarDef(void)
         hudfont_t hudfont = {0};
         if (ParseHUDFont(js_hudfont, &hudfont))
         {
-            LoadHUDFont(&hudfont);
             array_push(out->hudfonts, hudfont);
         }
     }
@@ -466,12 +470,12 @@ sbardef_t *ST_ParseSbarDef(void)
 
     js_hudfonts = JS_GetObject(data, "hudfonts");
     js_hudfont = NULL;
+
     JS_ArrayForEach(js_hudfont, js_hudfonts)
     {
         hudfont_t hudfont = {0};
         if (ParseHUDFont(js_hudfont, &hudfont))
         {
-            LoadHUDFont(&hudfont);
             array_push(out->hudfonts, hudfont);
         }
     }

@@ -2268,14 +2268,6 @@ boolean M_ShortcutResponder(const event_t *ev)
             }
         }
 
-        // if (screenblocks < 11)
-        // {
-        //     screenblocks = 11;
-        // }
-        // else
-        // {
-        //     screenblocks = 10;
-        // }
         R_SetViewSize(screenblocks);
         return true;
     }
