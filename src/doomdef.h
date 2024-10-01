@@ -224,6 +224,7 @@ typedef enum {
   ss_enem,
   ss_gen,       // killough 10/98
   ss_comp,      // killough 10/98
+  ss_midi,
   ss_eq,
   ss_padadv,
   ss_gyro,

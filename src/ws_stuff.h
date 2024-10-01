@@ -45,7 +45,7 @@ void WS_UpdateState(const struct event_s *ev);
 boolean WS_Override(void);
 boolean WS_HoldOverride(void);
 
-void WS_ClearSharedEvent(void);
+void WS_UpdateStateTic(void);
 boolean WS_Responder(const struct event_s *ev);
 
 boolean WS_SlotSelected(void);

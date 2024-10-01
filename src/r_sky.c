@@ -207,7 +207,7 @@ void R_InitSkyMap (void)
 
   if (stretchsky && skyheight < 200)
     skytexturemid = -28*FRACUNIT;
-  else if (skyheight >= 200)
+  else if (skyheight > 200)
     skytexturemid = 200*FRACUNIT;
   else
   skytexturemid = 100*FRACUNIT;
