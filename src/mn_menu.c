@@ -947,6 +947,16 @@ static void M_LoadSelect(int choice)
 // killough 5/15/98: add forced loadgames
 //
 
+static void M_VerifyForcedLoadAutoSave(int ch)
+{
+    if (ch == 'y')
+    {
+        G_ForcedLoadAutoSave();
+    }
+    free(messageString);
+    MN_ClearMenus();
+}
+
 static void M_VerifyForcedLoadGame(int ch)
 {
     if (ch == 'y')
@@ -955,6 +965,11 @@ static void M_VerifyForcedLoadGame(int ch)
     }
     free(messageString); // free the message strdup()'ed below
     MN_ClearMenus();
+}
+
+void MN_ForcedLoadAutoSave(const char *msg)
+{
+    M_StartMessage(strdup(msg), M_VerifyForcedLoadAutoSave, true);
 }
 
 void MN_ForcedLoadGame(const char *msg)
