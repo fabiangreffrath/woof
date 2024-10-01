@@ -251,26 +251,6 @@
           ],
           "children": null
         }
-      },
-      {
-        "widget":
-        {
-          "x": 0,
-          "y": 160,
-          "alignment": 16,
-          "tranmap": null,
-          "translation": "CRGOLD",
-          "type": 10,
-          "font": "Console",
-          "conditions":
-          [
-            {
-              "condition": 19,
-              "param": 1
-            }
-          ],
-          "children": null
-        }
       }
     ]
   }

@@ -978,14 +978,13 @@
           {
             "widget":
             {
-              "x": 0,
-              "y": 0,
-              "alignment": 16,
+              "x": 160,
+              "y": 167,
+              "alignment": 9,
               "tranmap": null,
               "translation": null,
-              "type": 7,
-              "font": "Console",
-              "duration": 4,
+              "type": 6,
+              "font": "Digits",
               "conditions": null,
               "children": null
             }
@@ -994,12 +993,13 @@
             "widget":
             {
               "x": 0,
-              "y": 8,
+              "y": 0,
               "alignment": 16,
               "tranmap": null,
-              "translation": "CRGOLD",
-              "type": 9,
+              "translation": null,
+              "type": 7,
               "font": "Console",
+              "duration": 4,
               "conditions": null,
               "children": null
             }
@@ -1022,13 +1022,13 @@
           {
             "widget":
             {
-              "x": 160,
-              "y": 167,
-              "alignment": 9,
+              "x": 0,
+              "y": 8,
+              "alignment": 16,
               "tranmap": null,
-              "translation": null,
-              "type": 6,
-              "font": "Digits",
+              "translation": "CRGOLD",
+              "type": 9,
+              "font": "Console",
               "conditions": null,
               "children": null
             }
@@ -1068,26 +1068,6 @@
                 {
                   "condition": 19,
                   "param": 2
-                }
-              ],
-              "children": null
-            }
-          },
-          {
-            "widget":
-            {
-              "x": 0,
-              "y": 160,
-              "alignment": 16,
-              "tranmap": null,
-              "translation": "CRGOLD",
-              "type": 10,
-              "font": "Console",
-              "conditions":
-              [
-                {
-                  "condition": 19,
-                  "param": 1
                 }
               ],
               "children": null
