@@ -460,11 +460,13 @@ static const char **I_OAL_DeviceList(void)
 
 miditype_t I_OAL_MidiType(void)
 {
+#ifdef HAVE_FLUIDSYNTH
     if (active_module == &stream_fl_module)
     {
         return midi_fluidsynth;
     }
-    else if (active_module == &stream_opl_module)
+#endif
+    if (active_module == &stream_opl_module)
     {
         return midi_opl;
     }
