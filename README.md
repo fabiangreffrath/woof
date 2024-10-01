@@ -203,6 +203,11 @@ Copyright:
  © TobiasKosmos.  
 License: [CC-BY-3.0](https://creativecommons.org/licenses/by/3.0/) and [CC0-1.0](https://creativecommons.org/publicdomain/zero/1.0/)
 
+Files: `base/all-all/sbardef.lmp`  
+Copyright:  
+ © 2024 Ethan Watson.  
+License: [CC0-1.0](https://creativecommons.org/publicdomain/zero/1.0/)
+
 Files: `cmake/FindSDL2.cmake, cmake/FindSDL2_net.cmake`  
 Copyright: © 2018 Alex Mayfield.  
 License: [BSD-3-Clause](https://opensource.org/licenses/BSD-3-Clause)
