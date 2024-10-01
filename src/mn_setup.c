@@ -2674,35 +2674,35 @@ static setup_menu_t eq_settings1[] = {
 
     MI_GAP_EX(4),
 
-    {"Preamp dB", S_THERMO, CNTR_X, M_THRM_SPC_EQ,
+    {"Preamp dB", S_THERMO, M_X_THRM8, M_THRM_SPC,
      {"snd_eq_preamp"}, .action = I_OAL_EqualizerPreset},
 
     MI_GAP_EX(4),
 
-    {"Low Gain dB", S_THERMO, CNTR_X, M_THRM_SPC_EQ,
+    {"Low Gain dB", S_THERMO, M_X_THRM8, M_THRM_SPC,
      {"snd_eq_low_gain"}, .action = I_OAL_EqualizerPreset},
 
-    {"Mid 1 Gain dB", S_THERMO, CNTR_X, M_THRM_SPC_EQ,
+    {"Mid 1 Gain dB", S_THERMO, M_X_THRM8, M_THRM_SPC,
      {"snd_eq_mid1_gain"}, .action = I_OAL_EqualizerPreset},
 
-    {"Mid 2 Gain dB", S_THERMO, CNTR_X, M_THRM_SPC_EQ,
+    {"Mid 2 Gain dB", S_THERMO, M_X_THRM8, M_THRM_SPC,
      {"snd_eq_mid2_gain"}, .action = I_OAL_EqualizerPreset},
 
-    {"High Gain dB", S_THERMO, CNTR_X, M_THRM_SPC_EQ,
+    {"High Gain dB", S_THERMO, M_X_THRM8, M_THRM_SPC,
      {"snd_eq_high_gain"}, .action = I_OAL_EqualizerPreset},
 
     MI_GAP_EX(4),
 
-    {"Low Cutoff Hz", S_THERMO, CNTR_X, M_THRM_SPC_EQ,
+    {"Low Cutoff Hz", S_NUM, M_X, M_SPC,
      {"snd_eq_low_cutoff"}, .action = I_OAL_EqualizerPreset},
 
-    {"Mid 1 Center Hz", S_THERMO, CNTR_X, M_THRM_SPC_EQ,
+    {"Mid 1 Center Hz", S_NUM, M_X, M_SPC,
      {"snd_eq_mid1_center"}, .action = I_OAL_EqualizerPreset},
 
-    {"Mid 2 Center Hz", S_THERMO, CNTR_X, M_THRM_SPC_EQ,
+    {"Mid 2 Center Hz", S_NUM, M_X, M_SPC,
      {"snd_eq_mid2_center"}, .action = I_OAL_EqualizerPreset},
 
-    {"High Cutoff Hz", S_THERMO, CNTR_X, M_THRM_SPC_EQ,
+    {"High Cutoff Hz", S_NUM, M_X, M_SPC,
      {"snd_eq_high_cutoff"}, .action = I_OAL_EqualizerPreset},
 
     MI_END
