@@ -523,6 +523,20 @@ void I_SetSoundModule(void)
     MN_UpdateAdvancedSoundItems(snd_module != SND_MODULE_3D);
 }
 
+miditype_t I_MidiType(void)
+{
+    if (active_module == &music_mid_module)
+    {
+        return midi_native;
+    }
+    else if (active_module == &music_oal_module)
+    {
+        extern miditype_t I_OAL_MidiType(void);
+        return I_OAL_MidiType();
+    }
+    return midi_none;
+}
+
 void I_SetMidiPlayer(void)
 {
     if (nomusicparm)

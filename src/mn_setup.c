@@ -2509,6 +2509,30 @@ static void SetMidiPlayer(void)
     S_RestartMusic();
 }
 
+static void SetMidiPlayerNative(void)
+{
+    if (I_MidiType() == midi_native)
+    {
+        SetMidiPlayer();
+    }
+}
+
+static void SetMidiPlayerOpl(void)
+{
+    if (I_MidiType() == midi_opl)
+    {
+        SetMidiPlayer();
+    }
+}
+
+static void SetMidiPlayerFluidSynth(void)
+{
+    if (I_MidiType() == midi_fluidsynth)
+    {
+        SetMidiPlayer();
+    }
+}
+
 static void MN_Midi(void);
 static void MN_Equalizer(void);
 
@@ -2569,43 +2593,43 @@ static const char *midi_reset_type_strings[] = {
 
 static setup_menu_t midi_settings1[] = {
 
-    {"Native MIDI Gain", S_THERMO | S_PCT, CNTR_X, M_THRM_SPC,
+    {"Native MIDI Gain", S_NUM | S_PCT, M_X, M_SPC,
      {"midi_gain"}, .action = UpdateMusicVolume},
 
-    {"Native MIDI Reset", S_CHOICE | S_ACTION, CNTR_X, M_SPC,
+    {"Native MIDI Reset", S_CHOICE | S_ACTION, M_X, M_SPC,
      {"midi_reset_type"}, .strings_id = str_midi_reset_type,
-     .action = SetMidiPlayer},
+     .action = SetMidiPlayerNative},
 
-    {"Compatibility Level", S_CHOICE | S_ACTION, CNTR_X, M_SPC,
+    {"Compatibility Level", S_CHOICE | S_ACTION, M_X, M_SPC,
      {"midi_complevel"}, .strings_id = str_midi_complevel,
-     .action = SetMidiPlayer},
+     .action = SetMidiPlayerNative},
 
-    {"SC-55 CTF Emulation", S_ONOFF, CNTR_X, M_SPC, {"midi_ctf"},
-     .action = SetMidiPlayer},
+    {"SC-55 CTF Emulation", S_ONOFF, M_X, M_SPC, {"midi_ctf"},
+     .action = SetMidiPlayerNative},
 
     MI_GAP,
 
 #if defined (HAVE_FLUIDSYNTH)
-    {"FluidSynth Gain", S_THERMO | S_PCT, CNTR_X, M_THRM_SPC, {"mus_gain"},
+    {"FluidSynth Gain", S_NUM | S_PCT, M_X, M_SPC, {"mus_gain"},
      .action = UpdateMusicVolume},
 
-    {"FluidSynth Reverb", S_ONOFF, CNTR_X, M_SPC, {"mus_reverb"},
-     .action = SetMidiPlayer},
+    {"FluidSynth Reverb", S_ONOFF, M_X, M_SPC, {"mus_reverb"},
+     .action = SetMidiPlayerFluidSynth},
 
-    {"FluidSynth Chorus", S_ONOFF, CNTR_X, M_SPC, {"mus_chorus"},
-     .action = SetMidiPlayer},
+    {"FluidSynth Chorus", S_ONOFF, M_X, M_SPC, {"mus_chorus"},
+     .action = SetMidiPlayerFluidSynth},
 
     MI_GAP,
 #endif
 
-    {"OPL3 Gain", S_THERMO | S_PCT, CNTR_X, M_THRM_SPC, {"opl_gain"},
+    {"OPL3 Gain", S_NUM | S_PCT, M_X, M_SPC, {"opl_gain"},
      .action = UpdateMusicVolume},
 
-    {"OPL3 Number of Chips", S_THERMO | S_THRM_SIZE4 | S_ACTION, CNTR_X,
-     M_THRM_SPC, {"num_opl_chips"}, .action = SetMidiPlayer},
+    {"OPL3 Number of Chips", S_THERMO | S_THRM_SIZE4 | S_ACTION, M_X_THRM4,
+     M_THRM_SPC, {"num_opl_chips"}, .action = SetMidiPlayerOpl},
 
-    {"OPL3 Reverse Stereo", S_ONOFF, CNTR_X, M_SPC,
-     {"opl_stereo_correct"}, .action = SetMidiPlayer},
+    {"OPL3 Reverse Stereo", S_ONOFF, M_X, M_SPC,
+     {"opl_stereo_correct"}, .action = SetMidiPlayerOpl},
 
     MI_END
 };

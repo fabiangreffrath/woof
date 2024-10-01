@@ -458,6 +458,19 @@ static const char **I_OAL_DeviceList(void)
     return devices;
 }
 
+miditype_t I_OAL_MidiType(void)
+{
+    if (active_module == &stream_fl_module)
+    {
+        return midi_fluidsynth;
+    }
+    else if (active_module == &stream_opl_module)
+    {
+        return midi_opl;
+    }
+    return midi_none;
+}
+
 static void I_OAL_BindVariables(void)
 {
     BIND_NUM_MIDI(opl_gain, 200, 100, 1000,

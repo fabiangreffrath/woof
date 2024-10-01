@@ -198,6 +198,16 @@ boolean IsMus(byte *mem, int len);
 
 void I_BindSoundVariables(void);
 
+typedef enum
+{
+    midi_none,
+    midi_native,
+    midi_fluidsynth,
+    midi_opl,
+} miditype_t;
+
+miditype_t I_MidiType(void);
+
 #endif
 
 //----------------------------------------------------------------------------
