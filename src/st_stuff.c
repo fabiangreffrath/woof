@@ -31,6 +31,7 @@
 #include "doomtype.h"
 #include "hu_command.h"
 #include "hu_obituary.h"
+#include "i_system.h"
 #include "i_video.h"
 #include "info.h"
 #include "m_array.h"
@@ -1323,7 +1324,7 @@ static void DrawSolidBackground(void)
 
     patch_t *sbar = V_CachePatchName("STBAR", PU_CACHE);
     // [FG] temporarily draw status bar to background buffer
-    V_DrawPatch(0, 0, sbar);
+    V_DrawPatch(-video.deltaw, 0, sbar);
 
     byte *pal = W_CacheLumpName("PLAYPAL", PU_CACHE);
 
@@ -1690,16 +1691,18 @@ void ST_Start(void)
     }
 }
 
-patch_t **hu_font;
+patch_t **hu_font = NULL;
 
 void ST_Init(void)
 {
     sbardef = ST_ParseSbarDef();
 
-    if (sbardef)
+    if (!sbardef)
     {
-        LoadFacePatches();
+        return;
     }
+
+    LoadFacePatches();
 
     hudfont_t *hudfont;
     array_foreach(hudfont, sbardef->hudfonts)
@@ -1709,6 +1712,11 @@ void ST_Init(void)
             hu_font = hudfont->characters;
             break;
         }
+    }
+
+    if (!hu_font)
+    {
+        I_Error("ST_Init: \"Console\" font not found");
     }
 
     HU_InitCrosshair();
