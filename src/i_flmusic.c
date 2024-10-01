@@ -450,6 +450,11 @@ static const char **I_FL_DeviceList(void)
     for (int i = 0; i < array_size(soundfonts); ++i)
     {
         char *name = M_StringDuplicate(M_BaseName(soundfonts[i]));
+        char *ext = strrchr(name, '.');
+        if (ext != NULL)
+        {
+            *ext = '\0';
+        }
         if (strlen(name) > NAME_MAX_LENGTH)
         {
             name[NAME_MAX_LENGTH] = '\0';
