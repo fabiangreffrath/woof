@@ -1314,6 +1314,59 @@ static void DrawElem(int x, int y, sbarelem_t *elem, player_t *player)
     }
 }
 
+static boolean st_solidbackground;
+
+static void DrawSolidBackground(void)
+{
+    // [FG] calculate average color of the 16px left and right of the status bar
+    const int vstep[][2] = { {0, 1}, {1, 2}, {2, ST_HEIGHT} };
+
+    patch_t *sbar = V_CachePatchName("STBAR", PU_CACHE);
+    // [FG] temporarily draw status bar to background buffer
+    V_DrawPatch(0, 0, sbar);
+
+    byte *pal = W_CacheLumpName("PLAYPAL", PU_CACHE);
+
+    const int width = MIN(SHORT(sbar->width), video.unscaledw);
+    const int depth = 16;
+    int v;
+
+    // [FG] separate colors for the top rows
+    for (v = 0; v < arrlen(vstep); v++)
+    {
+        int x, y;
+        const int v0 = vstep[v][0], v1 = vstep[v][1];
+        unsigned r = 0, g = 0, b = 0;
+        byte col;
+
+        for (y = v0; y < v1; y++)
+        {
+            for (x = 0; x < depth; x++)
+            {
+                byte *c = st_backing_screen + V_ScaleY(y) * video.pitch
+                          + V_ScaleX(x);
+                r += pal[3 * c[0] + 0];
+                g += pal[3 * c[0] + 1];
+                b += pal[3 * c[0] + 2];
+
+                c += V_ScaleX(width - 2 * x - 1);
+                r += pal[3 * c[0] + 0];
+                g += pal[3 * c[0] + 1];
+                b += pal[3 * c[0] + 2];
+            }
+        }
+
+        r /= 2 * depth * (v1 - v0);
+        g /= 2 * depth * (v1 - v0);
+        b /= 2 * depth * (v1 - v0);
+
+        // [FG] tune down to half saturation (for empiric reasons)
+        col = I_GetNearestColor(pal, r / 2, g / 2, b / 2);
+
+        V_FillRect(0, v0, video.unscaledw, v1 - v0, col);
+    }
+}
+
 boolean st_refresh_background = true;
 
 static void DrawBackground(const char *name)
@@ -1327,21 +1380,28 @@ static void DrawBackground(const char *name)
 
     V_UseBuffer(st_backing_screen);
 
-    if (!name)
+    if (st_solidbackground)
     {
-        name = (gamemode == commercial) ? "GRNROCK" : "FLOOR7_2";
+        DrawSolidBackground();
     }
-
-    byte *flat = V_CacheFlatNum(firstflat + R_FlatNumForName(name), PU_CACHE);
-
-    V_TileBlock64(ST_Y, video.unscaledw, ST_HEIGHT, flat);
-
-    if (screenblocks == 10)
+    else
     {
-        patch_t *patch = V_CachePatchName("brdr_b", PU_CACHE);
-        for (int x = 0; x < video.unscaledw; x += 8)
+        if (!name)
         {
-            V_DrawPatch(x - video.deltaw, 0, patch);
+            name = (gamemode == commercial) ? "GRNROCK" : "FLOOR7_2";
+        }
+
+        byte *flat = V_CacheFlatNum(firstflat + R_FlatNumForName(name), PU_CACHE);
+
+        V_TileBlock64(ST_Y, video.unscaledw, ST_HEIGHT, flat);
+
+        if (screenblocks == 10)
+        {
+            patch_t *patch = V_CachePatchName("brdr_b", PU_CACHE);
+            for (int x = 0; x < video.unscaledw; x += 8)
+            {
+                V_DrawPatch(x - video.deltaw, 0, patch);
+            }
         }
     }
 
@@ -1442,62 +1502,6 @@ void ST_Erase(void)
     }
 }
 
-static boolean st_solidbackground;
-
-/*
-static void ST_DrawSolidBackground(int st_x)
-{
-  // [FG] calculate average color of the 16px left and right of the status bar
-  const int vstep[][2] = {{0, 1}, {1, 2}, {2, ST_HEIGHT}};
-
-  byte *pal = W_CacheLumpName("PLAYPAL", PU_STATIC);
-
-  // [FG] temporarily draw status bar to background buffer
-  V_DrawPatch(st_x, 0, sbar);
-
-  const int offset = MAX(st_x + video.deltaw - SHORT(sbar->leftoffset), 0);
-  const int width  = MIN(SHORT(sbar->width), video.unscaledw);
-  const int depth  = 16;
-  int v;
-
-  // [FG] separate colors for the top rows
-  for (v = 0; v < arrlen(vstep); v++)
-  {
-    int x, y;
-    const int v0 = vstep[v][0], v1 = vstep[v][1];
-    unsigned r = 0, g = 0, b = 0;
-    byte col;
-
-    for (y = v0; y < v1; y++)
-    {
-      for (x = 0; x < depth; x++)
-      {
-        byte *c = st_backing_screen + V_ScaleY(y) * video.pitch + V_ScaleX(x + offset);
-        r += pal[3 * c[0] + 0];
-        g += pal[3 * c[0] + 1];
-        b += pal[3 * c[0] + 2];
-
-        c += V_ScaleX(width - 2 * x - 1);
-        r += pal[3 * c[0] + 0];
-        g += pal[3 * c[0] + 1];
-        b += pal[3 * c[0] + 2];
-      }
-    }
-
-    r /= 2 * depth * (v1 - v0);
-    g /= 2 * depth * (v1 - v0);
-    b /= 2 * depth * (v1 - v0);
-
-    // [FG] tune down to half saturation (for empiric reasons)
-    col = I_GetNearestColor(pal, r/2, g/2, b/2);
-
-    V_FillRect(0, v0, video.unscaledw, v1 - v0, col);
-  }
-
-  Z_ChangeTag (pal, PU_CACHE);
-}
-*/
-
 // Respond to keyboard input events,
 //  intercept cheats.
 boolean ST_Responder(event_t *ev)
@@ -1517,65 +1521,29 @@ boolean ST_Responder(event_t *ev)
     }
 }
 
-static boolean sts_traditional_keys; // killough 2/28/98: traditional status bar keys
 static boolean hud_blink_keys; // [crispy] blinking key or skull in the status bar
 
-void ST_SetKeyBlink(player_t* player, int blue, int yellow, int red)
+void ST_SetKeyBlink(player_t *player, int blue, int yellow, int red)
 {
-  int i;
-  // Init array with args to iterate through
-  const int keys[3] = { blue, yellow, red };
+    // Init array with args to iterate through
+    const int keys[3] = {blue, yellow, red};
 
-  player->keyblinktics = KEYBLINKTICS;
+    player->keyblinktics = KEYBLINKTICS;
 
-  for (i = 0; i < 3; i++)
-  {
-    if (   ((keys[i] == KEYBLINK_EITHER) && !(player->cards[i] || player->cards[i+3]))
-        || ((keys[i] == KEYBLINK_CARD)   && !(player->cards[i]))
-        || ((keys[i] == KEYBLINK_SKULL)  && !(player->cards[i+3]))
-        || ((keys[i] == KEYBLINK_BOTH)   && !(player->cards[i] && player->cards[i+3])))
+    for (int i = 0; i < 3; i++)
     {
-      player->keyblinkkeys[i] = keys[i];
+        if (((keys[i] == KEYBLINK_EITHER) && !(player->cards[i] || player->cards[i + 3]))
+            || ((keys[i] == KEYBLINK_CARD) && !(player->cards[i]))
+            || ((keys[i] == KEYBLINK_SKULL) && !(player->cards[i + 3]))
+            || ((keys[i] == KEYBLINK_BOTH) && !(player->cards[i] && player->cards[i + 3])))
+        {
+            player->keyblinkkeys[i] = keys[i];
+        }
+        else
+        {
+            player->keyblinkkeys[i] = KEYBLINK_NONE;
+        }
     }
-    else
-    {
-      player->keyblinkkeys[i] = KEYBLINK_NONE;
-    }
-  }
-}
-
-int ST_BlinkKey(player_t* player, int index)
-{
-  const keyblink_t keyblink = player->keyblinkkeys[index];
-
-  if (!keyblink)
-    return KEYBLINK_NONE;
-
-  if (player->keyblinktics & KEYBLINKMASK)
-  {
-    if (keyblink == KEYBLINK_EITHER)
-    {
-      if (st_keyorskull[index] && st_keyorskull[index] != KEYBLINK_BOTH)
-      {
-        return st_keyorskull[index];
-      }
-      else if ( (player->keyblinktics & (2*KEYBLINKMASK)) &&
-               !(player->keyblinktics & (4*KEYBLINKMASK)))
-      {
-        return KEYBLINK_SKULL;
-      }
-      else
-      {
-        return KEYBLINK_CARD;
-      }
-    }
-    else
-    {
-      return keyblink;
-    }
-  }
-
-  return -1;
 }
 
 boolean palette_changes = true;
