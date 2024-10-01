@@ -1790,9 +1790,9 @@ static void SizeDisplayAlt(void)
 }
 
 static const char *screensize_strings[] = {
-    "",           "",           "",           "Status Bar",
-    "Status Bar", "Status Bar", "Status Bar", "Status Bar",
-    "Status Bar", "Status Bar", "Status Bar", "Fullscreen"
+    "",           "",           "",           "Status Bar", "Status Bar",
+    "Status Bar", "Status Bar", "Status Bar", "Status Bar", "Status Bar",
+    "Status Bar", "Fullscreen", "Fullscreen"
 };
 
 static const char *st_layout_strings[] = {

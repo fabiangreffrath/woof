@@ -1551,7 +1551,7 @@ static void M_SizeDisplay(int choice)
         default:
             break;
     }
-    screenblocks = BETWEEN(3, 11, screenblocks);
+    screenblocks = BETWEEN(3, 12, screenblocks);
     R_SetViewSize(screenblocks /*, detailLevel obsolete -- killough */);
 }
 
@@ -2255,14 +2255,27 @@ boolean M_ShortcutResponder(const event_t *ev)
             return false; // HUD mode control
         }
 
-        if (screenblocks < 11)
-        {
-            screenblocks = 11;
-        }
-        else
+        if (screenblocks < 10)
         {
             screenblocks = 10;
         }
+        else
+        {
+            ++screenblocks;
+            if (screenblocks > 12)
+            {
+                screenblocks = 10;
+            }
+        }
+
+        // if (screenblocks < 11)
+        // {
+        //     screenblocks = 11;
+        // }
+        // else
+        // {
+        //     screenblocks = 10;
+        // }
         R_SetViewSize(screenblocks);
         return true;
     }
