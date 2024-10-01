@@ -1138,7 +1138,7 @@ void MN_SetQuickSaveSlot(int slot)
 }
 
 // [FG] generate a default save slot name when the user saves to an empty slot
-static void SetDefaultSaveName(int slot)
+static void SetDefaultSaveName(char *name, const char *append)
 {
     char *maplump = MAPNAME(gameepisode, gamemap);
     int maplumpnum = W_CheckNumForName(maplump);
@@ -1158,16 +1158,31 @@ static void SetDefaultSaveName(int slot)
             *ext = '\0';
         }
 
-        M_snprintf(savegamestrings[slot], SAVESTRINGSIZE, "%s (%s)", maplump,
-                   wadname);
+        if (append)
+        {
+            M_snprintf(name, SAVESTRINGSIZE, "%s (%s) (%s)", maplump, wadname,
+                       append);
+        }
+        else
+        {
+            M_snprintf(name, SAVESTRINGSIZE, "%s (%s)", maplump, wadname);
+        }
+
         free(wadname);
     }
     else
     {
-        M_snprintf(savegamestrings[slot], SAVESTRINGSIZE, "%s", maplump);
+        if (append)
+        {
+            M_snprintf(name, SAVESTRINGSIZE, "%s (%s)", maplump, append);
+        }
+        else
+        {
+            M_snprintf(name, SAVESTRINGSIZE, "%s", maplump);
+        }
     }
 
-    M_StringToUpper(savegamestrings[slot]);
+    M_StringToUpper(name);
 }
 
 // [FG] override savegame name if it already starts with a map identifier
@@ -1195,7 +1210,7 @@ static boolean GamepadSave(int choice)
         // Immediately save game using a default name.
         saveSlot = choice;
         savegamestrings[choice][0] = 0;
-        SetDefaultSaveName(choice);
+        SetDefaultSaveName(savegamestrings[choice], NULL);
         M_DoSave(choice);
         LoadDef.lastOn = choice;
         return true;
@@ -1224,7 +1239,7 @@ static void M_SaveSelect(int choice)
         || MN_StartsWithMapIdentifier(savegamestrings[choice]))
     {
         savegamestrings[choice][0] = 0;
-        SetDefaultSaveName(choice);
+        SetDefaultSaveName(savegamestrings[choice], NULL);
     }
     saveCharIndex = strlen(savegamestrings[choice]);
 
@@ -1449,7 +1464,7 @@ static void M_QuickSaveResponse(int ch)
     {
         if (MN_StartsWithMapIdentifier(savegamestrings[quickSaveSlot]))
         {
-            SetDefaultSaveName(quickSaveSlot);
+            SetDefaultSaveName(savegamestrings[quickSaveSlot], NULL);
         }
         M_DoSave(quickSaveSlot);
         M_StartSound(sfx_swtchx);
