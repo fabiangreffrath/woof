@@ -14,6 +14,7 @@
 #include "st_widgets.h"
 
 #include <math.h>
+#include <string.h>
 
 #include "dstrings.h"
 #include "d_event.h"

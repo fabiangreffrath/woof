@@ -2566,10 +2566,9 @@ static void MN_Midi(void)
     current_tabs = midi_tabs;
     SetupMenuSecondary();
 }
+
 void MN_DrawMidi(void)
 {
-    inhelpscreens = true;
-
     DrawBackground("FLOOR4_6");
     MN_DrawTitle(M_X_CENTER, M_Y_TITLE, "M_GENERL", "General");
     DrawTabs();
