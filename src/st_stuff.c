@@ -1232,7 +1232,7 @@ static void DrawLines(int x, int y, sbarelem_t *elem)
         {
             int ch = *str++;
 
-            if (ch == '\x1b' && str)
+            if (ch == '\x1b' && *str)
             {
                 ch = *str++;
                 if (ch >= '0' && ch <= '0' + CR_NONE)

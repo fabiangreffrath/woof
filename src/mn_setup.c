@@ -3565,21 +3565,18 @@ void MN_DrawStringCR(int cx, int cy, byte *cr1, byte *cr2, const char *ch)
     {
         c = *ch++; // get next char
 
-        if (c == '\x1b')
+        if (c == '\x1b' && *ch)
         {
-            if (ch)
+            c = *ch++;
+            if (c >= '0' && c <= '0' + CR_NONE)
             {
-                c = *ch++;
-                if (c >= '0' && c <= '0' + CR_NONE)
-                {
-                    cr = colrngs[c - '0'];
-                }
-                else if (c == '0' + CR_ORIG)
-                {
-                    cr = cr1;
-                }
-                continue;
+                cr = colrngs[c - '0'];
             }
+            else if (c == '0' + CR_ORIG)
+            {
+                cr = cr1;
+            }
+            continue;
         }
 
         c = M_ToUpper(c) - HU_FONTSTART;
