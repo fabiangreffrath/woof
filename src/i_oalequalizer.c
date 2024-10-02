@@ -20,8 +20,6 @@
 #include "alc.h"
 #include "alext.h"
 
-#include <math.h>
-
 #include "i_oalcommon.h"
 #include "i_oalequalizer.h"
 #include "i_sound.h"
@@ -233,7 +231,6 @@ void I_OAL_SetEqualizer(void)
     // Gains vary from 0.251 up to 3.981, which means from -12dB attenuation
     // up to +12dB amplification, i.e. 20*log10(gain).
 
-    #define DB_TO_GAIN(db) powf(10.0f, (db) / 20.0f)
     #define EQ_GAIN(db) ((ALfloat)BETWEEN(0.251f, 3.981f, DB_TO_GAIN(db)))
     #define LP_GAIN(db) ((ALfloat)BETWEEN(0.063f, 1.0f, DB_TO_GAIN(db)))
     #define OCTAVE(x) ((ALfloat)BETWEEN(0.01f, 1.0f, (x) / 100.0f))

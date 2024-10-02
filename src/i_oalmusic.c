@@ -22,6 +22,7 @@
 #include <stdlib.h>
 
 #include "doomtype.h"
+#include "i_oalcommon.h"
 #include "i_oalstream.h"
 #include "i_printf.h"
 #include "i_sound.h"
@@ -308,12 +309,12 @@ static void I_OAL_SetMusicVolume(int volume)
 
     if (active_module == &stream_opl_module)
     {
-        gain *= (ALfloat)opl_gain / 100.0f;
+        gain *= (ALfloat)DB_TO_GAIN(opl_gain);
     }
 #if defined(HAVE_FLUIDSYNTH)
     else if (active_module == &stream_fl_module)
     {
-        gain *= (ALfloat)mus_gain / 100.0f;
+        gain *= (ALfloat)DB_TO_GAIN(mus_gain);
     }
 #endif
 
@@ -475,11 +476,9 @@ static midiplayertype_t I_OAL_MidiPlayerType(void)
 
 static void I_OAL_BindVariables(void)
 {
-    BIND_NUM_MIDI(opl_gain, 200, 100, 1000,
-        "Fine tune OPL emulation output level (default 200%)");
+    BIND_NUM_MIDI(opl_gain, 0, -20, 20, "OPL emulation gain [dB]");
 #if defined (HAVE_FLUIDSYNTH)
-    BIND_NUM_MIDI(mus_gain, 100, 10, 1000,
-        "Fine tune FluidSynth output level (default 100%)");
+    BIND_NUM_MIDI(mus_gain, 0, -20, 20, "FluidSynth gain [dB]");
 #endif
     for (int i = 0; i < arrlen(midi_modules); ++i)
     {
