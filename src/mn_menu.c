@@ -817,6 +817,11 @@ static void M_DeleteGame(int i)
         quickSaveSlot = -1;
     }
 
+    if (i == savegameslot)
+    {
+        savegameslot = -1;
+    }
+
     M_ReadSaveStrings();
 
     if (name)
