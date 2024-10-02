@@ -1797,19 +1797,6 @@ void ST_ResetPalette(void)
     I_SetPalette(W_CacheLumpName("PLAYPAL", PU_CACHE));
 }
 
-static sbarelem_t st_time_elem =
-{
-    .type = sbe_widget,
-    .alignment = sbe_wide_left,
-    .pointer.widget = &(sbe_widget_t)
-    {
-        .type = sbw_time,
-        .font_name = "Digits"
-    },
-    .cr = CR_NONE,
-    .crboom = CR_NONE
-};
-
 // [FG] draw Time widget on intermission screen
 void WI_DrawWidgets(void)
 {
@@ -1818,14 +1805,31 @@ void WI_DrawWidgets(void)
         return;
     }
 
-    player_t *player = &players[displayplayer];
-
     if (hud_level_time & HUD_WIDGET_HUD)
     {
         // leveltime is already added to totalleveltimes before WI_Start()
-        ST_UpdateWidget(&st_time_elem, player);
-        UpdateLines(&st_time_elem);
-        DrawLines(0, 0, &st_time_elem);
+        statusbar_t *statusbar;
+        array_foreach(statusbar, sbardef->statusbars)
+        {
+            sbarelem_t *elem;
+            array_foreach(elem, statusbar->children)
+            {
+                if (elem->type == sbe_widget)
+                {
+                    sbe_widget_t *widget = elem->pointer.widget;
+                    if (widget->type == sbw_time)
+                    {
+                        sbarelem_t time = *elem;
+                        time.x_pos = 0;
+                        time.y_pos = 0;
+                        time.alignment = sbe_wide_left;
+                        UpdateLines(&time);
+                        DrawLines(0, 0, &time);
+                        return;
+                    }
+                }
+            }
+        }
     }
 }
 
