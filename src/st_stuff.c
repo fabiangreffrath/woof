@@ -755,7 +755,7 @@ static void UpdateLines(sbarelem_t *elem)
         while (*str)
         {
             int ch = *str++;
-            if (ch == '\x1b' && str)
+            if (ch == '\x1b' && *str)
             {
                 ++str;
                 continue;
@@ -1386,45 +1386,42 @@ boolean st_refresh_background = true;
 
 static void DrawBackground(const char *name)
 {
-    if (!st_refresh_background)
+    if (st_refresh_background)
     {
-        V_CopyRect(0, 0, st_backing_screen, video.unscaledw, ST_HEIGHT, 0,
-                   ST_Y);
-        return;
-    }
+        V_UseBuffer(st_backing_screen);
 
-    V_UseBuffer(st_backing_screen);
-
-    if (st_solidbackground)
-    {
-        DrawSolidBackground();
-    }
-    else
-    {
-        if (!name)
+        if (st_solidbackground)
         {
-            name = (gamemode == commercial) ? "GRNROCK" : "FLOOR7_2";
+            DrawSolidBackground();
         }
-
-        byte *flat = V_CacheFlatNum(firstflat + R_FlatNumForName(name), PU_CACHE);
-
-        V_TileBlock64(ST_Y, video.unscaledw, ST_HEIGHT, flat);
-
-        if (screenblocks == 10)
+        else
         {
-            patch_t *patch = V_CachePatchName("brdr_b", PU_CACHE);
-            for (int x = 0; x < video.unscaledw; x += 8)
+            if (!name)
             {
-                V_DrawPatch(x - video.deltaw, 0, patch);
+                name = (gamemode == commercial) ? "GRNROCK" : "FLOOR7_2";
+            }
+
+            byte *flat =
+                V_CacheFlatNum(firstflat + R_FlatNumForName(name), PU_CACHE);
+
+            V_TileBlock64(ST_Y, video.unscaledw, ST_HEIGHT, flat);
+
+            if (screenblocks == 10)
+            {
+                patch_t *patch = V_CachePatchName("brdr_b", PU_CACHE);
+                for (int x = 0; x < video.unscaledw; x += 8)
+                {
+                    V_DrawPatch(x - video.deltaw, 0, patch);
+                }
             }
         }
+
+        V_RestoreBuffer();
+
+        st_refresh_background = false;
     }
 
-    V_RestoreBuffer();
-
     V_CopyRect(0, 0, st_backing_screen, video.unscaledw, ST_HEIGHT, 0, ST_Y);
-
-    st_refresh_background = false;
 }
 
 static int current_barindex;
