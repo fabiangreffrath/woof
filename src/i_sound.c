@@ -525,9 +525,9 @@ void I_SetSoundModule(void)
 
 miditype_t I_MidiType(void)
 {
-    if (active_module)
+    if (midi_module)
     {
-        return active_module->I_MidiType();
+        return midi_module->I_MidiType();
     }
     return midi_none;
 }
