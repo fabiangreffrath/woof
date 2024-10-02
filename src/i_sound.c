@@ -525,14 +525,9 @@ void I_SetSoundModule(void)
 
 miditype_t I_MidiType(void)
 {
-    if (active_module == &music_mid_module)
+    if (active_module)
     {
-        return midi_native;
-    }
-    else if (active_module == &music_oal_module)
-    {
-        extern miditype_t I_OAL_MidiType(void);
-        return I_OAL_MidiType();
+        return active_module->I_MidiType();
     }
     return midi_none;
 }
@@ -759,6 +754,6 @@ void I_BindSoundVariables(void)
               "MIDI Player string");
     for (int i = 0; i < arrlen(music_modules); ++i)
     {
-        music_modules[i]->BindVariables();
+        music_modules[i]->I_BindVariables();
     }
 }

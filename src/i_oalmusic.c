@@ -458,7 +458,7 @@ static const char **I_OAL_DeviceList(void)
     return devices;
 }
 
-miditype_t I_OAL_MidiType(void)
+static miditype_t I_OAL_MidiType(void)
 {
 #ifdef HAVE_FLUIDSYNTH
     if (active_module == &stream_fl_module)
@@ -500,4 +500,5 @@ music_module_t music_oal_module =
     I_OAL_UnRegisterSong,
     I_OAL_DeviceList,
     I_OAL_BindVariables,
+    I_OAL_MidiType,
 };
