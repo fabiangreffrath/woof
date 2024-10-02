@@ -655,7 +655,8 @@ static boolean FilterDeathUseAction(void)
             case death_use_nothing:
                 return true;
             case death_use_reload:
-                if (!demoplayback && !demorecording && !netgame)
+                if (!demoplayback && !demorecording && !netgame
+                    && !activate_death_use_reload)
                 {
                     activate_death_use_reload = true;
                 }
@@ -952,6 +953,7 @@ void G_ClearInput(void)
   I_ResetRelativeMouseState();
   I_ResetAllRumbleChannels();
   WS_Reset();
+  activate_death_use_reload = false;
 }
 
 //

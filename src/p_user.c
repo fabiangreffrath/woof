@@ -320,8 +320,6 @@ void P_DeathThink (player_t* player)
 
   if (activate_death_use_reload)
   {
-    activate_death_use_reload = false;
-
     if (savegameslot >= 0)
     {
       char *file = G_SaveGameName(savegameslot);
