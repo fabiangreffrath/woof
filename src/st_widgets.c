@@ -50,8 +50,8 @@ boolean       hud_secret_message; // "A secret is revealed!" message
 widgetstate_t hud_level_stats;
 widgetstate_t hud_level_time;
 boolean       hud_time_use;
+widgetstate_t hud_player_coords;
 
-static widgetstate_t hud_player_coords;
 static boolean hud_map_announce;
 static boolean message_colorized;
 

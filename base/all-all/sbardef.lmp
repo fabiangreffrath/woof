@@ -874,6 +874,34 @@
                 {
                   "condition": 19,
                   "param": 6
+                },
+                {
+                  "condition": 20,
+                  "param": 0
+                }
+              ],
+              "children": null
+            }
+          },
+          {
+            "widget":
+            {
+              "x": 0,
+              "y": 160,
+              "alignment": 16,
+              "tranmap": null,
+              "translation": null,
+              "type": 1,
+              "font": "Digits",
+              "conditions":
+              [
+                {
+                  "condition": 19,
+                  "param": 6
+                },
+                {
+                  "condition": 21,
+                  "param": 0
                 }
               ],
               "children": null

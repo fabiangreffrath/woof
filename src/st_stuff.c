@@ -358,6 +358,56 @@ static boolean CheckConditions(sbarcondition_t *conditions, player_t *player)
                 }
                 break;
 
+            case sbc_widgetenabled:
+                {
+                    switch ((sbarwidgettype_t)cond->param)
+                    {
+                        case sbw_monsec:
+                            result &= !!hud_level_stats;
+                            break;
+                        case sbw_time:
+                            result &= !!hud_level_time;
+                            break;
+                        case sbw_coord:
+                            result &= !!hud_player_coords;
+                            break;
+                        case sbw_fps:
+                        case sbw_rate:
+                            break;
+                        case sbw_cmd:
+                            result &= !!hud_command_history;
+                            break;
+                        default:
+                            break;
+                    }
+                }
+                break;
+
+            case sbc_widgetdisabled:
+                {
+                    switch ((sbarwidgettype_t)cond->param)
+                    {
+                        case sbw_monsec:
+                            result &= !hud_level_stats;
+                            break;
+                        case sbw_time:
+                            result &= !hud_level_time;
+                            break;
+                        case sbw_coord:
+                            result &= !hud_player_coords;
+                            break;
+                        case sbw_fps:
+                        case sbw_rate:
+                            break;
+                        case sbw_cmd:
+                            result &= !hud_command_history;
+                            break;
+                        default:
+                            break;
+                    }
+                }
+                break;
+
             case sbc_none:
             default:
                 result = false;

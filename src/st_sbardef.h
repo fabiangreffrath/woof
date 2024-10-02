@@ -51,6 +51,8 @@ typedef enum
 
     // Woof!
     sbc_mode,
+    sbc_widgetenabled,
+    sbc_widgetdisabled,
 
     sbc_max,
 } sbarconditiontype_t;

@@ -42,6 +42,7 @@ extern boolean chat_on;
 
 extern widgetstate_t hud_level_stats;
 extern widgetstate_t hud_level_time;
+extern widgetstate_t hud_player_coords;
 extern int hudcolor_titl;
 extern int hudcolor_xyco;
 
