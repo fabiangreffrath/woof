@@ -4024,36 +4024,36 @@ static boolean ChangeEntry(menu_action_t action, int ch)
         {
             if (gather_count) // Any input?
             {
-                int value;
-
                 gather_buffer[gather_count] = 0;
-                value = atoi(gather_buffer); // Integer value
 
-                if ((def->limit.min != UL && value < def->limit.min)
-                    || (def->limit.max != UL && value > def->limit.max))
+                int value = atoi(gather_buffer); // Integer value
+
+                int min = def->limit.min;
+                int max = def->limit.max;
+
+                if ((min != UL && value < min) || (max != UL && value > max))
                 {
                     warn_about_changes(S_BADVAL);
+                    value = BETWEEN(min, max, value);
                 }
-                else
+
+                def->location->i = value;
+
+                // killough 8/9/98: fix numeric vars
+                // killough 8/15/98: add warning message
+
+                if (flags & (S_LEVWARN | S_PRGWARN))
                 {
-                    def->location->i = value;
+                    warn_about_changes(flags);
+                }
+                else if (def->current)
+                {
+                    def->current->i = value;
+                }
 
-                    // killough 8/9/98: fix numeric vars
-                    // killough 8/15/98: add warning message
-
-                    if (flags & (S_LEVWARN | S_PRGWARN))
-                    {
-                        warn_about_changes(flags);
-                    }
-                    else if (def->current)
-                    {
-                        def->current->i = value;
-                    }
-
-                    if (current_item->action) // killough 10/98
-                    {
-                        current_item->action();
-                    }
+                if (current_item->action) // killough 10/98
+                {
+                    current_item->action();
                 }
             }
             SelectDone(current_item); // phares 4/17/98
