@@ -1321,9 +1321,12 @@ static boolean I_MID_InitMusic(int device)
     return true;
 }
 
+// MIDI CC#7 volume formula (GM Level 1 Developer Guidelines, page 9).
+#define MIDI_DB_TO_GAIN(db) powf(10.0f, (db) / 40.0f)
+
 static void UpdateVolumeFactor(int volume)
 {
-    volume_factor = sqrtf(volume / 15.0f) * midi_gain / 100.0f;
+    volume_factor = volume / 15.0f * MIDI_DB_TO_GAIN(midi_gain);
 }
 
 static void I_MID_SetMusicVolume(int volume)
@@ -1485,6 +1488,11 @@ static const char **I_MID_DeviceList(void)
     return midi_devices;
 }
 
+static midiplayertype_t I_MID_MidiPlayerType(void)
+{
+    return midiplayer_native;
+}
+
 static void I_MID_BindVariables(void)
 {
     BIND_NUM_MIDI(midi_complevel, COMP_STANDARD, 0, COMP_NUM - 1,
@@ -1495,8 +1503,7 @@ static void I_MID_BindVariables(void)
         "Delay after reset for native MIDI (-1 = Auto; 0 = None; 1-2000 = Milliseconds)");
     BIND_BOOL_MIDI(midi_ctf, true,
         "Fix invalid instruments by emulating SC-55 capital tone fallback");
-    BIND_NUM_MIDI(midi_gain, 100, 0, 100,
-        "Fine tune native MIDI output level (default 100%)");
+    BIND_NUM_MIDI(midi_gain, 0, -20, 0, "Native MIDI gain [dB]");
 }
 
 music_module_t music_mid_module =
@@ -1512,4 +1519,5 @@ music_module_t music_mid_module =
     I_MID_UnRegisterSong,
     I_MID_DeviceList,
     I_MID_BindVariables,
+    I_MID_MidiPlayerType,
 };

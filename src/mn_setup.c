@@ -823,6 +823,11 @@ static void DrawSetting(setup_menu_t *s, int accum_y)
             M_snprintf(menu_buffer, sizeof(menu_buffer), "%d%%",
                        s->var.def->location->i);
         }
+        else if (s->append)
+        {
+            M_snprintf(menu_buffer, sizeof(menu_buffer), "%d %s",
+                       s->var.def->location->i, s->append);
+        }
         else
         {
             M_snprintf(menu_buffer, sizeof(menu_buffer), "%d",
@@ -989,6 +994,11 @@ static void DrawSetting(setup_menu_t *s, int accum_y)
         else if (flags & S_PCT)
         {
             M_snprintf(menu_buffer, sizeof(menu_buffer), "%d%%", value);
+        }
+        else if (s->append)
+        {
+            M_snprintf(menu_buffer, sizeof(menu_buffer), "%d %s", value,
+                       s->append);
         }
         else
         {
@@ -2509,6 +2519,30 @@ static void SetMidiPlayer(void)
     S_RestartMusic();
 }
 
+static void SetMidiPlayerNative(void)
+{
+    if (I_MidiPlayerType() == midiplayer_native)
+    {
+        SetMidiPlayer();
+    }
+}
+
+static void SetMidiPlayerOpl(void)
+{
+    if (I_MidiPlayerType() == midiplayer_opl)
+    {
+        SetMidiPlayer();
+    }
+}
+
+static void SetMidiPlayerFluidSynth(void)
+{
+    if (I_MidiPlayerType() == midiplayer_fluidsynth)
+    {
+        SetMidiPlayer();
+    }
+}
+
 static void MN_Midi(void);
 static void MN_Equalizer(void);
 
@@ -2569,43 +2603,43 @@ static const char *midi_reset_type_strings[] = {
 
 static setup_menu_t midi_settings1[] = {
 
-    {"Native MIDI Gain", S_THERMO | S_PCT, CNTR_X, M_THRM_SPC,
-     {"midi_gain"}, .action = UpdateMusicVolume},
+    {"Native MIDI Gain", S_THERMO, CNTR_X, M_THRM_SPC,
+     {"midi_gain"}, .action = UpdateMusicVolume, .append = "dB"},
 
     {"Native MIDI Reset", S_CHOICE | S_ACTION, CNTR_X, M_SPC,
      {"midi_reset_type"}, .strings_id = str_midi_reset_type,
-     .action = SetMidiPlayer},
+     .action = SetMidiPlayerNative},
 
     {"Compatibility Level", S_CHOICE | S_ACTION, CNTR_X, M_SPC,
      {"midi_complevel"}, .strings_id = str_midi_complevel,
-     .action = SetMidiPlayer},
+     .action = SetMidiPlayerNative},
 
     {"SC-55 CTF Emulation", S_ONOFF, CNTR_X, M_SPC, {"midi_ctf"},
-     .action = SetMidiPlayer},
+     .action = SetMidiPlayerNative},
 
     MI_GAP,
 
 #if defined (HAVE_FLUIDSYNTH)
-    {"FluidSynth Gain", S_THERMO | S_PCT, CNTR_X, M_THRM_SPC, {"mus_gain"},
-     .action = UpdateMusicVolume},
+    {"FluidSynth Gain", S_THERMO, CNTR_X, M_THRM_SPC, {"mus_gain"},
+     .action = UpdateMusicVolume, .append = "dB"},
 
     {"FluidSynth Reverb", S_ONOFF, CNTR_X, M_SPC, {"mus_reverb"},
-     .action = SetMidiPlayer},
+     .action = SetMidiPlayerFluidSynth},
 
     {"FluidSynth Chorus", S_ONOFF, CNTR_X, M_SPC, {"mus_chorus"},
-     .action = SetMidiPlayer},
+     .action = SetMidiPlayerFluidSynth},
 
     MI_GAP,
 #endif
 
-    {"OPL3 Gain", S_THERMO | S_PCT, CNTR_X, M_THRM_SPC, {"opl_gain"},
-     .action = UpdateMusicVolume},
+    {"OPL3 Gain", S_THERMO, CNTR_X, M_THRM_SPC, {"opl_gain"},
+     .action = UpdateMusicVolume, .append = "dB"},
 
     {"OPL3 Number of Chips", S_THERMO | S_THRM_SIZE4 | S_ACTION, CNTR_X,
-     M_THRM_SPC, {"num_opl_chips"}, .action = SetMidiPlayer},
+     M_THRM_SPC, {"num_opl_chips"}, .action = SetMidiPlayerOpl},
 
     {"OPL3 Reverse Stereo", S_ONOFF, CNTR_X, M_SPC,
-     {"opl_stereo_correct"}, .action = SetMidiPlayer},
+     {"opl_stereo_correct"}, .action = SetMidiPlayerOpl},
 
     MI_END
 };
@@ -2641,45 +2675,42 @@ static const char *equalizer_preset_strings[] = {
     "Off", "Classical", "Rock", "Vocal", "Custom"
 };
 
-#define M_THRM_SPC_EQ (M_THRM_HEIGHT - 1)
-#define M_SPC_EQ 8
-
 static setup_menu_t eq_settings1[] = {
-    {"Preset", S_CHOICE, CNTR_X, M_SPC_EQ, {"snd_equalizer"},
+    {"Preset", S_CHOICE, CNTR_X, M_SPC, {"snd_equalizer"},
      .strings_id = str_equalizer_preset, .action = I_OAL_EqualizerPreset},
 
     MI_GAP_EX(4),
 
-    {"Preamp dB", S_THERMO, CNTR_X, M_THRM_SPC_EQ,
-     {"snd_eq_preamp"}, .action = I_OAL_EqualizerPreset},
+    {"Preamp", S_THERMO, CNTR_X, M_THRM_SPC,
+     {"snd_eq_preamp"}, .action = I_OAL_EqualizerPreset, .append = "dB"},
 
     MI_GAP_EX(4),
 
-    {"Low Gain dB", S_THERMO, CNTR_X, M_THRM_SPC_EQ,
-     {"snd_eq_low_gain"}, .action = I_OAL_EqualizerPreset},
+    {"Low Gain", S_THERMO, CNTR_X, M_THRM_SPC,
+     {"snd_eq_low_gain"}, .action = I_OAL_EqualizerPreset, .append = "dB"},
 
-    {"Mid 1 Gain dB", S_THERMO, CNTR_X, M_THRM_SPC_EQ,
-     {"snd_eq_mid1_gain"}, .action = I_OAL_EqualizerPreset},
+    {"Mid 1 Gain", S_THERMO, CNTR_X, M_THRM_SPC,
+     {"snd_eq_mid1_gain"}, .action = I_OAL_EqualizerPreset, .append = "dB"},
 
-    {"Mid 2 Gain dB", S_THERMO, CNTR_X, M_THRM_SPC_EQ,
-     {"snd_eq_mid2_gain"}, .action = I_OAL_EqualizerPreset},
+    {"Mid 2 Gain", S_THERMO, CNTR_X, M_THRM_SPC,
+     {"snd_eq_mid2_gain"}, .action = I_OAL_EqualizerPreset, .append = "dB"},
 
-    {"High Gain dB", S_THERMO, CNTR_X, M_THRM_SPC_EQ,
-     {"snd_eq_high_gain"}, .action = I_OAL_EqualizerPreset},
+    {"High Gain", S_THERMO, CNTR_X, M_THRM_SPC,
+     {"snd_eq_high_gain"}, .action = I_OAL_EqualizerPreset, .append = "dB"},
 
     MI_GAP_EX(4),
 
-    {"Low Cutoff Hz", S_THERMO, CNTR_X, M_THRM_SPC_EQ,
-     {"snd_eq_low_cutoff"}, .action = I_OAL_EqualizerPreset},
+    {"Low Cutoff", S_NUM, CNTR_X, M_SPC,
+     {"snd_eq_low_cutoff"}, .action = I_OAL_EqualizerPreset, .append = "Hz"},
 
-    {"Mid 1 Center Hz", S_THERMO, CNTR_X, M_THRM_SPC_EQ,
-     {"snd_eq_mid1_center"}, .action = I_OAL_EqualizerPreset},
+    {"Mid 1 Center", S_NUM, CNTR_X, M_SPC,
+     {"snd_eq_mid1_center"}, .action = I_OAL_EqualizerPreset, .append = "Hz"},
 
-    {"Mid 2 Center Hz", S_THERMO, CNTR_X, M_THRM_SPC_EQ,
-     {"snd_eq_mid2_center"}, .action = I_OAL_EqualizerPreset},
+    {"Mid 2 Center", S_NUM, CNTR_X, M_SPC,
+     {"snd_eq_mid2_center"}, .action = I_OAL_EqualizerPreset, .append = "Hz"},
 
-    {"High Cutoff Hz", S_THERMO, CNTR_X, M_THRM_SPC_EQ,
-     {"snd_eq_high_cutoff"}, .action = I_OAL_EqualizerPreset},
+    {"High Cutoff", S_NUM, CNTR_X, M_SPC,
+     {"snd_eq_high_cutoff"}, .action = I_OAL_EqualizerPreset, .append = "Hz"},
 
     MI_END
 };
@@ -4003,36 +4034,36 @@ static boolean ChangeEntry(menu_action_t action, int ch)
         {
             if (gather_count) // Any input?
             {
-                int value;
-
                 gather_buffer[gather_count] = 0;
-                value = atoi(gather_buffer); // Integer value
 
-                if ((def->limit.min != UL && value < def->limit.min)
-                    || (def->limit.max != UL && value > def->limit.max))
+                int value = atoi(gather_buffer); // Integer value
+
+                int min = def->limit.min;
+                int max = def->limit.max;
+
+                if ((min != UL && value < min) || (max != UL && value > max))
                 {
                     warn_about_changes(S_BADVAL);
+                    value = BETWEEN(min, max, value);
                 }
-                else
+
+                def->location->i = value;
+
+                // killough 8/9/98: fix numeric vars
+                // killough 8/15/98: add warning message
+
+                if (flags & (S_LEVWARN | S_PRGWARN))
                 {
-                    def->location->i = value;
+                    warn_about_changes(flags);
+                }
+                else if (def->current)
+                {
+                    def->current->i = value;
+                }
 
-                    // killough 8/9/98: fix numeric vars
-                    // killough 8/15/98: add warning message
-
-                    if (flags & (S_LEVWARN | S_PRGWARN))
-                    {
-                        warn_about_changes(flags);
-                    }
-                    else if (def->current)
-                    {
-                        def->current->i = value;
-                    }
-
-                    if (current_item->action) // killough 10/98
-                    {
-                        current_item->action();
-                    }
+                if (current_item->action) // killough 10/98
+                {
+                    current_item->action();
                 }
             }
             SelectDone(current_item); // phares 4/17/98

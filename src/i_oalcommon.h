@@ -22,6 +22,8 @@
 #include "al.h"
 #include "alc.h"
 
+#include <math.h>
+
 #include "doomtype.h"
 
 // C doesn't allow casting between function and non-function pointer types, so
@@ -35,6 +37,8 @@
 #endif
 
 #define ALFUNC(T, ptr) (ptr = FUNCTION_CAST(T, alGetProcAddress(#ptr)))
+
+#define DB_TO_GAIN(db) powf(10.0f, (db) / 20.0f)
 
 typedef struct oal_system_s
 {

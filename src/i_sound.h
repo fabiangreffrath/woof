@@ -143,6 +143,16 @@ int I_SoundID(int handle);
 //  MUSIC I/O
 //
 
+typedef enum
+{
+    midiplayer_none,
+    midiplayer_native,
+    midiplayer_fluidsynth,
+    midiplayer_opl,
+} midiplayertype_t;
+
+midiplayertype_t I_MidiPlayerType(void);
+
 typedef struct
 {
     boolean (*I_InitMusic)(int device);
@@ -155,7 +165,8 @@ typedef struct
     void (*I_StopSong)(void *handle);
     void (*I_UnRegisterSong)(void *handle);
     const char **(*I_DeviceList)(void);
-    void (*BindVariables)(void);
+    void (*I_BindVariables)(void);
+    midiplayertype_t (*I_MidiPlayerType)(void);
 } music_module_t;
 
 extern music_module_t music_oal_module;
