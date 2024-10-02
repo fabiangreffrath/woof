@@ -656,9 +656,9 @@ static boolean FilterDeathUseAction(void)
                 return true;
             case death_use_reload:
                 if (!demoplayback && !demorecording && !netgame
-                    && !activate_death_use_reload)
+                    && activate_death_use_reload == 0)
                 {
-                    activate_death_use_reload = true;
+                    activate_death_use_reload = 2;
                 }
                 return true;
             default:
@@ -953,7 +953,6 @@ void G_ClearInput(void)
   I_ResetRelativeMouseState();
   I_ResetAllRumbleChannels();
   WS_Reset();
-  activate_death_use_reload = false;
 }
 
 //
@@ -1065,6 +1064,8 @@ static void G_DoLoadLevel(void)
 
   // Set the initial listener parameters using the player's initial state.
   S_InitListener(players[displayplayer].mo);
+
+  activate_death_use_reload = 0;
 
   // clear cmd building stuff
   memset (gamekeydown, 0, sizeof(gamekeydown));
