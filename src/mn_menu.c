@@ -1160,11 +1160,32 @@ boolean MN_StartsWithMapIdentifier(char *str)
     return false;
 }
 
+static boolean GamepadSave(int choice)
+{
+    if (menu_input == pad_mode)
+    {
+        // Immediately save game using a default name.
+        saveSlot = choice;
+        savegamestrings[choice][0] = 0;
+        SetDefaultSaveName(choice);
+        M_DoSave(choice);
+        LoadDef.lastOn = choice;
+        return true;
+    }
+
+    return false;
+}
+
 //
 // User wants to save. Start string input for M_Responder
 //
 static void M_SaveSelect(int choice)
 {
+    if (GamepadSave(choice))
+    {
+        return;
+    }
+
     // we are going to be intercepting all chars
     saveStringEnter = 1;
 
@@ -2795,6 +2816,7 @@ boolean M_Responder(event_t *ev)
         if ((demoplayback && (action == MENU_ENTER || action == MENU_BACKSPACE))
             || action == MENU_ESCAPE) // phares
         {
+            I_ShowMouseCursor(menu_input != pad_mode);
             MN_StartControlPanel();
             M_StartSound(sfx_swtchn);
             return true;

@@ -523,6 +523,15 @@ void I_SetSoundModule(void)
     MN_UpdateAdvancedSoundItems(snd_module != SND_MODULE_3D);
 }
 
+midiplayertype_t I_MidiPlayerType(void)
+{
+    if (active_module)
+    {
+        return active_module->I_MidiPlayerType();
+    }
+    return midiplayer_none;
+}
+
 void I_SetMidiPlayer(void)
 {
     if (nomusicparm)
@@ -745,6 +754,6 @@ void I_BindSoundVariables(void)
               "MIDI Player string");
     for (int i = 0; i < arrlen(music_modules); ++i)
     {
-        music_modules[i]->BindVariables();
+        music_modules[i]->I_BindVariables();
     }
 }

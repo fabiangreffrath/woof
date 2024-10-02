@@ -19,10 +19,12 @@ jobs:
     runs-on: ${{ matrix.config.os }}
 
     strategy:
+      fail-fast: false
       matrix:
         config:
           - name: Linux GCC
             os: ubuntu-22.04
+            toolchain: $VCPKG_INSTALLATION_ROOT
             triplet: x64-linux-dynamic-release
             artifact-name: AppImage
             artifact-path: build/*.appimage
@@ -31,6 +33,7 @@ jobs:
           - name: MSVC x64
             os: windows-latest
             arch: x64
+            toolchain: ${env:VCPKG_INSTALLATION_ROOT}
             triplet: x64-windows-static-release
             artifact-name: Win-64
             artifact-path: build/*.zip
@@ -42,6 +45,7 @@ jobs:
           - name: MSVC x86
             os: windows-latest
             arch: x86
+            toolchain: ${env:VCPKG_INSTALLATION_ROOT}
             triplet: x86-windows-static-release
             artifact-name: Win-32
             artifact-path: build/*.zip
@@ -74,21 +78,12 @@ jobs:
             core.exportVariable('ACTIONS_CACHE_URL', process.env.ACTIONS_CACHE_URL || '');
             core.exportVariable('ACTIONS_RUNTIME_TOKEN', process.env.ACTIONS_RUNTIME_TOKEN || '');
 
-      - name: Update vcpkg (Linux)
-        if: runner.os == 'Linux'
-        run: |
-          cd "$VCPKG_INSTALLATION_ROOT"
-          git stash
-          git pull
-          ./bootstrap-vcpkg.sh
-
       - name: Configure
-        shell: bash
         run: >-
           cmake -B build -G Ninja
           -DCMAKE_BUILD_TYPE=Release
           -DENABLE_WERROR=ON -DENABLE_HARDENING=ON -DENABLE_LTO=ON
-          -DCMAKE_TOOLCHAIN_FILE="$VCPKG_INSTALLATION_ROOT/scripts/buildsystems/vcpkg.cmake"
+          -DCMAKE_TOOLCHAIN_FILE="${{ matrix.config.toolchain }}/scripts/buildsystems/vcpkg.cmake"
           -DVCPKG_OVERLAY_TRIPLETS="cmake/triplets"
           -DVCPKG_TARGET_TRIPLET=${{ matrix.config.triplet }}
           ${{ matrix.config.extra-options }}
