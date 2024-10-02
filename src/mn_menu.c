@@ -1203,6 +1203,13 @@ boolean MN_StartsWithMapIdentifier(char *str)
     return false;
 }
 
+void M_SaveAutoSave(void)
+{
+    char autosave_string[SAVESTRINGSIZE];
+    SetDefaultSaveName(autosave_string, "Auto");
+    G_SaveAutoSave(autosave_string);
+}
+
 static boolean GamepadSave(int choice)
 {
     if (menu_input == pad_mode)

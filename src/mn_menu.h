@@ -89,6 +89,8 @@ extern const char *default_skill_strings[];
 
 void MN_SetQuickSaveSlot(int slot);
 
+void M_SaveAutoSave(void);
+
 void MN_InitMenuStrings(void);
 
 boolean MN_StartsWithMapIdentifier(char *str);

@@ -212,6 +212,7 @@ boolean joybuttons[NUM_GAMEPAD_BUTTONS];
 int   savegameslot = -1;
 char  savedescription[32];
 
+static boolean save_autosave;
 static boolean autosave;
 
 //jff 3/24/98 declare startskill external, define defaultskill here
@@ -1963,6 +1964,11 @@ static void G_DoWorldDone(void)
   gameaction = ga_nothing;
   viewactive = true;
   AM_clearMarks();           //jff 4/12/98 clear any marks on the automap
+
+  if (autosave && !demorecording && !demoplayback && !netgame)
+  {
+    M_SaveAutoSave();
+  }
 }
 
 // killough 2/28/98: A ridiculously large number
@@ -2310,6 +2316,12 @@ static void G_LoadGameErr(const char *msg)
 // Description is a 24 byte text string
 //
 
+void G_SaveAutoSave(char *description)
+{
+  strcpy(savedescription, description);
+  save_autosave = true;
+}
+
 void G_SaveGame(int slot, char *description)
 {
   savegameslot = slot;
@@ -2332,13 +2344,8 @@ void CheckSaveGame(size_t size)
 
 // [FG] support up to 8 pages of savegames
 
-char* G_SaveGameName(int slot)
+static char *SaveGameName(const char *buf)
 {
-  // Ty 05/04/98 - use savegamename variable (see d_deh.c)
-  // killough 12/98: add .7 to truncate savegamename
-  char buf[16] = {0};
-  sprintf(buf, "%.7s%d.dsg", savegamename, 10*savepage+slot);
-
   char *filepath = M_StringJoin(basesavegame, DIR_SEPARATOR_S, buf);
   char *existing = M_FileCaseExists(filepath);
 
@@ -2353,6 +2360,20 @@ char* G_SaveGameName(int slot)
     M_StringToLower(filename);
     return filepath;
   }
+}
+
+char *G_AutoSaveName(void)
+{
+  return SaveGameName("autosave.dsg");
+}
+
+char *G_SaveGameName(int slot)
+{
+  // Ty 05/04/98 - use savegamename variable (see d_deh.c)
+  // killough 12/98: add .7 to truncate savegamename
+  char buf[16] = {0};
+  sprintf(buf, "%.7s%d.dsg", savegamename, 10 * savepage + slot);
+  return SaveGameName(buf);
 }
 
 char* G_MBFSaveGameName(int slot)
@@ -2399,14 +2420,11 @@ static uint64_t G_Signature(int sig_epi, int sig_map)
   return s;
 }
 
-static void G_DoSaveGame(void)
+static void DoSaveGame(char *name)
 {
-  char *name = NULL;
   char name2[VERSIONSIZE];
   char *description;
   int  length, i;
-
-  name = G_SaveGameName(savegameslot);
 
   description = savedescription;
 
@@ -2513,9 +2531,20 @@ static void G_DoSaveGame(void)
 
   if (name) free(name);
 
-  MN_SetQuickSaveSlot(savegameslot);
-
   drs_skip_frame = true;
+}
+
+static void G_DoSaveGame(void)
+{
+  char *name = G_SaveGameName(savegameslot);
+  DoSaveGame(name);
+  MN_SetQuickSaveSlot(savegameslot);
+}
+
+static void G_DoSaveAutoSave(void)
+{
+  char *name = G_AutoSaveName();
+  DoSaveGame(name);
 }
 
 static void CheckSaveVersion(const char *str, saveg_compat_t ver)
@@ -2736,6 +2765,15 @@ static void G_DoLoadGame(void)
   MN_SetQuickSaveSlot(savegameslot);
 }
 
+static void CheckSaveAutoSave(void)
+{
+  if (save_autosave)
+  {
+    save_autosave = false;
+    gameaction = ga_saveautosave;
+  }
+}
+
 boolean clean_screenshot;
 
 void G_CleanScreenshot(void)
@@ -2814,10 +2852,15 @@ void G_Ticker(void)
       case ga_reloadlevel:
 	G_ReloadLevel();
 	break;
+      case ga_saveautosave:
+	G_DoSaveAutoSave();
+	break;
       default:  // killough 9/29/98
 	gameaction = ga_nothing;
 	break;
     }
+
+  CheckSaveAutoSave();
 
   // killough 10/6/98: allow games to be saved during demo
   // playback, by the playback user (not by demo itself)
