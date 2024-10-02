@@ -2604,7 +2604,7 @@ static const char *midi_reset_type_strings[] = {
 static setup_menu_t midi_settings1[] = {
 
     {"Native MIDI Gain", S_THERMO, CNTR_X, M_THRM_SPC,
-     {"midi_gain"}, .action = UpdateMusicVolume, .append = {"dB"}},
+     {"midi_gain"}, .action = UpdateMusicVolume, .append = "dB"},
 
     {"Native MIDI Reset", S_CHOICE | S_ACTION, CNTR_X, M_SPC,
      {"midi_reset_type"}, .strings_id = str_midi_reset_type,
@@ -2621,7 +2621,7 @@ static setup_menu_t midi_settings1[] = {
 
 #if defined (HAVE_FLUIDSYNTH)
     {"FluidSynth Gain", S_THERMO, CNTR_X, M_THRM_SPC, {"mus_gain"},
-     .action = UpdateMusicVolume, .append = {"dB"}},
+     .action = UpdateMusicVolume, .append = "dB"},
 
     {"FluidSynth Reverb", S_ONOFF, CNTR_X, M_SPC, {"mus_reverb"},
      .action = SetMidiPlayerFluidSynth},
@@ -2633,7 +2633,7 @@ static setup_menu_t midi_settings1[] = {
 #endif
 
     {"OPL3 Gain", S_THERMO, CNTR_X, M_THRM_SPC, {"opl_gain"},
-     .action = UpdateMusicVolume, .append = {"dB"}},
+     .action = UpdateMusicVolume, .append = "dB"},
 
     {"OPL3 Number of Chips", S_THERMO | S_THRM_SIZE4 | S_ACTION, CNTR_X,
      M_THRM_SPC, {"num_opl_chips"}, .action = SetMidiPlayerOpl},
@@ -2682,35 +2682,35 @@ static setup_menu_t eq_settings1[] = {
     MI_GAP_EX(4),
 
     {"Preamp", S_THERMO, CNTR_X, M_THRM_SPC,
-     {"snd_eq_preamp"}, .action = I_OAL_EqualizerPreset, .append = {"dB"}},
+     {"snd_eq_preamp"}, .action = I_OAL_EqualizerPreset, .append = "dB"},
 
     MI_GAP_EX(4),
 
     {"Low Gain", S_THERMO, CNTR_X, M_THRM_SPC,
-     {"snd_eq_low_gain"}, .action = I_OAL_EqualizerPreset, .append = {"dB"}},
+     {"snd_eq_low_gain"}, .action = I_OAL_EqualizerPreset, .append = "dB"},
 
     {"Mid 1 Gain", S_THERMO, CNTR_X, M_THRM_SPC,
-     {"snd_eq_mid1_gain"}, .action = I_OAL_EqualizerPreset, .append = {"dB"}},
+     {"snd_eq_mid1_gain"}, .action = I_OAL_EqualizerPreset, .append = "dB"},
 
     {"Mid 2 Gain", S_THERMO, CNTR_X, M_THRM_SPC,
-     {"snd_eq_mid2_gain"}, .action = I_OAL_EqualizerPreset, .append = {"dB"}},
+     {"snd_eq_mid2_gain"}, .action = I_OAL_EqualizerPreset, .append = "dB"},
 
     {"High Gain", S_THERMO, CNTR_X, M_THRM_SPC,
-     {"snd_eq_high_gain"}, .action = I_OAL_EqualizerPreset, .append = {"dB"}},
+     {"snd_eq_high_gain"}, .action = I_OAL_EqualizerPreset, .append = "dB"},
 
     MI_GAP_EX(4),
 
     {"Low Cutoff", S_NUM, CNTR_X, M_SPC,
-     {"snd_eq_low_cutoff"}, .action = I_OAL_EqualizerPreset, .append = {"Hz"}},
+     {"snd_eq_low_cutoff"}, .action = I_OAL_EqualizerPreset, .append = "Hz"},
 
     {"Mid 1 Center", S_NUM, CNTR_X, M_SPC,
-     {"snd_eq_mid1_center"}, .action = I_OAL_EqualizerPreset, .append = {"Hz"}},
+     {"snd_eq_mid1_center"}, .action = I_OAL_EqualizerPreset, .append = "Hz"},
 
     {"Mid 2 Center", S_NUM, CNTR_X, M_SPC,
-     {"snd_eq_mid2_center"}, .action = I_OAL_EqualizerPreset, .append = {"Hz"}},
+     {"snd_eq_mid2_center"}, .action = I_OAL_EqualizerPreset, .append = "Hz"},
 
     {"High Cutoff", S_NUM, CNTR_X, M_SPC,
-     {"snd_eq_high_cutoff"}, .action = I_OAL_EqualizerPreset, .append = {"Hz"}},
+     {"snd_eq_high_cutoff"}, .action = I_OAL_EqualizerPreset, .append = "Hz"},
 
     MI_END
 };
