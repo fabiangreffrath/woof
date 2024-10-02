@@ -1044,6 +1044,25 @@ void R_InitTranMap(int progress)
       Z_ChangeTag(playpal, PU_CACHE);
       free(fname);
     }
+
+  //!
+  // @category mod
+  // @arg <name>
+  //
+  // Dump tranmap lump.
+  //
+
+  int p = M_CheckParmWithArgs("-dumptranmap", 1);
+  if (p > 0)
+  {
+      char *path = malloc(strlen(myargv[p + 1]) + 5);
+      strcpy(path, myargv[p + 1]);
+      AddDefaultExtension(path, ".lmp");
+
+      M_WriteFile(path, main_tranmap, 256 * 256);
+
+      free(path);
+  }
 }
 
 //

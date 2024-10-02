@@ -299,6 +299,7 @@ static void (*drawcolfunc)(const patch_column_t *patchcol);
 DRAW_COLUMN(, source[frac >> FRACBITS])
 DRAW_COLUMN(TR, translation[source[frac >> FRACBITS]])
 DRAW_COLUMN(TRTR, translation2[translation1[source[frac >> FRACBITS]]])
+DRAW_COLUMN(TL, tranmap[(*dest << 8) + source[frac >> FRACBITS]])
 
 static void DrawMaskedColumn(patch_column_t *patchcol, const int ytop,
                              column_t *column)
@@ -509,6 +510,16 @@ void V_DrawPatchTranslated(int x, int y, patch_t *patch, byte *outr)
     {
         drawcolfunc = DrawPatchColumn;
     }
+
+    DrawPatchInternal(x, y, patch, false);
+}
+
+void V_DrawPatchTL(int x, int y, struct patch_s *patch, byte *tl)
+{
+    x += video.deltaw;
+
+    tranmap = tl;
+    drawcolfunc = DrawPatchColumnTL;
 
     DrawPatchInternal(x, y, patch, false);
 }

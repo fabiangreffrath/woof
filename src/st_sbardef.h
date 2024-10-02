@@ -204,11 +204,10 @@ struct sbarelem_s
     int x_pos;
     int y_pos;
     sbaralignment_t alignment;
-    const char *tranmap;
-    const char *translation;
     sbarcondition_t *conditions;
     sbarelem_t *children;
 
+    byte *tranmap;
     crange_idx_e cr;
     crange_idx_e crboom;
 

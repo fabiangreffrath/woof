@@ -78,10 +78,14 @@ static boolean ParseSbarElemType(json_t *json, sbarelementtype_t type,
     out->y_pos = JS_GetInteger(y_pos);
     out->alignment = JS_GetInteger(alignment);
 
-    out->tranmap = JS_GetStringValue(json, "tranmap");
-    out->translation = JS_GetStringValue(json, "translation");
+    const char *tranmap = JS_GetStringRef(json, "tranmap");
+    if (tranmap)
+    {
+        out->tranmap = W_CacheLumpName(tranmap, PU_STATIC);
+    }
 
-    out->cr = out->translation ? V_CRByName(out->translation) : CR_NONE;
+    const char *translation = JS_GetStringRef(json, "translation");
+    out->cr = translation ? V_CRByName(translation) : CR_NONE;
     out->crboom = CR_NONE;
 
     json_t *js_conditions = JS_GetObject(json, "conditions");

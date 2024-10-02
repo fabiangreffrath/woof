@@ -58,6 +58,7 @@ static const char *params[] = {
 
 static const char *params_with_args[] = {
 "-config",
+"-dumptranmap",
 "-file",
 "-iwad",
 "-save",
