@@ -2509,6 +2509,30 @@ static void SetMidiPlayer(void)
     S_RestartMusic();
 }
 
+static void SetMidiPlayerNative(void)
+{
+    if (I_MidiType() == midi_native)
+    {
+        SetMidiPlayer();
+    }
+}
+
+static void SetMidiPlayerOpl(void)
+{
+    if (I_MidiType() == midi_opl)
+    {
+        SetMidiPlayer();
+    }
+}
+
+static void SetMidiPlayerFluidSynth(void)
+{
+    if (I_MidiType() == midi_fluidsynth)
+    {
+        SetMidiPlayer();
+    }
+}
+
 static void MN_Midi(void);
 static void MN_Equalizer(void);
 
@@ -2567,78 +2591,62 @@ static const char *midi_reset_type_strings[] = {
     "No SysEx", "General MIDI", "Roland GS", "Yamaha XG"
 };
 
-static setup_menu_t midi_settings_native[] = {
+static setup_menu_t midi_settings1[] = {
 
     {"Native MIDI Gain", S_NUM | S_PCT, CNTR_X, M_SPC,
      {"midi_gain"}, .action = UpdateMusicVolume},
 
     {"Native MIDI Reset", S_CHOICE | S_ACTION, CNTR_X, M_SPC,
      {"midi_reset_type"}, .strings_id = str_midi_reset_type,
-     .action = SetMidiPlayer},
+     .action = SetMidiPlayerNative},
 
     {"Compatibility Level", S_CHOICE | S_ACTION, CNTR_X, M_SPC,
      {"midi_complevel"}, .strings_id = str_midi_complevel,
-     .action = SetMidiPlayer},
+     .action = SetMidiPlayerNative},
 
     {"SC-55 CTF Emulation", S_ONOFF, CNTR_X, M_SPC, {"midi_ctf"},
-     .action = SetMidiPlayer},
+     .action = SetMidiPlayerNative},
 
-    MI_END
-};
+    MI_GAP,
 
-static setup_menu_t midi_settings_fluidsynth[] = {
-
+#if defined (HAVE_FLUIDSYNTH)
     {"FluidSynth Gain", S_NUM | S_PCT, CNTR_X, M_SPC, {"mus_gain"},
      .action = UpdateMusicVolume},
 
     {"FluidSynth Reverb", S_ONOFF, CNTR_X, M_SPC, {"mus_reverb"},
-     .action = SetMidiPlayer},
+     .action = SetMidiPlayerFluidSynth},
 
     {"FluidSynth Chorus", S_ONOFF, CNTR_X, M_SPC, {"mus_chorus"},
-     .action = SetMidiPlayer},
+     .action = SetMidiPlayerFluidSynth},
 
-    MI_END
-};
-
-static setup_menu_t midi_settings_opl[] = {
+    MI_GAP,
+#endif
 
     {"OPL3 Gain", S_NUM | S_PCT, CNTR_X, M_SPC, {"opl_gain"},
      .action = UpdateMusicVolume},
 
     {"OPL3 Number of Chips", S_THERMO | S_THRM_SIZE4 | S_ACTION, CNTR_X,
-     M_THRM_SPC, {"num_opl_chips"}, .action = SetMidiPlayer},
+     M_THRM_SPC, {"num_opl_chips"}, .action = SetMidiPlayerOpl},
 
     {"OPL3 Reverse Stereo", S_ONOFF, CNTR_X, M_SPC,
-     {"opl_stereo_correct"}, .action = SetMidiPlayer},
+     {"opl_stereo_correct"}, .action = SetMidiPlayerOpl},
 
     MI_END
 };
 
-static setup_menu_t *midi_settings[] = {
-    midi_settings_native,
-    midi_settings_fluidsynth,
-    midi_settings_opl,
-    NULL
-};
+static setup_menu_t *midi_settings[] = {midi_settings1, NULL};
 
 static setup_tab_t midi_tabs[] = {{"MIDI"}, {NULL}};
 
 static void MN_Midi(void)
 {
-    int index = 0;
-    miditype_t type = I_MidiType();
-    if (type > midi_none)
-    {
-        index = type - 1;
-    }
-
     SetItemOn(set_item_on);
     SetPageIndex(current_page);
 
     MN_SetNextMenuAlt(ss_midi);
     setup_screen = ss_midi;
-    current_page = 0;
-    current_menu = midi_settings[index];
+    current_page = GetPageIndex(midi_settings);
+    current_menu = midi_settings[current_page];
     current_tabs = midi_tabs;
     SetupMenuSecondary();
 }
