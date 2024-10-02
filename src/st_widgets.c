@@ -922,6 +922,8 @@ void ST_InitWidgets(void)
         *colorize_strings[i].str =
             PrepareColor(*colorize_strings[i].str, colorize_strings[i].col);
     }
+
+    ST_ResetMessageColors();
 }
 
 void ST_ResetMessageColors(void)

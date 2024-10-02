@@ -166,7 +166,9 @@ static void LoadFacePatches(void)
 {
     char lump[9] = {0};
 
-    for (int painface = 0; painface < ST_NUMPAINFACES; ++painface)
+    int painface;
+
+    for (painface = 0; painface < ST_NUMPAINFACES; ++painface)
     {
         for (int straightface = 0; straightface < ST_NUMSTRAIGHTFACES;
              ++straightface)
@@ -198,7 +200,6 @@ static void LoadFacePatches(void)
     array_push(facepatches, V_CachePatchName(lump, PU_STATIC));
 
     // [FG] support face gib animations as in the 3DO/Jaguar/PSX ports
-    int painface;
     for (painface = 0; painface < ST_NUMXDTHFACES; ++painface)
     {
         M_snprintf(lump, sizeof(lump), "STFXDTH%d", painface);

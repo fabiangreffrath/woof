@@ -273,7 +273,7 @@ static boolean ParseNumberFont(json_t *json, numberfont_t *out)
         if (found < 0)
         {
             I_Printf(VB_ERROR, "SBARDEF: patch \"%s\" not found", lump);
-            return false;
+            continue;
         }
         out->numbers[num] = V_CachePatchNum(found, PU_STATIC);
         maxwidth = MAX(maxwidth, SHORT(out->numbers[num]->width));
@@ -495,7 +495,7 @@ sbardef_t *ST_ParseSbarDef(void)
             sbarelem_t elem = {0};
             if (ParseSbarElem(js_widget, &elem))
             {
-                elem.y_pos += (statusbar->height - 200);
+                elem.y_pos += (statusbar->height - SCREENHEIGHT);
                 array_push(statusbar->children, elem);
             }
         }
