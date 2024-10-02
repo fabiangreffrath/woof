@@ -2657,11 +2657,8 @@ static const char *equalizer_preset_strings[] = {
     "Off", "Classical", "Rock", "Vocal", "Custom"
 };
 
-#define M_THRM_SPC_EQ (M_THRM_HEIGHT - 1)
-#define M_SPC_EQ 8
-
 static setup_menu_t eq_settings1[] = {
-    {"Preset", S_CHOICE, CNTR_X, M_SPC_EQ, {"snd_equalizer"},
+    {"Preset", S_CHOICE, CNTR_X, M_SPC, {"snd_equalizer"},
      .strings_id = str_equalizer_preset, .action = I_OAL_EqualizerPreset},
 
     MI_GAP_EX(4),
