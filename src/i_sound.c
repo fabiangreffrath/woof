@@ -523,13 +523,13 @@ void I_SetSoundModule(void)
     MN_UpdateAdvancedSoundItems(snd_module != SND_MODULE_3D);
 }
 
-miditype_t I_MidiType(void)
+midiplayertype_t I_MidiPlayerType(void)
 {
     if (active_module)
     {
-        return active_module->I_MidiType();
+        return active_module->I_MidiPlayerType();
     }
-    return midi_none;
+    return midiplayer_none;
 }
 
 void I_SetMidiPlayer(void)

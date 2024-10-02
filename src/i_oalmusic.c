@@ -458,19 +458,19 @@ static const char **I_OAL_DeviceList(void)
     return devices;
 }
 
-static miditype_t I_OAL_MidiType(void)
+static midiplayertype_t I_OAL_MidiPlayerType(void)
 {
 #ifdef HAVE_FLUIDSYNTH
     if (active_module == &stream_fl_module)
     {
-        return midi_fluidsynth;
+        return midiplayer_fluidsynth;
     }
 #endif
     if (active_module == &stream_opl_module)
     {
-        return midi_opl;
+        return midiplayer_opl;
     }
-    return midi_none;
+    return midiplayer_none;
 }
 
 static void I_OAL_BindVariables(void)
@@ -500,5 +500,5 @@ music_module_t music_oal_module =
     I_OAL_UnRegisterSong,
     I_OAL_DeviceList,
     I_OAL_BindVariables,
-    I_OAL_MidiType,
+    I_OAL_MidiPlayerType,
 };

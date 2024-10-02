@@ -1485,9 +1485,9 @@ static const char **I_MID_DeviceList(void)
     return midi_devices;
 }
 
-static miditype_t I_MID_MidiType(void)
+static midiplayertype_t I_MID_MidiPlayerType(void)
 {
-    return midi_native;
+    return midiplayer_native;
 }
 
 static void I_MID_BindVariables(void)
@@ -1517,5 +1517,5 @@ music_module_t music_mid_module =
     I_MID_UnRegisterSong,
     I_MID_DeviceList,
     I_MID_BindVariables,
-    I_MID_MidiType,
+    I_MID_MidiPlayerType,
 };

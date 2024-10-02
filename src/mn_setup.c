@@ -2511,7 +2511,7 @@ static void SetMidiPlayer(void)
 
 static void SetMidiPlayerNative(void)
 {
-    if (I_MidiType() == midi_native)
+    if (I_MidiPlayerType() == midiplayer_native)
     {
         SetMidiPlayer();
     }
@@ -2519,7 +2519,7 @@ static void SetMidiPlayerNative(void)
 
 static void SetMidiPlayerOpl(void)
 {
-    if (I_MidiType() == midi_opl)
+    if (I_MidiPlayerType() == midiplayer_opl)
     {
         SetMidiPlayer();
     }
@@ -2527,7 +2527,7 @@ static void SetMidiPlayerOpl(void)
 
 static void SetMidiPlayerFluidSynth(void)
 {
-    if (I_MidiType() == midi_fluidsynth)
+    if (I_MidiPlayerType() == midiplayer_fluidsynth)
     {
         SetMidiPlayer();
     }
