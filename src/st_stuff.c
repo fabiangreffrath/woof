@@ -1065,13 +1065,19 @@ static void DrawPatch(int x, int y, sbaralignment_t alignment, patch_t *patch,
         }
     }
 
-    if (tl)
+    byte *outr = colrngs[cr];
+
+    if (outr && tl)
+    {
+        V_DrawPatchTRTL(x, y, patch, outr, tl);
+    }
+    else if (tl)
     {
         V_DrawPatchTL(x, y, patch, tl);
     }
     else
     {
-        V_DrawPatchTranslated(x, y, patch, colrngs[cr]);
+        V_DrawPatchTranslated(x, y, patch, outr);
     }
 }
 

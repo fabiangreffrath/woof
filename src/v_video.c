@@ -37,7 +37,6 @@
 #include "m_swap.h"
 #include "r_data.h"
 #include "r_defs.h"
-#include "r_draw.h"
 #include "r_state.h"
 #include "s_sound.h"
 #include "sounds.h"
@@ -300,6 +299,7 @@ DRAW_COLUMN(, source[frac >> FRACBITS])
 DRAW_COLUMN(TR, translation[source[frac >> FRACBITS]])
 DRAW_COLUMN(TRTR, translation2[translation1[source[frac >> FRACBITS]]])
 DRAW_COLUMN(TL, tranmap[(*dest << 8) + source[frac >> FRACBITS]])
+DRAW_COLUMN(TRTL, tranmap[(*dest << 8) + translation[source[frac >> FRACBITS]]])
 
 static void DrawMaskedColumn(patch_column_t *patchcol, const int ytop,
                              column_t *column)
@@ -520,6 +520,17 @@ void V_DrawPatchTL(int x, int y, struct patch_s *patch, byte *tl)
 
     tranmap = tl;
     drawcolfunc = DrawPatchColumnTL;
+
+    DrawPatchInternal(x, y, patch, false);
+}
+
+void V_DrawPatchTRTL(int x, int y, struct patch_s *patch, byte *outr, byte *tl)
+{
+    x += video.deltaw;
+
+    translation = outr;
+    tranmap = tl;
+    drawcolfunc = DrawPatchColumnTRTL;
 
     DrawPatchInternal(x, y, patch, false);
 }
