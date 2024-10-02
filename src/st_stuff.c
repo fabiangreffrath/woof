@@ -216,6 +216,18 @@ static void LoadFacePatches(void)
     have_xdthfaces = painface;
 }
 
+static boolean CheckWidgetState(widgetstate_t state)
+{
+    if ((state == HUD_WIDGET_AUTOMAP && automapactive)
+        || (state == HUD_WIDGET_HUD && !automapactive)
+        || (state == HUD_WIDGET_ALWAYS))
+    {
+        return true;
+    }
+
+    return false;
+}
+
 static boolean CheckConditions(sbarcondition_t *conditions, player_t *player)
 {
     boolean result = true;
@@ -360,51 +372,43 @@ static boolean CheckConditions(sbarcondition_t *conditions, player_t *player)
 
             case sbc_widgetenabled:
                 {
+                    widgetstate_t state = HUD_WIDGET_OFF;
                     switch ((sbarwidgettype_t)cond->param)
                     {
                         case sbw_monsec:
-                            result &= !!hud_level_stats;
+                            state = hud_level_stats;
                             break;
                         case sbw_time:
-                            result &= !!hud_level_time;
+                            state = hud_level_time;
                             break;
                         case sbw_coord:
-                            result &= !!hud_player_coords;
-                            break;
-                        case sbw_fps:
-                        case sbw_rate:
-                            break;
-                        case sbw_cmd:
-                            result &= !!hud_command_history;
+                            state = hud_player_coords;
                             break;
                         default:
                             break;
                     }
+                    result &= CheckWidgetState(state);
                 }
                 break;
 
             case sbc_widgetdisabled:
                 {
+                    widgetstate_t state = HUD_WIDGET_OFF;
                     switch ((sbarwidgettype_t)cond->param)
                     {
                         case sbw_monsec:
-                            result &= !hud_level_stats;
+                            state = hud_level_stats;
                             break;
                         case sbw_time:
-                            result &= !hud_level_time;
+                            state = hud_level_time;
                             break;
                         case sbw_coord:
-                            result &= !hud_player_coords;
-                            break;
-                        case sbw_fps:
-                        case sbw_rate:
-                            break;
-                        case sbw_cmd:
-                            result &= !hud_command_history;
+                            state = hud_player_coords;
                             break;
                         default:
                             break;
                     }
+                    result &= !CheckWidgetState(state);
                 }
                 break;
 
@@ -1814,19 +1818,13 @@ void WI_DrawWidgets(void)
             sbarelem_t *elem;
             array_foreach(elem, statusbar->children)
             {
-                if (elem->type == sbe_widget)
+                if (elem->type == sbe_widget
+                    && elem->pointer.widget->type == sbw_time)
                 {
-                    sbe_widget_t *widget = elem->pointer.widget;
-                    if (widget->type == sbw_time)
-                    {
-                        sbarelem_t time = *elem;
-                        time.x_pos = 0;
-                        time.y_pos = 0;
-                        time.alignment = sbe_wide_left;
-                        UpdateLines(&time);
-                        DrawLines(0, 0, &time);
-                        return;
-                    }
+                    sbarelem_t time = *elem;
+                    time.alignment = sbe_wide_left;
+                    DrawLines(0, 0, &time);
+                    return;
                 }
             }
         }
