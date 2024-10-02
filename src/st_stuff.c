@@ -1692,10 +1692,7 @@ void ST_Start(void)
 
     ResetStatusBar();
 
-    if (hud_crosshair)
-    {
-        HU_StartCrosshair();
-    }
+    HU_StartCrosshair();
 }
 
 patch_t **hu_font = NULL;
