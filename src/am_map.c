@@ -2342,12 +2342,12 @@ void AM_Drawer (void)
   }
 
   // [crispy] required for AM_rotatePoint()
-  if (automaprotate)
+  if (automaprotate || correctautomapaspect)
   {
     mapcenter.x = m_x + m_w / 2;
     mapcenter.y = m_y + m_h / 2;
     // [crispy] keep the map static if not following the player
-    if (followplayer)
+    if (automaprotate && followplayer)
     {
       mapangle = ANG90 - plr->mo->angle;
     }
