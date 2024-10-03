@@ -132,6 +132,8 @@ int st_keyorskull[3];
 
 static sbardef_t *sbardef;
 
+static statusbar_t *statusbar;
+
 typedef enum
 {
     st_original,
@@ -970,6 +972,11 @@ static void UpdateBoomColors(sbarelem_t *elem, player_t *player)
 
 static void UpdateElem(sbarelem_t *elem, player_t *player)
 {
+    if (!CheckConditions(elem->conditions, player))
+    {
+        return;
+    }
+
     switch (elem->type)
     {
         case sbe_face:
@@ -1004,14 +1011,19 @@ static void UpdateElem(sbarelem_t *elem, player_t *player)
 
 static void UpdateStatusBar(player_t *player)
 {
-    statusbar_t *statusbar;
-    array_foreach(statusbar, sbardef->statusbars)
+    int barindex = MAX(screenblocks - 10, 0);
+
+    if (automapactive && automapoverlay == AM_OVERLAY_OFF)
     {
-        sbarelem_t *child;
-        array_foreach(child, statusbar->children)
-        {
-            UpdateElem(child, player);
-        }
+        barindex = 0;
+    }
+
+    statusbar = &sbardef->statusbars[barindex];
+
+    sbarelem_t *child;
+    array_foreach(child, statusbar->children)
+    {
+        UpdateElem(child, player);
     }
 }
 
@@ -1066,11 +1078,11 @@ static void ResetElem(sbarelem_t *elem)
 
 static void ResetStatusBar(void)
 {
-    statusbar_t *statusbar;
-    array_foreach(statusbar, sbardef->statusbars)
+    statusbar_t *local_statusbar;
+    array_foreach(local_statusbar, sbardef->statusbars)
     {
         sbarelem_t *child;
-        array_foreach(child, statusbar->children)
+        array_foreach(child, local_statusbar->children)
         {
             ResetElem(child);
         }
@@ -1478,20 +1490,9 @@ static void DrawBackground(const char *name)
     V_CopyRect(0, 0, st_backing_screen, video.unscaledw, ST_HEIGHT, 0, ST_Y);
 }
 
-static int current_barindex;
-
 static void DrawStatusBar(void)
 {
     player_t *player = &players[displayplayer];
-
-    int barindex = MAX(screenblocks - 10, 0);
-
-    if (automapactive && automapoverlay == AM_OVERLAY_OFF)
-    {
-        barindex = 0;
-    }
-
-    statusbar_t *statusbar = &sbardef->statusbars[barindex];
 
     if (!statusbar->fullscreenrender)
     {
@@ -1503,8 +1504,6 @@ static void DrawStatusBar(void)
     {
         DrawElem(0, SCREENHEIGHT - statusbar->height, child, player);
     }
-
-    current_barindex = barindex;
 }
 
 static void EraseElem(int x, int y, sbarelem_t *elem, player_t *player)
@@ -1559,7 +1558,6 @@ void ST_Erase(void)
     }
 
     player_t *player = &players[displayplayer];
-    statusbar_t *statusbar = &sbardef->statusbars[current_barindex];
 
     sbarelem_t *child;
     array_foreach(child, statusbar->children)
@@ -1804,29 +1802,24 @@ void ST_ResetPalette(void)
 // [FG] draw Time widget on intermission screen
 void WI_DrawWidgets(void)
 {
-    if (!sbardef)
+    if (!statusbar || !(hud_level_time & HUD_WIDGET_HUD))
     {
         return;
     }
 
-    if (hud_level_time & HUD_WIDGET_HUD)
+    player_t *player = &players[displayplayer];
+
+    sbarelem_t *elem;
+    array_foreach(elem, statusbar->children)
     {
-        // leveltime is already added to totalleveltimes before WI_Start()
-        statusbar_t *statusbar;
-        array_foreach(statusbar, sbardef->statusbars)
+        if (elem->type == sbe_widget
+            && elem->pointer.widget->type == sbw_time
+            && CheckConditions(elem->conditions, player))
         {
-            sbarelem_t *elem;
-            array_foreach(elem, statusbar->children)
-            {
-                if (elem->type == sbe_widget
-                    && elem->pointer.widget->type == sbw_time)
-                {
-                    sbarelem_t time = *elem;
-                    time.alignment = sbe_wide_left;
-                    DrawLines(0, 0, &time);
-                    return;
-                }
-            }
+            sbarelem_t time = *elem;
+            time.alignment = sbe_wide_left;
+            DrawLines(0, 0, &time);
+            return;
         }
     }
 }
