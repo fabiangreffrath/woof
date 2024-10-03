@@ -2061,6 +2061,8 @@ static setup_menu_t auto_settings1[] = {
     {"Color Keyed Doors", S_CHOICE, H_X, M_SPC, {"map_keyed_door"},
      .strings_id = str_automap_keyed_door},
 
+    {"Aspect Ratio Correction", S_ONOFF, H_X, M_SPC, {"correctautomapaspect"}},
+
     MI_RESET,
 
     MI_END

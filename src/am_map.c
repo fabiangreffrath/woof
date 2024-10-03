@@ -298,6 +298,11 @@ static void AM_rotatePoint(mpoint_t *pt);
 static mpoint_t mapcenter;
 static angle_t mapangle;
 
+// [Woof!] automap aspect ratio correction
+boolean correctautomapaspect = false;
+#define AUTOMAP_ASPECT_CORRECT ((fixed_t) (0x0000D555)) // 5/6
+static void AM_aspectCorrectPoint(mpoint_t *pt);
+
 enum
 {
   PAN_UP,
@@ -1518,6 +1523,11 @@ static void AM_drawGrid(int color)
       AM_rotatePoint(&ml.a);
       AM_rotatePoint(&ml.b);
     }
+    if (correctautomapaspect)
+    {
+        AM_aspectCorrectPoint(&ml.a);
+        AM_aspectCorrectPoint(&ml.b);
+    }
     AM_drawMline(&ml, color);
   }
 
@@ -1551,6 +1561,11 @@ static void AM_drawGrid(int color)
       ml.b.x += m_h / 2;
       AM_rotatePoint(&ml.a);
       AM_rotatePoint(&ml.b);
+    }
+    if (correctautomapaspect)
+    {
+        AM_aspectCorrectPoint(&ml.a);
+        AM_aspectCorrectPoint(&ml.b);
     }
     AM_drawMline(&ml, color);
   }
@@ -1648,6 +1663,11 @@ static void AM_drawWalls(void)
     {
         AM_rotatePoint(&l.a);
         AM_rotatePoint(&l.b);
+    }
+    if (correctautomapaspect)
+    {
+        AM_aspectCorrectPoint(&l.a);
+        AM_aspectCorrectPoint(&l.b);
     }
     // if line has been seen or IDDT has been used
     if (ddt_cheating || (lines[i].flags & ML_MAPPED))
@@ -1899,6 +1919,14 @@ static void AM_rotatePoint(mpoint_t *pt)
   pt->x = tmpx;
 }
 
+// [Woof!] Scale y coordinate of point for aspect ratio correction
+static void AM_aspectCorrectPoint(mpoint_t *pt)
+{
+  fixed_t diff = pt->y - mapcenter.y;
+  diff = FixedMul(diff, AUTOMAP_ASPECT_CORRECT);
+  pt->y = mapcenter.y + diff;
+}
+
 //
 // AM_drawLineCharacter()
 //
@@ -1999,6 +2027,10 @@ static void AM_drawPlayers(void)
     {
         AM_rotatePoint(&pt);
     }
+    if (correctautomapaspect)
+    {
+        AM_aspectCorrectPoint(&pt);
+    }
 
     if (ddt_cheating)
       AM_drawLineCharacter
@@ -2064,6 +2096,10 @@ static void AM_drawPlayers(void)
     {
       smoothangle = LerpAngle(p->mo->oldangle, p->mo->angle);
     }
+    if (correctautomapaspect)
+    {
+        AM_aspectCorrectPoint(&pt);
+    }
 
     AM_drawLineCharacter
     (
@@ -2121,6 +2157,10 @@ static void AM_drawThings
       if (automaprotate)
       {
         AM_rotatePoint(&pt);
+      }
+      if (correctautomapaspect)
+      {
+          AM_aspectCorrectPoint(&pt);
       }
 
       //jff 1/5/98 case over doomednum of thing being drawn
@@ -2228,6 +2268,10 @@ static void AM_drawMarks(void)
 	if (automaprotate)
 	{
 	  AM_rotatePoint(&pt);
+	}
+	if (correctautomapaspect)
+	{
+	  AM_aspectCorrectPoint(&pt);
 	}
 	fx = CXMTOF(pt.x);
 	fy = CYMTOF(pt.y);
@@ -2420,6 +2464,9 @@ void AM_BindAutomapVariables(void)
   M_BindNum("mapcolor_preset", &mapcolor_preset, NULL, AM_PRESET_BOOM,
             AM_PRESET_VANILLA, AM_PRESET_ZDOOM, ss_auto, wad_no,
             "Automap color preset (0 = Vanilla Doom; 1 = Crispy Doom; 2 = Boom; 3 = ZDoom)");
+
+  M_BindBool("correctautomapaspect", &correctautomapaspect, NULL, false, ss_auto, wad_no,
+             "Correct Automap Aspect Ratio");
 
 #define BIND_CR(name, v, help) \
   M_BindNum(#name, &name, NULL, (v), 0, 255, ss_none, wad_yes, help)
