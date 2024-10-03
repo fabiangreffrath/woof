@@ -257,7 +257,7 @@ void P_MovePlayer (player_t* player)
 #define ANG5 (ANG90/18)
 
 death_use_action_t death_use_action;
-boolean activate_death_use_reload;
+int activate_death_use_reload;
 
 //
 // P_DeathThink
@@ -318,8 +318,10 @@ void P_DeathThink (player_t* player)
     player->playerstate = PST_REBORN;
   }
 
-  if (activate_death_use_reload)
+  if (activate_death_use_reload == 2)
   {
+    activate_death_use_reload = 1;
+
     if (savegameslot >= 0)
     {
       char *file = G_SaveGameName(savegameslot);
