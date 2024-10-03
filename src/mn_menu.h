@@ -88,6 +88,8 @@ extern int savepage;
 
 extern const char *default_skill_strings[];
 
+void M_ResetAutoSave(void);
+
 void MN_SetQuickSaveSlot(int slot);
 
 void M_SaveAutoSave(void);

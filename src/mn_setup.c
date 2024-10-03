@@ -3300,7 +3300,8 @@ static setup_menu_t gen_settings6[] = {
     {"On death action", S_CHOICE, OFF_CNTR_X, M_SPC, {"death_use_action"},
      .strings_id = str_death_use_action},
 
-    {"Auto save", S_ONOFF, OFF_CNTR_X, M_SPC, {"autosave"}},
+    {"Auto save", S_ONOFF, OFF_CNTR_X, M_SPC, {"autosave"},
+     .action = M_ResetAutoSave},
 
     {"Organize save files", S_ONOFF | S_PRGWARN, OFF_CNTR_X, M_SPC,
      {"organize_savefiles"}},
