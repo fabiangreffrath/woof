@@ -1516,10 +1516,13 @@ static void AM_drawGrid(int color)
     // [crispy] moved here
     ml.a.y = m_y;
     ml.b.y = m_y+m_h;
-    if (automaprotate)
+    if (automaprotate || correctautomapaspect)
     {
       ml.a.y -= m_w / 2;
       ml.b.y += m_w / 2;
+    }
+    if (automaprotate)
+    {
       AM_rotatePoint(&ml.a);
       AM_rotatePoint(&ml.b);
     }
@@ -1533,7 +1536,7 @@ static void AM_drawGrid(int color)
 
   // Figure out start of horizontal gridlines
   start = m_y;
-  if (automaprotate)
+  if (automaprotate || correctautomapaspect)
   {
     start -= m_w / 2;
   }
@@ -1542,7 +1545,7 @@ static void AM_drawGrid(int color)
     start += // (MAPBLOCKUNITS<<FRACBITS)
       - ((start-(bmaporgy>>FRACTOMAPBITS))%gridsize);
   end = m_y + m_h;
-  if (automaprotate)
+  if (automaprotate || correctautomapaspect)
   {
     end += m_w / 2;
   }
