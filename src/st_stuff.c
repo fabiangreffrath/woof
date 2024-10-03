@@ -1802,26 +1802,15 @@ void ST_ResetPalette(void)
 // [FG] draw Time widget on intermission screen
 void WI_DrawWidgets(void)
 {
-    if (!statusbar || !(hud_level_time & HUD_WIDGET_HUD))
+    if (!st_time_elem || !(hud_level_time & HUD_WIDGET_HUD))
     {
         return;
     }
 
-    player_t *player = &players[displayplayer];
-
-    sbarelem_t *elem;
-    array_foreach(elem, statusbar->children)
-    {
-        if (elem->type == sbe_widget
-            && elem->pointer.widget->type == sbw_time
-            && CheckConditions(elem->conditions, player))
-        {
-            sbarelem_t time = *elem;
-            time.alignment = sbe_wide_left;
-            DrawLines(0, 0, &time);
-            return;
-        }
-    }
+    sbarelem_t time = *st_time_elem;
+    time.alignment = sbe_wide_left;
+    // leveltime is already added to totalleveltimes before WI_Start()
+    DrawLines(0, 0, &time);
 }
 
 void ST_BindSTSVariables(void)

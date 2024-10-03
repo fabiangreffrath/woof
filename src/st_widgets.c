@@ -936,6 +936,8 @@ void ST_ResetMessageColors(void)
     }
 }
 
+sbarelem_t *st_time_elem = NULL;
+
 void ST_UpdateWidget(sbarelem_t *elem, player_t *player)
 {
     sbe_widget_t *widget = elem->pointer.widget;
@@ -959,6 +961,7 @@ void ST_UpdateWidget(sbarelem_t *elem, player_t *player)
             UpdateMonSec(widget);
             break;
         case sbw_time:
+            st_time_elem = elem;
             UpdateStTime(widget, player);
             break;
         case sbw_coord:
