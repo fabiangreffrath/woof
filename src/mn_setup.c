@@ -1799,6 +1799,11 @@ static void SizeDisplayAlt(void)
     R_SetViewSize(screenblocks);
 }
 
+static void RefreshSolidBackground(void)
+{
+    st_refresh_background = true;
+}
+
 static const char *screensize_strings[] = {
     "",           "",           "",           "Status Bar", "Status Bar",
     "Status Bar", "Status Bar", "Status Bar", "Status Bar", "Status Bar",
@@ -1830,7 +1835,8 @@ static setup_menu_t stat_settings1[] = {
 
     {"Gray Percent Sign", S_ONOFF | S_COSMETIC, H_X, M_SPC, {"sts_pct_always_gray"}},
 
-    {"Solid Background Color", S_ONOFF, H_X, M_SPC, {"st_solidbackground"}},
+    {"Solid Background Color", S_ONOFF, H_X, M_SPC, {"st_solidbackground"},
+     .action = RefreshSolidBackground},
 
     {"Armor Color Matches Type", S_ONOFF, H_X, M_SPC, {"hud_armor_type"}},
 
@@ -1923,6 +1929,8 @@ static void UpdateCrosshairItems(void)
     DisableItem(
         !(hud_crosshair && hud_crosshair_target == crosstarget_highlight),
         stat_settings3, "hud_crosshair_target_color");
+
+    HU_StartCrosshair();
 }
 
 // Setting up for the Status Bar / HUD screen. Turn on flags, set pointers,
