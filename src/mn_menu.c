@@ -1215,6 +1215,14 @@ static void M_ReadSaveString(char *name, int menu_slot, int save_slot,
     SetLoadSlotStatus(menu_slot, 1);
 }
 
+static void UpdateRectX(menu_t *menu, int x)
+{
+    for (int i = 0; i < menu->numitems; i++)
+    {
+        menu->menuitems[i].rect.x = x;
+    }
+}
+
 //
 // M_ReadSaveStrings
 //  read the strings from the savegame files
@@ -1223,8 +1231,11 @@ static void M_ReadSaveStrings(void)
 {
     // [FG] shift savegame descriptions a bit to the right
     //      to make room for the snapshots on the left
-    SaveDef.x = LoadDef.x = LoadAutoSaveDef.x =
-        M_X_LOADSAVE + MIN(M_LOADSAVE_WIDTH / 2, video.deltaw);
+    const int x = M_X_LOADSAVE + MIN(M_LOADSAVE_WIDTH / 2, video.deltaw);
+    SaveDef.x = LoadDef.x = LoadAutoSaveDef.x = x;
+    UpdateRectX(&SaveDef, x);
+    UpdateRectX(&LoadDef, x);
+    UpdateRectX(&LoadAutoSaveDef, x);
 
     // [FG] fit the snapshots into the resulting space
     snapshot_width = MIN((video.deltaw + SaveDef.x + 2 * SKULLXOFF) & ~7,
