@@ -121,7 +121,7 @@ static boolean ParseSbarElemType(json_t *json, sbarelementtype_t type,
                     return false;
                 }
                 graphic->patch_name = M_StringDuplicate(JS_GetString(patch));
-                out->pointer.graphic = graphic;
+                out->subtype.graphic = graphic;
             }
             break;
 
@@ -138,7 +138,7 @@ static boolean ParseSbarElemType(json_t *json, sbarelementtype_t type,
                         array_push(animation->frames, frame);
                     }
                 }
-                out->pointer.animation = animation;
+                out->subtype.animation = animation;
             }
             break;
 
@@ -164,7 +164,7 @@ static boolean ParseSbarElemType(json_t *json, sbarelementtype_t type,
                 number->type = JS_GetInteger(type);
                 number->param = JS_GetInteger(param);
                 number->maxlength = JS_GetInteger(maxlength);
-                out->pointer.number = number;
+                out->subtype.number = number;
             }
             break;
 
@@ -197,14 +197,14 @@ static boolean ParseSbarElemType(json_t *json, sbarelementtype_t type,
                         break;
                 }
 
-                out->pointer.widget = widget;
+                out->subtype.widget = widget;
             }
             break;
 
         case sbe_face:
             {
                 sbe_face_t *face = calloc(1, sizeof(*face));
-                out->pointer.face = face;
+                out->subtype.face = face;
             }
             break;
 

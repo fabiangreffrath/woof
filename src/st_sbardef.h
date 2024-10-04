@@ -222,7 +222,7 @@ struct sbarelem_s
 
         // Woof!
         sbe_widget_t *widget;
-    } pointer;
+    } subtype;
 };
 
 typedef struct

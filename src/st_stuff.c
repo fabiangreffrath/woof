@@ -713,7 +713,7 @@ static void UpdateFace(sbe_face_t *face, player_t *player)
 
 static void UpdateNumber(sbarelem_t *elem, player_t *player)
 {
-    sbe_number_t *number = elem->pointer.number;
+    sbe_number_t *number = elem->subtype.number;
 
     int value = ResolveNumber(number, player);
     int power = (value < 0 ? number->maxlength - 1 : number->maxlength);
@@ -788,7 +788,7 @@ static void UpdateNumber(sbarelem_t *elem, player_t *player)
 
 static void UpdateLines(sbarelem_t *elem)
 {
-    sbe_widget_t *widget = elem->pointer.widget;
+    sbe_widget_t *widget = elem->subtype.widget;
 
     hudfont_t *font = widget->font;
     if (font == NULL)
@@ -856,7 +856,7 @@ static void UpdateLines(sbarelem_t *elem)
 
 static void UpdateAnimation(sbarelem_t *elem)
 {
-    sbe_animation_t *animation = elem->pointer.animation;
+    sbe_animation_t *animation = elem->subtype.animation;
 
     if (animation->duration_left == 0)
     {
@@ -879,7 +879,7 @@ static void UpdateBoomColors(sbarelem_t *elem, player_t *player)
         return;
     }
 
-    sbe_number_t *number = elem->pointer.number;
+    sbe_number_t *number = elem->subtype.number;
 
     boolean invul = (player->powers[pw_invulnerability]
                      || player->cheats & CF_GODMODE);
@@ -980,7 +980,7 @@ static void UpdateElem(sbarelem_t *elem, player_t *player)
     switch (elem->type)
     {
         case sbe_face:
-            UpdateFace(elem->pointer.face, player);
+            UpdateFace(elem->subtype.face, player);
             break;
 
         case sbe_animation:
@@ -1033,14 +1033,14 @@ static void ResetElem(sbarelem_t *elem)
     {
         case sbe_graphic:
             {
-                sbe_graphic_t *graphic = elem->pointer.graphic;
+                sbe_graphic_t *graphic = elem->subtype.graphic;
                 graphic->patch = CachePatchName(graphic->patch_name);
             }
             break;
 
         case sbe_face:
             {
-                sbe_face_t *face = elem->pointer.face;
+                sbe_face_t *face = elem->subtype.face;
                 face->faceindex = 0;
                 face->facecount = 0;
                 face->oldhealth = -1;
@@ -1049,7 +1049,7 @@ static void ResetElem(sbarelem_t *elem)
 
         case sbe_animation:
             {
-                sbe_animation_t *animation = elem->pointer.animation;
+                sbe_animation_t *animation = elem->subtype.animation;
                 sbarframe_t *frame;
                 array_foreach(frame, animation->frames)
                 {
@@ -1062,7 +1062,7 @@ static void ResetElem(sbarelem_t *elem)
 
         case sbe_number:
         case sbe_percent:
-            elem->pointer.number->oldvalue = -1;
+            elem->subtype.number->oldvalue = -1;
             break;
 
         default:
@@ -1150,7 +1150,7 @@ static void DrawPatch(int x, int y, int maxheight, sbaralignment_t alignment,
 
 static void DrawGlyphNumber(int x, int y, sbarelem_t *elem, patch_t *glyph)
 {
-    sbe_number_t *number = elem->pointer.number;
+    sbe_number_t *number = elem->subtype.number;
     numberfont_t *font = number->font;
 
     int width, widthdiff;
@@ -1199,7 +1199,7 @@ static void DrawGlyphNumber(int x, int y, sbarelem_t *elem, patch_t *glyph)
 static void DrawGlyphLine(int x, int y, sbarelem_t *elem, widgetline_t *line,
                           patch_t *glyph)
 {
-    sbe_widget_t *widget = elem->pointer.widget;
+    sbe_widget_t *widget = elem->subtype.widget;
     hudfont_t *font = widget->font;
 
     int width, widthdiff;
@@ -1246,7 +1246,7 @@ static void DrawGlyphLine(int x, int y, sbarelem_t *elem, widgetline_t *line,
 
 static void DrawNumber(int x, int y, sbarelem_t *elem)
 {
-    sbe_number_t *number = elem->pointer.number;
+    sbe_number_t *number = elem->subtype.number;
 
     int value = number->value;
     int base_xoffset = number->xoffset;
@@ -1283,7 +1283,7 @@ static void DrawNumber(int x, int y, sbarelem_t *elem)
 
 static void DrawLines(int x, int y, sbarelem_t *elem)
 {
-    sbe_widget_t *widget = elem->pointer.widget;
+    sbe_widget_t *widget = elem->subtype.widget;
 
     int cr = elem->cr;
 
@@ -1353,7 +1353,7 @@ static void DrawElem(int x, int y, sbarelem_t *elem, player_t *player)
     {
         case sbe_graphic:
             {
-                sbe_graphic_t *graphic = elem->pointer.graphic;
+                sbe_graphic_t *graphic = elem->subtype.graphic;
                 DrawPatch(x, y, 0, elem->alignment, graphic->patch, elem->cr,
                           elem->tranmap);
             }
@@ -1361,7 +1361,7 @@ static void DrawElem(int x, int y, sbarelem_t *elem, player_t *player)
 
         case sbe_face:
             {
-                sbe_face_t *face = elem->pointer.face;
+                sbe_face_t *face = elem->subtype.face;
                 DrawPatch(x, y, 0, elem->alignment,
                           facepatches[face->faceindex], elem->cr,
                           elem->tranmap);
@@ -1370,7 +1370,7 @@ static void DrawElem(int x, int y, sbarelem_t *elem, player_t *player)
 
         case sbe_animation:
             {
-                sbe_animation_t *animation = elem->pointer.animation;
+                sbe_animation_t *animation = elem->subtype.animation;
                 patch_t *patch =
                     animation->frames[animation->frame_index].patch;
                 DrawPatch(x, y, 0, elem->alignment, patch, elem->cr,
@@ -1521,7 +1521,7 @@ static void EraseElem(int x, int y, sbarelem_t *elem, player_t *player)
 
     if (elem->type == sbe_widget)
     {
-        sbe_widget_t *widget = elem->pointer.widget;
+        sbe_widget_t *widget = elem->subtype.widget;
         hudfont_t *font = widget->font;
 
         int height = 0;

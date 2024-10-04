@@ -940,7 +940,7 @@ sbarelem_t *st_time_elem = NULL;
 
 void ST_UpdateWidget(sbarelem_t *elem, player_t *player)
 {
-    sbe_widget_t *widget = elem->pointer.widget;
+    sbe_widget_t *widget = elem->subtype.widget;
 
     switch (widget->type)
     {
