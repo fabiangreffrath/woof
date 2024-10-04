@@ -265,6 +265,7 @@ static boolean ParseNumberFont(json_t *json, numberfont_t *out)
     char lump[9] = {0};
     int found;
     int maxwidth = 0;
+    int maxheight = 0;
 
     for (int num = 0; num < 10; ++num)
     {
@@ -277,7 +278,10 @@ static boolean ParseNumberFont(json_t *json, numberfont_t *out)
         }
         out->numbers[num] = V_CachePatchNum(found, PU_STATIC);
         maxwidth = MAX(maxwidth, SHORT(out->numbers[num]->width));
+        maxheight = MAX(maxheight, SHORT(out->numbers[num]->height));
     }
+
+    out->maxheight = maxheight;
 
     M_snprintf(lump, sizeof(lump), "%sMINUS", stem);
     found = W_CheckNumForName(lump);

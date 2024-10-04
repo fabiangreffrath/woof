@@ -238,6 +238,7 @@ struct numberfont_s
     const char *name;
     fonttype_t type;
     int monowidth;
+    int maxheight;
     patch_t *numbers[10];
     patch_t *percent;
     patch_t *minus;

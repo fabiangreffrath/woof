@@ -1091,8 +1091,8 @@ static void ResetStatusBar(void)
     ST_ResetTitle();
 }
 
-static void DrawPatch(int x, int y, sbaralignment_t alignment, patch_t *patch,
-                      crange_idx_e cr, byte *tl)
+static void DrawPatch(int x, int y, int maxheight, sbaralignment_t alignment,
+                      patch_t *patch, crange_idx_e cr, byte *tl)
 {
     if (!patch)
     {
@@ -1100,7 +1100,7 @@ static void DrawPatch(int x, int y, sbaralignment_t alignment, patch_t *patch,
     }
 
     int width = SHORT(patch->width);
-    int height = SHORT(patch->height);
+    int height = maxheight ? maxheight : SHORT(patch->height);
 
     if (alignment & sbe_h_middle)
     {
@@ -1177,8 +1177,8 @@ static void DrawGlyphNumber(int x, int y, sbarelem_t *elem, patch_t *glyph)
 
     if (glyph)
     {
-        DrawPatch(x + number->xoffset, y, elem->alignment, glyph,
-                  elem->crboom == CR_NONE ? elem->cr : elem->crboom,
+        DrawPatch(x + number->xoffset, y, font->maxheight, elem->alignment,
+                  glyph, elem->crboom == CR_NONE ? elem->cr : elem->crboom,
                   elem->tranmap);
     }
 
@@ -1226,8 +1226,8 @@ static void DrawGlyphLine(int x, int y, sbarelem_t *elem, widgetline_t *line,
 
     if (glyph)
     {
-        DrawPatch(x + line->xoffset, y, elem->alignment, glyph, elem->cr,
-                  elem->tranmap);
+        DrawPatch(x + line->xoffset, y, font->maxheight, elem->alignment, glyph,
+                  elem->cr, elem->tranmap);
     }
 
     if (elem->alignment & sbe_h_middle)
@@ -1354,7 +1354,7 @@ static void DrawElem(int x, int y, sbarelem_t *elem, player_t *player)
         case sbe_graphic:
             {
                 sbe_graphic_t *graphic = elem->pointer.graphic;
-                DrawPatch(x, y, elem->alignment, graphic->patch, elem->cr,
+                DrawPatch(x, y, 0, elem->alignment, graphic->patch, elem->cr,
                           elem->tranmap);
             }
             break;
@@ -1362,16 +1362,19 @@ static void DrawElem(int x, int y, sbarelem_t *elem, player_t *player)
         case sbe_face:
             {
                 sbe_face_t *face = elem->pointer.face;
-                DrawPatch(x, y, elem->alignment, facepatches[face->faceindex],
-                          elem->cr, elem->tranmap);
+                DrawPatch(x, y, 0, elem->alignment,
+                          facepatches[face->faceindex], elem->cr,
+                          elem->tranmap);
             }
             break;
 
         case sbe_animation:
             {
                 sbe_animation_t *animation = elem->pointer.animation;
-                patch_t *patch = animation->frames[animation->frame_index].patch;
-                DrawPatch(x, y, elem->alignment, patch, elem->cr, elem->tranmap);
+                patch_t *patch =
+                    animation->frames[animation->frame_index].patch;
+                DrawPatch(x, y, 0, elem->alignment, patch, elem->cr,
+                          elem->tranmap);
             }
             break;
 
