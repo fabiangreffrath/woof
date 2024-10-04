@@ -57,6 +57,7 @@ void M_Init(void);
 
 void MN_StartControlPanel(void);
 
+void MN_ForcedLoadAutoSave(const char *msg);
 void MN_ForcedLoadGame(const char *msg); // killough 5/15/98: forced loadgames
 void MN_Trans(void);     // killough 11/98: reset translucency
 void MN_SetupResetMenu(void);
@@ -87,7 +88,11 @@ extern int savepage;
 
 extern const char *default_skill_strings[];
 
+void M_ResetAutoSave(void);
+
 void MN_SetQuickSaveSlot(int slot);
+
+void M_SaveAutoSave(void);
 
 void MN_InitMenuStrings(void);
 

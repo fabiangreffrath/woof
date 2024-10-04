@@ -3289,16 +3289,19 @@ static setup_menu_t gen_settings6[] = {
     {"Screen wipe effect", S_CHOICE | S_STRICT, OFF_CNTR_X, M_SPC,
      {"screen_melt"}, .strings_id = str_screen_melt},
 
-    {"On death action", S_CHOICE, OFF_CNTR_X, M_SPC, {"death_use_action"},
-     .strings_id = str_death_use_action},
-
-    {"Demo progress bar", S_ONOFF, OFF_CNTR_X, M_SPC, {"demobar"}},
-
     {"Screen flashes", S_ONOFF | S_STRICT, OFF_CNTR_X, M_SPC,
      {"palette_changes"}},
 
     {"Invulnerability effect", S_CHOICE | S_STRICT, OFF_CNTR_X, M_SPC,
      {"invul_mode"}, .strings_id = str_invul_mode, .action = R_InvulMode},
+
+    {"Demo progress bar", S_ONOFF, OFF_CNTR_X, M_SPC, {"demobar"}},
+
+    {"On death action", S_CHOICE, OFF_CNTR_X, M_SPC, {"death_use_action"},
+     .strings_id = str_death_use_action},
+
+    {"Auto save", S_ONOFF, OFF_CNTR_X, M_SPC, {"autosave"},
+     .action = M_ResetAutoSave},
 
     {"Organize save files", S_ONOFF | S_PRGWARN, OFF_CNTR_X, M_SPC,
      {"organize_savefiles"}},

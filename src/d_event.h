@@ -78,6 +78,8 @@ typedef enum
   ga_worlddone,
   ga_screenshot,
   ga_reloadlevel,
+  ga_loadautosave,
+  ga_saveautosave,
 } gameaction_t;
 
 

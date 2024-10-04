@@ -23,6 +23,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <sys/stat.h>
 #include <time.h>
 
 #include "am_map.h"
@@ -211,6 +212,9 @@ boolean joybuttons[NUM_GAMEPAD_BUTTONS];
 
 int   savegameslot = -1;
 char  savedescription[32];
+
+static boolean save_autosave;
+static boolean autosave;
 
 //jff 3/24/98 declare startskill external, define defaultskill here
 int default_skill;               //note 1-based
@@ -1961,6 +1965,11 @@ static void G_DoWorldDone(void)
   gameaction = ga_nothing;
   viewactive = true;
   AM_clearMarks();           //jff 4/12/98 clear any marks on the automap
+
+  if (autosave && !demorecording && !demoplayback && !netgame)
+  {
+    M_SaveAutoSave();
+  }
 }
 
 // killough 2/28/98: A ridiculously large number
@@ -2268,6 +2277,12 @@ static char *savename = NULL;
 static boolean forced_loadgame = false;
 static boolean command_loadgame = false;
 
+void G_ForcedLoadAutoSave(void)
+{
+  gameaction = ga_loadautosave;
+  forced_loadgame = true;
+}
+
 void G_ForcedLoadGame(void)
 {
   gameaction = ga_loadgame;
@@ -2276,6 +2291,15 @@ void G_ForcedLoadGame(void)
 
 // killough 3/16/98: add slot info
 // killough 5/15/98: add command-line
+
+void G_LoadAutoSave(char *name)
+{
+  free(savename);
+  savename = M_StringDuplicate(name);
+  gameaction = ga_loadautosave;
+  forced_loadgame = false;
+  command_loadgame = false;
+}
 
 void G_LoadGame(char *name, int slot, boolean command)
 {
@@ -2289,6 +2313,12 @@ void G_LoadGame(char *name, int slot, boolean command)
 
 // killough 5/15/98:
 // Consistency Error when attempting to load savegame.
+
+static void G_LoadAutoSaveErr(const char *msg)
+{
+  Z_Free(savebuffer);
+  MN_ForcedLoadAutoSave(msg);
+}
 
 static void G_LoadGameErr(const char *msg)
 {
@@ -2307,6 +2337,12 @@ static void G_LoadGameErr(const char *msg)
 // Called by the menu task.
 // Description is a 24 byte text string
 //
+
+void G_SaveAutoSave(char *description)
+{
+  strcpy(savedescription, description);
+  save_autosave = true;
+}
 
 void G_SaveGame(int slot, char *description)
 {
@@ -2330,13 +2366,8 @@ void CheckSaveGame(size_t size)
 
 // [FG] support up to 8 pages of savegames
 
-char* G_SaveGameName(int slot)
+static char *SaveGameName(const char *buf)
 {
-  // Ty 05/04/98 - use savegamename variable (see d_deh.c)
-  // killough 12/98: add .7 to truncate savegamename
-  char buf[16] = {0};
-  sprintf(buf, "%.7s%d.dsg", savegamename, 10*savepage+slot);
-
   char *filepath = M_StringJoin(basesavegame, DIR_SEPARATOR_S, buf);
   char *existing = M_FileCaseExists(filepath);
 
@@ -2351,6 +2382,20 @@ char* G_SaveGameName(int slot)
     M_StringToLower(filename);
     return filepath;
   }
+}
+
+char *G_AutoSaveName(void)
+{
+  return SaveGameName("autosave.dsg");
+}
+
+char *G_SaveGameName(int slot)
+{
+  // Ty 05/04/98 - use savegamename variable (see d_deh.c)
+  // killough 12/98: add .7 to truncate savegamename
+  char buf[16] = {0};
+  sprintf(buf, "%.7s%d.dsg", savegamename, 10 * savepage + slot);
+  return SaveGameName(buf);
 }
 
 char* G_MBFSaveGameName(int slot)
@@ -2397,14 +2442,11 @@ static uint64_t G_Signature(int sig_epi, int sig_map)
   return s;
 }
 
-static void G_DoSaveGame(void)
+static void DoSaveGame(char *name)
 {
-  char *name = NULL;
   char name2[VERSIONSIZE];
   char *description;
   int  length, i;
-
-  name = G_SaveGameName(savegameslot);
 
   description = savedescription;
 
@@ -2511,9 +2553,20 @@ static void G_DoSaveGame(void)
 
   if (name) free(name);
 
-  MN_SetQuickSaveSlot(savegameslot);
-
   drs_skip_frame = true;
+}
+
+static void G_DoSaveGame(void)
+{
+  char *name = G_SaveGameName(savegameslot);
+  DoSaveGame(name);
+  MN_SetQuickSaveSlot(savegameslot);
+}
+
+static void G_DoSaveAutoSave(void)
+{
+  char *name = G_AutoSaveName();
+  DoSaveGame(name);
 }
 
 static void CheckSaveVersion(const char *str, saveg_compat_t ver)
@@ -2524,7 +2577,7 @@ static void CheckSaveVersion(const char *str, saveg_compat_t ver)
   }
 }
 
-static void G_DoLoadGame(void)
+static boolean DoLoadGame(boolean do_load_autosave)
 {
   int  length, i;
   char vcheck[VERSIONSIZE];
@@ -2562,8 +2615,12 @@ static void G_DoLoadGame(void)
   // killough 2/22/98: Friendly savegame version difference message
   if (!forced_loadgame && saveg_compat != saveg_mbf && saveg_compat < saveg_woof600)
     {
-      G_LoadGameErr("Different Savegame Version!!!\n\nAre you sure?");
-      return;
+      const char *msg = "Different Savegame Version!!!\n\nAre you sure?";
+      if (do_load_autosave)
+        G_LoadAutoSaveErr(msg);
+      else
+        G_LoadGameErr(msg);
+      return false;
     }
 
   save_p += VERSIONSIZE;
@@ -2595,9 +2652,12 @@ static void G_DoLoadGame(void)
 	 if (save_p[sizeof checksum])
 	   strcat(strcat(msg,"Wads expected:\n\n"), (char *) save_p);
 	 strcat(msg, "\nAre you sure?");
-	 G_LoadGameErr(msg);
+	 if (do_load_autosave)
+	   G_LoadAutoSaveErr(msg);
+	 else
+	   G_LoadGameErr(msg);
 	 free(msg);
-	 return;
+	 return false;
        }
    }
 
@@ -2723,15 +2783,86 @@ static void G_DoLoadGame(void)
       if (demorecording) // So this can only possibly be a -recordfrom command.
 	G_BeginRecording();// Start the -recordfrom, since the game was loaded.
 
-  I_Printf(VB_INFO, "G_DoLoadGame: Slot %02d, Time ", 10 * savepage + savegameslot);
+  return true;
+}
 
+static void PrintLevelTimes(void)
+{
   if (totalleveltimes)
-    I_Printf(VB_INFO, "(%d:%02d) ", ((totalleveltimes + leveltime) / TICRATE) / 60,
-                                  ((totalleveltimes + leveltime) / TICRATE) % 60);
-  I_Printf(VB_INFO, "%d:%05.2f", leveltime / TICRATE / 60,
-                                 (float)(leveltime % (60 * TICRATE)) / TICRATE);
+  {
+    I_Printf(VB_INFO, "(%d:%02d) ",
+             ((totalleveltimes + leveltime) / TICRATE) / 60,
+             ((totalleveltimes + leveltime) / TICRATE) % 60);
+  }
 
-  MN_SetQuickSaveSlot(savegameslot);
+  I_Printf(VB_INFO, "%d:%05.2f", leveltime / TICRATE / 60,
+           (float)(leveltime % (60 * TICRATE)) / TICRATE);
+}
+
+static void G_DoLoadGame(void)
+{
+  if (DoLoadGame(false))
+  {
+    const int slot_num = 10 * savepage + savegameslot;
+    I_Printf(VB_INFO, "G_DoLoadGame: Slot %02d, Time ", slot_num);
+    PrintLevelTimes();
+    MN_SetQuickSaveSlot(savegameslot);
+  }
+}
+
+static void G_DoLoadAutoSave(void)
+{
+  if (DoLoadGame(true))
+  {
+    I_Printf(VB_INFO, "G_DoLoadGame: Auto Save, Time ");
+    PrintLevelTimes();
+  }
+}
+
+boolean G_AutoSaveEnabled(void)
+{
+  return autosave;
+}
+
+//
+// G_LoadAutoSaveDeathUse
+// Loads the auto save if it's more recent than the current save slot.
+// Returns true if the auto save is loaded.
+//
+boolean G_LoadAutoSaveDeathUse(void)
+{
+  struct stat st;
+  char *auto_path = G_AutoSaveName();
+  time_t auto_time = (M_stat(auto_path, &st) != -1 ? st.st_mtime : 0);
+  boolean result = (auto_time > 0);
+
+  if (result)
+  {
+    if (savegameslot >= 0)
+    {
+      char *save_path = G_SaveGameName(savegameslot);
+      time_t save_time = (M_stat(save_path, &st) != -1 ? st.st_mtime : 0);
+      free(save_path);
+      result = (auto_time > save_time);
+    }
+
+    if (result)
+    {
+      G_LoadAutoSave(auto_path);
+    }
+  }
+
+  free(auto_path);
+  return result;
+}
+
+static void CheckSaveAutoSave(void)
+{
+  if (save_autosave)
+  {
+    save_autosave = false;
+    gameaction = ga_saveautosave;
+  }
 }
 
 boolean clean_screenshot;
@@ -2812,10 +2943,18 @@ void G_Ticker(void)
       case ga_reloadlevel:
 	G_ReloadLevel();
 	break;
+      case ga_loadautosave:
+	G_DoLoadAutoSave();
+	break;
+      case ga_saveautosave:
+	G_DoSaveAutoSave();
+	break;
       default:  // killough 9/29/98
 	gameaction = ga_nothing;
 	break;
     }
+
+  CheckSaveAutoSave();
 
   // killough 10/6/98: allow games to be saved during demo
   // playback, by the playback user (not by demo itself)
@@ -4674,6 +4813,8 @@ void G_BindGameVariables(void)
     "Maximum number of player corpses (< 0 = No limit)");
   BIND_NUM_GENERAL(death_use_action, 0, 0, 2,
     "Use-button action upon death (0 = Default; 1 = Load save; 2 = Nothing)");
+  BIND_BOOL_GENERAL(autosave, true,
+    "Auto save at the beginning of a map, after completing the previous one.");
 }
 
 void G_BindEnemVariables(void)

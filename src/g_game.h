@@ -46,9 +46,14 @@ void G_DeathMatchSpawnPlayer(int playernum);
 void G_InitNew(skill_t skill, int episode, int map);
 void G_DeferedInitNew(skill_t skill, int episode, int map);
 void G_DeferedPlayDemo(char *demo);
+void G_LoadAutoSave(char *name);
 void G_LoadGame(char *name, int slot, boolean is_command); // killough 5/15/98
+void G_ForcedLoadAutoSave(void);
 void G_ForcedLoadGame(void);           // killough 5/15/98: forced loadgames
+void G_SaveAutoSave(char *description);
 void G_SaveGame(int slot, char *description); // Called by M_Responder.
+boolean G_AutoSaveEnabled(void);
+boolean G_LoadAutoSaveDeathUse(void);
 void G_RecordDemo(char *name);              // Only called by startup code.
 void G_BeginRecording(void);
 void G_PlayDemo(char *name);
@@ -58,6 +63,7 @@ void G_WorldDone(void);
 void G_Ticker(void);
 void G_ScreenShot(void);
 void G_ReloadDefaults(boolean keep_demover); // killough 3/1/98: loads game defaults
+char *G_AutoSaveName(void);
 char *G_SaveGameName(int); // killough 3/22/98: sets savegame filename
 char *G_MBFSaveGameName(int); // MBF savegame filename
 void G_SetFastParms(int);        // killough 4/10/98: sets -fast parameters
