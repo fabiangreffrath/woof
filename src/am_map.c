@@ -300,7 +300,6 @@ static angle_t mapangle;
 
 // [Woof!] automap aspect ratio correction
 boolean correctautomapaspect = false;
-#define AUTOMAP_ASPECT_CORRECT ((fixed_t) (0x0000D555)) // 5/6
 static void AM_aspectCorrectPoint(mpoint_t *pt);
 
 enum
@@ -1925,8 +1924,8 @@ static void AM_rotatePoint(mpoint_t *pt)
 // [Woof!] Scale y coordinate of point for aspect ratio correction
 static void AM_aspectCorrectPoint(mpoint_t *pt)
 {
-  fixed_t diff = pt->y - mapcenter.y;
-  diff = FixedMul(diff, AUTOMAP_ASPECT_CORRECT);
+  int64_t diff = pt->y - mapcenter.y;
+  diff = 5 * diff / 6;
   pt->y = mapcenter.y + diff;
 }
 
