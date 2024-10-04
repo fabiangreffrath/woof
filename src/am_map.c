@@ -299,7 +299,7 @@ static mpoint_t mapcenter;
 static angle_t mapangle;
 
 // [Woof!] automap aspect ratio correction
-boolean correctautomapaspect = false;
+boolean automapsquareaspect = false;
 static void AM_aspectCorrectPoint(mpoint_t *pt);
 
 enum
@@ -1515,7 +1515,7 @@ static void AM_drawGrid(int color)
     // [crispy] moved here
     ml.a.y = m_y;
     ml.b.y = m_y+m_h;
-    if (automaprotate || correctautomapaspect)
+    if (automaprotate || automapsquareaspect)
     {
       ml.a.y -= m_w / 2;
       ml.b.y += m_w / 2;
@@ -1525,7 +1525,7 @@ static void AM_drawGrid(int color)
       AM_rotatePoint(&ml.a);
       AM_rotatePoint(&ml.b);
     }
-    if (correctautomapaspect)
+    if (automapsquareaspect)
     {
         AM_aspectCorrectPoint(&ml.a);
         AM_aspectCorrectPoint(&ml.b);
@@ -1535,7 +1535,7 @@ static void AM_drawGrid(int color)
 
   // Figure out start of horizontal gridlines
   start = m_y;
-  if (automaprotate || correctautomapaspect)
+  if (automaprotate || automapsquareaspect)
   {
     start -= m_w / 2;
   }
@@ -1544,7 +1544,7 @@ static void AM_drawGrid(int color)
     start += // (MAPBLOCKUNITS<<FRACBITS)
       - ((start-(bmaporgy>>FRACTOMAPBITS))%gridsize);
   end = m_y + m_h;
-  if (automaprotate || correctautomapaspect)
+  if (automaprotate || automapsquareaspect)
   {
     end += m_w / 2;
   }
@@ -1564,7 +1564,7 @@ static void AM_drawGrid(int color)
       AM_rotatePoint(&ml.a);
       AM_rotatePoint(&ml.b);
     }
-    if (correctautomapaspect)
+    if (automapsquareaspect)
     {
         AM_aspectCorrectPoint(&ml.a);
         AM_aspectCorrectPoint(&ml.b);
@@ -1666,7 +1666,7 @@ static void AM_drawWalls(void)
         AM_rotatePoint(&l.a);
         AM_rotatePoint(&l.b);
     }
-    if (correctautomapaspect)
+    if (automapsquareaspect)
     {
         AM_aspectCorrectPoint(&l.a);
         AM_aspectCorrectPoint(&l.b);
@@ -2029,7 +2029,7 @@ static void AM_drawPlayers(void)
     {
         AM_rotatePoint(&pt);
     }
-    if (correctautomapaspect)
+    if (automapsquareaspect)
     {
         AM_aspectCorrectPoint(&pt);
     }
@@ -2098,7 +2098,7 @@ static void AM_drawPlayers(void)
     {
       smoothangle = LerpAngle(p->mo->oldangle, p->mo->angle);
     }
-    if (correctautomapaspect)
+    if (automapsquareaspect)
     {
         AM_aspectCorrectPoint(&pt);
     }
@@ -2160,7 +2160,7 @@ static void AM_drawThings
       {
         AM_rotatePoint(&pt);
       }
-      if (correctautomapaspect)
+      if (automapsquareaspect)
       {
           AM_aspectCorrectPoint(&pt);
       }
@@ -2271,7 +2271,7 @@ static void AM_drawMarks(void)
 	{
 	  AM_rotatePoint(&pt);
 	}
-	if (correctautomapaspect)
+	if (automapsquareaspect)
 	{
 	  AM_aspectCorrectPoint(&pt);
 	}
@@ -2341,7 +2341,7 @@ void AM_Drawer (void)
   }
 
   // [crispy] required for AM_rotatePoint()
-  if (automaprotate || correctautomapaspect)
+  if (automaprotate || automapsquareaspect)
   {
     mapcenter.x = m_x + m_w / 2;
     mapcenter.y = m_y + m_h / 2;
@@ -2467,8 +2467,8 @@ void AM_BindAutomapVariables(void)
             AM_PRESET_VANILLA, AM_PRESET_ZDOOM, ss_auto, wad_no,
             "Automap color preset (0 = Vanilla Doom; 1 = Crispy Doom; 2 = Boom; 3 = ZDoom)");
 
-  M_BindBool("correctautomapaspect", &correctautomapaspect, NULL, false, ss_auto, wad_no,
-             "Correct Automap Aspect Ratio");
+  M_BindBool("automapsquareaspect", &automapsquareaspect, NULL, false, ss_auto, wad_no,
+             "Use square aspect ratio in automap");
 
 #define BIND_CR(name, v, help) \
   M_BindNum(#name, &name, NULL, (v), 0, 255, ss_none, wad_yes, help)
