@@ -292,8 +292,9 @@ static void AM_drawFline_Smooth(fline_t* fl, int color);
 void (*AM_drawFline)(fline_t*, int) = AM_drawFline_Vanilla;
 
 // [crispy/Woof!] automap rotate mode and square aspect ratio need these early on
-boolean automaprotate = false;
-boolean automapsquareaspect = false;
+static boolean automaprotate = false;
+static boolean automapsquareaspect = false;
+#define ADJUST_ASPECT_RATIO (correct_aspect_ratio && automapsquareaspect)
 static void AM_rotate(int64_t *x, int64_t *y, angle_t a);
 static void AM_transformPoint(mpoint_t *pt);
 static mpoint_t mapcenter;
@@ -1512,7 +1513,7 @@ static void AM_drawGrid(int color)
     // [crispy] moved here
     ml.a.y = m_y;
     ml.b.y = m_y+m_h;
-    if (automaprotate || automapsquareaspect)
+    if (automaprotate || ADJUST_ASPECT_RATIO)
     {
       ml.a.y -= m_w / 2;
       ml.b.y += m_w / 2;
@@ -1524,7 +1525,7 @@ static void AM_drawGrid(int color)
 
   // Figure out start of horizontal gridlines
   start = m_y;
-  if (automaprotate || automapsquareaspect)
+  if (automaprotate || ADJUST_ASPECT_RATIO)
   {
     start -= m_w / 2;
   }
@@ -1533,7 +1534,7 @@ static void AM_drawGrid(int color)
     start += // (MAPBLOCKUNITS<<FRACBITS)
       - ((start-(bmaporgy>>FRACTOMAPBITS))%gridsize);
   end = m_y + m_h;
-  if (automaprotate || automapsquareaspect)
+  if (automaprotate || ADJUST_ASPECT_RATIO)
   {
     end += m_w / 2;
   }
@@ -1899,7 +1900,7 @@ static void AM_transformPoint(mpoint_t *pt)
 
     pt->x = tmpx;
   }
-  if (automapsquareaspect)
+  if (ADJUST_ASPECT_RATIO)
   {
     int64_t diff = pt->y - mapcenter.y;
     diff = 5 * diff / 6;
@@ -1948,7 +1949,7 @@ static void AM_drawLineCharacter
     if (angle)
       AM_rotate(&l.a.x, &l.a.y, angle);
 
-    if (automapsquareaspect)
+    if (ADJUST_ASPECT_RATIO)
       l.a.y = 5 * l.a.y / 6;
 
     l.a.x += x;
@@ -1966,7 +1967,7 @@ static void AM_drawLineCharacter
     if (angle)
       AM_rotate(&l.b.x, &l.b.y, angle);
 
-    if (automapsquareaspect)
+    if (ADJUST_ASPECT_RATIO)
       l.b.y = 5 * l.b.y / 6;
 
     l.b.x += x;
@@ -2300,7 +2301,7 @@ void AM_Drawer (void)
   }
 
   // [crispy/Woof!] required for AM_transformPoint()
-  if (automaprotate || automapsquareaspect)
+  if (automaprotate || ADJUST_ASPECT_RATIO)
   {
     mapcenter.x = m_x + m_w / 2;
     mapcenter.y = m_y + m_h / 2;
