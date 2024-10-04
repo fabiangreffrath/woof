@@ -4813,7 +4813,7 @@ void G_BindGameVariables(void)
     "Maximum number of player corpses (< 0 = No limit)");
   BIND_NUM_GENERAL(death_use_action, 0, 0, 2,
     "Use-button action upon death (0 = Default; 1 = Load save; 2 = Nothing)");
-  BIND_BOOL_GENERAL(autosave, false,
+  BIND_BOOL_GENERAL(autosave, true,
     "Auto save at the beginning of a map, after completing the previous one.");
 }
 
