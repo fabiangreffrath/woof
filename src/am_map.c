@@ -1948,6 +1948,9 @@ static void AM_drawLineCharacter
     if (angle)
       AM_rotate(&l.a.x, &l.a.y, angle);
 
+    if (automapsquareaspect)
+      l.a.y = 5 * l.a.y / 6;
+
     l.a.x += x;
     l.a.y += y;
 
@@ -1962,6 +1965,9 @@ static void AM_drawLineCharacter
 
     if (angle)
       AM_rotate(&l.b.x, &l.b.y, angle);
+
+    if (automapsquareaspect)
+      l.b.y = 5 * l.b.y / 6;
 
     l.b.x += x;
     l.b.y += y;
