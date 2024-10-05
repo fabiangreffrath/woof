@@ -47,8 +47,8 @@ enum
 static boolean joy_enable;
 joy_platform_t joy_platform;
 static int joy_stick_layout;
-static int joy_forward_speed;
-static int joy_strafe_speed;
+static int joy_forward_sensitivity;
+static int joy_strafe_sensitivity;
 static int joy_turn_speed;
 static int joy_look_speed;
 static int joy_outer_turn_speed;
@@ -448,8 +448,8 @@ static void RefreshSettings(void)
     CalcMovement = axes_func[joy_movement_deadzone_type];
     CalcCamera = axes_func[joy_camera_deadzone_type];
 
-    movement.x.sens = joy_strafe_speed / 10.0f;
-    movement.y.sens = joy_forward_speed / 10.0f;
+    movement.x.sens = joy_strafe_sensitivity / 10.0f;
+    movement.y.sens = joy_forward_sensitivity / 10.0f;
 
     camera.x.sens = joy_turn_speed / (float)DEFAULT_SPEED;
     camera.y.sens = joy_look_speed / (float)DEFAULT_SPEED;
@@ -489,10 +489,10 @@ void I_BindGamepadVariables(void)
     BIND_NUM_PADADV(joy_stick_layout, LAYOUT_DEFAULT, 0, NUM_LAYOUTS - 1,
         "Analog stick layout (0 = Off; 1 = Default; 2 = Southpaw; 3 = Legacy; "
         "4 = Legacy Southpaw; 5 = Flick Stick; 6 = Flick Stick Southpaw)");
-    BIND_NUM(joy_forward_speed, 10, 0, 20,
-        "Forward speed (0 = 0.0x; 20 = 2.0x)");
-    BIND_NUM(joy_strafe_speed, 10, 0, 20,
-        "Strafe speed (0 = 0.0x; 20 = 2.0x)");
+    BIND_NUM(joy_forward_sensitivity, 10, 0, 40,
+        "Forward sensitivity (0 = 0.0x; 40 = 4.0x)");
+    BIND_NUM(joy_strafe_sensitivity, 10, 0, 40,
+        "Strafe sensitivity (0 = 0.0x; 40 = 4.0x)");
     BIND_NUM_GENERAL(joy_turn_speed, DEFAULT_SPEED, 0, 720,
         "Turn speed [degrees/second]");
     BIND_NUM_GENERAL(joy_look_speed, DEFAULT_SPEED * 9 / 16, 0, 720,
