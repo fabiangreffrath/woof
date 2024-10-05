@@ -517,9 +517,9 @@ void I_BindGamepadVariables(void)
         "Movement inner deadzone [percent]");
     BIND_NUM_GENERAL(joy_camera_inner_deadzone, 15, 0, 50,
         "Camera inner deadzone [percent]");
-    BIND_NUM(joy_movement_outer_deadzone, 5, 0, 30,
+    BIND_NUM(joy_movement_outer_deadzone, 2, 0, 30,
         "Movement outer deadzone [percent]");
-    BIND_NUM(joy_camera_outer_deadzone, 5, 0, 30,
+    BIND_NUM(joy_camera_outer_deadzone, 2, 0, 30,
         "Camera outer deadzone [percent]");
     BIND_NUM(joy_trigger_deadzone, 15, 0, 50,
         "Trigger deadzone [percent]");
