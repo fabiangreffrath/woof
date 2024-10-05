@@ -2807,18 +2807,6 @@ static const char **GetMouseAccelStrings(void)
 }
 
 static setup_menu_t gen_settings3[] = {
-    // [FG] double click to "use"
-    {"Double-Click to \"Use\"", S_ONOFF, CNTR_X, M_SPC, {"dclick_use"}},
-
-    {"Free Look", S_ONOFF, CNTR_X, M_SPC, {"mouselook"},
-     .action = MN_UpdateMouseLook},
-
-    // [FG] invert vertical axis
-    {"Invert Look", S_ONOFF, CNTR_X, M_SPC, {"mouse_y_invert"},
-     .action = G_UpdateMouseVariables},
-
-    MI_GAP,
-
     {"Turn Sensitivity", S_THERMO | S_THRM_SIZE11, CNTR_X, M_THRM_SPC,
      {"mouse_sensitivity"}, .action = G_UpdateMouseVariables},
 
@@ -2835,6 +2823,18 @@ static setup_menu_t gen_settings3[] = {
 
     {"Acceleration", S_THERMO, CNTR_X, M_THRM_SPC, {"mouse_acceleration"},
      .strings_id = str_mouse_accel, .action = G_UpdateMouseVariables},
+
+    MI_GAP,
+
+    // [FG] double click to "use"
+    {"Double-Click to \"Use\"", S_ONOFF, CNTR_X, M_SPC, {"dclick_use"}},
+
+    {"Free Look", S_ONOFF, CNTR_X, M_SPC, {"mouselook"},
+     .action = MN_UpdateMouseLook},
+
+    // [FG] invert vertical axis
+    {"Invert Look", S_ONOFF, CNTR_X, M_SPC, {"mouse_y_invert"},
+     .action = G_UpdateMouseVariables},
 
     MI_END
 };
@@ -2880,14 +2880,6 @@ static void MN_Gyro(void);
 
 static setup_menu_t gen_settings4[] = {
 
-    {"Free Look", S_ONOFF, CNTR_X, M_SPC, {"padlook"},
-     .action = MN_UpdatePadLook},
-
-    {"Invert Look", S_ONOFF, CNTR_X, M_SPC, {"joy_invert_look"},
-     .action = I_ResetGamepad},
-
-    MI_GAP_EX(4),
-
     {"Turn Speed", S_THERMO | S_THRM_SIZE11, CNTR_X, M_THRM_SPC,
      {"joy_turn_speed"}, .action = I_ResetGamepad},
 
@@ -2907,7 +2899,15 @@ static setup_menu_t gen_settings4[] = {
     {"Rumble", S_THERMO, CNTR_X, M_THRM_SPC, {"joy_rumble"},
      .strings_id = str_rumble, .action = UpdateRumble},
 
-    MI_GAP,
+    MI_GAP_EX(5),
+
+    {"Free Look", S_ONOFF, CNTR_X, M_SPC, {"padlook"},
+     .action = MN_UpdatePadLook},
+
+    {"Invert Look", S_ONOFF, CNTR_X, M_SPC, {"joy_invert_look"},
+     .action = I_ResetGamepad},
+
+    MI_GAP_EX(8),
 
     {"Advanced Options", S_FUNC, CNTR_X, M_SPC, .action = MN_PadAdv},
 
