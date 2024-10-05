@@ -2951,7 +2951,7 @@ static setup_menu_t padadv_settings1[] = {
     MI_GAP,
 
     {"Movement Type", S_CHOICE, CNTR_X, M_SPC,
-     {"joy_scale_diagonal_movement"}, .strings_id = str_movement_type,
+     {"joy_movement_type"}, .strings_id = str_movement_type,
      .action = I_ResetGamepad},
 
     MI_GAP,
@@ -3014,7 +3014,7 @@ static void UpdateGamepadItems(void)
     DisableItem(!gamepad, padadv_settings1, "joy_stick_layout");
     DisableItem(!flick, padadv_settings1, "joy_flick_snap");
     DisableItem(!flick, padadv_settings1, "joy_flick_time");
-    DisableItem(condition, padadv_settings1, "joy_scale_diagonal_movement");
+    DisableItem(condition, padadv_settings1, "joy_movement_type");
     DisableItem(condition, padadv_settings1, "joy_movement_curve");
     DisableItem(condition, padadv_settings1, "joy_camera_curve");
 }

@@ -54,7 +54,7 @@ static int joy_look_speed;
 static int joy_outer_turn_speed;
 static int joy_outer_look_speed;
 static int joy_outer_ramp_time;
-static int joy_scale_diagonal_movement;
+static int joy_movement_type;
 static int joy_movement_curve;
 static int joy_camera_curve;
 static int joy_movement_deadzone_type;
@@ -458,7 +458,7 @@ static void RefreshSettings(void)
     camera.y.extra_sens = joy_outer_look_speed / (float)DEFAULT_SPEED;
     camera.ramp_time = joy_outer_ramp_time * 1000;
 
-    movement.circle_to_square = (joy_scale_diagonal_movement > 0);
+    movement.circle_to_square = (joy_movement_type > 0);
 
     movement.exponent = joy_movement_curve / 10.0f;
     camera.exponent = I_StandardLayout() ? (joy_camera_curve / 10.0f) : 1.0f;
@@ -503,8 +503,8 @@ void I_BindGamepadVariables(void)
         "Extra look speed at outer deadzone [degrees/second]");
     BIND_NUM(joy_outer_ramp_time, 200, 0, 1000,
         "Ramp time for extra speed [milliseconds]");
-    BIND_NUM_PADADV(joy_scale_diagonal_movement, 1, 0, 1,
-        "Scale diagonal movement (0 = Linear; 1 = Circle to Square)");
+    BIND_NUM_PADADV(joy_movement_type, 1, 0, 1,
+        "Movement type (0 = Normalized; 1 = Faster Diagonals)");
     BIND_NUM_PADADV(joy_movement_curve, 10, 10, 30,
         "Movement response curve (10 = Linear; 20 = Squared; 30 = Cubed)");
     BIND_NUM_PADADV(joy_camera_curve, 20, 10, 30,
