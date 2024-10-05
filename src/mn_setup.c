@@ -2842,7 +2842,7 @@ static setup_menu_t gen_settings3[] = {
 
 static void UpdateGamepadItems(void);
 
-static void UpdateStickLayout(void)
+static void UpdateGamepad(void)
 {
     UpdateGamepadItems();
     I_ResetGamepad();
@@ -2936,7 +2936,7 @@ static const char **GetMovementSpeedStrings(void)
     return strings;
 }
 
-#define MS_TIME_STRINGS_SIZE (50 + 1)
+#define MS_TIME_STRINGS_SIZE (100 + 1)
 
 static const char **GetMsTimeStrings(void)
 {
@@ -2956,7 +2956,7 @@ static const char *flick_snap_strings[] = {"Off", "4-Way", "8-Way"};
 static setup_menu_t padadv_settings1[] = {
 
     {"Stick Layout", S_CHOICE, CNTR_X, M_SPC, {"joy_stick_layout"},
-     .strings_id = str_layout, .action = UpdateStickLayout},
+     .strings_id = str_layout, .action = UpdateGamepad},
 
     {"Flick Snap", S_CHOICE | S_STRICT, CNTR_X, M_SPC, {"joy_flick_snap"},
      .strings_id = str_flick_snap, .action = I_ResetGamepad},
@@ -2964,7 +2964,7 @@ static setup_menu_t padadv_settings1[] = {
     {"Flick Time", S_THERMO, CNTR_X, M_THRM_SPC, {"joy_flick_time"},
      .strings_id = str_ms_time, .action = I_ResetGamepad},
 
-    MI_GAP,
+    MI_GAP_Y(6),
 
     {"Movement Type", S_CHOICE, CNTR_X, M_SPC, {"joy_movement_type"},
      .strings_id = str_movement_type, .action = I_ResetGamepad},
@@ -2977,12 +2977,17 @@ static setup_menu_t padadv_settings1[] = {
      {"joy_strafe_sensitivity"}, .strings_id = str_movement_speed,
      .action = I_ResetGamepad},
 
-    MI_GAP,
+    MI_GAP_Y(6),
 
-    {"Movement Curve", S_THERMO, CNTR_X, M_THRM_SPC, {"joy_movement_curve"},
-     .strings_id = str_curve, .action = I_ResetGamepad},
+    {"Extra Turn Speed", S_THERMO | S_THRM_SIZE11, CNTR_X, M_THRM_SPC,
+     {"joy_outer_turn_speed"}, .action = UpdateGamepad},
 
-    {"Camera Curve", S_THERMO, CNTR_X, M_THRM_SPC, {"joy_camera_curve"},
+    {"Extra Ramp Time", S_THERMO, CNTR_X, M_THRM_SPC, {"joy_outer_ramp_time"},
+     .strings_id = str_ms_time, .action = I_ResetGamepad},
+
+    MI_GAP_Y(6),
+
+    {"Response Curve", S_THERMO, CNTR_X, M_THRM_SPC, {"joy_camera_curve"},
      .strings_id = str_curve, .action = I_ResetGamepad},
 
     MI_END
@@ -3022,6 +3027,7 @@ static void UpdateGamepadItems(void)
     const boolean gyro = (I_GyroEnabled() && I_GyroSupported());
     const boolean sticks = I_UseStickLayout();
     const boolean flick = (gamepad && sticks && !I_StandardLayout());
+    const boolean ramp = (gamepad && sticks && I_RampTimeEnabled());
     const boolean condition = (!gamepad || !sticks);
 
     DisableItem(!gamepad, gen_settings4, "Advanced Options");
@@ -3037,10 +3043,11 @@ static void UpdateGamepadItems(void)
     DisableItem(!gamepad, padadv_settings1, "joy_stick_layout");
     DisableItem(!flick, padadv_settings1, "joy_flick_snap");
     DisableItem(!flick, padadv_settings1, "joy_flick_time");
+    DisableItem(condition, padadv_settings1, "joy_movement_type");
     DisableItem(condition, padadv_settings1, "joy_forward_sensitivity");
     DisableItem(condition, padadv_settings1, "joy_strafe_sensitivity");
-    DisableItem(condition, padadv_settings1, "joy_movement_type");
-    DisableItem(condition, padadv_settings1, "joy_movement_curve");
+    DisableItem(condition, padadv_settings1, "joy_outer_turn_speed");
+    DisableItem(!ramp, padadv_settings1, "joy_outer_ramp_time");
     DisableItem(condition, padadv_settings1, "joy_camera_curve");
 }
 

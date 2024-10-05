@@ -136,6 +136,11 @@ boolean I_StandardLayout(void)
     return (joy_stick_layout < LAYOUT_FLICK_STICK);
 }
 
+boolean I_RampTimeEnabled(void)
+{
+    return (joy_outer_turn_speed > 0);
+}
+
 static void CalcExtraScale(axes_t *ax)
 {
     if ((ax->x.extra_sens > 0.0f || ax->y.extra_sens > 0.0f) && ax->max_mag)
@@ -456,7 +461,7 @@ static void RefreshSettings(void)
 
     camera.x.extra_sens = joy_outer_turn_speed / (float)DEFAULT_SPEED;
     camera.y.extra_sens = joy_outer_look_speed / (float)DEFAULT_SPEED;
-    camera.ramp_time = joy_outer_ramp_time * 1000;
+    camera.ramp_time = joy_outer_ramp_time * 10000;
 
     movement.circle_to_square = (joy_movement_type > 0);
 
@@ -501,8 +506,8 @@ void I_BindGamepadVariables(void)
         "Extra turn speed at outer deadzone [degrees/second]");
     BIND_NUM(joy_outer_look_speed, 0, 0, 720,
         "Extra look speed at outer deadzone [degrees/second]");
-    BIND_NUM(joy_outer_ramp_time, 200, 0, 1000,
-        "Ramp time for extra speed [milliseconds]");
+    BIND_NUM(joy_outer_ramp_time, 20, 0, 100,
+        "Ramp time for extra speed (0 = Instant; 100 = 1000 ms)");
     BIND_NUM_PADADV(joy_movement_type, 1, 0, 1,
         "Movement type (0 = Normalized; 1 = Faster Diagonals)");
     BIND_NUM_PADADV(joy_movement_curve, 10, 10, 30,
