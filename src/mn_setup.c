@@ -311,7 +311,7 @@ enum
     str_layout,
     str_flick_snap,
     str_ms_time,
-    str_movement_speed,
+    str_movement_sensitivity,
     str_movement_type,
     str_rumble,
     str_curve,
@@ -2921,14 +2921,14 @@ static const char *movement_type_strings[] = {
     "Normalized", "Faster Diagonals"
 };
 
-#define MOVEMENT_SPEED_STRINGS_SIZE (40 + 1)
+#define MOVEMENT_SENSITIVITY_STRINGS_SIZE (40 + 1)
 
-static const char **GetMovementSpeedStrings(void)
+static const char **GetMovementSensitivityStrings(void)
 {
-    static const char *strings[MOVEMENT_SPEED_STRINGS_SIZE];
+    static const char *strings[MOVEMENT_SENSITIVITY_STRINGS_SIZE];
     char buf[8];
 
-    for (int i = 0; i < MOVEMENT_SPEED_STRINGS_SIZE; i++)
+    for (int i = 0; i < MOVEMENT_SENSITIVITY_STRINGS_SIZE; i++)
     {
         M_snprintf(buf, sizeof(buf), "%1d.%1d", i / 10, i % 10);
         strings[i] = M_StringDuplicate(buf);
@@ -2970,11 +2970,11 @@ static setup_menu_t padadv_settings1[] = {
      .strings_id = str_movement_type, .action = I_ResetGamepad},
 
     {"Forward Sensitivity", S_THERMO, CNTR_X, M_THRM_SPC,
-     {"joy_forward_sensitivity"}, .strings_id = str_movement_speed,
+     {"joy_forward_sensitivity"}, .strings_id = str_movement_sensitivity,
      .action = I_ResetGamepad},
 
     {"Strafe Sensitivity", S_THERMO, CNTR_X, M_THRM_SPC,
-     {"joy_strafe_sensitivity"}, .strings_id = str_movement_speed,
+     {"joy_strafe_sensitivity"}, .strings_id = str_movement_sensitivity,
      .action = I_ResetGamepad},
 
     MI_GAP_Y(6),
@@ -4801,7 +4801,7 @@ static const char **selectstrings[] = {
     layout_strings,
     flick_snap_strings,
     NULL, // str_ms_time
-    NULL, // str_movement_speed
+    NULL, // str_movement_sensitivity
     movement_type_strings,
     rumble_strings,
     curve_strings,
@@ -4877,7 +4877,7 @@ void MN_InitMenuStrings(void)
     selectstrings[str_midi_player] = GetMidiPlayerStrings();
     selectstrings[str_mouse_accel] = GetMouseAccelStrings();
     selectstrings[str_ms_time] = GetMsTimeStrings();
-    selectstrings[str_movement_speed] = GetMovementSpeedStrings();
+    selectstrings[str_movement_sensitivity] = GetMovementSensitivityStrings();
     selectstrings[str_gyro_sens] = GetGyroSensitivityStrings();
     selectstrings[str_gyro_accel] = GetGyroAccelStrings();
     selectstrings[str_resampler] = GetResamplerStrings();
