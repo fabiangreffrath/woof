@@ -133,7 +133,7 @@ static boolean default_reset;
 #define MI_GAP \
     {NULL, S_SKIP, 0, M_SPC}
 
-#define MI_GAP_EX(y) \
+#define MI_GAP_Y(y) \
     {NULL, S_SKIP, 0, (y)}
 
 static void DisableItem(boolean condition, setup_menu_t *menu, const char *item)
@@ -1682,19 +1682,19 @@ static setup_menu_t weap_settings2[] = {
      .strings_id = str_weapon_slots_selection,
      .action = UpdateWeaponSlotSelection},
 
-    MI_GAP_EX(4),
+    MI_GAP_Y(4),
     MI_WEAPON_SLOT(0, "weapon_slots_1_1"),
     MI_WEAPON_SLOT(1, "weapon_slots_1_2"),
     MI_WEAPON_SLOT(2, "weapon_slots_1_3"),
-    MI_GAP_EX(4),
+    MI_GAP_Y(4),
     MI_WEAPON_SLOT(3, "weapon_slots_2_1"),
     MI_WEAPON_SLOT(4, "weapon_slots_2_2"),
     MI_WEAPON_SLOT(5, "weapon_slots_2_3"),
-    MI_GAP_EX(4),
+    MI_GAP_Y(4),
     MI_WEAPON_SLOT(6, "weapon_slots_3_1"),
     MI_WEAPON_SLOT(7, "weapon_slots_3_2"),
     MI_WEAPON_SLOT(8, "weapon_slots_3_3"),
-    MI_GAP_EX(4),
+    MI_GAP_Y(4),
     MI_WEAPON_SLOT(9, "weapon_slots_4_1"),
     MI_WEAPON_SLOT(10, "weapon_slots_4_2"),
     MI_WEAPON_SLOT(11, "weapon_slots_4_3"),
@@ -2451,7 +2451,7 @@ static setup_menu_t gen_settings1[] = {
     {"Exclusive Fullscreen", S_ONOFF, CNTR_X, M_SPC, {"exclusive_fullscreen"},
      .action = ToggleExclusiveFullScreen},
 
-    MI_GAP_EX(6),
+    MI_GAP_Y(6),
 
     {"Uncapped FPS", S_ONOFF, CNTR_X, M_SPC, {"uncapped"},
      .action = UpdateFPSLimit},
@@ -2462,7 +2462,7 @@ static setup_menu_t gen_settings1[] = {
     {"VSync", S_ONOFF, CNTR_X, M_SPC, {"use_vsync"},
      .action = I_ToggleVsync},
 
-    MI_GAP_EX(5),
+    MI_GAP_Y(5),
 
     {"FOV", S_THERMO | S_THRM_SIZE11, CNTR_X, M_THRM_SPC, {"fov"},
      .action = UpdateFOV},
@@ -2556,7 +2556,7 @@ static setup_menu_t gen_settings2[] = {
     {"Music Volume", S_THERMO, CNTR_X, M_THRM_SPC, {"music_volume"},
      .action = UpdateMusicVolume},
 
-    MI_GAP_EX(6),
+    MI_GAP_Y(6),
 
     {"Sound Module", S_CHOICE, CNTR_X, M_SPC, {"snd_module"},
      .strings_id = str_sound_module, .action = SetSoundModule},
@@ -2572,14 +2572,14 @@ static setup_menu_t gen_settings2[] = {
     {"Resampler", S_CHOICE, CNTR_X, M_SPC, {"snd_resampler"},
      .strings_id = str_resampler, .action = I_OAL_SetResampler},
 
-    MI_GAP_EX(6),
+    MI_GAP_Y(6),
 
     // [FG] music backend
     {"MIDI Player", S_CHOICE | S_ACTION | S_WRAP_LINE, CNTR_X, M_SPC * 2,
      {"midi_player_menu"}, .strings_id = str_midi_player,
      .action = SetMidiPlayer},
 
-    MI_GAP_EX(6),
+    MI_GAP_Y(6),
 
     {"MIDI Options", S_FUNC, CNTR_X, M_SPC, .action = MN_Midi},
 
@@ -2681,12 +2681,12 @@ static setup_menu_t eq_settings1[] = {
     {"Preset", S_CHOICE, CNTR_X, M_SPC, {"snd_equalizer"},
      .strings_id = str_equalizer_preset, .action = I_OAL_EqualizerPreset},
 
-    MI_GAP_EX(4),
+    MI_GAP_Y(4),
 
     {"Preamp", S_THERMO, CNTR_X, M_THRM_SPC,
      {"snd_eq_preamp"}, .action = I_OAL_EqualizerPreset, .append = "dB"},
 
-    MI_GAP_EX(4),
+    MI_GAP_Y(4),
 
     {"Low Gain", S_THERMO, CNTR_X, M_THRM_SPC,
      {"snd_eq_low_gain"}, .action = I_OAL_EqualizerPreset, .append = "dB"},
@@ -2700,7 +2700,7 @@ static setup_menu_t eq_settings1[] = {
     {"High Gain", S_THERMO, CNTR_X, M_THRM_SPC,
      {"snd_eq_high_gain"}, .action = I_OAL_EqualizerPreset, .append = "dB"},
 
-    MI_GAP_EX(4),
+    MI_GAP_Y(4),
 
     {"Low Cutoff", S_NUM, CNTR_X, M_SPC,
      {"snd_eq_low_cutoff"}, .action = I_OAL_EqualizerPreset, .append = "Hz"},
@@ -2886,7 +2886,7 @@ static setup_menu_t gen_settings4[] = {
     {"Look Speed", S_THERMO | S_THRM_SIZE11, CNTR_X, M_THRM_SPC,
      {"joy_look_speed"}, .action = I_ResetGamepad},
 
-    MI_GAP_EX(4),
+    MI_GAP_Y(4),
 
     {"Movement Deadzone", S_THERMO | S_PCT, CNTR_X, M_THRM_SPC,
      {"joy_movement_inner_deadzone"}, .action = I_ResetGamepad},
@@ -2894,12 +2894,12 @@ static setup_menu_t gen_settings4[] = {
     {"Camera Deadzone", S_THERMO | S_PCT, CNTR_X, M_THRM_SPC,
      {"joy_camera_inner_deadzone"}, .action = I_ResetGamepad},
 
-    MI_GAP_EX(4),
+    MI_GAP_Y(4),
 
     {"Rumble", S_THERMO, CNTR_X, M_THRM_SPC, {"joy_rumble"},
      .strings_id = str_rumble, .action = UpdateRumble},
 
-    MI_GAP_EX(5),
+    MI_GAP_Y(5),
 
     {"Free Look", S_ONOFF, CNTR_X, M_SPC, {"padlook"},
      .action = MN_UpdatePadLook},
@@ -2907,7 +2907,7 @@ static setup_menu_t gen_settings4[] = {
     {"Invert Look", S_ONOFF, CNTR_X, M_SPC, {"joy_invert_look"},
      .action = I_ResetGamepad},
 
-    MI_GAP_EX(8),
+    MI_GAP_Y(8),
 
     {"Advanced Options", S_FUNC, CNTR_X, M_SPC, .action = MN_PadAdv},
 
