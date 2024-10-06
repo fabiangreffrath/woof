@@ -609,7 +609,7 @@ void ST_ResetTitle(void)
         *n = '\0';
     }
 
-    M_StringCopy(title_string, s, sizeof(title_string));
+    M_StringConcat(title_string, s, sizeof(title_string));
 
     if (hud_map_announce && leveltime == 0)
     {

@@ -50,7 +50,7 @@ typedef enum
     sbc_hudmodeequal,
 
     // Woof!
-    sbc_mode,
+    sbc_widgetmode,
     sbc_widgetenabled,
     sbc_widgetdisabled,
 

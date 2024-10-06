@@ -353,7 +353,7 @@ static boolean CheckConditions(sbarcondition_t *conditions, player_t *player)
                 result &= (!!cond->param == false);
                 break;
 
-            case sbc_mode:
+            case sbc_widgetmode:
                 {
                     int enabled = 0;
                     if (cond->param & sbc_mode_overlay)
