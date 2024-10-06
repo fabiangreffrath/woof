@@ -553,6 +553,8 @@ static char title_string[HU_MAXLINELENGTH];
 
 void ST_ResetTitle(void)
 {
+    title_string[0] = '\0';
+
     char *s;
 
     if (gamemapinfo && gamemapinfo->levelname)
