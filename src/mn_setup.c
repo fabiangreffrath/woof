@@ -133,7 +133,7 @@ static boolean default_reset;
 #define MI_GAP \
     {NULL, S_SKIP, 0, M_SPC}
 
-#define MI_GAP_EX(y) \
+#define MI_GAP_Y(y) \
     {NULL, S_SKIP, 0, (y)}
 
 static void DisableItem(boolean condition, setup_menu_t *menu, const char *item)
@@ -311,6 +311,7 @@ enum
     str_layout,
     str_flick_snap,
     str_ms_time,
+    str_movement_sensitivity,
     str_movement_type,
     str_rumble,
     str_curve,
@@ -1682,19 +1683,19 @@ static setup_menu_t weap_settings2[] = {
      .strings_id = str_weapon_slots_selection,
      .action = UpdateWeaponSlotSelection},
 
-    MI_GAP_EX(4),
+    MI_GAP_Y(4),
     MI_WEAPON_SLOT(0, "weapon_slots_1_1"),
     MI_WEAPON_SLOT(1, "weapon_slots_1_2"),
     MI_WEAPON_SLOT(2, "weapon_slots_1_3"),
-    MI_GAP_EX(4),
+    MI_GAP_Y(4),
     MI_WEAPON_SLOT(3, "weapon_slots_2_1"),
     MI_WEAPON_SLOT(4, "weapon_slots_2_2"),
     MI_WEAPON_SLOT(5, "weapon_slots_2_3"),
-    MI_GAP_EX(4),
+    MI_GAP_Y(4),
     MI_WEAPON_SLOT(6, "weapon_slots_3_1"),
     MI_WEAPON_SLOT(7, "weapon_slots_3_2"),
     MI_WEAPON_SLOT(8, "weapon_slots_3_3"),
-    MI_GAP_EX(4),
+    MI_GAP_Y(4),
     MI_WEAPON_SLOT(9, "weapon_slots_4_1"),
     MI_WEAPON_SLOT(10, "weapon_slots_4_2"),
     MI_WEAPON_SLOT(11, "weapon_slots_4_3"),
@@ -2451,7 +2452,7 @@ static setup_menu_t gen_settings1[] = {
     {"Exclusive Fullscreen", S_ONOFF, CNTR_X, M_SPC, {"exclusive_fullscreen"},
      .action = ToggleExclusiveFullScreen},
 
-    MI_GAP_EX(6),
+    MI_GAP_Y(6),
 
     {"Uncapped FPS", S_ONOFF, CNTR_X, M_SPC, {"uncapped"},
      .action = UpdateFPSLimit},
@@ -2462,7 +2463,7 @@ static setup_menu_t gen_settings1[] = {
     {"VSync", S_ONOFF, CNTR_X, M_SPC, {"use_vsync"},
      .action = I_ToggleVsync},
 
-    MI_GAP_EX(5),
+    MI_GAP_Y(5),
 
     {"FOV", S_THERMO | S_THRM_SIZE11, CNTR_X, M_THRM_SPC, {"fov"},
      .action = UpdateFOV},
@@ -2556,7 +2557,7 @@ static setup_menu_t gen_settings2[] = {
     {"Music Volume", S_THERMO, CNTR_X, M_THRM_SPC, {"music_volume"},
      .action = UpdateMusicVolume},
 
-    MI_GAP_EX(6),
+    MI_GAP_Y(6),
 
     {"Sound Module", S_CHOICE, CNTR_X, M_SPC, {"snd_module"},
      .strings_id = str_sound_module, .action = SetSoundModule},
@@ -2572,14 +2573,14 @@ static setup_menu_t gen_settings2[] = {
     {"Resampler", S_CHOICE, CNTR_X, M_SPC, {"snd_resampler"},
      .strings_id = str_resampler, .action = I_OAL_SetResampler},
 
-    MI_GAP_EX(6),
+    MI_GAP_Y(6),
 
     // [FG] music backend
     {"MIDI Player", S_CHOICE | S_ACTION | S_WRAP_LINE, CNTR_X, M_SPC * 2,
      {"midi_player_menu"}, .strings_id = str_midi_player,
      .action = SetMidiPlayer},
 
-    MI_GAP_EX(6),
+    MI_GAP_Y(6),
 
     {"MIDI Options", S_FUNC, CNTR_X, M_SPC, .action = MN_Midi},
 
@@ -2681,12 +2682,12 @@ static setup_menu_t eq_settings1[] = {
     {"Preset", S_CHOICE, CNTR_X, M_SPC, {"snd_equalizer"},
      .strings_id = str_equalizer_preset, .action = I_OAL_EqualizerPreset},
 
-    MI_GAP_EX(4),
+    MI_GAP_Y(4),
 
     {"Preamp", S_THERMO, CNTR_X, M_THRM_SPC,
      {"snd_eq_preamp"}, .action = I_OAL_EqualizerPreset, .append = "dB"},
 
-    MI_GAP_EX(4),
+    MI_GAP_Y(4),
 
     {"Low Gain", S_THERMO, CNTR_X, M_THRM_SPC,
      {"snd_eq_low_gain"}, .action = I_OAL_EqualizerPreset, .append = "dB"},
@@ -2700,7 +2701,7 @@ static setup_menu_t eq_settings1[] = {
     {"High Gain", S_THERMO, CNTR_X, M_THRM_SPC,
      {"snd_eq_high_gain"}, .action = I_OAL_EqualizerPreset, .append = "dB"},
 
-    MI_GAP_EX(4),
+    MI_GAP_Y(4),
 
     {"Low Cutoff", S_NUM, CNTR_X, M_SPC,
      {"snd_eq_low_cutoff"}, .action = I_OAL_EqualizerPreset, .append = "Hz"},
@@ -2807,18 +2808,6 @@ static const char **GetMouseAccelStrings(void)
 }
 
 static setup_menu_t gen_settings3[] = {
-    // [FG] double click to "use"
-    {"Double-Click to \"Use\"", S_ONOFF, CNTR_X, M_SPC, {"dclick_use"}},
-
-    {"Free Look", S_ONOFF, CNTR_X, M_SPC, {"mouselook"},
-     .action = MN_UpdateMouseLook},
-
-    // [FG] invert vertical axis
-    {"Invert Look", S_ONOFF, CNTR_X, M_SPC, {"mouse_y_invert"},
-     .action = G_UpdateMouseVariables},
-
-    MI_GAP,
-
     {"Turn Sensitivity", S_THERMO | S_THRM_SIZE11, CNTR_X, M_THRM_SPC,
      {"mouse_sensitivity"}, .action = G_UpdateMouseVariables},
 
@@ -2836,12 +2825,24 @@ static setup_menu_t gen_settings3[] = {
     {"Acceleration", S_THERMO, CNTR_X, M_THRM_SPC, {"mouse_acceleration"},
      .strings_id = str_mouse_accel, .action = G_UpdateMouseVariables},
 
+    MI_GAP,
+
+    // [FG] double click to "use"
+    {"Double-Click to \"Use\"", S_ONOFF, CNTR_X, M_SPC, {"dclick_use"}},
+
+    {"Free Look", S_ONOFF, CNTR_X, M_SPC, {"mouselook"},
+     .action = MN_UpdateMouseLook},
+
+    // [FG] invert vertical axis
+    {"Invert Look", S_ONOFF, CNTR_X, M_SPC, {"mouse_y_invert"},
+     .action = G_UpdateMouseVariables},
+
     MI_END
 };
 
 static void UpdateGamepadItems(void);
 
-static void UpdateStickLayout(void)
+static void UpdateGamepad(void)
 {
     UpdateGamepadItems();
     I_ResetGamepad();
@@ -2880,21 +2881,13 @@ static void MN_Gyro(void);
 
 static setup_menu_t gen_settings4[] = {
 
-    {"Free Look", S_ONOFF, CNTR_X, M_SPC, {"padlook"},
-     .action = MN_UpdatePadLook},
-
-    {"Invert Look", S_ONOFF, CNTR_X, M_SPC, {"joy_invert_look"},
-     .action = I_ResetGamepad},
-
-    MI_GAP_EX(4),
-
     {"Turn Speed", S_THERMO | S_THRM_SIZE11, CNTR_X, M_THRM_SPC,
      {"joy_turn_speed"}, .action = I_ResetGamepad},
 
     {"Look Speed", S_THERMO | S_THRM_SIZE11, CNTR_X, M_THRM_SPC,
      {"joy_look_speed"}, .action = I_ResetGamepad},
 
-    MI_GAP_EX(4),
+    MI_GAP_Y(4),
 
     {"Movement Deadzone", S_THERMO | S_PCT, CNTR_X, M_THRM_SPC,
      {"joy_movement_inner_deadzone"}, .action = I_ResetGamepad},
@@ -2902,12 +2895,20 @@ static setup_menu_t gen_settings4[] = {
     {"Camera Deadzone", S_THERMO | S_PCT, CNTR_X, M_THRM_SPC,
      {"joy_camera_inner_deadzone"}, .action = I_ResetGamepad},
 
-    MI_GAP_EX(4),
+    MI_GAP_Y(4),
 
     {"Rumble", S_THERMO, CNTR_X, M_THRM_SPC, {"joy_rumble"},
      .strings_id = str_rumble, .action = UpdateRumble},
 
-    MI_GAP,
+    MI_GAP_Y(5),
+
+    {"Free Look", S_ONOFF, CNTR_X, M_SPC, {"padlook"},
+     .action = MN_UpdatePadLook},
+
+    {"Invert Look", S_ONOFF, CNTR_X, M_SPC, {"joy_invert_look"},
+     .action = I_ResetGamepad},
+
+    MI_GAP_Y(8),
 
     {"Advanced Options", S_FUNC, CNTR_X, M_SPC, .action = MN_PadAdv},
 
@@ -2920,7 +2921,22 @@ static const char *movement_type_strings[] = {
     "Normalized", "Faster Diagonals"
 };
 
-#define MS_TIME_STRINGS_SIZE (50 + 1)
+#define MOVEMENT_SENSITIVITY_STRINGS_SIZE (40 + 1)
+
+static const char **GetMovementSensitivityStrings(void)
+{
+    static const char *strings[MOVEMENT_SENSITIVITY_STRINGS_SIZE];
+    char buf[8];
+
+    for (int i = 0; i < MOVEMENT_SENSITIVITY_STRINGS_SIZE; i++)
+    {
+        M_snprintf(buf, sizeof(buf), "%1d.%1d", i / 10, i % 10);
+        strings[i] = M_StringDuplicate(buf);
+    }
+    return strings;
+}
+
+#define MS_TIME_STRINGS_SIZE (100 + 1)
 
 static const char **GetMsTimeStrings(void)
 {
@@ -2940,7 +2956,7 @@ static const char *flick_snap_strings[] = {"Off", "4-Way", "8-Way"};
 static setup_menu_t padadv_settings1[] = {
 
     {"Stick Layout", S_CHOICE, CNTR_X, M_SPC, {"joy_stick_layout"},
-     .strings_id = str_layout, .action = UpdateStickLayout},
+     .strings_id = str_layout, .action = UpdateGamepad},
 
     {"Flick Snap", S_CHOICE | S_STRICT, CNTR_X, M_SPC, {"joy_flick_snap"},
      .strings_id = str_flick_snap, .action = I_ResetGamepad},
@@ -2948,18 +2964,30 @@ static setup_menu_t padadv_settings1[] = {
     {"Flick Time", S_THERMO, CNTR_X, M_THRM_SPC, {"joy_flick_time"},
      .strings_id = str_ms_time, .action = I_ResetGamepad},
 
-    MI_GAP,
+    MI_GAP_Y(6),
 
-    {"Movement Type", S_CHOICE, CNTR_X, M_SPC,
-     {"joy_scale_diagonal_movement"}, .strings_id = str_movement_type,
+    {"Movement Type", S_CHOICE, CNTR_X, M_SPC, {"joy_movement_type"},
+     .strings_id = str_movement_type, .action = I_ResetGamepad},
+
+    {"Forward Sensitivity", S_THERMO, CNTR_X, M_THRM_SPC,
+     {"joy_forward_sensitivity"}, .strings_id = str_movement_sensitivity,
      .action = I_ResetGamepad},
 
-    MI_GAP,
+    {"Strafe Sensitivity", S_THERMO, CNTR_X, M_THRM_SPC,
+     {"joy_strafe_sensitivity"}, .strings_id = str_movement_sensitivity,
+     .action = I_ResetGamepad},
 
-    {"Movement Curve", S_THERMO, CNTR_X, M_THRM_SPC, {"joy_movement_curve"},
-     .strings_id = str_curve, .action = I_ResetGamepad},
+    MI_GAP_Y(6),
 
-    {"Camera Curve", S_THERMO, CNTR_X, M_THRM_SPC, {"joy_camera_curve"},
+    {"Extra Turn Speed", S_THERMO | S_THRM_SIZE11, CNTR_X, M_THRM_SPC,
+     {"joy_outer_turn_speed"}, .action = UpdateGamepad},
+
+    {"Extra Ramp Time", S_THERMO, CNTR_X, M_THRM_SPC, {"joy_outer_ramp_time"},
+     .strings_id = str_ms_time, .action = I_ResetGamepad},
+
+    MI_GAP_Y(6),
+
+    {"Response Curve", S_THERMO, CNTR_X, M_THRM_SPC, {"joy_camera_curve"},
      .strings_id = str_curve, .action = I_ResetGamepad},
 
     MI_END
@@ -2999,6 +3027,7 @@ static void UpdateGamepadItems(void)
     const boolean gyro = (I_GyroEnabled() && I_GyroSupported());
     const boolean sticks = I_UseStickLayout();
     const boolean flick = (gamepad && sticks && !I_StandardLayout());
+    const boolean ramp = (gamepad && sticks && I_RampTimeEnabled());
     const boolean condition = (!gamepad || !sticks);
 
     DisableItem(!gamepad, gen_settings4, "Advanced Options");
@@ -3014,8 +3043,11 @@ static void UpdateGamepadItems(void)
     DisableItem(!gamepad, padadv_settings1, "joy_stick_layout");
     DisableItem(!flick, padadv_settings1, "joy_flick_snap");
     DisableItem(!flick, padadv_settings1, "joy_flick_time");
-    DisableItem(condition, padadv_settings1, "joy_scale_diagonal_movement");
-    DisableItem(condition, padadv_settings1, "joy_movement_curve");
+    DisableItem(condition, padadv_settings1, "joy_movement_type");
+    DisableItem(condition, padadv_settings1, "joy_forward_sensitivity");
+    DisableItem(condition, padadv_settings1, "joy_strafe_sensitivity");
+    DisableItem(condition, padadv_settings1, "joy_outer_turn_speed");
+    DisableItem(!ramp, padadv_settings1, "joy_outer_ramp_time");
     DisableItem(condition, padadv_settings1, "joy_camera_curve");
 }
 
@@ -4769,6 +4801,7 @@ static const char **selectstrings[] = {
     layout_strings,
     flick_snap_strings,
     NULL, // str_ms_time
+    NULL, // str_movement_sensitivity
     movement_type_strings,
     rumble_strings,
     curve_strings,
@@ -4844,6 +4877,7 @@ void MN_InitMenuStrings(void)
     selectstrings[str_midi_player] = GetMidiPlayerStrings();
     selectstrings[str_mouse_accel] = GetMouseAccelStrings();
     selectstrings[str_ms_time] = GetMsTimeStrings();
+    selectstrings[str_movement_sensitivity] = GetMovementSensitivityStrings();
     selectstrings[str_gyro_sens] = GetGyroSensitivityStrings();
     selectstrings[str_gyro_accel] = GetGyroAccelStrings();
     selectstrings[str_resampler] = GetResamplerStrings();
