@@ -57,7 +57,7 @@
 #include "w_wad.h"
 #include "z_zone.h"
 
-#include "miniz.h"
+#include "spng.h"
 
 // [FG] set the application icon
 
@@ -1055,19 +1055,8 @@ byte I_GetNearestColor(byte *palette, int r, int g, int b)
 // [FG] save screenshots in PNG format
 boolean I_WritePNGfile(char *filename)
 {
-    SDL_Rect rect = {0};
-    SDL_PixelFormat *format;
-    int pitch;
-    byte *pixels;
-    boolean ret = false;
-
-    // [FG] native PNG pixel format
-    const uint32_t png_format = SDL_PIXELFORMAT_RGB24;
-    format = SDL_AllocFormat(png_format);
-
-    UpdateRender();
-
     // [FG] adjust cropping rectangle if necessary
+    SDL_Rect rect = {0};
     SDL_GetRendererOutputSize(renderer, &rect.w, &rect.h);
     if (rect.w * actualheight > rect.h * video.width)
     {
@@ -1083,37 +1072,50 @@ boolean I_WritePNGfile(char *filename)
     }
 
     // [FG] allocate memory for screenshot image
-    pitch = rect.w * format->BytesPerPixel;
-    pixels = malloc(rect.h * pitch);
-    SDL_RenderReadPixels(renderer, &rect, format->format, pixels, pitch);
+    int pitch = rect.w * 3;
+    int size = rect.h * pitch;
+    byte *pixels = malloc(size);
 
+    SDL_RenderReadPixels(renderer, &rect, SDL_PIXELFORMAT_RGB24, pixels, pitch);
+
+    FILE *file = M_fopen(filename, "wb");
+    if (!file)
     {
-        size_t size = 0;
-        void *png = NULL;
-        FILE *file;
-
-        png = tdefl_write_image_to_png_file_in_memory(
-            pixels, rect.w, rect.h, format->BytesPerPixel, &size);
-
-        if (png)
-        {
-            if ((file = M_fopen(filename, "wb")))
-            {
-                if (fwrite(png, 1, size, file) == size)
-                {
-                    ret = true;
-                    I_Printf(VB_INFO, "I_WritePNGfile: %s", filename);
-                }
-                fclose(file);
-            }
-            free(png);
-        }
+        free(pixels);
+        return false;
     }
 
-    SDL_FreeFormat(format);
+    spng_ctx *ctx = spng_ctx_new(SPNG_CTX_ENCODER);
+    spng_set_png_file(ctx, file);
+    spng_set_option(ctx, SPNG_IMG_COMPRESSION_LEVEL, 1);
+
+    struct spng_ihdr ihdr = {0};
+    ihdr.width = rect.w;
+    ihdr.height = rect.h;
+    ihdr.color_type = SPNG_COLOR_TYPE_TRUECOLOR;
+    ihdr.bit_depth = 8;
+    spng_set_ihdr(ctx, &ihdr);
+
+    int ret = spng_encode_image(ctx, pixels, size, SPNG_FMT_PNG,
+                                SPNG_ENCODE_FINALIZE);
+    if (ret)
+    {
+        I_Printf(VB_ERROR, "spng_encode_image() error: %s\n",
+                 spng_strerror(ret));
+    }
+    else
+    {
+        I_Printf(VB_INFO, "I_WritePNGfile: %s", filename);
+    }
+
+    fclose(file);
+
+    spng_ctx_free(ctx);
     free(pixels);
 
-    return ret;
+    drs_skip_frame = true;
+
+    return !ret;
 }
 
 // Set the application icon
