@@ -153,10 +153,11 @@ void I_InitTimer(void)
                                    CREATE_WAITABLE_TIMER_MANUAL_RESET
                                    | CREATE_WAITABLE_TIMER_HIGH_RESOLUTION,
                                    TIMER_ALL_ACCESS);
-  #else
-    hTimer = CreateWaitableTimer(NULL, TRUE, NULL);
   #endif
-
+    if (hTimer == NULL)
+    {
+        hTimer = CreateWaitableTimer(NULL, TRUE, NULL);
+    }
     if (hTimer == NULL)
     {
         I_Error("I_InitTimer: CreateWaitableTimer failed");
