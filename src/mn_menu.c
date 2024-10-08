@@ -186,7 +186,18 @@ short whichSkull;              // which skull to draw (he blinks)
 
 char skullName[2][/*8*/ 9] = {"M_SKULL1", "M_SKULL2"};
 
-static menu_t SaveDef, LoadDef, QuickLoadDef, LoadAutoSaveDef;
+// Quick save and regular save menus. Auto save not shown.
+static menu_t SaveDef;
+
+// Regular load menu. Auto save not shown.
+static menu_t LoadDef;
+
+// Quick load menu. Shares same menuitems as LoadDef. Auto save not shown.
+static menu_t QuickLoadDef;
+
+// First page of regular load menu when auto saving is enabled.
+static menu_t LoadAutoSaveDef;
+
 static menu_t *currentMenu; // current menudef
 
 // end of externs added for setup menus
