@@ -89,8 +89,8 @@ static boolean gyro_enable;
 static space_t gyro_space;
 static int gyro_button_action;
 static int gyro_stick_action;
-static int gyro_turn_speed;
-static int gyro_look_speed;
+static int gyro_turn_sensitivity;
+static int gyro_look_sensitivity;
 static int gyro_acceleration;
 static int gyro_accel_min_threshold;
 static int gyro_accel_max_threshold;
@@ -773,8 +773,8 @@ void I_RefreshGyroSettings(void)
 
     AccelerateGyro =
         (gyro_acceleration > 10) ? AccelerateGyro_Full : AccelerateGyro_Skip;
-    motion.min_pitch_sens = gyro_look_speed / 10.0f;
-    motion.min_yaw_sens = gyro_turn_speed / 10.0f;
+    motion.min_pitch_sens = gyro_look_sensitivity / 10.0f;
+    motion.min_yaw_sens = gyro_turn_sensitivity / 10.0f;
     motion.max_pitch_sens = motion.min_pitch_sens * gyro_acceleration / 10.0f;
     motion.max_yaw_sens = motion.min_yaw_sens * gyro_acceleration / 10.0f;
     motion.accel_min_thresh = gyro_accel_min_threshold * PI_F / 180.0f;
@@ -811,10 +811,10 @@ void I_BindGyroVaribales(void)
     BIND_NUM_GYRO(gyro_stick_action,
         ACTION_NONE, ACTION_NONE, ACTION_ENABLE,
         "Camera stick action (0 = None; 1 = Disable Gyro; 2 = Enable Gyro)");
-    BIND_NUM_GYRO(gyro_turn_speed, 10, 0, 100,
-        "Gyro turn speed (0 = 0.0x; 100 = 10.0x)");
-    BIND_NUM_GYRO(gyro_look_speed, 10, 0, 100,
-        "Gyro look speed (0 = 0.0x; 100 = 10.0x)");
+    BIND_NUM_GYRO(gyro_turn_sensitivity, 10, 0, 100,
+        "Gyro turn sensitivity (0 = 0.0x; 100 = 10.0x)");
+    BIND_NUM_GYRO(gyro_look_sensitivity, 10, 0, 100,
+        "Gyro look sensitivity (0 = 0.0x; 100 = 10.0x)");
     BIND_NUM_GYRO(gyro_acceleration, 20, 10, 40,
         "Gyro acceleration multiplier (10 = 1.0x; 40 = 4.0x)");
     BIND_NUM(gyro_accel_min_threshold, 0, 0, 200,

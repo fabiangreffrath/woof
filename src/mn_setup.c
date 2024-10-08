@@ -3143,11 +3143,13 @@ static setup_menu_t gyro_settings1[] = {
 
     MI_GAP,
 
-    {"Turn Speed", S_THERMO | S_THRM_SIZE11, CNTR_X, M_THRM_SPC,
-     {"gyro_turn_speed"}, .strings_id = str_gyro_sens, .action = I_ResetGamepad},
+    {"Turn Sensitivity", S_THERMO | S_THRM_SIZE11, CNTR_X, M_THRM_SPC,
+     {"gyro_turn_sensitivity"}, .strings_id = str_gyro_sens,
+     .action = I_ResetGamepad},
 
-    {"Look Speed", S_THERMO | S_THRM_SIZE11, CNTR_X, M_THRM_SPC,
-     {"gyro_look_speed"}, .strings_id = str_gyro_sens, .action = I_ResetGamepad},
+    {"Look Sensitivity", S_THERMO | S_THRM_SIZE11, CNTR_X, M_THRM_SPC,
+     {"gyro_look_sensitivity"}, .strings_id = str_gyro_sens,
+     .action = I_ResetGamepad},
 
     {"Acceleration", S_THERMO, CNTR_X, M_THRM_SPC, {"gyro_acceleration"},
      .strings_id = str_gyro_accel, .action = I_ResetGamepad},
@@ -3176,8 +3178,8 @@ static void UpdateGyroItems(void)
     DisableItem(condition, gyro_settings1, "gyro_space");
     DisableItem(condition, gyro_settings1, "gyro_button_action");
     DisableItem(condition, gyro_settings1, "gyro_stick_action");
-    DisableItem(condition, gyro_settings1, "gyro_turn_speed");
-    DisableItem(condition, gyro_settings1, "gyro_look_speed");
+    DisableItem(condition, gyro_settings1, "gyro_turn_sensitivity");
+    DisableItem(condition, gyro_settings1, "gyro_look_sensitivity");
     DisableItem(condition, gyro_settings1, "gyro_acceleration");
     DisableItem(condition, gyro_settings1, "gyro_smooth_threshold");
     DisableItem(condition, gyro_settings1, "Calibrate");
