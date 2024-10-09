@@ -60,6 +60,11 @@ static int wipe_initColorXForm(int width, int height, int ticks)
 
 static int wipe_doColorXForm(int width, int height, int ticks)
 {
+  if (ticks <= 0)
+  {
+    return 0;
+  }
+
   for (int y = 0; y < height; y++)
   {
     byte *sta = wipe_scr_start + y * width;
@@ -345,6 +350,11 @@ static int wipe_initFizzle(int width, int height, int ticks)
 
 static int wipe_doFizzle(int width, int height, int ticks)
 {
+    if (ticks <= 0)
+    {
+        return false;
+    }
+
     const int pixperframe = (video.unscaledw * WIPE_ROWS) >> 5;
     unsigned int rndval = lastrndval;
 
