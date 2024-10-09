@@ -843,7 +843,7 @@ static void M_DrawBorderedSnapshot(int slot)
     const int x =
         video.deltaw + currentMenu->x + SKULLXOFF - snapshot_width - 8;
     const int y = (currentMenu->numitems * LINEHEIGHT - snapshot_height) * slot
-                  / currentMenu->numitems;
+                  / currentMenu->numitems * 8 / 10;
 
     const int snapshot_x = MAX(8, x);
     const int snapshot_y = currentMenu->y + MAX(0, y);
@@ -865,10 +865,13 @@ static void M_DrawBorderedSnapshot(int slot)
     }
 
     txt = MN_GetSavegameTime(slot);
-    MN_DrawString(snapshot_x + snapshot_width / 2 - MN_GetPixelWidth(txt) / 2
-                      - video.deltaw,
-                  snapshot_y + snapshot_height + MN_StringHeight(txt), CR_GOLD,
-                  txt);
+    const int txt_x = snapshot_x + snapshot_width / 2 - video.deltaw;
+    const int txt_y = snapshot_y + snapshot_height + MN_StringHeight(txt);
+    MN_DrawString(txt_x - MN_GetPixelWidth(txt) / 2, txt_y, CR_GOLD, txt);
+
+    txt = MN_GetMapName(slot);
+    MN_DrawString(txt_x - MN_GetPixelWidth(txt) / 2,
+                  txt_y + MN_StringHeight(txt) * 3 / 2, CR_GOLD, txt);
 
     // [FG] draw the view border around the snapshot
     R_DrawBorder(snapshot_x, snapshot_y, snapshot_width, snapshot_height);
@@ -1196,6 +1199,7 @@ static void M_ReadSaveString(char *name, int menu_slot, int save_slot,
 {
     FILE *fp = M_fopen(name, "rb");
     MN_ReadSavegameTime(menu_slot, name);
+    MN_ReadMapName(menu_slot, name, fp != NULL);
     free(name);
 
     MN_ResetSnapshot(menu_slot);

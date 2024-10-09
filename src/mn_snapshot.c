@@ -24,8 +24,10 @@
 #include "doomdef.h"
 #include "doomstat.h"
 #include "doomtype.h"
+#include "g_game.h"
 #include "m_fixed.h"
 #include "m_io.h"
+#include "m_misc.h"
 #include "r_main.h"
 #include "v_video.h"
 
@@ -36,6 +38,9 @@ static const int snapshot_size = SCREENWIDTH * SCREENHEIGHT;
 static byte *snapshots[10];
 static byte *current_snapshot;
 static char savegametimes[10][32];
+
+#define MAPNAMESIZE 8
+static char mapnames[10][MAPNAMESIZE];
 
 const int MN_SnapshotDataSize(void)
 {
@@ -113,6 +118,25 @@ void MN_ReadSavegameTime(int i, char *name)
 char *MN_GetSavegameTime(int i)
 {
     return savegametimes[i];
+}
+
+void MN_ReadMapName(int i, const char *name, boolean read_file)
+{
+    const char *buf = (read_file ? G_GetMapNameFromSaveGame(name) : NULL);
+
+    if (buf)
+    {
+        M_StringCopy(mapnames[i], buf, MAPNAMESIZE);
+    }
+    else
+    {
+        mapnames[i][0] = '\0';
+    }
+}
+
+const char *MN_GetMapName(int i)
+{
+    return mapnames[i];
 }
 
 // [FG] take a snapshot in SCREENWIDTH*SCREENHEIGHT resolution, i.e.

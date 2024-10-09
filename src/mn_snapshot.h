@@ -31,4 +31,7 @@ boolean MN_DrawSnapshot(int i, int x, int y, int w, int h);
 void MN_ReadSavegameTime(int i, char *name);
 char *MN_GetSavegameTime(int i);
 
+void MN_ReadMapName(int i, const char *name, boolean read_file);
+const char *MN_GetMapName(int i);
+
 #endif

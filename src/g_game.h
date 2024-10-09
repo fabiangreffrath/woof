@@ -52,6 +52,7 @@ void G_ForcedLoadAutoSave(void);
 void G_ForcedLoadGame(void);           // killough 5/15/98: forced loadgames
 void G_SaveAutoSave(char *description);
 void G_SaveGame(int slot, char *description); // Called by M_Responder.
+const char *G_GetMapNameFromSaveGame(const char *name);
 boolean G_AutoSaveEnabled(void);
 boolean G_LoadAutoSaveDeathUse(void);
 void G_RecordDemo(char *name);              // Only called by startup code.

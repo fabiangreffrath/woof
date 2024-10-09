@@ -2569,6 +2569,70 @@ static void G_DoSaveAutoSave(void)
   DoSaveGame(name);
 }
 
+static void CheckSaveVersionEx(saveg_compat_t *out, const char *ptr,
+                               const char *str, saveg_compat_t ver)
+{
+  if (strncmp(ptr, str, strlen(str)) == 0)
+  {
+    *out = ver;
+  }
+}
+
+const char *G_GetMapNameFromSaveGame(const char *name)
+{
+  byte *tempbuffer;
+  const int length = M_ReadFile(name, &tempbuffer);
+
+  if (length < SAVESTRINGSIZE + VERSIONSIZE + 5)
+  {
+    Z_Free(tempbuffer);
+    return NULL;
+  }
+
+  byte *ptr = tempbuffer + SAVESTRINGSIZE;
+
+  saveg_compat_t saveg_temp = -1;
+
+  char vcheck[VERSIONSIZE];
+  M_snprintf(vcheck, VERSIONSIZE, VERSIONID, MBFVERSION);
+  CheckSaveVersionEx(&saveg_temp, ptr, vcheck, saveg_mbf);
+  CheckSaveVersionEx(&saveg_temp, ptr, "Woof 6.0.0", saveg_woof600);
+  CheckSaveVersionEx(&saveg_temp, ptr, "Woof 13.0.0", saveg_woof1300);
+  CheckSaveVersionEx(&saveg_temp, ptr, CURRENT_SAVE_VERSION, saveg_current);
+
+  if (saveg_temp == -1
+      || (saveg_temp != saveg_mbf && saveg_temp < saveg_woof600))
+  {
+    Z_Free(tempbuffer);
+    return NULL;
+  }
+
+  ptr += VERSIONSIZE;
+
+  if (saveg_temp > saveg_woof510)
+  {
+    ptr++; // demo_version
+  }
+
+  ptr++; // tmp_compat
+  ptr++; // tmp_skill
+
+  const int tmp_episode = *ptr++;
+  const int tmp_map = *ptr;
+  Z_Free(tempbuffer);
+
+  const mapentry_t *tmp_gamemapinfo = G_LookupMapinfo(tmp_episode, tmp_map);
+
+  if (tmp_gamemapinfo && U_CheckField(tmp_gamemapinfo->label))
+  {
+    return tmp_gamemapinfo->label;
+  }
+  else
+  {
+    return MAPNAME(tmp_episode, tmp_map);
+  }
+}
+
 static void CheckSaveVersion(const char *str, saveg_compat_t ver)
 {
   if (strncmp((char *) save_p, str, strlen(str)) == 0)
