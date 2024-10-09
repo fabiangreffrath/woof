@@ -2591,17 +2591,15 @@ const char *G_GetMapNameFromSaveGame(const char *name)
 
   byte *ptr = tempbuffer + SAVESTRINGSIZE;
 
-  saveg_compat_t saveg_temp = -1;
+  saveg_compat_t saveg_temp = saveg_current;
 
   char vcheck[VERSIONSIZE];
   M_snprintf(vcheck, VERSIONSIZE, VERSIONID, MBFVERSION);
   CheckSaveVersionEx(&saveg_temp, ptr, vcheck, saveg_mbf);
   CheckSaveVersionEx(&saveg_temp, ptr, "Woof 6.0.0", saveg_woof600);
   CheckSaveVersionEx(&saveg_temp, ptr, "Woof 13.0.0", saveg_woof1300);
-  CheckSaveVersionEx(&saveg_temp, ptr, CURRENT_SAVE_VERSION, saveg_current);
 
-  if (saveg_temp == -1
-      || (saveg_temp != saveg_mbf && saveg_temp < saveg_woof600))
+  if (saveg_temp != saveg_mbf && saveg_temp < saveg_woof600)
   {
     Z_Free(tempbuffer);
     return NULL;
