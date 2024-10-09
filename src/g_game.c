@@ -2569,10 +2569,10 @@ static void G_DoSaveAutoSave(void)
   DoSaveGame(name);
 }
 
-static void CheckSaveVersionEx(saveg_compat_t *out, const char *ptr,
+static void CheckSaveVersionEx(saveg_compat_t *out, byte *ptr,
                                const char *str, saveg_compat_t ver)
 {
-  if (strncmp(ptr, str, strlen(str)) == 0)
+  if (strncmp((const char *)ptr, str, strlen(str)) == 0)
   {
     *out = ver;
   }
