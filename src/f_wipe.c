@@ -53,42 +53,47 @@ static int fade_tick;
 
 static int wipe_initColorXForm(int width, int height, int ticks)
 {
-  V_PutBlock(0, 0, width, height, wipe_scr_start);
-  fade_tick = 0;
-  return 0;
+    V_PutBlock(0, 0, width, height, wipe_scr_start);
+    fade_tick = 0;
+    return 0;
 }
 
 static int wipe_doColorXForm(int width, int height, int ticks)
 {
-  for (int y = 0; y < height; y++)
-  {
-    byte *sta = wipe_scr_start + y * width;
-    byte *end = wipe_scr_end + y * width;
-    byte *dst = wipe_scr + y * video.pitch;
-
-    for (int x = 0; x < width; x++)
+    if (ticks <= 0)
     {
-      unsigned int *fg2rgb = Col2RGB8[fade_tick];
-      unsigned int *bg2rgb = Col2RGB8[64 - fade_tick];
-      unsigned int fg, bg;
-
-      fg = fg2rgb[end[x]];
-      bg = bg2rgb[sta[x]];
-      fg = (fg + bg) | 0x1f07c1f;
-      dst[x] = RGB32k[0][0][fg & (fg >> 15)];
+        return 0;
     }
-  }
 
-  fade_tick += 2 * ticks;
+    for (int y = 0; y < height; y++)
+    {
+        byte *sta = wipe_scr_start + y * width;
+        byte *end = wipe_scr_end + y * width;
+        byte *dst = wipe_scr + y * video.pitch;
 
-  return (fade_tick > 64);
+        for (int x = 0; x < width; x++)
+        {
+            unsigned int *fg2rgb = Col2RGB8[fade_tick];
+            unsigned int *bg2rgb = Col2RGB8[64 - fade_tick];
+            unsigned int fg, bg;
+
+            fg = fg2rgb[end[x]];
+            bg = bg2rgb[sta[x]];
+            fg = (fg + bg) | 0x1f07c1f;
+            dst[x] = RGB32k[0][0][fg & (fg >> 15)];
+        }
+    }
+
+    fade_tick += 2 * ticks;
+
+    return (fade_tick > 64);
 }
 
 static int wipe_exit(int width, int height, int ticks)
 {
-  Z_Free(wipe_scr_start);
-  Z_Free(wipe_scr_end);
-  return 0;
+    Z_Free(wipe_scr_start);
+    Z_Free(wipe_scr_end);
+    return 0;
 }
 
 static int *ybuff1, *ybuff2;
@@ -246,32 +251,32 @@ int wipe_renderMelt(int width, int height, int ticks)
 
 static int wipe_exitMelt(int width, int height, int ticks)
 {
-  Z_Free(ybuff1);
-  Z_Free(ybuff2);
-  wipe_exit(width, height, ticks);
-  return 0;
+    Z_Free(ybuff1);
+    Z_Free(ybuff2);
+    wipe_exit(width, height, ticks);
+    return 0;
 }
 
 int wipe_StartScreen(int x, int y, int width, int height)
 {
-  int size = width * height;
-  wipe_scr_start = Z_Malloc(size * sizeof(*wipe_scr_start), PU_STATIC, NULL);
-  I_ReadScreen(wipe_scr_start);
-  return 0;
+    int size = width * height;
+    wipe_scr_start = Z_Malloc(size * sizeof(*wipe_scr_start), PU_STATIC, NULL);
+    I_ReadScreen(wipe_scr_start);
+    return 0;
 }
 
 int wipe_EndScreen(int x, int y, int width, int height)
 {
-  int size = width * height;
-  wipe_scr_end = Z_Malloc(size * sizeof(*wipe_scr_end), PU_STATIC, NULL);
-  I_ReadScreen(wipe_scr_end);
-  V_DrawBlock(x, y, width, height, wipe_scr_start); // restore start scr.
-  return 0;
+    int size = width * height;
+    wipe_scr_end = Z_Malloc(size * sizeof(*wipe_scr_end), PU_STATIC, NULL);
+    I_ReadScreen(wipe_scr_end);
+    V_DrawBlock(x, y, width, height, wipe_scr_start); // restore start scr.
+    return 0;
 }
 
 static int wipe_NOP(int width, int height, int tics)
 {
-  return 0;
+    return 0;
 }
 
 /*
@@ -292,16 +297,16 @@ static int wipe_NOP(int width, int height, int tics)
 
 // XOR masks for the pseudo-random number sequence starting with n=17 bits
 static const uint32_t rndmasks[] = {
-                    // n    XNOR from (starting at 1, not 0 as usual)
-    0x00012000,     // 17   17,14
-    0x00020400,     // 18   18,11
-    0x00040023,     // 19   19,6,2,1
-    0x00090000,     // 20   20,17
-    0x00140000,     // 21   21,19
-    0x00300000,     // 22   22,21
-    0x00420000,     // 23   23,18
-    0x00e10000,     // 24   24,23,22,17
-    0x01200000,     // 25   25,22      (this is enough for 8191x4095)
+                // n    XNOR from (starting at 1, not 0 as usual)
+    0x00012000, // 17   17,14
+    0x00020400, // 18   18,11
+    0x00040023, // 19   19,6,2,1
+    0x00090000, // 20   20,17
+    0x00140000, // 21   21,19
+    0x00300000, // 22   22,21
+    0x00420000, // 23   23,18
+    0x00e10000, // 24   24,23,22,17
+    0x01200000, // 25   25,22      (this is enough for 8191x4095)
 };
 
 // Returns the number of bits needed to represent the given value
@@ -330,9 +335,13 @@ static int wipe_initFizzle(int width, int height, int ticks)
 
     int rndbits = rndbits_x + rndbits_y;
     if (rndbits < 17)
+    {
         rndbits = 17; // no problem, just a bit slower
+    }
     else if (rndbits > 25)
+    {
         rndbits = 25; // fizzle fade will not fill whole screen
+    }
 
     rndmask = rndmasks[rndbits - 17];
 
@@ -345,6 +354,11 @@ static int wipe_initFizzle(int width, int height, int ticks)
 
 static int wipe_doFizzle(int width, int height, int ticks)
 {
+    if (ticks <= 0)
+    {
+        return false;
+    }
+
     const int pixperframe = (video.unscaledw * WIPE_ROWS) >> 5;
     unsigned int rndval = lastrndval;
 
@@ -395,46 +409,44 @@ static int wipe_doFizzle(int width, int height, int ticks)
     return false;
 }
 
-static int (*const wipes[])(int, int, int) = {
-  wipe_NOP,
-  wipe_NOP,
-  wipe_NOP,
-  wipe_exit,
-  wipe_initMelt,
-  wipe_doMelt,
-  wipe_renderMelt,
-  wipe_exitMelt,
-  wipe_initColorXForm,
-  wipe_doColorXForm,
-  wipe_NOP,
-  wipe_exit,
-  wipe_initFizzle,
-  wipe_doFizzle,
-  wipe_NOP,
-  wipe_exit,
+typedef int (*wipefunc_t)(int, int, int);
+
+typedef struct
+{
+    wipefunc_t init;
+    wipefunc_t update;
+    wipefunc_t render;
+    wipefunc_t exit;
+} wipe_t;
+
+static wipe_t wipes[] = {
+    {wipe_NOP,            wipe_NOP,          wipe_NOP,        wipe_exit    },
+    {wipe_initMelt,       wipe_doMelt,       wipe_renderMelt, wipe_exitMelt},
+    {wipe_initColorXForm, wipe_doColorXForm, wipe_NOP,        wipe_exit    },
+    {wipe_initFizzle,     wipe_doFizzle,     wipe_NOP,        wipe_exit    },
 };
 
 // killough 3/5/98: reformatted and cleaned up
 int wipe_ScreenWipe(int wipeno, int x, int y, int width, int height, int ticks)
 {
-  static boolean go;                               // when zero, stop the wipe
+    static boolean go; // when zero, stop the wipe
 
-  if (!go)                                         // initial stuff
+    if (!go) // initial stuff
     {
-      go = 1;
-      wipe_scr = I_VideoBuffer;
-      wipes[wipeno*4](width, height, ticks);
+        go = 1;
+        wipe_scr = I_VideoBuffer;
+        wipes[wipeno].init(width, height, ticks);
     }
 
-  int rc = wipes[wipeno*4+1](width, height, ticks);
-  wipes[wipeno*4+2](width, height, ticks);
+    int rc = wipes[wipeno].update(width, height, ticks);
+    wipes[wipeno].render(width, height, ticks);
 
-  if (rc)     // final stuff
+    if (rc) // final stuff
     {
-      wipes[wipeno*4+3](width, height, ticks);
-      go = 0;
+        wipes[wipeno].exit(width, height, ticks);
+        go = 0;
     }
-  return !go;
+    return !go;
 }
 
 //----------------------------------------------------------------------------
