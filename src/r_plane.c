@@ -522,11 +522,10 @@ static void do_draw_mbf_sky(visplane_t *pl)
     dc_texheight = textureheight[texture] >> FRACBITS; // killough
     dc_iscale = skyiscale;
 
-    // [FG] stretch short skies
-    boolean stretch = (stretchsky && dc_texheight < 200);
-    if (stretch || !vertically_scrolling)
+    if (!vertically_scrolling)
     {
-        if (stretch)
+        // [FG] stretch short skies
+        if (stretchsky && dc_texheight < 200)
         {
             dc_iscale = dc_iscale * dc_texheight / SKYSTRETCH_HEIGHT;
             dc_texturemid = dc_texturemid * dc_texheight / SKYSTRETCH_HEIGHT;
