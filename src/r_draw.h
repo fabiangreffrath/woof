@@ -23,7 +23,8 @@
 #include "doomtype.h"
 #include "m_fixed.h"
 
-extern lighttable_t *dc_colormap[2];
+extern lighttable_t *dc_colormap;
+extern lighttable_t *dc_lightlevels[33];
 extern int      dc_x;
 extern int      dc_yl;
 extern int      dc_yh;
@@ -33,8 +34,8 @@ extern int      dc_texheight;    // killough
 extern byte     dc_skycolor;
 
 // first pixel in a column
-extern byte     *dc_source;         
-extern const byte *dc_brightmap;
+extern byte     *dc_source;
+extern byte     *dc_brightmap;
 
 // The span blitting interface.
 // Hook in assembler or system specific BLT here.
@@ -93,7 +94,7 @@ void R_DrawViewBorder(void);
 
 void R_InitBufferRes(void);
 
-void R_InitDrawFunctions(void);
+void R_BrightmapFunctions(boolean enable);
 
 #endif
 

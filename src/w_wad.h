@@ -62,6 +62,7 @@ typedef enum
   ns_flats,
   ns_colormaps,
   ns_voxels,
+  ns_brightmaps,
   ns_hires // [Woof!] namespace to avoid conflicts with high-resolution textures
 } namespace_t;
 
