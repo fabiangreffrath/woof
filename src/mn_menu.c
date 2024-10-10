@@ -3485,6 +3485,7 @@ void M_Drawer(void)
     // [FG] check current menu for missing menu graphics lumps - only once
     if (currentMenu->lumps_missing == 0)
     {
+        int max_priority = -1;
         for (int i = 0; i < max; i++)
         {
             const char *name = currentMenu->menuitems[i].name;
@@ -3497,10 +3498,13 @@ void M_Drawer(void)
                 if (patch_lump >= 0)
                 {
                     patch_priority = lumpinfo[patch_lump].handle.priority;
+                    max_priority = MAX(max_priority, patch_priority);
                 }
             }
 
-            if ((patch_lump < 0 || patch_priority < bigfont_priority)
+            if ((patch_lump < 0
+                 || patch_priority < bigfont_priority
+                 || patch_priority < max_priority)
                 && currentMenu->menuitems[i].alttext)
             {
                 currentMenu->lumps_missing++;
