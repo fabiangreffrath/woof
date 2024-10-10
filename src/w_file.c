@@ -92,7 +92,8 @@ static boolean W_FILE_AddDir(w_handle_t handle, const char *path,
         item.size = FileLength(descriptor);
 
         item.module = &w_file_module;
-        w_handle_t local_handle = {.p1.descriptor = descriptor};
+        w_handle_t local_handle = {.p1.descriptor = descriptor,
+                                   .priority = handle.priority};
         item.handle = local_handle;
 
         array_push(lumpinfo, item);
@@ -125,7 +126,8 @@ static w_type_t W_FILE_Open(const char *path, w_handle_t *handle)
 
     I_Printf(VB_INFO, " adding %s", path); // killough 8/8/98
 
-    w_handle_t local_handle = {.p1.descriptor = descriptor};
+    w_handle_t local_handle = {.p1.descriptor = descriptor,
+                               .priority = handle->priority};
 
     // open the file and add to directory
 
