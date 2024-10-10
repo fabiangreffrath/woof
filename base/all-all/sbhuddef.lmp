@@ -21,7 +21,7 @@
       {
         "widget":
         {
-          "x": 0,
+          "x": 2,
           "y": 160,
           "alignment": 16,
           "tranmap": null,
@@ -41,7 +41,7 @@
       {
         "widget":
         {
-          "x": 0,
+          "x": 2,
           "y": 153,
           "alignment": 16,
           "tranmap": null,
@@ -61,7 +61,7 @@
       {
         "widget":
         {
-          "x": 0,
+          "x": 2,
           "y": 152,
           "alignment": 16,
           "tranmap": null,
@@ -81,7 +81,7 @@
       {
         "widget":
         {
-          "x": 0,
+          "x": 2,
           "y": 146,
           "alignment": 16,
           "tranmap": null,
