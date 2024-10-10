@@ -25,19 +25,27 @@ typedef struct
     int revision;
 } version_t;
 
-json_t *JS_Open(const char *type, version_t version, const char *data);
+boolean JS_GetVersion(json_t *json, version_t *version);
+
+json_t *JS_Open(const char *lump, const char *type, version_t maxversion);
 void JS_Close(json_t *json);
 
 json_t *JS_GetObject(json_t *json, const char *string);
 
+boolean JS_IsObject(json_t *json);
 boolean JS_IsNull(json_t *json);
+boolean JS_IsBoolean(json_t *json);
 boolean JS_IsNumber(json_t *json);
 boolean JS_IsString(json_t *json);
 boolean JS_IsArray(json_t *json);
 
+boolean JS_GetBoolean(json_t *json);
 double JS_GetNumber(json_t *json);
+double JS_GetNumberValue(json_t *json, const char *string);
 int JS_GetInteger(json_t *json);
 const char *JS_GetString(json_t *json);
+const char *JS_GetStringRef(json_t *json, const char *string);
+const char *JS_GetStringCopy(json_t *json, const char *string);
 
 int JS_GetArraySize(json_t *json);
 json_t *JS_GetArrayItem(json_t *json, int index);

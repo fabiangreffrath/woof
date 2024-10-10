@@ -1604,7 +1604,7 @@ void P_SetupLevel(int episode, int map, int playermask, skill_t skill)
   //    W_Reload ();     killough 1/31/98: W_Reload obsolete
 
   // find map name
-  strcpy(lumpname, MAPNAME(episode, map));
+  strcpy(lumpname, MapName(episode, map));
 
   lumpnum = W_GetNumForName(lumpname);
 

@@ -60,7 +60,6 @@ void MN_InitDefaults(void);
 extern const char *gamma_strings[];
 void MN_ResetGamma(void);
 void MN_DrawDelVerify(void);
-void MN_SizeDisplay(int choice);
 
 boolean MN_SetupCursorPostion(int x, int y);
 boolean MN_SetupMouseResponder(int x, int y);

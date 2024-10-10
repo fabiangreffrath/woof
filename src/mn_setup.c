@@ -13,6 +13,7 @@
 //  GNU General Public License for more details.
 //
 
+#include "hu_command.h"
 #include "mn_internal.h"
 
 #include "am_map.h"
@@ -23,8 +24,6 @@
 #include "doomtype.h"
 #include "g_game.h"
 #include "hu_crosshair.h"
-#include "hu_lib.h"
-#include "hu_stuff.h"
 #include "i_gamepad.h"
 #include "i_gyro.h"
 #include "i_input.h"
@@ -53,7 +52,10 @@
 #include "r_sky.h"   // [FG] R_InitSkyMap()
 #include "r_voxel.h"
 #include "s_sound.h"
+#include "st_sbardef.h"
+#include "st_stuff.h"
 #include "sounds.h"
+#include "st_widgets.h"
 #include "v_fmt.h"
 #include "v_video.h"
 #include "w_wad.h"
@@ -317,8 +319,7 @@ enum
     str_curve,
     str_center_weapon,
     str_screensize,
-    str_hudtype,
-    str_hudmode,
+    str_stlayout,
     str_show_widgets,
     str_show_adv_widgets,
     str_crosshair,
@@ -1508,8 +1509,6 @@ void MN_KeyBindings(int choice)
 
 void MN_DrawKeybnd(void)
 {
-    inhelpscreens = true; // killough 4/6/98: Force status bar redraw
-
     // Set up the Key Binding screen
 
     DrawBackground("FLOOR4_6"); // Draw background
@@ -1769,8 +1768,6 @@ void MN_Weapons(int choice)
 
 void MN_DrawWeapons(void)
 {
-    inhelpscreens = true; // killough 4/6/98: Force status bar redraw
-
     DrawBackground("FLOOR4_6"); // Draw background
     MN_DrawTitle(M_X_CENTER, M_Y_TITLE, "M_WEAP", "Weapons");
     DrawTabs();
@@ -1800,43 +1797,23 @@ static setup_tab_t stat_tabs[] = {
 
 static void SizeDisplayAlt(void)
 {
-    int choice = -1;
+    R_SetViewSize(screenblocks);
+}
 
-    if (screenblocks > saved_screenblocks)
-    {
-        choice = 1;
-    }
-    else if (screenblocks < saved_screenblocks)
-    {
-        choice = 0;
-    }
-
-    screenblocks = saved_screenblocks;
-
-    if (choice != -1)
-    {
-        MN_SizeDisplay(choice);
-    }
-
-    hud_displayed = (screenblocks == 11);
+static void RefreshSolidBackground(void)
+{
+    st_refresh_background = true;
 }
 
 static const char *screensize_strings[] = {
-    "",           "",           "",           "Status Bar",
-    "Status Bar", "Status Bar", "Status Bar", "Status Bar",
-    "Status Bar", "Status Bar", "Status Bar", "Fullscreen"
+    "",           "",           "",           "Status Bar", "Status Bar",
+    "Status Bar", "Status Bar", "Status Bar", "Status Bar", "Status Bar",
+    "Status Bar", "Fullscreen", "Fullscreen"
 };
 
-static const char *hudtype_strings[] = {"Crispy", "Boom No Bars", "Boom"};
-
-static const char **GetHUDModeStrings(void)
-{
-    static const char *crispy_strings[] = {"Off", "Original", "Widescreen"};
-    static const char *boom_strings[] = {"Minimal", "Compact", "Distributed"};
-    return hud_type ? boom_strings : crispy_strings;
-}
-
-static void UpdateHUDModeStrings(void);
+static const char *st_layout_strings[] = {
+    "Original", "Wide"
+};
 
 #define H_X_THRM8 (M_X_THRM8 - 14)
 #define H_X       (M_X - 14)
@@ -1848,27 +1825,19 @@ static setup_menu_t stat_settings1[] = {
 
     MI_GAP,
 
+    {"Layout", S_CHOICE, H_X, M_SPC, {"st_layout"},
+     .strings_id = str_stlayout},
+
+    MI_GAP,
+
     {"Status Bar", S_SKIP | S_TITLE, H_X, M_SPC},
 
     {"Colored Numbers", S_ONOFF | S_COSMETIC, H_X, M_SPC, {"sts_colored_numbers"}},
 
     {"Gray Percent Sign", S_ONOFF | S_COSMETIC, H_X, M_SPC, {"sts_pct_always_gray"}},
 
-    {"Solid Background Color", S_ONOFF, H_X, M_SPC, {"st_solidbackground"}},
-
-    MI_GAP,
-
-    {"Fullscreen HUD", S_SKIP | S_TITLE, H_X, M_SPC},
-
-    {"HUD Type", S_CHOICE, H_X, M_SPC, {"hud_type"},
-     .strings_id = str_hudtype, .action = UpdateHUDModeStrings},
-
-    {"HUD Mode", S_CHOICE, H_X, M_SPC, {"hud_active"},
-     .strings_id = str_hudmode},
-
-    MI_GAP,
-
-    {"Backpack Shifts Ammo Color", S_ONOFF, H_X, M_SPC, {"hud_backpack_thresholds"}},
+    {"Solid Background Color", S_ONOFF, H_X, M_SPC, {"st_solidbackground"},
+     .action = RefreshSolidBackground},
 
     {"Armor Color Matches Type", S_ONOFF, H_X, M_SPC, {"hud_armor_type"}},
 
@@ -1896,26 +1865,12 @@ static setup_menu_t stat_settings2[] = {
      .strings_id = str_show_widgets},
 
     {"Show Player Coords", S_CHOICE | S_STRICT, H_X, M_SPC,
-     {"hud_player_coords"}, .strings_id = str_show_adv_widgets,
-     .action = HU_Start},
+     {"hud_player_coords"}, .strings_id = str_show_adv_widgets},
 
     {"Show Command History", S_ONOFF | S_STRICT, H_X, M_SPC,
      {"hud_command_history"}, .action = HU_ResetCommandHistory},
 
     {"Use-Button Timer", S_ONOFF, H_X, M_SPC, {"hud_time_use"}},
-
-    MI_GAP,
-
-    {"Widget Appearance", S_SKIP | S_TITLE, H_X, M_SPC},
-
-    {"Use Doom Font", S_CHOICE, H_X, M_SPC, {"hud_widget_font"},
-     .strings_id = str_show_widgets},
-
-    {"Widescreen Alignment", S_ONOFF, H_X, M_SPC, {"hud_widescreen_widgets"},
-     .action = HU_Start},
-
-    {"Vertical Layout", S_ONOFF, H_X, M_SPC, {"hud_widget_layout"},
-     .action = HU_Start},
 
     MI_END
 };
@@ -1958,9 +1913,8 @@ static setup_menu_t stat_settings4[] = {
     {"Show Toggle Messages", S_ONOFF, H_X, M_SPC, {"show_toggle_messages"}},
     {"Show Pickup Messages", S_ONOFF, H_X, M_SPC, {"show_pickup_messages"}},
     {"Show Obituaries",      S_ONOFF, H_X, M_SPC, {"show_obituary_messages"}},
-    {"Center Messages",      S_ONOFF, H_X, M_SPC, {"message_centered"}},
     {"Colorize Messages",    S_ONOFF, H_X, M_SPC, {"message_colorized"},
-     .action = HU_ResetMessageColors},
+     .action = ST_ResetMessageColors},
     MI_END
 };
 
@@ -1976,6 +1930,8 @@ static void UpdateCrosshairItems(void)
     DisableItem(
         !(hud_crosshair && hud_crosshair_target == crosstarget_highlight),
         stat_settings3, "hud_crosshair_target_color");
+
+    HU_StartCrosshair();
 }
 
 // Setting up for the Status Bar / HUD screen. Turn on flags, set pointers,
@@ -1997,8 +1953,6 @@ void MN_StatusBar(int choice)
 
 void MN_DrawStatusHUD(void)
 {
-    inhelpscreens = true; // killough 4/6/98: Force status bar redraw
-
     DrawBackground("FLOOR4_6"); // Draw background
     MN_DrawTitle(M_X_CENTER, M_Y_TITLE, "M_STAT", "Status Bar/HUD");
     DrawTabs();
@@ -2090,8 +2044,6 @@ void MN_Automap(int choice)
 
 void MN_DrawAutoMap(void)
 {
-    inhelpscreens = true; // killough 4/6/98: Force status bar redraw
-
     DrawBackground("FLOOR4_6"); // Draw background
     MN_DrawTitle(M_X_CENTER, M_Y_TITLE, "M_AUTO", "Automap");
     DrawInstructions();
@@ -2170,8 +2122,6 @@ void MN_Enemy(int choice)
 
 void MN_DrawEnemy(void)
 {
-    inhelpscreens = true;
-
     DrawBackground("FLOOR4_6"); // Draw background
     MN_DrawTitle(M_X_CENTER, M_Y_TITLE, "M_ENEM", "Enemies");
     DrawInstructions();
@@ -2271,8 +2221,6 @@ void MN_Compat(int choice)
 
 void MN_DrawCompat(void)
 {
-    inhelpscreens = true;
-
     DrawBackground("FLOOR4_6"); // Draw background
     MN_DrawTitle(M_X_CENTER, M_Y_TITLE, "M_COMPAT", "Compatibility");
     DrawInstructions();
@@ -2663,10 +2611,9 @@ static void MN_Midi(void)
     current_tabs = midi_tabs;
     SetupMenuSecondary();
 }
+
 void MN_DrawMidi(void)
 {
-    inhelpscreens = true;
-
     DrawBackground("FLOOR4_6");
     MN_DrawTitle(M_X_CENTER, M_Y_TITLE, "M_GENERL", "General");
     DrawTabs();
@@ -2754,8 +2701,6 @@ static void MN_Equalizer(void)
 
 void MN_DrawEqualizer(void)
 {
-    inhelpscreens = true;
-
     DrawBackground("FLOOR4_6");
     MN_DrawTitle(M_X_CENTER, M_Y_TITLE, "M_GENERL", "General");
     DrawTabs();
@@ -3012,8 +2957,6 @@ static void MN_PadAdv(void)
 
 void MN_DrawPadAdv(void)
 {
-    inhelpscreens = true;
-
     DrawBackground("FLOOR4_6");
     MN_DrawTitle(M_X_CENTER, M_Y_TITLE, "M_GENERL", "General");
     DrawTabs();
@@ -3209,8 +3152,6 @@ static void MN_Gyro(void)
 
 void MN_DrawGyro(void)
 {
-    inhelpscreens = true;
-
     DrawBackground("FLOOR4_6");
     MN_DrawTitle(M_X_CENTER, M_Y_TITLE, "M_GENERL", "General");
     DrawTabs();
@@ -3410,8 +3351,6 @@ void MN_General(int choice)
 
 void MN_DrawGeneral(void)
 {
-    inhelpscreens = true;
-
     DrawBackground("FLOOR4_6"); // Draw background
     MN_DrawTitle(M_X_CENTER, M_Y_TITLE, "M_GENERL", "General");
     DrawTabs();
@@ -3704,21 +3643,18 @@ void MN_DrawStringCR(int cx, int cy, byte *cr1, byte *cr2, const char *ch)
     {
         c = *ch++; // get next char
 
-        if (c == '\x1b')
+        if (c == '\x1b' && *ch)
         {
-            if (ch)
+            c = *ch++;
+            if (c >= '0' && c <= '0' + CR_NONE)
             {
-                c = *ch++;
-                if (c >= '0' && c <= '0' + CR_NONE)
-                {
-                    cr = colrngs[c - '0'];
-                }
-                else if (c == '0' + CR_ORIG)
-                {
-                    cr = cr1;
-                }
-                continue;
+                cr = colrngs[c - '0'];
             }
+            else if (c == '0' + CR_ORIG)
+            {
+                cr = cr1;
+            }
+            continue;
         }
 
         c = M_ToUpper(c) - HU_FONTSTART;
@@ -4498,7 +4434,6 @@ boolean MN_SetupResponder(menu_action_t action, int ch)
         set_weapon_active = false;
         default_verify = false;              // phares 4/19/98
         print_warning_about_changes = false; // [FG] reset
-        HU_Start(); // catch any message changes // phares 4/19/98
         M_StartSound(sfx_swtchx);
         return true;
     }
@@ -4809,8 +4744,7 @@ static const char **selectstrings[] = {
     curve_strings,
     center_weapon_strings,
     screensize_strings,
-    hudtype_strings,
-    NULL, // str_hudmode
+    st_layout_strings,
     show_widgets_strings,
     show_adv_widgets_strings,
     crosshair_strings,
@@ -4855,11 +4789,6 @@ static const char **GetStrings(int id)
     return NULL;
 }
 
-static void UpdateHUDModeStrings(void)
-{
-    selectstrings[str_hudmode] = GetHUDModeStrings();
-}
-
 static void UpdateWeaponSlotStrings(void)
 {
     selectstrings[str_weapon_slots] = GetWeaponSlotStrings();
@@ -4872,7 +4801,6 @@ static const char **GetMidiPlayerStrings(void)
 
 void MN_InitMenuStrings(void)
 {
-    UpdateHUDModeStrings();
     UpdateWeaponSlotLabels();
     UpdateWeaponSlotStrings();
     selectstrings[str_resolution_scale] = GetResolutionScaleStrings();
