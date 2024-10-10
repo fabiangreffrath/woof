@@ -32,10 +32,12 @@ static void ConvertSlashes(char *path)
     }
 }
 
-static void AddWadInMem(w_handle_t handle, mz_zip_archive *zip,
-                        const char *name, int index, size_t data_size)
+static void AddWadInMem(w_handle_t handle, const char *name, int index,
+                        size_t data_size)
 {
     I_Printf(VB_INFO, " - adding %s", name);
+
+    mz_zip_archive *zip = handle.p1.zip;
 
     byte *data = malloc(data_size);
 
@@ -127,7 +129,7 @@ static boolean W_ZIP_AddDir(w_handle_t handle, const char *path,
 
         if (is_root && M_StringCaseEndsWith(stat.m_filename, ".wad"))
         {
-            AddWadInMem(handle, zip, M_BaseName(stat.m_filename), index,
+            AddWadInMem(handle, M_BaseName(stat.m_filename), index,
                         stat.m_uncomp_size);
             continue;
         }
