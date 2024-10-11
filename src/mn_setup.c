@@ -4775,8 +4775,14 @@ int MN_StringHeight(const char *string)
 void MN_DrawTitle(int x, int y, const char *patch, const char *alttext)
 {
     int patch_lump = W_CheckNumForName(patch);
+    int patch_priority = -1;
 
     if (patch_lump >= 0)
+    {
+        patch_priority = lumpinfo[patch_lump].handle.priority;
+    }
+
+    if (patch_lump >= 0 && patch_priority >= bigfont_priority)
     {
         patch_t *patch = V_CachePatchNum(patch_lump, PU_CACHE);
         V_DrawPatch(x == M_X_CENTER ? SCREENWIDTH / 2 - patch->width / 2 : x,

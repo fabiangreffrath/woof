@@ -110,6 +110,8 @@ static boolean options_active;
 
 backdrop_t menu_backdrop;
 
+int bigfont_priority = -1;
+
 #define SKULLXOFF        -32
 #define LINEHEIGHT       16
 
@@ -2277,8 +2279,9 @@ void M_Init(void)
     M_ResetAutoSave();
 
     int lumpnum = W_CheckNumForName("DBIGFONT");
-    if (lumpnum > 0)
+    if (lumpnum >= 0)
     {
+        bigfont_priority = lumpinfo[lumpnum].handle.priority;
         MN_LoadFon2(W_CacheLumpNum(lumpnum, PU_CACHE), W_LumpLength(lumpnum));
     }
 
@@ -3486,13 +3489,19 @@ void M_Drawer(void)
         {
             const char *name = currentMenu->menuitems[i].name;
             int patch_lump = -1;
+            int patch_priority = -1;
 
             if (name[0])
             {
                 patch_lump = W_CheckNumForName(name);
+                if (patch_lump >= 0)
+                {
+                    patch_priority = lumpinfo[patch_lump].handle.priority;
+                }
             }
 
-            if (patch_lump < 0 && currentMenu->menuitems[i].alttext)
+            if ((patch_lump < 0 || patch_priority < bigfont_priority)
+                && currentMenu->menuitems[i].alttext)
             {
                 currentMenu->lumps_missing++;
                 break;
