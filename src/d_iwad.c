@@ -606,11 +606,6 @@ void BuildIWADDirList(void)
         AddIWADDir(env);
     }
 
-#if defined(WOOFDATADIR)
-    // [FG] Add a build-time configurable data directory
-    AddIWADDir(WOOFDATADIR);
-#endif
-
 #ifdef _WIN32
 
     // Search the registry and find where IWADs have been installed.
