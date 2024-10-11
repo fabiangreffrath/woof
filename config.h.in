@@ -13,4 +13,3 @@
 #cmakedefine HAVE_LIBXMP
 #cmakedefine HAVE_SNDFILE_MPEG
 #cmakedefine HAVE_AL_BUFFER_CALLBACK
-#cmakedefine WOOFDATADIR "@WOOFDATADIR@"
