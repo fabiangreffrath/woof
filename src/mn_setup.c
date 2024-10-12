@@ -337,6 +337,7 @@ enum
     str_gamma,
     str_sound_module,
     str_resampler,
+    str_hrtf,
     str_equalizer_preset,
     str_midi_complevel,
     str_midi_reset_type,
@@ -2562,8 +2563,8 @@ static setup_menu_t gen_settings2[] = {
     {"Sound Module", S_CHOICE, CNTR_X, M_SPC, {"snd_module"},
      .strings_id = str_sound_module, .action = SetSoundModule},
 
-    {"Headphones Mode", S_ONOFF, CNTR_X, M_SPC, {"snd_hrtf"}, 
-     .action = SetSoundModule},
+    {"Headphones Mode", S_CHOICE | S_ACTION, CNTR_X, M_SPC, {"snd_hrtf"},
+     .strings_id = str_hrtf, .action = SetSoundModule},
 
     {"Pitch-Shifting", S_ONOFF, CNTR_X, M_SPC, {"pitched_sounds"}},
 
@@ -2594,6 +2595,12 @@ static const char **GetResamplerStrings(void)
     const char **strings = I_OAL_GetResamplerStrings();
     DisableItem(!strings, gen_settings2, "snd_resampler");
     return strings;
+}
+
+static const char **GetHrtfStrings(void)
+{
+    MN_UpdateAdvancedSoundItems();
+    return I_OAL_GetHrtfStrings();
 }
 
 static const char *midi_complevel_strings[] = {
@@ -3369,9 +3376,10 @@ void MN_UpdateDynamicResolutionItem(void)
                 "dynamic_resolution");
 }
 
-void MN_UpdateAdvancedSoundItems(boolean toggle)
+void MN_UpdateAdvancedSoundItems(void)
 {
-    DisableItem(toggle, gen_settings2, "snd_hrtf");
+    const boolean condition = (!I_OAL_3dSound() || !I_OAL_GetHrtfStrings());
+    DisableItem(condition, gen_settings2, "snd_hrtf");
 }
 
 void MN_UpdateFpsLimitItem(void)
@@ -4833,6 +4841,7 @@ static const char **selectstrings[] = {
     gamma_strings,
     sound_module_strings,
     NULL, // str_resampler
+    NULL, // str_hrtf
     equalizer_preset_strings,
     midi_complevel_strings,
     midi_reset_type_strings,
@@ -4889,6 +4898,7 @@ void MN_InitMenuStrings(void)
     selectstrings[str_gyro_sens] = GetGyroSensitivityStrings();
     selectstrings[str_gyro_accel] = GetGyroAccelStrings();
     selectstrings[str_resampler] = GetResamplerStrings();
+    selectstrings[str_hrtf] = GetHrtfStrings();
 }
 
 void MN_SetupResetMenu(void)

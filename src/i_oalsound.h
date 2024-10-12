@@ -50,6 +50,10 @@ void I_OAL_UpdateListenerParams(const ALfloat *position,
 
 const char **I_OAL_GetResamplerStrings(void);
 
+const char **I_OAL_GetHrtfStrings(void);
+
+boolean I_OAL_3dSound(void);
+
 boolean I_OAL_InitSound(int snd_module);
 
 boolean I_OAL_ReinitSound(int snd_module);

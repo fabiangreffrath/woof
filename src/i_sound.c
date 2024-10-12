@@ -442,7 +442,7 @@ void I_InitSound(void)
 
     I_AtExit(I_ShutdownSound, true);
 
-    MN_UpdateAdvancedSoundItems(snd_module != SND_MODULE_3D);
+    MN_UpdateAdvancedSoundItems();
 
     snd_init = true;
 
@@ -520,7 +520,7 @@ void I_SetSoundModule(void)
         I_Printf(VB_WARNING, "I_SetSoundModule: Failed to reinitialize sound.");
     }
 
-    MN_UpdateAdvancedSoundItems(snd_module != SND_MODULE_3D);
+    MN_UpdateAdvancedSoundItems();
 }
 
 midiplayertype_t I_MidiPlayerType(void)
