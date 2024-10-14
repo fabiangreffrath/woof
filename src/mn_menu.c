@@ -2723,10 +2723,12 @@ static void M_UpdateLoadMenu(void)
     {
         if (savepage == 0 && currentMenu == &LoadDef)
         {
+            LoadDef.lastOn = itemOn;
             SetNextMenu(&LoadAutoSaveDef);
         }
         else if (savepage != 0 && currentMenu == &LoadAutoSaveDef)
         {
+            LoadAutoSaveDef.lastOn = itemOn;
             SetNextMenu(&LoadDef);
         }
     }
