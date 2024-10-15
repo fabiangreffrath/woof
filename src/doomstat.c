@@ -119,7 +119,7 @@ int center_weapon;
 int view_bobbing_pct;
 int weapon_bobbing_pct;
 
-char *MAPNAME(int e, int m)
+char *MapName(int e, int m)
 {
   static char name[9];
 

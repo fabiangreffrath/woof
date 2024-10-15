@@ -28,6 +28,7 @@
 #include "m_misc.h"
 #include "net_client.h"
 #include "p_mobj.h"
+#include "v_video.h"
 
 boolean show_obituary_messages;
 int hudcolor_obituary;
@@ -215,7 +216,7 @@ void HU_Obituary(mobj_t *target, mobj_t *source, method_t mod)
             break;
         }
 
-        doomprintf(&players[i], MESSAGES_OBITUARY, "\x1b%c%s",
+        doomprintf(&players[i], MESSAGES_OBITUARY, "\x1b%c%s" ORIG_S,
                    '0' + hudcolor_obituary, str);
     }
 

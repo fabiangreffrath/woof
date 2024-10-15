@@ -21,6 +21,8 @@
 #include "hu_coordinates.h"
 #include "m_misc.h"
 #include "p_mobj.h"
+#include "st_sbardef.h"
+#include "st_widgets.h"
 #include "v_video.h"
 
 #define THRESH_M1 15.11
@@ -92,7 +94,7 @@ static split_angle_t SplitAngle(angle_t x)
     return result;
 }
 
-static void BuildString(hu_multiline_t *const w_coord, char *buf, int len,
+static void BuildString(sbe_widget_t *widget, char *buf, int len,
                         int pos)
 {
     if (WIDGET_WIDTH > pos)
@@ -100,10 +102,10 @@ static void BuildString(hu_multiline_t *const w_coord, char *buf, int len,
         M_snprintf(buf + pos, len - pos, "%-*s", WIDGET_WIDTH - pos, "");
     }
 
-    HUlib_add_string_keep_space(w_coord, buf);
+    ST_AddLine(widget, buf);
 }
 
-static void FixedToString(hu_multiline_t *const w_coord, const char *label,
+static void FixedToString(sbe_widget_t *widget, const char *label,
                           fixed_t x, char *buf, int len, int pos)
 {
     const split_fixed_t value = SplitFixed(x);
@@ -120,10 +122,10 @@ static void FixedToString(hu_multiline_t *const w_coord, const char *label,
         pos += M_snprintf(buf + pos, len - pos, "%s: %d", label, value.base);
     }
 
-    BuildString(w_coord, buf, len, pos);
+    BuildString(widget, buf, len, pos);
 }
 
-static void AngleToString(hu_multiline_t *const w_coord, const char *label,
+static void AngleToString(sbe_widget_t *widget, const char *label,
                           angle_t x, char *buf, int len, int pos)
 {
     const split_angle_t value = SplitAngle(x);
@@ -138,10 +140,10 @@ static void AngleToString(hu_multiline_t *const w_coord, const char *label,
         pos += M_snprintf(buf + pos, len - pos, "%s: %d", label, value.base);
     }
 
-    BuildString(w_coord, buf, len, pos);
+    BuildString(widget, buf, len, pos);
 }
 
-static void MagnitudeToString(hu_multiline_t *const w_coord, const char *label,
+static void MagnitudeToString(sbe_widget_t *widget, const char *label,
                               double x, char *buf, int len, int pos)
 {
     if (x)
@@ -153,10 +155,10 @@ static void MagnitudeToString(hu_multiline_t *const w_coord, const char *label,
         pos += M_snprintf(buf + pos, len - pos, "%s: 0", label);
     }
 
-    BuildString(w_coord, buf, len, pos);
+    BuildString(widget, buf, len, pos);
 }
 
-static void ComponentToString(hu_multiline_t *const w_coord, const char *label,
+static void ComponentToString(sbe_widget_t *widget, const char *label,
                               fixed_t x, char *buf, int len, int pos)
 {
     const split_fixed_t value = SplitFixed(x);
@@ -173,41 +175,61 @@ static void ComponentToString(hu_multiline_t *const w_coord, const char *label,
         pos += M_snprintf(buf + pos, len - pos, "%s: %d", label, value.base);
     }
 
-    BuildString(w_coord, buf, len, pos);
+    BuildString(widget, buf, len, pos);
 }
 
-void HU_BuildCoordinatesEx(hu_multiline_t *const w_coord, const mobj_t *mo,
-                           char *buf, int len)
+void HU_BuildCoordinatesEx(sbe_widget_t *widget, const mobj_t *mo)
 {
     int pos;
     double magnitude;
     crange_idx_e color;
 
+    ST_ClearLines(widget);
+
+    #define LINE_SIZE 60
+
     // Coordinates.
 
-    pos = M_snprintf(buf, len, "\x1b%c", '0' + CR_GREEN);
-    FixedToString(w_coord, "X", mo->x, buf, len, pos);
-    FixedToString(w_coord, "Y", mo->y, buf, len, pos);
-    FixedToString(w_coord, "Z", mo->z, buf, len, pos);
-    AngleToString(w_coord, "A", mo->angle, buf, len, pos);
-    HUlib_add_string_keep_space(w_coord, " ");
+    static char line1[LINE_SIZE];
+    pos = M_snprintf(line1, sizeof(line1), GREEN_S);
+    FixedToString(widget, "X", mo->x, line1, sizeof(line1), pos);
+    static char line2[LINE_SIZE];
+    pos = M_snprintf(line2, sizeof(line2), GREEN_S);
+    FixedToString(widget, "Y", mo->y, line2, sizeof(line2), pos);
+    static char line3[LINE_SIZE];
+    pos = M_snprintf(line3, sizeof(line3), GREEN_S);
+    FixedToString(widget, "Z", mo->z, line3, sizeof(line3), pos);
+    static char line4[LINE_SIZE];
+    pos = M_snprintf(line4, sizeof(line4), GREEN_S);
+    AngleToString(widget, "A", mo->angle, line4, sizeof(line4), pos);
+    ST_AddLine(widget, " ");
 
     // "Momentum" per tic.
 
     magnitude = CalcMomentum(mo);
     color = BLOCK_COLOR(magnitude, THRESH_M1, THRESH_M2, THRESH_M3);
-    pos = M_snprintf(buf, len, "\x1b%c", '0' + color);
-    MagnitudeToString(w_coord, "M", magnitude, buf, len, pos);
-    ComponentToString(w_coord, "X", mo->momx, buf, len, pos);
-    ComponentToString(w_coord, "Y", mo->momy, buf, len, pos);
-    HUlib_add_string_keep_space(w_coord, " ");
+    static char line5[LINE_SIZE];
+    pos = M_snprintf(line5, sizeof(line5), "\x1b%c", '0' + color);
+    MagnitudeToString(widget, "M", magnitude, line5, sizeof(line5), pos);
+    static char line6[LINE_SIZE];
+    pos = M_snprintf(line6, sizeof(line6), "\x1b%c", '0' + color);
+    ComponentToString(widget, "X", mo->momx, line6, sizeof(line6), pos);
+    static char line7[LINE_SIZE];
+    pos = M_snprintf(line7, sizeof(line7), "\x1b%c", '0' + color);
+    ComponentToString(widget, "Y", mo->momy, line7, sizeof(line7), pos);
+    ST_AddLine(widget, " ");
 
     // Distance per tic.
 
     magnitude = CalcDistance(mo);
     color = BLOCK_COLOR(magnitude, THRESH_D1, THRESH_D2, THRESH_D3);
-    pos = M_snprintf(buf, len, "\x1b%c", '0' + color);
-    MagnitudeToString(w_coord, "D", magnitude, buf, len, pos);
-    ComponentToString(w_coord, "X", mo->x - mo->oldx, buf, len, pos);
-    ComponentToString(w_coord, "Y", mo->y - mo->oldy, buf, len, pos);
+    static char line8[LINE_SIZE];
+    pos = M_snprintf(line8, sizeof(line8), "\x1b%c", '0' + color);
+    MagnitudeToString(widget, "D", magnitude, line8, sizeof(line8), pos);
+    static char line9[LINE_SIZE];
+    pos = M_snprintf(line9, sizeof(line9), "\x1b%c", '0' + color);
+    ComponentToString(widget, "X", mo->x - mo->oldx, line9, sizeof(line9), pos);
+    static char line10[LINE_SIZE];
+    pos = M_snprintf(line10, sizeof(line10), "\x1b%c", '0' + color);
+    ComponentToString(widget, "Y", mo->y - mo->oldy, line10, sizeof(line10), pos);
 }

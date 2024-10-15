@@ -20,7 +20,6 @@
 #include "hu_crosshair.h"
 #include "d_items.h"
 #include "doomstat.h"
-#include "hu_stuff.h"
 #include "m_swap.h"
 #include "p_map.h"
 #include "p_mobj.h"
@@ -101,6 +100,33 @@ void HU_StartCrosshair(void)
 
 mobj_t *crosshair_target; // [Alaux] Lock crosshair on target
 
+static crange_idx_e CRByHealth(int health, int maxhealth, boolean invul)
+{
+    if (invul)
+    {
+        return CR_GRAY;
+    }
+
+    health = 100 * health / maxhealth;
+
+    if (health < health_red)
+    {
+        return CR_RED;
+    }
+    else if (health < health_yellow)
+    {
+        return CR_GOLD;
+    }
+    else if (health <= health_green)
+    {
+        return CR_GREEN;
+    }
+    else
+    {
+        return CR_BLUE1;
+    }
+}
+
 void HU_UpdateCrosshair(void)
 {
     plr = &players[displayplayer];
@@ -109,9 +135,11 @@ void HU_UpdateCrosshair(void)
     crosshair.y = (screenblocks <= 10) ? (SCREENHEIGHT - ST_HEIGHT) / 2
                                        : SCREENHEIGHT / 2;
 
+    boolean invul = (plr->cheats & CF_GODMODE) || plr->powers[pw_invulnerability];
+
     if (hud_crosshair_health)
     {
-        crosshair.cr = HU_ColorByHealth(plr->health, 100, st_invul);
+        crosshair.cr = colrngs[CRByHealth(plr->health, 100, invul)];
     }
     else
     {
@@ -152,9 +180,9 @@ void HU_UpdateCrosshair(void)
             // [Alaux] Color crosshair by target health
             if (hud_crosshair_target == crosstarget_health)
             {
-                crosshair.cr = HU_ColorByHealth(
+                crosshair.cr = colrngs[CRByHealth(
                     crosshair_target->health,
-                    crosshair_target->info->spawnhealth, false);
+                    crosshair_target->info->spawnhealth, false)];
             }
             else
             {

@@ -20,7 +20,6 @@
 #include "m_fixed.h"
 #include "m_json.h"
 #include "m_misc.h"
-#include "w_wad.h"
 
 static boolean ParseFire(json_t *json, fire_t *out)
 {
@@ -130,23 +129,16 @@ static boolean ParseFlatMap(json_t *json, flatmap_t *out)
 
 skydefs_t *R_ParseSkyDefs(void)
 {
-    int lumpnum = W_CheckNumForName("SKYDEFS");
-    if (lumpnum < 0)
-    {
-        return NULL;
-    }
-
-    json_t *json = JS_Open("skydefs", (version_t){1, 0, 0},
-                           W_CacheLumpNum(lumpnum, PU_CACHE));
+    json_t *json = JS_Open("SKYDEFS", "skydefs", (version_t){1, 0, 0});
     if (json == NULL)
     {
-        JS_Close(json);
         return NULL;
     }
 
     json_t *data = JS_GetObject(json, "data");
-    if (JS_IsNull(data))
+    if (JS_IsNull(data) || !JS_IsObject(data))
     {
+        I_Printf(VB_ERROR, "SBARDEF: no data");
         JS_Close(json);
         return NULL;
     }
