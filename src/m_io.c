@@ -383,3 +383,29 @@ char *M_getenv(const char *name)
     return getenv(name);
 #endif
 }
+
+// Doesn't overwrite an existing environment variable. See env_vars.
+int M_setenv(const char *name, const char *value)
+{
+#ifdef _WIN32
+    if (!name || !value || M_getenv(name) != NULL)
+    {
+        return -1;
+    }
+
+    char *pair = M_StringJoin(name, "=", value);
+    wchar_t *wpair = ConvertUtf8ToWide(pair);
+    free(pair);
+
+    if (!wpair)
+    {
+        return -1;
+    }
+
+    const int ret = _wputenv(wpair);
+    free(wpair);
+    return ret;
+#else
+    return setenv(name, value, 0);
+#endif
+}

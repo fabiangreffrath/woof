@@ -37,6 +37,7 @@
 #endif
 
 #define ALFUNC(T, ptr) (ptr = FUNCTION_CAST(T, alGetProcAddress(#ptr)))
+#define ALCFUNC(d, T, ptr) (ptr = FUNCTION_CAST(T, alcGetProcAddress(d, #ptr)))
 
 #define DB_TO_GAIN(db) powf(10.0f, (db) / 20.0f)
 

@@ -25,6 +25,8 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "d_iwad.h"
+#include "d_main.h"
 #include "i_oalcommon.h"
 #include "i_oalequalizer.h"
 #include "i_oalsound.h"
@@ -35,6 +37,8 @@
 #include "m_array.h"
 #include "m_config.h"
 #include "m_fixed.h"
+#include "m_io.h"
+#include "m_misc.h"
 #include "sounds.h"
 #include "w_wad.h"
 #include "z_zone.h"
@@ -53,10 +57,13 @@
 
 static int snd_resampler;
 static boolean snd_limiter;
-static boolean snd_hrtf;
+static int snd_hrtf;
+static const char *snd_hrtf_dir = "";
+static const char *snd_hrtf_string = "";
 static int snd_absorption;
 static int snd_doppler;
 
+static const char **hrtf_strings = NULL;
 static int oal_snd_module;
 boolean oal_use_doppler;
 
@@ -409,11 +416,18 @@ static void PrintDeviceInfo(ALCdevice *device)
 static void GetAttribs(ALCint **attribs)
 {
     const boolean use_3d = (oal_snd_module == SND_MODULE_3D);
+    const boolean use_hrtf = (use_3d && snd_hrtf > 0);
 
     if (alcIsExtensionPresent(oal->device, "ALC_SOFT_HRTF") == ALC_TRUE)
     {
         array_push(*attribs, ALC_HRTF_SOFT);
-        array_push(*attribs, (use_3d && snd_hrtf) ? ALC_TRUE : ALC_FALSE);
+        array_push(*attribs, use_hrtf ? ALC_TRUE : ALC_FALSE);
+
+        if (use_hrtf)
+        {
+            array_push(*attribs, ALC_HRTF_ID_SOFT);
+            array_push(*attribs, snd_hrtf - 1);
+        }
     }
 
 #ifdef ALC_OUTPUT_MODE_SOFT
@@ -421,7 +435,7 @@ static void GetAttribs(ALCint **attribs)
     {
         array_push(*attribs, ALC_OUTPUT_MODE_SOFT);
         array_push(*attribs,
-                   use_3d ? (snd_hrtf ? ALC_STEREO_HRTF_SOFT : ALC_ANY_SOFT)
+                   use_3d ? (use_hrtf ? ALC_STEREO_HRTF_SOFT : ALC_ANY_SOFT)
                           : ALC_STEREO_BASIC_SOFT);
     }
 #endif
@@ -439,8 +453,16 @@ static void GetAttribs(ALCint **attribs)
 
 void I_OAL_BindSoundVariables(void)
 {
-    BIND_BOOL_GENERAL(snd_hrtf, false,
-        "[OpenAL 3D] Headphones mode (0 = No; 1 = Yes)");
+    BIND_NUM(snd_hrtf, 0, 0, UL, "[OpenAL 3D] Headphones mode menu index");
+    M_BindStr("snd_hrtf_string", &snd_hrtf_string, "Off", wad_no,
+        "[OpenAL 3D] Headphones mode menu string");
+    M_BindStr("snd_hrtf_dir", &snd_hrtf_dir,
+#if defined(_WIN32)
+        "hrtf",
+#else
+        "./hrtf",
+#endif
+        wad_no, "[OpenAL 3D] Headphones mode data directory");
     BIND_NUM_GENERAL(snd_resampler, 1, 0, UL,
         "Sound resampler (0 = Nearest; 1 = Linear; ...)");
     BIND_NUM(snd_absorption, 0, 0, 10,
@@ -448,6 +470,122 @@ void I_OAL_BindSoundVariables(void)
     BIND_NUM(snd_doppler, 0, 0, 10,
         "[OpenAL 3D] Doppler effect (0 = Off; 10 = Max)");
     BIND_BOOL(snd_limiter, false, "Use sound output limiter");
+}
+
+boolean I_OAL_3dSound(void)
+{
+    return (oal_snd_module == SND_MODULE_3D);
+}
+
+const char **I_OAL_GetHrtfStrings(void)
+{
+    return hrtf_strings;
+}
+
+static void UpdatetHrtfMenu(void)
+{
+    if (snd_hrtf < array_size(hrtf_strings))
+    {
+        snd_hrtf_string = hrtf_strings[snd_hrtf];
+    }
+    else
+    {
+        snd_hrtf = 0;
+        snd_hrtf_string = "Off";
+    }
+}
+
+static void InitHrtfMenu(void)
+{
+    int i;
+
+    for (i = 0; i < array_size(hrtf_strings); i++)
+    {
+        if (!strcasecmp(hrtf_strings[i], snd_hrtf_string))
+        {
+            snd_hrtf = i;
+            break;
+        }
+    }
+
+    if (i == array_size(hrtf_strings))
+    {
+        snd_hrtf = 0;
+        snd_hrtf_string = "Off";
+    }
+}
+
+#define NAME_MAX_LENGTH 25
+
+static void InitHrtfStrings(void)
+{
+    if (array_size(hrtf_strings))
+    {
+        return;
+    }
+
+    array_push(hrtf_strings, "Off");
+
+    if (!oal || !oal->device)
+    {
+        return;
+    }
+
+    if (alcIsExtensionPresent(oal->device, "ALC_SOFT_HRTF") != AL_TRUE)
+    {
+        return;
+    }
+
+    LPALCGETSTRINGISOFT alcGetStringiSOFT = NULL;
+    if (ALCFUNC(oal->device, LPALCGETSTRINGISOFT, alcGetStringiSOFT) == NULL)
+    {
+        return;
+    }
+
+    ALCint num_hrtf;
+    alcGetIntegerv(oal->device, ALC_NUM_HRTF_SPECIFIERS_SOFT, 1, &num_hrtf);
+    if (num_hrtf < 1)
+    {
+        return;
+    }
+
+    for (ALCint i = 0; i < num_hrtf; i++)
+    {
+        char *name = M_StringDuplicate(
+            alcGetStringiSOFT(oal->device, ALC_HRTF_SPECIFIER_SOFT, i));
+
+        if (strlen(name) > NAME_MAX_LENGTH)
+        {
+            name[NAME_MAX_LENGTH] = '\0';
+        }
+
+        array_push(hrtf_strings, name);
+    }
+}
+
+static void SetLocalHrtfPath(const char *orig)
+{
+    if (!orig || orig[0] == '\0')
+    {
+        return;
+    }
+
+#if defined(_WIN32)
+    M_setenv("ALSOFT_LOCAL_PATH", orig);
+#else
+    char *dir = M_StringDuplicate(orig);
+
+    if (dir[0] == '.' && (dir[1] == '.' || dir[1] == '/' || dir[1] == '\0'))
+    {
+        // ALSOFT_LOCAL_PATH must be a single path, so use the config path.
+        char *rel = M_StringJoin(D_DoomPrefDir(), DIR_SEPARATOR_S, dir);
+        free(dir);
+        dir = rel;
+    }
+
+    M_setenv("ALSOFT_LOCAL_PATH", dir);
+    free(dir);
+#endif
 }
 
 boolean I_OAL_InitSound(int snd_module)
@@ -461,6 +599,7 @@ boolean I_OAL_InitSound(int snd_module)
         I_OAL_ShutdownSound();
     }
 
+    SetLocalHrtfPath(snd_hrtf_dir);
     oal = calloc(1, sizeof(*oal));
     oal->device = alcOpenDevice(NULL);
     if (!oal->device)
@@ -471,6 +610,8 @@ boolean I_OAL_InitSound(int snd_module)
         return false;
     }
 
+    InitHrtfStrings();
+    InitHrtfMenu();
     GetAttribs(&attribs);
     oal->context = alcCreateContext(oal->device, attribs);
     array_free(attribs);
@@ -535,6 +676,7 @@ boolean I_OAL_ReinitSound(int snd_module)
         return false;
     }
 
+    UpdatetHrtfMenu();
     GetAttribs(&attribs);
     result = alcResetDeviceSOFT(oal->device, attribs);
     array_free(attribs);

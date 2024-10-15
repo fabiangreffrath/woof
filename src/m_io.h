@@ -46,6 +46,7 @@ int M_open(const char *filename, int oflag);
 int M_access(const char *path, int mode);
 void M_MakeDirectory(const char *dir);
 char *M_getenv(const char *name);
+int M_setenv(const char *name, const char *value);
 
 #ifdef _WIN32
 char *M_ConvertWideToUtf8(const wchar_t *wstr);
