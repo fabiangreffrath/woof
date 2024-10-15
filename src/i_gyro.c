@@ -516,7 +516,7 @@ static void ApplyGyroSpace_Skip(void)
 
 static void ApplyGyroSpace_LocalLean(void)
 {
-    motion.gyro.y = -motion.gyro.z;
+    motion.gyro.y = motion.gyro.z;
 }
 
 static void ApplyGyroSpace_PlayerTurn(void)
