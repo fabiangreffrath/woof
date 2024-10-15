@@ -19,6 +19,7 @@
 #define __I_PRINT__
 
 #include "doomtype.h"
+#include "d_event.h"
 
 typedef enum
 {
@@ -29,6 +30,8 @@ typedef enum
     VB_DEBUG,
     VB_MAX
 } verbosity_t;
+
+#define VB_DEMO (gameaction == ga_playdemo ? VB_INFO : VB_DEBUG)
 
 int I_ConsoleStdout(void);
 
