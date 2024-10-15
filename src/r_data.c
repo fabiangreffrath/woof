@@ -39,8 +39,8 @@
 #include "m_swap.h"
 #include "p_mobj.h"
 #include "p_tick.h"
-#include "r_bmaps.h" // [crispy] R_BrightmapForTexName()
 #include "r_defs.h"
+#include "r_draw.h"
 #include "r_main.h"
 #include "r_sky.h"
 #include "r_state.h"
@@ -134,7 +134,6 @@ byte      **texturecomposite2;
 int       *flattranslation;             // for global animation
 int       *flatterrain;
 int       *texturetranslation;
-const byte **texturebrightmap; // [crispy] brightmaps
 
 
 // needed for pre-rendering
@@ -645,7 +644,6 @@ void R_InitTextures (void)
   texturewidth =
     Z_Malloc(numtextures*sizeof*texturewidth, PU_STATIC, 0);
   textureheight = Z_Malloc(numtextures*sizeof*textureheight, PU_STATIC, 0);
-  texturebrightmap = Z_Malloc (numtextures * sizeof(*texturebrightmap), PU_STATIC, 0);
 
   {  // Really complex printing shit...
     int temp1 = W_GetNumForName("S_START");
@@ -695,9 +693,6 @@ void R_InitTextures (void)
       memcpy(texture->name, mtexture->name, sizeof(texture->name));
       mpatch = mtexture->patches;
       patch = texture->patches;
-
-      // [crispy] initialize brightmaps
-      texturebrightmap[i] = R_BrightmapForTexName(texture->name);
 
       for (j=0 ; j<texture->patchcount ; j++, mpatch++, patch++)
         {
@@ -892,6 +887,11 @@ void R_InitColormaps(void)
   cr_dark = &colormaps[0][256*15];
   cr_shaded = &colormaps[0][256*6];
 
+  for (int i = 0; i < 32; ++i)
+  {
+      dc_lightlevels[i + 1] = &colormaps[0][256 * i];
+  }
+
   memcpy(invul_orig, &colormaps[0][256*32], 256);
   R_InvulMode();
 }
@@ -1060,7 +1060,6 @@ void R_InitData(void)
   // mistaken as patches and by R_InitFlatBrightmaps() to set brightmaps for
   // flats.
   R_InitFlats();
-  R_InitFlatBrightmaps();
   R_InitTextures();
   R_InitSpriteLumps();
     R_InitTranMap(1);                   // killough 2/21/98, 3/6/98
