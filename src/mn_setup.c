@@ -3075,7 +3075,7 @@ static const char *gyro_action_strings[] = {
     "Invert"
 };
 
-#define GYRO_SENS_STRINGS_SIZE (200 + 1)
+#define GYRO_SENS_STRINGS_SIZE (500 + 1)
 
 static const char **GetGyroSensitivityStrings(void)
 {
@@ -3154,8 +3154,9 @@ static setup_menu_t gyro_settings1[] = {
     {"Acceleration", S_THERMO, CNTR_X, M_THRM_SPC, {"gyro_acceleration"},
      .strings_id = str_gyro_accel, .action = I_ResetGamepad},
 
-    {"Steadying", S_THERMO, CNTR_X, M_THRM_SPC, {"gyro_smooth_threshold"},
-     .strings_id = str_gyro_sens, .action = UpdateGyroSteadying},
+    {"Steadying", S_THERMO | S_THRM_SIZE11, CNTR_X, M_THRM_SPC,
+     {"gyro_smooth_threshold"}, .strings_id = str_gyro_sens,
+     .action = UpdateGyroSteadying},
 
     MI_GAP,
 

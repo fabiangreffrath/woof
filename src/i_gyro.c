@@ -475,41 +475,10 @@ static void SmoothGyro_Full(void)
 
 static float raw[2];
 
-static float SmoothGyroScaleMenu(float raw_scale)
-{
-    #define SCALE_SMOOTH_TIME 0.125f
-    static int scale_index;
-    static float scale_samples[NUM_SAMPLES];
-    static uint64_t last_time;
-
-    scale_index = (scale_index + (NUM_SAMPLES - 1)) % NUM_SAMPLES;
-    scale_samples[scale_index] = raw_scale;
-
-    uint64_t current_time = I_GetTimeUS();
-    float delta_time = (current_time - last_time) * 1.0e-6f;
-    delta_time = BETWEEN(1.0e-6f, SCALE_SMOOTH_TIME, delta_time);
-    last_time = current_time;
-
-    int max_samples = lroundf(SCALE_SMOOTH_TIME / delta_time);
-    max_samples = BETWEEN(1, NUM_SAMPLES, max_samples);
-
-    float smooth_scale = scale_samples[scale_index] / max_samples;
-
-    for (int i = 1; i < max_samples; i++)
-    {
-        const int index = (scale_index + i) % NUM_SAMPLES;
-        smooth_scale += scale_samples[index] / max_samples;
-    }
-
-    return BETWEEN(0.0f, 1.0f, smooth_scale);
-}
-
 void I_GetRawGyroScaleMenu(float *scale, float *limit)
 {
     const float deg_per_sec = LENGTH_F(raw[0], raw[1]) * 180.0f / PI_F;
-    const float raw_scale = BETWEEN(0.0f, 10.0f, deg_per_sec) / 10.0f;
-    // Smooth the result for accessibility reasons.
-    *scale = SmoothGyroScaleMenu(raw_scale);
+    *scale = BETWEEN(0.0f, 50.0f, deg_per_sec) / 50.0f;
     *limit = gyro_smooth_threshold / 100.0f;
 }
 
@@ -840,14 +809,14 @@ void I_BindGyroVaribales(void)
         "Lower threshold for applying gyro acceleration [degrees/second]");
     BIND_NUM(gyro_accel_max_threshold, 75, 0, 200,
         "Upper threshold for applying gyro acceleration [degrees/second]");
-    BIND_NUM_GYRO(gyro_smooth_threshold, 30, 0, 100,
+    BIND_NUM_GYRO(gyro_smooth_threshold, 30, 0, 500,
         "Gyro steadying: smoothing threshold "
-        "(0 = Off; 100 = 10.0 degrees/second)");
+        "(0 = Off; 500 = 50.0 degrees/second)");
     BIND_NUM(gyro_smooth_time, 125, 0, 500,
         "Gyro steadying: smoothing time [milliseconds]");
-    BIND_NUM(gyro_tightening, 30, 0, 100,
+    BIND_NUM(gyro_tightening, 30, 0, 500,
         "Gyro steadying: tightening threshold "
-        "(0 = Off; 100 = 10.0 degrees/second)");
+        "(0 = Off; 500 = 50.0 degrees/second)");
     BIND_BOOL(gyro_invert_turn, false,
         "Invert gyro turn axis");
     BIND_BOOL(gyro_invert_look, false,
