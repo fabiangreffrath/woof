@@ -830,10 +830,10 @@ void I_BindGyroVaribales(void)
     BIND_NUM_GYRO(gyro_stick_action,
         ACTION_NONE, ACTION_NONE, ACTION_ENABLE,
         "Camera stick action (0 = None; 1 = Disable Gyro; 2 = Enable Gyro)");
-    BIND_NUM_GYRO(gyro_turn_sensitivity, 10, 0, 100,
-        "Gyro turn sensitivity (0 = 0.0x; 100 = 10.0x)");
-    BIND_NUM_GYRO(gyro_look_sensitivity, 10, 0, 100,
-        "Gyro look sensitivity (0 = 0.0x; 100 = 10.0x)");
+    BIND_NUM_GYRO(gyro_turn_sensitivity, 10, 0, 200,
+        "Gyro turn sensitivity (0 = 0.0x; 200 = 20.0x)");
+    BIND_NUM_GYRO(gyro_look_sensitivity, 10, 0, 200,
+        "Gyro look sensitivity (0 = 0.0x; 200 = 20.0x)");
     BIND_NUM_GYRO(gyro_acceleration, 20, 10, 40,
         "Gyro acceleration multiplier (10 = 1.0x; 40 = 4.0x)");
     BIND_NUM(gyro_accel_min_threshold, 0, 0, 200,

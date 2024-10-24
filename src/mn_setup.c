@@ -3075,7 +3075,7 @@ static const char *gyro_action_strings[] = {
     "Invert"
 };
 
-#define GYRO_SENS_STRINGS_SIZE (100 + 1)
+#define GYRO_SENS_STRINGS_SIZE (200 + 1)
 
 static const char **GetGyroSensitivityStrings(void)
 {
