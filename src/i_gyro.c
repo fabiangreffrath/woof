@@ -803,8 +803,8 @@ void I_BindGyroVaribales(void)
         "Gyro turn sensitivity (0 = 0.0x; 200 = 20.0x)");
     BIND_NUM_GYRO(gyro_look_sensitivity, 10, 0, 200,
         "Gyro look sensitivity (0 = 0.0x; 200 = 20.0x)");
-    BIND_NUM_GYRO(gyro_acceleration, 20, 10, 40,
-        "Gyro acceleration multiplier (10 = 1.0x; 40 = 4.0x)");
+    BIND_NUM_GYRO(gyro_acceleration, 20, 10, 200,
+        "Gyro acceleration multiplier (10 = 1.0x; 200 = 20.0x)");
     BIND_NUM(gyro_accel_min_threshold, 0, 0, 200,
         "Lower threshold for applying gyro acceleration [degrees/second]");
     BIND_NUM(gyro_accel_max_threshold, 75, 0, 200,
