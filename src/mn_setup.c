@@ -3075,7 +3075,7 @@ static const char *gyro_action_strings[] = {
     "Invert"
 };
 
-#define GYRO_SENS_STRINGS_SIZE (100 + 1)
+#define GYRO_SENS_STRINGS_SIZE (500 + 1)
 
 static const char **GetGyroSensitivityStrings(void)
 {
@@ -3090,35 +3090,27 @@ static const char **GetGyroSensitivityStrings(void)
     return strings;
 }
 
-#define GYRO_ACCEL_STRINGS_SIZE (40 + 1)
+#define GYRO_ACCEL_STRINGS_SIZE (200 + 1)
 
 static const char **GetGyroAccelStrings(void)
 {
     static const char *strings[GYRO_ACCEL_STRINGS_SIZE] = {
-        [10] = "Off",
-        [15] = "Low",
-        [20] = "Medium",
-        [40] = "High",
+        "", "", "", "", "", "", "", "", "", "", "Off"
     };
     char buf[8];
 
-    for (int i = 0; i < GYRO_ACCEL_STRINGS_SIZE; i++)
+    for (int i = 11; i < GYRO_ACCEL_STRINGS_SIZE; i++)
     {
-        if (i < 10)
-        {
-            strings[i] = "";
-        }
-        else if (i == 10 || i == 15 || i == 20 || i == 40)
-        {
-            continue;
-        }
-        else
-        {
-            M_snprintf(buf, sizeof(buf), "%1d.%1d", i / 10, i % 10);
-            strings[i] = M_StringDuplicate(buf);
-        }
+        M_snprintf(buf, sizeof(buf), "%1d.%1d", i / 10, i % 10);
+        strings[i] = M_StringDuplicate(buf);
     }
     return strings;
+}
+
+static void UpdateGyroAcceleration(void)
+{
+    UpdateGyroItems();
+    I_ResetGamepad();
 }
 
 static void UpdateGyroSteadying(void)
@@ -3141,8 +3133,6 @@ static setup_menu_t gyro_settings1[] = {
     {"Camera Stick Action", S_CHOICE, CNTR_X, M_SPC, {"gyro_stick_action"},
      .strings_id = str_gyro_action, .action = I_ResetGamepad},
 
-    MI_GAP,
-
     {"Turn Sensitivity", S_THERMO | S_THRM_SIZE11, CNTR_X, M_THRM_SPC,
      {"gyro_turn_sensitivity"}, .strings_id = str_gyro_sens,
      .action = I_ResetGamepad},
@@ -3151,13 +3141,21 @@ static setup_menu_t gyro_settings1[] = {
      {"gyro_look_sensitivity"}, .strings_id = str_gyro_sens,
      .action = I_ResetGamepad},
 
-    {"Acceleration", S_THERMO, CNTR_X, M_THRM_SPC, {"gyro_acceleration"},
-     .strings_id = str_gyro_accel, .action = I_ResetGamepad},
+    {"Acceleration", S_THERMO | S_THRM_SIZE11, CNTR_X, M_THRM_SPC,
+     {"gyro_acceleration"}, .strings_id = str_gyro_accel,
+     .action = UpdateGyroAcceleration},
 
-    {"Steadying", S_THERMO, CNTR_X, M_THRM_SPC, {"gyro_smooth_threshold"},
-     .strings_id = str_gyro_sens, .action = UpdateGyroSteadying},
+    {"Lower Threshold", S_THERMO | S_THRM_SIZE11, CNTR_X, M_THRM_SPC,
+     {"gyro_accel_min_threshold"}, .action = I_ResetGamepad},
 
-    MI_GAP,
+    {"Upper Threshold", S_THERMO | S_THRM_SIZE11, CNTR_X, M_THRM_SPC,
+     {"gyro_accel_max_threshold"}, .action = I_ResetGamepad},
+
+    {"Steadying", S_THERMO | S_THRM_SIZE11, CNTR_X, M_THRM_SPC,
+     {"gyro_smooth_threshold"}, .strings_id = str_gyro_sens,
+     .action = UpdateGyroSteadying},
+
+    MI_GAP_Y(2),
 
     {"Calibrate", S_FUNC, CNTR_X, M_SPC,
      .action = I_UpdateGyroCalibrationState,
@@ -3172,6 +3170,7 @@ static void UpdateGyroItems(void)
 {
     const boolean gamepad = (I_UseGamepad() && I_GamepadEnabled());
     const boolean gyro = (I_GyroEnabled() && I_GyroSupported());
+    const boolean acceleration = (gamepad && gyro && I_GyroAcceleration());
     const boolean condition = (!gamepad || !gyro);
 
     DisableItem(!gamepad || !I_GyroSupported(), gyro_settings1, "gyro_enable");
@@ -3181,6 +3180,8 @@ static void UpdateGyroItems(void)
     DisableItem(condition, gyro_settings1, "gyro_turn_sensitivity");
     DisableItem(condition, gyro_settings1, "gyro_look_sensitivity");
     DisableItem(condition, gyro_settings1, "gyro_acceleration");
+    DisableItem(!acceleration, gyro_settings1, "gyro_accel_min_threshold");
+    DisableItem(!acceleration, gyro_settings1, "gyro_accel_max_threshold");
     DisableItem(condition, gyro_settings1, "gyro_smooth_threshold");
     DisableItem(condition, gyro_settings1, "Calibrate");
 }
