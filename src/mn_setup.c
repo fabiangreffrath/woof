@@ -3107,6 +3107,12 @@ static const char **GetGyroAccelStrings(void)
     return strings;
 }
 
+static void UpdateGyroAcceleration(void)
+{
+    UpdateGyroItems();
+    I_ResetGamepad();
+}
+
 static void UpdateGyroSteadying(void)
 {
     I_UpdateGyroSteadying();
@@ -3127,8 +3133,6 @@ static setup_menu_t gyro_settings1[] = {
     {"Camera Stick Action", S_CHOICE, CNTR_X, M_SPC, {"gyro_stick_action"},
      .strings_id = str_gyro_action, .action = I_ResetGamepad},
 
-    MI_GAP,
-
     {"Turn Sensitivity", S_THERMO | S_THRM_SIZE11, CNTR_X, M_THRM_SPC,
      {"gyro_turn_sensitivity"}, .strings_id = str_gyro_sens,
      .action = I_ResetGamepad},
@@ -3139,13 +3143,19 @@ static setup_menu_t gyro_settings1[] = {
 
     {"Acceleration", S_THERMO | S_THRM_SIZE11, CNTR_X, M_THRM_SPC,
      {"gyro_acceleration"}, .strings_id = str_gyro_accel,
-     .action = I_ResetGamepad},
+     .action = UpdateGyroAcceleration},
+
+    {"Lower Threshold", S_THERMO | S_THRM_SIZE11, CNTR_X, M_THRM_SPC,
+     {"gyro_accel_min_threshold"}, .action = I_ResetGamepad},
+
+    {"Upper Threshold", S_THERMO | S_THRM_SIZE11, CNTR_X, M_THRM_SPC,
+     {"gyro_accel_max_threshold"}, .action = I_ResetGamepad},
 
     {"Steadying", S_THERMO | S_THRM_SIZE11, CNTR_X, M_THRM_SPC,
      {"gyro_smooth_threshold"}, .strings_id = str_gyro_sens,
      .action = UpdateGyroSteadying},
 
-    MI_GAP,
+    MI_GAP_Y(2),
 
     {"Calibrate", S_FUNC, CNTR_X, M_SPC,
      .action = I_UpdateGyroCalibrationState,
@@ -3160,6 +3170,7 @@ static void UpdateGyroItems(void)
 {
     const boolean gamepad = (I_UseGamepad() && I_GamepadEnabled());
     const boolean gyro = (I_GyroEnabled() && I_GyroSupported());
+    const boolean acceleration = (gamepad && gyro && I_GyroAcceleration());
     const boolean condition = (!gamepad || !gyro);
 
     DisableItem(!gamepad || !I_GyroSupported(), gyro_settings1, "gyro_enable");
@@ -3169,6 +3180,8 @@ static void UpdateGyroItems(void)
     DisableItem(condition, gyro_settings1, "gyro_turn_sensitivity");
     DisableItem(condition, gyro_settings1, "gyro_look_sensitivity");
     DisableItem(condition, gyro_settings1, "gyro_acceleration");
+    DisableItem(!acceleration, gyro_settings1, "gyro_accel_min_threshold");
+    DisableItem(!acceleration, gyro_settings1, "gyro_accel_max_threshold");
     DisableItem(condition, gyro_settings1, "gyro_smooth_threshold");
     DisableItem(condition, gyro_settings1, "Calibrate");
 }

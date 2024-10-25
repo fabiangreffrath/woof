@@ -267,6 +267,11 @@ boolean I_GyroEnabled(void)
     return gyro_enable;
 }
 
+boolean I_GyroAcceleration(void)
+{
+    return (gyro_acceleration > 10);
+}
+
 void I_SetStickMoving(boolean condition)
 {
     motion.stick_moving = condition;
@@ -760,11 +765,13 @@ void I_RefreshGyroSettings(void)
     motion.stick_action = gyro_stick_action;
 
     AccelerateGyro =
-        (gyro_acceleration > 10) ? AccelerateGyro_Full : AccelerateGyro_Skip;
+        I_GyroAcceleration() ? AccelerateGyro_Full : AccelerateGyro_Skip;
     motion.min_pitch_sens = gyro_look_sensitivity / 10.0f;
     motion.min_yaw_sens = gyro_turn_sensitivity / 10.0f;
     motion.max_pitch_sens = motion.min_pitch_sens * gyro_acceleration / 10.0f;
     motion.max_yaw_sens = motion.min_yaw_sens * gyro_acceleration / 10.0f;
+    gyro_accel_max_threshold =
+        MAX(gyro_accel_max_threshold, gyro_accel_min_threshold);
     motion.accel_min_thresh = gyro_accel_min_threshold * PI_F / 180.0f;
     motion.accel_max_thresh = gyro_accel_max_threshold * PI_F / 180.0f;
 
