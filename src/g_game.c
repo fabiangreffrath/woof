@@ -2015,7 +2015,7 @@ static void G_DoPlayDemo(void)
       M_ReadFile(filename, &demobuffer);
       demolength = M_FileLength(filename);
       demo_p = demobuffer;
-      I_Printf(VB_INFO, "G_DoPlayDemo: %s", filename);
+      I_Printf(VB_DEMO, "G_DoPlayDemo: %s", filename);
   }
   else
   {
@@ -2024,7 +2024,7 @@ static void G_DoPlayDemo(void)
       int lumpnum = W_GetNumForName(lumpname);
       demolength = W_LumpLength(lumpnum);
       demobuffer = demo_p = W_CacheLumpNum(lumpnum, PU_STATIC);  // killough
-      I_Printf(VB_INFO, "G_DoPlayDemo: %s (%s)", lumpname, W_WadNameForLump(lumpnum));
+      I_Printf(VB_DEMO, "G_DoPlayDemo: %s (%s)", lumpname, W_WadNameForLump(lumpnum));
   }
 
   // [FG] ignore too short demo lumps
@@ -2790,12 +2790,12 @@ static void PrintLevelTimes(void)
 {
   if (totalleveltimes)
   {
-    I_Printf(VB_INFO, "(%d:%02d) ",
+    I_Printf(VB_DEBUG, "(%d:%02d) ",
              ((totalleveltimes + leveltime) / TICRATE) / 60,
              ((totalleveltimes + leveltime) / TICRATE) % 60);
   }
 
-  I_Printf(VB_INFO, "%d:%05.2f", leveltime / TICRATE / 60,
+  I_Printf(VB_DEBUG, "%d:%05.2f", leveltime / TICRATE / 60,
            (float)(leveltime % (60 * TICRATE)) / TICRATE);
 }
 
@@ -2804,7 +2804,7 @@ static void G_DoLoadGame(void)
   if (DoLoadGame(false))
   {
     const int slot_num = 10 * savepage + savegameslot;
-    I_Printf(VB_INFO, "G_DoLoadGame: Slot %02d, Time ", slot_num);
+    I_Printf(VB_DEBUG, "G_DoLoadGame: Slot %02d, Time ", slot_num);
     PrintLevelTimes();
     MN_SetQuickSaveSlot(savegameslot);
   }
@@ -2814,7 +2814,7 @@ static void G_DoLoadAutoSave(void)
 {
   if (DoLoadGame(true))
   {
-    I_Printf(VB_INFO, "G_DoLoadGame: Auto Save, Time ");
+    I_Printf(VB_DEBUG, "G_DoLoadGame: Auto Save, Time ");
     PrintLevelTimes();
   }
 }

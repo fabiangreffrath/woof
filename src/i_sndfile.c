@@ -738,6 +738,28 @@ static void I_SND_BindVariables(void)
     ;
 }
 
+static const char *I_SND_MusicFormat(void)
+{
+    static SF_FORMAT_INFO format_info;
+
+    int count;
+    sf_command(NULL, SFC_GET_SIMPLE_FORMAT_COUNT, &count, sizeof(count));
+
+    for (int i = 0; i < count; i++)
+    {
+        format_info.format = i;
+        sf_command(NULL, SFC_GET_SIMPLE_FORMAT, &format_info,
+                   sizeof(format_info));
+        if (format_info.format == stream.sfinfo.format)
+        {
+            return format_info.name;
+            break;
+        }
+    }
+
+    return "Unknown";
+}
+
 stream_module_t stream_snd_module =
 {
     I_SND_InitStream,
@@ -748,4 +770,5 @@ stream_module_t stream_snd_module =
     I_SND_ShutdownStream,
     I_SND_DeviceList,
     I_SND_BindVariables,
+    I_SND_MusicFormat,
 };

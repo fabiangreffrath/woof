@@ -682,8 +682,10 @@ void S_ChangeMusic(int musicnum, int looping)
     I_PlaySong((void *)music->handle, looping);
 
     // [crispy] log played music
-    I_Printf(VB_INFO, "S_ChangeMusic: %.8s (%s)", lumpinfo[music->lumpnum].name,
-             W_WadNameForLump(music->lumpnum));
+    I_Printf(VB_DEBUG, "S_ChangeMusic: %.8s (%s), %s",
+             lumpinfo[music->lumpnum].name,
+             W_WadNameForLump(music->lumpnum),
+             I_MusicFormat());
 
     mus_playing = music;
 
@@ -729,8 +731,10 @@ void S_ChangeMusInfoMusic(int lumpnum, int looping)
     I_PlaySong((void *)music->handle, looping);
 
     // [crispy] log played music
-    I_Printf(VB_INFO, "S_ChangeMusInfoMusic: %.8s (%s)",
-             lumpinfo[music->lumpnum].name, W_WadNameForLump(music->lumpnum));
+    I_Printf(VB_DEBUG, "S_ChangeMusInfoMusic: %.8s (%s), %s",
+             lumpinfo[music->lumpnum].name,
+             W_WadNameForLump(music->lumpnum),
+             I_MusicFormat());
 
     mus_playing = music;
 

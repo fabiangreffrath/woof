@@ -1517,6 +1517,8 @@ static boolean I_OPL_InitStream(int device)
 
 static midi_file_t *midifile;
 
+static const char *music_format = "Unknown";
+
 static boolean I_OPL_OpenStream(void *data, ALsizei size, ALenum *format,
                                 ALsizei *freq, ALsizei *frame_size)
 {
@@ -1534,6 +1536,7 @@ static boolean I_OPL_OpenStream(void *data, ALsizei size, ALenum *format,
     if (IsMid(data, size) /* && size < MAXMIDLENGTH */)
     {
         midifile = MIDI_LoadFile(data, size);
+        music_format = "MIDI (OPL)";
     }
     else
     {
@@ -1558,6 +1561,7 @@ static boolean I_OPL_OpenStream(void *data, ALsizei size, ALenum *format,
 
         mem_fclose(instream);
         mem_fclose(outstream);
+        music_format = "MUS (OPL)";
     }
 
     if (midifile == NULL)
@@ -1685,6 +1689,11 @@ static const char **I_OPL_DeviceList(void)
     return devices;
 }
 
+static const char *I_OPL_MusicFormat(void)
+{
+    return music_format;
+}
+
 static void I_OPL_BindVariables(void)
 {
     BIND_NUM_MIDI(num_opl_chips, 1, 1, OPL_MAX_CHIPS,
@@ -1703,4 +1712,5 @@ stream_module_t stream_opl_module =
     I_OPL_ShutdownStream,
     I_OPL_DeviceList,
     I_OPL_BindVariables,
+    I_OPL_MusicFormat,
 };

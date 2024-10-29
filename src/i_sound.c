@@ -726,6 +726,15 @@ const char **I_DeviceList(void)
     return devices;
 }
 
+const char *I_MusicFormat(void)
+{
+    if (active_module)
+    {
+        return active_module->I_MusicFormat();
+    }
+    return "Unknown";
+}
+
 void I_BindSoundVariables(void)
 {
     M_BindNum("sfx_volume", &snd_SfxVolume, NULL, 8, 0, 15, ss_none, wad_no,
