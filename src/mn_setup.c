@@ -321,6 +321,7 @@ enum
     str_hudmode,
     str_show_widgets,
     str_show_adv_widgets,
+    str_stats_format,
     str_crosshair,
     str_crosshair_target,
     str_hudcolor,
@@ -1885,6 +1886,10 @@ static const char *show_widgets_strings[] = {"Off", "Automap", "HUD", "Always"};
 static const char *show_adv_widgets_strings[] = {"Off", "Automap", "HUD",
                                                  "Always", "Advanced"};
 
+static const char *stats_format_strings[] = {
+  "Match HUD", "Ratio", "Boolean", "Percentage", "Remaining", "Count"
+};
+
 static setup_menu_t stat_settings2[] = {
 
     {"Widget Types", S_SKIP | S_TITLE, H_X, M_SPC},
@@ -1916,6 +1921,12 @@ static setup_menu_t stat_settings2[] = {
 
     {"Vertical Layout", S_ONOFF, H_X, M_SPC, {"hud_widget_layout"},
      .action = HU_Start},
+
+    {"HUD Level-Stats Format", S_CHOICE, H_X, M_SPC,
+     {"hud_stats_format"}, .strings_id = str_stats_format},
+
+    {"Automap Level-Stats Format", S_CHOICE, H_X, M_SPC,
+     {"hud_stats_format_map"}, .strings_id = str_stats_format},
 
     MI_END
 };
@@ -4820,6 +4831,7 @@ static const char **selectstrings[] = {
     NULL, // str_hudmode
     show_widgets_strings,
     show_adv_widgets_strings,
+    stats_format_strings,
     crosshair_strings,
     crosshair_target_strings,
     hudcolor_strings,

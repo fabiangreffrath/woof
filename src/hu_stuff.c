@@ -1200,6 +1200,20 @@ static void HU_widget_build_frag (void)
   HUlib_add_string_to_cur_line(&w_keys, hud_stringbuffer);
 }
 
+typedef enum {
+  STATSFORMAT_MATCHHUD,
+  STATSFORMAT_RATIO,
+  STATSFORMAT_BOOLEAN,
+  STATSFORMAT_PERCENTAGE,
+  STATSFORMAT_REMAINING,
+  STATSFORMAT_COUNT,
+
+  NUMSTATSFORMATS
+} statsformat_t;
+
+static statsformat_t hud_stats_format;
+static statsformat_t hud_stats_format_map;
+
 static void HU_widget_build_monsec(void)
 {
   int i;
@@ -1233,27 +1247,65 @@ static void HU_widget_build_monsec(void)
   secretcolor = (fullsecretcount >= totalsecret) ? '0'+CR_BLUE : '0'+CR_GRAY;
   itemcolor = (fullitemcount >= totalitems) ? '0'+CR_BLUE : '0'+CR_GRAY;
 
+  char kill_str[32], item_str[32], secret_str[32];
+
+  switch ((automapactive && hud_stats_format_map) ? hud_stats_format_map : hud_stats_format)
+  {
+    case STATSFORMAT_RATIO:
+      M_snprintf(kill_str,   sizeof(kill_str),   "%d/%d", fullkillcount,   max_kill_requirement);
+      M_snprintf(item_str,   sizeof(item_str),   "%d/%d", fullitemcount,   totalitems);
+      M_snprintf(secret_str, sizeof(secret_str), "%d/%d", fullsecretcount, totalsecret);
+      break;
+
+    case STATSFORMAT_BOOLEAN:
+      M_snprintf(kill_str,   sizeof(kill_str),   "%s", (fullkillcount   >= max_kill_requirement) ? "YES" : "NO");
+      M_snprintf(item_str,   sizeof(item_str),   "%s", (fullitemcount   >= totalitems)           ? "YES" : "NO");
+      M_snprintf(secret_str, sizeof(secret_str), "%s", (fullsecretcount >= totalsecret)          ? "YES" : "NO");
+      break;
+
+    case STATSFORMAT_PERCENTAGE:
+      M_snprintf(kill_str,   sizeof(kill_str),   "%d%%", (!max_kill_requirement) ? 100 : fullkillcount   * 100 / max_kill_requirement);
+      M_snprintf(item_str,   sizeof(item_str),   "%d%%", (!totalitems)           ? 100 : fullitemcount   * 100 / totalitems);
+      M_snprintf(secret_str, sizeof(secret_str), "%d%%", (!totalsecret)          ? 100 : fullsecretcount * 100 / totalsecret);
+      break;
+
+    case STATSFORMAT_REMAINING:
+      M_snprintf(kill_str,   sizeof(kill_str),   "%d", max_kill_requirement - fullkillcount);
+      M_snprintf(item_str,   sizeof(item_str),   "%d", totalitems           - fullitemcount);
+      M_snprintf(secret_str, sizeof(secret_str), "%d", totalsecret          - fullsecretcount);
+      break;
+
+    case STATSFORMAT_COUNT:
+      M_snprintf(kill_str,   sizeof(kill_str),   "%d", fullkillcount);
+      M_snprintf(item_str,   sizeof(item_str),   "%d", fullitemcount);
+      M_snprintf(secret_str, sizeof(secret_str), "%d", fullsecretcount);
+      break;
+
+    default:
+      break;
+  }
+
   if (hud_widget_layout)
   {
     M_snprintf(hud_stringbuffer, sizeof(hud_stringbuffer),
-      "\x1b%cK\t\x1b%c%d/%d", ('0'+CR_RED), killcolor, fullkillcount, max_kill_requirement);
+      "\x1b%cK\t\x1b%c%s", ('0'+CR_RED), killcolor, kill_str);
     HUlib_add_string_to_cur_line(&w_monsec, hud_stringbuffer);
 
     M_snprintf(hud_stringbuffer, sizeof(hud_stringbuffer),
-      "\x1b%cI\t\x1b%c%d/%d", ('0'+CR_RED), itemcolor, fullitemcount, totalitems);
+      "\x1b%cI\t\x1b%c%s", ('0'+CR_RED), itemcolor, item_str);
     HUlib_add_string_to_cur_line(&w_monsec, hud_stringbuffer);
 
     M_snprintf(hud_stringbuffer, sizeof(hud_stringbuffer),
-      "\x1b%cS\t\x1b%c%d/%d", ('0'+CR_RED), secretcolor, fullsecretcount, totalsecret);
+      "\x1b%cS\t\x1b%c%s", ('0'+CR_RED), secretcolor, secret_str);
     HUlib_add_string_to_cur_line(&w_monsec, hud_stringbuffer);
   }
   else
   {
     M_snprintf(hud_stringbuffer, sizeof(hud_stringbuffer),
-      "\x1b%cK \x1b%c%d/%d \x1b%cI \x1b%c%d/%d \x1b%cS \x1b%c%d/%d",
-      '0'+CR_RED, killcolor, fullkillcount, max_kill_requirement,
-      '0'+CR_RED, itemcolor, fullitemcount, totalitems,
-      '0'+CR_RED, secretcolor, fullsecretcount, totalsecret);
+      "\x1b%cK \x1b%c%s \x1b%cI \x1b%c%s \x1b%cS \x1b%c%s",
+      '0'+CR_RED, killcolor, kill_str,
+      '0'+CR_RED, itemcolor, item_str,
+      '0'+CR_RED, secretcolor, secret_str);
 
     HUlib_add_string_to_cur_line(&w_monsec, hud_stringbuffer);
   }
@@ -2186,11 +2238,21 @@ void HU_BindHUDVariables(void)
              "Display HUD");
   M_BindNum("hud_active", &hud_active, NULL, 2, 0, 2, ss_stat, wad_yes,
             "HUD layout (by default: 0 = Minimal; 1 = Compact; 2 = Distributed)");
+
   M_BindNum("hud_level_stats", &hud_level_stats, NULL,
             HUD_WIDGET_OFF, HUD_WIDGET_OFF, HUD_WIDGET_ALWAYS,
             ss_stat, wad_no,
             "Show level stats (kills, items, and secrets) widget (1 = On automap; "
             "2 = On HUD; 3 = Always)");
+  M_BindNum("hud_stats_format", &hud_stats_format, NULL,
+            STATSFORMAT_RATIO, STATSFORMAT_RATIO, NUMSTATSFORMATS-1,
+            ss_stat, wad_no,
+            "Format of level stats (1 = Ratio; 2 = Boolean; 3 = Percentage; 4 = Remaining; 5 = Count)");
+  M_BindNum("hud_stats_format_map", &hud_stats_format_map, NULL,
+            STATSFORMAT_MATCHHUD, STATSFORMAT_MATCHHUD, NUMSTATSFORMATS-1,
+            ss_stat, wad_no,
+            "Format of level stats in automap (0 = Match HUD)");
+
   M_BindNum("hud_level_time", &hud_level_time, NULL,
             HUD_WIDGET_OFF, HUD_WIDGET_OFF, HUD_WIDGET_ALWAYS,
             ss_stat, wad_no,
