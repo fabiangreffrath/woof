@@ -23,7 +23,6 @@
 #include "config.h"
 #include "i_oalstream.h"
 #include "m_config.h"
-#include "s_musinfo.h"
 
 #if (FLUIDSYNTH_VERSION_MAJOR < 2 \
      || (FLUIDSYNTH_VERSION_MAJOR == 2 && FLUIDSYNTH_VERSION_MINOR < 2))

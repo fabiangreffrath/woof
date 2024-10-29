@@ -32,7 +32,6 @@
 #include "memio.h"
 #include "midifile.h"
 #include "mus2mid.h"
-#include "s_sound.h"
 #include "w_wad.h"
 #include "z_zone.h"
 

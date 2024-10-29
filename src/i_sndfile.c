@@ -33,7 +33,6 @@
 #include "i_printf.h"
 #include "m_swap.h"
 #include "memio.h"
-#include "s_sound.h"
 
 typedef struct
 {
