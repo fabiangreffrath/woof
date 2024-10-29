@@ -31,6 +31,7 @@
 #include "midifallback.h"
 #include "midifile.h"
 #include "mus2mid.h"
+#include "s_sound.h"
 
 static SDL_Thread *player_thread_handle;
 static SDL_mutex *music_lock;
@@ -1132,6 +1133,8 @@ static boolean RegisterSong(void)
     if (IsMid(song.lump_data, song.lump_length))
     {
         song.file = MIDI_LoadFile(song.lump_data, song.lump_length);
+
+        S_SetMusicLumpFormatStr("MIDI (Native MIDI)");
     }
     else
     {
@@ -1156,6 +1159,8 @@ static boolean RegisterSong(void)
 
         mem_fclose(instream);
         mem_fclose(outstream);
+
+        S_SetMusicLumpFormatStr("MUS (Native MIDI)");
     }
 
     if (song.file == NULL)

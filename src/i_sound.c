@@ -666,6 +666,8 @@ boolean IsMus(byte *mem, int len)
 
 void *I_RegisterSong(void *data, int size)
 {
+    S_SetMusicLumpFormatStr("unknown");
+
     for (int i = 0; i < arrlen(music_modules); ++i)
     {
         void *result = music_modules[i]->I_RegisterSong(data, size);

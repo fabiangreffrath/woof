@@ -97,6 +97,8 @@ void S_StartMusic(int music_id);
 void S_ChangeMusic(int music_id, int looping);
 void S_ChangeMusInfoMusic(int lumpnum, int looping);
 
+void S_SetMusicLumpFormatStr(const char *str);
+
 // Stops the music fer sure.
 void S_StopMusic(void);
 

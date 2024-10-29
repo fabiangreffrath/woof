@@ -33,6 +33,7 @@
 #include "i_printf.h"
 #include "m_swap.h"
 #include "memio.h"
+#include "s_sound.h"
 
 typedef struct
 {
@@ -676,6 +677,20 @@ static boolean I_SND_OpenStream(void *data, ALsizei size, ALenum *format,
     *format = stream.format;
     *freq = stream.sfinfo.samplerate;
     *frame_size = stream.frame_size;
+
+    int count;
+    sf_command(NULL, SFC_GET_SIMPLE_FORMAT_COUNT, &count, sizeof(count));
+
+    for (int k = 0; k < count; k++)
+    {
+      SF_FORMAT_INFO format_info = {.format = k};
+      sf_command(NULL, SFC_GET_SIMPLE_FORMAT, &format_info, sizeof(format_info));
+      if (format_info.format == stream.sfinfo.format)
+      {
+        S_SetMusicLumpFormatStr(format_info.name);
+        break;
+      }
+    }
 
     return true;
 }

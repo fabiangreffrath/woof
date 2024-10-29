@@ -43,6 +43,7 @@ typedef fluid_long_long_t fluid_int_t;
 #include "m_misc.h"
 #include "memio.h"
 #include "mus2mid.h"
+#include "s_sound.h"
 #include "w_wad.h"
 #include "z_zone.h"
 
@@ -344,6 +345,8 @@ static boolean I_FL_OpenStream(void *data, ALsizei size, ALenum *format,
     if (IsMid(data, size))
     {
         result = fluid_player_add_mem(player, data, size);
+
+        S_SetMusicLumpFormatStr("MIDI (FluidSynth)");
     }
     else
     {
@@ -364,6 +367,8 @@ static boolean I_FL_OpenStream(void *data, ALsizei size, ALenum *format,
 
         mem_fclose(instream);
         mem_fclose(outstream);
+
+        S_SetMusicLumpFormatStr("MUS (FluidSynth)");
     }
 
     if (result != FLUID_OK)

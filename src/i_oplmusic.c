@@ -32,6 +32,7 @@
 #include "memio.h"
 #include "midifile.h"
 #include "mus2mid.h"
+#include "s_sound.h"
 #include "w_wad.h"
 #include "z_zone.h"
 
@@ -1534,6 +1535,8 @@ static boolean I_OPL_OpenStream(void *data, ALsizei size, ALenum *format,
     if (IsMid(data, size) /* && size < MAXMIDLENGTH */)
     {
         midifile = MIDI_LoadFile(data, size);
+
+        S_SetMusicLumpFormatStr("MIDI (OPL)");
     }
     else
     {
@@ -1558,6 +1561,8 @@ static boolean I_OPL_OpenStream(void *data, ALsizei size, ALenum *format,
 
         mem_fclose(instream);
         mem_fclose(outstream);
+
+        S_SetMusicLumpFormatStr("MUS (OPL)");
     }
 
     if (midifile == NULL)

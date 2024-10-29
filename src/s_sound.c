@@ -634,6 +634,16 @@ void S_SetSfxVolume(int volume)
 }
 
 static int current_musicnum = -1;
+static char music_lump_format_str[40];
+
+void S_SetMusicLumpFormatStr(const char *str)
+{
+    if (str)
+    {
+        M_StringCopy(music_lump_format_str, str,
+                     sizeof(music_lump_format_str));
+    }
+}
 
 void S_ChangeMusic(int musicnum, int looping)
 {
@@ -682,8 +692,10 @@ void S_ChangeMusic(int musicnum, int looping)
     I_PlaySong((void *)music->handle, looping);
 
     // [crispy] log played music
-    I_Printf(VB_DEBUG, "S_ChangeMusic: %.8s (%s)", lumpinfo[music->lumpnum].name,
-             W_WadNameForLump(music->lumpnum));
+    I_Printf(VB_DEBUG, "S_ChangeMusic: %.8s (%s), %s",
+             lumpinfo[music->lumpnum].name,
+             W_WadNameForLump(music->lumpnum),
+             music_lump_format_str);
 
     mus_playing = music;
 
@@ -729,8 +741,10 @@ void S_ChangeMusInfoMusic(int lumpnum, int looping)
     I_PlaySong((void *)music->handle, looping);
 
     // [crispy] log played music
-    I_Printf(VB_DEBUG, "S_ChangeMusInfoMusic: %.8s (%s)",
-             lumpinfo[music->lumpnum].name, W_WadNameForLump(music->lumpnum));
+    I_Printf(VB_DEBUG, "S_ChangeMusInfoMusic: %.8s (%s), %s",
+             lumpinfo[music->lumpnum].name,
+             W_WadNameForLump(music->lumpnum),
+             music_lump_format_str);
 
     mus_playing = music;
 
