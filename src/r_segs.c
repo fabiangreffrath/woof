@@ -539,9 +539,11 @@ void R_StoreWallRange(const int start, const int stop)
   sidedef = curline->sidedef;
   linedef = curline->linedef;
 
+  if (!linedef)
+    return;
+
   // mark the segment as visible for auto map
-  if (linedef)
-    linedef->flags |= ML_MAPPED;
+  linedef->flags |= ML_MAPPED;
 
   // [FG] update automap while playing
   if (automap_on)
