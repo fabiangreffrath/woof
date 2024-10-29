@@ -31,7 +31,6 @@
 #include "midifallback.h"
 #include "midifile.h"
 #include "mus2mid.h"
-#include "s_sound.h"
 
 static SDL_Thread *player_thread_handle;
 static SDL_mutex *music_lock;
@@ -1133,8 +1132,6 @@ static boolean RegisterSong(void)
     if (IsMid(song.lump_data, song.lump_length))
     {
         song.file = MIDI_LoadFile(song.lump_data, song.lump_length);
-
-        S_SetMusicLumpFormatStr("MIDI (Native MIDI)");
     }
     else
     {
@@ -1159,8 +1156,6 @@ static boolean RegisterSong(void)
 
         mem_fclose(instream);
         mem_fclose(outstream);
-
-        S_SetMusicLumpFormatStr("MUS (Native MIDI)");
     }
 
     if (song.file == NULL)
@@ -1417,6 +1412,8 @@ static void I_MID_ResumeSong(void *handle)
     SDL_UnlockMutex(music_lock);
 }
 
+static const char *music_format = "Unknown";
+
 static void *I_MID_RegisterSong(void *data, int len)
 {
     if (!music_initialized)
@@ -1424,7 +1421,15 @@ static void *I_MID_RegisterSong(void *data, int len)
         return NULL;
     }
 
-    if (!IsMid(data, len) && !IsMus(data, len))
+    if (IsMid(data, len))
+    {
+        music_format = "MIDI (Native)";
+    }
+    else if (IsMus(data, len))
+    {
+        music_format = "MUS (Native)";
+    }
+    else
     {
         return NULL;
     }
@@ -1498,6 +1503,11 @@ static midiplayertype_t I_MID_MidiPlayerType(void)
     return midiplayer_native;
 }
 
+static const char *I_MID_MusicFormat(void)
+{
+    return music_format;
+}
+
 static void I_MID_BindVariables(void)
 {
     BIND_NUM_MIDI(midi_complevel, COMP_STANDARD, 0, COMP_NUM - 1,
@@ -1525,4 +1535,5 @@ music_module_t music_mid_module =
     I_MID_DeviceList,
     I_MID_BindVariables,
     I_MID_MidiPlayerType,
+    I_MID_MusicFormat,
 };

@@ -678,20 +678,6 @@ static boolean I_SND_OpenStream(void *data, ALsizei size, ALenum *format,
     *freq = stream.sfinfo.samplerate;
     *frame_size = stream.frame_size;
 
-    int count;
-    sf_command(NULL, SFC_GET_SIMPLE_FORMAT_COUNT, &count, sizeof(count));
-
-    for (int k = 0; k < count; k++)
-    {
-      SF_FORMAT_INFO format_info = {.format = k};
-      sf_command(NULL, SFC_GET_SIMPLE_FORMAT, &format_info, sizeof(format_info));
-      if (format_info.format == stream.sfinfo.format)
-      {
-        S_SetMusicLumpFormatStr(format_info.name);
-        break;
-      }
-    }
-
     return true;
 }
 
@@ -753,6 +739,28 @@ static void I_SND_BindVariables(void)
     ;
 }
 
+static const char *I_SND_MusicFormat(void)
+{
+    static SF_FORMAT_INFO format_info;
+
+    int count;
+    sf_command(NULL, SFC_GET_SIMPLE_FORMAT_COUNT, &count, sizeof(count));
+
+    for (int i = 0; i < count; i++)
+    {
+        format_info.format = i;
+        sf_command(NULL, SFC_GET_SIMPLE_FORMAT, &format_info,
+                   sizeof(format_info));
+        if (format_info.format == stream.sfinfo.format)
+        {
+            return format_info.name;
+            break;
+        }
+    }
+
+    return "Unknown";
+}
+
 stream_module_t stream_snd_module =
 {
     I_SND_InitStream,
@@ -763,4 +771,5 @@ stream_module_t stream_snd_module =
     I_SND_ShutdownStream,
     I_SND_DeviceList,
     I_SND_BindVariables,
+    I_SND_MusicFormat,
 };

@@ -23,6 +23,7 @@
 #include "config.h"
 #include "i_oalstream.h"
 #include "m_config.h"
+#include "s_musinfo.h"
 
 #if (FLUIDSYNTH_VERSION_MAJOR < 2 \
      || (FLUIDSYNTH_VERSION_MAJOR == 2 && FLUIDSYNTH_VERSION_MINOR < 2))
@@ -43,7 +44,6 @@ typedef fluid_long_long_t fluid_int_t;
 #include "m_misc.h"
 #include "memio.h"
 #include "mus2mid.h"
-#include "s_sound.h"
 #include "w_wad.h"
 #include "z_zone.h"
 
@@ -318,6 +318,8 @@ static boolean I_FL_InitStream(int device)
     return true;
 }
 
+static const char *music_format = "Unknown";
+
 static boolean I_FL_OpenStream(void *data, ALsizei size, ALenum *format,
                                ALsizei *freq, ALsizei *frame_size)
 {
@@ -345,8 +347,7 @@ static boolean I_FL_OpenStream(void *data, ALsizei size, ALenum *format,
     if (IsMid(data, size))
     {
         result = fluid_player_add_mem(player, data, size);
-
-        S_SetMusicLumpFormatStr("MIDI (FluidSynth)");
+        music_format = "MIDI (FluidSynth)";
     }
     else
     {
@@ -367,8 +368,7 @@ static boolean I_FL_OpenStream(void *data, ALsizei size, ALenum *format,
 
         mem_fclose(instream);
         mem_fclose(outstream);
-
-        S_SetMusicLumpFormatStr("MUS (FluidSynth)");
+        music_format = "MUS (FluidSynth)";
     }
 
     if (result != FLUID_OK)
@@ -486,6 +486,11 @@ static void I_FL_BindVariables(void)
     BIND_BOOL_MIDI(mus_reverb, false, "FluidSynth reverb");
 }
 
+static const char *I_FL_MusicFormat(void)
+{
+    return music_format;
+}
+
 stream_module_t stream_fl_module =
 {
     I_FL_InitStream,
@@ -496,4 +501,5 @@ stream_module_t stream_fl_module =
     I_FL_ShutdownStream,
     I_FL_DeviceList,
     I_FL_BindVariables,
+    I_FL_MusicFormat,
 };

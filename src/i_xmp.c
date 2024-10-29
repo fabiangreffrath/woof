@@ -20,7 +20,6 @@
 #include "i_oalstream.h"
 #include "i_printf.h"
 #include "i_sound.h"
-#include "s_sound.h"
 
 static xmp_context context;
 
@@ -96,10 +95,6 @@ static boolean I_XMP_OpenStream(void *data, ALsizei size, ALenum *format,
     *freq = SND_SAMPLERATE;
     *frame_size = 2 * sizeof(short);
 
-    struct xmp_module_info info;
-    xmp_get_module_info(context, &info);
-    S_SetMusicLumpFormatStr(info.mod->type);
-
     return true;
 }
 
@@ -160,6 +155,18 @@ static void I_XMP_BindVariables(void)
     ;
 }
 
+static const char *I_XMP_MusicFormat(void)
+{
+    if (!context)
+    {
+        return "Unknown";
+    }
+
+    static struct xmp_module_info info;
+    xmp_get_module_info(context, &info);
+    return info.mod->type;
+}
+
 stream_module_t stream_xmp_module =
 {
     I_XMP_InitStream,
@@ -170,4 +177,5 @@ stream_module_t stream_xmp_module =
     I_XMP_ShutdownStream,
     I_XMP_DeviceList,
     I_XMP_BindVariables,
+    I_XMP_MusicFormat,
 };
