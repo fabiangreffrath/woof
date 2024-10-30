@@ -2177,7 +2177,9 @@ static void P_SecretRevealed(player_t *player)
     if (hud_secret_message == SECRETMESSAGE_COUNT)
     {
       static char str_count[32];
-      M_snprintf(str_count, sizeof(str_count), "Secret %d of %d revealed!", player->secretcount, totalsecret);
+
+      M_snprintf(str_count, sizeof(str_count), "Secret %d of %d revealed!",
+                 player->secretcount, totalsecret);
 
       player->secretmessage = str_count;
     }

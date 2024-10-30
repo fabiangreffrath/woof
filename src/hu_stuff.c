@@ -2249,7 +2249,7 @@ void HU_BindHUDVariables(void)
 
   BIND_BOOL(show_messages, true, "Show messages");
   M_BindNum("hud_secret_message", &hud_secret_message, NULL,
-            SECRETMESSAGE_SIMPLE, SECRETMESSAGE_OFF, SECRETMESSAGE_COUNT,
+            SECRETMESSAGE_ON, SECRETMESSAGE_OFF, SECRETMESSAGE_COUNT,
             ss_stat, wad_no,
             "Announce revealed secrets (1 = Simple; 2 = Count)");
   M_BindBool("hud_map_announce", &hud_map_announce, NULL,

@@ -65,7 +65,7 @@ extern int hud_active;      // hud mode 0=off, 1=small, 2=full
 typedef enum
 {
   SECRETMESSAGE_OFF,
-  SECRETMESSAGE_SIMPLE,
+  SECRETMESSAGE_ON,
   SECRETMESSAGE_COUNT
 } secretmessage_t;
 
