@@ -67,7 +67,6 @@ void MN_UpdatePadLook(void);
 void MN_UpdateAllGamepadItems(void);
 void MN_UpdateEqualizerItems(void);
 void MN_UpdateAdvancedSoundItems(boolean toggle);
-void MN_ResetTimeScale(void);
 void MN_SetHUFontKerning(void);
 void MN_DisableVoxelsRenderingItem(void);
 void MN_UpdateDynamicResolutionItem(void);

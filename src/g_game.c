@@ -423,6 +423,41 @@ static void G_DemoSkipTics(void)
   }
 }
 
+void G_SetTimeScale(void)
+{
+    if (strictmode || D_CheckNetConnect())
+    {
+        I_SetTimeScale(100);
+        return;
+    }
+
+    int time_scale = realtic_clock_rate;
+
+    //!
+    // @arg <n>
+    // @category game
+    //
+    // Increase or decrease game speed, percentage of normal.
+    //
+
+    int p = M_CheckParmWithArgs("-speed", 1);
+
+    if (p)
+    {
+        time_scale = M_ParmArgToInt(p);
+        if (time_scale < 10 || time_scale > 1000)
+        {
+            I_Error(
+                "Invalid parameter '%d' for -speed, valid values are 10-1000.",
+                time_scale);
+        }
+    }
+
+    I_SetTimeScale(time_scale);
+
+    setrefreshneeded = true;
+}
+
 static void ClearLocalView(void)
 {
   memset(&localview, 0, sizeof(localview));

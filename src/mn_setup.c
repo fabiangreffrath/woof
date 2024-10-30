@@ -3284,41 +3284,6 @@ static const char *screen_melt_strings[] = {"Off", "Melt", "Crossfade", "Fizzle"
 
 static const char *invul_mode_strings[] = {"Vanilla", "MBF", "Gray"};
 
-void MN_ResetTimeScale(void)
-{
-    if (strictmode || D_CheckNetConnect())
-    {
-        I_SetTimeScale(100);
-        return;
-    }
-
-    int time_scale = realtic_clock_rate;
-
-    //!
-    // @arg <n>
-    // @category game
-    //
-    // Increase or decrease game speed, percentage of normal.
-    //
-
-    int p = M_CheckParmWithArgs("-speed", 1);
-
-    if (p)
-    {
-        time_scale = M_ParmArgToInt(p);
-        if (time_scale < 10 || time_scale > 1000)
-        {
-            I_Error(
-                "Invalid parameter '%d' for -speed, valid values are 10-1000.",
-                time_scale);
-        }
-    }
-
-    I_SetTimeScale(time_scale);
-
-    setrefreshneeded = true;
-}
-
 static setup_menu_t gen_settings6[] = {
 
     {"Quality of life", S_SKIP | S_TITLE, OFF_CNTR_X, M_SPC},
@@ -3348,7 +3313,7 @@ static setup_menu_t gen_settings6[] = {
     {"Miscellaneous", S_SKIP | S_TITLE, OFF_CNTR_X, M_SPC},
 
     {"Game speed", S_NUM | S_STRICT | S_PCT, OFF_CNTR_X, M_SPC,
-     {"realtic_clock_rate"}, .action = MN_ResetTimeScale},
+     {"realtic_clock_rate"}, .action = G_SetTimeScale},
 
     {"Default Skill", S_CHOICE | S_LEVWARN, OFF_CNTR_X, M_SPC,
      {"default_skill"}, .strings_id = str_default_skill},

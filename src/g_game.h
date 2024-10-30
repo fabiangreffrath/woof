@@ -78,6 +78,7 @@ void G_DoVictory(void);
 int G_ValidateMapName(const char *mapname, int *pEpi, int *pMap);
 
 void G_EnableWarp(boolean warp);
+void G_SetTimeScale(void);
 
 demo_version_t G_GetNamedComplevel(const char *arg);
 const char *G_GetCurrentComplevelName(void);
