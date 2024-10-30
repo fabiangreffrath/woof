@@ -1332,17 +1332,6 @@ static void UpdateVolumeFactor(int volume)
 
 static void I_MID_SetMusicVolume(int volume)
 {
-    static int last_volume = -1;
-    static int last_midi_gain = -1;
-
-    if (last_volume == volume && midi_gain == last_midi_gain)
-    {
-        // Ignore holding key down in volume menu.
-        return;
-    }
-    last_volume = volume;
-    last_midi_gain = midi_gain;
-
     if (!SDL_AtomicGet(&player_thread_running))
     {
         UpdateVolumeFactor(volume);
