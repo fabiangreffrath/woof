@@ -1882,12 +1882,14 @@ static setup_menu_t stat_settings1[] = {
     MI_END
 };
 
+static void UpdateStatsFormatItem(void);
+
 static const char *show_widgets_strings[] = {"Off", "Automap", "HUD", "Always"};
 static const char *show_adv_widgets_strings[] = {"Off", "Automap", "HUD",
                                                  "Always", "Advanced"};
 
 static const char *stats_format_strings[] = {
-  "Match HUD", "Ratio", "Boolean", "Percentage", "Remaining", "Count"
+  "Ratio", "Boolean", "Percentage", "Remaining", "Count"
 };
 
 static setup_menu_t stat_settings2[] = {
@@ -1895,7 +1897,7 @@ static setup_menu_t stat_settings2[] = {
     {"Widget Types", S_SKIP | S_TITLE, H_X, M_SPC},
 
     {"Show Level Stats", S_CHOICE, H_X, M_SPC, {"hud_level_stats"},
-     .strings_id = str_show_widgets},
+     .strings_id = str_show_widgets, .action = UpdateStatsFormatItem},
 
     {"Show Level Time", S_CHOICE, H_X, M_SPC, {"hud_level_time"},
      .strings_id = str_show_widgets},
@@ -1913,6 +1915,9 @@ static setup_menu_t stat_settings2[] = {
 
     {"Widget Appearance", S_SKIP | S_TITLE, H_X, M_SPC},
 
+    {"Level Stats Format", S_CHOICE, H_X, M_SPC,
+     {"hud_stats_format"}, .strings_id = str_stats_format},
+
     {"Use Doom Font", S_CHOICE, H_X, M_SPC, {"hud_widget_font"},
      .strings_id = str_show_widgets},
 
@@ -1921,12 +1926,6 @@ static setup_menu_t stat_settings2[] = {
 
     {"Vertical Layout", S_ONOFF, H_X, M_SPC, {"hud_widget_layout"},
      .action = HU_Start},
-
-    {"HUD Level-Stats Format", S_CHOICE, H_X, M_SPC,
-     {"hud_stats_format"}, .strings_id = str_stats_format},
-
-    {"Automap Level-Stats Format", S_CHOICE, H_X, M_SPC,
-     {"hud_stats_format_map"}, .strings_id = str_stats_format},
 
     MI_END
 };
@@ -1977,6 +1976,11 @@ static setup_menu_t stat_settings4[] = {
 
 static setup_menu_t *stat_settings[] = {stat_settings1, stat_settings2,
                                         stat_settings3, stat_settings4, NULL};
+
+static void UpdateStatsFormatItem(void)
+{
+  DisableItem(!hud_level_stats, stat_settings2, "hud_stats_format");
+}
 
 static void UpdateCrosshairItems(void)
 {
@@ -4915,6 +4919,7 @@ void MN_SetupResetMenu(void)
     DisableItem(!brightmaps_found || force_brightmaps, gen_settings5,
                 "brightmaps");
     UpdateInterceptsEmuItem();
+    UpdateStatsFormatItem();
     UpdateCrosshairItems();
     UpdateCenteredWeaponItem();
     UpdateGamepadItems();
