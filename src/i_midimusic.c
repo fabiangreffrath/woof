@@ -1021,6 +1021,7 @@ static midi_state_t NextEvent(midi_position_t *position)
             else if (song.looping)
             {
                 ResetControllers();
+                ResetVolume();
                 RestartTracks();
                 return STATE_PLAYING;
             }
