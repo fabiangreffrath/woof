@@ -2174,7 +2174,20 @@ static void P_SecretRevealed(player_t *player)
 {
   if (hud_secret_message && player == &players[consoleplayer])
   {
-    player->secretmessage = s_HUSTR_SECRETFOUND;
+    if (hud_secret_message == SECRETMESSAGE_COUNT)
+    {
+      static char str_count[32];
+
+      M_snprintf(str_count, sizeof(str_count), "Secret %d of %d revealed!",
+                 player->secretcount, totalsecret);
+
+      player->secretmessage = str_count;
+    }
+    else
+    {
+      player->secretmessage = s_HUSTR_SECRETFOUND;
+    }
+
     S_StartSound(NULL, sfx_secret);
   }
 }

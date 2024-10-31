@@ -324,6 +324,7 @@ enum
     str_crosshair,
     str_crosshair_target,
     str_hudcolor,
+    str_secretmessage,
     str_overlay,
     str_automap_preset,
     str_automap_keyed_door,
@@ -1952,8 +1953,13 @@ static setup_menu_t stat_settings3[] = {
     MI_END
 };
 
+static const char *secretmessage_strings[] = {
+    "Off", "On", "Count",
+};
+
 static setup_menu_t stat_settings4[] = {
-    {"Announce Revealed Secrets", S_ONOFF, H_X, M_SPC, {"hud_secret_message"}},
+    {"Announce Revealed Secrets", S_CHOICE, H_X, M_SPC, {"hud_secret_message"},
+     .strings_id = str_secretmessage},
     {"Announce Map Titles",  S_ONOFF, H_X, M_SPC, {"hud_map_announce"}},
     {"Show Toggle Messages", S_ONOFF, H_X, M_SPC, {"show_toggle_messages"}},
     {"Show Pickup Messages", S_ONOFF, H_X, M_SPC, {"show_pickup_messages"}},
@@ -4823,6 +4829,7 @@ static const char **selectstrings[] = {
     crosshair_strings,
     crosshair_target_strings,
     hudcolor_strings,
+    secretmessage_strings,
     overlay_strings,
     automap_preset_strings,
     automap_keyed_door_strings,
