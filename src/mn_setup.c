@@ -1889,7 +1889,7 @@ static const char *show_adv_widgets_strings[] = {"Off", "Automap", "HUD",
                                                  "Always", "Advanced"};
 
 static const char *stats_format_strings[] = {
-  "Ratio", "Boolean", "Percentage", "Remaining", "Count"
+  "Ratio", "Boolean", "Percent", "Remaining", "Count"
 };
 
 static setup_menu_t stat_settings2[] = {
@@ -1915,8 +1915,8 @@ static setup_menu_t stat_settings2[] = {
 
     {"Widget Appearance", S_SKIP | S_TITLE, H_X, M_SPC},
 
-    {"Level Stats Format", S_CHOICE, H_X, M_SPC,
-     {"hud_stats_format"}, .strings_id = str_stats_format},
+    {"Level Stats Format", S_CHOICE, H_X, M_SPC, {"hud_stats_format"},
+    .strings_id = str_stats_format, .action = HU_Start},
 
     {"Use Doom Font", S_CHOICE, H_X, M_SPC, {"hud_widget_font"},
      .strings_id = str_show_widgets},
