@@ -2442,7 +2442,7 @@ void D_DoomMain(void)
   R_UpdateViewAngleFunction();
   WS_Init();
 
-  MN_ResetTimeScale();
+  G_SetTimeScale();
 
   I_Printf(VB_INFO, "S_Init: Setting up sound.");
   S_Init(snd_SfxVolume /* *8 */, snd_MusicVolume /* *8*/ );
