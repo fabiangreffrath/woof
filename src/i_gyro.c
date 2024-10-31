@@ -484,7 +484,7 @@ void I_GetRawGyroScaleMenu(float *scale, float *limit)
 {
     const float deg_per_sec = LENGTH_F(raw[0], raw[1]) * 180.0f / PI_F;
     *scale = BETWEEN(0.0f, 50.0f, deg_per_sec) / 50.0f;
-    *limit = gyro_smooth_threshold / 100.0f;
+    *limit = gyro_smooth_threshold / 500.0f;
 }
 
 static void SaveRawGyroData(void)
