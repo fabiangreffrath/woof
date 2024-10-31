@@ -535,86 +535,32 @@ typedef enum {
 
 static statsformat_t hud_stats_format;
 
-static int StatsFormatFunc_Ratio(
-  const int offset, const char *const prefix,
-  const int count, const int total,
-  const boolean space
-)
+static void StatsFormatFunc_Ratio(char *buffer, size_t size, const int count, const int total)
 {
-  return M_snprintf(hud_stringbuffer + offset,
-                    sizeof(hud_stringbuffer) - offset,
-                    "\x1b%c%s\x1b%c%d/%d%s",
-                    '0'+CR_RED, prefix,
-                    (count >= total) ? '0'+CR_BLUE : '0'+CR_GRAY,
-                    count, total,
-                    space ? " " : "");
+  M_snprintf(buffer, size, "%d/%d", count, total);
 }
 
-static int StatsFormatFunc_Boolean(
-  const int offset, const char *const prefix,
-  const int count, const int total,
-  const boolean space
-)
+static void StatsFormatFunc_Boolean(char *buffer, size_t size, const int count, const int total)
 {
-  return M_snprintf(hud_stringbuffer + offset,
-                    sizeof(hud_stringbuffer) - offset,
-                    "\x1b%c%s\x1b%c%s%s",
-                    '0'+CR_RED, prefix,
-                    (count >= total) ? '0'+CR_BLUE : '0'+CR_GRAY,
-                    (count >= total) ? "YES" : "NO",
-                    space ? " " : "");
+  M_snprintf(buffer, size, "%s", (count >= total) ? "YES" : "NO");
 }
 
-static int StatsFormatFunc_Percent(
-  const int offset, const char *const prefix,
-  const int count, const int total,
-  const boolean space
-)
+static void StatsFormatFunc_Percent(char *buffer, size_t size, const int count, const int total)
 {
-  return M_snprintf(hud_stringbuffer + offset,
-                    sizeof(hud_stringbuffer) - offset,
-                    "\x1b%c%s\x1b%c%d%%%s",
-                    '0'+CR_RED, prefix,
-                    (count >= total) ? '0'+CR_BLUE : '0'+CR_GRAY,
-                    !total ? 100 : count * 100 / total,
-                    space ? " " : "");
+  M_snprintf(buffer, size, "%d%%", !total ? 100 : count * 100 / total);
 }
 
-static int StatsFormatFunc_Remaining(
-  const int offset, const char *const prefix,
-  const int count, const int total,
-  const boolean space
-)
+static void StatsFormatFunc_Remaining(char *buffer, size_t size, const int count, const int total)
 {
-  return M_snprintf(hud_stringbuffer + offset,
-                    sizeof(hud_stringbuffer) - offset,
-                    "\x1b%c%s\x1b%c%d%s",
-                    '0'+CR_RED, prefix,
-                    (count >= total) ? '0'+CR_BLUE : '0'+CR_GRAY,
-                    total - count,
-                    space ? " " : "");
+  M_snprintf(buffer, size, "%d", total - count);
 }
 
-static int StatsFormatFunc_Count(
-  const int offset, const char *const prefix,
-  const int count, const int total,
-  const boolean space
-)
+static void StatsFormatFunc_Count(char *buffer, size_t size, const int count, const int total)
 {
-  return M_snprintf(hud_stringbuffer + offset,
-                    sizeof(hud_stringbuffer) - offset,
-                    "\x1b%c%s\x1b%c%d%s",
-                    '0'+CR_RED, prefix,
-                    (count >= total) ? '0'+CR_BLUE : '0'+CR_GRAY,
-                    count,
-                    space ? " " : "");
+  M_snprintf(buffer, size, "%d", count);
 }
 
-typedef int (*StatsFormatFunc_t)(
-  const int offset, const char *const prefix,
-  const int count, const int total,
-  const boolean space
-);
+typedef void (*StatsFormatFunc_t)(char *buffer, size_t size, const int count, const int total);
 
 static const StatsFormatFunc_t StatsFormatFuncs[NUM_STATSFORMATS] = {
   StatsFormatFunc_Ratio,
@@ -1309,6 +1255,7 @@ static void HU_widget_build_monsec(void)
 {
   int i;
   int fullkillcount, fullitemcount, fullsecretcount;
+  int killcolor, itemcolor, secretcolor;
   int kill_percent_count;
 
   fullkillcount = 0;
@@ -1333,29 +1280,37 @@ static void HU_widget_build_monsec(void)
     max_kill_requirement = totalkills;
   }
 
+  killcolor = (fullkillcount >= max_kill_requirement) ? '0'+CR_BLUE : '0'+CR_GRAY;
+  secretcolor = (fullsecretcount >= totalsecret) ? '0'+CR_BLUE : '0'+CR_GRAY;
+  itemcolor = (fullitemcount >= totalitems) ? '0'+CR_BLUE : '0'+CR_GRAY;
+
+  char kill_str[16], item_str[16], secret_str[16];
+
+  StatsFormatFunc(kill_str, sizeof(kill_str), fullkillcount, max_kill_requirement);
+  StatsFormatFunc(item_str, sizeof(item_str), fullitemcount, totalitems);
+  StatsFormatFunc(secret_str, sizeof(secret_str), fullsecretcount, totalsecret);
+
   if (hud_widget_layout)
   {
-    StatsFormatFunc(0, "K\t", fullkillcount, max_kill_requirement, false);
+    M_snprintf(hud_stringbuffer, sizeof(hud_stringbuffer),
+      "\x1b%cK\t\x1b%c%s", ('0'+CR_RED), killcolor, kill_str);
     HUlib_add_string_to_cur_line(&w_monsec, hud_stringbuffer);
 
-    StatsFormatFunc(0, "I\t", fullitemcount, totalitems, false);
+    M_snprintf(hud_stringbuffer, sizeof(hud_stringbuffer),
+      "\x1b%cI\t\x1b%c%s", ('0'+CR_RED), itemcolor, item_str);
     HUlib_add_string_to_cur_line(&w_monsec, hud_stringbuffer);
 
-    StatsFormatFunc(0, "S\t", fullsecretcount, totalsecret, false);
+    M_snprintf(hud_stringbuffer, sizeof(hud_stringbuffer),
+      "\x1b%cS\t\x1b%c%s", ('0'+CR_RED), secretcolor, secret_str);
     HUlib_add_string_to_cur_line(&w_monsec, hud_stringbuffer);
   }
   else
   {
-    int offset = 0;
-
-    offset += StatsFormatFunc(offset, "K ", 
-                              fullkillcount, max_kill_requirement, true);
-
-    offset += StatsFormatFunc(offset, "I ",
-                              fullitemcount, totalitems, true);
-
-    StatsFormatFunc(offset, "S ",
-                    fullsecretcount, totalsecret, false);
+    M_snprintf(hud_stringbuffer, sizeof(hud_stringbuffer),
+      "\x1b%cK \x1b%c%s \x1b%cI \x1b%c%s \x1b%cS \x1b%c%s",
+      '0'+CR_RED, killcolor, kill_str,
+      '0'+CR_RED, itemcolor, item_str,
+      '0'+CR_RED, secretcolor, secret_str);
 
     HUlib_add_string_to_cur_line(&w_monsec, hud_stringbuffer);
   }
