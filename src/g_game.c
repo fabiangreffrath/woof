@@ -687,7 +687,7 @@ static void AdjustWeaponSelection(int *newweapon)
 
 static boolean FilterDeathUseAction(void)
 {
-    if (players[consoleplayer].playerstate == PST_DEAD)
+    if (players[consoleplayer].playerstate == PST_DEAD && gamestate == GS_LEVEL)
     {
         switch (death_use_action)
         {
