@@ -80,7 +80,6 @@ static void cheat_skill(char *buf);
 static void cheat_skill0();
 static void cheat_friction();
 static void cheat_pushers();
-static void cheat_tran();
 static void cheat_massacre();
 static void cheat_ddt();
 static void cheat_hom();
@@ -280,18 +279,11 @@ struct cheat_s cheat[] = {
   {"ammo",    NULL,                   not_net | not_demo,
    {cheat_ammox}, -1 }, // killough 2/16/98: end generalized weapons
 
-  {"tran",    NULL,                   always,
-   {cheat_tran} },    // invoke translucency         // phares
-
   {"smart",   NULL,                   not_net | not_demo,
    {cheat_smart} },      // killough 2/21/98: smart monster toggle
 
   {"pitch",   NULL,                   always,
    {cheat_pitch} },      // killough 2/21/98: pitched sound toggle
-
-  // killough 2/21/98: reduce RSI injury by adding simpler alias sequences:
-  {"mbfran",     NULL,                always, 
-   {cheat_tran} },    // killough 2/21/98: same as mbftran
 
   {"fast",    NULL,                   not_net | not_demo,
    {cheat_fast} },       // killough 3/6/98: -fast toggle
@@ -760,13 +752,6 @@ static void cheat_pushers()
 {
   displaymsg(           // Ty 03/27/98 - *not* externalized
     (allow_pushers = !allow_pushers) ? "Pushers enabled" : "Pushers disabled");
-}
-
-// translucency cheat
-static void cheat_tran()
-{
-  displaymsg(            // Ty 03/27/98 - *not* externalized
-    (translucency = !translucency) ? "Translucency enabled" : "Translucency disabled");
 }
 
 static void cheat_massacre()    // jff 2/01/98 kill all monsters
