@@ -357,6 +357,7 @@ enum
     str_bobbing_pct,
     str_screen_melt,
     str_invul_mode,
+    str_translucency,
 };
 
 static const char **GetStrings(int id);
@@ -3242,6 +3243,10 @@ static void SmoothLight(void)
     setsizeneeded = true; // run R_ExecuteSetViewSize
 }
 
+static const char *translucency_strings[] = {
+    "Off", "Boom", "Add"
+};
+
 static const char *exit_sequence_strings[] = {
     "Off", "Sound Only", "PWAD ENDOOM", "On"
 };
@@ -3251,8 +3256,9 @@ static setup_menu_t gen_settings5[] = {
     {"Smooth Pixel Scaling", S_ONOFF, OFF_CNTR_X, M_SPC, {"smooth_scaling"},
      .action = ResetVideo},
 
-    {"Sprite Translucency", S_ONOFF | S_STRICT, OFF_CNTR_X, M_SPC,
-     {"translucency"}},
+    {"Sprite Translucency", S_CHOICE | S_STRICT, OFF_CNTR_X, M_SPC,
+     {"translucency"}, .strings_id = str_translucency,
+     .action = MN_Trans},
 
     {"Translucency Filter", S_NUM | S_ACTION | S_PCT, OFF_CNTR_X, M_SPC,
      {"tran_filter_pct"}, .action = MN_Trans},
@@ -4822,6 +4828,7 @@ static const char **selectstrings[] = {
     bobbing_pct_strings,
     screen_melt_strings,
     invul_mode_strings,
+    translucency_strings,
 };
 
 static const char **GetStrings(int id)
