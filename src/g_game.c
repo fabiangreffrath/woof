@@ -687,19 +687,21 @@ static void AdjustWeaponSelection(int *newweapon)
 
 static boolean FilterDeathUseAction(void)
 {
-    if (players[consoleplayer].playerstate & PST_DEAD)
+    if (players[consoleplayer].playerstate == PST_DEAD)
     {
         switch (death_use_action)
         {
-            case death_use_nothing:
+            case DEATH_USE_ACTION_NOTHING:
                 return true;
-            case death_use_reload:
+
+            case DEATH_USE_ACTION_LAST_SAVE:
                 if (!demoplayback && !demorecording && !netgame
-                    && activate_death_use_reload == 0)
+                    && death_use_state == DEATH_USE_STATE_INACTIVE)
                 {
-                    activate_death_use_reload = 2;
+                    death_use_state = DEATH_USE_STATE_PENDING;
                 }
                 return true;
+
             default:
                 break;
         }
@@ -1104,7 +1106,7 @@ static void G_DoLoadLevel(void)
   // Set the initial listener parameters using the player's initial state.
   S_InitListener(players[displayplayer].mo);
 
-  activate_death_use_reload = 0;
+  death_use_state = DEATH_USE_STATE_INACTIVE;
 
   // clear cmd building stuff
   memset (gamekeydown, 0, sizeof(gamekeydown));
@@ -4847,7 +4849,7 @@ void G_BindGameVariables(void)
     32, UL, UL, ss_none, wad_no,
     "Maximum number of player corpses (< 0 = No limit)");
   BIND_NUM_GENERAL(death_use_action, 0, 0, 2,
-    "Use-button action upon death (0 = Default; 1 = Load save; 2 = Nothing)");
+    "Use-button action upon death (0 = Default; 1 = Last Save; 2 = Nothing)");
   BIND_BOOL_GENERAL(autosave, true,
     "Auto save at the beginning of a map, after completing the previous one");
 }
