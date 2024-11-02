@@ -637,7 +637,7 @@ static boolean PIT_CheckThing(mobj_t *thing) // killough 3/26/98: make static
         P_DamageMobj(thing, tmthing, tmthing->target, damage);
 
         numspechit = 0;
-        return (true);
+        return true;
       }
 
       // damage / explode

@@ -453,7 +453,7 @@ boolean P_BlockThingsIterator(int x, int y, boolean func(mobj_t*))
         const int xx = (mobj->x + mobj->radius - bmaporgx)>>MAPBLOCKSHIFT;
         const int yy = (mobj->y + mobj->radius - bmaporgy)>>MAPBLOCKSHIFT;
         if (xx == x && yy == y)
-          if (!func(mobj))
+          if (!(mobj->flags2 & MF2_RIP) && !func(mobj))
             return false;
       }
     }
@@ -464,7 +464,7 @@ boolean P_BlockThingsIterator(int x, int y, boolean func(mobj_t*))
       {
         const int yy = (mobj->y + mobj->radius - bmaporgy)>>MAPBLOCKSHIFT;
         if (yy == y)
-          if (!func(mobj))
+          if (!(mobj->flags2 & MF2_RIP) && !func(mobj))
             return false;
       }
     }
@@ -476,7 +476,7 @@ boolean P_BlockThingsIterator(int x, int y, boolean func(mobj_t*))
         const int xx = (mobj->x - mobj->radius - bmaporgx)>>MAPBLOCKSHIFT;
         const int yy = (mobj->y + mobj->radius - bmaporgy)>>MAPBLOCKSHIFT;
         if (xx == x && yy == y)
-          if (!func(mobj))
+          if (!(mobj->flags2 & MF2_RIP) && !func(mobj))
             return false;
       }
     }
@@ -487,7 +487,7 @@ boolean P_BlockThingsIterator(int x, int y, boolean func(mobj_t*))
       {
         const int xx = (mobj->x - mobj->radius - bmaporgx)>>MAPBLOCKSHIFT;
         if (xx == x)
-          if (!func(mobj))
+          if (!(mobj->flags2 & MF2_RIP) && !func(mobj))
             return false;
       }
     }
@@ -499,7 +499,7 @@ boolean P_BlockThingsIterator(int x, int y, boolean func(mobj_t*))
         const int xx = (mobj->x - mobj->radius - bmaporgx)>>MAPBLOCKSHIFT;
         const int yy = (mobj->y - mobj->radius - bmaporgy)>>MAPBLOCKSHIFT;
         if (xx == x && yy == y)
-            if (!func( mobj ) )
+            if (!(mobj->flags2 & MF2_RIP) && !func( mobj ) )
                 return false;
       }
     }
@@ -510,7 +510,7 @@ boolean P_BlockThingsIterator(int x, int y, boolean func(mobj_t*))
       {
         const int yy = (mobj->y - mobj->radius - bmaporgy)>>MAPBLOCKSHIFT;
         if (yy == y)
-          if (!func(mobj))
+          if (!(mobj->flags2 & MF2_RIP) && !func(mobj))
             return false;
       }
     }
@@ -522,7 +522,7 @@ boolean P_BlockThingsIterator(int x, int y, boolean func(mobj_t*))
         const int xx = (mobj->x + mobj->radius - bmaporgx)>>MAPBLOCKSHIFT;
         const int yy = (mobj->y - mobj->radius - bmaporgy)>>MAPBLOCKSHIFT;
         if (xx == x && yy == y)
-          if (!func(mobj))
+          if (!(mobj->flags2 & MF2_RIP) && !func(mobj))
             return false;
       }
     }
@@ -533,7 +533,7 @@ boolean P_BlockThingsIterator(int x, int y, boolean func(mobj_t*))
       {
         const int xx = (mobj->x + mobj->radius - bmaporgx)>>MAPBLOCKSHIFT;
         if (xx == x)
-          if (!func(mobj))
+          if (!(mobj->flags2 & MF2_RIP) && !func(mobj))
             return false;
       }
     }
