@@ -46,7 +46,7 @@ boolean       show_messages;
 boolean       show_toggle_messages;
 boolean       show_pickup_messages;
 
-boolean       hud_secret_message; // "A secret is revealed!" message
+secretmessage_t hud_secret_message; // "A secret is revealed!" message
 widgetstate_t hud_level_stats;
 widgetstate_t hud_level_time;
 boolean       hud_time_use;
@@ -553,7 +553,8 @@ static char title_string[HU_MAXLINELENGTH];
 
 void ST_ResetTitle(void)
 {
-    title_string[0] = '\0';
+    char string[120];
+    string[0] = '\0';
 
     char *s;
 
@@ -570,7 +571,7 @@ void ST_ResetTitle(void)
 
         if (s == gamemapinfo->mapname || U_CheckField(s))
         {
-            M_snprintf(title_string, sizeof(title_string), "%s: ", s);
+            M_snprintf(string, sizeof(string), "%s: ", s);
         }
         s = gamemapinfo->levelname;
     }
@@ -611,11 +612,18 @@ void ST_ResetTitle(void)
         *n = '\0';
     }
 
-    M_StringConcat(title_string, s, sizeof(title_string));
+    M_StringConcat(string, s, sizeof(string));
+
+    title_string[0] = '\0';
+    M_snprintf(title_string, sizeof(title_string), "\x1b%c%s" ORIG_S,
+               '0' + hudcolor_titl, string);
 
     if (hud_map_announce && leveltime == 0)
     {
-        displaymsg("%s", title_string);
+        if (gamemapinfo && U_CheckField(gamemapinfo->author))
+            displaymsg("%s by %s", string, gamemapinfo->author);
+        else
+            displaymsg("%s", string);
     }
 }
 
@@ -1023,8 +1031,10 @@ void ST_BindHUDVariables(void)
             "Color range used for automap coordinates");
 
   BIND_BOOL(show_messages, true, "Show messages");
-  M_BindBool("hud_secret_message", &hud_secret_message, NULL,
-            true, ss_stat, wad_no, "Announce revealed secrets");
+  M_BindNum("hud_secret_message", &hud_secret_message, NULL,
+            SECRETMESSAGE_OFF, SECRETMESSAGE_COUNT, SECRETMESSAGE_ON,
+            ss_stat, wad_no,
+            "Announce revealed secrets (0 = Off; 1 = On; 2 = Count)");
   M_BindBool("hud_map_announce", &hud_map_announce, NULL,
             false, ss_stat, wad_no, "Announce map titles");
   M_BindBool("show_toggle_messages", &show_toggle_messages, NULL,

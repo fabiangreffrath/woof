@@ -36,7 +36,15 @@ typedef enum
 extern boolean show_messages;
 extern boolean show_toggle_messages;
 extern boolean show_pickup_messages;
-extern boolean hud_secret_message; // "A secret is revealed!" message
+
+typedef enum
+{
+  SECRETMESSAGE_OFF,
+  SECRETMESSAGE_ON,
+  SECRETMESSAGE_COUNT
+} secretmessage_t;
+
+extern secretmessage_t hud_secret_message; // "A secret is revealed!" message
 
 extern boolean chat_on;
 

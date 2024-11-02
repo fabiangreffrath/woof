@@ -2393,6 +2393,8 @@ void AM_ColorPreset(void)
     mapcolor_secr = I_GetNearestColor(playpal, 255, 0, 255);
     mapcolor_revsecr = I_GetNearestColor(playpal, 119, 255, 111);
   }
+
+  ST_ResetTitle();
 }
 
 void AM_BindAutomapVariables(void)
