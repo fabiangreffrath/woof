@@ -633,7 +633,6 @@ static input_t default_inputs[NUM_INPUT_ID][NUM_INPUTS] =
     [input_spy]         = { {INPUT_KEY, KEY_F12} },
     [input_zoomin]      = { {INPUT_KEY, '='} },
     [input_zoomout]     = { {INPUT_KEY, '-'} },
-    [input_screenshot]  = { {INPUT_KEY, KEY_PRTSCR} },
     [input_pause]       = { {INPUT_KEY, KEY_PAUSE} },
 
     [input_map]         = { {INPUT_KEY, KEY_TAB},

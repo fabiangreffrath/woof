@@ -83,6 +83,7 @@ void I_GetRawAxesScaleMenu(boolean move, float *scale, float *limit);
 boolean I_GamepadEnabled(void);
 boolean I_UseStickLayout(void);
 boolean I_StandardLayout(void);
+boolean I_RampTimeEnabled(void);
 void I_CalcRadial(axes_t *ax, float *xaxis, float *yaxis);
 void I_CalcGamepadAxes(boolean strafe);
 void I_UpdateAxesData(const struct event_s *ev);

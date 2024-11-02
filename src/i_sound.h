@@ -167,6 +167,7 @@ typedef struct
     const char **(*I_DeviceList)(void);
     void (*I_BindVariables)(void);
     midiplayertype_t (*I_MidiPlayerType)(void);
+    const char *(*I_MusicFormat)(void);
 } music_module_t;
 
 extern music_module_t music_oal_module;
@@ -206,6 +207,8 @@ boolean IsMid(byte *mem, int len);
 
 // Determine whether memory block is a .mus file
 boolean IsMus(byte *mem, int len);
+
+const char *I_MusicFormat(void);
 
 void I_BindSoundVariables(void);
 

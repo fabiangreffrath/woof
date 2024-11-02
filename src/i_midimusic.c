@@ -1021,6 +1021,7 @@ static midi_state_t NextEvent(midi_position_t *position)
             else if (song.looping)
             {
                 ResetControllers();
+                ResetVolume();
                 RestartTracks();
                 return STATE_PLAYING;
             }
@@ -1331,17 +1332,6 @@ static void UpdateVolumeFactor(int volume)
 
 static void I_MID_SetMusicVolume(int volume)
 {
-    static int last_volume = -1;
-    static int last_midi_gain = -1;
-
-    if (last_volume == volume && midi_gain == last_midi_gain)
-    {
-        // Ignore holding key down in volume menu.
-        return;
-    }
-    last_volume = volume;
-    last_midi_gain = midi_gain;
-
     if (!SDL_AtomicGet(&player_thread_running))
     {
         UpdateVolumeFactor(volume);
@@ -1412,6 +1402,8 @@ static void I_MID_ResumeSong(void *handle)
     SDL_UnlockMutex(music_lock);
 }
 
+static const char *music_format = "Unknown";
+
 static void *I_MID_RegisterSong(void *data, int len)
 {
     if (!music_initialized)
@@ -1419,7 +1411,15 @@ static void *I_MID_RegisterSong(void *data, int len)
         return NULL;
     }
 
-    if (!IsMid(data, len) && !IsMus(data, len))
+    if (IsMid(data, len))
+    {
+        music_format = "MIDI (Native)";
+    }
+    else if (IsMus(data, len))
+    {
+        music_format = "MUS (Native)";
+    }
+    else
     {
         return NULL;
     }
@@ -1493,6 +1493,11 @@ static midiplayertype_t I_MID_MidiPlayerType(void)
     return midiplayer_native;
 }
 
+static const char *I_MID_MusicFormat(void)
+{
+    return music_format;
+}
+
 static void I_MID_BindVariables(void)
 {
     BIND_NUM_MIDI(midi_complevel, COMP_STANDARD, 0, COMP_NUM - 1,
@@ -1520,4 +1525,5 @@ music_module_t music_mid_module =
     I_MID_DeviceList,
     I_MID_BindVariables,
     I_MID_MidiPlayerType,
+    I_MID_MusicFormat,
 };

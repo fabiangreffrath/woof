@@ -242,7 +242,6 @@ typedef enum
 } overlay_t;
 
 extern  overlay_t automapoverlay;
-extern  boolean automaprotate;
 
 #define automap_on (automapactive && !automapoverlay)
 #define automap_off (!automapactive || automapoverlay)

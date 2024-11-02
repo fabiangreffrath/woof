@@ -36,13 +36,21 @@ void P_Thrust(struct player_s *player, angle_t angle, fixed_t move);
 
 typedef enum
 {
-  death_use_default,
-  death_use_reload,
-  death_use_nothing
+  DEATH_USE_ACTION_DEFAULT,
+  DEATH_USE_ACTION_LAST_SAVE,
+  DEATH_USE_ACTION_NOTHING
 } death_use_action_t;
 
 extern death_use_action_t death_use_action;
-extern boolean activate_death_use_reload;
+
+typedef enum
+{
+  DEATH_USE_STATE_INACTIVE,
+  DEATH_USE_STATE_PENDING,
+  DEATH_USE_STATE_ACTIVE
+} death_use_state_t;
+
+extern death_use_state_t death_use_state;
 
 boolean P_EvaluateItemOwned(itemtype_t item, struct player_s *player);
 

@@ -697,13 +697,13 @@ void F_BunnyScroll (void)
 
   scrolled = 320 - (finalecount-230)/2;
 
-  int p1offset = DivRoundClosest(video.unscaledw - SHORT(p1->width), 2);
+  int p1offset = DIV_ROUND_CEIL(video.unscaledw - SHORT(p1->width), 2);
   if (SHORT(p1->width) == 320)
   {
       p1offset += (SHORT(p2->width) - 320) / 2;
   }
 
-  int p2offset = DivRoundClosest(video.unscaledw - SHORT(p2->width), 2);
+  int p2offset = DIV_ROUND_CEIL(video.unscaledw - SHORT(p2->width), 2);
 
   if (scrolled <= 0)
   {

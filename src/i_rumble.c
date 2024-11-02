@@ -83,7 +83,7 @@ static fft_t fft;
 
 // Rumble pattern presets.
 
-static const float rumble_itemup[] = {0.12f, 0.0f};
+static const float rumble_itemup[] = {0.12f, 0.02f, 0.0f};
 static const float rumble_wpnup[] = {0.12f, 0.07f, 0.04f, 0.16f, 0.0f};
 static const float rumble_getpow[] = {0.07f, 0.14f, 0.16f, 0.14f, 0.0f};
 static const float rumble_oof[] = {0.14f, 0.12f, 0.0f};
@@ -632,7 +632,7 @@ static boolean CalcChannelScale(const mobj_t *listener, const mobj_t *origin,
 
     if (dist <= R_CLOSE)
     {
-        node->scale = 1.0f;
+        node->scale = default_scale[node->type];
     }
     else if (dist >= R_CLIP)
     {
@@ -640,7 +640,8 @@ static boolean CalcChannelScale(const mobj_t *listener, const mobj_t *origin,
     }
     else
     {
-        node->scale = (R_CLIP - dist) * R_CLOSE / ((R_CLIP - R_CLOSE) * dist);
+        node->scale = default_scale[node->type] * (R_CLIP - dist) * R_CLOSE
+                      / ((R_CLIP - R_CLOSE) * dist);
     }
 
     return (node->scale > 0.0f);

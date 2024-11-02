@@ -47,14 +47,14 @@ enum
 static boolean joy_enable;
 joy_platform_t joy_platform;
 static int joy_stick_layout;
-static int joy_forward_speed;
-static int joy_strafe_speed;
+static int joy_forward_sensitivity;
+static int joy_strafe_sensitivity;
 static int joy_turn_speed;
 static int joy_look_speed;
 static int joy_outer_turn_speed;
 static int joy_outer_look_speed;
 static int joy_outer_ramp_time;
-static int joy_scale_diagonal_movement;
+static int joy_movement_type;
 static int joy_movement_curve;
 static int joy_camera_curve;
 static int joy_movement_deadzone_type;
@@ -134,6 +134,11 @@ boolean I_UseStickLayout(void)
 boolean I_StandardLayout(void)
 {
     return (joy_stick_layout < LAYOUT_FLICK_STICK);
+}
+
+boolean I_RampTimeEnabled(void)
+{
+    return (joy_outer_turn_speed > 0);
 }
 
 static void CalcExtraScale(axes_t *ax)
@@ -448,17 +453,17 @@ static void RefreshSettings(void)
     CalcMovement = axes_func[joy_movement_deadzone_type];
     CalcCamera = axes_func[joy_camera_deadzone_type];
 
-    movement.x.sens = joy_strafe_speed / 10.0f;
-    movement.y.sens = joy_forward_speed / 10.0f;
+    movement.x.sens = joy_strafe_sensitivity / 10.0f;
+    movement.y.sens = joy_forward_sensitivity / 10.0f;
 
     camera.x.sens = joy_turn_speed / (float)DEFAULT_SPEED;
     camera.y.sens = joy_look_speed / (float)DEFAULT_SPEED;
 
     camera.x.extra_sens = joy_outer_turn_speed / (float)DEFAULT_SPEED;
     camera.y.extra_sens = joy_outer_look_speed / (float)DEFAULT_SPEED;
-    camera.ramp_time = joy_outer_ramp_time * 1000;
+    camera.ramp_time = joy_outer_ramp_time * 10000;
 
-    movement.circle_to_square = (joy_scale_diagonal_movement > 0);
+    movement.circle_to_square = (joy_movement_type > 0);
 
     movement.exponent = joy_movement_curve / 10.0f;
     camera.exponent = I_StandardLayout() ? (joy_camera_curve / 10.0f) : 1.0f;
@@ -489,10 +494,10 @@ void I_BindGamepadVariables(void)
     BIND_NUM_PADADV(joy_stick_layout, LAYOUT_DEFAULT, 0, NUM_LAYOUTS - 1,
         "Analog stick layout (0 = Off; 1 = Default; 2 = Southpaw; 3 = Legacy; "
         "4 = Legacy Southpaw; 5 = Flick Stick; 6 = Flick Stick Southpaw)");
-    BIND_NUM(joy_forward_speed, 10, 0, 20,
-        "Forward speed (0 = 0.0x; 20 = 2.0x)");
-    BIND_NUM(joy_strafe_speed, 10, 0, 20,
-        "Strafe speed (0 = 0.0x; 20 = 2.0x)");
+    BIND_NUM(joy_forward_sensitivity, 10, 0, 40,
+        "Forward sensitivity (0 = 0.0x; 40 = 4.0x)");
+    BIND_NUM(joy_strafe_sensitivity, 10, 0, 40,
+        "Strafe sensitivity (0 = 0.0x; 40 = 4.0x)");
     BIND_NUM_GENERAL(joy_turn_speed, DEFAULT_SPEED, 0, 720,
         "Turn speed [degrees/second]");
     BIND_NUM_GENERAL(joy_look_speed, DEFAULT_SPEED * 9 / 16, 0, 720,
@@ -501,10 +506,10 @@ void I_BindGamepadVariables(void)
         "Extra turn speed at outer deadzone [degrees/second]");
     BIND_NUM(joy_outer_look_speed, 0, 0, 720,
         "Extra look speed at outer deadzone [degrees/second]");
-    BIND_NUM(joy_outer_ramp_time, 200, 0, 1000,
-        "Ramp time for extra speed [milliseconds]");
-    BIND_NUM_PADADV(joy_scale_diagonal_movement, 1, 0, 1,
-        "Scale diagonal movement (0 = Linear; 1 = Circle to Square)");
+    BIND_NUM(joy_outer_ramp_time, 20, 0, 100,
+        "Ramp time for extra speed (0 = Instant; 100 = 1000 ms)");
+    BIND_NUM_PADADV(joy_movement_type, 1, 0, 1,
+        "Movement type (0 = Normalized; 1 = Faster Diagonals)");
     BIND_NUM_PADADV(joy_movement_curve, 10, 10, 30,
         "Movement response curve (10 = Linear; 20 = Squared; 30 = Cubed)");
     BIND_NUM_PADADV(joy_camera_curve, 20, 10, 30,
@@ -517,9 +522,9 @@ void I_BindGamepadVariables(void)
         "Movement inner deadzone [percent]");
     BIND_NUM_GENERAL(joy_camera_inner_deadzone, 15, 0, 50,
         "Camera inner deadzone [percent]");
-    BIND_NUM(joy_movement_outer_deadzone, 5, 0, 30,
+    BIND_NUM(joy_movement_outer_deadzone, 2, 0, 30,
         "Movement outer deadzone [percent]");
-    BIND_NUM(joy_camera_outer_deadzone, 5, 0, 30,
+    BIND_NUM(joy_camera_outer_deadzone, 2, 0, 30,
         "Camera outer deadzone [percent]");
     BIND_NUM(joy_trigger_deadzone, 15, 0, 50,
         "Trigger deadzone [percent]");

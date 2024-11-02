@@ -89,14 +89,16 @@ static boolean gyro_enable;
 static space_t gyro_space;
 static int gyro_button_action;
 static int gyro_stick_action;
-static int gyro_turn_speed;
-static int gyro_look_speed;
+static int gyro_turn_sensitivity;
+static int gyro_look_sensitivity;
 static int gyro_acceleration;
 static int gyro_accel_min_threshold;
 static int gyro_accel_max_threshold;
 static int gyro_smooth_threshold;
 static int gyro_smooth_time;
 static int gyro_tightening;
+static boolean gyro_invert_turn;
+static boolean gyro_invert_look;
 static fixed_t gyro_calibration_a;
 static fixed_t gyro_calibration_x;
 static fixed_t gyro_calibration_y;
@@ -265,6 +267,11 @@ boolean I_GyroEnabled(void)
     return gyro_enable;
 }
 
+boolean I_GyroAcceleration(void)
+{
+    return (gyro_acceleration > 10);
+}
+
 void I_SetStickMoving(boolean condition)
 {
     motion.stick_moving = condition;
@@ -311,11 +318,28 @@ void I_CalcGyroAxes(boolean strafe)
 {
     if (GyroActive())
     {
-        gyro_axes[GYRO_TURN] = !strafe ? RAD2TIC(gyro_axes[GYRO_TURN]) : 0.0f;
+        if (!strafe)
+        {
+            gyro_axes[GYRO_TURN] = RAD2TIC(gyro_axes[GYRO_TURN]);
+
+            if (gyro_invert_turn)
+            {
+                gyro_axes[GYRO_TURN] *= -1.0f;
+            }
+        }
+        else
+        {
+            gyro_axes[GYRO_TURN] = 0.0f;
+        }
 
         if (padlook)
         {
             gyro_axes[GYRO_LOOK] = RAD2TIC(gyro_axes[GYRO_LOOK]);
+
+            if (gyro_invert_look)
+            {
+                gyro_axes[GYRO_LOOK] *= -1.0f;
+            }
 
             if (correct_aspect_ratio)
             {
@@ -456,42 +480,11 @@ static void SmoothGyro_Full(void)
 
 static float raw[2];
 
-static float SmoothGyroScaleMenu(float raw_scale)
-{
-    #define SCALE_SMOOTH_TIME 0.125f
-    static int scale_index;
-    static float scale_samples[NUM_SAMPLES];
-    static uint64_t last_time;
-
-    scale_index = (scale_index + (NUM_SAMPLES - 1)) % NUM_SAMPLES;
-    scale_samples[scale_index] = raw_scale;
-
-    uint64_t current_time = I_GetTimeUS();
-    float delta_time = (current_time - last_time) * 1.0e-6f;
-    delta_time = BETWEEN(1.0e-6f, SCALE_SMOOTH_TIME, delta_time);
-    last_time = current_time;
-
-    int max_samples = lroundf(SCALE_SMOOTH_TIME / delta_time);
-    max_samples = BETWEEN(1, NUM_SAMPLES, max_samples);
-
-    float smooth_scale = scale_samples[scale_index] / max_samples;
-
-    for (int i = 1; i < max_samples; i++)
-    {
-        const int index = (scale_index + i) % NUM_SAMPLES;
-        smooth_scale += scale_samples[index] / max_samples;
-    }
-
-    return BETWEEN(0.0f, 1.0f, smooth_scale);
-}
-
 void I_GetRawGyroScaleMenu(float *scale, float *limit)
 {
     const float deg_per_sec = LENGTH_F(raw[0], raw[1]) * 180.0f / PI_F;
-    const float raw_scale = BETWEEN(0.0f, 10.0f, deg_per_sec) / 10.0f;
-    // Smooth the result for accessibility reasons.
-    *scale = SmoothGyroScaleMenu(raw_scale);
-    *limit = gyro_smooth_threshold / 100.0f;
+    *scale = BETWEEN(0.0f, 50.0f, deg_per_sec) / 50.0f;
+    *limit = gyro_smooth_threshold / 500.0f;
 }
 
 static void SaveRawGyroData(void)
@@ -516,7 +509,7 @@ static void ApplyGyroSpace_Skip(void)
 
 static void ApplyGyroSpace_LocalLean(void)
 {
-    motion.gyro.y = -motion.gyro.z;
+    motion.gyro.y = motion.gyro.z;
 }
 
 static void ApplyGyroSpace_PlayerTurn(void)
@@ -772,11 +765,13 @@ void I_RefreshGyroSettings(void)
     motion.stick_action = gyro_stick_action;
 
     AccelerateGyro =
-        (gyro_acceleration > 10) ? AccelerateGyro_Full : AccelerateGyro_Skip;
-    motion.min_pitch_sens = gyro_look_speed / 10.0f;
-    motion.min_yaw_sens = gyro_turn_speed / 10.0f;
+        I_GyroAcceleration() ? AccelerateGyro_Full : AccelerateGyro_Skip;
+    motion.min_pitch_sens = gyro_look_sensitivity / 10.0f;
+    motion.min_yaw_sens = gyro_turn_sensitivity / 10.0f;
     motion.max_pitch_sens = motion.min_pitch_sens * gyro_acceleration / 10.0f;
     motion.max_yaw_sens = motion.min_yaw_sens * gyro_acceleration / 10.0f;
+    gyro_accel_max_threshold =
+        MAX(gyro_accel_max_threshold, gyro_accel_min_threshold);
     motion.accel_min_thresh = gyro_accel_min_threshold * PI_F / 180.0f;
     motion.accel_max_thresh = gyro_accel_max_threshold * PI_F / 180.0f;
 
@@ -811,24 +806,28 @@ void I_BindGyroVaribales(void)
     BIND_NUM_GYRO(gyro_stick_action,
         ACTION_NONE, ACTION_NONE, ACTION_ENABLE,
         "Camera stick action (0 = None; 1 = Disable Gyro; 2 = Enable Gyro)");
-    BIND_NUM_GYRO(gyro_turn_speed, 10, 0, 100,
-        "Gyro turn speed (0 = 0.0x; 100 = 10.0x)");
-    BIND_NUM_GYRO(gyro_look_speed, 10, 0, 100,
-        "Gyro look speed (0 = 0.0x; 100 = 10.0x)");
-    BIND_NUM_GYRO(gyro_acceleration, 20, 10, 40,
-        "Gyro acceleration multiplier (10 = 1.0x; 40 = 4.0x)");
-    BIND_NUM(gyro_accel_min_threshold, 0, 0, 200,
+    BIND_NUM_GYRO(gyro_turn_sensitivity, 25, 0, 200,
+        "Gyro turn sensitivity (0 = 0.0x; 200 = 20.0x)");
+    BIND_NUM_GYRO(gyro_look_sensitivity, 25, 0, 200,
+        "Gyro look sensitivity (0 = 0.0x; 200 = 20.0x)");
+    BIND_NUM_GYRO(gyro_acceleration, 10, 10, 200,
+        "Gyro acceleration multiplier (10 = 1.0x; 200 = 20.0x)");
+    BIND_NUM(gyro_accel_min_threshold, 0, 0, 300,
         "Lower threshold for applying gyro acceleration [degrees/second]");
-    BIND_NUM(gyro_accel_max_threshold, 75, 0, 200,
+    BIND_NUM(gyro_accel_max_threshold, 75, 0, 300,
         "Upper threshold for applying gyro acceleration [degrees/second]");
-    BIND_NUM_GYRO(gyro_smooth_threshold, 30, 0, 100,
+    BIND_NUM_GYRO(gyro_smooth_threshold, 30, 0, 500,
         "Gyro steadying: smoothing threshold "
-        "(0 = Off; 100 = 10.0 degrees/second)");
+        "(0 = Off; 500 = 50.0 degrees/second)");
     BIND_NUM(gyro_smooth_time, 125, 0, 500,
         "Gyro steadying: smoothing time [milliseconds]");
-    BIND_NUM(gyro_tightening, 30, 0, 100,
+    BIND_NUM(gyro_tightening, 30, 0, 500,
         "Gyro steadying: tightening threshold "
-        "(0 = Off; 100 = 10.0 degrees/second)");
+        "(0 = Off; 500 = 50.0 degrees/second)");
+    BIND_BOOL(gyro_invert_turn, false,
+        "Invert gyro turn axis");
+    BIND_BOOL(gyro_invert_look, false,
+        "Invert gyro look axis");
 
     BIND_NUM(gyro_calibration_a, 0, UL, UL, "Accelerometer calibration");
     BIND_NUM(gyro_calibration_x, 0, UL, UL, "Gyro calibration (x-axis)");

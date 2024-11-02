@@ -486,6 +486,15 @@ static void I_OAL_BindVariables(void)
     }
 }
 
+static const char *I_OAL_MusicFormat(void)
+{
+    if (active_module)
+    {
+        return active_module->I_MusicFormat();
+    }
+    return "None";
+}
+
 music_module_t music_oal_module =
 {
     I_OAL_InitMusic,
@@ -500,4 +509,5 @@ music_module_t music_oal_module =
     I_OAL_DeviceList,
     I_OAL_BindVariables,
     I_OAL_MidiPlayerType,
+    I_OAL_MusicFormat,
 };

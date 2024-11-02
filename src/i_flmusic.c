@@ -317,6 +317,8 @@ static boolean I_FL_InitStream(int device)
     return true;
 }
 
+static const char *music_format = "Unknown";
+
 static boolean I_FL_OpenStream(void *data, ALsizei size, ALenum *format,
                                ALsizei *freq, ALsizei *frame_size)
 {
@@ -344,6 +346,7 @@ static boolean I_FL_OpenStream(void *data, ALsizei size, ALenum *format,
     if (IsMid(data, size))
     {
         result = fluid_player_add_mem(player, data, size);
+        music_format = "MIDI (FluidSynth)";
     }
     else
     {
@@ -364,6 +367,7 @@ static boolean I_FL_OpenStream(void *data, ALsizei size, ALenum *format,
 
         mem_fclose(instream);
         mem_fclose(outstream);
+        music_format = "MUS (FluidSynth)";
     }
 
     if (result != FLUID_OK)
@@ -481,6 +485,11 @@ static void I_FL_BindVariables(void)
     BIND_BOOL_MIDI(mus_reverb, false, "FluidSynth reverb");
 }
 
+static const char *I_FL_MusicFormat(void)
+{
+    return music_format;
+}
+
 stream_module_t stream_fl_module =
 {
     I_FL_InitStream,
@@ -491,4 +500,5 @@ stream_module_t stream_fl_module =
     I_FL_ShutdownStream,
     I_FL_DeviceList,
     I_FL_BindVariables,
+    I_FL_MusicFormat,
 };
