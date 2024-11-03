@@ -97,8 +97,6 @@ static int gyro_accel_max_threshold;
 static int gyro_smooth_threshold;
 static int gyro_smooth_time;
 static int gyro_tightening;
-static boolean gyro_invert_turn;
-static boolean gyro_invert_look;
 static fixed_t gyro_calibration_a;
 static fixed_t gyro_calibration_x;
 static fixed_t gyro_calibration_y;
@@ -318,28 +316,11 @@ void I_CalcGyroAxes(boolean strafe)
 {
     if (GyroActive())
     {
-        if (!strafe)
-        {
-            gyro_axes[GYRO_TURN] = RAD2TIC(gyro_axes[GYRO_TURN]);
-
-            if (gyro_invert_turn)
-            {
-                gyro_axes[GYRO_TURN] *= -1.0f;
-            }
-        }
-        else
-        {
-            gyro_axes[GYRO_TURN] = 0.0f;
-        }
+        gyro_axes[GYRO_TURN] = !strafe ? RAD2TIC(gyro_axes[GYRO_TURN]) : 0.0f;
 
         if (padlook)
         {
             gyro_axes[GYRO_LOOK] = RAD2TIC(gyro_axes[GYRO_LOOK]);
-
-            if (gyro_invert_look)
-            {
-                gyro_axes[GYRO_LOOK] *= -1.0f;
-            }
 
             if (correct_aspect_ratio)
             {
@@ -509,7 +490,7 @@ static void ApplyGyroSpace_Skip(void)
 
 static void ApplyGyroSpace_LocalLean(void)
 {
-    motion.gyro.y = motion.gyro.z;
+    motion.gyro.y = -motion.gyro.z;
 }
 
 static void ApplyGyroSpace_PlayerTurn(void)
@@ -824,10 +805,6 @@ void I_BindGyroVaribales(void)
     BIND_NUM(gyro_tightening, 30, 0, 500,
         "Gyro steadying: tightening threshold "
         "(0 = Off; 500 = 50.0 degrees/second)");
-    BIND_BOOL(gyro_invert_turn, false,
-        "Invert gyro turn axis");
-    BIND_BOOL(gyro_invert_look, false,
-        "Invert gyro look axis");
 
     BIND_NUM(gyro_calibration_a, 0, UL, UL, "Accelerometer calibration");
     BIND_NUM(gyro_calibration_x, 0, UL, UL, "Gyro calibration (x-axis)");
