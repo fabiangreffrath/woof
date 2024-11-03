@@ -3067,12 +3067,7 @@ static void UpdateGyroAiming(void)
     I_ResetGamepad();
 }
 
-static const char *gyro_space_strings[] = {
-    "Local Turn",
-    "Local Lean",
-    "Player Turn",
-    "Player Lean",
-};
+static const char *gyro_space_strings[] = {"Local", "Player"};
 
 static const char *gyro_action_strings[] = {
     "None",
