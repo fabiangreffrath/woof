@@ -421,7 +421,8 @@ boolean P_BlockLinesIterator(int x, int y, boolean func(line_t*))
 
 boolean blockmapfix;
 
-boolean P_BlockThingsIterator(int x, int y, boolean func(mobj_t*))
+boolean P_BlockThingsIterator(int x, int y, boolean func(mobj_t*),
+                              boolean do_blockmapfix)
 {
   mobj_t *mobj;
 
@@ -435,13 +436,9 @@ boolean P_BlockThingsIterator(int x, int y, boolean func(mobj_t*))
   // Blockmap bug fix by Terry Hearst
   // https://github.com/fabiangreffrath/crispy-doom/pull/723
   // Add other mobjs from surrounding blocks that overlap this one
-  if (CRITICAL(blockmapfix))
+  if (CRITICAL(blockmapfix) && do_blockmapfix)
   {
     if (demo_compatibility && overflow[emu_intercepts].enabled)
-      return true;
-
-    // Don't do for explosions and crashers
-    if (func == PIT_RadiusAttack || func == PIT_ChangeSector)
       return true;
 
     // Unwrapped for least number of bounding box checks
@@ -710,8 +707,8 @@ boolean P_TraverseIntercepts(traverser_t func, fixed_t maxfrac)
 typedef struct
 {
     int len;
-    void *addr;
     boolean int16_array;
+    void *addr;
 } intercepts_overrun_t;
 
 // Intercepts memory table.  This is where various variables are located
@@ -724,29 +721,29 @@ typedef struct
 
 static intercepts_overrun_t intercepts_overrun[] =
 {
-    {4,   NULL,                          false},
-    {4,   NULL, /* &earlyout, */         false},
-    {4,   NULL, /* &intercept_p, */      false},
-    {4,   &lowfloor,                     false},
-    {4,   &openbottom,                   false},
-    {4,   &opentop,                      false},
-    {4,   &openrange,                    false},
-    {4,   NULL,                          false},
-    {120, NULL, /* &activeplats, */      false},
-    {8,   NULL,                          false},
-    {4,   &bulletslope,                  false},
-    {4,   NULL, /* &swingx, */           false},
-    {4,   NULL, /* &swingy, */           false},
-    {4,   NULL,                          false},
-    {40,  &playerstarts,                 true},
-    {4,   NULL, /* &blocklinks, */       false},
-    {4,   &bmapwidth,                    false},
-    {4,   NULL, /* &blockmap, */         false},
-    {4,   &bmaporgx,                     false},
-    {4,   &bmaporgy,                     false},
-    {4,   NULL, /* &blockmaplump, */     false},
-    {4,   &bmapheight,                   false},
-    {0,   NULL,                          false},
+    {4,   false, NULL,                     },
+    {4,   false, NULL, /* &earlyout, */    },
+    {4,   false, NULL, /* &intercept_p, */ },
+    {4,   false, &lowfloor,                },
+    {4,   false, &openbottom,              },
+    {4,   false, &opentop,                 },
+    {4,   false, &openrange,               },
+    {4,   false, NULL,                     },
+    {120, false, NULL, /* &activeplats, */ },
+    {8,   false, NULL,                     },
+    {4,   false, &bulletslope,             },
+    {4,   false, NULL, /* &swingx, */      },
+    {4,   false, NULL, /* &swingy, */      },
+    {4,   false, NULL,                     },
+    {40,  true,  &playerstarts,            },
+    {4,   false, NULL, /* &blocklinks, */  },
+    {4,   false, &bmapwidth,               },
+    {4,   false, NULL, /* &blockmap, */    },
+    {4,   false, &bmaporgx,                },
+    {4,   false, &bmaporgy,                },
+    {4,   false, NULL, /* &blockmaplump, */},
+    {4,   false, &bmapheight,              },
+    {0,   false, NULL,                     },
 };
 
 // Overwrite a specific memory location with a value.
@@ -924,11 +921,11 @@ boolean P_PathTraverse(fixed_t x1, fixed_t y1, fixed_t x2, fixed_t y2,
   for (count = 0; count < 64; count++)
     {
       if (flags & PT_ADDLINES)
-        if (!P_BlockLinesIterator(mapx, mapy,PIT_AddLineIntercepts))
+        if (!P_BlockLinesIterator(mapx, mapy, PIT_AddLineIntercepts))
           return false; // early out
 
       if (flags & PT_ADDTHINGS)
-        if (!P_BlockThingsIterator(mapx, mapy,PIT_AddThingIntercepts))
+        if (!P_BlockThingsIterator(mapx, mapy, PIT_AddThingIntercepts, true))
           return false; // early out
 
       if (mapx == xt2 && mapy == yt2)
@@ -1204,7 +1201,7 @@ static boolean P_SightTraverseIntercepts(void)
   //
   // go through in order
   //
-  in = 0; // shut up compiler warning
+  in = NULL; // shut up compiler warning
 
   while (count--)
   {
@@ -1216,9 +1213,12 @@ static boolean P_SightTraverseIntercepts(void)
         in = scan;
       }
 
-    if (!PTR_SightTraverse(in))
+    if (in)
+    {
+      if (!PTR_SightTraverse(in))
         return false;      // don't bother going farther
       in->frac = INT_MAX;
+    }
   }
 
   return true;    // everything was traversed
