@@ -757,9 +757,9 @@ void I_BindGyroVaribales(void)
         "Gyro look sensitivity (0 = 0.0x; 200 = 20.0x)");
     BIND_NUM_GYRO(gyro_acceleration, 10, 10, 200,
         "Gyro acceleration multiplier (10 = 1.0x; 200 = 20.0x)");
-    BIND_NUM(gyro_accel_min_threshold, 0, 0, 300,
+    BIND_NUM_GYRO(gyro_accel_min_threshold, 0, 0, 300,
         "Lower threshold for applying gyro acceleration [degrees/second]");
-    BIND_NUM(gyro_accel_max_threshold, 75, 0, 300,
+    BIND_NUM_GYRO(gyro_accel_max_threshold, 75, 0, 300,
         "Upper threshold for applying gyro acceleration [degrees/second]");
     BIND_NUM_GYRO(gyro_smooth_threshold, 30, 0, 500,
         "Gyro steadying: smoothing threshold "
