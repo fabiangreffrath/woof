@@ -710,8 +710,8 @@ boolean P_TraverseIntercepts(traverser_t func, fixed_t maxfrac)
 typedef struct
 {
     int len;
-    void *addr;
     boolean int16_array;
+    void *addr;
 } intercepts_overrun_t;
 
 // Intercepts memory table.  This is where various variables are located
@@ -724,29 +724,29 @@ typedef struct
 
 static intercepts_overrun_t intercepts_overrun[] =
 {
-    {4,   NULL,                          false},
-    {4,   NULL, /* &earlyout, */         false},
-    {4,   NULL, /* &intercept_p, */      false},
-    {4,   &lowfloor,                     false},
-    {4,   &openbottom,                   false},
-    {4,   &opentop,                      false},
-    {4,   &openrange,                    false},
-    {4,   NULL,                          false},
-    {120, NULL, /* &activeplats, */      false},
-    {8,   NULL,                          false},
-    {4,   &bulletslope,                  false},
-    {4,   NULL, /* &swingx, */           false},
-    {4,   NULL, /* &swingy, */           false},
-    {4,   NULL,                          false},
-    {40,  &playerstarts,                 true},
-    {4,   NULL, /* &blocklinks, */       false},
-    {4,   &bmapwidth,                    false},
-    {4,   NULL, /* &blockmap, */         false},
-    {4,   &bmaporgx,                     false},
-    {4,   &bmaporgy,                     false},
-    {4,   NULL, /* &blockmaplump, */     false},
-    {4,   &bmapheight,                   false},
-    {0,   NULL,                          false},
+    {4,   false, NULL,                     },
+    {4,   false, NULL, /* &earlyout, */    },
+    {4,   false, NULL, /* &intercept_p, */ },
+    {4,   false, &lowfloor,                },
+    {4,   false, &openbottom,              },
+    {4,   false, &opentop,                 },
+    {4,   false, &openrange,               },
+    {4,   false, NULL,                     },
+    {120, false, NULL, /* &activeplats, */ },
+    {8,   false, NULL,                     },
+    {4,   false, &bulletslope,             },
+    {4,   false, NULL, /* &swingx, */      },
+    {4,   false, NULL, /* &swingy, */      },
+    {4,   false, NULL,                     },
+    {40,  true,  &playerstarts,            },
+    {4,   false, NULL, /* &blocklinks, */  },
+    {4,   false, &bmapwidth,               },
+    {4,   false, NULL, /* &blockmap, */    },
+    {4,   false, &bmaporgx,                },
+    {4,   false, &bmaporgy,                },
+    {4,   false, NULL, /* &blockmaplump, */},
+    {4,   false, &bmapheight,              },
+    {0,   false, NULL,                     },
 };
 
 // Overwrite a specific memory location with a value.
@@ -1204,7 +1204,7 @@ static boolean P_SightTraverseIntercepts(void)
   //
   // go through in order
   //
-  in = 0; // shut up compiler warning
+  in = NULL; // shut up compiler warning
 
   while (count--)
   {
@@ -1216,9 +1216,12 @@ static boolean P_SightTraverseIntercepts(void)
         in = scan;
       }
 
-    if (!PTR_SightTraverse(in))
+    if (in)
+    {
+      if (!PTR_SightTraverse(in))
         return false;      // don't bother going farther
       in->frac = INT_MAX;
+    }
   }
 
   return true;    // everything was traversed
