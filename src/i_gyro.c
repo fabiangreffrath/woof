@@ -74,6 +74,13 @@ typedef enum
 
 typedef enum
 {
+    ROLL_OFF,
+    ROLL_ON,
+    ROLL_INVERT,
+} roll_t;
+
+typedef enum
+{
     ACTION_NONE,
     ACTION_DISABLE,
     ACTION_ENABLE,
@@ -82,6 +89,7 @@ typedef enum
 
 static boolean gyro_enable;
 static space_t gyro_space;
+static roll_t gyro_local_roll;
 static int gyro_button_action;
 static int gyro_stick_action;
 static int gyro_turn_sensitivity;
@@ -480,7 +488,19 @@ static void (*ApplyGyroSpace)(void);
 
 static void ApplyGyroSpace_Local(void)
 {
-    motion.gyro.y -= motion.gyro.z;
+    switch (gyro_local_roll)
+    {
+        case ROLL_ON:
+            motion.gyro.y -= motion.gyro.z;
+            break;
+
+        case ROLL_INVERT:
+            motion.gyro.y += motion.gyro.z;
+            break;
+
+        default: // ROLL_OFF
+            break;
+    }
 }
 
 static void ApplyGyroSpace_Player(void)
@@ -721,6 +741,9 @@ void I_BindGyroVaribales(void)
     BIND_NUM_GYRO(gyro_space,
         SPACE_PLAYER, SPACE_LOCAL, SPACE_PLAYER,
         "Gyro space (0 = Local; 1 = Player)");
+    BIND_NUM(gyro_local_roll,
+        ROLL_ON, ROLL_OFF, ROLL_INVERT,
+        "Local gyro space uses roll (0 = Off; 1 = On; 2 = Invert)");
     BIND_NUM_GYRO(gyro_button_action,
         ACTION_ENABLE, ACTION_NONE, ACTION_INVERT,
         "Gyro button action (0 = None; 1 = Disable Gyro; 2 = Enable Gyro; "
