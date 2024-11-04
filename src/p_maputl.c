@@ -421,7 +421,8 @@ boolean P_BlockLinesIterator(int x, int y, boolean func(line_t*))
 
 boolean blockmapfix;
 
-boolean P_BlockThingsIterator(int x, int y, boolean func(mobj_t*))
+boolean P_BlockThingsIterator(int x, int y, boolean func(mobj_t*),
+                              boolean do_blockmapfix)
 {
   mobj_t *mobj;
 
@@ -435,13 +436,9 @@ boolean P_BlockThingsIterator(int x, int y, boolean func(mobj_t*))
   // Blockmap bug fix by Terry Hearst
   // https://github.com/fabiangreffrath/crispy-doom/pull/723
   // Add other mobjs from surrounding blocks that overlap this one
-  if (CRITICAL(blockmapfix))
+  if (CRITICAL(blockmapfix) && do_blockmapfix)
   {
     if (demo_compatibility && overflow[emu_intercepts].enabled)
-      return true;
-
-    // Don't do for explosions and crashers
-    if (func == PIT_RadiusAttack || func == PIT_ChangeSector)
       return true;
 
     // Unwrapped for least number of bounding box checks
@@ -924,11 +921,11 @@ boolean P_PathTraverse(fixed_t x1, fixed_t y1, fixed_t x2, fixed_t y2,
   for (count = 0; count < 64; count++)
     {
       if (flags & PT_ADDLINES)
-        if (!P_BlockLinesIterator(mapx, mapy,PIT_AddLineIntercepts))
+        if (!P_BlockLinesIterator(mapx, mapy, PIT_AddLineIntercepts))
           return false; // early out
 
       if (flags & PT_ADDTHINGS)
-        if (!P_BlockThingsIterator(mapx, mapy,PIT_AddThingIntercepts))
+        if (!P_BlockThingsIterator(mapx, mapy, PIT_AddThingIntercepts, true))
           return false; // early out
 
       if (mapx == xt2 && mapy == yt2)
