@@ -62,20 +62,22 @@
 
 #define COR_MIN_SPEED 0.01f
 
-#define SIDE_THRESH 0.125f
-
-#define RELAX_FACTOR_45 1.4142135f // 45 degrees
 #define RELAX_FACTOR_60 2.0943952f // 60 degrees
 
 #define SGNF2(x) ((x) < 0.0f ? -1.0f : 1.0f) // Doesn't return zero.
 
 typedef enum
 {
-    SPACE_LOCAL_TURN,
-    SPACE_LOCAL_LEAN,
-    SPACE_PLAYER_TURN,
-    SPACE_PLAYER_LEAN,
+    SPACE_LOCAL,
+    SPACE_PLAYER,
 } space_t;
+
+typedef enum
+{
+    ROLL_OFF,
+    ROLL_ON,
+    ROLL_INVERT,
+} roll_t;
 
 typedef enum
 {
@@ -87,6 +89,7 @@ typedef enum
 
 static boolean gyro_enable;
 static space_t gyro_space;
+static roll_t gyro_local_roll;
 static int gyro_button_action;
 static int gyro_stick_action;
 static int gyro_turn_sensitivity;
@@ -97,8 +100,6 @@ static int gyro_accel_max_threshold;
 static int gyro_smooth_threshold;
 static int gyro_smooth_time;
 static int gyro_tightening;
-static boolean gyro_invert_turn;
-static boolean gyro_invert_look;
 static fixed_t gyro_calibration_a;
 static fixed_t gyro_calibration_x;
 static fixed_t gyro_calibration_y;
@@ -318,28 +319,11 @@ void I_CalcGyroAxes(boolean strafe)
 {
     if (GyroActive())
     {
-        if (!strafe)
-        {
-            gyro_axes[GYRO_TURN] = RAD2TIC(gyro_axes[GYRO_TURN]);
-
-            if (gyro_invert_turn)
-            {
-                gyro_axes[GYRO_TURN] *= -1.0f;
-            }
-        }
-        else
-        {
-            gyro_axes[GYRO_TURN] = 0.0f;
-        }
+        gyro_axes[GYRO_TURN] = !strafe ? RAD2TIC(gyro_axes[GYRO_TURN]) : 0.0f;
 
         if (padlook)
         {
             gyro_axes[GYRO_LOOK] = RAD2TIC(gyro_axes[GYRO_LOOK]);
-
-            if (gyro_invert_look)
-            {
-                gyro_axes[GYRO_LOOK] *= -1.0f;
-            }
 
             if (correct_aspect_ratio)
             {
@@ -502,17 +486,24 @@ static void SaveRawGyroData(void)
 
 static void (*ApplyGyroSpace)(void);
 
-static void ApplyGyroSpace_Skip(void)
+static void ApplyGyroSpace_Local(void)
 {
-    // no-op
+    switch (gyro_local_roll)
+    {
+        case ROLL_ON:
+            motion.gyro.y -= motion.gyro.z;
+            break;
+
+        case ROLL_INVERT:
+            motion.gyro.y += motion.gyro.z;
+            break;
+
+        default: // ROLL_OFF
+            break;
+    }
 }
 
-static void ApplyGyroSpace_LocalLean(void)
-{
-    motion.gyro.y = motion.gyro.z;
-}
-
-static void ApplyGyroSpace_PlayerTurn(void)
+static void ApplyGyroSpace_Player(void)
 {
     const vec grav_norm = vec_normalize(&motion.gravity);
     const float world_yaw =
@@ -522,42 +513,6 @@ static void ApplyGyroSpace_PlayerTurn(void)
     const float gyro_part = LENGTH_F(motion.gyro.y, motion.gyro.z);
 
     motion.gyro.y = -SGNF2(world_yaw) * MIN(world_part, gyro_part);
-}
-
-static void ApplyGyroSpace_PlayerLean(void)
-{
-    // Controller orientation info for smoothing over boundaries.
-    const vec grav_norm = vec_normalize(&motion.gravity);
-    const float flatness = fabsf(grav_norm.y);
-    const float upness = fabsf(grav_norm.z);
-    float side_reduction = (MAX(flatness, upness) - SIDE_THRESH) / SIDE_THRESH;
-    side_reduction = BETWEEN(0.0f, 1.0f, side_reduction);
-
-    // Project local pitch axis onto gravity plane.
-    const float grav_dot_pitch_axis = grav_norm.x;
-    const vec grav_norm_scaled = vec_scale(&grav_norm, grav_dot_pitch_axis);
-    vec pitch_vector = (vec){1.0f, 0.0f, 0.0f};
-    pitch_vector = vec_subtract(&pitch_vector, &grav_norm_scaled);
-
-    // Normalize and ignore zero vector (pitch and gravity are parallel).
-    if (!is_zero_vec(&pitch_vector))
-    {
-        vec roll_vector = vec_crossproduct(&pitch_vector, &grav_norm);
-
-        if (!is_zero_vec(&roll_vector))
-        {
-            roll_vector = vec_normalize(&roll_vector);
-
-            const float world_roll =
-                motion.gyro.y * roll_vector.y + motion.gyro.z * roll_vector.z;
-
-            const float world_part = fabsf(world_roll) * RELAX_FACTOR_45;
-            const float gyro_part = LENGTH_F(motion.gyro.y, motion.gyro.z);
-
-            motion.gyro.y = -SGNF2(world_roll) * MIN(world_part, gyro_part)
-                            * side_reduction;
-        }
-    }
 }
 
 //
@@ -738,27 +693,15 @@ void I_UpdateGyroSteadying(void)
 
 void I_RefreshGyroSettings(void)
 {
-    switch (gyro_space)
+    if (gyro_space == SPACE_PLAYER)
     {
-        case SPACE_LOCAL_TURN:
-            CalcGravityVector = CalcGravityVector_Skip;
-            ApplyGyroSpace = ApplyGyroSpace_Skip;
-            break;
-
-        case SPACE_LOCAL_LEAN:
-            CalcGravityVector = CalcGravityVector_Skip;
-            ApplyGyroSpace = ApplyGyroSpace_LocalLean;
-            break;
-
-        case SPACE_PLAYER_TURN:
-            CalcGravityVector = CalcGravityVector_Full;
-            ApplyGyroSpace = ApplyGyroSpace_PlayerTurn;
-            break;
-
-        case SPACE_PLAYER_LEAN:
-            CalcGravityVector = CalcGravityVector_Full;
-            ApplyGyroSpace = ApplyGyroSpace_PlayerLean;
-            break;
+        CalcGravityVector = CalcGravityVector_Full;
+        ApplyGyroSpace = ApplyGyroSpace_Player;
+    }
+    else
+    {
+        CalcGravityVector = CalcGravityVector_Skip;
+        ApplyGyroSpace = ApplyGyroSpace_Local;
     }
 
     motion.button_action = gyro_button_action;
@@ -796,9 +739,11 @@ void I_BindGyroVaribales(void)
     BIND_BOOL_GYRO(gyro_enable, false,
         "Enable gamepad gyro aiming");
     BIND_NUM_GYRO(gyro_space,
-        SPACE_PLAYER_TURN, SPACE_LOCAL_TURN, SPACE_PLAYER_LEAN,
-        "Gyro space (0 = Local Turn; 1 = Local Lean; 2 = Player Turn; "
-        "3 = Player Lean)");
+        SPACE_PLAYER, SPACE_LOCAL, SPACE_PLAYER,
+        "Gyro space (0 = Local; 1 = Player)");
+    BIND_NUM(gyro_local_roll,
+        ROLL_ON, ROLL_OFF, ROLL_INVERT,
+        "Local gyro space uses roll (0 = Off; 1 = On; 2 = Invert)");
     BIND_NUM_GYRO(gyro_button_action,
         ACTION_ENABLE, ACTION_NONE, ACTION_INVERT,
         "Gyro button action (0 = None; 1 = Disable Gyro; 2 = Enable Gyro; "
@@ -812,9 +757,9 @@ void I_BindGyroVaribales(void)
         "Gyro look sensitivity (0 = 0.0x; 200 = 20.0x)");
     BIND_NUM_GYRO(gyro_acceleration, 10, 10, 200,
         "Gyro acceleration multiplier (10 = 1.0x; 200 = 20.0x)");
-    BIND_NUM(gyro_accel_min_threshold, 0, 0, 300,
+    BIND_NUM_GYRO(gyro_accel_min_threshold, 0, 0, 300,
         "Lower threshold for applying gyro acceleration [degrees/second]");
-    BIND_NUM(gyro_accel_max_threshold, 75, 0, 300,
+    BIND_NUM_GYRO(gyro_accel_max_threshold, 75, 0, 300,
         "Upper threshold for applying gyro acceleration [degrees/second]");
     BIND_NUM_GYRO(gyro_smooth_threshold, 30, 0, 500,
         "Gyro steadying: smoothing threshold "
@@ -824,10 +769,6 @@ void I_BindGyroVaribales(void)
     BIND_NUM(gyro_tightening, 30, 0, 500,
         "Gyro steadying: tightening threshold "
         "(0 = Off; 500 = 50.0 degrees/second)");
-    BIND_BOOL(gyro_invert_turn, false,
-        "Invert gyro turn axis");
-    BIND_BOOL(gyro_invert_look, false,
-        "Invert gyro look axis");
 
     BIND_NUM(gyro_calibration_a, 0, UL, UL, "Accelerometer calibration");
     BIND_NUM(gyro_calibration_x, 0, UL, UL, "Gyro calibration (x-axis)");
