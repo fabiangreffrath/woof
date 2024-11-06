@@ -54,8 +54,8 @@ json_doc_t *JS_ReadDocNum(int lumpnum)
         yyjson_locate_pos(string, length, err.pos, &line, &col, &chr);
         char name[8];
         M_CopyLumpName(name, lumpinfo[lumpnum].name);
-        I_Printf(VB_ERROR, "%s(%zu:%zu): read error: %s\n", name, line, col,
-                 err.msg);
+        I_Printf(VB_ERROR, "%s(%d:%d): read error: %s\n", name, (int)line,
+                 (int)col, err.msg);
         return NULL;
     }
 
