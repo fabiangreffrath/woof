@@ -28,11 +28,13 @@
 #include "i_rumble.h"
 #include "i_sound.h"
 #include "i_system.h"
+#include "m_config.h"
 #include "m_misc.h"
 #include "m_random.h"
 #include "p_mobj.h"
 #include "s_musinfo.h" // [crispy] struct musinfo
 #include "s_sound.h"
+#include "s_trakinfo.h"
 #include "sounds.h"
 #include "u_mapinfo.h"
 #include "w_wad.h"
@@ -634,6 +636,7 @@ void S_SetSfxVolume(int volume)
 }
 
 static int current_musicnum = -1;
+static boolean remixed_music;
 
 void S_ChangeMusic(int musicnum, int looping)
 {
@@ -673,8 +676,20 @@ void S_ChangeMusic(int musicnum, int looping)
         music->lumpnum = W_GetNumForName(namebuf);
     }
 
+    int old_lumpnum = music->lumpnum;
+
     // load & register it
     music->data = W_CacheLumpNum(music->lumpnum, PU_STATIC);
+    if (remixed_music)
+    {
+        char *remix = S_GetRemix(music->data, W_LumpLength(music->lumpnum));
+        if (remix)
+        {
+            music->lumpnum = W_GetNumForName(remix);
+            Z_Free(music->data);
+            music->data = W_CacheLumpNum(music->lumpnum, PU_STATIC);
+        }
+    }
     // julian: added lump length
     music->handle = I_RegisterSong(music->data, W_LumpLength(music->lumpnum));
 
@@ -686,6 +701,8 @@ void S_ChangeMusic(int musicnum, int looping)
              lumpinfo[music->lumpnum].name,
              W_WadNameForLump(music->lumpnum),
              I_MusicFormat());
+
+    music->lumpnum = old_lumpnum;
 
     mus_playing = music;
 
@@ -726,6 +743,16 @@ void S_ChangeMusInfoMusic(int lumpnum, int looping)
     music->lumpnum = lumpnum;
 
     music->data = W_CacheLumpNum(music->lumpnum, PU_STATIC);
+    if (remixed_music)
+    {
+        char *remix = S_GetRemix(music->data, W_LumpLength(music->lumpnum));
+        if (remix)
+        {
+            music->lumpnum = W_GetNumForName(remix);
+            Z_Free(music->data);
+            music->data = W_CacheLumpNum(music->lumpnum, PU_STATIC);
+        }
+    }
     music->handle = I_RegisterSong(music->data, W_LumpLength(music->lumpnum));
 
     I_PlaySong((void *)music->handle, looping);
@@ -735,6 +762,8 @@ void S_ChangeMusInfoMusic(int lumpnum, int looping)
              lumpinfo[music->lumpnum].name,
              W_WadNameForLump(music->lumpnum),
              I_MusicFormat());
+
+    music->lumpnum = lumpnum;
 
     mus_playing = music;
 
@@ -929,6 +958,11 @@ void S_Init(int sfxVolume, int musicVolume)
     {
         InitE4Music();
     }
+}
+
+void S_BindSoundVariables(void)
+{
+    BIND_BOOL(remixed_music, true, "Remixed music");
 }
 
 //----------------------------------------------------------------------------

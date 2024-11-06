@@ -126,6 +126,7 @@ set(WOOF_SOURCES
     r_voxel.c              r_voxel.h
     s_musinfo.c            s_musinfo.h
     s_sound.c              s_sound.h
+    s_trakinfo.c           s_trakinfo.h
     sounds.c               sounds.h
     st_sbardef.c           st_sbardef.h
     st_stuff.c             st_stuff.h

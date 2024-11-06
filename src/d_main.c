@@ -75,6 +75,7 @@
 #include "r_voxel.h"
 #include "s_sound.h"
 #include "sounds.h"
+#include "s_trakinfo.h"
 #include "st_stuff.h"
 #include "st_widgets.h"
 #include "statdump.h"
@@ -2391,6 +2392,8 @@ void D_DoomMain(void)
     // Not loading a game
     startloadgame = -1;
   }
+
+  W_ProcessInWads("TRAKINFO", S_ParseTrakInfo, false);
 
   I_Printf(VB_INFO, "M_Init: Init miscellaneous info.");
   M_Init();

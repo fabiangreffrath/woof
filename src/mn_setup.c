@@ -31,7 +31,6 @@
 #include "i_oalsound.h"
 #include "i_rumble.h"
 #include "i_sound.h"
-#include "i_timer.h"
 #include "i_video.h"
 #include "m_argv.h"
 #include "m_array.h"
@@ -52,6 +51,7 @@
 #include "r_sky.h"   // [FG] R_InitSkyMap()
 #include "r_voxel.h"
 #include "s_sound.h"
+#include "s_trakinfo.h"
 #include "st_sbardef.h"
 #include "st_stuff.h"
 #include "sounds.h"
@@ -2489,6 +2489,12 @@ static void SetMidiPlayer(void)
     S_RestartMusic();
 }
 
+static void RestartMusic(void)
+{
+    S_StopMusic();
+    S_RestartMusic();
+}
+
 static void SetMidiPlayerNative(void)
 {
     if (I_MidiPlayerType() == midiplayer_native)
@@ -2541,6 +2547,9 @@ static setup_menu_t gen_settings2[] = {
      .strings_id = str_resampler, .action = I_OAL_SetResampler},
 
     MI_GAP_Y(6),
+
+    {"Remixed Music", S_ONOFF, CNTR_X, M_SPC, {"remixed_music"},
+     .action = RestartMusic},
 
     // [FG] music backend
     {"MIDI Player", S_CHOICE | S_ACTION | S_WRAP_LINE, CNTR_X, M_SPC * 2,
@@ -4811,6 +4820,7 @@ void MN_SetupResetMenu(void)
     DisableItem(deh_set_blood_color, enem_settings1, "colored_blood");
     DisableItem(!brightmaps_found || force_brightmaps, gen_settings5,
                 "brightmaps");
+    DisableItem(!trakinfo_found, gen_settings2, "remixed_music");
     UpdateInterceptsEmuItem();
     UpdateStatsFormatItem();
     UpdateCrosshairItems();
