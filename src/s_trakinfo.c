@@ -11,6 +11,8 @@
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 // GNU General Public License for more details.
 
+#include "s_trakinfo.h"
+
 #include <stdio.h>
 #include <string.h>
 
@@ -19,15 +21,18 @@
 #include "m_misc.h"
 #include "sha1.h"
 
+boolean trakinfo_found;
+
+extra_music_t extra_music;
+
 typedef struct
 {
     sha1_digest_t sha1key;
     char remix[9];
+    char midi[9];
 } trakinfo_t;
 
 static trakinfo_t *trakinfo;
-
-boolean trakinfo_found;
 
 void S_ParseTrakInfo(int lumpnum)
 {
@@ -52,6 +57,11 @@ void S_ParseTrakInfo(int lumpnum)
         {
             M_CopyLumpName(trak.remix, remix);
         }
+        const char *midi = JS_GetStringValue(value, "MIDI");
+        if (midi)
+        {
+            M_CopyLumpName(trak.midi, midi);
+        }
         array_push(trakinfo, trak);
     }
 
@@ -73,7 +83,14 @@ char *S_GetRemix(byte *data, int length)
     {
         if (!memcmp(trak->sha1key, digest, sizeof(sha1_digest_t)))
         {
-            return trak->remix;
+            if (extra_music == EXMUS_REMIX)
+            {
+                return trak->remix;
+            }
+            else
+            {
+                return trak->midi;
+            }
         }
     }
     return NULL;

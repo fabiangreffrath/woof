@@ -11,10 +11,24 @@
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 // GNU General Public License for more details.
 
+#ifndef S_TRAKINFO_H
+#define S_TRAKINFO_H
+
 #include "doomtype.h"
 
 extern boolean trakinfo_found;
 
+typedef enum
+{
+    EXMUS_NONE,
+    EXMUS_REMIX,
+    EXMUS_ROLAND_SC55
+} extra_music_t;
+
+extern extra_music_t extra_music;
+
 void S_ParseTrakInfo(int lumpnum);
 
 char *S_GetRemix(byte *data, int length);
+
+#endif

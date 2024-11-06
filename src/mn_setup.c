@@ -339,6 +339,7 @@ enum
 
     str_gamma,
     str_sound_module,
+    str_extra_music,
     str_resampler,
     str_equalizer_preset,
     str_midi_complevel,
@@ -2489,6 +2490,10 @@ static void SetMidiPlayer(void)
     S_RestartMusic();
 }
 
+static const char *extra_music_strings[] = {
+    "Off", "Remix", "Roland SC-55"
+};
+
 static void RestartMusic(void)
 {
     S_StopMusic();
@@ -2548,8 +2553,8 @@ static setup_menu_t gen_settings2[] = {
 
     MI_GAP_Y(6),
 
-    {"Remixed Music", S_ONOFF, CNTR_X, M_SPC, {"remixed_music"},
-     .action = RestartMusic},
+    {"Extra Soundtrack", S_CHOICE, CNTR_X, M_SPC, {"extra_music"},
+      .strings_id = str_extra_music, .action = RestartMusic},
 
     // [FG] music backend
     {"MIDI Player", S_CHOICE | S_ACTION | S_WRAP_LINE, CNTR_X, M_SPC * 2,
@@ -4757,6 +4762,7 @@ static const char **selectstrings[] = {
     NULL, // str_midi_player
     gamma_strings,
     sound_module_strings,
+    extra_music_strings,
     NULL, // str_resampler
     equalizer_preset_strings,
     midi_complevel_strings,
@@ -4820,7 +4826,7 @@ void MN_SetupResetMenu(void)
     DisableItem(deh_set_blood_color, enem_settings1, "colored_blood");
     DisableItem(!brightmaps_found || force_brightmaps, gen_settings5,
                 "brightmaps");
-    DisableItem(!trakinfo_found, gen_settings2, "remixed_music");
+    DisableItem(!trakinfo_found, gen_settings2, "extra_music");
     UpdateInterceptsEmuItem();
     UpdateStatsFormatItem();
     UpdateCrosshairItems();

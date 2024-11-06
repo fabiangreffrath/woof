@@ -636,7 +636,6 @@ void S_SetSfxVolume(int volume)
 }
 
 static int current_musicnum = -1;
-static boolean remixed_music;
 
 void S_ChangeMusic(int musicnum, int looping)
 {
@@ -680,7 +679,7 @@ void S_ChangeMusic(int musicnum, int looping)
 
     // load & register it
     music->data = W_CacheLumpNum(music->lumpnum, PU_STATIC);
-    if (remixed_music)
+    if (extra_music && trakinfo_found)
     {
         char *remix = S_GetRemix(music->data, W_LumpLength(music->lumpnum));
         if (remix)
@@ -743,7 +742,7 @@ void S_ChangeMusInfoMusic(int lumpnum, int looping)
     music->lumpnum = lumpnum;
 
     music->data = W_CacheLumpNum(music->lumpnum, PU_STATIC);
-    if (remixed_music)
+    if (extra_music && trakinfo_found)
     {
         char *remix = S_GetRemix(music->data, W_LumpLength(music->lumpnum));
         if (remix)
@@ -962,7 +961,8 @@ void S_Init(int sfxVolume, int musicVolume)
 
 void S_BindSoundVariables(void)
 {
-    BIND_BOOL(remixed_music, true, "Remixed music");
+    BIND_NUM(extra_music, EXMUS_REMIX, EXMUS_NONE, EXMUS_ROLAND_SC55,
+             "Extra soundtrack (0 = Off; 1 = Remix; 2 = Roland SC-55");
 }
 
 //----------------------------------------------------------------------------
