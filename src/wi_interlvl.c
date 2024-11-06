@@ -152,9 +152,15 @@ static void ParseLevelLayer(json_t *json, interlevellayer_t *out)
 
 interlevel_t *WI_ParseInterlevel(const char *lumpname)
 {
-    json_t *json = JS_Open(lumpname, "interlevel", (version_t){1, 0, 0});
+    json_doc_t *doc = JS_ReadDoc(lumpname);
+    if (doc == NULL)
+    {
+        return NULL;
+    }
+    json_t *json = JS_Open(doc, lumpname, "interlevel", (version_t){1, 0, 0});
     if (json == NULL)
     {
+        JS_FreeDoc(doc);
         return NULL;
     }
 
@@ -162,7 +168,7 @@ interlevel_t *WI_ParseInterlevel(const char *lumpname)
     if (JS_IsNull(data) || !JS_IsObject(data))
     {
         I_Printf(VB_ERROR, "%s: no data", lumpname);
-        JS_Close(json);
+        JS_FreeDoc(doc);
         return NULL;
     }
 
@@ -171,7 +177,7 @@ interlevel_t *WI_ParseInterlevel(const char *lumpname)
 
     if (!JS_IsString(music) || !JS_IsString(backgroundimage))
     {
-        JS_Close(json);
+        JS_FreeDoc(doc);
         return NULL;
     }
 
@@ -192,6 +198,6 @@ interlevel_t *WI_ParseInterlevel(const char *lumpname)
     }
     out->layers = layers;
 
-    JS_Close(json);
+    JS_FreeDoc(doc);
     return out;
 }

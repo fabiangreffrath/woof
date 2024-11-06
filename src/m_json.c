@@ -13,7 +13,6 @@
 
 #include "m_json.h"
 
-#include <stdio.h>
 #include <string.h>
 #include "doomtype.h"
 #include "i_printf.h"
@@ -21,7 +20,7 @@
 #include "w_wad.h"
 #include "z_zone.h"
 
-#include "cjson/cJSON.h"
+#include "yyjson.h"
 
 boolean JS_GetVersion(json_t *json, version_t *version)
 {
@@ -41,24 +40,52 @@ boolean JS_GetVersion(json_t *json, version_t *version)
     return false;
 }
 
-json_t *JS_Open(const char *lump, const char *type, version_t maxversion)
+json_doc_t *JS_ReadDocNum(int lumpnum)
+{
+    char *string = W_CacheLumpNum(lumpnum, PU_CACHE);
+    int length = W_LumpLength(lumpnum);
+
+    yyjson_read_err err;
+    json_doc_t *doc = yyjson_read_opts(string, length,
+                                       YYJSON_READ_ALLOW_COMMENTS, NULL, &err);
+    if (!doc)
+    {
+        size_t line, col, chr;
+        yyjson_locate_pos(string, length, err.pos, &line, &col, &chr);
+        char name[8];
+        M_CopyLumpName(name, lumpinfo[lumpnum].name);
+        I_Printf(VB_ERROR, "%s(%zu:%zu): read error: %s\n", name, line, col,
+                 err.msg);
+        return NULL;
+    }
+
+    return doc;
+}
+
+json_doc_t *JS_ReadDoc(const char *lump)
 {
     int lumpnum = W_CheckNumForName(lump);
     if (lumpnum < 0)
     {
         return NULL;
     }
+    return JS_ReadDocNum(lumpnum);
+}
 
-    json_t *json = cJSON_Parse(W_CacheLumpNum(lumpnum, PU_CACHE));
-    if (json == NULL)
-    {
-        const char *error_ptr = cJSON_GetErrorPtr();
-        if (error_ptr)
-        {
-            I_Printf(VB_ERROR, "%s: parsing error before %s", lump, error_ptr);
-        }
-        return NULL;
-    }
+void JS_FreeDoc(json_doc_t *json_doc)
+{
+    yyjson_doc_free(json_doc);
+}
+
+json_t *JS_GetRoot(json_doc_t *json_doc)
+{
+    return yyjson_doc_get_root(json_doc);
+}
+
+json_t *JS_Open(json_doc_t *json_doc, const char *lump, const char *type,
+                version_t maxversion)
+{
+    json_t *json = yyjson_doc_get_root(json_doc);
 
     json_t *js_type = JS_GetObject(json, "type");
     if (!JS_IsString(js_type))
@@ -94,64 +121,59 @@ json_t *JS_Open(const char *lump, const char *type, version_t maxversion)
     return json;
 }
 
-void JS_Close(json_t *json)
-{
-    cJSON_Delete(json);
-}
-
 boolean JS_IsObject(json_t *json)
 {
-    return cJSON_IsObject(json);
+    return yyjson_is_obj(json);
 }
 
 boolean JS_IsNull(json_t *json)
 {
-    return cJSON_IsNull(json);
+    return yyjson_is_null(json);
 }
 
 boolean JS_IsBoolean(json_t *json)
 {
-    return cJSON_IsBool(json);
+    return yyjson_is_bool(json);
 }
 
 boolean JS_IsNumber(json_t *json)
 {
-    return cJSON_IsNumber(json);
+    return yyjson_is_num(json);
 }
 
 boolean JS_IsString(json_t *json)
 {
-    return cJSON_IsString(json);
+    return yyjson_is_str(json);
 }
 
 boolean JS_IsArray(json_t *json)
 {
-    return cJSON_IsArray(json);
+    return yyjson_is_arr(json);
 }
 
 json_t *JS_GetObject(json_t *json, const char *string)
 {
-    return cJSON_GetObjectItemCaseSensitive(json, string);
+    return yyjson_obj_get(json, string);
 }
 
 int JS_GetArraySize(json_t *json)
 {
-    return cJSON_GetArraySize(json);
+    return yyjson_arr_size(json);
 }
 
 json_t *JS_GetArrayItem(json_t *json, int index)
 {
-    return cJSON_GetArrayItem(json, index);
+    return yyjson_arr_get(json, index);
 }
 
 boolean JS_GetBoolean(json_t *json)
 {
-    return !!json->valueint;
+    return yyjson_get_bool(json);
 }
 
 double JS_GetNumber(json_t *json)
 {
-    return json->valuedouble;
+    return yyjson_get_num(json);
 }
 
 double JS_GetNumberValue(json_t *json, const char *string)
@@ -159,37 +181,50 @@ double JS_GetNumberValue(json_t *json, const char *string)
     json_t *obj = JS_GetObject(json, string);
     if (JS_IsNumber(obj))
     {
-        return obj->valuedouble;
+        return JS_GetNumber(obj);
     }
     return 0;
 }
 
 int JS_GetInteger(json_t *json)
 {
-    return json->valueint;
+    return yyjson_get_int(json);
 }
 
 const char *JS_GetString(json_t *json)
 {
-    return json->valuestring;
+    return yyjson_get_str(json);
 }
 
-const char *JS_GetStringRef(json_t *json, const char *string)
+const char *JS_GetStringValue(json_t *json, const char *string)
 {
     json_t *obj = JS_GetObject(json, string);
     if (JS_IsString(obj))
     {
-        return obj->valuestring;
+        return JS_GetString(obj);
     }
     return NULL;
 }
 
-const char *JS_GetStringCopy(json_t *json, const char *string)
+json_obj_iter_t *JS_ObjectIterator(json_t *json)
 {
-    json_t *obj = JS_GetObject(json, string);
-    if (JS_IsString(obj))
+    yyjson_obj_iter *iter = malloc(sizeof(*iter));
+    if (yyjson_obj_iter_init(json, iter))
     {
-        return M_StringDuplicate(obj->valuestring);
+        return iter;
     }
+    free(iter);
     return NULL;
+}
+
+boolean JS_ObjectNext(json_obj_iter_t *iter, json_t **key, json_t **value)
+{
+    *key = yyjson_obj_iter_next(iter);
+    if (*key == NULL)
+    {
+        free(iter);
+        return false;
+    }
+    *value = yyjson_obj_iter_get_val(*key);
+    return true;
 }

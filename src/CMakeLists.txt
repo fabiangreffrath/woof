@@ -193,7 +193,8 @@ target_link_libraries(woof PRIVATE
     textscreen
     miniz
     spng
-    cjson)
+    yyjson
+    sha1)
 
 # Some platforms require standard libraries to be linked against.
 if(HAVE_LIBM)

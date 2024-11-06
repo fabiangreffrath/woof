@@ -78,13 +78,13 @@ static boolean ParseSbarElemType(json_t *json, sbarelementtype_t type,
     out->y_pos = JS_GetInteger(y_pos);
     out->alignment = JS_GetInteger(alignment);
 
-    const char *tranmap = JS_GetStringRef(json, "tranmap");
+    const char *tranmap = JS_GetStringValue(json, "tranmap");
     if (tranmap)
     {
         out->tranmap = W_CacheLumpName(tranmap, PU_STATIC);
     }
 
-    const char *translation = JS_GetStringRef(json, "translation");
+    const char *translation = JS_GetStringValue(json, "translation");
     out->cr = translation ? V_CRByName(translation) : CR_NONE;
     out->crboom = CR_NONE;
 
@@ -249,7 +249,7 @@ static boolean ParseNumberFont(json_t *json, numberfont_t *out)
     }
     out->name = M_StringDuplicate(JS_GetString(name));
 
-    const char *stem = JS_GetStringRef(json, "stem");
+    const char *stem = JS_GetStringValue(json, "stem");
     if (!stem)
     {
         return false;
@@ -323,7 +323,7 @@ static boolean ParseHUDFont(json_t *json, hudfont_t *out)
     }
     out->name = M_StringDuplicate(JS_GetString(name));
 
-    const char *stem = JS_GetStringRef(json, "stem");
+    const char *stem = JS_GetStringValue(json, "stem");
     if (!stem)
     {
         return false;
@@ -383,7 +383,8 @@ static boolean ParseStatusBar(json_t *json, statusbar_t *out)
     out->height = JS_GetInteger(height);
     out->fullscreenrender = JS_GetBoolean(fullscreenrender);
 
-    out->fillflat = JS_GetStringCopy(json, "fillflat");
+    const char *fillflat = JS_GetStringValue(json, "fillflat");
+    out->fillflat = fillflat ? M_StringDuplicate(fillflat) : NULL;
 
     json_t *js_children = JS_GetObject(json, "children");
     json_t *js_child = NULL;
@@ -401,9 +402,15 @@ static boolean ParseStatusBar(json_t *json, statusbar_t *out)
 
 sbardef_t *ST_ParseSbarDef(void)
 {
-    json_t *json = JS_Open("SBARDEF", "statusbar", (version_t){1, 1, 0});
+    json_doc_t *doc = JS_ReadDoc("SBARDEF");
+    if (doc == NULL)
+    {
+        return NULL;
+    }
+    json_t *json = JS_Open(doc, "SBARDEF", "statusbar", (version_t){1, 1, 0});
     if (json == NULL)
     {
+        JS_FreeDoc(doc);
         return NULL;
     }
 
@@ -419,7 +426,7 @@ sbardef_t *ST_ParseSbarDef(void)
     if (JS_IsNull(data) || !JS_IsObject(data))
     {
         I_Printf(VB_ERROR, "SBARDEF: no data");
-        JS_Close(json);
+        JS_FreeDoc(doc);
         return NULL;
     }
 
@@ -461,16 +468,22 @@ sbardef_t *ST_ParseSbarDef(void)
         }
     }
 
-    JS_Close(json);
+    JS_FreeDoc(doc);
 
     if (!load_defaults)
     {
         return out;
     }
 
-    json = JS_Open("SBHUDDEF", "hud", (version_t){1, 0, 0});
+    doc = JS_ReadDoc("SBHUDDEF");
+    if (doc == NULL)
+    {
+        return NULL;
+    }
+    json = JS_Open(doc, "SBHUDDEF", "hud", (version_t){1, 0, 0});
     if (json == NULL)
     {
+        JS_FreeDoc(doc);
         return NULL;
     }
 
@@ -505,7 +518,7 @@ sbardef_t *ST_ParseSbarDef(void)
         }
     }
 
-    JS_Close(json);
+    JS_FreeDoc(doc);
 
     return out;
 }
