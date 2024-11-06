@@ -27,8 +27,6 @@
 #include "doomstat.h"
 #include "doomtype.h"
 #include "g_game.h"
-#include "hu_lib.h"
-#include "hu_stuff.h"
 #include "i_printf.h"
 #include "m_misc.h"
 #include "m_random.h"
@@ -36,7 +34,8 @@
 #include "mn_menu.h"
 #include "r_defs.h"
 #include "s_sound.h"
-#include "st_lib.h"
+#include "st_sbardef.h"
+#include "st_stuff.h"
 #include "sounds.h"
 #include "u_mapinfo.h"
 #include "v_fmt.h"
@@ -45,6 +44,8 @@
 #include "wi_interlvl.h"
 #include "wi_stuff.h"
 #include "z_zone.h"
+
+#define LARGENUMBER 1994
 
 //
 // Data needed to add patches to full screen intermission pics.
@@ -2121,7 +2122,7 @@ static void WI_drawStats(void)
 {
   // line height
   int lh; 
-  int maplump = W_CheckNumForName(MAPNAME(wbs->epsd + 1, wbs->last + 1));
+  int maplump = W_CheckNumForName(MapName(wbs->epsd + 1, wbs->last + 1));
 
   lh = (3*SHORT(num[0]->height))/2;
 

@@ -5,9 +5,7 @@ set(WOOF_DOCS
     mbf.txt
     mbfedit.txt
     mbffaq.txt
-    options.txt
-    woofhud.lmp
-    woofhud.md)
+    options.txt)
 
 if(WIN32)
     install(FILES ${WOOF_DOCS} DESTINATION docs)

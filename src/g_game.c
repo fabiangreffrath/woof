@@ -41,8 +41,8 @@
 #include "doomtype.h"
 #include "f_finale.h"
 #include "g_game.h"
+#include "hu_command.h"
 #include "hu_obituary.h"
-#include "hu_stuff.h"
 #include "i_gamepad.h"
 #include "i_gyro.h"
 #include "i_input.h"
@@ -84,6 +84,7 @@
 #include "s_sound.h"
 #include "sounds.h"
 #include "st_stuff.h"
+#include "st_widgets.h"
 #include "statdump.h" // [FG] StatCopy()
 #include "tables.h"
 #include "u_mapinfo.h"
@@ -860,7 +861,7 @@ void G_BuildTiccmd(ticcmd_t* cmd)
 
   // Buttons
 
-  cmd->chatchar = HU_dequeueChatChar();
+  cmd->chatchar = ST_DequeueChatChar();
 
   if (M_InputGameActive(input_fire))
     cmd->buttons |= BT_ATTACK;
@@ -1098,9 +1099,6 @@ static void G_DoLoadLevel(void)
   {
     displayplayer = consoleplayer;    // view the guy you are playing
   }
-  // [Alaux] Update smooth count values
-  st_health = players[displayplayer].health;
-  st_armor  = players[displayplayer].armorpoints;
   gameaction = ga_nothing;
 
   // Set the initial listener parameters using the player's initial state.
@@ -1119,7 +1117,6 @@ static void G_DoLoadLevel(void)
   //jff 4/26/98 wake up the status bar in case were coming out of a DM demo
   // killough 5/13/98: in case netdemo has consoleplayer other than green
   ST_Start();
-  HU_Start();
 
   // killough: make -timedemo work on multilevel demos
   // Move to end of function to minimize noise -- killough 2/22/98:
@@ -1249,7 +1246,7 @@ int G_GotoNextLevel(int *pEpi, int *pMap)
             !demorecording && !demoplayback &&
             !menuactive)
   {
-    char *name = MAPNAME(epsd, map);
+    char *name = MapName(epsd, map);
 
     if (W_CheckNumForName(name) == -1)
       displaymsg("Next level not found: %s", name);
@@ -1370,8 +1367,7 @@ boolean G_Responder(event_t* ev)
 
   // killough 9/29/98: reformatted
   if (gamestate == GS_LEVEL
-      && (HU_Responder(ev) || // chat ate the event
-          ST_Responder(ev) || // status window ate it
+      && (ST_Responder(ev) || // status window ate it
           AM_Responder(ev) || // automap ate it
           WS_Responder(ev)))  // weapon slots ate it
   {
@@ -1397,7 +1393,6 @@ boolean G_Responder(event_t* ev)
 	  while (!playeringame[displayplayer] && displayplayer!=consoleplayer);
 
 	  ST_Start();    // killough 3/7/98: switch status bar views too
-	  HU_Start();
 	  S_UpdateSounds(players[displayplayer].mo);
 	  // [crispy] re-init automap variables for correct player arrow angle
 	  if (automapactive)
@@ -1746,7 +1741,7 @@ static void G_WriteLevelStat(void)
         }
     }
 
-    strcpy(levelString, MAPNAME(gameepisode, gamemap));
+    strcpy(levelString, MapName(gameepisode, gamemap));
 
     G_FormatLevelStatTime(levelTimeString, leveltime, false);
     G_FormatLevelStatTime(totalTimeString, totalleveltimes + leveltime, true);
@@ -1797,9 +1792,6 @@ static void G_DoCompleted(void)
 
   if (automapactive)
     AM_Stop();
-
-  // Rebuild the Time widget to get rid of the Use-button timer
-  HU_widget_rebuild_sttime();
 
   wminfo.nextep = wminfo.epsd = gameepisode -1;
   wminfo.last = gamemap -1;
@@ -2467,7 +2459,7 @@ static uint64_t G_Signature(int sig_epi, int sig_map)
   int lump, i;
   char name[9];
   
-  strcpy(name, MAPNAME(sig_epi, sig_map));
+  strcpy(name, MapName(sig_epi, sig_map));
 
   lump = W_CheckNumForName(name);
 
@@ -2796,11 +2788,6 @@ static boolean DoLoadGame(boolean do_load_autosave)
   // done
   Z_Free(savebuffer);
 
-  // [Alaux] Update smooth count values;
-  // the same procedure is done in G_LoadLevel, but we have to repeat it here
-  st_health = players[displayplayer].health;
-  st_armor  = players[displayplayer].armorpoints;
-
   if (setsizeneeded)
     R_ExecuteSetViewSize();
 
@@ -3120,7 +3107,7 @@ void G_Ticker(void)
   // killough 9/29/98: split up switch statement
   // into pauseable and unpauseable parts.
 
-  gamestate == GS_LEVEL ? P_Ticker(), ST_Ticker(), AM_Ticker(), HU_Ticker() :
+  gamestate == GS_LEVEL ? P_Ticker(), ST_Ticker(), AM_Ticker() :
     paused & 2 ? (void) 0 :
       gamestate == GS_INTERMISSION ? WI_Ticker() :
 	gamestate == GS_FINALE ? F_Ticker() :
@@ -3969,7 +3956,7 @@ mapentry_t *G_LookupMapinfo(int episode, int map)
   int i;
   char lumpname[9];
 
-  strcpy(lumpname, MAPNAME(episode, map));
+  strcpy(lumpname, MapName(episode, map));
 
   for (i = 0; i < U_mapinfo.mapcount; i++)
   {
@@ -4003,13 +3990,13 @@ int G_ValidateMapName(const char *mapname, int *pEpi, int *pMap)
   {
     if (sscanf(mapuname, "E%dM%d", &epi, &map) != 2)
       return 0;
-    strcpy(lumpname, MAPNAME(epi, map));
+    strcpy(lumpname, MapName(epi, map));
   }
   else
   {
     if (sscanf(mapuname, "MAP%d", &map) != 1)
       return 0;
-    strcpy(lumpname, MAPNAME(epi = 1, map));
+    strcpy(lumpname, MapName(epi = 1, map));
   }
 
   if (epi > 4)
@@ -4045,7 +4032,7 @@ void G_InitNew(skill_t skill, int episode, int map)
     episode = 1;
 
   // Disable all sanity checks if there are custom episode definitions. They do not make sense in this case.
-  if (!EpiCustom && W_CheckNumForName(MAPNAME(episode, map)) == -1)
+  if (!EpiCustom && W_CheckNumForName(MapName(episode, map)) == -1)
   {
 
   if (gamemode == retail)

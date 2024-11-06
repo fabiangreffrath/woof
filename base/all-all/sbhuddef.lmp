@@ -1,0 +1,257 @@
+{
+  "type": "hud",
+  "version": "1.0.0",
+  "data":
+  {
+    "hudfonts":
+    [
+      {
+        "name": "Console",
+        "type": 2,
+        "stem": "STCFN"
+      },
+      {
+        "name": "Digits",
+        "type": 0,
+        "stem": "DIG"
+      }
+    ],
+    "widgets":
+    [
+      {
+        "widget":
+        {
+          "x": 2,
+          "y": 160,
+          "alignment": 16,
+          "tranmap": null,
+          "translation": null,
+          "type": 0,
+          "font": "Digits",
+          "conditions":
+          [
+            {
+              "condition": 19,
+              "param": 6
+            }
+          ],
+          "children": null
+        }
+      },
+      {
+        "widget":
+        {
+          "x": 2,
+          "y": 153,
+          "alignment": 16,
+          "tranmap": null,
+          "translation": null,
+          "type": 1,
+          "font": "Digits",
+          "conditions":
+          [
+            {
+              "condition": 19,
+              "param": 6
+            }
+          ],
+          "children": null
+        }
+      },
+      {
+        "widget":
+        {
+          "x": 2,
+          "y": 152,
+          "alignment": 16,
+          "tranmap": null,
+          "translation": null,
+          "type": 0,
+          "font": "Digits",
+          "conditions":
+          [
+            {
+              "condition": 19,
+              "param": 1
+            }
+          ],
+          "children": null
+        }
+      },
+      {
+        "widget":
+        {
+          "x": 2,
+          "y": 146,
+          "alignment": 16,
+          "tranmap": null,
+          "translation": null,
+          "type": 1,
+          "font": "Digits",
+          "conditions":
+          [
+            {
+              "condition": 19,
+              "param": 1
+            }
+          ],
+          "children": null
+        }
+      },
+      {
+        "widget":
+        {
+          "x": 320,
+          "y": 8,
+          "alignment": 34,
+          "tranmap": null,
+          "translation": null,
+          "type": 2,
+          "font": "Digits",
+          "conditions": null,
+          "children": null
+        }
+      },
+      {
+        "widget":
+        {
+          "x": 320,
+          "y": 0,
+          "alignment": 34,
+          "tranmap": null,
+          "translation": null,
+          "type": 3,
+          "font": "Digits",
+          "conditions": null,
+          "children": null
+        }
+      },
+      {
+        "widget":
+        {
+          "x": 0,
+          "y": 8,
+          "alignment": 0,
+          "tranmap": null,
+          "translation": null,
+          "type": 4,
+          "font": "Digits",
+          "conditions": null,
+          "children": null
+        }
+      },
+      {
+        "widget":
+        {
+          "x": 320,
+          "y": 167,
+          "alignment": 42,
+          "tranmap": null,
+          "translation": null,
+          "type": 5,
+          "font": "Digits",
+          "conditions": null,
+          "children": null
+        }
+      },
+      {
+        "widget":
+        {
+          "x": 160,
+          "y": 167,
+          "alignment": 9,
+          "tranmap": null,
+          "translation": null,
+          "type": 6,
+          "font": "Digits",
+          "conditions": null,
+          "children": null
+        }
+      },
+      {
+        "widget":
+        {
+          "x": 0,
+          "y": 0,
+          "alignment": 16,
+          "tranmap": null,
+          "translation": null,
+          "type": 7,
+          "font": "Console",
+          "duration": 4,
+          "conditions": null,
+          "children": null
+        }
+      },
+      {
+        "widget":
+        {
+          "x": 160,
+          "y": 52,
+          "alignment": 1,
+          "tranmap": null,
+          "translation": "CRGOLD",
+          "type": 8,
+          "font": "Console",
+          "duration": 2.5,
+          "conditions": null,
+          "children": null
+        }
+      },
+      {
+        "widget":
+        {
+          "x": 0,
+          "y": 8,
+          "alignment": 16,
+          "tranmap": null,
+          "translation": "CRGOLD",
+          "type": 9,
+          "font": "Console",
+          "conditions": null,
+          "children": null
+        }
+      },
+      {
+        "widget":
+        {
+          "x": 0,
+          "y": 160,
+          "alignment": 16,
+          "tranmap": null,
+          "translation": "CRGOLD",
+          "type": 10,
+          "font": "Console",
+          "conditions":
+          [
+            {
+              "condition": 19,
+              "param": 1
+            }
+          ],
+          "children": null
+        }
+      },
+      {
+        "widget":
+        {
+          "x": 160,
+          "y": 160,
+          "alignment": 1,
+          "tranmap": null,
+          "translation": "CRGOLD",
+          "type": 10,
+          "font": "Console",
+          "conditions":
+          [
+            {
+              "condition": 19,
+              "param": 2
+            }
+          ],
+          "children": null
+        }
+      }
+    ]
+  }
+}

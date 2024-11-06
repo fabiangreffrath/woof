@@ -1604,7 +1604,7 @@ void P_SetupLevel(int episode, int map, int playermask, skill_t skill)
   //    W_Reload ();     killough 1/31/98: W_Reload obsolete
 
   // find map name
-  strcpy(lumpname, MAPNAME(episode, map));
+  strcpy(lumpname, MapName(episode, map));
 
   lumpnum = W_GetNumForName(lumpname);
 
@@ -1662,8 +1662,6 @@ void P_SetupLevel(int episode, int map, int playermask, skill_t skill)
 
   // [crispy] fix long wall wobble
   P_SegLengths(false);
-  // [crispy] blinking key or skull in the status bar
-  memset(st_keyorskull, 0, sizeof(st_keyorskull));
 
   // Note: you don't need to clear player queue slots --
   // a much simpler fix is in g_game.c -- killough 10/98

@@ -28,7 +28,6 @@
 #include "doomstat.h"
 #include "doomtype.h"
 #include "g_game.h"
-#include "hu_stuff.h"
 #include "info.h"
 #include "m_cheat.h"
 #include "p_map.h"
@@ -39,6 +38,7 @@
 #include "r_defs.h"
 #include "r_main.h"
 #include "st_stuff.h"
+#include "st_widgets.h"
 
 static fixed_t PlayerSlope(player_t *player)
 {
@@ -589,6 +589,58 @@ void P_PlayerThink (player_t* player)
     player->powers[pw_invulnerability] > 4*32 ||    /* Regular Doom */
     player->powers[pw_invulnerability] & 8 ? INVERSECOLORMAP :
     player->powers[pw_infrared] > 4*32 || player->powers[pw_infrared] & 8;
+}
+
+boolean P_EvaluateItemOwned(itemtype_t item, player_t *player)
+{
+    switch (item)
+    {
+        case item_bluecard:
+        case item_yellowcard:
+        case item_redcard:
+        case item_blueskull:
+        case item_yellowskull:
+        case item_redskull:
+            return player->cards[item - item_bluecard] != 0;
+
+        case item_backpack:
+            return player->backpack;
+
+        case item_greenarmor:
+        case item_bluearmor:
+            return player->armortype == (item - item_greenarmor + 1);
+
+        case item_areamap:
+            return player->powers[pw_allmap] != 0;
+
+        case item_lightamp:
+            return player->powers[pw_infrared] != 0;
+
+        case item_berserk:
+            return player->powers[pw_strength] != 0;
+
+        case item_invisibility:
+            return player->powers[pw_invisibility] != 0;
+
+        case item_radsuit:
+            return player->powers[pw_ironfeet] != 0;
+
+        case item_invulnerability:
+            return player->powers[pw_invulnerability] != 0;
+
+        case item_healthbonus:
+        case item_stimpack:
+        case item_medikit:
+        case item_soulsphere:
+        case item_megasphere:
+        case item_armorbonus:
+        case item_noitem:
+        case item_messageonly:
+        default:
+            break;
+    }
+
+    return false;
 }
 
 //----------------------------------------------------------------------------

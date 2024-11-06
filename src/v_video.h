@@ -65,6 +65,7 @@ extern byte *red2col[];
 // symbolic indices into color translation table pointer array
 typedef enum
 {
+    CR_ORIG = -1,
     CR_BRICK,  // 0
     CR_TAN,    // 1
     CR_GRAY,   // 2
@@ -84,7 +85,19 @@ typedef enum
     CR_LIMIT   // 16 //jff 2/27/98 added for range check
 } crange_idx_e;
 
+#define ORIG_S  "\x1b\x2f"
+#define BRICK_S "\x1b\x30"
+#define TAN_S   "\x1b\x31"
+#define GRAY_S  "\x1b\x32"
+#define GREEN_S "\x1b\x33"
+#define BROWN_S "\x1b\x34"
+#define GOLD_S  "\x1b\x35"
+#define RED_S   "\x1b\x36"
+#define BLUE_S  "\x1b\x37"
+
 // jff 1/16/98 end palette color range additions
+
+crange_idx_e V_CRByName(const char *name);
 
 extern pixel_t *I_VideoBuffer;
 
@@ -153,6 +166,10 @@ void V_DrawPatchTranslated(int x, int y, struct patch_s *patch, byte *outr);
 
 void V_DrawPatchTRTR(int x, int y, struct patch_s *patch, byte *outr1,
                      byte *outr2);
+
+void V_DrawPatchTL(int x, int y, struct patch_s *patch, byte *tl);
+
+void V_DrawPatchTRTL(int x, int y, struct patch_s *patch, byte *outr, byte *tl);
 
 void V_DrawPatchFullScreen(struct patch_s *patch);
 

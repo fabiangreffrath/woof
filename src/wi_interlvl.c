@@ -16,7 +16,6 @@
 #include "doomdef.h"
 #include "doomtype.h"
 #include "i_printf.h"
-#include "w_wad.h"
 #include "z_zone.h"
 
 #define M_ARRAY_MALLOC(size) Z_Malloc((size), PU_LEVEL, NULL)
@@ -153,17 +152,16 @@ static void ParseLevelLayer(json_t *json, interlevellayer_t *out)
 
 interlevel_t *WI_ParseInterlevel(const char *lumpname)
 {
-    json_t *json = JS_Open("interlevel", (version_t){1, 0, 0},
-                           W_CacheLumpName(lumpname, PU_CACHE));
+    json_t *json = JS_Open(lumpname, "interlevel", (version_t){1, 0, 0});
     if (json == NULL)
     {
-        JS_Close(json);
         return NULL;
     }
 
     json_t *data = JS_GetObject(json, "data");
-    if (JS_IsNull(data))
+    if (JS_IsNull(data) || !JS_IsObject(data))
     {
+        I_Printf(VB_ERROR, "%s: no data", lumpname);
         JS_Close(json);
         return NULL;
     }

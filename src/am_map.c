@@ -28,7 +28,6 @@
 #include "doomdef.h"
 #include "doomstat.h"
 #include "doomtype.h"
-#include "hu_stuff.h"
 #include "i_video.h"
 #include "m_config.h"
 #include "m_input.h"
@@ -39,11 +38,11 @@
 #include "p_setup.h"
 #include "p_spec.h"
 #include "r_defs.h"
-#include "r_draw.h"
 #include "r_main.h"
 #include "r_state.h"
 #include "r_things.h"
 #include "st_stuff.h"
+#include "st_widgets.h"
 #include "tables.h"
 #include "v_flextran.h"
 #include "v_fmt.h"
@@ -2387,12 +2386,6 @@ void AM_ColorPreset(void)
     *mapcolors[i].var = mapcolors[i].color[mapcolor_preset];
   }
 
-  // [FG] immediately apply changes if the automap is visible through the menu
-  if (automapactive && menu_backdrop != MENU_BG_TEXTURE)
-  {
-    HU_Start();
-  }
-
   // [crispy] Make secret wall colors independent from PLAYPAL color indexes
   if (mapcolor_preset == AM_PRESET_CRISPY)
   {
@@ -2400,6 +2393,8 @@ void AM_ColorPreset(void)
     mapcolor_secr = I_GetNearestColor(playpal, 255, 0, 255);
     mapcolor_revsecr = I_GetNearestColor(playpal, 119, 255, 111);
   }
+
+  ST_ResetTitle();
 }
 
 void AM_BindAutomapVariables(void)

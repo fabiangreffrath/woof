@@ -34,7 +34,6 @@
 #include "doomstat.h"
 #include "doomtype.h"
 #include "g_game.h"
-#include "hu_stuff.h"
 #include "i_flickstick.h"
 #include "i_gamepad.h"
 #include "i_gyro.h"
@@ -54,6 +53,7 @@
 #include "mn_internal.h"
 #include "r_main.h"
 #include "st_stuff.h"
+#include "st_widgets.h"
 #include "w_wad.h"
 #include "ws_stuff.h"
 #include "z_zone.h"
@@ -136,7 +136,7 @@ void M_InitConfig(void)
     G_BindWeapVariables();
     WS_BindVariables();
 
-    HU_BindHUDVariables();
+    ST_BindHUDVariables();
     ST_BindSTSVariables();
     AM_BindAutomapVariables();
 

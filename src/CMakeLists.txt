@@ -28,9 +28,7 @@ set(WOOF_SOURCES
     hu_command.c           hu_command.h
     hu_coordinates.c       hu_coordinates.h
     hu_crosshair.c         hu_crosshair.h
-    hu_lib.c               hu_lib.h
     hu_obituary.c          hu_obituary.h
-    hu_stuff.c             hu_stuff.h
     i_3dsound.c
     i_endoom.c             i_endoom.h
     i_flickstick.c         i_flickstick.h
@@ -129,8 +127,9 @@ set(WOOF_SOURCES
     s_musinfo.c            s_musinfo.h
     s_sound.c              s_sound.h
     sounds.c               sounds.h
-    st_lib.c               st_lib.h
+    st_sbardef.c           st_sbardef.h
     st_stuff.c             st_stuff.h
+    st_widgets.c           st_widgets.h
     statdump.c             statdump.h
     tables.c               tables.h
     u_mapinfo.c            u_mapinfo.h
@@ -282,10 +281,14 @@ if(MSVC)
     target_link_options(woof-setup PRIVATE "/MANIFEST:NO")
 endif()
 
-add_custom_command(TARGET woof POST_BUILD
-    COMMAND ${CMAKE_COMMAND} -E tar cf
-    "$<TARGET_FILE_DIR:woof>/woof.pk3" --format=zip .
-    WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}/base")
+add_dependencies(woof woof-base)
+
+if(MSVC)
+    add_custom_command(TARGET woof POST_BUILD
+        DEPENDS "${BASE_PK3_PATH}"
+        COMMAND ${CMAKE_COMMAND} -E copy
+        "${BASE_PK3_PATH}" "$<TARGET_FILE_DIR:woof>")
+endif()
 
 # Install
 #
@@ -313,11 +316,9 @@ if(WIN32)
     else()
         install(TARGETS woof woof-setup RUNTIME DESTINATION .)
     endif()
-    install(FILES "$<TARGET_FILE_DIR:woof-com>/woof.com" DESTINATION .)
-    install(FILES "$<TARGET_FILE_DIR:woof-exe>/woof.exe" DESTINATION .)
-    install(FILES "$<TARGET_FILE_DIR:woof>/woof.pk3" DESTINATION .)
+    install(FILES "$<TARGET_FILE_DIR:woof-com>/woof.com"
+                  "$<TARGET_FILE_DIR:woof-exe>/woof.exe"
+            DESTINATION .)
 else()
     install(TARGETS woof woof-setup RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
-    install(FILES "$<TARGET_FILE_DIR:woof>/woof.pk3"
-            DESTINATION "share/${PROJECT_SHORTNAME}")
 endif()

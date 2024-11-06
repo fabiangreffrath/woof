@@ -57,6 +57,8 @@ typedef struct
   int         ammopershot;
   int         intflags;
   int         flags;
+  // id24
+  int         slot;
 } weaponinfo_t;
 
 extern  weaponinfo_t    weaponinfo[NUMWEAPONS+2];
