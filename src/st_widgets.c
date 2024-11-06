@@ -677,6 +677,55 @@ static void UpdateCoord(sbe_widget_t *widget, player_t *player)
     ST_AddLine(widget, string);
 }
 
+typedef enum
+{
+    STATSFORMAT_RATIO,
+    STATSFORMAT_BOOLEAN,
+    STATSFORMAT_PERCENT,
+    STATSFORMAT_REMAINING,
+    STATSFORMAT_COUNT
+} statsformat_t;
+
+static statsformat_t hud_stats_format;
+
+static void StatsFormatFunc_Ratio(char *buffer, size_t size, const int count,
+                                  const int total)
+{
+    M_snprintf(buffer, size, "%d/%d", count, total);
+}
+
+static void StatsFormatFunc_Boolean(char *buffer, size_t size, const int count,
+                                    const int total)
+{
+    M_snprintf(buffer, size, "%s", (count >= total) ? "YES" : "NO");
+}
+
+static void StatsFormatFunc_Percent(char *buffer, size_t size, const int count,
+                                    const int total)
+{
+    M_snprintf(buffer, size, "%d%%", !total ? 100 : count * 100 / total);
+}
+
+static void StatsFormatFunc_Remaining(char *buffer, size_t size,
+                                      const int count, const int total)
+{
+    M_snprintf(buffer, size, "%d", total - count);
+}
+
+static void StatsFormatFunc_Count(char *buffer, size_t size, const int count,
+                                  const int total)
+{
+    M_snprintf(buffer, size, "%d", count);
+}
+
+typedef void (*statsformatfunc_t)(char *buffer, size_t size, const int count,
+                                  const int total);
+
+static const statsformatfunc_t StatsFormatFuncs[] = {
+    StatsFormatFunc_Ratio,     StatsFormatFunc_Boolean, StatsFormatFunc_Percent,
+    StatsFormatFunc_Remaining, StatsFormatFunc_Count,
+};
+
 static void UpdateMonSec(sbe_widget_t *widget)
 {
     ST_ClearLines(widget);
@@ -717,11 +766,19 @@ static void UpdateMonSec(sbe_widget_t *widget)
     int itemcolor =
         (fullitemcount >= totalitems) ? '0' + CR_BLUE1 : '0' + CR_GRAY;
 
+    char kill_str[16], item_str[16], secret_str[16];
+
+    statsformatfunc_t StatsFormatFunc = StatsFormatFuncs[hud_stats_format];
+
+    StatsFormatFunc(kill_str, sizeof(kill_str), fullkillcount, max_kill_requirement);
+    StatsFormatFunc(item_str, sizeof(item_str), fullitemcount, totalitems);
+    StatsFormatFunc(secret_str, sizeof(secret_str), fullsecretcount, totalsecret);
+
     M_snprintf(string, sizeof(string),
-        RED_S "K \x1b%c%d/%d " RED_S "I \x1b%c%d/%d " RED_S "S \x1b%c%d/%d",
-        killcolor, fullkillcount, max_kill_requirement,
-        itemcolor, fullitemcount, totalitems,
-        secretcolor, fullsecretcount, totalsecret);
+        RED_S "K \x1b%c%s " RED_S "I \x1b%c%s " RED_S "S \x1b%c%s",
+        killcolor, kill_str,
+        itemcolor, item_str,
+        secretcolor, secret_str);
 
     ST_AddLine(widget, string);
 }
@@ -1001,6 +1058,10 @@ void ST_BindHUDVariables(void)
             ss_stat, wad_no,
             "Show level stats (kills, items, and secrets) widget (1 = On automap; "
             "2 = On HUD; 3 = Always)");
+  M_BindNum("hud_stats_format", &hud_stats_format, NULL,
+            STATSFORMAT_RATIO, STATSFORMAT_RATIO, STATSFORMAT_COUNT,
+            ss_stat, wad_no,
+            "Format of level stats (0 = Ratio; 1 = Boolean; 2 = Percent; 3 = Remaining; 4 = Count)");
   M_BindNum("hud_level_time", &hud_level_time, NULL,
             HUD_WIDGET_OFF, HUD_WIDGET_OFF, HUD_WIDGET_ALWAYS,
             ss_stat, wad_no,
@@ -1017,11 +1078,6 @@ void ST_BindHUDVariables(void)
             "Hide empty commands from command history widget");
   M_BindBool("hud_time_use", &hud_time_use, NULL, false, ss_stat, wad_no,
              "Show split time when pressing the use-button");
-  // M_BindNum("hud_widget_font", &hud_widget_font, NULL,
-  //           HUD_WIDGET_OFF, HUD_WIDGET_OFF, HUD_WIDGET_ALWAYS,
-  //           ss_stat, wad_no,
-  //           "Use standard Doom font for widgets (1 = On automap; 2 = On HUD; 3 "
-  //           "= Always)");
 
   M_BindNum("hudcolor_titl", &hudcolor_titl, NULL,
             CR_GOLD, CR_BRICK, CR_NONE, ss_none, wad_yes,
