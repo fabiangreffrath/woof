@@ -1452,6 +1452,7 @@ static setup_menu_t keys_settings5[] = {
     {"Shift Down",      S_INPUT, KB_X, M_SPC, {0}, m_map, input_map_down},
     {"Shift Left",      S_INPUT, KB_X, M_SPC, {0}, m_map, input_map_left},
     {"Shift Right",     S_INPUT, KB_X, M_SPC, {0}, m_map, input_map_right},
+    {"Mouse Shift",     S_INPUT, KB_X, M_SPC, {0}, m_map, input_map_mousepan},
     {"Mark Place",      S_INPUT, KB_X, M_SPC, {0}, m_map, input_map_mark},
     {"Clear Last Mark", S_INPUT, KB_X, M_SPC, {0}, m_map, input_map_clear},
     {"Full/Zoom",       S_INPUT, KB_X, M_SPC, {0}, m_map, input_map_gobig},

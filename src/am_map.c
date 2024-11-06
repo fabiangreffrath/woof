@@ -28,6 +28,7 @@
 #include "doomdef.h"
 #include "doomstat.h"
 #include "doomtype.h"
+#include "g_input.h"
 #include "hu_stuff.h"
 #include "i_video.h"
 #include "m_config.h"
@@ -128,6 +129,8 @@ static int m_zoomout_kbd = M_ZOOMOUT;
 static int m_zoomin_mouse = M2_ZOOMIN;
 static int m_zoomout_mouse = M2_ZOOMOUT;
 static boolean mousewheelzoom;
+
+static boolean mousepan;
 
 // translates between frame-buffer and map distances
 // [FG] fix int overflow that causes map and grid lines to disappear
@@ -486,6 +489,12 @@ static void AM_changeWindowLoc(void)
   {
     incx = m_paninc.x;
     incy = m_paninc.y;
+  }
+
+  if (mousepan)
+  {
+    m_paninc.x = 0;
+    m_paninc.y = 0;
   }
 
   if (automaprotate)
@@ -926,6 +935,10 @@ boolean AM_Responder
       automaprotate = !automaprotate;
       togglemsg("%s", automaprotate ? s_AMSTR_ROTATEON : s_AMSTR_ROTATEOFF);
     }
+    else if (M_InputActivated(input_map_mousepan))
+    {
+      mousepan = true;
+    }
     else
     {
       rc = false;
@@ -965,12 +978,22 @@ boolean AM_Responder
     {
       buttons_state[ZOOM_IN] = 0;
     }
+    else if (M_InputDeactivated(input_map_mousepan))
+    {
+      mousepan = false;
+    }
   }
 
   m_paninc.x = 0;
   m_paninc.y = 0;
 
-  if (!followplayer)
+  if (mousepan && ev->type == ev_mouse)
+  {
+    m_paninc.x -= (int)G_CalcMouseSide(ev->data1) * MAPUNIT;
+    m_paninc.y += (int)G_CalcMouseVert(ev->data2) * MAPUNIT;
+    rc = true;
+  }
+  else if (!followplayer)
   {
     int scaled_f_paninc = (f_paninc * video.xscale) >> FRACBITS;
     if (buttons_state[PAN_RIGHT])
