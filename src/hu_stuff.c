@@ -523,6 +523,55 @@ static void HU_widget_build_speed(void);
 
 static hu_multiline_t *w_stats;
 
+typedef enum {
+  STATSFORMAT_RATIO,
+  STATSFORMAT_BOOLEAN,
+  STATSFORMAT_PERCENT,
+  STATSFORMAT_REMAINING,
+  STATSFORMAT_COUNT,
+
+  NUM_STATSFORMATS
+} statsformat_t;
+
+static statsformat_t hud_stats_format;
+
+static void StatsFormatFunc_Ratio(char *buffer, size_t size, const int count, const int total)
+{
+  M_snprintf(buffer, size, "%d/%d", count, total);
+}
+
+static void StatsFormatFunc_Boolean(char *buffer, size_t size, const int count, const int total)
+{
+  M_snprintf(buffer, size, "%s", (count >= total) ? "YES" : "NO");
+}
+
+static void StatsFormatFunc_Percent(char *buffer, size_t size, const int count, const int total)
+{
+  M_snprintf(buffer, size, "%d%%", !total ? 100 : count * 100 / total);
+}
+
+static void StatsFormatFunc_Remaining(char *buffer, size_t size, const int count, const int total)
+{
+  M_snprintf(buffer, size, "%d", total - count);
+}
+
+static void StatsFormatFunc_Count(char *buffer, size_t size, const int count, const int total)
+{
+  M_snprintf(buffer, size, "%d", count);
+}
+
+typedef void (*StatsFormatFunc_t)(char *buffer, size_t size, const int count, const int total);
+
+static const StatsFormatFunc_t StatsFormatFuncs[NUM_STATSFORMATS] = {
+  StatsFormatFunc_Ratio,
+  StatsFormatFunc_Boolean,
+  StatsFormatFunc_Percent,
+  StatsFormatFunc_Remaining,
+  StatsFormatFunc_Count,
+};
+
+static StatsFormatFunc_t StatsFormatFunc;
+
 void HU_Start(void)
 {
   int i;
@@ -608,6 +657,8 @@ void HU_Start(void)
                        NULL, HU_widget_build_monsec);
   // [FG] in deathmatch: w_keys.builder = HU_widget_build_frag()
   w_stats = deathmatch ? &w_keys : &w_monsec;
+
+  StatsFormatFunc = StatsFormatFuncs[hud_stats_format];
 
   HUlib_init_multiline(&w_sttime, 1,
                        &boom_font, colrngs[CR_GRAY],
@@ -1233,27 +1284,33 @@ static void HU_widget_build_monsec(void)
   secretcolor = (fullsecretcount >= totalsecret) ? '0'+CR_BLUE : '0'+CR_GRAY;
   itemcolor = (fullitemcount >= totalitems) ? '0'+CR_BLUE : '0'+CR_GRAY;
 
+  char kill_str[16], item_str[16], secret_str[16];
+
+  StatsFormatFunc(kill_str, sizeof(kill_str), fullkillcount, max_kill_requirement);
+  StatsFormatFunc(item_str, sizeof(item_str), fullitemcount, totalitems);
+  StatsFormatFunc(secret_str, sizeof(secret_str), fullsecretcount, totalsecret);
+
   if (hud_widget_layout)
   {
     M_snprintf(hud_stringbuffer, sizeof(hud_stringbuffer),
-      "\x1b%cK\t\x1b%c%d/%d", ('0'+CR_RED), killcolor, fullkillcount, max_kill_requirement);
+      "\x1b%cK\t\x1b%c%s", ('0'+CR_RED), killcolor, kill_str);
     HUlib_add_string_to_cur_line(&w_monsec, hud_stringbuffer);
 
     M_snprintf(hud_stringbuffer, sizeof(hud_stringbuffer),
-      "\x1b%cI\t\x1b%c%d/%d", ('0'+CR_RED), itemcolor, fullitemcount, totalitems);
+      "\x1b%cI\t\x1b%c%s", ('0'+CR_RED), itemcolor, item_str);
     HUlib_add_string_to_cur_line(&w_monsec, hud_stringbuffer);
 
     M_snprintf(hud_stringbuffer, sizeof(hud_stringbuffer),
-      "\x1b%cS\t\x1b%c%d/%d", ('0'+CR_RED), secretcolor, fullsecretcount, totalsecret);
+      "\x1b%cS\t\x1b%c%s", ('0'+CR_RED), secretcolor, secret_str);
     HUlib_add_string_to_cur_line(&w_monsec, hud_stringbuffer);
   }
   else
   {
     M_snprintf(hud_stringbuffer, sizeof(hud_stringbuffer),
-      "\x1b%cK \x1b%c%d/%d \x1b%cI \x1b%c%d/%d \x1b%cS \x1b%c%d/%d",
-      '0'+CR_RED, killcolor, fullkillcount, max_kill_requirement,
-      '0'+CR_RED, itemcolor, fullitemcount, totalitems,
-      '0'+CR_RED, secretcolor, fullsecretcount, totalsecret);
+      "\x1b%cK \x1b%c%s \x1b%cI \x1b%c%s \x1b%cS \x1b%c%s",
+      '0'+CR_RED, killcolor, kill_str,
+      '0'+CR_RED, itemcolor, item_str,
+      '0'+CR_RED, secretcolor, secret_str);
 
     HUlib_add_string_to_cur_line(&w_monsec, hud_stringbuffer);
   }
@@ -2191,6 +2248,10 @@ void HU_BindHUDVariables(void)
             ss_stat, wad_no,
             "Show level stats (kills, items, and secrets) widget (1 = On automap; "
             "2 = On HUD; 3 = Always)");
+  M_BindNum("hud_stats_format", &hud_stats_format, NULL,
+            STATSFORMAT_RATIO, STATSFORMAT_RATIO, NUM_STATSFORMATS-1,
+            ss_stat, wad_no,
+            "Format of level stats (0 = Ratio; 1 = Boolean; 2 = Percent; 3 = Remaining; 4 = Count)");
   M_BindNum("hud_level_time", &hud_level_time, NULL,
             HUD_WIDGET_OFF, HUD_WIDGET_OFF, HUD_WIDGET_ALWAYS,
             ss_stat, wad_no,
