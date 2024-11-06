@@ -957,20 +957,20 @@ static boolean P_LookForMonsters(mobj_t *actor, boolean allaround)
 
       // Search first in the immediate vicinity.
 
-      if (!P_BlockThingsIterator(x, y, PIT_FindTarget))
+      if (!P_BlockThingsIterator(x, y, PIT_FindTarget, true))
 	return true;
 
       for (d=1; d<5; d++)
 	{
 	  int i = 1 - d;
 	  do
-	    if (!P_BlockThingsIterator(x+i, y-d, PIT_FindTarget) ||
-		!P_BlockThingsIterator(x+i, y+d, PIT_FindTarget))
+	    if (!P_BlockThingsIterator(x+i, y-d, PIT_FindTarget, true) ||
+		!P_BlockThingsIterator(x+i, y+d, PIT_FindTarget, true))
 	      return true;
 	  while (++i < d);
 	  do
-	    if (!P_BlockThingsIterator(x-d, y+i, PIT_FindTarget) ||
-		!P_BlockThingsIterator(x+d, y+i, PIT_FindTarget))
+	    if (!P_BlockThingsIterator(x-d, y+i, PIT_FindTarget, true) ||
+		!P_BlockThingsIterator(x+d, y+i, PIT_FindTarget, true))
 	      return true;
 	  while (--i + d >= 0);
 	}
@@ -1726,7 +1726,7 @@ static boolean P_HealCorpse(mobj_t* actor, int radius, statenum_t healstate, sfx
               // Call PIT_VileCheck to check
               // whether object is a corpse
               // that canbe raised.
-              if (!P_BlockThingsIterator(bx,by,PIT_VileCheck))
+              if (!P_BlockThingsIterator(bx, by, PIT_VileCheck, true))
                 {
 		  mobjinfo_t *info;
 

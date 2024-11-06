@@ -3314,7 +3314,7 @@ void T_Pusher(pusher_t *p)
       yh = (tmbbox[BOXTOP] - bmaporgy + MAXRADIUS)>>MAPBLOCKSHIFT;
       for (bx=xl ; bx<=xh ; bx++)
         for (by=yl ; by<=yh ; by++)
-          P_BlockThingsIterator(bx,by,PIT_PushThing);
+          P_BlockThingsIterator(bx, by, PIT_PushThing, true);
       return;
     }
 
