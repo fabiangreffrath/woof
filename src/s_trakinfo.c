@@ -21,7 +21,7 @@
 
 typedef struct
 {
-    char sha1key[41];
+    sha1_digest_t sha1key;
     char remix[9];
 } trakinfo_t;
 
@@ -40,7 +40,13 @@ void S_ParseTrakInfo(int lumpnum)
     while (JS_ObjectNext(iter, &key, &value))
     {
         trakinfo_t trak = {0};
-        strcpy(trak.sha1key, JS_GetString(key));
+        const char *string = JS_GetString(key);
+        for (int offset = 0; offset < sizeof(sha1_digest_t); ++offset)
+        {
+            unsigned int i;
+            sscanf(string + 2 * offset, "%02x", &i);
+            trak.sha1key[offset] = i;
+        }
         const char *remix = JS_GetStringValue(value, "Remixed");
         if (remix)
         {
@@ -62,16 +68,10 @@ char *S_GetRemix(byte *data, int length)
     SHA1_Update(&sha1_context, data, length);
     SHA1_Final(digest, &sha1_context);
 
-    char result[41];
-    for (int offset = 0; offset < sizeof(sha1_digest_t); ++offset)
-    {
-        sprintf((result + (2 * offset)), "%02x", digest[offset] & 0xff);
-    }
-
     trakinfo_t *trak;
     array_foreach(trak, trakinfo)
     {
-        if (!strcmp(trak->sha1key, result))
+        if (!memcmp(trak->sha1key, digest, sizeof(sha1_digest_t)))
         {
             return trak->remix;
         }
