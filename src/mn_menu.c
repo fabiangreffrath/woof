@@ -2861,11 +2861,12 @@ static boolean MouseResponder(void)
 
 static boolean AllowDeleteSaveGame(void)
 {
+    int index = (old_menu_input == mouse_mode ? highlight_item : itemOn);
     return (((currentMenu == &LoadDef || currentMenu == &QuickLoadDef
               || currentMenu == &SaveDef)
-             && LoadDef.menuitems[itemOn].status)
+             && LoadDef.menuitems[index].status)
             || (currentMenu == &LoadAutoSaveDef
-                && LoadAutoSaveDef.menuitems[itemOn].status));
+                && LoadAutoSaveDef.menuitems[index].status));
 }
 
 boolean M_Responder(event_t *ev)
