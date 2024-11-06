@@ -122,7 +122,14 @@ extern boolean monkeys, default_monkeys;
 // v1.1-like pitched sounds
 extern boolean pitched_sounds;
 
-extern boolean translucency;
+typedef enum
+{
+    TRANSLUCENCY_OFF,
+    TRANSLUCENCY_BOOM,
+    TRANSLUCENCY_ADD
+} translucency_t;
+
+extern translucency_t translucency;
 
 extern int demo_insurance;      // killough 4/5/98
 

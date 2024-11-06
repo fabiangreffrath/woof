@@ -1034,7 +1034,8 @@ void R_BindRenderVariables(void)
   BIND_BOOL(flashing_hom, true, "Enable flashing of the HOM indicator");
   BIND_NUM(screenblocks, 10, 3, 11, "Size of game-world screen");
 
-  M_BindBool("translucency", &translucency, NULL, true, ss_gen, wad_yes,
+  M_BindNum("translucency", &translucency, NULL, TRANSLUCENCY_BOOM,
+            TRANSLUCENCY_OFF, TRANSLUCENCY_ADD, ss_gen, wad_yes,
              "Translucency for some things");
   M_BindNum("tran_filter_pct", &tran_filter_pct, NULL,
             66, 0, 100, ss_gen, wad_yes,

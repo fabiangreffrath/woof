@@ -450,7 +450,8 @@ void R_DrawVisSprite(vissprite_t *vis, int x1, int x2)
           && vis->mobjflags & MF_TRANSLUCENT) // phares
         {
           colfunc = R_DrawTLColumn;
-          tranmap = main_tranmap;       // killough 4/11/98
+          tranmap = (dc_colormap[0] == fullcolormap) ?
+                    fullbright_tranmap : main_tranmap; // killough 4/11/98
         }
       else
         colfunc = R_DrawColumn;         // killough 3/14/98, 4/11/98

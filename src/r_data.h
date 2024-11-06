@@ -54,6 +54,7 @@ boolean R_IsPatchLump (const int lump);
 extern int numflats;
 
 extern byte *main_tranmap, *tranmap;
+extern byte *fullbright_tranmap, *add_tranmap;
 
 extern int tran_filter_pct;
 

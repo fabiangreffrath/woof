@@ -65,7 +65,7 @@ demo_version_t demo_version;        // killough 7/19/98: Boom version of demo
 // v1.1-like pitched sounds
 boolean pitched_sounds;  // killough 10/98
 
-boolean translucency;    // killough 10/98
+translucency_t translucency;  // killough 10/98
 
 int  allow_pushers = 1;      // MT_PUSH Things              // phares 3/10/98
 int  default_allow_pushers;  // killough 3/1/98: make local to each game

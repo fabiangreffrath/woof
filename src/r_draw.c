@@ -60,6 +60,8 @@ static int linesize; // killough 11/98
 byte *tranmap;          // translucency filter maps 256x256   // phares 
 byte *main_tranmap;     // killough 4/11/98
 
+byte *fullbright_tranmap, *add_tranmap;
+
 // Backing buffer containing the bezel drawn around the screen and surrounding
 // background.
 
