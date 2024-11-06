@@ -67,11 +67,6 @@ extern int health_red;    // health amount less than which status is red
 extern int health_yellow; // health amount less than which status is yellow
 extern int health_green;  // health amount above is blue, below is green
 
-#define KEYBLINKMASK 0x8
-#define KEYBLINKTICS (7 * KEYBLINKMASK)
-extern void ST_SetKeyBlink(struct player_s *player, int blue, int yellow, int red);
-extern int  st_keyorskull[3];
-
 extern boolean palette_changes;
 
 extern struct patch_s **hu_font;

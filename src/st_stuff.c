@@ -1588,31 +1588,6 @@ boolean ST_Responder(event_t *ev)
     }
 }
 
-static boolean hud_blink_keys; // [crispy] blinking key or skull in the status bar
-
-void ST_SetKeyBlink(player_t *player, int blue, int yellow, int red)
-{
-    // Init array with args to iterate through
-    const int keys[3] = {blue, yellow, red};
-
-    player->keyblinktics = KEYBLINKTICS;
-
-    for (int i = 0; i < 3; i++)
-    {
-        if (((keys[i] == KEYBLINK_EITHER) && !(player->cards[i] || player->cards[i + 3]))
-            || ((keys[i] == KEYBLINK_CARD) && !(player->cards[i]))
-            || ((keys[i] == KEYBLINK_SKULL) && !(player->cards[i + 3]))
-            || ((keys[i] == KEYBLINK_BOTH) && !(player->cards[i] && player->cards[i + 3])))
-        {
-            player->keyblinkkeys[i] = keys[i];
-        }
-        else
-        {
-            player->keyblinkkeys[i] = KEYBLINK_NONE;
-        }
-    }
-}
-
 boolean palette_changes = true;
 
 static void DoPaletteStuff(player_t *player)
@@ -1825,9 +1800,6 @@ void ST_BindSTSVariables(void)
   M_BindBool("sts_pct_always_gray", &sts_pct_always_gray, NULL,
              false, ss_stat, wad_yes,
              "Percent signs on the status bar are always gray");
-  M_BindBool("hud_blink_keys", &hud_blink_keys, NULL,
-             false, ss_stat, wad_no,
-             "Make missing keys blink when trying to trigger linedef actions");
   M_BindBool("st_solidbackground", &st_solidbackground, NULL,
              false, ss_stat, wad_no,
              "Use solid-color borders for the status bar in widescreen mode");

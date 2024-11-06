@@ -1845,8 +1845,6 @@ static setup_menu_t stat_settings1[] = {
 
     {"Animated Health/Armor Count", S_ONOFF, H_X, M_SPC, {"hud_animated_counts"}},
 
-    {"Blink Missing Keys", S_ONOFF, H_X, M_SPC, {"hud_blink_keys"}},
-
     MI_RESET,
 
     MI_END
