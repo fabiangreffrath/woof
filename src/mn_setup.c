@@ -1881,6 +1881,13 @@ static setup_menu_t stat_settings2[] = {
     {"Level Stats Format", S_CHOICE, H_X, M_SPC, {"hud_stats_format"},
      .strings_id = str_stats_format},
 
+    MI_GAP,
+
+    {"Widget Appearance", S_SKIP | S_TITLE, H_X, M_SPC},
+
+    {"Use Doom Font", S_CHOICE, H_X, M_SPC, {"hud_widget_font"},
+     .strings_id = str_show_widgets},
+
     MI_END
 };
 

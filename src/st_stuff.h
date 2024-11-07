@@ -69,6 +69,7 @@ extern int health_green;  // health amount above is blue, below is green
 
 extern boolean palette_changes;
 
+extern struct hudfont_s *hudfont;
 extern struct patch_s **hu_font;
 
 void WI_DrawWidgets(void);

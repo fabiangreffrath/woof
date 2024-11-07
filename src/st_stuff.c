@@ -1729,6 +1729,7 @@ void ST_Start(void)
     HU_StartCrosshair();
 }
 
+hudfont_t *hudfont;
 patch_t **hu_font = NULL;
 
 void ST_Init(void)
@@ -1742,7 +1743,6 @@ void ST_Init(void)
 
     LoadFacePatches();
 
-    hudfont_t *hudfont;
     array_foreach(hudfont, sbardef->hudfonts)
     {
         if (!strcmp(hudfont->name, "Console"))
