@@ -658,11 +658,7 @@ static void ForceDoomFont(sbe_widget_t *widget)
     }
     else
     {
-        if (widget->font == hudfont && strcmp(widget->font_name, "Console"))
-        {
-            // reset to default
-            widget->font = NULL;
-        }
+        widget->font = widget->default_font;
     }
 }
 

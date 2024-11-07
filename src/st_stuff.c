@@ -714,24 +714,13 @@ static void UpdateFace(sbe_face_t *face, player_t *player)
 static void UpdateNumber(sbarelem_t *elem, player_t *player)
 {
     sbe_number_t *number = elem->subtype.number;
+    numberfont_t *font = number->font;
 
     int value = ResolveNumber(number, player);
     int power = (value < 0 ? number->maxlength - 1 : number->maxlength);
     int max = (int)pow(10.0, power) - 1;
     int valglyphs = 0;
     int numvalues = 0;
-
-    numberfont_t *font = number->font;
-    if (font == NULL)
-    {
-        array_foreach(font, sbardef->numberfonts)
-        {
-            if (!strcmp(font->name, number->font_name))
-            {
-                break;
-            }
-        }
-    }
 
     if (value < 0 && font->minus != NULL)
     {
@@ -789,18 +778,7 @@ static void UpdateNumber(sbarelem_t *elem, player_t *player)
 static void UpdateLines(sbarelem_t *elem)
 {
     sbe_widget_t *widget = elem->subtype.widget;
-
     hudfont_t *font = widget->font;
-    if (font == NULL)
-    {
-        array_foreach(font, sbardef->hudfonts)
-        {
-            if (!strcmp(font->name, widget->font_name))
-            {
-                break;
-            }
-        }
-    }
 
     widgetline_t *line;
     array_foreach(line, widget->lines)

@@ -28,6 +28,9 @@
 #include "w_wad.h"
 #include "z_zone.h"
 
+static numberfont_t *numberfonts;
+static hudfont_t *hudfonts;
+
 static boolean ParseSbarCondition(json_t *json, sbarcondition_t *out)
 {
     json_t *condition = JS_GetObject(json, "condition");
@@ -78,13 +81,13 @@ static boolean ParseSbarElemType(json_t *json, sbarelementtype_t type,
     out->y_pos = JS_GetInteger(y_pos);
     out->alignment = JS_GetInteger(alignment);
 
-    const char *tranmap = JS_GetStringRef(json, "tranmap");
+    const char *tranmap = JS_GetStringValue(json, "tranmap");
     if (tranmap)
     {
         out->tranmap = W_CacheLumpName(tranmap, PU_STATIC);
     }
 
-    const char *translation = JS_GetStringRef(json, "translation");
+    const char *translation = JS_GetStringValue(json, "translation");
     out->cr = translation ? V_CRByName(translation) : CR_NONE;
     out->crboom = CR_NONE;
 
@@ -146,13 +149,20 @@ static boolean ParseSbarElemType(json_t *json, sbarelementtype_t type,
         case sbe_percent:
             {
                 sbe_number_t *number = calloc(1, sizeof(*number));
-                json_t *font = JS_GetObject(json, "font");
-                if (!JS_IsString(font))
+                const char *font_name = JS_GetStringValue(json, "font");
+                if (!font_name)
                 {
                     return false;
                 }
-                number->font_name = M_StringDuplicate(JS_GetString(font));
-
+                numberfont_t *font;
+                array_foreach(font, numberfonts)
+                {
+                    if (!strcmp(font->name, font_name))
+                    {
+                        number->font = font;
+                        break;
+                    }
+                }
                 json_t *type = JS_GetObject(json, "type");
                 json_t *param = JS_GetObject(json, "param");
                 json_t *maxlength = JS_GetObject(json, "maxlength");
@@ -171,14 +181,20 @@ static boolean ParseSbarElemType(json_t *json, sbarelementtype_t type,
         case sbe_widget:
              {
                 sbe_widget_t *widget = calloc(1, sizeof(*widget));
-
-                json_t *font = JS_GetObject(json, "font");
-                if (!JS_IsString(font))
+                const char *font_name = JS_GetStringValue(json, "font");
+                if (!font_name)
                 {
                     return false;
                 }
-                widget->font_name = M_StringDuplicate(JS_GetString(font));
-
+                hudfont_t *font;
+                array_foreach(font, hudfonts)
+                {
+                    if (!strcmp(font->name, font_name))
+                    {
+                        widget->default_font = widget->font = font;
+                        break;
+                    }
+                }
                 json_t *type = JS_GetObject(json, "type");
                 if (!JS_IsNumber(type))
                 {
@@ -249,7 +265,7 @@ static boolean ParseNumberFont(json_t *json, numberfont_t *out)
     }
     out->name = M_StringDuplicate(JS_GetString(name));
 
-    const char *stem = JS_GetStringRef(json, "stem");
+    const char *stem = JS_GetStringValue(json, "stem");
     if (!stem)
     {
         return false;
@@ -323,7 +339,7 @@ static boolean ParseHUDFont(json_t *json, hudfont_t *out)
     }
     out->name = M_StringDuplicate(JS_GetString(name));
 
-    const char *stem = JS_GetStringRef(json, "stem");
+    const char *stem = JS_GetStringValue(json, "stem");
     if (!stem)
     {
         return false;
@@ -383,7 +399,8 @@ static boolean ParseStatusBar(json_t *json, statusbar_t *out)
     out->height = JS_GetInteger(height);
     out->fullscreenrender = JS_GetBoolean(fullscreenrender);
 
-    out->fillflat = JS_GetStringCopy(json, "fillflat");
+    const char *fillflat = JS_GetStringValue(json, "fillflat");
+    out->fillflat = fillflat ? M_StringDuplicate(fillflat) : NULL;
 
     json_t *js_children = JS_GetObject(json, "children");
     json_t *js_child = NULL;
@@ -436,6 +453,7 @@ sbardef_t *ST_ParseSbarDef(void)
             array_push(out->numberfonts, numberfont);
         }
     }
+    numberfonts = out->numberfonts;
 
     json_t *js_hudfonts = JS_GetObject(data, "hudfonts");
     json_t *js_hudfont = NULL;
@@ -448,6 +466,7 @@ sbardef_t *ST_ParseSbarDef(void)
             array_push(out->hudfonts, hudfont);
         }
     }
+    hudfonts = out->hudfonts;
 
     json_t *js_statusbars = JS_GetObject(data, "statusbars");
     json_t *js_statusbar = NULL;

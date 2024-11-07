@@ -164,7 +164,6 @@ typedef struct
 
 typedef struct
 {
-    const char *font_name;
     numberfont_t *font;
     sbarnumbertype_t type;
     int param;
@@ -192,7 +191,7 @@ typedef struct
 typedef struct sbe_widget_s
 {
     sbarwidgettype_t type;
-    const char *font_name;
+    hudfont_t *default_font;
     hudfont_t *font;
     widgetline_t *lines;
 
