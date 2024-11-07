@@ -68,6 +68,7 @@ set(BASE_SOURCES
     all-all/dig090.png
     all-all/dig091.png
     all-all/dig093.png
+    all-all/dmxopl.op2
     all-all/dsdgact.wav
     all-all/dsdgatk.wav
     all-all/dsdgdth.wav

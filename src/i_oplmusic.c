@@ -374,9 +374,9 @@ static boolean opl_stereo_correct = false;
 
 static byte *lump;
 
-static boolean LoadInstrumentTable(void)
+static boolean LoadInstrumentTable(const char *lumpname)
 {
-    lump = W_CacheLumpName("genmidi", PU_STATIC);
+    lump = W_CacheLumpName(lumpname, PU_STATIC);
 
     // DMX does not check header
 
@@ -1500,7 +1500,7 @@ static boolean I_OPL_InitStream(int device)
 
     // Load instruments from GENMIDI lump:
 
-    if (!LoadInstrumentTable())
+    if (!LoadInstrumentTable(device ? "DMXOPL" : "GENMIDI"))
     {
         OPL_Shutdown();
         return false;
@@ -1685,7 +1685,8 @@ static const char **I_OPL_DeviceList(void)
     {
         return devices;
     }
-    array_push(devices, "OPL3 Emulation");
+    array_push(devices, "OPL3 Emulation: GENMIDI");
+    array_push(devices, "OPL3 Emulation: DMXOPL");
     return devices;
 }
 
