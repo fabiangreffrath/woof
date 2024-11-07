@@ -188,8 +188,12 @@ set(BASE_SOURCES
     e1m4b.wad/umapdef.lmp
     e1m8b.wad/umapdef.lmp
 
+    extras.wad/sbardef.lmp
+
     hacx.wad/brghtmps.lmp
     hacx.wad/dehacked.deh
+
+    id1.wad/sbardef.lmp
 
     masterlevels.wad/umapdef.lmp
 
