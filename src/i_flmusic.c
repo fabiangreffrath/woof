@@ -48,6 +48,7 @@ typedef fluid_long_long_t fluid_int_t;
 
 static const char *soundfont_dir = "";
 static int fl_polyphony;
+static boolean fl_interpolation;
 static boolean fl_reverb;
 static boolean fl_chorus;
 static int fl_reverb_damp;
@@ -64,6 +65,7 @@ static fluid_settings_t *settings = NULL;
 static fluid_player_t *player = NULL;
 
 static const char **soundfonts = NULL;
+static int interp_method;
 
 // Load SNDFONT lump
 
@@ -252,6 +254,9 @@ static boolean I_FL_InitStream(int device)
 
     settings = new_fluid_settings();
 
+    interp_method =
+        fl_interpolation ? FLUID_INTERP_HIGHEST : FLUID_INTERP_DEFAULT;
+
     fluid_settings_setint(settings, "synth.polyphony", fl_polyphony);
     fluid_settings_setnum(settings, "synth.gain", 0.2);
     fluid_settings_setnum(settings, "synth.sample-rate", SND_SAMPLERATE);
@@ -428,6 +433,7 @@ static void I_FL_PlayStream(boolean looping)
         return;
     }
 
+    fluid_synth_set_interp_method(synth, -1, interp_method);
     fluid_player_set_loop(player, looping ? -1 : 1);
     fluid_player_play(player);
 }
@@ -504,6 +510,8 @@ static void I_FL_BindVariables(void)
     wad_no, "[FluidSynth] Soundfont directories");
     BIND_NUM(fl_polyphony, 256, 1, 65535,
         "[FluidSynth] Number of voices that can be played in parallel");
+    BIND_BOOL(fl_interpolation, false,
+        "[FluidSynth] Interpolation method (0 = Default; 1 = Highest Quality)");
     BIND_BOOL_MIDI(fl_reverb, false,
         "[FluidSynth] Enable reverb effects");
     BIND_BOOL_MIDI(fl_chorus, false,
