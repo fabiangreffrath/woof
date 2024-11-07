@@ -47,8 +47,8 @@ typedef fluid_long_long_t fluid_int_t;
 #include "z_zone.h"
 
 static const char *soundfont_dir = "";
-static boolean mus_chorus;
-static boolean mus_reverb;
+static boolean fl_reverb;
+static boolean fl_chorus;
 
 static fluid_synth_t *synth = NULL;
 static fluid_settings_t *settings = NULL;
@@ -245,10 +245,10 @@ static boolean I_FL_InitStream(int device)
 
     fluid_settings_setnum(settings, "synth.sample-rate", SND_SAMPLERATE);
 
-    fluid_settings_setint(settings, "synth.chorus.active", mus_chorus);
-    fluid_settings_setint(settings, "synth.reverb.active", mus_reverb);
+    fluid_settings_setint(settings, "synth.reverb.active", fl_reverb);
+    fluid_settings_setint(settings, "synth.chorus.active", fl_chorus);
 
-    if (mus_reverb)
+    if (fl_reverb)
     {
         fluid_settings_setnum(settings, "synth.reverb.room-size", 0.6);
         fluid_settings_setnum(settings, "synth.reverb.damp", 0.4);
@@ -256,7 +256,7 @@ static boolean I_FL_InitStream(int device)
         fluid_settings_setnum(settings, "synth.reverb.level", 0.15);
     }
 
-    if (mus_chorus)
+    if (fl_chorus)
     {
         fluid_settings_setnum(settings, "synth.chorus.level", 0.35);
         fluid_settings_setnum(settings, "synth.chorus.depth", 5);
@@ -480,9 +480,11 @@ static void I_FL_BindVariables(void)
     // AppImage
     "../share/" PROJECT_SHORTNAME "/soundfonts",
 #endif
-    wad_no, "FluidSynth soundfont directories");
-    BIND_BOOL_MIDI(mus_chorus, false, "FluidSynth chorus");
-    BIND_BOOL_MIDI(mus_reverb, false, "FluidSynth reverb");
+    wad_no, "[FluidSynth] Soundfont directories");
+    BIND_BOOL_MIDI(fl_reverb, false,
+        "[FluidSynth] Enable reverb effects");
+    BIND_BOOL_MIDI(fl_chorus, false,
+        "[FluidSynth] Enable chorus effects");
 }
 
 static const char *I_FL_MusicFormat(void)
