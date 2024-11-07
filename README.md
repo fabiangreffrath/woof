@@ -247,9 +247,19 @@ Copyright:
  © 2013 Julien Pommier.  
 License: [FFTPACK License](https://bitbucket.org/jpommier/pffft/src/master/pffft.h)
 
+Files: `third-party/sha1/*`  
+Copyright:  
+ © 1998-2001 Free Software Foundation, Inc.;  
+ © 2005-2014 Simon Howard.  
+License: [GPL-2.0](https://www.gnu.org/licenses/old-licenses/gpl-2.0.html)
+
 Files: `third-party/spng/*`  
 Copyright: © 2018-2023 Randy.  
 License: [BSD-2-Clause](https://opensource.org/license/bsd-2-clause)
+
+Files: `third-party/yyjson/*`  
+Copyright (c) 2020 YaoYuan.  
+License: [MIT](https://opensource.org/licenses/MIT)
 
 Files: `win32/win_opendir.*`  
 Copyright: 2019 win32ports
