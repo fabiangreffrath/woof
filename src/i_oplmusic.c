@@ -1685,8 +1685,8 @@ static const char **I_OPL_DeviceList(void)
     {
         return devices;
     }
-    array_push(devices, "OPL3 Emulation (Vanilla)");
-    array_push(devices, "OPL3 Emulation (DMXOPL)");
+    array_push(devices, "OPL3 Emulation: GENMIDI");
+    array_push(devices, "OPL3 Emulation: DMXOPL");
     return devices;
 }
 
