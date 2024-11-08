@@ -2022,9 +2022,6 @@ static setup_menu_t auto_settings1[] = {
     {"Overlay Automap", S_CHOICE, H_X, M_SPC, {"automapoverlay"},
      .strings_id = str_overlay},
 
-    // killough 10/98
-    {"Coords Follow Pointer", S_ONOFF, H_X, M_SPC, {"map_point_coord"}},
-
     MI_GAP,
 
     {"Miscellaneous", S_SKIP | S_TITLE, H_X, M_SPC},

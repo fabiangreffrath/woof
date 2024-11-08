@@ -2407,7 +2407,7 @@ void AM_BindAutomapVariables(void)
   M_BindBool("automaprotate", &automaprotate, NULL, false, ss_auto, wad_no,
              "Automap rotation");
 
-  M_BindBool("map_point_coord", &map_point_coord, NULL, true, ss_auto, wad_no,
+  M_BindBool("map_point_coord", &map_point_coord, NULL, true, ss_none, wad_no,
              "Show automap pointer coordinates in non-follow mode");
   M_BindBool("map_secret_after", &map_secret_after, NULL, false, ss_auto, wad_no,
              "Don't highlight secret sectors on the automap before they're revealed");
