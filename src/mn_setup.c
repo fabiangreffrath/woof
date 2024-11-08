@@ -2106,10 +2106,6 @@ static setup_menu_t enem_settings1[] = {
     {"Translucent Ghost Monsters", S_ONOFF | S_STRICT | S_VANILLA, M_X, M_SPC,
      {"ghost_monsters"}},
 
-    // [FG] spectre drawing mode
-    {"Blocky Spectre Drawing", S_ONOFF, M_X, M_SPC, {"fuzzcolumn_mode"},
-     .action = R_SetFuzzColumnMode},
-
     MI_RESET,
 
     MI_END
