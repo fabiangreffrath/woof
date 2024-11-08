@@ -253,6 +253,7 @@ struct numberfont_s
 struct hudfont_s
 {
     const char *name;
+    const char *stem;
     fonttype_t type;
     int monowidth;
     int maxheight;
@@ -261,11 +262,11 @@ struct hudfont_s
 
 typedef struct
 {
-    numberfont_t *numberfonts;
-    hudfont_t *hudfonts;
     statusbar_t *statusbars;
 } sbardef_t;
 
 sbardef_t *ST_ParseSbarDef(void);
+
+hudfont_t *LoadSTCFN(void);
 
 #endif

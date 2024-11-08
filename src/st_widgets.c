@@ -651,10 +651,7 @@ static void ForceDoomFont(sbe_widget_t *widget)
 {
     if (WidgetEnabled(hud_widget_font))
     {
-        if (widget->font != hudfont)
-        {
-            widget->font = hudfont;
-        }
+        widget->font = stcfnt;
     }
     else
     {

@@ -330,28 +330,8 @@ static boolean ParseNumberFont(json_t *json, numberfont_t *out)
     return true;
 }
 
-static boolean ParseHUDFont(json_t *json, hudfont_t *out)
+static void LoadHUDFont(hudfont_t *out)
 {
-    json_t *name = JS_GetObject(json, "name");
-    if (!JS_IsString(name))
-    {
-        return false;
-    }
-    out->name = M_StringDuplicate(JS_GetString(name));
-
-    const char *stem = JS_GetStringValue(json, "stem");
-    if (!stem)
-    {
-        return false;
-    }
-
-    json_t *type = JS_GetObject(json, "type");
-    if (!JS_IsNumber(type))
-    {
-        return false;
-    }
-    out->type = JS_GetInteger(type);
-
     char lump[9] = {0};
     int found;
     int maxwidth = 0;
@@ -359,7 +339,7 @@ static boolean ParseHUDFont(json_t *json, hudfont_t *out)
 
     for (int i = 0; i < HU_FONTSIZE; ++i)
     {
-        M_snprintf(lump, sizeof(lump), "%s%03d", stem, i + HU_FONTSTART);
+        M_snprintf(lump, sizeof(lump), "%s%03d", out->stem, i + HU_FONTSTART);
         found = W_CheckNumForName(lump);
         if (found < 0)
         {
@@ -384,8 +364,51 @@ static boolean ParseHUDFont(json_t *json, hudfont_t *out)
         default:
             break;
     }
+}
+
+static boolean ParseHUDFont(json_t *json, hudfont_t *out)
+{
+    json_t *name = JS_GetObject(json, "name");
+    if (!JS_IsString(name))
+    {
+        return false;
+    }
+    out->name = M_StringDuplicate(JS_GetString(name));
+
+    const char *stem = JS_GetStringValue(json, "stem");
+    if (!stem)
+    {
+        return false;
+    }
+    out->stem = M_StringDuplicate(stem);
+
+    json_t *type = JS_GetObject(json, "type");
+    if (!JS_IsNumber(type))
+    {
+        return false;
+    }
+    out->type = JS_GetInteger(type);
+
+    LoadHUDFont(out);
 
     return true;
+}
+
+hudfont_t *LoadSTCFN(void)
+{
+    hudfont_t *font;
+    array_foreach(font, hudfonts)
+    {
+        if (!strcasecmp(font->stem, "STCFN"))
+        {
+            return font;
+        }
+    }
+    font = calloc(1, sizeof(*font));
+    font->stem = "STCFN";
+    font->type = sbf_proportional;
+    LoadHUDFont(font);
+    return font;
 }
 
 static boolean ParseStatusBar(json_t *json, statusbar_t *out)
@@ -450,10 +473,9 @@ sbardef_t *ST_ParseSbarDef(void)
         numberfont_t numberfont = {0};
         if (ParseNumberFont(js_numberfont, &numberfont))
         {
-            array_push(out->numberfonts, numberfont);
+            array_push(numberfonts, numberfont);
         }
     }
-    numberfonts = out->numberfonts;
 
     json_t *js_hudfonts = JS_GetObject(data, "hudfonts");
     json_t *js_hudfont = NULL;
@@ -463,10 +485,9 @@ sbardef_t *ST_ParseSbarDef(void)
         hudfont_t hudfont = {0};
         if (ParseHUDFont(js_hudfont, &hudfont))
         {
-            array_push(out->hudfonts, hudfont);
+            array_push(hudfonts, hudfont);
         }
     }
-    hudfonts = out->hudfonts;
 
     json_t *js_statusbars = JS_GetObject(data, "statusbars");
     json_t *js_statusbar = NULL;
@@ -503,7 +524,7 @@ sbardef_t *ST_ParseSbarDef(void)
         hudfont_t hudfont = {0};
         if (ParseHUDFont(js_hudfont, &hudfont))
         {
-            array_push(out->hudfonts, hudfont);
+            array_push(hudfonts, hudfont);
         }
     }
 

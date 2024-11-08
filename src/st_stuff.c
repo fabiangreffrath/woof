@@ -1707,7 +1707,7 @@ void ST_Start(void)
     HU_StartCrosshair();
 }
 
-hudfont_t *hudfont;
+hudfont_t *stcfnt;
 patch_t **hu_font = NULL;
 
 void ST_Init(void)
@@ -1721,18 +1721,12 @@ void ST_Init(void)
 
     LoadFacePatches();
 
-    array_foreach(hudfont, sbardef->hudfonts)
-    {
-        if (!strcmp(hudfont->name, "Console"))
-        {
-            hu_font = hudfont->characters;
-            break;
-        }
-    }
+    stcfnt = LoadSTCFN();
+    hu_font = stcfnt->characters;
 
     if (!hu_font)
     {
-        I_Error("ST_Init: \"Console\" font not found");
+        I_Error("ST_Init: \"STCFN\" font not found");
     }
 
     HU_InitCrosshair();
