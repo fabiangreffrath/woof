@@ -1779,7 +1779,7 @@ void ST_BindSTSVariables(void)
              "Use solid-color borders for the status bar in widescreen mode");
   M_BindBool("hud_animated_counts", &hud_animated_counts, NULL,
             false, ss_stat, wad_no, "Animated health/armor counts");
-  M_BindBool("hud_armor_type", &hud_armor_type, NULL, false, ss_stat, wad_no,
+  M_BindBool("hud_armor_type", &hud_armor_type, NULL, true, ss_none, wad_no,
              "Armor count is colored based on armor type");
   M_BindNum("health_red", &health_red, NULL, 25, 0, 200, ss_none, wad_yes,
             "Amount of health for red-to-yellow transition");

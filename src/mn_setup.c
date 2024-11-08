@@ -1841,8 +1841,6 @@ static setup_menu_t stat_settings1[] = {
     {"Solid Background Color", S_ONOFF, H_X, M_SPC, {"st_solidbackground"},
      .action = RefreshSolidBackground},
 
-    {"Armor Color Matches Type", S_ONOFF, H_X, M_SPC, {"hud_armor_type"}},
-
     {"Animated Health/Armor Count", S_ONOFF, H_X, M_SPC, {"hud_animated_counts"}},
 
     MI_RESET,
