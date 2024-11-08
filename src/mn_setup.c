@@ -2929,13 +2929,10 @@ static setup_menu_t padadv_settings1[] = {
     {"Stick Layout", S_CHOICE, CNTR_X, M_SPC, {"joy_stick_layout"},
      .strings_id = str_layout, .action = UpdateGamepad},
 
-    {"Flick Snap", S_CHOICE | S_STRICT, CNTR_X, M_SPC, {"joy_flick_snap"},
-     .strings_id = str_flick_snap, .action = I_ResetGamepad},
-
     {"Flick Time", S_THERMO, CNTR_X, M_THRM_SPC, {"joy_flick_time"},
      .strings_id = str_ms_time, .action = I_ResetGamepad},
 
-    MI_GAP_Y(6),
+    MI_GAP,
 
     {"Movement Type", S_CHOICE, CNTR_X, M_SPC, {"joy_movement_type"},
      .strings_id = str_movement_type, .action = I_ResetGamepad},
@@ -2948,15 +2945,13 @@ static setup_menu_t padadv_settings1[] = {
      {"joy_strafe_sensitivity"}, .strings_id = str_movement_sensitivity,
      .action = I_ResetGamepad},
 
-    MI_GAP_Y(6),
+    MI_GAP,
 
     {"Extra Turn Speed", S_THERMO | S_THRM_SIZE11, CNTR_X, M_THRM_SPC,
      {"joy_outer_turn_speed"}, .action = UpdateGamepad},
 
     {"Extra Ramp Time", S_THERMO, CNTR_X, M_THRM_SPC, {"joy_outer_ramp_time"},
      .strings_id = str_ms_time, .action = I_ResetGamepad},
-
-    MI_GAP_Y(6),
 
     {"Response Curve", S_THERMO, CNTR_X, M_THRM_SPC, {"joy_camera_curve"},
      .strings_id = str_curve, .action = I_ResetGamepad},
@@ -3010,7 +3005,6 @@ static void UpdateGamepadItems(void)
     DisableItem(condition, gen_settings4, "joy_look_speed");
 
     DisableItem(!gamepad, padadv_settings1, "joy_stick_layout");
-    DisableItem(!flick, padadv_settings1, "joy_flick_snap");
     DisableItem(!flick, padadv_settings1, "joy_flick_time");
     DisableItem(condition, padadv_settings1, "joy_movement_type");
     DisableItem(condition, padadv_settings1, "joy_forward_sensitivity");
