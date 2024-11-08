@@ -324,11 +324,13 @@ static boolean CheckConditions(sbarcondition_t *conditions, player_t *player)
                 break;
 
             case sbc_featurelevelgreaterequal:
-                // ignore
+                // always MBF21
+                result &= 7 >= cond->param;
                 break;
 
             case sbc_featurelevelless:
-                // ignore
+                // always MBF21
+                result &= 7 < cond->param;
                 break;
 
             case sbc_sessiontypeeequal:
