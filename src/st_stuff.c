@@ -1104,7 +1104,7 @@ static void DrawPatch(int x, int y, int maxheight, sbaralignment_t alignment,
 
     if (alignment & sbe_h_middle)
     {
-        x -= (width >> 1);
+        x = x - width / 2 + SHORT(patch->leftoffset);
     }
     else if (alignment & sbe_h_right)
     {
@@ -1113,7 +1113,7 @@ static void DrawPatch(int x, int y, int maxheight, sbaralignment_t alignment,
 
     if (alignment & sbe_v_middle)
     {
-        y -= (height >> 1);
+        y = y - height / 2 + SHORT(patch->topoffset);
     }
     else if (alignment & sbe_v_bottom)
     {
