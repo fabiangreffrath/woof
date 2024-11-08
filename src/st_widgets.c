@@ -842,6 +842,7 @@ static void UpdateStTime(sbe_widget_t *widget, player_t *player)
         M_snprintf(string + offset, sizeof(string) - offset,
                    GOLD_S "U %d:%05.2f\t", player->btuse / TICRATE / 60,
                    (float)(player->btuse % (60 * TICRATE)) / TICRATE);
+        player->btuse_tics--;
     }
 
     ST_AddLine(widget, string);
