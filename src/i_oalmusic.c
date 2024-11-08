@@ -76,6 +76,7 @@ typedef struct
     boolean looping;
 
     ALfloat gain;
+    ALfloat auto_gain;
 
     // The format of the output stream
     ALenum format;
@@ -107,6 +108,8 @@ static void ReInitAutoGain(void)
             break;
     }
 
+    player.auto_gain = 1.0f;
+
     if (ebur_state)
     {
         ebur128_change_parameters(ebur_state, player.channels, player.freq);
@@ -126,6 +129,8 @@ static void ShutdownAutoGain(void)
         ebur128_destroy(&ebur_state);
     }
 }
+
+#define LINEAR_TO_DB(amp) ((amp) >= 0.00001 ? 20.0 * log10((amp)) : -99.0)
 
 static void AutoGain(uint32_t frames)
 {
@@ -173,7 +178,7 @@ static void AutoGain(uint32_t frames)
         failed = true;
     }
 
-    if (relative > -70.0 && momentary > -70.0 && !failed)
+    if (relative > -70.0 && momentary > relative && !failed)
     {
         double peak_L = 0.0;
         double peak_R = 0.0;
@@ -196,7 +201,7 @@ static void AutoGain(uint32_t frames)
         {
             double loudness = cbrt(momentary * shortterm * global);
 
-            const double target = -18.0; // UFS
+            const double target = -23.0; // UFS
 
             double diff = target - loudness;
 
@@ -205,12 +210,19 @@ static void AutoGain(uint32_t frames)
 
             double peak = (peak_L > peak_R) ? peak_L : peak_R;
 
-            if (gain * peak < 1.0)
+            double db_peak = LINEAR_TO_DB(peak);
+
+            if (db_peak > -99.0)
             {
-                alSourcef(player.source, AL_GAIN, player.gain * gain);
+                if (gain * peak < 1.0)
+                {
+                    player.auto_gain = gain;
+                }
             }
         }
     }
+
+    alSourcef(player.source, AL_GAIN, player.gain * player.auto_gain);
 }
 
 static boolean UpdatePlayer(void)
