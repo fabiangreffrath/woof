@@ -820,7 +820,8 @@ static void UpdateStTime(sbe_widget_t *widget, player_t *player)
     if (time_scale != 100)
     {
         offset +=
-            M_snprintf(string, sizeof(string), BLUE_S "%d%% ", time_scale);
+            M_snprintf(string, sizeof(string), "%s%d%% ",
+                       (widget->font == stcfnt) ? BLUE2_S : BLUE1_S, time_scale);
     }
 
     if (totalleveltimes)
