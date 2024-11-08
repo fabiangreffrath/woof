@@ -777,12 +777,13 @@ static void UpdateMonSec(sbe_widget_t *widget)
         max_kill_requirement = totalkills;
     }
 
-    int killcolor = (fullkillcount >= max_kill_requirement) ? '0' + CR_BLUE1
+    const int cr_blue = (widget->font == stcfnt) ? CR_BLUE2 : CR_BLUE1;
+    int killcolor = (fullkillcount >= max_kill_requirement) ? '0' + cr_blue
                                                             : '0' + CR_GRAY;
     int secretcolor =
-        (fullsecretcount >= totalsecret) ? '0' + CR_BLUE1 : '0' + CR_GRAY;
+        (fullsecretcount >= totalsecret) ? '0' + cr_blue : '0' + CR_GRAY;
     int itemcolor =
-        (fullitemcount >= totalitems) ? '0' + CR_BLUE1 : '0' + CR_GRAY;
+        (fullitemcount >= totalitems) ? '0' + cr_blue : '0' + CR_GRAY;
 
     char kill_str[16], item_str[16], secret_str[16];
 
