@@ -81,6 +81,7 @@ typedef struct
     ALenum format;
     ALsizei freq;
     ALsizei frame_size;
+    int channels;
 } stream_player_t;
 
 static stream_player_t player;
@@ -91,30 +92,28 @@ static SDL_atomic_t player_thread_running;
 static boolean music_initialized;
 
 static ebur128_state *ebur_state;
-static const double target_loudness = -23.0; // UFS
 
 static void ReInitAutoGain(void)
 {
-    int channels = 2;
     switch (player.format)
     {
         case AL_FORMAT_MONO16:
         case AL_FORMAT_MONO_FLOAT32:
-            channels = 1;
+            player.channels = 1;
             break;
         case AL_FORMAT_STEREO16:
         case AL_FORMAT_STEREO_FLOAT32:
-            channels = 2;
+            player.channels = 2;
             break;
     }
 
     if (ebur_state)
     {
-        ebur128_change_parameters(ebur_state, channels, player.freq);
+        ebur128_change_parameters(ebur_state, player.channels, player.freq);
     }
     else
     {
-        ebur_state = ebur128_init(channels, player.freq, EBUR128_MODE_S
+        ebur_state = ebur128_init(player.channels, player.freq, EBUR128_MODE_S
             | EBUR128_MODE_I | EBUR128_MODE_LRA | EBUR128_MODE_SAMPLE_PEAK
             | EBUR128_MODE_HISTOGRAM);
     }
@@ -148,7 +147,6 @@ static void AutoGain(uint32_t frames)
     double global = 0.0;
     double relative = 0.0;
     double range = 0.0;
-    double loudness = 0.0;
 
     if (EBUR128_SUCCESS != ebur128_loudness_momentary(ebur_state, &momentary))
     {
@@ -185,18 +183,22 @@ static void AutoGain(uint32_t frames)
             failed = true;
         }
 
-        if (EBUR128_SUCCESS != ebur128_prev_sample_peak(ebur_state, 1U, &peak_R))
+        if (player.channels == 2)
         {
-            failed = true;
+            if (EBUR128_SUCCESS
+                != ebur128_prev_sample_peak(ebur_state, 1, &peak_R))
+            {
+                failed = true;
+            }
         }
 
         if (!failed)
         {
-            loudness = cbrt(momentary * shortterm * global);
+            double loudness = cbrt(momentary * shortterm * global);
 
-            //const double target = -23.0; // UFS
+            const double target = -18.0; // UFS
 
-            double diff = target_loudness - loudness;
+            double diff = target - loudness;
 
             // 10^(diff/20). The way below should be faster than using pow
             double gain = exp((diff / 20.0) * log(10.0));
@@ -305,6 +307,11 @@ static boolean StartPlayer(void)
             break;
         }
 
+        if (frames > 0)
+        {
+            AutoGain(frames);
+        }
+
         size = frames * player.frame_size;
 
         alBufferData(player.buffers[i], player.format, player.data, size,
@@ -386,6 +393,8 @@ void I_OAL_ShutdownStream(void)
     {
         return;
     }
+
+    ShutdownAutoGain();
 
     for (int i = 0; i < arrlen(stream_modules); ++i)
     {
@@ -533,7 +542,6 @@ static void I_OAL_ShutdownMusic(void)
     }
 
     I_OAL_StopSong(NULL);
-    ShutdownAutoGain();
     I_OAL_UnRegisterSong(NULL);
 
     for (int i = 0; i < arrlen(midi_modules); ++i)
