@@ -38,6 +38,7 @@
 #include "s_sound.h"
 #include "sounds.h"
 #include "st_sbardef.h"
+#include "st_stuff.h"
 #include "i_timer.h"
 #include "v_video.h"
 #include "u_mapinfo.h"
@@ -51,6 +52,7 @@ widgetstate_t hud_level_stats;
 widgetstate_t hud_level_time;
 boolean       hud_time_use;
 widgetstate_t hud_player_coords;
+widgetstate_t hud_widget_font;
 
 static boolean hud_map_announce;
 static boolean message_colorized;
@@ -645,6 +647,18 @@ static boolean WidgetEnabled(widgetstate_t state)
     return true;
 }
 
+static void ForceDoomFont(sbe_widget_t *widget)
+{
+    if (WidgetEnabled(hud_widget_font))
+    {
+        widget->font = stcfnt;
+    }
+    else
+    {
+        widget->font = widget->default_font;
+    }
+}
+
 static void UpdateCoord(sbe_widget_t *widget, player_t *player)
 {
     if (hud_player_coords == HUD_WIDGET_ADVANCED)
@@ -659,6 +673,8 @@ static void UpdateCoord(sbe_widget_t *widget, player_t *player)
     {
         return;
     }
+
+    ForceDoomFont(widget);
 
     fixed_t x, y, z; // killough 10/98:
     void AM_Coordinates(const mobj_t *, fixed_t *, fixed_t *, fixed_t *);
@@ -735,6 +751,8 @@ static void UpdateMonSec(sbe_widget_t *widget)
         return;
     }
 
+    ForceDoomFont(widget);
+
     static char string[120];
 
     int fullkillcount = 0;
@@ -792,6 +810,8 @@ static void UpdateStTime(sbe_widget_t *widget, player_t *player)
         return;
     }
 
+    ForceDoomFont(widget);
+
     static char string[80];
 
     int offset = 0;
@@ -835,6 +855,8 @@ static void UpdateFPS(sbe_widget_t *widget, player_t *player)
         return;
     }
 
+    ForceDoomFont(widget);
+
     static char string[20];
     M_snprintf(string, sizeof(string), GRAY_S "%d " GREEN_S "FPS", fps);
     ST_AddLine(widget, string);
@@ -875,6 +897,8 @@ static void UpdateSpeed(sbe_widget_t *widget, player_t *player)
         SetLine(widget, "");
         return;
     }
+
+    ForceDoomFont(widget);
 
     static const double factor[] = {TICRATE, 2.4003, 525.0 / 352.0};
     static const char *units[] = {"ups", "km/h", "mph"};
@@ -1078,6 +1102,11 @@ void ST_BindHUDVariables(void)
             "Hide empty commands from command history widget");
   M_BindBool("hud_time_use", &hud_time_use, NULL, false, ss_stat, wad_no,
              "Show split time when pressing the use-button");
+  M_BindNum("hud_widget_font", &hud_widget_font, NULL,
+            HUD_WIDGET_OFF, HUD_WIDGET_OFF, HUD_WIDGET_ALWAYS,
+            ss_stat, wad_no,
+            "Use standard Doom font for widgets (1 = On automap; 2 = On HUD; 3 "
+            "= Always)");
 
   M_BindNum("hudcolor_titl", &hudcolor_titl, NULL,
             CR_GOLD, CR_BRICK, CR_NONE, ss_none, wad_yes,
