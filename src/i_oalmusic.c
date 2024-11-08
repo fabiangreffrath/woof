@@ -295,8 +295,7 @@ static boolean I_OAL_InitMusic(int device)
     return false;
 }
 
-static int mus_gain = 100;
-static int opl_gain = 200;
+static int fl_gain, opl_gain;
 
 static void I_OAL_SetMusicVolume(int volume)
 {
@@ -314,7 +313,7 @@ static void I_OAL_SetMusicVolume(int volume)
 #if defined(HAVE_FLUIDSYNTH)
     else if (active_module == &stream_fl_module)
     {
-        gain *= (ALfloat)DB_TO_GAIN(mus_gain);
+        gain *= (ALfloat)DB_TO_GAIN(fl_gain);
     }
 #endif
 
@@ -476,10 +475,10 @@ static midiplayertype_t I_OAL_MidiPlayerType(void)
 
 static void I_OAL_BindVariables(void)
 {
-    BIND_NUM_MIDI(opl_gain, 0, -20, 20, "OPL emulation gain [dB]");
 #if defined (HAVE_FLUIDSYNTH)
-    BIND_NUM_MIDI(mus_gain, 0, -20, 20, "FluidSynth gain [dB]");
+    BIND_NUM_MIDI(fl_gain, 0, -20, 20, "[FluidSynth] Gain [dB]");
 #endif
+    BIND_NUM_MIDI(opl_gain, 0, -20, 20, "[OPL3 Emulation] Gain [dB]");
     for (int i = 0; i < arrlen(midi_modules); ++i)
     {
         midi_modules[i]->BindVariables();

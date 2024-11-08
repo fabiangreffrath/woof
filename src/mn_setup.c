@@ -2590,13 +2590,13 @@ static setup_menu_t midi_settings1[] = {
     MI_GAP,
 
 #if defined (HAVE_FLUIDSYNTH)
-    {"FluidSynth Gain", S_THERMO, CNTR_X, M_THRM_SPC, {"mus_gain"},
+    {"FluidSynth Gain", S_THERMO, CNTR_X, M_THRM_SPC, {"fl_gain"},
      .action = UpdateMusicVolume, .append = "dB"},
 
-    {"FluidSynth Reverb", S_ONOFF, CNTR_X, M_SPC, {"mus_reverb"},
+    {"FluidSynth Reverb", S_ONOFF, CNTR_X, M_SPC, {"fl_reverb"},
      .action = SetMidiPlayerFluidSynth},
 
-    {"FluidSynth Chorus", S_ONOFF, CNTR_X, M_SPC, {"mus_chorus"},
+    {"FluidSynth Chorus", S_ONOFF, CNTR_X, M_SPC, {"fl_chorus"},
      .action = SetMidiPlayerFluidSynth},
 
     MI_GAP,
