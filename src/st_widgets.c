@@ -33,6 +33,7 @@
 #include "m_input.h"
 #include "m_misc.h"
 #include "p_mobj.h"
+#include "p_spec.h"
 #include "r_main.h"
 #include "r_voxel.h"
 #include "s_sound.h"
@@ -824,7 +825,14 @@ static void UpdateStTime(sbe_widget_t *widget, player_t *player)
                        (widget->font == stcfnt) ? BLUE2_S : BLUE1_S, time_scale);
     }
 
-    if (totalleveltimes)
+    if (levelTimeCount)
+    {
+        const int time = levelTimeCount / TICRATE;
+
+        offset += M_snprintf(string + offset, sizeof(string) - offset,
+                             BROWN_S "%d:%02d ", time / 60, time % 60);
+    }
+    else if (totalleveltimes)
     {
         const int time = (totalleveltimes + leveltime) / TICRATE;
 
