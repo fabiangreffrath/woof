@@ -741,13 +741,12 @@ void I_BindSoundVariables(void)
         "Sound effects volume");
     M_BindNum("music_volume", &snd_MusicVolume, NULL, 8, 0, 15, ss_none, wad_no,
         "Music volume");
-    BIND_BOOL(pitched_sounds, false,
+    BIND_BOOL_SFX(pitched_sounds, false,
         "Variable pitch for sound effects");
     BIND_NUM(pitch_bend_range, 120, 100, 300,
         "Variable pitch bend range (100 = None)");
-    BIND_BOOL_GENERAL(full_sounds, false, "Play sounds in full length (prevents cutoffs)");
-    M_BindNum("snd_channels", &default_numChannels, NULL,
-        MAX_CHANNELS, 1, MAX_CHANNELS, ss_none, wad_no,
+    BIND_BOOL_SFX(full_sounds, false, "Play sounds in full length (prevents cutoffs)");
+    BIND_NUM_SFX(snd_channels, MAX_CHANNELS, 1, MAX_CHANNELS,
         "Maximum number of simultaneous sound effects");
     BIND_NUM_GENERAL(snd_module, SND_MODULE_MBF, 0, NUM_SND_MODULES - 1,
         "Sound module (0 = Standard; 1 = OpenAL 3D; 2 = PC Speaker Sound)");

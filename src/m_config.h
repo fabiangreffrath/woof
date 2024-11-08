@@ -42,6 +42,9 @@ void M_BindNum(const char *name, void *location, void *current,
 #define BIND_NUM_GENERAL(name, v, a, b, help) \
     M_BindNum(#name, &name, NULL, (v), (a), (b), ss_gen, wad_no, help)
 
+#define BIND_NUM_SFX(name, v, a, b, help) \
+    M_BindNum(#name, &name, NULL, (v), (a), (b), ss_sfx, wad_no, help)
+
 #define BIND_NUM_MIDI(name, v, a, b, help) \
     M_BindNum(#name, &name, NULL, (v), (a), (b), ss_midi, wad_no, help)
 
@@ -54,6 +57,9 @@ void M_BindBool(const char *name, boolean *location, boolean *current,
 
 #define BIND_BOOL_GENERAL(name, v, help) \
     M_BindBool(#name, &name, NULL, (v), ss_gen, wad_no, help)
+
+#define BIND_BOOL_SFX(name, v, help) \
+    M_BindBool(#name, &name, NULL, (v), ss_sfx, wad_no, help)
 
 #define BIND_BOOL_MIDI(name, v, help) \
     M_BindBool(#name, &name, NULL, (v), ss_midi, wad_no, help)

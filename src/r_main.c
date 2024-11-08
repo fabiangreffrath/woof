@@ -1041,7 +1041,7 @@ void R_BindRenderVariables(void)
 
   M_BindBool("flipcorpses", &flipcorpses, NULL, false, ss_enem, wad_no,
              "Randomly mirrored death animations");
-  M_BindBool("fuzzcolumn_mode", &fuzzcolumn_mode, NULL, true, ss_enem, wad_no,
+  M_BindBool("fuzzcolumn_mode", &fuzzcolumn_mode, NULL, true, ss_none, wad_no,
              "Fuzz rendering (0 = Resolution-dependent; 1 = Blocky)");
 
   BIND_BOOL(draw_nearby_sprites, true,
