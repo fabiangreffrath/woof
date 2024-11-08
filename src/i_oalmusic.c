@@ -18,6 +18,7 @@
 #include "al.h"
 #include "alc.h"
 #include "alext.h"
+#include "ebur128.h"
 
 #include <stdlib.h>
 
@@ -34,6 +35,8 @@
 // queue last for about half second at 44.1khz.
 #define NUM_BUFFERS    4
 #define BUFFER_SAMPLES 4096
+
+static ebur128_state *ebur128;
 
 static stream_module_t *all_modules[] =
 {
@@ -74,6 +77,8 @@ typedef struct
     byte *data;
     boolean looping;
 
+    ALfloat gain;
+
     // The format of the output stream
     ALenum format;
     ALsizei freq;
@@ -113,6 +118,33 @@ static boolean UpdatePlayer(void)
         // Read the next chunk of data, refill the buffer, and queue it back on
         // the source.
         frames = active_module->I_FillStream(player.data, BUFFER_SAMPLES);
+
+        if (frames > 0)
+        {
+            switch (player.format)
+            {
+                case AL_FORMAT_MONO16:
+                case AL_FORMAT_STEREO16:
+                    ebur128_add_frames_short(ebur128, (short *)player.data, frames);
+                    break;
+                case AL_FORMAT_MONO_FLOAT32:
+                case AL_FORMAT_STEREO_FLOAT32:
+                    ebur128_add_frames_float(ebur128, (float *)player.data, frames);
+                    break;
+            }
+            double loudness;
+            ebur128_loudness_momentary(ebur128, &loudness);
+            if (loudness != -HUGE_VAL)
+            {
+                ALfloat gain = player.gain
+                               + (loudness < 0 ? -DB_TO_GAIN(loudness)
+                                               : DB_TO_GAIN(loudness));
+                if (gain > 0)
+                {
+                    alSourcef(player.source, AL_GAIN, gain);
+                }
+            }
+        }
 
         if (frames > 0)
         {
@@ -304,20 +336,18 @@ static void I_OAL_SetMusicVolume(int volume)
         return;
     }
 
-    ALfloat gain = (ALfloat)volume / 15.0f;
+    player.gain = (ALfloat)volume / 15.0f;
 
     if (active_module == &stream_opl_module)
     {
-        gain *= (ALfloat)DB_TO_GAIN(opl_gain);
+        player.gain *= (ALfloat)DB_TO_GAIN(opl_gain);
     }
 #if defined(HAVE_FLUIDSYNTH)
     else if (active_module == &stream_fl_module)
     {
-        gain *= (ALfloat)DB_TO_GAIN(fl_gain);
+        player.gain *= (ALfloat)DB_TO_GAIN(fl_gain);
     }
 #endif
-
-    alSourcef(player.source, AL_GAIN, gain);
 }
 
 static void I_OAL_PauseSong(void *handle)
@@ -391,6 +421,12 @@ static void I_OAL_UnRegisterSong(void *handle)
         active_module = NULL;
     }
 
+    if (ebur128)
+    {
+        ebur128_destroy(&ebur128);
+        ebur128 = NULL;
+    }
+
     if (player.data)
     {
         free(player.data);
@@ -429,6 +465,28 @@ static void *I_OAL_RegisterSong(void *data, int len)
                                             &player.freq, &player.frame_size))
         {
             active_module = all_modules[i];
+
+            int channels = AL_FORMAT_STEREO16;
+            switch (player.format)
+            {
+                case AL_FORMAT_MONO16:
+                case AL_FORMAT_MONO_FLOAT32:
+                    channels = 1;
+                    break;
+                case AL_FORMAT_STEREO16:
+                case AL_FORMAT_STEREO_FLOAT32:
+                    channels = 2;
+                    break;
+            }
+
+            ebur128 = ebur128_init(channels, player.freq, EBUR128_MODE_M);
+
+            if (channels == 2)
+            {
+                ebur128_set_channel(ebur128, 0, EBUR128_LEFT);
+                ebur128_set_channel(ebur128, 1, EBUR128_RIGHT);
+            }
+
             return (void *)1;
         }
     }
