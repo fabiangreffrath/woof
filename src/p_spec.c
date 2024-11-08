@@ -2362,8 +2362,12 @@ void P_UpdateSpecials (void)
   int         i;
 
   // Downcount level timer, exit level if elapsed
-  if (levelTimer == true && --levelTimeCount)
-    G_ExitLevel();
+  if (levelTimer == true)
+  {
+    levelTimeCount--;
+    if (!levelTimeCount)
+      G_ExitLevel();
+  }
 
   // Check frag counters, if frag limit reached, exit level // Ty 03/18/98
   //  Seems like the total frags should be kept in a simple
