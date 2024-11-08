@@ -2029,9 +2029,6 @@ static setup_menu_t auto_settings1[] = {
     {"Color Preset", S_CHOICE | S_COSMETIC, H_X, M_SPC, {"mapcolor_preset"},
      .strings_id = str_automap_preset, .action = AM_ColorPreset},
 
-    {"Smooth automap lines", S_ONOFF, H_X, M_SPC, {"map_smooth_lines"},
-     .action = AM_EnableSmoothLines},
-
     {"Show Found Secrets Only", S_ONOFF, H_X, M_SPC, {"map_secret_after"}},
 
     {"Color Keyed Doors", S_CHOICE, H_X, M_SPC, {"map_keyed_door"},

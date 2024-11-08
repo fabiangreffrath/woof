@@ -608,7 +608,7 @@ static void AM_clearLastMark(void)
     markpointnum--;
 }
 
-void AM_EnableSmoothLines(void)
+static void AM_EnableSmoothLines(void)
 {
   AM_drawFline = map_smooth_lines ? AM_drawFline_Smooth : AM_drawFline_Vanilla;
 }
@@ -2415,7 +2415,7 @@ void AM_BindAutomapVariables(void)
             MAP_KEYED_DOOR_COLOR, MAP_KEYED_DOOR_OFF, MAP_KEYED_DOOR_FLASH,
             ss_auto, wad_no,
             "Color key-locked doors on the automap (1 = Static; 2 = Flashing)");
-  M_BindBool("map_smooth_lines", &map_smooth_lines, NULL, true, ss_auto,
+  M_BindBool("map_smooth_lines", &map_smooth_lines, NULL, true, ss_none,
              wad_no, "Smooth automap lines");
 
   M_BindNum("mapcolor_preset", &mapcolor_preset, NULL, AM_PRESET_BOOM,
