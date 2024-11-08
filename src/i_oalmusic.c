@@ -466,7 +466,7 @@ static void *I_OAL_RegisterSong(void *data, int len)
         {
             active_module = all_modules[i];
 
-            int channels = AL_FORMAT_STEREO16;
+            int channels = 2;
             switch (player.format)
             {
                 case AL_FORMAT_MONO16:
