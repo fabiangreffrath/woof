@@ -36,8 +36,6 @@
 #define NUM_BUFFERS    4
 #define BUFFER_SAMPLES 4096
 
-static ebur128_state *ebur128;
-
 static stream_module_t *all_modules[] =
 {
 #if defined (HAVE_FLUIDSYNTH)
@@ -92,6 +90,127 @@ static SDL_atomic_t player_thread_running;
 
 static boolean music_initialized;
 
+static ebur128_state *ebur_state;
+static const double target_loudness = -23.0; // UFS
+
+static void ReInitAutoGain(void)
+{
+    int channels = 2;
+    switch (player.format)
+    {
+        case AL_FORMAT_MONO16:
+        case AL_FORMAT_MONO_FLOAT32:
+            channels = 1;
+            break;
+        case AL_FORMAT_STEREO16:
+        case AL_FORMAT_STEREO_FLOAT32:
+            channels = 2;
+            break;
+    }
+
+    if (ebur_state)
+    {
+        ebur128_change_parameters(ebur_state, channels, player.freq);
+    }
+    else
+    {
+        ebur_state = ebur128_init(channels, player.freq, EBUR128_MODE_S
+            | EBUR128_MODE_I | EBUR128_MODE_LRA | EBUR128_MODE_SAMPLE_PEAK
+            | EBUR128_MODE_HISTOGRAM);
+    }
+}
+
+static void ShutdownAutoGain(void)
+{
+    if (ebur_state)
+    {
+        ebur128_destroy(&ebur_state);
+    }
+}
+
+static void AutoGain(uint32_t frames)
+{
+    switch (player.format)
+    {
+        case AL_FORMAT_MONO16:
+        case AL_FORMAT_STEREO16:
+            ebur128_add_frames_short(ebur_state, (short *)player.data, frames);
+            break;
+        case AL_FORMAT_MONO_FLOAT32:
+        case AL_FORMAT_STEREO_FLOAT32:
+            ebur128_add_frames_float(ebur_state, (float *)player.data, frames);
+            break;
+    }
+
+    boolean failed = false;
+    double momentary = 0.0;
+    double shortterm = 0.0;
+    double global = 0.0;
+    double relative = 0.0;
+    double range = 0.0;
+    double loudness = 0.0;
+
+    if (EBUR128_SUCCESS != ebur128_loudness_momentary(ebur_state, &momentary))
+    {
+        failed = true;
+    }
+
+    if (EBUR128_SUCCESS != ebur128_loudness_shortterm(ebur_state, &shortterm))
+    {
+        failed = true;
+    }
+
+    if (EBUR128_SUCCESS != ebur128_loudness_global(ebur_state, &global))
+    {
+        failed = true;
+    }
+
+    if (EBUR128_SUCCESS != ebur128_relative_threshold(ebur_state, &relative))
+    {
+        failed = true;
+    }
+
+    if (EBUR128_SUCCESS != ebur128_loudness_range(ebur_state, &range))
+    {
+        failed = true;
+    }
+
+    if (relative > -70.0 && momentary > -70.0 && !failed)
+    {
+        double peak_L = 0.0;
+        double peak_R = 0.0;
+
+        if (EBUR128_SUCCESS != ebur128_prev_sample_peak(ebur_state, 0, &peak_L))
+        {
+            failed = true;
+        }
+
+        if (EBUR128_SUCCESS != ebur128_prev_sample_peak(ebur_state, 1U, &peak_R))
+        {
+            failed = true;
+        }
+
+        if (!failed)
+        {
+            loudness = cbrt(momentary * shortterm * global);
+
+            //const double target = -23.0; // UFS
+
+            double diff = target_loudness - loudness;
+
+            // 10^(diff/20). The way below should be faster than using pow
+            double gain = exp((diff / 20.0) * log(10.0));
+
+            double peak = (peak_L > peak_R) ? peak_L : peak_R;
+
+            if (gain * peak < 1.0)
+            {
+                alSourcef(player.source, AL_GAIN, player.gain * gain);
+            }
+        }
+    }
+}
+
 static boolean UpdatePlayer(void)
 {
     ALint processed, state;
@@ -121,29 +240,7 @@ static boolean UpdatePlayer(void)
 
         if (frames > 0)
         {
-            switch (player.format)
-            {
-                case AL_FORMAT_MONO16:
-                case AL_FORMAT_STEREO16:
-                    ebur128_add_frames_short(ebur128, (short *)player.data, frames);
-                    break;
-                case AL_FORMAT_MONO_FLOAT32:
-                case AL_FORMAT_STEREO_FLOAT32:
-                    ebur128_add_frames_float(ebur128, (float *)player.data, frames);
-                    break;
-            }
-            double loudness;
-            ebur128_loudness_momentary(ebur128, &loudness);
-            if (loudness != -HUGE_VAL)
-            {
-                ALfloat gain = player.gain
-                               + (loudness < 0 ? -DB_TO_GAIN(loudness)
-                                               : DB_TO_GAIN(loudness));
-                if (gain > 0)
-                {
-                    alSourcef(player.source, AL_GAIN, gain);
-                }
-            }
+            AutoGain(frames);
         }
 
         if (frames > 0)
@@ -421,12 +518,6 @@ static void I_OAL_UnRegisterSong(void *handle)
         active_module = NULL;
     }
 
-    if (ebur128)
-    {
-        ebur128_destroy(&ebur128);
-        ebur128 = NULL;
-    }
-
     if (player.data)
     {
         free(player.data);
@@ -442,6 +533,7 @@ static void I_OAL_ShutdownMusic(void)
     }
 
     I_OAL_StopSong(NULL);
+    ShutdownAutoGain();
     I_OAL_UnRegisterSong(NULL);
 
     for (int i = 0; i < arrlen(midi_modules); ++i)
@@ -465,28 +557,7 @@ static void *I_OAL_RegisterSong(void *data, int len)
                                             &player.freq, &player.frame_size))
         {
             active_module = all_modules[i];
-
-            int channels = 2;
-            switch (player.format)
-            {
-                case AL_FORMAT_MONO16:
-                case AL_FORMAT_MONO_FLOAT32:
-                    channels = 1;
-                    break;
-                case AL_FORMAT_STEREO16:
-                case AL_FORMAT_STEREO_FLOAT32:
-                    channels = 2;
-                    break;
-            }
-
-            ebur128 = ebur128_init(channels, player.freq, EBUR128_MODE_M);
-
-            if (channels == 2)
-            {
-                ebur128_set_channel(ebur128, 0, EBUR128_LEFT);
-                ebur128_set_channel(ebur128, 1, EBUR128_RIGHT);
-            }
-
+            ReInitAutoGain();
             return (void *)1;
         }
     }
