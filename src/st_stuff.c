@@ -143,6 +143,7 @@ typedef enum
 static st_layout_t st_layout;
 
 static patch_t **facepatches = NULL;
+static patch_t **facebackpatches = NULL;
 
 static int have_xdthfaces;
 
@@ -168,30 +169,30 @@ static void LoadFacePatches(void)
 {
     char lump[9] = {0};
 
-    int painface;
+    int count;
 
-    for (painface = 0; painface < ST_NUMPAINFACES; ++painface)
+    for (count = 0; count < ST_NUMPAINFACES; ++count)
     {
         for (int straightface = 0; straightface < ST_NUMSTRAIGHTFACES;
              ++straightface)
         {
-            M_snprintf(lump, sizeof(lump), "STFST%d%d", painface, straightface);
+            M_snprintf(lump, sizeof(lump), "STFST%d%d", count, straightface);
             array_push(facepatches, V_CachePatchName(lump, PU_STATIC));
         }
 
-        M_snprintf(lump, sizeof(lump), "STFTR%d0", painface); // turn right
+        M_snprintf(lump, sizeof(lump), "STFTR%d0", count); // turn right
         array_push(facepatches, V_CachePatchName(lump, PU_STATIC));
 
-        M_snprintf(lump, sizeof(lump), "STFTL%d0", painface); // turn left
+        M_snprintf(lump, sizeof(lump), "STFTL%d0", count); // turn left
         array_push(facepatches, V_CachePatchName(lump, PU_STATIC));
 
-        M_snprintf(lump, sizeof(lump), "STFOUCH%d", painface); // ouch!
+        M_snprintf(lump, sizeof(lump), "STFOUCH%d", count); // ouch!
         array_push(facepatches, V_CachePatchName(lump, PU_STATIC));
 
-        M_snprintf(lump, sizeof(lump), "STFEVL%d", painface); // evil grin ;)
+        M_snprintf(lump, sizeof(lump), "STFEVL%d", count); // evil grin ;)
         array_push(facepatches, V_CachePatchName(lump, PU_STATIC));
 
-        M_snprintf(lump, sizeof(lump), "STFKILL%d", painface); // pissed off
+        M_snprintf(lump, sizeof(lump), "STFKILL%d", count); // pissed off
         array_push(facepatches, V_CachePatchName(lump, PU_STATIC));
     }
 
@@ -202,9 +203,9 @@ static void LoadFacePatches(void)
     array_push(facepatches, V_CachePatchName(lump, PU_STATIC));
 
     // [FG] support face gib animations as in the 3DO/Jaguar/PSX ports
-    for (painface = 0; painface < ST_NUMXDTHFACES; ++painface)
+    for (count = 0; count < ST_NUMXDTHFACES; ++count)
     {
-        M_snprintf(lump, sizeof(lump), "STFXDTH%d", painface);
+        M_snprintf(lump, sizeof(lump), "STFXDTH%d", count);
 
         if (W_CheckNumForName(lump) != -1)
         {
@@ -215,7 +216,13 @@ static void LoadFacePatches(void)
             break;
         }
     }
-    have_xdthfaces = painface;
+    have_xdthfaces = count;
+
+    for (count = 0; count < MAXPLAYERS; ++count)
+    {
+        M_snprintf(lump, sizeof(lump), "STFB%d", count);
+        array_push(facebackpatches, V_CachePatchName(lump, PU_STATIC));
+    }
 }
 
 static boolean CheckWidgetState(widgetstate_t state)
@@ -1335,6 +1342,14 @@ static void DrawElem(int x, int y, sbarelem_t *elem, player_t *player)
             {
                 sbe_graphic_t *graphic = elem->subtype.graphic;
                 DrawPatch(x, y, 0, elem->alignment, graphic->patch, elem->cr,
+                          elem->tranmap);
+            }
+            break;
+
+        case sbe_facebackground:
+            {
+                DrawPatch(x, y, 0, elem->alignment,
+                          facebackpatches[displayplayer], elem->cr,
                           elem->tranmap);
             }
             break;
