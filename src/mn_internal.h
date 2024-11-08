@@ -96,6 +96,7 @@ void MN_DrawStatusHUD(void);
 void MN_DrawAutoMap(void);
 void MN_DrawWeapons(void);
 void MN_DrawEnemy(void);
+void MN_DrawSfx(void);
 void MN_DrawMidi(void);
 void MN_DrawEqualizer(void);
 void MN_DrawPadAdv(void);
