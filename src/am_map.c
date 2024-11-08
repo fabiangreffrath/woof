@@ -2422,7 +2422,7 @@ void AM_BindAutomapVariables(void)
             AM_PRESET_VANILLA, AM_PRESET_ZDOOM, ss_auto, wad_no,
             "Automap color preset (0 = Vanilla Doom; 1 = Crispy Doom; 2 = Boom; 3 = ZDoom)");
 
-  M_BindBool("automapsquareaspect", &automapsquareaspect, NULL, false, ss_auto, wad_no,
+  M_BindBool("automapsquareaspect", &automapsquareaspect, NULL, true, ss_none, wad_no,
              "Use square aspect ratio in automap");
 
 #define BIND_CR(name, v, help) \
