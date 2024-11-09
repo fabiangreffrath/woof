@@ -755,6 +755,36 @@ static void UpdateMonSec(sbe_widget_t *widget)
 
     static char string[120];
 
+    const int cr_blue = (widget->font == stcfnt) ? CR_BLUE2 : CR_BLUE1;
+
+    if (deathmatch)
+    {
+        int offset = 0;
+
+        for (int i = 0; i < MAXPLAYERS; ++i)
+        {
+            int result = 0;
+
+            if (!playeringame[i])
+            {
+                continue;
+            }
+
+            for (int p = 0; p < MAXPLAYERS; ++p)
+            {
+                result += players[i].frags[p];
+            }
+
+            offset = M_snprintf(string + offset, sizeof(string) - offset,
+                                "\x1b%c%3d ", (i == displayplayer) ?
+                                '0' + cr_blue : '0' + CR_GRAY, result);
+        }
+
+        ST_AddLine(widget, string);
+
+        return;
+    }
+
     int fullkillcount = 0;
     int fullitemcount = 0;
     int fullsecretcount = 0;
@@ -777,7 +807,6 @@ static void UpdateMonSec(sbe_widget_t *widget)
         max_kill_requirement = totalkills;
     }
 
-    const int cr_blue = (widget->font == stcfnt) ? CR_BLUE2 : CR_BLUE1;
     int killcolor = (fullkillcount >= max_kill_requirement) ? '0' + cr_blue
                                                             : '0' + CR_GRAY;
     int secretcolor =
