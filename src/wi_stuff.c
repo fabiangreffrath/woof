@@ -664,6 +664,32 @@ static boolean NextLocAnimation(void)
     return false;
 }
 
+static boolean UpdateMusic(boolean enteringcondition)
+{
+    if (!animation)
+    {
+        return false;
+    }
+
+    int musicnum = -1;
+    if (enteringcondition && animation->interlevel_entering)
+    {
+        musicnum = W_GetNumForName(animation->interlevel_entering->music_lump);
+    }
+    else if (animation->interlevel_exiting)
+    {
+        musicnum = W_GetNumForName(animation->interlevel_exiting->music_lump);
+    }
+
+    if (musicnum > 0)
+    {
+        S_ChangeMusInfoMusic(musicnum, true);
+        return true;
+    }
+
+    return false;
+}
+
 // ====================================================================
 // WI_slamBackground
 // Purpose: Put the full-screen background up prior to patches
@@ -1282,6 +1308,8 @@ static boolean    snl_pointeron = false;
 //
 static void WI_initShowNextLoc(void)
 {
+  UpdateMusic(true);
+
   if (gamemapinfo)
   {
     if (gamemapinfo->endpic[0])
@@ -2207,7 +2235,7 @@ void WI_Ticker(void)
   // counter for general background animation
   bcnt++;  
 
-  if (bcnt == 1)
+  if (bcnt == 1 && !UpdateMusic(false))
     {
       // intermission music
       if ( gamemode == commercial )
