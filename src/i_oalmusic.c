@@ -114,11 +114,7 @@ static void InitAutoGain(boolean reinit)
         player.channels = 2;
     }
 
-    if (ebur_state && !reinit)
-    {
-        ebur128_change_parameters(ebur_state, player.channels, player.freq);
-    }
-    else
+    if (reinit || !ebur_state)
     {
         ShutdownAutoGain();
         ebur_state = ebur128_init(player.channels, player.freq, EBUR128_MODE_S
@@ -127,6 +123,10 @@ static void InitAutoGain(boolean reinit)
 
         player.auto_gain = 1.0f;
         player.total_frames = 0;
+    }
+    else
+    {
+        ebur128_change_parameters(ebur_state, player.channels, player.freq);
     }
 }
 
@@ -177,10 +177,13 @@ static void AutoGain(uint32_t frames)
         failed = true;
     }
 
-    if (player.total_frames < 2 * BUFFER_SAMPLES)
+    if (player.total_frames < 3 * BUFFER_SAMPLES && !failed)
     {
-        float diff = target - momentary;
-        player.auto_gain = DB_TO_GAIN(diff);
+        if (momentary > -70.0)
+        {
+            float diff = target - momentary;
+            player.auto_gain = DB_TO_GAIN(diff);
+        }
     }
 
     if (relative > -70.0 && momentary > relative && !failed)
