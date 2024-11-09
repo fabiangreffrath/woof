@@ -551,11 +551,14 @@ static boolean UpdateAnimation(boolean enteringcondition)
     animation->states = NULL;
     animation->background_lump = NULL;
 
-    if (!enteringcondition && animation->interlevel_exiting)
+    if (!enteringcondition)
     {
-        animation->states = animation->exiting_states;
-        animation->background_lump =
-            animation->interlevel_exiting->background_lump;
+        if (animation->interlevel_exiting)
+        {
+            animation->states = animation->exiting_states;
+            animation->background_lump =
+                animation->interlevel_exiting->background_lump;
+        }
     }
     else if (animation->interlevel_entering)
     {
@@ -672,9 +675,12 @@ static boolean UpdateMusic(boolean enteringcondition)
     }
 
     int musicnum = -1;
-    if (enteringcondition && animation->interlevel_entering)
+    if (enteringcondition)
     {
-        musicnum = W_GetNumForName(animation->interlevel_entering->music_lump);
+        if (animation->interlevel_entering)
+        {
+            musicnum = W_GetNumForName(animation->interlevel_entering->music_lump);
+        }
     }
     else if (animation->interlevel_exiting)
     {
