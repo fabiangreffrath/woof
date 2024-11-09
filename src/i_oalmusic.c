@@ -94,32 +94,22 @@ static boolean music_initialized;
 
 static ebur128_state *ebur_state;
 
-static void ReInitAutoGain(void)
+static void InitAutoGain(void)
 {
-    switch (player.format)
+    if (player.format == AL_FORMAT_MONO16 || player.format == AL_FORMAT_MONO_FLOAT32)
     {
-        case AL_FORMAT_MONO16:
-        case AL_FORMAT_MONO_FLOAT32:
-            player.channels = 1;
-            break;
-        case AL_FORMAT_STEREO16:
-        case AL_FORMAT_STEREO_FLOAT32:
-            player.channels = 2;
-            break;
-    }
-
-    player.auto_gain = 1.0f;
-
-    if (ebur_state)
-    {
-        ebur128_change_parameters(ebur_state, player.channels, player.freq);
+        player.channels = 1;
     }
     else
     {
-        ebur_state = ebur128_init(player.channels, player.freq, EBUR128_MODE_S
-            | EBUR128_MODE_I | EBUR128_MODE_LRA | EBUR128_MODE_SAMPLE_PEAK
-            | EBUR128_MODE_HISTOGRAM);
+        player.channels = 2;
     }
+
+    ebur_state = ebur128_init(player.channels, player.freq, EBUR128_MODE_S
+        | EBUR128_MODE_I | EBUR128_MODE_LRA | EBUR128_MODE_SAMPLE_PEAK
+        | EBUR128_MODE_HISTOGRAM);
+
+    player.auto_gain = 1.0f;
 }
 
 static void ShutdownAutoGain(void)
@@ -134,16 +124,13 @@ static void ShutdownAutoGain(void)
 
 static void AutoGain(uint32_t frames)
 {
-    switch (player.format)
+    if (player.format == AL_FORMAT_MONO16 || player.format == AL_FORMAT_STEREO16)
     {
-        case AL_FORMAT_MONO16:
-        case AL_FORMAT_STEREO16:
-            ebur128_add_frames_short(ebur_state, (short *)player.data, frames);
-            break;
-        case AL_FORMAT_MONO_FLOAT32:
-        case AL_FORMAT_STEREO_FLOAT32:
-            ebur128_add_frames_float(ebur_state, (float *)player.data, frames);
-            break;
+        ebur128_add_frames_short(ebur_state, (int16_t *)player.data, frames);
+    }
+    else
+    {
+        ebur128_add_frames_float(ebur_state, (float *)player.data, frames);
     }
 
     boolean failed = false;
@@ -199,29 +186,24 @@ static void AutoGain(uint32_t frames)
 
         if (!failed)
         {
-            double loudness = cbrt(momentary * shortterm * global);
+            float loudness = cbrtf(momentary * shortterm * global);
 
-            const double target = -23.0; // UFS
+            const float target = -23.0f; // UFS
 
-            double diff = target - loudness;
+            float diff = target - loudness;
 
-            // 10^(diff/20). The way below should be faster than using pow
-            double gain = exp((diff / 20.0) * log(10.0));
+            float gain = DB_TO_GAIN(diff);
 
             double peak = (peak_L > peak_R) ? peak_L : peak_R;
 
             double db_peak = LINEAR_TO_DB(peak);
 
-            if (db_peak > -99.0)
+            if (db_peak > -99.0 && gain * peak < 1.0f)
             {
-                if (gain * peak < 1.0)
-                {
-                    player.auto_gain = gain;
-                }
+                player.auto_gain = gain;
             }
         }
     }
-
     alSourcef(player.source, AL_GAIN, player.gain * player.auto_gain);
 }
 
@@ -406,8 +388,6 @@ void I_OAL_ShutdownStream(void)
         return;
     }
 
-    ShutdownAutoGain();
-
     for (int i = 0; i < arrlen(stream_modules); ++i)
     {
         stream_modules[i]->I_ShutdownStream();
@@ -539,6 +519,8 @@ static void I_OAL_UnRegisterSong(void *handle)
         active_module = NULL;
     }
 
+    ShutdownAutoGain();
+
     if (player.data)
     {
         free(player.data);
@@ -577,7 +559,7 @@ static void *I_OAL_RegisterSong(void *data, int len)
                                             &player.freq, &player.frame_size))
         {
             active_module = all_modules[i];
-            ReInitAutoGain();
+            InitAutoGain();
             return (void *)1;
         }
     }
