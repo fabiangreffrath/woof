@@ -103,7 +103,7 @@ static void ShutdownAutoGain(void)
     }
 }
 
-static void InitAutoGain(boolean reinit)
+static void InitAutoGain(void)
 {
     if (player.format == AL_FORMAT_MONO16 || player.format == AL_FORMAT_MONO_FLOAT32)
     {
@@ -114,20 +114,12 @@ static void InitAutoGain(boolean reinit)
         player.channels = 2;
     }
 
-    if (reinit || !ebur_state)
-    {
-        ShutdownAutoGain();
-        ebur_state = ebur128_init(player.channels, player.freq, EBUR128_MODE_S
-            | EBUR128_MODE_I | EBUR128_MODE_LRA | EBUR128_MODE_SAMPLE_PEAK
-            | EBUR128_MODE_HISTOGRAM);
+    ebur_state = ebur128_init(player.channels, player.freq, EBUR128_MODE_S
+        | EBUR128_MODE_I | EBUR128_MODE_LRA | EBUR128_MODE_SAMPLE_PEAK
+        | EBUR128_MODE_HISTOGRAM);
 
-        player.auto_gain = 1.0f;
-        player.total_frames = 0;
-    }
-    else
-    {
-        ebur128_change_parameters(ebur_state, player.channels, player.freq);
-    }
+    player.auto_gain = 1.0f;
+    player.total_frames = 0;
 }
 
 static void AutoGain(uint32_t frames)
@@ -209,7 +201,7 @@ static void AutoGain(uint32_t frames)
         {
             const float weight_m = 0.1f;
             const float weight_s = 1.0f;
-            const float weight_i = 2.0f;
+            const float weight_i = 1.0f;
             float loudness = (weight_m * momentary + weight_s * shortterm
                               + weight_i * global)
                              / (weight_m + weight_s + weight_i);
@@ -416,8 +408,6 @@ void I_OAL_ShutdownStream(void)
         stream_modules[i]->I_ShutdownStream();
     }
 
-    ShutdownAutoGain();
-
     alDeleteSources(1, &player.source);
     alDeleteBuffers(NUM_BUFFERS, player.buffers);
     if (alGetError() != AL_NO_ERROR)
@@ -441,7 +431,6 @@ static boolean I_OAL_InitMusic(int device)
         if (device >= count_devices
             && device < count_devices + array_size(strings))
         {
-            InitAutoGain(true);
             return midi_modules[i]->I_InitStream(device - count_devices);
         }
 
@@ -544,6 +533,8 @@ static void I_OAL_UnRegisterSong(void *handle)
         active_module->I_CloseStream();
     }
 
+    ShutdownAutoGain();
+
     if (player.data)
     {
         free(player.data);
@@ -576,22 +567,13 @@ static void *I_OAL_RegisterSong(void *data, int len)
         return NULL;
     }
 
-    stream_module_t *old_module = active_module;
-
     for (int i = 0; i < arrlen(all_modules); ++i)
     {
         if (all_modules[i]->I_OpenStream(data, len, &player.format,
                                             &player.freq, &player.frame_size))
         {
             active_module = all_modules[i];
-            if (old_module != active_module)
-            {
-                InitAutoGain(true);
-            }
-            else
-            {
-                InitAutoGain(false);
-            }
+            InitAutoGain();
             return (void *)1;
         }
     }
