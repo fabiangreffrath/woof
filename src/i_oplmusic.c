@@ -1697,9 +1697,9 @@ static const char *I_OPL_MusicFormat(void)
 
 static void I_OPL_BindVariables(void)
 {
-    BIND_NUM_MIDI(num_opl_chips, 1, 1, OPL_MAX_CHIPS,
+    BIND_NUM_MUSIC(num_opl_chips, 1, 1, OPL_MAX_CHIPS,
         "[OPL3 Emulation] Number of chips to emulate (1-6)");
-    BIND_BOOL_MIDI(opl_stereo_correct, false,
+    BIND_BOOL_MUSIC(opl_stereo_correct, false,
         "[OPL3 Emulation] Use MIDI-correct stereo channel polarity");
 }
 

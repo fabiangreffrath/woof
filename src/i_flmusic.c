@@ -512,9 +512,9 @@ static void I_FL_BindVariables(void)
         "[FluidSynth] Number of voices that can be played in parallel");
     BIND_BOOL(fl_interpolation, false,
         "[FluidSynth] Interpolation method (0 = Default; 1 = Highest Quality)");
-    BIND_BOOL_MIDI(fl_reverb, false,
+    BIND_BOOL_MUSIC(fl_reverb, false,
         "[FluidSynth] Enable reverb effects");
-    BIND_BOOL_MIDI(fl_chorus, false,
+    BIND_BOOL_MUSIC(fl_chorus, false,
         "[FluidSynth] Enable chorus effects");
     BIND_NUM(fl_reverb_damp, 30, 0, 100,
         "[FluidSynth] Reverb damping");

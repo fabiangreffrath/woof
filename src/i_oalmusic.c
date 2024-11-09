@@ -94,6 +94,7 @@ static SDL_atomic_t player_thread_running;
 static boolean music_initialized;
 
 static ebur128_state *ebur_state;
+boolean auto_gain;
 
 static void ShutdownAutoGain(void)
 {
@@ -124,6 +125,11 @@ static void InitAutoGain(void)
 
 static void AutoGain(uint32_t frames)
 {
+    if (!auto_gain)
+    {
+        return;
+    }
+
     if (player.format == AL_FORMAT_MONO16 || player.format == AL_FORMAT_STEREO16)
     {
         ebur128_add_frames_short(ebur_state, (int16_t *)player.data, frames);
@@ -451,16 +457,21 @@ static void I_OAL_SetMusicVolume(int volume)
 
     player.gain = (ALfloat)volume / 15.0f;
 
-    if (active_module == &stream_opl_module)
+    if (!auto_gain)
     {
-        player.gain *= (ALfloat)DB_TO_GAIN(opl_gain);
+        if (active_module == &stream_opl_module)
+        {
+            player.gain *= (ALfloat)DB_TO_GAIN(opl_gain);
+        }
+    #if defined(HAVE_FLUIDSYNTH)
+        else if (active_module == &stream_fl_module)
+        {
+            player.gain *= (ALfloat)DB_TO_GAIN(fl_gain);
+        }
+    #endif
+
+        alSourcef(player.source, AL_GAIN, player.gain);
     }
-#if defined(HAVE_FLUIDSYNTH)
-    else if (active_module == &stream_fl_module)
-    {
-        player.gain *= (ALfloat)DB_TO_GAIN(fl_gain);
-    }
-#endif
 }
 
 static void I_OAL_PauseSong(void *handle)
@@ -620,10 +631,11 @@ static midiplayertype_t I_OAL_MidiPlayerType(void)
 
 static void I_OAL_BindVariables(void)
 {
+    BIND_BOOL_MUSIC(auto_gain, true, "Auto Gain");
 #if defined (HAVE_FLUIDSYNTH)
-    BIND_NUM_MIDI(fl_gain, 0, -20, 20, "[FluidSynth] Gain [dB]");
+    BIND_NUM_MUSIC(fl_gain, 0, -20, 20, "[FluidSynth] Gain [dB]");
 #endif
-    BIND_NUM_MIDI(opl_gain, 0, -20, 20, "[OPL3 Emulation] Gain [dB]");
+    BIND_NUM_MUSIC(opl_gain, 0, -20, 20, "[OPL3 Emulation] Gain [dB]");
     for (int i = 0; i < arrlen(midi_modules); ++i)
     {
         midi_modules[i]->BindVariables();
