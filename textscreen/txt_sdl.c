@@ -181,8 +181,11 @@ int TXT_Init(void)
                                         TXT_SCREEN_H * font->h,
                                         8, 0, 0, 0, 0);
 
+    // Apply aspect ratio correction.
+    const int logical_h = screenbuffer->h * 6 / 5;
+
     // Set width and height of the logical viewport for automatic scaling.
-    SDL_RenderSetLogicalSize(renderer, screenbuffer->w, screenbuffer->h);
+    SDL_RenderSetLogicalSize(renderer, screenbuffer->w, logical_h);
 
     SDL_LockSurface(screenbuffer);
     SDL_SetPaletteColors(screenbuffer->format->palette, ega_colors, 0, 16);
@@ -204,7 +207,7 @@ int TXT_Init(void)
       texture_upscaled = SDL_CreateTexture(renderer,
                            SDL_GetWindowPixelFormat(TXT_SDLWindow),
                            SDL_TEXTUREACCESS_TARGET,
-                           2*screenbuffer->w, 2*screenbuffer->h);
+                           2*screenbuffer->w, 2*logical_h);
     }
 
     return 1;
