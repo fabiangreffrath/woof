@@ -94,7 +94,15 @@ static boolean music_initialized;
 
 static ebur128_state *ebur_state;
 
-static void InitAutoGain(void)
+static void ShutdownAutoGain(void)
+{
+    if (ebur_state)
+    {
+        ebur128_destroy(&ebur_state);
+    }
+}
+
+static void InitAutoGain(boolean reinit)
 {
     if (player.format == AL_FORMAT_MONO16 || player.format == AL_FORMAT_MONO_FLOAT32)
     {
@@ -105,18 +113,18 @@ static void InitAutoGain(void)
         player.channels = 2;
     }
 
-    ebur_state = ebur128_init(player.channels, player.freq, EBUR128_MODE_S
-        | EBUR128_MODE_I | EBUR128_MODE_LRA | EBUR128_MODE_SAMPLE_PEAK
-        | EBUR128_MODE_HISTOGRAM);
-
-    player.auto_gain = 1.0f;
-}
-
-static void ShutdownAutoGain(void)
-{
-    if (ebur_state)
+    if (ebur_state && !reinit)
     {
-        ebur128_destroy(&ebur_state);
+        ebur128_change_parameters(ebur_state, player.channels, player.freq);
+    }
+    else
+    {
+        ShutdownAutoGain();
+        ebur_state = ebur128_init(player.channels, player.freq, EBUR128_MODE_S
+            | EBUR128_MODE_I | EBUR128_MODE_LRA | EBUR128_MODE_SAMPLE_PEAK
+            | EBUR128_MODE_HISTOGRAM);
+
+        player.auto_gain = 1.0f;
     }
 }
 
@@ -399,6 +407,8 @@ void I_OAL_ShutdownStream(void)
         stream_modules[i]->I_ShutdownStream();
     }
 
+    ShutdownAutoGain();
+
     alDeleteSources(1, &player.source);
     alDeleteBuffers(NUM_BUFFERS, player.buffers);
     if (alGetError() != AL_NO_ERROR)
@@ -525,8 +535,6 @@ static void I_OAL_UnRegisterSong(void *handle)
         active_module = NULL;
     }
 
-    ShutdownAutoGain();
-
     if (player.data)
     {
         free(player.data);
@@ -559,13 +567,24 @@ static void *I_OAL_RegisterSong(void *data, int len)
         return NULL;
     }
 
+    static stream_module_t *old_module;
+
+    old_module = active_module;
+
     for (int i = 0; i < arrlen(all_modules); ++i)
     {
         if (all_modules[i]->I_OpenStream(data, len, &player.format,
                                             &player.freq, &player.frame_size))
         {
             active_module = all_modules[i];
-            InitAutoGain();
+            if (old_module != active_module)
+            {
+                InitAutoGain(true);
+            }
+            else
+            {
+                InitAutoGain(false);
+            }
             return (void *)1;
         }
     }
