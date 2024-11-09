@@ -33,6 +33,7 @@
 #include "m_input.h"
 #include "m_misc.h"
 #include "p_mobj.h"
+#include "p_spec.h"
 #include "r_main.h"
 #include "r_voxel.h"
 #include "s_sound.h"
@@ -755,6 +756,39 @@ static void UpdateMonSec(sbe_widget_t *widget)
 
     static char string[120];
 
+    const int cr_blue = (widget->font == stcfnt) ? CR_BLUE2 : CR_BLUE1;
+
+    if (deathmatch)
+    {
+        int offset = 0;
+
+        for (int i = 0; i < MAXPLAYERS; ++i)
+        {
+            int result = 0;
+
+            if (!playeringame[i])
+            {
+                continue;
+            }
+
+            for (int p = 0; p < MAXPLAYERS; ++p)
+            {
+                if (i != p)
+                    result += players[i].frags[p];
+                else
+                    result -= players[i].frags[p];
+            }
+
+            offset = M_snprintf(string + offset, sizeof(string) - offset,
+                                "\x1b%c%3d ", (i == displayplayer) ?
+                                '0' + cr_blue : '0' + CR_GRAY, result);
+        }
+
+        ST_AddLine(widget, string);
+
+        return;
+    }
+
     int fullkillcount = 0;
     int fullitemcount = 0;
     int fullsecretcount = 0;
@@ -777,12 +811,12 @@ static void UpdateMonSec(sbe_widget_t *widget)
         max_kill_requirement = totalkills;
     }
 
-    int killcolor = (fullkillcount >= max_kill_requirement) ? '0' + CR_BLUE1
+    int killcolor = (fullkillcount >= max_kill_requirement) ? '0' + cr_blue
                                                             : '0' + CR_GRAY;
     int secretcolor =
-        (fullsecretcount >= totalsecret) ? '0' + CR_BLUE1 : '0' + CR_GRAY;
+        (fullsecretcount >= totalsecret) ? '0' + cr_blue : '0' + CR_GRAY;
     int itemcolor =
-        (fullitemcount >= totalitems) ? '0' + CR_BLUE1 : '0' + CR_GRAY;
+        (fullitemcount >= totalitems) ? '0' + cr_blue : '0' + CR_GRAY;
 
     char kill_str[16], item_str[16], secret_str[16];
 
@@ -819,10 +853,18 @@ static void UpdateStTime(sbe_widget_t *widget, player_t *player)
     if (time_scale != 100)
     {
         offset +=
-            M_snprintf(string, sizeof(string), BLUE_S "%d%% ", time_scale);
+            M_snprintf(string, sizeof(string), "%s%d%% ",
+                       (widget->font == stcfnt) ? BLUE2_S : BLUE1_S, time_scale);
     }
 
-    if (totalleveltimes)
+    if (levelTimer == true)
+    {
+        const int time = levelTimeCount / TICRATE;
+
+        offset += M_snprintf(string + offset, sizeof(string) - offset,
+                             BROWN_S "%d:%02d ", time / 60, time % 60);
+    }
+    else if (totalleveltimes)
     {
         const int time = (totalleveltimes + leveltime) / TICRATE;
 
@@ -841,6 +883,7 @@ static void UpdateStTime(sbe_widget_t *widget, player_t *player)
         M_snprintf(string + offset, sizeof(string) - offset,
                    GOLD_S "U %d:%05.2f\t", player->btuse / TICRATE / 60,
                    (float)(player->btuse % (60 * TICRATE)) / TICRATE);
+        player->btuse_tics--;
     }
 
     ST_AddLine(widget, string);

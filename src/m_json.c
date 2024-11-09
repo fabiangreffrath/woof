@@ -49,7 +49,7 @@ json_t *JS_Open(const char *lump, const char *type, version_t maxversion)
         return NULL;
     }
 
-    json_t *json = cJSON_Parse(W_CacheLumpNum(lumpnum, PU_CACHE));
+    json_t *json = cJSON_ParseWithLength(W_CacheLumpNum(lumpnum, PU_CACHE), W_LumpLength(lumpnum));
     if (json == NULL)
     {
         const char *error_ptr = cJSON_GetErrorPtr();
