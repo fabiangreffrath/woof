@@ -83,6 +83,7 @@ typedef struct
     ALsizei freq;
     ALsizei frame_size;
     int channels;
+    int total_frames;
 } stream_player_t;
 
 static stream_player_t player;
@@ -125,6 +126,7 @@ static void InitAutoGain(boolean reinit)
             | EBUR128_MODE_HISTOGRAM);
 
         player.auto_gain = 1.0f;
+        player.total_frames = 0;
     }
 }
 
@@ -140,6 +142,10 @@ static void AutoGain(uint32_t frames)
     {
         ebur128_add_frames_float(ebur_state, (float *)player.data, frames);
     }
+
+    player.total_frames += frames;
+
+    const float target = -23.0f; // UFS
 
     boolean failed = false;
     double momentary = 0.0;
@@ -173,6 +179,12 @@ static void AutoGain(uint32_t frames)
         failed = true;
     }
 
+    if (player.total_frames < 2 * BUFFER_SAMPLES)
+    {
+        float diff = target - momentary;
+        player.auto_gain = DB_TO_GAIN(diff);
+    }
+
     if (relative > -70.0 && momentary > relative && !failed)
     {
         double peak_L = 0.0;
@@ -194,15 +206,12 @@ static void AutoGain(uint32_t frames)
 
         if (!failed)
         {
-            //float loudness = cbrtf(momentary * shortterm * global);
             const float weight_m = 0.1f;
             const float weight_s = 1.0f;
             const float weight_i = 4.0f;
             float loudness = (weight_m * momentary + weight_s * shortterm
                               + weight_i * global)
                              / (weight_m + weight_s + weight_i);
-
-            const float target = -23.0f; // UFS
 
             float diff = target - loudness;
 
@@ -218,6 +227,7 @@ static void AutoGain(uint32_t frames)
             }
         }
     }
+
     alSourcef(player.source, AL_GAIN, player.gain * player.auto_gain);
 }
 
@@ -532,7 +542,6 @@ static void I_OAL_UnRegisterSong(void *handle)
     if (active_module)
     {
         active_module->I_CloseStream();
-        active_module = NULL;
     }
 
     if (player.data)
