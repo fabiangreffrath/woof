@@ -130,8 +130,6 @@ static void InitAutoGain(boolean reinit)
     }
 }
 
-#define LINEAR_TO_DB(amp) ((amp) >= 0.00001 ? 20.0 * log10((amp)) : -99.0)
-
 static void AutoGain(uint32_t frames)
 {
     if (player.format == AL_FORMAT_MONO16 || player.format == AL_FORMAT_STEREO16)
@@ -208,7 +206,7 @@ static void AutoGain(uint32_t frames)
         {
             const float weight_m = 0.1f;
             const float weight_s = 1.0f;
-            const float weight_i = 4.0f;
+            const float weight_i = 2.0f;
             float loudness = (weight_m * momentary + weight_s * shortterm
                               + weight_i * global)
                              / (weight_m + weight_s + weight_i);
@@ -219,9 +217,7 @@ static void AutoGain(uint32_t frames)
 
             double peak = (peak_L > peak_R) ? peak_L : peak_R;
 
-            double db_peak = LINEAR_TO_DB(peak);
-
-            if (db_peak > -99.0 && gain * peak < 1.0f)
+            if (peak >= 0.00001 && gain * peak < 1.0f)
             {
                 player.auto_gain = gain;
             }
@@ -442,6 +438,7 @@ static boolean I_OAL_InitMusic(int device)
         if (device >= count_devices
             && device < count_devices + array_size(strings))
         {
+            InitAutoGain(true);
             return midi_modules[i]->I_InitStream(device - count_devices);
         }
 
@@ -576,9 +573,7 @@ static void *I_OAL_RegisterSong(void *data, int len)
         return NULL;
     }
 
-    static stream_module_t *old_module;
-
-    old_module = active_module;
+    stream_module_t *old_module = active_module;
 
     for (int i = 0; i < arrlen(all_modules); ++i)
     {
