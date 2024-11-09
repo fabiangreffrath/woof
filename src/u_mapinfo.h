@@ -58,8 +58,6 @@ typedef struct mapentry_s
     char intermusic[9];
     int partime;
     mapinfo_flags_t flags;
-    int map_number;
-    int all_number;
     boolean nointermission;
     int numbossactions;
     bossaction_t *bossactions;
@@ -83,8 +81,6 @@ boolean U_CheckField(char *str);
 void U_ParseMapDefInfo(int lumpnum);
 
 void U_ParseMapInfo(int lumpnum);
-
-void U_BuildEpisodes(void);
 
 boolean U_IsSecretMap(int episode, int map);
 

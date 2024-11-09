@@ -425,23 +425,16 @@ static boolean CheckConditions(interlevelcond_t *conditions,
 {
     boolean conditionsmet = true;
 
-    int map_number, map, episode;
-
+    int map, episode;
+    if (enteringcondition)
     {
-        mapentry_t *mape;
-        if (enteringcondition)
-        {
-            mape = wbs->nextmapinfo;
-            map = wbs->next + 1;
-            episode = wbs->nextep + 1;
-        }
-        else
-        {
-            mape = wbs->lastmapinfo;
-            map = wbs->last + 1;
-            episode = wbs->epsd + 1;
-        }
-        map_number = mape->map_number ? mape->map_number : mape->all_number;
+        map = wbs->next + 1;
+        episode = wbs->nextep + 1;
+    }
+    else
+    {
+        map = wbs->last + 1;
+        episode = wbs->epsd + 1;
     }
 
     interlevelcond_t *cond;
@@ -450,11 +443,11 @@ static boolean CheckConditions(interlevelcond_t *conditions,
         switch (cond->condition)
         {
             case AnimCondition_MapNumGreater:
-                conditionsmet = (map_number > cond->param);
+                conditionsmet = (map > cond->param);
                 break;
 
             case AnimCondition_MapNumEqual:
-                conditionsmet = (map_number == cond->param);
+                conditionsmet = (map == cond->param);
                 break;
 
             case AnimCondition_MapVisited:
@@ -463,11 +456,7 @@ static boolean CheckConditions(interlevelcond_t *conditions,
                 level_t *level;
                 array_foreach(level, wbs->visitedlevels)
                 {
-                    mapentry_t *mape =
-                        G_LookupMapinfo(level->episode, level->map);
-
-                    if ((mape->map_number && mape->map_number == cond->param)
-                        || mape->all_number == cond->param)
+                    if (level->map == cond->param)
                     {
                         conditionsmet = true;
                         break;
