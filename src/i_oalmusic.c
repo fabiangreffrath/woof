@@ -186,7 +186,13 @@ static void AutoGain(uint32_t frames)
 
         if (!failed)
         {
-            float loudness = cbrtf(momentary * shortterm * global);
+            //float loudness = cbrtf(momentary * shortterm * global);
+            const float weight_m = 0.1f;
+            const float weight_s = 1.0f;
+            const float weight_i = 4.0f;
+            float loudness = (weight_m * momentary + weight_s * shortterm
+                              + weight_i * global)
+                             / (weight_m + weight_s + weight_i);
 
             const float target = -23.0f; // UFS
 
