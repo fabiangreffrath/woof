@@ -486,7 +486,10 @@ static int ResolveNumber(sbe_number_t *number, player_t *player)
         case sbn_frags:
             for (int p = 0; p < MAXPLAYERS; ++p)
             {
-                result += player->frags[p];
+                if (player != &players[p])
+                    result += player->frags[p];
+                else
+                    result -= player->frags[p];
             }
             break;
 

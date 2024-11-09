@@ -773,7 +773,10 @@ static void UpdateMonSec(sbe_widget_t *widget)
 
             for (int p = 0; p < MAXPLAYERS; ++p)
             {
-                result += players[i].frags[p];
+                if (i != p)
+                    result += players[i].frags[p];
+                else
+                    result -= players[i].frags[p];
             }
 
             offset = M_snprintf(string + offset, sizeof(string) - offset,
