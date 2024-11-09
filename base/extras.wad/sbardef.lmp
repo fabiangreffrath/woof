@@ -853,7 +853,7 @@
               [
                 {
                   "condition": 19,
-                  "param": 6
+                  "param": 4
                 }
               ],
               "children": null
@@ -863,7 +863,7 @@
             "widget":
             {
               "x": 2,
-              "y": 153,
+              "y": 152,
               "alignment": 16,
               "tranmap": null,
               "translation": null,
@@ -873,7 +873,7 @@
               [
                 {
                   "condition": 19,
-                  "param": 6
+                  "param": 4
                 },
                 {
                   "condition": 20,
@@ -897,7 +897,7 @@
               [
                 {
                   "condition": 19,
-                  "param": 6
+                  "param": 4
                 },
                 {
                   "condition": 21,
@@ -921,7 +921,7 @@
               [
                 {
                   "condition": 19,
-                  "param": 1
+                  "param": 3
                 }
               ],
               "children": null
@@ -941,7 +941,35 @@
               [
                 {
                   "condition": 19,
-                  "param": 1
+                  "param": 3
+                },
+                {
+                  "condition": 20,
+                  "param": 0
+                }
+              ],
+              "children": null
+            }
+          },
+          {
+            "widget":
+            {
+              "x": 2,
+              "y": 152,
+              "alignment": 16,
+              "tranmap": null,
+              "translation": null,
+              "type": 1,
+              "font": "Digits",
+              "conditions":
+              [
+                {
+                  "condition": 19,
+                  "param": 3
+                },
+                {
+                  "condition": 21,
+                  "param": 0
                 }
               ],
               "children": null
@@ -1084,9 +1112,9 @@
           {
             "widget":
             {
-              "x": 160,
+              "x": 0,
               "y": 160,
-              "alignment": 1,
+              "alignment": 16,
               "tranmap": null,
               "translation": "CRGOLD",
               "type": 10,
@@ -1684,7 +1712,33 @@
                     "translation": null,
                     "type": 1,
                     "font": "Digits",
-                    "conditions": null,
+                    "conditions":
+                    [
+                      {
+                        "condition": 20,
+                        "param": 0
+                      }
+                    ],
+                    "children": null
+                  }
+                },
+                {
+                  "widget":
+                  {
+                    "x": 20,
+                    "y": 154,
+                    "alignment": 16,
+                    "tranmap": null,
+                    "translation": null,
+                    "type": 1,
+                    "font": "Digits",
+                    "conditions":
+                    [
+                      {
+                        "condition": 21,
+                        "param": 0
+                      }
+                    ],
                     "children": null
                   }
                 },
@@ -1989,7 +2043,7 @@
               [
                 {
                   "condition": 19,
-                  "param": 2
+                  "param": 3
                 }
               ],
               "children": null
