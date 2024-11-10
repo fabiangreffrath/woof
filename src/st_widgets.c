@@ -764,7 +764,7 @@ static void UpdateMonSec(sbe_widget_t *widget)
 
         for (int i = 0; i < MAXPLAYERS; ++i)
         {
-            int result = 0;
+            int result = 0, others = 0;
 
             if (!playeringame[i])
             {
@@ -773,15 +773,26 @@ static void UpdateMonSec(sbe_widget_t *widget)
 
             for (int p = 0; p < MAXPLAYERS; ++p)
             {
+
+                if (!playeringame[p])
+                {
+                    continue;
+                }
+
                 if (i != p)
+                {
                     result += players[i].frags[p];
+                    others -= players[p].frags[i];
+                }
                 else
+                {
                     result -= players[i].frags[p];
+                }
             }
 
             offset = M_snprintf(string + offset, sizeof(string) - offset,
-                                "\x1b%c%3d ", (i == displayplayer) ?
-                                '0' + cr_blue : '0' + CR_GRAY, result);
+                                "\x1b%c%d/%d ", (i == displayplayer) ?
+                                '0' + cr_blue : '0' + CR_GRAY, result, others);
         }
 
         ST_AddLine(widget, string);
