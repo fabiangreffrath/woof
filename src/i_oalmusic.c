@@ -116,8 +116,7 @@ static void InitAutoGain(void)
     }
 
     ebur_state = ebur128_init(player.channels, player.freq, EBUR128_MODE_S
-        | EBUR128_MODE_I | EBUR128_MODE_LRA | EBUR128_MODE_SAMPLE_PEAK
-        | EBUR128_MODE_HISTOGRAM);
+        | EBUR128_MODE_I | EBUR128_MODE_SAMPLE_PEAK | EBUR128_MODE_HISTOGRAM);
 
     player.auto_gain = 1.0f;
     player.total_frames = 0;
@@ -148,7 +147,6 @@ static void AutoGain(uint32_t frames)
     double shortterm = 0.0;
     double global = 0.0;
     double relative = 0.0;
-    double range = 0.0;
 
     if (EBUR128_SUCCESS != ebur128_loudness_momentary(ebur_state, &momentary))
     {
@@ -166,11 +164,6 @@ static void AutoGain(uint32_t frames)
     }
 
     if (EBUR128_SUCCESS != ebur128_relative_threshold(ebur_state, &relative))
-    {
-        failed = true;
-    }
-
-    if (EBUR128_SUCCESS != ebur128_loudness_range(ebur_state, &range))
     {
         failed = true;
     }
