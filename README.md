@@ -241,8 +241,6 @@ Copyright:
 License: [GPL-2.0+](https://www.gnu.org/licenses/old-licenses/gpl-2.0.html)
 
 Files: `third-party/md5/*`  
-Copyright:  
- © 1993 Colin Plumb.  
 License: public-domain
 
 Files: `third-party/miniz/*`  
@@ -262,5 +260,5 @@ Copyright: © 2018-2023 Randy.
 License: [BSD-2-Clause](https://opensource.org/license/bsd-2-clause)
 
 Files: `win32/win_opendir.*`  
-Copyright: 2019 win32ports
+Copyright: © 2019 win32ports.  
 License: [MIT](https://opensource.org/licenses/MIT)
