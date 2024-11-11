@@ -23,6 +23,7 @@ set(WOOF_SOURCES
     dstrings.c             dstrings.h
     f_finale.c             f_finale.h
     f_wipe.c               f_wipe.h
+    g_compatibility.c      g_compatibility.h
     g_game.c               g_game.h
     g_input.c              g_input.h
     hu_command.c           hu_command.h
@@ -193,7 +194,8 @@ target_link_libraries(woof PRIVATE
     textscreen
     miniz
     spng
-    cjson)
+    cjson
+    md5)
 
 # Some platforms require standard libraries to be linked against.
 if(HAVE_LIBM)
