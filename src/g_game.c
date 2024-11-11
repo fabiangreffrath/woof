@@ -3651,8 +3651,6 @@ static void G_MBF21Defaults(void)
 {
   G_MBFDefaults();
 
-  comp[comp_666] = 0;
-
   comp[comp_pursuit] = 1;
 
   comp[comp_respawn] = 0;
@@ -3888,6 +3886,10 @@ void G_ReloadDefaults(boolean keep_demover)
     {
       compatibility = true;
       memset(comp, 0xff, sizeof comp);
+      if (gameversion >= exe_ultimate)
+      {
+        comp[comp_666] = 0;
+      }
     }
     else if (demo_version == DV_BOOM)
     {
