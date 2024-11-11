@@ -3886,10 +3886,6 @@ void G_ReloadDefaults(boolean keep_demover)
     {
       compatibility = true;
       memset(comp, 0xff, sizeof comp);
-      if (gameversion >= exe_ultimate)
-      {
-        comp[comp_666] = 0;
-      }
     }
     else if (demo_version == DV_BOOM)
     {
@@ -4920,7 +4916,6 @@ void G_BindCompVariables(void)
   BIND_COMP(comp_model,     0, "Use exactly Doom's linedef trigger model");
   BIND_COMP(comp_zerotags,  0, "Linedef actions work on sectors with tag 0");
   BIND_COMP(comp_soul,      0, "Lost souls bounce on floors and ceilings");
-  BIND_COMP(comp_666,       0, "Emulate pre-Ultimate BossDeath behaviour");
   BIND_COMP(comp_respawn,   0, "Monsters not spawned at level start respawn at map origin");
   BIND_COMP(comp_ledgeblock, 1, "Ledges block monsters");
   BIND_COMP(comp_friendlyspawn, 1, "Things spawned by A_Spawn inherit friendliness of spawner");

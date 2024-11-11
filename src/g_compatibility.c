@@ -51,7 +51,6 @@ const char *comp_names[] =
   // from PrBoom+/Eternity Engine (part of mbf21 spec)
   [comp_respawn] = "comp_respawn",
   [comp_soul] = "comp_soul",
-  [comp_666] = "comp_666",
   // mbf21
   [comp_ledgeblock] = "comp_ledgeblock",
   [comp_friendlyspawn] = "comp_friendlyspawn",
@@ -80,6 +79,11 @@ typedef struct
 } comp_record_t;
 
 static comp_record_t *comp_database;
+
+// static const comp_record_t doomsday_of_uac_e1m8 = {
+//   "32fc3115a3162b623f0d0f4e7dee6861",
+//   { comp_666 }
+// };
 
 static int GetComp(const char *name)
 {

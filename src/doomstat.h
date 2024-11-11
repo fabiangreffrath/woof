@@ -153,7 +153,6 @@ enum {
   // from PrBoom+/Eternity Engine (part of mbf21 spec)
   comp_respawn,
   comp_soul,
-  comp_666,
 
   // mbf21
   comp_ledgeblock,

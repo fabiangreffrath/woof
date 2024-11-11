@@ -2343,7 +2343,7 @@ void A_BossDeath(mobj_t *mo)
   else
     {
       // [FG] game version specific differences
-      if (comp[comp_666] && gameepisode < 4)
+      if (demo_compatibility && gameversion < exe_ultimate)
       {
         if (gamemap != 8)
           return;
