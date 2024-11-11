@@ -15,4 +15,6 @@
 //  DSDA Compatibility
 //
 
+void G_ParseCompDatabase(void);
+
 void G_ApplyLevelCompatibility(int lump);

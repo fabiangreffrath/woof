@@ -169,6 +169,16 @@ int JS_GetInteger(json_t *json)
     return json->valueint;
 }
 
+int JS_GetIntegerValue(json_t *json, const char *string)
+{
+    json_t *obj = JS_GetObject(json, string);
+    if (JS_IsNumber(obj))
+    {
+        return obj->valueint;
+    }
+    return 0;
+}
+
 const char *JS_GetString(json_t *json)
 {
     return json->valuestring;

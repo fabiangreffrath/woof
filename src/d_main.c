@@ -42,6 +42,7 @@
 #include "dstrings.h"
 #include "f_finale.h"
 #include "f_wipe.h"
+#include "g_compatibility.h"
 #include "g_game.h"
 #include "i_endoom.h"
 #include "i_glob.h"
@@ -2313,6 +2314,8 @@ void D_DoomMain(void)
     W_ProcessInWads("UMAPINFO", U_ParseMapInfo, true);
     W_ProcessInWads("UMAPINFO", U_ParseMapInfo, false);
   }
+
+  G_ParseCompDatabase();
 
   if (!M_CheckParm("-save"))
   {
