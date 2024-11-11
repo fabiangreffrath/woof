@@ -758,37 +758,6 @@ static void UpdateMonSec(sbe_widget_t *widget)
 
     const int cr_blue = (widget->font == stcfnt) ? CR_BLUE2 : CR_BLUE1;
 
-    if (deathmatch)
-    {
-        int offset = 0;
-
-        for (int i = 0; i < MAXPLAYERS; ++i)
-        {
-            int result = 0;
-
-            if (!playeringame[i])
-            {
-                continue;
-            }
-
-            for (int p = 0; p < MAXPLAYERS; ++p)
-            {
-                if (i != p)
-                    result += players[i].frags[p];
-                else
-                    result -= players[i].frags[p];
-            }
-
-            offset = M_snprintf(string + offset, sizeof(string) - offset,
-                                "\x1b%c%3d ", (i == displayplayer) ?
-                                '0' + cr_blue : '0' + CR_GRAY, result);
-        }
-
-        ST_AddLine(widget, string);
-
-        return;
-    }
-
     int fullkillcount = 0;
     int fullitemcount = 0;
     int fullsecretcount = 0;
@@ -831,6 +800,58 @@ static void UpdateMonSec(sbe_widget_t *widget)
         killcolor, kill_str,
         itemcolor, item_str,
         secretcolor, secret_str);
+
+    ST_AddLine(widget, string);
+}
+
+static void UpdateDM(sbe_widget_t *widget)
+{
+    ST_ClearLines(widget);
+
+    if (!WidgetEnabled(hud_level_stats))
+    {
+        return;
+    }
+
+    ForceDoomFont(widget);
+
+    static char string[120];
+
+    const int cr_blue = (widget->font == stcfnt) ? CR_BLUE2 : CR_BLUE1;
+
+    int offset = 0;
+
+    for (int i = 0; i < MAXPLAYERS; ++i)
+    {
+        int result = 0, others = 0;
+
+        if (!playeringame[i])
+        {
+            continue;
+        }
+
+        for (int p = 0; p < MAXPLAYERS; ++p)
+        {
+            if (!playeringame[p])
+            {
+                continue;
+            }
+
+            if (i != p)
+            {
+                result += players[i].frags[p];
+                others -= players[p].frags[i];
+            }
+            else
+            {
+                result -= players[i].frags[p];
+            }
+        }
+
+        offset += M_snprintf(string + offset, sizeof(string) - offset,
+                             "\x1b%c%d/%d ", (i == displayplayer) ?
+                             '0' + cr_blue : '0' + CR_GRAY, result, others);
+    }
 
     ST_AddLine(widget, string);
 }
@@ -1092,7 +1113,10 @@ void ST_UpdateWidget(sbarelem_t *elem, player_t *player)
             break;
 
         case sbw_monsec:
-            UpdateMonSec(widget);
+            if (deathmatch)
+                UpdateDM(widget);
+            else
+                UpdateMonSec(widget);
             break;
         case sbw_time:
             st_time_elem = elem;
