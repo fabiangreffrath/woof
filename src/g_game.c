@@ -3651,6 +3651,8 @@ static void G_MBF21Defaults(void)
 {
   G_MBFDefaults();
 
+  comp[comp_666] = 0;
+
   comp[comp_pursuit] = 1;
 
   comp[comp_respawn] = 0;
@@ -4916,6 +4918,7 @@ void G_BindCompVariables(void)
   BIND_COMP(comp_model,     0, "Use exactly Doom's linedef trigger model");
   BIND_COMP(comp_zerotags,  0, "Linedef actions work on sectors with tag 0");
   BIND_COMP(comp_soul,      0, "Lost souls bounce on floors and ceilings");
+  BIND_COMP(comp_666,       0, "Emulate pre-Ultimate BossDeath behaviour");
   BIND_COMP(comp_respawn,   0, "Monsters not spawned at level start respawn at map origin");
   BIND_COMP(comp_ledgeblock, 1, "Ledges block monsters");
   BIND_COMP(comp_friendlyspawn, 1, "Things spawned by A_Spawn inherit friendliness of spawner");

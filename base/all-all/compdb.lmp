@@ -20,6 +20,11 @@
         ]
       },
       {
+        "name": "doomsday_of_uac_e1m8",
+        "md5": "32fc3115a3162b623f0d0f4e7dee6861",
+        "options": [ {"name": "comp_666", "value": 1} ]
+      },
+      {
         "name": "hell_revealed_map19",
         "md5": "811a0c97777a198bc9b2bb558cb46e6a",
         "options": [ {"name": "comp_pain", "value": 1} ]
