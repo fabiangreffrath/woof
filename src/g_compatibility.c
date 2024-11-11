@@ -16,6 +16,7 @@
 //
 
 #include <stdio.h>
+#include <string.h>
 
 #include "doomstat.h"
 #include "doomtype.h"
@@ -302,9 +303,18 @@ static void GetLevelCheckSum(int lump, md5_checksum_t* cksum)
 
 void G_ApplyLevelCompatibility(int lump)
 {
-    if (demorecording || demoplayback || !mbf21)
+    if (demorecording || demoplayback || netgame || !mbf21)
     {
         return;
+    }
+
+    static boolean restore_comp;
+    static int old_comp[COMP_TOTAL];
+
+    if (restore_comp)
+    {
+        memcpy(comp, old_comp, sizeof(*comp));
+        restore_comp = false;
     }
 
     md5_checksum_t cksum;
@@ -317,17 +327,22 @@ void G_ApplyLevelCompatibility(int lump)
     {
         const comp_record_t *record = comp_database[i];
 
-        if (!strcasecmp(record->cksum_string, cksum.string))
+        if (!strcmp(record->cksum_string, cksum.string))
         {
+            memcpy(old_comp, comp, sizeof(*comp));
+            restore_comp = true;
+
             for (int k = 0; record->options[k].comp != -1; ++k)
             {
                 option_t option = record->options[k];
 
                 comp[option.comp] = option.value;
 
-                I_Printf(VB_INFO, "Automatically setting comp option %d %s.",
+                I_Printf(VB_INFO, "Automatically setting comp option %d to %s.",
                          option.comp, option.value ? "on" : "off");
             }
+
+            return;
         }
     }
 }
