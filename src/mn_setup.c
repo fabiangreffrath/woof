@@ -340,8 +340,6 @@ enum
     str_sound_module,
     str_resampler,
     str_equalizer_preset,
-    str_midi_complevel,
-    str_midi_reset_type,
 
     str_mouse_accel,
 
@@ -2481,14 +2479,6 @@ static void SetMidiPlayer(void)
     S_RestartMusic();
 }
 
-static void SetMidiPlayerNative(void)
-{
-    if (I_MidiPlayerType() == midiplayer_native)
-    {
-        SetMidiPlayer();
-    }
-}
-
 static void SetMidiPlayerOpl(void)
 {
     if (I_MidiPlayerType() == midiplayer_opl)
@@ -2609,14 +2599,6 @@ void MN_DrawSfx(void)
     DrawScreenItems(current_menu);
 }
 
-static const char *midi_complevel_strings[] = {
-    "Vanilla", "Standard", "Full"
-};
-
-static const char *midi_reset_type_strings[] = {
-    "No SysEx", "General MIDI", "Roland GS", "Yamaha XG"
-};
-
 static void UpdateGainItems(void);
 
 static void ResetAutoGain(void)
@@ -2630,23 +2612,7 @@ static setup_menu_t music_settings1[] = {
     {"Auto Gain", S_ONOFF, CNTR_X, M_SPC, {"auto_gain"},
       .action = ResetAutoGain},
 
-     MI_GAP_Y(6),
-
-    {"Native MIDI Gain", S_THERMO, CNTR_X, M_THRM_SPC,
-     {"midi_gain"}, .action = UpdateMusicVolume, .append = "dB"},
-
-    {"Native MIDI Reset", S_CHOICE | S_ACTION, CNTR_X, M_SPC,
-     {"midi_reset_type"}, .strings_id = str_midi_reset_type,
-     .action = SetMidiPlayerNative},
-
-    {"Compatibility Level", S_CHOICE | S_ACTION, CNTR_X, M_SPC,
-     {"midi_complevel"}, .strings_id = str_midi_complevel,
-     .action = SetMidiPlayerNative},
-
-    {"SC-55 CTF Emulation", S_ONOFF, CNTR_X, M_SPC, {"midi_ctf"},
-     .action = SetMidiPlayerNative},
-
-    MI_GAP_Y(6),
+    MI_GAP,
 
 #if defined (HAVE_FLUIDSYNTH)
     {"FluidSynth Gain", S_THERMO, CNTR_X, M_THRM_SPC, {"fl_gain"},
@@ -2658,7 +2624,7 @@ static setup_menu_t music_settings1[] = {
     {"FluidSynth Chorus", S_ONOFF, CNTR_X, M_SPC, {"fl_chorus"},
      .action = SetMidiPlayerFluidSynth},
 
-    MI_GAP_Y(6),
+    MI_GAP,
 #endif
 
     {"OPL3 Gain", S_THERMO, CNTR_X, M_THRM_SPC, {"opl_gain"},
@@ -4812,8 +4778,6 @@ static const char **selectstrings[] = {
     sound_module_strings,
     NULL, // str_resampler
     equalizer_preset_strings,
-    midi_complevel_strings,
-    midi_reset_type_strings,
     NULL, // str_mouse_accel
     gyro_space_strings,
     gyro_action_strings,
