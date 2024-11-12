@@ -22,6 +22,7 @@
 #include "doomtype.h"
 #include "i_printf.h"
 #include "m_array.h"
+#include "m_misc.h"
 #include "w_wad.h"
 
 #include "m_json.h"
@@ -124,13 +125,11 @@ void G_ParseCompDatabase(void)
         {
             continue;
         }
-        for (int offset = 0; offset < sizeof(md5_digest_t); ++offset)
+        if (!M_StringToDigest(md5, record.checksum, sizeof(md5_digest_t)))
         {
-            unsigned int i;
-            sscanf(md5 + 2 * offset, "%02x", &i);
-            record.checksum[offset] = i;
+            I_Printf(VB_ERROR, "COMPDB: wrong key %s", md5);
+            continue;
         }
-
         json_t *js_options = JS_GetObject(level, "options");
         json_t *js_option = NULL;
         JS_ArrayForEach(js_option, js_options)

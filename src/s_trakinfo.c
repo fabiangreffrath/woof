@@ -16,6 +16,7 @@
 #include <stdio.h>
 #include <string.h>
 
+#include "i_printf.h"
 #include "m_array.h"
 #include "m_json.h"
 #include "m_misc.h"
@@ -42,12 +43,11 @@ void S_ParseTrakInfo(int lumpnum)
     while (JS_ObjectNext(iter, &key, &value))
     {
         trakinfo_t trak = {0};
-        const char *string = JS_GetString(key);
-        for (int offset = 0; offset < sizeof(sha1_digest_t); ++offset)
+        const char *sha1 = JS_GetString(key);
+        if (!M_StringToDigest(sha1, trak.sha1key, sizeof(sha1_digest_t)))
         {
-            unsigned int i;
-            sscanf(string + 2 * offset, "%02x", &i);
-            trak.sha1key[offset] = i;
+            I_Printf(VB_ERROR, "TRAKINFO: wrong key %s", sha1);
+            continue;
         }
         const char *remix = JS_GetStringValue(value, "Remixed");
         if (remix)

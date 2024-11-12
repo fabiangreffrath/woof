@@ -1828,10 +1828,19 @@ void D_DoomMain(void)
   // [FG] emulate a specific version of Doom
   InitGameVersion();
 
-  char *extras = D_FindWADByName("extras.wad");
-  if (extras)
+  //!
+  // @category mod
+  //
+  // Disable auto loading of extras.wad.
+  //
+
+  if (!M_ParmExists("-noextras"))
   {
-      D_AddFile(extras);
+      char *extras = D_FindWADByName("extras.wad");
+      if (extras)
+      {
+          D_AddFile(extras);
+      }
   }
 
   dsdh_InitTables();
