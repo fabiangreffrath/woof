@@ -509,6 +509,7 @@ static void ProcessEvent(SDL_Event *ev)
             break;
 
         case SDL_QUIT:
+            disable_endoom = true;
             I_SafeExit(0);
             break;
 
