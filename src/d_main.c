@@ -1683,7 +1683,7 @@ typedef enum {
   EXIT_SEQUENCE_OFF,          // Skip sound, skip ENDOOM.
   EXIT_SEQUENCE_SOUND_ONLY,   // Play sound, skip ENDOOM.
   EXIT_SEQUENCE_PWAD_ENDOOM,  // Play sound, show ENDOOM for PWADs only.
-  EXIT_SEQUENCE_ON            // Play sound, show ENDOOM.
+  EXIT_SEQUENCE_FULL          // Play sound, show ENDOOM.
 } exit_sequence_t;
 
 static exit_sequence_t exit_sequence;
@@ -1703,7 +1703,7 @@ static void D_ShowEndDoom(void)
 
 static boolean AllowEndDoom(void)
 {
-  return (exit_sequence == EXIT_SEQUENCE_ON
+  return (exit_sequence == EXIT_SEQUENCE_FULL
           || (exit_sequence == EXIT_SEQUENCE_PWAD_ENDOOM
               && !W_IsIWADLump(W_CheckNumForName("ENDOOM"))));
 }
@@ -2664,8 +2664,8 @@ void D_DoomMain(void)
 
 void D_BindMiscVariables(void)
 {
-  BIND_NUM_GENERAL(exit_sequence, 0, 0, EXIT_SEQUENCE_ON,
-    "Exit sequence (0 = Off; 1 = Sound Only; 2 = PWAD ENDOOM; 3 = On)");
+  BIND_NUM_GENERAL(exit_sequence, 0, 0, EXIT_SEQUENCE_FULL,
+    "Exit sequence (0 = Off; 1 = Sound Only; 2 = PWAD ENDOOM; 3 = Full)");
   BIND_BOOL_GENERAL(demobar, false, "Show demo progress bar");
   BIND_NUM_GENERAL(screen_melt, wipe_Melt, wipe_None, wipe_Fizzle,
     "Screen wipe effect (0 = None; 1 = Melt; 2 = Crossfade; 3 = Fizzlefade)");

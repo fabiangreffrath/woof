@@ -3217,7 +3217,7 @@ static void SmoothLight(void)
 }
 
 static const char *exit_sequence_strings[] = {
-    "Off", "Sound Only", "PWAD ENDOOM", "On"
+    "Off", "Sound Only", "PWAD ENDOOM", "Full"
 };
 
 static setup_menu_t gen_settings5[] = {
