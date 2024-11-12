@@ -18,16 +18,14 @@
 
 extern boolean trakinfo_found;
 
+void S_ParseTrakInfo(int lumpnum);
+
 typedef enum
 {
-    EXMUS_NONE,
+    EXMUS_OFF,
     EXMUS_REMIX,
     EXMUS_ORIGINAL
 } extra_music_t;
-
-extern extra_music_t extra_music;
-
-void S_ParseTrakInfo(int lumpnum);
 
 const char *S_GetExtra(byte *data, int length, extra_music_t type);
 
