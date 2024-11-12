@@ -47,14 +47,25 @@ typedef fluid_long_long_t fluid_int_t;
 #include "z_zone.h"
 
 static const char *soundfont_dir = "";
-static boolean mus_chorus;
-static boolean mus_reverb;
+static int fl_polyphony;
+static boolean fl_interpolation;
+static boolean fl_reverb;
+static boolean fl_chorus;
+static int fl_reverb_damp;
+static int fl_reverb_level;
+static int fl_reverb_roomsize;
+static int fl_reverb_width;
+static int fl_chorus_depth;
+static int fl_chorus_level;
+static int fl_chorus_nr;
+static int fl_chorus_speed;
 
 static fluid_synth_t *synth = NULL;
 static fluid_settings_t *settings = NULL;
 static fluid_player_t *player = NULL;
 
 static const char **soundfonts = NULL;
+static int interp_method;
 
 // Load SNDFONT lump
 
@@ -243,23 +254,38 @@ static boolean I_FL_InitStream(int device)
 
     settings = new_fluid_settings();
 
+    interp_method =
+        fl_interpolation ? FLUID_INTERP_HIGHEST : FLUID_INTERP_DEFAULT;
+
+    fluid_settings_setint(settings, "synth.polyphony", fl_polyphony);
+    fluid_settings_setnum(settings, "synth.gain", 0.2);
     fluid_settings_setnum(settings, "synth.sample-rate", SND_SAMPLERATE);
+    fluid_settings_setint(settings, "synth.device-id", 16);
+    fluid_settings_setstr(settings, "synth.midi-bank-select", "gs");
+    fluid_settings_setint(settings, "synth.reverb.active", fl_reverb);
+    fluid_settings_setint(settings, "synth.chorus.active", fl_chorus);
 
-    fluid_settings_setint(settings, "synth.chorus.active", mus_chorus);
-    fluid_settings_setint(settings, "synth.reverb.active", mus_reverb);
-
-    if (mus_reverb)
+    if (fl_reverb)
     {
-        fluid_settings_setnum(settings, "synth.reverb.room-size", 0.6);
-        fluid_settings_setnum(settings, "synth.reverb.damp", 0.4);
-        fluid_settings_setnum(settings, "synth.reverb.width", 4);
-        fluid_settings_setnum(settings, "synth.reverb.level", 0.15);
+        fluid_settings_setnum(settings, "synth.reverb.damp",
+                              fl_reverb_damp / 100.0);
+        fluid_settings_setnum(settings, "synth.reverb.level",
+                              fl_reverb_level / 100.0);
+        fluid_settings_setnum(settings, "synth.reverb.room-size",
+                              fl_reverb_roomsize / 100.0);
+        fluid_settings_setnum(settings, "synth.reverb.width",
+                              fl_reverb_width / 100.0);
     }
 
-    if (mus_chorus)
+    if (fl_chorus)
     {
-        fluid_settings_setnum(settings, "synth.chorus.level", 0.35);
-        fluid_settings_setnum(settings, "synth.chorus.depth", 5);
+        fluid_settings_setnum(settings, "synth.chorus.depth",
+                              fl_chorus_depth / 100.0);
+        fluid_settings_setnum(settings, "synth.chorus.level",
+                              fl_chorus_level / 100.0);
+        fluid_settings_setint(settings, "synth.chorus.nr", fl_chorus_nr);
+        fluid_settings_setnum(settings, "synth.chorus.speed",
+                              fl_chorus_speed / 100.0);
     }
 
     synth = new_fluid_synth(settings);
@@ -407,6 +433,7 @@ static void I_FL_PlayStream(boolean looping)
         return;
     }
 
+    fluid_synth_set_interp_method(synth, -1, interp_method);
     fluid_player_set_loop(player, looping ? -1 : 1);
     fluid_player_play(player);
 }
@@ -480,9 +507,31 @@ static void I_FL_BindVariables(void)
     // AppImage
     "../share/" PROJECT_SHORTNAME "/soundfonts",
 #endif
-    wad_no, "FluidSynth soundfont directories");
-    BIND_BOOL_MIDI(mus_chorus, false, "FluidSynth chorus");
-    BIND_BOOL_MIDI(mus_reverb, false, "FluidSynth reverb");
+    wad_no, "[FluidSynth] Soundfont directories");
+    BIND_NUM(fl_polyphony, 256, 1, 65535,
+        "[FluidSynth] Number of voices that can be played in parallel");
+    BIND_BOOL(fl_interpolation, false,
+        "[FluidSynth] Interpolation method (0 = Default; 1 = Highest Quality)");
+    BIND_BOOL_MUSIC(fl_reverb, false,
+        "[FluidSynth] Enable reverb effects");
+    BIND_BOOL_MUSIC(fl_chorus, false,
+        "[FluidSynth] Enable chorus effects");
+    BIND_NUM(fl_reverb_damp, 30, 0, 100,
+        "[FluidSynth] Reverb damping");
+    BIND_NUM(fl_reverb_level, 70, 0, 100,
+        "[FluidSynth] Reverb output level");
+    BIND_NUM(fl_reverb_roomsize, 50, 0, 100,
+        "[FluidSynth] Reverb room size");
+    BIND_NUM(fl_reverb_width, 80, 0, 10000,
+        "[FluidSynth] Reverb width (stereo spread)");
+    BIND_NUM(fl_chorus_depth, 360, 0, 25600,
+        "[FluidSynth] Chorus modulation depth");
+    BIND_NUM(fl_chorus_level, 55, 0, 1000,
+        "[FluidSynth] Chorus output level");
+    BIND_NUM(fl_chorus_nr, 4, 0, 99,
+        "[FluidSynth] Chorus voice count");
+    BIND_NUM(fl_chorus_speed, 36, 10, 500,
+        "[FluidSynth] Chorus modulation speed");
 }
 
 static const char *I_FL_MusicFormat(void)

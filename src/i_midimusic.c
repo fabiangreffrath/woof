@@ -1500,15 +1500,15 @@ static const char *I_MID_MusicFormat(void)
 
 static void I_MID_BindVariables(void)
 {
-    BIND_NUM_MIDI(midi_complevel, COMP_STANDARD, 0, COMP_NUM - 1,
-        "Native MIDI compatibility level (0 = Vanilla; 1 = Standard; 2 = Full)");
-    BIND_NUM_MIDI(midi_reset_type, RESET_TYPE_GM, 0, RESET_NUM - 1,
-        "Reset type for native MIDI (0 = No SysEx; 1 = GM; 2 = GS; 3 = XG)");
+    BIND_NUM(midi_complevel, COMP_STANDARD, 0, COMP_NUM - 1,
+        "[Native MIDI] Compatibility level (0 = Vanilla; 1 = Standard; 2 = Full)");
+    BIND_NUM(midi_reset_type, RESET_TYPE_GM, 0, RESET_NUM - 1,
+        "[Native MIDI] Reset type (0 = No SysEx; 1 = GM; 2 = GS; 3 = XG)");
     BIND_NUM(midi_reset_delay, -1, -1, 2000,
-        "Delay after reset for native MIDI (-1 = Auto; 0 = None; 1-2000 = Milliseconds)");
-    BIND_BOOL_MIDI(midi_ctf, true,
-        "Fix invalid instruments by emulating SC-55 capital tone fallback");
-    BIND_NUM_MIDI(midi_gain, 0, -20, 0, "Native MIDI gain [dB]");
+        "[Native MIDI] Delay after reset (-1 = Auto; 0 = None; 1-2000 = Milliseconds)");
+    BIND_BOOL(midi_ctf, true,
+        "[Native MIDI] Fix invalid instruments by emulating SC-55 capital tone fallback");
+    BIND_NUM(midi_gain, 0, -20, 0, "[Native MIDI] Gain [dB]");
 }
 
 music_module_t music_mid_module =

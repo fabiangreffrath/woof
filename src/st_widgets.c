@@ -33,11 +33,13 @@
 #include "m_input.h"
 #include "m_misc.h"
 #include "p_mobj.h"
+#include "p_spec.h"
 #include "r_main.h"
 #include "r_voxel.h"
 #include "s_sound.h"
 #include "sounds.h"
 #include "st_sbardef.h"
+#include "st_stuff.h"
 #include "i_timer.h"
 #include "v_video.h"
 #include "u_mapinfo.h"
@@ -51,6 +53,7 @@ widgetstate_t hud_level_stats;
 widgetstate_t hud_level_time;
 boolean       hud_time_use;
 widgetstate_t hud_player_coords;
+widgetstate_t hud_widget_font;
 
 static boolean hud_map_announce;
 static boolean message_colorized;
@@ -645,6 +648,18 @@ static boolean WidgetEnabled(widgetstate_t state)
     return true;
 }
 
+static void ForceDoomFont(sbe_widget_t *widget)
+{
+    if (WidgetEnabled(hud_widget_font))
+    {
+        widget->font = stcfnt;
+    }
+    else
+    {
+        widget->font = widget->default_font;
+    }
+}
+
 static void UpdateCoord(sbe_widget_t *widget, player_t *player)
 {
     if (hud_player_coords == HUD_WIDGET_ADVANCED)
@@ -659,6 +674,8 @@ static void UpdateCoord(sbe_widget_t *widget, player_t *player)
     {
         return;
     }
+
+    ForceDoomFont(widget);
 
     fixed_t x, y, z; // killough 10/98:
     void AM_Coordinates(const mobj_t *, fixed_t *, fixed_t *, fixed_t *);
@@ -735,7 +752,11 @@ static void UpdateMonSec(sbe_widget_t *widget)
         return;
     }
 
+    ForceDoomFont(widget);
+
     static char string[120];
+
+    const int cr_blue = (widget->font == stcfnt) ? CR_BLUE2 : CR_BLUE1;
 
     int fullkillcount = 0;
     int fullitemcount = 0;
@@ -759,12 +780,12 @@ static void UpdateMonSec(sbe_widget_t *widget)
         max_kill_requirement = totalkills;
     }
 
-    int killcolor = (fullkillcount >= max_kill_requirement) ? '0' + CR_BLUE1
+    int killcolor = (fullkillcount >= max_kill_requirement) ? '0' + cr_blue
                                                             : '0' + CR_GRAY;
     int secretcolor =
-        (fullsecretcount >= totalsecret) ? '0' + CR_BLUE1 : '0' + CR_GRAY;
+        (fullsecretcount >= totalsecret) ? '0' + cr_blue : '0' + CR_GRAY;
     int itemcolor =
-        (fullitemcount >= totalitems) ? '0' + CR_BLUE1 : '0' + CR_GRAY;
+        (fullitemcount >= totalitems) ? '0' + cr_blue : '0' + CR_GRAY;
 
     char kill_str[16], item_str[16], secret_str[16];
 
@@ -783,6 +804,58 @@ static void UpdateMonSec(sbe_widget_t *widget)
     ST_AddLine(widget, string);
 }
 
+static void UpdateDM(sbe_widget_t *widget)
+{
+    ST_ClearLines(widget);
+
+    if (!WidgetEnabled(hud_level_stats))
+    {
+        return;
+    }
+
+    ForceDoomFont(widget);
+
+    static char string[120];
+
+    const int cr_blue = (widget->font == stcfnt) ? CR_BLUE2 : CR_BLUE1;
+
+    int offset = 0;
+
+    for (int i = 0; i < MAXPLAYERS; ++i)
+    {
+        int result = 0, others = 0;
+
+        if (!playeringame[i])
+        {
+            continue;
+        }
+
+        for (int p = 0; p < MAXPLAYERS; ++p)
+        {
+            if (!playeringame[p])
+            {
+                continue;
+            }
+
+            if (i != p)
+            {
+                result += players[i].frags[p];
+                others -= players[p].frags[i];
+            }
+            else
+            {
+                result -= players[i].frags[p];
+            }
+        }
+
+        offset += M_snprintf(string + offset, sizeof(string) - offset,
+                             "\x1b%c%d/%d ", (i == displayplayer) ?
+                             '0' + cr_blue : '0' + CR_GRAY, result, others);
+    }
+
+    ST_AddLine(widget, string);
+}
+
 static void UpdateStTime(sbe_widget_t *widget, player_t *player)
 {
     ST_ClearLines(widget);
@@ -792,6 +865,8 @@ static void UpdateStTime(sbe_widget_t *widget, player_t *player)
         return;
     }
 
+    ForceDoomFont(widget);
+
     static char string[80];
 
     int offset = 0;
@@ -799,10 +874,18 @@ static void UpdateStTime(sbe_widget_t *widget, player_t *player)
     if (time_scale != 100)
     {
         offset +=
-            M_snprintf(string, sizeof(string), BLUE_S "%d%% ", time_scale);
+            M_snprintf(string, sizeof(string), "%s%d%% ",
+                       (widget->font == stcfnt) ? BLUE2_S : BLUE1_S, time_scale);
     }
 
-    if (totalleveltimes)
+    if (levelTimer == true)
+    {
+        const int time = levelTimeCount / TICRATE;
+
+        offset += M_snprintf(string + offset, sizeof(string) - offset,
+                             BROWN_S "%d:%02d ", time / 60, time % 60);
+    }
+    else if (totalleveltimes)
     {
         const int time = (totalleveltimes + leveltime) / TICRATE;
 
@@ -821,6 +904,7 @@ static void UpdateStTime(sbe_widget_t *widget, player_t *player)
         M_snprintf(string + offset, sizeof(string) - offset,
                    GOLD_S "U %d:%05.2f\t", player->btuse / TICRATE / 60,
                    (float)(player->btuse % (60 * TICRATE)) / TICRATE);
+        player->btuse_tics--;
     }
 
     ST_AddLine(widget, string);
@@ -834,6 +918,8 @@ static void UpdateFPS(sbe_widget_t *widget, player_t *player)
     {
         return;
     }
+
+    ForceDoomFont(widget);
 
     static char string[20];
     M_snprintf(string, sizeof(string), GRAY_S "%d " GREEN_S "FPS", fps);
@@ -875,6 +961,8 @@ static void UpdateSpeed(sbe_widget_t *widget, player_t *player)
         SetLine(widget, "");
         return;
     }
+
+    ForceDoomFont(widget);
 
     static const double factor[] = {TICRATE, 2.4003, 525.0 / 352.0};
     static const char *units[] = {"ups", "km/h", "mph"};
@@ -1025,7 +1113,10 @@ void ST_UpdateWidget(sbarelem_t *elem, player_t *player)
             break;
 
         case sbw_monsec:
-            UpdateMonSec(widget);
+            if (deathmatch)
+                UpdateDM(widget);
+            else
+                UpdateMonSec(widget);
             break;
         case sbw_time:
             st_time_elem = elem;
@@ -1078,6 +1169,11 @@ void ST_BindHUDVariables(void)
             "Hide empty commands from command history widget");
   M_BindBool("hud_time_use", &hud_time_use, NULL, false, ss_stat, wad_no,
              "Show split time when pressing the use-button");
+  M_BindNum("hud_widget_font", &hud_widget_font, NULL,
+            HUD_WIDGET_OFF, HUD_WIDGET_OFF, HUD_WIDGET_ALWAYS,
+            ss_stat, wad_no,
+            "Use standard Doom font for widgets (1 = On automap; 2 = On HUD; 3 "
+            "= Always)");
 
   M_BindNum("hudcolor_titl", &hudcolor_titl, NULL,
             CR_GOLD, CR_BRICK, CR_NONE, ss_none, wad_yes,

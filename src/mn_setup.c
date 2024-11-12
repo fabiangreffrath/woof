@@ -315,7 +315,7 @@ enum
     str_ms_time,
     str_movement_sensitivity,
     str_movement_type,
-    str_rumble,
+    str_percent,
     str_curve,
     str_center_weapon,
     str_screensize,
@@ -342,8 +342,6 @@ enum
     str_extra_music,
     str_resampler,
     str_equalizer_preset,
-    str_midi_complevel,
-    str_midi_reset_type,
 
     str_mouse_accel,
 
@@ -1842,8 +1840,6 @@ static setup_menu_t stat_settings1[] = {
     {"Solid Background Color", S_ONOFF, H_X, M_SPC, {"st_solidbackground"},
      .action = RefreshSolidBackground},
 
-    {"Armor Color Matches Type", S_ONOFF, H_X, M_SPC, {"hud_armor_type"}},
-
     {"Animated Health/Armor Count", S_ONOFF, H_X, M_SPC, {"hud_animated_counts"}},
 
     MI_RESET,
@@ -1878,6 +1874,13 @@ static setup_menu_t stat_settings2[] = {
      {"hud_command_history"}, .action = HU_ResetCommandHistory},
 
     {"Use-Button Timer", S_ONOFF, H_X, M_SPC, {"hud_time_use"}},
+
+    MI_GAP,
+
+    {"Widget Appearance", S_SKIP | S_TITLE, H_X, M_SPC},
+
+    {"Use Doom Font", S_CHOICE, H_X, M_SPC, {"hud_widget_font"},
+     .strings_id = str_show_widgets},
 
     {"Level Stats Format", S_CHOICE, H_X, M_SPC, {"hud_stats_format"},
      .strings_id = str_stats_format},
@@ -2018,9 +2021,6 @@ static setup_menu_t auto_settings1[] = {
     {"Overlay Automap", S_CHOICE, H_X, M_SPC, {"automapoverlay"},
      .strings_id = str_overlay},
 
-    // killough 10/98
-    {"Coords Follow Pointer", S_ONOFF, H_X, M_SPC, {"map_point_coord"}},
-
     MI_GAP,
 
     {"Miscellaneous", S_SKIP | S_TITLE, H_X, M_SPC},
@@ -2028,15 +2028,10 @@ static setup_menu_t auto_settings1[] = {
     {"Color Preset", S_CHOICE | S_COSMETIC, H_X, M_SPC, {"mapcolor_preset"},
      .strings_id = str_automap_preset, .action = AM_ColorPreset},
 
-    {"Smooth automap lines", S_ONOFF, H_X, M_SPC, {"map_smooth_lines"},
-     .action = AM_EnableSmoothLines},
-
     {"Show Found Secrets Only", S_ONOFF, H_X, M_SPC, {"map_secret_after"}},
 
     {"Color Keyed Doors", S_CHOICE, H_X, M_SPC, {"map_keyed_door"},
      .strings_id = str_automap_keyed_door},
-
-    {"Square Aspect Ratio", S_ONOFF, H_X, M_SPC, {"automapsquareaspect"}},
 
     MI_RESET,
 
@@ -2109,10 +2104,6 @@ static setup_menu_t enem_settings1[] = {
     // [crispy] resurrected pools of gore ("ghost monsters") are translucent
     {"Translucent Ghost Monsters", S_ONOFF | S_STRICT | S_VANILLA, M_X, M_SPC,
      {"ghost_monsters"}},
-
-    // [FG] spectre drawing mode
-    {"Blocky Spectre Drawing", S_ONOFF, M_X, M_SPC, {"fuzzcolumn_mode"},
-     .action = R_SetFuzzColumnMode},
 
     MI_RESET,
 
@@ -2500,14 +2491,6 @@ static void RestartMusic(void)
     S_RestartMusic();
 }
 
-static void SetMidiPlayerNative(void)
-{
-    if (I_MidiPlayerType() == midiplayer_native)
-    {
-        SetMidiPlayer();
-    }
-}
-
 static void SetMidiPlayerOpl(void)
 {
     if (I_MidiPlayerType() == midiplayer_opl)
@@ -2524,7 +2507,15 @@ static void SetMidiPlayerFluidSynth(void)
     }
 }
 
-static void MN_Midi(void);
+static void RestartMusic(void)
+{
+    S_StopMusic();
+    S_SetMusicVolume(snd_MusicVolume);
+    S_RestartMusic();
+}
+
+static void MN_Sfx(void);
+static void MN_Music(void);
 static void MN_Equalizer(void);
 
 static setup_menu_t gen_settings2[] = {
@@ -2535,7 +2526,7 @@ static setup_menu_t gen_settings2[] = {
     {"Music Volume", S_THERMO, CNTR_X, M_THRM_SPC, {"music_volume"},
      .action = UpdateMusicVolume},
 
-    MI_GAP_Y(6),
+    MI_GAP,
 
     {"Sound Module", S_CHOICE, CNTR_X, M_SPC, {"snd_module"},
      .strings_id = str_sound_module, .action = SetSoundModule},
@@ -2543,15 +2534,7 @@ static setup_menu_t gen_settings2[] = {
     {"Headphones Mode", S_ONOFF, CNTR_X, M_SPC, {"snd_hrtf"}, 
      .action = SetSoundModule},
 
-    {"Pitch-Shifting", S_ONOFF, CNTR_X, M_SPC, {"pitched_sounds"}},
-
-    // [FG] play sounds in full length
-    {"Disable Cutoffs", S_ONOFF, CNTR_X, M_SPC, {"full_sounds"}},
-
-    {"Resampler", S_CHOICE, CNTR_X, M_SPC, {"snd_resampler"},
-     .strings_id = str_resampler, .action = I_OAL_SetResampler},
-
-    MI_GAP_Y(6),
+    MI_GAP,
 
     {"Extra Soundtrack", S_CHOICE, CNTR_X, M_SPC, {"extra_music"},
       .strings_id = str_extra_music, .action = RestartMusic},
@@ -2561,11 +2544,39 @@ static setup_menu_t gen_settings2[] = {
      {"midi_player_menu"}, .strings_id = str_midi_player,
      .action = SetMidiPlayer},
 
-    MI_GAP_Y(6),
+    MI_GAP,
 
-    {"MIDI Options", S_FUNC, CNTR_X, M_SPC, .action = MN_Midi},
+    {"Sound Options", S_FUNC, CNTR_X, M_SPC, .action = MN_Sfx},
+
+    {"Music Options", S_FUNC, CNTR_X, M_SPC, .action = MN_Music},
 
     {"Equalizer Options", S_FUNC, CNTR_X, M_SPC, .action = MN_Equalizer},
+
+    MI_END
+};
+
+static setup_menu_t sfx_settings1[] = {
+
+    {"SFX Channels", S_THERMO, CNTR_X, M_THRM_SPC, {"snd_channels"},
+     .action = S_StopChannels},
+
+    {"Output Limiter", S_ONOFF, CNTR_X, M_SPC, {"snd_limiter"},
+     .action = SetSoundModule},
+
+    MI_GAP,
+
+    {"Pitch-Shifting", S_ONOFF, CNTR_X, M_SPC, {"pitched_sounds"}},
+
+    // [FG] play sounds in full length
+    {"Disable Cutoffs", S_ONOFF, CNTR_X, M_SPC, {"full_sounds"}},
+
+    {"Resampler", S_CHOICE, CNTR_X, M_SPC, {"snd_resampler"},
+     .strings_id = str_resampler, .action = I_OAL_SetResampler},
+
+    MI_GAP,
+
+    {"Doppler Effect", S_THERMO, CNTR_X, M_THRM_SPC, {"snd_doppler"},
+     .strings_id = str_percent, .action = SetSoundModule},
 
     MI_END
 };
@@ -2573,44 +2584,59 @@ static setup_menu_t gen_settings2[] = {
 static const char **GetResamplerStrings(void)
 {
     const char **strings = I_OAL_GetResamplerStrings();
-    DisableItem(!strings, gen_settings2, "snd_resampler");
+    DisableItem(!strings, sfx_settings1, "snd_resampler");
     return strings;
 }
 
-static const char *midi_complevel_strings[] = {
-    "Vanilla", "Standard", "Full"
-};
+static setup_menu_t *sfx_settings[] = {sfx_settings1, NULL};
 
-static const char *midi_reset_type_strings[] = {
-    "No SysEx", "General MIDI", "Roland GS", "Yamaha XG"
-};
+static setup_tab_t sfx_tabs[] = {{"Sound"}, {NULL}};
 
-static setup_menu_t midi_settings1[] = {
+static void MN_Sfx(void)
+{
+    SetItemOn(set_item_on);
+    SetPageIndex(current_page);
 
-    {"Native MIDI Gain", S_THERMO, CNTR_X, M_THRM_SPC,
-     {"midi_gain"}, .action = UpdateMusicVolume, .append = "dB"},
+    MN_SetNextMenuAlt(ss_sfx);
+    setup_screen = ss_sfx;
+    current_page = GetPageIndex(sfx_settings);
+    current_menu = sfx_settings[current_page];
+    current_tabs = sfx_tabs;
+    SetupMenuSecondary();
+}
 
-    {"Native MIDI Reset", S_CHOICE | S_ACTION, CNTR_X, M_SPC,
-     {"midi_reset_type"}, .strings_id = str_midi_reset_type,
-     .action = SetMidiPlayerNative},
+void MN_DrawSfx(void)
+{
+    DrawBackground("FLOOR4_6");
+    MN_DrawTitle(M_X_CENTER, M_Y_TITLE, "M_GENERL", "General");
+    DrawTabs();
+    DrawInstructions();
+    DrawScreenItems(current_menu);
+}
 
-    {"Compatibility Level", S_CHOICE | S_ACTION, CNTR_X, M_SPC,
-     {"midi_complevel"}, .strings_id = str_midi_complevel,
-     .action = SetMidiPlayerNative},
+static void UpdateGainItems(void);
 
-    {"SC-55 CTF Emulation", S_ONOFF, CNTR_X, M_SPC, {"midi_ctf"},
-     .action = SetMidiPlayerNative},
+static void ResetAutoGain(void)
+{
+    RestartMusic();
+    UpdateGainItems();
+}
+
+static setup_menu_t music_settings1[] = {
+
+    {"Auto Gain", S_ONOFF, CNTR_X, M_SPC, {"auto_gain"},
+      .action = ResetAutoGain},
 
     MI_GAP,
 
 #if defined (HAVE_FLUIDSYNTH)
-    {"FluidSynth Gain", S_THERMO, CNTR_X, M_THRM_SPC, {"mus_gain"},
+    {"FluidSynth Gain", S_THERMO, CNTR_X, M_THRM_SPC, {"fl_gain"},
      .action = UpdateMusicVolume, .append = "dB"},
 
-    {"FluidSynth Reverb", S_ONOFF, CNTR_X, M_SPC, {"mus_reverb"},
+    {"FluidSynth Reverb", S_ONOFF, CNTR_X, M_SPC, {"fl_reverb"},
      .action = SetMidiPlayerFluidSynth},
 
-    {"FluidSynth Chorus", S_ONOFF, CNTR_X, M_SPC, {"mus_chorus"},
+    {"FluidSynth Chorus", S_ONOFF, CNTR_X, M_SPC, {"fl_chorus"},
      .action = SetMidiPlayerFluidSynth},
 
     MI_GAP,
@@ -2628,19 +2654,25 @@ static setup_menu_t midi_settings1[] = {
     MI_END
 };
 
-static setup_menu_t *midi_settings[] = {midi_settings1, NULL};
+static void UpdateGainItems(void)
+{
+    DisableItem(auto_gain, music_settings1, "fl_gain");
+    DisableItem(auto_gain, music_settings1, "opl_gain");
+}
 
-static setup_tab_t midi_tabs[] = {{"MIDI"}, {NULL}};
+static setup_menu_t *music_settings[] = {music_settings1, NULL};
 
-static void MN_Midi(void)
+static setup_tab_t midi_tabs[] = {{"Music"}, {NULL}};
+
+static void MN_Music(void)
 {
     SetItemOn(set_item_on);
     SetPageIndex(current_page);
 
-    MN_SetNextMenuAlt(ss_midi);
-    setup_screen = ss_midi;
-    current_page = GetPageIndex(midi_settings);
-    current_menu = midi_settings[current_page];
+    MN_SetNextMenuAlt(ss_music);
+    setup_screen = ss_music;
+    current_page = GetPageIndex(music_settings);
+    current_menu = music_settings[current_page];
     current_tabs = midi_tabs;
     SetupMenuSecondary();
 }
@@ -2842,7 +2874,7 @@ static void UpdateRumble(void)
     I_RumbleMenuFeedback();
 }
 
-static const char *rumble_strings[] = {
+static const char *percent_strings[] = {
     "Off", "10%", "20%", "30%", "40%", "50%", "60%", "70%", "80%", "90%", "100%"
 };
 
@@ -2876,7 +2908,7 @@ static setup_menu_t gen_settings4[] = {
     MI_GAP_Y(4),
 
     {"Rumble", S_THERMO, CNTR_X, M_THRM_SPC, {"joy_rumble"},
-     .strings_id = str_rumble, .action = UpdateRumble},
+     .strings_id = str_percent, .action = UpdateRumble},
 
     MI_GAP_Y(5),
 
@@ -2936,13 +2968,10 @@ static setup_menu_t padadv_settings1[] = {
     {"Stick Layout", S_CHOICE, CNTR_X, M_SPC, {"joy_stick_layout"},
      .strings_id = str_layout, .action = UpdateGamepad},
 
-    {"Flick Snap", S_CHOICE | S_STRICT, CNTR_X, M_SPC, {"joy_flick_snap"},
-     .strings_id = str_flick_snap, .action = I_ResetGamepad},
-
     {"Flick Time", S_THERMO, CNTR_X, M_THRM_SPC, {"joy_flick_time"},
      .strings_id = str_ms_time, .action = I_ResetGamepad},
 
-    MI_GAP_Y(6),
+    MI_GAP,
 
     {"Movement Type", S_CHOICE, CNTR_X, M_SPC, {"joy_movement_type"},
      .strings_id = str_movement_type, .action = I_ResetGamepad},
@@ -2955,15 +2984,13 @@ static setup_menu_t padadv_settings1[] = {
      {"joy_strafe_sensitivity"}, .strings_id = str_movement_sensitivity,
      .action = I_ResetGamepad},
 
-    MI_GAP_Y(6),
+    MI_GAP,
 
     {"Extra Turn Speed", S_THERMO | S_THRM_SIZE11, CNTR_X, M_THRM_SPC,
      {"joy_outer_turn_speed"}, .action = UpdateGamepad},
 
     {"Extra Ramp Time", S_THERMO, CNTR_X, M_THRM_SPC, {"joy_outer_ramp_time"},
      .strings_id = str_ms_time, .action = I_ResetGamepad},
-
-    MI_GAP_Y(6),
 
     {"Response Curve", S_THERMO, CNTR_X, M_THRM_SPC, {"joy_camera_curve"},
      .strings_id = str_curve, .action = I_ResetGamepad},
@@ -3017,7 +3044,6 @@ static void UpdateGamepadItems(void)
     DisableItem(condition, gen_settings4, "joy_look_speed");
 
     DisableItem(!gamepad, padadv_settings1, "joy_stick_layout");
-    DisableItem(!flick, padadv_settings1, "joy_flick_snap");
     DisableItem(!flick, padadv_settings1, "joy_flick_time");
     DisableItem(condition, padadv_settings1, "joy_movement_type");
     DisableItem(condition, padadv_settings1, "joy_forward_sensitivity");
@@ -3307,6 +3333,7 @@ void MN_UpdateDynamicResolutionItem(void)
 void MN_UpdateAdvancedSoundItems(boolean toggle)
 {
     DisableItem(toggle, gen_settings2, "snd_hrtf");
+    DisableItem(toggle, sfx_settings1, "snd_doppler");
 }
 
 void MN_UpdateFpsLimitItem(void)
@@ -3402,7 +3429,8 @@ static setup_menu_t **setup_screens[] = {
     enem_settings,
     gen_settings, // killough 10/98
     comp_settings,
-    midi_settings,
+    sfx_settings,
+    music_settings,
     eq_settings,
     padadv_settings,
     gyro_settings,
@@ -3532,7 +3560,8 @@ static void ResetDefaultsSecondary(void)
 {
     if (setup_screen == ss_gen)
     {
-        ResetDefaults(ss_midi);
+        ResetDefaults(ss_sfx);
+        ResetDefaults(ss_music);
         ResetDefaults(ss_eq);
         ResetDefaults(ss_padadv);
         ResetDefaults(ss_gyro);
@@ -4740,7 +4769,7 @@ static const char **selectstrings[] = {
     NULL, // str_ms_time
     NULL, // str_movement_sensitivity
     movement_type_strings,
-    rumble_strings,
+    percent_strings,
     curve_strings,
     center_weapon_strings,
     screensize_strings,
@@ -4765,8 +4794,6 @@ static const char **selectstrings[] = {
     extra_music_strings,
     NULL, // str_resampler
     equalizer_preset_strings,
-    midi_complevel_strings,
-    midi_reset_type_strings,
     NULL, // str_mouse_accel
     gyro_space_strings,
     gyro_action_strings,
@@ -4835,6 +4862,7 @@ void MN_SetupResetMenu(void)
     UpdateGyroItems();
     UpdateWeaponSlotItems();
     MN_UpdateEqualizerItems();
+    UpdateGainItems();
 }
 
 void MN_BindMenuVariables(void)

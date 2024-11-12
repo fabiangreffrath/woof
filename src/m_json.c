@@ -220,6 +220,16 @@ int JS_GetInteger(json_t *json)
     return yyjson_get_int(json);
 }
 
+int JS_GetIntegerValue(json_t *json)
+{
+    json_t *obj = JS_GetObject(json, string);
+    if (JS_IsNumber(obj))
+    {
+        return JS_GetInteger(obj);
+    }
+    return 0;
+}
+
 const char *JS_GetString(json_t *json)
 {
     return yyjson_get_str(json);

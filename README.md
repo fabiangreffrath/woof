@@ -208,6 +208,11 @@ Copyright:
  © 2024 Ethan Watson.  
 License: [CC0-1.0](https://creativecommons.org/publicdomain/zero/1.0/)
 
+Files: `base/all-all/dmxopl.op2`  
+Copyright:  
+ © 2017 Shannon Freeman.  
+License: [MIT](https://opensource.org/licenses/MIT)
+
 Files: `cmake/FindSDL2.cmake, cmake/FindSDL2_net.cmake`  
 Copyright: © 2018 Alex Mayfield.  
 License: [BSD-3-Clause](https://opensource.org/licenses/BSD-3-Clause)
@@ -234,6 +239,9 @@ Copyright:
  © 2002-2004 The DOSBox Team;  
  © 2005-2017 Simon Howard.  
 License: [GPL-2.0+](https://www.gnu.org/licenses/old-licenses/gpl-2.0.html)
+
+Files: `third-party/md5/*`  
+License: public-domain
 
 Files: `third-party/miniz/*`  
 Copyright:  
@@ -262,5 +270,5 @@ Copyright (c) 2020 YaoYuan.
 License: [MIT](https://opensource.org/licenses/MIT)
 
 Files: `win32/win_opendir.*`  
-Copyright: 2019 win32ports
+Copyright: © 2019 win32ports.  
 License: [MIT](https://opensource.org/licenses/MIT)

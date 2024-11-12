@@ -284,6 +284,6 @@ void I_BindFlickStickVariables(void)
         "Flick deadzone relative to camera deadzone [percent]");
     BIND_NUM(joy_flick_forward_deadzone, 7, 0, 45,
         "Forward angle range where flicks are disabled [degrees]");
-    BIND_NUM_PADADV(joy_flick_snap, 0, 0, 2,
+    BIND_NUM(joy_flick_snap, 0, 0, 2,
         "Snap to cardinal directions (0 = Off; 1 = 4-way; 2 = 8-way)");
 }

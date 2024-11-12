@@ -143,6 +143,7 @@ typedef enum
 static st_layout_t st_layout;
 
 static patch_t **facepatches = NULL;
+static patch_t **facebackpatches = NULL;
 
 static int have_xdthfaces;
 
@@ -168,30 +169,30 @@ static void LoadFacePatches(void)
 {
     char lump[9] = {0};
 
-    int painface;
+    int count;
 
-    for (painface = 0; painface < ST_NUMPAINFACES; ++painface)
+    for (count = 0; count < ST_NUMPAINFACES; ++count)
     {
         for (int straightface = 0; straightface < ST_NUMSTRAIGHTFACES;
              ++straightface)
         {
-            M_snprintf(lump, sizeof(lump), "STFST%d%d", painface, straightface);
+            M_snprintf(lump, sizeof(lump), "STFST%d%d", count, straightface);
             array_push(facepatches, V_CachePatchName(lump, PU_STATIC));
         }
 
-        M_snprintf(lump, sizeof(lump), "STFTR%d0", painface); // turn right
+        M_snprintf(lump, sizeof(lump), "STFTR%d0", count); // turn right
         array_push(facepatches, V_CachePatchName(lump, PU_STATIC));
 
-        M_snprintf(lump, sizeof(lump), "STFTL%d0", painface); // turn left
+        M_snprintf(lump, sizeof(lump), "STFTL%d0", count); // turn left
         array_push(facepatches, V_CachePatchName(lump, PU_STATIC));
 
-        M_snprintf(lump, sizeof(lump), "STFOUCH%d", painface); // ouch!
+        M_snprintf(lump, sizeof(lump), "STFOUCH%d", count); // ouch!
         array_push(facepatches, V_CachePatchName(lump, PU_STATIC));
 
-        M_snprintf(lump, sizeof(lump), "STFEVL%d", painface); // evil grin ;)
+        M_snprintf(lump, sizeof(lump), "STFEVL%d", count); // evil grin ;)
         array_push(facepatches, V_CachePatchName(lump, PU_STATIC));
 
-        M_snprintf(lump, sizeof(lump), "STFKILL%d", painface); // pissed off
+        M_snprintf(lump, sizeof(lump), "STFKILL%d", count); // pissed off
         array_push(facepatches, V_CachePatchName(lump, PU_STATIC));
     }
 
@@ -202,9 +203,9 @@ static void LoadFacePatches(void)
     array_push(facepatches, V_CachePatchName(lump, PU_STATIC));
 
     // [FG] support face gib animations as in the 3DO/Jaguar/PSX ports
-    for (painface = 0; painface < ST_NUMXDTHFACES; ++painface)
+    for (count = 0; count < ST_NUMXDTHFACES; ++count)
     {
-        M_snprintf(lump, sizeof(lump), "STFXDTH%d", painface);
+        M_snprintf(lump, sizeof(lump), "STFXDTH%d", count);
 
         if (W_CheckNumForName(lump) != -1)
         {
@@ -215,7 +216,13 @@ static void LoadFacePatches(void)
             break;
         }
     }
-    have_xdthfaces = painface;
+    have_xdthfaces = count;
+
+    for (count = 0; count < MAXPLAYERS; ++count)
+    {
+        M_snprintf(lump, sizeof(lump), "STFB%d", count);
+        array_push(facebackpatches, V_CachePatchName(lump, PU_STATIC));
+    }
 }
 
 static boolean CheckWidgetState(widgetstate_t state)
@@ -324,11 +331,13 @@ static boolean CheckConditions(sbarcondition_t *conditions, player_t *player)
                 break;
 
             case sbc_featurelevelgreaterequal:
-                // ignore
+                // always MBF21
+                result &= 7 >= cond->param;
                 break;
 
             case sbc_featurelevelless:
-                // ignore
+                // always MBF21
+                result &= 7 < cond->param;
                 break;
 
             case sbc_sessiontypeeequal:
@@ -477,7 +486,10 @@ static int ResolveNumber(sbe_number_t *number, player_t *player)
         case sbn_frags:
             for (int p = 0; p < MAXPLAYERS; ++p)
             {
-                result += player->frags[p];
+                if (player != &players[p])
+                    result += player->frags[p];
+                else
+                    result -= player->frags[p];
             }
             break;
 
@@ -714,24 +726,13 @@ static void UpdateFace(sbe_face_t *face, player_t *player)
 static void UpdateNumber(sbarelem_t *elem, player_t *player)
 {
     sbe_number_t *number = elem->subtype.number;
+    numberfont_t *font = number->font;
 
     int value = ResolveNumber(number, player);
     int power = (value < 0 ? number->maxlength - 1 : number->maxlength);
     int max = (int)pow(10.0, power) - 1;
     int valglyphs = 0;
     int numvalues = 0;
-
-    numberfont_t *font = number->font;
-    if (font == NULL)
-    {
-        array_foreach(font, sbardef->numberfonts)
-        {
-            if (!strcmp(font->name, number->font_name))
-            {
-                break;
-            }
-        }
-    }
 
     if (value < 0 && font->minus != NULL)
     {
@@ -789,18 +790,7 @@ static void UpdateNumber(sbarelem_t *elem, player_t *player)
 static void UpdateLines(sbarelem_t *elem)
 {
     sbe_widget_t *widget = elem->subtype.widget;
-
     hudfont_t *font = widget->font;
-    if (font == NULL)
-    {
-        array_foreach(font, sbardef->hudfonts)
-        {
-            if (!strcmp(font->name, widget->font_name))
-            {
-                break;
-            }
-        }
-    }
 
     widgetline_t *line;
     array_foreach(line, widget->lines)
@@ -1104,7 +1094,7 @@ static void DrawPatch(int x, int y, int maxheight, sbaralignment_t alignment,
 
     if (alignment & sbe_h_middle)
     {
-        x -= (width >> 1);
+        x = x - width / 2 + SHORT(patch->leftoffset);
     }
     else if (alignment & sbe_h_right)
     {
@@ -1113,7 +1103,7 @@ static void DrawPatch(int x, int y, int maxheight, sbaralignment_t alignment,
 
     if (alignment & sbe_v_middle)
     {
-        y -= (height >> 1);
+        y = y - height / 2 + SHORT(patch->topoffset);
     }
     else if (alignment & sbe_v_bottom)
     {
@@ -1355,6 +1345,14 @@ static void DrawElem(int x, int y, sbarelem_t *elem, player_t *player)
             {
                 sbe_graphic_t *graphic = elem->subtype.graphic;
                 DrawPatch(x, y, 0, elem->alignment, graphic->patch, elem->cr,
+                          elem->tranmap);
+            }
+            break;
+
+        case sbe_facebackground:
+            {
+                DrawPatch(x, y, 0, elem->alignment,
+                          facebackpatches[displayplayer], elem->cr,
                           elem->tranmap);
             }
             break;
@@ -1729,6 +1727,7 @@ void ST_Start(void)
     HU_StartCrosshair();
 }
 
+hudfont_t *stcfnt;
 patch_t **hu_font = NULL;
 
 void ST_Init(void)
@@ -1742,19 +1741,12 @@ void ST_Init(void)
 
     LoadFacePatches();
 
-    hudfont_t *hudfont;
-    array_foreach(hudfont, sbardef->hudfonts)
-    {
-        if (!strcmp(hudfont->name, "Console"))
-        {
-            hu_font = hudfont->characters;
-            break;
-        }
-    }
+    stcfnt = LoadSTCFN();
+    hu_font = stcfnt->characters;
 
     if (!hu_font)
     {
-        I_Error("ST_Init: \"Console\" font not found");
+        I_Error("ST_Init: \"STCFN\" font not found");
     }
 
     HU_InitCrosshair();
@@ -1805,7 +1797,7 @@ void ST_BindSTSVariables(void)
              "Use solid-color borders for the status bar in widescreen mode");
   M_BindBool("hud_animated_counts", &hud_animated_counts, NULL,
             false, ss_stat, wad_no, "Animated health/armor counts");
-  M_BindBool("hud_armor_type", &hud_armor_type, NULL, false, ss_stat, wad_no,
+  M_BindBool("hud_armor_type", &hud_armor_type, NULL, true, ss_none, wad_no,
              "Armor count is colored based on armor type");
   M_BindNum("health_red", &health_red, NULL, 25, 0, 200, ss_none, wad_yes,
             "Amount of health for red-to-yellow transition");

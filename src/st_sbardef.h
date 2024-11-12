@@ -164,7 +164,6 @@ typedef struct
 
 typedef struct
 {
-    const char *font_name;
     numberfont_t *font;
     sbarnumbertype_t type;
     int param;
@@ -192,7 +191,7 @@ typedef struct
 typedef struct sbe_widget_s
 {
     sbarwidgettype_t type;
-    const char *font_name;
+    hudfont_t *default_font;
     hudfont_t *font;
     widgetline_t *lines;
 
@@ -254,6 +253,7 @@ struct numberfont_s
 struct hudfont_s
 {
     const char *name;
+    const char *stem;
     fonttype_t type;
     int monowidth;
     int maxheight;
@@ -262,11 +262,11 @@ struct hudfont_s
 
 typedef struct
 {
-    numberfont_t *numberfonts;
-    hudfont_t *hudfonts;
     statusbar_t *statusbars;
 } sbardef_t;
 
 sbardef_t *ST_ParseSbarDef(void);
+
+hudfont_t *LoadSTCFN(void);
 
 #endif

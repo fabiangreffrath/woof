@@ -1,5 +1,9 @@
 include(WoofSettings)
 
+add_library(md5 STATIC md5/md5.c)
+target_woof_settings(md5)
+target_include_directories(md5 INTERFACE md5)
+
 add_library(miniz STATIC miniz/miniz.c)
 target_woof_settings(miniz)
 target_compile_definitions(miniz PRIVATE MINIZ_NO_TIME)

@@ -93,7 +93,8 @@ typedef enum
 #define BROWN_S "\x1b\x34"
 #define GOLD_S  "\x1b\x35"
 #define RED_S   "\x1b\x36"
-#define BLUE_S  "\x1b\x37"
+#define BLUE1_S "\x1b\x37"
+#define BLUE2_S "\x1b\x3a"
 
 // jff 1/16/98 end palette color range additions
 

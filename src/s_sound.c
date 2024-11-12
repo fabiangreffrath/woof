@@ -76,8 +76,7 @@ static musicinfo_t *mus_playing;
 // following is set
 //  by the defaults code in M_misc:
 // number of channels available
-int numChannels;
-int default_numChannels; // killough 9/98
+int snd_channels;
 
 // jff 3/17/98 to keep track of last IDMUS specified music num
 int idmusnum;
@@ -94,7 +93,7 @@ int idmusnum;
 static void S_StopChannel(int cnum)
 {
 #ifdef RANGECHECK
-    if (cnum < 0 || cnum >= numChannels)
+    if (cnum < 0 || cnum >= snd_channels)
     {
         I_Error("S_StopChannel: handle %d out of range\n", cnum);
     }
@@ -107,6 +106,17 @@ static void S_StopChannel(int cnum)
         // haleyjd 09/27/06: clear the entire channel
         memset(&channels[cnum], 0, sizeof(channel_t));
     }
+}
+
+void S_StopChannels(void)
+{
+    for (int i = 0; i < MAX_CHANNELS; i++)
+    {
+        I_StopSound(channels[i].handle);
+    }
+
+    memset(channels, 0, sizeof(channels));
+    memset(sobjs, 0, sizeof(sobjs));
 }
 
 //
@@ -146,7 +156,7 @@ static int S_getChannel(const mobj_t *origin, sfxinfo_t *sfxinfo, int priority,
     // kill old sound
     // killough 12/98: replace is_pickup hack with singularity flag
     // haleyjd 06/12/08: only if subchannel matches
-    for (cnum = 0; cnum < numChannels; cnum++)
+    for (cnum = 0; cnum < snd_channels; cnum++)
     {
         if (channels[cnum].sfxinfo && channels[cnum].singularity == singularity
             && channels[cnum].origin == origin)
@@ -157,13 +167,13 @@ static int S_getChannel(const mobj_t *origin, sfxinfo_t *sfxinfo, int priority,
     }
 
     // Find an open channel
-    if (cnum == numChannels)
+    if (cnum == snd_channels)
     {
         // haleyjd 09/28/06: it isn't necessary to look for playing sounds in
         // the same singularity class again, as we just did that above. Here
         // we are looking for an open channel. We will also keep track of the
         // channel found with the lowest sound priority while doing this.
-        for (cnum = 0; cnum < numChannels && channels[cnum].sfxinfo; cnum++)
+        for (cnum = 0; cnum < snd_channels && channels[cnum].sfxinfo; cnum++)
         {
             if (channels[cnum].priority > lowestpriority)
             {
@@ -174,7 +184,7 @@ static int S_getChannel(const mobj_t *origin, sfxinfo_t *sfxinfo, int priority,
     }
 
     // None available?
-    if (cnum == numChannels)
+    if (cnum == snd_channels)
     {
         // Look for lower priority
         // haleyjd: we have stored the channel found with the lowest priority
@@ -191,7 +201,7 @@ static int S_getChannel(const mobj_t *origin, sfxinfo_t *sfxinfo, int priority,
     }
 
 #ifdef RANGECHECK
-    if (cnum >= numChannels)
+    if (cnum >= snd_channels)
     {
         I_Error("S_getChannel: handle %d out of range\n", cnum);
     }
@@ -277,7 +287,7 @@ static void StartSound(const mobj_t *origin, int sfx_id,
     }
 
 #ifdef RANGECHECK
-    if (cnum < 0 || cnum >= numChannels)
+    if (cnum < 0 || cnum >= snd_channels)
     {
         I_Error("S_StartSfxInfo: handle %d out of range\n", cnum);
     }
@@ -454,7 +464,7 @@ void S_StopSound(const mobj_t *origin)
         return;
     }
 
-    for (cnum = 0; cnum < numChannels; ++cnum)
+    for (cnum = 0; cnum < snd_channels; ++cnum)
     {
         if (channels[cnum].sfxinfo && channels[cnum].origin == origin)
         {
@@ -479,7 +489,7 @@ void S_UnlinkSound(mobj_t *origin)
 
     if (origin)
     {
-        for (cnum = 0; cnum < numChannels; cnum++)
+        for (cnum = 0; cnum < snd_channels; cnum++)
         {
             if (channels[cnum].sfxinfo && channels[cnum].origin == origin)
             {
@@ -545,7 +555,7 @@ void S_UpdateSounds(const mobj_t *listener)
 
     I_DeferSoundUpdates();
 
-    for (cnum = 0; cnum < numChannels; ++cnum)
+    for (cnum = 0; cnum < snd_channels; ++cnum)
     {
         channel_t *c = &channels[cnum];
         sfxinfo_t *sfx = c->sfxinfo;
@@ -840,7 +850,7 @@ void S_Start(void)
     // jff 1/22/98 skip sound init if sound not enabled
     if (!nosfxparm)
     {
-        for (cnum = 0; cnum < numChannels; ++cnum)
+        for (cnum = 0; cnum < snd_channels; ++cnum)
         {
             if (channels[cnum].sfxinfo)
             {
@@ -943,7 +953,6 @@ void S_Init(int sfxVolume, int musicVolume)
         S_SetSfxVolume(sfxVolume);
 
         // Reset channel memory
-        numChannels = default_numChannels;
         memset(channels, 0, sizeof(channels));
         memset(sobjs, 0, sizeof(sobjs));
     }
