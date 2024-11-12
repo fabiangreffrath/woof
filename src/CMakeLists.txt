@@ -191,12 +191,12 @@ target_link_libraries(woof PRIVATE
     OpenAL::OpenAL
     libebur128::libebur128
     SndFile::sndfile
+    yyjson::yyjson
     opl
     pffft
     textscreen
     miniz
     spng
-    yyjson
     sha1
     md5)
 

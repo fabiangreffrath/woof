@@ -107,6 +107,7 @@ if(SndFile_VERSION VERSION_GREATER_EQUAL "1.1.0")
    set(HAVE_SNDFILE_MPEG TRUE)
 endif()
 
+find_package(yyjson)
 find_package(FluidSynth)
 find_package(libxmp)
 
