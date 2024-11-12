@@ -1011,7 +1011,7 @@ static void M_LoadSelect(int choice)
     char *name = NULL; // killough 3/22/98
     int slot = choice;
 
-    if (currentMenu == &LoadAutoSaveDef)
+    if (menuactive && currentMenu == &LoadAutoSaveDef)
     {
         slot--;
     }
