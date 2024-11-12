@@ -686,6 +686,18 @@ static void AdjustWeaponSelection(int *newweapon)
     // killough 2/8/98, 3/22/98 -- end of weapon selection changes
 }
 
+int G_GetNextWeapon(int direction)
+{
+    int result = G_NextWeapon(direction);
+
+    if (!demo_compatibility && !full_weapon_cycle)
+    {
+        AdjustWeaponSelection(&result);
+    }
+
+    return result;
+}
+
 static boolean FilterDeathUseAction(void)
 {
     if (players[consoleplayer].playerstate == PST_DEAD && gamestate == GS_LEVEL)

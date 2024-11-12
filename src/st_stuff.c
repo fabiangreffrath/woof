@@ -52,6 +52,7 @@
 #include "st_stuff.h"
 #include "st_sbardef.h"
 #include "st_widgets.h"
+#include "st_nextweap.h"
 #include "tables.h"
 #include "v_fmt.h"
 #include "v_video.h"
@@ -988,6 +989,10 @@ static void UpdateElem(sbarelem_t *elem, player_t *player)
             UpdateLines(elem);
             break;
 
+        case sbe_nextweap:
+            ST_UpdateNextWeap(player);
+            break;
+
         default:
             break;
     }
@@ -1383,6 +1388,10 @@ static void DrawElem(int x, int y, sbarelem_t *elem, player_t *player)
 
         case sbe_widget:
             DrawLines(x, y, elem);
+            break;
+
+        case sbe_nextweap:
+            ST_DrawNextWeap(x, y);
             break;
 
         default:
