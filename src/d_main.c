@@ -68,7 +68,7 @@
 #include "p_map.h"   // MELEERANGE
 #include "p_mobj.h"
 #include "p_setup.h"
-#include "r_bmaps.h"
+#include "r_brightmaps.h"
 #include "r_defs.h"
 #include "r_draw.h"
 #include "r_main.h"
@@ -2272,8 +2272,6 @@ void D_DoomMain(void)
 
   PostProcessDeh();
 
-  W_ProcessInWads("BRGHTMPS", R_ParseBrightmaps, false);
-
   // Moved after WAD initialization because we are checking the COMPLVL lump
   G_ReloadDefaults(false); // killough 3/4/98: set defaults just loaded.
   // jff 3/24/98 this sets startskill if it was -1
@@ -2440,6 +2438,9 @@ void D_DoomMain(void)
   // andrewj: voxel support
   I_Printf(VB_INFO, "VX_Init: ");
   VX_Init();
+
+  I_Printf(VB_INFO, "R_InitBrightmaps: Load brightmaps.");
+  R_InitBrightmaps();
 
   I_PutChar(VB_INFO, '\n');
 

@@ -104,6 +104,7 @@ static struct
     {"flats",     "F_START",  "F_END",  ns_flats    },
     {"colormaps", "C_START",  "C_END",  ns_colormaps},
     {"voxels",    "VX_START", "VX_END", ns_voxels   },
+    {"brightmaps", "BM_START", "BM_END", ns_brightmaps },
 };
 
 static struct

@@ -24,17 +24,20 @@
 #include "d_player.h"
 #include "doomdef.h"
 #include "doomstat.h"
+#include "doomtype.h"
 #include "hu_crosshair.h" // [Alaux] Lock crosshair on target
 #include "i_printf.h"
 #include "i_system.h"
 #include "i_video.h"
 #include "info.h"
+#include "m_fixed.h"
 #include "m_swap.h"
 #include "p_mobj.h"
 #include "p_pspr.h"
-#include "r_bmaps.h" // [crispy] R_BrightmapForTexName()
+#include "r_brightmaps.h"
 #include "r_bsp.h"
 #include "r_data.h"
+#include "r_defs.h"
 #include "r_draw.h"
 #include "r_main.h"
 #include "r_segs.h"
@@ -410,6 +413,63 @@ void R_DrawMaskedColumn(column_t *column)
   dc_texturemid = basetexturemid;
 }
 
+static void R_DrawMaskedColumnBrightmap(column_t *column, column_t *brightmap_column)
+{
+    int64_t topscreen, bottomscreen; // [FG] 64-bit integer math
+    fixed_t basetexturemid = dc_texturemid;
+    int top = -1;
+
+    dc_texheight = 0; // killough 11/98
+
+    while (column->topdelta != 0xff)
+    {
+        // [FG] support for tall sprites in DeePsea format
+        if (column->topdelta <= top)
+        {
+            top += column->topdelta;
+        }
+        else
+        {
+            top = column->topdelta;
+        }
+        // calculate unclipped screen coordinates for post
+        topscreen = sprtopscreen + spryscale * top;
+        bottomscreen = topscreen + spryscale * column->length;
+
+        // Here's where "sparkles" come in -- killough:
+        dc_yl = (int)((topscreen + FRACMASK)
+                      >> FRACBITS); // [FG] 64-bit integer math
+        dc_yh =
+            (int)((bottomscreen - 1) >> FRACBITS); // [FG] 64-bit integer math
+
+        if (dc_yh >= mfloorclip[dc_x])
+        {
+            dc_yh = mfloorclip[dc_x] - 1;
+        }
+
+        if (dc_yl <= mceilingclip[dc_x])
+        {
+            dc_yl = mceilingclip[dc_x] + 1;
+        }
+
+        // killough 3/2/98, 3/27/98: Failsafe against overflow/crash:
+        if (dc_yl <= dc_yh && dc_yh < viewheight)
+        {
+            dc_source = (byte *)column + 3;
+            dc_brightmap = (byte *)brightmap_column + 3;
+            dc_texturemid = basetexturemid - (top << FRACBITS);
+
+            // Drawn by either R_DrawColumn
+            //  or (SHADOW) R_DrawFuzzColumn.
+            colfunc();
+        }
+        int ofs = column->length + 4;
+        column = (column_t *)((byte *)column + ofs);
+        brightmap_column = (column_t *)((byte *)brightmap_column + ofs);
+    }
+    dc_texturemid = basetexturemid;
+}
+
 //
 // R_DrawVisSprite
 //  mfloorclip and mceilingclip should also be set.
@@ -417,64 +477,104 @@ void R_DrawMaskedColumn(column_t *column)
 
 void R_DrawVisSprite(vissprite_t *vis, int x1, int x2)
 {
-  column_t *column;
-  int      texturecolumn;
-  fixed_t  frac;
-  patch_t  *patch = V_CachePatchNum (vis->patch+firstspritelump, PU_CACHE);
+    fixed_t  frac;
+    column_t *column;
+    int      texturecolumn;
+    patch_t  *patch = V_CachePatchNum(vis->patch + firstspritelump, PU_CACHE);
 
-  dc_colormap[0] = vis->colormap[0];
-  dc_colormap[1] = vis->colormap[1];
-  dc_brightmap = vis->brightmap;
+    dc_colormap = dc_lightlevels[0] = vis->colormap[0];
 
-  // killough 4/11/98: rearrange and handle translucent sprites
-  // mixed with translucent/non-translucent 2s normals
+    patch_t *brightmap = vis->brightmap;
 
-  if (!dc_colormap[0])   // NULL colormap = shadow draw
-    colfunc = R_DrawFuzzColumn;    // killough 3/14/98
-  else
-    // [FG] colored blood and gibs
-    if (vis->mobjflags2 & MF2_COLOREDBLOOD)
-      {
+    if (brightmap)
+    {
+        R_BrightmapFunctions(true);
+    }
+
+    // killough 4/11/98: rearrange and handle translucent sprites
+    // mixed with translucent/non-translucent 2s normals
+
+    if (!dc_colormap) // NULL colormap = shadow draw
+    {
+        colfunc = R_DrawFuzzColumn; // killough 3/14/98
+    }
+    else if (vis->mobjflags2 & MF2_COLOREDBLOOD) // [FG] colored blood and gibs
+    {
         colfunc = R_DrawTranslatedColumn;
         dc_translation = red2col[vis->color];
-      }
-  else
-    if (vis->mobjflags & MF_TRANSLATION)
-      {
-        colfunc = R_DrawTranslatedColumn;
-        dc_translation = translationtables - 256 +
-          ((vis->mobjflags & MF_TRANSLATION) >> (MF_TRANSSHIFT-8) );
-      }
-    else
-      if (translucency && !(strictmode && demo_compatibility)
-          && vis->mobjflags & MF_TRANSLUCENT) // phares
-        {
-          colfunc = R_DrawTLColumn;
-          tranmap = main_tranmap;       // killough 4/11/98
-        }
-      else
-        colfunc = R_DrawColumn;         // killough 3/14/98, 4/11/98
-
-  dc_iscale = abs(vis->xiscale);
-  dc_texturemid = vis->texturemid;
-  frac = vis->startfrac;
-  spryscale = vis->scale;
-  sprtopscreen = centeryfrac - FixedMul(dc_texturemid,spryscale);
-
-  for (dc_x=vis->x1 ; dc_x<=vis->x2 ; dc_x++, frac += vis->xiscale)
-    {
-      texturecolumn = frac>>FRACBITS;
-
-      if (texturecolumn < 0)
-        continue;
-      else if (texturecolumn >= SHORT(patch->width))
-        break;
-
-      column = (column_t *)((byte *) patch +
-                            LONG(patch->columnofs[texturecolumn]));
-      R_DrawMaskedColumn (column);
     }
-  colfunc = R_DrawColumn;         // killough 3/14/98
+    else if (vis->mobjflags & MF_TRANSLATION)
+    {
+        colfunc = R_DrawTranslatedColumn;
+        dc_translation =
+            translationtables - 256
+            + ((vis->mobjflags & MF_TRANSLATION) >> (MF_TRANSSHIFT - 8));
+    }
+    else if (translucency && !(strictmode && demo_compatibility)
+             && vis->mobjflags & MF_TRANSLUCENT) // phares
+    {
+        colfunc = R_DrawTLColumn;
+        tranmap = main_tranmap; // killough 4/11/98
+    }
+    else
+    {
+        colfunc = R_DrawColumn; // killough 3/14/98, 4/11/98
+    }
+
+    dc_iscale = abs(vis->xiscale);
+    dc_texturemid = vis->texturemid;
+    frac = vis->startfrac;
+    spryscale = vis->scale;
+    sprtopscreen = centeryfrac - FixedMul(dc_texturemid, spryscale);
+
+    if (brightmap)
+    {
+        column_t *brightmap_column;
+
+        for (dc_x = vis->x1; dc_x <= vis->x2; dc_x++, frac += vis->xiscale)
+        {
+            texturecolumn = frac >> FRACBITS;
+
+            if (texturecolumn < 0)
+            {
+                continue;
+            }
+            else if (texturecolumn >= SHORT(patch->width))
+            {
+                break;
+            }
+
+            int columnofs = LONG(patch->columnofs[texturecolumn]);
+
+            column = (column_t *)((byte *)patch + columnofs);
+            brightmap_column = (column_t *)((byte *)brightmap + columnofs);
+            R_DrawMaskedColumnBrightmap(column, brightmap_column);
+        }
+
+        R_BrightmapFunctions(false);
+    }
+    else
+    {
+        for (dc_x = vis->x1; dc_x <= vis->x2; dc_x++, frac += vis->xiscale)
+        {
+            texturecolumn = frac >> FRACBITS;
+
+            if (texturecolumn < 0)
+            {
+                continue;
+            }
+            else if (texturecolumn >= SHORT(patch->width))
+            {
+                break;
+            }
+
+            column = (column_t *)((byte *)patch
+                                  + LONG(patch->columnofs[texturecolumn]));
+            R_DrawMaskedColumn(column);
+        }
+    }
+
+    colfunc = R_DrawColumn; // killough 3/14/98
 }
 
 //
@@ -558,12 +658,14 @@ static void R_ProjectSprite (mobj_t* thing)
 
   sprdef = &sprites[thing->sprite];
 
-  if ((thing->frame&FF_FRAMEMASK) >= sprdef->numframes)
+  int frame = thing->frame & FF_FRAMEMASK;
+  if (frame >= sprdef->numframes)
     I_Error ("R_ProjectSprite: invalid frame %i for sprite %s",
-             thing->frame & FF_FRAMEMASK, sprnames[thing->sprite]);
+             frame, sprnames[thing->sprite]);
 
-  sprframe = &sprdef->spriteframes[thing->frame & FF_FRAMEMASK];
+  sprframe = &sprdef->spriteframes[frame];
 
+  int rotation;
   if (sprframe->rotate)
     {
       // choose a different rotation based on player view
@@ -571,12 +673,14 @@ static void R_ProjectSprite (mobj_t* thing)
       unsigned rot = (ang-interpangle+(unsigned)(ANG45/2)*9)>>29;
       lump = sprframe->lump[rot];
       flip = (boolean) sprframe->flip[rot];
+      rotation = rot + 1;
     }
   else
     {
       // use single rotation for all views
       lump = sprframe->lump[0];
       flip = (boolean) sprframe->flip[0];
+      rotation = 0;
     }
 
   // [crispy] randomly flip corpse, blood and death animation sprites
@@ -669,12 +773,14 @@ static void R_ProjectSprite (mobj_t* thing)
     vis->startfrac += vis->xiscale*(vis->x1-x1);
   vis->patch = lump;
 
+  vis->brightmap = R_GetBrightmap(thing->sprite, frame, rotation);
+
   // get light level
   if (thing->flags & MF_SHADOW)
     vis->colormap[0] = vis->colormap[1] = NULL;               // shadow draw
   else if (fixedcolormap)
     vis->colormap[0] = vis->colormap[1] = fixedcolormap;      // fixed map
-  else if (thing->frame & FF_FULLBRIGHT)
+  else if (thing->frame & FF_FULLBRIGHT && !brightmaps) // TODO
     vis->colormap[0] = vis->colormap[1] = fullcolormap;       // full bright  // killough 3/20/98
   else
     {      // diminished light
@@ -683,10 +789,6 @@ static void R_ProjectSprite (mobj_t* thing)
       vis->colormap[0] = spritelights[index];
       vis->colormap[1] = fullcolormap;
     }
-
-  vis->brightmap = R_BrightmapForState(thing->state - states);
-  if (vis->brightmap == nobrightmap)
-    vis->brightmap = R_BrightmapForSprite(thing->sprite);
 
   // [Alaux] Lock crosshair on target
   if (STRICTMODE(hud_crosshair_lockon) && thing == crosshair_target)
@@ -807,16 +909,19 @@ void R_DrawPSprite (pspdef_t *psp)
     I_Error ("R_DrawPSprite: invalid sprite number %i", psp->state->sprite);
 #endif
 
-  sprdef = &sprites[psp->state->sprite];
+  int sprite = psp->state->sprite;
+
+  sprdef = &sprites[sprite];
+
+  int frame = psp->state->frame & FF_FRAMEMASK;
 
 #ifdef RANGECHECK
-  if ((psp->state->frame&FF_FRAMEMASK) >= sprdef->numframes)
+  if (frame >= sprdef->numframes)
     I_Error ("R_DrawPSprite: invalid frame %i for sprite %s",
-             (int)(psp->state->frame & FF_FRAMEMASK),
-             sprnames[psp->state->sprite]);
+             frame, sprnames[sprite]);
 #endif
 
-  sprframe = &sprdef->spriteframes[psp->state->frame & FF_FRAMEMASK];
+  sprframe = &sprdef->spriteframes[frame];
 
   lump = sprframe->lump[0];
   flip = (boolean) sprframe->flip[0];
@@ -881,7 +986,8 @@ void R_DrawPSprite (pspdef_t *psp)
     vis->colormap[0] = spritelights[MAXLIGHTSCALE-1];  // local light
     vis->colormap[1] = fullcolormap;
   }
-  vis->brightmap = R_BrightmapForState(psp->state - states);
+
+  vis->brightmap = R_GetBrightmap(sprite, frame, 0);
 
   // interpolation for weapon bobbing
   if (uncapped)

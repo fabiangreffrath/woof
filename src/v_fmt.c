@@ -837,3 +837,163 @@ int V_LumpSize(int lump)
     return lumpinfo[lump].fmt_size ? lumpinfo[lump].fmt_size
                                    : lumpinfo[lump].size;
 }
+
+static byte grayscale[] = {
+    0x00, 0x00, 0x00, 0xFF, 0xFF, 0xFF,
+    0xEF, 0xEF, 0xEF, 0xE7, 0xE7, 0xE7, 0xDF, 0xDF, 0xDF, 0xDB, 0xDB, 0xDB,
+    0xD3, 0xD3, 0xD3, 0xCB, 0xCB, 0xCB, 0xC7, 0xC7, 0xC7, 0xBF, 0xBF, 0xBF,
+    0xB7, 0xB7, 0xB7, 0xB3, 0xB3, 0xB3, 0xAB, 0xAB, 0xAB, 0xA7, 0xA7, 0xA7,
+    0x9F, 0x9F, 0x9F, 0x97, 0x97, 0x97, 0x93, 0x93, 0x93, 0x8B, 0x8B, 0x8B,
+    0x83, 0x83, 0x83, 0x7F, 0x7F, 0x7F, 0x77, 0x77, 0x77, 0x6F, 0x6F, 0x6F,
+    0x6B, 0x6B, 0x6B, 0x63, 0x63, 0x63, 0x5B, 0x5B, 0x5B, 0x57, 0x57, 0x57,
+    // 0x4F, 0x4F, 0x4F, 0x47, 0x47, 0x47, 0x43, 0x43, 0x43, 0x3B, 0x3B, 0x3B,
+    // 0x37, 0x37, 0x37, 0x2F, 0x2F, 0x2F, 0x27, 0x27, 0x27, 0x23, 0x23, 0x23
+};
+
+static byte GetGrayscaleColor(int r, int g, int b)
+{
+    byte best = 0;
+    int best_diff = INT_MAX;
+
+    byte *palette = grayscale;
+
+    for (int i = 0; i < sizeof(grayscale) / 3; ++i)
+    {
+        int dr = r - *palette++;
+        int dg = g - *palette++;
+        int db = b - *palette++;
+
+        int diff = dr * dr + dg * dg + db * db;
+
+        if (diff < best_diff)
+        {
+            if (!diff)
+            {
+                return i;
+            }
+
+            best = i;
+            best_diff = diff;
+        }
+    }
+
+    return best;
+}
+
+byte *V_DecodeBrightMap(byte *buffer, int buffer_length)
+{
+    if (buffer_length < 8 || memcmp(buffer, "\211PNG\r\n\032\n", 8))
+    {
+        return NULL;
+    }
+
+    png_t png = {0};
+
+    if (!InitPNG(&png, buffer, buffer_length))
+    {
+        FreePNG(&png);
+        return NULL;
+    }
+
+    struct spng_ihdr ihdr = {0};
+    int ret = spng_get_ihdr(png.ctx, &ihdr);
+
+    if (ret)
+    {
+        I_Printf(VB_ERROR, "V_DecodeBrightMap: spng_get_ihdr %s\n", spng_strerror(ret));
+        FreePNG(&png);
+        return NULL;
+    }
+
+    int fmt;
+    switch (ihdr.color_type)
+    {
+        // case SPNG_COLOR_TYPE_INDEXED:
+        //     fmt = SPNG_FMT_PNG;
+        //     break;
+        default:
+            fmt = SPNG_FMT_RGB8;
+            break;
+    }
+
+    size_t image_size = 0;
+    ret = spng_decoded_image_size(png.ctx, fmt, &image_size);
+
+    if (ret)
+    {
+        I_Printf(VB_ERROR, "V_DecodeBrightMap: spng_decoded_image_size %s",
+                 spng_strerror(ret));
+        FreePNG(&png);
+        return NULL;
+    }
+
+    byte *image = malloc(image_size);
+
+    ret = spng_decode_image(png.ctx, image, image_size, fmt, 0);
+
+    if (ret)
+    {
+        I_Printf(VB_ERROR, "V_DecodeBrightMap: spng_decode_image %s",
+                 spng_strerror(ret));
+        goto error;
+    }
+
+    if (fmt == SPNG_FMT_RGB8)
+    {
+        int indexed_size = image_size / 3;
+        byte *indexed_image = malloc(indexed_size);
+
+        byte *roller = image;
+
+        for (int i = 0; i < indexed_size; ++i)
+        {
+            int r = *roller++;
+            int g = *roller++;
+            int b = *roller++;
+
+            indexed_image[i] = GetGrayscaleColor(r, g, b);
+        }
+
+        free(image);
+
+        image = indexed_image;
+        image_size = indexed_size;
+    }
+    else
+    {
+        struct spng_plte plte = {0};
+        ret = spng_get_plte(png.ctx, &plte);
+
+        if (ret)
+        {
+            I_Printf(VB_ERROR, "V_DecodeBrightMap: spng_get_plte %s\n",
+                     spng_strerror(ret));
+            goto error;
+        }
+
+        byte *translate = malloc(plte.n_entries);
+        for (int i = 0; i < plte.n_entries; ++i)
+        {
+            struct spng_plte_entry *e = &plte.entries[i];
+
+            translate[i] = GetGrayscaleColor(e->red, e->green, e->blue);
+        }
+
+        for (int i = 0; i < image_size; ++i)
+        {
+            image[i] = translate[image[i]];
+        }
+        free(translate);
+    }
+
+    FreePNG(&png);
+    return image;
+
+error:
+    if (image)
+    {
+        free(image);
+    }
+    FreePNG(&png);
+    return NULL;
+}
