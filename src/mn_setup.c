@@ -2530,7 +2530,7 @@ static setup_menu_t gen_settings2[] = {
 
     MI_GAP,
 
-    {"Extra Soundtrack", S_CHOICE, CNTR_X, M_SPC, {"extra_music"},
+    {"Extra Soundtrack", S_CHOICE | S_ACTION, CNTR_X, M_SPC, {"extra_music"},
       .strings_id = str_extra_music, .action = RestartMusic},
 
     // [FG] music backend
