@@ -129,23 +129,17 @@ static boolean ParseFlatMap(json_t *json, flatmap_t *out)
 
 skydefs_t *R_ParseSkyDefs(void)
 {
-    json_doc_t *doc = JS_ReadDoc("SKYDEFS");
-    if (doc == NULL)
-    {
-        return NULL;
-    }
-    json_t *json = JS_Open(doc, "SKYDEFS", "skydefs", (version_t){1, 0, 0});
+    json_t *json = JS_Open("SKYDEFS", "skydefs", (version_t){1, 0, 0});
     if (json == NULL)
     {
-        JS_FreeDoc(doc);
         return NULL;
     }
 
     json_t *data = JS_GetObject(json, "data");
     if (JS_IsNull(data) || !JS_IsObject(data))
     {
-        I_Printf(VB_ERROR, "SBARDEF: no data");
-        JS_FreeDoc(doc);
+        I_Printf(VB_ERROR, "SKYDEFS: no data");
+        JS_Close("SKYDEFS");
         return NULL;
     }
 
@@ -173,6 +167,6 @@ skydefs_t *R_ParseSkyDefs(void)
         }
     }
 
-    JS_FreeDoc(doc);
+    JS_Close("SKYDEFS");
     return out;
 }

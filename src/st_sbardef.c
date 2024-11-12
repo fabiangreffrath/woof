@@ -402,15 +402,9 @@ static boolean ParseStatusBar(json_t *json, statusbar_t *out)
 
 sbardef_t *ST_ParseSbarDef(void)
 {
-    json_doc_t *doc = JS_ReadDoc("SBARDEF");
-    if (doc == NULL)
-    {
-        return NULL;
-    }
-    json_t *json = JS_Open(doc, "SBARDEF", "statusbar", (version_t){1, 1, 0});
+    json_t *json = JS_Open("SBARDEF", "statusbar", (version_t){1, 1, 0});
     if (json == NULL)
     {
-        JS_FreeDoc(doc);
         return NULL;
     }
 
@@ -426,7 +420,7 @@ sbardef_t *ST_ParseSbarDef(void)
     if (JS_IsNull(data) || !JS_IsObject(data))
     {
         I_Printf(VB_ERROR, "SBARDEF: no data");
-        JS_FreeDoc(doc);
+        JS_Close("SBARDEF");
         return NULL;
     }
 
@@ -468,22 +462,16 @@ sbardef_t *ST_ParseSbarDef(void)
         }
     }
 
-    JS_FreeDoc(doc);
+    JS_Close("SBARDEF");
 
     if (!load_defaults)
     {
         return out;
     }
 
-    doc = JS_ReadDoc("SBHUDDEF");
-    if (doc == NULL)
-    {
-        return NULL;
-    }
-    json = JS_Open(doc, "SBHUDDEF", "hud", (version_t){1, 0, 0});
+    json = JS_Open("SBHUDDEF", "hud", (version_t){1, 0, 0});
     if (json == NULL)
     {
-        JS_FreeDoc(doc);
         return NULL;
     }
 
@@ -518,7 +506,7 @@ sbardef_t *ST_ParseSbarDef(void)
         }
     }
 
-    JS_FreeDoc(doc);
+    JS_Close("SBHUDDEF");
 
     return out;
 }

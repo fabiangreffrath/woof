@@ -16,6 +16,7 @@
 #include <string.h>
 #include "doomtype.h"
 #include "i_printf.h"
+#include "m_array.h"
 #include "m_misc.h"
 #include "w_wad.h"
 #include "z_zone.h"
@@ -40,57 +41,58 @@ boolean JS_GetVersion(json_t *json, version_t *version)
     return false;
 }
 
-json_doc_t *JS_ReadDocNum(int lumpnum)
+typedef struct
+{
+    yyjson_doc *json_doc;
+    int lumpnum;
+} doc_t;
+
+static doc_t *docs;
+
+json_t *JS_OpenOptions(int lumpnum, boolean comments)
 {
     char *string = W_CacheLumpNum(lumpnum, PU_CACHE);
     int length = W_LumpLength(lumpnum);
 
+    yyjson_read_flag flag = comments ? YYJSON_READ_ALLOW_COMMENTS : 0;
+
     yyjson_read_err err;
-    json_doc_t *doc = yyjson_read_opts(string, length,
-                                       YYJSON_READ_ALLOW_COMMENTS, NULL, &err);
-    if (!doc)
+    yyjson_doc *json_doc = yyjson_read_opts(string, length, flag, NULL, &err);
+
+    if (!json_doc)
     {
         size_t line, col, chr;
         yyjson_locate_pos(string, length, err.pos, &line, &col, &chr);
-        char name[8];
-        M_CopyLumpName(name, lumpinfo[lumpnum].name);
+        char name[9] = {0};
+        memcpy(name, lumpinfo[lumpnum].name, 8);
         I_Printf(VB_ERROR, "%s(%d:%d): read error: %s\n", name, (int)line,
                  (int)col, err.msg);
         return NULL;
     }
 
-    return doc;
+    json_t *json = yyjson_doc_get_root(json_doc);
+    if (!json)
+    {
+        array_push(docs, ((doc_t){json_doc, lumpnum}));
+    }
+    return json;
 }
 
-json_doc_t *JS_ReadDoc(const char *lump)
+json_t *JS_Open(const char *lump, const char *type, version_t maxversion)
 {
     int lumpnum = W_CheckNumForName(lump);
     if (lumpnum < 0)
     {
         return NULL;
     }
-    return JS_ReadDocNum(lumpnum);
-}
 
-void JS_FreeDoc(json_doc_t *json_doc)
-{
-    yyjson_doc_free(json_doc);
-}
-
-json_t *JS_GetRoot(json_doc_t *json_doc)
-{
-    return yyjson_doc_get_root(json_doc);
-}
-
-json_t *JS_Open(json_doc_t *json_doc, const char *lump, const char *type,
-                version_t maxversion)
-{
-    json_t *json = yyjson_doc_get_root(json_doc);
+    json_t *json = JS_OpenOptions(lumpnum, false);
 
     json_t *js_type = JS_GetObject(json, "type");
     if (!JS_IsString(js_type))
     {
         I_Printf(VB_ERROR, "%s: no type string", lump);
+        JS_Close(lump);
         return NULL;
     }
 
@@ -98,6 +100,7 @@ json_t *JS_Open(json_doc_t *json_doc, const char *lump, const char *type,
     if (strcmp(s, type))
     {
         I_Printf(VB_ERROR, "%s: wrong type %s", lump, s);
+        JS_Close(lump);
         return NULL;
     }
 
@@ -105,6 +108,7 @@ json_t *JS_Open(json_doc_t *json_doc, const char *lump, const char *type,
     if (!JS_GetVersion(json, &v))
     {
         I_Printf(VB_ERROR, "%s: no version string", lump);
+        JS_Close(lump);
         return NULL;
     }
 
@@ -115,10 +119,35 @@ json_t *JS_Open(json_doc_t *json_doc, const char *lump, const char *type,
     {
         I_Printf(VB_ERROR, "%s: max supported version %d.%d.%d", lump,
                  maxversion.major, maxversion.minor, maxversion.revision);
+        JS_Close(lump);
         return NULL;
     }
 
     return json;
+}
+
+void JS_CloseOptions(int lumpnum)
+{
+    doc_t *doc;
+    array_foreach(doc, docs)
+    {
+        if (doc->lumpnum == lumpnum)
+        {
+            yyjson_doc_free(doc->json_doc);
+            break;
+        }
+    }
+}
+
+void JS_Close(const char *lump)
+{
+    int lumpnum = W_CheckNumForName(lump);
+    if (lumpnum < 0)
+    {
+        return;
+    }
+
+    JS_CloseOptions(lumpnum);
 }
 
 boolean JS_IsObject(json_t *json)

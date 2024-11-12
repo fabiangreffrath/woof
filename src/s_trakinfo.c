@@ -36,8 +36,7 @@ static trakinfo_t *trakinfo;
 
 void S_ParseTrakInfo(int lumpnum)
 {
-    json_doc_t *doc = JS_ReadDocNum(lumpnum);
-    json_t *json = JS_GetRoot(doc);
+    json_t *json = JS_OpenOptions(lumpnum, true);
 
     json_obj_iter_t *iter = JS_ObjectIterator(json);
 
@@ -65,7 +64,7 @@ void S_ParseTrakInfo(int lumpnum)
         array_push(trakinfo, trak);
     }
 
-    JS_FreeDoc(doc);
+    JS_CloseOptions(lumpnum);
     trakinfo_found = true;
 }
 

@@ -18,7 +18,6 @@
 
 typedef struct yyjson_val json_t;
 
-typedef struct yyjson_doc json_doc_t;
 typedef struct yyjson_obj_iter json_obj_iter_t;
 
 typedef struct
@@ -30,13 +29,10 @@ typedef struct
 
 boolean JS_GetVersion(json_t *json, version_t *version);
 
-json_doc_t *JS_ReadDoc(const char *lump);
-json_doc_t *JS_ReadDocNum(int lumpnum);
-void JS_FreeDoc(json_doc_t *json_doc);
-json_t *JS_GetRoot(json_doc_t *json_doc);
-
-json_t *JS_Open(json_doc_t *json_doc, const char *lump,
-                const char *type, version_t maxversion);
+json_t *JS_Open(const char *lump, const char *type, version_t maxversion);
+json_t *JS_OpenOptions(int lumpnum, boolean comments);
+void JS_Close(const char *lump);
+void JS_CloseOptions(int lumpnum);
 
 boolean JS_IsObject(json_t *json);
 boolean JS_IsNull(json_t *json);
