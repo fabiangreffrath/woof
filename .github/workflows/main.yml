@@ -49,6 +49,7 @@ jobs:
             libsdl2-dev \
             libsdl2-net-dev \
             libopenal-dev \
+            libebur128-dev \
             libsndfile1-dev \
             libfluidsynth-dev \
             libxmp-dev \
@@ -62,6 +63,7 @@ jobs:
             sdl2 \
             sdl2_net \
             openal-soft \
+            libebur128 \
             libsndfile \
             fluid-synth \
             libxmp \
@@ -82,6 +84,7 @@ jobs:
             ${{ matrix.config.msys-env }}-SDL2
             ${{ matrix.config.msys-env }}-SDL2_net
             ${{ matrix.config.msys-env }}-openal
+            ${{ matrix.config.msys-env }}-libebur128
             ${{ matrix.config.msys-env }}-libsndfile
             ${{ matrix.config.msys-env }}-fluidsynth
             ${{ matrix.config.msys-env }}-libxmp
@@ -141,6 +144,7 @@ jobs:
             libsdl2-dev \
             libsdl2-net-dev \
             libopenal-dev \
+            libebur128-dev \
             libsndfile1-dev \
             libfluidsynth-dev \
             libxmp-dev \

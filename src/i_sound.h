@@ -143,6 +143,8 @@ int I_SoundID(int handle);
 //  MUSIC I/O
 //
 
+extern boolean auto_gain;
+
 typedef enum
 {
     midiplayer_none,

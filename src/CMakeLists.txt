@@ -188,6 +188,7 @@ target_link_libraries(woof PRIVATE
     ${SDL2_LIBRARIES}
     SDL2_net::SDL2_net
     OpenAL::OpenAL
+    libebur128::libebur128
     SndFile::sndfile
     opl
     pffft
