@@ -645,6 +645,8 @@ void S_SetSfxVolume(int volume)
     snd_SfxVolume = volume;
 }
 
+static extra_music_t extra_music;
+
 static int current_musicnum = -1;
 
 void S_ChangeMusic(int musicnum, int looping)
@@ -691,10 +693,11 @@ void S_ChangeMusic(int musicnum, int looping)
     music->data = W_CacheLumpNum(music->lumpnum, PU_STATIC);
     if (extra_music && trakinfo_found)
     {
-        const char *remix = S_GetRemix(music->data, W_LumpLength(music->lumpnum));
-        if (remix)
+        const char *extra =
+            S_GetExtra(music->data, W_LumpLength(music->lumpnum), extra_music);
+        if (extra)
         {
-            music->lumpnum = W_GetNumForName(remix);
+            music->lumpnum = W_GetNumForName(extra);
             Z_Free(music->data);
             music->data = W_CacheLumpNum(music->lumpnum, PU_STATIC);
         }
@@ -754,10 +757,11 @@ void S_ChangeMusInfoMusic(int lumpnum, int looping)
     music->data = W_CacheLumpNum(music->lumpnum, PU_STATIC);
     if (extra_music && trakinfo_found)
     {
-        const char *remix = S_GetRemix(music->data, W_LumpLength(music->lumpnum));
-        if (remix)
+        const char *extra =
+            S_GetExtra(music->data, W_LumpLength(music->lumpnum), extra_music);
+        if (extra)
         {
-            music->lumpnum = W_GetNumForName(remix);
+            music->lumpnum = W_GetNumForName(extra);
             Z_Free(music->data);
             music->data = W_CacheLumpNum(music->lumpnum, PU_STATIC);
         }
@@ -970,8 +974,8 @@ void S_Init(int sfxVolume, int musicVolume)
 
 void S_BindSoundVariables(void)
 {
-    BIND_NUM(extra_music, EXMUS_REMIX, EXMUS_NONE, EXMUS_ROLAND_SC55,
-             "Extra soundtrack (0 = Off; 1 = Remix; 2 = Roland SC-55");
+    BIND_NUM(extra_music, EXMUS_REMIX, EXMUS_NONE, EXMUS_ORIGINAL,
+             "Extra soundtrack (0 = Off; 1 = Remix; 2 = Original");
 }
 
 //----------------------------------------------------------------------------

@@ -23,8 +23,6 @@
 
 boolean trakinfo_found;
 
-extra_music_t extra_music;
-
 typedef struct
 {
     sha1_digest_t sha1key;
@@ -68,7 +66,7 @@ void S_ParseTrakInfo(int lumpnum)
     trakinfo_found = true;
 }
 
-const char *S_GetRemix(byte *data, int length)
+const char *S_GetExtra(byte *data, int length, extra_music_t type)
 {
     sha1_context_t sha1_context;
     sha1_digest_t digest;
@@ -82,7 +80,7 @@ const char *S_GetRemix(byte *data, int length)
     {
         if (!memcmp(trak->sha1key, digest, sizeof(sha1_digest_t)))
         {
-            if (extra_music == EXMUS_REMIX)
+            if (type == EXMUS_REMIX)
             {
                 return trak->remix;
             }

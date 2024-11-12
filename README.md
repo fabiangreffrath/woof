@@ -266,7 +266,7 @@ Copyright: © 2018-2023 Randy.
 License: [BSD-2-Clause](https://opensource.org/license/bsd-2-clause)
 
 Files: `third-party/yyjson/*`  
-Copyright (c) 2020 YaoYuan.  
+Copyright © 2020 YaoYuan.  
 License: [MIT](https://opensource.org/licenses/MIT)
 
 Files: `win32/win_opendir.*`  
