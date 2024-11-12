@@ -29,6 +29,6 @@ extern extra_music_t extra_music;
 
 void S_ParseTrakInfo(int lumpnum);
 
-char *S_GetRemix(byte *data, int length);
+const char *S_GetRemix(byte *data, int length);
 
 #endif

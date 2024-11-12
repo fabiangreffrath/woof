@@ -2481,16 +2481,6 @@ static void SetMidiPlayer(void)
     S_RestartMusic();
 }
 
-static const char *extra_music_strings[] = {
-    "Off", "Remix", "Roland SC-55"
-};
-
-static void RestartMusic(void)
-{
-    S_StopMusic();
-    S_RestartMusic();
-}
-
 static void SetMidiPlayerOpl(void)
 {
     if (I_MidiPlayerType() == midiplayer_opl)
@@ -2513,6 +2503,10 @@ static void RestartMusic(void)
     S_SetMusicVolume(snd_MusicVolume);
     S_RestartMusic();
 }
+
+static const char *extra_music_strings[] = {
+    "Off", "Remix", "Original"
+};
 
 static void MN_Sfx(void);
 static void MN_Music(void);

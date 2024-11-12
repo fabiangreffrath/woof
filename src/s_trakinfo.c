@@ -28,8 +28,8 @@ extra_music_t extra_music;
 typedef struct
 {
     sha1_digest_t sha1key;
-    char remix[9];
-    char midi[9];
+    const char *remix;
+    const char *midi;
 } trakinfo_t;
 
 static trakinfo_t *trakinfo;
@@ -54,12 +54,12 @@ void S_ParseTrakInfo(int lumpnum)
         const char *remix = JS_GetStringValue(value, "Remixed");
         if (remix)
         {
-            M_CopyLumpName(trak.remix, remix);
+            trak.remix = M_StringDuplicate(remix);
         }
         const char *midi = JS_GetStringValue(value, "MIDI");
         if (midi)
         {
-            M_CopyLumpName(trak.midi, midi);
+            trak.midi = M_StringDuplicate(midi);
         }
         array_push(trakinfo, trak);
     }
@@ -68,7 +68,7 @@ void S_ParseTrakInfo(int lumpnum)
     trakinfo_found = true;
 }
 
-char *S_GetRemix(byte *data, int length)
+const char *S_GetRemix(byte *data, int length)
 {
     sha1_context_t sha1_context;
     sha1_digest_t digest;

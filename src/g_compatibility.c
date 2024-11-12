@@ -109,7 +109,7 @@ void G_ParseCompDatabase(void)
     if (JS_IsNull(data) || !JS_IsObject(data))
     {
         I_Printf(VB_ERROR, "COMPDB: no data");
-        JS_Close(json);
+        JS_Close("COMPDB");
         return;
     }
 
@@ -153,7 +153,7 @@ void G_ParseCompDatabase(void)
         array_push(comp_database, record);
     }
 
-    JS_Close(json);
+    JS_Close("COMPDB");
 }
 
 static void MD5UpdateLump(int lump, struct MD5Context *md5)

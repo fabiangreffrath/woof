@@ -691,7 +691,7 @@ void S_ChangeMusic(int musicnum, int looping)
     music->data = W_CacheLumpNum(music->lumpnum, PU_STATIC);
     if (extra_music && trakinfo_found)
     {
-        char *remix = S_GetRemix(music->data, W_LumpLength(music->lumpnum));
+        const char *remix = S_GetRemix(music->data, W_LumpLength(music->lumpnum));
         if (remix)
         {
             music->lumpnum = W_GetNumForName(remix);
@@ -754,7 +754,7 @@ void S_ChangeMusInfoMusic(int lumpnum, int looping)
     music->data = W_CacheLumpNum(music->lumpnum, PU_STATIC);
     if (extra_music && trakinfo_found)
     {
-        char *remix = S_GetRemix(music->data, W_LumpLength(music->lumpnum));
+        const char *remix = S_GetRemix(music->data, W_LumpLength(music->lumpnum));
         if (remix)
         {
             music->lumpnum = W_GetNumForName(remix);

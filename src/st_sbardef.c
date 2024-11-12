@@ -332,26 +332,6 @@ static boolean ParseNumberFont(json_t *json, numberfont_t *out)
 
 static void LoadHUDFont(hudfont_t *out)
 {
-    json_t *name = JS_GetObject(json, "name");
-    if (!JS_IsString(name))
-    {
-        return false;
-    }
-    out->name = M_StringDuplicate(JS_GetString(name));
-
-    const char *stem = JS_GetStringValue(json, "stem");
-    if (!stem)
-    {
-        return false;
-    }
-
-    json_t *type = JS_GetObject(json, "type");
-    if (!JS_IsNumber(type))
-    {
-        return false;
-    }
-    out->type = JS_GetInteger(type);
-
     char lump[9] = {0};
     int found;
     int maxwidth = 0;

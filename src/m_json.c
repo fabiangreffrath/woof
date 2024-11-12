@@ -92,7 +92,7 @@ json_t *JS_Open(const char *lump, const char *type, version_t maxversion)
     if (!JS_IsString(js_type))
     {
         I_Printf(VB_ERROR, "%s: no type string", lump);
-        JS_Close(lump);
+        JS_CloseOptions(lumpnum);
         return NULL;
     }
 
@@ -100,7 +100,7 @@ json_t *JS_Open(const char *lump, const char *type, version_t maxversion)
     if (strcmp(s, type))
     {
         I_Printf(VB_ERROR, "%s: wrong type %s", lump, s);
-        JS_Close(lump);
+        JS_CloseOptions(lumpnum);
         return NULL;
     }
 
@@ -108,7 +108,7 @@ json_t *JS_Open(const char *lump, const char *type, version_t maxversion)
     if (!JS_GetVersion(json, &v))
     {
         I_Printf(VB_ERROR, "%s: no version string", lump);
-        JS_Close(lump);
+        JS_CloseOptions(lumpnum);
         return NULL;
     }
 
@@ -119,7 +119,7 @@ json_t *JS_Open(const char *lump, const char *type, version_t maxversion)
     {
         I_Printf(VB_ERROR, "%s: max supported version %d.%d.%d", lump,
                  maxversion.major, maxversion.minor, maxversion.revision);
-        JS_Close(lump);
+        JS_CloseOptions(lumpnum);
         return NULL;
     }
 
@@ -220,7 +220,7 @@ int JS_GetInteger(json_t *json)
     return yyjson_get_int(json);
 }
 
-int JS_GetIntegerValue(json_t *json)
+int JS_GetIntegerValue(json_t *json, const char *string)
 {
     json_t *obj = JS_GetObject(json, string);
     if (JS_IsNumber(obj))
