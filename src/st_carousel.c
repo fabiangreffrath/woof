@@ -17,6 +17,8 @@
 #include "g_game.h"
 #include "m_array.h"
 #include "m_misc.h"
+#include "r_defs.h"
+#include "st_sbardef.h"
 #include "v_fmt.h"
 #include "v_video.h"
 
@@ -93,35 +95,47 @@ void ST_UpdateCarousel(player_t *player)
     }
 }
 
-static void DrawItem(int x, int y, weapontype_t weapon, int state)
+static void DrawItem(int x, int y, sbarelem_t *elem, weapontype_t weapon,
+                     int state)
 {
-    if (weapon == wp_nochange)
-    {
-        return;
-    }
-
     char lump[9] = {0};
     M_snprintf(lump, sizeof(lump), "%s%d", names[weapon], state);
-    V_DrawPatch(x, y, V_CachePatchName(lump, PU_CACHE));
+
+    patch_t *patch = V_CachePatchName(lump, PU_CACHE);
+
+    byte *outr = colrngs[elem->cr];
+
+    if (outr && elem->tranmap)
+    {
+        V_DrawPatchTRTL(x, y, patch, outr, elem->tranmap);
+    }
+    else if (elem->tranmap)
+    {
+        V_DrawPatchTL(x, y, patch, elem->tranmap);
+    }
+    else
+    {
+        V_DrawPatchTranslated(x, y, patch, outr);
+    }
 }
 
-void ST_DrawCarousel(int x, int y)
+void ST_DrawCarousel(int x, int y, sbarelem_t *elem)
 {
     if (duration == 0)
     {
         return;
     }
 
-    DrawItem(SCREENWIDTH / 2, y, curr, 1);
+    DrawItem(SCREENWIDTH / 2, y, elem, curr, 1);
 
     for (int i = curr_pos + 1, k = 1; i < array_size(weapon_list) && k < 3;
          ++i, ++k)
     {
-        DrawItem(SCREENWIDTH / 2 + k * 64, y, weapon_list[i], 0);
+        DrawItem(SCREENWIDTH / 2 + k * 64, y, elem, weapon_list[i], 0);
     }
 
     for (int i = curr_pos - 1, k = 1; i >= 0 && k < 3; --i, ++k)
     {
-        DrawItem(SCREENWIDTH / 2 - k * 64, y, weapon_list[i], 0);
+        DrawItem(SCREENWIDTH / 2 - k * 64, y, elem, weapon_list[i], 0);
     }
 }

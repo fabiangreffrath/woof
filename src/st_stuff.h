@@ -26,7 +26,6 @@
 #include "doomtype.h"
 
 struct event_s;
-struct player_s;
 struct patch_s;
 
 // Size of statusbar.

@@ -1398,7 +1398,7 @@ static void DrawElem(int x, int y, sbarelem_t *elem, player_t *player)
         case sbe_carousel:
             if (weapon_carousel)
             {
-                ST_DrawCarousel(x, y);
+                ST_DrawCarousel(x, y, elem);
             }
             break;
 

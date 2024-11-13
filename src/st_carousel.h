@@ -15,9 +15,10 @@
 #define ST_CAROUSEL_H
 
 struct player_s;
+struct sbarelem_s;
 
 void ST_UpdateCarousel(struct player_s *player);
 
-void ST_DrawCarousel(int x, int y);
+void ST_DrawCarousel(int x, int y, struct sbarelem_s *elem);
 
 #endif
