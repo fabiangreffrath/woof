@@ -11,8 +11,6 @@
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 // GNU General Public License for more details.
 
-#include <string.h>
-
 #include "d_player.h"
 #include "doomdef.h"
 #include "doomtype.h"
@@ -52,28 +50,25 @@ static int duration;
 
 static weapontype_t *weapon_list;
 
-static int BuildWeaponList(const player_t *player)
+static void BuildWeaponList(const player_t *player)
 {
-    int result = 0;
-
+    curr_pos = 0;
     array_clear(weapon_list);
 
     for (int i = 0; i < arrlen(weapon_order); ++i)
     {
         weapontype_t weapon = weapon_order[i];
 
-        if (WeaponSelectable(player, weapon))
+        if (G_WeaponSelectable(player, weapon))
         {
             if (weapon == curr)
             {
-                result = array_size(weapon_list);
+                curr_pos = array_size(weapon_list);
             }
 
             array_push(weapon_list, weapon);
         }
     }
-
-    return result;
 }
 
 void ST_UpdateCarousel(player_t *player)
@@ -98,7 +93,7 @@ void ST_UpdateCarousel(player_t *player)
         curr = player->readyweapon;
     }
 
-    curr_pos = BuildWeaponList(player);
+    BuildWeaponList(player);
 
     --duration;
 }

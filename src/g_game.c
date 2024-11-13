@@ -243,7 +243,7 @@ static const struct
     { wp_bfg,             wp_bfg }
 };
 
-boolean WeaponSelectable(const player_t *player, weapontype_t weapon)
+boolean G_WeaponSelectable(const player_t *player, weapontype_t weapon)
 {
     // Can't select the super shotgun in Doom 1.
 
@@ -316,7 +316,7 @@ static int G_NextWeapon(const player_t *player, int direction)
     {
         i += direction;
         i = (i + arrlen(weapon_order_table)) % arrlen(weapon_order_table);
-    } while (i != start_i && !WeaponSelectable(player, weapon_order_table[i].weapon));
+    } while (i != start_i && !G_WeaponSelectable(player, weapon_order_table[i].weapon));
 
     if (!demo_compatibility)
         return weapon_order_table[i].weapon;
@@ -330,7 +330,7 @@ static weapontype_t LastWeapon(void)
     const weapontype_t weapon = player->lastweapon;
 
     if (weapon < wp_fist || weapon >= NUMWEAPONS
-        || !WeaponSelectable(player, weapon))
+        || !G_WeaponSelectable(player, weapon))
     {
         return wp_nochange;
     }
