@@ -243,7 +243,7 @@ static const struct
     { wp_bfg,             wp_bfg }
 };
 
-static boolean WeaponSelectable(const player_t *player, weapontype_t weapon)
+boolean WeaponSelectable(const player_t *player, weapontype_t weapon)
 {
     // Can't select the super shotgun in Doom 1.
 
@@ -281,7 +281,7 @@ static boolean WeaponSelectable(const player_t *player, weapontype_t weapon)
     return true;
 }
 
-int G_NextWeapon(const player_t *player, int direction)
+static int G_NextWeapon(const player_t *player, int direction)
 {
     weapontype_t weapon;
     int start_i, i;

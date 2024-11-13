@@ -15,7 +15,9 @@
 
 #include "d_player.h"
 #include "doomdef.h"
+#include "doomtype.h"
 #include "g_game.h"
+#include "m_array.h"
 #include "m_misc.h"
 #include "v_fmt.h"
 #include "v_video.h"
@@ -32,15 +34,46 @@ static const char *names[] = {
     [wp_supershotgun] = "SMSGN2",
 };
 
-static weapontype_t curr, next1, next2, prev1, prev2;
-static int duration;
-static player_t local_player;
+static const weapontype_t weapon_order[] = {
+    wp_fist,
+    wp_chainsaw,
+    wp_pistol,
+    wp_shotgun,
+    wp_supershotgun,
+    wp_chaingun,
+    wp_missile,
+    wp_plasma,
+    wp_bfg,
+};
 
-static weapontype_t NextWeapon(weapontype_t type, int direction)
+static weapontype_t curr;
+static int curr_pos;
+static int duration;
+
+static weapontype_t *weapon_list;
+
+static int BuildWeaponList(const player_t *player)
 {
-    local_player.pendingweapon = type;
-    local_player.readyweapon = type;
-    return G_NextWeapon(&local_player, direction);
+    int result = 0;
+
+    array_clear(weapon_list);
+
+    for (int i = 0; i < arrlen(weapon_order); ++i)
+    {
+        weapontype_t weapon = weapon_order[i];
+
+        if (WeaponSelectable(player, weapon))
+        {
+            if (weapon == curr)
+            {
+                result = array_size(weapon_list);
+            }
+
+            array_push(weapon_list, weapon);
+        }
+    }
+
+    return result;
 }
 
 void ST_UpdateCarousel(player_t *player)
@@ -65,23 +98,7 @@ void ST_UpdateCarousel(player_t *player)
         curr = player->readyweapon;
     }
 
-    memcpy(local_player.weaponowned, player->weaponowned, sizeof(player->weaponowned));
-    memcpy(local_player.powers, player->powers, sizeof(player->powers));
-
-    next1 = NextWeapon(curr, 1);
-    next2 = NextWeapon(next1, 1);
-
-    prev1 = NextWeapon(curr, -1);
-    prev2 = NextWeapon(prev1, -1);
-
-    if (next2 == curr)
-    {
-        next2 = wp_nochange;
-    }
-    if (prev2 == curr)
-    {
-        prev2 = wp_nochange;
-    }
+    curr_pos = BuildWeaponList(player);
 
     --duration;
 }
@@ -107,9 +124,14 @@ void ST_DrawCarousel(int x, int y)
 
     DrawItem(SCREENWIDTH / 2, y, curr, 1);
 
-    DrawItem(SCREENWIDTH / 2 + 64, y, next1, 0);
-    DrawItem(SCREENWIDTH / 2 + 2 * 64, y, next2, 0);
+    for (int i = curr_pos + 1, k = 1; i < array_size(weapon_list) && k < 3;
+         ++i, ++k)
+    {
+        DrawItem(SCREENWIDTH / 2 + k * 64, y, weapon_list[i], 0);
+    }
 
-    DrawItem(SCREENWIDTH / 2 - 64, y, prev1, 0);
-    DrawItem(SCREENWIDTH / 2 - 2 * 64, y, prev2, 0);
+    for (int i = curr_pos - 1, k = 1; i >= 0 && k < 3; --i, ++k)
+    {
+        DrawItem(SCREENWIDTH / 2 - k * 64, y, weapon_list[i], 0);
+    }
 }
