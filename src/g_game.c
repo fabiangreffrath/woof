@@ -165,7 +165,6 @@ boolean         padlook = false;
 // killough 4/13/98: Make clock rate adjustable by scale factor
 int             realtic_clock_rate = 100;
 static boolean  doom_weapon_toggles;
-static boolean  full_weapon_cycle;
 
 complevel_t     force_complevel, default_complevel;
 
@@ -4959,9 +4958,6 @@ void G_BindWeapVariables(void)
   M_BindBool("doom_weapon_toggles", &doom_weapon_toggles, NULL,
              true, ss_weap, wad_no,
              "Allow toggling between SG/SSG and Fist/Chainsaw");
-  M_BindBool("full_weapon_cycle", &full_weapon_cycle, NULL,
-             false, ss_weap, wad_no,
-             "Cycle through all weapons");
   M_BindBool("player_bobbing", &default_player_bobbing, &player_bobbing,
              true, ss_none, wad_no, "Physical player bobbing (affects compatibility)");
 
