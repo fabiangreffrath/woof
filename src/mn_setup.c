@@ -1555,6 +1555,8 @@ static setup_menu_t weap_settings1[] = {
 
     MI_GAP,
 
+    {"Show Weapon Carousel", S_ONOFF, CNTR_X, M_SPC, {"weapon_carousel"}},
+
     // [FG] centered or bobbing weapon sprite
     {"Weapon Alignment", S_CHOICE | S_STRICT, CNTR_X, M_SPC, {"center_weapon"},
      .strings_id = str_center_weapon},

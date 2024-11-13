@@ -125,6 +125,8 @@ static int armor_green;   // armor amount above is blue, below is green
 
 static boolean hud_armor_type; // color of armor depends on type
 
+static boolean weapon_carousel;
+
 // used for evil grin
 static boolean  oldweaponsowned[NUMWEAPONS];
 
@@ -990,7 +992,10 @@ static void UpdateElem(sbarelem_t *elem, player_t *player)
             break;
 
         case sbe_carousel:
-            ST_UpdateCarousel(player);
+            if (weapon_carousel)
+            {
+                ST_UpdateCarousel(player);
+            }
             break;
 
         default:
@@ -1391,7 +1396,10 @@ static void DrawElem(int x, int y, sbarelem_t *elem, player_t *player)
             break;
 
         case sbe_carousel:
-            ST_DrawCarousel(x, y);
+            if (weapon_carousel)
+            {
+                ST_DrawCarousel(x, y);
+            }
             break;
 
         default:
@@ -1840,6 +1848,9 @@ void ST_BindSTSVariables(void)
   M_BindNum("hud_crosshair_target_color", &hud_crosshair_target_color, NULL,
             CR_YELLOW, CR_BRICK, CR_NONE, ss_stat, wad_no,
             "Crosshair color when aiming at target");
+
+  M_BindBool("weapon_carousel", &weapon_carousel, NULL,
+             true, ss_weap, wad_no, "Show weapon carousel");
 }
 
 //----------------------------------------------------------------------------
