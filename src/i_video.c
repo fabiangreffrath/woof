@@ -509,11 +509,8 @@ static void ProcessEvent(SDL_Event *ev)
             break;
 
         case SDL_QUIT:
-            {
-                static event_t event;
-                event.type = ev_quit;
-                D_PostEvent(&event);
-            }
+            disable_endoom = true;
+            I_SafeExit(0);
             break;
 
         case SDL_WINDOWEVENT:

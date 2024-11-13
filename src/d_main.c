@@ -1701,9 +1701,11 @@ static void D_ShowEndDoom(void)
   I_Endoom(endoom);
 }
 
+boolean disable_endoom = false;
+
 static boolean AllowEndDoom(void)
 {
-  return (exit_sequence == EXIT_SEQUENCE_FULL
+  return  !disable_endoom && (exit_sequence == EXIT_SEQUENCE_FULL
           || (exit_sequence == EXIT_SEQUENCE_PWAD_ENDOOM
               && !W_IsIWADLump(W_CheckNumForName("ENDOOM"))));
 }
