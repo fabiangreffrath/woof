@@ -52,6 +52,7 @@
 #include "mn_menu.h"
 #include "mn_internal.h"
 #include "r_main.h"
+#include "s_sound.h"
 #include "st_stuff.h"
 #include "st_widgets.h"
 #include "w_wad.h"
@@ -115,6 +116,7 @@ void M_InitConfig(void)
     R_BindRenderVariables();
 
     I_BindSoundVariables();
+    S_BindSoundVariables();
     I_BindEqualizerVariables();
 
     MN_BindMenuVariables();

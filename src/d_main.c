@@ -76,6 +76,7 @@
 #include "r_voxel.h"
 #include "s_sound.h"
 #include "sounds.h"
+#include "s_trakinfo.h"
 #include "st_stuff.h"
 #include "st_widgets.h"
 #include "statdump.h"
@@ -1829,6 +1830,21 @@ void D_DoomMain(void)
   // [FG] emulate a specific version of Doom
   InitGameVersion();
 
+  //!
+  // @category mod
+  //
+  // Disable auto loading of extras.wad.
+  //
+
+  if (!M_ParmExists("-noextras"))
+  {
+      char *extras = D_FindWADByName("extras.wad");
+      if (extras)
+      {
+          D_AddFile(extras);
+      }
+  }
+
   dsdh_InitTables();
 
   D_InitTables();
@@ -2395,6 +2411,8 @@ void D_DoomMain(void)
     // Not loading a game
     startloadgame = -1;
   }
+
+  W_ProcessInWads("TRAKINFO", S_ParseTrakInfo, false);
 
   I_Printf(VB_INFO, "M_Init: Init miscellaneous info.");
   M_Init();

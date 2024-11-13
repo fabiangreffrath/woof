@@ -118,12 +118,13 @@ static boolean ParseSbarElemType(json_t *json, sbarelementtype_t type,
         case sbe_graphic:
             {
                 sbe_graphic_t *graphic = calloc(1, sizeof(*graphic));
-                json_t *patch = JS_GetObject(json, "patch");
-                if (!JS_IsString(patch))
+                const char *patch = JS_GetStringValue(json, "patch");
+                if (!patch)
                 {
+                    free(graphic);
                     return false;
                 }
-                graphic->patch_name = M_StringDuplicate(JS_GetString(patch));
+                graphic->patch_name = M_StringDuplicate(patch);
                 out->subtype.graphic = graphic;
             }
             break;
@@ -152,8 +153,19 @@ static boolean ParseSbarElemType(json_t *json, sbarelementtype_t type,
                 const char *font_name = JS_GetStringValue(json, "font");
                 if (!font_name)
                 {
+                    free(number);
                     return false;
                 }
+                json_t *type = JS_GetObject(json, "type");
+                json_t *param = JS_GetObject(json, "param");
+                json_t *maxlength = JS_GetObject(json, "maxlength");
+                if (!JS_IsNumber(type) || !JS_IsNumber(param)
+                    || !JS_IsNumber(maxlength))
+                {
+                    free(number);
+                    return false;
+                }
+
                 numberfont_t *font;
                 array_foreach(font, numberfonts)
                 {
@@ -162,14 +174,6 @@ static boolean ParseSbarElemType(json_t *json, sbarelementtype_t type,
                         number->font = font;
                         break;
                     }
-                }
-                json_t *type = JS_GetObject(json, "type");
-                json_t *param = JS_GetObject(json, "param");
-                json_t *maxlength = JS_GetObject(json, "maxlength");
-                if (!JS_IsNumber(type) || !JS_IsNumber(param)
-                    || !JS_IsNumber(maxlength))
-                {
-                    return false;
                 }
                 number->type = JS_GetInteger(type);
                 number->param = JS_GetInteger(param);
@@ -184,8 +188,17 @@ static boolean ParseSbarElemType(json_t *json, sbarelementtype_t type,
                 const char *font_name = JS_GetStringValue(json, "font");
                 if (!font_name)
                 {
+                    free(widget);
                     return false;
                 }
+                json_t *type = JS_GetObject(json, "type");
+                if (!JS_IsNumber(type))
+                {
+                    free(widget);
+                    return false;
+                }
+                widget->type = JS_GetInteger(type);
+
                 hudfont_t *font;
                 array_foreach(font, hudfonts)
                 {
@@ -195,12 +208,6 @@ static boolean ParseSbarElemType(json_t *json, sbarelementtype_t type,
                         break;
                     }
                 }
-                json_t *type = JS_GetObject(json, "type");
-                if (!JS_IsNumber(type))
-                {
-                    return false;
-                }
-                widget->type = JS_GetInteger(type);
 
                 switch (widget->type)
                 {
@@ -459,7 +466,7 @@ sbardef_t *ST_ParseSbarDef(void)
     if (JS_IsNull(data) || !JS_IsObject(data))
     {
         I_Printf(VB_ERROR, "SBARDEF: no data");
-        JS_Close(json);
+        JS_Close("SBARDEF");
         return NULL;
     }
 
@@ -501,7 +508,7 @@ sbardef_t *ST_ParseSbarDef(void)
         }
     }
 
-    JS_Close(json);
+    JS_Close("SBARDEF");
 
     if (!load_defaults)
     {
@@ -545,7 +552,7 @@ sbardef_t *ST_ParseSbarDef(void)
         }
     }
 
-    JS_Close(json);
+    JS_Close("SBHUDDEF");
 
     return out;
 }

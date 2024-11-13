@@ -138,8 +138,8 @@ skydefs_t *R_ParseSkyDefs(void)
     json_t *data = JS_GetObject(json, "data");
     if (JS_IsNull(data) || !JS_IsObject(data))
     {
-        I_Printf(VB_ERROR, "SBARDEF: no data");
-        JS_Close(json);
+        I_Printf(VB_ERROR, "SKYDEFS: no data");
+        JS_Close("SKYDEFS");
         return NULL;
     }
 
@@ -167,6 +167,6 @@ skydefs_t *R_ParseSkyDefs(void)
         }
     }
 
-    JS_Close(json);
+    JS_Close("SKYDEFS");
     return out;
 }

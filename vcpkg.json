@@ -43,6 +43,6 @@
         "name": "libxmp",
         "default-features": false
     },
-    "cjson"
+    "yyjson"
   ]
 }
