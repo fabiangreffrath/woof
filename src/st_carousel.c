@@ -46,30 +46,10 @@ static const weapontype_t weapon_order[] = {
 
 static weapontype_t curr;
 static int curr_pos;
+
 static int duration;
 
 static weapontype_t *weapon_list;
-
-static void BuildWeaponList(const player_t *player)
-{
-    curr_pos = 0;
-    array_clear(weapon_list);
-
-    for (int i = 0; i < arrlen(weapon_order); ++i)
-    {
-        weapontype_t weapon = weapon_order[i];
-
-        if (G_WeaponSelectable(player, weapon))
-        {
-            if (weapon == curr)
-            {
-                curr_pos = array_size(weapon_list);
-            }
-
-            array_push(weapon_list, weapon);
-        }
-    }
-}
 
 void ST_UpdateCarousel(player_t *player)
 {
@@ -84,6 +64,8 @@ void ST_UpdateCarousel(player_t *player)
         return;
     }
 
+    --duration;
+
     if (player->pendingweapon != wp_nochange)
     {
         curr = player->pendingweapon;
@@ -93,9 +75,22 @@ void ST_UpdateCarousel(player_t *player)
         curr = player->readyweapon;
     }
 
-    BuildWeaponList(player);
+    curr_pos = 0;
+    array_clear(weapon_list);
 
-    --duration;
+    for (int i = 0; i < arrlen(weapon_order); ++i)
+    {
+        weapontype_t weapon = weapon_order[i];
+
+        if (G_WeaponSelectable(weapon))
+        {
+            if (weapon == curr)
+            {
+                curr_pos = array_size(weapon_list);
+            }
+            array_push(weapon_list, weapon);
+        }
+    }
 }
 
 static void DrawItem(int x, int y, weapontype_t weapon, int state)

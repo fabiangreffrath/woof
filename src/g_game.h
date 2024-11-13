@@ -86,7 +86,7 @@ const char *G_GetCurrentComplevelName(void);
 int G_GotoNextLevel(int *pEpi, int *pMap);
 
 boolean G_Carousel(void);
-boolean G_WeaponSelectable(const player_t *player, weapontype_t weapon);
+boolean G_WeaponSelectable(weapontype_t weapon);
 
 void G_BindGameInputVariables(void);
 void G_BindGameVariables(void);

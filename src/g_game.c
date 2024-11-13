@@ -243,7 +243,7 @@ static const struct
     { wp_bfg,             wp_bfg }
 };
 
-boolean G_WeaponSelectable(const player_t *player, weapontype_t weapon)
+boolean G_WeaponSelectable(weapontype_t weapon)
 {
     // Can't select the super shotgun in Doom 1.
 
@@ -262,7 +262,7 @@ boolean G_WeaponSelectable(const player_t *player, weapontype_t weapon)
 
     // Can't select a weapon if we don't own it.
 
-    if (!player->weaponowned[weapon])
+    if (!players[consoleplayer].weaponowned[weapon])
     {
         return false;
     }
@@ -272,8 +272,8 @@ boolean G_WeaponSelectable(const player_t *player, weapontype_t weapon)
 
     if (weapon == wp_fist
      && demo_compatibility
-     && player->weaponowned[wp_chainsaw]
-     && !player->powers[pw_strength])
+     && players[consoleplayer].weaponowned[wp_chainsaw]
+     && !players[consoleplayer].powers[pw_strength])
     {
         return false;
     }
@@ -281,20 +281,20 @@ boolean G_WeaponSelectable(const player_t *player, weapontype_t weapon)
     return true;
 }
 
-static int G_NextWeapon(const player_t *player, int direction)
+static int G_NextWeapon(int direction)
 {
     weapontype_t weapon;
     int start_i, i;
 
     // Find index in the table.
 
-    if (player->pendingweapon == wp_nochange)
+    if (players[consoleplayer].pendingweapon == wp_nochange)
     {
-        weapon = player->readyweapon;
+        weapon = players[consoleplayer].readyweapon;
     }
     else
     {
-        weapon = player->pendingweapon;
+        weapon = players[consoleplayer].pendingweapon;
     }
 
     for (i = 0; i < arrlen(weapon_order_table); ++i)
@@ -316,7 +316,7 @@ static int G_NextWeapon(const player_t *player, int direction)
     {
         i += direction;
         i = (i + arrlen(weapon_order_table)) % arrlen(weapon_order_table);
-    } while (i != start_i && !G_WeaponSelectable(player, weapon_order_table[i].weapon));
+    } while (i != start_i && !G_WeaponSelectable(weapon_order_table[i].weapon));
 
     if (!demo_compatibility)
         return weapon_order_table[i].weapon;
@@ -326,11 +326,10 @@ static int G_NextWeapon(const player_t *player, int direction)
 
 static weapontype_t LastWeapon(void)
 {
-    player_t *player = &players[consoleplayer];
-    const weapontype_t weapon = player->lastweapon;
+    const weapontype_t weapon = players[consoleplayer].lastweapon;
 
     if (weapon < wp_fist || weapon >= NUMWEAPONS
-        || !G_WeaponSelectable(player, weapon))
+        || !G_WeaponSelectable(weapon))
     {
         return wp_nochange;
     }
@@ -637,7 +636,7 @@ void G_PrepGyroTiccmd(void)
   }
 }
 
-static void AdjustWeaponSelection(const player_t *player, int *newweapon)
+static void AdjustWeaponSelection(int *newweapon)
 {
     // killough 3/22/98: For network and demo consistency with the
     // new weapons preferences, we must do the weapons switches here
@@ -652,6 +651,8 @@ static void AdjustWeaponSelection(const player_t *player, int *newweapon)
     //
     // killough 10/98: make SG/SSG and Fist/Chainsaw
     // weapon toggles optional
+
+    const player_t *player = &players[consoleplayer];
 
     // only select chainsaw from '1' if it's owned, it's
     // not already in use, and the player prefers it or
@@ -911,7 +912,7 @@ void G_BuildTiccmd(ticcmd_t* cmd)
   else if (gamestate == GS_LEVEL && next_weapon != 0)
   {
     // [FG] prev/next weapon keys and buttons
-    newweapon = G_NextWeapon(&players[consoleplayer], next_weapon);
+    newweapon = G_NextWeapon(next_weapon);
   }
   else
     {                                 // phares 02/26/98: Added gamemode checks
@@ -929,7 +930,7 @@ void G_BuildTiccmd(ticcmd_t* cmd)
 
       if (!demo_compatibility && doom_weapon_toggles)
         {
-          AdjustWeaponSelection(&players[consoleplayer], &newweapon);
+          AdjustWeaponSelection(&newweapon);
         }
     }
 
