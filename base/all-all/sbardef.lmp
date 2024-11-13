@@ -1102,10 +1102,10 @@
             }
           },
           {
-            "nextweap":
+            "carousel":
             {
               "x": 0,
-              "y": 12,
+              "y": 16,
               "alignment": 0,
               "tranmap": null,
               "translation": null,
@@ -1835,10 +1835,10 @@
                   }
                 },
                 {
-                  "nextweap":
+                  "carousel":
                   {
                     "x": 0,
-                    "y": 12,
+                    "y": 16,
                     "alignment": 0,
                     "tranmap": null,
                     "translation": null,
@@ -2020,10 +2020,10 @@
             }
           },
           {
-            "nextweap":
+            "carousel":
             {
               "x": 0,
-              "y": 12,
+              "y": 16,
               "alignment": 0,
               "tranmap": null,
               "translation": null,

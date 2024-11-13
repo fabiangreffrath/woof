@@ -11,13 +11,13 @@
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 // GNU General Public License for more details.
 
-#ifndef ST_NEXTWEAP_H
-#define ST_NEXTWEAP_H
+#ifndef ST_CAROUSEL_H
+#define ST_CAROUSEL_H
 
 struct player_s;
 
-void ST_UpdateNextWeap(struct player_s *player);
+void ST_UpdateCarousel(struct player_s *player);
 
-void ST_DrawNextWeap(int x, int y);
+void ST_DrawCarousel(int x, int y);
 
 #endif

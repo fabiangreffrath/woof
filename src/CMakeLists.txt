@@ -129,8 +129,8 @@ set(WOOF_SOURCES
     s_sound.c              s_sound.h
     sounds.c               sounds.h
     st_sbardef.c           st_sbardef.h
+    st_carousel.c          st_carousel.h
     st_stuff.c             st_stuff.h
-    st_nextweap.c          st_nextweap.h
     st_widgets.c           st_widgets.h
     statdump.c             statdump.h
     tables.c               tables.h

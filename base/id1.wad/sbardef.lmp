@@ -1100,6 +1100,18 @@
               ],
               "children": null
             }
+          },
+          {
+            "carousel":
+            {
+              "x": 0,
+              "y": 16,
+              "alignment": 0,
+              "tranmap": null,
+              "translation": null,
+              "conditions": null,
+              "children": null
+            }
           }
         ]
       },
@@ -1821,6 +1833,18 @@
                     ],
                     "children": null
                   }
+                },
+                {
+                  "carousel":
+                  {
+                    "x": 0,
+                    "y": 16,
+                    "alignment": 0,
+                    "tranmap": null,
+                    "translation": null,
+                    "conditions": null,
+                    "children": null
+                  }
                 }
               ]
             }
@@ -1992,6 +2016,18 @@
                   "param": 2
                 }
               ],
+              "children": null
+            }
+          },
+          {
+            "carousel":
+            {
+              "x": 0,
+              "y": 16,
+              "alignment": 0,
+              "tranmap": null,
+              "translation": null,
+              "conditions": null,
               "children": null
             }
           }

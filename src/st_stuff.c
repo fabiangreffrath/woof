@@ -49,10 +49,10 @@
 #include "r_main.h"
 #include "r_state.h"
 #include "s_sound.h"
+#include "st_carousel.h"
 #include "st_stuff.h"
 #include "st_sbardef.h"
 #include "st_widgets.h"
-#include "st_nextweap.h"
 #include "tables.h"
 #include "v_fmt.h"
 #include "v_video.h"
@@ -989,8 +989,8 @@ static void UpdateElem(sbarelem_t *elem, player_t *player)
             UpdateLines(elem);
             break;
 
-        case sbe_nextweap:
-            ST_UpdateNextWeap(player);
+        case sbe_carousel:
+            ST_UpdateCarousel(player);
             break;
 
         default:
@@ -1390,8 +1390,8 @@ static void DrawElem(int x, int y, sbarelem_t *elem, player_t *player)
             DrawLines(x, y, elem);
             break;
 
-        case sbe_nextweap:
-            ST_DrawNextWeap(x, y);
+        case sbe_carousel:
+            ST_DrawCarousel(x, y);
             break;
 
         default:

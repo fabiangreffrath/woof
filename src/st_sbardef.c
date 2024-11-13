@@ -240,7 +240,7 @@ static const char *sbe_names[] =
     [sbe_number] = "number",
     [sbe_percent] = "percent",
     [sbe_widget] = "widget",
-    [sbe_nextweap] = "nextweap"
+    [sbe_carousel] = "carousel"
 };
 
 static boolean ParseSbarElem(json_t *json, sbarelem_t *out)
