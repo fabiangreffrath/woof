@@ -13,6 +13,7 @@ static const char *params[] = {
 "-dog",
 "-fast",
 "-nm",
+"-noextras",
 "-nomo",
 "-nomonsters",
 "-pistolstart",

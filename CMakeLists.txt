@@ -90,7 +90,6 @@ find_package(SndFile 1.0.29 REQUIRED)
 if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
     find_package(ALSA REQUIRED)
 endif()
-find_package(cJSON REQUIRED)
 
 if(ALSA_FOUND)
     set(HAVE_ALSA TRUE)
@@ -108,6 +107,7 @@ if(SndFile_VERSION VERSION_GREATER_EQUAL "1.1.0")
    set(HAVE_SNDFILE_MPEG TRUE)
 endif()
 
+find_package(yyjson)
 find_package(FluidSynth)
 find_package(libxmp)
 

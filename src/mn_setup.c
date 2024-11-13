@@ -51,6 +51,7 @@
 #include "r_sky.h"   // [FG] R_InitSkyMap()
 #include "r_voxel.h"
 #include "s_sound.h"
+#include "s_trakinfo.h"
 #include "st_sbardef.h"
 #include "st_stuff.h"
 #include "sounds.h"
@@ -338,6 +339,7 @@ enum
 
     str_gamma,
     str_sound_module,
+    str_extra_music,
     str_resampler,
     str_equalizer_preset,
 
@@ -2502,6 +2504,10 @@ static void RestartMusic(void)
     S_RestartMusic();
 }
 
+static const char *extra_music_strings[] = {
+    "Off", "Remix", "Original"
+};
+
 static void MN_Sfx(void);
 static void MN_Music(void);
 static void MN_Equalizer(void);
@@ -2523,6 +2529,9 @@ static setup_menu_t gen_settings2[] = {
      .action = SetSoundModule},
 
     MI_GAP,
+
+    {"Extra Soundtrack", S_CHOICE | S_ACTION, CNTR_X, M_SPC, {"extra_music"},
+      .strings_id = str_extra_music, .action = RestartMusic},
 
     // [FG] music backend
     {"MIDI Player", S_CHOICE | S_ACTION | S_WRAP_LINE, CNTR_X, M_SPC * 2,
@@ -4776,6 +4785,7 @@ static const char **selectstrings[] = {
     NULL, // str_midi_player
     gamma_strings,
     sound_module_strings,
+    extra_music_strings,
     NULL, // str_resampler
     equalizer_preset_strings,
     NULL, // str_mouse_accel
@@ -4837,6 +4847,7 @@ void MN_SetupResetMenu(void)
     DisableItem(deh_set_blood_color, enem_settings1, "colored_blood");
     DisableItem(!brightmaps_found || force_brightmaps, gen_settings5,
                 "brightmaps");
+    DisableItem(!trakinfo_found, gen_settings2, "extra_music");
     UpdateInterceptsEmuItem();
     UpdateStatsFormatItem();
     UpdateCrosshairItems();

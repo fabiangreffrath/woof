@@ -162,7 +162,7 @@ interlevel_t *WI_ParseInterlevel(const char *lumpname)
     if (JS_IsNull(data) || !JS_IsObject(data))
     {
         I_Printf(VB_ERROR, "%s: no data", lumpname);
-        JS_Close(json);
+        JS_Close(lumpname);
         return NULL;
     }
 
@@ -171,7 +171,7 @@ interlevel_t *WI_ParseInterlevel(const char *lumpname)
 
     if (!JS_IsString(music) || !JS_IsString(backgroundimage))
     {
-        JS_Close(json);
+        JS_Close(lumpname);
         return NULL;
     }
 
@@ -192,6 +192,6 @@ interlevel_t *WI_ParseInterlevel(const char *lumpname)
     }
     out->layers = layers;
 
-    JS_Close(json);
+    JS_Close(lumpname);
     return out;
 }
