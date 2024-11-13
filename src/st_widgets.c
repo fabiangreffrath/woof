@@ -986,6 +986,13 @@ static void UpdateSpeed(sbe_widget_t *widget, player_t *player)
 
 static void UpdateCmd(sbe_widget_t *widget)
 {
+    ST_ClearLines(widget);
+
+    if (!STRICTMODE(hud_command_history))
+    {
+        return;
+    }
+
     HU_BuildCommandHistory(widget);
 }
 
