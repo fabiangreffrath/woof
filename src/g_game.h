@@ -84,7 +84,9 @@ demo_version_t G_GetNamedComplevel(const char *arg);
 const char *G_GetCurrentComplevelName(void);
 
 int G_GotoNextLevel(int *pEpi, int *pMap);
-int G_Carousel(const struct player_s *player, int direction);
+
+int G_NextWeapon(const player_t *player, int direction);
+boolean G_Carousel(void);
 
 void G_BindGameInputVariables(void);
 void G_BindGameVariables(void);

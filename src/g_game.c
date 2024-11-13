@@ -226,6 +226,7 @@ int    bodyqueslot, bodyquesize, default_bodyquesize; // killough 2/8/98, 10/98
 // [FG] prev/next weapon handling from Chocolate Doom
 
 static int next_weapon = 0;
+static boolean sendnextweapon;
 
 static const struct
 {
@@ -281,7 +282,7 @@ static boolean WeaponSelectable(const player_t *player, weapontype_t weapon)
     return true;
 }
 
-static int G_NextWeapon(const player_t *player, int direction)
+int G_NextWeapon(const player_t *player, int direction)
 {
     weapontype_t weapon;
     int start_i, i;
@@ -297,7 +298,7 @@ static int G_NextWeapon(const player_t *player, int direction)
         weapon = player->pendingweapon;
     }
 
-    for (i=0; i<arrlen(weapon_order_table); ++i)
+    for (i = 0; i < arrlen(weapon_order_table); ++i)
     {
         if (weapon_order_table[i].weapon == weapon)
         {
@@ -686,18 +687,6 @@ static void AdjustWeaponSelection(const player_t *player, int *newweapon)
     // killough 2/8/98, 3/22/98 -- end of weapon selection changes
 }
 
-int G_Carousel(const player_t *player, int direction)
-{
-    int result = G_NextWeapon(player, direction);
-
-    if (!demo_compatibility && !full_weapon_cycle)
-    {
-        AdjustWeaponSelection(player, &result);
-    }
-
-    return result;
-}
-
 static boolean FilterDeathUseAction(void)
 {
     if (players[consoleplayer].playerstate == PST_DEAD && gamestate == GS_LEVEL)
@@ -924,11 +913,6 @@ void G_BuildTiccmd(ticcmd_t* cmd)
   {
     // [FG] prev/next weapon keys and buttons
     newweapon = G_NextWeapon(&players[consoleplayer], next_weapon);
-
-    if (!demo_compatibility && !full_weapon_cycle)
-    {
-      AdjustWeaponSelection(&players[consoleplayer], &newweapon);
-    }
   }
   else
     {                                 // phares 02/26/98: Added gamemode checks
@@ -1469,10 +1453,12 @@ boolean G_Responder(event_t* ev)
   if (M_InputActivated(input_prevweapon))
   {
       next_weapon = -1;
+      sendnextweapon = true;
   }
   else if (M_InputActivated(input_nextweapon))
   {
       next_weapon = 1;
+      sendnextweapon = true;
   }
 
   if (dclick_use && ev->type == ev_mouseb_down &&
@@ -1529,6 +1515,13 @@ boolean G_Responder(event_t* ev)
       break;
     }
   return false;
+}
+
+boolean G_Carousel(void)
+{
+    boolean result = sendnextweapon;
+    sendnextweapon = false;
+    return result;
 }
 
 int D_GetPlayersInNetGame(void);

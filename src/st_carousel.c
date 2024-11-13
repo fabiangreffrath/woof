@@ -40,24 +40,29 @@ static weapontype_t NextWeapon(weapontype_t type, int direction)
 {
     local_player.pendingweapon = type;
     local_player.readyweapon = type;
-    return G_Carousel(&local_player, direction);
+    return G_NextWeapon(&local_player, direction);
 }
 
 void ST_UpdateCarousel(player_t *player)
 {
-    if (player->pendingweapon != wp_nochange)
+    if (player->pendingweapon != wp_nochange
+        && G_Carousel())
     {
-        curr = player->pendingweapon;
         duration = TICRATE * 2;
-    }
-    else
-    {
-        curr = player->readyweapon;
     }
 
     if (duration == 0)
     {
         return;
+    }
+
+    if (player->pendingweapon != wp_nochange)
+    {
+        curr = player->pendingweapon;
+    }
+    else
+    {
+        curr = player->readyweapon;
     }
 
     memcpy(local_player.weaponowned, player->weaponowned, sizeof(player->weaponowned));
