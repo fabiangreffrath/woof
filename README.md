@@ -89,7 +89,8 @@ The following build system and libraries need to be installed:
  * [SDL2_net](https://github.com/libsdl-org/SDL_net)
  * [openal-soft](https://github.com/kcat/openal-soft) (>= 1.22.0 for PC Speaker emulation)
  * [libsndfile](https://github.com/libsndfile/libsndfile) (>= 1.1.0 for MPEG support)
- * [cJSON](https://github.com/DaveGamble/cJSON)
+ * [libebur128](https://github.com/jiixyj/libebur128) (>= 1.2.0)
+ * [yyjson](https://github.com/ibireme/yyjson) (>= 0.10.0, optional)
  * [fluidsynth](https://github.com/FluidSynth/fluidsynth) (>= 2.2.0, optional)
  * [libxmp](https://github.com/libxmp/libxmp) (optional)
  
