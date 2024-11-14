@@ -1735,6 +1735,7 @@ static setup_menu_t weap_settings3[] = {
     {"9Th Choice Weapon", S_WEAP | S_BOOM, M_X, M_SPC, {"weapon_choice_9"}},
     MI_GAP,
     {"Same Key Toggles Weapons", S_ONOFF | S_BOOM, M_X, M_SPC, {"doom_weapon_toggles"}},
+    {"Cycle Through All Weapons", S_ONOFF | S_BOOM, M_X, M_SPC, {"full_weapon_cycle"}},
     MI_GAP,
     // killough 8/8/98
     {"Pre-Beta BFG", S_ONOFF | S_STRICT, M_X, M_SPC, {"classic_bfg"}},
