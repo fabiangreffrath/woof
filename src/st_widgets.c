@@ -1103,7 +1103,7 @@ void ST_ResetMessageColors(void)
     }
 }
 
-sbarelem_t *st_time_elem = NULL;
+sbarelem_t *st_time_elem = NULL, *st_cmd_elem = NULL;
 
 void ST_UpdateWidget(sbarelem_t *elem, player_t *player)
 {
@@ -1144,6 +1144,7 @@ void ST_UpdateWidget(sbarelem_t *elem, player_t *player)
             UpdateRate(widget, player);
             break;
         case sbw_cmd:
+            st_cmd_elem = elem;
             UpdateCmd(widget);
             break;
         case sbw_speed:
