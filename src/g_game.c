@@ -165,7 +165,6 @@ boolean         padlook = false;
 // killough 4/13/98: Make clock rate adjustable by scale factor
 int             realtic_clock_rate = 100;
 static boolean  doom_weapon_toggles;
-static boolean  full_weapon_cycle;
 
 complevel_t     force_complevel, default_complevel;
 
@@ -312,29 +311,12 @@ static int G_NextWeapon(int direction)
     }
 
     // Switch weapon. Don't loop forever.
-
-    if (full_weapon_cycle)
+    start_i = i;
+    do
     {
-        start_i = i;
-        do
-        {
-            i += direction;
-            i = (i + arrlen(weapon_order_table)) % arrlen(weapon_order_table);
-        } while (i != start_i
-                 && !G_WeaponSelectable(weapon_order_table[i].weapon));
-    }
-    else
-    {
-        for (int k = i + direction; k >= 0 && k < arrlen(weapon_order_table);
-             k += direction)
-        {
-            if (G_WeaponSelectable(weapon_order_table[k].weapon))
-            {
-                i = k;
-                break;
-            }
-        }
-    }
+        i += direction;
+        i = (i + arrlen(weapon_order_table)) % arrlen(weapon_order_table);
+    } while (i != start_i && !G_WeaponSelectable(weapon_order_table[i].weapon));
 
     if (!demo_compatibility)
         return weapon_order_table[i].weapon;
@@ -4977,9 +4959,6 @@ void G_BindWeapVariables(void)
   M_BindBool("doom_weapon_toggles", &doom_weapon_toggles, NULL,
              true, ss_weap, wad_no,
              "Allow toggling between SG/SSG and Fist/Chainsaw");
-  M_BindBool("full_weapon_cycle", &full_weapon_cycle, NULL,
-             true, ss_weap, wad_no,
-             "Cycle through all weapons");
   M_BindBool("player_bobbing", &default_player_bobbing, &player_bobbing,
              true, ss_none, wad_no, "Physical player bobbing (affects compatibility)");
 
