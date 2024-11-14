@@ -17,6 +17,8 @@
 struct player_s;
 struct sbarelem_s;
 
+void ST_ResetCarousel(void);
+
 void ST_UpdateCarousel(struct player_s *player);
 
 void ST_DrawCarousel(int x, int y, struct sbarelem_s *elem);

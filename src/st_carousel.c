@@ -60,6 +60,11 @@ static int curr_pos;
 
 static int duration;
 
+void ST_ResetCarousel(void)
+{
+    duration = 0;
+}
+
 void ST_UpdateCarousel(player_t *player)
 {
     if (G_Carousel())

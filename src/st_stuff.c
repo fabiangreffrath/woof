@@ -1740,6 +1740,7 @@ void ST_Start(void)
     }
 
     ResetStatusBar();
+    ST_ResetCarousel();
 
     HU_StartCrosshair();
 }
