@@ -28,42 +28,42 @@
 #include "m_json.h"
 #include "md5.h"
 
-const char *comp_names[] =
+static const char *comp_names[] =
 {
-  [comp_telefrag] = "comp_telefrag",
-  [comp_dropoff] = "comp_dropoff",
-  [comp_vile] = "comp_vile",
-  [comp_pain] = "comp_pain",
-  [comp_skull] = "comp_skull",
-  [comp_blazing] = "comp_blazing",
-  [comp_doorlight] = "comp_doorlight",
-  [comp_model] = "comp_model",
-  [comp_god] = "comp_god",
-  [comp_falloff] = "comp_falloff",
-  [comp_floors] = "comp_floors",
-  [comp_skymap] = "comp_skymap",
-  [comp_pursuit] = "comp_pursuit",
-  [comp_doorstuck] = "comp_doorstuck",
-  [comp_staylift] = "comp_staylift",
-  [comp_zombie] = "comp_zombie",
-  [comp_stairs] = "comp_stairs",
-  [comp_infcheat] = "comp_infcheat",
-  [comp_zerotags] = "comp_zerotags",
-  // from PrBoom+/Eternity Engine (part of mbf21 spec)
-  [comp_respawn] = "comp_respawn",
-  [comp_soul] = "comp_soul",
-  // mbf21
-  [comp_ledgeblock] = "comp_ledgeblock",
-  [comp_friendlyspawn] = "comp_friendlyspawn",
-  [comp_voodooscroller] = "comp_voodooscroller",
-  [comp_reservedlineflag] = "comp_reservedlineflag"
+    [comp_telefrag] = "comp_telefrag",
+    [comp_dropoff] = "comp_dropoff",
+    [comp_vile] = "comp_vile",
+    [comp_pain] = "comp_pain",
+    [comp_skull] = "comp_skull",
+    [comp_blazing] = "comp_blazing",
+    [comp_doorlight] = "comp_doorlight",
+    [comp_model] = "comp_model",
+    [comp_god] = "comp_god",
+    [comp_falloff] = "comp_falloff",
+    [comp_floors] = "comp_floors",
+    [comp_skymap] = "comp_skymap",
+    [comp_pursuit] = "comp_pursuit",
+    [comp_doorstuck] = "comp_doorstuck",
+    [comp_staylift] = "comp_staylift",
+    [comp_zombie] = "comp_zombie",
+    [comp_stairs] = "comp_stairs",
+    [comp_infcheat] = "comp_infcheat",
+    [comp_zerotags] = "comp_zerotags",
+    // from PrBoom+/Eternity Engine (part of mbf21 spec)
+    [comp_respawn] = "comp_respawn",
+    [comp_soul] = "comp_soul",
+    // mbf21
+    [comp_ledgeblock] = "comp_ledgeblock",
+    [comp_friendlyspawn] = "comp_friendlyspawn",
+    [comp_voodooscroller] = "comp_voodooscroller",
+    [comp_reservedlineflag] = "comp_reservedlineflag"
 };
 
 typedef byte md5_digest_t[16];
 
 typedef struct
 {
-    byte bytes[16];
+    md5_digest_t digest;
     char string[33];
 } md5_checksum_t;
 
@@ -80,11 +80,6 @@ typedef struct
 } comp_record_t;
 
 static comp_record_t *comp_database;
-
-// static const comp_record_t doomsday_of_uac_e1m8 = {
-//   "32fc3115a3162b623f0d0f4e7dee6861",
-//   { comp_666 }
-// };
 
 static int GetComp(const char *name)
 {
@@ -174,11 +169,11 @@ static void GetLevelCheckSum(int lump, md5_checksum_t* cksum)
 
     // ML_BEHAVIOR when it becomes applicable to comp options
 
-    MD5Final(cksum->bytes, &md5);
+    MD5Final(cksum->digest, &md5);
 
-    for (int i = 0; i < sizeof(cksum->bytes); ++i)
+    for (int i = 0; i < sizeof(cksum->digest); ++i)
     {
-        sprintf(&cksum->string[i * 2], "%02x", cksum->bytes[i]);
+        sprintf(&cksum->string[i * 2], "%02x", cksum->digest[i]);
     }
     cksum->string[32] = '\0';
 }
@@ -212,7 +207,7 @@ void G_ApplyLevelCompatibility(int lump)
     comp_record_t *record;
     array_foreach(record, comp_database)
     {
-        if (!memcmp(record->checksum, cksum.bytes, sizeof(md5_digest_t)))
+        if (!memcmp(record->checksum, cksum.digest, sizeof(md5_digest_t)))
         {
             memcpy(old_comp, comp, sizeof(*comp));
             restore_comp = true;
@@ -222,7 +217,7 @@ void G_ApplyLevelCompatibility(int lump)
             {
                 comp[option->comp] = option->value;
 
-                I_Printf(VB_INFO, "Automatically setting comp option \"%s = %d\".",
+                I_Printf(VB_INFO, "Automatically setting comp option \"%s = %d\"",
                          comp_names[option->comp], option->value);
             }
 

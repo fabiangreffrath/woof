@@ -1007,6 +1007,9 @@ static void UpdateStatusBar(player_t *player)
         barindex = 0;
     }
 
+    st_time_elem = NULL;
+    st_cmd_elem = NULL;
+
     statusbar = &sbardef->statusbars[barindex];
 
     sbarelem_t *child;
