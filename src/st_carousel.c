@@ -13,7 +13,6 @@
 
 #include "d_player.h"
 #include "doomdef.h"
-#include "doomstat.h"
 #include "doomtype.h"
 #include "g_game.h"
 #include "m_array.h"
@@ -78,13 +77,13 @@ void ST_UpdateCarousel(player_t *player)
         --duration;
     }
 
-    if (player->pendingweapon != wp_nochange)
+    if (player->pendingweapon == wp_nochange)
     {
-        curr = player->pendingweapon;
+        curr = player->readyweapon;
     }
     else
     {
-        curr = player->readyweapon;
+        curr = player->pendingweapon;
     }
 
     curr_pos = 0;
@@ -96,10 +95,10 @@ void ST_UpdateCarousel(player_t *player)
 
         boolean selectable = G_WeaponSelectable(weapon);
         boolean disabled = !selectable && player->weaponowned[weapon];
-        if (demo_compatibility && weapon == wp_shotgun)
+
+        if (G_VanillaWeaponSelection(weapon) != weapon && weapon != curr)
         {
-            disabled = ALLOW_SSG && player->weaponowned[wp_supershotgun]
-                       && curr != wp_supershotgun && curr != wp_shotgun;
+            disabled = true;
         }
 
         if (selectable || disabled)

@@ -165,6 +165,7 @@ boolean         padlook = false;
 // killough 4/13/98: Make clock rate adjustable by scale factor
 int             realtic_clock_rate = 100;
 static boolean  doom_weapon_toggles;
+static boolean  vanilla_weapon_carousel;
 
 complevel_t     force_complevel, default_complevel;
 
@@ -255,7 +256,7 @@ boolean G_WeaponSelectable(weapontype_t weapon)
     // These weapons aren't available in shareware.
 
     if ((weapon == wp_plasma || weapon == wp_bfg)
-     && gamemission == doom && gamemode == shareware)
+        && gamemission == doom && gamemode == shareware)
     {
         return false;
     }
@@ -270,15 +271,46 @@ boolean G_WeaponSelectable(weapontype_t weapon)
     // Can't select the fist if we have the chainsaw, unless
     // we also have the berserk pack.
 
-    if (weapon == wp_fist
-     && demo_compatibility
-     && players[consoleplayer].weaponowned[wp_chainsaw]
-     && !players[consoleplayer].powers[pw_strength])
+    if ((demo_compatibility || (!demo_compatibility && vanilla_weapon_carousel))
+        && weapon == wp_fist
+        && players[consoleplayer].weaponowned[wp_chainsaw]
+        && !players[consoleplayer].powers[pw_strength])
     {
         return false;
     }
 
     return true;
+}
+
+weapontype_t G_VanillaWeaponSelection(weapontype_t newweapon)
+{
+    if (!demo_compatibility && !vanilla_weapon_carousel)
+    {
+        return newweapon;
+    }
+
+    const player_t *player = &players[consoleplayer];
+
+    weapontype_t weapon;
+
+    if (player->pendingweapon == wp_nochange)
+    {
+        weapon = player->readyweapon;
+    }
+    else
+    {
+        weapon = player->pendingweapon;
+    }
+
+    if (ALLOW_SSG
+        && newweapon == wp_shotgun
+        && player->weaponowned[wp_supershotgun]
+        && weapon != wp_supershotgun)
+    {
+        newweapon = wp_supershotgun;
+    }
+
+    return newweapon;
 }
 
 static int G_NextWeapon(int direction)
@@ -318,10 +350,14 @@ static int G_NextWeapon(int direction)
         i = (i + arrlen(weapon_order_table)) % arrlen(weapon_order_table);
     } while (i != start_i && !G_WeaponSelectable(weapon_order_table[i].weapon));
 
-    if (!demo_compatibility)
-        return weapon_order_table[i].weapon;
-    else
+    if (demo_compatibility)
+    {
         return weapon_order_table[i].weapon_num;
+    }
+    else
+    {
+        return G_VanillaWeaponSelection(weapon_order_table[i].weapon);
+    }
 }
 
 static weapontype_t LastWeapon(void)
@@ -4959,6 +4995,7 @@ void G_BindWeapVariables(void)
   M_BindBool("doom_weapon_toggles", &doom_weapon_toggles, NULL,
              true, ss_weap, wad_no,
              "Allow toggling between SG/SSG and Fist/Chainsaw");
+  BIND_BOOL(vanilla_weapon_carousel, false, "Force vanilla weapon carousel");
   M_BindBool("player_bobbing", &default_player_bobbing, &player_bobbing,
              true, ss_none, wad_no, "Physical player bobbing (affects compatibility)");
 
