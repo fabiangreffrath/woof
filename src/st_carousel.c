@@ -65,7 +65,7 @@ void ST_UpdateCarousel(player_t *player)
 {
     if (G_Carousel())
     {
-        duration = TICRATE * 2;
+        duration = TICRATE / 2;
     }
 
     if (duration == 0)
@@ -73,7 +73,10 @@ void ST_UpdateCarousel(player_t *player)
         return;
     }
 
-    --duration;
+    if (player->switching == weapswitch_none)
+    {
+        --duration;
+    }
 
     if (player->pendingweapon != wp_nochange)
     {
