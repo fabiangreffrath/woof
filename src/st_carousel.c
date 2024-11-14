@@ -77,6 +77,12 @@ void ST_UpdateCarousel(player_t *player)
         return;
     }
 
+    if (menuactive || paused)
+    {
+        ST_ResetCarousel();
+        return;
+    }
+
     if (player->switching == weapswitch_none)
     {
         --duration;
