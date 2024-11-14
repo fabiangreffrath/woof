@@ -165,7 +165,7 @@ boolean         padlook = false;
 // killough 4/13/98: Make clock rate adjustable by scale factor
 int             realtic_clock_rate = 100;
 static boolean  doom_weapon_toggles;
-static boolean  vanilla_weapon_carousel;
+static boolean  doom_weapon_cycle;
 
 complevel_t     force_complevel, default_complevel;
 
@@ -271,7 +271,7 @@ boolean G_WeaponSelectable(weapontype_t weapon)
     // Can't select the fist if we have the chainsaw, unless
     // we also have the berserk pack.
 
-    if ((demo_compatibility || (!demo_compatibility && vanilla_weapon_carousel))
+    if ((demo_compatibility || (!demo_compatibility && doom_weapon_cycle))
         && weapon == wp_fist
         && players[consoleplayer].weaponowned[wp_chainsaw]
         && !players[consoleplayer].powers[pw_strength])
@@ -284,7 +284,7 @@ boolean G_WeaponSelectable(weapontype_t weapon)
 
 weapontype_t G_VanillaWeaponSelection(weapontype_t newweapon)
 {
-    if (!demo_compatibility && !vanilla_weapon_carousel)
+    if (!demo_compatibility && !doom_weapon_cycle)
     {
         return newweapon;
     }
@@ -4995,7 +4995,8 @@ void G_BindWeapVariables(void)
   M_BindBool("doom_weapon_toggles", &doom_weapon_toggles, NULL,
              true, ss_weap, wad_no,
              "Allow toggling between SG/SSG and Fist/Chainsaw");
-  BIND_BOOL(vanilla_weapon_carousel, false, "Force vanilla weapon carousel");
+  BIND_BOOL(doom_weapon_cycle, false,
+            "Next weapon skips lower priority weapon slots (SG/SSG and Fist/Chainsaw)");
   M_BindBool("player_bobbing", &default_player_bobbing, &player_bobbing,
              true, ss_none, wad_no, "Physical player bobbing (affects compatibility)");
 
