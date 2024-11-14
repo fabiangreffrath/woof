@@ -13,6 +13,7 @@
 
 #include "d_player.h"
 #include "doomdef.h"
+#include "doomstat.h"
 #include "doomtype.h"
 #include "g_game.h"
 #include "m_array.h"
@@ -46,12 +47,19 @@ static const weapontype_t weapon_order[] = {
     wp_bfg,
 };
 
+typedef struct
+{
+    weapontype_t weapon;
+    int state;
+    boolean darkened;
+} weapon_icon_t;
+
+static weapon_icon_t *weapon_icons;
+
 static weapontype_t curr;
 static int curr_pos;
 
 static int duration;
-
-static weapontype_t *weapon_list;
 
 void ST_UpdateCarousel(player_t *player)
 {
@@ -78,36 +86,47 @@ void ST_UpdateCarousel(player_t *player)
     }
 
     curr_pos = 0;
-    array_clear(weapon_list);
+    array_clear(weapon_icons);
 
     for (int i = 0; i < arrlen(weapon_order); ++i)
     {
         weapontype_t weapon = weapon_order[i];
 
-        if (G_WeaponSelectable(weapon))
+        boolean selectable = G_WeaponSelectable(weapon);
+        boolean disabled = !selectable && player->weaponowned[weapon];
+        if (demo_compatibility && weapon == wp_shotgun)
         {
+            disabled = ALLOW_SSG && player->weaponowned[wp_supershotgun]
+                       && (curr != wp_supershotgun);
+        }
+
+        if (selectable || disabled)
+        {
+            weapon_icon_t icon = {.weapon = weapon, .darkened = disabled};
             if (weapon == curr)
             {
-                curr_pos = array_size(weapon_list);
+                icon.state = 1;
+                icon.darkened = false;
+                curr_pos = array_size(weapon_icons);
             }
-            array_push(weapon_list, weapon);
+            icon.state = 0;
+            array_push(weapon_icons, icon);
         }
     }
 }
 
-static void DrawItem(int x, int y, sbarelem_t *elem, weapontype_t weapon,
-                     int state)
+static void DrawIcon(int x, int y, sbarelem_t *elem, weapon_icon_t icon)
 {
     char lump[9] = {0};
-    M_snprintf(lump, sizeof(lump), "%s%d", names[weapon], state);
+    M_snprintf(lump, sizeof(lump), "%s%d", names[icon.weapon], icon.state);
 
     patch_t *patch = V_CachePatchName(lump, PU_CACHE);
 
-    byte *outr = colrngs[elem->cr];
+    byte *cr = icon.darkened ? cr_dark : NULL;
 
-    if (outr && elem->tranmap)
+    if (cr && elem->tranmap)
     {
-        V_DrawPatchTRTL(x, y, patch, outr, elem->tranmap);
+        V_DrawPatchTRTL(x, y, patch, cr, elem->tranmap);
     }
     else if (elem->tranmap)
     {
@@ -115,7 +134,7 @@ static void DrawItem(int x, int y, sbarelem_t *elem, weapontype_t weapon,
     }
     else
     {
-        V_DrawPatchTranslated(x, y, patch, outr);
+        V_DrawPatchTranslated(x, y, patch, cr);
     }
 }
 
@@ -126,16 +145,16 @@ void ST_DrawCarousel(int x, int y, sbarelem_t *elem)
         return;
     }
 
-    DrawItem(SCREENWIDTH / 2, y, elem, curr, 1);
+    DrawIcon(SCREENWIDTH / 2, y, elem, weapon_icons[curr_pos]);
 
-    for (int i = curr_pos + 1, k = 1; i < array_size(weapon_list) && k < 3;
+    for (int i = curr_pos + 1, k = 1; i < array_size(weapon_icons) && k < 3;
          ++i, ++k)
     {
-        DrawItem(SCREENWIDTH / 2 + k * 64, y, elem, weapon_list[i], 0);
+        DrawIcon(SCREENWIDTH / 2 + k * 64, y, elem, weapon_icons[i]);
     }
 
     for (int i = curr_pos - 1, k = 1; i >= 0 && k < 3; --i, ++k)
     {
-        DrawItem(SCREENWIDTH / 2 - k * 64, y, elem, weapon_list[i], 0);
+        DrawIcon(SCREENWIDTH / 2 - k * 64, y, elem, weapon_icons[i]);
     }
 }
