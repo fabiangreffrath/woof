@@ -134,6 +134,8 @@ static sbardef_t *sbardef;
 
 static statusbar_t *statusbar;
 
+static int st_cmd_x, st_cmd_y;
+
 typedef enum
 {
     st_original,
@@ -782,7 +784,6 @@ static void UpdateNumber(sbarelem_t *elem, player_t *player)
         number->xoffset -= totalwidth;
     }
 
-    number->font = font;
     number->value = value;
     number->numvalues = numvalues;
 }
@@ -840,8 +841,6 @@ static void UpdateLines(sbarelem_t *elem)
         }
         line->totalwidth = totalwidth;
     }
-
-    widget->font = font;
 }
 
 static void UpdateAnimation(sbarelem_t *elem)
@@ -1382,6 +1381,11 @@ static void DrawElem(int x, int y, sbarelem_t *elem, player_t *player)
             break;
 
         case sbe_widget:
+            if (elem == st_cmd_elem)
+            {
+                st_cmd_x = x;
+                st_cmd_y = y;
+            }
             DrawLines(x, y, elem);
             break;
 
@@ -1770,17 +1774,30 @@ void ST_ResetPalette(void)
 }
 
 // [FG] draw Time widget on intermission screen
+
+void WI_UpdateWidgets(void)
+{
+    if (st_cmd_elem && STRICTMODE(hud_command_history))
+    {
+        ST_UpdateWidget(st_cmd_elem, &players[displayplayer]);
+        UpdateLines(st_cmd_elem);
+    }
+}
+
 void WI_DrawWidgets(void)
 {
-    if (!st_time_elem || !(hud_level_time & HUD_WIDGET_HUD))
+    if (st_time_elem && hud_level_time & HUD_WIDGET_HUD)
     {
-        return;
+        sbarelem_t time = *st_time_elem;
+        time.alignment = sbe_wide_left;
+        // leveltime is already added to totalleveltimes before WI_Start()
+        DrawLines(0, 0, &time);
     }
 
-    sbarelem_t time = *st_time_elem;
-    time.alignment = sbe_wide_left;
-    // leveltime is already added to totalleveltimes before WI_Start()
-    DrawLines(0, 0, &time);
+    if (st_cmd_elem && STRICTMODE(hud_command_history))
+    {
+        DrawLines(st_cmd_x, st_cmd_y, st_cmd_elem);
+    }
 }
 
 void ST_BindSTSVariables(void)

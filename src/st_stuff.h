@@ -72,6 +72,7 @@ extern boolean palette_changes;
 extern struct hudfont_s *stcfnt;
 extern struct patch_s **hu_font;
 
+void WI_UpdateWidgets(void);
 void WI_DrawWidgets(void);
 
 void ST_BindSTSVariables(void);
