@@ -77,7 +77,14 @@ void ST_UpdateCarousel(player_t *player)
         --duration;
     }
 
-    curr = player->carouselweapon;
+    if (player->pendingweapon == wp_nochange)
+    {
+        curr = player->readyweapon;
+    }
+    else
+    {
+        curr = player->pendingweapon;
+    }
 
     curr_pos = 0;
     array_clear(weapon_icons);

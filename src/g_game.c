@@ -291,7 +291,16 @@ weapontype_t G_VanillaWeaponSelection(weapontype_t newweapon)
 
     const player_t *player = &players[consoleplayer];
 
-    weapontype_t weapon = player->carouselweapon;
+    weapontype_t weapon;
+
+    if (player->pendingweapon == wp_nochange)
+    {
+        weapon = player->readyweapon;
+    }
+    else
+    {
+        weapon = player->pendingweapon;
+    }
 
     if (ALLOW_SSG
         && newweapon == wp_shotgun
@@ -311,7 +320,14 @@ static int G_NextWeapon(int direction)
 
     // Find index in the table.
 
-    weapon = players[consoleplayer].carouselweapon;
+    if (players[consoleplayer].pendingweapon == wp_nochange)
+    {
+        weapon = players[consoleplayer].readyweapon;
+    }
+    else
+    {
+        weapon = players[consoleplayer].pendingweapon;
+    }
 
     for (i = 0; i < arrlen(weapon_order_table); ++i)
     {

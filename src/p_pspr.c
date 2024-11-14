@@ -1097,7 +1097,7 @@ void P_SetupPsprites(player_t *player)
     player->psprites[i].state = NULL;
 
   // spawn the gun
-  player->carouselweapon = player->pendingweapon = player->readyweapon;
+  player->pendingweapon = player->readyweapon;
   P_BringUpWeapon(player);
 }
 
