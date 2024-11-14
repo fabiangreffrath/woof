@@ -63,8 +63,7 @@ static int duration;
 
 void ST_UpdateCarousel(player_t *player)
 {
-    if (player->pendingweapon != wp_nochange
-        && G_Carousel())
+    if (G_Carousel())
     {
         duration = TICRATE * 2;
     }

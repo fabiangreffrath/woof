@@ -312,12 +312,29 @@ static int G_NextWeapon(int direction)
     }
 
     // Switch weapon. Don't loop forever.
-    start_i = i;
-    do
+
+    if (full_weapon_cycle)
     {
-        i += direction;
-        i = (i + arrlen(weapon_order_table)) % arrlen(weapon_order_table);
-    } while (i != start_i && !G_WeaponSelectable(weapon_order_table[i].weapon));
+        start_i = i;
+        do
+        {
+            i += direction;
+            i = (i + arrlen(weapon_order_table)) % arrlen(weapon_order_table);
+        } while (i != start_i
+                 && !G_WeaponSelectable(weapon_order_table[i].weapon));
+    }
+    else
+    {
+        for (int k = i + direction; k >= 0 && k < arrlen(weapon_order_table);
+             k += direction)
+        {
+            if (G_WeaponSelectable(weapon_order_table[k].weapon))
+            {
+                i = k;
+                break;
+            }
+        }
+    }
 
     if (!demo_compatibility)
         return weapon_order_table[i].weapon;
@@ -4961,7 +4978,7 @@ void G_BindWeapVariables(void)
              true, ss_weap, wad_no,
              "Allow toggling between SG/SSG and Fist/Chainsaw");
   M_BindBool("full_weapon_cycle", &full_weapon_cycle, NULL,
-             false, ss_weap, wad_no,
+             true, ss_weap, wad_no,
              "Cycle through all weapons");
   M_BindBool("player_bobbing", &default_player_bobbing, &player_bobbing,
              true, ss_none, wad_no, "Physical player bobbing (affects compatibility)");
