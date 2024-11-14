@@ -184,8 +184,6 @@ void HU_BuildCoordinatesEx(sbe_widget_t *widget, const mobj_t *mo)
     double magnitude;
     crange_idx_e color;
 
-    ST_ClearLines(widget);
-
     widget->font = widget->default_font;
 
     #define LINE_SIZE 60
