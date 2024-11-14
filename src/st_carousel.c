@@ -96,19 +96,19 @@ void ST_UpdateCarousel(player_t *player)
         if (demo_compatibility && weapon == wp_shotgun)
         {
             disabled = ALLOW_SSG && player->weaponowned[wp_supershotgun]
-                       && (curr != wp_supershotgun);
+                       && curr != wp_supershotgun && curr != wp_shotgun;
         }
 
         if (selectable || disabled)
         {
-            weapon_icon_t icon = {.weapon = weapon, .darkened = disabled};
+            weapon_icon_t icon = {.weapon = weapon,
+                                  .state = 0,
+                                  .darkened = disabled};
             if (weapon == curr)
             {
                 icon.state = 1;
-                icon.darkened = false;
                 curr_pos = array_size(weapon_icons);
             }
-            icon.state = 0;
             array_push(weapon_icons, icon);
         }
     }
