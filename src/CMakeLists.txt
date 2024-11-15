@@ -26,6 +26,7 @@ set(WOOF_SOURCES
     g_compatibility.c      g_compatibility.h
     g_game.c               g_game.h
     g_input.c              g_input.h
+    g_nextweapon.c         g_nextweapon.h
     hu_command.c           hu_command.h
     hu_coordinates.c       hu_coordinates.h
     hu_crosshair.c         hu_crosshair.h

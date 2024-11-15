@@ -16,7 +16,8 @@
 #include "d_player.h"
 #include "doomdef.h"
 #include "doomtype.h"
-#include "g_game.h"
+#include "doomstat.h"
+#include "g_nextweapon.h"
 #include "i_timer.h"
 #include "m_array.h"
 #include "m_misc.h"
@@ -49,33 +50,83 @@ static const weapontype_t weapon_order[] = {
     wp_bfg,
 };
 
+typedef enum
+{
+    wpi_none = -1,
+    wpi_regular,
+    wpi_selected,
+    wpi_disabled
+} weapon_icon_state_t;
+
 typedef struct
 {
     weapontype_t weapon;
-    int state;
-    boolean darkened;
+    weapon_icon_state_t state;
 } weapon_icon_t;
 
 static weapon_icon_t *weapon_icons;
+static int selected_index = 0;
 
-static weapontype_t curr;
-static int curr_pos;
-static int last_pos = -1;
+static int last_index = -1;
 static int last_time;
 static int direction;
+
 static int duration;
 
 void ST_ResetCarousel(void)
 {
-    last_pos = -1;
+    last_index = -1;
     last_time = 0;
     direction = 0;
     duration = 0;
 }
 
+static void BuildWeaponIcons(const player_t *player)
+{
+    array_clear(weapon_icons);
+
+    for (int i = 0; i < arrlen(weapon_order); ++i)
+    {
+        weapontype_t weapon = weapon_order[i];
+        weapon_icon_state_t state = wpi_none;
+
+        if (last_index == -1 && weapon == player->readyweapon)
+        {
+            last_index = array_size(weapon_icons);
+        }
+
+        if (G_WeaponSelectable(weapon))
+        {
+            if (player->nextweapon == weapon)
+            {
+                selected_index = array_size(weapon_icons);
+                state = wpi_selected;
+            }
+            else if (G_AdjustSelection(weapon) != weapon)
+            {
+                state = wpi_disabled;
+            }
+            else
+            {
+                state = wpi_regular;
+            }
+        }
+        else if (player->weaponowned[weapon])
+        {
+            state = wpi_disabled;
+        }
+
+        if (state != wpi_none)
+        {
+            weapon_icon_t icon = {weapon, state};
+            array_push(weapon_icons, icon);
+        }
+    }
+}
+
 void ST_UpdateCarousel(player_t *player)
 {
-    if (G_Carousel())
+    if (G_NextWeaponBegin())
     {
         duration = TICRATE / 2;
     }
@@ -96,53 +147,12 @@ void ST_UpdateCarousel(player_t *player)
         --duration;
     }
 
-    if (player->pendingweapon == wp_nochange)
+    BuildWeaponIcons(player);
+
+    if (last_index != selected_index)
     {
-        curr = player->readyweapon;
-    }
-    else
-    {
-        curr = player->pendingweapon;
-    }
-
-    curr_pos = 0;
-    array_clear(weapon_icons);
-
-    for (int i = 0; i < arrlen(weapon_order); ++i)
-    {
-        weapontype_t weapon = weapon_order[i];
-
-        if (last_pos == -1 && weapon == player->readyweapon)
-        {
-            last_pos = array_size(weapon_icons);
-        }
-
-        boolean selectable = G_WeaponSelectable(weapon);
-        boolean disabled = !selectable && player->weaponowned[weapon];
-
-        if (G_VanillaWeaponSelection(weapon) != weapon && weapon != curr)
-        {
-            disabled = true;
-        }
-
-        if (selectable || disabled)
-        {
-            weapon_icon_t icon = {.weapon = weapon,
-                                  .state = 0,
-                                  .darkened = disabled};
-            if (weapon == curr)
-            {
-                icon.state = 1;
-                curr_pos = array_size(weapon_icons);
-            }
-            array_push(weapon_icons, icon);
-        }
-    }
-
-    if (last_pos != curr_pos)
-    {
-        direction = (curr_pos > last_pos ? 1 : -1);
-        last_pos = curr_pos;
+        direction = (selected_index > last_index ? 1 : -1);
+        last_index = selected_index;
         last_time = I_GetTimeMS();
     }
 }
@@ -150,11 +160,12 @@ void ST_UpdateCarousel(player_t *player)
 static void DrawIcon(int x, int y, sbarelem_t *elem, weapon_icon_t icon)
 {
     char lump[9] = {0};
-    M_snprintf(lump, sizeof(lump), "%s%d", names[icon.weapon], icon.state);
+    M_snprintf(lump, sizeof(lump), "%s%d", names[icon.weapon],
+        icon.state == wpi_selected);
 
     patch_t *patch = V_CachePatchName(lump, PU_CACHE);
 
-    byte *cr = icon.darkened ? cr_dark : NULL;
+    byte *cr = icon.state == wpi_disabled ? cr_dark : NULL;
 
     if (cr && elem->tranmap)
     {
@@ -196,15 +207,15 @@ void ST_DrawCarousel(int x, int y, sbarelem_t *elem)
     }
 
     const int offset = CalcOffset();
-    DrawIcon(SCREENWIDTH / 2 + offset, y, elem, weapon_icons[curr_pos]);
+    DrawIcon(SCREENWIDTH / 2 + offset, y, elem, weapon_icons[selected_index]);
 
-    for (int i = curr_pos + 1, k = 1; i < array_size(weapon_icons) && k < 3;
-         ++i, ++k)
+    for (int i = selected_index + 1, k = 1;
+         i < array_size(weapon_icons) && k < 3; ++i, ++k)
     {
         DrawIcon(SCREENWIDTH / 2 + k * 64 + offset, y, elem, weapon_icons[i]);
     }
 
-    for (int i = curr_pos - 1, k = 1; i >= 0 && k < 3; --i, ++k)
+    for (int i = selected_index - 1, k = 1; i >= 0 && k < 3; --i, ++k)
     {
         DrawIcon(SCREENWIDTH / 2 - k * 64 + offset, y, elem, weapon_icons[i]);
     }

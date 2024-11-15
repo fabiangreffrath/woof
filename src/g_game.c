@@ -41,6 +41,7 @@
 #include "doomtype.h"
 #include "f_finale.h"
 #include "g_game.h"
+#include "g_nextweapon.h"
 #include "hu_command.h"
 #include "hu_obituary.h"
 #include "i_gamepad.h"
@@ -165,7 +166,6 @@ boolean         padlook = false;
 // killough 4/13/98: Make clock rate adjustable by scale factor
 int             realtic_clock_rate = 100;
 static boolean  doom_weapon_toggles;
-static boolean  doom_weapon_cycle;
 
 complevel_t     force_complevel, default_complevel;
 
@@ -222,143 +222,6 @@ int default_skill;               //note 1-based
 
 // killough 2/8/98: make corpse queue variable in size
 int    bodyqueslot, bodyquesize, default_bodyquesize; // killough 2/8/98, 10/98
-
-// [FG] prev/next weapon handling from Chocolate Doom
-
-static int next_weapon = 0;
-static boolean sendnextweapon;
-
-static const struct
-{
-    weapontype_t weapon;
-    weapontype_t weapon_num;
-} weapon_order_table[] = {
-    { wp_fist,            wp_fist },
-    { wp_chainsaw,        wp_fist },
-    { wp_pistol,          wp_pistol },
-    { wp_shotgun,         wp_shotgun },
-    { wp_supershotgun,    wp_shotgun },
-    { wp_chaingun,        wp_chaingun },
-    { wp_missile,         wp_missile },
-    { wp_plasma,          wp_plasma },
-    { wp_bfg,             wp_bfg }
-};
-
-boolean G_WeaponSelectable(weapontype_t weapon)
-{
-    // Can't select the super shotgun in Doom 1.
-
-    if (weapon == wp_supershotgun && !ALLOW_SSG)
-    {
-        return false;
-    }
-
-    // These weapons aren't available in shareware.
-
-    if ((weapon == wp_plasma || weapon == wp_bfg)
-        && gamemission == doom && gamemode == shareware)
-    {
-        return false;
-    }
-
-    // Can't select a weapon if we don't own it.
-
-    if (!players[consoleplayer].weaponowned[weapon])
-    {
-        return false;
-    }
-
-    // Can't select the fist if we have the chainsaw, unless
-    // we also have the berserk pack.
-
-    if ((demo_compatibility || (!demo_compatibility && doom_weapon_cycle))
-        && weapon == wp_fist
-        && players[consoleplayer].weaponowned[wp_chainsaw]
-        && !players[consoleplayer].powers[pw_strength])
-    {
-        return false;
-    }
-
-    return true;
-}
-
-weapontype_t G_VanillaWeaponSelection(weapontype_t newweapon)
-{
-    if (!demo_compatibility && !doom_weapon_cycle)
-    {
-        return newweapon;
-    }
-
-    const player_t *player = &players[consoleplayer];
-
-    weapontype_t weapon;
-
-    if (player->pendingweapon == wp_nochange)
-    {
-        weapon = player->readyweapon;
-    }
-    else
-    {
-        weapon = player->pendingweapon;
-    }
-
-    if (ALLOW_SSG
-        && newweapon == wp_shotgun
-        && player->weaponowned[wp_supershotgun]
-        && weapon != wp_supershotgun)
-    {
-        newweapon = wp_supershotgun;
-    }
-
-    return newweapon;
-}
-
-static int G_NextWeapon(int direction)
-{
-    weapontype_t weapon;
-    int start_i, i;
-
-    // Find index in the table.
-
-    if (players[consoleplayer].pendingweapon == wp_nochange)
-    {
-        weapon = players[consoleplayer].readyweapon;
-    }
-    else
-    {
-        weapon = players[consoleplayer].pendingweapon;
-    }
-
-    for (i = 0; i < arrlen(weapon_order_table); ++i)
-    {
-        if (weapon_order_table[i].weapon == weapon)
-        {
-            break;
-        }
-    }
-
-    if (i == arrlen(weapon_order_table))
-    {
-        I_Error("G_NextWeapon: Invalid weapon type %d", (int)weapon);
-    }
-
-    // Switch weapon. Don't loop forever.
-    start_i = i;
-    do
-    {
-        i += direction;
-        i = (i + arrlen(weapon_order_table)) % arrlen(weapon_order_table);
-    } while (i != start_i && !G_WeaponSelectable(weapon_order_table[i].weapon));
-
-    if (demo_compatibility)
-    {
-        return weapon_order_table[i].weapon_num;
-    }
-    else
-    {
-        return G_VanillaWeaponSelection(weapon_order_table[i].weapon);
-    }
-}
 
 static weapontype_t LastWeapon(void)
 {
@@ -945,10 +808,9 @@ void G_BuildTiccmd(ticcmd_t* cmd)
   {
     newweapon = LastWeapon();
   }
-  else if (gamestate == GS_LEVEL && next_weapon != 0)
+  else if (G_NextWeaponEnd())
   {
-    // [FG] prev/next weapon keys and buttons
-    newweapon = G_NextWeapon(next_weapon);
+    newweapon = players[consoleplayer].nextweapon;
   }
   else
     {                                 // phares 02/26/98: Added gamemode checks
@@ -976,8 +838,6 @@ void G_BuildTiccmd(ticcmd_t* cmd)
       cmd->buttons |= newweapon<<BT_WEAPONSHIFT;
     }
 
-    // [FG] prev/next weapon keys and buttons
-    next_weapon = 0;
     WS_UpdateStateTic();
 
   // [FG] double click acts as "use"
@@ -1397,6 +1257,8 @@ boolean G_Responder(event_t* ev)
 {
   WS_UpdateState(ev);
 
+  G_NextWeaponUpdate();
+
   // killough 9/29/98: reformatted
   if (gamestate == GS_LEVEL
       && (ST_Responder(ev) || // status window ate it
@@ -1484,19 +1346,6 @@ boolean G_Responder(event_t* ev)
     return true;  // finale ate the event
   }
 
-    // [FG] prev/next weapon handling from Chocolate Doom
-
-  if (M_InputActivated(input_prevweapon))
-  {
-      next_weapon = -1;
-      sendnextweapon = true;
-  }
-  else if (M_InputActivated(input_nextweapon))
-  {
-      next_weapon = 1;
-      sendnextweapon = true;
-  }
-
   if (dclick_use && ev->type == ev_mouseb_down &&
       (M_InputActivated(input_strafe) || M_InputActivated(input_forward)) &&
       ev->data2.i >= 2 && (ev->data2.i % 2) == 0)
@@ -1551,13 +1400,6 @@ boolean G_Responder(event_t* ev)
       break;
     }
   return false;
-}
-
-boolean G_Carousel(void)
-{
-    boolean result = sendnextweapon;
-    sendnextweapon = false;
-    return result;
 }
 
 int D_GetPlayersInNetGame(void);

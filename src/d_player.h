@@ -226,6 +226,8 @@ typedef struct player_s
   // Last used weapon (last readyweapon).
   weapontype_t lastweapon;
 
+  weapontype_t nextweapon;
+
 } player_t;
 
 
