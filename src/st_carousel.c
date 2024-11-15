@@ -11,10 +11,13 @@
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 // GNU General Public License for more details.
 
+#include <math.h>
+
 #include "d_player.h"
 #include "doomdef.h"
 #include "doomtype.h"
 #include "g_game.h"
+#include "i_timer.h"
 #include "m_array.h"
 #include "m_misc.h"
 #include "r_defs.h"
@@ -57,11 +60,16 @@ static weapon_icon_t *weapon_icons;
 
 static weapontype_t curr;
 static int curr_pos;
-
+static int last_pos = -1;
+static int last_time;
+static int direction;
 static int duration;
 
 void ST_ResetCarousel(void)
 {
+    last_pos = -1;
+    last_time = 0;
+    direction = 0;
     duration = 0;
 }
 
@@ -104,6 +112,11 @@ void ST_UpdateCarousel(player_t *player)
     {
         weapontype_t weapon = weapon_order[i];
 
+        if (last_pos == -1 && weapon == player->readyweapon)
+        {
+            last_pos = array_size(weapon_icons);
+        }
+
         boolean selectable = G_WeaponSelectable(weapon);
         boolean disabled = !selectable && player->weaponowned[weapon];
 
@@ -124,6 +137,13 @@ void ST_UpdateCarousel(player_t *player)
             }
             array_push(weapon_icons, icon);
         }
+    }
+
+    if (last_pos != curr_pos)
+    {
+        direction = (curr_pos > last_pos ? 1 : -1);
+        last_pos = curr_pos;
+        last_time = I_GetTimeMS();
     }
 }
 
@@ -150,6 +170,24 @@ static void DrawIcon(int x, int y, sbarelem_t *elem, weapon_icon_t icon)
     }
 }
 
+static int CalcOffset(void)
+{
+    if (direction)
+    {
+        const int delta = I_GetTimeMS() - last_time;
+
+        if (delta < 125)
+        {
+            const float x = 1.0f - delta / 125.0f;
+            return lroundf(64.0f * x * x) * direction;
+        }
+
+        direction = 0;
+    }
+
+    return 0;
+}
+
 void ST_DrawCarousel(int x, int y, sbarelem_t *elem)
 {
     if (duration == 0)
@@ -157,16 +195,17 @@ void ST_DrawCarousel(int x, int y, sbarelem_t *elem)
         return;
     }
 
-    DrawIcon(SCREENWIDTH / 2, y, elem, weapon_icons[curr_pos]);
+    const int offset = CalcOffset();
+    DrawIcon(SCREENWIDTH / 2 + offset, y, elem, weapon_icons[curr_pos]);
 
     for (int i = curr_pos + 1, k = 1; i < array_size(weapon_icons) && k < 3;
          ++i, ++k)
     {
-        DrawIcon(SCREENWIDTH / 2 + k * 64, y, elem, weapon_icons[i]);
+        DrawIcon(SCREENWIDTH / 2 + k * 64 + offset, y, elem, weapon_icons[i]);
     }
 
     for (int i = curr_pos - 1, k = 1; i >= 0 && k < 3; --i, ++k)
     {
-        DrawIcon(SCREENWIDTH / 2 - k * 64, y, elem, weapon_icons[i]);
+        DrawIcon(SCREENWIDTH / 2 - k * 64 + offset, y, elem, weapon_icons[i]);
     }
 }
