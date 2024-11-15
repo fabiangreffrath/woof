@@ -207,17 +207,17 @@ void ST_DrawCarousel(int x, int y, sbarelem_t *elem)
         return;
     }
 
-    const int offset = CalcOffset();
-    DrawIcon(SCREENWIDTH / 2 + offset, y, elem, weapon_icons[selected_index]);
+    const int offset = SCREENWIDTH / 2 + CalcOffset();
+    DrawIcon(offset, y, elem, weapon_icons[selected_index]);
 
     for (int i = selected_index + 1, k = 1;
          i < array_size(weapon_icons) && k < 3; ++i, ++k)
     {
-        DrawIcon(SCREENWIDTH / 2 + k * 64 + offset, y, elem, weapon_icons[i]);
+        DrawIcon(offset + k * 64, y, elem, weapon_icons[i]);
     }
 
     for (int i = selected_index - 1, k = 1; i >= 0 && k < 3; --i, ++k)
     {
-        DrawIcon(SCREENWIDTH / 2 - k * 64 + offset, y, elem, weapon_icons[i]);
+        DrawIcon(offset - k * 64, y, elem, weapon_icons[i]);
     }
 }
