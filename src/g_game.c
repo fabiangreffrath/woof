@@ -1258,8 +1258,6 @@ boolean G_Responder(event_t* ev)
 {
   WS_UpdateState(ev);
 
-  G_NextWeaponUpdate();
-
   // killough 9/29/98: reformatted
   if (gamestate == GS_LEVEL
       && (ST_Responder(ev) || // status window ate it
@@ -1364,6 +1362,8 @@ boolean G_Responder(event_t* ev)
   {
     return true; // eat events
   }
+
+  G_NextWeaponUpdate();
 
   switch (ev->type)
     {
@@ -3044,7 +3044,7 @@ void G_PlayerReborn(int player)
   p->playerstate = PST_LIVE;
   p->health = initial_health;  // Ty 03/12/98 - use dehacked values
   p->lastweapon = wp_fist;
-  p->readyweapon = p->pendingweapon = wp_pistol;
+  p->nextweapon = p->readyweapon = p->pendingweapon = wp_pistol;
   p->weaponowned[wp_fist] = true;
   p->weaponowned[wp_pistol] = true;
   p->ammo[am_clip] = initial_bullets; // Ty 03/12/98 - use dehacked values
