@@ -29,4 +29,6 @@ boolean G_NextWeaponBegin(void);
 
 boolean G_NextWeaponEnd(void);
 
+void G_NextWeaponReset(void);
+
 #endif

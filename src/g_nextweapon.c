@@ -178,3 +178,8 @@ boolean G_NextWeaponEnd(void)
     }
     return false;
 }
+
+void G_NextWeaponReset(void)
+{
+    state = nw_state_end;
+}
