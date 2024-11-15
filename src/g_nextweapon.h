@@ -29,6 +29,4 @@ boolean G_NextWeaponBegin(void);
 
 boolean G_NextWeaponEnd(void);
 
-weapontype_t G_NextWeapon(boolean begin);
-
 #endif

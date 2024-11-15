@@ -590,6 +590,7 @@ void A_Lower(player_t *player, pspdef_t *psp)
   {
     player->lastweapon = player->readyweapon;
     player->readyweapon = player->pendingweapon;
+    player->nextweapon = player->readyweapon;
   }
 
   P_BringUpWeapon(player);
