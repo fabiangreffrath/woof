@@ -15,6 +15,7 @@
 #include "doomdef.h"
 #include "doomstat.h"
 #include "doomtype.h"
+#include "i_system.h"
 #include "m_input.h"
 
 boolean doom_weapon_cycle;
@@ -103,6 +104,11 @@ static weapontype_t NextWeapon(int direction)
         {
             break;
         }
+    }
+
+    if (i == arrlen(weapon_order))
+    {
+        I_Error("NextWeapon: Invalid weapon type %d", (int)weapon);
     }
 
     // Switch weapon. Don't loop forever.
