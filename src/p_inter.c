@@ -206,7 +206,7 @@ boolean P_GiveWeapon(player_t *player, weapontype_t weapon, boolean dropped)
 
       P_GiveAmmo(player, weaponinfo[weapon].ammo, deathmatch ? 5 : 2);
 
-      player->pendingweapon = weapon;
+      player->nextweapon = player->pendingweapon = weapon;
       S_StartSoundPreset(player->mo, sfx_wpnup, PITCH_FULL); // killough 4/25/98, 12/98
       return false;
     }
@@ -216,7 +216,7 @@ boolean P_GiveWeapon(player_t *player, weapontype_t weapon, boolean dropped)
     P_GiveAmmo(player, weaponinfo[weapon].ammo, dropped ? 1 : 2);
 
   return !player->weaponowned[weapon] ?
-    player->weaponowned[player->pendingweapon = weapon] = true : gaveammo;
+    player->weaponowned[player->nextweapon = player->pendingweapon = weapon] = true : gaveammo;
 }
 
 //
