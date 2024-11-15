@@ -1,4 +1,5 @@
 //
+// Copyright(C) 2005-2014 Simon Howard
 // Copyright(C) 2024 Roman Fomin
 //
 // This program is free software; you can redistribute it and/or
@@ -25,11 +26,11 @@ weapontype_t G_AdjustSelection(weapontype_t weapon);
 
 void G_NextWeaponUpdate(void);
 
-boolean G_NextWeaponBegin(void);
+boolean G_NextWeaponActivate(void);
 
-boolean G_NextWeaponEnd(void);
+boolean G_NextWeaponDeactivate(void);
 
-void G_NextWeaponReset(void);
+void G_NextWeaponResendCmd(void);
 
 extern weapontype_t vanilla_nextweapon;
 

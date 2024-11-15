@@ -1,4 +1,5 @@
 //
+// Copyright(C) 2005-2014 Simon Howard
 // Copyright(C) 2024 Roman Fomin
 //
 // This program is free software; you can redistribute it and/or
@@ -20,6 +21,8 @@
 
 boolean doom_weapon_cycle;
 
+weapontype_t vanilla_nextweapon;
+
 static const struct
 {
     weapontype_t weapon;
@@ -35,11 +38,6 @@ static const struct
     { wp_plasma,          wp_plasma },
     { wp_bfg,             wp_bfg }
 };
-
-static weapontype_t CurrentWeapon(void)
-{
-    return players[consoleplayer].nextweapon;
-}
 
 boolean G_WeaponSelectable(weapontype_t weapon)
 {
@@ -89,7 +87,7 @@ weapontype_t G_AdjustSelection(weapontype_t weapon)
     if (ALLOW_SSG
         && weapon == wp_shotgun
         && players[consoleplayer].weaponowned[wp_supershotgun]
-        && CurrentWeapon() != wp_supershotgun)
+        && players[consoleplayer].nextweapon != wp_supershotgun)
     {
         weapon = wp_supershotgun;
     }
@@ -97,12 +95,10 @@ weapontype_t G_AdjustSelection(weapontype_t weapon)
     return weapon;
 }
 
-weapontype_t vanilla_nextweapon;
-
 static weapontype_t NextWeapon(int direction)
 {
     int i;
-    weapontype_t weapon = CurrentWeapon();
+    weapontype_t weapon = players[consoleplayer].nextweapon;
 
     for (i = 0; i < arrlen(weapon_order); ++i)
     {
@@ -137,16 +133,15 @@ static weapontype_t NextWeapon(int direction)
 typedef enum
 {
     nw_state_none,
-    nw_state_begin,
-    nw_state_end
+    nw_state_activate,
+    nw_state_deactivate,
+    nw_state_command
 } next_weapon_state_t;
 
 static next_weapon_state_t state;
 
 void G_NextWeaponUpdate(void)
 {
-    player_t *player = &players[consoleplayer];
-
     weapontype_t weapon = wp_nochange;
 
     if (M_InputActivated(input_prevweapon))
@@ -160,19 +155,19 @@ void G_NextWeaponUpdate(void)
     else if (M_InputDeactivated(input_prevweapon)
              || M_InputDeactivated(input_nextweapon))
     {
-        state = nw_state_end;
+        state = nw_state_deactivate;
     }
 
     if (weapon != wp_nochange)
     {
-        state = nw_state_begin;
-        player->nextweapon = weapon;
+        state = nw_state_activate;
+        players[consoleplayer].nextweapon = weapon;
     }
 }
 
-boolean G_NextWeaponBegin(void)
+boolean G_NextWeaponActivate(void)
 {
-    if (state == nw_state_begin)
+    if (state == nw_state_activate)
     {
         state = nw_state_none;
         return true;
@@ -180,17 +175,20 @@ boolean G_NextWeaponBegin(void)
     return false;
 }
 
-boolean G_NextWeaponEnd(void)
+boolean G_NextWeaponDeactivate(void)
 {
-    if (state == nw_state_end)
+    if (state == nw_state_deactivate)
     {
-        state = nw_state_none;
+        state = nw_state_command;
         return true;
     }
     return false;
 }
 
-void G_NextWeaponReset(void)
+void G_NextWeaponResendCmd(void)
 {
-    state = nw_state_end;
+    if (state == nw_state_command)
+    {
+        state = nw_state_deactivate;
+    }
 }

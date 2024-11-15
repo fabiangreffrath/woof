@@ -126,7 +126,7 @@ static void BuildWeaponIcons(const player_t *player)
 
 void ST_UpdateCarousel(player_t *player)
 {
-    if (G_NextWeaponBegin())
+    if (G_NextWeaponActivate())
     {
         duration = TICRATE / 2;
     }

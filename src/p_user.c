@@ -502,8 +502,8 @@ void P_PlayerThink (player_t* player)
 	    || (gamemode != shareware) )
 	  player->pendingweapon = newweapon;
 
-      if (player->nextweapon != player->pendingweapon)
-	G_NextWeaponReset();
+      if (player->nextweapon == newweapon && player->pendingweapon != newweapon)
+	G_NextWeaponResendCmd();
     }
 
   // check for use

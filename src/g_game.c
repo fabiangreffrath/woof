@@ -808,7 +808,7 @@ void G_BuildTiccmd(ticcmd_t* cmd)
   {
     newweapon = LastWeapon();
   }
-  else if (G_NextWeaponEnd())
+  else if (G_NextWeaponDeactivate())
   {
     newweapon = demo_compatibility ? vanilla_nextweapon
                                    : players[consoleplayer].nextweapon;
