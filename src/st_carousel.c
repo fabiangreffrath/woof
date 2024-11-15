@@ -69,7 +69,7 @@ static int selected_index = 0;
 
 static int last_index = -1;
 static int last_time;
-static int direction;
+static int distance;
 
 static int duration;
 
@@ -77,7 +77,7 @@ void ST_ResetCarousel(void)
 {
     last_index = -1;
     last_time = 0;
-    direction = 0;
+    distance = 0;
     duration = 0;
 }
 
@@ -151,7 +151,8 @@ void ST_UpdateCarousel(player_t *player)
 
     if (last_index != selected_index)
     {
-        direction = (selected_index > last_index ? 1 : -1);
+        distance = selected_index - last_index;
+        distance = 64 * BETWEEN(-2, 2, distance);
         last_index = selected_index;
         last_time = I_GetTimeMS();
     }
@@ -183,17 +184,17 @@ static void DrawIcon(int x, int y, sbarelem_t *elem, weapon_icon_t icon)
 
 static int CalcOffset(void)
 {
-    if (direction)
+    if (distance)
     {
         const int delta = I_GetTimeMS() - last_time;
 
         if (delta < 125)
         {
             const float x = 1.0f - delta / 125.0f;
-            return lroundf(64.0f * x * x) * direction;
+            return lroundf(distance * x * x);
         }
 
-        direction = 0;
+        distance = 0;
     }
 
     return 0;
