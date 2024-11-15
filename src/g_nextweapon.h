@@ -31,4 +31,6 @@ boolean G_NextWeaponEnd(void);
 
 void G_NextWeaponReset(void);
 
+extern weapontype_t vanilla_nextweapon;
+
 #endif

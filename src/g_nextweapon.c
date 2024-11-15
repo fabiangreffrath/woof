@@ -20,16 +20,20 @@
 
 boolean doom_weapon_cycle;
 
-static const weapontype_t weapon_order[] = {
-    wp_fist,
-    wp_chainsaw,
-    wp_pistol,
-    wp_shotgun,
-    wp_supershotgun,
-    wp_chaingun,
-    wp_missile,
-    wp_plasma,
-    wp_bfg,
+static const struct
+{
+    weapontype_t weapon;
+    weapontype_t weapon_num;
+} weapon_order[] = {
+    { wp_fist,            wp_fist },
+    { wp_chainsaw,        wp_fist },
+    { wp_pistol,          wp_pistol },
+    { wp_shotgun,         wp_shotgun },
+    { wp_supershotgun,    wp_shotgun },
+    { wp_chaingun,        wp_chaingun },
+    { wp_missile,         wp_missile },
+    { wp_plasma,          wp_plasma },
+    { wp_bfg,             wp_bfg }
 };
 
 static weapontype_t CurrentWeapon(void)
@@ -93,6 +97,8 @@ weapontype_t G_AdjustSelection(weapontype_t weapon)
     return weapon;
 }
 
+weapontype_t vanilla_nextweapon;
+
 static weapontype_t NextWeapon(int direction)
 {
     int i;
@@ -100,7 +106,7 @@ static weapontype_t NextWeapon(int direction)
 
     for (i = 0; i < arrlen(weapon_order); ++i)
     {
-        if (weapon_order[i] == weapon)
+        if (weapon_order[i].weapon == weapon)
         {
             break;
         }
@@ -118,9 +124,14 @@ static weapontype_t NextWeapon(int direction)
     {
         i += direction;
         i = (i + arrlen(weapon_order)) % arrlen(weapon_order);
-    } while (i != start_i && !G_WeaponSelectable(weapon_order[i]));
+    } while (i != start_i && !G_WeaponSelectable(weapon_order[i].weapon));
 
-    return G_AdjustSelection(weapon_order[i]);
+    if (demo_compatibility)
+    {
+        vanilla_nextweapon = weapon_order[i].weapon_num;
+    }
+
+    return G_AdjustSelection(weapon_order[i].weapon);
 }
 
 typedef enum

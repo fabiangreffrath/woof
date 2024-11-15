@@ -810,7 +810,8 @@ void G_BuildTiccmd(ticcmd_t* cmd)
   }
   else if (G_NextWeaponEnd())
   {
-    newweapon = players[consoleplayer].nextweapon;
+    newweapon = demo_compatibility ? vanilla_nextweapon
+                                   : players[consoleplayer].nextweapon;
   }
   else
     {                                 // phares 02/26/98: Added gamemode checks
