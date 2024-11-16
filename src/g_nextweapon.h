@@ -20,6 +20,8 @@
 
 extern boolean doom_weapon_cycle;
 
+extern weapontype_t vanilla_nextweapon;
+
 boolean G_WeaponSelectable(weapontype_t weapon);
 
 weapontype_t G_AdjustSelection(weapontype_t weapon);
@@ -32,6 +34,6 @@ boolean G_NextWeaponDeactivate(void);
 
 void G_NextWeaponResendCmd(void);
 
-extern weapontype_t vanilla_nextweapon;
+void G_NextWeaponReset(void);
 
 #endif

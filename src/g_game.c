@@ -790,6 +790,8 @@ void G_BuildTiccmd(ticcmd_t* cmd)
     done_autoswitch = false;
   }
 
+  boolean nextweapon_cmd = false;
+
   if ((!demo_compatibility && players[consoleplayer].attackdown &&
        !P_CheckAmmo(&players[consoleplayer]) &&
        ((boom_weapon_state_injection && !done_autoswitch) ||
@@ -812,6 +814,7 @@ void G_BuildTiccmd(ticcmd_t* cmd)
   {
     newweapon = demo_compatibility ? vanilla_nextweapon
                                    : players[consoleplayer].nextweapon;
+    nextweapon_cmd = true;
   }
   else
     {                                 // phares 02/26/98: Added gamemode checks
@@ -837,6 +840,8 @@ void G_BuildTiccmd(ticcmd_t* cmd)
     {
       cmd->buttons |= BT_CHANGE;
       cmd->buttons |= newweapon<<BT_WEAPONSHIFT;
+      if (!nextweapon_cmd)
+        G_NextWeaponReset();
     }
 
     WS_UpdateStateTic();

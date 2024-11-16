@@ -18,6 +18,7 @@
 #include "doomtype.h"
 #include "i_system.h"
 #include "m_input.h"
+#include "st_carousel.h"
 
 boolean doom_weapon_cycle;
 
@@ -135,7 +136,7 @@ typedef enum
     nw_state_none,
     nw_state_activate,
     nw_state_deactivate,
-    nw_state_command
+    nw_state_cmd
 } next_weapon_state_t;
 
 static next_weapon_state_t state;
@@ -179,7 +180,7 @@ boolean G_NextWeaponDeactivate(void)
 {
     if (state == nw_state_deactivate)
     {
-        state = nw_state_command;
+        state = nw_state_cmd;
         return true;
     }
     return false;
@@ -187,8 +188,14 @@ boolean G_NextWeaponDeactivate(void)
 
 void G_NextWeaponResendCmd(void)
 {
-    if (state == nw_state_command)
+    if (state == nw_state_cmd)
     {
         state = nw_state_deactivate;
     }
+}
+
+void G_NextWeaponReset(void)
+{
+    state = nw_state_none;
+    ST_ResetCarousel();
 }
