@@ -43,7 +43,7 @@
 
 * [Gamepad](https://github.com/fabiangreffrath/woof/wiki/Gamepad):
   - Added custom weapon slots: the default configuration uses the D-pad and matches the Doom II Xbox 360 port.
-  - Added rumble support.
+  - Added rumble support. Rumble patterns are generated dynamically from sound files. Supports weapon mods.
   - Added gyro support.
   - Added flick stick support.
   - Added option to force platform-specific (i.e. Xbox, Playstation, or Switch) button names: see `joy_platform` in `woof.cfg`.
