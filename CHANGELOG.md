@@ -4,9 +4,9 @@
   - ID24 features:
     - `SBARDEF`, with additional widescreen layout and widgets; consequently, removed Boom HUD.
     - `SKYDEFS`.
-    - `TRAKINFO` (remixed soundtrack from "Doom + Doom II").
     - `UMAPINFO` intermission extensions.
     - `extras.wad`, which will be autoloaded if found.
+  - Added support for `TRAKINFO` (remixed soundtrack from "Doom + Doom II").
   - Added support for PNG graphics, textures, flats, and sprites, which are automatically converted to palettized Doom graphics. 32-bit PNGs are converted to 8-bit with color degradation (not recommended).
   - Added resource directories and partial support for PK3 archives.
   - Added `VX_START`/`VX_END` namespace for voxels.
