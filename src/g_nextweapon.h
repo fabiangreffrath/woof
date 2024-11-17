@@ -20,7 +20,7 @@
 
 extern boolean doom_weapon_cycle;
 
-extern weapontype_t vanilla_nextweapon;
+extern const weapontype_t nextweapon_translate[];
 
 boolean G_WeaponSelectable(weapontype_t weapon);
 

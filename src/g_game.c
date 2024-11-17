@@ -813,8 +813,9 @@ void G_BuildTiccmd(ticcmd_t* cmd)
   }
   else if (G_NextWeaponDeactivate())
   {
-    newweapon = demo_compatibility ? vanilla_nextweapon
-                                   : players[consoleplayer].nextweapon;
+    newweapon = demo_compatibility
+                    ? nextweapon_translate[players[consoleplayer].nextweapon]
+                    : players[consoleplayer].nextweapon;
     nextweapon_cmd = true;
   }
   else
