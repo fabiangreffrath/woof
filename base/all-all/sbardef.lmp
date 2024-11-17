@@ -1691,21 +1691,27 @@
                 {
                   "widget":
                   {
-                    "x": 20,
-                    "y": 154,
+                    "x": 2,
+                    "y": 155,
                     "alignment": 16,
                     "tranmap": null,
                     "translation": null,
                     "type": 0,
                     "font": "Digits",
-                    "conditions": null,
+                    "conditions":
+                    [
+                      {
+                        "condition": 19,
+                        "param": 4
+                      }
+                    ],
                     "children": null
                   }
                 },
                 {
                   "widget":
                   {
-                    "x": 20,
+                    "x": 2,
                     "y": 147,
                     "alignment": 16,
                     "tranmap": null,
@@ -1714,6 +1720,10 @@
                     "font": "Digits",
                     "conditions":
                     [
+                      {
+                        "condition": 19,
+                        "param": 4
+                      },
                       {
                         "condition": 20,
                         "param": 0
@@ -1725,8 +1735,8 @@
                 {
                   "widget":
                   {
-                    "x": 20,
-                    "y": 154,
+                    "x": 2,
+                    "y": 155,
                     "alignment": 16,
                     "tranmap": null,
                     "translation": null,
@@ -1734,6 +1744,78 @@
                     "font": "Digits",
                     "conditions":
                     [
+                      {
+                        "condition": 19,
+                        "param": 4
+                      },
+                      {
+                        "condition": 21,
+                        "param": 0
+                      }
+                    ],
+                    "children": null
+                  }
+                },
+                {
+                  "widget":
+                  {
+                    "x": 2,
+                    "y": 147,
+                    "alignment": 16,
+                    "tranmap": null,
+                    "translation": null,
+                    "type": 0,
+                    "font": "Digits",
+                    "conditions":
+                    [
+                      {
+                        "condition": 19,
+                        "param": 3
+                      }
+                    ],
+                    "children": null
+                  }
+                },
+                {
+                  "widget":
+                  {
+                    "x": 2,
+                    "y": 139,
+                    "alignment": 16,
+                    "tranmap": null,
+                    "translation": null,
+                    "type": 1,
+                    "font": "Digits",
+                    "conditions":
+                    [
+                      {
+                        "condition": 19,
+                        "param": 3
+                      },
+                      {
+                        "condition": 20,
+                        "param": 0
+                      }
+                    ],
+                    "children": null
+                  }
+                },
+                {
+                  "widget":
+                  {
+                    "x": 2,
+                    "y": 147,
+                    "alignment": 16,
+                    "tranmap": null,
+                    "translation": null,
+                    "type": 1,
+                    "font": "Digits",
+                    "conditions":
+                    [
+                      {
+                        "condition": 19,
+                        "param": 3
+                      },
                       {
                         "condition": 21,
                         "param": 0
@@ -1859,9 +1941,9 @@
                 {
                   "widget":
                   {
-                    "x": 160,
-                    "y": 200,
-                    "alignment": 9,
+                    "x": 0,
+                    "y": 155,
+                    "alignment": 16,
                     "tranmap": null,
                     "translation": "CRGOLD",
                     "type": 10,
@@ -1890,7 +1972,7 @@
           {
             "widget":
             {
-              "x": 0,
+              "x": 2,
               "y": 192,
               "alignment": 16,
               "tranmap": null,
@@ -1904,7 +1986,7 @@
           {
             "widget":
             {
-              "x": 0,
+              "x": 2,
               "y": 184,
               "alignment": 16,
               "tranmap": null,
