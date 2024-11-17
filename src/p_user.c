@@ -501,10 +501,6 @@ void P_PlayerThink (player_t* player)
 	if ((newweapon != wp_plasma && newweapon != wp_bfg)
 	    || (gamemode != shareware) )
 	  player->pendingweapon = newweapon;
-
-      if (player->nextweapon == newweapon && player->pendingweapon != newweapon
-          && player->switching != weapswitch_none)
-	G_NextWeaponResendCmd();
     }
 
   // check for use

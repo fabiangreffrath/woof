@@ -790,6 +790,7 @@ void G_BuildTiccmd(ticcmd_t* cmd)
     done_autoswitch = false;
   }
 
+  G_NextWeaponResendCmd();
   boolean nextweapon_cmd = false;
 
   if ((!demo_compatibility && players[consoleplayer].attackdown &&

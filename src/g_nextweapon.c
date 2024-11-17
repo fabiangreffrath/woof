@@ -188,7 +188,20 @@ boolean G_NextWeaponDeactivate(void)
 
 void G_NextWeaponResendCmd(void)
 {
-    if (state == nw_state_cmd)
+    weapontype_t weapon;
+
+    if (players[consoleplayer].pendingweapon == wp_nochange)
+    {
+        weapon = players[consoleplayer].readyweapon;
+    }
+    else
+    {
+        weapon = players[consoleplayer].pendingweapon;
+    }
+
+    if (state == nw_state_cmd
+        && players[consoleplayer].nextweapon != weapon
+        && players[consoleplayer].switching != weapswitch_none)
     {
         state = nw_state_deactivate;
     }
