@@ -272,7 +272,6 @@ void HU_BuildCommandHistory(sbe_widget_t *widget)
 {
     hud_cmd_item_t *hud_cmd = current;
 
-    ST_ClearLines(widget);
     for (int i = 0; i < hud_command_history_size; i++)
     {
         ST_AddLine(widget, hud_cmd->buf);

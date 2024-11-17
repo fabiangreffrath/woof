@@ -23,6 +23,7 @@ set(WOOF_SOURCES
     dstrings.c             dstrings.h
     f_finale.c             f_finale.h
     f_wipe.c               f_wipe.h
+    g_compatibility.c      g_compatibility.h
     g_game.c               g_game.h
     g_input.c              g_input.h
     hu_command.c           hu_command.h
@@ -126,6 +127,7 @@ set(WOOF_SOURCES
     r_voxel.c              r_voxel.h
     s_musinfo.c            s_musinfo.h
     s_sound.c              s_sound.h
+    s_trakinfo.c           s_trakinfo.h
     sounds.c               sounds.h
     st_sbardef.c           st_sbardef.h
     st_stuff.c             st_stuff.h
@@ -187,13 +189,16 @@ target_link_libraries(woof PRIVATE
     ${SDL2_LIBRARIES}
     SDL2_net::SDL2_net
     OpenAL::OpenAL
+    libebur128::libebur128
     SndFile::sndfile
+    yyjson::yyjson
     opl
     pffft
     textscreen
     miniz
     spng
-    cjson)
+    sha1
+    md5)
 
 # Some platforms require standard libraries to be linked against.
 if(HAVE_LIBM)

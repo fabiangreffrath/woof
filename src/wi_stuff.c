@@ -425,23 +425,16 @@ static boolean CheckConditions(interlevelcond_t *conditions,
 {
     boolean conditionsmet = true;
 
-    int map_number, map, episode;
-
+    int map, episode;
+    if (enteringcondition)
     {
-        mapentry_t *mape;
-        if (enteringcondition)
-        {
-            mape = wbs->nextmapinfo;
-            map = wbs->next + 1;
-            episode = wbs->nextep + 1;
-        }
-        else
-        {
-            mape = wbs->lastmapinfo;
-            map = wbs->last + 1;
-            episode = wbs->epsd + 1;
-        }
-        map_number = mape->map_number ? mape->map_number : mape->all_number;
+        map = wbs->next + 1;
+        episode = wbs->nextep + 1;
+    }
+    else
+    {
+        map = wbs->last + 1;
+        episode = wbs->epsd + 1;
     }
 
     interlevelcond_t *cond;
@@ -450,11 +443,11 @@ static boolean CheckConditions(interlevelcond_t *conditions,
         switch (cond->condition)
         {
             case AnimCondition_MapNumGreater:
-                conditionsmet = (map_number > cond->param);
+                conditionsmet = (map > cond->param);
                 break;
 
             case AnimCondition_MapNumEqual:
-                conditionsmet = (map_number == cond->param);
+                conditionsmet = (map == cond->param);
                 break;
 
             case AnimCondition_MapVisited:
@@ -463,11 +456,7 @@ static boolean CheckConditions(interlevelcond_t *conditions,
                 level_t *level;
                 array_foreach(level, wbs->visitedlevels)
                 {
-                    mapentry_t *mape =
-                        G_LookupMapinfo(level->episode, level->map);
-
-                    if ((mape->map_number && mape->map_number == cond->param)
-                        || mape->all_number == cond->param)
+                    if (level->map == cond->param)
                     {
                         conditionsmet = true;
                         break;
@@ -562,11 +551,14 @@ static boolean UpdateAnimation(boolean enteringcondition)
     animation->states = NULL;
     animation->background_lump = NULL;
 
-    if (!enteringcondition && animation->interlevel_exiting)
+    if (!enteringcondition)
     {
-        animation->states = animation->exiting_states;
-        animation->background_lump =
-            animation->interlevel_exiting->background_lump;
+        if (animation->interlevel_exiting)
+        {
+            animation->states = animation->exiting_states;
+            animation->background_lump =
+                animation->interlevel_exiting->background_lump;
+        }
     }
     else if (animation->interlevel_entering)
     {
@@ -669,6 +661,35 @@ static boolean NextLocAnimation(void)
     if (animation && animation->entering_states
         && !(demorecording || demoplayback))
     {
+        return true;
+    }
+
+    return false;
+}
+
+static boolean UpdateMusic(boolean enteringcondition)
+{
+    if (!animation)
+    {
+        return false;
+    }
+
+    int musicnum = -1;
+    if (enteringcondition)
+    {
+        if (animation->interlevel_entering)
+        {
+            musicnum = W_GetNumForName(animation->interlevel_entering->music_lump);
+        }
+    }
+    else if (animation->interlevel_exiting)
+    {
+        musicnum = W_GetNumForName(animation->interlevel_exiting->music_lump);
+    }
+
+    if (musicnum > 0)
+    {
+        S_ChangeMusInfoMusic(musicnum, true);
         return true;
     }
 
@@ -1293,6 +1314,8 @@ static boolean    snl_pointeron = false;
 //
 static void WI_initShowNextLoc(void)
 {
+  UpdateMusic(true);
+
   if (gamemapinfo)
   {
     if (gamemapinfo->endpic[0])
@@ -2218,7 +2241,7 @@ void WI_Ticker(void)
   // counter for general background animation
   bcnt++;  
 
-  if (bcnt == 1)
+  if (bcnt == 1 && !UpdateMusic(false))
     {
       // intermission music
       if ( gamemode == commercial )
@@ -2236,6 +2259,7 @@ void WI_Ticker(void)
       else
         if (netgame) WI_updateNetgameStats();
         else WI_updateStats();
+      WI_UpdateWidgets();
       break;
   
     case ShowNextLoc:

@@ -32,6 +32,7 @@
             }
         ]
     },
+    "libebur128",
     "libsndfile",
     {
         "name": "fluidsynth",
@@ -42,6 +43,6 @@
         "name": "libxmp",
         "default-features": false
     },
-    "cjson"
+    "yyjson"
   ]
 }

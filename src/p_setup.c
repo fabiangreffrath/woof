@@ -27,6 +27,7 @@
 #include "doomdata.h"
 #include "doomstat.h"
 #include "g_game.h"
+#include "g_compatibility.h"
 #include "i_printf.h"
 #include "i_system.h"
 #include "info.h"
@@ -49,7 +50,6 @@
 #include "r_things.h"
 #include "s_musinfo.h" // [crispy] S_ParseMusInfo()
 #include "s_sound.h"
-#include "st_stuff.h"
 #include "tables.h"
 #include "w_wad.h"
 #include "z_zone.h"
@@ -1607,6 +1607,8 @@ void P_SetupLevel(int episode, int map, int playermask, skill_t skill)
   strcpy(lumpname, MapName(episode, map));
 
   lumpnum = W_GetNumForName(lumpname);
+
+  G_ApplyLevelCompatibility(lumpnum);
 
   leveltime = 0;
   oldleveltime = 0;

@@ -1,5 +1,6 @@
 set(BASE_SOURCES
     all-all/animated.lmp
+    all-all/compdb.lmp
     all-all/crblack.lmp
     all-all/crblue.lmp
     all-all/crblue2.lmp

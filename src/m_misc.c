@@ -590,3 +590,22 @@ int M_ReadFile(char const *name, byte **buffer)
 
     return 0;
 }
+
+boolean M_StringToDigest(const char *string, byte *digest, int size)
+{
+    if (strlen(string) < 2 * size)
+    {
+        return false;
+    }
+
+    for (int offset = 0; offset < size; ++offset)
+    {
+        unsigned int i;
+        if (sscanf(string + 2 * offset, "%02x", &i) != 1)
+        {
+            return false;
+        }
+        digest[offset] = i;
+    }
+    return true;
+}

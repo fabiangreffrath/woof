@@ -43,6 +43,7 @@ extern boolean clfastparm; // checkparm of -fast
 void D_SetMaxHealth(void);
 void D_SetBloodColor(void);
 
+extern boolean disable_endoom;
 boolean D_AllowQuitSound(void);
 
 // Called by IO functions when input is detected.

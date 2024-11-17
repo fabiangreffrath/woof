@@ -49,10 +49,10 @@ jobs:
             libsdl2-dev \
             libsdl2-net-dev \
             libopenal-dev \
+            libebur128-dev \
             libsndfile1-dev \
             libfluidsynth-dev \
-            libxmp-dev \
-            libcjson-dev
+            libxmp-dev
 
       - name: Install dependencies (macOS)
         if: runner.os == 'macOS'
@@ -62,10 +62,11 @@ jobs:
             sdl2 \
             sdl2_net \
             openal-soft \
+            libebur128 \
             libsndfile \
             fluid-synth \
             libxmp \
-            cjson
+            yyjson
 
       - name: Install dependencies (MSYS2)
         if: matrix.config.shell == 'msys2 {0}'
@@ -82,10 +83,10 @@ jobs:
             ${{ matrix.config.msys-env }}-SDL2
             ${{ matrix.config.msys-env }}-SDL2_net
             ${{ matrix.config.msys-env }}-openal
+            ${{ matrix.config.msys-env }}-libebur128
             ${{ matrix.config.msys-env }}-libsndfile
             ${{ matrix.config.msys-env }}-fluidsynth
             ${{ matrix.config.msys-env }}-libxmp
-            ${{ matrix.config.msys-env }}-cjson
 
       - uses: actions/checkout@v4
 
@@ -141,10 +142,10 @@ jobs:
             libsdl2-dev \
             libsdl2-net-dev \
             libopenal-dev \
+            libebur128-dev \
             libsndfile1-dev \
             libfluidsynth-dev \
-            libxmp-dev \
-            libcjson-dev
+            libxmp-dev
 
       - uses: actions/checkout@v4
 

@@ -33,6 +33,7 @@
 #include "m_input.h"
 #include "m_misc.h"
 #include "p_mobj.h"
+#include "p_spec.h"
 #include "r_main.h"
 #include "r_voxel.h"
 #include "s_sound.h"
@@ -661,13 +662,18 @@ static void ForceDoomFont(sbe_widget_t *widget)
 
 static void UpdateCoord(sbe_widget_t *widget, player_t *player)
 {
+    ST_ClearLines(widget);
+
+    if (strictmode)
+    {
+        return;
+    }
+
     if (hud_player_coords == HUD_WIDGET_ADVANCED)
     {
         HU_BuildCoordinatesEx(widget, player->mo);
         return;
     }
-
-    ST_ClearLines(widget);
 
     if (!WidgetEnabled(hud_player_coords))
     {
@@ -755,6 +761,8 @@ static void UpdateMonSec(sbe_widget_t *widget)
 
     static char string[120];
 
+    const int cr_blue = (widget->font == stcfnt) ? CR_BLUE2 : CR_BLUE1;
+
     int fullkillcount = 0;
     int fullitemcount = 0;
     int fullsecretcount = 0;
@@ -777,7 +785,6 @@ static void UpdateMonSec(sbe_widget_t *widget)
         max_kill_requirement = totalkills;
     }
 
-    const int cr_blue = (widget->font == stcfnt) ? CR_BLUE2 : CR_BLUE1;
     int killcolor = (fullkillcount >= max_kill_requirement) ? '0' + cr_blue
                                                             : '0' + CR_GRAY;
     int secretcolor =
@@ -798,6 +805,58 @@ static void UpdateMonSec(sbe_widget_t *widget)
         killcolor, kill_str,
         itemcolor, item_str,
         secretcolor, secret_str);
+
+    ST_AddLine(widget, string);
+}
+
+static void UpdateDM(sbe_widget_t *widget)
+{
+    ST_ClearLines(widget);
+
+    if (!WidgetEnabled(hud_level_stats))
+    {
+        return;
+    }
+
+    ForceDoomFont(widget);
+
+    static char string[120];
+
+    const int cr_blue = (widget->font == stcfnt) ? CR_BLUE2 : CR_BLUE1;
+
+    int offset = 0;
+
+    for (int i = 0; i < MAXPLAYERS; ++i)
+    {
+        int result = 0, others = 0;
+
+        if (!playeringame[i])
+        {
+            continue;
+        }
+
+        for (int p = 0; p < MAXPLAYERS; ++p)
+        {
+            if (!playeringame[p])
+            {
+                continue;
+            }
+
+            if (i != p)
+            {
+                result += players[i].frags[p];
+                others -= players[p].frags[i];
+            }
+            else
+            {
+                result -= players[i].frags[p];
+            }
+        }
+
+        offset += M_snprintf(string + offset, sizeof(string) - offset,
+                             "\x1b%c%d/%d ", (i == displayplayer) ?
+                             '0' + cr_blue : '0' + CR_GRAY, result, others);
+    }
 
     ST_AddLine(widget, string);
 }
@@ -824,7 +883,14 @@ static void UpdateStTime(sbe_widget_t *widget, player_t *player)
                        (widget->font == stcfnt) ? BLUE2_S : BLUE1_S, time_scale);
     }
 
-    if (totalleveltimes)
+    if (levelTimer == true)
+    {
+        const int time = levelTimeCount / TICRATE;
+
+        offset += M_snprintf(string + offset, sizeof(string) - offset,
+                             BROWN_S "%d:%02d ", time / 60, time % 60);
+    }
+    else if (totalleveltimes)
     {
         const int time = (totalleveltimes + leveltime) / TICRATE;
 
@@ -920,6 +986,13 @@ static void UpdateSpeed(sbe_widget_t *widget, player_t *player)
 
 static void UpdateCmd(sbe_widget_t *widget)
 {
+    ST_ClearLines(widget);
+
+    if (!STRICTMODE(hud_command_history))
+    {
+        return;
+    }
+
     HU_BuildCommandHistory(widget);
 }
 
@@ -1030,7 +1103,7 @@ void ST_ResetMessageColors(void)
     }
 }
 
-sbarelem_t *st_time_elem = NULL;
+sbarelem_t *st_time_elem = NULL, *st_cmd_elem = NULL;
 
 void ST_UpdateWidget(sbarelem_t *elem, player_t *player)
 {
@@ -1052,7 +1125,10 @@ void ST_UpdateWidget(sbarelem_t *elem, player_t *player)
             break;
 
         case sbw_monsec:
-            UpdateMonSec(widget);
+            if (deathmatch)
+                UpdateDM(widget);
+            else
+                UpdateMonSec(widget);
             break;
         case sbw_time:
             st_time_elem = elem;
@@ -1068,6 +1144,7 @@ void ST_UpdateWidget(sbarelem_t *elem, player_t *player)
             UpdateRate(widget, player);
             break;
         case sbw_cmd:
+            st_cmd_elem = elem;
             UpdateCmd(widget);
             break;
         case sbw_speed:

@@ -58,5 +58,6 @@ void M_CopyLumpName(char *dest, const char *src);
 char *AddDefaultExtension(char *path, const char *ext);
 boolean M_WriteFile(const char *name, void *source, int length);
 int M_ReadFile(const char *name, byte **buffer);
+boolean M_StringToDigest(const char *string, byte *digest, int size);
 
 #endif
