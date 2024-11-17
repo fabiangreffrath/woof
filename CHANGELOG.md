@@ -59,8 +59,8 @@
   - Added Crispy Doom automap color scheme.
   - Added "count" option for secret-revealed message (thanks to @MrAlaux).
   - Added level stats widget format settings (thanks to @MrAlaux).
-  - Fast exit when pressing Alt+F4 or the window close button.
-  - Deathmatch HUD widgets improvements (score board and level time countdown).
+  - Added fast exit when pressing Alt+F4 or the window close button.
+  - Improved deathmatch HUD widgets (scoreboard and level time countdown).
 
 * Tools:
   - Added advanced coordinates widget (from DSDA-Doom).
@@ -68,7 +68,7 @@
 
 * Miscellaneous:
   - Replaced "Show ENDOOM Screen" menu item with "Exit Sequence" (Off, Sound Only, PWAD ENDOOM, Full).
-  - Allowed drag-and-drop on non-Windows systems.
+  - Added drag-and-drop on non-Windows systems.
   - Added `SPEED` cheat to show a speedometer.
   - Rewrote help strings in `woof.cfg` (thanks to @MrAlaux).
   - Added interpolation of wipe melt animation (from Rum and Raisin Doom).
@@ -78,7 +78,7 @@
   - Allowed setting `gamedescription` (and thus the window title) with DEHACKED.
   - Allowed up to 10 episodes in UMAPINFO.
   - Added more paths to find IWADs.
-  - Removed credits screen, restoring the vanilla demo loop.
+  - Removed source port credits screen, restoring the vanilla demo loop.
 
 **Bug Fixes**
 
@@ -113,7 +113,7 @@
 
 * El Juancho for testing and providing feedback on quickstart cache.
 * gendlin and Trov (bangstk) for testing and providing feedback on fake high-resolution turning.
-* gandlin for FPS limiter improvements and various general optimizations.
+* gendlin for FPS limiter improvements and various general optimizations.
 * Jibb Smart for publishing reference implementations of gyro and flick stick features.
 * JustinWayland, protocultor, sndein, and AL2009man for testing and providing feedback on gyro and flick stick features.
 * Julia Nechaevskaya for help with 32:9 support.
