@@ -2,7 +2,7 @@
 
 * Mod Support:
   - ID24 features:
-    - `SBARDEF`, with additional widescreen layout and widgets; consequently, removed Boom HUD.
+    - `SBARDEF`, with additional widescreen layout and widgets.
     - `SKYDEFS`.
     - `UMAPINFO` intermission extensions.
     - `extras.wad`, which will be autoloaded if found.
@@ -35,8 +35,9 @@
 * Input:
   - Added option for fake high-resolution turning when using short tics: see `fake_longtics` in `woof.cfg`.
   - Added quickstart cache option (from DSDA-Doom): see `quickstart_cache_tics` in `woof.cfg`.
+  - Added a "Weapon Carousel" to visualize switching weapons using the mouse wheel or "Next"/"Prev" buttons (thanks to @JNechaevsky for the graphics).
+  - Added "Vanilla Weapon Cycle" option.
   - Added "Last" weapon key binding.
-  - Added "Cycle Through All Weapons" option.
   - Added support for SSG key binding when using vanilla compatibility level.
   - Improved performance when handling many input events at once.
   - Optimized input polling for older computers (thanks to @gendlin).
@@ -108,6 +109,11 @@
 * Fixed crosshair target lock-on not working on voxel models.
 * Fixed clean screenshots on demo and intermission screens.
 * Fixed game speed affecting dynamic resolution.
+
+**Regressions**
+
+* Removed the Boom HUD and `WOOFHUD` support, they are replaced by `SBARDEF`.
+* Removed the "Blink Missing Keys" feature.
 
 **Acknowledgments**
 
