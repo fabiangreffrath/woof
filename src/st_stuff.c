@@ -374,7 +374,7 @@ static boolean CheckConditions(sbarcondition_t *conditions, player_t *player)
                     {
                         enabled |= (automapactive && automapoverlay);
                     }
-                    else if (cond->param & sbc_mode_automap)
+                    if (cond->param & sbc_mode_automap)
                     {
                         enabled |= (automapactive && !automapoverlay);
                     }
