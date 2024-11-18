@@ -16,17 +16,19 @@
 #include <math.h>
 #include <string.h>
 
-#include "dstrings.h"
-#include "d_event.h"
 #include "d_deh.h"
+#include "d_event.h"
 #include "d_player.h"
 #include "doomdef.h"
 #include "doomkeys.h"
 #include "doomstat.h"
 #include "doomtype.h"
+#include "dstrings.h"
 #include "hu_command.h"
 #include "hu_coordinates.h"
 #include "hu_obituary.h"
+#include "i_input.h"
+#include "i_timer.h"
 #include "i_video.h"
 #include "m_array.h"
 #include "m_config.h"
@@ -40,9 +42,8 @@
 #include "sounds.h"
 #include "st_sbardef.h"
 #include "st_stuff.h"
-#include "i_timer.h"
-#include "v_video.h"
 #include "u_mapinfo.h"
+#include "v_video.h"
 
 boolean       show_messages;
 boolean       show_toggle_messages;
@@ -164,52 +165,6 @@ static void UpdateSecretMessage(sbe_widget_t *widget, player_t *player)
     }
 }
 
-// key tables
-// jff 5/10/98 french support removed, 
-// as it was not being used and couldn't be easily tested
-//
-
-static const char shiftxform[] =
-{
-    0,
-    1, 2, 3, 4, 5, 6, 7, 8, 9, 10,
-    11, 12, 13, 14, 15, 16, 17, 18, 19, 20,
-    21, 22, 23, 24, 25, 26, 27, 28, 29, 30,
-    31,
-    ' ', '!', '"', '#', '$', '%', '&',
-    '"', // shift-'
-    '(', ')', '*', '+',
-    '<', // shift-,
-    '_', // shift--
-    '>', // shift-.
-    '?', // shift-/
-    ')', // shift-0
-    '!', // shift-1
-    '@', // shift-2
-    '#', // shift-3
-    '$', // shift-4
-    '%', // shift-5
-    '^', // shift-6
-    '&', // shift-7
-    '*', // shift-8
-    '(', // shift-9
-    ':',
-    ':', // shift-;
-    '<',
-    '+', // shift-=
-    '>', '?', '@',
-    'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N',
-    'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z',
-    '[', // shift-[
-    '!', // shift-backslash - OH MY GOD DOES WATCOM SUCK
-    ']', // shift-]
-    '"', '_',
-    '\'', // shift-`
-    'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N',
-    'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z',
-    '{', '|', '}', '~', 127
-};
-
 typedef struct
 {
     char string[HU_MAXLINELENGTH];
@@ -226,6 +181,8 @@ static void ClearChatLine(chatline_t *line)
 
 static boolean AddKeyToChatLine(chatline_t *line, char ch)
 {
+    ch = M_ToUpper(ch);
+
     if (ch >= ' ' && ch <= '_')
     {
         if (line->pos == HU_MAXLINELENGTH - 1)
@@ -282,28 +239,20 @@ void ST_UpdateChatMessage(void)
             {
                 chat_dest[p] = ch;
             }
-            else
+            else if (AddKeyToChatLine(&lines[p], ch) && ch == KEY_ENTER)
             {
-                if (ch >= 'a' && ch <= 'z')
+                if (lines[p].pos
+                    && (chat_dest[p] == consoleplayer + 1
+                        || chat_dest[p] == HU_BROADCAST))
                 {
-                    ch = (char)shiftxform[(unsigned char)ch];
-                }
+                    M_snprintf(message_string, sizeof(message_string), "%s%s",
+                               *player_names[p], lines[p].string);
 
-                if (AddKeyToChatLine(&lines[p], ch) && ch == KEY_ENTER)
-                {
-                    if (lines[p].pos && (chat_dest[p] == consoleplayer + 1
-                                         || chat_dest[p] == HU_BROADCAST))
-                    {
-                        M_snprintf(message_string, sizeof(message_string),
-                            "%s%s", *player_names[p], lines[p].string);
-
-                        S_StartSoundPitch(0,
-                                          gamemode == commercial ? sfx_radio
-                                                                 : sfx_tink,
-                                          PITCH_NONE);
-                    }
-                    ClearChatLine(&lines[p]);
+                    S_StartSoundPitch(
+                        0, gamemode == commercial ? sfx_radio : sfx_tink,
+                        PITCH_NONE);
                 }
+                ClearChatLine(&lines[p]);
             }
             players[p].cmd.chatchar = 0;
         }
@@ -370,12 +319,25 @@ char ST_DequeueChatChar(void)
 
 static chatline_t chatline;
 
+static void StartChatInput(int dest)
+{
+    chat_on = true;
+    ClearChatLine(&chatline);
+    QueueChatChar(dest);
+    I_StartTextInput();
+}
+
+static void StopChatInput(void)
+{
+    chat_on = false;
+    I_StopTextInput();
+}
+
 boolean ST_MessagesResponder(event_t *ev)
 {
     static char lastmessage[HU_MAXLINELENGTH + 1];
 
     boolean eatkey = false;
-    static boolean shiftdown = false;
     static boolean altdown = false;
     int ch;
     int numplayers;
@@ -392,7 +354,6 @@ boolean ST_MessagesResponder(event_t *ev)
 
     if (ev->data1.i == KEY_RSHIFT)
     {
-        shiftdown = ev->type == ev_keydown;
         return false;
     }
 
@@ -421,9 +382,8 @@ boolean ST_MessagesResponder(event_t *ev)
         }
         else if (netgame && M_InputActivated(input_chat))
         {
-            eatkey = chat_on = true;
-            ClearChatLine(&chatline);
-            QueueChatChar(HU_BROADCAST);
+            eatkey = true;
+            StartChatInput(HU_BROADCAST);
         }
         else if (netgame && numplayers > 2) // killough 11/98: simplify
         {
@@ -443,9 +403,8 @@ boolean ST_MessagesResponder(event_t *ev)
                     }
                     else if (playeringame[p])
                     {
-                        eatkey = chat_on = true;
-                        ClearChatLine(&chatline);
-                        QueueChatChar((char)(p + 1));
+                        eatkey = true;
+                        StartChatInput(p + 1);
                         break;
                     }
                 }
@@ -480,17 +439,14 @@ boolean ST_MessagesResponder(event_t *ev)
             QueueChatChar(KEY_ENTER); // phares
 
             // leave chat mode and notify that it was sent
-            chat_on = false;
+            StopChatInput();
             M_StringCopy(lastmessage, chat_macros[ch], sizeof(lastmessage));
             displaymsg("%s", lastmessage);
             eatkey = true;
         }
         else
         {
-            if (shiftdown || (ch >= 'a' && ch <= 'z'))
-            {
-                ch = shiftxform[ch];
-            }
+            ch = ev->data3.i;
             eatkey = AddKeyToChatLine(&chatline, ch);
             if (eatkey)
             {
@@ -499,7 +455,7 @@ boolean ST_MessagesResponder(event_t *ev)
 
             if (ch == KEY_ENTER) // phares
             {
-                chat_on = false;
+                StopChatInput();
                 if (chatline.pos)
                 {
                     M_StringCopy(lastmessage, chatline.string,
@@ -509,7 +465,7 @@ boolean ST_MessagesResponder(event_t *ev)
             }
             else if (ch == KEY_ESCAPE) // phares
             {
-                chat_on = false;
+                StopChatInput();
             }
         }
     }

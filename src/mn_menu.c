@@ -1409,6 +1409,9 @@ static void M_SaveSelect(int choice)
     // we are going to be intercepting all chars
     saveStringEnter = 1;
 
+    // We need to turn on text input:
+    I_StartTextInput();
+
     saveSlot = choice;
     strcpy(saveOldString, savegamestrings[choice]);
     // [FG] override savegame name if it already starts with a map identifier
@@ -3021,11 +3024,13 @@ boolean M_Responder(event_t *ev)
         }
         else if (action == MENU_ESCAPE) // phares 3/7/98
         {
+            I_StopTextInput();
             saveStringEnter = 0;
             strcpy(&savegamestrings[saveSlot][0], saveOldString);
         }
         else if (action == MENU_ENTER) // phares 3/7/98
         {
+            I_StopTextInput();
             saveStringEnter = 0;
             if (savegamestrings[saveSlot][0])
             {
@@ -3034,6 +3039,8 @@ boolean M_Responder(event_t *ev)
         }
         else
         {
+            ch = ev->data3.i;
+
             ch = M_ToUpper(ch);
 
             if (ch >= 32 && ch <= 127 && saveCharIndex < SAVESTRINGSIZE - 1
@@ -3052,13 +3059,15 @@ boolean M_Responder(event_t *ev)
 
     if (messageToPrint)
     {
+        ch = ev->data3.i;
+
         if (action == MENU_ENTER)
         {
             ch = 'y';
         }
 
         if (messageNeedsInput == true
-            && !(ch == ' ' || ch == 'n' || ch == 'y' || ch == key_escape
+            && !(ch == ' ' || ch == 'n' || ch == 'y' || ev->data1.i == key_escape
                  || action == MENU_BACKSPACE)) // phares
         {
             return false;

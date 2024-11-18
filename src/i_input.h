@@ -45,4 +45,8 @@ void I_HandleGamepadEvent(SDL_Event *sdlevent, boolean menu);
 void I_HandleKeyboardEvent(SDL_Event *sdlevent);
 void I_HandleMouseEvent(SDL_Event *sdlevent);
 
+void I_StartTextInput(void);
+void I_StopTextInput(void);
+void I_BindKeyboardVariables(void);
+
 #endif
