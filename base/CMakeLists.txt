@@ -81,6 +81,28 @@ set(BASE_SOURCES
     all-all/sbardef.lmp
     all-all/sbhuddef.lmp
     all-all/skytran.lmp
+
+    all-all/smbfgg0.png
+    all-all/smbfgg1.png
+    all-all/smcsaw0.png
+    all-all/smcsaw1.png
+    all-all/smfist0.png
+    all-all/smfist1.png
+    all-all/smlaun0.png
+    all-all/smlaun1.png
+    all-all/smmgun0.png
+    all-all/smmgun1.png
+    all-all/smpisg0.png
+    all-all/smpisg1.png
+    all-all/smplas0.png
+    all-all/smplas1.png
+    all-all/smsgn20.png
+    all-all/smsgn21.png
+    all-all/smshot0.png
+    all-all/smshot1.png
+    all-all/smunkn0.png
+    all-all/smunkn1.png
+
     all-all/stbr123.png
     all-all/stbr124.png
     all-all/stbr125.png

@@ -1128,6 +1128,18 @@
               ],
               "children": null
             }
+          },
+          {
+            "carousel":
+            {
+              "x": 0,
+              "y": 18,
+              "alignment": 0,
+              "tranmap": null,
+              "translation": null,
+              "conditions": null,
+              "children": null
+            }
           }
         ]
       },
@@ -1875,6 +1887,18 @@
                     ],
                     "children": null
                   }
+                },
+                {
+                  "carousel":
+                  {
+                    "x": 0,
+                    "y": 18,
+                    "alignment": 0,
+                    "tranmap": null,
+                    "translation": null,
+                    "conditions": null,
+                    "children": null
+                  }
                 }
               ]
             }
@@ -2046,6 +2070,18 @@
                   "param": 3
                 }
               ],
+              "children": null
+            }
+          },
+          {
+            "carousel":
+            {
+              "x": 0,
+              "y": 18,
+              "alignment": 0,
+              "tranmap": null,
+              "translation": null,
+              "conditions": null,
               "children": null
             }
           }

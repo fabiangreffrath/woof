@@ -28,6 +28,7 @@
 #include "doomstat.h"
 #include "doomtype.h"
 #include "g_game.h"
+#include "g_nextweapon.h"
 #include "info.h"
 #include "m_cheat.h"
 #include "p_map.h"

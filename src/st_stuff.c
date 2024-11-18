@@ -49,6 +49,7 @@
 #include "r_main.h"
 #include "r_state.h"
 #include "s_sound.h"
+#include "st_carousel.h"
 #include "st_stuff.h"
 #include "st_sbardef.h"
 #include "st_widgets.h"
@@ -123,6 +124,8 @@ static int armor_yellow;  // armor amount less than which status is yellow
 static int armor_green;   // armor amount above is blue, below is green
 
 static boolean hud_armor_type; // color of armor depends on type
+
+static boolean weapon_carousel;
 
 // used for evil grin
 static boolean  oldweaponsowned[NUMWEAPONS];
@@ -987,6 +990,13 @@ static void UpdateElem(sbarelem_t *elem, player_t *player)
             UpdateLines(elem);
             break;
 
+        case sbe_carousel:
+            if (weapon_carousel)
+            {
+                ST_UpdateCarousel(player);
+            }
+            break;
+
         default:
             break;
     }
@@ -1392,6 +1402,13 @@ static void DrawElem(int x, int y, sbarelem_t *elem, player_t *player)
             DrawLines(x, y, elem);
             break;
 
+        case sbe_carousel:
+            if (weapon_carousel)
+            {
+                ST_DrawCarousel(x, y, elem);
+            }
+            break;
+
         default:
             break;
     }
@@ -1730,6 +1747,7 @@ void ST_Start(void)
     }
 
     ResetStatusBar();
+    ST_ResetCarousel();
 
     HU_StartCrosshair();
 }
@@ -1851,6 +1869,9 @@ void ST_BindSTSVariables(void)
   M_BindNum("hud_crosshair_target_color", &hud_crosshair_target_color, NULL,
             CR_YELLOW, CR_BRICK, CR_NONE, ss_stat, wad_no,
             "Crosshair color when aiming at target");
+
+  M_BindBool("weapon_carousel", &weapon_carousel, NULL,
+             true, ss_weap, wad_no, "Show weapon carousel");
 }
 
 //----------------------------------------------------------------------------
