@@ -193,7 +193,7 @@ Copyright:
  © 2013 James Haley et al.  
 License: [GPL-3.0+](https://www.gnu.org/licenses/gpl-3.0)
 
-Files: `base/all-all/sprites/pls*`  
+Files: `base/all-all/sprites/pls*, base/all-all/stcfn096.png`  
 Copyright: © 2001-2019 Contributors to the Freedoom project.  
 License: [BSD-3-Clause](https://opensource.org/licenses/BSD-3-Clause)
 

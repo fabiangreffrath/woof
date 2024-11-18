@@ -81,6 +81,7 @@ set(BASE_SOURCES
     all-all/sbardef.lmp
     all-all/sbhuddef.lmp
     all-all/skytran.lmp
+    all-all/stcfn096.png
 
     all-all/smbfgg0.png
     all-all/smbfgg1.png
