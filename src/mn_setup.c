@@ -1532,9 +1532,9 @@ void MN_DrawKeybnd(void)
 // The Weapon Screen tables.
 
 static setup_tab_t weap_tabs[] = {
-    {"cosmetic"},
-    {"slots"},
-    {"preferences"},
+    {"Prefs"},
+    {"Slots"},
+    {"Priority"},
     {NULL}
 };
 
@@ -1547,13 +1547,28 @@ static const char *bobbing_pct_strings[] = {"0%", "25%", "50%", "75%", "100%"};
 
 static setup_menu_t weap_settings1[] = {
 
+    {"Gameplay", S_SKIP | S_TITLE, CNTR_X, M_SPC},
+
+    {"Weapon Carousel", S_ONOFF, CNTR_X, M_SPC, {"weapon_carousel"}},
+
+    {"Vanilla Weapon Cycle", S_ONOFF | S_BOOM, CNTR_X, M_SPC,
+     {"doom_weapon_cycle"}},
+
+    {"Use Weapon Toggles", S_ONOFF | S_BOOM, CNTR_X, M_SPC,
+     {"doom_weapon_toggles"}},
+
+    // killough 8/8/98
+    {"Pre-Beta BFG", S_ONOFF | S_STRICT, CNTR_X, M_SPC, {"classic_bfg"}},
+
+    MI_GAP,
+
+    {"Cosmetic", S_SKIP | S_TITLE, CNTR_X, M_SPC},
+
     {"View Bob", S_THERMO, CNTR_X, M_THRM_SPC, {"view_bobbing_pct"},
      .strings_id = str_bobbing_pct},
 
     {"Weapon Bob", S_THERMO, CNTR_X, M_THRM_SPC, {"weapon_bobbing_pct"},
      .strings_id = str_bobbing_pct, .action = UpdateCenteredWeaponItem},
-
-    MI_GAP,
 
     // [FG] centered or bobbing weapon sprite
     {"Weapon Alignment", S_CHOICE | S_STRICT, CNTR_X, M_SPC, {"center_weapon"},
@@ -1722,21 +1737,15 @@ static void UpdateWeaponSlotItems(void)
 }
 
 static setup_menu_t weap_settings3[] = {
-    {"1St Choice Weapon", S_WEAP | S_BOOM, M_X, M_SPC, {"weapon_choice_1"}},
-    {"2Nd Choice Weapon", S_WEAP | S_BOOM, M_X, M_SPC, {"weapon_choice_2"}},
-    {"3Rd Choice Weapon", S_WEAP | S_BOOM, M_X, M_SPC, {"weapon_choice_3"}},
-    {"4Th Choice Weapon", S_WEAP | S_BOOM, M_X, M_SPC, {"weapon_choice_4"}},
-    {"5Th Choice Weapon", S_WEAP | S_BOOM, M_X, M_SPC, {"weapon_choice_5"}},
-    {"6Th Choice Weapon", S_WEAP | S_BOOM, M_X, M_SPC, {"weapon_choice_6"}},
-    {"7Th Choice Weapon", S_WEAP | S_BOOM, M_X, M_SPC, {"weapon_choice_7"}},
-    {"8Th Choice Weapon", S_WEAP | S_BOOM, M_X, M_SPC, {"weapon_choice_8"}},
-    {"9Th Choice Weapon", S_WEAP | S_BOOM, M_X, M_SPC, {"weapon_choice_9"}},
-    MI_GAP,
-    {"Same Key Toggles Weapons", S_ONOFF | S_BOOM, M_X, M_SPC, {"doom_weapon_toggles"}},
-    {"Vanilla Weapon Cycle", S_ONOFF | S_BOOM, M_X, M_SPC, {"doom_weapon_cycle"}},
-    MI_GAP,
-    // killough 8/8/98
-    {"Pre-Beta BFG", S_ONOFF | S_STRICT, M_X, M_SPC, {"classic_bfg"}},
+    {"1st Choice Weapon", S_WEAP | S_BOOM, OFF_CNTR_X, M_SPC, {"weapon_choice_1"}},
+    {"2nd Choice Weapon", S_WEAP | S_BOOM, OFF_CNTR_X, M_SPC, {"weapon_choice_2"}},
+    {"3rd Choice Weapon", S_WEAP | S_BOOM, OFF_CNTR_X, M_SPC, {"weapon_choice_3"}},
+    {"4th Choice Weapon", S_WEAP | S_BOOM, OFF_CNTR_X, M_SPC, {"weapon_choice_4"}},
+    {"5th Choice Weapon", S_WEAP | S_BOOM, OFF_CNTR_X, M_SPC, {"weapon_choice_5"}},
+    {"6th Choice Weapon", S_WEAP | S_BOOM, OFF_CNTR_X, M_SPC, {"weapon_choice_6"}},
+    {"7th Choice Weapon", S_WEAP | S_BOOM, OFF_CNTR_X, M_SPC, {"weapon_choice_7"}},
+    {"8th Choice Weapon", S_WEAP | S_BOOM, OFF_CNTR_X, M_SPC, {"weapon_choice_8"}},
+    {"9th Choice Weapon", S_WEAP | S_BOOM, OFF_CNTR_X, M_SPC, {"weapon_choice_9"}},
     MI_END
 };
 
@@ -1841,10 +1850,6 @@ static setup_menu_t stat_settings1[] = {
      .action = RefreshSolidBackground},
 
     {"Animated Health/Armor Count", S_ONOFF, H_X, M_SPC, {"hud_animated_counts"}},
-
-    MI_GAP,
-
-    {"Weapon Carousel", S_ONOFF, H_X, M_SPC, {"weapon_carousel"}},
 
     MI_RESET,
 
