@@ -1851,7 +1851,7 @@ void ST_BindSTSVariables(void)
             "Crosshair color when aiming at target");
 
   M_BindBool("weapon_carousel", &weapon_carousel, NULL,
-             false, ss_weap, wad_no, "Show weapon carousel");
+             true, ss_weap, wad_no, "Show weapon carousel");
 }
 
 //----------------------------------------------------------------------------
