@@ -1382,6 +1382,11 @@ static void WI_drawShowNextLoc(void)
   // draw animated background
   WI_drawAnimatedBack(); 
 
+  if (animation && array_size(animation->states))
+  {
+      return;
+  }
+
   // custom interpic.
   if (exitpic || (enterpic && state != StatCount))
   {
