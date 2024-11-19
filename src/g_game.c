@@ -2210,13 +2210,13 @@ void G_ForcedLoadGame(void)
 // killough 3/16/98: add slot info
 // killough 5/15/98: add command-line
 
-void G_LoadAutoSave(char *name)
+void G_LoadAutoSave(char *name, boolean command)
 {
   free(savename);
   savename = M_StringDuplicate(name);
   gameaction = ga_loadautosave;
   forced_loadgame = false;
-  command_loadgame = false;
+  command_loadgame = command;
 }
 
 void G_LoadGame(char *name, int slot, boolean command)
@@ -2236,6 +2236,13 @@ static void G_LoadAutoSaveErr(const char *msg)
 {
   Z_Free(savebuffer);
   MN_ForcedLoadAutoSave(msg);
+
+  if (command_loadgame)
+  {
+    G_CheckDemoStatus();
+    D_StartTitle();
+    gamestate = GS_DEMOSCREEN;
+  }
 }
 
 static void G_LoadGameErr(const char *msg)
@@ -2761,7 +2768,7 @@ boolean G_LoadAutoSaveDeathUse(void)
 
     if (result)
     {
-      G_LoadAutoSave(auto_path);
+      G_LoadAutoSave(auto_path, false);
     }
   }
 
