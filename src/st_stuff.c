@@ -1399,6 +1399,10 @@ static void DrawElem(int x, int y, sbarelem_t *elem, player_t *player)
                 st_cmd_x = x;
                 st_cmd_y = y;
             }
+            if (elem == st_msg_elem)
+            {
+                break;
+            }
             DrawLines(x, y, elem);
             break;
 
@@ -1515,6 +1519,19 @@ static void DrawBackground(const char *name)
     V_CopyRect(0, 0, st_backing_screen, video.unscaledw, ST_HEIGHT, 0, ST_Y);
 }
 
+static void DrawCenteredMessage(void)
+{
+    if (!st_msg_elem)
+    {
+        return;
+    }
+
+    sbarelem_t msg = *st_msg_elem;
+    msg.alignment = sbe_h_middle;
+    UpdateLines(&msg);
+    DrawLines(SCREENWIDTH / 2, 0, &msg);
+}
+
 static void DrawStatusBar(void)
 {
     player_t *player = &players[displayplayer];
@@ -1529,6 +1546,8 @@ static void DrawStatusBar(void)
     {
         DrawElem(0, SCREENHEIGHT - statusbar->height, child, player);
     }
+
+    DrawCenteredMessage();
 }
 
 static void EraseElem(int x, int y, sbarelem_t *elem, player_t *player)

@@ -82,35 +82,6 @@ static void SetLine(sbe_widget_t *widget, const char *string)
     array_push(widget->lines, line);
 }
 
-static boolean message_centered;
-
-static void ForceCenteredMessage(sbarelem_t *elem)
-{
-    static int old_x, old_y, old_alignment;
-    static boolean firsttime = true;
-
-    if (firsttime)
-    {
-        old_x = elem->x_pos;
-        old_y = elem->y_pos;
-        old_alignment = elem->alignment;
-        firsttime = false;
-    }
-
-    if (message_centered)
-    {
-        elem->x_pos = SCREENWIDTH / 2;
-        elem->y_pos = 0;
-        elem->alignment = sbe_h_middle;
-    }
-    else
-    {
-        elem->x_pos = old_x;
-        elem->y_pos = old_y;
-        elem->alignment = old_alignment;
-    }
-}
-
 static char message_string[HU_MAXLINELENGTH];
 
 static boolean message_review;
@@ -1134,6 +1105,9 @@ void ST_ResetMessageColors(void)
 
 sbarelem_t *st_time_elem = NULL, *st_cmd_elem = NULL;
 
+static boolean message_centered;
+sbarelem_t *st_msg_elem = NULL;
+
 void ST_UpdateWidget(sbarelem_t *elem, player_t *player)
 {
     sbe_widget_t *widget = elem->subtype.widget;
@@ -1141,7 +1115,7 @@ void ST_UpdateWidget(sbarelem_t *elem, player_t *player)
     switch (widget->type)
     {
         case sbw_message:
-            ForceCenteredMessage(elem);
+            st_msg_elem = message_centered ? elem : NULL;
             UpdateMessage(widget, player);
             break;
         case sbw_chat:
