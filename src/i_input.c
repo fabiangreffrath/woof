@@ -610,7 +610,7 @@ static const int scancode_translate_table[] = SCANCODE_TO_KEYS_ARRAY;
 // If true, I_StartTextInput() has been called, and we are populating
 // the data3 field of ev_keydown events.
 
-static boolean text_input_enabled = true;
+static boolean text_input_enabled;
 
 // key tables
 // jff 5/10/98 french support removed, 
