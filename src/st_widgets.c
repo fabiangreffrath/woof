@@ -344,8 +344,6 @@ boolean ST_MessagesResponder(event_t *ev)
 
     static int num_nobrainers = 0;
 
-    ch = (ev->type == ev_keydown) ? ev->data1.i : 0;
-
     numplayers = 0;
     for (int p = 0; p < MAXPLAYERS; p++)
     {
@@ -446,7 +444,7 @@ boolean ST_MessagesResponder(event_t *ev)
         }
         else
         {
-            ch = ev->data3.i;
+            ch = (ev->type == ev_text) ? ev->data1.i : 0;
             eatkey = AddKeyToChatLine(&chatline, ch);
             if (eatkey)
             {

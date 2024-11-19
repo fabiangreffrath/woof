@@ -471,6 +471,7 @@ static void ProcessEvent(SDL_Event *ev)
             // deliberate fall-though
 
         case SDL_KEYUP:
+        case SDL_TEXTINPUT:
             I_HandleKeyboardEvent(ev);
             break;
 
@@ -527,15 +528,27 @@ static void ProcessEvent(SDL_Event *ev)
 
 static void I_GetEvent(void)
 {
+    #define NUM_PEEP 32
+    static SDL_Event sdlevents[NUM_PEEP];
+
     I_DelayEvent();
 
     SDL_PumpEvents();
 
-    SDL_Event sdlevent;
-
-    while (SDL_PollEvent(&sdlevent))
+    while (true)
     {
-        ProcessEvent(&sdlevent);
+        const int num_events = SDL_PeepEvents(sdlevents, NUM_PEEP, SDL_GETEVENT,
+                                              SDL_FIRSTEVENT, SDL_LASTEVENT);
+
+        if (num_events < 1)
+        {
+            break;
+        }
+
+        for (int i = 0; i < num_events; i++)
+        {
+            ProcessEvent(&sdlevents[i]);
+        }
     }
 }
 

@@ -112,6 +112,7 @@ boolean M_InputActivated(int id)
     switch (event->type)
     {
         case ev_keydown:
+        case ev_text:
             return InputMatch(id, INPUT_KEY, event->data1.i);
         case ev_mouseb_down:
             return InputMatch(id, INPUT_MOUSEB, event->data1.i);

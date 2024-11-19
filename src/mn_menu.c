@@ -2924,6 +2924,7 @@ boolean M_Responder(event_t *ev)
             return false;
 
         case ev_keydown:
+        case ev_text:
             help_input = key_mode;
             menu_input = key_mode;
             ch = ev->data1.i;
@@ -3039,8 +3040,6 @@ boolean M_Responder(event_t *ev)
         }
         else
         {
-            ch = ev->data3.i;
-
             ch = M_ToUpper(ch);
 
             if (ch >= 32 && ch <= 127 && saveCharIndex < SAVESTRINGSIZE - 1
