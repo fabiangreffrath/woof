@@ -961,15 +961,13 @@ void I_HandleKeyboardEvent(SDL_Event *sdlevent)
             break;
 
         case SDL_TEXTINPUT:
-            if (text_input_enabled)
+            if (text_input_enabled
+                && strlen(sdlevent->text.text) == 1
+                && (sdlevent->text.text[0] & 0x80) == 0)
             {
                 event.type = ev_text;
                 event.data1.i = sdlevent->text.text[0];
-
-                if (event.data1.i != 0)
-                {
-                    D_PostEvent(&event);
-                }
+                D_PostEvent(&event);
             }
             break;
 

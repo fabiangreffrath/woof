@@ -404,7 +404,7 @@ boolean ST_MessagesResponder(event_t *ev)
         // send a macro
         if (altdown)
         {
-            ch = (ev->type == ev_text) ? ev->data1.i : 0;
+            ch = ev->data1.i;
             ch = ch - '0';
             if (ch < 0 || ch > 9)
             {
