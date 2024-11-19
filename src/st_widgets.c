@@ -356,11 +356,6 @@ boolean ST_MessagesResponder(event_t *ev)
         return false;
     }
 
-    if (M_InputActivated(input_chat_backspace))
-    {
-        ch = KEY_BACKSPACE;
-    }
-
     if (!chat_on)
     {
         if (M_InputActivated(input_chat_enter)) // phares
@@ -406,11 +401,6 @@ boolean ST_MessagesResponder(event_t *ev)
     } // jff 2/26/98 no chat functions if message review is displayed
     else
     {
-        if (M_InputActivated(input_chat_enter))
-        {
-            ch = KEY_ENTER;
-        }
-
         // send a macro
         if (altdown)
         {
