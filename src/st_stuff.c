@@ -1399,7 +1399,7 @@ static void DrawElem(int x, int y, sbarelem_t *elem, player_t *player)
                 st_cmd_x = x;
                 st_cmd_y = y;
             }
-            if (elem == st_msg_elem)
+            if (message_centered && elem == st_msg_elem)
             {
                 break;
             }
@@ -1521,15 +1521,10 @@ static void DrawBackground(const char *name)
 
 static void DrawCenteredMessage(void)
 {
-    if (!st_msg_elem)
+    if (message_centered)
     {
-        return;
+        DrawLines(SCREENWIDTH / 2, 0, st_msg_elem);
     }
-
-    sbarelem_t msg = *st_msg_elem;
-    msg.alignment = sbe_h_middle;
-    UpdateLines(&msg);
-    DrawLines(SCREENWIDTH / 2, 0, &msg);
 }
 
 static void DrawStatusBar(void)

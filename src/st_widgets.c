@@ -1105,8 +1105,20 @@ void ST_ResetMessageColors(void)
 
 sbarelem_t *st_time_elem = NULL, *st_cmd_elem = NULL;
 
-static boolean message_centered;
+boolean message_centered;
 sbarelem_t *st_msg_elem = NULL;
+
+static void ForceCenterMessage(sbarelem_t *elem)
+{
+    static sbaralignment_t default_alignment;
+    if (!st_msg_elem)
+    {
+        default_alignment = elem->alignment;
+        st_msg_elem = elem;
+    }
+
+    elem->alignment = message_centered ? sbe_h_middle : default_alignment;
+}
 
 void ST_UpdateWidget(sbarelem_t *elem, player_t *player)
 {
@@ -1115,7 +1127,7 @@ void ST_UpdateWidget(sbarelem_t *elem, player_t *player)
     switch (widget->type)
     {
         case sbw_message:
-            st_msg_elem = message_centered ? elem : NULL;
+            ForceCenterMessage(elem);
             UpdateMessage(widget, player);
             break;
         case sbw_chat:
