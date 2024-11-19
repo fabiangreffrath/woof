@@ -1010,6 +1010,8 @@ static void UpdateElem(sbarelem_t *elem, player_t *player)
 
 static void UpdateStatusBar(player_t *player)
 {
+    static int oldbarindex = -1;
+
     int barindex = MAX(screenblocks - 10, 0);
 
     if (automapactive && automapoverlay == AM_OVERLAY_OFF)
@@ -1017,8 +1019,13 @@ static void UpdateStatusBar(player_t *player)
         barindex = 0;
     }
 
-    st_time_elem = NULL;
-    st_cmd_elem = NULL;
+    if (oldbarindex != barindex)
+    {
+        st_time_elem = NULL;
+        st_cmd_elem = NULL;
+        st_msg_elem = NULL;
+        oldbarindex = barindex;
+    }
 
     statusbar = &sbardef->statusbars[barindex];
 
@@ -1521,7 +1528,7 @@ static void DrawBackground(const char *name)
 
 static void DrawCenteredMessage(void)
 {
-    if (message_centered)
+    if (message_centered && st_msg_elem)
     {
         DrawLines(SCREENWIDTH / 2, 0, st_msg_elem);
     }
