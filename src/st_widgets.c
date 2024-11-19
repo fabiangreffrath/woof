@@ -350,14 +350,9 @@ boolean ST_MessagesResponder(event_t *ev)
         numplayers += playeringame[p];
     }
 
-    if (ev->data1.i == KEY_RSHIFT)
-    {
-        return false;
-    }
-
     if (ev->data1.i == KEY_RALT)
     {
-        altdown = ev->type == ev_keydown;
+        altdown = ev->type != ev_keyup;
         return false;
     }
 
@@ -419,6 +414,7 @@ boolean ST_MessagesResponder(event_t *ev)
         // send a macro
         if (altdown)
         {
+            ch = (ev->type == ev_text) ? ev->data1.i : 0;
             ch = ch - '0';
             if (ch < 0 || ch > 9)
             {

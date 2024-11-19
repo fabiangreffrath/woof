@@ -744,6 +744,10 @@ static int GetTypedChar(SDL_Keysym *sym)
             return KEY_ENTER;
         case SDLK_ESCAPE:
             return KEY_ESCAPE;
+        case SDLK_RALT:
+            return KEY_RALT;
+        case SDLK_LALT:
+            return KEY_LALT;
         default:
             break;
     }
@@ -940,22 +944,19 @@ void I_HandleKeyboardEvent(SDL_Event *sdlevent)
             break;
 
         case SDL_KEYUP:
-            if (!text_input_enabled)
+            event.type = ev_keyup;
+            event.data1.i = TranslateKey(&sdlevent->key.keysym);
+
+            // data2 is initialized to zero for ev_keyup. For ev_keydown it's
+            // the shifted Unicode character that was typed, but if something
+            // wants to detect key releases it should do so based on data1
+            // (key ID), not the printable char.
+
+            event.data2.i = 0;
+
+            if (event.data1.i != 0)
             {
-                event.type = ev_keyup;
-                event.data1.i = TranslateKey(&sdlevent->key.keysym);
-
-                // data2 is initialized to zero for ev_keyup. For ev_keydown
-                // it's the shifted Unicode character that was typed, but if
-                // something wants to detect key releases it should do so
-                // based on data1(key ID), not the printable char.
-
-                event.data2.i = 0;
-
-                if (event.data1.i != 0)
-                {
-                    D_PostEvent(&event);
-                }
+                D_PostEvent(&event);
             }
             break;
 
