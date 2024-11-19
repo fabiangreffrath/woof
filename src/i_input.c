@@ -956,10 +956,7 @@ void I_InitKeyboard(void)
 {
     // On desktop platforms, SDL_StartTextInput() is implicitly called on SDL
     // window creation
-    if (vanilla_keyboard_mapping)
-    {
-        SDL_StopTextInput();
-    }
+    SDL_StopTextInput();
 }
 
 void I_BindKeyboardVariables(void)
