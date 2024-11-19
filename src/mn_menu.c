@@ -3618,7 +3618,7 @@ static void WriteText(int x, int y, const char *string)
         }
 
         c = M_ToUpper(c) - HU_FONTSTART;
-        if (c < 0 || c >= HU_FONTSIZE)
+        if (c < 0 || c >= HU_FONTSIZE || hu_font[c] == NULL)
         {
             cx += 4;
             continue;

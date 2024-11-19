@@ -1769,11 +1769,6 @@ void ST_Init(void)
     stcfnt = LoadSTCFN();
     hu_font = stcfnt->characters;
 
-    if (!hu_font)
-    {
-        I_Error("ST_Init: \"STCFN\" font not found");
-    }
-
     HU_InitCrosshair();
     HU_InitCommandHistory();
     HU_InitObituaries();
