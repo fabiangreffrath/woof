@@ -82,6 +82,35 @@ static void SetLine(sbe_widget_t *widget, const char *string)
     array_push(widget->lines, line);
 }
 
+static boolean message_centered;
+
+static void ForceCenteredMessage(sbarelem_t *elem)
+{
+    static int old_x, old_y, old_alignment;
+    static boolean firsttime = true;
+
+    if (firsttime)
+    {
+        old_x = elem->x_pos;
+        old_y = elem->y_pos;
+        old_alignment = elem->alignment;
+        firsttime = false;
+    }
+
+    if (message_centered)
+    {
+        elem->x_pos = SCREENWIDTH / 2;
+        elem->y_pos = 0;
+        elem->alignment = sbe_h_middle;
+    }
+    else
+    {
+        elem->x_pos = old_x;
+        elem->y_pos = old_y;
+        elem->alignment = old_alignment;
+    }
+}
+
 static char message_string[HU_MAXLINELENGTH];
 
 static boolean message_review;
@@ -1112,6 +1141,7 @@ void ST_UpdateWidget(sbarelem_t *elem, player_t *player)
     switch (widget->type)
     {
         case sbw_message:
+            ForceCenteredMessage(elem);
             UpdateMessage(widget, player);
             break;
         case sbw_chat:
@@ -1210,6 +1240,8 @@ void ST_BindHUDVariables(void)
              true, ss_stat, wad_no, "Show obituaries");
   BIND_NUM(hudcolor_obituary, CR_GRAY, CR_BRICK, CR_NONE,
            "Color range used for obituaries");
+  M_BindBool("message_centered", &message_centered, NULL,
+             false, ss_stat, wad_no, "Center messages horizontally");
   M_BindBool("message_colorized", &message_colorized, NULL,
              false, ss_stat, wad_no, "Colorize player messages");
 
