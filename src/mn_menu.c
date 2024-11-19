@@ -3058,15 +3058,13 @@ boolean M_Responder(event_t *ev)
 
     if (messageToPrint)
     {
-        ch = ev->data3.i;
-
         if (action == MENU_ENTER)
         {
             ch = 'y';
         }
 
         if (messageNeedsInput == true
-            && !(ch == ' ' || ch == 'n' || ch == 'y' || ev->data1.i == key_escape
+            && !(ch == ' ' || ch == 'n' || ch == 'y' || ch == key_escape
                  || action == MENU_BACKSPACE)) // phares
         {
             return false;
