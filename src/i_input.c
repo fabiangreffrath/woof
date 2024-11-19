@@ -720,39 +720,17 @@ static int GetLocalizedKey(SDL_Keysym *sym)
 
 static int GetTypedChar(SDL_Keysym *sym)
 {
-    if (vanilla_keyboard_mapping)
+    int result = TranslateKey(sym);
+
+    // If shift is held down, apply the original uppercase
+    // translation table used under DOS.
+    if ((SDL_GetModState() & KMOD_SHIFT) != 0 && result >= 0
+        && result < arrlen(shiftxform))
     {
-        int result = TranslateKey(sym);
-
-        // If shift is held down, apply the original uppercase
-        // translation table used under DOS.
-        if ((SDL_GetModState() & KMOD_SHIFT) != 0 && result >= 0
-            && result < arrlen(shiftxform))
-        {
-            result = shiftxform[result];
-        }
-
-        return result;
+        result = shiftxform[result];
     }
 
-    // Special cases, where we always return a fixed value.
-    switch (sym->sym)
-    {
-        case SDLK_BACKSPACE:
-            return KEY_BACKSPACE;
-        case SDLK_RETURN:
-            return KEY_ENTER;
-        case SDLK_ESCAPE:
-            return KEY_ESCAPE;
-        case SDLK_RALT:
-            return KEY_RALT;
-        case SDLK_LALT:
-            return KEY_LALT;
-        default:
-            break;
-    }
-
-    return 0;
+    return result;
 }
 
 void I_StartTextInput(void)
@@ -920,18 +898,16 @@ void I_HandleKeyboardEvent(SDL_Event *sdlevent)
     switch (sdlevent->type)
     {
         case SDL_KEYDOWN:
-            if (!text_input_enabled)
-            {
-                event.type = ev_keydown;
-                event.data1.i = TranslateKey(&sdlevent->key.keysym);
-                event.data2.i = GetLocalizedKey(&sdlevent->key.keysym);
+            event.type = ev_keydown;
+            event.data1.i = TranslateKey(&sdlevent->key.keysym);
+            event.data2.i = GetLocalizedKey(&sdlevent->key.keysym);
 
-                if (event.data1.i != 0)
-                {
-                    D_PostEvent(&event);
-                }
+            if (event.data1.i != 0)
+            {
+                D_PostEvent(&event);
             }
-            else
+
+            if (text_input_enabled && vanilla_keyboard_mapping)
             {
                 event.type = ev_text;
                 event.data1.i = GetTypedChar(&sdlevent->key.keysym);
