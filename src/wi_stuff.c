@@ -1389,11 +1389,6 @@ static void WI_drawShowNextLoc(void)
     return;
   }
 
-  if (animation && array_size(animation->states))
-  {
-      return;
-  }
-
   if ( gamemode != commercial)
     {
       if (wbs->epsd > 2)
@@ -1401,7 +1396,9 @@ static void WI_drawShowNextLoc(void)
           WI_drawEL();  // "Entering..." if not E1 or E2
           return;
         }
-  
+
+      if (!animation || !array_size(animation->states))
+      {
       last = (wbs->last == 8) ? wbs->next - 1 : wbs->last;
 
       // draw a splat on taken cities.
@@ -1415,6 +1412,7 @@ static void WI_drawShowNextLoc(void)
       // draw flashing ptr
       if (snl_pointeron)
         WI_drawOnLnode(wbs->next, yah); 
+      }
     }
 
   // draws which level you are entering..
