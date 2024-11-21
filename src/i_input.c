@@ -937,8 +937,8 @@ void I_HandleKeyboardEvent(SDL_Event *sdlevent)
             break;
 
         case SDL_TEXTINPUT:
-            if (text_input_enabled
-                && strlen(sdlevent->text.text) == 1
+            // SDL_TEXTINPUT are fired only after SDL_StartTextInput().
+            if (strlen(sdlevent->text.text) == 1
                 && (sdlevent->text.text[0] & 0x80) == 0)
             {
                 event.type = ev_text;
