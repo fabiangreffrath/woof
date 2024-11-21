@@ -1052,6 +1052,8 @@ byte I_GetNearestColor(byte *palette, int r, int g, int b)
 // [FG] save screenshots in PNG format
 boolean I_WritePNGfile(char *filename)
 {
+    UpdateRender();
+
     // [FG] adjust cropping rectangle if necessary
     SDL_Rect rect = {0};
     SDL_GetRendererOutputSize(renderer, &rect.w, &rect.h);
