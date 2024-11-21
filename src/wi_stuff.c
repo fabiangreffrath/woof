@@ -501,6 +501,17 @@ static void UpdateAnimationStates(wi_animationstate_t *states)
 
         if (state->duration_left == 0)
         {
+            if (!state->frame_start)
+            {
+                state->frame_index++;
+                if (state->frame_index == array_size(state->frames))
+                {
+                    state->frame_index = 0;
+                }
+
+                frame = &state->frames[state->frame_index];
+            }
+
             int tics = 1;
             switch (frame->type)
             {
@@ -525,15 +536,6 @@ static void UpdateAnimationStates(wi_animationstate_t *states)
             }
 
             state->duration_left = MAX(tics, 1);
-
-            if (!state->frame_start)
-            {
-                state->frame_index++;
-                if (state->frame_index == array_size(state->frames))
-                {
-                    state->frame_index = 0;
-                }
-            }
         }
 
         state->duration_left--;
