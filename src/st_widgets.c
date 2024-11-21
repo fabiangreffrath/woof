@@ -1105,6 +1105,21 @@ void ST_ResetMessageColors(void)
 
 sbarelem_t *st_time_elem = NULL, *st_cmd_elem = NULL;
 
+boolean message_centered;
+sbarelem_t *st_msg_elem = NULL;
+
+static void ForceCenterMessage(sbarelem_t *elem)
+{
+    static sbaralignment_t default_alignment;
+    if (!st_msg_elem)
+    {
+        default_alignment = elem->alignment;
+        st_msg_elem = elem;
+    }
+
+    elem->alignment = message_centered ? sbe_h_middle : default_alignment;
+}
+
 void ST_UpdateWidget(sbarelem_t *elem, player_t *player)
 {
     sbe_widget_t *widget = elem->subtype.widget;
@@ -1112,6 +1127,7 @@ void ST_UpdateWidget(sbarelem_t *elem, player_t *player)
     switch (widget->type)
     {
         case sbw_message:
+            ForceCenterMessage(elem);
             UpdateMessage(widget, player);
             break;
         case sbw_chat:
@@ -1210,6 +1226,8 @@ void ST_BindHUDVariables(void)
              true, ss_stat, wad_no, "Show obituaries");
   BIND_NUM(hudcolor_obituary, CR_GRAY, CR_BRICK, CR_NONE,
            "Color range used for obituaries");
+  M_BindBool("message_centered", &message_centered, NULL,
+             false, ss_stat, wad_no, "Center messages horizontally");
   M_BindBool("message_colorized", &message_colorized, NULL,
              false, ss_stat, wad_no, "Colorize player messages");
 

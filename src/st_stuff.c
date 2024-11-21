@@ -1010,6 +1010,8 @@ static void UpdateElem(sbarelem_t *elem, player_t *player)
 
 static void UpdateStatusBar(player_t *player)
 {
+    static int oldbarindex = -1;
+
     int barindex = MAX(screenblocks - 10, 0);
 
     if (automapactive && automapoverlay == AM_OVERLAY_OFF)
@@ -1017,8 +1019,13 @@ static void UpdateStatusBar(player_t *player)
         barindex = 0;
     }
 
-    st_time_elem = NULL;
-    st_cmd_elem = NULL;
+    if (oldbarindex != barindex)
+    {
+        st_time_elem = NULL;
+        st_cmd_elem = NULL;
+        st_msg_elem = NULL;
+        oldbarindex = barindex;
+    }
 
     statusbar = &sbardef->statusbars[barindex];
 
@@ -1399,6 +1406,10 @@ static void DrawElem(int x, int y, sbarelem_t *elem, player_t *player)
                 st_cmd_x = x;
                 st_cmd_y = y;
             }
+            if (message_centered && elem == st_msg_elem)
+            {
+                break;
+            }
             DrawLines(x, y, elem);
             break;
 
@@ -1515,6 +1526,14 @@ static void DrawBackground(const char *name)
     V_CopyRect(0, 0, st_backing_screen, video.unscaledw, ST_HEIGHT, 0, ST_Y);
 }
 
+static void DrawCenteredMessage(void)
+{
+    if (message_centered && st_msg_elem)
+    {
+        DrawLines(SCREENWIDTH / 2, 0, st_msg_elem);
+    }
+}
+
 static void DrawStatusBar(void)
 {
     player_t *player = &players[displayplayer];
@@ -1529,6 +1548,8 @@ static void DrawStatusBar(void)
     {
         DrawElem(0, SCREENHEIGHT - statusbar->height, child, player);
     }
+
+    DrawCenteredMessage();
 }
 
 static void EraseElem(int x, int y, sbarelem_t *elem, player_t *player)

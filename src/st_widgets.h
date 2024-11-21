@@ -58,6 +58,9 @@ extern boolean hud_time_use;
 
 extern struct sbarelem_s *st_time_elem, *st_cmd_elem;
 
+extern boolean message_centered;
+extern struct sbarelem_s *st_msg_elem;
+
 void ST_ResetTitle(void);
 
 void ST_ClearLines(struct sbe_widget_s *widget);
