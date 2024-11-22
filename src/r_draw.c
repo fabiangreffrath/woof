@@ -35,6 +35,7 @@
 #include "r_state.h"
 #include "v_fmt.h"
 #include "v_video.h"
+#include "w_wad.h"
 #include "z_zone.h"
 
 //
@@ -339,7 +340,7 @@ static const int fuzzoffset[FUZZTABLE] =
     FUZZOFF,-FUZZOFF,FUZZOFF,FUZZOFF,-FUZZOFF,-FUZZOFF,FUZZOFF,
     FUZZOFF,-FUZZOFF,-FUZZOFF,-FUZZOFF,-FUZZOFF,FUZZOFF,FUZZOFF,
     FUZZOFF,FUZZOFF,-FUZZOFF,FUZZOFF,FUZZOFF,-FUZZOFF,FUZZOFF 
-}; 
+};
 
 static int fuzzpos = 0;
 
@@ -370,7 +371,7 @@ void R_SetFuzzPosDraw(void)
 //  i.e. spectres and invisible players.
 //
 
-static void R_DrawFuzzColumn_orig(void)
+static void R_DrawFuzzColumnOriginal(void)
 {
     boolean cutoff = false;
 
@@ -448,7 +449,7 @@ static void R_DrawFuzzColumn_orig(void)
 
 static int fuzzblocksize;
 
-static void R_DrawFuzzColumn_block(void)
+static void R_DrawFuzzColumnBlocky(void)
 {
     boolean cutoff = false;
 
@@ -526,21 +527,135 @@ static void R_DrawFuzzColumn_block(void)
     }
 }
 
-// [FG] spectre drawing mode: 0 original, 1 blocky (hires)
+#define FUZZDARK 6 * 256
 
-boolean fuzzcolumn_mode;
-void (*R_DrawFuzzColumn)(void) = R_DrawFuzzColumn_orig;
+static const int fuzzdark[FUZZTABLE] =
+{
+    FUZZDARK,0,FUZZDARK,0,FUZZDARK,FUZZDARK,0,
+    FUZZDARK,FUZZDARK,0,FUZZDARK,FUZZDARK,FUZZDARK,0,
+    FUZZDARK,FUZZDARK,FUZZDARK,0,0,0,0,
+    FUZZDARK,0,0,FUZZDARK,FUZZDARK,FUZZDARK,FUZZDARK,0,
+    FUZZDARK,0,FUZZDARK,FUZZDARK,0,0,FUZZDARK,
+    FUZZDARK,0,0,0,0,FUZZDARK,FUZZDARK,
+    FUZZDARK,FUZZDARK,0,FUZZDARK,FUZZDARK,0,FUZZDARK
+};
+
+static void R_DrawFuzzColumnSelective(void)
+{
+    boolean cutoff = false;
+
+    if (dc_x % fuzzblocksize)
+    {
+        return;
+    }
+
+    if (!dc_yl)
+    {
+        dc_yl = 1;
+    }
+
+    if (dc_yh == viewheight - 1)
+    {
+        dc_yh = viewheight - 2;
+        cutoff = true;
+    }
+
+    int count = dc_yh - dc_yl;
+
+    if (count < 0)
+    {
+        return;
+    }
+
+#ifdef RANGECHECK
+    if ((unsigned)dc_x >= video.width || dc_yl < 0 || dc_yh >= video.height)
+    {
+        I_Error("R_DrawFuzzColumn: %i to %i at %i", dc_yl, dc_yh, dc_x);
+    }
+#endif
+
+    ++count;
+
+    byte *dest = ylookup[dc_yl] + columnofs[dc_x];
+
+    int lines = fuzzblocksize - (dc_yl % fuzzblocksize);
+
+    do
+    {
+        count -= lines;
+
+        // if (count < 0)
+        // {
+        //    lines += count;
+        //    count = 0;
+        // }
+        const int mask = count >> (8 * sizeof(mask) - 1);
+        lines += count & mask;
+        count &= ~mask;
+
+        const byte fuzz =
+            fullcolormap[fuzzdark[fuzzpos] + dest[linesize * fuzzoffset[fuzzpos]]];
+
+        do
+        {
+            memset(dest, fuzz, fuzzblocksize);
+            dest += linesize;
+        } while (--lines);
+
+        ++fuzzpos;
+
+        // Clamp table lookup index.
+        fuzzpos &= (fuzzpos - FUZZTABLE) >> (8 * sizeof(fuzzpos) - 1); // killough 1/99
+
+        lines = fuzzblocksize;
+    } while (count);
+
+    if (cutoff)
+    {
+        const byte fuzz = fullcolormap
+            [fuzzdark[fuzzpos] + dest[linesize * (fuzzoffset[fuzzpos] - FUZZOFF) / 2]];
+        memset(dest, fuzz, fuzzblocksize);
+    }
+}
+
+static byte *fuzztranmap;
+
+static void R_DrawFuzzColumnTL(void)
+{
+    tranmap = fuzztranmap;
+    dc_colormap[0] = invul_gray;
+    DrawColumnTL();
+}
+
+fuzzmode_t fuzzcolumn_mode;
+void (*R_DrawFuzzColumn)(void) = R_DrawFuzzColumnOriginal;
 
 void R_SetFuzzColumnMode(void)
 {
-    if (fuzzcolumn_mode && current_video_height > SCREENHEIGHT)
+    switch (fuzzcolumn_mode)
     {
-        fuzzblocksize = FixedToInt(video.yscale);
-        R_DrawFuzzColumn = R_DrawFuzzColumn_block;
-    }
-    else
-    {
-        R_DrawFuzzColumn = R_DrawFuzzColumn_orig;
+        case FUZZ_ORIGINAL:
+            R_DrawFuzzColumn = R_DrawFuzzColumnOriginal;
+            break;
+        case FUZZ_BLOCKY:
+            if (current_video_height > SCREENHEIGHT)
+            {
+                fuzzblocksize = FixedToInt(video.yscale);
+                R_DrawFuzzColumn = R_DrawFuzzColumnBlocky;
+            }
+            else
+            {
+                R_DrawFuzzColumn = R_DrawFuzzColumnOriginal;
+            }
+            break;
+        case FUZZ_SELECTIVE:
+            fuzzblocksize = FixedToInt(video.yscale);
+            R_DrawFuzzColumn = R_DrawFuzzColumnSelective;
+            break;
+        case FUZZ_TRANSLUCENT:
+            fuzztranmap = W_CacheLumpName("FUZZTRAN", PU_STATIC);
+            R_DrawFuzzColumn = R_DrawFuzzColumnTL;
+            break;
     }
 }
 

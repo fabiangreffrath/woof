@@ -330,6 +330,7 @@ enum
     str_overlay,
     str_automap_preset,
     str_automap_keyed_door,
+    str_fuzzmode,
     str_weapon_slots_activation,
     str_weapon_slots_selection,
     str_weapon_slots,
@@ -2095,6 +2096,10 @@ static void BarkSound(void)
     }
 }
 
+static const char *fuzzmode_strings[] = {
+    "Original", "Blocky", "Selective", "Translucent"
+};
+
 static setup_menu_t enem_settings1[] = {
 
     {"Helper Dogs", S_MBF | S_THERMO | S_THRM_SIZE4 | S_LEVWARN | S_ACTION,
@@ -2114,6 +2119,9 @@ static setup_menu_t enem_settings1[] = {
     // [crispy] resurrected pools of gore ("ghost monsters") are translucent
     {"Translucent Ghost Monsters", S_ONOFF | S_STRICT | S_VANILLA, M_X, M_SPC,
      {"ghost_monsters"}},
+
+    {"Spectre Drawing", S_CHOICE | S_STRICT, M_X, M_SPC, {"fuzzcolumn_mode"},
+     .strings_id = str_fuzzmode, .action = R_SetFuzzColumnMode},
 
     MI_RESET,
 
@@ -4788,6 +4796,7 @@ static const char **selectstrings[] = {
     overlay_strings,
     automap_preset_strings,
     automap_keyed_door_strings,
+    fuzzmode_strings,
     weapon_slots_activation_strings,
     weapon_slots_selection_strings,
     NULL, // str_weapon_slots
