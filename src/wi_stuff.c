@@ -1399,7 +1399,7 @@ static void WI_drawShowNextLoc(void)
           return;
         }
 
-      if (!animation || !array_size(animation->states))
+      if (!animation || !animation->entering_states)
       {
       last = (wbs->last == 8) ? wbs->next - 1 : wbs->last;
 
