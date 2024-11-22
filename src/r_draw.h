@@ -50,13 +50,12 @@ void R_SetFuzzPosDraw(void);
 // [FG] spectre drawing mode
 typedef enum
 {
-    FUZZ_ORIGINAL,
     FUZZ_BLOCKY,
     FUZZ_SELECTIVE,
-    FUZZ_TRANSLUCENT,
+    FUZZ_SELECTIVE_DARK,
 } fuzzmode_t;
 
-extern fuzzmode_t fuzzcolumn_mode;
+extern fuzzmode_t fuzzmode;
 void R_SetFuzzColumnMode(void);
 
 void R_DrawSkyColumn(void);

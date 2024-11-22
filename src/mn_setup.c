@@ -2096,10 +2096,6 @@ static void BarkSound(void)
     }
 }
 
-static const char *fuzzmode_strings[] = {
-    "Original", "Blocky", "Selective", "Translucent"
-};
-
 static setup_menu_t enem_settings1[] = {
 
     {"Helper Dogs", S_MBF | S_THERMO | S_THRM_SIZE4 | S_LEVWARN | S_ACTION,
@@ -2119,9 +2115,6 @@ static setup_menu_t enem_settings1[] = {
     // [crispy] resurrected pools of gore ("ghost monsters") are translucent
     {"Translucent Ghost Monsters", S_ONOFF | S_STRICT | S_VANILLA, M_X, M_SPC,
      {"ghost_monsters"}},
-
-    {"Spectre Drawing", S_CHOICE | S_STRICT, M_X, M_SPC, {"fuzzcolumn_mode"},
-     .strings_id = str_fuzzmode, .action = R_SetFuzzColumnMode},
 
     MI_RESET,
 
@@ -3247,6 +3240,10 @@ static const char *exit_sequence_strings[] = {
     "Off", "Sound Only", "PWAD ENDOOM", "Full"
 };
 
+static const char *fuzzmode_strings[] = {
+    "Blocky", "Selective", "Selective Dark"
+};
+
 static setup_menu_t gen_settings5[] = {
 
     {"Smooth Pixel Scaling", S_ONOFF, OFF_CNTR_X, M_SPC, {"smooth_scaling"},
@@ -3257,6 +3254,9 @@ static setup_menu_t gen_settings5[] = {
 
     {"Translucency Filter", S_NUM | S_ACTION | S_PCT, OFF_CNTR_X, M_SPC,
      {"tran_filter_pct"}, .action = MN_Trans},
+
+    {"Fuzzy Translucency", S_CHOICE | S_STRICT, OFF_CNTR_X, M_SPC, {"fuzzmode"},
+     .strings_id = str_fuzzmode, .action = R_SetFuzzColumnMode},
 
     MI_GAP,
 

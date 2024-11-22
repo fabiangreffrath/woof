@@ -35,7 +35,6 @@
 #include "r_state.h"
 #include "v_fmt.h"
 #include "v_video.h"
-#include "w_wad.h"
 #include "z_zone.h"
 
 //
@@ -540,6 +539,21 @@ static const int fuzzdark[FUZZTABLE] =
     FUZZDARK,FUZZDARK,0,FUZZDARK,FUZZDARK,0,FUZZDARK
 };
 
+#define FUZZDARKER 12 * 256
+
+static const int fuzzdarker[FUZZTABLE] =
+{
+    FUZZDARKER,0,FUZZDARKER,0,FUZZDARKER,FUZZDARKER,0,
+    FUZZDARKER,FUZZDARKER,0,FUZZDARKER,FUZZDARKER,FUZZDARKER,0,
+    FUZZDARKER,FUZZDARKER,FUZZDARKER,0,0,0,0,
+    FUZZDARKER,0,0,FUZZDARKER,FUZZDARKER,FUZZDARKER,FUZZDARKER,0,
+    FUZZDARKER,0,FUZZDARKER,FUZZDARKER,0,0,FUZZDARKER,
+    FUZZDARKER,0,0,0,0,FUZZDARKER,FUZZDARKER,
+    FUZZDARKER,FUZZDARKER,0,FUZZDARKER,FUZZDARKER,0,FUZZDARKER
+};
+
+static const int *fuzzcolormap;
+
 static void R_DrawFuzzColumnSelective(void)
 {
     boolean cutoff = false;
@@ -594,7 +608,7 @@ static void R_DrawFuzzColumnSelective(void)
         count &= ~mask;
 
         const byte fuzz =
-            fullcolormap[fuzzdark[fuzzpos] + dest[linesize * fuzzoffset[fuzzpos]]];
+            fullcolormap[fuzzcolormap[fuzzpos] + dest[linesize * fuzzoffset[fuzzpos]]];
 
         do
         {
@@ -613,30 +627,18 @@ static void R_DrawFuzzColumnSelective(void)
     if (cutoff)
     {
         const byte fuzz = fullcolormap
-            [fuzzdark[fuzzpos] + dest[linesize * (fuzzoffset[fuzzpos] - FUZZOFF) / 2]];
+            [fuzzcolormap[fuzzpos] + dest[linesize * (fuzzoffset[fuzzpos] - FUZZOFF) / 2]];
         memset(dest, fuzz, fuzzblocksize);
     }
 }
 
-static byte *fuzztranmap;
-
-static void R_DrawFuzzColumnTL(void)
-{
-    tranmap = fuzztranmap;
-    dc_colormap[0] = invul_gray;
-    DrawColumnTL();
-}
-
-fuzzmode_t fuzzcolumn_mode;
+fuzzmode_t fuzzmode;
 void (*R_DrawFuzzColumn)(void) = R_DrawFuzzColumnOriginal;
 
 void R_SetFuzzColumnMode(void)
 {
-    switch (fuzzcolumn_mode)
+    switch (STRICTMODE(fuzzmode))
     {
-        case FUZZ_ORIGINAL:
-            R_DrawFuzzColumn = R_DrawFuzzColumnOriginal;
-            break;
         case FUZZ_BLOCKY:
             if (current_video_height > SCREENHEIGHT)
             {
@@ -650,11 +652,13 @@ void R_SetFuzzColumnMode(void)
             break;
         case FUZZ_SELECTIVE:
             fuzzblocksize = FixedToInt(video.yscale);
+            fuzzcolormap = fuzzdark;
             R_DrawFuzzColumn = R_DrawFuzzColumnSelective;
             break;
-        case FUZZ_TRANSLUCENT:
-            fuzztranmap = W_CacheLumpName("FUZZTRAN", PU_STATIC);
-            R_DrawFuzzColumn = R_DrawFuzzColumnTL;
+        case FUZZ_SELECTIVE_DARK:
+            fuzzblocksize = FixedToInt(video.yscale);
+            fuzzcolormap = fuzzdarker;
+            R_DrawFuzzColumn = R_DrawFuzzColumnSelective;
             break;
     }
 }
