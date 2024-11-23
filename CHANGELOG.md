@@ -41,6 +41,7 @@
   - Added support for SSG key binding when using vanilla compatibility level.
   - Improved performance when handling many input events at once.
   - Optimized input polling for older computers (thanks to @gendlin).
+  - Added support for native keyboard input (from Chocolate Doom).
 
 * [Gamepad](https://github.com/fabiangreffrath/woof/wiki/Gamepad):
   - Added custom weapon slots: the default configuration uses the D-pad and matches the Doom II Xbox 360 port.
