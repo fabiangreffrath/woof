@@ -1,4 +1,5 @@
 //
+// Copyright(C) 2005-2014 Simon Howard
 // Copyright(C) 2023 Roman Fomin
 //
 // This program is free software; you can redistribute it and/or
@@ -606,8 +607,63 @@ void I_HandleGamepadEvent(SDL_Event *sdlevent, boolean menu)
 
 static const int scancode_translate_table[] = SCANCODE_TO_KEYS_ARRAY;
 
-static int TranslateKey(int scancode)
+// If true, I_StartTextInput() has been called, and we are populating
+// the data3 field of ev_keydown events.
+
+static boolean text_input_enabled;
+
+// key tables
+// jff 5/10/98 french support removed, 
+// as it was not being used and couldn't be easily tested
+//
+
+static const char shiftxform[] =
 {
+    0,
+    1, 2, 3, 4, 5, 6, 7, 8, 9, 10,
+    11, 12, 13, 14, 15, 16, 17, 18, 19, 20,
+    21, 22, 23, 24, 25, 26, 27, 28, 29, 30,
+    31,
+    ' ', '!', '"', '#', '$', '%', '&',
+    '"', // shift-'
+    '(', ')', '*', '+',
+    '<', // shift-,
+    '_', // shift--
+    '>', // shift-.
+    '?', // shift-/
+    ')', // shift-0
+    '!', // shift-1
+    '@', // shift-2
+    '#', // shift-3
+    '$', // shift-4
+    '%', // shift-5
+    '^', // shift-6
+    '&', // shift-7
+    '*', // shift-8
+    '(', // shift-9
+    ':',
+    ':', // shift-;
+    '<',
+    '+', // shift-=
+    '>', '?', '@',
+    'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N',
+    'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z',
+    '[', // shift-[
+    '!', // shift-backslash - OH MY GOD DOES WATCOM SUCK
+    ']', // shift-]
+    '"', '_',
+    '\'', // shift-`
+    'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N',
+    'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z',
+    '{', '|', '}', '~', 127
+};
+
+static boolean vanilla_keyboard_mapping;
+
+static int TranslateKey(SDL_Keysym *sym)
+{
+    int scancode = sym->scancode;
+
     switch (scancode)
     {
         case SDL_SCANCODE_LCTRL:
@@ -633,6 +689,67 @@ static int TranslateKey(int scancode)
             {
                 return 0;
             }
+    }
+}
+
+
+// Get the localized version of the key press. This takes into account the
+// keyboard layout, but does not apply any changes due to modifiers, (eg.
+// shift-, alt-, etc.)
+
+static int GetLocalizedKey(SDL_Keysym *sym)
+{
+    // When using Vanilla mapping, we just base everything off the scancode
+    // and always pretend the user is using a US layout keyboard.
+    if (vanilla_keyboard_mapping)
+    {
+        return TranslateKey(sym);
+    }
+    else
+    {
+        int result = sym->sym;
+
+        if (result < 0 || result >= 128)
+        {
+            result = 0;
+        }
+
+        return result;
+    }
+}
+
+static int GetTypedChar(SDL_Keysym *sym)
+{
+    int result = TranslateKey(sym);
+
+    // If shift is held down, apply the original uppercase
+    // translation table used under DOS.
+    if ((SDL_GetModState() & KMOD_SHIFT) != 0 && result >= 0
+        && result < arrlen(shiftxform))
+    {
+        result = shiftxform[result];
+    }
+
+    return result;
+}
+
+void I_StartTextInput(void)
+{
+    text_input_enabled = true;
+
+    if (!vanilla_keyboard_mapping)
+    {
+        SDL_StartTextInput();
+    }
+}
+
+void I_StopTextInput(void)
+{
+    text_input_enabled = false;
+
+    if (!vanilla_keyboard_mapping)
+    {
+        SDL_StopTextInput();
     }
 }
 
@@ -782,7 +899,36 @@ void I_HandleKeyboardEvent(SDL_Event *sdlevent)
     {
         case SDL_KEYDOWN:
             event.type = ev_keydown;
-            event.data1.i = TranslateKey(sdlevent->key.keysym.scancode);
+            event.data1.i = TranslateKey(&sdlevent->key.keysym);
+            event.data2.i = GetLocalizedKey(&sdlevent->key.keysym);
+
+            if (event.data1.i != 0)
+            {
+                D_PostEvent(&event);
+            }
+
+            if (text_input_enabled && vanilla_keyboard_mapping)
+            {
+                event.type = ev_text;
+                event.data1.i = GetTypedChar(&sdlevent->key.keysym);
+
+                if (event.data1.i != 0)
+                {
+                    D_PostEvent(&event);
+                }
+            }
+            break;
+
+        case SDL_KEYUP:
+            event.type = ev_keyup;
+            event.data1.i = TranslateKey(&sdlevent->key.keysym);
+
+            // data2 is initialized to zero for ev_keyup. For ev_keydown it's
+            // the shifted Unicode character that was typed, but if something
+            // wants to detect key releases it should do so based on data1
+            // (key ID), not the printable char.
+
+            event.data2.i = 0;
 
             if (event.data1.i != 0)
             {
@@ -790,18 +936,13 @@ void I_HandleKeyboardEvent(SDL_Event *sdlevent)
             }
             break;
 
-        case SDL_KEYUP:
-            event.type = ev_keyup;
-            event.data1.i = TranslateKey(sdlevent->key.keysym.scancode);
-
-            // data2/data3 are initialized to zero for ev_keyup.
-            // For ev_keydown it's the shifted Unicode character
-            // that was typed, but if something wants to detect
-            // key releases it should do so based on data1
-            // (key ID), not the printable char.
-
-            if (event.data1.i != 0)
+        case SDL_TEXTINPUT:
+            // SDL_TEXTINPUT are fired only after SDL_StartTextInput().
+            if (strlen(sdlevent->text.text) == 1
+                && (sdlevent->text.text[0] & 0x80) == 0)
             {
+                event.type = ev_text;
+                event.data1.i = sdlevent->text.text[0];
                 D_PostEvent(&event);
             }
             break;
@@ -809,4 +950,16 @@ void I_HandleKeyboardEvent(SDL_Event *sdlevent)
         default:
             break;
     }
+}
+
+void I_InitKeyboard(void)
+{
+    // On desktop platforms, SDL_StartTextInput() is implicitly called on SDL
+    // window creation
+    SDL_StopTextInput();
+}
+
+void I_BindKeyboardVariables(void)
+{
+    BIND_BOOL(vanilla_keyboard_mapping, false, "Vanilla keyboard mapping");
 }
