@@ -49,6 +49,7 @@
 #include "r_main.h"
 #include "r_state.h"
 #include "s_sound.h"
+#include "st_carousel.h"
 #include "st_stuff.h"
 #include "st_sbardef.h"
 #include "st_widgets.h"
@@ -123,6 +124,8 @@ static int armor_yellow;  // armor amount less than which status is yellow
 static int armor_green;   // armor amount above is blue, below is green
 
 static boolean hud_armor_type; // color of armor depends on type
+
+static boolean weapon_carousel;
 
 // used for evil grin
 static boolean  oldweaponsowned[NUMWEAPONS];
@@ -371,7 +374,7 @@ static boolean CheckConditions(sbarcondition_t *conditions, player_t *player)
                     {
                         enabled |= (automapactive && automapoverlay);
                     }
-                    else if (cond->param & sbc_mode_automap)
+                    if (cond->param & sbc_mode_automap)
                     {
                         enabled |= (automapactive && !automapoverlay);
                     }
@@ -987,6 +990,13 @@ static void UpdateElem(sbarelem_t *elem, player_t *player)
             UpdateLines(elem);
             break;
 
+        case sbe_carousel:
+            if (weapon_carousel)
+            {
+                ST_UpdateCarousel(player);
+            }
+            break;
+
         default:
             break;
     }
@@ -1000,6 +1010,8 @@ static void UpdateElem(sbarelem_t *elem, player_t *player)
 
 static void UpdateStatusBar(player_t *player)
 {
+    static int oldbarindex = -1;
+
     int barindex = MAX(screenblocks - 10, 0);
 
     if (automapactive && automapoverlay == AM_OVERLAY_OFF)
@@ -1007,8 +1019,13 @@ static void UpdateStatusBar(player_t *player)
         barindex = 0;
     }
 
-    st_time_elem = NULL;
-    st_cmd_elem = NULL;
+    if (oldbarindex != barindex)
+    {
+        st_time_elem = NULL;
+        st_cmd_elem = NULL;
+        st_msg_elem = NULL;
+        oldbarindex = barindex;
+    }
 
     statusbar = &sbardef->statusbars[barindex];
 
@@ -1389,7 +1406,18 @@ static void DrawElem(int x, int y, sbarelem_t *elem, player_t *player)
                 st_cmd_x = x;
                 st_cmd_y = y;
             }
+            if (message_centered && elem == st_msg_elem)
+            {
+                break;
+            }
             DrawLines(x, y, elem);
+            break;
+
+        case sbe_carousel:
+            if (weapon_carousel)
+            {
+                ST_DrawCarousel(x, y, elem);
+            }
             break;
 
         default:
@@ -1498,6 +1526,14 @@ static void DrawBackground(const char *name)
     V_CopyRect(0, 0, st_backing_screen, video.unscaledw, ST_HEIGHT, 0, ST_Y);
 }
 
+static void DrawCenteredMessage(void)
+{
+    if (message_centered && st_msg_elem)
+    {
+        DrawLines(SCREENWIDTH / 2, 0, st_msg_elem);
+    }
+}
+
 static void DrawStatusBar(void)
 {
     player_t *player = &players[displayplayer];
@@ -1512,6 +1548,8 @@ static void DrawStatusBar(void)
     {
         DrawElem(0, SCREENHEIGHT - statusbar->height, child, player);
     }
+
+    DrawCenteredMessage();
 }
 
 static void EraseElem(int x, int y, sbarelem_t *elem, player_t *player)
@@ -1730,6 +1768,7 @@ void ST_Start(void)
     }
 
     ResetStatusBar();
+    ST_ResetCarousel();
 
     HU_StartCrosshair();
 }
@@ -1851,6 +1890,9 @@ void ST_BindSTSVariables(void)
   M_BindNum("hud_crosshair_target_color", &hud_crosshair_target_color, NULL,
             CR_YELLOW, CR_BRICK, CR_NONE, ss_stat, wad_no,
             "Crosshair color when aiming at target");
+
+  M_BindBool("weapon_carousel", &weapon_carousel, NULL,
+             true, ss_weap, wad_no, "Show weapon carousel");
 }
 
 //----------------------------------------------------------------------------

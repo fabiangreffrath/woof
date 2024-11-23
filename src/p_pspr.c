@@ -22,6 +22,7 @@
 #include "d_items.h"
 #include "d_player.h"
 #include "doomstat.h"
+#include "g_nextweapon.h"
 #include "i_printf.h"
 #include "i_video.h" // uncapped
 #include "m_random.h"
@@ -265,6 +266,8 @@ int P_SwitchWeapon(player_t *player)
   int currentweapon = player->readyweapon;
   int newweapon = currentweapon;
   int i = NUMWEAPONS+1;   // killough 5/2/98
+
+  G_NextWeaponReset();
 
   // [XA] use fixed behavior for mbf21. no need
   // for a discrete compat option for this, as

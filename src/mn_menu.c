@@ -999,7 +999,7 @@ static void M_LoadAutoSaveSelect(int choice)
 {
     saveg_compat = saveg_woof510;
     char *name = G_AutoSaveName();
-    G_LoadAutoSave(name);
+    G_LoadAutoSave(name, false);
     free(name);
     MN_ClearMenus();
     // Auto save slot doesn't exist for save menu, so don't change lastOn.

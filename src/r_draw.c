@@ -26,6 +26,7 @@
 #include "doomtype.h"
 #include "i_system.h"
 #include "i_video.h"
+#include "m_fixed.h"
 #include "r_bsp.h"
 #include "r_bmaps.h"
 #include "r_defs.h"
@@ -326,16 +327,18 @@ void R_DrawSkyColumn(void)
 //
 
 #define FUZZTABLE 50
+#define FUZZOFF   1
 
 // killough 11/98: convert fuzzoffset to be screenwidth-independent
-static const int fuzzoffset[FUZZTABLE] = {
-  0,-1,0,-1,0,0,-1,
-  0,0,-1,0,0,0,-1,
-  0,0,0,-1,-1,-1,-1,
-  0,-1,-1,0,0,0,0,-1,
-  0,-1,0,0,-1,-1,0,
-  0,-1,-1,-1,-1,0,0,
-  0,0,-1,0,0,-1,0 
+static const int fuzzoffset[FUZZTABLE] =
+{
+    FUZZOFF,-FUZZOFF,FUZZOFF,-FUZZOFF,FUZZOFF,FUZZOFF,-FUZZOFF,
+    FUZZOFF,FUZZOFF,-FUZZOFF,FUZZOFF,FUZZOFF,FUZZOFF,-FUZZOFF,
+    FUZZOFF,FUZZOFF,FUZZOFF,-FUZZOFF,-FUZZOFF,-FUZZOFF,-FUZZOFF,
+    FUZZOFF,-FUZZOFF,-FUZZOFF,FUZZOFF,FUZZOFF,FUZZOFF,FUZZOFF,-FUZZOFF,
+    FUZZOFF,-FUZZOFF,FUZZOFF,FUZZOFF,-FUZZOFF,-FUZZOFF,FUZZOFF,
+    FUZZOFF,-FUZZOFF,-FUZZOFF,-FUZZOFF,-FUZZOFF,FUZZOFF,FUZZOFF,
+    FUZZOFF,FUZZOFF,-FUZZOFF,FUZZOFF,FUZZOFF,-FUZZOFF,FUZZOFF 
 }; 
 
 static int fuzzpos = 0;
@@ -423,50 +426,45 @@ static void R_DrawFuzzColumn_orig(void)
         // why_i_left_doom.html
 
         *dest =
-            fullcolormap[6 * 256
-                         + dest[fuzzoffset[fuzzpos] ? -linesize : linesize]];
+            fullcolormap[6 * 256 + dest[linesize * fuzzoffset[fuzzpos]]];
         dest += linesize; // killough 11/98
 
         ++fuzzpos;
 
-        if (fuzzpos == FUZZTABLE)
-            fuzzpos = 0;
-
+        // Clamp table lookup index.
+        fuzzpos &= (fuzzpos - FUZZTABLE) >> (8 * sizeof(fuzzpos) - 1); // killough 1/99
     } while (--count);
 
     // [crispy] if the line at the bottom had to be cut off,
     // draw one extra line using only pixels of that line and the one above
     if (cutoff)
     {
-        *dest = fullcolormap[6 * 256 + dest[linesize * fuzzoffset[fuzzpos]]];
+        *dest = fullcolormap
+            [6 * 256 + dest[linesize * (fuzzoffset[fuzzpos] - FUZZOFF) / 2]];
     }
 }
 
 // [FG] "blocky" spectre drawing for hires mode
 
+static int fuzzblocksize;
+
 static void R_DrawFuzzColumn_block(void)
 {
     boolean cutoff = false;
-    const int nx = video.xscale >> FRACBITS;
-    const int ny = video.yscale >> FRACBITS;
 
-    if (dc_x % nx)
+    if (dc_x % fuzzblocksize)
     {
         return;
     }
 
-    dc_yl += ny;
-    dc_yl -= dc_yl % ny;
-    dc_yh -= dc_yh % ny;
-
     if (!dc_yl)
     {
-        dc_yl = ny;
+        dc_yl = 1;
     }
 
-    if (dc_yh >= viewheight - ny)
+    if (dc_yh == viewheight - 1)
     {
-        dc_yh = viewheight - 2 * ny;
+        dc_yh = viewheight - 2;
         cutoff = true;
     }
 
@@ -484,40 +482,47 @@ static void R_DrawFuzzColumn_block(void)
     }
 #endif
 
+    ++count;
+
     byte *dest = ylookup[dc_yl] + columnofs[dc_x];
 
-    count += ny;
+    int lines = fuzzblocksize - (dc_yl % fuzzblocksize);
 
     do
     {
-        // [FG] draw only even pixels as (nx * ny) squares
-        //      using the same fuzzoffset value
-        const int offset = fuzzoffset[fuzzpos] ? -ny * linesize : ny * linesize;
-        const byte fuzz = fullcolormap[6 * 256 + dest[offset]];
+        count -= lines;
 
-        for (int i = 0; i < ny && count - i > 0; i++)
+        // if (count < 0)
+        // {
+        //    lines += count;
+        //    count = 0;
+        // }
+        const int mask = count >> (8 * sizeof(mask) - 1);
+        lines += count & mask;
+        count &= ~mask;
+
+        const byte fuzz =
+            fullcolormap[6 * 256 + dest[linesize * fuzzoffset[fuzzpos]]];
+
+        do
         {
-            memset(dest, fuzz, nx);
+            memset(dest, fuzz, fuzzblocksize);
             dest += linesize;
-        }
+        } while (--lines);
 
         ++fuzzpos;
 
-        if (fuzzpos == FUZZTABLE)
-            fuzzpos = 0;
+        // Clamp table lookup index.
+        fuzzpos &= (fuzzpos - FUZZTABLE) >> (8 * sizeof(fuzzpos) - 1); // killough 1/99
 
-    } while ((count -= ny) > 0);
+        lines = fuzzblocksize;
+    } while (count);
 
     if (cutoff)
     {
-        const int offset = ny * linesize * fuzzoffset[fuzzpos];
-        const byte fuzz = fullcolormap[6 * 256 + dest[offset]];
-
-        for (int i = 0; i < ny; i++)
-        {
-            memset(dest, fuzz, nx);
-            dest += linesize;
-        }
+        const byte fuzz = fullcolormap
+            [6 * 256 + dest[linesize * (fuzzoffset[fuzzpos] - FUZZOFF) / 2]];
+        memset(dest, fuzz, fuzzblocksize);
     }
 }
 
@@ -530,6 +535,7 @@ void R_SetFuzzColumnMode(void)
 {
     if (fuzzcolumn_mode && current_video_height > SCREENHEIGHT)
     {
+        fuzzblocksize = FixedToInt(video.yscale);
         R_DrawFuzzColumn = R_DrawFuzzColumn_block;
     }
     else

@@ -657,11 +657,13 @@ void I_StartFrame(void)
 
 static void UpdateRender(void)
 {
+    // Blit from the paletted 8-bit screen buffer to the intermediate
+    // 32-bit RGBA buffer and update the intermediate texture with the
+    // contents of the RGBA buffer.
+
     SDL_LockTexture(texture, &blit_rect, &argbbuffer->pixels,
-        &argbbuffer->pitch);
-
+                    &argbbuffer->pitch);
     SDL_LowerBlit(screenbuffer, &blit_rect, argbbuffer, &blit_rect);
-
     SDL_UnlockTexture(texture);
 
     SDL_RenderClear(renderer);
@@ -1052,6 +1054,8 @@ byte I_GetNearestColor(byte *palette, int r, int g, int b)
 // [FG] save screenshots in PNG format
 boolean I_WritePNGfile(char *filename)
 {
+    UpdateRender();
+
     // [FG] adjust cropping rectangle if necessary
     SDL_Rect rect = {0};
     SDL_GetRendererOutputSize(renderer, &rect.w, &rect.h);
@@ -1765,7 +1769,7 @@ static void CreateSurfaces(int w, int h)
     // [FG] create intermediate ARGB frame buffer
 
     argbbuffer = SDL_CreateRGBSurfaceWithFormatFrom(
-        NULL, w, h, 8, 0, SDL_PIXELFORMAT_ARGB8888);
+        NULL, w, h, 0, 0, SDL_PIXELFORMAT_ARGB8888);
 
     I_SetPalette(W_CacheLumpName("PLAYPAL", PU_CACHE));
 

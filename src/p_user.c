@@ -28,6 +28,7 @@
 #include "doomstat.h"
 #include "doomtype.h"
 #include "g_game.h"
+#include "g_nextweapon.h"
 #include "info.h"
 #include "m_cheat.h"
 #include "p_map.h"
@@ -499,7 +500,7 @@ void P_PlayerThink (player_t* player)
 
 	if ((newweapon != wp_plasma && newweapon != wp_bfg)
 	    || (gamemode != shareware) )
-	  player->pendingweapon = newweapon;
+	  player->nextweapon = player->pendingweapon = newweapon;
     }
 
   // check for use
