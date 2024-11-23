@@ -1165,7 +1165,7 @@ int G_GotoPrevLevel(void)
     if (gamestate != GS_LEVEL ||
         deathmatch || netgame ||
         demorecording || demoplayback ||
-        menuactive))
+        menuactive)
     {
         return false;
     }
