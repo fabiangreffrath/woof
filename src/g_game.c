@@ -1163,19 +1163,18 @@ int G_GotoNextLevel(int *pEpi, int *pMap)
 int G_GotoPrevLevel(void)
 {
     const int cur_epsd = gameepisode;
-    const int cur_map = gamemap;
-    int epsd_count, map_count;
+    const int cur_map = gamemap--;
     int ret = false;
 
-    for (epsd_count = 0; epsd_count < 10; epsd_count++, gameepisode = (gameepisode + 9) % 10)
+    for (int epsd_count = 0; epsd_count < 10; epsd_count++, gameepisode = (gameepisode + 9) % 10)
     {
-        for (map_count= 0, gamemap--; map_count < 100; map_count++, gamemap = (gamemap + 99) % 100)
+        for (int map_count = 0; map_count < 100; map_count++, gamemap = (gamemap + 99) % 100)
         {
             int next_epsd, next_map;
             G_GotoNextLevel(&next_epsd, &next_map);
 
             if (next_epsd == cur_epsd && next_map == cur_map &&
-                (gameepisode != cur_epsd || gamemap != cur_map))
+                !(gameepisode == cur_epsd && gamemap == cur_map))
             {
                 char *name = MapName(gameepisode, gamemap);
 
