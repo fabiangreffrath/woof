@@ -814,7 +814,7 @@ static void UpdateLines(sbarelem_t *elem)
             if (font->type == sbf_proportional)
             {
                 ch = M_ToUpper(ch) - HU_FONTSTART;
-                if (ch < 0 || ch > HU_FONTSIZE)
+                if (ch < 0 || ch >= HU_FONTSIZE)
                 {
                     totalwidth += SPACEWIDTH;
                     continue;
@@ -1324,7 +1324,7 @@ static void DrawLines(int x, int y, sbarelem_t *elem)
             ch = M_ToUpper(ch) - HU_FONTSTART;
 
             patch_t *glyph;
-            if (ch < 0 || ch > HU_FONTSIZE)
+            if (ch < 0 || ch >= HU_FONTSIZE)
             {
                 glyph = NULL;
             }
