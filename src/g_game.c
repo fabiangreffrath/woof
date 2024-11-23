@@ -1162,6 +1162,14 @@ int G_GotoNextLevel(int *pEpi, int *pMap)
 
 int G_GotoPrevLevel(void)
 {
+    if (!(gamestate == GS_LEVEL &&
+        !deathmatch && !netgame &&
+        !demorecording && !demoplayback &&
+        !menuactive))
+    {
+        return false;
+    }
+
     const int cur_epsd = gameepisode;
     const int cur_map = gamemap--;
     int ret = false;
