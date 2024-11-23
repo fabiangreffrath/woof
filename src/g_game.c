@@ -1162,10 +1162,10 @@ int G_GotoNextLevel(int *pEpi, int *pMap)
 
 int G_GotoPrevLevel(void)
 {
-    if (!(gamestate == GS_LEVEL &&
-        !deathmatch && !netgame &&
-        !demorecording && !demoplayback &&
-        !menuactive))
+    if (gamestate != GS_LEVEL ||
+        deathmatch || netgame ||
+        demorecording || demoplayback ||
+        menuactive))
     {
         return false;
     }
