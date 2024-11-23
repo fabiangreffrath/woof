@@ -3107,8 +3107,10 @@ boolean M_Responder(event_t *ev)
 
     if (!menuactive)
     {
-        if ((demoplayback && (action == MENU_ENTER || action == MENU_BACKSPACE))
-            || action == MENU_ESCAPE) // phares
+        if (!chat_on
+            && ((demoplayback
+                 && (action == MENU_ENTER || action == MENU_BACKSPACE))
+                || action == MENU_ESCAPE)) // phares
         {
             I_ShowMouseCursor(menu_input != pad_mode);
             MN_StartControlPanel();
