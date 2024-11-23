@@ -75,6 +75,16 @@ check_c_source_compiles("
   "
   HAVE__DIV64
 )
+check_c_source_compiles("
+    typedef float vec __attribute__((ext_vector_type(4)));
+    int main()
+    {
+        vec a = (vec){0, 1, 2, 3};
+        return 0;
+    }
+  "
+  HAVE_EXT_VECTOR_TYPE
+)
 
 option(CMAKE_FIND_PACKAGE_PREFER_CONFIG
        "Lookup package config files before using find modules" ON)

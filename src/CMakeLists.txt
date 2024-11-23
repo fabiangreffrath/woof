@@ -290,7 +290,6 @@ add_dependencies(woof woof-base)
 
 if(MSVC)
     add_custom_command(TARGET woof POST_BUILD
-        DEPENDS "${BASE_PK3_PATH}"
         COMMAND ${CMAKE_COMMAND} -E copy
         "${BASE_PK3_PATH}" "$<TARGET_FILE_DIR:woof>")
 endif()

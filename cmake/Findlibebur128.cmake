@@ -3,8 +3,8 @@
 #  libebur128_INCLUDE_DIR
 #  libebur128_LIBRARY
 
-find_package(PkgConfig)
-pkg_check_modules(PC_libebur128 libebur128)
+find_package(PkgConfig QUIET)
+pkg_check_modules(PC_libebur128 libebur128 QUIET)
 
 find_library(libebur128_LIBRARY
     NAMES ebur128
