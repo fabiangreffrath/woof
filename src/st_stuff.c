@@ -1552,6 +1552,19 @@ static void DrawStatusBar(void)
     DrawCenteredMessage();
 }
 
+static void EraseBackground(int y, int height)
+{
+    if (y > scaledviewy && y < scaledviewy + scaledviewheight - height)
+    {
+        R_VideoErase(0, y, scaledviewx, height);
+        R_VideoErase(scaledviewx + scaledviewwidth, y, scaledviewx, height);
+    }
+    else
+    {
+        R_VideoErase(0, y, video.unscaledw, height);
+    }
+}
+
 static void EraseElem(int x, int y, sbarelem_t *elem, player_t *player)
 {
     if (!CheckConditions(elem->conditions, player))
@@ -1578,15 +1591,20 @@ static void EraseElem(int x, int y, sbarelem_t *elem, player_t *player)
             height += font->maxheight;
         }
 
-        if (y > scaledviewy && y < scaledviewy + scaledviewheight - height)
+        if (height > 0)
         {
-            R_VideoErase(0, y, scaledviewx, height);
-            R_VideoErase(scaledviewx + scaledviewwidth, y, scaledviewx, height);
+            EraseBackground(y, height);
+            widget->height = height;
         }
-        else
+        else if (widget->height)
         {
-            R_VideoErase(0, y, video.unscaledw, height);
+            EraseBackground(y, widget->height);
+            widget->height = 0;
         }
+    }
+    else if (elem->type == sbe_carousel)
+    {
+        ST_EraseCarousel(y);
     }
 
     sbarelem_t *child;
@@ -1598,7 +1616,7 @@ static void EraseElem(int x, int y, sbarelem_t *elem, player_t *player)
 
 void ST_Erase(void)
 {
-    if (!sbardef)
+    if (!sbardef || screenblocks >= 10)
     {
         return;
     }

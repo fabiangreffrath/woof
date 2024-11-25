@@ -317,18 +317,12 @@ void D_Display (void)
   switch (gamestate)                // do buffered drawing
     {
     case GS_LEVEL:
-      if (!gametic)
-        break;
-      if (automapactive)
-      {
-        if (!automapoverlay)
+      if (automapactive && !automapoverlay && gametic)
         {
           // [FG] update automap while playing
           R_RenderPlayerView(&players[displayplayer]);
           AM_Drawer();
         }
-        ST_Drawer();
-      }
       break;
     case GS_INTERMISSION:
       WI_Drawer();
@@ -345,10 +339,7 @@ void D_Display (void)
 
   // draw the view directly
   if (gamestate == GS_LEVEL && automap_off && gametic)
-    {
-      R_RenderPlayerView(&players[displayplayer]);
-      ST_Drawer();
-    }
+    R_RenderPlayerView(&players[displayplayer]);
 
   // clean up border stuff
   if (gamestate != oldgamestate && gamestate != GS_LEVEL)
@@ -369,7 +360,6 @@ void D_Display (void)
       if (borderdrawcount)
         {
           R_DrawViewBorder();    // erase old menu stuff
-          ST_Drawer();
           borderdrawcount--;
         }
     }
@@ -381,11 +371,12 @@ void D_Display (void)
   if (gamestate == GS_LEVEL && automapactive && automapoverlay)
     {
       AM_Drawer();
-      ST_Drawer();
-
       // [crispy] force redraw of border
       viewactivestate = false;
     }
+
+  if (gamestate == GS_LEVEL && gametic)
+    ST_Drawer();
 
   // draw pause pic
   if (paused)
