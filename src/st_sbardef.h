@@ -196,6 +196,8 @@ typedef struct sbe_widget_s
     hudfont_t *font;
     widgetline_t *lines;
 
+    int height;
+
     // message
     int duration;
 } sbe_widget_t;

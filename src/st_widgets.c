@@ -89,9 +89,10 @@ static boolean message_review;
 
 static void UpdateMessage(sbe_widget_t *widget, player_t *player)
 {
+    ST_ClearLines(widget);
+
     if (!player->message)
     {
-        ST_ClearLines(widget);
         return;
     }
 
@@ -129,12 +130,11 @@ static void UpdateMessage(sbe_widget_t *widget, player_t *player)
 
     if (duration_left == 0)
     {
-        ST_ClearLines(widget);
         overwrite = true;
     }
     else
     {
-        SetLine(widget, string);
+        ST_AddLine(widget, string);
         --duration_left;
     }
 }
@@ -464,6 +464,8 @@ boolean ST_MessagesResponder(event_t *ev)
 
 static void UpdateChat(sbe_widget_t *widget)
 {
+    ST_ClearLines(widget);
+
     static char string[HU_MAXLINELENGTH + 1];
 
     string[0] = '\0';
@@ -476,9 +478,8 @@ static void UpdateChat(sbe_widget_t *widget)
         {
             M_StringConcat(string, "_", sizeof(string));
         }
+        ST_AddLine(widget, string);
     }
-
-    SetLine(widget, string);
 }
 
 static boolean IsVanillaMap(int e, int m)
@@ -909,7 +910,7 @@ static void UpdateSpeed(sbe_widget_t *widget, player_t *player)
 {
     if (speedometer <= 0)
     {
-        SetLine(widget, "");
+        ST_ClearLines(widget);
         return;
     }
 
@@ -927,7 +928,7 @@ static void UpdateSpeed(sbe_widget_t *widget, player_t *player)
     static char string[60];
     M_snprintf(string, sizeof(string), GRAY_S "%.*f " GREEN_S "%s",
                type && speed ? 1 : 0, speed, units[type]);
-    SetLine(widget, string);
+    ST_AddLine(widget, string);
 }
 
 static void UpdateCmd(sbe_widget_t *widget)
