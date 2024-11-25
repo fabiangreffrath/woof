@@ -3685,7 +3685,7 @@ void MN_DrawStringCR(int cx, int cy, byte *cr1, byte *cr2, const char *ch)
         }
 
         c = M_ToUpper(c) - HU_FONTSTART;
-        if (c < 0 || c > HU_FONTSIZE)
+        if (c < 0 || c >= HU_FONTSIZE || hu_font[c] == NULL)
         {
             cx += SPACEWIDTH; // space
             continue;
@@ -3778,7 +3778,7 @@ int MN_GetPixelWidth(const char *ch)
         }
 
         c = M_ToUpper(c) - HU_FONTSTART;
-        if (c < 0 || c > HU_FONTSIZE)
+        if (c < 0 || c >= HU_FONTSIZE || hu_font[c] == NULL)
         {
             len += SPACEWIDTH; // space
             continue;
@@ -4696,7 +4696,7 @@ int MN_StringWidth(const char *string)
             continue;
         }
         c = M_ToUpper(c) - HU_FONTSTART;
-        if (c < 0 || c > HU_FONTSIZE)
+        if (c < 0 || c > HU_FONTSIZE || hu_font[c] == NULL)
         {
             w += SPACEWIDTH;
             continue;

@@ -22,6 +22,7 @@
 #include "m_array.h"
 #include "m_misc.h"
 #include "r_defs.h"
+#include "r_draw.h"
 #include "st_sbardef.h"
 #include "v_fmt.h"
 #include "v_video.h"
@@ -199,6 +200,22 @@ static int CalcOffset(void)
     }
 
     return 0;
+}
+
+void ST_EraseCarousel(int y)
+{
+    static boolean erase;
+
+    if (duration > 0)
+    {
+        R_VideoErase(0, y - 16, video.unscaledw, 32);
+        erase = true;
+    }
+    else if (erase)
+    {
+        R_VideoErase(0, y - 16, video.unscaledw, 32);
+        erase = false;
+    }
 }
 
 void ST_DrawCarousel(int x, int y, sbarelem_t *elem)
