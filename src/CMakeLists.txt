@@ -163,14 +163,12 @@ if(WIN32)
     add_executable(woof-com WIN32 ../win32/win_launcher.c
         "${CMAKE_CURRENT_BINARY_DIR}/resource.rc")
     target_woof_settings(woof-com)
-    target_include_directories(woof-com PRIVATE ${SDL2_INCLUDE_DIR})
-    target_link_libraries(woof-com PRIVATE ${SDL2_LIBRARIES} woof)
+    target_link_libraries(woof-com PRIVATE SDL3::SDL3 woof)
 
     add_executable(woof-exe WIN32 ../win32/win_launcher.c
         "${CMAKE_CURRENT_BINARY_DIR}/resource.rc")
     target_woof_settings(woof-exe)
-    target_include_directories(woof-exe PRIVATE ${SDL2_INCLUDE_DIR})
-    target_link_libraries(woof-exe PRIVATE ${SDL2_LIBRARIES} woof)
+    target_link_libraries(woof-exe PRIVATE SDL3::SDL3 woof)
 
     # MSVC tries to supply a default manifest and complains when it finds ours
     # unless we specifically tell it not to.
@@ -188,8 +186,8 @@ target_woof_settings(woof)
 target_include_directories(woof PRIVATE "${CMAKE_CURRENT_BINARY_DIR}/../")
 
 target_link_libraries(woof PRIVATE
-    ${SDL2_LIBRARIES}
-    SDL2_net::SDL2_net
+    SDL3::SDL3
+    SDL3_net::SDL3_net
     OpenAL::OpenAL
     libebur128::libebur128
     SndFile::sndfile
@@ -279,8 +277,8 @@ target_woof_settings(woof-setup)
 
 target_include_directories(woof-setup PRIVATE "${CMAKE_CURRENT_BINARY_DIR}/../")
 target_link_libraries(woof-setup PRIVATE
-    ${SDL2_LIBRARIES}
-    SDL2_net::SDL2_net
+    SDL3::SDL3
+    SDL3_net::SDL3_net
     textscreen
     setup)
 

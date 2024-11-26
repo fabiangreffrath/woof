@@ -17,7 +17,7 @@
 //      Timer functions.
 //
 
-#include "SDL.h"
+#include <SDL3/SDL.h>
 
 #include "doomdef.h"
 #include "doomtype.h"
@@ -134,18 +134,8 @@ static int I_GetFracTime_FastDemo(void)
 
 int (*I_GetFracTime)(void) = I_GetFracTime_Scaled;
 
-void I_ShutdownTimer(void)
-{
-    SDL_QuitSubSystem(SDL_INIT_TIMER);
-}
-
 void I_InitTimer(void)
 {
-    if (SDL_Init(SDL_INIT_TIMER) < 0)
-    {
-        I_Error("I_InitTimer: Failed to initialize timer: %s", SDL_GetError());
-    }
-
 #ifdef _WIN32
     // Create an unnamed waitable timer.
     hTimer = NULL;
@@ -164,8 +154,6 @@ void I_InitTimer(void)
         I_Error("I_InitTimer: CreateWaitableTimer failed");
     }
 #endif
-
-    I_AtExit(I_ShutdownTimer, true);
 
     basefreq = SDL_GetPerformanceFrequency();
 

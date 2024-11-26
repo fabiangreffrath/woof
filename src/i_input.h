@@ -17,7 +17,7 @@
 #ifndef __I_INPUT__
 #define __I_INPUT__
 
-#include "SDL.h"
+#include <SDL3/SDL.h>
 
 #include "doomtype.h"
 

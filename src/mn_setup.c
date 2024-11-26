@@ -13,7 +13,9 @@
 //  GNU General Public License for more details.
 //
 
-#include "hu_command.h"
+#include <ctype.h>
+#include <stdio.h>
+
 #include "mn_internal.h"
 
 #include "am_map.h"
@@ -23,6 +25,7 @@
 #include "doomstat.h"
 #include "doomtype.h"
 #include "g_game.h"
+#include "hu_command.h"
 #include "hu_crosshair.h"
 #include "i_gamepad.h"
 #include "i_gyro.h"
@@ -52,9 +55,9 @@
 #include "r_voxel.h"
 #include "s_sound.h"
 #include "s_trakinfo.h"
+#include "sounds.h"
 #include "st_sbardef.h"
 #include "st_stuff.h"
-#include "sounds.h"
 #include "st_widgets.h"
 #include "v_fmt.h"
 #include "v_video.h"

@@ -84,7 +84,6 @@ jobs:
           -DCMAKE_BUILD_TYPE=Release
           -DENABLE_WERROR=ON -DENABLE_HARDENING=ON -DENABLE_LTO=ON
           -DCMAKE_TOOLCHAIN_FILE="${{ matrix.config.toolchain }}/scripts/buildsystems/vcpkg.cmake"
-          -DVCPKG_OVERLAY_TRIPLETS="cmake/triplets"
           -DVCPKG_TARGET_TRIPLET=${{ matrix.config.triplet }}
           ${{ matrix.config.extra-options }}
 
