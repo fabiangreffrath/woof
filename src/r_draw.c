@@ -579,6 +579,9 @@ static void R_DrawFuzzColumnSelective(void)
 
     int lines = fuzzblocksize - (dc_yl % fuzzblocksize);
 
+    int dark = FUZZDARK;
+    int offset = 0;
+
     do
     {
         count -= lines;
@@ -592,8 +595,7 @@ static void R_DrawFuzzColumnSelective(void)
         lines += count & mask;
         count &= ~mask;
 
-        const byte fuzz =
-            fullcolormap[fuzzdark[fuzzpos] + dest[linesize * fuzzoffset[fuzzpos]]];
+        const byte fuzz = fullcolormap[dark + dest[linesize * offset]];
 
         do
         {
@@ -606,13 +608,16 @@ static void R_DrawFuzzColumnSelective(void)
         // Clamp table lookup index.
         fuzzpos &= (fuzzpos - FUZZTABLE) >> (8 * sizeof(fuzzpos) - 1); // killough 1/99
 
+        dark = fuzzdark[fuzzpos];
+        offset = fuzzoffset[fuzzpos];
+
         lines = fuzzblocksize;
     } while (count);
 
     if (cutoff)
     {
-        const byte fuzz = fullcolormap
-            [fuzzdark[fuzzpos] + dest[linesize * (fuzzoffset[fuzzpos] - FUZZOFF) / 2]];
+        const byte fuzz =
+            fullcolormap[dark + dest[linesize * (offset - FUZZOFF) / 2]];
         memset(dest, fuzz, fuzzblocksize);
     }
 }
