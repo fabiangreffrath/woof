@@ -526,7 +526,7 @@ static void R_DrawFuzzColumnBlocky(void)
     }
 }
 
-#define FUZZDARK 6 * 256
+#define FUZZDARK 8 * 256
 
 static const int fuzzdark[FUZZTABLE] =
 {
