@@ -52,6 +52,7 @@ typedef enum
 {
     FUZZ_BLOCKY,
     FUZZ_REFRACTION,
+    FUZZ_SHADOW,
 } fuzzmode_t;
 
 extern fuzzmode_t fuzzmode;

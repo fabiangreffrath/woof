@@ -3241,7 +3241,7 @@ static const char *exit_sequence_strings[] = {
 };
 
 static const char *fuzzmode_strings[] = {
-    "Vanilla", "Refraction"
+    "Vanilla", "Refraction", "Shadow"
 };
 
 static setup_menu_t gen_settings5[] = {

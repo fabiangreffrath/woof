@@ -370,7 +370,7 @@ void R_SetFuzzPosDraw(void)
 //  i.e. spectres and invisible players.
 //
 
-static void R_DrawFuzzColumnOriginal(void)
+static void DrawFuzzColumnOriginal(void)
 {
     boolean cutoff = false;
 
@@ -448,7 +448,7 @@ static void R_DrawFuzzColumnOriginal(void)
 
 static int fuzzblocksize;
 
-static void R_DrawFuzzColumnBlocky(void)
+static void DrawFuzzColumnBlocky(void)
 {
     boolean cutoff = false;
 
@@ -526,7 +526,7 @@ static void R_DrawFuzzColumnBlocky(void)
     }
 }
 
-#define FUZZDARK 8 * 256
+#define FUZZDARK 6 * 256
 
 static const int fuzzdark[FUZZTABLE] =
 {
@@ -539,7 +539,7 @@ static const int fuzzdark[FUZZTABLE] =
     FUZZDARK,FUZZDARK,0,FUZZDARK,FUZZDARK,0,FUZZDARK
 };
 
-static void R_DrawFuzzColumnRefraction(void)
+static void DrawFuzzColumnRefraction(void)
 {
     boolean cutoff = false;
 
@@ -622,8 +622,62 @@ static void R_DrawFuzzColumnRefraction(void)
     }
 }
 
+static void DrawFuzzColumnShadow(void)
+{
+    boolean cutoff = false;
+
+    // Adjust borders. Low...
+    if (!dc_yl)
+    {
+        dc_yl = 1;
+    }
+
+    // .. and high.
+    if (dc_yh == viewheight - 1)
+    {
+        dc_yh = viewheight - 2;
+        cutoff = true;
+    }
+
+    int count = dc_yh - dc_yl;
+
+    // Zero length.
+    if (count < 0)
+    {
+        return;
+    }
+
+#ifdef RANGECHECK
+    if ((unsigned)dc_x >= video.width || dc_yl < 0 || dc_yh >= video.height)
+    {
+        I_Error("R_DrawFuzzColumn: %i to %i at %i", dc_yl, dc_yh, dc_x);
+    }
+#endif
+
+    byte *dest = ylookup[dc_yl] + columnofs[dc_x];
+
+    count++; // killough 1/99: minor tuning
+
+    do
+    {
+        *dest = fullcolormap[12 * 256 + *dest];
+
+        dest += linesize; // killough 11/98
+
+        ++fuzzpos;
+
+        // Clamp table lookup index.
+        fuzzpos &= (fuzzpos - FUZZTABLE) >> (8 * sizeof(fuzzpos) - 1); // killough 1/99
+    } while (--count);
+
+    if (cutoff)
+    {
+        *dest = fullcolormap[12 * 256 + *dest];
+    }
+}
+
 fuzzmode_t fuzzmode;
-void (*R_DrawFuzzColumn)(void) = R_DrawFuzzColumnOriginal;
+void (*R_DrawFuzzColumn)(void) = DrawFuzzColumnOriginal;
 
 void R_SetFuzzColumnMode(void)
 {
@@ -633,16 +687,19 @@ void R_SetFuzzColumnMode(void)
             if (current_video_height > SCREENHEIGHT)
             {
                 fuzzblocksize = FixedToInt(video.yscale);
-                R_DrawFuzzColumn = R_DrawFuzzColumnBlocky;
+                R_DrawFuzzColumn = DrawFuzzColumnBlocky;
             }
             else
             {
-                R_DrawFuzzColumn = R_DrawFuzzColumnOriginal;
+                R_DrawFuzzColumn = DrawFuzzColumnOriginal;
             }
             break;
         case FUZZ_REFRACTION:
             fuzzblocksize = FixedToInt(video.yscale);
-            R_DrawFuzzColumn = R_DrawFuzzColumnRefraction;
+            R_DrawFuzzColumn = DrawFuzzColumnRefraction;
+            break;
+        case FUZZ_SHADOW:
+            R_DrawFuzzColumn = DrawFuzzColumnShadow;
             break;
     }
 }

@@ -1042,8 +1042,8 @@ void R_BindRenderVariables(void)
   M_BindBool("flipcorpses", &flipcorpses, NULL, false, ss_enem, wad_no,
              "Randomly mirrored death animations");
   M_BindNum("fuzzmode", &fuzzmode, NULL,
-            FUZZ_BLOCKY, FUZZ_BLOCKY, FUZZ_REFRACTION, ss_none, wad_no,
-            "Partial Invisibility (0 = Vanilla; 1 = Refraction)");
+            FUZZ_BLOCKY, FUZZ_BLOCKY, FUZZ_SHADOW, ss_none, wad_no,
+            "Partial Invisibility (0 = Vanilla; 1 = Refraction; 2 = Shadow)");
 
   BIND_BOOL(draw_nearby_sprites, true,
     "Draw sprites overlapping into visible sectors");
