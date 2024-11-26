@@ -407,9 +407,6 @@ typedef struct
     interlevel_t *interlevel_exiting;
     interlevel_t *interlevel_entering;
 
-    wi_animationstate_t *exiting_states;
-    wi_animationstate_t *entering_states;
-
     wi_animationstate_t *states;
     char *background_lump;
 } wi_animation_t;
@@ -443,41 +440,43 @@ static boolean CheckConditions(interlevelcond_t *conditions,
         switch (cond->condition)
         {
             case AnimCondition_MapNumGreater:
-                conditionsmet = (map > cond->param);
+                conditionsmet &= (map > cond->param);
                 break;
 
             case AnimCondition_MapNumEqual:
-                conditionsmet = (map == cond->param);
+                conditionsmet &= (map == cond->param);
                 break;
 
             case AnimCondition_MapVisited:
-                conditionsmet = false;
-
-                level_t *level;
-                array_foreach(level, wbs->visitedlevels)
                 {
-                    if (level->map == cond->param)
+                    boolean result = false;
+                    level_t *level;
+                    array_foreach(level, wbs->visitedlevels)
                     {
-                        conditionsmet = true;
-                        break;
+                        if (level->map == cond->param)
+                        {
+                            result = true;
+                            break;
+                        }
                     }
+                    conditionsmet &= result;
                 }
                 break;
 
             case AnimCondition_MapNotSecret:
-                conditionsmet = !U_IsSecretMap(episode, map);
+                conditionsmet &= !U_IsSecretMap(episode, map);
                 break;
 
             case AnimCondition_SecretVisited:
-                conditionsmet = wbs->didsecret;
+                conditionsmet &= wbs->didsecret;
                 break;
 
             case AnimCondition_Tally:
-                conditionsmet = !enteringcondition;
+                conditionsmet &= !enteringcondition;
                 break;
 
             case AnimCondition_IsEntering:
-                conditionsmet = enteringcondition;
+                conditionsmet &= enteringcondition;
                 break;
 
             default:
@@ -487,10 +486,15 @@ static boolean CheckConditions(interlevelcond_t *conditions,
     return conditionsmet;
 }
 
-static void UpdateAnimationStates(wi_animationstate_t *states)
+static boolean UpdateAnimation(void)
 {
+    if (!animation || !animation->states)
+    {
+        return false;
+    }
+
     wi_animationstate_t *state;
-    array_foreach(state, states)
+    array_foreach(state, animation->states)
     {
         interlevelframe_t *frame = &state->frames[state->frame_index];
 
@@ -501,6 +505,17 @@ static void UpdateAnimationStates(wi_animationstate_t *states)
 
         if (state->duration_left == 0)
         {
+            if (!state->frame_start)
+            {
+                state->frame_index++;
+                if (state->frame_index == array_size(state->frames))
+                {
+                    state->frame_index = 0;
+                }
+
+                frame = &state->frames[state->frame_index];
+            }
+
             int tics = 1;
             switch (frame->type)
             {
@@ -525,49 +540,11 @@ static void UpdateAnimationStates(wi_animationstate_t *states)
             }
 
             state->duration_left = MAX(tics, 1);
-
-            if (!state->frame_start)
-            {
-                state->frame_index++;
-                if (state->frame_index == array_size(state->frames))
-                {
-                    state->frame_index = 0;
-                }
-            }
         }
 
         state->duration_left--;
         state->frame_start = false;
     }
-}
-
-static boolean UpdateAnimation(boolean enteringcondition)
-{
-    if (!animation)
-    {
-        return false;
-    }
-
-    animation->states = NULL;
-    animation->background_lump = NULL;
-
-    if (!enteringcondition)
-    {
-        if (animation->interlevel_exiting)
-        {
-            animation->states = animation->exiting_states;
-            animation->background_lump =
-                animation->interlevel_exiting->background_lump;
-        }
-    }
-    else if (animation->interlevel_entering)
-    {
-        animation->states = animation->entering_states;
-        animation->background_lump =
-            animation->interlevel_entering->background_lump;
-    }
-
-    UpdateAnimationStates(animation->states);
 
     return true;
 }
@@ -634,31 +611,42 @@ static wi_animationstate_t *SetupAnimationStates(interlevellayer_t *layers,
     return states;
 }
 
-static boolean SetupAnimation(void)
+static boolean SetupAnimation(boolean enteringcondition)
 {
     if (!animation)
     {
         return false;
     }
 
-    if (animation->interlevel_exiting)
+    interlevel_t *interlevel = NULL;
+    if (!enteringcondition)
     {
-        animation->exiting_states =
-            SetupAnimationStates(animation->interlevel_exiting->layers, false);
+        if (animation->interlevel_exiting)
+        {
+            interlevel = animation->interlevel_exiting;
+        }
+    }
+    else if (animation->interlevel_entering)
+    {
+        interlevel = animation->interlevel_entering;
     }
 
-    if (animation->interlevel_entering)
+    if (interlevel)
     {
-        animation->entering_states =
-            SetupAnimationStates(animation->interlevel_entering->layers, true);
+        animation->states =
+            SetupAnimationStates(interlevel->layers, enteringcondition);
+        animation->background_lump = interlevel->background_lump;
+        return true;
     }
 
-    return true;
+    animation->states = NULL;
+    animation->background_lump = NULL;
+    return false;
 }
 
 static boolean NextLocAnimation(void)
 {
-    if (animation && animation->entering_states
+    if (animation && animation->interlevel_entering
         && !(demorecording || demoplayback))
     {
         return true;
@@ -667,30 +655,34 @@ static boolean NextLocAnimation(void)
     return false;
 }
 
-static boolean UpdateMusic(boolean enteringcondition)
+static boolean SetupMusic(boolean enteringcondition)
 {
     if (!animation)
     {
         return false;
     }
 
-    int musicnum = -1;
-    if (enteringcondition)
+    interlevel_t *interlevel = NULL;
+    if (!enteringcondition)
     {
-        if (animation->interlevel_entering)
+        if (animation->interlevel_exiting)
         {
-            musicnum = W_GetNumForName(animation->interlevel_entering->music_lump);
+            interlevel = animation->interlevel_exiting;
         }
     }
-    else if (animation->interlevel_exiting)
+    else if (animation->interlevel_entering)
     {
-        musicnum = W_GetNumForName(animation->interlevel_exiting->music_lump);
+        interlevel = animation->interlevel_entering;
     }
 
-    if (musicnum > 0)
+    if (interlevel)
     {
-        S_ChangeMusInfoMusic(musicnum, true);
-        return true;
+        int musicnum = W_GetNumForName(interlevel->music_lump);
+        if (musicnum >= 0)
+        {
+            S_ChangeMusInfoMusic(musicnum, true);
+            return true;
+        }
     }
 
     return false;
@@ -902,7 +894,7 @@ static void WI_initAnimatedBack(boolean firstcall)
   int   i;
   anim_t* a;
 
-  if (SetupAnimation())
+  if (SetupAnimation(state != StatCount))
   {
       return;
   }
@@ -953,7 +945,7 @@ static void WI_updateAnimatedBack(void)
   int   i;
   anim_t* a;
 
-  if (UpdateAnimation(state != StatCount))
+  if (UpdateAnimation())
   {
       return;
   }
@@ -1314,7 +1306,7 @@ static boolean    snl_pointeron = false;
 //
 static void WI_initShowNextLoc(void)
 {
-  UpdateMusic(true);
+  SetupMusic(true);
 
   if (gamemapinfo)
   {
@@ -1396,7 +1388,9 @@ static void WI_drawShowNextLoc(void)
           WI_drawEL();  // "Entering..." if not E1 or E2
           return;
         }
-  
+
+      if (!animation || !animation->states)
+      {
       last = (wbs->last == 8) ? wbs->next - 1 : wbs->last;
 
       // draw a splat on taken cities.
@@ -1410,6 +1404,7 @@ static void WI_drawShowNextLoc(void)
       // draw flashing ptr
       if (snl_pointeron)
         WI_drawOnLnode(wbs->next, yah); 
+      }
     }
 
   // draws which level you are entering..
@@ -2241,7 +2236,7 @@ void WI_Ticker(void)
   // counter for general background animation
   bcnt++;  
 
-  if (bcnt == 1 && !UpdateMusic(false))
+  if (bcnt == 1 && !SetupMusic(false))
     {
       // intermission music
       if ( gamemode == commercial )

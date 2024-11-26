@@ -16,17 +16,19 @@
 #include <math.h>
 #include <string.h>
 
-#include "dstrings.h"
-#include "d_event.h"
 #include "d_deh.h"
+#include "d_event.h"
 #include "d_player.h"
 #include "doomdef.h"
 #include "doomkeys.h"
 #include "doomstat.h"
 #include "doomtype.h"
+#include "dstrings.h"
 #include "hu_command.h"
 #include "hu_coordinates.h"
 #include "hu_obituary.h"
+#include "i_input.h"
+#include "i_timer.h"
 #include "i_video.h"
 #include "m_array.h"
 #include "m_config.h"
@@ -40,9 +42,8 @@
 #include "sounds.h"
 #include "st_sbardef.h"
 #include "st_stuff.h"
-#include "i_timer.h"
-#include "v_video.h"
 #include "u_mapinfo.h"
+#include "v_video.h"
 
 boolean       show_messages;
 boolean       show_toggle_messages;
@@ -88,9 +89,10 @@ static boolean message_review;
 
 static void UpdateMessage(sbe_widget_t *widget, player_t *player)
 {
+    ST_ClearLines(widget);
+
     if (!player->message)
     {
-        ST_ClearLines(widget);
         return;
     }
 
@@ -128,12 +130,11 @@ static void UpdateMessage(sbe_widget_t *widget, player_t *player)
 
     if (duration_left == 0)
     {
-        ST_ClearLines(widget);
         overwrite = true;
     }
     else
     {
-        SetLine(widget, string);
+        ST_AddLine(widget, string);
         --duration_left;
     }
 }
@@ -164,52 +165,6 @@ static void UpdateSecretMessage(sbe_widget_t *widget, player_t *player)
     }
 }
 
-// key tables
-// jff 5/10/98 french support removed, 
-// as it was not being used and couldn't be easily tested
-//
-
-static const char shiftxform[] =
-{
-    0,
-    1, 2, 3, 4, 5, 6, 7, 8, 9, 10,
-    11, 12, 13, 14, 15, 16, 17, 18, 19, 20,
-    21, 22, 23, 24, 25, 26, 27, 28, 29, 30,
-    31,
-    ' ', '!', '"', '#', '$', '%', '&',
-    '"', // shift-'
-    '(', ')', '*', '+',
-    '<', // shift-,
-    '_', // shift--
-    '>', // shift-.
-    '?', // shift-/
-    ')', // shift-0
-    '!', // shift-1
-    '@', // shift-2
-    '#', // shift-3
-    '$', // shift-4
-    '%', // shift-5
-    '^', // shift-6
-    '&', // shift-7
-    '*', // shift-8
-    '(', // shift-9
-    ':',
-    ':', // shift-;
-    '<',
-    '+', // shift-=
-    '>', '?', '@',
-    'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N',
-    'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z',
-    '[', // shift-[
-    '!', // shift-backslash - OH MY GOD DOES WATCOM SUCK
-    ']', // shift-]
-    '"', '_',
-    '\'', // shift-`
-    'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N',
-    'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z',
-    '{', '|', '}', '~', 127
-};
-
 typedef struct
 {
     char string[HU_MAXLINELENGTH];
@@ -224,16 +179,21 @@ static void ClearChatLine(chatline_t *line)
     line->string[0] = '\0';
 }
 
-static boolean AddKeyToChatLine(chatline_t *line, char ch)
+static boolean AddKeyToChatLine(chatline_t *line, char ch, char txt)
 {
-    if (ch >= ' ' && ch <= '_')
+    if (txt)
     {
-        if (line->pos == HU_MAXLINELENGTH - 1)
+        txt = M_ToUpper(txt);
+
+        if (txt >= ' ' && txt <= '_')
         {
-            return false;
+            if (line->pos == HU_MAXLINELENGTH - 1)
+            {
+                return false;
+            }
+            line->string[line->pos++] = txt;
+            line->string[line->pos] = '\0';
         }
-        line->string[line->pos++] = ch;
-        line->string[line->pos] = '\0';
     }
     else if (ch == KEY_BACKSPACE) // phares
     {
@@ -282,28 +242,20 @@ void ST_UpdateChatMessage(void)
             {
                 chat_dest[p] = ch;
             }
-            else
+            else if (AddKeyToChatLine(&lines[p], ch, 0) && ch == KEY_ENTER)
             {
-                if (ch >= 'a' && ch <= 'z')
+                if (lines[p].pos
+                    && (chat_dest[p] == consoleplayer + 1
+                        || chat_dest[p] == HU_BROADCAST))
                 {
-                    ch = (char)shiftxform[(unsigned char)ch];
-                }
+                    M_snprintf(message_string, sizeof(message_string), "%s%s",
+                               *player_names[p], lines[p].string);
 
-                if (AddKeyToChatLine(&lines[p], ch) && ch == KEY_ENTER)
-                {
-                    if (lines[p].pos && (chat_dest[p] == consoleplayer + 1
-                                         || chat_dest[p] == HU_BROADCAST))
-                    {
-                        M_snprintf(message_string, sizeof(message_string),
-                            "%s%s", *player_names[p], lines[p].string);
-
-                        S_StartSoundPitch(0,
-                                          gamemode == commercial ? sfx_radio
-                                                                 : sfx_tink,
-                                          PITCH_NONE);
-                    }
-                    ClearChatLine(&lines[p]);
+                    S_StartSoundPitch(
+                        0, gamemode == commercial ? sfx_radio : sfx_tink,
+                        PITCH_NONE);
                 }
+                ClearChatLine(&lines[p]);
             }
             players[p].cmd.chatchar = 0;
         }
@@ -370,19 +322,29 @@ char ST_DequeueChatChar(void)
 
 static chatline_t chatline;
 
+static void StartChatInput(int dest)
+{
+    chat_on = true;
+    ClearChatLine(&chatline);
+    QueueChatChar(dest);
+    I_StartTextInput();
+}
+
+static void StopChatInput(void)
+{
+    chat_on = false;
+    I_StopTextInput();
+}
+
 boolean ST_MessagesResponder(event_t *ev)
 {
     static char lastmessage[HU_MAXLINELENGTH + 1];
 
     boolean eatkey = false;
-    static boolean shiftdown = false;
     static boolean altdown = false;
-    int ch;
     int numplayers;
 
     static int num_nobrainers = 0;
-
-    ch = (ev->type == ev_keydown) ? ev->data1.i : 0;
 
     numplayers = 0;
     for (int p = 0; p < MAXPLAYERS; p++)
@@ -390,21 +352,10 @@ boolean ST_MessagesResponder(event_t *ev)
         numplayers += playeringame[p];
     }
 
-    if (ev->data1.i == KEY_RSHIFT)
-    {
-        shiftdown = ev->type == ev_keydown;
-        return false;
-    }
-
     if (ev->data1.i == KEY_RALT)
     {
-        altdown = ev->type == ev_keydown;
+        altdown = ev->type != ev_keyup;
         return false;
-    }
-
-    if (M_InputActivated(input_chat_backspace))
-    {
-        ch = KEY_BACKSPACE;
     }
 
     if (!chat_on)
@@ -421,9 +372,8 @@ boolean ST_MessagesResponder(event_t *ev)
         }
         else if (netgame && M_InputActivated(input_chat))
         {
-            eatkey = chat_on = true;
-            ClearChatLine(&chatline);
-            QueueChatChar(HU_BROADCAST);
+            eatkey = true;
+            StartChatInput(HU_BROADCAST);
         }
         else if (netgame && numplayers > 2) // killough 11/98: simplify
         {
@@ -443,9 +393,8 @@ boolean ST_MessagesResponder(event_t *ev)
                     }
                     else if (playeringame[p])
                     {
-                        eatkey = chat_on = true;
-                        ClearChatLine(&chatline);
-                        QueueChatChar((char)(p + 1));
+                        eatkey = true;
+                        StartChatInput(p + 1);
                         break;
                     }
                 }
@@ -454,14 +403,11 @@ boolean ST_MessagesResponder(event_t *ev)
     } // jff 2/26/98 no chat functions if message review is displayed
     else
     {
-        if (M_InputActivated(input_chat_enter))
-        {
-            ch = KEY_ENTER;
-        }
-
         // send a macro
         if (altdown)
         {
+            int ch = (ev->type == ev_keydown) ? ev->data1.i : 0;
+
             ch = ch - '0';
             if (ch < 0 || ch > 9)
             {
@@ -480,26 +426,25 @@ boolean ST_MessagesResponder(event_t *ev)
             QueueChatChar(KEY_ENTER); // phares
 
             // leave chat mode and notify that it was sent
-            chat_on = false;
+            StopChatInput();
             M_StringCopy(lastmessage, chat_macros[ch], sizeof(lastmessage));
             displaymsg("%s", lastmessage);
             eatkey = true;
         }
         else
         {
-            if (shiftdown || (ch >= 'a' && ch <= 'z'))
+            int ch = (ev->type == ev_keydown) ? ev->data1.i : 0;
+
+            int txt = (ev->type == ev_text) ? ev->data1.i : 0;
+
+            if (AddKeyToChatLine(&chatline, ch, txt))
             {
-                ch = shiftxform[ch];
-            }
-            eatkey = AddKeyToChatLine(&chatline, ch);
-            if (eatkey)
-            {
-                QueueChatChar(ch);
+                QueueChatChar(txt);
             }
 
             if (ch == KEY_ENTER) // phares
             {
-                chat_on = false;
+                StopChatInput();
                 if (chatline.pos)
                 {
                     M_StringCopy(lastmessage, chatline.string,
@@ -509,8 +454,9 @@ boolean ST_MessagesResponder(event_t *ev)
             }
             else if (ch == KEY_ESCAPE) // phares
             {
-                chat_on = false;
+                StopChatInput();
             }
+            return true;
         }
     }
     return eatkey;
@@ -518,6 +464,8 @@ boolean ST_MessagesResponder(event_t *ev)
 
 static void UpdateChat(sbe_widget_t *widget)
 {
+    ST_ClearLines(widget);
+
     static char string[HU_MAXLINELENGTH + 1];
 
     string[0] = '\0';
@@ -530,9 +478,8 @@ static void UpdateChat(sbe_widget_t *widget)
         {
             M_StringConcat(string, "_", sizeof(string));
         }
+        ST_AddLine(widget, string);
     }
-
-    SetLine(widget, string);
 }
 
 static boolean IsVanillaMap(int e, int m)
@@ -963,7 +910,7 @@ static void UpdateSpeed(sbe_widget_t *widget, player_t *player)
 {
     if (speedometer <= 0)
     {
-        SetLine(widget, "");
+        ST_ClearLines(widget);
         return;
     }
 
@@ -981,7 +928,7 @@ static void UpdateSpeed(sbe_widget_t *widget, player_t *player)
     static char string[60];
     M_snprintf(string, sizeof(string), GRAY_S "%.*f " GREEN_S "%s",
                type && speed ? 1 : 0, speed, units[type]);
-    SetLine(widget, string);
+    ST_AddLine(widget, string);
 }
 
 static void UpdateCmd(sbe_widget_t *widget)

@@ -1,43 +1,126 @@
 **New Features and Improvements**
-* Implemented support for native MIDI output on all major platforms (WinMM on Windows, ALSA on Linux, Core MIDI on macOS):
-  - As a result, Woof! can now output to any software or hardware device that uses a MIDI port and supports General MIDI. [Nuked-SC55](https://github.com/nukeykt/Nuked-SC55/) is recommended for accurate Roland SC-55 emulation.
-  - Features previously exclusive to Windows are now available on all platforms. This includes `midi_complevel`, `midi_reset_type`, full EMIDI support, loop points (Final Fantasy, RPG Maker), and more.
-  - Automatic reset delay for better compatibility with Roland and Yamaha hardware. See `midi_reset_delay` config option.
-  - Capital tone fallback to fix songs with invalid instruments. Emulates the behavior of early SC-55 models. See `midi_ctf` config option.
-  - Smoother switching between MIDI songs.
-* Context-related sound pitch shifting.
-* Independent keyboard/mouse controls in menus. Mouse movement does not affect keyboard cursor. Various minor improvements.
-* Ability to set maximum resolution -- see `max_video_width` and `max_video_height` in config.
-* Added `change_display_resolution` config option, which will only work if exclusive fullscreen mode is enabled and the maximum resolution is set. For CRT monitors users.
-* Better support for `-1`, `-2` and `-3` command-line parameters.
-* Added `all-all`, `doom-all`, `doom1-all` and `doom2-all` autoload folders.
-* Allowed autoloading in shareware mode.
-* Unified Vanilla Doom and Boom HUD widgets, which are now configurable -- see `woofhud.lmp` in the `all-all` autoload folder.
-* Added a parser for `Obituary_Deh_Actor` DEHACKED strings (thanks to @SirBofu).
-* Save files now use UMAPINFO labels instead of map markers.
-* Moved secret message higher, and prevented it from disabling the crosshair.
-* Added `snd_limiter` config key to toggle the sound limiter.
-* Restored "Resampler" option in the "General: Audio" menu.
-* The order in which automap lines are drawn has been changed to improve visual consistency.
+
+* Mod Support:
+  - ID24 features:
+    - `SBARDEF`, with additional widescreen layout and widgets.
+    - `SKYDEFS`.
+    - `UMAPINFO` intermission extensions.
+    - `extras.wad`, which will be autoloaded if found.
+  - Added support for `TRAKINFO` (remixed soundtrack from "Doom + Doom II").
+  - Added support for PNG graphics, textures, flats, and sprites, which are automatically converted to palettized Doom graphics. 32-bit PNGs are converted to 8-bit with color degradation (not recommended).
+  - Added resource directories and partial support for PK3 archives.
+  - Added `VX_START`/`VX_END` namespace for voxels.
+
+* Video:
+  - Added 32:9 aspect ratio support for ultrawide monitors.
+  - Draw sprites overlapping into visible sectors: enhancement to stop things from disappearing due to "anchor" sector not being in line of sight (thanks to @SirBofu).
+  - Limited max distance for sprites to 8192 map units, as before (improves performance in `comatose.wad`).
+  - Improved FPS limiter (thanks to @gendlin).
+
+* Sound:
+  - Added 4-band equalizer for sound effects.
+  - Added output limiter and SFX channels options to menu.
+  - Added OpenAL Doppler effect option to menu.
+  - Added click/pop prevention for sound lumps that start or end with a non-zero amplitude.
+
+* Music:
+  - Added auto gain (loudness normalization) menu option for music, which applies to sampled music (MP3/OGG/XM/etc.), FluidSynth, and OPL3.
+  - Added support for multiple OPL3 chips, and made various improvements (thanks to @jpernst).
+  - Changed native MIDI music volume curve to linear.
+  - Added FluidSynth and OPL3 menu items.
+  - Updated default FluidSynth reverb and chorus parameters. These parameters are configurable in `woof.cfg`.
+  - Improved EMIDI support to match behavior of Build engine games.
+  - Added DMXOPL enhanced FM patch set.
+
+* Input:
+  - Added option for fake high-resolution turning when using short tics: see `fake_longtics` in `woof.cfg`.
+  - Added quickstart cache option (from DSDA-Doom): see `quickstart_cache_tics` in `woof.cfg`.
+  - Added a "Weapon Carousel" to visualize switching weapons using the mouse wheel or "Next"/"Prev" buttons (thanks to @JNechaevsky for the graphics).
+  - Added "Vanilla Weapon Cycle" option.
+  - Added "Last" weapon key binding.
+  - Added support for SSG key binding when using vanilla compatibility level.
+  - Improved performance when handling many input events at once.
+  - Optimized input polling for older computers (thanks to @gendlin).
+  - Added support for native keyboard input (from Chocolate Doom).
+
+* [Gamepad](https://github.com/fabiangreffrath/woof/wiki/Gamepad):
+  - Added custom weapon slots: the default configuration uses the D-pad and matches the Doom II Xbox 360 port.
+  - Added rumble support. Rumble patterns are generated dynamically from sound files. Supports weapon mods.
+  - Added gyro support.
+  - Added flick stick support.
+  - Added option to force platform-specific (i.e. Xbox, Playstation, or Switch) button names: see `joy_platform` in `woof.cfg`.
+  - Added option to force keyboard or gamepad menu help text, useful for mixed input devices: see `menu_help` in `woof.cfg`.
+  - Streamlined save game menu when using a gamepad.
+
+* Quality of Life:
+  - Added "Auto Save" option: the game is automatically saved at the beginning of a map, after completing the previous one.
+  - Added compatibility database from DSDA-Doom (`COMPDB` lump), which automatically applies compatibility options.
+  - Added option to correct the automap's aspect ratio (thanks to @thearst3rd).
+  - Added aliases for popular command-line parameters (`-cl`, `-nomo`, `-uv`, `-nm`).
+  - Added announcement of map titles (from DSDA-Doom).
+  - Added Crispy Doom automap color scheme.
+  - Added "count" option for secret-revealed message (thanks to @MrAlaux).
+  - Added level stats widget format settings (thanks to @MrAlaux).
+  - Added fast exit when pressing Alt+F4 or the window close button.
+  - Improved deathmatch HUD widgets (scoreboard and level time countdown).
+
+* Tools:
+  - Added advanced coordinates widget (from DSDA-Doom).
+  - Added command history widget (from DSDA-Doom).
+
+* Miscellaneous:
+  - Replaced "Show ENDOOM Screen" menu item with "Exit Sequence" (Off, Sound Only, PWAD ENDOOM, Full).
+  - Added drag-and-drop on non-Windows systems.
+  - Added `SPEED` cheat to show a speedometer.
+  - Rewrote help strings in `woof.cfg` (thanks to @MrAlaux).
+  - Added interpolation of wipe melt animation (from Rum and Raisin Doom).
+  - Fit finale text to widescreen instead of inserting line breaks.
+  - Always use traditional menu ordering (removed Boom choice).
+  - Moved all autoload and internal resources to `woof.pk3` archive.
+  - Allowed setting `gamedescription` (and thus the window title) with DEHACKED.
+  - Allowed up to 10 episodes in UMAPINFO.
+  - Added more paths to find IWADs.
+  - Removed source port credits screen, restoring the vanilla demo loop.
 
 **Bug Fixes**
-* Fixed error-out with some weapon sprites on some resolutions.
-* Fixed various HOM columns that appeared on some resolutions.
-* Prevented light scale overflow, fixing dark strips of light on very-close walls.
-* Fixed skies being shifted down a few pixels.
-* Fixed mouse movement after running the game with the `-warp` parameter on Linux.
-* Fixed UMAPINFO lump not being parsed in IWADs (fixes _chex3v.wad_).
-* Compatibility menu items are now disabled according to command-line parameters.
-* Fixed savegames restoring pitch even with freelook disabled.
-* Fixed gamepad analog movement when using `joy_scale_diagonal_movement`.
-* Fixed gamepad initialization in multiplayer.
-* Fixed erasing of `align_bottom` HUD widgets.
-* Fixed wrong keycard sometimes being displayed in the Boom HUD on Windows (thanks to @xemonix0).
-* Fixed some weapon-switching issues.
-* Fixed wrong usage of `DBIGFONT` for menu strings in some cases (fixes _chex3v.wad_).
-* Fixed blinking Tower of Babel on intermission screen.
-* Fixed exit text being lower than it should be normally.
 
-**Miscellaneous**
-* Made the build reproducible.
-* AppImage for Linux now supports music in MP3 format.
+* Fixed player being added to monster friend list when damaged below 50% health, improving performance on maps with many monsters (from DSDA-Doom).
+* Fixed `UMAPINFO` `bossaction` walk-over actions (from DSDA-Doom).
+* Fixed MBF21 SSG autoswitch causing weapons to disappear (from DSDA-Doom).
+* Fixed MBF21 ripper weapons causing additional damage when "Improved Hit Detection" is enabled.
+* Fixed adding/removing `NOBLOCKMAP` or `NOSECTOR` with MBF21 DEHACKED (from DSDA-Doom).
+* Fixed sound origin for huge levels (from PrBoom+).
+* Fixed direct SSG switches in vanilla demos (fixes desync in `b109xm-00463.lmp`).
+* Fixed highlighting of death-exit sectors on automap.
+* Fixed pressing Alt+Tab and Windows key when using exclusive fullscreen.
+* Fixed OpenGL exclusive fullscreen.
+* Fixed free look range.
+* Fixed free look behavior when loading a level or using toggles.
+* Fixed various issues with the "On Death Action" feature.
+* Fixed misaligned 200-pixels-tall sky textures.
+* Fixed stretching of vertically scrolling skies.
+* Fixed looping of MIDIs that don't set initial channel volumes.
+* Fixed ENDOOM aspect ratio.
+* Fixed game speed changes affecting MIDI playback.
+* Fixed a crash in the MAP06->MAP07 transition in `PUSS33_DIEROWDY.wad`.
+* Fixed potential desyncs by MBF's correction of the SSG flash.
+* Fixed garbage columns when aspect ratio correction is disabled.
+* Fixed automap thing interpolation with the `FREEZE` cheat enabled.
+* Fixed resolution affecting minimum/maximum automap scale.
+* Fixed crosshair target lock-on not working on voxel models.
+* Fixed clean screenshots on demo and intermission screens.
+* Fixed game speed affecting dynamic resolution.
+
+**Regressions**
+
+* Removed the Boom HUD and `WOOFHUD` support, they are replaced by `SBARDEF`.
+* Removed the "Blink Missing Keys" feature.
+
+**Acknowledgments**
+
+* El Juancho for testing and providing feedback on quickstart cache.
+* gendlin and Trov (bangstk) for testing and providing feedback on fake high-resolution turning.
+* gendlin for FPS limiter improvements and various general optimizations.
+* Jibb Smart for publishing reference implementations of gyro and flick stick features.
+* JustinWayland, protocultor, sndein, and AL2009man for testing and providing feedback on gyro and flick stick features.
+* Julia Nechaevskaya for help with 32:9 support.
