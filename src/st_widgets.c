@@ -91,11 +91,6 @@ static void UpdateMessage(sbe_widget_t *widget, player_t *player)
 {
     ST_ClearLines(widget);
 
-    if (!player->message)
-    {
-        return;
-    }
-
     static char string[120];
     static int duration_left;
     static boolean overwrite = true;
@@ -179,21 +174,18 @@ static void ClearChatLine(chatline_t *line)
     line->string[0] = '\0';
 }
 
-static boolean AddKeyToChatLine(chatline_t *line, char ch, char txt)
+static boolean AddKeyToChatLine(chatline_t *line, char ch)
 {
-    if (txt)
-    {
-        txt = M_ToUpper(txt);
+    ch = M_ToUpper(ch);
 
-        if (txt >= ' ' && txt <= '_')
+    if (ch >= ' ' && ch <= '_')
+    {
+        if (line->pos == HU_MAXLINELENGTH - 1)
         {
-            if (line->pos == HU_MAXLINELENGTH - 1)
-            {
-                return false;
-            }
-            line->string[line->pos++] = txt;
-            line->string[line->pos] = '\0';
+            return false;
         }
+        line->string[line->pos++] = ch;
+        line->string[line->pos] = '\0';
     }
     else if (ch == KEY_BACKSPACE) // phares
     {
@@ -242,7 +234,7 @@ void ST_UpdateChatMessage(void)
             {
                 chat_dest[p] = ch;
             }
-            else if (AddKeyToChatLine(&lines[p], ch, 0) && ch == KEY_ENTER)
+            else if (AddKeyToChatLine(&lines[p], ch) && ch == KEY_ENTER)
             {
                 if (lines[p].pos
                     && (chat_dest[p] == consoleplayer + 1
@@ -435,9 +427,18 @@ boolean ST_MessagesResponder(event_t *ev)
         {
             int ch = (ev->type == ev_keydown) ? ev->data1.i : 0;
 
-            int txt = (ev->type == ev_text) ? ev->data1.i : 0;
+            int txt = 0;
+            if (ev->type == ev_text)
+            {
+                txt = ev->data1.i;
+            }
+            else if (ch == KEY_ENTER)
+            {
+                txt = ch;
+            }
 
-            if (AddKeyToChatLine(&chatline, ch, txt))
+            eatkey = AddKeyToChatLine(&chatline, txt);
+            if (eatkey)
             {
                 QueueChatChar(txt);
             }
@@ -456,7 +457,10 @@ boolean ST_MessagesResponder(event_t *ev)
             {
                 StopChatInput();
             }
-            return true;
+            else
+            {
+                eatkey = true;
+            }
         }
     }
     return eatkey;
