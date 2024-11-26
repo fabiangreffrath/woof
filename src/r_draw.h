@@ -52,7 +52,6 @@ typedef enum
 {
     FUZZ_BLOCKY,
     FUZZ_SELECTIVE,
-    FUZZ_SELECTIVE_DARK,
 } fuzzmode_t;
 
 extern fuzzmode_t fuzzmode;

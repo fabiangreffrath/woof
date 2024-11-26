@@ -539,21 +539,6 @@ static const int fuzzdark[FUZZTABLE] =
     FUZZDARK,FUZZDARK,0,FUZZDARK,FUZZDARK,0,FUZZDARK
 };
 
-#define FUZZDARKER 12 * 256
-
-static const int fuzzdarker[FUZZTABLE] =
-{
-    FUZZDARKER,0,FUZZDARKER,0,FUZZDARKER,FUZZDARKER,0,
-    FUZZDARKER,FUZZDARKER,0,FUZZDARKER,FUZZDARKER,FUZZDARKER,0,
-    FUZZDARKER,FUZZDARKER,FUZZDARKER,0,0,0,0,
-    FUZZDARKER,0,0,FUZZDARKER,FUZZDARKER,FUZZDARKER,FUZZDARKER,0,
-    FUZZDARKER,0,FUZZDARKER,FUZZDARKER,0,0,FUZZDARKER,
-    FUZZDARKER,0,0,0,0,FUZZDARKER,FUZZDARKER,
-    FUZZDARKER,FUZZDARKER,0,FUZZDARKER,FUZZDARKER,0,FUZZDARKER
-};
-
-static const int *fuzzcolormap;
-
 static void R_DrawFuzzColumnSelective(void)
 {
     boolean cutoff = false;
@@ -608,7 +593,7 @@ static void R_DrawFuzzColumnSelective(void)
         count &= ~mask;
 
         const byte fuzz =
-            fullcolormap[fuzzcolormap[fuzzpos] + dest[linesize * fuzzoffset[fuzzpos]]];
+            fullcolormap[fuzzdark[fuzzpos] + dest[linesize * fuzzoffset[fuzzpos]]];
 
         do
         {
@@ -627,7 +612,7 @@ static void R_DrawFuzzColumnSelective(void)
     if (cutoff)
     {
         const byte fuzz = fullcolormap
-            [fuzzcolormap[fuzzpos] + dest[linesize * (fuzzoffset[fuzzpos] - FUZZOFF) / 2]];
+            [fuzzdark[fuzzpos] + dest[linesize * (fuzzoffset[fuzzpos] - FUZZOFF) / 2]];
         memset(dest, fuzz, fuzzblocksize);
     }
 }
@@ -652,12 +637,6 @@ void R_SetFuzzColumnMode(void)
             break;
         case FUZZ_SELECTIVE:
             fuzzblocksize = FixedToInt(video.yscale);
-            fuzzcolormap = fuzzdark;
-            R_DrawFuzzColumn = R_DrawFuzzColumnSelective;
-            break;
-        case FUZZ_SELECTIVE_DARK:
-            fuzzblocksize = FixedToInt(video.yscale);
-            fuzzcolormap = fuzzdarker;
             R_DrawFuzzColumn = R_DrawFuzzColumnSelective;
             break;
     }

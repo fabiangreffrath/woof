@@ -3241,7 +3241,7 @@ static const char *exit_sequence_strings[] = {
 };
 
 static const char *fuzzmode_strings[] = {
-    "Blocky", "Selective", "Selective Dark"
+    "Vanilla", "Refraction"
 };
 
 static setup_menu_t gen_settings5[] = {
@@ -3255,7 +3255,7 @@ static setup_menu_t gen_settings5[] = {
     {"Translucency Filter", S_NUM | S_ACTION | S_PCT, OFF_CNTR_X, M_SPC,
      {"tran_filter_pct"}, .action = MN_Trans},
 
-    {"Fuzzy Translucency", S_CHOICE | S_STRICT, OFF_CNTR_X, M_SPC, {"fuzzmode"},
+    {"Partial Invisibility", S_CHOICE | S_STRICT, OFF_CNTR_X, M_SPC, {"fuzzmode"},
      .strings_id = str_fuzzmode, .action = R_SetFuzzColumnMode},
 
     MI_GAP,
