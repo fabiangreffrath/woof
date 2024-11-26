@@ -226,7 +226,7 @@ Copyright:
  © 2020-2024 Julia Nechaevskaya.  
 License: [CC-BY-3.0](https://creativecommons.org/licenses/by/3.0/)
 
-Files: `data/io.github.fabiangreffrath.woof.metainfo.*`
+Files: `data/io.github.fabiangreffrath.woof.metainfo.*`  
 Copyright:  
  © 2023-2024 Fabian Greffrath.  
 License: [CC0-1.0](https://creativecommons.org/publicdomain/zero/1.0/)
