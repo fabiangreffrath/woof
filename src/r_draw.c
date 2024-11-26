@@ -539,7 +539,7 @@ static const int fuzzdark[FUZZTABLE] =
     FUZZDARK,FUZZDARK,0,FUZZDARK,FUZZDARK,0,FUZZDARK
 };
 
-static void R_DrawFuzzColumnSelective(void)
+static void R_DrawFuzzColumnRefraction(void)
 {
     boolean cutoff = false;
 
@@ -640,9 +640,9 @@ void R_SetFuzzColumnMode(void)
                 R_DrawFuzzColumn = R_DrawFuzzColumnOriginal;
             }
             break;
-        case FUZZ_SELECTIVE:
+        case FUZZ_REFRACTION:
             fuzzblocksize = FixedToInt(video.yscale);
-            R_DrawFuzzColumn = R_DrawFuzzColumnSelective;
+            R_DrawFuzzColumn = R_DrawFuzzColumnRefraction;
             break;
     }
 }

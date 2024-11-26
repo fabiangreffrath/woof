@@ -51,7 +51,7 @@ void R_SetFuzzPosDraw(void);
 typedef enum
 {
     FUZZ_BLOCKY,
-    FUZZ_SELECTIVE,
+    FUZZ_REFRACTION,
 } fuzzmode_t;
 
 extern fuzzmode_t fuzzmode;
