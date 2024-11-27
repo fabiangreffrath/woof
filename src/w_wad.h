@@ -118,7 +118,8 @@ boolean W_AddPath(const char *path);
 typedef enum
 {
     PROCESS_PWAD = 0x01,
-    PROCESS_IWAD = 0x02
+    PROCESS_IWAD = 0x02,
+    PROCESS_ALL  = 0x03
 } process_wad_t;
 
 void W_ProcessInWads(const char *name, void (*process)(int lumpnum),
