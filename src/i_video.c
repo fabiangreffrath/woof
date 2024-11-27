@@ -1712,14 +1712,15 @@ static void CreateSurfaces(int w, int h)
     V_RestoreBuffer();
 
     // FIXME
-    // if (argbbuffer != NULL)
-    // {
-    //     SDL_DestroySurface(argbbuffer);
-    // }
+    if (argbbuffer != NULL)
+    {
+        SDL_DestroySurface(argbbuffer);
+    }
 
     // [FG] create intermediate ARGB frame buffer
 
-    argbbuffer = SDL_CreateSurface(w, h, SDL_PIXELFORMAT_ARGB8888);
+    argbbuffer = SDL_CreateSurfaceFrom(w, h, SDL_PIXELFORMAT_ARGB8888,
+                                       NULL, w * 4);
 
     if (texture != NULL)
     {
