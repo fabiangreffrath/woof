@@ -98,6 +98,8 @@ static boolean disk_icon; // killough 10/98
 
 // [FG] rendering window, renderer, intermediate ARGB frame buffer and texture
 
+static const char *sdl_renderer_name;
+
 static SDL_Window *screen;
 static SDL_DisplayMode *exclusive_mode;
 static SDL_Renderer *renderer;
@@ -1653,7 +1655,9 @@ static void I_InitGraphicsMode(void)
     I_ToggleFullScreen();
 
     // [FG] create renderer
-    renderer = SDL_CreateRenderer(screen, NULL);
+    const char *renderer_name = (strlen(sdl_renderer_name) > 0) ? sdl_renderer_name : NULL;
+
+    renderer = SDL_CreateRenderer(screen, renderer_name);
 
     if (use_vsync && !timingdemo)
     {
@@ -1838,6 +1842,8 @@ void I_BindVideoVariables(void)
 
     M_BindBool("grabmouse", &default_grabmouse, &grabmouse, true, ss_none,
                wad_no, "Grab mouse during play");
+    M_BindStr("sdl_renderer_name", &sdl_renderer_name, "", wad_no,
+              "SDL renderer name");
 }
 
 //----------------------------------------------------------------------------
