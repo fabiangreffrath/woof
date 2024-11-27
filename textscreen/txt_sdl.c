@@ -128,7 +128,7 @@ void TXT_PreInit(SDL_Window *preset_window, SDL_Renderer *preset_renderer)
 
 int TXT_Init(void)
 {
-    int flags = 0;
+    SDL_WindowFlags flags = 0;
 
     if (!SDL_Init(SDL_INIT_VIDEO))
     {
@@ -152,12 +152,7 @@ int TXT_Init(void)
 
         flags |= SDL_WINDOW_RESIZABLE;
 
-        SDL_PropertiesID props = SDL_CreateProperties();
-        SDL_SetNumberProperty(props, SDL_PROP_WINDOW_CREATE_FLAGS_NUMBER, flags);
-        SDL_SetNumberProperty(props, SDL_PROP_WINDOW_CREATE_WIDTH_NUMBER, w);
-        SDL_SetNumberProperty(props, SDL_PROP_WINDOW_CREATE_HEIGHT_NUMBER, h);
-
-        TXT_SDLWindow = SDL_CreateWindowWithProperties(props);
+        TXT_SDLWindow = SDL_CreateWindow(NULL, w, h, flags);
         SDL_SetWindowMinimumSize(TXT_SDLWindow, screen_image_w, screen_image_h);
     }
 
