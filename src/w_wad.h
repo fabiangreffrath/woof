@@ -114,8 +114,16 @@ extern const char **wadfiles;
 boolean W_InitBaseFile(const char *path);
 void W_AddBaseDir(const char *path);
 boolean W_AddPath(const char *path);
+
+typedef enum
+{
+    PROCESS_PWAD = 0x01,
+    PROCESS_IWAD = 0x02
+} process_wad_t;
+
 void W_ProcessInWads(const char *name, void (*process)(int lumpnum),
-                     boolean iwad);
+                     process_wad_t flags);
+
 void W_InitMultipleFiles(void);
 
 // killough 4/17/98: if W_CheckNumForName() called with only

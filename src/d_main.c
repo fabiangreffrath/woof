@@ -2260,7 +2260,7 @@ void D_DoomMain(void)
 
   if (!M_ParmExists("-nodeh"))
   {
-    W_ProcessInWads("DEHACKED", ProcessDehLump, true);
+    W_ProcessInWads("DEHACKED", ProcessDehLump, PROCESS_IWAD);
   }
 
   // process .deh files specified on the command line with -deh or -bex.
@@ -2273,7 +2273,7 @@ void D_DoomMain(void)
   // killough 10/98: now process all deh in wads
   if (!M_ParmExists("-nodeh"))
   {
-    W_ProcessInWads("DEHACKED", ProcessDehLump, false);
+    W_ProcessInWads("DEHACKED", ProcessDehLump, PROCESS_PWAD);
   }
 
   // process .deh files from PWADs autoload directories
@@ -2281,7 +2281,7 @@ void D_DoomMain(void)
 
   PostProcessDeh();
 
-  W_ProcessInWads("BRGHTMPS", R_ParseBrightmaps, false);
+  W_ProcessInWads("BRGHTMPS", R_ParseBrightmaps, PROCESS_PWAD);
 
   // Moved after WAD initialization because we are checking the COMPLVL lump
   G_ReloadDefaults(false); // killough 3/4/98: set defaults just loaded.
@@ -2310,7 +2310,7 @@ void D_DoomMain(void)
             I_Error("\nThis is not the registered version.");
     }
 
-  W_ProcessInWads("UMAPDEF", U_ParseMapDefInfo, false);
+  W_ProcessInWads("UMAPDEF", U_ParseMapDefInfo, PROCESS_PWAD);
 
   //!
   // @category mod
@@ -2320,8 +2320,7 @@ void D_DoomMain(void)
 
   if (!M_ParmExists("-nomapinfo"))
   {
-    W_ProcessInWads("UMAPINFO", U_ParseMapInfo, true);
-    W_ProcessInWads("UMAPINFO", U_ParseMapInfo, false);
+    W_ProcessInWads("UMAPINFO", U_ParseMapInfo, PROCESS_IWAD | PROCESS_PWAD);
   }
 
   G_ParseCompDatabase();
@@ -2403,7 +2402,7 @@ void D_DoomMain(void)
     startloadgame = -1;
   }
 
-  W_ProcessInWads("TRAKINFO", S_ParseTrakInfo, false);
+  W_ProcessInWads("TRAKINFO", S_ParseTrakInfo, PROCESS_IWAD | PROCESS_PWAD);
 
   I_Printf(VB_INFO, "M_Init: Init miscellaneous info.");
   M_Init();
