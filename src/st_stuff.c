@@ -726,6 +726,8 @@ static void UpdateFace(sbe_face_t *face, player_t *player)
     }
 
     --face->facecount;
+
+    face->oldhealth = player->health;
 }
 
 static void UpdateNumber(sbarelem_t *elem, player_t *player)
