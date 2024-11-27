@@ -1704,26 +1704,25 @@ static void CreateSurfaces(int w, int h)
     I_SetPalette(W_CacheLumpName("PLAYPAL", PU_CACHE));
     SDL_SetSurfacePalette(screenbuffer, palette);
 
-    SDL_FillSurfaceRect(screenbuffer, NULL, 0);
-
     I_VideoBuffer = screenbuffer->pixels;
     V_RestoreBuffer();
 
-    if (argbbuffer != NULL)
-    {
-        SDL_DestroySurface(argbbuffer);
-    }
+    // FIXME
+    // if (argbbuffer != NULL)
+    // {
+    //     SDL_DestroySurface(argbbuffer);
+    // }
 
     // [FG] create intermediate ARGB frame buffer
 
     argbbuffer = SDL_CreateSurface(w, h, SDL_PIXELFORMAT_ARGB8888);
 
-    // [FG] create texture
-
     if (texture != NULL)
     {
         SDL_DestroyTexture(texture);
     }
+
+    // [FG] create texture
 
     texture = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_ARGB8888,
                                 SDL_TEXTUREACCESS_STREAMING, w, h);
