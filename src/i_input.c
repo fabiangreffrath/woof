@@ -685,17 +685,17 @@ static int TranslateKey(SDL_Scancode scancode)
 // keyboard layout, but does not apply any changes due to modifiers, (eg.
 // shift-, alt-, etc.)
 
-static int GetLocalizedKey(SDL_Scancode scancode)
+static int GetLocalizedKey(SDL_KeyboardEvent *key)
 {
     // When using Vanilla mapping, we just base everything off the scancode
     // and always pretend the user is using a US layout keyboard.
     if (vanilla_keyboard_mapping)
     {
-        return TranslateKey(scancode);
+        return TranslateKey(key->scancode);
     }
     else
     {
-        int result = scancode;
+        int result = key->key;
 
         if (result < 0 || result >= 128)
         {
@@ -892,7 +892,7 @@ void I_HandleKeyboardEvent(SDL_Event *sdlevent)
         case SDL_EVENT_KEY_DOWN:
             event.type = ev_keydown;
             event.data1.i = TranslateKey(sdlevent->key.scancode);
-            event.data2.i = GetLocalizedKey(sdlevent->key.scancode);
+            event.data2.i = GetLocalizedKey(&sdlevent->key);
 
             if (event.data1.i != 0)
             {

@@ -446,18 +446,18 @@ static int TranslateScancode(SDL_Scancode scancode)
     }
 }
 
-static int TranslateKeysym(const SDL_Scancode scancode)
+static int TranslateKeysym(SDL_KeyboardEvent *key)
 {
     int translated;
 
     // We cheat here and make use of TranslateScancode. The range of keys
     // associated with printable characters is pretty contiguous, so if it's
     // inside that range we want the localized version of the key instead.
-    translated = TranslateScancode(scancode);
+    translated = TranslateScancode(key->scancode);
 
     if (translated >= 0x20 && translated < 0x7f)
     {
-        return scancode;
+        return key->key;
     }
     else
     {
@@ -553,7 +553,7 @@ signed int TXT_GetChar(void)
                     case TXT_INPUT_RAW:
                         return TranslateScancode(ev.key.scancode);
                     case TXT_INPUT_NORMAL:
-                        return TranslateKeysym(ev.key.scancode);
+                        return TranslateKeysym(&ev.key);
                     case TXT_INPUT_TEXT:
                         // We ignore key inputs in this mode, except for a
                         // few special cases needed during text input:
@@ -561,7 +561,7 @@ signed int TXT_GetChar(void)
                          || ev.key.key == SDLK_BACKSPACE
                          || ev.key.key == SDLK_RETURN)
                         {
-                            return TranslateKeysym(ev.key.scancode);
+                            return TranslateKeysym(&ev.key);
                         }
                         break;
                 }
