@@ -187,7 +187,7 @@ target_include_directories(woof PRIVATE "${CMAKE_CURRENT_BINARY_DIR}/../")
 
 target_link_libraries(woof PRIVATE
     SDL3::SDL3
-    SDL3_net::SDL3_net
+    SDL2_net::SDL2_net
     OpenAL::OpenAL
     libebur128::libebur128
     SndFile::sndfile
@@ -278,7 +278,7 @@ target_woof_settings(woof-setup)
 target_include_directories(woof-setup PRIVATE "${CMAKE_CURRENT_BINARY_DIR}/../")
 target_link_libraries(woof-setup PRIVATE
     SDL3::SDL3
-    SDL3_net::SDL3_net
+    SDL2_net::SDL2_net
     textscreen
     setup)
 

@@ -22,7 +22,7 @@
             }
         ]
     },
-    "sdl3-net",
+    "sdl2-net",
     {
         "name": "openal-soft",
         "features": [

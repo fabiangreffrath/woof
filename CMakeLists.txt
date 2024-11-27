@@ -83,7 +83,7 @@ set(CMAKE_FIND_FRAMEWORK NEVER)
 
 # Library requirements.
 find_package(SDL3 CONFIG REQUIRED)
-find_package(SDL3_net CONFIG REQUIRED)
+find_package(SDL2_net CONFIG REQUIRED)
 find_package(OpenAL REQUIRED)
 find_package(libebur128 REQUIRED)
 find_package(SndFile 1.0.29 REQUIRED)
@@ -99,8 +99,8 @@ if(OPENAL_VERSION_STRING VERSION_GREATER_EQUAL "1.22.0")
     set(HAVE_AL_BUFFER_CALLBACK TRUE)
 endif()
 
-if(NOT TARGET SDL3_net::SDL3_net)
-    add_library(SDL3_net::SDL3_net ALIAS SDL3_net::SDL3_net-static)
+if(NOT TARGET SDL2_net::SDL2_net)
+    add_library(SDL2_net::SDL2_net ALIAS SDL2_net::SDL2_net-static)
 endif()
 
 if(SndFile_VERSION VERSION_GREATER_EQUAL "1.1.0")
