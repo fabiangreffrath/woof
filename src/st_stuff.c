@@ -21,6 +21,7 @@
 //-----------------------------------------------------------------------------
 
 #include <stdlib.h>
+#include <math.h>
 
 #include "am_map.h"
 #include "d_event.h"

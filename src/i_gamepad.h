@@ -17,6 +17,8 @@
 #ifndef __I_GAMEPAD__
 #define __I_GAMEPAD__
 
+#include <math.h>
+
 #include "d_event.h"
 #include "doomkeys.h"
 

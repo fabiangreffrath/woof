@@ -25,10 +25,11 @@
 //
 //----------------------------------------------------------------------------
 
-#include "g_game.h"
+#include <string.h>
+
+#include "doomstat.h"
 #include "i_flickstick.h"
 #include "i_gamepad.h"
-#include "i_input.h"
 #include "m_config.h"
 
 #define MAX_F 0.999999f
