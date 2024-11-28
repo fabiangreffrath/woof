@@ -1101,10 +1101,23 @@ void FindResponseFile (void)
         indexinfile++;  // SKIP PAST ARGV[0] (KEEP IT)
         do
           {
+            boolean quote = false;
+            if (infile[k] == '"')
+            {
+                quote = true;
+                k++;
+            }
             myargv[indexinfile++] = infile+k;
             while(k < size &&
-                  ((*(infile+k)>= ' '+1) && (*(infile+k)<='z')))
+                  ((*(infile+k)>= ' ') && (*(infile+k)<='z')))
+            {
+              if ((!quote && infile[k] == ' ') ||
+                  (quote && infile[k] == '"'))
+              {
+                break;
+              }
               k++;
+            }
             *(infile+k) = 0;
             while(k < size &&
                   ((*(infile+k)<= ' ') || (*(infile+k)>'z')))
