@@ -540,10 +540,15 @@ static int ResolveNumber(sbe_number_t *number, player_t *player)
 
 static int CalcPainOffset(sbe_face_t *face, player_t *player)
 {
+    static int lasthealthcalc;
+    static int oldhealth = -1;
     int health = player->health > 100 ? 100 : player->health;
-    int lasthealthcalc =
-        ST_FACESTRIDE * (((100 - health) * ST_NUMPAINFACES) / 101);
-    face->oldhealth = health;
+    if (oldhealth != health)
+    {
+        lasthealthcalc =
+            ST_FACESTRIDE * (((100 - health) * ST_NUMPAINFACES) / 101);
+        oldhealth = health;
+    }
     return lasthealthcalc;
 }
 
@@ -726,6 +731,8 @@ static void UpdateFace(sbe_face_t *face, player_t *player)
     }
 
     --face->facecount;
+
+    face->oldhealth = player->health;
 }
 
 static void UpdateNumber(sbarelem_t *elem, player_t *player)
