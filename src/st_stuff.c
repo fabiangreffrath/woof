@@ -31,7 +31,6 @@
 #include "doomtype.h"
 #include "hu_command.h"
 #include "hu_obituary.h"
-#include "i_system.h"
 #include "i_video.h"
 #include "info.h"
 #include "m_array.h"
@@ -1805,15 +1804,15 @@ void ST_Init(void)
 {
     sbardef = ST_ParseSbarDef();
 
+    stcfnt = LoadSTCFN();
+    hu_font = stcfnt->characters;
+
     if (!sbardef)
     {
         return;
     }
 
     LoadFacePatches();
-
-    stcfnt = LoadSTCFN();
-    hu_font = stcfnt->characters;
 
     HU_InitCrosshair();
     HU_InitCommandHistory();
