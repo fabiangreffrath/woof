@@ -722,6 +722,16 @@ static int GetTypedChar(SDL_Keysym *sym)
 {
     int result = TranslateKey(sym);
 
+    switch (result)
+    {
+        case KEY_BACKSPACE:
+        case KEY_ESCAPE:
+        case KEY_ENTER:
+            return 0;
+        default:
+            break;
+    }
+
     // If shift is held down, apply the original uppercase
     // translation table used under DOS.
     if ((SDL_GetModState() & KMOD_SHIFT) != 0 && result >= 0
