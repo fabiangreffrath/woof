@@ -2416,7 +2416,8 @@ static setup_menu_t gen_settings1[] = {
     {"Fullscreen", S_ONOFF, CNTR_X, M_SPC, {"fullscreen"},
      .action = ToggleFullScreen},
 
-    {"Exclusive Fullscreen", S_ONOFF, CNTR_X, M_SPC, {"exclusive_fullscreen"}},
+    {"Exclusive Fullscreen", S_ONOFF, CNTR_X, M_SPC, {"exclusive_fullscreen"},
+     .action = ToggleFullScreen},
 
     MI_GAP_Y(6),
 

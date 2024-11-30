@@ -101,7 +101,7 @@ static boolean disk_icon; // killough 10/98
 static const char *sdl_renderer_name;
 
 static SDL_Window *screen;
-static SDL_DisplayMode *exclusive_mode;
+static const SDL_DisplayMode *exclusive_mode;
 static SDL_Renderer *renderer;
 static SDL_Surface *screenbuffer;
 static SDL_Surface *argbbuffer;
@@ -328,9 +328,7 @@ static void HandleWindowEvent(SDL_WindowEvent *event)
         case SDL_EVENT_WINDOW_MOVED:
             {
                 video_display = SDL_GetDisplayForWindow(screen);
-                SDL_DisplayMode **modes =
-                    SDL_GetFullscreenDisplayModes(video_display, NULL);
-                exclusive_mode = modes[0];
+                exclusive_mode = SDL_GetCurrentDisplayMode(video_display);
             }
             break;
 
@@ -1333,21 +1331,19 @@ static void CreateUpscaledTexture(boolean force)
         SDL_GetRendererProperties(renderer),
         SDL_PROP_RENDERER_MAX_TEXTURE_SIZE_NUMBER, 0);
 
-    if (!max_texture_size)
-    {
-        I_Error("Failed to get max texture size");
-    }
-
     w_upscale = (w + screen_width - 1) / screen_width;
     h_upscale = (h + screen_height - 1) / screen_height;
 
-    while (w_upscale * screen_width > max_texture_size)
+    if (max_texture_size > 0)
     {
-        --w_upscale;
-    }
-    while (h_upscale * screen_height > max_texture_size)
-    {
-        --h_upscale;
+        while (w_upscale * screen_width > max_texture_size)
+        {
+            --w_upscale;
+        }
+        while (h_upscale * screen_height > max_texture_size)
+        {
+            --h_upscale;
+        }
     }
 
     if (w_upscale < 1)
@@ -1387,7 +1383,7 @@ static void CreateUpscaledTexture(boolean force)
     // screen.
 
     texture_upscaled = SDL_CreateTexture(
-        renderer, SDL_PIXELFORMAT_ARGB8888, SDL_TEXTUREACCESS_TARGET,
+        renderer, SDL_GetWindowPixelFormat(screen), SDL_TEXTUREACCESS_TARGET,
         w_upscale * screen_width, h_upscale * screen_height);
 
     SDL_SetTextureScaleMode(texture_upscaled, SDL_SCALEMODE_LINEAR);
@@ -1642,14 +1638,12 @@ static void I_InitGraphicsMode(void)
     {
         w = max_video_width;
         h = max_video_height;
-        SDL_GetClosestFullscreenDisplayMode(video_display, w, h, 0.0f,
-                                            true, exclusive_mode);
+        SDL_GetClosestFullscreenDisplayMode(video_display, w, h, 0.0f, true,
+                                            (SDL_DisplayMode *)exclusive_mode);
     }
     else
     {
-        SDL_DisplayMode **modes =
-            SDL_GetFullscreenDisplayModes(video_display, NULL);
-        exclusive_mode = modes[0];
+        exclusive_mode = SDL_GetCurrentDisplayMode(video_display);
     }
 
     I_ToggleFullScreen();
@@ -1711,7 +1705,6 @@ static void CreateSurfaces(int w, int h)
     I_VideoBuffer = screenbuffer->pixels;
     V_RestoreBuffer();
 
-    // FIXME
     if (argbbuffer != NULL)
     {
         SDL_DestroySurface(argbbuffer);
@@ -1719,7 +1712,7 @@ static void CreateSurfaces(int w, int h)
 
     // [FG] create intermediate ARGB frame buffer
 
-    argbbuffer = SDL_CreateSurfaceFrom(w, h, SDL_PIXELFORMAT_ARGB8888,
+    argbbuffer = SDL_CreateSurfaceFrom(w, h, SDL_GetWindowPixelFormat(screen),
                                        NULL, w * 4);
 
     if (texture != NULL)
@@ -1729,7 +1722,7 @@ static void CreateSurfaces(int w, int h)
 
     // [FG] create texture
 
-    texture = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_ARGB8888,
+    texture = SDL_CreateTexture(renderer, SDL_GetWindowPixelFormat(screen),
                                 SDL_TEXTUREACCESS_STREAMING, w, h);
 
     SDL_SetTextureScaleMode(texture, SDL_SCALEMODE_NEAREST);
