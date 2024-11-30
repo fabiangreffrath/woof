@@ -100,6 +100,7 @@ static struct
     namespace_t namespace;
 } subdirs[] = {
     {"music",     NULL,       NULL,     ns_global   },
+    {"graphics",  NULL,       NULL,     ns_global   },
     {"sprites",   "S_START",  "S_END",  ns_sprites  },
     {"flats",     "F_START",  "F_END",  ns_flats    },
     {"colormaps", "C_START",  "C_END",  ns_colormaps},
