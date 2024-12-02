@@ -92,7 +92,6 @@ static void UpdateMessage(sbe_widget_t *widget, player_t *player)
     ST_ClearLines(widget);
 
     static char string[120];
-    static int duration_left;
     static boolean overwrite = true;
     static boolean messages_enabled = true;
 
@@ -100,21 +99,21 @@ static void UpdateMessage(sbe_widget_t *widget, player_t *player)
     {
         if (message_string[0])
         {
-            duration_left = widget->duration;
+            widget->duration_left = widget->duration;
             M_StringCopy(string, message_string, sizeof(string));
             message_string[0] = '\0';
             overwrite = false;
         }
         else if (player->message && player->message[0] && overwrite)
         {
-            duration_left = widget->duration;
+            widget->duration_left = widget->duration;
             M_StringCopy(string, player->message, sizeof(string));
             player->message[0] = '\0';
         }
         else if (message_review)
         {
             message_review = false;
-            duration_left = widget->duration;
+            widget->duration_left = widget->duration;
         }
     }
 
@@ -123,14 +122,14 @@ static void UpdateMessage(sbe_widget_t *widget, player_t *player)
         messages_enabled = show_messages;
     }
 
-    if (duration_left == 0)
+    if (widget->duration_left == 0)
     {
         overwrite = true;
     }
     else
     {
         ST_AddLine(widget, string);
-        --duration_left;
+        --widget->duration_left;
     }
 }
 
@@ -144,19 +143,18 @@ static void UpdateSecretMessage(sbe_widget_t *widget, player_t *player)
     }
 
     static char string[80];
-    static int duration_left;
 
     if (player->secretmessage)
     {
-        duration_left = widget->duration;
+        widget->duration_left = widget->duration;
         M_StringCopy(string, player->secretmessage, sizeof(string));
         player->secretmessage = NULL;
     }
 
-    if (duration_left > 0)
+    if (widget->duration_left > 0)
     {
         ST_AddLine(widget, string);
-        --duration_left;
+        --widget->duration_left;
     }
 }
 

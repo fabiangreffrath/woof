@@ -1080,6 +1080,10 @@ static void ResetElem(sbarelem_t *elem)
             elem->subtype.number->oldvalue = -1;
             break;
 
+        case sbe_widget:
+            elem->subtype.widget->duration_left = 0;
+            break;
+
         default:
             break;
     }

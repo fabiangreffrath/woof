@@ -198,8 +198,8 @@ typedef struct sbe_widget_s
 
     int height;
 
-    // message
     int duration;
+    int duration_left;
 } sbe_widget_t;
 
 struct sbarelem_s
