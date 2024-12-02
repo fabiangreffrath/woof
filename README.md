@@ -57,6 +57,7 @@ If you turn the [Doom logo upside down](https://www.reddit.com/r/Doom/comments/8
  * In-game music changing using MUSINFO.
  * UMAPINFO support, compliant to Rev 2.2 of the [spec](https://github.com/kraflab/umapinfo).
  * MBF21 compatibility level, compliant to Rev 1.4 of the [spec](https://github.com/kraflab/mbf21).
+ * Support for PNG graphics.
  * SMMU-style swirling animated flats.
 
 ## Usage
