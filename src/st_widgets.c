@@ -930,7 +930,7 @@ static void UpdateSpeed(sbe_widget_t *widget, player_t *player)
     static char string[60];
     M_snprintf(string, sizeof(string), GRAY_S "%.*f " GREEN_S "%s",
                type && speed ? 1 : 0, speed, units[type]);
-    ST_AddLine(widget, string);
+    SetLine(widget, string);
 }
 
 static void UpdateCmd(sbe_widget_t *widget)
