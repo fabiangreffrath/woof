@@ -155,7 +155,8 @@ static void UpdateAnnounceMessage(sbe_widget_t *widget, player_t *player)
     else if (player->secretmessage)
     {
         widget->duration_left = widget->duration;
-        M_StringCopy(string, player->secretmessage, sizeof(string));
+        M_snprintf(string, sizeof(string), GOLD_S "%s" ORIG_S,
+            player->secretmessage);
         player->secretmessage = NULL;
     }
 
