@@ -137,9 +137,17 @@ static char announce_string[HU_MAXLINELENGTH];
 
 static void UpdateAnnounceMessage(sbe_widget_t *widget, player_t *player)
 {
+    static enum
+    {
+        announce_none,
+        announce_map,
+        announce_secret
+    } state = announce_none;
+
     ST_ClearLines(widget);
 
-    if (!hud_secret_message)
+    if ((state == announce_secret && !hud_secret_message)
+        || (state == announce_map && !hud_map_announce))
     {
         return;
     }
@@ -148,12 +156,14 @@ static void UpdateAnnounceMessage(sbe_widget_t *widget, player_t *player)
 
     if (announce_string[0])
     {
+        state = announce_map;
         widget->duration_left = widget->duration;
         M_StringCopy(string, announce_string, sizeof(string));
         announce_string[0] = '\0';
     }
     else if (player->secretmessage)
     {
+        state = announce_secret;
         widget->duration_left = widget->duration;
         M_snprintf(string, sizeof(string), GOLD_S "%s" ORIG_S,
             player->secretmessage);
@@ -164,6 +174,10 @@ static void UpdateAnnounceMessage(sbe_widget_t *widget, player_t *player)
     {
         ST_AddLine(widget, string);
         --widget->duration_left;
+    }
+    else
+    {
+        state = announce_none;
     }
 }
 
