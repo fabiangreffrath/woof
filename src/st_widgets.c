@@ -133,21 +133,40 @@ static void UpdateMessage(sbe_widget_t *widget, player_t *player)
     }
 }
 
-static void UpdateSecretMessage(sbe_widget_t *widget, player_t *player)
+static char announce_string[HU_MAXLINELENGTH];
+
+static void UpdateAnnounceMessage(sbe_widget_t *widget, player_t *player)
 {
+    static enum
+    {
+        announce_none,
+        announce_map,
+        announce_secret
+    } state = announce_none;
+
     ST_ClearLines(widget);
 
-    if (!hud_secret_message)
+    if ((state == announce_secret && !hud_secret_message)
+        || (state == announce_map && !hud_map_announce))
     {
         return;
     }
 
-    static char string[80];
+    static char string[HU_MAXLINELENGTH];
 
-    if (player->secretmessage)
+    if (announce_string[0])
     {
+        state = announce_map;
         widget->duration_left = widget->duration;
-        M_StringCopy(string, player->secretmessage, sizeof(string));
+        M_StringCopy(string, announce_string, sizeof(string));
+        announce_string[0] = '\0';
+    }
+    else if (player->secretmessage)
+    {
+        state = announce_secret;
+        widget->duration_left = widget->duration;
+        M_snprintf(string, sizeof(string), GOLD_S "%s" ORIG_S,
+            player->secretmessage);
         player->secretmessage = NULL;
     }
 
@@ -155,6 +174,10 @@ static void UpdateSecretMessage(sbe_widget_t *widget, player_t *player)
     {
         ST_AddLine(widget, string);
         --widget->duration_left;
+    }
+    else
+    {
+        state = announce_none;
     }
 }
 
@@ -570,12 +593,18 @@ void ST_ResetTitle(void)
     M_snprintf(title_string, sizeof(title_string), "\x1b%c%s" ORIG_S,
                '0' + hudcolor_titl, string);
 
+    announce_string[0] = '\0';
     if (hud_map_announce && leveltime == 0)
     {
         if (gamemapinfo && U_CheckField(gamemapinfo->author))
-            displaymsg("%s by %s", string, gamemapinfo->author);
+        {
+            M_snprintf(announce_string, sizeof(announce_string), "%s by %s",
+                       string, gamemapinfo->author);
+        }
         else
-            displaymsg("%s", string);
+        {
+            M_snprintf(announce_string, sizeof(announce_string), "%s", string);
+        }
     }
 }
 
@@ -1082,8 +1111,8 @@ void ST_UpdateWidget(sbarelem_t *elem, player_t *player)
         case sbw_chat:
             UpdateChat(widget);
             break;
-        case sbw_secret:
-            UpdateSecretMessage(widget, player);
+        case sbw_announce:
+            UpdateAnnounceMessage(widget, player);
             break;
         case sbw_title:
             UpdateTitle(widget);

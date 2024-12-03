@@ -246,7 +246,7 @@
           "y": 52,
           "alignment": 1,
           "tranmap": null,
-          "translation": "CRGOLD",
+          "translation": null,
           "type": 8,
           "font": "Console",
           "duration": 2.5,
