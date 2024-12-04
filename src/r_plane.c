@@ -71,7 +71,7 @@ visplane_t *floorplane, *ceilingplane;
 
 // killough 8/1/98: set static number of openings to be large enough
 // (a static limit is okay in this case and avoids difficulties in r_segs.c)
-static int *openings = NULL;
+int *openings;
 int *lastopening; // [FG] 32-bit integer math
 
 // Clip values are the solid pixel bounding the range.
@@ -127,8 +127,6 @@ void R_InitPlanesRes(void)
 
   yslope = Z_Calloc(1, video.height * sizeof(*yslope), PU_RENDERER, NULL);
   distscale = Z_Calloc(1, video.width * sizeof(*distscale), PU_RENDERER, NULL);
-
-  openings = Z_Calloc(1, video.width * video.height * sizeof(*openings), PU_RENDERER, NULL);
 
   xtoskyangle = linearsky ? linearskyangle : xtoviewangle;
 }

@@ -525,9 +525,10 @@ void R_StoreWallRange(const int start, const int stop)
 
   if (ds_p == drawsegs+maxdrawsegs)   // killough 1/98 -- fix 2s line HOM
     {
+      ptrdiff_t pos = ds_p - drawsegs; // jff 8/9/98 fix from ZDOOM1.14a
       unsigned newmax = maxdrawsegs ? maxdrawsegs*2 : 128; // killough
       drawsegs = Z_Realloc(drawsegs,newmax*sizeof(*drawsegs),PU_STATIC,0);
-      ds_p = drawsegs+maxdrawsegs;
+      ds_p = drawsegs + pos;          // jff 8/9/98 fix from ZDOOM1.14a
       maxdrawsegs = newmax;
     }
 
@@ -565,6 +566,43 @@ void R_StoreWallRange(const int start, const int stop)
   ds_p->x2 = stop;
   ds_p->curline = curline;
   rw_stopx = stop+1;
+
+  { // killough 1/6/98, 2/1/98: remove limit on openings
+    extern int *openings; // [FG] 32-bit integer math
+    static ptrdiff_t maxopenings;
+
+    ptrdiff_t pos = lastopening - openings;
+    ptrdiff_t need = (rw_stopx - start) * sizeof(*lastopening) + pos;
+
+    if (need > maxopenings)
+      {
+        drawseg_t *ds;               // jff 8/9/98 needed for fix from ZDoom
+        int *oldopenings = openings; // [FG] 32-bit integer math
+        int *oldlast = lastopening;  // [FG] 32-bit integer math
+
+        do
+          maxopenings = maxopenings ? maxopenings * 2 : 16384;
+        while (need > maxopenings);
+        openings = Z_Realloc(openings, maxopenings * sizeof(*openings),
+                           PU_STATIC, 0);
+        lastopening = openings + pos;
+
+        // jff 8/9/98 borrowed fix for openings from ZDOOM1.14
+        // [RH] We also need to adjust the openings pointers that
+        //    were already stored in drawsegs.
+        for (ds = drawsegs; ds < ds_p; ds++)
+          {
+#define ADJUST(p)                                                   \
+    if (ds->p + ds->x1 >= oldopenings && ds->p + ds->x1 <= oldlast) \
+        ds->p = ds->p - oldopenings + openings;
+
+              ADJUST(maskedtexturecol);
+              ADJUST(sprtopclip);
+              ADJUST(sprbottomclip);
+          }
+#undef ADJUST
+      }
+  } // killough: end of code to remove limits on openings
 
   // WiggleFix: add this line, in r_segs.c:R_StoreWallRange,
   // right before calls to R_ScaleFromGlobalAngle
