@@ -180,7 +180,7 @@ inline static quat angle_axis(float angle, const vec v)
 {
     vec temp = vec_normalize(v);
     temp = vec_scale(temp, sinf(angle * 0.5f));
-    return (quat){temp.x, temp.y, temp.z,cosf(angle * 0.5f)};
+    return (quat){temp.x, temp.y, temp.z, cosf(angle * 0.5f)};
 }
 
 //
@@ -190,7 +190,7 @@ inline static vec vec_rotate(const vec v, const quat q)
 {
     const quat q_inv = quat_inverse(q);
     const quat v_quat = vec_to_quat(v);
-    quat temp = quat_multiply(q,v_quat);
+    quat temp = quat_multiply(q, v_quat);
     temp = quat_multiply(temp, q_inv);
     return (vec){temp.x, temp.y, temp.z};
 }
