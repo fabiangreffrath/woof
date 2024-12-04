@@ -2637,7 +2637,6 @@ void D_DoomMain(void)
 
   // [FG] init graphics (video.widedelta) before HUD widgets
   I_InitGraphics();
-  I_InitKeyboard();
 
   MN_InitMenuStrings();
 

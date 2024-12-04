@@ -40,8 +40,7 @@ typedef enum evtype_e
   ev_joyb_up,
   ev_joystick,
   ev_joystick_state,
-  ev_gyro,
-  ev_text
+  ev_gyro
 } evtype_t;
 
 typedef union evdata_u

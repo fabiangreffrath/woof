@@ -471,7 +471,6 @@ static void ProcessEvent(SDL_Event *ev)
             // deliberate fall-though
 
         case SDL_KEYUP:
-        case SDL_TEXTINPUT:
             I_HandleKeyboardEvent(ev);
             break;
 
