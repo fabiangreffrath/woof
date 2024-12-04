@@ -129,7 +129,7 @@ void ST_UpdateCarousel(player_t *player)
 {
     if (G_NextWeaponActivate())
     {
-        duration = TICRATE * 2;
+        duration = TICRATE / 2;
     }
 
     if (duration == 0)
@@ -144,7 +144,11 @@ void ST_UpdateCarousel(player_t *player)
         return;
     }
 
-    --duration;
+    if (player->switching == weapswitch_none
+        && player->pendingweapon == wp_nochange)
+    {
+        --duration;
+    }
 
     BuildWeaponIcons(player);
 
