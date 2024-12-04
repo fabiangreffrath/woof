@@ -567,10 +567,10 @@ void R_StoreWallRange(const int start, const int stop)
   rw_stopx = stop+1;
 
   { // killough 1/6/98, 2/1/98: remove limit on openings
-    static ptrdiff_t maxopenings;
+    static size_t maxopenings;
 
     ptrdiff_t pos = lastopening - openings;
-    ptrdiff_t need = (rw_stopx - start) * sizeof(*lastopening) + pos;
+    size_t need = (rw_stopx - start) * sizeof(*lastopening) + pos;
 
     if (need > maxopenings)
       {
