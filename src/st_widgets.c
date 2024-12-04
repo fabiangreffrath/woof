@@ -424,7 +424,7 @@ boolean ST_MessagesResponder(event_t *ev)
             ch = ch - '0';
             if (ch < 0 || ch > 9)
             {
-                return true;
+                return false;
             }
             const char *macromessage = chat_macros[ch];
 
@@ -453,7 +453,7 @@ boolean ST_MessagesResponder(event_t *ev)
             {
                 txt = ev->data1.i;
             }
-            else if (ch == KEY_ENTER || ch == KEY_BACKSPACE)
+            else if (ch == KEY_ENTER)
             {
                 txt = ch;
             }
