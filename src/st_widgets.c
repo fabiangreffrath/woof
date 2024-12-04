@@ -195,18 +195,21 @@ static void ClearChatLine(chatline_t *line)
     line->string[0] = '\0';
 }
 
-static boolean AddKeyToChatLine(chatline_t *line, char ch)
+static boolean AddKeyToChatLine(chatline_t *line, char ch, char txt)
 {
-    ch = M_ToUpper(ch);
-
-    if (ch >= ' ' && ch <= '_')
+    if (txt)
     {
-        if (line->pos == HU_MAXLINELENGTH - 1)
+        txt = M_ToUpper(txt);
+
+        if (txt >= ' ' && txt <= '_')
         {
-            return false;
+            if (line->pos == HU_MAXLINELENGTH - 1)
+            {
+                return false;
+            }
+            line->string[line->pos++] = txt;
+            line->string[line->pos] = '\0';
         }
-        line->string[line->pos++] = ch;
-        line->string[line->pos] = '\0';
     }
     else if (ch == KEY_BACKSPACE) // phares
     {
@@ -255,7 +258,7 @@ void ST_UpdateChatMessage(void)
             {
                 chat_dest[p] = ch;
             }
-            else if (AddKeyToChatLine(&lines[p], ch) && ch == KEY_ENTER)
+            else if (AddKeyToChatLine(&lines[p], ch, 0) && ch == KEY_ENTER)
             {
                 if (lines[p].pos
                     && (chat_dest[p] == consoleplayer + 1
@@ -448,18 +451,9 @@ boolean ST_MessagesResponder(event_t *ev)
         {
             int ch = (ev->type == ev_keydown) ? ev->data1.i : 0;
 
-            int txt = 0;
-            if (ev->type == ev_text)
-            {
-                txt = ev->data1.i;
-            }
-            else if (ch == KEY_ENTER)
-            {
-                txt = ch;
-            }
+            int txt = (ev->type == ev_text) ? ev->data1.i : 0;
 
-            eatkey = AddKeyToChatLine(&chatline, txt);
-            if (eatkey)
+            if (AddKeyToChatLine(&chatline, ch, txt))
             {
                 QueueChatChar(txt);
             }
@@ -478,10 +472,7 @@ boolean ST_MessagesResponder(event_t *ev)
             {
                 StopChatInput();
             }
-            else
-            {
-                eatkey = true;
-            }
+            return true;
         }
     }
     return eatkey;
