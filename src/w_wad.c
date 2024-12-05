@@ -100,6 +100,7 @@ static struct
     namespace_t namespace;
 } subdirs[] = {
     {"music",     NULL,       NULL,     ns_global   },
+    {"graphics",  NULL,       NULL,     ns_global   },
     {"sprites",   "S_START",  "S_END",  ns_sprites  },
     {"flats",     "F_START",  "F_END",  ns_flats    },
     {"colormaps", "C_START",  "C_END",  ns_colormaps},
@@ -583,16 +584,24 @@ int W_LumpLengthWithName(int lump, char *name)
 // indicated by the third argument, instead of from a file.
 
 static void ProcessInWad(int i, const char *name, void (*process)(int lumpnum),
-                         boolean iwad)
+                         process_wad_t flag)
 {
     if (i >= 0)
     {
-        ProcessInWad(lumpinfo[i].next, name, process, iwad);
+        ProcessInWad(lumpinfo[i].next, name, process, flag);
+
+        int condition = 0;
+        if (flag & PROCESS_IWAD)
+        {
+            condition |= lumpinfo[i].wad_file == wadfiles[0];
+        }
+        if (flag & PROCESS_PWAD)
+        {
+            condition |= lumpinfo[i].wad_file != wadfiles[0];
+        }
 
         if (!strncasecmp(lumpinfo[i].name, name, 8)
-            && lumpinfo[i].namespace == ns_global
-            && (iwad ? lumpinfo[i].wad_file == wadfiles[0]
-                     : lumpinfo[i].wad_file != wadfiles[0]))
+            && lumpinfo[i].namespace == ns_global && condition)
         {
             process(i);
         }
@@ -600,10 +609,10 @@ static void ProcessInWad(int i, const char *name, void (*process)(int lumpnum),
 }
 
 void W_ProcessInWads(const char *name, void (*process)(int lumpnum),
-                     boolean iwad)
+                     process_wad_t flags)
 {
     ProcessInWad(lumpinfo[W_LumpNameHash(name) % (unsigned)numlumps].index,
-                 name, process, iwad);
+                 name, process, flags);
 }
 
 void W_Close(void)

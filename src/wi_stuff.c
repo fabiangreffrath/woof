@@ -440,41 +440,43 @@ static boolean CheckConditions(interlevelcond_t *conditions,
         switch (cond->condition)
         {
             case AnimCondition_MapNumGreater:
-                conditionsmet = (map > cond->param);
+                conditionsmet &= (map > cond->param);
                 break;
 
             case AnimCondition_MapNumEqual:
-                conditionsmet = (map == cond->param);
+                conditionsmet &= (map == cond->param);
                 break;
 
             case AnimCondition_MapVisited:
-                conditionsmet = false;
-
-                level_t *level;
-                array_foreach(level, wbs->visitedlevels)
                 {
-                    if (level->map == cond->param)
+                    boolean result = false;
+                    level_t *level;
+                    array_foreach(level, wbs->visitedlevels)
                     {
-                        conditionsmet = true;
-                        break;
+                        if (level->map == cond->param)
+                        {
+                            result = true;
+                            break;
+                        }
                     }
+                    conditionsmet &= result;
                 }
                 break;
 
             case AnimCondition_MapNotSecret:
-                conditionsmet = !U_IsSecretMap(episode, map);
+                conditionsmet &= !U_IsSecretMap(episode, map);
                 break;
 
             case AnimCondition_SecretVisited:
-                conditionsmet = wbs->didsecret;
+                conditionsmet &= wbs->didsecret;
                 break;
 
             case AnimCondition_Tally:
-                conditionsmet = !enteringcondition;
+                conditionsmet &= !enteringcondition;
                 break;
 
             case AnimCondition_IsEntering:
-                conditionsmet = enteringcondition;
+                conditionsmet &= enteringcondition;
                 break;
 
             default:

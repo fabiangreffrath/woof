@@ -2,12 +2,15 @@
 
 <component type="desktop">
   <id>io.github.fabiangreffrath.woof</id>
+  <launchable type="desktop-id">io.github.fabiangreffrath.woof.desktop</launchable>
   <name>Woof!</name>
   <summary>Continuation of the Boom/MBF bloodline of Doom source ports</summary>
   <metadata_license>CC0-1.0</metadata_license>
   <project_license>GPL-2.0+</project_license>
-  <developer_name>Fabian Greffrath</developer_name>
-  <url type="homepage">http://fabiangreffrath.github.io/woof</url>
+  <developer id="io.github.fabiangreffrath">
+    <name>Fabian Greffrath</name>
+  </developer>
+  <url type="homepage">https://fabiangreffrath.github.io/woof/</url>
   <url type="bugtracker">https://github.com/fabiangreffrath/woof/issues</url>
   <description>
     <p>

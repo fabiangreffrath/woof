@@ -144,7 +144,8 @@ void ST_UpdateCarousel(player_t *player)
         return;
     }
 
-    if (player->switching == weapswitch_none)
+    if (player->switching == weapswitch_none
+        && player->pendingweapon == wp_nochange)
     {
         --duration;
     }

@@ -115,7 +115,7 @@ typedef enum
     sbw_speed,
 
     sbw_message,
-    sbw_secret,
+    sbw_announce,
     sbw_chat,
     sbw_title,
 } sbarwidgettype_t;
@@ -198,8 +198,8 @@ typedef struct sbe_widget_s
 
     int height;
 
-    // message
     int duration;
+    int duration_left;
 } sbe_widget_t;
 
 struct sbarelem_s

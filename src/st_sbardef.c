@@ -212,7 +212,7 @@ static boolean ParseSbarElemType(json_t *json, sbarelementtype_t type,
                 switch (widget->type)
                 {
                     case sbw_message:
-                    case sbw_secret:
+                    case sbw_announce:
                         widget->duration =
                             JS_GetNumberValue(json, "duration") * TICRATE;
                         break;
