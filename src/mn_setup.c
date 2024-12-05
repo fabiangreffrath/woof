@@ -1818,7 +1818,7 @@ static void RefreshSolidBackground(void)
 static const char *screensize_strings[] = {
     "",           "",           "",           "Status Bar", "Status Bar",
     "Status Bar", "Status Bar", "Status Bar", "Status Bar", "Status Bar",
-    "Status Bar", "Fullscreen", "Fullscreen"
+    "Status Bar", "Fullscreen", "Crispy",     "None"
 };
 
 static const char *st_layout_strings[] = {

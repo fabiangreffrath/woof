@@ -1798,7 +1798,7 @@ static void M_SizeDisplay(int choice)
         default:
             break;
     }
-    screenblocks = BETWEEN(3, 12, screenblocks);
+    screenblocks = BETWEEN(3, 13, screenblocks);
     R_SetViewSize(screenblocks /*, detailLevel obsolete -- killough */);
 }
 
@@ -2549,7 +2549,7 @@ boolean M_ShortcutResponder(const event_t *ev)
         else
         {
             ++screenblocks;
-            if (screenblocks > 12)
+            if (screenblocks > 13)
             {
                 screenblocks = 10;
             }

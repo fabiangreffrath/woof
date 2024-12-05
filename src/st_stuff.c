@@ -1020,6 +1020,11 @@ static void UpdateStatusBar(player_t *player)
 
     int barindex = MAX(screenblocks - 10, 0);
 
+    if (barindex >= array_size(sbardef->statusbars))
+    {
+        barindex = array_size(sbardef->statusbars) - 1;
+    }
+
     if (automapactive && automapoverlay == AM_OVERLAY_OFF)
     {
         barindex = 0;
