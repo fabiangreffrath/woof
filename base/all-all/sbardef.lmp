@@ -1974,30 +1974,6 @@
         "children":
         [
           {
-            "facebackground":
-            {
-              "x": 143,
-              "y": 169,
-              "alignment": 0,
-              "tranmap": null,
-              "translation": null,
-              "conditions": null,
-              "children": null
-            }
-          },
-          {
-            "face":
-            {
-              "x": 143,
-              "y": 168,
-              "alignment": 0,
-              "tranmap": null,
-              "translation": null,
-              "conditions": null,
-              "children": null
-            }
-          },
-          {
             "number":
             {
               "x": 44,
