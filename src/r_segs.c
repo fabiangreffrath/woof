@@ -566,6 +566,13 @@ void R_StoreWallRange(const int start, const int stop)
   ds_p->curline = curline;
   rw_stopx = stop+1;
 
+  ptrdiff_t pos = lastopening - openings;
+  size_t need = (rw_stopx - start) * sizeof(*lastopening) + pos;
+  if (need > maxopenings)
+  {
+      return;
+  }
+
   // WiggleFix: add this line, in r_segs.c:R_StoreWallRange,
   // right before calls to R_ScaleFromGlobalAngle
   R_FixWiggle(frontsector);
