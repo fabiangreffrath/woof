@@ -1978,16 +1978,10 @@
             {
               "x": 143,
               "y": 169,
-              "alignment": 16,
+              "alignment": 0,
               "tranmap": null,
               "translation": null,
-              "conditions":
-              [
-                {
-                  "condition": 15,
-                  "param": 0
-                }
-              ],
+              "conditions": null,
               "children": null
             }
           },
@@ -1996,7 +1990,7 @@
             {
               "x": 143,
               "y": 168,
-              "alignment": 16,
+              "alignment": 0,
               "tranmap": null,
               "translation": null,
               "conditions": null,
