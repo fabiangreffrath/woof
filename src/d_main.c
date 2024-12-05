@@ -1829,11 +1829,6 @@ void D_DoomMain(void)
 
   LoadBaseFile();
 
-  IdentifyVersion();
-
-  // [FG] emulate a specific version of Doom
-  InitGameVersion();
-
   //!
   // @category mod
   //
@@ -1848,6 +1843,11 @@ void D_DoomMain(void)
           D_AddFile(extras);
       }
   }
+
+  IdentifyVersion();
+
+  // [FG] emulate a specific version of Doom
+  InitGameVersion();
 
   dsdh_InitTables();
 
