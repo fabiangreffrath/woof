@@ -4696,7 +4696,7 @@ int MN_StringWidth(const char *string)
             continue;
         }
         c = M_ToUpper(c) - HU_FONTSTART;
-        if (c < 0 || c > HU_FONTSIZE || hu_font[c] == NULL)
+        if (c < 0 || c >= HU_FONTSIZE || hu_font[c] == NULL)
         {
             w += SPACEWIDTH;
             continue;
