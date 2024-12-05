@@ -566,42 +566,6 @@ void R_StoreWallRange(const int start, const int stop)
   ds_p->curline = curline;
   rw_stopx = stop+1;
 
-  { // killough 1/6/98, 2/1/98: remove limit on openings
-    static size_t maxopenings;
-
-    ptrdiff_t pos = lastopening - openings;
-    size_t need = (rw_stopx - start) * sizeof(*lastopening) + pos;
-
-    if (need > maxopenings)
-      {
-        drawseg_t *ds;               // jff 8/9/98 needed for fix from ZDoom
-        int *oldopenings = openings; // [FG] 32-bit integer math
-        int *oldlast = lastopening;  // [FG] 32-bit integer math
-
-        do
-          maxopenings = maxopenings ? maxopenings * 2 : 16384;
-        while (need > maxopenings);
-        openings = Z_Realloc(openings, maxopenings * sizeof(*openings),
-                           PU_STATIC, 0);
-        lastopening = openings + pos;
-
-        // jff 8/9/98 borrowed fix for openings from ZDOOM1.14
-        // [RH] We also need to adjust the openings pointers that
-        //    were already stored in drawsegs.
-        for (ds = drawsegs; ds < ds_p; ds++)
-          {
-#define ADJUST(p)                                                   \
-    if (ds->p + ds->x1 >= oldopenings && ds->p + ds->x1 <= oldlast) \
-        ds->p = ds->p - oldopenings + openings;
-
-              ADJUST(maskedtexturecol);
-              ADJUST(sprtopclip);
-              ADJUST(sprbottomclip);
-          }
-#undef ADJUST
-      }
-  } // killough: end of code to remove limits on openings
-
   // WiggleFix: add this line, in r_segs.c:R_StoreWallRange,
   // right before calls to R_ScaleFromGlobalAngle
   R_FixWiggle(frontsector);
