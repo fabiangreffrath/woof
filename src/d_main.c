@@ -1830,10 +1830,11 @@ void D_DoomMain(void)
   LoadBaseFile();
 
   boolean extras_wad = false;
-  const char *extras_path = D_FindWADByName("extras.wad");
+  char *extras_path = D_FindWADByName("extras.wad");
   if (extras_path)
   {
       extras_wad = W_ExtrasWad(extras_path);
+      free(extras_path);
   }
 
   IdentifyVersion();
