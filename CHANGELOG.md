@@ -1,6 +1,6 @@
 **New Features and Improvements**
 
-* Process TRAKINFO in IWADs. Compatibility with Chex Quest 3: Vanilla Edition 1.0.
+* Process `TRAKINFO` in IWADs.
 * Add support for "graphics" sub directory.
 * Announce level name in central message.
 
