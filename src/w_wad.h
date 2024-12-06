@@ -112,6 +112,7 @@ extern void       **lumpcache;
 extern const char **wadfiles;
 
 boolean W_InitBaseFile(const char *path);
+boolean W_ExtrasWad(const char *path);
 void W_AddBaseDir(const char *path);
 boolean W_AddPath(const char *path);
 

@@ -151,6 +151,17 @@ static void AddDirs(w_module_t *module, w_handle_t handle, const char *base)
     }
 }
 
+boolean W_ExtrasWad(const char *path)
+{
+    w_handle_t handle = {0};
+    if (w_file_module.Open(path, &handle) == W_FILE)
+    {
+        array_clear(wadfiles); // don't register it before IWAD
+        return true;
+    }
+    return false;
+}
+
 boolean W_AddPath(const char *path)
 {
     static int priority;

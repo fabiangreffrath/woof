@@ -1829,7 +1829,19 @@ void D_DoomMain(void)
 
   LoadBaseFile();
 
+  boolean extras_wad = false;
+  const char *extras_path = D_FindWADByName("extras.wad");
+  if (extras_path)
+  {
+      extras_wad = W_ExtrasWad(extras_path);
+  }
+
   IdentifyVersion();
+
+  if (extras_wad)
+  {
+      array_push(wadfiles, "extras.wad");
+  }
 
   // [FG] emulate a specific version of Doom
   InitGameVersion();
