@@ -76,7 +76,7 @@
 
 // Blocky mode, has default, 0 = high, 1 = normal
 // int     detailLevel;    obsolete -- killough
-int screenblocks; // has default
+int screenblocks, maxscreenblocks; // has default
 
 static int quickSaveSlot; // -1 = no quicksave slot picked!
 
@@ -1798,7 +1798,7 @@ static void M_SizeDisplay(int choice)
         default:
             break;
     }
-    screenblocks = BETWEEN(3, 13, screenblocks);
+    screenblocks = BETWEEN(3, maxscreenblocks, screenblocks);
     R_SetViewSize(screenblocks /*, detailLevel obsolete -- killough */);
 }
 
@@ -2549,7 +2549,7 @@ boolean M_ShortcutResponder(const event_t *ev)
         else
         {
             ++screenblocks;
-            if (screenblocks > 13)
+            if (screenblocks > maxscreenblocks)
             {
                 screenblocks = 10;
             }

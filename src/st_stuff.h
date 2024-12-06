@@ -74,6 +74,8 @@ extern struct patch_s **hu_font;
 void WI_UpdateWidgets(void);
 void WI_DrawWidgets(void);
 
+const char **ST_StatusbarList(void);
+
 void ST_BindSTSVariables(void);
 
 #endif

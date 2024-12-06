@@ -1838,6 +1838,35 @@ void ST_InitRes(void)
                  PU_RENDERER, 0);
 }
 
+const char **ST_StatusbarList(void)
+{
+    if (!sbardef)
+    {
+        return NULL;
+    }
+
+    static const char **strings;
+
+    if (array_size(strings))
+    {
+        return strings;
+    }
+
+    statusbar_t *item;
+    array_foreach(item, sbardef->statusbars)
+    {
+        if (item->fullscreenrender)
+        {
+            array_push(strings, "Fullscreen");
+        }
+        else
+        {
+            array_push(strings, "Statusbar");
+        }
+    }
+    return strings;
+}
+
 void ST_ResetPalette(void)
 {
     I_SetPalette(W_CacheLumpName("PLAYPAL", PU_CACHE));
