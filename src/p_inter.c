@@ -478,7 +478,7 @@ void P_TouchSpecialThing(mobj_t *special, mobj_t *toucher)
       if (player->readyweapon != wp_fist)
 	if (!beta_emulation // killough 10/98: don't switch as much in -beta
 	    || player->readyweapon == wp_pistol)
-	  player->pendingweapon = wp_fist;
+	  player->nextweapon = player->pendingweapon = wp_fist;
       sound = sfx_getpow;
       break;
 

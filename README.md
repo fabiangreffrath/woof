@@ -57,6 +57,7 @@ If you turn the [Doom logo upside down](https://www.reddit.com/r/Doom/comments/8
  * In-game music changing using MUSINFO.
  * UMAPINFO support, compliant to Rev 2.2 of the [spec](https://github.com/kraflab/umapinfo).
  * MBF21 compatibility level, compliant to Rev 1.4 of the [spec](https://github.com/kraflab/mbf21).
+ * Support for PNG graphics.
  * SMMU-style swirling animated flats.
 
 ## Usage
@@ -84,7 +85,7 @@ It can be cloned via
 
 The following build system and libraries need to be installed:
  
- * [CMake](https://cmake.org) (>= 3.9)
+ * [CMake](https://cmake.org) (>= 3.15)
  * [SDL2](https://github.com/libsdl-org/SDL/tree/SDL2) (>= 2.0.18)
  * [SDL2_net](https://github.com/libsdl-org/SDL_net)
  * [openal-soft](https://github.com/kcat/openal-soft) (>= 1.22.0 for PC Speaker emulation)
@@ -226,7 +227,7 @@ Copyright:
  © 2020-2024 Julia Nechaevskaya.  
 License: [CC-BY-3.0](https://creativecommons.org/licenses/by/3.0/)
 
-Files: `data/io.github.fabiangreffrath.woof.metainfo.*`
+Files: `data/io.github.fabiangreffrath.woof.metainfo.*`  
 Copyright:  
  © 2023-2024 Fabian Greffrath.  
 License: [CC0-1.0](https://creativecommons.org/publicdomain/zero/1.0/)

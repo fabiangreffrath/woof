@@ -31,7 +31,6 @@
 #include "doomtype.h"
 #include "hu_command.h"
 #include "hu_obituary.h"
-#include "i_system.h"
 #include "i_video.h"
 #include "info.h"
 #include "m_array.h"
@@ -540,10 +539,15 @@ static int ResolveNumber(sbe_number_t *number, player_t *player)
 
 static int CalcPainOffset(sbe_face_t *face, player_t *player)
 {
+    static int lasthealthcalc;
+    static int oldhealth = -1;
     int health = player->health > 100 ? 100 : player->health;
-    int lasthealthcalc =
-        ST_FACESTRIDE * (((100 - health) * ST_NUMPAINFACES) / 101);
-    face->oldhealth = health;
+    if (oldhealth != health)
+    {
+        lasthealthcalc =
+            ST_FACESTRIDE * (((100 - health) * ST_NUMPAINFACES) / 101);
+        oldhealth = health;
+    }
     return lasthealthcalc;
 }
 
@@ -615,7 +619,7 @@ static void UpdateFace(sbe_face_t *face, player_t *player)
             boolean right = false;
 
             // [FG] show "Ouch Face" as intended
-            if (player->health - face->oldhealth > ST_MUCHPAIN)
+            if (face->oldhealth - player->health > ST_MUCHPAIN)
             {
                 // [FG] raise "Ouch Face" priority
                 priority = 8;
@@ -668,7 +672,7 @@ static void UpdateFace(sbe_face_t *face, player_t *player)
         // getting hurt because of your own damn stupidity
         if (player->damagecount)
         {
-            if (player->health - face->oldhealth > ST_MUCHPAIN)
+            if (face->oldhealth - player->health > ST_MUCHPAIN)
             {
                 priority = 7;
                 face->facecount = ST_TURNCOUNT;
@@ -726,6 +730,8 @@ static void UpdateFace(sbe_face_t *face, player_t *player)
     }
 
     --face->facecount;
+
+    face->oldhealth = player->health;
 }
 
 static void UpdateNumber(sbarelem_t *elem, player_t *player)
@@ -1072,6 +1078,10 @@ static void ResetElem(sbarelem_t *elem)
         case sbe_number:
         case sbe_percent:
             elem->subtype.number->oldvalue = -1;
+            break;
+
+        case sbe_widget:
+            elem->subtype.widget->duration_left = 0;
             break;
 
         default:
@@ -1798,15 +1808,15 @@ void ST_Init(void)
 {
     sbardef = ST_ParseSbarDef();
 
+    stcfnt = LoadSTCFN();
+    hu_font = stcfnt->characters;
+
     if (!sbardef)
     {
         return;
     }
 
     LoadFacePatches();
-
-    stcfnt = LoadSTCFN();
-    hu_font = stcfnt->characters;
 
     HU_InitCrosshair();
     HU_InitCommandHistory();

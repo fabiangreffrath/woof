@@ -7,13 +7,12 @@ include(CheckCSourceCompiles)
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 
 # X_VCPKG_APPLOCAL_DEPS_INSTALL automatically installs dependencies.
-set(CMAKE_POLICY_DEFAULT_CMP0077 NEW)
 set(X_VCPKG_APPLOCAL_DEPS_INSTALL ON)
 
-cmake_minimum_required(VERSION 3.9)
+cmake_minimum_required(VERSION 3.15)
 
 project("Woof"
-    VERSION 15.0.0
+    VERSION 15.0.1
     LANGUAGES C)
 
 set(CMAKE_C_STANDARD 99)
@@ -74,6 +73,16 @@ check_c_source_compiles("
     }
   "
   HAVE__DIV64
+)
+check_c_source_compiles("
+    typedef float vec __attribute__((ext_vector_type(4)));
+    int main()
+    {
+        vec a = (vec){0, 1, 2, 3};
+        return 0;
+    }
+  "
+  HAVE_EXT_VECTOR_TYPE
 )
 
 option(CMAKE_FIND_PACKAGE_PREFER_CONFIG
