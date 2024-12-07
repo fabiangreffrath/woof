@@ -3305,7 +3305,7 @@ static setup_menu_t gen_settings6[] = {
      .action = M_ResetAutoSave},
 
     {"Organize save files", S_ONOFF | S_PRGWARN, OFF_CNTR_X, M_SPC,
-     {"organize_savefiles"}},
+     {"organize_savefiles"}, .action = D_SetSavegameDirectory},
 
     MI_GAP,
 
@@ -4858,6 +4858,7 @@ void MN_SetupResetMenu(void)
     DisableItem(!brightmaps_found || force_brightmaps, gen_settings5,
                 "brightmaps");
     DisableItem(!trakinfo_found, gen_settings2, "extra_music");
+    DisableItem(M_ParmExists("-save"), gen_settings6, "organize_savefiles");
     UpdateInterceptsEmuItem();
     UpdateStatsFormatItem();
     UpdateCrosshairItems();

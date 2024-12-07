@@ -889,57 +889,6 @@ void IdentifyVersion(void)
 
     basedefault = M_StringJoin(D_DoomPrefDir(), DIR_SEPARATOR_S,
                                D_DoomExeName(), ".cfg");
-    // set save path to -save parm or current dir
-
-    screenshotdir = M_StringDuplicate("."); // [FG] default to current dir
-
-    basesavegame = M_StringDuplicate(
-        D_DoomPrefDir()); // jff 3/27/98 default to current dir
-
-    //!
-    // @arg <directory>
-    //
-    // Specify a path from which to load and save games. If the directory
-    // does not exist then it will automatically be created.
-    //
-
-    int p = M_CheckParmWithArgs("-save", 1);
-    if (p > 0)
-    {
-        if (basesavegame)
-        {
-            free(basesavegame);
-        }
-        basesavegame = M_StringDuplicate(myargv[p + 1]);
-
-        M_MakeDirectory(basesavegame);
-
-        // [FG] fall back to -save parm
-        if (screenshotdir)
-        {
-            free(screenshotdir);
-        }
-        screenshotdir = M_StringDuplicate(basesavegame);
-    }
-
-    //!
-    // @arg <directory>
-    //
-    // Specify a path to save screenshots. If the directory does not
-    // exist then it will automatically be created.
-    //
-
-    p = M_CheckParmWithArgs("-shotdir", 1);
-    if (p > 0)
-    {
-        if (screenshotdir)
-        {
-            free(screenshotdir);
-        }
-        screenshotdir = M_StringDuplicate(myargv[p + 1]);
-
-        M_MakeDirectory(screenshotdir);
-    }
 
     // locate the IWAD and determine game mode from it
 
@@ -1759,6 +1708,114 @@ static boolean CheckHaveSSG (void)
   return true;
 }
 
+static int mainwadfile;
+
+void D_SetSavegameDirectory(void)
+{
+    // set save path to -save parm or current dir
+
+    if (screenshotdir)
+    {
+        free(screenshotdir);
+    }
+    screenshotdir = M_StringDuplicate("."); // [FG] default to current dir
+
+    if (basesavegame)
+    {
+        free(basesavegame);
+    }
+    basesavegame = M_StringDuplicate(
+        D_DoomPrefDir()); // jff 3/27/98 default to current dir
+
+    //!
+    // @arg <directory>
+    //
+    // Specify a path from which to load and save games. If the directory
+    // does not exist then it will automatically be created.
+    //
+
+    int p = M_CheckParmWithArgs("-save", 1);
+    if (p > 0)
+    {
+        if (basesavegame)
+        {
+            free(basesavegame);
+        }
+        basesavegame = M_StringDuplicate(myargv[p + 1]);
+
+        M_MakeDirectory(basesavegame);
+
+        // [FG] fall back to -save parm
+        if (screenshotdir)
+        {
+            free(screenshotdir);
+        }
+        screenshotdir = M_StringDuplicate(basesavegame);
+    }
+    else
+    {
+        if (organize_savefiles == -1)
+        {
+            // [FG] check for at least one savegame in the old location
+            glob_t *glob = I_StartMultiGlob(
+            basesavegame, GLOB_FLAG_NOCASE | GLOB_FLAG_SORTED, "*.dsg");
+
+            organize_savefiles = (I_NextGlob(glob) == NULL);
+
+            I_EndGlob(glob);
+        }
+
+        if (organize_savefiles)
+        {
+            const char *wadname = wadfiles[0];
+            char *oldsavegame = basesavegame;
+
+            for (int i = mainwadfile; i < array_size(wadfiles); i++)
+            {
+                if (FileContainsMaps(wadfiles[i]))
+                {
+                    wadname = wadfiles[i];
+                    break;
+                }
+            }
+
+            basesavegame =
+            M_StringJoin(oldsavegame, DIR_SEPARATOR_S, "savegames");
+            free(oldsavegame);
+
+            M_MakeDirectory(basesavegame);
+
+            oldsavegame = basesavegame;
+            basesavegame = M_StringJoin(oldsavegame, DIR_SEPARATOR_S,
+            M_BaseName(wadname));
+            free(oldsavegame);
+
+            M_MakeDirectory(basesavegame);
+        }
+    }
+
+    //!
+    // @arg <directory>
+    //
+    // Specify a path to save screenshots. If the directory does not
+    // exist then it will automatically be created.
+    //
+
+    p = M_CheckParmWithArgs("-shotdir", 1);
+    if (p > 0)
+    {
+        if (screenshotdir)
+        {
+            free(screenshotdir);
+        }
+        screenshotdir = M_StringDuplicate(myargv[p + 1]);
+
+        M_MakeDirectory(screenshotdir);
+    }
+
+    I_Printf(VB_INFO, "Savegame directory: %s", basesavegame);
+}
+
 //
 // D_DoomMain
 //
@@ -1766,7 +1823,6 @@ static boolean CheckHaveSSG (void)
 void D_DoomMain(void)
 {
   int p;
-  int mainwadfile = 0;
 
   setbuf(stdout,NULL);
 
@@ -2323,50 +2379,7 @@ void D_DoomMain(void)
 
   G_ParseCompDatabase();
 
-  if (!M_CheckParm("-save"))
-  {
-      if (organize_savefiles == -1)
-      {
-          // [FG] check for at least one savegame in the old location
-          glob_t *glob = I_StartMultiGlob(
-              basesavegame, GLOB_FLAG_NOCASE | GLOB_FLAG_SORTED, "*.dsg");
-
-          organize_savefiles = (I_NextGlob(glob) == NULL);
-
-          I_EndGlob(glob);
-      }
-
-      if (organize_savefiles)
-      {
-          int i;
-          const char *wadname = wadfiles[0];
-          char *oldsavegame = basesavegame;
-
-          for (i = mainwadfile; i < array_size(wadfiles); i++)
-          {
-              if (FileContainsMaps(wadfiles[i]))
-              {
-                  wadname = wadfiles[i];
-                  break;
-              }
-          }
-
-          basesavegame =
-              M_StringJoin(oldsavegame, DIR_SEPARATOR_S, "savegames");
-          free(oldsavegame);
-
-          M_MakeDirectory(basesavegame);
-
-          oldsavegame = basesavegame;
-          basesavegame = M_StringJoin(oldsavegame, DIR_SEPARATOR_S,
-                                      M_BaseName(wadname));
-          free(oldsavegame);
-
-          M_MakeDirectory(basesavegame);
-      }
-  }
-
-  I_Printf(VB_INFO, "Savegame directory: %s", basesavegame);
+  D_SetSavegameDirectory();
 
   V_InitColorTranslation(); //jff 4/24/98 load color translation lumps
 
