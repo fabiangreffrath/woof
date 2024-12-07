@@ -682,7 +682,10 @@ void (*R_DrawFuzzColumn)(void) = DrawFuzzColumnOriginal;
 
 void R_SetFuzzColumnMode(void)
 {
-    switch (STRICTMODE(fuzzmode))
+    fuzzmode_t mode =
+        strictmode || (netgame && !solonet) ? FUZZ_BLOCKY : fuzzmode;
+
+    switch (mode)
     {
         case FUZZ_BLOCKY:
             if (current_video_height > SCREENHEIGHT)
