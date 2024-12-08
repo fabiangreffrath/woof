@@ -330,6 +330,7 @@ enum
     str_overlay,
     str_automap_preset,
     str_automap_keyed_door,
+    str_fuzzmode,
     str_weapon_slots_activation,
     str_weapon_slots_selection,
     str_weapon_slots,
@@ -3239,6 +3240,10 @@ static const char *exit_sequence_strings[] = {
     "Off", "Sound Only", "PWAD ENDOOM", "Full"
 };
 
+static const char *fuzzmode_strings[] = {
+    "Vanilla", "Refraction", "Shadow"
+};
+
 static setup_menu_t gen_settings5[] = {
 
     {"Smooth Pixel Scaling", S_ONOFF, OFF_CNTR_X, M_SPC, {"smooth_scaling"},
@@ -3249,6 +3254,9 @@ static setup_menu_t gen_settings5[] = {
 
     {"Translucency Filter", S_NUM | S_ACTION | S_PCT, OFF_CNTR_X, M_SPC,
      {"tran_filter_pct"}, .action = MN_Trans},
+
+    {"Partial Invisibility", S_CHOICE | S_STRICT, OFF_CNTR_X, M_SPC, {"fuzzmode"},
+     .strings_id = str_fuzzmode, .action = R_SetFuzzColumnMode},
 
     MI_GAP,
 
@@ -4788,6 +4796,7 @@ static const char **selectstrings[] = {
     overlay_strings,
     automap_preset_strings,
     automap_keyed_door_strings,
+    fuzzmode_strings,
     weapon_slots_activation_strings,
     weapon_slots_selection_strings,
     NULL, // str_weapon_slots
