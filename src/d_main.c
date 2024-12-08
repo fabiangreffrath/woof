@@ -1710,22 +1710,20 @@ static boolean CheckHaveSSG (void)
 
 static int mainwadfile;
 
+#define SET_DIR(a, b) \
+    if ((a)) \
+    { \
+        free((a)); \
+    } \
+    (a) = (b);
+
 void D_SetSavegameDirectory(void)
 {
     // set save path to -save parm or current dir
 
-    if (screenshotdir)
-    {
-        free(screenshotdir);
-    }
-    screenshotdir = M_StringDuplicate("."); // [FG] default to current dir
+    SET_DIR(screenshotdir, M_StringDuplicate("."));
 
-    if (basesavegame)
-    {
-        free(basesavegame);
-    }
-    basesavegame = M_StringDuplicate(
-        D_DoomPrefDir()); // jff 3/27/98 default to current dir
+    SET_DIR(basesavegame, M_StringDuplicate(D_DoomPrefDir()));
 
     //!
     // @arg <directory>
@@ -1737,20 +1735,12 @@ void D_SetSavegameDirectory(void)
     int p = M_CheckParmWithArgs("-save", 1);
     if (p > 0)
     {
-        if (basesavegame)
-        {
-            free(basesavegame);
-        }
-        basesavegame = M_StringDuplicate(myargv[p + 1]);
+        SET_DIR(basesavegame, M_StringDuplicate(myargv[p + 1]));
 
         M_MakeDirectory(basesavegame);
 
         // [FG] fall back to -save parm
-        if (screenshotdir)
-        {
-            free(screenshotdir);
-        }
-        screenshotdir = M_StringDuplicate(basesavegame);
+        SET_DIR(screenshotdir, M_StringDuplicate(basesavegame));
     }
     else
     {
@@ -1768,7 +1758,6 @@ void D_SetSavegameDirectory(void)
         if (organize_savefiles)
         {
             const char *wadname = wadfiles[0];
-            char *oldsavegame = basesavegame;
 
             for (int i = mainwadfile; i < array_size(wadfiles); i++)
             {
@@ -1779,15 +1768,16 @@ void D_SetSavegameDirectory(void)
                 }
             }
 
+            char *oldsavegame = basesavegame;
             basesavegame =
-            M_StringJoin(oldsavegame, DIR_SEPARATOR_S, "savegames");
+                M_StringJoin(oldsavegame, DIR_SEPARATOR_S, "savegames");
             free(oldsavegame);
 
             M_MakeDirectory(basesavegame);
 
             oldsavegame = basesavegame;
             basesavegame = M_StringJoin(oldsavegame, DIR_SEPARATOR_S,
-            M_BaseName(wadname));
+                M_BaseName(wadname));
             free(oldsavegame);
         }
     }
@@ -1802,17 +1792,15 @@ void D_SetSavegameDirectory(void)
     p = M_CheckParmWithArgs("-shotdir", 1);
     if (p > 0)
     {
-        if (screenshotdir)
-        {
-            free(screenshotdir);
-        }
-        screenshotdir = M_StringDuplicate(myargv[p + 1]);
+        SET_DIR(screenshotdir, M_StringDuplicate(myargv[p + 1]));
 
         M_MakeDirectory(screenshotdir);
     }
 
     I_Printf(VB_INFO, "Savegame directory: %s", basesavegame);
 }
+
+#undef SET_DIR
 
 //
 // D_DoomMain
