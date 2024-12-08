@@ -1789,8 +1789,6 @@ void D_SetSavegameDirectory(void)
             basesavegame = M_StringJoin(oldsavegame, DIR_SEPARATOR_S,
             M_BaseName(wadname));
             free(oldsavegame);
-
-            M_MakeDirectory(basesavegame);
         }
     }
 
