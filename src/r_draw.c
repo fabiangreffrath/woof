@@ -661,7 +661,7 @@ static void DrawFuzzColumnShadow(void)
 
     do
     {
-        *dest = fullcolormap[12 * 256 + *dest];
+        *dest = fullcolormap[8 * 256 + *dest];
 
         dest += linesize; // killough 11/98
 
@@ -673,7 +673,7 @@ static void DrawFuzzColumnShadow(void)
 
     if (cutoff)
     {
-        *dest = fullcolormap[12 * 256 + *dest];
+        *dest = fullcolormap[8 * 256 + *dest];
     }
 }
 
