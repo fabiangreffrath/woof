@@ -192,13 +192,13 @@ static void SaveCalibration(void)
 static void ProcessAccelCalibration(void)
 {
     cal.accel_count++;
-    cal.accel_sum += vec_length(&motion.accel);
+    cal.accel_sum += vec_length(motion.accel);
 }
 
 static void ProcessGyroCalibration(void)
 {
     cal.gyro_count++;
-    cal.gyro_sum = vec_add(&cal.gyro_sum, &motion.gyro);
+    cal.gyro_sum = vec_add(cal.gyro_sum, motion.gyro);
 }
 
 static void PostProcessCalibration(void)
@@ -211,8 +211,8 @@ static void PostProcessCalibration(void)
     motion.accel_magnitude = cal.accel_sum / cal.accel_count;
     motion.accel_magnitude = BETWEEN(0.0f, 2.0f, motion.accel_magnitude);
 
-    motion.gyro_offset = vec_scale(&cal.gyro_sum, 1.0f / cal.gyro_count);
-    motion.gyro_offset = vec_clamp(-1.0f, 1.0f, &motion.gyro_offset);
+    motion.gyro_offset = vec_scale(cal.gyro_sum, 1.0f / cal.gyro_count);
+    motion.gyro_offset = vec_clamp(-1.0f, 1.0f, motion.gyro_offset);
 
     SaveCalibration();
 
@@ -505,7 +505,7 @@ static void ApplyGyroSpace_Local(void)
 
 static void ApplyGyroSpace_Player(void)
 {
-    const vec grav_norm = vec_normalize(&motion.gravity);
+    const vec grav_norm = vec_normalize(motion.gravity);
     const float world_yaw =
         motion.gyro.y * grav_norm.y + motion.gyro.z * grav_norm.z;
 
@@ -532,36 +532,36 @@ static void CalcGravityVector_Skip(void)
 static void CalcGravityVector_Full(void)
 {
     // Convert gyro input to reverse rotation.
-    const float angle_speed = vec_length(&motion.gyro);
+    const float angle_speed = vec_length(motion.gyro);
     const float angle = angle_speed * motion.delta_time;
-    const vec negative_gyro = vec_negative(&motion.gyro);
-    const quat reverse_rotation = angle_axis(angle, &negative_gyro);
+    const vec negative_gyro = vec_negative(motion.gyro);
+    const quat reverse_rotation = angle_axis(angle, negative_gyro);
 
     // Rotate gravity vector.
-    motion.gravity = vec_rotate(&motion.gravity, &reverse_rotation);
+    motion.gravity = vec_rotate(motion.gravity, reverse_rotation);
 
     // Check accelerometer magnitude now.
-    const float accel_magnitude = vec_length(&motion.accel);
+    const float accel_magnitude = vec_length(motion.accel);
     if (accel_magnitude <= 0.0f)
     {
         return;
     }
-    const vec accel_norm = vec_scale(&motion.accel, 1.0f / accel_magnitude);
+    const vec accel_norm = vec_scale(motion.accel, 1.0f / accel_magnitude);
 
     // Shakiness/smoothness.
-    motion.smooth_accel = vec_rotate(&motion.smooth_accel, &reverse_rotation);
+    motion.smooth_accel = vec_rotate(motion.smooth_accel, reverse_rotation);
     const float smooth_factor = exp2f(-motion.delta_time * SMOOTH_HALF_TIME);
     motion.shakiness *= smooth_factor;
-    const vec delta_accel = vec_subtract(&motion.accel, &motion.smooth_accel);
-    const float delta_accel_magnitude = vec_length(&delta_accel);
+    const vec delta_accel = vec_subtract(motion.accel, motion.smooth_accel);
+    const float delta_accel_magnitude = vec_length(delta_accel);
     motion.shakiness = MAX(motion.shakiness, delta_accel_magnitude);
     motion.smooth_accel =
-        vec_lerp(&motion.accel, &motion.smooth_accel, smooth_factor);
+        vec_lerp(motion.accel, motion.smooth_accel, smooth_factor);
 
     // Find the difference between gravity and raw acceleration.
-    const vec new_gravity = vec_scale(&accel_norm, -motion.accel_magnitude);
-    const vec gravity_delta = vec_subtract(&new_gravity, &motion.gravity);
-    const vec gravity_direction = vec_normalize(&gravity_delta);
+    const vec new_gravity = vec_scale(accel_norm, -motion.accel_magnitude);
+    const vec gravity_delta = vec_subtract(new_gravity, motion.gravity);
+    const vec gravity_direction = vec_normalize(gravity_delta);
 
     // Calculate correction rate.
     float still_or_shaky = (motion.shakiness - SHAKINESS_MIN_THRESH)
@@ -575,7 +575,7 @@ static void CalcGravityVector_Full(void)
     const float correction_limit = MAX(angle_speed_adjusted, COR_MIN_SPEED);
     if (correction_rate > correction_limit)
     {
-        const float gravity_delta_magnitude = vec_length(&gravity_delta);
+        const float gravity_delta_magnitude = vec_length(gravity_delta);
         float close_factor = (gravity_delta_magnitude - COR_GYRO_MIN_THRESH)
                              / (COR_GYRO_MAX_THRESH - COR_GYRO_MIN_THRESH);
         close_factor = BETWEEN(0.0f, 1.0f, close_factor);
@@ -585,20 +585,20 @@ static void CalcGravityVector_Full(void)
 
     // Apply correction to gravity vector.
     const vec correction =
-        vec_scale(&gravity_direction, correction_rate * motion.delta_time);
-    if (vec_lengthsquared(&correction) < vec_lengthsquared(&gravity_delta))
+        vec_scale(gravity_direction, correction_rate * motion.delta_time);
+    if (vec_lengthsquared(correction) < vec_lengthsquared(gravity_delta))
     {
-        motion.gravity = vec_add(&motion.gravity, &correction);
+        motion.gravity = vec_add(motion.gravity, correction);
     }
     else
     {
-        motion.gravity = vec_scale(&accel_norm, -motion.accel_magnitude);
+        motion.gravity = vec_scale(accel_norm, -motion.accel_magnitude);
     }
 }
 
 static void ApplyCalibration(void)
 {
-    motion.gyro = vec_subtract(&motion.gyro, &motion.gyro_offset);
+    motion.gyro = vec_subtract(motion.gyro, motion.gyro_offset);
 }
 
 static float GetDeltaTime(void)

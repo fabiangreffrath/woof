@@ -1041,8 +1041,9 @@ void R_BindRenderVariables(void)
 
   M_BindBool("flipcorpses", &flipcorpses, NULL, false, ss_enem, wad_no,
              "Randomly mirrored death animations");
-  M_BindBool("fuzzcolumn_mode", &fuzzcolumn_mode, NULL, true, ss_none, wad_no,
-             "Fuzz rendering (0 = Resolution-dependent; 1 = Blocky)");
+  M_BindNum("fuzzmode", &fuzzmode, NULL,
+            FUZZ_BLOCKY, FUZZ_BLOCKY, FUZZ_SHADOW, ss_none, wad_no,
+            "Partial Invisibility (0 = Vanilla; 1 = Refraction; 2 = Shadow)");
 
   BIND_BOOL(draw_nearby_sprites, true,
     "Draw sprites overlapping into visible sectors");
