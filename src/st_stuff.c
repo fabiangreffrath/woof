@@ -1861,7 +1861,7 @@ const char **ST_StatusbarList(void)
         }
         else
         {
-            array_push(strings, "Statusbar");
+            array_push(strings, "Status Bar");
         }
     }
     return strings;

@@ -4837,7 +4837,7 @@ static const char **GetScreenSizeStrings(void)
     }
     for (int i = 3; i < 10; ++i)
     {
-        array_push(strings, "Statusbar");
+        array_push(strings, "Status Bar");
     }
 
     const char **st_strings = ST_StatusbarList();
