@@ -20,7 +20,7 @@
 #ifndef __M_SWAP__
 #define __M_SWAP__
 
-#include "SDL_endian.h" // [FG]
+#include <SDL3/SDL_endian.h> // [FG]
 
 // Endianess handling.
 // WAD files are stored little endian.
@@ -34,10 +34,10 @@
 // These are deliberately cast to signed values; this is the behaviour
 // of the macros in the original source and some code relies on it.
 
-#define SHORT(x)  ((signed short) SDL_SwapLE16(x))
-#define LONG(x)   ((signed int) SDL_SwapLE32(x))
+#define SHORT(x)  ((signed short) SDL_Swap16LE(x))
+#define LONG(x)   ((signed int) SDL_Swap32LE(x))
 
-#define SWAP_BE32(x) ((signed int) SDL_SwapBE32(x))
+#define SWAP_BE32(x) ((signed int) SDL_Swap32BE(x))
 
 #endif
 

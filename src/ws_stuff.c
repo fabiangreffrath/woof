@@ -15,7 +15,7 @@
 //      Weapon slots.
 //
 
-#include "SDL.h"
+#include <SDL3/SDL.h>
 
 #include "g_game.h"
 #include "i_input.h"
