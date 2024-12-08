@@ -1020,6 +1020,11 @@ static void UpdateStatusBar(player_t *player)
 
     int barindex = MAX(screenblocks - 10, 0);
 
+    if (barindex >= array_size(sbardef->statusbars))
+    {
+        barindex = array_size(sbardef->statusbars) - 1;
+    }
+
     if (automapactive && automapoverlay == AM_OVERLAY_OFF)
     {
         barindex = 0;
@@ -1831,6 +1836,35 @@ void ST_InitRes(void)
     st_backing_screen =
         Z_Malloc(video.pitch * V_ScaleY(ST_HEIGHT) * sizeof(*st_backing_screen),
                  PU_RENDERER, 0);
+}
+
+const char **ST_StatusbarList(void)
+{
+    if (!sbardef)
+    {
+        return NULL;
+    }
+
+    static const char **strings;
+
+    if (array_size(strings))
+    {
+        return strings;
+    }
+
+    statusbar_t *item;
+    array_foreach(item, sbardef->statusbars)
+    {
+        if (item->fullscreenrender)
+        {
+            array_push(strings, "Fullscreen");
+        }
+        else
+        {
+            array_push(strings, "Status Bar");
+        }
+    }
+    return strings;
 }
 
 void ST_ResetPalette(void)

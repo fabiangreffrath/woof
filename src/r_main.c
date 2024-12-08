@@ -1031,7 +1031,7 @@ void R_BindRenderVariables(void)
   BIND_NUM_GENERAL(invul_mode, INVUL_MBF, INVUL_VANILLA, INVUL_GRAY,
     "Invulnerability effect (0 = Vanilla; 1 = MBF; 2 = Gray)");
   BIND_BOOL(flashing_hom, true, "Enable flashing of the HOM indicator");
-  BIND_NUM(screenblocks, 10, 3, 12, "Size of game-world screen");
+  BIND_NUM(screenblocks, 10, 3, UL, "Size of game-world screen");
 
   M_BindBool("translucency", &translucency, NULL, true, ss_gen, wad_yes,
              "Translucency for some things");

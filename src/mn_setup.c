@@ -1816,12 +1816,6 @@ static void RefreshSolidBackground(void)
     st_refresh_background = true;
 }
 
-static const char *screensize_strings[] = {
-    "",           "",           "",           "Status Bar", "Status Bar",
-    "Status Bar", "Status Bar", "Status Bar", "Status Bar", "Status Bar",
-    "Status Bar", "Fullscreen", "Fullscreen"
-};
-
 static const char *st_layout_strings[] = {
     "Original", "Wide"
 };
@@ -3313,7 +3307,7 @@ static setup_menu_t gen_settings6[] = {
      .action = M_ResetAutoSave},
 
     {"Organize save files", S_ONOFF | S_PRGWARN, OFF_CNTR_X, M_SPC,
-     {"organize_savefiles"}},
+     {"organize_savefiles"}, .action = D_SetSavegameDirectory},
 
     MI_GAP,
 
@@ -4784,7 +4778,7 @@ static const char **selectstrings[] = {
     percent_strings,
     curve_strings,
     center_weapon_strings,
-    screensize_strings,
+    NULL, // str_screensize
     st_layout_strings,
     show_widgets_strings,
     show_adv_widgets_strings,
@@ -4842,6 +4836,29 @@ static const char **GetMidiPlayerStrings(void)
     return I_DeviceList();
 }
 
+static const char **GetScreenSizeStrings(void)
+{
+    const char **strings = NULL;
+
+    for (int i = 0; i < 3; ++i)
+    {
+        array_push(strings, "");
+    }
+    for (int i = 3; i < 10; ++i)
+    {
+        array_push(strings, "Status Bar");
+    }
+
+    const char **st_strings = ST_StatusbarList();
+    for (int i = 0; i < array_size(st_strings); ++i)
+    {
+        array_push(strings, st_strings[i]);
+    }
+
+    maxscreenblocks = array_size(strings) - 1;
+    return strings;
+}
+
 void MN_InitMenuStrings(void)
 {
     UpdateWeaponSlotLabels();
@@ -4854,6 +4871,7 @@ void MN_InitMenuStrings(void)
     selectstrings[str_gyro_sens] = GetGyroSensitivityStrings();
     selectstrings[str_gyro_accel] = GetGyroAccelStrings();
     selectstrings[str_resampler] = GetResamplerStrings();
+    selectstrings[str_screensize] = GetScreenSizeStrings();
 }
 
 void MN_SetupResetMenu(void)
@@ -4867,6 +4885,7 @@ void MN_SetupResetMenu(void)
     DisableItem(!brightmaps_found || force_brightmaps, gen_settings5,
                 "brightmaps");
     DisableItem(!trakinfo_found, gen_settings2, "extra_music");
+    DisableItem(M_ParmExists("-save"), gen_settings6, "organize_savefiles");
     UpdateInterceptsEmuItem();
     UpdateStatsFormatItem();
     UpdateCrosshairItems();
