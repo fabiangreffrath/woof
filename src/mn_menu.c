@@ -2608,6 +2608,18 @@ boolean M_ShortcutResponder(const event_t *ev)
         }
     }
 
+    if (M_InputActivated(input_menu_prevlevel))
+    {
+        if (demoplayback && singledemo && !PLAYBACK_SKIP)
+        {
+            return false;
+        }
+        else if (G_GotoPrevLevel())
+        {
+            return true;
+        }
+    }
+
     if (M_InputActivated(input_demo_fforward))
     {
         if (demoplayback && !PLAYBACK_SKIP && !fastdemo && !D_CheckNetConnect())
