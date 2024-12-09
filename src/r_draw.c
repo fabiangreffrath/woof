@@ -526,18 +526,18 @@ static void DrawFuzzColumnBlocky(void)
     }
 }
 
-#define FUZZDARK 6 * 256
+#define FUZZDARK (6 * 256)
 #define FUZZPAL  256
 
 static const int fuzzdark[FUZZTABLE] =
 {
-    4 * FUZZPAL,0,6 * FUZZPAL,0,6 * FUZZPAL,6 * FUZZPAL,0,
-    6 * FUZZPAL,6 * FUZZPAL,0,6 * FUZZPAL,6 * FUZZPAL,6 * FUZZPAL,0,
-    6 * FUZZPAL,8 * FUZZPAL,6 * FUZZPAL,0,0,0,0,
-    4 * FUZZPAL,0,0,6 * FUZZPAL,6 * FUZZPAL,6 * FUZZPAL,6 * FUZZPAL,0,
-    4 * FUZZPAL,0,6 * FUZZPAL,6 * FUZZPAL,0,0,6 * FUZZPAL,
-    6 * FUZZPAL,0,0,0,0,6 * FUZZPAL,6 * FUZZPAL,
-    6 * FUZZPAL,6 * FUZZPAL,0,6 * FUZZPAL,6 * FUZZPAL,0,6 * FUZZPAL,
+    4 * FUZZPAL, 0, 6 * FUZZPAL, 0, 6 * FUZZPAL, 6 * FUZZPAL, 0,
+    6 * FUZZPAL, 6 * FUZZPAL, 0, 6 * FUZZPAL, 6 * FUZZPAL, 6 * FUZZPAL, 0,
+    6 * FUZZPAL, 8 * FUZZPAL, 6 * FUZZPAL, 0, 0, 0, 0,
+    4 * FUZZPAL, 0, 0, 6 * FUZZPAL, 6 * FUZZPAL, 6 * FUZZPAL, 6 * FUZZPAL, 0,
+    4 * FUZZPAL, 0, 6 * FUZZPAL, 6 * FUZZPAL, 0, 0, 6 * FUZZPAL,
+    6 * FUZZPAL, 0, 0, 0, 0, 6 * FUZZPAL, 6 * FUZZPAL,
+    6 * FUZZPAL, 6 * FUZZPAL, 0, 6 * FUZZPAL, 6 * FUZZPAL, 0, 6 * FUZZPAL,
 };
 
 static void DrawFuzzColumnRefraction(void)
@@ -625,21 +625,6 @@ static void DrawFuzzColumnRefraction(void)
 
 static void DrawFuzzColumnShadow(void)
 {
-    boolean cutoff = false;
-
-    // Adjust borders. Low...
-    if (!dc_yl)
-    {
-        dc_yl = 1;
-    }
-
-    // .. and high.
-    if (dc_yh == viewheight - 1)
-    {
-        dc_yh = viewheight - 2;
-        cutoff = true;
-    }
-
     int count = dc_yh - dc_yl;
 
     // Zero length.
@@ -664,17 +649,7 @@ static void DrawFuzzColumnShadow(void)
         *dest = fullcolormap[8 * 256 + *dest];
 
         dest += linesize; // killough 11/98
-
-        ++fuzzpos;
-
-        // Clamp table lookup index.
-        fuzzpos &= (fuzzpos - FUZZTABLE) >> (8 * sizeof(fuzzpos) - 1); // killough 1/99
     } while (--count);
-
-    if (cutoff)
-    {
-        *dest = fullcolormap[8 * 256 + *dest];
-    }
 }
 
 fuzzmode_t fuzzmode;
@@ -683,7 +658,7 @@ void (*R_DrawFuzzColumn)(void) = DrawFuzzColumnOriginal;
 void R_SetFuzzColumnMode(void)
 {
     fuzzmode_t mode =
-        strictmode || (netgame && !solonet) ? FUZZ_BLOCKY : fuzzmode;
+        (strictmode || (netgame && !solonet)) ? FUZZ_BLOCKY : fuzzmode;
 
     switch (mode)
     {
