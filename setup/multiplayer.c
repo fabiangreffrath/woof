@@ -12,7 +12,7 @@
 // GNU General Public License for more details.
 //
 
-#include "SDL.h"
+#include <SDL3/SDL.h>
 
 #include <stdint.h>
 #include <stdlib.h>

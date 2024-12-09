@@ -17,8 +17,6 @@
 //
 //-----------------------------------------------------------------------------
 
-#include "SDL.h"
-
 #include <stdlib.h>
 #include <locale.h>
 
@@ -46,6 +44,7 @@ __declspec(dllexport) void Woof_Exit(void)
 #if defined(WIN_LAUNCHER)
 __declspec(dllexport) int Woof_Main(int argc, char **argv)
 #else
+#include <SDL3/SDL_main.h>
 int main(int argc, char **argv)
 #endif
 {
