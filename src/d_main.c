@@ -1873,6 +1873,15 @@ void D_DoomMain(void)
 
   IdentifyVersion();
 
+  if (gamemission < pack_chex)
+  {
+      char *path = D_FindWADByName("extras.wad");
+      if (path)
+      {
+          D_AddFile(path);
+      }
+  }
+
   // [FG] emulate a specific version of Doom
   InitGameVersion();
 

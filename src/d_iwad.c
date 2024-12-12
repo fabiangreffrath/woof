@@ -43,6 +43,7 @@ static const iwad_t iwads[] = {
     {"freedoom1.wad", doom,       retail,       "Freedoom: Phase 1"              },
     {"freedm.wad",    doom2,      commercial,   "FreeDM"                         },
     {"chex.wad",      pack_chex,  retail,       "Chex Quest"                     },
+    {"chex3v.wad",    pack_chex,  retail,       "Chex Quest 3: Vanilla Edition"  },
     {"hacx.wad",      pack_hacx,  commercial,   "HACX: Twitch n' Kill"           },
     {"rekkrsa.wad",   pack_rekkr, retail,       "REKKR"                          },
     {"rekkrsl.wad",   pack_rekkr, retail,       "REKKR: Sunken Land"             },
