@@ -257,7 +257,7 @@ void D_Display (void)
   static boolean viewactivestate = false;
   static boolean menuactivestate = false;
   static gamestate_t oldgamestate = GS_NONE;
-  static int borderdrawcount;
+  static boolean borderdrawcount;
   int wipestart;
   boolean done, wipe;
 
@@ -308,7 +308,7 @@ void D_Display (void)
     {
       R_ExecuteSetViewSize();
       oldgamestate = GS_NONE;            // force background redraw
-      borderdrawcount = 3;
+      borderdrawcount = true;
     }
 
   if (gamestate == GS_LEVEL && gametic)
@@ -356,11 +356,11 @@ void D_Display (void)
   if (gamestate == GS_LEVEL && automap_off && scaledviewwidth != video.unscaledw)
     {
       if (menuactive || menuactivestate || !viewactivestate)
-        borderdrawcount = 3;
+        borderdrawcount = true;
       if (borderdrawcount)
         {
           R_DrawViewBorder();    // erase old menu stuff
-          borderdrawcount--;
+          borderdrawcount = false;
         }
     }
 
