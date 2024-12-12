@@ -360,7 +360,7 @@ void D_Display (void)
       if (borderdrawcount)
         {
           R_DrawViewBorder();    // erase old menu stuff
-          borderdrawcount--;
+          borderdrawcount = 0;
         }
     }
 
