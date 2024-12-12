@@ -44,6 +44,7 @@ static const char *params[] = {
 "-bsp",
 "-force_old_zdoom_nodes",
 "-noautoload",
+"-noextras",
 "-nocheats",
 "-nodeh",
 "-nomapinfo",

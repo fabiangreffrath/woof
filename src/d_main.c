@@ -1873,6 +1873,21 @@ void D_DoomMain(void)
 
   IdentifyVersion();
 
+  //!
+  // @category mod
+  //
+  // Disable auto-loading of extars.wad file.
+  //
+
+  if (gamemission < pack_chex && !M_ParmExists("-noextras"))
+  {
+      char *path = D_FindWADByName("extras.wad");
+      if (path)
+      {
+          D_AddFile(path);
+      }
+  }
+
   // [FG] emulate a specific version of Doom
   InitGameVersion();
 
