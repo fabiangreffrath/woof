@@ -1873,7 +1873,13 @@ void D_DoomMain(void)
 
   IdentifyVersion();
 
-  if (gamemission < pack_chex)
+  //!
+  // @category mod
+  //
+  // Disable auto-loading of extars.wad file.
+  //
+
+  if (gamemission < pack_chex && !M_ParmExists("-noextras"))
   {
       char *path = D_FindWADByName("extras.wad");
       if (path)
