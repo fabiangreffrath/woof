@@ -79,11 +79,6 @@ void HU_InitCrosshair(void)
 
 void HU_StartCrosshair(void)
 {
-    if (crosshair.patch)
-    {
-        Z_ChangeTag(crosshair.patch, PU_CACHE);
-    }
-
     if (crosshair_lumps[hud_crosshair])
     {
         crosshair.patch =

@@ -959,10 +959,6 @@ void R_DrawPlayerSprites(void)
   mfloorclip = screenheightarray;
   mceilingclip = negonearray;
 
-  // display crosshair
-  if (hud_crosshair)
-    HU_DrawCrosshair();
-
   // add all active psprites
   for (i=0, psp=viewplayer->psprites; i<NUMPSPRITES; i++,psp++)
     if (psp->state)
