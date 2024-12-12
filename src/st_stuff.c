@@ -1786,11 +1786,6 @@ void ST_Drawer(void)
     }
 
     DrawStatusBar();
-
-    if (hud_crosshair)
-    {
-        HU_DrawCrosshair();
-    }
 }
 
 void ST_Start(void)
