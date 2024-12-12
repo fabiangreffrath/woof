@@ -42,4 +42,7 @@ void D_GetModeAndMissionByIWADName(const char *name, GameMode_t *mode,
 const char *D_GetIWADDescription(const char *name, GameMode_t mode,
                                  GameMission_t mission);
 
+extern char *iwad_dirs[];
+extern int num_iwad_dirs;
+
 #endif

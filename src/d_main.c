@@ -896,7 +896,20 @@ void IdentifyVersion(void)
 
     if (!iwadfile)
     {
-        I_Error("IWAD not found");
+        size_t str_len = 2 * num_iwad_dirs; // for "\n " between dirs
+        for (int i = 0; i < num_iwad_dirs; i++)
+        {
+            str_len += strlen(iwad_dirs[i]);
+        }
+
+        char *str = calloc(str_len + 1, sizeof(char));
+        for (int i = 0; i < num_iwad_dirs; i++)
+        {
+            strcat(str, iwad_dirs[i]);
+            strcat(str, "\n ");
+        }
+
+        I_Error("No IWAD found in any of the search paths:\n %s", str);
     }
 
     D_AddFile(iwadfile);
