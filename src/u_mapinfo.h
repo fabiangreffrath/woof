@@ -18,8 +18,8 @@
 //
 //-----------------------------------------------------------------------------
 
-#ifndef __UMAPINFO_H
-#define __UMAPINFO_H
+#ifndef UMAPINFO_H
+#define UMAPINFO_H
 
 #include "doomtype.h"
 
@@ -29,12 +29,6 @@ typedef struct
     int special;
     int tag;
 } bossaction_t;
-
-typedef enum
-{
-    MapInfo_Episode    = 0x0001,
-    MapInfo_Endgame    = 0x0002,
-} mapinfo_flags_t;
 
 typedef struct mapentry_s
 {
@@ -57,20 +51,11 @@ typedef struct mapentry_s
     char interbackdrop[9];
     char intermusic[9];
     int partime;
-    mapinfo_flags_t flags;
     boolean nointermission;
-    int numbossactions;
     bossaction_t *bossactions;
 } mapentry_t;
 
-typedef struct
-{
-    unsigned int mapcount;
-    mapentry_t *maps;
-} umapinfo_t;
-
-extern umapinfo_t U_mapinfo;
-extern umapinfo_t default_mapinfo;
+extern mapentry_t *umapinfo, *umapdef;
 
 extern boolean EpiCustom;
 

@@ -3851,21 +3851,21 @@ void G_SetFastParms(int fast_pending)
 
 mapentry_t *G_LookupMapinfo(int episode, int map)
 {
-  int i;
   char lumpname[9];
-
   strcpy(lumpname, MapName(episode, map));
 
-  for (i = 0; i < U_mapinfo.mapcount; i++)
+  mapentry_t *entry;
+
+  array_foreach(entry, umapinfo)
   {
-    if (!strcasecmp(lumpname, U_mapinfo.maps[i].mapname))
-      return &U_mapinfo.maps[i];
+    if (!strcasecmp(lumpname, entry->mapname))
+      return entry;
   }
 
-  for (i = 0; i < default_mapinfo.mapcount; i++)
+  array_foreach(entry, umapdef)
   {
-    if (!strcasecmp(lumpname, default_mapinfo.maps[i].mapname))
-      return &default_mapinfo.maps[i];
+    if (!strcasecmp(lumpname, entry->mapname))
+      return entry;
   }
 
   return NULL;

@@ -523,8 +523,7 @@ void M_ClearEpisodes(void)
     NewDef.prevMenu = &MainDef;
 }
 
-void M_AddEpisode(const char *map, const char *gfx, const char *txt,
-                  const char *alpha)
+void M_AddEpisode(const char *map, const char *gfx, const char *txt, char key)
 {
     int epi, mapnum;
 
@@ -554,7 +553,7 @@ void M_AddEpisode(const char *map, const char *gfx, const char *txt,
     strncpy(EpisodeMenu[EpiDef.numitems].name, gfx, 8);
     EpisodeMenu[EpiDef.numitems].name[9] = 0;
     EpisodeMenu[EpiDef.numitems].alttext = txt ? strdup(txt) : NULL;
-    EpisodeMenu[EpiDef.numitems].alphaKey = alpha ? *alpha : 0;
+    EpisodeMenu[EpiDef.numitems].alphaKey = key;
     EpiDef.numitems++;
 
     if (EpiDef.numitems <= 4)

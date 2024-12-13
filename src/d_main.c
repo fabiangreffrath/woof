@@ -824,9 +824,9 @@ static boolean CheckMapLump(const char *lumpname, const char *filename)
 
 static boolean FileContainsMaps(const char *filename)
 {
-    for (int i = 0; i < U_mapinfo.mapcount; ++i)
+    for (int i = 0; i < array_size(umapinfo); ++i)
     {
-        if (CheckMapLump(U_mapinfo.maps[i].mapname, filename))
+        if (CheckMapLump(umapinfo[i].mapname, filename))
         {
             return true;
         }
