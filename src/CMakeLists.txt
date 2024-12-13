@@ -64,6 +64,7 @@ set(WOOF_SOURCES
     m_input.c              m_input.h
     m_io.c                 m_io.h
     m_json.c               m_json.h
+    m_scanner.c            m_scanner.h
     mn_font.c              mn_font.h
     mn_menu.c              mn_menu.h
     mn_setup.c             mn_internal.h
@@ -137,7 +138,6 @@ set(WOOF_SOURCES
     statdump.c             statdump.h
     tables.c               tables.h
     u_mapinfo.c            u_mapinfo.h
-    u_scanner.c            u_scanner.h
     v_flextran.c           v_flextran.h
     v_fmt.c                v_fmt.h
     v_trans.c              v_trans.h

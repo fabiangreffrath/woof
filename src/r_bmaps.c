@@ -29,7 +29,7 @@
 #include "m_array.h"
 #include "m_misc.h"
 #include "r_data.h"
-#include "u_scanner.h"
+#include "m_scanner.h"
 #include "w_wad.h"
 #include "z_zone.h"
 
@@ -49,40 +49,35 @@ typedef struct
     byte colormask[COLORMASK_SIZE];
 } brightmap_t;
 
-static void ReadColormask(u_scanner_t *s, byte *colormask)
+static void ReadColormask(scanner_t *s, byte *colormask)
 {
     memset(colormask, 0, COLORMASK_SIZE);
     do
     {
         unsigned int color1 = 0, color2 = 0;
 
-        if (U_MustGetInteger(s))
+        SC_MustGetToken(s, TK_IntConst);
+        color1 = SC_GetNumber(s);
+        if (color1 >= 0 && color1 < COLORMASK_SIZE)
         {
-            color1 = s->number;
-            if (color1 >= 0 && color1 < COLORMASK_SIZE)
-            {
-                colormask[color1] = 1;
-            }
+            colormask[color1] = 1;
         }
 
-        if (!U_CheckToken(s, '-'))
+        if (!SC_CheckToken(s, '-'))
         {
             continue;
         }
 
-        if (U_MustGetInteger(s))
+        SC_MustGetToken(s, TK_IntConst);
+        color2 = SC_GetNumber(s);
+        if (color2 >= 0 && color2 < COLORMASK_SIZE)
         {
-            color2 = s->number;
-            if (color2 >= 0 && color2 < COLORMASK_SIZE)
+            for (int i = color1 + 1; i <= color2; ++i)
             {
-                int i;
-                for (i = color1 + 1; i <= color2; ++i)
-                {
-                    colormask[i] = 1;
-                }
+                colormask[i] = 1;
             }
         }
-    } while (U_CheckToken(s, ','));
+    } while (SC_CheckToken(s, ','));
 }
 
 static brightmap_t *brightmaps_array = NULL;
@@ -119,43 +114,50 @@ enum
     DOOM2ONLY
 };
 
-static boolean ParseProperty(u_scanner_t *s, elem_t *elem)
+static boolean ParseProperty(scanner_t *s, elem_t *elem)
 {
     char *name;
     int idx;
 
     int game = DOOM1AND2;
 
-    U_GetString(s);
-    name = M_StringDuplicate(s->string);
-    U_MustGetToken(s, TK_Identifier);
-    idx = GetBrightmap(s->string);
+    SC_GetNextTokenLumpName(s);
+    name = M_StringDuplicate(SC_GetString(s));
+    SC_MustGetToken(s, TK_Identifier);
+    idx = GetBrightmap(SC_GetString(s));
     if (idx < 0)
     {
-        U_Error(s, "brightmap '%s' not found", s->string);
+        SC_Error(s, "brightmap '%s' not found", SC_GetString(s));
         free(name);
         return false;
     }
-    if (U_CheckToken(s, TK_Identifier))
+    if (SC_CheckToken(s, TK_Identifier))
     {
-        if (!strcasecmp("DOOM", s->string) || !strcasecmp("DOOM1", s->string))
+        if (!strcasecmp("DOOM", SC_GetString(s))
+            || !strcasecmp("DOOM1", SC_GetString(s)))
         {
             game = DOOM1ONLY;
-            if (U_CheckToken(s, '|'))
+            if (SC_CheckToken(s, '|'))
             {
-                if (U_MustGetIdentifier(s, "DOOM2"))
+                SC_MustGetToken(s, TK_Identifier);
+                if (!strcasecmp("DOOM2", SC_GetString(s)))
                 {
                     game = DOOM1AND2;
                 }
+                else
+                {
+                    SC_Error(s, "Expected 'DOOM2' but got '%s' instead.",
+                             SC_GetString(s));
+                }
             }
         }
-        else if (!strcasecmp("DOOM2", s->string))
+        else if (!strcasecmp("DOOM2", SC_GetString(s)))
         {
             game = DOOM2ONLY;
         }
         else
         {
-            U_Unget(s);
+            SC_Rewind(s);
         }
     }
     if ((gamemission == doom && game == DOOM2ONLY)
@@ -251,10 +253,6 @@ const byte *R_BrightmapForState(const int state)
 
 void R_ParseBrightmaps(int lumpnum)
 {
-    u_scanner_t *s;
-    const char *data = W_CacheLumpNum(lumpnum, PU_CACHE);
-    int length = W_LumpLength(lumpnum);
-
     force_brightmaps = W_IsWADLump(lumpnum);
 
     if (!array_size(brightmaps_array))
@@ -265,24 +263,25 @@ void R_ParseBrightmaps(int lumpnum)
         array_push(brightmaps_array, brightmap);
     }
 
-    s = U_ScanOpen(data, length, "BRGHTMPS");
+    scanner_t *s = SC_Open("BRGHTMPS", W_CacheLumpNum(lumpnum, PU_CACHE),
+                           W_LumpLength(lumpnum));
 
-    while (U_HasTokensLeft(s))
+    while (SC_TokensLeft(s))
     {
-        if (!U_CheckToken(s, TK_Identifier))
+        if (!SC_CheckToken(s, TK_Identifier))
         {
-            U_GetNextToken(s, true);
+            SC_GetNextToken(s, true);
             continue;
         }
-        if (!strcasecmp("BRIGHTMAP", s->string))
+        if (!strcasecmp("BRIGHTMAP", SC_GetString(s)))
         {
             brightmap_t brightmap;
-            U_MustGetToken(s, TK_Identifier);
-            brightmap.name = M_StringDuplicate(s->string);
+            SC_MustGetToken(s, TK_Identifier);
+            brightmap.name = M_StringDuplicate(SC_GetString(s));
             ReadColormask(s, brightmap.colormask);
             array_push(brightmaps_array, brightmap);
         }
-        else if (!strcasecmp("TEXTURE", s->string))
+        else if (!strcasecmp("TEXTURE", SC_GetString(s)))
         {
             elem_t elem;
             if (ParseProperty(s, &elem))
@@ -290,7 +289,7 @@ void R_ParseBrightmaps(int lumpnum)
                 array_push(textures_bm, elem);
             }
         }
-        else if (!strcasecmp("SPRITE", s->string))
+        else if (!strcasecmp("SPRITE", SC_GetString(s)))
         {
             elem_t elem;
             if (ParseProperty(s, &elem))
@@ -307,7 +306,7 @@ void R_ParseBrightmaps(int lumpnum)
                 }
             }
         }
-        else if (!strcasecmp("FLAT", s->string))
+        else if (!strcasecmp("FLAT", SC_GetString(s)))
         {
             elem_t elem;
             if (ParseProperty(s, &elem))
@@ -315,29 +314,29 @@ void R_ParseBrightmaps(int lumpnum)
                 array_push(flats_bm, elem);
             }
         }
-        else if (!strcasecmp("STATE", s->string))
+        else if (!strcasecmp("STATE", SC_GetString(s)))
         {
             elem_t elem;
             elem.name = NULL;
-            U_MustGetInteger(s);
-            elem.num = s->number;
+            SC_MustGetToken(s, TK_IntConst);
+            elem.num = SC_GetNumber(s);
             if (elem.num < 0 || elem.num >= num_states)
             {
-                U_Error(s, "state '%d' not found", elem.num);
+                SC_Error(s, "state '%d' not found", elem.num);
             }
-            U_MustGetToken(s, TK_Identifier);
-            elem.idx = GetBrightmap(s->string);
+            SC_MustGetToken(s, TK_Identifier);
+            elem.idx = GetBrightmap(SC_GetString(s));
             if (elem.idx >= 0)
             {
                 array_push(states_bm, elem);
             }
             else
             {
-                U_Error(s, "brightmap '%s' not found", s->string);
+                SC_Error(s, "brightmap '%s' not found", SC_GetString(s));
             }
         }
     }
-    U_ScanClose(s);
+    SC_Close(s);
 
     brightmaps_found = (array_size(brightmaps_array) > 1);
 }

@@ -235,19 +235,22 @@ const char *M_BaseName(const char *path)
 
 char M_ToUpper(const char c)
 {
-  if (c >= 'a' && c <= 'z')
-    return c + 'A' - 'a';
-  else
-    return c;
+    if (c >= 'a' && c <= 'z')
+    {
+        return c + 'A' - 'a';
+    }
+    else
+    {
+        return c;
+    }
 }
 
-void M_StringToUpper(char *text)
+void M_StringToUpper(char *str)
 {
-    char *p;
-
-    for (p = text; *p != '\0'; ++p)
+    while (*str)
     {
-        *p = M_ToUpper(*p);
+        *str = M_ToUpper(*str);
+        ++str;
     }
 }
 
@@ -255,19 +258,22 @@ void M_StringToUpper(char *text)
 
 char M_ToLower(const char c)
 {
-  if (c >= 'A' && c <= 'Z')
-    return c - 'A' + 'a';
-  else
-    return c;
+    if (c >= 'A' && c <= 'Z')
+    {
+        return c - 'A' + 'a';
+    }
+    else
+    {
+        return c;
+    }
 }
 
-void M_StringToLower(char *text)
+void M_StringToLower(char *str)
 {
-    char *p;
-
-    for (p = text; *p != '\0'; ++p)
+    while (*str)
     {
-        *p = M_ToLower(*p);
+        *str = M_ToLower(*str);
+        ++str;
     }
 }
 

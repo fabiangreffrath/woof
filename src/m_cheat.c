@@ -32,6 +32,7 @@
 #include "g_game.h"
 #include "info.h"
 #include "m_cheat.h"
+#include "m_array.h"
 #include "m_fixed.h"
 #include "m_input.h"
 #include "m_misc.h"
@@ -876,7 +877,7 @@ static void cheat_spechits()
     plyr->cards[i] = origcards[i];
   }
 
-  if (gamemapinfo && gamemapinfo->numbossactions > 0)
+  if (gamemapinfo && array_size(gamemapinfo->bossactions))
   {
     thinker_t *th;
 
@@ -886,13 +887,14 @@ static void cheat_spechits()
       {
         mobj_t *mo = (mobj_t *) th;
 
-        for (i = 0; i < gamemapinfo->numbossactions; i++)
+        bossaction_t *bossaction;
+        array_foreach(bossaction, gamemapinfo->bossactions)
         {
-          if (gamemapinfo->bossactions[i].type == mo->type)
+          if (bossaction->type == mo->type)
           {
             dummy = *lines;
-            dummy.special = (short)gamemapinfo->bossactions[i].special;
-            dummy.tag = (short)gamemapinfo->bossactions[i].tag;
+            dummy.special = (short)bossaction->special;
+            dummy.tag = (short)bossaction->tag;
             // use special semantics for line activation to block problem types.
             if (!P_UseSpecialLine(mo, &dummy, 0, true))
               P_CrossSpecialLine(&dummy, 0, mo, true);

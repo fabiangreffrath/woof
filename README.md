@@ -178,10 +178,9 @@ Copyright:
  © 2023 Andrew Apted.  
 License: [MIT](https://opensource.org/licenses/MIT)
 
-Files: `src/u_scanner.*`  
+Files: `src/m_scanner.*`  
 Copyright:  
- © 2010 Braden "Blzut3" Obrzut;  
- © 2019 Fernando Carmona Varo.  
+ © 2015 Braden "Blzut3" Obrzut.  
 License: [BSD-3-Clause](https://opensource.org/licenses/BSD-3-Clause)
 
 Files: `src/v_flextran.*`  
