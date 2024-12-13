@@ -282,6 +282,7 @@ static void UpdateSkillButton(void)
     switch(iwad->mission)
     {
         case pack_chex:
+        case pack_chex3v:
             skillbutton->values = chex_skills;
             break;
         case pack_hacx:
