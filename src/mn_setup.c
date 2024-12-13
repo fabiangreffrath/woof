@@ -3244,9 +3244,6 @@ static setup_menu_t gen_settings5[] = {
     {"Sprite Translucency", S_ONOFF | S_STRICT, OFF_CNTR_X, M_SPC,
      {"translucency"}},
 
-    {"Invulnerability effect", S_CHOICE | S_STRICT, OFF_CNTR_X, M_SPC,
-     {"invul_mode"}, .strings_id = str_invul_mode, .action = R_InvulMode},
-
     {"Partial Invisibility", S_CHOICE | S_STRICT, OFF_CNTR_X, M_SPC, {"fuzzmode"},
      .strings_id = str_fuzzmode, .action = R_SetFuzzColumnMode},
 
@@ -3292,6 +3289,9 @@ static setup_menu_t gen_settings6[] = {
 
     {"Screen flashes", S_ONOFF | S_STRICT, OFF_CNTR_X, M_SPC,
      {"palette_changes"}},
+
+    {"Invulnerability effect", S_CHOICE | S_STRICT, OFF_CNTR_X, M_SPC,
+     {"invul_mode"}, .strings_id = str_invul_mode, .action = R_InvulMode},
 
     {"Demo progress bar", S_ONOFF, OFF_CNTR_X, M_SPC, {"demobar"}},
 
