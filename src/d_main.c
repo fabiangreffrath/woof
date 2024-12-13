@@ -957,7 +957,7 @@ static void InitGameVersion(void)
         // Determine automatically
 
         if (gamemode == shareware || gamemode == registered ||
-            (gamemode == commercial && gamemission == doom2))
+            (gamemode == commercial && (gamemission == doom2 || gamemission == pack_chex3v)))
         {
             // original
             gameversion = exe_doom_1_9;
