@@ -53,6 +53,7 @@ typedef struct mapentry_s
     int partime;
     boolean nointermission;
     bossaction_t *bossactions;
+    boolean nobossactions;
 } mapentry_t;
 
 extern mapentry_t *umapinfo, *umapdef;

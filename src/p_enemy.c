@@ -2285,6 +2285,9 @@ void A_BossDeath(mobj_t *mo)
   line_t    junk;
   int       i;
 
+  if (gamemapinfo && gamemapinfo->nobossactions)
+      return;
+
   if (gamemapinfo && array_size(gamemapinfo->bossactions))
   {
     // make sure there is a player alive for victory

@@ -566,8 +566,8 @@ static void ParseStandardProperty(scanner_t *s, mapentry_t *mape)
         SC_MustGetToken(s, TK_Identifier);
         if (!strcasecmp(SC_GetString(s), "clear"))
         {
-            // mark level free of boss actions
             array_free(mape->bossactions);
+            mape->nobossactions = true; // mark level free of boss actions
         }
         else
         {
