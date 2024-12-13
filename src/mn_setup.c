@@ -1839,8 +1839,6 @@ static setup_menu_t stat_settings1[] = {
 
     {"Colored Numbers", S_ONOFF | S_COSMETIC, H_X, M_SPC, {"sts_colored_numbers"}},
 
-    {"Gray Percent Sign", S_ONOFF | S_COSMETIC, H_X, M_SPC, {"sts_pct_always_gray"}},
-
     {"Solid Background Color", S_ONOFF, H_X, M_SPC, {"st_solidbackground"},
      .action = RefreshSolidBackground},
 
@@ -3245,9 +3243,6 @@ static setup_menu_t gen_settings5[] = {
 
     {"Sprite Translucency", S_ONOFF | S_STRICT, OFF_CNTR_X, M_SPC,
      {"translucency"}},
-
-    {"Translucency Filter", S_NUM | S_ACTION | S_PCT, OFF_CNTR_X, M_SPC,
-     {"tran_filter_pct"}, .action = MN_Trans},
 
     {"Partial Invisibility", S_CHOICE | S_STRICT, OFF_CNTR_X, M_SPC, {"fuzzmode"},
      .strings_id = str_fuzzmode, .action = R_SetFuzzColumnMode},
