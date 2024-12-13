@@ -203,7 +203,7 @@ static void FreeMap(mapentry_t *mape)
     {
         free(mape->author);
     }
-    mape->mapname = NULL;
+    memset(mape, 0, sizeof(*mape));
 }
 
 static void ReplaceString(char **pptr, const char *newstring)
