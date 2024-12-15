@@ -1901,7 +1901,7 @@ void ST_BindSTSVariables(void)
   M_BindBool("sts_colored_numbers", &sts_colored_numbers, NULL,
              false, ss_stat, wad_yes, "Colored numbers on the status bar");
   M_BindBool("sts_pct_always_gray", &sts_pct_always_gray, NULL,
-             false, ss_stat, wad_yes,
+             false, ss_none, wad_yes,
              "Percent signs on the status bar are always gray");
   M_BindBool("st_solidbackground", &st_solidbackground, NULL,
              false, ss_stat, wad_no,
