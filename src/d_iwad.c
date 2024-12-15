@@ -28,25 +28,26 @@
 #include "m_misc.h"
 
 static const iwad_t iwads[] = {
-    {"doom2.wad",     doom2,      commercial,   "DOOM II: Hell on Earth"         },
-    {"plutonia.wad",  pack_plut,  commercial,   "Final DOOM: Plutonia Experiment"},
-    {"tnt.wad",       pack_tnt,   commercial,   "Final DOOM: TNT - Evilution"    },
+    {"doom2.wad",     doom2,       commercial,   "DOOM II: Hell on Earth"         },
+    {"plutonia.wad",  pack_plut,   commercial,   "Final DOOM: Plutonia Experiment"},
+    {"tnt.wad",       pack_tnt,    commercial,   "Final DOOM: TNT - Evilution"    },
     // "doom.wad" may be retail or registered
-    {"doom.wad",      doom,       indetermined, "DOOM"                           },
-    {"doom.wad",      doom,       registered,   "DOOM Registered"                },
-    {"doom.wad",      doom,       retail,       "The Ultimate DOOM"              },
+    {"doom.wad",      doom,        indetermined, "DOOM"                           },
+    {"doom.wad",      doom,        registered,   "DOOM Registered"                },
+    {"doom.wad",      doom,        retail,       "The Ultimate DOOM"              },
     // "doomu.wad" alias to allow retail wad to coexist with registered in the same folder
-    {"doomu.wad",     doom,       retail,       "The Ultimate DOOM"              },
-    {"doom1.wad",     doom,       shareware,    "DOOM Shareware"                 },
-    {"doom2f.wad",    doom2,      commercial,   "DOOM II: L'Enfer sur Terre"     },
-    {"freedoom2.wad", doom2,      commercial,   "Freedoom: Phase 2"              },
-    {"freedoom1.wad", doom,       retail,       "Freedoom: Phase 1"              },
-    {"freedm.wad",    doom2,      commercial,   "FreeDM"                         },
-    {"chex.wad",      pack_chex,  retail,       "Chex Quest"                     },
-    {"chex3v.wad",    pack_chex,  retail,       "Chex Quest 3: Vanilla Edition"  },
-    {"hacx.wad",      pack_hacx,  commercial,   "HACX: Twitch n' Kill"           },
-    {"rekkrsa.wad",   pack_rekkr, retail,       "REKKR"                          },
-    {"rekkrsl.wad",   pack_rekkr, retail,       "REKKR: Sunken Land"             },
+    {"doomu.wad",     doom,        retail,       "The Ultimate DOOM"              },
+    {"doom1.wad",     doom,        shareware,    "DOOM Shareware"                 },
+    {"doom2f.wad",    doom2,       commercial,   "DOOM II: L'Enfer sur Terre"     },
+    {"freedoom2.wad", doom2,       commercial,   "Freedoom: Phase 2"              },
+    {"freedoom1.wad", doom,        retail,       "Freedoom: Phase 1"              },
+    {"freedm.wad",    doom2,       commercial,   "FreeDM"                         },
+    {"chex.wad",      pack_chex,   retail,       "Chex Quest"                     },
+    {"chex3v.wad",    pack_chex3v, retail,       "Chex Quest 3: Vanilla Edition"  },
+    {"chex3d2.wad",   pack_chex3v, commercial,   "Chex Quest 3: Modding Edition"  },
+    {"hacx.wad",      pack_hacx,   commercial,   "HACX: Twitch n' Kill"           },
+    {"rekkrsa.wad",   pack_rekkr,  retail,       "REKKR"                          },
+    {"rekkrsl.wad",   pack_rekkr,  retail,       "REKKR: Sunken Land"             },
 };
 
 static const char *const gamemode_str[] = {

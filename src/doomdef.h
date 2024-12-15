@@ -40,6 +40,7 @@ typedef enum {
   pack_chex,    // Chex Quest
   pack_hacx,    // Hacx
   pack_rekkr,   // Rekkr
+  pack_chex3v,  // Chex Quest 3: Vanilla Edition
   none
 } GameMission_t;
 
