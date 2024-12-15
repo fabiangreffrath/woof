@@ -12,7 +12,8 @@
 // GNU General Public License for more details.
 //
 
-#include "SDL.h"
+#include <SDL3/SDL_main.h>
+
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
 

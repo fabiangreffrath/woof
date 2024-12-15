@@ -12,7 +12,7 @@
 // GNU General Public License for more details.
 //
 
-#include "SDL.h"
+#include <SDL3/SDL.h>
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -106,15 +106,14 @@ void MainMenu(void)
 
 static void SetIcon(void)
 {
-    SDL_Surface *surface;
-
-    surface = SDL_CreateRGBSurfaceFrom((void *) setup_icon_data, setup_icon_w,
-                                       setup_icon_h, 32, setup_icon_w * 4,
-                                       0xffu << 24, 0xffu << 16,
-                                       0xffu << 8, 0xffu << 0);
+    SDL_Surface *surface = SDL_CreateSurfaceFrom(
+        setup_icon_w, setup_icon_h,
+        SDL_GetPixelFormatForMasks(32, 0xffu << 24, 0xffu << 16, 0xffu << 8,
+                                   0xffu << 0),
+        (void *)setup_icon_data, setup_icon_w * 4);
 
     SDL_SetWindowIcon(TXT_SDLWindow, surface);
-    SDL_FreeSurface(surface);
+    SDL_DestroySurface(surface);
 }
 
 static void SetWindowTitle(void)
