@@ -2365,8 +2365,6 @@ void D_DoomMain(void)
             I_Error("\nThis is not the registered version.");
     }
 
-  W_ProcessInWads("UMAPDEF", U_ParseMapDefInfo, PROCESS_PWAD);
-
   //!
   // @category mod
   //

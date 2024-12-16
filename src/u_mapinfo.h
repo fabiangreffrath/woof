@@ -56,15 +56,13 @@ typedef struct mapentry_s
     boolean nobossactions;
 } mapentry_t;
 
-extern mapentry_t *umapinfo, *umapdef;
+extern mapentry_t *umapinfo;
 
 extern boolean EpiCustom;
 
 mapentry_t *G_LookupMapinfo(int episode, int map);
 
 boolean U_CheckField(char *str);
-
-void U_ParseMapDefInfo(int lumpnum);
 
 void U_ParseMapInfo(int lumpnum);
 
