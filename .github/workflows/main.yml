@@ -165,7 +165,6 @@ jobs:
             --inconclusive \
             --inline-suppr \
             --std=c99 \
-            --suppress="memleak:${{ github.workspace }}/src/u_scanner.c" \
             --project="${{ github.workspace }}/build/compile_commands.json" \
             -i"${{ github.workspace }}/third-party" \
             -D__GNUC__

@@ -177,12 +177,17 @@ static const char *const actor_names[] =
     "Deh_Actor_249", // Extra thing 99
 };
 
-static void FreeMap(mapentry_t *mape)
+static void ReplaceString(char **to, const char *from)
 {
-    if (mape->mapname)
+    if (*to != NULL)
     {
-        free(mape->mapname);
+        free(*to);
     }
+    *to = M_StringDuplicate(from);
+}
+
+static void FreeMapEntry(mapentry_t *mape)
+{
     if (mape->levelname)
     {
         free(mape->levelname);
@@ -203,114 +208,13 @@ static void FreeMap(mapentry_t *mape)
     {
         free(mape->author);
     }
+    array_free(mape->bossactions);
     memset(mape, 0, sizeof(*mape));
 }
 
-static void ReplaceString(char **pptr, const char *newstring)
-{
-    if (*pptr != NULL)
-    {
-        free(*pptr);
-    }
-    *pptr = M_StringDuplicate(newstring);
-}
-
-static void UpdateMapEntry(mapentry_t *mape, mapentry_t *newe)
-{
-    if (newe->mapname)
-    {
-        ReplaceString(&mape->mapname, newe->mapname);
-    }
-    if (newe->levelname)
-    {
-        ReplaceString(&mape->levelname, newe->levelname);
-    }
-    if (newe->label)
-    {
-        ReplaceString(&mape->label, newe->label);
-    }
-    if (newe->author)
-    {
-        ReplaceString(&mape->author, newe->author);
-    }
-    if (newe->intertext)
-    {
-        ReplaceString(&mape->intertext, newe->intertext);
-    }
-    if (newe->intertextsecret)
-    {
-        ReplaceString(&mape->intertextsecret, newe->intertextsecret);
-    }
-    if (newe->levelpic[0])
-    {
-        strcpy(mape->levelpic, newe->levelpic);
-    }
-    if (newe->nextmap[0])
-    {
-        strcpy(mape->nextmap, newe->nextmap);
-    }
-    if (newe->nextsecret[0])
-    {
-        strcpy(mape->nextsecret, newe->nextsecret);
-    }
-    if (newe->music[0])
-    {
-        strcpy(mape->music, newe->music);
-    }
-    if (newe->skytexture[0])
-    {
-        strcpy(mape->skytexture, newe->skytexture);
-    }
-    if (newe->endpic[0])
-    {
-        strcpy(mape->endpic, newe->endpic);
-    }
-    if (newe->exitpic[0])
-    {
-        strcpy(mape->exitpic, newe->exitpic);
-    }
-    if (newe->enterpic[0])
-    {
-        strcpy(mape->enterpic, newe->enterpic);
-    }
-    if (newe->exitanim[0])
-    {
-        strcpy(mape->exitanim, newe->exitanim);
-    }
-    if (newe->enteranim[0])
-    {
-        strcpy(mape->enteranim, newe->enteranim);
-    }
-    if (newe->interbackdrop[0])
-    {
-        strcpy(mape->interbackdrop, newe->interbackdrop);
-    }
-    if (newe->intermusic[0])
-    {
-        strcpy(mape->intermusic, newe->intermusic);
-    }
-    if (newe->partime)
-    {
-        mape->partime = newe->partime;
-    }
-    if (newe->nointermission)
-    {
-        mape->nointermission = newe->nointermission;
-    }
-    if (array_size(newe->bossactions))
-    {
-        if (mape->bossactions)
-        {
-            array_free(mape->bossactions);
-        }
-        mape->bossactions = newe->bossactions;
-    }
-}
-
-// -----------------------------------------------
 // Parses a set of string and concatenates them
 // Returns a pointer to the string (must be freed)
-// -----------------------------------------------
+
 static char *ParseMultiString(scanner_t *s)
 {
     char *build = NULL;
@@ -571,15 +475,15 @@ static void ParseStandardProperty(scanner_t *s, mapentry_t *mape)
         }
         else
         {
-            int i, special, tag;
-            for (i = 0; arrlen(actor_names); i++)
+            int type, special, tag;
+            for (type = 0; arrlen(actor_names); ++type)
             {
-                if (!strcasecmp(SC_GetString(s), actor_names[i]))
+                if (!strcasecmp(SC_GetString(s), actor_names[type]))
                 {
                     break;
                 }
             }
-            if (i == arrlen(actor_names))
+            if (type == arrlen(actor_names))
             {
                 SC_Error(s, "bossaction: unknown thing type '%s'",
                          SC_GetString(s));
@@ -594,7 +498,7 @@ static void ParseStandardProperty(scanner_t *s, mapentry_t *mape)
             if (tag != 0 || special == 11 || special == 51 || special == 52
                 || special == 124)
             {
-                bossaction_t bossaction = {i, special, tag};
+                bossaction_t bossaction = {type, special, tag};
                 array_push(mape->bossactions, bossaction);
             }
         }
@@ -632,38 +536,6 @@ static void ParseMapEntry(scanner_t *s, mapentry_t *entry)
     {
         ParseStandardProperty(s, entry);
     }
-}
-
-// -----------------------------------------------
-//
-// Parses a complete UMAPINFO lump
-//
-// -----------------------------------------------
-
-static void SetDefaults(mapentry_t *entry, const char *mapname)
-{
-    mapentry_t *default_entry;
-    array_foreach(default_entry, umapdef)
-    {
-        if (!strcmp(mapname, default_entry->mapname))
-        {
-            UpdateMapEntry(entry, default_entry);
-            break;
-        }
-    }
-}
-
-void U_ParseMapDefInfo(int lumpnum)
-{
-    scanner_t *s = SC_Open("UMAPDEF", W_CacheLumpNum(lumpnum, PU_CACHE),
-                           W_LumpLength(lumpnum));
-    while (SC_TokensLeft(s))
-    {
-        mapentry_t parsed = {0};
-        ParseMapEntry(s, &parsed);
-        array_push(umapdef, parsed);
-    }
-    SC_Close(s);
 }
 
 void U_ParseMapInfo(int lumpnum)
@@ -713,24 +585,20 @@ void U_ParseMapInfo(int lumpnum)
         }
 
         // Does this entry already exist? If yes, replace it.
-        mapentry_t *entry;
-        array_foreach(entry, umapinfo)
+        int i;
+        for (i = 0; i < array_size(umapinfo); ++i)
         {
-            if (!strcmp(parsed.mapname, entry->mapname))
+            if (!strcmp(parsed.mapname, umapinfo[i].mapname))
             {
-                FreeMap(entry);
-                SetDefaults(entry, parsed.mapname);
-                UpdateMapEntry(entry, &parsed);
+                FreeMapEntry(&umapinfo[i]);
+                umapinfo[i] = parsed;
                 break;
             }
         }
         // Not found so create a new one.
-        if (entry == array_end(umapinfo))
+        if (i == array_size(umapinfo))
         {
-            mapentry_t new = {0};
-            SetDefaults(&new, parsed.mapname);
-            UpdateMapEntry(&new, &parsed);
-            array_push(umapinfo, new);
+            array_push(umapinfo, parsed);
         }
     }
 

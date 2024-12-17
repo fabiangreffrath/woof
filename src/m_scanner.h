@@ -27,6 +27,9 @@
 // OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 // SUCH DAMAGE.
 
+#ifndef M_SCANNER_H
+#define M_SCANNER_H
+
 #include "doomtype.h"
 
 typedef struct scanner_s scanner_t;
@@ -69,3 +72,5 @@ void SC_Rewind(scanner_t *s); // Only can rewind one step.
 void SC_GetNextTokenLumpName(scanner_t *s);
 
 void SC_Error(scanner_t *s, const char *msg, ...) PRINTF_ATTR(2, 3);
+
+#endif

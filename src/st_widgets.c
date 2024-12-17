@@ -646,7 +646,7 @@ void ST_ResetTitle(void)
     announce_string[0] = '\0';
     if (hud_map_announce && leveltime == 0)
     {
-        if (gamemapinfo && U_CheckField(gamemapinfo->author))
+        if (gamemapinfo && gamemapinfo->author)
         {
             M_snprintf(announce_string, sizeof(announce_string), "%s by %s",
                        string, gamemapinfo->author);
