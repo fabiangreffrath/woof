@@ -233,7 +233,7 @@ static boolean MapInfo_Drawer(void)
 //
 void F_StartFinale (void)
 {
-  musicenum_t music_id = -1;
+  musicenum_t music_id = mus_None;
 
   gameaction = ga_nothing;
   gamestate = GS_FINALE;

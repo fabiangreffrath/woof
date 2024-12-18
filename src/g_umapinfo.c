@@ -609,8 +609,10 @@ void G_ParseMapInfo(int lumpnum)
             else
             {
                 int ep, map;
-                G_ValidateMapName(parsed.mapname, &ep, &map);
-                strcpy(parsed.nextmap, MapName(ep, map + 1));
+                if (G_ValidateMapName(parsed.mapname, &ep, &map))
+                {
+                    strcpy(parsed.nextmap, MapName(ep, map + 1));
+                }
             }
         }
 
@@ -673,7 +675,7 @@ boolean G_ValidateMapName(const char *mapname, int *episode, int *map)
     {
         if (sscanf(mapuname, "E%dM%d", &e, &m) != 2)
         {
-            return 0;
+            return false;
         }
         strcpy(lumpname, MapName(e, m));
     }
@@ -681,7 +683,7 @@ boolean G_ValidateMapName(const char *mapname, int *episode, int *map)
     {
         if (sscanf(mapuname, "MAP%d", &m) != 1)
         {
-            return 0;
+            return false;
         }
         strcpy(lumpname, MapName(e = 1, m));
     }
@@ -695,7 +697,7 @@ boolean G_ValidateMapName(const char *mapname, int *episode, int *map)
         *map = m;
     }
 
-    return !strcmp(mapuname, lumpname);
+    return strcmp(mapuname, lumpname) == 0;
 }
 
 boolean G_IsSecretMap(int episode, int map)
