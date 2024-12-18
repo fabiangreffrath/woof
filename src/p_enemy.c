@@ -33,6 +33,7 @@
 #include "i_printf.h"
 #include "i_system.h"
 #include "info.h"
+#include "m_array.h"
 #include "m_bbox.h"
 #include "m_fixed.h"
 #include "m_random.h"
@@ -2284,13 +2285,11 @@ void A_BossDeath(mobj_t *mo)
   line_t    junk;
   int       i;
 
-  // numbossactions == 0 means to use the defaults.
-  // numbossactions == -1 means to do nothing.
-  // positive values mean to check the list of boss actions and run all that apply.
-  if (gamemapinfo && gamemapinfo->numbossactions != 0)
-  {
-    if (gamemapinfo->numbossactions < 0) return;
+  if (gamemapinfo && gamemapinfo->nobossactions)
+      return;
 
+  if (gamemapinfo && array_size(gamemapinfo->bossactions))
+  {
     // make sure there is a player alive for victory
     for (i=0; i<MAXPLAYERS; i++)
       if (playeringame[i] && players[i].health > 0)
@@ -2299,35 +2298,37 @@ void A_BossDeath(mobj_t *mo)
     if (i==MAXPLAYERS)
       return;     // no one left alive, so do not end game
 
-    for (i = 0; i < gamemapinfo->numbossactions; i++)
-      {
-        if (gamemapinfo->bossactions[i].type == mo->type)
-          break;
-      }
-    if (i >= gamemapinfo->numbossactions)
+    bossaction_t *bossaction;
+    array_foreach(bossaction, gamemapinfo->bossactions)
+    {
+      if (bossaction->type == mo->type)
+        break;
+    }
+    if (bossaction == array_end(gamemapinfo->bossactions))
       return;  // no matches found
 
     // scan the remaining thinkers to see
     // if all bosses are dead
     for (th = thinkercap.next ; th != &thinkercap ; th=th->next)
       if (th->function.p1 == (actionf_p1)P_MobjThinker)
-        {
-          mobj_t *mo2 = (mobj_t *) th;
-          if (mo2 != mo && mo2->type == mo->type && mo2->health > 0)
-            return;         // other boss not dead
-        }
-    for (i = 0; i < gamemapinfo->numbossactions; i++)
       {
-        if (gamemapinfo->bossactions[i].type == mo->type)
-          {
-            junk = *lines;
-            junk.special = (short)gamemapinfo->bossactions[i].special;
-            junk.tag = (short)gamemapinfo->bossactions[i].tag;
-            // use special semantics for line activation to block problem types.
-            if (!P_UseSpecialLine(mo, &junk, 0, true))
-              P_CrossSpecialLine(&junk, 0, mo, true);
-          }
+        mobj_t *mo2 = (mobj_t *) th;
+        if (mo2 != mo && mo2->type == mo->type && mo2->health > 0)
+          return;         // other boss not dead
       }
+
+    array_foreach(bossaction, gamemapinfo->bossactions)
+    {
+      if (bossaction->type == mo->type)
+      {
+        junk = *lines;
+        junk.special = (short)bossaction->special;
+        junk.tag = (short)bossaction->tag;
+        // use special semantics for line activation to block problem types.
+        if (!P_UseSpecialLine(mo, &junk, 0, true))
+          P_CrossSpecialLine(&junk, 0, mo, true);
+      }
+    }
 
     return;
   }

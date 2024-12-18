@@ -257,7 +257,7 @@ void D_Display (void)
   static boolean viewactivestate = false;
   static boolean menuactivestate = false;
   static gamestate_t oldgamestate = GS_NONE;
-  static int borderdrawcount;
+  static boolean borderdrawcount;
   int wipestart;
   boolean done, wipe;
 
@@ -308,7 +308,7 @@ void D_Display (void)
     {
       R_ExecuteSetViewSize();
       oldgamestate = GS_NONE;            // force background redraw
-      borderdrawcount = 3;
+      borderdrawcount = true;
     }
 
   if (gamestate == GS_LEVEL && gametic)
@@ -356,11 +356,11 @@ void D_Display (void)
   if (gamestate == GS_LEVEL && automap_off && scaledviewwidth != video.unscaledw)
     {
       if (menuactive || menuactivestate || !viewactivestate)
-        borderdrawcount = 3;
+        borderdrawcount = true;
       if (borderdrawcount)
         {
           R_DrawViewBorder();    // erase old menu stuff
-          borderdrawcount--;
+          borderdrawcount = false;
         }
     }
 
@@ -824,9 +824,9 @@ static boolean CheckMapLump(const char *lumpname, const char *filename)
 
 static boolean FileContainsMaps(const char *filename)
 {
-    for (int i = 0; i < U_mapinfo.mapcount; ++i)
+    for (int i = 0; i < array_size(umapinfo); ++i)
     {
-        if (CheckMapLump(U_mapinfo.maps[i].mapname, filename))
+        if (CheckMapLump(umapinfo[i].mapname, filename))
         {
             return true;
         }
@@ -957,7 +957,7 @@ static void InitGameVersion(void)
         // Determine automatically
 
         if (gamemode == shareware || gamemode == registered ||
-            (gamemode == commercial && gamemission == doom2))
+            (gamemode == commercial && (gamemission == doom2 || gamemission == pack_chex3v)))
         {
             // original
             gameversion = exe_doom_1_9;
@@ -1873,6 +1873,21 @@ void D_DoomMain(void)
 
   IdentifyVersion();
 
+  //!
+  // @category mod
+  //
+  // Disable auto-loading of extars.wad file.
+  //
+
+  if (gamemission < pack_chex && !M_ParmExists("-noextras"))
+  {
+      char *path = D_FindWADByName("extras.wad");
+      if (path)
+      {
+          D_AddFile(path);
+      }
+  }
+
   // [FG] emulate a specific version of Doom
   InitGameVersion();
 
@@ -2349,8 +2364,6 @@ void D_DoomMain(void)
               (W_CheckNumForName)(name[i],ns_sprites)<0) // killough 4/18/98
             I_Error("\nThis is not the registered version.");
     }
-
-  W_ProcessInWads("UMAPDEF", U_ParseMapDefInfo, PROCESS_PWAD);
 
   //!
   // @category mod

@@ -978,7 +978,7 @@
           {
             "widget":
             {
-              "x": 320,
+              "x": 318,
               "y": 8,
               "alignment": 34,
               "tranmap": null,
@@ -992,7 +992,7 @@
           {
             "widget":
             {
-              "x": 320,
+              "x": 318,
               "y": 0,
               "alignment": 34,
               "tranmap": null,
@@ -1006,7 +1006,7 @@
           {
             "widget":
             {
-              "x": 0,
+              "x": 2,
               "y": 8,
               "alignment": 0,
               "tranmap": null,
@@ -1020,7 +1020,7 @@
           {
             "widget":
             {
-              "x": 320,
+              "x": 318,
               "y": 167,
               "alignment": 42,
               "tranmap": null,
@@ -1819,7 +1819,7 @@
                 {
                   "widget":
                   {
-                    "x": 320,
+                    "x": 318,
                     "y": 8,
                     "alignment": 34,
                     "tranmap": null,
@@ -1833,7 +1833,7 @@
                 {
                   "widget":
                   {
-                    "x": 320,
+                    "x": 318,
                     "y": 0,
                     "alignment": 34,
                     "tranmap": null,
@@ -1847,7 +1847,7 @@
                 {
                   "widget":
                   {
-                    "x": 0,
+                    "x": 2,
                     "y": 8,
                     "alignment": 0,
                     "tranmap": null,
@@ -1861,7 +1861,7 @@
                 {
                   "widget":
                   {
-                    "x": 320,
+                    "x": 318,
                     "y": 167,
                     "alignment": 42,
                     "tranmap": null,
@@ -2862,7 +2862,7 @@
           {
             "widget":
             {
-              "x": 320,
+              "x": 318,
               "y": 8,
               "alignment": 34,
               "tranmap": null,
@@ -2876,7 +2876,7 @@
           {
             "widget":
             {
-              "x": 320,
+              "x": 318,
               "y": 0,
               "alignment": 34,
               "tranmap": null,
@@ -2890,7 +2890,7 @@
           {
             "widget":
             {
-              "x": 0,
+              "x": 2,
               "y": 8,
               "alignment": 0,
               "tranmap": null,
@@ -2904,7 +2904,7 @@
           {
             "widget":
             {
-              "x": 320,
+              "x": 318,
               "y": 167,
               "alignment": 42,
               "tranmap": null,
@@ -3152,7 +3152,7 @@
           {
             "widget":
             {
-              "x": 320,
+              "x": 318,
               "y": 8,
               "alignment": 34,
               "tranmap": null,
@@ -3166,7 +3166,7 @@
           {
             "widget":
             {
-              "x": 320,
+              "x": 318,
               "y": 0,
               "alignment": 34,
               "tranmap": null,
@@ -3180,7 +3180,7 @@
           {
             "widget":
             {
-              "x": 0,
+              "x": 2,
               "y": 8,
               "alignment": 0,
               "tranmap": null,
@@ -3194,7 +3194,7 @@
           {
             "widget":
             {
-              "x": 320,
+              "x": 318,
               "y": 200,
               "alignment": 42,
               "tranmap": null,
@@ -3222,7 +3222,7 @@
           {
             "widget":
             {
-              "x": 2,
+              "x": 0,
               "y": 0,
               "alignment": 16,
               "tranmap": null,
@@ -3252,7 +3252,7 @@
           {
             "widget":
             {
-              "x": 2,
+              "x": 0,
               "y": 8,
               "alignment": 16,
               "tranmap": null,
@@ -3266,7 +3266,7 @@
           {
             "widget":
             {
-              "x": 2,
+              "x": 0,
               "y": 192,
               "alignment": 16,
               "tranmap": null,

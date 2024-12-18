@@ -1036,7 +1036,7 @@ void R_BindRenderVariables(void)
   M_BindBool("translucency", &translucency, NULL, true, ss_gen, wad_yes,
              "Translucency for some things");
   M_BindNum("tran_filter_pct", &tran_filter_pct, NULL,
-            66, 0, 100, ss_gen, wad_yes,
+            66, 0, 100, ss_none, wad_yes,
             "Percent of foreground/background translucency mix");
 
   M_BindBool("flipcorpses", &flipcorpses, NULL, false, ss_enem, wad_no,

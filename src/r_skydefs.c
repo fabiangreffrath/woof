@@ -50,6 +50,7 @@ static boolean ParseSkyTex(json_t *json, skytex_t *out)
     json_t *name = JS_GetObject(json, "name");
     if (!JS_IsString(name))
     {
+        out->name = "-"; // no texture
         return false;
     }
     out->name = M_StringDuplicate(JS_GetString(name));
