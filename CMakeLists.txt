@@ -15,7 +15,7 @@ project("Woof"
     VERSION 15.0.1
     LANGUAGES C)
 
-set(CMAKE_C_STANDARD 99)
+# set(CMAKE_C_STANDARD 99)
 
 # Set a default build type if none was specified
 set(default_build_type "RelWithDebInfo")

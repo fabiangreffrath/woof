@@ -23,7 +23,7 @@ jobs:
         config:
           - name: Linux GCC
             os: ubuntu-24.04
-            compiler: gcc
+            compiler: gcc-14
             extra-options: -DCMAKE_FIND_PACKAGE_PREFER_CONFIG=OFF
             shell: bash
 
@@ -45,6 +45,7 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install \
+            gcc-14 \
             ninja-build \
             libsdl2-dev \
             libsdl2-net-dev \
@@ -93,6 +94,7 @@ jobs:
       - name: Configure
         env:
           CC: ${{ matrix.config.compiler }}
+          CFLAGS: -std=gnu23
         run: |
           cmake -B build -G Ninja -DCMAKE_BUILD_TYPE=Release \
                 -DENABLE_WERROR=ON -DENABLE_HARDENING=ON -DENABLE_LTO=ON \
