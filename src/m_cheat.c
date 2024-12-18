@@ -135,201 +135,201 @@ static void cheat_speed();
 
 struct cheat_s cheat[] = {
   {"idmus",      "Change music",      always,
-   {cheat_mus}, -2 },
+   {.s = cheat_mus}, -2 },
 
   {"idchoppers", "Chainsaw",          not_net | not_demo,
-   {cheat_choppers} },
+   {.v = cheat_choppers} },
 
   {"iddqd",      "God mode",          not_net | not_demo,
-   {cheat_god} },
+   {.v = cheat_god} },
 
   {"buddha",     "Buddha mode",       not_net | not_demo,
-   {cheat_buddha} },
+   {.v = cheat_buddha} },
 
   {"idk",        NULL,                not_net | not_demo | not_deh,
-   {cheat_k} }, // The most controversial cheat code in Doom history!!!
+   {.v = cheat_k} }, // The most controversial cheat code in Doom history!!!
 
   {"idkfa",      "Ammo & Keys",       not_net | not_demo,
-   {cheat_kfa} },
+   {.v = cheat_kfa} },
 
   {"idfa",       "Ammo",              not_net | not_demo,
-   {cheat_fa} },
+   {.v = cheat_fa} },
 
   {"idspispopd", "No Clipping 1",     not_net | not_demo,
-   {cheat_noclip} },
+   {.v = cheat_noclip} },
 
   {"idclip",     "No Clipping 2",     not_net | not_demo,
-   {cheat_noclip} },
+   {.v = cheat_noclip} },
 
   {"idbeholdo",  NULL,                not_net | not_demo | not_deh,
-   {cheat_pw}, NUMPOWERS }, // [FG] disable all powerups at once
+   {.i = cheat_pw}, NUMPOWERS }, // [FG] disable all powerups at once
 
   {"idbeholdh",  "Health",            not_net | not_demo,
-   {cheat_health} },
+   {.v = cheat_health} },
 
   {"idbeholdm",  "Mega Armor",        not_net | not_demo,
-   {cheat_megaarmour} },
+   {.v = cheat_megaarmour} },
 
   {"idbeholdv",  "Invincibility",     not_net | not_demo,
-   {cheat_pw}, pw_invulnerability },
+   {.i = cheat_pw}, pw_invulnerability },
 
   {"idbeholds",  "Berserk",           not_net | not_demo,
-   {cheat_pw}, pw_strength },
+   {.i = cheat_pw}, pw_strength },
 
   {"idbeholdi",  "Invisibility",      not_net | not_demo,  
-   {cheat_pw}, pw_invisibility },
+   {.i = cheat_pw}, pw_invisibility },
 
   {"idbeholdr",  "Radiation Suit",    not_net | not_demo,
-   {cheat_pw}, pw_ironfeet },
+   {.i = cheat_pw}, pw_ironfeet },
 
   {"idbeholda",  "Auto-map",          not_dm,
-   {cheat_pw}, pw_allmap },
+   {.i = cheat_pw}, pw_allmap },
 
   {"idbeholdl",  "Lite-Amp Goggles",  not_dm,
-   {cheat_pw}, pw_infrared },
+   {.i = cheat_pw}, pw_infrared },
 
   {"idbehold",   "BEHOLD menu",       not_net | not_demo,
-   {cheat_behold} },
+   {.v = cheat_behold} },
 
   {"idclev",     "Level Warp",        not_net | not_demo | not_menu,
-   {cheat_clev}, -2 },
+   {.s = cheat_clev}, -2 },
 
   {"idclev",     "Level Warp",        not_net | not_demo | not_menu,
-   {cheat_clev0} },
+   {.v = cheat_clev0} },
 
   {"idmypos",    "Player Position",   not_dm, // [FG] not_net | not_demo,
-   {cheat_mypos} },
+   {.v = cheat_mypos} },
 
   {"comp",    NULL,                   not_net | not_demo | not_menu,
-   {cheat_comp}, -2 },
+   {.s = cheat_comp}, -2 },
 
   {"comp",    NULL,                   not_net | not_demo | not_menu,
-   {cheat_comp0} },
+   {.v = cheat_comp0} },
 
   {"skill",    NULL,                  not_net | not_demo | not_menu,
-   {cheat_skill}, -1 },
+   {.s = cheat_skill}, -1 },
 
   {"skill",    NULL,                  not_net | not_demo | not_menu,
-   {cheat_skill0} },
+   {.v = cheat_skill0} },
 
   {"killem",     NULL,                not_net | not_demo,
-   {cheat_massacre} },   // jff 2/01/98 kill all monsters
+   {.v = cheat_massacre} },   // jff 2/01/98 kill all monsters
 
   {"spechits",     NULL,              not_net | not_demo,
-   {cheat_spechits} },
+   {.v = cheat_spechits} },
 
   {"notarget",   "Notarget mode",     not_net | not_demo,
-   {cheat_notarget} },
+   {.v = cheat_notarget} },
 
   {"freeze",     "Freeze",            not_net | not_demo,
-   {cheat_freeze} },
+   {.v = cheat_freeze} },
 
   {"iddt",       "Map cheat",         not_dm,
-   {cheat_ddt} },        // killough 2/07/98: moved from am_map.c
+   {.v = cheat_ddt} },        // killough 2/07/98: moved from am_map.c
 
   {"iddst",      NULL,                not_dm,
-   {cheat_reveal_secret} },
+   {.v = cheat_reveal_secret} },
 
   {"iddkt",      NULL,                not_dm,
-   {cheat_reveal_kill} },
+   {.v = cheat_reveal_kill} },
 
   {"iddit",      NULL,                not_dm,
-   {cheat_reveal_item} },
+   {.v = cheat_reveal_item} },
 
   {"hom",     NULL,                   always,
-   {cheat_hom} },        // killough 2/07/98: HOM autodetector
+   {.v = cheat_hom} },        // killough 2/07/98: HOM autodetector
 
   {"key",     NULL,                   not_net | not_demo, 
-   {cheat_key} },     // killough 2/16/98: generalized key cheats
+   {.v = cheat_key} },     // killough 2/16/98: generalized key cheats
 
   {"keyr",    NULL,                   not_net | not_demo,
-   {cheat_keyx} },
+   {.v = cheat_keyx} },
 
   {"keyy",    NULL,                   not_net | not_demo,
-   {cheat_keyx} },
+   {.v = cheat_keyx} },
 
   {"keyb",    NULL,                   not_net | not_demo,
-   {cheat_keyx} },
+   {.v = cheat_keyx} },
 
   {"keyrc",   NULL,                   not_net | not_demo, 
-   {cheat_keyxx}, it_redcard },
+   {.i = cheat_keyxx}, it_redcard },
 
   {"keyyc",   NULL,                   not_net | not_demo,
-   {cheat_keyxx}, it_yellowcard },
+   {.i = cheat_keyxx}, it_yellowcard },
 
   {"keybc",   NULL,                   not_net | not_demo, 
-   {cheat_keyxx}, it_bluecard },
+   {.i = cheat_keyxx}, it_bluecard },
 
   {"keyrs",   NULL,                   not_net | not_demo,
-   {cheat_keyxx}, it_redskull },
+   {.i = cheat_keyxx}, it_redskull },
 
   {"keyys",   NULL,                   not_net | not_demo,
-   {cheat_keyxx}, it_yellowskull },
+   {.i = cheat_keyxx}, it_yellowskull },
 
   {"keybs",   NULL,                   not_net | not_demo,
-   {cheat_keyxx}, it_blueskull }, // killough 2/16/98: end generalized keys
+   {.i = cheat_keyxx}, it_blueskull }, // killough 2/16/98: end generalized keys
 
   {"weap",    NULL,                   not_net | not_demo,
-   {cheat_weap} },    // killough 2/16/98: generalized weapon cheats
+   {.v = cheat_weap} },    // killough 2/16/98: generalized weapon cheats
 
   {"weap",    NULL,                   not_net | not_demo,
-   {cheat_weapx}, -1 },
+   {.s = cheat_weapx}, -1 },
 
   {"ammo",    NULL,                   not_net | not_demo,
-   {cheat_ammo} },
+   {.v = cheat_ammo} },
 
   {"ammo",    NULL,                   not_net | not_demo,
-   {cheat_ammox}, -1 }, // killough 2/16/98: end generalized weapons
+   {.s = cheat_ammox}, -1 }, // killough 2/16/98: end generalized weapons
 
   {"tran",    NULL,                   always,
-   {cheat_tran} },    // invoke translucency         // phares
+   {.v = cheat_tran} },    // invoke translucency         // phares
 
   {"smart",   NULL,                   not_net | not_demo,
-   {cheat_smart} },      // killough 2/21/98: smart monster toggle
+   {.v = cheat_smart} },      // killough 2/21/98: smart monster toggle
 
   {"pitch",   NULL,                   always,
-   {cheat_pitch} },      // killough 2/21/98: pitched sound toggle
+   {.v = cheat_pitch} },      // killough 2/21/98: pitched sound toggle
 
   // killough 2/21/98: reduce RSI injury by adding simpler alias sequences:
   {"mbfran",     NULL,                always, 
-   {cheat_tran} },    // killough 2/21/98: same as mbftran
+   {.v = cheat_tran} },    // killough 2/21/98: same as mbftran
 
   {"fast",    NULL,                   not_net | not_demo,
-   {cheat_fast} },       // killough 3/6/98: -fast toggle
+   {.v = cheat_fast} },       // killough 3/6/98: -fast toggle
 
   {"ice",     NULL,                   not_net | not_demo,
-   {cheat_friction} },   // phares 3/10/98: toggle variable friction effects
+   {.v = cheat_friction} },   // phares 3/10/98: toggle variable friction effects
 
   {"push",    NULL,                   not_net | not_demo, 
-   {cheat_pushers} },    // phares 3/10/98: toggle pushers
+   {.v = cheat_pushers} },    // phares 3/10/98: toggle pushers
 
   {"nuke",    NULL,                   not_net | not_demo,
-   {cheat_nuke} },       // killough 12/98: disable nukage damage
+   {.v = cheat_nuke} },       // killough 12/98: disable nukage damage
 
   {"rate",    NULL,                   always,
-   {cheat_rate} },
+   {.v = cheat_rate} },
 
   {"aim",        NULL,                not_net | not_demo | beta_only,
-   {cheat_autoaim} },
+   {.v = cheat_autoaim} },
 
   {"eek",        NULL,                not_dm  | not_demo | beta_only,
-   {cheat_ddt} },        // killough 2/07/98: moved from am_map.c
+   {.v = cheat_ddt} },        // killough 2/07/98: moved from am_map.c
 
   {"amo",        NULL,                not_net | not_demo | beta_only,
-   {cheat_kfa} },
+   {.v = cheat_kfa} },
 
   {"tst",        NULL,                not_net | not_demo | beta_only,
-   {cheat_tst} },
+   {.v = cheat_tst} },
 
   {"nc",         NULL,                not_net | not_demo | beta_only,
-   {cheat_noclip} },
+   {.v = cheat_noclip} },
 
 // [FG] FPS counter widget
   {"showfps",    NULL,                always,
-   {cheat_showfps} },
+   {.v = cheat_showfps} },
 
   {"speed",      NULL,                not_dm,
-   {cheat_speed} },
+   {.v = cheat_speed} },
 
   {NULL}                 // end-of-list marker
 };
@@ -1288,21 +1288,21 @@ static const struct {
   const cheatf_t func;
   const int arg;
 } cheat_input[] = {
-  { input_iddqd,     not_net|not_demo, {cheat_god},      0 },
-  { input_idkfa,     not_net|not_demo, {cheat_kfa},      0 },
-  { input_idfa,      not_net|not_demo, {cheat_fa},       0 },
-  { input_idclip,    not_net|not_demo, {cheat_noclip},   0 },
-  { input_idbeholdh, not_net|not_demo, {cheat_health},   0 },
-  { input_idbeholdm, not_net|not_demo, {cheat_megaarmour}, 0 },
-  { input_idbeholdv, not_net|not_demo, {cheat_pw},       pw_invulnerability },
-  { input_idbeholds, not_net|not_demo, {cheat_pw},       pw_strength },
-  { input_idbeholdi, not_net|not_demo, {cheat_pw},       pw_invisibility },
-  { input_idbeholdr, not_net|not_demo, {cheat_pw},       pw_ironfeet },
-  { input_idbeholdl, not_dm,           {cheat_pw},       pw_infrared },
-  { input_iddt,      not_dm,           {cheat_ddt},      0 },
-  { input_notarget,  not_net|not_demo, {cheat_notarget}, 0 },
-  { input_freeze,    not_net|not_demo, {cheat_freeze},   0 },
-  { input_avj,       not_net|not_demo, {cheat_avj},      0 },
+  { input_iddqd,     not_net|not_demo, {.v = cheat_god},      0 },
+  { input_idkfa,     not_net|not_demo, {.v = cheat_kfa},      0 },
+  { input_idfa,      not_net|not_demo, {.v = cheat_fa},       0 },
+  { input_idclip,    not_net|not_demo, {.v = cheat_noclip},   0 },
+  { input_idbeholdh, not_net|not_demo, {.v = cheat_health},   0 },
+  { input_idbeholdm, not_net|not_demo, {.v = cheat_megaarmour}, 0 },
+  { input_idbeholdv, not_net|not_demo, {.i = cheat_pw},       pw_invulnerability },
+  { input_idbeholds, not_net|not_demo, {.i = cheat_pw},       pw_strength },
+  { input_idbeholdi, not_net|not_demo, {.i = cheat_pw},       pw_invisibility },
+  { input_idbeholdr, not_net|not_demo, {.i = cheat_pw},       pw_ironfeet },
+  { input_idbeholdl, not_dm,           {.i = cheat_pw},       pw_infrared },
+  { input_iddt,      not_dm,           {.v = cheat_ddt},      0 },
+  { input_notarget,  not_net|not_demo, {.v = cheat_notarget}, 0 },
+  { input_freeze,    not_net|not_demo, {.v = cheat_freeze},   0 },
+  { input_avj,       not_net|not_demo, {.v = cheat_avj},      0 },
 };
 
 boolean M_CheatResponder(event_t *ev)
