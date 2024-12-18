@@ -23,6 +23,25 @@
 
 #include "doomtype.h"
 
+typedef enum
+{
+    MapInfo_LabelClear = (1u << 0),
+
+    MapInfo_EndGamePicture = (1u << 2),
+    MapInfo_EndGameStandard = (1u << 3),
+    MapInfo_EndGameCast = (1u << 4),
+    MapInfo_EndGameBunny = (1u << 5),
+    MapInfo_EndGame = (MapInfo_EndGamePicture | MapInfo_EndGameStandard
+                       | MapInfo_EndGameCast | MapInfo_EndGameBunny),
+    MapInfo_EndGameClear = (1u << 6),
+
+    MapInfo_NoIntermission = (1u << 7),
+    MapInfo_InterTextClear = (1u << 8),
+    MapInfo_InterTextSecretClear = (1u << 9),
+
+    MapInfo_BossActionClear = (1u << 10)
+} mapinfo_flags_t;
+
 typedef struct
 {
     int type;
@@ -51,9 +70,8 @@ typedef struct mapentry_s
     char interbackdrop[9];
     char intermusic[9];
     int partime;
-    boolean nointermission;
     bossaction_t *bossactions;
-    boolean nobossactions;
+    mapinfo_flags_t flags;
 } mapentry_t;
 
 extern mapentry_t *umapinfo;
@@ -63,8 +81,6 @@ extern boolean EpiCustom;
 mapentry_t *G_LookupMapinfo(int episode, int map);
 
 boolean G_ValidateMapName(const char *mapname, int *episode, int *map);
-
-boolean U_CheckField(char *str);
 
 void G_ParseMapInfo(int lumpnum);
 

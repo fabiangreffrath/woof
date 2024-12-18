@@ -1085,7 +1085,7 @@ int G_GotoNextLevel(int *pEpi, int *pMap)
       next = gamemapinfo->nextsecret;
     else if (gamemapinfo->nextmap[0])
       next = gamemapinfo->nextmap;
-    else if (U_CheckField(gamemapinfo->endpic))
+    else if (gamemapinfo->flags & MapInfo_EndGame)
     {
       epsd = 1;
       map = 1;
@@ -1693,9 +1693,9 @@ static void G_DoCompleted(void)
     const char *next = NULL;
     boolean intermission = false;
 
-    if (U_CheckField(gamemapinfo->endpic))
+    if (gamemapinfo->flags & MapInfo_EndGame)
     {
-      if (gamemapinfo->nointermission)
+      if (gamemapinfo->flags & MapInfo_NoIntermission)
       {
         gameaction = ga_victory;
         return;
@@ -3313,25 +3313,31 @@ void G_WorldDone(void)
 
   if (gamemapinfo)
   {
-    if (gamemapinfo->intertextsecret && secretexit)
-    {
-      if (U_CheckField(gamemapinfo->intertextsecret)) // if the intermission was not cleared
-        F_StartFinale();
-      return;
-    }
-    else if (gamemapinfo->intertext && !secretexit)
-    {
-      if (U_CheckField(gamemapinfo->intertext)) // if the intermission was not cleared
-        F_StartFinale();
-      return;
-    }
-    else if (U_CheckField(gamemapinfo->endpic) && !secretexit)
-    {
-      // game ends without a status screen.
-      gameaction = ga_victory;
-      return;
-    }
-    // if nothing applied, use the defaults.
+      if (secretexit)
+      {
+          if (gamemapinfo->intertextsecret
+              && !(gamemapinfo->flags & MapInfo_InterTextSecretClear))
+          {
+              F_StartFinale();
+              return;
+          }
+      }
+      else
+      {
+          if (gamemapinfo->intertext
+              && !(gamemapinfo->flags & MapInfo_InterTextClear))
+          {
+              F_StartFinale();
+              return;
+          }
+          else if (gamemapinfo->flags & MapInfo_EndGame)
+          {
+              // game ends without a status screen.
+              gameaction = ga_victory;
+              return;
+          }
+      }
+      // if nothing applied, use the defaults.
   }
 
   if (gamemode == commercial)

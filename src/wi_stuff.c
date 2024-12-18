@@ -1310,7 +1310,7 @@ static void WI_initShowNextLoc(void)
 
   if (gamemapinfo)
   {
-    if (gamemapinfo->endpic[0])
+    if (gamemapinfo->flags & MapInfo_EndGame)
     {
       G_WorldDone();
       return;
@@ -1364,7 +1364,7 @@ static void WI_drawShowNextLoc(void)
   int   i;
   int   last;
 
-  if (gamemapinfo && U_CheckField(gamemapinfo->endpic))
+  if (gamemapinfo && gamemapinfo->flags & MapInfo_EndGame)
   {
     return;
   }

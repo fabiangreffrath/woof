@@ -1314,7 +1314,7 @@ static void SetDefaultSaveName(char *name, const char *append)
     char *maplump = MapName(gameepisode, gamemap);
     int maplumpnum = W_CheckNumForName(maplump);
 
-    if (gamemapinfo && U_CheckField(gamemapinfo->label))
+    if (gamemapinfo && gamemapinfo->label)
     {
         maplump = gamemapinfo->label;
     }

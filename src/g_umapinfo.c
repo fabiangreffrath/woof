@@ -218,19 +218,6 @@ static char *ParseMultiString(scanner_t *s)
 {
     char *build = NULL;
 
-    if (SC_CheckToken(s, TK_Identifier))
-    {
-        if (!strcasecmp(SC_GetString(s), "clear"))
-        {
-            // this was explicitly deleted to override the default.
-            return strdup("-");
-        }
-        else
-        {
-            SC_Error(s, "Either 'clear' or string constant expected");
-        }
-    }
-
     do
     {
         SC_MustGetToken(s, TK_StringConst);
@@ -284,7 +271,7 @@ static void ParseStandardProperty(scanner_t *s, mapentry_t *mape)
         {
             if (!strcasecmp(SC_GetString(s), "clear"))
             {
-                ReplaceString(&mape->label, "-");
+                mape->flags |= MapInfo_LabelClear;
             }
             else
             {
@@ -293,6 +280,7 @@ static void ParseStandardProperty(scanner_t *s, mapentry_t *mape)
         }
         else
         {
+            mape->flags &= ~MapInfo_LabelClear;
             SC_MustGetToken(s, TK_StringConst);
             ReplaceString(&mape->label, SC_GetString(s));
         }
@@ -374,6 +362,7 @@ static void ParseStandardProperty(scanner_t *s, mapentry_t *mape)
     }
     else if (!strcasecmp(prop, "endpic"))
     {
+        mape->flags |= MapInfo_EndGamePicture;
         ParseLumpName(s, mape->endpic);
     }
     else if (!strcasecmp(prop, "endcast"))
@@ -381,11 +370,12 @@ static void ParseStandardProperty(scanner_t *s, mapentry_t *mape)
         SC_MustGetToken(s, TK_BoolConst);
         if (SC_GetBoolean(s))
         {
-            strcpy(mape->endpic, "$CAST");
+            mape->flags |= MapInfo_EndGameCast;
         }
         else
         {
-            strcpy(mape->endpic, "-");
+            mape->flags &= ~MapInfo_EndGameCast;
+            mape->flags |= MapInfo_EndGameClear;
         }
     }
     else if (!strcasecmp(prop, "endbunny"))
@@ -393,11 +383,12 @@ static void ParseStandardProperty(scanner_t *s, mapentry_t *mape)
         SC_MustGetToken(s, TK_BoolConst);
         if (SC_GetBoolean(s))
         {
-            strcpy(mape->endpic, "$BUNNY");
+            mape->flags |= MapInfo_EndGameBunny;
         }
         else
         {
-            strcpy(mape->endpic, "-");
+            mape->flags &= ~MapInfo_EndGameBunny;
+            mape->flags |= MapInfo_EndGameClear;
         }
     }
     else if (!strcasecmp(prop, "endgame"))
@@ -405,11 +396,12 @@ static void ParseStandardProperty(scanner_t *s, mapentry_t *mape)
         SC_MustGetToken(s, TK_BoolConst);
         if (SC_GetBoolean(s))
         {
-            strcpy(mape->endpic, "!");
+            mape->flags |= MapInfo_EndGameStandard;
         }
         else
         {
-            strcpy(mape->endpic, "-");
+            mape->flags &= ~MapInfo_EndGameStandard;
+            mape->flags |= MapInfo_EndGameClear;
         }
     }
     else if (!strcasecmp(prop, "exitpic"))
@@ -431,7 +423,14 @@ static void ParseStandardProperty(scanner_t *s, mapentry_t *mape)
     else if (!strcasecmp(prop, "nointermission"))
     {
         SC_MustGetToken(s, TK_BoolConst);
-        mape->nointermission = SC_GetBoolean(s);
+        if (SC_GetBoolean(s))
+        {
+            mape->flags |= MapInfo_NoIntermission;
+        }
+        else
+        {
+            mape->flags &= ~MapInfo_NoIntermission;
+        }
     }
     else if (!strcasecmp(prop, "partime"))
     {
@@ -440,21 +439,49 @@ static void ParseStandardProperty(scanner_t *s, mapentry_t *mape)
     }
     else if (!strcasecmp(prop, "intertext"))
     {
-        char *text = ParseMultiString(s);
-        if (mape->intertext)
+        if (SC_CheckToken(s, TK_Identifier))
         {
-            free(mape->intertext);
+            if (!strcasecmp(SC_GetString(s), "clear"))
+            {
+                mape->flags |= MapInfo_InterTextClear;
+            }
+            else
+            {
+                SC_Error(s, "Either 'clear' or string constant expected");
+            }
         }
-        mape->intertext = text;
+        else
+        {
+            mape->flags &= ~MapInfo_InterTextClear;
+            if (mape->intertext)
+            {
+                free(mape->intertext);
+            }
+            mape->intertext = ParseMultiString(s);
+        }
     }
     else if (!strcasecmp(prop, "intertextsecret"))
     {
-        char *text = ParseMultiString(s);
-        if (mape->intertextsecret)
+        if (SC_CheckToken(s, TK_Identifier))
         {
-            free(mape->intertextsecret);
+            if (!strcasecmp(SC_GetString(s), "clear"))
+            {
+                mape->flags |= MapInfo_InterTextSecretClear;
+            }
+            else
+            {
+                SC_Error(s, "Either 'clear' or string constant expected");
+            }
         }
-        mape->intertextsecret = text;
+        else
+        {
+            mape->flags &= ~MapInfo_InterTextSecretClear;
+            if (mape->intertextsecret)
+            {
+                free(mape->intertextsecret);
+            }
+            mape->intertextsecret = ParseMultiString(s);
+        }
     }
     else if (!strcasecmp(prop, "interbackdrop"))
     {
@@ -469,11 +496,12 @@ static void ParseStandardProperty(scanner_t *s, mapentry_t *mape)
         SC_MustGetToken(s, TK_Identifier);
         if (!strcasecmp(SC_GetString(s), "clear"))
         {
+            mape->flags |= MapInfo_BossActionClear;
             array_free(mape->bossactions);
-            mape->nobossactions = true; // mark level free of boss actions
         }
         else
         {
+            mape->flags &= ~MapInfo_BossActionClear;
             int type, special, tag;
             for (type = 0; arrlen(actor_names); ++type)
             {
@@ -549,30 +577,33 @@ void G_ParseMapInfo(int lumpnum)
         // Set default level progression here to simplify the checks elsewhere.
         // Doing this lets us skip all normal code for this if nothing has been
         // defined.
-        if (parsed.endpic[0] && (strcmp(parsed.endpic, "-") != 0))
+        if (parsed.flags & MapInfo_EndGame)
         {
             parsed.nextmap[0] = 0;
         }
-        else if (!parsed.nextmap[0] && !parsed.endpic[0])
+        else if (!parsed.nextmap[0] && !(parsed.flags & MapInfo_EndGameClear))
         {
             if (!strcasecmp(parsed.mapname, "MAP30"))
             {
-                strcpy(parsed.endpic, "$CAST");
+                parsed.flags |= MapInfo_EndGameCast;
             }
             else if (!strcasecmp(parsed.mapname, "E1M8"))
             {
+                parsed.flags |= MapInfo_EndGamePicture;
                 strcpy(parsed.endpic, gamemode == retail ? "CREDIT" : "HELP2");
             }
             else if (!strcasecmp(parsed.mapname, "E2M8"))
             {
+                parsed.flags |= MapInfo_EndGamePicture;
                 strcpy(parsed.endpic, "VICTORY2");
             }
             else if (!strcasecmp(parsed.mapname, "E3M8"))
             {
-                strcpy(parsed.endpic, "$BUNNY");
+                parsed.flags |= MapInfo_EndGameBunny;
             }
             else if (!strcasecmp(parsed.mapname, "E4M8"))
             {
+                parsed.flags |= MapInfo_EndGamePicture;
                 strcpy(parsed.endpic, "ENDPIC");
             }
             else
@@ -665,11 +696,6 @@ boolean G_ValidateMapName(const char *mapname, int *episode, int *map)
     }
 
     return !strcmp(mapuname, lumpname);
-}
-
-boolean U_CheckField(char *str)
-{
-    return str && str[0] && strcmp(str, "-");
 }
 
 boolean G_IsSecretMap(int episode, int map)

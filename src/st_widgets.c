@@ -594,10 +594,11 @@ void ST_ResetTitle(void)
             s = gamemapinfo->mapname;
         }
 
-        if (s == gamemapinfo->mapname || U_CheckField(s))
+        if (!(gamemapinfo->flags & MapInfo_LabelClear))
         {
             M_snprintf(string, sizeof(string), "%s: ", s);
         }
+
         s = gamemapinfo->levelname;
     }
     else if (gamestate == GS_LEVEL)
