@@ -70,13 +70,13 @@ static int midstage;                 // whether we're in "mid-stage"
 
 static boolean mapinfo_finale;
 
-static void MapInfo_StartFinale(musicenum_t music_id)
+static boolean MapInfo_StartFinale(void)
 {
     mapinfo_finale = false;
 
     if (!gamemapinfo)
     {
-        return;
+        return false;
     }
 
     if (secretexit)
@@ -117,12 +117,10 @@ static void MapInfo_StartFinale(musicenum_t music_id)
     {
         S_ChangeMusInfoMusic(lumpnum, true);
     }
-    else
-    {
-        S_ChangeMusic(music_id, true);
-    }
 
     mapinfo_finale = true;
+
+    return lumpnum >= 0;
 }
 
 static boolean MapInfo_Ticker()
@@ -338,8 +336,11 @@ void F_StartFinale (void)
          finaletext = s_C1TEXT;  // FIXME - other text, music?
          break;
   }
-
-  MapInfo_StartFinale(music_id);
+  
+  if (!MapInfo_StartFinale())
+  {
+      S_ChangeMusic(music_id, true);
+  }
 
   finalestage = 0;
   finalecount = 0;
