@@ -3229,7 +3229,7 @@ static void SmoothLight(void)
 }
 
 static const char *exit_sequence_strings[] = {
-    "Off", "Sound Only", "PWAD ENDOOM", "Full"
+    "Off", "Sound Only", "ENDOOM Only", "Full"
 };
 
 static const char *fuzzmode_strings[] = {
@@ -3316,6 +3316,8 @@ static setup_menu_t gen_settings6[] = {
 
     {"Exit Sequence", S_CHOICE, OFF_CNTR_X, M_SPC, {"exit_sequence"},
     .strings_id = str_exit_sequence},
+
+    {"PWAD ENDOOM Only", S_ONOFF, OFF_CNTR_X, M_SPC, {"endoom_pwad_only"}},
 
     MI_END
 };
