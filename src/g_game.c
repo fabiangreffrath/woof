@@ -42,6 +42,7 @@
 #include "f_finale.h"
 #include "g_game.h"
 #include "g_nextweapon.h"
+#include "g_umapinfo.h"
 #include "hu_command.h"
 #include "hu_obituary.h"
 #include "i_gamepad.h"
@@ -88,7 +89,6 @@
 #include "st_widgets.h"
 #include "statdump.h" // [FG] StatCopy()
 #include "tables.h"
-#include "u_mapinfo.h"
 #include "v_video.h"
 #include "version.h"
 #include "w_wad.h"
@@ -3847,58 +3847,6 @@ void G_SetFastParms(int fast_pending)
           states[i].tics <<= 1;
     }
   }
-}
-
-mapentry_t *G_LookupMapinfo(int episode, int map)
-{
-  char lumpname[9] = {0};
-  M_StringCopy(lumpname, MapName(episode, map), sizeof(lumpname));
-
-  mapentry_t *entry;
-  array_foreach(entry, umapinfo)
-  {
-    if (!strcasecmp(lumpname, entry->mapname))
-      return entry;
-  }
-
-  return NULL;
-}
-
-// Check if the given map name can be expressed as a gameepisode/gamemap pair
-// and be reconstructed from it.
-int G_ValidateMapName(const char *mapname, int *pEpi, int *pMap)
-{
-  char lumpname[9], mapuname[9];
-  int epi = -1, map = -1;
-
-  if (strlen(mapname) > 8)
-    return 0;
-  strncpy(mapuname, mapname, 8);
-  mapuname[8] = 0;
-  M_StringToUpper(mapuname);
-
-  if (gamemode != commercial)
-  {
-    if (sscanf(mapuname, "E%dM%d", &epi, &map) != 2)
-      return 0;
-    strcpy(lumpname, MapName(epi, map));
-  }
-  else
-  {
-    if (sscanf(mapuname, "MAP%d", &map) != 1)
-      return 0;
-    strcpy(lumpname, MapName(epi = 1, map));
-  }
-
-  if (epi > 4)
-    EpiCustom = true;
-
-  if (pEpi)
-    *pEpi = epi;
-  if (pMap)
-    *pMap = map;
-
-  return !strcmp(mapuname, lumpname);
 }
 
 //

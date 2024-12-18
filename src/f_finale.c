@@ -27,6 +27,7 @@
 #include "doomstat.h"
 #include "doomtype.h"
 #include "g_game.h"
+#include "g_umapinfo.h"
 #include "info.h"
 #include "m_misc.h" // [FG] M_StringDuplicate()
 #include "m_swap.h"
@@ -36,7 +37,6 @@
 #include "sounds.h"
 #include "st_sbardef.h"
 #include "st_stuff.h"
-#include "u_mapinfo.h"
 #include "v_fmt.h"
 #include "v_video.h"
 #include "w_wad.h"

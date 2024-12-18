@@ -24,6 +24,7 @@
 
 #include "doomdef.h"
 #include "doomstat.h"
+#include "g_umapinfo.h"
 #include "i_printf.h"
 #include "i_rumble.h"
 #include "i_sound.h"
@@ -36,7 +37,6 @@
 #include "s_sound.h"
 #include "s_trakinfo.h"
 #include "sounds.h"
-#include "u_mapinfo.h"
 #include "w_wad.h"
 #include "z_zone.h"
 

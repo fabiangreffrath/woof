@@ -37,6 +37,7 @@
 #include "doomtype.h"
 #include "dstrings.h"
 #include "g_game.h"
+#include "g_umapinfo.h"
 #include "i_input.h"
 #include "i_printf.h"
 #include "i_system.h"
@@ -59,7 +60,6 @@
 #include "st_sbardef.h"
 #include "st_stuff.h"
 #include "st_widgets.h"
-#include "u_mapinfo.h"
 #include "v_fmt.h"
 #include "v_video.h"
 #include "w_wad.h"
@@ -517,13 +517,13 @@ static short EpiMenuEpi[MAX_EPISODES] = {1, 2, 3, 4, -1, -1, -1, -1, -1, -1};
 //
 static int epiChoice;
 
-void M_ClearEpisodes(void)
+void MN_ClearEpisodes(void)
 {
     EpiDef.numitems = 0;
     NewDef.prevMenu = &MainDef;
 }
 
-void M_AddEpisode(const char *map, const char *gfx, const char *txt, char key)
+void MN_AddEpisode(const char *map, const char *gfx, const char *txt, char key)
 {
     int epi, mapnum;
 
@@ -540,7 +540,8 @@ void M_AddEpisode(const char *map, const char *gfx, const char *txt, char key)
 
     if (EpiDef.numitems == 8)
     {
-        I_Printf(VB_WARNING, "M_AddEpisode: UMAPINFO spec limit of 8 episodes exceeded!");
+        I_Printf(VB_WARNING,
+                 "MN_AddEpisode: UMAPINFO spec limit of 8 episodes exceeded!");
     }
     else if (EpiDef.numitems >= MAX_EPISODES)
     {

@@ -18,8 +18,8 @@
 //
 //-----------------------------------------------------------------------------
 
-#ifndef UMAPINFO_H
-#define UMAPINFO_H
+#ifndef G_UMAPINFO_H
+#define G_UMAPINFO_H
 
 #include "doomtype.h"
 
@@ -62,10 +62,12 @@ extern boolean EpiCustom;
 
 mapentry_t *G_LookupMapinfo(int episode, int map);
 
+boolean G_ValidateMapName(const char *mapname, int *episode, int *map);
+
 boolean U_CheckField(char *str);
 
-void U_ParseMapInfo(int lumpnum);
+void G_ParseMapInfo(int lumpnum);
 
-boolean U_IsSecretMap(int episode, int map);
+boolean G_IsSecretMap(int episode, int map);
 
 #endif

@@ -24,6 +24,7 @@
 #include "doomstat.h"
 #include "doomtype.h"
 #include "dstrings.h"
+#include "g_umapinfo.h"
 #include "hu_command.h"
 #include "hu_coordinates.h"
 #include "hu_obituary.h"
@@ -41,7 +42,6 @@
 #include "sounds.h"
 #include "st_sbardef.h"
 #include "st_stuff.h"
-#include "u_mapinfo.h"
 #include "v_video.h"
 
 boolean       show_messages;

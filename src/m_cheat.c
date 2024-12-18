@@ -30,6 +30,7 @@
 #include "doomdef.h"
 #include "doomstat.h"
 #include "g_game.h"
+#include "g_umapinfo.h"
 #include "info.h"
 #include "m_cheat.h"
 #include "m_array.h"
@@ -51,7 +52,6 @@
 #include "sounds.h"
 #include "st_widgets.h"
 #include "tables.h"
-#include "u_mapinfo.h"
 #include "w_wad.h"
 #include "ws_stuff.h"
 

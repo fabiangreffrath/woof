@@ -18,25 +18,24 @@
 //
 //-----------------------------------------------------------------------------
 
+#include "g_umapinfo.h"
+
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
 #include "doomdef.h"
 #include "doomstat.h"
 #include "doomtype.h"
+#include "g_game.h"
 #include "m_array.h"
 #include "m_misc.h"
 #include "m_scanner.h"
-#include "u_mapinfo.h"
+#include "mn_menu.h"
 #include "w_wad.h"
 #include "z_zone.h"
 
-void M_AddEpisode(const char *map, const char *gfx, const char *txt, char key);
-void M_ClearEpisodes(void);
-
-int G_ValidateMapName(const char *mapname, int *pEpi, int *pMap);
-
-mapentry_t *umapinfo = NULL, *umapdef = NULL;
+mapentry_t *umapinfo = NULL;
 
 static level_t *secretlevels;
 
@@ -309,7 +308,7 @@ static void ParseStandardProperty(scanner_t *s, mapentry_t *mape)
         {
             if (!strcasecmp(SC_GetString(s), "clear"))
             {
-                M_ClearEpisodes();
+                MN_ClearEpisodes();
             }
             else
             {
@@ -335,7 +334,7 @@ static void ParseStandardProperty(scanner_t *s, mapentry_t *mape)
                 }
             }
 
-            M_AddEpisode(mape->mapname, lumpname, alttext, key);
+            MN_AddEpisode(mape->mapname, lumpname, alttext, key);
 
             if (alttext)
             {
@@ -538,7 +537,7 @@ static void ParseMapEntry(scanner_t *s, mapentry_t *entry)
     }
 }
 
-void U_ParseMapInfo(int lumpnum)
+void G_ParseMapInfo(int lumpnum)
 {
     scanner_t *s = SC_Open("UMAPINFO", W_CacheLumpNum(lumpnum, PU_CACHE),
                            W_LumpLength(lumpnum));
@@ -605,12 +604,75 @@ void U_ParseMapInfo(int lumpnum)
     SC_Close(s);
 }
 
+mapentry_t *G_LookupMapinfo(int episode, int map)
+{
+    char lumpname[9] = {0};
+    M_StringCopy(lumpname, MapName(episode, map), sizeof(lumpname));
+
+    mapentry_t *entry;
+    array_foreach(entry, umapinfo)
+    {
+        if (!strcasecmp(lumpname, entry->mapname))
+        {
+            return entry;
+        }
+    }
+
+    return NULL;
+}
+
+// Check if the given map name can be expressed as a gameepisode/gamemap pair
+// and be reconstructed from it.
+
+boolean G_ValidateMapName(const char *mapname, int *episode, int *map)
+{
+    if (strlen(mapname) > 8)
+    {
+        return false;
+    }
+
+    char lumpname[9], mapuname[9];
+    int e = -1, m = -1;
+
+    M_StringCopy(mapuname, mapname, 8);
+    mapuname[8] = 0;
+    M_StringToUpper(mapuname);
+
+    if (gamemode != commercial)
+    {
+        if (sscanf(mapuname, "E%dM%d", &e, &m) != 2)
+        {
+            return 0;
+        }
+        strcpy(lumpname, MapName(e, m));
+    }
+    else
+    {
+        if (sscanf(mapuname, "MAP%d", &m) != 1)
+        {
+            return 0;
+        }
+        strcpy(lumpname, MapName(e = 1, m));
+    }
+
+    if (episode)
+    {
+        *episode = e;
+    }
+    if (map)
+    {
+        *map = m;
+    }
+
+    return !strcmp(mapuname, lumpname);
+}
+
 boolean U_CheckField(char *str)
 {
     return str && str[0] && strcmp(str, "-");
 }
 
-boolean U_IsSecretMap(int episode, int map)
+boolean G_IsSecretMap(int episode, int map)
 {
     level_t *level;
     array_foreach(level, secretlevels)

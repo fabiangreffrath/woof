@@ -29,6 +29,7 @@
 #include "doomstat.h"
 #include "doomtype.h"
 #include "g_game.h"
+#include "g_umapinfo.h"
 #include "hu_obituary.h"
 #include "i_printf.h"
 #include "i_system.h"
@@ -53,7 +54,6 @@
 #include "s_sound.h"
 #include "sounds.h"
 #include "tables.h"
-#include "u_mapinfo.h"
 #include "z_zone.h"
 
 static mobj_t *current_actor;
