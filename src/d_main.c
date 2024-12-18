@@ -1646,7 +1646,7 @@ static boolean endoom_pwad_only;
 boolean D_AllowQuitSound(void)
 {
   return (exit_sequence == EXIT_SEQUENCE_FULL
-          || (exit_sequence == EXIT_SEQUENCE_SOUND_ONLY));
+          || exit_sequence == EXIT_SEQUENCE_SOUND_ONLY);
 }
 
 static void D_ShowEndDoom(void)
@@ -1663,7 +1663,7 @@ static boolean AllowEndDoom(void)
 {
   return (!disable_endoom
           && (exit_sequence == EXIT_SEQUENCE_FULL
-          || (exit_sequence == EXIT_SEQUENCE_ENDOOM_ONLY)));
+          || exit_sequence == EXIT_SEQUENCE_ENDOOM_ONLY));
 }
 
 static boolean AllowEndDoomPWADOnly() {
