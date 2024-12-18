@@ -23,6 +23,7 @@
 
 #include <stddef.h> // size_t, NULL
 #include <stdint.h> // [FG] intptr_t types
+#include <stdbool.h>
 
 #include "config.h"
 
