@@ -27,11 +27,11 @@ typedef enum
 {
     MapInfo_LabelClear = (1u << 0),
 
-    MapInfo_EndGamePicture = (1u << 2),
+    MapInfo_EndGameArt = (1u << 2),
     MapInfo_EndGameStandard = (1u << 3),
     MapInfo_EndGameCast = (1u << 4),
     MapInfo_EndGameBunny = (1u << 5),
-    MapInfo_EndGame = (MapInfo_EndGamePicture | MapInfo_EndGameStandard
+    MapInfo_EndGame = (MapInfo_EndGameArt | MapInfo_EndGameStandard
                        | MapInfo_EndGameCast | MapInfo_EndGameBunny),
     MapInfo_EndGameClear = (1u << 6),
 

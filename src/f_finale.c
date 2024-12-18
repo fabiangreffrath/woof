@@ -45,7 +45,16 @@
 
 // Stage of animation:
 //  0 = text, 1 = art screen, 2 = character cast
-static int finalestage;
+
+typedef enum
+{
+    FINALE_STAGE_TEXT,
+    FINALE_STAGE_ART,
+    FINALE_STAGE_CAST
+} finalestage_t;
+
+static finalestage_t finalestage;
+
 static int finalecount;
 
 // defines for the end mission display text                     // phares
@@ -152,7 +161,13 @@ static boolean MapInfo_Ticker()
         // advance animation
         finalecount++;
 
-        if (!finalestage)
+        if (finalestage == FINALE_STAGE_CAST)
+        {
+            F_CastTicker();
+            return true;
+        }
+
+        if (finalestage == FINALE_STAGE_TEXT)
         {
             int textcount = 0;
             if (finaletext)
@@ -177,12 +192,11 @@ static boolean MapInfo_Ticker()
             if (gamemapinfo->flags & MapInfo_EndGameCast)
             {
                 F_StartCast();
-                mapinfo_finale = false;
             }
             else
             {
                 finalecount = 0;
-                finalestage = 1;
+                finalestage = FINALE_STAGE_ART;
                 wipegamestate = -1; // force a wipe
                 if (gamemapinfo->flags & MapInfo_EndGameBunny)
                 {
@@ -210,17 +224,28 @@ static boolean MapInfo_Drawer(void)
         return false;
     }
 
-    if (!finalestage && finaletext)
+    switch (finalestage)
     {
-        F_TextWrite();
-    }
-    else if (gamemapinfo->flags & MapInfo_EndGameBunny)
-    {
-        F_BunnyScroll();
-    }
-    else if (gamemapinfo->endpic[0])
-    {
-        V_DrawPatchFullScreen(V_CachePatchName(gamemapinfo->endpic, PU_CACHE));
+        case FINALE_STAGE_TEXT:
+            if (finaletext)
+            {
+                F_TextWrite();
+            }
+            break;
+        case FINALE_STAGE_ART:
+            if (gamemapinfo->flags & MapInfo_EndGameBunny)
+            {
+                F_BunnyScroll();
+            }
+            else if (gamemapinfo->endpic[0])
+            {
+                V_DrawPatchFullScreen(
+                    V_CachePatchName(gamemapinfo->endpic, PU_CACHE));
+            }
+            break;
+        case FINALE_STAGE_CAST:
+            F_CastDrawer();
+            break;
     }
 
     return true;
@@ -342,13 +367,13 @@ void F_StartFinale (void)
       S_ChangeMusic(music_id, true);
   }
 
-  finalestage = 0;
+  finalestage = FINALE_STAGE_TEXT;
   finalecount = 0;
 }
 
 boolean F_Responder (event_t *event)
 {
-  if (finalestage == 2)
+  if (finalestage == FINALE_STAGE_CAST)
     return F_CastResponder(event);
         
   return false;
@@ -395,10 +420,10 @@ void F_Ticker(void)
   // advance animation
   finalecount++;
  
-  if (finalestage == 2)
+  if (finalestage == FINALE_STAGE_CAST)
     F_CastTicker();
 
-  if (!finalestage)
+  if (finalestage == FINALE_STAGE_TEXT)
     {
       float speed = demo_compatibility ? TEXTSPEED : Get_TextSpeed();
       if (finalecount > strlen(finaletext)*speed +  // phares
@@ -408,7 +433,7 @@ void F_Ticker(void)
         if (gamemode != commercial)       // Doom 1 / Ultimate Doom episode end
           {                               // with enough time, it's automatic
             finalecount = 0;
-            finalestage = 1;
+            finalestage = FINALE_STAGE_ART;
             wipegamestate = -1;         // force a wipe
             if (gameepisode == 3)
               S_StartMusic(mus_bunny);
@@ -554,7 +579,7 @@ static void F_StartCast(void)
   caststate = &states[mobjinfo[castorder[castnum].type].seestate];
   casttics = caststate->tics;
   castdeath = false;
-  finalestage = 2;    
+  finalestage = FINALE_STAGE_CAST;    
   castframes = 0;
   castonmelee = 0;
   castattacking = false;
@@ -857,13 +882,13 @@ void F_Drawer (void)
       return;
   }
 
-  if (finalestage == 2)
+  if (finalestage == FINALE_STAGE_CAST)
   {
     F_CastDrawer ();
     return;
   }
 
-  if (!finalestage)
+  if (finalestage == FINALE_STAGE_TEXT)
     F_TextWrite ();
   else
   {

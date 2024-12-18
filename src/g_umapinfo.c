@@ -362,7 +362,7 @@ static void ParseStandardProperty(scanner_t *s, mapentry_t *mape)
     }
     else if (!strcasecmp(prop, "endpic"))
     {
-        mape->flags |= MapInfo_EndGamePicture;
+        mape->flags |= MapInfo_EndGameArt;
         ParseLumpName(s, mape->endpic);
     }
     else if (!strcasecmp(prop, "endcast"))
@@ -589,12 +589,12 @@ void G_ParseMapInfo(int lumpnum)
             }
             else if (!strcasecmp(parsed.mapname, "E1M8"))
             {
-                parsed.flags |= MapInfo_EndGamePicture;
+                parsed.flags |= MapInfo_EndGameArt;
                 strcpy(parsed.endpic, gamemode == retail ? "CREDIT" : "HELP2");
             }
             else if (!strcasecmp(parsed.mapname, "E2M8"))
             {
-                parsed.flags |= MapInfo_EndGamePicture;
+                parsed.flags |= MapInfo_EndGameArt;
                 strcpy(parsed.endpic, "VICTORY2");
             }
             else if (!strcasecmp(parsed.mapname, "E3M8"))
@@ -603,7 +603,7 @@ void G_ParseMapInfo(int lumpnum)
             }
             else if (!strcasecmp(parsed.mapname, "E4M8"))
             {
-                parsed.flags |= MapInfo_EndGamePicture;
+                parsed.flags |= MapInfo_EndGameArt;
                 strcpy(parsed.endpic, "ENDPIC");
             }
             else
