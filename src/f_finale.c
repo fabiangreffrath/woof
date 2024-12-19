@@ -27,6 +27,7 @@
 #include "doomstat.h"
 #include "doomtype.h"
 #include "g_game.h"
+#include "g_umapinfo.h"
 #include "info.h"
 #include "m_misc.h" // [FG] M_StringDuplicate()
 #include "m_swap.h"
@@ -36,7 +37,6 @@
 #include "sounds.h"
 #include "st_sbardef.h"
 #include "st_stuff.h"
-#include "u_mapinfo.h"
 #include "v_fmt.h"
 #include "v_video.h"
 #include "w_wad.h"
@@ -45,8 +45,17 @@
 
 // Stage of animation:
 //  0 = text, 1 = art screen, 2 = character cast
-int finalestage;
-int finalecount;
+
+typedef enum
+{
+    FINALE_STAGE_TEXT,
+    FINALE_STAGE_ART,
+    FINALE_STAGE_CAST
+} finalestage_t;
+
+static finalestage_t finalestage;
+
+static int finalecount;
 
 // defines for the end mission display text                     // phares
 
@@ -58,21 +67,196 @@ int finalecount;
 static const char *finaletext;
 static const char *finaleflat;
 
-void    F_StartCast (void);
-void    F_CastTicker (void);
-boolean F_CastResponder (event_t *ev);
-void    F_CastDrawer (void);
+static void F_StartCast(void);
+static void F_CastTicker(void);
+static boolean F_CastResponder(event_t *ev);
+static void F_CastDrawer(void);
+static void F_TextWrite(void);
+static void F_BunnyScroll(void);
+static float Get_TextSpeed(void);
 
 static int midstage;                 // whether we're in "mid-stage"
 
-boolean using_FMI;
+static boolean mapinfo_finale;
+
+static boolean MapInfo_StartFinale(void)
+{
+    mapinfo_finale = false;
+
+    if (!gamemapinfo)
+    {
+        return false;
+    }
+
+    if (secretexit)
+    {
+        if (gamemapinfo->flags & MapInfo_InterTextSecretClear)
+        {
+            finaletext = NULL;
+        }
+        else if (gamemapinfo->intertextsecret)
+        {
+            finaletext = gamemapinfo->intertextsecret;
+        }
+    }
+    else
+    {
+        if (gamemapinfo->flags & MapInfo_InterTextClear)
+        {
+            finaletext = NULL;
+        }
+        else if (gamemapinfo->intertext)
+        {
+            finaletext = gamemapinfo->intertext;
+        }
+    }
+
+    if (gamemapinfo->interbackdrop[0])
+    {
+        finaleflat = gamemapinfo->interbackdrop;
+    }
+
+    if (!finaleflat)
+    {
+        finaleflat = "FLOOR4_8"; // use a single fallback for all maps.
+    }
+
+    int lumpnum = W_CheckNumForName(gamemapinfo->intermusic);
+    if (lumpnum >= 0)
+    {
+        S_ChangeMusInfoMusic(lumpnum, true);
+    }
+
+    mapinfo_finale = true;
+
+    return lumpnum >= 0;
+}
+
+static boolean MapInfo_Ticker()
+{
+    if (!mapinfo_finale)
+    {
+        return false;
+    }
+
+    boolean next_level = false;
+
+    if (!demo_compatibility)
+    {
+        WI_checkForAccelerate();
+    }
+    else
+    {
+        for (int i = 0; i < MAXPLAYERS; ++i)
+        {
+            if (players[i].cmd.buttons)
+            {
+                next_level = true;
+            }
+        }
+    }
+
+    if (!next_level)
+    {
+        // advance animation
+        finalecount++;
+
+        if (finalestage == FINALE_STAGE_CAST)
+        {
+            F_CastTicker();
+            return true;
+        }
+
+        if (finalestage == FINALE_STAGE_TEXT)
+        {
+            int textcount = 0;
+            if (finaletext)
+            {
+                float speed = demo_compatibility ? TEXTSPEED : Get_TextSpeed();
+                textcount = strlen(finaletext) * speed
+                            + (midstage ? NEWTEXTWAIT : TEXTWAIT);
+            }
+
+            if (!textcount || finalecount > textcount
+                || (midstage && acceleratestage))
+            {
+                next_level = true;
+            }
+        }
+    }
+
+    if (next_level)
+    {
+        if (!secretexit && gamemapinfo->flags & MapInfo_EndGame)
+        {
+            if (gamemapinfo->flags & MapInfo_EndGameCast)
+            {
+                F_StartCast();
+            }
+            else
+            {
+                finalecount = 0;
+                finalestage = FINALE_STAGE_ART;
+                wipegamestate = -1; // force a wipe
+                if (gamemapinfo->flags & MapInfo_EndGameBunny)
+                {
+                    S_StartMusic(mus_bunny);
+                }
+                else if (gamemapinfo->flags & MapInfo_EndGameStandard)
+                {
+                    mapinfo_finale = false;
+                }
+            }
+        }
+        else
+        {
+            gameaction = ga_worlddone; // next level, e.g. MAP07
+        }
+    }
+
+    return true;
+}
+
+static boolean MapInfo_Drawer(void)
+{
+    if (!mapinfo_finale)
+    {
+        return false;
+    }
+
+    switch (finalestage)
+    {
+        case FINALE_STAGE_TEXT:
+            if (finaletext)
+            {
+                F_TextWrite();
+            }
+            break;
+        case FINALE_STAGE_ART:
+            if (gamemapinfo->flags & MapInfo_EndGameBunny)
+            {
+                F_BunnyScroll();
+            }
+            else if (gamemapinfo->endpic[0])
+            {
+                V_DrawPatchFullScreen(
+                    V_CachePatchName(gamemapinfo->endpic, PU_CACHE));
+            }
+            break;
+        case FINALE_STAGE_CAST:
+            F_CastDrawer();
+            break;
+    }
+
+    return true;
+}
 
 //
 // F_StartFinale
 //
 void F_StartFinale (void)
 {
-  boolean mus_changed = false;
+  musicenum_t music_id = mus_None;
 
   gameaction = ga_nothing;
   gamestate = GS_FINALE;
@@ -85,16 +269,6 @@ void F_StartFinale (void)
   finaletext = NULL;
   finaleflat = NULL;
 
-  if (gamemapinfo && gamemapinfo->intermusic[0])
-  {
-    int l = W_CheckNumForName(gamemapinfo->intermusic);
-    if (l >= 0)
-    {
-      S_ChangeMusInfoMusic(l, true);
-      mus_changed = true;
-    }
-  }
-
   // Okay - IWAD dependend stuff.
   // This has been changed severly, and
   //  some stuff might have changed in the process.
@@ -105,7 +279,7 @@ void F_StartFinale (void)
     case registered:
     case retail:
     {
-      if (!mus_changed) S_ChangeMusic(mus_victor, true);
+      music_id = mus_victor;
       
       switch (gameepisode)
       {
@@ -135,7 +309,7 @@ void F_StartFinale (void)
     // DOOM II and missions packs with E1, M34
     case commercial:
     {
-      if (!mus_changed) S_ChangeMusic(mus_read_m, true);
+      music_id = mus_read_m;
 
       // Ty 08/27/98 - added the gamemission logic
 
@@ -182,49 +356,25 @@ void F_StartFinale (void)
 
     // Indeterminate.
     default:  // Ty 03/30/98 - not externalized
-         if (!mus_changed) S_ChangeMusic(mus_read_m, true);
+         music_id = mus_read_m;
          finaleflat = "F_SKY1"; // Not used anywhere else.
          finaletext = s_C1TEXT;  // FIXME - other text, music?
          break;
   }
-
-  using_FMI = false;
   
-  if (gamemapinfo)
+  if (!MapInfo_StartFinale())
   {
-    if (U_CheckField(gamemapinfo->intertextsecret) && secretexit)
-    {
-      finaletext = gamemapinfo->intertextsecret;
-    }
-    else if (U_CheckField(gamemapinfo->intertext) && !secretexit)
-    {
-      finaletext = gamemapinfo->intertext;
-    }
-
-    if (!finaletext)
-      finaletext = "The End"; // this is to avoid a crash on a missing text in the last map.
-
-    if (gamemapinfo->interbackdrop[0])
-    {
-      finaleflat = gamemapinfo->interbackdrop;
-    }
-
-    if (!finaleflat)
-      finaleflat = "FLOOR4_8"; // use a single fallback for all maps.
-
-    using_FMI = true;
+      S_ChangeMusic(music_id, true);
   }
 
-  finalestage = 0;
+  finalestage = FINALE_STAGE_TEXT;
   finalecount = 0;
 }
 
-
-
 boolean F_Responder (event_t *event)
 {
-  if (finalestage == 2)
-    return F_CastResponder (event);
+  if (finalestage == FINALE_STAGE_CAST)
+    return F_CastResponder(event);
         
   return false;
 }
@@ -237,7 +387,6 @@ static float Get_TextSpeed(void)
   return midstage ? NEWTEXTSPEED : (midstage=acceleratestage) ? 
     acceleratestage=0, NEWTEXTSPEED : TEXTSPEED;
 }
-
 
 //
 // F_Ticker
@@ -252,41 +401,18 @@ static float Get_TextSpeed(void)
 // killough 5/10/98: add back v1.9 demo compatibility
 //
 
-static void FMI_Ticker()
-{
-  if (U_CheckField(gamemapinfo->endpic))
-  {
-    if (!strcasecmp(gamemapinfo->endpic, "$CAST"))
-    {
-      F_StartCast();
-      using_FMI = false;
-    }
-    else
-    {
-      finalecount = 0;
-      finalestage = 1;
-      wipegamestate = -1;         // force a wipe
-      if (!strcasecmp(gamemapinfo->endpic, "$BUNNY"))
-      {
-        S_StartMusic(mus_bunny);
-      }
-      else if (!strcasecmp(gamemapinfo->endpic, "!"))
-      {
-        using_FMI = false;
-      }
-    }
-  }
-  else
-    gameaction = ga_worlddone;  // next level, e.g. MAP07
-}
-
 void F_Ticker(void)
 {
+  if (MapInfo_Ticker())
+  {
+      return;
+  }
+
   int i;
   if (!demo_compatibility)
     WI_checkForAccelerate();  // killough 3/28/98: check for acceleration
   else
-    if (gamemode == commercial && (using_FMI || finalecount > 50)) // check for skipping
+    if (gamemode == commercial && finalecount > 50) // check for skipping
       for (i=0; i<MAXPLAYERS; i++)
         if (players[i].cmd.buttons)
           goto next_level;      // go on to the next level
@@ -294,24 +420,20 @@ void F_Ticker(void)
   // advance animation
   finalecount++;
  
-  if (finalestage == 2)
+  if (finalestage == FINALE_STAGE_CAST)
     F_CastTicker();
 
-  if (!finalestage)
+  if (finalestage == FINALE_STAGE_TEXT)
     {
       float speed = demo_compatibility ? TEXTSPEED : Get_TextSpeed();
       if (finalecount > strlen(finaletext)*speed +  // phares
           (midstage ? NEWTEXTWAIT : TEXTWAIT) ||  // killough 2/28/98:
           (midstage && acceleratestage))       // changed to allow acceleration
       {
-        if (using_FMI)
-          {
-            FMI_Ticker();
-          }
-        else if (gamemode != commercial)       // Doom 1 / Ultimate Doom episode end
+        if (gamemode != commercial)       // Doom 1 / Ultimate Doom episode end
           {                               // with enough time, it's automatic
             finalecount = 0;
-            finalestage = 1;
+            finalestage = FINALE_STAGE_ART;
             wipegamestate = -1;         // force a wipe
             if (gameepisode == 3)
               S_StartMusic(mus_bunny);
@@ -320,11 +442,7 @@ void F_Ticker(void)
           if (!demo_compatibility && midstage)
             {
             next_level:
-              if (using_FMI)
-                {
-                  FMI_Ticker();
-                }
-              else if (gamemap == 30)
+              if (gamemap == 30)
                 F_StartCast();              // cast of Doom 2 characters
               else
                 gameaction = ga_worlddone;  // next level, e.g. MAP07
@@ -344,7 +462,7 @@ void F_Ticker(void)
 // text can be increased, and there's still time to read what's     //   |
 // written.                                                         // phares
 
-void F_TextWrite (void)
+static void F_TextWrite(void)
 {
   int         w;         // killough 8/9/98: move variables below
   int         count;
@@ -434,7 +552,7 @@ boolean         castattacking;
 //
 // F_StartCast
 //
-void F_StartCast (void)
+static void F_StartCast(void)
 {
   // Ty 03/23/98 - clumsy but time is of the essence
   castorder[0].name = s_CC_ZOMBIE,  castorder[0].type = MT_POSSESSED;
@@ -461,7 +579,7 @@ void F_StartCast (void)
   caststate = &states[mobjinfo[castorder[castnum].type].seestate];
   casttics = caststate->tics;
   castdeath = false;
-  finalestage = 2;    
+  finalestage = FINALE_STAGE_CAST;    
   castframes = 0;
   castonmelee = 0;
   castattacking = false;
@@ -472,7 +590,7 @@ void F_StartCast (void)
 //
 // F_CastTicker
 //
-void F_CastTicker (void)
+static void F_CastTicker(void)
 {
   int st;
   int sfx;
@@ -579,7 +697,7 @@ void F_CastTicker (void)
 // F_CastResponder
 //
 
-boolean F_CastResponder (event_t* ev)
+static boolean F_CastResponder(event_t* ev)
 {
   if (ev->type != ev_keydown && ev->type != ev_mouseb_down && ev->type != ev_joyb_down)
     return false;
@@ -600,7 +718,7 @@ boolean F_CastResponder (event_t* ev)
 }
 
 
-void F_CastPrint (char* text)
+static void F_CastPrint(char* text)
 {
   char*       ch;
   int         c;
@@ -654,7 +772,7 @@ void F_CastPrint (char* text)
 // F_CastDrawer
 //
 
-void F_CastDrawer (void)
+static void F_CastDrawer(void)
 {
   spritedef_t*        sprdef;
   spriteframe_t*      sprframe;
@@ -683,7 +801,7 @@ void F_CastDrawer (void)
 //
 // F_BunnyScroll
 //
-void F_BunnyScroll (void)
+static void F_BunnyScroll(void)
 {
   int         scrolled;
   patch_t*    p1;
@@ -759,30 +877,18 @@ void F_BunnyScroll (void)
 //
 void F_Drawer (void)
 {
-  if (using_FMI)
+  if (MapInfo_Drawer())
   {
-    if (!finalestage)
-    {
-      F_TextWrite();
-    }
-    else if (strcmp(gamemapinfo->endpic, "$BUNNY") == 0)
-    {
-      F_BunnyScroll();
-    }
-    else
-    {
-      V_DrawPatchFullScreen(V_CachePatchName(gamemapinfo->endpic, PU_CACHE));
-    }
-    return;
+      return;
   }
 
-  if (finalestage == 2)
+  if (finalestage == FINALE_STAGE_CAST)
   {
     F_CastDrawer ();
     return;
   }
 
-  if (!finalestage)
+  if (finalestage == FINALE_STAGE_TEXT)
     F_TextWrite ();
   else
   {

@@ -23,7 +23,7 @@
 #include "s_musinfo.h"
 
 #include "doomtype.h"
-#include "g_game.h"
+#include "g_umapinfo.h"
 #include "i_printf.h"
 #include "p_mobj.h"
 #include "s_sound.h"

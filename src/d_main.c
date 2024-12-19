@@ -80,7 +80,7 @@
 #include "st_stuff.h"
 #include "st_widgets.h"
 #include "statdump.h"
-#include "u_mapinfo.h"
+#include "g_umapinfo.h"
 #include "v_fmt.h"
 #include "v_video.h"
 #include "w_wad.h"
@@ -2379,7 +2379,7 @@ void D_DoomMain(void)
 
   if (!M_ParmExists("-nomapinfo"))
   {
-    W_ProcessInWads("UMAPINFO", U_ParseMapInfo, PROCESS_IWAD | PROCESS_PWAD);
+    W_ProcessInWads("UMAPINFO", G_ParseMapInfo, PROCESS_IWAD | PROCESS_PWAD);
   }
 
   G_ParseCompDatabase();

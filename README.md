@@ -155,7 +155,6 @@ Copyright:
  © 2007-2011 Moritz "Ripper" Kroll;  
  © 2008-2019 Simon Judd;  
  © 2017 Christoph Oelckers;  
- © 2019 Fernando Carmona Varo;  
  © 2020 Alex Mayfield;  
  © 2020-2024 Fabian Greffrath;  
  © 2020-2024 Roman Fomin;  

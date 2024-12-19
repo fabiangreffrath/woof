@@ -26,6 +26,7 @@
 #include "doomdef.h"
 #include "doomstat.h"
 #include "doomtype.h"
+#include "g_umapinfo.h"
 #include "g_game.h"
 #include "i_printf.h"
 #include "m_misc.h"
@@ -37,7 +38,6 @@
 #include "st_sbardef.h"
 #include "st_stuff.h"
 #include "sounds.h"
-#include "u_mapinfo.h"
 #include "v_fmt.h"
 #include "v_video.h"
 #include "w_wad.h"
@@ -464,7 +464,7 @@ static boolean CheckConditions(interlevelcond_t *conditions,
                 break;
 
             case AnimCondition_MapNotSecret:
-                conditionsmet &= !U_IsSecretMap(episode, map);
+                conditionsmet &= !G_IsSecretMap(episode, map);
                 break;
 
             case AnimCondition_SecretVisited:
@@ -1310,7 +1310,7 @@ static void WI_initShowNextLoc(void)
 
   if (gamemapinfo)
   {
-    if (gamemapinfo->endpic[0])
+    if (gamemapinfo->flags & MapInfo_EndGame)
     {
       G_WorldDone();
       return;
@@ -1364,7 +1364,7 @@ static void WI_drawShowNextLoc(void)
   int   i;
   int   last;
 
-  if (gamemapinfo && U_CheckField(gamemapinfo->endpic))
+  if (gamemapinfo && gamemapinfo->flags & MapInfo_EndGame)
   {
     return;
   }
