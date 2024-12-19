@@ -27,7 +27,6 @@
 #include "doomdef.h"
 #include "doomstat.h"
 #include "doomtype.h"
-#include "g_game.h"
 #include "m_array.h"
 #include "m_misc.h"
 #include "m_scanner.h"

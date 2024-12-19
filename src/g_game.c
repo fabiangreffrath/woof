@@ -3315,8 +3315,11 @@ void G_WorldDone(void)
   {
       if (secretexit)
       {
-          if (gamemapinfo->intertextsecret
-              && !(gamemapinfo->flags & MapInfo_InterTextSecretClear))
+          if (gamemapinfo->flags & MapInfo_InterTextSecretClear)
+          {
+              return;
+          }
+          if (gamemapinfo->intertextsecret)
           {
               F_StartFinale();
               return;
@@ -3324,16 +3327,19 @@ void G_WorldDone(void)
       }
       else
       {
-          if (gamemapinfo->intertext
-              && !(gamemapinfo->flags & MapInfo_InterTextClear))
-          {
-              F_StartFinale();
-              return;
-          }
-          else if (gamemapinfo->flags & MapInfo_EndGame)
+          if (gamemapinfo->flags & MapInfo_EndGame)
           {
               // game ends without a status screen.
               gameaction = ga_victory;
+              return;
+          }
+          else if (gamemapinfo->flags & MapInfo_InterTextClear)
+          {
+              return;
+          }
+          else if (gamemapinfo->intertext)
+          {
+              F_StartFinale();
               return;
           }
       }
