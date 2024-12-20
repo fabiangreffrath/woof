@@ -241,6 +241,10 @@ static void ParseLumpName(scanner_t *s, char *buffer)
     strncpy(buffer, SC_GetString(s), 8);
     buffer[8] = 0;
     M_StringToUpper(buffer);
+    if (W_CheckNumForName(buffer) < 0)
+    {
+        SC_Error(s, "'%s' not found.", SC_GetString(s));
+    }
 }
 
 // Parses a standard property that is already known

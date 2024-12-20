@@ -3313,6 +3313,13 @@ void G_WorldDone(void)
 
   if (gamemapinfo)
   {
+      if (gamemapinfo->flags & MapInfo_InterTextClear
+          && gamemapinfo->flags & MapInfo_EndGame)
+      {
+          I_Printf(VB_DEBUG,
+              "UMAPINFO: 'intertext = clear' with one of the end game keys.");
+      }
+
       if (secretexit)
       {
           if (gamemapinfo->flags & MapInfo_InterTextSecretClear)
