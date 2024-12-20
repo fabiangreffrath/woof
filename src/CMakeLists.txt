@@ -27,6 +27,7 @@ set(WOOF_SOURCES
     g_game.c               g_game.h
     g_input.c              g_input.h
     g_nextweapon.c         g_nextweapon.h
+    g_umapinfo.c           g_umapinfo.h
     hu_command.c           hu_command.h
     hu_coordinates.c       hu_coordinates.h
     hu_crosshair.c         hu_crosshair.h
@@ -137,7 +138,6 @@ set(WOOF_SOURCES
     st_widgets.c           st_widgets.h
     statdump.c             statdump.h
     tables.c               tables.h
-    u_mapinfo.c            u_mapinfo.h
     v_flextran.c           v_flextran.h
     v_fmt.c                v_fmt.h
     v_trans.c              v_trans.h
