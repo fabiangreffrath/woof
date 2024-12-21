@@ -135,26 +135,19 @@ static boolean W_ZIP_AddDir(w_handle_t handle, const char *path,
 
     int startlump = numlumps;
 
-    for (int i = 0 ; i < mz_zip_reader_get_num_files(zip); ++i)
+    for (int i = 0; i < mz_zip_reader_get_num_files(zip); ++i)
     {
-        const int index = archive->directory[i].index;
+        const record_t record = archive->directory[i];
 
         mz_zip_archive_file_stat stat;
-        mz_zip_reader_file_stat(zip, index, &stat);
+        mz_zip_reader_file_stat(zip, record.index, &stat);
 
         if (stat.m_is_directory)
         {
             continue;
         }
 
-        if (is_root && M_StringCaseEndsWith(stat.m_filename, ".wad"))
-        {
-            AddWadInMem(handle, M_BaseName(stat.m_filename), index,
-                        stat.m_uncomp_size);
-            continue;
-        }
-
-        char *name = M_DirName(stat.m_filename);
+        char *name = M_DirName(record.filename);
         if (strcasecmp(name, dir))
         {
             free(name);
@@ -162,7 +155,14 @@ static boolean W_ZIP_AddDir(w_handle_t handle, const char *path,
         }
         free(name);
 
-        if (W_SkipFile(stat.m_filename))
+        if (is_root && M_StringCaseEndsWith(record.filename, ".wad"))
+        {
+            AddWadInMem(handle, M_BaseName(record.filename), record.index,
+                        stat.m_uncomp_size);
+            continue;
+        }
+
+        if (W_SkipFile(record.filename))
         {
             continue;
         }
@@ -178,7 +178,8 @@ static boolean W_ZIP_AddDir(w_handle_t handle, const char *path,
         item.size = stat.m_uncomp_size;
 
         item.module = &w_zip_module;
-        w_handle_t local_handle = {.p1.archive = archive, .p2.index = index,
+        w_handle_t local_handle = {.p1.archive = archive,
+                                   .p2.index = record.index,
                                    .priority = handle.priority};
         item.handle = local_handle;
 
@@ -218,9 +219,10 @@ static w_type_t W_ZIP_Open(const char *path, w_handle_t *handle)
     for (int i = 0; i < num_files; ++i)
     {
         directory[i].index = i;
-        mz_zip_archive_file_stat stat;
-        mz_zip_reader_file_stat(zip, i, &stat);
-        directory[i].filename = M_StringDuplicate(stat.m_filename);
+        int size = mz_zip_reader_get_filename(zip, i, NULL, 0);
+        char *filename = malloc(size);
+        mz_zip_reader_get_filename(zip, i, filename, size);
+        directory[i].filename = filename;
     }
     qsort(directory, num_files, sizeof(*directory), compare_records);
 
