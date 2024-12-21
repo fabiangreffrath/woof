@@ -80,7 +80,7 @@
 #include "st_stuff.h"
 #include "st_widgets.h"
 #include "statdump.h"
-#include "u_mapinfo.h"
+#include "g_umapinfo.h"
 #include "v_fmt.h"
 #include "v_video.h"
 #include "w_wad.h"
@@ -1636,15 +1636,17 @@ void D_SetBloodColor(void)
 typedef enum {
   EXIT_SEQUENCE_OFF,          // Skip sound, skip ENDOOM.
   EXIT_SEQUENCE_SOUND_ONLY,   // Play sound, skip ENDOOM.
-  EXIT_SEQUENCE_PWAD_ENDOOM,  // Play sound, show ENDOOM for PWADs only.
+  EXIT_SEQUENCE_ENDOOM_ONLY,  // Skip sound, show ENDOOM.
   EXIT_SEQUENCE_FULL          // Play sound, show ENDOOM.
 } exit_sequence_t;
 
 static exit_sequence_t exit_sequence;
+static boolean endoom_pwad_only;
 
 boolean D_AllowQuitSound(void)
 {
-  return (exit_sequence != EXIT_SEQUENCE_OFF);
+  return (exit_sequence == EXIT_SEQUENCE_FULL
+          || exit_sequence == EXIT_SEQUENCE_SOUND_ONLY);
 }
 
 static void D_ShowEndDoom(void)
@@ -1659,14 +1661,18 @@ boolean disable_endoom = false;
 
 static boolean AllowEndDoom(void)
 {
-  return  !disable_endoom && (exit_sequence == EXIT_SEQUENCE_FULL
-          || (exit_sequence == EXIT_SEQUENCE_PWAD_ENDOOM
-              && !W_IsIWADLump(W_CheckNumForName("ENDOOM"))));
+  return (!disable_endoom
+          && (exit_sequence == EXIT_SEQUENCE_FULL
+          || exit_sequence == EXIT_SEQUENCE_ENDOOM_ONLY));
+}
+
+static boolean AllowEndDoomPWADOnly() {
+  return (!W_IsIWADLump(W_CheckNumForName("ENDOOM")) && endoom_pwad_only);
 }
 
 static void D_EndDoom(void)
 {
-  if (AllowEndDoom())
+  if (AllowEndDoom() && AllowEndDoomPWADOnly())
   {
     D_ShowEndDoom();
   }
@@ -2373,7 +2379,7 @@ void D_DoomMain(void)
 
   if (!M_ParmExists("-nomapinfo"))
   {
-    W_ProcessInWads("UMAPINFO", U_ParseMapInfo, PROCESS_IWAD | PROCESS_PWAD);
+    W_ProcessInWads("UMAPINFO", G_ParseMapInfo, PROCESS_IWAD | PROCESS_PWAD);
   }
 
   G_ParseCompDatabase();
@@ -2694,7 +2700,8 @@ void D_DoomMain(void)
 void D_BindMiscVariables(void)
 {
   BIND_NUM_GENERAL(exit_sequence, 0, 0, EXIT_SEQUENCE_FULL,
-    "Exit sequence (0 = Off; 1 = Sound Only; 2 = PWAD ENDOOM; 3 = Full)");
+    "Exit sequence (0 = Off; 1 = Sound Only; 2 = ENDOOM Only; 3 = Full)");
+  BIND_BOOL_GENERAL(endoom_pwad_only, false, "Show only ENDOOM from PWAD");
   BIND_BOOL_GENERAL(demobar, false, "Show demo progress bar");
   BIND_NUM_GENERAL(screen_melt, wipe_Melt, wipe_None, wipe_Fizzle,
     "Screen wipe effect (0 = None; 1 = Melt; 2 = Crossfade; 3 = Fizzlefade)");
