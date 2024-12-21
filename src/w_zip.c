@@ -29,11 +29,11 @@ typedef struct
     const char *filename;
 } record_t;
 
-typedef struct archive_s
+struct archive_s
 {
     mz_zip_archive *zip;
     record_t *directory;
-} archive_t;
+};
 
 static archive_t *archives;
 
