@@ -1580,7 +1580,7 @@ static void G_PlayerFinishLevel(int player)
 
 // [crispy] format time for level statistics
 #define TIMESTRSIZE 16
-static void G_FormatLevelStatTime(char *str, int tics, boolean total)
+static void FormatLevelStatTime(char *str, int tics, boolean total)
 {
     int exitHours, exitMinutes;
     float exitTime, exitSeconds;
@@ -1608,33 +1608,40 @@ static void G_FormatLevelStatTime(char *str, int tics, boolean total)
     }
 }
 
+static FILE *levelstat;
+
+static void CloseLevelStat(void)
+{
+    fclose(levelstat);
+}
+
 // [crispy] Write level statistics upon exit
 static void G_WriteLevelStat(void)
 {
-    static FILE *fstream = NULL;
-
     int playerKills = 0, playerItems = 0, playerSecrets = 0;
 
     char levelString[9] = {0};
     char levelTimeString[TIMESTRSIZE] = {0};
     char totalTimeString[TIMESTRSIZE] = {0};
 
-    if (fstream == NULL)
+    if (levelstat == NULL)
     {
-        fstream = M_fopen("levelstat.txt", "w");
+        levelstat = M_fopen("levelstat.txt", "w");
 
-        if (fstream == NULL)
+        if (levelstat == NULL)
         {
             I_Printf(VB_ERROR,
                 "G_WriteLevelStat: Unable to open levelstat.txt for writing!");
             return;
         }
+
+        I_AtExit(CloseLevelStat, true);
     }
 
     strcpy(levelString, MapName(gameepisode, gamemap));
 
-    G_FormatLevelStatTime(levelTimeString, leveltime, false);
-    G_FormatLevelStatTime(totalTimeString, totalleveltimes + leveltime, true);
+    FormatLevelStatTime(levelTimeString, leveltime, false);
+    FormatLevelStatTime(totalTimeString, totalleveltimes + leveltime, true);
 
     for (int i = 0; i < MAXPLAYERS; i++)
     {
@@ -1646,7 +1653,7 @@ static void G_WriteLevelStat(void)
         }
     }
 
-    fprintf(fstream, "%s%s - %s (%s)  K: %d/%d  I: %d/%d  S: %d/%d\n",
+    fprintf(levelstat, "%s%s - %s (%s)  K: %d/%d  I: %d/%d  S: %d/%d\n",
             levelString, (secretexit ? "s" : ""),
             levelTimeString, totalTimeString, playerKills, totalkills,
             playerItems, totalitems, playerSecrets, totalsecret);
