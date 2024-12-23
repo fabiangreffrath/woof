@@ -11,6 +11,8 @@
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 // GNU General Public License for more details.
 
+#include <stdlib.h>
+
 #include "doomtype.h"
 #include "i_printf.h"
 #include "m_array.h"
@@ -20,6 +22,20 @@
 #include "w_internal.h"
 
 #include "miniz.h"
+
+typedef struct
+{
+    int index;
+    const char *filename;
+} record_t;
+
+struct archive_s
+{
+    mz_zip_archive *zip;
+    record_t *directory;
+};
+
+static archive_t *archives;
 
 static void ConvertSlashes(char *path)
 {
@@ -37,7 +53,7 @@ static void AddWadInMem(w_handle_t handle, const char *name, int index,
 {
     I_Printf(VB_INFO, " - adding %s", name);
 
-    mz_zip_archive *zip = handle.p1.zip;
+    mz_zip_archive *zip = handle.p1.archive->zip;
 
     byte *data = malloc(data_size);
 
@@ -108,7 +124,9 @@ static void AddWadInMem(w_handle_t handle, const char *name, int index,
 static boolean W_ZIP_AddDir(w_handle_t handle, const char *path,
                             const char *start_marker, const char *end_marker)
 {
-    mz_zip_archive *zip = handle.p1.zip;
+    archive_t *archive = handle.p1.archive;
+
+    mz_zip_archive *zip = archive->zip;
 
     boolean is_root = (path[0] == '.');
 
@@ -117,24 +135,19 @@ static boolean W_ZIP_AddDir(w_handle_t handle, const char *path,
 
     int startlump = numlumps;
 
-    for (int index = 0 ; index < mz_zip_reader_get_num_files(zip); ++index)
+    for (int i = 0; i < mz_zip_reader_get_num_files(zip); ++i)
     {
+        const record_t record = archive->directory[i];
+
         mz_zip_archive_file_stat stat;
-        mz_zip_reader_file_stat(zip, index, &stat);
+        mz_zip_reader_file_stat(zip, record.index, &stat);
 
         if (stat.m_is_directory)
         {
             continue;
         }
 
-        if (is_root && M_StringCaseEndsWith(stat.m_filename, ".wad"))
-        {
-            AddWadInMem(handle, M_BaseName(stat.m_filename), index,
-                        stat.m_uncomp_size);
-            continue;
-        }
-
-        char *name = M_DirName(stat.m_filename);
+        char *name = M_DirName(record.filename);
         if (strcasecmp(name, dir))
         {
             free(name);
@@ -142,7 +155,14 @@ static boolean W_ZIP_AddDir(w_handle_t handle, const char *path,
         }
         free(name);
 
-        if (W_SkipFile(stat.m_filename))
+        if (is_root && M_StringCaseEndsWith(record.filename, ".wad"))
+        {
+            AddWadInMem(handle, M_BaseName(record.filename), record.index,
+                        stat.m_uncomp_size);
+            continue;
+        }
+
+        if (W_SkipFile(record.filename))
         {
             continue;
         }
@@ -158,7 +178,8 @@ static boolean W_ZIP_AddDir(w_handle_t handle, const char *path,
         item.size = stat.m_uncomp_size;
 
         item.module = &w_zip_module;
-        w_handle_t local_handle = {.p1.zip = zip, .p2.index = index,
+        w_handle_t local_handle = {.p1.archive = archive,
+                                   .p2.index = record.index,
                                    .priority = handle.priority};
         item.handle = local_handle;
 
@@ -175,29 +196,49 @@ static boolean W_ZIP_AddDir(w_handle_t handle, const char *path,
     return true;
 }
 
-static mz_zip_archive **zips = NULL;
+static int compare_records(const void *a, const void *b)
+{
+    const record_t *arg1 = a;
+    const record_t *arg2 = b;
+
+    return strcasecmp(arg1->filename, arg2->filename);
+}
 
 static w_type_t W_ZIP_Open(const char *path, w_handle_t *handle)
 {
     mz_zip_archive *zip = calloc(1, sizeof(*zip));
 
-    if (!mz_zip_reader_init_file(zip, path, 0))
+    if (!mz_zip_reader_init_file(zip, path, MZ_ZIP_FLAG_DO_NOT_SORT_CENTRAL_DIRECTORY))
     {
         free(zip);
         return W_NONE;
     }
 
+    const int num_files = mz_zip_reader_get_num_files(zip);
+    record_t *directory = malloc(num_files * sizeof(*directory));
+    for (int i = 0; i < num_files; ++i)
+    {
+        directory[i].index = i;
+        int size = mz_zip_reader_get_filename(zip, i, NULL, 0);
+        char *filename = malloc(size);
+        mz_zip_reader_get_filename(zip, i, filename, size);
+        directory[i].filename = filename;
+    }
+    qsort(directory, num_files, sizeof(*directory), compare_records);
+
     I_Printf(VB_INFO, " adding %s", path);
 
-    handle->p1.zip = zip;
-    array_push(zips, zip);
+    archive_t archive = {zip, directory};
+    array_push(archives, archive);
+    handle->p1.archive = array_end(archives) - 1;
+
     return W_DIR;
 }
 
 static void W_ZIP_Read(w_handle_t handle, void *dest, int size)
 {
     boolean result = mz_zip_reader_extract_to_mem(
-        handle.p1.zip, handle.p2.index, dest, size, 0);
+        handle.p1.archive->zip, handle.p2.index, dest, size, 0);
 
     if (!result)
     {
@@ -207,9 +248,9 @@ static void W_ZIP_Read(w_handle_t handle, void *dest, int size)
 
 static void W_ZIP_Close(void)
 {
-    for (int i = 0; i < array_size(zips); ++i)
+    for (int i = 0; i < array_size(archives); ++i)
     {
-        mz_zip_reader_end(zips[i]);
+        mz_zip_reader_end(archives[i].zip);
     }
 }
 

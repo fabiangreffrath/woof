@@ -65,11 +65,13 @@ typedef enum
   ns_hires // [Woof!] namespace to avoid conflicts with high-resolution textures
 } namespace_t;
 
+typedef struct archive_s archive_t; 
+
 typedef struct
 {
     union
     {
-        void *zip;
+        archive_t *archive;
         const char *base_path;
         int descriptor;
     } p1;
