@@ -486,33 +486,12 @@ static void AddIWADPath(const char *path, const char *suffix)
 // <http://standards.freedesktop.org/basedir-spec/basedir-spec-latest.html>
 static void AddXdgDirs(void)
 {
-    char *env, *tmp_env;
-
-    // Quote:
-    // > $XDG_DATA_HOME defines the base directory relative to which
-    // > user specific data files should be stored. If $XDG_DATA_HOME
-    // > is either not set or empty, a default equal to
-    // > $HOME/.local/share should be used.
-    env = M_getenv("XDG_DATA_HOME");
-    tmp_env = NULL;
-
-    if (env == NULL)
-    {
-        char *homedir = M_getenv("HOME");
-        if (homedir == NULL)
-        {
-            homedir = "/";
-        }
-
-        tmp_env = M_StringJoin(homedir, "/.local/share");
-        env = tmp_env;
-    }
+    char *env = M_DataDir();
 
     // We support $XDG_DATA_HOME/games/doom (which will usually be
     // ~/.local/share/games/doom) as a user-writeable extension to
     // the usual /usr/share/games/doom location.
     AddIWADDir(M_StringJoin(env, "/games/doom"));
-    free(tmp_env);
 
     // Quote:
     // > $XDG_DATA_DIRS defines the preference-ordered set of base
@@ -550,11 +529,7 @@ static void AddSteamDirs(void)
 {
     char *homedir, *steampath;
 
-    homedir = M_getenv("HOME");
-    if (homedir == NULL)
-    {
-        homedir = "/";
-    }
+    homedir = M_HomeDir();
     steampath = M_StringJoin(homedir, "/.steam/root/steamapps/common");
 
     AddIWADPath(steampath, "/Doom 2/base");
@@ -602,11 +577,8 @@ void BuildIWADDirList(void)
     }
 
     // [FG] Add plain HOME directory
-    env = M_getenv("HOME");
-    if (env != NULL)
-    {
-        AddIWADDir(env);
-    }
+    env = M_HomeDir();
+    AddIWADDir(env);
 
 #ifdef _WIN32
 
