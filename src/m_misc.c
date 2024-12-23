@@ -27,6 +27,13 @@
 #include "m_misc.h"
 #include "z_zone.h"
 
+#include "config.h"
+#ifdef HAVE_GETPWUID
+#include <unistd.h>
+#include <sys/types.h>
+#include <pwd.h>
+#endif
+
 // Check if a file exists
 
 boolean M_FileExists(const char *filename)
@@ -229,6 +236,53 @@ const char *M_BaseName(const char *path)
         const char *p = MAX(pb, pf);
         return p + 1;
     }
+}
+
+char *M_HomeDir(void)
+{
+    static char *home_dir;
+
+    if (home_dir == NULL)
+    {
+        home_dir = M_getenv("HOME");
+
+        if (home_dir == NULL)
+        {
+#ifdef HAVE_GETPWUID
+            struct passwd *user_info = getpwuid(getuid());
+            if (user_info != NULL)
+                home_dir = user_info->pw_dir;
+            else
+#endif
+                home_dir = "/";
+        }
+    }
+
+    return home_dir;
+}
+
+// Quote:
+// > $XDG_DATA_HOME defines the base directory relative to which
+// > user specific data files should be stored. If $XDG_DATA_HOME
+// > is either not set or empty, a default equal to
+// > $HOME/.local/share should be used.
+
+char *M_DataDir(void)
+{
+    static char *data_dir;
+
+    if (data_dir == NULL)
+    {
+        data_dir = M_getenv("XDG_DATA_HOME");
+
+        if (data_dir == NULL || *data_dir == '\0')
+        {
+            const char *home_dir = M_HomeDir();
+            data_dir = M_StringJoin(home_dir, "/.local/share");
+        }
+    }
+
+    return data_dir;
 }
 
 // Change string to uppercase.
