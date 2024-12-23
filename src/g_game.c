@@ -1613,11 +1613,11 @@ static void G_WriteLevelStat(void)
 {
     static FILE *fstream = NULL;
 
-    int i, playerKills = 0, playerItems = 0, playerSecrets = 0;
+    int playerKills = 0, playerItems = 0, playerSecrets = 0;
 
-    char levelString[8];
-    char levelTimeString[TIMESTRSIZE];
-    char totalTimeString[TIMESTRSIZE];
+    char levelString[9] = {0};
+    char levelTimeString[TIMESTRSIZE] = {0};
+    char totalTimeString[TIMESTRSIZE] = {0};
 
     if (fstream == NULL)
     {
@@ -1625,7 +1625,8 @@ static void G_WriteLevelStat(void)
 
         if (fstream == NULL)
         {
-            I_Printf(VB_ERROR, "G_WriteLevelStat: Unable to open levelstat.txt for writing!");
+            I_Printf(VB_ERROR,
+                "G_WriteLevelStat: Unable to open levelstat.txt for writing!");
             return;
         }
     }
@@ -1635,7 +1636,7 @@ static void G_WriteLevelStat(void)
     G_FormatLevelStatTime(levelTimeString, leveltime, false);
     G_FormatLevelStatTime(totalTimeString, totalleveltimes + leveltime, true);
 
-    for (i = 0; i < MAXPLAYERS; i++)
+    for (int i = 0; i < MAXPLAYERS; i++)
     {
         if (playeringame[i])
         {
