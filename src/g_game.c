@@ -1580,7 +1580,7 @@ static void G_PlayerFinishLevel(int player)
 
 // [crispy] format time for level statistics
 #define TIMESTRSIZE 16
-static void G_FormatLevelStatTime(char *str, int tics, boolean total)
+static void FormatLevelStatTime(char *str, int tics, boolean total)
 {
     int exitHours, exitMinutes;
     float exitTime, exitSeconds;
@@ -1611,31 +1611,39 @@ static void G_FormatLevelStatTime(char *str, int tics, boolean total)
 // [crispy] Write level statistics upon exit
 static void G_WriteLevelStat(void)
 {
-    static FILE *fstream = NULL;
+    int playerKills = 0, playerItems = 0, playerSecrets = 0;
 
-    int i, playerKills = 0, playerItems = 0, playerSecrets = 0;
+    char levelString[9] = {0};
+    char levelTimeString[TIMESTRSIZE] = {0};
+    char totalTimeString[TIMESTRSIZE] = {0};
 
-    char levelString[8];
-    char levelTimeString[TIMESTRSIZE];
-    char totalTimeString[TIMESTRSIZE];
+    static boolean firsttime = true;
+
+    FILE *fstream = NULL;
+
+    if (firsttime)
+    {
+        firsttime = false;
+        fstream = M_fopen("levelstat.txt", "w");
+    }
+    else
+    {
+        fstream = M_fopen("levelstat.txt", "a");
+    }
 
     if (fstream == NULL)
     {
-        fstream = M_fopen("levelstat.txt", "w");
-
-        if (fstream == NULL)
-        {
-            I_Printf(VB_ERROR, "G_WriteLevelStat: Unable to open levelstat.txt for writing!");
-            return;
-        }
+        I_Printf(VB_ERROR,
+            "G_WriteLevelStat: Unable to open levelstat.txt for writing!");
+        return;
     }
 
     strcpy(levelString, MapName(gameepisode, gamemap));
 
-    G_FormatLevelStatTime(levelTimeString, leveltime, false);
-    G_FormatLevelStatTime(totalTimeString, totalleveltimes + leveltime, true);
+    FormatLevelStatTime(levelTimeString, leveltime, false);
+    FormatLevelStatTime(totalTimeString, totalleveltimes + leveltime, true);
 
-    for (i = 0; i < MAXPLAYERS; i++)
+    for (int i = 0; i < MAXPLAYERS; i++)
     {
         if (playeringame[i])
         {
@@ -1649,6 +1657,8 @@ static void G_WriteLevelStat(void)
             levelString, (secretexit ? "s" : ""),
             levelTimeString, totalTimeString, playerKills, totalkills,
             playerItems, totalitems, playerSecrets, totalsecret);
+
+    fclose(fstream);
 }
 
 //
