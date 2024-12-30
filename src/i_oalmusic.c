@@ -609,7 +609,7 @@ static const char **I_OAL_DeviceList(void)
 
 static midiplayertype_t I_OAL_MidiPlayerType(void)
 {
-#ifdef HAVE_FLUIDSYNTH
+#if defined (HAVE_FLUIDSYNTH)
     if (active_module == &stream_fl_module)
     {
         return midiplayer_fluidsynth;
