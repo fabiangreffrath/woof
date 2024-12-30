@@ -2653,7 +2653,10 @@ static setup_menu_t music_settings1[] = {
 
 static void UpdateGainItems(void)
 {
+#if defined (HAVE_FLUIDSYNTH)
     DisableItem(auto_gain, music_settings1, "fl_gain");
+#endif
+
     DisableItem(auto_gain, music_settings1, "opl_gain");
 }
 
