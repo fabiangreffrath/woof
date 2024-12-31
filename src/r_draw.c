@@ -488,7 +488,7 @@ static void DrawFuzzColumnBlocky(void)
 
     int lines = fuzzblocksize - (dc_yl % fuzzblocksize);
 
-    const int fuzzblockwidth = MIN(fuzzblocksize, linesize - dc_x);
+    const int fuzzblockwidth = MIN(fuzzblocksize, video.width - dc_x);
 
     do
     {
@@ -582,7 +582,7 @@ static void DrawFuzzColumnRefraction(void)
 
     int lines = fuzzblocksize - (dc_yl % fuzzblocksize);
 
-    const int fuzzblockwidth = MIN(fuzzblocksize, linesize - dc_x);
+    const int fuzzblockwidth = MIN(fuzzblocksize, video.width - dc_x);
 
     int dark = FUZZDARK;
     int offset = 0;
