@@ -2492,6 +2492,7 @@ static void SetMidiPlayerOpl(void)
     }
 }
 
+#if defined(HAVE_FLUIDSYNTH)
 static void SetMidiPlayerFluidSynth(void)
 {
     if (I_MidiPlayerType() == midiplayer_fluidsynth)
@@ -2499,6 +2500,7 @@ static void SetMidiPlayerFluidSynth(void)
         SetMidiPlayer();
     }
 }
+#endif
 
 static void RestartMusic(void)
 {
@@ -2653,7 +2655,10 @@ static setup_menu_t music_settings1[] = {
 
 static void UpdateGainItems(void)
 {
+#if defined (HAVE_FLUIDSYNTH)
     DisableItem(auto_gain, music_settings1, "fl_gain");
+#endif
+
     DisableItem(auto_gain, music_settings1, "opl_gain");
 }
 
