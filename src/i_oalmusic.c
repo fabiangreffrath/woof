@@ -439,7 +439,11 @@ static boolean I_OAL_InitMusic(int device)
     return false;
 }
 
-static int fl_gain, opl_gain;
+#if defined(HAVE_FLUIDSYNTH)
+static int fl_gain;
+#endif
+
+static int opl_gain;
 
 static void I_OAL_SetMusicVolume(int volume)
 {

@@ -2492,6 +2492,7 @@ static void SetMidiPlayerOpl(void)
     }
 }
 
+#if defined(HAVE_FLUIDSYNTH)
 static void SetMidiPlayerFluidSynth(void)
 {
     if (I_MidiPlayerType() == midiplayer_fluidsynth)
@@ -2499,6 +2500,7 @@ static void SetMidiPlayerFluidSynth(void)
         SetMidiPlayer();
     }
 }
+#endif
 
 static void RestartMusic(void)
 {
