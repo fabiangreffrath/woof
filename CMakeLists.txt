@@ -89,7 +89,7 @@ check_c_source_compiles("
     int main()
     {
         int a = 1;
-        __typeof__ (a) b = a;
+        __typeof__ (a) b = ({a + 1;});
         return 0;
     }
   "
