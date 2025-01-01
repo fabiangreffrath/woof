@@ -85,6 +85,16 @@ check_c_source_compiles("
   "
   HAVE_EXT_VECTOR_TYPE
 )
+check_c_source_compiles("
+    int main()
+    {
+        int a = 1;
+        __typeof__ (a) b = a;
+        return 0;
+    }
+  "
+  HAVE_TYPEOF
+)
 
 option(CMAKE_FIND_PACKAGE_PREFER_CONFIG
        "Lookup package config files before using find modules" ON)
