@@ -9,7 +9,6 @@
 #cmakedefine HAVE_GETPWUID
 #cmakedefine HAVE_HIGH_RES_TIMER
 #cmakedefine HAVE__DIV64
-#cmakedefine HAVE_TYPEOF
 #cmakedefine HAVE_ALSA
 #cmakedefine HAVE_FLUIDSYNTH
 #cmakedefine HAVE_LIBXMP

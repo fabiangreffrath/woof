@@ -74,7 +74,7 @@ typedef byte lighttable_t;
 
 #define arrlen(array) (sizeof(array) / sizeof(*array))
 
-#if defined(HAVE_TYPEOF)
+#if defined(__GNUC__) || defined(__clang__)
  #define MIN(a,b)             \
  ({                           \
      __typeof__ (a) _a = (a); \
