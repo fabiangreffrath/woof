@@ -58,24 +58,11 @@ static const char *const gamemode_str[] = {
     "Unknown mode"
 };
 
-// "128 IWAD search directories should be enough for anybody".
-
-#define MAX_IWAD_DIRS 128
-
 // Array of locations to search for IWAD files
+#define M_ARRAY_INIT_CAPACITY 32
+#include "m_array.h"
 
-static boolean iwad_dirs_built = false;
-char *iwad_dirs[MAX_IWAD_DIRS];
-int num_iwad_dirs = 0;
-
-static void AddIWADDir(char *dir)
-{
-    if (num_iwad_dirs < MAX_IWAD_DIRS)
-    {
-        iwad_dirs[num_iwad_dirs] = dir;
-        ++num_iwad_dirs;
-    }
-}
+static char **iwad_dirs;
 
 // Return the path where the executable lies -- Lee Killough
 
@@ -355,7 +342,7 @@ static void CheckUninstallStrings(void)
         {
             path = unstr + strlen(UNINSTALLER_STRING);
 
-            AddIWADDir(path);
+            array_push(iwad_dirs, path);
         }
     }
 }
@@ -383,7 +370,7 @@ static void CheckInstallRootPaths(void)
         {
             subpath = M_StringJoin(install_path, DIR_SEPARATOR_S,
                                    root_path_subdirs[j]);
-            AddIWADDir(subpath);
+            array_push(iwad_dirs, subpath);
         }
 
         free(install_path);
@@ -410,7 +397,7 @@ static void CheckSteamEdition(void)
         subpath = M_StringJoin(install_path, DIR_SEPARATOR_S,
                                steam_install_subdirs[i]);
 
-        AddIWADDir(subpath);
+        array_push(iwad_dirs, subpath);
     }
 
     free(install_path);
@@ -423,13 +410,13 @@ static void CheckDOSDefaults(void)
     // These are the default install directories used by the deice
     // installer program:
 
-    AddIWADDir("\\doom2");    // Doom II
-    AddIWADDir("\\plutonia"); // Final Doom
-    AddIWADDir("\\tnt");
-    AddIWADDir("\\doom_se"); // Ultimate Doom
-    AddIWADDir("\\doom");    // Shareware / Registered Doom
-    AddIWADDir("\\dooms");   // Shareware versions
-    AddIWADDir("\\doomsw");
+    array_push(iwad_dirs, "\\doom2");    // Doom II
+    array_push(iwad_dirs, "\\plutonia"); // Final Doom
+    array_push(iwad_dirs, "\\tnt");
+    array_push(iwad_dirs, "\\doom_se"); // Ultimate Doom
+    array_push(iwad_dirs, "\\doom");    // Shareware / Registered Doom
+    array_push(iwad_dirs, "\\dooms");   // Shareware versions
+    array_push(iwad_dirs, "\\doomsw");
 }
 
 #endif
@@ -464,7 +451,7 @@ static void AddIWADPath(const char *path, const char *suffix)
             // as another iwad dir
             *p = '\0';
 
-            AddIWADDir(M_StringJoin(left, suffix));
+            array_push(iwad_dirs, M_StringJoin(left, suffix));
             left = p + 1;
         }
         else
@@ -473,7 +460,7 @@ static void AddIWADPath(const char *path, const char *suffix)
         }
     }
 
-    AddIWADDir(M_StringJoin(left, suffix));
+    array_push(iwad_dirs, M_StringJoin(left, suffix));
 
     free(dup_path);
 }
@@ -491,7 +478,7 @@ static void AddXdgDirs(void)
     // We support $XDG_DATA_HOME/games/doom (which will usually be
     // ~/.local/share/games/doom) as a user-writeable extension to
     // the usual /usr/share/games/doom location.
-    AddIWADDir(M_StringJoin(env, "/games/doom"));
+    array_push(iwad_dirs, M_StringJoin(env, "/games/doom"));
 
     // Quote:
     // > $XDG_DATA_DIRS defines the preference-ordered set of base
@@ -550,23 +537,23 @@ void BuildIWADDirList(void)
 {
     char *env;
 
-    if (iwad_dirs_built)
+    if (array_size(iwad_dirs) > 0)
     {
         return;
     }
 
     // Look in the current directory.  Doom always does this.
-    AddIWADDir(".");
+    array_push(iwad_dirs, ".");
 
     // Next check the directory where the executable is located. This might
     // be different from the current directory.
-    AddIWADDir(D_DoomExeDir());
+    array_push(iwad_dirs, D_DoomExeDir());
 
     // Add DOOMWADDIR if it is in the environment
     env = M_getenv("DOOMWADDIR");
     if (env != NULL)
     {
-        AddIWADDir(env);
+        array_push(iwad_dirs, env);
     }
 
     // Add dirs from DOOMWADPATH:
@@ -578,7 +565,7 @@ void BuildIWADDirList(void)
 
     // [FG] Add plain HOME directory
     env = M_HomeDir();
-    AddIWADDir(env);
+    array_push(iwad_dirs, env);
 
 #ifdef _WIN32
 
@@ -595,10 +582,6 @@ void BuildIWADDirList(void)
     AddSteamDirs();
 #  endif
 #endif
-
-    // Don't run this function again.
-
-    iwad_dirs_built = true;
 }
 
 //
@@ -609,7 +592,6 @@ char *D_FindWADByName(const char *name)
 {
     char *path;
     char *probe;
-    int i;
 
     // Absolute path?
 
@@ -623,14 +605,15 @@ char *D_FindWADByName(const char *name)
 
     // Search through all IWAD paths for a file with the given name.
 
-    for (i = 0; i < num_iwad_dirs; ++i)
+    char **dir;
+    array_foreach(dir, iwad_dirs)
     {
         // As a special case, if this is in DOOMWADDIR or DOOMWADPATH,
         // the "directory" may actually refer directly to an IWAD
         // file.
 
-        probe = M_FileCaseExists(iwad_dirs[i]);
-        if (DirIsFile(iwad_dirs[i], name) && probe != NULL)
+        probe = M_FileCaseExists(*dir);
+        if (DirIsFile(*dir, name) && probe != NULL)
         {
             return probe;
         }
@@ -638,7 +621,7 @@ char *D_FindWADByName(const char *name)
 
         // Construct a string for the full path
 
-        path = M_StringJoin(iwad_dirs[i], DIR_SEPARATOR_S, name);
+        path = M_StringJoin(*dir, DIR_SEPARATOR_S, name);
 
         probe = M_FileCaseExists(path);
         if (probe != NULL)
