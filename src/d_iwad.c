@@ -597,10 +597,6 @@ void BuildIWADDirList(void)
         AddIWADPath(env, "");
     }
 
-    // [FG] Add plain HOME directory
-    env = M_HomeDir();
-    array_push(iwad_dirs, env);
-
 #ifdef _WIN32
 
     // Search the registry and find where IWADs have been installed.
