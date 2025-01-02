@@ -622,38 +622,6 @@ char *D_DoomExeName(void)
   return name;
 }
 
-// [FG] get the path to the default configuration dir to use
-
-char *D_DoomPrefDir(void)
-{
-    static char *dir;
-
-    if (dir == NULL)
-    {
-#if !defined(_WIN32) || defined(_WIN32_WCE)
-        // Configuration settings are stored in an OS-appropriate path
-        // determined by SDL.  On typical Unix systems, this might be
-        // ~/.local/share/chocolate-doom.  On Windows, we behave like
-        // Vanilla Doom and save in the current directory.
-
-        char *result = SDL_GetPrefPath("", PROJECT_SHORTNAME);
-        if (result != NULL)
-        {
-            dir = M_DirName(result);
-            SDL_free(result);
-        }
-        else
-#endif /* #ifndef _WIN32 */
-        {
-            dir = D_DoomExeDir();
-        }
-
-        M_MakeDirectory(dir);
-    }
-
-    return dir;
-}
-
 // Calculate the path to the directory for autoloaded WADs/DEHs.
 // Creates the directory as necessary.
 
