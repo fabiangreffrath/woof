@@ -2186,29 +2186,32 @@ static void WI_drawStats(void)
   V_DrawPatch(SP_STATSX, SP_STATSY+2*lh, sp_secret);
   WI_drawPercent(SCREENWIDTH - SP_STATSX, SP_STATSY+2*lh, cnt_secret[0]);
 
+  const boolean draw_partime = (W_IsIWADLump(maplump) || deh_pars || um_pars) &&
+                               (wbs->epsd < 3 || um_pars);
+  // [FG] choose x-position depending on width of time string
+  const boolean wide_total = (wbs->totaltimes / TICRATE > 61*59) ||
+                             (SP_TIMEX + SHORT(total->width) >= SCREENWIDTH/4);
+  const boolean wide_time = (wide_total && !draw_partime);
+
   V_DrawPatch(SP_TIMEX, SP_TIMEY, witime);
-  WI_drawTime(SCREENWIDTH/2 - SP_TIMEX, SP_TIMEY, cnt_time, true);
+  WI_drawTime((wide_time ? SCREENWIDTH : SCREENWIDTH/2) - SP_TIMEX,
+              SP_TIMEY, cnt_time, true);
 
   // Ty 04/11/98: redid logic: should skip only if with pwad but 
   // without deh patch
   // killough 2/22/98: skip drawing par times on pwads
   // Ty 03/17/98: unless pars changed with deh patch
 
-  if (W_IsIWADLump(maplump) || deh_pars || um_pars)
-    if (wbs->epsd < 3 || um_pars)
-      {
-	V_DrawPatch(SCREENWIDTH/2 + SP_TIMEX, SP_TIMEY, par);
-	WI_drawTime(SCREENWIDTH - SP_TIMEX, SP_TIMEY, cnt_par, true);
-      }
+  if (draw_partime)
+  {
+    V_DrawPatch(SCREENWIDTH/2 + SP_TIMEX, SP_TIMEY, par);
+    WI_drawTime(SCREENWIDTH - SP_TIMEX, SP_TIMEY, cnt_par, true);
+  }
 
   // [FG] draw total time alongside level time and par time
-  {
-    const boolean wide = (wbs->totaltimes / TICRATE > 61*59) || (SP_TIMEX + SHORT(total->width) >= SCREENWIDTH/4);
-
-    V_DrawPatch(SP_TIMEX, SP_TIMEY + 16, total);
-    // [FG] choose x-position depending on width of time string
-    WI_drawTime((wide ? SCREENWIDTH : SCREENWIDTH/2) - SP_TIMEX, SP_TIMEY + 16, cnt_total_time, false);
-  }
+  V_DrawPatch(SP_TIMEX, SP_TIMEY + 16, total);
+  WI_drawTime((wide_total ? SCREENWIDTH : SCREENWIDTH/2) - SP_TIMEX,
+              SP_TIMEY + 16, cnt_total_time, false);
 }
 
 // ====================================================================
