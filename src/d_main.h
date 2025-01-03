@@ -27,7 +27,7 @@ struct event_s;
 
 void D_AddFile(const char *file);
 
-char *D_DoomExeName(void);      // killough 10/98: executable's name
+const char *D_DoomExeName(void); // killough 10/98: executable's name
 extern char *basesavegame;     // killough 2/16/98: savegame path
 extern char *screenshotdir; // [FG] screenshot path
 void D_SetSavegameDirectory(void);
