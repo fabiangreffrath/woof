@@ -624,13 +624,12 @@ void BuildIWADDirList(void)
 
 char *D_FindWADByName(const char *name)
 {
-    char *path;
     char *probe;
 
     // Absolute path?
 
     probe = M_FileCaseExists(name);
-    if (probe != NULL)
+    if (probe != NULL && !M_DirExists(probe))
     {
         return probe;
     }
@@ -655,10 +654,10 @@ char *D_FindWADByName(const char *name)
 
         // Construct a string for the full path
 
-        path = M_StringJoin(*dir, DIR_SEPARATOR_S, name);
+        char *path = M_StringJoin(*dir, DIR_SEPARATOR_S, name);
 
         probe = M_FileCaseExists(path);
-        if (probe != NULL)
+        if (probe != NULL && !M_DirExists(probe))
         {
             return probe;
         }
