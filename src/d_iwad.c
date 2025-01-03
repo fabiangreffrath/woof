@@ -89,6 +89,38 @@ char *D_DoomExeDir(void)
     return base;
 }
 
+// [FG] get the path to the default configuration dir to use
+
+char *D_DoomPrefDir(void)
+{
+    static char *dir;
+
+    if (dir == NULL)
+    {
+#if !defined(_WIN32) || defined(_WIN32_WCE)
+        // Configuration settings are stored in an OS-appropriate path
+        // determined by SDL.  On typical Unix systems, this might be
+        // ~/.local/share/chocolate-doom.  On Windows, we behave like
+        // Vanilla Doom and save in the current directory.
+
+        char *result = SDL_GetPrefPath("", PROJECT_SHORTNAME);
+        if (result != NULL)
+        {
+            dir = M_DirName(result);
+            SDL_free(result);
+        }
+        else
+#endif /* #ifndef _WIN32 */
+        {
+            dir = D_DoomExeDir();
+        }
+
+        M_MakeDirectory(dir);
+    }
+
+    return dir;
+}
+
 // This is Windows-specific code that automatically finds the location
 // of installed IWAD files.  The registry is inspected to find special
 // keys installed by the Windows installers for various CD versions
@@ -547,7 +579,9 @@ void BuildIWADDirList(void)
 
     // Next check the directory where the executable is located. This might
     // be different from the current directory.
-    array_push(iwad_dirs, D_DoomExeDir());
+    // D_DoomPrefDir() returns the executable directory on Windows,
+    // and a user-writable config directory everywhere else.
+    array_push(iwad_dirs, D_DoomPrefDir());
 
     // Add DOOMWADDIR if it is in the environment
     env = M_getenv("DOOMWADDIR");
