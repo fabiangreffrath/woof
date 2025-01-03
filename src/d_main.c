@@ -864,7 +864,11 @@ void IdentifyVersion(void)
 
     if (!iwadfile)
     {
-        I_Error("IWAD not found");
+        I_Error("IWAD not found!\n"
+                "\n"
+                "Place an IWAD file (e.g. doom.wad, doom2.wad)\n"
+                "in one of the IWAD search directories, e.g.\n"
+                "%s", D_DoomPrefDir());
     }
 
     D_AddFile(iwadfile);
