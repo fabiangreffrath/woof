@@ -453,15 +453,6 @@ static void CheckDOSDefaults(void)
 
 #endif
 
-// Returns true if the specified path is a path to a file
-// of the specified name.
-
-static boolean DirIsFile(const char *path, const char *filename)
-{
-    return strchr(path, DIR_SEPARATOR) != NULL
-           && !strcasecmp(M_BaseName(path), filename);
-}
-
 // Add IWAD directories parsed from splitting a path string containing
 // paths separated by PATH_SEPARATOR. 'suffix' is a string to concatenate
 // to the end of the paths before adding them.
@@ -629,7 +620,7 @@ char *D_FindWADByName(const char *name)
     // Absolute path?
 
     probe = M_FileCaseExists(name);
-    if (probe != NULL && !M_DirExists(probe))
+    if (probe != NULL)
     {
         return probe;
     }
@@ -646,7 +637,7 @@ char *D_FindWADByName(const char *name)
         // file.
 
         probe = M_FileCaseExists(*dir);
-        if (DirIsFile(*dir, name) && probe != NULL)
+        if (probe != NULL)
         {
             return probe;
         }
@@ -657,7 +648,7 @@ char *D_FindWADByName(const char *name)
         char *path = M_StringJoin(*dir, DIR_SEPARATOR_S, name);
 
         probe = M_FileCaseExists(path);
-        if (probe != NULL && !M_DirExists(probe))
+        if (probe != NULL)
         {
             return probe;
         }
