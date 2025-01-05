@@ -604,22 +604,9 @@ void D_AddFile(const char *file)
 }
 
 // killough 10/98: return the name of the program the exe was invoked as
-char *D_DoomExeName(void)
+const char *D_DoomExeName(void)
 {
-  static char *name;
-
-  if (!name) // cache multiple requests
-  {
-    char *ext;
-
-    name = M_StringDuplicate(M_BaseName(myargv[0]));
-
-    ext = strrchr(name, '.');
-    if (ext)
-      *ext = '\0';
-  }
-
-  return name;
+  return PROJECT_SHORTNAME;
 }
 
 // Calculate the path to the directory for autoloaded WADs/DEHs.
