@@ -167,9 +167,12 @@ static void P_BringUpWeapon(player_t *player)
 
   player->pendingweapon = wp_nochange;
 
+  pspdef_t *psp = &player->psprites[ps_weapon];
+
   // killough 12/98: prevent pistol from starting visibly at bottom of screen:
-  player->psprites[ps_weapon].sy = demo_version >= DV_MBF ? 
-    WEAPONBOTTOM+FRACUNIT*2 : WEAPONBOTTOM;
+  psp->sy = demo_version >= DV_MBF ? WEAPONBOTTOM + FRACUNIT * 2 : WEAPONBOTTOM;
+
+  psp->sy2 = psp->oldsy2 = psp->sy;
 
   P_SetPsprite(player, ps_weapon, newstate);
 }

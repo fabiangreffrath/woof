@@ -787,8 +787,6 @@ void R_NearbySprites (void)
 // R_DrawPSprite
 //
 
-boolean pspr_interp = true; // weapon bobbing interpolation
-
 void R_DrawPSprite (pspdef_t *psp)
 {
   fixed_t       tx;
@@ -823,15 +821,13 @@ void R_DrawPSprite (pspdef_t *psp)
 
   fixed_t sx2, sy2;
 
-  if (uncapped && oldleveltime < leveltime && pspr_interp)
+  if (uncapped && oldleveltime < leveltime)
   {
     sx2 = LerpFixed(psp->oldsx2, psp->sx2);
     sy2 = LerpFixed(psp->oldsy2, psp->sy2);
   }
   else
   {
-    pspr_interp = true;
-
     sx2 = psp->sx2;
     sy2 = psp->sy2;
   }
