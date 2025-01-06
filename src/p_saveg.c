@@ -761,16 +761,19 @@ static void saveg_read_pspdef_t(pspdef_t *str)
     if (saveg_compat > saveg_mbf)
     {
         // [Woof!]: fixed_t sx2;
-        str->sx2 = str->oldsx2 = saveg_read32();
+        str->sx2 = saveg_read32();
 
         // [Woof!]: fixed_t sy2;
-        str->sy2 = str->oldsy2 = saveg_read32();
+        str->sy2 = saveg_read32();
     }
     else
     {
         str->sx2 = str->sx;
         str->sy2 = str->sy;
     }
+
+    str->oldsx2 = str->sx2;
+    str->oldsy2 = str->sy2;
 }
 
 static void saveg_write_pspdef_t(pspdef_t *str)
