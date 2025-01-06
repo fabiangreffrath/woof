@@ -200,11 +200,6 @@ void G_ApplyLevelCompatibility(int lump)
 {
     static boolean restore_comp;
 
-    if (demorecording || demoplayback || netgame || (!mbf21 && !restore_comp))
-    {
-        return;
-    }
-
     static int old_comp[COMP_TOTAL];
     static demo_version_t old_demover = DV_MBF21;
 
@@ -218,6 +213,11 @@ void G_ApplyLevelCompatibility(int lump)
         memcpy(comp, old_comp, sizeof(*comp));
         restore_comp = false;
     }
+    else if (demorecording || demoplayback || netgame || !mbf21)
+    {
+        return;
+    }
+
 
     md5_checksum_t cksum;
 
