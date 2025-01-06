@@ -240,6 +240,11 @@ void G_ApplyLevelCompatibility(int lump)
                 G_ReloadDefaults(true);
                 I_Printf(VB_INFO, "Automatically setting compatibility level \"%s\"",
                          G_GetCurrentComplevelName());
+
+                if (demo_compatibility)
+                {
+                    return;
+                }
             }
 
             option_t *option;
