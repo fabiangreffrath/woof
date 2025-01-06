@@ -128,6 +128,7 @@ void G_ParseCompDatabase(void)
             continue;
         }
 
+        record.complevel = DV_NONE;
         const char *complevel = JS_GetStringValue(level, "complevel");
         if (complevel)
         {
@@ -234,17 +235,17 @@ void G_ApplyLevelCompatibility(int lump)
             restore_comp = true;
 
             demo_version_t new_demover = record->complevel;
-            if (demo_version != new_demover)
+            if (new_demover != DV_NONE && demo_version != new_demover)
             {
                 demo_version = new_demover;
                 G_ReloadDefaults(true);
                 I_Printf(VB_INFO, "Automatically setting compatibility level \"%s\"",
                          G_GetCurrentComplevelName());
+            }
 
-                if (demo_compatibility)
-                {
-                    return;
-                }
+            if (!mbf21)
+            {
+                return;
             }
 
             option_t *option;
