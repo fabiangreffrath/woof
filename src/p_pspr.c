@@ -1118,6 +1118,9 @@ void P_MovePsprites(player_t *player)
   const int center_weapon_strict = STRICTMODE(center_weapon);
   int i;
 
+  psp[ps_weapon].oldsx2 = psp[ps_weapon].sx2;
+  psp[ps_weapon].oldsy2 = psp[ps_weapon].sy2;
+
   // a null state means not active
   // drop tic count and possibly change state
   // a -1 tic count never changes
@@ -1176,6 +1179,8 @@ void P_MovePsprites(player_t *player)
 
   player->psprites[ps_flash].sx2 = player->psprites[ps_weapon].sx2;
   player->psprites[ps_flash].sy2 = player->psprites[ps_weapon].sy2;
+  player->psprites[ps_flash].oldsx2 = player->psprites[ps_weapon].oldsx2;
+  player->psprites[ps_flash].oldsy2 = player->psprites[ps_weapon].oldsy2;
 }
 
 //
