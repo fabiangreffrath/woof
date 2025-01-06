@@ -565,30 +565,19 @@ void M_CopyLumpName(char *dest, const char *src)
 
 //
 // 1/18/98 killough: adds a default extension to a path
-// Note: Backslashes are treated specially, for MS-DOS.
 //
 
-char *AddDefaultExtension(char *path, const char *ext)
+char *AddDefaultExtension(const char *path, const char *ext)
 {
-    char *p = path;
-
-    while (*p++)
-        ;
-
-    while (p-- > path && *p != '/' && *p != '\\')
+    if (strrchr(M_BaseName(path), '.') != NULL)
     {
-        if (*p == '.')
-        {
-            return path;
-        }
+        // path already has an extension
+        return M_StringDuplicate(path);
     }
-
-    if (*ext != '.')
+    else
     {
-        strcat(path, ".");
+        return M_StringJoin(path, ext[0] == '.' ? "" : ".", ext);
     }
-
-    return strcat(path, ext);
 }
 
 //

@@ -3981,9 +3981,13 @@ void G_RecordDemo(char *name)
   demo_insurance = 0;
       
   usergame = false;
-  demoname_size = strlen(name) + 5 + 6; // [crispy] + 6 for "-00000"
+  if (demoname)
+  {
+    free(demoname);
+  }
+  demoname = AddDefaultExtension(name, ".lmp");  // 1/18/98 killough
+  demoname_size = strlen(demoname) + 6; // [crispy] + 6 for "-00000"
   demoname = I_Realloc(demoname, demoname_size);
-  AddDefaultExtension(strcpy(demoname, name), ".lmp");  // 1/18/98 killough
 
   for(; j <= 99999 && !M_access(demoname, F_OK); ++j)
   {

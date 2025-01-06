@@ -982,8 +982,7 @@ void FindResponseFile (void)
         // READ THE RESPONSE FILE INTO MEMORY
 
         // killough 10/98: add default .rsp extension
-        char *filename = malloc(strlen(myargv[i])+5);
-        AddDefaultExtension(strcpy(filename,&myargv[i][1]),".rsp");
+        char *filename = AddDefaultExtension(&myargv[i][1],".rsp");
 
         handle = M_fopen(filename,"rb");
         if (!handle)
@@ -1345,14 +1344,15 @@ static void D_ProcessDehCommandLine(void)
           if (deh)
             {
               char *probe;
-              char *file = malloc(strlen(myargv[p]) + 5);      // killough
-              AddDefaultExtension(strcpy(file, myargv[p]), ".bex");
+              char *file = AddDefaultExtension(myargv[p], ".bex");
               probe = D_TryFindWADByName(file);
+              free(file);
               if (M_access(probe, F_OK))  // nope
                 {
                   free(probe);
-                  AddDefaultExtension(strcpy(file, myargv[p]), ".deh");
+                  file = AddDefaultExtension(myargv[p], ".deh");
                   probe = D_TryFindWADByName(file);
+                  free(file);
                   if (M_access(probe, F_OK))  // still nope
                   {
                     free(probe);
@@ -1364,7 +1364,6 @@ static void D_ProcessDehCommandLine(void)
               // (apparently, this was never removed after Boom beta-killough)
               ProcessDehFile(probe, D_dehout(), 0);  // killough 10/98
               free(probe);
-              free(file);
             }
     }
   // ty 03/09/98 end of do dehacked stuff
