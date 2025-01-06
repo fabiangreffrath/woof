@@ -556,6 +556,8 @@ static void AddSteamDirs(void)
 // Build a list of IWAD files
 //
 
+static char **iwad_dirs_append;
+
 void BuildIWADDirList(void)
 {
     char *env;
@@ -603,6 +605,12 @@ void BuildIWADDirList(void)
     AddSteamDirs();
 #  endif
 #endif
+
+    char **dir;
+    array_foreach(dir, iwad_dirs_append)
+    {
+        array_push(iwad_dirs, *dir);
+    }
 }
 
 //
@@ -754,6 +762,11 @@ char *D_FindIWADFile(void)
         if (result == NULL)
         {
             I_Error("IWAD file '%s' not found!", file);
+        }
+        else
+        {
+            char *iwad_dir = M_DirName(result);
+            array_push(iwad_dirs_append, iwad_dir);
         }
 
         free(file);
