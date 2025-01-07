@@ -128,7 +128,7 @@ void G_ParseCompDatabase(void)
             continue;
         }
 
-        record.complevel = DV_NONE;
+        record.complevel = DV_MBF21;
         const char *complevel = JS_GetStringValue(level, "complevel");
         if (complevel)
         {
@@ -199,15 +199,13 @@ static void GetLevelCheckSum(int lump, md5_checksum_t* cksum)
 void G_ApplyLevelCompatibility(int lump)
 {
     static boolean restore_comp;
-
     static int old_comp[COMP_TOTAL];
-    static demo_version_t old_demover = DV_MBF21;
 
     if (restore_comp)
     {
-        if (demo_version != old_demover)
+        if (demo_version != DV_MBF21)
         {
-            demo_version = old_demover;
+            demo_version = DV_MBF21;
             G_ReloadDefaults(true);
         }
         memcpy(comp, old_comp, sizeof(*comp));
@@ -217,7 +215,6 @@ void G_ApplyLevelCompatibility(int lump)
     {
         return;
     }
-
 
     md5_checksum_t cksum;
 
@@ -231,11 +228,10 @@ void G_ApplyLevelCompatibility(int lump)
         if (!memcmp(record->checksum, cksum.digest, sizeof(md5_digest_t)))
         {
             memcpy(old_comp, comp, sizeof(*comp));
-            old_demover = demo_version;
             restore_comp = true;
 
             demo_version_t new_demover = record->complevel;
-            if (new_demover != DV_NONE && demo_version != new_demover)
+            if (new_demover != DV_MBF21)
             {
                 demo_version = new_demover;
                 G_ReloadDefaults(true);
