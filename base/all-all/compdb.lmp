@@ -152,7 +152,7 @@
       {
         "name": "tntr_map30",
         "md5": [ "1d3c6d456bfcf360ce14aeecc155a96c" ],
-        "options": [ {"comp_telefrag": true} ]
+        "options": [ {"name": "comp_telefrag", "value": 1} ]
       },
       {
         "name": "roomblow_e1m1",
