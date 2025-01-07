@@ -754,8 +754,7 @@ char *D_FindIWADFile(void)
 
         char *iwadfile = myargv[iwadparm + 1];
 
-        char *file = malloc(strlen(iwadfile) + 5);
-        AddDefaultExtension(strcpy(file, iwadfile), ".wad");
+        char *file = AddDefaultExtension(iwadfile, ".wad");
 
         result = D_FindWADByName(file);
 
