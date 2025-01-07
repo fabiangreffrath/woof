@@ -1393,6 +1393,15 @@ static void LoadIWadBase(void)
     {
         W_AddBaseDir("doom-all");
     }
+    if (local_gamemission == doom)
+    {
+        W_AddBaseDir("doom1-all");
+    }
+    else if (local_gamemission >= doom2
+             && local_gamemission <= pack_plut)
+    {
+        W_AddBaseDir("doom2-all");
+    }
     W_AddBaseDir(M_BaseName(wadfiles[0]));
 }
 
