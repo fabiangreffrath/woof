@@ -812,10 +812,65 @@ static boolean PIT_FindTarget(mobj_t *mo)
 // Returns true if a player is targeted.
 //
 
+#define MONS_LOOK_RANGE (20*64*FRACUNIT)
+#define MONS_LOOK_LIMIT 64
+
+static boolean P_LookForMonsters_Heretic(mobj_t * actor)
+{
+    int count;
+    mobj_t *mo;
+    thinker_t *think;
+
+    if (!P_CheckSight(players[0].mo, actor))
+    {                           // Player can't see monster
+        return (false);
+    }
+    count = 0;
+    for (think = thinkercap.next; think != &thinkercap; think = think->next)
+    {
+        if (think->function.p1 != P_MobjThinker)
+        {                       // Not a mobj thinker
+            continue;
+        }
+        mo = (mobj_t *) think;
+        if (!(mo->flags & MF_COUNTKILL) || (mo == actor) || (mo->health <= 0))
+        {                       // Not a valid monster
+            continue;
+        }
+        if (P_AproxDistance(actor->x - mo->x, actor->y - mo->y)
+            > MONS_LOOK_RANGE)
+        {                       // Out of range
+            continue;
+        }
+        if (Woof_Random() < 16)
+        {                       // Skip
+            continue;
+        }
+        if (count++ > MONS_LOOK_LIMIT)
+        {                       // Stop searching
+            return (false);
+        }
+        if (!P_CheckSight(actor, mo))
+        {                       // Out of sight
+            continue;
+        }
+        // Found a target monster
+        actor->target = mo;
+        return (true);
+    }
+    return (false);
+}
+
 static boolean P_LookForPlayers(mobj_t *actor, boolean allaround)
 {
   player_t *player;
   int stop, stopc, c;
+
+  // Single player game and player is dead, look for monsters
+  if (!netgame && players[0].health <= 0)
+  {
+    return (P_LookForMonsters_Heretic(actor));
+  }
 
   if (actor->flags & MF_FRIEND)
     {  // killough 9/9/98: friendly monsters go about players differently
