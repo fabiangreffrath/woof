@@ -576,7 +576,7 @@ char *AddDefaultExtension(const char *path, const char *ext)
     }
     else
     {
-        return M_StringJoin(path, ext[0] == '.' ? "" : ".", ext);
+        return M_StringJoin(path, ext);
     }
 }
 
