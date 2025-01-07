@@ -25,10 +25,12 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <strings.h>
 
 #include "am_map.h"
 #include "config.h"
 #include "d_deh.h"  // Ty 04/08/98 - Externalizations
+#include "d_demoloop.h"
 #include "d_event.h"
 #include "d_iwad.h"
 #include "d_loop.h"
@@ -432,9 +434,8 @@ void D_Display (void)
 //  DEMO LOOP
 //
 
-static int demosequence;         // killough 5/2/98: made static
 static int pagetic;
-static char *pagename;
+static const char *pagename;
 
 //
 // D_PageTicker
@@ -466,112 +467,72 @@ void D_PageDrawer(void)
 // Called after each demo or intro demosequence finishes
 //
 
-void D_AdvanceDemo (void)
+void D_AdvanceDemo(void)
 {
   advancedemo = true;
 }
 
 //
-// This cycles through the demo sequences.
-// FIXME - version dependend demo numbers?
+// Advance to next entry in the DemoLoop data strucutre.
+// Looping back to the beginning appropriately.
 //
+void D_AdvanceDemoLoop(void)
+{
+  demoloop_current = (demoloop_current + 1) % demoloop_count;
+}
 
+//
+// Advance to next entry in the DemoLoop data strucutre.
+// Looping back to the beginning appropriately.
+//
 void D_DoAdvanceDemo(void)
 {
-    players[consoleplayer].playerstate = PST_LIVE; // not reborn
-    advancedemo = false;
-    usergame = false; // no save / end game here
-    paused = false;
-    gameaction = ga_nothing;
+  players[consoleplayer].playerstate = PST_LIVE; // not reborn
+  advancedemo = false;
+  usergame    = false; // no save / end game here
+  paused      = false;
+  gameaction  = ga_nothing;
 
-    // The Ultimate Doom executable changed the demo sequence to add
-    // a DEMO4 demo.  Final Doom was based on Ultimate, so also
-    // includes this change; however, the Final Doom IWADs do not
-    // include a DEMO4 lump, so the game bombs out with an error
-    // when it reaches this point in the demo sequence.
+  D_AdvanceDemoLoop();
 
-    // However! There is an alternate version of Final Doom that
-    // includes a fixed executable.
+  switch (demoloop[demoloop_current].type)
+  {
+    case TYPE_ART_SCREEN:
+      gamestate = GS_DEMOSCREEN;
+      // gamestate = GS_NONE;
 
-    if (W_CheckNumForName("DEMO4") >= 0)
-    {
-        demosequence = (demosequence + 1) % 7;
-    }
-    else
-    {
-        demosequence = (demosequence + 1) % 6;
-    }
+      if (W_CheckNumForName(demoloop[demoloop_current].primary_lump) < 0)
+      {
+        D_AdvanceDemoLoop();
+      }
 
-    switch (demosequence)
-    {
-        case 0:
-            if (gamemode == commercial)
-            {
-                pagetic = TICRATE * 11;
-            }
-            else
-            {
-                pagetic = 170;
-            }
-            gamestate = GS_DEMOSCREEN;
-            pagename = "TITLEPIC";
-            if (gamemode == commercial)
-            {
-                S_StartMusic(mus_dm2ttl);
-            }
-            else
-            {
-                S_StartMusic(mus_intro);
-            }
-            break;
-        case 1:
-            G_DeferedPlayDemo("DEMO1");
-            break;
-        case 2:
-            pagetic = 200;
-            gamestate = GS_DEMOSCREEN;
-            pagename = "CREDIT";
-            break;
-        case 3:
-            G_DeferedPlayDemo("DEMO2");
-            break;
-        case 4:
-            gamestate = GS_DEMOSCREEN;
-            if (gamemode == commercial)
-            {
-                pagetic = TICRATE * 11;
-                pagename = "TITLEPIC";
-                S_StartMusic(mus_dm2ttl);
-            }
-            else
-            {
-                pagetic = 200;
+      pagename = demoloop[demoloop_current].primary_lump;
+      pagetic = demoloop[demoloop_current].duration;
 
-                if (gameversion >= exe_ultimate)
-                {
-                    pagename = "CREDIT";
-                }
-                else
-                {
-                    pagename = "HELP2";
-                }
-            }
-            break;
-        case 5:
-            G_DeferedPlayDemo("DEMO3");
-            break;
-        // THE DEFINITIVE DOOM Special Edition demo
-        case 6:
-            G_DeferedPlayDemo("DEMO4");
-            break;
-    }
+      int music = W_CheckNumForName(demoloop[demoloop_current].secondary_lump);
+      if (music >= 0)
+      {
+        S_ChangeMusInfoMusic(music, false);
+      }
+      break;
 
-    // The Doom 3: BFG Edition version of doom2.wad does not have a
-    // TITLETPIC lump.
-    if (!strcasecmp(pagename, "TITLEPIC") && W_CheckNumForName("TITLEPIC") < 0)
-    {
-        pagename = "DMENUPIC";
-    }
+    case TYPE_DEMO_LUMP:
+      gamestate = GS_DEMOSCREEN;
+      G_DeferedPlayDemo(demoloop[demoloop_current].primary_lump);
+      break;
+
+    case TYPE_NONE:
+    default:
+      I_Printf(VB_WARNING, "D_DoAdvanceDemo: Invalid demoloop[%d] entry, skipping", demoloop_current);
+      D_AdvanceDemoLoop();
+      break;
+  }
+
+  // Needed to support Doom 3: BFG Edition variant of the IWADs as they lack TITLEPIC
+  if (!strcasecmp(pagename, "TITLEPIC") && W_CheckNumForName("TITLEPIC") < 0)
+  {
+    pagename = "DMENUPIC";
+  }
 }
 
 //
@@ -580,7 +541,6 @@ void D_DoAdvanceDemo(void)
 void D_StartTitle (void)
 {
   gameaction = ga_nothing;
-  demosequence = -1;
   D_AdvanceDemo();
 }
 
@@ -2394,6 +2354,7 @@ void D_DoomMain(void)
   }
 
   W_ProcessInWads("TRAKINFO", S_ParseTrakInfo, PROCESS_IWAD | PROCESS_PWAD);
+  D_SetupDemoLoop();
 
   I_Printf(VB_INFO, "M_Init: Init miscellaneous info.");
   M_Init();
