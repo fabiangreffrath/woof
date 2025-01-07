@@ -20,6 +20,11 @@
         ]
       },
       {
+        "name": "doomsday_of_uac_e1m8",
+        "md5": "32fc3115a3162b623f0d0f4e7dee6861",
+        "complevel": "1.9"
+      },
+      {
         "name": "hell_revealed_map19",
         "md5": "811a0c97777a198bc9b2bb558cb46e6a",
         "options": [ {"name": "comp_pain", "value": 1} ]
@@ -34,7 +39,6 @@
         "md5": "145c4dfcf843f2b92c73036ba0e1d98a",
         "options": [ {"name": "comp_vile", "value": 1} ]
       },
-
       {
         "name": "hell_to_pay_map14",
         "md5": "5379c080299eb961792b50ad96821543",
