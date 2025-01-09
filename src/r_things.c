@@ -136,6 +136,11 @@ void R_InitSpritesRes(void)
 static void R_InstallSpriteLump(int lump, unsigned frame,
                                 unsigned rotation, boolean flipped)
 {
+  if (frame == '^' - 'A')
+  {
+    frame = '\\' - 'A';
+  }
+
   if (frame >= MAX_SPRITE_FRAMES || rotation > 8)
     I_Error("R_InstallSpriteLump: Bad frame characters in lump %i", lump);
 
