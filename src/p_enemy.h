@@ -34,6 +34,7 @@ extern struct brain_s {         // killough 3/26/98: global state of boss brain
 } brain;
 
 extern boolean ghost_monsters;
+extern boolean infight_upon_death;
 
 #endif // __P_ENEMY__
 

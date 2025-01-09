@@ -4760,6 +4760,8 @@ void G_BindCompVariables(void)
              false, ss_comp, wad_no, "Direct vertical aiming");
   M_BindBool("pistolstart", &default_pistolstart, &pistolstart,
              false, ss_comp, wad_no, "Pistol start");
+  M_BindBool("infight_upon_death", &infight_upon_death, NULL,
+             false, ss_comp, wad_no, "Monsters infight upon player death");
 
 #define BIND_COMP(id, v, help) \
   M_BindNum(#id, &default_comp[(id)], &comp[(id)], (v), 0, 1, ss_none, wad_yes, help)

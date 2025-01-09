@@ -812,6 +812,8 @@ static boolean PIT_FindTarget(mobj_t *mo)
 // Returns true if a player is targeted.
 //
 
+boolean infight_upon_death;
+
 #define MONS_LOOK_RANGE (20*64*FRACUNIT)
 #define MONS_LOOK_LIMIT 64
 
@@ -866,8 +868,9 @@ static boolean P_LookForPlayers(mobj_t *actor, boolean allaround)
   player_t *player;
   int stop, stopc, c;
 
-  // Single player game and player is dead, look for monsters
-  if (!netgame && players[0].health <= 0)
+  // Casual game and player is dead, look for monsters
+  if (infight_upon_death && !critical && !strictmode
+      && players[0].health <= 0 && players[0].mo->health <= 0)
   {
     return (P_LookForMonsters_Heretic(actor));
   }

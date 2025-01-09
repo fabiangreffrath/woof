@@ -2202,6 +2202,9 @@ setup_menu_t comp_settings1[] = {
     {"Emulate INTERCEPTS overflow", S_ONOFF | S_VANILLA, M_X, M_SPC,
      {"emu_intercepts"}, .action = UpdateInterceptsEmuItem},
 
+    {"Infight Upon Player Death", S_ONOFF | S_STRICT, M_X, M_SPC,
+     {"infight_upon_death"}},
+
     MI_RESET,
 
     MI_END
