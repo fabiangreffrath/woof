@@ -415,7 +415,7 @@ static void DrawSkyTex(visplane_t *pl, skytex_t *skytex)
 
     dc_texturemid += skytex->curry;
 
-    angle_t an = viewangle + FixedToAngle(skytex->currx);
+    angle_t an = viewangle + (skytex->currx << (ANGLETOSKYSHIFT - FRACBITS));
 
     for (int x = pl->minx; x <= pl->maxx; x++)
     {
