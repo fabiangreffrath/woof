@@ -115,55 +115,50 @@ void G_ParseCompDatabase(void)
     json_t *level = NULL;
     JS_ArrayForEach(level, levels)
     {
-        json_t *js_md5s = JS_GetObject(level, "md5");
-        json_t *js_md5;
-        JS_ArrayForEach(js_md5, js_md5s)
+        comp_record_t record = {0};
+
+        const char *md5 = JS_GetStringValue(level, "md5");
+        if (!md5)
         {
-            comp_record_t record = {0};
-
-            const char *md5 = JS_GetString(js_md5);
-            if (!md5)
-            {
-                continue;
-            }
-            if (!M_StringToDigest(md5, record.checksum, sizeof(md5_digest_t)))
-            {
-                I_Printf(VB_ERROR, "COMPDB: wrong key %s", md5);
-                continue;
-            }
-
-            record.complevel = DV_MBF21;
-            const char *complevel = JS_GetStringValue(level, "complevel");
-            if (complevel)
-            {
-                demo_version_t new_complevel = G_GetNamedComplevel(complevel);
-                if (new_complevel != DV_NONE)
-                {
-                    record.complevel = new_complevel;
-                }
-            }
-
-            json_t *js_options = JS_GetObject(level, "options");
-            json_t *js_option = NULL;
-            JS_ArrayForEach(js_option, js_options)
-            {
-                option_t option = {0};
-                const char *name = JS_GetStringValue(js_option, "name");
-                if (!name)
-                {
-                    continue;
-                }
-                int comp = GetComp(name);
-                if (comp < 0)
-                {
-                    continue;
-                }
-                option.comp = comp;
-                option.value = JS_GetIntegerValue(js_option, "value");
-                array_push(record.options, option);
-            }
-            array_push(comp_database, record);
+            continue;
         }
+        if (!M_StringToDigest(md5, record.checksum, sizeof(md5_digest_t)))
+        {
+            I_Printf(VB_ERROR, "COMPDB: wrong key %s", md5);
+            continue;
+        }
+
+        record.complevel = DV_MBF21;
+        const char *complevel = JS_GetStringValue(level, "complevel");
+        if (complevel)
+        {
+            demo_version_t new_complevel = G_GetNamedComplevel(complevel);
+            if (new_complevel != DV_NONE)
+            {
+                record.complevel = new_complevel;
+            }
+        }
+
+        json_t *js_options = JS_GetObject(level, "options");
+        json_t *js_option = NULL;
+        JS_ArrayForEach(js_option, js_options)
+        {
+            option_t option = {0};
+            const char *name = JS_GetStringValue(js_option, "name");
+            if (!name)
+            {
+                continue;
+            }
+            int comp = GetComp(name);
+            if (comp < 0)
+            {
+                continue;
+            }
+            option.comp = comp;
+            option.value = JS_GetIntegerValue(js_option, "value");
+            array_push(record.options, option);
+        }
+        array_push(comp_database, record);
     }
 
     JS_Close("COMPDB");
