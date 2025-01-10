@@ -176,12 +176,16 @@ void R_UpdateSky(void)
     }
 
     skytex_t *background = &sky->skytex;
+    background->prevx = background->currx;
+    background->prevy = background->curry;
     background->currx += background->scrollx;
     background->curry += background->scrolly;
 
     if (sky->type == SkyType_WithForeground)
     {
         skytex_t *foreground = &sky->foreground;
+        foreground->prevx = foreground->currx;
+        foreground->prevy = foreground->curry;
         foreground->currx += foreground->scrollx;
         foreground->curry += foreground->scrolly;
     }

@@ -39,6 +39,7 @@
 #include "doomstat.h"
 #include "doomtype.h"
 #include "i_system.h"
+#include "i_video.h"
 #include "m_fixed.h"
 #include "r_bmaps.h" // [crispy] R_BrightmapForTexName()
 #include "r_data.h"
@@ -415,7 +416,17 @@ static void DrawSkyTex(visplane_t *pl, skytex_t *skytex)
 
     dc_texturemid += skytex->curry;
 
-    angle_t an = viewangle + (skytex->currx << (ANGLETOSKYSHIFT - FRACBITS));
+    fixed_t deltax;
+    if (uncapped)
+    {
+        deltax = LerpFixed(skytex->prevx, skytex->currx);
+    }
+    else
+    {
+        deltax = skytex->currx;
+    }
+
+    angle_t an = viewangle + (deltax << (ANGLETOSKYSHIFT - FRACBITS));
 
     for (int x = pl->minx; x <= pl->maxx; x++)
     {
