@@ -414,17 +414,19 @@ static void DrawSkyTex(visplane_t *pl, skytex_t *skytex)
     dc_texheight = textureheight[texture] >> FRACBITS;
     dc_iscale = FixedMul(skyiscale, skytex->scaley);
 
-    dc_texturemid += skytex->curry;
-
-    fixed_t deltax;
-    if (uncapped)
+    fixed_t deltax, deltay;
+    if (uncapped && leveltime > oldleveltime)
     {
         deltax = LerpFixed(skytex->prevx, skytex->currx);
+        deltay = LerpFixed(skytex->prevy, skytex->curry);
     }
     else
     {
         deltax = skytex->currx;
+        deltay = skytex->curry;
     }
+
+    dc_texturemid += deltay;
 
     angle_t an = viewangle + (deltax << (ANGLETOSKYSHIFT - FRACBITS));
 
