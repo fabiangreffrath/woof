@@ -246,6 +246,17 @@ int wipe_renderMelt(int width, int height, int ticks)
         }
     }
 
+    for (currcol = wipe_columns * horizblocksize / 100; currcol < width; ++currcol)
+    {
+        pixel_t *dest = wipe_scr + currcol;
+
+        for (int i = 0; i < height; ++i)
+        {
+            *dest = v_darkest_color;
+            dest += video.pitch;
+        }
+    }
+
     return done;
 }
 
