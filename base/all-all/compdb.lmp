@@ -1,10 +1,8 @@
 {
   "type": "compatibility",
   "version": "1.0.0",
-  "data":
-  {
-    "levels":
-    [
+  "data": {
+    "levels": [
       {
         "name": "eternal_doom_25",
         "md5": "6da6fcba8089161bdec6a1d3f6c8d60f",
@@ -27,177 +25,352 @@
       {
         "name": "hell_revealed_map19",
         "md5": "811a0c97777a198bc9b2bb558cb46e6a",
-        "options": [ {"name": "comp_pain", "value": 1} ]
+        "options": [
+          {
+            "name": "comp_pain",
+            "value": 1
+          }
+        ]
       },
       {
         "name": "roger_ritenour_phobos_map03",
         "md5": "8fa29398776146189396aa1ac6bb9e13",
-        "options": [ {"name": "comp_floors", "value": 1} ]
+        "options": [
+          {
+            "name": "comp_floors",
+            "value": 1
+          }
+        ]
       },
       {
         "name": "hell_revealed_map26",
         "md5": "145c4dfcf843f2b92c73036ba0e1d98a",
-        "options": [ {"name": "comp_vile", "value": 1} ]
+        "options": [
+          {
+            "name": "comp_vile",
+            "value": 1
+          }
+        ]
       },
       {
         "name": "hell_to_pay_map14",
         "md5": "5379c080299eb961792b50ad96821543",
-        "options": [ {"name": "comp_vile", "value": 1} ]
+        "options": [
+          {
+            "name": "comp_vile",
+            "value": 1
+          }
+        ]
       },
       {
         "name": "hell_to_pay_map22",
         "md5": "7837b5334a277f107515d649bcefb682",
-        "options": [ {"name": "comp_vile", "value": 1} ]
+        "options": [
+          {
+            "name": "comp_vile",
+            "value": 1
+          }
+        ]
       },
       {
         "name": "icarus_map24",
         "md5": "2eeb1e12fa9f9545de9d99990a4a78e5",
-        "options": [ {"name": "comp_vile", "value": 1} ]
+        "options": [
+          {
+            "name": "comp_vile",
+            "value": 1
+          }
+        ]
       },
       {
         "name": "plutonia2_map32",
         "md5": "65a53a09a09525ae42ea210bf879cd37",
-        "options": [ {"name": "comp_vile", "value": 1} ]
+        "options": [
+          {
+            "name": "comp_vile",
+            "value": 1
+          }
+        ]
       },
       {
         "name": "requiem_map23",
         "md5": "2499cf9a9351be9bc4e9c66fc9f291a7",
-        "options": [ {"name": "comp_vile", "value": 1} ]
+        "options": [
+          {
+            "name": "comp_vile",
+            "value": 1
+          }
+        ]
       },
       {
         "name": "the_waterfront_map01",
         "md5": "3ca5493feff2e27bfd4181e6c4a3c2bf",
-        "options": [ {"name": "comp_vile", "value": 1} ]
+        "options": [
+          {
+            "name": "comp_vile",
+            "value": 1
+          }
+        ]
       },
       {
         "name": "gather2_map05_and_darkside_map01",
         "md5": "cbdfefac579a62de8f1b48ca4a09d381",
-        "options": [ {"name": "comp_vile", "value": 1} ]
+        "options": [
+          {
+            "name": "comp_vile",
+            "value": 1
+          }
+        ]
       },
       {
         "name": "reverie_map18",
         "md5": "c7a2fafb0afb2632c50ad625cdb50e51",
-        "options": [ {"name": "comp_vile", "value": 1} ]
+        "options": [
+          {
+            "name": "comp_vile",
+            "value": 1
+          }
+        ]
       },
       {
         "name": "project_x_map14",
         "md5": "9e5724bc6135aa6f86ee54fd4d91f1e2",
-        "options": [ {"name": "comp_vile", "value": 1} ]
+        "options": [
+          {
+            "name": "comp_vile",
+            "value": 1
+          }
+        ]
       },
       {
         "name": "archie_map01",
         "md5": "01899825ffeae016d39c02a7da4b218f",
-        "options": [ {"name": "comp_vile", "value": 1} ]
+        "options": [
+          {
+            "name": "comp_vile",
+            "value": 1
+          }
+        ]
       },
       {
         "name": "seej_map01",
         "md5": "1d9f3afdc2517c2e450491ed13896712",
-        "options": [ {"name": "comp_vile", "value": 1} ]
+        "options": [
+          {
+            "name": "comp_vile",
+            "value": 1
+          }
+        ]
       },
       {
         "name": "sixpack2_map02",
         "md5": "0ae745a3ab86d15fb2fb74489962c421",
-        "options": [ {"name": "comp_vile", "value": 1} ]
+        "options": [
+          {
+            "name": "comp_vile",
+            "value": 1
+          }
+        ]
       },
       {
         "name": "squadron_417_map21",
         "md5": "2ea635c6b6aec76b6bc77448dab22f9a",
-        "options": [ {"name": "comp_vile", "value": 1} ]
+        "options": [
+          {
+            "name": "comp_vile",
+            "value": 1
+          }
+        ]
       },
       {
         "name": "mayhem_2013_map05",
         "md5": "1e998262ee319b7d088e01de782e6b41",
-        "options": [ {"name": "comp_vile", "value": 1} ]
+        "options": [
+          {
+            "name": "comp_vile",
+            "value": 1
+          }
+        ]
       },
       {
         "name": "imps_are_ghost_gods_map01",
         "md5": "a81e2734f735a82720d8e0f1442ba0c9",
-        "options": [ {"name": "comp_vile", "value": 1} ]
+        "options": [
+          {
+            "name": "comp_vile",
+            "value": 1
+          }
+        ]
       },
       {
         "name": "confinement_map31",
         "md5": "aad7502cb39bc050445e17b15f72356f",
-        "options": [ {"name": "comp_vile", "value": 1} ]
+        "options": [
+          {
+            "name": "comp_vile",
+            "value": 1
+          }
+        ]
       },
       {
         "name": "conf256b_map07",
         "md5": "5592ea1ca3b8ee0dbb2cb352aaa00911",
-        "options": [ {"name": "comp_pain", "value": 1} ]
+        "options": [
+          {
+            "name": "comp_pain",
+            "value": 1
+          }
+        ]
       },
       {
         "name": "conf256b_map12",
         "md5": "cecedae33b970f2bf7f8b8631da0c8dd",
-        "options": [ {"name": "comp_vile", "value": 1} ]
+        "options": [
+          {
+            "name": "comp_vile",
+            "value": 1
+          }
+        ]
       },
       {
         "name": "sunlust_map30",
         "md5": "41efe03223e41935849f64114c5cb471",
-        "options": [ {"name": "comp_telefrag", "value": 1} ]
+        "options": [
+          {
+            "name": "comp_telefrag",
+            "value": 1
+          }
+        ]
       },
       {
         "name": "tnt_map30",
         "md5": "42b68b84ff8e55f264c31e6f4cfea82d",
-        "options": [ {"name": "comp_stairs", "value": 1} ]
+        "options": [
+          {
+            "name": "comp_stairs",
+            "value": 1
+          }
+        ]
       },
       {
         "name": "intercep2_map03",
         "md5": "86587e4f8c8086991c8fc5c1ccfd30b9",
-        "options": [ {"name": "comp_ledgeblock", "value": 0} ]
+        "options": [
+          {
+            "name": "comp_ledgeblock",
+            "value": 0
+          }
+        ]
       },
       {
         "name": "skulltiverse_map02",
         "md5": "b3fa4a18b31bd96e724f9aab101776a1",
-        "options": [ {"name": "comp_ledgeblock", "value": 0} ]
+        "options": [
+          {
+            "name": "comp_ledgeblock",
+            "value": 0
+          }
+        ]
       },
       {
         "name": "tntr_map30",
         "md5": "1d3c6d456bfcf360ce14aeecc155a96c",
-        "options": [ {"comp_telefrag": true} ]
+        "options": [
+          {
+            "name": "comp_telefrag",
+            "value": 1
+          }
+        ]
       },
       {
         "name": "roomblow_e1m1",
         "md5": "68ffa69f2eaa5ced3dc4da5a300d022a",
-        "options": [ {"name": "comp_stairs", "value": 1} ]
+        "options": [
+          {
+            "name": "comp_stairs",
+            "value": 1
+          }
+        ]
       },
       {
         "name": "esp_map21",
         "md5": "97088f2849904bc1cd5ae1d92d163b13",
-        "options": [ {"name": "comp_stairs", "value": 1} ]
+        "options": [
+          {
+            "name": "comp_stairs",
+            "value": 1
+          }
+        ]
       },
       {
         "name": "av_map07",
         "md5": "941e4cb56ee4184e0b1ed43486ab0bbf",
-        "options": [ {"name": "comp_model", "value": 1} ]
+        "options": [
+          {
+            "name": "comp_model",
+            "value": 1
+          }
+        ]
       },
       {
         "name": "sin2_9_map02",
         "md5": "9aa5aa3020434f824624eba88916ee23",
-        "options": [ {"name": "comp_vile", "value": 1} ]
+        "options": [
+          {
+            "name": "comp_vile",
+            "value": 1
+          }
+        ]
       },
       {
         "name": "d2reload_map09",
         "md5": "c8de798a4d658ffc94151884c6c2bf37",
-        "options": [ {"name": "comp_vile", "value": 1} ]
+        "options": [
+          {
+            "name": "comp_vile",
+            "value": 1
+          }
+        ]
       },
       {
         "name": "amoreupho_map02",
         "md5": "66a8310a0a7d2af99e3a0089b2d6c897",
-        "options": [ {"name": "comp_vile", "value": 1} ]
+        "options": [
+          {
+            "name": "comp_vile",
+            "value": 1
+          }
+        ]
       },
       {
         "name": "dbp20_dnd_map07",
         "md5": "e26c1b6f4dfd90bb6533e6381bf61be5",
-        "options": [ {"name": "comp_vile", "value": 1} ]
+        "options": [
+          {
+            "name": "comp_vile",
+            "value": 1
+          }
+        ]
       },
       {
         "name": "arch_map01",
         "md5": "1d37cbd32a1ecf4763437631e7b3c29a",
-        "options": [ {"name": "comp_vile", "value": 1} ]
+        "options": [
+          {
+            "name": "comp_vile",
+            "value": 1
+          }
+        ]
       },
       {
         "name": "ur_map06",
         "md5": "cfb054683af1ed187d0565942d3dbb8f",
-        "options": [ {"name": "comp_vile", "value": 1} ]
+        "options": [
+          {
+            "name": "comp_vile",
+            "value": 1
+          }
+        ]
       }
     ]
   }
