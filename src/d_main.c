@@ -1633,16 +1633,21 @@ static boolean AllowEndDoom(void)
           || exit_sequence == EXIT_SEQUENCE_ENDOOM_ONLY));
 }
 
-static boolean AllowEndDoomPWADOnly() {
-  return (!W_IsIWADLump(W_CheckNumForName("ENDOOM")) && endoom_pwad_only);
-}
+
 
 static void D_EndDoom(void)
 {
-  if (AllowEndDoom() && AllowEndDoomPWADOnly())
-  {
-    D_ShowEndDoom();
-  }
+  // Do we even want to show an ENDOOM?
+  if (!AllowEndDoom()) return;
+
+  // If so, is it from the IWAD?
+  bool iwad_endoom = W_IsIWADLump(W_CheckNumForName("ENDOOM"));
+
+  // Does the user want to see it, in that case?
+  if (iwad_endoom && endoom_pwad_only) return;
+
+  D_ShowEndDoom();
+
 }
 
 // [FG] fast-forward demo to the desired map
