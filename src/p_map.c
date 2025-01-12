@@ -843,7 +843,7 @@ boolean P_CheckPosition(mobj_t *thing, fixed_t x, fixed_t y)
 //
 // killough 3/15/98: allow dropoff as option
 
-boolean P_TryMove(mobj_t *thing, fixed_t x, fixed_t y, boolean dropoff)
+boolean P_TryMove(mobj_t *thing, fixed_t x, fixed_t y, int dropoff)
 {
   fixed_t oldx, oldy;
 
