@@ -78,7 +78,7 @@ typedef struct
 {
     md5_digest_t checksum;
     option_t *options;
-    demo_version_t complevel;
+    char *complevel;
 } comp_record_t;
 
 static comp_record_t *comp_database;
@@ -128,15 +128,11 @@ void G_ParseCompDatabase(void)
             continue;
         }
 
-        record.complevel = DV_MBF21;
+        record.complevel = NULL;
         const char *complevel = JS_GetStringValue(level, "complevel");
         if (complevel)
         {
-            demo_version_t new_complevel = G_GetNamedComplevel(complevel);
-            if (new_complevel != DV_NONE)
-            {
-                record.complevel = new_complevel;
-            }
+            record.complevel = M_StringDuplicate(complevel);
         }
 
         json_t *js_options = JS_GetObject(level, "options");
@@ -230,10 +226,10 @@ void G_ApplyLevelCompatibility(int lump)
             memcpy(old_comp, comp, sizeof(*comp));
             restore_comp = true;
 
-            demo_version_t new_demover = record->complevel;
-            if (new_demover != DV_MBF21)
+            char *new_demover = record->complevel;
+            if (new_demover)
             {
-                demo_version = new_demover;
+                demo_version = G_GetNamedComplevel(new_demover);
                 G_ReloadDefaults(true);
                 I_Printf(VB_INFO, "Automatically setting compatibility level \"%s\"",
                          G_GetCurrentComplevelName());
