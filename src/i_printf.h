@@ -31,7 +31,7 @@ typedef enum
     VB_MAX
 } verbosity_t;
 
-#define VB_DEMO (gameaction == ga_playdemo ? VB_INFO : VB_DEBUG)
+#define VB_DEMO (gameaction == ga_playdemo || demoplayback ? VB_INFO : VB_DEBUG)
 
 int I_ConsoleStdout(void);
 
