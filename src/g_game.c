@@ -4780,7 +4780,7 @@ void G_BindCompVariables(void)
   BIND_COMP(comp_vile,      0, "Arch-viles can create ghost monsters");
   BIND_COMP(comp_pain,      0, "Pain elementals are limited to 20 lost souls");
   BIND_COMP(comp_skull,     0, "Lost souls can spawn past impassable lines");
-  BIND_COMP(comp_blazing,   0, "Blazing doors make double closing sounds");
+  BIND_COMP(comp_blazing,   0, "Incorrect sound behavior for blazing doors");
   BIND_COMP(comp_doorlight, 0, "Door lighting changes are immediate");
   BIND_COMP(comp_god,       0, "God mode isn't absolute");
   BIND_COMP(comp_skymap,    0, "Don't apply invulnerability palette to skies");
