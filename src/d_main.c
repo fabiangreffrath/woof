@@ -25,7 +25,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <strings.h>
 
 #include "am_map.h"
 #include "config.h"
@@ -436,6 +435,7 @@ void D_Display (void)
 
 static int pagetic;
 static const char *pagename;
+static demoloop_entry_t demoloop_point;
 
 //
 // D_PageTicker
@@ -479,59 +479,69 @@ void D_AdvanceDemo(void)
 void D_AdvanceDemoLoop(void)
 {
   demoloop_current = (demoloop_current + 1) % demoloop_count;
+  demoloop_point = demoloop[demoloop_current];
 }
 
-//
-// Advance to next entry in the DemoLoop data strucutre.
-// Looping back to the beginning appropriately.
-//
 void D_DoAdvanceDemo(void)
 {
   players[consoleplayer].playerstate = PST_LIVE; // not reborn
   advancedemo = false;
-  usergame    = false; // no save / end game here
-  paused      = false;
-  gameaction  = ga_nothing;
+  usergame = false; // no save / end game here
+  paused = false;
+  gameaction = ga_nothing;
 
   D_AdvanceDemoLoop();
-
-  switch (demoloop[demoloop_current].type)
+  switch (demoloop_point.type)
   {
-    case TYPE_ART_SCREEN:
+    case TYPE_ART:
       gamestate = GS_DEMOSCREEN;
-      // gamestate = GS_NONE;
+      pagename = demoloop_point.primary_lump;
 
-      if (W_CheckNumForName(demoloop[demoloop_current].primary_lump) < 0)
+      // Needed to support the Doom 3: BFG Edition variant
+      if (strcasecmp(pagename, "TITLEPIC")
+          && W_CheckNumForName("TITLEPIC") < 0)
       {
-        D_AdvanceDemoLoop();
+        pagename = "DMENUPIC";
       }
 
-      pagename = demoloop[demoloop_current].primary_lump;
-      pagetic = demoloop[demoloop_current].duration;
+      if (W_CheckNumForName(demoloop_point.primary_lump) < 0)
+      {
+        I_Printf(VB_WARNING,
+                 "D_DoAdvanceDemo: Invalid demoloop[%d] art screen",
+                 demoloop_current);
+        D_AdvanceDemoLoop();
+        break;
+      }
 
-      int music = W_CheckNumForName(demoloop[demoloop_current].secondary_lump);
+      pagetic = demoloop_point.duration;
+      int music = W_CheckNumForName(demoloop_point.secondary_lump);
       if (music >= 0)
       {
         S_ChangeMusInfoMusic(music, false);
       }
       break;
 
-    case TYPE_DEMO_LUMP:
+    case TYPE_DEMO:
       gamestate = GS_DEMOSCREEN;
-      G_DeferedPlayDemo(demoloop[demoloop_current].primary_lump);
+
+      if (W_CheckNumForName(demoloop_point.primary_lump) < 0)
+      {
+        I_Printf(VB_WARNING,
+                 "D_DoAdvanceDemo: Invalid demoloop[%d] demo lump",
+                 demoloop_current);
+        break;
+      }
+
+      G_DeferedPlayDemo(demoloop_point.primary_lump);
       break;
 
     case TYPE_NONE:
     default:
-      I_Printf(VB_WARNING, "D_DoAdvanceDemo: Invalid demoloop[%d] entry, skipping", demoloop_current);
+      I_Printf(VB_WARNING,
+               "D_DoAdvanceDemo: Invalid demoloop[%d] entry, skipping",
+               demoloop_current);
       D_AdvanceDemoLoop();
       break;
-  }
-
-  // Needed to support Doom 3: BFG Edition variant of the IWADs as they lack TITLEPIC
-  if (!strcasecmp(pagename, "TITLEPIC") && W_CheckNumForName("TITLEPIC") < 0)
-  {
-    pagename = "DMENUPIC";
   }
 }
 

@@ -12,143 +12,71 @@
 //  GNU General Public License for more details.
 //
 //  DESCRIPTION:
-//    ID24 DemoLoop
+//    ID24 DemoLoop Specification - User customizable title screen sequence.
+//    Though originally hardcoded on the original Doom engine this allows
+//    for Doom modders to define custom sequences, using any provided custom
+//    graphic-and-music, or DEMO lump.
+//
 
 #include "doomdef.h"
 #include "doomstat.h"
 
+#include "doomtype.h"
 #include "i_printf.h"
 #include "m_array.h"
 #include "m_json.h"
-#include "w_wad.h"
 
 #include "d_demoloop.h"
 
-// DEMO1 lump playback.
-static const demoloop_entry_t dl_demo1 = {
-    "DEMO1",
-    "",
-    0,
-    TYPE_DEMO_LUMP,
-    OUTRO_WIPE_SCREEM_MELT,
-};
-
-// DEMO2 lump playback.
-static const demoloop_entry_t dl_demo2 = {
-    "DEMO2",
-    "",
-    0,
-    TYPE_DEMO_LUMP,
-    OUTRO_WIPE_SCREEM_MELT,
-};
-
-// DEMO3 lump playback.
-static const demoloop_entry_t dl_demo3 = {
-    "DEMO3",
-    "",
-    0,
-    TYPE_DEMO_LUMP,
-    OUTRO_WIPE_SCREEM_MELT,
-};
-
-// DEMO4 lump, only present in Ultimate Doom.
-// The DEMO4 entry crashed in the original Final Doom EXE's loop.
-static const demoloop_entry_t dl_demo4 = {
-    "DEMO4",
-    "",
-    0,
-    TYPE_DEMO_LUMP,
-    OUTRO_WIPE_SCREEM_MELT,
-};
-
-// Oddly, Doom's TITLEPIC lasts for a brifer period than Doom II.
-// About ~4.857 seconds, as opposed to Doom II's exact 11 seconds.
-static const demoloop_entry_t dl_doom1_titlepic = {
-    "TITLEPIC",
-    "D_INTRO",
-    170,
-    TYPE_ART_SCREEN,
-    OUTRO_WIPE_SCREEM_MELT,
-};
-
-// HELP2 titlescreen lasts for about ~5.714 seconds.
-// Used only in Registered mode.
-static const demoloop_entry_t dl_help2 = {
-    "HELP2",
-    "",
-    200,
-    TYPE_ART_SCREEN,
-    OUTRO_WIPE_SCREEM_MELT,
-};
-
-// Plain Doom II, Commercial mode, TITLEPIC lasts for exactly 11.0 seconds.
-static const demoloop_entry_t dl_doom2_titlepic = {
-    "TITLEPIC",
-    "D_DM2TTL",
-    385,
-    TYPE_ART_SCREEN,
-    OUTRO_WIPE_SCREEM_MELT,
-};
-
-// CREDIT titlescreen lasts for about ~5.714 seconds.
-// Used in Retail and Commercial mode.
-static const demoloop_entry_t dl_credit = {
-    "CREDIT",
-    "",
-    200,
-    TYPE_ART_SCREEN,
-    OUTRO_WIPE_SCREEM_MELT,
-};
-
 // Used to check for fault tolerance
-static const demoloop_entry_t dl_none = {
+static demoloop_entry_t dl_none = {
     "",
     "",
     0,
-    TYPE_NONE,
-    OUTRO_WIPE_NONE,
+    -1,
+    -1,
 };
 
 // Doom
-demoloop_entry_t demoloop_registered[6] = {
-    dl_doom1_titlepic,
-    dl_demo1,
-    dl_credit,
-    dl_demo2,
-    dl_help2,
-    dl_demo3,
+demoloop_entry_t demoloop_registered[] = {
+    { "TITLEPIC", "D_INTRO",  170, TYPE_ART,  WIPE_MELT },
+    { "DEMO1",    "",         0,   TYPE_DEMO, WIPE_MELT },
+    { "CREDIT",   "",         200, TYPE_ART,  WIPE_MELT },
+    { "DEMO2",    "",         0,   TYPE_DEMO, WIPE_MELT },
+    { "HELP2",    "",         200, TYPE_ART,  WIPE_MELT },
+    { "DEMO3",    "",         0,   TYPE_DEMO, WIPE_MELT },
 };
 
-// Ultiamte Doom
-demoloop_entry_t demoloop_retail[7] = {
-    dl_doom1_titlepic,
-    dl_demo1,
-    dl_credit,
-    dl_demo2,
-    dl_credit,
-    dl_demo3,
-    dl_demo4,
+// Ultimate Doom
+demoloop_entry_t demoloop_retail[] = {
+    { "TITLEPIC", "D_INTRO",  170, TYPE_ART,  WIPE_MELT },
+    { "DEMO1",    "",         0,   TYPE_DEMO, WIPE_MELT },
+    { "CREDIT",   "",         200, TYPE_ART,  WIPE_MELT },
+    { "DEMO2",    "",         0,   TYPE_DEMO, WIPE_MELT },
+    { "CREDIT",   "",         200, TYPE_ART,  WIPE_MELT },
+    { "DEMO3",    "",         0,   TYPE_DEMO, WIPE_MELT },
+    { "DEMO4",    "",         0,   TYPE_DEMO, WIPE_MELT },
 };
 
 // Doom II & fixed Final Doom
-demoloop_entry_t demoloop_commercial[6] = {
-    dl_doom2_titlepic,
-    dl_demo1,
-    dl_credit,
-    dl_demo2,
-    dl_doom2_titlepic,
-    dl_demo3,
+demoloop_entry_t demoloop_commercial[] = {
+    { "TITLEPIC", "D_DM2TTL", 385, TYPE_ART,  WIPE_MELT },
+    { "DEMO1",    "",         0,   TYPE_DEMO, WIPE_MELT },
+    { "CREDIT",   "",         200, TYPE_ART,  WIPE_MELT },
+    { "DEMO2",    "",         0,   TYPE_DEMO, WIPE_MELT },
+    { "TITLEPIC", "D_DM2TTL", 385, TYPE_ART,  WIPE_MELT },
+    { "DEMO3",    "",         0,   TYPE_DEMO, WIPE_MELT },
 };
 
 // TNT: Evilution & The Plutonia Experiement
-demoloop_entry_t demoloop_final[7] = {
-    dl_doom2_titlepic,
-    dl_demo1,
-    dl_credit,
-    dl_demo2,
-    dl_doom2_titlepic,
-    dl_demo3,
-    dl_demo4,
+demoloop_entry_t demoloop_final[] = {
+    { "TITLEPIC", "D_DM2TTL", 385, TYPE_ART,  WIPE_MELT },
+    { "DEMO1",    "",         0,   TYPE_DEMO, WIPE_MELT },
+    { "CREDIT",   "",         200, TYPE_ART,  WIPE_MELT },
+    { "DEMO2",    "",         0,   TYPE_DEMO, WIPE_MELT },
+    { "TITLEPIC", "D_DM2TTL", 385, TYPE_ART,  WIPE_MELT },
+    { "DEMO3",    "",         0,   TYPE_DEMO, WIPE_MELT },
+    { "DEMO4",    "",         0,   TYPE_DEMO, WIPE_MELT },
 };
 
 // For local parsing purposes only.
@@ -171,16 +99,16 @@ demoloop_entry_t D_ParseDemoLoopEntry(json_t *entry)
     // We don't want a malformed entry to creep in, and break the titlescreen.
     // If one such entry does exist, skip it.
     // TODO: modify later to check locally for lump type.
-    if (type <= TYPE_NONE || type > TYPE_DEMO_LUMP)
+    if (type <= TYPE_NONE || type > TYPE_DEMO)
     {
         return dl_none;
     }
 
     // Similarly, but this time it isn't game-breaking.
     // Let it gracefully default to "closest vanilla behavior".
-    if (outro_wipe <= OUTRO_WIPE_NONE || outro_wipe > OUTRO_WIPE_SCREEM_MELT)
+    if (outro_wipe <= WIPE_NONE || outro_wipe > WIPE_MELT)
     {
-        outro_wipe = OUTRO_WIPE_SCREEM_MELT;
+        outro_wipe = WIPE_MELT;
     }
 
     // Providing the time in seconds is much more intuitive for the end users.
@@ -249,37 +177,39 @@ void D_GetDefaultDemoLoop(GameMission_t mission, GameMode_t mode)
     switch(mission) {
         case doom:
             // The versions of Doom that have HELP2, instead.
-            if (mode == registered || mode == shareware) {
+            if (mode == registered || mode == shareware)
+            {
                 demoloop = demoloop_registered;
-                demoloop_count = 6;
+                demoloop_count = arrlen(demoloop_registered);
                 break;
             }
         case pack_chex3v:
             // Check for chex3d2.wad, "Chex Quest 3: Modding Edition".
-            if (mode == commercial) {
+            if (mode == commercial)
+            {
                 demoloop = demoloop_commercial;
-                demoloop_count = 6;
+                demoloop_count = arrlen(demoloop_commercial);
                 break;
             }
         case pack_rekkr:
         case pack_chex:
             // Plain Ultimate Doom
             demoloop = demoloop_retail;
-            demoloop_count = 7;
+            demoloop_count = arrlen(demoloop_retail);
             break;
 
         case doom2:
         case pack_hacx:
             // Plain Doom II
             demoloop = demoloop_commercial;
-            demoloop_count = 6;
+            demoloop_count = arrlen(demoloop_commercial);
             break;
 
         case pack_tnt:
         case pack_plut:
             // Plain Final Doom
             demoloop = demoloop_final;
-            demoloop_count = 7;
+            demoloop_count = arrlen(demoloop_final);
             break;
 
         case none:
@@ -294,10 +224,7 @@ void D_GetDefaultDemoLoop(GameMission_t mission, GameMode_t mode)
 }
 
 void D_SetupDemoLoop(void) {
-    if (W_CheckNumForName("DEMOLOOP") >= 0)
-    {
-        D_ParseDemoLoop();
-    }
+    D_ParseDemoLoop();
 
     if (demoloop == NULL)
     {
