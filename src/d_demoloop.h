@@ -42,11 +42,11 @@ typedef enum
 // Individual demoloop units.
 typedef struct
 {
-    const char *primary_lump;   // Screen graphic or DEMO lump.
-    const char *secondary_lump; // Music lump for screen graphic.
-    int         duration;       // Game tics.
-    dl_type_t   type;
-    dl_wipe_t   outro_wipe;
+    char      primary_lump[9];   // Screen graphic or DEMO lump.
+    char      secondary_lump[9]; // Music lump for screen graphic.
+    int       duration;          // Game tics.
+    dl_type_t type;
+    dl_wipe_t outro_wipe;
 } demoloop_entry_t;
 
 typedef demoloop_entry_t* demoloop_t;
@@ -55,8 +55,6 @@ typedef demoloop_entry_t* demoloop_t;
 extern demoloop_t demoloop;
 // Formerly 7 for Ultimate Doom & Final Doom, 6 otherwise.
 extern int        demoloop_count;
-// Formerly "demosequence".
-extern int        demoloop_current;
 
 // Parse the DEMOLOOP, returning NULL to "demoloop" should any errors occur.
 void D_ParseDemoLoop(void);

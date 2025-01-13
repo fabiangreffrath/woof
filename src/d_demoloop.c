@@ -21,24 +21,15 @@
 #include "doomdef.h"
 #include "doomstat.h"
 
-#include "doomtype.h"
 #include "i_printf.h"
 #include "m_array.h"
 #include "m_json.h"
+#include "m_misc.h"
 
 #include "d_demoloop.h"
 
-// Used to check for fault tolerance
-static demoloop_entry_t dl_none = {
-    "",
-    "",
-    0,
-    -1,
-    -1,
-};
-
 // Doom
-demoloop_entry_t demoloop_registered[] = {
+static demoloop_entry_t demoloop_registered[] = {
     { "TITLEPIC", "D_INTRO",  170, TYPE_ART,  WIPE_MELT },
     { "DEMO1",    "",         0,   TYPE_DEMO, WIPE_MELT },
     { "CREDIT",   "",         200, TYPE_ART,  WIPE_MELT },
@@ -48,7 +39,7 @@ demoloop_entry_t demoloop_registered[] = {
 };
 
 // Ultimate Doom
-demoloop_entry_t demoloop_retail[] = {
+static demoloop_entry_t demoloop_retail[] = {
     { "TITLEPIC", "D_INTRO",  170, TYPE_ART,  WIPE_MELT },
     { "DEMO1",    "",         0,   TYPE_DEMO, WIPE_MELT },
     { "CREDIT",   "",         200, TYPE_ART,  WIPE_MELT },
@@ -58,18 +49,8 @@ demoloop_entry_t demoloop_retail[] = {
     { "DEMO4",    "",         0,   TYPE_DEMO, WIPE_MELT },
 };
 
-// Doom II & fixed Final Doom
-demoloop_entry_t demoloop_commercial[] = {
-    { "TITLEPIC", "D_DM2TTL", 385, TYPE_ART,  WIPE_MELT },
-    { "DEMO1",    "",         0,   TYPE_DEMO, WIPE_MELT },
-    { "CREDIT",   "",         200, TYPE_ART,  WIPE_MELT },
-    { "DEMO2",    "",         0,   TYPE_DEMO, WIPE_MELT },
-    { "TITLEPIC", "D_DM2TTL", 385, TYPE_ART,  WIPE_MELT },
-    { "DEMO3",    "",         0,   TYPE_DEMO, WIPE_MELT },
-};
-
-// TNT: Evilution & The Plutonia Experiement
-demoloop_entry_t demoloop_final[] = {
+// Doom II & Final Doom
+static demoloop_entry_t demoloop_commercial[] = {
     { "TITLEPIC", "D_DM2TTL", 385, TYPE_ART,  WIPE_MELT },
     { "DEMO1",    "",         0,   TYPE_DEMO, WIPE_MELT },
     { "CREDIT",   "",         200, TYPE_ART,  WIPE_MELT },
@@ -84,24 +65,22 @@ static demoloop_entry_t current_entry;
 
 demoloop_t demoloop;
 int        demoloop_count = 0;
-int        demoloop_current = -1;
 
-
-// TODO: actually finish this and make it work
-demoloop_entry_t D_ParseDemoLoopEntry(json_t *entry)
+void D_ParseDemoLoopEntry(json_t *entry)
 {
-    const char* primary_lump   = JS_GetStringValue(entry, "primarylump");
-    const char* secondary_lump = JS_GetStringValue(entry, "secondarylump");
-    double      seconds        = JS_GetNumberValue(entry, "duration");
-    int         type           = JS_GetIntegerValue(entry, "type");
-    int         outro_wipe     = JS_GetIntegerValue(entry, "outro_wipe");
+    const char* primary_buffer   = JS_GetStringValue(entry, "primarylump");
+    const char* secondary_buffer = JS_GetStringValue(entry, "secondarylump");
+    double      seconds          = JS_GetNumberValue(entry, "duration");
+    int         type             = JS_GetIntegerValue(entry, "type");
+    int         outro_wipe       = JS_GetIntegerValue(entry, "outro_wipe");
 
     // We don't want a malformed entry to creep in, and break the titlescreen.
     // If one such entry does exist, skip it.
     // TODO: modify later to check locally for lump type.
-    if (type <= TYPE_NONE || type > TYPE_DEMO)
+    if (primary_buffer == NULL || type <= TYPE_NONE || type > TYPE_DEMO)
     {
-        return dl_none;
+        primary_buffer = "";
+        type = TYPE_NONE;
     }
 
     // Similarly, but this time it isn't game-breaking.
@@ -111,18 +90,13 @@ demoloop_entry_t D_ParseDemoLoopEntry(json_t *entry)
         outro_wipe = WIPE_MELT;
     }
 
+    // Remove pointer reference to in-memory JSON data.
+    M_CopyLumpName(current_entry.primary_lump, primary_buffer);
+    M_CopyLumpName(current_entry.secondary_lump, secondary_buffer);
     // Providing the time in seconds is much more intuitive for the end users.
-    int duration = seconds * TICRATE;
-
-    demoloop_entry_t demoloop_entry = {
-        primary_lump,
-        secondary_lump,
-        duration,
-        type,
-        outro_wipe,
-    };
-
-    return demoloop_entry;
+    current_entry.duration   = seconds * TICRATE;
+    current_entry.type       = type;
+    current_entry.outro_wipe = outro_wipe;
 }
 
 void D_ParseDemoLoop(void)
@@ -157,7 +131,7 @@ void D_ParseDemoLoop(void)
 
     JS_ArrayForEach(entry, entry_list)
     {
-        current_entry = D_ParseDemoLoopEntry(entry);
+        D_ParseDemoLoopEntry(entry);
 
         // Should there be a malformed entry, discard it.
         if (current_entry.type == TYPE_NONE)
@@ -169,54 +143,35 @@ void D_ParseDemoLoop(void)
         demoloop_count++;
     }
 
+    // No need to keep in memory
+    JS_Close("DEMOLOOP");
     return;
 }
 
 void D_GetDefaultDemoLoop(GameMission_t mission, GameMode_t mode)
 {
-    switch(mission) {
-        case doom:
-            // The versions of Doom that have HELP2, instead.
-            if (mode == registered || mode == shareware)
-            {
-                demoloop = demoloop_registered;
-                demoloop_count = arrlen(demoloop_registered);
-                break;
-            }
-        case pack_chex3v:
-            // Check for chex3d2.wad, "Chex Quest 3: Modding Edition".
-            if (mode == commercial)
-            {
-                demoloop = demoloop_commercial;
-                demoloop_count = arrlen(demoloop_commercial);
-                break;
-            }
-        case pack_rekkr:
-        case pack_chex:
-            // Plain Ultimate Doom
+    switch(mode)
+    {
+        case shareware:
+        case registered:
+            demoloop = demoloop_registered;
+            demoloop_count = arrlen(demoloop_registered);
+            break;
+
+        case retail:
             demoloop = demoloop_retail;
             demoloop_count = arrlen(demoloop_retail);
             break;
 
-        case doom2:
-        case pack_hacx:
-            // Plain Doom II
+        case commercial:
             demoloop = demoloop_commercial;
             demoloop_count = arrlen(demoloop_commercial);
             break;
 
-        case pack_tnt:
-        case pack_plut:
-            // Plain Final Doom
-            demoloop = demoloop_final;
-            demoloop_count = arrlen(demoloop_final);
-            break;
-
-        case none:
+        case indetermined:
         default:
             // How did we get here?
             demoloop = NULL;
-            demoloop_count = 0;
             break;
     }
 

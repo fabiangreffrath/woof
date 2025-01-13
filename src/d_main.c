@@ -433,6 +433,7 @@ void D_Display (void)
 //  DEMO LOOP
 //
 
+static int demosequence;         // killough 5/2/98: made static
 static int pagetic;
 static const char *pagename;
 static demoloop_entry_t demoloop_point;
@@ -472,77 +473,64 @@ void D_AdvanceDemo(void)
   advancedemo = true;
 }
 
-//
-// Advance to next entry in the DemoLoop data strucutre.
-// Looping back to the beginning appropriately.
-//
+// This cycles through the demo sequences.
 void D_AdvanceDemoLoop(void)
 {
-  demoloop_current = (demoloop_current + 1) % demoloop_count;
-  demoloop_point = demoloop[demoloop_current];
+  demosequence = (demosequence + 1) % demoloop_count;
+  demoloop_point = demoloop[demosequence];
 }
 
 void D_DoAdvanceDemo(void)
 {
-  players[consoleplayer].playerstate = PST_LIVE; // not reborn
-  advancedemo = false;
-  usergame = false; // no save / end game here
-  paused = false;
-  gameaction = ga_nothing;
+    players[consoleplayer].playerstate = PST_LIVE; // not reborn
+    advancedemo = false;
+    usergame = false; // no save / end game here
+    paused = false;
+    gameaction = ga_nothing;
 
-  D_AdvanceDemoLoop();
-  switch (demoloop_point.type)
-  {
-    case TYPE_ART:
-      gamestate = GS_DEMOSCREEN;
-      pagename = demoloop_point.primary_lump;
+    D_AdvanceDemoLoop();
+    switch (demoloop_point.type)
+    {
+        case TYPE_ART:
+            gamestate = GS_DEMOSCREEN;
 
-      // Needed to support the Doom 3: BFG Edition variant
-      if (strcasecmp(pagename, "TITLEPIC")
-          && W_CheckNumForName("TITLEPIC") < 0)
-      {
-        pagename = "DMENUPIC";
-      }
+            // Needed to support the Doom 3: BFG Edition variant
+            if (W_CheckNumForName(demoloop_point.primary_lump) < 0
+                && !strcasecmp(demoloop_point.primary_lump, "TITLEPIC"))
+            {
+                M_CopyLumpName(demoloop_point.primary_lump, "DMENUPIC");
+            }
 
-      if (W_CheckNumForName(demoloop_point.primary_lump) < 0)
-      {
-        I_Printf(VB_WARNING,
-                 "D_DoAdvanceDemo: Invalid demoloop[%d] art screen",
-                 demoloop_current);
-        D_AdvanceDemoLoop();
-        break;
-      }
+            if (W_CheckNumForName(demoloop_point.primary_lump) >= 0)
+            {
+                pagename = demoloop_point.primary_lump;
+                pagetic = demoloop_point.duration;
+                int music = W_CheckNumForName(demoloop_point.secondary_lump);
+                if (music >= 0)
+                {
+                    S_ChangeMusInfoMusic(music, false);
+                }
+                break;
+            }
+            // fallthrough
 
-      pagetic = demoloop_point.duration;
-      int music = W_CheckNumForName(demoloop_point.secondary_lump);
-      if (music >= 0)
-      {
-        S_ChangeMusInfoMusic(music, false);
-      }
-      break;
+        case TYPE_DEMO:
+            gamestate = GS_DEMOSCREEN;
 
-    case TYPE_DEMO:
-      gamestate = GS_DEMOSCREEN;
+            if (W_CheckNumForName(demoloop_point.primary_lump) >= 0)
+            {
+              G_DeferedPlayDemo(demoloop_point.primary_lump);
+              break;
+            }
+            // fallthrough
 
-      if (W_CheckNumForName(demoloop_point.primary_lump) < 0)
-      {
-        I_Printf(VB_WARNING,
-                 "D_DoAdvanceDemo: Invalid demoloop[%d] demo lump",
-                 demoloop_current);
-        break;
-      }
-
-      G_DeferedPlayDemo(demoloop_point.primary_lump);
-      break;
-
-    case TYPE_NONE:
-    default:
-      I_Printf(VB_WARNING,
-               "D_DoAdvanceDemo: Invalid demoloop[%d] entry, skipping",
-               demoloop_current);
-      D_AdvanceDemoLoop();
-      break;
-  }
+        case TYPE_NONE:
+        default:
+            I_Printf(VB_WARNING,
+                     "D_DoAdvanceDemo: Invalid demoloop[%d] entry, skipping",
+                     demosequence);
+            break;
+    }
 }
 
 //
@@ -551,6 +539,7 @@ void D_DoAdvanceDemo(void)
 void D_StartTitle (void)
 {
   gameaction = ga_nothing;
+  demosequence = -1;
   D_AdvanceDemo();
 }
 
