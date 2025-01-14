@@ -62,6 +62,8 @@ void D_StartTitle(void);
 
 extern boolean advancedemo;
 
+void D_RestoreScreenMelt(void);
+
 #endif
 
 //----------------------------------------------------------------------------
