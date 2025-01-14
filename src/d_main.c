@@ -436,7 +436,7 @@ void D_Display (void)
 static int demosequence;         // killough 5/2/98: made static
 static int pagetic;
 static const char *pagename;
-static demoloop_entry_t demoloop_point;
+static demoloop_t demoloop_point;
 
 //
 // D_PageTicker
@@ -477,7 +477,7 @@ void D_AdvanceDemo(void)
 void D_AdvanceDemoLoop(void)
 {
   demosequence = (demosequence + 1) % demoloop_count;
-  demoloop_point = demoloop[demosequence];
+  demoloop_point = &demoloop[demosequence];
 }
 
 void D_DoAdvanceDemo(void)
@@ -489,23 +489,23 @@ void D_DoAdvanceDemo(void)
     gameaction = ga_nothing;
 
     D_AdvanceDemoLoop();
-    switch (demoloop_point.type)
+    switch (demoloop_point->type)
     {
         case TYPE_ART:
             gamestate = GS_DEMOSCREEN;
 
             // Needed to support the Doom 3: BFG Edition variant
-            if (W_CheckNumForName(demoloop_point.primary_lump) < 0
-                && !strcasecmp(demoloop_point.primary_lump, "TITLEPIC"))
+            if (W_CheckNumForName(demoloop_point->primary_lump) < 0
+                && !strcasecmp(demoloop_point->primary_lump, "TITLEPIC"))
             {
-                M_CopyLumpName(demoloop_point.primary_lump, "DMENUPIC");
+                M_CopyLumpName(demoloop_point->primary_lump, "DMENUPIC");
             }
 
-            if (W_CheckNumForName(demoloop_point.primary_lump) >= 0)
+            if (W_CheckNumForName(demoloop_point->primary_lump) >= 0)
             {
-                pagename = demoloop_point.primary_lump;
-                pagetic = demoloop_point.duration;
-                int music = W_CheckNumForName(demoloop_point.secondary_lump);
+                pagename = demoloop_point->primary_lump;
+                pagetic = demoloop_point->duration;
+                int music = W_CheckNumForName(demoloop_point->secondary_lump);
                 if (music >= 0)
                 {
                     S_ChangeMusInfoMusic(music, false);
@@ -517,10 +517,10 @@ void D_DoAdvanceDemo(void)
         case TYPE_DEMO:
             gamestate = GS_DEMOSCREEN;
 
-            if (W_CheckNumForName(demoloop_point.primary_lump) >= 0)
+            if (W_CheckNumForName(demoloop_point->primary_lump) >= 0)
             {
-              G_DeferedPlayDemo(demoloop_point.primary_lump);
-              break;
+                G_DeferedPlayDemo(demoloop_point->primary_lump);
+                break;
             }
             // fallthrough
 

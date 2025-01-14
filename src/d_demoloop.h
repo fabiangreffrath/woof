@@ -18,8 +18,6 @@
 //    graphic, music or DEMO lump.
 //
 
-#include "doomdef.h"
-
 #ifndef _D_DEMOLOOP_
 #define _D_DEMOLOOP_
 
@@ -56,10 +54,6 @@ extern demoloop_t demoloop;
 // Formerly 7 for Ultimate Doom & Final Doom, 6 otherwise.
 extern int        demoloop_count;
 
-// Parse the DEMOLOOP, returning NULL to "demoloop" should any errors occur.
-void D_ParseDemoLoop(void);
-// If "demoloop" is NULL, check for defaults using mission and mode.
-void D_GetDefaultDemoLoop(GameMission_t mission, GameMode_t mode);
 // Perform both "D_ParseDemoLoop" and "D_GetDefaultDemoLoop".
 void D_SetupDemoLoop(void);
 

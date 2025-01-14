@@ -60,10 +60,7 @@ static demoloop_entry_t demoloop_commercial[] = {
     { "DEMO4",    "",         0,   TYPE_DEMO, WIPE_MELT },
 };
 
-// For local parsing purposes only.
-static demoloop_entry_t current_entry;
-
-demoloop_t demoloop;
+demoloop_t demoloop = NULL;
 int        demoloop_count = 0;
 
 void D_ParseDemoLoopEntry(json_t *entry)
@@ -90,6 +87,8 @@ void D_ParseDemoLoopEntry(json_t *entry)
         outro_wipe = WIPE_MELT;
     }
 
+    demoloop_entry_t current_entry = {0};
+
     // Remove pointer reference to in-memory JSON data.
     M_CopyLumpName(current_entry.primary_lump, primary_buffer);
     M_CopyLumpName(current_entry.secondary_lump, secondary_buffer);
@@ -97,9 +96,17 @@ void D_ParseDemoLoopEntry(json_t *entry)
     current_entry.duration   = seconds * TICRATE;
     current_entry.type       = type;
     current_entry.outro_wipe = outro_wipe;
+
+    // Should there be a malformed entry, discard it.
+    if (current_entry.type == TYPE_NONE)
+    {
+        return;
+    }
+
+    array_push(demoloop, current_entry);
 }
 
-void D_ParseDemoLoop(void)
+static void D_ParseDemoLoop(void)
 {
     // Does the JSON lump even exist?
     json_t *json = JS_Open("DEMOLOOP", "demoloop", (version_t){1, 0, 0});
@@ -128,27 +135,17 @@ void D_ParseDemoLoop(void)
 
     // If so, now parse them.
     json_t *entry;
-
     JS_ArrayForEach(entry, entry_list)
     {
         D_ParseDemoLoopEntry(entry);
-
-        // Should there be a malformed entry, discard it.
-        if (current_entry.type == TYPE_NONE)
-        {
-            continue;
-        }
-
-        array_push(demoloop, current_entry);
-        demoloop_count++;
     }
+    demoloop_count = array_size(demoloop);
 
     // No need to keep in memory
     JS_Close("DEMOLOOP");
-    return;
 }
 
-void D_GetDefaultDemoLoop(GameMission_t mission, GameMode_t mode)
+static void D_GetDefaultDemoLoop(GameMode_t mode)
 {
     switch(mode)
     {
@@ -172,17 +169,19 @@ void D_GetDefaultDemoLoop(GameMission_t mission, GameMode_t mode)
         default:
             // How did we get here?
             demoloop = NULL;
+            demoloop_count = 0;
             break;
     }
 
     return;
 }
 
-void D_SetupDemoLoop(void) {
+void D_SetupDemoLoop(void)
+{
     D_ParseDemoLoop();
 
     if (demoloop == NULL)
     {
-        D_GetDefaultDemoLoop(gamemission, gamemode);
+        D_GetDefaultDemoLoop(gamemode);
     }
 }
