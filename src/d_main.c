@@ -251,16 +251,7 @@ void D_ProcessEvents (void)
 
 // wipegamestate can be set to -1 to force a wipe on the next draw
 gamestate_t    wipegamestate = GS_DEMOSCREEN;
-static int     screen_melt = wipe_Melt, old_screen_melt = -1;
-
-void D_RestoreScreenMelt()
-{
-    if (old_screen_melt >= 0)
-    {
-      screen_melt = old_screen_melt;
-      old_screen_melt = -1;
-    }
-}
+static int     screen_melt = wipe_Melt;
 
 void D_Display (void)
 {
@@ -539,20 +530,6 @@ void D_DoAdvanceDemo(void)
                      "D_DoAdvanceDemo: Invalid demoloop[%d] entry, skipping",
                      demosequence);
             break;
-    }
-
-    if (old_screen_melt < 0)
-    {
-      old_screen_melt = screen_melt;
-    }
-
-    if (demoloop_point->outro_wipe == WIPE_IMMEDIATE)
-    {
-        screen_melt = wipe_None;
-    }
-    else if (demoloop_point->outro_wipe == WIPE_MELT)
-    {
-        screen_melt = wipe_Melt;
     }
 }
 
