@@ -30,6 +30,7 @@ typedef enum
 } dl_type_t;
 
 // Immediate switch or screen melt, NONE is used for fault tolerance.
+// TODO: reimplement more cleanly at a later, more relevant moment
 typedef enum
 {
     WIPE_NONE = -1,
