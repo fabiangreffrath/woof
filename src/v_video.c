@@ -402,7 +402,7 @@ static void DrawPatchInternal(int x, int y, patch_t *patch, boolean flipped)
     }
     else // too far off-screen
     {
-        x1 = -(int)((float)(video.width * (-x1 - 1)) / (float)video.unscaledw);
+        x1 = -((video.width * (-x1 - 1)) / video.unscaledw);
     }
 
     if (x2 < video.unscaledw)
