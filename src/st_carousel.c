@@ -13,6 +13,7 @@
 
 #include <math.h>
 
+#include "d_deh.h"
 #include "d_player.h"
 #include "doomdef.h"
 #include "doomtype.h"
@@ -26,18 +27,6 @@
 #include "st_sbardef.h"
 #include "v_fmt.h"
 #include "v_video.h"
-
-static const char *names[] = {
-    [wp_fist] = "SMFIST",
-    [wp_pistol] = "SMPISG",
-    [wp_shotgun] = "SMSHOT",
-    [wp_chaingun] = "SMMGUN",
-    [wp_missile] = "SMLAUN",
-    [wp_plasma] = "SMPLAS",
-    [wp_bfg] = "SMBFGG",
-    [wp_chainsaw] = "SMCSAW",
-    [wp_supershotgun] = "SMSGN2",
-};
 
 static const weapontype_t weapon_order[] = {
     wp_fist,
@@ -163,6 +152,19 @@ void ST_UpdateCarousel(player_t *player)
 
 static void DrawIcon(int x, int y, sbarelem_t *elem, weapon_icon_t icon)
 {
+    // [Elf] gross hack
+    char *names[] = {
+        [wp_fist] = s_CAROUSEL_FIST,
+        [wp_pistol] = s_CAROUSEL_PISG,
+        [wp_shotgun] = s_CAROUSEL_SHOT,
+        [wp_chaingun] = s_CAROUSEL_MGUN,
+        [wp_missile] = s_CAROUSEL_LAUN,
+        [wp_plasma] = s_CAROUSEL_PLAS,
+        [wp_bfg] = s_CAROUSEL_BFGG,
+        [wp_chainsaw] = s_CAROUSEL_CSAW,
+        [wp_supershotgun] = s_CAROUSEL_SGN2,
+    };
+
     char lump[9] = {0};
     M_snprintf(lump, sizeof(lump), "%s%d", names[icon.weapon],
         icon.state == wpi_selected);

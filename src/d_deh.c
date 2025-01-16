@@ -533,6 +533,17 @@ char *s_OB_MPPLASMARIFLE = OB_MPPLASMARIFLE;
 char *s_OB_MPBFG_BOOM = OB_MPBFG_BOOM;
 char *s_OB_MPTELEFRAG = OB_MPTELEFRAG;
 
+// [Elf] temporary hack
+char *s_CAROUSEL_FIST = "SMFIST";
+char *s_CAROUSEL_PISG = "SMPISG";
+char *s_CAROUSEL_SHOT = "SMSHOT";
+char *s_CAROUSEL_MGUN = "SMMGUN";
+char *s_CAROUSEL_LAUN = "SMLAUN";
+char *s_CAROUSEL_PLAS = "SMPLAS";
+char *s_CAROUSEL_BFGG = "SMBFGG";
+char *s_CAROUSEL_CSAW = "SMCSAW";
+char *s_CAROUSEL_SGN2 = "SMSGN2";
+
 // Ty 05/03/98 - externalized
 char* savegamename;
 
@@ -928,6 +939,17 @@ deh_strs deh_strlookup[] = {
   {&s_OB_MPPLASMARIFLE, "OB_MPPLASMARIFLE"},
   {&s_OB_MPBFG_BOOM, "OB_MPBFG_BOOM"},
   {&s_OB_MPTELEFRAG, "OB_MPTELEFRAG"},
+
+  // [Elf] temporary hack
+  {&s_CAROUSEL_FIST, "CAROUSEL_FIST"},
+  {&s_CAROUSEL_PISG, "CAROUSEL_PISG"},
+  {&s_CAROUSEL_SHOT, "CAROUSEL_SHOT"},
+  {&s_CAROUSEL_MGUN, "CAROUSEL_MGUN"},
+  {&s_CAROUSEL_LAUN, "CAROUSEL_LAUN"},
+  {&s_CAROUSEL_PLAS, "CAROUSEL_PLAS"},
+  {&s_CAROUSEL_BFGG, "CAROUSEL_BFGG"},
+  {&s_CAROUSEL_CSAW, "CAROUSEL_CSAW"},
+  {&s_CAROUSEL_SGN2, "CAROUSEL_SGN2"},
 };
 
 static int deh_numstrlookup =

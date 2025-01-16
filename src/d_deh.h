@@ -874,6 +874,17 @@ extern char *s_OB_MPPLASMARIFLE;
 extern char *s_OB_MPBFG_BOOM;
 extern char *s_OB_MPTELEFRAG;
 
+// [Elf] temporary hack
+extern char *s_CAROUSEL_FIST;
+extern char *s_CAROUSEL_PISG;
+extern char *s_CAROUSEL_SHOT;
+extern char *s_CAROUSEL_MGUN;
+extern char *s_CAROUSEL_LAUN;
+extern char *s_CAROUSEL_PLAS;
+extern char *s_CAROUSEL_BFGG;
+extern char *s_CAROUSEL_CSAW;
+extern char *s_CAROUSEL_SGN2;
+
 #endif
 
 //--------------------------------------------------------------------
