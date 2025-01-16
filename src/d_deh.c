@@ -1057,7 +1057,7 @@ static char *dehReformatStr(char *);
 // Pointers to these functions are used as the blocks are encountered.
 
 static void deh_procThing(DEHFILE *fpin, char *line);
-static void deh_procFrame(DEHFILE *, char *);
+static void deh_procFrame(DEHFILE *fpin, char *line);
 static void deh_procPointer(DEHFILE *fpin, char *line);
 static void deh_procSounds(DEHFILE *fpin, char *line);
 static void deh_procAmmo(DEHFILE *fpin, char *line);
@@ -1081,7 +1081,7 @@ typedef struct
 {
     char *key;                                     // a mnemonic block code name
     void (*const fptr)(DEHFILE *fpin, char *line); // handler
-} deh_block;
+} deh_block_t;
 
 #define DEH_BUFFERMAX 1024 // input buffer area size, hardcoded for now
 // killough 8/9/98: make DEH_BLOCKMAX self-adjusting
@@ -1090,7 +1090,7 @@ typedef struct
 
 // Put all the block header values, and the function to be called when that
 // one is encountered, in this array:
-static deh_block deh_blocks[] = {
+static const deh_block_t deh_blocks[] = {
     {"Thing",     deh_procThing          },
     {"Frame",     deh_procFrame          },
     {"Pointer",   deh_procPointer        },
@@ -1166,7 +1166,7 @@ enum
     DEH_MOBJINFOMAX
 };
 
-static char *deh_mobjinfo[] = {
+static const char *deh_mobjinfo[] = {
     "ID #",               // .doomednum
     "Initial frame",      // .spawnstate
     "Hit points",         // .spawnhealth
@@ -1216,15 +1216,15 @@ static char *deh_mobjinfo[] = {
 //
 // Convert array to struct to allow multiple values, make array size variable
 
-struct deh_flag_s
+typedef struct
 {
     const char *name;
     long value;
-};
+} deh_flag_t;
 
 struct
 {
-    char *name;
+    const char *name;
     long value;
 } deh_mobjflags[] = {
     {"SPECIAL",      0x00000001}, // call  P_Specialthing when touched
@@ -1269,7 +1269,7 @@ struct
     {"TRANSLUCENT",  0x80000000}, // apply translucency to sprite (BOOM)
 };
 
-static const struct deh_flag_s deh_mobjflags_mbf21[] = {
+static const deh_flag_t deh_mobjflags_mbf21[] = {
     {"LOGRAV",         MF2_LOGRAV       }, // low gravity
     {"SHORTMRANGE",    MF2_SHORTMRANGE  }, // short missile range
     {"DMGIGNORED",     MF2_DMGIGNORED   }, // other things ignore its attacks
@@ -1291,7 +1291,7 @@ static const struct deh_flag_s deh_mobjflags_mbf21[] = {
     {"FULLVOLSOUNDS",  MF2_FULLVOLSOUNDS}, // full volume see / death sound
 };
 
-static const struct deh_flag_s deh_weaponflags_mbf21[] = {
+static const deh_flag_t deh_weaponflags_mbf21[] = {
     {"NOTHRUST", WPF_NOTHRUST}, // doesn't thrust Mobj's
     {"SILENT", WPF_SILENT}, // weapon is silent
     {"NOAUTOFIRE", WPF_NOAUTOFIRE}, // weapon won't autofire in A_WeaponReady
@@ -1311,7 +1311,7 @@ static const struct deh_flag_s deh_weaponflags_mbf21[] = {
 // that Dehacked uses and is useless to us.
 // * states are base zero and have a dummy #0 (TROO)
 
-static char *deh_state[] =
+static const char *deh_state[] =
 {
   "Sprite number",    // .sprite (spritenum_t) // an enum
   "Sprite subnumber", // .frame (long)
@@ -1332,7 +1332,7 @@ static char *deh_state[] =
   "MBF21 Bits",       // .flags
 };
 
-static const struct deh_flag_s deh_stateflags_mbf21[] = {
+static const deh_flag_t deh_stateflags_mbf21[] = {
     {"SKILL5FAST", STATEF_SKILL5FAST}, // tics halve on nightmare skill
     {NULL}
 };
@@ -1347,7 +1347,7 @@ static const struct deh_flag_s deh_stateflags_mbf21[] = {
 
 // * sounds are base zero but have a dummy #0
 
-static char *deh_sfxinfo[] = {
+static const char *deh_sfxinfo[] = {
     "Offset",     // pointer to a name string, changed in text
     "Zero/One",   // .singularity (int, one at a time flag)
     "Value",      // .priority
@@ -1377,7 +1377,7 @@ static char *deh_sprite[] = {
 // usage = Ammo n (name)
 // Ammo information for the few types of ammo
 
-static char *deh_ammo[] = {
+static const char *deh_ammo[] = {
     "Max ammo", // maxammo[]
     "Per ammo"  // clipammo[]
 };
@@ -1386,7 +1386,7 @@ static char *deh_ammo[] = {
 // Usage: Weapon nn (name)
 // Basically a list of frames and what kind of ammo (see above)it uses.
 
-static char *deh_weapon[] = {
+static const char *deh_weapon[] = {
     "Ammo type",      // .ammo
     "Deselect frame", // .upstate
     "Select frame",   // .downstate
@@ -1411,7 +1411,7 @@ static char *deh_weapon[] = {
 // Usage: Misc 0
 // Always uses a zero in the dehacked file, for consistency.  No meaning.
 
-static char *deh_misc[] = {
+static const char *deh_misc[] = {
     "Initial Health",    // initial_health
     "Initial Bullets",   // initial_bullets
     "Max Health",        // maxhealth
@@ -1449,9 +1449,9 @@ typedef struct
     // mbf21
     int argcount; // [XA] number of mbf21 args this action uses, if any
     long default_args[MAXSTATEARGS]; // default values for mbf21 args
-} deh_bexptr;
+} deh_bexptr_t;
 
-static deh_bexptr deh_bexptrs[] = {
+static const deh_bexptr_t deh_bexptrs[] = {
     {{.p2 = A_Light0}, "A_Light0"},
     {{.p2 = A_WeaponReady}, "A_WeaponReady"},
     {{.p2 = A_Lower}, "A_Lower"},
@@ -2199,7 +2199,7 @@ static void deh_procFrame(DEHFILE *fpin, char *line)
                 for (value = 0; (strval = strtok(strval, ",+| \t\f\r"));
                      strval = NULL)
                 {
-                    const struct deh_flag_s *flag;
+                    const deh_flag_t *flag;
 
                     for (flag = deh_stateflags_mbf21; flag->name; flag++)
                     {
@@ -2523,7 +2523,7 @@ static void deh_procWeapon(DEHFILE *fpin, char *line)
                 for (value = 0; (strval = strtok(strval, ",+| \t\f\r"));
                      strval = NULL)
                 {
-                    const struct deh_flag_s *flag;
+                    const deh_flag_t *flag;
 
                     for (flag = deh_weaponflags_mbf21; flag->name; flag++)
                     {
@@ -3566,7 +3566,7 @@ static boolean deh_GetData(char *s, char *k, long *l, char **strval)
     return (okrc);
 }
 
-static deh_bexptr null_bexptr = {{NULL}, "(NULL)"};
+static const deh_bexptr_t null_bexptr = {{NULL}, "(NULL)"};
 
 static boolean CheckSafeState(statenum_t state)
 {
@@ -3608,7 +3608,7 @@ static boolean CheckSafeState(statenum_t state)
 void PostProcessDeh(void)
 {
     int i, j;
-    const deh_bexptr *bexptr_match;
+    const deh_bexptr_t *bexptr_match;
 
     // sanity-check bfgcells and bfg ammopershot
     if (bfgcells_modified && weaponinfo[wp_bfg].intflags & WIF_ENABLEAPS
