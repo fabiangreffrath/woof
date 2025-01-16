@@ -2,8 +2,8 @@
 
 * Partial implementation of the ID24 DEMOLOOP specification (thanks to @elf-alchemist).
 * Added ID24 "Carousel icon" DEHACKED field. Support for new carousel icons in "Legacy of Rust".
-* Added "Refraction" and "Shadow" modes for "Partial invisibility" option.
-* Added "Crispy HUD" option. Toggle HUD with "-/+" keys or "Screen Size" slider in "Status Bar/HUD" menu.
+* Added "Refraction" and "Shadow" modes for "Partial Invisibility" option.
+* Added "Crispy HUD" option. Toggle HUD with "+/-" keys or "Screen Size" slider in "Status Bar/HUD" menu.
 * Bring back extras.wad autoload, support for chex3v.wad and chex3d2.wad.
 * Expand exit sequence support to include PWAD endoom + no sound (thanks to @elf-alchemist).
 * Improved the handling of 'intertext = clear' for the finale in UMAPINFO.
@@ -11,9 +11,9 @@
 * Prevents the chainsaw idle sound and the player pain sound from interrupting each other.
 * Optimization of fixed division for older CPUs (thanks to @gendlin).
 * Added Clang vector extension (thanks to @jopadan).
-* Allow to toggle "Organize save files" at runtime.
+* Allow to toggle "Organize Save Files" at runtime.
 * Minor menu cleanup ("Gray Percent Sign" and "Translucency Filter" now config only).
-* Draw the time right-aligned if there is no par time and draw the total time right-aligned.
+* Draw the time right-aligned if there is no par time and the total time is drawn right-aligned.
 * Improve "IWAD not found" error message.
 * Allow setting complevel in COMPDB lump. Added "Doomsday of UAC" E1M8 fix.
 
@@ -33,4 +33,4 @@
 **Regressions**
 
 * Remove UMAPDEF. Modern versions of masterlevels.wad and nerve.wad now include UMAPINFO.
-* Don't search WAD files in HOME directory on Linux by default.
+* Don't search WAD files in plain HOME directory on Linux by default.
