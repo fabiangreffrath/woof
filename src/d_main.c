@@ -524,7 +524,6 @@ void D_DoAdvanceDemo(void)
             }
             // fallthrough
 
-        case TYPE_NONE:
         default:
             I_Printf(VB_WARNING,
                      "D_DoAdvanceDemo: Invalid demoloop[%d] entry, skipping",

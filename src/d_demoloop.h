@@ -24,7 +24,6 @@
 // Screen graphic or DEMO lump, NONE is used for fault tolerance.
 typedef enum
 {
-    TYPE_NONE = -1,
     TYPE_ART,
     TYPE_DEMO,
 } dl_type_t;

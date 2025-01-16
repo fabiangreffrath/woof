@@ -74,10 +74,10 @@ void D_ParseDemoLoopEntry(json_t *entry)
     // We don't want a malformed entry to creep in, and break the titlescreen.
     // If one such entry does exist, skip it.
     // TODO: modify later to check locally for lump type.
-    if (primary_buffer == NULL || type <= TYPE_NONE || type > TYPE_DEMO)
+    if (primary_buffer == NULL || secondary_buffer == NULL || type < TYPE_ART
+        || type > TYPE_DEMO)
     {
-        primary_buffer = "";
-        type = TYPE_NONE;
+        return;
     }
 
     // Similarly, but this time it isn't game-breaking.
@@ -96,12 +96,6 @@ void D_ParseDemoLoopEntry(json_t *entry)
     current_entry.duration   = seconds * TICRATE;
     current_entry.type       = type;
     current_entry.outro_wipe = outro_wipe;
-
-    // Should there be a malformed entry, discard it.
-    if (current_entry.type == TYPE_NONE)
-    {
-        return;
-    }
 
     array_push(demoloop, current_entry);
 }
