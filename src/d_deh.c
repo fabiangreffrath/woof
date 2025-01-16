@@ -1503,6 +1503,8 @@ char *deh_weapon[] =
   // mbf21
   "Ammo per shot",  // .ammopershot
   "MBF21 Bits",     // .flags
+  // id24
+  "Carousel icon",  // .carouselicon
 };
 
 // CHEATS - Dehacked block name = "Cheat"
@@ -2566,7 +2568,14 @@ void deh_procWeapon(DEHFILE *fpin, FILE* fpout, char *line)
 
                       weaponinfo[indexnum].flags = value;
                     }
-                    else
+                   else
+                     if (!strcasecmp(key, deh_weapon[8])) // Carousel icon
+                       {
+                          char *lump = calloc(1, 9);
+                          M_CopyLumpName(lump, ptr_lstrip(strval));
+                          weaponinfo[indexnum].carouselicon = lump;
+                       }
+                     else
                       if (fpout) fprintf(fpout,"Invalid weapon string index for '%s'\n",key);
     }
   return;
