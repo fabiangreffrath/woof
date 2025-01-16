@@ -2571,9 +2571,15 @@ void deh_procWeapon(DEHFILE *fpin, FILE* fpout, char *line)
                    else
                      if (!strcasecmp(key, deh_weapon[8])) // Carousel icon
                        {
-                          char *lump = calloc(1, 9);
-                          M_CopyLumpName(lump, ptr_lstrip(strval));
-                          weaponinfo[indexnum].carouselicon = lump;
+                          char candidate[9] = {0};
+                          M_CopyLumpName(candidate, ptr_lstrip(strval));
+                          int len = strlen(candidate);
+                          if (len < 1 || len > 7)
+                            {
+                              if (fpout) fprintf(fpout,"Bad length for carousel icon name '%s'\n",candidate);
+                              continue;
+                            }
+                          weaponinfo[indexnum].carouselicon = M_StringDuplicate(candidate);
                        }
                      else
                       if (fpout) fprintf(fpout,"Invalid weapon string index for '%s'\n",key);
@@ -3406,7 +3412,7 @@ void rstrip(char *s)  // strip trailing whitespace
 //
 char *ptr_lstrip(char *p)  // point past leading whitespace
 {
-  while (*p >= 0 && isspace(*p))
+  while (*p && isspace(*p))
     p++;
   return p;
 }
