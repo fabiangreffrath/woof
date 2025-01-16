@@ -57,7 +57,7 @@ static boolean bfgcells_modified = false;
 
 typedef struct
 {
-    MEMFILE *lump;
+    MEMFILE *memfile;
     FILE *file;
 } DEHFILE;
 
@@ -65,71 +65,71 @@ typedef struct
 
 // haleyjd: got rid of macros for MSCV
 
-static char *dehfgets(char *str, size_t count, DEHFILE *fp)
+static char *deh_fgets(char *str, size_t count, DEHFILE *fp)
 {
     if (fp->file)
     {
         return fgets(str, count, fp->file);
     }
-    else if (fp->lump)
+    else if (fp->memfile)
     {
-        return mem_fgets(str, count, fp->lump);
+        return mem_fgets(str, count, fp->memfile);
     }
 
     return NULL;
 }
 
-static int dehfeof(DEHFILE *fp)
+static int deh_feof(DEHFILE *fp)
 {
     if (fp->file)
     {
         return feof(fp->file);
     }
-    else if (fp->lump)
+    else if (fp->memfile)
     {
-        return mem_feof(fp->lump);
+        return mem_feof(fp->memfile);
     }
 
     return 0;
 }
 
-static int dehfgetc(DEHFILE *fp)
+static int deh_fgetc(DEHFILE *fp)
 {
     if (fp->file)
     {
         return fgetc(fp->file);
     }
-    else if (fp->lump)
+    else if (fp->memfile)
     {
-        return mem_fgetc(fp->lump);
+        return mem_fgetc(fp->memfile);
     }
 
     return -1;
 }
 
-static long dehftell(DEHFILE *fp)
+static long deh_ftell(DEHFILE *fp)
 {
     if (fp->file)
     {
         return ftell(fp->file);
     }
-    else if (fp->lump)
+    else if (fp->memfile)
     {
-        return mem_ftell(fp->lump);
+        return mem_ftell(fp->memfile);
     }
 
     return 0;
 }
 
-static int dehfseek(DEHFILE *fp, long offset)
+static int deh_fseek(DEHFILE *fp, long offset)
 {
     if (fp->file)
     {
         return fseek(fp->file, offset, SEEK_SET);
     }
-    else if (fp->lump)
+    else if (fp->memfile)
     {
-        return mem_fseek(fp->lump, offset, MEM_SEEK_SET);
+        return mem_fseek(fp->memfile, offset, MEM_SEEK_SET);
     }
 
     return 0;
@@ -1633,7 +1633,7 @@ void ProcessDehFile(const char *filename, char *outfilename, int lumpnum)
 
         array_push(dehfiles, M_StringDuplicate(filename));
 
-        infile.lump = NULL;
+        infile.memfile = NULL;
     }
     else // DEH file comes from lump indicated by third argument
     {
@@ -1649,11 +1649,11 @@ void ProcessDehFile(const char *filename, char *outfilename, int lumpnum)
             return;
         }
 
-        infile.lump = mem_fopen_read(buf, W_LumpLength(lumpnum));
+        infile.memfile = mem_fopen_read(buf, W_LumpLength(lumpnum));
         infile.file = NULL;
     }
 
-    I_Printf(VB_INFO, "Loading DEH %sfile %s", infile.lump ? "lump from " : "",
+    I_Printf(VB_INFO, "Loading DEH %sfile %s", infile.memfile ? "lump from " : "",
              filename);
     deh_log("\nLoading DEH file %s\n\n", filename);
 
@@ -1661,7 +1661,7 @@ void ProcessDehFile(const char *filename, char *outfilename, int lumpnum)
 
     last_block = DEH_BLOCKMAX - 1;
     filepos = 0;
-    while (dehfgets(inbuffer, sizeof(inbuffer), filein))
+    while (deh_fgets(inbuffer, sizeof(inbuffer), filein))
     {
         boolean match;
         int i;
@@ -1690,7 +1690,7 @@ void ProcessDehFile(const char *filename, char *outfilename, int lumpnum)
             // killough 10/98: exclude if inside wads (only to discourage
             // the practice, since the code could otherwise handle it)
 
-            if (infile.lump)
+            if (infile.memfile)
             {
                 deh_log("No files may be included from wads: %s\n", inbuffer);
                 continue;
@@ -1734,18 +1734,18 @@ void ProcessDehFile(const char *filename, char *outfilename, int lumpnum)
                  && last_block < DEH_BLOCKMAX - 1) // restrict to BEX style lumps
         { // process that same line again with the last valid block code handler
             i = last_block;
-            dehfseek(filein, filepos);
+            deh_fseek(filein, filepos);
         }
 
         deh_log("Processing function [%d] for %s\n", i, deh_blocks[i].key);
         deh_blocks[i].fptr(filein, inbuffer); // call function
 
-        filepos = dehftell(filein); // back up line start
+        filepos = deh_ftell(filein); // back up line start
     }
 
-    if (infile.lump)
+    if (infile.memfile)
     {
-        mem_fclose(infile.lump);
+        mem_fclose(infile.memfile);
     }
     else if (infile.file)
     {
@@ -1784,9 +1784,9 @@ static void deh_procBexCodePointers(DEHFILE *fpin, char *line)
     strncpy(inbuffer, line, DEH_BUFFERMAX);
 
     // for this one, we just read 'em until we hit a blank line
-    while (!dehfeof(fpin) && *inbuffer && (*inbuffer != ' '))
+    while (!deh_feof(fpin) && *inbuffer && (*inbuffer != ' '))
     {
-        if (!dehfgets(inbuffer, sizeof(inbuffer), fpin))
+        if (!deh_fgets(inbuffer, sizeof(inbuffer), fpin))
         {
             break;
         }
@@ -1882,9 +1882,9 @@ static void deh_procThing(DEHFILE *fpin, char *line)
 
     // get a line until a blank or end of file--it's not
     // blank now because it has our incoming key in it
-    while (!dehfeof(fpin) && *inbuffer && (*inbuffer != ' '))
+    while (!deh_feof(fpin) && *inbuffer && (*inbuffer != ' '))
     {
-        if (!dehfgets(inbuffer, sizeof(inbuffer), fpin))
+        if (!deh_fgets(inbuffer, sizeof(inbuffer), fpin))
         {
             break;
         }
@@ -2093,9 +2093,9 @@ static void deh_procFrame(DEHFILE *fpin, char *line)
 
     dsdh_EnsureStatesCapacity(indexnum);
 
-    while (!dehfeof(fpin) && *inbuffer && (*inbuffer != ' '))
+    while (!deh_feof(fpin) && *inbuffer && (*inbuffer != ' '))
     {
-        if (!dehfgets(inbuffer, sizeof(inbuffer), fpin))
+        if (!deh_fgets(inbuffer, sizeof(inbuffer), fpin))
         {
             break;
         }
@@ -2265,9 +2265,9 @@ static void deh_procPointer(DEHFILE *fpin, char *line) // done
 
     dsdh_EnsureStatesCapacity(indexnum);
 
-    while (!dehfeof(fpin) && *inbuffer && (*inbuffer != ' '))
+    while (!deh_feof(fpin) && *inbuffer && (*inbuffer != ' '))
     {
-        if (!dehfgets(inbuffer, sizeof(inbuffer), fpin))
+        if (!deh_fgets(inbuffer, sizeof(inbuffer), fpin))
         {
             break;
         }
@@ -2342,9 +2342,9 @@ static void deh_procSounds(DEHFILE *fpin, char *line)
 
     dsdh_EnsureSFXCapacity(indexnum);
 
-    while (!dehfeof(fpin) && *inbuffer && (*inbuffer != ' '))
+    while (!deh_feof(fpin) && *inbuffer && (*inbuffer != ' '))
     {
-        if (!dehfgets(inbuffer, sizeof(inbuffer), fpin))
+        if (!deh_fgets(inbuffer, sizeof(inbuffer), fpin))
         {
             break;
         }
@@ -2413,9 +2413,9 @@ static void deh_procAmmo(DEHFILE *fpin, char *line)
         deh_log("Bad ammo number %d of %d\n", indexnum, NUMAMMO);
     }
 
-    while (!dehfeof(fpin) && *inbuffer && (*inbuffer != ' '))
+    while (!deh_feof(fpin) && *inbuffer && (*inbuffer != ' '))
     {
-        if (!dehfgets(inbuffer, sizeof(inbuffer), fpin))
+        if (!deh_fgets(inbuffer, sizeof(inbuffer), fpin))
         {
             break;
         }
@@ -2471,9 +2471,9 @@ static void deh_procWeapon(DEHFILE *fpin, char *line)
         deh_log("Bad weapon number %d of %d\n", indexnum, NUMAMMO);
     }
 
-    while (!dehfeof(fpin) && *inbuffer && (*inbuffer != ' '))
+    while (!deh_feof(fpin) && *inbuffer && (*inbuffer != ' '))
     {
-        if (!dehfgets(inbuffer, sizeof(inbuffer), fpin))
+        if (!deh_fgets(inbuffer, sizeof(inbuffer), fpin))
         {
             break;
         }
@@ -2588,9 +2588,9 @@ static void deh_procSprite(DEHFILE *fpin, char *line) // Not supported
     // killough 8/98: allow hex numbers in input:
     sscanf(inbuffer, "%s %i", key, &indexnum);
     deh_log("Ignoring Sprite offset change at index %d: %s\n", indexnum, key);
-    while (!dehfeof(fpin) && *inbuffer && (*inbuffer != ' '))
+    while (!deh_feof(fpin) && *inbuffer && (*inbuffer != ' '))
     {
-        if (!dehfgets(inbuffer, sizeof(inbuffer), fpin))
+        if (!deh_fgets(inbuffer, sizeof(inbuffer), fpin))
         {
             break;
         }
@@ -2637,9 +2637,9 @@ static void deh_procPars(DEHFILE *fpin, char *line) // extension
     sscanf(inbuffer, "%s %i", key, &indexnum);
     deh_log("Processing Par value at index %d: %s\n", indexnum, key);
     // indexnum is a dummy entry
-    while (!dehfeof(fpin) && *inbuffer && (*inbuffer != ' '))
+    while (!deh_feof(fpin) && *inbuffer && (*inbuffer != ' '))
     {
-        if (!dehfgets(inbuffer, sizeof(inbuffer), fpin))
+        if (!deh_fgets(inbuffer, sizeof(inbuffer), fpin))
         {
             break;
         }
@@ -2729,9 +2729,9 @@ static void deh_procCheat(DEHFILE *fpin, char *line) // done
     deh_log("Processing Cheat: %s\n", line);
 
     strncpy(inbuffer, line, DEH_BUFFERMAX);
-    while (!dehfeof(fpin) && *inbuffer && (*inbuffer != ' '))
+    while (!deh_feof(fpin) && *inbuffer && (*inbuffer != ' '))
     {
-        if (!dehfgets(inbuffer, sizeof(inbuffer), fpin))
+        if (!deh_fgets(inbuffer, sizeof(inbuffer), fpin))
         {
             break;
         }
@@ -2821,9 +2821,9 @@ static void deh_procMisc(DEHFILE *fpin, char *line) // done
     long value; // All deh values are ints or longs
 
     strncpy(inbuffer, line, DEH_BUFFERMAX);
-    while (!dehfeof(fpin) && *inbuffer && (*inbuffer != ' '))
+    while (!deh_feof(fpin) && *inbuffer && (*inbuffer != ' '))
     {
-        if (!dehfgets(inbuffer, sizeof(inbuffer), fpin))
+        if (!deh_fgets(inbuffer, sizeof(inbuffer), fpin))
         {
             break;
         }
@@ -2953,9 +2953,9 @@ static void deh_procText(DEHFILE *fpin, char *line)
     {
         deh_log("Skipped text block because of notext directive\n");
         strcpy(inbuffer, line);
-        while (!dehfeof(fpin) && *inbuffer && (*inbuffer != ' '))
+        while (!deh_feof(fpin) && *inbuffer && (*inbuffer != ' '))
         {
-            dehfgets(inbuffer, sizeof(inbuffer), fpin); // skip block
+            deh_fgets(inbuffer, sizeof(inbuffer), fpin); // skip block
         }
         // Ty 05/17/98 - don't care if this fails
         return; // ************** Early return
@@ -2968,7 +2968,7 @@ static void deh_procText(DEHFILE *fpin, char *line)
     // killough 10/98: fix incorrect usage of feof
     {
         int c, totlen = 0;
-        while (totlen < fromlen + tolen && (c = dehfgetc(fpin)) != EOF)
+        while (totlen < fromlen + tolen && (c = deh_fgetc(fpin)) != EOF)
         {
             if (c != '\r') // [FG] fix CRLF mismatch
             {
@@ -3117,9 +3117,9 @@ static void deh_procStrings(DEHFILE *fpin, char *line)
     strncpy(inbuffer, line, DEH_BUFFERMAX);
     // Ty 04/24/98 - have to allow inbuffer to start with a blank for
     // the continuations of C1TEXT etc.
-    while (!dehfeof(fpin) && *inbuffer) /* && (*inbuffer != ' ') */
+    while (!deh_feof(fpin) && *inbuffer) /* && (*inbuffer != ' ') */
     {
-        if (!dehfgets(inbuffer, sizeof(inbuffer), fpin))
+        if (!deh_fgets(inbuffer, sizeof(inbuffer), fpin))
         {
             break;
         }
@@ -3323,9 +3323,9 @@ static void deh_procBexSprites(DEHFILE *fpin, char *line)
 
     strncpy(inbuffer, line, DEH_BUFFERMAX - 1);
 
-    while (!dehfeof(fpin) && *inbuffer && (*inbuffer != ' '))
+    while (!deh_feof(fpin) && *inbuffer && (*inbuffer != ' '))
     {
-        if (!dehfgets(inbuffer, sizeof(inbuffer), fpin))
+        if (!deh_fgets(inbuffer, sizeof(inbuffer), fpin))
         {
             break;
         }
@@ -3376,9 +3376,9 @@ static void deh_procBexSounds(DEHFILE *fpin, char *line)
 
     strncpy(inbuffer, line, DEH_BUFFERMAX - 1);
 
-    while (!dehfeof(fpin) && *inbuffer && (*inbuffer != ' '))
+    while (!deh_feof(fpin) && *inbuffer && (*inbuffer != ' '))
     {
-        if (!dehfgets(inbuffer, sizeof(inbuffer), fpin))
+        if (!deh_fgets(inbuffer, sizeof(inbuffer), fpin))
         {
             break;
         }
