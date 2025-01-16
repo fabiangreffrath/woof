@@ -162,7 +162,8 @@ Copyright:
  © 2022-2024 Alaux;  
  © 2022-2024 ceski;  
  © 2023 Andrew Apted;  
- © 2023 liPillON.  
+ © 2023 liPillON;  
+ © 2025 Guilherme Miranda.  
 License: [GPL-2.0+](https://www.gnu.org/licenses/old-licenses/gpl-2.0.html)
 
 Files: `src/i_flickstick.*, src/i_gyro.*`  
