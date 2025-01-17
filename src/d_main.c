@@ -29,6 +29,7 @@
 #include "am_map.h"
 #include "config.h"
 #include "d_deh.h"  // Ty 04/08/98 - Externalizations
+#include "d_demoloop.h"
 #include "d_event.h"
 #include "d_iwad.h"
 #include "d_loop.h"
@@ -434,7 +435,8 @@ void D_Display (void)
 
 static int demosequence;         // killough 5/2/98: made static
 static int pagetic;
-static char *pagename;
+static const char *pagename;
+static demoloop_t demoloop_point;
 
 //
 // D_PageTicker
@@ -466,15 +468,17 @@ void D_PageDrawer(void)
 // Called after each demo or intro demosequence finishes
 //
 
-void D_AdvanceDemo (void)
+void D_AdvanceDemo(void)
 {
   advancedemo = true;
 }
 
-//
 // This cycles through the demo sequences.
-// FIXME - version dependend demo numbers?
-//
+void D_AdvanceDemoLoop(void)
+{
+  demosequence = (demosequence + 1) % demoloop_count;
+  demoloop_point = &demoloop[demosequence];
+}
 
 void D_DoAdvanceDemo(void)
 {
@@ -484,93 +488,47 @@ void D_DoAdvanceDemo(void)
     paused = false;
     gameaction = ga_nothing;
 
-    // The Ultimate Doom executable changed the demo sequence to add
-    // a DEMO4 demo.  Final Doom was based on Ultimate, so also
-    // includes this change; however, the Final Doom IWADs do not
-    // include a DEMO4 lump, so the game bombs out with an error
-    // when it reaches this point in the demo sequence.
-
-    // However! There is an alternate version of Final Doom that
-    // includes a fixed executable.
-
-    if (W_CheckNumForName("DEMO4") >= 0)
+    D_AdvanceDemoLoop();
+    switch (demoloop_point->type)
     {
-        demosequence = (demosequence + 1) % 7;
-    }
-    else
-    {
-        demosequence = (demosequence + 1) % 6;
-    }
+        case TYPE_ART:
+            gamestate = GS_DEMOSCREEN;
 
-    switch (demosequence)
-    {
-        case 0:
-            if (gamemode == commercial)
+            // Needed to support the Doom 3: BFG Edition variant
+            if (W_CheckNumForName(demoloop_point->primary_lump) < 0
+                && !strcasecmp(demoloop_point->primary_lump, "TITLEPIC"))
             {
-                pagetic = TICRATE * 11;
+                M_CopyLumpName(demoloop_point->primary_lump, "DMENUPIC");
             }
-            else
-            {
-                pagetic = 170;
-            }
-            gamestate = GS_DEMOSCREEN;
-            pagename = "TITLEPIC";
-            if (gamemode == commercial)
-            {
-                S_StartMusic(mus_dm2ttl);
-            }
-            else
-            {
-                S_StartMusic(mus_intro);
-            }
-            break;
-        case 1:
-            G_DeferedPlayDemo("DEMO1");
-            break;
-        case 2:
-            pagetic = 200;
-            gamestate = GS_DEMOSCREEN;
-            pagename = "CREDIT";
-            break;
-        case 3:
-            G_DeferedPlayDemo("DEMO2");
-            break;
-        case 4:
-            gamestate = GS_DEMOSCREEN;
-            if (gamemode == commercial)
-            {
-                pagetic = TICRATE * 11;
-                pagename = "TITLEPIC";
-                S_StartMusic(mus_dm2ttl);
-            }
-            else
-            {
-                pagetic = 200;
 
-                if (gameversion >= exe_ultimate)
+            if (W_CheckNumForName(demoloop_point->primary_lump) >= 0)
+            {
+                pagename = demoloop_point->primary_lump;
+                pagetic = demoloop_point->duration;
+                int music = W_CheckNumForName(demoloop_point->secondary_lump);
+                if (music >= 0)
                 {
-                    pagename = "CREDIT";
+                    S_ChangeMusInfoMusic(music, false);
                 }
-                else
-                {
-                    pagename = "HELP2";
-                }
+                break;
             }
-            break;
-        case 5:
-            G_DeferedPlayDemo("DEMO3");
-            break;
-        // THE DEFINITIVE DOOM Special Edition demo
-        case 6:
-            G_DeferedPlayDemo("DEMO4");
-            break;
-    }
+            // fallthrough
 
-    // The Doom 3: BFG Edition version of doom2.wad does not have a
-    // TITLETPIC lump.
-    if (!strcasecmp(pagename, "TITLEPIC") && W_CheckNumForName("TITLEPIC") < 0)
-    {
-        pagename = "DMENUPIC";
+        case TYPE_DEMO:
+            gamestate = GS_DEMOSCREEN;
+
+            if (W_CheckNumForName(demoloop_point->primary_lump) >= 0)
+            {
+                G_DeferedPlayDemo(demoloop_point->primary_lump);
+                break;
+            }
+            // fallthrough
+
+        default:
+            I_Printf(VB_WARNING,
+                     "D_DoAdvanceDemo: Invalid demoloop[%d] entry, skipping",
+                     demosequence);
+            break;
     }
 }
 
@@ -604,54 +562,9 @@ void D_AddFile(const char *file)
 }
 
 // killough 10/98: return the name of the program the exe was invoked as
-char *D_DoomExeName(void)
+const char *D_DoomExeName(void)
 {
-  static char *name;
-
-  if (!name) // cache multiple requests
-  {
-    char *ext;
-
-    name = M_StringDuplicate(M_BaseName(myargv[0]));
-
-    ext = strrchr(name, '.');
-    if (ext)
-      *ext = '\0';
-  }
-
-  return name;
-}
-
-// [FG] get the path to the default configuration dir to use
-
-char *D_DoomPrefDir(void)
-{
-    static char *dir;
-
-    if (dir == NULL)
-    {
-#if !defined(_WIN32) || defined(_WIN32_WCE)
-        // Configuration settings are stored in an OS-appropriate path
-        // determined by SDL.  On typical Unix systems, this might be
-        // ~/.local/share/chocolate-doom.  On Windows, we behave like
-        // Vanilla Doom and save in the current directory.
-
-        char *result = SDL_GetPrefPath("", PROJECT_SHORTNAME);
-        if (result != NULL)
-        {
-            dir = M_DirName(result);
-            SDL_free(result);
-        }
-        else
-#endif /* #ifndef _WIN32 */
-        {
-            dir = D_DoomExeDir();
-        }
-
-        M_MakeDirectory(dir);
-    }
-
-    return dir;
+  return PROJECT_SHORTNAME;
 }
 
 // Calculate the path to the directory for autoloaded WADs/DEHs.
@@ -896,7 +809,11 @@ void IdentifyVersion(void)
 
     if (!iwadfile)
     {
-        I_Error("IWAD not found");
+        I_Error("IWAD not found!\n"
+                "\n"
+                "Place an IWAD file (e.g. doom.wad, doom2.wad)\n"
+                "in one of the IWAD search directories, e.g.\n"
+                "%s", D_DoomPrefDir());
     }
 
     D_AddFile(iwadfile);
@@ -957,7 +874,7 @@ static void InitGameVersion(void)
         // Determine automatically
 
         if (gamemode == shareware || gamemode == registered ||
-            (gamemode == commercial && (gamemission == doom2 || gamemission == pack_chex3v)))
+            (gamemode == commercial && gamemission != pack_tnt && gamemission != pack_plut))
         {
             // original
             gameversion = exe_doom_1_9;
@@ -1014,8 +931,7 @@ void FindResponseFile (void)
         // READ THE RESPONSE FILE INTO MEMORY
 
         // killough 10/98: add default .rsp extension
-        char *filename = malloc(strlen(myargv[i])+5);
-        AddDefaultExtension(strcpy(filename,&myargv[i][1]),".rsp");
+        char *filename = AddDefaultExtension(&myargv[i][1],".rsp");
 
         handle = M_fopen(filename,"rb");
         if (!handle)
@@ -1377,14 +1293,15 @@ static void D_ProcessDehCommandLine(void)
           if (deh)
             {
               char *probe;
-              char *file = malloc(strlen(myargv[p]) + 5);      // killough
-              AddDefaultExtension(strcpy(file, myargv[p]), ".bex");
+              char *file = AddDefaultExtension(myargv[p], ".bex");
               probe = D_TryFindWADByName(file);
+              free(file);
               if (M_access(probe, F_OK))  // nope
                 {
                   free(probe);
-                  AddDefaultExtension(strcpy(file, myargv[p]), ".deh");
+                  file = AddDefaultExtension(myargv[p], ".deh");
                   probe = D_TryFindWADByName(file);
+                  free(file);
                   if (M_access(probe, F_OK))  // still nope
                   {
                     free(probe);
@@ -1396,7 +1313,6 @@ static void D_ProcessDehCommandLine(void)
               // (apparently, this was never removed after Boom beta-killough)
               ProcessDehFile(probe, D_dehout(), 0);  // killough 10/98
               free(probe);
-              free(file);
             }
     }
   // ty 03/09/98 end of do dehacked stuff
@@ -1434,6 +1350,15 @@ static void LoadIWadBase(void)
     if (local_gamemission < pack_chex)
     {
         W_AddBaseDir("doom-all");
+    }
+    if (local_gamemission == doom)
+    {
+        W_AddBaseDir("doom1-all");
+    }
+    else if (local_gamemission >= doom2
+             && local_gamemission <= pack_plut)
+    {
+        W_AddBaseDir("doom2-all");
     }
     W_AddBaseDir(M_BaseName(wadfiles[0]));
 }
@@ -1666,16 +1591,24 @@ static boolean AllowEndDoom(void)
           || exit_sequence == EXIT_SEQUENCE_ENDOOM_ONLY));
 }
 
-static boolean AllowEndDoomPWADOnly() {
-  return (!W_IsIWADLump(W_CheckNumForName("ENDOOM")) && endoom_pwad_only);
-}
-
 static void D_EndDoom(void)
 {
-  if (AllowEndDoom() && AllowEndDoomPWADOnly())
+  // Do we even want to show an ENDOOM?
+  if (!AllowEndDoom())
   {
-    D_ShowEndDoom();
+    return;
   }
+
+  // If so, is it from the IWAD?
+  bool iwad_endoom = W_IsIWADLump(W_CheckNumForName("ENDOOM"));
+
+  // Does the user want to see it, in that case?
+  if (iwad_endoom && endoom_pwad_only)
+  {
+    return;
+  }
+
+  D_ShowEndDoom();
 }
 
 // [FG] fast-forward demo to the desired map
@@ -2419,6 +2352,7 @@ void D_DoomMain(void)
   }
 
   W_ProcessInWads("TRAKINFO", S_ParseTrakInfo, PROCESS_IWAD | PROCESS_PWAD);
+  D_SetupDemoLoop();
 
   I_Printf(VB_INFO, "M_Init: Init miscellaneous info.");
   M_Init();

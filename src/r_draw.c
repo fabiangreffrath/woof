@@ -488,6 +488,8 @@ static void DrawFuzzColumnBlocky(void)
 
     int lines = fuzzblocksize - (dc_yl % fuzzblocksize);
 
+    const int fuzzblockwidth = MIN(fuzzblocksize, video.width - dc_x);
+
     do
     {
         count -= lines;
@@ -506,7 +508,7 @@ static void DrawFuzzColumnBlocky(void)
 
         do
         {
-            memset(dest, fuzz, fuzzblocksize);
+            memset(dest, fuzz, fuzzblockwidth);
             dest += linesize;
         } while (--lines);
 
@@ -580,6 +582,8 @@ static void DrawFuzzColumnRefraction(void)
 
     int lines = fuzzblocksize - (dc_yl % fuzzblocksize);
 
+    const int fuzzblockwidth = MIN(fuzzblocksize, video.width - dc_x);
+
     int dark = FUZZDARK;
     int offset = 0;
 
@@ -600,7 +604,7 @@ static void DrawFuzzColumnRefraction(void)
 
         do
         {
-            memset(dest, fuzz, fuzzblocksize);
+            memset(dest, fuzz, fuzzblockwidth);
             dest += linesize;
         } while (--lines);
 

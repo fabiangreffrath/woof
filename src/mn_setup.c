@@ -2492,6 +2492,7 @@ static void SetMidiPlayerOpl(void)
     }
 }
 
+#if defined(HAVE_FLUIDSYNTH)
 static void SetMidiPlayerFluidSynth(void)
 {
     if (I_MidiPlayerType() == midiplayer_fluidsynth)
@@ -2499,6 +2500,7 @@ static void SetMidiPlayerFluidSynth(void)
         SetMidiPlayer();
     }
 }
+#endif
 
 static void RestartMusic(void)
 {
@@ -2653,7 +2655,10 @@ static setup_menu_t music_settings1[] = {
 
 static void UpdateGainItems(void)
 {
+#if defined (HAVE_FLUIDSYNTH)
     DisableItem(auto_gain, music_settings1, "fl_gain");
+#endif
+
     DisableItem(auto_gain, music_settings1, "opl_gain");
 }
 
@@ -4212,6 +4217,8 @@ static boolean NextPage(int inc)
     return true;
 }
 
+static setup_menu_t *active_thermo = NULL;
+
 boolean MN_SetupResponder(menu_action_t action, int ch)
 {
     // phares 3/26/98 - 4/11/98:
@@ -4460,6 +4467,7 @@ boolean MN_SetupResponder(menu_action_t action, int ch)
         set_weapon_active = false;
         default_verify = false;              // phares 4/19/98
         print_warning_about_changes = false; // [FG] reset
+        active_thermo = NULL;
         M_StartSound(sfx_swtchx);
         return true;
     }
@@ -4525,8 +4533,6 @@ boolean MN_SetupMouseResponder(int x, int y)
     {
         return true;
     }
-
-    static setup_menu_t *active_thermo = NULL;
 
     if (M_InputDeactivated(input_menu_enter) && active_thermo)
     {

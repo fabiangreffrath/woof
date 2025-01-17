@@ -59,6 +59,7 @@ typedef struct
   int         flags;
   // id24
   int         slot;
+  const char  *carouselicon;
 } weaponinfo_t;
 
 extern  weaponinfo_t    weaponinfo[NUMWEAPONS+2];

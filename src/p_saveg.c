@@ -771,6 +771,9 @@ static void saveg_read_pspdef_t(pspdef_t *str)
         str->sx2 = str->sx;
         str->sy2 = str->sy;
     }
+
+    str->oldsx2 = str->sx2;
+    str->oldsy2 = str->sy2;
 }
 
 static void saveg_write_pspdef_t(pspdef_t *str)

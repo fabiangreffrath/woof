@@ -36,7 +36,7 @@
 
 // Check if a file exists
 
-boolean M_FileExists(const char *filename)
+static boolean M_FileExistsNotDir(const char *filename)
 {
     FILE *fstream;
 
@@ -45,14 +45,11 @@ boolean M_FileExists(const char *filename)
     if (fstream != NULL)
     {
         fclose(fstream);
-        return true;
+        return M_DirExists(filename) == false;
     }
     else
     {
-        // If we can't open because the file is a directory, the
-        // "file" exists at least!
-
-        return errno == EISDIR;
+        return false;
     }
 }
 
@@ -118,7 +115,7 @@ char *M_FileCaseExists(const char *path)
     path_dup = M_StringDuplicate(path);
 
     // 0: actual path
-    if (M_FileExists(path_dup))
+    if (M_FileExistsNotDir(path_dup))
     {
         return path_dup;
     }
@@ -130,7 +127,7 @@ char *M_FileCaseExists(const char *path)
     // 1: lowercase filename, e.g. doom2.wad
     M_StringToLower(filename);
 
-    if (M_FileExists(path_dup))
+    if (M_FileExistsNotDir(path_dup))
     {
         return path_dup;
     }
@@ -138,7 +135,7 @@ char *M_FileCaseExists(const char *path)
     // 2: uppercase filename, e.g. DOOM2.WAD
     M_StringToUpper(filename);
 
-    if (M_FileExists(path_dup))
+    if (M_FileExistsNotDir(path_dup))
     {
         return path_dup;
     }
@@ -149,7 +146,7 @@ char *M_FileCaseExists(const char *path)
     {
         M_StringToLower(ext + 1);
 
-        if (M_FileExists(path_dup))
+        if (M_FileExistsNotDir(path_dup))
         {
             return path_dup;
         }
@@ -160,7 +157,7 @@ char *M_FileCaseExists(const char *path)
     {
         M_StringToLower(filename + 1);
 
-        if (M_FileExists(path_dup))
+        if (M_FileExistsNotDir(path_dup))
         {
             return path_dup;
         }
@@ -565,30 +562,19 @@ void M_CopyLumpName(char *dest, const char *src)
 
 //
 // 1/18/98 killough: adds a default extension to a path
-// Note: Backslashes are treated specially, for MS-DOS.
 //
 
-char *AddDefaultExtension(char *path, const char *ext)
+char *AddDefaultExtension(const char *path, const char *ext)
 {
-    char *p = path;
-
-    while (*p++)
-        ;
-
-    while (p-- > path && *p != '/' && *p != '\\')
+    if (strrchr(M_BaseName(path), '.') != NULL)
     {
-        if (*p == '.')
-        {
-            return path;
-        }
+        // path already has an extension
+        return M_StringDuplicate(path);
     }
-
-    if (*ext != '.')
+    else
     {
-        strcat(path, ".");
+        return M_StringJoin(path, ext);
     }
-
-    return strcat(path, ext);
 }
 
 //

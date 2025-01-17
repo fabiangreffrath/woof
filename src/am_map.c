@@ -2312,10 +2312,7 @@ void AM_Drawer (void)
   }
 
   if (automapoverlay == AM_OVERLAY_OFF)
-  {
     AM_clearFB(mapcolor_back);       //jff 1/5/98 background default color
-    pspr_interp = false;
-  }
   // [Alaux] Dark automap overlay
   else if (automapoverlay == AM_OVERLAY_DARK && !MN_MenuIsShaded())
     V_ShadeScreen();

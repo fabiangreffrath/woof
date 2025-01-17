@@ -174,6 +174,16 @@ void T_VerticalDoor (vldoor_t *door)
             case doorClose:          // Close types do not bounce, merely wait
               break;
 
+            case blazeRaise:
+            case genBlazeRaise:
+              door->direction = 1;
+              if (!STRICTMODE_COMP(comp_blazing))
+              {
+                S_StartSound((mobj_t *)&door->sector->soundorg,sfx_bdopn);
+                break;
+              }
+              // fallthrough
+
             default:             // other types bounce off the obstruction
               door->direction = 1;
               S_StartSound((mobj_t *)&door->sector->soundorg,sfx_doropn);

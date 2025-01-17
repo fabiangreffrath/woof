@@ -44,7 +44,7 @@ struct sector_s;
 #define CROSSHAIR_AIM 1
 
 // killough 3/15/98: add fourth argument to P_TryMove
-boolean P_TryMove(struct mobj_s *thing, fixed_t x, fixed_t y, boolean dropoff);
+boolean P_TryMove(struct mobj_s *thing, fixed_t x, fixed_t y, int dropoff);
 
 // killough 8/9/98: extra argument for telefragging
 boolean P_TeleportMove(struct mobj_s *thing, fixed_t x, fixed_t y, boolean boss);

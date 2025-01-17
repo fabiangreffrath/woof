@@ -330,7 +330,7 @@ static int P_IsUnderDamage(mobj_t *actor)
 static fixed_t xspeed[8] = {FRACUNIT,47000,0,-47000,-FRACUNIT,-47000,0,47000};
 static fixed_t yspeed[8] = {0,47000,FRACUNIT,47000,0,-47000,-FRACUNIT,-47000};
 
-static boolean P_Move(mobj_t *actor, boolean dropoff) // killough 9/12/98
+static boolean P_Move(mobj_t *actor, int dropoff) // killough 9/12/98
 {
   fixed_t tryx, tryy, deltax, deltay;
   boolean try_ok;
@@ -497,7 +497,7 @@ static boolean P_SmartMove(mobj_t *actor)
       P_Random(pr_dropoff) < 235)
     dropoff = 2;
 
-  if (!P_Move(actor, !!dropoff))
+  if (!P_Move(actor, dropoff))
     return false;
 
   // killough 9/9/98: avoid crushing ceilings or other damaging areas

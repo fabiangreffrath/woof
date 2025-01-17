@@ -20,6 +20,7 @@
 
 #include "doomstat.h"
 #include "doomtype.h"
+#include "g_game.h"
 #include "i_printf.h"
 #include "m_array.h"
 #include "m_misc.h"
@@ -77,6 +78,7 @@ typedef struct
 {
     md5_digest_t checksum;
     option_t *options;
+    char *complevel;
 } comp_record_t;
 
 static comp_record_t *comp_database;
@@ -125,6 +127,14 @@ void G_ParseCompDatabase(void)
             I_Printf(VB_ERROR, "COMPDB: wrong key %s", md5);
             continue;
         }
+
+        record.complevel = NULL;
+        const char *complevel = JS_GetStringValue(level, "complevel");
+        if (complevel)
+        {
+            record.complevel = M_StringDuplicate(complevel);
+        }
+
         json_t *js_options = JS_GetObject(level, "options");
         json_t *js_option = NULL;
         JS_ArrayForEach(js_option, js_options)
@@ -184,18 +194,22 @@ static void GetLevelCheckSum(int lump, md5_checksum_t* cksum)
 
 void G_ApplyLevelCompatibility(int lump)
 {
-    if (demorecording || demoplayback || netgame || !mbf21)
-    {
-        return;
-    }
-
     static boolean restore_comp;
     static int old_comp[COMP_TOTAL];
 
     if (restore_comp)
     {
+        if (demo_version != DV_MBF21)
+        {
+            demo_version = DV_MBF21;
+            G_ReloadDefaults(true);
+        }
         memcpy(comp, old_comp, sizeof(*comp));
         restore_comp = false;
+    }
+    else if (demorecording || demoplayback || netgame || !mbf21)
+    {
+        return;
     }
 
     md5_checksum_t cksum;
@@ -211,6 +225,20 @@ void G_ApplyLevelCompatibility(int lump)
         {
             memcpy(old_comp, comp, sizeof(*comp));
             restore_comp = true;
+
+            char *new_demover = record->complevel;
+            if (new_demover)
+            {
+                demo_version = G_GetNamedComplevel(new_demover);
+                G_ReloadDefaults(true);
+                I_Printf(VB_INFO, "Automatically setting compatibility level \"%s\"",
+                         G_GetCurrentComplevelName());
+            }
+
+            if (!mbf21)
+            {
+                return;
+            }
 
             option_t *option;
             array_foreach(option, record->options)

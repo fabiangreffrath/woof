@@ -36,6 +36,10 @@ static trakinfo_t *trakinfo;
 void S_ParseTrakInfo(int lumpnum)
 {
     json_t *json = JS_OpenOptions(lumpnum, true);
+    if (!json)
+    {
+        return;
+    }
 
     json_obj_iter_t *iter = JS_ObjectIterator(json);
 
