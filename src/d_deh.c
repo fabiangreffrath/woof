@@ -2675,10 +2675,10 @@ static void deh_procPars(DEHFILE *fpin, char *line) // extension
         else
         { // is 3
             // note that though it's a [4][10] array, the "left" and "top"
-            // aren't used, effectively making it a base 1 array. Ty 07/11/98 -
-            // level was being checked against max 3 - dumb error Note that
-            // episode 4 does not have par times per original design in Ultimate
-            // DOOM so that is not supported here.
+            // aren't used, effectively making it a base 1 array.
+            // Ty 07/11/98 - level was being checked against max 3 - dumb error
+            // Note that episode 4 does not have par times per original design
+            // in Ultimate DOOM so that is not supported here.
             if (episode < 1 || episode > 3 || level < 1 || level > 9)
             {
                 deh_log("Invalid ExMx values E%dM%d\n", episode, level);
