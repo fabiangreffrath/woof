@@ -3986,7 +3986,7 @@ void G_RecordDemo(const char *name)
     free(demoname);
   }
   demoname = AddDefaultExtension(name, ".lmp");  // 1/18/98 killough
-  demoname_size = strlen(demoname) + 6; // [crispy] + 6 for "-00000"
+  demoname_size = strlen(demoname) + 1 + 6; // [crispy] + 6 for "-00000"
   demoname = I_Realloc(demoname, demoname_size);
 
   for(; j <= 99999 && !M_access(demoname, F_OK); ++j)
