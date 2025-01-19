@@ -871,13 +871,14 @@ static void VX_DrawColumn (vissprite_t * spr, int x, int y)
 			fixed_t uy0 = uy1;
 
 			// clip the slab vertically
-			if (uy1 >= clip_y2) break;
-			if (uy2 <= clip_y1) continue;
+			if (uy1 >= clip_y2) uy1 = clip_y2;
+			if (uy2 <= clip_y1) uy2 = clip_y1;
 
 			if (uy1 < clip_y1) uy1 = clip_y1;
 			if (uy2 > clip_y2) uy2 = clip_y2;
 
-			boolean has_side = ((face & (ux > Bx ? B_face : A_face)) != 0);
+			boolean has_side = ((face & (ux > Bx ? B_face : A_face)) != 0
+                          && uy1 < clip_y2 && uy2 > clip_y1);
 
 			// handle the fuzz effect for Spectres
 			if (shadow)
