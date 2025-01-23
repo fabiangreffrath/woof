@@ -67,6 +67,7 @@ jobs:
         shell: bash
         run: |
           cd $VCPKG_INSTALLATION_ROOT
+          git stash
           git pull
 
       - name: Developer Command Prompt
