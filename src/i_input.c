@@ -440,8 +440,7 @@ void I_InitGamepad(void)
     }
 
     // Enable bluetooth gyro support for DualShock 4 and DualSense.
-    SDL_SetHint(SDL_HINT_JOYSTICK_HIDAPI_PS4_RUMBLE, "1");
-    SDL_SetHint(SDL_HINT_JOYSTICK_HIDAPI_PS5_RUMBLE, "1");
+    SDL_SetHint(SDL_HINT_JOYSTICK_ENHANCED_REPORTS, "1");
 
     if (!SDL_Init(SDL_INIT_GAMEPAD))
     {
