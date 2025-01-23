@@ -69,7 +69,7 @@ jobs:
             ${{ matrix.config.msys-env }}-gcc
             ${{ matrix.config.msys-env }}-cmake
             ${{ matrix.config.msys-env }}-ninja
-            ${{ matrix.config.msys-env }}-SDL3
+            ${{ matrix.config.msys-env }}-sdl3
             ${{ matrix.config.msys-env }}-SDL2_net
             ${{ matrix.config.msys-env }}-openal
             ${{ matrix.config.msys-env }}-libebur128
