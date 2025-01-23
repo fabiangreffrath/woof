@@ -213,7 +213,6 @@ endif()
 if(WIN32)
     target_include_directories(woof PRIVATE "../win32")
     target_link_libraries(woof PRIVATE winmm shlwapi)
-    target_sources(woof PRIVATE ../win32/win_opendir.c ../win32/win_opendir.h)
 endif()
 
 if(APPLE)

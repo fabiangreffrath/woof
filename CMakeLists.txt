@@ -50,7 +50,6 @@ option(WOOF_STRICT "Prefer original MBF code paths over demo compatiblity with P
 
 # Compiler environment requirements.
 check_library_exists(m pow "" HAVE_LIBM)
-check_include_file("dirent.h" HAVE_DIRENT_H)
 check_symbol_exists(strcasecmp "strings.h" HAVE_DECL_STRCASECMP)
 check_symbol_exists(strncasecmp "strings.h" HAVE_DECL_STRNCASECMP)
 check_symbol_exists(getpwuid "unistd.h;sys/types.h;pwd.h" HAVE_GETPWUID)
