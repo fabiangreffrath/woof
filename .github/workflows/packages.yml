@@ -63,6 +63,11 @@ jobs:
           sudo apt-get install ninja-build
           sudo apt-get build-dep libsdl2-dev
 
+      - name: Update vcpkg
+        run: |
+          cd VCPKG_INSTALLATION_ROOT
+          git pull
+
       - name: Developer Command Prompt
         if: runner.os == 'Windows'
         uses: ilammy/msvc-dev-cmd@v1
