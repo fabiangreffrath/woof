@@ -1041,33 +1041,32 @@ boolean I_WritePNGfile(char *filename)
 {
     UpdateRender();
 
-    // [FG] adjust cropping rectangle if necessary
-    SDL_Rect rect = {0};
-    SDL_GetCurrentRenderOutputSize(renderer, &rect.w, &rect.h);
-    if (rect.w * actualheight > rect.h * video.width)
+    SDL_Surface *surface = SDL_RenderReadPixels(renderer, NULL);
+    if (surface == NULL)
     {
-        int temp = rect.w;
-        rect.w = rect.h * video.width / actualheight;
-        rect.x = (temp - rect.w) / 2;
+        I_Printf(VB_ERROR, "I_WritePNGfile: SDL_RenderReadPixels failed: %s",
+                 SDL_GetError());
+        return false;
     }
-    else if (rect.h * video.width > rect.w * actualheight)
+    int pitch = surface->w * 3;
+    int size = surface->h * pitch;
+    void *pixels = malloc(size);
+    if (!SDL_ConvertPixels(surface->w, surface->h,
+                           SDL_GetWindowPixelFormat(screen), surface->pixels,
+                           surface->pitch, SDL_PIXELFORMAT_RGB24, pixels,
+                           pitch))
     {
-        int temp = rect.h;
-        rect.h = rect.w * actualheight / video.width;
-        rect.y = (temp - rect.h) / 2;
+        I_Printf(VB_ERROR, "I_WritePNGfile: SDL_ConvertPixels failed: %s",
+                 SDL_GetError());
+        free(pixels);
+        SDL_DestroySurface(surface);
+        return false;
     }
-
-    // [FG] allocate memory for screenshot image
-    int pitch = rect.w * 3;
-    int size = rect.h * pitch;
-
-    SDL_Surface *renderer_surface = SDL_RenderReadPixels(renderer, &rect);
-    SDL_Surface *surface = SDL_ConvertSurface(renderer_surface, SDL_PIXELFORMAT_RGB24);
-    SDL_DestroySurface(renderer_surface);
 
     FILE *file = M_fopen(filename, "wb");
     if (!file)
     {
+        free(pixels);
         SDL_DestroySurface(surface);
         return false;
     }
@@ -1077,17 +1076,17 @@ boolean I_WritePNGfile(char *filename)
     spng_set_option(ctx, SPNG_IMG_COMPRESSION_LEVEL, 1);
 
     struct spng_ihdr ihdr = {0};
-    ihdr.width = rect.w;
-    ihdr.height = rect.h;
+    ihdr.width = surface->w;
+    ihdr.height = surface->h;
     ihdr.color_type = SPNG_COLOR_TYPE_TRUECOLOR;
     ihdr.bit_depth = 8;
     spng_set_ihdr(ctx, &ihdr);
 
-    int ret = spng_encode_image(ctx, surface->pixels, size, SPNG_FMT_PNG,
+    int ret = spng_encode_image(ctx, pixels, size, SPNG_FMT_PNG,
                                 SPNG_ENCODE_FINALIZE);
     if (ret)
     {
-        I_Printf(VB_ERROR, "spng_encode_image() error: %s\n",
+        I_Printf(VB_ERROR, "I_WritePNGfile: spng_encode_image failed: %s\n",
                  spng_strerror(ret));
     }
     else
@@ -1098,6 +1097,7 @@ boolean I_WritePNGfile(char *filename)
     fclose(file);
 
     spng_ctx_free(ctx);
+    free(pixels);
     SDL_DestroySurface(surface);
 
     drs_skip_frame = true;
