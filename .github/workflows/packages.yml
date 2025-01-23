@@ -38,7 +38,6 @@ jobs:
             artifact-name: Win-64
             artifact-path: build/*.zip
             extra-options: >-
-              -DCMAKE_POLICY_DEFAULT_CMP0091=NEW
               -DCMAKE_MSVC_RUNTIME_LIBRARY=MultiThreaded
               -DCMAKE_IGNORE_PATH="C:/Strawberry/perl/bin;C:/Strawberry/c/lib"
 
@@ -50,7 +49,6 @@ jobs:
             artifact-name: Win-32
             artifact-path: build/*.zip
             extra-options: >-
-              -DCMAKE_POLICY_DEFAULT_CMP0091=NEW
               -DCMAKE_MSVC_RUNTIME_LIBRARY=MultiThreaded
               -DCMAKE_IGNORE_PATH="C:/Strawberry/perl/bin;C:/Strawberry/c/lib"
 

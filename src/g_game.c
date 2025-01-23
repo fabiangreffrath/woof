@@ -42,6 +42,7 @@
 #include "f_finale.h"
 #include "g_game.h"
 #include "g_nextweapon.h"
+#include "g_umapinfo.h"
 #include "hu_command.h"
 #include "hu_obituary.h"
 #include "i_gamepad.h"
@@ -88,7 +89,6 @@
 #include "st_widgets.h"
 #include "statdump.h" // [FG] StatCopy()
 #include "tables.h"
-#include "u_mapinfo.h"
 #include "v_video.h"
 #include "version.h"
 #include "w_wad.h"
@@ -102,7 +102,7 @@
 static size_t   savegamesize = SAVEGAMESIZE; // killough
 static char     *demoname = NULL;
 // [crispy] the name originally chosen for the demo, i.e. without "-00000"
-static char     *orig_demoname = NULL;
+static const char *orig_demoname = NULL;
 static boolean  netdemo;
 static byte     *demobuffer;   // made some static -- killough
 static size_t   maxdemosize;
@@ -1085,7 +1085,7 @@ int G_GotoNextLevel(int *pEpi, int *pMap)
       next = gamemapinfo->nextsecret;
     else if (gamemapinfo->nextmap[0])
       next = gamemapinfo->nextmap;
-    else if (U_CheckField(gamemapinfo->endpic))
+    else if (gamemapinfo->flags & MapInfo_EndGame)
     {
       epsd = 1;
       map = 1;
@@ -1432,7 +1432,7 @@ static void CheckPlayersInNetGame(void)
 
 int playback_tic = 0, playback_totaltics = 0;
 
-static char *defdemoname;
+static const char *defdemoname;
 
 #define DEMOMARKER    0x80
 
@@ -1580,7 +1580,7 @@ static void G_PlayerFinishLevel(int player)
 
 // [crispy] format time for level statistics
 #define TIMESTRSIZE 16
-static void G_FormatLevelStatTime(char *str, int tics, boolean total)
+static void FormatLevelStatTime(char *str, int tics, boolean total)
 {
     int exitHours, exitMinutes;
     float exitTime, exitSeconds;
@@ -1611,31 +1611,39 @@ static void G_FormatLevelStatTime(char *str, int tics, boolean total)
 // [crispy] Write level statistics upon exit
 static void G_WriteLevelStat(void)
 {
-    static FILE *fstream = NULL;
+    int playerKills = 0, playerItems = 0, playerSecrets = 0;
 
-    int i, playerKills = 0, playerItems = 0, playerSecrets = 0;
+    char levelString[9] = {0};
+    char levelTimeString[TIMESTRSIZE] = {0};
+    char totalTimeString[TIMESTRSIZE] = {0};
 
-    char levelString[8];
-    char levelTimeString[TIMESTRSIZE];
-    char totalTimeString[TIMESTRSIZE];
+    static boolean firsttime = true;
+
+    FILE *fstream = NULL;
+
+    if (firsttime)
+    {
+        firsttime = false;
+        fstream = M_fopen("levelstat.txt", "w");
+    }
+    else
+    {
+        fstream = M_fopen("levelstat.txt", "a");
+    }
 
     if (fstream == NULL)
     {
-        fstream = M_fopen("levelstat.txt", "w");
-
-        if (fstream == NULL)
-        {
-            I_Printf(VB_ERROR, "G_WriteLevelStat: Unable to open levelstat.txt for writing!");
-            return;
-        }
+        I_Printf(VB_ERROR,
+            "G_WriteLevelStat: Unable to open levelstat.txt for writing!");
+        return;
     }
 
     strcpy(levelString, MapName(gameepisode, gamemap));
 
-    G_FormatLevelStatTime(levelTimeString, leveltime, false);
-    G_FormatLevelStatTime(totalTimeString, totalleveltimes + leveltime, true);
+    FormatLevelStatTime(levelTimeString, leveltime, false);
+    FormatLevelStatTime(totalTimeString, totalleveltimes + leveltime, true);
 
-    for (i = 0; i < MAXPLAYERS; i++)
+    for (int i = 0; i < MAXPLAYERS; i++)
     {
         if (playeringame[i])
         {
@@ -1649,6 +1657,8 @@ static void G_WriteLevelStat(void)
             levelString, (secretexit ? "s" : ""),
             levelTimeString, totalTimeString, playerKills, totalkills,
             playerItems, totalitems, playerSecrets, totalsecret);
+
+    fclose(fstream);
 }
 
 //
@@ -1693,9 +1703,9 @@ static void G_DoCompleted(void)
     const char *next = NULL;
     boolean intermission = false;
 
-    if (U_CheckField(gamemapinfo->endpic))
+    if (gamemapinfo->flags & MapInfo_EndGame)
     {
-      if (gamemapinfo->nointermission)
+      if (gamemapinfo->flags & MapInfo_NoIntermission)
       {
         gameaction = ga_victory;
         return;
@@ -2464,6 +2474,8 @@ static void DoSaveGame(char *name)
   save_p += MN_SnapshotDataSize();
 
   length = save_p - savebuffer;
+
+  M_MakeDirectory(basesavegame);
 
   if (!M_WriteFile(name, savebuffer, length))
     displaymsg("%s", errno ? strerror(errno) : "Could not save game: Error unknown");
@@ -3311,25 +3323,44 @@ void G_WorldDone(void)
 
   if (gamemapinfo)
   {
-    if (gamemapinfo->intertextsecret && secretexit)
-    {
-      if (U_CheckField(gamemapinfo->intertextsecret)) // if the intermission was not cleared
-        F_StartFinale();
-      return;
-    }
-    else if (gamemapinfo->intertext && !secretexit)
-    {
-      if (U_CheckField(gamemapinfo->intertext)) // if the intermission was not cleared
-        F_StartFinale();
-      return;
-    }
-    else if (U_CheckField(gamemapinfo->endpic) && !secretexit)
-    {
-      // game ends without a status screen.
-      gameaction = ga_victory;
-      return;
-    }
-    // if nothing applied, use the defaults.
+      if (gamemapinfo->flags & MapInfo_InterTextClear
+          && gamemapinfo->flags & MapInfo_EndGame)
+      {
+          I_Printf(VB_DEBUG,
+              "UMAPINFO: 'intertext = clear' with one of the end game keys.");
+      }
+
+      if (secretexit)
+      {
+          if (gamemapinfo->flags & MapInfo_InterTextSecretClear)
+          {
+              return;
+          }
+          if (gamemapinfo->intertextsecret)
+          {
+              F_StartFinale();
+              return;
+          }
+      }
+      else
+      {
+          if (gamemapinfo->flags & MapInfo_EndGame)
+          {
+              // game ends without a status screen.
+              gameaction = ga_victory;
+              return;
+          }
+          else if (gamemapinfo->flags & MapInfo_InterTextClear)
+          {
+              return;
+          }
+          else if (gamemapinfo->intertext)
+          {
+              F_StartFinale();
+              return;
+          }
+      }
+      // if nothing applied, use the defaults.
   }
 
   if (gamemode == commercial)
@@ -3847,65 +3878,6 @@ void G_SetFastParms(int fast_pending)
   }
 }
 
-mapentry_t *G_LookupMapinfo(int episode, int map)
-{
-  int i;
-  char lumpname[9];
-
-  strcpy(lumpname, MapName(episode, map));
-
-  for (i = 0; i < U_mapinfo.mapcount; i++)
-  {
-    if (!strcasecmp(lumpname, U_mapinfo.maps[i].mapname))
-      return &U_mapinfo.maps[i];
-  }
-
-  for (i = 0; i < default_mapinfo.mapcount; i++)
-  {
-    if (!strcasecmp(lumpname, default_mapinfo.maps[i].mapname))
-      return &default_mapinfo.maps[i];
-  }
-
-  return NULL;
-}
-
-// Check if the given map name can be expressed as a gameepisode/gamemap pair
-// and be reconstructed from it.
-int G_ValidateMapName(const char *mapname, int *pEpi, int *pMap)
-{
-  char lumpname[9], mapuname[9];
-  int epi = -1, map = -1;
-
-  if (strlen(mapname) > 8)
-    return 0;
-  strncpy(mapuname, mapname, 8);
-  mapuname[8] = 0;
-  M_StringToUpper(mapuname);
-
-  if (gamemode != commercial)
-  {
-    if (sscanf(mapuname, "E%dM%d", &epi, &map) != 2)
-      return 0;
-    strcpy(lumpname, MapName(epi, map));
-  }
-  else
-  {
-    if (sscanf(mapuname, "MAP%d", &map) != 1)
-      return 0;
-    strcpy(lumpname, MapName(epi = 1, map));
-  }
-
-  if (epi > 4)
-    EpiCustom = true;
-
-  if (pEpi)
-    *pEpi = epi;
-  if (pMap)
-    *pMap = map;
-
-  return !strcmp(mapuname, lumpname);
-}
-
 //
 // G_InitNew
 // Can be called by the startup code or the menu task,
@@ -3993,7 +3965,7 @@ void G_InitNew(skill_t skill, int episode, int map)
 // G_RecordDemo
 //
 
-void G_RecordDemo(char *name)
+void G_RecordDemo(const char *name)
 {
   int i;
   size_t demoname_size;
@@ -4009,9 +3981,13 @@ void G_RecordDemo(char *name)
   demo_insurance = 0;
       
   usergame = false;
-  demoname_size = strlen(name) + 5 + 6; // [crispy] + 6 for "-00000"
+  if (demoname)
+  {
+    free(demoname);
+  }
+  demoname = AddDefaultExtension(name, ".lmp");  // 1/18/98 killough
+  demoname_size = strlen(demoname) + 1 + 6; // [crispy] + 6 for "-00000"
   demoname = I_Realloc(demoname, demoname_size);
-  AddDefaultExtension(strcpy(demoname, name), ".lmp");  // 1/18/98 killough
 
   for(; j <= 99999 && !M_access(demoname, F_OK); ++j)
   {
@@ -4441,7 +4417,7 @@ void G_BeginRecording(void)
 
 void D_CheckNetPlaybackSkip(void);
 
-void G_DeferedPlayDemo(char* name)
+void G_DeferedPlayDemo(const char* name)
 {
   defdemoname = name;
   gameaction = ga_playdemo;
@@ -4534,10 +4510,10 @@ static size_t WriteCmdLineLump(MEMFILE *stream)
   return mem_ftell(stream) - pos;
 }
 
-static void WriteFileInfo(const char *name, size_t size, MEMFILE *stream)
+static long WriteFileInfo(const char *name, size_t size, long filepos,
+                          MEMFILE *stream)
 {
   filelump_t fileinfo = { 0 };
-  static long filepos = sizeof(wadinfo_t);
 
   fileinfo.filepos = LONG(filepos);
   fileinfo.size = LONG(size);
@@ -4548,6 +4524,7 @@ static void WriteFileInfo(const char *name, size_t size, MEMFILE *stream)
   mem_fwrite(&fileinfo, 1, sizeof(fileinfo), stream);
 
   filepos += size;
+  return filepos;
 }
 
 static void G_AddDemoFooter(void)
@@ -4571,10 +4548,11 @@ static void G_AddDemoFooter(void)
   mem_fwrite(&header, 1, sizeof(header), stream);
   mem_fseek(stream, 0, MEM_SEEK_END);
 
-  WriteFileInfo("PORTNAME", strlen(PROJECT_STRING), stream);
-  WriteFileInfo(NULL, strlen(DEMO_FOOTER_SEPARATOR), stream);
-  WriteFileInfo("CMDLINE", size, stream);
-  WriteFileInfo(NULL, strlen(DEMO_FOOTER_SEPARATOR), stream);
+  long filepos = sizeof(wadinfo_t);
+  filepos = WriteFileInfo("PORTNAME", strlen(PROJECT_STRING), filepos, stream);
+  filepos = WriteFileInfo(NULL, strlen(DEMO_FOOTER_SEPARATOR), filepos, stream);
+  filepos = WriteFileInfo("CMDLINE", size, filepos, stream);
+  WriteFileInfo(NULL, strlen(DEMO_FOOTER_SEPARATOR), filepos, stream);
 
   mem_get_buf(stream, (void **)&data, &size);
 
@@ -4804,7 +4782,7 @@ void G_BindCompVariables(void)
   BIND_COMP(comp_vile,      0, "Arch-viles can create ghost monsters");
   BIND_COMP(comp_pain,      0, "Pain elementals are limited to 20 lost souls");
   BIND_COMP(comp_skull,     0, "Lost souls can spawn past impassable lines");
-  BIND_COMP(comp_blazing,   0, "Blazing doors make double closing sounds");
+  BIND_COMP(comp_blazing,   0, "Incorrect sound behavior for blazing doors");
   BIND_COMP(comp_doorlight, 0, "Door lighting changes are immediate");
   BIND_COMP(comp_god,       0, "God mode isn't absolute");
   BIND_COMP(comp_skymap,    0, "Don't apply invulnerability palette to skies");

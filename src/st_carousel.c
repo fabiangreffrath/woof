@@ -13,6 +13,7 @@
 
 #include <math.h>
 
+#include "d_items.h"
 #include "d_player.h"
 #include "doomdef.h"
 #include "doomtype.h"
@@ -144,7 +145,8 @@ void ST_UpdateCarousel(player_t *player)
         return;
     }
 
-    if (player->switching == weapswitch_none)
+    if (player->switching == weapswitch_none
+        && player->pendingweapon == wp_nochange)
     {
         --duration;
     }
@@ -163,8 +165,17 @@ void ST_UpdateCarousel(player_t *player)
 static void DrawIcon(int x, int y, sbarelem_t *elem, weapon_icon_t icon)
 {
     char lump[9] = {0};
-    M_snprintf(lump, sizeof(lump), "%s%d", names[icon.weapon],
-        icon.state == wpi_selected);
+    const char *name;
+    if (weaponinfo[icon.weapon].carouselicon)
+    {
+        name = weaponinfo[icon.weapon].carouselicon;
+    }
+    else
+    {
+        name = names[icon.weapon];
+    }
+
+    M_snprintf(lump, sizeof(lump), "%s%d", name, icon.state == wpi_selected);
 
     patch_t *patch = V_CachePatchName(lump, PU_CACHE);
 

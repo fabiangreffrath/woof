@@ -23,11 +23,11 @@
 #include "s_musinfo.h"
 
 #include "doomtype.h"
-#include "g_game.h"
+#include "g_umapinfo.h"
 #include "i_printf.h"
 #include "p_mobj.h"
 #include "s_sound.h"
-#include "u_scanner.h"
+#include "m_scanner.h"
 #include "w_wad.h"
 #include "z_zone.h"
 
@@ -40,51 +40,47 @@ musinfo_t musinfo = {0};
 
 void S_ParseMusInfo(const char *mapid)
 {
-    u_scanner_t *s;
-    int num, lumpnum;
-
-    lumpnum = W_CheckNumForName("MUSINFO");
-
+    int lumpnum = W_CheckNumForName("MUSINFO");
     if (lumpnum < 0)
     {
         return;
     }
 
-    s = U_ScanOpen(W_CacheLumpNum(lumpnum, PU_CACHE), W_LumpLength(lumpnum),
-                   "MUSINFO");
+    scanner_t *s = SC_Open("MUSINFO", W_CacheLumpNum(lumpnum, PU_CACHE),
+                           W_LumpLength(lumpnum));
 
-    while (U_HasTokensLeft(s))
+    while (SC_TokensLeft(s))
     {
-        if (U_CheckToken(s, TK_Identifier))
+        if (SC_CheckToken(s, TK_Identifier))
         {
-            if (!strcasecmp(s->string, mapid))
+            if (!strcasecmp(SC_GetString(s), mapid))
             {
                 break;
             }
         }
         else
         {
-            U_GetNextLineToken(s);
+            SC_GetNextLineToken(s);
         }
     }
 
-    while (U_HasTokensLeft(s))
+    while (SC_TokensLeft(s))
     {
-        if (U_CheckToken(s, TK_Identifier))
+        if (SC_CheckToken(s, TK_Identifier))
         {
-            if (G_ValidateMapName(s->string, NULL, NULL))
+            if (G_ValidateMapName(SC_GetString(s), NULL, NULL))
             {
                 break;
             }
         }
-        else if (U_CheckInteger(s))
+        else if (SC_CheckToken(s, TK_IntConst))
         {
-            num = s->number;
+            int num = SC_GetNumber(s);
             // Check number in range
             if (num > 0 && num < MAX_MUS_ENTRIES)
             {
-                U_GetString(s);
-                lumpnum = W_CheckNumForName(s->string);
+                SC_GetNextTokenLumpName(s);
+                lumpnum = W_CheckNumForName(SC_GetString(s));
                 if (lumpnum > 0)
                 {
                     musinfo.items[num] = lumpnum;
@@ -92,7 +88,7 @@ void S_ParseMusInfo(const char *mapid)
                 else
                 {
                     I_Printf(VB_WARNING, "S_ParseMusInfo: Unknown MUS lump %s",
-                             s->string);
+                             SC_GetString(s));
                 }
             }
             else
@@ -104,11 +100,11 @@ void S_ParseMusInfo(const char *mapid)
         }
         else
         {
-            U_GetNextLineToken(s);
+            SC_GetNextLineToken(s);
         }
     }
 
-    U_ScanClose(s);
+    SC_Close(s);
 }
 
 void T_MusInfo(void)

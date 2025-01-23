@@ -20,95 +20,104 @@
 
 #include <math.h>
 
+#include "config.h"
 #include "doomtype.h"
 
+#if defined(HAVE_EXT_VECTOR_TYPE)
+typedef float vec __attribute__((ext_vector_type(3)));
+#else
 typedef struct
 {
     float x;
     float y;
     float z;
 } vec;
+#endif
 
+#if defined(HAVE_EXT_VECTOR_TYPE)
+typedef float quat __attribute__((ext_vector_type(4)));
+#else
 typedef struct
 {
-    float w;
     float x;
     float y;
     float z;
+    float w;
 } quat;
+#endif
 
 //
 // Adds two vectors.
 //
-inline static vec vec_add(const vec *a, const vec *b)
+inline static vec vec_add(const vec a, const vec b)
 {
-    return (vec){a->x + b->x, a->y + b->y, a->z + b->z};
+    return (vec){a.x + b.x, a.y + b.y, a.z + b.z};
 }
 
 //
 // Subtracts two vectors.
 //
-inline static vec vec_subtract(const vec *a, const vec *b)
+inline static vec vec_subtract(const vec a, const vec b)
 {
-    return (vec){a->x - b->x, a->y - b->y, a->z - b->z};
+    return (vec){a.x - b.x, a.y - b.y, a.z - b.z};
 }
 
 //
 // Cross product of two vectors.
 //
-inline static vec vec_crossproduct(const vec *a, const vec *b)
+inline static vec vec_crossproduct(const vec a, const vec b)
 {
-    return (vec){a->y * b->z - a->z * b->y,
-                 a->z * b->x - a->x * b->z,
-                 a->x * b->y - a->y * b->x};
+    return (vec){a.y * b.z - a.z * b.y,
+                 a.z * b.x - a.x * b.z,
+                 a.x * b.y - a.y * b.x};
 }
 
 //
 // Dot product of two vectors.
 //
-inline static float vec_dotproduct(const vec *a, const vec *b)
+inline static float vec_dotproduct(const vec a, const vec b)
 {
-    return (a->x * b->x + a->y * b->y + a->z * b->z);
+    return (a.x * b.x + a.y * b.y + a.z * b.z);
 }
 
 //
 // Returns the negative of the input vector.
 //
-inline static vec vec_negative(const vec *v)
+inline static vec vec_negative(const vec v)
 {
-    return (vec){-v->x, -v->y, -v->z};
+    return (vec){-v.x, -v.y, -v.z};
 }
 
 //
 // Multiplies a vector by a scalar value.
 //
-inline static vec vec_scale(const vec *v, float scalar)
+inline static vec vec_scale(const vec v, float scalar)
 {
-    return (vec){v->x * scalar, v->y * scalar, v->z * scalar};
+    return (vec){v.x * scalar, v.y * scalar, v.z * scalar};
 }
 
 //
 // Clamps each vector component.
 //
-inline static vec vec_clamp(float min, float max, const vec *v)
+inline static vec vec_clamp(float min, float max, const vec v)
 {
-    return (vec){BETWEEN(min, max, v->x),
-                 BETWEEN(min, max, v->y),
-                 BETWEEN(min, max, v->z)};
+    return (vec){BETWEEN(min, max, v.x),
+                 BETWEEN(min, max, v.y),
+                 BETWEEN(min, max, v.z)};
 }
 
 //
 // Vector length squared.
 //
-inline static float vec_lengthsquared(const vec *v)
+inline static float vec_lengthsquared(const vec v)
 {
-    return (v->x * v->x + v->y * v->y + v->z * v->z);
+    return (v.x * v.x + v.y * v.y + v.z * v.z);
 }
 
 //
 // Vector magnitude.
 //
-inline static float vec_length(const vec *v)
+inline static float vec_length(const vec v)
 {
     return sqrtf(vec_lengthsquared(v));
 }
@@ -116,15 +125,15 @@ inline static float vec_length(const vec *v)
 //
 // Normalizes a vector using a given magnitude.
 //
-inline static vec vec_normalize_mag(const vec *v, float mag)
+inline static vec vec_normalize_mag(const vec v, float mag)
 {
-    return (mag > 0.0f ? vec_scale(v, 1.0f / mag) : *v);
+    return (mag > 0.0f ? vec_scale(v, 1.0f / mag) : v);
 }
 
 //
 // Normalizes a vector.
 //
-inline static vec vec_normalize(const vec *v)
+inline static vec vec_normalize(const vec v)
 {
     return vec_normalize_mag(v, vec_length(v));
 }
@@ -132,68 +141,68 @@ inline static vec vec_normalize(const vec *v)
 //
 // Is this a zero vector?
 //
-inline static boolean is_zero_vec(const vec *v)
+inline static boolean is_zero_vec(const vec v)
 {
-    return (v->x == 0.0f && v->y == 0.0f && v->z == 0.0f);
+    return (v.x == 0.0f && v.y == 0.0f && v.z == 0.0f);
 }
 
 //
 // Returns the conjugate of a unit quaternion (same as its inverse).
 //
-inline static quat quat_inverse(const quat *q)
+inline static quat quat_inverse(const quat q)
 {
-    return (quat){q->w, -q->x, -q->y, -q->z};
+    return (quat){-q.x, -q.y, -q.z, q.w};
 }
 
 //
 // Converts a vector to a quaternion.
 //
-inline static quat vec_to_quat(const vec *v)
+inline static quat vec_to_quat(const vec v)
 {
-    return (quat){0.0f, v->x, v->y, v->z};
+    return (quat){v.x, v.y, v.z, 0.0f};
 }
 
 //
 // Multiplies two quaternions.
 //
-inline static quat quat_multiply(const quat *a, const quat *b)
+inline static quat quat_multiply(const quat a, const quat b)
 {
-    return (quat){a->w * b->w - a->x * b->x - a->y * b->y - a->z * b->z,
-                  a->w * b->x + a->x * b->w + a->y * b->z - a->z * b->y,
-                  a->w * b->y - a->x * b->z + a->y * b->w + a->z * b->x,
-                  a->w * b->z + a->x * b->y - a->y * b->x + a->z * b->w};
+    return (quat){a.w * b.x + a.x * b.w + a.y * b.z - a.z * b.y,
+                  a.w * b.y - a.x * b.z + a.y * b.w + a.z * b.x,
+                  a.w * b.z + a.x * b.y - a.y * b.x + a.z * b.w,
+                  a.w * b.w - a.x * b.x - a.y * b.y - a.z * b.z};
 }
 
 //
 // Returns a unit quaternion from an angle and vector.
 //
-inline static quat angle_axis(float angle, const vec *v)
+inline static quat angle_axis(float angle, const vec v)
 {
     vec temp = vec_normalize(v);
-    temp = vec_scale(&temp, sinf(angle * 0.5f));
-    return (quat){cosf(angle * 0.5f), temp.x, temp.y, temp.z};
+    temp = vec_scale(temp, sinf(angle * 0.5f));
+    return (quat){temp.x, temp.y, temp.z, cosf(angle * 0.5f)};
 }
 
 //
 // Rotates a vector by a unit quaternion.
 //
-inline static vec vec_rotate(const vec *v, const quat *q)
+inline static vec vec_rotate(const vec v, const quat q)
 {
     const quat q_inv = quat_inverse(q);
     const quat v_quat = vec_to_quat(v);
-    quat temp = quat_multiply(q, &v_quat);
-    temp = quat_multiply(&temp, &q_inv);
+    quat temp = quat_multiply(q, v_quat);
+    temp = quat_multiply(temp, q_inv);
     return (vec){temp.x, temp.y, temp.z};
 }
 
 //
 // Linear interpolation between two vectors.
 //
-inline static vec vec_lerp(const vec *a, const vec *b, float factor)
+inline static vec vec_lerp(const vec a, const vec b, float factor)
 {
     vec temp = vec_subtract(b, a);
-    temp = vec_scale(&temp, factor);
-    return vec_add(a, &temp);
+    temp = vec_scale(temp, factor);
+    return vec_add(a, temp);
 }
 
 #endif

@@ -30,6 +30,20 @@
 
   #define div64_32(a, b) _div64((a), (b), NULL)
 
+#elif defined(__GNUC__) && defined(__x86_64__)
+
+  inline static int32_t div64_32(int64_t a, int32_t b)
+  {
+      if (__builtin_constant_p(b))
+      {
+          return a / b;
+      }
+      int32_t lo = a;
+      int32_t hi = a >> 32;
+      asm("idivl %[divisor]" : "+a" (lo), "+d" (hi) : [divisor] "r" (b));
+      return lo;
+  }
+
 #else
 
   #define div64_32(a, b) ((fixed_t)((a) / (b)))
@@ -72,7 +86,7 @@ inline static int64_t FixedMul64(int64_t a, int64_t b)
 inline static fixed_t FixedDiv(fixed_t a, fixed_t b)
 {
     // [FG] avoid 31-bit shift (from Chocolate Doom)
-    if ((abs(a) >> 14) >= abs(b))
+    if (((unsigned)abs(a) >> 14) >= (unsigned)abs(b))
     {
         return (a ^ b) < 0 ? INT_MIN : INT_MAX;
     }

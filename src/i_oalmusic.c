@@ -439,7 +439,11 @@ static boolean I_OAL_InitMusic(int device)
     return false;
 }
 
-static int fl_gain, opl_gain;
+#if defined(HAVE_FLUIDSYNTH)
+static int fl_gain;
+#endif
+
+static int opl_gain;
 
 static void I_OAL_SetMusicVolume(int volume)
 {
@@ -609,7 +613,7 @@ static const char **I_OAL_DeviceList(void)
 
 static midiplayertype_t I_OAL_MidiPlayerType(void)
 {
-#ifdef HAVE_FLUIDSYNTH
+#if defined (HAVE_FLUIDSYNTH)
     if (active_module == &stream_fl_module)
     {
         return midiplayer_fluidsynth;

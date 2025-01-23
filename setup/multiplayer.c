@@ -136,7 +136,7 @@ static void AddWADs(execute_context_t *exec)
                 have_wads = 1;
             }
 
-            AddCmdLineParameter(exec, "%s", wads[i]);
+            AddCmdLineParameter(exec, "\"%s\"", wads[i]);
         }
     }
 }
@@ -282,6 +282,7 @@ static void UpdateSkillButton(void)
     switch(iwad->mission)
     {
         case pack_chex:
+        case pack_chex3v:
             skillbutton->values = chex_skills;
             break;
         case pack_hacx:

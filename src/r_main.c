@@ -674,8 +674,6 @@ void R_ExecuteSetViewSize (void)
     }
 
   st_refresh_background = true;
-
-  pspr_interp = false;
 }
 
 //
@@ -1031,18 +1029,19 @@ void R_BindRenderVariables(void)
   BIND_NUM_GENERAL(invul_mode, INVUL_MBF, INVUL_VANILLA, INVUL_GRAY,
     "Invulnerability effect (0 = Vanilla; 1 = MBF; 2 = Gray)");
   BIND_BOOL(flashing_hom, true, "Enable flashing of the HOM indicator");
-  BIND_NUM(screenblocks, 10, 3, 12, "Size of game-world screen");
+  BIND_NUM(screenblocks, 10, 3, UL, "Size of game-world screen");
 
   M_BindBool("translucency", &translucency, NULL, true, ss_gen, wad_yes,
              "Translucency for some things");
   M_BindNum("tran_filter_pct", &tran_filter_pct, NULL,
-            66, 0, 100, ss_gen, wad_yes,
+            66, 0, 100, ss_none, wad_yes,
             "Percent of foreground/background translucency mix");
 
   M_BindBool("flipcorpses", &flipcorpses, NULL, false, ss_enem, wad_no,
              "Randomly mirrored death animations");
-  M_BindBool("fuzzcolumn_mode", &fuzzcolumn_mode, NULL, true, ss_none, wad_no,
-             "Fuzz rendering (0 = Resolution-dependent; 1 = Blocky)");
+  M_BindNum("fuzzmode", &fuzzmode, NULL,
+            FUZZ_BLOCKY, FUZZ_BLOCKY, FUZZ_SHADOW, ss_none, wad_no,
+            "Partial Invisibility (0 = Vanilla; 1 = Refraction; 2 = Shadow)");
 
   BIND_BOOL(draw_nearby_sprites, true,
     "Draw sprites overlapping into visible sectors");

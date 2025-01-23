@@ -30,6 +30,7 @@
 #include "am_map.h"
 #include "config.h"
 #include "d_main.h"
+#include "d_iwad.h"
 #include "doomdef.h"
 #include "doomstat.h"
 #include "doomtype.h"

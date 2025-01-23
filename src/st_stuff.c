@@ -32,7 +32,6 @@
 #include "doomtype.h"
 #include "hu_command.h"
 #include "hu_obituary.h"
-#include "i_system.h"
 #include "i_video.h"
 #include "info.h"
 #include "m_array.h"
@@ -541,10 +540,15 @@ static int ResolveNumber(sbe_number_t *number, player_t *player)
 
 static int CalcPainOffset(sbe_face_t *face, player_t *player)
 {
+    static int lasthealthcalc;
+    static int oldhealth = -1;
     int health = player->health > 100 ? 100 : player->health;
-    int lasthealthcalc =
-        ST_FACESTRIDE * (((100 - health) * ST_NUMPAINFACES) / 101);
-    face->oldhealth = health;
+    if (oldhealth != health)
+    {
+        lasthealthcalc =
+            ST_FACESTRIDE * (((100 - health) * ST_NUMPAINFACES) / 101);
+        oldhealth = health;
+    }
     return lasthealthcalc;
 }
 
@@ -616,7 +620,7 @@ static void UpdateFace(sbe_face_t *face, player_t *player)
             boolean right = false;
 
             // [FG] show "Ouch Face" as intended
-            if (player->health - face->oldhealth > ST_MUCHPAIN)
+            if (face->oldhealth - player->health > ST_MUCHPAIN)
             {
                 // [FG] raise "Ouch Face" priority
                 priority = 8;
@@ -669,7 +673,7 @@ static void UpdateFace(sbe_face_t *face, player_t *player)
         // getting hurt because of your own damn stupidity
         if (player->damagecount)
         {
-            if (player->health - face->oldhealth > ST_MUCHPAIN)
+            if (face->oldhealth - player->health > ST_MUCHPAIN)
             {
                 priority = 7;
                 face->facecount = ST_TURNCOUNT;
@@ -727,6 +731,8 @@ static void UpdateFace(sbe_face_t *face, player_t *player)
     }
 
     --face->facecount;
+
+    face->oldhealth = player->health;
 }
 
 static void UpdateNumber(sbarelem_t *elem, player_t *player)
@@ -1015,6 +1021,11 @@ static void UpdateStatusBar(player_t *player)
 
     int barindex = MAX(screenblocks - 10, 0);
 
+    if (barindex >= array_size(sbardef->statusbars))
+    {
+        barindex = array_size(sbardef->statusbars) - 1;
+    }
+
     if (automapactive && automapoverlay == AM_OVERLAY_OFF)
     {
         barindex = 0;
@@ -1073,6 +1084,10 @@ static void ResetElem(sbarelem_t *elem)
         case sbe_number:
         case sbe_percent:
             elem->subtype.number->oldvalue = -1;
+            break;
+
+        case sbe_widget:
+            elem->subtype.widget->duration_left = 0;
             break;
 
         default:
@@ -1772,11 +1787,6 @@ void ST_Drawer(void)
     }
 
     DrawStatusBar();
-
-    if (hud_crosshair)
-    {
-        HU_DrawCrosshair();
-    }
 }
 
 void ST_Start(void)
@@ -1799,15 +1809,15 @@ void ST_Init(void)
 {
     sbardef = ST_ParseSbarDef();
 
+    stcfnt = LoadSTCFN();
+    hu_font = stcfnt->characters;
+
     if (!sbardef)
     {
         return;
     }
 
     LoadFacePatches();
-
-    stcfnt = LoadSTCFN();
-    hu_font = stcfnt->characters;
 
     HU_InitCrosshair();
     HU_InitCommandHistory();
@@ -1822,6 +1832,35 @@ void ST_InitRes(void)
     st_backing_screen =
         Z_Malloc(video.pitch * V_ScaleY(ST_HEIGHT) * sizeof(*st_backing_screen),
                  PU_RENDERER, 0);
+}
+
+const char **ST_StatusbarList(void)
+{
+    if (!sbardef)
+    {
+        return NULL;
+    }
+
+    static const char **strings;
+
+    if (array_size(strings))
+    {
+        return strings;
+    }
+
+    statusbar_t *item;
+    array_foreach(item, sbardef->statusbars)
+    {
+        if (item->fullscreenrender)
+        {
+            array_push(strings, "Fullscreen");
+        }
+        else
+        {
+            array_push(strings, "Status Bar");
+        }
+    }
+    return strings;
 }
 
 void ST_ResetPalette(void)
@@ -1863,7 +1902,7 @@ void ST_BindSTSVariables(void)
   M_BindBool("sts_colored_numbers", &sts_colored_numbers, NULL,
              false, ss_stat, wad_yes, "Colored numbers on the status bar");
   M_BindBool("sts_pct_always_gray", &sts_pct_always_gray, NULL,
-             false, ss_stat, wad_yes,
+             false, ss_none, wad_yes,
              "Percent signs on the status bar are always gray");
   M_BindBool("st_solidbackground", &st_solidbackground, NULL,
              false, ss_stat, wad_no,

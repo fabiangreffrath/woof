@@ -339,7 +339,7 @@ static const int fuzzoffset[FUZZTABLE] =
     FUZZOFF,-FUZZOFF,FUZZOFF,FUZZOFF,-FUZZOFF,-FUZZOFF,FUZZOFF,
     FUZZOFF,-FUZZOFF,-FUZZOFF,-FUZZOFF,-FUZZOFF,FUZZOFF,FUZZOFF,
     FUZZOFF,FUZZOFF,-FUZZOFF,FUZZOFF,FUZZOFF,-FUZZOFF,FUZZOFF 
-}; 
+};
 
 static int fuzzpos = 0;
 
@@ -370,7 +370,7 @@ void R_SetFuzzPosDraw(void)
 //  i.e. spectres and invisible players.
 //
 
-static void R_DrawFuzzColumn_orig(void)
+static void DrawFuzzColumnOriginal(void)
 {
     boolean cutoff = false;
 
@@ -448,7 +448,7 @@ static void R_DrawFuzzColumn_orig(void)
 
 static int fuzzblocksize;
 
-static void R_DrawFuzzColumn_block(void)
+static void DrawFuzzColumnBlocky(void)
 {
     boolean cutoff = false;
 
@@ -488,6 +488,8 @@ static void R_DrawFuzzColumn_block(void)
 
     int lines = fuzzblocksize - (dc_yl % fuzzblocksize);
 
+    const int fuzzblockwidth = MIN(fuzzblocksize, video.width - dc_x);
+
     do
     {
         count -= lines;
@@ -506,7 +508,7 @@ static void R_DrawFuzzColumn_block(void)
 
         do
         {
-            memset(dest, fuzz, fuzzblocksize);
+            memset(dest, fuzz, fuzzblockwidth);
             dest += linesize;
         } while (--lines);
 
@@ -526,21 +528,162 @@ static void R_DrawFuzzColumn_block(void)
     }
 }
 
-// [FG] spectre drawing mode: 0 original, 1 blocky (hires)
+#define FUZZDARK (6 * 256)
+#define FUZZPAL  256
 
-boolean fuzzcolumn_mode;
-void (*R_DrawFuzzColumn)(void) = R_DrawFuzzColumn_orig;
+static const int fuzzdark[FUZZTABLE] =
+{
+    4 * FUZZPAL, 0, 6 * FUZZPAL, 0, 6 * FUZZPAL, 6 * FUZZPAL, 0,
+    6 * FUZZPAL, 6 * FUZZPAL, 0, 6 * FUZZPAL, 6 * FUZZPAL, 6 * FUZZPAL, 0,
+    6 * FUZZPAL, 8 * FUZZPAL, 6 * FUZZPAL, 0, 0, 0, 0,
+    4 * FUZZPAL, 0, 0, 6 * FUZZPAL, 6 * FUZZPAL, 6 * FUZZPAL, 6 * FUZZPAL, 0,
+    4 * FUZZPAL, 0, 6 * FUZZPAL, 6 * FUZZPAL, 0, 0, 6 * FUZZPAL,
+    6 * FUZZPAL, 0, 0, 0, 0, 6 * FUZZPAL, 6 * FUZZPAL,
+    6 * FUZZPAL, 6 * FUZZPAL, 0, 6 * FUZZPAL, 6 * FUZZPAL, 0, 6 * FUZZPAL,
+};
+
+static void DrawFuzzColumnRefraction(void)
+{
+    boolean cutoff = false;
+
+    if (dc_x % fuzzblocksize)
+    {
+        return;
+    }
+
+    if (!dc_yl)
+    {
+        dc_yl = 1;
+    }
+
+    if (dc_yh == viewheight - 1)
+    {
+        dc_yh = viewheight - 2;
+        cutoff = true;
+    }
+
+    int count = dc_yh - dc_yl;
+
+    if (count < 0)
+    {
+        return;
+    }
+
+#ifdef RANGECHECK
+    if ((unsigned)dc_x >= video.width || dc_yl < 0 || dc_yh >= video.height)
+    {
+        I_Error("R_DrawFuzzColumn: %i to %i at %i", dc_yl, dc_yh, dc_x);
+    }
+#endif
+
+    ++count;
+
+    byte *dest = ylookup[dc_yl] + columnofs[dc_x];
+
+    int lines = fuzzblocksize - (dc_yl % fuzzblocksize);
+
+    const int fuzzblockwidth = MIN(fuzzblocksize, video.width - dc_x);
+
+    int dark = FUZZDARK;
+    int offset = 0;
+
+    do
+    {
+        count -= lines;
+
+        // if (count < 0)
+        // {
+        //    lines += count;
+        //    count = 0;
+        // }
+        const int mask = count >> (8 * sizeof(mask) - 1);
+        lines += count & mask;
+        count &= ~mask;
+
+        const byte fuzz = fullcolormap[dark + dest[linesize * offset]];
+
+        do
+        {
+            memset(dest, fuzz, fuzzblockwidth);
+            dest += linesize;
+        } while (--lines);
+
+        ++fuzzpos;
+
+        // Clamp table lookup index.
+        fuzzpos &= (fuzzpos - FUZZTABLE) >> (8 * sizeof(fuzzpos) - 1); // killough 1/99
+
+        dark = fuzzdark[fuzzpos];
+        offset = fuzzoffset[fuzzpos];
+
+        lines = fuzzblocksize;
+    } while (count);
+
+    if (cutoff)
+    {
+        const byte fuzz =
+            fullcolormap[dark + dest[linesize * (offset - FUZZOFF) / 2]];
+        memset(dest, fuzz, fuzzblocksize);
+    }
+}
+
+static void DrawFuzzColumnShadow(void)
+{
+    int count = dc_yh - dc_yl;
+
+    // Zero length.
+    if (count < 0)
+    {
+        return;
+    }
+
+#ifdef RANGECHECK
+    if ((unsigned)dc_x >= video.width || dc_yl < 0 || dc_yh >= video.height)
+    {
+        I_Error("R_DrawFuzzColumn: %i to %i at %i", dc_yl, dc_yh, dc_x);
+    }
+#endif
+
+    byte *dest = ylookup[dc_yl] + columnofs[dc_x];
+
+    count++; // killough 1/99: minor tuning
+
+    do
+    {
+        *dest = fullcolormap[8 * 256 + *dest];
+
+        dest += linesize; // killough 11/98
+    } while (--count);
+}
+
+fuzzmode_t fuzzmode;
+void (*R_DrawFuzzColumn)(void) = DrawFuzzColumnOriginal;
 
 void R_SetFuzzColumnMode(void)
 {
-    if (fuzzcolumn_mode && current_video_height > SCREENHEIGHT)
+    fuzzmode_t mode =
+        (strictmode || (netgame && !solonet)) ? FUZZ_BLOCKY : fuzzmode;
+
+    switch (mode)
     {
-        fuzzblocksize = FixedToInt(video.yscale);
-        R_DrawFuzzColumn = R_DrawFuzzColumn_block;
-    }
-    else
-    {
-        R_DrawFuzzColumn = R_DrawFuzzColumn_orig;
+        case FUZZ_BLOCKY:
+            if (current_video_height > SCREENHEIGHT)
+            {
+                fuzzblocksize = FixedToInt(video.yscale);
+                R_DrawFuzzColumn = DrawFuzzColumnBlocky;
+            }
+            else
+            {
+                R_DrawFuzzColumn = DrawFuzzColumnOriginal;
+            }
+            break;
+        case FUZZ_REFRACTION:
+            fuzzblocksize = FixedToInt(video.yscale);
+            R_DrawFuzzColumn = DrawFuzzColumnRefraction;
+            break;
+        case FUZZ_SHADOW:
+            R_DrawFuzzColumn = DrawFuzzColumnShadow;
+            break;
     }
 }
 

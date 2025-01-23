@@ -37,6 +37,7 @@
 #include "doomtype.h"
 #include "dstrings.h"
 #include "g_game.h"
+#include "g_umapinfo.h"
 #include "i_input.h"
 #include "i_printf.h"
 #include "i_system.h"
@@ -59,7 +60,6 @@
 #include "st_sbardef.h"
 #include "st_stuff.h"
 #include "st_widgets.h"
-#include "u_mapinfo.h"
 #include "v_fmt.h"
 #include "v_video.h"
 #include "w_wad.h"
@@ -76,7 +76,7 @@
 
 // Blocky mode, has default, 0 = high, 1 = normal
 // int     detailLevel;    obsolete -- killough
-int screenblocks; // has default
+int screenblocks, maxscreenblocks; // has default
 
 static int quickSaveSlot; // -1 = no quicksave slot picked!
 
@@ -517,14 +517,13 @@ static short EpiMenuEpi[MAX_EPISODES] = {1, 2, 3, 4, -1, -1, -1, -1, -1, -1};
 //
 static int epiChoice;
 
-void M_ClearEpisodes(void)
+void MN_ClearEpisodes(void)
 {
     EpiDef.numitems = 0;
     NewDef.prevMenu = &MainDef;
 }
 
-void M_AddEpisode(const char *map, const char *gfx, const char *txt,
-                  const char *alpha)
+void MN_AddEpisode(const char *map, const char *gfx, const char *txt, char key)
 {
     int epi, mapnum;
 
@@ -541,7 +540,8 @@ void M_AddEpisode(const char *map, const char *gfx, const char *txt,
 
     if (EpiDef.numitems == 8)
     {
-        I_Printf(VB_WARNING, "M_AddEpisode: UMAPINFO spec limit of 8 episodes exceeded!");
+        I_Printf(VB_WARNING,
+                 "MN_AddEpisode: UMAPINFO spec limit of 8 episodes exceeded!");
     }
     else if (EpiDef.numitems >= MAX_EPISODES)
     {
@@ -554,7 +554,7 @@ void M_AddEpisode(const char *map, const char *gfx, const char *txt,
     strncpy(EpisodeMenu[EpiDef.numitems].name, gfx, 8);
     EpisodeMenu[EpiDef.numitems].name[9] = 0;
     EpisodeMenu[EpiDef.numitems].alttext = txt ? strdup(txt) : NULL;
-    EpisodeMenu[EpiDef.numitems].alphaKey = alpha ? *alpha : 0;
+    EpisodeMenu[EpiDef.numitems].alphaKey = key;
     EpiDef.numitems++;
 
     if (EpiDef.numitems <= 4)
@@ -1314,7 +1314,8 @@ static void SetDefaultSaveName(char *name, const char *append)
     char *maplump = MapName(gameepisode, gamemap);
     int maplumpnum = W_CheckNumForName(maplump);
 
-    if (gamemapinfo && U_CheckField(gamemapinfo->label))
+    if (gamemapinfo && gamemapinfo->label
+        && !(gamemapinfo->flags & MapInfo_LabelClear))
     {
         maplump = gamemapinfo->label;
     }
@@ -1798,7 +1799,7 @@ static void M_SizeDisplay(int choice)
         default:
             break;
     }
-    screenblocks = BETWEEN(3, 12, screenblocks);
+    screenblocks = BETWEEN(3, maxscreenblocks, screenblocks);
     R_SetViewSize(screenblocks /*, detailLevel obsolete -- killough */);
 }
 
@@ -2549,7 +2550,7 @@ boolean M_ShortcutResponder(const event_t *ev)
         else
         {
             ++screenblocks;
-            if (screenblocks > 12)
+            if (screenblocks > maxscreenblocks)
             {
                 screenblocks = 10;
             }
@@ -3026,13 +3027,13 @@ boolean M_Responder(event_t *ev)
                 savegamestrings[saveSlot][saveCharIndex] = 0;
             }
         }
-        else if (ch == KEY_ESCAPE) // phares 3/7/98
+        else if (action == MENU_ESCAPE) // phares 3/7/98
         {
             I_StopTextInput();
             saveStringEnter = 0;
             strcpy(&savegamestrings[saveSlot][0], saveOldString);
         }
-        else if (ch == KEY_ENTER) // phares 3/7/98
+        else if (action == MENU_ENTER) // phares 3/7/98
         {
             I_StopTextInput();
             saveStringEnter = 0;

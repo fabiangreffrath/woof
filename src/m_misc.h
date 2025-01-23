@@ -23,7 +23,6 @@
 
 #include "doomtype.h"
 
-boolean M_FileExists(const char *file);
 boolean M_DirExists(const char *path);
 int M_FileLength(const char *path);
 char *M_TempFile(const char *s);
@@ -31,6 +30,8 @@ char *M_FileCaseExists(const char *file);
 boolean M_StrToInt(const char *str, int *result);
 char *M_DirName(const char *path);
 const char *M_BaseName(const char *path);
+char *M_HomeDir(void);
+char *M_DataDir(void);
 char M_ToUpper(const char c);
 void M_StringToUpper(char *text);
 char M_ToLower(const char c);
@@ -55,7 +56,7 @@ int M_vsnprintf(char *buf, size_t buf_len, const char *s, va_list args)
 int M_snprintf(char *buf, size_t buf_len, const char *s, ...) PRINTF_ATTR(3, 4);
 
 void M_CopyLumpName(char *dest, const char *src);
-char *AddDefaultExtension(char *path, const char *ext);
+char *AddDefaultExtension(const char *path, const char *ext);
 boolean M_WriteFile(const char *name, void *source, int length);
 int M_ReadFile(const char *name, byte **buffer);
 boolean M_StringToDigest(const char *string, byte *digest, int size);

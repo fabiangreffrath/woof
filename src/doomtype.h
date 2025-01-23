@@ -23,6 +23,7 @@
 
 #include <stddef.h> // size_t, NULL
 #include <stdint.h> // [FG] intptr_t types
+#include <stdbool.h>
 
 #include "config.h"
 
@@ -73,11 +74,25 @@ typedef byte lighttable_t;
 
 #define arrlen(array) (sizeof(array) / sizeof(*array))
 
-#define MIN(a, b) (((a) < (b)) ? (a) : (b))
+#if defined(__GNUC__) || defined(__clang__)
+ #define MIN(a,b)             \
+ ({                           \
+     __typeof__ (a) _a = (a); \
+     __typeof__ (b) _b = (b); \
+     _a < _b ? _a : _b;       \
+ })
+ #define MAX(a,b)             \
+ ({                           \
+     __typeof__ (a) _a = (a); \
+     __typeof__ (b) _b = (b); \
+     _a > _b ? _a : _b;       \
+ })
+#else
+ #define MIN(a, b) (((a) < (b)) ? (a) : (b))
+ #define MAX(a, b) (((a) > (b)) ? (a) : (b))
+#endif
 
-#define MAX(a, b) (((a) > (b)) ? (a) : (b))
-
-#define BETWEEN(l, u, x) ((l) > (x) ? (l) : (x) > (u) ? (u) : (x))
+#define BETWEEN(l, u, x) (MAX((l), (MIN((u), (x)))))
 
 #define DIV_ROUND_FLOOR(n, d) (((n) - (d) / 2) / (d))
 

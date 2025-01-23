@@ -39,6 +39,7 @@
 #include "doomstat.h"
 #include "doomtype.h"
 #include "i_system.h"
+#include "i_video.h"
 #include "m_fixed.h"
 #include "r_bmaps.h" // [crispy] R_BrightmapForTexName()
 #include "r_data.h"
@@ -71,8 +72,8 @@ visplane_t *floorplane, *ceilingplane;
 
 // killough 8/1/98: set static number of openings to be large enough
 // (a static limit is okay in this case and avoids difficulties in r_segs.c)
-static int *openings = NULL;
-int *lastopening; // [FG] 32-bit integer math
+int maxopenings;
+int *openings, *lastopening; // [FG] 32-bit integer math
 
 // Clip values are the solid pixel bounding the range.
 //  floorclip starts out SCREENHEIGHT
@@ -128,7 +129,8 @@ void R_InitPlanesRes(void)
   yslope = Z_Calloc(1, video.height * sizeof(*yslope), PU_RENDERER, NULL);
   distscale = Z_Calloc(1, video.width * sizeof(*distscale), PU_RENDERER, NULL);
 
-  openings = Z_Calloc(1, video.width * video.height * sizeof(*openings), PU_RENDERER, NULL);
+  maxopenings = video.width * video.height;
+  openings = Z_Calloc(1, maxopenings * sizeof(*openings), PU_RENDERER, NULL);
 
   xtoskyangle = linearsky ? linearskyangle : xtoviewangle;
 }
@@ -412,9 +414,21 @@ static void DrawSkyTex(visplane_t *pl, skytex_t *skytex)
     dc_texheight = textureheight[texture] >> FRACBITS;
     dc_iscale = FixedMul(skyiscale, skytex->scaley);
 
-    dc_texturemid += skytex->curry;
+    fixed_t deltax, deltay;
+    if (uncapped && leveltime > oldleveltime)
+    {
+        deltax = LerpFixed(skytex->prevx, skytex->currx);
+        deltay = LerpFixed(skytex->prevy, skytex->curry);
+    }
+    else
+    {
+        deltax = skytex->currx;
+        deltay = skytex->curry;
+    }
 
-    angle_t an = viewangle + FixedToAngle(skytex->currx);
+    dc_texturemid += deltay;
+
+    angle_t an = viewangle + (deltax << (ANGLETOSKYSHIFT - FRACBITS));
 
     for (int x = pl->minx; x <= pl->maxx; x++)
     {

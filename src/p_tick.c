@@ -237,7 +237,7 @@ static void P_RunThinkers (void)
        currentthinker != &thinkercap;
        currentthinker = currentthinker->next)
     if (currentthinker->function.p1)
-      currentthinker->function.p1(currentthinker);
+      currentthinker->function.p1((mobj_t *)currentthinker);
 
   // [crispy] support MUSINFO lump (dynamic music changing)
   T_MusInfo();
