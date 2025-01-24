@@ -141,20 +141,7 @@ static boolean MapInfo_Ticker()
 
     boolean next_level = false;
 
-    if (!demo_compatibility)
-    {
-        WI_checkForAccelerate();
-    }
-    else
-    {
-        for (int i = 0; i < MAXPLAYERS; ++i)
-        {
-            if (players[i].cmd.buttons)
-            {
-                next_level = true;
-            }
-        }
-    }
+    WI_checkForAccelerate();
 
     if (!next_level)
     {
