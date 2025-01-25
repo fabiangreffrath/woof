@@ -383,8 +383,6 @@ static void R_MakeSpans(int x, unsigned int t1, unsigned int b1, unsigned int t2
 
 static void DrawSkyFire(visplane_t *pl, fire_t *fire)
 {
-    dc_colormap[0] = dc_colormap[1] = fullcolormap;
-
     dc_texturemid = -28 * FRACUNIT;
     dc_iscale = skyiscale;
     dc_texheight = FIRE_HEIGHT;
@@ -407,8 +405,6 @@ static void DrawSkyFire(visplane_t *pl, fire_t *fire)
 static void DrawSkyTex(visplane_t *pl, skytex_t *skytex)
 {
     int texture = R_TextureNumForName(skytex->name);
-
-    dc_colormap[0] = dc_colormap[1] = fullcolormap;
 
     dc_texturemid = skytex->mid * FRACUNIT;
     dc_texheight = textureheight[texture] >> FRACBITS;
@@ -447,6 +443,17 @@ static void DrawSkyTex(visplane_t *pl, skytex_t *skytex)
 
 static void DrawSkyDef(visplane_t *pl)
 {
+    // Sky is always drawn full bright, i.e. colormaps[0] is used.
+    // Because of this hack, sky is not affected by INVUL inverse mapping.
+    //
+    // killough 7/19/98: fix hack to be more realistic:
+
+    if (STRICTMODE_COMP(comp_skymap)
+        || !(dc_colormap[0] = dc_colormap[1] = fixedcolormap))
+    {
+        dc_colormap[0] = dc_colormap[1] = fullcolormap; // killough 3/20/98
+    }
+
     if (sky->type == SkyType_Fire)
     {
         DrawSkyFire(pl, &sky->fire);
