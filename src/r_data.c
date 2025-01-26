@@ -66,14 +66,18 @@
 // and possibly other attributes.
 //
 
-typedef struct
+#if defined(_MSC_VER)
+#pragma pack(push, 1)
+#endif
+
+typedef PACKED_PREFIX struct
 {
   short originx;
   short originy;
   short patch;
   short stepdir;         // unused in Doom but might be used in Phase 2 Boom
   short colormap;        // unused in Doom but might be used in Phase 2 Boom
-} mappatch_t;
+} PACKED_SUFFIX mappatch_t;
 
 
 //
@@ -81,7 +85,7 @@ typedef struct
 // A DOOM wall texture is a list of patches
 // which are to be combined in a predefined order.
 //
-typedef struct
+typedef PACKED_PREFIX struct
 {
   char       name[8];
   int        masked;
@@ -90,8 +94,11 @@ typedef struct
   char       pad[4];       // unused in Doom but might be used in Boom Phase 2
   short      patchcount;
   mappatch_t patches[1];
-} maptexture_t;
+} PACKED_SUFFIX maptexture_t;
 
+#if defined(_MSC_VER)
+#pragma pack(pop)
+#endif
 
 // A single patch from a texture definition, basically
 // a rectangular area within the texture rectangle.

@@ -151,7 +151,7 @@ void P_InitPicAnims (void)
   for (i=0 ; animdefs[i].istexture != -1 ; i++)
     {
       // 1/11/98 killough -- removed limit by array-doubling
-      if (lastanim >= anims + maxanims)
+      if (!anims || lastanim >= anims + maxanims)
         {
           size_t newmax = maxanims ? maxanims*2 : MAXANIMS;
           anims = Z_Realloc(anims, newmax*sizeof(*anims), PU_STATIC, 0);   // killough
