@@ -50,7 +50,6 @@ option(WOOF_STRICT "Prefer original MBF code paths over demo compatiblity with P
 
 # Compiler environment requirements.
 check_library_exists(m pow "" HAVE_LIBM)
-check_include_file("dirent.h" HAVE_DIRENT_H)
 check_symbol_exists(strcasecmp "strings.h" HAVE_DECL_STRCASECMP)
 check_symbol_exists(strncasecmp "strings.h" HAVE_DECL_STRNCASECMP)
 check_symbol_exists(getpwuid "unistd.h;sys/types.h;pwd.h" HAVE_GETPWUID)
@@ -92,8 +91,8 @@ option(CMAKE_FIND_PACKAGE_PREFER_CONFIG
 set(CMAKE_FIND_FRAMEWORK NEVER)
 
 # Library requirements.
-find_package(SDL2 2.0.18 REQUIRED)
-find_package(SDL2_net REQUIRED)
+find_package(SDL3 CONFIG REQUIRED)
+find_package(SDL2_net CONFIG REQUIRED)
 find_package(OpenAL REQUIRED)
 find_package(libebur128 REQUIRED)
 find_package(SndFile 1.0.29 REQUIRED)
