@@ -43,6 +43,7 @@ boolean JS_IsArray(json_t *json);
 
 json_t *JS_GetObject(json_t *json, const char *string);
 boolean JS_GetBoolean(json_t *json);
+boolean JS_GetBooleanValue(json_t *json, const char *string, boolean fallback);
 double JS_GetNumber(json_t *json);
 double JS_GetNumberValue(json_t *json, const char *string);
 int JS_GetInteger(json_t *json);

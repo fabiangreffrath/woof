@@ -67,7 +67,7 @@ typedef enum {
   END_ART,
   END_SCROLL,
   END_CAST,
-} endfinale_type_t;
+} ef_type_t;
 
 typedef struct {
   // Equivalent to PFUB2; `end_finale_t::background` is equivalent to PFUB1
@@ -77,7 +77,7 @@ typedef struct {
   int  overlaysound;
   int  overlayx;
   int  overlayy;
-} endfinale_scroller_t;
+} ef_scroll_t;
 
 typedef struct {
   char    lump[9];   // Enemy sprite
@@ -96,15 +96,16 @@ typedef struct {
 typedef struct {
   // Not sure why it is like this, but this is how it is setup in Legacy of Rust 1.2
   cast_entry_t *castanims;
-} endfinale_cast_t;
+} ef_cast_t;
 
 typedef struct {
-  endfinale_type_t      type;
-  char                  music[9];      // Default: `D_EVIL`
-  char                  background[9]; // Default: `BOSSBACK`
-  boolean               donextmap;     // Default: `false`
-  endfinale_scroller_t *bunny;         // Only read if `type == END_SCROLL`
-  endfinale_cast_t     *castrollcall;  // Only read if `type == END_CAST`
+  ef_type_t     type;
+  char          music[9];      // Default: `D_EVIL`
+  char          background[9]; // Default: `BOSSBACK`
+  boolean       musicloops;    // Default: `false`
+  boolean       donextmap;     // Default: `false`
+  ef_scroll_t  *bunny;         // Only read if `type == END_SCROLL`
+  ef_cast_t    *castrollcall;  // Only read if `type == END_CAST`
 } end_finale_t;
 
 // defines for the end mission display text                     // phares
@@ -129,8 +130,62 @@ static int midstage;                 // whether we're in "mid-stage"
 
 static boolean mapinfo_finale;
 
-static void EndFinale_Data(json_t *data)
+static void EndFinale_Cast(json_t *cast, ef_cast_t *finale_cast)
 {
+  return;
+}
+
+static void EndFinale_Scroll(json_t *bunny, ef_scroll_t *finale_scroll)
+{
+  return;
+}
+
+static void EndFinale_Data(json_t *data, end_finale_t *out, const char *lump)
+{
+  int         type            = JS_GetIntegerValue(data, "type");
+  const char* music_buffer    = JS_GetStringValue(data, "music");
+  const char* backdrop_buffer = JS_GetStringValue(data, "background");
+
+  // Improper definitions should be entirely ignored
+  if (type > END_CAST || type < END_CAST
+      || music_buffer == NULL || backdrop_buffer == NULL)
+  {
+    I_Printf(VB_WARNING, "EndFinale: malformed entries on lump %s", lump);
+    return;
+  }
+
+  boolean musicloops = JS_GetBooleanValue(data, "musicloops", false);
+  boolean donextmap  = JS_GetBooleanValue(data, "donextmap", false);
+
+  json_t *cast   = JS_GetObject(data, "castrollcall");
+  json_t *scroll = JS_GetObject(data, "bunny");
+
+  ef_cast_t   *finale_cast   = NULL;
+  ef_scroll_t *finale_scroll = NULL;
+
+  switch (type)
+  {
+    case END_CAST:
+      EndFinale_Cast(cast, finale_cast);
+      break;
+
+    case END_SCROLL:
+      EndFinale_Scroll(scroll, finale_scroll);
+      break;
+
+    case END_ART:
+    default:
+      break;
+  }
+
+  out->type = type;
+  M_CopyLumpName(out->music, music_buffer);
+  M_CopyLumpName(out->background, backdrop_buffer);
+  out->musicloops = musicloops;
+  out->donextmap = donextmap;
+  out->castrollcall = finale_cast;
+  out->bunny = finale_scroll;
+
   return;
 }
 
@@ -147,13 +202,14 @@ static void D_ParseEndFinale(const char lump[9])
   json_t *data = JS_GetObject(json, "data");
   if (JS_IsNull(data) || !JS_IsObject(data))
   {
-    I_Printf(VB_WARNING, "D_EndFinale: data object not defined");
+    I_Printf(VB_WARNING, "EndFinale: data object undefined");
     JS_Close(lump);
     return;
   }
 
   // Now, actually parse it
-  EndFinale_Data(data);
+  end_finale_t *endfinale = NULL;
+  EndFinale_Data(data, endfinale, lump);
 
   // No need to keep in memory
   JS_Close(lump);
