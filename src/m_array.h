@@ -98,7 +98,7 @@ inline static void array_clear(const void *v)
         }                                 \
     } while (0)
 
-#define array_end(v) ((v) + array_size(v))
+#define array_end(v) ((v) ? (v) + array_ptr(v)->size : (v))
 
 #define array_foreach(ptr, v) \
     for (ptr = (v); ptr < array_end(v); ++ptr)
