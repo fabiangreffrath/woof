@@ -45,8 +45,7 @@
 // Stage of animation:
 //  0 = text, 1 = art screen, 2 = character cast
 
-typedef enum
-{
+typedef enum {
   FINALE_STAGE_TEXT,
   FINALE_STAGE_ART,
   FINALE_STAGE_CAST
@@ -55,6 +54,56 @@ typedef enum
 static finalestage_t finalestage;
 
 static int finalecount;
+
+//
+// ID24 EndFinale extensions
+//
+
+// Finale type:
+// 0 = plain graphic; 1 = custom scroller; 2 = custom cast call
+typedef enum {
+  END_ART,
+  END_SCROLL,
+  END_CAST,
+} endfinale_type_t;
+
+typedef struct {
+  // Equivalent to PFUB2; `end_finale_t::background` is equivalent to PFUB1
+  char stitchimage[9];
+  int  overlay;
+  int  overlaycount;
+  int  overlaysound;
+  int  overlayx;
+  int  overlayy;
+} endfinale_scroller_t;
+
+typedef struct {
+  char    lump[9];   // Enemy sprite
+  boolean flipped;
+  int     durations;
+  int     sound;     // Sound index
+} cast_frame_t;
+
+typedef struct {
+  char         *name;        // BEX [STRINGS] mnemonic
+  int           alertsound;  // Sound index
+  cast_frame_t *aliveframes; // Before pressing the "use" key
+  cast_frame_t *deathframes; // After pressing the "use" key
+} cast_entry_t;
+
+typedef struct {
+  // Not sure why it is like this, but this is how it is setup in Legacy of Rust 1.2
+  cast_entry_t *castanims;
+} endfinale_cast_t;
+
+typedef struct {
+  endfinale_type_t      type;
+  char                  music[9];      // Default: `D_EVIL`
+  char                  background[9]; // Default: `BOSSBACK`
+  boolean               donextmap;     // Default: `false`
+  endfinale_scroller_t *bunny;         // Only read if `type == END_SCROLL`
+  endfinale_cast_t     *castrollcall;  // Only read if `type == END_CAST`
+} end_finale_t;
 
 // defines for the end mission display text                     // phares
 
