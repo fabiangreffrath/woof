@@ -28,6 +28,8 @@
 #include "g_game.h"
 #include "g_umapinfo.h"
 #include "info.h"
+#include "i_printf.h"
+#include "m_json.h"
 #include "m_misc.h" // [FG] M_StringDuplicate()
 #include "m_swap.h"
 #include "r_defs.h"
@@ -126,6 +128,36 @@ static float Get_TextSpeed(void);
 static int midstage;                 // whether we're in "mid-stage"
 
 static boolean mapinfo_finale;
+
+static void EndFinale_Data(json_t *data)
+{
+  return;
+}
+
+static void D_ParseEndFinale(const char lump[9])
+{
+  // Does the JSON lump even exist?
+  json_t *json = JS_Open(lump, "finale", (version_t){1, 0, 0});
+  if (json == NULL)
+  {
+    return;
+  }
+
+  // Does lump actually have any data?
+  json_t *data = JS_GetObject(json, "data");
+  if (JS_IsNull(data) || !JS_IsObject(data))
+  {
+    I_Printf(VB_WARNING, "D_EndFinale: data object not defined");
+    JS_Close(lump);
+    return;
+  }
+
+  // Now, actually parse it
+  EndFinale_Data(data);
+
+  // No need to keep in memory
+  JS_Close(lump);
+}
 
 static boolean MapInfo_StartFinale(void)
 {
