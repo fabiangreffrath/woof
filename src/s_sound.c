@@ -946,6 +946,128 @@ static void InitE4Music(void)
     }
 }
 
+// [crispy] add support for alternative music tracks for Final Doom's
+// TNT and Plutonia as introduced in DoomMetalVol5.wad
+
+typedef struct {
+    char *const from;
+    char *const to;
+} altmusic_t;
+
+static const altmusic_t altmusic_tnt[] =
+{
+    {"runnin", "sadist"}, //  MAP01
+    {"stalks", "burn"},   //  MAP02
+    {"countd", "messag"}, //  MAP03
+    {"betwee", "bells"},  //  MAP04
+    {"doom",   "more"},   //  MAP05
+    {"the_da", "agony"},  //  MAP06
+    {"shawn",  "chaos"},  //  MAP07
+    {"ddtblu", "beast"},  //  MAP08
+    {"in_cit", "sadist"}, //  MAP09
+    {"dead",   "infini"}, //  MAP10
+    {"stlks2", "kill"},   //  MAP11
+    {"theda2", "ddtbl3"}, //  MAP12
+    {"doom2",  "bells"},  //  MAP13
+    {"ddtbl2", "cold"},   //  MAP14
+    {"runni2", "burn2"},  //  MAP15
+    {"dead2",  "blood"},  //  MAP16
+    {"stlks3", "more"},   //  MAP17
+    {"romero", "infini"}, //  MAP18
+    {"shawn2", "countd"}, //  MAP19
+    {"messag", "horizo"}, //  MAP20
+    {"count2", "in_cit"}, //  MAP21
+    {"ddtbl3", "aim"},    //  MAP22
+    {"ampie",  "ampie"},  // (MAP23)
+    {"theda3", "betwee"}, //  MAP24
+    {"adrian", "doom"},   //  MAP25
+    {"messg2", "blood"},  //  MAP26
+    {"romer2", "beast"},  //  MAP27
+    {"tense",  "aim"},    //  MAP28
+    {"shawn3", "bells"},  //  MAP29
+    {"openin", "beast"},  //  MAP30
+    {"evil",   "evil"},   // (MAP31)
+    {"ultima", "in_cit"}, //  MAP32
+    {NULL,     NULL},
+};
+
+// Plutonia music is completely taken from Doom 1 and 2, but re-arranged.
+// That is, Plutonia's D_RUNNIN (for MAP01) is the renamed D_E1M2. So,
+// it makes sense to play the D_E1M2 replacement from DoomMetal in Plutonia.
+
+static const altmusic_t altmusic_plut[] =
+{
+    {"runnin", "e1m2"},   //  MAP01
+    {"stalks", "e1m3"},   //  MAP02
+    {"countd", "e1m6"},   //  MAP03
+    {"betwee", "e1m4"},   //  MAP04
+    {"doom",   "e1m9"},   //  MAP05
+    {"the_da", "e1m8"},   //  MAP06
+    {"shawn",  "e2m1"},   //  MAP07
+    {"ddtblu", "e2m2"},   //  MAP08
+    {"in_cit", "e3m3"},   //  MAP09
+    {"dead",   "e1m7"},   //  MAP10
+    {"stlks2", "bunny"},  //  MAP11
+    {"theda2", "e3m8"},   //  MAP12
+    {"doom2",  "e3m2"},   //  MAP13
+    {"ddtbl2", "e2m8"},   //  MAP14
+    {"runni2", "e2m7"},   //  MAP15
+    {"dead2",  "e3m1"},   //  MAP16
+    {"stlks3", "e1m1"},   //  MAP17
+    {"romero", "e2m5"},   //  MAP18
+    {"shawn2", "e1m5"},   //  MAP19
+    {"messag", "messag"}, // (MAP20)
+    {"count2", "count2"}, // (MAP21, d_read_m has no instumental cover in Doom Metal)
+    {"ddtbl3", "ddtbl3"}, // (MAP22)
+    {"ampie",  "ampie"},  // (MAP23)
+    {"theda3", "theda3"}, // (MAP24)
+    {"adrian", "adrian"}, // (MAP25)
+    {"messg2", "messg2"}, // (MAP26)
+    {"romer2", "e2m1"},   //  MAP27
+    {"tense",  "e2m2"},   //  MAP28
+    {"shawn3", "e1m1"},   //  MAP29
+    {"openin", "openin"}, // (MAP30, d_victor has no instumental cover in Doom Metal)
+    {"evil",   "e3m4"},   //  MAP31
+    {"ultima", "e2m8"},   //  MAP32
+    {NULL,     NULL},
+};
+
+static void InitFinalDoomMusic()
+{
+    const altmusic_t *altmusic;
+
+    if (gamemission == pack_tnt)
+    {
+        altmusic = altmusic_tnt;
+    }
+    else if (gamemission == pack_plut)
+    {
+        altmusic = altmusic_plut;
+    }
+    else
+    {
+        return;
+    }
+
+    // [crispy] chicken-out if only one lump is missing, something must be wrong
+    for (int j = 0; altmusic[j].from; j++)
+    {
+        char name[9] = "d_";
+
+        strncpy(&name[2], altmusic[j].to, 6);
+
+        if (W_CheckNumForName(name) == -1)
+        {
+            return;
+        }
+    }
+
+    for (int i = mus_runnin, j = 0; altmusic[j].from; i++, j++)
+    {
+        S_music[i].name = altmusic[j].to;
+    }
+}
+
 void S_Init(int sfxVolume, int musicVolume)
 {
     // jff 1/22/98 skip sound init if sound not enabled
@@ -969,6 +1091,12 @@ void S_Init(int sfxVolume, int musicVolume)
     if (gamemode != commercial)
     {
         InitE4Music();
+    }
+    else
+    {
+        // [crispy] add support for alternative music tracks for Final Doom's
+        // TNT and Plutonia as introduced in DoomMetalVol5.wad
+        InitFinalDoomMusic();
     }
 }
 
