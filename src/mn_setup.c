@@ -394,8 +394,7 @@ static boolean ItemSelected(setup_menu_t *s)
 
 static boolean PrevItemAvailable(setup_menu_t *s)
 {
-    int value;
-    memcpy(&value, s->var.def->location, sizeof(int));
+    int value = *s->var.def->location.i;
     int min = s->var.def->limit.min;
 
     return value > min;
@@ -403,8 +402,7 @@ static boolean PrevItemAvailable(setup_menu_t *s)
 
 static boolean NextItemAvailable(setup_menu_t *s)
 {
-    int value;
-    memcpy(&value, s->var.def->location, sizeof(int));
+    int value = *s->var.def->location.i;
     int max = s->var.def->limit.max;
 
     if (max == UL)
@@ -810,8 +808,7 @@ static void DrawSetting(setup_menu_t *s, int accum_y)
 
     if (flags & S_ONOFF)
     {
-        int value;
-        memcpy(&value, s->var.def->location, sizeof(int));
+        int value = *s->var.def->location.i;
         strcpy(menu_buffer, value ? "ON" : "OFF");
         BlinkingArrowRight(s);
         DrawMenuStringEx(flags, x, y, color);
@@ -830,8 +827,7 @@ static void DrawSetting(setup_menu_t *s, int accum_y)
         }
         else
         {
-            int value;
-            memcpy(&value, s->var.def->location, sizeof(int));
+            int value = *s->var.def->location.i;
             if (flags & S_PCT)
             {
                 M_snprintf(menu_buffer, sizeof(menu_buffer), "%d%%", value);
@@ -913,8 +909,7 @@ static void DrawSetting(setup_menu_t *s, int accum_y)
 
     if (flags & S_WEAP) // weapon number
     {
-        int value;
-        memcpy(&value, s->var.def->location, sizeof(int));
+        int value = *s->var.def->location.i;
         sprintf(menu_buffer, "%d", value);
         BlinkingArrowRight(s);
         DrawMenuStringEx(flags, x, y, color);
@@ -925,8 +920,7 @@ static void DrawSetting(setup_menu_t *s, int accum_y)
 
     if (flags & (S_CHOICE | S_CRITEM))
     {
-        int i;
-        memcpy(&i, s->var.def->location, sizeof(int));
+        int i = *s->var.def->location.i;
         const char **strings = GetStrings(s->strings_id);
 
         menu_buffer[0] = '\0';
@@ -949,8 +943,7 @@ static void DrawSetting(setup_menu_t *s, int accum_y)
 
     if (flags & S_THERMO)
     {
-        int value;
-        memcpy(&value, s->var.def->location, sizeof(int));
+        int value = *s->var.def->location.i;
         int min = s->var.def->limit.min;
         int max = s->var.def->limit.max;
         const char **strings = GetStrings(s->strings_id);
@@ -3532,28 +3525,25 @@ static void ResetDefaults(ss_types reset_screen)
                 {
                     if (dp->type == string)
                     {
-                        free(dp->location);
-                        dp->location = strdup(dp->defaultvalue.s);
+                        free(*dp->location.s);
+                        *dp->location.s = strdup(dp->defaultvalue.string);
                     }
                     else if (dp->type == number)
                     {
-                        memcpy(dp->location, &dp->defaultvalue.i, sizeof(int));
+                        *dp->location.i = dp->defaultvalue.number;
                     }
 
                     if (flags & (S_LEVWARN | S_PRGWARN))
                     {
                         warn |= flags & (S_LEVWARN | S_PRGWARN);
                     }
-                    else if (dp->current)
+                    else if (dp->current.s)
                     {
-                        if (dp->type == string)
-                        {
-                            dp->current = dp->location;
-                        }
-                        else if (dp->type == number)
-                        {
-                            memcpy(dp->current, dp->location, sizeof(int));
-                        }
+                        *dp->current.s = *dp->location.s;
+                    }
+                    else if (dp->current.i)
+                    {
+                        *dp->current.i = *dp->location.i;
                     }
 
                     if (current_item->action)
@@ -3886,10 +3876,9 @@ static void OnOff(void)
     default_t *def = current_item->var.def;
 
     // def->location->i = !def->location->i; // killough 8/15/98
-    int value;
-    memcpy(&value, def->location, sizeof(int));
+    int value = *def->location.i;
     value = !value;
-    memcpy(def->location, &value, sizeof(int));
+    *def->location.i = value;
 
     // killough 8/15/98: add warning messages
 
@@ -3897,9 +3886,9 @@ static void OnOff(void)
     {
         warn_about_changes(flags);
     }
-    else if (def->current)
+    else if (def->current.i)
     {
-        memcpy(def->current, def->location, sizeof(int));
+        *def->current.i = *def->location.i;
     }
 
     if (current_item->action) // killough 10/98
@@ -3913,9 +3902,7 @@ static void Choice(menu_action_t action)
     setup_menu_t *current_item = current_menu + set_item_on;
     int flags = current_item->m_flags;
     default_t *def = current_item->var.def;
-    int location;
-    memcpy(&location, def->location, sizeof(int));
-    int value = location;
+    int value = *def->location.i;
 
     if (flags & S_ACTION && setup_cancel == -1)
     {
@@ -3931,11 +3918,11 @@ static void Choice(menu_action_t action)
             value = def->limit.min;
         }
 
-        if (location != value)
+        if (*def->location.i != value)
         {
             M_StartSound(sfx_stnmov);
         }
-        memcpy(def->location, &value, sizeof(int));
+        *def->location.i = value;
 
         if (!(flags & S_ACTION) && current_item->action)
         {
@@ -3962,11 +3949,11 @@ static void Choice(menu_action_t action)
             value = max;
         }
 
-        if (location != value)
+        if (*def->location.i != value)
         {
             M_StartSound(sfx_stnmov);
         }
-        memcpy(def->location, &value, sizeof(int));
+        *def->location.i = value;
 
         if (!(flags & S_ACTION) && current_item->action)
         {
@@ -3980,9 +3967,9 @@ static void Choice(menu_action_t action)
         {
             warn_about_changes(flags);
         }
-        else if (def->current)
+        else if (def->current.i)
         {
-            memcpy(def->current, def->location, sizeof(int));
+            *def->current.i = *def->location.i;
         }
 
         if (current_item->action)
@@ -4010,7 +3997,7 @@ static boolean ChangeEntry(menu_action_t action, int ch)
     {
         if (flags & (S_CHOICE | S_CRITEM | S_THERMO) && setup_cancel != -1)
         {
-            memcpy(def->location, &setup_cancel, sizeof(int));
+            *def->location.i = setup_cancel;
             setup_cancel = -1;
         }
 
@@ -4072,7 +4059,7 @@ static boolean ChangeEntry(menu_action_t action, int ch)
                     value = BETWEEN(min, max, value);
                 }
 
-                memcpy(def->location, &value, sizeof(int));
+                *def->location.i = value;
 
                 // killough 8/9/98: fix numeric vars
                 // killough 8/15/98: add warning message
@@ -4081,9 +4068,9 @@ static boolean ChangeEntry(menu_action_t action, int ch)
                 {
                     warn_about_changes(flags);
                 }
-                else if (def->current)
+                else if (def->current.i)
                 {
-                    memcpy(def->current, &value, sizeof(int));
+                    *def->current.i = value;
                 }
 
                 if (current_item->action) // killough 10/98
@@ -4340,19 +4327,17 @@ boolean MN_SetupResponder(menu_action_t action, int ch)
                 setup_menu_t *p = weap_settings[i];
                 for (; !(p->m_flags & S_END); p++)
                 {
-                    int location;
-                    memcpy(&location, p->var.def->location, sizeof(int));
-                    if (p->m_flags & S_WEAP && location == ch
+                    if (p->m_flags & S_WEAP
+                        && *p->var.def->location.i == ch
                         && p != current_item)
                     {
-                        memcpy(p->var.def->location,
-                               current_item->var.def->location, sizeof(int));
+                        *p->var.def->location.i = *current_item->var.def->location.i;
                         goto end;
                     }
                 }
             }
         end:
-            memcpy(current_item->var.def->location, &ch, sizeof(int));
+            *current_item->var.def->location.i = ch;
         }
 
         SelectDone(current_item); // phares 4/17/98
@@ -4566,9 +4551,9 @@ boolean MN_SetupMouseResponder(int x, int y)
             {
                 warn_about_changes(flags);
             }
-            else if (def->current)
+            else if (def->current.i)
             {
-                memcpy(def->current, def->location, sizeof(int));
+                *def->current.i = *def->location.i;
             }
 
             if (active_thermo->action)
@@ -4635,12 +4620,10 @@ boolean MN_SetupMouseResponder(int x, int y)
         int step = (max - min) * FRACUNIT / (rect->w - M_THRM_STEP * 2);
         int value = dot * step / FRACUNIT + min;
         value = BETWEEN(min, max, value);
-        int location;
-        memcpy(&location, def->location, sizeof(int));
 
-        if (value != location)
+        if (value != *def->location.i)
         {
-            memcpy(def->location, &value, sizeof(int));
+            *def->location.i = value;
 
             if (!(flags & S_ACTION) && active_thermo->action)
             {
@@ -4666,10 +4649,7 @@ boolean MN_SetupMouseResponder(int x, int y)
     if (flags & (S_CRITEM | S_CHOICE))
     {
         default_t *def = current_item->var.def;
-
-        int location;
-        memcpy(&location, def->location, sizeof(int));
-        int value = location;
+        int value = *def->location.i;
 
         if (NextItemAvailable(current_item))
         {
@@ -4680,11 +4660,11 @@ boolean MN_SetupMouseResponder(int x, int y)
             value = def->limit.min;
         }
 
-        if (location != value)
+        if (*def->location.i != value)
         {
             M_StartSound(sfx_stnmov);
         }
-        memcpy(def->location, &value, sizeof(int));
+        *def->location.i = value;
 
         if (current_item->action)
         {
@@ -4695,9 +4675,9 @@ boolean MN_SetupMouseResponder(int x, int y)
         {
             warn_about_changes(flags);
         }
-        else if (def->current)
+        else if (def->current.i)
         {
-            memcpy(def->current, def->location, sizeof(int));
+            *def->current.i = *def->location.i;
         }
 
         return true;
