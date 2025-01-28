@@ -80,7 +80,7 @@ void M_BindNum(const char *name, void *location, void *current,
                ss_types screen, wad_allowed_t wad,
                const char *help)
 {
-    default_t item = { name, (config_t *)location, (config_t *)current,
+    default_t item = { name, location, current,
                        {.i = default_val}, {min_val, max_val},
                        number, screen, wad, help };
     array_push(defaults, item);
@@ -97,7 +97,7 @@ void M_BindBool(const char *name, boolean *location, boolean *current,
 void M_BindStr(char *name, const char **location, char *default_val,
                wad_allowed_t wad, const char *help)
 {
-    default_t item = { name, (config_t *)location, NULL, {.s = default_val},
+    default_t item = { name, location, NULL, {.s = default_val},
                        {0}, string, ss_none, wad, help };
     array_push(defaults, item);
 }
@@ -298,11 +298,18 @@ void M_SaveDefaults(void)
 
         if (dp->type == string)
         {
-            value.s = dp->modified ? dp->orig_default.s : dp->location->s;
+            value.s = dp->modified ? dp->orig_default.s : dp->location;
         }
         else if (dp->type == number)
         {
-            value.i = dp->modified ? dp->orig_default.i : dp->location->i;
+            if (dp->modified)
+            {
+                value.i = dp->orig_default.i;
+            }
+            else
+            {
+                memcpy(&value.i, dp->location, sizeof(int));
+            }
         }
 
         // jff 4/10/98 kill super-hack on pointer value
@@ -484,19 +491,19 @@ boolean M_ParseOption(const char *p, boolean wad)
         if (wad && !dp->modified)                 // Modified by wad
         {                                         // First time modified
             dp->modified = 1;                     // Mark it as modified
-            dp->orig_default.s = dp->location->s; // Save original default
+            dp->orig_default.s = dp->location;    // Save original default
         }
         else
         {
-            free(dp->location->s); // Free old value
+            free(dp->location); // Free old value
         }
 
-        dp->location->s = strdup(strparm + 1); // Change default value
+        dp->location = strdup(strparm + 1); // Change default value
 
         if (dp->current) // Current value
         {
-            free(dp->current->s);                 // Free old value
-            dp->current->s = strdup(strparm + 1); // Change current value
+            free(dp->current);                 // Free old value
+            dp->current = strdup(strparm + 1); // Change current value
         }
     }
     else if (dp->type == number)
@@ -515,14 +522,15 @@ boolean M_ParseOption(const char *p, boolean wad)
                 if (!dp->modified) // First time it's modified by wad
                 {
                     dp->modified = 1; // Mark it as modified
-                    dp->orig_default.i = dp->location->i; // Save original default
+                    // Save original default
+                    memcpy(&dp->orig_default.i, dp->location, sizeof(int));
                 }
                 if (dp->current) // Change current value
                 {
-                    dp->current->i = parm;
+                    memcpy(dp->current, &parm, sizeof(int));
                 }
             }
-            dp->location->i = parm; // Change default
+            memcpy(dp->location, &parm, sizeof(int)); // Change default
         }
     }
     else if (dp->type == input)
@@ -661,11 +669,11 @@ void M_LoadDefaults(void)
     {
         if (dp->type == string)
         {
-            dp->location->s = strdup(dp->defaultvalue.s);
+            dp->location = strdup(dp->defaultvalue.s);
         }
         else if (dp->type == number)
         {
-            dp->location->i = dp->defaultvalue.i;
+            memcpy(dp->location, &dp->defaultvalue.i, sizeof(int));
         }
         else if (dp->type == input)
         {
