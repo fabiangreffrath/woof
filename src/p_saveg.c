@@ -2861,10 +2861,9 @@ void P_UnArchiveSpecials (void)
 
       case tc_button:
         saveg_read_pad();
-        button_t *button = (button_t *)Z_Malloc(sizeof(*button), PU_LEVEL, NULL);
-        saveg_read_button_t(button);
-        P_StartButton(button->line, button->where, button->btexture, button->btimer);
-        Z_Free(button);
+        button_t button;
+        saveg_read_button_t(&button);
+        P_StartButton(button.line, button.where, button.btexture, button.btimer);
         break;
 
       default:
