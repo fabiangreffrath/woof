@@ -135,10 +135,18 @@ static void LoadGameSettings(net_gamesettings_t *settings)
 
     if (mbf21)
     {
+        settings->options[3] = respawnparm;
+        settings->options[4] = fastparm;
+        settings->options[5] = nomonsters;
+
         G_ReadOptionsMBF21(settings->options);
     }
     else
     {
+        settings->options[6] = respawnparm;
+        settings->options[7] = fastparm;
+        settings->options[8] = nomonsters;
+
         G_ReadOptions(settings->options);
     }
 }
