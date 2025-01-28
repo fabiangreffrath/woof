@@ -536,6 +536,8 @@ typedef struct
   struct mobj_s *soundorg;
 } button_t;
 
+void P_StartButton(struct line_s *line, bwhere_e w, int texture, int time);
+
 // p_lights
 
 typedef struct
