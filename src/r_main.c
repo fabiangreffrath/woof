@@ -367,10 +367,7 @@ static void R_InitTextureMapping(void)
       xtoviewangle[x] = (i<<ANGLETOFINESHIFT)-ANG90;
       // [FG] linear horizontal sky scrolling
       int angle = (0.5 - x / (double)viewwidth) * linearskyfactor;
-      if (angle >= 0)
-        linearskyangle[x] = angle;
-      else
-        linearskyangle[x] = ANG90 + angle;
+      linearskyangle[x] = (angle >= 0) ? angle : ANGLE_MAX + angle;
     }
     
   // Take out the fencepost cases from viewangletox.
