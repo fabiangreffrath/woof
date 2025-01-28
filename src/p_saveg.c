@@ -2691,18 +2691,15 @@ void P_ArchiveSpecials (void)
 
   CheckSaveGame(MAXBUTTONS * sizeof(button_t));
 
-  button_t *button = buttonlist;
-  int i = MAXBUTTONS;
-  do
+  for (int i = 0; i < MAXBUTTONS; i++)
   {
-    if (button->btimer != 0)
+    if (buttonlist[i].btimer != 0)
     {
       saveg_write8(tc_button);
       saveg_write_pad();
-      saveg_write_button_t(button);
+      saveg_write_button_t(&buttonlist[i]);
     }
-    button++;
-  } while (--i);
+  }
 
   // add a terminating marker
   saveg_write8(tc_endspecials);
