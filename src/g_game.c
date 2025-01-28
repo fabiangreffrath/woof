@@ -2715,6 +2715,8 @@ static boolean DoLoadGame(boolean do_load_autosave)
       if (demorecording) // So this can only possibly be a -recordfrom command.
 	G_BeginRecording();// Start the -recordfrom, since the game was loaded.
 
+  ST_Start();
+
   return true;
 }
 
