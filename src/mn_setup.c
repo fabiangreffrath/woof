@@ -2432,7 +2432,7 @@ static setup_menu_t gen_settings1[] = {
     {"Uncapped FPS", S_ONOFF, CNTR_X, M_SPC, {"uncapped"},
      .action = UpdateFPSLimit},
 
-    {"FPS Limit", S_NUM, CNTR_X, M_SPC, {"fpslimit"},
+    {"Target FPS", S_NUM, CNTR_X, M_SPC, {"fpslimit"},
      .action = UpdateFPSLimit},
 
     {"VSync", S_ONOFF, CNTR_X, M_SPC, {"use_vsync"},
