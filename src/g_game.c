@@ -101,8 +101,8 @@
 
 static size_t   savegamesize = SAVEGAMESIZE; // killough
 static char     *demoname = NULL;
-// [crispy] the name originally chosen for the demo, i.e. without "-00000"
-static const char *orig_demoname = NULL;
+// the original name of the demo, without "-00000" and file extension
+static char *demoname_orig = NULL;
 static boolean  netdemo;
 static byte     *demobuffer;   // made some static -- killough
 static size_t   maxdemosize;
@@ -1047,7 +1047,7 @@ static void G_ReloadLevel(void)
   {
     ddt_cheating = 0;
     G_CheckDemoStatus();
-    G_RecordDemo(orig_demoname);
+    G_RecordDemo(demoname_orig);
   }
 
   G_InitNew(gameskill, gameepisode, gamemap);
@@ -1443,7 +1443,7 @@ static void G_JoinDemo(void)
   if (netgame)
     CheckPlayersInNetGame();
 
-  if (!orig_demoname)
+  if (!demoname_orig)
   {
     byte *actualbuffer = demobuffer;
     size_t actualsize = maxdemosize;
@@ -3397,7 +3397,7 @@ void G_DeferedInitNew(skill_t skill, int episode, int map)
   {
     ddt_cheating = 0;
     G_CheckDemoStatus();
-    G_RecordDemo(orig_demoname);
+    G_RecordDemo(demoname_orig);
   }
 }
 
@@ -3968,35 +3968,30 @@ void G_InitNew(skill_t skill, int episode, int map)
 void G_RecordDemo(const char *name)
 {
   int i;
-  size_t demoname_size;
-  // [crispy] demo file name suffix counter
-  static int j = 0;
 
-  // [crispy] the name originally chosen for the demo, i.e. without "-00000"
-  if (!orig_demoname)
+  // the original name of the demo, without "-00000" and file extension
+  if (!demoname_orig)
   {
-    orig_demoname = name;
+    demoname_orig = M_StringDuplicate(name);
+    if (M_StringCaseEndsWith(demoname_orig, ".lmp"))
+    {
+      demoname_orig[strlen(demoname_orig) - 4] = '\0';
+    }
   }
 
   demo_insurance = 0;
-      
   usergame = false;
-  if (demoname)
-  {
-    free(demoname);
-  }
-  demoname = AddDefaultExtension(name, ".lmp");  // 1/18/98 killough
-  demoname_size = strlen(demoname) + 1 + 6; // [crispy] + 6 for "-00000"
+
+  // + 11 for "-00000.lmp\0"
+  size_t demoname_size = strlen(demoname_orig) + 11;
   demoname = I_Realloc(demoname, demoname_size);
 
-  for(; j <= 99999 && !M_access(demoname, F_OK); ++j)
+  // demo file name suffix counter
+  static int j;
+  do
   {
-    char *str = M_StringDuplicate(name);
-    if (M_StringCaseEndsWith(str, ".lmp"))
-      str[strlen(str) - 4] = '\0';
-    M_snprintf(demoname, demoname_size, "%s-%05d.lmp", str, j);
-    free(str);
-  }
+    M_snprintf(demoname, demoname_size, "%s-%05d.lmp", demoname_orig, j++);
+  } while (M_access(demoname, F_OK) == 0);
 
   //!
   // @arg <size>
