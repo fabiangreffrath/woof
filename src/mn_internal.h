@@ -221,15 +221,17 @@ typedef struct setup_menu_s
 
 typedef union
 {
-    char *s;
-    int i;
+    char **s;
+    int *i;
+    const char *string;
+    int number;
 } config_t;
 
 typedef struct default_s
 {
     const char *name;      // name
-    void *location;        // default variable
-    void *current;         // possible nondefault variable
+    config_t location;     // default variable
+    config_t current;      // possible nondefault variable
     config_t defaultvalue; // built-in default value
 
     struct

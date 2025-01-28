@@ -64,7 +64,7 @@ void M_BindBool(const char *name, boolean *location, boolean *current,
 #define BIND_BOOL_MUSIC(name, v, help) \
     M_BindBool(#name, &name, NULL, (v), ss_music, wad_no, help)
 
-void M_BindStr(char *name, const char **location, char *default_val,
+void M_BindStr(char *name, const char **location, const char *default_val,
                wad_allowed_t wad, const char *help);
 
 void M_BindInput(const char *name, int input_id, const char *help);
