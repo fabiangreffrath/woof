@@ -98,18 +98,6 @@ static void LoadGameSettings(net_gamesettings_t *settings)
 {
     unsigned int i;
 
-    deathmatch = settings->deathmatch;
-    startepisode = settings->episode;
-    startmap = settings->map;
-    startskill = settings->skill;
-    startloadgame = settings->loadgame;
-    lowres_turn = settings->lowres_turn;
-    nomonsters = settings->nomonsters;
-    fastparm = settings->fast_monsters;
-    respawnparm = settings->respawn_monsters;
-    timelimit = settings->timelimit;
-    consoleplayer = settings->consoleplayer;
-
     if (lowres_turn)
     {
         I_Printf(VB_WARNING, "NOTE: Turning resolution is reduced; this is probably "
@@ -135,20 +123,24 @@ static void LoadGameSettings(net_gamesettings_t *settings)
 
     if (mbf21)
     {
-        settings->options[3] = respawnparm;
-        settings->options[4] = fastparm;
-        settings->options[5] = nomonsters;
-
         G_ReadOptionsMBF21(settings->options);
     }
     else
     {
-        settings->options[6] = respawnparm;
-        settings->options[7] = fastparm;
-        settings->options[8] = nomonsters;
-
         G_ReadOptions(settings->options);
     }
+
+    deathmatch = settings->deathmatch;
+    startepisode = settings->episode;
+    startmap = settings->map;
+    startskill = settings->skill;
+    startloadgame = settings->loadgame;
+    lowres_turn = settings->lowres_turn;
+    nomonsters = settings->nomonsters;
+    fastparm = settings->fast_monsters;
+    respawnparm = settings->respawn_monsters;
+    timelimit = settings->timelimit;
+    consoleplayer = settings->consoleplayer;
 }
 
 // Save the game settings from global variables to the specified
