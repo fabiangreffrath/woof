@@ -3985,13 +3985,14 @@ void G_RecordDemo(const char *name)
   // + 11 for "-00000.lmp\0"
   size_t demoname_size = strlen(demoname_orig) + 11;
   demoname = I_Realloc(demoname, demoname_size);
+  M_snprintf(demoname, demoname_size, "%s.lmp", demoname_orig);
 
   // demo file name suffix counter
   static int j;
-  do
+  while (M_access(demoname, F_OK) == 0)
   {
     M_snprintf(demoname, demoname_size, "%s-%05d.lmp", demoname_orig, j++);
-  } while (M_access(demoname, F_OK) == 0);
+  }
 
   //!
   // @arg <size>
