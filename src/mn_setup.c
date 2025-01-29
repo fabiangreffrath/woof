@@ -3537,11 +3537,11 @@ static void ResetDefaults(ss_types reset_screen)
                     {
                         warn |= flags & (S_LEVWARN | S_PRGWARN);
                     }
-                    else if (dp->current.s)
+                    else if (dp->type == string && dp->current.s)
                     {
                         *dp->current.s = *dp->location.s;
                     }
-                    else if (dp->current.i)
+                    else if (dp->type == number && dp->current.i)
                     {
                         *dp->current.i = *dp->location.i;
                     }
