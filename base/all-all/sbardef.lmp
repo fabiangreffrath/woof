@@ -911,12 +911,13 @@
             "widget":
             {
               "x": 2,
-              "y": 152,
+              "y": 0,
               "alignment": 16,
               "tranmap": null,
               "translation": null,
               "type": 0,
-              "font": "Digits",
+              "font": "Console",
+              "vertical": true,
               "conditions":
               [
                 {
@@ -931,45 +932,17 @@
             "widget":
             {
               "x": 2,
-              "y": 144,
+              "y": 32,
               "alignment": 16,
               "tranmap": null,
               "translation": null,
               "type": 1,
-              "font": "Digits",
+              "font": "Console",
               "conditions":
               [
                 {
                   "condition": 19,
                   "param": 3
-                },
-                {
-                  "condition": 20,
-                  "param": 0
-                }
-              ],
-              "children": null
-            }
-          },
-          {
-            "widget":
-            {
-              "x": 2,
-              "y": 152,
-              "alignment": 16,
-              "tranmap": null,
-              "translation": null,
-              "type": 1,
-              "font": "Digits",
-              "conditions":
-              [
-                {
-                  "condition": 19,
-                  "param": 3
-                },
-                {
-                  "condition": 21,
-                  "param": 0
                 }
               ],
               "children": null
@@ -1752,12 +1725,13 @@
                   "widget":
                   {
                     "x": 2,
-                    "y": 147,
+                    "y": 0,
                     "alignment": 16,
                     "tranmap": null,
                     "translation": null,
                     "type": 0,
-                    "font": "Digits",
+                    "font": "Console",
+                    "vertical": true,
                     "conditions":
                     [
                       {
@@ -1772,45 +1746,17 @@
                   "widget":
                   {
                     "x": 2,
-                    "y": 139,
+                    "y": 32,
                     "alignment": 16,
                     "tranmap": null,
                     "translation": null,
                     "type": 1,
-                    "font": "Digits",
+                    "font": "Console",
                     "conditions":
                     [
                       {
                         "condition": 19,
                         "param": 3
-                      },
-                      {
-                        "condition": 20,
-                        "param": 0
-                      }
-                    ],
-                    "children": null
-                  }
-                },
-                {
-                  "widget":
-                  {
-                    "x": 2,
-                    "y": 147,
-                    "alignment": 16,
-                    "tranmap": null,
-                    "translation": null,
-                    "type": 1,
-                    "font": "Digits",
-                    "conditions":
-                    [
-                      {
-                        "condition": 19,
-                        "param": 3
-                      },
-                      {
-                        "condition": 21,
-                        "param": 0
                       }
                     ],
                     "children": null
@@ -2795,12 +2741,13 @@
             "widget":
             {
               "x": 2,
-              "y": 152,
+              "y": 0,
               "alignment": 16,
               "tranmap": null,
               "translation": null,
               "type": 0,
-              "font": "Digits",
+              "font": "Console",
+              "vertical": true,
               "conditions":
               [
                 {
@@ -2815,45 +2762,17 @@
             "widget":
             {
               "x": 2,
-              "y": 144,
+              "y": 32,
               "alignment": 16,
               "tranmap": null,
               "translation": null,
               "type": 1,
-              "font": "Digits",
+              "font": "Console",
               "conditions":
               [
                 {
                   "condition": 19,
                   "param": 3
-                },
-                {
-                  "condition": 20,
-                  "param": 0
-                }
-              ],
-              "children": null
-            }
-          },
-          {
-            "widget":
-            {
-              "x": 2,
-              "y": 152,
-              "alignment": 16,
-              "tranmap": null,
-              "translation": null,
-              "type": 1,
-              "font": "Digits",
-              "conditions":
-              [
-                {
-                  "condition": 19,
-                  "param": 3
-                },
-                {
-                  "condition": 21,
-                  "param": 0
                 }
               ],
               "children": null
@@ -3085,12 +3004,13 @@
             "widget":
             {
               "x": 2,
-              "y": 184,
+              "y": 0,
               "alignment": 16,
               "tranmap": null,
               "translation": null,
               "type": 0,
-              "font": "Digits",
+              "font": "Console",
+              "vertical": true,
               "conditions":
               [
                 {
@@ -3105,45 +3025,17 @@
             "widget":
             {
               "x": 2,
-              "y": 176,
+              "y": 32,
               "alignment": 16,
               "tranmap": null,
               "translation": null,
               "type": 1,
-              "font": "Digits",
+              "font": "Console",
               "conditions":
               [
                 {
                   "condition": 19,
                   "param": 3
-                },
-                {
-                  "condition": 20,
-                  "param": 0
-                }
-              ],
-              "children": null
-            }
-          },
-          {
-            "widget":
-            {
-              "x": 2,
-              "y": 184,
-              "alignment": 16,
-              "tranmap": null,
-              "translation": null,
-              "type": 1,
-              "font": "Digits",
-              "conditions":
-              [
-                {
-                  "condition": 19,
-                  "param": 3
-                },
-                {
-                  "condition": 21,
-                  "param": 0
                 }
               ],
               "children": null

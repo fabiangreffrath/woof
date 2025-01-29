@@ -788,8 +788,6 @@ static void UpdateMonSec(sbe_widget_t *widget)
 
     ForceDoomFont(widget);
 
-    static char string[120];
-
     const int cr_blue = (widget->font == stcfnt) ? CR_BLUE2 : CR_BLUE1;
 
     int fullkillcount = 0;
@@ -829,13 +827,28 @@ static void UpdateMonSec(sbe_widget_t *widget)
     StatsFormatFunc(item_str, sizeof(item_str), fullitemcount, totalitems);
     StatsFormatFunc(secret_str, sizeof(secret_str), fullsecretcount, totalsecret);
 
-    M_snprintf(string, sizeof(string),
-        RED_S "K \x1b%c%s " RED_S "I \x1b%c%s " RED_S "S \x1b%c%s",
-        killcolor, kill_str,
-        itemcolor, item_str,
-        secretcolor, secret_str);
-
-    ST_AddLine(widget, string);
+    if (!widget->vertical)
+    {
+        static char string[120];
+        M_snprintf(string, sizeof(string),
+            RED_S "K \x1b%c%s " RED_S "I \x1b%c%s " RED_S "S \x1b%c%s",
+            killcolor, kill_str,
+            itemcolor, item_str,
+            secretcolor, secret_str);
+        ST_AddLine(widget, string);
+    }
+    else
+    {
+        static char string1[80];
+        M_snprintf(string1, sizeof(string1), RED_S "K \x1b%c%s", killcolor, kill_str);
+        ST_AddLine(widget, string1);
+        static char string2[80];
+        M_snprintf(string2, sizeof(string2), RED_S "I \x1b%c%s", itemcolor, item_str);
+        ST_AddLine(widget, string2);
+        static char string3[80];
+        M_snprintf(string3, sizeof(string3), RED_S "S \x1b%c%s", secretcolor, secret_str);
+        ST_AddLine(widget, string3);
+    }
 }
 
 static void UpdateDM(sbe_widget_t *widget)

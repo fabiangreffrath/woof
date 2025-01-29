@@ -204,6 +204,8 @@ typedef struct sbe_widget_s
 
     int duration;
     int duration_left;
+
+    boolean vertical;
 } sbe_widget_t;
 
 struct sbarelem_s
