@@ -911,7 +911,7 @@
             "widget":
             {
               "x": 2,
-              "y": 0,
+              "y": 8,
               "alignment": 16,
               "tranmap": null,
               "translation": null,
@@ -932,7 +932,7 @@
             "widget":
             {
               "x": 2,
-              "y": 32,
+              "y": 40,
               "alignment": 16,
               "tranmap": null,
               "translation": null,
@@ -958,7 +958,34 @@
               "translation": null,
               "type": 2,
               "font": "Digits",
-              "conditions": null,
+              "conditions":
+              [
+                {
+                  "condition": 19,
+                  "param": 4
+                }
+              ],
+              "children": null
+            }
+          },
+          {
+            "widget":
+            {
+              "x": 256,
+              "y": 8,
+              "alignment": 32,
+              "tranmap": null,
+              "translation": null,
+              "type": 2,
+              "font": "Console",
+              "vertical": true,
+              "conditions":
+              [
+                {
+                  "condition": 19,
+                  "param": 3
+                }
+              ],
               "children": null
             }
           },
@@ -1725,7 +1752,7 @@
                   "widget":
                   {
                     "x": 2,
-                    "y": 0,
+                    "y": 8,
                     "alignment": 16,
                     "tranmap": null,
                     "translation": null,
@@ -1746,7 +1773,7 @@
                   "widget":
                   {
                     "x": 2,
-                    "y": 32,
+                    "y": 40,
                     "alignment": 16,
                     "tranmap": null,
                     "translation": null,
@@ -1772,7 +1799,34 @@
                     "translation": null,
                     "type": 2,
                     "font": "Digits",
-                    "conditions": null,
+                    "conditions":
+                    [
+                      {
+                        "condition": 19,
+                        "param": 4
+                      }
+                    ],
+                    "children": null
+                  }
+                },
+                {
+                  "widget":
+                  {
+                    "x": 256,
+                    "y": 8,
+                    "alignment": 32,
+                    "tranmap": null,
+                    "translation": null,
+                    "type": 2,
+                    "font": "Console",
+                    "vertical": true,
+                    "conditions":
+                    [
+                      {
+                        "condition": 19,
+                        "param": 3
+                      }
+                    ],
                     "children": null
                   }
                 },
@@ -2741,7 +2795,7 @@
             "widget":
             {
               "x": 2,
-              "y": 0,
+              "y": 8,
               "alignment": 16,
               "tranmap": null,
               "translation": null,
@@ -2762,7 +2816,7 @@
             "widget":
             {
               "x": 2,
-              "y": 32,
+              "y": 40,
               "alignment": 16,
               "tranmap": null,
               "translation": null,
@@ -2788,7 +2842,34 @@
               "translation": null,
               "type": 2,
               "font": "Digits",
-              "conditions": null,
+              "conditions":
+              [
+                {
+                  "condition": 19,
+                  "param": 4
+                }
+              ],
+              "children": null
+            }
+          },
+          {
+            "widget":
+            {
+              "x": 256,
+              "y": 8,
+              "alignment": 32,
+              "tranmap": null,
+              "translation": null,
+              "type": 2,
+              "font": "Console",
+              "vertical": true,
+              "conditions":
+              [
+                {
+                  "condition": 19,
+                  "param": 3
+                }
+              ],
               "children": null
             }
           },
@@ -3004,7 +3085,7 @@
             "widget":
             {
               "x": 2,
-              "y": 0,
+              "y": 8,
               "alignment": 16,
               "tranmap": null,
               "translation": null,
@@ -3025,7 +3106,7 @@
             "widget":
             {
               "x": 2,
-              "y": 32,
+              "y": 40,
               "alignment": 16,
               "tranmap": null,
               "translation": null,
@@ -3051,7 +3132,34 @@
               "translation": null,
               "type": 2,
               "font": "Digits",
-              "conditions": null,
+              "conditions":
+              [
+                {
+                  "condition": 19,
+                  "param": 4
+                }
+              ],
+              "children": null
+            }
+          },
+          {
+            "widget":
+            {
+              "x": 256,
+              "y": 8,
+              "alignment": 32,
+              "tranmap": null,
+              "translation": null,
+              "type": 2,
+              "font": "Console",
+              "vertical": true,
+              "conditions":
+              [
+                {
+                  "condition": 19,
+                  "param": 3
+                }
+              ],
               "children": null
             }
           },

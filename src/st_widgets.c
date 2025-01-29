@@ -717,15 +717,31 @@ static void UpdateCoord(sbe_widget_t *widget, player_t *player)
     // killough 10/98: allow coordinates to display non-following pointer
     AM_Coordinates(player->mo, &x, &y, &z);
 
-    static char string[80];
-
-    // jff 2/16/98 output new coord display
-    M_snprintf(string, sizeof(string),
-               "\x1b%cX " GRAY_S "%d \x1b%cY " GRAY_S "%d \x1b%cZ " GRAY_S "%d",
-               '0' + hudcolor_xyco, x >> FRACBITS, '0' + hudcolor_xyco,
-               y >> FRACBITS, '0' + hudcolor_xyco, z >> FRACBITS);
-
-    ST_AddLine(widget, string);
+    if (!widget->vertical)
+    {
+        static char string[80];
+        // jff 2/16/98 output new coord display
+        M_snprintf(string, sizeof(string),
+                   "\x1b%cX " GRAY_S "%d \x1b%cY " GRAY_S "%d \x1b%cZ " GRAY_S "%d",
+                   '0' + hudcolor_xyco, x >> FRACBITS, '0' + hudcolor_xyco,
+                   y >> FRACBITS, '0' + hudcolor_xyco, z >> FRACBITS);
+        ST_AddLine(widget, string);
+    }
+    else
+    {
+        static char string1[80];
+        M_snprintf(string1, sizeof(string1), "\x1b%cX " GRAY_S "%-5d",
+                   '0' + hudcolor_xyco, x >> FRACBITS);
+        ST_AddLine(widget, string1);
+        static char string2[80];
+        M_snprintf(string2, sizeof(string2), "\x1b%cY " GRAY_S "%-5d",
+                   '0' + hudcolor_xyco, y >> FRACBITS);
+        ST_AddLine(widget, string2);
+        static char string3[80];
+        M_snprintf(string3, sizeof(string3), "\x1b%cZ " GRAY_S "%-5d",
+                   '0' + hudcolor_xyco, z >> FRACBITS);
+        ST_AddLine(widget, string3);
+    }
 }
 
 typedef enum

@@ -217,6 +217,7 @@ static boolean ParseSbarElemType(json_t *json, sbarelementtype_t type,
                             JS_GetNumberValue(json, "duration") * TICRATE;
                         break;
                     case sbw_monsec:
+                    case sbw_coord:
                         {
                             json_t *vertical = JS_GetObject(json, "vertical");
                             if (JS_IsBoolean(vertical))
