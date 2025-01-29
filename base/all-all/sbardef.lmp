@@ -2938,7 +2938,7 @@
               "tranmap": null,
               "translation": null,
               "type": 7,
-              "font": "Digits",
+              "font": "Console",
               "duration": 4,
               "conditions": null,
               "children": null
