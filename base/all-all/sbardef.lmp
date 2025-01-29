@@ -916,7 +916,7 @@
               "tranmap": null,
               "translation": null,
               "type": 0,
-              "font": "Console",
+              "font": "Digits",
               "vertical": true,
               "conditions":
               [
@@ -937,7 +937,7 @@
               "tranmap": null,
               "translation": null,
               "type": 1,
-              "font": "Console",
+              "font": "Digits",
               "conditions":
               [
                 {
@@ -977,7 +977,7 @@
               "tranmap": null,
               "translation": null,
               "type": 2,
-              "font": "Console",
+              "font": "Digits",
               "vertical": true,
               "conditions":
               [
@@ -1757,7 +1757,7 @@
                     "tranmap": null,
                     "translation": null,
                     "type": 0,
-                    "font": "Console",
+                    "font": "Digits",
                     "vertical": true,
                     "conditions":
                     [
@@ -1778,7 +1778,7 @@
                     "tranmap": null,
                     "translation": null,
                     "type": 1,
-                    "font": "Console",
+                    "font": "Digits",
                     "conditions":
                     [
                       {
@@ -1818,7 +1818,7 @@
                     "tranmap": null,
                     "translation": null,
                     "type": 2,
-                    "font": "Console",
+                    "font": "Digits",
                     "vertical": true,
                     "conditions":
                     [
@@ -2800,7 +2800,7 @@
               "tranmap": null,
               "translation": null,
               "type": 0,
-              "font": "Console",
+              "font": "Digits",
               "vertical": true,
               "conditions":
               [
@@ -2821,7 +2821,7 @@
               "tranmap": null,
               "translation": null,
               "type": 1,
-              "font": "Console",
+              "font": "Digits",
               "conditions":
               [
                 {
@@ -2861,7 +2861,7 @@
               "tranmap": null,
               "translation": null,
               "type": 2,
-              "font": "Console",
+              "font": "Digits",
               "vertical": true,
               "conditions":
               [
@@ -2938,7 +2938,7 @@
               "tranmap": null,
               "translation": null,
               "type": 7,
-              "font": "Console",
+              "font": "Digits",
               "duration": 4,
               "conditions": null,
               "children": null
@@ -3090,7 +3090,7 @@
               "tranmap": null,
               "translation": null,
               "type": 0,
-              "font": "Console",
+              "font": "Digits",
               "vertical": true,
               "conditions":
               [
@@ -3111,7 +3111,7 @@
               "tranmap": null,
               "translation": null,
               "type": 1,
-              "font": "Console",
+              "font": "Digits",
               "conditions":
               [
                 {
@@ -3151,7 +3151,7 @@
               "tranmap": null,
               "translation": null,
               "type": 2,
-              "font": "Console",
+              "font": "Digits",
               "vertical": true,
               "conditions":
               [

@@ -730,15 +730,15 @@ static void UpdateCoord(sbe_widget_t *widget, player_t *player)
     else
     {
         static char string1[80];
-        M_snprintf(string1, sizeof(string1), "\x1b%cX " GRAY_S "%-5d",
+        M_snprintf(string1, sizeof(string1), "\x1b%cX " GRAY_S "%d",
                    '0' + hudcolor_xyco, x >> FRACBITS);
         ST_AddLine(widget, string1);
         static char string2[80];
-        M_snprintf(string2, sizeof(string2), "\x1b%cY " GRAY_S "%-5d",
+        M_snprintf(string2, sizeof(string2), "\x1b%cY " GRAY_S "%d",
                    '0' + hudcolor_xyco, y >> FRACBITS);
         ST_AddLine(widget, string2);
         static char string3[80];
-        M_snprintf(string3, sizeof(string3), "\x1b%cZ " GRAY_S "%-5d",
+        M_snprintf(string3, sizeof(string3), "\x1b%cZ " GRAY_S "%d",
                    '0' + hudcolor_xyco, z >> FRACBITS);
         ST_AddLine(widget, string3);
     }
