@@ -529,6 +529,7 @@ sbardef_t *ST_ParseSbarDef(void)
     json = JS_Open("SBHUDDEF", "hud", (version_t){1, 0, 0});
     if (json == NULL)
     {
+        free(out);
         return NULL;
     }
 
