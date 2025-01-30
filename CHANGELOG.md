@@ -3,8 +3,9 @@
 * Dynamic resolution improvements:
   - Added 30-frame history and 15-frame cooldown period after resolution change.
   - Rename the "FPS Limiter" option to "Target FPS" to indicate that it's also a dynamic resolution target.
-* Save button states in savegames (from Doom Retro).
-* Add support for alternative music tracks for Final Doom introduced in DoomMetalVol5.wad (from Crispy Doom).
+* Added saving button states in savegames (from Doom Retro).
+* Added support for alternative music tracks for Final Doom introduced in DoomMetalVol5.wad (from Crispy Doom).
+* Added vertical option for level stats and player coords widgets in SBARDEF, rearranged widgets in automap mode.
 
 **Bug Fixes**
 
