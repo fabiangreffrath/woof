@@ -729,15 +729,15 @@ static void UpdateCoord(sbe_widget_t *widget, player_t *player)
     }
     else
     {
-        static char string1[80];
+        static char string1[16];
         M_snprintf(string1, sizeof(string1), "\x1b%cX " GRAY_S "%d",
                    '0' + hudcolor_xyco, x >> FRACBITS);
         ST_AddLine(widget, string1);
-        static char string2[80];
+        static char string2[16];
         M_snprintf(string2, sizeof(string2), "\x1b%cY " GRAY_S "%d",
                    '0' + hudcolor_xyco, y >> FRACBITS);
         ST_AddLine(widget, string2);
-        static char string3[80];
+        static char string3[16];
         M_snprintf(string3, sizeof(string3), "\x1b%cZ " GRAY_S "%d",
                    '0' + hudcolor_xyco, z >> FRACBITS);
         ST_AddLine(widget, string3);
@@ -845,7 +845,7 @@ static void UpdateMonSec(sbe_widget_t *widget)
 
     if (!widget->vertical)
     {
-        static char string[120];
+        static char string[80];
         M_snprintf(string, sizeof(string),
             RED_S "K \x1b%c%s " RED_S "I \x1b%c%s " RED_S "S \x1b%c%s",
             killcolor, kill_str,
@@ -855,13 +855,13 @@ static void UpdateMonSec(sbe_widget_t *widget)
     }
     else
     {
-        static char string1[80];
+        static char string1[16];
         M_snprintf(string1, sizeof(string1), RED_S "K \x1b%c%s", killcolor, kill_str);
         ST_AddLine(widget, string1);
-        static char string2[80];
+        static char string2[16];
         M_snprintf(string2, sizeof(string2), RED_S "I \x1b%c%s", itemcolor, item_str);
         ST_AddLine(widget, string2);
-        static char string3[80];
+        static char string3[16];
         M_snprintf(string3, sizeof(string3), RED_S "S \x1b%c%s", secretcolor, secret_str);
         ST_AddLine(widget, string3);
     }
@@ -1257,7 +1257,7 @@ void ST_BindHUDVariables(void)
   M_BindBool("hud_time_use", &hud_time_use, NULL, false, ss_stat, wad_no,
              "Show split time when pressing the use-button");
   M_BindNum("hud_widget_font", &hud_widget_font, NULL,
-            HUD_WIDGET_OFF, HUD_WIDGET_OFF, HUD_WIDGET_ALWAYS,
+            HUD_WIDGET_AUTOMAP, HUD_WIDGET_OFF, HUD_WIDGET_ALWAYS,
             ss_stat, wad_no,
             "Use standard Doom font for widgets (1 = On automap; 2 = On HUD; 3 "
             "= Always)");
