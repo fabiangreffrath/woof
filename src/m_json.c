@@ -71,7 +71,7 @@ json_t *JS_OpenOptions(int lumpnum, boolean comments)
     }
 
     json_t *json = yyjson_doc_get_root(json_doc);
-    if (!json)
+    if (json)
     {
         array_push(docs, ((doc_t){json_doc, lumpnum}));
     }
