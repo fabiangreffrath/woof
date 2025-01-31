@@ -26,6 +26,7 @@
 #include <string.h>
 
 #include "d_loop.h"
+#include "d_main.h"
 #include "d_player.h"
 #include "doomdata.h"
 #include "doomdef.h"
@@ -526,8 +527,8 @@ static void R_SetupFreelook(void)
     dy = 0;
   }
 
-  centery = viewheight / 2 + (dy >> FRACBITS);
-  centeryfrac = centery << FRACBITS;
+  centeryfrac = (viewheight << FRACBITS) / 2 + dy;
+  centery = centeryfrac >> FRACBITS;
 
   for (i = 0; i < viewheight; i++)
   {
@@ -911,6 +912,12 @@ void R_RenderPlayerView (player_t* player)
   R_ClearSprites ();
   VX_ClearVoxels ();
 
+  if (run_test)
+  {
+    V_FillRect(scaledviewx, scaledviewy, scaledviewwidth, scaledviewheight,
+               0xb0);
+  }
+
   if (autodetect_hom)
     { // killough 2/10/98: add flashing red HOM indicators
       pixel_t c[47*47];
@@ -1004,6 +1011,9 @@ void R_RenderPlayerView (player_t* player)
   // [crispy] draw fuzz effect independent of rendering frame rate
   R_SetFuzzPosDraw();
   R_DrawMasked ();
+
+  if (run_test)
+    I_CheckHOM();
 
   // Check for new console commands.
   NetUpdate ();
