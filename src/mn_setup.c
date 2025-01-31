@@ -13,6 +13,9 @@
 //  GNU General Public License for more details.
 //
 
+#include <ctype.h>
+#include <math.h>
+#include <stdio.h>
 #include <string.h>
 
 #include "hu_command.h"

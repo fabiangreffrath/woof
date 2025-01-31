@@ -17,6 +17,8 @@
 
 #include "SDL.h"
 
+#include <string.h>
+
 #include "d_event.h"
 #include "d_main.h"
 #include "doomkeys.h"
