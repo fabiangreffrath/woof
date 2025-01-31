@@ -17,6 +17,7 @@
 #include "SDL.h"
 
 #include <math.h>
+#include <string.h>
 
 #include "g_game.h"
 #include "i_flickstick.h"

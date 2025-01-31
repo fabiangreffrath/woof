@@ -16,6 +16,7 @@
 
 #include <stdint.h>
 #include <stdlib.h>
+#include <string.h>
 
 #include "d_iwad.h"
 #include "doomdef.h"
