@@ -1,36 +1,18 @@
 **New Features and Improvements**
 
-* Partial implementation of the ID24 DEMOLOOP specification (thanks to @elf-alchemist).
-* Added ID24 "Carousel icon" DEHACKED field. Support for new carousel icons in "Legacy of Rust".
-* Added "Refraction" and "Shadow" modes for "Partial Invisibility" option.
-* Added "Crispy HUD" option. Toggle HUD with "+/-" keys or "Screen Size" slider in "Status Bar/HUD" menu.
-* Bring back extras.wad autoload, support for chex3v.wad and chex3d2.wad.
-* Expand exit sequence support to include PWAD endoom + no sound (thanks to @elf-alchemist).
-* Improved the handling of 'intertext = clear' for the finale in UMAPINFO.
-* Sort ZIP directory by filename.
-* Prevents the chainsaw idle sound and the player pain sound from interrupting each other.
-* Optimization of fixed division for older CPUs (thanks to @gendlin).
-* Added Clang vector extension (thanks to @jopadan).
-* Allow to toggle "Organize Save Files" at runtime.
-* Minor menu cleanup ("Gray Percent Sign" and "Translucency Filter" now config only).
-* Draw the time right-aligned if there is no par time and the total time is drawn right-aligned.
-* Improve "IWAD not found" error message.
-* Allow setting complevel in COMPDB lump. Added "Doomsday of UAC" E1M8 fix.
+* Dynamic resolution improvements:
+  - Added 30-frame history and 15-frame cooldown period after resolution change.
+  - Rename the "FPS Limiter" option to "Target FPS" to indicate that it's also a dynamic resolution target.
+* Added saving button states in savegames (from Doom Retro).
+* Added support for alternative music tracks for Final Doom introduced in DoomMetalVol5.wad (from Crispy Doom).
+* Added vertical option for level stats and player coords widgets in SBARDEF, rearranged widgets in automap mode.
 
 **Bug Fixes**
 
-* Fixed "ouch face" again.
-* Fixed 2px offset in various HUD elements.
-* Fixed "-levelstat" command line option in release build.
-* Fixed SKYDEF sky scroll speed.
-* Fixed fast doors reopening with wrong sound.
-* Fixed drawing of fuzz columns beyond screen boundaries on some resolutions.
-* Fixed end buffer being visible in rightmost column in melt wipe on some resolutions.
-* Fixed active slider when prematurely exiting out of the menu.
-* Fixed loading "VILE\*" sprite lump files from PK3 files.
-* Fixed "dropoff" handling regression (desync in evit32x333.lmp).
-
-**Regressions**
-
-* Remove UMAPDEF. Modern versions of masterlevels.wad and nerve.wad now include UMAPINFO.
-* Don't search WAD files in plain HOME directory on Linux by default.
+* Fixed demo footer and file name after restart.
+* Fixed evil grin getting triggered at level start (and by ID(K)FA).
+* Fixed UMAPINFO Doom 1 intermission text skipping at episode end.
+* Fixed rendering of voxels on top/bottom of screen (thanks to @MrAlaux).
+* Fixed invulnerability option for skies defined in SKYDEFS lump.
+* Fixed undefined behavior in "Linear Sky" calculation on MacOS ARM CPUs.
+* Fixed some local options overriding netgame settings.
