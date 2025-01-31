@@ -1744,7 +1744,12 @@ static void I_InitGraphicsMode(void)
     SDL_RendererInfo info;
     if (SDL_GetRendererInfo(renderer, &info) == 0)
     {
-        I_Printf(VB_DEBUG, "SDL render driver: %s (%s)", info.name,
+        SDL_version version;
+        SDL_GetVersion(&version);
+        I_Printf(VB_DEBUG, "SDL %d.%d.%d (%s) render driver: %s (%s)",
+                 version.major, version.minor, version.patch,
+                 SDL_GetPlatform(),
+                 info.name,
                  SDL_GetCurrentVideoDriver());
 #ifdef _WIN32
         d3d_renderer = !strncmp(info.name, "direct3d", strlen(info.name));
