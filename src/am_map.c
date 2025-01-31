@@ -959,10 +959,12 @@ boolean AM_Responder
     else if (M_InputDeactivated(input_map_zoomout))
     {
       buttons_state[ZOOM_OUT] = 0;
+      rc = true;
     }
     else if (M_InputDeactivated(input_map_zoomin))
     {
       buttons_state[ZOOM_IN] = 0;
+      rc = true;
     }
   }
 
