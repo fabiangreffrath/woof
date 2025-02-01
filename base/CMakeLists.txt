@@ -209,8 +209,8 @@ set(BASE_SOURCES
 
     doom-all/brghtmps.lmp
 
-    e1m4b.wad/umapinfo.lmp
-    e1m8b.wad/umapinfo.lmp
+    e1m4b.wad/dehacked.lmp
+    e1m8b.wad/dehacked.lmp
 
     extras.wad/sbardef.lmp
 
