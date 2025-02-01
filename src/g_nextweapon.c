@@ -138,6 +138,7 @@ typedef enum
 {
     nw_state_none,
     nw_state_activate,
+    nw_state_currently_active,
     nw_state_deactivate,
     nw_state_cmd
 } next_weapon_state_t;
@@ -159,7 +160,10 @@ void G_NextWeaponUpdate(void)
     else if (M_InputDeactivated(input_prevweapon)
              || M_InputDeactivated(input_nextweapon))
     {
-        state = nw_state_deactivate;
+        if (state == nw_state_currently_active)
+        {
+            state = nw_state_deactivate;
+        }
     }
 
     if (weapon != wp_nochange)
@@ -173,7 +177,7 @@ boolean G_NextWeaponActivate(void)
 {
     if (state == nw_state_activate)
     {
-        state = nw_state_none;
+        state = nw_state_currently_active;
         return true;
     }
     return false;
