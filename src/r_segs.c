@@ -523,7 +523,7 @@ void R_StoreWallRange(const int start, const int stop)
   int64_t dx, dy, dx1, dy1, dist;
   const uint32_t len = curline->r_length; // [FG] use re-calculated seg lengths
 
-  if (ds_p == drawsegs+maxdrawsegs)   // killough 1/98 -- fix 2s line HOM
+  if (!drawsegs || ds_p == drawsegs+maxdrawsegs) // killough 1/98 -- fix 2s line HOM
     {
       unsigned newmax = maxdrawsegs ? maxdrawsegs*2 : 128; // killough
       drawsegs = Z_Realloc(drawsegs,newmax*sizeof(*drawsegs),PU_STATIC,0);
