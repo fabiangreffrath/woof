@@ -358,19 +358,6 @@ static void SendNotesSoundOff(void)
     }
 }
 
-// Writes "reset all controllers" message for each channel. Despite the name,
-// this only resets some controllers (see MIDI Recommended Practice RP-015).
-
-static void ResetControllers(void)
-{
-    int i;
-
-    for (i = 0; i < MIDI_CHANNELS_PER_TRACK; i++)
-    {
-        SendControlChange(i, MIDI_CONTROLLER_RESET_ALL_CTRLS, 0);
-    }
-}
-
 // Resets commonly used controllers. This is only for a reset type of "No SysEx"
 // for devices that don't support SysEx resets.
 
