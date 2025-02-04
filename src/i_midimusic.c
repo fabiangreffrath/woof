@@ -214,7 +214,6 @@ static void SendControlChange(byte channel, byte number, byte value)
 {
     const byte message[] = {MIDI_EVENT_CONTROLLER | channel, number, value};
     MIDI_SendShortMsg(message, sizeof(message));
-    channel_used[channel] = true;
 }
 
 // Writes a MIDI program change message. If applicable, emulates capital tone
@@ -258,6 +257,7 @@ static void SendBankSelectMSB(byte channel, byte value)
     }
 
     SendControlChange(channel, MIDI_CONTROLLER_BANK_SELECT_MSB, value);
+    channel_used[channel] = true;
 }
 
 static void SendBankSelectLSB(byte channel, byte value)
@@ -281,6 +281,7 @@ static void SendBankSelectLSB(byte channel, byte value)
     }
 
     SendControlChange(channel, MIDI_CONTROLLER_BANK_SELECT_LSB, value);
+    channel_used[channel] = true;
 }
 
 // Writes an RPN message set to NULL (0x7F). Prevents accidental data entry.
@@ -290,6 +291,7 @@ static void SendNullRPN(const midi_event_t *event)
     const byte channel = event->data.channel.channel;
     SendControlChange(channel, MIDI_CONTROLLER_RPN_LSB, MIDI_RPN_NULL);
     SendControlChange(channel, MIDI_CONTROLLER_RPN_MSB, MIDI_RPN_NULL);
+    channel_used[channel] = true;
 }
 
 static void UpdateTempo(const midi_event_t *event)
@@ -317,6 +319,7 @@ static void SendVolumeMsg(const midi_event_t *event)
 {
     SendManualVolumeMsg(event->data.channel.channel,
                         event->data.channel.param2);
+    channel_used[event->data.channel.channel] = true;
 }
 
 // Sets each channel to its saved volume level, scaled by the volume slider.
@@ -514,6 +517,7 @@ static void SendSysExMsg(const midi_event_t *event)
         case MIDI_SYSEX_PART_LEVEL:
             // Replace SysEx part level message with channel volume message.
             SendManualVolumeMsg(event->data.sysex.channel, data[8]);
+            channel_used[event->data.sysex.channel] = true;
             break;
     }
 }
