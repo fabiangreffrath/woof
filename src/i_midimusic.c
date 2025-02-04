@@ -19,6 +19,7 @@
 
 #include <math.h>
 #include <stdlib.h>
+#include <string.h>
 
 #include "doomtype.h"
 #include "i_printf.h"
@@ -93,6 +94,7 @@ static const byte ff_loopEnd[] =
 
 static boolean allow_bank_select;
 
+static boolean channel_used[MIDI_CHANNELS_PER_TRACK];
 static byte channel_volume[MIDI_CHANNELS_PER_TRACK];
 static float volume_factor = 0.0f;
 
@@ -186,6 +188,7 @@ static void SendChannelMsgZero(const midi_event_t *event)
     const byte message[] = {event->event_type | event->data.channel.channel,
                             event->data.channel.param1, 0};
     MIDI_SendShortMsg(message, sizeof(message));
+    channel_used[event->data.channel.channel] = true;
 }
 
 static void SendChannelMsg(const midi_event_t *event, boolean use_param2)
@@ -203,6 +206,8 @@ static void SendChannelMsg(const midi_event_t *event, boolean use_param2)
                                 event->data.channel.param1};
         MIDI_SendShortMsg(message, sizeof(message));
     }
+
+    channel_used[event->data.channel.channel] = true;
 }
 
 static void SendControlChange(byte channel, byte number, byte value)
@@ -234,6 +239,7 @@ static void SendProgramChange(byte channel, byte program)
     }
 
     MIDI_SendShortMsg(message, sizeof(message));
+    channel_used[channel] = true;
 }
 
 static void SendBankSelectMSB(byte channel, byte value)
@@ -251,6 +257,7 @@ static void SendBankSelectMSB(byte channel, byte value)
     }
 
     SendControlChange(channel, MIDI_CONTROLLER_BANK_SELECT_MSB, value);
+    channel_used[channel] = true;
 }
 
 static void SendBankSelectLSB(byte channel, byte value)
@@ -274,6 +281,7 @@ static void SendBankSelectLSB(byte channel, byte value)
     }
 
     SendControlChange(channel, MIDI_CONTROLLER_BANK_SELECT_LSB, value);
+    channel_used[channel] = true;
 }
 
 // Writes an RPN message set to NULL (0x7F). Prevents accidental data entry.
@@ -283,6 +291,7 @@ static void SendNullRPN(const midi_event_t *event)
     const byte channel = event->data.channel.channel;
     SendControlChange(channel, MIDI_CONTROLLER_RPN_LSB, MIDI_RPN_NULL);
     SendControlChange(channel, MIDI_CONTROLLER_RPN_MSB, MIDI_RPN_NULL);
+    channel_used[channel] = true;
 }
 
 static void UpdateTempo(const midi_event_t *event)
@@ -310,6 +319,7 @@ static void SendVolumeMsg(const midi_event_t *event)
 {
     SendManualVolumeMsg(event->data.channel.channel,
                         event->data.channel.param2);
+    channel_used[event->data.channel.channel] = true;
 }
 
 // Sets each channel to its saved volume level, scaled by the volume slider.
@@ -348,19 +358,6 @@ static void SendNotesSoundOff(void)
     {
         SendControlChange(i, MIDI_CONTROLLER_ALL_NOTES_OFF, 0);
         SendControlChange(i, MIDI_CONTROLLER_ALL_SOUND_OFF, 0);
-    }
-}
-
-// Writes "reset all controllers" message for each channel. Despite the name,
-// this only resets some controllers (see MIDI Recommended Practice RP-015).
-
-static void ResetControllers(void)
-{
-    int i;
-
-    for (i = 0; i < MIDI_CHANNELS_PER_TRACK; i++)
-    {
-        SendControlChange(i, MIDI_CONTROLLER_RESET_ALL_CTRLS, 0);
     }
 }
 
@@ -485,6 +482,8 @@ static void ResetDevice(void)
     {
         I_Sleep(midi_reset_delay);
     }
+
+    memset(channel_used, 0, sizeof(channel_used));
 }
 
 static void SendSysExMsg(const midi_event_t *event)
@@ -501,6 +500,7 @@ static void SendSysExMsg(const midi_event_t *event)
             }
             MIDI_SendLongMsg(data, length);
             ResetVolume();
+            memset(channel_used, 0, sizeof(channel_used));
             break;
 
         case MIDI_SYSEX_RHYTHM_PART:
@@ -517,6 +517,7 @@ static void SendSysExMsg(const midi_event_t *event)
         case MIDI_SYSEX_PART_LEVEL:
             // Replace SysEx part level message with channel volume message.
             SendManualVolumeMsg(event->data.sysex.channel, data[8]);
+            channel_used[event->data.sysex.channel] = true;
             break;
     }
 }
@@ -971,6 +972,16 @@ static void RestartTracks(void)
 {
     unsigned int i;
 
+    for (i = 0; i < MIDI_CHANNELS_PER_TRACK; i++)
+    {
+        if (channel_used[i])
+        {
+            SendControlChange(i, MIDI_CONTROLLER_RESET_ALL_CTRLS, 0);
+            SendManualVolumeMsg(i, MIDI_DEFAULT_VOLUME);
+            channel_used[i] = false;
+        }
+    }
+
     for (i = 0; i < song.num_tracks; ++i)
     {
         MIDI_RestartIterator(song.tracks[i].iter);
@@ -1020,8 +1031,6 @@ static midi_state_t NextEvent(midi_position_t *position)
             }
             else if (song.looping)
             {
-                ResetControllers();
-                ResetVolume();
                 RestartTracks();
                 return STATE_PLAYING;
             }
