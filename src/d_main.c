@@ -1360,6 +1360,10 @@ static void LoadIWadBase(void)
     {
         W_AddBaseDir("doom2-all");
     }
+    else if (local_gamemission == pack_freedoom)
+    {
+        W_AddBaseDir("freedoom-all");
+    }
     W_AddBaseDir(M_BaseName(wadfiles[0]));
 }
 
@@ -1394,6 +1398,12 @@ static void AutoloadIWadDir(void (*AutoLoadFunc)(const char *path))
                      && local_gamemission <= pack_plut)
             {
                 dir = GetAutoloadDir(autoload_paths[i], "doom2-all", true);
+                AutoLoadFunc(dir);
+                free(dir);
+            }
+            else if (local_gamemission == pack_freedoom)
+            {
+                dir = GetAutoloadDir(autoload_paths[i], "freedoom-all", true);
                 AutoLoadFunc(dir);
                 free(dir);
             }
