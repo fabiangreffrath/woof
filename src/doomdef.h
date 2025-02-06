@@ -33,14 +33,15 @@ typedef enum {
 
 // Mission packs - might be useful for TC stuff?
 typedef enum {
-  doom,         // DOOM 1
-  doom2,        // DOOM 2
-  pack_tnt,     // TNT mission pack
-  pack_plut,    // Plutonia pack
-  pack_chex,    // Chex Quest
-  pack_hacx,    // Hacx
-  pack_rekkr,   // Rekkr
-  pack_chex3v,  // Chex Quest 3: Vanilla Edition
+  doom,          // DOOM 1
+  doom2,         // DOOM 2
+  pack_tnt,      // TNT mission pack
+  pack_plut,     // Plutonia pack
+  pack_chex,     // Chex Quest
+  pack_hacx,     // Hacx
+  pack_rekkr,    // Rekkr
+  pack_chex3v,   // Chex Quest 3: Vanilla Edition
+  pack_freedoom, // Freedoom
   none
 } GameMission_t;
 
