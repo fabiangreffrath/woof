@@ -793,7 +793,7 @@ boolean MIDI_RPGLoop(const midi_file_t *file)
 static boolean RolandChecksum(const byte *data)
 {
     const byte checksum =
-        128 - ((int)data[5] + data[6] + data[7] + data[8]) % 128;
+        (128 - ((int)data[5] + data[6] + data[7] + data[8]) % 128) & 0x7F;
     return (data[9] == checksum);
 }
 
@@ -829,6 +829,14 @@ static midi_sysex_type_t GetSysExType(midi_event_t *event)
         || data[length - 1] != MIDI_EVENT_SYSEX_SPLIT)
     {
         return MIDI_SYSEX_UNSUPPORTED;
+    }
+
+    for (unsigned int i = 1; i < length - 1; i++)
+    {
+        if (data[i] > 0x7F) // Greater than 7-bit?
+        {
+            return MIDI_SYSEX_UNSUPPORTED;
+        }
     }
 
     if (length < 6)
