@@ -805,7 +805,7 @@ void R_SetupFrame (player_t *player)
     if (use_localview && raw_input && !player->centering)
     {
       pitch = player->pitch + localview.pitch;
-      pitch = BETWEEN(-MAX_PITCH_ANGLE, MAX_PITCH_ANGLE, pitch);
+      pitch = BETWEEN(-max_pitch_angle, max_pitch_angle, pitch);
     }
     else
     {
