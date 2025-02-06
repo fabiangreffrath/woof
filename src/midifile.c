@@ -858,6 +858,15 @@ static midi_sysex_type_t GetSysExType(midi_event_t *event)
             }
             break;
 
+        case 0x7F: // Universal Real Time
+            if (length == 8 && data[3] == 0x04 && data[4] == 0x01)
+            {
+                // Master Volume
+                // F0 7F <dev> 04 01 <vol_lsb> <vol_msb> F7
+                return MIDI_SYSEX_MASTER_VOLUME;
+            }
+            break;
+
         case 0x41: // Roland
             if (length == 11 && data[3] == 0x42 && data[4] == 0x12) // GS DT1
             {
