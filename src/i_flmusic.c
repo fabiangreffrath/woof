@@ -249,7 +249,7 @@ static boolean I_FL_InitStream(int device)
     fluid_settings_setint(settings, "synth.polyphony", fl_polyphony);
     fluid_settings_setnum(settings, "synth.gain", 0.2);
     fluid_settings_setnum(settings, "synth.sample-rate", SND_SAMPLERATE);
-    fluid_settings_setint(settings, "synth.device-id", 16);
+    fluid_settings_setint(settings, "synth.device-id", 0); // Disable SysEx.
     fluid_settings_setstr(settings, "synth.midi-bank-select", "gs");
     fluid_settings_setint(settings, "synth.reverb.active", fl_reverb);
     fluid_settings_setint(settings, "synth.chorus.active", fl_chorus);
