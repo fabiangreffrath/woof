@@ -1346,7 +1346,7 @@ static void LoadIWadBase(void)
 {
     GameMode_t local_gamemode;
     GameMission_t local_gamemission;
-    D_GetModeAndMissionByIWADName(M_BaseName(wadfiles[0]),&local_gamemode,&local_gamemission);
+    D_GetModeAndMissionByIWADName(M_BaseName(wadfiles[0]), &local_gamemode, &local_gamemission);
 
     if (local_gamemission < pack_chex)
     {
@@ -1380,7 +1380,7 @@ static void AutoloadIWadDir(void (*AutoLoadFunc)(const char *path))
 {
     GameMode_t local_gamemode;
     GameMission_t local_gamemission;
-    D_GetModeAndMissionByIWADName(M_BaseName(wadfiles[0]),&local_gamemode,&local_gamemission);
+    D_GetModeAndMissionByIWADName(M_BaseName(wadfiles[0]), &local_gamemode, &local_gamemission);
 
     for (int i = 0; i < array_size(autoload_paths); ++i)
     {
