@@ -48,11 +48,13 @@
 #include "z_zone.h"
 
 boolean direct_vertical_aiming, default_direct_vertical_aiming;
+int max_pitch_angle = 32 * ANG1;
 
 void P_UpdateDirectVerticalAiming(void)
 {
   direct_vertical_aiming = (CRITICAL(default_direct_vertical_aiming) &&
                             (mouselook || padlook));
+  max_pitch_angle = direct_vertical_aiming ? ANG45 : 32 * ANG1;
 }
 
 //
