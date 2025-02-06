@@ -1344,8 +1344,9 @@ static void AutoLoadWADs(const char *path)
 
 static void LoadIWadBase(void)
 {
-    GameMission_t local_gamemission =
-        D_GetGameMissionByIWADName(M_BaseName(wadfiles[0]));
+    GameMode_t local_gamemode;
+    GameMission_t local_gamemission;
+    D_GetModeAndMissionByIWADName(M_BaseName(wadfiles[0]),&local_gamemode,&local_gamemission);
 
     if (local_gamemission < pack_chex)
     {
@@ -1363,14 +1364,23 @@ static void LoadIWadBase(void)
     else if (local_gamemission == pack_freedoom)
     {
         W_AddBaseDir("freedoom-all");
+        if (local_gamemode == commercial)
+        {
+            W_AddBaseDir("freedoom2-all");
+        }
+        else
+        {
+            W_AddBaseDir("freedoom1-all");
+        }
     }
     W_AddBaseDir(M_BaseName(wadfiles[0]));
 }
 
 static void AutoloadIWadDir(void (*AutoLoadFunc)(const char *path))
 {
-    GameMission_t local_gamemission =
-        D_GetGameMissionByIWADName(M_BaseName(wadfiles[0]));
+    GameMode_t local_gamemode;
+    GameMission_t local_gamemission;
+    D_GetModeAndMissionByIWADName(M_BaseName(wadfiles[0]),&local_gamemode,&local_gamemission);
 
     for (int i = 0; i < array_size(autoload_paths); ++i)
     {
@@ -1406,6 +1416,18 @@ static void AutoloadIWadDir(void (*AutoLoadFunc)(const char *path))
                 dir = GetAutoloadDir(autoload_paths[i], "freedoom-all", true);
                 AutoLoadFunc(dir);
                 free(dir);
+                if (local_gamemode == commercial)
+                {
+                    dir = GetAutoloadDir(autoload_paths[i], "freedoom2-all", true);
+                    AutoLoadFunc(dir);
+                    free(dir);
+                }
+                else
+                {
+                    dir = GetAutoloadDir(autoload_paths[i], "freedoom1-all", true);
+                    AutoLoadFunc(dir);
+                    free(dir);
+                }
             }
         }
 
