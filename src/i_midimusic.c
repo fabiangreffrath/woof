@@ -65,6 +65,7 @@ static int midi_complevel = COMP_STANDARD;
 static int midi_reset_type = RESET_TYPE_GM;
 static int midi_reset_delay = -1;
 static boolean midi_ctf = true;
+static boolean midi_sysex_volume = false;
 static int midi_gain = 100;
 
 static const byte gm_system_on[] =
@@ -97,6 +98,7 @@ static boolean allow_bank_select;
 static boolean channel_used[MIDI_CHANNELS_PER_TRACK];
 static byte channel_volume[MIDI_CHANNELS_PER_TRACK];
 static float volume_factor = 0.0f;
+static uint16_t master_volume;
 
 typedef enum
 {
@@ -301,6 +303,21 @@ static void UpdateTempo(const midi_event_t *event)
     RestartTimer(TicksToUS(song.elapsed_time));
 }
 
+// Writes a master volume message. The value is scaled by the volume slider.
+
+static void SendMasterVolumeMsg(uint16_t volume)
+{
+    uint32_t scaled_volume = lroundf((float)volume * volume_factor);
+    scaled_volume = MIN(scaled_volume, MIDI_DEFAULT_MASTER_VOLUME);
+
+    const byte lsb = scaled_volume & 0x7F;
+    const byte msb = (scaled_volume >> 7) & 0x7F;
+    const byte data[] = {0xF0, 0x7F, 0x7F, 0x04, 0x01, lsb, msb, 0xF7};
+    MIDI_SendLongMsg(data, sizeof(data));
+
+    master_volume = volume;
+}
+
 // Writes a MIDI volume message. The value is scaled by the volume slider.
 
 static void SendManualVolumeMsg(byte channel, byte volume)
@@ -317,8 +334,16 @@ static void SendManualVolumeMsg(byte channel, byte volume)
 
 static void SendVolumeMsg(const midi_event_t *event)
 {
-    SendManualVolumeMsg(event->data.channel.channel,
-                        event->data.channel.param2);
+    if (midi_sysex_volume)
+    {
+        SendChannelMsg(event, true);
+    }
+    else
+    {
+        SendManualVolumeMsg(event->data.channel.channel,
+                            event->data.channel.param2);
+    }
+
     channel_used[event->data.channel.channel] = true;
 }
 
@@ -326,11 +351,16 @@ static void SendVolumeMsg(const midi_event_t *event)
 
 static void UpdateVolume(void)
 {
-    int i;
-
-    for (i = 0; i < MIDI_CHANNELS_PER_TRACK; ++i)
+    if (midi_sysex_volume)
     {
-        SendManualVolumeMsg(i, channel_volume[i]);
+        SendMasterVolumeMsg(master_volume);
+    }
+    else
+    {
+        for (int i = 0; i < MIDI_CHANNELS_PER_TRACK; i++)
+        {
+            SendManualVolumeMsg(i, channel_volume[i]);
+        }
     }
 }
 
@@ -338,11 +368,16 @@ static void UpdateVolume(void)
 
 static void ResetVolume(void)
 {
-    int i;
-
-    for (i = 0; i < MIDI_CHANNELS_PER_TRACK; ++i)
+    if (midi_sysex_volume)
     {
-        SendManualVolumeMsg(i, MIDI_DEFAULT_VOLUME);
+        SendMasterVolumeMsg(MIDI_DEFAULT_MASTER_VOLUME);
+    }
+    else
+    {
+        for (int i = 0; i < MIDI_CHANNELS_PER_TRACK; ++i)
+        {
+            SendManualVolumeMsg(i, MIDI_DEFAULT_VOLUME);
+        }
     }
 }
 
@@ -503,6 +538,19 @@ static void SendSysExMsg(const midi_event_t *event)
             memset(channel_used, 0, sizeof(channel_used));
             break;
 
+        case MIDI_SYSEX_MASTER_VOLUME:
+            if (midi_sysex_volume)
+            {
+                const uint16_t volume =
+                    ((data[6] & 0x7F) << 7) | (data[5] & 0x7F);
+                SendMasterVolumeMsg(volume);
+            }
+            else
+            {
+                MIDI_SendLongMsg(data, length);
+            }
+            break;
+
         case MIDI_SYSEX_RHYTHM_PART:
             if (midi_ctf)
             {
@@ -515,8 +563,15 @@ static void SendSysExMsg(const midi_event_t *event)
             break;
 
         case MIDI_SYSEX_PART_LEVEL:
-            // Replace SysEx part level message with channel volume message.
-            SendManualVolumeMsg(event->data.sysex.channel, data[8]);
+            if (midi_sysex_volume)
+            {
+                MIDI_SendLongMsg(data, length);
+            }
+            else
+            {
+                // Replace SysEx part level message with channel volume message.
+                SendManualVolumeMsg(event->data.sysex.channel, data[8]);
+            }
             channel_used[event->data.sysex.channel] = true;
             break;
     }
@@ -966,21 +1021,42 @@ static void RestartLoop(void)
     RestartTimer(TicksToUS(song.elapsed_time));
 }
 
+// Resets the controllers and volume for each channel, similar to vanilla Doom.
+
+static void ResetControllersVolume(void)
+{
+    if (midi_sysex_volume)
+    {
+        for (int i = 0; i < MIDI_CHANNELS_PER_TRACK; i++)
+        {
+            if (channel_used[i])
+            {
+                SendControlChange(i, MIDI_CONTROLLER_RESET_ALL_CTRLS, 0);
+                SendControlChange(i, MIDI_CONTROLLER_VOLUME_MSB,
+                                  MIDI_DEFAULT_VOLUME);
+                channel_used[i] = false;
+            }
+        }
+    }
+    else
+    {
+        for (int i = 0; i < MIDI_CHANNELS_PER_TRACK; i++)
+        {
+            if (channel_used[i])
+            {
+                SendControlChange(i, MIDI_CONTROLLER_RESET_ALL_CTRLS, 0);
+                SendManualVolumeMsg(i, MIDI_DEFAULT_VOLUME);
+                channel_used[i] = false;
+            }
+        }
+    }
+}
+
 // Restarts a song that uses standard looping.
 
 static void RestartTracks(void)
 {
     unsigned int i;
-
-    for (i = 0; i < MIDI_CHANNELS_PER_TRACK; i++)
-    {
-        if (channel_used[i])
-        {
-            SendControlChange(i, MIDI_CONTROLLER_RESET_ALL_CTRLS, 0);
-            SendManualVolumeMsg(i, MIDI_DEFAULT_VOLUME);
-            channel_used[i] = false;
-        }
-    }
 
     for (i = 0; i < song.num_tracks; ++i)
     {
@@ -1031,6 +1107,7 @@ static midi_state_t NextEvent(midi_position_t *position)
             }
             else if (song.looping)
             {
+                ResetControllersVolume();
                 RestartTracks();
                 return STATE_PLAYING;
             }
@@ -1517,6 +1594,8 @@ static void I_MID_BindVariables(void)
         "[Native MIDI] Delay after reset (-1 = Auto; 0 = None; 1-2000 = Milliseconds)");
     BIND_BOOL(midi_ctf, true,
         "[Native MIDI] Fix invalid instruments by emulating SC-55 capital tone fallback");
+    BIND_BOOL(midi_sysex_volume, false,
+        "[Native MIDI] Use SysEx messages to control volume");
     BIND_NUM(midi_gain, 0, -20, 0, "[Native MIDI] Gain [dB]");
 }
 
