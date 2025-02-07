@@ -374,7 +374,7 @@ static void ResetVolume(void)
     }
     else
     {
-        for (int i = 0; i < MIDI_CHANNELS_PER_TRACK; ++i)
+        for (int i = 0; i < MIDI_CHANNELS_PER_TRACK; i++)
         {
             SendManualVolumeMsg(i, MIDI_DEFAULT_VOLUME);
         }
