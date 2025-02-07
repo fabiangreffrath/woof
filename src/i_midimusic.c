@@ -551,6 +551,30 @@ static void SendSysExMsg(const midi_event_t *event)
             }
             break;
 
+        case MIDI_SYSEX_MASTER_VOLUME_ROLAND:
+            if (midi_sysex_volume)
+            {
+                const uint16_t volume = (data[8] & 0x7F) << 7;
+                SendMasterVolumeMsg(volume);
+            }
+            else
+            {
+                MIDI_SendLongMsg(data, length);
+            }
+            break;
+
+        case MIDI_SYSEX_MASTER_VOLUME_YAMAHA:
+            if (midi_sysex_volume)
+            {
+                const uint16_t volume = (data[7] & 0x7F) << 7;
+                SendMasterVolumeMsg(volume);
+            }
+            else
+            {
+                MIDI_SendLongMsg(data, length);
+            }
+            break;
+
         case MIDI_SYSEX_RHYTHM_PART:
             if (midi_ctf)
             {
