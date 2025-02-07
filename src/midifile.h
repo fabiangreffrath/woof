@@ -24,6 +24,7 @@ typedef struct midi_file_s midi_file_t;
 typedef struct midi_track_iter_s midi_track_iter_t;
 
 #define MIDI_CHANNELS_PER_TRACK      16
+#define MIDI_DEFAULT_MASTER_VOLUME   16383 // 14-bit max
 #define MIDI_DEFAULT_VOLUME          100
 #define MIDI_DEFAULT_TEMPO           500000 // 120 bpm
 
@@ -140,6 +141,9 @@ typedef enum
 {
     MIDI_SYSEX_UNSUPPORTED,
     MIDI_SYSEX_RESET,
+    MIDI_SYSEX_MASTER_VOLUME,
+    MIDI_SYSEX_MASTER_VOLUME_ROLAND,
+    MIDI_SYSEX_MASTER_VOLUME_YAMAHA,
     MIDI_SYSEX_RHYTHM_PART,
     MIDI_SYSEX_PART_LEVEL,
     MIDI_SYSEX_OTHER,

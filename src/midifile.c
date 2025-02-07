@@ -793,8 +793,15 @@ boolean MIDI_RPGLoop(const midi_file_t *file)
 static boolean RolandChecksum(const byte *data)
 {
     const byte checksum =
-        128 - ((int)data[5] + data[6] + data[7] + data[8]) % 128;
+        (128 - ((int)data[5] + data[6] + data[7] + data[8]) % 128) & 0x7F;
     return (data[9] == checksum);
+}
+
+static boolean TG300Checksum(const byte *data)
+{
+    const byte checksum =
+        (128 - ((int)data[4] + data[5] + data[6] + data[7]) % 128) & 0x7F;
+    return (data[8] == checksum);
 }
 
 static void RolandBlockToChannel(midi_event_t *event)
@@ -831,6 +838,14 @@ static midi_sysex_type_t GetSysExType(midi_event_t *event)
         return MIDI_SYSEX_UNSUPPORTED;
     }
 
+    for (unsigned int i = 1; i < length - 1; i++)
+    {
+        if (data[i] > 0x7F) // Greater than 7-bit?
+        {
+            return MIDI_SYSEX_UNSUPPORTED;
+        }
+    }
+
     if (length < 6)
     {
         return MIDI_SYSEX_OTHER;
@@ -847,6 +862,15 @@ static midi_sysex_type_t GetSysExType(midi_event_t *event)
                 // F0 7E <dev> 09 02 F7
                 // F0 7E <dev> 09 03 F7
                 return MIDI_SYSEX_RESET;
+            }
+            break;
+
+        case 0x7F: // Universal Real Time
+            if (length == 8 && data[3] == 0x04 && data[4] == 0x01)
+            {
+                // Master Volume
+                // F0 7F <dev> 04 01 <vol_lsb> <vol_msb> F7
+                return MIDI_SYSEX_MASTER_VOLUME;
             }
             break;
 
@@ -895,6 +919,15 @@ static midi_sysex_type_t GetSysExType(midi_event_t *event)
                             return MIDI_SYSEX_PART_LEVEL;
                         }
                         break;
+
+                    case 0x400004: // Master Volume
+                        if (RolandChecksum(data))
+                        {
+                            // GS Master Volume
+                            // F0 41 <dev> 42 12 40 00 04 <vol> <sum> F7
+                            return MIDI_SYSEX_MASTER_VOLUME_ROLAND;
+                        }
+                        break;
                 }
             }
             break;
@@ -910,6 +943,12 @@ static midi_sysex_type_t GetSysExType(midi_event_t *event)
                     // F0 43 <dev> 4C 00 00 7F 00 F7
                     return MIDI_SYSEX_RESET;
                 }
+                else if (address == 0x04)
+                {
+                    // XG Master Volume
+                    // F0 43 <dev> 4C 00 00 04 <vol> F7
+                    return MIDI_SYSEX_MASTER_VOLUME_YAMAHA;
+                }
             }
             else if (length == 10 && data[3] == 0x2B) // TG300
             {
@@ -919,6 +958,12 @@ static midi_sysex_type_t GetSysExType(midi_event_t *event)
                     // TG300 All Parameter Reset
                     // F0 43 <dev> 2B 00 00 7F 00 01 F7
                     return MIDI_SYSEX_RESET;
+                }
+                else if (address == 0x04 && TG300Checksum(data))
+                {
+                    // TG300 Master Volume
+                    // F0 43 <dev> 2B 00 00 04 <vol> <sum> F7
+                    return MIDI_SYSEX_MASTER_VOLUME_YAMAHA;
                 }
             }
             break;
