@@ -434,7 +434,8 @@ static void M_FinishHelp(int choice) // killough 10/98
 
 static void M_DrawReadThis1(void)
 {
-    V_DrawPatchFullScreen(V_CachePatchName("HELP2", PU_CACHE));
+    V_DrawPatchFullScreen(
+        V_CachePatchName(M_ApplyWidePatch("HELP2"), PU_CACHE));
 }
 
 //
@@ -447,12 +448,14 @@ static void M_DrawReadThis2(void)
     // We only ever draw the second page if this is
     // gameversion == exe_doom_1_9 and gamemode == registered
 
-    V_DrawPatchFullScreen(V_CachePatchName("HELP1", PU_CACHE));
+    V_DrawPatchFullScreen(
+        V_CachePatchName(M_ApplyWidePatch("HELP1"), PU_CACHE));
 }
 
 static void M_DrawReadThisCommercial(void)
 {
-    V_DrawPatchFullScreen(V_CachePatchName("HELP", PU_CACHE));
+    V_DrawPatchFullScreen(
+        V_CachePatchName(M_ApplyWidePatch("HELP"), PU_CACHE));
 }
 
 /////////////////////////////
@@ -1915,11 +1918,11 @@ static void M_DrawHelp(void)
     int helplump;
     if (gamemode == commercial)
     {
-        helplump = W_CheckNumForName("HELP");
+        helplump = W_CheckNumForName(M_ApplyWidePatch("HELP"));
     }
     else
     {
-        helplump = W_CheckNumForName("HELP1");
+        helplump = W_CheckNumForName(M_ApplyWidePatch("HELP1"));
     }
 
     V_DrawPatchFullScreen(V_CachePatchNum(helplump, PU_CACHE));
