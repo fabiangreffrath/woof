@@ -1,0 +1,18 @@
+Patch File for DeHackEd v3.0
+
+Doom version = 21
+Patch format = 6
+
+[STRINGS]
+HUSTR_E1M1 = E1M1: Spaceport
+HUSTR_E1M2 = E1M2: Cinema
+HUSTR_E1M3 = E1M3: Chex Museum
+HUSTR_E1M4 = E1M4: City Streets
+HUSTR_E1M5 = E1M5: Sewer System
+OB_IMPHIT = %o was slimed by a Quadrumpus.
+OB_IMP = %o was slimed by a Quadrumpus.
+OB_DEMONHIT = %o was gooed by a larva.
+OB_SPECTREHIT = %o was gooed by a larva.
+OB_BARON = %o was defeated by a Maximus.
+OB_BARONHIT = %o was defeated by a Maximus.
+
