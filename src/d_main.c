@@ -1352,6 +1352,10 @@ static void LoadIWadBase(void)
     {
         W_AddBaseDir("doom-all");
     }
+    else if (local_gamemission == pack_chex || local_gamemission == pack_chex3v)
+    {
+        W_AddBaseDir("chex-all");
+    }
     if (local_gamemission == doom)
     {
         W_AddBaseDir("doom1-all");
@@ -1394,6 +1398,12 @@ static void AutoloadIWadDir(void (*AutoLoadFunc)(const char *path))
             if (local_gamemission < pack_chex)
             {
                 dir = GetAutoloadDir(autoload_paths[i], "doom-all", true);
+                AutoLoadFunc(dir);
+                free(dir);
+            }
+            else if (local_gamemission == pack_chex || local_gamemission == pack_chex3v)
+            {
+                dir = GetAutoloadDir(autoload_paths[i], "chex-all", true);
                 AutoLoadFunc(dir);
                 free(dir);
             }
