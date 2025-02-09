@@ -206,6 +206,9 @@ set(BASE_SOURCES
     chex.wad/umapinfo.lmp
 
     chex2.wad/brghtmps.lmp
+    chex2.wad/dehacked.lmp
+
+    chex-all/brghtmps.lmp
 
     doom-all/brghtmps.lmp
 
