@@ -1377,10 +1377,6 @@ static void LoadIWadBase(void)
             W_AddBaseDir("freedoom1-all");
         }
     }
-    else if (local_gamemission == pack_chex3v)
-    {
-        W_AddBaseDir("chex3v-all");
-    }
     W_AddBaseDir(M_BaseName(wadfiles[0]));
 }
 
@@ -1442,12 +1438,6 @@ static void AutoloadIWadDir(void (*AutoLoadFunc)(const char *path))
                     AutoLoadFunc(dir);
                     free(dir);
                 }
-            }
-            else if (local_gamemission == pack_chex3v)
-            {
-                dir = GetAutoloadDir(autoload_paths[i], "chex3v-all", true);
-                AutoLoadFunc(dir);
-                free(dir);
             }
         }
 
