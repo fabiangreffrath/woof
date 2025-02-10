@@ -388,11 +388,10 @@ int W_GetNumForName (const char* name)     // killough -- const added
 // [Nyan] Widescreen patches
 const char *M_ApplyWidePatch(const char *lump_main)
 {
-  char *buffer;
+  char lump_wide[9] = "W_";
   char lump_short[7];
-  size_t main_size, prefix_size;
 
-  memcpy(lump_short, lump_main, strnlen(lump_main,7));
+  memcpy(lump_short, lump_main, strnlen(lump_main, 7));
 
   if (strlen(lump_main) > 6)
   {
@@ -403,16 +402,13 @@ const char *M_ApplyWidePatch(const char *lump_main)
     lump_short[strlen(lump_main)] = 0;
   }
 
-  main_size = strlen(lump_short);
-  prefix_size = strlen("W_");
+  size_t short_size = strlen(lump_short);
 
-  buffer = Z_Malloc(prefix_size + main_size + 1, PU_STATIC, NULL);
-  memcpy(buffer, "W_", prefix_size);
-  memcpy(buffer + prefix_size, lump_short, main_size + 1);
+  memcpy(&lump_wide[2], lump_short, short_size + 1);
 
-  if (W_CheckNumForName(buffer) >= 0)
+  if (W_CheckNumForName(lump_wide) >= 0)
   {
-    return buffer;
+    return M_StringDuplicate(lump_wide);
   }
 
   return lump_main;
