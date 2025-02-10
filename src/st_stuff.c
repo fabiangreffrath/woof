@@ -1460,7 +1460,7 @@ static void DrawSolidBackground(void)
     // [FG] calculate average color of the 16px left and right of the status bar
     const int vstep[][2] = { {0, 1}, {1, 2}, {2, ST_HEIGHT} };
 
-    patch_t *sbar = V_CachePatchName("STBAR", PU_CACHE);
+    patch_t *sbar = V_CachePatchName(W_CheckWidescreenPatch("STBAR"), PU_CACHE);
     // [FG] temporarily draw status bar to background buffer
     V_DrawPatch(-video.deltaw, 0, sbar);
 

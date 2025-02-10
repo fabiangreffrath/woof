@@ -385,6 +385,19 @@ int W_GetNumForName (const char* name)     // killough -- const added
   return i;
 }
 
+// [Nyan] Widescreen patches
+const char *W_CheckWidescreenPatch(const char *lump_main)
+{
+  static char lump_wide[9] = "W_";
+  strncpy(&lump_wide[2], lump_main, 6);
+
+  if (W_CheckNumForName(lump_wide) >= 0)
+  {
+    return lump_wide;
+  }
+  return lump_main;
+}
+
 //
 // W_InitMultipleFiles
 // Pass a null terminated list of files to use.
