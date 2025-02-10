@@ -460,7 +460,8 @@ void D_PageTicker(void)
 
 void D_PageDrawer(void)
 {
-  V_DrawPatchFullScreen(V_CachePatchName(M_ApplyWidePatch(pagename), PU_CACHE));
+  V_DrawPatchFullScreen(
+    V_CachePatchName(W_CheckWidescreenPatch(pagename), PU_CACHE));
 }
 
 //

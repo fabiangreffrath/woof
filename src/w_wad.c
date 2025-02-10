@@ -386,31 +386,15 @@ int W_GetNumForName (const char* name)     // killough -- const added
 }
 
 // [Nyan] Widescreen patches
-const char *M_ApplyWidePatch(const char *lump_main)
+const char *W_CheckWidescreenPatch(const char *lump_main)
 {
   static char lump_wide[9] = "W_";
-  char lump_short[7];
-
-  memcpy(lump_short, lump_main, strnlen(lump_main, 7));
-
-  if (strlen(lump_main) > 6)
-  {
-    lump_short[6] = 0;
-  }
-  else
-  {
-    lump_short[strlen(lump_main)] = 0;
-  }
-
-  size_t short_size = strlen(lump_short);
-
-  memcpy(&lump_wide[2], lump_short, short_size + 1);
+  strncpy(&lump_wide[2], lump_main, 6);
 
   if (W_CheckNumForName(lump_wide) >= 0)
   {
     return lump_wide;
   }
-
   return lump_main;
 }
 

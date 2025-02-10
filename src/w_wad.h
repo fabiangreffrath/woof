@@ -141,7 +141,7 @@ void    *W_CacheLumpNum(int lump, pu_tag tag);
 
 #define W_CacheLumpName(name,tag) W_CacheLumpNum (W_GetNumForName(name),(tag))
 
-const char *M_ApplyWidePatch(const char *lump);
+const char *W_CheckWidescreenPatch(const char *lump);
 
 void W_ExtractFileBase(const char *, char *);       // killough
 unsigned W_LumpNameHash(const char *s);           // killough 1/31/98
