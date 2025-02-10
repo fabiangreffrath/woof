@@ -104,8 +104,8 @@ typedef struct {
   char          background[9]; // Default: `BOSSBACK`
   boolean       musicloops;    // Default: `false`
   boolean       donextmap;     // Default: `false`
-  ef_scroll_t  *bunny;         // Only read if `type == END_SCROLL`
-  ef_cast_t    *castrollcall;  // Only read if `type == END_CAST`
+  ef_scroll_t   bunny;         // Only read if `type == END_SCROLL`
+  ef_cast_t     castrollcall;  // Only read if `type == END_CAST`
 } end_finale_t;
 
 // defines for the end mission display text                     // phares
@@ -157,25 +157,22 @@ static void EndFinale_Data(json_t *data, end_finale_t *out, const char *lump)
   boolean musicloops = JS_GetBooleanValue(data, "musicloops", false);
   boolean donextmap  = JS_GetBooleanValue(data, "donextmap", false);
 
-  json_t *cast   = JS_GetObject(data, "castrollcall");
-  json_t *scroll = JS_GetObject(data, "bunny");
-
-  ef_cast_t   *finale_cast   = NULL;
   ef_scroll_t *finale_scroll = NULL;
+  ef_cast_t   *finale_cast   = NULL;
 
-  switch (type)
+  if (type == END_CAST)
   {
-    case END_CAST:
-      EndFinale_Cast(cast, finale_cast);
-      break;
-
-    case END_SCROLL:
-      EndFinale_Scroll(scroll, finale_scroll);
-      break;
-
-    case END_ART:
-    default:
-      break;
+    json_t *json_cast = JS_GetObject(data, "castrollcall");
+    EndFinale_Cast(json_cast, finale_cast);
+  }
+  else if (type == END_SCROLL)
+  {
+    json_t *json_scroll = JS_GetObject(data, "bunny");
+    EndFinale_Scroll(json_scroll, finale_scroll);
+  }
+  else if (type == END_ART)
+  {
+    
   }
 
   out->type = type;
@@ -183,8 +180,8 @@ static void EndFinale_Data(json_t *data, end_finale_t *out, const char *lump)
   M_CopyLumpName(out->background, backdrop_buffer);
   out->musicloops = musicloops;
   out->donextmap = donextmap;
-  out->castrollcall = finale_cast;
-  out->bunny = finale_scroll;
+  out->castrollcall = *finale_cast;
+  out->bunny = *finale_scroll;
 
   return;
 }
