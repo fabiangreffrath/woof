@@ -519,11 +519,11 @@ static void DrawTabs(void)
 
         menu_buffer[0] = '\0';
         strcpy(menu_buffer, tabs[i].text);
-        DrawMenuStringEx(tabs[i].flags, x, rect->y, CR_GOLD);
+        DrawMenuStringEx(tabs[i].flags, x, rect->y, CR_TITLE);
         if (i == current_page)
         {
             V_FillRect(x + video.deltaw, rect->y + M_SPC, rect->w, 1,
-                       cr_gold[cr_shaded[v_lightest_color]]);
+                       colrngs[CR_TITLE][cr_shaded[v_lightest_color]]);
         }
 
         rect->x = x;
