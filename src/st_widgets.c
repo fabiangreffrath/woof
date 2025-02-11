@@ -34,6 +34,7 @@
 #include "m_config.h"
 #include "m_input.h"
 #include "m_misc.h"
+#include "mn_menu.h"
 #include "p_mobj.h"
 #include "p_spec.h"
 #include "r_main.h"
@@ -132,7 +133,7 @@ static void UpdateMessage(sbe_widget_t *widget, player_t *player)
     }
 }
 
-static char announce_string[HU_MAXLINELENGTH];
+static char announce_string[HU_MAXLINELENGTH], author_string[HU_MAXLINELENGTH];
 
 static void UpdateAnnounceMessage(sbe_widget_t *widget, player_t *player)
 {
@@ -162,6 +163,7 @@ static void UpdateAnnounceMessage(sbe_widget_t *widget, player_t *player)
     }
     else if (player->secretmessage)
     {
+        author_string[0] = '\0';
         state = announce_secret;
         widget->duration_left = widget->duration;
         M_snprintf(string, sizeof(string), GOLD_S "%s" ORIG_S,
@@ -172,6 +174,10 @@ static void UpdateAnnounceMessage(sbe_widget_t *widget, player_t *player)
     if (widget->duration_left > 0)
     {
         ST_AddLine(widget, string);
+        if (author_string[0])
+        {
+            ST_AddLine(widget, author_string);
+        }
         --widget->duration_left;
     }
     else
@@ -645,16 +651,23 @@ void ST_ResetTitle(void)
                '0' + hudcolor_titl, string);
 
     announce_string[0] = '\0';
+    author_string[0] = '\0';
     if (hud_map_announce && leveltime == 0)
     {
         if (gamemapinfo && gamemapinfo->author)
         {
             M_snprintf(announce_string, sizeof(announce_string), "%s by %s",
                        string, gamemapinfo->author);
+            if (MN_StringWidth(announce_string) > SCREENWIDTH) 
+            {
+                M_StringCopy(announce_string, string, sizeof(announce_string));
+                M_snprintf(author_string, sizeof(author_string), "by %s",
+                           gamemapinfo->author);
+            }
         }
         else
         {
-            M_snprintf(announce_string, sizeof(announce_string), "%s", string);
+            M_StringCopy(announce_string, string, sizeof(announce_string));
         }
     }
 }
