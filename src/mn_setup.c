@@ -351,6 +351,7 @@ enum
 
     str_mouse_accel,
 
+    str_gamepad_device,
     str_gyro_space,
     str_gyro_action,
     str_gyro_sens,
@@ -2900,7 +2901,18 @@ static const char *curve_strings[] = {
 static void MN_PadAdv(void);
 static void MN_Gyro(void);
 
+static void UpdateGamepadDevice(void)
+{
+    I_UpdateGamepadDevice();
+}
+
 static setup_menu_t gen_settings4[] = {
+
+    {"Device", S_CHOICE | S_ACTION | S_WRAP_LINE, CNTR_X, M_SPC * 2,
+     {"joy_device"}, .strings_id = str_gamepad_device,
+     .action = UpdateGamepadDevice},
+
+    MI_GAP_Y(1),
 
     {"Turn Speed", S_THERMO | S_THRM_SIZE11, CNTR_X, M_THRM_SPC,
      {"joy_turn_speed"}, .action = I_ResetGamepad},
@@ -2908,7 +2920,15 @@ static setup_menu_t gen_settings4[] = {
     {"Look Speed", S_THERMO | S_THRM_SIZE11, CNTR_X, M_THRM_SPC,
      {"joy_look_speed"}, .action = I_ResetGamepad},
 
-    MI_GAP_Y(4),
+    MI_GAP_Y(2),
+
+     {"Free Look", S_ONOFF, CNTR_X, M_SPC, {"padlook"},
+     .action = MN_UpdatePadLook},
+
+    {"Invert Look", S_ONOFF, CNTR_X, M_SPC, {"joy_invert_look"},
+     .action = I_ResetGamepad},
+
+    MI_GAP_Y(2),
 
     {"Movement Deadzone", S_THERMO | S_PCT, CNTR_X, M_THRM_SPC,
      {"joy_movement_inner_deadzone"}, .action = I_ResetGamepad},
@@ -2916,20 +2936,10 @@ static setup_menu_t gen_settings4[] = {
     {"Camera Deadzone", S_THERMO | S_PCT, CNTR_X, M_THRM_SPC,
      {"joy_camera_inner_deadzone"}, .action = I_ResetGamepad},
 
-    MI_GAP_Y(4),
-
     {"Rumble", S_THERMO, CNTR_X, M_THRM_SPC, {"joy_rumble"},
      .strings_id = str_percent, .action = UpdateRumble},
 
-    MI_GAP_Y(5),
-
-    {"Free Look", S_ONOFF, CNTR_X, M_SPC, {"padlook"},
-     .action = MN_UpdatePadLook},
-
-    {"Invert Look", S_ONOFF, CNTR_X, M_SPC, {"joy_invert_look"},
-     .action = I_ResetGamepad},
-
-    MI_GAP_Y(8),
+    MI_GAP_Y(2),
 
     {"Advanced Options", S_FUNC, CNTR_X, M_SPC, .action = MN_PadAdv},
 
@@ -3037,13 +3047,15 @@ void MN_DrawPadAdv(void)
 
 static void UpdateGamepadItems(void)
 {
-    const boolean gamepad = (I_UseGamepad() && I_GamepadEnabled());
+    const boolean devices = (I_GamepadEnabled() && I_GamepadDevices());
+    const boolean gamepad = (I_UseGamepad() && devices);
     const boolean gyro = (I_GyroEnabled() && I_GyroSupported());
     const boolean sticks = I_UseStickLayout();
     const boolean flick = (gamepad && sticks && !I_StandardLayout());
     const boolean ramp = (gamepad && sticks && I_RampTimeEnabled());
     const boolean condition = (!gamepad || !sticks);
 
+    DisableItem(!devices, gen_settings4, "joy_device");
     DisableItem(!gamepad, gen_settings4, "Advanced Options");
     DisableItem(!gamepad || !I_GyroSupported(), gen_settings4, "Gyro Options");
     DisableItem(!gamepad || !I_RumbleSupported(), gen_settings4, "joy_rumble");
@@ -3192,13 +3204,6 @@ static void UpdateGyroItems(void)
     DisableItem(!acceleration, gyro_settings1, "gyro_accel_max_threshold");
     DisableItem(condition, gyro_settings1, "gyro_smooth_threshold");
     DisableItem(condition, gyro_settings1, "Calibrate");
-}
-
-void MN_UpdateAllGamepadItems(void)
-{
-    UpdateWeaponSlotSelection();
-    UpdateGamepadItems();
-    UpdateGyroItems();
 }
 
 static setup_tab_t gyro_tabs[] = {{"Gyro"}, {NULL}};
@@ -4813,6 +4818,7 @@ static const char **selectstrings[] = {
     NULL, // str_resampler
     equalizer_preset_strings,
     NULL, // str_mouse_accel
+    NULL, // str_gamepad_device
     gyro_space_strings,
     gyro_action_strings,
     NULL, // str_gyro_sens
@@ -4835,6 +4841,19 @@ static const char **GetStrings(int id)
     }
 
     return NULL;
+}
+
+static const char **GetGamepadDeviceStrings(void)
+{
+    return I_GamepadDeviceList();
+}
+
+void MN_UpdateAllGamepadItems(void)
+{
+    selectstrings[str_gamepad_device] = GetGamepadDeviceStrings();
+    UpdateWeaponSlotSelection();
+    UpdateGamepadItems();
+    UpdateGyroItems();
 }
 
 static void UpdateWeaponSlotStrings(void)
@@ -4879,6 +4898,7 @@ void MN_InitMenuStrings(void)
     selectstrings[str_mouse_accel] = GetMouseAccelStrings();
     selectstrings[str_ms_time] = GetMsTimeStrings();
     selectstrings[str_movement_sensitivity] = GetMovementSensitivityStrings();
+    selectstrings[str_gamepad_device] = GetGamepadDeviceStrings();
     selectstrings[str_gyro_sens] = GetGyroSensitivityStrings();
     selectstrings[str_gyro_accel] = GetGyroAccelStrings();
     selectstrings[str_resampler] = GetResamplerStrings();
