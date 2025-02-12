@@ -46,7 +46,7 @@ enum
 };
 
 static boolean joy_enable;
-int joy_device;
+int joy_device, last_joy_device;
 joy_platform_t joy_platform;
 static int joy_stick_layout;
 static int joy_forward_sensitivity;

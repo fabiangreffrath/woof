@@ -496,6 +496,7 @@ void I_InitGamepad(void)
         MN_UpdateAllGamepadItems();
     }
 
+    last_joy_device = joy_device;
     SDL_FlushEvents(SDL_CONTROLLERDEVICEADDED, SDL_CONTROLLERDEVICEREMOVED);
 }
 
@@ -510,6 +511,7 @@ static boolean CheckActiveGamepad(void)
             if (SDL_JoystickGetDeviceInstanceID(i) == gamepad_instance_id)
             {
                 joy_device = i + 1;
+                last_joy_device = joy_device;
                 MN_UpdateAllGamepadItems();
                 return true;
             }
@@ -530,6 +532,7 @@ static void CloseGamepad(void)
         gamepad = NULL;
         gamepad_instance_id = -1;
         joy_device = 0;
+        last_joy_device = joy_device;
         DisableGamepadEvents();
         UpdatePlatform();
         I_ResetGamepad();
@@ -555,6 +558,7 @@ void I_OpenGamepad(int device_index)
         gamepad_instance_id =
             SDL_JoystickInstanceID(SDL_GameControllerGetJoystick(gamepad));
         joy_device = device_index + 1;
+        last_joy_device = joy_device;
         I_SetRumbleSupported(gamepad);
         I_ResetAllRumbleChannels();
         I_ResetGamepad();
@@ -601,8 +605,16 @@ void I_CloseGamepad(SDL_JoystickID instance_id)
     MN_UpdateAllGamepadItems();
 }
 
-void I_UpdateGamepadDevice(void)
+void I_UpdateGamepadDevice(boolean gamepad_input)
 {
+    if (gamepad_input && joy_device == 0)
+    {
+        // Prevent accidentally disabling gamepad when it's being used.
+        joy_device = last_joy_device;
+        return;
+    }
+
+    last_joy_device = joy_device;
     const int device_index = joy_device - 1;
     CloseGamepad();
 

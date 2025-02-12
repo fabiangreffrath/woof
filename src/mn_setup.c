@@ -2903,7 +2903,7 @@ static void MN_Gyro(void);
 
 static void UpdateGamepadDevice(void)
 {
-    I_UpdateGamepadDevice();
+    I_UpdateGamepadDevice(menu_input == pad_mode);
 }
 
 static setup_menu_t gen_settings4[] = {

@@ -34,7 +34,7 @@ void I_SetSensorsEnabled(boolean condition);
 void I_InitGamepad(void);
 void I_OpenGamepad(int device_index);
 void I_CloseGamepad(SDL_JoystickID instance_id);
-void I_UpdateGamepadDevice(void);
+void I_UpdateGamepadDevice(boolean gamepad_input);
 const char **I_GamepadDeviceList(void);
 boolean I_GamepadDevices(void);
 
