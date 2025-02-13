@@ -218,6 +218,7 @@ void G_NextWeaponResendCmd(void)
 
 void G_NextWeaponReset(void)
 {
+    currently_active = false;
     state = nw_state_none;
     ST_ResetCarousel();
 }
