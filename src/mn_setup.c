@@ -3092,11 +3092,11 @@ static const char *gyro_action_strings[] = {
     "None",
     "Disable Gyro",
     "Enable Gyro",
-    "Invert",
+    "Invert Gyro",
     "Reset Camera",
     "Reset / Disable Gyro",
     "Reset / Enable Gyro",
-    "Reset / Invert"
+    "Reset / Invert Gyro"
 };
 
 #define GYRO_SENS_STRINGS_SIZE (500 + 1)
