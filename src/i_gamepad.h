@@ -70,6 +70,7 @@ typedef struct axes_s
     float outer_deadzone;       // Normalized outer deadzone.
 } axes_t;
 
+extern int joy_device, last_joy_device;     // Gamepad device.
 extern joy_platform_t joy_platform;         // Gamepad platform (button names).
 extern boolean joy_invert_forward;          // Invert forward axis.
 extern boolean joy_invert_strafe;           // Invert strafe axis.
