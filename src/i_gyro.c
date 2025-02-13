@@ -823,8 +823,8 @@ void I_BindGyroVaribales(void)
     BIND_NUM_GYRO(gyro_button_action,
         ACTION_ENABLE, ACTION_NONE, ACTION_RESET_INVERT,
         "Gyro button action (0 = None; 1 = Disable Gyro; 2 = Enable Gyro; "
-        "3 = Invert; 4 = Reset Camera; 5 = Reset / Disable Gyro; "
-        "6 = Reset / Enable Gyro; 7 = Reset / Invert)");
+        "3 = Invert Gyro; 4 = Reset Camera; 5 = Reset / Disable Gyro; "
+        "6 = Reset / Enable Gyro; 7 = Reset / Invert Gyro)");
     BIND_NUM_GYRO(gyro_stick_action,
         ACTION_NONE, ACTION_NONE, ACTION_ENABLE,
         "Camera stick action (0 = None; 1 = Disable Gyro; 2 = Enable Gyro)");
