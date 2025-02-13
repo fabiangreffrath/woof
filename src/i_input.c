@@ -30,13 +30,17 @@
 #include "i_rumble.h"
 #include "i_system.h"
 #include "i_timer.h"
+#include "m_array.h"
 #include "m_config.h"
 #include "m_input.h"
+#include "m_misc.h"
 #include "mn_menu.h"
 
 #define AXIS_BUTTON_DEADZONE (SDL_JOYSTICK_AXIS_MAX / 3)
 
+static const char **gamepad_strings;
 static SDL_GameController *gamepad;
+static SDL_JoystickID gamepad_instance_id = -1;
 static boolean gyro_supported;
 static joy_platform_t platform;
 
@@ -430,8 +434,22 @@ static void DisableGamepadEvents(void)
 static void I_ShutdownGamepad(void)
 {
     I_ShutdownRumble();
+
+    if (gamepad)
+    {
+        SDL_GameControllerSetPlayerIndex(gamepad, -1);
+    }
+
     SDL_QuitSubSystem(SDL_INIT_GAMECONTROLLER);
 }
+
+static int NumJoysticks(void)
+{
+    const int num_joysticks = SDL_NumJoysticks();
+    return MAX(0, num_joysticks);
+}
+
+void I_OpenGamepad(int device_index);
 
 void I_InitGamepad(void)
 {
@@ -460,61 +478,194 @@ void I_InitGamepad(void)
     I_Printf(VB_INFO, "I_InitGamepad: Initialize gamepad.");
 
     I_AtExit(I_ShutdownGamepad, true);
-}
 
-void I_OpenGamepad(int which)
-{
-    if (gamepad)
+    if (joy_device > 0)
     {
-        return;
-    }
-
-    if (SDL_IsGameController(which))
-    {
-        gamepad = SDL_GameControllerOpen(which);
-        if (gamepad)
+        if (SDL_IsGameController(joy_device - 1))
         {
-            I_Printf(VB_INFO,
-                     "I_OpenGamepad: Found a valid gamepad, named: %s",
-                     SDL_GameControllerName(gamepad));
-
-            I_SetRumbleSupported(gamepad);
-            I_ResetGamepad();
-            I_LoadGyroCalibration();
-            UpdatePlatform();
-            EnableGamepadEvents();
+            I_OpenGamepad(joy_device - 1);
+        }
+        else
+        {
+            joy_device = 1;
             MN_UpdateAllGamepadItems();
         }
     }
-
-    if (gamepad == NULL)
+    else
     {
-        I_Printf(VB_ERROR,
-                 "I_OpenGamepad: Could not open gamepad %i: %s",
-                 which, SDL_GetError());
+        MN_UpdateAllGamepadItems();
     }
+
+    last_joy_device = joy_device;
+    SDL_FlushEvents(SDL_CONTROLLERDEVICEADDED, SDL_CONTROLLERDEVICEREMOVED);
+}
+
+static boolean CheckActiveGamepad(void)
+{
+    if (gamepad_instance_id != -1)
+    {
+        const int num_joysticks = NumJoysticks();
+
+        for (int i = 0; i < num_joysticks; i++)
+        {
+            if (SDL_JoystickGetDeviceInstanceID(i) == gamepad_instance_id)
+            {
+                joy_device = i + 1;
+                last_joy_device = joy_device;
+                MN_UpdateAllGamepadItems();
+                return true;
+            }
+        }
+    }
+
+    return false;
+}
+
+static void CloseGamepad(void)
+{
+    if (gamepad_instance_id != -1)
+    {
+        I_ResetAllRumbleChannels();
+        I_SetRumbleSupported(NULL);
+        SDL_GameControllerSetPlayerIndex(gamepad, -1);
+        SDL_GameControllerClose(gamepad);
+        gamepad = NULL;
+        gamepad_instance_id = -1;
+        joy_device = 0;
+        last_joy_device = joy_device;
+        DisableGamepadEvents();
+        UpdatePlatform();
+        I_ResetGamepad();
+    }
+}
+
+void I_OpenGamepad(int device_index)
+{
+    if (CheckActiveGamepad())
+    {
+        // Ignore when already using a gamepad.
+        return;
+    }
+
+    CloseGamepad();
+    gamepad = SDL_GameControllerOpen(device_index);
+
+    if (gamepad)
+    {
+        I_Printf(VB_INFO, "I_OpenGamepad: Found a valid gamepad, named: %s",
+                 SDL_GameControllerName(gamepad));
+
+        gamepad_instance_id =
+            SDL_JoystickInstanceID(SDL_GameControllerGetJoystick(gamepad));
+        joy_device = device_index + 1;
+        last_joy_device = joy_device;
+        I_SetRumbleSupported(gamepad);
+        I_ResetAllRumbleChannels();
+        I_ResetGamepad();
+        UpdatePlatform();
+        EnableGamepadEvents();
+        SDL_GameControllerSetPlayerIndex(gamepad, 0);
+
+        if (gyro_supported)
+        {
+            I_LoadGyroCalibration();
+        }
+    }
+    else
+    {
+        I_Printf(VB_ERROR, "I_OpenGamepad: Could not open gamepad %d: %s",
+                 device_index, SDL_GetError());
+    }
+
+    MN_UpdateAllGamepadItems();
 }
 
 void I_CloseGamepad(SDL_JoystickID instance_id)
 {
-    if (gamepad == NULL)
+    if (gamepad_instance_id != -1)
     {
+        if (instance_id == gamepad_instance_id)
+        {
+            CloseGamepad();
+
+            if (NumJoysticks() && SDL_IsGameController(0))
+            {
+                // Fall back to another detected gamepad.
+                I_OpenGamepad(0);
+                return;
+            }
+        }
+        else if (CheckActiveGamepad())
+        {
+            // Ignore when already using a gamepad.
+            return;
+        }
+    }
+
+    MN_UpdateAllGamepadItems();
+}
+
+void I_UpdateGamepadDevice(boolean gamepad_input)
+{
+    if (gamepad_input && joy_device == 0)
+    {
+        // Prevent accidentally disabling gamepad when it's being used.
+        joy_device = last_joy_device;
         return;
     }
 
-    SDL_JoystickID active_instance_id =
-        SDL_JoystickInstanceID(SDL_GameControllerGetJoystick(gamepad));
+    last_joy_device = joy_device;
+    const int device_index = joy_device - 1;
+    CloseGamepad();
 
-    if (instance_id == active_instance_id)
+    if (device_index >= 0)
     {
-        SDL_GameControllerClose(gamepad);
-        gamepad = NULL;
-        I_SetRumbleSupported(NULL);
-        DisableGamepadEvents();
-        UpdatePlatform();
-        I_ResetGamepad();
+        I_OpenGamepad(device_index);
+    }
+    else
+    {
         MN_UpdateAllGamepadItems();
     }
+}
+
+const char **I_GamepadDeviceList(void)
+{
+    if (!I_GamepadEnabled())
+    {
+        return NULL;
+    }
+
+    array_free(gamepad_strings);
+    array_push(gamepad_strings, "None");
+
+    const int num_joysticks = NumJoysticks();
+    int num_gamepads = 0;
+
+    for (int i = 0; i < num_joysticks; i++)
+    {
+        if (SDL_IsGameController(i))
+        {
+            char *name = M_StringDuplicate(SDL_GameControllerNameForIndex(i));
+            array_push(gamepad_strings, name);
+            num_gamepads++;
+        }
+    }
+
+    if (joy_device > num_gamepads)
+    {
+        for (int i = num_gamepads; i < joy_device; i++)
+        {
+            array_push(gamepad_strings, "None");
+        }
+    }
+
+    return gamepad_strings;
+}
+
+boolean I_GamepadDevices(void)
+{
+    return (array_size(gamepad_strings) > 1
+            && strncmp(gamepad_strings[1], "None", strlen(gamepad_strings[1])));
 }
 
 static uint64_t GetSensorTimeUS(const SDL_ControllerSensorEvent *csensor)
