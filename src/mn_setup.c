@@ -3313,6 +3313,8 @@ static const char *screen_melt_strings[] = {"Off", "Melt", "Crossfade", "Fizzle"
 
 static const char *invul_mode_strings[] = {"Vanilla", "MBF", "Gray"};
 
+static void UpdatePwadEndoomItem(void);
+
 static setup_menu_t gen_settings6[] = {
 
     {"Quality of life", S_SKIP | S_TITLE, OFF_CNTR_X, M_SPC},
@@ -3348,7 +3350,7 @@ static setup_menu_t gen_settings6[] = {
      {"default_skill"}, .strings_id = str_default_skill},
 
     {"Exit Sequence", S_CHOICE, OFF_CNTR_X, M_SPC, {"exit_sequence"},
-    .strings_id = str_exit_sequence},
+    .strings_id = str_exit_sequence, .action = UpdatePwadEndoomItem},
 
     {"PWAD ENDOOM Only", S_ONOFF, OFF_CNTR_X, M_SPC, {"endoom_pwad_only"}},
 
@@ -3359,6 +3361,11 @@ static setup_menu_t *gen_settings[] = {
     gen_settings1, gen_settings2, gen_settings3, gen_settings4,
     gen_settings5, gen_settings6, NULL
 };
+
+static void UpdatePwadEndoomItem(void)
+{
+    DisableItem(!D_AllowEndDoom(), gen_settings6, "endoom_pwad_only");
+}
 
 void MN_UpdateDynamicResolutionItem(void)
 {
@@ -4941,6 +4948,7 @@ void MN_SetupResetMenu(void)
     UpdateWeaponSlotItems();
     MN_UpdateEqualizerItems();
     UpdateGainItems();
+    UpdatePwadEndoomItem();
 }
 
 void MN_BindMenuVariables(void)
