@@ -463,7 +463,8 @@ static void F_TextWrite(void)
   if (gamemapinfo && W_CheckNumForName(finaleflat) != -1 &&
       (W_CheckNumForName)(finaleflat, ns_flats) == -1)
   {
-    V_DrawPatchFullScreen(V_CachePatchName(finaleflat, PU_LEVEL));
+    V_DrawPatchFullScreen(
+      V_CachePatchName(W_CheckWidescreenPatch(finaleflat), PU_LEVEL));
   }
   else if ((W_CheckNumForName)(finaleflat, ns_flats) != -1)
   {

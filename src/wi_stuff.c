@@ -559,7 +559,8 @@ static boolean DrawAnimation(void)
     if (animation->background_lump)
     {
         V_DrawPatchFullScreen(
-            V_CachePatchName(animation->background_lump, PU_CACHE));
+            V_CachePatchName(
+              W_CheckWidescreenPatch(animation->background_lump), PU_CACHE));
     }
 
     wi_animationstate_t *state;
