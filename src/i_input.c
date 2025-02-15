@@ -481,14 +481,24 @@ void I_InitGamepad(void)
 
     if (joy_device > 0)
     {
-        if (SDL_IsGameController(joy_device - 1))
+        const int num_joysticks = NumJoysticks();
+
+        if (num_joysticks && SDL_IsGameController(joy_device - 1))
         {
             I_OpenGamepad(joy_device - 1);
         }
         else
         {
             joy_device = 1;
-            MN_UpdateAllGamepadItems();
+
+            if (num_joysticks && SDL_IsGameController(0))
+            {
+                I_OpenGamepad(0);
+            }
+            else
+            {
+                MN_UpdateAllGamepadItems();
+            }
         }
     }
     else
