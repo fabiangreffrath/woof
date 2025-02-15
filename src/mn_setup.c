@@ -520,11 +520,15 @@ static void DrawTabs(void)
 
         menu_buffer[0] = '\0';
         strcpy(menu_buffer, tabs[i].text);
-        DrawMenuStringEx(tabs[i].flags, x, rect->y, CR_TITLE);
         if (i == current_page)
         {
+            DrawMenuStringEx(tabs[i].flags, x, rect->y, CR_TITLE);
             V_FillRect(x + video.deltaw, rect->y + M_SPC, rect->w, 1,
                        colrngs[CR_TITLE][cr_shaded[v_lightest_color]]);
+        }
+        else
+        {
+            DrawMenuStringEx(tabs[i].flags, x, rect->y, CR_GRAY);
         }
 
         rect->x = x;
@@ -1860,6 +1864,7 @@ static setup_menu_t stat_settings1[] = {
 };
 
 static void UpdateStatsFormatItem(void);
+static void UpdateUseButtonItem(void);
 
 static const char *show_widgets_strings[] = {"Off", "Automap", "HUD", "Always"};
 static const char *show_adv_widgets_strings[] = {"Off", "Automap", "HUD",
@@ -1877,15 +1882,13 @@ static setup_menu_t stat_settings2[] = {
      .strings_id = str_show_widgets, .action = UpdateStatsFormatItem},
 
     {"Show Level Time", S_CHOICE, H_X, M_SPC, {"hud_level_time"},
-     .strings_id = str_show_widgets},
+     .strings_id = str_show_widgets, .action = UpdateUseButtonItem},
 
     {"Show Player Coords", S_CHOICE | S_STRICT, H_X, M_SPC,
      {"hud_player_coords"}, .strings_id = str_show_adv_widgets},
 
     {"Show Command History", S_ONOFF | S_STRICT, H_X, M_SPC,
      {"hud_command_history"}, .action = HU_ResetCommandHistory},
-
-    {"Use-Button Timer", S_ONOFF, H_X, M_SPC, {"hud_time_use"}},
 
     MI_GAP,
 
@@ -1896,6 +1899,8 @@ static setup_menu_t stat_settings2[] = {
 
     {"Level Stats Format", S_CHOICE, H_X, M_SPC, {"hud_stats_format"},
      .strings_id = str_stats_format},
+
+    {"Use-Button Timer", S_ONOFF, H_X, M_SPC, {"hud_time_use"}},
 
     MI_END
 };
@@ -1955,6 +1960,11 @@ static setup_menu_t *stat_settings[] = {stat_settings1, stat_settings2,
 static void UpdateStatsFormatItem(void)
 {
   DisableItem(!hud_level_stats, stat_settings2, "hud_stats_format");
+}
+
+static void UpdateUseButtonItem(void)
+{
+    DisableItem(!hud_level_time, stat_settings2, "hud_time_use");
 }
 
 static void UpdateCrosshairItems(void)
@@ -3303,6 +3313,8 @@ static const char *screen_melt_strings[] = {"Off", "Melt", "Crossfade", "Fizzle"
 
 static const char *invul_mode_strings[] = {"Vanilla", "MBF", "Gray"};
 
+static void UpdatePwadEndoomItem(void);
+
 static setup_menu_t gen_settings6[] = {
 
     {"Quality of life", S_SKIP | S_TITLE, OFF_CNTR_X, M_SPC},
@@ -3338,7 +3350,7 @@ static setup_menu_t gen_settings6[] = {
      {"default_skill"}, .strings_id = str_default_skill},
 
     {"Exit Sequence", S_CHOICE, OFF_CNTR_X, M_SPC, {"exit_sequence"},
-    .strings_id = str_exit_sequence},
+    .strings_id = str_exit_sequence, .action = UpdatePwadEndoomItem},
 
     {"PWAD ENDOOM Only", S_ONOFF, OFF_CNTR_X, M_SPC, {"endoom_pwad_only"}},
 
@@ -3349,6 +3361,11 @@ static setup_menu_t *gen_settings[] = {
     gen_settings1, gen_settings2, gen_settings3, gen_settings4,
     gen_settings5, gen_settings6, NULL
 };
+
+static void UpdatePwadEndoomItem(void)
+{
+    DisableItem(!D_AllowEndDoom(), gen_settings6, "endoom_pwad_only");
+}
 
 void MN_UpdateDynamicResolutionItem(void)
 {
@@ -4923,6 +4940,7 @@ void MN_SetupResetMenu(void)
     DisableItem(M_ParmExists("-save"), gen_settings6, "organize_savefiles");
     UpdateInterceptsEmuItem();
     UpdateStatsFormatItem();
+    UpdateUseButtonItem();
     UpdateCrosshairItems();
     UpdateCenteredWeaponItem();
     UpdateGamepadItems();
@@ -4930,6 +4948,7 @@ void MN_SetupResetMenu(void)
     UpdateWeaponSlotItems();
     MN_UpdateEqualizerItems();
     UpdateGainItems();
+    UpdatePwadEndoomItem();
 }
 
 void MN_BindMenuVariables(void)

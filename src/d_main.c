@@ -1595,7 +1595,7 @@ static void D_ShowEndDoom(void)
 
 boolean disable_endoom = false;
 
-static boolean AllowEndDoom(void)
+boolean D_AllowEndDoom(void)
 {
   return (!disable_endoom
           && (exit_sequence == EXIT_SEQUENCE_FULL
@@ -1605,7 +1605,7 @@ static boolean AllowEndDoom(void)
 static void D_EndDoom(void)
 {
   // Do we even want to show an ENDOOM?
-  if (!AllowEndDoom())
+  if (!D_AllowEndDoom())
   {
     return;
   }

@@ -45,6 +45,7 @@ void D_SetBloodColor(void);
 
 extern boolean disable_endoom;
 boolean D_AllowQuitSound(void);
+boolean D_AllowEndDoom(void);
 
 // Called by IO functions when input is detected.
 void D_PostEvent(struct event_s *ev);
