@@ -366,7 +366,8 @@ static void R_InitTextureMapping(void)
         ;
       xtoviewangle[x] = (i<<ANGLETOFINESHIFT)-ANG90;
       // [FG] linear horizontal sky scrolling
-      linearskyangle[x] = (0.5 - x / (double)viewwidth) * linearskyfactor;
+      int angle = (0.5 - x / (double)viewwidth) * linearskyfactor;
+      linearskyangle[x] = (angle >= 0) ? angle : ANGLE_MAX + angle;
     }
     
   // Take out the fencepost cases from viewangletox.
@@ -804,7 +805,7 @@ void R_SetupFrame (player_t *player)
     if (use_localview && raw_input && !player->centering)
     {
       pitch = player->pitch + localview.pitch;
-      pitch = BETWEEN(-MAX_PITCH_ANGLE, MAX_PITCH_ANGLE, pitch);
+      pitch = BETWEEN(-max_pitch_angle, max_pitch_angle, pitch);
     }
     else
     {

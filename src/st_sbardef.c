@@ -216,6 +216,16 @@ static boolean ParseSbarElemType(json_t *json, sbarelementtype_t type,
                         widget->duration =
                             JS_GetNumberValue(json, "duration") * TICRATE;
                         break;
+                    case sbw_monsec:
+                    case sbw_coord:
+                        {
+                            json_t *vertical = JS_GetObject(json, "vertical");
+                            if (JS_IsBoolean(vertical))
+                            {
+                                widget->vertical = JS_GetBoolean(vertical);
+                            }
+                        }
+                        break;
                     default:
                         break;
                 }
@@ -519,6 +529,7 @@ sbardef_t *ST_ParseSbarDef(void)
     json = JS_Open("SBHUDDEF", "hud", (version_t){1, 0, 0});
     if (json == NULL)
     {
+        free(out);
         return NULL;
     }
 

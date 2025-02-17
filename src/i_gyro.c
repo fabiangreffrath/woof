@@ -85,6 +85,10 @@ typedef enum
     ACTION_DISABLE,
     ACTION_ENABLE,
     ACTION_INVERT,
+    ACTION_RESET,
+    ACTION_RESET_DISABLE,
+    ACTION_RESET_ENABLE,
+    ACTION_RESET_INVERT,
 } action_t;
 
 static boolean gyro_enable;
@@ -104,6 +108,11 @@ static fixed_t gyro_calibration_a;
 static fixed_t gyro_calibration_x;
 static fixed_t gyro_calibration_y;
 static fixed_t gyro_calibration_z;
+
+#define GYRO_TICS 7 // 200 ms
+static boolean gyro_tap;
+static boolean gyro_press;
+static int gyro_time;
 
 float gyro_axes[NUM_GYRO_AXES];
 
@@ -278,6 +287,53 @@ void I_SetStickMoving(boolean condition)
     motion.stick_moving = condition;
 }
 
+static void ResetCameraPress(void)
+{
+    if (M_InputGameActive(input_gyro))
+    {
+        if (!gyro_press)
+        {
+            players[consoleplayer].centering = true;
+            gyro_press = true;
+        }
+    }
+    else
+    {
+        gyro_press = false;
+    }
+}
+
+static void ResetCameraTap(void)
+{
+    if (M_InputGameActive(input_gyro))
+    {
+        if (!gyro_tap && !gyro_press)
+        {
+            gyro_time = I_GetTime();
+            gyro_tap = true;
+            gyro_press = true;
+        }
+        else if (gyro_tap && gyro_press && I_GetTime() - gyro_time > GYRO_TICS)
+        {
+            gyro_tap = false;
+        }
+    }
+    else
+    {
+        gyro_press = false;
+
+        if (gyro_tap)
+        {
+            if (I_GetTime() - gyro_time <= GYRO_TICS)
+            {
+                players[consoleplayer].centering = true;
+            }
+
+            gyro_tap = false;
+        }
+    }
+}
+
 static boolean GyroActive(void)
 {
     // Camera stick action has priority over gyro button action.
@@ -303,6 +359,22 @@ static boolean GyroActive(void)
 
         case ACTION_ENABLE:
             return M_InputGameActive(input_gyro);
+
+        case ACTION_RESET_DISABLE:
+            ResetCameraTap();
+            return !M_InputGameActive(input_gyro);
+
+        case ACTION_RESET_ENABLE:
+            ResetCameraTap();
+            return M_InputGameActive(input_gyro);
+
+        case ACTION_RESET:
+            ResetCameraPress();
+            break;
+
+        case ACTION_RESET_INVERT:
+            ResetCameraTap();
+            break;
 
         default:
             break;
@@ -335,7 +407,8 @@ void I_CalcGyroAxes(boolean strafe)
             gyro_axes[GYRO_LOOK] = 0.0f;
         }
 
-        if (motion.button_action == ACTION_INVERT
+        if ((motion.button_action == ACTION_INVERT
+             || motion.button_action == ACTION_RESET_INVERT)
             && M_InputGameActive(input_gyro))
         {
             gyro_axes[GYRO_TURN] = -gyro_axes[GYRO_TURN];
@@ -682,6 +755,9 @@ void I_ResetGyro(void)
     motion.index = 0;
     memset(motion.pitch_samples, 0, sizeof(motion.pitch_samples));
     memset(motion.yaw_samples, 0, sizeof(motion.yaw_samples));
+    gyro_tap = false;
+    gyro_press = false;
+    gyro_time = 0;
 }
 
 void I_UpdateGyroSteadying(void)
@@ -745,9 +821,10 @@ void I_BindGyroVaribales(void)
         ROLL_ON, ROLL_OFF, ROLL_INVERT,
         "Local gyro space uses roll (0 = Off; 1 = On; 2 = Invert)");
     BIND_NUM_GYRO(gyro_button_action,
-        ACTION_ENABLE, ACTION_NONE, ACTION_INVERT,
+        ACTION_ENABLE, ACTION_NONE, ACTION_RESET_INVERT,
         "Gyro button action (0 = None; 1 = Disable Gyro; 2 = Enable Gyro; "
-        "3 = Invert)");
+        "3 = Invert Gyro; 4 = Reset Camera; 5 = Reset / Disable Gyro; "
+        "6 = Reset / Enable Gyro; 7 = Reset / Invert Gyro)");
     BIND_NUM_GYRO(gyro_stick_action,
         ACTION_NONE, ACTION_NONE, ACTION_ENABLE,
         "Camera stick action (0 = None; 1 = Disable Gyro; 2 = Enable Gyro)");

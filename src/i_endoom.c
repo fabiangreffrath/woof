@@ -15,6 +15,8 @@
 //    Exit text-mode ENDOOM screen.
 //
 
+#include <string.h>
+
 #include "doomtype.h"
 #include "i_printf.h"
 #include "i_video.h"

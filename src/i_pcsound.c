@@ -19,6 +19,8 @@
 #include "al.h"
 #include "alext.h"
 
+#include <string.h>
+
 #include "doomstat.h"
 #include "doomtype.h"
 #include "i_oalcommon.h"

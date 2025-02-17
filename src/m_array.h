@@ -23,6 +23,7 @@
 
 #include <stddef.h>
 #include <stdlib.h>
+#include <string.h>
 
 #include "i_system.h"
 
@@ -88,6 +89,19 @@ inline static void array_clear(const void *v)
         (v)[array_ptr(v)->size++] = (e);                                    \
     } while (0)
 
+#define array_delete_n(v, i, n)                                   \
+    do                                                            \
+    {                                                             \
+        if (v)                                                    \
+        {                                                         \
+            memmove(&(v)[i], &(v)[i + n],                         \
+                    sizeof(*(v)) * (array_ptr(v)->size - n - i)); \
+            array_ptr(v)->size -= n;                              \
+        }                                                         \
+    } while (0)
+
+#define array_delete(v, i) array_delete_n(v, i, 1)
+
 #define array_free(v)                     \
     do                                    \
     {                                     \
@@ -98,7 +112,7 @@ inline static void array_clear(const void *v)
         }                                 \
     } while (0)
 
-#define array_end(v) ((v) + array_size(v))
+#define array_end(v) ((v) ? (v) + array_ptr(v)->size : (v))
 
 #define array_foreach(ptr, v) \
     for (ptr = (v); ptr < array_end(v); ++ptr)

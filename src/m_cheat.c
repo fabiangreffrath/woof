@@ -421,6 +421,7 @@ static void cheat_choppers(void)
 {
   plyr->weaponowned[wp_chainsaw] = true;
   plyr->powers[pw_invulnerability] = true;
+  plyr->bonuscount += 2; // trigger evil grin now
   displaymsg("%s", s_STSTR_CHOPPERS); // Ty 03/27/98 - externalized
 }
 
@@ -550,6 +551,7 @@ static void cheat_fa(void)
     if (i!=am_cell || gamemode!=shareware)
       plyr->ammo[i] = plyr->maxammo[i];
 
+  plyr->bonuscount += 2; // trigger evil grin now
   displaymsg("%s", s_STSTR_FAADDED);
 }
 
@@ -1126,7 +1128,10 @@ static void cheat_weapx(char *buf)
     if (w >= 0 && w < NUMWEAPONS)
     {
       if ((plyr->weaponowned[w] = !plyr->weaponowned[w]))
+      {
+        plyr->bonuscount += 2; // trigger evil grin now
         displaymsg("Weapon Added");  // Ty 03/27/98 - *not* externalized
+      }
       else 
         {
           displaymsg("Weapon Removed"); // Ty 03/27/98 - *not* externalized

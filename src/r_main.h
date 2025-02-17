@@ -32,8 +32,6 @@ struct seg_s;
 // POV related.
 //
 
-#define MAX_PITCH_ANGLE (32 * ANG1)
-
 extern fixed_t  viewcos;
 extern fixed_t  viewsin;
 extern int      viewwindowx;

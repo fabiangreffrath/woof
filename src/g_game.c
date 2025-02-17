@@ -101,8 +101,8 @@
 
 static size_t   savegamesize = SAVEGAMESIZE; // killough
 static char     *demoname = NULL;
-// [crispy] the name originally chosen for the demo, i.e. without "-00000"
-static const char *orig_demoname = NULL;
+// the original name of the demo, without "-00000" and file extension
+static char *demoname_orig = NULL;
 static boolean  netdemo;
 static byte     *demobuffer;   // made some static -- killough
 static size_t   maxdemosize;
@@ -1047,7 +1047,7 @@ static void G_ReloadLevel(void)
   {
     ddt_cheating = 0;
     G_CheckDemoStatus();
-    G_RecordDemo(orig_demoname);
+    G_RecordDemo(demoname_orig);
   }
 
   G_InitNew(gameskill, gameepisode, gamemap);
@@ -1443,7 +1443,7 @@ static void G_JoinDemo(void)
   if (netgame)
     CheckPlayersInNetGame();
 
-  if (!orig_demoname)
+  if (!demoname_orig)
   {
     byte *actualbuffer = demobuffer;
     size_t actualsize = maxdemosize;
@@ -2715,6 +2715,8 @@ static boolean DoLoadGame(boolean do_load_autosave)
       if (demorecording) // So this can only possibly be a -recordfrom command.
 	G_BeginRecording();// Start the -recordfrom, since the game was loaded.
 
+  ST_Start();
+
   return true;
 }
 
@@ -3397,7 +3399,7 @@ void G_DeferedInitNew(skill_t skill, int episode, int map)
   {
     ddt_cheating = 0;
     G_CheckDemoStatus();
-    G_RecordDemo(orig_demoname);
+    G_RecordDemo(demoname_orig);
   }
 }
 
@@ -3968,34 +3970,30 @@ void G_InitNew(skill_t skill, int episode, int map)
 void G_RecordDemo(const char *name)
 {
   int i;
-  size_t demoname_size;
-  // [crispy] demo file name suffix counter
-  static int j = 0;
 
-  // [crispy] the name originally chosen for the demo, i.e. without "-00000"
-  if (!orig_demoname)
+  // the original name of the demo, without "-00000" and file extension
+  if (!demoname_orig)
   {
-    orig_demoname = name;
+    demoname_orig = M_StringDuplicate(name);
+    if (M_StringCaseEndsWith(demoname_orig, ".lmp"))
+    {
+      demoname_orig[strlen(demoname_orig) - 4] = '\0';
+    }
   }
 
   demo_insurance = 0;
-      
   usergame = false;
-  if (demoname)
-  {
-    free(demoname);
-  }
-  demoname = AddDefaultExtension(name, ".lmp");  // 1/18/98 killough
-  demoname_size = strlen(demoname) + 6; // [crispy] + 6 for "-00000"
-  demoname = I_Realloc(demoname, demoname_size);
 
-  for(; j <= 99999 && !M_access(demoname, F_OK); ++j)
+  // + 11 for "-00000.lmp\0"
+  size_t demoname_size = strlen(demoname_orig) + 11;
+  demoname = I_Realloc(demoname, demoname_size);
+  M_snprintf(demoname, demoname_size, "%s.lmp", demoname_orig);
+
+  // demo file name suffix counter
+  static int j;
+  while (M_access(demoname, F_OK) == 0)
   {
-    char *str = M_StringDuplicate(name);
-    if (M_StringCaseEndsWith(str, ".lmp"))
-      str[strlen(str) - 4] = '\0';
-    M_snprintf(demoname, demoname_size, "%s-%05d.lmp", str, j);
-    free(str);
+    M_snprintf(demoname, demoname_size, "%s-%05d.lmp", demoname_orig, j++);
   }
 
   //!
@@ -4510,10 +4508,10 @@ static size_t WriteCmdLineLump(MEMFILE *stream)
   return mem_ftell(stream) - pos;
 }
 
-static void WriteFileInfo(const char *name, size_t size, MEMFILE *stream)
+static long WriteFileInfo(const char *name, size_t size, long filepos,
+                          MEMFILE *stream)
 {
   filelump_t fileinfo = { 0 };
-  static long filepos = sizeof(wadinfo_t);
 
   fileinfo.filepos = LONG(filepos);
   fileinfo.size = LONG(size);
@@ -4524,6 +4522,7 @@ static void WriteFileInfo(const char *name, size_t size, MEMFILE *stream)
   mem_fwrite(&fileinfo, 1, sizeof(fileinfo), stream);
 
   filepos += size;
+  return filepos;
 }
 
 static void G_AddDemoFooter(void)
@@ -4547,10 +4546,11 @@ static void G_AddDemoFooter(void)
   mem_fwrite(&header, 1, sizeof(header), stream);
   mem_fseek(stream, 0, MEM_SEEK_END);
 
-  WriteFileInfo("PORTNAME", strlen(PROJECT_STRING), stream);
-  WriteFileInfo(NULL, strlen(DEMO_FOOTER_SEPARATOR), stream);
-  WriteFileInfo("CMDLINE", size, stream);
-  WriteFileInfo(NULL, strlen(DEMO_FOOTER_SEPARATOR), stream);
+  long filepos = sizeof(wadinfo_t);
+  filepos = WriteFileInfo("PORTNAME", strlen(PROJECT_STRING), filepos, stream);
+  filepos = WriteFileInfo(NULL, strlen(DEMO_FOOTER_SEPARATOR), filepos, stream);
+  filepos = WriteFileInfo("CMDLINE", size, filepos, stream);
+  WriteFileInfo(NULL, strlen(DEMO_FOOTER_SEPARATOR), filepos, stream);
 
   mem_get_buf(stream, (void **)&data, &size);
 

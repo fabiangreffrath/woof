@@ -99,6 +99,16 @@ if(ENABLE_ASAN)
     _checked_add_link_option(-fsanitize=address)
 endif()
 
+option(ENABLE_UBSAN "Enable UBSan" OFF)
+if(ENABLE_UBSAN)
+    # Set -Werror to catch "argument unused during compilation" warnings.
+    # Also needs to be a link flag for test to pass.
+    set(CMAKE_REQUIRED_FLAGS "-Werror -fsanitize=undefined")
+    _checked_add_compile_option(-fsanitize=undefined)
+    unset(CMAKE_REQUIRED_FLAGS)
+    _checked_add_link_option(-fsanitize=undefined)
+endif()
+
 option(ENABLE_TSAN "Enable TSan" OFF)
 if(ENABLE_TSAN)
     # Set -Werror to catch "argument unused during compilation" warnings.

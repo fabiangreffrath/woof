@@ -16,6 +16,7 @@
 
 #include <stdint.h>
 #include <stdlib.h>
+#include <string.h>
 
 #include "d_iwad.h"
 #include "doomdef.h"
@@ -85,6 +86,12 @@ static const char *hacx_skills[] =
 static const char *rekkr_skills[] =
 {
     "Scrapper", "Brawler", "Fighter", "Wrecker", "BERSERKER"
+};
+
+static const char *freedoom_skills[] =
+{
+    "Please don't kill me!", "Will this hurt?", "Bring on the pain.",
+    "Extreme carnage.", "MAYHEM!",
 };
 
 static const char *gamemodes[] = { "Co-operative", "Deathmatch",
@@ -290,6 +297,9 @@ static void UpdateSkillButton(void)
             break;
         case pack_rekkr:
             skillbutton->values = rekkr_skills;
+            break;
+        case pack_freedoom:
+            skillbutton->values = freedoom_skills;
             break;
         default:
             skillbutton->values = doom_skills;

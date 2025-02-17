@@ -460,7 +460,8 @@ void D_PageTicker(void)
 
 void D_PageDrawer(void)
 {
-  V_DrawPatchFullScreen(V_CachePatchName(pagename, PU_CACHE));
+  V_DrawPatchFullScreen(
+    V_CachePatchName(W_CheckWidescreenPatch(pagename), PU_CACHE));
 }
 
 //
@@ -1344,12 +1345,17 @@ static void AutoLoadWADs(const char *path)
 
 static void LoadIWadBase(void)
 {
-    GameMission_t local_gamemission =
-        D_GetGameMissionByIWADName(M_BaseName(wadfiles[0]));
+    GameMode_t local_gamemode;
+    GameMission_t local_gamemission;
+    D_GetModeAndMissionByIWADName(M_BaseName(wadfiles[0]), &local_gamemode, &local_gamemission);
 
     if (local_gamemission < pack_chex)
     {
         W_AddBaseDir("doom-all");
+    }
+    else if (local_gamemission == pack_chex || local_gamemission == pack_chex3v)
+    {
+        W_AddBaseDir("chex-all");
     }
     if (local_gamemission == doom)
     {
@@ -1360,13 +1366,26 @@ static void LoadIWadBase(void)
     {
         W_AddBaseDir("doom2-all");
     }
+    else if (local_gamemission == pack_freedoom)
+    {
+        W_AddBaseDir("freedoom-all");
+        if (local_gamemode == commercial)
+        {
+            W_AddBaseDir("freedoom2-all");
+        }
+        else
+        {
+            W_AddBaseDir("freedoom1-all");
+        }
+    }
     W_AddBaseDir(M_BaseName(wadfiles[0]));
 }
 
 static void AutoloadIWadDir(void (*AutoLoadFunc)(const char *path))
 {
-    GameMission_t local_gamemission =
-        D_GetGameMissionByIWADName(M_BaseName(wadfiles[0]));
+    GameMode_t local_gamemode;
+    GameMission_t local_gamemission;
+    D_GetModeAndMissionByIWADName(M_BaseName(wadfiles[0]), &local_gamemode, &local_gamemission);
 
     for (int i = 0; i < array_size(autoload_paths); ++i)
     {
@@ -1383,6 +1402,12 @@ static void AutoloadIWadDir(void (*AutoLoadFunc)(const char *path))
                 AutoLoadFunc(dir);
                 free(dir);
             }
+            else if (local_gamemission == pack_chex || local_gamemission == pack_chex3v)
+            {
+                dir = GetAutoloadDir(autoload_paths[i], "chex-all", true);
+                AutoLoadFunc(dir);
+                free(dir);
+            }
 
             if (local_gamemission == doom)
             {
@@ -1396,6 +1421,24 @@ static void AutoloadIWadDir(void (*AutoLoadFunc)(const char *path))
                 dir = GetAutoloadDir(autoload_paths[i], "doom2-all", true);
                 AutoLoadFunc(dir);
                 free(dir);
+            }
+            else if (local_gamemission == pack_freedoom)
+            {
+                dir = GetAutoloadDir(autoload_paths[i], "freedoom-all", true);
+                AutoLoadFunc(dir);
+                free(dir);
+                if (local_gamemode == commercial)
+                {
+                    dir = GetAutoloadDir(autoload_paths[i], "freedoom2-all", true);
+                    AutoLoadFunc(dir);
+                    free(dir);
+                }
+                else
+                {
+                    dir = GetAutoloadDir(autoload_paths[i], "freedoom1-all", true);
+                    AutoLoadFunc(dir);
+                    free(dir);
+                }
             }
         }
 
@@ -1584,7 +1627,7 @@ static void D_ShowEndDoom(void)
 
 boolean disable_endoom = false;
 
-static boolean AllowEndDoom(void)
+boolean D_AllowEndDoom(void)
 {
   return (!disable_endoom
           && (exit_sequence == EXIT_SEQUENCE_FULL
@@ -1594,7 +1637,7 @@ static boolean AllowEndDoom(void)
 static void D_EndDoom(void)
 {
   // Do we even want to show an ENDOOM?
-  if (!AllowEndDoom())
+  if (!D_AllowEndDoom())
   {
     return;
   }

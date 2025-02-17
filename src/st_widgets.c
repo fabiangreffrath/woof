@@ -34,6 +34,7 @@
 #include "m_config.h"
 #include "m_input.h"
 #include "m_misc.h"
+#include "mn_menu.h"
 #include "p_mobj.h"
 #include "p_spec.h"
 #include "r_main.h"
@@ -132,7 +133,7 @@ static void UpdateMessage(sbe_widget_t *widget, player_t *player)
     }
 }
 
-static char announce_string[HU_MAXLINELENGTH];
+static char announce_string[HU_MAXLINELENGTH], author_string[HU_MAXLINELENGTH];
 
 static void UpdateAnnounceMessage(sbe_widget_t *widget, player_t *player)
 {
@@ -162,6 +163,7 @@ static void UpdateAnnounceMessage(sbe_widget_t *widget, player_t *player)
     }
     else if (player->secretmessage)
     {
+        author_string[0] = '\0';
         state = announce_secret;
         widget->duration_left = widget->duration;
         M_snprintf(string, sizeof(string), GOLD_S "%s" ORIG_S,
@@ -172,6 +174,10 @@ static void UpdateAnnounceMessage(sbe_widget_t *widget, player_t *player)
     if (widget->duration_left > 0)
     {
         ST_AddLine(widget, string);
+        if (author_string[0])
+        {
+            ST_AddLine(widget, author_string);
+        }
         --widget->duration_left;
     }
     else
@@ -645,16 +651,23 @@ void ST_ResetTitle(void)
                '0' + hudcolor_titl, string);
 
     announce_string[0] = '\0';
+    author_string[0] = '\0';
     if (hud_map_announce && leveltime == 0)
     {
         if (gamemapinfo && gamemapinfo->author)
         {
             M_snprintf(announce_string, sizeof(announce_string), "%s by %s",
                        string, gamemapinfo->author);
+            if (MN_StringWidth(announce_string) > SCREENWIDTH) 
+            {
+                M_StringCopy(announce_string, string, sizeof(announce_string));
+                M_snprintf(author_string, sizeof(author_string), "by %s",
+                           gamemapinfo->author);
+            }
         }
         else
         {
-            M_snprintf(announce_string, sizeof(announce_string), "%s", string);
+            M_StringCopy(announce_string, string, sizeof(announce_string));
         }
     }
 }
@@ -717,15 +730,31 @@ static void UpdateCoord(sbe_widget_t *widget, player_t *player)
     // killough 10/98: allow coordinates to display non-following pointer
     AM_Coordinates(player->mo, &x, &y, &z);
 
-    static char string[80];
-
-    // jff 2/16/98 output new coord display
-    M_snprintf(string, sizeof(string),
-               "\x1b%cX " GRAY_S "%d \x1b%cY " GRAY_S "%d \x1b%cZ " GRAY_S "%d",
-               '0' + hudcolor_xyco, x >> FRACBITS, '0' + hudcolor_xyco,
-               y >> FRACBITS, '0' + hudcolor_xyco, z >> FRACBITS);
-
-    ST_AddLine(widget, string);
+    if (!widget->vertical)
+    {
+        static char string[80];
+        // jff 2/16/98 output new coord display
+        M_snprintf(string, sizeof(string),
+                   "\x1b%cX " GRAY_S "%d \x1b%cY " GRAY_S "%d \x1b%cZ " GRAY_S "%d",
+                   '0' + hudcolor_xyco, x >> FRACBITS, '0' + hudcolor_xyco,
+                   y >> FRACBITS, '0' + hudcolor_xyco, z >> FRACBITS);
+        ST_AddLine(widget, string);
+    }
+    else
+    {
+        static char string1[16];
+        M_snprintf(string1, sizeof(string1), "\x1b%cX " GRAY_S "%d",
+                   '0' + hudcolor_xyco, x >> FRACBITS);
+        ST_AddLine(widget, string1);
+        static char string2[16];
+        M_snprintf(string2, sizeof(string2), "\x1b%cY " GRAY_S "%d",
+                   '0' + hudcolor_xyco, y >> FRACBITS);
+        ST_AddLine(widget, string2);
+        static char string3[16];
+        M_snprintf(string3, sizeof(string3), "\x1b%cZ " GRAY_S "%d",
+                   '0' + hudcolor_xyco, z >> FRACBITS);
+        ST_AddLine(widget, string3);
+    }
 }
 
 typedef enum
@@ -788,8 +817,6 @@ static void UpdateMonSec(sbe_widget_t *widget)
 
     ForceDoomFont(widget);
 
-    static char string[120];
-
     const int cr_blue = (widget->font == stcfnt) ? CR_BLUE2 : CR_BLUE1;
 
     int fullkillcount = 0;
@@ -829,13 +856,28 @@ static void UpdateMonSec(sbe_widget_t *widget)
     StatsFormatFunc(item_str, sizeof(item_str), fullitemcount, totalitems);
     StatsFormatFunc(secret_str, sizeof(secret_str), fullsecretcount, totalsecret);
 
-    M_snprintf(string, sizeof(string),
-        RED_S "K \x1b%c%s " RED_S "I \x1b%c%s " RED_S "S \x1b%c%s",
-        killcolor, kill_str,
-        itemcolor, item_str,
-        secretcolor, secret_str);
-
-    ST_AddLine(widget, string);
+    if (!widget->vertical)
+    {
+        static char string[80];
+        M_snprintf(string, sizeof(string),
+            RED_S "K \x1b%c%s " RED_S "I \x1b%c%s " RED_S "S \x1b%c%s",
+            killcolor, kill_str,
+            itemcolor, item_str,
+            secretcolor, secret_str);
+        ST_AddLine(widget, string);
+    }
+    else
+    {
+        static char string1[16];
+        M_snprintf(string1, sizeof(string1), RED_S "K \x1b%c%s", killcolor, kill_str);
+        ST_AddLine(widget, string1);
+        static char string2[16];
+        M_snprintf(string2, sizeof(string2), RED_S "I \x1b%c%s", itemcolor, item_str);
+        ST_AddLine(widget, string2);
+        static char string3[16];
+        M_snprintf(string3, sizeof(string3), RED_S "S \x1b%c%s", secretcolor, secret_str);
+        ST_AddLine(widget, string3);
+    }
 }
 
 static void UpdateDM(sbe_widget_t *widget)
@@ -894,7 +936,7 @@ static void UpdateStTime(sbe_widget_t *widget, player_t *player)
 {
     ST_ClearLines(widget);
 
-    if (!WidgetEnabled(hud_level_time))
+    if (!WidgetEnabled(hud_level_time) && !player->btuse_tics)
     {
         return;
     }
@@ -905,40 +947,42 @@ static void UpdateStTime(sbe_widget_t *widget, player_t *player)
 
     int offset = 0;
 
-    if (time_scale != 100)
+    if (WidgetEnabled(hud_level_time))
     {
-        offset +=
-            M_snprintf(string, sizeof(string), "%s%d%% ",
-                       (widget->font == stcfnt) ? BLUE2_S : BLUE1_S, time_scale);
+        if (time_scale != 100)
+        {
+            offset +=
+                M_snprintf(string, sizeof(string), "%s%d%% ",
+                           (widget->font == stcfnt) ? BLUE2_S : BLUE1_S, time_scale);
+        }
+
+        if (levelTimer == true)
+        {
+            const int time = levelTimeCount / TICRATE;
+
+            offset += M_snprintf(string + offset, sizeof(string) - offset,
+                                 BROWN_S "%d:%02d ", time / 60, time % 60);
+        }
+        else if (totalleveltimes)
+        {
+            const int time = (totalleveltimes + leveltime) / TICRATE;
+
+            offset += M_snprintf(string + offset, sizeof(string) - offset,
+                                 GREEN_S "%d:%02d ", time / 60, time % 60);
+        }
     }
 
-    if (levelTimer == true)
-    {
-        const int time = levelTimeCount / TICRATE;
-
-        offset += M_snprintf(string + offset, sizeof(string) - offset,
-                             BROWN_S "%d:%02d ", time / 60, time % 60);
-    }
-    else if (totalleveltimes)
-    {
-        const int time = (totalleveltimes + leveltime) / TICRATE;
-
-        offset += M_snprintf(string + offset, sizeof(string) - offset,
-                             GREEN_S "%d:%02d ", time / 60, time % 60);
-    }
-
-    if (!player->btuse_tics)
-    {
-        M_snprintf(string + offset, sizeof(string) - offset,
-                   GRAY_S "%d:%05.2f\t", leveltime / TICRATE / 60,
-                   (float)(leveltime % (60 * TICRATE)) / TICRATE);
-    }
-    else
+    if (player->btuse_tics)
     {
         M_snprintf(string + offset, sizeof(string) - offset,
                    GOLD_S "U %d:%05.2f\t", player->btuse / TICRATE / 60,
                    (float)(player->btuse % (60 * TICRATE)) / TICRATE);
-        player->btuse_tics--;
+    }
+    else
+    {
+        M_snprintf(string + offset, sizeof(string) - offset,
+                   GRAY_S "%d:%05.2f\t", leveltime / TICRATE / 60,
+                   (float)(leveltime % (60 * TICRATE)) / TICRATE);
     }
 
     ST_AddLine(widget, string);
@@ -1228,7 +1272,7 @@ void ST_BindHUDVariables(void)
   M_BindBool("hud_time_use", &hud_time_use, NULL, false, ss_stat, wad_no,
              "Show split time when pressing the use-button");
   M_BindNum("hud_widget_font", &hud_widget_font, NULL,
-            HUD_WIDGET_OFF, HUD_WIDGET_OFF, HUD_WIDGET_ALWAYS,
+            HUD_WIDGET_AUTOMAP, HUD_WIDGET_OFF, HUD_WIDGET_ALWAYS,
             ss_stat, wad_no,
             "Use standard Doom font for widgets (1 = On automap; 2 = On HUD; 3 "
             "= Always)");

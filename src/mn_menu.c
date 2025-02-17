@@ -101,7 +101,7 @@ static int saveCharIndex; // which char we're editing
 static char saveOldString[SAVESTRINGSIZE];
 
 boolean menuactive; // The menus are up
-
+static boolean mouse_active_thermo;
 static boolean options_active;
 
 backdrop_t menu_backdrop;
@@ -434,7 +434,8 @@ static void M_FinishHelp(int choice) // killough 10/98
 
 static void M_DrawReadThis1(void)
 {
-    V_DrawPatchFullScreen(V_CachePatchName("HELP2", PU_CACHE));
+    V_DrawPatchFullScreen(
+        V_CachePatchName(W_CheckWidescreenPatch("HELP2"), PU_CACHE));
 }
 
 //
@@ -447,12 +448,14 @@ static void M_DrawReadThis2(void)
     // We only ever draw the second page if this is
     // gameversion == exe_doom_1_9 and gamemode == registered
 
-    V_DrawPatchFullScreen(V_CachePatchName("HELP1", PU_CACHE));
+    V_DrawPatchFullScreen(
+        V_CachePatchName(W_CheckWidescreenPatch("HELP1"), PU_CACHE));
 }
 
 static void M_DrawReadThisCommercial(void)
 {
-    V_DrawPatchFullScreen(V_CachePatchName("HELP", PU_CACHE));
+    V_DrawPatchFullScreen(
+        V_CachePatchName(W_CheckWidescreenPatch("HELP"), PU_CACHE));
 }
 
 /////////////////////////////
@@ -1915,11 +1918,11 @@ static void M_DrawHelp(void)
     int helplump;
     if (gamemode == commercial)
     {
-        helplump = W_CheckNumForName("HELP");
+        helplump = W_CheckNumForName(W_CheckWidescreenPatch("HELP"));
     }
     else
     {
-        helplump = W_CheckNumForName("HELP1");
+        helplump = W_CheckNumForName(W_CheckWidescreenPatch("HELP1"));
     }
 
     V_DrawPatchFullScreen(V_CachePatchNum(helplump, PU_CACHE));
@@ -2155,6 +2158,7 @@ static void M_Setup(int choice)
 void MN_ClearMenus(void)
 {
     menuactive = 0;
+    mouse_active_thermo = false;
     options_active = false;
     print_warning_about_changes = 0; // killough 8/15/98
     default_verify = 0;              // killough 10/98
@@ -2841,18 +2845,16 @@ static boolean MouseResponder(void)
         return false;
     }
 
-    static boolean active_thermo;
-
     if (M_InputActivated(input_menu_enter))
     {
-        active_thermo = true;
+        mouse_active_thermo = true;
     }
     else if (M_InputDeactivated(input_menu_enter))
     {
-        active_thermo = false;
+        mouse_active_thermo = false;
     }
 
-    if (active_thermo)
+    if (mouse_active_thermo)
     {
         int dot = mouse_state_x - (rect->x + M_THRM_STEP + video.deltaw);
         int step = M_MAX_VOL * FRACUNIT / (rect->w - M_THRM_STEP * 3);
