@@ -936,7 +936,7 @@ static void UpdateStTime(sbe_widget_t *widget, player_t *player)
 {
     ST_ClearLines(widget);
 
-    if (!WidgetEnabled(hud_level_time))
+    if (!WidgetEnabled(hud_level_time) && !player->btuse_tics)
     {
         return;
     }
@@ -947,40 +947,42 @@ static void UpdateStTime(sbe_widget_t *widget, player_t *player)
 
     int offset = 0;
 
-    if (time_scale != 100)
+    if (WidgetEnabled(hud_level_time))
     {
-        offset +=
-            M_snprintf(string, sizeof(string), "%s%d%% ",
-                       (widget->font == stcfnt) ? BLUE2_S : BLUE1_S, time_scale);
+        if (time_scale != 100)
+        {
+            offset +=
+                M_snprintf(string, sizeof(string), "%s%d%% ",
+                           (widget->font == stcfnt) ? BLUE2_S : BLUE1_S, time_scale);
+        }
+
+        if (levelTimer == true)
+        {
+            const int time = levelTimeCount / TICRATE;
+
+            offset += M_snprintf(string + offset, sizeof(string) - offset,
+                                 BROWN_S "%d:%02d ", time / 60, time % 60);
+        }
+        else if (totalleveltimes)
+        {
+            const int time = (totalleveltimes + leveltime) / TICRATE;
+
+            offset += M_snprintf(string + offset, sizeof(string) - offset,
+                                 GREEN_S "%d:%02d ", time / 60, time % 60);
+        }
     }
 
-    if (levelTimer == true)
-    {
-        const int time = levelTimeCount / TICRATE;
-
-        offset += M_snprintf(string + offset, sizeof(string) - offset,
-                             BROWN_S "%d:%02d ", time / 60, time % 60);
-    }
-    else if (totalleveltimes)
-    {
-        const int time = (totalleveltimes + leveltime) / TICRATE;
-
-        offset += M_snprintf(string + offset, sizeof(string) - offset,
-                             GREEN_S "%d:%02d ", time / 60, time % 60);
-    }
-
-    if (!player->btuse_tics)
-    {
-        M_snprintf(string + offset, sizeof(string) - offset,
-                   GRAY_S "%d:%05.2f\t", leveltime / TICRATE / 60,
-                   (float)(leveltime % (60 * TICRATE)) / TICRATE);
-    }
-    else
+    if (player->btuse_tics)
     {
         M_snprintf(string + offset, sizeof(string) - offset,
                    GOLD_S "U %d:%05.2f\t", player->btuse / TICRATE / 60,
                    (float)(player->btuse % (60 * TICRATE)) / TICRATE);
-        player->btuse_tics--;
+    }
+    else
+    {
+        M_snprintf(string + offset, sizeof(string) - offset,
+                   GRAY_S "%d:%05.2f\t", leveltime / TICRATE / 60,
+                   (float)(leveltime % (60 * TICRATE)) / TICRATE);
     }
 
     ST_AddLine(widget, string);

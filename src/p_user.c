@@ -509,7 +509,7 @@ void P_PlayerThink (player_t* player)
 	  {
 	    // to match the timer, we use the leveltime value at the end of the frame
 	    player->btuse = leveltime + 1;
-	    player->btuse_tics = 5*TICRATE/2; // [crispy] 2.5 seconds
+	    player->btuse_tics = 5*TICRATE/2 + 1; // [crispy] 2.5 seconds
 	  }
 	}
     }
@@ -521,6 +521,9 @@ void P_PlayerThink (player_t* player)
   P_MovePsprites (player);
 
   // Counters, time dependent power ups.
+
+  if (player->btuse_tics > 0)
+    player->btuse_tics--;
 
   // Strength counts up to diminish fade.
 
