@@ -1864,7 +1864,6 @@ static setup_menu_t stat_settings1[] = {
 };
 
 static void UpdateStatsFormatItem(void);
-static void UpdateUseButtonItem(void);
 
 static const char *show_widgets_strings[] = {"Off", "Automap", "HUD", "Always"};
 static const char *show_adv_widgets_strings[] = {"Off", "Automap", "HUD",
@@ -1882,13 +1881,15 @@ static setup_menu_t stat_settings2[] = {
      .strings_id = str_show_widgets, .action = UpdateStatsFormatItem},
 
     {"Show Level Time", S_CHOICE, H_X, M_SPC, {"hud_level_time"},
-     .strings_id = str_show_widgets, .action = UpdateUseButtonItem},
+     .strings_id = str_show_widgets},
 
     {"Show Player Coords", S_CHOICE | S_STRICT, H_X, M_SPC,
      {"hud_player_coords"}, .strings_id = str_show_adv_widgets},
 
     {"Show Command History", S_ONOFF | S_STRICT, H_X, M_SPC,
      {"hud_command_history"}, .action = HU_ResetCommandHistory},
+
+    {"Show Use-Button Timer", S_ONOFF, H_X, M_SPC, {"hud_time_use"}},
 
     MI_GAP,
 
@@ -1899,8 +1900,6 @@ static setup_menu_t stat_settings2[] = {
 
     {"Level Stats Format", S_CHOICE, H_X, M_SPC, {"hud_stats_format"},
      .strings_id = str_stats_format},
-
-    {"Use-Button Timer", S_ONOFF, H_X, M_SPC, {"hud_time_use"}},
 
     MI_END
 };
@@ -1960,11 +1959,6 @@ static setup_menu_t *stat_settings[] = {stat_settings1, stat_settings2,
 static void UpdateStatsFormatItem(void)
 {
   DisableItem(!hud_level_stats, stat_settings2, "hud_stats_format");
-}
-
-static void UpdateUseButtonItem(void)
-{
-    DisableItem(!hud_level_time, stat_settings2, "hud_time_use");
 }
 
 static void UpdateCrosshairItems(void)
@@ -4474,6 +4468,13 @@ boolean MN_SetupResponder(menu_action_t action, int ch)
 
     if (action == MENU_ESCAPE || action == MENU_BACKSPACE)
     {
+        if (active_thermo && setup_cancel != -1)
+        {
+            default_t *def = active_thermo->var.def;
+            *def->location.i = setup_cancel;
+            setup_cancel = -1;
+        }
+
         SetItemOn(set_item_on);
         SetPageIndex(current_page);
 
@@ -4591,6 +4592,7 @@ boolean MN_SetupMouseResponder(int x, int y)
             }
         }
         active_thermo = NULL;
+        setup_cancel = -1;
     }
 
     if (M_InputActivated(input_menu_enter))
@@ -4623,6 +4625,11 @@ boolean MN_SetupMouseResponder(int x, int y)
         if (M_InputActivated(input_menu_enter))
         {
             active_thermo = current_item;
+
+            if (flags & S_ACTION && setup_cancel == -1)
+            {
+                setup_cancel = *def->location.i;
+            }
         }
     }
 
@@ -4940,7 +4947,6 @@ void MN_SetupResetMenu(void)
     DisableItem(M_ParmExists("-save"), gen_settings6, "organize_savefiles");
     UpdateInterceptsEmuItem();
     UpdateStatsFormatItem();
-    UpdateUseButtonItem();
     UpdateCrosshairItems();
     UpdateCenteredWeaponItem();
     UpdateGamepadItems();
