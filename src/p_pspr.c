@@ -279,6 +279,10 @@ int P_SwitchWeapon(player_t *player)
   if (mbf21)
     return P_SwitchWeaponMBF21(player);
 
+  // Fix weapon switch logic in vanilla (example: chainsaw with ammo)
+  if (demo_compatibility)
+    currentweapon = newweapon = wp_nochange;
+
   // killough 2/8/98: follow preferences and fix BFG/SSG bugs
 
   do
