@@ -1347,13 +1347,19 @@ static void LoadIWadBase(void)
 {
     GameMode_t local_gamemode;
     GameMission_t local_gamemission;
-    D_GetModeAndMissionByIWADName(M_BaseName(wadfiles[0]), &local_gamemode, &local_gamemission);
+    D_GetModeAndMissionByIWADName(M_BaseName(wadfiles[0]), &local_gamemode,
+                                  &local_gamemission);
+
+    if (local_gamemission == none || local_gamemode == indetermined)
+    {
+        return;
+    }
 
     if (local_gamemission < pack_chex)
     {
         W_AddBaseDir("doom-all");
     }
-    else if (local_gamemission == pack_chex || local_gamemission == pack_chex3v)
+    if (local_gamemission == pack_chex || local_gamemission == pack_chex3v)
     {
         W_AddBaseDir("chex-all");
     }
@@ -1361,8 +1367,7 @@ static void LoadIWadBase(void)
     {
         W_AddBaseDir("doom1-all");
     }
-    else if (local_gamemission >= doom2
-             && local_gamemission <= pack_plut)
+    else if (local_gamemission >= doom2 && local_gamemission <= pack_plut)
     {
         W_AddBaseDir("doom2-all");
     }
