@@ -592,6 +592,7 @@ void S_UpdateSounds(const mobj_t *listener)
     }
 
     I_DeferSoundUpdates();
+    I_UpdateListenerParams(listener);
 
     for (cnum = 0; cnum < snd_channels; ++cnum)
     {
@@ -634,7 +635,6 @@ void S_UpdateSounds(const mobj_t *listener)
         }
     }
 
-    I_UpdateListenerParams(listener);
     I_ProcessSoundUpdates();
     I_UpdateRumble();
 }
