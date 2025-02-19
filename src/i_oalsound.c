@@ -735,6 +735,33 @@ void I_OAL_StopSound(int channel)
     alSourceStop(oal->sources[channel]);
 }
 
+void I_OAL_PauseSound(int channel)
+{
+    if (!oal)
+    {
+        return;
+    }
+
+    alSourcePause(oal->sources[channel]);
+}
+
+void I_OAL_ResumeSound(int channel)
+{
+    ALint state;
+
+    if (!oal)
+    {
+        return;
+    }
+
+    alGetSourcei(oal->sources[channel], AL_SOURCE_STATE, &state);
+
+    if (state == AL_PAUSED)
+    {
+        alSourcePlay(oal->sources[channel]);
+    }
+}
+
 boolean I_OAL_SoundIsPlaying(int channel)
 {
     ALint state;
@@ -747,6 +774,20 @@ boolean I_OAL_SoundIsPlaying(int channel)
     alGetSourcei(oal->sources[channel], AL_SOURCE_STATE, &state);
 
     return (state == AL_PLAYING);
+}
+
+boolean I_OAL_SoundIsPaused(int channel)
+{
+    ALint state;
+
+    if (!oal)
+    {
+        return false;
+    }
+
+    alGetSourcei(oal->sources[channel], AL_SOURCE_STATE, &state);
+
+    return (state == AL_PAUSED);
 }
 
 void I_OAL_SetVolume(int channel, int volume)

@@ -503,11 +503,51 @@ void S_UnlinkSound(mobj_t *origin)
     }
 }
 
+void S_PauseSound(void)
+{
+    if (nosfxparm)
+    {
+        return;
+    }
+
+    I_DeferSoundUpdates();
+
+    for (int cnum = 0; cnum < snd_channels; cnum++)
+    {
+        if (channels[cnum].sfxinfo)
+        {
+            I_PauseSound(channels[cnum].handle);
+        }
+    }
+
+    I_ProcessSoundUpdates();
+}
+
+void S_ResumeSound(void)
+{
+    if (nosfxparm)
+    {
+        return;
+    }
+
+    I_DeferSoundUpdates();
+
+    for (int cnum = 0; cnum < snd_channels; cnum++)
+    {
+        if (channels[cnum].sfxinfo)
+        {
+            I_ResumeSound(channels[cnum].handle);
+        }
+    }
+
+    I_ProcessSoundUpdates();
+}
+
 //
 // Stop and resume music, during game PAUSE.
 //
 
-void S_PauseSound(void)
+void S_PauseMusic(void)
 {
     if (mus_playing && !mus_paused)
     {
@@ -516,7 +556,7 @@ void S_PauseSound(void)
     }
 }
 
-void S_ResumeSound(void)
+void S_ResumeMusic(void)
 {
     if (mus_playing && mus_paused)
     {
@@ -586,8 +626,9 @@ void S_UpdateSounds(const mobj_t *listener)
 
                 I_UpdateRumbleParams(listener, c->origin, c->handle);
             }
-            else // if channel is allocated but sound has stopped, free it
+            else if (!I_SoundIsPaused(c->handle))
             {
+                // if channel is allocated but sound has stopped, free it
                 S_StopChannel(cnum);
             }
         }

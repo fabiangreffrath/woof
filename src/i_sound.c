@@ -332,6 +332,46 @@ void I_StopSound(int channel)
     StopChannel(channel);
 }
 
+void I_PauseSound(int channel)
+{
+    if (!snd_init || !sound_module->PauseSound)
+    {
+        return;
+    }
+
+#ifdef RANGECHECK
+    if (channel < 0 || channel >= MAX_CHANNELS)
+    {
+        I_Error("I_PauseSound: channel out of range");
+    }
+#endif
+
+    if (channelinfo[channel].enabled)
+    {
+        sound_module->PauseSound(channel);
+    }
+}
+
+void I_ResumeSound(int channel)
+{
+    if (!snd_init || !sound_module->ResumeSound)
+    {
+        return;
+    }
+
+#ifdef RANGECHECK
+    if (channel < 0 || channel >= MAX_CHANNELS)
+    {
+        I_Error("I_ResumeSound: channel out of range");
+    }
+#endif
+
+    if (channelinfo[channel].enabled)
+    {
+        sound_module->ResumeSound(channel);
+    }
+}
+
 //
 // I_SoundIsPlaying
 //
@@ -352,6 +392,23 @@ boolean I_SoundIsPlaying(int channel)
 #endif
 
     return sound_module->SoundIsPlaying(channel);
+}
+
+boolean I_SoundIsPaused(int channel)
+{
+    if (!snd_init || !sound_module->SoundIsPaused)
+    {
+        return false;
+    }
+
+#ifdef RANGECHECK
+    if (channel < 0 || channel >= MAX_CHANNELS)
+    {
+        I_Error("I_SoundIsPaused: channel out of range");
+    }
+#endif
+
+    return sound_module->SoundIsPaused(channel);
 }
 
 //

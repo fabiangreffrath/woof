@@ -253,6 +253,22 @@ static void M_ExtHelpNextScreen(int choice);
 static void M_ExtHelp(int choice);
 static void M_DrawExtHelp(void);
 
+static void M_PauseSound(void)
+{
+    if (!paused && gamestate == GS_LEVEL && !demoplayback && !netgame)
+    {
+        S_PauseSound();
+    }
+}
+
+static void M_ResumeSound(void)
+{
+    if (!paused && gamestate == GS_LEVEL && !demoplayback && !netgame)
+    {
+        S_ResumeSound();
+    }
+}
+
 //
 // SetNextMenu
 //
@@ -1700,12 +1716,14 @@ static void M_QuickLoad(void)
 {
     if (netgame && !demoplayback) // killough 5/26/98: add !demoplayback
     {
+        M_StartSound(sfx_swtchn);
         M_StartMessage(s_QLOADNET, NULL, false); // Ty 03/27/98 - externalized
         return;
     }
 
     if (demorecording) // killough 5/26/98: exclude during demo recordings
     {
+        M_StartSound(sfx_swtchn);
         M_StartMessage("you can't quickload\n"
                        "while recording a demo!\n\n" PRESSKEY,
                        NULL, false); // killough 5/26/98: not externalized
@@ -1746,6 +1764,7 @@ static void M_EndGameResponse(int ch)
     quickSaveSlot = -1;
 
     currentMenu->lastOn = itemOn;
+    S_StopChannels();
     MN_ClearMenus();
     D_StartTitle();
 }
@@ -2168,6 +2187,7 @@ void MN_ClearMenus(void)
 
     I_SetSensorEventState(false);
     G_ClearInput();
+    M_ResumeSound();
 }
 
 static boolean MenuBack(void)
@@ -2437,19 +2457,15 @@ boolean M_ShortcutResponder(const event_t *ev)
     if (M_InputActivated(input_help)) // Help key
     {
         MN_StartControlPanel();
-
         currentMenu = &HelpDef; // killough 10/98: new help screen
-
         currentMenu->prevMenu = NULL;
         itemOn = 0;
-        M_StartSound(sfx_swtchn);
         return true;
     }
 
     if (M_InputActivated(input_savegame)) // Save Game
     {
         MN_StartControlPanel();
-        M_StartSound(sfx_swtchn);
         M_SaveGame(0);
         return true;
     }
@@ -2457,7 +2473,6 @@ boolean M_ShortcutResponder(const event_t *ev)
     if (M_InputActivated(input_loadgame)) // Load Game
     {
         MN_StartControlPanel();
-        M_StartSound(sfx_swtchn);
         M_LoadGame(0);
         return true;
     }
@@ -2467,19 +2482,18 @@ boolean M_ShortcutResponder(const event_t *ev)
         MN_StartControlPanel();
         currentMenu = &SoundDef;
         itemOn = currentMenu->lastOn;
-        M_StartSound(sfx_swtchn);
         return true;
     }
 
     if (M_InputActivated(input_quicksave)) // Quicksave
     {
-        M_StartSound(sfx_swtchn);
         M_QuickSave();
         return true;
     }
 
     if (M_InputActivated(input_endgame)) // End game
     {
+        M_PauseSound();
         M_StartSound(sfx_swtchn);
         M_EndGame(0);
         return true;
@@ -2494,13 +2508,13 @@ boolean M_ShortcutResponder(const event_t *ev)
 
     if (M_InputActivated(input_quickload)) // Quickload
     {
-        M_StartSound(sfx_swtchn);
         M_QuickLoad();
         return true;
     }
 
     if (M_InputActivated(input_quit)) // Quit DOOM
     {
+        M_PauseSound();
         M_StartSound(sfx_swtchn);
         M_QuitDOOM(0);
         return true;
@@ -3088,6 +3102,7 @@ boolean M_Responder(event_t *ev)
         I_SetSensorEventState(false);
         G_ClearInput();
         menuactive = false;
+        M_ResumeSound();
         M_StartSound(sfx_swtchx);
         return true;
     }
@@ -3117,7 +3132,6 @@ boolean M_Responder(event_t *ev)
         {
             I_ShowMouseCursor(menu_input != pad_mode);
             MN_StartControlPanel();
-            M_StartSound(sfx_swtchn);
             return true;
         }
         return false;
@@ -3372,6 +3386,9 @@ void MN_StartControlPanel(void)
 
     I_SetSensorEventState(true);
     G_ClearInput();
+
+    M_PauseSound();
+    M_StartSound(sfx_swtchn);
 }
 
 //

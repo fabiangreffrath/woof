@@ -81,7 +81,10 @@ typedef struct sound_module_s
     void (*UpdateListenerParams)(const struct mobj_s *listener);
     boolean (*StartSound)(int channel, struct sfxinfo_s *sfx, float pitch);
     void (*StopSound)(int channel);
+    void (*PauseSound)(int channel);
+    void (*ResumeSound)(int channel);
     boolean (*SoundIsPlaying)(int channel);
+    boolean (*SoundIsPaused)(int channel);
     void (*ShutdownSound)(void);
     void (*ShutdownModule)(void);
     void (*DeferUpdates)(void);
@@ -118,10 +121,14 @@ int I_StartSound(struct sfxinfo_s *sound, int vol, int sep, int pitch);
 // Stops a sound channel.
 void I_StopSound(int handle);
 
+void I_PauseSound(int handle);
+void I_ResumeSound(int handle);
+
 // Called by S_*() functions
 //  to see if a channel is still playing.
 // Returns 0 if no longer playing, 1 if playing.
 boolean I_SoundIsPlaying(int handle);
+boolean I_SoundIsPaused(int handle);
 
 // Outputs adjusted volume, separation, and priority from the sound module.
 // Returns false if no sound should be played.
