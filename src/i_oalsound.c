@@ -41,8 +41,8 @@
 
 #define OAL_ROLLOFF_FACTOR      1
 #define OAL_SPEED_OF_SOUND      343.3f
-// 128 map units per 3 meters (https://doomwiki.org/wiki/Map_unit).
-#define OAL_MAP_UNITS_PER_METER (128.0f / 3.0f)
+// 16 mu/ft (https://www.doomworld.com/idgames/docs/editing/metrics)
+#define OAL_METERS_PER_MAP_UNIT 0.01905f
 #define OAL_SOURCE_RADIUS       32.0f
 #define OAL_DEFAULT_PITCH       1.0f
 
@@ -378,12 +378,12 @@ static void ResetParams(void)
     alListeneriv(AL_ORIENTATION, default_orientation);
     if (oal->EXT_EFX)
     {
-        alListenerf(AL_METERS_PER_UNIT, 1.0f / OAL_MAP_UNITS_PER_METER);
+        alListenerf(AL_METERS_PER_UNIT, OAL_METERS_PER_MAP_UNIT);
     }
 
     // Context state parameters.
     alDistanceModel(AL_INVERSE_DISTANCE_CLAMPED); // OpenAL 1.1 Specs, 3.4.2.
-    alSpeedOfSound(OAL_SPEED_OF_SOUND * OAL_MAP_UNITS_PER_METER);
+    alSpeedOfSound(OAL_SPEED_OF_SOUND / OAL_METERS_PER_MAP_UNIT);
 
     UpdateUserSoundSettings();
 }
