@@ -136,9 +136,6 @@ void I_UpdateListenerParams(const struct mobj_s *listener);
 void I_DeferSoundUpdates(void);
 void I_ProcessSoundUpdates(void);
 
-// haleyjds
-int I_SoundID(int handle);
-
 //
 //  MUSIC I/O
 //

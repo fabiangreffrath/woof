@@ -78,8 +78,6 @@ typedef struct
     sfxinfo_t *sfx;
 
     boolean enabled;
-    // haleyjd 06/16/08: unique id number
-    int idnum;
 } channel_info_t;
 
 static channel_info_t channelinfo[MAX_CHANNELS];
@@ -264,7 +262,6 @@ int I_GetSfxLumpNum(sfxinfo_t *sfx)
 //
 int I_StartSound(sfxinfo_t *sfx, int vol, int sep, int pitch)
 {
-    static unsigned int id = 0;
     int channel;
 
     if (!snd_init)
@@ -297,7 +294,6 @@ int I_StartSound(sfxinfo_t *sfx, int vol, int sep, int pitch)
 
     channelinfo[channel].sfx = sfx;
     channelinfo[channel].enabled = true;
-    channelinfo[channel].idnum = id++; // give the sound a unique id
 
     I_UpdateSoundParams(channel, vol, sep);
 
@@ -356,31 +352,6 @@ boolean I_SoundIsPlaying(int channel)
 #endif
 
     return sound_module->SoundIsPlaying(channel);
-}
-
-//
-// I_SoundID
-//
-// haleyjd: returns the unique id number assigned to a specific instance
-// of a sound playing on a given channel. This is required to make sure
-// that the higher-level sound code doesn't start updating sounds that have
-// been displaced without it noticing.
-//
-int I_SoundID(int channel)
-{
-    if (!snd_init)
-    {
-        return 0;
-    }
-
-#ifdef RANGECHECK
-    if (channel < 0 || channel >= MAX_CHANNELS)
-    {
-        I_Error("I_SoundID: channel out of range\n");
-    }
-#endif
-
-    return channelinfo[channel].idnum;
 }
 
 //

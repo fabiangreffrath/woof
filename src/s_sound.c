@@ -51,7 +51,6 @@ typedef struct channel_s
     int o_priority;       // haleyjd 09/27/06: stored priority value
     int priority;         // current priority value
     int singularity;      // haleyjd 09/27/06: stored singularity value
-    int idnum;            // haleyjd 09/30/06: unique id num for sound event
 } channel_t;
 
 // the set of channels available
@@ -315,7 +314,6 @@ static void StartSound(const mobj_t *origin, int sfx_id,
         channels[cnum].o_priority = o_priority; // original priority
         channels[cnum].priority = priority;     // scaled priority
         channels[cnum].singularity = singularity;
-        channels[cnum].idnum = I_SoundID(handle); // unique instance id
 
         if (rumble_type != RUMBLE_NONE)
         {
@@ -559,14 +557,6 @@ void S_UpdateSounds(const mobj_t *listener)
     {
         channel_t *c = &channels[cnum];
         sfxinfo_t *sfx = c->sfxinfo;
-
-        // haleyjd: has this software channel lost its hardware channel?
-        if (c->idnum != I_SoundID(c->handle))
-        {
-            // clear the channel and keep going
-            memset(c, 0, sizeof(channel_t));
-            continue;
-        }
 
         if (sfx)
         {
