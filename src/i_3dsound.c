@@ -86,11 +86,14 @@ static void CalcListenerParams(const mobj_t *listener,
     lis->position[1] = FIXED_TO_ALFLOAT(player->viewz);
     lis->position[2] = FIXED_TO_ALFLOAT(-listener->y);
 
-    if (oal_use_doppler)
+    if (oal_use_doppler && listener->interp == true)
     {
-        lis->velocity[0] = FIXED_TO_ALFLOAT(listener->momx) * TICRATE;
-        lis->velocity[1] = FIXED_TO_ALFLOAT(listener->momz) * TICRATE;
-        lis->velocity[2] = FIXED_TO_ALFLOAT(-listener->momy) * TICRATE;
+        lis->velocity[0] =
+            FIXED_TO_ALFLOAT(listener->x - listener->oldx) * TICRATE;
+        lis->velocity[1] =
+            FIXED_TO_ALFLOAT(listener->z - listener->oldz) * TICRATE;
+        lis->velocity[2] =
+            FIXED_TO_ALFLOAT(listener->oldy - listener->y) * TICRATE;
     }
     else
     {
