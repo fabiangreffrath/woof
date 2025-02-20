@@ -65,8 +65,8 @@ void I_ShutdownSound(void);
 //
 
 struct mobj_s;
-
 struct sfxinfo_s;
+struct sfxparams_s;
 
 typedef struct sound_module_s
 {
@@ -75,9 +75,9 @@ typedef struct sound_module_s
     boolean (*AllowReinitSound)(void);
     boolean (*CacheSound)(struct sfxinfo_s *sfx);
     boolean (*AdjustSoundParams)(const struct mobj_s *listener,
-                                 const struct mobj_s *source, int chanvol,
-                                 int *vol, int *sep, int *pri);
-    void (*UpdateSoundParams)(int channel, int vol, int sep);
+                                 const struct mobj_s *source,
+                                 struct sfxparams_s *params);
+    void (*UpdateSoundParams)(int channel, const struct sfxparams_s *params);
     void (*UpdateListenerParams)(const struct mobj_s *listener);
     boolean (*StartSound)(int channel, struct sfxinfo_s *sfx, float pitch);
     void (*StopSound)(int channel);
@@ -116,7 +116,8 @@ void I_SetChannels(void);
 int I_GetSfxLumpNum(struct sfxinfo_s *sfxinfo);
 
 // Starts a sound in a particular sound channel.
-int I_StartSound(struct sfxinfo_s *sound, int vol, int sep, int pitch);
+int I_StartSound(struct sfxinfo_s *sound, const struct sfxparams_s *params,
+                 int pitch);
 
 // Stops a sound channel.
 void I_StopSound(int handle);
@@ -133,12 +134,12 @@ boolean I_SoundIsPaused(int handle);
 // Outputs adjusted volume, separation, and priority from the sound module.
 // Returns false if no sound should be played.
 boolean I_AdjustSoundParams(const struct mobj_s *listener,
-                            const struct mobj_s *source, int chanvol, int *vol,
-                            int *sep, int *pri);
+                            const struct mobj_s *source,
+                            struct sfxparams_s *params);
 
 // Updates the volume, separation,
 //  and pitch of a sound channel.
-void I_UpdateSoundParams(int handle, int vol, int sep);
+void I_UpdateSoundParams(int handle, const struct sfxparams_s *params);
 void I_UpdateListenerParams(const struct mobj_s *listener);
 void I_DeferSoundUpdates(void);
 void I_ProcessSoundUpdates(void);

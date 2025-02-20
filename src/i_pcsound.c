@@ -381,8 +381,8 @@ static boolean I_PCS_CacheSound(sfxinfo_t *sfx)
 }
 
 static boolean I_PCS_AdjustSoundParams(const mobj_t *listener,
-                                       const mobj_t *source, int chanvol,
-                                       int *vol, int *sep, int *pri)
+                                       const mobj_t *source,
+                                       sfxparams_t *params)
 {
     fixed_t adx, ady;
     int approx_dist;
@@ -414,18 +414,19 @@ static boolean I_PCS_AdjustSoundParams(const mobj_t *listener,
     // volume calculation
     if (approx_dist < S_CLOSE_DIST)
     {
-        *vol = snd_SfxVolume;
+        params->volume = snd_SfxVolume;
     }
     else
     {
         // distance effect
-        *vol = snd_SfxVolume * (S_CLIPPING_DIST - approx_dist) / S_ATTENUATOR;
+        params->volume =
+            snd_SfxVolume * (S_CLIPPING_DIST - approx_dist) / S_ATTENUATOR;
     }
 
-    return (*vol > 0);
+    return (params->volume > 0);
 }
 
-static void I_PCS_UpdateSoundParams(int channel, int volume, int separation)
+static void I_PCS_UpdateSoundParams(int channel, const sfxparams_t *params)
 {
     // adjust PC Speaker volume
     alSourcef(callback_source, AL_GAIN, (float)snd_SfxVolume / 15);

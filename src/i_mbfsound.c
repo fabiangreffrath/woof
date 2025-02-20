@@ -28,30 +28,31 @@
 #include "m_fixed.h"
 #include "p_mobj.h"
 #include "r_main.h"
+#include "sounds.h"
 #include "tables.h"
 
 static boolean force_flip_pan;
 
 static boolean I_MBF_AdjustSoundParams(const mobj_t *listener,
-                                       const mobj_t *source, int chanvol,
-                                       int *vol, int *sep, int *pri)
+                                       const mobj_t *source,
+                                       sfxparams_t *params)
 {
     int adx, ady, dist;
     angle_t angle;
 
     // haleyjd 05/29/06: allow per-channel volume scaling
-    *vol = (snd_SfxVolume * chanvol) / 15;
+    params->volume = snd_SfxVolume * params->volume_scale / 15;
 
-    if (*vol < 1)
+    if (params->volume < 1)
     {
         return false;
     }
-    else if (*vol > 127)
+    else if (params->volume > 127)
     {
-        *vol = 127;
+        params->volume = 127;
     }
 
-    *sep = NORM_SEP;
+    params->separation = NORM_SEP;
 
     if (!source || source == players[displayplayer].mo)
     {
@@ -115,35 +116,38 @@ static boolean I_MBF_AdjustSoundParams(const mobj_t *listener,
         angle >>= ANGLETOFINESHIFT;
 
         // stereo separation
-        *sep -= FixedMul(S_STEREO_SWING, finesine[angle]);
+        params->separation -= FixedMul(S_STEREO_SWING, finesine[angle]);
     }
 
     // volume calculation
     if (dist > S_CLOSE_DIST)
     {
-        *vol = *vol * (S_CLIPPING_DIST - dist) / S_ATTENUATOR;
+        params->volume =
+            params->volume * (S_CLIPPING_DIST - dist) / S_ATTENUATOR;
     }
 
     // haleyjd 09/27/06: decrease priority with volume attenuation
-    *pri = *pri + (127 - *vol);
+    params->priority += (127 - params->volume);
 
-    if (*pri > 255) // cap to 255
+    if (params->priority > 255) // cap to 255
     {
-        *pri = 255;
+        params->priority = 255;
     }
 
-    return (*vol > 0);
+    return (params->volume > 0);
 }
 
-static void I_MBF_UpdateSoundParams(int channel, int volume, int separation)
+static void I_MBF_UpdateSoundParams(int channel, const sfxparams_t *params)
 {
+    int separation = params->separation;
+
     // SoM 7/1/02: forceFlipPan accounted for here
     if (force_flip_pan)
     {
         separation = 254 - separation;
     }
 
-    I_OAL_SetVolume(channel, volume);
+    I_OAL_SetVolume(channel, params->volume);
     I_OAL_SetPan(channel, separation);
 }
 

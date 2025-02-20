@@ -121,14 +121,14 @@ static void StopChannel(int channel)
 // Returns false if no sound should be played.
 //
 boolean I_AdjustSoundParams(const mobj_t *listener, const mobj_t *source,
-                            int chanvol, int *vol, int *sep, int *pri)
+                            sfxparams_t *params)
 {
     if (!snd_init)
     {
         return false;
     }
 
-    return sound_module->AdjustSoundParams(listener, source, chanvol, vol, sep, pri);
+    return sound_module->AdjustSoundParams(listener, source, params);
 }
 
 //
@@ -137,7 +137,7 @@ boolean I_AdjustSoundParams(const mobj_t *listener, const mobj_t *source,
 // Changes sound parameters in response to stereo panning and relative location
 // change.
 //
-void I_UpdateSoundParams(int channel, int volume, int separation)
+void I_UpdateSoundParams(int channel, const sfxparams_t *params)
 {
     if (!snd_init)
     {
@@ -151,7 +151,7 @@ void I_UpdateSoundParams(int channel, int volume, int separation)
     }
 #endif
 
-    sound_module->UpdateSoundParams(channel, volume, separation);
+    sound_module->UpdateSoundParams(channel, params);
 }
 
 void I_UpdateListenerParams(const mobj_t *listener)
@@ -260,7 +260,7 @@ int I_GetSfxLumpNum(sfxinfo_t *sfx)
 // active sounds, which is maintained as a given number
 // of internal channels. Returns a free channel.
 //
-int I_StartSound(sfxinfo_t *sfx, int vol, int sep, int pitch)
+int I_StartSound(sfxinfo_t *sfx, const sfxparams_t *params, int pitch)
 {
     int channel;
 
@@ -295,7 +295,7 @@ int I_StartSound(sfxinfo_t *sfx, int vol, int sep, int pitch)
     channelinfo[channel].sfx = sfx;
     channelinfo[channel].enabled = true;
 
-    I_UpdateSoundParams(channel, vol, sep);
+    I_UpdateSoundParams(channel, params);
 
     float step = (pitch == NORM_PITCH) ? 1.0f : steptable[pitch];
 

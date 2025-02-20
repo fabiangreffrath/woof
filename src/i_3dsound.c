@@ -209,7 +209,7 @@ static void CalcDistance(const mobj_t *listener, const mobj_t *source,
     }
 }
 
-static boolean CalcVolumePriority(int dist, int *vol, int *pri)
+static boolean CalcVolumePriority(int dist, sfxparams_t *params)
 {
     int pri_volume;
 
@@ -223,60 +223,48 @@ static boolean CalcVolumePriority(int dist, int *vol, int *pri)
     }
     else if (dist <= S_CLOSE_DIST)
     {
-        pri_volume = *vol;
+        pri_volume = params->volume;
     }
     else if (dist > S_ATTENUATOR)
     {
         // OpenAL inverse distance model never reaches zero volume. Gradually
         // ramp down the volume as the distance approaches the limit.
-        pri_volume = *vol * (S_CLIPPING_DIST - dist) / S_CLOSE_DIST;
-        *vol = pri_volume;
+        pri_volume = params->volume * (S_CLIPPING_DIST - dist) / S_CLOSE_DIST;
+        params->volume = pri_volume;
     }
     else
     {
         // Range where OpenAL inverse distance model applies. Calculate volume
         // for priority bookkeeping but let OpenAL handle the real volume.
         // Simplify formula for OAL_ROLLOFF_FACTOR = 1:
-        pri_volume = *vol * S_CLOSE_DIST / dist;
-        
+        pri_volume = params->volume * S_CLOSE_DIST / dist;
     }
 
     // Decrease priority with volume attenuation.
-    *pri += (127 - pri_volume);
+    params->priority += (127 - pri_volume);
 
-    if (*pri > 255)
+    if (params->priority > 255)
     {
-        *pri = 255;
+        params->priority = 255;
     }
 
     return (pri_volume > 0);
 }
 
-static boolean ScaleVolume(int chanvol, int *vol)
-{
-    *vol = (snd_SfxVolume * chanvol) / 15;
-
-    if (*vol < 1)
-    {
-        return false;
-    }
-    else if (*vol > 127)
-    {
-        *vol = 127;
-    }
-
-    return true;
-}
-
 static boolean I_3D_AdjustSoundParams(const mobj_t *listener,
-                                      const mobj_t *source, int chanvol,
-                                      int *vol, int *sep, int *pri)
+                                      const mobj_t *source, sfxparams_t *params)
 {
     int dist;
 
-    if (!ScaleVolume(chanvol, vol))
+    params->volume = snd_SfxVolume * params->volume_scale / 15;
+
+    if (params->volume < 1)
     {
         return false;
+    }
+    else if (params->volume > 127)
+    {
+        params->volume = 127;
     }
 
     if (!source || source == players[displayplayer].mo || !listener
@@ -288,7 +276,7 @@ static boolean I_3D_AdjustSoundParams(const mobj_t *listener,
 
     CalcDistance(listener, source, &src, &dist);
 
-    if (!CalcVolumePriority(dist, vol, pri))
+    if (!CalcVolumePriority(dist, params))
     {
         return false;
     }
@@ -299,14 +287,14 @@ static boolean I_3D_AdjustSoundParams(const mobj_t *listener,
     return true;
 }
 
-static void I_3D_UpdateSoundParams(int channel, int volume, int separation)
+static void I_3D_UpdateSoundParams(int channel, const sfxparams_t *params)
 {
     if (src.positional)
     {
         I_OAL_UpdateSourceParams(channel, src.position, src.velocity);
     }
 
-    I_OAL_SetVolume(channel, volume);
+    I_OAL_SetVolume(channel, params->volume);
 }
 
 static void I_3D_UpdateListenerParams(const mobj_t *listener)
