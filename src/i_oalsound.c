@@ -338,7 +338,7 @@ static void UpdateUserSoundSettings(void)
     if (oal_snd_module == SND_MODULE_3D)
     {
         oal->absorption = (ALfloat)snd_absorption / 2.0f;
-        alDopplerFactor((ALfloat)snd_doppler * snd_doppler / 100.0f);
+        alDopplerFactor((ALfloat)snd_doppler / 5.0f);
         oal_use_doppler = (snd_doppler > 0);
     }
     else
