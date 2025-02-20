@@ -46,7 +46,7 @@ typedef struct channel_s
 {
     sfxinfo_t *sfxinfo;   // sound information (if null, channel avail.)
     const mobj_t *origin; // origin of sound
-    int volume;           // volume scale value for effect -- haleyjd 05/29/06
+    int volume_scale;     // volume scale value for effect -- haleyjd 05/29/06
     int handle;           // handle of the sound being played
     int o_priority;       // haleyjd 09/27/06: stored priority value
     int priority;         // current priority value
@@ -212,9 +212,8 @@ static int S_getChannel(const mobj_t *origin, sfxinfo_t *sfxinfo, int priority,
 static void StartSound(const mobj_t *origin, int sfx_id,
                        pitchrange_t pitch_range, rumble_type_t rumble_type)
 {
-    int sep, pitch, o_priority, priority, singularity, cnum, handle;
-    int volumeScale = 127;
-    int volume = snd_SfxVolume;
+    int volume, sep, pitch, o_priority, priority, singularity, cnum, handle;
+    int volume_scale = 127;
     sfxinfo_t *sfx;
 
     // jff 1/22/98 return if sound is not enabled
@@ -250,7 +249,7 @@ static void StartSound(const mobj_t *origin, int sfx_id,
     // Check to see if it is audible, modify the params
     // killough 3/7/98, 4/25/98: code rearranged slightly
 
-    if (!S_AdjustSoundParams(players[displayplayer].mo, origin, volumeScale,
+    if (!S_AdjustSoundParams(players[displayplayer].mo, origin, volume_scale,
                              &volume, &sep, &priority))
     {
         return;
@@ -293,7 +292,6 @@ static void StartSound(const mobj_t *origin, int sfx_id,
 #endif
 
     channels[cnum].sfxinfo = sfx;
-    channels[cnum].origin = origin;
 
     while (sfx->link)
     {
@@ -306,11 +304,11 @@ static void StartSound(const mobj_t *origin, int sfx_id,
     // haleyjd: check to see if the sound was started
     if (handle >= 0)
     {
-        channels[cnum].handle = handle;
-
         // haleyjd 05/29/06: record volume scale value
         // haleyjd 09/27/06: store priority and singularity values (!!!)
-        channels[cnum].volume = volumeScale;
+        channels[cnum].origin = origin;
+        channels[cnum].handle = handle;
+        channels[cnum].volume_scale = volume_scale;
         channels[cnum].o_priority = o_priority; // original priority
         channels[cnum].priority = priority;     // scaled priority
         channels[cnum].singularity = singularity;
@@ -604,8 +602,7 @@ void S_UpdateSounds(const mobj_t *listener)
             if (I_SoundIsPlaying(c->handle))
             {
                 // initialize parameters
-                int volume = snd_SfxVolume;
-                int sep = NORM_SEP;
+                int volume, sep;
                 int pri = c->o_priority; // haleyjd 09/27/06: priority
 
                 // check non-local sounds for distance clipping
@@ -613,15 +610,16 @@ void S_UpdateSounds(const mobj_t *listener)
 
                 if (c->origin && listener != c->origin) // killough 3/20/98
                 {
-                    if (!S_AdjustSoundParams(listener, c->origin, c->volume,
-                                             &volume, &sep, &pri))
-                    {
-                        S_StopChannel(cnum);
-                    }
-                    else
+                    if (S_AdjustSoundParams(listener, c->origin,
+                                            c->volume_scale, &volume, &sep,
+                                            &pri))
                     {
                         I_UpdateSoundParams(c->handle, volume, sep);
                         c->priority = pri; // haleyjd
+                    }
+                    else
+                    {
+                        S_StopChannel(cnum);
                     }
                 }
 

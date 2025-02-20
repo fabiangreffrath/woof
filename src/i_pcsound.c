@@ -384,7 +384,8 @@ static boolean I_PCS_AdjustSoundParams(const mobj_t *listener,
                                        const mobj_t *source, int chanvol,
                                        int *vol, int *sep, int *pri)
 {
-    fixed_t adx, ady, approx_dist;
+    fixed_t adx, ady;
+    int approx_dist;
 
     if (!source || source == players[displayplayer].mo)
     {
@@ -403,9 +404,9 @@ static boolean I_PCS_AdjustSoundParams(const mobj_t *listener,
     ady = abs(listener->y - source->y);
 
     // From _GG1_ p.428. Appox. eucledian distance fast.
-    approx_dist = adx + ady - ((adx < ady ? adx : ady) >> 1);
+    approx_dist = (adx + ady - ((adx < ady ? adx : ady) >> 1)) >> FRACBITS;
 
-    if (approx_dist > S_CLIPPING_DIST)
+    if (approx_dist >= S_CLIPPING_DIST)
     {
         return false;
     }
@@ -418,8 +419,7 @@ static boolean I_PCS_AdjustSoundParams(const mobj_t *listener,
     else
     {
         // distance effect
-        *vol = (snd_SfxVolume * ((S_CLIPPING_DIST - approx_dist) >> FRACBITS))
-               / S_ATTENUATOR;
+        *vol = snd_SfxVolume * (S_CLIPPING_DIST - approx_dist) / S_ATTENUATOR;
     }
 
     return (*vol > 0);

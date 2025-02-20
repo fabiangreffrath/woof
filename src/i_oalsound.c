@@ -359,9 +359,8 @@ static void ResetParams(void)
     {
         I_OAL_ResetSource2D(i);
         alSource3i(oal->sources[i], AL_DIRECTION, 0, 0, 0);
+        alSourcei(oal->sources[i], AL_REFERENCE_DISTANCE, S_CLOSE_DIST);
         alSourcei(oal->sources[i], AL_MAX_DISTANCE, S_ATTENUATOR);
-        alSourcei(oal->sources[i], AL_REFERENCE_DISTANCE,
-                  S_CLOSE_DIST >> FRACBITS);
     }
     // Spatialization is required even for 2D panning emulation.
     if (oal->SOFT_source_spatialize)

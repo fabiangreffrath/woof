@@ -36,7 +36,7 @@ static boolean I_MBF_AdjustSoundParams(const mobj_t *listener,
                                        const mobj_t *source, int chanvol,
                                        int *vol, int *sep, int *pri)
 {
-    fixed_t adx, ady, dist;
+    int adx, ady, dist;
     angle_t angle;
 
     // haleyjd 05/29/06: allow per-channel volume scaling
@@ -75,20 +75,28 @@ static boolean I_MBF_AdjustSoundParams(const mobj_t *listener,
 
     if (ady > adx)
     {
-        dist = adx, adx = ady, ady = dist;
+        const int temp = adx;
+        adx = ady;
+        ady = temp;
     }
 
-    dist = adx ? FixedDiv(
-               adx, finesine[(tantoangle[FixedDiv(ady, adx) >> DBITS] + ANG90)
-                             >> ANGLETOFINESHIFT])
-               : 0;
+    if (adx)
+    {
+        const int slope = FixedDiv(ady, adx) >> DBITS;
+        const int angle = tantoangle[slope] >> ANGLETOFINESHIFT;
+        dist = FixedDiv(adx, finecosine[angle]);
+    }
+    else
+    {
+        dist = 0;
+    }
 
     if (!dist) // killough 11/98: handle zero-distance as special case
     {
         return true;
     }
 
-    if (dist > S_CLIPPING_DIST >> FRACBITS)
+    if (dist >= S_CLIPPING_DIST)
     {
         return false;
     }
@@ -107,13 +115,13 @@ static boolean I_MBF_AdjustSoundParams(const mobj_t *listener,
         angle >>= ANGLETOFINESHIFT;
 
         // stereo separation
-        *sep = NORM_SEP - FixedMul(S_STEREO_SWING >> FRACBITS, finesine[angle]);
+        *sep -= FixedMul(S_STEREO_SWING, finesine[angle]);
     }
 
     // volume calculation
-    if (dist > S_CLOSE_DIST >> FRACBITS)
+    if (dist > S_CLOSE_DIST)
     {
-        *vol = *vol * ((S_CLIPPING_DIST >> FRACBITS) - dist) / S_ATTENUATOR;
+        *vol = *vol * (S_CLIPPING_DIST - dist) / S_ATTENUATOR;
     }
 
     // haleyjd 09/27/06: decrease priority with volume attenuation
@@ -127,7 +135,7 @@ static boolean I_MBF_AdjustSoundParams(const mobj_t *listener,
     return (*vol > 0);
 }
 
-void I_MBF_UpdateSoundParams(int channel, int volume, int separation)
+static void I_MBF_UpdateSoundParams(int channel, int volume, int separation)
 {
     // SoM 7/1/02: forceFlipPan accounted for here
     if (force_flip_pan)

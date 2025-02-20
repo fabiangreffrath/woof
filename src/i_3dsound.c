@@ -45,7 +45,7 @@ typedef struct oal_source_params_s
 {
     ALfloat position[3];
     ALfloat velocity[3];
-    boolean use_3d;
+    boolean positional;
     boolean point_source;
     fixed_t z;
 } oal_source_params_t;
@@ -157,11 +157,11 @@ static void CalcSourceParams(const mobj_t *source, oal_source_params_t *src)
     }
 }
 
-static void CalcHypotenuse(fixed_t adx, fixed_t ady, fixed_t *dist)
+static void CalcHypotenuse(int adx, int ady, int *dist)
 {
     if (ady > adx)
     {
-        const fixed_t temp = adx;
+        const int temp = adx;
         adx = ady;
         ady = temp;
     }
@@ -179,13 +179,11 @@ static void CalcHypotenuse(fixed_t adx, fixed_t ady, fixed_t *dist)
 }
 
 static void CalcDistance(const mobj_t *listener, const mobj_t *source,
-                         oal_source_params_t *src, fixed_t *dist)
+                         oal_source_params_t *src, int *dist)
 {
-    const fixed_t adx =
-        abs((listener->x >> FRACBITS) - (source->x >> FRACBITS));
-    const fixed_t ady =
-        abs((listener->y >> FRACBITS) - (source->y >> FRACBITS));
-    fixed_t distxy;
+    const int adx = abs((listener->x >> FRACBITS) - (source->x >> FRACBITS));
+    const int ady = abs((listener->y >> FRACBITS) - (source->y >> FRACBITS));
+    int distxy;
 
     CalcHypotenuse(adx, ady, &distxy);
 
@@ -196,7 +194,7 @@ static void CalcDistance(const mobj_t *listener, const mobj_t *source,
 
     if (src->point_source)
     {
-        fixed_t adz;
+        int adz;
         // Vertical distance is from player's view to middle of source's sprite.
         src->z = source->z + (source->actualheight >> 1);
         adz = abs((listener->player->viewz >> FRACBITS) - (src->z >> FRACBITS));
@@ -211,7 +209,7 @@ static void CalcDistance(const mobj_t *listener, const mobj_t *source,
     }
 }
 
-static boolean CalcVolumePriority(fixed_t dist, int *vol, int *pri)
+static boolean CalcVolumePriority(int dist, int *vol, int *pri)
 {
     int pri_volume;
 
@@ -219,11 +217,11 @@ static boolean CalcVolumePriority(fixed_t dist, int *vol, int *pri)
     {
         return true;
     }
-    else if (dist >= (S_CLIPPING_DIST >> FRACBITS))
+    else if (dist >= S_CLIPPING_DIST)
     {
         return false;
     }
-    else if (dist <= (S_CLOSE_DIST >> FRACBITS))
+    else if (dist <= S_CLOSE_DIST)
     {
         pri_volume = *vol;
     }
@@ -231,8 +229,7 @@ static boolean CalcVolumePriority(fixed_t dist, int *vol, int *pri)
     {
         // OpenAL inverse distance model never reaches zero volume. Gradually
         // ramp down the volume as the distance approaches the limit.
-        pri_volume = *vol * ((S_CLIPPING_DIST >> FRACBITS) - dist)
-                     / (S_CLOSE_DIST >> FRACBITS);
+        pri_volume = *vol * (S_CLIPPING_DIST - dist) / S_CLOSE_DIST;
         *vol = pri_volume;
     }
     else
@@ -240,7 +237,8 @@ static boolean CalcVolumePriority(fixed_t dist, int *vol, int *pri)
         // Range where OpenAL inverse distance model applies. Calculate volume
         // for priority bookkeeping but let OpenAL handle the real volume.
         // Simplify formula for OAL_ROLLOFF_FACTOR = 1:
-        pri_volume = *vol * (S_CLOSE_DIST >> FRACBITS) / dist;
+        pri_volume = *vol * S_CLOSE_DIST / dist;
+        
     }
 
     // Decrease priority with volume attenuation.
@@ -274,7 +272,7 @@ static boolean I_3D_AdjustSoundParams(const mobj_t *listener,
                                       const mobj_t *source, int chanvol,
                                       int *vol, int *sep, int *pri)
 {
-    fixed_t dist;
+    int dist;
 
     if (!ScaleVolume(chanvol, vol))
     {
@@ -284,7 +282,7 @@ static boolean I_3D_AdjustSoundParams(const mobj_t *listener,
     if (!source || source == players[displayplayer].mo || !listener
         || !listener->player)
     {
-        src.use_3d = false;
+        src.positional = false;
         return true;
     }
 
@@ -295,7 +293,7 @@ static boolean I_3D_AdjustSoundParams(const mobj_t *listener,
         return false;
     }
 
-    src.use_3d = true;
+    src.positional = true;
     CalcSourceParams(source, &src);
 
     return true;
@@ -303,7 +301,7 @@ static boolean I_3D_AdjustSoundParams(const mobj_t *listener,
 
 static void I_3D_UpdateSoundParams(int channel, int volume, int separation)
 {
-    if (src.use_3d)
+    if (src.positional)
     {
         I_OAL_UpdateSourceParams(channel, src.position, src.velocity);
     }
@@ -333,7 +331,7 @@ static void I_3D_UpdateListenerParams(const mobj_t *listener)
 
 static boolean I_3D_StartSound(int channel, sfxinfo_t *sfx, float pitch)
 {
-    if (src.use_3d)
+    if (src.positional)
     {
         I_OAL_ResetSource3D(channel, src.point_source);
     }

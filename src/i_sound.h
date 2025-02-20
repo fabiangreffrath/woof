@@ -29,7 +29,7 @@
 
 // when to clip out sounds
 // Does not fit the large outdoor areas.
-#define S_CLIPPING_DIST (1200 << FRACBITS)
+#define S_CLIPPING_DIST 1200
 
 // Distance to origin when sounds should be maxed out.
 // This should relate to movement clipping resolution
@@ -39,9 +39,9 @@
 // killough 12/98: restore original
 // #define S_CLOSE_DIST (160<<FRACBITS)
 
-#define S_CLOSE_DIST    (200 << FRACBITS)
+#define S_CLOSE_DIST    200
 
-#define S_ATTENUATOR    ((S_CLIPPING_DIST - S_CLOSE_DIST) >> FRACBITS)
+#define S_ATTENUATOR    (S_CLIPPING_DIST - S_CLOSE_DIST)
 
 // Adjustable by menu.
 // [FG] moved here from i_sound.c
@@ -50,7 +50,7 @@
 #define NORM_PITCH      128
 #define NORM_PRIORITY   64
 #define NORM_SEP        128
-#define S_STEREO_SWING  (96 << FRACBITS)
+#define S_STEREO_SWING  96
 
 #define SND_SAMPLERATE  44100
 
