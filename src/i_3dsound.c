@@ -140,12 +140,14 @@ static void CalcSourceParams(const mobj_t *source, oal_source_params_t *src)
     src->position[1] = FIXED_TO_ALFLOAT(src->z);
     src->position[2] = FIXED_TO_ALFLOAT(-source->y);
 
-    // Doppler effect only applies to monsters and projectiles.
-    if (oal_use_doppler && src->point_source)
+    // Doppler effect only applies to projectiles and other players.
+    if (oal_use_doppler && src->point_source && source->interp == true
+        && (source->flags & (MF_MISSILE | MF_SKULLFLY)
+            || source->type == MT_PLAYER))
     {
-        src->velocity[0] = FIXED_TO_ALFLOAT(source->momx) * TICRATE;
-        src->velocity[1] = FIXED_TO_ALFLOAT(source->momz) * TICRATE;
-        src->velocity[2] = FIXED_TO_ALFLOAT(-source->momy) * TICRATE;
+        src->velocity[0] = FIXED_TO_ALFLOAT(source->x - source->oldx) * TICRATE;
+        src->velocity[1] = FIXED_TO_ALFLOAT(source->z - source->oldz) * TICRATE;
+        src->velocity[2] = FIXED_TO_ALFLOAT(source->oldy - source->y) * TICRATE;
     }
     else
     {
@@ -187,7 +189,7 @@ static void CalcDistance(const mobj_t *listener, const mobj_t *source,
 
     CalcHypotenuse(adx, ady, &distxy);
 
-    // Treat monsters and projectiles as point sources.
+    // Treat monsters, projectiles, and other players as point sources.
     src->point_source =
         (source->thinker.function.p1 != (actionf_p1)P_DegenMobjThinker
          && source->info && source->actualheight);
