@@ -315,6 +315,13 @@ static void I_3D_UpdateListenerParams(const mobj_t *listener)
         return;
     }
 
+    // Only update when listener is moving.
+    if ((menuactive && !netgame && !demoplayback) || paused
+        || gamestate != GS_LEVEL)
+    {
+        return;
+    }
+
     CalcListenerParams(listener, &lis);
     I_OAL_UpdateListenerParams(lis.position, lis.velocity, lis.orientation);
 }
