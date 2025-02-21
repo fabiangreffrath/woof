@@ -38,7 +38,7 @@ static LPALBUFFERCALLBACKSOFT alBufferCallbackSOFT;
 static ALuint callback_buffer;
 static ALuint callback_source;
 
-#define SQUARE_WAVE_AMP 0x2000
+#define SQUARE_WAVE_AMP 0x1000 // Chocolate Doom: 0x2000
 
 static SDL_mutex *sound_lock;
 static int mixing_freq;
