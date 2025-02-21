@@ -211,8 +211,6 @@ static void CalcDistance(const mobj_t *listener, const mobj_t *source,
 
 static boolean CalcVolumePriority(int dist, sfxparams_t *params)
 {
-    int pri_volume;
-
     if (dist == 0)
     {
         return true;
@@ -221,34 +219,23 @@ static boolean CalcVolumePriority(int dist, sfxparams_t *params)
     {
         return false;
     }
-    else if (dist <= S_CLOSE_DIST)
-    {
-        pri_volume = params->volume;
-    }
-    else if (dist > S_ATTENUATOR)
+    else if (dist > S_CLOSE_DIST)
     {
         // OpenAL inverse distance model never reaches zero volume. Gradually
         // ramp down the volume as the distance approaches the limit.
-        pri_volume = params->volume * (S_CLIPPING_DIST - dist) / S_CLOSE_DIST;
-        params->volume = pri_volume;
-    }
-    else
-    {
-        // Range where OpenAL inverse distance model applies. Calculate volume
-        // for priority bookkeeping but let OpenAL handle the real volume.
-        // Simplify formula for OAL_ROLLOFF_FACTOR = 1:
-        pri_volume = params->volume * S_CLOSE_DIST / dist;
+        params->volume =
+            params->volume * (S_CLIPPING_DIST - dist) / S_ATTENUATOR;
     }
 
     // Decrease priority with volume attenuation.
-    params->priority += (127 - pri_volume);
+    params->priority += (127 - params->volume);
 
     if (params->priority > 255)
     {
         params->priority = 255;
     }
 
-    return (pri_volume > 0);
+    return (params->volume > 0);
 }
 
 static boolean I_3D_AdjustSoundParams(const mobj_t *listener,
