@@ -1766,7 +1766,10 @@ static boolean P_HealCorpse(mobj_t* actor, int radius, statenum_t healstate, sfx
 		      I_Printf(VB_WARNING, "A_VileChase: Resurrected ghost monster (%d) at (%d/%d)!",
 		              corpsehit->type, corpsehit->x>>FRACBITS, corpsehit->y>>FRACBITS);
 		  }
-		  
+
+		  corpsehit->flags2 &= ~MF2_COLOREDBLOOD;
+		  corpsehit->bloodcolor = 0;
+
                   corpsehit->health = info->spawnhealth;
 		  P_SetTarget(&corpsehit->target, NULL);  // killough 11/98
 
