@@ -551,6 +551,10 @@ static void do_draw_mbf_sky(visplane_t *pl)
             dc_iscale = dc_iscale * dc_texheight / SKYSTRETCH_HEIGHT;
             dc_texturemid = dc_texturemid * dc_texheight / SKYSTRETCH_HEIGHT;
         }
+        else if (custom_fov > FOV_DEFAULT && (dc_texturemid - SCREENHEIGHT / 2 * dc_iscale) > 0)
+        {
+            dc_iscale = video.ystep;
+        }
 
         // Make sure the fade-to-color effect doesn't happen too early
         fixed_t diff = dc_texturemid - SCREENHEIGHT / 2 * FRACUNIT;
