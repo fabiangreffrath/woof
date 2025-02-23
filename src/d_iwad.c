@@ -854,9 +854,11 @@ void D_GetModeAndMissionByIWADName(const char *name, GameMode_t *mode,
         {
             *mode = iwads[i].mode;
             *mission = iwads[i].mission;
-            break;
+            return;
         }
     }
+    *mode = indetermined;
+    *mission = none;
 }
 
 const char *D_GetIWADDescription(const char *name, GameMode_t mode,
