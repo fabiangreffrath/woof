@@ -633,7 +633,7 @@ void R_ExecuteSetViewSize (void)
   while (FixedMul(pspriteiscale, pspritescale) < FRACUNIT)
     pspriteiscale++;
 
-  if (custom_fov == FOV_DEFAULT)
+  if (custom_fov >= FOV_DEFAULT)
   {
     skyiscale = FixedDiv(SCREENWIDTH, viewwidth_nonwide);
   }
