@@ -129,10 +129,16 @@ static boolean ParseSky(json_t *json, sky_t *out)
 
 static boolean ParseFlatMap(json_t *json, flatmap_t *out)
 {
-    json_t *flat = JS_GetObject(json, "flat");
-    out->flat = M_StringDuplicate(JS_GetString(flat));
-    json_t *sky = JS_GetObject(json, "sky");
-    out->sky = M_StringDuplicate(JS_GetString(sky));
+    const char *flat = JS_GetStringValue(json, "flat");
+    if (flat)
+    {
+        out->flat = M_StringDuplicate(flat);
+    }
+    const char *sky = JS_GetStringValue(json, "sky");
+    if (sky)
+    {
+        out->sky = M_StringDuplicate(sky);
+    }
     return true;
 }
 
