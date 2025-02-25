@@ -434,8 +434,9 @@ static void DrawSkyTex(visplane_t *pl, skytex_t *skytex)
 
         if (dc_yl != USHRT_MAX && dc_yl <= dc_yh)
         {
-            dc_source = R_GetColumnMod2(texture, (an + xtoskyangle[x])
-                                                     >> ANGLETOSKYSHIFT);
+            int angle = (an + xtoskyangle[x]) >> ANGLETOSKYSHIFT;
+            angle = FixedToInt(FixedMul(IntToFixed(angle), skytex->scalex));
+            dc_source = R_GetColumnMod2(texture, angle);
             colfunc();
         }
     }
