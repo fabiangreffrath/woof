@@ -509,7 +509,14 @@ static void do_draw_mbf_sky(visplane_t *pl)
         // However, the offset is scaled very small, so that it
         // allows a long-period of sky rotation.
 
-        an += s->textureoffset;
+        if (uncapped && leveltime > oldleveltime)
+        {
+            an += LerpFixed(s->oldtextureoffset, s->basetextureoffset);
+        }
+        else
+        {
+            an += s->textureoffset;
+        }
 
         // Vertical offset allows careful sky positioning.
 
