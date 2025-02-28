@@ -52,6 +52,7 @@
 #include "mn_internal.h"
 #include "mn_snapshot.h"
 #include "p_saveg.h"
+#include "p_user.h"
 #include "r_defs.h"
 #include "r_draw.h"
 #include "r_main.h"
@@ -2354,6 +2355,8 @@ void M_Ticker(void)
         whichSkull ^= 1;
         skullAnimCounter = 8;
     }
+
+    P_CenterView(&players[consoleplayer]);
 }
 
 /////////////////////////////////////////////////////////////////////////////

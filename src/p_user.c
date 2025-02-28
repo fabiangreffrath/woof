@@ -343,6 +343,27 @@ void P_DeathThink (player_t* player)
 // P_PlayerThink
 //
 
+void P_CenterView (player_t* player)
+{
+  // [crispy] center view
+  if (player->centering)
+  {
+    player->pitch /= 2;
+
+    if (abs(player->pitch) < ANG1)
+    {
+      player->pitch = 0;
+
+      if (player->oldpitch == 0)
+      {
+        player->centering = false;
+      }
+    }
+
+    player->slope = PlayerSlope(player);
+  }
+}
+
 void P_PlayerThink (player_t* player)
 {
   ticcmd_t*    cmd;
@@ -382,23 +403,7 @@ void P_PlayerThink (player_t* player)
       player->mo->flags &= ~MF_JUSTATTACKED;
     }
 
-  // [crispy] center view
-  if (player->centering)
-  {
-    player->pitch /= 2;
-
-    if (abs(player->pitch) < ANG1)
-    {
-      player->pitch = 0;
-
-      if (player->oldpitch == 0)
-      {
-        player->centering = false;
-      }
-    }
-
-    player->slope = PlayerSlope(player);
-  }
+  P_CenterView(player);
 
   // [crispy] weapon recoil pitch
   if (player->recoilpitch)

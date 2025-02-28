@@ -33,6 +33,7 @@ void P_CalcHeight(struct player_s *player);
 void P_DeathThink(struct player_s *player);
 void P_MovePlayer(struct player_s *player);
 void P_Thrust(struct player_s *player, angle_t angle, fixed_t move);
+void P_CenterView (player_t* player);
 
 typedef enum
 {
