@@ -268,7 +268,8 @@ boolean SC_GetNextToken(scanner_t *s, boolean expandstate)
 
     char cur = s->data[s->scanpos++];
     // Determine by first character
-    if (cur == '_' || (cur >= 'A' && cur <= 'Z') || (cur >= 'a' && cur <= 'z'))
+    if (cur == '_' || (cur >= 'A' && cur <= 'Z') || (cur >= 'a' && cur <= 'z')
+        || cur == '$')
     {
         s->nextstate.token = TK_Identifier;
     }
@@ -334,7 +335,8 @@ boolean SC_GetNextToken(scanner_t *s, boolean expandstate)
 
                 case TK_Identifier:
                     if (cur != '_' && (cur < 'A' || cur > 'Z')
-                        && (cur < 'a' || cur > 'z') && (cur < '0' || cur > '9'))
+                        && (cur < 'a' || cur > 'z') && (cur < '0' || cur > '9')
+                        && cur != '-' && cur != '\\' && cur != '/')
                     {
                         end = s->scanpos;
                     }
@@ -639,6 +641,33 @@ void SC_Rewind(scanner_t *s) // Only can rewind one step.
     s->line = s->prevstate.tokenline;
     s->logicalpos = s->prevstate.tokenlinepos;
     s->scanpos = s->prevstate.scanpos;
+}
+
+boolean SC_SameLine(scanner_t *s)
+{
+    return (s->state.tokenline == s->line);
+}
+
+void SC_SkipLine(scanner_t *s)
+{
+    if (SC_SameLine(s))
+    {
+        SC_GetNextLineToken(s);
+    }
+}
+
+boolean SC_CheckStringOrIdent(scanner_t *s)
+{
+    return (SC_CheckToken(s, TK_StringConst)
+            || SC_CheckToken(s, TK_Identifier));
+}
+
+void SC_MustGetStringOrIdent(scanner_t *s)
+{
+    if (!SC_CheckStringOrIdent(s))
+    {
+        SC_Error(s, "expected string constant or identifier");
+    }
 }
 
 boolean SC_TokensLeft(scanner_t *s)
