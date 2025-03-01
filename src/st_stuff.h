@@ -66,7 +66,7 @@ extern int health_red;    // health amount less than which status is red
 extern int health_yellow; // health amount less than which status is yellow
 extern int health_green;  // health amount above is blue, below is green
 
-static inline boolean ST_PlayerInvulnerable(struct player_s *player)
+static inline boolean ST_PlayerInvulnerable(player_t *player)
 {
     return (player->cheats & CF_GODMODE) ||
         (player->powers[pw_invulnerability] > 4 * 32) ||
