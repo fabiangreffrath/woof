@@ -880,8 +880,7 @@ static void UpdateBoomColors(sbarelem_t *elem, player_t *player)
 
     sbe_number_t *number = elem->subtype.number;
 
-    boolean invul = (player->powers[pw_invulnerability]
-                     || player->cheats & CF_GODMODE);
+    boolean invul = ST_PlayerInvulnerable(player);
 
     crange_idx_e cr;
 
