@@ -641,7 +641,10 @@ boolean I_OAL_CacheSound(sfxinfo_t *sfx)
             // Reference: https://www.doomworld.com/forum/post/949486
             sampledata += DMXPADSIZE;
             size -= DMXPADSIZE * 2;
-            FadeInOutMono8(sampledata, size, freq);
+            if (!sfx->looping)
+            {
+                FadeInOutMono8(sampledata, size, freq);
+            }
 
             // All Doom sounds are 8-bit
             format = AL_FORMAT_MONO8;
@@ -650,8 +653,8 @@ boolean I_OAL_CacheSound(sfxinfo_t *sfx)
         {
             size = lumplen;
 
-            if (I_SND_LoadFile(lumpdata, &format, &wavdata, &size, &freq)
-                == false)
+            if (!I_SND_LoadFile(lumpdata, &format, &wavdata, &size, &freq,
+                                sfx->looping))
             {
                 I_Printf(VB_WARNING, " I_OAL_CacheSound: %s",
                          lumpinfo[lumpnum].name);
