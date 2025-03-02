@@ -38,7 +38,7 @@ static LPALBUFFERCALLBACKSOFT alBufferCallbackSOFT;
 static ALuint callback_buffer;
 static ALuint callback_source;
 
-#define SQUARE_WAVE_AMP 0x2000
+#define SQUARE_WAVE_AMP 0x1000 // Chocolate Doom: 0x2000
 
 static SDL_mutex *sound_lock;
 static int mixing_freq;
@@ -381,10 +381,11 @@ static boolean I_PCS_CacheSound(sfxinfo_t *sfx)
 }
 
 static boolean I_PCS_AdjustSoundParams(const mobj_t *listener,
-                                       const mobj_t *source, int chanvol,
-                                       int *vol, int *sep, int *pri)
+                                       const mobj_t *source,
+                                       sfxparams_t *params)
 {
-    fixed_t adx, ady, approx_dist;
+    fixed_t adx, ady;
+    int approx_dist;
 
     if (!source || source == players[displayplayer].mo)
     {
@@ -403,9 +404,9 @@ static boolean I_PCS_AdjustSoundParams(const mobj_t *listener,
     ady = abs(listener->y - source->y);
 
     // From _GG1_ p.428. Appox. eucledian distance fast.
-    approx_dist = adx + ady - ((adx < ady ? adx : ady) >> 1);
+    approx_dist = (adx + ady - ((adx < ady ? adx : ady) >> 1)) >> FRACBITS;
 
-    if (approx_dist > S_CLIPPING_DIST)
+    if (approx_dist >= S_CLIPPING_DIST)
     {
         return false;
     }
@@ -413,19 +414,19 @@ static boolean I_PCS_AdjustSoundParams(const mobj_t *listener,
     // volume calculation
     if (approx_dist < S_CLOSE_DIST)
     {
-        *vol = snd_SfxVolume;
+        params->volume = snd_SfxVolume;
     }
     else
     {
         // distance effect
-        *vol = (snd_SfxVolume * ((S_CLIPPING_DIST - approx_dist) >> FRACBITS))
-               / S_ATTENUATOR;
+        params->volume =
+            snd_SfxVolume * (S_CLIPPING_DIST - approx_dist) / S_ATTENUATOR;
     }
 
-    return (*vol > 0);
+    return (params->volume > 0);
 }
 
-static void I_PCS_UpdateSoundParams(int channel, int volume, int separation)
+static void I_PCS_UpdateSoundParams(int channel, const sfxparams_t *params)
 {
     // adjust PC Speaker volume
     alSourcef(callback_source, AL_GAIN, (float)snd_SfxVolume / 15);
@@ -502,7 +503,10 @@ const sound_module_t sound_pcs_module =
     NULL,
     I_PCS_StartSound,
     I_PCS_StopSound,
+    NULL,
+    NULL,
     I_PCS_SoundIsPlaying,
+    NULL,
     I_PCS_ShutdownSound,
     I_PCS_ShutdownModule,
     I_OAL_DeferUpdates,

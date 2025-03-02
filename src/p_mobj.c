@@ -870,15 +870,6 @@ mobj_t *P_SpawnMobj(fixed_t x, fixed_t y, fixed_t z, mobjtype_t type)
   // NULL head of sector list // phares 3/13/98
   mobj->touching_sectorlist = NULL;
 
-  // [AM] Do not interpolate on spawn.
-  mobj->interp = false;
-
-  // [AM] Just in case interpolation is attempted...
-  mobj->oldx = mobj->x;
-  mobj->oldy = mobj->y;
-  mobj->oldz = mobj->z;
-  mobj->oldangle = mobj->angle;
-
   // set subsector and/or block links
 
   P_SetThingPosition(mobj);
@@ -889,6 +880,15 @@ mobj_t *P_SpawnMobj(fixed_t x, fixed_t y, fixed_t z, mobjtype_t type)
   
   mobj->z = z == ONFLOORZ ? mobj->floorz : z == ONCEILINGZ ?
     mobj->ceilingz - mobj->height : z;
+
+  // [AM] Do not interpolate on spawn.
+  mobj->interp = false;
+
+  // [AM] Just in case interpolation is attempted...
+  mobj->oldx = mobj->x;
+  mobj->oldy = mobj->y;
+  mobj->oldz = mobj->z;
+  mobj->oldangle = mobj->angle;
 
   mobj->thinker.function.p1 = (actionf_p1)P_MobjThinker;
   mobj->above_thing = mobj->below_thing = 0;           // phares

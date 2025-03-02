@@ -23,6 +23,14 @@
 
 #include "doomtype.h"
 
+typedef struct sfxparams_s
+{
+  int volume_scale;
+  int volume;
+  int separation;
+  int priority;
+} sfxparams_t;
+
 //
 // SoundFX struct.
 //
