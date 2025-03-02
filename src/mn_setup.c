@@ -3316,7 +3316,7 @@ static setup_menu_t gen_settings6[] = {
     {"Screen wipe effect", S_CHOICE | S_STRICT, OFF_CNTR_X, M_SPC,
      {"screen_melt"}, .strings_id = str_screen_melt},
 
-    {"Screen flashes", S_ONOFF | S_STRICT, OFF_CNTR_X, M_SPC,
+    {"Pain/Pickup/Powerup flashes", S_ONOFF | S_STRICT, OFF_CNTR_X, M_SPC,
      {"palette_changes"}},
 
     {"Invulnerability effect", S_CHOICE | S_STRICT, OFF_CNTR_X, M_SPC,
