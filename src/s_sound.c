@@ -1081,7 +1081,7 @@ static void InitFinalDoomMusic()
     {
         char name[9] = "d_";
 
-        strncpy(&name[2], altmusic[j].to, 6);
+        M_CopyLumpName(&name[2], altmusic[j].to);
 
         if (W_CheckNumForName(name) == -1)
         {
