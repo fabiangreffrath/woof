@@ -38,8 +38,8 @@
       {
           return a / b;
       }
-      int32_t lo = a;
-      int32_t hi = a >> 32;
+      volatile int32_t lo = a;
+      volatile int32_t hi = a >> 32;
       asm("idivl %[divisor]" : "+a" (lo), "+d" (hi) : [divisor] "r" (b));
       return lo;
   }
