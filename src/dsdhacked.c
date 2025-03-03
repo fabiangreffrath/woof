@@ -392,15 +392,22 @@ static void FreeMusic(void)
 
 mobjinfo_t *mobjinfo = NULL;
 int num_mobj_types;
+static int mobj_index;
 
 static void InitMobjInfo(void)
 {
     mobjinfo = original_mobjinfo;
     num_mobj_types = NUMMOBJTYPES;
+    mobj_index = NUMMOBJTYPES - 1;
 }
 
 void dsdh_EnsureMobjInfoCapacity(int limit)
 {
+    if (limit > mobj_index)
+    {
+        mobj_index = limit;
+    }
+
     if (limit < num_mobj_types)
     {
         return;
@@ -435,6 +442,13 @@ void dsdh_EnsureMobjInfoCapacity(int limit)
         mobjinfo[i].altspeed = NO_ALTSPEED;
         mobjinfo[i].meleerange = MELEERANGE;
     }
+}
+
+int dsdh_GetNewMobjInfoIndex(void)
+{
+    mobj_index++;
+    dsdh_EnsureMobjInfoCapacity(mobj_index);
+    return mobj_index;
 }
 
 void dsdh_InitTables(void)
