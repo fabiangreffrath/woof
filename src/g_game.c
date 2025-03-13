@@ -950,8 +950,6 @@ static void G_DoLoadLevel(void)
         break;
       }//jff 3/27/98 end sky setting fix
 
-  R_InitSkyMap(); // [FG] stretch short skies
-
   levelstarttic = gametic;        // for time calculation
 
   playback_levelstarttic = playback_tic;
@@ -992,6 +990,8 @@ static void G_DoLoadLevel(void)
 
   MN_UpdateFreeLook(!mouselook && !padlook);
   HU_UpdateTurnFormat();
+
+  R_InitSkyMap(); // [FG] stretch short skies
 
   // [Woof!] Do not reset chosen player view across levels in multiplayer
   // demo playback. However, it must be reset when starting a new game.
