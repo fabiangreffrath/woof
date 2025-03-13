@@ -991,7 +991,7 @@ static void G_DoLoadLevel(void)
   MN_UpdateFreeLook(!mouselook && !padlook);
   HU_UpdateTurnFormat();
 
-  R_InitSkyMap(); // [FG] stretch short skies
+  R_InitSkyMap(); // SKYDEFS flatmapping
 
   // [Woof!] Do not reset chosen player view across levels in multiplayer
   // demo playback. However, it must be reset when starting a new game.
