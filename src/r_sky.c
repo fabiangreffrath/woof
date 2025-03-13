@@ -149,11 +149,13 @@ static void InitSky(void)
             {
                 sectors[i].floorpic = skyflatnum;
                 sectors[i].floorsky = skytex | PL_FLATMAPPING;
+                R_GetSkyColor(skytex);
             }
             if (sectors[i].ceilingpic == flatnum)
             {
                 sectors[i].ceilingpic = skyflatnum;
                 sectors[i].ceilingsky = skytex | PL_FLATMAPPING;
+                R_GetSkyColor(skytex);
             }
         }
     }
