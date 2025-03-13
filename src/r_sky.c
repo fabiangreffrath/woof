@@ -145,10 +145,15 @@ static void InitSky(void)
 
         for (int i = 0; i < numsectors; i++)
         {
-            if (sectors[i].floorpic == flatnum || sectors[i].ceilingpic == flatnum)
+            if (sectors[i].floorpic == flatnum)
             {
-                sectors[i].floorpic = sectors[i].ceilingpic = skyflatnum;
-                sectors[i].sky = skytex | PL_FLATMAPPING;
+                sectors[i].floorpic = skyflatnum;
+                sectors[i].floorsky = skytex | PL_FLATMAPPING;
+            }
+            if (sectors[i].ceilingpic == flatnum)
+            {
+                sectors[i].ceilingpic = skyflatnum;
+                sectors[i].ceilingsky = skytex | PL_FLATMAPPING;
             }
         }
     }

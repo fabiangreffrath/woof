@@ -2630,7 +2630,7 @@ void P_SpawnSpecials (void)
         // Pre-calculate sky color
         R_GetSkyColor(texturetranslation[sides[*lines[i].sidenum].toptexture]);
         for (s = -1; (s = P_FindSectorFromLineTag(lines+i,s)) >= 0;)
-          sectors[s].sky = i | PL_SKYFLAT;
+          sectors[s].floorsky = sectors[s].ceilingsky = i | PL_SKYFLAT;
         break;
       }
 }
