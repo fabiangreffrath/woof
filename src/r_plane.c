@@ -488,7 +488,13 @@ static void do_draw_mbf_sky(visplane_t *pl)
 
     an = viewangle;
 
-    if (pl->picnum & PL_SKYFLAT)
+    if ((pl->picnum & PL_FLATMAPPING) == PL_FLATMAPPING)
+    {
+        dc_texturemid = skytexturemid;
+        texture = pl->picnum & ~PL_FLATMAPPING;
+        flip = 0;
+    }
+    else if (pl->picnum & PL_SKYFLAT)
     {
         // Sky Linedef
         const line_t *l = &lines[pl->picnum & ~PL_SKYFLAT];
@@ -601,10 +607,19 @@ static void do_draw_plane(visplane_t *pl)
 
     // sky flat
 
-    if (pl->picnum == skyflatnum && sky)
+    if (sky)
     {
-        DrawSkyDef(pl);
-        return;
+        if ((pl->picnum & PL_FLATMAPPING) == PL_FLATMAPPING)
+        {
+            do_draw_mbf_sky(pl);
+            return;
+        }
+
+        if (pl->picnum == skyflatnum)
+        {
+            DrawSkyDef(pl);
+            return;
+        }
     }
 
     if (pl->picnum == skyflatnum || pl->picnum & PL_SKYFLAT)

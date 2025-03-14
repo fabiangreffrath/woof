@@ -616,7 +616,7 @@ static void R_Subsector(int num)
      sectors[frontsector->heightsec].ceilingpic == skyflatnum) ?
     R_FindPlane(frontsector->interpfloorheight,
 		frontsector->floorpic == skyflatnum &&  // kilough 10/98
-		frontsector->sky & PL_SKYFLAT ? frontsector->sky :
+		frontsector->floorsky & PL_SKYFLAT ? frontsector->floorsky :
                 frontsector->floorpic,
                 floorlightlevel,                // killough 3/16/98
                 frontsector->floor_xoffs,       // killough 3/7/98
@@ -629,7 +629,7 @@ static void R_Subsector(int num)
      sectors[frontsector->heightsec].floorpic == skyflatnum) ?
     R_FindPlane(frontsector->interpceilingheight,     // killough 3/8/98
 		frontsector->ceilingpic == skyflatnum &&  // kilough 10/98
-		frontsector->sky & PL_SKYFLAT ? frontsector->sky :
+		frontsector->ceilingsky & PL_SKYFLAT ? frontsector->ceilingsky :
                 frontsector->ceilingpic,
                 ceilinglightlevel,              // killough 4/11/98
                 frontsector->ceiling_xoffs,     // killough 3/7/98

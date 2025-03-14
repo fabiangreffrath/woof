@@ -39,6 +39,8 @@ extern boolean linearsky;
 extern int skytexture;
 extern int skytexturemid;
 
+#define PL_FLATMAPPING (0xC0000000) // (PL_SKYFLAT | 0x40000000)
+
 extern sky_t *sky;
 
 // Called whenever the view size changes.
