@@ -25,6 +25,7 @@
 #include "doomdef.h"
 #include "doomstat.h"
 #include "doomtype.h"
+#include "f_finale.h"
 #include "g_game.h"
 #include "g_umapinfo.h"
 #include "info.h"
@@ -57,57 +58,6 @@ static finalestage_t finalestage;
 
 static int finalecount;
 
-//
-// ID24 EndFinale extensions
-//
-
-// Finale type:
-// 0 = plain graphic; 1 = custom scroller; 2 = custom cast call
-typedef enum {
-  END_ART,
-  END_SCROLL,
-  END_CAST,
-} ef_type_t;
-
-typedef struct {
-  // Equivalent to PFUB2; `end_finale_t::background` is equivalent to PFUB1
-  char stitchimage[9];
-  int  overlay;
-  int  overlaycount;
-  int  overlaysound;
-  int  overlayx;
-  int  overlayy;
-} ef_scroll_t;
-
-typedef struct {
-  char    lump[9];   // Enemy sprite
-  boolean flipped;
-  int     durations;
-  int     sound;     // Sound index
-} cast_frame_t;
-
-typedef struct {
-  char         *name;        // BEX [STRINGS] mnemonic
-  int           alertsound;  // Sound index
-  cast_frame_t *aliveframes; // Before pressing the "use" key
-  cast_frame_t *deathframes; // After pressing the "use" key
-} cast_entry_t;
-
-typedef struct {
-  // Not sure why it is like this, but this is how it is setup in Legacy of Rust 1.2
-  cast_entry_t *castanims;
-} ef_cast_t;
-
-typedef struct {
-  ef_type_t     type;
-  char          music[9];      // Default: `D_EVIL`
-  char          background[9]; // Default: `BOSSBACK`
-  boolean       musicloops;    // Default: `false`
-  boolean       donextmap;     // Default: `false`
-  ef_scroll_t   bunny;         // Only read if `type == END_SCROLL`
-  ef_cast_t     castrollcall;  // Only read if `type == END_CAST`
-} end_finale_t;
-
 // defines for the end mission display text                     // phares
 
 #define TEXTSPEED    3     // original value                    // phares
@@ -129,6 +79,12 @@ static float Get_TextSpeed(void);
 static int midstage;                 // whether we're in "mid-stage"
 
 static boolean mapinfo_finale;
+
+
+
+//
+// ID24 EndFinale extensions
+//
 
 static void EndFinale_Cast(json_t *cast, ef_cast_t *finale_cast)
 {
@@ -170,10 +126,6 @@ static void EndFinale_Data(json_t *data, end_finale_t *out, const char *lump)
     json_t *json_scroll = JS_GetObject(data, "bunny");
     EndFinale_Scroll(json_scroll, finale_scroll);
   }
-  else if (type == END_ART)
-  {
-    
-  }
 
   out->type = type;
   M_CopyLumpName(out->music, music_buffer);
@@ -186,7 +138,7 @@ static void EndFinale_Data(json_t *data, end_finale_t *out, const char *lump)
   return;
 }
 
-static void D_ParseEndFinale(const char lump[9])
+end_finale_t *D_ParseEndFinale(const char lump[9])
 {
   // Does the JSON lump even exist?
   json_t *json = JS_Open(lump, "finale", (version_t){1, 0, 0});
@@ -205,12 +157,19 @@ static void D_ParseEndFinale(const char lump[9])
   }
 
   // Now, actually parse it
-  end_finale_t *endfinale = NULL;
-  EndFinale_Data(data, endfinale, lump);
+  end_finale_t *out = Z_Calloc(1, sizeof(*out), PU_LEVEL, NULL);
+  EndFinale_Data(data, out, lump);
 
   // No need to keep in memory
   JS_Close(lump);
+  return out;
 }
+
+
+
+//
+// UMAPINFO
+//
 
 static boolean MapInfo_StartFinale(void)
 {

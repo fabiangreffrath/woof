@@ -40,6 +40,61 @@ void F_Drawer (void);
 
 void F_StartFinale (void);
 
+
+//
+// ID24 EndFinale extensions
+//
+
+// Custom EndFinale type
+typedef enum {
+  END_ART,    // Plain graphic, e.g CREDIT, VICTORY2, ENDPIC
+  END_SCROLL, // Custom "bunny" scroller
+  END_CAST,   // Custom cast call
+} ef_type_t;
+
+// ID24 EndFinale - Custom "bunny" scroller
+typedef struct {
+  char stitchimage[9]; // e.g PFUB2
+  int  overlay;
+  int  overlaycount;
+  int  overlaysound;
+  int  overlayx;
+  int  overlayy;
+} ef_scroll_t;
+
+// ID24 EndFinale - Custom cast call
+typedef struct {
+  char    lump[9];   // Enemy sprite
+  boolean flipped;
+  int     durations;
+  int     sound;     // Sound index
+} cast_frame_t;
+
+// ID24 EndFinale - Custom cast call
+typedef struct {
+  char         *name;        // BEX [STRINGS] mnemonic
+  int           alertsound;  // Sound index
+  cast_frame_t *aliveframes; // Before pressing the "use" key
+  cast_frame_t *deathframes; // After pressing the "use" key
+} cast_entry_t;
+
+typedef struct {
+  // Not sure why it is like this, but this is how it is setup in Legacy of Rust 1.2
+  cast_entry_t *castanims;
+} ef_cast_t;
+
+typedef struct {
+  ef_type_t     type;
+  char          music[9];      // e.g. `D_EVIL`
+  char          background[9]; // e.g. `BOSSBACK`
+  boolean       musicloops;    // e.g. `false`
+  boolean       donextmap;     // e.g. `false`
+  ef_scroll_t   bunny;         // Only read if `type == END_SCROLL`
+  ef_cast_t     castrollcall;  // Only read if `type == END_CAST`
+} end_finale_t;
+
+end_finale_t *D_ParseEndFinale(const char lump[9]);
+
 #endif
 
 //----------------------------------------------------------------------------
