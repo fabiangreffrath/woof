@@ -133,6 +133,8 @@ static void ProcessDehLump(int lumpnum)
 
 boolean devparm;        // started game with -devparm
 
+boolean run_test;
+
 // jff 1/24/98 add new versions of these variables to remember command line
 boolean clnomonsters;   // checkparm of -nomonsters
 boolean clrespawnparm;  // checkparm of -respawn
@@ -2662,6 +2664,11 @@ void D_DoomMain(void)
     I_AtExitPrio(D_EndDoom, false, "D_EndDoom", exit_priority_last);
   }
 
+  if (M_ParmExists("-test"))
+  {
+    run_test = true;
+  }
+
   TryRunTics();
 
   D_StartGameLoop();
@@ -2670,6 +2677,50 @@ void D_DoomMain(void)
     {
       // frame syncronous IO operations
       I_StartFrame ();
+
+      if (run_test)
+      {
+        static int oldgametic = 3;
+
+        if (gametic >= oldgametic)
+        {
+          static boolean first_test = true;
+          static boolean cycle_fov = false;
+
+          oldgametic = gametic + 3;
+
+          if (first_test)
+          {
+            custom_fov = FOV_MIN;
+            setsizeneeded = true;
+            cycle_fov = false;
+            first_test = false;
+          }
+          else if (cycle_fov)
+          {
+            if (custom_fov == FOV_MAX)
+            {
+              custom_fov = FOV_MIN;
+              cycle_fov = false;
+            }
+            else
+            {
+              custom_fov++;
+            }
+            setsizeneeded = true;
+          }
+          else
+          {
+            cycle_fov = true;
+            if (!I_ChangeRes())
+            {
+              custom_fov = FOV_DEFAULT;
+              default_widescreen = RATIO_AUTO;
+              I_SafeExit(0);
+            }
+          }
+        }
+      }
 
       TryRunTics (); // will run at least one tic
 
