@@ -127,9 +127,6 @@ static boolean hud_armor_type; // color of armor depends on type
 
 static boolean weapon_carousel;
 
-// [crispy] blinking key or skull in the status bar
-int st_keyorskull[3];
-
 static sbardef_t *sbardef;
 
 static statusbar_t *statusbar;
