@@ -106,9 +106,6 @@
 // graphics are drawn to a backing screen and blitted to the real screen
 static pixel_t *st_backing_screen = NULL;
 
-// [Alaux]
-static boolean hud_animated_counts;
-
 static boolean sts_colored_numbers;
 
 static boolean sts_pct_always_gray;
@@ -435,31 +432,6 @@ static boolean CheckConditions(sbarcondition_t *conditions, player_t *player)
     return result;
 }
 
-// [Alaux]
-static int SmoothCount(int shownval, int realval)
-{
-    int step = realval - shownval;
-
-    if (!hud_animated_counts || !step)
-    {
-        return realval;
-    }
-    else
-    {
-        int sign = step / abs(step);
-        step = BETWEEN(1, 7, abs(step) / 20);
-        shownval += (step + 1) * sign;
-
-        if ((sign > 0 && shownval > realval)
-            || (sign < 0 && shownval < realval))
-        {
-            shownval = realval;
-        }
-
-        return shownval;
-    }
-}
-
 static int ResolveNumber(sbe_number_t *number, player_t *player)
 {
     int result = 0;
@@ -468,21 +440,11 @@ static int ResolveNumber(sbe_number_t *number, player_t *player)
     switch (number->type)
     {
         case sbn_health:
-            if (number->oldvalue == -1)
-            {
-                number->oldvalue = player->health;
-            }
-            result = SmoothCount(number->oldvalue, player->health);
-            number->oldvalue = result;
+            result = player->health;
             break;
 
         case sbn_armor:
-            if (number->oldvalue == -1)
-            {
-                number->oldvalue = player->armorpoints;
-            }
-            result = SmoothCount(number->oldvalue, player->armorpoints);
-            number->oldvalue = result;
+            result = player->armorpoints;
             break;
 
         case sbn_frags:
@@ -1082,11 +1044,6 @@ static void ResetElem(sbarelem_t *elem, player_t *player)
                 animation->frame_index = 0;
                 animation->duration_left = 0;
             }
-            break;
-
-        case sbe_number:
-        case sbe_percent:
-            elem->subtype.number->oldvalue = -1;
             break;
 
         case sbe_widget:
@@ -1912,8 +1869,6 @@ void ST_BindSTSVariables(void)
   M_BindBool("st_solidbackground", &st_solidbackground, NULL,
              false, ss_stat, wad_no,
              "Use solid-color borders for the status bar in widescreen mode");
-  M_BindBool("hud_animated_counts", &hud_animated_counts, NULL,
-            false, ss_stat, wad_no, "Animated health/armor counts");
   M_BindBool("hud_armor_type", &hud_armor_type, NULL, true, ss_none, wad_no,
              "Armor count is colored based on armor type");
   M_BindNum("health_red", &health_red, NULL, 25, 0, 200, ss_none, wad_yes,
