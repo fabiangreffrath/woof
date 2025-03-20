@@ -284,7 +284,7 @@ void P_XYMovement (mobj_t* mo)
 		  if (ceilingline &&
 		      ceilingline->backsector &&
 		      ceilingline->backsector->ceilingpic == skyflatnum)
-		    if (demo_compatibility ||  // killough
+		    if (demo_version < DV_BOOM200 ||  // killough
 			mo->z > ceilingline->backsector->ceilingheight)
 		      {
 			// Hack to prevent missiles exploding
@@ -535,7 +535,7 @@ floater:
       // hit the floor
 
       // [FG] game version specific differences
-      int correct_lost_soul_bounce = !demo_compatibility || gameversion >= exe_ultimate;
+      int correct_lost_soul_bounce = demo_version >= DV_BOOM200 || gameversion >= exe_ultimate;
 
       if ((!comp[comp_soul] || correct_lost_soul_bounce) && mo->flags & MF_SKULLFLY)
       {
@@ -785,7 +785,7 @@ void P_MobjThinker (mobj_t* mobj)
 	  mobj->intflags &= ~MIF_FALLING, mobj->gear = 0;  // Reset torque
       }
 
-  if (mbf21)
+  if (demo_version >= DV_MBF21)
   {
     sector_t* sector = mobj->subsector->sector;
 
@@ -1177,7 +1177,7 @@ void P_SpawnMapThing (mapthing_t* mthing)
   // bits that weren't used in Doom (such as HellMaker wads). So we should
   // then simply ignore all upper bits.
 
-  if (demo_compatibility || 
+  if (demo_version < DV_BOOM200 ||
       (demo_version >= DV_MBF && mthing->options & MTF_RESERVED))
     mthing->options &= MTF_EASY|MTF_NORMAL|MTF_HARD|MTF_AMBUSH|MTF_NOTSINGLE;
 
@@ -1190,7 +1190,7 @@ void P_SpawnMapThing (mapthing_t* mthing)
       size_t offset = deathmatch_p - deathmatchstarts;
 
       // doom2.exe has at most 10 deathmatch starts
-      if (demo_compatibility && offset >= 10)
+      if (demo_version < DV_BOOM200 && offset >= 10)
         return;
 
       if (offset >= num_deathmatchstarts)
@@ -1247,7 +1247,7 @@ void P_SpawnMapThing (mapthing_t* mthing)
     return;
 
   // killough 11/98: simplify
-  if ((gameskill == sk_none && demo_compatibility) ||
+  if ((gameskill == sk_none && demo_version < DV_BOOM200) ||
       (gameskill == sk_baby || gameskill == sk_easy ?
       !(mthing->options & MTF_EASY) :
       gameskill == sk_hard || gameskill == sk_nightmare ?

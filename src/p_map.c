@@ -411,7 +411,7 @@ static boolean PIT_CheckLine(line_t *ld) // killough 3/26/98: make static
     {
       // explicitly blocking everything
       // or blocking player
-      if (ld->flags & ML_BLOCKING || (mbf21 && tmthing->player && ld->flags & ML_BLOCKPLAYERS))
+      if (ld->flags & ML_BLOCKING || (demo_version >= DV_MBF21 && tmthing->player && ld->flags & ML_BLOCKPLAYERS))
 	return tmunstuck && !untouched(ld);  // killough 8/1/98: allow escape
 
       // killough 8/9/98: monster-blockers don't affect friends
@@ -419,7 +419,7 @@ static boolean PIT_CheckLine(line_t *ld) // killough 3/26/98: make static
 	  &&
 	  (
 	    ld->flags & ML_BLOCKMONSTERS ||
-	    (mbf21 && ld->flags & ML_BLOCKLANDMONSTERS && !(tmthing->flags & MF_FLOAT))
+	    (demo_version >= DV_MBF21 && ld->flags & ML_BLOCKLANDMONSTERS && !(tmthing->flags & MF_FLOAT))
 	  )
 	 )
 	return false; // block monsters only
@@ -462,7 +462,7 @@ static boolean PIT_CheckLine(line_t *ld) // killough 3/26/98: make static
       spechit[numspechit++] = ld;
 
       // [FG] SPECHITS overflow emulation from Chocolate Doom / PrBoom+
-      if (numspechit > MAXSPECIALCROSS_ORIGINAL && demo_compatibility
+      if (numspechit > MAXSPECIALCROSS_ORIGINAL && demo_version < DV_BOOM200
           && overflow[emu_spechits].enabled)
 	{
 	  if (numspechit == MAXSPECIALCROSS_ORIGINAL + 1)
@@ -678,7 +678,7 @@ static boolean PIT_CheckThing(mobj_t *thing) // killough 3/26/98: make static
   // killough 4/11/98: Treat no-clipping things as not blocking
 
   return !((thing->flags & MF_SOLID && !(thing->flags & MF_NOCLIP))
-           && (tmthing->flags & MF_SOLID || demo_compatibility));
+           && (tmthing->flags & MF_SOLID || demo_version < DV_BOOM200));
 
   // return !(thing->flags & MF_SOLID);   // old code -- killough
 }
@@ -824,7 +824,7 @@ boolean P_CheckPosition(mobj_t *thing, fixed_t x, fixed_t y)
   // ripper projectiles (and possibly other cases) will expose this bug and cause desyncs.
   // I recommend adding an extra validcount increment in P_CheckPosition before running 
   // the P_BlockLinesIterator.
-  if (mbf21)
+  if (demo_version >= DV_MBF21)
   {
     validcount++;
   }
@@ -877,7 +877,7 @@ boolean P_TryMove(mobj_t *thing, fixed_t x, fixed_t y, int dropoff)
       if (!(thing->flags & (MF_DROPOFF|MF_FLOAT)))
       {
         boolean ledgeblock = comp[comp_ledgeblock] &&
-                            !(mbf21 && thing->intflags & MIF_SCROLLING);
+                            !(demo_version >= DV_MBF21 && thing->intflags & MIF_SCROLLING);
 
 	if (comp[comp_dropoff] || ledgeblock)
 	  {
@@ -1214,7 +1214,7 @@ static void P_HitSlideLine(line_t *ld)
   // The moveangle+=10 breaks v1.9 demo compatibility in
   // some demos, so it needs demo_compatibility switch.
 
-  if (!demo_compatibility)
+  if (demo_version >= DV_BOOM200)
     moveangle += 10;
   // ^ prevents sudden path reversal due to rounding error // phares
 
@@ -1543,8 +1543,11 @@ static boolean PTR_ShootTraverse(intercept_t *in)
       line_t *li = in->d.line;
 
       if (li->special)
-	P_ShootSpecialLine (shootthing, li);
-      
+      {
+        int side = P_PointOnLineSide(shootthing->x, shootthing->y, li);
+	P_ShootSpecialLine(shootthing, li, side);
+      }
+
       if (li->flags & ML_TWOSIDED)
 	{  // crosses a two sided (really 2s) line
 	  P_LineOpening (li);
@@ -1586,7 +1589,7 @@ static boolean PTR_ShootTraverse(intercept_t *in)
 	  // it's a sky hack wall
 	  // fix bullet-eaters -- killough:
 	  if  (li->backsector && li->backsector->ceilingpic == skyflatnum)
-	    if (demo_compatibility || li->backsector->ceilingheight < z)
+	    if (demo_version < DV_BOOM200 || li->backsector->ceilingheight < z)
 	      return false;
 	}
 
@@ -1752,7 +1755,7 @@ static boolean PTR_UseTraverse(intercept_t *in)
     //WAS can't use for than one special line in a row
     //jff 3/21/98 NOW multiple use allowed with enabling line flag
     
-    !demo_compatibility && in->d.line->flags & ML_PASSUSE :
+    demo_version >= DV_BOOM200 && in->d.line->flags & ML_PASSUSE :
 
     (P_LineOpening(in->d.line), openrange <= 0) ?
 
@@ -2137,7 +2140,7 @@ boolean P_CheckSector(sector_t *sector,boolean crunch)
   msecnode_t *n;
 
   // killough 10/98: sometimes use Doom's method
-  if (comp[comp_floors] && (demo_version >= DV_MBF || demo_compatibility))
+  if (comp[comp_floors] && (demo_version >= DV_MBF || demo_version < DV_BOOM200))
     return P_ChangeSector(sector,crunch);
 
   nofit = false;
@@ -2407,12 +2410,12 @@ void P_CreateSecNodeList(mobj_t *thing,fixed_t x,fixed_t y)
 
   // [FG] Overlapping uses of global variables in p_map.c
   // http://prboom.sourceforge.net/mbf-bugs.html
-   if (demo_compatibility || mbf21)
+   if (demo_version < DV_BOOM200 || demo_version >= DV_MBF21)
    {
      tmthing = saved_tmthing;
      tmflags = saved_tmflags;
    }
-   if (demo_compatibility)
+   if (demo_version < DV_BOOM200)
    {
      tmx = saved_tmx;
      tmy = saved_tmy;

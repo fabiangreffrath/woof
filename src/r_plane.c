@@ -94,11 +94,11 @@ static fixed_t planeheight;
 
 // killough 2/8/98: make variables static
 
-static fixed_t *cachedheight = NULL;
-static fixed_t *cacheddistance = NULL;
-static fixed_t *cachedxstep = NULL;
-static fixed_t *cachedystep = NULL;
 static fixed_t xoffs,yoffs;    // killough 2/28/98: flat offsets
+static angle_t rotation;
+
+static fixed_t angle_sine, angle_cosine;
+static fixed_t viewx_trans, viewy_trans;
 
 fixed_t *yslope = NULL, *distscale = NULL;
 
@@ -120,11 +120,6 @@ void R_InitPlanesRes(void)
   floorclip = Z_Calloc(1, video.width * sizeof(*floorclip), PU_RENDERER, NULL);
   ceilingclip = Z_Calloc(1, video.width * sizeof(*ceilingclip), PU_RENDERER, NULL);
   spanstart = Z_Calloc(1, video.height * sizeof(*spanstart), PU_RENDERER, NULL);
-
-  cachedheight = Z_Calloc(1, video.height * sizeof(*cachedheight), PU_RENDERER, NULL);
-  cacheddistance = Z_Calloc(1, video.height * sizeof(*cacheddistance), PU_RENDERER, NULL);
-  cachedxstep = Z_Calloc(1, video.height * sizeof(*cachedxstep), PU_RENDERER, NULL);
-  cachedystep = Z_Calloc(1, video.height * sizeof(*cachedystep), PU_RENDERER, NULL);
 
   yslope = Z_Calloc(1, video.height * sizeof(*yslope), PU_RENDERER, NULL);
   distscale = Z_Calloc(1, video.width * sizeof(*distscale), PU_RENDERER, NULL);
@@ -186,26 +181,17 @@ static void R_MapPlane(int y, int x1, int x2)
   else
     dy = (abs(centery - y) << FRACBITS) + FRACUNIT / 2;
 
-  if (planeheight != cachedheight[y])
-    {
-      cachedheight[y] = planeheight;
-      distance = cacheddistance[y] = FixedMul(planeheight, yslope[y]);
-      // [FG] avoid right-shifting in FixedMul() followed by left-shifting in FixedDiv()
-      ds_xstep = cachedxstep[y] = (fixed_t)((int64_t)viewsin * planeheight / dy);
-      ds_ystep = cachedystep[y] = (fixed_t)((int64_t)viewcos * planeheight / dy);
-    }
-  else
-    {
-      distance = cacheddistance[y];
-      ds_xstep = cachedxstep[y];
-      ds_ystep = cachedystep[y];
-    }
+  distance = FixedMul(planeheight, yslope[y]);
+  // [FG] avoid right-shifting in FixedMul() followed by left-shifting in FixedDiv()
+  ds_xstep = (fixed_t)((int64_t)angle_sine   * planeheight / dy);
+  ds_ystep = (fixed_t)((int64_t)angle_cosine * planeheight / dy);
+
 
   dx = x1 - centerx;
 
   // killough 2/28/98: Add offsets
-  ds_xfrac =  viewx + FixedMul(viewcos, distance) + (dx * ds_xstep) + xoffs;
-  ds_yfrac = -viewy - FixedMul(viewsin, distance) + (dx * ds_ystep) + yoffs;
+  ds_xfrac = viewx_trans + FixedMul(angle_cosine, distance) + dx * ds_xstep;
+  ds_yfrac = viewy_trans - FixedMul(angle_sine, distance)   + dx * ds_ystep;
 
   if (!(ds_colormap[0] = ds_colormap[1] = fixedcolormap))
     {
@@ -242,8 +228,6 @@ void R_ClearPlanes(void)
 
   lastopening = openings;
 
-  // texture calculation
-  memset(cachedheight, 0, viewheight * sizeof(*cachedheight));
 }
 
 // New function, by Lee Killough
@@ -277,6 +261,8 @@ visplane_t *R_DupPlane(const visplane_t *pl, int start, int stop)
     new_pl->lightlevel = pl->lightlevel;
     new_pl->xoffs = pl->xoffs;           // killough 2/28/98
     new_pl->yoffs = pl->yoffs;
+    new_pl->rotation = pl->rotation;
+    new_pl->colormap = pl->colormap;
     new_pl->minx = start;
     new_pl->maxx = stop;
     memset(new_pl->top, UCHAR_MAX, video.width * sizeof(*new_pl->top));
@@ -290,7 +276,7 @@ visplane_t *R_DupPlane(const visplane_t *pl, int start, int stop)
 // killough 2/28/98: Add offsets
 
 visplane_t *R_FindPlane(fixed_t height, int picnum, int lightlevel,
-                        fixed_t xoffs, fixed_t yoffs)
+                        fixed_t xoffs, fixed_t yoffs, angle_t rotation)
 {
   visplane_t *check;
   unsigned hash;                      // killough
@@ -319,7 +305,8 @@ visplane_t *R_FindPlane(fixed_t height, int picnum, int lightlevel,
         picnum == check->picnum &&
         lightlevel == check->lightlevel &&
         xoffs == check->xoffs &&      // killough 2/28/98: Add offset checks
-        yoffs == check->yoffs)
+        yoffs == check->yoffs &&
+        rotation == check->rotation)
       return check;
 
   check = new_visplane(hash);         // killough
@@ -331,6 +318,7 @@ visplane_t *R_FindPlane(fixed_t height, int picnum, int lightlevel,
   check->maxx = -1;
   check->xoffs = xoffs;               // killough 2/28/98: Save offsets
   check->yoffs = yoffs;
+  check->rotation = rotation;
 
   memset(check->top, UCHAR_MAX, video.width * sizeof(*check->top));
 
@@ -649,6 +637,25 @@ static void do_draw_plane(visplane_t *pl)
 
     xoffs = pl->xoffs; // killough 2/28/98: Add offsets
     yoffs = pl->yoffs;
+    rotation = pl->rotation;
+
+    angle_sine = finesine[(viewangle + rotation) >> ANGLETOFINESHIFT];
+    angle_cosine = finecosine[(viewangle + rotation) >> ANGLETOFINESHIFT];
+
+    if (pl->rotation == 0)
+    {
+      viewx_trans = xoffs + viewx;
+      viewy_trans = yoffs - viewy;
+    }
+    else
+    {
+      const fixed_t sine   = finesine[pl->rotation >> ANGLETOFINESHIFT];
+      const fixed_t cosine = finecosine[pl->rotation >> ANGLETOFINESHIFT];
+
+      viewx_trans = FixedMul(viewx + xoffs, cosine) - FixedMul(viewy - yoffs, sine);
+      viewy_trans = -(FixedMul(viewx + xoffs, sine) + FixedMul(viewy - yoffs, cosine));
+    }
+
     planeheight = abs(pl->height - viewz);
     light = (pl->lightlevel >> LIGHTSEGSHIFT) + extralight;
 

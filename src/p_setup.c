@@ -166,7 +166,7 @@ sector_t* GetSectorAtNullAddress(void)
   static boolean null_sector_is_initialized = false;
   static sector_t null_sector;
 
-  if (demo_compatibility && overflow[emu_missedbackside].enabled)
+  if (demo_version < DV_BOOM200 && overflow[emu_missedbackside].enabled)
   {
     overflow[emu_missedbackside].triggered = true;
 
@@ -330,10 +330,15 @@ void P_LoadSectors (int lump)
       ss->floor_yoffs = 0;      // floor and ceiling flats offsets
       ss->old_floor_xoffs = ss->base_floor_xoffs = 0;
       ss->old_floor_yoffs = ss->base_floor_yoffs = 0;
+      ss->floor_rotation = 0;
+      ss->old_floor_rotation = ss->base_floor_rotation = 0;
       ss->ceiling_xoffs = 0;
       ss->ceiling_yoffs = 0;
       ss->old_ceiling_xoffs = ss->base_ceiling_xoffs = 0;
       ss->old_ceiling_yoffs = ss->base_ceiling_yoffs = 0;
+      ss->ceiling_rotation = 0;
+      ss->old_ceiling_rotation = ss->base_ceiling_rotation = 0;
+      ss->colormap_index = 0;
       ss->heightsec = -1;       // sector used to get floor and ceiling height
       ss->floorlightsec = -1;   // sector used to get floor lighting
       // killough 3/7/98: end changes
@@ -497,6 +502,8 @@ void P_LoadLineDefs (int lump)
       v2 = ld->v2 = &vertexes[(unsigned short)SHORT(mld->v2)];
       ld->dx = v2->x - v1->x;
       ld->dy = v2->y - v1->y;
+      ld->angle = R_PointToAngle2(lines[i].v1->x, lines[i].v1->y,
+                                  lines[i].v2->x, lines[i].v2->y);
 
       ld->tranlump = -1;   // killough 4/11/98: no translucency by default
 
@@ -551,7 +558,7 @@ void P_LoadLineDefs2(int lump)
 
       if (ld->sidenum[1] == NO_INDEX)
       {
-	if (!demo_compatibility || !overflow[emu_missedbackside].enabled)
+	if (demo_version >= DV_BOOM200 || !overflow[emu_missedbackside].enabled)
 	ld->flags &= ~ML_TWOSIDED;  // Clear 2s flag for missing left side
       }
 
@@ -621,7 +628,91 @@ void P_LoadSideDefs2(int lump)
 
       sd->sector = sec = &sectors[SHORT(msd->sector)];
       switch (sd->special)
-        {
+      {
+        case 2057: case 2058: case 2059: case 2060: case 2061: case 2062:
+        case 2063: case 2064: case 2065: case 2066: case 2067: case 2068:
+        case 2087: case 2088: case 2089: case 2090: case 2091: case 2092:
+        case 2093: case 2094: case 2095: case 2096: case 2097: case 2098:
+          // All of the W1, WR, S1, SR, G1, GR activations can be triggered from
+          // the back sidedef (reading the front bottom texture) and triggered
+          // from the front sidedef (reading the front upper texture).
+          for (int j = 0; j < numlines; j++)
+          {
+            if (lines[j].sidenum[0] == i)
+            {
+              // Back triggered
+              lines[j].backmusic = W_CheckNumForName(msd->bottomtexture);
+              if (lines[j].backmusic < 0)
+              {
+                lines[j].backmusic = 0;
+                sd->bottomtexture = R_TextureNumForName(msd->bottomtexture);
+              }
+              else
+              {
+                sd->toptexture = 0;
+              }
+            }
+
+            if (lines[j].sidenum[0] == i)
+            {
+              // Front triggered
+              lines[j].frontmusic = W_CheckNumForName(msd->toptexture);
+              if (lines[j].frontmusic < 0)
+              {
+                lines[j].frontmusic = 0;
+                sd->toptexture = R_TextureNumForName(msd->toptexture);
+              }
+              else
+              {
+                sd->toptexture = 0;
+              }
+            }
+          }
+          break;
+
+        case 2076: case 2077: case 2078: case 2079: case 2080: case 2081:
+          // All of the W1, WR, S1, SR, G1, GR activations can be triggered from
+          // the back sidedef (reading the front bottom texture) and triggered
+          // from the front sidedef (reading the front upper texture).
+          for (int j = 0; j < numlines; j++)
+          {
+            if (lines[j].sidenum[0] == i)
+            {
+              lines[j].backcolormap = R_ColormapNumForName(msd->bottomtexture);
+              if (lines[j].backcolormap < 0)
+              {
+                lines[j].backcolormap = 0;
+                sd->bottomtexture = R_TextureNumForName(msd->bottomtexture);
+              }
+              else
+              {
+                sd->bottomtexture = 0;
+              }
+            }
+          }
+          // fallthrough
+
+        case 2075:
+          // The "Always" activation, triggered at world spawn time, reads only
+          // the upper texture of the front side.
+          for (int j = 0; j < numlines; j++)
+          {
+            if (lines[j].sidenum[0] == i)
+            {
+              lines[j].frontcolormap = R_ColormapNumForName(msd->toptexture);
+              if (lines[j].frontcolormap < 0)
+              {
+                lines[j].frontcolormap = 0;
+                sd->toptexture = R_TextureNumForName(msd->toptexture);
+              }
+              else
+              {
+                sd->toptexture = 0;
+              }
+            }
+          }
+          break;
+
         case 242:                       // variable colormap via 242 linedef
           sd->bottomtexture =
             (sec->bottommap =   R_ColormapNumForName(msd->bottomtexture)) < 0 ?
@@ -1518,7 +1609,7 @@ static boolean P_LoadReject(int lumpnum, int totallines)
 
         memset(rejectmatrix + lumplen, padvalue, minlength - lumplen);
 
-        if (demo_compatibility && overflow[emu_reject].enabled)
+        if (demo_version < DV_BOOM200 && overflow[emu_reject].enabled)
         {
             unsigned int i;
             unsigned int byte_num;
@@ -1593,7 +1684,7 @@ void P_SetupLevel(int episode, int map, int playermask, skill_t skill)
   }
 
   // Make sure all sounds are stopped before Z_FreeTags.
-  S_Start();
+  S_Start(true);
 
   Z_FreeTag(PU_LEVEL);
   Z_FreeTag(PU_CACHE);

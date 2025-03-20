@@ -1872,7 +1872,7 @@ static void WI_updateNetgameStats(void)
 
               // [FG] Intermission screen secrets desync
               // http://prboom.sourceforge.net/mbf-bugs.html
-              if (cnt_secret[i] >= (wbs->maxsecret ? (plrs[i].ssecret * 100) / wbs->maxsecret : demo_compatibility ? 0 : 100))
+              if (cnt_secret[i] >= (wbs->maxsecret ? (plrs[i].ssecret * 100) / wbs->maxsecret : demo_version < DV_BOOM200 ? 0 : 100))
                 cnt_secret[i] = wbs->maxsecret ? (plrs[i].ssecret * 100) / wbs->maxsecret : 100;
               else
                 stillticking = true;

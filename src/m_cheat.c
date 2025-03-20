@@ -867,7 +867,7 @@ static void cheat_spechits(void)
       }
 
       P_CrossSpecialLine(&lines[i], 0, plyr->mo, false);
-      P_ShootSpecialLine(plyr->mo, &lines[i]);
+      P_ShootSpecialLine(plyr->mo, &lines[i], 0);
       P_UseSpecialLine(plyr->mo, &lines[i], 0, false);
 
       speciallines++;
