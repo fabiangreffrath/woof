@@ -166,7 +166,7 @@ sector_t* GetSectorAtNullAddress(void)
   static boolean null_sector_is_initialized = false;
   static sector_t null_sector;
 
-  if (demo_compatibility && overflow[emu_missedbackside].enabled)
+  if (prior_boom && overflow[emu_missedbackside].enabled)
   {
     overflow[emu_missedbackside].triggered = true;
 
@@ -551,7 +551,7 @@ void P_LoadLineDefs2(int lump)
 
       if (ld->sidenum[1] == NO_INDEX)
       {
-	if (!demo_compatibility || !overflow[emu_missedbackside].enabled)
+	if (min_boom || !overflow[emu_missedbackside].enabled)
 	ld->flags &= ~ML_TWOSIDED;  // Clear 2s flag for missing left side
       }
 
@@ -1400,7 +1400,7 @@ void P_RemoveSlimeTrails(void)                // killough 10/98
 		    v->r_y = (fixed_t)((dy2 * y0 + dx2 * y1 + dxy * (x0 - x1)) / s);
 
 		    // [FG] override actual vertex coordinates except in compatibility mode
-		    if (demo_version >= DV_MBF)
+		    if (min_mbf)
 		    {
 		      v->x = v->r_x;
 		      v->y = v->r_y;
@@ -1518,7 +1518,7 @@ static boolean P_LoadReject(int lumpnum, int totallines)
 
         memset(rejectmatrix + lumplen, padvalue, minlength - lumplen);
 
-        if (demo_compatibility && overflow[emu_reject].enabled)
+        if (prior_boom && overflow[emu_reject].enabled)
         {
             unsigned int i;
             unsigned int byte_num;

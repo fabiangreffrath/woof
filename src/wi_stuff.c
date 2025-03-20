@@ -1872,7 +1872,7 @@ static void WI_updateNetgameStats(void)
 
               // [FG] Intermission screen secrets desync
               // http://prboom.sourceforge.net/mbf-bugs.html
-              if (cnt_secret[i] >= (wbs->maxsecret ? (plrs[i].ssecret * 100) / wbs->maxsecret : demo_compatibility ? 0 : 100))
+              if (cnt_secret[i] >= (wbs->maxsecret ? (plrs[i].ssecret * 100) / wbs->maxsecret : prior_boom ? 0 : 100))
                 cnt_secret[i] = wbs->maxsecret ? (plrs[i].ssecret * 100) / wbs->maxsecret : 100;
               else
                 stillticking = true;
@@ -2087,7 +2087,7 @@ static void WI_updateStats(void)
           // killough 2/22/98: Make secrets = 100% if maxsecret = 0:
           // [FG] Intermission screen secrets desync
           // http://prboom.sourceforge.net/mbf-bugs.html
-          if ((!wbs->maxsecret && demo_version < DV_MBF) ||
+          if ((!wbs->maxsecret && prior_mbf) ||
               cnt_secret[0] >= (wbs->maxsecret ? 
                                 (plrs[me].ssecret * 100) / wbs->maxsecret : 100))
             {
@@ -2121,10 +2121,10 @@ static void WI_updateStats(void)
 
                 // This check affects demo compatibility with PrBoom+
                 if ((cnt_time >= plrs[me].stime / TICRATE) &&
-                    (demo_version < DV_MBF || cnt_total_time >= wbs->totaltimes / TICRATE)
+                    (prior_mbf || cnt_total_time >= wbs->totaltimes / TICRATE)
                    )
                   {
-                    if (demo_version < DV_MBF)
+                    if (prior_mbf)
                       cnt_total_time = wbs->totaltimes / TICRATE;
                     S_StartSound(0, sfx_barexp);
                     sp_state++;

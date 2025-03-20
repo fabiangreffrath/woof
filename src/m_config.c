@@ -466,7 +466,7 @@ boolean M_ParseOption(const char *p, boolean wad)
         dp->setup_menu = dp_preset->setup_menu;
     }
 
-    if (demo_version < DV_MBF && dp->setup_menu
+    if (prior_mbf && dp->setup_menu
         && !(dp->setup_menu->m_flags & S_COSMETIC))
     {
         return 1;

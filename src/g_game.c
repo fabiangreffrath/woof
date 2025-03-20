@@ -233,7 +233,7 @@ static weapontype_t LastWeapon(void)
         return wp_nochange;
     }
 
-    if (demo_compatibility && weapon == wp_supershotgun)
+    if (prior_boom && weapon == wp_supershotgun)
     {
         return wp_shotgun;
     }
@@ -250,7 +250,7 @@ static weapontype_t WeaponSSG(void)
         return wp_nochange;
     }
 
-    if (!demo_compatibility)
+    if (min_boom)
     {
         return wp_supershotgun;
     }
@@ -793,7 +793,7 @@ void G_BuildTiccmd(ticcmd_t* cmd)
   G_NextWeaponResendCmd();
   boolean nextweapon_cmd = false;
 
-  if ((!demo_compatibility && players[consoleplayer].attackdown &&
+  if ((min_boom && players[consoleplayer].attackdown &&
        !P_CheckAmmo(&players[consoleplayer]) &&
        ((boom_weapon_state_injection && !done_autoswitch) ||
        (cmd->buttons & BT_ATTACK && players[consoleplayer].pendingweapon == wp_nochange))) ||
@@ -813,7 +813,7 @@ void G_BuildTiccmd(ticcmd_t* cmd)
   }
   else if (G_NextWeaponDeactivate())
   {
-    newweapon = demo_compatibility
+    newweapon = prior_boom
                     ? nextweapon_translate[players[consoleplayer].nextweapon]
                     : players[consoleplayer].nextweapon;
     nextweapon_cmd = true;
@@ -832,7 +832,7 @@ void G_BuildTiccmd(ticcmd_t* cmd)
         M_InputGameActive(input_weapon9) ? WeaponSSG() :
         wp_nochange;
 
-      if (!demo_compatibility && doom_weapon_toggles)
+      if (min_boom && doom_weapon_toggles)
         {
           AdjustWeaponSelection(&newweapon);
         }
@@ -954,7 +954,7 @@ static void G_DoLoadLevel(void)
 
   playback_levelstarttic = playback_tic;
 
-  if (!demo_compatibility && demo_version < DV_MBF)   // killough 9/29/98
+  if (min_boom && prior_mbf)   // killough 9/29/98
     basetic = gametic;
 
   if (wipegamestate == GS_LEVEL)
@@ -1815,7 +1815,7 @@ static void G_DoCompleted(void)
   if (gamemode == commercial)
   {
     // MAP33 reads its par time from beyond the cpars[] array.
-    if (demo_compatibility && gamemap == 33)
+    if (prior_boom && gamemap == 33)
     {
       int cpars32;
 
@@ -1830,7 +1830,7 @@ static void G_DoCompleted(void)
   else
   {
     // Doom Episode 4 doesn't have a par time, so this overflows into the cpars[] array.
-    if (demo_compatibility && gameepisode == 4 && gamemap >= 1 && gamemap <= 9)
+    if (prior_boom && gameepisode == 4 && gamemap >= 1 && gamemap <= 9)
     {
       wminfo.partime = TICRATE*cpars[gamemap];
     }
@@ -2023,7 +2023,7 @@ static void G_DoPlayDemo(void)
   demo_version = demover;     // killough 7/19/98: use the version id stored in demo
 
   // [FG] PrBoom's own demo format starts with demo version 210
-  if (demover >= 210 && !mbf21)
+  if (demover >= 210 && prior_mbf21)
   {
     I_Printf(VB_WARNING, "Unknown demo format %d.", demover);
     InvalidDemo();
@@ -2092,7 +2092,7 @@ static void G_DoPlayDemo(void)
     {
       demo_p += 6;               // skip signature;
 
-      if (mbf21)
+      if (min_mbf21)
       {
         longtics = true;
         compatibility = 0;
@@ -2112,7 +2112,7 @@ static void G_DoPlayDemo(void)
 	option_p = demo_p;
 
       // killough 3/1/98: Read game options
-      if (mbf21)
+      if (min_mbf21)
         demo_p = G_ReadOptionsMBF21(demo_p);
       else
         demo_p = G_ReadOptions(demo_p);
@@ -2121,7 +2121,7 @@ static void G_DoPlayDemo(void)
         demo_p += 256-G_GameOptionSize();
     }
 
-  if (demo_compatibility)  // only 4 players can exist in old demos
+  if (prior_boom)  // only 4 players can exist in old demos
     {
       for (i=0; i<4; i++)  // intentionally hard-coded 4 -- killough
         playeringame[i] = *demo_p++;
@@ -2154,7 +2154,7 @@ static void G_DoPlayDemo(void)
       
       if (option_p)
       {
-        if (mbf21)
+        if (min_mbf21)
           G_ReadOptionsMBF21(option_p);
         else
           G_ReadOptions(option_p);
@@ -2621,7 +2621,7 @@ static boolean DoLoadGame(boolean do_load_autosave)
   idmusnum = *(signed char *) save_p++;
 
   /* cph 2001/05/23 - Must read options before we set up the level */
-  if (mbf21)
+  if (min_mbf21)
     G_ReadOptionsMBF21(save_p);
   else
     G_ReadOptions(save_p);
@@ -2633,7 +2633,7 @@ static boolean DoLoadGame(boolean do_load_autosave)
   // killough 11/98: move down to here
   /* cph - MBF needs to reread the savegame options because G_InitNew
    * rereads the WAD options. The demo playback code does this too. */
-  if (mbf21)
+  if (min_mbf21)
     save_p = G_ReadOptionsMBF21(save_p);
   else
     save_p = G_ReadOptions(save_p);
@@ -3181,7 +3181,7 @@ static boolean G_CheckSpot(int playernum, mapthing_t *mthing)
     // 'an' will always be positive.
     an = (ANG45 >> ANGLETOFINESHIFT) * ((signed int) mthing->angle / 45);
 
-    if (demo_compatibility)
+    if (prior_boom)
       switch (an)
       {
         case 4096:  // -4096:
@@ -3446,7 +3446,7 @@ demo_version_t G_GetNamedComplevel(const char *arg)
     {
         const char *const name;
         demo_version_t demover;
-        int exe;
+        GameVersion_t exe;
     } named_complevel[] = {
         {"vanilla",  DV_VANILLA, exe_indetermined},
         {"doom2",    DV_VANILLA, exe_doom_1_9    },
@@ -3464,6 +3464,8 @@ demo_version_t G_GetNamedComplevel(const char *arg)
         {"11",       DV_MBF,     exe_indetermined},
         {"mbf21",    DV_MBF21,   exe_indetermined},
         {"21",       DV_MBF21,   exe_indetermined},
+        {"id24",     DV_ID24,    exe_indetermined},
+        {"24",       DV_ID24,    exe_indetermined},
     };
 
     for (int i = 0; i < arrlen(named_complevel); i++)
@@ -3490,7 +3492,8 @@ static struct
     {DV_VANILLA, CL_VANILLA},
     {DV_BOOM,    CL_BOOM   },
     {DV_MBF,     CL_MBF    },
-    {DV_MBF21,   CL_MBF21  }
+    {DV_MBF21,   CL_MBF21  },
+    {DV_ID24,    CL_ID24   },
 };
 
 static complevel_t GetComplevel(demo_version_t demover)
@@ -3531,6 +3534,8 @@ const char *G_GetCurrentComplevelName(void)
             return "MBF";
         case DV_MBF21:
             return "MBF21";
+        case DV_ID24:
+            return "ID24";
         default:
             return "Unknown";
     }
@@ -3563,6 +3568,10 @@ static demo_version_t GetWadDemover(void)
     else if (length == 5 && !strncasecmp("mbf21", data, 5))
     {
         return DV_MBF21;
+    }
+    else if (length == 4 && !strncasecmp("id24", data, 4))
+    {
+        return DV_ID24;
     }
 
     return DV_NONE;
@@ -3778,7 +3787,7 @@ void G_ReloadDefaults(boolean keep_demover)
   {
     if (demo_version == DV_MBF)
       G_MBFDefaults();
-    else if (mbf21)
+    else if (min_mbf21)
       G_MBF21Defaults();
   }
 
@@ -3788,7 +3797,7 @@ void G_ReloadDefaults(boolean keep_demover)
 
   R_InvulMode();
 
-  if (!mbf21)
+  if (prior_mbf21)
   {
     // Set new compatibility options
     G_MBFComp();
@@ -3803,13 +3812,13 @@ void G_ReloadDefaults(boolean keep_demover)
   if (beta_emulation && demo_version != DV_MBF)
     I_Error("G_ReloadDefaults: Beta emulation requires complevel MBF.");
 
-  if ((M_CheckParm("-dog") || M_CheckParm("-dogs")) && demo_version < DV_MBF)
+  if ((M_CheckParm("-dog") || M_CheckParm("-dogs")) && prior_mbf)
     I_Error("G_ReloadDefaults: Helper dogs require complevel MBF or MBF21.");
 
-  if (M_CheckParm("-skill") && startskill == sk_none && !demo_compatibility)
+  if (M_CheckParm("-skill") && startskill == sk_none && min_boom)
     I_Error("G_ReloadDefaults: '-skill 0' requires complevel Vanilla.");
 
-  if (demo_version < DV_MBF)
+  if (prior_mbf)
   {
     monster_infighting = 1;
     monster_backing = 0;
@@ -3833,7 +3842,7 @@ void G_ReloadDefaults(boolean keep_demover)
       G_BoomComp();
     }
   }
-  else if (mbf21)
+  else if (min_mbf21)
   {
     // These are not configurable
     variable_friction = 1;
@@ -3879,7 +3888,7 @@ void G_SetFastParms(int fast_pending)
     if ((fast = fast_pending))
     {
       for (i = 0; i < num_states; i++)
-        if (states[i].flags & STATEF_SKILL5FAST && (states[i].tics != 1 || demo_compatibility))
+        if (states[i].flags & STATEF_SKILL5FAST && (states[i].tics != 1 || prior_boom))
           states[i].tics >>= 1;  // don't change 1->0 since it causes cycles
     }
     else
@@ -4034,7 +4043,7 @@ void G_RecordDemo(const char *name)
 // Lee Killough 3/1/98
 
 static int G_GameOptionSize(void) {
-  return mbf21 ? MBF21_GAME_OPTION_SIZE : GAME_OPTION_SIZE;
+  return min_mbf21 ? MBF21_GAME_OPTION_SIZE : GAME_OPTION_SIZE;
 }
 
 static byte* G_WriteOptionsMBF21(byte* demo_p)
@@ -4083,7 +4092,7 @@ byte *G_WriteOptions(byte *demo_p)
 {
   byte *target = demo_p + GAME_OPTION_SIZE;
 
-  if (mbf21)
+  if (min_mbf21)
   {
     return G_WriteOptionsMBF21(demo_p);
   }
@@ -4254,7 +4263,7 @@ byte *G_ReadOptions(byte *demo_p)
   rngseed += *demo_p++ & 0xff;
 
   // Options new to v2.03
-  if (demo_version >= DV_MBF)
+  if (min_mbf)
     {
       monster_infighting = *demo_p++;   // killough 7/19/98
 
@@ -4326,7 +4335,7 @@ void G_BeginRecording(void)
 
   demo_p = demobuffer;
 
-  if (demo_version == DV_MBF || mbf21)
+  if (min_mbf)
   {
   *demo_p++ = demo_version;
 
@@ -4338,7 +4347,7 @@ void G_BeginRecording(void)
   *demo_p++ = 0xe6;
   *demo_p++ = '\0';
 
-  if (!mbf21)
+  if (prior_mbf21)
   {
   // killough 2/22/98: save compatibility flag in new demos
   *demo_p++ = compatibility;       // killough 2/22/98
@@ -4487,7 +4496,7 @@ static size_t WriteCmdLineLump(MEMFILE *stream)
     }
   }
 
-  if (demo_compatibility)
+  if (prior_boom)
   {
     if (gameversion == exe_doom_1_9)
       mem_fputs(" -complevel 2", stream);

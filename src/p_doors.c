@@ -463,7 +463,7 @@ int EV_VerticalDoor(line_t *line, mobj_t *thing)
 
   // [FG] DR doors corrupt other actions
   // http://prboom.sourceforge.net/mbf-bugs.html
-  if (demo_compatibility)
+  if (prior_boom)
   {
     if (!door) door = sec->floordata;
     if (!door) door = sec->lightingdata;
@@ -487,7 +487,7 @@ int EV_VerticalDoor(line_t *line, mobj_t *thing)
 
               // [FG] DR doors corrupt other actions
               // http://prboom.sourceforge.net/mbf-bugs.html
-              if (door->thinker.function.p1 == (actionf_p1)T_VerticalDoor || !demo_compatibility)
+              if (door->thinker.function.p1 == (actionf_p1)T_VerticalDoor || min_boom)
               {
               door->direction = -1; // start going down immediately
               }

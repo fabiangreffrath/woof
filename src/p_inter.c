@@ -140,7 +140,7 @@ boolean P_GiveAmmo(player_t *player, ammotype_t ammo, int num)
   if (player->ammo[ammo] > player->maxammo[ammo])
     player->ammo[ammo] = player->maxammo[ammo];
 
-  if (mbf21)
+  if (min_mbf21)
     return P_GiveAmmoAutoSwitch(player, ammo, oldammo);
 
   // If non zero ammo, don't change up weapons, player was lower on purpose.
@@ -728,7 +728,7 @@ static void P_KillMobj(mobj_t *source, mobj_t *target, method_t mod)
 
             if (playerscount)
             {
-              if (demo_version >= DV_MBF)
+              if (min_mbf)
                 i = P_Random(pr_friends) % playerscount;
               else
                 i = Woof_Random() % playerscount;
@@ -937,7 +937,7 @@ void P_DamageMobjBy(mobj_t *target,mobj_t *inflictor, mobj_t *source, int damage
     }
 
   // killough 9/7/98: keep track of targets so that friends can help friends
-  if (demo_version >= DV_MBF)
+  if (min_mbf)
     {
       // If target is a player, set player's target to source,
       // so that a friend can tell who's hurting a player
@@ -970,7 +970,7 @@ void P_DamageMobjBy(mobj_t *target,mobj_t *inflictor, mobj_t *source, int damage
   if (source && source != target && !(source->flags2 & MF2_DMGIGNORED) &&
       (!target->threshold || target->flags2 & MF2_NOTHRESHOLD) &&
       ((source->flags ^ target->flags) & MF_FRIEND || 
-       monster_infighting || demo_version < DV_MBF) &&
+       monster_infighting || prior_mbf) &&
       !P_InfightingImmune(target, source))
     {
       // if not intent on another player, chase after this one
@@ -980,7 +980,7 @@ void P_DamageMobjBy(mobj_t *target,mobj_t *inflictor, mobj_t *source, int damage
       // killough 9/9/98: cleaned up, made more consistent:
 
       if (!target->lastenemy || target->lastenemy->health <= 0 ||
-	  (demo_version < DV_MBF ? !target->lastenemy->player :
+	  (prior_mbf ? !target->lastenemy->player :
 	   !((target->flags ^ target->lastenemy->flags) & MF_FRIEND) &&
 	   target->target != source)) // remember last enemy - killough
 	P_SetTarget(&target->lastenemy, target->target);

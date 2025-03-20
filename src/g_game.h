@@ -96,6 +96,7 @@ typedef enum
   CL_BOOM,
   CL_MBF,
   CL_MBF21,
+  CL_ID24,
 } complevel_t;
 
 extern complevel_t force_complevel, default_complevel;

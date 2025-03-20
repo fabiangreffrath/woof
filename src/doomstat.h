@@ -102,6 +102,7 @@ typedef enum {
   DV_BOOM    = 202,
   DV_MBF     = 203,
   DV_MBF21   = 221,
+  DV_ID24    = 224, // [EA] (2025-03-20) COMPATIBILITY NOT YET STABLE
   DV_UM      = 255,
 } demo_version_t;
 
@@ -110,9 +111,19 @@ extern demo_version_t demo_version;           // killough 7/19/98: Version of de
 // Only true when playing back an old demo -- used only in "corner cases"
 // which break playback but are otherwise unnoticable or are just desirable:
 
-#define demo_compatibility (demo_version < DV_BOOM200) /* killough 11/98: macroized */
+// #define demo_compatibility (demo_version < DV_BOOM200) /* killough 11/98: macroized */
+// #define mbf21 (demo_version == DV_MBF21)
 
-#define mbf21 (demo_version == DV_MBF21)
+// [EA] Common complevel checks made more generic
+#define prior_boom  (demo_version < DV_BOOM200)
+#define prior_mbf   (demo_version < DV_MBF)
+#define prior_mbf21 (demo_version < DV_MBF21)
+#define prior_id24  (demo_version < DV_ID24)
+
+#define min_boom  (demo_version >= DV_BOOM200)
+#define min_mbf   (demo_version >= DV_MBF)
+#define min_mbf21 (demo_version >= DV_MBF21)
+#define min_id24  (demo_version >= DV_ID24)
 
 // killough 7/19/98: whether monsters should fight against each other
 extern boolean monster_infighting, default_monster_infighting;
