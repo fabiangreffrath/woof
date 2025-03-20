@@ -91,7 +91,8 @@ static int fpslimit; // when uncapped, limit framerate to this value
 static boolean fullscreen;
 static boolean exclusive_fullscreen;
 static boolean change_display_resolution;
-static int widescreen, default_widescreen;
+static int widescreen;
+int default_widescreen;
 static boolean vga_porch_flash; // emulate VGA "porch" behaviour
 static boolean smooth_scaling;
 static int video_display = 0; // display index
@@ -1313,7 +1314,8 @@ static void ResetResolution(int height, boolean reset_pitch)
         AM_ResetScreenSize();
     }
 
-    I_Printf(VB_DEBUG, "ResetResolution: %dx%d", video.width, video.height);
+    I_Printf(VB_DEBUG, "ResetResolution: %dx%d (%dx%d)",
+        video.width, video.height, video.unscaledw, SCREENHEIGHT);
 
     drs_skip_frame = true;
 }
@@ -1953,6 +1955,66 @@ void I_BindVideoVariables(void)
 
     M_BindBool("grabmouse", &default_grabmouse, &grabmouse, true, ss_none,
                wad_no, "Grab mouse during play");
+}
+
+static struct {
+    int w, h;
+} native_res[] = {
+    {  320,  240 },
+    {  640,  480 },
+    {  800,  600 },
+    { 1024,  768 },
+    { 1280, 1024 },
+    { 1280,  720 },
+    { 1280,  800 },
+    { 1366,  768 },
+    { 1440,  900 },
+    { 1440, 1080 },
+    { 1680, 1050 },
+    { 1920, 1080 },
+    { 1920, 1200 },
+    { 2048, 1152 },
+    { 2560, 1080 },
+    { 2304, 1440 },
+    { 2560, 1440 },
+    { 2560, 1600 },
+    { 3200, 2400 },
+    { 3440, 1440 },
+    { 3840, 1600 },
+    { 3840, 2160 },
+    { 5120, 2160 }
+};
+
+static int curr_test_res;
+
+boolean I_ChangeRes(void)
+{
+    if (curr_test_res == arrlen(native_res))
+        return false;
+
+    max_width  = native_res[curr_test_res].w;
+    max_height = native_res[curr_test_res].h;
+
+    max_height_adjusted = (int)(max_height / 1.2);
+
+    printf("I_ChangeRes: %dx%d\n", max_width, max_height);
+    ResetResolution(max_height_adjusted, true);
+    CreateSurfaces(video.pitch, video.height);
+    ResetLogicalSize();
+
+    curr_test_res++;
+
+    return true;
+}
+
+void I_CheckHOM(void)
+{
+    if (I_VideoBuffer[video.width - 1] == 0xb0)
+    {
+        I_Printf(VB_WARNING, "HOM: native %dx%d, video %dx%d, fov %d",
+                 max_width, max_height, video.width, video.height,
+                 custom_fov);
+    }
 }
 
 //----------------------------------------------------------------------------
