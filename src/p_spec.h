@@ -963,7 +963,7 @@ void P_UpdateSpecials(void);
 boolean P_UseSpecialLine(struct mobj_s *thing, struct line_s *line, int side,
                          boolean bossaction);
 
-void P_ShootSpecialLine(struct mobj_s *thing, struct line_s *line);
+void P_ShootSpecialLine(struct mobj_s *thing, struct line_s *line, int side);
 
 void P_CrossSpecialLine(struct line_s *, int side, struct mobj_s *thing,
                         boolean bossaction); // killough 11/98

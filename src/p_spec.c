@@ -661,7 +661,7 @@ sector_t *P_FindModelFloorSector(fixed_t floordestheight, int secnum)
 
   int i, linecount = sec->linecount;
 
-  for (i = 0; i < (demo_compatibility && sec->linecount < linecount ?
+  for (i = 0; i < (demo_version < DV_BOOM200 && sec->linecount < linecount ?
                    sec->linecount : linecount); i++)
     if (twoSided(secnum, i) &&
         (sec = getSector(secnum, i,
@@ -697,7 +697,7 @@ sector_t *P_FindModelCeilingSector(fixed_t ceildestheight, int secnum)
   // but allow early exit in old demos
   int i, linecount = sec->linecount;
 
-  for (i = 0; i < (demo_compatibility && sec->linecount<linecount?
+  for (i = 0; i < (demo_version < DV_BOOM200 && sec->linecount<linecount?
                    sec->linecount : linecount); i++)
     if (twoSided(secnum, i) &&
         (sec = getSector(secnum, i,
@@ -918,7 +918,7 @@ boolean P_CanUnlockGenDoor(line_t *line, player_t *player)
 
 int P_SectorActive(special_e t,sector_t *sec)
 {
-  return demo_compatibility ?  // return whether any thinker is active
+  return demo_version < DV_BOOM200 ?  // return whether any thinker is active
     sec->floordata || sec->ceilingdata || sec->lightingdata :
     t == floor_special ? !!sec->floordata :        // return whether
     t == ceiling_special ? !!sec->ceilingdata :    // thinker of same
@@ -947,7 +947,7 @@ int P_CheckTag(line_t *line)
 
   switch (line->special)
     {
-    case 1:   // Manual door specials
+    case 1:    // Manual door specials
     case 26:
     case 27:
     case 28:
@@ -957,6 +957,7 @@ int P_CheckTag(line_t *line)
     case 34:
     case 117:
     case 118:
+
     case 139:  // Lighting specials
     case 170:
     case 79:
@@ -977,6 +978,7 @@ int P_CheckTag(line_t *line)
     case 172:
     case 156:
     case 17:
+
     case 195:  // Thing teleporters
     case 174:
     case 97:
@@ -987,14 +989,49 @@ int P_CheckTag(line_t *line)
     case 209:
     case 208:
     case 207:
-    case 11:  // Exits
+
+    case 11:   // Exits
     case 52:
     case 197:
     case 51:
     case 124:
     case 198:
-    case 48:  // Scrolling walls
+    case 2069:
+    case 2070:
+    case 2071:
+    case 2072:
+    case 2073:
+    case 2074:
+
+    case 48:   // Scrolling walls
     case 85:
+    case 2082:
+    case 2083:
+
+    case 2057: // Music changers
+    case 2058:
+    case 2059:
+    case 2060:
+    case 2061:
+    case 2062:
+    case 2063:
+    case 2064:
+    case 2065:
+    case 2066:
+    case 2067:
+    case 2068:
+    case 2087:
+    case 2088:
+    case 2089:
+    case 2090:
+    case 2091:
+    case 2092:
+    case 2093:
+    case 2094:
+    case 2095:
+    case 2096:
+    case 2097:
+    case 2098:
       return 1;
     }
 
@@ -1007,7 +1044,7 @@ boolean P_IsDeathExit(sector_t *sector)
   {
     return (sector->special == 11);
   }
-  else if (mbf21 && sector->special & DEATH_MASK)
+  else if (demo_version >= DV_MBF21 && sector->special & DEATH_MASK)
   {
     const int i = (sector->special & DAMAGE_MASK) >> DAMAGE_SHIFT;
 
@@ -1091,7 +1128,7 @@ void P_CrossSpecialLine(line_t *line, int side, mobj_t *thing, boolean bossactio
       }
 
   //jff 02/04/98 add check here for generalized lindef types
-  if (!demo_compatibility) // generalized types not recognized if old demo
+  if (demo_version >= DV_BOOM200) // generalized types not recognized if old demo
     {
       // pointer to line function is NULL by default, set non-null if
       // line special is walkover generalized linedef type
@@ -1166,7 +1203,7 @@ void P_CrossSpecialLine(line_t *line, int side, mobj_t *thing, boolean bossactio
                     linefunc = EV_DoGenStairs;
                   }
               else
-                if (mbf21 && (unsigned)line->special >= GenCrusherBase)
+                if (demo_version >= DV_MBF21 && (unsigned)line->special >= GenCrusherBase)
                   {
                     // haleyjd 06/09/09: This was completely forgotten in BOOM, disabling
                     // all generalized walk-over crusher types!
@@ -1238,128 +1275,128 @@ void P_CrossSpecialLine(line_t *line, int side, mobj_t *thing, boolean bossactio
 
     case 2:
       // Open Door
-      if (EV_DoDoor(line,doorOpen) || demo_compatibility)
+      if (EV_DoDoor(line,doorOpen) || demo_version < DV_BOOM200)
         line->special = 0;
       break;
 
     case 3:
       // Close Door
-      if (EV_DoDoor(line,doorClose) || demo_compatibility)
+      if (EV_DoDoor(line,doorClose) || demo_version < DV_BOOM200)
         line->special = 0;
       break;
 
     case 4:
       // Raise Door
-      if (EV_DoDoor(line,doorNormal) || demo_compatibility)
+      if (EV_DoDoor(line,doorNormal) || demo_version < DV_BOOM200)
         line->special = 0;
       break;
 
     case 5:
       // Raise Floor
-      if (EV_DoFloor(line,raiseFloor) || demo_compatibility)
+      if (EV_DoFloor(line,raiseFloor) || demo_version < DV_BOOM200)
         line->special = 0;
       break;
 
     case 6:
       // Fast Ceiling Crush & Raise
-      if (EV_DoCeiling(line,fastCrushAndRaise) || demo_compatibility)
+      if (EV_DoCeiling(line,fastCrushAndRaise) || demo_version < DV_BOOM200)
         line->special = 0;
       break;
 
     case 8:
       // Build Stairs
-      if (EV_BuildStairs(line,build8) || demo_compatibility)
+      if (EV_BuildStairs(line,build8) || demo_version < DV_BOOM200)
         line->special = 0;
       break;
 
     case 10:
       // PlatDownWaitUp
-      if (EV_DoPlat(line,downWaitUpStay,0) || demo_compatibility)
+      if (EV_DoPlat(line,downWaitUpStay,0) || demo_version < DV_BOOM200)
         line->special = 0;
       break;
 
     case 12:
       // Light Turn On - brightest near
-      if (EV_LightTurnOn(line,0) || demo_compatibility)
+      if (EV_LightTurnOn(line,0) || demo_version < DV_BOOM200)
         line->special = 0;
       break;
 
     case 13:
       // Light Turn On 255
-      if (EV_LightTurnOn(line,255) || demo_compatibility)
+      if (EV_LightTurnOn(line,255) || demo_version < DV_BOOM200)
         line->special = 0;
       break;
 
     case 16:
       // Close Door 30
-      if (EV_DoDoor(line,close30ThenOpen) || demo_compatibility)
+      if (EV_DoDoor(line,close30ThenOpen) || demo_version < DV_BOOM200)
         line->special = 0;
       break;
 
     case 17:
       // Start Light Strobing
-      if (EV_StartLightStrobing(line) || demo_compatibility)
+      if (EV_StartLightStrobing(line) || demo_version < DV_BOOM200)
         line->special = 0;
       break;
 
     case 19:
       // Lower Floor
-      if (EV_DoFloor(line,lowerFloor) || demo_compatibility)
+      if (EV_DoFloor(line,lowerFloor) || demo_version < DV_BOOM200)
         line->special = 0;
       break;
 
     case 22:
       // Raise floor to nearest height and change texture
-      if (EV_DoPlat(line,raiseToNearestAndChange,0) || demo_compatibility)
+      if (EV_DoPlat(line,raiseToNearestAndChange,0) || demo_version < DV_BOOM200)
         line->special = 0;
       break;
 
     case 25:
       // Ceiling Crush and Raise
-      if (EV_DoCeiling(line,crushAndRaise) || demo_compatibility)
+      if (EV_DoCeiling(line,crushAndRaise) || demo_version < DV_BOOM200)
         line->special = 0;
       break;
 
     case 30:
       // Raise floor to shortest texture height
       //  on either side of lines.
-      if (EV_DoFloor(line,raiseToTexture) || demo_compatibility)
+      if (EV_DoFloor(line,raiseToTexture) || demo_version < DV_BOOM200)
         line->special = 0;
       break;
 
     case 35:
       // Lights Very Dark
-      if (EV_LightTurnOn(line,35) || demo_compatibility)
+      if (EV_LightTurnOn(line,35) || demo_version < DV_BOOM200)
         line->special = 0;
       break;
 
     case 36:
       // Lower Floor (TURBO)
-      if (EV_DoFloor(line,turboLower) || demo_compatibility)
+      if (EV_DoFloor(line,turboLower) || demo_version < DV_BOOM200)
         line->special = 0;
       break;
 
     case 37:
       // LowerAndChange
-      if (EV_DoFloor(line,lowerAndChange) || demo_compatibility)
+      if (EV_DoFloor(line,lowerAndChange) || demo_version < DV_BOOM200)
         line->special = 0;
       break;
 
     case 38:
       // Lower Floor To Lowest
-      if (EV_DoFloor(line, lowerFloorToLowest) || demo_compatibility)
+      if (EV_DoFloor(line, lowerFloorToLowest) || demo_version < DV_BOOM200)
         line->special = 0;
       break;
 
     case 39:
       // TELEPORT! //jff 02/09/98 fix using up with wrong side crossing
-      if (EV_Teleport(line, side, thing) || demo_compatibility)
+      if (EV_Teleport(line, side, thing) || demo_version < DV_BOOM200)
         line->special = 0;
       break;
 
     case 40:
       // RaiseCeilingLowerFloor
-      if (demo_compatibility)
+      if (demo_version < DV_BOOM200)
         {
           EV_DoCeiling( line, raiseToHighest );
           EV_DoFloor( line, lowerFloorToLowest ); //jff 02/12/98 doesn't work
@@ -1372,9 +1409,16 @@ void P_CrossSpecialLine(line_t *line, int side, mobj_t *thing, boolean bossactio
 
     case 44:
       // Ceiling Crush
-      if (EV_DoCeiling(line, lowerAndCrush) || demo_compatibility)
+      if (EV_DoCeiling(line, lowerAndCrush) || demo_version < DV_BOOM200)
         line->special = 0;
       break;
+
+    // W1 - Exit to the next map and reset inventory.
+    case 2069:
+      if (demo_version < DV_ID24)
+        break;
+      reset_inventory = true;
+      // fallthrough
 
     case 52:
       // EXIT!
@@ -1386,81 +1430,88 @@ void P_CrossSpecialLine(line_t *line, int side, mobj_t *thing, boolean bossactio
 
     case 53:
       // Perpetual Platform Raise
-      if (EV_DoPlat(line,perpetualRaise,0) || demo_compatibility)
+      if (EV_DoPlat(line,perpetualRaise,0) || demo_version < DV_BOOM200)
         line->special = 0;
       break;
 
     case 54:
       // Platform Stop
-      if (EV_StopPlat(line) || demo_compatibility)
+      if (EV_StopPlat(line) || demo_version < DV_BOOM200)
         line->special = 0;
       break;
 
     case 56:
       // Raise Floor Crush
-      if (EV_DoFloor(line,raiseFloorCrush) || demo_compatibility)
+      if (EV_DoFloor(line,raiseFloorCrush) || demo_version < DV_BOOM200)
         line->special = 0;
       break;
 
     case 57:
       // Ceiling Crush Stop
-      if (EV_CeilingCrushStop(line) || demo_compatibility)
+      if (EV_CeilingCrushStop(line) || demo_version < DV_BOOM200)
         line->special = 0;
       break;
 
     case 58:
       // Raise Floor 24
-      if (EV_DoFloor(line,raiseFloor24) || demo_compatibility)
+      if (EV_DoFloor(line,raiseFloor24) || demo_version < DV_BOOM200)
         line->special = 0;
       break;
 
     case 59:
       // Raise Floor 24 And Change
-      if (EV_DoFloor(line,raiseFloor24AndChange) || demo_compatibility)
+      if (EV_DoFloor(line,raiseFloor24AndChange) || demo_version < DV_BOOM200)
         line->special = 0;
       break;
 
     case 100:
       // Build Stairs Turbo 16
-      if (EV_BuildStairs(line,turbo16) || demo_compatibility)
+      if (EV_BuildStairs(line,turbo16) || demo_version < DV_BOOM200)
         line->special = 0;
       break;
 
     case 104:
       // Turn lights off in sector(tag)
-      if (EV_TurnTagLightsOff(line) || demo_compatibility)
+      if (EV_TurnTagLightsOff(line) || demo_version < DV_BOOM200)
         line->special = 0;
       break;
 
     case 108:
       // Blazing Door Raise (faster than TURBO!)
-      if (EV_DoDoor(line,blazeRaise) || demo_compatibility)
+      if (EV_DoDoor(line,blazeRaise) || demo_version < DV_BOOM200)
         line->special = 0;
       break;
 
     case 109:
       // Blazing Door Open (faster than TURBO!)
-      if (EV_DoDoor (line,blazeOpen) || demo_compatibility)
+      if (EV_DoDoor (line,blazeOpen) || demo_version < DV_BOOM200)
         line->special = 0;
       break;
 
     case 110:
       // Blazing Door Close (faster than TURBO!)
-      if (EV_DoDoor (line,blazeClose) || demo_compatibility)
+      if (EV_DoDoor (line,blazeClose) || demo_version < DV_BOOM200)
         line->special = 0;
       break;
 
     case 119:
       // Raise floor to nearest surr. floor
-      if (EV_DoFloor(line,raiseFloorToNearest) || demo_compatibility)
+      if (EV_DoFloor(line,raiseFloorToNearest) || demo_version < DV_BOOM200)
         line->special = 0;
       break;
 
     case 121:
       // Blazing PlatDownWaitUpStay
-      if (EV_DoPlat(line,blazeDWUS,0) || demo_compatibility)
+      if (EV_DoPlat(line,blazeDWUS,0) || demo_version < DV_BOOM200)
         line->special = 0;
       break;
+
+    // W1 - Exit to the secret map and reset inventory.
+    case 2072:
+      if (demo_version < DV_ID24)
+        break;
+      reset_inventory = true;
+      // fallthrough
 
     case 124:
       // Secret EXIT
@@ -1473,19 +1524,19 @@ void P_CrossSpecialLine(line_t *line, int side, mobj_t *thing, boolean bossactio
     case 125:
       // TELEPORT MonsterONLY
       if (!thing->player &&
-          (EV_Teleport(line, side, thing) || demo_compatibility))
+          (EV_Teleport(line, side, thing) || demo_version < DV_BOOM200))
         line->special = 0;
       break;
 
     case 130:
       // Raise Floor Turbo
-      if (EV_DoFloor(line,raiseFloorTurbo) || demo_compatibility)
+      if (EV_DoFloor(line,raiseFloorTurbo) || demo_version < DV_BOOM200)
         line->special = 0;
       break;
 
     case 141:
       // Silent Ceiling Crush & Raise
-      if (EV_DoCeiling(line,silentCrushAndRaise) || demo_compatibility)
+      if (EV_DoCeiling(line,silentCrushAndRaise) || demo_version < DV_BOOM200)
         line->special = 0;
       break;
 
@@ -1654,21 +1705,65 @@ void P_CrossSpecialLine(line_t *line, int side, mobj_t *thing, boolean bossactio
       EV_DoFloor(line,raiseFloorTurbo);
       break;
 
-      // Extended walk triggers
+    // ID24 Music Changers
+    // * Change music and make it loop only if a track is defined.
+    // * Change music and make it play only once and stop all music after.
+    // * Change music and make it loop, reset to looping default if no track
+    //    defined.
+    // * Change music and make it play only once, reset to looping default if no
+    //    track defined.
 
-      // jff 1/29/98 added new linedef types to fill all functions out so that
-      // all have varieties SR, S1, WR, W1
+    case 2059: case 2065: case 2089: case 2095:
+      line->special = 0;
+      // fallthrough
 
-      // killough 1/31/98: "factor out" compatibility test, by
-      // adding inner switch qualified by compatibility flag.
-      // relax test to demo_compatibility
+    case 2060: case 2066: case 2090: case 2096:
+    {
+      int music = side ? line->backmusic : line->frontmusic;
+      if (music)
+      {
+        boolean loops = (line->special == 2059) || (line->special == 2060) ||
+                        (line->special == 2089) || (line->special == 2090);
+        S_ChangeMusInfoMusic(music, loops);
+      }
+      else if ((line->special == 2089) || (line->special == 2090) ||
+               (line->special == 2095) || (line->special == 2096))
+      {
+        // Oh no! A hack!
+        S_Start(false);
+        break;
+      }
+      break;
+    }
 
-      // killough 2/16/98: Fix problems with W1 types being cleared too early
+    // Set the target sector's colormap.
+    case 2076:
+      line->special = 0;
+      // fallthrough
 
+    case 2077:
+      for (int s = -1; (s = P_FindSectorFromLineTag(line, s)) >= 0 ; )
+        sectors[s].colormap_index = side ? line->backcolormap
+                                         : line->frontcolormap;
+      break;
+
+
+    // Extended walk triggers
+
+    // jff 1/29/98 added new linedef types to fill all functions out so that
+    // all have varieties SR, S1, WR, W1
+
+    // killough 1/31/98: "factor out" compatibility test, by
+    // adding inner switch qualified by compatibility flag.
+    // relax test to demo_compatibility
+
+    // killough 2/16/98: Fix problems with W1 types being cleared too early
     default:
-      if (!demo_compatibility)
+    {
+      if (demo_version >= DV_BOOM200)
+      {
         switch (line->special)
-          {
+        {
             // Extended walk once triggers
 
           case 142:
@@ -1958,10 +2053,11 @@ void P_CrossSpecialLine(line_t *line, int side, mobj_t *thing, boolean bossactio
               EV_SilentTeleport(line, side, thing);
             break;
             //jff 1/29/98 end of added WR linedef types
-
-          }
+        }
+      }
       break;
     }
+  }
 }
 
 //
@@ -1974,10 +2070,10 @@ void P_CrossSpecialLine(line_t *line, int side, mobj_t *thing, boolean bossactio
 // of the line, should the sector already be in motion when the line is
 // impacted. Change is qualified by demo_compatibility.
 //
-void P_ShootSpecialLine(mobj_t *thing, line_t *line)
+void P_ShootSpecialLine(mobj_t *thing, line_t *line, int side)
 {
   //jff 02/04/98 add check here for generalized linedef
-  if (!demo_compatibility)
+  if (demo_version >= DV_BOOM200)
     {
       // pointer to line function is NULL by default, set non-null if
       // line special is gun triggered generalized linedef type
@@ -2099,10 +2195,10 @@ void P_ShootSpecialLine(mobj_t *thing, line_t *line)
     return;
 
   switch(line->special)
-    {
+  {
     case 24:
       // 24 G1 raise floor to highest adjacent
-      if (EV_DoFloor(line,raiseFloor) || demo_compatibility)
+      if (EV_DoFloor(line,raiseFloor) || demo_version < DV_BOOM200)
         P_ChangeSwitchTexture(line,0);
       break;
 
@@ -2114,40 +2210,97 @@ void P_ShootSpecialLine(mobj_t *thing, line_t *line)
 
     case 47:
       // 47 G1 raise floor to nearest and change texture and type
-      if (EV_DoPlat(line,raiseToNearestAndChange,0) || demo_compatibility)
+      if (EV_DoPlat(line,raiseToNearestAndChange,0) || demo_version < DV_BOOM200)
         P_ChangeSwitchTexture(line,0);
       break;
 
-      //jff 1/30/98 added new gun linedefs here
-      // killough 1/31/98: added demo_compatibility check, added inner switch
+    // ID24 Music Changers
+    // * Change music and make it loop only if a track is defined.
+    // * Change music and make it play only once and stop all music after.
+    // * Change music and make it loop, reset to looping default if no track
+    //    defined.
+    // * Change music and make it play only once, reset to looping default if no
+    //    track defined.
+    case 2061: case 2067: case 2091: case 2097:
+      line->special = 0;
+      // fallthrough
 
+    case 2062: case 2068: case 2092: case 2098:
+    {
+      int music = side ? line->backmusic : line->frontmusic;
+      if (music)
+      {
+        boolean loops = (line->special == 2061) || (line->special == 2062) ||
+                        (line->special == 2091) || (line->special == 2092);
+        S_ChangeMusInfoMusic(music, loops);
+      }
+      else if ((line->special == 2091) || (line->special == 2092) ||
+               (line->special == 2097) || (line->special == 2098))
+      {
+        // Oh no! A hack!
+        S_Start(false);
+        break;
+      }
+      break;
+    }
+
+    // Set the target sector's colormap.
+    case 2080:
+      line->special = 0;
+      // fallthrough
+
+    case 2081:
+      for (int s = -1; (s = P_FindSectorFromLineTag(line, s)) >= 0 ; )
+        sectors[s].colormap_index = side ? line->backcolormap
+                                         : line->frontcolormap;
+      break;
+
+    //jff 1/30/98 added new gun linedefs here
+    // killough 1/31/98: added demo_compatibility check, added inner switch
     default:
-      if (!demo_compatibility)
+    {
+      if (demo_version >= DV_BOOM200)
+      {
         switch (line->special)
-          {
+        {
+          // G1 - Exit to the next map and reset inventory.
+          case 2071:
+            if (demo_version < DV_ID24)
+              break;
+            reset_inventory = true;
+            // fallthrough
+
           case 197:
             // Exit to next level
-
             // killough 10/98: prevent zombies from exiting levels
-            if(thing->player && thing->player->health<=0 && !comp[comp_zombie])
+            if(thing->player && thing->player->health <= 0 && !comp[comp_zombie])
               break;
-            P_ChangeSwitchTexture(line,0);
+            P_ChangeSwitchTexture(line, 0);
             G_ExitLevel();
             break;
+
+          // G1 - Exit to the secret map and reset inventory.
+          case 2074:
+            if (demo_version < DV_ID24)
+              break;
+            reset_inventory = true;
+            // fallthrough
 
           case 198:
             // Exit to secret level
 
             // killough 10/98: prevent zombies from exiting levels
-            if(thing->player && thing->player->health<=0 && !comp[comp_zombie])
+            if(thing->player && thing->player->health <= 0 && !comp[comp_zombie])
               break;
-            P_ChangeSwitchTexture(line,0);
+            P_ChangeSwitchTexture(line, 0);
             G_SecretExitLevel();
             break;
             //jff end addition of new gun linedefs
-          }
-      break;
+        }
+      }
+      break; // default
     }
+  }
 }
 
 int disable_nuke;  // killough 12/98: nukage disabling cheat
@@ -2269,7 +2422,7 @@ void P_PlayerInSpecialSector (player_t *player)
     }
   else //jff 3/14/98 handle extended sector types for secrets and damage
     {
-      if (mbf21 && sector->special & DEATH_MASK)
+      if (demo_version >= DV_MBF21 && sector->special & DEATH_MASK)
       {
         int i;
 
@@ -2580,7 +2733,7 @@ void P_SpawnSpecials (void)
 
   P_SpawnScrollers(); // killough 3/7/98: Add generalized scrollers
 
-  if (!demo_compatibility)
+  if (demo_version >= DV_BOOM200)
   {
   P_SpawnFriction();  // phares 3/12/98: New friction model using linedefs
 
@@ -2588,8 +2741,9 @@ void P_SpawnSpecials (void)
   }
 
   for (i=0; i<numlines; i++)
+  {
     switch (lines[i].special)
-      {
+    {
         int s, sec;
 
         // killough 3/7/98:
@@ -2632,7 +2786,122 @@ void P_SpawnSpecials (void)
         for (s = -1; (s = P_FindSectorFromLineTag(lines+i,s)) >= 0;)
           sectors[s].floorsky = sectors[s].ceilingsky = i | PL_SKYFLAT;
         break;
+
+      // Always - Set the target sector's colormap.
+      case 2075:
+      {
+        for (s = -1; (s = P_FindSectorFromLineTag(&lines[i], s)) >= 0;)
+          sectors[s].colormap_index = lines[i].frontcolormap;
+        break;
       }
+
+      // [EA]
+      // These offset linedefs seem to not need interpolation, as they are only
+      // run once at spawn time -- in fact when the player spawns in-world, the
+      // "zeroth" frame in the screen melt will show the affected flats halfway
+      // through their movement (tested at 60FPS/Hz), minor odd visual artifact.
+
+      // Always - Offset target floor texture by line direction.
+      case 2048:
+      {
+        for (s = -1; (s = P_FindSectorFromLineTag(&lines[i], s)) >= 0;)
+        {
+          sectors[s].base_floor_xoffs -= lines[i].dx;
+          sectors[s].base_floor_yoffs += lines[i].dy;
+        }
+        break;
+      }
+      // Always - Offset target ceiling texture by line direction.
+      case 2049:
+      {
+        for (s = -1; (s = P_FindSectorFromLineTag(&lines[i], s)) >= 0;)
+        {
+          sectors[s].base_ceiling_xoffs -= lines[i].dx;
+          sectors[s].base_ceiling_yoffs += lines[i].dy;
+        }
+        break;
+      }
+      // Always - Offset target floor and ceiling texture by line direction.
+      case 2050:
+      {
+        for (s = -1; (s = P_FindSectorFromLineTag(&lines[i], s)) >= 0;)
+        {
+          sectors[s].base_floor_xoffs -= lines[i].dx;
+          sectors[s].base_floor_yoffs += lines[i].dy;
+          sectors[s].base_ceiling_xoffs -= lines[i].dx;
+          sectors[s].base_ceiling_yoffs += lines[i].dy;
+        }
+        break;
+      }
+      // Always - Rotate target floor texture by line angle.
+      case 2051:
+      {
+        for (s = -1; (s = P_FindSectorFromLineTag(&lines[i], s)) >= 0;)
+        {
+          sectors[s].base_floor_rotation = lines[i].angle;
+        }
+        break;
+      }
+      // Always - Rotate target ceiling texture by line angle.
+      case 2052:
+      {
+        for (s = -1; (s = P_FindSectorFromLineTag(&lines[i], s)) >= 0;)
+        {
+          sectors[s].base_ceiling_rotation = lines[i].angle;
+        }
+        break;
+      }
+      // Always - Rotate target floor and ceiling texture by line angle.
+      case 2053:
+      {
+        for (s = -1; (s = P_FindSectorFromLineTag(&lines[i], s)) >= 0;)
+        {
+          sectors[s].base_floor_rotation = lines[i].angle;
+          sectors[s].base_ceiling_rotation = lines[i].angle;
+        }
+        break;
+      }
+      // Always - Offset then rotate target floor texture
+      // by line direction and angle.
+      case 2054:
+      {
+        for (s = -1; (s = P_FindSectorFromLineTag(&lines[i], s)) >= 0;)
+        {
+          sectors[s].base_floor_xoffs -= lines[i].dx;
+          sectors[s].base_floor_yoffs += lines[i].dy;
+          sectors[s].base_floor_rotation = lines[i].angle;
+        }
+        break;
+      }
+      // Always - Offset then rotate target ceiling texture
+      // by line direction and angle.
+      case 2055:
+      {
+        for (s = -1; (s = P_FindSectorFromLineTag(&lines[i], s)) >= 0;)
+        {
+          sectors[s].base_ceiling_xoffs -= lines[i].dx;
+          sectors[s].base_ceiling_yoffs += lines[i].dy;
+          sectors[s].base_ceiling_rotation = lines[i].angle;
+        }
+        break;
+      }
+      // Always - Offset then rotate target floor and ceiling texture
+      // by line direction and angle.
+      case 2056:
+      {
+        for (s = -1; (s = P_FindSectorFromLineTag(&lines[i], s)) >= 0;)
+        {
+          sectors[s].base_floor_xoffs -= lines[i].dx;
+          sectors[s].base_floor_yoffs += lines[i].dy;
+          sectors[s].base_ceiling_xoffs -= lines[i].dx;
+          sectors[s].base_ceiling_yoffs += lines[i].dy;
+          sectors[s].base_floor_rotation = lines[i].angle;
+          sectors[s].base_ceiling_rotation = lines[i].angle;
+        }
+        break;
+      }
+    }
+  }
 }
 
 // killough 2/28/98:
@@ -2825,104 +3094,137 @@ static void P_SpawnScrollers(void)
   int i;
   line_t *l = lines;
 
-  for (i=0;i<numlines;i++,l++)
+  for (i = 0; i < numlines; i++, l++)
+  {
+    fixed_t dx = l->dx >> SCROLL_SHIFT;  // direction and speed of scrolling
+    fixed_t dy = l->dy >> SCROLL_SHIFT;
+    int control = -1, accel = 0;         // no control sector or acceleration
+    int special = l->special;
+
+    if (demo_version < DV_BOOM200 && special != 48)
+      continue;
+
+    // killough 3/7/98: Types 245-249 are same as 250-254 except that the
+    // first side's sector's heights cause scrolling when they change, and
+    // this linedef controls the direction and speed of the scrolling. The
+    // most complicated linedef since donuts, but powerful :)
+    //
+    // killough 3/15/98: Add acceleration. Types 214-218 are the same but
+    // are accelerative.
+
+    if (special >= 245 && special <= 249)         // displacement scrollers
     {
-      fixed_t dx = l->dx >> SCROLL_SHIFT;  // direction and speed of scrolling
-      fixed_t dy = l->dy >> SCROLL_SHIFT;
-      int control = -1, accel = 0;         // no control sector or acceleration
-      int special = l->special;
-
-      if (demo_compatibility && special != 48)
-        continue;
-
-      // killough 3/7/98: Types 245-249 are same as 250-254 except that the
-      // first side's sector's heights cause scrolling when they change, and
-      // this linedef controls the direction and speed of the scrolling. The
-      // most complicated linedef since donuts, but powerful :)
-      //
-      // killough 3/15/98: Add acceleration. Types 214-218 are the same but
-      // are accelerative.
-
-      if (special >= 245 && special <= 249)         // displacement scrollers
-        {
-          special += 250-245;
-          control = sides[*l->sidenum].sector - sectors;
-        }
-      else
-        if (special >= 214 && special <= 218)       // accelerative scrollers
-          {
-            accel = 1;
-            special += 250-214;
-            control = sides[*l->sidenum].sector - sectors;
-          }
-
-      switch (special)
-        {
-          register int s;
-
-        case 250:   // scroll effect ceiling
-          for (s=-1; (s = P_FindSectorFromLineTag(l,s)) >= 0;)
-            Add_Scroller(sc_ceiling, -dx, dy, control, s, accel);
-          break;
-
-        case 251:   // scroll effect floor
-        case 253:   // scroll and carry objects on floor
-          for (s=-1; (s = P_FindSectorFromLineTag(l,s)) >= 0;)
-            Add_Scroller(sc_floor, -dx, dy, control, s, accel);
-          if (special != 253)
-            break;
-
-        case 252: // carry objects on floor
-          dx = FixedMul(dx,CARRYFACTOR);
-          dy = FixedMul(dy,CARRYFACTOR);
-          for (s=-1; (s = P_FindSectorFromLineTag(l,s)) >= 0;)
-            Add_Scroller(sc_carry, dx, dy, control, s, accel);
-          break;
-
-          // killough 3/1/98: scroll wall according to linedef
-          // (same direction and speed as scrolling floors)
-        case 254:
-          for (s=-1; (s = P_FindLineFromLineTag(l,s)) >= 0;)
-            if (s != i)
-              Add_WallScroller(dx, dy, lines+s, control, accel);
-          break;
-
-        case 255:    // killough 3/2/98: scroll according to sidedef offsets
-          s = lines[i].sidenum[0];
-          Add_Scroller(sc_side, -sides[s].textureoffset,
-                       sides[s].rowoffset, -1, s, accel);
-          break;
-
-        case 1024: // special 255 with tag control
-        case 1025:
-        case 1026:
-          if (l->tag == 0)
-            I_Error("Line %d is missing a tag!", i);
-
-          if (special > 1024)
-            control = sides[*l->sidenum].sector - sectors;
-
-          if (special == 1026)
-            accel = 1;
-
-          s = lines[i].sidenum[0];
-          dx = -sides[s].textureoffset / 8;
-          dy = sides[s].rowoffset / 8;
-          for (s = -1; (s = P_FindLineFromLineTag(l, s)) >= 0;)
-            if (s != i)
-              Add_Scroller(sc_side, dx, dy, control, lines[s].sidenum[0], accel);
-
-          break;
-
-        case 48:                  // scroll first side
-          Add_Scroller(sc_side,  FRACUNIT, 0, -1, lines[i].sidenum[0], accel);
-          break;
-
-        case 85:                  // jff 1/30/98 2-way scroll
-          Add_Scroller(sc_side, -FRACUNIT, 0, -1, lines[i].sidenum[0], accel);
-          break;
-        }
+      special += 250-245;
+      control = sides[*l->sidenum].sector - sectors;
     }
+    else if (special >= 214 && special <= 218)   // accelerative scrollers
+    {
+      accel = 1;
+      special += 250-214;
+      control = sides[*l->sidenum].sector - sectors;
+    }
+
+    switch (special)
+    {
+      register int s;
+
+      case 250:   // scroll effect ceiling
+        for (s = -1; (s = P_FindSectorFromLineTag(l, s)) >= 0;)
+          Add_Scroller(sc_ceiling, -dx, dy, control, s, accel);
+        break;
+
+      case 251:   // scroll effect floor
+      case 253:   // scroll and carry objects on floor
+        for (s = -1; (s = P_FindSectorFromLineTag(l, s)) >= 0;)
+          Add_Scroller(sc_floor, -dx, dy, control, s, accel);
+        if (special != 253)
+          break;
+
+      case 252: // carry objects on floor
+        dx = FixedMul(dx, CARRYFACTOR);
+        dy = FixedMul(dy, CARRYFACTOR);
+        for (s = -1; (s = P_FindSectorFromLineTag(l, s)) >= 0;)
+          Add_Scroller(sc_carry, dx, dy, control, s, accel);
+        break;
+
+        // killough 3/1/98: scroll wall according to linedef
+        // (same direction and speed as scrolling floors)
+      case 254:
+        for (s = -1; (s = P_FindLineFromLineTag(l, s)) >= 0;)
+          if (s != i)
+            Add_WallScroller(dx, dy, lines+s, control, accel);
+        break;
+
+      case 255:    // killough 3/2/98: scroll according to sidedef offsets
+        s = lines[i].sidenum[0];
+        Add_Scroller(sc_side, -sides[s].textureoffset, sides[s].rowoffset,
+                     -1, s, accel);
+        break;
+
+      // special 255 with tag control
+
+      // Always - Scroll both front and back sidedef's textures and
+      // accelerate the scroll value by the target sector's movement
+      // divided by 8.
+      case 2086:
+      case 1026:
+        accel = 1;
+        // fallthrough
+
+      // Always - Scroll both front and back sidedef's textures
+      // according to the target sector's movement divided by 8.
+      case 2085:
+      case 1025:
+        control = sides[*l->sidenum].sector - sectors;
+        // fallthrough
+
+      // Always - Scroll both front and back sidedef's textures
+      // according to the target sector's scroll values divided by 8
+      case 2084:
+      case 1024:
+        if (l->tag == 0)
+        {
+          I_Error("Line %d is missing a tag!", i);
+        }
+
+        s  =  lines[i].sidenum[0];
+        dx = -sides[s].textureoffset / 8;
+        dy =  sides[s].rowoffset / 8;
+        for (s = -1; (s = P_FindLineFromLineTag(l, s)) >= 0;)
+        {
+          if (s != i)
+          {
+            Add_Scroller(sc_side, dx, dy, control, lines[s].sidenum[0], accel);
+
+            if (special >= 2084 && special <= 2086 && lines[s].sidenum[1] != -1)
+              Add_Scroller(sc_side, -dx, dy, control, lines[s].sidenum[1], accel);
+          }
+        }
+        break;
+
+      // Always - Scroll both front and back sidedef's textures
+      // according to the line's left direction.
+      case 2082:
+        if (lines[i].sidenum[1] != -1)
+          Add_Scroller(sc_side, -FRACUNIT, 0, -1, lines[i].sidenum[1], accel);
+        // fallthrough
+
+      case 48:                  // scroll first side
+        Add_Scroller(sc_side,  FRACUNIT, 0, -1, lines[i].sidenum[0], accel);
+        break;
+
+      // Always - Scroll both front and back sidedef's textures
+      // according to the line's right direction.
+      case 2083:
+        if (lines[i].sidenum[1] != -1)
+          Add_Scroller(sc_side, FRACUNIT, 0, -1, lines[i].sidenum[1], accel);
+        // fallthrough
+
+      case 85:                  // jff 1/30/98 2-way scroll
+        Add_Scroller(sc_side, -FRACUNIT, 0, -1, lines[i].sidenum[0], accel);
+        break;
+    }
+  }
 }
 
 // Restored Boom's friction code
@@ -3100,7 +3402,7 @@ static void P_SpawnFriction(void)
             // at level startup, and then uses this friction value.
 
             // Boom's friction code for demo compatibility
-            if (!demo_compatibility && demo_version < DV_MBF)
+            if (demo_version >= DV_BOOM200 && demo_version < DV_MBF)
               Add_Friction(friction,movefactor,s);
 
             sectors[s].friction = friction;

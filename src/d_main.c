@@ -1572,7 +1572,7 @@ static void D_InitTables(void)
 
 void D_SetMaxHealth(void)
 {
-  if (demo_compatibility)
+  if (demo_version < DV_BOOM200)
   {
     maxhealth = 100;
     maxhealthbonus = deh_set_maxhealth ? deh_maxhealth : 200;
@@ -2555,10 +2555,17 @@ void D_DoomMain(void)
       //
 
       if ((p = M_CheckParm("-record")) && ++p < myargc)
-	{
-	  autostart = true;
-	  G_RecordDemo(myargv[p]);
-	}
+      {
+        if (demo_version >= DV_ID24)
+        {
+          I_Printf(
+            VB_WARNING,
+            "Demo-compability in Complevel ID24 is not stable. "
+            "Record DEMOs at your own risk!");
+        }
+        autostart = true;
+        G_RecordDemo(myargv[p]);
+      }
     }
   }
 
