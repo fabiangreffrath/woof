@@ -172,7 +172,6 @@ typedef struct
     int maxlength;
     int value;
     int numvalues;
-    int oldvalue;
     int xoffset;
 } sbe_number_t;
 

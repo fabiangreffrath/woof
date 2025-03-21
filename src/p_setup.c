@@ -345,7 +345,7 @@ void P_LoadSectors (int lump)
       ss->bottommap = ss->midmap = ss->topmap = 0;
 
       // killough 10/98: sky textures coming from sidedefs:
-      ss->sky = 0;
+      ss->floorsky = ss->ceilingsky = 0;
 
       // [AM] Sector interpolation.  Even if we're
       //      not running uncapped, the renderer still

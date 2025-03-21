@@ -1856,8 +1856,6 @@ static setup_menu_t stat_settings1[] = {
     {"Solid Background Color", S_ONOFF, H_X, M_SPC, {"st_solidbackground"},
      .action = RefreshSolidBackground},
 
-    {"Animated Health/Armor Count", S_ONOFF, H_X, M_SPC, {"hud_animated_counts"}},
-
     MI_RESET,
 
     MI_END
@@ -2588,7 +2586,7 @@ static setup_menu_t sfx_settings1[] = {
 
     MI_GAP,
 
-    {"Doppler Effect", S_THERMO, CNTR_X, M_THRM_SPC, {"snd_doppler"},
+    {"Doppler Effect", S_THERMO | S_ACTION, CNTR_X, M_THRM_SPC, {"snd_doppler"},
      .strings_id = str_percent, .action = SetSoundModule},
 
     MI_END
@@ -3316,7 +3314,7 @@ static setup_menu_t gen_settings6[] = {
     {"Screen wipe effect", S_CHOICE | S_STRICT, OFF_CNTR_X, M_SPC,
      {"screen_melt"}, .strings_id = str_screen_melt},
 
-    {"Screen flashes", S_ONOFF | S_STRICT, OFF_CNTR_X, M_SPC,
+    {"Pain/Pickup/Powerup flashes", S_ONOFF | S_STRICT, OFF_CNTR_X, M_SPC,
      {"palette_changes"}},
 
     {"Invulnerability effect", S_CHOICE | S_STRICT, OFF_CNTR_X, M_SPC,

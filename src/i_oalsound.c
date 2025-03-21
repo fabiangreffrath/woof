@@ -39,10 +39,10 @@
 #include "w_wad.h"
 #include "z_zone.h"
 
-#define OAL_ROLLOFF_FACTOR      1
+#define OAL_ROLLOFF_FACTOR      0.5f
 #define OAL_SPEED_OF_SOUND      343.3f
-// 128 map units per 3 meters (https://doomwiki.org/wiki/Map_unit).
-#define OAL_MAP_UNITS_PER_METER (128.0f / 3.0f)
+// 16 mu/ft (https://www.doomworld.com/idgames/docs/editing/metrics)
+#define OAL_METERS_PER_MAP_UNIT 0.01905f
 #define OAL_SOURCE_RADIUS       32.0f
 #define OAL_DEFAULT_PITCH       1.0f
 
@@ -248,8 +248,7 @@ void I_OAL_ResetSource2D(int channel)
 
     alSource3f(oal->sources[channel], AL_POSITION, 0.0f, 0.0f, 0.0f);
     alSource3f(oal->sources[channel], AL_VELOCITY, 0.0f, 0.0f, 0.0f);
-
-    alSourcei(oal->sources[channel], AL_ROLLOFF_FACTOR, 0);
+    alSourcef(oal->sources[channel], AL_ROLLOFF_FACTOR, 0.0f);
     alSourcei(oal->sources[channel], AL_SOURCE_RELATIVE, AL_TRUE);
 }
 
@@ -272,7 +271,7 @@ void I_OAL_ResetSource3D(int channel, boolean point_source)
                   point_source ? 0.0f : OAL_SOURCE_RADIUS);
     }
 
-    alSourcei(oal->sources[channel], AL_ROLLOFF_FACTOR, OAL_ROLLOFF_FACTOR);
+    alSourcef(oal->sources[channel], AL_ROLLOFF_FACTOR, OAL_ROLLOFF_FACTOR);
     alSourcei(oal->sources[channel], AL_SOURCE_RELATIVE, AL_FALSE);
 }
 
@@ -337,8 +336,8 @@ static void UpdateUserSoundSettings(void)
 
     if (oal_snd_module == SND_MODULE_3D)
     {
-        oal->absorption = (ALfloat)snd_absorption / 2.0f;
-        alDopplerFactor((ALfloat)snd_doppler * snd_doppler / 100.0f);
+        oal->absorption = (ALfloat)snd_absorption;
+        alDopplerFactor((ALfloat)snd_doppler / 5.0f);
         oal_use_doppler = (snd_doppler > 0);
     }
     else
@@ -359,9 +358,8 @@ static void ResetParams(void)
     {
         I_OAL_ResetSource2D(i);
         alSource3i(oal->sources[i], AL_DIRECTION, 0, 0, 0);
-        alSourcei(oal->sources[i], AL_MAX_DISTANCE, S_ATTENUATOR);
-        alSourcei(oal->sources[i], AL_REFERENCE_DISTANCE,
-                  S_CLOSE_DIST >> FRACBITS);
+        alSourcei(oal->sources[i], AL_REFERENCE_DISTANCE, S_CLOSE_DIST);
+        alSourcei(oal->sources[i], AL_MAX_DISTANCE, S_CLIPPING_DIST);
     }
     // Spatialization is required even for 2D panning emulation.
     if (oal->SOFT_source_spatialize)
@@ -378,12 +376,12 @@ static void ResetParams(void)
     alListeneriv(AL_ORIENTATION, default_orientation);
     if (oal->EXT_EFX)
     {
-        alListenerf(AL_METERS_PER_UNIT, 1.0f / OAL_MAP_UNITS_PER_METER);
+        alListenerf(AL_METERS_PER_UNIT, OAL_METERS_PER_MAP_UNIT);
     }
 
     // Context state parameters.
     alDistanceModel(AL_INVERSE_DISTANCE_CLAMPED); // OpenAL 1.1 Specs, 3.4.2.
-    alSpeedOfSound(OAL_SPEED_OF_SOUND * OAL_MAP_UNITS_PER_METER);
+    alSpeedOfSound(OAL_SPEED_OF_SOUND / OAL_METERS_PER_MAP_UNIT);
 
     UpdateUserSoundSettings();
 }
@@ -735,6 +733,33 @@ void I_OAL_StopSound(int channel)
     alSourceStop(oal->sources[channel]);
 }
 
+void I_OAL_PauseSound(int channel)
+{
+    if (!oal)
+    {
+        return;
+    }
+
+    alSourcePause(oal->sources[channel]);
+}
+
+void I_OAL_ResumeSound(int channel)
+{
+    ALint state;
+
+    if (!oal)
+    {
+        return;
+    }
+
+    alGetSourcei(oal->sources[channel], AL_SOURCE_STATE, &state);
+
+    if (state == AL_PAUSED)
+    {
+        alSourcePlay(oal->sources[channel]);
+    }
+}
+
 boolean I_OAL_SoundIsPlaying(int channel)
 {
     ALint state;
@@ -747,6 +772,20 @@ boolean I_OAL_SoundIsPlaying(int channel)
     alGetSourcei(oal->sources[channel], AL_SOURCE_STATE, &state);
 
     return (state == AL_PLAYING);
+}
+
+boolean I_OAL_SoundIsPaused(int channel)
+{
+    ALint state;
+
+    if (!oal)
+    {
+        return false;
+    }
+
+    alGetSourcei(oal->sources[channel], AL_SOURCE_STATE, &state);
+
+    return (state == AL_PAUSED);
 }
 
 void I_OAL_SetVolume(int channel, int volume)

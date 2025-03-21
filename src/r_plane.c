@@ -434,8 +434,9 @@ static void DrawSkyTex(visplane_t *pl, skytex_t *skytex)
 
         if (dc_yl != USHRT_MAX && dc_yl <= dc_yh)
         {
-            dc_source = R_GetColumnMod2(texture, (an + xtoskyangle[x])
-                                                     >> ANGLETOSKYSHIFT);
+            int col = (an + xtoskyangle[x]) >> ANGLETOSKYSHIFT;
+            col = FixedToInt(FixedMul(IntToFixed(col), skytex->scalex));
+            dc_source = R_GetColumnMod2(texture, col);
             colfunc();
         }
     }
@@ -487,7 +488,13 @@ static void do_draw_mbf_sky(visplane_t *pl)
 
     an = viewangle;
 
-    if (pl->picnum & PL_SKYFLAT)
+    if ((pl->picnum & PL_FLATMAPPING) == PL_FLATMAPPING)
+    {
+        dc_texturemid = skytexturemid;
+        texture = pl->picnum & ~PL_FLATMAPPING;
+        flip = 0;
+    }
+    else if (pl->picnum & PL_SKYFLAT)
     {
         // Sky Linedef
         const line_t *l = &lines[pl->picnum & ~PL_SKYFLAT];
@@ -508,7 +515,14 @@ static void do_draw_mbf_sky(visplane_t *pl)
         // However, the offset is scaled very small, so that it
         // allows a long-period of sky rotation.
 
-        an += s->textureoffset;
+        if (uncapped && leveltime > oldleveltime)
+        {
+            an += LerpFixed(s->oldtextureoffset, s->basetextureoffset);
+        }
+        else
+        {
+            an += s->textureoffset;
+        }
 
         // Vertical offset allows careful sky positioning.
 
@@ -593,10 +607,19 @@ static void do_draw_plane(visplane_t *pl)
 
     // sky flat
 
-    if (pl->picnum == skyflatnum && sky)
+    if (sky)
     {
-        DrawSkyDef(pl);
-        return;
+        if ((pl->picnum & PL_FLATMAPPING) == PL_FLATMAPPING)
+        {
+            do_draw_mbf_sky(pl);
+            return;
+        }
+
+        if (pl->picnum == skyflatnum)
+        {
+            DrawSkyDef(pl);
+            return;
+        }
     }
 
     if (pl->picnum == skyflatnum || pl->picnum & PL_SKYFLAT)

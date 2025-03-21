@@ -62,7 +62,13 @@ boolean I_OAL_StartSound(int channel, struct sfxinfo_s *sfx, float pitch);
 
 void I_OAL_StopSound(int channel);
 
+void I_OAL_PauseSound(int channel);
+
+void I_OAL_ResumeSound(int channel);
+
 boolean I_OAL_SoundIsPlaying(int channel);
+
+boolean I_OAL_SoundIsPaused(int channel);
 
 void I_OAL_SetVolume(int channel, int volume);
 

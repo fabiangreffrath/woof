@@ -950,8 +950,6 @@ static void G_DoLoadLevel(void)
         break;
       }//jff 3/27/98 end sky setting fix
 
-  R_InitSkyMap(); // [FG] stretch short skies
-
   levelstarttic = gametic;        // for time calculation
 
   playback_levelstarttic = playback_tic;
@@ -992,6 +990,8 @@ static void G_DoLoadLevel(void)
 
   MN_UpdateFreeLook(!mouselook && !padlook);
   HU_UpdateTurnFormat();
+
+  R_InitSkyMap(); // SKYDEFS flatmapping
 
   // [Woof!] Do not reset chosen player view across levels in multiplayer
   // demo playback. However, it must be reset when starting a new game.
@@ -1321,9 +1321,15 @@ boolean G_Responder(event_t* ev)
 	if (M_InputActivated(input_pause))
 	{
 	  if (paused ^= 2)
+	  {
 	    S_PauseSound();
+	    S_PauseMusic();
+	  }
 	  else
+	  {
 	    S_ResumeSound();
+	    S_ResumeMusic();
+	  }
 	  return true;
 	}
 
@@ -1343,7 +1349,6 @@ boolean G_Responder(event_t* ev)
 	((ev->type == ev_keydown) ||
 	 (ev->type == ev_mouseb_down) ||
 	 (ev->type == ev_joyb_down)) ?
-	(!menuactive ? S_StartSound(NULL,sfx_swtchn) : true),
 	MN_StartControlPanel(), true : false;
     }
 
@@ -2992,9 +2997,15 @@ void G_Ticker(void)
 
 	    case BTS_PAUSE:
 	      if ((paused ^= 1))
-		S_PauseSound();
+	      {
+	        S_PauseSound();
+	        S_PauseMusic();
+	      }
 	      else
-		S_ResumeSound();
+	      {
+	        S_ResumeSound();
+	        S_ResumeMusic();
+	      }
 	      break;
 	
 	    case BTS_SAVEGAME:
@@ -3892,7 +3903,7 @@ void G_InitNew(skill_t skill, int episode, int map)
   if (paused)
     {
       paused = false;
-      S_ResumeSound();
+      S_ResumeMusic();
     }
 
   if (skill > sk_nightmare)

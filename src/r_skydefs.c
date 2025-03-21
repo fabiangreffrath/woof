@@ -70,8 +70,16 @@ static boolean ParseSkyTex(json_t *json, skytex_t *out)
     const double ticratescale = 1.0 / TICRATE;
     out->scrollx = (JS_GetNumber(scrollx) * ticratescale) * FRACUNIT;
     out->scrolly = (JS_GetNumber(scrolly) * ticratescale) * FRACUNIT;
-    out->scalex = JS_GetNumber(scalex) * FRACUNIT;
-    double value = JS_GetNumber(scaley);
+    double value = JS_GetNumber(scalex);
+    if (value)
+    {
+        out->scalex = (1.0 / value) * FRACUNIT;
+    }
+    else
+    {
+        out->scalex = FRACUNIT;
+    }
+    value = JS_GetNumber(scaley);
     if (value)
     {
         out->scaley = (1.0 / value) * FRACUNIT;
@@ -121,10 +129,16 @@ static boolean ParseSky(json_t *json, sky_t *out)
 
 static boolean ParseFlatMap(json_t *json, flatmap_t *out)
 {
-    json_t *flat = JS_GetObject(json, "flat");
-    out->flat = M_StringDuplicate(JS_GetString(flat));
-    json_t *sky = JS_GetObject(json, "sky");
-    out->sky = M_StringDuplicate(JS_GetString(sky));
+    const char *flat = JS_GetStringValue(json, "flat");
+    if (flat)
+    {
+        out->flat = M_StringDuplicate(flat);
+    }
+    const char *sky = JS_GetStringValue(json, "sky");
+    if (sky)
+    {
+        out->sky = M_StringDuplicate(sky);
+    }
     return true;
 }
 

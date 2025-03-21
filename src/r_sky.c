@@ -137,6 +137,29 @@ static void InitSky(void)
         return;
     }
 
+    flatmap_t *flatmap = NULL;
+    array_foreach(flatmap, skydefs->flatmapping)
+    {
+        int flatnum = R_FlatNumForName(flatmap->flat);
+        int skytex = R_TextureNumForName(flatmap->sky);
+
+        for (int i = 0; i < numsectors; i++)
+        {
+            if (sectors[i].floorpic == flatnum)
+            {
+                sectors[i].floorpic = skyflatnum;
+                sectors[i].floorsky = skytex | PL_FLATMAPPING;
+                R_GetSkyColor(skytex);
+            }
+            if (sectors[i].ceilingpic == flatnum)
+            {
+                sectors[i].ceilingpic = skyflatnum;
+                sectors[i].ceilingsky = skytex | PL_FLATMAPPING;
+                R_GetSkyColor(skytex);
+            }
+        }
+    }
+
     array_foreach(sky, skydefs->skies)
     {
         if (skytexture == R_CheckTextureNumForName(sky->skytex.name))

@@ -30,20 +30,6 @@
 
   #define div64_32(a, b) _div64((a), (b), NULL)
 
-#elif defined(__GNUC__) && defined(__x86_64__)
-
-  inline static int32_t div64_32(int64_t a, int32_t b)
-  {
-      if (__builtin_constant_p(b))
-      {
-          return a / b;
-      }
-      int32_t lo = a;
-      int32_t hi = a >> 32;
-      asm("idivl %[divisor]" : "+a" (lo), "+d" (hi) : [divisor] "r" (b));
-      return lo;
-  }
-
 #else
 
   #define div64_32(a, b) ((fixed_t)((a) / (b)))
