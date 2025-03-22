@@ -132,7 +132,7 @@ void R_InitPlanesRes(void)
   maxopenings = video.width * video.height;
   openings = Z_Calloc(1, maxopenings * sizeof(*openings), PU_RENDERER, NULL);
 
-  xtoskyangle = linearsky ? linearskyangle : xtoviewangle;
+  R_InitPlanes();
 }
 
 void R_InitVisplanesRes(void)
