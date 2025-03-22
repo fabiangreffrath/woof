@@ -1313,7 +1313,8 @@ static void ResetResolution(int height, boolean reset_pitch)
         AM_ResetScreenSize();
     }
 
-    I_Printf(VB_DEBUG, "ResetResolution: %dx%d", video.width, video.height);
+    I_Printf(VB_DEBUG, "ResetResolution: %dx%d (%s)", video.width, video.height,
+             widescreen_strings[widescreen]);
 
     drs_skip_frame = true;
 }

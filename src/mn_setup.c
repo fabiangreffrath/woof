@@ -2364,8 +2364,8 @@ static void ResetVideoHeight(void)
     resetneeded = true;
 }
 
-static const char *widescreen_strings[] = {"Off", "Auto", "16:10", "16:9",
-                                           "21:9", "32:9"};
+const char *widescreen_strings[] = {"Off", "Auto", "16:10", "16:9",
+                                    "21:9", "32:9"};
 
 static void ResetVideo(void)
 {
