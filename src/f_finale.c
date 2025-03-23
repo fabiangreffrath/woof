@@ -86,79 +86,72 @@ static boolean mapinfo_finale;
 // ID24 EndFinale extensions
 //
 
-static void EndFinale_Cast(json_t *cast, ef_cast_t *finale_cast)
-{
-  return;
-}
-
-static void EndFinale_Scroll(json_t *bunny, ef_scroll_t *finale_scroll)
-{
-  return;
-}
-
-static void EndFinale_Data(json_t *data, end_finale_t *out, const char *lump)
-{
-  int         type            = JS_GetIntegerValue(data, "type");
-  const char* music_buffer    = JS_GetStringValue(data, "music");
-  const char* backdrop_buffer = JS_GetStringValue(data, "background");
-
-  // Improper definitions should be entirely ignored
-  if (type > END_CAST || type < END_CAST
-      || music_buffer == NULL || backdrop_buffer == NULL)
-  {
-    I_Printf(VB_WARNING, "EndFinale: malformed entries on lump %s", lump);
-    return;
-  }
-
-  boolean musicloops = JS_GetBooleanValue(data, "musicloops", false);
-  boolean donextmap  = JS_GetBooleanValue(data, "donextmap", false);
-
-  ef_scroll_t *finale_scroll = NULL;
-  ef_cast_t   *finale_cast   = NULL;
-
-  if (type == END_CAST)
-  {
-    json_t *json_cast = JS_GetObject(data, "castrollcall");
-    EndFinale_Cast(json_cast, finale_cast);
-  }
-  else if (type == END_SCROLL)
-  {
-    json_t *json_scroll = JS_GetObject(data, "bunny");
-    EndFinale_Scroll(json_scroll, finale_scroll);
-  }
-
-  out->type = type;
-  M_CopyLumpName(out->music, music_buffer);
-  M_CopyLumpName(out->background, backdrop_buffer);
-  out->musicloops = musicloops;
-  out->donextmap = donextmap;
-  out->castrollcall = *finale_cast;
-  out->bunny = *finale_scroll;
-
-  return;
-}
-
 end_finale_t *D_ParseEndFinale(const char lump[9])
 {
   // Does the JSON lump even exist?
   json_t *json = JS_Open(lump, "finale", (version_t){1, 0, 0});
   if (json == NULL)
   {
-    return;
+    return NULL;
   }
 
-  // Does lump actually have any data?
+  // Does the lump actually have any data?
   json_t *data = JS_GetObject(json, "data");
   if (JS_IsNull(data) || !JS_IsObject(data))
   {
     I_Printf(VB_WARNING, "EndFinale: data object undefined");
     JS_Close(lump);
-    return;
+    return NULL;
   }
 
   // Now, actually parse it
   end_finale_t *out = Z_Calloc(1, sizeof(*out), PU_LEVEL, NULL);
-  EndFinale_Data(data, out, lump);
+
+  ef_type_t    type         = JS_GetIntegerValue(data, "type");
+  const char  *music        = JS_GetStringValue(data, "music");
+  const char  *background   = JS_GetStringValue(data, "background");
+  ef_scroll_t *bunny        = NULL;
+  ef_cast_t   *castrollcall = NULL;
+
+  // Improper definitions should be entirely ignored
+  if (music == NULL || background == NULL)
+  {
+    I_Printf(VB_WARNING,
+             "EndFinale: missing music or background fields on lump %s",
+             lump);
+    return NULL;
+  }
+
+  switch (type)
+  {
+    case END_CAST:
+      json_t *json_cast  = JS_GetObject(data, "castrollcall");
+      // TODO
+      break;
+    case END_SCROLL:
+      json_t *json_scroll = JS_GetObject(data, "bunny");
+      // TODO
+      break;
+    case END_ART:
+      break;
+    default:
+      I_Printf(VB_WARNING,
+               "EndFinale: invalid or unknown entry of type \"%d\" on lump %s",
+               type, lump);
+      return NULL;
+      break;
+  }
+
+  boolean musicloops = JS_GetBooleanValue(data, "musicloops", true);
+  boolean donextmap  = JS_GetBooleanValue(data, "donextmap", false);
+
+  out->type         = type;
+  out->musicloops   = musicloops;
+  out->donextmap    = donextmap;
+  out->castrollcall = *castrollcall;
+  out->bunny        = *bunny;
+  M_CopyLumpName(out->music, music);
+  M_CopyLumpName(out->background, background);
 
   // No need to keep in memory
   JS_Close(lump);

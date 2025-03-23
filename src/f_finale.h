@@ -46,24 +46,24 @@ void F_StartFinale (void);
 //
 
 // Custom EndFinale type
-typedef enum {
+typedef enum ef_type_e {
   END_ART,    // Plain graphic, e.g CREDIT, VICTORY2, ENDPIC
   END_SCROLL, // Custom "bunny" scroller
   END_CAST,   // Custom cast call
 } ef_type_t;
 
 // ID24 EndFinale - Custom "bunny" scroller
-typedef struct {
+typedef struct ef_scroll_s {
   char stitchimage[9]; // e.g PFUB2
-  int  overlay;
+  int  overlay;        // e.g END0, END1, and so on
   int  overlaycount;
-  int  overlaysound;
+  int  overlaysound;   // Sound index
   int  overlayx;
   int  overlayy;
 } ef_scroll_t;
 
 // ID24 EndFinale - Custom cast call
-typedef struct {
+typedef struct cast_frame_s {
   char    lump[9];   // Enemy sprite
   boolean flipped;
   int     durations;
@@ -71,19 +71,19 @@ typedef struct {
 } cast_frame_t;
 
 // ID24 EndFinale - Custom cast call
-typedef struct {
+typedef struct cast_entry_s {
   char         *name;        // BEX [STRINGS] mnemonic
   int           alertsound;  // Sound index
   cast_frame_t *aliveframes; // Before pressing the "use" key
   cast_frame_t *deathframes; // After pressing the "use" key
 } cast_entry_t;
 
-typedef struct {
+typedef struct ef_cast_s {
   // Not sure why it is like this, but this is how it is setup in Legacy of Rust 1.2
   cast_entry_t *castanims;
 } ef_cast_t;
 
-typedef struct {
+typedef struct end_finale_s {
   ef_type_t     type;
   char          music[9];      // e.g. `D_EVIL`
   char          background[9]; // e.g. `BOSSBACK`
