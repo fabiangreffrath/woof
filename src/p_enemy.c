@@ -450,9 +450,9 @@ static boolean P_Move(mobj_t *actor, int dropoff) // killough 9/12/98
       // Boom v2.02 and LxDoom return good && (P_Random(pr_trywalk)&3)
       // MBF plays even more games
 
-      if (prior_boom)
+      if (demo_version <= DV_BOOM201)
         return good;
-      if (prior_mbf)
+      if (demo_version == DV_BOOM)
         return good && (compatibility || (P_Random(pr_trywalk)&3)); //jff 8/13/98
       else
       return good && (prior_mbf || comp[comp_doorstuck] ||
