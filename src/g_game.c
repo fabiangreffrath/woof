@@ -2550,7 +2550,7 @@ static boolean DoLoadGame(boolean do_load_autosave)
   // killough 2/22/98: "proprietary" version string :-)
   sprintf (vcheck,VERSIONID,MBFVERSION);
 
-  if (memcmp(save_p, vcheck, VERSIONSIZE) == 0)
+  if (strncmp((char *)save_p, vcheck, VERSIONSIZE) == 0)
   {
       saveg_compat = saveg_mbf;
   }
@@ -2558,7 +2558,7 @@ static boolean DoLoadGame(boolean do_load_autosave)
   {
       for (int i = saveg_woof510; i < arrlen(saveg_versions); ++i)
       {
-          if (memcmp(save_p, saveg_versions[i], strlen(saveg_versions[i])) == 0)
+          if (strncmp((char *)save_p, saveg_versions[i], VERSIONSIZE) == 0)
           {
               saveg_compat = i;
               break;
