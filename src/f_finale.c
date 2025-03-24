@@ -114,12 +114,11 @@ end_finale_t *D_ParseEndFinale(const char lump[9])
   // Now, actually parse it
   end_finale_t *out = Z_Calloc(1, sizeof(*out), PU_LEVEL, NULL);
 
-  ef_type_t     type         = JS_GetIntegerValue(data, "type");
-  const char   *music        = JS_GetStringValue(data, "music");
-  const char   *background   = JS_GetStringValue(data, "background");
-  ef_scroll_t  *bunny        = {0};
-  ef_cast_t    *castrollcall = {0};
-  cast_entry_t *castanims    = {0};
+  end_type_t   type         = JS_GetIntegerValue(data, "type");
+  const char *music         = JS_GetStringValue(data, "music");
+  const char *background    = JS_GetStringValue(data, "background");
+  end_bunny_t *bunny        = {0};
+  end_cast_t  *castrollcall = &(end_cast_t){ .castanims = {0} };
 
   // Improper definitions should be entirely ignored
   if (music == NULL || background == NULL)
@@ -138,15 +137,16 @@ end_finale_t *D_ParseEndFinale(const char lump[9])
       json_t *js_castrollcall = JS_GetObject(data, "castrollcall");
       json_t *js_castanim_list = JS_GetObject(js_castrollcall, "castanims");
 
-      json_t *js_castanim_entry;
-      cast_entry_t castanim_entry;
+      json_t *js_castanim_entry = NULL;
+      cast_entry_t castanim_entry = {0};
+
       JS_ArrayForEach(js_castanim_entry, js_castanim_list)
       {
         ParseEndFinaleCastAnims(js_castanim_entry, &castanim_entry);
-        array_push(castanims, castanim_entry);
+        array_push(castrollcall->castanims, castanim_entry);
       }
 
-      castrollcall->castanims = castanims;
+      bunny = NULL;
       break;
     }
 
@@ -154,28 +154,36 @@ end_finale_t *D_ParseEndFinale(const char lump[9])
     {
       json_t *js_bunny = JS_GetObject(data, "bunny");
 
-      bunny->overlay      = JS_GetIntergerValue(js_bunny, "overlay");
-      bunny->overlaycount = JS_GetIntergerValue(js_bunny, "overlaycount");
-      bunny->overlaysound = JS_GetIntergerValue(js_bunny, "overlaysound");
-      bunny->overlayx     = JS_GetIntergerValue(js_bunny, "overlayx");
-      bunny->overlayy     = JS_GetIntergerValue(js_bunny, "overlayy");
+      bunny->overlay      = JS_GetIntegerValue(js_bunny, "overlay");
+      bunny->overlaycount = JS_GetIntegerValue(js_bunny, "overlaycount");
+      bunny->overlaysound = JS_GetIntegerValue(js_bunny, "overlaysound");
+      bunny->overlayx     = JS_GetIntegerValue(js_bunny, "overlayx");
+      bunny->overlayy     = JS_GetIntegerValue(js_bunny, "overlayy");
+      bunny->orientation  = JS_GetIntegerValue(js_bunny, "orientation");
       bunny->stitchimage  = Z_StrDup(
         JS_GetStringValue(js_bunny, "stitchimage"),
         PU_LEVEL
       );
 
+      castrollcall = NULL;
       break;
     }
 
     case END_ART:
+    {
+      bunny        = NULL;
+      castrollcall = NULL;
       break;
+    }
 
     default:
+    {
       I_Printf(VB_WARNING,
-               "EndFinale: invalid or unknown entry of type \"%d\" on lump %s",
+               "EndFinale: unknown entry of type \"%d\" on lump %s, skipping",
                type, lump);
+      JS_Close(lump);
       return NULL;
-      break;
+    }
   }
 
   boolean musicloops = JS_GetBooleanValue(data, "musicloops", true);

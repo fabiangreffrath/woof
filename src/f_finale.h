@@ -46,32 +46,46 @@ void F_StartFinale (void);
 //
 
 // Custom EndFinale type
-typedef enum ef_type_e {
+typedef enum end_type_e
+{
   END_ART,    // Plain graphic, e.g CREDIT, VICTORY2, ENDPIC
   END_SCROLL, // Custom "bunny" scroller
   END_CAST,   // Custom cast call
-} ef_type_t;
+} end_type_t;
+
+// ID24 EndFinale - [EA] Woof extension to the spec
+typedef enum bunny_line_e
+{
+  BUNNY_LEFT,
+  BUNNY_UP,
+  BUNNY_RIGHT,
+  BUNNY_DOWN,
+} bunny_line_t;
 
 // ID24 EndFinale - Custom "bunny" scroller
-typedef struct ef_scroll_s {
-  char *stitchimage; // e.g PFUB2
-  int   overlay;        // e.g END0, END1, and so on
-  int   overlaycount;
-  int   overlaysound;   // Sound index
-  int   overlayx;
-  int   overlayy;
-} ef_scroll_t;
+typedef struct end_bunny_s
+{
+  bunny_line_t  orientation;  // Left, up, right or down
+  char         *stitchimage;  // e.g PFUB2
+  int           overlay;      // e.g END0
+  int           overlaycount; // How many frames?
+  int           overlaysound; // Sound index
+  int           overlayx;
+  int           overlayy;
+} end_bunny_t;
 
 // ID24 EndFinale - Custom cast call
-typedef struct cast_frame_s {
-  char    *lump;   // Enemy sprite
-  boolean  flipped;
-  int      durations;
-  int      sound;     // Sound index
+typedef struct cast_frame_s
+{
+  char    *lump;     // Enemy sprite
+  boolean  flipped;  // Flipped sprite
+  int      duration; // How many tics does this sprite last for?
+  int      sound;    // Sound index
 } cast_frame_t;
 
 // ID24 EndFinale - Custom cast call
-typedef struct cast_entry_s {
+typedef struct cast_entry_s
+{
   char         *name;        // BEX [STRINGS] mnemonic
   int           alertsound;  // Sound index
   cast_frame_t *aliveframes; // Before pressing the "use" key
@@ -81,19 +95,21 @@ typedef struct cast_entry_s {
 // [EA] Not sure why it is like this, but this is the setup in the official
 // Legacy of Rust's finale lumps. Why the awkward nesting? Not obviously useful,
 // but keeping it anyway as a mirror of the actual JSON and just in case.
-typedef struct ef_cast_s {
+typedef struct end_cast_s
+{
   cast_entry_t *castanims;
-} ef_cast_t;
+} end_cast_t;
 
 // ID24 EndFinale
-typedef struct end_finale_s {
-  ef_type_t      type;
-  char          *music;      // e.g. `D_EVIL`
-  char          *background; // e.g. `BOSSBACK`
-  boolean        musicloops;    // e.g. `true`
-  boolean        donextmap;     // e.g. `false`
-  ef_scroll_t    bunny;         // Only read if `type == END_SCROLL`
-  ef_cast_t      castrollcall;  // Only read if `type == END_CAST`
+typedef struct end_finale_s
+{
+  end_type_t   type;
+  char        *music;        // e.g. `D_EVIL`
+  char        *background;   // e.g. `BOSSBACK`
+  boolean      musicloops;   // e.g. `true`
+  boolean      donextmap;    // e.g. `false`
+  end_bunny_t  bunny;        // Only read if `type == END_SCROLL`
+  end_cast_t   castrollcall; // Only read if `type == END_CAST`
 } end_finale_t;
 
 end_finale_t *D_ParseEndFinale(const char lump[9]);
