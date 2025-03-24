@@ -54,20 +54,20 @@ typedef enum ef_type_e {
 
 // ID24 EndFinale - Custom "bunny" scroller
 typedef struct ef_scroll_s {
-  char stitchimage[9]; // e.g PFUB2
-  int  overlay;        // e.g END0, END1, and so on
-  int  overlaycount;
-  int  overlaysound;   // Sound index
-  int  overlayx;
-  int  overlayy;
+  char *stitchimage; // e.g PFUB2
+  int   overlay;        // e.g END0, END1, and so on
+  int   overlaycount;
+  int   overlaysound;   // Sound index
+  int   overlayx;
+  int   overlayy;
 } ef_scroll_t;
 
 // ID24 EndFinale - Custom cast call
 typedef struct cast_frame_s {
-  char    lump[9];   // Enemy sprite
-  boolean flipped;
-  int     durations;
-  int     sound;     // Sound index
+  char    *lump;   // Enemy sprite
+  boolean  flipped;
+  int      durations;
+  int      sound;     // Sound index
 } cast_frame_t;
 
 // ID24 EndFinale - Custom cast call
@@ -78,19 +78,22 @@ typedef struct cast_entry_s {
   cast_frame_t *deathframes; // After pressing the "use" key
 } cast_entry_t;
 
+// [EA] Not sure why it is like this, but this is the setup in the official
+// Legacy of Rust's finale lumps. Why the awkward nesting? Not obviously useful,
+// but keeping it anyway as a mirror of the actual JSON and just in case.
 typedef struct ef_cast_s {
-  // Not sure why it is like this, but this is how it is setup in Legacy of Rust 1.2
   cast_entry_t *castanims;
 } ef_cast_t;
 
+// ID24 EndFinale
 typedef struct end_finale_s {
-  ef_type_t     type;
-  char          music[9];      // e.g. `D_EVIL`
-  char          background[9]; // e.g. `BOSSBACK`
-  boolean       musicloops;    // e.g. `false`
-  boolean       donextmap;     // e.g. `false`
-  ef_scroll_t   bunny;         // Only read if `type == END_SCROLL`
-  ef_cast_t     castrollcall;  // Only read if `type == END_CAST`
+  ef_type_t      type;
+  char          *music;      // e.g. `D_EVIL`
+  char          *background; // e.g. `BOSSBACK`
+  boolean        musicloops;    // e.g. `true`
+  boolean        donextmap;     // e.g. `false`
+  ef_scroll_t    bunny;         // Only read if `type == END_SCROLL`
+  ef_cast_t      castrollcall;  // Only read if `type == END_CAST`
 } end_finale_t;
 
 end_finale_t *D_ParseEndFinale(const char lump[9]);

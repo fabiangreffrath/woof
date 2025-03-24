@@ -30,6 +30,7 @@
 #include "g_umapinfo.h"
 #include "info.h"
 #include "i_printf.h"
+#include "m_array.h"
 #include "m_json.h"
 #include "m_misc.h" // [FG] M_StringDuplicate()
 #include "m_swap.h"
@@ -86,6 +87,11 @@ static boolean mapinfo_finale;
 // ID24 EndFinale extensions
 //
 
+static void ParseEndFinaleCastAnims(json_t *js_castanim_entry, cast_entry_t *out)
+{
+  
+}
+
 end_finale_t *D_ParseEndFinale(const char lump[9])
 {
   // Does the JSON lump even exist?
@@ -99,7 +105,8 @@ end_finale_t *D_ParseEndFinale(const char lump[9])
   json_t *data = JS_GetObject(json, "data");
   if (JS_IsNull(data) || !JS_IsObject(data))
   {
-    I_Printf(VB_WARNING, "EndFinale: data object undefined");
+    I_Printf(VB_WARNING, "EndFinale: data object undefined on lump '%s'",
+             lump);
     JS_Close(lump);
     return NULL;
   }
@@ -107,33 +114,62 @@ end_finale_t *D_ParseEndFinale(const char lump[9])
   // Now, actually parse it
   end_finale_t *out = Z_Calloc(1, sizeof(*out), PU_LEVEL, NULL);
 
-  ef_type_t    type         = JS_GetIntegerValue(data, "type");
-  const char  *music        = JS_GetStringValue(data, "music");
-  const char  *background   = JS_GetStringValue(data, "background");
-  ef_scroll_t *bunny        = NULL;
-  ef_cast_t   *castrollcall = NULL;
+  ef_type_t     type         = JS_GetIntegerValue(data, "type");
+  const char   *music        = JS_GetStringValue(data, "music");
+  const char   *background   = JS_GetStringValue(data, "background");
+  ef_scroll_t  *bunny        = {0};
+  ef_cast_t    *castrollcall = {0};
+  cast_entry_t *castanims    = {0};
 
   // Improper definitions should be entirely ignored
   if (music == NULL || background == NULL)
   {
     I_Printf(VB_WARNING,
-             "EndFinale: missing music or background fields on lump %s",
+             "EndFinale: missing music or background fields on lump '%s'",
              lump);
+    JS_Close(lump);
     return NULL;
   }
 
   switch (type)
   {
     case END_CAST:
-      json_t *json_cast  = JS_GetObject(data, "castrollcall");
-      // TODO
+    {
+      json_t *js_castrollcall = JS_GetObject(data, "castrollcall");
+      json_t *js_castanim_list = JS_GetObject(js_castrollcall, "castanims");
+
+      json_t *js_castanim_entry;
+      cast_entry_t castanim_entry;
+      JS_ArrayForEach(js_castanim_entry, js_castanim_list)
+      {
+        ParseEndFinaleCastAnims(js_castanim_entry, &castanim_entry);
+        array_push(castanims, castanim_entry);
+      }
+
+      castrollcall->castanims = castanims;
       break;
+    }
+
     case END_SCROLL:
-      json_t *json_scroll = JS_GetObject(data, "bunny");
-      // TODO
+    {
+      json_t *js_bunny = JS_GetObject(data, "bunny");
+
+      bunny->overlay      = JS_GetIntergerValue(js_bunny, "overlay");
+      bunny->overlaycount = JS_GetIntergerValue(js_bunny, "overlaycount");
+      bunny->overlaysound = JS_GetIntergerValue(js_bunny, "overlaysound");
+      bunny->overlayx     = JS_GetIntergerValue(js_bunny, "overlayx");
+      bunny->overlayy     = JS_GetIntergerValue(js_bunny, "overlayy");
+      bunny->stitchimage  = Z_StrDup(
+        JS_GetStringValue(js_bunny, "stitchimage"),
+        PU_LEVEL
+      );
+
       break;
+    }
+
     case END_ART:
       break;
+
     default:
       I_Printf(VB_WARNING,
                "EndFinale: invalid or unknown entry of type \"%d\" on lump %s",

@@ -485,6 +485,13 @@ char *s_CC_ARCH = CC_ARCH;
 char *s_CC_SPIDER = CC_SPIDER;
 char *s_CC_CYBER = CC_CYBER;
 char *s_CC_HERO = CC_HERO;
+char *s_ID24_CC_GHOUL        = ID24_CC_GHOUL;
+char *s_ID24_CC_BANSHEE      = ID24_CC_BANSHEE;
+char *s_ID24_CC_SHOCKTROOPER = ID24_CC_SHOCKTROOPER;
+char *s_ID24_CC_MINDWEAVER   = ID24_CC_MINDWEAVER;
+char *s_ID24_CC_VASSAGO      = ID24_CC_VASSAGO;
+char *s_ID24_CC_TYRANT       = ID24_CC_TYRANT;
+
 // Ty 03/30/98 - new substitutions for background textures
 //               during int screens
 char *bgflatE1 = "FLOOR4_8";   // end of DOOM Episode 1
