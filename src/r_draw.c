@@ -684,6 +684,9 @@ void R_SetFuzzColumnMode(void)
         case FUZZ_SHADOW:
             R_DrawFuzzColumn = DrawFuzzColumnShadow;
             break;
+        case FUZZ_ORIGINAL:
+            R_DrawFuzzColumn = DrawFuzzColumnOriginal;
+            break;
     }
 }
 
