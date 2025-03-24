@@ -311,16 +311,31 @@ static void R_MaybeInterpolateSector(sector_t* sector)
             sector->floor_xoffs = LerpFixed(sector->old_floor_xoffs, sector->base_floor_xoffs);
             sector->floor_yoffs = LerpFixed(sector->old_floor_yoffs, sector->base_floor_yoffs);
         }
+        else
+        {
+            sector->floor_xoffs = sector->base_floor_xoffs;
+            sector->floor_yoffs = sector->base_floor_yoffs;
+        }
+
         if (sector->old_ceil_offs_gametic == gametic - 1)
         {
             sector->ceiling_xoffs = LerpFixed(sector->old_ceiling_xoffs, sector->base_ceiling_xoffs);
             sector->ceiling_yoffs = LerpFixed(sector->old_ceiling_yoffs, sector->base_ceiling_yoffs);
+        }
+        else
+        {
+            sector->ceiling_xoffs = sector->base_ceiling_xoffs;
+            sector->ceiling_yoffs = sector->base_ceiling_yoffs;
         }
     }
     else
     {
         sector->interpfloorheight = sector->floorheight;
         sector->interpceilingheight = sector->ceilingheight;
+        sector->floor_xoffs = sector->base_floor_xoffs;
+        sector->floor_yoffs = sector->base_floor_yoffs;
+        sector->ceiling_xoffs = sector->base_ceiling_xoffs;
+        sector->ceiling_yoffs = sector->base_ceiling_yoffs;
     }
 }
 
@@ -330,6 +345,11 @@ static void R_MaybeInterpolateTextureOffsets(side_t *side)
     {
         side->textureoffset = LerpFixed(side->oldtextureoffset, side->basetextureoffset);
         side->rowoffset = LerpFixed(side->oldrowoffset, side->baserowoffset);
+    }
+    else
+    {
+        side->textureoffset = side->basetextureoffset;
+        side->rowoffset = side->baserowoffset;
     }
 }
 

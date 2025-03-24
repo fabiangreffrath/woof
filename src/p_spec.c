@@ -2696,8 +2696,6 @@ void T_Scroll(scroll_t *s)
         }
         side->basetextureoffset += dx;
         side->baserowoffset += dy;
-        side->textureoffset = side->basetextureoffset;
-        side->rowoffset = side->baserowoffset;
         break;
 
     case sc_floor:                  // killough 3/7/98: Scroll floor texture
@@ -2710,8 +2708,6 @@ void T_Scroll(scroll_t *s)
         }
         sec->base_floor_xoffs += dx;
         sec->base_floor_yoffs += dy;
-        sec->floor_xoffs = sec->base_floor_xoffs;
-        sec->floor_yoffs = sec->base_floor_yoffs;
         break;
 
     case sc_ceiling:               // killough 3/7/98: Scroll ceiling texture
@@ -2724,8 +2720,6 @@ void T_Scroll(scroll_t *s)
         }
         sec->base_ceiling_xoffs += dx;
         sec->base_ceiling_yoffs += dy;
-        sec->ceiling_xoffs = sec->base_ceiling_xoffs;
-        sec->ceiling_yoffs = sec->base_ceiling_yoffs;
         break;
 
     case sc_carry:
