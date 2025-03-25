@@ -1019,6 +1019,8 @@ void R_InitAnyRes(void)
 void R_BindRenderVariables(void)
 {
   BIND_NUM_GENERAL(extra_level_brightness, 0, 0, 4, "Level brightness");
+  BIND_NUM_GENERAL(fuzzmode, FUZZ_BLOCKY, FUZZ_BLOCKY, FUZZ_ORIGINAL,
+    "Partial Invisibility (0 = Blocky; 1 = Refraction; 2 = Shadow, 3 = Original)");
   BIND_BOOL_GENERAL(stretchsky, false, "Stretch short skies");
   BIND_BOOL_GENERAL(linearsky, false, "Linear horizontal scrolling for skies");
   BIND_BOOL_GENERAL(r_swirl, false, "Swirling animated flats");
@@ -1030,7 +1032,8 @@ void R_BindRenderVariables(void)
   BIND_NUM_GENERAL(invul_mode, INVUL_MBF, INVUL_VANILLA, INVUL_GRAY,
     "Invulnerability effect (0 = Vanilla; 1 = MBF; 2 = Gray)");
   BIND_BOOL(flashing_hom, true, "Enable flashing of the HOM indicator");
-  BIND_NUM(screenblocks, 10, 3, UL, "Size of game-world screen");
+  M_BindNum("screenblocks", &screenblocks, NULL, 10, 3,
+            UL, ss_stat, wad_no, "Size of game-world screen");
 
   M_BindBool("translucency", &translucency, NULL, true, ss_gen, wad_yes,
              "Translucency for some things");
@@ -1040,9 +1043,6 @@ void R_BindRenderVariables(void)
 
   M_BindBool("flipcorpses", &flipcorpses, NULL, false, ss_enem, wad_no,
              "Randomly mirrored death animations");
-  M_BindNum("fuzzmode", &fuzzmode, NULL,
-            FUZZ_BLOCKY, FUZZ_BLOCKY, FUZZ_SHADOW, ss_none, wad_no,
-            "Partial Invisibility (0 = Vanilla; 1 = Refraction; 2 = Shadow)");
 
   BIND_BOOL(draw_nearby_sprites, true,
     "Draw sprites overlapping into visible sectors");

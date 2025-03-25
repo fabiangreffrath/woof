@@ -2199,7 +2199,16 @@ static void G_DoPlayDemo(void)
 // killough 2/22/98: version id string format for savegames
 #define VERSIONID "MBF %d"
 
-#define CURRENT_SAVE_VERSION "Woof 15.0.0"
+#define CURRENT_SAVE_VERSION "Woof 16.0.0"
+
+static const char *saveg_versions[] =
+{
+    [saveg_woof510] = "Woof 5.1.0",
+    [saveg_woof600] = "Woof 6.0.0",
+    [saveg_woof1300] = "Woof 13.0.0",
+    [saveg_woof1500] = "Woof 15.0.0",
+    [saveg_current] = CURRENT_SAVE_VERSION
+};
 
 static char *savename = NULL;
 
@@ -2511,14 +2520,6 @@ static void G_DoSaveAutoSave(void)
   DoSaveGame(name);
 }
 
-static void CheckSaveVersion(const char *str, saveg_compat_t ver)
-{
-  if (strncmp((char *) save_p, str, strlen(str)) == 0)
-  {
-    saveg_compat = ver;
-  }
-}
-
 static boolean DoLoadGame(boolean do_load_autosave)
 {
   int  length, i;
@@ -2549,10 +2550,21 @@ static boolean DoLoadGame(boolean do_load_autosave)
   // killough 2/22/98: "proprietary" version string :-)
   sprintf (vcheck,VERSIONID,MBFVERSION);
 
-  CheckSaveVersion(vcheck, saveg_mbf);
-  CheckSaveVersion("Woof 6.0.0", saveg_woof600);
-  CheckSaveVersion("Woof 13.0.0", saveg_woof1300);
-  CheckSaveVersion(CURRENT_SAVE_VERSION, saveg_current);
+  if (strncmp((char *)save_p, vcheck, VERSIONSIZE) == 0)
+  {
+      saveg_compat = saveg_mbf;
+  }
+  else
+  {
+      for (int i = saveg_woof510; i < arrlen(saveg_versions); ++i)
+      {
+          if (strncmp((char *)save_p, saveg_versions[i], VERSIONSIZE) == 0)
+          {
+              saveg_compat = i;
+              break;
+          }
+      }
+  }
 
   // killough 2/22/98: Friendly savegame version difference message
   if (!forced_loadgame && saveg_compat != saveg_mbf && saveg_compat < saveg_woof600)
