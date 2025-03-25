@@ -384,6 +384,11 @@ static void ParseStandardProperty(scanner_t *s, mapentry_t *mape)
             mape->flags |= MapInfo_EndGameClear;
         }
     }
+    else if (!strcasecmp(prop, "endfinale"))
+    {
+        mape->flags |= MapInfo_EndGameCustomFinale;
+        ParseLumpName(s, mape->endfinale);
+    }
     else if (!strcasecmp(prop, "endgame"))
     {
         SC_MustGetToken(s, TK_BoolConst);

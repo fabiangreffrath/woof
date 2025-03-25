@@ -87,9 +87,65 @@ static boolean mapinfo_finale;
 // ID24 EndFinale extensions
 //
 
+// Current finale being played
+end_finale_t finale = {0};
+
+end_finale_t VanillaBunnyScroller(void)
+{
+  end_finale_t finale = {
+    .type         = END_SCROLL,
+    .background   = "PUB1",
+    .music        = "D_BUNNY",
+    .donextmap    = false,
+    .musicloops   = false,
+    .castrollcall = {0},
+    .bunny = {
+      .orientation  = BUNNY_LEFT,
+      .stitchimage  = "PFUB2",
+      .overlay      = W_GetNumForName("END0"),
+      .overlaycount = 6,
+      .overlaysound = sfx_pistol,
+      .overlayx     = 100,
+      .overlayy     = 100,
+    },
+  };
+
+  return finale;
+}
+
 static void ParseEndFinaleCastAnims(json_t *js_castanim_entry, cast_entry_t *out)
 {
-  
+  out->name       = JS_GetStringValue(js_castanim_entry, "name");
+  out->alertsound = JS_GetIntegerValue(js_castanim_entry, "alertsound");
+
+  json_t *js_alive_frame_list = JS_GetObject(js_castanim_entry, "aliveframes");
+  json_t *js_death_frame_list = JS_GetObject(js_castanim_entry, "deathframes");
+
+  json_t *js_alive_frame = NULL;
+  json_t *js_death_frame = NULL;
+
+  cast_frame_t buffer = {0};
+
+  JS_ArrayForEach(js_alive_frame, js_alive_frame_list)
+  {
+    buffer.lump     = JS_GetStringValue(js_alive_frame, "lump");
+    buffer.flipped  = JS_GetBooleanValue(js_alive_frame, "flipped");
+    buffer.duration = JS_GetIntegerValue(js_alive_frame, "duration") * TICRATE;
+    buffer.sound    = JS_GetIntegerValue(js_alive_frame, "sound");
+    array_push(out->aliveframes, buffer);
+    out->aliveframescount++;
+  }
+
+  JS_ArrayForEach(js_death_frame, js_death_frame_list)
+  {
+    buffer.lump     = JS_GetStringValue(js_death_frame, "lump");
+    buffer.flipped  = JS_GetBooleanValue(js_death_frame, "flipped");
+    buffer.duration = JS_GetIntegerValue(js_death_frame, "duration") * TICRATE;
+    buffer.sound    = JS_GetIntegerValue(js_death_frame, "sound");
+    array_push(out->deathframes, buffer);
+    out->deathframescount++;
+  }
+
 }
 
 end_finale_t *D_ParseEndFinale(const char lump[9])
@@ -98,6 +154,7 @@ end_finale_t *D_ParseEndFinale(const char lump[9])
   json_t *json = JS_Open(lump, "finale", (version_t){1, 0, 0});
   if (json == NULL)
   {
+    I_Printf(VB_WARNING, "EndFinale: invalid lump \"%s\"", lump);
     return NULL;
   }
 
@@ -105,7 +162,7 @@ end_finale_t *D_ParseEndFinale(const char lump[9])
   json_t *data = JS_GetObject(json, "data");
   if (JS_IsNull(data) || !JS_IsObject(data))
   {
-    I_Printf(VB_WARNING, "EndFinale: data object undefined on lump '%s'",
+    I_Printf(VB_WARNING, "EndFinale: data object undefined on lump \"%s\"",
              lump);
     JS_Close(lump);
     return NULL;
@@ -115,16 +172,18 @@ end_finale_t *D_ParseEndFinale(const char lump[9])
   end_finale_t *out = Z_Calloc(1, sizeof(*out), PU_LEVEL, NULL);
 
   end_type_t   type         = JS_GetIntegerValue(data, "type");
-  const char *music         = JS_GetStringValue(data, "music");
-  const char *background    = JS_GetStringValue(data, "background");
-  end_bunny_t *bunny        = {0};
-  end_cast_t  *castrollcall = &(end_cast_t){ .castanims = {0} };
+  const char  *music        = JS_GetStringValue(data, "music");
+  const char  *background   = JS_GetStringValue(data, "background");
+  boolean      musicloops   = JS_GetBooleanValue(data, "musicloops");
+  boolean      donextmap    = JS_GetBooleanValue(data, "donextmap");
+  end_bunny_t  bunny        = {0};
+  end_cast_t   castrollcall = {0};
 
-  // Improper definitions should be entirely ignored
+  // Improper definitions should be entirely discarded
   if (music == NULL || background == NULL)
   {
     I_Printf(VB_WARNING,
-             "EndFinale: missing music or background fields on lump '%s'",
+             "EndFinale: invalid music or background fields on lump \"%s\"",
              lump);
     JS_Close(lump);
     return NULL;
@@ -132,6 +191,7 @@ end_finale_t *D_ParseEndFinale(const char lump[9])
 
   switch (type)
   {
+    // Our hero
     case END_CAST:
     {
       json_t *js_castrollcall = JS_GetObject(data, "castrollcall");
@@ -143,39 +203,36 @@ end_finale_t *D_ParseEndFinale(const char lump[9])
       JS_ArrayForEach(js_castanim_entry, js_castanim_list)
       {
         ParseEndFinaleCastAnims(js_castanim_entry, &castanim_entry);
-        array_push(castrollcall->castanims, castanim_entry);
+        castrollcall.castanimscount++;
+        array_push(castrollcall.castanims, castanim_entry);
       }
 
-      bunny = NULL;
       break;
     }
 
+    // Pretty Fed Up Bunny
     case END_SCROLL:
     {
       json_t *js_bunny = JS_GetObject(data, "bunny");
 
-      bunny->overlay      = JS_GetIntegerValue(js_bunny, "overlay");
-      bunny->overlaycount = JS_GetIntegerValue(js_bunny, "overlaycount");
-      bunny->overlaysound = JS_GetIntegerValue(js_bunny, "overlaysound");
-      bunny->overlayx     = JS_GetIntegerValue(js_bunny, "overlayx");
-      bunny->overlayy     = JS_GetIntegerValue(js_bunny, "overlayy");
-      bunny->orientation  = JS_GetIntegerValue(js_bunny, "orientation");
-      bunny->stitchimage  = Z_StrDup(
+      bunny.overlay      = JS_GetIntegerValue(js_bunny, "overlay");
+      bunny.overlaycount = JS_GetIntegerValue(js_bunny, "overlaycount");
+      bunny.overlaysound = JS_GetIntegerValue(js_bunny, "overlaysound");
+      bunny.overlayx     = JS_GetIntegerValue(js_bunny, "overlayx");
+      bunny.overlayy     = JS_GetIntegerValue(js_bunny, "overlayy");
+      bunny.orientation  = JS_GetIntegerValue(js_bunny, "orientation");
+      bunny.stitchimage  = Z_StrDup(
         JS_GetStringValue(js_bunny, "stitchimage"),
         PU_LEVEL
       );
-
-      castrollcall = NULL;
       break;
     }
 
+    // Explicitly do not parse anything needlessly
     case END_ART:
-    {
-      bunny        = NULL;
-      castrollcall = NULL;
       break;
-    }
 
+    // Fix you lumps! Fix you editor!
     default:
     {
       I_Printf(VB_WARNING,
@@ -186,16 +243,14 @@ end_finale_t *D_ParseEndFinale(const char lump[9])
     }
   }
 
-  boolean musicloops = JS_GetBooleanValue(data, "musicloops", true);
-  boolean donextmap  = JS_GetBooleanValue(data, "donextmap", false);
-
+  // Done parsing everything
   out->type         = type;
   out->musicloops   = musicloops;
   out->donextmap    = donextmap;
-  out->castrollcall = *castrollcall;
-  out->bunny        = *bunny;
-  M_CopyLumpName(out->music, music);
-  M_CopyLumpName(out->background, background);
+  out->castrollcall = castrollcall;
+  out->bunny        = bunny;
+  out->music        = Z_StrDup(music, PU_LEVEL);
+  out->background   = Z_StrDup(background, PU_LEVEL);
 
   // No need to keep in memory
   JS_Close(lump);
@@ -659,6 +714,104 @@ static void F_TextWrite(void)
     V_DrawPatch(cx, cy, hu_font[c]);
     cx += w;
   }
+}
+
+// ID24 EndFinale
+static int           ef_callee_count = 0;
+static int           ef_callee_point = 0;
+static cast_entry_t *ef_callee       = NULL;
+static cast_frame_t *ef_frame        = NULL;
+static boolean       ef_alive        = false;
+static int           ef_duration     = 0;
+
+static void EndFinaleCast_Frame(cast_frame_t *frame)
+{
+  ef_frame    = frame;
+  ef_duration = ef_frame->duration;
+
+  if (ef_frame->sound)
+  {
+    S_StartSound(NULL, ef_frame->sound);
+  }
+}
+
+static void EndFinaleCast_Callee(cast_entry_t *callee)
+{
+  ef_callee = callee;
+  ef_alive  = true;
+  EndFinaleCast_Frame(ef_callee->aliveframes);
+}
+
+static void EndFinaleCast_Kill(void)
+{
+  ef_alive = false;
+  EndFinaleCast_Frame(ef_callee->deathframes);
+}
+
+static void EndFinale_SetupCastCall(void)
+{
+  ef_callee_count = finale.castrollcall.castanimscount;
+  const int background = W_GetNumForName(finale.background);
+  W_CacheLumpNum(background, PU_LEVEL);
+
+  cast_entry_t *callee;
+  cast_frame_t *frame;
+
+  array_foreach(callee, ef_callee)
+  {
+    array_foreach(frame, callee->aliveframes)
+    {
+      W_CacheLumpName(frame->lump, PU_LEVEL);
+    }
+    array_foreach(frame, callee->deathframes)
+    {
+      W_CacheLumpName(frame->lump, PU_LEVEL);
+    }
+  }
+
+  EndFinaleCast_Callee(ef_callee);
+}
+
+static boolean EndFinale_CastTicker(void)
+{
+  boolean loop_finished = false;
+
+  if (--ef_duration <= 0)
+  {
+    cast_frame_t *initial = ef_alive
+                            ? ef_callee->aliveframes
+                            : ef_callee->deathframes;
+    cast_frame_t *last = (ef_alive
+                          ? ef_callee->aliveframescount
+                          : ef_callee->deathframescount) - 1 + initial;
+    cast_frame_t *next = ++ef_frame;
+
+    if (ef_alive || (next != last))
+    {
+      EndFinaleCast_Frame((next != last) ? next : initial);
+    }
+    else
+    {
+      ef_callee_point = (ef_callee_point + 1) % ef_callee_count;
+      cast_entry_t *next_callee = &ef_callee[ef_callee_point];
+
+      // When out of bounds
+      if (next_callee == &ef_callee[ef_callee_count])
+      {
+        // If possible, go to next map, else start again
+        loop_finished = true;
+        next_callee =
+          finale.donextmap || (wminfo.nextmapinfo != NULL) ? NULL : ef_callee;
+      }
+
+      if (next_callee)
+      {
+        EndFinaleCast_Callee(next_callee);
+      }
+    }
+  }
+
+  return loop_finished;
 }
 
 //

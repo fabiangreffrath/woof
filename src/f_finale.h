@@ -66,7 +66,7 @@ typedef enum bunny_line_e
 typedef struct end_bunny_s
 {
   bunny_line_t  orientation;  // Left, up, right or down
-  char         *stitchimage;  // e.g PFUB2
+  const char   *stitchimage;  // e.g PFUB2
   int           overlay;      // e.g END0
   int           overlaycount; // How many frames?
   int           overlaysound; // Sound index
@@ -74,22 +74,24 @@ typedef struct end_bunny_s
   int           overlayy;
 } end_bunny_t;
 
-// ID24 EndFinale - Custom cast call
+// ID24 EndFinale - Custom cast call, per-callee frame
 typedef struct cast_frame_s
 {
-  char    *lump;     // Enemy sprite
-  boolean  flipped;  // Flipped sprite
-  int      duration; // How many tics does this sprite last for?
-  int      sound;    // Sound index
+  const char *lump;
+  boolean     flipped;
+  int         duration;
+  int         sound;
 } cast_frame_t;
 
-// ID24 EndFinale - Custom cast call
+// ID24 EndFinale - Custom cast call, callee
 typedef struct cast_entry_s
 {
-  char         *name;        // BEX [STRINGS] mnemonic
-  int           alertsound;  // Sound index
-  cast_frame_t *aliveframes; // Before pressing the "use" key
-  cast_frame_t *deathframes; // After pressing the "use" key
+  const char   *name;             // BEX [STRINGS] mnemonic
+  int           alertsound;
+  cast_frame_t *aliveframes;
+  cast_frame_t *deathframes;
+  int           aliveframescount; // Book-keeping
+  int           deathframescount; // Book-keeping
 } cast_entry_t;
 
 // [EA] Not sure why it is like this, but this is the setup in the official
@@ -98,18 +100,19 @@ typedef struct cast_entry_s
 typedef struct end_cast_s
 {
   cast_entry_t *castanims;
+  int           castanimscount; // Book-keeping
 } end_cast_t;
 
 // ID24 EndFinale
 typedef struct end_finale_s
 {
   end_type_t   type;
-  char        *music;        // e.g. `D_EVIL`
-  char        *background;   // e.g. `BOSSBACK`
-  boolean      musicloops;   // e.g. `true`
-  boolean      donextmap;    // e.g. `false`
-  end_bunny_t  bunny;        // Only read if `type == END_SCROLL`
-  end_cast_t   castrollcall; // Only read if `type == END_CAST`
+  const char  *music;      // e.g. `D_EVIL` or `D_BUNNY` or `D_VICTOR`
+  const char  *background; // e.g. `BOSSBACK` or `PFUB1` or `ENDPIC`
+  boolean      musicloops;
+  boolean      donextmap;
+  end_bunny_t  bunny;
+  end_cast_t   castrollcall;
 } end_finale_t;
 
 end_finale_t *D_ParseEndFinale(const char lump[9]);

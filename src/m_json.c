@@ -202,14 +202,14 @@ boolean JS_GetBoolean(json_t *json)
     return yyjson_get_bool(json);
 }
 
-boolean JS_GetBooleanValue(json_t *json, const char *string, boolean fallback)
+boolean JS_GetBooleanValue(json_t *json, const char *string)
 {
     json_t *obj = JS_GetObject(json, string);
     if (JS_IsBoolean(obj))
     {
         return JS_GetBoolean(obj);
     }
-    return fallback;
+    return false;
 }
 
 double JS_GetNumber(json_t *json)
