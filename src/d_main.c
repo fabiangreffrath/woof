@@ -1572,7 +1572,7 @@ static void D_InitTables(void)
 
 void D_SetMaxHealth(void)
 {
-  if (prior_boom)
+  if (at_most_vanilla)
   {
     maxhealth = 100;
     maxhealthbonus = deh_set_maxhealth ? deh_maxhealth : 200;

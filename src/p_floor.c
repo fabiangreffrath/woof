@@ -109,7 +109,7 @@ result_e T_MovePlane
 
             // [FG] Compatibility bug in T_MovePlane
             // http://prboom.sourceforge.net/mbf-bugs.html
-            if ((flag == true) && prior_boom)
+            if ((flag == true) && at_most_vanilla)
             {
               sector->floorheight = lastpos;
               P_ChangeSector(sector,crush);
@@ -122,7 +122,7 @@ result_e T_MovePlane
           // Moving a floor up
           // jff 02/04/98 keep floor from moving thru ceilings
           // jff 2/22/98 weaken check to demo_compatibility
-          destheight = (prior_boom || (min_mbf && comp[comp_floors]) ||
+          destheight = (at_most_vanilla || (at_least_mbf && comp[comp_floors]) ||
 			dest<sector->ceilingheight)? // killough 10/98
                           dest : sector->ceilingheight;
           if (sector->floorheight + speed > destheight)
@@ -145,7 +145,7 @@ result_e T_MovePlane
             flag = P_CheckSector(sector,crush); //jff 3/19/98 use faster chk
             if (flag == true)
             {
-              if (prior_boom || (min_mbf && comp[comp_floors])) // killough 10/98
+              if (at_most_vanilla || (at_least_mbf && comp[comp_floors])) // killough 10/98
                 if (crush == true) //jff 1/25/98 fix floor crusher
                   return crushed;
               sector->floorheight = lastpos;
@@ -782,7 +782,7 @@ int EV_BuildStairs
       case build8:
         speed = FLOORSPEED/4;
         stairsize = 8*FRACUNIT;
-        if (min_boom)
+        if (at_least_boom)
           floor->crush = false; //jff 2/27/98 fix uninitialized crush field
         // [FG] initialize crush field
         else
@@ -791,7 +791,7 @@ int EV_BuildStairs
       case turbo16:
         speed = FLOORSPEED*4;
         stairsize = 16*FRACUNIT;
-        if (min_boom)
+        if (at_least_boom)
           floor->crush = true;  //jff 2/27/98 fix uninitialized crush field
         // [FG] initialize crush field
         else
@@ -860,7 +860,7 @@ int EV_BuildStairs
         floor->floordestheight = height;
         floor->type = buildStair; //jff 3/31/98 do not leave uninited
         //jff 2/27/98 fix uninitialized crush field
-        if (min_boom)
+        if (at_least_boom)
           floor->crush = type==build8? false : true;
         // [FG] initialize crush field
         else
@@ -902,7 +902,7 @@ int EV_BuildStairs
 
 static boolean DonutOverrun(fixed_t *pfloorheight, short *pfloorpic)
 {
-  if (prior_boom && overflow[emu_donut].enabled)
+  if (at_most_vanilla && overflow[emu_donut].enabled)
   {
     overflow[emu_donut].triggered = true;
 

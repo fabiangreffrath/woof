@@ -56,7 +56,7 @@ int P_DivlineSide(fixed_t x, fixed_t y, const divline_t *node)
   fixed_t left = 0, right = 0; // [FG] initialize
   return
     !node->dx ? x == node->x ? 2 : x <= node->x ? node->dy > 0 : node->dy < 0 :
-    !node->dy ? (min_mbf21 ? y : x) == node->y ? 2 : y <= node->y ? node->dx < 0 : node->dx > 0 :
+    !node->dy ? (at_least_mbf21 ? y : x) == node->y ? 2 : y <= node->y ? node->dx < 0 : node->dx > 0 :
     (right = ((y - node->y) >> FRACBITS) * (node->dx >> FRACBITS)) <
     (left  = ((x - node->x) >> FRACBITS) * (node->dy >> FRACBITS)) ? 0 :
     right == left ? 2 : 1;
@@ -116,7 +116,7 @@ static boolean P_CrossSubsector(int num, register los_t *los)
 
       // [FG] Compatibility bug in P_CrossSubsector
       // http://prboom.sourceforge.net/mbf-bugs.html
-      if (min_boom)
+      if (at_least_boom)
       {
       if (line->bbox[BOXLEFT  ] > los->bbox[BOXRIGHT ] ||
           line->bbox[BOXRIGHT ] < los->bbox[BOXLEFT  ] ||
@@ -150,7 +150,7 @@ static boolean P_CrossSubsector(int num, register los_t *los)
       back = seg->backsector;
 
       // missed back side on two-sided lines.
-      if (prior_boom && !back)
+      if (at_most_vanilla && !back)
       {
         back = GetSectorAtNullAddress();
       }
@@ -260,7 +260,7 @@ static boolean P_CheckSight_MBF(mobj_t *t1, mobj_t *t2)
   // killough 11/98: shortcut for melee situations
   // [FG] Compatibility bug in P_CheckSight
   // http://prboom.sourceforge.net/mbf-bugs.html
-  if (t1->subsector == t2->subsector && min_mbf)     // same subsector? obviously visible
+  if (t1->subsector == t2->subsector && at_least_mbf)     // same subsector? obviously visible
     return true;
 
   // An unobstructed LOS is possible.

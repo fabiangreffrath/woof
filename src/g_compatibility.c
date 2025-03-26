@@ -199,7 +199,7 @@ void G_ApplyLevelCompatibility(int lump)
 
     if (restore_comp)
     {
-        if (prior_mbf21)
+        if (at_most_mbf)
         {
             demo_version = DV_MBF21;
             G_ReloadDefaults(true);
@@ -207,7 +207,7 @@ void G_ApplyLevelCompatibility(int lump)
         memcpy(comp, old_comp, sizeof(*comp));
         restore_comp = false;
     }
-    else if (demorecording || demoplayback || netgame || prior_mbf21)
+    else if (demorecording || demoplayback || netgame || at_most_mbf)
     {
         return;
     }
@@ -235,7 +235,7 @@ void G_ApplyLevelCompatibility(int lump)
                          G_GetCurrentComplevelName());
             }
 
-            if (prior_mbf21)
+            if (at_most_mbf)
             {
                 return;
             }

@@ -115,15 +115,15 @@ extern demo_version_t demo_version;           // killough 7/19/98: Version of de
 // #define mbf21 (demo_version == DV_MBF21)
 
 // [EA] Common complevel checks made more generic
-#define prior_boom  (demo_version < DV_BOOM200)
-#define prior_mbf   (demo_version < DV_MBF)
-#define prior_mbf21 (demo_version < DV_MBF21)
-#define prior_id24  (demo_version < DV_ID24)
+#define at_most_vanilla (demo_version < DV_BOOM200)
+#define at_most_boom    (demo_version < DV_MBF)
+#define at_most_mbf     (demo_version < DV_MBF21)
+#define at_most_mbf21   (demo_version < DV_ID24)
 
-#define min_boom  (demo_version >= DV_BOOM200)
-#define min_mbf   (demo_version >= DV_MBF)
-#define min_mbf21 (demo_version >= DV_MBF21)
-#define min_id24  (demo_version >= DV_ID24)
+#define at_least_boom  (demo_version >= DV_BOOM200)
+#define at_least_mbf   (demo_version >= DV_MBF)
+#define at_least_mbf21 (demo_version >= DV_MBF21)
+#define at_least_id24  (demo_version >= DV_ID24)
 
 // killough 7/19/98: whether monsters should fight against each other
 extern boolean monster_infighting, default_monster_infighting;

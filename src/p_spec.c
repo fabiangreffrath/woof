@@ -661,7 +661,7 @@ sector_t *P_FindModelFloorSector(fixed_t floordestheight, int secnum)
 
   int i, linecount = sec->linecount;
 
-  for (i = 0; i < (prior_boom && sec->linecount < linecount ?
+  for (i = 0; i < (at_most_vanilla && sec->linecount < linecount ?
                    sec->linecount : linecount); i++)
     if (twoSided(secnum, i) &&
         (sec = getSector(secnum, i,
@@ -697,7 +697,7 @@ sector_t *P_FindModelCeilingSector(fixed_t ceildestheight, int secnum)
   // but allow early exit in old demos
   int i, linecount = sec->linecount;
 
-  for (i = 0; i < (prior_boom && sec->linecount<linecount?
+  for (i = 0; i < (at_most_vanilla && sec->linecount<linecount?
                    sec->linecount : linecount); i++)
     if (twoSided(secnum, i) &&
         (sec = getSector(secnum, i,
@@ -918,7 +918,7 @@ boolean P_CanUnlockGenDoor(line_t *line, player_t *player)
 
 int P_SectorActive(special_e t,sector_t *sec)
 {
-  return prior_boom ?  // return whether any thinker is active
+  return at_most_vanilla ?  // return whether any thinker is active
     sec->floordata || sec->ceilingdata || sec->lightingdata :
     t == floor_special ? !!sec->floordata :        // return whether
     t == ceiling_special ? !!sec->ceilingdata :    // thinker of same
@@ -1007,7 +1007,7 @@ boolean P_IsDeathExit(sector_t *sector)
   {
     return (sector->special == 11);
   }
-  else if (min_mbf21 && sector->special & DEATH_MASK)
+  else if (at_least_mbf21 && sector->special & DEATH_MASK)
   {
     const int i = (sector->special & DAMAGE_MASK) >> DAMAGE_SHIFT;
 
@@ -1091,7 +1091,7 @@ void P_CrossSpecialLine(line_t *line, int side, mobj_t *thing, boolean bossactio
       }
 
   //jff 02/04/98 add check here for generalized lindef types
-  if (min_boom) // generalized types not recognized if old demo
+  if (at_least_boom) // generalized types not recognized if old demo
     {
       // pointer to line function is NULL by default, set non-null if
       // line special is walkover generalized linedef type
@@ -1166,7 +1166,7 @@ void P_CrossSpecialLine(line_t *line, int side, mobj_t *thing, boolean bossactio
                     linefunc = EV_DoGenStairs;
                   }
               else
-                if (min_mbf21 && (unsigned)line->special >= GenCrusherBase)
+                if (at_least_mbf21 && (unsigned)line->special >= GenCrusherBase)
                   {
                     // haleyjd 06/09/09: This was completely forgotten in BOOM, disabling
                     // all generalized walk-over crusher types!
@@ -1238,128 +1238,128 @@ void P_CrossSpecialLine(line_t *line, int side, mobj_t *thing, boolean bossactio
 
     case 2:
       // Open Door
-      if (EV_DoDoor(line,doorOpen) || prior_boom)
+      if (EV_DoDoor(line,doorOpen) || at_most_vanilla)
         line->special = 0;
       break;
 
     case 3:
       // Close Door
-      if (EV_DoDoor(line,doorClose) || prior_boom)
+      if (EV_DoDoor(line,doorClose) || at_most_vanilla)
         line->special = 0;
       break;
 
     case 4:
       // Raise Door
-      if (EV_DoDoor(line,doorNormal) || prior_boom)
+      if (EV_DoDoor(line,doorNormal) || at_most_vanilla)
         line->special = 0;
       break;
 
     case 5:
       // Raise Floor
-      if (EV_DoFloor(line,raiseFloor) || prior_boom)
+      if (EV_DoFloor(line,raiseFloor) || at_most_vanilla)
         line->special = 0;
       break;
 
     case 6:
       // Fast Ceiling Crush & Raise
-      if (EV_DoCeiling(line,fastCrushAndRaise) || prior_boom)
+      if (EV_DoCeiling(line,fastCrushAndRaise) || at_most_vanilla)
         line->special = 0;
       break;
 
     case 8:
       // Build Stairs
-      if (EV_BuildStairs(line,build8) || prior_boom)
+      if (EV_BuildStairs(line,build8) || at_most_vanilla)
         line->special = 0;
       break;
 
     case 10:
       // PlatDownWaitUp
-      if (EV_DoPlat(line,downWaitUpStay,0) || prior_boom)
+      if (EV_DoPlat(line,downWaitUpStay,0) || at_most_vanilla)
         line->special = 0;
       break;
 
     case 12:
       // Light Turn On - brightest near
-      if (EV_LightTurnOn(line,0) || prior_boom)
+      if (EV_LightTurnOn(line,0) || at_most_vanilla)
         line->special = 0;
       break;
 
     case 13:
       // Light Turn On 255
-      if (EV_LightTurnOn(line,255) || prior_boom)
+      if (EV_LightTurnOn(line,255) || at_most_vanilla)
         line->special = 0;
       break;
 
     case 16:
       // Close Door 30
-      if (EV_DoDoor(line,close30ThenOpen) || prior_boom)
+      if (EV_DoDoor(line,close30ThenOpen) || at_most_vanilla)
         line->special = 0;
       break;
 
     case 17:
       // Start Light Strobing
-      if (EV_StartLightStrobing(line) || prior_boom)
+      if (EV_StartLightStrobing(line) || at_most_vanilla)
         line->special = 0;
       break;
 
     case 19:
       // Lower Floor
-      if (EV_DoFloor(line,lowerFloor) || prior_boom)
+      if (EV_DoFloor(line,lowerFloor) || at_most_vanilla)
         line->special = 0;
       break;
 
     case 22:
       // Raise floor to nearest height and change texture
-      if (EV_DoPlat(line,raiseToNearestAndChange,0) || prior_boom)
+      if (EV_DoPlat(line,raiseToNearestAndChange,0) || at_most_vanilla)
         line->special = 0;
       break;
 
     case 25:
       // Ceiling Crush and Raise
-      if (EV_DoCeiling(line,crushAndRaise) || prior_boom)
+      if (EV_DoCeiling(line,crushAndRaise) || at_most_vanilla)
         line->special = 0;
       break;
 
     case 30:
       // Raise floor to shortest texture height
       //  on either side of lines.
-      if (EV_DoFloor(line,raiseToTexture) || prior_boom)
+      if (EV_DoFloor(line,raiseToTexture) || at_most_vanilla)
         line->special = 0;
       break;
 
     case 35:
       // Lights Very Dark
-      if (EV_LightTurnOn(line,35) || prior_boom)
+      if (EV_LightTurnOn(line,35) || at_most_vanilla)
         line->special = 0;
       break;
 
     case 36:
       // Lower Floor (TURBO)
-      if (EV_DoFloor(line,turboLower) || prior_boom)
+      if (EV_DoFloor(line,turboLower) || at_most_vanilla)
         line->special = 0;
       break;
 
     case 37:
       // LowerAndChange
-      if (EV_DoFloor(line,lowerAndChange) || prior_boom)
+      if (EV_DoFloor(line,lowerAndChange) || at_most_vanilla)
         line->special = 0;
       break;
 
     case 38:
       // Lower Floor To Lowest
-      if (EV_DoFloor(line, lowerFloorToLowest) || prior_boom)
+      if (EV_DoFloor(line, lowerFloorToLowest) || at_most_vanilla)
         line->special = 0;
       break;
 
     case 39:
       // TELEPORT! //jff 02/09/98 fix using up with wrong side crossing
-      if (EV_Teleport(line, side, thing) || prior_boom)
+      if (EV_Teleport(line, side, thing) || at_most_vanilla)
         line->special = 0;
       break;
 
     case 40:
       // RaiseCeilingLowerFloor
-      if (prior_boom)
+      if (at_most_vanilla)
         {
           EV_DoCeiling( line, raiseToHighest );
           EV_DoFloor( line, lowerFloorToLowest ); //jff 02/12/98 doesn't work
@@ -1372,7 +1372,7 @@ void P_CrossSpecialLine(line_t *line, int side, mobj_t *thing, boolean bossactio
 
     case 44:
       // Ceiling Crush
-      if (EV_DoCeiling(line, lowerAndCrush) || prior_boom)
+      if (EV_DoCeiling(line, lowerAndCrush) || at_most_vanilla)
         line->special = 0;
       break;
 
@@ -1386,79 +1386,79 @@ void P_CrossSpecialLine(line_t *line, int side, mobj_t *thing, boolean bossactio
 
     case 53:
       // Perpetual Platform Raise
-      if (EV_DoPlat(line,perpetualRaise,0) || prior_boom)
+      if (EV_DoPlat(line,perpetualRaise,0) || at_most_vanilla)
         line->special = 0;
       break;
 
     case 54:
       // Platform Stop
-      if (EV_StopPlat(line) || prior_boom)
+      if (EV_StopPlat(line) || at_most_vanilla)
         line->special = 0;
       break;
 
     case 56:
       // Raise Floor Crush
-      if (EV_DoFloor(line,raiseFloorCrush) || prior_boom)
+      if (EV_DoFloor(line,raiseFloorCrush) || at_most_vanilla)
         line->special = 0;
       break;
 
     case 57:
       // Ceiling Crush Stop
-      if (EV_CeilingCrushStop(line) || prior_boom)
+      if (EV_CeilingCrushStop(line) || at_most_vanilla)
         line->special = 0;
       break;
 
     case 58:
       // Raise Floor 24
-      if (EV_DoFloor(line,raiseFloor24) || prior_boom)
+      if (EV_DoFloor(line,raiseFloor24) || at_most_vanilla)
         line->special = 0;
       break;
 
     case 59:
       // Raise Floor 24 And Change
-      if (EV_DoFloor(line,raiseFloor24AndChange) || prior_boom)
+      if (EV_DoFloor(line,raiseFloor24AndChange) || at_most_vanilla)
         line->special = 0;
       break;
 
     case 100:
       // Build Stairs Turbo 16
-      if (EV_BuildStairs(line,turbo16) || prior_boom)
+      if (EV_BuildStairs(line,turbo16) || at_most_vanilla)
         line->special = 0;
       break;
 
     case 104:
       // Turn lights off in sector(tag)
-      if (EV_TurnTagLightsOff(line) || prior_boom)
+      if (EV_TurnTagLightsOff(line) || at_most_vanilla)
         line->special = 0;
       break;
 
     case 108:
       // Blazing Door Raise (faster than TURBO!)
-      if (EV_DoDoor(line,blazeRaise) || prior_boom)
+      if (EV_DoDoor(line,blazeRaise) || at_most_vanilla)
         line->special = 0;
       break;
 
     case 109:
       // Blazing Door Open (faster than TURBO!)
-      if (EV_DoDoor (line,blazeOpen) || prior_boom)
+      if (EV_DoDoor (line,blazeOpen) || at_most_vanilla)
         line->special = 0;
       break;
 
     case 110:
       // Blazing Door Close (faster than TURBO!)
-      if (EV_DoDoor (line,blazeClose) || prior_boom)
+      if (EV_DoDoor (line,blazeClose) || at_most_vanilla)
         line->special = 0;
       break;
 
     case 119:
       // Raise floor to nearest surr. floor
-      if (EV_DoFloor(line,raiseFloorToNearest) || prior_boom)
+      if (EV_DoFloor(line,raiseFloorToNearest) || at_most_vanilla)
         line->special = 0;
       break;
 
     case 121:
       // Blazing PlatDownWaitUpStay
-      if (EV_DoPlat(line,blazeDWUS,0) || prior_boom)
+      if (EV_DoPlat(line,blazeDWUS,0) || at_most_vanilla)
         line->special = 0;
       break;
 
@@ -1473,19 +1473,19 @@ void P_CrossSpecialLine(line_t *line, int side, mobj_t *thing, boolean bossactio
     case 125:
       // TELEPORT MonsterONLY
       if (!thing->player &&
-          (EV_Teleport(line, side, thing) || prior_boom))
+          (EV_Teleport(line, side, thing) || at_most_vanilla))
         line->special = 0;
       break;
 
     case 130:
       // Raise Floor Turbo
-      if (EV_DoFloor(line,raiseFloorTurbo) || prior_boom)
+      if (EV_DoFloor(line,raiseFloorTurbo) || at_most_vanilla)
         line->special = 0;
       break;
 
     case 141:
       // Silent Ceiling Crush & Raise
-      if (EV_DoCeiling(line,silentCrushAndRaise) || prior_boom)
+      if (EV_DoCeiling(line,silentCrushAndRaise) || at_most_vanilla)
         line->special = 0;
       break;
 
@@ -1666,7 +1666,7 @@ void P_CrossSpecialLine(line_t *line, int side, mobj_t *thing, boolean bossactio
       // killough 2/16/98: Fix problems with W1 types being cleared too early
 
     default:
-      if (min_boom)
+      if (at_least_boom)
         switch (line->special)
           {
             // Extended walk once triggers
@@ -1977,7 +1977,7 @@ void P_CrossSpecialLine(line_t *line, int side, mobj_t *thing, boolean bossactio
 void P_ShootSpecialLine(mobj_t *thing, line_t *line)
 {
   //jff 02/04/98 add check here for generalized linedef
-  if (min_boom)
+  if (at_least_boom)
     {
       // pointer to line function is NULL by default, set non-null if
       // line special is gun triggered generalized linedef type
@@ -2102,7 +2102,7 @@ void P_ShootSpecialLine(mobj_t *thing, line_t *line)
     {
     case 24:
       // 24 G1 raise floor to highest adjacent
-      if (EV_DoFloor(line,raiseFloor) || prior_boom)
+      if (EV_DoFloor(line,raiseFloor) || at_most_vanilla)
         P_ChangeSwitchTexture(line,0);
       break;
 
@@ -2114,7 +2114,7 @@ void P_ShootSpecialLine(mobj_t *thing, line_t *line)
 
     case 47:
       // 47 G1 raise floor to nearest and change texture and type
-      if (EV_DoPlat(line,raiseToNearestAndChange,0) || prior_boom)
+      if (EV_DoPlat(line,raiseToNearestAndChange,0) || at_most_vanilla)
         P_ChangeSwitchTexture(line,0);
       break;
 
@@ -2122,7 +2122,7 @@ void P_ShootSpecialLine(mobj_t *thing, line_t *line)
       // killough 1/31/98: added demo_compatibility check, added inner switch
 
     default:
-      if (min_boom)
+      if (at_least_boom)
         switch (line->special)
           {
           case 197:
@@ -2269,7 +2269,7 @@ void P_PlayerInSpecialSector (player_t *player)
     }
   else //jff 3/14/98 handle extended sector types for secrets and damage
     {
-      if (min_mbf21 && sector->special & DEATH_MASK)
+      if (at_least_mbf21 && sector->special & DEATH_MASK)
       {
         int i;
 
@@ -2580,7 +2580,7 @@ void P_SpawnSpecials (void)
 
   P_SpawnScrollers(); // killough 3/7/98: Add generalized scrollers
 
-  if (min_boom)
+  if (at_least_boom)
   {
   P_SpawnFriction();  // phares 3/12/98: New friction model using linedefs
 
@@ -2838,7 +2838,7 @@ static void P_SpawnScrollers(void)
       int control = -1, accel = 0;         // no control sector or acceleration
       int special = l->special;
 
-      if (prior_boom && special != 48)
+      if (at_most_vanilla && special != 48)
         continue;
 
       // killough 3/7/98: Types 245-249 are same as 250-254 except that the
@@ -3083,7 +3083,7 @@ static void P_SpawnFriction(void)
         else
           movefactor = ((friction - 0xDB34)*(0xA))/0x80;
 
-        if (min_mbf)
+        if (at_least_mbf)
           { // killough 8/28/98: prevent odd situations
             if (friction > FRACUNIT)
               friction = FRACUNIT;
@@ -3106,7 +3106,7 @@ static void P_SpawnFriction(void)
             // at level startup, and then uses this friction value.
 
             // Boom's friction code for demo compatibility
-            if (min_boom && prior_mbf)
+            if (at_least_boom && at_most_boom)
               Add_Friction(friction,movefactor,s);
 
             sectors[s].friction = friction;
@@ -3204,7 +3204,7 @@ pusher_t* tmpusher; // pusher structure for blockmap searches
 
 boolean PIT_PushThing(mobj_t* thing)
 {
-  if (prior_mbf  ?     // killough 10/98: made more general
+  if (at_most_boom  ?     // killough 10/98: made more general
       thing->player && !(thing->flags & (MF_NOCLIP | MF_NOGRAVITY)) :
       (sentient(thing) || thing->flags & MF_SHOOTABLE) &&
       !(thing->flags & MF_NOCLIP))
@@ -3226,7 +3226,7 @@ boolean PIT_PushThing(mobj_t* thing)
       // to stay close to source, grow increasingly hard as you
       // get closer, as expected. Still, it doesn't consider z :(
 
-      if (speed > 0 && min_mbf)
+      if (speed > 0 && at_least_mbf)
         {
           int x = (thing->x-sx) >> FRACBITS;
           int y = (thing->y-sy) >> FRACBITS;

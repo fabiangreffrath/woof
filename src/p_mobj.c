@@ -217,7 +217,7 @@ void P_XYMovement (mobj_t* mo)
       // to pass through walls.
 
       if (xmove > MAXMOVE/2 || ymove > MAXMOVE/2 ||  // killough 8/9/98:
-	  ((xmove < -MAXMOVE/2 || ymove < -MAXMOVE/2) && min_mbf))
+	  ((xmove < -MAXMOVE/2 || ymove < -MAXMOVE/2) && at_least_mbf))
 	{
 	  ptryx = mo->x + xmove/2;
 	  ptryy = mo->y + ymove/2;
@@ -241,7 +241,7 @@ void P_XYMovement (mobj_t* mo)
 	  // killough 10/98:
 	  // Add ability for objects other than players to bounce on ice
 	  
-	  if (!(mo->flags & MF_MISSILE) && min_mbf &&
+	  if (!(mo->flags & MF_MISSILE) && at_least_mbf &&
 	      (mo->flags & MF_BOUNCES || 
 	       (!player && blockline &&
 		variable_friction && mo->z <= mo->floorz &&
@@ -284,7 +284,7 @@ void P_XYMovement (mobj_t* mo)
 		  if (ceilingline &&
 		      ceilingline->backsector &&
 		      ceilingline->backsector->ceilingpic == skyflatnum)
-		    if (prior_boom ||  // killough
+		    if (at_most_vanilla ||  // killough
 			mo->z > ceilingline->backsector->ceilingheight)
 		      {
 			// Hack to prevent missiles exploding
@@ -335,7 +335,7 @@ void P_XYMovement (mobj_t* mo)
   if (mo->momx > -STOPSPEED && mo->momx < STOPSPEED &&
       mo->momy > -STOPSPEED && mo->momy < STOPSPEED &&
       (!player || !(player->cmd.forwardmove | player->cmd.sidemove) ||
-       (player->mo != mo && min_mbf &&
+       (player->mo != mo && at_least_mbf &&
         (comp[comp_voodooscroller] || !(mo->intflags & MIF_SCROLLING)))))
     {
       // if in a walking frame, stop moving
@@ -344,7 +344,7 @@ void P_XYMovement (mobj_t* mo)
       // Don't affect main player when voodoo dolls stop, except in old demos:
 
       if (player && (unsigned)(player->mo->state - states - S_PLAY_RUN1) < 4 
-	  && (player->mo == mo || prior_mbf))
+	  && (player->mo == mo || at_most_boom))
 	P_SetMobjState(player->mo, S_PLAY);
 
       mo->momx = mo->momy = 0;
@@ -369,7 +369,7 @@ void P_XYMovement (mobj_t* mo)
       // Reducing player momentum is no longer needed to reduce
       // bobbing, so ice works much better now.
 
-      if (prior_mbf)
+      if (at_most_boom)
       {
         // phares 9/10/98: reduce bobbing/momentum when on ice & up against wall
 
@@ -535,7 +535,7 @@ floater:
       // hit the floor
 
       // [FG] game version specific differences
-      int correct_lost_soul_bounce = min_boom || gameversion >= exe_ultimate;
+      int correct_lost_soul_bounce = at_least_boom || gameversion >= exe_ultimate;
 
       if ((!comp[comp_soul] || correct_lost_soul_bounce) && mo->flags & MF_SKULLFLY)
       {
@@ -779,13 +779,13 @@ void P_MobjThinker (mobj_t* mobj)
 
 	if (mobj->z > mobj->dropoffz &&      // Only objects contacting dropoff
 	    !(mobj->flags & MF_NOGRAVITY) && // Only objects which fall
-	    !comp[comp_falloff] && min_mbf) // Not in old demos
+	    !comp[comp_falloff] && at_least_mbf) // Not in old demos
 	  P_ApplyTorque(mobj);               // Apply torque
 	else
 	  mobj->intflags &= ~MIF_FALLING, mobj->gear = 0;  // Reset torque
       }
 
-  if (min_mbf21)
+  if (at_least_mbf21)
   {
     sector_t* sector = mobj->subsector->sector;
 
@@ -844,7 +844,7 @@ mobj_t *P_SpawnMobj(fixed_t x, fixed_t y, fixed_t z, mobjtype_t type)
   mobj->flags2 = info->flags2;
 
   // killough 8/23/98: no friends, bouncers, or touchy things in old demos
-  if (prior_mbf)
+  if (at_most_boom)
     mobj->flags &= ~(MF_BOUNCES | MF_FRIEND | MF_TOUCHY); 
   else
     if (type == MT_PLAYER)         // Except in old demos, players
@@ -964,7 +964,7 @@ void P_RemoveMobj (mobj_t *mobj)
   // if multiple thinkers reference each other indirectly before the
   // end of the current tic.
 
-  if (min_mbf)
+  if (at_least_mbf)
     {
       P_SetTarget(&mobj->target,    NULL);
       P_SetTarget(&mobj->tracer,    NULL);
@@ -1177,8 +1177,8 @@ void P_SpawnMapThing (mapthing_t* mthing)
   // bits that weren't used in Doom (such as HellMaker wads). So we should
   // then simply ignore all upper bits.
 
-  if (prior_boom || 
-      (min_mbf && mthing->options & MTF_RESERVED))
+  if (at_most_vanilla || 
+      (at_least_mbf && mthing->options & MTF_RESERVED))
     mthing->options &= MTF_EASY|MTF_NORMAL|MTF_HARD|MTF_AMBUSH|MTF_NOTSINGLE;
 
   // count deathmatch start positions
@@ -1190,7 +1190,7 @@ void P_SpawnMapThing (mapthing_t* mthing)
       size_t offset = deathmatch_p - deathmatchstarts;
 
       // doom2.exe has at most 10 deathmatch starts
-      if (prior_boom && offset >= 10)
+      if (at_most_vanilla && offset >= 10)
         return;
 
       if (offset >= num_deathmatchstarts)
@@ -1247,7 +1247,7 @@ void P_SpawnMapThing (mapthing_t* mthing)
     return;
 
   // killough 11/98: simplify
-  if ((gameskill == sk_none && prior_boom) ||
+  if ((gameskill == sk_none && at_most_vanilla) ||
       (gameskill == sk_baby || gameskill == sk_easy ?
       !(mthing->options & MTF_EASY) :
       gameskill == sk_hard || gameskill == sk_nightmare ?
@@ -1305,7 +1305,7 @@ spawnit:
 
   if (!(mobj->flags & MF_FRIEND) &&
       mthing->options & MTF_FRIEND && 
-      min_mbf)
+      at_least_mbf)
     {
       mobj->flags |= MF_FRIEND;            // killough 10/98:
       P_UpdateThinker(&mobj->thinker);     // transfer friendliness flag
@@ -1410,7 +1410,7 @@ boolean P_CheckMissileSpawn (mobj_t* th)
   th->z += th->momz>>1;
 
   // killough 8/12/98: for non-missile objects (e.g. grenades)
-  if (!(th->flags & MF_MISSILE) && min_mbf)
+  if (!(th->flags & MF_MISSILE) && at_least_mbf)
     return true;
 
   // killough 3/15/98: no dropoff (really = don't care for missiles)
@@ -1482,7 +1482,7 @@ mobj_t* P_SpawnPlayerMissile(mobj_t* source,mobjtype_t type)
   if (!beta_emulation || autoaim)
     {
       // killough 8/2/98: prefer autoaiming at enemies
-      int mask = prior_mbf ? 0 : MF_FRIEND;
+      int mask = at_most_boom ? 0 : MF_FRIEND;
       if (direct_vertical_aiming)
       {
         slope = source->player->slope;

@@ -455,14 +455,14 @@ static boolean P_Move(mobj_t *actor, int dropoff) // killough 9/12/98
       if (demo_version == DV_BOOM)
         return good && (compatibility || (P_Random(pr_trywalk)&3)); //jff 8/13/98
       else
-      return good && (prior_mbf || comp[comp_doorstuck] ||
+      return good && (at_most_boom || comp[comp_doorstuck] ||
 		      (P_Random(pr_opendoor) >= 230) ^ (good & 1));
     }
   else
     actor->flags &= ~MF_INFLOAT;
 
   // killough 11/98: fall more slowly, under gravity, if felldown==true
-  if (!(actor->flags & MF_FLOAT) && (!felldown || prior_mbf))
+  if (!(actor->flags & MF_FLOAT) && (!felldown || at_most_boom))
     actor->z = actor->floorz;
 
   return true;
@@ -688,7 +688,7 @@ static void P_NewChaseDir(mobj_t *actor)
 
   actor->strafecount = 0;
 
-  if (min_mbf)
+  if (at_least_mbf)
   {
     if (actor->floorz - actor->dropoffz > FRACUNIT*24 &&
 	actor->z <= actor->floorz && !(actor->flags & (MF_DROPOFF|MF_FLOAT)) &&
@@ -854,7 +854,7 @@ static boolean P_LookForPlayers(mobj_t *actor, boolean allaround)
 
   c = 0;
 
-  stopc = min_boom && prior_mbf && monsters_remember ?
+  stopc = at_least_boom && at_most_boom && monsters_remember ?
     MAXPLAYERS : 2;       // killough 9/9/98
 
   for (;; actor->lastlook = (actor->lastlook+1)&(MAXPLAYERS-1))
@@ -870,7 +870,7 @@ static boolean P_LookForPlayers(mobj_t *actor, boolean allaround)
         // There are no more desyncs on Donce's demos on horror.wad
 
         // Use last known enemy if no players sighted -- killough 2/15/98:
-        if (min_boom && prior_mbf && monsters_remember)
+        if (at_least_boom && at_most_boom && monsters_remember)
         {
           if (actor->lastenemy && actor->lastenemy->health > 0)
           {
@@ -898,7 +898,7 @@ static boolean P_LookForPlayers(mobj_t *actor, boolean allaround)
 
       // killough 9/9/98: give monsters a threshold towards getting players
       // (we don't want it to be too easy for a player with dogs :)
-      if (min_mbf && !comp[comp_pursuit])
+      if (at_least_mbf && !comp[comp_pursuit])
 	actor->threshold = 60;
 
       return true;
@@ -917,7 +917,7 @@ static boolean P_LookForMonsters(mobj_t *actor, boolean allaround)
 {
   thinker_t *cap, *th;
 
-  if (prior_boom)
+  if (at_most_vanilla)
     return false;
 
   if (actor->lastenemy && actor->lastenemy->health > 0 && monsters_remember &&
@@ -928,7 +928,7 @@ static boolean P_LookForMonsters(mobj_t *actor, boolean allaround)
       return true;
     }
 
-  if (prior_mbf)  // Old demos do not support monster-seeking bots
+  if (at_most_boom)  // Old demos do not support monster-seeking bots
     return false;
 
   // Search the threaded list corresponding to this object's potential targets
@@ -1214,7 +1214,7 @@ void A_Chase(mobj_t *actor)
 
   if (!actor->threshold)
   {
-    if (prior_mbf)
+    if (at_most_boom)
       {   // killough 9/9/98: for backward demo compatibility
 	if (netgame && !P_CheckSight(actor, actor->target) &&
 	    P_LookForPlayers(actor, true))
@@ -1773,7 +1773,7 @@ static boolean P_HealCorpse(mobj_t* actor, int radius, statenum_t healstate, sfx
                   corpsehit->health = info->spawnhealth;
 		  P_SetTarget(&corpsehit->target, NULL);  // killough 11/98
 
-		  if (min_mbf)
+		  if (at_least_mbf)
 		    {         // kilough 9/9/98
 		      P_SetTarget(&corpsehit->lastenemy, NULL);
 		      corpsehit->flags &= ~MF_JUSTHIT;
@@ -1867,7 +1867,7 @@ void A_VileTarget(mobj_t *actor)
 
   // killough 12/98: fix Vile fog coordinates
   fog = P_SpawnMobj(actor->target->x,
-                    prior_mbf ? actor->target->x : actor->target->y,
+                    at_most_boom ? actor->target->x : actor->target->y,
                     actor->target->z,MT_FIRE);
 
   P_SetTarget(&actor->tracer, fog);   // killough 11/98
@@ -2036,7 +2036,7 @@ void A_BetaSkullAttack(mobj_t *actor)
 {
   int damage;
 
-  if (prior_mbf)
+  if (at_most_boom)
     return;
 
   if (!actor->target || actor->target->type == MT_SKULL)
@@ -2053,7 +2053,7 @@ void A_BetaSkullAttack(mobj_t *actor)
 
 void A_Stop(mobj_t *actor)
 {
-  if (prior_mbf)
+  if (at_most_boom)
     return;
   actor->momx = actor->momy = actor->momz = 0;
 }
@@ -2219,7 +2219,7 @@ void A_Fall(mobj_t *actor)
 // killough 11/98: kill an object
 void A_Die(mobj_t *actor)
 {
-  if (prior_mbf)
+  if (at_most_boom)
     return;
   P_DamageMobj(actor, NULL, NULL, actor->health);
 }
@@ -2239,7 +2239,7 @@ void A_Explode(mobj_t *thingy)
 
 void A_Detonate(mobj_t *mo)
 {
-  if (prior_mbf)
+  if (at_most_boom)
     return;
   P_RadiusAttack(mo, mo->target, mo->info->damage, mo->info->damage);
 }
@@ -2257,7 +2257,7 @@ void A_Mushroom(mobj_t *actor)
   fixed_t misc1 = actor->state->misc1 ? actor->state->misc1 : FRACUNIT*4;
   fixed_t misc2 = actor->state->misc2 ? actor->state->misc2 : FRACUNIT/2;
 
-  if (prior_mbf)
+  if (at_most_boom)
     return;
   A_Explode(actor);               // make normal explosion
 
@@ -2365,7 +2365,7 @@ void A_BossDeath(mobj_t *mo)
   else
     {
       // [FG] game version specific differences
-      if (prior_boom && gameversion < exe_ultimate)
+      if (at_most_vanilla && gameversion < exe_ultimate)
       {
         if (gamemap != 8)
           return;
@@ -2770,7 +2770,7 @@ void A_KeenDie(mobj_t* mo)
 
 void A_Spawn(mobj_t *mo)
 {
-  if (prior_mbf)
+  if (at_most_boom)
     return;
   if (mo->state->misc1)
     {
@@ -2787,21 +2787,21 @@ void A_Spawn(mobj_t *mo)
 
 void A_Turn(mobj_t *mo)
 {
-  if (prior_mbf)
+  if (at_most_boom)
     return;
   mo->angle += (angle_t)(((uint64_t) mo->state->misc1 << 32) / 360);
 }
 
 void A_Face(mobj_t *mo)
 {
-  if (prior_mbf)
+  if (at_most_boom)
     return;
   mo->angle = (angle_t)(((uint64_t) mo->state->misc1 << 32) / 360);
 }
 
 void A_Scratch(mobj_t *mo)
 {
-  if (prior_mbf)
+  if (at_most_boom)
     return;
   mo->target && (A_FaceTarget(mo), P_CheckMeleeRange(mo)) ?
     mo->state->misc2 ? S_StartSound(mo, mo->state->misc2) : (void) 0,
@@ -2810,14 +2810,14 @@ void A_Scratch(mobj_t *mo)
 
 void A_PlaySound(mobj_t *mo)
 {
-  if (prior_mbf)
+  if (at_most_boom)
     return;
   S_StartSoundOrigin(mo, mo->state->misc2 ? NULL : mo, mo->state->misc1);
 }
 
 void A_RandomJump(mobj_t *mo)
 {
-  if (prior_mbf)
+  if (at_most_boom)
     return;
   if (P_Random(pr_randomjump) < mo->state->misc2)
     P_SetMobjState(mo, mo->state->misc1);
@@ -2829,7 +2829,7 @@ void A_RandomJump(mobj_t *mo)
 
 void A_LineEffect(mobj_t *mo)
 {
-  if (prior_mbf)
+  if (at_most_boom)
     return;
   if (!(mo->intflags & MIF_LINEDONE))                // Unless already used up
     {
@@ -2874,7 +2874,7 @@ void A_SpawnObject(mobj_t *actor)
   int fan, dx, dy;
   mobj_t *mo;
 
-  if (prior_mbf21 || !actor->state->args[0])
+  if (at_most_mbf || !actor->state->args[0])
     return;
 
   type  = actor->state->args[0] - 1;
@@ -2941,7 +2941,7 @@ void A_MonsterProjectile(mobj_t *actor)
   mobj_t *mo;
   int an;
 
-  if (prior_mbf21 || !actor->target || !actor->state->args[0])
+  if (at_most_mbf || !actor->target || !actor->state->args[0])
     return;
 
   type        = actor->state->args[0] - 1;
@@ -2990,7 +2990,7 @@ void A_MonsterBulletAttack(mobj_t *actor)
   int hspread, vspread, numbullets, damagebase, damagemod;
   int aimslope, i, damage, angle, slope;
 
-  if (prior_mbf21 || !actor->target)
+  if (at_most_mbf || !actor->target)
     return;
 
   hspread    = actor->state->args[0];
@@ -3027,7 +3027,7 @@ void A_MonsterMeleeAttack(mobj_t *actor)
   int damagebase, damagemod, hitsound, range;
   int damage;
 
-  if (prior_mbf21 || !actor->target)
+  if (at_most_mbf || !actor->target)
     return;
 
   damagebase = actor->state->args[0];
@@ -3058,7 +3058,7 @@ void A_MonsterMeleeAttack(mobj_t *actor)
 //
 void A_RadiusDamage(mobj_t *actor)
 {
-  if (prior_mbf21 || !actor->state)
+  if (at_most_mbf || !actor->state)
     return;
 
   P_RadiusAttack(actor, actor->target, actor->state->args[0], actor->state->args[1]);
@@ -3070,7 +3070,7 @@ void A_RadiusDamage(mobj_t *actor)
 //
 void A_NoiseAlert(mobj_t *actor)
 {
-  if (prior_mbf21 || !actor->target)
+  if (at_most_mbf || !actor->target)
     return;
 
   P_NoiseAlert(actor->target, actor);
@@ -3086,7 +3086,7 @@ void A_HealChase(mobj_t* actor)
 {
   int state, sound;
 
-  if (prior_mbf21 || !actor)
+  if (at_most_mbf || !actor)
     return;
 
   state = actor->state->args[0];
@@ -3106,7 +3106,7 @@ void A_SeekTracer(mobj_t *actor)
 {
   angle_t threshold, maxturnangle;
 
-  if (prior_mbf21 || !actor)
+  if (at_most_mbf || !actor)
     return;
 
   threshold    = FixedToAngle(actor->state->args[0]);
@@ -3126,7 +3126,7 @@ void A_FindTracer(mobj_t *actor)
   angle_t fov;
   int dist;
 
-  if (prior_mbf21 || !actor || actor->tracer)
+  if (at_most_mbf || !actor || actor->tracer)
     return;
 
   fov  = FixedToAngle(actor->state->args[0]);
@@ -3141,7 +3141,7 @@ void A_FindTracer(mobj_t *actor)
 //
 void A_ClearTracer(mobj_t *actor)
 {
-  if (prior_mbf21 || !actor)
+  if (at_most_mbf || !actor)
     return;
 
   P_SetTarget(&actor->tracer, NULL);
@@ -3157,7 +3157,7 @@ void A_JumpIfHealthBelow(mobj_t* actor)
 {
   int state, health;
 
-  if (prior_mbf21 || !actor)
+  if (at_most_mbf || !actor)
     return;
 
   state  = actor->state->args[0];
@@ -3178,7 +3178,7 @@ void A_JumpIfTargetInSight(mobj_t* actor)
   int state;
   angle_t fov;
 
-  if (prior_mbf21 || !actor || !actor->target)
+  if (at_most_mbf || !actor || !actor->target)
     return;
 
   state =             (actor->state->args[0]);
@@ -3202,7 +3202,7 @@ void A_JumpIfTargetCloser(mobj_t* actor)
 {
   int state, distance;
 
-  if (prior_mbf21 || !actor || !actor->target)
+  if (at_most_mbf || !actor || !actor->target)
     return;
 
   state    = actor->state->args[0];
@@ -3224,7 +3224,7 @@ void A_JumpIfTracerInSight(mobj_t* actor)
   angle_t fov;
   int state;
 
-  if (prior_mbf21 || !actor || !actor->tracer)
+  if (at_most_mbf || !actor || !actor->tracer)
     return;
 
   state =             (actor->state->args[0]);
@@ -3248,7 +3248,7 @@ void A_JumpIfTracerCloser(mobj_t* actor)
 {
   int state, distance;
 
-  if (prior_mbf21 || !actor || !actor->tracer)
+  if (at_most_mbf || !actor || !actor->tracer)
     return;
 
   state    = actor->state->args[0];
@@ -3271,7 +3271,7 @@ void A_JumpIfFlagsSet(mobj_t* actor)
   int state;
   unsigned int flags, flags2;
 
-  if (prior_mbf21 || !actor)
+  if (at_most_mbf || !actor)
     return;
 
   state  = actor->state->args[0];
@@ -3294,7 +3294,7 @@ void A_AddFlags(mobj_t* actor)
   unsigned int flags, flags2;
   boolean update_blockmap;
 
-  if (prior_mbf21 || !actor)
+  if (at_most_mbf || !actor)
     return;
 
   flags  = actor->state->args[0];
@@ -3326,7 +3326,7 @@ void A_RemoveFlags(mobj_t* actor)
   unsigned int flags, flags2;
   boolean update_blockmap;
 
-  if (prior_mbf21 || !actor)
+  if (at_most_mbf || !actor)
     return;
 
   flags  = actor->state->args[0];

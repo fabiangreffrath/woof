@@ -85,7 +85,7 @@ void P_Thrust(player_t* player,angle_t angle,fixed_t move)
 
 void P_Bob(player_t *player, angle_t angle, fixed_t move)
 {
-  if (prior_mbf)
+  if (at_most_boom)
     return;
 
   player->momx += FixedMul(move,finecosine[angle >>= ANGLETOFINESHIFT]);
@@ -117,10 +117,10 @@ void P_CalcHeight (player_t* player)
 
   // [FG] MBF player bobbing rewrite causes demo sync problems
   // http://prboom.sourceforge.net/mbf-bugs.html
-  player->bob = (min_mbf && player_bobbing) ?
+  player->bob = (at_least_mbf && player_bobbing) ?
       (FixedMul(player->momx,player->momx)
       + FixedMul(player->momy,player->momy))>>2 :
-      (prior_boom || player_bobbing) ?
+      (at_most_vanilla || player_bobbing) ?
       (FixedMul (player->mo->momx, player->mo->momx)
       + FixedMul (player->mo->momy,player->mo->momy))>>2 : 0;
 
@@ -214,7 +214,7 @@ void P_MovePlayer (player_t* player)
   // ice, because the player still "works just as hard" to move, while the
   // thrust applied to the movement varies with 'movefactor'.
 
-  if ((min_boom && prior_mbf) ||
+  if ((at_least_boom && at_most_boom) ||
       cmd->forwardmove | cmd->sidemove) // killough 10/98
     {
       if (onground || mo->flags & MF_BOUNCES) // killough 8/9/98
@@ -469,7 +469,7 @@ void P_PlayerThink (player_t* player)
       // and SSG weapons switches here, rather than in G_BuildTiccmd(). For
       // other games which rely on user preferences, we must use the latter.
 
-      if (prior_boom)
+      if (at_most_vanilla)
 	{ // compatibility mode -- required for old demos -- killough
 	  newweapon = (cmd->buttons & BT_WEAPONMASK_OLD) >> BT_WEAPONSHIFT;
 	  if (newweapon == wp_fist && player->weaponowned[wp_chainsaw] &&

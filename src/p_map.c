@@ -150,7 +150,7 @@ int P_GetFriction(const mobj_t *mo, int *frictionfactor)
   // friction value (muddy has precedence over icy).
 
   if (!(mo->flags & (MF_NOCLIP|MF_NOGRAVITY)) 
-      && (min_mbf || (mo->player && !compatibility)) &&
+      && (at_least_mbf || (mo->player && !compatibility)) &&
       variable_friction)
     for (m = mo->touching_sectorlist; m; m = m->m_tnext)
       if ((sec = m->m_sector)->special & FRICTION_MASK &&
@@ -158,7 +158,7 @@ int P_GetFriction(const mobj_t *mo, int *frictionfactor)
 	  (mo->z <= sec->floorheight ||
 	   (sec->heightsec != -1 &&
 	    mo->z <= sectors[sec->heightsec].floorheight &&
-	    min_mbf)))
+	    at_least_mbf)))
 	friction = sec->friction, movefactor = sec->movefactor;
   
   if (frictionfactor)
@@ -179,7 +179,7 @@ int P_GetMoveFactor(const mobj_t *mo, int *frictionp)
 
   // Restore original Boom friction code for
   // demo compatibility
-  if (prior_mbf)
+  if (at_most_boom)
   {
     int momentum;
 
@@ -257,7 +257,7 @@ boolean P_TeleportMove(mobj_t *thing, fixed_t x, fixed_t y, boolean boss)
 
   // killough 8/9/98: make telefragging more consistent, preserve compatibility
   telefrag = thing->player || 
-    (comp[comp_telefrag] || prior_mbf ? gamemap==30 : boss);
+    (comp[comp_telefrag] || at_most_boom ? gamemap==30 : boss);
 
   // kill anything occupying the position
 
@@ -411,7 +411,7 @@ static boolean PIT_CheckLine(line_t *ld) // killough 3/26/98: make static
     {
       // explicitly blocking everything
       // or blocking player
-      if (ld->flags & ML_BLOCKING || (min_mbf21 && tmthing->player && ld->flags & ML_BLOCKPLAYERS))
+      if (ld->flags & ML_BLOCKING || (at_least_mbf21 && tmthing->player && ld->flags & ML_BLOCKPLAYERS))
 	return tmunstuck && !untouched(ld);  // killough 8/1/98: allow escape
 
       // killough 8/9/98: monster-blockers don't affect friends
@@ -419,7 +419,7 @@ static boolean PIT_CheckLine(line_t *ld) // killough 3/26/98: make static
 	  &&
 	  (
 	    ld->flags & ML_BLOCKMONSTERS ||
-	    (min_mbf21 && ld->flags & ML_BLOCKLANDMONSTERS && !(tmthing->flags & MF_FLOAT))
+	    (at_least_mbf21 && ld->flags & ML_BLOCKLANDMONSTERS && !(tmthing->flags & MF_FLOAT))
 	  )
 	 )
 	return false; // block monsters only
@@ -462,7 +462,7 @@ static boolean PIT_CheckLine(line_t *ld) // killough 3/26/98: make static
       spechit[numspechit++] = ld;
 
       // [FG] SPECHITS overflow emulation from Chocolate Doom / PrBoom+
-      if (numspechit > MAXSPECIALCROSS_ORIGINAL && prior_boom
+      if (numspechit > MAXSPECIALCROSS_ORIGINAL && at_most_vanilla
           && overflow[emu_spechits].enabled)
 	{
 	  if (numspechit == MAXSPECIALCROSS_ORIGINAL + 1)
@@ -678,7 +678,7 @@ static boolean PIT_CheckThing(mobj_t *thing) // killough 3/26/98: make static
   // killough 4/11/98: Treat no-clipping things as not blocking
 
   return !((thing->flags & MF_SOLID && !(thing->flags & MF_NOCLIP))
-           && (tmthing->flags & MF_SOLID || prior_boom));
+           && (tmthing->flags & MF_SOLID || at_most_vanilla));
 
   // return !(thing->flags & MF_SOLID);   // old code -- killough
 }
@@ -781,7 +781,7 @@ boolean P_CheckPosition(mobj_t *thing, fixed_t x, fixed_t y)
   // Whether object can get out of a sticky situation:
   tmunstuck = thing->player &&          // only players
     thing->player->mo == thing &&       // not voodoo dolls
-    min_mbf;                            // not under old demos
+    at_least_mbf;                            // not under old demos
 
   // The base floor / ceiling is from the subsector
   // that contains the point.
@@ -824,7 +824,7 @@ boolean P_CheckPosition(mobj_t *thing, fixed_t x, fixed_t y)
   // ripper projectiles (and possibly other cases) will expose this bug and cause desyncs.
   // I recommend adding an extra validcount increment in P_CheckPosition before running 
   // the P_BlockLinesIterator.
-  if (min_mbf21)
+  if (at_least_mbf21)
   {
     validcount++;
   }
@@ -877,7 +877,7 @@ boolean P_TryMove(mobj_t *thing, fixed_t x, fixed_t y, int dropoff)
       if (!(thing->flags & (MF_DROPOFF|MF_FLOAT)))
       {
         boolean ledgeblock = comp[comp_ledgeblock] &&
-                            !(min_mbf21 && thing->intflags & MIF_SCROLLING);
+                            !(at_least_mbf21 && thing->intflags & MIF_SCROLLING);
 
 	if (comp[comp_dropoff] || ledgeblock)
 	  {
@@ -890,7 +890,7 @@ boolean P_TryMove(mobj_t *thing, fixed_t x, fixed_t y, int dropoff)
 			   (tmfloorz-tmdropoffz > 128*FRACUNIT || 
 			    !thing->target || thing->target->z >tmdropoffz)))
 	    {
-	      if (!monkeys || prior_mbf ?
+	      if (!monkeys || at_most_boom ?
 		  tmfloorz - tmdropoffz > 24*FRACUNIT :
 		  thing->floorz  - tmfloorz > 24*FRACUNIT ||
 		  thing->dropoffz - tmdropoffz > 24*FRACUNIT)
@@ -1157,7 +1157,7 @@ static void P_HitSlideLine(line_t *ld)
 
   // killough 10/98: only bounce if hit hard (prevents wobbling)
 
-  if (min_mbf)
+  if (at_least_mbf)
   {
   icyfloor = 
      P_AproxDistance(tmxmove, tmymove) > 4*FRACUNIT &&
@@ -1214,7 +1214,7 @@ static void P_HitSlideLine(line_t *ld)
   // The moveangle+=10 breaks v1.9 demo compatibility in
   // some demos, so it needs demo_compatibility switch.
 
-  if (min_boom)
+  if (at_least_boom)
     moveangle += 10;
   // ^ prevents sudden path reversal due to rounding error // phares
 
@@ -1586,7 +1586,7 @@ static boolean PTR_ShootTraverse(intercept_t *in)
 	  // it's a sky hack wall
 	  // fix bullet-eaters -- killough:
 	  if  (li->backsector && li->backsector->ceilingpic == skyflatnum)
-	    if (prior_boom || li->backsector->ceilingheight < z)
+	    if (at_most_vanilla || li->backsector->ceilingheight < z)
 	      return false;
 	}
 
@@ -1752,7 +1752,7 @@ static boolean PTR_UseTraverse(intercept_t *in)
     //WAS can't use for than one special line in a row
     //jff 3/21/98 NOW multiple use allowed with enabling line flag
     
-    min_boom && in->d.line->flags & ML_PASSUSE :
+    at_least_boom && in->d.line->flags & ML_PASSUSE :
 
     (P_LineOpening(in->d.line), openrange <= 0) ?
 
@@ -2137,7 +2137,7 @@ boolean P_CheckSector(sector_t *sector,boolean crunch)
   msecnode_t *n;
 
   // killough 10/98: sometimes use Doom's method
-  if (comp[comp_floors] && (prior_boom || min_mbf))
+  if (comp[comp_floors] && (at_most_vanilla || at_least_mbf))
     return P_ChangeSector(sector,crunch);
 
   nofit = false;
@@ -2407,12 +2407,12 @@ void P_CreateSecNodeList(mobj_t *thing,fixed_t x,fixed_t y)
 
   // [FG] Overlapping uses of global variables in p_map.c
   // http://prboom.sourceforge.net/mbf-bugs.html
-   if (prior_boom || min_mbf21)
+   if (at_most_vanilla || at_least_mbf21)
    {
      tmthing = saved_tmthing;
      tmflags = saved_tmflags;
    }
-   if (prior_boom)
+   if (at_most_vanilla)
    {
      tmx = saved_tmx;
      tmy = saved_tmy;

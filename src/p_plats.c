@@ -127,7 +127,7 @@ void T_PlatRaise(plat_t* plat)
         //killough 1/31/98: relax compatibility to demo_compatibility
 
         // remove the plat if its a pure raise type
-        if (prior_mbf ? min_boom : !comp[comp_floors])
+        if (at_most_boom ? at_least_boom : !comp[comp_floors])
         {
           switch(plat->type)
           {

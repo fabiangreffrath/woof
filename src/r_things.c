@@ -451,7 +451,7 @@ void R_DrawVisSprite(vissprite_t *vis, int x1, int x2)
           ((vis->mobjflags & MF_TRANSLATION) >> (MF_TRANSSHIFT-8) );
       }
     else
-      if (translucency && !(strictmode && prior_boom)
+      if (translucency && !(strictmode && at_most_vanilla)
           && vis->mobjflags & MF_TRANSLUCENT) // phares
         {
           colfunc = R_DrawTLColumn;
@@ -730,7 +730,7 @@ void R_AddSprites(sector_t* sec, int lightlevel)
   // Well, now it will be done.
   sec->validcount = validcount;
 
-  if (prior_mbf)
+  if (at_most_boom)
     lightlevel = sec->lightlevel;
 
   lightnum = (lightlevel >> LIGHTSEGSHIFT)+extralight;

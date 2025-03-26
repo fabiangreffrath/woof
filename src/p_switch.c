@@ -248,7 +248,7 @@ P_UseSpecialLine
     return false;
 
   //jff 02/04/98 add check here for generalized floor/ceil mover
-  if (min_boom)
+  if (at_least_boom)
   {
     // pointer to line function is NULL by default, set non-null if
     // line special is push or switch generalized linedef type
@@ -614,7 +614,7 @@ P_UseSpecialLine
       // added inner switch, relaxed check to demo_compatibility
 
     default:
-      if (min_boom)
+      if (at_least_boom)
         switch (line->special)
         {
           //jff 1/29/98 added linedef types to fill all functions out so that

@@ -94,7 +94,7 @@ int P_Random(pr_class_t pr_class)
 
   rng.seed[pr_class] = boom * 1664525ul + 221297ul + pr_class*2;
 
-  if (prior_boom)
+  if (at_most_vanilla)
     return rndtable[compat];
 
   boom >>= 20;
