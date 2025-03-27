@@ -2091,7 +2091,9 @@ void P_ArchiveWorld (void)
   // killough 3/22/98: fix bug caused by hoisting save_p too early
   // killough 10/98: adjust size for changes below
   size_t size = 
-    (sizeof(short)*5 + sizeof sec->floorheight + sizeof sec->ceilingheight) 
+    (sizeof(short)*5 + sizeof sec->floorheight + sizeof sec->ceilingheight
+     + sizeof(sec->floor_xoffs) + sizeof(sec->floor_yoffs)
+     + sizeof(sec->ceiling_xoffs) + sizeof(sec->ceiling_yoffs)) 
     * numsectors + sizeof(short)*3*numlines + 4;
 
   for (i=0; i<numlines; i++)
