@@ -661,7 +661,7 @@ sector_t *P_FindModelFloorSector(fixed_t floordestheight, int secnum)
 
   int i, linecount = sec->linecount;
 
-  for (i = 0; i < (demo_version < DV_BOOM200 && sec->linecount < linecount ?
+  for (i = 0; i < (demo_compatibility && sec->linecount < linecount ?
                    sec->linecount : linecount); i++)
     if (twoSided(secnum, i) &&
         (sec = getSector(secnum, i,
@@ -697,7 +697,7 @@ sector_t *P_FindModelCeilingSector(fixed_t ceildestheight, int secnum)
   // but allow early exit in old demos
   int i, linecount = sec->linecount;
 
-  for (i = 0; i < (demo_version < DV_BOOM200 && sec->linecount<linecount?
+  for (i = 0; i < (demo_compatibility && sec->linecount<linecount?
                    sec->linecount : linecount); i++)
     if (twoSided(secnum, i) &&
         (sec = getSector(secnum, i,
@@ -918,7 +918,7 @@ boolean P_CanUnlockGenDoor(line_t *line, player_t *player)
 
 int P_SectorActive(special_e t,sector_t *sec)
 {
-  return demo_version < DV_BOOM200 ?  // return whether any thinker is active
+  return demo_compatibility ?  // return whether any thinker is active
     sec->floordata || sec->ceilingdata || sec->lightingdata :
     t == floor_special ? !!sec->floordata :        // return whether
     t == ceiling_special ? !!sec->ceilingdata :    // thinker of same
@@ -1044,7 +1044,7 @@ boolean P_IsDeathExit(sector_t *sector)
   {
     return (sector->special == 11);
   }
-  else if (demo_version >= DV_MBF21 && sector->special & DEATH_MASK)
+  else if (mbf21 && sector->special & DEATH_MASK)
   {
     const int i = (sector->special & DAMAGE_MASK) >> DAMAGE_SHIFT;
 
@@ -1128,7 +1128,7 @@ void P_CrossSpecialLine(line_t *line, int side, mobj_t *thing, boolean bossactio
       }
 
   //jff 02/04/98 add check here for generalized lindef types
-  if (demo_version >= DV_BOOM200) // generalized types not recognized if old demo
+  if (!demo_compatibility) // generalized types not recognized if old demo
     {
       // pointer to line function is NULL by default, set non-null if
       // line special is walkover generalized linedef type
@@ -1203,7 +1203,7 @@ void P_CrossSpecialLine(line_t *line, int side, mobj_t *thing, boolean bossactio
                     linefunc = EV_DoGenStairs;
                   }
               else
-                if (demo_version >= DV_MBF21 && (unsigned)line->special >= GenCrusherBase)
+                if (mbf21 && (unsigned)line->special >= GenCrusherBase)
                   {
                     // haleyjd 06/09/09: This was completely forgotten in BOOM, disabling
                     // all generalized walk-over crusher types!
@@ -1275,128 +1275,128 @@ void P_CrossSpecialLine(line_t *line, int side, mobj_t *thing, boolean bossactio
 
     case 2:
       // Open Door
-      if (EV_DoDoor(line,doorOpen) || demo_version < DV_BOOM200)
+      if (EV_DoDoor(line,doorOpen) || demo_compatibility)
         line->special = 0;
       break;
 
     case 3:
       // Close Door
-      if (EV_DoDoor(line,doorClose) || demo_version < DV_BOOM200)
+      if (EV_DoDoor(line,doorClose) || demo_compatibility)
         line->special = 0;
       break;
 
     case 4:
       // Raise Door
-      if (EV_DoDoor(line,doorNormal) || demo_version < DV_BOOM200)
+      if (EV_DoDoor(line,doorNormal) || demo_compatibility)
         line->special = 0;
       break;
 
     case 5:
       // Raise Floor
-      if (EV_DoFloor(line,raiseFloor) || demo_version < DV_BOOM200)
+      if (EV_DoFloor(line,raiseFloor) || demo_compatibility)
         line->special = 0;
       break;
 
     case 6:
       // Fast Ceiling Crush & Raise
-      if (EV_DoCeiling(line,fastCrushAndRaise) || demo_version < DV_BOOM200)
+      if (EV_DoCeiling(line,fastCrushAndRaise) || demo_compatibility)
         line->special = 0;
       break;
 
     case 8:
       // Build Stairs
-      if (EV_BuildStairs(line,build8) || demo_version < DV_BOOM200)
+      if (EV_BuildStairs(line,build8) || demo_compatibility)
         line->special = 0;
       break;
 
     case 10:
       // PlatDownWaitUp
-      if (EV_DoPlat(line,downWaitUpStay,0) || demo_version < DV_BOOM200)
+      if (EV_DoPlat(line,downWaitUpStay,0) || demo_compatibility)
         line->special = 0;
       break;
 
     case 12:
       // Light Turn On - brightest near
-      if (EV_LightTurnOn(line,0) || demo_version < DV_BOOM200)
+      if (EV_LightTurnOn(line,0) || demo_compatibility)
         line->special = 0;
       break;
 
     case 13:
       // Light Turn On 255
-      if (EV_LightTurnOn(line,255) || demo_version < DV_BOOM200)
+      if (EV_LightTurnOn(line,255) || demo_compatibility)
         line->special = 0;
       break;
 
     case 16:
       // Close Door 30
-      if (EV_DoDoor(line,close30ThenOpen) || demo_version < DV_BOOM200)
+      if (EV_DoDoor(line,close30ThenOpen) || demo_compatibility)
         line->special = 0;
       break;
 
     case 17:
       // Start Light Strobing
-      if (EV_StartLightStrobing(line) || demo_version < DV_BOOM200)
+      if (EV_StartLightStrobing(line) || demo_compatibility)
         line->special = 0;
       break;
 
     case 19:
       // Lower Floor
-      if (EV_DoFloor(line,lowerFloor) || demo_version < DV_BOOM200)
+      if (EV_DoFloor(line,lowerFloor) || demo_compatibility)
         line->special = 0;
       break;
 
     case 22:
       // Raise floor to nearest height and change texture
-      if (EV_DoPlat(line,raiseToNearestAndChange,0) || demo_version < DV_BOOM200)
+      if (EV_DoPlat(line,raiseToNearestAndChange,0) || demo_compatibility)
         line->special = 0;
       break;
 
     case 25:
       // Ceiling Crush and Raise
-      if (EV_DoCeiling(line,crushAndRaise) || demo_version < DV_BOOM200)
+      if (EV_DoCeiling(line,crushAndRaise) || demo_compatibility)
         line->special = 0;
       break;
 
     case 30:
       // Raise floor to shortest texture height
       //  on either side of lines.
-      if (EV_DoFloor(line,raiseToTexture) || demo_version < DV_BOOM200)
+      if (EV_DoFloor(line,raiseToTexture) || demo_compatibility)
         line->special = 0;
       break;
 
     case 35:
       // Lights Very Dark
-      if (EV_LightTurnOn(line,35) || demo_version < DV_BOOM200)
+      if (EV_LightTurnOn(line,35) || demo_compatibility)
         line->special = 0;
       break;
 
     case 36:
       // Lower Floor (TURBO)
-      if (EV_DoFloor(line,turboLower) || demo_version < DV_BOOM200)
+      if (EV_DoFloor(line,turboLower) || demo_compatibility)
         line->special = 0;
       break;
 
     case 37:
       // LowerAndChange
-      if (EV_DoFloor(line,lowerAndChange) || demo_version < DV_BOOM200)
+      if (EV_DoFloor(line,lowerAndChange) || demo_compatibility)
         line->special = 0;
       break;
 
     case 38:
       // Lower Floor To Lowest
-      if (EV_DoFloor(line, lowerFloorToLowest) || demo_version < DV_BOOM200)
+      if (EV_DoFloor(line, lowerFloorToLowest) || demo_compatibility)
         line->special = 0;
       break;
 
     case 39:
       // TELEPORT! //jff 02/09/98 fix using up with wrong side crossing
-      if (EV_Teleport(line, side, thing) || demo_version < DV_BOOM200)
+      if (EV_Teleport(line, side, thing) || demo_compatibility)
         line->special = 0;
       break;
 
     case 40:
       // RaiseCeilingLowerFloor
-      if (demo_version < DV_BOOM200)
+      if (demo_compatibility)
         {
           EV_DoCeiling( line, raiseToHighest );
           EV_DoFloor( line, lowerFloorToLowest ); //jff 02/12/98 doesn't work
@@ -1409,7 +1409,7 @@ void P_CrossSpecialLine(line_t *line, int side, mobj_t *thing, boolean bossactio
 
     case 44:
       // Ceiling Crush
-      if (EV_DoCeiling(line, lowerAndCrush) || demo_version < DV_BOOM200)
+      if (EV_DoCeiling(line, lowerAndCrush) || demo_compatibility)
         line->special = 0;
       break;
 
@@ -1430,79 +1430,79 @@ void P_CrossSpecialLine(line_t *line, int side, mobj_t *thing, boolean bossactio
 
     case 53:
       // Perpetual Platform Raise
-      if (EV_DoPlat(line,perpetualRaise,0) || demo_version < DV_BOOM200)
+      if (EV_DoPlat(line,perpetualRaise,0) || demo_compatibility)
         line->special = 0;
       break;
 
     case 54:
       // Platform Stop
-      if (EV_StopPlat(line) || demo_version < DV_BOOM200)
+      if (EV_StopPlat(line) || demo_compatibility)
         line->special = 0;
       break;
 
     case 56:
       // Raise Floor Crush
-      if (EV_DoFloor(line,raiseFloorCrush) || demo_version < DV_BOOM200)
+      if (EV_DoFloor(line,raiseFloorCrush) || demo_compatibility)
         line->special = 0;
       break;
 
     case 57:
       // Ceiling Crush Stop
-      if (EV_CeilingCrushStop(line) || demo_version < DV_BOOM200)
+      if (EV_CeilingCrushStop(line) || demo_compatibility)
         line->special = 0;
       break;
 
     case 58:
       // Raise Floor 24
-      if (EV_DoFloor(line,raiseFloor24) || demo_version < DV_BOOM200)
+      if (EV_DoFloor(line,raiseFloor24) || demo_compatibility)
         line->special = 0;
       break;
 
     case 59:
       // Raise Floor 24 And Change
-      if (EV_DoFloor(line,raiseFloor24AndChange) || demo_version < DV_BOOM200)
+      if (EV_DoFloor(line,raiseFloor24AndChange) || demo_compatibility)
         line->special = 0;
       break;
 
     case 100:
       // Build Stairs Turbo 16
-      if (EV_BuildStairs(line,turbo16) || demo_version < DV_BOOM200)
+      if (EV_BuildStairs(line,turbo16) || demo_compatibility)
         line->special = 0;
       break;
 
     case 104:
       // Turn lights off in sector(tag)
-      if (EV_TurnTagLightsOff(line) || demo_version < DV_BOOM200)
+      if (EV_TurnTagLightsOff(line) || demo_compatibility)
         line->special = 0;
       break;
 
     case 108:
       // Blazing Door Raise (faster than TURBO!)
-      if (EV_DoDoor(line,blazeRaise) || demo_version < DV_BOOM200)
+      if (EV_DoDoor(line,blazeRaise) || demo_compatibility)
         line->special = 0;
       break;
 
     case 109:
       // Blazing Door Open (faster than TURBO!)
-      if (EV_DoDoor (line,blazeOpen) || demo_version < DV_BOOM200)
+      if (EV_DoDoor (line,blazeOpen) || demo_compatibility)
         line->special = 0;
       break;
 
     case 110:
       // Blazing Door Close (faster than TURBO!)
-      if (EV_DoDoor (line,blazeClose) || demo_version < DV_BOOM200)
+      if (EV_DoDoor (line,blazeClose) || demo_compatibility)
         line->special = 0;
       break;
 
     case 119:
       // Raise floor to nearest surr. floor
-      if (EV_DoFloor(line,raiseFloorToNearest) || demo_version < DV_BOOM200)
+      if (EV_DoFloor(line,raiseFloorToNearest) || demo_compatibility)
         line->special = 0;
       break;
 
     case 121:
       // Blazing PlatDownWaitUpStay
-      if (EV_DoPlat(line,blazeDWUS,0) || demo_version < DV_BOOM200)
+      if (EV_DoPlat(line,blazeDWUS,0) || demo_compatibility)
         line->special = 0;
       break;
 
@@ -1524,19 +1524,19 @@ void P_CrossSpecialLine(line_t *line, int side, mobj_t *thing, boolean bossactio
     case 125:
       // TELEPORT MonsterONLY
       if (!thing->player &&
-          (EV_Teleport(line, side, thing) || demo_version < DV_BOOM200))
+          (EV_Teleport(line, side, thing) || demo_compatibility))
         line->special = 0;
       break;
 
     case 130:
       // Raise Floor Turbo
-      if (EV_DoFloor(line,raiseFloorTurbo) || demo_version < DV_BOOM200)
+      if (EV_DoFloor(line,raiseFloorTurbo) || demo_compatibility)
         line->special = 0;
       break;
 
     case 141:
       // Silent Ceiling Crush & Raise
-      if (EV_DoCeiling(line,silentCrushAndRaise) || demo_version < DV_BOOM200)
+      if (EV_DoCeiling(line,silentCrushAndRaise) || demo_compatibility)
         line->special = 0;
       break;
 
@@ -1760,7 +1760,7 @@ void P_CrossSpecialLine(line_t *line, int side, mobj_t *thing, boolean bossactio
     // killough 2/16/98: Fix problems with W1 types being cleared too early
     default:
     {
-      if (demo_version >= DV_BOOM200)
+      if (!demo_compatibility)
       {
         switch (line->special)
         {
@@ -2073,7 +2073,7 @@ void P_CrossSpecialLine(line_t *line, int side, mobj_t *thing, boolean bossactio
 void P_ShootSpecialLine(mobj_t *thing, line_t *line, int side)
 {
   //jff 02/04/98 add check here for generalized linedef
-  if (demo_version >= DV_BOOM200)
+  if (!demo_compatibility)
     {
       // pointer to line function is NULL by default, set non-null if
       // line special is gun triggered generalized linedef type
@@ -2198,7 +2198,7 @@ void P_ShootSpecialLine(mobj_t *thing, line_t *line, int side)
   {
     case 24:
       // 24 G1 raise floor to highest adjacent
-      if (EV_DoFloor(line,raiseFloor) || demo_version < DV_BOOM200)
+      if (EV_DoFloor(line,raiseFloor) || demo_compatibility)
         P_ChangeSwitchTexture(line,0);
       break;
 
@@ -2210,7 +2210,7 @@ void P_ShootSpecialLine(mobj_t *thing, line_t *line, int side)
 
     case 47:
       // 47 G1 raise floor to nearest and change texture and type
-      if (EV_DoPlat(line,raiseToNearestAndChange,0) || demo_version < DV_BOOM200)
+      if (EV_DoPlat(line,raiseToNearestAndChange,0) || demo_compatibility)
         P_ChangeSwitchTexture(line,0);
       break;
 
@@ -2259,7 +2259,7 @@ void P_ShootSpecialLine(mobj_t *thing, line_t *line, int side)
     // killough 1/31/98: added demo_compatibility check, added inner switch
     default:
     {
-      if (demo_version >= DV_BOOM200)
+      if (!demo_compatibility)
       {
         switch (line->special)
         {
@@ -2422,7 +2422,7 @@ void P_PlayerInSpecialSector (player_t *player)
     }
   else //jff 3/14/98 handle extended sector types for secrets and damage
     {
-      if (demo_version >= DV_MBF21 && sector->special & DEATH_MASK)
+      if (mbf21 && sector->special & DEATH_MASK)
       {
         int i;
 
@@ -2733,7 +2733,7 @@ void P_SpawnSpecials (void)
 
   P_SpawnScrollers(); // killough 3/7/98: Add generalized scrollers
 
-  if (demo_version >= DV_BOOM200)
+  if (!demo_compatibility)
   {
   P_SpawnFriction();  // phares 3/12/98: New friction model using linedefs
 
@@ -3101,7 +3101,7 @@ static void P_SpawnScrollers(void)
     int control = -1, accel = 0;         // no control sector or acceleration
     int special = l->special;
 
-    if (demo_version < DV_BOOM200 && special != 48)
+    if (demo_compatibility && special != 48)
       continue;
 
     // killough 3/7/98: Types 245-249 are same as 250-254 except that the
@@ -3402,7 +3402,7 @@ static void P_SpawnFriction(void)
             // at level startup, and then uses this friction value.
 
             // Boom's friction code for demo compatibility
-            if (demo_version >= DV_BOOM200 && demo_version < DV_MBF)
+            if (!demo_compatibility && demo_version < DV_MBF)
               Add_Friction(friction,movefactor,s);
 
             sectors[s].friction = friction;

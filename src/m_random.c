@@ -94,7 +94,7 @@ int P_Random(pr_class_t pr_class)
 
   rng.seed[pr_class] = boom * 1664525ul + 221297ul + pr_class*2;
 
-  if (demo_version < DV_BOOM200)
+  if (demo_compatibility)
     return rndtable[compat];
 
   boom >>= 20;

@@ -725,7 +725,7 @@ weapontype_t WS_SlotWeapon(void)
     const weapontype_t *slot_weapons = state.current_slot->weapons;
     const int num_weapons = state.current_slot->num_weapons;
 
-    if (demo_version >= DV_BOOM200)
+    if (!demo_compatibility)
     {
         return SlotWeapon(player, current_weapon, slot_weapons, num_weapons);
     }
