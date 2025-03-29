@@ -1084,6 +1084,71 @@ boolean P_WasSecret(sector_t *sec)
   return sec->oldspecial == 9 || sec->oldspecial & SECRET_MASK;
 }
 
+//
+// EV_ChangeMusic() -- ID24 Music Changers
+//
+// Generic solution for changing the currently playing music during play time.
+// There are four type of music changing behavior, all of them available in all
+// six major activation triggers (W1 WR, S1, SR, G1, GR) totalling 24 lines.
+// All specials can be triggered from either side of the line being activated.
+// Of the four categories, there are two conditions:
+//
+//  1. If the given music lump will loop or not
+//  2. If it will reset to the map's default when no music lump is defined
+//
+// Giving the four resulting categories:
+// * Change music and make it loop only if a track is defined.
+// * Change music and make it play only once and stop all music after.
+// * Change music and make it loop, reset to looping default if no track
+//    defined.
+// * Change music and make it play only once, reset to looping default if no
+//    track defined.
+//
+
+void EV_ChangeMusic(line_t *line, int side)
+{
+  boolean once = false;
+  boolean loops = false;
+  boolean resets = false;
+
+  int music = side ? line->backmusic : line->frontmusic;
+
+  switch (line->special)
+  {
+    case 2057: case 2063: case 2087: case 2093:
+    case 2059: case 2065: case 2089: case 2095:
+    case 2061: case 2067: case 2091: case 2097:
+      once = true;
+      break;
+  }
+
+  switch (line->special)
+  {
+    case 2057: case 2058: case 2087: case 2088:
+    case 2059: case 2060: case 2089: case 2090:
+    case 2061: case 2062: case 2091: case 2092:
+      loops = true;
+      break;
+  }
+
+  switch (line->special)
+  {
+    case 2089: case 2090: case 2095: case 2096:
+    case 2091: case 2092: case 2097: case 2098:
+    case 2087: case 2088: case 2093: case 2094:
+      resets = true;
+      break;
+  }
+
+  if (music)
+    S_ChangeMusInfoMusic(music, loops);
+  else if (resets)
+    S_Start(false); // Oh no! A hack!
+
+  if (once)
+    line->special = 0;
+}
+
 //////////////////////////////////////////////////////////////////////////
 //
 // Events
@@ -1706,33 +1771,10 @@ void P_CrossSpecialLine(line_t *line, int side, mobj_t *thing, boolean bossactio
       break;
 
     // ID24 Music Changers
-    // * Change music and make it loop only if a track is defined.
-    // * Change music and make it play only once and stop all music after.
-    // * Change music and make it loop, reset to looping default if no track
-    //    defined.
-    // * Change music and make it play only once, reset to looping default if no
-    //    track defined.
-
     case 2059: case 2065: case 2089: case 2095:
-      line->special = 0;
-      // fallthrough
-
     case 2060: case 2066: case 2090: case 2096:
     {
-      int music = side ? line->backmusic : line->frontmusic;
-      if (music)
-      {
-        boolean loops = (line->special == 2059) || (line->special == 2060) ||
-                        (line->special == 2089) || (line->special == 2090);
-        S_ChangeMusInfoMusic(music, loops);
-      }
-      else if ((line->special == 2089) || (line->special == 2090) ||
-               (line->special == 2095) || (line->special == 2096))
-      {
-        // Oh no! A hack!
-        S_Start(false);
-        break;
-      }
+      EV_ChangeMusic(line, side);
       break;
     }
 
@@ -2215,32 +2257,10 @@ void P_ShootSpecialLine(mobj_t *thing, line_t *line, int side)
       break;
 
     // ID24 Music Changers
-    // * Change music and make it loop only if a track is defined.
-    // * Change music and make it play only once and stop all music after.
-    // * Change music and make it loop, reset to looping default if no track
-    //    defined.
-    // * Change music and make it play only once, reset to looping default if no
-    //    track defined.
     case 2061: case 2067: case 2091: case 2097:
-      line->special = 0;
-      // fallthrough
-
     case 2062: case 2068: case 2092: case 2098:
     {
-      int music = side ? line->backmusic : line->frontmusic;
-      if (music)
-      {
-        boolean loops = (line->special == 2061) || (line->special == 2062) ||
-                        (line->special == 2091) || (line->special == 2092);
-        S_ChangeMusInfoMusic(music, loops);
-      }
-      else if ((line->special == 2091) || (line->special == 2092) ||
-               (line->special == 2097) || (line->special == 2098))
-      {
-        // Oh no! A hack!
-        S_Start(false);
-        break;
-      }
+      EV_ChangeMusic(line, side);
       break;
     }
 
