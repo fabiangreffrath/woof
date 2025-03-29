@@ -427,7 +427,9 @@ P_UseSpecialLine
       EV_VerticalDoor (line, thing);
       return true;
 
+    //
     // Switches (non-retriggerable)
+    //
     case 7:
       // Build Stairs
       if (EV_BuildStairs(line,build8))
@@ -610,11 +612,174 @@ P_UseSpecialLine
         P_ChangeSwitchTexture(line,0);
       return true;
 
-      // killough 1/31/98: factored out compatibility check;
-      // added inner switch, relaxed check to demo_compatibility
+    //
+    // Buttons (retriggerable switches)
+    //
+    case 42:
+      // Close Door
+      if (EV_DoDoor(line,doorClose))
+        P_ChangeSwitchTexture(line,1);
+      return true;
+
+    case 43:
+      // Lower Ceiling to Floor
+      if (EV_DoCeiling(line,lowerToFloor))
+        P_ChangeSwitchTexture(line,1);
+      return true;
+
+    case 45:
+      // Lower Floor to Surrounding floor height
+      if (EV_DoFloor(line,lowerFloor))
+        P_ChangeSwitchTexture(line,1);
+      return true;
+
+    case 60:
+      // Lower Floor to Lowest
+      if (EV_DoFloor(line,lowerFloorToLowest))
+        P_ChangeSwitchTexture(line,1);
+      return true;
+
+    case 61:
+      // Open Door
+      if (EV_DoDoor(line,doorOpen))
+        P_ChangeSwitchTexture(line,1);
+      return true;
+
+    case 62:
+      // PlatDownWaitUpStay
+      if (EV_DoPlat(line,downWaitUpStay,1))
+        P_ChangeSwitchTexture(line,1);
+      return true;
+
+    case 63:
+      // Raise Door
+      if (EV_DoDoor(line, doorNormal))
+        P_ChangeSwitchTexture(line,1);
+      return true;
+
+    case 64:
+      // Raise Floor to ceiling
+      if (EV_DoFloor(line,raiseFloor))
+        P_ChangeSwitchTexture(line,1);
+      return true;
+
+    case 66:
+      // Raise Floor 24 and change texture
+      if (EV_DoPlat(line,raiseAndChange,24))
+        P_ChangeSwitchTexture(line,1);
+      return true;
+
+    case 67:
+      // Raise Floor 32 and change texture
+      if (EV_DoPlat(line,raiseAndChange,32))
+        P_ChangeSwitchTexture(line,1);
+      return true;
+
+    case 65:
+      // Raise Floor Crush
+      if (EV_DoFloor(line,raiseFloorCrush))
+        P_ChangeSwitchTexture(line,1);
+      return true;
+
+    case 68:
+      // Raise Plat to next highest floor and change texture
+      if (EV_DoPlat(line,raiseToNearestAndChange,0))
+        P_ChangeSwitchTexture(line,1);
+      return true;
+
+    case 69:
+      // Raise Floor to next highest floor
+      if (EV_DoFloor(line, raiseFloorToNearest))
+        P_ChangeSwitchTexture(line,1);
+      return true;
+
+    case 70:
+      // Turbo Lower Floor
+      if (EV_DoFloor(line,turboLower))
+        P_ChangeSwitchTexture(line,1);
+      return true;
+
+    case 114:
+      // Blazing Door Raise (faster than TURBO!)
+      if (EV_DoDoor (line,blazeRaise))
+        P_ChangeSwitchTexture(line,1);
+      return true;
+
+    case 115:
+      // Blazing Door Open (faster than TURBO!)
+      if (EV_DoDoor (line,blazeOpen))
+        P_ChangeSwitchTexture(line,1);
+      return true;
+
+    case 116:
+      // Blazing Door Close (faster than TURBO!)
+      if (EV_DoDoor (line,blazeClose))
+        P_ChangeSwitchTexture(line,1);
+      return true;
+
+    case 123:
+      // Blazing PlatDownWaitUpStay
+      if (EV_DoPlat(line,blazeDWUS,0))
+        P_ChangeSwitchTexture(line,1);
+      return true;
+
+    case 132:
+      // Raise Floor Turbo
+      if (EV_DoFloor(line,raiseFloorTurbo))
+        P_ChangeSwitchTexture(line,1);
+      return true;
+
+    case 99:
+      // BlzOpenDoor BLUE
+    case 134:
+      // BlzOpenDoor RED
+    case 136:
+      // BlzOpenDoor YELLOW
+      if (EV_DoLockedDoor (line,blazeOpen,thing))
+        P_ChangeSwitchTexture(line,1);
+      return true;
+
+    case 138:
+      // Light Turn On
+      EV_LightTurnOn(line,255);
+      P_ChangeSwitchTexture(line,1);
+      return true;
+
+    case 139:
+      // Light Turn Off
+      EV_LightTurnOn(line,35);
+      P_ChangeSwitchTexture(line,1);
+      return true;
+
+    // ID24 Music Changers
+
+    case 2059: case 2065: case 2089: case 2095:
+    case 2060: case 2066: case 2090: case 2096:
+    {
+      EV_ChangeMusic(line, side);
+      return true;
+    }
+
+    // Set the target sector's colormap.
+    case 2078:
+      line->special = 0;
+      // fallthrough
+
+    case 2079:
+      for (int s = -1; (s = P_FindSectorFromLineTag(line, s)) >= 0 ; )
+        sectors[s].colormap_index = side ? line->backcolormap
+                                         : line->frontcolormap;
+      return true;
+
+
+
 
     default:
+    {
+      // killough 1/31/98: factored out compatibility check;
+      // added inner switch, relaxed check to demo_compatibility
       if (!demo_compatibility)
+      {
         switch (line->special)
         {
           //jff 1/29/98 added linedef types to fill all functions out so that
@@ -1038,144 +1203,28 @@ P_UseSpecialLine
           // 1/29/98 jff end of added SR linedef types
 
         }
-      break;
+      }
+      if (demo_version >= DV_ID24)
+      {
+        switch (line->special)
+        {
+          // S1 - Exit to the next map and reset inventory.
+          case 2070:
+            reset_inventory = true;
+            P_ChangeSwitchTexture(line, 0);
+            G_ExitLevel();
+            return true;
 
-    // Buttons (retriggerable switches)
-    case 42:
-      // Close Door
-      if (EV_DoDoor(line,doorClose))
-        P_ChangeSwitchTexture(line,1);
-      return true;
-
-    case 43:
-      // Lower Ceiling to Floor
-      if (EV_DoCeiling(line,lowerToFloor))
-        P_ChangeSwitchTexture(line,1);
-      return true;
-
-    case 45:
-      // Lower Floor to Surrounding floor height
-      if (EV_DoFloor(line,lowerFloor))
-        P_ChangeSwitchTexture(line,1);
-      return true;
-
-    case 60:
-      // Lower Floor to Lowest
-      if (EV_DoFloor(line,lowerFloorToLowest))
-        P_ChangeSwitchTexture(line,1);
-      return true;
-
-    case 61:
-      // Open Door
-      if (EV_DoDoor(line,doorOpen))
-        P_ChangeSwitchTexture(line,1);
-      return true;
-
-    case 62:
-      // PlatDownWaitUpStay
-      if (EV_DoPlat(line,downWaitUpStay,1))
-        P_ChangeSwitchTexture(line,1);
-      return true;
-
-    case 63:
-      // Raise Door
-      if (EV_DoDoor(line, doorNormal))
-        P_ChangeSwitchTexture(line,1);
-      return true;
-
-    case 64:
-      // Raise Floor to ceiling
-      if (EV_DoFloor(line,raiseFloor))
-        P_ChangeSwitchTexture(line,1);
-      return true;
-
-    case 66:
-      // Raise Floor 24 and change texture
-      if (EV_DoPlat(line,raiseAndChange,24))
-        P_ChangeSwitchTexture(line,1);
-      return true;
-
-    case 67:
-      // Raise Floor 32 and change texture
-      if (EV_DoPlat(line,raiseAndChange,32))
-        P_ChangeSwitchTexture(line,1);
-      return true;
-
-    case 65:
-      // Raise Floor Crush
-      if (EV_DoFloor(line,raiseFloorCrush))
-        P_ChangeSwitchTexture(line,1);
-      return true;
-
-    case 68:
-      // Raise Plat to next highest floor and change texture
-      if (EV_DoPlat(line,raiseToNearestAndChange,0))
-        P_ChangeSwitchTexture(line,1);
-      return true;
-
-    case 69:
-      // Raise Floor to next highest floor
-      if (EV_DoFloor(line, raiseFloorToNearest))
-        P_ChangeSwitchTexture(line,1);
-      return true;
-
-    case 70:
-      // Turbo Lower Floor
-      if (EV_DoFloor(line,turboLower))
-        P_ChangeSwitchTexture(line,1);
-      return true;
-
-    case 114:
-      // Blazing Door Raise (faster than TURBO!)
-      if (EV_DoDoor (line,blazeRaise))
-        P_ChangeSwitchTexture(line,1);
-      return true;
-
-    case 115:
-      // Blazing Door Open (faster than TURBO!)
-      if (EV_DoDoor (line,blazeOpen))
-        P_ChangeSwitchTexture(line,1);
-      return true;
-
-    case 116:
-      // Blazing Door Close (faster than TURBO!)
-      if (EV_DoDoor (line,blazeClose))
-        P_ChangeSwitchTexture(line,1);
-      return true;
-
-    case 123:
-      // Blazing PlatDownWaitUpStay
-      if (EV_DoPlat(line,blazeDWUS,0))
-        P_ChangeSwitchTexture(line,1);
-      return true;
-
-    case 132:
-      // Raise Floor Turbo
-      if (EV_DoFloor(line,raiseFloorTurbo))
-        P_ChangeSwitchTexture(line,1);
-      return true;
-
-    case 99:
-      // BlzOpenDoor BLUE
-    case 134:
-      // BlzOpenDoor RED
-    case 136:
-      // BlzOpenDoor YELLOW
-      if (EV_DoLockedDoor (line,blazeOpen,thing))
-        P_ChangeSwitchTexture(line,1);
-      return true;
-
-    case 138:
-      // Light Turn On
-      EV_LightTurnOn(line,255);
-      P_ChangeSwitchTexture(line,1);
-      return true;
-
-    case 139:
-      // Light Turn Off
-      EV_LightTurnOn(line,35);
-      P_ChangeSwitchTexture(line,1);
-      return true;
+          // SR - Exit to the secret map and reset inventory.
+          case 2073:
+            reset_inventory = true;
+            P_ChangeSwitchTexture(line, 0);
+            G_SecretExitLevel();
+            return true;
+        }
+      }
+      break; // default
+    }
   }
   return !bossaction;
 }

@@ -2555,10 +2555,17 @@ void D_DoomMain(void)
       //
 
       if ((p = M_CheckParm("-record")) && ++p < myargc)
-	{
-	  autostart = true;
-	  G_RecordDemo(myargv[p]);
-	}
+      {
+        if (demo_version >= DV_ID24)
+        {
+          I_Printf(
+            VB_WARNING,
+            "Demo-compability in Complevel ID24 is not stable. "
+            "Record DEMOs at your own risk!");
+        }
+        autostart = true;
+        G_RecordDemo(myargv[p]);
+      }
     }
   }
 

@@ -102,6 +102,7 @@ typedef enum {
   DV_BOOM    = 202,
   DV_MBF     = 203,
   DV_MBF21   = 221,
+  DV_ID24    = 224, // [EA] (2025-03-20) COMPATIBILITY NOT YET STABLE
   DV_UM      = 255,
 } demo_version_t;
 
@@ -112,7 +113,7 @@ extern demo_version_t demo_version;           // killough 7/19/98: Version of de
 
 #define demo_compatibility (demo_version < DV_BOOM200) /* killough 11/98: macroized */
 
-#define mbf21 (demo_version == DV_MBF21)
+#define mbf21 (demo_version >= DV_MBF21)
 
 // killough 7/19/98: whether monsters should fight against each other
 extern boolean monster_infighting, default_monster_infighting;

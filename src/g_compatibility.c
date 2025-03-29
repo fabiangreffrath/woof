@@ -199,7 +199,7 @@ void G_ApplyLevelCompatibility(int lump)
 
     if (restore_comp)
     {
-        if (demo_version != DV_MBF21)
+        if (!mbf21)
         {
             demo_version = DV_MBF21;
             G_ReloadDefaults(true);
