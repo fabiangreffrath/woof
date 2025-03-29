@@ -265,7 +265,7 @@ static int P_SwitchWeaponMBF21(player_t *player)
 
 int P_SwitchWeapon(player_t *player)
 {
-  int *prefer = weapon_preferences[demo_version < DV_BOOM200]; // killough 3/22/98
+  int *prefer = weapon_preferences[demo_compatibility]; // killough 3/22/98
   int currentweapon = player->readyweapon;
   int newweapon = currentweapon;
   int i = NUMWEAPONS+1;   // killough 5/2/98
@@ -276,11 +276,11 @@ int P_SwitchWeapon(player_t *player)
   // for a discrete compat option for this, as
   // it doesn't impact demo playback (weapon
   // switches are saved in the demo itself)
-  if (demo_version >= DV_MBF21)
+  if (mbf21)
     return P_SwitchWeaponMBF21(player);
 
   // Fix weapon switch logic in vanilla (example: chainsaw with ammo)
-  if (demo_version < DV_BOOM200)
+  if (demo_compatibility)
     currentweapon = newweapon = wp_nochange;
 
   // killough 2/8/98: follow preferences and fix BFG/SSG bugs
@@ -317,7 +317,7 @@ int P_SwitchWeapon(player_t *player)
         break;
       case 7:
         if (player->weaponowned[wp_bfg] && gamemode != shareware &&
-            player->ammo[am_cell] >= (demo_version < DV_BOOM200 ? 41 : 40))
+            player->ammo[am_cell] >= (demo_compatibility ? 41 : 40))
           newweapon = wp_bfg;
         break;
       case 8:
@@ -326,7 +326,7 @@ int P_SwitchWeapon(player_t *player)
         break;
       case 9:
         if (player->weaponowned[wp_supershotgun] && ALLOW_SSG &&
-            player->ammo[am_shell] >= (demo_version < DV_BOOM200 ? 3 : 2))
+            player->ammo[am_shell] >= (demo_compatibility ? 3 : 2))
           newweapon = wp_supershotgun;
         break;
       }
@@ -361,7 +361,7 @@ boolean P_CheckAmmo(player_t *player)
   ammotype_t ammo = weaponinfo[player->readyweapon].ammo;
   int count = 1;  // Regular
 
-  if (demo_version >= DV_MBF21)
+  if (mbf21)
     count = weaponinfo[player->readyweapon].ammopershot;
   else
   if (player->readyweapon == wp_bfg)  // Minimal amount for one shot varies.
@@ -383,7 +383,7 @@ boolean P_CheckAmmo(player_t *player)
   // preferences across demos or networks, so we have to use the
   // G_BuildTiccmd() interface instead of making the switch here.
 
-  if (demo_version < DV_BOOM200)
+  if (demo_compatibility)
     {
       player->pendingweapon = P_SwitchWeapon(player);      // phares
       // Now set appropriate weapon overlay.
@@ -417,17 +417,17 @@ void P_SubtractAmmo(struct player_s *player, int vanilla_amount)
   int amount;
   ammotype_t ammotype = weaponinfo[player->readyweapon].ammo;
 
-  if (demo_version >= DV_MBF21 && ammotype == am_noammo)
+  if (mbf21 && ammotype == am_noammo)
     return; // [XA] hmm... I guess vanilla/boom will go out of bounds then?
 
-  if (demo_version >= DV_MBF21 && (weaponinfo[player->readyweapon].intflags & WIF_ENABLEAPS))
+  if (mbf21 && (weaponinfo[player->readyweapon].intflags & WIF_ENABLEAPS))
     amount = weaponinfo[player->readyweapon].ammopershot;
   else
     amount = vanilla_amount;
 
   player->ammo[ammotype] -= amount;
 
-  if (demo_version >= DV_MBF21 && player->ammo[ammotype] < 0)
+  if (mbf21 && player->ammo[ammotype] < 0)
     player->ammo[ammotype] = 0;
 }
 
@@ -554,7 +554,7 @@ boolean boom_weapon_state_injection;
 
 void A_CheckReload(player_t *player, pspdef_t *psp)
 {
-  if (!P_CheckAmmo(player) && demo_version >= DV_MBF21)
+  if (!P_CheckAmmo(player) && mbf21)
   {
     // cph 2002/08/08 - In old Doom, P_CheckAmmo would start the weapon lowering
     // immediately. This was lost in Boom when the weapon switching logic was
@@ -596,7 +596,7 @@ void A_Lower(player_t *player, pspdef_t *psp)
       return;
     }
 
-  if (player->pendingweapon < NUMWEAPONS || demo_version < DV_MBF21)
+  if (player->pendingweapon < NUMWEAPONS || !mbf21)
   {
     player->lastweapon = player->readyweapon;
     player->readyweapon = player->pendingweapon;
@@ -693,7 +693,7 @@ void A_Punch(player_t *player, pspdef_t *psp)
   t = P_Random(pr_punchangle);
   angle += (t - P_Random(pr_punchangle))<<18;
 
-  range = (demo_version >= DV_MBF21 ? player->mo->info->meleerange : MELEERANGE);
+  range = (mbf21 ? player->mo->info->meleerange : MELEERANGE);
 
   // killough 8/2/98: make autoaiming prefer enemies
   if (demo_version < DV_MBF ||
@@ -732,7 +732,7 @@ void A_Saw(player_t *player, pspdef_t *psp)
   angle += (t - P_Random(pr_saw))<<18;
 
   // Use meleerange + 1 so that the puff doesn't skip the flash
-  range = (demo_version >= DV_MBF21 ? player->mo->info->meleerange : MELEERANGE) + 1;
+  range = (mbf21 ? player->mo->info->meleerange : MELEERANGE) + 1;
 
   // killough 8/2/98: make autoaiming prefer enemies
   if (demo_version < DV_MBF ||
@@ -1209,7 +1209,7 @@ void A_WeaponProjectile(player_t *player, pspdef_t *psp)
   mobj_t *mo;
   int an;
 
-  if (demo_version < DV_MBF21 || !psp->state || !psp->state->args[0])
+  if (!mbf21 || !psp->state || !psp->state->args[0])
     return;
 
   type        = psp->state->args[0] - 1;
@@ -1258,7 +1258,7 @@ void A_WeaponBulletAttack(player_t *player, pspdef_t *psp)
   int hspread, vspread, numbullets, damagebase, damagemod;
   int i, damage, angle, slope;
 
-  if (demo_version < DV_MBF21 || !psp->state)
+  if (!mbf21 || !psp->state)
     return;
 
   hspread    = psp->state->args[0];
@@ -1296,7 +1296,7 @@ void A_WeaponMeleeAttack(player_t *player, pspdef_t *psp)
   angle_t angle;
   int t, slope, damage;
 
-  if (demo_version < DV_MBF21 || !psp->state)
+  if (!mbf21 || !psp->state)
     return;
 
   damagebase = psp->state->args[0];
@@ -1349,7 +1349,7 @@ void A_WeaponMeleeAttack(player_t *player, pspdef_t *psp)
 //
 void A_WeaponSound(player_t *player, pspdef_t *psp)
 {
-  if (demo_version < DV_MBF21 || !psp->state)
+  if (!mbf21 || !psp->state)
     return;
 
   S_StartSoundOrigin(player->mo, (psp->state->args[1] ? NULL : player->mo),
@@ -1362,7 +1362,7 @@ void A_WeaponSound(player_t *player, pspdef_t *psp)
 //
 void A_WeaponAlert(player_t *player, pspdef_t *psp)
 {
-  if (demo_version < DV_MBF21)
+  if (!mbf21)
     return;
 
   P_NoiseAlert(player->mo, player->mo);
@@ -1377,7 +1377,7 @@ void A_WeaponAlert(player_t *player, pspdef_t *psp)
 //
 void A_WeaponJump(player_t *player, pspdef_t *psp)
 {
-  if (demo_version < DV_MBF21 || !psp->state)
+  if (!mbf21 || !psp->state)
     return;
 
   if (P_Random(pr_mbf21) < psp->state->args[1])
@@ -1394,7 +1394,7 @@ void A_ConsumeAmmo(player_t *player, pspdef_t *psp)
   int amount;
   ammotype_t type;
 
-  if (demo_version < DV_MBF21)
+  if (!mbf21)
     return;
 
   // don't do dumb things, kids
@@ -1427,7 +1427,7 @@ void A_CheckAmmo(player_t *player, pspdef_t *psp)
   int amount;
   ammotype_t type;
 
-  if (demo_version < DV_MBF21)
+  if (!mbf21)
     return;
 
   type = weaponinfo[player->readyweapon].ammo;
@@ -1451,7 +1451,7 @@ void A_CheckAmmo(player_t *player, pspdef_t *psp)
 //
 void A_RefireTo(player_t *player, pspdef_t *psp)
 {
-  if (demo_version < DV_MBF21 || !psp->state)
+  if (!mbf21 || !psp->state)
     return;
 
   if ((psp->state->args[1] || P_CheckAmmo(player))
@@ -1468,7 +1468,7 @@ void A_RefireTo(player_t *player, pspdef_t *psp)
 //
 void A_GunFlashTo(player_t *player, pspdef_t *psp)
 {
-  if (demo_version < DV_MBF21 || !psp->state)
+  if (!mbf21 || !psp->state)
     return;
 
   if(!psp->state->args[1])

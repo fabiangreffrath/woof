@@ -451,7 +451,7 @@ void R_DrawVisSprite(vissprite_t *vis, int x1, int x2)
           ((vis->mobjflags & MF_TRANSLATION) >> (MF_TRANSSHIFT-8) );
       }
     else
-      if (translucency && !(strictmode && demo_version < DV_BOOM200)
+      if (translucency && !(strictmode && demo_compatibility)
           && vis->mobjflags & MF_TRANSLUCENT) // phares
         {
           colfunc = R_DrawTLColumn;
@@ -731,7 +731,8 @@ void R_AddSprites(sector_t* sec, int lightlevel)
   sec->validcount = validcount;
 
   // [EA] temporary solution for MBF's weird sector lighting handling,
-  // it's a new wave
+  // it's an early new complevel, and folks weren't fans of this change,
+  // as it was enabled in MBF21 :V
   if (demo_version < DV_MBF || demo_version >= DV_ID24)
     lightlevel = sec->lightlevel;
 

@@ -140,7 +140,7 @@ boolean P_GiveAmmo(player_t *player, ammotype_t ammo, int num)
   if (player->ammo[ammo] > player->maxammo[ammo])
     player->ammo[ammo] = player->maxammo[ammo];
 
-  if (demo_version >= DV_MBF21)
+  if (mbf21)
     return P_GiveAmmoAutoSwitch(player, ammo, oldammo);
 
   // If non zero ammo, don't change up weapons, player was lower on purpose.

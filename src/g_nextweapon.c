@@ -75,7 +75,7 @@ boolean G_WeaponSelectable(weapontype_t weapon)
     // Can't select the fist if we have the chainsaw, unless
     // we also have the berserk pack.
 
-    if ((demo_version < DV_BOOM200 || (demo_version >= DV_BOOM200 && doom_weapon_cycle))
+    if ((demo_compatibility || (!demo_compatibility && doom_weapon_cycle))
         && weapon == wp_fist
         && players[consoleplayer].weaponowned[wp_chainsaw]
         && !players[consoleplayer].powers[pw_strength])
@@ -88,7 +88,7 @@ boolean G_WeaponSelectable(weapontype_t weapon)
 
 weapontype_t G_AdjustSelection(weapontype_t weapon)
 {
-    if (demo_version >= DV_BOOM200 && !doom_weapon_cycle)
+    if (!demo_compatibility && !doom_weapon_cycle)
     {
         return weapon;
     }
