@@ -120,7 +120,7 @@ void P_CalcHeight (player_t* player)
   player->bob = (demo_version >= DV_MBF && player_bobbing) ?
       (FixedMul(player->momx,player->momx)
       + FixedMul(player->momy,player->momy))>>2 :
-      (demo_compatibility || player_bobbing) ?
+      (demo_version < DV_BOOM200 || player_bobbing) ?
       (FixedMul (player->mo->momx, player->mo->momx)
       + FixedMul (player->mo->momy,player->mo->momy))>>2 : 0;
 
@@ -214,7 +214,7 @@ void P_MovePlayer (player_t* player)
   // ice, because the player still "works just as hard" to move, while the
   // thrust applied to the movement varies with 'movefactor'.
 
-  if ((!demo_compatibility && demo_version < DV_MBF) ||
+  if ((demo_version >= DV_BOOM200 && demo_version < DV_MBF) ||
       cmd->forwardmove | cmd->sidemove) // killough 10/98
     {
       if (onground || mo->flags & MF_BOUNCES) // killough 8/9/98
@@ -469,7 +469,7 @@ void P_PlayerThink (player_t* player)
       // and SSG weapons switches here, rather than in G_BuildTiccmd(). For
       // other games which rely on user preferences, we must use the latter.
 
-      if (demo_compatibility)
+      if (demo_version < DV_BOOM200)
 	{ // compatibility mode -- required for old demos -- killough
 	  newweapon = (cmd->buttons & BT_WEAPONMASK_OLD) >> BT_WEAPONSHIFT;
 	  if (newweapon == wp_fist && player->weaponowned[wp_chainsaw] &&

@@ -159,7 +159,7 @@ static boolean MapInfo_Ticker()
             int textcount = 0;
             if (finaletext)
             {
-                float speed = demo_compatibility ? TEXTSPEED : Get_TextSpeed();
+                float speed = demo_version < DV_BOOM200 ? TEXTSPEED : Get_TextSpeed();
                 textcount = strlen(finaletext) * speed
                             + (midstage ? NEWTEXTWAIT : TEXTWAIT);
             }
@@ -397,7 +397,7 @@ void F_Ticker(void)
   }
 
   int i;
-  if (!demo_compatibility)
+  if (demo_version >= DV_BOOM200)
     WI_checkForAccelerate();  // killough 3/28/98: check for acceleration
   else
     if (gamemode == commercial && finalecount > 50) // check for skipping
@@ -413,7 +413,7 @@ void F_Ticker(void)
 
   if (finalestage == FINALE_STAGE_TEXT)
     {
-      float speed = demo_compatibility ? TEXTSPEED : Get_TextSpeed();
+      float speed = demo_version < DV_BOOM200 ? TEXTSPEED : Get_TextSpeed();
       if (finalecount > strlen(finaletext)*speed +  // phares
           (midstage ? NEWTEXTWAIT : TEXTWAIT) ||  // killough 2/28/98:
           (midstage && acceleratestage))       // changed to allow acceleration
@@ -427,7 +427,7 @@ void F_Ticker(void)
               S_StartMusic(mus_bunny);
           }
         else   // you must press a button to continue in Doom 2
-          if (!demo_compatibility && midstage)
+          if (demo_version >= DV_BOOM200 && midstage)
             {
             next_level:
               if (gamemap == 30)
