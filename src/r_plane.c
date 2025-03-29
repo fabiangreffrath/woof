@@ -94,6 +94,11 @@ static fixed_t planeheight;
 
 // killough 2/8/98: make variables static
 
+static fixed_t *cachedheight = NULL;
+static fixed_t *cacheddistance = NULL;
+static fixed_t *cachedxstep = NULL;
+static fixed_t *cachedystep = NULL;
+static fixed_t *cachedrotation = NULL;
 static fixed_t xoffs,yoffs;    // killough 2/28/98: flat offsets
 static angle_t rotation;
 
@@ -120,6 +125,12 @@ void R_InitPlanesRes(void)
   floorclip = Z_Calloc(1, video.width * sizeof(*floorclip), PU_RENDERER, NULL);
   ceilingclip = Z_Calloc(1, video.width * sizeof(*ceilingclip), PU_RENDERER, NULL);
   spanstart = Z_Calloc(1, video.height * sizeof(*spanstart), PU_RENDERER, NULL);
+
+  cachedheight = Z_Calloc(1, video.height * sizeof(*cachedheight), PU_RENDERER, NULL);
+  cacheddistance = Z_Calloc(1, video.height * sizeof(*cacheddistance), PU_RENDERER, NULL);
+  cachedxstep = Z_Calloc(1, video.height * sizeof(*cachedxstep), PU_RENDERER, NULL);
+  cachedystep = Z_Calloc(1, video.height * sizeof(*cachedystep), PU_RENDERER, NULL);
+  cachedrotation = Z_Calloc(1, video.height * sizeof(*cachedrotation), PU_RENDERER, NULL);
 
   yslope = Z_Calloc(1, video.height * sizeof(*yslope), PU_RENDERER, NULL);
   distscale = Z_Calloc(1, video.width * sizeof(*distscale), PU_RENDERER, NULL);
@@ -181,10 +192,20 @@ static void R_MapPlane(int y, int x1, int x2)
   else
     dy = (abs(centery - y) << FRACBITS) + FRACUNIT / 2;
 
-  distance = FixedMul(planeheight, yslope[y]);
-  // [FG] avoid right-shifting in FixedMul() followed by left-shifting in FixedDiv()
-  ds_xstep = (fixed_t)((int64_t)angle_sine   * planeheight / dy);
-  ds_ystep = (fixed_t)((int64_t)angle_cosine * planeheight / dy);
+
+  if (rotation != cachedrotation[y] || planeheight != cachedheight[y])
+  {
+    distance = cacheddistance[y] = FixedMul(planeheight, yslope[y]);
+    // [FG] avoid right-shifting in FixedMul() followed by left-shifting in FixedDiv()
+    ds_xstep = cachedxstep[y] = (fixed_t)((int64_t)angle_sine   * planeheight / dy);
+    ds_ystep = cachedystep[y] = (fixed_t)((int64_t)angle_cosine * planeheight / dy);
+  }
+  else
+  {
+    distance = cacheddistance[y];
+    ds_xstep = cachedxstep[y];
+    ds_ystep = cachedystep[y];
+  }
 
 
   dx = x1 - centerx;
