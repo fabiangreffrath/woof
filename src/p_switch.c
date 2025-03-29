@@ -752,32 +752,10 @@ P_UseSpecialLine
       return true;
 
     // ID24 Music Changers
-    // * Change music and make it loop only if a track is defined.
-    // * Change music and make it play only once and stop all music after.
-    // * Change music and make it loop, reset to looping default if no track
-    //    defined.
-    // * Change music and make it play only once, reset to looping default if no
-    //    track defined.
     case 2057: case 2063: case 2087: case 2093:
-      line->special = 0;
-      // fallthrough
-
     case 2058: case 2064: case 2088: case 2094:
     {
-      int music = side ? line->backmusic : line->frontmusic;
-      if (music)
-      {
-        boolean loops = (line->special == 2057) || (line->special == 2058) ||
-                        (line->special == 2087) || (line->special == 2088);
-        S_ChangeMusInfoMusic(music, loops);
-      }
-      else if ((line->special == 2087) || (line->special == 2088) ||
-               (line->special == 2093) || (line->special == 2094))
-      {
-        // Oh no! A hack!
-        S_Start(false);
-        return true;
-      }
+      EV_ChangeMusic(line, side);
       return true;
     }
 
@@ -785,6 +763,7 @@ P_UseSpecialLine
     case 2078:
       line->special = 0;
       // fallthrough
+
     case 2079:
       for (int s = -1; (s = P_FindSectorFromLineTag(line, s)) >= 0 ; )
         sectors[s].colormap_index = side ? line->backcolormap
