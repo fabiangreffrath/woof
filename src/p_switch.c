@@ -752,8 +752,9 @@ P_UseSpecialLine
       return true;
 
     // ID24 Music Changers
-    case 2057: case 2063: case 2087: case 2093:
-    case 2058: case 2064: case 2088: case 2094:
+
+    case 2059: case 2065: case 2089: case 2095:
+    case 2060: case 2066: case 2090: case 2096:
     {
       EV_ChangeMusic(line, side);
       return true;
