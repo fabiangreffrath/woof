@@ -2622,6 +2622,101 @@ void P_UpdateSpecials (void)
 //////////////////////////////////////////////////////////////////////
 
 //
+// EV_RotateOffsetFlat
+//
+// As of the ID24, this action only contains the static specials that are
+// triggered at spawn time:
+// * Offset target floor texture by line direction
+// * Offset target ceiling texture by line direction
+// * Offset target floor and ceiling texture by line direction
+// * Rotate target floor texture by line angle
+// * Rotate target ceiling texture by line angle
+// * Rotate target floor and ceiling texture by line angle
+// * Offset then rotate target floor texture by line direction and angle
+// * Offset then rotate target ceiling texture by line direction and angle
+// * Offset then rotate target floor and ceiling texture by line direction and angle
+//
+
+void EV_RotateOffsetFlat(line_t *line, sector_t *sector)
+{
+  boolean offset_floor   = false;
+  boolean offset_ceiling = false;
+  boolean rotate_floor   = false;
+  boolean rotate_ceiling = false;
+
+  int s = -1;
+
+  switch (line->special)
+  {
+    case 2048:
+      offset_ceiling = true;
+      break;
+    case 2049:
+      offset_floor   = true;
+      break;
+    case 2050:
+      offset_ceiling = true;
+      offset_floor   = true;
+      break;
+    case 2051:
+      rotate_floor   = true;
+      break;
+    case 2052:
+      rotate_ceiling = true;
+      break;
+    case 2053:
+      rotate_floor   = true;
+      rotate_ceiling = true;
+      break;
+    case 2054:
+      offset_floor   = true;
+      rotate_floor   = true;
+      break;
+    case 2055:
+      offset_ceiling = true;
+      rotate_ceiling = true;
+      break;
+    case 2056:
+      offset_floor   = true;
+      offset_ceiling = true;
+      rotate_floor   = true;
+      rotate_ceiling = true;
+      break;
+  }
+
+  // [EA]
+  // These offset linedefs seem to not need interpolation, as they are only
+  // run once at spawn time -- in fact when the player spawns in-world, the
+  // "zeroth" frame in the screen melt will show the affected flats halfway
+  // through their movement (tested at 60FPS/Hz), minor odd visual artifact.
+
+  for (s = -1; (s = P_FindSectorFromLineTag(line, s)) >= 0;)
+  {
+    if (offset_floor)
+    {
+      sectors[s].base_floor_xoffs -= line->dx;
+      sectors[s].base_floor_yoffs += line->dy;
+    }
+
+    if (offset_ceiling)
+    {
+      sectors[s].base_ceiling_xoffs -= line->dx;
+      sectors[s].base_ceiling_yoffs += line->dy;
+    }
+
+    if (rotate_floor)
+    {
+      sectors[s].base_floor_rotation = line->angle;
+    }
+
+    if (rotate_ceiling)
+    {
+      sectors[s].base_ceiling_rotation = line->angle;
+    }
+  }
+}
+
+//
 // P_SpawnSpecials
 // After the map has been loaded,
 //  scan for specials that spawn thinkers
@@ -2815,109 +2910,11 @@ void P_SpawnSpecials (void)
         break;
       }
 
-      // [EA]
-      // These offset linedefs seem to not need interpolation, as they are only
-      // run once at spawn time -- in fact when the player spawns in-world, the
-      // "zeroth" frame in the screen melt will show the affected flats halfway
-      // through their movement (tested at 60FPS/Hz), minor odd visual artifact.
-
-      // Always - Offset target floor texture by line direction.
-      case 2048:
+      case 2048: case 2049: case 2050:
+      case 2051: case 2052: case 2053:
+      case 2054: case 2055: case 2056:
       {
-        for (s = -1; (s = P_FindSectorFromLineTag(&lines[i], s)) >= 0;)
-        {
-          sectors[s].base_floor_xoffs -= lines[i].dx;
-          sectors[s].base_floor_yoffs += lines[i].dy;
-        }
-        break;
-      }
-      // Always - Offset target ceiling texture by line direction.
-      case 2049:
-      {
-        for (s = -1; (s = P_FindSectorFromLineTag(&lines[i], s)) >= 0;)
-        {
-          sectors[s].base_ceiling_xoffs -= lines[i].dx;
-          sectors[s].base_ceiling_yoffs += lines[i].dy;
-        }
-        break;
-      }
-      // Always - Offset target floor and ceiling texture by line direction.
-      case 2050:
-      {
-        for (s = -1; (s = P_FindSectorFromLineTag(&lines[i], s)) >= 0;)
-        {
-          sectors[s].base_floor_xoffs -= lines[i].dx;
-          sectors[s].base_floor_yoffs += lines[i].dy;
-          sectors[s].base_ceiling_xoffs -= lines[i].dx;
-          sectors[s].base_ceiling_yoffs += lines[i].dy;
-        }
-        break;
-      }
-      // Always - Rotate target floor texture by line angle.
-      case 2051:
-      {
-        for (s = -1; (s = P_FindSectorFromLineTag(&lines[i], s)) >= 0;)
-        {
-          sectors[s].base_floor_rotation = lines[i].angle;
-        }
-        break;
-      }
-      // Always - Rotate target ceiling texture by line angle.
-      case 2052:
-      {
-        for (s = -1; (s = P_FindSectorFromLineTag(&lines[i], s)) >= 0;)
-        {
-          sectors[s].base_ceiling_rotation = lines[i].angle;
-        }
-        break;
-      }
-      // Always - Rotate target floor and ceiling texture by line angle.
-      case 2053:
-      {
-        for (s = -1; (s = P_FindSectorFromLineTag(&lines[i], s)) >= 0;)
-        {
-          sectors[s].base_floor_rotation = lines[i].angle;
-          sectors[s].base_ceiling_rotation = lines[i].angle;
-        }
-        break;
-      }
-      // Always - Offset then rotate target floor texture
-      // by line direction and angle.
-      case 2054:
-      {
-        for (s = -1; (s = P_FindSectorFromLineTag(&lines[i], s)) >= 0;)
-        {
-          sectors[s].base_floor_xoffs -= lines[i].dx;
-          sectors[s].base_floor_yoffs += lines[i].dy;
-          sectors[s].base_floor_rotation = lines[i].angle;
-        }
-        break;
-      }
-      // Always - Offset then rotate target ceiling texture
-      // by line direction and angle.
-      case 2055:
-      {
-        for (s = -1; (s = P_FindSectorFromLineTag(&lines[i], s)) >= 0;)
-        {
-          sectors[s].base_ceiling_xoffs -= lines[i].dx;
-          sectors[s].base_ceiling_yoffs += lines[i].dy;
-          sectors[s].base_ceiling_rotation = lines[i].angle;
-        }
-        break;
-      }
-      // Always - Offset then rotate target floor and ceiling texture
-      // by line direction and angle.
-      case 2056:
-      {
-        for (s = -1; (s = P_FindSectorFromLineTag(&lines[i], s)) >= 0;)
-        {
-          sectors[s].base_floor_xoffs -= lines[i].dx;
-          sectors[s].base_floor_yoffs += lines[i].dy;
-          sectors[s].base_ceiling_xoffs -= lines[i].dx;
-          sectors[s].base_ceiling_yoffs += lines[i].dy;
-          sectors[s].base_floor_rotation = lines[i].angle;
-          sectors[s].base_ceiling_rotation = lines[i].angle;
-        }
+        EV_RotateOffsetFlat(&lines[i], sectors);
         break;
       }
     }
