@@ -1115,27 +1115,27 @@ void EV_ChangeMusic(line_t *line, int side)
 
   switch (line->special)
   {
-    case 2057: case 2063: case 2087: case 2093:
-    case 2059: case 2065: case 2089: case 2095:
-    case 2061: case 2067: case 2091: case 2097:
+    case 2057: case 2063: case 2059: case 2065:
+    case 2061: case 2067: case 2087: case 2093:
+    case 2089: case 2095: case 2091: case 2097:
       once = true;
       break;
   }
 
   switch (line->special)
   {
-    case 2057: case 2058: case 2087: case 2088:
-    case 2059: case 2060: case 2089: case 2090:
-    case 2061: case 2062: case 2091: case 2092:
+    case 2057: case 2058: case 2059: case 2060:
+    case 2061: case 2062: case 2087: case 2088:
+    case 2089: case 2090: case 2091: case 2092:
       loops = true;
       break;
   }
 
   switch (line->special)
   {
-    case 2089: case 2090: case 2095: case 2096:
-    case 2091: case 2092: case 2097: case 2098:
-    case 2087: case 2088: case 2093: case 2094:
+    case 2089: case 2090: case 2087: case 2088:
+    case 2091: case 2092: case 2093: case 2094:
+    case 2095: case 2096: case 2097: case 2098:
       resets = true;
       break;
   }
@@ -1771,8 +1771,8 @@ void P_CrossSpecialLine(line_t *line, int side, mobj_t *thing, boolean bossactio
       break;
 
     // ID24 Music Changers
-    case 2059: case 2065: case 2089: case 2095:
-    case 2060: case 2066: case 2090: case 2096:
+    case 2057: case 2063: case 2087: case 2093:
+    case 2058: case 2064: case 2088: case 2094:
     {
       EV_ChangeMusic(line, side);
       break;
