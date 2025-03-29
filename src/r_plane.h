@@ -21,6 +21,7 @@
 #define __R_PLANE__
 
 #include "m_fixed.h"
+#include "tables.h"
 
 struct visplane_s;
 

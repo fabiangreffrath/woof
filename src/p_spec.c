@@ -3196,7 +3196,7 @@ static void P_SpawnScrollers(void)
           {
             Add_Scroller(sc_side, dx, dy, control, lines[s].sidenum[0], accel);
 
-            if (special >= 2084 && special <= 2086 && lines[s].sidenum[1] != -1)
+            if (special >= 2084 && special <= 2086 && lines[s].sidenum[1] != NO_INDEX)
               Add_Scroller(sc_side, -dx, dy, control, lines[s].sidenum[1], accel);
           }
         }
@@ -3205,7 +3205,7 @@ static void P_SpawnScrollers(void)
       // Always - Scroll both front and back sidedef's textures
       // according to the line's left direction.
       case 2082:
-        if (lines[i].sidenum[1] != -1)
+        if (lines[i].sidenum[1] != NO_INDEX)
           Add_Scroller(sc_side, -FRACUNIT, 0, -1, lines[i].sidenum[1], accel);
         // fallthrough
 
@@ -3216,7 +3216,7 @@ static void P_SpawnScrollers(void)
       // Always - Scroll both front and back sidedef's textures
       // according to the line's right direction.
       case 2083:
-        if (lines[i].sidenum[1] != -1)
+        if (lines[i].sidenum[1] != NO_INDEX)
           Add_Scroller(sc_side, FRACUNIT, 0, -1, lines[i].sidenum[1], accel);
         // fallthrough
 
