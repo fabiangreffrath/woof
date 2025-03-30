@@ -54,7 +54,7 @@ void P_UpdateDirectVerticalAiming(void)
 {
   direct_vertical_aiming = (CRITICAL(default_direct_vertical_aiming) &&
                             (mouselook || padlook));
-  max_pitch_angle = direct_vertical_aiming ? ANG45 : 32 * ANG1;
+  max_pitch_angle = direct_vertical_aiming ? 5 * ANG11 : 32 * ANG1;
 }
 
 //
