@@ -496,7 +496,7 @@ static void ParseStandardProperty(scanner_t *s, mapentry_t *mape)
         {
             mape->flags &= ~MapInfo_BossActionClear;
             int type, special, tag;
-            for (type = 0; arrlen(actor_names); ++type)
+            for (type = 0; type < arrlen(actor_names); ++type)
             {
                 if (!strcasecmp(SC_GetString(s), actor_names[type]))
                 {
