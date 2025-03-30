@@ -70,7 +70,7 @@ static const char *finaletext;
 static const char *finaleflat;
 
 static void F_StartCast(void);
-static void F_CastTicker(void);
+static boolean F_CastTicker(void);
 static boolean F_CastResponder(event_t *ev);
 static void F_CastDrawer(void);
 static void F_TextWrite(void);
@@ -88,7 +88,7 @@ static boolean mapinfo_finale;
 //
 
 // Current finale being played
-end_finale_t finale = {0};
+end_finale_t *endfinale = {0};
 
 end_finale_t VanillaBunnyScroller(void)
 {
@@ -334,7 +334,7 @@ static boolean MapInfo_Ticker()
 
     if (finalestage == FINALE_STAGE_CAST)
     {
-      F_CastTicker();
+      next_level = F_CastTicker();
       return true;
     }
 
@@ -737,9 +737,12 @@ static void EndFinaleCast_Frame(cast_frame_t *frame)
 
 static void EndFinaleCast_Callee(cast_entry_t *callee)
 {
-  ef_callee = callee;
-  ef_alive  = true;
-  EndFinaleCast_Frame(ef_callee->aliveframes);
+  if (callee)
+  {
+    ef_alive  = true;
+    ef_callee = callee;
+    EndFinaleCast_Frame(ef_callee->aliveframes);
+  }
 }
 
 static void EndFinaleCast_Kill(void)
@@ -750,8 +753,8 @@ static void EndFinaleCast_Kill(void)
 
 static void EndFinale_SetupCastCall(void)
 {
-  ef_callee_count = finale.castrollcall.castanimscount;
-  const int background = W_GetNumForName(finale.background);
+  ef_callee_count = endfinale->castrollcall.castanimscount;
+  const int background = W_GetNumForName(endfinale->background);
   W_CacheLumpNum(background, PU_LEVEL);
 
   cast_entry_t *callee;
@@ -801,7 +804,7 @@ static boolean EndFinale_CastTicker(void)
         // If possible, go to next map, else start again
         loop_finished = true;
         next_callee =
-          finale.donextmap || (wminfo.nextmapinfo != NULL) ? NULL : ef_callee;
+          endfinale->donextmap || (wminfo.nextmapinfo != NULL) ? NULL : ef_callee;
       }
 
       if (next_callee)
@@ -812,6 +815,19 @@ static boolean EndFinale_CastTicker(void)
   }
 
   return loop_finished;
+}
+
+static boolean EndFinale_CastResponder(event_t *ev)
+{
+  boolean respond = ev->type == ev_keydown;
+
+  if (!respond)
+    return false;
+
+  if (ef_alive)
+    EndFinaleCast_Kill();
+
+  return true;
 }
 
 //
@@ -825,7 +841,7 @@ typedef struct
   mobjtype_t  type;
 } castinfo_t;
 
-#define MAX_CASTORDER 18             /* Ty - hard coded for now */
+#define MAX_CASTORDER 19             /* Ty - hard coded for now */
 castinfo_t castorder[MAX_CASTORDER]; // Ty 03/22/98 - externalized and init moved into f_startcast()
 int        castnum;
 int        casttics;
@@ -840,6 +856,17 @@ boolean    castattacking;
 //
 static void F_StartCast(void)
 {
+  wipegamestate = -1; // force a screen wipe
+  finalestage = FINALE_STAGE_CAST;
+
+  if (gamemapinfo->flags & MapInfo_EndGameCustomFinale)
+  {
+    endfinale = D_ParseEndFinale(gamemapinfo->endfinale);
+    EndFinale_SetupCastCall();
+    return;
+  }
+
+
   // Ty 03/23/98 - clumsy but time is of the essence
   castorder[0].name = s_CC_ZOMBIE,  castorder[0].type = MT_POSSESSED;
   castorder[1].name = s_CC_SHOTGUN, castorder[1].type = MT_SHOTGUY;
@@ -858,14 +885,13 @@ static void F_StartCast(void)
   castorder[14].name = s_CC_SPIDER, castorder[14].type = MT_SPIDER;
   castorder[15].name = s_CC_CYBER,  castorder[15].type = MT_CYBORG;
   castorder[16].name = s_CC_HERO,   castorder[16].type = MT_PLAYER;
-  castorder[17].name = NULL,        castorder[17].type = 0;
+  castorder[17].name = "HELPER DOG",castorder[17].type = MT_DOGS;
+  castorder[18].name = NULL,        castorder[18].type = 0;
 
-  wipegamestate = -1; // force a screen wipe
   castnum = 0;
   caststate = &states[mobjinfo[castorder[castnum].type].seestate];
   casttics = caststate->tics;
   castdeath = false;
-  finalestage = FINALE_STAGE_CAST;
   castframes = 0;
   castonmelee = 0;
   castattacking = false;
@@ -875,14 +901,19 @@ static void F_StartCast(void)
 //
 // F_CastTicker
 //
-static void F_CastTicker(void)
+static boolean F_CastTicker(void)
 {
   int st;
   int sfx;
 
+  if (endfinale)
+  {
+    return EndFinale_CastTicker();
+  }
+
   if (--casttics > 0)
   {
-    return; // not time to change state yet
+    return false; // not time to change state yet
   }
 
   if (caststate->tics == -1 || caststate->nextstate == S_NULL)
@@ -993,6 +1024,7 @@ static void F_CastTicker(void)
   {
     casttics = 15;
   }
+  return false;
 }
 
 //
@@ -1001,6 +1033,9 @@ static void F_CastTicker(void)
 
 static boolean F_CastResponder(event_t *ev)
 {
+  if (endfinale)
+    EndFinale_CastResponder(ev);
+
   if (ev->type != ev_keydown
       && ev->type != ev_mouseb_down
       && ev->type != ev_joyb_down)

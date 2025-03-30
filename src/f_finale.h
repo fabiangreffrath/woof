@@ -115,6 +115,7 @@ typedef struct end_finale_s
   end_cast_t   castrollcall;
 } end_finale_t;
 
+extern end_finale_t *endfinale;
 end_finale_t *D_ParseEndFinale(const char lump[9]);
 
 #endif
