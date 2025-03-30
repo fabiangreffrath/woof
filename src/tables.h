@@ -52,6 +52,7 @@ extern const fixed_t *const finecosine;
 extern const fixed_t finetangent[FINEANGLES/2];
 
 // Binary Angle Measument, BAM.
+#define ANG11   0x08000000 // 11.25 degrees exactly.
 #define ANG45   0x20000000
 #define ANG75   0x35555555
 #define ANG90   0x40000000
