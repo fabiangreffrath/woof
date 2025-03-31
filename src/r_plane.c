@@ -1,6 +1,7 @@
 //
 //  Copyright (C) 1999 by
 //  id Software, Chi Hoang, Lee Killough, Jim Flynn, Rand Phares, Ty Halderman
+//  Copyright (C) 2006-2025 by The Odamex Team.
 //
 //  This program is free software; you can redistribute it and/or
 //  modify it under the terms of the GNU General Public License
@@ -193,6 +194,7 @@ static void R_MapPlane(int y, int x1, int x2)
     dy = (abs(centery - y) << FRACBITS) + FRACUNIT / 2;
 
 
+  // [EA] plane math updated for accounting flat rotation, thanks to Odamex
   if (rotation != cachedrotation[y] || planeheight != cachedheight[y])
   {
     distance = cacheddistance[y] = FixedMul(planeheight, yslope[y]);
@@ -206,7 +208,6 @@ static void R_MapPlane(int y, int x1, int x2)
     ds_xstep = cachedxstep[y];
     ds_ystep = cachedystep[y];
   }
-
 
   dx = x1 - centerx;
 
@@ -662,6 +663,7 @@ static void do_draw_plane(visplane_t *pl)
     yoffs = pl->yoffs;
     rotation = pl->rotation;
 
+    // [EA] plane math updated for accounting flat rotation, thanks to Odamex
     angle_sin = finesine[(viewangle + rotation) >> ANGLETOFINESHIFT];
     angle_cos = finecosine[(viewangle + rotation) >> ANGLETOFINESHIFT];
 
@@ -672,11 +674,11 @@ static void do_draw_plane(visplane_t *pl)
     }
     else
     {
-      const fixed_t sine   = finesine[pl->rotation >> ANGLETOFINESHIFT];
-      const fixed_t cosine = finecosine[pl->rotation >> ANGLETOFINESHIFT];
+      const fixed_t sin = finesine[pl->rotation >> ANGLETOFINESHIFT];
+      const fixed_t cos = finecosine[pl->rotation >> ANGLETOFINESHIFT];
 
-      viewx_trans = FixedMul(viewx + xoffs, cosine) - FixedMul(viewy - yoffs, sine);
-      viewy_trans = -(FixedMul(viewx + xoffs, sine) + FixedMul(viewy - yoffs, cosine));
+      viewx_trans =   FixedMul(viewx + xoffs, cos) - FixedMul(viewy - yoffs, sin);
+      viewy_trans = -(FixedMul(viewx + xoffs, sin) + FixedMul(viewy - yoffs, cos));
     }
 
     planeheight = abs(pl->height - viewz);

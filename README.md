@@ -152,6 +152,7 @@ Copyright:
  © 2005-2006 by Florian Schulze, Colin Phipps, Neil Stevens, Andrey Budko;  
  © 2005-2018 Simon Howard;  
  © 2006 Ben Ryves;  
+ © 2006-2025 by The Odamex Team;  
  © 2007-2011 Moritz "Ripper" Kroll;  
  © 2008-2019 Simon Judd;  
  © 2017 Christoph Oelckers;  
