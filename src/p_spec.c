@@ -1089,7 +1089,7 @@ boolean P_WasSecret(sector_t *sec)
 //
 // Generic solution for changing the currently playing music during play time.
 // There are four type of music changing behavior, all of them available in all
-// six major activation triggers (W1 WR, S1, SR, G1, GR) totalling 24 lines.
+// six major activation triggers (W1, WR, S1, SR, G1, GR) totalling 24 lines.
 // All specials can be triggered from either side of the line being activated.
 // Of the four categories, there are two conditions:
 //

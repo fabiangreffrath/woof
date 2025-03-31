@@ -197,7 +197,7 @@ static void R_MapPlane(int y, int x1, int x2)
   {
     distance = cacheddistance[y] = FixedMul(planeheight, yslope[y]);
     // [FG] avoid right-shifting in FixedMul() followed by left-shifting in FixedDiv()
-    ds_xstep = cachedxstep[y] = (fixed_t)((int64_t)angle_sin   * planeheight / dy);
+    ds_xstep = cachedxstep[y] = (fixed_t)((int64_t)angle_sin * planeheight / dy);
     ds_ystep = cachedystep[y] = (fixed_t)((int64_t)angle_cos * planeheight / dy);
   }
   else

@@ -649,12 +649,9 @@ void P_LoadSideDefs2(int lump)
               }
               else
               {
-                sd->toptexture = 0;
+                sd->bottomtexture = 0;
               }
-            }
 
-            if (lines[j].sidenum[0] == i)
-            {
               // Front triggered
               lines[j].frontmusic = W_CheckNumForName(msd->toptexture);
               if (lines[j].frontmusic < 0)
