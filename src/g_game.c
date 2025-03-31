@@ -3846,6 +3846,10 @@ void G_ReloadDefaults(boolean keep_demover)
   if (M_CheckParm("-skill") && startskill == sk_none && !demo_compatibility)
     I_Error("G_ReloadDefaults: '-skill 0' requires complevel Vanilla.");
 
+  if (demorecording && demo_version == DV_ID24)
+    I_Error("G_ReloadDefaults: Recording ID24 demos is currently not enabled. "
+            "Demo-compability in Complevel ID24 is not yet stable.");
+
   if (demo_version < DV_MBF)
   {
     monster_infighting = 1;

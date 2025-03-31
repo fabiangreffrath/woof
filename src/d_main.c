@@ -2556,11 +2556,6 @@ void D_DoomMain(void)
 
       if ((p = M_CheckParm("-record")) && ++p < myargc)
       {
-        if (demo_version >= DV_ID24)
-        {
-          I_Error("Demo-compability in Complevel ID24 is not yet stable. "
-                  "Recordings demos is currently not enabled");
-        }
         autostart = true;
         G_RecordDemo(myargv[p]);
       }
