@@ -208,7 +208,6 @@ typedef struct side_s
   fixed_t basetextureoffset;
   fixed_t baserowoffset;
   int oldgametic;
-
 } side_t;
 
 //
