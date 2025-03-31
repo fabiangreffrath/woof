@@ -2146,6 +2146,7 @@ void P_ArchiveWorld (void)
       saveg_write32(li->backcolormap);
       saveg_write32(li->frontmusic);
       saveg_write32(li->backmusic);
+
       for (j=0; j<2; j++)
         if (li->sidenum[j] != NO_INDEX)
           {

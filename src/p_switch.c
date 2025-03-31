@@ -1225,7 +1225,6 @@ P_UseSpecialLine
       EV_LightTurnOn(line,35);
       P_ChangeSwitchTexture(line,1);
       return true;
-
   }
   return !bossaction;
 }

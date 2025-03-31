@@ -947,7 +947,6 @@ int EV_DoGenLockedDoor(struct line_s *line);
 void EV_ChangeMusic(struct line_s *line, int side);
 void EV_RotateOffsetFlat(struct line_s *line, struct sector_s *sector);
 
-
 ////////////////////////////////////////////////////////////////
 //
 // Linedef and sector special thinker spawning
