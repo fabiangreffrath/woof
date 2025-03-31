@@ -194,6 +194,7 @@ static void GetLevelCheckSum(int lump, md5_checksum_t* cksum)
 
 void G_ApplyLevelCompatibility(int lump)
 {
+    static demo_version_t original_level;
     static boolean restore_comp;
     static int old_comp[COMP_TOTAL];
 
@@ -201,7 +202,7 @@ void G_ApplyLevelCompatibility(int lump)
     {
         if (!mbf21)
         {
-            demo_version = DV_MBF21;
+            demo_version = original_level;
             G_ReloadDefaults(true);
         }
         memcpy(comp, old_comp, sizeof(*comp));
@@ -224,6 +225,7 @@ void G_ApplyLevelCompatibility(int lump)
         if (!memcmp(record->checksum, cksum.digest, sizeof(md5_digest_t)))
         {
             memcpy(old_comp, comp, sizeof(*comp));
+            original_level = demo_version;
             restore_comp = true;
 
             char *new_demover = record->complevel;
