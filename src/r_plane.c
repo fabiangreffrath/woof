@@ -102,7 +102,7 @@ static fixed_t *cachedrotation = NULL;
 static fixed_t xoffs,yoffs;    // killough 2/28/98: flat offsets
 static angle_t rotation;
 
-static fixed_t angle_sine, angle_cosine;
+static fixed_t angle_sin, angle_cos;
 static fixed_t viewx_trans, viewy_trans;
 
 fixed_t *yslope = NULL, *distscale = NULL;
@@ -197,8 +197,8 @@ static void R_MapPlane(int y, int x1, int x2)
   {
     distance = cacheddistance[y] = FixedMul(planeheight, yslope[y]);
     // [FG] avoid right-shifting in FixedMul() followed by left-shifting in FixedDiv()
-    ds_xstep = cachedxstep[y] = (fixed_t)((int64_t)angle_sine   * planeheight / dy);
-    ds_ystep = cachedystep[y] = (fixed_t)((int64_t)angle_cosine * planeheight / dy);
+    ds_xstep = cachedxstep[y] = (fixed_t)((int64_t)angle_sin   * planeheight / dy);
+    ds_ystep = cachedystep[y] = (fixed_t)((int64_t)angle_cos * planeheight / dy);
   }
   else
   {
@@ -211,8 +211,8 @@ static void R_MapPlane(int y, int x1, int x2)
   dx = x1 - centerx;
 
   // killough 2/28/98: Add offsets
-  ds_xfrac = viewx_trans + FixedMul(angle_cosine, distance) + dx * ds_xstep;
-  ds_yfrac = viewy_trans - FixedMul(angle_sine, distance)   + dx * ds_ystep;
+  ds_xfrac = viewx_trans + FixedMul(angle_cos, distance) + dx * ds_xstep;
+  ds_yfrac = viewy_trans - FixedMul(angle_sin, distance) + dx * ds_ystep;
 
   if (!(ds_colormap[0] = ds_colormap[1] = fixedcolormap))
     {
@@ -249,6 +249,8 @@ void R_ClearPlanes(void)
 
   lastopening = openings;
 
+  // texture calculation
+  memset(cachedheight, 0, viewheight * sizeof(*cachedheight));
 }
 
 // New function, by Lee Killough
@@ -660,8 +662,8 @@ static void do_draw_plane(visplane_t *pl)
     yoffs = pl->yoffs;
     rotation = pl->rotation;
 
-    angle_sine = finesine[(viewangle + rotation) >> ANGLETOFINESHIFT];
-    angle_cosine = finecosine[(viewangle + rotation) >> ANGLETOFINESHIFT];
+    angle_sin = finesine[(viewangle + rotation) >> ANGLETOFINESHIFT];
+    angle_cos = finecosine[(viewangle + rotation) >> ANGLETOFINESHIFT];
 
     if (pl->rotation == 0)
     {
