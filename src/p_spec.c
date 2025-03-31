@@ -2649,14 +2649,14 @@ void EV_RotateOffsetFlat(line_t *line, sector_t *sector)
   switch (line->special)
   {
     case 2048:
-      offset_ceiling = true;
+      offset_floor   = true;
       break;
     case 2049:
-      offset_floor   = true;
+      offset_ceiling = true;
       break;
     case 2050:
-      offset_ceiling = true;
       offset_floor   = true;
+      offset_ceiling = true;
       break;
     case 2051:
       rotate_floor   = true;
@@ -2684,34 +2684,52 @@ void EV_RotateOffsetFlat(line_t *line, sector_t *sector)
       break;
   }
 
-  // [EA]
-  // These offset linedefs seem to not need interpolation, as they are only
-  // run once at spawn time -- in fact when the player spawns in-world, the
-  // "zeroth" frame in the screen melt will show the affected flats halfway
-  // through their movement (tested at 60FPS/Hz), minor odd visual artifact.
-
   for (s = -1; (s = P_FindSectorFromLineTag(line, s)) >= 0;)
   {
     if (offset_floor)
     {
+      if (sectors[s].old_floor_offs_gametic != gametic)
+      {
+        sectors[s].old_floor_xoffs = sectors[s].base_floor_xoffs;
+        sectors[s].old_floor_yoffs = sectors[s].base_floor_yoffs;
+        sectors[s].old_floor_offs_gametic = gametic;
+      }
       sectors[s].base_floor_xoffs -= line->dx;
       sectors[s].base_floor_yoffs += line->dy;
     }
 
     if (offset_ceiling)
     {
+      if (sectors[s].old_ceil_offs_gametic != gametic)
+      {
+        sectors[s].old_ceiling_xoffs = sectors[s].base_ceiling_xoffs;
+        sectors[s].old_ceiling_yoffs = sectors[s].base_ceiling_yoffs;
+        sectors[s].old_ceil_offs_gametic = gametic;
+      }
       sectors[s].base_ceiling_xoffs -= line->dx;
       sectors[s].base_ceiling_yoffs += line->dy;
     }
 
     if (rotate_floor)
     {
-      sectors[s].base_floor_rotation = line->angle;
+      if (sectors[s].old_floor_rotation_gametic != gametic)
+      {
+        sectors[s].old_floor_rotation = sectors[s].base_floor_rotation;
+        sectors[s].old_floor_rotation = sectors[s].base_floor_rotation;
+        sectors[s].old_floor_rotation_gametic = gametic;
+      }
+      sectors[s].base_floor_rotation -= line->angle;
     }
 
     if (rotate_ceiling)
     {
-      sectors[s].base_ceiling_rotation = line->angle;
+      if (sectors[s].old_ceiling_rotation_gametic != gametic)
+      {
+        sectors[s].old_ceiling_rotation = sectors[s].base_ceiling_rotation;
+        sectors[s].old_ceiling_rotation = sectors[s].base_ceiling_rotation;
+        sectors[s].old_ceiling_rotation_gametic = gametic;
+      }
+      sectors[s].base_ceiling_rotation -= line->angle;
     }
   }
 }
