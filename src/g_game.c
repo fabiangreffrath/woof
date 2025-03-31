@@ -983,14 +983,9 @@ static void G_DoLoadLevel(void)
 
   P_UpdateCheckSight();
 
-  // [crispy] pistol start
-  if (CRITICAL(pistolstart))
-  {
-    G_PlayerReborn(0);
-  }
-
   // ID24 exit line specials
-  if (reset_inventory)
+  // [crispy] pistol start
+  if (reset_inventory || CRITICAL(pistolstart))
   {
     for (int player = 0; player < MAXPLAYERS; player++)
     {
