@@ -2558,10 +2558,8 @@ void D_DoomMain(void)
       {
         if (demo_version >= DV_ID24)
         {
-          I_Printf(
-            VB_WARNING,
-            "Demo-compability in Complevel ID24 is not stable. "
-            "Record DEMOs at your own risk!");
+          I_Error("Demo-compability in Complevel ID24 is not yet stable. ",
+                  "Recordings demos is currently not enabled");
         }
         autostart = true;
         G_RecordDemo(myargv[p]);
