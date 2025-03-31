@@ -2643,6 +2643,7 @@ void EV_RotateOffsetFlat(line_t *line, sector_t *sector)
   boolean offset_ceiling = false;
   boolean rotate_floor   = false;
   boolean rotate_ceiling = false;
+  boolean interpolate    = false;
 
   int s = -1;
 
@@ -2688,7 +2689,7 @@ void EV_RotateOffsetFlat(line_t *line, sector_t *sector)
   {
     if (offset_floor)
     {
-      if (sectors[s].old_floor_offs_gametic != gametic)
+      if (interpolate && sectors[s].old_floor_offs_gametic != gametic)
       {
         sectors[s].old_floor_xoffs = sectors[s].base_floor_xoffs;
         sectors[s].old_floor_yoffs = sectors[s].base_floor_yoffs;
@@ -2700,7 +2701,7 @@ void EV_RotateOffsetFlat(line_t *line, sector_t *sector)
 
     if (offset_ceiling)
     {
-      if (sectors[s].old_ceil_offs_gametic != gametic)
+      if (interpolate && sectors[s].old_ceil_offs_gametic != gametic)
       {
         sectors[s].old_ceiling_xoffs = sectors[s].base_ceiling_xoffs;
         sectors[s].old_ceiling_yoffs = sectors[s].base_ceiling_yoffs;
@@ -2712,7 +2713,7 @@ void EV_RotateOffsetFlat(line_t *line, sector_t *sector)
 
     if (rotate_floor)
     {
-      if (sectors[s].old_floor_rotation_gametic != gametic)
+      if (interpolate && sectors[s].old_floor_rotation_gametic != gametic)
       {
         sectors[s].old_floor_rotation = sectors[s].base_floor_rotation;
         sectors[s].old_floor_rotation = sectors[s].base_floor_rotation;
@@ -2723,7 +2724,7 @@ void EV_RotateOffsetFlat(line_t *line, sector_t *sector)
 
     if (rotate_ceiling)
     {
-      if (sectors[s].old_ceiling_rotation_gametic != gametic)
+      if (interpolate && sectors[s].old_ceiling_rotation_gametic != gametic)
       {
         sectors[s].old_ceiling_rotation = sectors[s].base_ceiling_rotation;
         sectors[s].old_ceiling_rotation = sectors[s].base_ceiling_rotation;
