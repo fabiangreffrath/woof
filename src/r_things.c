@@ -730,10 +730,7 @@ void R_AddSprites(sector_t* sec, int lightlevel)
   // Well, now it will be done.
   sec->validcount = validcount;
 
-  // [EA] temporary solution for MBF's weird sector lighting handling,
-  // it's an early new complevel, and folks weren't fans of this change,
-  // as it was enabled in MBF21 :V
-  if (demo_version < DV_MBF || demo_version >= DV_ID24)
+  if (demo_version < DV_MBF)
     lightlevel = sec->lightlevel;
 
   lightnum = (lightlevel >> LIGHTSEGSHIFT)+extralight;
