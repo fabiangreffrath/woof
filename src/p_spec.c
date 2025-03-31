@@ -58,6 +58,7 @@
 #include "r_state.h"
 #include "r_swirl.h"
 #include "s_sound.h"
+#include "s_musinfo.h"
 #include "sounds.h"
 #include "st_stuff.h"
 #include "st_widgets.h"
@@ -1143,7 +1144,7 @@ void EV_ChangeMusic(line_t *line, int side)
   if (music)
     S_ChangeMusInfoMusic(music, loops);
   else if (resets)
-    S_Start(false); // Oh no! A hack!
+    S_ChangeMusInfoMusic(musinfo.items[0], true); // Always loops when defaulting
 
   if (once)
     line->special = 0;

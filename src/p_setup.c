@@ -1681,7 +1681,7 @@ void P_SetupLevel(int episode, int map, int playermask, skill_t skill)
   }
 
   // Make sure all sounds are stopped before Z_FreeTags.
-  S_Start(true);
+  S_Start();
 
   Z_FreeTag(PU_LEVEL);
   Z_FreeTag(PU_CACHE);

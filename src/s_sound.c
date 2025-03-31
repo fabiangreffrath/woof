@@ -871,7 +871,7 @@ static inline int WRAP(int i, int w)
     return i % w;
 }
 
-void S_Start(boolean killsfx)
+void S_Start(void)
 {
     int cnum, mnum;
 
@@ -879,12 +879,7 @@ void S_Start(boolean killsfx)
     //  (trust me - a good idea)
 
     // jff 1/22/98 skip sound init if sound not enabled
-
-    // [EA] "killsfx" temporary hack to enable the ID24 music changer lines that
-    // reset to the map default. Ideally the vanilla Doom map gameflow data code
-    // should be rewritten into a set of UMAPINFO structures (similarly to RnR),
-    // we are highly unlikely to need another *MAPINFO standard, to be honest.
-    if (!nosfxparm || killsfx)
+    if (!nosfxparm)
     {
         for (cnum = 0; cnum < snd_channels; ++cnum)
         {
