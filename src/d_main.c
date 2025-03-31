@@ -2558,7 +2558,7 @@ void D_DoomMain(void)
       {
         if (demo_version >= DV_ID24)
         {
-          I_Error("Demo-compability in Complevel ID24 is not yet stable. ",
+          I_Error("Demo-compability in Complevel ID24 is not yet stable. "
                   "Recordings demos is currently not enabled");
         }
         autostart = true;
