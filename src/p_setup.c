@@ -364,6 +364,8 @@ void P_LoadSectors (int lump)
       ss->oldfloorgametic = -1;
       ss->old_ceil_offs_gametic = -1;
       ss->old_floor_offs_gametic = -1;
+      ss->old_ceiling_rotation_gametic = -1;
+      ss->old_floor_rotation_gametic = -1;
     }
 
   Z_Free (data);
