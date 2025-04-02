@@ -2711,7 +2711,6 @@ void EV_RotateOffsetFlat(line_t *line, sector_t *sector)
       if (sectors[s].old_floor_rotation_gametic != gametic)
       {
         sectors[s].old_floor_rotation = sectors[s].base_floor_rotation;
-        sectors[s].old_floor_rotation = sectors[s].base_floor_rotation;
         sectors[s].old_floor_rotation_gametic = gametic;
       }
       sectors[s].base_floor_rotation -= line->angle;
@@ -2721,7 +2720,6 @@ void EV_RotateOffsetFlat(line_t *line, sector_t *sector)
     {
       if (sectors[s].old_ceiling_rotation_gametic != gametic)
       {
-        sectors[s].old_ceiling_rotation = sectors[s].base_ceiling_rotation;
         sectors[s].old_ceiling_rotation = sectors[s].base_ceiling_rotation;
         sectors[s].old_ceiling_rotation_gametic = gametic;
       }
