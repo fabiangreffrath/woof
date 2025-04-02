@@ -1034,6 +1034,7 @@ void R_BindRenderVariables(void)
   BIND_BOOL(flashing_hom, true, "Enable flashing of the HOM indicator");
   M_BindNum("screenblocks", &screenblocks, NULL, 10, 3,
             UL, ss_stat, wad_no, "Size of game-world screen");
+  BIND_NUM(default_max_pitch_angle, 32, 30, 60, "Maximum view pitch angle");
 
   M_BindBool("translucency", &translucency, NULL, true, ss_gen, wad_yes,
              "Translucency for some things");
