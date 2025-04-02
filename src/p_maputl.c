@@ -135,7 +135,7 @@ void P_MakeDivline(line_t *li, divline_t *dl)
 
 fixed_t P_InterceptVector(divline_t *v2, divline_t *v1)
 {
-  if (!mbf21)
+  if (demo_version < DV_MBF21)
   {
   fixed_t den = FixedMul(v1->dy>>8, v2->dx) - FixedMul(v1->dx>>8, v2->dy);
   return den ? FixedDiv((FixedMul((v1->x-v2->x)>>8, v1->dy) +
@@ -400,7 +400,7 @@ boolean P_BlockLinesIterator(int x, int y, boolean func(line_t*))
 
   // killough 2/22/98: demo_compatibility check
   // mbf21: Fix blockmap issue seen in btsx e2 Map 20
-  if ((!demo_compatibility && !mbf21) || (mbf21 && skipblstart))
+  if ((demo_version >= DV_BOOM200 && demo_version < DV_MBF21) || (demo_version >= DV_MBF21 && skipblstart))
     list++;     // skip 0 starting delimiter                      // phares
   for ( ; *list != -1 ; list++)                                   // phares
     {
@@ -438,7 +438,7 @@ boolean P_BlockThingsIterator(int x, int y, boolean func(mobj_t*),
   // Add other mobjs from surrounding blocks that overlap this one
   if (CRITICAL(blockmapfix) && do_blockmapfix)
   {
-    if (demo_compatibility && overflow[emu_intercepts].enabled)
+    if (demo_version < DV_BOOM200 && overflow[emu_intercepts].enabled)
       return true;
 
     // Unwrapped for least number of bounding box checks
@@ -795,7 +795,7 @@ static void InterceptsMemoryOverrun(int location, int value)
 
 static void InterceptsOverrun(int num_intercepts, intercept_t *intercept)
 {
-  if (num_intercepts > MAXINTERCEPTS_ORIGINAL && demo_compatibility
+  if (num_intercepts > MAXINTERCEPTS_ORIGINAL && demo_version < DV_BOOM200
       && overflow[emu_intercepts].enabled)
   {
     int location;

@@ -248,7 +248,7 @@ P_UseSpecialLine
     return false;
 
   //jff 02/04/98 add check here for generalized floor/ceil mover
-  if (!demo_compatibility)
+  if (demo_version >= DV_BOOM200)
   {
     // pointer to line function is NULL by default, set non-null if
     // line special is push or switch generalized linedef type
@@ -611,10 +611,10 @@ P_UseSpecialLine
       return true;
 
       // killough 1/31/98: factored out compatibility check;
-      // added inner switch, relaxed check to demo_compatibility
+      // added inner switch, relaxed check to demo_version < DV_BOOM200
 
     default:
-      if (!demo_compatibility)
+      if (demo_version >= DV_BOOM200)
         switch (line->special)
         {
           //jff 1/29/98 added linedef types to fill all functions out so that

@@ -166,7 +166,7 @@ sector_t* GetSectorAtNullAddress(void)
   static boolean null_sector_is_initialized = false;
   static sector_t null_sector;
 
-  if (demo_compatibility && overflow[emu_missedbackside].enabled)
+  if (demo_version < DV_BOOM200 && overflow[emu_missedbackside].enabled)
   {
     overflow[emu_missedbackside].triggered = true;
 
@@ -551,7 +551,7 @@ void P_LoadLineDefs2(int lump)
 
       if (ld->sidenum[1] == NO_INDEX)
       {
-	if (!demo_compatibility || !overflow[emu_missedbackside].enabled)
+	if (demo_version >= DV_BOOM200 || !overflow[emu_missedbackside].enabled)
 	ld->flags &= ~ML_TWOSIDED;  // Clear 2s flag for missing left side
       }
 
@@ -1518,7 +1518,7 @@ static boolean P_LoadReject(int lumpnum, int totallines)
 
         memset(rejectmatrix + lumplen, padvalue, minlength - lumplen);
 
-        if (demo_compatibility && overflow[emu_reject].enabled)
+        if (demo_version < DV_BOOM200 && overflow[emu_reject].enabled)
         {
             unsigned int i;
             unsigned int byte_num;

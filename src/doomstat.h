@@ -110,9 +110,9 @@ extern demo_version_t demo_version;           // killough 7/19/98: Version of de
 // Only true when playing back an old demo -- used only in "corner cases"
 // which break playback but are otherwise unnoticable or are just desirable:
 
-#define demo_compatibility (demo_version < DV_BOOM200) /* killough 11/98: macroized */
-
-#define mbf21 (demo_version == DV_MBF21)
+// #define demo_compatibility (demo_version < DV_BOOM200) /* killough 11/98: macroized */
+// #define mbf21 (demo_version == DV_MBF21)
+// [EA] complevel checks, de-macroized, now explicit
 
 // killough 7/19/98: whether monsters should fight against each other
 extern boolean monster_infighting, default_monster_infighting;

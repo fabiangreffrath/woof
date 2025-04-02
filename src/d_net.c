@@ -121,7 +121,7 @@ static void LoadGameSettings(net_gamesettings_t *settings)
         compatibility = true;
     }
 
-    if (mbf21)
+    if (demo_version >= DV_MBF21)
     {
         G_ReadOptionsMBF21(settings->options);
     }
@@ -168,7 +168,7 @@ static void SaveGameSettings(net_gamesettings_t *settings)
     // Record a high resolution "Doom 1.91" demo.
     //
 
-    longtics = (demo_compatibility && M_ParmExists("-longtics")) || mbf21;
+    longtics = (demo_version < DV_BOOM200 && M_ParmExists("-longtics")) || demo_version >= DV_MBF21;
 
     settings->lowres_turn = ((M_ParmExists("-record") && !longtics) ||
 
@@ -223,7 +223,7 @@ static void InitConnectData(net_connect_data_t *connect_data)
     connect_data->gamemode = gamemode;
     connect_data->gamemission = gamemission;
 
-    longtics = (demo_compatibility && M_ParmExists("-longtics")) || mbf21;
+    longtics = (demo_version < DV_BOOM200 && M_ParmExists("-longtics")) || demo_version >= DV_MBF21;
 
     // Are we recording a demo? Possibly set lowres turn mode
 
