@@ -2555,10 +2555,10 @@ void D_DoomMain(void)
       //
 
       if ((p = M_CheckParm("-record")) && ++p < myargc)
-      {
-        autostart = true;
-        G_RecordDemo(myargv[p]);
-      }
+	{
+	  autostart = true;
+	  G_RecordDemo(myargv[p]);
+	}
     }
   }
 

@@ -635,12 +635,11 @@ P_UseSpecialLine
 
 
 
-    default:
-    {
       // killough 1/31/98: factored out compatibility check;
       // added inner switch, relaxed check to demo_compatibility
+
+    default:
       if (!demo_compatibility)
-      {
         switch (line->special)
         {
           //jff 1/29/98 added linedef types to fill all functions out so that
@@ -1064,9 +1063,7 @@ P_UseSpecialLine
           // 1/29/98 jff end of added SR linedef types
 
         }
-      }
       if (demo_version >= DV_ID24)
-      {
         switch (line->special)
         {
           // S1 - Exit to the next map and reset inventory.
@@ -1083,9 +1080,7 @@ P_UseSpecialLine
             G_SecretExitLevel();
             return true;
         }
-      }
       break; // default
-    }
 
     //
     // Buttons (retriggerable switches)

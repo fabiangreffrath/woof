@@ -1791,22 +1791,21 @@ void P_CrossSpecialLine(line_t *line, int side, mobj_t *thing, boolean bossactio
       break;
 
 
-    // Extended walk triggers
+      // Extended walk triggers
 
-    // jff 1/29/98 added new linedef types to fill all functions out so that
-    // all have varieties SR, S1, WR, W1
+      // jff 1/29/98 added new linedef types to fill all functions out so that
+      // all have varieties SR, S1, WR, W1
 
-    // killough 1/31/98: "factor out" compatibility test, by
-    // adding inner switch qualified by compatibility flag.
-    // relax test to demo_compatibility
+      // killough 1/31/98: "factor out" compatibility test, by
+      // adding inner switch qualified by compatibility flag.
+      // relax test to demo_compatibility
 
-    // killough 2/16/98: Fix problems with W1 types being cleared too early
+      // killough 2/16/98: Fix problems with W1 types being cleared too early
+
     default:
-    {
       if (!demo_compatibility)
-      {
         switch (line->special)
-        {
+          {
             // Extended walk once triggers
 
           case 142:
@@ -2096,11 +2095,10 @@ void P_CrossSpecialLine(line_t *line, int side, mobj_t *thing, boolean bossactio
               EV_SilentTeleport(line, side, thing);
             break;
             //jff 1/29/98 end of added WR linedef types
-        }
-      }
+
+          }
       break;
     }
-  }
 }
 
 //
@@ -2238,7 +2236,7 @@ void P_ShootSpecialLine(mobj_t *thing, line_t *line, int side)
     return;
 
   switch(line->special)
-  {
+    {
     case 24:
       // 24 G1 raise floor to highest adjacent
       if (EV_DoFloor(line,raiseFloor) || demo_compatibility)
@@ -2276,14 +2274,13 @@ void P_ShootSpecialLine(mobj_t *thing, line_t *line, int side)
                                          : line->frontcolormap;
       break;
 
-    //jff 1/30/98 added new gun linedefs here
-    // killough 1/31/98: added demo_compatibility check, added inner switch
+      //jff 1/30/98 added new gun linedefs here
+      // killough 1/31/98: added demo_compatibility check, added inner switch
+
     default:
-    {
       if (!demo_compatibility)
-      {
         switch (line->special)
-        {
+          {
           // G1 - Exit to the next map and reset inventory.
           case 2071:
             if (demo_version < DV_ID24)
@@ -2317,11 +2314,9 @@ void P_ShootSpecialLine(mobj_t *thing, line_t *line, int side)
             G_SecretExitLevel();
             break;
             //jff end addition of new gun linedefs
-        }
-      }
+          }
       break; // default
     }
-  }
 }
 
 int disable_nuke;  // killough 12/98: nukage disabling cheat
@@ -2876,9 +2871,8 @@ void P_SpawnSpecials (void)
   }
 
   for (i=0; i<numlines; i++)
-  {
     switch (lines[i].special)
-    {
+      {
         int s, sec;
 
         // killough 3/7/98:
@@ -2937,8 +2931,7 @@ void P_SpawnSpecials (void)
         EV_RotateOffsetFlat(&lines[i], sectors);
         break;
       }
-    }
-  }
+      }
 }
 
 // killough 2/28/98:
