@@ -852,6 +852,16 @@ static void cheat_spechits(void)
         case 210:
         case 268:
         case 269:
+        // [EA] do not trigger any ID24 actions
+        case 2048: case 2049: case 2050: case 2051: case 2052: case 2053:
+        case 2054: case 2055: case 2056: case 2057: case 2058: case 2059:
+        case 2060: case 2061: case 2062: case 2063: case 2064: case 2065:
+        case 2066: case 2067: case 2068: case 2069: case 2070: case 2071:
+        case 2072: case 2073: case 2074: case 2075: case 2076: case 2077:
+        case 2078: case 2079: case 2080: case 2081: case 2082: case 2083:
+        case 2084: case 2085: case 2086: case 2087: case 2088: case 2089:
+        case 2090: case 2091: case 2092: case 2093: case 2094: case 2095:
+        case 2096: case 2097: case 2098:
         {
           continue;
         }
