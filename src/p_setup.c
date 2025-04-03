@@ -331,14 +331,11 @@ void P_LoadSectors (int lump)
       ss->old_floor_xoffs = ss->base_floor_xoffs = 0;
       ss->old_floor_yoffs = ss->base_floor_yoffs = 0;
       ss->floor_rotation = 0;
-      ss->old_floor_rotation = ss->base_floor_rotation = 0;
       ss->ceiling_xoffs = 0;
       ss->ceiling_yoffs = 0;
       ss->old_ceiling_xoffs = ss->base_ceiling_xoffs = 0;
       ss->old_ceiling_yoffs = ss->base_ceiling_yoffs = 0;
       ss->ceiling_rotation = 0;
-      ss->old_ceiling_rotation = ss->base_ceiling_rotation = 0;
-      ss->colormap_index = 0;
       ss->heightsec = -1;       // sector used to get floor and ceiling height
       ss->floorlightsec = -1;   // sector used to get floor lighting
       // killough 3/7/98: end changes
@@ -364,8 +361,6 @@ void P_LoadSectors (int lump)
       ss->oldfloorgametic = -1;
       ss->old_ceil_offs_gametic = -1;
       ss->old_floor_offs_gametic = -1;
-      ss->old_ceiling_rotation_gametic = -1;
-      ss->old_floor_rotation_gametic = -1;
     }
 
   Z_Free (data);
@@ -669,48 +664,6 @@ void P_LoadSideDefs2(int lump)
           }
           break;
 
-        case 2076: case 2077: case 2078: case 2079: case 2080: case 2081:
-          // All of the W1, WR, S1, SR, G1, GR activations can be triggered from
-          // the back sidedef (reading the front bottom texture) and triggered
-          // from the front sidedef (reading the front upper texture).
-          for (int j = 0; j < numlines; j++)
-          {
-            if (lines[j].sidenum[0] == i)
-            {
-              lines[j].backcolormap = R_ColormapNumForName(msd->bottomtexture);
-              if (lines[j].backcolormap < 0)
-              {
-                lines[j].backcolormap = 0;
-                sd->bottomtexture = R_TextureNumForName(msd->bottomtexture);
-              }
-              else
-              {
-                sd->bottomtexture = 0;
-              }
-            }
-          }
-          // fallthrough
-
-        case 2075:
-          // The "Always" activation, triggered at world spawn time, reads only
-          // the upper texture of the front side.
-          for (int j = 0; j < numlines; j++)
-          {
-            if (lines[j].sidenum[0] == i)
-            {
-              lines[j].frontcolormap = R_ColormapNumForName(msd->toptexture);
-              if (lines[j].frontcolormap < 0)
-              {
-                lines[j].frontcolormap = 0;
-                sd->toptexture = R_TextureNumForName(msd->toptexture);
-              }
-              else
-              {
-                sd->toptexture = 0;
-              }
-            }
-          }
-          break;
 
         case 242:                       // variable colormap via 242 linedef
           sd->bottomtexture =

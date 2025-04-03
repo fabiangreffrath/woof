@@ -700,7 +700,6 @@ void R_StoreWallRange(const int start, const int stop)
         || backsector->floor_xoffs != frontsector->floor_xoffs
         || backsector->floor_yoffs != frontsector->floor_yoffs
         || backsector->floor_rotation != frontsector->floor_rotation
-        || backsector->colormap != frontsector->colormap
 
         // killough 4/15/98: prevent 2s normals
         // from bleeding through deep water
@@ -721,7 +720,6 @@ void R_StoreWallRange(const int start, const int stop)
         || backsector->ceiling_xoffs != frontsector->ceiling_xoffs
         || backsector->ceiling_yoffs != frontsector->ceiling_yoffs
         || backsector->ceiling_rotation != frontsector->ceiling_rotation
-        || backsector->colormap != frontsector->colormap
 
         // killough 4/15/98: prevent 2s normals
         // from bleeding through fake ceilings

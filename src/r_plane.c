@@ -287,7 +287,6 @@ visplane_t *R_DupPlane(const visplane_t *pl, int start, int stop)
     new_pl->xoffs = pl->xoffs;           // killough 2/28/98
     new_pl->yoffs = pl->yoffs;
     new_pl->rotation = pl->rotation;
-    new_pl->colormap = pl->colormap;
     new_pl->minx = start;
     new_pl->maxx = stop;
     memset(new_pl->top, UCHAR_MAX, video.width * sizeof(*new_pl->top));

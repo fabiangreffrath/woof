@@ -213,7 +213,6 @@ sector_t *R_FakeFlat(sector_t *sec, sector_t *tempsec,
           tempsec->floor_xoffs = s->floor_xoffs;
           tempsec->floor_yoffs = s->floor_yoffs;
           tempsec->floor_rotation = s->floor_rotation;
-          tempsec->colormap    = s->colormap;
 
           if (underwater)
           {
@@ -253,7 +252,6 @@ sector_t *R_FakeFlat(sector_t *sec, sector_t *tempsec,
             tempsec->floorheight   = s->ceilingheight + 1;
             tempsec->interpceilingheight = s->interpceilingheight;
             tempsec->interpfloorheight   = s->interpceilingheight + 1;
-            tempsec->colormap      = s->colormap;
 
             tempsec->floorpic    = tempsec->ceilingpic    = s->ceilingpic;
             tempsec->floor_xoffs = tempsec->ceiling_xoffs = s->ceiling_xoffs;
@@ -334,24 +332,6 @@ static void R_MaybeInterpolateSector(sector_t* sector)
             sector->ceiling_xoffs = sector->base_ceiling_xoffs;
             sector->ceiling_yoffs = sector->base_ceiling_yoffs;
         }
-
-        if (sector->old_ceiling_rotation_gametic == gametic - 1)
-        {
-            sector->ceiling_rotation = LerpAngle(sector->old_ceiling_rotation, sector->base_ceiling_rotation);
-        }
-        else
-        {
-            sector->ceiling_rotation = sector->base_ceiling_rotation;
-        }
-
-        if (sector->old_floor_rotation_gametic == gametic - 1)
-        {
-            sector->floor_rotation = LerpAngle(sector->old_floor_rotation, sector->base_floor_rotation);
-        }
-        else
-        {
-            sector->floor_rotation = sector->base_floor_rotation;
-        }
     }
     else
     {
@@ -361,8 +341,6 @@ static void R_MaybeInterpolateSector(sector_t* sector)
         sector->floor_yoffs = sector->base_floor_yoffs;
         sector->ceiling_xoffs = sector->base_ceiling_xoffs;
         sector->ceiling_yoffs = sector->base_ceiling_yoffs;
-        sector->floor_rotation = sector->base_floor_rotation;
-        sector->ceiling_rotation = sector->base_ceiling_rotation;
     }
 }
 
@@ -506,7 +484,6 @@ static void R_AddLine (seg_t *line)
       && backsector->ceiling_yoffs == frontsector->ceiling_yoffs
       && backsector->floor_rotation == frontsector->floor_rotation
       && backsector->ceiling_rotation == frontsector->ceiling_rotation
-      && backsector->colormap == frontsector->colormap
 
       // killough 4/16/98: consider altered lighting
       && backsector->floorlightsec == frontsector->floorlightsec

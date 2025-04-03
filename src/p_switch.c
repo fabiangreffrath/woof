@@ -616,17 +616,6 @@ P_UseSpecialLine
       EV_ChangeMusic(line, side);
       return true;
 
-    // Set the target sector's colormap.
-    case 2078:
-      line->special = 0;
-      // fallthrough
-
-    case 2079:
-      for (int s = -1; (s = P_FindSectorFromLineTag(line, s)) >= 0 ; )
-        sectors[s].colormap_index = side ? line->backcolormap
-                                         : line->frontcolormap;
-      return true;
-
       // killough 1/31/98: factored out compatibility check;
       // added inner switch, relaxed check to demo_compatibility
 
