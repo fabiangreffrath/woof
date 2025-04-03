@@ -194,8 +194,10 @@ static void R_MapPlane(int y, int x1, int x2)
     dy = (abs(centery - y) << FRACBITS) + FRACUNIT / 2;
 
   // [EA] plane math updated for accounting flat rotation, thanks to Odamex
-  if (rotation != cachedrotation[y] || planeheight != cachedheight[y])
+  if (planeheight != cachedheight[y] || rotation != cachedrotation[y])
     {
+      cachedheight[y] = planeheight;
+      cachedrotation[y] = rotation;
       distance = cacheddistance[y] = FixedMul(planeheight, yslope[y]);
       // [FG] avoid right-shifting in FixedMul() followed by left-shifting in FixedDiv()
       ds_xstep = cachedxstep[y] = (fixed_t)((int64_t)angle_sin * planeheight / dy);

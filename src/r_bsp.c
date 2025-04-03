@@ -337,7 +337,7 @@ static void R_MaybeInterpolateSector(sector_t* sector)
 
         if (sector->old_ceiling_rotation_gametic == gametic - 1)
         {
-            sector->ceiling_rotation = LerpFixed(sector->old_ceiling_rotation, sector->base_ceiling_rotation);
+            sector->ceiling_rotation = LerpAngle(sector->old_ceiling_rotation, sector->base_ceiling_rotation);
         }
         else
         {
@@ -346,7 +346,7 @@ static void R_MaybeInterpolateSector(sector_t* sector)
 
         if (sector->old_floor_rotation_gametic == gametic - 1)
         {
-            sector->floor_rotation = LerpFixed(sector->old_floor_rotation, sector->base_floor_rotation);
+            sector->floor_rotation = LerpAngle(sector->old_floor_rotation, sector->base_floor_rotation);
         }
         else
         {

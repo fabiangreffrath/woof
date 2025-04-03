@@ -1072,7 +1072,7 @@ P_UseSpecialLine
             G_SecretExitLevel();
             return true;
         }
-      break; // default
+      break;
 
     // Buttons (retriggerable switches)
     case 42:

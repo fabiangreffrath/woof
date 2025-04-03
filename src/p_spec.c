@@ -996,13 +996,13 @@ int P_CheckTag(line_t *line)
     case 198:
     case 48:  // Scrolling walls
     case 85:
-    case 2069:
+    case 2069: // Inventory-reset Exits
     case 2070:
     case 2071:
     case 2072:
     case 2073:
     case 2074:
-    case 2082:
+    case 2082: // Two-sided scrolling walls
     case 2083:
     case 2057: // Music changers
     case 2058:
@@ -1111,9 +1111,9 @@ void EV_ChangeMusic(line_t *line, int side)
 
   switch (line->special)
   {
-    case 2057: case 2063: case 2059: case 2065:
-    case 2061: case 2067: case 2087: case 2093:
-    case 2089: case 2095: case 2091: case 2097:
+    case 2057: case 2059: case 2061: case 2063:
+    case 2065: case 2067: case 2087: case 2089:
+    case 2091: case 2093: case 2095: case 2097:
       once = true;
       break;
   }
@@ -1129,7 +1129,7 @@ void EV_ChangeMusic(line_t *line, int side)
 
   switch (line->special)
   {
-    case 2089: case 2090: case 2087: case 2088:
+    case 2087: case 2088: case 2089: case 2090:
     case 2091: case 2092: case 2093: case 2094:
     case 2095: case 2096: case 2097: case 2098:
       resets = true;
@@ -2676,45 +2676,23 @@ void EV_RotateOffsetFlat(line_t *line, sector_t *sector)
   {
     if (offset_floor)
     {
-      if (sectors[s].old_floor_offs_gametic != gametic)
-      {
-        sectors[s].old_floor_xoffs = sectors[s].base_floor_xoffs;
-        sectors[s].old_floor_yoffs = sectors[s].base_floor_yoffs;
-        sectors[s].old_floor_offs_gametic = gametic;
-      }
       sectors[s].base_floor_xoffs -= line->dx;
       sectors[s].base_floor_yoffs += line->dy;
     }
 
     if (offset_ceiling)
     {
-      if (sectors[s].old_ceil_offs_gametic != gametic)
-      {
-        sectors[s].old_ceiling_xoffs = sectors[s].base_ceiling_xoffs;
-        sectors[s].old_ceiling_yoffs = sectors[s].base_ceiling_yoffs;
-        sectors[s].old_ceil_offs_gametic = gametic;
-      }
       sectors[s].base_ceiling_xoffs -= line->dx;
       sectors[s].base_ceiling_yoffs += line->dy;
     }
 
     if (rotate_floor)
     {
-      if (sectors[s].old_floor_rotation_gametic != gametic)
-      {
-        sectors[s].old_floor_rotation = sectors[s].base_floor_rotation;
-        sectors[s].old_floor_rotation_gametic = gametic;
-      }
       sectors[s].base_floor_rotation -= line->angle;
     }
 
     if (rotate_ceiling)
     {
-      if (sectors[s].old_ceiling_rotation_gametic != gametic)
-      {
-        sectors[s].old_ceiling_rotation = sectors[s].base_ceiling_rotation;
-        sectors[s].old_ceiling_rotation_gametic = gametic;
-      }
       sectors[s].base_ceiling_rotation -= line->angle;
     }
   }
