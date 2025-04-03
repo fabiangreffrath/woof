@@ -948,7 +948,7 @@ int P_CheckTag(line_t *line)
 
   switch (line->special)
     {
-    case 1:    // Manual door specials
+    case 1:   // Manual door specials
     case 26:
     case 27:
     case 28:
@@ -958,7 +958,6 @@ int P_CheckTag(line_t *line)
     case 34:
     case 117:
     case 118:
-
     case 139:  // Lighting specials
     case 170:
     case 79:
@@ -979,7 +978,6 @@ int P_CheckTag(line_t *line)
     case 172:
     case 156:
     case 17:
-
     case 195:  // Thing teleporters
     case 174:
     case 97:
@@ -990,25 +988,22 @@ int P_CheckTag(line_t *line)
     case 209:
     case 208:
     case 207:
-
-    case 11:   // Exits
+    case 11:  // Exits
     case 52:
     case 197:
     case 51:
     case 124:
     case 198:
+    case 48:  // Scrolling walls
+    case 85:
     case 2069:
     case 2070:
     case 2071:
     case 2072:
     case 2073:
     case 2074:
-
-    case 48:   // Scrolling walls
-    case 85:
     case 2082:
     case 2083:
-
     case 2057: // Music changers
     case 2058:
     case 2059:
@@ -1774,10 +1769,8 @@ void P_CrossSpecialLine(line_t *line, int side, mobj_t *thing, boolean bossactio
     // ID24 Music Changers
     case 2057: case 2063: case 2087: case 2093:
     case 2058: case 2064: case 2088: case 2094:
-    {
       EV_ChangeMusic(line, side);
       break;
-    }
 
     // Set the target sector's colormap.
     case 2076:
@@ -2258,10 +2251,8 @@ void P_ShootSpecialLine(mobj_t *thing, line_t *line, int side)
     // ID24 Music Changers
     case 2061: case 2067: case 2091: case 2097:
     case 2062: case 2068: case 2092: case 2098:
-    {
       EV_ChangeMusic(line, side);
       break;
-    }
 
     // Set the target sector's colormap.
     case 2080:
@@ -2290,10 +2281,11 @@ void P_ShootSpecialLine(mobj_t *thing, line_t *line, int side)
 
           case 197:
             // Exit to next level
+
             // killough 10/98: prevent zombies from exiting levels
-            if(thing->player && thing->player->health <= 0 && !comp[comp_zombie])
+            if(thing->player && thing->player->health<=0 && !comp[comp_zombie])
               break;
-            P_ChangeSwitchTexture(line, 0);
+            P_ChangeSwitchTexture(line,0);
             G_ExitLevel();
             break;
 
@@ -2308,14 +2300,14 @@ void P_ShootSpecialLine(mobj_t *thing, line_t *line, int side)
             // Exit to secret level
 
             // killough 10/98: prevent zombies from exiting levels
-            if(thing->player && thing->player->health <= 0 && !comp[comp_zombie])
+            if(thing->player && thing->player->health<=0 && !comp[comp_zombie])
               break;
-            P_ChangeSwitchTexture(line, 0);
+            P_ChangeSwitchTexture(line,0);
             G_SecretExitLevel();
             break;
             //jff end addition of new gun linedefs
           }
-      break; // default
+      break;
     }
 }
 
@@ -2915,19 +2907,15 @@ void P_SpawnSpecials (void)
 
       // Always - Set the target sector's colormap.
       case 2075:
-      {
         for (s = -1; (s = P_FindSectorFromLineTag(&lines[i], s)) >= 0;)
           sectors[s].colormap_index = lines[i].frontcolormap;
         break;
-      }
 
       case 2048: case 2049: case 2050:
       case 2051: case 2052: case 2053:
       case 2054: case 2055: case 2056:
-      {
         EV_RotateOffsetFlat(&lines[i], sectors);
         break;
-      }
       }
 }
 
@@ -3121,137 +3109,134 @@ static void P_SpawnScrollers(void)
   int i;
   line_t *l = lines;
 
-  for (i = 0; i < numlines; i++, l++)
-  {
-    fixed_t dx = l->dx >> SCROLL_SHIFT;  // direction and speed of scrolling
-    fixed_t dy = l->dy >> SCROLL_SHIFT;
-    int control = -1, accel = 0;         // no control sector or acceleration
-    int special = l->special;
-
-    if (demo_compatibility && special != 48)
-      continue;
-
-    // killough 3/7/98: Types 245-249 are same as 250-254 except that the
-    // first side's sector's heights cause scrolling when they change, and
-    // this linedef controls the direction and speed of the scrolling. The
-    // most complicated linedef since donuts, but powerful :)
-    //
-    // killough 3/15/98: Add acceleration. Types 214-218 are the same but
-    // are accelerative.
-
-    if (special >= 245 && special <= 249)         // displacement scrollers
+  for (i=0;i<numlines;i++,l++)
     {
-      special += 250-245;
-      control = sides[*l->sidenum].sector - sectors;
-    }
-    else if (special >= 214 && special <= 218)   // accelerative scrollers
-    {
-      accel = 1;
-      special += 250-214;
-      control = sides[*l->sidenum].sector - sectors;
-    }
+      fixed_t dx = l->dx >> SCROLL_SHIFT;  // direction and speed of scrolling
+      fixed_t dy = l->dy >> SCROLL_SHIFT;
+      int control = -1, accel = 0;         // no control sector or acceleration
+      int special = l->special;
 
-    switch (special)
-    {
-      register int s;
+      if (demo_compatibility && special != 48)
+        continue;
 
-      case 250:   // scroll effect ceiling
-        for (s = -1; (s = P_FindSectorFromLineTag(l, s)) >= 0;)
-          Add_Scroller(sc_ceiling, -dx, dy, control, s, accel);
-        break;
+      // killough 3/7/98: Types 245-249 are same as 250-254 except that the
+      // first side's sector's heights cause scrolling when they change, and
+      // this linedef controls the direction and speed of the scrolling. The
+      // most complicated linedef since donuts, but powerful :)
+      //
+      // killough 3/15/98: Add acceleration. Types 214-218 are the same but
+      // are accelerative.
 
-      case 251:   // scroll effect floor
-      case 253:   // scroll and carry objects on floor
-        for (s = -1; (s = P_FindSectorFromLineTag(l, s)) >= 0;)
-          Add_Scroller(sc_floor, -dx, dy, control, s, accel);
-        if (special != 253)
+      if (special >= 245 && special <= 249)         // displacement scrollers
+        {
+          special += 250-245;
+          control = sides[*l->sidenum].sector - sectors;
+        }
+      else
+        if (special >= 214 && special <= 218)       // accelerative scrollers
+          {
+            accel = 1;
+            special += 250-214;
+            control = sides[*l->sidenum].sector - sectors;
+          }
+
+      switch (special)
+        {
+          register int s;
+
+        case 250:   // scroll effect ceiling
+          for (s=-1; (s = P_FindSectorFromLineTag(l,s)) >= 0;)
+            Add_Scroller(sc_ceiling, -dx, dy, control, s, accel);
           break;
 
-      case 252: // carry objects on floor
-        dx = FixedMul(dx, CARRYFACTOR);
-        dy = FixedMul(dy, CARRYFACTOR);
-        for (s = -1; (s = P_FindSectorFromLineTag(l, s)) >= 0;)
-          Add_Scroller(sc_carry, dx, dy, control, s, accel);
-        break;
+        case 251:   // scroll effect floor
+        case 253:   // scroll and carry objects on floor
+          for (s=-1; (s = P_FindSectorFromLineTag(l,s)) >= 0;)
+            Add_Scroller(sc_floor, -dx, dy, control, s, accel);
+          if (special != 253)
+            break;
 
-        // killough 3/1/98: scroll wall according to linedef
-        // (same direction and speed as scrolling floors)
-      case 254:
-        for (s = -1; (s = P_FindLineFromLineTag(l, s)) >= 0;)
-          if (s != i)
-            Add_WallScroller(dx, dy, lines+s, control, accel);
-        break;
+        case 252: // carry objects on floor
+          dx = FixedMul(dx,CARRYFACTOR);
+          dy = FixedMul(dy,CARRYFACTOR);
+          for (s=-1; (s = P_FindSectorFromLineTag(l,s)) >= 0;)
+            Add_Scroller(sc_carry, dx, dy, control, s, accel);
+          break;
 
-      case 255:    // killough 3/2/98: scroll according to sidedef offsets
-        s = lines[i].sidenum[0];
-        Add_Scroller(sc_side, -sides[s].textureoffset, sides[s].rowoffset,
-                     -1, s, accel);
-        break;
+          // killough 3/1/98: scroll wall according to linedef
+          // (same direction and speed as scrolling floors)
+        case 254:
+          for (s=-1; (s = P_FindLineFromLineTag(l,s)) >= 0;)
+            if (s != i)
+              Add_WallScroller(dx, dy, lines+s, control, accel);
+          break;
 
-      // special 255 with tag control
+        case 255:    // killough 3/2/98: scroll according to sidedef offsets
+          s = lines[i].sidenum[0];
+          Add_Scroller(sc_side, -sides[s].textureoffset,
+                       sides[s].rowoffset, -1, s, accel);
+          break;
 
-      // Always - Scroll both front and back sidedef's textures and
-      // accelerate the scroll value by the target sector's movement
-      // divided by 8.
-      case 2086:
-      case 1026:
-        accel = 1;
-        // fallthrough
+        // special 255 with tag control
 
-      // Always - Scroll both front and back sidedef's textures
-      // according to the target sector's movement divided by 8.
-      case 2085:
-      case 1025:
-        control = sides[*l->sidenum].sector - sectors;
-        // fallthrough
+        // Always - Scroll both front and back sidedef's textures and
+        // accelerate the scroll value by the target sector's movement
+        // divided by 8.
+        case 2086:
+        case 1026:
+          accel = 1;
+          // fallthrough
 
-      // Always - Scroll both front and back sidedef's textures
-      // according to the target sector's scroll values divided by 8
-      case 2084:
-      case 1024:
-        if (l->tag == 0)
-        {
-          I_Error("Line %d is missing a tag!", i);
+        // Always - Scroll both front and back sidedef's textures
+        // according to the target sector's movement divided by 8.
+        case 2085:
+        case 1025:
+          control = sides[*l->sidenum].sector - sectors;
+          // fallthrough
+
+        // Always - Scroll both front and back sidedef's textures
+        // according to the target sector's scroll values divided by 8
+        case 2084:
+        case 1024:
+          if (l->tag == 0)
+            I_Error("Line %d is missing a tag!", i);
+
+          s = lines[i].sidenum[0];
+          dx = -sides[s].textureoffset / 8;
+          dy = sides[s].rowoffset / 8;
+          for (s = -1; (s = P_FindLineFromLineTag(l, s)) >= 0;)
+            if (s != i)
+            {
+              Add_Scroller(sc_side, dx, dy, control, lines[s].sidenum[0], accel);
+
+              if (special >= 2084 && special <= 2086 && lines[s].sidenum[1] != NO_INDEX)
+                Add_Scroller(sc_side, -dx, dy, control, lines[s].sidenum[1], accel);
+            }
+          break;
+
+        // Always - Scroll both front and back sidedef's textures
+        // according to the line's left direction.
+        case 2082:
+          if (lines[i].sidenum[1] != NO_INDEX)
+            Add_Scroller(sc_side, -FRACUNIT, 0, -1, lines[i].sidenum[1], accel);
+          // fallthrough
+
+        case 48:                  // scroll first side
+          Add_Scroller(sc_side,  FRACUNIT, 0, -1, lines[i].sidenum[0], accel);
+          break;
+
+        // Always - Scroll both front and back sidedef's textures
+        // according to the line's right direction.
+        case 2083:
+          if (lines[i].sidenum[1] != NO_INDEX)
+            Add_Scroller(sc_side, FRACUNIT, 0, -1, lines[i].sidenum[1], accel);
+          // fallthrough
+
+        case 85:                  // jff 1/30/98 2-way scroll
+          Add_Scroller(sc_side, -FRACUNIT, 0, -1, lines[i].sidenum[0], accel);
+          break;
         }
-
-        s  =  lines[i].sidenum[0];
-        dx = -sides[s].textureoffset / 8;
-        dy =  sides[s].rowoffset / 8;
-        for (s = -1; (s = P_FindLineFromLineTag(l, s)) >= 0;)
-        {
-          if (s != i)
-          {
-            Add_Scroller(sc_side, dx, dy, control, lines[s].sidenum[0], accel);
-
-            if (special >= 2084 && special <= 2086 && lines[s].sidenum[1] != NO_INDEX)
-              Add_Scroller(sc_side, -dx, dy, control, lines[s].sidenum[1], accel);
-          }
-        }
-        break;
-
-      // Always - Scroll both front and back sidedef's textures
-      // according to the line's left direction.
-      case 2082:
-        if (lines[i].sidenum[1] != NO_INDEX)
-          Add_Scroller(sc_side, -FRACUNIT, 0, -1, lines[i].sidenum[1], accel);
-        // fallthrough
-
-      case 48:                  // scroll first side
-        Add_Scroller(sc_side,  FRACUNIT, 0, -1, lines[i].sidenum[0], accel);
-        break;
-
-      // Always - Scroll both front and back sidedef's textures
-      // according to the line's right direction.
-      case 2083:
-        if (lines[i].sidenum[1] != NO_INDEX)
-          Add_Scroller(sc_side, FRACUNIT, 0, -1, lines[i].sidenum[1], accel);
-        // fallthrough
-
-      case 85:                  // jff 1/30/98 2-way scroll
-        Add_Scroller(sc_side, -FRACUNIT, 0, -1, lines[i].sidenum[0], accel);
-        break;
     }
-  }
 }
 
 // Restored Boom's friction code

@@ -427,9 +427,7 @@ P_UseSpecialLine
       EV_VerticalDoor (line, thing);
       return true;
 
-    //
     // Switches (non-retriggerable)
-    //
     case 7:
       // Build Stairs
       if (EV_BuildStairs(line,build8))
@@ -613,13 +611,10 @@ P_UseSpecialLine
       return true;
 
     // ID24 Music Changers
-
     case 2059: case 2065: case 2089: case 2095:
     case 2060: case 2066: case 2090: case 2096:
-    {
       EV_ChangeMusic(line, side);
       return true;
-    }
 
     // Set the target sector's colormap.
     case 2078:
@@ -631,9 +626,6 @@ P_UseSpecialLine
         sectors[s].colormap_index = side ? line->backcolormap
                                          : line->frontcolormap;
       return true;
-
-
-
 
       // killough 1/31/98: factored out compatibility check;
       // added inner switch, relaxed check to demo_compatibility
@@ -1082,9 +1074,7 @@ P_UseSpecialLine
         }
       break; // default
 
-    //
     // Buttons (retriggerable switches)
-    //
     case 42:
       // Close Door
       if (EV_DoDoor(line,doorClose))

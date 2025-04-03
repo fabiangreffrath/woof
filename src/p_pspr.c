@@ -265,7 +265,7 @@ static int P_SwitchWeaponMBF21(player_t *player)
 
 int P_SwitchWeapon(player_t *player)
 {
-  int *prefer = weapon_preferences[demo_compatibility]; // killough 3/22/98
+  int *prefer = weapon_preferences[demo_compatibility!=0]; // killough 3/22/98
   int currentweapon = player->readyweapon;
   int newweapon = currentweapon;
   int i = NUMWEAPONS+1;   // killough 5/2/98

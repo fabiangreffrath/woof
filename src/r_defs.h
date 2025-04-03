@@ -125,7 +125,7 @@ typedef struct sector_s
   // or ceilingpic, because the rest of Doom needs to know which is sky
   // and which isn't, etc.
 
-  int floorsky, ceilingsky;
+ int floorsky, ceilingsky;
 
   // list of mobjs that are at least partially in the sector
   // thinglist is a subset of touching_thinglist
