@@ -2093,8 +2093,10 @@ void P_ArchiveWorld (void)
   size_t size = 
     (sizeof(short)*5 + sizeof sec->floorheight + sizeof sec->ceilingheight
      + sizeof(sec->floor_xoffs) + sizeof(sec->floor_yoffs)
-     + sizeof(sec->ceiling_xoffs) + sizeof(sec->ceiling_yoffs)) 
-    * numsectors + sizeof(short)*3*numlines + 4;
+     + sizeof(sec->ceiling_xoffs) + sizeof(sec->ceiling_yoffs)
+     + sizeof(sec->ceiling_rotation) + sizeof(sec->floor_rotation)) * numsectors
+    + (sizeof(short) * 3 + sizeof(li->angle) + sizeof(li->frontmusic)
+       + sizeof(li->backmusic) + sizeof(short)) * numlines + 4;
 
   for (i=0; i<numlines; i++)
     {
