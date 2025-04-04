@@ -856,6 +856,12 @@ static void cheat_spechits(void)
           continue;
         }
 
+      // [EA] do not trigger any ID24 actions
+      if (lines[i].special >= 2048 && lines[i].special <= 2098)
+      {
+        continue;
+      }
+
       // [crispy] special without tag --> DR linedef type
       // do not change door direction if it is already moving
       if (lines[i].tag == 0 &&
@@ -867,7 +873,7 @@ static void cheat_spechits(void)
       }
 
       P_CrossSpecialLine(&lines[i], 0, plyr->mo, false);
-      P_ShootSpecialLine(plyr->mo, &lines[i]);
+      P_ShootSpecialLine(plyr->mo, &lines[i], 0);
       P_UseSpecialLine(plyr->mo, &lines[i], 0, false);
 
       speciallines++;

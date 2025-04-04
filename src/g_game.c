@@ -169,6 +169,9 @@ static boolean  doom_weapon_toggles;
 
 complevel_t     force_complevel, default_complevel;
 
+// ID24 exit line specials
+boolean reset_inventory = false;
+
 static boolean  pistolstart, default_pistolstart;
 
 boolean         strictmode, default_strictmode;
@@ -980,10 +983,18 @@ static void G_DoLoadLevel(void)
 
   P_UpdateCheckSight();
 
+  // ID24 exit line specials
   // [crispy] pistol start
-  if (CRITICAL(pistolstart))
+  if (reset_inventory || CRITICAL(pistolstart))
   {
-    G_PlayerReborn(0);
+    for (int player = 0; player < MAXPLAYERS; player++)
+    {
+      if (playeringame[player])
+      {
+        G_PlayerReborn(player);
+      }
+    }
+    reset_inventory = false;
   }
 
   P_SetupLevel (gameepisode, gamemap, 0, gameskill);
@@ -3458,7 +3469,7 @@ demo_version_t G_GetNamedComplevel(const char *arg)
     {
         const char *const name;
         demo_version_t demover;
-        int exe;
+        GameVersion_t exe;
     } named_complevel[] = {
         {"vanilla",  DV_VANILLA, exe_indetermined},
         {"doom2",    DV_VANILLA, exe_doom_1_9    },
@@ -3476,6 +3487,8 @@ demo_version_t G_GetNamedComplevel(const char *arg)
         {"11",       DV_MBF,     exe_indetermined},
         {"mbf21",    DV_MBF21,   exe_indetermined},
         {"21",       DV_MBF21,   exe_indetermined},
+        {"id24",     DV_ID24,    exe_indetermined},
+        {"24",       DV_ID24,    exe_indetermined},
     };
 
     for (int i = 0; i < arrlen(named_complevel); i++)
@@ -3502,7 +3515,8 @@ static struct
     {DV_VANILLA, CL_VANILLA},
     {DV_BOOM,    CL_BOOM   },
     {DV_MBF,     CL_MBF    },
-    {DV_MBF21,   CL_MBF21  }
+    {DV_MBF21,   CL_MBF21  },
+    {DV_ID24,    CL_ID24   },
 };
 
 static complevel_t GetComplevel(demo_version_t demover)
@@ -3543,6 +3557,8 @@ const char *G_GetCurrentComplevelName(void)
             return "MBF";
         case DV_MBF21:
             return "MBF21";
+        case DV_ID24:
+            return "ID24";
         default:
             return "Unknown";
     }
@@ -3575,6 +3591,10 @@ static demo_version_t GetWadDemover(void)
     else if (length == 5 && !strncasecmp("mbf21", data, 5))
     {
         return DV_MBF21;
+    }
+    else if (length == 4 && !strncasecmp("id24", data, 4))
+    {
+        return DV_ID24;
     }
 
     return DV_NONE;
@@ -3820,6 +3840,10 @@ void G_ReloadDefaults(boolean keep_demover)
 
   if (M_CheckParm("-skill") && startskill == sk_none && !demo_compatibility)
     I_Error("G_ReloadDefaults: '-skill 0' requires complevel Vanilla.");
+
+  if (demorecording && demo_version == DV_ID24)
+    I_Error("G_ReloadDefaults: Recording ID24 demos is currently not enabled. "
+            "Demo-compability in Complevel ID24 is not yet stable.");
 
   if (demo_version < DV_MBF)
   {
@@ -4338,7 +4362,7 @@ void G_BeginRecording(void)
 
   demo_p = demobuffer;
 
-  if (demo_version == DV_MBF || mbf21)
+  if (demo_version >= DV_MBF)
   {
   *demo_p++ = demo_version;
 

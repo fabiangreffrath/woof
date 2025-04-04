@@ -2093,8 +2093,10 @@ void P_ArchiveWorld (void)
   size_t size = 
     (sizeof(short)*5 + sizeof sec->floorheight + sizeof sec->ceilingheight
      + sizeof(sec->floor_xoffs) + sizeof(sec->floor_yoffs)
-     + sizeof(sec->ceiling_xoffs) + sizeof(sec->ceiling_yoffs)) 
-    * numsectors + sizeof(short)*3*numlines + 4;
+     + sizeof(sec->ceiling_xoffs) + sizeof(sec->ceiling_yoffs)
+     + sizeof(sec->ceiling_rotation) + sizeof(sec->floor_rotation)) * numsectors
+    + (sizeof(short) * 3 + sizeof(li->angle) + sizeof(li->frontmusic)
+       + sizeof(li->backmusic) + sizeof(short)) * numlines + 4;
 
   for (i=0; i<numlines; i++)
     {
@@ -2126,6 +2128,9 @@ void P_ArchiveWorld (void)
       saveg_write32(sec->floor_yoffs);
       saveg_write32(sec->ceiling_xoffs);
       saveg_write32(sec->ceiling_yoffs);
+
+      saveg_write32(sec->floor_rotation);
+      saveg_write32(sec->ceiling_rotation);
     }
 
   // do lines
@@ -2136,6 +2141,10 @@ void P_ArchiveWorld (void)
       saveg_write16(li->flags);
       saveg_write16(li->special);
       saveg_write16(li->tag);
+
+      saveg_write32(li->angle);
+      saveg_write32(li->frontmusic);
+      saveg_write32(li->backmusic);
 
       for (j=0; j<2; j++)
         if (li->sidenum[j] != NO_INDEX)
@@ -2199,6 +2208,9 @@ void P_UnArchiveWorld (void)
         sec->base_floor_yoffs = sec->old_floor_yoffs = sec->floor_yoffs;
         sec->base_ceiling_xoffs = sec->old_ceiling_xoffs = sec->ceiling_xoffs;
         sec->base_ceiling_yoffs = sec->old_ceiling_yoffs = sec->ceiling_yoffs;
+
+        sec->floor_rotation = saveg_read32();
+        sec->ceiling_rotation = saveg_read32();
       }
 
       // [crispy] add overflow guard for the flattranslation[] array
@@ -2222,6 +2234,14 @@ void P_UnArchiveWorld (void)
       li->flags = saveg_read16();
       li->special = saveg_read16();
       li->tag = saveg_read16();
+
+      if (saveg_compat > saveg_woof1500)
+      {
+        li->angle = saveg_read32();
+        li->frontmusic = saveg_read32();
+        li->backmusic = saveg_read32();
+      }
+
       for (j=0 ; j<2 ; j++)
         if (li->sidenum[j] != NO_INDEX)
           {

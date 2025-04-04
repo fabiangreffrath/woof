@@ -1543,8 +1543,11 @@ static boolean PTR_ShootTraverse(intercept_t *in)
       line_t *li = in->d.line;
 
       if (li->special)
-	P_ShootSpecialLine (shootthing, li);
-      
+	{
+	  int side = P_PointOnLineSide(shootthing->x, shootthing->y, li);
+	  P_ShootSpecialLine(shootthing, li, side);
+	}
+
       if (li->flags & ML_TWOSIDED)
 	{  // crosses a two sided (really 2s) line
 	  P_LineOpening (li);
