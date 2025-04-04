@@ -69,6 +69,7 @@ inline static void saveg_write_pad(void)
 
     padding = (4 - ((intptr_t)save_p & 3)) & 3;
 
+    saveg_buffer_size(padding);
     for (i=0; i<padding; ++i)
     {
         savep_putbyte(0);
