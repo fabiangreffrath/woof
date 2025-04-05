@@ -139,7 +139,7 @@ static void InitSky(void)
 
     array_foreach(sky, skydefs->skies)
     {
-        if (skytexture == R_CheckTextureNumForName(sky->skytex.name))
+        if (skytexture == sky->skytex.texture)
         {
             if (sky->type == SkyType_Fire)
             {
