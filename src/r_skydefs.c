@@ -20,6 +20,7 @@
 #include "m_fixed.h"
 #include "m_json.h"
 #include "m_misc.h"
+#include "r_data.h"
 
 static boolean ParseFire(json_t *json, fire_t *out)
 {
@@ -47,13 +48,12 @@ static boolean ParseFire(json_t *json, fire_t *out)
 
 static boolean ParseSkyTex(json_t *json, skytex_t *out)
 {
-    json_t *name = JS_GetObject(json, "name");
-    if (!JS_IsString(name))
+    const char *name = JS_GetStringValue(json, "name");
+    if (!name)
     {
-        out->name = "-"; // no texture
         return false;
     }
-    out->name = M_StringDuplicate(JS_GetString(name));
+    out->texture = R_TextureNumForName(name);
 
     json_t *mid = JS_GetObject(json, "mid");
     json_t *scrollx = JS_GetObject(json, "scrollx");
@@ -66,7 +66,7 @@ static boolean ParseSkyTex(json_t *json, skytex_t *out)
     {
         return false;
     }
-    out->mid = JS_GetNumber(mid);
+    out->mid = JS_GetNumber(mid) * FRACUNIT;
     const double ticratescale = 1.0 / TICRATE;
     out->scrollx = (JS_GetNumber(scrollx) * ticratescale) * FRACUNIT;
     out->scrolly = (JS_GetNumber(scrolly) * ticratescale) * FRACUNIT;

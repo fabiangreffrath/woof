@@ -416,9 +416,9 @@ static void DrawSkyFire(visplane_t *pl, fire_t *fire)
 
 static void DrawSkyTex(visplane_t *pl, skytex_t *skytex)
 {
-    int texture = R_TextureNumForName(skytex->name);
+    int texture = texturetranslation[skytex->texture];
 
-    dc_texturemid = skytex->mid * FRACUNIT;
+    dc_texturemid = skytex->mid;
     dc_texheight = textureheight[texture] >> FRACBITS;
     dc_iscale = FixedMul(skyiscale, skytex->scaley);
 
@@ -551,7 +551,7 @@ static void do_draw_mbf_sky(visplane_t *pl)
     else // Normal Doom sky, only one allowed per level
     {
         dc_texturemid = skytexturemid; // Default y-offset
-        texture = skytexture;          // Default texture
+        texture = texturetranslation[skytexture]; // Default texture
         flip = 0;                      // Doom flips it
     }
 
