@@ -816,6 +816,7 @@ static boolean P_LookForPlayers(mobj_t *actor, boolean allaround)
 {
   player_t *player;
   int stop, stopc, c;
+  boolean unseen[MAXPLAYERS] = {0};
 
   if (actor->flags & MF_FRIEND)
     {  // killough 9/9/98: friendly monsters go about players differently
@@ -891,8 +892,11 @@ static boolean P_LookForPlayers(mobj_t *actor, boolean allaround)
       if (player->health <= 0)
 	continue;               // dead
 
-      if (!P_IsVisible(actor, player->mo, allaround))
+      if (unseen[actor->lastlook] || !P_IsVisible(actor, player->mo, allaround))
+      {
+	unseen[actor->lastlook] = true;
 	continue;
+      }
       
       P_SetTarget(&actor->target, player->mo);
 
