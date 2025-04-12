@@ -99,7 +99,7 @@
 #define SAVEGAMESIZE  0x20000
 #define SAVESTRINGSIZE  24
 
-static size_t   savegamesize = SAVEGAMESIZE; // killough
+size_t savegamesize = SAVEGAMESIZE; // killough
 static char     *demoname = NULL;
 // the original name of the demo, without "-00000" and file extension
 static char *demoname_orig = NULL;
@@ -168,6 +168,9 @@ int             realtic_clock_rate = 100;
 static boolean  doom_weapon_toggles;
 
 complevel_t     force_complevel, default_complevel;
+
+// ID24 exit line specials
+boolean reset_inventory = false;
 
 static boolean  pistolstart, default_pistolstart;
 
@@ -980,10 +983,18 @@ static void G_DoLoadLevel(void)
 
   P_UpdateCheckSight();
 
+  // ID24 exit line specials
   // [crispy] pistol start
-  if (CRITICAL(pistolstart))
+  if (reset_inventory || CRITICAL(pistolstart))
   {
-    G_PlayerReborn(0);
+    for (int player = 0; player < MAXPLAYERS; player++)
+    {
+      if (playeringame[player])
+      {
+        G_PlayerReborn(player);
+      }
+    }
+    reset_inventory = false;
   }
 
   P_SetupLevel (gameepisode, gamemap, 0, gameskill);
@@ -2300,16 +2311,6 @@ void G_SaveGame(int slot, char *description)
   sendsave = true;
 }
 
-// Check for overrun and realloc if necessary -- Lee Killough 1/22/98
-void CheckSaveGame(size_t size)
-{
-  size_t pos = save_p - savebuffer;
-  size += 1024;  // breathing room
-  if (pos+size > savegamesize)
-    save_p = (savebuffer = Z_Realloc(savebuffer,
-           savegamesize += (size+1023) & ~1023, PU_STATIC, 0)) + pos;
-}
-
 // killough 3/22/98: form savegame name in one location
 // (previously code was scattered around in multiple places)
 
@@ -2401,7 +2402,7 @@ static void DoSaveGame(char *name)
 
   save_p = savebuffer = Z_Malloc(savegamesize, PU_STATIC, 0);
 
-  CheckSaveGame(SAVESTRINGSIZE+VERSIONSIZE+sizeof(uint64_t));
+  saveg_buffer_size(SAVESTRINGSIZE + VERSIONSIZE);
   memcpy (save_p, description, SAVESTRINGSIZE);
   save_p += SAVESTRINGSIZE;
   memset (name2,0,sizeof(name2));
@@ -2413,14 +2414,14 @@ static void DoSaveGame(char *name)
   memcpy (save_p, name2, VERSIONSIZE);
   save_p += VERSIONSIZE;
 
-  *save_p++ = demo_version;
+  saveg_write8(demo_version);
 
   // killough 2/14/98: save old compatibility flag:
-  *save_p++ = compatibility;
+  saveg_write8(compatibility);
 
-  *save_p++ = gameskill;
-  *save_p++ = gameepisode;
-  *save_p++ = gamemap;
+  saveg_write8(gameskill);
+  saveg_write8(gameepisode);
+  saveg_write8(gamemap);
 
   {  // killough 3/16/98, 12/98: store lump name checksum
     uint64_t checksum = G_Signature(gameepisode, gamemap);
@@ -2433,29 +2434,28 @@ static void DoSaveGame(char *name)
     for (*save_p = 0, i = 0; i < array_size(wadfiles); i++)
       {
         const char *basename = M_BaseName(wadfiles[i]);
-        CheckSaveGame(strlen(basename)+2);
+        saveg_buffer_size(strlen(basename)+2);
         strcat(strcat((char *) save_p, basename), "\n");
       }
     save_p += strlen((char *) save_p)+1;
   }
 
-  CheckSaveGame(G_GameOptionSize()+MIN_MAXPLAYERS+10);
-
   for (i=0 ; i<MAXPLAYERS ; i++)
-    *save_p++ = playeringame[i];
+    saveg_write8(playeringame[i]);
 
   for (;i<MIN_MAXPLAYERS;i++)         // killough 2/28/98
-    *save_p++ = 0;
+    saveg_write8(0);
 
-  *save_p++ = idmusnum;               // jff 3/17/98 save idmus state
+  saveg_write8(idmusnum);               // jff 3/17/98 save idmus state
 
+  saveg_buffer_size(G_GameOptionSize());
   save_p = G_WriteOptions(save_p);    // killough 3/1/98: save game options
 
   // [FG] fix copy size and pointer progression
   saveg_write32(leveltime); //killough 11/98: save entire word
 
   // killough 11/98: save revenant tracer state
-  *save_p++ = (gametic-basetic) & 255;
+  saveg_write8((gametic-basetic) & 255);
 
   P_ArchivePlayers();
   P_ArchiveWorld();
@@ -2464,14 +2464,13 @@ static void DoSaveGame(char *name)
   P_ArchiveRNG();    // killough 1/18/98: save RNG information
   P_ArchiveMap();    // killough 1/22/98: save automap information
 
-  *save_p++ = 0xe6;   // consistancy marker
+  saveg_write8(0xe6);   // consistancy marker
 
   // [FG] save total time for all completed levels
-  CheckSaveGame(sizeof totalleveltimes);
   saveg_write32(totalleveltimes);
 
   // save lump name for current MUSINFO item
-  CheckSaveGame(8);
+  saveg_buffer_size(8);
   if (musinfo.current_item > 0)
     memcpy(save_p, lumpinfo[musinfo.current_item].name, 8);
   else
@@ -2479,11 +2478,10 @@ static void DoSaveGame(char *name)
   save_p += 8;
 
   // save max_kill_requirement
-  CheckSaveGame(sizeof(max_kill_requirement));
   saveg_write32(max_kill_requirement);
 
   // [FG] save snapshot
-  CheckSaveGame(MN_SnapshotDataSize());
+  saveg_buffer_size(MN_SnapshotDataSize());
   MN_WriteSnapshot(save_p);
   save_p += MN_SnapshotDataSize();
 
@@ -3458,7 +3456,7 @@ demo_version_t G_GetNamedComplevel(const char *arg)
     {
         const char *const name;
         demo_version_t demover;
-        int exe;
+        GameVersion_t exe;
     } named_complevel[] = {
         {"vanilla",  DV_VANILLA, exe_indetermined},
         {"doom2",    DV_VANILLA, exe_doom_1_9    },
@@ -3476,6 +3474,8 @@ demo_version_t G_GetNamedComplevel(const char *arg)
         {"11",       DV_MBF,     exe_indetermined},
         {"mbf21",    DV_MBF21,   exe_indetermined},
         {"21",       DV_MBF21,   exe_indetermined},
+        {"id24",     DV_ID24,    exe_indetermined},
+        {"24",       DV_ID24,    exe_indetermined},
     };
 
     for (int i = 0; i < arrlen(named_complevel); i++)
@@ -3502,7 +3502,8 @@ static struct
     {DV_VANILLA, CL_VANILLA},
     {DV_BOOM,    CL_BOOM   },
     {DV_MBF,     CL_MBF    },
-    {DV_MBF21,   CL_MBF21  }
+    {DV_MBF21,   CL_MBF21  },
+    {DV_ID24,    CL_ID24   },
 };
 
 static complevel_t GetComplevel(demo_version_t demover)
@@ -3543,6 +3544,8 @@ const char *G_GetCurrentComplevelName(void)
             return "MBF";
         case DV_MBF21:
             return "MBF21";
+        case DV_ID24:
+            return "ID24";
         default:
             return "Unknown";
     }
@@ -3575,6 +3578,10 @@ static demo_version_t GetWadDemover(void)
     else if (length == 5 && !strncasecmp("mbf21", data, 5))
     {
         return DV_MBF21;
+    }
+    else if (length == 4 && !strncasecmp("id24", data, 4))
+    {
+        return DV_ID24;
     }
 
     return DV_NONE;
@@ -3820,6 +3827,10 @@ void G_ReloadDefaults(boolean keep_demover)
 
   if (M_CheckParm("-skill") && startskill == sk_none && !demo_compatibility)
     I_Error("G_ReloadDefaults: '-skill 0' requires complevel Vanilla.");
+
+  if (demorecording && demo_version == DV_ID24)
+    I_Error("G_ReloadDefaults: Recording ID24 demos is currently not enabled. "
+            "Demo-compability in Complevel ID24 is not yet stable.");
 
   if (demo_version < DV_MBF)
   {
@@ -4338,7 +4349,7 @@ void G_BeginRecording(void)
 
   demo_p = demobuffer;
 
-  if (demo_version == DV_MBF || mbf21)
+  if (demo_version >= DV_MBF)
   {
   *demo_p++ = demo_version;
 
