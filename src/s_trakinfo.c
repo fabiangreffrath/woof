@@ -21,6 +21,8 @@
 #include "m_json.h"
 #include "m_misc.h"
 #include "sha1.h"
+#include "sounds.h"
+#include "w_wad.h"
 
 boolean trakinfo_found;
 
@@ -70,15 +72,21 @@ void S_ParseTrakInfo(int lumpnum)
     trakinfo_found = true;
 }
 
-const char *S_GetExtra(byte *data, int length, extra_music_t type)
+void S_GetExtra(musicinfo_t *music, extra_music_t type)
 {
+    if (!trakinfo_found)
+    {
+        return;
+    }
+
     sha1_context_t sha1_context;
     sha1_digest_t digest;
 
     SHA1_Init(&sha1_context);
-    SHA1_Update(&sha1_context, data, length);
+    SHA1_Update(&sha1_context, music->data, W_LumpLength(music->lumpnum));
     SHA1_Final(digest, &sha1_context);
 
+    const char *extra = NULL;
     trakinfo_t *trak;
     array_foreach(trak, trakinfo)
     {
@@ -86,13 +94,28 @@ const char *S_GetExtra(byte *data, int length, extra_music_t type)
         {
             if (type == EXMUS_REMIX)
             {
-                return trak->remix;
+                extra = trak->remix;
             }
             else
             {
-                return trak->midi;
+                extra = trak->midi;
             }
+            break;
         }
     }
-    return NULL;
+    if (!extra)
+    {
+        I_Printf(VB_INFO, "TRAKINFO: extra track is not found");
+        return;
+    }
+
+    int lumpnum = W_GetNumForName(extra);
+    if (lumpnum < 0)
+    {
+        I_Printf(VB_ERROR, "TRAKINFO: lump '%s' is not found", extra);
+        return;
+    }
+    music->lumpnum = lumpnum;
+    Z_Free(music->data);
+    music->data = W_CacheLumpNum(music->lumpnum, PU_STATIC);
 }

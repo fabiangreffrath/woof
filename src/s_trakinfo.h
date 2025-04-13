@@ -27,6 +27,8 @@ typedef enum
     EXMUS_ORIGINAL
 } extra_music_t;
 
-const char *S_GetExtra(byte *data, int length, extra_music_t type);
+struct musicinfo_s;
+
+void S_GetExtra(struct musicinfo_s *music, extra_music_t type);
 
 #endif

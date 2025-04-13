@@ -718,16 +718,9 @@ void S_ChangeMusic(int musicnum, int looping)
 
     // load & register it
     music->data = W_CacheLumpNum(music->lumpnum, PU_STATIC);
-    if (extra_music && trakinfo_found)
+    if (extra_music)
     {
-        const char *extra =
-            S_GetExtra(music->data, W_LumpLength(music->lumpnum), extra_music);
-        if (extra)
-        {
-            music->lumpnum = W_GetNumForName(extra);
-            Z_Free(music->data);
-            music->data = W_CacheLumpNum(music->lumpnum, PU_STATIC);
-        }
+        S_GetExtra(music, extra_music);
     }
     // julian: added lump length
     music->handle = I_RegisterSong(music->data, W_LumpLength(music->lumpnum));
@@ -782,16 +775,9 @@ void S_ChangeMusInfoMusic(int lumpnum, int looping)
     music->lumpnum = lumpnum;
 
     music->data = W_CacheLumpNum(music->lumpnum, PU_STATIC);
-    if (extra_music && trakinfo_found)
+    if (extra_music)
     {
-        const char *extra =
-            S_GetExtra(music->data, W_LumpLength(music->lumpnum), extra_music);
-        if (extra)
-        {
-            music->lumpnum = W_GetNumForName(extra);
-            Z_Free(music->data);
-            music->data = W_CacheLumpNum(music->lumpnum, PU_STATIC);
-        }
+        S_GetExtra(music, extra_music);
     }
     music->handle = I_RegisterSong(music->data, W_LumpLength(music->lumpnum));
 

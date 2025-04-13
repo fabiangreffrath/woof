@@ -81,7 +81,8 @@ typedef struct sfxinfo_s
 // MusicInfo struct.
 //
 
-typedef struct {
+typedef struct musicinfo_s
+{
   // up to 6-character name
   char *name;
 
