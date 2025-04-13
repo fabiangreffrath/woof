@@ -105,7 +105,7 @@ void S_GetExtra(musicinfo_t *music, extra_music_t type)
     }
     if (!extra)
     {
-        I_Printf(VB_INFO, "TRAKINFO: extra track is not found");
+        I_Printf(VB_DEBUG, "TRAKINFO: extra track is not found");
         return;
     }
 
