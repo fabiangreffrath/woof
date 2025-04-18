@@ -68,6 +68,7 @@ enum
     input_menu_clear,
     input_menu_reloadlevel,
     input_menu_nextlevel,
+    input_menu_prevlevel,
 
     input_hud_timestats,
 
