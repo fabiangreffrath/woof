@@ -1918,7 +1918,7 @@ static void deh_procThing(DEHFILE *fpin, char *line)
                         {
                             size_t iy;
 
-                            for (iy = 0; iy < arrlen(deh_mobjflags); iy++)
+                            for (iy = 0; iy < arrlen(deh_mobjflags_mbf21); iy++)
                             {
                                 if (strcasecmp(strval,
                                                deh_mobjflags_mbf21[iy].name))
