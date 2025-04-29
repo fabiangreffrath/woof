@@ -139,7 +139,7 @@ void ST_UpdateCarousel(player_t *player)
     }
 
     if (automap_on || menuactive || paused || player->playerstate == PST_DEAD
-        || consoleplayer != displayplayer)
+        || player->health <= 0 || consoleplayer != displayplayer)
     {
         ST_ResetCarousel();
         return;

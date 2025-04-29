@@ -65,7 +65,19 @@ void S_ParseTrakInfo(int lumpnum)
         {
             trak.midi = M_StringDuplicate(midi);
         }
-        array_push(trakinfo, trak);
+        int i;
+        for (i = 0; i < array_size(trakinfo); ++i)
+        {
+            if (memcmp(trakinfo[i].sha1key, trak.sha1key, sizeof(sha1_digest_t)) == 0)
+            {
+                trakinfo[i] = trak;
+                break;
+            }
+        }
+        if (i == array_size(trakinfo))
+        {
+            array_push(trakinfo, trak);
+        }
     }
 
     JS_CloseOptions(lumpnum);

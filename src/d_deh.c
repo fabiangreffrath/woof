@@ -1222,11 +1222,7 @@ typedef struct
     long value;
 } deh_flag_t;
 
-struct
-{
-    const char *name;
-    long value;
-} deh_mobjflags[] = {
+static const deh_flag_t deh_mobjflags[] = {
     {"SPECIAL",      0x00000001}, // call  P_Specialthing when touched
     {"SOLID",        0x00000002}, // block movement
     {"SHOOTABLE",    0x00000004}, // can be hit
@@ -1918,7 +1914,7 @@ static void deh_procThing(DEHFILE *fpin, char *line)
                         {
                             size_t iy;
 
-                            for (iy = 0; iy < arrlen(deh_mobjflags); iy++)
+                            for (iy = 0; iy < arrlen(deh_mobjflags_mbf21); iy++)
                             {
                                 if (strcasecmp(strval,
                                                deh_mobjflags_mbf21[iy].name))

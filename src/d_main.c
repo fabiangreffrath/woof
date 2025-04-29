@@ -1656,7 +1656,7 @@ static void D_EndDoom(void)
   }
 
   // If so, is it from the IWAD?
-  bool iwad_endoom = W_IsIWADLump(W_CheckNumForName("ENDOOM"));
+  boolean iwad_endoom = W_IsIWADLump(W_CheckNumForName("ENDOOM"));
 
   // Does the user want to see it, in that case?
   if (iwad_endoom && endoom_pwad_only)
