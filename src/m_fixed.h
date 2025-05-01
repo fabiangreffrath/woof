@@ -44,10 +44,9 @@
 #define FRACUNIT (1<<FRACBITS)
 #define FIXED2DOUBLE(x) ((x)/(double)FRACUNIT)
 #define FRACMASK (FRACUNIT - 1)
-#define FRACFILL(x, o) ((x) | ((o) < 0 ? (FRACMASK << (32 - FRACBITS)) : 0))
 
 #define IntToFixed(x) ((x) << FRACBITS)
-#define FixedToInt(x) FRACFILL((x) >> FRACBITS, (x))
+#define FixedToInt(x) ((x) >> FRACBITS)
 
 typedef int fixed_t;
 
@@ -72,7 +71,7 @@ inline static int64_t FixedMul64(int64_t a, int64_t b)
 inline static fixed_t FixedDiv(fixed_t a, fixed_t b)
 {
     // [FG] avoid 31-bit shift (from Chocolate Doom)
-    if ((abs(a) >> 14) >= abs(b))
+    if (((unsigned)abs(a) >> 14) >= (unsigned)abs(b))
     {
         return (a ^ b) < 0 ? INT_MIN : INT_MAX;
     }

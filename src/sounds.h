@@ -23,6 +23,14 @@
 
 #include "doomtype.h"
 
+typedef struct sfxparams_s
+{
+  int volume_scale;
+  int volume;
+  int separation;
+  int priority;
+} sfxparams_t;
+
 //
 // SoundFX struct.
 //
@@ -73,7 +81,8 @@ typedef struct sfxinfo_s
 // MusicInfo struct.
 //
 
-typedef struct {
+typedef struct musicinfo_s
+{
   // up to 6-character name
   char *name;
 

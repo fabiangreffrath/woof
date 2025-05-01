@@ -610,6 +610,12 @@ P_UseSpecialLine
         P_ChangeSwitchTexture(line,0);
       return true;
 
+    // ID24 Music Changers
+    case 2059: case 2065: case 2089: case 2095:
+    case 2060: case 2066: case 2090: case 2096:
+      EV_ChangeMusic(line, side);
+      return true;
+
       // killough 1/31/98: factored out compatibility check;
       // added inner switch, relaxed check to demo_compatibility
 
@@ -1037,6 +1043,23 @@ P_UseSpecialLine
 
           // 1/29/98 jff end of added SR linedef types
 
+        }
+      if (demo_version >= DV_ID24)
+        switch (line->special)
+        {
+          // S1 - Exit to the next map and reset inventory.
+          case 2070:
+            reset_inventory = true;
+            P_ChangeSwitchTexture(line, 0);
+            G_ExitLevel();
+            return true;
+
+          // SR - Exit to the secret map and reset inventory.
+          case 2073:
+            reset_inventory = true;
+            P_ChangeSwitchTexture(line, 0);
+            G_SecretExitLevel();
+            return true;
         }
       break;
 

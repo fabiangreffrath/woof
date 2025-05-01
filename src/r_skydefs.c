@@ -20,6 +20,7 @@
 #include "m_fixed.h"
 #include "m_json.h"
 #include "m_misc.h"
+#include "r_data.h"
 
 static boolean ParseFire(json_t *json, fire_t *out)
 {
@@ -47,12 +48,12 @@ static boolean ParseFire(json_t *json, fire_t *out)
 
 static boolean ParseSkyTex(json_t *json, skytex_t *out)
 {
-    json_t *name = JS_GetObject(json, "name");
-    if (!JS_IsString(name))
+    const char *name = JS_GetStringValue(json, "name");
+    if (!name)
     {
         return false;
     }
-    out->name = M_StringDuplicate(JS_GetString(name));
+    out->texture = R_TextureNumForName(name);
 
     json_t *mid = JS_GetObject(json, "mid");
     json_t *scrollx = JS_GetObject(json, "scrollx");
@@ -65,12 +66,20 @@ static boolean ParseSkyTex(json_t *json, skytex_t *out)
     {
         return false;
     }
-    out->mid = JS_GetNumber(mid);
+    out->mid = JS_GetNumber(mid) * FRACUNIT;
     const double ticratescale = 1.0 / TICRATE;
     out->scrollx = (JS_GetNumber(scrollx) * ticratescale) * FRACUNIT;
     out->scrolly = (JS_GetNumber(scrolly) * ticratescale) * FRACUNIT;
-    out->scalex = JS_GetNumber(scalex) * FRACUNIT;
-    double value = JS_GetNumber(scaley);
+    double value = JS_GetNumber(scalex);
+    if (value)
+    {
+        out->scalex = (1.0 / value) * FRACUNIT;
+    }
+    else
+    {
+        out->scalex = FRACUNIT;
+    }
+    value = JS_GetNumber(scaley);
     if (value)
     {
         out->scaley = (1.0 / value) * FRACUNIT;
@@ -120,10 +129,16 @@ static boolean ParseSky(json_t *json, sky_t *out)
 
 static boolean ParseFlatMap(json_t *json, flatmap_t *out)
 {
-    json_t *flat = JS_GetObject(json, "flat");
-    out->flat = M_StringDuplicate(JS_GetString(flat));
-    json_t *sky = JS_GetObject(json, "sky");
-    out->sky = M_StringDuplicate(JS_GetString(sky));
+    const char *flat = JS_GetStringValue(json, "flat");
+    if (flat)
+    {
+        out->flat = M_StringDuplicate(flat);
+    }
+    const char *sky = JS_GetStringValue(json, "sky");
+    if (sky)
+    {
+        out->sky = M_StringDuplicate(sky);
+    }
     return true;
 }
 

@@ -11,7 +11,8 @@ on:
   workflow_dispatch:
 
 env:
-  VCPKG_BINARY_SOURCES: "clear;x-gha,readwrite"
+  VCPKG_INSTALLED_DIR: "${{ github.workspace }}/vcpkg_installed"
+  VCPKG_BINARY_SOURCES: "clear;files,${{ github.workspace }}/vcpkg_cache,readwrite"
 
 jobs:
   build:
@@ -38,7 +39,6 @@ jobs:
             artifact-name: Win-64
             artifact-path: build/*.zip
             extra-options: >-
-              -DCMAKE_POLICY_DEFAULT_CMP0091=NEW
               -DCMAKE_MSVC_RUNTIME_LIBRARY=MultiThreaded
               -DCMAKE_IGNORE_PATH="C:/Strawberry/perl/bin;C:/Strawberry/c/lib"
 
@@ -50,7 +50,6 @@ jobs:
             artifact-name: Win-32
             artifact-path: build/*.zip
             extra-options: >-
-              -DCMAKE_POLICY_DEFAULT_CMP0091=NEW
               -DCMAKE_MSVC_RUNTIME_LIBRARY=MultiThreaded
               -DCMAKE_IGNORE_PATH="C:/Strawberry/perl/bin;C:/Strawberry/c/lib"
 
@@ -71,12 +70,12 @@ jobs:
         with:
           arch: ${{ matrix.config.arch }}
 
-      - name: Export GitHub Actions cache environment variables
-        uses: actions/github-script@v7
+      - name: Restore vcpkg cache
+        uses: actions/cache/restore@v4
         with:
-          script: |
-            core.exportVariable('ACTIONS_CACHE_URL', process.env.ACTIONS_CACHE_URL || '');
-            core.exportVariable('ACTIONS_RUNTIME_TOKEN', process.env.ACTIONS_RUNTIME_TOKEN || '');
+          path: ${{ github.workspace }}/vcpkg_cache
+          key: vcpkg-${{ matrix.config.triplet }}-${{ hashFiles('vcpkg.json', 'vcpkg_installed/compiler-file-hash-cache.json', 'vcpkg_installed/status') }}
+          restore-keys: vcpkg-${{ matrix.config.triplet }}-
 
       - name: Configure
         run: >-
@@ -90,6 +89,12 @@ jobs:
 
       - name: Build
         run: cmake --build build --config "Release"
+
+      - name: Save vcpkg cache
+        uses: actions/cache/save@v4
+        with:
+          path: ${{ github.workspace }}/vcpkg_cache
+          key: vcpkg-${{ matrix.config.triplet }}-${{ hashFiles('vcpkg.json', 'vcpkg_installed/compiler-file-hash-cache.json', 'vcpkg_installed/status') }}
 
       - name: Test
         if: github.event_name == 'workflow_dispatch'

@@ -96,10 +96,12 @@ void *Z_Malloc(size_t size, pu_tag tag, void **user)
 
 void Z_Free(void *p)
 {
-  memblock_t *block = (memblock_t *)((char *) p - HEADER_SIZE);
+  memblock_t *block;
 
   if (!p)
     return;
+
+  block = (memblock_t *)((char *) p - HEADER_SIZE);
 
   if (block->id != ZONEID)
     I_Error("Z_Free: freed a pointer without ZONEID");

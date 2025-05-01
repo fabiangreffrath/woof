@@ -27,10 +27,10 @@ struct event_s;
 
 void D_AddFile(const char *file);
 
-char *D_DoomExeName(void);      // killough 10/98: executable's name
+const char *D_DoomExeName(void); // killough 10/98: executable's name
 extern char *basesavegame;     // killough 2/16/98: savegame path
 extern char *screenshotdir; // [FG] screenshot path
-char *D_DoomPrefDir(void); // [FG] default configuration dir
+void D_SetSavegameDirectory(void);
 
 extern const char *gamedescription;
 
@@ -45,6 +45,7 @@ void D_SetBloodColor(void);
 
 extern boolean disable_endoom;
 boolean D_AllowQuitSound(void);
+boolean D_AllowEndDoom(void);
 
 // Called by IO functions when input is detected.
 void D_PostEvent(struct event_s *ev);

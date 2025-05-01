@@ -45,6 +45,8 @@ typedef enum
     key_mode
 } menu_input_mode_t;
 
+extern int maxscreenblocks;
+
 extern int bigfont_priority;
 
 extern menu_input_mode_t help_input, old_help_input; // pad_mode or key_mode.
@@ -78,7 +80,6 @@ void MN_BackSecondary(void);
 // [FG] alternative text for missing menu graphics lumps
 void MN_DrawTitle(int x, int y, const char *patch, const char *alttext);
 void MN_DrawStringCR(int cx, int cy, byte *cr1, byte *cr2, const char *ch);
-int MN_StringWidth(const char *string);
 int MN_StringHeight(const char *string);
 
 void MN_General(int choice);
@@ -217,32 +218,46 @@ typedef struct setup_menu_s
 // instead of type-punning string pointers to integers which won't work on
 // 64-bit systems anyway
 
-typedef union config_u
+typedef union
 {
-  int i;
-  char *s;
+    char **s;
+    int *i;
+    const char *string;
+    int number;
 } config_t;
 
 typedef struct default_s
 {
-  const char *name;                   // name
-  config_t *location;                 // default variable
-  config_t *current;                  // possible nondefault variable
-  config_t  defaultvalue;             // built-in default value
-  struct {int min, max;} limit;       // numerical limits
-  enum {number, string, input} type;  // type
-  ss_types setupscreen;               // setup screen this appears on
-  wad_allowed_t wad_allowed;          // whether it's allowed in wads
-  const char *help;                   // description of parameter
+    const char *name;      // name
+    config_t location;     // default variable
+    config_t current;      // possible nondefault variable
+    config_t defaultvalue; // built-in default value
 
-  int input_id;
+    struct
+    {
+        int min;
+        int max;
+    } limit; // numerical limits
 
-  // internal fields (initialized implicitly to 0) follow
+    enum
+    {
+        number,
+        string,
+        input
+    } type; // type
 
-  struct default_s *first, *next;           // hash table pointers
-  int modified;                             // Whether it's been modified
-  config_t orig_default;                    // Original default, if modified
-  struct setup_menu_s *setup_menu;          // Xref to setup menu item, if any
+    ss_types setupscreen;      // setup screen this appears on
+    wad_allowed_t wad_allowed; // whether it's allowed in wads
+    const char *help;          // description of parameter
+
+    int input_id;
+
+    // internal fields (initialized implicitly to 0) follow
+
+    struct default_s *first, *next;  // hash table pointers
+    int modified;                    // Whether it's been modified
+    config_t orig_default;           // Original default, if modified
+    struct setup_menu_s *setup_menu; // Xref to setup menu item, if any
 } default_t;
 
 extern default_t *defaults;

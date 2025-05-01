@@ -13,6 +13,7 @@
 
 #include <math.h>
 
+#include "d_items.h"
 #include "d_player.h"
 #include "doomdef.h"
 #include "doomtype.h"
@@ -22,6 +23,7 @@
 #include "m_array.h"
 #include "m_misc.h"
 #include "r_defs.h"
+#include "r_draw.h"
 #include "st_sbardef.h"
 #include "v_fmt.h"
 #include "v_video.h"
@@ -137,13 +139,14 @@ void ST_UpdateCarousel(player_t *player)
     }
 
     if (automap_on || menuactive || paused || player->playerstate == PST_DEAD
-        || consoleplayer != displayplayer)
+        || player->health <= 0 || consoleplayer != displayplayer)
     {
         ST_ResetCarousel();
         return;
     }
 
-    if (player->switching == weapswitch_none)
+    if (player->switching == weapswitch_none
+        && player->pendingweapon == wp_nochange)
     {
         --duration;
     }
@@ -162,8 +165,17 @@ void ST_UpdateCarousel(player_t *player)
 static void DrawIcon(int x, int y, sbarelem_t *elem, weapon_icon_t icon)
 {
     char lump[9] = {0};
-    M_snprintf(lump, sizeof(lump), "%s%d", names[icon.weapon],
-        icon.state == wpi_selected);
+    const char *name;
+    if (weaponinfo[icon.weapon].carouselicon)
+    {
+        name = weaponinfo[icon.weapon].carouselicon;
+    }
+    else
+    {
+        name = names[icon.weapon];
+    }
+
+    M_snprintf(lump, sizeof(lump), "%s%d", name, icon.state == wpi_selected);
 
     patch_t *patch = V_CachePatchName(lump, PU_CACHE);
 
@@ -199,6 +211,22 @@ static int CalcOffset(void)
     }
 
     return 0;
+}
+
+void ST_EraseCarousel(int y)
+{
+    static boolean erase;
+
+    if (duration > 0)
+    {
+        R_VideoErase(0, y - 16, video.unscaledw, 32);
+        erase = true;
+    }
+    else if (erase)
+    {
+        R_VideoErase(0, y - 16, video.unscaledw, 32);
+        erase = false;
+    }
 }
 
 void ST_DrawCarousel(int x, int y, sbarelem_t *elem)

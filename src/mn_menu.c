@@ -37,6 +37,7 @@
 #include "doomtype.h"
 #include "dstrings.h"
 #include "g_game.h"
+#include "g_umapinfo.h"
 #include "i_input.h"
 #include "i_printf.h"
 #include "i_system.h"
@@ -59,7 +60,6 @@
 #include "st_sbardef.h"
 #include "st_stuff.h"
 #include "st_widgets.h"
-#include "u_mapinfo.h"
 #include "v_fmt.h"
 #include "v_video.h"
 #include "w_wad.h"
@@ -76,7 +76,7 @@
 
 // Blocky mode, has default, 0 = high, 1 = normal
 // int     detailLevel;    obsolete -- killough
-int screenblocks; // has default
+int screenblocks, maxscreenblocks; // has default
 
 static int quickSaveSlot; // -1 = no quicksave slot picked!
 
@@ -101,7 +101,7 @@ static int saveCharIndex; // which char we're editing
 static char saveOldString[SAVESTRINGSIZE];
 
 boolean menuactive; // The menus are up
-
+static boolean mouse_active_thermo;
 static boolean options_active;
 
 backdrop_t menu_backdrop;
@@ -252,6 +252,22 @@ static void M_InitExtendedHelp(void);
 static void M_ExtHelpNextScreen(int choice);
 static void M_ExtHelp(int choice);
 static void M_DrawExtHelp(void);
+
+static void M_PauseSound(void)
+{
+    if (!paused && gamestate == GS_LEVEL && !demoplayback && !netgame)
+    {
+        S_PauseSound();
+    }
+}
+
+static void M_ResumeSound(void)
+{
+    if (!paused && gamestate == GS_LEVEL && !demoplayback && !netgame)
+    {
+        S_ResumeSound();
+    }
+}
 
 //
 // SetNextMenu
@@ -434,7 +450,8 @@ static void M_FinishHelp(int choice) // killough 10/98
 
 static void M_DrawReadThis1(void)
 {
-    V_DrawPatchFullScreen(V_CachePatchName("HELP2", PU_CACHE));
+    V_DrawPatchFullScreen(
+        V_CachePatchName(W_CheckWidescreenPatch("HELP2"), PU_CACHE));
 }
 
 //
@@ -447,12 +464,14 @@ static void M_DrawReadThis2(void)
     // We only ever draw the second page if this is
     // gameversion == exe_doom_1_9 and gamemode == registered
 
-    V_DrawPatchFullScreen(V_CachePatchName("HELP1", PU_CACHE));
+    V_DrawPatchFullScreen(
+        V_CachePatchName(W_CheckWidescreenPatch("HELP1"), PU_CACHE));
 }
 
 static void M_DrawReadThisCommercial(void)
 {
-    V_DrawPatchFullScreen(V_CachePatchName("HELP", PU_CACHE));
+    V_DrawPatchFullScreen(
+        V_CachePatchName(W_CheckWidescreenPatch("HELP"), PU_CACHE));
 }
 
 /////////////////////////////
@@ -517,14 +536,13 @@ static short EpiMenuEpi[MAX_EPISODES] = {1, 2, 3, 4, -1, -1, -1, -1, -1, -1};
 //
 static int epiChoice;
 
-void M_ClearEpisodes(void)
+void MN_ClearEpisodes(void)
 {
     EpiDef.numitems = 0;
     NewDef.prevMenu = &MainDef;
 }
 
-void M_AddEpisode(const char *map, const char *gfx, const char *txt,
-                  const char *alpha)
+void MN_AddEpisode(const char *map, const char *gfx, const char *txt, char key)
 {
     int epi, mapnum;
 
@@ -541,7 +559,8 @@ void M_AddEpisode(const char *map, const char *gfx, const char *txt,
 
     if (EpiDef.numitems == 8)
     {
-        I_Printf(VB_WARNING, "M_AddEpisode: UMAPINFO spec limit of 8 episodes exceeded!");
+        I_Printf(VB_WARNING,
+                 "MN_AddEpisode: UMAPINFO spec limit of 8 episodes exceeded!");
     }
     else if (EpiDef.numitems >= MAX_EPISODES)
     {
@@ -554,7 +573,7 @@ void M_AddEpisode(const char *map, const char *gfx, const char *txt,
     strncpy(EpisodeMenu[EpiDef.numitems].name, gfx, 8);
     EpisodeMenu[EpiDef.numitems].name[9] = 0;
     EpisodeMenu[EpiDef.numitems].alttext = txt ? strdup(txt) : NULL;
-    EpisodeMenu[EpiDef.numitems].alphaKey = alpha ? *alpha : 0;
+    EpisodeMenu[EpiDef.numitems].alphaKey = key;
     EpiDef.numitems++;
 
     if (EpiDef.numitems <= 4)
@@ -1314,7 +1333,8 @@ static void SetDefaultSaveName(char *name, const char *append)
     char *maplump = MapName(gameepisode, gamemap);
     int maplumpnum = W_CheckNumForName(maplump);
 
-    if (gamemapinfo && U_CheckField(gamemapinfo->label))
+    if (gamemapinfo && gamemapinfo->label
+        && !(gamemapinfo->flags & MapInfo_LabelClear))
     {
         maplump = gamemapinfo->label;
     }
@@ -1696,12 +1716,14 @@ static void M_QuickLoad(void)
 {
     if (netgame && !demoplayback) // killough 5/26/98: add !demoplayback
     {
+        M_StartSound(sfx_swtchn);
         M_StartMessage(s_QLOADNET, NULL, false); // Ty 03/27/98 - externalized
         return;
     }
 
     if (demorecording) // killough 5/26/98: exclude during demo recordings
     {
+        M_StartSound(sfx_swtchn);
         M_StartMessage("you can't quickload\n"
                        "while recording a demo!\n\n" PRESSKEY,
                        NULL, false); // killough 5/26/98: not externalized
@@ -1742,6 +1764,7 @@ static void M_EndGameResponse(int ch)
     quickSaveSlot = -1;
 
     currentMenu->lastOn = itemOn;
+    S_StopChannels();
     MN_ClearMenus();
     D_StartTitle();
 }
@@ -1798,7 +1821,7 @@ static void M_SizeDisplay(int choice)
         default:
             break;
     }
-    screenblocks = BETWEEN(3, 12, screenblocks);
+    screenblocks = BETWEEN(3, maxscreenblocks, screenblocks);
     R_SetViewSize(screenblocks /*, detailLevel obsolete -- killough */);
 }
 
@@ -1914,11 +1937,11 @@ static void M_DrawHelp(void)
     int helplump;
     if (gamemode == commercial)
     {
-        helplump = W_CheckNumForName("HELP");
+        helplump = W_CheckNumForName(W_CheckWidescreenPatch("HELP"));
     }
     else
     {
-        helplump = W_CheckNumForName("HELP1");
+        helplump = W_CheckNumForName(W_CheckWidescreenPatch("HELP1"));
     }
 
     V_DrawPatchFullScreen(V_CachePatchNum(helplump, PU_CACHE));
@@ -2154,6 +2177,7 @@ static void M_Setup(int choice)
 void MN_ClearMenus(void)
 {
     menuactive = 0;
+    mouse_active_thermo = false;
     options_active = false;
     print_warning_about_changes = 0; // killough 8/15/98
     default_verify = 0;              // killough 10/98
@@ -2163,6 +2187,7 @@ void MN_ClearMenus(void)
 
     I_SetSensorEventState(false);
     G_ClearInput();
+    M_ResumeSound();
 }
 
 static boolean MenuBack(void)
@@ -2432,19 +2457,15 @@ boolean M_ShortcutResponder(const event_t *ev)
     if (M_InputActivated(input_help)) // Help key
     {
         MN_StartControlPanel();
-
         currentMenu = &HelpDef; // killough 10/98: new help screen
-
         currentMenu->prevMenu = NULL;
         itemOn = 0;
-        M_StartSound(sfx_swtchn);
         return true;
     }
 
     if (M_InputActivated(input_savegame)) // Save Game
     {
         MN_StartControlPanel();
-        M_StartSound(sfx_swtchn);
         M_SaveGame(0);
         return true;
     }
@@ -2452,7 +2473,6 @@ boolean M_ShortcutResponder(const event_t *ev)
     if (M_InputActivated(input_loadgame)) // Load Game
     {
         MN_StartControlPanel();
-        M_StartSound(sfx_swtchn);
         M_LoadGame(0);
         return true;
     }
@@ -2462,19 +2482,18 @@ boolean M_ShortcutResponder(const event_t *ev)
         MN_StartControlPanel();
         currentMenu = &SoundDef;
         itemOn = currentMenu->lastOn;
-        M_StartSound(sfx_swtchn);
         return true;
     }
 
     if (M_InputActivated(input_quicksave)) // Quicksave
     {
-        M_StartSound(sfx_swtchn);
         M_QuickSave();
         return true;
     }
 
     if (M_InputActivated(input_endgame)) // End game
     {
+        M_PauseSound();
         M_StartSound(sfx_swtchn);
         M_EndGame(0);
         return true;
@@ -2489,13 +2508,13 @@ boolean M_ShortcutResponder(const event_t *ev)
 
     if (M_InputActivated(input_quickload)) // Quickload
     {
-        M_StartSound(sfx_swtchn);
         M_QuickLoad();
         return true;
     }
 
     if (M_InputActivated(input_quit)) // Quit DOOM
     {
+        M_PauseSound();
         M_StartSound(sfx_swtchn);
         M_QuitDOOM(0);
         return true;
@@ -2549,7 +2568,7 @@ boolean M_ShortcutResponder(const event_t *ev)
         else
         {
             ++screenblocks;
-            if (screenblocks > 12)
+            if (screenblocks > maxscreenblocks)
             {
                 screenblocks = 10;
             }
@@ -2852,18 +2871,16 @@ static boolean MouseResponder(void)
         return false;
     }
 
-    static boolean active_thermo;
-
     if (M_InputActivated(input_menu_enter))
     {
-        active_thermo = true;
+        mouse_active_thermo = true;
     }
     else if (M_InputDeactivated(input_menu_enter))
     {
-        active_thermo = false;
+        mouse_active_thermo = false;
     }
 
-    if (active_thermo)
+    if (mouse_active_thermo)
     {
         int dot = mouse_state_x - (rect->x + M_THRM_STEP + video.deltaw);
         int step = M_MAX_VOL * FRACUNIT / (rect->w - M_THRM_STEP * 3);
@@ -3038,13 +3055,13 @@ boolean M_Responder(event_t *ev)
                 savegamestrings[saveSlot][saveCharIndex] = 0;
             }
         }
-        else if (ch == KEY_ESCAPE) // phares 3/7/98
+        else if (action == MENU_ESCAPE) // phares 3/7/98
         {
             I_StopTextInput();
             saveStringEnter = 0;
             strcpy(&savegamestrings[saveSlot][0], saveOldString);
         }
-        else if (ch == KEY_ENTER) // phares 3/7/98
+        else if (action == MENU_ENTER) // phares 3/7/98
         {
             I_StopTextInput();
             saveStringEnter = 0;
@@ -3097,6 +3114,7 @@ boolean M_Responder(event_t *ev)
         I_SetSensorEventState(false);
         G_ClearInput();
         menuactive = false;
+        M_ResumeSound();
         M_StartSound(sfx_swtchx);
         return true;
     }
@@ -3119,12 +3137,13 @@ boolean M_Responder(event_t *ev)
 
     if (!menuactive)
     {
-        if ((demoplayback && (action == MENU_ENTER || action == MENU_BACKSPACE))
-            || action == MENU_ESCAPE) // phares
+        if (!chat_on
+            && ((demoplayback
+                 && (action == MENU_ENTER || action == MENU_BACKSPACE))
+                || action == MENU_ESCAPE)) // phares
         {
             I_ShowMouseCursor(menu_input != pad_mode);
             MN_StartControlPanel();
-            M_StartSound(sfx_swtchn);
             return true;
         }
         return false;
@@ -3379,6 +3398,9 @@ void MN_StartControlPanel(void)
 
     I_SetSensorEventState(true);
     G_ClearInput();
+
+    M_PauseSound();
+    M_StartSound(sfx_swtchn);
 }
 
 //

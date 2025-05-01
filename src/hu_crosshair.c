@@ -79,11 +79,6 @@ void HU_InitCrosshair(void)
 
 void HU_StartCrosshair(void)
 {
-    if (crosshair.patch)
-    {
-        Z_ChangeTag(crosshair.patch, PU_CACHE);
-    }
-
     if (crosshair_lumps[hud_crosshair])
     {
         crosshair.patch =
@@ -135,7 +130,7 @@ void HU_UpdateCrosshair(void)
     crosshair.y = (screenblocks <= 10) ? (SCREENHEIGHT - ST_HEIGHT) / 2
                                        : SCREENHEIGHT / 2;
 
-    boolean invul = (plr->cheats & CF_GODMODE) || plr->powers[pw_invulnerability];
+    boolean invul = ST_PlayerInvulnerable(plr);
 
     if (hud_crosshair_health)
     {

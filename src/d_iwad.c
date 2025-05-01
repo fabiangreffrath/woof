@@ -28,24 +28,26 @@
 #include "m_misc.h"
 
 static const iwad_t iwads[] = {
-    {"doom2.wad",     doom2,      commercial,   "DOOM II: Hell on Earth"         },
-    {"plutonia.wad",  pack_plut,  commercial,   "Final DOOM: Plutonia Experiment"},
-    {"tnt.wad",       pack_tnt,   commercial,   "Final DOOM: TNT - Evilution"    },
+    {"doom2.wad",     doom2,         commercial,   "DOOM II: Hell on Earth"         },
+    {"plutonia.wad",  pack_plut,     commercial,   "Final DOOM: Plutonia Experiment"},
+    {"tnt.wad",       pack_tnt,      commercial,   "Final DOOM: TNT - Evilution"    },
     // "doom.wad" may be retail or registered
-    {"doom.wad",      doom,       indetermined, "DOOM"                           },
-    {"doom.wad",      doom,       registered,   "DOOM Registered"                },
-    {"doom.wad",      doom,       retail,       "The Ultimate DOOM"              },
+    {"doom.wad",      doom,          indetermined, "DOOM"                           },
+    {"doom.wad",      doom,          registered,   "DOOM Registered"                },
+    {"doom.wad",      doom,          retail,       "The Ultimate DOOM"              },
     // "doomu.wad" alias to allow retail wad to coexist with registered in the same folder
-    {"doomu.wad",     doom,       retail,       "The Ultimate DOOM"              },
-    {"doom1.wad",     doom,       shareware,    "DOOM Shareware"                 },
-    {"doom2f.wad",    doom2,      commercial,   "DOOM II: L'Enfer sur Terre"     },
-    {"freedoom2.wad", doom2,      commercial,   "Freedoom: Phase 2"              },
-    {"freedoom1.wad", doom,       retail,       "Freedoom: Phase 1"              },
-    {"freedm.wad",    doom2,      commercial,   "FreeDM"                         },
-    {"chex.wad",      pack_chex,  retail,       "Chex Quest"                     },
-    {"hacx.wad",      pack_hacx,  commercial,   "HACX: Twitch n' Kill"           },
-    {"rekkrsa.wad",   pack_rekkr, retail,       "REKKR"                          },
-    {"rekkrsl.wad",   pack_rekkr, retail,       "REKKR: Sunken Land"             },
+    {"doomu.wad",     doom,          retail,       "The Ultimate DOOM"              },
+    {"doom1.wad",     doom,          shareware,    "DOOM Shareware"                 },
+    {"doom2f.wad",    doom2,         commercial,   "DOOM II: L'Enfer sur Terre"     },
+    {"freedoom2.wad", pack_freedoom, commercial,   "Freedoom: Phase 2"              },
+    {"freedoom1.wad", pack_freedoom, retail,       "Freedoom: Phase 1"              },
+    {"freedm.wad",    pack_freedoom, commercial,   "FreeDM"                         },
+    {"chex.wad",      pack_chex,     retail,       "Chex Quest"                     },
+    {"chex3v.wad",    pack_chex3v,   retail,       "Chex Quest 3: Vanilla Edition"  },
+    {"chex3d2.wad",   pack_chex3v,   commercial,   "Chex Quest 3: Modding Edition"  },
+    {"hacx.wad",      pack_hacx,     commercial,   "HACX: Twitch n' Kill"           },
+    {"rekkrsa.wad",   pack_rekkr,    retail,       "REKKR"                          },
+    {"rekkrsl.wad",   pack_rekkr,    retail,       "REKKR: Sunken Land"             },
 };
 
 static const char *const gamemode_str[] = {
@@ -56,24 +58,11 @@ static const char *const gamemode_str[] = {
     "Unknown mode"
 };
 
-// "128 IWAD search directories should be enough for anybody".
-
-#define MAX_IWAD_DIRS 128
-
 // Array of locations to search for IWAD files
+#define M_ARRAY_INIT_CAPACITY 32
+#include "m_array.h"
 
-static boolean iwad_dirs_built = false;
-char *iwad_dirs[MAX_IWAD_DIRS];
-int num_iwad_dirs = 0;
-
-static void AddIWADDir(char *dir)
-{
-    if (num_iwad_dirs < MAX_IWAD_DIRS)
-    {
-        iwad_dirs[num_iwad_dirs] = dir;
-        ++num_iwad_dirs;
-    }
-}
+static char **iwad_dirs;
 
 // Return the path where the executable lies -- Lee Killough
 
@@ -98,6 +87,38 @@ char *D_DoomExeDir(void)
     }
 
     return base;
+}
+
+// [FG] get the path to the default configuration dir to use
+
+char *D_DoomPrefDir(void)
+{
+    static char *dir;
+
+    if (dir == NULL)
+    {
+#if !defined(_WIN32) || defined(_WIN32_WCE)
+        // Configuration settings are stored in an OS-appropriate path
+        // determined by SDL.  On typical Unix systems, this might be
+        // ~/.local/share/chocolate-doom.  On Windows, we behave like
+        // Vanilla Doom and save in the current directory.
+
+        char *result = SDL_GetPrefPath("", PROJECT_SHORTNAME);
+        if (result != NULL)
+        {
+            dir = M_DirName(result);
+            SDL_free(result);
+        }
+        else
+#endif /* #ifndef _WIN32 */
+        {
+            dir = D_DoomExeDir();
+        }
+
+        M_MakeDirectory(dir);
+    }
+
+    return dir;
 }
 
 // This is Windows-specific code that automatically finds the location
@@ -353,7 +374,7 @@ static void CheckUninstallStrings(void)
         {
             path = unstr + strlen(UNINSTALLER_STRING);
 
-            AddIWADDir(path);
+            array_push(iwad_dirs, path);
         }
     }
 }
@@ -381,7 +402,7 @@ static void CheckInstallRootPaths(void)
         {
             subpath = M_StringJoin(install_path, DIR_SEPARATOR_S,
                                    root_path_subdirs[j]);
-            AddIWADDir(subpath);
+            array_push(iwad_dirs, subpath);
         }
 
         free(install_path);
@@ -408,7 +429,7 @@ static void CheckSteamEdition(void)
         subpath = M_StringJoin(install_path, DIR_SEPARATOR_S,
                                steam_install_subdirs[i]);
 
-        AddIWADDir(subpath);
+        array_push(iwad_dirs, subpath);
     }
 
     free(install_path);
@@ -421,25 +442,16 @@ static void CheckDOSDefaults(void)
     // These are the default install directories used by the deice
     // installer program:
 
-    AddIWADDir("\\doom2");    // Doom II
-    AddIWADDir("\\plutonia"); // Final Doom
-    AddIWADDir("\\tnt");
-    AddIWADDir("\\doom_se"); // Ultimate Doom
-    AddIWADDir("\\doom");    // Shareware / Registered Doom
-    AddIWADDir("\\dooms");   // Shareware versions
-    AddIWADDir("\\doomsw");
+    array_push(iwad_dirs, "\\doom2");    // Doom II
+    array_push(iwad_dirs, "\\plutonia"); // Final Doom
+    array_push(iwad_dirs, "\\tnt");
+    array_push(iwad_dirs, "\\doom_se"); // Ultimate Doom
+    array_push(iwad_dirs, "\\doom");    // Shareware / Registered Doom
+    array_push(iwad_dirs, "\\dooms");   // Shareware versions
+    array_push(iwad_dirs, "\\doomsw");
 }
 
 #endif
-
-// Returns true if the specified path is a path to a file
-// of the specified name.
-
-static boolean DirIsFile(const char *path, const char *filename)
-{
-    return strchr(path, DIR_SEPARATOR) != NULL
-           && !strcasecmp(M_BaseName(path), filename);
-}
 
 // Add IWAD directories parsed from splitting a path string containing
 // paths separated by PATH_SEPARATOR. 'suffix' is a string to concatenate
@@ -462,7 +474,7 @@ static void AddIWADPath(const char *path, const char *suffix)
             // as another iwad dir
             *p = '\0';
 
-            AddIWADDir(M_StringJoin(left, suffix));
+            array_push(iwad_dirs, M_StringJoin(left, suffix));
             left = p + 1;
         }
         else
@@ -471,7 +483,7 @@ static void AddIWADPath(const char *path, const char *suffix)
         }
     }
 
-    AddIWADDir(M_StringJoin(left, suffix));
+    array_push(iwad_dirs, M_StringJoin(left, suffix));
 
     free(dup_path);
 }
@@ -484,33 +496,12 @@ static void AddIWADPath(const char *path, const char *suffix)
 // <http://standards.freedesktop.org/basedir-spec/basedir-spec-latest.html>
 static void AddXdgDirs(void)
 {
-    char *env, *tmp_env;
-
-    // Quote:
-    // > $XDG_DATA_HOME defines the base directory relative to which
-    // > user specific data files should be stored. If $XDG_DATA_HOME
-    // > is either not set or empty, a default equal to
-    // > $HOME/.local/share should be used.
-    env = M_getenv("XDG_DATA_HOME");
-    tmp_env = NULL;
-
-    if (env == NULL)
-    {
-        char *homedir = M_getenv("HOME");
-        if (homedir == NULL)
-        {
-            homedir = "/";
-        }
-
-        tmp_env = M_StringJoin(homedir, "/.local/share");
-        env = tmp_env;
-    }
+    char *env = M_DataDir();
 
     // We support $XDG_DATA_HOME/games/doom (which will usually be
     // ~/.local/share/games/doom) as a user-writeable extension to
     // the usual /usr/share/games/doom location.
-    AddIWADDir(M_StringJoin(env, "/games/doom"));
-    free(tmp_env);
+    array_push(iwad_dirs, M_StringJoin(env, "/games/doom"));
 
     // Quote:
     // > $XDG_DATA_DIRS defines the preference-ordered set of base
@@ -548,11 +539,7 @@ static void AddSteamDirs(void)
 {
     char *homedir, *steampath;
 
-    homedir = M_getenv("HOME");
-    if (homedir == NULL)
-    {
-        homedir = "/";
-    }
+    homedir = M_HomeDir();
     steampath = M_StringJoin(homedir, "/.steam/root/steamapps/common");
 
     AddIWADPath(steampath, "/Doom 2/base");
@@ -569,27 +556,31 @@ static void AddSteamDirs(void)
 // Build a list of IWAD files
 //
 
+static char **iwad_dirs_append;
+
 void BuildIWADDirList(void)
 {
     char *env;
 
-    if (iwad_dirs_built)
+    if (array_size(iwad_dirs) > 0)
     {
         return;
     }
 
     // Look in the current directory.  Doom always does this.
-    AddIWADDir(".");
+    array_push(iwad_dirs, ".");
 
     // Next check the directory where the executable is located. This might
     // be different from the current directory.
-    AddIWADDir(D_DoomExeDir());
+    // D_DoomPrefDir() returns the executable directory on Windows,
+    // and a user-writable config directory everywhere else.
+    array_push(iwad_dirs, D_DoomPrefDir());
 
     // Add DOOMWADDIR if it is in the environment
     env = M_getenv("DOOMWADDIR");
     if (env != NULL)
     {
-        AddIWADDir(env);
+        array_push(iwad_dirs, env);
     }
 
     // Add dirs from DOOMWADPATH:
@@ -597,13 +588,6 @@ void BuildIWADDirList(void)
     if (env != NULL)
     {
         AddIWADPath(env, "");
-    }
-
-    // [FG] Add plain HOME directory
-    env = M_getenv("HOME");
-    if (env != NULL)
-    {
-        AddIWADDir(env);
     }
 
 #ifdef _WIN32
@@ -622,9 +606,11 @@ void BuildIWADDirList(void)
 #  endif
 #endif
 
-    // Don't run this function again.
-
-    iwad_dirs_built = true;
+    char **dir;
+    array_foreach(dir, iwad_dirs_append)
+    {
+        array_push(iwad_dirs, *dir);
+    }
 }
 
 //
@@ -633,9 +619,7 @@ void BuildIWADDirList(void)
 
 char *D_FindWADByName(const char *name)
 {
-    char *path;
     char *probe;
-    int i;
 
     // Absolute path?
 
@@ -649,14 +633,15 @@ char *D_FindWADByName(const char *name)
 
     // Search through all IWAD paths for a file with the given name.
 
-    for (i = 0; i < num_iwad_dirs; ++i)
+    char **dir;
+    array_foreach(dir, iwad_dirs)
     {
         // As a special case, if this is in DOOMWADDIR or DOOMWADPATH,
         // the "directory" may actually refer directly to an IWAD
         // file.
 
-        probe = M_FileCaseExists(iwad_dirs[i]);
-        if (DirIsFile(iwad_dirs[i], name) && probe != NULL)
+        probe = M_FileCaseExists(*dir);
+        if (probe != NULL)
         {
             return probe;
         }
@@ -664,7 +649,7 @@ char *D_FindWADByName(const char *name)
 
         // Construct a string for the full path
 
-        path = M_StringJoin(iwad_dirs[i], DIR_SEPARATOR_S, name);
+        char *path = M_StringJoin(*dir, DIR_SEPARATOR_S, name);
 
         probe = M_FileCaseExists(path);
         if (probe != NULL)
@@ -769,14 +754,18 @@ char *D_FindIWADFile(void)
 
         char *iwadfile = myargv[iwadparm + 1];
 
-        char *file = malloc(strlen(iwadfile) + 5);
-        AddDefaultExtension(strcpy(file, iwadfile), ".wad");
+        char *file = AddDefaultExtension(iwadfile, ".wad");
 
         result = D_FindWADByName(file);
 
         if (result == NULL)
         {
             I_Error("IWAD file '%s' not found!", file);
+        }
+        else
+        {
+            char *iwad_dir = M_DirName(result);
+            array_push(iwad_dirs_append, iwad_dir);
         }
 
         free(file);
@@ -865,9 +854,11 @@ void D_GetModeAndMissionByIWADName(const char *name, GameMode_t *mode,
         {
             *mode = iwads[i].mode;
             *mission = iwads[i].mission;
-            break;
+            return;
         }
     }
+    *mode = indetermined;
+    *mission = none;
 }
 
 const char *D_GetIWADDescription(const char *name, GameMode_t mode,

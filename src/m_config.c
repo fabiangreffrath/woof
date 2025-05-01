@@ -30,6 +30,7 @@
 #include "am_map.h"
 #include "config.h"
 #include "d_main.h"
+#include "d_iwad.h"
 #include "doomdef.h"
 #include "doomstat.h"
 #include "doomtype.h"
@@ -79,8 +80,8 @@ void M_BindNum(const char *name, void *location, void *current,
                ss_types screen, wad_allowed_t wad,
                const char *help)
 {
-    default_t item = { name, (config_t *)location, (config_t *)current,
-                       {.i = default_val}, {min_val, max_val},
+    default_t item = { name, {.i = location}, {.i = current},
+                       {.number = default_val}, {min_val, max_val},
                        number, screen, wad, help };
     array_push(defaults, item);
 }
@@ -93,17 +94,17 @@ void M_BindBool(const char *name, boolean *location, boolean *current,
               screen, wad, help);
 }
 
-void M_BindStr(char *name, const char **location, char *default_val,
+void M_BindStr(char *name, const char **location, const char *default_val,
                wad_allowed_t wad, const char *help)
 {
-    default_t item = { name, (config_t *)location, NULL, {.s = default_val},
+    default_t item = { name, {.s = (char **)location}, {0}, {.string = default_val},
                        {0}, string, ss_none, wad, help };
     array_push(defaults, item);
 }
 
 void M_BindInput(const char *name, int input_id, const char *help)
 {
-    default_t item = { name, NULL, NULL, {0}, {UL,UL}, input, ss_keys, wad_no,
+    default_t item = { name, {0}, {0}, {0}, {UL,UL}, input, ss_keys, wad_no,
                        help, input_id };
     array_push(defaults, item);
 }
@@ -273,17 +274,17 @@ void M_SaveDefaults(void)
         if (config_help)
         {
             if ((dp->type == string
-                     ? fprintf(f, "[(\"%s\")]", (char *)dp->defaultvalue.s)
+                     ? fprintf(f, "[(\"%s\")]", (char *)dp->defaultvalue.string)
                      : dp->limit.min == UL
                         ? dp->limit.max == UL
-                           ? fprintf(f, "[?-?(%d)]", dp->defaultvalue.i)
+                           ? fprintf(f, "[?-?(%d)]", dp->defaultvalue.number)
                            : fprintf(f, "[?-%d(%d)]", dp->limit.max,
-                                     dp->defaultvalue.i)
+                                     dp->defaultvalue.number)
                         : dp->limit.max == UL
                            ? fprintf(f, "[%d-?(%d)]", dp->limit.min,
-                                     dp->defaultvalue.i)
+                                     dp->defaultvalue.number)
                            : fprintf(f, "[%d-%d(%d)]", dp->limit.min, dp->limit.max,
-                                     dp->defaultvalue.i))
+                                     dp->defaultvalue.number))
                        == EOF
                 || fprintf(f, " %s %s\n", dp->help, dp->wad_allowed ? "*" : "")
                        == EOF)
@@ -297,11 +298,18 @@ void M_SaveDefaults(void)
 
         if (dp->type == string)
         {
-            value.s = dp->modified ? dp->orig_default.s : dp->location->s;
+            value.string = dp->modified ? dp->orig_default.string : *dp->location.s;
         }
         else if (dp->type == number)
         {
-            value.i = dp->modified ? dp->orig_default.i : dp->location->i;
+            if (dp->modified)
+            {
+                value.number = dp->orig_default.number;
+            }
+            else
+            {
+                value.number = *dp->location.i;
+            }
         }
 
         // jff 4/10/98 kill super-hack on pointer value
@@ -311,8 +319,8 @@ void M_SaveDefaults(void)
         if (dp->type != input)
         {
             if (dp->type == number
-                    ? fprintf(f, "%-*s %i\n", maxlen, dp->name, value.i) == EOF
-                    : fprintf(f, "%-*s \"%s\"\n", maxlen, dp->name, value.s)
+                    ? fprintf(f, "%-*s %i\n", maxlen, dp->name, value.number) == EOF
+                    : fprintf(f, "%-*s \"%s\"\n", maxlen, dp->name, value.string)
                           == EOF)
             {
                 goto error;
@@ -483,19 +491,19 @@ boolean M_ParseOption(const char *p, boolean wad)
         if (wad && !dp->modified)                 // Modified by wad
         {                                         // First time modified
             dp->modified = 1;                     // Mark it as modified
-            dp->orig_default.s = dp->location->s; // Save original default
+            dp->orig_default.string = *dp->location.s; // Save original default
         }
         else
         {
-            free(dp->location->s); // Free old value
+            free(*dp->location.s); // Free old value
         }
 
-        dp->location->s = strdup(strparm + 1); // Change default value
+        *dp->location.s = strdup(strparm + 1); // Change default value
 
-        if (dp->current) // Current value
+        if (dp->current.s) // Current value
         {
-            free(dp->current->s);                 // Free old value
-            dp->current->s = strdup(strparm + 1); // Change current value
+            free(*dp->current.s);                 // Free old value
+            *dp->current.s = strdup(strparm + 1); // Change current value
         }
     }
     else if (dp->type == number)
@@ -514,14 +522,15 @@ boolean M_ParseOption(const char *p, boolean wad)
                 if (!dp->modified) // First time it's modified by wad
                 {
                     dp->modified = 1; // Mark it as modified
-                    dp->orig_default.i = dp->location->i; // Save original default
+                    // Save original default
+                    dp->orig_default.number = *dp->location.i;
                 }
-                if (dp->current) // Change current value
+                if (dp->current.i) // Change current value
                 {
-                    dp->current->i = parm;
+                    *dp->current.i = parm;
                 }
             }
-            dp->location->i = parm; // Change default
+            *dp->location.i = parm; // Change default 
         }
     }
     else if (dp->type == input)
@@ -660,11 +669,11 @@ void M_LoadDefaults(void)
     {
         if (dp->type == string)
         {
-            dp->location->s = strdup(dp->defaultvalue.s);
+            *dp->location.s = strdup(dp->defaultvalue.string);
         }
         else if (dp->type == number)
         {
-            dp->location->i = dp->defaultvalue.i;
+            *dp->location.i = dp->defaultvalue.number;
         }
         else if (dp->type == input)
         {

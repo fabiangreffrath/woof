@@ -65,11 +65,13 @@ typedef enum
   ns_hires // [Woof!] namespace to avoid conflicts with high-resolution textures
 } namespace_t;
 
+typedef struct archive_s archive_t; 
+
 typedef struct
 {
     union
     {
-        void *zip;
+        archive_t *archive;
         const char *base_path;
         int descriptor;
     } p1;
@@ -114,8 +116,17 @@ extern const char **wadfiles;
 boolean W_InitBaseFile(const char *path);
 void W_AddBaseDir(const char *path);
 boolean W_AddPath(const char *path);
+
+typedef enum
+{
+    PROCESS_PWAD = 0x01,
+    PROCESS_IWAD = 0x02,
+    PROCESS_ALL  = 0x03
+} process_wad_t;
+
 void W_ProcessInWads(const char *name, void (*process)(int lumpnum),
-                     boolean iwad);
+                     process_wad_t flags);
+
 void W_InitMultipleFiles(void);
 
 // killough 4/17/98: if W_CheckNumForName() called with only
@@ -129,6 +140,8 @@ void    W_ReadLump (int lump, void *dest);
 void    *W_CacheLumpNum(int lump, pu_tag tag);
 
 #define W_CacheLumpName(name,tag) W_CacheLumpNum (W_GetNumForName(name),(tag))
+
+const char *W_CheckWidescreenPatch(const char *lump);
 
 void W_ExtractFileBase(const char *, char *);       // killough
 unsigned W_LumpNameHash(const char *s);           // killough 1/31/98

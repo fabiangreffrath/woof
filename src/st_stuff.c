@@ -20,6 +20,7 @@
 //
 //-----------------------------------------------------------------------------
 
+#include <math.h>
 #include <stdlib.h>
 
 #include "am_map.h"
@@ -31,7 +32,6 @@
 #include "doomtype.h"
 #include "hu_command.h"
 #include "hu_obituary.h"
-#include "i_system.h"
 #include "i_video.h"
 #include "info.h"
 #include "m_array.h"
@@ -106,9 +106,6 @@
 // graphics are drawn to a backing screen and blitted to the real screen
 static pixel_t *st_backing_screen = NULL;
 
-// [Alaux]
-static boolean hud_animated_counts;
-
 static boolean sts_colored_numbers;
 
 static boolean sts_pct_always_gray;
@@ -126,12 +123,6 @@ static int armor_green;   // armor amount above is blue, below is green
 static boolean hud_armor_type; // color of armor depends on type
 
 static boolean weapon_carousel;
-
-// used for evil grin
-static boolean  oldweaponsowned[NUMWEAPONS];
-
-// [crispy] blinking key or skull in the status bar
-int st_keyorskull[3];
 
 static sbardef_t *sbardef;
 
@@ -438,31 +429,6 @@ static boolean CheckConditions(sbarcondition_t *conditions, player_t *player)
     return result;
 }
 
-// [Alaux]
-static int SmoothCount(int shownval, int realval)
-{
-    int step = realval - shownval;
-
-    if (!hud_animated_counts || !step)
-    {
-        return realval;
-    }
-    else
-    {
-        int sign = step / abs(step);
-        step = BETWEEN(1, 7, abs(step) / 20);
-        shownval += (step + 1) * sign;
-
-        if ((sign > 0 && shownval > realval)
-            || (sign < 0 && shownval < realval))
-        {
-            shownval = realval;
-        }
-
-        return shownval;
-    }
-}
-
 static int ResolveNumber(sbe_number_t *number, player_t *player)
 {
     int result = 0;
@@ -471,21 +437,11 @@ static int ResolveNumber(sbe_number_t *number, player_t *player)
     switch (number->type)
     {
         case sbn_health:
-            if (number->oldvalue == -1)
-            {
-                number->oldvalue = player->health;
-            }
-            result = SmoothCount(number->oldvalue, player->health);
-            number->oldvalue = result;
+            result = player->health;
             break;
 
         case sbn_armor:
-            if (number->oldvalue == -1)
-            {
-                number->oldvalue = player->armorpoints;
-            }
-            result = SmoothCount(number->oldvalue, player->armorpoints);
-            number->oldvalue = result;
+            result = player->armorpoints;
             break;
 
         case sbn_frags:
@@ -540,10 +496,15 @@ static int ResolveNumber(sbe_number_t *number, player_t *player)
 
 static int CalcPainOffset(sbe_face_t *face, player_t *player)
 {
+    static int lasthealthcalc;
+    static int oldhealth = -1;
     int health = player->health > 100 ? 100 : player->health;
-    int lasthealthcalc =
-        ST_FACESTRIDE * (((100 - health) * ST_NUMPAINFACES) / 101);
-    face->oldhealth = health;
+    if (oldhealth != health)
+    {
+        lasthealthcalc =
+            ST_FACESTRIDE * (((100 - health) * ST_NUMPAINFACES) / 101);
+        oldhealth = health;
+    }
     return lasthealthcalc;
 }
 
@@ -586,10 +547,13 @@ static void UpdateFace(sbe_face_t *face, player_t *player)
 
             for (int i = 0; i < NUMWEAPONS; ++i)
             {
-                if (oldweaponsowned[i] != player->weaponowned[i])
+                if (face->oldweaponsowned[i] != player->weaponowned[i])
                 {
-                    doevilgrin = true;
-                    oldweaponsowned[i] = player->weaponowned[i];
+                    if (face->oldweaponsowned[i] < player->weaponowned[i])
+                    {
+                        doevilgrin = true;
+                    }
+                    face->oldweaponsowned[i] = player->weaponowned[i];
                 }
             }
 
@@ -615,7 +579,7 @@ static void UpdateFace(sbe_face_t *face, player_t *player)
             boolean right = false;
 
             // [FG] show "Ouch Face" as intended
-            if (player->health - face->oldhealth > ST_MUCHPAIN)
+            if (face->oldhealth - player->health > ST_MUCHPAIN)
             {
                 // [FG] raise "Ouch Face" priority
                 priority = 8;
@@ -668,7 +632,7 @@ static void UpdateFace(sbe_face_t *face, player_t *player)
         // getting hurt because of your own damn stupidity
         if (player->damagecount)
         {
-            if (player->health - face->oldhealth > ST_MUCHPAIN)
+            if (face->oldhealth - player->health > ST_MUCHPAIN)
             {
                 priority = 7;
                 face->facecount = ST_TURNCOUNT;
@@ -726,6 +690,8 @@ static void UpdateFace(sbe_face_t *face, player_t *player)
     }
 
     --face->facecount;
+
+    face->oldhealth = player->health;
 }
 
 static void UpdateNumber(sbarelem_t *elem, player_t *player)
@@ -873,8 +839,7 @@ static void UpdateBoomColors(sbarelem_t *elem, player_t *player)
 
     sbe_number_t *number = elem->subtype.number;
 
-    boolean invul = (player->powers[pw_invulnerability]
-                     || player->cheats & CF_GODMODE);
+    boolean invul = ST_PlayerInvulnerable(player);
 
     crange_idx_e cr;
 
@@ -1014,6 +979,11 @@ static void UpdateStatusBar(player_t *player)
 
     int barindex = MAX(screenblocks - 10, 0);
 
+    if (barindex >= array_size(sbardef->statusbars))
+    {
+        barindex = array_size(sbardef->statusbars) - 1;
+    }
+
     if (automapactive && automapoverlay == AM_OVERLAY_OFF)
     {
         barindex = 0;
@@ -1036,7 +1006,7 @@ static void UpdateStatusBar(player_t *player)
     }
 }
 
-static void ResetElem(sbarelem_t *elem)
+static void ResetElem(sbarelem_t *elem, player_t *player)
 {
     switch (elem->type)
     {
@@ -1053,6 +1023,10 @@ static void ResetElem(sbarelem_t *elem)
                 face->faceindex = 0;
                 face->facecount = 0;
                 face->oldhealth = -1;
+                for (int i = 0; i < NUMWEAPONS; i++)
+                {
+                    face->oldweaponsowned[i] = player->weaponowned[i];
+                }
             }
             break;
 
@@ -1069,9 +1043,8 @@ static void ResetElem(sbarelem_t *elem)
             }
             break;
 
-        case sbe_number:
-        case sbe_percent:
-            elem->subtype.number->oldvalue = -1;
+        case sbe_widget:
+            elem->subtype.widget->duration_left = 0;
             break;
 
         default:
@@ -1081,19 +1054,21 @@ static void ResetElem(sbarelem_t *elem)
     sbarelem_t *child;
     array_foreach(child, elem->children)
     {
-        ResetElem(child);
+        ResetElem(child, player);
     }
 }
 
 static void ResetStatusBar(void)
 {
+    player_t *player = &players[displayplayer];
+
     statusbar_t *local_statusbar;
     array_foreach(local_statusbar, sbardef->statusbars)
     {
         sbarelem_t *child;
         array_foreach(child, local_statusbar->children)
         {
-            ResetElem(child);
+            ResetElem(child, player);
         }
     }
 
@@ -1438,7 +1413,7 @@ static void DrawSolidBackground(void)
     // [FG] calculate average color of the 16px left and right of the status bar
     const int vstep[][2] = { {0, 1}, {1, 2}, {2, ST_HEIGHT} };
 
-    patch_t *sbar = V_CachePatchName("STBAR", PU_CACHE);
+    patch_t *sbar = V_CachePatchName(W_CheckWidescreenPatch("STBAR"), PU_CACHE);
     // [FG] temporarily draw status bar to background buffer
     V_DrawPatch(-video.deltaw, 0, sbar);
 
@@ -1552,6 +1527,19 @@ static void DrawStatusBar(void)
     DrawCenteredMessage();
 }
 
+static void EraseBackground(int y, int height)
+{
+    if (y > scaledviewy && y < scaledviewy + scaledviewheight - height)
+    {
+        R_VideoErase(0, y, scaledviewx, height);
+        R_VideoErase(scaledviewx + scaledviewwidth, y, scaledviewx, height);
+    }
+    else
+    {
+        R_VideoErase(0, y, video.unscaledw, height);
+    }
+}
+
 static void EraseElem(int x, int y, sbarelem_t *elem, player_t *player)
 {
     if (!CheckConditions(elem->conditions, player))
@@ -1578,15 +1566,20 @@ static void EraseElem(int x, int y, sbarelem_t *elem, player_t *player)
             height += font->maxheight;
         }
 
-        if (y > scaledviewy && y < scaledviewy + scaledviewheight - height)
+        if (height > 0)
         {
-            R_VideoErase(0, y, scaledviewx, height);
-            R_VideoErase(scaledviewx + scaledviewwidth, y, scaledviewx, height);
+            EraseBackground(y, height);
+            widget->height = height;
         }
-        else
+        else if (widget->height)
         {
-            R_VideoErase(0, y, video.unscaledw, height);
+            EraseBackground(y, widget->height);
+            widget->height = 0;
         }
+    }
+    else if (elem->type == sbe_carousel)
+    {
+        ST_EraseCarousel(y);
     }
 
     sbarelem_t *child;
@@ -1598,7 +1591,7 @@ static void EraseElem(int x, int y, sbarelem_t *elem, player_t *player)
 
 void ST_Erase(void)
 {
-    if (!sbardef)
+    if (!sbardef || screenblocks >= 10)
     {
         return;
     }
@@ -1753,11 +1746,6 @@ void ST_Drawer(void)
     }
 
     DrawStatusBar();
-
-    if (hud_crosshair)
-    {
-        HU_DrawCrosshair();
-    }
 }
 
 void ST_Start(void)
@@ -1780,15 +1768,15 @@ void ST_Init(void)
 {
     sbardef = ST_ParseSbarDef();
 
+    stcfnt = LoadSTCFN();
+    hu_font = stcfnt->characters;
+
     if (!sbardef)
     {
         return;
     }
 
     LoadFacePatches();
-
-    stcfnt = LoadSTCFN();
-    hu_font = stcfnt->characters;
 
     HU_InitCrosshair();
     HU_InitCommandHistory();
@@ -1803,6 +1791,35 @@ void ST_InitRes(void)
     st_backing_screen =
         Z_Malloc(video.pitch * V_ScaleY(ST_HEIGHT) * sizeof(*st_backing_screen),
                  PU_RENDERER, 0);
+}
+
+const char **ST_StatusbarList(void)
+{
+    if (!sbardef)
+    {
+        return NULL;
+    }
+
+    static const char **strings;
+
+    if (array_size(strings))
+    {
+        return strings;
+    }
+
+    statusbar_t *item;
+    array_foreach(item, sbardef->statusbars)
+    {
+        if (item->fullscreenrender)
+        {
+            array_push(strings, "Fullscreen");
+        }
+        else
+        {
+            array_push(strings, "Status Bar");
+        }
+    }
+    return strings;
 }
 
 void ST_ResetPalette(void)
@@ -1844,13 +1861,11 @@ void ST_BindSTSVariables(void)
   M_BindBool("sts_colored_numbers", &sts_colored_numbers, NULL,
              false, ss_stat, wad_yes, "Colored numbers on the status bar");
   M_BindBool("sts_pct_always_gray", &sts_pct_always_gray, NULL,
-             false, ss_stat, wad_yes,
+             false, ss_none, wad_yes,
              "Percent signs on the status bar are always gray");
   M_BindBool("st_solidbackground", &st_solidbackground, NULL,
              false, ss_stat, wad_no,
              "Use solid-color borders for the status bar in widescreen mode");
-  M_BindBool("hud_animated_counts", &hud_animated_counts, NULL,
-            false, ss_stat, wad_no, "Animated health/armor counts");
   M_BindBool("hud_armor_type", &hud_armor_type, NULL, true, ss_none, wad_no,
              "Armor count is colored based on armor type");
   M_BindNum("health_red", &health_red, NULL, 25, 0, 200, ss_none, wad_yes,

@@ -125,7 +125,7 @@ typedef struct sector_s
   // or ceilingpic, because the rest of Doom needs to know which is sky
   // and which isn't, etc.
 
- int sky;
+ int floorsky, ceilingsky;
 
   // list of mobjs that are at least partially in the sector
   // thinglist is a subset of touching_thinglist
@@ -167,6 +167,12 @@ typedef struct sector_s
   fixed_t base_ceiling_yoffs;
   fixed_t old_ceiling_xoffs;
   fixed_t old_ceiling_yoffs;
+
+  // ID24 line specials
+  int colormap_index;
+  lighttable_t *colormap;
+  angle_t floor_rotation;
+  angle_t ceiling_rotation;
 } sector_t;
 
 //
@@ -225,6 +231,11 @@ typedef struct line_s
   void *specialdata;     // thinker_t for reversable actions
   int tranlump;          // killough 4/11/98: translucency filter, -1 == none
   int firsttag,nexttag;  // killough 4/17/98: improves searches for tags.
+
+  // ID24 line specials
+  angle_t angle;
+  int frontmusic; // Front upper texture -- activated from the front side
+  int backmusic; // Front lower texture -- activated from the back side
 } line_t;
 
 //
@@ -441,6 +452,7 @@ typedef struct visplane_s
   int picnum, lightlevel, minx, maxx;
   fixed_t height;
   fixed_t xoffs, yoffs;         // killough 2/28/98: Support scrolling flats
+  angle_t rotation;
   unsigned short *bottom;
   unsigned short pad1;          // leave pads for [minx-1]/[maxx+1]
   unsigned short top[3];

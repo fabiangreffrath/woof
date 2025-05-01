@@ -137,9 +137,32 @@ static void InitSky(void)
         return;
     }
 
+    flatmap_t *flatmap = NULL;
+    array_foreach(flatmap, skydefs->flatmapping)
+    {
+        int flatnum = R_FlatNumForName(flatmap->flat);
+        int skytex = R_TextureNumForName(flatmap->sky);
+
+        for (int i = 0; i < numsectors; i++)
+        {
+            if (sectors[i].floorpic == flatnum)
+            {
+                sectors[i].floorpic = skyflatnum;
+                sectors[i].floorsky = skytex | PL_FLATMAPPING;
+                R_GetSkyColor(skytex);
+            }
+            if (sectors[i].ceilingpic == flatnum)
+            {
+                sectors[i].ceilingpic = skyflatnum;
+                sectors[i].ceilingsky = skytex | PL_FLATMAPPING;
+                R_GetSkyColor(skytex);
+            }
+        }
+    }
+
     array_foreach(sky, skydefs->skies)
     {
-        if (skytexture == R_CheckTextureNumForName(sky->skytex.name))
+        if (skytexture == sky->skytex.texture)
         {
             if (sky->type == SkyType_Fire)
             {
@@ -176,12 +199,16 @@ void R_UpdateSky(void)
     }
 
     skytex_t *background = &sky->skytex;
+    background->prevx = background->currx;
+    background->prevy = background->curry;
     background->currx += background->scrollx;
     background->curry += background->scrolly;
 
     if (sky->type == SkyType_WithForeground)
     {
         skytex_t *foreground = &sky->foreground;
+        foreground->prevx = foreground->currx;
+        foreground->prevy = foreground->curry;
         foreground->currx += foreground->scrollx;
         foreground->curry += foreground->scrolly;
     }

@@ -25,7 +25,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "d_main.h"
+#include "d_iwad.h"
 #include "d_think.h"
 #include "doomdef.h"
 #include "doomstat.h"
@@ -66,14 +66,18 @@
 // and possibly other attributes.
 //
 
-typedef struct
+#if defined(_MSC_VER)
+#pragma pack(push, 1)
+#endif
+
+typedef PACKED_PREFIX struct
 {
   short originx;
   short originy;
   short patch;
   short stepdir;         // unused in Doom but might be used in Phase 2 Boom
   short colormap;        // unused in Doom but might be used in Phase 2 Boom
-} mappatch_t;
+} PACKED_SUFFIX mappatch_t;
 
 
 //
@@ -81,7 +85,7 @@ typedef struct
 // A DOOM wall texture is a list of patches
 // which are to be combined in a predefined order.
 //
-typedef struct
+typedef PACKED_PREFIX struct
 {
   char       name[8];
   int        masked;
@@ -90,8 +94,11 @@ typedef struct
   char       pad[4];       // unused in Doom but might be used in Boom Phase 2
   short      patchcount;
   mappatch_t patches[1];
-} maptexture_t;
+} PACKED_SUFFIX maptexture_t;
 
+#if defined(_MSC_VER)
+#pragma pack(pop)
+#endif
 
 // A single patch from a texture definition, basically
 // a rectangular area within the texture rectangle.
@@ -1055,9 +1062,7 @@ void R_InitTranMap(int progress)
   int p = M_CheckParmWithArgs("-dumptranmap", 1);
   if (p > 0)
   {
-      char *path = malloc(strlen(myargv[p + 1]) + 5);
-      strcpy(path, myargv[p + 1]);
-      AddDefaultExtension(path, ".lmp");
+      char *path = AddDefaultExtension(myargv[p + 1], ".lmp");
 
       M_WriteFile(path, main_tranmap, 256 * 256);
 

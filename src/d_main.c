@@ -29,6 +29,7 @@
 #include "am_map.h"
 #include "config.h"
 #include "d_deh.h"  // Ty 04/08/98 - Externalizations
+#include "d_demoloop.h"
 #include "d_event.h"
 #include "d_iwad.h"
 #include "d_loop.h"
@@ -80,7 +81,7 @@
 #include "st_stuff.h"
 #include "st_widgets.h"
 #include "statdump.h"
-#include "u_mapinfo.h"
+#include "g_umapinfo.h"
 #include "v_fmt.h"
 #include "v_video.h"
 #include "w_wad.h"
@@ -257,7 +258,7 @@ void D_Display (void)
   static boolean viewactivestate = false;
   static boolean menuactivestate = false;
   static gamestate_t oldgamestate = GS_NONE;
-  static int borderdrawcount;
+  static boolean borderdrawcount;
   int wipestart;
   boolean done, wipe;
 
@@ -308,7 +309,7 @@ void D_Display (void)
     {
       R_ExecuteSetViewSize();
       oldgamestate = GS_NONE;            // force background redraw
-      borderdrawcount = 3;
+      borderdrawcount = true;
     }
 
   if (gamestate == GS_LEVEL && gametic)
@@ -317,18 +318,12 @@ void D_Display (void)
   switch (gamestate)                // do buffered drawing
     {
     case GS_LEVEL:
-      if (!gametic)
-        break;
-      if (automapactive)
-      {
-        if (!automapoverlay)
+      if (automapactive && !automapoverlay && gametic)
         {
           // [FG] update automap while playing
           R_RenderPlayerView(&players[displayplayer]);
           AM_Drawer();
         }
-        ST_Drawer();
-      }
       break;
     case GS_INTERMISSION:
       WI_Drawer();
@@ -345,10 +340,7 @@ void D_Display (void)
 
   // draw the view directly
   if (gamestate == GS_LEVEL && automap_off && gametic)
-    {
-      R_RenderPlayerView(&players[displayplayer]);
-      ST_Drawer();
-    }
+    R_RenderPlayerView(&players[displayplayer]);
 
   // clean up border stuff
   if (gamestate != oldgamestate && gamestate != GS_LEVEL)
@@ -365,12 +357,11 @@ void D_Display (void)
   if (gamestate == GS_LEVEL && automap_off && scaledviewwidth != video.unscaledw)
     {
       if (menuactive || menuactivestate || !viewactivestate)
-        borderdrawcount = 3;
+        borderdrawcount = true;
       if (borderdrawcount)
         {
           R_DrawViewBorder();    // erase old menu stuff
-          ST_Drawer();
-          borderdrawcount--;
+          borderdrawcount = false;
         }
     }
 
@@ -381,11 +372,12 @@ void D_Display (void)
   if (gamestate == GS_LEVEL && automapactive && automapoverlay)
     {
       AM_Drawer();
-      ST_Drawer();
-
       // [crispy] force redraw of border
       viewactivestate = false;
     }
+
+  if (gamestate == GS_LEVEL && gametic)
+    ST_Drawer();
 
   // draw pause pic
   if (paused)
@@ -443,7 +435,8 @@ void D_Display (void)
 
 static int demosequence;         // killough 5/2/98: made static
 static int pagetic;
-static char *pagename;
+static const char *pagename;
+static demoloop_t demoloop_point;
 
 //
 // D_PageTicker
@@ -467,7 +460,8 @@ void D_PageTicker(void)
 
 void D_PageDrawer(void)
 {
-  V_DrawPatchFullScreen(V_CachePatchName(pagename, PU_CACHE));
+  V_DrawPatchFullScreen(
+    V_CachePatchName(W_CheckWidescreenPatch(pagename), PU_CACHE));
 }
 
 //
@@ -475,15 +469,17 @@ void D_PageDrawer(void)
 // Called after each demo or intro demosequence finishes
 //
 
-void D_AdvanceDemo (void)
+void D_AdvanceDemo(void)
 {
   advancedemo = true;
 }
 
-//
 // This cycles through the demo sequences.
-// FIXME - version dependend demo numbers?
-//
+void D_AdvanceDemoLoop(void)
+{
+  demosequence = (demosequence + 1) % demoloop_count;
+  demoloop_point = &demoloop[demosequence];
+}
 
 void D_DoAdvanceDemo(void)
 {
@@ -493,93 +489,47 @@ void D_DoAdvanceDemo(void)
     paused = false;
     gameaction = ga_nothing;
 
-    // The Ultimate Doom executable changed the demo sequence to add
-    // a DEMO4 demo.  Final Doom was based on Ultimate, so also
-    // includes this change; however, the Final Doom IWADs do not
-    // include a DEMO4 lump, so the game bombs out with an error
-    // when it reaches this point in the demo sequence.
-
-    // However! There is an alternate version of Final Doom that
-    // includes a fixed executable.
-
-    if (W_CheckNumForName("DEMO4") >= 0)
+    D_AdvanceDemoLoop();
+    switch (demoloop_point->type)
     {
-        demosequence = (demosequence + 1) % 7;
-    }
-    else
-    {
-        demosequence = (demosequence + 1) % 6;
-    }
+        case TYPE_ART:
+            gamestate = GS_DEMOSCREEN;
 
-    switch (demosequence)
-    {
-        case 0:
-            if (gamemode == commercial)
+            // Needed to support the Doom 3: BFG Edition variant
+            if (W_CheckNumForName(demoloop_point->primary_lump) < 0
+                && !strcasecmp(demoloop_point->primary_lump, "TITLEPIC"))
             {
-                pagetic = TICRATE * 11;
+                M_CopyLumpName(demoloop_point->primary_lump, "DMENUPIC");
             }
-            else
-            {
-                pagetic = 170;
-            }
-            gamestate = GS_DEMOSCREEN;
-            pagename = "TITLEPIC";
-            if (gamemode == commercial)
-            {
-                S_StartMusic(mus_dm2ttl);
-            }
-            else
-            {
-                S_StartMusic(mus_intro);
-            }
-            break;
-        case 1:
-            G_DeferedPlayDemo("DEMO1");
-            break;
-        case 2:
-            pagetic = 200;
-            gamestate = GS_DEMOSCREEN;
-            pagename = "CREDIT";
-            break;
-        case 3:
-            G_DeferedPlayDemo("DEMO2");
-            break;
-        case 4:
-            gamestate = GS_DEMOSCREEN;
-            if (gamemode == commercial)
-            {
-                pagetic = TICRATE * 11;
-                pagename = "TITLEPIC";
-                S_StartMusic(mus_dm2ttl);
-            }
-            else
-            {
-                pagetic = 200;
 
-                if (gameversion >= exe_ultimate)
+            if (W_CheckNumForName(demoloop_point->primary_lump) >= 0)
+            {
+                pagename = demoloop_point->primary_lump;
+                pagetic = demoloop_point->duration;
+                int music = W_CheckNumForName(demoloop_point->secondary_lump);
+                if (music >= 0)
                 {
-                    pagename = "CREDIT";
+                    S_ChangeMusInfoMusic(music, false);
                 }
-                else
-                {
-                    pagename = "HELP2";
-                }
+                break;
             }
-            break;
-        case 5:
-            G_DeferedPlayDemo("DEMO3");
-            break;
-        // THE DEFINITIVE DOOM Special Edition demo
-        case 6:
-            G_DeferedPlayDemo("DEMO4");
-            break;
-    }
+            // fallthrough
 
-    // The Doom 3: BFG Edition version of doom2.wad does not have a
-    // TITLETPIC lump.
-    if (!strcasecmp(pagename, "TITLEPIC") && W_CheckNumForName("TITLEPIC") < 0)
-    {
-        pagename = "DMENUPIC";
+        case TYPE_DEMO:
+            gamestate = GS_DEMOSCREEN;
+
+            if (W_CheckNumForName(demoloop_point->primary_lump) >= 0)
+            {
+                G_DeferedPlayDemo(demoloop_point->primary_lump);
+                break;
+            }
+            // fallthrough
+
+        default:
+            I_Printf(VB_WARNING,
+                     "D_DoAdvanceDemo: Invalid demoloop[%d] entry, skipping",
+                     demosequence);
+            break;
     }
 }
 
@@ -613,54 +563,9 @@ void D_AddFile(const char *file)
 }
 
 // killough 10/98: return the name of the program the exe was invoked as
-char *D_DoomExeName(void)
+const char *D_DoomExeName(void)
 {
-  static char *name;
-
-  if (!name) // cache multiple requests
-  {
-    char *ext;
-
-    name = M_StringDuplicate(M_BaseName(myargv[0]));
-
-    ext = strrchr(name, '.');
-    if (ext)
-      *ext = '\0';
-  }
-
-  return name;
-}
-
-// [FG] get the path to the default configuration dir to use
-
-char *D_DoomPrefDir(void)
-{
-    static char *dir;
-
-    if (dir == NULL)
-    {
-#if !defined(_WIN32) || defined(_WIN32_WCE)
-        // Configuration settings are stored in an OS-appropriate path
-        // determined by SDL.  On typical Unix systems, this might be
-        // ~/.local/share/chocolate-doom.  On Windows, we behave like
-        // Vanilla Doom and save in the current directory.
-
-        char *result = SDL_GetPrefPath("", PROJECT_SHORTNAME);
-        if (result != NULL)
-        {
-            dir = M_DirName(result);
-            SDL_free(result);
-        }
-        else
-#endif /* #ifndef _WIN32 */
-        {
-            dir = D_DoomExeDir();
-        }
-
-        M_MakeDirectory(dir);
-    }
-
-    return dir;
+  return PROJECT_SHORTNAME;
 }
 
 // Calculate the path to the directory for autoloaded WADs/DEHs.
@@ -833,9 +738,9 @@ static boolean CheckMapLump(const char *lumpname, const char *filename)
 
 static boolean FileContainsMaps(const char *filename)
 {
-    for (int i = 0; i < U_mapinfo.mapcount; ++i)
+    for (int i = 0; i < array_size(umapinfo); ++i)
     {
-        if (CheckMapLump(U_mapinfo.maps[i].mapname, filename))
+        if (CheckMapLump(umapinfo[i].mapname, filename))
         {
             return true;
         }
@@ -898,57 +803,6 @@ void IdentifyVersion(void)
 
     basedefault = M_StringJoin(D_DoomPrefDir(), DIR_SEPARATOR_S,
                                D_DoomExeName(), ".cfg");
-    // set save path to -save parm or current dir
-
-    screenshotdir = M_StringDuplicate("."); // [FG] default to current dir
-
-    basesavegame = M_StringDuplicate(
-        D_DoomPrefDir()); // jff 3/27/98 default to current dir
-
-    //!
-    // @arg <directory>
-    //
-    // Specify a path from which to load and save games. If the directory
-    // does not exist then it will automatically be created.
-    //
-
-    int p = M_CheckParmWithArgs("-save", 1);
-    if (p > 0)
-    {
-        if (basesavegame)
-        {
-            free(basesavegame);
-        }
-        basesavegame = M_StringDuplicate(myargv[p + 1]);
-
-        M_MakeDirectory(basesavegame);
-
-        // [FG] fall back to -save parm
-        if (screenshotdir)
-        {
-            free(screenshotdir);
-        }
-        screenshotdir = M_StringDuplicate(basesavegame);
-    }
-
-    //!
-    // @arg <directory>
-    //
-    // Specify a path to save screenshots. If the directory does not
-    // exist then it will automatically be created.
-    //
-
-    p = M_CheckParmWithArgs("-shotdir", 1);
-    if (p > 0)
-    {
-        if (screenshotdir)
-        {
-            free(screenshotdir);
-        }
-        screenshotdir = M_StringDuplicate(myargv[p + 1]);
-
-        M_MakeDirectory(screenshotdir);
-    }
 
     // locate the IWAD and determine game mode from it
 
@@ -956,7 +810,11 @@ void IdentifyVersion(void)
 
     if (!iwadfile)
     {
-        I_Error("IWAD not found");
+        I_Error("IWAD not found!\n"
+                "\n"
+                "Place an IWAD file (e.g. doom.wad, doom2.wad)\n"
+                "in one of the IWAD search directories, e.g.\n"
+                "%s", D_DoomPrefDir());
     }
 
     D_AddFile(iwadfile);
@@ -1017,7 +875,7 @@ static void InitGameVersion(void)
         // Determine automatically
 
         if (gamemode == shareware || gamemode == registered ||
-            (gamemode == commercial && gamemission == doom2))
+            (gamemode == commercial && gamemission != pack_tnt && gamemission != pack_plut))
         {
             // original
             gameversion = exe_doom_1_9;
@@ -1074,8 +932,7 @@ void FindResponseFile (void)
         // READ THE RESPONSE FILE INTO MEMORY
 
         // killough 10/98: add default .rsp extension
-        char *filename = malloc(strlen(myargv[i])+5);
-        AddDefaultExtension(strcpy(filename,&myargv[i][1]),".rsp");
+        char *filename = AddDefaultExtension(&myargv[i][1],".rsp");
 
         handle = M_fopen(filename,"rb");
         if (!handle)
@@ -1110,10 +967,23 @@ void FindResponseFile (void)
         indexinfile++;  // SKIP PAST ARGV[0] (KEEP IT)
         do
           {
+            boolean quote = false;
+            if (infile[k] == '"')
+            {
+                quote = true;
+                k++;
+            }
             myargv[indexinfile++] = infile+k;
             while(k < size &&
-                  ((*(infile+k)>= ' '+1) && (*(infile+k)<='z')))
+                  ((*(infile+k)>= ' ') && (*(infile+k)<='z')))
+            {
+              if ((!quote && infile[k] == ' ') ||
+                  (quote && infile[k] == '"'))
+              {
+                break;
+              }
               k++;
+            }
             *(infile+k) = 0;
             while(k < size &&
                   ((*(infile+k)<= ' ') || (*(infile+k)>'z')))
@@ -1424,14 +1294,15 @@ static void D_ProcessDehCommandLine(void)
           if (deh)
             {
               char *probe;
-              char *file = malloc(strlen(myargv[p]) + 5);      // killough
-              AddDefaultExtension(strcpy(file, myargv[p]), ".bex");
+              char *file = AddDefaultExtension(myargv[p], ".bex");
               probe = D_TryFindWADByName(file);
+              free(file);
               if (M_access(probe, F_OK))  // nope
                 {
                   free(probe);
-                  AddDefaultExtension(strcpy(file, myargv[p]), ".deh");
+                  file = AddDefaultExtension(myargv[p], ".deh");
                   probe = D_TryFindWADByName(file);
+                  free(file);
                   if (M_access(probe, F_OK))  // still nope
                   {
                     free(probe);
@@ -1443,7 +1314,6 @@ static void D_ProcessDehCommandLine(void)
               // (apparently, this was never removed after Boom beta-killough)
               ProcessDehFile(probe, D_dehout(), 0);  // killough 10/98
               free(probe);
-              free(file);
             }
     }
   // ty 03/09/98 end of do dehacked stuff
@@ -1473,64 +1343,128 @@ static void AutoLoadWADs(const char *path)
     W_AddPath(path);
 }
 
+static int firstpwad = 1;
+
 static void LoadIWadBase(void)
 {
-    GameMission_t local_gamemission =
-        D_GetGameMissionByIWADName(M_BaseName(wadfiles[0]));
+    GameMode_t local_gamemode;
+    GameMission_t local_gamemission;
+    D_GetModeAndMissionByIWADName(M_BaseName(wadfiles[0]), &local_gamemode,
+                                  &local_gamemission);
+
+    if (local_gamemission == none || local_gamemode == indetermined)
+    {
+        return;
+    }
 
     if (local_gamemission < pack_chex)
     {
         W_AddBaseDir("doom-all");
     }
-    W_AddBaseDir(M_BaseName(wadfiles[0]));
+    if (local_gamemission == pack_chex || local_gamemission == pack_chex3v)
+    {
+        W_AddBaseDir("chex-all");
+    }
+    if (local_gamemission == doom)
+    {
+        W_AddBaseDir("doom1-all");
+    }
+    else if (local_gamemission >= doom2 && local_gamemission <= pack_plut)
+    {
+        W_AddBaseDir("doom2-all");
+    }
+    else if (local_gamemission == pack_freedoom)
+    {
+        W_AddBaseDir("freedoom-all");
+        if (local_gamemode == commercial)
+        {
+            W_AddBaseDir("freedoom2-all");
+        }
+        else
+        {
+            W_AddBaseDir("freedoom1-all");
+        }
+    }
+    for (int i = 0; i < firstpwad; i++)
+    {
+        W_AddBaseDir(M_BaseName(wadfiles[i]));
+    }
 }
 
 static void AutoloadIWadDir(void (*AutoLoadFunc)(const char *path))
 {
-    GameMission_t local_gamemission =
-        D_GetGameMissionByIWADName(M_BaseName(wadfiles[0]));
+    GameMode_t local_gamemode;
+    GameMission_t local_gamemission;
+    D_GetModeAndMissionByIWADName(M_BaseName(wadfiles[0]), &local_gamemode, &local_gamemission);
 
-    for (int i = 0; i < array_size(autoload_paths); ++i)
+    for (int i = 0; i < firstpwad; i++)
     {
-        char *dir = GetAutoloadDir(autoload_paths[i], "all-all", true);
-        AutoLoadFunc(dir);
-        free(dir);
-
-        // common auto-loaded files for all Doom flavors
-        if (local_gamemission != none)
+        for (int j = 0; j < array_size(autoload_paths); ++j)
         {
-            if (local_gamemission < pack_chex)
+            char *dir = GetAutoloadDir(autoload_paths[j], "all-all", true);
+            AutoLoadFunc(dir);
+            free(dir);
+
+            // common auto-loaded files for all Doom flavors
+            if (local_gamemission != none)
             {
-                dir = GetAutoloadDir(autoload_paths[i], "doom-all", true);
-                AutoLoadFunc(dir);
-                free(dir);
+                if (local_gamemission < pack_chex)
+                {
+                    dir = GetAutoloadDir(autoload_paths[j], "doom-all", true);
+                    AutoLoadFunc(dir);
+                    free(dir);
+                }
+                else if (local_gamemission == pack_chex || local_gamemission == pack_chex3v)
+                {
+                    dir = GetAutoloadDir(autoload_paths[j], "chex-all", true);
+                    AutoLoadFunc(dir);
+                    free(dir);
+                }
+
+                if (local_gamemission == doom)
+                {
+                    dir = GetAutoloadDir(autoload_paths[j], "doom1-all", true);
+                    AutoLoadFunc(dir);
+                    free(dir);
+                }
+                else if (local_gamemission >= doom2
+                         && local_gamemission <= pack_plut)
+                {
+                    dir = GetAutoloadDir(autoload_paths[j], "doom2-all", true);
+                    AutoLoadFunc(dir);
+                    free(dir);
+                }
+                else if (local_gamemission == pack_freedoom)
+                {
+                    dir = GetAutoloadDir(autoload_paths[j], "freedoom-all", true);
+                    AutoLoadFunc(dir);
+                    free(dir);
+                    if (local_gamemode == commercial)
+                    {
+                        dir = GetAutoloadDir(autoload_paths[j], "freedoom2-all", true);
+                        AutoLoadFunc(dir);
+                        free(dir);
+                    }
+                    else
+                    {
+                        dir = GetAutoloadDir(autoload_paths[j], "freedoom1-all", true);
+                        AutoLoadFunc(dir);
+                        free(dir);
+                    }
+                }
             }
 
-            if (local_gamemission == doom)
-            {
-                dir = GetAutoloadDir(autoload_paths[i], "doom1-all", true);
-                AutoLoadFunc(dir);
-                free(dir);
-            }
-            else if (local_gamemission >= doom2
-                     && local_gamemission <= pack_plut)
-            {
-                dir = GetAutoloadDir(autoload_paths[i], "doom2-all", true);
-                AutoLoadFunc(dir);
-                free(dir);
-            }
+            // auto-loaded files per IWAD
+            dir = GetAutoloadDir(autoload_paths[j], M_BaseName(wadfiles[i]), true);
+            AutoLoadFunc(dir);
+            free(dir);
         }
-
-        // auto-loaded files per IWAD
-        dir = GetAutoloadDir(autoload_paths[i], M_BaseName(wadfiles[0]), true);
-        AutoLoadFunc(dir);
-        free(dir);
     }
 }
 
 static void LoadPWadBase(void)
 {
-    for (int i = 1; i < array_size(wadfiles); ++i)
+    for (int i = firstpwad; i < array_size(wadfiles); ++i)
     {
         W_AddBaseDir(wadfiles[i]);
     }
@@ -1538,7 +1472,7 @@ static void LoadPWadBase(void)
 
 static void AutoloadPWadDir(void (*AutoLoadFunc)(const char *path))
 {
-    for (int i = 1; i < array_size(wadfiles); ++i)
+    for (int i = firstpwad; i < array_size(wadfiles); ++i)
     {
         for (int j = 0; j < array_size(autoload_paths); ++j)
         {
@@ -1683,15 +1617,17 @@ void D_SetBloodColor(void)
 typedef enum {
   EXIT_SEQUENCE_OFF,          // Skip sound, skip ENDOOM.
   EXIT_SEQUENCE_SOUND_ONLY,   // Play sound, skip ENDOOM.
-  EXIT_SEQUENCE_PWAD_ENDOOM,  // Play sound, show ENDOOM for PWADs only.
+  EXIT_SEQUENCE_ENDOOM_ONLY,  // Skip sound, show ENDOOM.
   EXIT_SEQUENCE_FULL          // Play sound, show ENDOOM.
 } exit_sequence_t;
 
 static exit_sequence_t exit_sequence;
+static boolean endoom_pwad_only;
 
 boolean D_AllowQuitSound(void)
 {
-  return (exit_sequence != EXIT_SEQUENCE_OFF);
+  return (exit_sequence == EXIT_SEQUENCE_FULL
+          || exit_sequence == EXIT_SEQUENCE_SOUND_ONLY);
 }
 
 static void D_ShowEndDoom(void)
@@ -1704,19 +1640,31 @@ static void D_ShowEndDoom(void)
 
 boolean disable_endoom = false;
 
-static boolean AllowEndDoom(void)
+boolean D_AllowEndDoom(void)
 {
-  return  !disable_endoom && (exit_sequence == EXIT_SEQUENCE_FULL
-          || (exit_sequence == EXIT_SEQUENCE_PWAD_ENDOOM
-              && !W_IsIWADLump(W_CheckNumForName("ENDOOM"))));
+  return (!disable_endoom
+          && (exit_sequence == EXIT_SEQUENCE_FULL
+          || exit_sequence == EXIT_SEQUENCE_ENDOOM_ONLY));
 }
 
 static void D_EndDoom(void)
 {
-  if (AllowEndDoom())
+  // Do we even want to show an ENDOOM?
+  if (!D_AllowEndDoom())
   {
-    D_ShowEndDoom();
+    return;
   }
+
+  // If so, is it from the IWAD?
+  boolean iwad_endoom = W_IsIWADLump(W_CheckNumForName("ENDOOM"));
+
+  // Does the user want to see it, in that case?
+  if (iwad_endoom && endoom_pwad_only)
+  {
+    return;
+  }
+
+  D_ShowEndDoom();
 }
 
 // [FG] fast-forward demo to the desired map
@@ -1755,6 +1703,100 @@ static boolean CheckHaveSSG (void)
   return true;
 }
 
+static int mainwadfile;
+
+#define SET_DIR(a, b) \
+    if ((a)) \
+    { \
+        free((a)); \
+    } \
+    (a) = (b);
+
+void D_SetSavegameDirectory(void)
+{
+    // set save path to -save parm or current dir
+
+    SET_DIR(screenshotdir, M_StringDuplicate("."));
+
+    SET_DIR(basesavegame, M_StringDuplicate(D_DoomPrefDir()));
+
+    //!
+    // @arg <directory>
+    //
+    // Specify a path from which to load and save games. If the directory
+    // does not exist then it will automatically be created.
+    //
+
+    int p = M_CheckParmWithArgs("-save", 1);
+    if (p > 0)
+    {
+        SET_DIR(basesavegame, M_StringDuplicate(myargv[p + 1]));
+
+        M_MakeDirectory(basesavegame);
+
+        // [FG] fall back to -save parm
+        SET_DIR(screenshotdir, M_StringDuplicate(basesavegame));
+    }
+    else
+    {
+        if (organize_savefiles == -1)
+        {
+            // [FG] check for at least one savegame in the old location
+            glob_t *glob = I_StartMultiGlob(
+            basesavegame, GLOB_FLAG_NOCASE | GLOB_FLAG_SORTED, "*.dsg");
+
+            organize_savefiles = (I_NextGlob(glob) == NULL);
+
+            I_EndGlob(glob);
+        }
+
+        if (organize_savefiles)
+        {
+            const char *wadname = wadfiles[0];
+
+            for (int i = mainwadfile; i < array_size(wadfiles); i++)
+            {
+                if (FileContainsMaps(wadfiles[i]))
+                {
+                    wadname = wadfiles[i];
+                    break;
+                }
+            }
+
+            char *oldsavegame = basesavegame;
+            basesavegame =
+                M_StringJoin(oldsavegame, DIR_SEPARATOR_S, "savegames");
+            free(oldsavegame);
+
+            M_MakeDirectory(basesavegame);
+
+            oldsavegame = basesavegame;
+            basesavegame = M_StringJoin(oldsavegame, DIR_SEPARATOR_S,
+                M_BaseName(wadname));
+            free(oldsavegame);
+        }
+    }
+
+    //!
+    // @arg <directory>
+    //
+    // Specify a path to save screenshots. If the directory does not
+    // exist then it will automatically be created.
+    //
+
+    p = M_CheckParmWithArgs("-shotdir", 1);
+    if (p > 0)
+    {
+        SET_DIR(screenshotdir, M_StringDuplicate(myargv[p + 1]));
+
+        M_MakeDirectory(screenshotdir);
+    }
+
+    I_Printf(VB_INFO, "Savegame directory: %s", basesavegame);
+}
+
+#undef SET_DIR
+
 //
 // D_DoomMain
 //
@@ -1762,7 +1804,6 @@ static boolean CheckHaveSSG (void)
 void D_DoomMain(void)
 {
   int p;
-  int mainwadfile = 0;
 
   setbuf(stdout,NULL);
 
@@ -1827,23 +1868,24 @@ void D_DoomMain(void)
 
   IdentifyVersion();
 
-  // [FG] emulate a specific version of Doom
-  InitGameVersion();
-
   //!
   // @category mod
   //
-  // Disable auto loading of extras.wad.
+  // Disable auto-loading of extars.wad file.
   //
 
-  if (!M_ParmExists("-noextras"))
+  if (gamemission < pack_chex && !M_ParmExists("-noextras"))
   {
-      char *extras = D_FindWADByName("extras.wad");
-      if (extras)
+      char *path = D_FindWADByName("extras.wad");
+      if (path)
       {
-          D_AddFile(extras);
+          D_AddFile(path);
+          firstpwad = array_size(wadfiles);
       }
   }
+
+  // [FG] emulate a specific version of Doom
+  InitGameVersion();
 
   dsdh_InitTables();
 
@@ -2269,7 +2311,7 @@ void D_DoomMain(void)
 
   if (!M_ParmExists("-nodeh"))
   {
-    W_ProcessInWads("DEHACKED", ProcessDehLump, true);
+    W_ProcessInWads("DEHACKED", ProcessDehLump, PROCESS_IWAD);
   }
 
   // process .deh files specified on the command line with -deh or -bex.
@@ -2282,7 +2324,7 @@ void D_DoomMain(void)
   // killough 10/98: now process all deh in wads
   if (!M_ParmExists("-nodeh"))
   {
-    W_ProcessInWads("DEHACKED", ProcessDehLump, false);
+    W_ProcessInWads("DEHACKED", ProcessDehLump, PROCESS_PWAD);
   }
 
   // process .deh files from PWADs autoload directories
@@ -2290,7 +2332,7 @@ void D_DoomMain(void)
 
   PostProcessDeh();
 
-  W_ProcessInWads("BRGHTMPS", R_ParseBrightmaps, false);
+  W_ProcessInWads("BRGHTMPS", R_ParseBrightmaps, PROCESS_PWAD);
 
   // Moved after WAD initialization because we are checking the COMPLVL lump
   G_ReloadDefaults(false); // killough 3/4/98: set defaults just loaded.
@@ -2319,8 +2361,6 @@ void D_DoomMain(void)
             I_Error("\nThis is not the registered version.");
     }
 
-  W_ProcessInWads("UMAPDEF", U_ParseMapDefInfo, false);
-
   //!
   // @category mod
   //
@@ -2329,56 +2369,12 @@ void D_DoomMain(void)
 
   if (!M_ParmExists("-nomapinfo"))
   {
-    W_ProcessInWads("UMAPINFO", U_ParseMapInfo, true);
-    W_ProcessInWads("UMAPINFO", U_ParseMapInfo, false);
+    W_ProcessInWads("UMAPINFO", G_ParseMapInfo, PROCESS_IWAD | PROCESS_PWAD);
   }
 
   G_ParseCompDatabase();
 
-  if (!M_CheckParm("-save"))
-  {
-      if (organize_savefiles == -1)
-      {
-          // [FG] check for at least one savegame in the old location
-          glob_t *glob = I_StartMultiGlob(
-              basesavegame, GLOB_FLAG_NOCASE | GLOB_FLAG_SORTED, "*.dsg");
-
-          organize_savefiles = (I_NextGlob(glob) == NULL);
-
-          I_EndGlob(glob);
-      }
-
-      if (organize_savefiles)
-      {
-          int i;
-          const char *wadname = wadfiles[0];
-          char *oldsavegame = basesavegame;
-
-          for (i = mainwadfile; i < array_size(wadfiles); i++)
-          {
-              if (FileContainsMaps(wadfiles[i]))
-              {
-                  wadname = wadfiles[i];
-                  break;
-              }
-          }
-
-          basesavegame =
-              M_StringJoin(oldsavegame, DIR_SEPARATOR_S, "savegames");
-          free(oldsavegame);
-
-          M_MakeDirectory(basesavegame);
-
-          oldsavegame = basesavegame;
-          basesavegame = M_StringJoin(oldsavegame, DIR_SEPARATOR_S,
-                                      M_BaseName(wadname));
-          free(oldsavegame);
-
-          M_MakeDirectory(basesavegame);
-      }
-  }
-
-  I_Printf(VB_INFO, "Savegame directory: %s", basesavegame);
+  D_SetSavegameDirectory();
 
   V_InitColorTranslation(); //jff 4/24/98 load color translation lumps
 
@@ -2412,7 +2408,8 @@ void D_DoomMain(void)
     startloadgame = -1;
   }
 
-  W_ProcessInWads("TRAKINFO", S_ParseTrakInfo, false);
+  W_ProcessInWads("TRAKINFO", S_ParseTrakInfo, PROCESS_IWAD | PROCESS_PWAD);
+  D_SetupDemoLoop();
 
   I_Printf(VB_INFO, "M_Init: Init miscellaneous info.");
   M_Init();
@@ -2694,7 +2691,8 @@ void D_DoomMain(void)
 void D_BindMiscVariables(void)
 {
   BIND_NUM_GENERAL(exit_sequence, 0, 0, EXIT_SEQUENCE_FULL,
-    "Exit sequence (0 = Off; 1 = Sound Only; 2 = PWAD ENDOOM; 3 = Full)");
+    "Exit sequence (0 = Off; 1 = Sound Only; 2 = ENDOOM Only; 3 = Full)");
+  BIND_BOOL_GENERAL(endoom_pwad_only, false, "Show only ENDOOM from PWAD");
   BIND_BOOL_GENERAL(demobar, false, "Show demo progress bar");
   BIND_NUM_GENERAL(screen_melt, wipe_Melt, wipe_None, wipe_Fizzle,
     "Screen wipe effect (0 = None; 1 = Melt; 2 = Crossfade; 3 = Fizzlefade)");

@@ -33,12 +33,14 @@ typedef struct fire_s
 
 typedef struct
 {
-    const char *name;
-    double mid;
+    int texture;
+    fixed_t mid;
     fixed_t scrollx;
     fixed_t currx;
+    fixed_t prevx;
     fixed_t scrolly;
     fixed_t curry;
+    fixed_t prevy;
     fixed_t scalex;
     fixed_t scaley;
 } skytex_t;

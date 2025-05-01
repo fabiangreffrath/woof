@@ -13,6 +13,11 @@
 //  GNU General Public License for more details.
 //
 
+#include <ctype.h>
+#include <math.h>
+#include <stdio.h>
+#include <string.h>
+
 #include "hu_command.h"
 #include "mn_internal.h"
 
@@ -330,6 +335,7 @@ enum
     str_overlay,
     str_automap_preset,
     str_automap_keyed_door,
+    str_fuzzmode,
     str_weapon_slots_activation,
     str_weapon_slots_selection,
     str_weapon_slots,
@@ -345,6 +351,7 @@ enum
 
     str_mouse_accel,
 
+    str_gamepad_device,
     str_gyro_space,
     str_gyro_action,
     str_gyro_sens,
@@ -391,7 +398,7 @@ static boolean ItemSelected(setup_menu_t *s)
 
 static boolean PrevItemAvailable(setup_menu_t *s)
 {
-    int value = s->var.def->location->i;
+    int value = *s->var.def->location.i;
     int min = s->var.def->limit.min;
 
     return value > min;
@@ -399,7 +406,7 @@ static boolean PrevItemAvailable(setup_menu_t *s)
 
 static boolean NextItemAvailable(setup_menu_t *s)
 {
-    int value = s->var.def->location->i;
+    int value = *s->var.def->location.i;
     int max = s->var.def->limit.max;
 
     if (max == UL)
@@ -513,11 +520,15 @@ static void DrawTabs(void)
 
         menu_buffer[0] = '\0';
         strcpy(menu_buffer, tabs[i].text);
-        DrawMenuStringEx(tabs[i].flags, x, rect->y, CR_GOLD);
         if (i == current_page)
         {
+            DrawMenuStringEx(tabs[i].flags, x, rect->y, CR_TITLE);
             V_FillRect(x + video.deltaw, rect->y + M_SPC, rect->w, 1,
-                       cr_gold[cr_shaded[v_lightest_color]]);
+                       colrngs[CR_TITLE][cr_shaded[v_lightest_color]]);
+        }
+        else
+        {
+            DrawMenuStringEx(tabs[i].flags, x, rect->y, CR_GRAY);
         }
 
         rect->x = x;
@@ -805,7 +816,8 @@ static void DrawSetting(setup_menu_t *s, int accum_y)
 
     if (flags & S_ONOFF)
     {
-        strcpy(menu_buffer, s->var.def->location->i ? "ON" : "OFF");
+        int value = *s->var.def->location.i;
+        strcpy(menu_buffer, value ? "ON" : "OFF");
         BlinkingArrowRight(s);
         DrawMenuStringEx(flags, x, y, color);
         return;
@@ -821,20 +833,22 @@ static void DrawSetting(setup_menu_t *s, int accum_y)
             gather_buffer[gather_count] = 0;
             strcpy(menu_buffer, gather_buffer);
         }
-        else if (flags & S_PCT)
-        {
-            M_snprintf(menu_buffer, sizeof(menu_buffer), "%d%%",
-                       s->var.def->location->i);
-        }
-        else if (s->append)
-        {
-            M_snprintf(menu_buffer, sizeof(menu_buffer), "%d %s",
-                       s->var.def->location->i, s->append);
-        }
         else
         {
-            M_snprintf(menu_buffer, sizeof(menu_buffer), "%d",
-                       s->var.def->location->i);
+            int value = *s->var.def->location.i;
+            if (flags & S_PCT)
+            {
+                M_snprintf(menu_buffer, sizeof(menu_buffer), "%d%%", value);
+            }
+            else if (s->append)
+            {
+                M_snprintf(menu_buffer, sizeof(menu_buffer), "%d %s", value,
+                           s->append);
+            }
+            else
+            {
+                M_snprintf(menu_buffer, sizeof(menu_buffer), "%d", value);
+            }
         }
 
         BlinkingArrowRight(s);
@@ -903,7 +917,8 @@ static void DrawSetting(setup_menu_t *s, int accum_y)
 
     if (flags & S_WEAP) // weapon number
     {
-        sprintf(menu_buffer, "%d", s->var.def->location->i);
+        int value = *s->var.def->location.i;
+        sprintf(menu_buffer, "%d", value);
         BlinkingArrowRight(s);
         DrawMenuStringEx(flags, x, y, color);
         return;
@@ -913,7 +928,7 @@ static void DrawSetting(setup_menu_t *s, int accum_y)
 
     if (flags & (S_CHOICE | S_CRITEM))
     {
-        int i = s->var.def->location->i;
+        int i = *s->var.def->location.i;
         const char **strings = GetStrings(s->strings_id);
 
         menu_buffer[0] = '\0';
@@ -936,7 +951,7 @@ static void DrawSetting(setup_menu_t *s, int accum_y)
 
     if (flags & S_THERMO)
     {
-        int value = s->var.def->location->i;
+        int value = *s->var.def->location.i;
         int min = s->var.def->limit.min;
         int max = s->var.def->limit.max;
         const char **strings = GetStrings(s->strings_id);
@@ -1815,12 +1830,6 @@ static void RefreshSolidBackground(void)
     st_refresh_background = true;
 }
 
-static const char *screensize_strings[] = {
-    "",           "",           "",           "Status Bar", "Status Bar",
-    "Status Bar", "Status Bar", "Status Bar", "Status Bar", "Status Bar",
-    "Status Bar", "Fullscreen", "Fullscreen"
-};
-
 static const char *st_layout_strings[] = {
     "Original", "Wide"
 };
@@ -1844,12 +1853,8 @@ static setup_menu_t stat_settings1[] = {
 
     {"Colored Numbers", S_ONOFF | S_COSMETIC, H_X, M_SPC, {"sts_colored_numbers"}},
 
-    {"Gray Percent Sign", S_ONOFF | S_COSMETIC, H_X, M_SPC, {"sts_pct_always_gray"}},
-
     {"Solid Background Color", S_ONOFF, H_X, M_SPC, {"st_solidbackground"},
      .action = RefreshSolidBackground},
-
-    {"Animated Health/Armor Count", S_ONOFF, H_X, M_SPC, {"hud_animated_counts"}},
 
     MI_RESET,
 
@@ -1882,7 +1887,7 @@ static setup_menu_t stat_settings2[] = {
     {"Show Command History", S_ONOFF | S_STRICT, H_X, M_SPC,
      {"hud_command_history"}, .action = HU_ResetCommandHistory},
 
-    {"Use-Button Timer", S_ONOFF, H_X, M_SPC, {"hud_time_use"}},
+    {"Show Use-Button Timer", S_ONOFF, H_X, M_SPC, {"hud_time_use"}},
 
     MI_GAP,
 
@@ -2359,8 +2364,8 @@ static void ResetVideoHeight(void)
     resetneeded = true;
 }
 
-static const char *widescreen_strings[] = {"Off", "Auto", "16:10", "16:9",
-                                           "21:9", "32:9"};
+const char *widescreen_strings[] = {"Off", "Auto", "16:10", "16:9",
+                                    "21:9", "32:9"};
 
 static void ResetVideo(void)
 {
@@ -2426,7 +2431,7 @@ static setup_menu_t gen_settings1[] = {
     {"Uncapped FPS", S_ONOFF, CNTR_X, M_SPC, {"uncapped"},
      .action = UpdateFPSLimit},
 
-    {"FPS Limit", S_NUM, CNTR_X, M_SPC, {"fpslimit"},
+    {"Target FPS", S_NUM, CNTR_X, M_SPC, {"fpslimit"},
      .action = UpdateFPSLimit},
 
     {"VSync", S_ONOFF, CNTR_X, M_SPC, {"use_vsync"},
@@ -2499,6 +2504,7 @@ static void SetMidiPlayerOpl(void)
     }
 }
 
+#if defined(HAVE_FLUIDSYNTH)
 static void SetMidiPlayerFluidSynth(void)
 {
     if (I_MidiPlayerType() == midiplayer_fluidsynth)
@@ -2506,6 +2512,7 @@ static void SetMidiPlayerFluidSynth(void)
         SetMidiPlayer();
     }
 }
+#endif
 
 static void RestartMusic(void)
 {
@@ -2579,7 +2586,7 @@ static setup_menu_t sfx_settings1[] = {
 
     MI_GAP,
 
-    {"Doppler Effect", S_THERMO, CNTR_X, M_THRM_SPC, {"snd_doppler"},
+    {"Doppler Effect", S_THERMO | S_ACTION, CNTR_X, M_THRM_SPC, {"snd_doppler"},
      .strings_id = str_percent, .action = SetSoundModule},
 
     MI_END
@@ -2660,7 +2667,10 @@ static setup_menu_t music_settings1[] = {
 
 static void UpdateGainItems(void)
 {
+#if defined (HAVE_FLUIDSYNTH)
     DisableItem(auto_gain, music_settings1, "fl_gain");
+#endif
+
     DisableItem(auto_gain, music_settings1, "opl_gain");
 }
 
@@ -2893,7 +2903,18 @@ static const char *curve_strings[] = {
 static void MN_PadAdv(void);
 static void MN_Gyro(void);
 
+static void UpdateGamepadDevice(void)
+{
+    I_UpdateGamepadDevice(menu_input == pad_mode);
+}
+
 static setup_menu_t gen_settings4[] = {
+
+    {"Device", S_CHOICE | S_ACTION | S_WRAP_LINE, CNTR_X, M_SPC * 2,
+     {"joy_device"}, .strings_id = str_gamepad_device,
+     .action = UpdateGamepadDevice},
+
+    MI_GAP_Y(1),
 
     {"Turn Speed", S_THERMO | S_THRM_SIZE11, CNTR_X, M_THRM_SPC,
      {"joy_turn_speed"}, .action = I_ResetGamepad},
@@ -2901,7 +2922,15 @@ static setup_menu_t gen_settings4[] = {
     {"Look Speed", S_THERMO | S_THRM_SIZE11, CNTR_X, M_THRM_SPC,
      {"joy_look_speed"}, .action = I_ResetGamepad},
 
-    MI_GAP_Y(4),
+    MI_GAP_Y(2),
+
+     {"Free Look", S_ONOFF, CNTR_X, M_SPC, {"padlook"},
+     .action = MN_UpdatePadLook},
+
+    {"Invert Look", S_ONOFF, CNTR_X, M_SPC, {"joy_invert_look"},
+     .action = I_ResetGamepad},
+
+    MI_GAP_Y(2),
 
     {"Movement Deadzone", S_THERMO | S_PCT, CNTR_X, M_THRM_SPC,
      {"joy_movement_inner_deadzone"}, .action = I_ResetGamepad},
@@ -2909,20 +2938,10 @@ static setup_menu_t gen_settings4[] = {
     {"Camera Deadzone", S_THERMO | S_PCT, CNTR_X, M_THRM_SPC,
      {"joy_camera_inner_deadzone"}, .action = I_ResetGamepad},
 
-    MI_GAP_Y(4),
-
     {"Rumble", S_THERMO, CNTR_X, M_THRM_SPC, {"joy_rumble"},
      .strings_id = str_percent, .action = UpdateRumble},
 
-    MI_GAP_Y(5),
-
-    {"Free Look", S_ONOFF, CNTR_X, M_SPC, {"padlook"},
-     .action = MN_UpdatePadLook},
-
-    {"Invert Look", S_ONOFF, CNTR_X, M_SPC, {"joy_invert_look"},
-     .action = I_ResetGamepad},
-
-    MI_GAP_Y(8),
+    MI_GAP_Y(2),
 
     {"Advanced Options", S_FUNC, CNTR_X, M_SPC, .action = MN_PadAdv},
 
@@ -3030,13 +3049,15 @@ void MN_DrawPadAdv(void)
 
 static void UpdateGamepadItems(void)
 {
-    const boolean gamepad = (I_UseGamepad() && I_GamepadEnabled());
+    const boolean devices = (I_GamepadEnabled() && I_GamepadDevices());
+    const boolean gamepad = (I_UseGamepad() && devices);
     const boolean gyro = (I_GyroEnabled() && I_GyroSupported());
     const boolean sticks = I_UseStickLayout();
     const boolean flick = (gamepad && sticks && !I_StandardLayout());
     const boolean ramp = (gamepad && sticks && I_RampTimeEnabled());
     const boolean condition = (!gamepad || !sticks);
 
+    DisableItem(!devices, gen_settings4, "joy_device");
     DisableItem(!gamepad, gen_settings4, "Advanced Options");
     DisableItem(!gamepad || !I_GyroSupported(), gen_settings4, "Gyro Options");
     DisableItem(!gamepad || !I_RumbleSupported(), gen_settings4, "joy_rumble");
@@ -3073,7 +3094,11 @@ static const char *gyro_action_strings[] = {
     "None",
     "Disable Gyro",
     "Enable Gyro",
-    "Invert"
+    "Invert Gyro",
+    "Reset Camera",
+    "Reset / Disable Gyro",
+    "Reset / Enable Gyro",
+    "Reset / Invert Gyro"
 };
 
 #define GYRO_SENS_STRINGS_SIZE (500 + 1)
@@ -3187,13 +3212,6 @@ static void UpdateGyroItems(void)
     DisableItem(condition, gyro_settings1, "Calibrate");
 }
 
-void MN_UpdateAllGamepadItems(void)
-{
-    UpdateWeaponSlotSelection();
-    UpdateGamepadItems();
-    UpdateGyroItems();
-}
-
 static setup_tab_t gyro_tabs[] = {{"Gyro"}, {NULL}};
 
 static void MN_Gyro(void)
@@ -3236,7 +3254,11 @@ static void SmoothLight(void)
 }
 
 static const char *exit_sequence_strings[] = {
-    "Off", "Sound Only", "PWAD ENDOOM", "Full"
+    "Off", "Sound Only", "ENDOOM Only", "Full"
+};
+
+static const char *fuzzmode_strings[] = {
+    "Blocky", "Refraction", "Shadow", "Original"
 };
 
 static setup_menu_t gen_settings5[] = {
@@ -3247,8 +3269,8 @@ static setup_menu_t gen_settings5[] = {
     {"Sprite Translucency", S_ONOFF | S_STRICT, OFF_CNTR_X, M_SPC,
      {"translucency"}},
 
-    {"Translucency Filter", S_NUM | S_ACTION | S_PCT, OFF_CNTR_X, M_SPC,
-     {"tran_filter_pct"}, .action = MN_Trans},
+    {"Partial Invisibility", S_CHOICE | S_STRICT, OFF_CNTR_X, M_SPC, {"fuzzmode"},
+     .strings_id = str_fuzzmode, .action = R_SetFuzzColumnMode},
 
     MI_GAP,
 
@@ -3283,6 +3305,8 @@ static const char *screen_melt_strings[] = {"Off", "Melt", "Crossfade", "Fizzle"
 
 static const char *invul_mode_strings[] = {"Vanilla", "MBF", "Gray"};
 
+static void UpdatePwadEndoomItem(void);
+
 static setup_menu_t gen_settings6[] = {
 
     {"Quality of life", S_SKIP | S_TITLE, OFF_CNTR_X, M_SPC},
@@ -3290,7 +3314,7 @@ static setup_menu_t gen_settings6[] = {
     {"Screen wipe effect", S_CHOICE | S_STRICT, OFF_CNTR_X, M_SPC,
      {"screen_melt"}, .strings_id = str_screen_melt},
 
-    {"Screen flashes", S_ONOFF | S_STRICT, OFF_CNTR_X, M_SPC,
+    {"Pain/Pickup/Powerup flashes", S_ONOFF | S_STRICT, OFF_CNTR_X, M_SPC,
      {"palette_changes"}},
 
     {"Invulnerability effect", S_CHOICE | S_STRICT, OFF_CNTR_X, M_SPC,
@@ -3305,7 +3329,7 @@ static setup_menu_t gen_settings6[] = {
      .action = M_ResetAutoSave},
 
     {"Organize save files", S_ONOFF | S_PRGWARN, OFF_CNTR_X, M_SPC,
-     {"organize_savefiles"}},
+     {"organize_savefiles"}, .action = D_SetSavegameDirectory},
 
     MI_GAP,
 
@@ -3318,7 +3342,9 @@ static setup_menu_t gen_settings6[] = {
      {"default_skill"}, .strings_id = str_default_skill},
 
     {"Exit Sequence", S_CHOICE, OFF_CNTR_X, M_SPC, {"exit_sequence"},
-    .strings_id = str_exit_sequence},
+    .strings_id = str_exit_sequence, .action = UpdatePwadEndoomItem},
+
+    {"PWAD ENDOOM Only", S_ONOFF, OFF_CNTR_X, M_SPC, {"endoom_pwad_only"}},
 
     MI_END
 };
@@ -3327,6 +3353,11 @@ static setup_menu_t *gen_settings[] = {
     gen_settings1, gen_settings2, gen_settings3, gen_settings4,
     gen_settings5, gen_settings6, NULL
 };
+
+static void UpdatePwadEndoomItem(void)
+{
+    DisableItem(!D_AllowEndDoom(), gen_settings6, "endoom_pwad_only");
+}
 
 void MN_UpdateDynamicResolutionItem(void)
 {
@@ -3515,28 +3546,25 @@ static void ResetDefaults(ss_types reset_screen)
                 {
                     if (dp->type == string)
                     {
-                        free(dp->location->s);
-                        dp->location->s = strdup(dp->defaultvalue.s);
+                        free(*dp->location.s);
+                        *dp->location.s = strdup(dp->defaultvalue.string);
                     }
                     else if (dp->type == number)
                     {
-                        dp->location->i = dp->defaultvalue.i;
+                        *dp->location.i = dp->defaultvalue.number;
                     }
 
                     if (flags & (S_LEVWARN | S_PRGWARN))
                     {
                         warn |= flags & (S_LEVWARN | S_PRGWARN);
                     }
-                    else if (dp->current)
+                    else if (dp->type == string && dp->current.s)
                     {
-                        if (dp->type == string)
-                        {
-                            dp->current->s = dp->location->s;
-                        }
-                        else if (dp->type == number)
-                        {
-                            dp->current->i = dp->location->i;
-                        }
+                        *dp->current.s = *dp->location.s;
+                    }
+                    else if (dp->type == number && dp->current.i)
+                    {
+                        *dp->current.i = *dp->location.i;
                     }
 
                     if (current_item->action)
@@ -3868,7 +3896,10 @@ static void OnOff(void)
     int flags = current_item->m_flags;
     default_t *def = current_item->var.def;
 
-    def->location->i = !def->location->i; // killough 8/15/98
+    // def->location->i = !def->location->i; // killough 8/15/98
+    int value = *def->location.i;
+    value = !value;
+    *def->location.i = value;
 
     // killough 8/15/98: add warning messages
 
@@ -3876,9 +3907,9 @@ static void OnOff(void)
     {
         warn_about_changes(flags);
     }
-    else if (def->current)
+    else if (def->current.i)
     {
-        def->current->i = def->location->i;
+        *def->current.i = *def->location.i;
     }
 
     if (current_item->action) // killough 10/98
@@ -3892,7 +3923,7 @@ static void Choice(menu_action_t action)
     setup_menu_t *current_item = current_menu + set_item_on;
     int flags = current_item->m_flags;
     default_t *def = current_item->var.def;
-    int value = def->location->i;
+    int value = *def->location.i;
 
     if (flags & S_ACTION && setup_cancel == -1)
     {
@@ -3908,11 +3939,11 @@ static void Choice(menu_action_t action)
             value = def->limit.min;
         }
 
-        if (def->location->i != value)
+        if (*def->location.i != value)
         {
             M_StartSound(sfx_stnmov);
         }
-        def->location->i = value;
+        *def->location.i = value;
 
         if (!(flags & S_ACTION) && current_item->action)
         {
@@ -3939,11 +3970,11 @@ static void Choice(menu_action_t action)
             value = max;
         }
 
-        if (def->location->i != value)
+        if (*def->location.i != value)
         {
             M_StartSound(sfx_stnmov);
         }
-        def->location->i = value;
+        *def->location.i = value;
 
         if (!(flags & S_ACTION) && current_item->action)
         {
@@ -3957,9 +3988,9 @@ static void Choice(menu_action_t action)
         {
             warn_about_changes(flags);
         }
-        else if (def->current)
+        else if (def->current.i)
         {
-            def->current->i = def->location->i;
+            *def->current.i = *def->location.i;
         }
 
         if (current_item->action)
@@ -3987,7 +4018,7 @@ static boolean ChangeEntry(menu_action_t action, int ch)
     {
         if (flags & (S_CHOICE | S_CRITEM | S_THERMO) && setup_cancel != -1)
         {
-            def->location->i = setup_cancel;
+            *def->location.i = setup_cancel;
             setup_cancel = -1;
         }
 
@@ -4049,7 +4080,7 @@ static boolean ChangeEntry(menu_action_t action, int ch)
                     value = BETWEEN(min, max, value);
                 }
 
-                def->location->i = value;
+                *def->location.i = value;
 
                 // killough 8/9/98: fix numeric vars
                 // killough 8/15/98: add warning message
@@ -4058,9 +4089,9 @@ static boolean ChangeEntry(menu_action_t action, int ch)
                 {
                     warn_about_changes(flags);
                 }
-                else if (def->current)
+                else if (def->current.i)
                 {
-                    def->current->i = value;
+                    *def->current.i = value;
                 }
 
                 if (current_item->action) // killough 10/98
@@ -4213,6 +4244,8 @@ static boolean NextPage(int inc)
     return true;
 }
 
+static setup_menu_t *active_thermo = NULL;
+
 boolean MN_SetupResponder(menu_action_t action, int ch)
 {
     // phares 3/26/98 - 4/11/98:
@@ -4315,17 +4348,17 @@ boolean MN_SetupResponder(menu_action_t action, int ch)
                 setup_menu_t *p = weap_settings[i];
                 for (; !(p->m_flags & S_END); p++)
                 {
-                    if (p->m_flags & S_WEAP && p->var.def->location->i == ch
+                    if (p->m_flags & S_WEAP
+                        && *p->var.def->location.i == ch
                         && p != current_item)
                     {
-                        p->var.def->location->i =
-                            current_item->var.def->location->i;
+                        *p->var.def->location.i = *current_item->var.def->location.i;
                         goto end;
                     }
                 }
             }
         end:
-            current_item->var.def->location->i = ch;
+            *current_item->var.def->location.i = ch;
         }
 
         SelectDone(current_item); // phares 4/17/98
@@ -4433,6 +4466,13 @@ boolean MN_SetupResponder(menu_action_t action, int ch)
 
     if (action == MENU_ESCAPE || action == MENU_BACKSPACE)
     {
+        if (active_thermo && setup_cancel != -1)
+        {
+            default_t *def = active_thermo->var.def;
+            *def->location.i = setup_cancel;
+            setup_cancel = -1;
+        }
+
         SetItemOn(set_item_on);
         SetPageIndex(current_page);
 
@@ -4461,6 +4501,7 @@ boolean MN_SetupResponder(menu_action_t action, int ch)
         set_weapon_active = false;
         default_verify = false;              // phares 4/19/98
         print_warning_about_changes = false; // [FG] reset
+        active_thermo = NULL;
         M_StartSound(sfx_swtchx);
         return true;
     }
@@ -4527,8 +4568,6 @@ boolean MN_SetupMouseResponder(int x, int y)
         return true;
     }
 
-    static setup_menu_t *active_thermo = NULL;
-
     if (M_InputDeactivated(input_menu_enter) && active_thermo)
     {
         int flags = active_thermo->m_flags;
@@ -4540,9 +4579,9 @@ boolean MN_SetupMouseResponder(int x, int y)
             {
                 warn_about_changes(flags);
             }
-            else if (def->current)
+            else if (def->current.i)
             {
-                def->current->i = def->location->i;
+                *def->current.i = *def->location.i;
             }
 
             if (active_thermo->action)
@@ -4551,6 +4590,7 @@ boolean MN_SetupMouseResponder(int x, int y)
             }
         }
         active_thermo = NULL;
+        setup_cancel = -1;
     }
 
     if (M_InputActivated(input_menu_enter))
@@ -4583,6 +4623,11 @@ boolean MN_SetupMouseResponder(int x, int y)
         if (M_InputActivated(input_menu_enter))
         {
             active_thermo = current_item;
+
+            if (flags & S_ACTION && setup_cancel == -1)
+            {
+                setup_cancel = *def->location.i;
+            }
         }
     }
 
@@ -4610,9 +4655,9 @@ boolean MN_SetupMouseResponder(int x, int y)
         int value = dot * step / FRACUNIT + min;
         value = BETWEEN(min, max, value);
 
-        if (value != def->location->i)
+        if (value != *def->location.i)
         {
-            def->location->i = value;
+            *def->location.i = value;
 
             if (!(flags & S_ACTION) && active_thermo->action)
             {
@@ -4638,8 +4683,7 @@ boolean MN_SetupMouseResponder(int x, int y)
     if (flags & (S_CRITEM | S_CHOICE))
     {
         default_t *def = current_item->var.def;
-
-        int value = def->location->i;
+        int value = *def->location.i;
 
         if (NextItemAvailable(current_item))
         {
@@ -4650,11 +4694,11 @@ boolean MN_SetupMouseResponder(int x, int y)
             value = def->limit.min;
         }
 
-        if (def->location->i != value)
+        if (*def->location.i != value)
         {
             M_StartSound(sfx_stnmov);
         }
-        def->location->i = value;
+        *def->location.i = value;
 
         if (current_item->action)
         {
@@ -4665,9 +4709,9 @@ boolean MN_SetupMouseResponder(int x, int y)
         {
             warn_about_changes(flags);
         }
-        else if (def->current)
+        else if (def->current.i)
         {
-            def->current->i = def->location->i;
+            *def->current.i = *def->location.i;
         }
 
         return true;
@@ -4696,7 +4740,7 @@ int MN_StringWidth(const char *string)
             continue;
         }
         c = M_ToUpper(c) - HU_FONTSTART;
-        if (c < 0 || c > HU_FONTSIZE || hu_font[c] == NULL)
+        if (c < 0 || c >= HU_FONTSIZE || hu_font[c] == NULL)
         {
             w += SPACEWIDTH;
             continue;
@@ -4776,7 +4820,7 @@ static const char **selectstrings[] = {
     percent_strings,
     curve_strings,
     center_weapon_strings,
-    screensize_strings,
+    NULL, // str_screensize
     st_layout_strings,
     show_widgets_strings,
     show_adv_widgets_strings,
@@ -4788,6 +4832,7 @@ static const char **selectstrings[] = {
     overlay_strings,
     automap_preset_strings,
     automap_keyed_door_strings,
+    fuzzmode_strings,
     weapon_slots_activation_strings,
     weapon_slots_selection_strings,
     NULL, // str_weapon_slots
@@ -4799,6 +4844,7 @@ static const char **selectstrings[] = {
     NULL, // str_resampler
     equalizer_preset_strings,
     NULL, // str_mouse_accel
+    NULL, // str_gamepad_device
     gyro_space_strings,
     gyro_action_strings,
     NULL, // str_gyro_sens
@@ -4823,6 +4869,19 @@ static const char **GetStrings(int id)
     return NULL;
 }
 
+static const char **GetGamepadDeviceStrings(void)
+{
+    return I_GamepadDeviceList();
+}
+
+void MN_UpdateAllGamepadItems(void)
+{
+    selectstrings[str_gamepad_device] = GetGamepadDeviceStrings();
+    UpdateWeaponSlotSelection();
+    UpdateGamepadItems();
+    UpdateGyroItems();
+}
+
 static void UpdateWeaponSlotStrings(void)
 {
     selectstrings[str_weapon_slots] = GetWeaponSlotStrings();
@@ -4831,6 +4890,29 @@ static void UpdateWeaponSlotStrings(void)
 static const char **GetMidiPlayerStrings(void)
 {
     return I_DeviceList();
+}
+
+static const char **GetScreenSizeStrings(void)
+{
+    const char **strings = NULL;
+
+    for (int i = 0; i < 3; ++i)
+    {
+        array_push(strings, "");
+    }
+    for (int i = 3; i < 10; ++i)
+    {
+        array_push(strings, "Status Bar");
+    }
+
+    const char **st_strings = ST_StatusbarList();
+    for (int i = 0; i < array_size(st_strings); ++i)
+    {
+        array_push(strings, st_strings[i]);
+    }
+
+    maxscreenblocks = array_size(strings) - 1;
+    return strings;
 }
 
 void MN_InitMenuStrings(void)
@@ -4842,9 +4924,11 @@ void MN_InitMenuStrings(void)
     selectstrings[str_mouse_accel] = GetMouseAccelStrings();
     selectstrings[str_ms_time] = GetMsTimeStrings();
     selectstrings[str_movement_sensitivity] = GetMovementSensitivityStrings();
+    selectstrings[str_gamepad_device] = GetGamepadDeviceStrings();
     selectstrings[str_gyro_sens] = GetGyroSensitivityStrings();
     selectstrings[str_gyro_accel] = GetGyroAccelStrings();
     selectstrings[str_resampler] = GetResamplerStrings();
+    selectstrings[str_screensize] = GetScreenSizeStrings();
 }
 
 void MN_SetupResetMenu(void)
@@ -4858,6 +4942,7 @@ void MN_SetupResetMenu(void)
     DisableItem(!brightmaps_found || force_brightmaps, gen_settings5,
                 "brightmaps");
     DisableItem(!trakinfo_found, gen_settings2, "extra_music");
+    DisableItem(M_ParmExists("-save"), gen_settings6, "organize_savefiles");
     UpdateInterceptsEmuItem();
     UpdateStatsFormatItem();
     UpdateCrosshairItems();
@@ -4867,6 +4952,7 @@ void MN_SetupResetMenu(void)
     UpdateWeaponSlotItems();
     MN_UpdateEqualizerItems();
     UpdateGainItems();
+    UpdatePwadEndoomItem();
 }
 
 void MN_BindMenuVariables(void)

@@ -23,6 +23,7 @@
 
 #include <stddef.h>
 #include <stdlib.h>
+#include <string.h>
 
 #include "i_system.h"
 
@@ -72,34 +73,49 @@ inline static void array_clear(const void *v)
     }
 }
 
-#define array_grow(v, n) ((v) = M_ArrayGrow((v), sizeof(*(v)), n))
+#define array_grow(v, n) ((v) = M_ArrayGrow(v, sizeof(*(v)), n))
 
 #define array_push(v, e)                                                    \
     do                                                                      \
     {                                                                       \
         if (!(v))                                                           \
         {                                                                   \
-            (v) = M_ArrayGrow((v), sizeof(*(v)), M_ARRAY_INIT_CAPACITY);    \
+            (v) = M_ArrayGrow(v, sizeof(*(v)), M_ARRAY_INIT_CAPACITY);      \
         }                                                                   \
-        else if (array_ptr((v))->size == array_ptr((v))->capacity)          \
+        else if (array_ptr(v)->size == array_ptr(v)->capacity)              \
         {                                                                   \
-            (v) = M_ArrayGrow((v), sizeof(*(v)), array_ptr((v))->capacity); \
+            (v) = M_ArrayGrow(v, sizeof(*(v)), array_ptr(v)->capacity);     \
         }                                                                   \
-        (v)[array_ptr((v))->size++] = (e);                                  \
+        (v)[array_ptr(v)->size++] = (e);                                    \
     } while (0)
+
+#define array_delete_n(v, i, n)                                   \
+    do                                                            \
+    {                                                             \
+        if (v)                                                    \
+        {                                                         \
+            memmove(&(v)[i], &(v)[i + n],                         \
+                    sizeof(*(v)) * (array_ptr(v)->size - n - i)); \
+            array_ptr(v)->size -= n;                              \
+        }                                                         \
+    } while (0)
+
+#define array_delete(v, i) array_delete_n(v, i, 1)
 
 #define array_free(v)                     \
     do                                    \
     {                                     \
         if (v)                            \
         {                                 \
-            M_ARRAY_FREE(array_ptr((v))); \
+            M_ARRAY_FREE(array_ptr(v));   \
             (v) = NULL;                   \
         }                                 \
     } while (0)
 
+#define array_end(v) ((v) ? (v) + array_ptr(v)->size : (v))
+
 #define array_foreach(ptr, v) \
-    for (ptr = (v); ptr != &(v)[array_size((v))]; ++ptr)
+    for (ptr = (v); ptr < array_end(v); ++ptr)
 
 inline static void *M_ArrayGrow(void *v, size_t esize, int n)
 {

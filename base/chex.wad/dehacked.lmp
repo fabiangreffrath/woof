@@ -857,6 +857,31 @@ HUSTR_E4M6 = E1M5: Caverns of Bazoik
 HUSTR_E4M7 = E1M5: Caverns of Bazoik
 HUSTR_E4M8 = E1M5: Caverns of Bazoik
 HUSTR_E4M9 = E1M5: Caverns of Bazoik
+OB_DEFAULT = %o was slimed.
+OB_SLIME = %o sinks into some slime.
+OB_LAVA = %o got stuck in quick-slime.
+OB_ZOMBIE = %o was slimed by a flemoid.
+OB_SHOTGUY = %o was slimed by a bipedicus.
+OB_IMPHIT = %o was slimed by an armored bipedicus.
+OB_IMP = %o was slimed by an armored bipedicus.
+OB_DEMONHIT = %o was slimed by a cycloptis.
+OB_SPECTREHIT = %o was slimed by a cycloptis.
+OB_BARON = %o was defeated by the Flembrane.
+OB_BARONHIT = %o was defeated by the Flembrane.
+OB_SUICIDE = %o prefers the flemoid dimension.
+OB_KILLEDSELF = %o zorched %hself.
+OB_MPDEFAULT = %o was zorched by %k.
+OB_MPFIST = %o was spoon fed by %k.
+OB_MPCHAINSAW = %o was thouroughly mixed with %k's bootspork.
+OB_MPPISTOL = %o was hit by %k's mini-zorcher.
+OB_MPSHOTGUN = %o was hit by %k's large-zorcher.
+OB_MPSSHOTGUN = %o was hit by %k's mega-zorcher.
+OB_MPCHAINGUN = %o was rapid zorched by %k.
+OB_MPROCKET = %o was zorched by %k's propulsor.
+OB_MPR_SPLASH = %o was hit by %k's propulsor.
+OB_MPPLASMARIFLE = %o was phase zorched by %k.
+OB_MPBFG_BOOM = %o fell prey to %k's LAZ device.
+OB_MPBFG_SPLASH = %o was lazzed by %k.
 
 [PARS]
 par 1 1 120

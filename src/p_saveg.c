@@ -47,85 +47,9 @@ byte *save_p;
 
 saveg_compat_t saveg_compat = saveg_woof510;
 
-// Endian-safe integer read/write functions
-
-byte saveg_read8(void)
-{
-    return *save_p++;
-}
-
-void saveg_write8(byte value)
-{
-    *save_p++ = value;
-}
-
-static short saveg_read16(void)
-{
-    int result;
-
-    result = saveg_read8();
-    result |= saveg_read8() << 8;
-
-    return result;
-}
-
-static void saveg_write16(short value)
-{
-    saveg_write8(value & 0xff);
-    saveg_write8((value >> 8) & 0xff);
-}
-
-int saveg_read32(void)
-{
-    int result;
-
-    result = saveg_read8();
-    result |= saveg_read8() << 8;
-    result |= saveg_read8() << 16;
-    result |= saveg_read8() << 24;
-
-    return result;
-}
-
-void saveg_write32(int value)
-{
-    saveg_write8(value & 0xff);
-    saveg_write8((value >> 8) & 0xff);
-    saveg_write8((value >> 16) & 0xff);
-    saveg_write8((value >> 24) & 0xff);
-}
-
-int64_t saveg_read64(void)
-{
-    int64_t result;
-
-    result =  (int64_t)(saveg_read8());
-    result |= (int64_t)(saveg_read8()) << 8;
-    result |= (int64_t)(saveg_read8()) << 16;
-    result |= (int64_t)(saveg_read8()) << 24;
-    result |= (int64_t)(saveg_read8()) << 32;
-    result |= (int64_t)(saveg_read8()) << 40;
-    result |= (int64_t)(saveg_read8()) << 48;
-    result |= (int64_t)(saveg_read8()) << 56;
-
-    return result;
-}
-
-void saveg_write64(int64_t value)
-{
-    saveg_write8(value & 0xff);
-    saveg_write8((value >> 8) & 0xff);
-    saveg_write8((value >> 16) & 0xff);
-    saveg_write8((value >> 24) & 0xff);
-    saveg_write8((value >> 32) & 0xff);
-    saveg_write8((value >> 40) & 0xff);
-    saveg_write8((value >> 48) & 0xff);
-    saveg_write8((value >> 56) & 0xff);
-}
-
 // Pad to 4-byte boundaries
 
-static void saveg_read_pad(void)
+inline static void saveg_read_pad(void)
 {
     int padding;
     int i;
@@ -138,28 +62,29 @@ static void saveg_read_pad(void)
     }
 }
 
-static void saveg_write_pad(void)
+inline static void saveg_write_pad(void)
 {
     int padding;
     int i;
 
     padding = (4 - ((intptr_t)save_p & 3)) & 3;
 
+    saveg_buffer_size(padding);
     for (i=0; i<padding; ++i)
     {
-        saveg_write8(0);
+        savep_putbyte(0);
     }
 }
 
 
 // Pointers
 
-static void *saveg_readp(void)
+inline static void *saveg_readp(void)
 {
     return (void *) (intptr_t) saveg_read32();
 }
 
-static void saveg_writep(const void *p)
+inline static void saveg_writep(const void *p)
 {
     saveg_write32((intptr_t) p);
 }
@@ -771,6 +696,9 @@ static void saveg_read_pspdef_t(pspdef_t *str)
         str->sx2 = str->sx;
         str->sy2 = str->sy;
     }
+
+    str->oldsx2 = str->sx2;
+    str->oldsy2 = str->sy2;
 }
 
 static void saveg_write_pspdef_t(pspdef_t *str)
@@ -2003,13 +1931,47 @@ static void saveg_write_rng_t(rng_t *str)
 }
 
 //
+// button_t
+//
+
+static void saveg_read_button_t(button_t *str)
+{
+    // line_t *line
+    int line = saveg_read32();
+    str->line = &lines[line];
+
+    // bwhere_e where
+    str->where = (bwhere_e)saveg_read32();
+
+    // int btexture
+    str->btexture = saveg_read32();
+
+    // int btimer
+    str->btimer = saveg_read32();
+}
+
+static void saveg_write_button_t(button_t *str)
+{
+    // line_t *line
+    saveg_write32(str->line - lines);
+
+    // bwhere_e where
+    saveg_write32((int)str->where);
+
+    // int btexture
+    saveg_write32(str->btexture);
+
+    // int btimer
+    saveg_write32(str->btimer);
+}
+
+//
 // P_ArchivePlayers
 //
 void P_ArchivePlayers (void)
 {
   int i;
 
-  CheckSaveGame(sizeof(player_t) * MAXPLAYERS); // killough
   for (i=0 ; i<MAXPLAYERS ; i++)
     if (playeringame[i])
       {
@@ -2050,24 +2012,6 @@ void P_ArchiveWorld (void)
   const line_t   *li;
   const side_t   *si;
 
-  // killough 3/22/98: fix bug caused by hoisting save_p too early
-  // killough 10/98: adjust size for changes below
-  size_t size = 
-    (sizeof(short)*5 + sizeof sec->floorheight + sizeof sec->ceilingheight) 
-    * numsectors + sizeof(short)*3*numlines + 4;
-
-  for (i=0; i<numlines; i++)
-    {
-      if (lines[i].sidenum[0] != NO_INDEX)
-        size +=
-	  sizeof(short)*3 + sizeof si->textureoffset + sizeof si->rowoffset;
-      if (lines[i].sidenum[1] != NO_INDEX)
-	size +=
-	  sizeof(short)*3 + sizeof si->textureoffset + sizeof si->rowoffset;
-    }
-
-  CheckSaveGame(size); // killough
-
   saveg_write_pad();                // killough 3/22/98
 
   // do sectors
@@ -2081,6 +2025,14 @@ void P_ArchiveWorld (void)
       saveg_write16(sec->lightlevel);
       saveg_write16(sec->special);            // needed?   yes -- transfer types
       saveg_write16(sec->tag);                // needed?   need them -- killough
+
+      saveg_write32(sec->floor_xoffs);
+      saveg_write32(sec->floor_yoffs);
+      saveg_write32(sec->ceiling_xoffs);
+      saveg_write32(sec->ceiling_yoffs);
+
+      saveg_write32(sec->floor_rotation);
+      saveg_write32(sec->ceiling_rotation);
     }
 
   // do lines
@@ -2091,6 +2043,10 @@ void P_ArchiveWorld (void)
       saveg_write16(li->flags);
       saveg_write16(li->special);
       saveg_write16(li->tag);
+
+      saveg_write32(li->angle);
+      saveg_write32(li->frontmusic);
+      saveg_write32(li->backmusic);
 
       for (j=0; j<2; j++)
         if (li->sidenum[j] != NO_INDEX)
@@ -2144,6 +2100,21 @@ void P_UnArchiveWorld (void)
       sec->lightingdata = 0;
       sec->soundtarget = 0;
 
+      if (saveg_compat > saveg_woof1500)
+      {
+        sec->floor_xoffs = saveg_read32();
+        sec->floor_yoffs = saveg_read32();
+        sec->ceiling_xoffs = saveg_read32();
+        sec->ceiling_yoffs = saveg_read32();
+        sec->base_floor_xoffs = sec->old_floor_xoffs = sec->floor_xoffs;
+        sec->base_floor_yoffs = sec->old_floor_yoffs = sec->floor_yoffs;
+        sec->base_ceiling_xoffs = sec->old_ceiling_xoffs = sec->ceiling_xoffs;
+        sec->base_ceiling_yoffs = sec->old_ceiling_yoffs = sec->ceiling_yoffs;
+
+        sec->floor_rotation = saveg_read32();
+        sec->ceiling_rotation = saveg_read32();
+      }
+
       // [crispy] add overflow guard for the flattranslation[] array
       if (floorpic >= 0 && floorpic < numflats &&
           W_LumpLength(firstflat + floorpic) >= 64*64)
@@ -2165,6 +2136,14 @@ void P_UnArchiveWorld (void)
       li->flags = saveg_read16();
       li->special = saveg_read16();
       li->tag = saveg_read16();
+
+      if (saveg_compat > saveg_woof1500)
+      {
+        li->angle = saveg_read32();
+        li->frontmusic = saveg_read32();
+        li->backmusic = saveg_read32();
+      }
+
       for (j=0 ; j<2 ; j++)
         if (li->sidenum[j] != NO_INDEX)
           {
@@ -2205,7 +2184,7 @@ void P_ArchiveThinkers (void)
   size_t    size = 0;
   mobj_t    tmp;
 
-  CheckSaveGame(sizeof brain);      // killough 3/26/98: Save boss brain state
+  // killough 3/26/98: Save boss brain state
   saveg_write32(brain.easy);
   saveg_write32(brain.targeton);
 
@@ -2216,9 +2195,6 @@ void P_ArchiveThinkers (void)
   for (th = thinkercap.next ; th != &thinkercap ; th=th->next)
     if (th->function.p1 == (actionf_p1)P_MobjThinker)
       th->prev = (thinker_t *) ++size;
-
-  // check that enough room is available in savegame buffer
-  CheckSaveGame(size*(sizeof(mobj_t)+4));       // killough 2/14/98
 
   // save off the current thinkers
 
@@ -2280,7 +2256,6 @@ void P_ArchiveThinkers (void)
   // killough 9/14/98: save soundtargets
   {
      int i;
-     CheckSaveGame(numsectors * sizeof(mobj_t *));       // killough 9/14/98
      for (i = 0; i < numsectors; i++)
      {
         mobj_t *target = sectors[i].soundtarget;
@@ -2460,7 +2435,8 @@ enum {
   tc_pusher,      // phares 3/22/98:  new push/pull effect thinker
   tc_flicker,     // killough 10/4/98
   tc_endspecials,
-  tc_friction     // store friction for complevel Boom
+  tc_friction,    // store friction for complevel Boom
+  tc_button,
 } specials_e;
 
 //
@@ -2482,46 +2458,6 @@ enum {
 void P_ArchiveSpecials (void)
 {
   thinker_t *th;
-  size_t    size = 0;          // killough
-
-  // save off the current thinkers (memory size calculation -- killough)
-
-  for (th = thinkercap.next ; th != &thinkercap ; th=th->next)
-    if (!th->function.v)
-      {
-        platlist_t *pl;
-        ceilinglist_t *cl;     //jff 2/22/98 need this for ceilings too now
-        for (pl=activeplats; pl; pl=pl->next)
-          if (pl->plat == (plat_t *) th)   // killough 2/14/98
-            {
-              size += 4+sizeof(plat_t);
-              goto end;
-            }
-        for (cl=activeceilings; cl; cl=cl->next) // search for activeceiling
-          if (cl->ceiling == (ceiling_t *) th)   //jff 2/22/98
-            {
-              size += 4+sizeof(ceiling_t);
-              goto end;
-            }
-      end:;
-      }
-    else
-      size +=
-        th->function.p1==(actionf_p1)T_MoveCeiling  ? 4+sizeof(ceiling_t) :
-        th->function.p1==(actionf_p1)T_VerticalDoor ? 4+sizeof(vldoor_t)  :
-        th->function.p1==(actionf_p1)T_MoveFloor    ? 4+sizeof(floormove_t):
-        th->function.p1==(actionf_p1)T_PlatRaise    ? 4+sizeof(plat_t)    :
-        th->function.p1==(actionf_p1)T_LightFlash   ? 4+sizeof(lightflash_t):
-        th->function.p1==(actionf_p1)T_StrobeFlash  ? 4+sizeof(strobe_t)  :
-        th->function.p1==(actionf_p1)T_Glow         ? 4+sizeof(glow_t)    :
-        th->function.p1==(actionf_p1)T_MoveElevator ? 4+sizeof(elevator_t):
-        th->function.p1==(actionf_p1)T_Scroll       ? 4+sizeof(scroll_t)  :
-        th->function.p1==(actionf_p1)T_Pusher       ? 4+sizeof(pusher_t)  :
-        th->function.p1==(actionf_p1)T_FireFlicker  ? 4+sizeof(fireflicker_t) :
-        th->function.p1==(actionf_p1)T_Friction     ? 4+sizeof(friction_t) :
-      0;
-
-  CheckSaveGame(size);          // killough
 
   // save off the current thinkers
   for (th=thinkercap.next; th!=&thinkercap; th=th->next)
@@ -2649,6 +2585,16 @@ void P_ArchiveSpecials (void)
           continue;
         }
     }
+
+  for (int i = 0; i < MAXBUTTONS; i++)
+  {
+    if (buttonlist[i].btimer != 0)
+    {
+      saveg_write8(tc_button);
+      saveg_write_pad();
+      saveg_write_button_t(&buttonlist[i]);
+    }
+  }
 
   // add a terminating marker
   saveg_write8(tc_endspecials);
@@ -2808,6 +2754,13 @@ void P_UnArchiveSpecials (void)
           break;
         }
 
+      case tc_button:
+        saveg_read_pad();
+        button_t button;
+        saveg_read_button_t(&button);
+        P_StartButton(button.line, button.where, button.btexture, button.btimer);
+        break;
+
       default:
         I_Error ("P_UnarchiveSpecials:Unknown tclass %i "
                  "in savegame",tclass);
@@ -2818,7 +2771,6 @@ void P_UnArchiveSpecials (void)
 
 void P_ArchiveRNG(void)
 {
-  CheckSaveGame(sizeof rng);
   saveg_write_rng_t(&rng);
 }
 
@@ -2830,10 +2782,6 @@ void P_UnArchiveRNG(void)
 // killough 2/22/98: Save/restore automap state
 void P_ArchiveMap(void)
 {
-  CheckSaveGame(sizeof followplayer + sizeof markpointnum +
-                markpointnum * sizeof *markpoints +
-                sizeof automapactive + sizeof viewactive);
-
   saveg_write32(automapactive);
   saveg_write32(viewactive);
   saveg_write32(followplayer);

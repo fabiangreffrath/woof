@@ -24,16 +24,17 @@
 #include "doomstat.h"
 #include "doomtype.h"
 #include "dstrings.h"
+#include "g_umapinfo.h"
 #include "hu_command.h"
 #include "hu_coordinates.h"
 #include "hu_obituary.h"
-#include "i_input.h"
 #include "i_timer.h"
 #include "i_video.h"
 #include "m_array.h"
 #include "m_config.h"
 #include "m_input.h"
 #include "m_misc.h"
+#include "mn_menu.h"
 #include "p_mobj.h"
 #include "p_spec.h"
 #include "r_main.h"
@@ -42,7 +43,6 @@
 #include "sounds.h"
 #include "st_sbardef.h"
 #include "st_stuff.h"
-#include "u_mapinfo.h"
 #include "v_video.h"
 
 boolean       show_messages;
@@ -89,14 +89,9 @@ static boolean message_review;
 
 static void UpdateMessage(sbe_widget_t *widget, player_t *player)
 {
-    if (!player->message)
-    {
-        ST_ClearLines(widget);
-        return;
-    }
+    ST_ClearLines(widget);
 
     static char string[120];
-    static int duration_left;
     static boolean overwrite = true;
     static boolean messages_enabled = true;
 
@@ -104,21 +99,21 @@ static void UpdateMessage(sbe_widget_t *widget, player_t *player)
     {
         if (message_string[0])
         {
-            duration_left = widget->duration;
+            widget->duration_left = widget->duration;
             M_StringCopy(string, message_string, sizeof(string));
             message_string[0] = '\0';
             overwrite = false;
         }
         else if (player->message && player->message[0] && overwrite)
         {
-            duration_left = widget->duration;
+            widget->duration_left = widget->duration;
             M_StringCopy(string, player->message, sizeof(string));
             player->message[0] = '\0';
         }
         else if (message_review)
         {
             message_review = false;
-            duration_left = widget->duration;
+            widget->duration_left = widget->duration;
         }
     }
 
@@ -127,43 +122,115 @@ static void UpdateMessage(sbe_widget_t *widget, player_t *player)
         messages_enabled = show_messages;
     }
 
-    if (duration_left == 0)
+    if (widget->duration_left == 0)
     {
-        ST_ClearLines(widget);
         overwrite = true;
     }
     else
     {
-        SetLine(widget, string);
-        --duration_left;
+        ST_AddLine(widget, string);
+        --widget->duration_left;
     }
 }
 
-static void UpdateSecretMessage(sbe_widget_t *widget, player_t *player)
+static char announce_string[HU_MAXLINELENGTH], author_string[HU_MAXLINELENGTH];
+
+static void UpdateAnnounceMessage(sbe_widget_t *widget, player_t *player)
 {
+    static enum
+    {
+        announce_none,
+        announce_map,
+        announce_secret
+    } state = announce_none;
+
     ST_ClearLines(widget);
 
-    if (!hud_secret_message)
+    if ((state == announce_secret && !hud_secret_message)
+        || (state == announce_map && !hud_map_announce))
     {
         return;
     }
 
-    static char string[80];
-    static int duration_left;
+    static char string[HU_MAXLINELENGTH];
 
-    if (player->secretmessage)
+    if (announce_string[0])
     {
-        duration_left = widget->duration;
-        M_StringCopy(string, player->secretmessage, sizeof(string));
+        state = announce_map;
+        widget->duration_left = widget->duration;
+        M_StringCopy(string, announce_string, sizeof(string));
+        announce_string[0] = '\0';
+    }
+    else if (player->secretmessage)
+    {
+        author_string[0] = '\0';
+        state = announce_secret;
+        widget->duration_left = widget->duration;
+        M_snprintf(string, sizeof(string), GOLD_S "%s" ORIG_S,
+            player->secretmessage);
         player->secretmessage = NULL;
     }
 
-    if (duration_left > 0)
+    if (widget->duration_left > 0)
     {
         ST_AddLine(widget, string);
-        --duration_left;
+        if (author_string[0])
+        {
+            ST_AddLine(widget, author_string);
+        }
+        --widget->duration_left;
+    }
+    else
+    {
+        state = announce_none;
     }
 }
+
+// key tables
+// jff 5/10/98 french support removed, 
+// as it was not being used and couldn't be easily tested
+//
+
+static const char shiftxform[] =
+{
+    0,
+    1, 2, 3, 4, 5, 6, 7, 8, 9, 10,
+    11, 12, 13, 14, 15, 16, 17, 18, 19, 20,
+    21, 22, 23, 24, 25, 26, 27, 28, 29, 30,
+    31,
+    ' ', '!', '"', '#', '$', '%', '&',
+    '"', // shift-'
+    '(', ')', '*', '+',
+    '<', // shift-,
+    '_', // shift--
+    '>', // shift-.
+    '?', // shift-/
+    ')', // shift-0
+    '!', // shift-1
+    '@', // shift-2
+    '#', // shift-3
+    '$', // shift-4
+    '%', // shift-5
+    '^', // shift-6
+    '&', // shift-7
+    '*', // shift-8
+    '(', // shift-9
+    ':',
+    ':', // shift-;
+    '<',
+    '+', // shift-=
+    '>', '?', '@',
+    'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N',
+    'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z',
+    '[', // shift-[
+    '!', // shift-backslash - OH MY GOD DOES WATCOM SUCK
+    ']', // shift-]
+    '"', '_',
+    '\'', // shift-`
+    'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N',
+    'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z',
+    '{', '|', '}', '~', 127
+};
 
 typedef struct
 {
@@ -179,21 +246,16 @@ static void ClearChatLine(chatline_t *line)
     line->string[0] = '\0';
 }
 
-static boolean AddKeyToChatLine(chatline_t *line, char ch, char txt)
+static boolean AddKeyToChatLine(chatline_t *line, char ch)
 {
-    if (txt)
+    if (ch >= ' ' && ch <= '_')
     {
-        txt = M_ToUpper(txt);
-
-        if (txt >= ' ' && txt <= '_')
+        if (line->pos == HU_MAXLINELENGTH - 1)
         {
-            if (line->pos == HU_MAXLINELENGTH - 1)
-            {
-                return false;
-            }
-            line->string[line->pos++] = txt;
-            line->string[line->pos] = '\0';
+            return false;
         }
+        line->string[line->pos++] = ch;
+        line->string[line->pos] = '\0';
     }
     else if (ch == KEY_BACKSPACE) // phares
     {
@@ -242,20 +304,28 @@ void ST_UpdateChatMessage(void)
             {
                 chat_dest[p] = ch;
             }
-            else if (AddKeyToChatLine(&lines[p], ch, 0) && ch == KEY_ENTER)
+            else
             {
-                if (lines[p].pos
-                    && (chat_dest[p] == consoleplayer + 1
-                        || chat_dest[p] == HU_BROADCAST))
+                if (ch >= 'a' && ch <= 'z')
                 {
-                    M_snprintf(message_string, sizeof(message_string), "%s%s",
-                               *player_names[p], lines[p].string);
-
-                    S_StartSoundPitch(
-                        0, gamemode == commercial ? sfx_radio : sfx_tink,
-                        PITCH_NONE);
+                    ch = (char)shiftxform[(unsigned char)ch];
                 }
-                ClearChatLine(&lines[p]);
+
+                if (AddKeyToChatLine(&lines[p], ch) && ch == KEY_ENTER)
+                {
+                    if (lines[p].pos && (chat_dest[p] == consoleplayer + 1
+                                         || chat_dest[p] == HU_BROADCAST))
+                    {
+                        M_snprintf(message_string, sizeof(message_string),
+                            "%s%s", *player_names[p], lines[p].string);
+
+                        S_StartSoundPitch(0,
+                                          gamemode == commercial ? sfx_radio
+                                                                 : sfx_tink,
+                                          PITCH_NONE);
+                    }
+                    ClearChatLine(&lines[p]);
+                }
             }
             players[p].cmd.chatchar = 0;
         }
@@ -322,29 +392,24 @@ char ST_DequeueChatChar(void)
 
 static chatline_t chatline;
 
-static void StartChatInput(int dest)
-{
-    chat_on = true;
-    ClearChatLine(&chatline);
-    QueueChatChar(dest);
-    I_StartTextInput();
-}
-
-static void StopChatInput(void)
-{
-    chat_on = false;
-    I_StopTextInput();
-}
-
 boolean ST_MessagesResponder(event_t *ev)
 {
+    if (ev->type == ev_text)
+    {
+        return false;
+    }
+
     static char lastmessage[HU_MAXLINELENGTH + 1];
 
     boolean eatkey = false;
+    static boolean shiftdown = false;
     static boolean altdown = false;
+    int ch;
     int numplayers;
 
     static int num_nobrainers = 0;
+
+    ch = (ev->type == ev_keydown) ? ev->data1.i : 0;
 
     numplayers = 0;
     for (int p = 0; p < MAXPLAYERS; p++)
@@ -352,10 +417,21 @@ boolean ST_MessagesResponder(event_t *ev)
         numplayers += playeringame[p];
     }
 
+    if (ev->data1.i == KEY_RSHIFT)
+    {
+        shiftdown = ev->type == ev_keydown;
+        return false;
+    }
+
     if (ev->data1.i == KEY_RALT)
     {
-        altdown = ev->type != ev_keyup;
+        altdown = ev->type == ev_keydown;
         return false;
+    }
+
+    if (M_InputActivated(input_chat_backspace))
+    {
+        ch = KEY_BACKSPACE;
     }
 
     if (!chat_on)
@@ -372,8 +448,9 @@ boolean ST_MessagesResponder(event_t *ev)
         }
         else if (netgame && M_InputActivated(input_chat))
         {
-            eatkey = true;
-            StartChatInput(HU_BROADCAST);
+            eatkey = chat_on = true;
+            ClearChatLine(&chatline);
+            QueueChatChar(HU_BROADCAST);
         }
         else if (netgame && numplayers > 2) // killough 11/98: simplify
         {
@@ -393,8 +470,9 @@ boolean ST_MessagesResponder(event_t *ev)
                     }
                     else if (playeringame[p])
                     {
-                        eatkey = true;
-                        StartChatInput(p + 1);
+                        eatkey = chat_on = true;
+                        ClearChatLine(&chatline);
+                        QueueChatChar((char)(p + 1));
                         break;
                     }
                 }
@@ -403,11 +481,14 @@ boolean ST_MessagesResponder(event_t *ev)
     } // jff 2/26/98 no chat functions if message review is displayed
     else
     {
+        if (M_InputActivated(input_chat_enter))
+        {
+            ch = KEY_ENTER;
+        }
+
         // send a macro
         if (altdown)
         {
-            int ch = (ev->type == ev_keydown) ? ev->data1.i : 0;
-
             ch = ch - '0';
             if (ch < 0 || ch > 9)
             {
@@ -426,25 +507,26 @@ boolean ST_MessagesResponder(event_t *ev)
             QueueChatChar(KEY_ENTER); // phares
 
             // leave chat mode and notify that it was sent
-            StopChatInput();
+            chat_on = false;
             M_StringCopy(lastmessage, chat_macros[ch], sizeof(lastmessage));
             displaymsg("%s", lastmessage);
             eatkey = true;
         }
         else
         {
-            int ch = (ev->type == ev_keydown) ? ev->data1.i : 0;
-
-            int txt = (ev->type == ev_text) ? ev->data1.i : 0;
-
-            if (AddKeyToChatLine(&chatline, ch, txt))
+            if (shiftdown || (ch >= 'a' && ch <= 'z'))
             {
-                QueueChatChar(txt);
+                ch = shiftxform[ch];
+            }
+            eatkey = AddKeyToChatLine(&chatline, ch);
+            if (eatkey)
+            {
+                QueueChatChar(ch);
             }
 
             if (ch == KEY_ENTER) // phares
             {
-                StopChatInput();
+                chat_on = false;
                 if (chatline.pos)
                 {
                     M_StringCopy(lastmessage, chatline.string,
@@ -454,9 +536,8 @@ boolean ST_MessagesResponder(event_t *ev)
             }
             else if (ch == KEY_ESCAPE) // phares
             {
-                StopChatInput();
+                chat_on = false;
             }
-            return true;
         }
     }
     return eatkey;
@@ -464,6 +545,8 @@ boolean ST_MessagesResponder(event_t *ev)
 
 static void UpdateChat(sbe_widget_t *widget)
 {
+    ST_ClearLines(widget);
+
     static char string[HU_MAXLINELENGTH + 1];
 
     string[0] = '\0';
@@ -476,9 +559,8 @@ static void UpdateChat(sbe_widget_t *widget)
         {
             M_StringConcat(string, "_", sizeof(string));
         }
+        ST_AddLine(widget, string);
     }
-
-    SetLine(widget, string);
 }
 
 static boolean IsVanillaMap(int e, int m)
@@ -518,10 +600,11 @@ void ST_ResetTitle(void)
             s = gamemapinfo->mapname;
         }
 
-        if (s == gamemapinfo->mapname || U_CheckField(s))
+        if (!(gamemapinfo->flags & MapInfo_LabelClear))
         {
             M_snprintf(string, sizeof(string), "%s: ", s);
         }
+
         s = gamemapinfo->levelname;
     }
     else if (gamestate == GS_LEVEL)
@@ -567,12 +650,25 @@ void ST_ResetTitle(void)
     M_snprintf(title_string, sizeof(title_string), "\x1b%c%s" ORIG_S,
                '0' + hudcolor_titl, string);
 
+    announce_string[0] = '\0';
+    author_string[0] = '\0';
     if (hud_map_announce && leveltime == 0)
     {
-        if (gamemapinfo && U_CheckField(gamemapinfo->author))
-            displaymsg("%s by %s", string, gamemapinfo->author);
+        if (gamemapinfo && gamemapinfo->author)
+        {
+            M_snprintf(announce_string, sizeof(announce_string), "%s by %s",
+                       string, gamemapinfo->author);
+            if (MN_StringWidth(announce_string) > SCREENWIDTH) 
+            {
+                M_StringCopy(announce_string, string, sizeof(announce_string));
+                M_snprintf(author_string, sizeof(author_string), "by %s",
+                           gamemapinfo->author);
+            }
+        }
         else
-            displaymsg("%s", string);
+        {
+            M_StringCopy(announce_string, string, sizeof(announce_string));
+        }
     }
 }
 
@@ -634,15 +730,31 @@ static void UpdateCoord(sbe_widget_t *widget, player_t *player)
     // killough 10/98: allow coordinates to display non-following pointer
     AM_Coordinates(player->mo, &x, &y, &z);
 
-    static char string[80];
-
-    // jff 2/16/98 output new coord display
-    M_snprintf(string, sizeof(string),
-               "\x1b%cX " GRAY_S "%d \x1b%cY " GRAY_S "%d \x1b%cZ " GRAY_S "%d",
-               '0' + hudcolor_xyco, x >> FRACBITS, '0' + hudcolor_xyco,
-               y >> FRACBITS, '0' + hudcolor_xyco, z >> FRACBITS);
-
-    ST_AddLine(widget, string);
+    if (!widget->vertical)
+    {
+        static char string[80];
+        // jff 2/16/98 output new coord display
+        M_snprintf(string, sizeof(string),
+                   "\x1b%cX " GRAY_S "%d \x1b%cY " GRAY_S "%d \x1b%cZ " GRAY_S "%d",
+                   '0' + hudcolor_xyco, x >> FRACBITS, '0' + hudcolor_xyco,
+                   y >> FRACBITS, '0' + hudcolor_xyco, z >> FRACBITS);
+        ST_AddLine(widget, string);
+    }
+    else
+    {
+        static char string1[16];
+        M_snprintf(string1, sizeof(string1), "\x1b%cX " GRAY_S "%d",
+                   '0' + hudcolor_xyco, x >> FRACBITS);
+        ST_AddLine(widget, string1);
+        static char string2[16];
+        M_snprintf(string2, sizeof(string2), "\x1b%cY " GRAY_S "%d",
+                   '0' + hudcolor_xyco, y >> FRACBITS);
+        ST_AddLine(widget, string2);
+        static char string3[16];
+        M_snprintf(string3, sizeof(string3), "\x1b%cZ " GRAY_S "%d",
+                   '0' + hudcolor_xyco, z >> FRACBITS);
+        ST_AddLine(widget, string3);
+    }
 }
 
 typedef enum
@@ -705,8 +817,6 @@ static void UpdateMonSec(sbe_widget_t *widget)
 
     ForceDoomFont(widget);
 
-    static char string[120];
-
     const int cr_blue = (widget->font == stcfnt) ? CR_BLUE2 : CR_BLUE1;
 
     int fullkillcount = 0;
@@ -746,13 +856,28 @@ static void UpdateMonSec(sbe_widget_t *widget)
     StatsFormatFunc(item_str, sizeof(item_str), fullitemcount, totalitems);
     StatsFormatFunc(secret_str, sizeof(secret_str), fullsecretcount, totalsecret);
 
-    M_snprintf(string, sizeof(string),
-        RED_S "K \x1b%c%s " RED_S "I \x1b%c%s " RED_S "S \x1b%c%s",
-        killcolor, kill_str,
-        itemcolor, item_str,
-        secretcolor, secret_str);
-
-    ST_AddLine(widget, string);
+    if (!widget->vertical)
+    {
+        static char string[80];
+        M_snprintf(string, sizeof(string),
+            RED_S "K \x1b%c%s " RED_S "I \x1b%c%s " RED_S "S \x1b%c%s",
+            killcolor, kill_str,
+            itemcolor, item_str,
+            secretcolor, secret_str);
+        ST_AddLine(widget, string);
+    }
+    else
+    {
+        static char string1[16];
+        M_snprintf(string1, sizeof(string1), RED_S "K \x1b%c%s", killcolor, kill_str);
+        ST_AddLine(widget, string1);
+        static char string2[16];
+        M_snprintf(string2, sizeof(string2), RED_S "I \x1b%c%s", itemcolor, item_str);
+        ST_AddLine(widget, string2);
+        static char string3[16];
+        M_snprintf(string3, sizeof(string3), RED_S "S \x1b%c%s", secretcolor, secret_str);
+        ST_AddLine(widget, string3);
+    }
 }
 
 static void UpdateDM(sbe_widget_t *widget)
@@ -811,7 +936,7 @@ static void UpdateStTime(sbe_widget_t *widget, player_t *player)
 {
     ST_ClearLines(widget);
 
-    if (!WidgetEnabled(hud_level_time))
+    if (!WidgetEnabled(hud_level_time) && !player->btuse_tics)
     {
         return;
     }
@@ -822,40 +947,42 @@ static void UpdateStTime(sbe_widget_t *widget, player_t *player)
 
     int offset = 0;
 
-    if (time_scale != 100)
+    if (WidgetEnabled(hud_level_time))
     {
-        offset +=
-            M_snprintf(string, sizeof(string), "%s%d%% ",
-                       (widget->font == stcfnt) ? BLUE2_S : BLUE1_S, time_scale);
+        if (time_scale != 100)
+        {
+            offset +=
+                M_snprintf(string, sizeof(string), "%s%d%% ",
+                           (widget->font == stcfnt) ? BLUE2_S : BLUE1_S, time_scale);
+        }
+
+        if (levelTimer == true)
+        {
+            const int time = levelTimeCount / TICRATE;
+
+            offset += M_snprintf(string + offset, sizeof(string) - offset,
+                                 BROWN_S "%d:%02d ", time / 60, time % 60);
+        }
+        else if (totalleveltimes)
+        {
+            const int time = (totalleveltimes + leveltime) / TICRATE;
+
+            offset += M_snprintf(string + offset, sizeof(string) - offset,
+                                 GREEN_S "%d:%02d ", time / 60, time % 60);
+        }
     }
 
-    if (levelTimer == true)
-    {
-        const int time = levelTimeCount / TICRATE;
-
-        offset += M_snprintf(string + offset, sizeof(string) - offset,
-                             BROWN_S "%d:%02d ", time / 60, time % 60);
-    }
-    else if (totalleveltimes)
-    {
-        const int time = (totalleveltimes + leveltime) / TICRATE;
-
-        offset += M_snprintf(string + offset, sizeof(string) - offset,
-                             GREEN_S "%d:%02d ", time / 60, time % 60);
-    }
-
-    if (!player->btuse_tics)
-    {
-        M_snprintf(string + offset, sizeof(string) - offset,
-                   GRAY_S "%d:%05.2f\t", leveltime / TICRATE / 60,
-                   (float)(leveltime % (60 * TICRATE)) / TICRATE);
-    }
-    else
+    if (player->btuse_tics)
     {
         M_snprintf(string + offset, sizeof(string) - offset,
                    GOLD_S "U %d:%05.2f\t", player->btuse / TICRATE / 60,
                    (float)(player->btuse % (60 * TICRATE)) / TICRATE);
-        player->btuse_tics--;
+    }
+    else
+    {
+        M_snprintf(string + offset, sizeof(string) - offset,
+                   GRAY_S "%d:%05.2f\t", leveltime / TICRATE / 60,
+                   (float)(leveltime % (60 * TICRATE)) / TICRATE);
     }
 
     ST_AddLine(widget, string);
@@ -909,7 +1036,7 @@ static void UpdateSpeed(sbe_widget_t *widget, player_t *player)
 {
     if (speedometer <= 0)
     {
-        SetLine(widget, "");
+        ST_ClearLines(widget);
         return;
     }
 
@@ -1079,8 +1206,8 @@ void ST_UpdateWidget(sbarelem_t *elem, player_t *player)
         case sbw_chat:
             UpdateChat(widget);
             break;
-        case sbw_secret:
-            UpdateSecretMessage(widget, player);
+        case sbw_announce:
+            UpdateAnnounceMessage(widget, player);
             break;
         case sbw_title:
             UpdateTitle(widget);
@@ -1145,7 +1272,7 @@ void ST_BindHUDVariables(void)
   M_BindBool("hud_time_use", &hud_time_use, NULL, false, ss_stat, wad_no,
              "Show split time when pressing the use-button");
   M_BindNum("hud_widget_font", &hud_widget_font, NULL,
-            HUD_WIDGET_OFF, HUD_WIDGET_OFF, HUD_WIDGET_ALWAYS,
+            HUD_WIDGET_AUTOMAP, HUD_WIDGET_OFF, HUD_WIDGET_ALWAYS,
             ss_stat, wad_no,
             "Use standard Doom font for widgets (1 = On automap; 2 = On HUD; 3 "
             "= Always)");

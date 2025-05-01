@@ -17,7 +17,6 @@
 #include "doomtype.h"
 #include "i_printf.h"
 #include "m_array.h"
-#include "m_misc.h"
 #include "w_wad.h"
 #include "z_zone.h"
 
@@ -70,11 +69,10 @@ json_t *JS_OpenOptions(int lumpnum, boolean comments)
         return NULL;
     }
 
+    array_push(docs, ((doc_t){json_doc, lumpnum}));
+
     json_t *json = yyjson_doc_get_root(json_doc);
-    if (!json)
-    {
-        array_push(docs, ((doc_t){json_doc, lumpnum}));
-    }
+
     return json;
 }
 
@@ -87,6 +85,10 @@ json_t *JS_Open(const char *lump, const char *type, version_t maxversion)
     }
 
     json_t *json = JS_OpenOptions(lumpnum, false);
+    if (!json)
+    {
+        return NULL;
+    }
 
     json_t *js_type = JS_GetObject(json, "type");
     if (!JS_IsString(js_type))
@@ -128,12 +130,12 @@ json_t *JS_Open(const char *lump, const char *type, version_t maxversion)
 
 void JS_CloseOptions(int lumpnum)
 {
-    doc_t *doc;
-    array_foreach(doc, docs)
+    for (int i = 0; i < array_size(docs); ++i)
     {
-        if (doc->lumpnum == lumpnum)
+        if (docs[i].lumpnum == lumpnum)
         {
-            yyjson_doc_free(doc->json_doc);
+            yyjson_doc_free(docs[i].json_doc);
+            array_delete(docs, i);
             break;
         }
     }

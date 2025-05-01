@@ -26,6 +26,7 @@
 #include "doomdef.h"
 #include "doomstat.h"
 #include "doomtype.h"
+#include "g_umapinfo.h"
 #include "g_game.h"
 #include "i_printf.h"
 #include "m_misc.h"
@@ -37,7 +38,6 @@
 #include "st_sbardef.h"
 #include "st_stuff.h"
 #include "sounds.h"
-#include "u_mapinfo.h"
 #include "v_fmt.h"
 #include "v_video.h"
 #include "w_wad.h"
@@ -440,41 +440,43 @@ static boolean CheckConditions(interlevelcond_t *conditions,
         switch (cond->condition)
         {
             case AnimCondition_MapNumGreater:
-                conditionsmet = (map > cond->param);
+                conditionsmet &= (map > cond->param);
                 break;
 
             case AnimCondition_MapNumEqual:
-                conditionsmet = (map == cond->param);
+                conditionsmet &= (map == cond->param);
                 break;
 
             case AnimCondition_MapVisited:
-                conditionsmet = false;
-
-                level_t *level;
-                array_foreach(level, wbs->visitedlevels)
                 {
-                    if (level->map == cond->param)
+                    boolean result = false;
+                    level_t *level;
+                    array_foreach(level, wbs->visitedlevels)
                     {
-                        conditionsmet = true;
-                        break;
+                        if (level->map == cond->param)
+                        {
+                            result = true;
+                            break;
+                        }
                     }
+                    conditionsmet &= result;
                 }
                 break;
 
             case AnimCondition_MapNotSecret:
-                conditionsmet = !U_IsSecretMap(episode, map);
+                conditionsmet &= !G_IsSecretMap(episode, map);
                 break;
 
             case AnimCondition_SecretVisited:
-                conditionsmet = wbs->didsecret;
+                conditionsmet &= wbs->didsecret;
                 break;
 
             case AnimCondition_Tally:
-                conditionsmet = !enteringcondition;
+                conditionsmet &= !enteringcondition;
                 break;
 
             case AnimCondition_IsEntering:
-                conditionsmet = enteringcondition;
+                conditionsmet &= enteringcondition;
                 break;
 
             default:
@@ -694,19 +696,31 @@ static boolean SetupMusic(boolean enteringcondition)
 //
 void WI_slamBackground(void)
 {
-  char  name[32];
+    const char *name;
 
-  if (state != StatCount && enterpic)
-    strcpy(name, enterpic);
-  else if (exitpic)
-    strcpy(name, exitpic);
-  // with UMAPINFO it is possible that wbs->epsd > 3
-  else if (gamemode == commercial || wbs->epsd >= 3)
-    strcpy(name, "INTERPIC");
-  else
-    M_snprintf(name, sizeof(name), "WIMAP%d", wbs->epsd);
+    char lump[9] = {0};
 
-  V_DrawPatchFullScreen(V_CachePatchName(name, PU_CACHE));
+    if (state != StatCount && enterpic)
+    {
+        name = enterpic;
+    }
+    else if (exitpic)
+    {
+        name = exitpic;
+    }
+    // with UMAPINFO it is possible that wbs->epsd > 3
+    else if (gamemode == commercial || wbs->epsd >= 3)
+    {
+        name = "INTERPIC";
+    }
+    else
+    {
+        M_snprintf(lump, sizeof(lump), "WIMAP%d", wbs->epsd);
+        name = lump;
+    }
+
+    V_DrawPatchFullScreen(
+      V_CachePatchName(W_CheckWidescreenPatch(name), PU_CACHE));
 }
 
 // ====================================================================
@@ -736,47 +750,45 @@ static void WI_DrawString(int y, const char* str)
 //
 static void WI_drawLF(void)
 {
-  int y = WI_TITLEY;
+    int y = WI_TITLEY;
 
-  // The level defines a new name but no texture for the name.
-  if (wbs->lastmapinfo && wbs->lastmapinfo->levelname && wbs->lastmapinfo->levelpic[0] == 0)
-  {
-    WI_DrawString(y, wbs->lastmapinfo->levelname);
+    const mapentry_t *mapinfo = wbs->lastmapinfo;
 
-    y += (5 * SHORT(hu_font['A' - HU_FONTSTART]->height) / 4);
-
-    if (wbs->lastmapinfo->author)
+    // The level defines a new name but no texture for the name.
+    if (mapinfo && mapinfo->levelname && !mapinfo->levelpic[0])
     {
-      WI_DrawString(y, wbs->lastmapinfo->author);
+        WI_DrawString(y, mapinfo->levelname);
 
-      y += (5 * SHORT(hu_font['A' - HU_FONTSTART]->height) / 4);
+        y += (5 * SHORT(hu_font['A' - HU_FONTSTART]->height) / 4);
+
+        if (mapinfo->author)
+        {
+            WI_DrawString(y, mapinfo->author);
+
+            y += (5 * SHORT(hu_font['A' - HU_FONTSTART]->height) / 4);
+        }
     }
-  }
-  else if (wbs->lastmapinfo && wbs->lastmapinfo->levelpic[0])
-  {
-    patch_t* lpic = V_CachePatchName(wbs->lastmapinfo->levelpic, PU_CACHE);
+    else if (mapinfo && mapinfo->levelpic[0])
+    {
+        patch_t *patch = V_CachePatchName(mapinfo->levelpic, PU_CACHE);
 
-    V_DrawPatch((SCREENWIDTH - SHORT(lpic->width))/2,
-               y, lpic);
+        V_DrawPatch((SCREENWIDTH - SHORT(patch->width)) / 2, y, patch);
 
-    y += (5 * SHORT(lpic->height)) / 4;
-  }
-  else
-  // [FG] prevent crashes for levels without name graphics
-  if (wbs->last >= 0 && wbs->last < num_lnames && lnames[wbs->last] != NULL )
-  {
-  // draw <LevelName> 
-  V_DrawPatch((SCREENWIDTH - SHORT(lnames[wbs->last]->width))/2,
-              y, lnames[wbs->last]);
+        y += (5 * SHORT(patch->height)) / 4;
+    }
+    // [FG] prevent crashes for levels without name graphics
+    else if (wbs->last >= 0 && wbs->last < num_lnames && lnames[wbs->last])
+    {
+        // draw <LevelName>
+        V_DrawPatch((SCREENWIDTH - SHORT(lnames[wbs->last]->width)) / 2, y,
+                    lnames[wbs->last]);
 
-  // draw "Finished!"
-  y += (5*SHORT(lnames[wbs->last]->height))/4;
-  }
-  
-  V_DrawPatch((SCREENWIDTH - SHORT(finished->width))/2,
-              y, finished);
+        // draw "Finished!"
+        y += (5 * SHORT(lnames[wbs->last]->height)) / 4;
+    }
+
+    V_DrawPatch((SCREENWIDTH - SHORT(finished->width)) / 2, y, finished);
 }
-
 
 // ====================================================================
 // WI_drawEL
@@ -786,48 +798,52 @@ static void WI_drawLF(void)
 //
 static void WI_drawEL(void)
 {
-  int y = WI_TITLEY;
+    int y = WI_TITLEY;
 
-  // draw "Entering"
-  V_DrawPatch((SCREENWIDTH - SHORT(entering->width))/2,
-              y, entering);
+    // draw "Entering"
+    V_DrawPatch((SCREENWIDTH - SHORT(entering->width)) / 2, y, entering);
 
-  // The level defines a new name but no texture for the name
-  if (wbs->nextmapinfo && wbs->nextmapinfo->levelname && wbs->nextmapinfo->levelpic[0] == 0)
-  {
-    y += (5 * SHORT(entering->height)) / 4;
+    const mapentry_t *mapinfo = wbs->nextmapinfo;
 
-    WI_DrawString(y, wbs->nextmapinfo->levelname);
-
-    if (wbs->nextmapinfo->author)
+    // The level defines a new name but no texture for the name
+    if (mapinfo && mapinfo->levelname && !mapinfo->levelpic[0])
     {
-      y += (5 * SHORT(hu_font['A' - HU_FONTSTART]->height) / 4);
+        y += (5 * SHORT(entering->height)) / 4;
 
-      WI_DrawString(y, wbs->nextmapinfo->author);
+        WI_DrawString(y, mapinfo->levelname);
+
+        if (mapinfo->author)
+        {
+            y += (5 * SHORT(hu_font['A' - HU_FONTSTART]->height) / 4);
+
+            WI_DrawString(y, mapinfo->author);
+        }
     }
-  }
-  else if (wbs->nextmapinfo && wbs->nextmapinfo->levelpic[0])
-  {
-    patch_t* lpic = V_CachePatchName(wbs->nextmapinfo->levelpic, PU_CACHE);
+    else if (mapinfo && mapinfo->levelpic[0])
+    {
+        patch_t *patch = V_CachePatchName(mapinfo->levelpic, PU_CACHE);
 
-    if (SHORT(lpic->height) < SCREENHEIGHT)
-      y += (5 * SHORT(lpic->height)) / 4;
+        if (SHORT(patch->height) < SCREENHEIGHT)
+        {
+            y += (5 * SHORT(patch->height)) / 4;
+        }
 
-    V_DrawPatch((SCREENWIDTH - SHORT(lpic->width))/2, y, lpic);
-  }
-  // [FG] prevent crashes for levels without name graphics
-  else if (wbs->next >= 0 && wbs->next < num_lnames && lnames[wbs->next] != NULL)
-  {
-  // draw level
-  // haleyjd: corrected to use height of entering, not map name
-  if (SHORT(lnames[wbs->next]->height) < SCREENHEIGHT)
-    y += (5 * SHORT(entering->height)) / 4;
+        V_DrawPatch((SCREENWIDTH - SHORT(patch->width)) / 2, y, patch);
+    }
+    // [FG] prevent crashes for levels without name graphics
+    else if (wbs->next >= 0 && wbs->next < num_lnames && lnames[wbs->next])
+    {
+        // draw level
+        // haleyjd: corrected to use height of entering, not map name
+        if (SHORT(lnames[wbs->next]->height) < SCREENHEIGHT)
+        {
+            y += (5 * SHORT(entering->height)) / 4;
+        }
 
-  V_DrawPatch((SCREENWIDTH - SHORT(lnames[wbs->next]->width))/2,
-              y, lnames[wbs->next]);
-  }
+        V_DrawPatch((SCREENWIDTH - SHORT(lnames[wbs->next]->width)) / 2, y,
+                    lnames[wbs->next]);
+    }
 }
-
 
 // ====================================================================
 // WI_drawOnLnode
@@ -898,9 +914,13 @@ static void WI_initAnimatedBack(boolean firstcall)
   }
 
   if (exitpic)
-    return;
-  if (enterpic && entering)
-    return;
+  {
+      return;
+  }
+  if (enterpic && state != StatCount)
+  {
+      return;
+  }
 
   if (gamemode == commercial)  // no animation for DOOM2
     return;
@@ -949,9 +969,13 @@ static void WI_updateAnimatedBack(void)
   }
 
   if (exitpic)
-    return;
+  {
+      return;
+  }
   if (enterpic && state != StatCount)
-    return;
+  {
+      return;
+  }
 
   if (gamemode == commercial)
     return;
@@ -1016,9 +1040,13 @@ static void WI_drawAnimatedBack(void)
   }
 
   if (exitpic)
-    return;
+  {
+      return;
+  }
   if (enterpic && state != StatCount)
-    return;
+  {
+      return;
+  }
 
   if (gamemode==commercial) //jff 4/25/98 Someone forgot commercial an enum
     return;
@@ -1308,22 +1336,23 @@ static void WI_initShowNextLoc(void)
 
   if (gamemapinfo)
   {
-    if (gamemapinfo->endpic[0])
-    {
-      G_WorldDone();
-      return;
-    }
-    state = ShowNextLoc;
+      if (gamemapinfo->flags & MapInfo_EndGame)
+      {
+          G_WorldDone();
+          return;
+      }
 
-    // episode change
-    if (wbs->epsd != wbs->nextep)
-    {
-      void WI_loadData(void);
+      state = ShowNextLoc;
 
-      wbs->epsd = wbs->nextep;
-      wbs->last = wbs->next - 1;
-      WI_loadData();
-    }
+      // episode change
+      if (wbs->epsd != wbs->nextep)
+      {
+          void WI_loadData(void);
+
+          wbs->epsd = wbs->nextep;
+          wbs->last = wbs->next - 1;
+          WI_loadData();
+      }
   }
 
   state = ShowNextLoc;
@@ -1362,9 +1391,9 @@ static void WI_drawShowNextLoc(void)
   int   i;
   int   last;
 
-  if (gamemapinfo && U_CheckField(gamemapinfo->endpic))
+  if (gamemapinfo && gamemapinfo->flags & MapInfo_EndGame)
   {
-    return;
+      return;
   }
 
   WI_slamBackground();
@@ -2158,29 +2187,32 @@ static void WI_drawStats(void)
   V_DrawPatch(SP_STATSX, SP_STATSY+2*lh, sp_secret);
   WI_drawPercent(SCREENWIDTH - SP_STATSX, SP_STATSY+2*lh, cnt_secret[0]);
 
+  const boolean draw_partime = (W_IsIWADLump(maplump) || deh_pars || um_pars) &&
+                               (wbs->epsd < 3 || um_pars);
+  // [FG] choose x-position depending on width of time string
+  const boolean wide_total = (wbs->totaltimes / TICRATE > 61*59) ||
+                             (SP_TIMEX + SHORT(total->width) >= SCREENWIDTH/4);
+  const boolean wide_time = (wide_total && !draw_partime);
+
   V_DrawPatch(SP_TIMEX, SP_TIMEY, witime);
-  WI_drawTime(SCREENWIDTH/2 - SP_TIMEX, SP_TIMEY, cnt_time, true);
+  WI_drawTime((wide_time ? SCREENWIDTH : SCREENWIDTH/2) - SP_TIMEX,
+              SP_TIMEY, cnt_time, true);
 
   // Ty 04/11/98: redid logic: should skip only if with pwad but 
   // without deh patch
   // killough 2/22/98: skip drawing par times on pwads
   // Ty 03/17/98: unless pars changed with deh patch
 
-  if (W_IsIWADLump(maplump) || deh_pars || um_pars)
-    if (wbs->epsd < 3 || um_pars)
-      {
-	V_DrawPatch(SCREENWIDTH/2 + SP_TIMEX, SP_TIMEY, par);
-	WI_drawTime(SCREENWIDTH - SP_TIMEX, SP_TIMEY, cnt_par, true);
-      }
+  if (draw_partime)
+  {
+    V_DrawPatch(SCREENWIDTH/2 + SP_TIMEX, SP_TIMEY, par);
+    WI_drawTime(SCREENWIDTH - SP_TIMEX, SP_TIMEY, cnt_par, true);
+  }
 
   // [FG] draw total time alongside level time and par time
-  {
-    const boolean wide = (wbs->totaltimes / TICRATE > 61*59) || (SP_TIMEX + SHORT(total->width) >= SCREENWIDTH/4);
-
-    V_DrawPatch(SP_TIMEX, SP_TIMEY + 16, total);
-    // [FG] choose x-position depending on width of time string
-    WI_drawTime((wide ? SCREENWIDTH : SCREENWIDTH/2) - SP_TIMEX, SP_TIMEY + 16, cnt_total_time, false);
-  }
+  V_DrawPatch(SP_TIMEX, SP_TIMEY + 16, total);
+  WI_drawTime((wide_total ? SCREENWIDTH : SCREENWIDTH/2) - SP_TIMEX,
+              SP_TIMEY + 16, cnt_total_time, false);
 }
 
 // ====================================================================

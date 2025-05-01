@@ -121,21 +121,10 @@ static void ScanDir(const char *dir, boolean recursion)
         const char usr_share[] = "/usr/share";
         if (strncmp(dir, usr_share, strlen(usr_share)) == 0)
         {
-            char *home_dir = M_getenv("XDG_DATA_HOME");
-
-            if (home_dir == NULL)
-            {
-                home_dir = M_getenv("HOME");
-            }
-
-            if (home_dir)
-            {
-                char *local_share = M_StringJoin(home_dir, "/.local/share");
-                char *local_dir = M_StringReplace(dir, usr_share, local_share);
-                free(local_share);
-                ScanDir(local_dir, true);
-                free(local_dir);
-            }
+            char *local_share = M_DataDir();
+            char *local_dir = M_StringReplace(dir, usr_share, local_share);
+            ScanDir(local_dir, true);
+            free(local_dir);
         }
         else if (dir[0] == '.')
         {
@@ -260,7 +249,7 @@ static boolean I_FL_InitStream(int device)
     fluid_settings_setint(settings, "synth.polyphony", fl_polyphony);
     fluid_settings_setnum(settings, "synth.gain", 0.2);
     fluid_settings_setnum(settings, "synth.sample-rate", SND_SAMPLERATE);
-    fluid_settings_setint(settings, "synth.device-id", 16);
+    fluid_settings_setint(settings, "synth.device-id", 0); // Disable SysEx.
     fluid_settings_setstr(settings, "synth.midi-bank-select", "gs");
     fluid_settings_setint(settings, "synth.reverb.active", fl_reverb);
     fluid_settings_setint(settings, "synth.chorus.active", fl_chorus);

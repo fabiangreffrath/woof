@@ -66,6 +66,13 @@ extern int health_red;    // health amount less than which status is red
 extern int health_yellow; // health amount less than which status is yellow
 extern int health_green;  // health amount above is blue, below is green
 
+static inline boolean ST_PlayerInvulnerable(player_t *player)
+{
+    return (player->cheats & CF_GODMODE) ||
+        (player->powers[pw_invulnerability] > 4 * 32) ||
+        (player->powers[pw_invulnerability] & 8);
+}
+
 extern boolean palette_changes;
 
 extern struct hudfont_s *stcfnt;
@@ -73,6 +80,8 @@ extern struct patch_s **hu_font;
 
 void WI_UpdateWidgets(void);
 void WI_DrawWidgets(void);
+
+const char **ST_StatusbarList(void);
 
 void ST_BindSTSVariables(void);
 

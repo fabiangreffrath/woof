@@ -330,10 +330,12 @@ void P_LoadSectors (int lump)
       ss->floor_yoffs = 0;      // floor and ceiling flats offsets
       ss->old_floor_xoffs = ss->base_floor_xoffs = 0;
       ss->old_floor_yoffs = ss->base_floor_yoffs = 0;
+      ss->floor_rotation = 0;
       ss->ceiling_xoffs = 0;
       ss->ceiling_yoffs = 0;
       ss->old_ceiling_xoffs = ss->base_ceiling_xoffs = 0;
       ss->old_ceiling_yoffs = ss->base_ceiling_yoffs = 0;
+      ss->ceiling_rotation = 0;
       ss->heightsec = -1;       // sector used to get floor and ceiling height
       ss->floorlightsec = -1;   // sector used to get floor lighting
       // killough 3/7/98: end changes
@@ -345,7 +347,7 @@ void P_LoadSectors (int lump)
       ss->bottommap = ss->midmap = ss->topmap = 0;
 
       // killough 10/98: sky textures coming from sidedefs:
-      ss->sky = 0;
+      ss->floorsky = ss->ceilingsky = 0;
 
       // [AM] Sector interpolation.  Even if we're
       //      not running uncapped, the renderer still
@@ -497,6 +499,8 @@ void P_LoadLineDefs (int lump)
       v2 = ld->v2 = &vertexes[(unsigned short)SHORT(mld->v2)];
       ld->dx = v2->x - v1->x;
       ld->dy = v2->y - v1->y;
+      ld->angle = R_PointToAngle2(lines[i].v1->x, lines[i].v1->y,
+                                  lines[i].v2->x, lines[i].v2->y);
 
       ld->tranlump = -1;   // killough 4/11/98: no translucency by default
 
@@ -622,6 +626,45 @@ void P_LoadSideDefs2(int lump)
       sd->sector = sec = &sectors[SHORT(msd->sector)];
       switch (sd->special)
         {
+        case 2057: case 2058: case 2059: case 2060: case 2061: case 2062:
+        case 2063: case 2064: case 2065: case 2066: case 2067: case 2068:
+        case 2087: case 2088: case 2089: case 2090: case 2091: case 2092:
+        case 2093: case 2094: case 2095: case 2096: case 2097: case 2098:
+          // All of the W1, WR, S1, SR, G1, GR activations can be triggered from
+          // the back sidedef (reading the front bottom texture) and triggered
+          // from the front sidedef (reading the front upper texture).
+          for (int j = 0; j < numlines; j++)
+          {
+            if (lines[j].sidenum[0] == i)
+            {
+              // Back triggered
+              lines[j].backmusic = W_CheckNumForName(msd->bottomtexture);
+              if (lines[j].backmusic < 0)
+              {
+                lines[j].backmusic = 0;
+                sd->bottomtexture = R_TextureNumForName(msd->bottomtexture);
+              }
+              else
+              {
+                sd->bottomtexture = 0;
+              }
+
+              // Front triggered
+              lines[j].frontmusic = W_CheckNumForName(msd->toptexture);
+              if (lines[j].frontmusic < 0)
+              {
+                lines[j].frontmusic = 0;
+                sd->toptexture = R_TextureNumForName(msd->toptexture);
+              }
+              else
+              {
+                sd->toptexture = 0;
+              }
+            }
+          }
+          break;
+
+
         case 242:                       // variable colormap via 242 linedef
           sd->bottomtexture =
             (sec->bottommap =   R_ColormapNumForName(msd->bottomtexture)) < 0 ?

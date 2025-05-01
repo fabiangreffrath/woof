@@ -21,6 +21,7 @@
 #define __P_SAVEG__
 
 #include "doomtype.h"
+#include "z_zone.h"
 
 // Persistent storage/archiving.
 // These are the load / save game routines.
@@ -41,23 +42,121 @@ void P_UnArchiveRNG(void);
 void P_ArchiveMap(void);
 void P_UnArchiveMap(void);
 
-extern byte *save_p;
-void CheckSaveGame(size_t);              // killough
+extern byte *save_p, *savebuffer;
+extern size_t savegamesize;
 
-byte saveg_read8(void);
-void saveg_write8(byte value);
-int saveg_read32(void);
-void saveg_write32(int value);
-int64_t saveg_read64(void);
-void saveg_write64(int64_t value);
+// Check for overrun and realloc if necessary -- Lee Killough 1/22/98
+inline static void saveg_buffer_size(size_t size)
+{
+    size_t offset = save_p - savebuffer;
 
-typedef enum saveg_compat_e
+    if (offset + size <= savegamesize)
+    {
+        return;
+    }
+
+    while (offset + size > savegamesize)
+    {
+        savegamesize *= 2;
+    }
+
+    savebuffer = Z_Realloc(savebuffer, savegamesize, PU_STATIC, NULL);
+    save_p = savebuffer + offset;
+}
+
+// Endian-safe integer read/write functions
+
+inline static void savep_putbyte(byte value)
+{
+    *save_p++ = value;
+}
+
+inline static void saveg_write8(byte value)
+{
+    saveg_buffer_size(sizeof(byte));
+    savep_putbyte(value);
+}
+
+inline static void saveg_write16(short value)
+{
+    saveg_buffer_size(sizeof(int16_t));
+    savep_putbyte(value & 0xff);
+    savep_putbyte((value >> 8) & 0xff);
+}
+
+inline static void saveg_write32(int value)
+{
+    saveg_buffer_size(sizeof(int32_t));
+    savep_putbyte(value & 0xff);
+    savep_putbyte((value >> 8) & 0xff);
+    savep_putbyte((value >> 16) & 0xff);
+    savep_putbyte((value >> 24) & 0xff);
+}
+
+inline static void saveg_write64(int64_t value)
+{
+    saveg_buffer_size(sizeof(int64_t));
+    savep_putbyte(value & 0xff);
+    savep_putbyte((value >> 8) & 0xff);
+    savep_putbyte((value >> 16) & 0xff);
+    savep_putbyte((value >> 24) & 0xff);
+    savep_putbyte((value >> 32) & 0xff);
+    savep_putbyte((value >> 40) & 0xff);
+    savep_putbyte((value >> 48) & 0xff);
+    savep_putbyte((value >> 56) & 0xff);
+}
+
+inline static byte saveg_read8(void)
+{
+    return *save_p++;
+}
+
+inline static short saveg_read16(void)
+{
+    int result;
+
+    result = saveg_read8();
+    result |= saveg_read8() << 8;
+
+    return result;
+}
+
+inline static int saveg_read32(void)
+{
+    int result;
+
+    result = saveg_read8();
+    result |= saveg_read8() << 8;
+    result |= saveg_read8() << 16;
+    result |= saveg_read8() << 24;
+
+    return result;
+}
+
+inline static int64_t saveg_read64(void)
+{
+    int64_t result;
+
+    result =  (int64_t)(saveg_read8());
+    result |= (int64_t)(saveg_read8()) << 8;
+    result |= (int64_t)(saveg_read8()) << 16;
+    result |= (int64_t)(saveg_read8()) << 24;
+    result |= (int64_t)(saveg_read8()) << 32;
+    result |= (int64_t)(saveg_read8()) << 40;
+    result |= (int64_t)(saveg_read8()) << 48;
+    result |= (int64_t)(saveg_read8()) << 56;
+
+    return result;
+}
+
+typedef enum
 {
   saveg_mbf,
   saveg_woof510,
   saveg_woof600,
   saveg_woof1300,
-  saveg_current, // saveg_woof1500
+  saveg_woof1500,
+  saveg_current, // saveg_woof1600
 } saveg_compat_t;
 
 extern saveg_compat_t saveg_compat;

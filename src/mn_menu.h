@@ -57,6 +57,9 @@ void M_Init(void);
 
 void MN_StartControlPanel(void);
 
+void MN_AddEpisode(const char *map, const char *gfx, const char *txt, char key);
+void MN_ClearEpisodes(void);
+
 void MN_ForcedLoadAutoSave(const char *msg);
 void MN_ForcedLoadGame(const char *msg); // killough 5/15/98: forced loadgames
 void MN_Trans(void);     // killough 11/98: reset translucency
@@ -86,6 +89,7 @@ boolean MN_MenuIsShaded(void);
 extern int savepage;
 
 extern const char *default_skill_strings[];
+extern const char *widescreen_strings[];
 
 void M_ResetAutoSave(void);
 
@@ -97,6 +101,7 @@ void MN_InitMenuStrings(void);
 
 boolean MN_StartsWithMapIdentifier(char *str);
 
+int MN_StringWidth(const char *string);
 int MN_GetPixelWidth(const char *ch);
 void MN_DrawString(int cx, int cy, int color, const char *ch);
 

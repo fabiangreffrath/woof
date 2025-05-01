@@ -6,7 +6,8 @@
 [![License](https://img.shields.io/github/license/fabiangreffrath/woof.svg?logo=gnu)](https://github.com/fabiangreffrath/woof/blob/master/COPYING.md)
 [![Release](https://img.shields.io/github/release/fabiangreffrath/woof.svg)](https://github.com/fabiangreffrath/woof/releases/latest)
 [![Release Date](https://img.shields.io/github/release-date/fabiangreffrath/woof.svg)](https://github.com/fabiangreffrath/woof/releases/latest)
-[![Downloads](https://img.shields.io/github/downloads/fabiangreffrath/woof/latest/total.svg)](https://github.com/fabiangreffrath/woof/releases/latest)
+[![Downloads (total)](https://img.shields.io/github/downloads/fabiangreffrath/woof/total)](https://github.com/fabiangreffrath/woof/releases/latest)
+[![Downloads (latest)](https://img.shields.io/github/downloads/fabiangreffrath/woof/latest/total.svg)](https://github.com/fabiangreffrath/woof/releases/latest)
 [![Commits](https://img.shields.io/github/commits-since/fabiangreffrath/woof/latest.svg)](https://github.com/fabiangreffrath/woof/commits/master)
 [![Last Commit](https://img.shields.io/github/last-commit/fabiangreffrath/woof.svg)](https://github.com/fabiangreffrath/woof/commits/master)
 [![Build Status](https://github.com/fabiangreffrath/woof/actions/workflows/main.yml/badge.svg)](https://github.com/fabiangreffrath/woof/actions/workflows/main.yml)
@@ -57,6 +58,7 @@ If you turn the [Doom logo upside down](https://www.reddit.com/r/Doom/comments/8
  * In-game music changing using MUSINFO.
  * UMAPINFO support, compliant to Rev 2.2 of the [spec](https://github.com/kraflab/umapinfo).
  * MBF21 compatibility level, compliant to Rev 1.4 of the [spec](https://github.com/kraflab/mbf21).
+ * Support for PNG graphics.
  * SMMU-style swirling animated flats.
 
 ## Usage
@@ -84,7 +86,7 @@ It can be cloned via
 
 The following build system and libraries need to be installed:
  
- * [CMake](https://cmake.org) (>= 3.9)
+ * [CMake](https://cmake.org) (>= 3.15)
  * [SDL2](https://github.com/libsdl-org/SDL/tree/SDL2) (>= 2.0.18)
  * [SDL2_net](https://github.com/libsdl-org/SDL_net)
  * [openal-soft](https://github.com/kcat/openal-soft) (>= 1.22.0 for PC Speaker emulation)
@@ -150,10 +152,10 @@ Copyright:
  © 2005-2006 by Florian Schulze, Colin Phipps, Neil Stevens, Andrey Budko;  
  © 2005-2018 Simon Howard;  
  © 2006 Ben Ryves;  
+ © 2006-2025 by The Odamex Team;  
  © 2007-2011 Moritz "Ripper" Kroll;  
  © 2008-2019 Simon Judd;  
  © 2017 Christoph Oelckers;  
- © 2019 Fernando Carmona Varo;  
  © 2020 Alex Mayfield;  
  © 2020-2024 Fabian Greffrath;  
  © 2020-2024 Roman Fomin;  
@@ -161,7 +163,8 @@ Copyright:
  © 2022-2024 Alaux;  
  © 2022-2024 ceski;  
  © 2023 Andrew Apted;  
- © 2023 liPillON.  
+ © 2023 liPillON;  
+ © 2025 Guilherme Miranda.  
 License: [GPL-2.0+](https://www.gnu.org/licenses/old-licenses/gpl-2.0.html)
 
 Files: `src/i_flickstick.*, src/i_gyro.*`  
@@ -172,13 +175,13 @@ Copyright:
 License: [MIT](https://opensource.org/licenses/MIT)
 
 Files: `src/nano_bsp.*`  
-Copyright: © 2023 Andrew Apted.  
+Copyright:  
+ © 2023 Andrew Apted.  
 License: [MIT](https://opensource.org/licenses/MIT)
 
-Files: `src/u_scanner.*`  
+Files: `src/m_scanner.*`  
 Copyright:  
- © 2010 Braden "Blzut3" Obrzut;  
- © 2019 Fernando Carmona Varo.  
+ © 2015 Braden "Blzut3" Obrzut.  
 License: [BSD-3-Clause](https://opensource.org/licenses/BSD-3-Clause)
 
 Files: `src/v_flextran.*`  
@@ -193,8 +196,9 @@ Copyright:
  © 2013 James Haley et al.  
 License: [GPL-3.0+](https://www.gnu.org/licenses/gpl-3.0)
 
-Files: `base/all-all/sprites/pls*`  
-Copyright: © 2001-2019 Contributors to the Freedoom project.  
+Files: `base/all-all/sprites/pls*, man/simplecpp`  
+Copyright:  
+ © 2001-2019 Contributors to the Freedoom project.  
 License: [BSD-3-Clause](https://opensource.org/licenses/BSD-3-Clause)
 
 Files: `base/all-all/dsdg*, base/all-all/sprites/dog*`  
@@ -212,15 +216,22 @@ License: [CC0-1.0](https://creativecommons.org/publicdomain/zero/1.0/)
 Files: `base/all-all/dmxopl.op2`  
 Copyright:  
  © 2017 Shannon Freeman.  
-License: [MIT](https://opensource.org/licenses/MIT)
+License: [MIT](https://github.com/sneakernets/DMXOPL/blob/DMXOPL3/LICENSE)
 
 Files: `cmake/FindSDL2.cmake, cmake/FindSDL2_net.cmake`  
-Copyright: © 2018 Alex Mayfield.  
+Copyright:  
+ © 2018 Alex Mayfield.  
 License: [BSD-3-Clause](https://opensource.org/licenses/BSD-3-Clause)
 
-Files: `data/woof.ico, data/woof.png, src/icon.c, data/setup.ico, data/woof-setup.png, setup/setup_icon.c, base/all-all/sm*.png`  
-Copyright: © 2020-2024 Julia Nechaevskaya.  
+Files: `base/all-all/sm*.png, data/setup.ico, data/woof-setup.png, data/woof.ico, data/woof.png, setup/setup_icon.c, src/icon.c`  
+Copyright:  
+ © 2020-2024 Julia Nechaevskaya.  
 License: [CC-BY-3.0](https://creativecommons.org/licenses/by/3.0/)
+
+Files: `data/io.github.fabiangreffrath.woof.metainfo.*`  
+Copyright:  
+ © 2023-2024 Fabian Greffrath.  
+License: [CC0-1.0](https://creativecommons.org/publicdomain/zero/1.0/)
 
 Files: `opl/*`  
 Copyright:  
@@ -260,16 +271,19 @@ Files: `third-party/sha1/*`
 Copyright:  
  © 1998-2001 Free Software Foundation, Inc.;  
  © 2005-2014 Simon Howard.  
-License: [GPL-2.0](https://www.gnu.org/licenses/old-licenses/gpl-2.0.html)
+License: [GPL-2.0+](https://www.gnu.org/licenses/old-licenses/gpl-2.0.html)
 
 Files: `third-party/spng/*`  
-Copyright: © 2018-2023 Randy.  
+Copyright:  
+ © 2018-2023 Randy.  
 License: [BSD-2-Clause](https://opensource.org/license/bsd-2-clause)
 
 Files: `third-party/yyjson/*`  
-Copyright © 2020 YaoYuan.  
+Copyright:  
+ © 2020 YaoYuan.  
 License: [MIT](https://opensource.org/licenses/MIT)
 
 Files: `win32/win_opendir.*`  
-Copyright: © 2019 win32ports.  
+Copyright:  
+ © 2019 win32ports.  
 License: [MIT](https://opensource.org/licenses/MIT)

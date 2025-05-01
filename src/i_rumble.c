@@ -28,7 +28,6 @@
 #include "m_config.h"
 #include "p_mobj.h"
 #include "sounds.h"
-#include "w_wad.h"
 
 #define MAX_RUMBLE_COUNT 4
 #define MAX_RUMBLE_SDL   0xFFFF

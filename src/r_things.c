@@ -136,6 +136,11 @@ void R_InitSpritesRes(void)
 static void R_InstallSpriteLump(int lump, unsigned frame,
                                 unsigned rotation, boolean flipped)
 {
+  if (frame == '^' - 'A')
+  {
+    frame = '\\' - 'A';
+  }
+
   if (frame >= MAX_SPRITE_FRAMES || rotation > 8)
     I_Error("R_InstallSpriteLump: Bad frame characters in lump %i", lump);
 
@@ -725,7 +730,7 @@ void R_AddSprites(sector_t* sec, int lightlevel)
   // Well, now it will be done.
   sec->validcount = validcount;
 
-  if (demo_version <= DV_BOOM)
+  if (demo_version < DV_MBF)
     lightlevel = sec->lightlevel;
 
   lightnum = (lightlevel >> LIGHTSEGSHIFT)+extralight;
@@ -787,8 +792,6 @@ void R_NearbySprites (void)
 // R_DrawPSprite
 //
 
-boolean pspr_interp = true; // weapon bobbing interpolation
-
 void R_DrawPSprite (pspdef_t *psp)
 {
   fixed_t       tx;
@@ -821,8 +824,21 @@ void R_DrawPSprite (pspdef_t *psp)
   lump = sprframe->lump[0];
   flip = (boolean) sprframe->flip[0];
 
+  fixed_t sx2, sy2;
+
+  if (uncapped && oldleveltime < leveltime)
+  {
+    sx2 = LerpFixed(psp->oldsx2, psp->sx2);
+    sy2 = LerpFixed(psp->oldsy2, psp->sy2);
+  }
+  else
+  {
+    sx2 = psp->sx2;
+    sy2 = psp->sy2;
+  }
+
   // calculate edges of the shape
-  tx = psp->sx2-160*FRACUNIT; // [FG] centered weapon sprite
+  tx = sx2 - 160*FRACUNIT; // [FG] centered weapon sprite
 
   tx -= spriteoffset[lump];
   x1 = (centerxfrac + FixedMul (tx,pspritescale))>>FRACBITS;
@@ -845,7 +861,7 @@ void R_DrawPSprite (pspdef_t *psp)
 
   // killough 12/98: fix psprite positioning problem
   vis->texturemid = (BASEYCENTER<<FRACBITS) /* + FRACUNIT/2 */ -
-                    (psp->sy2-spritetopoffset[lump]); // [FG] centered weapon sprite
+                    (sy2 - spritetopoffset[lump]); // [FG] centered weapon sprite
 
   vis->x1 = x1 < 0 ? 0 : x1;
   vis->x2 = x2 >= viewwidth ? viewwidth-1 : x2;
@@ -882,42 +898,6 @@ void R_DrawPSprite (pspdef_t *psp)
     vis->colormap[1] = fullcolormap;
   }
   vis->brightmap = R_BrightmapForState(psp->state - states);
-
-  // interpolation for weapon bobbing
-  if (uncapped)
-  {
-    static int     oldx1, x1_saved;
-    static fixed_t oldtexturemid, texturemid_saved;
-    static int     oldlump = -1;
-    static int     oldgametic = -1;
-
-    if (oldgametic < gametic)
-    {
-      oldx1 = x1_saved;
-      oldtexturemid = texturemid_saved;
-      oldgametic = gametic;
-    }
-
-    x1_saved = vis->x1;
-    texturemid_saved = vis->texturemid;
-
-    if (lump == oldlump && pspr_interp)
-    {
-      int deltax = x2 - vis->x1;
-      vis->x1 = LerpFixed(oldx1, vis->x1);
-      vis->x2 = vis->x1 + deltax;
-      if (vis->x2 >= viewwidth)
-        vis->x2 = viewwidth - 1;
-      vis->texturemid = LerpFixed(oldtexturemid, vis->texturemid);
-    }
-    else
-    {
-      oldx1 = vis->x1;
-      oldtexturemid = vis->texturemid;
-      oldlump = lump;
-      pspr_interp = true;
-    }
-  }
 
   // [crispy] free look
   vis->texturemid += (centery - viewheight/2) * pspriteiscale;

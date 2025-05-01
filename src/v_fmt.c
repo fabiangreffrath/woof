@@ -611,7 +611,7 @@ static boolean DecodePNG(png_t *png)
             byte g = *palette++;
             byte b = *palette++;
 
-            if (e->red == r && e->green == b && e->blue == g)
+            if (e->red == r && e->green == g && e->blue == b)
             {
                 translate[i] = i;
                 continue;

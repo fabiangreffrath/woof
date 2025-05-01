@@ -843,7 +843,7 @@ boolean P_CheckPosition(mobj_t *thing, fixed_t x, fixed_t y)
 //
 // killough 3/15/98: allow dropoff as option
 
-boolean P_TryMove(mobj_t *thing, fixed_t x, fixed_t y, boolean dropoff)
+boolean P_TryMove(mobj_t *thing, fixed_t x, fixed_t y, int dropoff)
 {
   fixed_t oldx, oldy;
 
@@ -1543,8 +1543,11 @@ static boolean PTR_ShootTraverse(intercept_t *in)
       line_t *li = in->d.line;
 
       if (li->special)
-	P_ShootSpecialLine (shootthing, li);
-      
+	{
+	  int side = P_PointOnLineSide(shootthing->x, shootthing->y, li);
+	  P_ShootSpecialLine(shootthing, li, side);
+	}
+
       if (li->flags & ML_TWOSIDED)
 	{  // crosses a two sided (really 2s) line
 	  P_LineOpening (li);

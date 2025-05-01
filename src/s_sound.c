@@ -24,6 +24,7 @@
 
 #include "doomdef.h"
 #include "doomstat.h"
+#include "g_umapinfo.h"
 #include "i_printf.h"
 #include "i_rumble.h"
 #include "i_sound.h"
@@ -36,7 +37,6 @@
 #include "s_sound.h"
 #include "s_trakinfo.h"
 #include "sounds.h"
-#include "u_mapinfo.h"
 #include "w_wad.h"
 #include "z_zone.h"
 
@@ -46,12 +46,11 @@ typedef struct channel_s
 {
     sfxinfo_t *sfxinfo;   // sound information (if null, channel avail.)
     const mobj_t *origin; // origin of sound
-    int volume;           // volume scale value for effect -- haleyjd 05/29/06
+    int volume_scale;     // volume scale value for effect -- haleyjd 05/29/06
     int handle;           // handle of the sound being played
     int o_priority;       // haleyjd 09/27/06: stored priority value
     int priority;         // current priority value
     int singularity;      // haleyjd 09/27/06: stored singularity value
-    int idnum;            // haleyjd 09/30/06: unique id num for sound event
 } channel_t;
 
 // the set of channels available
@@ -129,9 +128,9 @@ void S_StopChannels(void)
 // haleyjd: added priority scaling
 //
 static int S_AdjustSoundParams(const mobj_t *listener, const mobj_t *source,
-                               int chanvol, int *vol, int *sep, int *pri)
+                               sfxparams_t *params)
 {
-    return I_AdjustSoundParams(listener, source, chanvol, vol, sep, pri);
+    return I_AdjustSoundParams(listener, source, params);
 }
 
 //
@@ -141,8 +140,7 @@ static int S_AdjustSoundParams(const mobj_t *listener, const mobj_t *source,
 //   haleyjd 09/27/06: fixed priority/singularity bugs
 //   Note that a higher priority number means lower priority!
 //
-static int S_getChannel(const mobj_t *origin, sfxinfo_t *sfxinfo, int priority,
-                        int singularity)
+static int S_getChannel(const mobj_t *origin, int priority, int singularity)
 {
     // channel number to use
     int cnum;
@@ -213,9 +211,8 @@ static int S_getChannel(const mobj_t *origin, sfxinfo_t *sfxinfo, int priority,
 static void StartSound(const mobj_t *origin, int sfx_id,
                        pitchrange_t pitch_range, rumble_type_t rumble_type)
 {
-    int sep, pitch, o_priority, priority, singularity, cnum, handle;
-    int volumeScale = 127;
-    int volume = snd_SfxVolume;
+    int pitch, o_priority, singularity, cnum, handle;
+    sfxparams_t params;
     sfxinfo_t *sfx;
 
     // jff 1/22/98 return if sound is not enabled
@@ -242,17 +239,17 @@ static void StartSound(const mobj_t *origin, int sfx_id,
 
     // Initialize sound parameters
     pitch = NORM_PITCH;
+    params.volume_scale = 127;
 
     // haleyjd: modified so that priority value is always used
     // haleyjd: also modified to get and store proper singularity value
-    o_priority = priority = sfx->priority;
+    o_priority = params.priority = sfx->priority;
     singularity = sfx->singularity;
 
     // Check to see if it is audible, modify the params
     // killough 3/7/98, 4/25/98: code rearranged slightly
 
-    if (!S_AdjustSoundParams(players[displayplayer].mo, origin, volumeScale,
-                             &volume, &sep, &priority))
+    if (!S_AdjustSoundParams(players[displayplayer].mo, origin, &params))
     {
         return;
     }
@@ -281,7 +278,7 @@ static void StartSound(const mobj_t *origin, int sfx_id,
     }
 
     // try to find a channel
-    if ((cnum = S_getChannel(origin, sfx, priority, singularity)) < 0)
+    if ((cnum = S_getChannel(origin, params.priority, singularity)) < 0)
     {
         return;
     }
@@ -294,7 +291,6 @@ static void StartSound(const mobj_t *origin, int sfx_id,
 #endif
 
     channels[cnum].sfxinfo = sfx;
-    channels[cnum].origin = origin;
 
     while (sfx->link)
     {
@@ -302,20 +298,19 @@ static void StartSound(const mobj_t *origin, int sfx_id,
     }
 
     // Assigns the handle to one of the channels in the mix/output buffer.
-    handle = I_StartSound(sfx, volume, sep, pitch);
+    handle = I_StartSound(sfx, &params, pitch);
 
     // haleyjd: check to see if the sound was started
     if (handle >= 0)
     {
-        channels[cnum].handle = handle;
-
         // haleyjd 05/29/06: record volume scale value
         // haleyjd 09/27/06: store priority and singularity values (!!!)
-        channels[cnum].volume = volumeScale;
-        channels[cnum].o_priority = o_priority; // original priority
-        channels[cnum].priority = priority;     // scaled priority
+        channels[cnum].origin = origin;
+        channels[cnum].handle = handle;
+        channels[cnum].volume_scale = params.volume_scale;
+        channels[cnum].o_priority = o_priority;    // original priority
+        channels[cnum].priority = params.priority; // scaled priority
         channels[cnum].singularity = singularity;
-        channels[cnum].idnum = I_SoundID(handle); // unique instance id
 
         if (rumble_type != RUMBLE_NONE)
         {
@@ -505,11 +500,51 @@ void S_UnlinkSound(mobj_t *origin)
     }
 }
 
+void S_PauseSound(void)
+{
+    if (nosfxparm)
+    {
+        return;
+    }
+
+    I_DeferSoundUpdates();
+
+    for (int cnum = 0; cnum < snd_channels; cnum++)
+    {
+        if (channels[cnum].sfxinfo)
+        {
+            I_PauseSound(channels[cnum].handle);
+        }
+    }
+
+    I_ProcessSoundUpdates();
+}
+
+void S_ResumeSound(void)
+{
+    if (nosfxparm)
+    {
+        return;
+    }
+
+    I_DeferSoundUpdates();
+
+    for (int cnum = 0; cnum < snd_channels; cnum++)
+    {
+        if (channels[cnum].sfxinfo)
+        {
+            I_ResumeSound(channels[cnum].handle);
+        }
+    }
+
+    I_ProcessSoundUpdates();
+}
+
 //
 // Stop and resume music, during game PAUSE.
 //
 
-void S_PauseSound(void)
+void S_PauseMusic(void)
 {
     if (mus_playing && !mus_paused)
     {
@@ -518,7 +553,7 @@ void S_PauseSound(void)
     }
 }
 
-void S_ResumeSound(void)
+void S_ResumeMusic(void)
 {
     if (mus_playing && mus_paused)
     {
@@ -554,56 +589,48 @@ void S_UpdateSounds(const mobj_t *listener)
     }
 
     I_DeferSoundUpdates();
+    I_UpdateListenerParams(listener);
 
     for (cnum = 0; cnum < snd_channels; ++cnum)
     {
         channel_t *c = &channels[cnum];
         sfxinfo_t *sfx = c->sfxinfo;
 
-        // haleyjd: has this software channel lost its hardware channel?
-        if (c->idnum != I_SoundID(c->handle))
-        {
-            // clear the channel and keep going
-            memset(c, 0, sizeof(channel_t));
-            continue;
-        }
-
         if (sfx)
         {
             if (I_SoundIsPlaying(c->handle))
             {
-                // initialize parameters
-                int volume = snd_SfxVolume;
-                int sep = NORM_SEP;
-                int pri = c->o_priority; // haleyjd 09/27/06: priority
-
                 // check non-local sounds for distance clipping
                 // or modify their params
 
                 if (c->origin && listener != c->origin) // killough 3/20/98
                 {
-                    if (!S_AdjustSoundParams(listener, c->origin, c->volume,
-                                             &volume, &sep, &pri))
+                    // initialize parameters
+                    sfxparams_t params;
+                    params.volume_scale = c->volume_scale;
+                    params.priority = c->o_priority; // haleyjd 09/27/06: priority
+
+                    if (S_AdjustSoundParams(listener, c->origin, &params))
                     {
-                        S_StopChannel(cnum);
+                        I_UpdateSoundParams(c->handle, &params);
+                        c->priority = params.priority; // haleyjd
                     }
                     else
                     {
-                        I_UpdateSoundParams(c->handle, volume, sep);
-                        c->priority = pri; // haleyjd
+                        S_StopChannel(cnum);
                     }
                 }
 
                 I_UpdateRumbleParams(listener, c->origin, c->handle);
             }
-            else // if channel is allocated but sound has stopped, free it
+            else if (!I_SoundIsPaused(c->handle))
             {
+                // if channel is allocated but sound has stopped, free it
                 S_StopChannel(cnum);
             }
         }
     }
 
-    I_UpdateListenerParams(listener);
     I_ProcessSoundUpdates();
     I_UpdateRumble();
 }
@@ -691,16 +718,9 @@ void S_ChangeMusic(int musicnum, int looping)
 
     // load & register it
     music->data = W_CacheLumpNum(music->lumpnum, PU_STATIC);
-    if (extra_music && trakinfo_found)
+    if (extra_music)
     {
-        const char *extra =
-            S_GetExtra(music->data, W_LumpLength(music->lumpnum), extra_music);
-        if (extra)
-        {
-            music->lumpnum = W_GetNumForName(extra);
-            Z_Free(music->data);
-            music->data = W_CacheLumpNum(music->lumpnum, PU_STATIC);
-        }
+        S_GetExtra(music, extra_music);
     }
     // julian: added lump length
     music->handle = I_RegisterSong(music->data, W_LumpLength(music->lumpnum));
@@ -755,16 +775,9 @@ void S_ChangeMusInfoMusic(int lumpnum, int looping)
     music->lumpnum = lumpnum;
 
     music->data = W_CacheLumpNum(music->lumpnum, PU_STATIC);
-    if (extra_music && trakinfo_found)
+    if (extra_music)
     {
-        const char *extra =
-            S_GetExtra(music->data, W_LumpLength(music->lumpnum), extra_music);
-        if (extra)
-        {
-            music->lumpnum = W_GetNumForName(extra);
-            Z_Free(music->data);
-            music->data = W_CacheLumpNum(music->lumpnum, PU_STATIC);
-        }
+        S_GetExtra(music, extra_music);
     }
     music->handle = I_RegisterSong(music->data, W_LumpLength(music->lumpnum));
 
@@ -946,6 +959,128 @@ static void InitE4Music(void)
     }
 }
 
+// [crispy] add support for alternative music tracks for Final Doom's
+// TNT and Plutonia as introduced in DoomMetalVol5.wad
+
+typedef struct {
+    char *const from;
+    char *const to;
+} altmusic_t;
+
+static const altmusic_t altmusic_tnt[] =
+{
+    {"runnin", "sadist"}, //  MAP01
+    {"stalks", "burn"},   //  MAP02
+    {"countd", "messag"}, //  MAP03
+    {"betwee", "bells"},  //  MAP04
+    {"doom",   "more"},   //  MAP05
+    {"the_da", "agony"},  //  MAP06
+    {"shawn",  "chaos"},  //  MAP07
+    {"ddtblu", "beast"},  //  MAP08
+    {"in_cit", "sadist"}, //  MAP09
+    {"dead",   "infini"}, //  MAP10
+    {"stlks2", "kill"},   //  MAP11
+    {"theda2", "ddtbl3"}, //  MAP12
+    {"doom2",  "bells"},  //  MAP13
+    {"ddtbl2", "cold"},   //  MAP14
+    {"runni2", "burn2"},  //  MAP15
+    {"dead2",  "blood"},  //  MAP16
+    {"stlks3", "more"},   //  MAP17
+    {"romero", "infini"}, //  MAP18
+    {"shawn2", "countd"}, //  MAP19
+    {"messag", "horizo"}, //  MAP20
+    {"count2", "in_cit"}, //  MAP21
+    {"ddtbl3", "aim"},    //  MAP22
+    {"ampie",  "ampie"},  // (MAP23)
+    {"theda3", "betwee"}, //  MAP24
+    {"adrian", "doom"},   //  MAP25
+    {"messg2", "blood"},  //  MAP26
+    {"romer2", "beast"},  //  MAP27
+    {"tense",  "aim"},    //  MAP28
+    {"shawn3", "bells"},  //  MAP29
+    {"openin", "beast"},  //  MAP30
+    {"evil",   "evil"},   // (MAP31)
+    {"ultima", "in_cit"}, //  MAP32
+    {NULL,     NULL},
+};
+
+// Plutonia music is completely taken from Doom 1 and 2, but re-arranged.
+// That is, Plutonia's D_RUNNIN (for MAP01) is the renamed D_E1M2. So,
+// it makes sense to play the D_E1M2 replacement from DoomMetal in Plutonia.
+
+static const altmusic_t altmusic_plut[] =
+{
+    {"runnin", "e1m2"},   //  MAP01
+    {"stalks", "e1m3"},   //  MAP02
+    {"countd", "e1m6"},   //  MAP03
+    {"betwee", "e1m4"},   //  MAP04
+    {"doom",   "e1m9"},   //  MAP05
+    {"the_da", "e1m8"},   //  MAP06
+    {"shawn",  "e2m1"},   //  MAP07
+    {"ddtblu", "e2m2"},   //  MAP08
+    {"in_cit", "e3m3"},   //  MAP09
+    {"dead",   "e1m7"},   //  MAP10
+    {"stlks2", "bunny"},  //  MAP11
+    {"theda2", "e3m8"},   //  MAP12
+    {"doom2",  "e3m2"},   //  MAP13
+    {"ddtbl2", "e2m8"},   //  MAP14
+    {"runni2", "e2m7"},   //  MAP15
+    {"dead2",  "e3m1"},   //  MAP16
+    {"stlks3", "e1m1"},   //  MAP17
+    {"romero", "e2m5"},   //  MAP18
+    {"shawn2", "e1m5"},   //  MAP19
+    {"messag", "messag"}, // (MAP20)
+    {"count2", "count2"}, // (MAP21, d_read_m has no instumental cover in Doom Metal)
+    {"ddtbl3", "ddtbl3"}, // (MAP22)
+    {"ampie",  "ampie"},  // (MAP23)
+    {"theda3", "theda3"}, // (MAP24)
+    {"adrian", "adrian"}, // (MAP25)
+    {"messg2", "messg2"}, // (MAP26)
+    {"romer2", "e2m1"},   //  MAP27
+    {"tense",  "e2m2"},   //  MAP28
+    {"shawn3", "e1m1"},   //  MAP29
+    {"openin", "openin"}, // (MAP30, d_victor has no instumental cover in Doom Metal)
+    {"evil",   "e3m4"},   //  MAP31
+    {"ultima", "e2m8"},   //  MAP32
+    {NULL,     NULL},
+};
+
+static void InitFinalDoomMusic()
+{
+    const altmusic_t *altmusic;
+
+    if (gamemission == pack_tnt)
+    {
+        altmusic = altmusic_tnt;
+    }
+    else if (gamemission == pack_plut)
+    {
+        altmusic = altmusic_plut;
+    }
+    else
+    {
+        return;
+    }
+
+    // [crispy] chicken-out if only one lump is missing, something must be wrong
+    for (int j = 0; altmusic[j].from; j++)
+    {
+        char name[9] = "d_";
+
+        M_CopyLumpName(&name[2], altmusic[j].to);
+
+        if (W_CheckNumForName(name) == -1)
+        {
+            return;
+        }
+    }
+
+    for (int i = mus_runnin, j = 0; altmusic[j].from; i++, j++)
+    {
+        S_music[i].name = altmusic[j].to;
+    }
+}
+
 void S_Init(int sfxVolume, int musicVolume)
 {
     // jff 1/22/98 skip sound init if sound not enabled
@@ -969,6 +1104,12 @@ void S_Init(int sfxVolume, int musicVolume)
     if (gamemode != commercial)
     {
         InitE4Music();
+    }
+    else
+    {
+        // [crispy] add support for alternative music tracks for Final Doom's
+        // TNT and Plutonia as introduced in DoomMetalVol5.wad
+        InitFinalDoomMusic();
     }
 }
 

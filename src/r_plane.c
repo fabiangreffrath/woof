@@ -1,6 +1,7 @@
 //
 //  Copyright (C) 1999 by
 //  id Software, Chi Hoang, Lee Killough, Jim Flynn, Rand Phares, Ty Halderman
+//  Copyright (C) 2006-2025 by The Odamex Team.
 //
 //  This program is free software; you can redistribute it and/or
 //  modify it under the terms of the GNU General Public License
@@ -39,6 +40,7 @@
 #include "doomstat.h"
 #include "doomtype.h"
 #include "i_system.h"
+#include "i_video.h"
 #include "m_fixed.h"
 #include "r_bmaps.h" // [crispy] R_BrightmapForTexName()
 #include "r_data.h"
@@ -71,8 +73,8 @@ visplane_t *floorplane, *ceilingplane;
 
 // killough 8/1/98: set static number of openings to be large enough
 // (a static limit is okay in this case and avoids difficulties in r_segs.c)
-static int *openings = NULL;
-int *lastopening; // [FG] 32-bit integer math
+int maxopenings;
+int *openings, *lastopening; // [FG] 32-bit integer math
 
 // Clip values are the solid pixel bounding the range.
 //  floorclip starts out SCREENHEIGHT
@@ -97,7 +99,12 @@ static fixed_t *cachedheight = NULL;
 static fixed_t *cacheddistance = NULL;
 static fixed_t *cachedxstep = NULL;
 static fixed_t *cachedystep = NULL;
+static fixed_t *cachedrotation = NULL;
 static fixed_t xoffs,yoffs;    // killough 2/28/98: flat offsets
+static angle_t rotation;
+
+static fixed_t angle_sin, angle_cos;
+static fixed_t viewx_trans, viewy_trans;
 
 fixed_t *yslope = NULL, *distscale = NULL;
 
@@ -124,13 +131,15 @@ void R_InitPlanesRes(void)
   cacheddistance = Z_Calloc(1, video.height * sizeof(*cacheddistance), PU_RENDERER, NULL);
   cachedxstep = Z_Calloc(1, video.height * sizeof(*cachedxstep), PU_RENDERER, NULL);
   cachedystep = Z_Calloc(1, video.height * sizeof(*cachedystep), PU_RENDERER, NULL);
+  cachedrotation = Z_Calloc(1, video.height * sizeof(*cachedrotation), PU_RENDERER, NULL);
 
   yslope = Z_Calloc(1, video.height * sizeof(*yslope), PU_RENDERER, NULL);
   distscale = Z_Calloc(1, video.width * sizeof(*distscale), PU_RENDERER, NULL);
 
-  openings = Z_Calloc(1, video.width * video.height * sizeof(*openings), PU_RENDERER, NULL);
+  maxopenings = video.width * video.height;
+  openings = Z_Calloc(1, maxopenings * sizeof(*openings), PU_RENDERER, NULL);
 
-  xtoskyangle = linearsky ? linearskyangle : xtoviewangle;
+  R_InitPlanes();
 }
 
 void R_InitVisplanesRes(void)
@@ -184,13 +193,15 @@ static void R_MapPlane(int y, int x1, int x2)
   else
     dy = (abs(centery - y) << FRACBITS) + FRACUNIT / 2;
 
-  if (planeheight != cachedheight[y])
+  // [EA] plane math updated for accounting flat rotation, thanks to Odamex
+  if (planeheight != cachedheight[y] || rotation != cachedrotation[y])
     {
       cachedheight[y] = planeheight;
+      cachedrotation[y] = rotation;
       distance = cacheddistance[y] = FixedMul(planeheight, yslope[y]);
       // [FG] avoid right-shifting in FixedMul() followed by left-shifting in FixedDiv()
-      ds_xstep = cachedxstep[y] = (fixed_t)((int64_t)viewsin * planeheight / dy);
-      ds_ystep = cachedystep[y] = (fixed_t)((int64_t)viewcos * planeheight / dy);
+      ds_xstep = cachedxstep[y] = (fixed_t)((int64_t)angle_sin * planeheight / dy);
+      ds_ystep = cachedystep[y] = (fixed_t)((int64_t)angle_cos * planeheight / dy);
     }
   else
     {
@@ -202,8 +213,8 @@ static void R_MapPlane(int y, int x1, int x2)
   dx = x1 - centerx;
 
   // killough 2/28/98: Add offsets
-  ds_xfrac =  viewx + FixedMul(viewcos, distance) + (dx * ds_xstep) + xoffs;
-  ds_yfrac = -viewy - FixedMul(viewsin, distance) + (dx * ds_ystep) + yoffs;
+  ds_xfrac = viewx_trans + FixedMul(angle_cos, distance) + dx * ds_xstep;
+  ds_yfrac = viewy_trans - FixedMul(angle_sin, distance) + dx * ds_ystep;
 
   if (!(ds_colormap[0] = ds_colormap[1] = fixedcolormap))
     {
@@ -275,6 +286,7 @@ visplane_t *R_DupPlane(const visplane_t *pl, int start, int stop)
     new_pl->lightlevel = pl->lightlevel;
     new_pl->xoffs = pl->xoffs;           // killough 2/28/98
     new_pl->yoffs = pl->yoffs;
+    new_pl->rotation = pl->rotation;
     new_pl->minx = start;
     new_pl->maxx = stop;
     memset(new_pl->top, UCHAR_MAX, video.width * sizeof(*new_pl->top));
@@ -288,7 +300,7 @@ visplane_t *R_DupPlane(const visplane_t *pl, int start, int stop)
 // killough 2/28/98: Add offsets
 
 visplane_t *R_FindPlane(fixed_t height, int picnum, int lightlevel,
-                        fixed_t xoffs, fixed_t yoffs)
+                        fixed_t xoffs, fixed_t yoffs, angle_t rotation)
 {
   visplane_t *check;
   unsigned hash;                      // killough
@@ -317,7 +329,8 @@ visplane_t *R_FindPlane(fixed_t height, int picnum, int lightlevel,
         picnum == check->picnum &&
         lightlevel == check->lightlevel &&
         xoffs == check->xoffs &&      // killough 2/28/98: Add offset checks
-        yoffs == check->yoffs)
+        yoffs == check->yoffs &&
+        rotation == check->rotation)
       return check;
 
   check = new_visplane(hash);         // killough
@@ -329,6 +342,7 @@ visplane_t *R_FindPlane(fixed_t height, int picnum, int lightlevel,
   check->maxx = -1;
   check->xoffs = xoffs;               // killough 2/28/98: Save offsets
   check->yoffs = yoffs;
+  check->rotation = rotation;
 
   memset(check->top, UCHAR_MAX, video.width * sizeof(*check->top));
 
@@ -381,8 +395,6 @@ static void R_MakeSpans(int x, unsigned int t1, unsigned int b1, unsigned int t2
 
 static void DrawSkyFire(visplane_t *pl, fire_t *fire)
 {
-    dc_colormap[0] = dc_colormap[1] = fullcolormap;
-
     dc_texturemid = -28 * FRACUNIT;
     dc_iscale = skyiscale;
     dc_texheight = FIRE_HEIGHT;
@@ -404,17 +416,27 @@ static void DrawSkyFire(visplane_t *pl, fire_t *fire)
 
 static void DrawSkyTex(visplane_t *pl, skytex_t *skytex)
 {
-    int texture = R_TextureNumForName(skytex->name);
+    int texture = texturetranslation[skytex->texture];
 
-    dc_colormap[0] = dc_colormap[1] = fullcolormap;
-
-    dc_texturemid = skytex->mid * FRACUNIT;
+    dc_texturemid = skytex->mid;
     dc_texheight = textureheight[texture] >> FRACBITS;
     dc_iscale = FixedMul(skyiscale, skytex->scaley);
 
-    dc_texturemid += skytex->curry;
+    fixed_t deltax, deltay;
+    if (uncapped && leveltime > oldleveltime)
+    {
+        deltax = LerpFixed(skytex->prevx, skytex->currx);
+        deltay = LerpFixed(skytex->prevy, skytex->curry);
+    }
+    else
+    {
+        deltax = skytex->currx;
+        deltay = skytex->curry;
+    }
 
-    angle_t an = viewangle + FixedToAngle(skytex->currx);
+    dc_texturemid += deltay;
+
+    angle_t an = viewangle + (deltax << (ANGLETOSKYSHIFT - FRACBITS));
 
     for (int x = pl->minx; x <= pl->maxx; x++)
     {
@@ -424,8 +446,9 @@ static void DrawSkyTex(visplane_t *pl, skytex_t *skytex)
 
         if (dc_yl != USHRT_MAX && dc_yl <= dc_yh)
         {
-            dc_source = R_GetColumnMod2(texture, (an + xtoskyangle[x])
-                                                     >> ANGLETOSKYSHIFT);
+            int col = (an + xtoskyangle[x]) >> ANGLETOSKYSHIFT;
+            col = FixedToInt(FixedMul(IntToFixed(col), skytex->scalex));
+            dc_source = R_GetColumnMod2(texture, col);
             colfunc();
         }
     }
@@ -433,6 +456,17 @@ static void DrawSkyTex(visplane_t *pl, skytex_t *skytex)
 
 static void DrawSkyDef(visplane_t *pl)
 {
+    // Sky is always drawn full bright, i.e. colormaps[0] is used.
+    // Because of this hack, sky is not affected by INVUL inverse mapping.
+    //
+    // killough 7/19/98: fix hack to be more realistic:
+
+    if (STRICTMODE_COMP(comp_skymap)
+        || !(dc_colormap[0] = dc_colormap[1] = fixedcolormap))
+    {
+        dc_colormap[0] = dc_colormap[1] = fullcolormap; // killough 3/20/98
+    }
+
     if (sky->type == SkyType_Fire)
     {
         DrawSkyFire(pl, &sky->fire);
@@ -466,7 +500,13 @@ static void do_draw_mbf_sky(visplane_t *pl)
 
     an = viewangle;
 
-    if (pl->picnum & PL_SKYFLAT)
+    if ((pl->picnum & PL_FLATMAPPING) == PL_FLATMAPPING)
+    {
+        dc_texturemid = skytexturemid;
+        texture = pl->picnum & ~PL_FLATMAPPING;
+        flip = 0;
+    }
+    else if (pl->picnum & PL_SKYFLAT)
     {
         // Sky Linedef
         const line_t *l = &lines[pl->picnum & ~PL_SKYFLAT];
@@ -487,7 +527,14 @@ static void do_draw_mbf_sky(visplane_t *pl)
         // However, the offset is scaled very small, so that it
         // allows a long-period of sky rotation.
 
-        an += s->textureoffset;
+        if (uncapped && leveltime > oldleveltime)
+        {
+            an += LerpFixed(s->oldtextureoffset, s->basetextureoffset);
+        }
+        else
+        {
+            an += s->textureoffset;
+        }
 
         // Vertical offset allows careful sky positioning.
 
@@ -504,7 +551,7 @@ static void do_draw_mbf_sky(visplane_t *pl)
     else // Normal Doom sky, only one allowed per level
     {
         dc_texturemid = skytexturemid; // Default y-offset
-        texture = skytexture;          // Default texture
+        texture = texturetranslation[skytexture]; // Default texture
         flip = 0;                      // Doom flips it
     }
 
@@ -572,10 +619,19 @@ static void do_draw_plane(visplane_t *pl)
 
     // sky flat
 
-    if (pl->picnum == skyflatnum && sky)
+    if (sky)
     {
-        DrawSkyDef(pl);
-        return;
+        if ((pl->picnum & PL_FLATMAPPING) == PL_FLATMAPPING)
+        {
+            do_draw_mbf_sky(pl);
+            return;
+        }
+
+        if (pl->picnum == skyflatnum)
+        {
+            DrawSkyDef(pl);
+            return;
+        }
     }
 
     if (pl->picnum == skyflatnum || pl->picnum & PL_SKYFLAT)
@@ -605,6 +661,26 @@ static void do_draw_plane(visplane_t *pl)
 
     xoffs = pl->xoffs; // killough 2/28/98: Add offsets
     yoffs = pl->yoffs;
+    rotation = pl->rotation;
+
+    // [EA] plane math updated for accounting flat rotation, thanks to Odamex
+    angle_sin = finesine[(viewangle + rotation) >> ANGLETOFINESHIFT];
+    angle_cos = finecosine[(viewangle + rotation) >> ANGLETOFINESHIFT];
+
+    if (pl->rotation == 0)
+    {
+      viewx_trans = xoffs + viewx;
+      viewy_trans = yoffs - viewy;
+    }
+    else
+    {
+      const fixed_t sin = finesine[pl->rotation >> ANGLETOFINESHIFT];
+      const fixed_t cos = finecosine[pl->rotation >> ANGLETOFINESHIFT];
+
+      viewx_trans =   FixedMul(viewx + xoffs, cos) - FixedMul(viewy - yoffs, sin);
+      viewy_trans = -(FixedMul(viewx + xoffs, sin) + FixedMul(viewy - yoffs, cos));
+    }
+
     planeheight = abs(pl->height - viewz);
     light = (pl->lightlevel >> LIGHTSEGSHIFT) + extralight;
 

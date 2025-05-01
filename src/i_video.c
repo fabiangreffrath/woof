@@ -26,6 +26,7 @@
 #include "SDL.h"
 
 #include <limits.h>
+#include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -709,56 +710,83 @@ void I_DynamicResolution(void)
         return;
     }
 
-    static int frame_counter;
-    static double averagepercent;
+    #define DRS_COOLDOWN_FRAMES 15
+    static int cooldown_counter;
+
+    if (cooldown_counter > 0)
+    {
+        --cooldown_counter;
+        return;
+    }
 
     // 1.25 milliseconds for SDL render present
     double target = (1.0 / targetrefresh) - 0.00125;
     double actual = frametime_withoutpresent / 1000000.0;
 
-    double actualpercent = actual / target;
+    #define DRS_FRAME_HISTORY 30
+    static double frame_history[DRS_FRAME_HISTORY];
+    static int    frame_index;
 
-    #define DRS_DELTA   0.1
-    #define DRS_GREATER (1 + DRS_DELTA)
-    #define DRS_LESS    (1 - DRS_DELTA / 10.0)
-    #define DRS_STEP    (SCREENHEIGHT / 2)
-
-    int newheight = 0;
-    int oldheight = video.height;
-
-    frame_counter++;
-    averagepercent = (averagepercent + actualpercent) / frame_counter;
-
-    if (actualpercent > DRS_GREATER)
+    frame_history[frame_index] = actual;
+    frame_index = (frame_index + 1) % DRS_FRAME_HISTORY;
+    double total = 0;
+    for (int i = 0; i < DRS_FRAME_HISTORY; ++i)
     {
-        double reduction = (actualpercent - DRS_GREATER) * 0.4;
-        newheight = (int)MAX(DRS_MIN_HEIGHT, oldheight - oldheight * reduction);
+        total += frame_history[i];
     }
-    else if (averagepercent < DRS_LESS && frame_counter > targetrefresh)
+    const double avg_frame_time = total / DRS_FRAME_HISTORY;
+    const double performance_ratio = avg_frame_time / target;
+
+    static boolean needs_upscale;
+
+    #define DRS_STEP         (SCREENHEIGHT / 2)
+    #define DRS_DOWNSCALE_T1 1.08
+    #define DRS_DOWNSCALE_T2 1.2   // 20% over target -> 2x step
+    #define DRS_DOWNSCALE_T3 1.5   // 50% over target -> 3x step
+    #define DRS_UPSCALE_T1   0.6
+    #define DRS_UPSCALE_T2   0.4
+
+    int oldheight = video.height;
+    int newheight = 0;
+
+    if (performance_ratio > DRS_DOWNSCALE_T1)
     {
-        double addition = (DRS_LESS - averagepercent) * 0.25;
-        newheight = (int)MIN(current_video_height, oldheight + oldheight * addition);
+        int step_multipler = 1;
+        if (performance_ratio > DRS_DOWNSCALE_T3)
+        {
+            step_multipler = 3;
+        }
+        else if (performance_ratio > DRS_DOWNSCALE_T2)
+        {
+            step_multipler = 2;
+        }
+
+        newheight = MAX(DRS_MIN_HEIGHT, oldheight - DRS_STEP * step_multipler);
+    }
+    else if (performance_ratio < DRS_UPSCALE_T1 && needs_upscale)
+    {
+        int step_multiplier = 1;
+        if (performance_ratio < DRS_UPSCALE_T2)
+        {
+            step_multiplier = 2;
+        }
+
+        newheight =
+            MIN(current_video_height, oldheight + DRS_STEP * step_multiplier);
     }
     else
     {
         return;
     }
 
-    frame_counter = 0;
-
-    int mul = (newheight + (DRS_STEP - 1)) / DRS_STEP;  // integer round
-
-    newheight = mul * DRS_STEP;
-
-    if (newheight > current_video_height)
-    {
-        newheight = current_video_height;
-    }
-
     if (newheight == oldheight)
     {
         return;
     }
+
+    needs_upscale = newheight < current_video_height;
+
+    cooldown_counter = DRS_COOLDOWN_FRAMES;
 
     if (newheight < oldheight)
     {
@@ -1285,7 +1313,8 @@ static void ResetResolution(int height, boolean reset_pitch)
         AM_ResetScreenSize();
     }
 
-    I_Printf(VB_DEBUG, "ResetResolution: %dx%d", video.width, video.height);
+    I_Printf(VB_DEBUG, "ResetResolution: %dx%d (%s)", video.width, video.height,
+             widescreen_strings[widescreen]);
 
     drs_skip_frame = true;
 }
@@ -1716,7 +1745,13 @@ static void I_InitGraphicsMode(void)
     SDL_RendererInfo info;
     if (SDL_GetRendererInfo(renderer, &info) == 0)
     {
-        I_Printf(VB_DEBUG, "SDL render driver: %s", info.name);
+        SDL_version version;
+        SDL_GetVersion(&version);
+        I_Printf(VB_DEBUG, "SDL %d.%d.%d (%s) render driver: %s (%s)",
+                 version.major, version.minor, version.patch,
+                 SDL_GetPlatform(),
+                 info.name,
+                 SDL_GetCurrentVideoDriver());
 #ifdef _WIN32
         d3d_renderer = !strncmp(info.name, "direct3d", strlen(info.name));
 #endif

@@ -29,10 +29,12 @@
 #include "doomstat.h"
 #include "doomtype.h"
 #include "g_game.h"
+#include "g_umapinfo.h"
 #include "hu_obituary.h"
 #include "i_printf.h"
 #include "i_system.h"
 #include "info.h"
+#include "m_array.h"
 #include "m_bbox.h"
 #include "m_fixed.h"
 #include "m_random.h"
@@ -52,7 +54,6 @@
 #include "s_sound.h"
 #include "sounds.h"
 #include "tables.h"
-#include "u_mapinfo.h"
 #include "z_zone.h"
 
 static mobj_t *current_actor;
@@ -329,7 +330,7 @@ static int P_IsUnderDamage(mobj_t *actor)
 static fixed_t xspeed[8] = {FRACUNIT,47000,0,-47000,-FRACUNIT,-47000,0,47000};
 static fixed_t yspeed[8] = {0,47000,FRACUNIT,47000,0,-47000,-FRACUNIT,-47000};
 
-static boolean P_Move(mobj_t *actor, boolean dropoff) // killough 9/12/98
+static boolean P_Move(mobj_t *actor, int dropoff) // killough 9/12/98
 {
   fixed_t tryx, tryy, deltax, deltay;
   boolean try_ok;
@@ -496,7 +497,7 @@ static boolean P_SmartMove(mobj_t *actor)
       P_Random(pr_dropoff) < 235)
     dropoff = 2;
 
-  if (!P_Move(actor, !!dropoff))
+  if (!P_Move(actor, dropoff))
     return false;
 
   // killough 9/9/98: avoid crushing ceilings or other damaging areas
@@ -815,6 +816,7 @@ static boolean P_LookForPlayers(mobj_t *actor, boolean allaround)
 {
   player_t *player;
   int stop, stopc, c;
+  boolean unseen[MAXPLAYERS] = {0};
 
   if (actor->flags & MF_FRIEND)
     {  // killough 9/9/98: friendly monsters go about players differently
@@ -890,8 +892,11 @@ static boolean P_LookForPlayers(mobj_t *actor, boolean allaround)
       if (player->health <= 0)
 	continue;               // dead
 
-      if (!P_IsVisible(actor, player->mo, allaround))
+      if (unseen[actor->lastlook] || !P_IsVisible(actor, player->mo, allaround))
+      {
+	unseen[actor->lastlook] = true;
 	continue;
+      }
       
       P_SetTarget(&actor->target, player->mo);
 
@@ -1765,7 +1770,10 @@ static boolean P_HealCorpse(mobj_t* actor, int radius, statenum_t healstate, sfx
 		      I_Printf(VB_WARNING, "A_VileChase: Resurrected ghost monster (%d) at (%d/%d)!",
 		              corpsehit->type, corpsehit->x>>FRACBITS, corpsehit->y>>FRACBITS);
 		  }
-		  
+
+		  corpsehit->flags2 &= ~MF2_COLOREDBLOOD;
+		  corpsehit->bloodcolor = 0;
+
                   corpsehit->health = info->spawnhealth;
 		  P_SetTarget(&corpsehit->target, NULL);  // killough 11/98
 
@@ -2284,52 +2292,70 @@ void A_BossDeath(mobj_t *mo)
   line_t    junk;
   int       i;
 
-  // numbossactions == 0 means to use the defaults.
-  // numbossactions == -1 means to do nothing.
-  // positive values mean to check the list of boss actions and run all that apply.
-  if (gamemapinfo && gamemapinfo->numbossactions != 0)
+  if (gamemapinfo && gamemapinfo->flags & MapInfo_BossActionClear)
   {
-    if (gamemapinfo->numbossactions < 0) return;
+      return;
+  }
 
-    // make sure there is a player alive for victory
-    for (i=0; i<MAXPLAYERS; i++)
-      if (playeringame[i] && players[i].health > 0)
-        break;
-
-    if (i==MAXPLAYERS)
-      return;     // no one left alive, so do not end game
-
-    for (i = 0; i < gamemapinfo->numbossactions; i++)
+  if (gamemapinfo && array_size(gamemapinfo->bossactions))
+  {
+      // make sure there is a player alive for victory
+      for (i = 0; i < MAXPLAYERS; i++)
       {
-        if (gamemapinfo->bossactions[i].type == mo->type)
-          break;
-      }
-    if (i >= gamemapinfo->numbossactions)
-      return;  // no matches found
-
-    // scan the remaining thinkers to see
-    // if all bosses are dead
-    for (th = thinkercap.next ; th != &thinkercap ; th=th->next)
-      if (th->function.p1 == (actionf_p1)P_MobjThinker)
-        {
-          mobj_t *mo2 = (mobj_t *) th;
-          if (mo2 != mo && mo2->type == mo->type && mo2->health > 0)
-            return;         // other boss not dead
-        }
-    for (i = 0; i < gamemapinfo->numbossactions; i++)
-      {
-        if (gamemapinfo->bossactions[i].type == mo->type)
+          if (playeringame[i] && players[i].health > 0)
           {
-            junk = *lines;
-            junk.special = (short)gamemapinfo->bossactions[i].special;
-            junk.tag = (short)gamemapinfo->bossactions[i].tag;
-            // use special semantics for line activation to block problem types.
-            if (!P_UseSpecialLine(mo, &junk, 0, true))
-              P_CrossSpecialLine(&junk, 0, mo, true);
+              break;
+          }
+      }
+      if (i == MAXPLAYERS)
+      {
+          return; // no one left alive, so do not end game
+      }
+
+      bossaction_t *bossaction;
+      array_foreach(bossaction, gamemapinfo->bossactions)
+      {
+          if (bossaction->type == mo->type)
+          {
+              break;
+          }
+      }
+      if (bossaction == array_end(gamemapinfo->bossactions))
+      {
+          return; // no matches found
+      }
+
+      // scan the remaining thinkers to see
+      // if all bosses are dead
+      for (th = thinkercap.next; th != &thinkercap; th = th->next)
+      {
+          if (th->function.p1 == (actionf_p1)P_MobjThinker)
+          {
+              mobj_t *mo2 = (mobj_t *)th;
+              if (mo2 != mo && mo2->type == mo->type && mo2->health > 0)
+              {
+                  return; // other boss not dead
+              }
           }
       }
 
-    return;
+      array_foreach(bossaction, gamemapinfo->bossactions)
+      {
+          if (bossaction->type == mo->type)
+          {
+              junk = *lines;
+              junk.special = (short)bossaction->special;
+              junk.tag = (short)bossaction->tag;
+              // use special semantics for line activation to block problem
+              // types.
+              if (!P_UseSpecialLine(mo, &junk, 0, true))
+              {
+                  P_CrossSpecialLine(&junk, 0, mo, true);
+              }
+          }
+      }
+
+      return;
   }
 
   if (gamemode == commercial)
