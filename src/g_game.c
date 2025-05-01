@@ -1173,27 +1173,24 @@ int G_GotoNextLevel(int *pEpi, int *pMap)
 
 int G_GotoPrevLevel(void)
 {
-    if (gamestate != GS_LEVEL ||
-        deathmatch || netgame ||
-        demorecording || demoplayback ||
-        menuactive)
+    if (gamestate != GS_LEVEL || deathmatch || netgame || demorecording
+        || demoplayback || menuactive)
     {
         return false;
     }
 
     const int cur_epsd = gameepisode;
-    const int cur_map = gamemap--;
+    const int cur_map = gamemap;
     int ret = false;
 
-    for (int epsd_count = 0; epsd_count < 10; epsd_count++, gameepisode = (gameepisode + 9) % 10)
+    do
     {
-        for (int map_count = 0; map_count < 100; map_count++, gamemap = (gamemap + 99) % 100)
+        while ((gamemap = (gamemap + 99) % 100) != cur_map)
         {
             int next_epsd, next_map;
             G_GotoNextLevel(&next_epsd, &next_map);
 
-            if (next_epsd == cur_epsd && next_map == cur_map &&
-                !(gameepisode == cur_epsd && gamemap == cur_map))
+            if (next_epsd == cur_epsd && next_map == cur_map)
             {
                 char *name = MapName(gameepisode, gamemap);
 
@@ -1205,13 +1202,10 @@ int G_GotoPrevLevel(void)
                 }
             }
         }
-
-        // only check one episode in Doom 2
-        if (gamemode == commercial)
-        {
-            break;
-        }
-    }
+    } while (ret == false &&
+             // only check one episode in Doom 2
+             gamemode != commercial
+             && (gameepisode = (gameepisode + 9) % 10) != cur_epsd);
 
     gameepisode = cur_epsd;
     gamemap = cur_map;
