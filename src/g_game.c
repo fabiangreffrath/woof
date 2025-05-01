@@ -1205,7 +1205,7 @@ int G_GotoPrevLevel(void)
     } while (ret == false
              // only check one episode in Doom 2
              && gamemode != commercial
-             && (gamemap = 99)
+             && (gamemap = cur_map)
              && (gameepisode = (gameepisode + 9) % 10) != cur_epsd);
 
     gameepisode = cur_epsd;
