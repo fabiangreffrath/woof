@@ -1188,6 +1188,7 @@ int G_GotoPrevLevel(void)
         while ((gamemap = (gamemap + 99) % 100) != cur_map)
         {
             int next_epsd, next_map;
+            gamemapinfo = G_LookupMapinfo(gameepisode, gamemap);
             G_GotoNextLevel(&next_epsd, &next_map);
 
             if (next_epsd == cur_epsd && next_map == cur_map)
@@ -1210,6 +1211,7 @@ int G_GotoPrevLevel(void)
 
     gameepisode = cur_epsd;
     gamemap = cur_map;
+    gamemapinfo = G_LookupMapinfo(gameepisode, gamemap);
 
     if (ret == false)
     {
