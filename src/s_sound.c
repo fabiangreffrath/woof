@@ -82,6 +82,7 @@ int snd_channels;
 int idmusnum;
 
 static int max_channels_per_sfx;
+static int max_volume_per_sfx;
 
 static void ResetActive(void)
 {
@@ -95,6 +96,7 @@ static void ResetActive(void)
     }
 
     max_channels_per_sfx = MIN(snd_channels_per_sfx, snd_channels);
+    max_volume_per_sfx = 127 * snd_volume_per_sfx / 100;
 }
 
 //
@@ -277,6 +279,53 @@ static int S_getChannel(const mobj_t *origin, const sfxinfo_t *sfxinfo,
     return cnum;
 }
 
+static void LimitVolumePerSfx(void)
+{
+    if (!snd_limiter)
+    {
+        return;
+    }
+
+    for (int cnum = 0; cnum < snd_channels; cnum++)
+    {
+        channel_t *c = &channels[cnum];
+        sfxinfo_t *sfx = c->sfxinfo;
+
+        if (sfx)
+        {
+            sfx->active.volume = 0;
+        }
+    }
+
+    // Find channels using the same sound and add up the total volume.
+    for (int cnum = 0; cnum < snd_channels; cnum++)
+    {
+        channel_t *c = &channels[cnum];
+        sfxinfo_t *sfx = c->sfxinfo;
+
+        if (sfx && sfx->active.count > 1 && c->origin)
+        {
+            sfx->active.volume += c->volume;
+        }
+    }
+
+    // If the total volume of a sound is too loud, reduce the volume of each
+    // channel playing that sound.
+    for (int cnum = 0; cnum < snd_channels; cnum++)
+    {
+        channel_t *c = &channels[cnum];
+        sfxinfo_t *sfx = c->sfxinfo;
+
+        if (sfx && sfx->active.volume > max_volume_per_sfx)
+        {
+            const float gain = (float)c->volume * max_volume_per_sfx
+                               / (127 * sfx->active.volume);
+
+            I_SetGain(c->handle, gain);
+        }
+    }
+}
+
 static void StartSound(const mobj_t *origin, int sfx_id,
                        pitchrange_t pitch_range, rumble_type_t rumble_type)
 {
@@ -382,6 +431,7 @@ static void StartSound(const mobj_t *origin, int sfx_id,
         channels[cnum].singularity = singularity;
         channels[cnum].volume = params.volume;
         channels[cnum].sfxinfo->active.count++;
+        LimitVolumePerSfx();
 
         if (rumble_type != RUMBLE_NONE)
         {
@@ -703,6 +753,7 @@ void S_UpdateSounds(const mobj_t *listener)
         }
     }
 
+    LimitVolumePerSfx();
     I_ProcessSoundUpdates();
     I_UpdateRumble();
 }

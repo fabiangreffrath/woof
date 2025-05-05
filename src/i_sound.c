@@ -90,6 +90,7 @@ static float steptable[256];
 
 boolean snd_limiter;
 int snd_channels_per_sfx;
+int snd_volume_per_sfx;
 
 //
 // StopChannel
@@ -792,6 +793,8 @@ void I_BindSoundVariables(void)
     BIND_BOOL_SFX(snd_limiter, false, "Use sound output limiter");
     BIND_NUM(snd_channels_per_sfx, 5, 1, MAX_CHANNELS,
         "[Limiter] Number of channels allowed when simultaneously playing a sound");
+    BIND_NUM(snd_volume_per_sfx, 200, 100, 300,
+        "[Limiter] Peak volume allowed when simultaneously playing a sound [percent]");
     BIND_NUM_GENERAL(snd_module, SND_MODULE_MBF, 0, NUM_SND_MODULES - 1,
         "Sound module (0 = Standard; 1 = OpenAL 3D; 2 = PC Speaker Sound)");
     for (int i = 0; i < arrlen(sound_modules); ++i)
