@@ -51,6 +51,7 @@ typedef struct channel_s
     int o_priority;       // haleyjd 09/27/06: stored priority value
     int priority;         // current priority value
     int singularity;      // haleyjd 09/27/06: stored singularity value
+    int volume;
 } channel_t;
 
 // the set of channels available
@@ -311,6 +312,7 @@ static void StartSound(const mobj_t *origin, int sfx_id,
         channels[cnum].o_priority = o_priority;    // original priority
         channels[cnum].priority = params.priority; // scaled priority
         channels[cnum].singularity = singularity;
+        channels[cnum].volume = params.volume;
 
         if (rumble_type != RUMBLE_NONE)
         {
@@ -614,6 +616,7 @@ void S_UpdateSounds(const mobj_t *listener)
                     {
                         I_UpdateSoundParams(c->handle, &params);
                         c->priority = params.priority; // haleyjd
+                        c->volume = params.volume;
                     }
                     else
                     {
