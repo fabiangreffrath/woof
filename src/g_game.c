@@ -1185,6 +1185,8 @@ int G_GotoPrevLevel(void)
 
     do
     {
+        gamemap = cur_map;
+
         while ((gamemap = (gamemap + 99) % 100) != cur_map)
         {
             int next_epsd, next_map;
@@ -1206,7 +1208,6 @@ int G_GotoPrevLevel(void)
     } while (ret == false
              // only check one episode in Doom 2
              && gamemode != commercial
-             && (gamemap = cur_map)
              && (gameepisode = (gameepisode + 9) % 10) != cur_epsd);
 
     gameepisode = cur_epsd;
