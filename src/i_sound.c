@@ -520,8 +520,6 @@ boolean I_AllowReinitSound(void)
 
 void I_SetSoundModule(void)
 {
-    int i;
-
     if (!snd_init)
     {
         I_Printf(VB_WARNING, "I_SetSoundModule: Sound was never initialized.");
@@ -532,11 +530,6 @@ void I_SetSoundModule(void)
     {
         I_Printf(VB_WARNING, "I_SetSoundModule: Invalid choice.");
         return;
-    }
-
-    for (i = 0; i < MAX_CHANNELS; i++)
-    {
-        StopChannel(i);
     }
 
     sound_module->ShutdownModule();

@@ -2485,6 +2485,7 @@ static void SetSoundModule(void)
         return;
     }
 
+    S_StopChannels();
     I_SetSoundModule();
 }
 
