@@ -81,6 +81,8 @@ int snd_channels;
 // jff 3/17/98 to keep track of last IDMUS specified music num
 int idmusnum;
 
+static int max_channels_per_sfx;
+
 static void ResetActive(void)
 {
     for (int cnum = 0; cnum < MAX_CHANNELS; cnum++)
@@ -91,6 +93,8 @@ static void ResetActive(void)
             channels[cnum].sfxinfo->active.volume = 0;
         }
     }
+
+    max_channels_per_sfx = MIN(snd_channels_per_sfx, snd_channels);
 }
 
 //
@@ -148,6 +152,53 @@ static int S_AdjustSoundParams(const mobj_t *listener, const mobj_t *source,
     return I_AdjustSoundParams(listener, source, params);
 }
 
+static void LimitChannelsPerSfx(const mobj_t *origin, const sfxinfo_t *sfxinfo,
+                                int priority, int *cnum)
+{
+    if (*cnum != snd_channels || !snd_limiter || !origin)
+    {
+        return;
+    }
+
+    int lowestpriority = -1;
+    int lpcnum = -1;
+    int num_channels = 0;
+
+    for (int i = 0; i < snd_channels; i++)
+    {
+        const channel_t *c = &channels[i];
+        const sfxinfo_t *sfx = c->sfxinfo;
+
+        if (sfx && sfxinfo == sfx && c->origin)
+        {
+            // Find the lowest priority channel using the target sound.
+            if (c->priority > lowestpriority)
+            {
+                lowestpriority = c->priority;
+                lpcnum = i;
+            }
+
+            // Find the number of channels using the target sound.
+            num_channels++;
+        }
+    }
+
+    if (num_channels >= max_channels_per_sfx)
+    {
+        if (priority > lowestpriority)
+        {
+            // The other channels have higher priority.
+            *cnum = -1;
+        }
+        else
+        {
+            // Stop the lowest priority channel.
+            S_StopChannel(lpcnum);
+            *cnum = lpcnum;
+        }
+    }
+}
+
 //
 // S_getChannel :
 //
@@ -155,7 +206,8 @@ static int S_AdjustSoundParams(const mobj_t *listener, const mobj_t *source,
 //   haleyjd 09/27/06: fixed priority/singularity bugs
 //   Note that a higher priority number means lower priority!
 //
-static int S_getChannel(const mobj_t *origin, int priority, int singularity)
+static int S_getChannel(const mobj_t *origin, const sfxinfo_t *sfxinfo,
+                        int priority, int singularity)
 {
     // channel number to use
     int cnum;
@@ -178,6 +230,8 @@ static int S_getChannel(const mobj_t *origin, int priority, int singularity)
             break;
         }
     }
+
+    LimitChannelsPerSfx(origin, sfxinfo, priority, &cnum);
 
     // Find an open channel
     if (cnum == snd_channels)
@@ -293,7 +347,7 @@ static void StartSound(const mobj_t *origin, int sfx_id,
     }
 
     // try to find a channel
-    if ((cnum = S_getChannel(origin, params.priority, singularity)) < 0)
+    if ((cnum = S_getChannel(origin, sfx, params.priority, singularity)) < 0)
     {
         return;
     }

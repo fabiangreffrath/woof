@@ -69,6 +69,7 @@ struct sfxinfo_s;
 struct sfxparams_s;
 
 extern boolean snd_limiter;
+extern int snd_channels_per_sfx;
 
 typedef struct sound_module_s
 {
