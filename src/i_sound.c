@@ -184,6 +184,23 @@ void I_ProcessSoundUpdates(void)
     sound_module->ProcessUpdates();
 }
 
+void I_SetGain(int channel, float gain)
+{
+    if (!snd_init || !sound_module->SetGain)
+    {
+        return;
+    }
+
+#ifdef RANGECHECK
+    if (channel < 0 || channel >= MAX_CHANNELS)
+    {
+        I_Error("I_SetGain: channel out of range");
+    }
+#endif
+
+    sound_module->SetGain(channel, gain);
+}
+
 //
 // I_SetChannels
 //

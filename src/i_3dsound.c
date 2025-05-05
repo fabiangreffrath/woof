@@ -337,6 +337,7 @@ const sound_module_t sound_3d_module =
     I_3D_AdjustSoundParams,
     I_3D_UpdateSoundParams,
     I_3D_UpdateListenerParams,
+    I_OAL_SetGain,
     I_3D_StartSound,
     I_OAL_StopSound,
     I_OAL_PauseSound,

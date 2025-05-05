@@ -70,6 +70,8 @@ boolean I_OAL_SoundIsPlaying(int channel);
 
 boolean I_OAL_SoundIsPaused(int channel);
 
+void I_OAL_SetGain(int channel, float gain);
+
 void I_OAL_SetVolume(int channel, int volume);
 
 void I_OAL_SetPan(int channel, int separation);

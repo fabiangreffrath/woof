@@ -79,6 +79,7 @@ typedef struct sound_module_s
                                  struct sfxparams_s *params);
     void (*UpdateSoundParams)(int channel, const struct sfxparams_s *params);
     void (*UpdateListenerParams)(const struct mobj_s *listener);
+    void (*SetGain)(int channel, float gain);
     boolean (*StartSound)(int channel, struct sfxinfo_s *sfx, float pitch);
     void (*StopSound)(int channel);
     void (*PauseSound)(int channel);
@@ -143,6 +144,7 @@ void I_UpdateSoundParams(int handle, const struct sfxparams_s *params);
 void I_UpdateListenerParams(const struct mobj_s *listener);
 void I_DeferSoundUpdates(void);
 void I_ProcessSoundUpdates(void);
+void I_SetGain(int handle, float gain);
 
 //
 //  MUSIC I/O

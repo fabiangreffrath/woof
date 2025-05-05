@@ -788,6 +788,16 @@ boolean I_OAL_SoundIsPaused(int channel)
     return (state == AL_PAUSED);
 }
 
+void I_OAL_SetGain(int channel, float gain)
+{
+    if (!oal)
+    {
+        return;
+    }
+
+    alSourcef(oal->sources[channel], AL_GAIN, (ALfloat)gain);
+}
+
 void I_OAL_SetVolume(int channel, int volume)
 {
     if (!oal)
