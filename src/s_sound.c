@@ -81,6 +81,18 @@ int snd_channels;
 // jff 3/17/98 to keep track of last IDMUS specified music num
 int idmusnum;
 
+static void ResetActive(void)
+{
+    for (int cnum = 0; cnum < MAX_CHANNELS; cnum++)
+    {
+        if (channels[cnum].sfxinfo)
+        {
+            channels[cnum].sfxinfo->active.count = 0;
+            channels[cnum].sfxinfo->active.volume = 0;
+        }
+    }
+}
+
 //
 // Internals.
 //
@@ -102,6 +114,7 @@ static void S_StopChannel(int cnum)
     if (channels[cnum].sfxinfo)
     {
         I_StopSound(channels[cnum].handle); // stop the sound playing
+        channels[cnum].sfxinfo->active.count--;
 
         // haleyjd 09/27/06: clear the entire channel
         memset(&channels[cnum], 0, sizeof(channel_t));
@@ -115,6 +128,7 @@ void S_StopChannels(void)
         I_StopSound(channels[i].handle);
     }
 
+    ResetActive();
     memset(channels, 0, sizeof(channels));
     memset(sobjs, 0, sizeof(sobjs));
 }
@@ -313,6 +327,7 @@ static void StartSound(const mobj_t *origin, int sfx_id,
         channels[cnum].priority = params.priority; // scaled priority
         channels[cnum].singularity = singularity;
         channels[cnum].volume = params.volume;
+        channels[cnum].sfxinfo->active.count++;
 
         if (rumble_type != RUMBLE_NONE)
         {
@@ -1086,6 +1101,8 @@ static void InitFinalDoomMusic()
 
 void S_Init(int sfxVolume, int musicVolume)
 {
+    ResetActive();
+
     // jff 1/22/98 skip sound init if sound not enabled
     if (!nosfxparm)
     {
