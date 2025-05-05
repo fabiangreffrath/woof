@@ -88,6 +88,8 @@ static int pitch_bend_range;
 // Pitch to stepping lookup.
 static float steptable[256];
 
+boolean snd_limiter;
+
 //
 // StopChannel
 //
@@ -785,7 +787,8 @@ void I_BindSoundVariables(void)
         "Variable pitch bend range (100 = None)");
     BIND_BOOL_SFX(full_sounds, false, "Play sounds in full length (prevents cutoffs)");
     BIND_NUM_SFX(snd_channels, MAX_CHANNELS, 1, MAX_CHANNELS,
-        "Maximum number of simultaneous sound effects");
+        "Number of sound channels");
+    BIND_BOOL_SFX(snd_limiter, false, "Use sound output limiter");
     BIND_NUM_GENERAL(snd_module, SND_MODULE_MBF, 0, NUM_SND_MODULES - 1,
         "Sound module (0 = Standard; 1 = OpenAL 3D; 2 = PC Speaker Sound)");
     for (int i = 0; i < arrlen(sound_modules); ++i)

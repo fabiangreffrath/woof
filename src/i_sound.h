@@ -68,6 +68,8 @@ struct mobj_s;
 struct sfxinfo_s;
 struct sfxparams_s;
 
+extern boolean snd_limiter;
+
 typedef struct sound_module_s
 {
     boolean (*InitSound)(void);
