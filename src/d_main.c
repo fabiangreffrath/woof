@@ -1624,6 +1624,12 @@ typedef enum {
 static exit_sequence_t exit_sequence;
 static boolean endoom_pwad_only;
 
+boolean D_EndDoomEnabled(void)
+{
+  return (exit_sequence == EXIT_SEQUENCE_FULL
+          || exit_sequence == EXIT_SEQUENCE_ENDOOM_ONLY);
+}
+
 boolean D_QuitSoundEnabled(void)
 {
   return (exit_sequence == EXIT_SEQUENCE_FULL
@@ -1642,9 +1648,7 @@ boolean fast_exit = false;
 
 boolean D_AllowEndDoom(void)
 {
-  return (!fast_exit
-          && (exit_sequence == EXIT_SEQUENCE_FULL
-          || exit_sequence == EXIT_SEQUENCE_ENDOOM_ONLY));
+  return (!fast_exit && D_EndDoomEnabled());
 }
 
 static void D_EndDoom(void)
