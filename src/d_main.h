@@ -43,7 +43,7 @@ extern boolean clfastparm; // checkparm of -fast
 void D_SetMaxHealth(void);
 void D_SetBloodColor(void);
 
-extern boolean disable_endoom;
+extern boolean fast_exit;
 boolean D_AllowQuitSound(void);
 boolean D_AllowEndDoom(void);
 

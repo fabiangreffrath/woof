@@ -1638,11 +1638,11 @@ static void D_ShowEndDoom(void)
   I_Endoom(endoom);
 }
 
-boolean disable_endoom = false;
+boolean fast_exit = false;
 
 boolean D_AllowEndDoom(void)
 {
-  return (!disable_endoom
+  return (!fast_exit
           && (exit_sequence == EXIT_SEQUENCE_FULL
           || exit_sequence == EXIT_SEQUENCE_ENDOOM_ONLY));
 }
