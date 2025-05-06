@@ -1889,6 +1889,47 @@ void I_ShutdownGraphics(void)
     }
 
     UpdateGrab();
+
+    if (texture_upscaled)
+    {
+        SDL_DestroyTexture(texture_upscaled);
+        texture_upscaled = NULL;
+    }
+
+    if (texture)
+    {
+        SDL_DestroyTexture(texture);
+        texture = NULL;
+    }
+
+    if (argbbuffer)
+    {
+        SDL_FreeSurface(argbbuffer);
+        argbbuffer = NULL;
+    }
+
+    if (screenbuffer)
+    {
+        SDL_FreeSurface(screenbuffer);
+        screenbuffer = NULL;
+    }
+
+    if (!D_AllowEndDoom())
+    {
+        // ENDOOM will be skipped, so destroy the renderer and window now.
+
+        if (renderer)
+        {
+            SDL_DestroyRenderer(renderer);
+            renderer = NULL;
+        }
+
+        if (screen)
+        {
+            SDL_DestroyWindow(screen);
+            screen = NULL;
+        }
+    }
 }
 
 void I_InitGraphics(void)

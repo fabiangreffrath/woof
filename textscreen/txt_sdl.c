@@ -217,8 +217,31 @@ void TXT_Shutdown(void)
 {
     free(screendata);
     screendata = NULL;
-    SDL_FreeSurface(screenbuffer);
-    screenbuffer = NULL;
+
+    if (texture_upscaled)
+    {
+        SDL_DestroyTexture(texture_upscaled);
+        texture_upscaled = NULL;
+    }
+
+    if (screenbuffer)
+    {
+        SDL_FreeSurface(screenbuffer);
+        screenbuffer = NULL;
+    }
+
+    if (renderer)
+    {
+        SDL_DestroyRenderer(renderer);
+        renderer = NULL;
+    }
+
+    if (TXT_SDLWindow)
+    {
+        SDL_DestroyWindow(TXT_SDLWindow);
+        TXT_SDLWindow = NULL;
+    }
+
     SDL_QuitSubSystem(SDL_INIT_VIDEO);
 }
 
