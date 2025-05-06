@@ -1624,7 +1624,7 @@ typedef enum {
 static exit_sequence_t exit_sequence;
 static boolean endoom_pwad_only;
 
-boolean D_AllowQuitSound(void)
+boolean D_QuitSoundEnabled(void)
 {
   return (exit_sequence == EXIT_SEQUENCE_FULL
           || exit_sequence == EXIT_SEQUENCE_SOUND_ONLY);

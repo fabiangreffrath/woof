@@ -1489,7 +1489,7 @@ static void M_QuitResponse(int ch)
     {
         return;
     }
-    if (D_AllowQuitSound() &&
+    if (D_QuitSoundEnabled() &&
         (!netgame || demoplayback) && // killough 12/98
         !nosfxparm)                   // avoid delay if no sound card
     {
