@@ -619,19 +619,10 @@ static void do_draw_plane(visplane_t *pl)
 
     // sky flat
 
-    if (sky)
+    if (pl->picnum == skyflatnum && sky)
     {
-        if ((pl->picnum & PL_FLATMAPPING) == PL_FLATMAPPING)
-        {
-            do_draw_mbf_sky(pl);
-            return;
-        }
-
-        if (pl->picnum == skyflatnum)
-        {
-            DrawSkyDef(pl);
-            return;
-        }
+        DrawSkyDef(pl);
+        return;
     }
 
     if (pl->picnum == skyflatnum || pl->picnum & PL_SKYFLAT)
