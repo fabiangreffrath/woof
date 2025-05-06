@@ -1648,27 +1648,30 @@ boolean fast_exit = false;
 
 boolean D_AllowEndDoom(void)
 {
-  return (!fast_exit && D_EndDoomEnabled());
+  if (fast_exit)
+  {
+    return false; // Alt-F4 or pressed the close button.
+  }
+
+  if (!D_EndDoomEnabled())
+  {
+    return false; // Exit sequence is set to "Off" or "Sound Only".
+  }
+
+  if (W_IsIWADLump(W_CheckNumForName("ENDOOM")) && endoom_pwad_only)
+  {
+    return false; // User prefers PWAD ENDOOM only.
+  }
+
+  return true;
 }
 
 static void D_EndDoom(void)
 {
-  // Do we even want to show an ENDOOM?
-  if (!D_AllowEndDoom())
+  if (D_AllowEndDoom())
   {
-    return;
+    D_ShowEndDoom();
   }
-
-  // If so, is it from the IWAD?
-  boolean iwad_endoom = W_IsIWADLump(W_CheckNumForName("ENDOOM"));
-
-  // Does the user want to see it, in that case?
-  if (iwad_endoom && endoom_pwad_only)
-  {
-    return;
-  }
-
-  D_ShowEndDoom();
 }
 
 // [FG] fast-forward demo to the desired map
