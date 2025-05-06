@@ -1181,6 +1181,7 @@ int G_GotoPrevLevel(void)
 
     const int cur_epsd = gameepisode;
     const int cur_map = gamemap;
+    struct mapentry_s *const cur_gamemapinfo = gamemapinfo;
     int ret = false;
 
     do
@@ -1192,6 +1193,13 @@ int G_GotoPrevLevel(void)
             int next_epsd, next_map;
             gamemapinfo = G_LookupMapinfo(gameepisode, gamemap);
             G_GotoNextLevel(&next_epsd, &next_map);
+
+            // do not let linear and UMAPINFO maps cross
+            if ((cur_gamemapinfo == NULL && gamemapinfo != NULL) ||
+                (cur_gamemapinfo != NULL && gamemapinfo == NULL))
+            {
+                continue;
+            }
 
             if (next_epsd == cur_epsd && next_map == cur_map)
             {
@@ -1212,7 +1220,7 @@ int G_GotoPrevLevel(void)
 
     gameepisode = cur_epsd;
     gamemap = cur_map;
-    gamemapinfo = G_LookupMapinfo(gameepisode, gamemap);
+    gamemapinfo = cur_gamemapinfo;
 
     if (ret == false)
     {
