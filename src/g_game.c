@@ -1096,16 +1096,11 @@ int G_GotoNextLevel(int *pEpi, int *pMap)
       next = gamemapinfo->nextsecret;
     else if (gamemapinfo->nextmap[0])
       next = gamemapinfo->nextmap;
-    else if (gamemapinfo->flags & MapInfo_EndGame)
-    {
-      map = -1;
-    }
 
     if (next)
       G_ValidateMapName(next, &epsd, &map);
   }
-
-  if (map == -1)
+  else
   {
     // secret level
     doom2_next[14] = (haswolflevels ? 31 : 16);
