@@ -1153,8 +1153,11 @@ int G_GotoNextLevel(int *pEpi, int *pMap)
   {
     char *name = MapName(epsd, map);
 
-    if (W_CheckNumForName(name) == -1)
+    if (map == -1 || W_CheckNumForName(name) == -1)
+    {
+      name = MapName(gameepisode, gamemap);
       displaymsg("Next level not found for %s", name);
+    }
     else
     {
       G_DeferedInitNew(gameskill, epsd, map);
