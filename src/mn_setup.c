@@ -1418,6 +1418,7 @@ static setup_menu_t keys_settings3[] = {
     // [FG] reload current level / go to next level
     {"Reload Map/Demo", S_INPUT, KB_X, M_SPC, {0}, m_scrn, input_menu_reloadlevel},
     {"Next Map",        S_INPUT, KB_X, M_SPC, {0}, m_scrn, input_menu_nextlevel},
+    {"Previous Map",    S_INPUT, KB_X, M_SPC, {0}, m_scrn, input_menu_prevlevel},
     {"Show Stats/Time", S_INPUT, KB_X, M_SPC, {0}, m_scrn, input_hud_timestats},
     MI_GAP,
     {"Fast-FWD Demo",   S_INPUT, KB_X, M_SPC, {0}, m_scrn, input_demo_fforward},
@@ -1428,10 +1429,6 @@ static setup_menu_t keys_settings3[] = {
     {"Default Speed",   S_INPUT, KB_X, M_SPC, {0}, m_scrn, input_speed_default},
     MI_GAP,
     {"Begin Chat",      S_INPUT, KB_X, M_SPC, {0}, m_scrn, input_chat},
-    {"Player 1",        S_INPUT, KB_X, M_SPC, {0}, m_scrn, input_chat_dest0},
-    {"Player 2",        S_INPUT, KB_X, M_SPC, {0}, m_scrn, input_chat_dest1},
-    {"Player 3",        S_INPUT, KB_X, M_SPC, {0}, m_scrn, input_chat_dest2},
-    {"Player 4",        S_INPUT, KB_X, M_SPC, {0}, m_scrn, input_chat_dest3},
     MI_END
 };
 

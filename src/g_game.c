@@ -1076,12 +1076,12 @@ int G_GotoNextLevel(int *pEpi, int *pMap)
     {12, 13, 19, 15, 16, 17, 18, 21, 14},
     {22, 23, 24, 25, 29, 27, 28, 31, 26},
     {32, 33, 34, 35, 36, 39, 38, 41, 37},
-    {42, 49, 44, 45, 46, 47, 48, 11, 43}
+    {42, 49, 44, 45, 46, 47, 48, -1, 43}
   };
   byte doom2_next[32] = {
      2,  3,  4,  5,  6,  7,  8,  9, 10, 11,
     12, 13, 14, 15, 31, 17, 18, 19, 20, 21,
-    22, 23, 24, 25, 26, 27, 28, 29, 30,  1,
+    22, 23, 24, 25, 26, 27, 28, 29, 30, -1,
     32, 16
   };
 
@@ -1096,25 +1096,19 @@ int G_GotoNextLevel(int *pEpi, int *pMap)
       next = gamemapinfo->nextsecret;
     else if (gamemapinfo->nextmap[0])
       next = gamemapinfo->nextmap;
-    else if (gamemapinfo->flags & MapInfo_EndGame)
-    {
-      epsd = 1;
-      map = 1;
-    }
 
     if (next)
       G_ValidateMapName(next, &epsd, &map);
   }
-
-  if (map == -1)
+  else
   {
     // secret level
     doom2_next[14] = (haswolflevels ? 31 : 16);
 
     // shareware doom has only episode 1
-    doom_next[0][7] = (gamemode == shareware ? 11 : 21);
+    doom_next[0][7] = (gamemode == shareware ? -1 : 21);
 
-    doom_next[2][7] = (gamemode == registered ? 11 : 41);
+    doom_next[2][7] = (gamemode == registered ? -1 : 41);
 
     //doom2_next and doom_next are 0 based, unlike gameepisode and gamemap
     epsd = gameepisode - 1;
@@ -1159,8 +1153,11 @@ int G_GotoNextLevel(int *pEpi, int *pMap)
   {
     char *name = MapName(epsd, map);
 
-    if (W_CheckNumForName(name) == -1)
-      displaymsg("Next level not found: %s", name);
+    if (map == -1 || W_CheckNumForName(name) == -1)
+    {
+      name = MapName(gameepisode, gamemap);
+      displaymsg("Next level not found for %s", name);
+    }
     else
     {
       G_DeferedInitNew(gameskill, epsd, map);
@@ -1169,6 +1166,66 @@ int G_GotoNextLevel(int *pEpi, int *pMap)
   }
 
   return false;
+}
+
+int G_GotoPrevLevel(void)
+{
+    if (gamestate != GS_LEVEL || deathmatch || netgame || demorecording
+        || demoplayback || menuactive)
+    {
+        return false;
+    }
+
+    const int cur_epsd = gameepisode;
+    const int cur_map = gamemap;
+    struct mapentry_s *const cur_gamemapinfo = gamemapinfo;
+    int ret = false;
+
+    do
+    {
+        gamemap = cur_map;
+
+        while ((gamemap = (gamemap + 99) % 100) != cur_map)
+        {
+            int next_epsd, next_map;
+            gamemapinfo = G_LookupMapinfo(gameepisode, gamemap);
+            G_GotoNextLevel(&next_epsd, &next_map);
+
+            // do not let linear and UMAPINFO maps cross
+            if ((cur_gamemapinfo == NULL && gamemapinfo != NULL) ||
+                (cur_gamemapinfo != NULL && gamemapinfo == NULL))
+            {
+                continue;
+            }
+
+            if (next_epsd == cur_epsd && next_map == cur_map)
+            {
+                char *name = MapName(gameepisode, gamemap);
+
+                if (W_CheckNumForName(name) != -1)
+                {
+                    G_DeferedInitNew(gameskill, gameepisode, gamemap);
+                    ret = true;
+                    break;
+                }
+            }
+        }
+    } while (ret == false
+             // only check one episode in Doom 2
+             && gamemode != commercial
+             && (gameepisode = (gameepisode + 9) % 10) != cur_epsd);
+
+    gameepisode = cur_epsd;
+    gamemap = cur_map;
+    gamemapinfo = cur_gamemapinfo;
+
+    if (ret == false)
+    {
+        char *name = MapName(gameepisode, gamemap);
+        displaymsg("Previous level not found for %s", name);
+    }
+
+    return ret;
 }
 
 static boolean G_StrictModeSkipEvent(event_t *ev)
