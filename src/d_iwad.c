@@ -209,20 +209,10 @@ static registry_value_t uninstall_values[] =
     },
 };
 
-// Values installed by the GOG.com and Collector's Edition versions
+// Values installed by the GOG.com versions
 
-static const root_path_t gog_ce_paths[] =
+static const root_path_t gog_paths[] =
 {
-    // Doom Collector's Edition
-    {
-        {
-            HKEY_LOCAL_MACHINE,
-            SOFTWARE_KEY "\\Activision\\DOOM Collector's Edition\\v1.0",
-            "INSTALLPATH"
-        },
-        SUB_DIRS("Ultimate Doom", "Doom2", "Final Doom")
-    },
-
     // Doom II
     {GOG_REG(1435848814), SUB_DIRS("doom2")},
 
@@ -278,6 +268,21 @@ static const root_path_t steam_paths[] =
 
     // Doom Eternal
     {STEAM_REG(782330), SUB_DIRS("base\\classicwads")},
+};
+
+// Values installed by other versions (non-GOG.com, non-Steam)
+
+static const root_path_t misc_paths[] = 
+{
+    // Doom Collector's Edition
+    {
+        {
+            HKEY_LOCAL_MACHINE,
+            SOFTWARE_KEY "\\Activision\\DOOM Collector's Edition\\v1.0",
+            "INSTALLPATH"
+        },
+        SUB_DIRS("Ultimate Doom", "Doom2", "Final Doom")
+    },
 };
 
 static char *GetRegistryString(registry_value_t *reg_val)
@@ -556,8 +561,9 @@ void BuildIWADDirList(void)
     // Search the registry and find where IWADs have been installed.
 
     CheckUninstallStrings();
-    CheckInstallRootPaths(gog_ce_paths, arrlen(gog_ce_paths));
+    CheckInstallRootPaths(gog_paths, arrlen(gog_paths));
     CheckInstallRootPaths(steam_paths, arrlen(steam_paths));
+    CheckInstallRootPaths(misc_paths, arrlen(misc_paths));
     CheckDOSDefaults();
 
 #else
