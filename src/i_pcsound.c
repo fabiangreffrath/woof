@@ -501,6 +501,7 @@ const sound_module_t sound_pcs_module =
     I_PCS_AdjustSoundParams,
     I_PCS_UpdateSoundParams,
     NULL,
+    NULL,
     I_PCS_StartSound,
     I_PCS_StopSound,
     NULL,

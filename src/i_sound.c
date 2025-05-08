@@ -88,6 +88,10 @@ static int pitch_bend_range;
 // Pitch to stepping lookup.
 static float steptable[256];
 
+boolean snd_limiter;
+int snd_channels_per_sfx;
+int snd_volume_per_sfx;
+
 //
 // StopChannel
 //
@@ -182,6 +186,23 @@ void I_ProcessSoundUpdates(void)
     }
 
     sound_module->ProcessUpdates();
+}
+
+void I_SetGain(int channel, float gain)
+{
+    if (!snd_init || !sound_module->SetGain)
+    {
+        return;
+    }
+
+#ifdef RANGECHECK
+    if (channel < 0 || channel >= MAX_CHANNELS)
+    {
+        I_Error("I_SetGain: channel out of range");
+    }
+#endif
+
+    sound_module->SetGain(channel, gain);
 }
 
 //
@@ -520,8 +541,6 @@ boolean I_AllowReinitSound(void)
 
 void I_SetSoundModule(void)
 {
-    int i;
-
     if (!snd_init)
     {
         I_Printf(VB_WARNING, "I_SetSoundModule: Sound was never initialized.");
@@ -532,11 +551,6 @@ void I_SetSoundModule(void)
     {
         I_Printf(VB_WARNING, "I_SetSoundModule: Invalid choice.");
         return;
-    }
-
-    for (i = 0; i < MAX_CHANNELS; i++)
-    {
-        StopChannel(i);
     }
 
     sound_module->ShutdownModule();
@@ -775,7 +789,14 @@ void I_BindSoundVariables(void)
         "Variable pitch bend range (100 = None)");
     BIND_BOOL_SFX(full_sounds, false, "Play sounds in full length (prevents cutoffs)");
     BIND_NUM_SFX(snd_channels, MAX_CHANNELS, 1, MAX_CHANNELS,
-        "Maximum number of simultaneous sound effects");
+        "Number of sound channels");
+    BIND_BOOL_SFX(snd_limiter, false, "Use sound output limiter");
+    BIND_NUM(snd_channels_per_sfx, 5, 0, MAX_CHANNELS,
+        "[Limiter] Max number of channels allowed to simultaneously play the "
+        "same sound (0 = Off)");
+    BIND_NUM(snd_volume_per_sfx, 5 * 100, 0, MAX_CHANNELS * 100,
+        "[Limiter] Max volume allowed for a sound that is played "
+        "simultaneously by multiple channels [percent] (0 = Off)");
     BIND_NUM_GENERAL(snd_module, SND_MODULE_MBF, 0, NUM_SND_MODULES - 1,
         "Sound module (0 = Standard; 1 = OpenAL 3D; 2 = PC Speaker Sound)");
     for (int i = 0; i < arrlen(sound_modules); ++i)
