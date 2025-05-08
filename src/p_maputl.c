@@ -211,7 +211,58 @@ void P_LineOpening(line_t *linedef)
 // these structures need to be updated.
 //
 
-void P_UnsetThingPosition (mobj_t *thing)
+static void P_UnsetThingPosition_Boom (mobj_t *thing)
+{
+  if (!(thing->flags & MF_NOSECTOR))
+    {
+      // inert things don't need to be in blockmap?
+      // unlink from subsector
+      if (thing->snext)
+        thing->snext->sprev = thing->sprev;
+
+      if (thing->sprev)
+        ((mobj_t *)thing->sprev)->snext = thing->snext;
+      else
+        thing->subsector->sector->thinglist = thing->snext;
+
+        // phares 3/14/98
+        //
+        // Save the sector list pointed to by touching_sectorlist.
+        // In P_SetThingPosition, we'll keep any nodes that represent
+        // sectors the Thing still touches. We'll add new ones then, and
+        // delete any nodes for sectors the Thing has vacated. Then we'll
+        // put it back into touching_sectorlist. It's done this way to
+        // avoid a lot of deleting/creating for nodes, when most of the
+        // time you just get back what you deleted anyway.
+        //
+        // If this Thing is being removed entirely, then the calling
+        // routine will clear out the nodes in sector_list.
+
+      sector_list = thing->touching_sectorlist;
+      thing->touching_sectorlist = NULL; //to be restored by P_SetThingPosition
+    }
+
+  if (!(thing->flags & MF_NOBLOCKMAP))
+    {
+      // inert things don't need to be in blockmap
+
+      if (thing->bnext) // unlink from block map
+        thing->bnext->bprev = thing->bprev;
+
+      if (thing->bprev)
+        ((mobj_t *)thing->bprev)->bnext = thing->bnext;
+      else
+        {
+          int blockx = (thing->x - bmaporgx)>>MAPBLOCKSHIFT;
+          int blocky = (thing->y - bmaporgy)>>MAPBLOCKSHIFT;
+          if (blockx>=0 && blockx < bmapwidth &&
+              blocky>=0 && blocky <bmapheight)
+            blocklinks[blocky*bmapwidth+blockx] = thing->bnext;
+        }
+    }
+}
+
+static void P_UnsetThingPosition_MBF (mobj_t *thing)
 {
   if (!(thing->flags & MF_NOSECTOR))
     {
@@ -254,30 +305,9 @@ void P_UnsetThingPosition (mobj_t *thing)
       // at time of unlinking, assuming it was the same position as during
       // linking.
 
-#ifndef MBF_STRICT
-  if (demo_version < DV_MBF)
-  {
-      if (thing->bnext) // unlink from block map
-        thing->bnext->bprev = thing->bprev;
-
-      if (thing->bprev)
-        ((mobj_t *)thing->bprev)->bnext = thing->bnext;
-      else
-        {
-          int blockx = (thing->x - bmaporgx)>>MAPBLOCKSHIFT;
-          int blocky = (thing->y - bmaporgy)>>MAPBLOCKSHIFT;
-          if (blockx>=0 && blockx < bmapwidth &&
-              blocky>=0 && blocky <bmapheight)
-            blocklinks[blocky*bmapwidth+blockx] = thing->bnext;
-        }
-  }
-  else
-#endif
-  {
       mobj_t *bnext, **bprev = thing->bprev;
       if (bprev && (*bprev = bnext = thing->bnext))  // unlink from block map
 	bnext->bprev = bprev;
-  }
     }
 }
 
@@ -289,7 +319,61 @@ void P_UnsetThingPosition (mobj_t *thing)
 //
 // killough 5/3/98: reformatted, cleaned up
 
-void P_SetThingPosition(mobj_t *thing)
+static void P_SetThingPosition_Boom(mobj_t *thing)
+{                                                      // link into subsector
+  subsector_t *ss = thing->subsector = R_PointInSubsector(thing->x, thing->y);
+  if (!(thing->flags & MF_NOSECTOR))
+    {
+      // invisible things don't go into the sector links
+      sector_t *sec = ss->sector;
+
+      thing->sprev = NULL;
+      thing->snext = sec->thinglist;
+
+      if (sec->thinglist)
+        sec->thinglist->sprev = (mobj_t **)thing;
+
+      sec->thinglist = thing;
+
+      // phares 3/16/98
+      //
+      // If sector_list isn't NULL, it has a collection of sector
+      // nodes that were just removed from this Thing.
+
+      // Collect the sectors the object will live in by looking at
+      // the existing sector_list and adding new nodes and deleting
+      // obsolete ones.
+
+      // When a node is deleted, its sector links (the links starting
+      // at sector_t->touching_thinglist) are broken. When a node is
+      // added, new sector links are created.
+
+      P_CreateSecNodeList(thing,thing->x,thing->y);
+      thing->touching_sectorlist = sector_list; // Attach to Thing's mobj_t
+      sector_list = NULL; // clear for next time
+    }
+
+  // link into blockmap
+  if (!(thing->flags & MF_NOBLOCKMAP))
+    {
+      // inert things don't need to be in blockmap
+      int blockx = (thing->x - bmaporgx)>>MAPBLOCKSHIFT;
+      int blocky = (thing->y - bmaporgy)>>MAPBLOCKSHIFT;
+      if (blockx>=0 && blockx < bmapwidth && blocky>=0 && blocky < bmapheight)
+        {
+          mobj_t **link = &blocklinks[blocky*bmapwidth+blockx];
+          thing->bprev = NULL;
+          thing->bnext = *link;
+          if (*link)
+            (*link)->bprev = (mobj_t **)thing;
+          *link = thing;
+        }
+      else        // thing is off the map
+        thing->bnext = NULL, thing->bprev = NULL;
+    }
+}
+
+static void P_SetThingPosition_MBF(mobj_t *thing)
 {                                                      // link into subsector
   subsector_t *ss = thing->subsector = R_PointInSubsector(thing->x, thing->y);
 
@@ -338,26 +422,33 @@ void P_SetThingPosition(mobj_t *thing)
 	  // pointers, allows head nodes to be treated like everything else
 
           mobj_t **link = &blocklinks[blocky*bmapwidth+blockx];
-#ifndef MBF_STRICT
-  if (demo_version < DV_MBF)
-  {
-          thing->bprev = NULL;
-          thing->bnext = *link;
-          if (*link)
-            (*link)->bprev = (mobj_t**)thing;
-  }
-  else
-#endif
-  {
 	  mobj_t *bnext = *link;
           if ((thing->bnext = bnext))
 	    bnext->bprev = &thing->bnext;
 	  thing->bprev = link;
-  }
           *link = thing;
         }
       else        // thing is off the map
         thing->bnext = NULL, thing->bprev = NULL;
+    }
+}
+
+void (*P_UnsetThingPosition)(struct mobj_s *thing) = P_UnsetThingPosition_MBF;
+void (*P_SetThingPosition)(struct mobj_s *thing) = P_SetThingPosition_MBF;
+
+void P_SetThingPosition_Funcs (void)
+{
+#ifndef MBF_STRICT
+    if (demo_version < DV_MBF)
+    {
+        P_UnsetThingPosition = P_UnsetThingPosition_Boom;
+        P_SetThingPosition = P_SetThingPosition_Boom;
+    }
+    else
+#endif
+    {
+        P_UnsetThingPosition = P_UnsetThingPosition_MBF;
+        P_SetThingPosition = P_SetThingPosition_MBF;
     }
 }
 
