@@ -211,7 +211,7 @@ static registry_value_t uninstall_values[] =
 
 // Values installed by the GOG.com and Collector's Edition versions
 
-static root_path_t gog_ce_paths[] =
+static const root_path_t gog_ce_paths[] =
 {
     // Doom Collector's Edition
     {
@@ -251,7 +251,7 @@ static root_path_t gog_ce_paths[] =
 
 // Values installed by the Steam versions
 
-static root_path_t steam_paths[] =
+static const root_path_t steam_paths[] =
 {
     // Ultimate Doom, Doom I Enhanced, DOOM + DOOM II
     {STEAM_REG(2280), SUB_DIRS("base",
@@ -364,7 +364,7 @@ static void CheckUninstallStrings(void)
 
 // Check for GOG.com, Steam, and Doom: Collector's Edition
 
-static void CheckInstallRootPaths(root_path_t *root_paths, int length)
+static void CheckInstallRootPaths(const root_path_t *root_paths, int length)
 {
     unsigned int i;
 
@@ -374,7 +374,8 @@ static void CheckInstallRootPaths(root_path_t *root_paths, int length)
         char *subpath;
         unsigned int j;
 
-        install_path = GetRegistryString(&root_paths[i].key);
+        registry_value_t key = root_paths[i].key;
+        install_path = GetRegistryString(&key);
 
         if (install_path == NULL || *install_path == '\0')
         {
