@@ -18,6 +18,7 @@
 
 #include "SDL.h"
 
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
@@ -138,6 +139,12 @@ typedef struct
     char *value;
 } registry_value_t;
 
+typedef struct
+{
+    registry_value_t key;
+    char **subdirs;
+} root_path_t;
+
 #  define UNINSTALLER_STRING "\\uninstl.exe /S "
 
 // Keys installed by the various CD editions.  These are actually the
@@ -154,6 +161,10 @@ typedef struct
 #  else
 #    define SOFTWARE_KEY "Software"
 #  endif
+
+#  define GOG_REG(num) \
+      {HKEY_LOCAL_MACHINE, SOFTWARE_KEY "\\GOG.com\\Games\\" #num, "path"}
+#  define SUB_DIRS(str, ...) (char *[]){str, ##__VA_ARGS__, NULL}
 
 static registry_value_t uninstall_values[] =
 {
@@ -196,78 +207,42 @@ static registry_value_t uninstall_values[] =
 
 // Values installed by the GOG.com and Collector's Edition versions
 
-static registry_value_t root_path_keys[] =
+static root_path_t gog_ce_paths[] =
 {
     // Doom Collector's Edition
-
     {
-        HKEY_LOCAL_MACHINE,
-        SOFTWARE_KEY "\\Activision\\DOOM Collector's Edition\\v1.0",
-        "INSTALLPATH",
+        {
+            HKEY_LOCAL_MACHINE,
+            SOFTWARE_KEY "\\Activision\\DOOM Collector's Edition\\v1.0",
+            "INSTALLPATH"
+        },
+        SUB_DIRS("Ultimate Doom", "Doom2", "Final Doom")
     },
 
     // Doom II
-
-    {
-        HKEY_LOCAL_MACHINE,
-        SOFTWARE_KEY "\\GOG.com\\Games\\1435848814",
-        "PATH",
-    },
+    {GOG_REG(1435848814), SUB_DIRS("doom2")},
 
     // Doom 3: BFG Edition
-
-    {
-        HKEY_LOCAL_MACHINE,
-        SOFTWARE_KEY "\\GOG.com\\Games\\1135892318",
-        "PATH",
-    },
+    {GOG_REG(1135892318), SUB_DIRS("base\\wads")},
 
     // Final Doom
-
-    {
-        HKEY_LOCAL_MACHINE,
-        SOFTWARE_KEY "\\GOG.com\\Games\\1435848742",
-        "PATH",
-    },
+    {GOG_REG(1435848742), SUB_DIRS("Plutonia", "TNT")},
 
     // Ultimate Doom
-
-    {
-        HKEY_LOCAL_MACHINE,
-        SOFTWARE_KEY "\\GOG.com\\Games\\1435827232",
-        "PATH",
-    },
+    {GOG_REG(1435827232), SUB_DIRS(".")},
 
     // DOOM Unity port
-
-    {
-        HKEY_LOCAL_MACHINE,
-        SOFTWARE_KEY "\\GOG.com\\Games\\2015545325",
-        "PATH"
-    },
+    {GOG_REG(2015545325), SUB_DIRS("DOOM_Data\\StreamingAssets")},
 
     // DOOM II Unity port
-
-    {
-        HKEY_LOCAL_MACHINE,
-        SOFTWARE_KEY "\\GOG.com\\Games\\1426071866",
-        "PATH"
-    },
+    {GOG_REG(1426071866), SUB_DIRS("DOOM II_Data\\StreamingAssets")},
 
     // DOOM + DOOM II
-    {
-        HKEY_LOCAL_MACHINE,
-        SOFTWARE_KEY "\\GOG.com\\Games\\1413291984",
-        "PATH"
-    },
-};
-
-// Subdirectories of the above install path, where IWADs are installed.
-
-static char *root_path_subdirs[] =
-{
-    ".",        "Doom2", "Final Doom", "Ultimate Doom",
-    "Plutonia", "TNT",   "base\\wads",
+    {GOG_REG(1413291984), SUB_DIRS("dosdoom\\base",
+                                   "dosdoom\\base\\doom2",
+                                   "dosdoom\\base\\plutonia",
+                                   "dosdoom\\base\\tnt",
+                                   ".")},
 };
 
 // Location where Steam is installed
@@ -381,27 +356,27 @@ static void CheckUninstallStrings(void)
 
 // Check for GOG.com and Doom: Collector's Edition
 
-static void CheckInstallRootPaths(void)
+static void CheckInstallRootPaths(root_path_t *root_paths, int length)
 {
     unsigned int i;
 
-    for (i = 0; i < arrlen(root_path_keys); ++i)
+    for (i = 0; i < length; ++i)
     {
         char *install_path;
         char *subpath;
         unsigned int j;
 
-        install_path = GetRegistryString(&root_path_keys[i]);
+        install_path = GetRegistryString(&root_paths[i].key);
 
         if (install_path == NULL || *install_path == '\0')
         {
             continue;
         }
 
-        for (j = 0; j < arrlen(root_path_subdirs); ++j)
+        for (j = 0; root_paths[i].subdirs[j] != NULL; ++j)
         {
             subpath = M_StringJoin(install_path, DIR_SEPARATOR_S,
-                                   root_path_subdirs[j]);
+                                   root_paths[i].subdirs[j]);
             array_push(iwad_dirs, subpath);
         }
 
@@ -598,7 +573,7 @@ void BuildIWADDirList(void)
     // Search the registry and find where IWADs have been installed.
 
     CheckUninstallStrings();
-    CheckInstallRootPaths();
+    CheckInstallRootPaths(gog_ce_paths, arrlen(gog_ce_paths));
     CheckSteamEdition();
     CheckDOSDefaults();
 
