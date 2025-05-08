@@ -18,6 +18,7 @@
 
 #include "SDL.h"
 
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
@@ -57,6 +58,8 @@ static const char *const gamemode_str[] = {
     "Retail mode",
     "Unknown mode"
 };
+
+#define SUB_DIRS(str, ...) (char *[]){str, ##__VA_ARGS__, NULL}
 
 // Array of locations to search for IWAD files
 #define M_ARRAY_INIT_CAPACITY 32
@@ -138,6 +141,12 @@ typedef struct
     char *value;
 } registry_value_t;
 
+typedef struct
+{
+    registry_value_t key;
+    char **subdirs;
+} root_path_t;
+
 #  define UNINSTALLER_STRING "\\uninstl.exe /S "
 
 // Keys installed by the various CD editions.  These are actually the
@@ -154,6 +163,13 @@ typedef struct
 #  else
 #    define SOFTWARE_KEY "Software"
 #  endif
+
+#  define UNINSTALL_KEY \
+      "SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Uninstall"
+#  define GOG_REG(num) \
+      {HKEY_LOCAL_MACHINE, SOFTWARE_KEY "\\GOG.com\\Games\\" #num, "path"}
+#  define STEAM_REG(num) \
+      {HKEY_LOCAL_MACHINE, UNINSTALL_KEY "\\Steam App " #num, "InstallLocation"}
 
 static registry_value_t uninstall_values[] =
 {
@@ -194,107 +210,80 @@ static registry_value_t uninstall_values[] =
     },
 };
 
-// Values installed by the GOG.com and Collector's Edition versions
+// Values installed by the GOG.com versions
 
-static registry_value_t root_path_keys[] =
+static const root_path_t gog_paths[] =
 {
-    // Doom Collector's Edition
-
-    {
-        HKEY_LOCAL_MACHINE,
-        SOFTWARE_KEY "\\Activision\\DOOM Collector's Edition\\v1.0",
-        "INSTALLPATH",
-    },
-
     // Doom II
-
-    {
-        HKEY_LOCAL_MACHINE,
-        SOFTWARE_KEY "\\GOG.com\\Games\\1435848814",
-        "PATH",
-    },
+    {GOG_REG(1435848814), SUB_DIRS("doom2")},
 
     // Doom 3: BFG Edition
-
-    {
-        HKEY_LOCAL_MACHINE,
-        SOFTWARE_KEY "\\GOG.com\\Games\\1135892318",
-        "PATH",
-    },
+    {GOG_REG(1135892318), SUB_DIRS("base\\wads")},
 
     // Final Doom
-
-    {
-        HKEY_LOCAL_MACHINE,
-        SOFTWARE_KEY "\\GOG.com\\Games\\1435848742",
-        "PATH",
-    },
+    {GOG_REG(1435848742), SUB_DIRS("Plutonia", "TNT")},
 
     // Ultimate Doom
-
-    {
-        HKEY_LOCAL_MACHINE,
-        SOFTWARE_KEY "\\GOG.com\\Games\\1435827232",
-        "PATH",
-    },
+    {GOG_REG(1435827232), SUB_DIRS(".")},
 
     // DOOM Unity port
-
-    {
-        HKEY_LOCAL_MACHINE,
-        SOFTWARE_KEY "\\GOG.com\\Games\\2015545325",
-        "PATH"
-    },
+    {GOG_REG(2015545325), SUB_DIRS("DOOM_Data\\StreamingAssets")},
 
     // DOOM II Unity port
-
-    {
-        HKEY_LOCAL_MACHINE,
-        SOFTWARE_KEY "\\GOG.com\\Games\\1426071866",
-        "PATH"
-    },
+    {GOG_REG(1426071866), SUB_DIRS("DOOM II_Data\\StreamingAssets")},
 
     // DOOM + DOOM II
+    {GOG_REG(1413291984), SUB_DIRS("dosdoom\\base",
+                                   "dosdoom\\base\\doom2",
+                                   "dosdoom\\base\\plutonia",
+                                   "dosdoom\\base\\tnt",
+                                   ".")},
+};
+
+// Values installed by the Steam versions
+
+static const root_path_t steam_paths[] =
+{
+    // Ultimate Doom, Doom I Enhanced, DOOM + DOOM II
+    {STEAM_REG(2280), SUB_DIRS("base",
+                               "base\\doom2",
+                               "base\\plutonia",
+                               "base\\tnt",
+                               "rerelease",
+                               "rerelease\\DOOM_Data\\StreamingAssets")},
+
+    // Doom II, Doom II Enhanced
+    {STEAM_REG(2300), SUB_DIRS("base",
+                               "masterbase\\doom2",
+                               "finaldoombase",
+                               "rerelease\\DOOM II_Data\\StreamingAssets")},
+
+    // Master Levels for Doom II
+    {STEAM_REG(9160), SUB_DIRS("doom2")},
+
+    // Final Doom
+    {STEAM_REG(2290), SUB_DIRS("base")},
+
+    // Doom 3: BFG Edition
+    {STEAM_REG(208200), SUB_DIRS("base\\wads")},
+
+    // Doom Eternal
+    {STEAM_REG(782330), SUB_DIRS("base\\classicwads")},
+};
+
+// Values installed by other versions (non-GOG.com, non-Steam)
+
+static const root_path_t misc_paths[] = 
+{
+    // Doom Collector's Edition
     {
-        HKEY_LOCAL_MACHINE,
-        SOFTWARE_KEY "\\GOG.com\\Games\\1413291984",
-        "PATH"
+        {
+            HKEY_LOCAL_MACHINE,
+            SOFTWARE_KEY "\\Activision\\DOOM Collector's Edition\\v1.0",
+            "INSTALLPATH"
+        },
+        SUB_DIRS("Ultimate Doom", "Doom2", "Final Doom")
     },
-};
-
-// Subdirectories of the above install path, where IWADs are installed.
-
-static char *root_path_subdirs[] =
-{
-    ".",        "Doom2", "Final Doom", "Ultimate Doom",
-    "Plutonia", "TNT",   "base\\wads",
-};
-
-// Location where Steam is installed
-
-static registry_value_t steam_install_location =
-{
-    HKEY_LOCAL_MACHINE,
-    SOFTWARE_KEY "\\Valve\\Steam",
-    "InstallPath",
-};
-
-// Subdirs of the steam install directory where IWADs are found
-
-static char *steam_install_subdirs[] =
-{
-    "steamapps\\common\\Doom 2\\base",
-    "steamapps\\common\\Doom 2\\rerelease\\DOOM II_Data\\StreamingAssets",
-    "steamapps\\common\\Doom 2\\finaldoombase",
-    "steamapps\\common\\Doom 2\\masterbase\\doom2",
-    "steamapps\\common\\Final Doom\\base",
-    "steamapps\\common\\Master Levels of Doom\\doom2",
-    "steamapps\\common\\Ultimate Doom\\base",
-    "steamapps\\common\\Ultimate Doom\\base\\doom2",
-    "steamapps\\common\\Ultimate Doom\\rerelease",
-    "steamapps\\common\\Ultimate Doom\\rerelease\\DOOM_Data\\StreamingAssets",
-    "steamapps\\common\\DOOM 3 BFG Edition\\base\\wads",
-    "steamapps\\common\\DOOMEternal\\base\\classicwads",
 };
 
 static char *GetRegistryString(registry_value_t *reg_val)
@@ -379,60 +368,35 @@ static void CheckUninstallStrings(void)
     }
 }
 
-// Check for GOG.com and Doom: Collector's Edition
+// Check for GOG.com, Steam, and Doom: Collector's Edition
 
-static void CheckInstallRootPaths(void)
+static void CheckInstallRootPaths(const root_path_t *root_paths, int length)
 {
     unsigned int i;
 
-    for (i = 0; i < arrlen(root_path_keys); ++i)
+    for (i = 0; i < length; ++i)
     {
         char *install_path;
         char *subpath;
         unsigned int j;
 
-        install_path = GetRegistryString(&root_path_keys[i]);
+        registry_value_t key = root_paths[i].key;
+        install_path = GetRegistryString(&key);
 
-        if (install_path == NULL)
+        if (install_path == NULL || *install_path == '\0')
         {
             continue;
         }
 
-        for (j = 0; j < arrlen(root_path_subdirs); ++j)
+        for (j = 0; root_paths[i].subdirs[j] != NULL; ++j)
         {
             subpath = M_StringJoin(install_path, DIR_SEPARATOR_S,
-                                   root_path_subdirs[j]);
+                                   root_paths[i].subdirs[j]);
             array_push(iwad_dirs, subpath);
         }
 
         free(install_path);
     }
-}
-
-// Check for Doom downloaded via Steam
-
-static void CheckSteamEdition(void)
-{
-    char *install_path;
-    char *subpath;
-    size_t i;
-
-    install_path = GetRegistryString(&steam_install_location);
-
-    if (install_path == NULL)
-    {
-        return;
-    }
-
-    for (i = 0; i < arrlen(steam_install_subdirs); ++i)
-    {
-        subpath = M_StringJoin(install_path, DIR_SEPARATOR_S,
-                               steam_install_subdirs[i]);
-
-        array_push(iwad_dirs, subpath);
-    }
-
-    free(install_path);
 }
 
 // Default install directories for DOS Doom
@@ -483,7 +447,10 @@ static void AddIWADPath(const char *path, const char *suffix)
         }
     }
 
-    array_push(iwad_dirs, M_StringJoin(left, suffix));
+    if (*left != '\0')
+    {
+        array_push(iwad_dirs, M_StringJoin(left, suffix));
+    }
 
     free(dup_path);
 }
@@ -535,18 +502,59 @@ static void AddXdgDirs(void)
 // could parse *.vdf files to more accurately detect installation
 // locations, but the defaults are likely to be good enough for just
 // about everyone.
+
+typedef struct
+{
+    char *basedir;
+    char **subdirs;
+} root_path_t;
+
+static const root_path_t steam_paths[] =
+{
+    // Ultimate Doom, Doom I Enhanced, DOOM + DOOM II
+    {"Ultimate Doom", SUB_DIRS("base",
+                               "base/doom2",
+                               "base/plutonia",
+                               "base/tnt",
+                               "rerelease",
+                               "rerelease/DOOM_Data/StreamingAssets")},
+
+    // Doom II, Doom II Enhanced
+    {"Doom 2", SUB_DIRS("base",
+                        "masterbase/doom2",
+                        "finaldoombase",
+                        "rerelease/DOOM II_Data/StreamingAssets")},
+
+    // Master Levels for Doom II
+    {"Master Levels of Doom", SUB_DIRS("doom2")},
+
+    // Final Doom
+    {"Final Doom", SUB_DIRS("base")},
+
+    // Doom 3: BFG Edition
+    {"DOOM 3 BFG Edition", SUB_DIRS("base/wads")},
+
+    // Doom Eternal
+    {"DOOMEternal", SUB_DIRS("base/classicwads")},
+};
+
 static void AddSteamDirs(void)
 {
-    char *homedir, *steampath;
+    char *homedir, *steampath, *subpath;
 
     homedir = M_HomeDir();
     steampath = M_StringJoin(homedir, "/.steam/root/steamapps/common");
 
-    AddIWADPath(steampath, "/Doom 2/base");
-    AddIWADPath(steampath, "/Master Levels of Doom/doom2");
-    AddIWADPath(steampath, "/Ultimate Doom/base");
-    AddIWADPath(steampath, "/Final Doom/base");
-    AddIWADPath(steampath, "/DOOM 3 BFG Edition/base/wads");
+    for (int i = 0; i < arrlen(steam_paths); i++)
+    {
+        for (int j = 0; steam_paths[i].subdirs[j] != NULL; j++)
+        {
+            subpath = M_StringJoin(DIR_SEPARATOR_S, steam_paths[i].basedir,
+                                   DIR_SEPARATOR_S, steam_paths[i].subdirs[j]);
+            AddIWADPath(steampath, subpath);
+        }
+    }
+
     free(steampath);
 }
 #  endif // __MACOSX__
@@ -595,8 +603,9 @@ void BuildIWADDirList(void)
     // Search the registry and find where IWADs have been installed.
 
     CheckUninstallStrings();
-    CheckInstallRootPaths();
-    CheckSteamEdition();
+    CheckInstallRootPaths(gog_paths, arrlen(gog_paths));
+    CheckInstallRootPaths(steam_paths, arrlen(steam_paths));
+    CheckInstallRootPaths(misc_paths, arrlen(misc_paths));
     CheckDOSDefaults();
 
 #else
