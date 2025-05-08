@@ -95,8 +95,20 @@ static void ResetActive(void)
         }
     }
 
-    max_channels_per_sfx = MIN(snd_channels_per_sfx, snd_channels);
-    max_volume_per_sfx = 127 * snd_volume_per_sfx / 100;
+    max_channels_per_sfx = 0;
+    max_volume_per_sfx = 0;
+
+    if (snd_limiter)
+    {
+        max_channels_per_sfx = MIN(snd_channels_per_sfx, snd_channels);
+
+        // Limit volume per sfx only when it makes sense to do so.
+        if (snd_volume_per_sfx < max_channels_per_sfx * 100)
+        {
+            // Convert percent to Doom's volume scale.
+            max_volume_per_sfx = 127 * snd_volume_per_sfx / 100;
+        }
+    }
 }
 
 //
@@ -157,7 +169,7 @@ static int S_AdjustSoundParams(const mobj_t *listener, const mobj_t *source,
 static void LimitChannelsPerSfx(const mobj_t *origin, const sfxinfo_t *sfxinfo,
                                 int priority, int *cnum)
 {
-    if (*cnum != snd_channels || !snd_limiter || !origin)
+    if (max_channels_per_sfx < 1 || *cnum != snd_channels || !origin)
     {
         return;
     }
@@ -281,7 +293,7 @@ static int S_getChannel(const mobj_t *origin, const sfxinfo_t *sfxinfo,
 
 static void LimitVolumePerSfx(void)
 {
-    if (!snd_limiter)
+    if (max_volume_per_sfx < 1)
     {
         return;
     }
