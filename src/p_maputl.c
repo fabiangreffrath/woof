@@ -438,7 +438,6 @@ void (*P_SetThingPosition)(struct mobj_s *thing) = P_SetThingPosition_MBF;
 
 void P_SetThingPosition_SetFuncs(void)
 {
-#ifndef MBF_STRICT
     if (demo_version < DV_MBF)
     {
         P_UnsetThingPosition = P_UnsetThingPosition_Boom;
@@ -449,7 +448,6 @@ void P_SetThingPosition_SetFuncs(void)
         P_UnsetThingPosition = P_UnsetThingPosition_MBF;
         P_SetThingPosition = P_SetThingPosition_MBF;
     }
-#endif
 }
 
 // killough 3/15/98:
