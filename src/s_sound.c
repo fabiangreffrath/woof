@@ -103,7 +103,8 @@ static void ResetActive(void)
         max_channels_per_sfx = MIN(snd_channels_per_sfx, snd_channels);
 
         // Limit volume per sfx only when it makes sense to do so.
-        if (snd_volume_per_sfx < max_channels_per_sfx * 100)
+        if (max_channels_per_sfx < 1
+            || snd_volume_per_sfx < max_channels_per_sfx * 100)
         {
             // Convert percent to Doom's volume scale.
             max_volume_per_sfx = 127 * snd_volume_per_sfx / 100;
