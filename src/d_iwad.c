@@ -59,6 +59,8 @@ static const char *const gamemode_str[] = {
     "Unknown mode"
 };
 
+#define SUB_DIRS(str, ...) (char *[]){str, ##__VA_ARGS__, NULL}
+
 // Array of locations to search for IWAD files
 #define M_ARRAY_INIT_CAPACITY 32
 #include "m_array.h"
@@ -168,7 +170,6 @@ typedef struct
       {HKEY_LOCAL_MACHINE, SOFTWARE_KEY "\\GOG.com\\Games\\" #num, "path"}
 #  define STEAM_REG(num) \
       {HKEY_LOCAL_MACHINE, UNINSTALL_KEY "\\Steam App " #num, "InstallLocation"}
-#  define SUB_DIRS(str, ...) (char *[]){str, ##__VA_ARGS__, NULL}
 
 static registry_value_t uninstall_values[] =
 {
@@ -501,18 +502,60 @@ static void AddXdgDirs(void)
 // could parse *.vdf files to more accurately detect installation
 // locations, but the defaults are likely to be good enough for just
 // about everyone.
+
+typedef struct
+{
+    char *basedir;
+    char **subdirs;
+} root_path_t;
+
+static const root_path_t steam_paths[] =
+{
+    // Ultimate Doom, Doom I Enhanced, DOOM + DOOM II
+    {"Ultimate Doom", SUB_DIRS("base",
+                               "base/doom2",
+                               "base/plutonia",
+                               "base/tnt",
+                               "rerelease",
+                               "rerelease/DOOM_Data/StreamingAssets")},
+
+    // Doom II, Doom II Enhanced
+    {"Doom 2", SUB_DIRS("base",
+                        "masterbase/doom2",
+                        "finaldoombase",
+                        "rerelease/DOOM II_Data/StreamingAssets")},
+
+    // Master Levels for Doom II
+    {"Master Levels of Doom", SUB_DIRS("doom2")},
+
+    // Final Doom
+    {"Final Doom", SUB_DIRS("base")},
+
+    // Doom 3: BFG Edition
+    {"DOOM 3 BFG Edition", SUB_DIRS("base/wads")},
+
+    // Doom Eternal
+    {"DOOMEternal", SUB_DIRS("base/classicwads")},
+};
+
 static void AddSteamDirs(void)
 {
-    char *homedir, *steampath;
+    char *homedir, *steampath, *subpath;
 
     homedir = M_HomeDir();
     steampath = M_StringJoin(homedir, "/.steam/root/steamapps/common");
 
-    AddIWADPath(steampath, "/Doom 2/base");
-    AddIWADPath(steampath, "/Master Levels of Doom/doom2");
-    AddIWADPath(steampath, "/Ultimate Doom/base");
-    AddIWADPath(steampath, "/Final Doom/base");
-    AddIWADPath(steampath, "/DOOM 3 BFG Edition/base/wads");
+    for (int i = 0; i < arrlen(steam_paths); i++)
+    {
+        for (int j = 0; steam_paths[i].subdirs[j] != NULL; j++)
+        {
+            subpath = M_StringJoin(steampath, DIR_SEPARATOR_S,
+                                   steam_paths[i].basedir, DIR_SEPARATOR_S,
+                                   steam_paths[i].subdirs[j]);
+            AddIWADPath(steampath, subpath);
+        }
+    }
+
     free(steampath);
 }
 #  endif // __MACOSX__
