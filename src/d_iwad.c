@@ -393,7 +393,7 @@ static void CheckInstallRootPaths(void)
 
         install_path = GetRegistryString(&root_path_keys[i]);
 
-        if (install_path == NULL)
+        if (install_path == NULL || *install_path == '\0')
         {
             continue;
         }
@@ -483,7 +483,10 @@ static void AddIWADPath(const char *path, const char *suffix)
         }
     }
 
-    array_push(iwad_dirs, M_StringJoin(left, suffix));
+    if (*left != '\0')
+    {
+        array_push(iwad_dirs, M_StringJoin(left, suffix));
+    }
 
     free(dup_path);
 }
