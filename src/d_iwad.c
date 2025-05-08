@@ -549,9 +549,8 @@ static void AddSteamDirs(void)
     {
         for (int j = 0; steam_paths[i].subdirs[j] != NULL; j++)
         {
-            subpath = M_StringJoin(steampath, DIR_SEPARATOR_S,
-                                   steam_paths[i].basedir, DIR_SEPARATOR_S,
-                                   steam_paths[i].subdirs[j]);
+            subpath = M_StringJoin(DIR_SEPARATOR_S, steam_paths[i].basedir,
+                                   DIR_SEPARATOR_S, steam_paths[i].subdirs[j]);
             AddIWADPath(steampath, subpath);
         }
     }
