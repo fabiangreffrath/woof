@@ -254,9 +254,30 @@ void P_UnsetThingPosition (mobj_t *thing)
       // at time of unlinking, assuming it was the same position as during
       // linking.
 
+#ifndef MBF_STRICT
+  if (demo_version < DV_MBF)
+  {
+      if (thing->bnext) // unlink from block map
+        thing->bnext->bprev = thing->bprev;
+
+      if (thing->bprev)
+        ((mobj_t *)thing->bprev)->bnext = thing->bnext;
+      else
+        {
+          int blockx = (thing->x - bmaporgx)>>MAPBLOCKSHIFT;
+          int blocky = (thing->y - bmaporgy)>>MAPBLOCKSHIFT;
+          if (blockx>=0 && blockx < bmapwidth &&
+              blocky>=0 && blocky <bmapheight)
+            blocklinks[blocky*bmapwidth+blockx] = thing->bnext;
+        }
+  }
+  else
+#endif
+  {
       mobj_t *bnext, **bprev = thing->bprev;
       if (bprev && (*bprev = bnext = thing->bnext))  // unlink from block map
 	bnext->bprev = bprev;
+  }
     }
 }
 
@@ -317,10 +338,22 @@ void P_SetThingPosition(mobj_t *thing)
 	  // pointers, allows head nodes to be treated like everything else
 
           mobj_t **link = &blocklinks[blocky*bmapwidth+blockx];
+#ifndef MBF_STRICT
+  if (demo_version < DV_MBF)
+  {
+          thing->bprev = NULL;
+          thing->bnext = *link;
+          if (*link)
+            (*link)->bprev = (mobj_t**)thing;
+  }
+  else
+#endif
+  {
 	  mobj_t *bnext = *link;
           if ((thing->bnext = bnext))
 	    bnext->bprev = &thing->bnext;
 	  thing->bprev = link;
+  }
           *link = thing;
         }
       else        // thing is off the map
