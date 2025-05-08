@@ -95,14 +95,13 @@ jobs:
 
       # Delete the old cache on hit to emulate a cache update.
       - name: Delete old cache
+        continue-on-error: true
         env:
           GH_TOKEN: ${{ github.token }}
         run: gh cache delete --repo ${{ github.repository }} ${{ env.CACHE_KEY }}
 
       - name: Save cache
         uses: actions/cache/save@v4
-        # Save the cache even if build steps fail.
-        if: always()
         with:
           path: ${{ github.workspace }}/vcpkg_cache
           key: ${{ env.CACHE_KEY }}
