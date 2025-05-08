@@ -219,6 +219,9 @@ void TXT_Shutdown(void)
     screendata = NULL;
     SDL_FreeSurface(screenbuffer);
     screenbuffer = NULL;
+    SDL_DestroyTexture(texture_upscaled);
+    SDL_DestroyRenderer(renderer);
+    SDL_DestroyWindow(TXT_SDLWindow);
     SDL_QuitSubSystem(SDL_INIT_VIDEO);
 }
 

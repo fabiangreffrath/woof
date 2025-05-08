@@ -3353,7 +3353,7 @@ static setup_menu_t *gen_settings[] = {
 
 static void UpdatePwadEndoomItem(void)
 {
-    DisableItem(!D_AllowEndDoom(), gen_settings6, "endoom_pwad_only");
+    DisableItem(!D_EndDoomEnabled(), gen_settings6, "endoom_pwad_only");
 }
 
 void MN_UpdateDynamicResolutionItem(void)

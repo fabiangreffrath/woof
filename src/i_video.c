@@ -511,7 +511,7 @@ static void ProcessEvent(SDL_Event *ev)
             break;
 
         case SDL_QUIT:
-            disable_endoom = true;
+            fast_exit = true;
             I_SafeExit(0);
             break;
 
@@ -1889,6 +1889,18 @@ void I_ShutdownGraphics(void)
     }
 
     UpdateGrab();
+
+    SDL_FreeSurface(argbbuffer);
+    SDL_FreeSurface(screenbuffer);
+    SDL_DestroyTexture(texture_upscaled);
+    SDL_DestroyTexture(texture);
+
+    if (!D_AllowEndDoom())
+    {
+        // ENDOOM will be skipped, so destroy the renderer and window now.
+        SDL_DestroyRenderer(renderer);
+        SDL_DestroyWindow(screen);
+    }
 }
 
 void I_InitGraphics(void)
