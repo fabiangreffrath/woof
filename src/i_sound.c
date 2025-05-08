@@ -797,8 +797,7 @@ void I_BindSoundVariables(void)
     BIND_NUM(snd_volume_per_sfx, 5 * 100, 0, MAX_CHANNELS * 100,
         "[Limiter] Max volume allowed for a sound that is played "
         "simultaneously by multiple channels [percent] (0 = Off)");
-    BIND_NUM_GENERAL(
-        snd_module, SND_MODULE_MBF, 0, NUM_SND_MODULES - 1,
+    BIND_NUM_GENERAL(snd_module, SND_MODULE_MBF, 0, NUM_SND_MODULES - 1,
         "Sound module (0 = Standard; 1 = OpenAL 3D; 2 = PC Speaker Sound)");
     for (int i = 0; i < arrlen(sound_modules); ++i)
     {
