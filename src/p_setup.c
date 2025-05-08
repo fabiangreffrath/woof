@@ -1715,7 +1715,7 @@ void P_SetupLevel(int episode, int map, int playermask, skill_t skill)
   deathmatch_p = deathmatchstarts;
   P_MapStart();
 
-  P_SetThingPosition_Funcs();
+  P_SetThingPosition_SetFuncs();
 
   P_LoadThings(lumpnum+ML_THINGS);
 
