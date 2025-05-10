@@ -54,7 +54,7 @@ int viewwidth;
 int viewheight;
 int viewwindowx;
 int viewwindowy;
-static byte **ylookup = NULL;
+static pixel_t **ylookup = NULL;
 static int *columnofs = NULL;
 static int linesize; // killough 11/98
 
@@ -112,7 +112,7 @@ byte dc_skycolor;
                     dc_x);                                               \
         }                                                                \
                                                                          \
-        byte *dest = ylookup[dc_yl] + columnofs[dc_x];                   \
+        pixel_t *dest = ylookup[dc_yl] + columnofs[dc_x];                \
                                                                          \
         const fixed_t fracstep = dc_iscale;                              \
         fixed_t frac = dc_texturemid + (dc_yl - centery) * fracstep;     \
@@ -200,7 +200,7 @@ void R_DrawSkyColumn(void)
     }
 #endif
 
-    byte *dest = ylookup[dc_yl] + columnofs[dc_x];
+    pixel_t *dest = ylookup[dc_yl] + columnofs[dc_x];
 
     const fixed_t fracstep = dc_iscale;
     fixed_t frac = dc_texturemid + (dc_yl - centery) * fracstep;
@@ -406,7 +406,7 @@ static void DrawFuzzColumnOriginal(void)
     //  or blocky mode removed.
 
     // Does not work with blocky mode.
-    byte *dest = ylookup[dc_yl] + columnofs[dc_x];
+    pixel_t *dest = ylookup[dc_yl] + columnofs[dc_x];
 
     // Looks like an attempt at dithering,
     // using the colormap #6 (of 0-31, a bit brighter than average).
@@ -484,7 +484,7 @@ static void DrawFuzzColumnBlocky(void)
 
     ++count;
 
-    byte *dest = ylookup[dc_yl] + columnofs[dc_x];
+    pixel_t *dest = ylookup[dc_yl] + columnofs[dc_x];
 
     int lines = fuzzblocksize - (dc_yl % fuzzblocksize);
 
@@ -578,7 +578,7 @@ static void DrawFuzzColumnRefraction(void)
 
     ++count;
 
-    byte *dest = ylookup[dc_yl] + columnofs[dc_x];
+    pixel_t *dest = ylookup[dc_yl] + columnofs[dc_x];
 
     int lines = fuzzblocksize - (dc_yl % fuzzblocksize);
 
@@ -644,7 +644,7 @@ static void DrawFuzzColumnShadow(void)
     }
 #endif
 
-    byte *dest = ylookup[dc_yl] + columnofs[dc_x];
+    pixel_t *dest = ylookup[dc_yl] + columnofs[dc_x];
 
     count++; // killough 1/99: minor tuning
 
@@ -769,66 +769,66 @@ fixed_t ds_ystep;
 // start of a 64*64 tile image
 byte *ds_source;
 
-#define R_DRAW_SPAN(NAME, SRCPIXEL)                    \
-    static void DrawSpan##NAME(void)                   \
-    {                                                  \
-        byte *dest = ylookup[ds_y] + columnofs[ds_x1]; \
-                                                       \
-        unsigned count = ds_x2 - ds_x1 + 1;            \
-                                                       \
-        unsigned xtemp, ytemp, spot;                   \
-                                                       \
-        while (count >= 4)                             \
-        {                                              \
-            byte src;                                  \
-            ytemp = (ds_yfrac >> 10) & 0x0FC0;         \
-            xtemp = (ds_xfrac >> 16) & 0x003F;         \
-            spot = xtemp | ytemp;                      \
-            ds_xfrac += ds_xstep;                      \
-            ds_yfrac += ds_ystep;                      \
-            src = ds_source[spot];                     \
-            dest[0] = SRCPIXEL;                        \
-                                                       \
-            ytemp = (ds_yfrac >> 10) & 0x0FC0;         \
-            xtemp = (ds_xfrac >> 16) & 0x003F;         \
-            spot = xtemp | ytemp;                      \
-            ds_xfrac += ds_xstep;                      \
-            ds_yfrac += ds_ystep;                      \
-            src = ds_source[spot];                     \
-            dest[1] = SRCPIXEL;                        \
-                                                       \
-            ytemp = (ds_yfrac >> 10) & 0x0FC0;         \
-            xtemp = (ds_xfrac >> 16) & 0x003F;         \
-            spot = xtemp | ytemp;                      \
-            ds_xfrac += ds_xstep;                      \
-            ds_yfrac += ds_ystep;                      \
-            src = ds_source[spot];                     \
-            dest[2] = SRCPIXEL;                        \
-                                                       \
-            ytemp = (ds_yfrac >> 10) & 0x0FC0;         \
-            xtemp = (ds_xfrac >> 16) & 0x003F;         \
-            spot = xtemp | ytemp;                      \
-            ds_xfrac += ds_xstep;                      \
-            ds_yfrac += ds_ystep;                      \
-            src = ds_source[spot];                     \
-            dest[3] = SRCPIXEL;                        \
-                                                       \
-            dest += 4;                                 \
-            count -= 4;                                \
-        }                                              \
-                                                       \
-        while (count)                                  \
-        {                                              \
-            byte src;                                  \
-            ytemp = (ds_yfrac >> 10) & 0x0FC0;         \
-            xtemp = (ds_xfrac >> 16) & 0x003F;         \
-            spot = xtemp | ytemp;                      \
-            ds_xfrac += ds_xstep;                      \
-            ds_yfrac += ds_ystep;                      \
-            src = ds_source[spot];                     \
-            *dest++ = SRCPIXEL;                        \
-            count--;                                   \
-        }                                              \
+#define R_DRAW_SPAN(NAME, SRCPIXEL)                       \
+    static void DrawSpan##NAME(void)                      \
+    {                                                     \
+        pixel_t *dest = ylookup[ds_y] + columnofs[ds_x1]; \
+                                                          \
+        unsigned count = ds_x2 - ds_x1 + 1;               \
+                                                          \
+        unsigned xtemp, ytemp, spot;                      \
+                                                          \
+        while (count >= 4)                                \
+        {                                                 \
+            byte src;                                     \
+            ytemp = (ds_yfrac >> 10) & 0x0FC0;            \
+            xtemp = (ds_xfrac >> 16) & 0x003F;            \
+            spot = xtemp | ytemp;                         \
+            ds_xfrac += ds_xstep;                         \
+            ds_yfrac += ds_ystep;                         \
+            src = ds_source[spot];                        \
+            dest[0] = SRCPIXEL;                           \
+                                                          \
+            ytemp = (ds_yfrac >> 10) & 0x0FC0;            \
+            xtemp = (ds_xfrac >> 16) & 0x003F;            \
+            spot = xtemp | ytemp;                         \
+            ds_xfrac += ds_xstep;                         \
+            ds_yfrac += ds_ystep;                         \
+            src = ds_source[spot];                        \
+            dest[1] = SRCPIXEL;                           \
+                                                          \
+            ytemp = (ds_yfrac >> 10) & 0x0FC0;            \
+            xtemp = (ds_xfrac >> 16) & 0x003F;            \
+            spot = xtemp | ytemp;                         \
+            ds_xfrac += ds_xstep;                         \
+            ds_yfrac += ds_ystep;                         \
+            src = ds_source[spot];                        \
+            dest[2] = SRCPIXEL;                           \
+                                                          \
+            ytemp = (ds_yfrac >> 10) & 0x0FC0;            \
+            xtemp = (ds_xfrac >> 16) & 0x003F;            \
+            spot = xtemp | ytemp;                         \
+            ds_xfrac += ds_xstep;                         \
+            ds_yfrac += ds_ystep;                         \
+            src = ds_source[spot];                        \
+            dest[3] = SRCPIXEL;                           \
+                                                          \
+            dest += 4;                                    \
+            count -= 4;                                   \
+        }                                                 \
+                                                          \
+        while (count)                                     \
+        {                                                 \
+            byte src;                                     \
+            ytemp = (ds_yfrac >> 10) & 0x0FC0;            \
+            xtemp = (ds_xfrac >> 16) & 0x003F;            \
+            spot = xtemp | ytemp;                         \
+            ds_xfrac += ds_xstep;                         \
+            ds_yfrac += ds_ystep;                         \
+            src = ds_source[spot];                        \
+            *dest++ = SRCPIXEL;                           \
+            count--;                                      \
+        }                                                 \
     }
 
 R_DRAW_SPAN(, ds_colormap[0][src])

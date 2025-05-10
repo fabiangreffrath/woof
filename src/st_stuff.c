@@ -1435,7 +1435,7 @@ static void DrawSolidBackground(void)
         {
             for (x = 0; x < depth; x++)
             {
-                byte *c = st_backing_screen + V_ScaleY(y) * video.pitch
+                pixel_t *c = st_backing_screen + V_ScaleY(y) * video.pitch
                           + V_ScaleX(x);
                 r += pal[3 * c[0] + 0];
                 g += pal[3 * c[0] + 1];

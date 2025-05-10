@@ -60,7 +60,7 @@ void I_SetPalette(byte *palette);
 
 void I_FinishUpdate(void);
 
-void I_ReadScreen(byte *dst);
+void I_ReadScreen(pixel_t *dst);
 
 void I_ResetScreen(void); // killough 10/98
 void I_ToggleVsync(void); // [JN] Calls native SDL vsync toggle
