@@ -47,18 +47,26 @@ ticcmd_t *I_BaseTiccmd(void)
 static char errmsg[2048];    // buffer of error message -- killough
 static int exit_code;
 
-void I_ErrorOrSuccess(int err_code, const char *error, ...) // killough 3/20/98: add const
+void I_ErrorOrSuccess(int err_code, const char *prefix, const char *error, ...) // killough 3/20/98: add const
 {
     size_t len = sizeof(errmsg) - strlen(errmsg) - 1; // [FG] for '\n'
-    char *dest = errmsg + strlen(errmsg);
+    char *curmsg = errmsg + strlen(errmsg);
+    char *msgptr = curmsg;
+
+    if (prefix)
+    {
+        int offset = M_snprintf(msgptr, len, "%s: ", prefix);
+        msgptr += offset;
+        len -= offset;
+    }
 
     va_list argptr;
-    va_start(argptr,error);
-    M_vsnprintf(dest,len,error,argptr);
+    va_start(argptr, error);
+    M_vsnprintf(msgptr, len, error, argptr);
     va_end(argptr);
 
-    I_Printf(err_code == 0 ? VB_ALWAYS : VB_ERROR, "%s", dest);
-    strcat(dest,"\n");
+    I_Printf(err_code == 0 ? VB_ALWAYS : VB_ERROR, "%s", curmsg);
+    strcat(curmsg, "\n");
 
     if (exit_code == 0 && err_code != 0)
         exit_code = err_code;
