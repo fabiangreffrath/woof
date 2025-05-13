@@ -147,7 +147,7 @@ void I_UpdateSoundParams(int channel, const sfxparams_t *params)
 #ifdef RANGECHECK
     if (channel < 0 || channel >= MAX_CHANNELS)
     {
-        I_Error("I_UpdateSoundParams: channel out of range");
+        I_Error("channel out of range");
     }
 #endif
 
@@ -325,7 +325,7 @@ void I_StopSound(int channel)
 #ifdef RANGECHECK
     if (channel < 0 || channel >= MAX_CHANNELS)
     {
-        I_Error("I_StopSound: channel out of range");
+        I_Error("channel out of range");
     }
 #endif
 
@@ -342,7 +342,7 @@ void I_PauseSound(int channel)
 #ifdef RANGECHECK
     if (channel < 0 || channel >= MAX_CHANNELS)
     {
-        I_Error("I_PauseSound: channel out of range");
+        I_Error("channel out of range");
     }
 #endif
 
@@ -362,7 +362,7 @@ void I_ResumeSound(int channel)
 #ifdef RANGECHECK
     if (channel < 0 || channel >= MAX_CHANNELS)
     {
-        I_Error("I_ResumeSound: channel out of range");
+        I_Error("channel out of range");
     }
 #endif
 
@@ -387,7 +387,7 @@ boolean I_SoundIsPlaying(int channel)
 #ifdef RANGECHECK
     if (channel < 0 || channel >= MAX_CHANNELS)
     {
-        I_Error("I_SoundIsPlaying: channel out of range");
+        I_Error("channel out of range");
     }
 #endif
 
@@ -404,7 +404,7 @@ boolean I_SoundIsPaused(int channel)
 #ifdef RANGECHECK
     if (channel < 0 || channel >= MAX_CHANNELS)
     {
-        I_Error("I_SoundIsPaused: channel out of range");
+        I_Error("channel out of range");
     }
 #endif
 
@@ -613,7 +613,7 @@ void I_SetMidiPlayer(void)
         count_devices += array_size(strings);
     }
 
-    I_Error("I_SetMidiPlayer: No music module could be initialized");
+    I_Error("No music module could be initialized");
 }
 
 boolean I_InitMusic(void)

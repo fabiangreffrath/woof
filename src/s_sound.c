@@ -94,7 +94,7 @@ static void S_StopChannel(int cnum)
 #ifdef RANGECHECK
     if (cnum < 0 || cnum >= snd_channels)
     {
-        I_Error("S_StopChannel: handle %d out of range\n", cnum);
+        I_Error("handle %d out of range\n", cnum);
     }
 #endif
 
@@ -201,7 +201,7 @@ static int S_getChannel(const mobj_t *origin, int priority, int singularity)
 #ifdef RANGECHECK
     if (cnum >= snd_channels)
     {
-        I_Error("S_getChannel: handle %d out of range\n", cnum);
+        I_Error("handle %d out of range\n", cnum);
     }
 #endif
 
@@ -286,7 +286,7 @@ static void StartSound(const mobj_t *origin, int sfx_id,
 #ifdef RANGECHECK
     if (cnum < 0 || cnum >= snd_channels)
     {
-        I_Error("S_StartSfxInfo: handle %d out of range\n", cnum);
+        I_Error("handle %d out of range\n", cnum);
     }
 #endif
 

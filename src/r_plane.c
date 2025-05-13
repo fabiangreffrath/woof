@@ -178,7 +178,7 @@ static void R_MapPlane(int y, int x1, int x2)
 
 #ifdef RANGECHECK
   if (x2 < x1 || x1<0 || x2>=viewwidth || (unsigned)y>viewheight)
-    I_Error ("R_MapPlane: %i, %i at %i",x1,x2,y);
+    I_Error ("%i, %i at %i",x1,x2,y);
 #endif
 
   // [FG] calculate flat coordinates relative to screen center

@@ -558,7 +558,7 @@ void D_AddFile(const char *file)
 
   if (!W_AddPath(path))
   {
-    I_Error("Error: Failed to load %s", file);
+    I_Error("Failed to load %s", file);
   }
 }
 
@@ -1335,7 +1335,7 @@ static void AutoLoadWADs(const char *path)
 
         if (!W_AddPath(filename))
         {
-            I_Error("Error: Failed to load %s", filename);
+            I_Error("Failed to load %s", filename);
         }
     }
     I_EndGlob(glob);

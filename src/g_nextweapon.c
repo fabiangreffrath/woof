@@ -119,7 +119,7 @@ static weapontype_t NextWeapon(int direction)
 
     if (i == arrlen(weapon_order))
     {
-        I_Error("NextWeapon: Invalid weapon type %d", (int)weapon);
+        I_Error("Invalid weapon type %d", (int)weapon);
     }
 
     // Switch weapon. Don't loop forever.

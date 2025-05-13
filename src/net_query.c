@@ -823,7 +823,7 @@ void NET_QueryAddress(const char *addr_str)
 
     if (addr == NULL)
     {
-        I_Error("NET_QueryAddress: Host '%s' not found!", addr_str);
+        I_Error("Host '%s' not found!", addr_str);
     }
 
     // Add the address to the list of targets.

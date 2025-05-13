@@ -108,8 +108,7 @@ byte dc_skycolor;
         if ((unsigned)dc_x >= video.width || dc_yl < 0                   \
             || dc_yh >= video.height)                                    \
         {                                                                \
-            I_Error("DrawColumn" #NAME ": %i to %i at %i", dc_yl, dc_yh, \
-                    dc_x);                                               \
+            I_Error("%i to %i at %i", dc_yl, dc_yh, dc_x);               \
         }                                                                \
                                                                          \
         byte *dest = ylookup[dc_yl] + columnofs[dc_x];                   \
@@ -196,7 +195,7 @@ void R_DrawSkyColumn(void)
 #ifdef RANGECHECK
     if ((unsigned)dc_x >= video.width || dc_yl < 0 || dc_yh >= video.height)
     {
-        I_Error("R_DrawSkyColumn: %i to %i at %i", dc_yl, dc_yh, dc_x);
+        I_Error("%i to %i at %i", dc_yl, dc_yh, dc_x);
     }
 #endif
 
@@ -398,7 +397,7 @@ static void DrawFuzzColumnOriginal(void)
 #ifdef RANGECHECK
     if ((unsigned)dc_x >= video.width || dc_yl < 0 || dc_yh >= video.height)
     {
-        I_Error("R_DrawFuzzColumn: %i to %i at %i", dc_yl, dc_yh, dc_x);
+        I_Error("%i to %i at %i", dc_yl, dc_yh, dc_x);
     }
 #endif
 
@@ -478,7 +477,7 @@ static void DrawFuzzColumnBlocky(void)
 #ifdef RANGECHECK
     if ((unsigned)dc_x >= video.width || dc_yl < 0 || dc_yh >= video.height)
     {
-        I_Error("R_DrawFuzzColumn: %i to %i at %i", dc_yl, dc_yh, dc_x);
+        I_Error("%i to %i at %i", dc_yl, dc_yh, dc_x);
     }
 #endif
 
@@ -572,7 +571,7 @@ static void DrawFuzzColumnRefraction(void)
 #ifdef RANGECHECK
     if ((unsigned)dc_x >= video.width || dc_yl < 0 || dc_yh >= video.height)
     {
-        I_Error("R_DrawFuzzColumn: %i to %i at %i", dc_yl, dc_yh, dc_x);
+        I_Error("%i to %i at %i", dc_yl, dc_yh, dc_x);
     }
 #endif
 
@@ -640,7 +639,7 @@ static void DrawFuzzColumnShadow(void)
 #ifdef RANGECHECK
     if ((unsigned)dc_x >= video.width || dc_yl < 0 || dc_yh >= video.height)
     {
-        I_Error("R_DrawFuzzColumn: %i to %i at %i", dc_yl, dc_yh, dc_x);
+        I_Error("%i to %i at %i", dc_yl, dc_yh, dc_x);
     }
 #endif
 
