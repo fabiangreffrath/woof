@@ -2255,6 +2255,36 @@ void M_ResetAutoSave(void)
 // M_Init
 //
 
+#define MAX_STRLEN 42
+
+static void AddLineBreaks(char *string)
+{
+    char *start = string;
+    char *p = start;
+
+    while (strlen(p) > MAX_STRLEN)
+    {
+        start = p;
+        p += MAX_STRLEN;
+
+        do
+        {
+            if (*p == ' ')
+            {
+                *p++ = '\n';
+                break;
+            }
+        } while (--p > start);
+
+        if (p == start)
+        {
+            break;
+        }
+    }
+}
+
+#undef MAX_STRLEN
+
 void M_Init(void)
 {
     MN_InitDefaults(); // killough 11/98
@@ -2359,6 +2389,16 @@ void M_Init(void)
 #endif
         free(replace);
         *endmsg[9] = string;
+    }
+
+    for (int i = 0; i < NUM_QUITMESSAGES; i++)
+    {
+        char *const msg = *endmsg[i];
+
+        if (strchr(msg, '\n') == NULL)
+        {
+            AddLineBreaks(*endmsg[i]);
+        }
     }
 }
 
