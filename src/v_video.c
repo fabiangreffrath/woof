@@ -268,8 +268,8 @@ static void (*drawcolfunc)(const patch_column_t *patchcol);
         if ((unsigned int)patchcol->x >= (unsigned int)video.width            \
             || (unsigned int)patchcol->y1 >= (unsigned int)video.height)      \
         {                                                                     \
-            I_Error("DrawColumn" #NAME ": %i to %i at %i", patchcol->y1,      \
-                    patchcol->y2, patchcol->x);                               \
+            I_Error("%i to %i at %i", patchcol->y1, patchcol->y2,             \
+                    patchcol->x);                                             \
         }                                                                     \
                                                                               \
         pixel_t *dest = V_ADDRESS(dest_screen, patchcol->x, patchcol->y1);    \
@@ -685,7 +685,7 @@ void V_CopyRect(int srcx, int srcy, pixel_t *source, int width, int height,
         || srcy >= SCREENHEIGHT || destx + width < 0 || desty + height < 0
         || destx >= video.unscaledw || desty >= SCREENHEIGHT)
     {
-        I_Error("Bad V_CopyRect");
+        I_Error("Bad coordinates");
     }
 #endif
 
@@ -854,7 +854,7 @@ void V_GetBlock(int x, int y, int width, int height, pixel_t *dest)
 #ifdef RANGECHECK
     if (x < 0 || x + width > video.width || y < 0 || y + height > video.height)
     {
-        I_Error("Bad V_GetBlock");
+        I_Error("Bad coordinates");
     }
 #endif
 
@@ -877,7 +877,7 @@ void V_PutBlock(int x, int y, int width, int height, pixel_t *src)
 #ifdef RANGECHECK
     if (x < 0 || x + width > video.width || y < 0 || y + height > video.height)
     {
-        I_Error("Bad V_PutBlock");
+        I_Error("Bad coordinates");
     }
 #endif
 

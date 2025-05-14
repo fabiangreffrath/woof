@@ -2736,7 +2736,7 @@ void P_UnArchiveSpecials (void)
           {
           pusher->source = P_GetPushThing(pusher->affectee);
             if (pusher->type == p_push && pusher->source == NULL)
-              I_Error("P_UnArchiveSpecials: Pusher thinker without source in sector %d",
+              I_Error("Pusher thinker without source in sector %d",
                       pusher->affectee);
           }
           P_AddThinker(&pusher->thinker);
@@ -2762,8 +2762,7 @@ void P_UnArchiveSpecials (void)
         break;
 
       default:
-        I_Error ("P_UnarchiveSpecials:Unknown tclass %i "
-                 "in savegame",tclass);
+        I_Error ("Unknown tclass %i in savegame",tclass);
       }
 }
 

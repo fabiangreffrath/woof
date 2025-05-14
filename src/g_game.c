@@ -2056,23 +2056,23 @@ static void G_DoPlayDemo(void)
 
     if (*demo_p++ != 1)
     {
-      I_Error("G_DoPlayDemo: Unknown demo format.");
+      I_Error("Unknown demo format.");
     }
 
     // the defunct format had only one extension (in two bytes)
     if (*demo_p++ != 1 || *demo_p++ != 0)
     {
-      I_Error("G_DoPlayDemo: Unknown demo format.");
+      I_Error("Unknown demo format.");
     }
 
     if (*demo_p++ != 8)
     {
-      I_Error("G_DoPlayDemo: Unknown demo format.");
+      I_Error("Unknown demo format.");
     }
 
     if (memcmp(demo_p, "UMAPINFO", 8))
     {
-      I_Error("G_DoPlayDemo: Unknown demo format.");
+      I_Error("Unknown demo format.");
     }
 
     demo_p += 8;
@@ -3275,7 +3275,7 @@ static boolean G_CheckSpot(int playernum, mapthing_t *mthing)
             ya = finesine[an];
             break;
         default:
-            I_Error("G_CheckSpot: unexpected angle %d\n", an);
+            I_Error("unexpected angle %d\n", an);
             xa = ya = 0;
             break;
       }
@@ -3877,16 +3877,16 @@ void G_ReloadDefaults(boolean keep_demover)
   rngseed = time(NULL);
 
   if (beta_emulation && demo_version != DV_MBF)
-    I_Error("G_ReloadDefaults: Beta emulation requires complevel MBF.");
+    I_Error("Beta emulation requires complevel MBF.");
 
   if ((M_CheckParm("-dog") || M_CheckParm("-dogs")) && demo_version < DV_MBF)
-    I_Error("G_ReloadDefaults: Helper dogs require complevel MBF or MBF21.");
+    I_Error("Helper dogs require complevel MBF or MBF21.");
 
   if (M_CheckParm("-skill") && startskill == sk_none && !demo_compatibility)
-    I_Error("G_ReloadDefaults: '-skill 0' requires complevel Vanilla.");
+    I_Error("'-skill 0' requires complevel Vanilla.");
 
   if (demorecording && demo_version == DV_ID24)
-    I_Error("G_ReloadDefaults: Recording ID24 demos is currently not enabled. "
+    I_Error("Recording ID24 demos is currently not enabled. "
             "Demo-compability in Complevel ID24 is not yet stable.");
 
   if (demo_version < DV_MBF)
@@ -4154,7 +4154,7 @@ static byte* G_WriteOptionsMBF21(byte* demo_p)
     *demo_p++ = comp[i] != 0;
 
   if (demo_p != target)
-    I_Error("mbf21_WriteOptions: MBF21_GAME_OPTION_SIZE is too small");
+    I_Error("MBF21_GAME_OPTION_SIZE is too small");
 
   return demo_p;
 }
@@ -4230,7 +4230,7 @@ byte *G_WriteOptions(byte *demo_p)
     *demo_p++ = 0;
 
   if (demo_p != target)
-    I_Error("G_WriteOptions: GAME_OPTION_SIZE is too small");
+    I_Error("GAME_OPTION_SIZE is too small");
 
   return target;
 }

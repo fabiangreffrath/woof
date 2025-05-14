@@ -91,7 +91,7 @@ static boolean P_CrossSubsector(int num, register los_t *los)
 
 #ifdef RANGECHECK
   if (num >= numsubsectors)
-    I_Error("P_CrossSubsector: ss %i with numss = %i", num, numsubsectors);
+    I_Error("ss %i with numss = %i", num, numsubsectors);
 #endif
 
   for (count = subsectors[num].numlines; --count >= 0; seg++)  // check lines

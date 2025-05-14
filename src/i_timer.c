@@ -143,7 +143,7 @@ void I_InitTimer(void)
 {
     if (SDL_Init(SDL_INIT_TIMER) < 0)
     {
-        I_Error("I_InitTimer: Failed to initialize timer: %s", SDL_GetError());
+        I_Error("Failed to initialize timer: %s", SDL_GetError());
     }
 
 #ifdef _WIN32
@@ -161,7 +161,7 @@ void I_InitTimer(void)
     }
     if (hTimer == NULL)
     {
-        I_Error("I_InitTimer: CreateWaitableTimer failed");
+        I_Error("CreateWaitableTimer failed");
     }
 #endif
 

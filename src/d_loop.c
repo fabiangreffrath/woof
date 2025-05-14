@@ -427,7 +427,7 @@ void D_StartNetGame(net_gamesettings_t *settings,
 
     if (ticdup < 1)
     {
-        I_Error("D_StartNetGame: invalid ticdup value (%d)", ticdup);
+        I_Error("invalid ticdup value (%d)", ticdup);
     }
 
     // TODO: Message disabled until we fix new_sync.
@@ -522,7 +522,7 @@ boolean D_InitNetGame(net_connect_data_t *connect_data)
 
         if (!NET_CL_Connect(addr, connect_data))
         {
-            I_Error("D_InitNetGame: Failed to connect to %s:\n%s\n",
+            I_Error("Failed to connect to %s:\n%s\n",
                     NET_AddrToString(addr), net_client_reject_reason);
         }
 
@@ -831,7 +831,7 @@ void TryRunTics(void)
 
         if (lowtic < gametic / ticdup)
         {
-            I_Error("TryRunTics: lowtic < gametic");
+            I_Error("lowtic < gametic");
         }
 
         // Still no tics to run? Sleep until some are available.
@@ -870,7 +870,7 @@ void TryRunTics(void)
         {
             if (gametic / ticdup > lowtic)
             {
-                I_Error("gametic>lowtic");
+                I_Error("gametic > lowtic");
             }
 
             memcpy(local_playeringame, set->ingame, sizeof(local_playeringame));

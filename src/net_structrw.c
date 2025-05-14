@@ -607,8 +607,7 @@ void NET_WriteProtocol(net_packet_t *packet, net_protocol_t protocol)
 
     // If you add an entry to the net_protocol_t enum, a corresponding entry
     // must be added to the protocol_names list.
-    I_Error("NET_WriteProtocol: protocol %d missing from protocol_names "
-            "list; please add it.",
+    I_Error("protocol %d missing from protocol_names list; please add it.",
             protocol);
 }
 

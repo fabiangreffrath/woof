@@ -213,7 +213,7 @@ void P_InitPicAnims (void)
       if (lastanim->speed < 65536 && lastanim->numpics != 1)
       {
       if (lastanim->numpics < 2)
-        I_Error ("P_InitPicAnims: bad cycle from %s to %s",
+        I_Error ("bad cycle from %s to %s",
                  animdefs[i].startname,
                  animdefs[i].endname);
       }

@@ -221,7 +221,7 @@ void P_LoadSegs (int lump)
       // Andrey Budko: check for wrong indexes
       if ((unsigned)ldef->sidenum[side] >= (unsigned)numsides)
       {
-        I_Error("P_LoadSegs: linedef %d for seg %d references a non-existent sidedef %d",
+        I_Error("linedef %d for seg %d references a non-existent sidedef %d",
                 linedef, i, (unsigned)ldef->sidenum[side]);
       }
 

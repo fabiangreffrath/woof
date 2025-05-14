@@ -31,7 +31,7 @@ static int FileLength(int descriptor)
 
    if (fstat(descriptor, &st) == -1)
    {
-      I_Error("FileLength: failure in fstat\n");
+      I_Error("failure in fstat\n");
    }
 
    return st.st_size;
@@ -82,7 +82,7 @@ static boolean W_FILE_AddDir(w_handle_t handle, const char *path,
         int descriptor = M_open(filename, O_RDONLY | O_BINARY);
         if (descriptor == -1)
         {
-            I_Error("Error: opening %s", filename);
+            I_Error("Error opening %s", filename);
         }
 
         I_Printf(VB_INFO, " adding %s", filename);
@@ -230,7 +230,7 @@ static void W_FILE_Read(w_handle_t handle, void *dest, int size)
     int bytesread = read(handle.p1.descriptor, dest, size);
     if (bytesread < size)
     {
-        I_Error("W_ReadFile: only read %d of %d", bytesread, size);
+        I_Error("only read %d of %d", bytesread, size);
     }
 }
 
