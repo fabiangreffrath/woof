@@ -76,6 +76,13 @@ void I_ErrorOrSuccess(int err_code, const char *prefix, const char *error, ...) 
 
 void I_ErrorMsg()
 {
+    const char note[] = "\nNote: This is an error message and not a \"crash\"!";
+
+    if (exit_code != 0 && sizeof(errmsg) - strlen(errmsg) > strlen(note))
+    {
+        strcat(errmsg, note);
+    }
+
     //!
     // @category obscure
     //
@@ -87,9 +94,7 @@ void I_ErrorMsg()
         SDL_ShowSimpleMessageBox(exit_code == 0 ?
                                  SDL_MESSAGEBOX_INFORMATION :
                                  SDL_MESSAGEBOX_ERROR,
-                                 exit_code == 0 ?
-                                 PROJECT_STRING :
-                                 PROJECT_STRING ": Error message (this is not a \"crash\"!)", errmsg, NULL);
+                                 PROJECT_STRING, errmsg, NULL);
     }
 }
 
