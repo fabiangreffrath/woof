@@ -4912,6 +4912,8 @@ static const char **GetScreenSizeStrings(void)
     }
 
     maxscreenblocks = array_size(strings) - 1;
+    screenblocks = MIN(screenblocks, maxscreenblocks);
+
     return strings;
 }
 
