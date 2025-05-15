@@ -142,7 +142,7 @@ static void R_InstallSpriteLump(int lump, unsigned frame,
   }
 
   if (frame >= MAX_SPRITE_FRAMES || rotation > 8)
-    I_Error("R_InstallSpriteLump: Bad frame characters in lump %i", lump);
+    I_Error("Bad frame characters in lump %i", lump);
 
   if ((int) frame > maxframe)
     maxframe = frame;
@@ -288,8 +288,7 @@ void R_InitSpriteDefs(char **namelist)
                       int rotation;
                       for (rotation=0 ; rotation<8 ; rotation++)
                         if (sprtemp[frame].lump[rotation] == -1)
-                          I_Error ("R_InitSprites: Sprite %.8s frame %c "
-                                   "is missing rotations",
+                          I_Error ("Sprite %.8s frame %c is missing rotations",
                                    namelist[i], frame+'A');
                       break;
                     }
@@ -559,12 +558,12 @@ static void R_ProjectSprite (mobj_t* thing)
 
     // decide which patch to use for sprite relative to player
   if ((unsigned) thing->sprite >= num_sprites)
-    I_Error ("R_ProjectSprite: invalid sprite number %i", thing->sprite);
+    I_Error ("invalid sprite number %i", thing->sprite);
 
   sprdef = &sprites[thing->sprite];
 
   if ((thing->frame&FF_FRAMEMASK) >= sprdef->numframes)
-    I_Error ("R_ProjectSprite: invalid frame %i for sprite %s",
+    I_Error ("invalid frame %i for sprite %s",
              thing->frame & FF_FRAMEMASK, sprnames[thing->sprite]);
 
   sprframe = &sprdef->spriteframes[thing->frame & FF_FRAMEMASK];
@@ -807,14 +806,14 @@ void R_DrawPSprite (pspdef_t *psp)
 
 #ifdef RANGECHECK
   if ((unsigned) psp->state->sprite >= num_sprites)
-    I_Error ("R_DrawPSprite: invalid sprite number %i", psp->state->sprite);
+    I_Error ("invalid sprite number %i", psp->state->sprite);
 #endif
 
   sprdef = &sprites[psp->state->sprite];
 
 #ifdef RANGECHECK
   if ((psp->state->frame&FF_FRAMEMASK) >= sprdef->numframes)
-    I_Error ("R_DrawPSprite: invalid frame %i for sprite %s",
+    I_Error ("invalid frame %i for sprite %s",
              (int)(psp->state->frame & FF_FRAMEMASK),
              sprnames[psp->state->sprite]);
 #endif

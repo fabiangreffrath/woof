@@ -51,6 +51,7 @@ typedef struct channel_s
     int o_priority;       // haleyjd 09/27/06: stored priority value
     int priority;         // current priority value
     int singularity;      // haleyjd 09/27/06: stored singularity value
+    int volume;
 } channel_t;
 
 // the set of channels available
@@ -80,6 +81,37 @@ int snd_channels;
 // jff 3/17/98 to keep track of last IDMUS specified music num
 int idmusnum;
 
+static int max_channels_per_sfx;
+static int max_volume_per_sfx;
+
+static void ResetActive(void)
+{
+    for (int cnum = 0; cnum < MAX_CHANNELS; cnum++)
+    {
+        if (channels[cnum].sfxinfo)
+        {
+            channels[cnum].sfxinfo->active.count = 0;
+            channels[cnum].sfxinfo->active.volume = 0;
+        }
+    }
+
+    max_channels_per_sfx = 0;
+    max_volume_per_sfx = 0;
+
+    if (snd_limiter)
+    {
+        max_channels_per_sfx = MIN(snd_channels_per_sfx, snd_channels);
+
+        // Limit volume per sfx only when it makes sense to do so.
+        if (max_channels_per_sfx < 1
+            || snd_volume_per_sfx < max_channels_per_sfx * 100)
+        {
+            // Convert percent to Doom's volume scale.
+            max_volume_per_sfx = 127 * snd_volume_per_sfx / 100;
+        }
+    }
+}
+
 //
 // Internals.
 //
@@ -94,13 +126,14 @@ static void S_StopChannel(int cnum)
 #ifdef RANGECHECK
     if (cnum < 0 || cnum >= snd_channels)
     {
-        I_Error("S_StopChannel: handle %d out of range\n", cnum);
+        I_Error("handle %d out of range\n", cnum);
     }
 #endif
 
     if (channels[cnum].sfxinfo)
     {
         I_StopSound(channels[cnum].handle); // stop the sound playing
+        channels[cnum].sfxinfo->active.count--;
 
         // haleyjd 09/27/06: clear the entire channel
         memset(&channels[cnum], 0, sizeof(channel_t));
@@ -114,6 +147,7 @@ void S_StopChannels(void)
         I_StopSound(channels[i].handle);
     }
 
+    ResetActive();
     memset(channels, 0, sizeof(channels));
     memset(sobjs, 0, sizeof(sobjs));
 }
@@ -133,6 +167,53 @@ static int S_AdjustSoundParams(const mobj_t *listener, const mobj_t *source,
     return I_AdjustSoundParams(listener, source, params);
 }
 
+static void LimitChannelsPerSfx(const mobj_t *origin, const sfxinfo_t *sfxinfo,
+                                int priority, int *cnum)
+{
+    if (max_channels_per_sfx < 1 || *cnum != snd_channels || !origin)
+    {
+        return;
+    }
+
+    int lowestpriority = -1;
+    int lpcnum = -1;
+    int num_channels = 0;
+
+    for (int i = 0; i < snd_channels; i++)
+    {
+        const channel_t *c = &channels[i];
+        const sfxinfo_t *sfx = c->sfxinfo;
+
+        if (sfx && sfxinfo == sfx && c->origin)
+        {
+            // Find the lowest priority channel using the target sound.
+            if (c->priority > lowestpriority)
+            {
+                lowestpriority = c->priority;
+                lpcnum = i;
+            }
+
+            // Find the number of channels using the target sound.
+            num_channels++;
+        }
+    }
+
+    if (num_channels >= max_channels_per_sfx)
+    {
+        if (priority > lowestpriority)
+        {
+            // The other channels have higher priority.
+            *cnum = -1;
+        }
+        else
+        {
+            // Stop the lowest priority channel.
+            S_StopChannel(lpcnum);
+            *cnum = lpcnum;
+        }
+    }
+}
+
 //
 // S_getChannel :
 //
@@ -140,7 +221,8 @@ static int S_AdjustSoundParams(const mobj_t *listener, const mobj_t *source,
 //   haleyjd 09/27/06: fixed priority/singularity bugs
 //   Note that a higher priority number means lower priority!
 //
-static int S_getChannel(const mobj_t *origin, int priority, int singularity)
+static int S_getChannel(const mobj_t *origin, const sfxinfo_t *sfxinfo,
+                        int priority, int singularity)
 {
     // channel number to use
     int cnum;
@@ -163,6 +245,8 @@ static int S_getChannel(const mobj_t *origin, int priority, int singularity)
             break;
         }
     }
+
+    LimitChannelsPerSfx(origin, sfxinfo, priority, &cnum);
 
     // Find an open channel
     if (cnum == snd_channels)
@@ -201,11 +285,58 @@ static int S_getChannel(const mobj_t *origin, int priority, int singularity)
 #ifdef RANGECHECK
     if (cnum >= snd_channels)
     {
-        I_Error("S_getChannel: handle %d out of range\n", cnum);
+        I_Error("handle %d out of range\n", cnum);
     }
 #endif
 
     return cnum;
+}
+
+static void LimitVolumePerSfx(void)
+{
+    if (max_volume_per_sfx < 1)
+    {
+        return;
+    }
+
+    for (int cnum = 0; cnum < snd_channels; cnum++)
+    {
+        channel_t *c = &channels[cnum];
+        sfxinfo_t *sfx = c->sfxinfo;
+
+        if (sfx)
+        {
+            sfx->active.volume = 0;
+        }
+    }
+
+    // Find channels using the same sound and add up the total volume.
+    for (int cnum = 0; cnum < snd_channels; cnum++)
+    {
+        channel_t *c = &channels[cnum];
+        sfxinfo_t *sfx = c->sfxinfo;
+
+        if (sfx && sfx->active.count > 1 && c->origin)
+        {
+            sfx->active.volume += c->volume;
+        }
+    }
+
+    // If the total volume of a sound is too loud, reduce the volume of each
+    // channel playing that sound.
+    for (int cnum = 0; cnum < snd_channels; cnum++)
+    {
+        channel_t *c = &channels[cnum];
+        sfxinfo_t *sfx = c->sfxinfo;
+
+        if (sfx && sfx->active.volume > max_volume_per_sfx)
+        {
+            const float gain = (float)c->volume * max_volume_per_sfx
+                               / (127 * sfx->active.volume);
+
+            I_SetGain(c->handle, gain);
+        }
+    }
 }
 
 static void StartSound(const mobj_t *origin, int sfx_id,
@@ -278,7 +409,7 @@ static void StartSound(const mobj_t *origin, int sfx_id,
     }
 
     // try to find a channel
-    if ((cnum = S_getChannel(origin, params.priority, singularity)) < 0)
+    if ((cnum = S_getChannel(origin, sfx, params.priority, singularity)) < 0)
     {
         return;
     }
@@ -286,7 +417,7 @@ static void StartSound(const mobj_t *origin, int sfx_id,
 #ifdef RANGECHECK
     if (cnum < 0 || cnum >= snd_channels)
     {
-        I_Error("S_StartSfxInfo: handle %d out of range\n", cnum);
+        I_Error("handle %d out of range\n", cnum);
     }
 #endif
 
@@ -311,6 +442,9 @@ static void StartSound(const mobj_t *origin, int sfx_id,
         channels[cnum].o_priority = o_priority;    // original priority
         channels[cnum].priority = params.priority; // scaled priority
         channels[cnum].singularity = singularity;
+        channels[cnum].volume = params.volume;
+        channels[cnum].sfxinfo->active.count++;
+        LimitVolumePerSfx();
 
         if (rumble_type != RUMBLE_NONE)
         {
@@ -614,6 +748,7 @@ void S_UpdateSounds(const mobj_t *listener)
                     {
                         I_UpdateSoundParams(c->handle, &params);
                         c->priority = params.priority; // haleyjd
+                        c->volume = params.volume;
                     }
                     else
                     {
@@ -631,6 +766,7 @@ void S_UpdateSounds(const mobj_t *listener)
         }
     }
 
+    LimitVolumePerSfx();
     I_ProcessSoundUpdates();
     I_UpdateRumble();
 }
@@ -1083,6 +1219,8 @@ static void InitFinalDoomMusic()
 
 void S_Init(int sfxVolume, int musicVolume)
 {
+    ResetActive();
+
     // jff 1/22/98 skip sound init if sound not enabled
     if (!nosfxparm)
     {

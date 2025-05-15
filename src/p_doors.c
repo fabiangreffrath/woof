@@ -24,6 +24,7 @@
 #include "doomdef.h"
 #include "doomstat.h"
 #include "doomtype.h"
+#include "i_printf.h"
 #include "m_fixed.h"
 #include "p_mobj.h"
 #include "p_spec.h"
@@ -461,49 +462,83 @@ int EV_VerticalDoor(line_t *line, mobj_t *thing)
   // if door already has a thinker, use it
   door = sec->ceilingdata; //jff 2/22/98
 
-  // [FG] DR doors corrupt other actions
-  // http://prboom.sourceforge.net/mbf-bugs.html
+  /* cph 2001/04/05 -
+   * Ok, this is a disaster area. We're assuming that sec->ceilingdata
+   *  is a vldoor_t! What if this door is controlled by both DR lines
+   *  and by switches? I don't know how to fix that.
+   * Secondly, original Doom didn't distinguish floor/lighting/ceiling
+   *  actions, so we need to do the same in demo compatibility mode.
+   */
   if (demo_compatibility)
   {
-    if (!door) door = sec->floordata;
-    if (!door) door = sec->lightingdata;
-  }
-
-  if (door)      //jff 2/22/98
+    if (!door)
     {
-      switch(line->special)
-        {
-        case  1: // only for "raise" doors, not "open"s
-        case  26:
-        case  27:
-        case  28:
-        case  117:
-          if (door->direction == -1)
-            door->direction = 1;  // go back up
-          else
-            {
-              if (!thing->player)
-                return 0;           // JDC: bad guys never close doors
-
-              // [FG] DR doors corrupt other actions
-              // http://prboom.sourceforge.net/mbf-bugs.html
-              if (door->thinker.function.p1 == (actionf_p1)T_VerticalDoor || !demo_compatibility)
-              {
-              door->direction = -1; // start going down immediately
-              }
-              else if (door->thinker.function.p1 == (actionf_p1)T_PlatRaise)
-              {
-                plat_t *plat = (plat_t *) door;
-                plat->wait = -1;
-              }
-              else
-              {
-                door->direction = -1;
-              }
-            }
-          return 1;
-        }
+      door = sec->floordata;
     }
+  }
+  /* If this is a repeatable line, and the door is already moving, then we can
+   * just reverse the current action. Note that in prboom 2.3.0 I erroneously
+   * removed the if-this-is-repeatable check, hence the prboom_4_compatibility
+   * clause below (foolishly assumed that already moving implies repeatable -
+   * but it could be moving due to another switch, e.g. lv19-509) */
+  if (door
+      && ((line->special == 1) || (line->special == 117)
+          || (line->special == 26) || (line->special == 27)
+          || (line->special == 28)))
+  {
+    /* For old demos we have to emulate the old buggy behavior and
+     * mess up non-T_VerticalDoor actions.
+     */
+    if (demo_version < DV_MBF21
+        || door->thinker.function.p1 == (actionf_p1)T_VerticalDoor)
+    {
+      /* cph - we are writing outval to door->direction iff it is non-zero */
+      signed int outval = 0;
+
+      /* An already moving repeatable door which is being re-pressed, or a
+       * monster is trying to open a closing door - so change direction
+       * DEMOSYNC: we only read door->direction now if it really is a door.
+       */
+      if (door->thinker.function.p1 == (actionf_p1)T_VerticalDoor
+          && door->direction == -1)
+      {
+        outval = 1; /* go back up */
+      }
+      else if (player)
+      {
+        outval = -1; /* go back down */
+      }
+
+      /* Write this to the thinker. In demo compatibility mode, we might be
+       *  overwriting a field of a non-vldoor_t thinker - we need to add any
+       *  other thinker types here if any demos depend on specific fields
+       *  being corrupted by this.
+       */
+      if (outval)
+      {
+        if (door->thinker.function.p1 == (actionf_p1)T_VerticalDoor)
+        {
+          door->direction = outval;
+        }
+        else if (door->thinker.function.p1 == (actionf_p1)T_PlatRaise)
+        {
+          plat_t *p = (plat_t *)door;
+          p->wait = outval;
+        }
+        else
+        {
+          I_Printf(VB_WARNING, "EV_VerticalDoor: unknown thinker.function in "
+                               "thinker corruption emulation");
+        }
+
+        return 1;
+      }
+    }
+    /* It's a door but we're a monster and don't want to shut it;
+     * exit with no action.
+     */
+    return 0;
+  }
 
   // emit proper sound
   switch(line->special)

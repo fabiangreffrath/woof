@@ -1235,7 +1235,7 @@ static void P_HitSlideLine(line_t *ld)
       if (deltaangle > ANG180)
 	deltaangle += ANG180;
 
-      //  I_Error ("SlideLine: ang>ANG180");
+      //  I_Error ("ang>ANG180");
 
       lineangle >>= ANGLETOFINESHIFT;
       deltaangle >>= ANGLETOFINESHIFT;
@@ -1256,7 +1256,7 @@ static boolean PTR_SlideTraverse(intercept_t *in)
 
 #ifdef RANGECHECK
   if (!in->isaline)
-    I_Error ("PTR_SlideTraverse: not a line?");
+    I_Error ("not a line?");
 #endif
 
   li = in->d.line;
@@ -2438,7 +2438,7 @@ void P_CreateSecNodeList(mobj_t *thing,fixed_t x,fixed_t y)
 void P_MapStart(void)
 {
   if (tmthing)
-    I_Error("P_MapStart: tmthing set!");
+    I_Error("tmthing set!");
 }
 
 void P_MapEnd(void)

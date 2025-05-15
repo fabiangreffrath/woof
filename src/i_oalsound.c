@@ -52,7 +52,6 @@
 #define VOL_TO_GAIN(x)          ((ALfloat)(x) / 127)
 
 static int snd_resampler;
-static boolean snd_limiter;
 static boolean snd_hrtf;
 static int snd_absorption;
 static int snd_doppler;
@@ -445,7 +444,6 @@ void I_OAL_BindSoundVariables(void)
         "[OpenAL 3D] Air absorption effect (0 = Off; 10 = Max)");
     BIND_NUM_SFX(snd_doppler, 0, 0, 10,
         "[OpenAL 3D] Doppler effect (0 = Off; 10 = Max)");
-    BIND_BOOL_SFX(snd_limiter, false, "Use sound output limiter");
 }
 
 boolean I_OAL_InitSound(int snd_module)
@@ -786,6 +784,16 @@ boolean I_OAL_SoundIsPaused(int channel)
     alGetSourcei(oal->sources[channel], AL_SOURCE_STATE, &state);
 
     return (state == AL_PAUSED);
+}
+
+void I_OAL_SetGain(int channel, float gain)
+{
+    if (!oal)
+    {
+        return;
+    }
+
+    alSourcef(oal->sources[channel], AL_GAIN, (ALfloat)gain);
 }
 
 void I_OAL_SetVolume(int channel, int volume)

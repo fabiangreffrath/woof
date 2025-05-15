@@ -63,6 +63,7 @@ If you turn the [Doom logo upside down](https://www.reddit.com/r/Doom/comments/8
 
 ## Usage
 
+ * [Getting Started](https://github.com/fabiangreffrath/woof/wiki/Getting-Started)
  * [Cheat Codes](https://github.com/fabiangreffrath/woof/wiki/Cheats)
  * [Command Line Parameters](https://github.com/fabiangreffrath/woof/wiki/Command-Line-Parameters)
 

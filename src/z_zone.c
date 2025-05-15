@@ -58,7 +58,7 @@ void *Z_Malloc(size_t size, pu_tag tag, void **user)
   memblock_t *block = NULL;
 
   if (tag == PU_CACHE && !user)
-    I_Error ("Z_Malloc: An owner is required for purgable blocks");
+    I_Error ("An owner is required for purgable blocks");
 
   if (!size)
     return user ? *user = NULL : NULL;           // malloc(0) returns NULL
@@ -66,7 +66,7 @@ void *Z_Malloc(size_t size, pu_tag tag, void **user)
   while (!(block = malloc(size + HEADER_SIZE)))
   {
     if (!blockbytag[PU_CACHE])
-      I_Error ("Z_Malloc: Failure trying to allocate %lu bytes", (unsigned long) size);
+      I_Error ("Failure trying to allocate %lu bytes", (unsigned long) size);
     Z_FreeTag(PU_CACHE);
   }
 
@@ -104,7 +104,7 @@ void Z_Free(void *p)
   block = (memblock_t *)((char *) p - HEADER_SIZE);
 
   if (block->id != ZONEID)
-    I_Error("Z_Free: freed a pointer without ZONEID");
+    I_Error("freed a pointer without ZONEID");
   block->id = 0;              // Nullify id so another free fails
 
   if (block->user)            // Nullify user if one exists
@@ -126,7 +126,7 @@ void Z_FreeTag(pu_tag tag)
   memblock_t *block, *end_block;
 
   if (tag < 0 || tag >= PU_MAX)
-    I_Error("Z_FreeTag: Tag %i does not exist", tag);
+    I_Error("Tag %i does not exist", tag);
 
   block = blockbytag[tag];
   if (!block)
@@ -155,10 +155,10 @@ void Z_ChangeTag(void *ptr, pu_tag tag)
     return;
 
   if (block->id != ZONEID)
-    I_Error ("Z_ChangeTag: freed a pointer without ZONEID");
+    I_Error ("freed a pointer without ZONEID");
 
   if (tag == PU_CACHE && !block->user)
-    I_Error ("Z_ChangeTag: an owner is required for purgable blocks\n");
+    I_Error ("an owner is required for purgable blocks\n");
 
   if (block == block->next)
     blockbytag[block->tag] = NULL;

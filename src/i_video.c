@@ -915,7 +915,7 @@ void I_FinishUpdate(void)
 // I_ReadScreen
 //
 
-void I_ReadScreen(byte *dst)
+void I_ReadScreen(pixel_t *dst)
 {
     V_GetBlock(0, 0, video.width, video.height, dst);
 }
@@ -1104,7 +1104,7 @@ boolean I_WritePNGfile(char *filename)
     // [FG] allocate memory for screenshot image
     int pitch = rect.w * 3;
     int size = rect.h * pitch;
-    byte *pixels = malloc(size);
+    pixel_t *pixels = malloc(size);
 
     SDL_RenderReadPixels(renderer, &rect, SDL_PIXELFORMAT_RGB24, pixels, pitch);
 

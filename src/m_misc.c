@@ -71,7 +71,7 @@ int M_FileLength(const char *path)
 
     if (M_stat(path, &st) == -1)
     {
-        I_Error("M_FileLength: stat error %s", strerror(errno));
+        I_Error("stat error %s", strerror(errno));
     }
 
     return st.st_size;
@@ -378,7 +378,7 @@ char *M_StringReplace(const char *haystack, const char *needle,
     result = malloc(result_len);
     if (result == NULL)
     {
-        I_Error("M_StringReplace: Failed to allocate new string");
+        I_Error("Failed to allocate new string");
         return NULL;
     }
 
@@ -483,7 +483,7 @@ char *M_StringJoinInternal(const char *s[], size_t n)
     {
         if (s[i] == NULL)
         {
-            I_Error("M_StringJoin: %d argument is NULL", i);
+            I_Error("%d argument is NULL", i);
         }
 
         length += strlen(s[i]);
@@ -493,7 +493,7 @@ char *M_StringJoinInternal(const char *s[], size_t n)
 
     if (result == NULL)
     {
-        I_Error("M_StringJoin: Failed to allocate new string");
+        I_Error("Failed to allocate new string");
     }
 
     M_StringCopy(result, s[0], length);

@@ -57,7 +57,7 @@ static wchar_t *ConvertMultiByteToWide(const char *str, UINT code_page)
 
     if (!wstr)
     {
-        I_Error("ConvertUtf8ToWide: Failed to allocate new string");
+        I_Error("Failed to allocate new string");
         return NULL;
     }
 
@@ -92,7 +92,7 @@ static char *ConvertWideToMultiByte(const wchar_t *wstr, UINT code_page)
 
     if (!str)
     {
-        I_Error("ConvertWideToMultiByte: Failed to allocate new string");
+        I_Error("Failed to allocate new string");
         return NULL;
     }
 

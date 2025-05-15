@@ -42,6 +42,12 @@ typedef struct sfxrumble_s
   int ticlength;  // Array size equal to sound duration in tics.
 } sfxrumble_t;
 
+typedef struct sfxactive_s
+{
+  int count;      // Number of active channels using this sound.
+  int volume;     // Volume of active channels using this sound.
+} sfxactive_t;
+
 typedef struct sfxinfo_s
 {
   // up to 6-character name
@@ -74,6 +80,8 @@ typedef struct sfxinfo_s
   boolean cached;
 
   sfxrumble_t rumble;
+
+  sfxactive_t active;
 
 } sfxinfo_t;
 

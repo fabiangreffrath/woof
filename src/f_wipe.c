@@ -43,9 +43,9 @@ static int wipe_columns;
 // SCREEN WIPE PACKAGE
 //
 
-static byte *wipe_scr_start;
-static byte *wipe_scr_end;
-static byte *wipe_scr;
+static pixel_t *wipe_scr_start;
+static pixel_t *wipe_scr_end;
+static pixel_t *wipe_scr;
 
 // [FG] cross-fading screen wipe implementation
 
@@ -67,9 +67,9 @@ static int wipe_doColorXForm(int width, int height, int ticks)
 
     for (int y = 0; y < height; y++)
     {
-        byte *sta = wipe_scr_start + y * width;
-        byte *end = wipe_scr_end + y * width;
-        byte *dst = wipe_scr + y * video.pitch;
+        pixel_t *sta = wipe_scr_start + y * width;
+        pixel_t *end = wipe_scr_end + y * width;
+        pixel_t *dst = wipe_scr + y * video.pitch;
 
         for (int x = 0; x < width; x++)
         {
@@ -399,8 +399,8 @@ static int wipe_doFizzle(int width, int height, int ticks)
         vrect_t rect = {x, y, 1, 1};
         V_ScaleRect(&rect);
 
-        byte *src = wipe_scr_end + rect.sy * width + rect.sx;
-        byte *dest = wipe_scr + rect.sy * video.pitch + rect.sx;
+        pixel_t *src = wipe_scr_end + rect.sy * width + rect.sx;
+        pixel_t *dest = wipe_scr + rect.sy * video.pitch + rect.sx;
 
         while (rect.sh--)
         {
