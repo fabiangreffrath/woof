@@ -87,7 +87,7 @@ void I_ErrorMsg()
         SDL_ShowSimpleMessageBox(exit_code == 0 ?
                                  SDL_MESSAGEBOX_INFORMATION :
                                  SDL_MESSAGEBOX_ERROR,
-                                 PROJECT_STRING, errmsg, NULL);
+                                 PROJECT_STRING ": Error message (this is not a \"crash\")", errmsg, NULL);
     }
 }
 
