@@ -47,7 +47,8 @@ ticcmd_t *I_BaseTiccmd(void)
 static char errmsg[2048];    // buffer of error message -- killough
 static int exit_code;
 
-void I_ErrorOrSuccess(int err_code, const char *prefix, const char *error, ...) // killough 3/20/98: add const
+void I_ErrorOrSuccess(int err_code, const char *prefix, const char *error,
+                      ...) // killough 3/20/98: add const
 {
     size_t len = sizeof(errmsg) - strlen(errmsg) - 1; // [FG] for '\n'
     char *curmsg = errmsg + strlen(errmsg);
@@ -69,7 +70,9 @@ void I_ErrorOrSuccess(int err_code, const char *prefix, const char *error, ...) 
     strcat(curmsg, "\n");
 
     if (exit_code == 0 && err_code != 0)
+    {
         exit_code = err_code;
+    }
 
     I_SafeExit(exit_code);
 }
@@ -78,7 +81,8 @@ void I_ErrorMsg()
 {
     const char note[] = "\nNote: This is an error message and not a \"crash\"!";
 
-    if (exit_code != 0 && sizeof(errmsg) - strlen(errmsg) > strlen(note))
+    if (*errmsg && exit_code != 0
+        && sizeof(errmsg) - strlen(errmsg) > strlen(note))
     {
         strcat(errmsg, note);
     }
@@ -91,9 +95,8 @@ void I_ErrorMsg()
 
     if (*errmsg && !M_CheckParm("-nogui") && !I_ConsoleStdout())
     {
-        SDL_ShowSimpleMessageBox(exit_code == 0 ?
-                                 SDL_MESSAGEBOX_INFORMATION :
-                                 SDL_MESSAGEBOX_ERROR,
+        SDL_ShowSimpleMessageBox(exit_code == 0 ? SDL_MESSAGEBOX_INFORMATION
+                                                : SDL_MESSAGEBOX_ERROR,
                                  PROJECT_STRING, errmsg, NULL);
     }
 }
