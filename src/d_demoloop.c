@@ -25,8 +25,13 @@
 #include "m_array.h"
 #include "m_json.h"
 #include "m_misc.h"
+#include "sounds.h"
 
 #include "d_demoloop.h"
+
+// Support for DeHackEd Text substitution, fixes PL2.WAD
+#define DEH_MUSIC_LUMP(buffer, mus_id) \
+            M_snprintf(buffer, sizeof buffer, "d_%s", S_music[mus_id].name);
 
 // Doom
 static demoloop_entry_t demoloop_registered[] = {
@@ -145,16 +150,23 @@ static void D_GetDefaultDemoLoop(GameMode_t mode)
     {
         case shareware:
         case registered:
+            DEH_MUSIC_LUMP(demoloop_registered[0].secondary_lump, mus_intro)
+
             demoloop = demoloop_registered;
             demoloop_count = arrlen(demoloop_registered);
             break;
 
         case retail:
+            DEH_MUSIC_LUMP(demoloop_retail[0].secondary_lump, mus_intro)
+
             demoloop = demoloop_retail;
             demoloop_count = arrlen(demoloop_retail);
             break;
 
         case commercial:
+            DEH_MUSIC_LUMP(demoloop_commercial[0].secondary_lump, mus_dm2ttl)
+            DEH_MUSIC_LUMP(demoloop_commercial[4].secondary_lump, mus_dm2ttl)
+
             demoloop = demoloop_commercial;
             demoloop_count = arrlen(demoloop_commercial);
             break;
