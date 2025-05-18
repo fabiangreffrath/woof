@@ -333,6 +333,8 @@ typedef enum
 {
   trigChangeOnly,
   numChangeOnly,
+  trigChangeOnlyCeiling,
+  numChangeOnlyCeiling,
 } change_e;
 
 // p_plats

@@ -3575,6 +3575,8 @@ demo_version_t G_GetNamedComplevel(const char *arg)
         {"21",       DV_MBF21,   exe_indetermined},
         {"id24",     DV_ID24,    exe_indetermined},
         {"24",       DV_ID24,    exe_indetermined},
+        {"mbf2y",    DV_MBF2Y,   exe_indetermined},
+        {"2y",       DV_MBF2Y,   exe_indetermined},
     };
 
     for (int i = 0; i < arrlen(named_complevel); i++)
@@ -3603,6 +3605,7 @@ static struct
     {DV_MBF,     CL_MBF    },
     {DV_MBF21,   CL_MBF21  },
     {DV_ID24,    CL_ID24   },
+    {DV_MBF2Y,   CL_MBF2Y  },
 };
 
 static complevel_t GetComplevel(demo_version_t demover)
@@ -3645,6 +3648,8 @@ const char *G_GetCurrentComplevelName(void)
             return "MBF21";
         case DV_ID24:
             return "ID24";
+        case DV_MBF2Y:
+            return "MBF2Y";
         default:
             return "Unknown";
     }
@@ -3713,6 +3718,10 @@ static demo_version_t GetWadDemover(void)
     else if (length == 4 && !strncasecmp("id24", data, 4))
     {
         return DV_ID24;
+    }
+    else if (length == 5 && !strncasecmp("mbf2y", data, 5))
+    {
+        return DV_MBF2Y;
     }
 
     return DV_NONE;
