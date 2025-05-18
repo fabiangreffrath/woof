@@ -52,7 +52,11 @@ jobs:
             libebur128-dev \
             libsndfile1-dev \
             libfluidsynth-dev \
-            libxmp-dev
+            libxmp-dev \
+            libavcodec-dev \
+            libavformat-dev \
+            libavutil-dev \
+            libswscale-dev
 
       - name: Install dependencies (macOS)
         if: runner.os == 'macOS'
@@ -66,7 +70,8 @@ jobs:
             libsndfile \
             fluid-synth \
             libxmp \
-            yyjson
+            yyjson \
+            ffmpeg
 
       - name: Install dependencies (MSYS2)
         if: matrix.config.shell == 'msys2 {0}'
@@ -87,6 +92,7 @@ jobs:
             ${{ matrix.config.msys-env }}-libsndfile
             ${{ matrix.config.msys-env }}-fluidsynth
             ${{ matrix.config.msys-env }}-libxmp
+            ${{ matrix.config.msys-env }}-ffmpeg
 
       - uses: actions/checkout@v4
 
@@ -145,7 +151,11 @@ jobs:
             libebur128-dev \
             libsndfile1-dev \
             libfluidsynth-dev \
-            libxmp-dev
+            libxmp-dev \
+            libavcodec-dev \
+            libavformat-dev \
+            libavutil-dev \
+            libswscale-dev
 
       - uses: actions/checkout@v4
 

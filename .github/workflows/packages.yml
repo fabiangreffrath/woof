@@ -60,7 +60,7 @@ jobs:
         run: |
           sudo sed -i 's/# deb-src/deb-src/' /etc/apt/sources.list
           sudo apt-get update
-          sudo apt-get install ninja-build
+          sudo apt-get install ninja-build nasm
           sudo apt-get build-dep libsdl2-dev
 
       - name: Developer Command Prompt
