@@ -35,6 +35,7 @@ set(WOOF_SOURCES
     hu_obituary.c          hu_obituary.h
     i_3dsound.c
     i_endoom.c             i_endoom.h
+    i_ffmpeg.c             i_ffmpeg.h
     i_flickstick.c         i_flickstick.h
     i_gamepad.c            i_gamepad.h
     i_glob.c               i_glob.h
@@ -194,6 +195,10 @@ target_link_libraries(woof PRIVATE
     OpenAL::OpenAL
     libebur128::libebur128
     SndFile::sndfile
+    FFMPEG::avcodec
+    FFMPEG::avformat
+    FFMPEG::avutil
+    FFMPEG::swscale
     yyjson::yyjson
     opl
     pffft

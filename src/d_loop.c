@@ -23,6 +23,7 @@
 #include "d_ticcmd.h"
 #include "doomdef.h"
 #include "doomstat.h"
+#include "i_ffmpeg.h"
 #include "i_printf.h"
 #include "i_system.h"
 #include "i_timer.h"
@@ -888,4 +889,6 @@ void TryRunTics(void)
 
     // killough 3/16/98: change consoleplayer to displayplayer
     S_UpdateSounds(players[displayplayer].mo); // move positional sounds
+
+    I_MPG_EncodeAudio();
 }
