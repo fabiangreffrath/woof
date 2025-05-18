@@ -91,7 +91,6 @@ jobs:
           ${{ matrix.config.extra-options }}
 
       - name: Build
-        continue-on-error: true
         run: cmake --build build --config "Release"
 
       # Delete the old cache on hit to emulate a cache update.
@@ -106,13 +105,6 @@ jobs:
         with:
           path: ${{ github.workspace }}/vcpkg_cache
           key: ${{ env.CACHE_KEY }}
-
-      - name: Upload cache
-        if: matrix.config.triplet == 'x64-windows-static-release'
-        uses: actions/upload-artifact@v4
-        with:
-          name: ${{ env.CACHE_KEY }}
-          path: ${{ github.workspace }}/vcpkg_cache
 
       - name: Test
         if: github.event_name == 'workflow_dispatch'

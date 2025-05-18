@@ -195,10 +195,6 @@ target_link_libraries(woof PRIVATE
     OpenAL::OpenAL
     libebur128::libebur128
     SndFile::sndfile
-    FFMPEG::avcodec
-    FFMPEG::avformat
-    FFMPEG::avutil
-    FFMPEG::swscale
     yyjson::yyjson
     opl
     pffft
@@ -243,6 +239,12 @@ endif()
 if(libxmp_FOUND)
     target_sources(woof PRIVATE i_xmp.c)
     target_link_libraries(woof PRIVATE libxmp::xmp)
+endif()
+
+if(HAVE_FFMPEG)
+    target_include_directories(woof PRIVATE ${FFMPEG_INCLUDE_DIRS})
+    target_link_directories(woof PRIVATE ${FFMPEG_LIBRARY_DIRS})
+    target_link_libraries(woof PRIVATE ${FFMPEG_LIBRARIES})
 endif()
 
 # Optional features.

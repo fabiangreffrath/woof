@@ -3,9 +3,6 @@ include(CheckIncludeFile)
 include(CheckSymbolExists)
 include(CheckCSourceCompiles)
 
-# Adds the cmake directory to the CMake include path.
-list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
-
 # X_VCPKG_APPLOCAL_DEPS_INSTALL automatically installs dependencies.
 set(X_VCPKG_APPLOCAL_DEPS_INSTALL ON)
 
@@ -91,6 +88,13 @@ option(CMAKE_FIND_PACKAGE_PREFER_CONFIG
 
 set(CMAKE_FIND_FRAMEWORK NEVER)
 
+if(VCPKG_TOOLCHAIN)
+    find_package(FFMPEG)
+endif()
+
+# Adds the cmake directory to the CMake include path.
+list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
+
 # Library requirements.
 find_package(SDL2 2.0.18 REQUIRED)
 find_package(SDL2_net REQUIRED)
@@ -100,7 +104,6 @@ find_package(SndFile 1.0.29 REQUIRED)
 if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
     find_package(ALSA REQUIRED)
 endif()
-find_package(FFMPEG COMPONENTS avcodec avformat avutil swscale)
 
 if(ALSA_FOUND)
     set(HAVE_ALSA TRUE)
@@ -121,6 +124,16 @@ endif()
 find_package(yyjson)
 find_package(FluidSynth)
 find_package(libxmp)
+
+if(FFMPEG_FOUND)
+    set(HAVE_FFMPEG TRUE)
+else()
+    find_package(FFMPEG COMPONENTS avcodec avformat avutil swscale)
+    if(FFMPEG_avcodec_FOUND AND FFMPEG_avformat_FOUND AND FFMPEG_avutil_FOUND 
+       AND FFMPEG_swscale_FOUND)
+        set(HAVE_FFMPEG TRUE)
+    endif()
+endif()
 
 if(FluidSynth_FOUND)
     set(HAVE_FLUIDSYNTH TRUE)

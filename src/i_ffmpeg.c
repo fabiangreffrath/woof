@@ -1,5 +1,9 @@
 
 #include "doomtype.h"
+#include "SDL_pixels.h"
+
+#ifdef HAVE_FFMPEG
+
 #include "doomdef.h"
 #include "i_oalsound.h"
 #include "i_printf.h"
@@ -13,14 +17,12 @@
 #include "libavutil/opt.h"
 #include "libswscale/swscale.h"
 
-#include "SDL_pixels.h"
-
 #define VIDEO_CODEC_ID       AV_CODEC_ID_H264
 #define AUDIO_CODEC_ID       AV_CODEC_ID_MP2
 #define OUTPUT_FILENAME      "output.mp4"
 #define VIDEO_BITRATE        4000000
 #define AUDIO_BITRATE        128000
-#define VIDEO_FRAMERATE      60
+#define VIDEO_FRAMERATE      35
 #define AUDIO_SAMPLE_RATE    44100
 #define AUDIO_CHANNEL_LAYOUT AV_CH_LAYOUT_STEREO
 
@@ -181,7 +183,7 @@ static int WriteFrame(AVFormatContext *fmt_ctx, AVCodecContext *enc_ctx,
     return ret;
 }
 
-void I_MPG_Flush(void)
+static void Flush(void)
 {
     if (!ffmpeg_initialized)
     {
@@ -202,9 +204,9 @@ void I_MPG_Flush(void)
     av_write_trailer(fmt_ctx);
 }
 
-void I_MPG_Shutdown(void)
+static void Shutdown(void)
 {
-    I_MPG_Flush();
+    Flush();
     av_packet_free(&packet);
     av_frame_free(&yuv_frame);
     av_frame_free(&pal_frame);
@@ -221,7 +223,7 @@ void I_MPG_Shutdown(void)
 
 void I_MPG_Init(void)
 {
-    I_AtExit(I_MPG_Shutdown, true);
+    I_AtExit(Shutdown, true);
 
     // Allocate format context
     avformat_alloc_output_context2(&fmt_ctx, NULL, NULL, OUTPUT_FILENAME);
@@ -327,3 +329,27 @@ void I_MPG_EncodeAudio(void)
         }
     }
 }
+
+#else
+
+void I_MPG_Init(void)
+{
+    ;
+}
+
+void I_MPG_EncodeVideo(const pixel_t *frame)
+{
+    ;
+}
+
+void I_MPG_SetPalette(SDL_Color *palette)
+{
+    ;
+}
+
+void I_MPG_EncodeAudio(void)
+{
+    ;
+}
+
+#endif
