@@ -295,6 +295,7 @@ static const struct
     {KEYP_MINUS,     "num-"      },
     {KEYP_MULTIPLY,  "num*"      },
     {KEYP_PERIOD,    "num."      },
+    {KEYP_BACKSLASH, "num\\"     },
 };
 
 #define JOYB_LEN 16
