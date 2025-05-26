@@ -87,6 +87,8 @@ void S_StartSoundOrigin(const struct mobj_s *source,
 // Stop sound for thing at <origin>
 void S_StopSound(const struct mobj_s *origin);
 
+void S_StopAmbientSounds(void);
+
 // [FG] play sounds in full length
 extern boolean full_sounds;
 // [FG] removed map objects may finish their sounds

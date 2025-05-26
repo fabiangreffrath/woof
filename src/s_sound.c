@@ -603,6 +603,22 @@ void S_StopSound(const mobj_t *origin)
     }
 }
 
+void S_StopAmbientSounds(void)
+{
+    if (nosfxparm)
+    {
+        return;
+    }
+
+    for (int cnum = 0; cnum < snd_channels; cnum++)
+    {
+        if (channels[cnum].sfxinfo && channels[cnum].sfxinfo->ambient)
+        {
+            S_StopChannel(cnum);
+        }
+    }
+}
+
 // [FG] play sounds in full length
 boolean full_sounds;
 

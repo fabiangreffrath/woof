@@ -483,6 +483,8 @@ void D_AdvanceDemoLoop(void)
 
 void D_DoAdvanceDemo(void)
 {
+    S_StopAmbientSounds();
+
     players[consoleplayer].playerstate = PST_LIVE; // not reborn
     advancedemo = false;
     usergame = false; // no save / end game here
