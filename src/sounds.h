@@ -77,6 +77,9 @@ typedef struct sfxinfo_s
   // lump number of sfx
   int lumpnum;
 
+  // Is this a looping sound?
+  boolean looping;
+
   boolean cached;
 
   sfxrumble_t rumble;

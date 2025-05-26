@@ -706,9 +706,9 @@ boolean I_OAL_StartSound(int channel, sfxinfo_t *sfx, float pitch)
         return false;
     }
 
-    alSourcef(oal->sources[channel], AL_PITCH, pitch);
-
     alSourcei(oal->sources[channel], AL_BUFFER, sfx->buffer);
+    alSourcei(oal->sources[channel], AL_LOOPING, sfx->looping);
+    alSourcef(oal->sources[channel], AL_PITCH, pitch);
 
     alGetError();
     alSourcePlay(oal->sources[channel]);
