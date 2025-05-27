@@ -18,7 +18,6 @@
 //
 //-----------------------------------------------------------------------------
 
-#include <math.h>
 #include <string.h>
 
 #include "i_sound.h"
@@ -81,12 +80,6 @@ typedef struct
 } channel_info_t;
 
 static channel_info_t channelinfo[MAX_CHANNELS];
-
-// [FG] variable pitch bend range
-static int pitch_bend_range;
-
-// Pitch to stepping lookup.
-static float steptable[256];
 
 boolean snd_limiter;
 int snd_channels_per_sfx;
@@ -215,19 +208,11 @@ void I_SetGain(int channel, float gain)
 void I_SetChannels(void)
 {
     int i;
-    const double base = pitch_bend_range / 100.0;
 
     // Okay, reset internal mixing channels to zero.
     for (i = 0; i < MAX_CHANNELS; i++)
     {
         memset(&channelinfo[i], 0, sizeof(channel_info_t));
-    }
-
-    // This table provides step widths for pitch parameters.
-    for (i = 0; i < arrlen(steptable); i++)
-    {
-        // [FG] variable pitch bend range
-        steptable[i] = pow(base, (double)(2 * (i - NORM_PITCH)) / NORM_PITCH);
     }
 }
 
@@ -281,7 +266,7 @@ int I_GetSfxLumpNum(sfxinfo_t *sfx)
 // active sounds, which is maintained as a given number
 // of internal channels. Returns a free channel.
 //
-int I_StartSound(sfxinfo_t *sfx, sfxparams_t *params, int pitch)
+int I_StartSound(sfxinfo_t *sfx, const sfxparams_t *params)
 {
     int channel;
 
@@ -317,8 +302,6 @@ int I_StartSound(sfxinfo_t *sfx, sfxparams_t *params, int pitch)
     channelinfo[channel].enabled = true;
 
     I_UpdateSoundParams(channel, params);
-
-    params->pitch = (pitch == NORM_PITCH) ? 1.0f : steptable[pitch];
 
     if (sound_module->StartSound(channel, sfx, params) == false)
     {

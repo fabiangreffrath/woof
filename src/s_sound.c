@@ -20,6 +20,7 @@
 // killough 3/7/98: modified to allow arbitrary listeners in spy mode
 // killough 5/2/98: reindented, removed useless code, beautified
 
+#include <math.h>
 #include <string.h>
 
 #include "doomdef.h"
@@ -58,6 +59,9 @@ typedef struct channel_s
 static channel_t channels[MAX_CHANNELS];
 // [FG] removed map objects may finish their sounds
 static mobj_t sobjs[MAX_CHANNELS];
+
+// Pitch to stepping lookup.
+static float steptable[256];
 
 // These are not used, but should be (menu).
 // Maximum volume of a sound effect.
@@ -339,10 +343,35 @@ static void LimitVolumePerSfx(void)
     }
 }
 
+static float GetPitch(pitchrange_t pitch_range)
+{
+    if (pitched_sounds)
+    {
+        int pitch = NORM_PITCH;
+
+        // hacks to vary the sfx pitches
+        if (pitch_range == PITCH_HALF)
+        {
+            pitch += 8 - (M_Random() & 15);
+        }
+        else if (pitch_range == PITCH_FULL)
+        {
+            pitch += 16 - (M_Random() & 31);
+        }
+
+        pitch = BETWEEN(0, 255, pitch);
+        return steptable[pitch];
+    }
+    else
+    {
+        return 1.0f;
+    }
+}
+
 static void StartSound(const mobj_t *origin, int sfx_id,
                        pitchrange_t pitch_range, rumble_type_t rumble_type)
 {
-    int pitch, o_priority, singularity, cnum, handle;
+    int o_priority, singularity, cnum, handle;
     sfxparams_t params;
     sfxinfo_t *sfx;
 
@@ -369,7 +398,6 @@ static void StartSound(const mobj_t *origin, int sfx_id,
     sfx = &S_sfx[sfx_id];
 
     // Initialize sound parameters
-    pitch = NORM_PITCH;
     params.volume_scale = 127;
 
     // haleyjd: modified so that priority value is always used
@@ -383,29 +411,6 @@ static void StartSound(const mobj_t *origin, int sfx_id,
     if (!S_AdjustSoundParams(players[displayplayer].mo, origin, &params))
     {
         return;
-    }
-
-    if (pitched_sounds)
-    {
-        // hacks to vary the sfx pitches
-        if (pitch_range == PITCH_HALF)
-        {
-            pitch += 8 - (M_Random() & 15);
-        }
-        else if (pitch_range == PITCH_FULL)
-        {
-            pitch += 16 - (M_Random() & 31);
-        }
-
-        if (pitch < 0)
-        {
-            pitch = 0;
-        }
-
-        if (pitch > 255)
-        {
-            pitch = 255;
-        }
     }
 
     // try to find a channel
@@ -428,8 +433,10 @@ static void StartSound(const mobj_t *origin, int sfx_id,
         sfx = sfx->link; // sf: skip thru link(s)
     }
 
+    params.pitch = GetPitch(pitch_range);
+
     // Assigns the handle to one of the channels in the mix/output buffer.
-    handle = I_StartSound(sfx, &params, pitch);
+    handle = I_StartSound(sfx, &params);
 
     // haleyjd: check to see if the sound was started
     if (handle >= 0)
@@ -1233,6 +1240,18 @@ static void InitFinalDoomMusic()
     }
 }
 
+static void InitPitchStepTable(void)
+{
+    const double base = pitch_bend_range / 100.0;
+
+    // This table provides step widths for pitch parameters.
+    for (int i = 0; i < arrlen(steptable); i++)
+    {
+        // [FG] variable pitch bend range
+        steptable[i] = pow(base, (double)(2 * (i - NORM_PITCH)) / NORM_PITCH);
+    }
+}
+
 void S_Init(int sfxVolume, int musicVolume)
 {
     ResetActive();
@@ -1242,6 +1261,7 @@ void S_Init(int sfxVolume, int musicVolume)
     {
         // haleyjd
         I_SetChannels();
+        InitPitchStepTable();
 
         S_SetSfxVolume(sfxVolume);
 
