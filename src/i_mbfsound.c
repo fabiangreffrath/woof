@@ -176,6 +176,7 @@ const sound_module_t sound_mbf_module =
     I_MBF_UpdateSoundParams,
     NULL,
     I_OAL_SetGain,
+    I_OAL_GetOffset,
     I_OAL_StartSound,
     I_OAL_StopSound,
     I_OAL_PauseSound,

@@ -198,6 +198,23 @@ void I_SetGain(int channel, float gain)
     sound_module->SetGain(channel, gain);
 }
 
+float I_GetSoundOffset(int channel)
+{
+    if (!snd_init || !sound_module->GetOffset)
+    {
+        return 0.0f;
+    }
+
+#ifdef RANGECHECK
+    if (channel < 0 || channel >= MAX_CHANNELS)
+    {
+        I_Error("I_GetSoundOffset: channel out of range");
+    }
+#endif
+
+    return sound_module->GetOffset(channel);
+}
+
 //
 // I_SetChannels
 //

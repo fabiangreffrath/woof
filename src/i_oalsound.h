@@ -60,6 +60,8 @@ boolean I_OAL_AllowReinitSound(void);
 
 boolean I_OAL_CacheSound(struct sfxinfo_s *sfx);
 
+float I_OAL_GetOffset(int channel);
+
 boolean I_OAL_StartSound(int channel, struct sfxinfo_s *sfx,
                          const struct sfxparams_s *params);
 

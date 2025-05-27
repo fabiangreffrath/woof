@@ -739,6 +739,26 @@ boolean I_OAL_CacheSound(sfxinfo_t *sfx)
     return true;
 }
 
+float I_OAL_GetOffset(int channel)
+{
+    float offset;
+
+    if (!oal)
+    {
+        return 0.0f;
+    }
+
+    alGetError();
+    alGetSourcef(oal->sources[channel], AL_SEC_OFFSET, &offset);
+    if (alGetError() != AL_NO_ERROR)
+    {
+        I_Printf(VB_DEBUG, "I_OAL_GetOffset: Error getting offset.");
+        return 0.0f;
+    }
+
+    return offset;
+}
+
 boolean I_OAL_StartSound(int channel, sfxinfo_t *sfx, const sfxparams_t *params)
 {
     if (!oal)
