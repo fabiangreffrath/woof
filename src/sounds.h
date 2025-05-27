@@ -29,6 +29,7 @@ typedef struct sfxparams_s
   int volume;
   int separation;
   int priority;
+  float pitch;
 } sfxparams_t;
 
 //

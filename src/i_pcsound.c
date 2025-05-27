@@ -432,7 +432,8 @@ static void I_PCS_UpdateSoundParams(int channel, const sfxparams_t *params)
     alSourcef(callback_source, AL_GAIN, (float)snd_SfxVolume / 15);
 }
 
-static boolean I_PCS_StartSound(int channel, sfxinfo_t *sfx, float pitch)
+static boolean I_PCS_StartSound(int channel, sfxinfo_t *sfx,
+                                const sfxparams_t *params)
 {
     boolean result;
 

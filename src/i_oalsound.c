@@ -736,7 +736,7 @@ boolean I_OAL_CacheSound(sfxinfo_t *sfx)
     return true;
 }
 
-boolean I_OAL_StartSound(int channel, sfxinfo_t *sfx, float pitch)
+boolean I_OAL_StartSound(int channel, sfxinfo_t *sfx, const sfxparams_t *params)
 {
     if (!oal)
     {
@@ -745,7 +745,7 @@ boolean I_OAL_StartSound(int channel, sfxinfo_t *sfx, float pitch)
 
     alSourcei(oal->sources[channel], AL_BUFFER, sfx->buffer);
     alSourcei(oal->sources[channel], AL_LOOPING, sfx->looping);
-    alSourcef(oal->sources[channel], AL_PITCH, pitch);
+    alSourcef(oal->sources[channel], AL_PITCH, params->pitch);
 
     alGetError();
     alSourcePlay(oal->sources[channel]);

@@ -281,7 +281,7 @@ int I_GetSfxLumpNum(sfxinfo_t *sfx)
 // active sounds, which is maintained as a given number
 // of internal channels. Returns a free channel.
 //
-int I_StartSound(sfxinfo_t *sfx, const sfxparams_t *params, int pitch)
+int I_StartSound(sfxinfo_t *sfx, sfxparams_t *params, int pitch)
 {
     int channel;
 
@@ -318,9 +318,9 @@ int I_StartSound(sfxinfo_t *sfx, const sfxparams_t *params, int pitch)
 
     I_UpdateSoundParams(channel, params);
 
-    float step = (pitch == NORM_PITCH) ? 1.0f : steptable[pitch];
+    params->pitch = (pitch == NORM_PITCH) ? 1.0f : steptable[pitch];
 
-    if (sound_module->StartSound(channel, sfx, step) == false)
+    if (sound_module->StartSound(channel, sfx, params) == false)
     {
         I_Printf(VB_WARNING, "I_StartSound: Error playing sfx.");
         StopChannel(channel);

@@ -84,7 +84,8 @@ typedef struct sound_module_s
     void (*UpdateSoundParams)(int channel, const struct sfxparams_s *params);
     void (*UpdateListenerParams)(const struct mobj_s *listener);
     void (*SetGain)(int channel, float gain);
-    boolean (*StartSound)(int channel, struct sfxinfo_s *sfx, float pitch);
+    boolean (*StartSound)(int channel, struct sfxinfo_s *sfx,
+                          const struct sfxparams_s *params);
     void (*StopSound)(int channel);
     void (*PauseSound)(int channel);
     void (*ResumeSound)(int channel);
@@ -121,7 +122,7 @@ void I_SetChannels(void);
 int I_GetSfxLumpNum(struct sfxinfo_s *sfxinfo);
 
 // Starts a sound in a particular sound channel.
-int I_StartSound(struct sfxinfo_s *sound, const struct sfxparams_s *params,
+int I_StartSound(struct sfxinfo_s *sound, struct sfxparams_s *params,
                  int pitch);
 
 // Stops a sound channel.
