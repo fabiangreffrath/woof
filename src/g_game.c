@@ -1532,6 +1532,7 @@ static void G_JoinDemo(void)
 
   // [crispy] continue recording
   demoplayback = false;
+  usergame = true;
 
   // clear progress demo bar
   ST_Start();
