@@ -40,7 +40,8 @@ void I_OAL_SetResampler(void);
 
 void I_OAL_ResetSource2D(int channel);
 
-void I_OAL_ResetSource3D(int channel, boolean point_source);
+void I_OAL_ResetSource3D(int channel, boolean point_source,
+                         const struct sfxparams_s *params);
 
 void I_OAL_UpdateSourceParams(int channel, const ALfloat *position,
                               const ALfloat *velocity);

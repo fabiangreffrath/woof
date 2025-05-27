@@ -253,7 +253,8 @@ void I_OAL_ResetSource2D(int channel)
     alSourcei(oal->sources[channel], AL_MAX_DISTANCE, 0);
 }
 
-void I_OAL_ResetSource3D(int channel, boolean point_source)
+void I_OAL_ResetSource3D(int channel, boolean point_source,
+                         const sfxparams_t *params)
 {
     if (!oal)
     {
@@ -274,8 +275,8 @@ void I_OAL_ResetSource3D(int channel, boolean point_source)
 
     alSourcef(oal->sources[channel], AL_ROLLOFF_FACTOR, OAL_ROLLOFF_FACTOR);
     alSourcei(oal->sources[channel], AL_SOURCE_RELATIVE, AL_FALSE);
-    alSourcei(oal->sources[channel], AL_REFERENCE_DISTANCE, S_CLOSE_DIST);
-    alSourcei(oal->sources[channel], AL_MAX_DISTANCE, S_CLIPPING_DIST);
+    alSourcei(oal->sources[channel], AL_REFERENCE_DISTANCE, params->close_dist);
+    alSourcei(oal->sources[channel], AL_MAX_DISTANCE, params->clipping_dist);
 }
 
 void I_OAL_UpdateSourceParams(int channel, const ALfloat *position,

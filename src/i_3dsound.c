@@ -215,16 +215,16 @@ static boolean CalcVolumePriority(int dist, sfxparams_t *params)
     {
         return true;
     }
-    else if (dist >= S_CLIPPING_DIST)
+    else if (dist >= params->clipping_dist)
     {
         return false;
     }
-    else if (dist > S_CLOSE_DIST)
+    else if (dist > params->close_dist)
     {
         // OpenAL inverse distance model never reaches zero volume. Gradually
         // ramp down the volume as the distance approaches the limit.
-        params->volume =
-            params->volume * (S_CLIPPING_DIST - dist) / S_ATTENUATOR;
+        params->volume = params->volume * (params->clipping_dist - dist)
+                         / (params->clipping_dist - params->close_dist);
     }
 
     // Decrease priority with volume attenuation.
@@ -309,7 +309,7 @@ static boolean I_3D_StartSound(int channel, sfxinfo_t *sfx,
 {
     if (src.positional)
     {
-        I_OAL_ResetSource3D(channel, src.point_source);
+        I_OAL_ResetSource3D(channel, src.point_source, params);
     }
     else
     {
