@@ -77,6 +77,12 @@ typedef struct sfxinfo_s
   // lump number of sfx
   int lumpnum;
 
+  // Sound length in seconds.
+  float length;
+
+  // Is this an ambient sound?
+  boolean ambient;
+
   // Is this a looping sound?
   boolean looping;
 

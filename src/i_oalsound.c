@@ -557,6 +557,34 @@ boolean I_OAL_AllowReinitSound(void)
     return (alcIsExtensionPresent(oal->device, "ALC_SOFT_HRTF") == ALC_TRUE);
 }
 
+static float GetSoundLength(ALuint buffer)
+{
+    float seconds = 0.0f;
+
+    if (alIsBuffer(buffer))
+    {
+        ALint frequency, bits, channels, size;
+
+        alGetError();
+        alGetBufferi(buffer, AL_FREQUENCY, &frequency);
+        alGetBufferi(buffer, AL_BITS, &bits);
+        alGetBufferi(buffer, AL_CHANNELS, &channels);
+        alGetBufferi(buffer, AL_SIZE, &size);
+
+        if (alGetError() == AL_NO_ERROR && size > 0)
+        {
+            const float denom = (float)channels * frequency * bits / 8.0f;
+
+            if (denom > 0.0f)
+            {
+                seconds = (float)size / denom;
+            }
+        }
+    }
+
+    return seconds;
+}
+
 static void FadeInOutMono8(byte *data, ALsizei size, ALsizei freq)
 {
     const int fadelen = freq * FADETIME / 1000000;
@@ -680,6 +708,12 @@ boolean I_OAL_CacheSound(sfxinfo_t *sfx)
 
         sfx->buffer = buffer;
         sfx->cached = true;
+
+        if (sfx->ambient)
+        {
+            sfx->length = GetSoundLength(sfx->buffer);
+        }
+
         I_CacheRumble(sfx, format, sampledata, size, freq);
     }
 
