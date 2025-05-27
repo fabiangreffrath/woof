@@ -75,6 +75,7 @@
 #include "r_main.h"
 #include "r_state.h"
 #include "r_voxel.h"
+#include "s_sndinfo.h"
 #include "s_sound.h"
 #include "sounds.h"
 #include "s_trakinfo.h"
@@ -2416,6 +2417,8 @@ void D_DoomMain(void)
     // Not loading a game
     startloadgame = -1;
   }
+
+  W_ProcessInWads("SNDINFO", S_ParseSndInfo, PROCESS_IWAD | PROCESS_PWAD);
 
   W_ProcessInWads("TRAKINFO", S_ParseTrakInfo, PROCESS_IWAD | PROCESS_PWAD);
   D_SetupDemoLoop();
