@@ -249,6 +249,8 @@ void I_OAL_ResetSource2D(int channel)
     alSource3f(oal->sources[channel], AL_VELOCITY, 0.0f, 0.0f, 0.0f);
     alSourcef(oal->sources[channel], AL_ROLLOFF_FACTOR, 0.0f);
     alSourcei(oal->sources[channel], AL_SOURCE_RELATIVE, AL_TRUE);
+    alSourcei(oal->sources[channel], AL_REFERENCE_DISTANCE, 0);
+    alSourcei(oal->sources[channel], AL_MAX_DISTANCE, 0);
 }
 
 void I_OAL_ResetSource3D(int channel, boolean point_source)
@@ -272,6 +274,8 @@ void I_OAL_ResetSource3D(int channel, boolean point_source)
 
     alSourcef(oal->sources[channel], AL_ROLLOFF_FACTOR, OAL_ROLLOFF_FACTOR);
     alSourcei(oal->sources[channel], AL_SOURCE_RELATIVE, AL_FALSE);
+    alSourcei(oal->sources[channel], AL_REFERENCE_DISTANCE, S_CLOSE_DIST);
+    alSourcei(oal->sources[channel], AL_MAX_DISTANCE, S_CLIPPING_DIST);
 }
 
 void I_OAL_UpdateSourceParams(int channel, const ALfloat *position,
@@ -357,8 +361,6 @@ static void ResetParams(void)
     {
         I_OAL_ResetSource2D(i);
         alSource3i(oal->sources[i], AL_DIRECTION, 0, 0, 0);
-        alSourcei(oal->sources[i], AL_REFERENCE_DISTANCE, S_CLOSE_DIST);
-        alSourcei(oal->sources[i], AL_MAX_DISTANCE, S_CLIPPING_DIST);
     }
     // Spatialization is required even for 2D panning emulation.
     if (oal->SOFT_source_spatialize)
