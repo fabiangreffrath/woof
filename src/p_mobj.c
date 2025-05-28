@@ -855,7 +855,10 @@ mobj_t *P_SpawnMobj(fixed_t x, fixed_t y, fixed_t z, mobjtype_t type)
   if (gameskill != sk_nightmare)
     mobj->reactiontime = info->reactiontime;
 
-  mobj->lastlook = P_Random (pr_lastlook) % MAXPLAYERS;
+  if (type != zmt_ambientsound)
+  {
+    mobj->lastlook = P_Random (pr_lastlook) % MAXPLAYERS;
+  }
 
   // do not set the state with P_SetMobjState,
   // because action routines can not be called yet
@@ -1157,7 +1160,7 @@ void P_SpawnMapThing (mapthing_t* mthing)
   int    i;
   mobj_t *mobj;
   fixed_t x, y, z;
-  int    musid = 0;
+  int id = 0;
 
   switch(mthing->type)
     {
@@ -1257,8 +1260,13 @@ void P_SpawnMapThing (mapthing_t* mthing)
   // [crispy] support MUSINFO lump (dynamic music changing)
   if (mthing->type >= 14100 && mthing->type <= 14164)
   {
-      musid = mthing->type - 14100;
+      id = mthing->type - 14100;
       mthing->type = mobjinfo[MT_MUSICSOURCE].doomednum;
+  }
+  else if (mthing->type >= 14001 && mthing->type <= 14064)
+  {
+      id = mthing->type - 14000;
+      mthing->type = mobjinfo[zmt_ambientsound].doomednum;
   }
 
   // find which type to spawn
@@ -1325,7 +1333,11 @@ spawnit:
   // [crispy] support MUSINFO lump (dynamic music changing)
   if (i == MT_MUSICSOURCE)
   {
-      mobj->health = 1000 + musid;
+      mobj->health = 1000 + id;
+  }
+  else if (i == zmt_ambientsound)
+  {
+      // TODO: Add ambient sound thinker.
   }
 }
 

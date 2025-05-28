@@ -65,6 +65,7 @@
 #include "m_swap.h"
 #include "net_client.h"
 #include "net_dedicated.h"
+#include "p_ambient.h"
 #include "p_inter.h" // maxhealthbonus
 #include "p_map.h"   // MELEERANGE
 #include "p_mobj.h"
@@ -1579,6 +1580,8 @@ static void D_InitTables(void)
 
   for (i = S_SARG_RUN1; i <= S_SARG_PAIN2; ++i)
     states[i].flags |= STATEF_SKILL5FAST;
+
+  P_InitAmbientSoundMobjInfo();
 }
 
 void D_SetMaxHealth(void)
