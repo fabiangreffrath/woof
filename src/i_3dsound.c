@@ -187,16 +187,17 @@ static void CalcDistance(const mobj_t *listener, const mobj_t *source,
 
     CalcHypotenuse(adx, ady, &distxy);
 
-    // Treat monsters, projectiles, and other players as point sources.
+    // Treat monsters, projectiles, other players, and ambient sounds as point
+    // sources.
     src->point_source =
         (source->thinker.function.p1 != (actionf_p1)P_DegenMobjThinker
-         && source->info && source->actualheight);
+         && source->info);
 
     if (src->point_source)
     {
         int adz;
-        // Vertical distance is from player's view to middle of source's sprite.
-        src->z = source->z + (source->actualheight >> 1);
+        // Vertical distance is from player's view to middle of source's height.
+        src->z = source->z + (source->height >> 1);
         adz = abs((listener->player->viewz >> FRACBITS) - (src->z >> FRACBITS));
         CalcHypotenuse(distxy, adz, dist);
     }
