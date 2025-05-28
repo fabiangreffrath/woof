@@ -1,0 +1,27 @@
+# Log of changes by inventor200
+
+## 2025/05/28 -- keepammo parameter added
+
+I have recently been physically disabled by a chronic injury
+and I'm unable to use my desktop. Instead, I'm only
+physically able to use a mini-computer in the closet, which
+does not have the RAM or processing power to handle most
+OpenGL-based Doom ports. A family member wanted to spend
+time with me, and wanted to learn how to play Doom via coop.
+They tend to die a lot, but the main thing that bothers them
+is the loss of ammo. The losses of armor and weapons feel
+fair to them, but losing ammo makes them feel like the team
+as a whole is being punished for having a new player.
+
+So I decided to adjust the source code to add an option for
+keeping ammo after death, and so they will feel less
+frustrated while keeping me company.
+
+I am very thankful for the existence of the Woof! port.
+
+### Affected files
+
+* params.h
+* doomstat.h
+* g_game.c
+* d_main.c

@@ -3123,12 +3123,23 @@ void G_PlayerReborn(int player)
   int itemcount;
   int secretcount;
   int maxkilldiscount;
+  int keptammo[NUMAMMO];
 
   memcpy (frags, players[player].frags, sizeof frags);
   killcount = players[player].killcount;
   itemcount = players[player].itemcount;
   secretcount = players[player].secretcount;
   maxkilldiscount = players[player].maxkilldiscount;
+
+  if (keepammo)
+    { // inventor200 2025/05/28 - Don't bother with this operation if it's not needed
+      memcpy(keptammo, players[player].ammo, sizeof keptammo);
+      // inventor200 2025/05/28 - At minimum, the player should have the initial_bullets amount
+      if (keptammo[am_clip] < initial_bullets)
+        {
+          keptammo[am_clip] = initial_bullets;
+        }
+    }
 
   p = &players[player];
 
@@ -3152,10 +3163,21 @@ void G_PlayerReborn(int player)
   p->nextweapon = p->readyweapon = p->pendingweapon = wp_pistol;
   p->weaponowned[wp_fist] = true;
   p->weaponowned[wp_pistol] = true;
-  p->ammo[am_clip] = initial_bullets; // Ty 03/12/98 - use dehacked values
 
+  // inventor200 2025/05/28 - Do not reset maxammo to pre-backpack values when keepammo parm is in play
+  // but also do not skip this when the player initially spawns!
   for (i=0 ; i<NUMAMMO ; i++)
-    p->maxammo[i] = maxammo[i];
+    if (!keepammo || (p->maxammo[i] < maxammo[i])) p->maxammo[i] = maxammo[i];
+
+  if (!keepammo) 
+    {
+      p->ammo[am_clip] = initial_bullets; // Ty 03/12/98 - use dehacked values
+    }
+  else
+    {
+      // inventor200 2025/05/28 - If keepammo is in play, restore old ammo state
+      memcpy(players[player].ammo, keptammo, sizeof(players[player].ammo));
+    }
 }
 
 //
@@ -4581,6 +4603,11 @@ static size_t WriteCmdLineLump(MEMFILE *stream)
   if (coop_spawns)
   {
     mem_fputs(" -coop_spawns", stream);
+  }
+
+  if (keepammo)
+  {
+    mem_fputs(" -keepammo", stream);
   }
 
   if (M_CheckParm("-solo-net"))

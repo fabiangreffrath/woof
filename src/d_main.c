@@ -165,6 +165,8 @@ int organize_savefiles;
 
 boolean coop_spawns = false;
 
+boolean keepammo = false;
+
 static boolean demobar;
 
 // [FG] colored blood and gibs
@@ -2489,6 +2491,17 @@ void D_DoomMain(void)
   if (M_ParmExists("-coop_spawns"))
     {
       coop_spawns = true;
+    }
+
+  //!
+  // @category game
+  //
+  // Players keep any collected ammo (and backpacks) after death.
+  //
+
+  if (M_ParmExists("-keepammo"))
+    {
+      keepammo = true;
     }
 
   //!

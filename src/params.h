@@ -55,6 +55,7 @@ static const char *params[] = {
 "-shorttics",
 "-strict",
 "-nogui",
+"-keepammo",
 };
 
 static const char *params_with_args[] = {

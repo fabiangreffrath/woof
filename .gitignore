@@ -16,3 +16,8 @@ CMakeSettings.json
 /.cache/
 CMakeFiles/
 src/CMakeFiles/
+
+# Terminal scripts (keepammo branch workflow)
+# inventor200 2025/05/28
+build.sh
+test.sh

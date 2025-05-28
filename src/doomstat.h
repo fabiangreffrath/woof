@@ -210,6 +210,13 @@ extern int deathmatch;
 
 extern boolean coop_spawns;
 
+// inventor200 2025/05/28
+// If true, players keep ammo after death.
+// Intended for coop play, but there's no reason
+// to make this option less flexible and deny it
+// for other game modes.
+extern boolean keepammo;
+
 // ------------------------------------------
 // Internal parameters for sound rendering.
 // These have been taken from the DOS version,
