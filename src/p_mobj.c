@@ -28,6 +28,7 @@
 #include "i_printf.h"
 #include "info.h"
 #include "m_random.h"
+#include "p_ambient.h"
 #include "p_inter.h"
 #include "p_map.h"
 #include "p_maputl.h"
@@ -1337,7 +1338,7 @@ spawnit:
   }
   else if (i == zmt_ambientsound)
   {
-      // TODO: Add ambient sound thinker.
+      P_AddAmbientSoundThinker(mobj, id);
   }
 }
 

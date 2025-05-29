@@ -17,11 +17,72 @@
 
 #include "dsdhacked.h"
 #include "info.h"
+#include "m_random.h"
+#include "p_ambient.h"
 #include "p_map.h"
-#include "p_mobj.h"
+#include "p_tick.h"
 #include "sounds.h"
+#include "z_zone.h"
 
 int zmt_ambientsound = ZMT_UNDEFINED;
+
+static int RandomWaitTics(const ambient_data_t *data)
+{
+    return (data->min_tics
+            + (data->max_tics - data->min_tics) * M_Random() / 255);
+}
+
+void T_AmbientSound(ambient_t *ambient)
+{
+    // TODO: Add ambient sound thinker routine.
+}
+
+void P_AddAmbientSoundThinker(mobj_t *mobj, int index)
+{
+    if (!mobj)
+    {
+        return;
+    }
+
+    const ambient_data_t *data = S_GetAmbientData(index);
+
+    if (!data || data->sfx_id == sfx_None || !S_sfx[data->sfx_id].length)
+    {
+        return;
+    }
+
+    ambient_t *ambient = Z_Malloc(sizeof(*ambient), PU_LEVEL, NULL);
+    ambient->data = *data;
+
+    switch (ambient->data.mode)
+    {
+        case AMB_MODE_CONTINUOUS:
+            ambient->wait_tics = -1;
+            break;
+
+        case AMB_MODE_RANDOM:
+            ambient->wait_tics = RandomWaitTics(&ambient->data);
+            break;
+
+        case AMB_MODE_PERIODIC:
+            ambient->wait_tics = ambient->data.min_tics;
+            break;
+    }
+
+    ambient->active = false;
+    ambient->playing = false;
+    ambient->offset = 0.0f;
+    ambient->last_offset = 0.0f;
+    ambient->last_leveltime = 0;
+
+    ambient->source = NULL;
+    P_SetTarget(&ambient->source, mobj);
+    ambient->origin =
+        ambient->data.type == AMB_TYPE_POINT ? ambient->source : NULL;
+
+    ambient->thinker.function.p1 = (actionf_p1)T_AmbientSound;
+    P_AddThinker(&ambient->thinker);
+}
 
 void P_InitAmbientSoundMobjInfo(void)
 {

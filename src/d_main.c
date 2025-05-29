@@ -76,7 +76,6 @@
 #include "r_main.h"
 #include "r_state.h"
 #include "r_voxel.h"
-#include "s_sndinfo.h"
 #include "s_sound.h"
 #include "sounds.h"
 #include "s_trakinfo.h"

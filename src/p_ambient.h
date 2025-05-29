@@ -18,6 +18,25 @@
 #ifndef __P_AMBIENT__
 #define __P_AMBIENT__
 
+#include "p_mobj.h"
+#include "s_sndinfo.h"
+
+typedef struct ambient_s
+{
+    thinker_t thinker;   // Additional thinker attached to map thing mobj.
+    mobj_t *source;      // Causes sound (map thing mobj).
+    mobj_t *origin;      // Emits sound (NULL for world sounds).
+    ambient_data_t data; // Local instance of the data from SNDINFO.
+    int wait_tics;       // Wait interval for random or periodic sounds.
+    boolean active;      // Should the ambient sound be playing?
+    boolean playing;     // Is the ambient sound playing?
+    float offset;        // Effective offset.
+    float last_offset;   // Last saved offset in sound buffer (seconds).
+    int last_leveltime;  // Last saved leveltime (tics).
+} ambient_t;
+
+void T_AmbientSound(ambient_t *ambient);
+void P_AddAmbientSoundThinker(mobj_t *mobj, int index);
 void P_InitAmbientSoundMobjInfo(void);
 
 #endif
