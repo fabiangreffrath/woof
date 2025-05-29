@@ -92,6 +92,7 @@ void S_StartSoundOrigin(const struct mobj_s *source,
 void S_StopSound(const struct mobj_s *origin);
 
 void S_StopAmbientSounds(void);
+void S_MarkSounds(void);
 
 // [FG] play sounds in full length
 extern boolean full_sounds;

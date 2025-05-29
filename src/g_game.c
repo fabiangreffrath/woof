@@ -2460,6 +2460,8 @@ static void DoSaveGame(char *name)
   char *description;
   int  length, i;
 
+  S_MarkSounds();
+
   description = savedescription;
 
   save_p = savebuffer = Z_Malloc(savegamesize, PU_STATIC, 0);

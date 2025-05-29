@@ -76,11 +76,16 @@ void P_StopAmbientSound(ambient_t *ambient)
     ambient->playing = false;
 }
 
+void P_MarkAmbientSound(ambient_t *ambient, int handle)
+{
+    ambient->last_offset = I_GetSoundOffset(handle);
+    ambient->last_leveltime = leveltime;
+}
+
 void P_EvictAmbientSound(ambient_t *ambient, int handle)
 {
     ambient->playing = false;
-    ambient->last_offset = I_GetSoundOffset(handle);
-    ambient->last_leveltime = leveltime;
+    P_MarkAmbientSound(ambient, handle);
 }
 
 static boolean StartAmbientSound(ambient_t *ambient)

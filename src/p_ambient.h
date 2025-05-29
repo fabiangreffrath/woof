@@ -40,6 +40,7 @@ typedef struct ambient_s
 void P_GetAmbientSoundParams(ambient_t *ambient, struct sfxparams_s *params);
 float P_GetAmbientSoundOffset(ambient_t *ambient);
 void P_StopAmbientSound(ambient_t *ambient);
+void P_MarkAmbientSound(ambient_t *ambient, int handle);
 void P_EvictAmbientSound(ambient_t *ambient, int handle);
 void T_AmbientSound(ambient_t *ambient);
 void P_AddAmbientSoundThinker(mobj_t *mobj, int index);

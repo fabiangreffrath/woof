@@ -692,6 +692,22 @@ void S_StopAmbientSounds(void)
     }
 }
 
+void S_MarkSounds(void)
+{
+    if (nosfxparm)
+    {
+        return;
+    }
+
+    for (int cnum = 0; cnum < snd_channels; cnum++)
+    {
+        if (channels[cnum].ambient)
+        {
+            P_MarkAmbientSound(channels[cnum].ambient, channels[cnum].handle);
+        }
+    }
+}
+
 // [FG] play sounds in full length
 boolean full_sounds;
 
