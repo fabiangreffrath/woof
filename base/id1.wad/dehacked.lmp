@@ -1,0 +1,26 @@
+
+# [Woof!] Randomly mirrored corpses.
+
+Thing 150
+MBF21 Bits = FLIPPABLE
+
+Thing 151
+MBF21 Bits = FLIPPABLE
+
+Thing 152
+MBF21 Bits = FLIPPABLE
+
+Thing 153
+MBF21 Bits = FLIPPABLE
+
+Thing 154
+MBF21 Bits = FLIPPABLE
+
+Thing 155
+MBF21 Bits = BOSS+FLIPPABLE
+
+Thing 156
+MBF21 Bits = BOSS+FLIPPABLE
+
+Thing 157
+MBF21 Bits = BOSS+FLIPPABLE

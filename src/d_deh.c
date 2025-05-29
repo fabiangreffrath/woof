@@ -1285,6 +1285,7 @@ static const deh_flag_t deh_mobjflags_mbf21[] = {
     {"E4M8BOSS",       MF2_E4M8BOSS     }, // E4M8 boss
     {"RIP",            MF2_RIP          }, // projectile rips through targets
     {"FULLVOLSOUNDS",  MF2_FULLVOLSOUNDS}, // full volume see / death sound
+    {"FLIPPABLE",      MF2_FLIPPABLE    }, // [crispy] randomly flip corpse, blood and death animation sprites
 };
 
 static const deh_flag_t deh_weaponflags_mbf21[] = {
