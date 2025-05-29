@@ -25,6 +25,7 @@
 #include "p_ambient.h"
 #include "p_map.h"
 #include "p_tick.h"
+#include "s_sound.h"
 #include "sounds.h"
 #include "z_zone.h"
 
@@ -84,7 +85,7 @@ void P_EvictAmbientSound(ambient_t *ambient, int handle)
 
 static boolean StartAmbientSound(ambient_t *ambient)
 {
-    return false; // TODO: Start ambient sound.
+    return S_StartAmbientSound(ambient->origin, ambient->data.sfx_id, ambient);
 }
 
 static void UpdateContinuous(ambient_t *ambient)

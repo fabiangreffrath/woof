@@ -28,6 +28,7 @@ typedef enum {
   PITCH_NONE
 } pitchrange_t;
 
+struct ambient_s;
 struct mobj_s;
 
 //
@@ -50,6 +51,9 @@ void S_EvictChannels(void);
 // Start sound for thing at <origin>
 //  using <sound_id> from sounds.h
 //
+
+boolean S_StartAmbientSound(const struct mobj_s *origin, int sfx_id,
+                            struct ambient_s *ambient);
 
 // Thing at <origin> emits sound. No rumble.
 #define S_StartSound(o, i) S_StartSoundPitch((o), (i), PITCH_FULL)

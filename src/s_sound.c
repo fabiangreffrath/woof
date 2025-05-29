@@ -33,6 +33,7 @@
 #include "m_config.h"
 #include "m_misc.h"
 #include "m_random.h"
+#include "p_ambient.h"
 #include "p_mobj.h"
 #include "s_musinfo.h" // [crispy] struct musinfo
 #include "s_sound.h"
@@ -47,6 +48,7 @@ typedef struct channel_s
 {
     sfxinfo_t *sfxinfo;   // sound information (if null, channel avail.)
     const mobj_t *origin; // origin of sound
+    ambient_t *ambient;   // Ambient sound source using this channel.
     int close_dist;       // Sounds at or under this distance are full volume.
     int clipping_dist;    // Sounds at or over this distance are zero volume.
     int volume_scale;     // volume scale value for effect -- haleyjd 05/29/06
@@ -148,7 +150,10 @@ static void S_EvictChannel(int cnum)
     }
 #endif
 
-    // TODO: Evict ambient sounds.
+    if (channels[cnum].ambient)
+    {
+        P_EvictAmbientSound(channels[cnum].ambient, channels[cnum].handle);
+    }
 
     StopChannel(cnum);
 }
@@ -167,7 +172,10 @@ static void S_StopChannel(int cnum)
     }
 #endif
 
-    // TODO: Stop ambient sounds.
+    if (channels[cnum].ambient)
+    {
+        P_StopAmbientSound(channels[cnum].ambient);
+    }
 
     StopChannel(cnum);
 }
@@ -176,7 +184,10 @@ void S_EvictChannels(void)
 {
     for (int i = 0; i < MAX_CHANNELS; i++)
     {
-        // TODO: Evict ambient sounds.
+        if (channels[i].ambient)
+        {
+            P_EvictAmbientSound(channels[i].ambient, channels[i].handle);
+        }
 
         I_StopSound(channels[i].handle);
     }
@@ -398,8 +409,11 @@ static float GetPitch(pitchrange_t pitch_range)
     }
 }
 
-static boolean StartSound(const mobj_t *origin, int sfx_id,
-                          pitchrange_t pitch_range, rumble_type_t rumble_type)
+#define StartSound(o, i, p, r) StartSoundEx((o), (i), (p), (r), NULL)
+
+static boolean StartSoundEx(const mobj_t *origin, int sfx_id,
+                            pitchrange_t pitch_range, rumble_type_t rumble_type,
+                            ambient_t *ambient)
 {
     int o_priority, singularity, cnum, handle;
     sfxparams_t params;
@@ -428,9 +442,16 @@ static boolean StartSound(const mobj_t *origin, int sfx_id,
     sfx = &S_sfx[sfx_id];
 
     // Initialize sound parameters
-    params.close_dist = S_CLOSE_DIST;
-    params.clipping_dist = S_CLIPPING_DIST;
-    params.volume_scale = 127;
+    if (ambient)
+    {
+        P_GetAmbientSoundParams(ambient, &params);
+    }
+    else
+    {
+        params.close_dist = S_CLOSE_DIST;
+        params.clipping_dist = S_CLIPPING_DIST;
+        params.volume_scale = 127;
+    }
 
     // haleyjd: modified so that priority value is always used
     // haleyjd: also modified to get and store proper singularity value
@@ -466,7 +487,7 @@ static boolean StartSound(const mobj_t *origin, int sfx_id,
     }
 
     params.pitch = GetPitch(pitch_range);
-    params.offset = 0.0f;
+    params.offset = ambient ? P_GetAmbientSoundOffset(ambient) : 0.0f;
 
     // Assigns the handle to one of the channels in the mix/output buffer.
     handle = I_StartSound(sfx, &params);
@@ -478,6 +499,7 @@ static boolean StartSound(const mobj_t *origin, int sfx_id,
         // haleyjd 09/27/06: store priority and singularity values (!!!)
         channels[cnum].origin = origin;
         channels[cnum].handle = handle;
+        channels[cnum].ambient = ambient;
         channels[cnum].close_dist = params.close_dist;
         channels[cnum].clipping_dist = params.clipping_dist;
         channels[cnum].volume_scale = params.volume_scale;
@@ -501,6 +523,12 @@ static boolean StartSound(const mobj_t *origin, int sfx_id,
     }
 
     return true;
+}
+
+boolean S_StartAmbientSound(const mobj_t *origin, int sfx_id,
+                            ambient_t *ambient)
+{
+    return StartSoundEx(origin, sfx_id, PITCH_NONE, RUMBLE_NONE, ambient);
 }
 
 void S_StartSoundPitch(const mobj_t *origin, int sfx_id,
@@ -657,7 +685,7 @@ void S_StopAmbientSounds(void)
 
     for (int cnum = 0; cnum < snd_channels; cnum++)
     {
-        if (channels[cnum].sfxinfo && channels[cnum].sfxinfo->ambient)
+        if (channels[cnum].ambient)
         {
             S_StopChannel(cnum);
         }
