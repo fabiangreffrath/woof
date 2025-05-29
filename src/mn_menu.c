@@ -1764,7 +1764,7 @@ static void M_EndGameResponse(int ch)
     quickSaveSlot = -1;
 
     currentMenu->lastOn = itemOn;
-    S_StopChannels();
+    S_EvictChannels();
     MN_ClearMenus();
     D_StartTitle();
 }

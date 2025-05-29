@@ -44,7 +44,7 @@ void S_Init(int sfxVolume, int musicVolume);
 //
 void S_Start(void);
 
-void S_StopChannels(void);
+void S_EvictChannels(void);
 
 //
 // Start sound for thing at <origin>

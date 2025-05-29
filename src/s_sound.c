@@ -122,6 +122,37 @@ static void ResetActive(void)
 // Internals.
 //
 
+static void StopChannel(int cnum)
+{
+    if (channels[cnum].sfxinfo)
+    {
+        I_StopSound(channels[cnum].handle); // stop the sound playing
+        channels[cnum].sfxinfo->active.count--;
+
+        // haleyjd 09/27/06: clear the entire channel
+        memset(&channels[cnum], 0, sizeof(channel_t));
+    }
+}
+
+//
+// S_EvictChannel
+//
+// Stops a sound channel due to zero volume or low priority.
+//
+static void S_EvictChannel(int cnum)
+{
+#ifdef RANGECHECK
+    if (cnum >= snd_channels)
+    {
+        I_Error("handle %d out of range", cnum);
+    }
+#endif
+
+    // TODO: Evict ambient sounds.
+
+    StopChannel(cnum);
+}
+
 //
 // S_StopChannel
 //
@@ -136,20 +167,17 @@ static void S_StopChannel(int cnum)
     }
 #endif
 
-    if (channels[cnum].sfxinfo)
-    {
-        I_StopSound(channels[cnum].handle); // stop the sound playing
-        channels[cnum].sfxinfo->active.count--;
+    // TODO: Stop ambient sounds.
 
-        // haleyjd 09/27/06: clear the entire channel
-        memset(&channels[cnum], 0, sizeof(channel_t));
-    }
+    StopChannel(cnum);
 }
 
-void S_StopChannels(void)
+void S_EvictChannels(void)
 {
     for (int i = 0; i < MAX_CHANNELS; i++)
     {
+        // TODO: Evict ambient sounds.
+
         I_StopSound(channels[i].handle);
     }
 
@@ -214,7 +242,7 @@ static void LimitChannelsPerSfx(const mobj_t *origin, const sfxinfo_t *sfxinfo,
         else
         {
             // Stop the lowest priority channel.
-            S_StopChannel(lpcnum);
+            S_EvictChannel(lpcnum);
             *cnum = lpcnum;
         }
     }
@@ -283,7 +311,7 @@ static int S_getChannel(const mobj_t *origin, const sfxinfo_t *sfxinfo,
         }
         else
         {
-            S_StopChannel(lpcnum); // Otherwise, kick out lowest priority.
+            S_EvictChannel(lpcnum); // Otherwise, kick out lowest priority.
             cnum = lpcnum;
         }
     }
@@ -784,7 +812,7 @@ void S_UpdateSounds(const mobj_t *listener)
                     }
                     else
                     {
-                        S_StopChannel(cnum);
+                        S_EvictChannel(cnum);
                     }
                 }
 
