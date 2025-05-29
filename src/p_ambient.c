@@ -15,7 +15,11 @@
 //      Ambient sound
 //
 
+#include <math.h>
+
 #include "dsdhacked.h"
+#include "g_game.h"
+#include "i_sound.h"
 #include "info.h"
 #include "m_random.h"
 #include "p_ambient.h"
@@ -32,9 +36,131 @@ static int RandomWaitTics(const ambient_data_t *data)
             + (data->max_tics - data->min_tics) * M_Random() / 255);
 }
 
+static float GetEffectiveOffset(ambient_t *ambient)
+{
+    // Uses the most recent time scale for the last leveltime interval, which
+    // is good enough.
+    return (ambient->last_offset
+            + (float)(leveltime - ambient->last_leveltime) / TICRATE * 100
+                  / realtic_clock_rate);
+}
+
+void P_GetAmbientSoundParams(ambient_t *ambient, sfxparams_t *params)
+{
+    params->close_dist = ambient->data.close_dist;
+    params->clipping_dist = ambient->data.clipping_dist;
+    params->volume_scale = ambient->data.volume_scale;
+}
+
+float P_GetAmbientSoundOffset(ambient_t *ambient)
+{
+    if (ambient->data.mode == AMB_MODE_CONTINUOUS)
+    {
+        const sfxinfo_t *sfx = &S_sfx[ambient->data.sfx_id];
+        ambient->offset = GetEffectiveOffset(ambient);
+        ambient->offset = fmodf(ambient->offset, sfx->length);
+
+        if (ambient->offset < 0.0f)
+        {
+            ambient->offset += sfx->length;
+        }
+    }
+
+    return ambient->offset;
+}
+
+void P_StopAmbientSound(ambient_t *ambient)
+{
+    ambient->active = false;
+    ambient->playing = false;
+}
+
+void P_EvictAmbientSound(ambient_t *ambient, int handle)
+{
+    ambient->playing = false;
+    ambient->last_offset = I_GetSoundOffset(handle);
+    ambient->last_leveltime = leveltime;
+}
+
+static boolean StartAmbientSound(ambient_t *ambient)
+{
+    return false; // TODO: Start ambient sound.
+}
+
+static void UpdateContinuous(ambient_t *ambient)
+{
+    if (ambient->playing)
+    {
+        return;
+    }
+
+    if (!ambient->active)
+    {
+        ambient->active = true;
+        ambient->offset = 0.0f;
+        ambient->last_offset = 0.0f;
+        ambient->last_leveltime = leveltime;
+    }
+
+    ambient->playing = StartAmbientSound(ambient);
+}
+
+static void UpdateInterval(ambient_t *ambient)
+{
+    if (--ambient->wait_tics > 0)
+    {
+        if (ambient->active && !ambient->playing)
+        {
+            const sfxinfo_t *sfx = &S_sfx[ambient->data.sfx_id];
+            ambient->offset = GetEffectiveOffset(ambient);
+
+            if (ambient->offset >= 0.0f && ambient->offset < sfx->length)
+            {
+                ambient->playing = StartAmbientSound(ambient);
+            }
+            else
+            {
+                ambient->active = false;
+            }
+        }
+    }
+    else
+    {
+        if (ambient->data.mode == AMB_MODE_RANDOM)
+        {
+            ambient->wait_tics = RandomWaitTics(&ambient->data);
+        }
+        else
+        {
+            ambient->wait_tics = ambient->data.min_tics;
+        }
+
+        ambient->active = true;
+        ambient->offset = 0.0f;
+        ambient->last_offset = 0.0f;
+        ambient->last_leveltime = leveltime;
+        ambient->playing = StartAmbientSound(ambient);
+    }
+}
+
 void T_AmbientSound(ambient_t *ambient)
 {
-    // TODO: Add ambient sound thinker routine.
+    if (nosfxparm)
+    {
+        return;
+    }
+
+    switch (ambient->data.mode)
+    {
+        case AMB_MODE_CONTINUOUS:
+            UpdateContinuous(ambient);
+            break;
+
+        case AMB_MODE_RANDOM:
+        case AMB_MODE_PERIODIC:
+            UpdateInterval(ambient);
+            break;
+    }
 }
 
 void P_AddAmbientSoundThinker(mobj_t *mobj, int index)

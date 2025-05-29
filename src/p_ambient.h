@@ -21,6 +21,8 @@
 #include "p_mobj.h"
 #include "s_sndinfo.h"
 
+struct sfxparams_s;
+
 typedef struct ambient_s
 {
     thinker_t thinker;   // Additional thinker attached to map thing mobj.
@@ -35,6 +37,10 @@ typedef struct ambient_s
     int last_leveltime;  // Last saved leveltime (tics).
 } ambient_t;
 
+void P_GetAmbientSoundParams(ambient_t *ambient, struct sfxparams_s *params);
+float P_GetAmbientSoundOffset(ambient_t *ambient);
+void P_StopAmbientSound(ambient_t *ambient);
+void P_EvictAmbientSound(ambient_t *ambient, int handle);
 void T_AmbientSound(ambient_t *ambient);
 void P_AddAmbientSoundThinker(mobj_t *mobj, int index);
 void P_InitAmbientSoundMobjInfo(void);
