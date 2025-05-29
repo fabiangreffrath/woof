@@ -398,8 +398,8 @@ static float GetPitch(pitchrange_t pitch_range)
     }
 }
 
-static void StartSound(const mobj_t *origin, int sfx_id,
-                       pitchrange_t pitch_range, rumble_type_t rumble_type)
+static boolean StartSound(const mobj_t *origin, int sfx_id,
+                          pitchrange_t pitch_range, rumble_type_t rumble_type)
 {
     int o_priority, singularity, cnum, handle;
     sfxparams_t params;
@@ -408,13 +408,13 @@ static void StartSound(const mobj_t *origin, int sfx_id,
     // jff 1/22/98 return if sound is not enabled
     if (nosfxparm)
     {
-        return;
+        return false;
     }
 
     // [FG] ignore request to play no sound
     if (sfx_id == sfx_None)
     {
-        return;
+        return false;
     }
 
 #ifdef RANGECHECK
@@ -442,13 +442,13 @@ static void StartSound(const mobj_t *origin, int sfx_id,
 
     if (!S_AdjustSoundParams(players[displayplayer].mo, origin, &params))
     {
-        return;
+        return false;
     }
 
     // try to find a channel
     if ((cnum = S_getChannel(origin, sfx, params.priority, singularity)) < 0)
     {
-        return;
+        return false;
     }
 
 #ifdef RANGECHECK
@@ -497,7 +497,10 @@ static void StartSound(const mobj_t *origin, int sfx_id,
     else // haleyjd: the sound didn't start, so clear the channel info
     {
         memset(&channels[cnum], 0, sizeof(channel_t));
+        return false;
     }
+
+    return true;
 }
 
 void S_StartSoundPitch(const mobj_t *origin, int sfx_id,
