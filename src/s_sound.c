@@ -438,6 +438,7 @@ static void StartSound(const mobj_t *origin, int sfx_id,
     }
 
     params.pitch = GetPitch(pitch_range);
+    params.offset = 0.0f;
 
     // Assigns the handle to one of the channels in the mix/output buffer.
     handle = I_StartSound(sfx, &params);
