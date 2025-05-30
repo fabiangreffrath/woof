@@ -384,6 +384,27 @@ static void LimitVolumePerSfx(void)
     }
 }
 
+static float GetAmbientSoundOffset(sfxinfo_t *sfxinfo, ambient_t *ambient)
+{
+    // If another source is playing the same sound, then sync the offsets.
+    for (int cnum = 0; cnum < snd_channels; cnum++)
+    {
+        channel_t *c = &channels[cnum];
+        sfxinfo_t *sfx = c->sfxinfo;
+
+        if (c->ambient && c->ambient != ambient && sfx == sfxinfo)
+        {
+            if (P_PlayingAmbientSound(c->ambient))
+            {
+                return I_GetSoundOffset(c->handle);
+            }
+        }
+    }
+
+    // Just use an approximation.
+    return P_GetAmbientSoundOffset(ambient);
+}
+
 static float GetPitch(pitchrange_t pitch_range)
 {
     if (pitched_sounds)
@@ -487,7 +508,7 @@ static boolean StartSoundEx(const mobj_t *origin, int sfx_id,
     }
 
     params.pitch = GetPitch(pitch_range);
-    params.offset = ambient ? P_GetAmbientSoundOffset(ambient) : 0.0f;
+    params.offset = ambient ? GetAmbientSoundOffset(sfx, ambient) : 0.0f;
 
     // Assigns the handle to one of the channels in the mix/output buffer.
     handle = I_StartSound(sfx, &params);

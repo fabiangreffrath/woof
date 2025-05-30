@@ -70,6 +70,11 @@ float P_GetAmbientSoundOffset(ambient_t *ambient)
     return ambient->offset;
 }
 
+boolean P_PlayingAmbientSound(ambient_t *ambient)
+{
+    return (ambient->active && ambient->playing);
+}
+
 void P_StopAmbientSound(ambient_t *ambient)
 {
     ambient->active = false;
