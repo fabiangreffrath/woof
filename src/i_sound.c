@@ -468,6 +468,35 @@ struct
     {sfx_lavsml, sfx_None  },
 };
 
+static void LinkSounds(void)
+{
+    // [FG] add links for likely missing sounds
+    for (int i = 0; i < arrlen(sfx_subst); i++)
+    {
+        sfxinfo_t *from = &S_sfx[sfx_subst[i].from],
+                  *to = &S_sfx[sfx_subst[i].to];
+
+        if (from->lumpnum == -1)
+        {
+            from->link = to;
+        }
+    }
+}
+
+static void CacheSounds(void)
+{
+    // [FG] precache all sound effects
+    for (int i = 1; i < num_sfx; i++)
+    {
+        // DEHEXTRA has turned S_sfx into a sparse array
+        if (!S_sfx[i].name)
+        {
+            continue;
+        }
+        sound_module->CacheSound(&S_sfx[i]);
+    }
+}
+
 //
 // I_InitSound
 //
@@ -500,31 +529,10 @@ void I_InitSound(void)
         return;
     }
 
-    // [FG] precache all sound effects
-
     I_Printf(VB_INFO, " Precaching all sound effects... ");
-    for (int i = 1; i < num_sfx; i++)
-    {
-        // DEHEXTRA has turned S_sfx into a sparse array
-        if (!S_sfx[i].name)
-        {
-            continue;
-        }
-        sound_module->CacheSound(&S_sfx[i]);
-    }
+    CacheSounds();
     I_Printf(VB_INFO, "done.");
-
-    // [FG] add links for likely missing sounds
-    for (int i = 0; i < arrlen(sfx_subst); i++)
-    {
-        sfxinfo_t *from = &S_sfx[sfx_subst[i].from],
-                  *to = &S_sfx[sfx_subst[i].to];
-
-        if (from->lumpnum == -1)
-        {
-            from->link = to;
-        }
-    }
+    LinkSounds();
 }
 
 boolean I_AllowReinitSound(void)
@@ -562,6 +570,8 @@ void I_SetSoundModule(void)
         I_Printf(VB_WARNING, "I_SetSoundModule: Failed to reinitialize sound.");
     }
 
+    CacheSounds();
+    LinkSounds();
     MN_UpdateAdvancedSoundItems(snd_module != SND_MODULE_3D);
 }
 
