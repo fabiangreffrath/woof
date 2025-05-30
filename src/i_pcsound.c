@@ -166,6 +166,22 @@ static boolean CachePCSLump(sfxinfo_t *sfxinfo)
     return true;
 }
 
+static boolean IsAmbientSound(sfxinfo_t *sfx)
+{
+    if (sfx->ambient)
+    {
+        if (!sfx->cached)
+        {
+            // Other modules still need this cached.
+            I_OAL_CacheSound(sfx);
+        }
+
+        return true;
+    }
+
+    return false;
+}
+
 // These Doom PC speaker sounds are not played - this can be seen in the
 // Heretic source code, where there are remnants of this left over
 // from Doom.
@@ -357,7 +373,10 @@ static void I_PCS_ShutdownModule(void)
 
     for (i = 0; i < num_sfx; ++i)
     {
-        S_sfx[i].lumpnum = -1;
+        if (!S_sfx[i].ambient) // Keep ambient sound lumpnums.
+        {
+            S_sfx[i].lumpnum = -1;
+        }
     }
 
     UnregisterCallback();
@@ -372,7 +391,7 @@ static void I_PCS_ShutdownSound(void)
 
 static boolean I_PCS_CacheSound(sfxinfo_t *sfx)
 {
-    if (IsDisabledSound(sfx))
+    if (IsDisabledSound(sfx) || IsAmbientSound(sfx))
     {
         return false;
     }
@@ -437,7 +456,7 @@ static boolean I_PCS_StartSound(int channel, sfxinfo_t *sfx,
 {
     boolean result;
 
-    if (IsDisabledSound(sfx))
+    if (IsDisabledSound(sfx) || IsAmbientSound(sfx))
     {
         return false;
     }

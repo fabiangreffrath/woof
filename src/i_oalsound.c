@@ -135,7 +135,10 @@ void I_OAL_ShutdownModule(void)
         {
             alDeleteBuffers(1, &S_sfx[i].buffer);
             S_sfx[i].cached = false;
-            S_sfx[i].lumpnum = -1;
+            if (!S_sfx[i].ambient) // Keep ambient sound lumpnums.
+            {
+                S_sfx[i].lumpnum = -1;
+            }
         }
     }
 }
