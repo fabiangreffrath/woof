@@ -45,5 +45,6 @@ typedef struct ambient_data_s
 
 const ambient_data_t *S_GetAmbientData(int index);
 void S_ParseSndInfo(int lumpnum);
+void S_PostParseSndInfo(void);
 
 #endif

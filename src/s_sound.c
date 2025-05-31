@@ -1360,6 +1360,7 @@ static void InitPitchStepTable(void)
 void S_Init(int sfxVolume, int musicVolume)
 {
     ResetActive();
+    S_PostParseSndInfo();
 
     // jff 1/22/98 skip sound init if sound not enabled
     if (!nosfxparm)

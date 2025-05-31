@@ -81,6 +81,7 @@ typedef struct
 
 static channel_info_t channelinfo[MAX_CHANNELS];
 
+boolean snd_ambient, default_snd_ambient;
 boolean snd_limiter;
 int snd_channels_per_sfx;
 int snd_volume_per_sfx;
@@ -793,6 +794,8 @@ void I_BindSoundVariables(void)
         "Sound effects volume");
     M_BindNum("music_volume", &snd_MusicVolume, NULL, 8, 0, 15, ss_none, wad_no,
         "Music volume");
+    M_BindBool("snd_ambient", &default_snd_ambient, &snd_ambient, false, ss_sfx, wad_no,
+        "Play SNDINFO ambient sounds");
     BIND_BOOL_SFX(pitched_sounds, false,
         "Variable pitch for sound effects");
     BIND_NUM(pitch_bend_range, 120, 100, 300,

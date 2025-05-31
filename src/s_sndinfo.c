@@ -24,6 +24,7 @@
 #include "m_array.h"
 #include "m_misc.h"
 #include "m_scanner.h"
+#include "mn_menu.h"
 #include "s_sndinfo.h"
 #include "sounds.h"
 #include "w_wad.h"
@@ -389,4 +390,17 @@ void S_ParseSndInfo(int lumpnum)
     FreeSoundDefinitions(&sound_defs);
     FreeSoundNames(&sound_names);
     SC_Close(s);
+}
+
+void S_PostParseSndInfo(void)
+{
+    if (ambient_data)
+    {
+        snd_ambient = default_snd_ambient;
+    }
+    else
+    {
+        snd_ambient = false;
+        MN_DisableAmbientSoundsItem();
+    }
 }

@@ -180,7 +180,7 @@ static void UpdateInterval(ambient_t *ambient)
 
 void T_AmbientSound(ambient_t *ambient)
 {
-    if (nosfxparm)
+    if (nosfxparm || !snd_ambient)
     {
         return;
     }
@@ -200,7 +200,7 @@ void T_AmbientSound(ambient_t *ambient)
 
 void P_AddAmbientSoundThinker(mobj_t *mobj, int index)
 {
-    if (!mobj)
+    if (!snd_ambient || !mobj)
     {
         return;
     }

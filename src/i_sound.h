@@ -68,6 +68,7 @@ struct mobj_s;
 struct sfxinfo_s;
 struct sfxparams_s;
 
+extern boolean snd_ambient, default_snd_ambient;
 extern boolean snd_limiter;
 extern int snd_channels_per_sfx;
 extern int snd_volume_per_sfx;
