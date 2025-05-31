@@ -1511,7 +1511,6 @@ typedef struct
 
     // mbf21
     int flags2;
-    int flags_extra; // Woof!
     int infighting_group;
     int projectile_group;
     int splash_group;
@@ -1520,6 +1519,7 @@ typedef struct
     int meleerange;
 
     // [Woof!]
+    int flags_extra;  // [EA] Woof!-exclusive extension
     int bloodcolor;   // [FG] colored blood and gibs
     // DEHEXTRA
     mobjtype_t droppeditem; // mobj to drop after death

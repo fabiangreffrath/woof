@@ -1290,7 +1290,7 @@ static const deh_flag_t deh_mobjflags_mbf21[] = {
 };
 
 static const deh_flag_t deh_mobjflags_extra[] = {
-    {"FLIPPABLE",      MFX_FLIPPABLE    }, // [crispy] randomly flip corpse, blood and death animation sprites
+    {"MIRROREDCORPSE", MFX_MIRROREDCORPSE} // [crispy] randomly flip corpse, blood and death animation sprites
 };
 
 static const deh_flag_t deh_weaponflags_mbf21[] = {
