@@ -672,6 +672,7 @@ boolean VX_ProjectVoxel (mobj_t * thing)
 
 	vis->mobjflags = thing->flags;
 	vis->mobjflags2 = thing->flags2;
+	vis->mobjflags_extra = thing->flags_extra;
 	vis->scale = xscale;
 
 	vis->gx  = gx;

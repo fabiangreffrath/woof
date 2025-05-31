@@ -647,6 +647,7 @@ static void R_ProjectSprite (mobj_t* thing)
 
   vis->mobjflags = thing->flags;
   vis->mobjflags2 = thing->flags2;
+  vis->mobjflags_extra = thing->flags_extra;
   vis->scale = xscale;
   vis->gx = interpx;
   vis->gy = interpy;
@@ -857,6 +858,7 @@ void R_DrawPSprite (pspdef_t *psp)
   vis = &avis;
   vis->mobjflags = 0;
   vis->mobjflags2 = 0;
+  vis->mobjflags_extra = 0;
 
   // killough 12/98: fix psprite positioning problem
   vis->texturemid = (BASEYCENTER<<FRACBITS) /* + FRACUNIT/2 */ -
