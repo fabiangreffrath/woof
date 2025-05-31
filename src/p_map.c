@@ -2048,7 +2048,7 @@ boolean PIT_ChangeSector(mobj_t *thing)
       thing->height = thing->radius = 0;
       if (thing->info->bloodcolor)
       {
-        thing->flags2 |= MF2_COLOREDBLOOD;
+        thing->flags_extra |= MFX_COLOREDBLOOD;
         thing->bloodcolor = V_BloodColor(thing->info->bloodcolor);
       }
       return true;      // keep checking
@@ -2088,7 +2088,7 @@ boolean PIT_ChangeSector(mobj_t *thing)
 
       if (thing->info->bloodcolor)
       {
-        mo->flags2 |= MF2_COLOREDBLOOD;
+        mo->flags_extra |= MFX_COLOREDBLOOD;
         mo->bloodcolor = V_BloodColor(thing->info->bloodcolor);
       }
 

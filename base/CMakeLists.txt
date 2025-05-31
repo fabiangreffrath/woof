@@ -220,6 +220,7 @@ set(BASE_SOURCES
     hacx.wad/brghtmps.lmp
     hacx.wad/dehacked.deh
 
+    id1.wad/dehacked.lmp
     id1.wad/sbardef.lmp
 
     rekkr.wad/dehacked.lmp

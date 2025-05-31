@@ -220,9 +220,14 @@ typedef enum
     MF2_E4M8BOSS        = 0x00010000, // is an E4M8 boss
     MF2_RIP             = 0x00020000, // missile rips through solid
     MF2_FULLVOLSOUNDS   = 0x00040000, // full volume see / death sound
-    MF2_COLOREDBLOOD    = 0x00080000, // [FG] colored blood and gibs
-    MF2_FLIPPABLE       = 0x00100000, // [crispy] randomly flip corpse, blood and death animation sprites
 } mobjflag2_t;
+
+// [EA] Woof!-exclusive extension
+typedef enum
+{
+    MFX_COLOREDBLOOD    = 0x00000001, // [FG] colored blood and gibs
+    MFX_MIRROREDCORPSE  = 0x00000002, // [crispy] randomly flip corpse, blood and death animation sprites
+} mobjflag_extra_t;
 
 // killough 9/15/98: Same, but internal flags, not intended for .deh
 // (some degree of opaqueness is good, to avoid compatibility woes)
@@ -306,6 +311,7 @@ typedef struct mobj_s
     state_t*            state;
     int                 flags;
     int                 flags2; // mbf21
+    int                 flags_extra; // Woof!
     int                 intflags;  // killough 9/15/98: internal flags
     int                 health;
 

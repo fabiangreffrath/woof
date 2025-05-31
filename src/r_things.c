@@ -437,7 +437,7 @@ void R_DrawVisSprite(vissprite_t *vis, int x1, int x2)
     colfunc = R_DrawFuzzColumn;    // killough 3/14/98
   else
     // [FG] colored blood and gibs
-    if (vis->mobjflags2 & MF2_COLOREDBLOOD)
+    if (vis->mobjflags_extra & MFX_COLOREDBLOOD)
       {
         colfunc = R_DrawTranslatedColumn;
         dc_translation = red2col[vis->color];
@@ -585,7 +585,7 @@ static void R_ProjectSprite (mobj_t* thing)
 
   // [crispy] randomly flip corpse, blood and death animation sprites
   if (STRICTMODE(flipcorpses) &&
-      (thing->flags2 & MF2_FLIPPABLE) &&
+      (thing->flags_extra & MFX_MIRROREDCORPSE) &&
       !(thing->flags & MF_SHOOTABLE) &&
       (thing->intflags & MIF_FLIP))
     {
@@ -647,6 +647,7 @@ static void R_ProjectSprite (mobj_t* thing)
 
   vis->mobjflags = thing->flags;
   vis->mobjflags2 = thing->flags2;
+  vis->mobjflags_extra = thing->flags_extra;
   vis->scale = xscale;
   vis->gx = interpx;
   vis->gy = interpy;
@@ -857,6 +858,7 @@ void R_DrawPSprite (pspdef_t *psp)
   vis = &avis;
   vis->mobjflags = 0;
   vis->mobjflags2 = 0;
+  vis->mobjflags_extra = 0;
 
   // killough 12/98: fix psprite positioning problem
   vis->texturemid = (BASEYCENTER<<FRACBITS) /* + FRACUNIT/2 */ -

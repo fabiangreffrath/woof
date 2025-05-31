@@ -1771,7 +1771,7 @@ static boolean P_HealCorpse(mobj_t* actor, int radius, statenum_t healstate, sfx
 		              corpsehit->type, corpsehit->x>>FRACBITS, corpsehit->y>>FRACBITS);
 		  }
 
-		  corpsehit->flags2 &= ~MF2_COLOREDBLOOD;
+		  corpsehit->flags_extra &= ~MFX_COLOREDBLOOD;
 		  corpsehit->bloodcolor = 0;
 
                   corpsehit->health = info->spawnhealth;
