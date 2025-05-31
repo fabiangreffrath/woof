@@ -331,7 +331,12 @@ static void saveg_read_mobj_t(mobj_t *str)
         str->flags2 = mobjinfo[str->type].flags2;
     }
 
-    str->flags_extra = saveg_read32();
+    if (saveg_compat > saveg_woof1500)
+    {
+        // Woof!-exclusive extension
+        // int flags_extra;
+        str->flags_extra = saveg_read32();
+    }
 
     // int intflags
     str->intflags = saveg_read32();
