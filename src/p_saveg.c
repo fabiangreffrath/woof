@@ -2544,6 +2544,7 @@ void P_UnArchiveThinkers (void)
     {
       ambient_t *ambient = Z_Malloc(sizeof(*ambient), PU_LEVEL, NULL);
       saveg_read_ambient_t(ambient);
+      ambient->update_tics = AMB_UPDATE_NOW;
       ambient->playing = false;
       ambient->thinker.function.p1 = (actionf_p1)T_AmbientSound;
       P_AddThinker(&ambient->thinker);

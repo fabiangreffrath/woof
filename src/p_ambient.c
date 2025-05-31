@@ -29,6 +29,8 @@
 #include "sounds.h"
 #include "z_zone.h"
 
+#define AMB_UPDATE_TICS 7 // 200 ms
+
 int zmt_ambientsound = ZMT_UNDEFINED;
 
 static int RandomWaitTics(const ambient_data_t *data)
@@ -98,8 +100,24 @@ static boolean StartAmbientSound(ambient_t *ambient)
     return S_StartAmbientSound(ambient->origin, ambient->data.sfx_id, ambient);
 }
 
+static boolean CheckUpdateTics(ambient_t *ambient)
+{
+    if (--ambient->update_tics > 0)
+    {
+        return false;
+    }
+
+    ambient->update_tics = AMB_UPDATE_TICS;
+    return true;
+}
+
 static void UpdateContinuous(ambient_t *ambient)
 {
+    if (!CheckUpdateTics(ambient))
+    {
+        return;
+    }
+
     if (ambient->playing)
     {
         return;
@@ -120,6 +138,11 @@ static void UpdateInterval(ambient_t *ambient)
 {
     if (--ambient->wait_tics > 0)
     {
+        if (!CheckUpdateTics(ambient))
+        {
+            return;
+        }
+
         if (ambient->active && !ambient->playing)
         {
             const sfxinfo_t *sfx = &S_sfx[ambient->data.sfx_id];
@@ -146,6 +169,7 @@ static void UpdateInterval(ambient_t *ambient)
             ambient->wait_tics = ambient->data.min_tics;
         }
 
+        ambient->update_tics = AMB_UPDATE_TICS;
         ambient->active = true;
         ambient->offset = 0.0f;
         ambient->last_offset = 0.0f;
@@ -194,14 +218,17 @@ void P_AddAmbientSoundThinker(mobj_t *mobj, int index)
     switch (ambient->data.mode)
     {
         case AMB_MODE_CONTINUOUS:
+            ambient->update_tics = AMB_UPDATE_NOW;
             ambient->wait_tics = -1;
             break;
 
         case AMB_MODE_RANDOM:
+            ambient->update_tics = AMB_UPDATE_TICS;
             ambient->wait_tics = RandomWaitTics(&ambient->data);
             break;
 
         case AMB_MODE_PERIODIC:
+            ambient->update_tics = AMB_UPDATE_TICS;
             ambient->wait_tics = ambient->data.min_tics;
             break;
     }

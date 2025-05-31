@@ -21,6 +21,8 @@
 #include "p_mobj.h"
 #include "s_sndinfo.h"
 
+#define AMB_UPDATE_NOW -1 // Try to start ambient sound immediately.
+
 struct sfxparams_s;
 
 typedef struct ambient_s
@@ -29,6 +31,7 @@ typedef struct ambient_s
     mobj_t *source;      // Causes sound (map thing mobj).
     mobj_t *origin;      // Emits sound (NULL for world sounds).
     ambient_data_t data; // Local instance of the data from SNDINFO.
+    int update_tics;     // Wait interval between attempts to start sound.
     int wait_tics;       // Wait interval for random or periodic sounds.
     boolean active;      // Should the ambient sound be playing?
     boolean playing;     // Is the ambient sound playing?
