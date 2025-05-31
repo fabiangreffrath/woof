@@ -226,7 +226,7 @@ typedef enum
 typedef enum
 {
     MFX_COLOREDBLOOD    = 0x00000001, // [FG] colored blood and gibs
-    MFX_MIRROREDCORPSE       = 0x00000002, // [crispy] randomly flip corpse, blood and death animation sprites
+    MFX_MIRROREDCORPSE  = 0x00000002, // [crispy] randomly flip corpse, blood and death animation sprites
 } mobjflag_extra_t;
 
 // killough 9/15/98: Same, but internal flags, not intended for .deh
