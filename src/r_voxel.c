@@ -1045,7 +1045,7 @@ void VX_DrawVoxel (vissprite_t * spr)
 		spr->colormap[0] = new_colormap;
 	}
 
-	if ((spr->mobjflags2 & MF2_COLOREDBLOOD) && (spr->colormap[0] != NULL))
+	if ((spr->mobjflags_extra & MFX_COLOREDBLOOD) && (spr->colormap[0] != NULL))
 	{
 		static const byte * prev_trans = NULL, * prev_map = NULL;
 		const byte * trans = red2col[spr->color], * map = spr->colormap[0];

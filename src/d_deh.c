@@ -1159,6 +1159,7 @@ enum
 
     // [Woof!]
     DEH_MOBJINFO_BLOODCOLOR,
+    DEH_MOBJINFO_FLAGS_EXTRA,
 
     // DEHEXTRA
     DEH_MOBJINFO_DROPPEDITEM,
@@ -1202,6 +1203,7 @@ static const char *deh_mobjinfo[] = {
 
     // [Woof!]
     "Blood color", // .bloodcolor
+    "Woof Bits",   // .flags_extra
 
     // DEHEXTRA
     "Dropped item", // .droppeditem
@@ -1285,7 +1287,10 @@ static const deh_flag_t deh_mobjflags_mbf21[] = {
     {"E4M8BOSS",       MF2_E4M8BOSS     }, // E4M8 boss
     {"RIP",            MF2_RIP          }, // projectile rips through targets
     {"FULLVOLSOUNDS",  MF2_FULLVOLSOUNDS}, // full volume see / death sound
-    {"FLIPPABLE",      MF2_FLIPPABLE    }, // [crispy] randomly flip corpse, blood and death animation sprites
+};
+
+static const deh_flag_t deh_mobjflags_extra[] = {
+    {"FLIPPABLE",      MFX_FLIPPABLE    }, // [crispy] randomly flip corpse, blood and death animation sprites
 };
 
 static const deh_flag_t deh_weaponflags_mbf21[] = {
@@ -1906,6 +1911,39 @@ static void deh_procThing(DEHFILE *fpin, char *line)
 
             switch (ix)
             {
+                // Woof!
+                case DEH_MOBJINFO_FLAGS_EXTRA:
+                    if (!value)
+                    {
+                        for (value = 0; (strval = strtok(strval, ",+| \t\f\r"));
+                            strval = NULL)
+                        {
+                            size_t iy;
+
+                            for (iy = 0; iy < arrlen(deh_mobjflags_extra); iy++)
+                            {
+                                if (strcasecmp(strval,
+                                              deh_mobjflags_extra[iy].name))
+                                {
+                                    continue;
+                                }
+
+                                value |= deh_mobjflags_extra[iy].value;
+                                break;
+                            }
+
+                            if (iy >= arrlen(deh_mobjflags_extra))
+                            {
+                                deh_log(
+                                    "Could not find Woof bit mnemonic %s\n",
+                                    strval);
+                            }
+                        }
+                    }
+
+                    mobjinfo[indexnum].flags_extra = value;
+                    break;
+
                 // mbf21: process thing flags
                 case DEH_MOBJINFO_FLAGS2:
                     if (!value)

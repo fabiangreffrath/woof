@@ -1511,6 +1511,7 @@ typedef struct
 
     // mbf21
     int flags2;
+    int flags_extra; // Woof!
     int infighting_group;
     int projectile_group;
     int splash_group;

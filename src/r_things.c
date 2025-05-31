@@ -437,7 +437,7 @@ void R_DrawVisSprite(vissprite_t *vis, int x1, int x2)
     colfunc = R_DrawFuzzColumn;    // killough 3/14/98
   else
     // [FG] colored blood and gibs
-    if (vis->mobjflags2 & MF2_COLOREDBLOOD)
+    if (vis->mobjflags_extra & MFX_COLOREDBLOOD)
       {
         colfunc = R_DrawTranslatedColumn;
         dc_translation = red2col[vis->color];
@@ -585,7 +585,7 @@ static void R_ProjectSprite (mobj_t* thing)
 
   // [crispy] randomly flip corpse, blood and death animation sprites
   if (STRICTMODE(flipcorpses) &&
-      (thing->flags2 & MF2_FLIPPABLE) &&
+      (thing->flags_extra & MFX_FLIPPABLE) &&
       !(thing->flags & MF_SHOOTABLE) &&
       (thing->intflags & MIF_FLIP))
     {
