@@ -86,7 +86,7 @@ typedef union
 
 inline static void saveg_write_float(float value)
 {
-    fdata_t data = {.f = SWAP_FLOAT(value)};
+    fdata_t data = {.f = FLOAT(value)};
 
     saveg_buffer_size(4);
 
@@ -105,7 +105,7 @@ inline static float saveg_read_float(void)
         data.b[i] = saveg_read8();
     }
 
-    return SWAP_FLOAT(data.f);
+    return FLOAT(data.f);
 }
 
 // Pointers
