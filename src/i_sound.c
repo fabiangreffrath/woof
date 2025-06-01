@@ -794,7 +794,7 @@ void I_BindSoundVariables(void)
         "Sound effects volume");
     M_BindNum("music_volume", &snd_MusicVolume, NULL, 8, 0, 15, ss_none, wad_no,
         "Music volume");
-    M_BindBool("snd_ambient", &default_snd_ambient, &snd_ambient, true, ss_sfx, wad_no,
+    M_BindBool("snd_ambient", &default_snd_ambient, &snd_ambient, true, ss_none, wad_no,
         "Play SNDINFO ambient sounds");
     BIND_BOOL_SFX(pitched_sounds, false,
         "Variable pitch for sound effects");
