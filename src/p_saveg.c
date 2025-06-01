@@ -19,8 +19,6 @@
 
 #include <string.h>
 
-#include "SDL_endian.h"
-
 #include "am_map.h"
 #include "d_player.h"
 #include "d_think.h"
@@ -79,35 +77,6 @@ inline static void saveg_write_pad(void)
     }
 }
 
-typedef union
-{
-    byte b[4];
-    float f;
-} fdata_t;
-
-inline static void saveg_write_float(float value)
-{
-    fdata_t data = {.f = SDL_SwapFloatLE(value)};
-
-    saveg_buffer_size(4);
-
-    for (int i = 0; i < 4; i++)
-    {
-        savep_putbyte(data.b[i]);
-    }
-}
-
-inline static float saveg_read_float(void)
-{
-    fdata_t data;
-
-    for (int i = 0; i < 4; i++)
-    {
-        data.b[i] = saveg_read8();
-    }
-
-    return SDL_SwapFloatLE(data.f);
-}
 
 // Pointers
 
