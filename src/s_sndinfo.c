@@ -274,23 +274,23 @@ static void ParseAmbientSoundCommand(scanner_t *s, char ***sound_names,
     SC_SkipLine(s);
 }
 
-static boolean ResolveAmbientSounds(sound_def_t **sound_defs,
-                                    char ***sound_names,
-                                    ambient_data_t **ambient_data)
+static boolean ResolveAmbientSounds(sound_def_t *sound_defs,
+                                    char **sound_names,
+                                    ambient_data_t *ambient_data)
 {
     int num_resolved = 0;
 
     for (int i = 0; i < MAX_AMBIENT_DATA; i++)
     {
-        const char *sound_name = (*sound_names)[i];
+        const char *sound_name = sound_names[i];
 
         if (sound_name)
         {
-            ambient_data_t *amb = &(*ambient_data)[i];
+            ambient_data_t *amb = &ambient_data[i];
 
-            for (int j = 0; j < array_size(*sound_defs); j++)
+            for (int j = 0; j < array_size(sound_defs); j++)
             {
-                const sound_def_t *def = &(*sound_defs)[j];
+                const sound_def_t *def = &sound_defs[j];
 
                 if (!strcasecmp(sound_name, def->sound_name))
                 {
@@ -380,7 +380,7 @@ void S_ParseSndInfo(int lumpnum)
         SC_SkipLine(s);
     }
 
-    if (!ResolveAmbientSounds(&sound_defs, &sound_names, &ambient_data))
+    if (!ResolveAmbientSounds(sound_defs, sound_names, ambient_data))
     {
         free(ambient_data);
         ambient_data = NULL;
