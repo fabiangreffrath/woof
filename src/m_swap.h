@@ -39,7 +39,7 @@
 
 #define SWAP_BE32(x) ((signed int) SDL_SwapBE32(x))
 
-#define FLOAT(x) ((float) SDL_SwapFloatLE(x))
+#define SWAP_FLOAT(x) ((float) SDL_SwapFloatLE(x))
 
 #endif
 
