@@ -275,8 +275,8 @@ static void ParseAmbientSoundCommand(scanner_t *s, char ***sound_names,
     SC_SkipLine(s);
 }
 
-static boolean ResolveAmbientSounds(const sound_def_t **sound_defs,
-                                    const char ***sound_names,
+static boolean ResolveAmbientSounds(sound_def_t **sound_defs,
+                                    char ***sound_names,
                                     ambient_data_t **ambient_data)
 {
     int num_resolved = 0;
