@@ -2564,12 +2564,6 @@ static setup_menu_t gen_settings2[] = {
     MI_END
 };
 
-static void UpdateAmbientSounds(void)
-{
-    snd_ambient = default_snd_ambient;
-    S_EvictChannels();
-}
-
 static setup_menu_t sfx_settings1[] = {
 
     {"SFX Channels", S_THERMO, CNTR_X, M_THRM_SPC, {"snd_channels"},
@@ -2579,9 +2573,6 @@ static setup_menu_t sfx_settings1[] = {
      .action = SetSoundModule},
 
     MI_GAP,
-
-    {"Ambient Sounds", S_ONOFF | S_LEVWARN, CNTR_X, M_SPC, {"snd_ambient"},
-     .action = UpdateAmbientSounds},
 
     {"Pitch-Shifting", S_ONOFF, CNTR_X, M_SPC, {"pitched_sounds"}},
 
@@ -2598,11 +2589,6 @@ static setup_menu_t sfx_settings1[] = {
 
     MI_END
 };
-
-void MN_DisableAmbientSoundsItem(void)
-{
-    DisableItem(true, sfx_settings1, "snd_ambient");
-}
 
 static const char **GetResamplerStrings(void)
 {
