@@ -718,6 +718,13 @@ boolean I_OAL_CacheSound(sfxinfo_t *sfx)
         if (sfx->ambient)
         {
             sfx->length = GetSoundLength(sfx->buffer);
+
+            if ((uint64_t)(sfx->length * FRACUNIT) > INT_MAX)
+            {
+                // Ignore ambient sounds that are somehow over 32767.99998474
+                // seconds long.
+                sfx->length = 0.0f; 
+            }
         }
 
         I_CacheRumble(sfx, format, sampledata, size, freq);

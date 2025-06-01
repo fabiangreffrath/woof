@@ -1973,10 +1973,10 @@ static void saveg_read_ambient_t(ambient_t *str)
     str->active = saveg_read32();
 
     // float offset;
-    str->offset = saveg_read_float();
+    str->offset = (float)FIXED2DOUBLE(saveg_read32());
 
     // float last_offset;
-    str->last_offset = saveg_read_float();
+    str->last_offset = (float)FIXED2DOUBLE(saveg_read32());
 
     // int last_leveltime;
     str->last_leveltime = saveg_read32();
@@ -2000,10 +2000,10 @@ static void saveg_write_ambient_t(ambient_t *str)
     saveg_write32(str->active);
 
     // float offset;
-    saveg_write_float(str->offset);
+    saveg_write32((fixed_t)(str->offset * FRACUNIT));
 
     // float last_offset;
-    saveg_write_float(str->last_offset);
+    saveg_write32((fixed_t)(str->last_offset * FRACUNIT));
 
     // int last_leveltime;
     saveg_write32(str->last_leveltime);
