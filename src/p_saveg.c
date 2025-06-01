@@ -19,8 +19,6 @@
 
 #include <string.h>
 
-#include "SDL_endian.h"
-
 #include "am_map.h"
 #include "d_player.h"
 #include "d_think.h"
@@ -32,6 +30,7 @@
 #include "info.h"
 #include "m_array.h"
 #include "m_random.h"
+#include "m_swap.h"
 #include "p_ambient.h"
 #include "p_enemy.h"
 #include "p_maputl.h"
@@ -87,7 +86,7 @@ typedef union
 
 inline static void saveg_write_float(float value)
 {
-    fdata_t data = {.f = SDL_SwapFloatLE(value)};
+    fdata_t data = {.f = FLOAT(value)};
 
     saveg_buffer_size(4);
 
@@ -106,7 +105,7 @@ inline static float saveg_read_float(void)
         data.b[i] = saveg_read8();
     }
 
-    return SDL_SwapFloatLE(data.f);
+    return FLOAT(data.f);
 }
 
 // Pointers
