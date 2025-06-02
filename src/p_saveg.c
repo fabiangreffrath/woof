@@ -332,6 +332,13 @@ static void saveg_read_mobj_t(mobj_t *str)
         str->flags2 = mobjinfo[str->type].flags2;
     }
 
+    if (saveg_compat > saveg_woof1500)
+    {
+        // Woof!-exclusive extension
+        // int flags_extra;
+        str->flags_extra = saveg_read32();
+    }
+
     // int intflags
     str->intflags = saveg_read32();
 
@@ -525,6 +532,10 @@ static void saveg_write_mobj_t(mobj_t *str)
 
     // [Woof!]: mbf21: int flags2;
     saveg_write32(str->flags2);
+
+    // Woof!-exclusive extension
+    // int flags_extra;
+    saveg_write32(str->flags_extra);
 
     // int intflags;
     saveg_write32(str->intflags);

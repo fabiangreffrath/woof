@@ -1566,16 +1566,16 @@ static void D_InitTables(void)
       case MT_CYBORG:
         continue;
     }
-    mobjinfo[i].flags2 |= MF2_FLIPPABLE;
+    mobjinfo[i].flags_extra |= MFX_MIRROREDCORPSE;
   }
 
-  mobjinfo[MT_PUFF].flags2 |= MF2_FLIPPABLE;
-  mobjinfo[MT_BLOOD].flags2 |= MF2_FLIPPABLE;
+  mobjinfo[MT_PUFF].flags_extra |= MFX_MIRROREDCORPSE;
+  mobjinfo[MT_BLOOD].flags_extra |= MFX_MIRROREDCORPSE;
 
   for (i = MT_MISC61; i <= MT_MISC69; ++i)
-     mobjinfo[i].flags2 |= MF2_FLIPPABLE;
+     mobjinfo[i].flags_extra |= MFX_MIRROREDCORPSE;
 
-  mobjinfo[MT_DOGS].flags2 |= MF2_FLIPPABLE;
+  mobjinfo[MT_DOGS].flags_extra |= MFX_MIRROREDCORPSE;
 
   for (i = S_SARG_RUN1; i <= S_SARG_PAIN2; ++i)
     states[i].flags |= STATEF_SKILL5FAST;
