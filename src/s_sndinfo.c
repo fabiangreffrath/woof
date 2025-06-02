@@ -17,8 +17,9 @@
 
 #include <math.h>
 
+#include "doomtype.h"
+#include "doomdef.h"
 #include "dsdhacked.h"
-#include "g_game.h"
 #include "i_printf.h"
 #include "i_sound.h"
 #include "m_array.h"
@@ -69,29 +70,16 @@ static void ParseSoundDefinition(scanner_t *s, sound_def_t **sound_defs)
 
     if (!SC_SameLine(s))
     {
-        I_Printf(VB_WARNING, "SNDINFO: expected a lump name");
-        free(def.sound_name);
-        return;
+        SC_Error(s, "expected lump name");
     }
 
-    if (!SC_CheckStringOrIdent(s))
-    {
-        I_Printf(VB_WARNING, "SNDINFO: invalid lump name");
-        SC_SkipLine(s);
-        free(def.sound_name);
-        return;
-    }
-
+    SC_GetNextTokenLumpName(s);
     def.lump_name = M_StringDuplicate(SC_GetString(s));
     def.lumpnum = W_CheckNumForName(def.lump_name);
 
     if (def.lumpnum < 0)
     {
-        I_Printf(VB_WARNING, "SNDINFO: lump not found: %s", def.lump_name);
-        SC_SkipLine(s);
-        free(def.sound_name);
-        free(def.lump_name);
-        return;
+        SC_Error(s, "SNDINFO: lump not found: %s", def.lump_name);
     }
 
     // If there are multiple sound definitions with the same sound name, only
@@ -108,7 +96,6 @@ static void ParseSoundDefinition(scanner_t *s, sound_def_t **sound_defs)
     }
 
     array_push(*sound_defs, def);
-    SC_SkipLine(s);
 }
 
 //
@@ -136,17 +123,15 @@ static void ParseAmbientSoundCommand(scanner_t *s, char ***sound_names,
     const int index = SC_GetNumber(s);
     if (index < 1 || index > MAX_AMBIENT_DATA)
     {
-        I_Printf(VB_WARNING, "SNDINFO: index not in range 1 to %d (found %d)",
+        SC_Error(s, "index not in range 1 to %d (found %d)", 
                  MAX_AMBIENT_DATA, index);
-        SC_SkipLine(s);
-        return;
     }
 
     // Array index
     const int array_index = index - 1;
 
     // Sound name
-    SC_MustGetStringOrIdent(s);
+    SC_GetNextTokenLumpName(s);
     char *sound_name = M_StringDuplicate(SC_GetString(s));
 
     // Type is optional, but mode is required.
@@ -238,18 +223,12 @@ static void ParseAmbientSoundCommand(scanner_t *s, char ***sound_names,
     }
     else
     {
-        I_Printf(VB_WARNING, "SNDINFO: index %d: invalid mode", index);
-        SC_SkipLine(s);
-        free(sound_name);
-        return;
+        SC_Error(s, "invalid mode");
     }
 
     if (!amb.min_tics && !amb.max_tics)
     {
-        I_Printf(VB_WARNING, "SNDINFO: index %d: invalid interval", index);
-        SC_SkipLine(s);
-        free(sound_name);
-        return;
+        SC_Error(s, "invalid interval");
     }
 
     // Volume
@@ -271,7 +250,6 @@ static void ParseAmbientSoundCommand(scanner_t *s, char ***sound_names,
 
     (*sound_names)[array_index] = sound_name;
     (*ambient_data)[array_index] = amb;
-    SC_SkipLine(s);
 }
 
 static boolean ResolveAmbientSounds(sound_def_t *sound_defs,
@@ -361,23 +339,20 @@ void S_ParseSndInfo(int lumpnum)
 
     while (SC_TokensLeft(s))
     {
-        if (SC_CheckStringOrIdent(s))
+        SC_GetNextTokenLumpName(s);
+        const char *string = SC_GetString(s);
+        if (string[0] != '$')
         {
-            const char *string = SC_GetString(s);
-
-            if (string[0] != '$')
-            {
-                ParseSoundDefinition(s, &sound_defs);
-                continue;
-            }
-            else if (!strcasecmp(string, "$ambient"))
-            {
-                ParseAmbientSoundCommand(s, &sound_names, &ambient_data);
-                continue;
-            }
+            ParseSoundDefinition(s, &sound_defs);
         }
-
-        SC_SkipLine(s);
+        else if (!strcasecmp(string, "$ambient"))
+        {
+            ParseAmbientSoundCommand(s, &sound_names, &ambient_data);
+        }
+        else
+        {
+            SC_GetNextLineToken(s);
+        }
     }
 
     if (!ResolveAmbientSounds(sound_defs, sound_names, ambient_data))
