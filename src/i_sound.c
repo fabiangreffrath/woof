@@ -192,7 +192,7 @@ void I_SetGain(int channel, float gain)
 #ifdef RANGECHECK
     if (channel < 0 || channel >= MAX_CHANNELS)
     {
-        I_Error("I_SetGain: channel out of range");
+        I_Error("channel out of range");
     }
 #endif
 
@@ -209,7 +209,7 @@ float I_GetSoundOffset(int channel)
 #ifdef RANGECHECK
     if (channel < 0 || channel >= MAX_CHANNELS)
     {
-        I_Error("I_GetSoundOffset: channel out of range");
+        I_Error("channel out of range");
     }
 #endif
 
