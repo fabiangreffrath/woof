@@ -116,7 +116,7 @@ static void ParseSoundDefinition(scanner_t *s, sound_def_t **sound_defs)
 static void ParseAmbientSoundCommand(scanner_t *s, char ***sound_names,
                                      ambient_data_t **ambient_data)
 {
-    ambient_data_t amb;
+    ambient_data_t amb = {0};
 
     // Index
     SC_MustGetToken(s, TK_IntConst);
