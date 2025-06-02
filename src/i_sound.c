@@ -572,7 +572,6 @@ void I_SetSoundModule(void)
     }
 
     CacheSounds();
-    LinkSounds();
     MN_UpdateAdvancedSoundItems(snd_module != SND_MODULE_3D);
 }
 
