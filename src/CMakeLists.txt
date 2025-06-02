@@ -94,6 +94,7 @@ set(WOOF_SOURCES
     net_server.c           net_server.h
     net_structrw.c         net_structrw.h
                            p_action.h
+    p_ambient.c            p_ambient.h
     p_ceilng.c
     p_doors.c
     p_enemy.c              p_enemy.h
@@ -130,6 +131,7 @@ set(WOOF_SOURCES
     r_things.c             r_things.h
     r_voxel.c              r_voxel.h
     s_musinfo.c            s_musinfo.h
+    s_sndinfo.c            s_sndinfo.h
     s_sound.c              s_sound.h
     s_trakinfo.c           s_trakinfo.h
     sounds.c               sounds.h

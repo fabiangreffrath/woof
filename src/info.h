@@ -1539,6 +1539,10 @@ extern int num_sprites;
 extern mobjinfo_t* mobjinfo;
 extern int num_mobj_types;
 
+// ZDoom
+#define ZMT_UNDEFINED -2
+extern int zmt_ambientsound;
+
 #endif
 
 //----------------------------------------------------------------------------

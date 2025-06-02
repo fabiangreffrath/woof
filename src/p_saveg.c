@@ -30,6 +30,7 @@
 #include "info.h"
 #include "m_array.h"
 #include "m_random.h"
+#include "p_ambient.h"
 #include "p_enemy.h"
 #include "p_maputl.h"
 #include "p_mobj.h"
@@ -1893,6 +1894,122 @@ static void saveg_write_friction_t(friction_t *str)
 }
 
 //
+// ambient_data_t
+//
+
+static void saveg_read_ambient_data_t(ambient_data_t *str)
+{
+    // ambient_type_t type;
+    str->type = saveg_read_enum();
+
+    // ambient_mode_t mode;
+    str->mode = saveg_read_enum();
+
+    // int close_dist;
+    str->close_dist = saveg_read32();
+
+    // int clipping_dist;
+    str->clipping_dist = saveg_read32();
+
+    // int min_tics;
+    str->min_tics = saveg_read32();
+
+    // int max_tics;
+    str->max_tics = saveg_read32();
+
+    // int volume_scale;
+    str->volume_scale = saveg_read32();
+
+    // int sfx_id;
+    str->sfx_id = saveg_read32();
+}
+
+static void saveg_write_ambient_data_t(ambient_data_t *str)
+{
+    // ambient_type_t type;
+    saveg_write_enum(str->type);
+
+    // ambient_mode_t mode;
+    saveg_write_enum(str->mode);
+
+    // int close_dist;
+    saveg_write32(str->close_dist);
+
+    // int clipping_dist;
+    saveg_write32(str->clipping_dist);
+
+    // int min_tics;
+    saveg_write32(str->min_tics);
+
+    // int max_tics;
+    saveg_write32(str->max_tics);
+
+    // int volume_scale;
+    saveg_write32(str->volume_scale);
+
+    // int sfx_id;
+    saveg_write32(str->sfx_id);
+}
+
+//
+// ambient_t
+//
+
+static void saveg_read_ambient_t(ambient_t *str)
+{
+    // thinker_t thinker;
+    saveg_read_thinker_t(&str->thinker);
+
+    // mobj_t *source;
+    str->source = saveg_readp();
+
+    // ambient_data_t data;
+    saveg_read_ambient_data_t(&str->data);
+
+    // int wait_tics;
+    str->wait_tics = saveg_read32();
+
+    // boolean active;
+    str->active = saveg_read32();
+
+    // float offset;
+    str->offset = (float)FIXED2DOUBLE(saveg_read32());
+
+    // float last_offset;
+    str->last_offset = (float)FIXED2DOUBLE(saveg_read32());
+
+    // int last_leveltime;
+    str->last_leveltime = saveg_read32();
+}
+
+static void saveg_write_ambient_t(ambient_t *str)
+{
+    // thinker_t thinker;
+    saveg_write_thinker_t(&str->thinker);
+
+    // mobj_t *source;
+    saveg_writep(str->source);
+
+    // ambient_data_t data;
+    saveg_write_ambient_data_t(&str->data);
+
+    // int wait_tics;
+    saveg_write32(str->wait_tics);
+
+    // boolean active;
+    saveg_write32(str->active);
+
+    // float offset;
+    saveg_write32((fixed_t)(str->offset * FRACUNIT));
+
+    // float last_offset;
+    saveg_write32((fixed_t)(str->last_offset * FRACUNIT));
+
+    // int last_leveltime;
+    saveg_write32(str->last_leveltime);
+}
+
+//
 // rng_t
 //
 
@@ -2170,7 +2287,8 @@ void P_UnArchiveWorld (void)
 
 typedef enum {
   tc_end,
-  tc_mobj
+  tc_mobj,
+  tc_ambient,
 } thinkerclass_t;
 
 //
@@ -2182,7 +2300,6 @@ void P_ArchiveThinkers (void)
 {
   thinker_t *th;
   size_t    size = 0;
-  mobj_t    tmp;
 
   // killough 3/26/98: Save boss brain state
   saveg_write32(brain.easy);
@@ -2199,8 +2316,29 @@ void P_ArchiveThinkers (void)
   // save off the current thinkers
 
   for (th = thinkercap.next ; th != &thinkercap ; th=th->next)
+  {
+    if (th->function.p1 == (actionf_p1)T_AmbientSound)
+    {
+      ambient_t tmp;
+      ambient_t *ambient = &tmp;
+      memcpy(ambient, th, sizeof(*ambient));
+
+      if (ambient->source)
+      {
+        ambient->source =
+          ambient->source->thinker.function.p1 == (actionf_p1)P_MobjThinker
+            ? (mobj_t *)ambient->source->thinker.prev
+            : NULL;
+      }
+
+      saveg_write8(tc_ambient);
+      saveg_write_ambient_t(ambient);
+      continue;
+    }
+
     if (th->function.p1 == (actionf_p1)P_MobjThinker)
       {
+        mobj_t tmp;
         mobj_t *mobj = &tmp;
         memcpy (mobj, th, sizeof(*mobj));
         mobj->state = (state_t *)(mobj->state - states);
@@ -2249,6 +2387,7 @@ void P_ArchiveThinkers (void)
         saveg_write_pad();
         saveg_write_mobj_t(mobj);
       }
+  }
 
   // add a terminating marker
   saveg_write8(tc_end);
@@ -2320,6 +2459,8 @@ void P_UnArchiveThinkers (void)
       thinker_t *next = th->next;
       if (th->function.p1 == (actionf_p1)P_MobjThinker)
         P_RemoveMobj ((mobj_t *) th);
+      else if (th->function.p1 == (actionf_p1)T_AmbientSound)
+        P_RemoveThinker(th);
       else
         Z_Free (th);
       th = next;
@@ -2329,12 +2470,29 @@ void P_UnArchiveThinkers (void)
   // killough 2/14/98: count number of thinkers by skipping through them
   {
     byte *sp = save_p;     // save pointer and skip header
-    mobj_t tmp;
-    for (size = 1; *save_p++ == tc_mobj; size++)  // killough 2/14/98
-      {                     // skip all entries, adding up count
+    size = 1;
+    while (1)
+    {                     // skip all entries, adding up count
+      const byte tc = saveg_read8();
+
+      if (tc == tc_ambient)
+      {
+        ambient_t tmp;
+        saveg_read_ambient_t(&tmp);
+        continue;
+      }
+
+      if (tc == tc_mobj)
+      {
+        mobj_t tmp;
         saveg_read_pad();
         saveg_read_mobj_t(&tmp);
+        size++;
+        continue;
       }
+
+      break;
+    }
 
     if (*--save_p != tc_end)
       I_Error ("Unknown tclass %i in savegame", *save_p);
@@ -2346,12 +2504,29 @@ void P_UnArchiveThinkers (void)
 
   // read in saved thinkers
   // haleyjd 11/03/06: use idx to save "size" for rangechecking
-  for (idx = 1; *save_p++ == tc_mobj; idx++)    // killough 2/14/98
+  idx = 1;
+  while (1)
+  {
+    const byte tc = saveg_read8();
+
+    if (tc == tc_ambient)
+    {
+      ambient_t *ambient = Z_Malloc(sizeof(*ambient), PU_LEVEL, NULL);
+      saveg_read_ambient_t(ambient);
+      ambient->update_tics = AMB_UPDATE_NOW;
+      ambient->playing = false;
+      ambient->thinker.function.p1 = (actionf_p1)T_AmbientSound;
+      P_AddThinker(&ambient->thinker);
+      continue;
+    }
+
+    if (tc == tc_mobj)
     {
       mobj_t *mobj = Z_Malloc(sizeof(mobj_t), PU_LEVEL, NULL);
 
       // killough 2/14/98 -- insert pointers to thinkers into table, in order:
       mobj_p[idx] = mobj;
+      idx++;
 
       saveg_read_pad();
       saveg_read_mobj_t(mobj);
@@ -2370,7 +2545,11 @@ void P_UnArchiveThinkers (void)
 
       mobj->thinker.function.p1 = (actionf_p1)P_MobjThinker;
       P_AddThinker (&mobj->thinker);
+      continue;
     }
+
+    break;
+  }
 
   // killough 2/14/98: adjust target and tracer fields, plus
   // lastenemy field, to correctly point to mobj thinkers.
@@ -2380,6 +2559,17 @@ void P_UnArchiveThinkers (void)
 
   for (th = thinkercap.next ; th != &thinkercap ; th=th->next)
     {
+      if (th->function.p1 == (actionf_p1)T_AmbientSound)
+      {
+        P_SetNewTarget(&((ambient_t *) th)->source,
+          mobj_p[(size_t)((ambient_t *)th)->source]);
+
+        ambient_t *ambient = (ambient_t *)th;
+        ambient->origin =
+          ambient->data.type == AMB_TYPE_POINT ? ambient->source : NULL;
+        continue;
+      }
+
       P_SetNewTarget(&((mobj_t *) th)->target,
         mobj_p[(size_t)((mobj_t *)th)->target]);
 

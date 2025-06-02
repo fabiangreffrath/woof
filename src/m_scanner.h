@@ -68,6 +68,10 @@ boolean SC_GetNextToken(scanner_t *s, boolean expandstate);
 void SC_GetNextLineToken(scanner_t *s);
 void SC_MustGetToken(scanner_t *s, char token);
 void SC_Rewind(scanner_t *s); // Only can rewind one step.
+boolean SC_SameLine(scanner_t *s);
+void SC_SkipLine(scanner_t *s);
+boolean SC_CheckStringOrIdent(scanner_t *s);
+void SC_MustGetStringOrIdent(scanner_t *s);
 
 void SC_GetNextTokenLumpName(scanner_t *s);
 

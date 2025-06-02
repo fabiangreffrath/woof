@@ -2482,7 +2482,7 @@ static void SetSoundModule(void)
         return;
     }
 
-    S_StopChannels();
+    S_EvictChannels();
     I_SetSoundModule();
 }
 
@@ -2567,7 +2567,7 @@ static setup_menu_t gen_settings2[] = {
 static setup_menu_t sfx_settings1[] = {
 
     {"SFX Channels", S_THERMO, CNTR_X, M_THRM_SPC, {"snd_channels"},
-     .action = S_StopChannels},
+     .action = S_EvictChannels},
 
     {"Output Limiter", S_ONOFF, CNTR_X, M_SPC, {"snd_limiter"},
      .action = SetSoundModule},

@@ -25,10 +25,14 @@
 
 typedef struct sfxparams_s
 {
+  int close_dist;
+  int clipping_dist;
   int volume_scale;
   int volume;
   int separation;
   int priority;
+  float pitch;
+  float offset;
 } sfxparams_t;
 
 //
@@ -76,6 +80,15 @@ typedef struct sfxinfo_s
 
   // lump number of sfx
   int lumpnum;
+
+  // Sound length in seconds.
+  float length;
+
+  // Is this an ambient sound?
+  boolean ambient;
+
+  // Is this a looping sound?
+  boolean looping;
 
   boolean cached;
 

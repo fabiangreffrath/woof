@@ -97,7 +97,7 @@ static boolean I_MBF_AdjustSoundParams(const mobj_t *listener,
         return true;
     }
 
-    if (dist >= S_CLIPPING_DIST)
+    if (dist >= params->clipping_dist)
     {
         return false;
     }
@@ -120,10 +120,10 @@ static boolean I_MBF_AdjustSoundParams(const mobj_t *listener,
     }
 
     // volume calculation
-    if (dist > S_CLOSE_DIST)
+    if (dist > params->close_dist)
     {
-        params->volume =
-            params->volume * (S_CLIPPING_DIST - dist) / S_ATTENUATOR;
+        params->volume = params->volume * (params->clipping_dist - dist)
+                         / (params->clipping_dist - params->close_dist);
     }
 
     // haleyjd 09/27/06: decrease priority with volume attenuation
@@ -176,6 +176,7 @@ const sound_module_t sound_mbf_module =
     I_MBF_UpdateSoundParams,
     NULL,
     I_OAL_SetGain,
+    I_OAL_GetOffset,
     I_OAL_StartSound,
     I_OAL_StopSound,
     I_OAL_PauseSound,

@@ -908,6 +908,8 @@ static void G_DoLoadLevel(void)
 {
   int i;
 
+  S_StopAmbientSounds();
+
   // Set the sky map.
   // First thing, we have a dummy sky texture name,
   //  a flat. The data is in the WAD only because
@@ -1745,6 +1747,8 @@ static void G_DoCompleted(void)
 {
   int i;
 
+  S_StopAmbientSounds();
+
   //!
   // @category demo
   // @help
@@ -2455,6 +2459,8 @@ static void DoSaveGame(char *name)
   char name2[VERSIONSIZE];
   char *description;
   int  length, i;
+
+  S_MarkSounds();
 
   description = savedescription;
 

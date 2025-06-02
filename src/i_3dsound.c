@@ -187,16 +187,17 @@ static void CalcDistance(const mobj_t *listener, const mobj_t *source,
 
     CalcHypotenuse(adx, ady, &distxy);
 
-    // Treat monsters, projectiles, and other players as point sources.
+    // Treat monsters, projectiles, other players, and ambient sounds as point
+    // sources.
     src->point_source =
         (source->thinker.function.p1 != (actionf_p1)P_DegenMobjThinker
-         && source->info && source->actualheight);
+         && source->info);
 
     if (src->point_source)
     {
         int adz;
-        // Vertical distance is from player's view to middle of source's sprite.
-        src->z = source->z + (source->actualheight >> 1);
+        // Vertical distance is from player's view to middle of source's height.
+        src->z = source->z + (source->height >> 1);
         adz = abs((listener->player->viewz >> FRACBITS) - (src->z >> FRACBITS));
         CalcHypotenuse(distxy, adz, dist);
     }
@@ -215,16 +216,16 @@ static boolean CalcVolumePriority(int dist, sfxparams_t *params)
     {
         return true;
     }
-    else if (dist >= S_CLIPPING_DIST)
+    else if (dist >= params->clipping_dist)
     {
         return false;
     }
-    else if (dist > S_CLOSE_DIST)
+    else if (dist > params->close_dist)
     {
         // OpenAL inverse distance model never reaches zero volume. Gradually
         // ramp down the volume as the distance approaches the limit.
-        params->volume =
-            params->volume * (S_CLIPPING_DIST - dist) / S_ATTENUATOR;
+        params->volume = params->volume * (params->clipping_dist - dist)
+                         / (params->clipping_dist - params->close_dist);
     }
 
     // Decrease priority with volume attenuation.
@@ -304,18 +305,19 @@ static void I_3D_UpdateListenerParams(const mobj_t *listener)
     I_OAL_UpdateListenerParams(lis.position, lis.velocity, lis.orientation);
 }
 
-static boolean I_3D_StartSound(int channel, sfxinfo_t *sfx, float pitch)
+static boolean I_3D_StartSound(int channel, sfxinfo_t *sfx,
+                               const sfxparams_t *params)
 {
     if (src.positional)
     {
-        I_OAL_ResetSource3D(channel, src.point_source);
+        I_OAL_ResetSource3D(channel, src.point_source, params);
     }
     else
     {
         I_OAL_ResetSource2D(channel);
     }
 
-    return I_OAL_StartSound(channel, sfx, pitch);
+    return I_OAL_StartSound(channel, sfx, params);
 }
 
 static boolean I_3D_InitSound(void)
@@ -338,6 +340,7 @@ const sound_module_t sound_3d_module =
     I_3D_UpdateSoundParams,
     I_3D_UpdateListenerParams,
     I_OAL_SetGain,
+    I_OAL_GetOffset,
     I_3D_StartSound,
     I_OAL_StopSound,
     I_OAL_PauseSound,
