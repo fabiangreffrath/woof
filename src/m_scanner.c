@@ -41,11 +41,11 @@ static const char* const token_names[] =
     [TK_Identifier] = "Identifier",
     [TK_StringConst] = "String Constant",
     [TK_IntConst] = "Integer Constant",
-    [TK_BoolConst] = "boolean Constant",
+    [TK_BoolConst] = "Boolean Constant",
     [TK_FloatConst] = "Float Constant",
     [TK_AnnotateStart] = "Annotation Start",
     [TK_AnnotateEnd] = "Annotation End",
-    [TK_LumpName] = "Lump Name"
+    [TK_RawString] = "Raw String"
 };
 
 typedef struct
@@ -503,13 +503,12 @@ boolean SC_GetNextToken(scanner_t *s, boolean expandstate)
     return false;
 }
 
-void SC_GetNextTokenLumpName(scanner_t *s)
+static boolean SC_GetNextTokenRawString(scanner_t *s)
 {
     if (!s->neednext)
     {
         s->neednext = true;
-        ExpandState(s);
-        return;
+        return true;
     }
 
     s->nextstate.tokenline = s->line;
@@ -517,8 +516,7 @@ void SC_GetNextTokenLumpName(scanner_t *s)
     s->nextstate.token = TK_NoToken;
     if (s->scanpos >= s->length)
     {
-        ExpandState(s);
-        return;
+        return false;
     }
 
     int start = s->scanpos++;
@@ -536,7 +534,7 @@ void SC_GetNextTokenLumpName(scanner_t *s)
     int length = s->scanpos - start;
     if (length > 0)
     {
-        s->nextstate.token = TK_LumpName;
+        s->nextstate.token = TK_RawString;
         if (s->nextstate.string)
         {
             free(s->nextstate.string);
@@ -544,9 +542,11 @@ void SC_GetNextTokenLumpName(scanner_t *s)
         s->nextstate.string = malloc(length + 1);
         memcpy(s->nextstate.string, s->data + start, length);
         s->nextstate.string[length] = '\0';
+        return true;
     }
 
-    ExpandState(s);
+    s->nextstate.token = TK_NoToken;
+    return false;
 }
 
 // Skips all Tokens in current line and parses the first token on the next
@@ -562,15 +562,24 @@ boolean SC_CheckToken(scanner_t *s, char token)
 {
     if (s->neednext)
     {
-        if (!SC_GetNextToken(s, false))
+        if (token == TK_RawString)
+        {
+            if (!SC_GetNextTokenRawString(s))
+            {
+                return false;
+            }
+        }
+        else if (!SC_GetNextToken(s, false))
         {
             return false;
         }
     }
 
-    // An int can also be a float.
     if (s->nextstate.token == token
-        || (s->nextstate.token == TK_IntConst && token == TK_FloatConst))
+        // An int can also be a float.
+        || (s->nextstate.token == TK_IntConst && token == TK_FloatConst)
+        // Raw string can also be a identifier
+        || (s->nextstate.token == TK_Identifier && token == TK_RawString))
     {
         s->neednext = true;
         ExpandState(s);
@@ -588,7 +597,7 @@ void SC_Error(scanner_t *s, const char *msg, ...)
     M_vsnprintf(buffer, sizeof(buffer), msg, args);
     va_end(args);
 
-    I_Error("%s(%d:%d): %s", s->scriptname, s->state.tokenline + 1,
+    I_Error("%s(%d:%d): %s", s->scriptname, s->state.tokenline,
             s->state.tokenlinepos + 1, buffer);
 }
 

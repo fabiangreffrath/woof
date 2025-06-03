@@ -73,13 +73,13 @@ static void ParseSoundDefinition(scanner_t *s, sound_def_t **sound_defs)
         SC_Error(s, "expected lump name");
     }
 
-    SC_GetNextTokenLumpName(s);
+    SC_MustGetToken(s, TK_RawString);
     def.lump_name = M_StringDuplicate(SC_GetString(s));
     def.lumpnum = W_CheckNumForName(def.lump_name);
 
     if (def.lumpnum < 0)
     {
-        SC_Error(s, "SNDINFO: lump not found: %s", def.lump_name);
+        SC_Error(s, "lump not found: %s", def.lump_name);
     }
 
     // If there are multiple sound definitions with the same sound name, only
@@ -131,7 +131,7 @@ static void ParseAmbientSoundCommand(scanner_t *s, char ***sound_names,
     const int array_index = index - 1;
 
     // Sound name
-    SC_GetNextTokenLumpName(s);
+    SC_MustGetToken(s, TK_RawString);
     char *sound_name = M_StringDuplicate(SC_GetString(s));
 
     // Type is optional, but mode is required.
@@ -339,7 +339,7 @@ void S_ParseSndInfo(int lumpnum)
 
     while (SC_TokensLeft(s))
     {
-        SC_GetNextTokenLumpName(s);
+        SC_CheckToken(s, TK_RawString);
         const char *string = SC_GetString(s);
         if (string[0] != '$')
         {

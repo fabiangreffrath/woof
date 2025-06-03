@@ -121,7 +121,7 @@ static boolean ParseProperty(scanner_t *s, elem_t *elem)
 
     int game = DOOM1AND2;
 
-    SC_GetNextTokenLumpName(s);
+    SC_MustGetToken(s, TK_RawString);
     name = M_StringDuplicate(SC_GetString(s));
     SC_MustGetToken(s, TK_Identifier);
     idx = GetBrightmap(SC_GetString(s));
@@ -270,7 +270,7 @@ void R_ParseBrightmaps(int lumpnum)
     {
         if (!SC_CheckToken(s, TK_Identifier))
         {
-            SC_GetNextToken(s, true);
+            SC_GetNextLineToken(s);
             continue;
         }
         if (!strcasecmp("BRIGHTMAP", SC_GetString(s)))
