@@ -79,7 +79,7 @@ void S_ParseMusInfo(const char *mapid)
             // Check number in range
             if (num > 0 && num < MAX_MUS_ENTRIES)
             {
-                SC_GetNextTokenLumpName(s);
+                SC_MustGetToken(s, TK_RawString);
                 lumpnum = W_CheckNumForName(SC_GetString(s));
                 if (lumpnum > 0)
                 {
