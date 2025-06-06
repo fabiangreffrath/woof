@@ -196,6 +196,39 @@ void R_UpdateSkies(void)
     }
 }
 
+static void StretchSky(sky_t *sky)
+{
+    const int skytexture = sky->skytex.texture;
+    const int skyheight = textureheight[skytexture] >> FRACBITS;
+
+    if (stretchsky && skyheight < 200)
+        sky->skytex.mid = -28 * FRACUNIT;
+    else if (skyheight > 200)
+        sky->skytex.mid = 200 * FRACUNIT;
+    else
+        sky->skytex.mid = 100 * FRACUNIT;
+
+    sky->skytex.scaley = FRACUNIT;
+
+    if (stretchsky && skyheight < 200)
+    {
+        sky->skytex.mid = sky->skytex.mid * skyheight / SKYSTRETCH_HEIGHT;
+        sky->skytex.scaley = sky->skytex.scaley * skyheight / SKYSTRETCH_HEIGHT;
+    }
+}
+
+void R_StretchSkies(void)
+{
+    sky_t *sky;
+    array_foreach(sky, levelskies)
+    {
+        if (sky->stretchsky)
+        {
+            StretchSky(sky);
+        }
+    }
+}
+
 //
 // R_InitSkyMap
 // Called whenever the view size changes.
@@ -203,24 +236,8 @@ void R_UpdateSkies(void)
 void R_InitSkyMap (void)
 {
   InitSky();
-/*
-  // [crispy] initialize
-  if (skytexture == -1)
-    return;
 
-  // Pre-calculate sky color
-  R_GetSkyColor(skytexture);
-
-  // [FG] stretch short skies
-  int skyheight = textureheight[skytexture] >> FRACBITS;
-
-  if (stretchsky && skyheight < 200)
-    skytexturemid = -28*FRACUNIT;
-  else if (skyheight > 200)
-    skytexturemid = 200*FRACUNIT;
-  else
-  skytexturemid = 100*FRACUNIT;
-*/
+  R_StretchSkies();
 }
 
 void R_ClearLevelskies(void)
@@ -262,12 +279,14 @@ int R_AddLevelsky(int texture)
             .mid = 100 * FRACUNIT,
             .scalex = FRACUNIT,
             .scaley = FRACUNIT
-        }
+        },
+        .stretchsky = true,
     };
 
     if (new_sky == NULL)
     {
         new_sky = &vanilla_sky;
+        StretchSky(new_sky);
     }
 
     if (new_sky->type == SkyType_Fire)

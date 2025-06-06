@@ -53,7 +53,7 @@
 #include "r_draw.h"
 #include "r_main.h"
 #include "r_plane.h" // [FG] R_InitPlanes()
-#include "r_sky.h"   // [FG] R_InitSkyMap()
+#include "r_sky.h"   // [FG] R_StretchSkies()
 #include "r_voxel.h"
 #include "s_sound.h"
 #include "s_trakinfo.h"
@@ -3278,7 +3278,7 @@ static setup_menu_t gen_settings5[] = {
      .action = R_InitDrawFunctions},
 
     {"Stretch Short Skies", S_ONOFF, OFF_CNTR_X, M_SPC, {"stretchsky"},
-     .action = R_InitSkyMap},
+     .action = R_StretchSkies},
 
     {"Linear Sky Scrolling", S_ONOFF, OFF_CNTR_X, M_SPC, {"linearsky"},
      .action = R_InitPlanes},

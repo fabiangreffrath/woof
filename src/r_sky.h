@@ -41,6 +41,7 @@ extern sky_t *levelskies;
 void R_ClearLevelskies(void);
 int R_AddLevelsky(int texture);
 int R_GetLevelsky(int index);
+void R_StretchSkies(void);
 
 // Called whenever the view size changes.
 void R_InitSkyMap(void);

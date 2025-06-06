@@ -51,6 +51,7 @@ typedef struct sky_s
     skytex_t skytex;
     fire_t fire;
     skytex_t foreground;
+    boolean stretchsky;
 } sky_t;
 
 typedef struct
