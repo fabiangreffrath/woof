@@ -176,7 +176,7 @@ void R_UpdateSkies(void)
 
             fire->tics_left--;
         }
-        else
+        else if (!sky->vanillasky)
         {
             skytex_t *background = &sky->skytex;
             background->prevx = background->currx;
@@ -222,7 +222,7 @@ void R_StretchSkies(void)
     sky_t *sky;
     array_foreach(sky, levelskies)
     {
-        if (sky->stretchsky)
+        if (sky->vanillasky)
         {
             StretchSky(sky);
         }
@@ -280,7 +280,7 @@ int R_AddLevelsky(int texture)
             .scalex = FRACUNIT,
             .scaley = FRACUNIT
         },
-        .stretchsky = true,
+        .vanillasky = true,
     };
 
     if (new_sky == NULL)
@@ -303,7 +303,7 @@ int R_AddLevelsky(int texture)
     return index;
 }
 
-int R_GetLevelsky(int index)
+sky_t *R_GetLevelsky(int index)
 {
 #ifdef RANGECHECK
     if (index >= array_size(levelskies))
@@ -312,7 +312,7 @@ int R_GetLevelsky(int index)
     }
 #endif
 
-    return index;
+    return &levelskies[index];
 }
 
 typedef struct rgb_s {

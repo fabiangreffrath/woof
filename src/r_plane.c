@@ -628,8 +628,8 @@ static void do_draw_plane(visplane_t *pl)
     if (pl->picnum & PL_SKYFLAT)
     {
 //      do_draw_mbf_sky(pl);
-        int skyindex = R_GetLevelsky(pl->picnum & ~PL_SKYFLAT);
-        DrawSkyDef(pl, &levelskies[skyindex]);
+        sky_t *sky = R_GetLevelsky(pl->picnum & ~PL_SKYFLAT);
+        DrawSkyDef(pl, sky);
         return;
     }
 
