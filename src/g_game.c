@@ -918,6 +918,9 @@ static void G_DoLoadLevel(void)
 
   skyflatnum = R_FlatNumForName ( SKYFLATNAME );
 
+  R_ClearLevelskies();
+
+  int skytexture;
   if (gamemapinfo && gamemapinfo->skytexture[0])
   {
     skytexture = R_TextureNumForName(gamemapinfo->skytexture);
@@ -954,6 +957,8 @@ static void G_DoLoadLevel(void)
         skytexture = R_TextureNumForName ("SKY4");
         break;
       }//jff 3/27/98 end sky setting fix
+
+  R_AddLevelsky(skytexture);
 
   levelstarttic = gametic;        // for time calculation
 

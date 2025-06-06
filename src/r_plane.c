@@ -454,7 +454,7 @@ static void DrawSkyTex(visplane_t *pl, skytex_t *skytex)
     }
 }
 
-static void DrawSkyDef(visplane_t *pl)
+static void DrawSkyDef(visplane_t *pl, sky_t *sky)
 {
     // Sky is always drawn full bright, i.e. colormaps[0] is used.
     // Because of this hack, sky is not affected by INVUL inverse mapping.
@@ -492,7 +492,7 @@ static void do_draw_mbf_sky(visplane_t *pl)
     int texture;
     angle_t an, flip;
     boolean vertically_scrolling = false;
-
+#if 0
     // killough 10/98: allow skies to come from sidedefs.
     // Allows scrolling and/or animated skies, as well as
     // arbitrary multiple skies per level without having
@@ -554,7 +554,7 @@ static void do_draw_mbf_sky(visplane_t *pl)
         texture = texturetranslation[skytexture]; // Default texture
         flip = 0;                      // Doom flips it
     }
-
+#endif
     // Sky is always drawn full bright, i.e. colormaps[0] is used.
     // Because of this hack, sky is not affected by INVUL inverse mapping.
     //
@@ -619,15 +619,17 @@ static void do_draw_plane(visplane_t *pl)
 
     // sky flat
 
-    if (pl->picnum == skyflatnum && sky)
+    if (pl->picnum == skyflatnum)
     {
-        DrawSkyDef(pl);
+        DrawSkyDef(pl, levelskies);
         return;
     }
 
-    if (pl->picnum == skyflatnum || pl->picnum & PL_SKYFLAT)
+    if (pl->picnum & PL_SKYFLAT)
     {
-        do_draw_mbf_sky(pl);
+//      do_draw_mbf_sky(pl);
+        int skyindex = R_GetLevelsky(pl->picnum & ~PL_SKYFLAT);
+        DrawSkyDef(pl, &levelskies[skyindex]);
         return;
     }
 

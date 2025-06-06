@@ -21,6 +21,7 @@
 #define __R_SKY__
 
 #include "doomtype.h"
+#include "r_plane.h"
 #include "r_skydefs.h"
 
 // SKY, store the number for name.
@@ -36,19 +37,17 @@ extern boolean stretchsky;
 // [FG] linear horizontal sky scrolling
 extern boolean linearsky;
 
-extern int skytexture;
-extern int skytexturemid;
-
-#define PL_FLATMAPPING (0xC0000000) // (PL_SKYFLAT | 0x40000000)
-
-extern sky_t *sky;
+extern sky_t *levelskies;
+void R_ClearLevelskies(void);
+int R_AddLevelsky(int texture);
+int R_GetLevelsky(int index);
 
 // Called whenever the view size changes.
 void R_InitSkyMap(void);
 
 byte R_GetSkyColor(int texturenum);
 
-void R_UpdateSky(void);
+void R_UpdateSkies(void);
 
 #define FIRE_WIDTH     128
 #define FIRE_HEIGHT    320

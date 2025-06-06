@@ -33,6 +33,7 @@
 #include "i_system.h"
 #include "info.h"
 #include "m_argv.h" // M_CheckParm()
+#include "m_array.h"
 #include "m_fixed.h"
 #include "m_io.h"
 #include "m_misc.h"
@@ -1203,7 +1204,11 @@ void R_PrecacheLevel(void)
   //  a wall texture, with an episode dependend
   //  name.
 
-  hitlist[skytexture] = 1;
+  sky_t *sky;
+  array_foreach(sky, levelskies)
+  {
+    hitlist[sky->skytex.texture] = 1;
+  }
 
   for (i = numtextures; --i >= 0; )
     if (hitlist[i])

@@ -38,6 +38,7 @@
 #include "i_system.h"
 #include "info.h"
 #include "m_argv.h"
+#include "m_array.h"
 #include "m_bbox.h" // phares 3/20/98
 #include "m_misc.h"
 #include "m_random.h"
@@ -2577,7 +2578,7 @@ void P_UpdateSpecials (void)
   // [crispy] draw fuzz effect independent of rendering frame rate
   R_SetFuzzPosTic();
 
-  R_UpdateSky();
+  R_UpdateSkies();
 }
 
 //////////////////////////////////////////////////////////////////////
@@ -2855,9 +2856,10 @@ void P_SpawnSpecials (void)
       case 271:   // Regular sky
       case 272:   // Same, only flipped
         // Pre-calculate sky color
-        R_GetSkyColor(texturetranslation[sides[*lines[i].sidenum].toptexture]);
+        int texnum = texturetranslation[sides[*lines[i].sidenum].toptexture];
+        int skyindex = R_AddLevelsky(texnum);
         for (s = -1; (s = P_FindSectorFromLineTag(lines+i,s)) >= 0;)
-          sectors[s].floorsky = sectors[s].ceilingsky = i | PL_SKYFLAT;
+          sectors[s].floorsky = sectors[s].ceilingsky = skyindex | PL_SKYFLAT;
         break;
 
       case 2048: case 2049: case 2050:
