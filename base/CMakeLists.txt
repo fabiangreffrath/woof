@@ -223,9 +223,7 @@ set(BASE_SOURCES
     id1.wad/dehacked.lmp
     id1.wad/sbardef.lmp
 
-    rekkr.wad/dehacked.lmp
-    rekkrsa.wad/dehacked.lmp
-    rekkrsl.wad/dehacked.lmp
+    rekkr-all/dehacked.lmp
 
     tnt.wad/brghtmps.lmp)
 
