@@ -1388,6 +1388,10 @@ static void LoadIWadBase(void)
             W_AddBaseDir("freedoom1-all");
         }
     }
+    else if (local_gamemission == pack_rekkr)
+    {
+        W_AddBaseDir("rekkr-all");
+    }
     for (int i = 0; i < firstpwad; i++)
     {
         W_AddBaseDir(M_BaseName(wadfiles[i]));
@@ -1455,6 +1459,12 @@ static void AutoloadIWadDir(void (*AutoLoadFunc)(const char *path))
                         free(dir);
                     }
                 }
+                else if (local_gamemission == pack_rekkr)
+                {
+                    dir = GetAutoloadDir(autoload_paths[j], "rekkr-all", true);
+                    AutoLoadFunc(dir);
+                    free(dir);
+                }
             }
 
             // auto-loaded files per IWAD
@@ -1469,6 +1479,9 @@ static void LoadPWadBase(void)
 {
     for (int i = firstpwad; i < array_size(wadfiles); ++i)
     {
+        if (!strncasecmp(M_BaseName(wadfiles[i]), "rekkr", 5)) {
+            W_AddBaseDir("rekkr-all");
+        }
         W_AddBaseDir(wadfiles[i]);
     }
 }
@@ -1479,7 +1492,13 @@ static void AutoloadPWadDir(void (*AutoLoadFunc)(const char *path))
     {
         for (int j = 0; j < array_size(autoload_paths); ++j)
         {
-            char *dir = GetAutoloadDir(autoload_paths[j],
+            char *dir;
+            if (!strncasecmp(M_BaseName(wadfiles[i]), "rekkr", 5)) {
+                dir = GetAutoloadDir(autoload_paths[j], "rekkr-all", true);
+                AutoLoadFunc(dir);
+                free(dir);
+            }
+            dir = GetAutoloadDir(autoload_paths[j],
                                        M_BaseName(wadfiles[i]), false);
             AutoLoadFunc(dir);
             free(dir);
