@@ -1500,7 +1500,7 @@ static void AutoloadPWadDir(void (*AutoLoadFunc)(const char *path))
                 || !strncasecmp(M_BaseName(wadfiles[i]), "rekkrsa.wad", 11)
                 || !strncasecmp(M_BaseName(wadfiles[i]), "rekkrsl.wad", 11))
             {
-                dir = GetAutoloadDir(autoload_paths[j], "rekkr-all", true);
+                dir = GetAutoloadDir(autoload_paths[j], "rekkr-all", false);
                 AutoLoadFunc(dir);
                 free(dir);
             }
