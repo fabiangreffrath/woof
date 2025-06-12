@@ -1479,12 +1479,6 @@ static void LoadPWadBase(void)
 {
     for (int i = firstpwad; i < array_size(wadfiles); ++i)
     {
-        if (!strncasecmp(M_BaseName(wadfiles[i]), "rekkr.wad", 9)
-            || !strncasecmp(M_BaseName(wadfiles[i]), "rekkrsa.wad", 11)
-            || !strncasecmp(M_BaseName(wadfiles[i]), "rekkrsl.wad", 11))
-        {
-            W_AddBaseDir("rekkr-all");
-        }
         W_AddBaseDir(wadfiles[i]);
     }
 }
@@ -1495,16 +1489,7 @@ static void AutoloadPWadDir(void (*AutoLoadFunc)(const char *path))
     {
         for (int j = 0; j < array_size(autoload_paths); ++j)
         {
-            char *dir;
-            if (!strncasecmp(M_BaseName(wadfiles[i]), "rekkr.wad", 9)
-                || !strncasecmp(M_BaseName(wadfiles[i]), "rekkrsa.wad", 11)
-                || !strncasecmp(M_BaseName(wadfiles[i]), "rekkrsl.wad", 11))
-            {
-                dir = GetAutoloadDir(autoload_paths[j], "rekkr-all", false);
-                AutoLoadFunc(dir);
-                free(dir);
-            }
-            dir = GetAutoloadDir(autoload_paths[j],
+            char *dir = GetAutoloadDir(autoload_paths[j],
                                        M_BaseName(wadfiles[i]), false);
             AutoLoadFunc(dir);
             free(dir);
