@@ -43,6 +43,11 @@
         "name": "libxmp",
         "default-features": false
     },
-    "yyjson"
+    "yyjson",
+    {
+        "name": "ffmpeg",
+        "default-features": false,
+        "features": ["avcodec", "avformat", "swscale", "nvcodec", "x264"]
+    }
   ]
 }
