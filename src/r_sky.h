@@ -21,6 +21,7 @@
 #define __R_SKY__
 
 #include "doomtype.h"
+#include "r_defs.h"
 #include "r_plane.h"
 #include "r_skydefs.h"
 
@@ -40,6 +41,7 @@ extern boolean linearsky;
 extern sky_t *levelskies;
 void R_ClearLevelskies(void);
 int R_AddLevelsky(int texture);
+int R_AddLevelskyFromLine(line_t *line);
 sky_t *R_GetLevelsky(int index);
 void R_StretchSkies(void);
 
