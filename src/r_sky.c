@@ -44,10 +44,8 @@ boolean stretchsky;
 //
 
 int skyflatnum;
-int skytexture = -1; // [crispy] initialize
-int skytexturemid;
 
-sky_t *sky = NULL;
+sky_t *levelskies = NULL;
 
 // PSX fire sky, description: https://fabiensanglard.net/doom_fire_psx/
 
@@ -121,10 +119,10 @@ byte *R_GetFireColumn(int col)
     return &fire_pixels[col * FIRE_HEIGHT];
 }
 
+static skydefs_t *skydefs;
+
 static void InitSky(void)
 {
-    static skydefs_t *skydefs;
-
     static boolean run_once = true;
     if (run_once)
     {
@@ -142,75 +140,126 @@ static void InitSky(void)
     {
         int flatnum = R_FlatNumForName(flatmap->flat);
         int skytex = R_TextureNumForName(flatmap->sky);
+        int skyindex = R_AddLevelsky(skytex);
 
         for (int i = 0; i < numsectors; i++)
         {
             if (sectors[i].floorpic == flatnum)
             {
                 sectors[i].floorpic = skyflatnum;
-                sectors[i].floorsky = skytex | PL_FLATMAPPING;
-                R_GetSkyColor(skytex);
+                sectors[i].floorsky = skyindex | PL_SKYFLAT;
             }
             if (sectors[i].ceilingpic == flatnum)
             {
                 sectors[i].ceilingpic = skyflatnum;
-                sectors[i].ceilingsky = skytex | PL_FLATMAPPING;
-                R_GetSkyColor(skytex);
+                sectors[i].ceilingsky = skyindex | PL_SKYFLAT;
             }
         }
     }
-
-    array_foreach(sky, skydefs->skies)
-    {
-        if (skytexture == sky->skytex.texture)
-        {
-            if (sky->type == SkyType_Fire)
-            {
-                SetupFire(&sky->fire);
-            }
-            return;
-        }
-    }
-
-    sky = NULL;
 }
 
-void R_UpdateSky(void)
+void UpdateSkyFromLine(sky_t *sky)
 {
-    if (!sky)
+    skytex_t *skytex = &sky->skytex;
+    const side_t *side = &sides[*sky->line->sidenum];
+
+    skytex->prevx = skytex->currx;
+    skytex->prevy = skytex->curry;
+    skytex->currx = side->basetextureoffset >> (ANGLETOSKYSHIFT - FRACBITS);
+    skytex->curry = side->baserowoffset;
+
+    skytex->scrolly = side->baserowoffset - side->oldrowoffset;
+    skytex->scalex = (sky->line->special == 272) ? FRACUNIT : -FRACUNIT;
+
+    const int skyheight = textureheight[skytex->texture] >> FRACBITS;
+    if (stretchsky && skyheight < 200)
     {
-        return;
+        skytex->mid = skytex->basemid * skyheight / SKYSTRETCH_HEIGHT;
+        skytex->scaley = FRACUNIT * skyheight / SKYSTRETCH_HEIGHT;
     }
-
-    if (sky->type == SkyType_Fire)
+    else
     {
-        fire_t *fire = &sky->fire;
+        skytex->mid = skytex->basemid;
+        skytex->scaley = FRACUNIT;
+    }
+}
 
-        if (fire->tics_left == 0)
+void R_UpdateSkies(void)
+{
+    sky_t *sky;
+    array_foreach(sky, levelskies)
+    {
+        if (sky->type == SkyType_Fire)
         {
-            SpreadFire();
-            PrepareFirePixels(fire);
-            fire->tics_left = fire->updatetime;
+            fire_t *fire = &sky->fire;
+
+            if (fire->tics_left == 0)
+            {
+                SpreadFire();
+                PrepareFirePixels(fire);
+                fire->tics_left = fire->updatetime;
+            }
+
+            fire->tics_left--;
         }
+        else if (sky->line)
+        {
+            UpdateSkyFromLine(sky);
+        }
+        else if (!sky->vanillasky)
+        {
+            skytex_t *background = &sky->skytex;
+            background->prevx = background->currx;
+            background->prevy = background->curry;
+            background->currx += background->scrollx;
+            background->curry += background->scrolly;
 
-        fire->tics_left--;
-
-        return;
+            if (sky->type == SkyType_WithForeground)
+            {
+                skytex_t *foreground = &sky->foreground;
+                foreground->prevx = foreground->currx;
+                foreground->prevy = foreground->curry;
+                foreground->currx += foreground->scrollx;
+                foreground->curry += foreground->scrolly;
+            }
+        }
     }
+}
 
-    skytex_t *background = &sky->skytex;
-    background->prevx = background->currx;
-    background->prevy = background->curry;
-    background->currx += background->scrollx;
-    background->curry += background->scrolly;
+static void StretchSky(sky_t *sky)
+{
+    const int skytexture = sky->skytex.texture;
+    const int skyheight = textureheight[skytexture] >> FRACBITS;
 
-    if (sky->type == SkyType_WithForeground)
+    if (stretchsky && skyheight < 200)
+        sky->skytex.mid = -28 * FRACUNIT;
+    else if (skyheight > 200)
+        sky->skytex.mid = 200 * FRACUNIT;
+    else
+        sky->skytex.mid = 100 * FRACUNIT;
+
+    sky->skytex.scaley = FRACUNIT;
+
+    if (stretchsky && skyheight < 200)
     {
-        skytex_t *foreground = &sky->foreground;
-        foreground->prevx = foreground->currx;
-        foreground->prevy = foreground->curry;
-        foreground->currx += foreground->scrollx;
-        foreground->curry += foreground->scrolly;
+        sky->skytex.mid = sky->skytex.mid * skyheight / SKYSTRETCH_HEIGHT;
+        sky->skytex.scaley = sky->skytex.scaley * skyheight / SKYSTRETCH_HEIGHT;
+    }
+}
+
+void R_StretchSkies(void)
+{
+    sky_t *sky;
+    array_foreach(sky, levelskies)
+    {
+        if (sky->line)
+        {
+            UpdateSkyFromLine(sky);
+        }
+        else if (sky->vanillasky)
+        {
+            StretchSky(sky);
+        }
     }
 }
 
@@ -222,22 +271,109 @@ void R_InitSkyMap (void)
 {
   InitSky();
 
-  // [crispy] initialize
-  if (skytexture == -1)
-    return;
+  R_StretchSkies();
+}
 
-  // Pre-calculate sky color
-  R_GetSkyColor(skytexture);
+void R_ClearLevelskies(void)
+{
+    array_free(levelskies);
+}
 
-  // [FG] stretch short skies
-  int skyheight = textureheight[skytexture] >> FRACBITS;
+int AddLevelsky(int texture, line_t *line)
+{
+    if (line != NULL)
+    {
+        const side_t *side = &sides[*line->sidenum];
+        texture = texturetranslation[side->toptexture];
+    }
 
-  if (stretchsky && skyheight < 200)
-    skytexturemid = -28*FRACUNIT;
-  else if (skyheight > 200)
-    skytexturemid = 200*FRACUNIT;
-  else
-  skytexturemid = 100*FRACUNIT;
+    sky_t *sky;
+    array_foreach(sky, levelskies)
+    {
+        if (sky->skytex.texture == texture && sky->line == line)
+        {
+            return (int)(sky - levelskies);
+        }
+    }
+
+    int index = array_size(levelskies);
+
+    sky_t *new_sky = NULL;
+
+    if (skydefs)
+    {
+        array_foreach(sky, skydefs->skies)
+        {
+            if (sky->skytex.texture == texture)
+            {
+                new_sky = sky;
+                new_sky->line = line;
+                break;
+            }
+        }
+    }
+
+    sky_t vanilla_sky = {
+        .type = SkyType_Normal,
+        .skytex = {
+            .texture = texture,
+            .basemid = line ? -28 * FRACUNIT : 100 * FRACUNIT,
+            .scalex = FRACUNIT,
+            .scaley = FRACUNIT,
+        },
+        .vanillasky = true,
+        .line = line,
+    };
+
+    if (new_sky == NULL)
+    {
+        new_sky = &vanilla_sky;
+    }
+
+    if (new_sky->line)
+    {
+        UpdateSkyFromLine(new_sky);
+    }
+    else
+    {
+        StretchSky(new_sky);
+    }
+
+    if (new_sky->type == SkyType_Fire)
+    {
+        SetupFire(&new_sky->fire);
+    }
+    else
+    {
+        R_GetSkyColor(texture);
+    }
+
+    array_push(levelskies, *new_sky);
+    new_sky->line = NULL;
+
+    return index;
+}
+
+int R_AddLevelsky(int texture)
+{
+    return AddLevelsky(texture, NULL);
+}
+
+int R_AddLevelskyFromLine(line_t *line)
+{
+    return AddLevelsky(-1, line);
+}
+
+sky_t *R_GetLevelsky(int index)
+{
+#ifdef RANGECHECK
+    if (index >= array_size(levelskies))
+    {
+        I_Error("Invalid sky index %d", index);
+    }
+#endif
+
+    return &levelskies[index];
 }
 
 typedef struct rgb_s {
