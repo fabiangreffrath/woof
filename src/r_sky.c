@@ -307,6 +307,7 @@ int AddLevelsky(int texture, line_t *line)
             if (sky->skytex.texture == texture)
             {
                 new_sky = sky;
+                new_sky->line = line;
                 break;
             }
         }
@@ -327,15 +328,15 @@ int AddLevelsky(int texture, line_t *line)
     if (new_sky == NULL)
     {
         new_sky = &vanilla_sky;
+    }
 
-        if (new_sky->line)
-        {
-            UpdateSkyFromLine(new_sky);
-        }
-        else
-        {
-            StretchSky(new_sky);
-        }
+    if (new_sky->line)
+    {
+        UpdateSkyFromLine(new_sky);
+    }
+    else
+    {
+        StretchSky(new_sky);
     }
 
     if (new_sky->type == SkyType_Fire)
@@ -348,6 +349,7 @@ int AddLevelsky(int texture, line_t *line)
     }
 
     array_push(levelskies, *new_sky);
+    new_sky->line = NULL;
 
     return index;
 }
