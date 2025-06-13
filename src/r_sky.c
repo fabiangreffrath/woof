@@ -307,7 +307,6 @@ int AddLevelsky(int texture, line_t *line)
             if (sky->skytex.texture == texture)
             {
                 new_sky = sky;
-                new_sky->skytex.basemid = new_sky->skytex.mid;
                 break;
             }
         }

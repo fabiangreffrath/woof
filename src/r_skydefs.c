@@ -67,6 +67,7 @@ static boolean ParseSkyTex(json_t *json, skytex_t *out)
         return false;
     }
     out->mid = JS_GetNumber(mid) * FRACUNIT;
+    out->basemid = out->mid;
     const double ticratescale = 1.0 / TICRATE;
     out->scrollx = (JS_GetNumber(scrollx) * ticratescale) * FRACUNIT;
     out->scrolly = (JS_GetNumber(scrolly) * ticratescale) * FRACUNIT;
