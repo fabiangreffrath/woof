@@ -414,7 +414,7 @@ static void DrawSkyFire(visplane_t *pl, fire_t *fire)
     }
 }
 
-static void DrawSkyTex(visplane_t *pl, skytex_t *skytex, boolean skyfade)
+static void DrawSkyTex(visplane_t *pl, skytex_t *skytex)
 {
     int texture = texturetranslation[skytex->texture];
 
@@ -438,11 +438,11 @@ static void DrawSkyTex(visplane_t *pl, skytex_t *skytex, boolean skyfade)
 
     angle_t an = viewangle + (deltax << (ANGLETOSKYSHIFT - FRACBITS));
 
-    if (skyfade && skytex->scrolly == 0)
+    if (skytex->scrolly == 0 && colfunc != R_DrawTLColumn)
     {
         // Make sure the fade-to-color effect doesn't happen too early
         fixed_t diff = dc_texturemid - SCREENHEIGHT / 2 * FRACUNIT;
-        while (diff < 0)
+        if (diff < 0)
         {
             diff += textureheight[texture];
             diff %= textureheight[texture];
@@ -489,7 +489,7 @@ static void DrawSkyDef(visplane_t *pl, sky_t *sky)
         return;
     }
 
-    DrawSkyTex(pl, &sky->skytex, colfunc != R_DrawTLColumn);
+    DrawSkyTex(pl, &sky->skytex);
 
     if (sky->type == SkyType_WithForeground)
     {
