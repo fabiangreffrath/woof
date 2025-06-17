@@ -408,7 +408,7 @@ static void DrawSkyFire(visplane_t *pl, fire_t *fire)
         if (dc_yl != USHRT_MAX && dc_yl <= dc_yh)
         {
             dc_source = R_GetFireColumn((viewangle + xtoskyangle[x])
-                                        >> ANGLETOSKYSHIFT);
+                                        >> ANGLETOSKYSHIFT, fire);
             colfunc();
         }
     }

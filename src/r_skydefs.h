@@ -31,6 +31,8 @@ typedef struct fire_s
     byte *palette;
     int updatetime;
     int tics_left;
+    byte *indices;
+    byte *pixels;
 } fire_t;
 
 typedef struct

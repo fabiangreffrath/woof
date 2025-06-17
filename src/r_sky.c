@@ -51,16 +51,12 @@ static boolean defaultmid_set_elsewhere = false; // FIXME!
 
 // PSX fire sky, description: https://fabiensanglard.net/doom_fire_psx/
 
-static byte fire_indices[FIRE_WIDTH * FIRE_HEIGHT];
-
-static byte fire_pixels[FIRE_WIDTH * FIRE_HEIGHT];
-
 static void PrepareFirePixels(fire_t *fire)
 {
-    byte *rover = fire_pixels;
+    byte *rover = fire->pixels;
     for (int x = 0; x < FIRE_WIDTH; x++)
     {
-        byte *src = fire_indices + x;
+        byte *src = fire->indices + x;
         for (int y = 0; y < FIRE_HEIGHT; y++)
         {
             *rover++ = fire->palette[*src];
@@ -69,7 +65,7 @@ static void PrepareFirePixels(fire_t *fire)
     }
 }
 
-static void SpreadFire(void)
+static void SpreadFire(fire_t *fire)
 {
     for (int x = 0; x < FIRE_WIDTH; ++x)
     {
@@ -77,17 +73,17 @@ static void SpreadFire(void)
         {
             int src = y * FIRE_WIDTH + x;
 
-            int index = fire_indices[src];
+            int index = fire->indices[src];
 
             if (!index)
             {
-                fire_indices[src - FIRE_WIDTH] = 0;
+                fire->indices[src - FIRE_WIDTH] = 0;
             }
             else
             {
                 int rand_index = M_Random() & 3;
                 int dst = src - rand_index + 1;
-                fire_indices[dst - FIRE_WIDTH] = index - (rand_index & 1);
+                fire->indices[dst - FIRE_WIDTH] = index - (rand_index & 1);
             }
         }
     }
@@ -95,30 +91,33 @@ static void SpreadFire(void)
 
 static void SetupFire(fire_t *fire)
 {
-    memset(fire_indices, 0, FIRE_WIDTH * FIRE_HEIGHT);
+    fire->indices = Z_Malloc(FIRE_WIDTH * FIRE_HEIGHT, PU_LEVEL, 0);
+    fire->pixels = Z_Malloc(FIRE_WIDTH * FIRE_HEIGHT, PU_LEVEL, 0);
+
+    memset(fire->indices, 0, FIRE_WIDTH * FIRE_HEIGHT);
 
     int last = array_size(fire->palette) - 1;
 
     for (int i = 0; i < FIRE_WIDTH; ++i)
     {
-        fire_indices[(FIRE_HEIGHT - 1) * FIRE_WIDTH + i] = last;
+        fire->indices[(FIRE_HEIGHT - 1) * FIRE_WIDTH + i] = last;
     }
 
     for (int i = 0; i < 64; ++i)
     {
-        SpreadFire();
+        SpreadFire(fire);
     }
     PrepareFirePixels(fire);
 }
 
-byte *R_GetFireColumn(int col)
+byte *R_GetFireColumn(int col, fire_t *fire)
 {
     while (col < 0)
     {
         col += FIRE_WIDTH;
     }
     col %= FIRE_WIDTH;
-    return &fire_pixels[col * FIRE_HEIGHT];
+    return &fire->pixels[col * FIRE_HEIGHT];
 }
 
 static skydefs_t *skydefs;
@@ -213,7 +212,7 @@ void R_UpdateSkies(void)
 
             if (fire->tics_left == 0)
             {
-                SpreadFire();
+                SpreadFire(fire);
                 PrepareFirePixels(fire);
                 fire->tics_left = fire->updatetime;
             }
