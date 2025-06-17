@@ -240,10 +240,9 @@ static void StretchSky(sky_t *sky)
 
     if (!defaultmid_set_elsewhere)
     {
-        defaultskytexturemid =
-            (stretchsky && skyheight < 200) ? -28 * FRACUNIT :
-            (skyheight > 200) ? 200 * FRACUNIT :
-            100 * FRACUNIT;
+        defaultskytexturemid = (stretchsky && skyheight < 200) ? -28 * FRACUNIT
+                               : (skyheight > 200)             ? 200 * FRACUNIT
+                                                               : 100 * FRACUNIT;
     }
 
     if (stretchsky && skyheight < 200)
@@ -288,8 +287,8 @@ int AddLevelsky(int texture, line_t *line)
     sky_t *sky;
     array_foreach(sky, levelskies)
     {
-        if ((line && sky->line == line) ||
-            (!line && sky->skytex.texture == texture))
+        if ((line && sky->line == line)
+            || (!line && sky->skytex.texture == texture))
         {
             return (int)(sky - levelskies);
         }
@@ -366,7 +365,8 @@ sky_t *R_GetLevelsky(int index)
     return &levelskies[index];
 }
 
-typedef struct rgb_s {
+typedef struct rgb_s
+{
     int r;
     int g;
     int b;
@@ -374,49 +374,50 @@ typedef struct rgb_s {
 
 static int CompareSkyColors(const void *a, const void *b)
 {
-  const rgb_t *rgb_a = (const rgb_t *) a;
-  const rgb_t *rgb_b = (const rgb_t *) b;
+    const rgb_t *rgb_a = (const rgb_t *)a;
+    const rgb_t *rgb_b = (const rgb_t *)b;
 
-  int red_a = rgb_a->r, grn_a = rgb_a->g, blu_a = rgb_a->b;
-  int red_b = rgb_b->r, grn_b = rgb_b->g, blu_b = rgb_b->b;
+    int red_a = rgb_a->r, grn_a = rgb_a->g, blu_a = rgb_a->b;
+    int red_b = rgb_b->r, grn_b = rgb_b->g, blu_b = rgb_b->b;
 
-  int sum_a = red_a*red_a + grn_a*grn_a + blu_a*blu_a;
-  int sum_b = red_b*red_b + grn_b*grn_b + blu_b*blu_b;
+    int sum_a = red_a * red_a + grn_a * grn_a + blu_a * blu_a;
+    int sum_b = red_b * red_b + grn_b * grn_b + blu_b * blu_b;
 
-  return sum_a - sum_b;
+    return sum_a - sum_b;
 }
 
 static byte R_SkyBlendColor(int tex)
 {
-  byte *pal = W_CacheLumpName("PLAYPAL", PU_STATIC);
-  int i, r = 0, g = 0, b = 0;
+    byte *pal = W_CacheLumpName("PLAYPAL", PU_STATIC);
+    int i, r = 0, g = 0, b = 0;
 
-  const int width = texturewidth[tex];
+    const int width = texturewidth[tex];
 
-  rgb_t *colors = Z_Malloc(sizeof(rgb_t)*width, PU_STATIC, 0);
+    rgb_t *colors = Z_Malloc(sizeof(rgb_t) * width, PU_STATIC, 0);
 
-  // [FG] count colors
-  for (i = 0; i < width; i++)
-  {
-    byte *c = R_GetColumn(tex, i);
-    colors[i] = (rgb_t) {pal[3 * c[0] + 0], pal[3 * c[0] + 1], pal[3 * c[0] + 2]};
-  }
+    // [FG] count colors
+    for (i = 0; i < width; i++)
+    {
+        byte *c = R_GetColumn(tex, i);
+        colors[i] =
+            (rgb_t){pal[3 * c[0] + 0], pal[3 * c[0] + 1], pal[3 * c[0] + 2]};
+    }
 
-  qsort(colors, width, sizeof(rgb_t), CompareSkyColors);
+    qsort(colors, width, sizeof(rgb_t), CompareSkyColors);
 
-  r = colors[width/3].r;
-  g = colors[width/3].g;
-  b = colors[width/3].b;
-  Z_Free(colors);
+    r = colors[width / 3].r;
+    g = colors[width / 3].g;
+    b = colors[width / 3].b;
+    Z_Free(colors);
 
-  return I_GetNearestColor(pal, r, g, b);
+    return I_GetNearestColor(pal, r, g, b);
 }
 
 typedef struct skycolor_s
 {
-  int texturenum;
-  byte color;
-  struct skycolor_s *next;
+    int texturenum;
+    byte color;
+    struct skycolor_s *next;
 } skycolor_t;
 
 // the sky colors hash table
@@ -426,41 +427,41 @@ static skycolor_t *skycolors[NUMSKYCHAINS];
 
 byte R_GetSkyColor(int texturenum)
 {
-  int key;
-  skycolor_t *target = NULL;
+    int key;
+    skycolor_t *target = NULL;
 
-  key = skycolorkey(texturenum);
+    key = skycolorkey(texturenum);
 
-  if (skycolors[key])
-  {
-    // search in chain
-    skycolor_t *rover = skycolors[key];
-
-    while (rover)
+    if (skycolors[key])
     {
-      if (rover->texturenum == texturenum)
-      {
-        target = rover;
-        break;
-      }
+        // search in chain
+        skycolor_t *rover = skycolors[key];
 
-      rover = rover->next;
+        while (rover)
+        {
+            if (rover->texturenum == texturenum)
+            {
+                target = rover;
+                break;
+            }
+
+            rover = rover->next;
+        }
     }
-  }
 
-  if (target == NULL)
-  {
-    target = Z_Malloc(sizeof(skycolor_t), PU_STATIC, 0);
+    if (target == NULL)
+    {
+        target = Z_Malloc(sizeof(skycolor_t), PU_STATIC, 0);
 
-    target->texturenum = texturenum;
-    target->color = R_SkyBlendColor(texturenum);
+        target->texturenum = texturenum;
+        target->color = R_SkyBlendColor(texturenum);
 
-    // use head insertion
-    target->next = skycolors[key];
-    skycolors[key] = target;
-  }
+        // use head insertion
+        target->next = skycolors[key];
+        skycolors[key] = target;
+    }
 
-  return target->color;
+    return target->color;
 }
 
 //----------------------------------------------------------------------------
