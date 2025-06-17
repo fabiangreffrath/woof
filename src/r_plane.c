@@ -489,7 +489,7 @@ static void DrawSkyDef(visplane_t *pl, sky_t *sky)
         return;
     }
 
-    DrawSkyTex(pl, &sky->skytex, sky->usedefaultmid);
+    DrawSkyTex(pl, &sky->skytex, colfunc != R_DrawTLColumn);
 
     if (sky->type == SkyType_WithForeground)
     {
@@ -497,7 +497,7 @@ static void DrawSkyDef(visplane_t *pl, sky_t *sky)
         // transparently. See id24 SKYDEFS spec.
         tranmap = W_CacheLumpName("SKYTRAN", PU_CACHE);
         colfunc = R_DrawTLColumn;
-        DrawSkyTex(pl, &sky->foreground, false);
+        DrawSkyDef(pl, R_GetLevelsky(sky->foreground_index));
         tranmap = main_tranmap;
         colfunc = R_DrawColumn;
     }

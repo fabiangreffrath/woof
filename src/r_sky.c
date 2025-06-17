@@ -155,6 +155,18 @@ void R_InitSkyMap(void)
                 }
             }
         }
+
+        sky_t *sky;
+        array_foreach(sky, levelskies)
+        {
+            if (sky->type == SkyType_WithForeground)
+            {
+                sky->foreground_index = R_AddLevelsky(sky->foreground.texture);
+                sky_t *foregroundsky = R_GetLevelsky(sky->foreground_index);
+                foregroundsky->skytex = sky->foreground;
+                foregroundsky->usedefaultmid = false;
+            }
+        }
     }
 
     R_UpdateStretchSkies();
@@ -219,15 +231,6 @@ void R_UpdateSkies(void)
             background->prevy = background->curry;
             background->currx += background->scrollx;
             background->curry += background->scrolly;
-
-            if (sky->type == SkyType_WithForeground)
-            {
-                skytex_t *foreground = &sky->foreground;
-                foreground->prevx = foreground->currx;
-                foreground->prevy = foreground->curry;
-                foreground->currx += foreground->scrollx;
-                foreground->curry += foreground->scrolly;
-            }
         }
     }
 }
