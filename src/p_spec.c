@@ -2854,11 +2854,13 @@ void P_SpawnSpecials (void)
 
       case 271:   // Regular sky
       case 272:   // Same, only flipped
+      {
         // Pre-calculate sky color
         int skyindex = R_AddLevelskyFromLine(&lines[i]);
         for (s = -1; (s = P_FindSectorFromLineTag(lines+i,s)) >= 0;)
           sectors[s].floorsky = sectors[s].ceilingsky = skyindex | PL_SKYFLAT;
         break;
+      }
 
       case 2048: case 2049: case 2050:
       case 2051: case 2052: case 2053:

@@ -46,6 +46,8 @@ boolean stretchsky;
 int skyflatnum;
 
 sky_t *levelskies = NULL;
+static fixed_t defaultskytexturemid;
+static boolean defaultmid_set_elsewhere = false; // FIXME!
 
 // PSX fire sky, description: https://fabiensanglard.net/doom_fire_psx/
 
@@ -121,7 +123,7 @@ byte *R_GetFireColumn(int col)
 
 static skydefs_t *skydefs;
 
-static void InitSky(void)
+void R_InitSkyMap(void)
 {
     static boolean run_once = true;
     if (run_once)
@@ -130,32 +132,32 @@ static void InitSky(void)
         run_once = false;
     }
 
-    if (!skydefs)
+    if (skydefs)
     {
-        return;
-    }
-
-    flatmap_t *flatmap = NULL;
-    array_foreach(flatmap, skydefs->flatmapping)
-    {
-        int flatnum = R_FlatNumForName(flatmap->flat);
-        int skytex = R_TextureNumForName(flatmap->sky);
-        int skyindex = R_AddLevelsky(skytex);
-
-        for (int i = 0; i < numsectors; i++)
+        flatmap_t *flatmap = NULL;
+        array_foreach(flatmap, skydefs->flatmapping)
         {
-            if (sectors[i].floorpic == flatnum)
+            int flatnum = R_FlatNumForName(flatmap->flat);
+            int skytex = R_TextureNumForName(flatmap->sky);
+            int skyindex = R_AddLevelsky(skytex);
+
+            for (int i = 0; i < numsectors; i++)
             {
-                sectors[i].floorpic = skyflatnum;
-                sectors[i].floorsky = skyindex | PL_SKYFLAT;
-            }
-            if (sectors[i].ceilingpic == flatnum)
-            {
-                sectors[i].ceilingpic = skyflatnum;
-                sectors[i].ceilingsky = skyindex | PL_SKYFLAT;
+                if (sectors[i].floorpic == flatnum)
+                {
+                    sectors[i].floorpic = skyflatnum;
+                    sectors[i].floorsky = skyindex | PL_SKYFLAT;
+                }
+                if (sectors[i].ceilingpic == flatnum)
+                {
+                    sectors[i].ceilingpic = skyflatnum;
+                    sectors[i].ceilingsky = skyindex | PL_SKYFLAT;
+                }
             }
         }
     }
+
+    R_UpdateStretchSkies();
 }
 
 void UpdateSkyFromLine(sky_t *sky)
@@ -163,23 +165,27 @@ void UpdateSkyFromLine(sky_t *sky)
     skytex_t *skytex = &sky->skytex;
     const side_t *side = &sides[*sky->line->sidenum];
 
+    skytex->texture = texturetranslation[side->toptexture];
+
     skytex->prevx = skytex->currx;
     skytex->prevy = skytex->curry;
     skytex->currx = side->basetextureoffset >> (ANGLETOSKYSHIFT - FRACBITS);
-    skytex->curry = side->baserowoffset;
+    skytex->curry = 0; // side->baserowoffset;
 
     skytex->scrolly = side->baserowoffset - side->oldrowoffset;
     skytex->scalex = (sky->line->special == 272) ? FRACUNIT : -FRACUNIT;
 
+    defaultskytexturemid = side->baserowoffset - 28 * FRACUNIT;
+
     const int skyheight = textureheight[skytex->texture] >> FRACBITS;
     if (stretchsky && skyheight < 200)
     {
-        skytex->mid = skytex->basemid * skyheight / SKYSTRETCH_HEIGHT;
+        skytex->mid = defaultskytexturemid * skyheight / SKYSTRETCH_HEIGHT;
         skytex->scaley = FRACUNIT * skyheight / SKYSTRETCH_HEIGHT;
     }
     else
     {
-        skytex->mid = skytex->basemid;
+        skytex->mid = defaultskytexturemid;
         skytex->scaley = FRACUNIT;
     }
 }
@@ -206,7 +212,7 @@ void R_UpdateSkies(void)
         {
             UpdateSkyFromLine(sky);
         }
-        else if (!sky->vanillasky)
+        else if (!sky->usedefaultmid)
         {
             skytex_t *background = &sky->skytex;
             background->prevx = background->currx;
@@ -228,26 +234,29 @@ void R_UpdateSkies(void)
 
 static void StretchSky(sky_t *sky)
 {
-    const int skytexture = sky->skytex.texture;
-    const int skyheight = textureheight[skytexture] >> FRACBITS;
+    const int skyheight = textureheight[sky->skytex.texture] >> FRACBITS;
 
-    if (stretchsky && skyheight < 200)
-        sky->skytex.mid = -28 * FRACUNIT;
-    else if (skyheight > 200)
-        sky->skytex.mid = 200 * FRACUNIT;
-    else
-        sky->skytex.mid = 100 * FRACUNIT;
-
-    sky->skytex.scaley = FRACUNIT;
+    if (!defaultmid_set_elsewhere)
+    {
+        defaultskytexturemid =
+            (stretchsky && skyheight < 200) ? -28 * FRACUNIT :
+            (skyheight > 200) ? 200 * FRACUNIT :
+            100 * FRACUNIT;
+    }
 
     if (stretchsky && skyheight < 200)
     {
-        sky->skytex.mid = sky->skytex.mid * skyheight / SKYSTRETCH_HEIGHT;
-        sky->skytex.scaley = sky->skytex.scaley * skyheight / SKYSTRETCH_HEIGHT;
+        sky->skytex.mid = defaultskytexturemid * skyheight / SKYSTRETCH_HEIGHT;
+        sky->skytex.scaley = FRACUNIT * skyheight / SKYSTRETCH_HEIGHT;
+    }
+    else
+    {
+        sky->skytex.mid = defaultskytexturemid;
+        sky->skytex.scaley = FRACUNIT;
     }
 }
 
-void R_StretchSkies(void)
+void R_UpdateStretchSkies(void)
 {
     sky_t *sky;
     array_foreach(sky, levelskies)
@@ -256,49 +265,32 @@ void R_StretchSkies(void)
         {
             UpdateSkyFromLine(sky);
         }
-        else if (sky->vanillasky)
+        else if (sky->usedefaultmid)
         {
             StretchSky(sky);
         }
     }
 }
 
-//
-// R_InitSkyMap
-// Called whenever the view size changes.
-//
-void R_InitSkyMap (void)
-{
-  InitSky();
-
-  R_StretchSkies();
-}
-
 void R_ClearLevelskies(void)
 {
     array_free(levelskies);
+    defaultmid_set_elsewhere = false;
 }
 
 int AddLevelsky(int texture, line_t *line)
 {
-    if (line != NULL)
-    {
-        const side_t *side = &sides[*line->sidenum];
-        texture = texturetranslation[side->toptexture];
-    }
+    sky_t new_sky = {.type = SkyType_Indetermined};
+    int index = array_size(levelskies);
 
     sky_t *sky;
     array_foreach(sky, levelskies)
     {
-        if (sky->skytex.texture == texture && sky->line == line)
+        if ((line && sky->line == line) || sky->skytex.texture == texture)
         {
             return (int)(sky - levelskies);
         }
     }
-
-    int index = array_size(levelskies);
-
-    sky_t *new_sky = NULL;
 
     if (skydefs)
     {
@@ -306,50 +298,45 @@ int AddLevelsky(int texture, line_t *line)
         {
             if (sky->skytex.texture == texture)
             {
-                new_sky = sky;
-                new_sky->line = line;
+                memcpy(&new_sky, sky, sizeof(*sky));
                 break;
             }
         }
     }
 
-    sky_t vanilla_sky = {
-        .type = SkyType_Normal,
-        .skytex = {
-            .texture = texture,
-            .basemid = line ? -28 * FRACUNIT : 100 * FRACUNIT,
-            .scalex = FRACUNIT,
-            .scaley = FRACUNIT,
-        },
-        .vanillasky = true,
-        .line = line,
-    };
-
-    if (new_sky == NULL)
+    if (new_sky.type == SkyType_Indetermined)
     {
-        new_sky = &vanilla_sky;
+        new_sky.type = SkyType_Normal;
+
+        new_sky.skytex.texture = texture;
+        new_sky.skytex.scalex = FRACUNIT;
+        new_sky.skytex.scaley = FRACUNIT;
+
+        new_sky.usedefaultmid = true;
     }
 
-    if (new_sky->line)
+    new_sky.line = line;
+
+    if (new_sky.line)
     {
-        UpdateSkyFromLine(new_sky);
+        UpdateSkyFromLine(&new_sky);
+        defaultmid_set_elsewhere = true;
+    }
+    else if (new_sky.usedefaultmid)
+    {
+        StretchSky(&new_sky);
+    }
+
+    if (new_sky.type == SkyType_Fire)
+    {
+        SetupFire(&new_sky.fire);
     }
     else
     {
-        StretchSky(new_sky);
+        R_GetSkyColor(new_sky.skytex.texture);
     }
 
-    if (new_sky->type == SkyType_Fire)
-    {
-        SetupFire(&new_sky->fire);
-    }
-    else
-    {
-        R_GetSkyColor(texture);
-    }
-
-    array_push(levelskies, *new_sky);
-    new_sky->line = NULL;
+    array_push(levelskies, new_sky);
 
     return index;
 }

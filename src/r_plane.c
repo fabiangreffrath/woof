@@ -489,7 +489,7 @@ static void DrawSkyDef(visplane_t *pl, sky_t *sky)
         return;
     }
 
-    DrawSkyTex(pl, &sky->skytex, sky->vanillasky);
+    DrawSkyTex(pl, &sky->skytex, sky->usedefaultmid);
 
     if (sky->type == SkyType_WithForeground)
     {

@@ -20,6 +20,7 @@
 
 typedef enum
 {
+    SkyType_Indetermined = -1,
     SkyType_Normal,
     SkyType_Fire,
     SkyType_WithForeground,
@@ -36,7 +37,6 @@ typedef struct
 {
     int texture;
     fixed_t mid;
-    fixed_t basemid;
     fixed_t scrollx;
     fixed_t currx;
     fixed_t prevx;
@@ -53,7 +53,7 @@ typedef struct sky_s
     skytex_t skytex;
     fire_t fire;
     skytex_t foreground;
-    boolean vanillasky;
+    boolean usedefaultmid;
     line_t *line;
 } sky_t;
 
