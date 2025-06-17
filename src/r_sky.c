@@ -288,7 +288,8 @@ int AddLevelsky(int texture, line_t *line)
     sky_t *sky;
     array_foreach(sky, levelskies)
     {
-        if ((line && sky->line == line) || sky->skytex.texture == texture)
+        if ((line && sky->line == line) ||
+            (!line && sky->skytex.texture == texture))
         {
             return (int)(sky - levelskies);
         }
