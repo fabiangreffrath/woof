@@ -368,11 +368,11 @@ void P_TouchSpecialThing(mobj_t *special, mobj_t *toucher)
       break;
 
     case SPR_BON3:      // killough 7/11/98: evil sceptre from beta version
-      pickupmsg(player, "Picked up an evil sceptre");
+      pickupmsg(player, "%s", s_BETA_BONUS3);
       break;
 
     case SPR_BON4:      // killough 7/11/98: unholy bible from beta version
-      pickupmsg(player, "Picked up an unholy bible");
+      pickupmsg(player, "%s", s_BETA_BONUS4);
       break;
 
     case SPR_SOUL:
