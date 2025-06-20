@@ -87,12 +87,18 @@ typedef byte lighttable_t;
      __typeof__ (b) _b = (b); \
      _a > _b ? _a : _b;       \
  })
+ #define BETWEEN(l, u, x)              \
+ ({                                    \
+     __typeof__ (l) _l = (l);          \
+     __typeof__ (u) _u = (u);          \
+     __typeof__ (x) _x = (x);          \
+     _l > _x ? _l : _x > _u ? _u : _x; \
+ })
 #else
  #define MIN(a, b) (((a) < (b)) ? (a) : (b))
  #define MAX(a, b) (((a) > (b)) ? (a) : (b))
+ #define BETWEEN(l, u, x) ((l) > (x) ? (l) : (x) > (u) ? (u) : (x))
 #endif
-
-#define BETWEEN(l, u, x) (MAX((l), (MIN((u), (x)))))
 
 #define DIV_ROUND_FLOOR(n, d) (((n) - (d) / 2) / (d))
 
