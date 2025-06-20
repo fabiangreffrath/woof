@@ -497,7 +497,7 @@ static void DrawSkyDef(visplane_t *pl, sky_t *sky)
         // transparently. See id24 SKYDEFS spec.
         tranmap = W_CacheLumpName("SKYTRAN", PU_CACHE);
         colfunc = R_DrawTLColumn;
-        DrawSkyDef(pl, R_GetLevelsky(sky->foreground_index));
+        DrawSkyDef(pl, R_GetLevelsky(sky->foreground_sky));
         tranmap = main_tranmap;
         colfunc = R_DrawColumn;
     }

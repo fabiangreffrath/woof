@@ -55,9 +55,10 @@ typedef struct sky_s
     skytex_t skytex;
     fire_t fire;
     skytex_t foreground;
-    int foreground_index;
+    int foreground_sky;
     boolean usedefaultmid;
     line_t *line;
+    int linked_sky;
 } sky_t;
 
 typedef struct

@@ -47,7 +47,6 @@ int skyflatnum;
 
 sky_t *levelskies = NULL;
 static fixed_t defaultskytexturemid;
-static boolean defaultmid_set_elsewhere = false; // FIXME!
 
 // PSX fire sky, description: https://fabiensanglard.net/doom_fire_psx/
 
@@ -160,8 +159,8 @@ void R_InitSkyMap(void)
         {
             if (sky->type == SkyType_WithForeground)
             {
-                sky->foreground_index = R_AddLevelsky(sky->foreground.texture);
-                sky_t *foregroundsky = R_GetLevelsky(sky->foreground_index);
+                sky->foreground_sky = R_AddLevelsky(sky->foreground.texture);
+                sky_t *foregroundsky = R_GetLevelsky(sky->foreground_sky);
                 foregroundsky->skytex = sky->foreground;
                 foregroundsky->usedefaultmid = false;
             }
@@ -173,8 +172,9 @@ void R_InitSkyMap(void)
 
 void UpdateSkyFromLine(sky_t *sky)
 {
-    skytex_t *skytex = &sky->skytex;
-    const side_t *side = &sides[*sky->line->sidenum];
+    skytex_t *const skytex = &sky->skytex;
+    const line_t *const line = sky->line;
+    const side_t *const side = &sides[*line->sidenum];
 
     skytex->texture = texturetranslation[side->toptexture];
 
@@ -184,20 +184,24 @@ void UpdateSkyFromLine(sky_t *sky)
     skytex->curry = 0; // side->baserowoffset;
 
     skytex->scrolly = side->baserowoffset - side->oldrowoffset;
-    skytex->scalex = (sky->line->special == 272) ? FRACUNIT : -FRACUNIT;
+    skytex->scalex = (line->special == 272) ? FRACUNIT : -FRACUNIT;
 
-    defaultskytexturemid = side->baserowoffset - 28 * FRACUNIT;
+    skytex->mid = side->baserowoffset - 28 * FRACUNIT;
+    skytex->scaley = FRACUNIT;
+
+    if (sky->linked_sky >= 0)
+    {
+        sky_t *linked_sky = R_GetLevelsky(sky->linked_sky);
+        // TODO: according to the spec, shouldn't this rather be
+        // skytex->mid += linked_sky->skytex.mid
+        linked_sky->skytex.mid = skytex->mid;
+    }
 
     const int skyheight = textureheight[skytex->texture] >> FRACBITS;
     if (stretchsky && skyheight < 200)
     {
-        skytex->mid = defaultskytexturemid * skyheight / SKYSTRETCH_HEIGHT;
+        skytex->mid = skytex->mid * skyheight / SKYSTRETCH_HEIGHT;
         skytex->scaley = FRACUNIT * skyheight / SKYSTRETCH_HEIGHT;
-    }
-    else
-    {
-        skytex->mid = defaultskytexturemid;
-        skytex->scaley = FRACUNIT;
     }
 }
 
@@ -238,7 +242,7 @@ static void StretchSky(sky_t *sky)
 {
     const int skyheight = textureheight[sky->skytex.texture] >> FRACBITS;
 
-    if (!defaultmid_set_elsewhere)
+    if (sky == levelskies)
     {
         defaultskytexturemid = (stretchsky && skyheight < 200) ? -28 * FRACUNIT
                                : (skyheight > 200)             ? 200 * FRACUNIT
@@ -276,19 +280,25 @@ void R_UpdateStretchSkies(void)
 void R_ClearLevelskies(void)
 {
     array_free(levelskies);
-    defaultmid_set_elsewhere = false;
 }
 
 int AddLevelsky(int texture, line_t *line)
 {
     sky_t new_sky = {.type = SkyType_Indetermined};
-    int index = array_size(levelskies);
+    const int index = array_size(levelskies);
+
+    if (line)
+    {
+        // Sky transferred from first sidedef
+        const side_t *const side = *line->sidenum + sides;
+        // Texture comes from upper texture of reference sidedef
+        texture = texturetranslation[side->toptexture];
+    }
 
     sky_t *sky;
     array_foreach(sky, levelskies)
     {
-        if ((line && sky->line == line)
-            || (!line && sky->skytex.texture == texture))
+        if (sky->skytex.texture == texture && sky->line == line)
         {
             return (int)(sky - levelskies);
         }
@@ -318,11 +328,20 @@ int AddLevelsky(int texture, line_t *line)
     }
 
     new_sky.line = line;
+    new_sky.linked_sky = -1;
 
     if (new_sky.line)
     {
+        array_foreach(sky, levelskies)
+        {
+            if (sky->skytex.texture == texture)
+            {
+                new_sky.linked_sky = (int)(sky - levelskies);
+                break;
+            }
+        }
+
         UpdateSkyFromLine(&new_sky);
-        defaultmid_set_elsewhere = true;
     }
     else if (new_sky.usedefaultmid)
     {
@@ -356,7 +375,7 @@ int R_AddLevelskyFromLine(line_t *line)
 sky_t *R_GetLevelsky(int index)
 {
 #ifdef RANGECHECK
-    if (index >= array_size(levelskies))
+    if (index < 0 || index >= array_size(levelskies))
     {
         I_Error("Invalid sky index %d", index);
     }
