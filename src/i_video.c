@@ -37,6 +37,7 @@
 #include "doomdef.h"
 #include "doomstat.h"
 #include "g_game.h"
+#include "i_ffmpeg.h"
 #include "i_input.h"
 #include "i_printf.h"
 #include "i_system.h"
@@ -809,6 +810,13 @@ static void I_ResetTargetRefresh(void);
 
 void I_FinishUpdate(void)
 {
+    static int old_gametic = -1;
+    if (old_gametic < gametic)
+    {
+        old_gametic = gametic;
+        I_MPG_EncodeVideo(I_VideoBuffer);
+    }
+
     if (NOBLIT)
     {
         return;
@@ -1044,6 +1052,8 @@ void I_SetPalette(byte *palette)
         SDL_SetRenderDrawColor(renderer, colors[0].r, colors[0].g, colors[0].b,
                                SDL_ALPHA_OPAQUE);
     }
+
+    I_MPG_SetPalette(colors);
 }
 
 // Taken from Chocolate Doom chocolate-doom/src/i_video.c:L841-867
@@ -1915,6 +1925,12 @@ void I_InitGraphics(void)
     I_InitVideoParms();
     I_InitGraphicsMode(); // killough 10/98
     ResetResolution(GetCurrentVideoHeight(), true);
+
+    if (M_ParmExists("-viddump"))
+    {
+        I_MPG_Init();
+    }
+
     CreateSurfaces(video.pitch, video.height);
     ResetLogicalSize();
 
