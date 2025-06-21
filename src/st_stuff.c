@@ -713,7 +713,7 @@ static void UpdateNumber(sbarelem_t *elem, player_t *player)
     }
     else
     {
-        value = clampi(value, 0, max);
+        value = CLAMP(value, 0, max);
         numvalues = valglyphs = value != 0 ? ((int)log10(value) + 1) : 1;
     }
 

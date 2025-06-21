@@ -805,7 +805,7 @@ void R_SetupFrame (player_t *player)
     if (use_localview && raw_input && !player->centering)
     {
       pitch = player->pitch + localview.pitch;
-      pitch = clampi(pitch, -max_pitch_angle, max_pitch_angle);
+      pitch = CLAMP(pitch, -max_pitch_angle, max_pitch_angle);
     }
     else
     {

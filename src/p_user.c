@@ -250,7 +250,7 @@ void P_MovePlayer (player_t* player)
   if (!menuactive && !demoplayback && !player->centering)
   {
     player->pitch += cmd->pitch << FRACBITS;
-    player->pitch = clampi(player->pitch, -max_pitch_angle, max_pitch_angle);
+    player->pitch = CLAMP(player->pitch, -max_pitch_angle, max_pitch_angle);
     player->slope = PlayerSlope(player);
   }
 }

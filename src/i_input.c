@@ -704,7 +704,7 @@ static float GetDeltaTime(const SDL_ControllerSensorEvent *csensor,
     const uint64_t sens_time = GetSensorTimeUS(csensor);
     const float dt = (sens_time - *last_time) * 1.0e-6f;
     *last_time = sens_time;
-    return clampf(dt, 0.0f, 0.05f);
+    return CLAMP(dt, 0.0f, 0.05f);
 }
 
 static void UpdateGyroState(const SDL_ControllerSensorEvent *csensor)

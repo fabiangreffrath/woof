@@ -982,7 +982,7 @@ static void DrawSetting(setup_menu_t *s, int accum_y)
             }
         }
 
-        int thrm_val = clampi(value, min, max);
+        int thrm_val = CLAMP(value, min, max);
 
         byte *cr;
         if (ItemDisabled(flags))
@@ -2306,7 +2306,7 @@ static const char **GetResolutionScaleStrings(void)
         val += rs.step;
     }
 
-    resolution_scale = clampi(resolution_scale, 0, i);
+    resolution_scale = CLAMP(resolution_scale, 0, i);
 
     array_push(strings, "max");
 
@@ -4075,7 +4075,7 @@ static boolean ChangeEntry(menu_action_t action, int ch)
                 if ((min != UL && value < min) || (max != UL && value > max))
                 {
                     warn_about_changes(S_BADVAL);
-                    value = clampi(value, min, max);
+                    value = CLAMP(value, min, max);
                 }
 
                 *def->location.i = value;
@@ -4651,7 +4651,7 @@ boolean MN_SetupMouseResponder(int x, int y)
 
         int step = (max - min) * FRACUNIT / (rect->w - M_THRM_STEP * 2);
         int value = dot * step / FRACUNIT + min;
-        value = clampi(value, min, max);
+        value = CLAMP(value, min, max);
 
         if (value != *def->location.i)
         {

@@ -1268,7 +1268,7 @@ static double CurrentAspectRatio(void)
 
     double aspect_ratio = (double)w / (double)h;
 
-    aspect_ratio = clamp(aspect_ratio, ASPECT_RATIO_MIN, ASPECT_RATIO_MAX);
+    aspect_ratio = CLAMP(aspect_ratio, ASPECT_RATIO_MIN, ASPECT_RATIO_MAX);
 
     return aspect_ratio;
 }
@@ -1777,7 +1777,7 @@ static int GetCurrentVideoHeight(void)
     }
 
     current_video_height =
-        clampi(current_video_height, SCREENHEIGHT, max_height_adjusted);
+        CLAMP(current_video_height, SCREENHEIGHT, max_height_adjusted);
 
     return current_video_height;
 }

@@ -158,7 +158,7 @@ static void ParseAmbientSoundCommand(scanner_t *s, char ***sound_names,
                 int max_dist = INT_MAX / 127;
 
                 double dist = amb.close_dist / attenuation;
-                dist = clamp(dist, min_dist, max_dist);
+                dist = CLAMP(dist, min_dist, max_dist);
                 amb.close_dist = lround(dist);
 
                 // Make sure clipping distance is always greater than close
@@ -167,7 +167,7 @@ static void ParseAmbientSoundCommand(scanner_t *s, char ***sound_names,
                 max_dist = INT_MAX / 127 + 1;
 
                 dist = amb.clipping_dist / attenuation;
-                dist = clamp(dist, min_dist, max_dist);
+                dist = CLAMP(dist, min_dist, max_dist);
                 amb.clipping_dist = lround(dist);
             }
         }
@@ -203,12 +203,12 @@ static void ParseAmbientSoundCommand(scanner_t *s, char ***sound_names,
 
         SC_MustGetToken(s, TK_FloatConst);
         double tics = SC_GetDecimal(s) * TICRATE;
-        tics = clamp(tics, 0.0, max_tics);
+        tics = CLAMP(tics, 0.0, max_tics);
         amb.min_tics = lround(tics);
 
         SC_MustGetToken(s, TK_FloatConst);
         tics = SC_GetDecimal(s) * TICRATE;
-        tics = clamp(tics, amb.min_tics, max_tics);
+        tics = CLAMP(tics, amb.min_tics, max_tics);
         amb.max_tics = lround(tics);
     }
     else if (!strcasecmp(SC_GetString(s), "periodic"))
@@ -217,7 +217,7 @@ static void ParseAmbientSoundCommand(scanner_t *s, char ***sound_names,
 
         SC_MustGetToken(s, TK_FloatConst);
         double tics = SC_GetDecimal(s) * TICRATE;
-        tics = clamp(tics, 0.0, INT_MAX);
+        tics = CLAMP(tics, 0.0, INT_MAX);
         amb.min_tics = lround(tics);
         amb.max_tics = amb.min_tics;
     }
@@ -234,7 +234,7 @@ static void ParseAmbientSoundCommand(scanner_t *s, char ***sound_names,
     // Volume
     SC_MustGetToken(s, TK_FloatConst);
     double volume = SC_GetDecimal(s);
-    volume = clamp(volume, 0.0, 1.0);
+    volume = CLAMP(volume, 0.0, 1.0);
     amb.volume_scale = lround(volume * 127.0);
 
     // Ambient sounds are resolved later.

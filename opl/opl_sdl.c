@@ -214,8 +214,8 @@ int OPL_FillBuffer(byte *buffer, int buffer_samples)
                 }
             }
 
-            cursor[0] = clamp_s32(mix[0], -32768, 32767);
-            cursor[1] = clamp_s32(mix[1], -32768, 32767);
+            cursor[0] = CLAMP(mix[0], -32768, 32767);
+            cursor[1] = CLAMP(mix[1], -32768, 32767);
             cursor += 2;
         }
 
