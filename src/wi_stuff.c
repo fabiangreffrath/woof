@@ -532,7 +532,7 @@ static boolean UpdateAnimation(void)
 
                 case Frame_RandomDuration:
                     tics = M_Random() % frame->maxduration;
-                    tics = BETWEEN(frame->duration, frame->maxduration, tics);
+                    tics = clampi(tics, frame->duration, frame->maxduration);
                     break;
 
                 default:

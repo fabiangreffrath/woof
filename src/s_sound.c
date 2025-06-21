@@ -421,7 +421,7 @@ static float GetPitch(pitchrange_t pitch_range)
             pitch += 16 - (M_Random() & 31);
         }
 
-        pitch = BETWEEN(0, 255, pitch);
+        pitch = clampi(pitch, 0, 255);
         return steptable[pitch];
     }
     else

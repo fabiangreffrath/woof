@@ -1608,7 +1608,7 @@ static boolean PTR_ShootTraverse(intercept_t *in)
           if (z < sector->floorheight ||
              (z > sector->ceilingheight && sector->ceilingpic != skyflatnum))
           {
-            z = BETWEEN(sector->floorheight, sector->ceilingheight, z);
+            z = clampi(z, sector->floorheight, sector->ceilingheight);
             frac = FixedDiv(z - shootz, FixedMul(aimslope, attackrange));
             x = trace.x + FixedMul (trace.dx, frac);
             y = trace.y + FixedMul (trace.dy, frac);

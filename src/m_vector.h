@@ -101,9 +101,9 @@ inline static vec vec_scale(const vec v, float scalar)
 //
 inline static vec vec_clamp(float min, float max, const vec v)
 {
-    return (vec){BETWEEN(min, max, v.x),
-                 BETWEEN(min, max, v.y),
-                 BETWEEN(min, max, v.z)};
+    return (vec){clampf(v.x, min, max),
+                 clampf(v.y, min, max),
+                 clampf(v.z, min, max)};
 }
 
 //

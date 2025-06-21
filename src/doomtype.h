@@ -92,8 +92,6 @@ typedef byte lighttable_t;
  #define MAX(a, b) (((a) > (b)) ? (a) : (b))
 #endif
 
-#define BETWEEN(l, u, x) (MAX((l), (MIN((u), (x)))))
-
 #define DIV_ROUND_FLOOR(n, d) (((n) - (d) / 2) / (d))
 
 #define DIV_ROUND_CEIL(n, d) (((n) + (d) / 2) / (d))
@@ -104,6 +102,15 @@ typedef byte lighttable_t;
 #if defined(_MSC_VER) && !defined(__cplusplus)
 #define inline __inline
 #endif
+
+#define CLAMP return min > x ? min : x > max ? max : x;
+inline static int32_t clamp_s32(int32_t x, int32_t min, int32_t max) {CLAMP}
+inline static uint32_t clamp_u32(uint32_t x, uint32_t min, uint32_t max) {CLAMP}
+inline static uint64_t clamp_u64(uint64_t x, uint64_t min, uint64_t max) {CLAMP}
+inline static int clampi(int x, int min, int max) {CLAMP}
+inline static float clampf(float x, float min, float max) {CLAMP}
+inline static double clamp(double x, double min, double max) {CLAMP}
+#undef CLAMP
 
 #if defined(__GNUC__) || defined(__clang__)
  #define PRINTF_ATTR(fmt, first) __attribute__((format(printf, fmt, first)))

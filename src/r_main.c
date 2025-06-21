@@ -507,7 +507,7 @@ void R_SmoothLight(void)
 int R_GetLightIndex(fixed_t scale)
 {
   const int index = ((int64_t)scale * (160 << FRACBITS) / lightfocallength) >> LIGHTSCALESHIFT;
-  return BETWEEN(0, MAXLIGHTSCALE - 1, index);
+  return clampi(index, 0, MAXLIGHTSCALE - 1);
 }
 
 static fixed_t viewpitch;
@@ -805,7 +805,7 @@ void R_SetupFrame (player_t *player)
     if (use_localview && raw_input && !player->centering)
     {
       pitch = player->pitch + localview.pitch;
-      pitch = BETWEEN(-max_pitch_angle, max_pitch_angle, pitch);
+      pitch = clampi(pitch, -max_pitch_angle, max_pitch_angle);
     }
     else
     {
