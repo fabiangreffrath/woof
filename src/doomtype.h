@@ -87,9 +87,17 @@ typedef byte lighttable_t;
      __typeof__ (b) _b = (b); \
      _a > _b ? _a : _b;       \
  })
+ #define CLAMP(x, min, max)                    \
+ ({                                            \
+     __typeof__ (x) _x = (x);                  \
+     __typeof__ (min) _min = (min);            \
+     __typeof__ (max) _max = (max);            \
+     _min > _x ? _min : _x > _max ? _max : _x; \
+ })
 #else
  #define MIN(a, b) (((a) < (b)) ? (a) : (b))
  #define MAX(a, b) (((a) > (b)) ? (a) : (b))
+ #define CLAMP(x, min, max) ((min) > (x) ? (min) : (x) > (max) ? (max) : (x))
 #endif
 
 #define DIV_ROUND_FLOOR(n, d) (((n) - (d) / 2) / (d))
@@ -103,9 +111,15 @@ typedef byte lighttable_t;
 #define inline __inline
 #endif
 
-#define CLAMP(x, min, max) ((min) > (x) ? (min) : (x) > (max) ? (max) : (x))
-inline static int clampi(int x, int min, int max) {return CLAMP(x, min, max);}
-inline static float clampf(float x, float min, float max) {return CLAMP(x, min, max);}
+inline static int clampi(int x, int min, int max)
+{
+  return (min > x ? min : x > max ? max : x);
+}
+
+inline static float clampf(float x, float min, float max)
+{
+  return (min > x ? min : x > max ? max : x);
+}
 
 #if defined(__GNUC__) || defined(__clang__)
  #define PRINTF_ATTR(fmt, first) __attribute__((format(printf, fmt, first)))
