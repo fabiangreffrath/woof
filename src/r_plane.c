@@ -408,7 +408,7 @@ static void DrawSkyFire(visplane_t *pl, fire_t *fire)
         if (dc_yl != USHRT_MAX && dc_yl <= dc_yh)
         {
             dc_source = R_GetFireColumn((viewangle + xtoskyangle[x])
-                                        >> ANGLETOSKYSHIFT);
+                                        >> ANGLETOSKYSHIFT, fire);
             colfunc();
         }
     }
@@ -438,6 +438,20 @@ static void DrawSkyTex(visplane_t *pl, skytex_t *skytex)
 
     angle_t an = viewangle + (deltax << (ANGLETOSKYSHIFT - FRACBITS));
 
+    if (skytex->scrolly == 0 && colfunc != R_DrawTLColumn)
+    {
+        // Make sure the fade-to-color effect doesn't happen too early
+        fixed_t diff = dc_texturemid - SCREENHEIGHT / 2 * FRACUNIT;
+        if (diff < 0)
+        {
+            diff += textureheight[texture];
+            diff %= textureheight[texture];
+            dc_texturemid = SCREENHEIGHT / 2 * FRACUNIT + diff;
+        }
+        dc_skycolor = R_GetSkyColor(texture);
+        colfunc = R_DrawSkyColumn;
+    }
+
     for (int x = pl->minx; x <= pl->maxx; x++)
     {
         dc_x = x;
@@ -452,9 +466,11 @@ static void DrawSkyTex(visplane_t *pl, skytex_t *skytex)
             colfunc();
         }
     }
+
+    colfunc = R_DrawColumn;
 }
 
-static void DrawSkyDef(visplane_t *pl)
+static void DrawSkyDef(visplane_t *pl, sky_t *sky)
 {
     // Sky is always drawn full bright, i.e. colormaps[0] is used.
     // Because of this hack, sky is not affected by INVUL inverse mapping.
@@ -481,131 +497,10 @@ static void DrawSkyDef(visplane_t *pl)
         // transparently. See id24 SKYDEFS spec.
         tranmap = W_CacheLumpName("SKYTRAN", PU_CACHE);
         colfunc = R_DrawTLColumn;
-        DrawSkyTex(pl, &sky->foreground);
+        DrawSkyDef(pl, R_GetLevelsky(sky->foreground_sky));
         tranmap = main_tranmap;
         colfunc = R_DrawColumn;
     }
-}
-
-static void do_draw_mbf_sky(visplane_t *pl)
-{
-    int texture;
-    angle_t an, flip;
-    boolean vertically_scrolling = false;
-
-    // killough 10/98: allow skies to come from sidedefs.
-    // Allows scrolling and/or animated skies, as well as
-    // arbitrary multiple skies per level without having
-    // to use info lumps.
-
-    an = viewangle;
-
-    if ((pl->picnum & PL_FLATMAPPING) == PL_FLATMAPPING)
-    {
-        dc_texturemid = skytexturemid;
-        texture = pl->picnum & ~PL_FLATMAPPING;
-        flip = 0;
-    }
-    else if (pl->picnum & PL_SKYFLAT)
-    {
-        // Sky Linedef
-        const line_t *l = &lines[pl->picnum & ~PL_SKYFLAT];
-
-        // Sky transferred from first sidedef
-        const side_t *s = *l->sidenum + sides;
-
-        if (s->baserowoffset - s->oldrowoffset)
-        {
-            vertically_scrolling = true;
-        }
-
-        // Texture comes from upper texture of reference sidedef
-        texture = texturetranslation[s->toptexture];
-
-        // Horizontal offset is turned into an angle offset,
-        // to allow sky rotation as well as careful positioning.
-        // However, the offset is scaled very small, so that it
-        // allows a long-period of sky rotation.
-
-        if (uncapped && leveltime > oldleveltime)
-        {
-            an += LerpFixed(s->oldtextureoffset, s->basetextureoffset);
-        }
-        else
-        {
-            an += s->textureoffset;
-        }
-
-        // Vertical offset allows careful sky positioning.
-
-        dc_texturemid = s->rowoffset - 28 * FRACUNIT;
-
-        // We sometimes flip the picture horizontally.
-        //
-        // Doom always flipped the picture, so we make it optional,
-        // to make it easier to use the new feature, while to still
-        // allow old sky textures to be used.
-
-        flip = l->special == 272 ? 0u : ~0u;
-    }
-    else // Normal Doom sky, only one allowed per level
-    {
-        dc_texturemid = skytexturemid; // Default y-offset
-        texture = texturetranslation[skytexture]; // Default texture
-        flip = 0;                      // Doom flips it
-    }
-
-    // Sky is always drawn full bright, i.e. colormaps[0] is used.
-    // Because of this hack, sky is not affected by INVUL inverse mapping.
-    //
-    // killough 7/19/98: fix hack to be more realistic:
-
-    if (STRICTMODE_COMP(comp_skymap)
-        || !(dc_colormap[0] = dc_colormap[1] = fixedcolormap))
-    {
-        dc_colormap[0] = dc_colormap[1] = fullcolormap; // killough 3/20/98
-    }
-
-    dc_texheight = textureheight[texture] >> FRACBITS; // killough
-    dc_iscale = skyiscale;
-
-    if (!vertically_scrolling)
-    {
-        // [FG] stretch short skies
-        if (stretchsky && dc_texheight < 200)
-        {
-            dc_iscale = dc_iscale * dc_texheight / SKYSTRETCH_HEIGHT;
-            dc_texturemid = dc_texturemid * dc_texheight / SKYSTRETCH_HEIGHT;
-        }
-
-        // Make sure the fade-to-color effect doesn't happen too early
-        fixed_t diff = dc_texturemid - SCREENHEIGHT / 2 * FRACUNIT;
-        if (diff < 0)
-        {
-            diff += textureheight[texture];
-            diff %= textureheight[texture];
-            dc_texturemid = SCREENHEIGHT / 2 * FRACUNIT + diff;
-        }
-        dc_skycolor = R_GetSkyColor(texture);
-        colfunc = R_DrawSkyColumn;
-    }
-
-    // killough 10/98: Use sky scrolling offset, and possibly flip picture
-    for (int x = pl->minx; x <= pl->maxx; x++)
-    {
-        dc_x = x;
-        dc_yl = pl->top[x];
-        dc_yh = pl->bottom[x];
-
-        if (dc_yl != USHRT_MAX && dc_yl <= dc_yh)
-        {
-            dc_source = R_GetColumnMod2(texture, ((an + xtoskyangle[x]) ^ flip)
-                                                     >> ANGLETOSKYSHIFT);
-            colfunc();
-        }
-    }
-
-    colfunc = R_DrawColumn;
 }
 
 // New function, by Lee Killough
@@ -619,15 +514,16 @@ static void do_draw_plane(visplane_t *pl)
 
     // sky flat
 
-    if (pl->picnum == skyflatnum && sky)
+    if (pl->picnum == skyflatnum)
     {
-        DrawSkyDef(pl);
+        DrawSkyDef(pl, levelskies);
         return;
     }
 
-    if (pl->picnum == skyflatnum || pl->picnum & PL_SKYFLAT)
+    if (pl->picnum & PL_SKYFLAT)
     {
-        do_draw_mbf_sky(pl);
+        sky_t *const sky = R_GetLevelsky(pl->picnum & ~PL_SKYFLAT);
+        DrawSkyDef(pl, sky);
         return;
     }
 

@@ -16,9 +16,13 @@
 
 #include "doomtype.h"
 #include "m_fixed.h"
+#include "r_defs.h"
+
+typedef int skyindex_t;
 
 typedef enum
 {
+    SkyType_Indetermined = -1,
     SkyType_Normal,
     SkyType_Fire,
     SkyType_WithForeground,
@@ -29,6 +33,8 @@ typedef struct fire_s
     byte *palette;
     int updatetime;
     int tics_left;
+    byte *indices;
+    byte *pixels;
 } fire_t;
 
 typedef struct
@@ -51,6 +57,10 @@ typedef struct sky_s
     skytex_t skytex;
     fire_t fire;
     skytex_t foreground;
+    skyindex_t foreground_sky;
+    boolean usedefaultmid;
+    line_t *line;
+    skyindex_t linked_sky;
 } sky_t;
 
 typedef struct

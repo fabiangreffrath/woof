@@ -60,9 +60,8 @@ static boolean ParseSkyTex(json_t *json, skytex_t *out)
     json_t *scrolly = JS_GetObject(json, "scrolly");
     json_t *scalex = JS_GetObject(json, "scalex");
     json_t *scaley = JS_GetObject(json, "scaley");
-    if (!JS_IsNumber(mid)
-        || !JS_IsNumber(scrollx) || !JS_IsNumber(scrolly)
-        || !JS_IsNumber(scalex)  || !JS_IsNumber(scaley))
+    if (!JS_IsNumber(mid) || !JS_IsNumber(scrollx) || !JS_IsNumber(scrolly)
+        || !JS_IsNumber(scalex) || !JS_IsNumber(scaley))
     {
         return false;
     }
