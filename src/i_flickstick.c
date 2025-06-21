@@ -95,7 +95,7 @@ void I_SetPendingFlickStickReset(boolean condition)
 
 static float EaseOut(float x)
 {
-    x = 1.0f - BETWEEN(0.0f, 1.0f, x);
+    x = 1.0f - CLAMP(x, 0.0f, 1.0f);
     return (1.0f - x * x);
 }
 
@@ -113,7 +113,7 @@ static float GetSmoothAngle(uint64_t delta_time, float delta_angle,
     flick.samples[flick.index] = delta_angle * smooth_factor;
 
     int max_samples = (int)ceilf((float)SMOOTH_WINDOW / delta_time);
-    max_samples = BETWEEN(1, NUM_SAMPLES, max_samples);
+    max_samples = CLAMP(max_samples, 1, NUM_SAMPLES);
 
     float smooth_angle = flick.samples[flick.index] / max_samples;
 
@@ -139,14 +139,14 @@ static float GetRawFactor(uint64_t delta_time, float delta_angle)
         const float rps =
             fabsf(delta_angle) * 1.0e6f / (2.0f * PI_F * delta_time);
         const float raw_factor = (rps - flick.lower_smooth) / denom;
-        return BETWEEN(0.0f, 1.0f, raw_factor);
+        return CLAMP(raw_factor, 0.0f, 1.0f);
     }
 }
 
 static float SmoothTurn(axes_t *ax, float delta_angle)
 {
     uint64_t delta_time = ax->time - ax->last_time;
-    delta_time = BETWEEN(1, SMOOTH_WINDOW, delta_time);
+    delta_time = CLAMP(delta_time, 1, SMOOTH_WINDOW);
 
     const float raw_factor = GetRawFactor(delta_time, delta_angle);
     const float smooth_factor = 1.0f - raw_factor;

@@ -156,7 +156,7 @@ void ST_UpdateCarousel(player_t *player)
     if (last_index != selected_index)
     {
         distance = selected_index - last_index;
-        distance = 64 * BETWEEN(-2, 2, distance);
+        distance = 64 * CLAMP(distance, -2, 2);
         last_index = selected_index;
         last_time = I_GetTimeMS();
     }

@@ -712,12 +712,11 @@ boolean VX_ProjectVoxel (mobj_t * thing)
 	// [Alaux] Lock crosshair on target
 	if (STRICTMODE(hud_crosshair_lockon) && thing == crosshair_target)
 	{
-		HU_UpdateCrosshairLock
-		(
-			BETWEEN(0, viewwidth  - 1, (centerxfrac + FixedMul(tx, xscale)) >> FRACBITS),
-			BETWEEN(0, viewheight - 1, (centeryfrac + FixedMul(viewz - gz - crosshair_target->actualheight/2, xscale)) >> FRACBITS)
-		);
-
+		int x = (centerxfrac + FixedMul(tx, xscale)) >> FRACBITS;
+		int y = (centeryfrac + FixedMul(viewz - gz - crosshair_target->actualheight / 2, xscale)) >> FRACBITS;
+		x = clampi(x, 0, viewwidth - 1);
+		y = clampi(y, 0, viewheight - 1);
+		HU_UpdateCrosshairLock(x, y);
 		crosshair_target = NULL; // Don't update it again until next tic
 	}
 

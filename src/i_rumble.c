@@ -298,7 +298,7 @@ static void InitFFT(int rate, int step)
 
     // FFT size must be a power of two (see pffft.h).
     const uint32_t step2 = RoundUpPowerOfTwo(step);
-    fft.size = BETWEEN(128, 8192, step2);
+    fft.size = (int)CLAMP(step2, 128, 8192);
 
     fft.setup = pffft_new_setup(fft.size, PFFFT_REAL);
 
@@ -338,7 +338,7 @@ static float Normalize_Mono16(const void *data, int pos)
 static float Normalize_Mono32(const void *data, int pos)
 {
     const float val = ((float *)data)[pos];
-    return BETWEEN(-1.0f, 1.0f, val);
+    return CLAMP(val, -1.0f, 1.0f);
 }
 
 static float (*Normalize)(const void *data, int pos);
@@ -410,7 +410,7 @@ static void SfxToRumble(const byte *data, int rate, int length,
         if (amp_peak > 0.0001f)
         {
             float weight = (freq_peak - 640.0f) * 0.00625f; // 1/160
-            weight = BETWEEN(-1.0f, 1.0f, weight);
+            weight = CLAMP(weight, -1.0f, 1.0f);
 
             const float dBFS = 20.0f * log10f(amp_peak) + 6.0f;
             const float dBFS_low = dBFS - 6.0f * weight;
@@ -689,7 +689,7 @@ static float ScaleHitFloor(const mobj_t *listener)
         float scale = (float)FIXED2DOUBLE(listener->momz) + 8.0f;
         //scale = (1 - 0.25) / pow(40 - 8, 2) * pow(scale, 2) + 0.25;
         scale = 0.75f / 1024.0f * scale * scale + 0.25f;
-        return BETWEEN(0.25f, 1.0f, scale);
+        return CLAMP(scale, 0.25f, 1.0f);
     }
 }
 
