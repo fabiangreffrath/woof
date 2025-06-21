@@ -137,7 +137,7 @@ void R_InitSkyMap(void)
         {
             int flatnum = R_FlatNumForName(flatmap->flat);
             int skytex = R_TextureNumForName(flatmap->sky);
-            int skyindex = R_AddLevelsky(skytex);
+            skyindex_t skyindex = R_AddLevelsky(skytex);
 
             for (int i = 0; i < numsectors; i++)
             {
@@ -197,7 +197,7 @@ void UpdateSkyFromLine(sky_t *sky)
 
     if (sky->linked_sky >= 0)
     {
-        sky_t *linked_sky = R_GetLevelsky(sky->linked_sky);
+        sky_t *const linked_sky = R_GetLevelsky(sky->linked_sky);
         linked_sky->skytex.mid = skytex->mid;
     }
 }
@@ -279,10 +279,10 @@ void R_ClearLevelskies(void)
     array_free(levelskies);
 }
 
-int AddLevelsky(int texture, line_t *line)
+skyindex_t AddLevelsky(int texture, line_t *line)
 {
     sky_t new_sky = {.type = SkyType_Indetermined};
-    const int index = array_size(levelskies);
+    const skyindex_t index = array_size(levelskies);
 
     if (line)
     {
@@ -297,7 +297,7 @@ int AddLevelsky(int texture, line_t *line)
     {
         if (sky->skytex.texture == texture && sky->line == line)
         {
-            return (int)(sky - levelskies);
+            return (skyindex_t)(sky - levelskies);
         }
     }
 
@@ -334,7 +334,7 @@ int AddLevelsky(int texture, line_t *line)
             if (sky->skytex.texture == new_sky.skytex.texture
                 && sky->usedefaultmid && new_sky.usedefaultmid)
             {
-                new_sky.linked_sky = (int)(sky - levelskies);
+                new_sky.linked_sky = (skyindex_t)(sky - levelskies);
                 break;
             }
         }
@@ -360,17 +360,17 @@ int AddLevelsky(int texture, line_t *line)
     return index;
 }
 
-int R_AddLevelsky(int texture)
+skyindex_t R_AddLevelsky(int texture)
 {
     return AddLevelsky(texture, NULL);
 }
 
-int R_AddLevelskyFromLine(line_t *line)
+skyindex_t R_AddLevelskyFromLine(line_t *line)
 {
     return AddLevelsky(-1, line);
 }
 
-sky_t *R_GetLevelsky(int index)
+sky_t *R_GetLevelsky(skyindex_t index)
 {
 #ifdef RANGECHECK
     if (index < 0 || index >= array_size(levelskies))

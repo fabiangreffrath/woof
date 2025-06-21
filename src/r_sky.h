@@ -40,9 +40,9 @@ extern boolean linearsky;
 
 extern sky_t *levelskies;
 void R_ClearLevelskies(void);
-int R_AddLevelsky(int texture);
-int R_AddLevelskyFromLine(line_t *line);
-sky_t *R_GetLevelsky(int index);
+skyindex_t R_AddLevelsky(int texture);
+skyindex_t R_AddLevelskyFromLine(line_t *line);
+sky_t *R_GetLevelsky(skyindex_t index);
 void R_UpdateStretchSkies(void);
 
 // Called whenever the view size changes.

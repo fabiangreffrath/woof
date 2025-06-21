@@ -18,6 +18,8 @@
 #include "m_fixed.h"
 #include "r_defs.h"
 
+typedef int skyindex_t;
+
 typedef enum
 {
     SkyType_Indetermined = -1,
@@ -55,10 +57,10 @@ typedef struct sky_s
     skytex_t skytex;
     fire_t fire;
     skytex_t foreground;
-    int foreground_sky;
+    skyindex_t foreground_sky;
     boolean usedefaultmid;
     line_t *line;
-    int linked_sky;
+    skyindex_t linked_sky;
 } sky_t;
 
 typedef struct

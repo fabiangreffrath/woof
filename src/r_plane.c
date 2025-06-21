@@ -522,7 +522,7 @@ static void do_draw_plane(visplane_t *pl)
 
     if (pl->picnum & PL_SKYFLAT)
     {
-        sky_t *sky = R_GetLevelsky(pl->picnum & ~PL_SKYFLAT);
+        sky_t *const sky = R_GetLevelsky(pl->picnum & ~PL_SKYFLAT);
         DrawSkyDef(pl, sky);
         return;
     }
