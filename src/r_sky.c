@@ -187,13 +187,11 @@ void UpdateSkyFromLine(sky_t *sky)
     skytex->scalex = (line->special == 272) ? FRACUNIT : -FRACUNIT;
 
     skytex->mid = side->baserowoffset - 28 * FRACUNIT;
-    skytex->scaley = FRACUNIT;
+    skytex->scaley = levelskies->skytex.scaley;
 
     if (sky->linked_sky >= 0)
     {
         sky_t *linked_sky = R_GetLevelsky(sky->linked_sky);
-        // TODO: according to the spec, shouldn't this rather be
-        // skytex->mid += linked_sky->skytex.mid
         linked_sky->skytex.mid = skytex->mid;
     }
 
@@ -201,7 +199,6 @@ void UpdateSkyFromLine(sky_t *sky)
     if (stretchsky && skyheight < 200)
     {
         skytex->mid = skytex->mid * skyheight / SKYSTRETCH_HEIGHT;
-        skytex->scaley = FRACUNIT * skyheight / SKYSTRETCH_HEIGHT;
     }
 }
 
@@ -334,7 +331,8 @@ int AddLevelsky(int texture, line_t *line)
     {
         array_foreach(sky, levelskies)
         {
-            if (sky->skytex.texture == texture)
+            if (sky->skytex.texture == new_sky.skytex.texture
+                && sky->usedefaultmid == new_sky.usedefaultmid)
             {
                 new_sky.linked_sky = (int)(sky - levelskies);
                 break;
