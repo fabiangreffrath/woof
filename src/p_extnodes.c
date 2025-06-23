@@ -110,7 +110,7 @@ mapformat_t P_CheckMapFormat(int lumpnum)
 
     if (W_LumpExistsWithName(lumpnum + ML_BLOCKMAP + 1, "BEHAVIOR"))
     {
-        I_Error("P_SetupLevel: Hexen map format not supported in %s.\n",
+        I_Error("Hexen map format not supported in %s.\n",
                 lumpinfo[lumpnum].name);
     }
 
@@ -394,8 +394,7 @@ static void P_LoadSegs_XNOD(byte *data)
         // Andrey Budko: check for wrong indexes
         if ((unsigned)ldef->sidenum[side] >= (unsigned)numsides)
         {
-            I_Error("P_LoadSegs_XNOD: linedef %d for seg %d references a "
-                    "non-existent sidedef %d",
+            I_Error("linedef %d for seg %d references a non-existent sidedef %d",
                     linedef, i, (unsigned)ldef->sidenum[side]);
         }
 
@@ -475,8 +474,7 @@ static void P_LoadSegs_XGLN(byte *data)
 
                 if ((unsigned int)line >= (unsigned int)numlines)
                 {
-                    I_Error("P_LoadSegs_XGLN: seg %d, %d references a "
-                            "non-existent linedef %d",
+                    I_Error("seg %d, %d references a non-existent linedef %d",
                             i, j, (unsigned int)line);
                 }
 
@@ -485,14 +483,13 @@ static void P_LoadSegs_XGLN(byte *data)
 
                 if (side != 0 && side != 1)
                 {
-                    I_Error("P_LoadSegs_XGLN: seg %d, %d references a "
-                            "non-existent side %d",
+                    I_Error("seg %d, %d references a non-existent side %d",
                             i, j, (unsigned int)side);
                 }
 
                 if ((unsigned)ldef->sidenum[side] >= (unsigned)numsides)
                 {
-                    I_Error("P_LoadSegs_XGLN: linedef %d for seg %d, %d "
+                    I_Error("linedef %d for seg %d, %d "
                             "references a non-existent sidedef %d",
                             line, i, j, (unsigned)ldef->sidenum[side]);
                 }
@@ -592,8 +589,7 @@ void P_LoadNodes_XNOD(int lump, boolean compressed, boolean glnodes)
 
         if (inflateInit(zstream) != Z_OK)
         {
-            I_Error("P_LoadNodes_XNOD: Error during ZNOD nodes decompression "
-                    "initialization!");
+            I_Error("Error during ZNOD nodes decompression initialization!");
         }
 
         // resize if output buffer runs full
@@ -608,7 +604,7 @@ void P_LoadNodes_XNOD(int lump, boolean compressed, boolean glnodes)
 
         if (err != Z_STREAM_END)
         {
-            I_Error("P_LoadNodes_XNOD: Error during ZNOD nodes decompression!");
+            I_Error("Error during ZNOD nodes decompression!");
         }
 
         I_Printf(VB_DEBUG,
@@ -619,8 +615,7 @@ void P_LoadNodes_XNOD(int lump, boolean compressed, boolean glnodes)
 
         if (inflateEnd(zstream) != Z_OK)
         {
-            I_Error("P_LoadNodes_XNOD: Error during ZNOD nodes decompression "
-                    "shut-down!");
+            I_Error("Error during ZNOD nodes decompression shut-down!");
         }
 
         // release the original data lump
@@ -684,7 +679,7 @@ void P_LoadNodes_XNOD(int lump, boolean compressed, boolean glnodes)
 
     if (numSubs < 1)
     {
-        I_Error("P_LoadNodes_XNOD: No subsectors in map!");
+        I_Error("No subsectors in map!");
     }
 
     numsubsectors = numSubs;
@@ -710,7 +705,7 @@ void P_LoadNodes_XNOD(int lump, boolean compressed, boolean glnodes)
     // subsectors
     if (numSegs != currSeg)
     {
-        I_Error("P_LoadNodes_XNOD: Incorrect number of segs in XNOD nodes!");
+        I_Error("Incorrect number of segs in XNOD nodes!");
     }
 
     numsegs = numSegs;

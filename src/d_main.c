@@ -65,6 +65,7 @@
 #include "m_swap.h"
 #include "net_client.h"
 #include "net_dedicated.h"
+#include "p_ambient.h"
 #include "p_inter.h" // maxhealthbonus
 #include "p_map.h"   // MELEERANGE
 #include "p_mobj.h"
@@ -483,6 +484,8 @@ void D_AdvanceDemoLoop(void)
 
 void D_DoAdvanceDemo(void)
 {
+    S_StopAmbientSounds();
+
     players[consoleplayer].playerstate = PST_LIVE; // not reborn
     advancedemo = false;
     usergame = false; // no save / end game here
@@ -558,7 +561,7 @@ void D_AddFile(const char *file)
 
   if (!W_AddPath(path))
   {
-    I_Error("Error: Failed to load %s", file);
+    I_Error("Failed to load %s", file);
   }
 }
 
@@ -1335,7 +1338,7 @@ static void AutoLoadWADs(const char *path)
 
         if (!W_AddPath(filename))
         {
-            I_Error("Error: Failed to load %s", filename);
+            I_Error("Failed to load %s", filename);
         }
     }
     I_EndGlob(glob);
@@ -1384,6 +1387,10 @@ static void LoadIWadBase(void)
         {
             W_AddBaseDir("freedoom1-all");
         }
+    }
+    else if (local_gamemission == pack_rekkr)
+    {
+        W_AddBaseDir("rekkr-all");
     }
     for (int i = 0; i < firstpwad; i++)
     {
@@ -1451,6 +1458,12 @@ static void AutoloadIWadDir(void (*AutoLoadFunc)(const char *path))
                         AutoLoadFunc(dir);
                         free(dir);
                     }
+                }
+                else if (local_gamemission == pack_rekkr)
+                {
+                    dir = GetAutoloadDir(autoload_paths[j], "rekkr-all", true);
+                    AutoLoadFunc(dir);
+                    free(dir);
                 }
             }
 
@@ -1563,19 +1576,21 @@ static void D_InitTables(void)
       case MT_CYBORG:
         continue;
     }
-    mobjinfo[i].flags2 |= MF2_FLIPPABLE;
+    mobjinfo[i].flags_extra |= MFX_MIRROREDCORPSE;
   }
 
-  mobjinfo[MT_PUFF].flags2 |= MF2_FLIPPABLE;
-  mobjinfo[MT_BLOOD].flags2 |= MF2_FLIPPABLE;
+  mobjinfo[MT_PUFF].flags_extra |= MFX_MIRROREDCORPSE;
+  mobjinfo[MT_BLOOD].flags_extra |= MFX_MIRROREDCORPSE;
 
   for (i = MT_MISC61; i <= MT_MISC69; ++i)
-     mobjinfo[i].flags2 |= MF2_FLIPPABLE;
+     mobjinfo[i].flags_extra |= MFX_MIRROREDCORPSE;
 
-  mobjinfo[MT_DOGS].flags2 |= MF2_FLIPPABLE;
+  mobjinfo[MT_DOGS].flags_extra |= MFX_MIRROREDCORPSE;
 
   for (i = S_SARG_RUN1; i <= S_SARG_PAIN2; ++i)
     states[i].flags |= STATEF_SKILL5FAST;
+
+  P_InitAmbientSoundMobjInfo();
 }
 
 void D_SetMaxHealth(void)
@@ -1624,7 +1639,13 @@ typedef enum {
 static exit_sequence_t exit_sequence;
 static boolean endoom_pwad_only;
 
-boolean D_AllowQuitSound(void)
+boolean D_EndDoomEnabled(void)
+{
+  return (exit_sequence == EXIT_SEQUENCE_FULL
+          || exit_sequence == EXIT_SEQUENCE_ENDOOM_ONLY);
+}
+
+boolean D_QuitSoundEnabled(void)
 {
   return (exit_sequence == EXIT_SEQUENCE_FULL
           || exit_sequence == EXIT_SEQUENCE_SOUND_ONLY);
@@ -1638,33 +1659,34 @@ static void D_ShowEndDoom(void)
   I_Endoom(endoom);
 }
 
-boolean disable_endoom = false;
+boolean fast_exit = false;
 
 boolean D_AllowEndDoom(void)
 {
-  return (!disable_endoom
-          && (exit_sequence == EXIT_SEQUENCE_FULL
-          || exit_sequence == EXIT_SEQUENCE_ENDOOM_ONLY));
+  if (fast_exit)
+  {
+    return false; // Alt-F4 or pressed the close button.
+  }
+
+  if (!D_EndDoomEnabled())
+  {
+    return false; // Exit sequence is set to "Off" or "Sound Only".
+  }
+
+  if (W_IsIWADLump(W_CheckNumForName("ENDOOM")) && endoom_pwad_only)
+  {
+    return false; // User prefers PWAD ENDOOM only.
+  }
+
+  return true;
 }
 
 static void D_EndDoom(void)
 {
-  // Do we even want to show an ENDOOM?
-  if (!D_AllowEndDoom())
+  if (D_AllowEndDoom())
   {
-    return;
+    D_ShowEndDoom();
   }
-
-  // If so, is it from the IWAD?
-  boolean iwad_endoom = W_IsIWADLump(W_CheckNumForName("ENDOOM"));
-
-  // Does the user want to see it, in that case?
-  if (iwad_endoom && endoom_pwad_only)
-  {
-    return;
-  }
-
-  D_ShowEndDoom();
 }
 
 // [FG] fast-forward demo to the desired map
@@ -2407,6 +2429,8 @@ void D_DoomMain(void)
     // Not loading a game
     startloadgame = -1;
   }
+
+  W_ProcessInWads("SNDINFO", S_ParseSndInfo, PROCESS_IWAD | PROCESS_PWAD);
 
   W_ProcessInWads("TRAKINFO", S_ParseTrakInfo, PROCESS_IWAD | PROCESS_PWAD);
   D_SetupDemoLoop();

@@ -221,6 +221,7 @@ int dsdh_GetOriginalSpriteIndex(const char *key)
 
 sfxinfo_t *S_sfx = NULL;
 int num_sfx;
+static int sfx_index;
 static char **deh_soundnames = NULL;
 static byte *sfx_state = NULL;
 
@@ -228,6 +229,7 @@ static void InitSFX(void)
 {
     S_sfx = original_S_sfx;
     num_sfx = NUMSFX;
+    sfx_index = NUMSFX - 1;
 
     array_grow(deh_soundnames, num_sfx);
     for (int i = 1; i < num_sfx; i++)
@@ -254,6 +256,11 @@ static void FreeSFX(void)
 
 void dsdh_EnsureSFXCapacity(int limit)
 {
+    if (limit > sfx_index)
+    {
+        sfx_index = limit;
+    }
+
     if (limit < num_sfx)
     {
         return;
@@ -278,8 +285,11 @@ void dsdh_EnsureSFXCapacity(int limit)
     const int size_delta = num_sfx - old_num_sfx;
     memset(S_sfx + old_num_sfx, 0, size_delta * sizeof(*S_sfx));
 
-    array_grow(sfx_state, size_delta);
-    memset(sfx_state + old_num_sfx, 0, size_delta * sizeof(*sfx_state));
+    if (sfx_state)
+    {
+        array_grow(sfx_state, size_delta);
+        memset(sfx_state + old_num_sfx, 0, size_delta * sizeof(*sfx_state));
+    }
 
     for (int i = old_num_sfx; i < num_sfx; ++i)
     {
@@ -331,6 +341,13 @@ int dsdh_GetOriginalSFXIndex(const char *key)
     return i;
 }
 
+int dsdh_GetNewSFXIndex(void)
+{
+    sfx_index++;
+    dsdh_EnsureSFXCapacity(sfx_index);
+    return sfx_index;
+}
+
 //
 //   Music
 //
@@ -375,15 +392,22 @@ static void FreeMusic(void)
 
 mobjinfo_t *mobjinfo = NULL;
 int num_mobj_types;
+static int mobj_index;
 
 static void InitMobjInfo(void)
 {
     mobjinfo = original_mobjinfo;
     num_mobj_types = NUMMOBJTYPES;
+    mobj_index = NUMMOBJTYPES - 1;
 }
 
 void dsdh_EnsureMobjInfoCapacity(int limit)
 {
+    if (limit > mobj_index)
+    {
+        mobj_index = limit;
+    }
+
     if (limit < num_mobj_types)
     {
         return;
@@ -418,6 +442,13 @@ void dsdh_EnsureMobjInfoCapacity(int limit)
         mobjinfo[i].altspeed = NO_ALTSPEED;
         mobjinfo[i].meleerange = MELEERANGE;
     }
+}
+
+int dsdh_GetNewMobjInfoIndex(void)
+{
+    mobj_index++;
+    dsdh_EnsureMobjInfoCapacity(mobj_index);
+    return mobj_index;
 }
 
 void dsdh_InitTables(void)

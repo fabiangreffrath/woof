@@ -982,7 +982,7 @@ static void DrawSetting(setup_menu_t *s, int accum_y)
             }
         }
 
-        int thrm_val = BETWEEN(min, max, value);
+        int thrm_val = CLAMP(value, min, max);
 
         byte *cr;
         if (ItemDisabled(flags))
@@ -1418,6 +1418,7 @@ static setup_menu_t keys_settings3[] = {
     // [FG] reload current level / go to next level
     {"Reload Map/Demo", S_INPUT, KB_X, M_SPC, {0}, m_scrn, input_menu_reloadlevel},
     {"Next Map",        S_INPUT, KB_X, M_SPC, {0}, m_scrn, input_menu_nextlevel},
+    {"Previous Map",    S_INPUT, KB_X, M_SPC, {0}, m_scrn, input_menu_prevlevel},
     {"Show Stats/Time", S_INPUT, KB_X, M_SPC, {0}, m_scrn, input_hud_timestats},
     MI_GAP,
     {"Fast-FWD Demo",   S_INPUT, KB_X, M_SPC, {0}, m_scrn, input_demo_fforward},
@@ -1428,10 +1429,6 @@ static setup_menu_t keys_settings3[] = {
     {"Default Speed",   S_INPUT, KB_X, M_SPC, {0}, m_scrn, input_speed_default},
     MI_GAP,
     {"Begin Chat",      S_INPUT, KB_X, M_SPC, {0}, m_scrn, input_chat},
-    {"Player 1",        S_INPUT, KB_X, M_SPC, {0}, m_scrn, input_chat_dest0},
-    {"Player 2",        S_INPUT, KB_X, M_SPC, {0}, m_scrn, input_chat_dest1},
-    {"Player 3",        S_INPUT, KB_X, M_SPC, {0}, m_scrn, input_chat_dest2},
-    {"Player 4",        S_INPUT, KB_X, M_SPC, {0}, m_scrn, input_chat_dest3},
     MI_END
 };
 
@@ -2309,7 +2306,7 @@ static const char **GetResolutionScaleStrings(void)
         val += rs.step;
     }
 
-    resolution_scale = BETWEEN(0, i, resolution_scale);
+    resolution_scale = CLAMP(resolution_scale, 0, i);
 
     array_push(strings, "max");
 
@@ -2485,6 +2482,7 @@ static void SetSoundModule(void)
         return;
     }
 
+    S_EvictChannels();
     I_SetSoundModule();
 }
 
@@ -2569,7 +2567,7 @@ static setup_menu_t gen_settings2[] = {
 static setup_menu_t sfx_settings1[] = {
 
     {"SFX Channels", S_THERMO, CNTR_X, M_THRM_SPC, {"snd_channels"},
-     .action = S_StopChannels},
+     .action = S_EvictChannels},
 
     {"Output Limiter", S_ONOFF, CNTR_X, M_SPC, {"snd_limiter"},
      .action = SetSoundModule},
@@ -3356,7 +3354,7 @@ static setup_menu_t *gen_settings[] = {
 
 static void UpdatePwadEndoomItem(void)
 {
-    DisableItem(!D_AllowEndDoom(), gen_settings6, "endoom_pwad_only");
+    DisableItem(!D_EndDoomEnabled(), gen_settings6, "endoom_pwad_only");
 }
 
 void MN_UpdateDynamicResolutionItem(void)
@@ -4077,7 +4075,7 @@ static boolean ChangeEntry(menu_action_t action, int ch)
                 if ((min != UL && value < min) || (max != UL && value > max))
                 {
                     warn_about_changes(S_BADVAL);
-                    value = BETWEEN(min, max, value);
+                    value = CLAMP(value, min, max);
                 }
 
                 *def->location.i = value;
@@ -4653,7 +4651,7 @@ boolean MN_SetupMouseResponder(int x, int y)
 
         int step = (max - min) * FRACUNIT / (rect->w - M_THRM_STEP * 2);
         int value = dot * step / FRACUNIT + min;
-        value = BETWEEN(min, max, value);
+        value = CLAMP(value, min, max);
 
         if (value != *def->location.i)
         {
@@ -4912,6 +4910,8 @@ static const char **GetScreenSizeStrings(void)
     }
 
     maxscreenblocks = array_size(strings) - 1;
+    screenblocks = MIN(screenblocks, maxscreenblocks);
+
     return strings;
 }
 

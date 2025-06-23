@@ -122,6 +122,7 @@ extern boolean monkeys, default_monkeys;
 
 // v1.1-like pitched sounds
 extern boolean pitched_sounds;
+extern int pitch_bend_range; // [FG] variable pitch bend range
 
 extern boolean translucency;
 

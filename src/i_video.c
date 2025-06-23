@@ -511,7 +511,7 @@ static void ProcessEvent(SDL_Event *ev)
             break;
 
         case SDL_QUIT:
-            disable_endoom = true;
+            fast_exit = true;
             I_SafeExit(0);
             break;
 
@@ -915,7 +915,7 @@ void I_FinishUpdate(void)
 // I_ReadScreen
 //
 
-void I_ReadScreen(byte *dst)
+void I_ReadScreen(pixel_t *dst)
 {
     V_GetBlock(0, 0, video.width, video.height, dst);
 }
@@ -1104,7 +1104,7 @@ boolean I_WritePNGfile(char *filename)
     // [FG] allocate memory for screenshot image
     int pitch = rect.w * 3;
     int size = rect.h * pitch;
-    byte *pixels = malloc(size);
+    pixel_t *pixels = malloc(size);
 
     SDL_RenderReadPixels(renderer, &rect, SDL_PIXELFORMAT_RGB24, pixels, pitch);
 
@@ -1268,7 +1268,7 @@ static double CurrentAspectRatio(void)
 
     double aspect_ratio = (double)w / (double)h;
 
-    aspect_ratio = BETWEEN(ASPECT_RATIO_MIN, ASPECT_RATIO_MAX, aspect_ratio);
+    aspect_ratio = CLAMP(aspect_ratio, ASPECT_RATIO_MIN, ASPECT_RATIO_MAX);
 
     return aspect_ratio;
 }
@@ -1777,7 +1777,7 @@ static int GetCurrentVideoHeight(void)
     }
 
     current_video_height =
-        BETWEEN(SCREENHEIGHT, max_height_adjusted, current_video_height);
+        CLAMP(current_video_height, SCREENHEIGHT, max_height_adjusted);
 
     return current_video_height;
 }
@@ -1889,6 +1889,18 @@ void I_ShutdownGraphics(void)
     }
 
     UpdateGrab();
+
+    SDL_FreeSurface(argbbuffer);
+    SDL_FreeSurface(screenbuffer);
+    SDL_DestroyTexture(texture_upscaled);
+    SDL_DestroyTexture(texture);
+
+    if (!D_AllowEndDoom())
+    {
+        // ENDOOM will be skipped, so destroy the renderer and window now.
+        SDL_DestroyRenderer(renderer);
+        SDL_DestroyWindow(screen);
+    }
 }
 
 void I_InitGraphics(void)

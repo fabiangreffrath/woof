@@ -47,7 +47,7 @@ void NET_AddModule(net_context_t *context, net_module_t *module)
 {
     if (context->num_modules >= MAX_MODULES)
     {
-        I_Error("NET_AddModule: No more modules for context");
+        I_Error("No more modules for context");
     }
 
     context->modules[context->num_modules] = module;

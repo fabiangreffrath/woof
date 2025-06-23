@@ -178,7 +178,7 @@ static void R_MapPlane(int y, int x1, int x2)
 
 #ifdef RANGECHECK
   if (x2 < x1 || x1<0 || x2>=viewwidth || (unsigned)y>viewheight)
-    I_Error ("R_MapPlane: %i, %i at %i",x1,x2,y);
+    I_Error ("%i, %i at %i",x1,x2,y);
 #endif
 
   // [FG] calculate flat coordinates relative to screen center
@@ -619,19 +619,10 @@ static void do_draw_plane(visplane_t *pl)
 
     // sky flat
 
-    if (sky)
+    if (pl->picnum == skyflatnum && sky)
     {
-        if ((pl->picnum & PL_FLATMAPPING) == PL_FLATMAPPING)
-        {
-            do_draw_mbf_sky(pl);
-            return;
-        }
-
-        if (pl->picnum == skyflatnum)
-        {
-            DrawSkyDef(pl);
-            return;
-        }
+        DrawSkyDef(pl);
+        return;
     }
 
     if (pl->picnum == skyflatnum || pl->picnum & PL_SKYFLAT)

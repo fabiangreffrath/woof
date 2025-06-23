@@ -180,7 +180,7 @@ void G_UpdateDeltaTics(uint64_t delta_time)
     if (uncapped && raw_input)
     {
         deltatics = (double)delta_time * TICRATE * 1.0e-6;
-        deltatics = BETWEEN(0.0, 1.0, deltatics);
+        deltatics = CLAMP(deltatics, 0.0, 1.0);
     }
     else
     {
@@ -231,21 +231,21 @@ int G_CalcGamepadSideTurn(int speed)
 {
     const int side = RoundSide(forwardmove[speed] * axes[AXIS_TURN]
                                * direction[joy_invert_turn]);
-    return BETWEEN(-forwardmove[speed], forwardmove[speed], side);
+    return CLAMP(side, -forwardmove[speed], forwardmove[speed]);
 }
 
 int G_CalcGamepadSideStrafe(int speed)
 {
     const int side = RoundSide(forwardmove[speed] * axes[AXIS_STRAFE]
                                * direction[joy_invert_strafe]);
-    return BETWEEN(-sidemove[speed], sidemove[speed], side);
+    return CLAMP(side, -sidemove[speed], sidemove[speed]);
 }
 
 int G_CalcGamepadForward(int speed)
 {
     const int forward = lroundf(forwardmove[speed] * axes[AXIS_FORWARD]
                                 * direction[joy_invert_forward]);
-    return BETWEEN(-forwardmove[speed], forwardmove[speed], forward);
+    return CLAMP(forward, -forwardmove[speed], forwardmove[speed]);
 }
 
 //

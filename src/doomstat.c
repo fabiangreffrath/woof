@@ -64,6 +64,7 @@ demo_version_t demo_version;        // killough 7/19/98: Boom version of demo
 
 // v1.1-like pitched sounds
 boolean pitched_sounds;  // killough 10/98
+int pitch_bend_range; // [FG] variable pitch bend range
 
 boolean translucency;    // killough 10/98
 

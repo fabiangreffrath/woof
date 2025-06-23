@@ -94,7 +94,7 @@ void I_GetRawAxesScaleMenu(boolean move, float *scale, float *limit)
     const float y = GetInputValue(raw[move ? AXIS_FORWARD : AXIS_LOOK]);
     const float length = LENGTH_F(x, y);
 
-    *scale = BETWEEN(0.0f, 0.5f, length) / 0.5f;
+    *scale = CLAMP(length, 0.0f, 0.5f) / 0.5f;
     *limit = (move ? movement.inner_deadzone : camera.inner_deadzone) / 0.5f;
 }
 
@@ -158,7 +158,7 @@ static void CalcExtraScale(axes_t *ax)
                 {
                     // Continue ramp.
                     elapsed_time = ax->time - start_time;
-                    elapsed_time = BETWEEN(0, ax->ramp_time, elapsed_time);
+                    elapsed_time = CLAMP(elapsed_time, 0, ax->ramp_time);
                     ax->extra_scale = (float)elapsed_time / ax->ramp_time;
                 }
             }
@@ -219,8 +219,8 @@ static void CircleToSquare(float *x, float *y)
                     *x = sgnuv / v * sqrto;
                     *y = sgnuv / u * sqrto;
 
-                    *x = BETWEEN(-1.0f, 1.0f, *x);
-                    *y = BETWEEN(-1.0f, 1.0f, *y);
+                    *x = CLAMP(*x, -1.0f, 1.0f);
+                    *y = CLAMP(*y, -1.0f, 1.0f);
                 }
             }
         }

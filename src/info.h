@@ -1519,6 +1519,7 @@ typedef struct
     int meleerange;
 
     // [Woof!]
+    int flags_extra;  // [EA] Woof!-exclusive extension
     int bloodcolor;   // [FG] colored blood and gibs
     // DEHEXTRA
     mobjtype_t droppeditem; // mobj to drop after death
@@ -1538,6 +1539,10 @@ extern char** sprnames;
 extern int num_sprites;
 extern mobjinfo_t* mobjinfo;
 extern int num_mobj_types;
+
+// ZDoom
+#define ZMT_UNDEFINED -2
+extern int zmt_ambientsound;
 
 #endif
 

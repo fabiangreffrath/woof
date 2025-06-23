@@ -89,6 +89,7 @@ enum
     KEYP_MINUS,
     KEYP_MULTIPLY,
     KEYP_PERIOD,
+    KEYP_BACKSLASH,
     KEYP_EQUALS = KEY_EQUALS,
     KEYP_ENTER = KEY_ENTER,
 };
@@ -115,7 +116,7 @@ enum
     KEYP_MULTIPLY, KEYP_MINUS, KEYP_PLUS, KEYP_ENTER, KEYP_1,               \
     KEYP_2, KEYP_3, KEYP_4, KEYP_5, KEYP_6,                   /* 90-99 */   \
     KEYP_7, KEYP_8, KEYP_9, KEYP_0, KEYP_PERIOD,                            \
-    0, 0, 0, KEYP_EQUALS,                                     /* 100-103 */ \
+    KEYP_BACKSLASH, 0, 0, KEYP_EQUALS,                        /* 100-103 */ \
 }
 
 // Default names for keys, to use in English or as fallback.

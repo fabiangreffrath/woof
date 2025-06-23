@@ -218,10 +218,10 @@ static void PostProcessCalibration(void)
     }
 
     motion.accel_magnitude = cal.accel_sum / cal.accel_count;
-    motion.accel_magnitude = BETWEEN(0.0f, 2.0f, motion.accel_magnitude);
+    motion.accel_magnitude = CLAMP(motion.accel_magnitude, 0.0f, 2.0f);
 
     motion.gyro_offset = vec_scale(cal.gyro_sum, 1.0f / cal.gyro_count);
-    motion.gyro_offset = vec_clamp(-1.0f, 1.0f, motion.gyro_offset);
+    motion.gyro_offset = vec_clamp(motion.gyro_offset, -1.0f, 1.0f);
 
     SaveCalibration();
 
@@ -445,7 +445,7 @@ static void AccelerateGyro_Full(void)
     else
     {
         accel = magnitude / denom;
-        accel = BETWEEN(0.0f, 1.0f, accel);
+        accel = CLAMP(accel, 0.0f, 1.0f);
     }
     const float no_accel = (1.0f - accel);
 
@@ -483,9 +483,9 @@ static void GetSmoothedGyro(float smooth_factor, float *smooth_pitch,
     motion.yaw_samples[motion.index] = motion.gyro.y * smooth_factor;
 
     const float delta_time =
-        BETWEEN(1.0e-6f, motion.smooth_time, motion.delta_time);
+        CLAMP(motion.delta_time, 1.0e-6f, motion.smooth_time);
     int max_samples = lroundf((float)motion.smooth_time / delta_time);
-    max_samples = BETWEEN(1, NUM_SAMPLES, max_samples);
+    max_samples = CLAMP(max_samples, 1, NUM_SAMPLES);
 
     *smooth_pitch = motion.pitch_samples[motion.index] / max_samples;
     *smooth_yaw = motion.yaw_samples[motion.index] / max_samples;
@@ -509,7 +509,7 @@ static float GetRawFactorGyro(float magnitude)
     else
     {
         const float raw_factor = (magnitude - motion.lower_smooth) / denom;
-        return BETWEEN(0.0f, 1.0f, raw_factor);
+        return CLAMP(raw_factor, 0.0f, 1.0f);
     }
 }
 
@@ -540,7 +540,7 @@ static float raw[2];
 void I_GetRawGyroScaleMenu(float *scale, float *limit)
 {
     const float deg_per_sec = LENGTH_F(raw[0], raw[1]) * 180.0f / PI_F;
-    *scale = BETWEEN(0.0f, 50.0f, deg_per_sec) / 50.0f;
+    *scale = CLAMP(deg_per_sec, 0.0f, 50.0f) / 50.0f;
     *limit = gyro_smooth_threshold / 500.0f;
 }
 
@@ -639,7 +639,7 @@ static void CalcGravityVector_Full(void)
     // Calculate correction rate.
     float still_or_shaky = (motion.shakiness - SHAKINESS_MIN_THRESH)
                            / (SHAKINESS_MAX_THRESH - SHAKINESS_MIN_THRESH);
-    still_or_shaky = BETWEEN(0.0f, 1.0f, still_or_shaky);
+    still_or_shaky = CLAMP(still_or_shaky, 0.0f, 1.0f);
     float correction_rate =
         COR_STILL_RATE + (COR_SHAKY_RATE - COR_STILL_RATE) * still_or_shaky;
 
@@ -651,7 +651,7 @@ static void CalcGravityVector_Full(void)
         const float gravity_delta_magnitude = vec_length(gravity_delta);
         float close_factor = (gravity_delta_magnitude - COR_GYRO_MIN_THRESH)
                              / (COR_GYRO_MAX_THRESH - COR_GYRO_MIN_THRESH);
-        close_factor = BETWEEN(0.0f, 1.0f, close_factor);
+        close_factor = CLAMP(close_factor, 0.0f, 1.0f);
         correction_rate = correction_limit
                           + (correction_rate - correction_limit) * close_factor;
     }
@@ -679,7 +679,7 @@ static float GetDeltaTime(void)
     const uint64_t current_time = I_GetTimeUS();
     float delta_time = (current_time - motion.last_time) * 1.0e-6f;
     motion.last_time = current_time;
-    return BETWEEN(0.0f, 0.05f, delta_time);
+    return CLAMP(delta_time, 0.0f, 0.05f);
 }
 
 //

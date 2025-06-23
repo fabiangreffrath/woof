@@ -908,6 +908,8 @@ static void G_DoLoadLevel(void)
 {
   int i;
 
+  S_StopAmbientSounds();
+
   // Set the sky map.
   // First thing, we have a dummy sky texture name,
   //  a flat. The data is in the WAD only because
@@ -1076,12 +1078,12 @@ int G_GotoNextLevel(int *pEpi, int *pMap)
     {12, 13, 19, 15, 16, 17, 18, 21, 14},
     {22, 23, 24, 25, 29, 27, 28, 31, 26},
     {32, 33, 34, 35, 36, 39, 38, 41, 37},
-    {42, 49, 44, 45, 46, 47, 48, 11, 43}
+    {42, 49, 44, 45, 46, 47, 48, -1, 43}
   };
   byte doom2_next[32] = {
      2,  3,  4,  5,  6,  7,  8,  9, 10, 11,
     12, 13, 14, 15, 31, 17, 18, 19, 20, 21,
-    22, 23, 24, 25, 26, 27, 28, 29, 30,  1,
+    22, 23, 24, 25, 26, 27, 28, 29, 30, -1,
     32, 16
   };
 
@@ -1096,25 +1098,19 @@ int G_GotoNextLevel(int *pEpi, int *pMap)
       next = gamemapinfo->nextsecret;
     else if (gamemapinfo->nextmap[0])
       next = gamemapinfo->nextmap;
-    else if (gamemapinfo->flags & MapInfo_EndGame)
-    {
-      epsd = 1;
-      map = 1;
-    }
 
     if (next)
       G_ValidateMapName(next, &epsd, &map);
   }
-
-  if (map == -1)
+  else
   {
     // secret level
     doom2_next[14] = (haswolflevels ? 31 : 16);
 
     // shareware doom has only episode 1
-    doom_next[0][7] = (gamemode == shareware ? 11 : 21);
+    doom_next[0][7] = (gamemode == shareware ? -1 : 21);
 
-    doom_next[2][7] = (gamemode == registered ? 11 : 41);
+    doom_next[2][7] = (gamemode == registered ? -1 : 41);
 
     //doom2_next and doom_next are 0 based, unlike gameepisode and gamemap
     epsd = gameepisode - 1;
@@ -1159,8 +1155,11 @@ int G_GotoNextLevel(int *pEpi, int *pMap)
   {
     char *name = MapName(epsd, map);
 
-    if (W_CheckNumForName(name) == -1)
-      displaymsg("Next level not found: %s", name);
+    if (map == -1 || W_CheckNumForName(name) == -1)
+    {
+      name = MapName(gameepisode, gamemap);
+      displaymsg("Next level not found for %s", name);
+    }
     else
     {
       G_DeferedInitNew(gameskill, epsd, map);
@@ -1169,6 +1168,66 @@ int G_GotoNextLevel(int *pEpi, int *pMap)
   }
 
   return false;
+}
+
+int G_GotoPrevLevel(void)
+{
+    if (gamestate != GS_LEVEL || deathmatch || netgame || demorecording
+        || demoplayback || menuactive)
+    {
+        return false;
+    }
+
+    const int cur_epsd = gameepisode;
+    const int cur_map = gamemap;
+    struct mapentry_s *const cur_gamemapinfo = gamemapinfo;
+    int ret = false;
+
+    do
+    {
+        gamemap = cur_map;
+
+        while ((gamemap = (gamemap + 99) % 100) != cur_map)
+        {
+            int next_epsd, next_map;
+            gamemapinfo = G_LookupMapinfo(gameepisode, gamemap);
+            G_GotoNextLevel(&next_epsd, &next_map);
+
+            // do not let linear and UMAPINFO maps cross
+            if ((cur_gamemapinfo == NULL && gamemapinfo != NULL) ||
+                (cur_gamemapinfo != NULL && gamemapinfo == NULL))
+            {
+                continue;
+            }
+
+            if (next_epsd == cur_epsd && next_map == cur_map)
+            {
+                char *name = MapName(gameepisode, gamemap);
+
+                if (W_CheckNumForName(name) != -1)
+                {
+                    G_DeferedInitNew(gameskill, gameepisode, gamemap);
+                    ret = true;
+                    break;
+                }
+            }
+        }
+    } while (ret == false
+             // only check one episode in Doom 2
+             && gamemode != commercial
+             && (gameepisode = (gameepisode + 9) % 10) != cur_epsd);
+
+    gameepisode = cur_epsd;
+    gamemap = cur_map;
+    gamemapinfo = cur_gamemapinfo;
+
+    if (ret == false)
+    {
+        char *name = MapName(gameepisode, gamemap);
+        displaymsg("Previous level not found for %s", name);
+    }
+
+    return ret;
 }
 
 static boolean G_StrictModeSkipEvent(event_t *ev)
@@ -1475,6 +1534,7 @@ static void G_JoinDemo(void)
 
   // [crispy] continue recording
   demoplayback = false;
+  usergame = true;
 
   // clear progress demo bar
   ST_Start();
@@ -1686,6 +1746,8 @@ boolean um_pars = false;
 static void G_DoCompleted(void)
 {
   int i;
+
+  S_StopAmbientSounds();
 
   //!
   // @category demo
@@ -1999,23 +2061,23 @@ static void G_DoPlayDemo(void)
 
     if (*demo_p++ != 1)
     {
-      I_Error("G_DoPlayDemo: Unknown demo format.");
+      I_Error("Unknown demo format.");
     }
 
     // the defunct format had only one extension (in two bytes)
     if (*demo_p++ != 1 || *demo_p++ != 0)
     {
-      I_Error("G_DoPlayDemo: Unknown demo format.");
+      I_Error("Unknown demo format.");
     }
 
     if (*demo_p++ != 8)
     {
-      I_Error("G_DoPlayDemo: Unknown demo format.");
+      I_Error("Unknown demo format.");
     }
 
     if (memcmp(demo_p, "UMAPINFO", 8))
     {
-      I_Error("G_DoPlayDemo: Unknown demo format.");
+      I_Error("Unknown demo format.");
     }
 
     demo_p += 8;
@@ -2397,6 +2459,8 @@ static void DoSaveGame(char *name)
   char name2[VERSIONSIZE];
   char *description;
   int  length, i;
+
+  S_MarkSounds();
 
   description = savedescription;
 
@@ -3218,7 +3282,7 @@ static boolean G_CheckSpot(int playernum, mapthing_t *mthing)
             ya = finesine[an];
             break;
         default:
-            I_Error("G_CheckSpot: unexpected angle %d\n", an);
+            I_Error("unexpected angle %d\n", an);
             xa = ya = 0;
             break;
       }
@@ -3820,16 +3884,16 @@ void G_ReloadDefaults(boolean keep_demover)
   rngseed = time(NULL);
 
   if (beta_emulation && demo_version != DV_MBF)
-    I_Error("G_ReloadDefaults: Beta emulation requires complevel MBF.");
+    I_Error("Beta emulation requires complevel MBF.");
 
   if ((M_CheckParm("-dog") || M_CheckParm("-dogs")) && demo_version < DV_MBF)
-    I_Error("G_ReloadDefaults: Helper dogs require complevel MBF or MBF21.");
+    I_Error("Helper dogs require complevel MBF or MBF21.");
 
   if (M_CheckParm("-skill") && startskill == sk_none && !demo_compatibility)
-    I_Error("G_ReloadDefaults: '-skill 0' requires complevel Vanilla.");
+    I_Error("'-skill 0' requires complevel Vanilla.");
 
   if (demorecording && demo_version == DV_ID24)
-    I_Error("G_ReloadDefaults: Recording ID24 demos is currently not enabled. "
+    I_Error("Recording ID24 demos is currently not enabled. "
             "Demo-compability in Complevel ID24 is not yet stable.");
 
   if (demo_version < DV_MBF)
@@ -4097,7 +4161,7 @@ static byte* G_WriteOptionsMBF21(byte* demo_p)
     *demo_p++ = comp[i] != 0;
 
   if (demo_p != target)
-    I_Error("mbf21_WriteOptions: MBF21_GAME_OPTION_SIZE is too small");
+    I_Error("MBF21_GAME_OPTION_SIZE is too small");
 
   return demo_p;
 }
@@ -4173,7 +4237,7 @@ byte *G_WriteOptions(byte *demo_p)
     *demo_p++ = 0;
 
   if (demo_p != target)
-    I_Error("G_WriteOptions: GAME_OPTION_SIZE is too small");
+    I_Error("GAME_OPTION_SIZE is too small");
 
   return target;
 }

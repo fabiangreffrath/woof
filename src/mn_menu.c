@@ -1489,7 +1489,7 @@ static void M_QuitResponse(int ch)
     {
         return;
     }
-    if (D_AllowQuitSound() &&
+    if (D_QuitSoundEnabled() &&
         (!netgame || demoplayback) && // killough 12/98
         !nosfxparm)                   // avoid delay if no sound card
     {
@@ -1764,7 +1764,7 @@ static void M_EndGameResponse(int ch)
     quickSaveSlot = -1;
 
     currentMenu->lastOn = itemOn;
-    S_StopChannels();
+    S_EvictChannels();
     MN_ClearMenus();
     D_StartTitle();
 }
@@ -1821,7 +1821,7 @@ static void M_SizeDisplay(int choice)
         default:
             break;
     }
-    screenblocks = BETWEEN(3, maxscreenblocks, screenblocks);
+    screenblocks = CLAMP(screenblocks, 3, maxscreenblocks);
     R_SetViewSize(screenblocks /*, detailLevel obsolete -- killough */);
 }
 
@@ -2255,6 +2255,36 @@ void M_ResetAutoSave(void)
 // M_Init
 //
 
+#define MAX_STRLEN 42
+
+static void AddLineBreaks(char *string)
+{
+    char *start = string;
+    char *p = start;
+
+    while (strlen(p) > MAX_STRLEN)
+    {
+        start = p;
+        p += MAX_STRLEN;
+
+        do
+        {
+            if (*p == ' ')
+            {
+                *p++ = '\n';
+                break;
+            }
+        } while (--p > start);
+
+        if (p == start)
+        {
+            break;
+        }
+    }
+}
+
+#undef MAX_STRLEN
+
 void M_Init(void)
 {
     MN_InitDefaults(); // killough 11/98
@@ -2360,6 +2390,16 @@ void M_Init(void)
         free(replace);
         *endmsg[9] = string;
     }
+
+    for (int i = 0; i < NUM_QUITMESSAGES; i++)
+    {
+        char *const msg = *endmsg[i];
+
+        if (strchr(msg, '\n') == NULL)
+        {
+            AddLineBreaks(*endmsg[i]);
+        }
+    }
 }
 
 /////////////////////////////
@@ -2429,7 +2469,7 @@ boolean M_ShortcutResponder(const event_t *ev)
     if (M_InputActivated(input_speed_up) && !D_CheckNetConnect() && !strictmode)
     {
         realtic_clock_rate += 10;
-        realtic_clock_rate = BETWEEN(10, 1000, realtic_clock_rate);
+        realtic_clock_rate = CLAMP(realtic_clock_rate, 10, 1000);
         displaymsg("Game Speed: %d", realtic_clock_rate);
         G_SetTimeScale();
         setrefreshneeded = true;
@@ -2439,7 +2479,7 @@ boolean M_ShortcutResponder(const event_t *ev)
         && !strictmode)
     {
         realtic_clock_rate -= 10;
-        realtic_clock_rate = BETWEEN(10, 1000, realtic_clock_rate);
+        realtic_clock_rate = CLAMP(realtic_clock_rate, 10, 1000);
         displaymsg("Game Speed: %d", realtic_clock_rate);
         G_SetTimeScale();
         setrefreshneeded = true;
@@ -2622,6 +2662,18 @@ boolean M_ShortcutResponder(const event_t *ev)
             return true;
         }
         else if (G_GotoNextLevel(NULL, NULL))
+        {
+            return true;
+        }
+    }
+
+    if (M_InputActivated(input_menu_prevlevel))
+    {
+        if (demoplayback && singledemo && !PLAYBACK_SKIP)
+        {
+            return false;
+        }
+        else if (G_GotoPrevLevel())
         {
             return true;
         }
@@ -2873,7 +2925,7 @@ static boolean MouseResponder(void)
         int dot = mouse_state_x - (rect->x + M_THRM_STEP + video.deltaw);
         int step = M_MAX_VOL * FRACUNIT / (rect->w - M_THRM_STEP * 3);
         int value = dot * step / FRACUNIT;
-        value = BETWEEN(0, M_MAX_VOL, value);
+        value = CLAMP(value, 0, M_MAX_VOL);
 
         current_item--;
         if (current_item->routine)

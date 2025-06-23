@@ -25,10 +25,14 @@
 
 typedef struct sfxparams_s
 {
+  int close_dist;
+  int clipping_dist;
   int volume_scale;
   int volume;
   int separation;
   int priority;
+  float pitch;
+  float offset;
 } sfxparams_t;
 
 //
@@ -41,6 +45,12 @@ typedef struct sfxrumble_s
   float *high;    // Pointer to array of high frequency rumble values.
   int ticlength;  // Array size equal to sound duration in tics.
 } sfxrumble_t;
+
+typedef struct sfxactive_s
+{
+  int count;      // Number of active channels using this sound.
+  int volume;     // Volume of active channels using this sound.
+} sfxactive_t;
 
 typedef struct sfxinfo_s
 {
@@ -71,9 +81,20 @@ typedef struct sfxinfo_s
   // lump number of sfx
   int lumpnum;
 
+  // Sound length in seconds.
+  float length;
+
+  // Is this an ambient sound?
+  boolean ambient;
+
+  // Is this a looping sound?
+  boolean looping;
+
   boolean cached;
 
   sfxrumble_t rumble;
+
+  sfxactive_t active;
 
 } sfxinfo_t;
 

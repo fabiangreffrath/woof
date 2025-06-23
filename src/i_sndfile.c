@@ -578,7 +578,7 @@ static void FadeInOutMonoFloat32(float *data, ALsizei size, ALsizei freq)
 }
 
 boolean I_SND_LoadFile(void *data, ALenum *format, byte **wavdata,
-                       ALsizei *size, ALsizei *freq)
+                       ALsizei *size, ALsizei *freq, boolean looping)
 {
     sndfile_t file = {0};
     sf_count_t num_frames = 0;
@@ -617,14 +617,18 @@ boolean I_SND_LoadFile(void *data, ALenum *format, byte **wavdata,
     *size = num_frames * file.frame_size / file.sfinfo.channels;
     *freq = file.sfinfo.samplerate;
 
-    // Fade in sounds that start at a non-zero amplitude to prevent clicking.
-    if (*format == AL_FORMAT_MONO16)
+    // Fade in or out sounds that start or end at a non-zero amplitude to
+    // prevent clicking.
+    if (!looping)
     {
-        FadeInOutMono16(local_wavdata, *size, *freq);
-    }
-    else if (*format == AL_FORMAT_MONO_FLOAT32)
-    {
-        FadeInOutMonoFloat32(local_wavdata, *size, *freq);
+        if (*format == AL_FORMAT_MONO16)
+        {
+            FadeInOutMono16(local_wavdata, *size, *freq);
+        }
+        else if (*format == AL_FORMAT_MONO_FLOAT32)
+        {
+            FadeInOutMonoFloat32(local_wavdata, *size, *freq);
+        }
     }
 
     *wavdata = local_wavdata;

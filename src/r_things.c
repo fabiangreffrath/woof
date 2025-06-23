@@ -142,7 +142,7 @@ static void R_InstallSpriteLump(int lump, unsigned frame,
   }
 
   if (frame >= MAX_SPRITE_FRAMES || rotation > 8)
-    I_Error("R_InstallSpriteLump: Bad frame characters in lump %i", lump);
+    I_Error("Bad frame characters in lump %i", lump);
 
   if ((int) frame > maxframe)
     maxframe = frame;
@@ -288,8 +288,7 @@ void R_InitSpriteDefs(char **namelist)
                       int rotation;
                       for (rotation=0 ; rotation<8 ; rotation++)
                         if (sprtemp[frame].lump[rotation] == -1)
-                          I_Error ("R_InitSprites: Sprite %.8s frame %c "
-                                   "is missing rotations",
+                          I_Error ("Sprite %.8s frame %c is missing rotations",
                                    namelist[i], frame+'A');
                       break;
                     }
@@ -438,7 +437,7 @@ void R_DrawVisSprite(vissprite_t *vis, int x1, int x2)
     colfunc = R_DrawFuzzColumn;    // killough 3/14/98
   else
     // [FG] colored blood and gibs
-    if (vis->mobjflags2 & MF2_COLOREDBLOOD)
+    if (vis->mobjflags_extra & MFX_COLOREDBLOOD)
       {
         colfunc = R_DrawTranslatedColumn;
         dc_translation = red2col[vis->color];
@@ -559,12 +558,12 @@ static void R_ProjectSprite (mobj_t* thing)
 
     // decide which patch to use for sprite relative to player
   if ((unsigned) thing->sprite >= num_sprites)
-    I_Error ("R_ProjectSprite: invalid sprite number %i", thing->sprite);
+    I_Error ("invalid sprite number %i", thing->sprite);
 
   sprdef = &sprites[thing->sprite];
 
   if ((thing->frame&FF_FRAMEMASK) >= sprdef->numframes)
-    I_Error ("R_ProjectSprite: invalid frame %i for sprite %s",
+    I_Error ("invalid frame %i for sprite %s",
              thing->frame & FF_FRAMEMASK, sprnames[thing->sprite]);
 
   sprframe = &sprdef->spriteframes[thing->frame & FF_FRAMEMASK];
@@ -586,7 +585,7 @@ static void R_ProjectSprite (mobj_t* thing)
 
   // [crispy] randomly flip corpse, blood and death animation sprites
   if (STRICTMODE(flipcorpses) &&
-      (thing->flags2 & MF2_FLIPPABLE) &&
+      (thing->flags_extra & MFX_MIRROREDCORPSE) &&
       !(thing->flags & MF_SHOOTABLE) &&
       (thing->intflags & MIF_FLIP))
     {
@@ -648,6 +647,7 @@ static void R_ProjectSprite (mobj_t* thing)
 
   vis->mobjflags = thing->flags;
   vis->mobjflags2 = thing->flags2;
+  vis->mobjflags_extra = thing->flags_extra;
   vis->scale = xscale;
   vis->gx = interpx;
   vis->gy = interpy;
@@ -696,12 +696,11 @@ static void R_ProjectSprite (mobj_t* thing)
   // [Alaux] Lock crosshair on target
   if (STRICTMODE(hud_crosshair_lockon) && thing == crosshair_target)
   {
-    HU_UpdateCrosshairLock
-    (
-      BETWEEN(0, viewwidth  - 1, (centerxfrac + FixedMul(txc, xscale)) >> FRACBITS),
-      BETWEEN(0, viewheight - 1, (centeryfrac + FixedMul(viewz - interpz - crosshair_target->actualheight/2, xscale)) >> FRACBITS)
-    );
-
+    int x = (centerxfrac + FixedMul(txc, xscale)) >> FRACBITS;
+    int y = (centeryfrac + FixedMul(viewz - interpz - crosshair_target->actualheight / 2, xscale)) >> FRACBITS;
+    x = clampi(x, 0, viewwidth - 1);
+    y = clampi(y, 0, viewheight - 1);
+    HU_UpdateCrosshairLock(x, y);
     crosshair_target = NULL; // Don't update it again until next tic
   }
 }
@@ -807,14 +806,14 @@ void R_DrawPSprite (pspdef_t *psp)
 
 #ifdef RANGECHECK
   if ((unsigned) psp->state->sprite >= num_sprites)
-    I_Error ("R_DrawPSprite: invalid sprite number %i", psp->state->sprite);
+    I_Error ("invalid sprite number %i", psp->state->sprite);
 #endif
 
   sprdef = &sprites[psp->state->sprite];
 
 #ifdef RANGECHECK
   if ((psp->state->frame&FF_FRAMEMASK) >= sprdef->numframes)
-    I_Error ("R_DrawPSprite: invalid frame %i for sprite %s",
+    I_Error ("invalid frame %i for sprite %s",
              (int)(psp->state->frame & FF_FRAMEMASK),
              sprnames[psp->state->sprite]);
 #endif
@@ -858,6 +857,7 @@ void R_DrawPSprite (pspdef_t *psp)
   vis = &avis;
   vis->mobjflags = 0;
   vis->mobjflags2 = 0;
+  vis->mobjflags_extra = 0;
 
   // killough 12/98: fix psprite positioning problem
   vis->texturemid = (BASEYCENTER<<FRACBITS) /* + FRACUNIT/2 */ -

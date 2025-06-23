@@ -59,7 +59,7 @@ static void AddWadInMem(w_handle_t handle, const char *name, int index,
 
     if (!mz_zip_reader_extract_to_mem(zip, index, data, data_size, 0))
     {
-        I_Error("AddWadInZip: mz_zip_reader_extract_to_mem failed");
+        I_Error("mz_zip_reader_extract_to_mem failed");
     }
 
     wadinfo_t header;
@@ -242,7 +242,7 @@ static void W_ZIP_Read(w_handle_t handle, void *dest, int size)
 
     if (!result)
     {
-        I_Error("W_ZIP_Read: mz_zip_reader_extract_to_mem failed");
+        I_Error("mz_zip_reader_extract_to_mem failed");
     }
 }
 

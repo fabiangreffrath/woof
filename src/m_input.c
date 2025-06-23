@@ -295,6 +295,7 @@ static const struct
     {KEYP_MINUS,     "num-"      },
     {KEYP_MULTIPLY,  "num*"      },
     {KEYP_PERIOD,    "num."      },
+    {KEYP_BACKSLASH, "num\\"     },
 };
 
 #define JOYB_LEN 16
@@ -702,6 +703,7 @@ void M_BindInputVariables(void)
 
     BIND_INPUT(input_menu_reloadlevel, "Restart current level/demo");
     BIND_INPUT(input_menu_nextlevel, "Go to next level");
+    BIND_INPUT(input_menu_prevlevel, "Go to previous level");
 
     BIND_INPUT(input_hud_timestats, "Toggle display of level stats and time");
 

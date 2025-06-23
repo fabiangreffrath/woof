@@ -1235,7 +1235,7 @@ static void P_HitSlideLine(line_t *ld)
       if (deltaangle > ANG180)
 	deltaangle += ANG180;
 
-      //  I_Error ("SlideLine: ang>ANG180");
+      //  I_Error ("ang>ANG180");
 
       lineangle >>= ANGLETOFINESHIFT;
       deltaangle >>= ANGLETOFINESHIFT;
@@ -1256,7 +1256,7 @@ static boolean PTR_SlideTraverse(intercept_t *in)
 
 #ifdef RANGECHECK
   if (!in->isaline)
-    I_Error ("PTR_SlideTraverse: not a line?");
+    I_Error ("not a line?");
 #endif
 
   li = in->d.line;
@@ -1608,7 +1608,7 @@ static boolean PTR_ShootTraverse(intercept_t *in)
           if (z < sector->floorheight ||
              (z > sector->ceilingheight && sector->ceilingpic != skyflatnum))
           {
-            z = BETWEEN(sector->floorheight, sector->ceilingheight, z);
+            z = CLAMP(z, sector->floorheight, sector->ceilingheight);
             frac = FixedDiv(z - shootz, FixedMul(aimslope, attackrange));
             x = trace.x + FixedMul (trace.dx, frac);
             y = trace.y + FixedMul (trace.dy, frac);
@@ -2048,7 +2048,7 @@ boolean PIT_ChangeSector(mobj_t *thing)
       thing->height = thing->radius = 0;
       if (thing->info->bloodcolor)
       {
-        thing->flags2 |= MF2_COLOREDBLOOD;
+        thing->flags_extra |= MFX_COLOREDBLOOD;
         thing->bloodcolor = V_BloodColor(thing->info->bloodcolor);
       }
       return true;      // keep checking
@@ -2088,7 +2088,7 @@ boolean PIT_ChangeSector(mobj_t *thing)
 
       if (thing->info->bloodcolor)
       {
-        mo->flags2 |= MF2_COLOREDBLOOD;
+        mo->flags_extra |= MFX_COLOREDBLOOD;
         mo->bloodcolor = V_BloodColor(thing->info->bloodcolor);
       }
 
@@ -2438,7 +2438,7 @@ void P_CreateSecNodeList(mobj_t *thing,fixed_t x,fixed_t y)
 void P_MapStart(void)
 {
   if (tmthing)
-    I_Error("P_MapStart: tmthing set!");
+    I_Error("tmthing set!");
 }
 
 void P_MapEnd(void)
