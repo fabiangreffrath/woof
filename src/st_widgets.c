@@ -51,6 +51,7 @@ boolean       show_pickup_messages;
 
 secretmessage_t hud_secret_message; // "A secret is revealed!" message
 widgetstate_t hud_level_stats;
+boolean       hud_level_stats_items;
 widgetstate_t hud_level_time;
 boolean       hud_time_use;
 widgetstate_t hud_player_coords;
@@ -859,10 +860,18 @@ static void UpdateMonSec(sbe_widget_t *widget)
     if (!widget->vertical)
     {
         static char string[80];
-        M_snprintf(string, sizeof(string),
-            RED_S "K \x1b%c%s " RED_S "I \x1b%c%s " RED_S "S \x1b%c%s",
-            killcolor, kill_str,
-            itemcolor, item_str,
+        int offset = 0;
+        offset += M_snprintf(string + offset, sizeof(string) - offset,
+            RED_S "K \x1b%c%s ",
+            killcolor, kill_str);
+        if (hud_level_stats_items)
+        {
+            offset += M_snprintf(string + offset, sizeof(string) - offset,
+                RED_S "I \x1b%c%s ",
+                itemcolor, item_str);
+        }
+        offset += M_snprintf(string + offset, sizeof(string) - offset,
+            RED_S "S \x1b%c%s",
             secretcolor, secret_str);
         ST_AddLine(widget, string);
     }
@@ -871,9 +880,12 @@ static void UpdateMonSec(sbe_widget_t *widget)
         static char string1[16];
         M_snprintf(string1, sizeof(string1), RED_S "K \x1b%c%s", killcolor, kill_str);
         ST_AddLine(widget, string1);
-        static char string2[16];
-        M_snprintf(string2, sizeof(string2), RED_S "I \x1b%c%s", itemcolor, item_str);
-        ST_AddLine(widget, string2);
+        if (hud_level_stats_items)
+        {
+            static char string2[16];
+            M_snprintf(string2, sizeof(string2), RED_S "I \x1b%c%s", itemcolor, item_str);
+            ST_AddLine(widget, string2);
+        }
         static char string3[16];
         M_snprintf(string3, sizeof(string3), RED_S "S \x1b%c%s", secretcolor, secret_str);
         ST_AddLine(widget, string3);
@@ -1251,6 +1263,8 @@ void ST_BindHUDVariables(void)
             ss_stat, wad_no,
             "Show level stats (kills, items, and secrets) widget (1 = On automap; "
             "2 = On HUD; 3 = Always)");
+  M_BindBool("hud_level_stats_items", &hud_level_stats_items, NULL, true, ss_stat,
+             wad_no, "Show items in level stats widget");
   M_BindNum("hud_stats_format", &hud_stats_format, NULL,
             STATSFORMAT_RATIO, STATSFORMAT_RATIO, STATSFORMAT_COUNT,
             ss_stat, wad_no,
