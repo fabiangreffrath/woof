@@ -114,6 +114,8 @@ static boolean ParseSky(json_t *json, sky_t *out)
         ParseFire(js_fire, &fire);
     }
     out->fire = fire;
+    out->fire.scalex = out->skytex.scalex;
+    out->fire.scaley = out->skytex.scaley;
 
     json_t *js_foreground = JS_GetObject(json, "foregroundtex");
     skytex_t foreground = {0};

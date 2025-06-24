@@ -34,6 +34,8 @@ typedef struct fire_s
     int updatetime;
     int tics_left;
     byte *indices;
+    fixed_t scalex;
+    fixed_t scaley;
     byte *pixels;
 } fire_t;
 

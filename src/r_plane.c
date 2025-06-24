@@ -395,8 +395,8 @@ static void R_MakeSpans(int x, unsigned int t1, unsigned int b1, unsigned int t2
 
 static void DrawSkyFire(visplane_t *pl, fire_t *fire)
 {
-    dc_texturemid = -28 * FRACUNIT;
-    dc_iscale = skyiscale;
+    dc_texturemid = FixedMul(-28 * FRACUNIT, fire->scaley);
+    dc_iscale = FixedMul(skyiscale, fire->scaley);
     dc_texheight = FIRE_HEIGHT;
 
     for (int x = pl->minx; x <= pl->maxx; x++)
@@ -404,11 +404,12 @@ static void DrawSkyFire(visplane_t *pl, fire_t *fire)
         dc_x = x;
         dc_yl = pl->top[x];
         dc_yh = pl->bottom[x];
+        const int col = FixedMul(
+            (viewangle + xtoskyangle[x]) >> ANGLETOSKYSHIFT, fire->scalex);
 
         if (dc_yl != USHRT_MAX && dc_yl <= dc_yh)
         {
-            dc_source = R_GetFireColumn((viewangle + xtoskyangle[x])
-                                        >> ANGLETOSKYSHIFT, fire);
+            dc_source = R_GetFireColumn(col, fire);
             colfunc();
         }
     }
