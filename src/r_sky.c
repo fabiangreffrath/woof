@@ -155,6 +155,20 @@ void R_InitSkyMap(void)
         }
 
         sky_t *sky;
+        int fg_count = 0;
+        array_foreach(sky, levelskies)
+        {
+            if (sky->type == SkyType_WithForeground)
+            {
+                fg_count++;
+            }
+        }
+
+        if (fg_count + array_size(levelskies) >= array_capacity(levelskies))
+        {
+            array_grow(levelskies, fg_count);
+        }
+
         array_foreach(sky, levelskies)
         {
             if (sky->type == SkyType_WithForeground)
