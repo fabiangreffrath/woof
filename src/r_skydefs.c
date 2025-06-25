@@ -114,6 +114,8 @@ static boolean ParseSky(json_t *json, sky_t *out)
         ParseFire(js_fire, &fire);
     }
     out->fire = fire;
+    out->fire.scrollx = out->skytex.scrollx;
+    out->fire.scrolly = out->skytex.scrolly;
     out->fire.scalex = out->skytex.scalex;
     out->fire.scaley = out->skytex.scaley;
 

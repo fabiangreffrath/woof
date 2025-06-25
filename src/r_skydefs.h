@@ -33,9 +33,15 @@ typedef struct fire_s
     byte *palette;
     int updatetime;
     int tics_left;
-    byte *indices;
+    fixed_t scrollx;
+    fixed_t currx;
+    fixed_t prevx;
+    fixed_t scrolly;
+    fixed_t curry;
+    fixed_t prevy;
     fixed_t scalex;
     fixed_t scaley;
+    byte *indices;
     byte *pixels;
 } fire_t;
 
