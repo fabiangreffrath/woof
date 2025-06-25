@@ -55,7 +55,7 @@ void R_UpdateSkies(void);
 #  define FIRE_WIDTH  128
 #  define FIRE_HEIGHT 320
 
-byte *R_GetFireColumn(int col, fire_t *fire);
+byte *R_GetFireColumn(fire_t *fire, int col);
 
 #endif
 

@@ -109,7 +109,7 @@ static void SetupFire(fire_t *fire)
     PrepareFirePixels(fire);
 }
 
-byte *R_GetFireColumn(int col, fire_t *fire)
+byte *R_GetFireColumn(fire_t *fire, int col)
 {
     while (col < 0)
     {
@@ -210,6 +210,11 @@ void R_UpdateSkies(void)
         if (sky->type == SkyType_Fire)
         {
             fire_t *fire = &sky->fire;
+
+            fire->prevx = fire->currx;
+            fire->prevy = fire->curry;
+            fire->currx += fire->scrollx;
+            fire->curry += fire->scrolly;
 
             if (fire->tics_left == 0)
             {
