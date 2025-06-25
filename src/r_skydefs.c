@@ -60,9 +60,8 @@ static boolean ParseSkyTex(json_t *json, skytex_t *out)
     json_t *scrolly = JS_GetObject(json, "scrolly");
     json_t *scalex = JS_GetObject(json, "scalex");
     json_t *scaley = JS_GetObject(json, "scaley");
-    if (!JS_IsNumber(mid)
-        || !JS_IsNumber(scrollx) || !JS_IsNumber(scrolly)
-        || !JS_IsNumber(scalex)  || !JS_IsNumber(scaley))
+    if (!JS_IsNumber(mid) || !JS_IsNumber(scrollx) || !JS_IsNumber(scrolly)
+        || !JS_IsNumber(scalex) || !JS_IsNumber(scaley))
     {
         return false;
     }
@@ -115,6 +114,10 @@ static boolean ParseSky(json_t *json, sky_t *out)
         ParseFire(js_fire, &fire);
     }
     out->fire = fire;
+    out->fire.scrollx = out->skytex.scrollx;
+    out->fire.scrolly = out->skytex.scrolly;
+    out->fire.scalex = out->skytex.scalex;
+    out->fire.scaley = out->skytex.scaley;
 
     json_t *js_foreground = JS_GetObject(json, "foregroundtex");
     skytex_t foreground = {0};
