@@ -4954,7 +4954,7 @@ void MN_SetupResetMenu(void)
     UpdateGainItems();
     UpdatePwadEndoomItem();
 
-    if (force_complevel != CL_NONE && default_complevel != force_complevel)
+    if (force_complevel != CL_NONE)
     {
         comp_settings1[0].m_text = "Forced Compatibility Level";
         default_complevel_strings[default_complevel] =
