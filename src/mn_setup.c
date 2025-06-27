@@ -4953,6 +4953,12 @@ void MN_SetupResetMenu(void)
     MN_UpdateEqualizerItems();
     UpdateGainItems();
     UpdatePwadEndoomItem();
+
+    if (force_complevel != CL_NONE && default_complevel != force_complevel)
+    {
+        default_complevel_strings[default_complevel] =
+            default_complevel_strings[force_complevel];
+    }
 }
 
 void MN_BindMenuVariables(void)
