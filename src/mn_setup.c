@@ -4953,6 +4953,13 @@ void MN_SetupResetMenu(void)
     MN_UpdateEqualizerItems();
     UpdateGainItems();
     UpdatePwadEndoomItem();
+
+    if (force_complevel != CL_NONE)
+    {
+        comp_settings1[0].m_text = "Forced Compatibility Level";
+        default_complevel_strings[default_complevel] =
+            default_complevel_strings[force_complevel];
+    }
 }
 
 void MN_BindMenuVariables(void)
