@@ -4956,6 +4956,7 @@ void MN_SetupResetMenu(void)
 
     if (force_complevel != CL_NONE && default_complevel != force_complevel)
     {
+        comp_settings1[0].m_text = "Forced Compatibility Level";
         default_complevel_strings[default_complevel] =
             default_complevel_strings[force_complevel];
     }
