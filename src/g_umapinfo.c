@@ -21,12 +21,17 @@
 #include "doomdef.h"
 #include "doomstat.h"
 #include "doomtype.h"
+#include "i_printf.h"
 #include "m_array.h"
 #include "m_misc.h"
 #include "m_scanner.h"
 #include "mn_menu.h"
 #include "w_wad.h"
 #include "z_zone.h"
+
+// allow no 0-tag specials here, unless a level exit.
+#define UMAPINFO_BOSS_SPECIAL \
+    (tag != 0 || special == 11 || special == 51 || special == 52 || special == 124)
 
 mapentry_t *umapinfo = NULL;
 
@@ -486,8 +491,8 @@ static void ParseStandardProperty(scanner_t *s, mapentry_t *mape)
     }
     else if (!strcasecmp(prop, "bossaction"))
     {
-        SC_MustGetToken(s, TK_Identifier);
-        if (!strcasecmp(SC_GetString(s), "clear"))
+        if (SC_CheckToken(s, TK_Identifier) &&
+            !strcasecmp(SC_GetString(s), "clear"))
         {
             mape->flags |= MapInfo_BossActionClear;
             array_free(mape->bossactions);
@@ -495,28 +500,89 @@ static void ParseStandardProperty(scanner_t *s, mapentry_t *mape)
         else
         {
             mape->flags &= ~MapInfo_BossActionClear;
-            int type, special, tag;
-            for (type = 0; type < arrlen(actor_names); ++type)
+            int  type = -1, special, tag;
+
+            if (SC_CheckToken(s, TK_IntConst))
             {
-                if (!strcasecmp(SC_GetString(s), actor_names[type]))
+                // DeHackEd Type vs mobjtype off by one
+                type = SC_GetNumber(s) - 1;
+
+                // ID24HACKED
+                //   Invalid index 0xFFFFFFFF, Negative indices not supported
+                if (type <= -1)
                 {
-                    break;
+                    SC_Error(s, "bossaction: invalid negative thing type");
                 }
             }
-            if (type == arrlen(actor_names))
+            else
             {
-                SC_Error(s, "bossaction: unknown thing type '%s'",
-                         SC_GetString(s));
+                for (type = 0; arrlen(actor_names); ++type)
+                {
+                    if (!strcasecmp(SC_GetString(s), actor_names[type]))
+                    {
+                        break;
+                    }
+                }
+                if (type == arrlen(actor_names))
+                {
+                    SC_Error(s, "bossaction: unknown thing '%s'",
+                            SC_GetString(s));
+                }
             }
+
             SC_MustGetToken(s, ',');
             SC_MustGetToken(s, TK_IntConst);
             special = SC_GetNumber(s);
             SC_MustGetToken(s, ',');
             SC_MustGetToken(s, TK_IntConst);
             tag = SC_GetNumber(s);
-            // allow no 0-tag specials here, unless a level exit.
-            if (tag != 0 || special == 11 || special == 51 || special == 52
-                || special == 124)
+
+            if (UMAPINFO_BOSS_SPECIAL)
+            {
+                bossaction_t bossaction = {type, special, tag};
+                array_push(mape->bossactions, bossaction);
+            }
+        }
+    }
+    else if (!strcasecmp(prop, "bossactionednum"))
+    {
+        if (SC_CheckToken(s, TK_Identifier) &&
+            !strcasecmp(SC_GetString(s), "clear"))
+        {
+            mape->flags |= MapInfo_BossActionClear;
+            array_free(mape->bossactions);
+        }
+        else
+        {
+            mape->flags &= ~MapInfo_BossActionClear;
+            int doomednum, type, special, tag;
+
+            SC_MustGetToken(s, TK_IntConst);
+            doomednum = SC_GetNumber(s);
+
+            // ID24HACKED
+            //   Invalid index 0xFFFF, negative indices not supported
+            if (doomednum <= -1)
+            {
+                SC_Error(s, "bossaction: invalid negative doomednum");
+            }
+
+            for (type = 0; type < num_mobj_types; ++type)
+            {
+                if (mobjinfo[type].doomednum == doomednum)
+                {
+                    break;
+                }
+            }
+
+            SC_MustGetToken(s, ',');
+            SC_MustGetToken(s, TK_IntConst);
+            special = SC_GetNumber(s);
+            SC_MustGetToken(s, ',');
+            SC_MustGetToken(s, TK_IntConst);
+            tag = SC_GetNumber(s);
+
+            if (UMAPINFO_BOSS_SPECIAL)
             {
                 bossaction_t bossaction = {type, special, tag};
                 array_push(mape->bossactions, bossaction);
