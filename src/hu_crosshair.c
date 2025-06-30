@@ -192,8 +192,8 @@ void HU_UpdateCrosshairLock(int x, int y)
     int w = (crosshair.w * video.xscale) >> FRACBITS;
     int h = (crosshair.h * video.yscale) >> FRACBITS;
 
-    x = viewwindowx + BETWEEN(w, viewwidth - w - 1, x);
-    y = viewwindowy + BETWEEN(h, viewheight - h - 1, y);
+    x = viewwindowx + clampi(x, w, viewwidth - w - 1);
+    y = viewwindowy + clampi(y, h, viewheight - h - 1);
 
     crosshair.x = (x << FRACBITS) / video.xscale - video.deltaw;
     crosshair.y = (y << FRACBITS) / video.yscale;

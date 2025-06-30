@@ -1388,6 +1388,10 @@ static void LoadIWadBase(void)
             W_AddBaseDir("freedoom1-all");
         }
     }
+    else if (local_gamemission == pack_rekkr)
+    {
+        W_AddBaseDir("rekkr-all");
+    }
     for (int i = 0; i < firstpwad; i++)
     {
         W_AddBaseDir(M_BaseName(wadfiles[i]));
@@ -1454,6 +1458,12 @@ static void AutoloadIWadDir(void (*AutoLoadFunc)(const char *path))
                         AutoLoadFunc(dir);
                         free(dir);
                     }
+                }
+                else if (local_gamemission == pack_rekkr)
+                {
+                    dir = GetAutoloadDir(autoload_paths[j], "rekkr-all", true);
+                    AutoLoadFunc(dir);
+                    free(dir);
                 }
             }
 

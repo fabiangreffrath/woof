@@ -460,6 +460,12 @@ void I_InitGamepad(void)
         return;
     }
 
+#ifdef _WIN32
+    // Raw input is broken for XInput devices under Windows.
+    // https://github.com/libsdl-org/SDL/issues/13047
+    SDL_SetHint(SDL_HINT_JOYSTICK_RAWINPUT, "0");
+#endif
+
     // Enable bluetooth gyro support for DualShock 4 and DualSense.
     SDL_SetHint(SDL_HINT_JOYSTICK_HIDAPI_PS4_RUMBLE, "1");
     SDL_SetHint(SDL_HINT_JOYSTICK_HIDAPI_PS5_RUMBLE, "1");
@@ -698,7 +704,7 @@ static float GetDeltaTime(const SDL_ControllerSensorEvent *csensor,
     const uint64_t sens_time = GetSensorTimeUS(csensor);
     const float dt = (sens_time - *last_time) * 1.0e-6f;
     *last_time = sens_time;
-    return BETWEEN(0.0f, 0.05f, dt);
+    return CLAMP(dt, 0.0f, 0.05f);
 }
 
 static void UpdateGyroState(const SDL_ControllerSensorEvent *csensor)

@@ -201,6 +201,10 @@ extern char *s_GOTSHOTGUN; // = GOTSHOTGUN;
 //#define GOTSHOTGUN2   "You got the super shotgun!"
 extern char *s_GOTSHOTGUN2; // = GOTSHOTGUN2;
 
+// [NS] Beta pickups.
+extern char *s_BETA_BONUS3;
+extern char *s_BETA_BONUS4;
+
 //
 // P_Doors.C
 //
