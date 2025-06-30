@@ -1185,7 +1185,7 @@ void R_PrecacheLevel(void)
   sky_t *sky;
   array_foreach(sky, levelskies)
   {
-    hitlist[sky->background.texture_num] = 1;
+    hitlist[sky->background.texture] = 1;
   }
 
   for (i = numtextures; --i >= 0; )

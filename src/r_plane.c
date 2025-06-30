@@ -395,7 +395,7 @@ static void R_MakeSpans(int x, unsigned int t1, unsigned int b1, unsigned int t2
 
 static void DrawSkyTex(visplane_t *pl, skytex_t *skytex)
 {
-    int texture = texturetranslation[skytex->texture_num];
+    int texture = texturetranslation[skytex->texture];
 
     dc_texturemid = skytex->mid;
     dc_texheight = textureheight[texture] >> FRACBITS;
@@ -470,7 +470,7 @@ static void DrawSkyDef(visplane_t *pl, sky_t *sky)
         // transparently. See id24 SKYDEFS spec.
         tranmap = W_CacheLumpName("SKYTRAN", PU_CACHE);
         colfunc = R_DrawTLColumn;
-        DrawSkyDef(pl, R_GetLevelsky(sky->foreground.texture_num));
+        DrawSkyTex(pl, &sky->foreground);
         tranmap = main_tranmap;
         colfunc = R_DrawColumn;
     }

@@ -29,7 +29,7 @@ static boolean ParseFire(json_t *json, sky_t *out)
     {
         return false;
     }
-    out->fire_ticrate = JS_GetNumber(updatetime) * TICRATE;
+    out->updatetime = JS_GetNumber(updatetime) * TICRATE;
 
     json_t *palette = JS_GetObject(json, "palette");
     if (!JS_IsArray(palette))
@@ -41,7 +41,7 @@ static boolean ParseFire(json_t *json, sky_t *out)
     for (int i = 0; i < out->fire_palette_num; ++i)
     {
         json_t *color = JS_GetArrayItem(palette, i);
-        array_push(out->fire_palette_index, JS_GetInteger(color));
+        array_push(out->palette, JS_GetInteger(color));
     }
 
     return true;
@@ -54,7 +54,7 @@ static boolean ParseSkyTex(json_t *json, skytex_t *out)
     {
         return false;
     }
-    out->texture_num = R_TextureNumForName(name);
+    out->texture = R_TextureNumForName(name);
 
     json_t *mid = JS_GetObject(json, "mid");
     json_t *scrollx = JS_GetObject(json, "scrollx");

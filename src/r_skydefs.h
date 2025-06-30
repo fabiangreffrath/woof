@@ -30,9 +30,7 @@ typedef enum
 
 typedef struct
 {
-    char    texture_name[8];
-    int     texture_num;
-
+    int texture;
     fixed_t mid;
     fixed_t scrollx, scrolly;
     fixed_t scalex,  scaley;
@@ -49,9 +47,9 @@ typedef struct sky_s
 
     // Type 1 -- Fire
     int32_t fire_palette_num;
-    byte*   fire_palette_index;
+    byte*   palette;
     byte*   fire_texture_data;
-    int32_t fire_ticrate;
+    int32_t updatetime;
 
     // Type 2 -- With Foreground
     skytex_t foreground;

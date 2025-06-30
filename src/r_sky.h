@@ -18,21 +18,21 @@
 //-----------------------------------------------------------------------------
 
 #ifndef __R_SKY__
-#  define __R_SKY__
+#define __R_SKY__
 
-#  include "doomtype.h"
-#  include "r_defs.h"
-#  include "r_plane.h"
-#  include "r_skydefs.h"
+#include "doomtype.h"
+#include "r_defs.h"
+#include "r_plane.h"
+#include "r_skydefs.h"
 
 // SKY, store the number for name.
-#  define SKYFLATNAME       "F_SKY1"
+#define SKYFLATNAME  "F_SKY1"
 
 // The sky map is 256*128*4 maps.
-#  define ANGLETOSKYSHIFT   22
+#define ANGLETOSKYSHIFT         22
 
 // [FG] stretch short skies
-#  define SKYSTRETCH_HEIGHT 228
+#define SKYSTRETCH_HEIGHT 228
 extern boolean stretchsky;
 
 // [FG] linear horizontal sky scrolling
@@ -52,10 +52,8 @@ byte R_GetSkyColor(int texturenum);
 
 void R_UpdateSkies(void);
 
-#define FIRE_WIDTH  128
-#define FIRE_HEIGHT 320
-
-byte *R_GetFireColumn(sky_t *sky, int col);
+#define FIRE_WIDTH     128
+#define FIRE_HEIGHT    320
 
 #endif
 
