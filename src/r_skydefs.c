@@ -22,25 +22,26 @@
 #include "m_misc.h"
 #include "r_data.h"
 
-static boolean ParseFire(json_t *json, fire_t *out)
+static boolean ParseFire(json_t *json, sky_t *out)
 {
     json_t *updatetime = JS_GetObject(json, "updatetime");
     if (!JS_IsNumber(updatetime))
     {
         return false;
     }
-    out->updatetime = JS_GetNumber(updatetime) * TICRATE;
+    out->fire_ticrate = JS_GetNumber(updatetime) * TICRATE;
 
     json_t *palette = JS_GetObject(json, "palette");
     if (!JS_IsArray(palette))
     {
         return false;
     }
-    int size = JS_GetArraySize(palette);
-    for (int i = 0; i < size; ++i)
+
+    out->fire_palette_num = JS_GetArraySize(palette);
+    for (int i = 0; i < out->fire_palette_num; ++i)
     {
         json_t *color = JS_GetArrayItem(palette, i);
-        array_push(out->palette, JS_GetInteger(color));
+        array_push(out->fire_palette_index, JS_GetInteger(color));
     }
 
     return true;
@@ -53,7 +54,7 @@ static boolean ParseSkyTex(json_t *json, skytex_t *out)
     {
         return false;
     }
-    out->texture = R_TextureNumForName(name);
+    out->texture_num = R_TextureNumForName(name);
 
     json_t *mid = JS_GetObject(json, "mid");
     json_t *scrollx = JS_GetObject(json, "scrollx");
@@ -105,19 +106,13 @@ static boolean ParseSky(json_t *json, sky_t *out)
     {
         return false;
     }
-    out->skytex = background;
+    out->background = background;
 
     json_t *js_fire = JS_GetObject(json, "fire");
-    fire_t fire = {0};
     if (!JS_IsNull(js_fire))
     {
-        ParseFire(js_fire, &fire);
+        ParseFire(js_fire, out);
     }
-    out->fire = fire;
-    out->fire.scrollx = out->skytex.scrollx;
-    out->fire.scrolly = out->skytex.scrolly;
-    out->fire.scalex = out->skytex.scalex;
-    out->fire.scaley = out->skytex.scaley;
 
     json_t *js_foreground = JS_GetObject(json, "foregroundtex");
     skytex_t foreground = {0};

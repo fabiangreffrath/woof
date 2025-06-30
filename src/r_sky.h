@@ -52,10 +52,10 @@ byte R_GetSkyColor(int texturenum);
 
 void R_UpdateSkies(void);
 
-#  define FIRE_WIDTH  128
-#  define FIRE_HEIGHT 320
+#define FIRE_WIDTH  128
+#define FIRE_HEIGHT 320
 
-byte *R_GetFireColumn(fire_t *fire, int col);
+byte *R_GetFireColumn(sky_t *sky, int col);
 
 #endif
 

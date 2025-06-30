@@ -393,47 +393,9 @@ static void R_MakeSpans(int x, unsigned int t1, unsigned int b1, unsigned int t2
     spanstart[b2--] = x;
 }
 
-static void DrawSkyFire(visplane_t *pl, fire_t *fire)
-{
-    dc_texturemid = FixedMul(-28 * FRACUNIT, fire->scaley);
-    dc_texheight = FIRE_HEIGHT;
-    dc_iscale = FixedMul(skyiscale, fire->scaley);
-
-    fixed_t deltax, deltay;
-    if (uncapped && leveltime > oldleveltime)
-    {
-        deltax = LerpFixed(fire->prevx, fire->currx);
-        deltay = LerpFixed(fire->prevy, fire->curry);
-    }
-    else
-    {
-        deltax = fire->currx;
-        deltay = fire->curry;
-    }
-
-    dc_texturemid += deltay;
-
-    angle_t an = viewangle + (deltax << (ANGLETOSKYSHIFT - FRACBITS));
-
-    for (int x = pl->minx; x <= pl->maxx; x++)
-    {
-        dc_x = x;
-        dc_yl = pl->top[x];
-        dc_yh = pl->bottom[x];
-
-        if (dc_yl != USHRT_MAX && dc_yl <= dc_yh)
-        {
-            int col = (an + xtoskyangle[x]) >> ANGLETOSKYSHIFT;
-            col = FixedToInt(FixedMul(IntToFixed(col), fire->scalex));
-            dc_source = R_GetFireColumn(fire, col);
-            colfunc();
-        }
-    }
-}
-
 static void DrawSkyTex(visplane_t *pl, skytex_t *skytex)
 {
-    int texture = texturetranslation[skytex->texture];
+    int texture = texturetranslation[skytex->texture_num];
 
     dc_texturemid = skytex->mid;
     dc_texheight = textureheight[texture] >> FRACBITS;
@@ -500,13 +462,7 @@ static void DrawSkyDef(visplane_t *pl, sky_t *sky)
         dc_colormap[0] = dc_colormap[1] = fullcolormap; // killough 3/20/98
     }
 
-    if (sky->type == SkyType_Fire)
-    {
-        DrawSkyFire(pl, &sky->fire);
-        return;
-    }
-
-    DrawSkyTex(pl, &sky->skytex);
+    DrawSkyTex(pl, &sky->background);
 
     if (sky->type == SkyType_WithForeground)
     {
@@ -514,7 +470,7 @@ static void DrawSkyDef(visplane_t *pl, sky_t *sky)
         // transparently. See id24 SKYDEFS spec.
         tranmap = W_CacheLumpName("SKYTRAN", PU_CACHE);
         colfunc = R_DrawTLColumn;
-        DrawSkyDef(pl, R_GetLevelsky(sky->foreground_sky));
+        DrawSkyDef(pl, R_GetLevelsky(sky->foreground.texture_num));
         tranmap = main_tranmap;
         colfunc = R_DrawColumn;
     }

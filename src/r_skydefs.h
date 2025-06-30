@@ -28,46 +28,38 @@ typedef enum
     SkyType_WithForeground,
 } skytype_t;
 
-typedef struct fire_s
-{
-    byte *palette;
-    int updatetime;
-    int tics_left;
-    fixed_t scrollx;
-    fixed_t currx;
-    fixed_t prevx;
-    fixed_t scrolly;
-    fixed_t curry;
-    fixed_t prevy;
-    fixed_t scalex;
-    fixed_t scaley;
-    byte *indices;
-    byte *pixels;
-} fire_t;
-
 typedef struct
 {
-    int texture;
+    char    texture_name[8];
+    int     texture_num;
+
     fixed_t mid;
-    fixed_t scrollx;
-    fixed_t currx;
-    fixed_t prevx;
-    fixed_t scrolly;
-    fixed_t curry;
-    fixed_t prevy;
-    fixed_t scalex;
-    fixed_t scaley;
+    fixed_t scrollx, scrolly;
+    fixed_t scalex,  scaley;
+    fixed_t currx,   curry;
+    fixed_t prevx,   prevy;
 } skytex_t;
 
 typedef struct sky_s
 {
     skytype_t type;
-    skytex_t skytex;
-    fire_t fire;
+
+    // Type 0, 1, 2 -- Shared base
+    skytex_t background;
+
+    // Type 1 -- Fire
+    int32_t fire_palette_num;
+    byte*   fire_palette_index;
+    byte*   fire_texture_data;
+    int32_t fire_ticrate;
+
+    // Type 2 -- With Foreground
     skytex_t foreground;
-    skyindex_t foreground_sky;
-    boolean usedefaultmid;
+
+    // Sky transfer line specials
     line_t *line;
+
+    boolean    usedefaultmid;
     skyindex_t linked_sky;
 } sky_t;
 

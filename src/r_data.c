@@ -101,28 +101,6 @@ typedef PACKED_PREFIX struct
 #pragma pack(pop)
 #endif
 
-// A single patch from a texture definition, basically
-// a rectangular area within the texture rectangle.
-typedef struct
-{
-  int originx, originy;  // Block origin, which has already accounted
-  int patch;             // for the internal origin of the patch.
-} texpatch_t;
-
-
-// A maptexturedef_t describes a rectangular texture, which is composed
-// of one or more mappatch_t structures that arrange graphic patches.
-
-typedef struct
-{
-  char  name[8];         // Keep name for switch changing, etc.
-  int   next, index;     // killough 1/31/98: used in hashing algorithm
-  short width, height;
-  short patchcount;      // All the patches[patchcount] are drawn
-  texpatch_t patches[1]; // back-to-front into the cached texture.
-} texture_t;
-
-
 // killough 4/17/98: make firstcolormaplump,lastcolormaplump external
 int firstcolormaplump, lastcolormaplump;      // killough 4/17/98
 
@@ -1207,7 +1185,7 @@ void R_PrecacheLevel(void)
   sky_t *sky;
   array_foreach(sky, levelskies)
   {
-    hitlist[sky->skytex.texture] = 1;
+    hitlist[sky->background.texture_num] = 1;
   }
 
   for (i = numtextures; --i >= 0; )
