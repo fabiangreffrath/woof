@@ -74,36 +74,56 @@ static void SpreadFire(int src, byte *fire, int width)
     }
 }
 
-static void R_UpdateFireSky(sky_t *sky)
+static void UpdateFireSky(sky_t *sky)
 {
     const int texnum = sky->background.texture;
     int height = textures[texnum]->height;
     int width = textures[texnum]->width;
+    byte *coldata;
 
     for (int x = 0; x < width; x++)
     {
         for (int y = 1; y < height; y++)
         {
-            SpreadFire(y * width + x, sky->fire, width);
+            int src = y * width + x;
+            SpreadFire(src, sky->fire, width);
         }
     }
-    byte *coldata;
+
     for (int x = 0; x < width; x++)
     {
         coldata = R_GetColumn(texnum, x);
         for (int y = 0; y < height; y++)
         {
-            coldata[y] = sky->palette[sky->fire[y * width + x]];
+            int src = y * width + x;
+            coldata[y] = sky->palette[sky->fire[src]];
         }
     }
+
+    // [EA] [RF]
+    // the fire algorithm affects multiple collums at once, therefore both XY
+    // loops _must_ be separated, the following will cause noticeable visual
+    // disturbance on the resulting fire effect
+
+    // for (int x = 0; x < width; x++)
+    // {
+    //     byte *coldata = R_GetColumn(texnum, x);
+    //     coldata[0] = sky->palette[sky->fire[x]];
+    //     for (int y = 1; y < height; y++)
+    //     {
+    //         int src = y * width + x;
+    //         SpreadFire(src, sky->fire, width);
+    //         coldata[y] = sky->palette[sky->fire[src]];
+    //     }
+    // }
 }
 
 void R_InitFireSky(sky_t *sky)
 {
     int texnum = sky->background.texture;
     const texture_t *tex = textures[texnum];
-    sky->fire = (byte *)Z_Malloc(sizeof(byte) * tex->width * tex->height,
-                                 PU_LEVEL, NULL);
+    size_t size = tex->width * tex->height;
+    sky->fire = Z_Calloc(1, size, PU_STATIC, NULL);
 
     for (int i = 0; i < tex->width * tex->height; i++)
     {
@@ -117,7 +137,7 @@ void R_InitFireSky(sky_t *sky)
 
     for (int i = 0; i < 64; i++)
     {
-        R_UpdateFireSky(sky);
+        UpdateFireSky(sky);
     }
 }
 
@@ -238,7 +258,7 @@ void R_UpdateSkies(void)
 
         if (sky->type == SkyType_Fire)
         {
-            R_UpdateFireSky(sky);
+            UpdateFireSky(sky);
         }
     }
 }
