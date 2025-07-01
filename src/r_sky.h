@@ -52,7 +52,6 @@ byte R_GetSkyColor(int texturenum);
 
 void R_UpdateSkies(void);
 
-
 #endif
 
 //----------------------------------------------------------------------------

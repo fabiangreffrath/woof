@@ -51,69 +51,75 @@ static fixed_t defaultskytexturemid;
 // PSX fire sky, description: https://fabiensanglard.net/doom_fire_psx/
 // [EA] done away with original spreadFire, in favor of Odamex's texture-
 // replacing implementation.
-static void SpreadFire(int src, byte* fire, int width)
+static void SpreadFire(int src, byte *fire, int width)
 {
-  const byte pixel = fire[src];
-  const int copyloc0 = src - width;
-  if(pixel == 0)
-  {
-    if (copyloc0 >= 0)
-      fire[copyloc0] = 0;
-  }
-  else
-  {
-    const int rand = M_Random() & 3;
-
-    const int copyloc1 = copyloc0 - rand + 1;
-    if (copyloc1 >= 0)
-      fire[copyloc1] = pixel - (rand & 1);
-  }
-}
-
-static void R_UpdateFireSky(sky_t* sky)
-{
-  const int texnum = sky->background.texture;
-  int height = textures[texnum]->height;
-  int width = textures[texnum]->width;
-
-  for (int x = 0 ; x < width; x++)
-  {
-    for (int y = 1; y < height; y++)
-      SpreadFire(y * width + x, sky->fire, width);
-  }
-  byte* coldata;
-  for (int x = 0; x < width; x++)
-  {
-    coldata = R_GetColumn(texnum, x);
-    for (int y = 0; y < height; y++)
+    const byte pixel = fire[src];
+    const int copyloc0 = src - width;
+    if (pixel == 0)
     {
-      coldata[y] = sky->palette[sky->fire[y * width + x]];
+        if (copyloc0 >= 0)
+        {
+            fire[copyloc0] = 0;
+        }
     }
-  }
+    else
+    {
+        const int rand = M_Random() & 3;
+
+        const int copyloc1 = copyloc0 - rand + 1;
+        if (copyloc1 >= 0)
+        {
+            fire[copyloc1] = pixel - (rand & 1);
+        }
+    }
 }
 
-void R_InitFireSky(sky_t* sky)
+static void R_UpdateFireSky(sky_t *sky)
 {
-  int texnum = sky->background.texture;
-  const texture_t* tex = textures[texnum];
-  sky->fire = (byte*)Z_Malloc(sizeof(byte) * tex->width * tex->height, PU_LEVEL, NULL);
+    const int texnum = sky->background.texture;
+    int height = textures[texnum]->height;
+    int width = textures[texnum]->width;
 
-  for (int i = 0 ; i < tex->width * tex->height; i++)
-  {
-    sky->fire[i] = 0;
-  }
-
-  for (int i = 0 ; i < tex->width; i++)
-  {
-    sky->fire[(tex->height - 1) * tex->width + i] = sky->palette_num - 1;
-  }
-
-  for (int i = 0; i < 64; i++)
-  {
-    R_UpdateFireSky(sky);
-  }
+    for (int x = 0; x < width; x++)
+    {
+        for (int y = 1; y < height; y++)
+        {
+            SpreadFire(y * width + x, sky->fire, width);
+        }
+    }
+    byte *coldata;
+    for (int x = 0; x < width; x++)
+    {
+        coldata = R_GetColumn(texnum, x);
+        for (int y = 0; y < height; y++)
+        {
+            coldata[y] = sky->palette[sky->fire[y * width + x]];
+        }
+    }
 }
 
+void R_InitFireSky(sky_t *sky)
+{
+    int texnum = sky->background.texture;
+    const texture_t *tex = textures[texnum];
+    sky->fire = (byte *)Z_Malloc(sizeof(byte) * tex->width * tex->height,
+                                 PU_LEVEL, NULL);
+
+    for (int i = 0; i < tex->width * tex->height; i++)
+    {
+        sky->fire[i] = 0;
+    }
+
+    for (int i = 0; i < tex->width; i++)
+    {
+        sky->fire[(tex->height - 1) * tex->width + i] = sky->palette_num - 1;
+    }
+
+    for (int i = 0; i < 64; i++)
+    {
+        R_UpdateFireSky(sky);
+    }
+}
 
 void R_InitSkyMap(void)
 {
@@ -232,7 +238,7 @@ void R_UpdateSkies(void)
 
         if (sky->type == SkyType_Fire)
         {
-          R_UpdateFireSky(sky);
+            R_UpdateFireSky(sky);
         }
     }
 }
@@ -250,7 +256,8 @@ static void StretchSky(sky_t *sky)
 
     if (stretchsky && skyheight < 200)
     {
-        sky->background.mid = defaultskytexturemid * skyheight / SKYSTRETCH_HEIGHT;
+        sky->background.mid =
+            defaultskytexturemid * skyheight / SKYSTRETCH_HEIGHT;
         sky->background.scaley = FRACUNIT * skyheight / SKYSTRETCH_HEIGHT;
     }
     else
