@@ -50,6 +50,7 @@ typedef struct sky_s
     byte*   palette;
     int32_t palette_num;
     int32_t updatetime;
+    int32_t tics_left;
 
     // Type 2 -- With Foreground
     skytex_t foreground;

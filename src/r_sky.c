@@ -258,7 +258,12 @@ void R_UpdateSkies(void)
 
         if (sky->type == SkyType_Fire)
         {
-            UpdateFireSky(sky);
+            if (sky->tics_left == 0)
+            {
+              UpdateFireSky(sky);
+              sky->tics_left = sky->updatetime;
+            }
+            sky->tics_left--;
         }
     }
 }
