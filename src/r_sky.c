@@ -194,8 +194,8 @@ void R_InitSkyMap(void)
         {
             if (sky->type == SkyType_WithForeground)
             {
-                sky->linked_sky = R_AddLevelsky(sky->foreground.texture);
-                sky_t *foregroundsky = R_GetLevelsky(sky->linked_sky);
+                int index = R_AddLevelsky(sky->foreground.texture);
+                sky_t *foregroundsky = R_GetLevelsky(index);
                 foregroundsky->background = sky->foreground;
                 foregroundsky->usedefaultmid = false;
             }
