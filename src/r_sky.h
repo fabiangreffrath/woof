@@ -22,7 +22,6 @@
 
 #include "doomtype.h"
 #include "r_defs.h"
-#include "r_plane.h"
 #include "r_skydefs.h"
 
 // SKY, store the number for name.

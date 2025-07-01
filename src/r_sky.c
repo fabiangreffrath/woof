@@ -32,6 +32,7 @@
 #include "m_random.h"
 #include "r_data.h"
 #include "r_sky.h"
+#include "r_plane.h"
 #include "r_skydefs.h"
 #include "r_state.h"
 #include "w_wad.h"
