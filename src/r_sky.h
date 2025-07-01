@@ -52,8 +52,6 @@ byte R_GetSkyColor(int texturenum);
 
 void R_UpdateSkies(void);
 
-#define FIRE_WIDTH     128
-#define FIRE_HEIGHT    320
 
 #endif
 

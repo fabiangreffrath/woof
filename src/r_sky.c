@@ -33,7 +33,7 @@
 #include "r_data.h"
 #include "r_sky.h"
 #include "r_skydefs.h"
-#include "r_state.h" // [FG] textureheight[]
+#include "r_state.h"
 #include "w_wad.h"
 #include "z_zone.h"
 
@@ -51,41 +51,69 @@ static fixed_t defaultskytexturemid;
 // PSX fire sky, description: https://fabiensanglard.net/doom_fire_psx/
 // [EA] done away with original spreadFire, in favor of Odamex's texture-
 // replacing implementation.
-void SpreadFire(int src, byte* firepixels, int width)
+static void SpreadFire(int src, byte* fire, int width)
 {
-  const byte pixel = firepixels[src];
+  const byte pixel = fire[src];
   const int copyloc0 = src - width;
-  if(pixel == 0) {
+  if(pixel == 0)
+  {
     if (copyloc0 >= 0)
-      firepixels[copyloc0] = 0;
-  } else {
+      fire[copyloc0] = 0;
+  }
+  else
+  {
     const int rand = M_Random() & 3;
+
     const int copyloc1 = copyloc0 - rand + 1;
     if (copyloc1 >= 0)
-      firepixels[copyloc1] = pixel - (rand & 1);
+      fire[copyloc1] = pixel - (rand & 1);
   }
 }
 
 static void R_UpdateFireSky(sky_t* sky)
 {
   const int texnum = sky->background.texture;
-  texture_t* tex = textures[texnum];
-  for (int x = 0 ; x < tex->width; x++)
+  int height = textures[texnum]->height;
+  int width = textures[texnum]->width;
+
+  for (int x = 0 ; x < width; x++)
   {
-    for (int y = 1; y < tex->height; y++)
-      SpreadFire(y * tex->width + x, sky->fire_texture_data, tex->width);
+    for (int y = 1; y < height; y++)
+      SpreadFire(y * width + x, sky->fire, width);
   }
   byte* coldata;
-  for (int x = 0; x < tex->width; x++)
+  for (int x = 0; x < width; x++)
   {
     coldata = R_GetColumn(texnum, x);
-    for (int y = 0; y < tex->height; y++)
+    for (int y = 0; y < height; y++)
     {
-      coldata[y] =
-        sky->palette[sky->fire_texture_data[y * tex->width + x]];
+      coldata[y] = sky->palette[sky->fire[y * width + x]];
     }
   }
 }
+
+void R_InitFireSky(sky_t* sky)
+{
+  int texnum = sky->background.texture;
+  const texture_t* tex = textures[texnum];
+  sky->fire = (byte*)Z_Malloc(sizeof(byte) * tex->width * tex->height, PU_LEVEL, NULL);
+
+  for (int i = 0 ; i < tex->width * tex->height; i++)
+  {
+    sky->fire[i] = 0;
+  }
+
+  for (int i = 0 ; i < tex->width; i++)
+  {
+    sky->fire[(tex->height - 1) * tex->width + i] = sky->palette_num - 1;
+  }
+
+  for (int i = 0; i < 64; i++)
+  {
+    R_UpdateFireSky(sky);
+  }
+}
+
 
 void R_InitSkyMap(void)
 {
@@ -139,8 +167,8 @@ void R_InitSkyMap(void)
         {
             if (sky->type == SkyType_WithForeground)
             {
-                sky->foreground.texture = R_AddLevelsky(sky->foreground.texture);
-                sky_t *foregroundsky = R_GetLevelsky(sky->foreground.texture);
+                sky->linked_sky = R_AddLevelsky(sky->foreground.texture);
+                sky_t *foregroundsky = R_GetLevelsky(sky->linked_sky);
                 foregroundsky->background = sky->foreground;
                 foregroundsky->usedefaultmid = false;
             }
@@ -187,21 +215,24 @@ void R_UpdateSkies(void)
     sky_t *sky;
     array_foreach(sky, levelskies)
     {
-        if (sky->type == SkyType_Fire)
-        {
-          R_UpdateFireSky(sky);
-        }
-        else if (sky->line)
+        sky->background.prevx = sky->background.currx;
+        sky->background.prevy = sky->background.curry;
+        sky->background.currx += sky->background.scrollx;
+        sky->background.curry += sky->background.scrolly;
+
+        sky->foreground.prevx = sky->foreground.currx;
+        sky->foreground.prevy = sky->foreground.curry;
+        sky->foreground.currx += sky->foreground.scrollx;
+        sky->foreground.curry += sky->foreground.scrolly;
+
+        if (sky->line)
         {
             UpdateSkyFromLine(sky);
         }
-        else if (!sky->usedefaultmid)
+
+        if (sky->type == SkyType_Fire)
         {
-            skytex_t *background = &sky->background;
-            background->prevx = background->currx;
-            background->prevy = background->curry;
-            background->currx += background->scrollx;
-            background->curry += background->scrolly;
+          R_UpdateFireSky(sky);
         }
     }
 }
@@ -238,7 +269,7 @@ void R_UpdateStretchSkies(void)
         {
             UpdateSkyFromLine(sky);
         }
-        else if (sky->usedefaultmid)
+        if (sky->usedefaultmid)
         {
             StretchSky(sky);
         }
@@ -287,17 +318,14 @@ static skyindex_t AddLevelsky(int texture, line_t *line)
     if (new_sky.type == SkyType_Indetermined)
     {
         new_sky.type = SkyType_Normal;
-
         new_sky.background.texture = texture;
         new_sky.background.scalex = FRACUNIT;
         new_sky.background.scaley = FRACUNIT;
-
         new_sky.usedefaultmid = true;
     }
 
     new_sky.line = line;
     new_sky.linked_sky = -1;
-
     if (new_sky.line)
     {
         array_foreach(sky, levelskies)
@@ -312,22 +340,20 @@ static skyindex_t AddLevelsky(int texture, line_t *line)
 
         UpdateSkyFromLine(&new_sky);
     }
-    else if (new_sky.usedefaultmid)
+    if (new_sky.usedefaultmid)
     {
         StretchSky(&new_sky);
     }
 
     if (new_sky.type == SkyType_Fire)
     {
-        R_UpdateFireSky(&new_sky);
+        R_InitFireSky(&new_sky);
     }
     else
     {
         R_GetSkyColor(new_sky.background.texture);
     }
-
     array_push(levelskies, new_sky);
-
     return index;
 }
 

@@ -46,9 +46,9 @@ typedef struct sky_s
     skytex_t background;
 
     // Type 1 -- Fire
-    int32_t fire_palette_num;
+    byte*   fire;
     byte*   palette;
-    byte*   fire_texture_data;
+    int32_t palette_num;
     int32_t updatetime;
 
     // Type 2 -- With Foreground

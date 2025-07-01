@@ -33,6 +33,7 @@ struct player_s;
 // needed for texture pegging
 extern fixed_t *textureheight;
 extern fixed_t *texturewidth;
+extern fixed_t *texturewidthmask;
 
 // needed for pre rendering (fracs)
 extern fixed_t *spritewidth;
