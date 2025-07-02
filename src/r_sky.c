@@ -208,12 +208,6 @@ void R_UpdateSkies(void)
         sky->foreground.currx += sky->foreground.scrollx;
         sky->foreground.curry += sky->foreground.scrolly;
 
-        if (sky->linked_sky >= 0)
-        {
-            sky_t *const linked_sky = R_GetLevelsky(sky->linked_sky);
-            linked_sky->background.mid = sky->background.mid;
-        }
-
         if (sky->type == SkyType_Fire)
         {
             if (sky->tics_left == 0)
@@ -255,11 +249,6 @@ void R_UpdateStretchSkies(void)
     sky_t *sky;
     array_foreach(sky, levelskies)
     {
-        if (sky->linked_sky >= 0)
-        {
-          sky_t *const linked_sky = R_GetLevelsky(sky->linked_sky);
-          linked_sky->background.mid = sky->background.mid;
-        }
         if (sky->usedefaultmid)
         {
             StretchSky(sky);
@@ -314,23 +303,13 @@ static skyindex_t AddLevelsky(int texture, side_t *side)
         new_sky.usedefaultmid = true;
     }
 
-    new_sky.linked_sky = -1;
     if (side)
     {
         new_sky.side = side;
-        array_foreach(sky, levelskies)
-        {
-            if (sky->background.texture == new_sky.background.texture
-                && sky->usedefaultmid && new_sky.usedefaultmid)
-            {
-                new_sky.linked_sky = (skyindex_t)(sky - levelskies);
-                break;
-            }
-        }
     }
     else
     {
-      new_sky.side = &zero_side;
+        new_sky.side = &zero_side;
     }
 
     if (new_sky.usedefaultmid)
