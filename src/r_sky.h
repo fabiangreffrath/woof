@@ -40,7 +40,7 @@ extern boolean linearsky;
 extern sky_t *levelskies;
 void R_ClearLevelskies(void);
 skyindex_t R_AddLevelsky(int texture);
-skyindex_t R_AddLevelskyFromLine(line_t *line);
+skyindex_t R_AddLevelskyFromLine(side_t *side);
 sky_t *R_GetLevelsky(skyindex_t index);
 void R_UpdateStretchSkies(void);
 

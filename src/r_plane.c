@@ -393,11 +393,11 @@ static void R_MakeSpans(int x, unsigned int t1, unsigned int b1, unsigned int t2
     spanstart[b2--] = x;
 }
 
-static void DrawSkyTex(visplane_t *pl, skytex_t *skytex)
+static void DrawSkyTex(visplane_t *pl, skytex_t *skytex, side_t *side)
 {
     int texture = texturetranslation[skytex->texture];
 
-    dc_texturemid = skytex->mid;
+    dc_texturemid = skytex->mid + side->baserowoffset;
     dc_texheight = textureheight[texture] >> FRACBITS;
     dc_iscale = FixedMul(skyiscale, skytex->scaley);
 
@@ -462,7 +462,7 @@ static void DrawSkyDef(visplane_t *pl, sky_t *sky)
         dc_colormap[0] = dc_colormap[1] = fullcolormap; // killough 3/20/98
     }
 
-    DrawSkyTex(pl, &sky->background);
+    DrawSkyTex(pl, &sky->background, sky->side);
 
     if (sky->type == SkyType_WithForeground)
     {
@@ -470,7 +470,7 @@ static void DrawSkyDef(visplane_t *pl, sky_t *sky)
         // transparently. See id24 SKYDEFS spec.
         tranmap = W_CacheLumpName("SKYTRAN", PU_CACHE);
         colfunc = R_DrawTLColumn;
-        DrawSkyTex(pl, &sky->foreground);
+        DrawSkyTex(pl, &sky->foreground, sky->side);
         tranmap = main_tranmap;
         colfunc = R_DrawColumn;
     }

@@ -56,10 +56,9 @@ typedef struct sky_s
     skytex_t foreground;
 
     // Sky transfer line specials
-    line_t *line;
-
-    boolean    usedefaultmid;
-    skyindex_t linked_sky;
+    side_t *side;
+    int     linked_sky;
+    boolean usedefaultmid;
 } sky_t;
 
 typedef struct
@@ -73,6 +72,8 @@ typedef struct
     sky_t *skies;
     flatmap_t *flatmapping;
 } skydefs_t;
+
+extern side_t zero_side;
 
 skydefs_t *R_ParseSkyDefs(void);
 

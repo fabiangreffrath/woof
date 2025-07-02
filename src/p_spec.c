@@ -2856,7 +2856,7 @@ void P_SpawnSpecials (void)
       case 272:   // Same, only flipped
       {
         // Pre-calculate sky color
-        skyindex_t skyindex = R_AddLevelskyFromLine(&lines[i]);
+        skyindex_t skyindex = R_AddLevelskyFromLine(&sides[lines[i].sidenum[0]]);
         for (s = -1; (s = P_FindSectorFromLineTag(lines+i,s)) >= 0;)
           sectors[s].floorsky = sectors[s].ceilingsky = skyindex | PL_SKYFLAT;
         break;
