@@ -114,11 +114,6 @@ void R_InitFireSky(sky_t *sky)
     size_t size = tex->width * tex->height;
     sky->fire = Z_Calloc(1, size, PU_STATIC, NULL);
 
-    for (int i = 0; i < tex->width * tex->height; i++)
-    {
-        sky->fire[i] = 0;
-    }
-
     for (int i = 0; i < tex->width; i++)
     {
         sky->fire[(tex->height - 1) * tex->width + i] = sky->palette_num - 1;
