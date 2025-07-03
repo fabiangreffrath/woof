@@ -396,6 +396,12 @@ static void R_MakeSpans(int x, unsigned int t1, unsigned int b1, unsigned int t2
 static void DrawSkyTex(visplane_t *pl, skytex_t *skytex, side_t *side)
 {
     int texture = texturetranslation[skytex->texture];
+    int vertically_scrolling = false;
+
+    if (skytex->scrolly ||(side->baserowoffset - side->oldrowoffset))
+    {
+       vertically_scrolling = true;
+    }
 
     dc_texturemid = skytex->mid + side->baserowoffset;
     dc_texheight = textureheight[texture] >> FRACBITS;
@@ -417,7 +423,7 @@ static void DrawSkyTex(visplane_t *pl, skytex_t *skytex, side_t *side)
 
     angle_t an = viewangle + (deltax << (ANGLETOSKYSHIFT - FRACBITS));
 
-    if (skytex->scrolly == 0 && colfunc != R_DrawTLColumn)
+    if (colfunc != R_DrawTLColumn && !vertically_scrolling)
     {
         // Make sure the fade-to-color effect doesn't happen too early
         fixed_t diff = dc_texturemid - SCREENHEIGHT / 2 * FRACUNIT;
