@@ -112,11 +112,12 @@ void R_InitFireSky(sky_t *sky)
     int texnum = sky->background.texture;
     const texture_t *tex = textures[texnum];
     size_t size = tex->width * tex->height;
+    int arr_size = array_size(sky->palette);
     sky->fire = Z_Calloc(1, size, PU_STATIC, NULL);
 
     for (int i = 0; i < tex->width; i++)
     {
-        sky->fire[(tex->height - 1) * tex->width + i] = sky->palette_num - 1;
+        sky->fire[(tex->height - 1) * tex->width + i] = arr_size - 1;
     }
 
     for (int i = 0; i < 64; i++)

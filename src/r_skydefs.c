@@ -39,8 +39,8 @@ static boolean ParseFire(json_t *json, sky_t *out)
         return false;
     }
 
-    out->palette_num = JS_GetArraySize(palette);
-    for (int i = 0; i < out->palette_num; ++i)
+    int arr_size = JS_GetArraySize(palette);
+    for (int i = 0; i < arr_size; ++i)
     {
         json_t *color = JS_GetArrayItem(palette, i);
         array_push(out->palette, JS_GetInteger(color));
