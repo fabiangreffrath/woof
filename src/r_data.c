@@ -503,7 +503,8 @@ byte *R_GetColumn(int tex, int col)
 {
   int ofs;
 
-  col &= texturewidthmask[tex];
+  while (col < 0)
+    col &= texturewidth[tex];
   ofs  = texturecolumnofs2[tex][col];
 
   if (!texturecomposite2[tex])
