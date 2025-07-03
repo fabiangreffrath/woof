@@ -500,6 +500,7 @@ static void R_GenerateLookup(int texnum, int *const errors)
 // R_GetColumn
 // [EA] Updated to support Non-power-of-2 textures, everywhere
 //
+
 byte *R_GetColumn(int tex, int col)
 {
   short width = texturewidth[tex];

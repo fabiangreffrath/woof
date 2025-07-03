@@ -422,7 +422,7 @@ static void R_RenderSegLoop (void)
                   dc_yl = yl;
                   dc_yh = mid;
                   dc_texturemid = rw_toptexturemid;
-                  dc_source = R_GetColumn(toptexture, texturecolumn);
+                  dc_source = R_GetColumn(toptexture,texturecolumn);
                   dc_texheight = textureheight[toptexture]>>FRACBITS;//killough
                   dc_brightmap = texturebrightmap[toptexture];
                   colfunc ();
