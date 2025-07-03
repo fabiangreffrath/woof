@@ -206,8 +206,7 @@ void R_RenderMaskedSegRange(drawseg_t *ds, int x1, int x2)
         // when forming multipatched textures (see r_data.c).
 
         // draw the texture
-        col = (column_t *)((byte *)
-                           R_GetColumnMod(texnum,maskedtexturecol[dc_x]) - 3);
+        col = (column_t *)(R_GetColumnMasked(texnum, maskedtexturecol[dc_x] - 3));
         R_DrawMaskedColumn (col);
         maskedtexturecol[dc_x] = INT_MAX; // [FG] 32-bit integer math
       }
@@ -423,7 +422,7 @@ static void R_RenderSegLoop (void)
                   dc_yl = yl;
                   dc_yh = mid;
                   dc_texturemid = rw_toptexturemid;
-                  dc_source = R_GetColumn(toptexture,texturecolumn);
+                  dc_source = R_GetColumn(toptexture, texturecolumn);
                   dc_texheight = textureheight[toptexture]>>FRACBITS;//killough
                   dc_brightmap = texturebrightmap[toptexture];
                   colfunc ();

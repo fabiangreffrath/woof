@@ -29,6 +29,7 @@
 #include "d_think.h"
 #include "doomdef.h"
 #include "doomstat.h"
+#include "doomtype.h"
 #include "i_printf.h"
 #include "i_system.h"
 #include "info.h"
@@ -497,14 +498,27 @@ static void R_GenerateLookup(int texnum, int *const errors)
 
 //
 // R_GetColumn
+// [EA] Updated to support Non-power-of-2 textures, everywhere
 //
-
 byte *R_GetColumn(int tex, int col)
 {
+  short width = texturewidth[tex];
+  int mask = texturewidthmask[tex];
   int ofs;
 
-  while (col < 0)
-    col &= texturewidth[tex];
+  if (mask + 1 == width)
+  {
+    col &= mask;
+  }
+  else
+  {
+    while (col < 0)
+    {
+      col += width;
+    }
+    col %= width;
+  }
+
   ofs  = texturecolumnofs2[tex][col];
 
   if (!texturecomposite2[tex])
@@ -514,7 +528,7 @@ byte *R_GetColumn(int tex, int col)
 }
 
 // [FG] wrapping column getter function for composited translucent mid-textures on 2S walls
-byte *R_GetColumnMod(int tex, int col)
+byte *R_GetColumnMasked(int tex, int col)
 {
   int ofs;
 
@@ -528,23 +542,6 @@ byte *R_GetColumnMod(int tex, int col)
     R_GenerateComposite(tex);
 
   return texturecomposite[tex] + ofs;
-}
-
-// [FG] wrapping column getter function for non-power-of-two wide sky textures
-byte *R_GetColumnMod2(int tex, int col)
-{
-  int ofs;
-
-  while (col < 0)
-    col += texturewidth[tex];
-
-  col %= texturewidth[tex];
-  ofs  = texturecolumnofs2[tex][col];
-
-  if (!texturecomposite2[tex])
-    R_GenerateComposite(tex);
-
-  return texturecomposite2[tex] + ofs;
 }
 
 //
