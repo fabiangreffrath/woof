@@ -320,11 +320,9 @@ static skyindex_t AddLevelsky(int texture, side_t *side)
     if (side)
     {
         new_sky.side = side;
-
-        new_sky.background.currx += new_sky.side->textureoffset;
-        new_sky.foreground.currx += new_sky.side->textureoffset;
-        new_sky.background.curry += new_sky.side->rowoffset;
-        new_sky.foreground.curry += new_sky.side->rowoffset;
+        // Flipped
+        new_sky.background.scalex *= (side->special == 271) ? -1 : 1;
+        new_sky.foreground.scalex *= (side->special == 271) ? -1 : 1;
     }
     else
     {
