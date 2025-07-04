@@ -35,6 +35,7 @@ set(WOOF_SOURCES
     hu_obituary.c          hu_obituary.h
     i_3dsound.c
     i_endoom.c             i_endoom.h
+    i_ffmpeg.c             i_ffmpeg.h
     i_flickstick.c         i_flickstick.h
     i_gamepad.c            i_gamepad.h
     i_glob.c               i_glob.h
@@ -240,6 +241,12 @@ endif()
 if(libxmp_FOUND)
     target_sources(woof PRIVATE i_xmp.c)
     target_link_libraries(woof PRIVATE libxmp::xmp)
+endif()
+
+if(HAVE_FFMPEG)
+    target_include_directories(woof PRIVATE ${FFMPEG_INCLUDE_DIRS})
+    target_link_directories(woof PRIVATE ${FFMPEG_LIBRARY_DIRS})
+    target_link_libraries(woof PRIVATE ${FFMPEG_LIBRARIES})
 endif()
 
 # Optional features.

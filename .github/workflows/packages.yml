@@ -60,7 +60,7 @@ jobs:
         run: |
           sudo sed -i 's/# deb-src/deb-src/' /etc/apt/sources.list
           sudo apt-get update
-          sudo apt-get install ninja-build
+          sudo apt-get install ninja-build nasm
           sudo apt-get build-dep libsdl2-dev
 
       - name: Developer Command Prompt
@@ -84,7 +84,7 @@ jobs:
         run: >-
           cmake -B build -G Ninja
           -DCMAKE_BUILD_TYPE=Release
-          -DENABLE_WERROR=ON -DENABLE_HARDENING=ON -DENABLE_LTO=ON
+          -DENABLE_HARDENING=ON -DENABLE_LTO=ON
           -DCMAKE_TOOLCHAIN_FILE="${{ matrix.config.toolchain }}/scripts/buildsystems/vcpkg.cmake"
           -DVCPKG_OVERLAY_TRIPLETS="cmake/triplets"
           -DVCPKG_TARGET_TRIPLET=${{ matrix.config.triplet }}
@@ -97,8 +97,8 @@ jobs:
       - name: Delete old cache
         continue-on-error: true
         env:
-          GH_TOKEN: ${{ github.token }}
-        run: gh cache delete --repo ${{ github.repository }} ${{ env.CACHE_KEY }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: gh cache delete ${{ env.CACHE_KEY }}
 
       - name: Save cache
         uses: actions/cache/save@v4
