@@ -200,27 +200,14 @@ void R_UpdateSkies(void)
         sky->foreground.prevx = sky->foreground.currx;
         sky->foreground.prevy = sky->foreground.curry;
 
+        sky->background.currx += (sky->side->basetextureoffset - sky->side->oldtextureoffset) >> (ANGLETOSKYSHIFT - FRACBITS);
+        sky->foreground.currx += (sky->side->basetextureoffset - sky->side->oldtextureoffset) >> (ANGLETOSKYSHIFT - FRACBITS);
+
         // Base Skydefs scroll
         sky->background.currx += sky->background.scrollx;
         sky->background.curry += sky->background.scrolly;
         sky->foreground.currx += sky->foreground.scrollx;
         sky->foreground.curry += sky->foreground.scrolly;
-
-        // Sky transfers
-        fixed_t texture_offset = sky->side->basetextureoffset - sky->side->oldtextureoffset;
-        fixed_t row_offset     = sky->side->baserowoffset     - sky->side->oldrowoffset;
-
-        if (texture_offset)
-        {
-          sky->background.curry += texture_offset;
-          sky->foreground.curry += texture_offset;
-        }
-
-        if (row_offset)
-        {
-          sky->background.currx += row_offset;
-          sky->foreground.currx += row_offset;
-        }
 
         if (sky->type == SkyType_Fire)
         {
