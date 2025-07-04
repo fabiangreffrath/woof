@@ -503,8 +503,8 @@ static void R_GenerateLookup(int texnum, int *const errors)
 
 byte *R_GetColumn(int tex, int col)
 {
-  short width = texturewidth[tex];
-  int mask = texturewidthmask[tex];
+  const int width = texturewidth[tex];
+  const int mask = texturewidthmask[tex];
   int ofs;
 
   if (mask + 1 == width)
