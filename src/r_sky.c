@@ -321,7 +321,10 @@ static skyindex_t AddLevelsky(int texture, side_t *side)
     {
         new_sky.side = side;
         // Flipped
+        new_sky.background.mid = side->baserowoffset - 28 * FRACUNIT;
         new_sky.background.scalex *= (side->special == 271) ? -1 : 1;
+
+        new_sky.foreground.mid = side->baserowoffset - 28 * FRACUNIT;
         new_sky.foreground.scalex *= (side->special == 271) ? -1 : 1;
     }
     else
