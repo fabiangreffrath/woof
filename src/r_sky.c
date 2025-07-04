@@ -194,15 +194,33 @@ void R_UpdateSkies(void)
     sky_t *sky;
     array_foreach(sky, levelskies)
     {
+        // Interpolation
         sky->background.prevx = sky->background.currx;
         sky->background.prevy = sky->background.curry;
-        sky->background.currx += sky->background.scrollx;
-        sky->background.curry += sky->background.scrolly;
-
         sky->foreground.prevx = sky->foreground.currx;
         sky->foreground.prevy = sky->foreground.curry;
+
+        // Base Skydefs scroll
+        sky->background.currx += sky->background.scrollx;
+        sky->background.curry += sky->background.scrolly;
         sky->foreground.currx += sky->foreground.scrollx;
         sky->foreground.curry += sky->foreground.scrolly;
+
+        // Sky transfers
+        fixed_t texture_offset = sky->side->basetextureoffset - sky->side->oldtextureoffset;
+        fixed_t row_offset     = sky->side->baserowoffset     - sky->side->oldrowoffset;
+
+        if (texture_offset)
+        {
+          sky->background.curry += texture_offset;
+          sky->foreground.curry += texture_offset;
+        }
+
+        if (row_offset)
+        {
+          sky->background.currx += row_offset;
+          sky->foreground.currx += row_offset;
+        }
 
         if (sky->type == SkyType_Fire)
         {
@@ -302,6 +320,11 @@ static skyindex_t AddLevelsky(int texture, side_t *side)
     if (side)
     {
         new_sky.side = side;
+
+        new_sky.background.currx += new_sky.side->textureoffset;
+        new_sky.foreground.currx += new_sky.side->textureoffset;
+        new_sky.background.curry += new_sky.side->rowoffset;
+        new_sky.foreground.curry += new_sky.side->rowoffset;
     }
     else
     {
