@@ -433,7 +433,7 @@ static void DrawSkyTex(visplane_t *pl, skytex_t *skytex, side_t *side)
             diff %= textureheight[texture];
             dc_texturemid = SCREENHEIGHT / 2 * FRACUNIT + diff;
         }
-        dc_skycolor = R_GetSkyColor(texture);
+        dc_skycolor = skytex->color;
         colfunc = R_DrawSkyColumn;
     }
 

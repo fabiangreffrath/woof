@@ -319,7 +319,7 @@ static skyindex_t AddLevelsky(int texture, side_t *side)
     }
     else
     {
-        R_GetSkyColor(new_sky.background.texture);
+        new_sky.color = R_GetSkyColor(new_sky.background.texture);
     }
     array_push(levelskies, new_sky);
     return index;
