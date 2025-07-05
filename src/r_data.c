@@ -33,6 +33,7 @@
 #include "i_system.h"
 #include "info.h"
 #include "m_argv.h" // M_CheckParm()
+#include "m_array.h"
 #include "m_fixed.h"
 #include "m_io.h"
 #include "m_misc.h"
@@ -99,28 +100,6 @@ typedef PACKED_PREFIX struct
 #if defined(_MSC_VER)
 #pragma pack(pop)
 #endif
-
-// A single patch from a texture definition, basically
-// a rectangular area within the texture rectangle.
-typedef struct
-{
-  int originx, originy;  // Block origin, which has already accounted
-  int patch;             // for the internal origin of the patch.
-} texpatch_t;
-
-
-// A maptexturedef_t describes a rectangular texture, which is composed
-// of one or more mappatch_t structures that arrange graphic patches.
-
-typedef struct
-{
-  char  name[8];         // Keep name for switch changing, etc.
-  int   next, index;     // killough 1/31/98: used in hashing algorithm
-  short width, height;
-  short patchcount;      // All the patches[patchcount] are drawn
-  texpatch_t patches[1]; // back-to-front into the cached texture.
-} texture_t;
-
 
 // killough 4/17/98: make firstcolormaplump,lastcolormaplump external
 int firstcolormaplump, lastcolormaplump;      // killough 4/17/98
@@ -1203,7 +1182,11 @@ void R_PrecacheLevel(void)
   //  a wall texture, with an episode dependend
   //  name.
 
-  hitlist[skytexture] = 1;
+  sky_t *sky;
+  array_foreach(sky, levelskies)
+  {
+    hitlist[sky->background.texture] = 1;
+  }
 
   for (i = numtextures; --i >= 0; )
     if (hitlist[i])

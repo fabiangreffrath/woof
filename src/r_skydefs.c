@@ -22,7 +22,7 @@
 #include "m_misc.h"
 #include "r_data.h"
 
-static boolean ParseFire(json_t *json, fire_t *out)
+static boolean ParseFire(json_t *json, sky_t *out)
 {
     json_t *updatetime = JS_GetObject(json, "updatetime");
     if (!JS_IsNumber(updatetime))
@@ -36,8 +36,9 @@ static boolean ParseFire(json_t *json, fire_t *out)
     {
         return false;
     }
-    int size = JS_GetArraySize(palette);
-    for (int i = 0; i < size; ++i)
+
+    int arr_size = JS_GetArraySize(palette);
+    for (int i = 0; i < arr_size; ++i)
     {
         json_t *color = JS_GetArrayItem(palette, i);
         array_push(out->palette, JS_GetInteger(color));
@@ -60,9 +61,8 @@ static boolean ParseSkyTex(json_t *json, skytex_t *out)
     json_t *scrolly = JS_GetObject(json, "scrolly");
     json_t *scalex = JS_GetObject(json, "scalex");
     json_t *scaley = JS_GetObject(json, "scaley");
-    if (!JS_IsNumber(mid)
-        || !JS_IsNumber(scrollx) || !JS_IsNumber(scrolly)
-        || !JS_IsNumber(scalex)  || !JS_IsNumber(scaley))
+    if (!JS_IsNumber(mid) || !JS_IsNumber(scrollx) || !JS_IsNumber(scrolly)
+        || !JS_IsNumber(scalex) || !JS_IsNumber(scaley))
     {
         return false;
     }
@@ -106,15 +106,13 @@ static boolean ParseSky(json_t *json, sky_t *out)
     {
         return false;
     }
-    out->skytex = background;
+    out->background = background;
 
     json_t *js_fire = JS_GetObject(json, "fire");
-    fire_t fire = {0};
     if (!JS_IsNull(js_fire))
     {
-        ParseFire(js_fire, &fire);
+        ParseFire(js_fire, out);
     }
-    out->fire = fire;
 
     json_t *js_foreground = JS_GetObject(json, "foregroundtex");
     skytex_t foreground = {0};
