@@ -67,16 +67,16 @@ typedef struct sky_s
 
 typedef struct
 {
-    const char *flat;
-    const char *sky;
+    char  *flat_name;
+    char  *sky_name;
+    int    flat_num;
+    int    sky_num;
+    sky_t *sky;
 } flatmap_t;
 
-typedef struct
-{
-    sky_t *skies;
-    flatmap_t *flatmapping;
-} skydefs_t;
+extern flatmap_t *skyflats;
+extern sky_t     *skies;
 
-skydefs_t *R_ParseSkyDefs(void);
+void R_InitSkyDefs(void);
 
 #endif

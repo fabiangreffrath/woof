@@ -32,6 +32,7 @@
 #include "m_random.h"
 #include "r_data.h"
 #include "r_sky.h"
+#include "r_skydefs.h"
 #include "r_plane.h"
 #include "r_skydefs.h"
 #include "r_state.h"
@@ -46,7 +47,6 @@ boolean stretchsky;
 //
 int skyflatnum;
 sky_t *levelskies = NULL;
-static skydefs_t *skydefs;
 static fixed_t defaultskytexturemid;
 
 // PSX fire sky, description: https://fabiensanglard.net/doom_fire_psx/
@@ -128,20 +128,13 @@ void R_InitFireSky(sky_t *sky)
 
 void R_InitSkyMap(void)
 {
-    static boolean run_once = true;
-    if (run_once)
-    {
-        skydefs = R_ParseSkyDefs();
-        run_once = false;
-    }
-
-    if (skydefs)
+    if (skyflats)
     {
         flatmap_t *flatmap = NULL;
-        array_foreach(flatmap, skydefs->flatmapping)
+        array_foreach(flatmap, skyflats)
         {
-            int flatnum = R_FlatNumForName(flatmap->flat);
-            int skytex = R_TextureNumForName(flatmap->sky);
+            int flatnum = R_FlatNumForName(flatmap->flat_name);
+            int skytex = R_TextureNumForName(flatmap->sky_name);
             skyindex_t skyindex = R_AddLevelsky(skytex);
 
             for (int i = 0; i < numsectors; i++)
@@ -292,9 +285,9 @@ static skyindex_t AddLevelsky(int texture, side_t *side)
         }
     }
 
-    if (skydefs)
+    if (skies)
     {
-        array_foreach(sky, skydefs->skies)
+        array_foreach(sky, skies)
         {
             if (sky->background.texture == texture)
             {

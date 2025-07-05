@@ -916,8 +916,6 @@ static void G_DoLoadLevel(void)
   //  we look for an actual index, instead of simply
   //  setting one.
 
-  skyflatnum = R_FlatNumForName ( SKYFLATNAME );
-
   R_ClearLevelskies();
 
   int skytexture;

@@ -14,6 +14,7 @@
 #include "r_skydefs.h"
 
 #include "doomdef.h"
+#include "doomstat.h"
 #include "doomtype.h"
 #include "i_printf.h"
 #include "m_array.h"
@@ -21,6 +22,10 @@
 #include "m_json.h"
 #include "m_misc.h"
 #include "r_data.h"
+#include "r_sky.h"
+
+flatmap_t *skyflats;
+sky_t     *skies;
 
 static boolean ParseFire(json_t *json, sky_t *out)
 {
@@ -130,22 +135,24 @@ static boolean ParseFlatMap(json_t *json, flatmap_t *out)
     const char *flat = JS_GetStringValue(json, "flat");
     if (flat)
     {
-        out->flat = M_StringDuplicate(flat);
+        out->flat_name = M_StringDuplicate(flat);
     }
     const char *sky = JS_GetStringValue(json, "sky");
     if (sky)
     {
-        out->sky = M_StringDuplicate(sky);
+        out->sky_name = M_StringDuplicate(sky);
     }
     return true;
 }
 
-skydefs_t *R_ParseSkyDefs(void)
+void R_InitSkyDefs(void)
 {
+    skyflatnum = R_FlatNumForName(SKYFLATNAME);
+
     json_t *json = JS_Open("SKYDEFS", "skydefs", (version_t){1, 0, 0});
     if (json == NULL)
     {
-        return NULL;
+        return;
     }
 
     json_t *data = JS_GetObject(json, "data");
@@ -153,10 +160,8 @@ skydefs_t *R_ParseSkyDefs(void)
     {
         I_Printf(VB_ERROR, "SKYDEFS: no data");
         JS_Close("SKYDEFS");
-        return NULL;
+        return;
     }
-
-    skydefs_t *out = calloc(1, sizeof(*out));
 
     json_t *js_skies = JS_GetObject(data, "skies");
     json_t *js_sky = NULL;
@@ -165,7 +170,7 @@ skydefs_t *R_ParseSkyDefs(void)
         sky_t sky = {0};
         if (ParseSky(js_sky, &sky))
         {
-            array_push(out->skies, sky);
+            array_push(skies, sky);
         }
     }
 
@@ -176,10 +181,9 @@ skydefs_t *R_ParseSkyDefs(void)
         flatmap_t flatmap = {0};
         if (ParseFlatMap(js_flatmap, &flatmap))
         {
-            array_push(out->flatmapping, flatmap);
+            array_push(skyflats, flatmap);
         }
     }
 
     JS_Close("SKYDEFS");
-    return out;
 }
