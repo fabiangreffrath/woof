@@ -80,6 +80,7 @@ fixed_t dc_texturemid;
 int dc_texheight; // killough
 byte *dc_source;  // first pixel in a column (possibly virtual)
 byte dc_skycolor;
+boolean vertically_scrolling; // [EA] needed for colorfill effect
 
 //
 // A column is a vertical slice/span from a wall texture that,

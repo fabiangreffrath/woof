@@ -22,8 +22,6 @@
 #include "m_misc.h"
 #include "r_data.h"
 
-side_t zero_side = {0};
-
 static boolean ParseFire(json_t *json, sky_t *out)
 {
     json_t *updatetime = JS_GetObject(json, "updatetime");

@@ -77,8 +77,6 @@ typedef struct
     flatmap_t *flatmapping;
 } skydefs_t;
 
-extern side_t zero_side;
-
 skydefs_t *R_ParseSkyDefs(void);
 
 #endif

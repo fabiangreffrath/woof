@@ -218,6 +218,19 @@ void R_UpdateSkies(void)
     }
 }
 
+// There are various combinations for sky rendering depending on how tall the sky is:
+//        h <  128: Unstretched and tiled, centered on horizon
+// 128 <= h <  200: Can possibly be stretched. When unstretched, the baseline is
+//                  28 rows below the horizon so that the top of the texture
+//                  aligns with the top of the screen when looking straight ahead.
+//                  When stretched, it is scaled to 228 pixels with the baseline
+//                  in the same location as an unstretched 128-tall sky, so the top
+//					of the texture aligns with the top of the screen when looking
+//                  fully up.
+//        h == 200: Unstretched, baseline is on horizon, and top is at the top of
+//                  the screen when looking fully up.
+//        h >  200: Unstretched, but the baseline is shifted down so that the top
+//                  of the texture is at the top of the screen when looking fully up.
 static void StretchSky(sky_t *sky)
 {
     const int skyheight = textureheight[sky->background.texture] >> FRACBITS;
@@ -305,16 +318,16 @@ static skyindex_t AddLevelsky(int texture, side_t *side)
         new_sky.side = side;
         new_sky.usedefaultmid = false;
 
-        // Flipped
-        new_sky.background.mid = side->baserowoffset - 28 * FRACUNIT;
-        new_sky.foreground.mid = side->baserowoffset - 28 * FRACUNIT;
+        new_sky.background.mid = 0;
+        new_sky.foreground.mid = 0;
 
+        // Flipped
         new_sky.background.scalex *= (side->special == 271) ? -1 : 1;
         new_sky.foreground.scalex *= (side->special == 271) ? -1 : 1;
     }
     else
     {
-        new_sky.side = &zero_side;
+        new_sky.side = NULL;
     }
 
     if (new_sky.usedefaultmid)

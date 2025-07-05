@@ -396,10 +396,6 @@ static void R_MakeSpans(int x, unsigned int t1, unsigned int b1, unsigned int t2
 static void DrawSkyTex(visplane_t *pl, skytex_t *skytex, side_t *side)
 {
     const int texture = texturetranslation[skytex->texture];
-    const boolean vertically_scrolling =
-              (skytex->scrolly || (side->baserowoffset - side->oldrowoffset));
-
-    dc_texturemid = skytex->mid + side->baserowoffset ;
     dc_texheight = textureheight[texture] >> FRACBITS;
     dc_iscale = FixedMul(skyiscale, skytex->scaley);
 
@@ -415,11 +411,20 @@ static void DrawSkyTex(visplane_t *pl, skytex_t *skytex, side_t *side)
         deltay = skytex->curry;
     }
 
-    dc_texturemid += deltay;
-
-    // [EA] 64 sidedef texels to 1 sky texel ratio, allows fine-tuned
-    // horizontal sky scrolling
-    deltax += side->basetextureoffset >> (ANGLETOSKYSHIFT - FRACBITS);
+    if (side)
+    {
+      // [EA]
+      // 64 sidedef texels to 1 sky texel ratio, allows fine-tuned horizontal sky scrolling
+      deltax += side->basetextureoffset >> (ANGLETOSKYSHIFT - FRACBITS);
+      // MBF sky transfers need to apply a (rowoffset - 28px) offset to textures by default
+      dc_texturemid = skytex->mid + deltay + side->baserowoffset - 28 * FRACUNIT;
+      vertically_scrolling = skytex->scrolly || (side->basetextureoffset - side->oldtextureoffset);
+    }
+    else
+    {
+      dc_texturemid = skytex->mid + deltay;
+      vertically_scrolling = skytex->scrolly;
+    }
 
     angle_t an = viewangle + (deltax << (ANGLETOSKYSHIFT - FRACBITS));
 
