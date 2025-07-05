@@ -206,12 +206,6 @@ void R_UpdateSkies(void)
         sky->foreground.currx += sky->foreground.scrollx;
         sky->foreground.curry += sky->foreground.scrolly;
 
-        // Sky transfers
-        sky->background.currx += (sky->side->basetextureoffset - sky->side->oldtextureoffset) >> (ANGLETOSKYSHIFT - FRACBITS);
-        sky->foreground.currx += (sky->side->basetextureoffset - sky->side->oldtextureoffset) >> (ANGLETOSKYSHIFT - FRACBITS);
-        sky->background.curry += sky->side->baserowoffset - sky->side->oldrowoffset;
-        sky->foreground.curry += sky->side->baserowoffset - sky->side->oldrowoffset;
-
         if (sky->type == SkyType_Fire)
         {
             if (sky->tics_left == 0)
@@ -237,13 +231,12 @@ static void StretchSky(sky_t *sky)
 
     if (stretchsky && skyheight < 200)
     {
-        sky->background.mid =
-            (defaultskytexturemid  + sky->side->baserowoffset) * skyheight / SKYSTRETCH_HEIGHT;
+        sky->background.mid = defaultskytexturemid * skyheight / SKYSTRETCH_HEIGHT;
         sky->background.scaley = FRACUNIT * skyheight / SKYSTRETCH_HEIGHT;
     }
     else
     {
-        sky->background.mid = defaultskytexturemid  + sky->side->baserowoffset;
+        sky->background.mid = defaultskytexturemid;
         sky->background.scaley = FRACUNIT;
     }
 }
@@ -310,11 +303,13 @@ static skyindex_t AddLevelsky(int texture, side_t *side)
     if (side)
     {
         new_sky.side = side;
+        new_sky.usedefaultmid = false;
+
         // Flipped
         new_sky.background.mid = side->baserowoffset - 28 * FRACUNIT;
-        new_sky.background.scalex *= (side->special == 271) ? -1 : 1;
-
         new_sky.foreground.mid = side->baserowoffset - 28 * FRACUNIT;
+
+        new_sky.background.scalex *= (side->special == 271) ? -1 : 1;
         new_sky.foreground.scalex *= (side->special == 271) ? -1 : 1;
     }
     else

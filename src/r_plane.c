@@ -396,8 +396,10 @@ static void R_MakeSpans(int x, unsigned int t1, unsigned int b1, unsigned int t2
 static void DrawSkyTex(visplane_t *pl, skytex_t *skytex, side_t *side)
 {
     const int texture = texturetranslation[skytex->texture];
+    const boolean vertically_scrolling =
+              (skytex->scrolly || (side->baserowoffset - side->oldrowoffset));
 
-    dc_texturemid = skytex->mid;
+    dc_texturemid = skytex->mid + side->baserowoffset ;
     dc_texheight = textureheight[texture] >> FRACBITS;
     dc_iscale = FixedMul(skyiscale, skytex->scaley);
 
@@ -415,9 +417,13 @@ static void DrawSkyTex(visplane_t *pl, skytex_t *skytex, side_t *side)
 
     dc_texturemid += deltay;
 
+    // [EA] 64 sidedef texels to 1 sky texel ratio, allows fine-tuned
+    // horizontal sky scrolling
+    deltax += side->basetextureoffset >> (ANGLETOSKYSHIFT - FRACBITS);
+
     angle_t an = viewangle + (deltax << (ANGLETOSKYSHIFT - FRACBITS));
 
-    if (colfunc != R_DrawTLColumn && deltay != 0)
+    if (colfunc != R_DrawTLColumn && !vertically_scrolling)
     {
         // Make sure the fade-to-color effect doesn't happen too early
         fixed_t diff = dc_texturemid - SCREENHEIGHT / 2 * FRACUNIT;
