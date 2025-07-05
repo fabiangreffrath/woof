@@ -238,12 +238,12 @@ static void StretchSky(sky_t *sky)
     if (stretchsky && skyheight < 200)
     {
         sky->background.mid =
-            defaultskytexturemid * skyheight / SKYSTRETCH_HEIGHT;
+            (defaultskytexturemid  + sky->side->baserowoffset) * skyheight / SKYSTRETCH_HEIGHT;
         sky->background.scaley = FRACUNIT * skyheight / SKYSTRETCH_HEIGHT;
     }
     else
     {
-        sky->background.mid = defaultskytexturemid;
+        sky->background.mid = defaultskytexturemid  + sky->side->baserowoffset;
         sky->background.scaley = FRACUNIT;
     }
 }
