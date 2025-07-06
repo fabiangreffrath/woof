@@ -112,6 +112,11 @@ fixed_t *yslope = NULL, *distscale = NULL;
 boolean linearsky;
 static angle_t *xtoskyangle;
 
+// [EA]
+// Hexen-style foreground sky rendering
+// uses the 0-index for transparency
+static byte *skytran;
+
 //
 // R_InitPlanes
 // Only at game startup.
@@ -119,6 +124,7 @@ static angle_t *xtoskyangle;
 void R_InitPlanes (void)
 {
   xtoskyangle = linearsky ? linearskyangle : xtoviewangle;
+  skytran = W_CacheLumpName("SKYTRAN", PU_STATIC);
 }
 
 void R_InitPlanesRes(void)
