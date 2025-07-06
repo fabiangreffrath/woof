@@ -3069,7 +3069,7 @@ static void P_SpawnScrollers(void)
 
       if (demo_compatibility)
       {
-        // [EA] Allow all scrollers that do not break demo compatibility.
+        // Allow all scrollers that do not break demo compatibility.
         // The following are the original Boom scrollers that move Things
         // across the floor, in their accelerative / displacement / normal
         // variants.

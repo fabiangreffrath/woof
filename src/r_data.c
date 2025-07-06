@@ -479,7 +479,7 @@ static void R_GenerateLookup(int texnum, int *const errors)
 
 //
 // R_GetColumn
-// [EA] Updated to support Non-power-of-2 textures, everywhere
+// Updated to support Non-power-of-2 textures, everywhere
 //
 
 byte *R_GetColumn(int tex, int col)
@@ -633,7 +633,7 @@ void R_InitTextures (void)
     Z_Malloc(numtextures*sizeof*texturewidth, PU_STATIC, 0);
   textureheight = Z_Malloc(numtextures*sizeof*textureheight, PU_STATIC, 0);
   texturebrightmap = Z_Malloc (numtextures * sizeof(*texturebrightmap), PU_STATIC, 0);
-  // [EA] pre-computed sky color
+  // pre-computed sky color
   texturecolor = Z_Malloc (numtextures * sizeof(*texturecolor), PU_STATIC, 0);
 
   {  // Really complex printing shit...

@@ -856,7 +856,7 @@ static void cheat_spechits(void)
           continue;
         }
 
-      // [EA] do not trigger any ID24 actions
+      // do not trigger any ID24 actions
       if (lines[i].special >= 2048 && lines[i].special <= 2098)
       {
         continue;

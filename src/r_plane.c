@@ -117,7 +117,6 @@ fixed_t *yslope = NULL, *distscale = NULL;
 boolean linearsky;
 static angle_t *xtoskyangle;
 
-// [EA]
 // Hexen-style foreground sky rendering
 // uses the 0-index for transparency
 static byte *skytran;
@@ -204,7 +203,7 @@ static void R_MapPlane(int y, int x1, int x2)
   else
     dy = (abs(centery - y) << FRACBITS) + FRACUNIT / 2;
 
-  // [EA] plane math updated for accounting flat rotation, thanks to Odamex
+  // plane math updated for accounting flat rotation, thanks to Odamex
   if (planeheight != cachedheight[y] || rotation != cachedrotation[y])
     {
       cachedheight[y] = planeheight;
@@ -423,12 +422,11 @@ static void DrawSkyTex(visplane_t *pl, skytex_t *skytex, side_t *side)
         deltay = skytex->curry;
     }
 
+    // 64 sidedef texels to 1 sky texel ratio, allows fine-tuned horizontal sky scrolling
+    // transfers ignore the default sky mid and set a mid value of (rowoffset - 28px)
     if (side)
     {
-      // [EA]
-      // 64 sidedef texels to 1 sky texel ratio, allows fine-tuned horizontal sky scrolling
       deltax += side->basetextureoffset >> (ANGLETOSKYSHIFT - FRACBITS);
-      // MBF sky transfers need to apply a (rowoffset - 28px) offset to textures by default
       dc_texturemid = skytex->mid + deltay + side->baserowoffset - 28 * FRACUNIT;
       vertically_scrolling = skytex->scrolly || (side->basetextureoffset - side->oldtextureoffset);
     }
@@ -546,7 +544,7 @@ static void do_draw_plane(visplane_t *pl)
     yoffs = pl->yoffs;
     rotation = pl->rotation;
 
-    // [EA] plane math updated for accounting flat rotation, thanks to Odamex
+    // plane math updated for accounting flat rotation, thanks to Odamex
     angle_sin = finesine[(viewangle + rotation) >> ANGLETOFINESHIFT];
     angle_cos = finecosine[(viewangle + rotation) >> ANGLETOFINESHIFT];
 

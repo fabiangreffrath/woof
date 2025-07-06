@@ -60,7 +60,7 @@ static int linesize; // killough 11/98
 
 byte *tranmap;          // translucency filter maps 256x256   // phares 
 byte *main_tranmap;     // killough 4/11/98
-byte *skytran;          // [EA] used for foreground sky rendering
+byte *skytran;          // used for foreground sky rendering
 
 // Backing buffer containing the bezel drawn around the screen and surrounding
 // background.

@@ -53,8 +53,6 @@ sky_t *levelskies = NULL;
 static fixed_t defaultskytexturemid;
 
 // PSX fire sky, description: https://fabiensanglard.net/doom_fire_psx/
-// [EA] done away with original spreadFire, in favor of Odamex's texture-
-// replacing implementation.
 static void SpreadFire(int src, byte *fire, int width)
 {
     const byte pixel = fire[src];
@@ -80,9 +78,8 @@ static void SpreadFire(int src, byte *fire, int width)
 
 static void UpdateFireSky(sky_t *sky)
 {
-    // [EA] [RF]
     // the fire algorithm affects multiple collums at once, therefore both XY
-    // loops _must_ be separated, the following will cause noticeable visual
+    // loops _must_ be separated, otherwise it will cause noticeable visual
     // disturbance on the resulting fire effect
 
     const int texnum = sky->background.texture;
@@ -127,7 +124,7 @@ void R_InitFireSky(sky_t *sky)
     {
         UpdateFireSky(sky);
     }
-    // [EA] recompute sky color based on fire texture
+    // recompute sky color based on fire texture
     texturecolor[texnum] = R_GetSkyColor(texnum, true);
 }
 
@@ -158,7 +155,6 @@ void R_InitSkyMap(void)
         }
     }
 
-    // [FG] [EA]
     // in the worst case scenario, each base definition includes a foreground
     array_grow(levelskies, array_size(levelskies));
 
@@ -224,6 +220,15 @@ static void StretchSky(sky_t *sky)
     const int skyheight = textureheight[sky->background.texture] >> FRACBITS;
     boolean will_stretch = false;
     defaultskytexturemid = 0;
+
+    // the following vanilla-renderred tall sky implementation is buggy,
+    // this is intentional, as it matches the behavior seen on DSDA.
+    //
+    // more especifiaclly, any sky taller than 200px should be placed
+    // on the midline that allows it's top row to reach to highest row
+    // allowed by free-look. instead, it will _always_ be set to a mid
+    // value of 100, which "pegs" the top row to the top of a standard
+    // FOV screen.
 
     if (skyheight >= 128 && skyheight < 200)
     {
