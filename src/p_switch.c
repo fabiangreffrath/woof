@@ -1058,6 +1058,7 @@ P_UseSpecialLine
           // 1/29/98 jff end of added SR linedef types
 
         }
+      break;
 
     // Buttons (retriggerable switches)
     case 42:
