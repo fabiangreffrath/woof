@@ -206,8 +206,7 @@ void R_RenderMaskedSegRange(drawseg_t *ds, int x1, int x2)
         // when forming multipatched textures (see r_data.c).
 
         // draw the texture
-        col = (column_t *)((byte *)
-                           R_GetColumnMod(texnum,maskedtexturecol[dc_x]) - 3);
+        col = (column_t *)(R_GetColumnMasked(texnum, maskedtexturecol[dc_x]) - 3);
         R_DrawMaskedColumn (col);
         maskedtexturecol[dc_x] = INT_MAX; // [FG] 32-bit integer math
       }

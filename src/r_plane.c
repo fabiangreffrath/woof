@@ -436,7 +436,7 @@ static void DrawSkyTex(visplane_t *pl, skytex_t *skytex)
         {
             int col = (an + xtoskyangle[x]) >> ANGLETOSKYSHIFT;
             col = FixedToInt(FixedMul(IntToFixed(col), skytex->scalex));
-            dc_source = R_GetColumnMod2(texture, col);
+            dc_source = R_GetColumn(texture, col);
             colfunc();
         }
     }
@@ -574,7 +574,7 @@ static void do_draw_mbf_sky(visplane_t *pl)
 
         if (dc_yl != USHRT_MAX && dc_yl <= dc_yh)
         {
-            dc_source = R_GetColumnMod2(texture, ((an + xtoskyangle[x]) ^ flip)
+            dc_source = R_GetColumn(texture, ((an + xtoskyangle[x]) ^ flip)
                                                      >> ANGLETOSKYSHIFT);
             colfunc();
         }
