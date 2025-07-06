@@ -151,31 +151,19 @@ void R_InitSkyMap(void)
                 }
             }
         }
+    }
 
-        sky_t *sky;
-        int fg_count = 0;
-        array_foreach(sky, levelskies)
-        {
-            if (sky->type == SkyType_WithForeground)
-            {
-                fg_count++;
-            }
-        }
+    sky_t *sky;
+    array_grow(levelskies, array_size(levelskies));
 
-        if (fg_count + array_size(levelskies) >= array_capacity(levelskies))
+    array_foreach(sky, levelskies)
+    {
+        if (sky->type == SkyType_WithForeground)
         {
-            array_grow(levelskies, fg_count);
-        }
-
-        array_foreach(sky, levelskies)
-        {
-            if (sky->type == SkyType_WithForeground)
-            {
-                skyindex_t index = R_AddLevelsky(sky->foreground.texture);
-                sky_t *foregroundsky = R_GetLevelsky(index);
-                foregroundsky->background = sky->foreground;
-                foregroundsky->usedefaultmid = false;
-            }
+            skyindex_t index = R_AddLevelsky(sky->foreground.texture);
+            sky_t *foregroundsky = R_GetLevelsky(index);
+            foregroundsky->background = sky->foreground;
+            foregroundsky->usedefaultmid = false;
         }
     }
 
