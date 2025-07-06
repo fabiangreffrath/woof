@@ -122,6 +122,7 @@ byte      **texturecomposite2;
 int       *flattranslation;             // for global animation
 int       *flatterrain;
 int       *texturetranslation;
+int       *texturecolor;
 const byte **texturebrightmap; // [crispy] brightmaps
 
 
@@ -632,6 +633,8 @@ void R_InitTextures (void)
     Z_Malloc(numtextures*sizeof*texturewidth, PU_STATIC, 0);
   textureheight = Z_Malloc(numtextures*sizeof*textureheight, PU_STATIC, 0);
   texturebrightmap = Z_Malloc (numtextures * sizeof(*texturebrightmap), PU_STATIC, 0);
+  // [EA] pre-computed sky color
+  texturecolor = Z_Malloc (numtextures * sizeof(*texturecolor), PU_STATIC, 0);
 
   {  // Really complex printing shit...
     int temp1 = W_GetNumForName("S_START");
@@ -751,7 +754,11 @@ void R_InitTextures (void)
     Z_Malloc((numtextures+1)*sizeof*texturetranslation, PU_STATIC, 0);
 
   for (i=0 ; i<numtextures ; i++)
+  {
     texturetranslation[i] = i;
+    texturecolor[i] = R_GetSkyColor(i, false);
+  }
+
 
   // killough 1/31/98: Initialize texture hash table
   for (i = 0; i<numtextures; i++)

@@ -32,9 +32,6 @@ typedef enum
 typedef struct
 {
     int texture;
-    byte color; // TODO: FIXME -- consider defining a `byte *texturecolor`
-                // to not need to calculate one each draw function call,
-                // for the sake of animated skies
     fixed_t mid;
     fixed_t scrollx, scrolly;
     fixed_t scalex,  scaley;
@@ -57,9 +54,6 @@ typedef struct sky_s
 
     // Type 2 -- With Foreground
     skytex_t foreground;
-
-    // Sky color for higher FOVs
-    byte color;
 
     // Sky transfer line specials
     side_t *side;
