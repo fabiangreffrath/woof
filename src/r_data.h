@@ -75,7 +75,7 @@ boolean R_IsPatchLump (const int lump);
 
 extern int numflats;
 
-extern byte *main_tranmap, *tranmap;
+extern byte *main_tranmap, *tranmap, *skytran;
 
 extern int tran_filter_pct;
 

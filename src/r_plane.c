@@ -396,6 +396,7 @@ static void R_MakeSpans(int x, unsigned int t1, unsigned int b1, unsigned int t2
 static void DrawSkyTex(visplane_t *pl, skytex_t *skytex, side_t *side)
 {
     const int texture = texturetranslation[skytex->texture];
+    boolean vertically_scrolling = false;
     dc_texheight = textureheight[texture] >> FRACBITS;
     dc_iscale = FixedMul(skyiscale, skytex->scaley);
 
@@ -479,7 +480,7 @@ static void DrawSkyDef(visplane_t *pl, sky_t *sky)
     {
         // Special tranmap to avoid custom render path to render sky
         // transparently. See id24 SKYDEFS spec.
-        tranmap = W_CacheLumpName("SKYTRAN", PU_CACHE);
+        tranmap = skytran;
         colfunc = R_DrawTLColumn;
         DrawSkyTex(pl, &sky->foreground, sky->side);
         tranmap = main_tranmap;

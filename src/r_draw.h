@@ -31,7 +31,6 @@ extern fixed_t  dc_iscale;
 extern fixed_t  dc_texturemid;
 extern int      dc_texheight;    // killough
 extern byte     dc_skycolor;
-extern boolean  vertically_scrolling; // [EA] needed for colorfill effect
 
 // first pixel in a column
 extern byte     *dc_source;         

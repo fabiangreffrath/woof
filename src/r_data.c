@@ -918,6 +918,8 @@ void R_InitTranMap(int progress)
   //
   int force_rebuild = M_CheckParm("-tranmap");
 
+  skytran = W_CacheLumpName("SKYTRAN", PU_CACHE);
+
   // If a tranlucency filter map lump is present, use it
 
   if (lump != -1 && !force_rebuild)  // Set a pointer to the translucency filter maps.
