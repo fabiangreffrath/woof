@@ -215,22 +215,31 @@ void R_UpdateSkies(void)
 static void StretchSky(sky_t *sky)
 {
     const int skyheight = textureheight[sky->background.texture] >> FRACBITS;
+    boolean will_stretch = false;
+    defaultskytexturemid = 0;
 
-    if (sky == levelskies)
+    if (skyheight >= 128 && skyheight < 200)
     {
-        defaultskytexturemid = (stretchsky && skyheight < 200) ? -28 * FRACUNIT
-                               : (skyheight > 200)             ? 200 * FRACUNIT
-                                                               : 100 * FRACUNIT;
+      will_stretch = (stretchsky && skyheight >= 128);
+      defaultskytexturemid = -28 * FRACUNIT;
+    }
+    else if (skyheight > 200)
+    {
+      defaultskytexturemid = (200 - skyheight) * FRACUNIT;
+    }
+    else
+    {
+      defaultskytexturemid = 100 * FRACUNIT;
     }
 
-    if (stretchsky && skyheight < 200)
+    if (will_stretch)
     {
         sky->background.mid = defaultskytexturemid * skyheight / SKYSTRETCH_HEIGHT;
         sky->background.scaley = FRACUNIT * skyheight / SKYSTRETCH_HEIGHT;
     }
     else
     {
-        sky->background.mid = defaultskytexturemid;
+        sky->background.mid = 100 * FRACUNIT;
         sky->background.scaley = FRACUNIT;
     }
 }
