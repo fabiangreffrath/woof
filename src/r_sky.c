@@ -156,9 +156,11 @@ void R_InitSkyMap(void)
         }
     }
 
-    sky_t *sky;
+    // [FG] [EA]
+    // in the worst case scenario, each base definition includes a foreground
     array_grow(levelskies, array_size(levelskies));
 
+    sky_t *sky;
     array_foreach(sky, levelskies)
     {
         if (sky->type == SkyType_WithForeground)
