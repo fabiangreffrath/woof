@@ -453,7 +453,7 @@ static void DrawSkyTex(visplane_t *pl, skytex_t *skytex, side_t *side)
         {
             int col = (an + xtoskyangle[x]) >> ANGLETOSKYSHIFT;
             col = FixedToInt(FixedMul(IntToFixed(col), skytex->scalex));
-            dc_source = R_GetColumnMod2(texture, col);
+            dc_source = R_GetColumn(texture, col);
             colfunc();
         }
     }

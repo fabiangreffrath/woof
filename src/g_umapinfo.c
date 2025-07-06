@@ -516,7 +516,9 @@ static void ParseStandardProperty(scanner_t *s, mapentry_t *mape)
             tag = SC_GetNumber(s);
             // allow no 0-tag specials here, unless a level exit.
             if (tag != 0 || special == 11 || special == 51 || special == 52
-                || special == 124)
+                || special == 124 || special == 2069 || special == 2070
+                || special == 2071 || special == 2072 || special == 2073
+                || special == 2074)
             {
                 bossaction_t bossaction = {type, special, tag};
                 array_push(mape->bossactions, bossaction);
