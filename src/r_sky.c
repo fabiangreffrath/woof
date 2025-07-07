@@ -50,7 +50,6 @@ boolean stretchsky;
 //
 int skyflatnum;
 sky_t *levelskies = NULL;
-static fixed_t defaultskytexturemid;
 
 // PSX fire sky, description: https://fabiensanglard.net/doom_fire_psx/
 static void SpreadFire(int src, byte *fire, int width)
@@ -202,51 +201,12 @@ void R_UpdateSkies(void)
     }
 }
 
-// There are various combinations for sky rendering depending on how tall the sky is:
-//        h <  128: Unstretched and tiled, centered on horizon
-// 128 <= h <  200: Can possibly be stretched. When unstretched, the baseline is
-//                  28 rows below the horizon so that the top of the texture
-//                  aligns with the top of the screen when looking straight ahead.
-//                  When stretched, it is scaled to 228 pixels with the baseline
-//                  in the same location as an unstretched 128-tall sky, so the top
-//					of the texture aligns with the top of the screen when looking
-//                  fully up.
-//        h == 200: Unstretched, baseline is on horizon, and top is at the top of
-//                  the screen when looking fully up.
-//        h >  200: Unstretched, but the baseline is shifted down so that the top
-//                  of the texture is at the top of the screen when looking fully up.
 static void StretchSky(sky_t *sky)
 {
     const int skyheight = textureheight[sky->background.texture] >> FRACBITS;
-    boolean will_stretch = false;
-    defaultskytexturemid = 0;
-
-    // the following vanilla-renderred tall sky implementation is buggy,
-    // this is intentional, as it matches the behavior seen on DSDA.
-    //
-    // more especifiaclly, any sky taller than 200px should be placed
-    // on the midline that allows it's top row to reach to highest row
-    // allowed by free-look. instead, it will _always_ be set to a mid
-    // value of 100, which "pegs" the top row to the top of a standard
-    // FOV screen.
-
-    if (skyheight >= 128 && skyheight < 200)
+    if (stretchsky && skyheight >= 128 && skyheight < 200)
     {
-      will_stretch = (stretchsky && skyheight >= 128);
-      defaultskytexturemid = -28 * FRACUNIT;
-    }
-    else if (skyheight > 200)
-    {
-      defaultskytexturemid = (200 - skyheight) * FRACUNIT;
-    }
-    else
-    {
-      defaultskytexturemid = 100 * FRACUNIT;
-    }
-
-    if (will_stretch)
-    {
-        sky->background.mid = defaultskytexturemid * skyheight / SKYSTRETCH_HEIGHT;
+        sky->background.mid = -28 * FRACUNIT * skyheight / SKYSTRETCH_HEIGHT;
         sky->background.scaley = FRACUNIT * skyheight / SKYSTRETCH_HEIGHT;
     }
     else
