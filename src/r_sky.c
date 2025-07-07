@@ -208,11 +208,19 @@ static void StretchSky(sky_t *sky)
     {
         sky->background.mid = -28 * FRACUNIT * skyheight / SKYSTRETCH_HEIGHT;
         sky->background.scaley = FRACUNIT * skyheight / SKYSTRETCH_HEIGHT;
+        if (sky->side)
+        {
+            sky->background.mid += 28 * FRACUNIT;
+        }
     }
     else
     {
         sky->background.mid = 100 * FRACUNIT;
         sky->background.scaley = FRACUNIT;
+        if (sky->side)
+        {
+            sky->background.mid = 0;
+        }
     }
 }
 
@@ -280,7 +288,6 @@ static skyindex_t AddLevelsky(int texture, side_t *side)
 
         // sky transfers ignore the vanilla sky mid
         // and define an offset value of (rowoffset - 28px) at render time
-        new_sky.usedefaultmid = false;
         new_sky.background.mid = 0;
         new_sky.foreground.mid = 0;
 
