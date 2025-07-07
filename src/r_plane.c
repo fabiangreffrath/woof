@@ -413,30 +413,38 @@ static void DrawSkyTex(visplane_t *pl, skytex_t *skytex, side_t *side)
     fixed_t deltax, deltay;
     if (uncapped && leveltime > oldleveltime)
     {
-        deltax = LerpFixed(skytex->prevx, skytex->currx);
         deltay = LerpFixed(skytex->prevy, skytex->curry);
+        deltax = LerpFixed(skytex->prevx, skytex->currx) << (ANGLETOSKYSHIFT - FRACBITS);
+        if (side)
+        {
+            deltax += LerpFixed(side->oldtextureoffset, side->basetextureoffset);
+        }
     }
     else
     {
-        deltax = skytex->currx;
         deltay = skytex->curry;
+        deltax = skytex->currx << (ANGLETOSKYSHIFT - FRACBITS);
+        if (side)
+        {
+            deltax += side->textureoffset;
+        }
     }
 
-    // 64 sidedef texels to 1 sky texel ratio, allows fine-tuned horizontal sky scrolling
-    // transfers ignore the default sky mid and set a mid value of (rowoffset - 28px)
+    dc_texturemid = skytex->mid + deltay;
+
     if (side)
     {
-      deltax += side->basetextureoffset >> (ANGLETOSKYSHIFT - FRACBITS);
-      dc_texturemid = skytex->mid + deltay + side->baserowoffset - 28 * FRACUNIT;
-      vertically_scrolling = skytex->scrolly || (side->basetextureoffset - side->oldtextureoffset);
+      // sky transfers ignore the vanilla sky mid
+      // and set a mid value of (rowoffset - 28px)
+      dc_texturemid += side->baserowoffset - 28 * FRACUNIT;
+      vertically_scrolling = skytex->scrolly || (side->baserowoffset - side->oldrowoffset);
     }
     else
     {
-      dc_texturemid = skytex->mid + deltay;
       vertically_scrolling = skytex->scrolly;
     }
 
-    angle_t an = viewangle + (deltax << (ANGLETOSKYSHIFT - FRACBITS));
+    angle_t an = viewangle + deltax;
 
     if (colfunc != R_DrawTLColumn && !vertically_scrolling)
     {

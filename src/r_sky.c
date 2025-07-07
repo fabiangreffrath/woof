@@ -288,7 +288,6 @@ static skyindex_t AddLevelsky(int texture, side_t *side)
     array_foreach(sky, levelskies)
     {
         if (sky->background.texture == texture && sky->side == side)
-        // if (sky->background.texture == texture)
         {
             return (skyindex_t)(sky - levelskies);
         }
@@ -318,8 +317,10 @@ static skyindex_t AddLevelsky(int texture, side_t *side)
     if (side)
     {
         new_sky.side = side;
-        new_sky.usedefaultmid = false;
 
+        // sky transfers ignore the vanilla sky mid
+        // and set a mid value of (rowoffset - 28px)
+        new_sky.usedefaultmid = false;
         new_sky.background.mid = 0;
         new_sky.foreground.mid = 0;
 

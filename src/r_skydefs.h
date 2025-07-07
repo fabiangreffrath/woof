@@ -57,6 +57,8 @@ typedef struct sky_s
 
     // Sky transfer line specials
     side_t *side;
+
+    // Plain levelskies, flatmap
     boolean usedefaultmid;
 } sky_t;
 
