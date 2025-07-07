@@ -435,7 +435,7 @@ static void DrawSkyTex(visplane_t *pl, skytex_t *skytex, side_t *side)
     if (side)
     {
       // sky transfers ignore the vanilla sky mid
-      // and set a mid value of (rowoffset - 28px)
+      // and define an offset value of (rowoffset - 28px) at render time
       dc_texturemid += side->baserowoffset - 28 * FRACUNIT;
       vertically_scrolling = skytex->scrolly || (side->baserowoffset - side->oldrowoffset);
     }

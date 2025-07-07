@@ -319,7 +319,7 @@ static skyindex_t AddLevelsky(int texture, side_t *side)
         new_sky.side = side;
 
         // sky transfers ignore the vanilla sky mid
-        // and set a mid value of (rowoffset - 28px)
+        // and define an offset value of (rowoffset - 28px) at render time
         new_sky.usedefaultmid = false;
         new_sky.background.mid = 0;
         new_sky.foreground.mid = 0;
