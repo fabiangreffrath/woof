@@ -28,6 +28,13 @@
 
 struct patch_s;
 
+typedef struct rgb_s
+{
+  int r;
+  int g;
+  int b;
+} rgb_t;
+
 //
 // VIDEO
 //

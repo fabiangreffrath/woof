@@ -33,6 +33,7 @@
 #include "r_sky.h"
 #include "r_skydefs.h"
 #include "r_state.h" // [FG] textureheight[]
+#include "v_video.h"
 #include "w_wad.h"
 #include "z_zone.h"
 
@@ -239,12 +240,6 @@ void R_InitSkyMap (void)
   else
   skytexturemid = 100*FRACUNIT;
 }
-
-typedef struct rgb_s {
-    int r;
-    int g;
-    int b;
-} rgb_t;
 
 static int CompareSkyColors(const void *a, const void *b)
 {

@@ -546,6 +546,95 @@ void V_DrawPatchTRTR(int x, int y, patch_t *patch, byte *outr1, byte *outr2)
     DrawPatchInternal(x, y, patch, false);
 }
 
+//
+// V_GetPatchColor
+// Get the color of a Doom-Format
+// graphic via lumpnum
+//
+
+rgb_t V_GetPatchColor(int lumpnum)
+{
+  rgb_t col = { 0, 0, 0 };
+  int r = 0, g = 0, b = 0;
+  const byte *playpal = W_CacheLumpName("PLAYPAL", PU_STATIC);
+  int x, y, pixel_cnt = 0;
+  const byte* lump;
+  short width;
+
+  lump = W_CacheLumpNum(lumpnum, PU_STATIC);
+
+  width = *((const int16_t *) lump);
+  width = SHORT(width);
+
+  for (x = 0; x < width; ++x)
+  {
+    byte length;
+    byte entry;
+    const byte* p;
+    int32_t offset;
+
+    // Only calculate for the leftmost and rightmost 16 columns
+    if (width > 32 && x > 16 && x < width - 16)
+      continue;
+
+    // Skip irrelevant data in the doom patch header
+    p = lump + 8 + 4 * x;
+    offset = *((const int32_t *) p);
+    p = lump + LONG(offset);
+
+    while (*p != 0xff)
+    {
+      p++;
+      length = *p++;
+      p++;
+
+      // Get RGB values per pixel
+      for (y = 0; y < length; ++y)
+      {
+        entry = *p++;
+        r += playpal[3 * entry + 0];
+        g += playpal[3 * entry + 1];
+        b += playpal[3 * entry + 2];
+        pixel_cnt++;
+      }
+
+      p++;
+    }
+  }
+  // Average RGB values
+  col.r = r / pixel_cnt;
+  col.g = g / pixel_cnt;
+  col.b = b / pixel_cnt;
+
+  return col;
+}
+
+byte V_GetBorderColor(const char* lump)
+{
+  byte *playpal = W_CacheLumpName("PLAYPAL", PU_CACHE);
+  byte col;
+  rgb_t patch_color;
+  int r, g, b;
+
+  patch_color.r = 0;
+  patch_color.g = 0;
+  patch_color.b = 0;
+
+  patch_color = V_GetPatchColor(W_GetNumForName(lump));
+  r = patch_color.r;
+  g = patch_color.g;
+  b = patch_color.b;
+
+  // Desaturate colours
+  r /= 2;
+  g /= 2;
+  b /= 2;
+
+  // Convert to palette
+  col = I_GetNearestColor(playpal, r, g, b);
+  return col;
+}
+
 void V_DrawPatchFullScreen(patch_t *patch)
 {
     const int x = DIV_ROUND_CLOSEST(video.unscaledw - SHORT(patch->width), 2);
