@@ -32,6 +32,7 @@ typedef enum
 typedef struct
 {
     int texture;
+    byte color;
     fixed_t mid;
     fixed_t scrollx, scrolly;
     fixed_t scalex,  scaley;

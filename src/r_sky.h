@@ -50,7 +50,7 @@ void R_UpdateStretchSkies(void);
 // Called whenever the view size changes.
 void R_InitSkyMap(void);
 
-byte R_GetSkyColor(int texturenum, boolean force_new_color);
+byte R_GetSkyColor(int texturenum);
 
 void R_UpdateSkies(void);
 

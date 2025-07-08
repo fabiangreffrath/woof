@@ -123,8 +123,6 @@ void R_InitFireSky(sky_t *sky)
     {
         UpdateFireSky(sky);
     }
-    // recompute sky color based on fire texture
-    texturecolor[texnum] = R_GetSkyColor(texnum, true);
 }
 
 void R_InitSkyMap(void)
@@ -310,6 +308,8 @@ static skyindex_t AddLevelsky(int texture, side_t *side)
         R_InitFireSky(&new_sky);
     }
 
+    new_sky.background.color = R_GetSkyColor(new_sky.background.texture);
+
     array_push(levelskies, new_sky);
     return index;
 }
@@ -395,7 +395,7 @@ typedef struct skycolor_s
 static skycolor_t *skycolors[NUMSKYCHAINS];
 #define skycolorkey(a) ((a) % NUMSKYCHAINS)
 
-byte R_GetSkyColor(int texturenum, boolean force_new_color)
+byte R_GetSkyColor(int texturenum)
 {
     int key;
     skycolor_t *target = NULL;
@@ -419,7 +419,7 @@ byte R_GetSkyColor(int texturenum, boolean force_new_color)
         }
     }
 
-    if (target == NULL || force_new_color)
+    if (target == NULL)
     {
         target = Z_Malloc(sizeof(skycolor_t), PU_STATIC, 0);
 
