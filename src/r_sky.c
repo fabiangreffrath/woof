@@ -51,6 +51,8 @@ boolean stretchsky;
 int skyflatnum;
 sky_t *levelskies = NULL;
 
+static skydefs_t *skydefs;
+
 // PSX fire sky, description: https://fabiensanglard.net/doom_fire_psx/
 static void SpreadFire(int src, byte *fire, int width)
 {
@@ -127,10 +129,10 @@ void R_InitFireSky(sky_t *sky)
 
 void R_InitSkyMap(void)
 {
-    if (skyflats)
+    if (skydefs)
     {
         flatmap_t *flatmap = NULL;
-        array_foreach(flatmap, skyflats)
+        array_foreach(flatmap, skydefs->skyflats)
         {
             int flatnum = R_FlatNumForName(flatmap->flat_name);
             int skytex = R_TextureNumForName(flatmap->sky_name);
@@ -267,9 +269,9 @@ static skyindex_t AddLevelsky(int texture, side_t *side)
         }
     }
 
-    if (skies)
+    if (skydefs)
     {
-        array_foreach(sky, skies)
+        array_foreach(sky, skydefs->skies)
         {
             if (sky->background.texture == texture)
             {
@@ -344,6 +346,12 @@ sky_t *R_GetLevelsky(skyindex_t index)
     }
 #endif
     return &levelskies[index];
+}
+
+void R_InitSkyDefs(void)
+{
+    skyflatnum = R_FlatNumForName(SKYFLATNAME);
+    skydefs = R_ParseSkyDefs();
 }
 
 typedef struct rgb_s

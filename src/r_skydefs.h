@@ -72,9 +72,12 @@ typedef struct
     sky_t *sky;
 } flatmap_t;
 
-extern flatmap_t *skyflats;
-extern sky_t     *skies;
+typedef struct
+{
+    flatmap_t *skyflats;
+    sky_t     *skies;
+} skydefs_t;
 
-void R_InitSkyDefs(void);
+skydefs_t *R_ParseSkyDefs(void);
 
 #endif

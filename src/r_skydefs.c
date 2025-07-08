@@ -146,14 +146,12 @@ static boolean ParseFlatMap(json_t *json, flatmap_t *out)
     return true;
 }
 
-void R_InitSkyDefs(void)
+skydefs_t *R_ParseSkyDefs(void)
 {
-    skyflatnum = R_FlatNumForName(SKYFLATNAME);
-
     json_t *json = JS_Open("SKYDEFS", "skydefs", (version_t){1, 0, 0});
     if (json == NULL)
     {
-        return;
+        return NULL;
     }
 
     json_t *data = JS_GetObject(json, "data");
@@ -161,8 +159,10 @@ void R_InitSkyDefs(void)
     {
         I_Printf(VB_ERROR, "SKYDEFS: no data");
         JS_Close("SKYDEFS");
-        return;
+        return NULL;
     }
+
+    skydefs_t *out = calloc(1, sizeof(*out));
 
     json_t *js_skies = JS_GetObject(data, "skies");
     json_t *js_sky = NULL;
@@ -171,7 +171,7 @@ void R_InitSkyDefs(void)
         sky_t sky = {0};
         if (ParseSky(js_sky, &sky))
         {
-            array_push(skies, sky);
+            array_push(out->skies, sky);
         }
     }
 
@@ -182,9 +182,10 @@ void R_InitSkyDefs(void)
         flatmap_t flatmap = {0};
         if (ParseFlatMap(js_flatmap, &flatmap))
         {
-            array_push(skyflats, flatmap);
+            array_push(out->skyflats, flatmap);
         }
     }
 
     JS_Close("SKYDEFS");
+    return out;
 }
