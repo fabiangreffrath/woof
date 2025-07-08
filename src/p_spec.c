@@ -217,6 +217,11 @@ void P_InitPicAnims (void)
                  animdefs[i].endname);
       }
 
+      if (lastanim->speed == 0)
+        I_Error ("%s to %s animation cannot have speed 0",
+                 animdefs[i].startname,
+                 animdefs[i].endname);
+
       lastanim++;
     }
   Z_ChangeTag (animdefs,PU_CACHE); //jff 3/23/98 allow table to be freed
