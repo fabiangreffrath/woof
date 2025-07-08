@@ -83,4 +83,6 @@ void I_OAL_SetPan(int channel, int separation);
 
 void I_OAL_BindSoundVariables(void);
 
+void I_OAL_RenderSamples(void *buffer, int samples);
+
 #endif

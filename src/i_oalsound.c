@@ -19,6 +19,7 @@
 #include "al.h"
 #include "alc.h"
 #include "alext.h"
+#include "doomdef.h"
 #include "efx.h"
 
 #include <math.h>
@@ -33,6 +34,7 @@
 #include "i_sndfile.h"
 #include "i_sound.h"
 #include "m_array.h"
+#include "m_argv.h"
 #include "m_config.h"
 #include "m_fixed.h"
 #include "sounds.h"
@@ -62,6 +64,9 @@ boolean oal_use_doppler;
 oal_system_t *oal;
 static LPALDEFERUPDATESSOFT alDeferUpdatesSOFT;
 static LPALPROCESSUPDATESSOFT alProcessUpdatesSOFT;
+
+static LPALCLOOPBACKOPENDEVICESOFT alcLoopbackOpenDeviceSOFT;
+static LPALCRENDERSAMPLESSOFT alcRenderSamplesSOFT;
 
 void I_OAL_DeferUpdates(void)
 {
@@ -409,21 +414,32 @@ static void PrintDeviceInfo(ALCdevice *device)
     I_Printf(VB_INFO, " Using '%s' @ %d Hz.", name, srate);
 }
 
-static void GetAttribs(ALCint **attribs)
+static ALCint *GetAttribs(void)
 {
+    ALCint *attribs = NULL;
     const boolean use_3d = (oal_snd_module == SND_MODULE_3D);
+
+    if (M_ParmExists("-viddump"))
+    {
+        array_push(attribs, ALC_FORMAT_CHANNELS_SOFT);
+        array_push(attribs, ALC_STEREO_SOFT);
+        array_push(attribs, ALC_FORMAT_TYPE_SOFT);
+        array_push(attribs, ALC_SHORT_SOFT);
+        array_push(attribs, ALC_FREQUENCY);
+        array_push(attribs, SND_SAMPLERATE);
+    }
 
     if (alcIsExtensionPresent(oal->device, "ALC_SOFT_HRTF") == ALC_TRUE)
     {
-        array_push(*attribs, ALC_HRTF_SOFT);
-        array_push(*attribs, (use_3d && snd_hrtf) ? ALC_TRUE : ALC_FALSE);
+        array_push(attribs, ALC_HRTF_SOFT);
+        array_push(attribs, (use_3d && snd_hrtf) ? ALC_TRUE : ALC_FALSE);
     }
 
 #ifdef ALC_OUTPUT_MODE_SOFT
     if (alcIsExtensionPresent(oal->device, "ALC_SOFT_output_mode") == ALC_TRUE)
     {
-        array_push(*attribs, ALC_OUTPUT_MODE_SOFT);
-        array_push(*attribs,
+        array_push(attribs, ALC_OUTPUT_MODE_SOFT);
+        array_push(attribs,
                    use_3d ? (snd_hrtf ? ALC_STEREO_HRTF_SOFT : ALC_ANY_SOFT)
                           : ALC_STEREO_BASIC_SOFT);
     }
@@ -432,12 +448,13 @@ static void GetAttribs(ALCint **attribs)
     if (alcIsExtensionPresent(oal->device, "ALC_SOFT_output_limiter")
         == ALC_TRUE)
     {
-        array_push(*attribs, ALC_OUTPUT_LIMITER_SOFT);
-        array_push(*attribs, snd_limiter ? ALC_TRUE : ALC_FALSE);
+        array_push(attribs, ALC_OUTPUT_LIMITER_SOFT);
+        array_push(attribs, snd_limiter ? ALC_TRUE : ALC_FALSE);
     }
 
     // Attribute list must be zero terminated.
-    array_push(*attribs, 0);
+    array_push(attribs, 0);
+    return attribs;
 }
 
 void I_OAL_BindSoundVariables(void)
@@ -454,8 +471,6 @@ void I_OAL_BindSoundVariables(void)
 
 boolean I_OAL_InitSound(int snd_module)
 {
-    ALCint *attribs = NULL;
-
     oal_snd_module = snd_module;
 
     if (oal)
@@ -464,7 +479,17 @@ boolean I_OAL_InitSound(int snd_module)
     }
 
     oal = calloc(1, sizeof(*oal));
-    oal->device = alcOpenDevice(NULL);
+    if (M_ParmExists("-viddump"))
+    {
+        ALFUNC(LPALCLOOPBACKOPENDEVICESOFT, alcLoopbackOpenDeviceSOFT);
+        oal->device = alcLoopbackOpenDeviceSOFT(NULL);
+        ALFUNC(LPALCRENDERSAMPLESSOFT, alcRenderSamplesSOFT);
+    }
+    else
+    {
+        oal->device = alcOpenDevice(NULL);
+    }
+
     if (!oal->device)
     {
         I_Printf(VB_ERROR, "I_OAL_InitSound: Failed to open device.");
@@ -473,7 +498,7 @@ boolean I_OAL_InitSound(int snd_module)
         return false;
     }
 
-    GetAttribs(&attribs);
+    ALCint *attribs = GetAttribs();
     oal->context = alcCreateContext(oal->device, attribs);
     array_free(attribs);
     if (!oal->context || !alcMakeContextCurrent(oal->context))
@@ -511,7 +536,6 @@ boolean I_OAL_InitSound(int snd_module)
 boolean I_OAL_ReinitSound(int snd_module)
 {
     LPALCRESETDEVICESOFT alcResetDeviceSOFT = NULL;
-    ALCint *attribs = NULL;
     ALCboolean result;
 
     if (!oal)
@@ -537,7 +561,7 @@ boolean I_OAL_ReinitSound(int snd_module)
         return false;
     }
 
-    GetAttribs(&attribs);
+    ALCint *attribs = GetAttribs();
     result = alcResetDeviceSOFT(oal->device, attribs);
     array_free(attribs);
     if (result != ALC_TRUE)
@@ -893,4 +917,14 @@ void I_OAL_SetPan(int channel, int separation)
     pan = (ALfloat)separation / 255.0f - 0.5f;
     alSource3f(oal->sources[channel], AL_POSITION, pan, 0.0f,
                -sqrtf(1.0f - pan * pan));
+}
+
+void I_OAL_RenderSamples(void *buffer, int samples)
+{
+    if (!oal)
+    {
+        return;
+    }
+
+    alcRenderSamplesSOFT(oal->device, buffer, samples);
 }
