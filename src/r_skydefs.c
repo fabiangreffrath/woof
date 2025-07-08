@@ -15,7 +15,6 @@
 #include "r_skydefs.h"
 
 #include "doomdef.h"
-#include "doomstat.h"
 #include "doomtype.h"
 #include "i_printf.h"
 #include "m_array.h"
@@ -23,10 +22,6 @@
 #include "m_json.h"
 #include "m_misc.h"
 #include "r_data.h"
-#include "r_sky.h"
-
-flatmap_t *skyflats;
-sky_t     *skies;
 
 static boolean ParseFire(json_t *json, sky_t *out)
 {

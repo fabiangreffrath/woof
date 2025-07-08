@@ -165,7 +165,7 @@ void R_InitSkyMap(void)
             skyindex_t index = R_AddLevelsky(sky->foreground.texture);
             sky_t *foregroundsky = R_GetLevelsky(index);
             foregroundsky->background = sky->foreground;
-            foregroundsky->usedefaultmid = false;
+            foregroundsky->stretcheable = false;
         }
     }
 
@@ -203,24 +203,22 @@ void R_UpdateSkies(void)
 
 static void StretchSky(sky_t *sky)
 {
+    // Transfer are stretched at render-time
+    if (sky->side)
+    {
+      return;
+    }
+
     const int skyheight = textureheight[sky->background.texture] >> FRACBITS;
     if (stretchsky && skyheight >= 128 && skyheight < 200)
     {
         sky->background.mid = -28 * FRACUNIT * skyheight / SKYSTRETCH_HEIGHT;
         sky->background.scaley = FRACUNIT * skyheight / SKYSTRETCH_HEIGHT;
-        if (sky->side)
-        {
-            sky->background.mid += 28 * FRACUNIT;
-        }
     }
     else
     {
         sky->background.mid = 100 * FRACUNIT;
         sky->background.scaley = FRACUNIT;
-        if (sky->side)
-        {
-            sky->background.mid = 0;
-        }
     }
 }
 
@@ -229,7 +227,7 @@ void R_UpdateStretchSkies(void)
     sky_t *sky;
     array_foreach(sky, levelskies)
     {
-        if (sky->usedefaultmid)
+        if (sky->stretcheable)
         {
             StretchSky(sky);
         }
@@ -287,7 +285,7 @@ static skyindex_t AddLevelsky(int texture, side_t *side)
         new_sky.background.texture = texture;
         new_sky.background.scalex = FRACUNIT;
         new_sky.background.scaley = FRACUNIT;
-        new_sky.usedefaultmid = true;
+        new_sky.stretcheable = true;
     }
 
     if (side)
@@ -311,7 +309,7 @@ static skyindex_t AddLevelsky(int texture, side_t *side)
         new_sky.side = NULL;
     }
 
-    if (new_sky.usedefaultmid)
+    if (new_sky.stretcheable)
     {
         StretchSky(&new_sky);
     }

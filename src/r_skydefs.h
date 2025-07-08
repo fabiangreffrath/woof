@@ -60,7 +60,7 @@ typedef struct sky_s
     side_t *side;
 
     // Plain levelskies, flatmap
-    boolean usedefaultmid;
+    boolean stretcheable;
 } sky_t;
 
 typedef struct

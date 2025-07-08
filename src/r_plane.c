@@ -403,8 +403,9 @@ static void R_MakeSpans(int x, unsigned int t1, unsigned int b1, unsigned int t2
     spanstart[b2--] = x;
 }
 
-static void DrawSkyTex(visplane_t *pl, skytex_t *skytex, side_t *side)
+static void DrawSkyTex(visplane_t *pl, sky_t *sky, skytex_t *skytex)
 {
+    const side_t * const side = sky->side;
     const int texture = texturetranslation[skytex->texture];
     boolean vertically_scrolling = false;
     dc_texheight = textureheight[texture] >> FRACBITS;
@@ -438,6 +439,13 @@ static void DrawSkyTex(visplane_t *pl, skytex_t *skytex, side_t *side)
             dc_texturemid += side->baserowoffset - 28 * FRACUNIT;
             vertically_scrolling = (side->baserowoffset - side->oldrowoffset);
         }
+    }
+
+    if (side && sky->stretcheable && stretchsky
+        && dc_texheight >= 128 && dc_texheight < 200)
+    {
+        dc_texturemid = dc_texturemid * dc_texheight / SKYSTRETCH_HEIGHT;
+        dc_iscale = dc_iscale * dc_texheight / SKYSTRETCH_HEIGHT;
     }
 
     angle_t an = viewangle + deltax;
@@ -487,7 +495,7 @@ static void DrawSkyDef(visplane_t *pl, sky_t *sky)
         dc_colormap[0] = dc_colormap[1] = fullcolormap; // killough 3/20/98
     }
 
-    DrawSkyTex(pl, &sky->background, sky->side);
+    DrawSkyTex(pl, sky, &sky->background);
 
     if (sky->type == SkyType_WithForeground)
     {
@@ -495,7 +503,7 @@ static void DrawSkyDef(visplane_t *pl, sky_t *sky)
         // transparently. See id24 SKYDEFS spec.
         tranmap = skytran;
         colfunc = R_DrawTLColumn;
-        DrawSkyTex(pl, &sky->foreground, sky->side);
+        DrawSkyTex(pl, sky, &sky->foreground);
         tranmap = main_tranmap;
         colfunc = R_DrawColumn;
     }
