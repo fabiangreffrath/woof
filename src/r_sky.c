@@ -236,6 +236,14 @@ void R_UpdateStretchSkies(void)
 
 void R_ClearLevelskies(void)
 {
+    sky_t *sky;
+    array_foreach(sky, levelskies)
+    {
+        if (sky->fire)
+        {
+            Z_Free(sky->fire);
+        }
+    }
     array_free(levelskies);
 }
 
@@ -290,8 +298,11 @@ static skyindex_t AddLevelsky(int texture, side_t *side)
         new_sky.foreground.mid = 0;
 
         // Flipped
-        new_sky.background.scalex *= (side->special == 271) ? -1 : 1;
-        new_sky.foreground.scalex *= (side->special == 271) ? -1 : 1;
+        if (side->special == 271)
+        {
+          new_sky.background.scalex *= -1;
+          new_sky.foreground.scalex *= -1;
+        }
     }
     else
     {
