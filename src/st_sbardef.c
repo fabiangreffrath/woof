@@ -22,6 +22,7 @@
 #include "m_json.h"
 #include "m_misc.h"
 #include "m_swap.h"
+#include "r_data.h"
 #include "r_defs.h"
 #include "v_fmt.h"
 #include "v_video.h"
@@ -85,6 +86,12 @@ static boolean ParseSbarElemType(json_t *json, sbarelementtype_t type,
     if (tranmap)
     {
         out->tranmap = W_CacheLumpName(tranmap, PU_STATIC);
+    }
+
+    json_t *translucency = JS_GetObject(json, "translucency");
+    if (JS_IsBoolean(translucency) && JS_GetBoolean(translucency))
+    {
+        out->tranmap = main_tranmap;
     }
 
     const char *translation = JS_GetStringValue(json, "translation");
