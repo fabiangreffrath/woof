@@ -252,6 +252,13 @@ static boolean CheckConditions(sbarcondition_t *conditions, player_t *player)
                 }
                 break;
 
+            case sbc_weaponnotowned:
+                if (cond->param >= 0 && cond->param < NUMWEAPONS)
+                {
+                    result &= !player->weaponowned[cond->param];
+                }
+                break;
+
             case sbc_weaponselected:
                 result &= player->readyweapon == cond->param;
                 break;
@@ -417,6 +424,26 @@ static boolean CheckConditions(sbarcondition_t *conditions, player_t *player)
                     }
                     result &= !CheckWidgetState(state);
                 }
+                break;
+
+            case sbc_healthgreaterequal:
+                result &= (cond->param >= player->health);
+                break;
+
+            case sbc_healthless:
+                result &= (cond->param < player->health);
+                break;
+
+            case sbc_armorgreaterequal:
+                result &= (cond->param >= player->armorpoints);
+                break;
+
+            case sbc_armorless:
+                result &= (cond->param < player->armorpoints);
+                break;
+
+            case sbc_widescreen:
+                result &= (video.unscaledw > SCREENWIDTH);
                 break;
 
             case sbc_none:

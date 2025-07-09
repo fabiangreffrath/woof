@@ -54,6 +54,12 @@ typedef enum
     sbc_widgetmode,
     sbc_widgetenabled,
     sbc_widgetdisabled,
+    sbc_weaponnotowned,
+    sbc_healthgreaterequal,
+    sbc_healthless,
+    sbc_armorgreaterequal,
+    sbc_armorless,
+    sbc_widescreen,
 
     sbc_max,
 } sbarconditiontype_t;
