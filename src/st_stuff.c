@@ -427,25 +427,37 @@ static boolean CheckConditions(sbarcondition_t *conditions, player_t *player)
                 break;
 
             case sbc_healthgreaterequal:
-                result &= (cond->param >= player->health);
+                result &= (player->health >= cond->param);
                 break;
 
             case sbc_healthless:
-                result &= (cond->param < player->health);
+                result &= (player->health < cond->param);
                 break;
 
             case sbc_armorgreaterequal:
-                result &= (cond->param >= player->armorpoints);
+                result &= (player->armorpoints >= cond->param);
                 break;
 
             case sbc_armorless:
-                result &= (cond->param < player->armorpoints);
+                result &= (player->armorpoints < cond->param);
                 break;
 
             case sbc_widescreenequal:
                 result &=
                     ((cond->param == 1 && video.unscaledw > SCREENWIDTH)
                      || (cond->param == 0 && video.unscaledw == SCREENWIDTH));
+                break;
+
+            case sbc_episodeequal:
+                result &= (gameepisode == cond->param);
+                break;
+
+            case sbc_levelgreaterequal:
+                result &= (gamemap >= cond->param);
+                break;
+
+            case sbc_levelless:
+                result &= (gamemap < cond->param);
                 break;
 
             case sbc_none:

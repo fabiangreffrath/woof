@@ -123,6 +123,9 @@ static const char *sbc_names[] = {
     [sbc_armorgreaterequal] = "armorgreaterequal",
     [sbc_armorless] = "armorless",
     [sbc_widescreenequal] = "widescreenequal",
+    [sbc_episodeequal] = "episodeequal",
+    [sbc_levelgreaterequal] = "levelgreaterequal",
+    [sbc_levelless] = "levelless",
 };
 
 static const char *sbw_names[] = {

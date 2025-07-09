@@ -60,6 +60,9 @@ typedef enum
     sbc_armorgreaterequal,
     sbc_armorless,
     sbc_widescreenequal,
+    sbc_episodeequal,
+    sbc_levelgreaterequal,
+    sbc_levelless,
 
     sbc_max,
 } sbarconditiontype_t;
