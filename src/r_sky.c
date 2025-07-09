@@ -309,17 +309,16 @@ static skyindex_t AddLevelsky(int texture, side_t *side)
         new_sky.side = NULL;
     }
 
+    if (new_sky.type == SkyType_Fire)
+    {
+        new_sky.stretcheable = true;
+        R_InitFireSky(&new_sky);
+    }
+
     if (new_sky.stretcheable)
     {
         StretchSky(&new_sky);
     }
-
-    if (new_sky.type == SkyType_Fire)
-    {
-        R_InitFireSky(&new_sky);
-    }
-
-    new_sky.background.color = R_GetSkyColor(new_sky.background.texture);
 
     array_push(levelskies, new_sky);
     return index;
