@@ -59,7 +59,7 @@ typedef enum
     sbc_healthless,
     sbc_armorgreaterequal,
     sbc_armorless,
-    sbc_widescreen,
+    sbc_widescreenequal,
 
     sbc_max,
 } sbarconditiontype_t;

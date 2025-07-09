@@ -442,8 +442,10 @@ static boolean CheckConditions(sbarcondition_t *conditions, player_t *player)
                 result &= (cond->param < player->armorpoints);
                 break;
 
-            case sbc_widescreen:
-                result &= (video.unscaledw > SCREENWIDTH);
+            case sbc_widescreenequal:
+                result &=
+                    ((cond->param == 1 && video.unscaledw > SCREENWIDTH)
+                     || (cond->param == 0 && video.unscaledw == SCREENWIDTH));
                 break;
 
             case sbc_none:
