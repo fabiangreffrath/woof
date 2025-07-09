@@ -70,7 +70,9 @@ static void ParseSoundDefinition(scanner_t *s, sound_def_t **sound_defs)
 
     if (!SC_SameLine(s))
     {
-        SC_Error(s, "expected lump name");
+        SC_Warning(s, "expected lump name");
+        free(def.sound_name);
+        return;
     }
 
     SC_MustGetToken(s, TK_RawString);
@@ -79,7 +81,14 @@ static void ParseSoundDefinition(scanner_t *s, sound_def_t **sound_defs)
 
     if (def.lumpnum < 0)
     {
-        SC_Error(s, "lump not found: %s", def.lump_name);
+        SC_Warning(s, "lump not found: %s", def.lump_name);
+        free(def.sound_name);
+        free(def.lump_name);
+        if (SC_SameLine(s))
+        {
+            SC_GetNextLineToken(s);
+        }
+        return;
     }
 
     // If there are multiple sound definitions with the same sound name, only
