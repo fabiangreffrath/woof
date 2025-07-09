@@ -343,7 +343,7 @@ static boolean CheckConditions(sbarcondition_t *conditions, player_t *player)
                 result &= 7 < cond->param;
                 break;
 
-            case sbc_sessiontypeeequal:
+            case sbc_sessiontypeequal:
                 result &= currsessiontype == cond->param;
                 break;
 

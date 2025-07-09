@@ -67,8 +67,8 @@
               "conditions":
               [
                 {
-                  "condition": 15,
-                  "param": 0
+                  "condition": "SessionTypeNotEqual",
+                  "param": "SinglePlayer"
                 }
               ],
               "children": null
@@ -95,13 +95,13 @@
               "font": "BigRed",
               "tranmap": null,
               "translation": null,
-              "type": 4,
+              "type": "Ammo",
               "param": 0,
               "maxlength": 3,
               "conditions":
               [
                 {
-                  "condition": 4,
+                  "condition": "SelectedWeaponHasAmmo",
                   "param": 0
                 }
               ],
@@ -117,7 +117,7 @@
               "font": "BigRed",
               "tranmap": null,
               "translation": null,
-              "type": 0,
+              "type": "Health",
               "param": 0,
               "maxlength": 3,
               "conditions": null,
@@ -133,7 +133,7 @@
               "font": "BigRed",
               "tranmap": null,
               "translation": null,
-              "type": 1,
+              "type": "Armor",
               "param": 0,
               "maxlength": 3,
               "conditions": null,
@@ -149,14 +149,14 @@
               "font": "BigRed",
               "tranmap": null,
               "translation": null,
-              "type": 2,
+              "type": "Frags",
               "param": 0,
               "maxlength": 2,
               "conditions":
               [
                 {
-                  "condition": 14,
-                  "param": 2
+                  "condition": "SessionTypeEqual",
+                  "param": "Deathmatch"
                 }
               ],
               "children": null
@@ -174,8 +174,8 @@
               "conditions":
               [
                 {
-                  "condition": 15,
-                  "param": 2
+                  "condition": "SessionTypenNotEqual",
+                  "param": "Deathmatch"
                 }
               ],
               "children":
@@ -192,7 +192,7 @@
                     "conditions":
                     [
                       {
-                        "condition": 7,
+                        "condition": "WeaponSlotNotOwned",
                         "param": 2
                       }
                     ],
@@ -211,7 +211,7 @@
                     "conditions":
                     [
                       {
-                        "condition": 6,
+                        "condition": "WeaponSlotOwned",
                         "param": 2
                       }
                     ],
@@ -230,7 +230,7 @@
                     "conditions":
                     [
                       {
-                        "condition": 7,
+                        "condition": "WeaponSlotNotOwned",
                         "param": 3
                       }
                     ],
@@ -249,7 +249,7 @@
                     "conditions":
                     [
                       {
-                        "condition": 6,
+                        "condition": "WeaponSlotOwned",
                         "param": 3
                       }
                     ],
@@ -268,7 +268,7 @@
                     "conditions":
                     [
                       {
-                        "condition": 7,
+                        "condition": "WeaponSlotNotOwned",
                         "param": 4
                       }
                     ],
@@ -287,7 +287,7 @@
                     "conditions":
                     [
                       {
-                        "condition": 6,
+                        "condition": "WeaponSlotOwned",
                         "param": 4
                       }
                     ],
@@ -306,7 +306,7 @@
                     "conditions":
                     [
                       {
-                        "condition": 7,
+                        "condition": "WeaponSlotNotOwned",
                         "param": 5
                       }
                     ],
@@ -325,7 +325,7 @@
                     "conditions":
                     [
                       {
-                        "condition": 6,
+                        "condition": "WeaponSlotOwned",
                         "param": 5
                       }
                     ],
@@ -344,7 +344,7 @@
                     "conditions":
                     [
                       {
-                        "condition": 7,
+                        "condition": "WeaponSlotNotOwned",
                         "param": 6
                       }
                     ],
@@ -363,7 +363,7 @@
                     "conditions":
                     [
                       {
-                        "condition": 6,
+                        "condition": "WeaponSlotOwned",
                         "param": 6
                       }
                     ],
@@ -382,7 +382,7 @@
                     "conditions":
                     [
                       {
-                        "condition": 7,
+                        "condition": "WeaponSlotNotOwned",
                         "param": 7
                       }
                     ],
@@ -401,7 +401,7 @@
                     "conditions":
                     [
                       {
-                        "condition": 6,
+                        "condition": "WeaponSlotOwned",
                         "param": 7
                       }
                     ],
@@ -420,7 +420,7 @@
               "font": "SmallYellow",
               "tranmap": null,
               "translation": null,
-              "type": 3,
+              "type": "Ammo",
               "param": 0,
               "maxlength": 3,
               "conditions": null,
@@ -436,7 +436,7 @@
               "font": "SmallYellow",
               "tranmap": null,
               "translation": null,
-              "type": 5,
+              "type": "MaxAmmo",
               "param": 0,
               "maxlength": 3,
               "conditions": null,
@@ -452,7 +452,7 @@
               "font": "SmallYellow",
               "tranmap": null,
               "translation": null,
-              "type": 3,
+              "type": "Ammo",
               "param": 1,
               "maxlength": 3,
               "conditions": null,
@@ -468,7 +468,7 @@
               "font": "SmallYellow",
               "tranmap": null,
               "translation": null,
-              "type": 5,
+              "type": "MaxAmmo",
               "param": 1,
               "maxlength": 3,
               "conditions": null,
@@ -484,7 +484,7 @@
               "font": "SmallYellow",
               "tranmap": null,
               "translation": null,
-              "type": 3,
+              "type": "Frags",
               "param": 3,
               "maxlength": 3,
               "conditions": null,
@@ -500,7 +500,7 @@
               "font": "SmallYellow",
               "tranmap": null,
               "translation": null,
-              "type": 5,
+              "type": "MaxAmmo",
               "param": 3,
               "maxlength": 3,
               "conditions": null,
@@ -516,7 +516,7 @@
               "font": "SmallYellow",
               "tranmap": null,
               "translation": null,
-              "type": 3,
+              "type": "Ammo",
               "param": 2,
               "maxlength": 3,
               "conditions": null,
@@ -532,7 +532,7 @@
               "font": "SmallYellow",
               "tranmap": null,
               "translation": null,
-              "type": 5,
+              "type": "MaxAmmo",
               "param": 2,
               "maxlength": 3,
               "conditions": null,
@@ -551,12 +551,12 @@
               "conditions":
               [
                 {
-                  "condition": 10,
-                  "param": 1
+                  "condition": "ItemOwned",
+                  "param": "BlueCard"
                 },
                 {
-                  "condition": 11,
-                  "param": 4
+                  "condition": "ItemNotOwned",
+                  "param": "BlueSkull"
                 }
               ],
               "children": null
@@ -574,12 +574,12 @@
               "conditions":
               [
                 {
-                  "condition": 11,
-                  "param": 1
+                  "condition": "ItemNotOwned",
+                  "param": "BlueCard"
                 },
                 {
-                  "condition": 10,
-                  "param": 4
+                  "condition": "ItemOwned",
+                  "param": "BlueSkull"
                 }
               ],
               "children": null
@@ -597,15 +597,15 @@
               "conditions":
               [
                 {
-                  "condition": 10,
-                  "param": 1
+                  "condition": "ItemOwned",
+                  "param": "BlueCard"
                 },
                 {
-                  "condition": 10,
-                  "param": 4
+                  "condition": "ItemOwned",
+                  "param": "BlueSkull"
                 },
                 {
-                  "condition": 13,
+                  "condition": "FeatureLevelLess",
                   "param": 1
                 }
               ],
@@ -624,15 +624,15 @@
               "conditions":
               [
                 {
-                  "condition": 10,
-                  "param": 1
+                  "condition": "ItemOwned",
+                  "param": "BlueCard"
                 },
                 {
-                  "condition": 10,
-                  "param": 4
+                  "condition": "ItemOwned",
+                  "param": "BlueSkull"
                 },
                 {
-                  "condition": 12,
+                  "condition": "FeatureLevelGreaterEqual",
                   "param": 1
                 }
               ],
@@ -651,12 +651,12 @@
               "conditions":
               [
                 {
-                  "condition": 10,
-                  "param": 2
+                  "condition": "ItemOwned",
+                  "param": "YellowCard"
                 },
                 {
-                  "condition": 11,
-                  "param": 5
+                  "condition": "ItemNotOwned",
+                  "param": "YellowSkull"
                 }
               ],
               "children": null
@@ -674,12 +674,12 @@
               "conditions":
               [
                 {
-                  "condition": 11,
-                  "param": 2
+                  "condition": "ItemNotOwned",
+                  "param": "YellowCard"
                 },
                 {
-                  "condition": 10,
-                  "param": 5
+                  "condition": "ItemOwned",
+                  "param": "YellowSkull"
                 }
               ],
               "children": null
@@ -697,15 +697,15 @@
               "conditions":
               [
                 {
-                  "condition": 10,
-                  "param": 2
+                  "condition": "ItemOwned",
+                  "param": "YellowCard"
                 },
                 {
-                  "condition": 10,
-                  "param": 5
+                  "condition": "ItemOwned",
+                  "param": "YellowSkull"
                 },
                 {
-                  "condition": 13,
+                  "condition": "FeatureLevelLess",
                   "param": 1
                 }
               ],
@@ -724,15 +724,15 @@
               "conditions":
               [
                 {
-                  "condition": 10,
-                  "param": 2
+                  "condition": "ItemOwned",
+                  "param": "YellowCard"
                 },
                 {
-                  "condition": 10,
-                  "param": 5
+                  "condition": "ItemOwned",
+                  "param": "YellowSkull"
                 },
                 {
-                  "condition": 12,
+                  "condition": "FeatureLevelGreaterEqual",
                   "param": 1
                 }
               ],
@@ -751,12 +751,12 @@
               "conditions":
               [
                 {
-                  "condition": 10,
-                  "param": 3
+                  "condition": "ItemOwned",
+                  "param": "RedCard"
                 },
                 {
-                  "condition": 11,
-                  "param": 6
+                  "condition": "ItemNotOwned",
+                  "param": "RedSkull"
                 }
               ],
               "children": null
@@ -774,12 +774,12 @@
               "conditions":
               [
                 {
-                  "condition": 11,
-                  "param": 3
+                  "condition": "ItemNotOwned",
+                  "param": "RedCard"
                 },
                 {
-                  "condition": 10,
-                  "param": 6
+                  "condition": "ItemOwned",
+                  "param": "RedSkull"
                 }
               ],
               "children": null
@@ -797,15 +797,15 @@
               "conditions":
               [
                 {
-                  "condition": 10,
-                  "param": 3
+                  "condition": "ItemOwned",
+                  "param": "RedCard"
                 },
                 {
-                  "condition": 10,
-                  "param": 6
+                  "condition": "ItemOwned",
+                  "param": "RedSkull"
                 },
                 {
-                  "condition": 13,
+                  "condition": "FeatureLevelLess",
                   "param": 1
                 }
               ],
@@ -824,15 +824,15 @@
               "conditions":
               [
                 {
-                  "condition": 10,
-                  "param": 3
+                  "condition": "ItemOwned",
+                  "param": "RedCard"
                 },
                 {
-                  "condition": 10,
-                  "param": 6
+                  "condition": "ItemOwned",
+                  "param": "RedSkull"
                 },
                 {
-                  "condition": 12,
+                  "condition": "FeatureLevelGreaterEqual",
                   "param": 1
                 }
               ],
@@ -847,12 +847,12 @@
               "alignment": 16,
               "tranmap": null,
               "translation": null,
-              "type": 0,
+              "type": "monsec",
               "font": "Digits",
               "conditions":
               [
                 {
-                  "condition": 19,
+                  "condition": "WidgetMode",
                   "param": 4
                 }
               ],
@@ -867,17 +867,17 @@
               "alignment": 16,
               "tranmap": null,
               "translation": null,
-              "type": 1,
+              "type": "time",
               "font": "Digits",
               "conditions":
               [
                 {
-                  "condition": 19,
+                  "condition": "WidgetMode",
                   "param": 4
                 },
                 {
-                  "condition": 20,
-                  "param": 0
+                  "condition": "WidgetEnabled",
+                  "param": "monsec"
                 }
               ],
               "children": null
@@ -891,17 +891,17 @@
               "alignment": 16,
               "tranmap": null,
               "translation": null,
-              "type": 1,
+              "type": "time",
               "font": "Digits",
               "conditions":
               [
                 {
-                  "condition": 19,
+                  "condition": "WidgetMode",
                   "param": 4
                 },
                 {
-                  "condition": 21,
-                  "param": 0
+                  "condition": "WidgetDisabled",
+                  "param": "monsec"
                 }
               ],
               "children": null
@@ -915,13 +915,13 @@
               "alignment": 16,
               "tranmap": null,
               "translation": null,
-              "type": 0,
+              "type": "monsec",
               "font": "Digits",
               "vertical": true,
               "conditions":
               [
                 {
-                  "condition": 19,
+                  "condition": "WidgetMode",
                   "param": 3
                 }
               ],
@@ -936,12 +936,12 @@
               "alignment": 16,
               "tranmap": null,
               "translation": null,
-              "type": 1,
+              "type": "time",
               "font": "Digits",
               "conditions":
               [
                 {
-                  "condition": 19,
+                  "condition": "WidgetMode",
                   "param": 3
                 }
               ],
@@ -956,12 +956,12 @@
               "alignment": 34,
               "tranmap": null,
               "translation": null,
-              "type": 2,
+              "type": "coord",
               "font": "Digits",
               "conditions":
               [
                 {
-                  "condition": 19,
+                  "condition": "WidgetMode",
                   "param": 4
                 }
               ],
@@ -976,13 +976,13 @@
               "alignment": 32,
               "tranmap": null,
               "translation": null,
-              "type": 2,
+              "type": "coord",
               "font": "Digits",
               "vertical": true,
               "conditions":
               [
                 {
-                  "condition": 19,
+                  "condition": "WidgetMode",
                   "param": 3
                 }
               ],
@@ -997,7 +997,7 @@
               "alignment": 34,
               "tranmap": null,
               "translation": null,
-              "type": 3,
+              "type": "fps",
               "font": "Digits",
               "conditions": null,
               "children": null
@@ -1011,7 +1011,7 @@
               "alignment": 0,
               "tranmap": null,
               "translation": null,
-              "type": 4,
+              "type": "rate",
               "font": "Digits",
               "conditions": null,
               "children": null
@@ -1025,7 +1025,7 @@
               "alignment": 42,
               "tranmap": null,
               "translation": null,
-              "type": 5,
+              "type": "cmd",
               "font": "Digits",
               "conditions": null,
               "children": null
@@ -1039,7 +1039,7 @@
               "alignment": 9,
               "tranmap": null,
               "translation": null,
-              "type": 6,
+              "type": "speed",
               "font": "Digits",
               "conditions": null,
               "children": null
@@ -1053,7 +1053,7 @@
               "alignment": 16,
               "tranmap": null,
               "translation": null,
-              "type": 7,
+              "type": "message",
               "font": "Console",
               "duration": 4,
               "conditions": null,
@@ -1068,7 +1068,7 @@
               "alignment": 1,
               "tranmap": null,
               "translation": null,
-              "type": 8,
+              "type": "announce",
               "font": "Console",
               "duration": 2.5,
               "conditions": null,
@@ -1083,7 +1083,7 @@
               "alignment": 16,
               "tranmap": null,
               "translation": "CRGOLD",
-              "type": 9,
+              "type": "chat",
               "font": "Console",
               "conditions": null,
               "children": null
@@ -1097,12 +1097,12 @@
               "alignment": 16,
               "tranmap": null,
               "translation": "CRGOLD",
-              "type": 10,
+              "type": "title",
               "font": "Console",
               "conditions":
               [
                 {
-                  "condition": 19,
+                  "condition": "WidgetMode",
                   "param": 3
                 }
               ],
@@ -1140,7 +1140,7 @@
               "conditions":
               [
                 {
-                  "condition": 18,
+                  "condition": "HudModeEqual",
                   "param": 0
                 }
               ],
@@ -1157,8 +1157,8 @@
                     "conditions":
                     [
                       {
-                        "condition": 15,
-                        "param": 0
+                        "condition": "SessionTypeNotEqual",
+                        "param": "SinglePlayer"
                       }
                     ],
                     "children": null
@@ -1185,7 +1185,7 @@
                     "font": "BigRed",
                     "tranmap": null,
                     "translation": null,
-                    "type": 0,
+                    "type": "Health",
                     "param": 0,
                     "maxlength": 3,
                     "conditions": null,
@@ -1204,7 +1204,7 @@
                     "conditions":
                     [
                       {
-                        "condition": 5,
+                        "condition": "SelectedWeaponAmmoType",
                         "param": 0
                       }
                     ],
@@ -1223,7 +1223,7 @@
                     "conditions":
                     [
                       {
-                        "condition": 5,
+                        "condition": "SelectedWeaponAmmoType",
                         "param": 1
                       }
                     ],
@@ -1242,7 +1242,7 @@
                     "conditions":
                     [
                       {
-                        "condition": 5,
+                        "condition": "SelectedWeaponAmmoType",
                         "param": 2
                       }
                     ],
@@ -1261,7 +1261,7 @@
                     "conditions":
                     [
                       {
-                        "condition": 5,
+                        "condition": "SelectedWeaponAmmoType",
                         "param": 3
                       }
                     ],
@@ -1283,7 +1283,7 @@
                     "conditions":
                     [
                       {
-                        "condition": 4,
+                        "condition": "SelectedWeaponHasAmmo",
                         "param": 0
                       }
                     ],
@@ -1302,8 +1302,8 @@
                     "conditions":
                     [
                       {
-                        "condition": 11,
-                        "param": 15
+                        "condition": "ItemNotOwned",
+                        "param": "BlueArmor"
                       }
                     ],
                     "children": null
@@ -1321,8 +1321,8 @@
                     "conditions":
                     [
                       {
-                        "condition": 10,
-                        "param": 15
+                        "condition": "ItemOwned",
+                        "param": "BlueArmor"
                       }
                     ],
                     "children": null
@@ -1337,7 +1337,7 @@
                     "font": "BigRed",
                     "tranmap": null,
                     "translation": null,
-                    "type": 1,
+                    "type": "Armor",
                     "param": 0,
                     "maxlength": 3,
                     "conditions": null,
@@ -1353,14 +1353,14 @@
                     "font": "BigRed",
                     "tranmap": null,
                     "translation": null,
-                    "type": 2,
+                    "type": "Frags",
                     "param": 0,
                     "maxlength": 2,
                     "conditions":
                     [
                       {
-                        "condition": 14,
-                        "param": 2
+                        "condition": "SessionTypeEqual",
+                        "param": "Deathmatch"
                       }
                     ],
                     "children": null
@@ -1389,12 +1389,12 @@
                           "conditions":
                           [
                             {
-                              "condition": 10,
-                              "param": 1
+                              "condition": "ItemOwned",
+                              "param": "BlueCard"
                             },
                             {
-                              "condition": 11,
-                              "param": 4
+                              "condition": "ItemNotOwned",
+                              "param": "BlueSkull"
                             }
                           ],
                           "children": null
@@ -1412,12 +1412,12 @@
                           "conditions":
                           [
                             {
-                              "condition": 11,
-                              "param": 1
+                              "condition": "ItemNotOwned",
+                              "param": "BlueCard"
                             },
                             {
-                              "condition": 10,
-                              "param": 4
+                              "condition": "ItemOwned",
+                              "param": "BlueSkull"
                             }
                           ],
                           "children": null
@@ -1435,15 +1435,15 @@
                           "conditions":
                           [
                             {
-                              "condition": 10,
-                              "param": 1
+                              "condition": "ItemOwned",
+                              "param": "BlueCard"
                             },
                             {
-                              "condition": 10,
-                              "param": 4
+                              "condition": "ItemOwned",
+                              "param": "BlueSkull"
                             },
                             {
-                              "condition": 13,
+                              "condition": "FeatureLevelLess",
                               "param": 1
                             }
                           ],
@@ -1462,15 +1462,15 @@
                           "conditions":
                           [
                             {
-                              "condition": 10,
-                              "param": 1
+                              "condition": "ItemOwned",
+                              "param": "BlueCard"
                             },
                             {
-                              "condition": 10,
-                              "param": 4
+                              "condition": "ItemOwned",
+                              "param": "BlueSkull"
                             },
                             {
-                              "condition": 12,
+                              "condition": "FeatureLevelGreaterEqual",
                               "param": 1
                             }
                           ],
@@ -1489,12 +1489,12 @@
                           "conditions":
                           [
                             {
-                              "condition": 10,
-                              "param": 2
+                              "condition": "ItemOwned",
+                              "param": "YellowCard"
                             },
                             {
-                              "condition": 11,
-                              "param": 5
+                              "condition": "ItemNotOwned",
+                              "param": "YellowSkull"
                             }
                           ],
                           "children": null
@@ -1512,12 +1512,12 @@
                           "conditions":
                           [
                             {
-                              "condition": 11,
-                              "param": 2
+                              "condition": "ItemNotOwned",
+                              "param": "YellowCard"
                             },
                             {
-                              "condition": 10,
-                              "param": 5
+                              "condition": "ItemOwned",
+                              "param": "YellowSkull"
                             }
                           ],
                           "children": null
@@ -1535,15 +1535,15 @@
                           "conditions":
                           [
                             {
-                              "condition": 10,
-                              "param": 2
+                              "condition": "ItemOwned",
+                              "param": "YellowCard"
                             },
                             {
-                              "condition": 10,
-                              "param": 5
+                              "condition": "ItemOwned",
+                              "param": "YellowSkull"
                             },
                             {
-                              "condition": 13,
+                              "condition": "FeatureLevelLess",
                               "param": 1
                             }
                           ],
@@ -1562,15 +1562,15 @@
                           "conditions":
                           [
                             {
-                              "condition": 10,
-                              "param": 2
+                              "condition": "ItemOwned",
+                              "param": "YellowCard"
                             },
                             {
-                              "condition": 10,
-                              "param": 5
+                              "condition": "ItemOwned",
+                              "param": "YellowSkull"
                             },
                             {
-                              "condition": 12,
+                              "condition": "FeatureLevelGreaterEqual",
                               "param": 1
                             }
                           ],
@@ -1589,12 +1589,12 @@
                           "conditions":
                           [
                             {
-                              "condition": 10,
-                              "param": 3
+                              "condition": "ItemOwned",
+                              "param": "RedCard"
                             },
                             {
-                              "condition": 11,
-                              "param": 6
+                              "condition": "ItemNotOwned",
+                              "param": "RedSkull"
                             }
                           ],
                           "children": null
@@ -1612,12 +1612,12 @@
                           "conditions":
                           [
                             {
-                              "condition": 11,
-                              "param": 3
+                              "condition": "ItemNotOwned",
+                              "param": "RedCard"
                             },
                             {
-                              "condition": 10,
-                              "param": 6
+                              "condition": "ItemOwned",
+                              "param": "RedSkull"
                             }
                           ],
                           "children": null
@@ -1635,15 +1635,15 @@
                           "conditions":
                           [
                             {
-                              "condition": 10,
-                              "param": 3
+                              "condition": "ItemOwned",
+                              "param": "RedCard"
                             },
                             {
-                              "condition": 10,
-                              "param": 6
+                              "condition": "ItemOwned",
+                              "param": "RedSkull"
                             },
                             {
-                              "condition": 13,
+                              "condition": "FeatureLevelLess",
                               "param": 1
                             }
                           ],
@@ -1662,15 +1662,15 @@
                           "conditions":
                           [
                             {
-                              "condition": 10,
-                              "param": 3
+                              "condition": "ItemOwned",
+                              "param": "RedCard"
                             },
                             {
-                              "condition": 10,
-                              "param": 6
+                              "condition": "ItemOwned",
+                              "param": "RedSkull"
                             },
                             {
-                              "condition": 12,
+                              "condition": "FeatureLevelGreaterEqual",
                               "param": 1
                             }
                           ],
@@ -1688,12 +1688,12 @@
                     "alignment": 16,
                     "tranmap": null,
                     "translation": null,
-                    "type": 0,
+                    "type": "monsec",
                     "font": "Digits",
                     "conditions":
                     [
                       {
-                        "condition": 19,
+                        "condition": "WidgetMode",
                         "param": 4
                       }
                     ],
@@ -1708,17 +1708,17 @@
                     "alignment": 16,
                     "tranmap": null,
                     "translation": null,
-                    "type": 1,
+                    "type": "time",
                     "font": "Digits",
                     "conditions":
                     [
                       {
-                        "condition": 19,
+                        "condition": "WidgetMode",
                         "param": 4
                       },
                       {
-                        "condition": 20,
-                        "param": 0
+                        "condition": "WidgetEnabled",
+                        "param": "monsec"
                       }
                     ],
                     "children": null
@@ -1732,17 +1732,17 @@
                     "alignment": 16,
                     "tranmap": null,
                     "translation": null,
-                    "type": 1,
+                    "type": "time",
                     "font": "Digits",
                     "conditions":
                     [
                       {
-                        "condition": 19,
+                        "condition": "WidgetMode",
                         "param": 4
                       },
                       {
-                        "condition": 21,
-                        "param": 0
+                        "condition": "WidgetDisabled",
+                        "param": "monsec"
                       }
                     ],
                     "children": null
@@ -1756,13 +1756,13 @@
                     "alignment": 16,
                     "tranmap": null,
                     "translation": null,
-                    "type": 0,
+                    "type": "monsec",
                     "font": "Digits",
                     "vertical": true,
                     "conditions":
                     [
                       {
-                        "condition": 19,
+                        "condition": "WidgetMode",
                         "param": 3
                       }
                     ],
@@ -1777,12 +1777,12 @@
                     "alignment": 16,
                     "tranmap": null,
                     "translation": null,
-                    "type": 1,
+                    "type": "time",
                     "font": "Digits",
                     "conditions":
                     [
                       {
-                        "condition": 19,
+                        "condition": "WidgetMode",
                         "param": 3
                       }
                     ],
@@ -1797,12 +1797,12 @@
                     "alignment": 34,
                     "tranmap": null,
                     "translation": null,
-                    "type": 2,
+                    "type": "coord",
                     "font": "Digits",
                     "conditions":
                     [
                       {
-                        "condition": 19,
+                        "condition": "WidgetMode",
                         "param": 4
                       }
                     ],
@@ -1817,13 +1817,13 @@
                     "alignment": 32,
                     "tranmap": null,
                     "translation": null,
-                    "type": 2,
+                    "type": "coord",
                     "font": "Digits",
                     "vertical": true,
                     "conditions":
                     [
                       {
-                        "condition": 19,
+                        "condition": "WidgetMode",
                         "param": 3
                       }
                     ],
@@ -1838,7 +1838,7 @@
                     "alignment": 34,
                     "tranmap": null,
                     "translation": null,
-                    "type": 3,
+                    "type": "fps",
                     "font": "Digits",
                     "conditions": null,
                     "children": null
@@ -1852,7 +1852,7 @@
                     "alignment": 0,
                     "tranmap": null,
                     "translation": null,
-                    "type": 4,
+                    "type": "rate",
                     "font": "Digits",
                     "conditions": null,
                     "children": null
@@ -1866,7 +1866,7 @@
                     "alignment": 42,
                     "tranmap": null,
                     "translation": null,
-                    "type": 5,
+                    "type": "cmd",
                     "font": "Digits",
                     "conditions": null,
                     "children": null
@@ -1880,7 +1880,7 @@
                     "alignment": 9,
                     "tranmap": null,
                     "translation": null,
-                    "type": 6,
+                    "type": "speed",
                     "font": "Digits",
                     "conditions": null,
                     "children": null
@@ -1894,7 +1894,7 @@
                     "alignment": 16,
                     "tranmap": null,
                     "translation": null,
-                    "type": 7,
+                    "type": "message",
                     "font": "Console",
                     "duration": 4,
                     "conditions": null,
@@ -1909,7 +1909,7 @@
                     "alignment": 1,
                     "tranmap": null,
                     "translation": null,
-                    "type": 8,
+                    "type": "announce",
                     "font": "Console",
                     "duration": 2.5,
                     "conditions": null,
@@ -1924,7 +1924,7 @@
                     "alignment": 16,
                     "tranmap": null,
                     "translation": "CRGOLD",
-                    "type": 9,
+                    "type": "chat",
                     "font": "Console",
                     "conditions": null,
                     "children": null
@@ -1938,12 +1938,12 @@
                     "alignment": 16,
                     "tranmap": null,
                     "translation": "CRGOLD",
-                    "type": 10,
+                    "type": "title",
                     "font": "Console",
                     "conditions":
                     [
                       {
-                        "condition": 19,
+                        "condition": "WidgetMode",
                         "param": 2
                       }
                     ],
@@ -1982,13 +1982,13 @@
               "font": "BigRed",
               "tranmap": null,
               "translation": null,
-              "type": 4,
+              "type": "AmmoSelected",
               "param": 0,
               "maxlength": 3,
               "conditions":
               [
                 {
-                  "condition": 4,
+                  "condition": "SelectedWeaponHasAmmo",
                   "param": 0
                 }
               ],
@@ -2004,7 +2004,7 @@
               "font": "BigRed",
               "tranmap": null,
               "translation": null,
-              "type": 0,
+              "type": "Health",
               "param": 0,
               "maxlength": 3,
               "conditions": null,
@@ -2020,7 +2020,7 @@
               "font": "BigRed",
               "tranmap": null,
               "translation": null,
-              "type": 1,
+              "type": "Armor",
               "param": 0,
               "maxlength": 3,
               "conditions": null,
@@ -2036,14 +2036,14 @@
               "font": "BigRed",
               "tranmap": null,
               "translation": null,
-              "type": 2,
+              "type": "Frags",
               "param": 0,
               "maxlength": 2,
               "conditions":
               [
                 {
-                  "condition": 14,
-                  "param": 2
+                  "condition": "SessionTypeEqual",
+                  "param": "Deathmatch"
                 }
               ],
               "children": null
@@ -2058,8 +2058,8 @@
               "conditions":
               [
                 {
-                  "condition": 15,
-                  "param": 2
+                  "condition": "SessionTypeNotEqual",
+                  "param": "Deathmatch"
                 }
               ],
               "children":
@@ -2076,7 +2076,7 @@
                     "conditions":
                     [
                       {
-                        "condition": 7,
+                        "condition": "WeaponSlotNotOwned",
                         "param": 2
                       }
                     ],
@@ -2095,7 +2095,7 @@
                     "conditions":
                     [
                       {
-                        "condition": 6,
+                        "condition": "WeaponSlotOwned",
                         "param": 2
                       }
                     ],
@@ -2114,7 +2114,7 @@
                     "conditions":
                     [
                       {
-                        "condition": 7,
+                        "condition": "WeaponSlotNotOwned",
                         "param": 3
                       }
                     ],
@@ -2133,7 +2133,7 @@
                     "conditions":
                     [
                       {
-                        "condition": 6,
+                        "condition": "WeaponSlotOwned",
                         "param": 3
                       }
                     ],
@@ -2152,7 +2152,7 @@
                     "conditions":
                     [
                       {
-                        "condition": 7,
+                        "condition": "WeaponSlotNotOwned",
                         "param": 4
                       }
                     ],
@@ -2171,7 +2171,7 @@
                     "conditions":
                     [
                       {
-                        "condition": 6,
+                        "condition": "WeaponSlotOwned",
                         "param": 4
                       }
                     ],
@@ -2190,7 +2190,7 @@
                     "conditions":
                     [
                       {
-                        "condition": 7,
+                        "condition": "WeaponSlotNotOwned",
                         "param": 5
                       }
                     ],
@@ -2209,7 +2209,7 @@
                     "conditions":
                     [
                       {
-                        "condition": 6,
+                        "condition": "WeaponSlotOwned",
                         "param": 5
                       }
                     ],
@@ -2228,7 +2228,7 @@
                     "conditions":
                     [
                       {
-                        "condition": 7,
+                        "condition": "WeaponSlotNotOwned",
                         "param": 6
                       }
                     ],
@@ -2247,7 +2247,7 @@
                     "conditions":
                     [
                       {
-                        "condition": 6,
+                        "condition": "WeaponSlotOwned",
                         "param": 6
                       }
                     ],
@@ -2266,7 +2266,7 @@
                     "conditions":
                     [
                       {
-                        "condition": 7,
+                        "condition": "WeaponSlotNotOwned",
                         "param": 7
                       }
                     ],
@@ -2285,7 +2285,7 @@
                     "conditions":
                     [
                       {
-                        "condition": 6,
+                        "condition": "WeaponSlotOwned",
                         "param": 7
                       }
                     ],
@@ -2304,7 +2304,7 @@
               "font": "SmallYellow",
               "tranmap": null,
               "translation": null,
-              "type": 3,
+              "type": "Ammo",
               "param": 0,
               "maxlength": 3,
               "conditions": null,
@@ -2320,7 +2320,7 @@
               "font": "SmallYellow",
               "tranmap": null,
               "translation": null,
-              "type": 5,
+              "type": "MaxAmmo",
               "param": 0,
               "maxlength": 3,
               "conditions": null,
@@ -2336,7 +2336,7 @@
               "font": "SmallYellow",
               "tranmap": null,
               "translation": null,
-              "type": 3,
+              "type": "Ammo",
               "param": 1,
               "maxlength": 3,
               "conditions": null,
@@ -2352,7 +2352,7 @@
               "font": "SmallYellow",
               "tranmap": null,
               "translation": null,
-              "type": 5,
+              "type": "MaxAmmo",
               "param": 1,
               "maxlength": 3,
               "conditions": null,
@@ -2368,7 +2368,7 @@
               "font": "SmallYellow",
               "tranmap": null,
               "translation": null,
-              "type": 3,
+              "type": "Ammo",
               "param": 3,
               "maxlength": 3,
               "conditions": null,
@@ -2384,7 +2384,7 @@
               "font": "SmallYellow",
               "tranmap": null,
               "translation": null,
-              "type": 5,
+              "type": "MaxAmmo",
               "param": 3,
               "maxlength": 3,
               "conditions": null,
@@ -2400,7 +2400,7 @@
               "font": "SmallYellow",
               "tranmap": null,
               "translation": null,
-              "type": 3,
+              "type": "Ammo",
               "param": 2,
               "maxlength": 3,
               "conditions": null,
@@ -2416,7 +2416,7 @@
               "font": "SmallYellow",
               "tranmap": null,
               "translation": null,
-              "type": 5,
+              "type": "MaxAmmo",
               "param": 2,
               "maxlength": 3,
               "conditions": null,
@@ -2435,12 +2435,12 @@
               "conditions":
               [
                 {
-                  "condition": 10,
-                  "param": 1
+                  "condition": "ItemOwned",
+                  "param": "BlueCard"
                 },
                 {
-                  "condition": 11,
-                  "param": 4
+                  "condition": "ItemNotOwned",
+                  "param": "BlueSkull"
                 }
               ],
               "children": null
@@ -2458,12 +2458,12 @@
               "conditions":
               [
                 {
-                  "condition": 11,
-                  "param": 1
+                  "condition": "ItemNotOwned",
+                  "param": "BlueCard"
                 },
                 {
-                  "condition": 10,
-                  "param": 4
+                  "condition": "ItemOwned",
+                  "param": "BlueSkull"
                 }
               ],
               "children": null
@@ -2481,15 +2481,15 @@
               "conditions":
               [
                 {
-                  "condition": 10,
-                  "param": 1
+                  "condition": "ItemOwned",
+                  "param": "BlueCard"
                 },
                 {
-                  "condition": 10,
-                  "param": 4
+                  "condition": "ItemOwned",
+                  "param": "BlueSkull"
                 },
                 {
-                  "condition": 13,
+                  "condition": "FeatureLevelLess",
                   "param": 1
                 }
               ],
@@ -2508,15 +2508,15 @@
               "conditions":
               [
                 {
-                  "condition": 10,
-                  "param": 1
+                  "condition": "ItemOwned",
+                  "param": "BlueCard"
                 },
                 {
-                  "condition": 10,
-                  "param": 4
+                  "condition": "ItemOwned",
+                  "param": "BlueSkull"
                 },
                 {
-                  "condition": 12,
+                  "condition": "FeatureLevelGreaterEqual",
                   "param": 1
                 }
               ],
@@ -2535,12 +2535,12 @@
               "conditions":
               [
                 {
-                  "condition": 10,
-                  "param": 2
+                  "condition": "ItemOwned",
+                  "param": "YellowCard"
                 },
                 {
-                  "condition": 11,
-                  "param": 5
+                  "condition": "ItemNotOwned",
+                  "param": "YellowSkull"
                 }
               ],
               "children": null
@@ -2558,12 +2558,12 @@
               "conditions":
               [
                 {
-                  "condition": 11,
-                  "param": 2
+                  "condition": "ItemNotOwned",
+                  "param": "YellowCard"
                 },
                 {
-                  "condition": 10,
-                  "param": 5
+                  "condition": "ItemOwned",
+                  "param": "YellowSkull"
                 }
               ],
               "children": null
@@ -2581,15 +2581,15 @@
               "conditions":
               [
                 {
-                  "condition": 10,
-                  "param": 2
+                  "condition": "ItemOwned",
+                  "param": "YellowCard"
                 },
                 {
-                  "condition": 10,
-                  "param": 5
+                  "condition": "ItemOwned",
+                  "param": "YellowSkull"
                 },
                 {
-                  "condition": 13,
+                  "condition": "FeatureLevelLess",
                   "param": 1
                 }
               ],
@@ -2608,15 +2608,15 @@
               "conditions":
               [
                 {
-                  "condition": 10,
-                  "param": 2
+                  "condition": "ItemOwned",
+                  "param": "YellowCard"
                 },
                 {
-                  "condition": 10,
-                  "param": 5
+                  "condition": "ItemOwned",
+                  "param": "YellowSkull"
                 },
                 {
-                  "condition": 12,
+                  "condition": "FeatureLevelGreaterEqual",
                   "param": 1
                 }
               ],
@@ -2635,12 +2635,12 @@
               "conditions":
               [
                 {
-                  "condition": 10,
-                  "param": 3
+                  "condition": "ItemOwned",
+                  "param": "RedCard"
                 },
                 {
-                  "condition": 11,
-                  "param": 6
+                  "condition": "ItemNotOwned",
+                  "param": "RedSkull"
                 }
               ],
               "children": null
@@ -2658,12 +2658,12 @@
               "conditions":
               [
                 {
-                  "condition": 11,
-                  "param": 3
+                  "condition": "ItemNotOwned",
+                  "param": "RedCard"
                 },
                 {
-                  "condition": 10,
-                  "param": 6
+                  "condition": "ItemOwned",
+                  "param": "RedSkull"
                 }
               ],
               "children": null
@@ -2681,15 +2681,15 @@
               "conditions":
               [
                 {
-                  "condition": 10,
-                  "param": 3
+                  "condition": "ItemOwned",
+                  "param": "RedCard"
                 },
                 {
-                  "condition": 10,
-                  "param": 6
+                  "condition": "ItemOwned",
+                  "param": "RedSkull"
                 },
                 {
-                  "condition": 13,
+                  "condition": "FeatureLevelLess",
                   "param": 1
                 }
               ],
@@ -2708,15 +2708,15 @@
               "conditions":
               [
                 {
-                  "condition": 10,
-                  "param": 3
+                  "condition": "ItemOwned",
+                  "param": "RedCard"
                 },
                 {
-                  "condition": 10,
-                  "param": 6
+                  "condition": "ItemOwned",
+                  "param": "RedSkull"
                 },
                 {
-                  "condition": 12,
+                  "condition": "FeatureLevelGreaterEqual",
                   "param": 1
                 }
               ],
@@ -2731,12 +2731,12 @@
               "alignment": 16,
               "tranmap": null,
               "translation": null,
-              "type": 0,
+              "type": "monsec",
               "font": "Digits",
               "conditions":
               [
                 {
-                  "condition": 19,
+                  "condition": "WidgetMode",
                   "param": 4
                 }
               ],
@@ -2751,17 +2751,17 @@
               "alignment": 16,
               "tranmap": null,
               "translation": null,
-              "type": 1,
+              "type": "time",
               "font": "Digits",
               "conditions":
               [
                 {
-                  "condition": 19,
+                  "condition": "WidgetMode",
                   "param": 4
                 },
                 {
-                  "condition": 20,
-                  "param": 0
+                  "condition": "WidgetEnabled",
+                  "param": "monsec"
                 }
               ],
               "children": null
@@ -2775,17 +2775,17 @@
               "alignment": 16,
               "tranmap": null,
               "translation": null,
-              "type": 1,
+              "type": "time",
               "font": "Digits",
               "conditions":
               [
                 {
-                  "condition": 19,
+                  "condition": "WidgetMode",
                   "param": 4
                 },
                 {
-                  "condition": 21,
-                  "param": 0
+                  "condition": "WidgetDisabled",
+                  "param": "monsec"
                 }
               ],
               "children": null
@@ -2799,13 +2799,13 @@
               "alignment": 16,
               "tranmap": null,
               "translation": null,
-              "type": 0,
+              "type": "monsec",
               "font": "Digits",
               "vertical": true,
               "conditions":
               [
                 {
-                  "condition": 19,
+                  "condition": "WidgetMode",
                   "param": 3
                 }
               ],
@@ -2820,12 +2820,12 @@
               "alignment": 16,
               "tranmap": null,
               "translation": null,
-              "type": 1,
+              "type": "time",
               "font": "Digits",
               "conditions":
               [
                 {
-                  "condition": 19,
+                  "condition": "WidgetMode",
                   "param": 3
                 }
               ],
@@ -2840,12 +2840,12 @@
               "alignment": 34,
               "tranmap": null,
               "translation": null,
-              "type": 2,
+              "type": "coord",
               "font": "Digits",
               "conditions":
               [
                 {
-                  "condition": 19,
+                  "condition": "WidgetMode",
                   "param": 4
                 }
               ],
@@ -2860,13 +2860,13 @@
               "alignment": 32,
               "tranmap": null,
               "translation": null,
-              "type": 2,
+              "type": "coord",
               "font": "Digits",
               "vertical": true,
               "conditions":
               [
                 {
-                  "condition": 19,
+                  "condition": "WidgetMode",
                   "param": 3
                 }
               ],
@@ -2881,7 +2881,7 @@
               "alignment": 34,
               "tranmap": null,
               "translation": null,
-              "type": 3,
+              "type": "fps",
               "font": "Digits",
               "conditions": null,
               "children": null
@@ -2895,7 +2895,7 @@
               "alignment": 0,
               "tranmap": null,
               "translation": null,
-              "type": 4,
+              "type": "rate",
               "font": "Digits",
               "conditions": null,
               "children": null
@@ -2909,7 +2909,7 @@
               "alignment": 42,
               "tranmap": null,
               "translation": null,
-              "type": 5,
+              "type": "cmd",
               "font": "Digits",
               "conditions": null,
               "children": null
@@ -2923,7 +2923,7 @@
               "alignment": 9,
               "tranmap": null,
               "translation": null,
-              "type": 6,
+              "type": "speed",
               "font": "Digits",
               "conditions": null,
               "children": null
@@ -2937,7 +2937,7 @@
               "alignment": 16,
               "tranmap": null,
               "translation": null,
-              "type": 7,
+              "type": "message",
               "font": "Console",
               "duration": 4,
               "conditions": null,
@@ -2952,7 +2952,7 @@
               "alignment": 1,
               "tranmap": null,
               "translation": null,
-              "type": 8,
+              "type": "announce",
               "font": "Console",
               "duration": 2.5,
               "conditions": null,
@@ -2967,7 +2967,7 @@
               "alignment": 16,
               "tranmap": null,
               "translation": "CRGOLD",
-              "type": 9,
+              "type": "chat",
               "font": "Console",
               "conditions": null,
               "children": null
@@ -2981,12 +2981,12 @@
               "alignment": 16,
               "tranmap": null,
               "translation": "CRGOLD",
-              "type": 10,
+              "type": "title",
               "font": "Console",
               "conditions":
               [
                 {
-                  "condition": 19,
+                  "condition": "WidgetMode",
                   "param": 3
                 }
               ],
@@ -3021,12 +3021,12 @@
               "alignment": 16,
               "tranmap": null,
               "translation": null,
-              "type": 0,
+              "type": "monsec",
               "font": "Digits",
               "conditions":
               [
                 {
-                  "condition": 19,
+                  "condition": "WidgetMode",
                   "param": 4
                 }
               ],
@@ -3041,17 +3041,17 @@
               "alignment": 16,
               "tranmap": null,
               "translation": null,
-              "type": 1,
+              "type": "time",
               "font": "Digits",
               "conditions":
               [
                 {
-                  "condition": 19,
+                  "condition": "WidgetMode",
                   "param": 4
                 },
                 {
-                  "condition": 20,
-                  "param": 0
+                  "condition": "WidgetEnabled",
+                  "param": "monsec"
                 }
               ],
               "children": null
@@ -3065,17 +3065,17 @@
               "alignment": 16,
               "tranmap": null,
               "translation": null,
-              "type": 1,
+              "type": "time",
               "font": "Digits",
               "conditions":
               [
                 {
-                  "condition": 19,
+                  "condition": "WidgetMode",
                   "param": 4
                 },
                 {
-                  "condition": 21,
-                  "param": 0
+                  "condition": "WidgetDisabled",
+                  "param": "monsec"
                 }
               ],
               "children": null
@@ -3089,13 +3089,13 @@
               "alignment": 16,
               "tranmap": null,
               "translation": null,
-              "type": 0,
+              "type": "monsec",
               "font": "Digits",
               "vertical": true,
               "conditions":
               [
                 {
-                  "condition": 19,
+                  "condition": "WidgetMode",
                   "param": 3
                 }
               ],
@@ -3110,12 +3110,12 @@
               "alignment": 16,
               "tranmap": null,
               "translation": null,
-              "type": 1,
+              "type": "time",
               "font": "Digits",
               "conditions":
               [
                 {
-                  "condition": 19,
+                  "condition": "WidgetMode",
                   "param": 3
                 }
               ],
@@ -3130,12 +3130,12 @@
               "alignment": 34,
               "tranmap": null,
               "translation": null,
-              "type": 2,
+              "type": "coord",
               "font": "Digits",
               "conditions":
               [
                 {
-                  "condition": 19,
+                  "condition": "WidgetMode",
                   "param": 4
                 }
               ],
@@ -3150,13 +3150,13 @@
               "alignment": 32,
               "tranmap": null,
               "translation": null,
-              "type": 2,
+              "type": "coord",
               "font": "Digits",
               "vertical": true,
               "conditions":
               [
                 {
-                  "condition": 19,
+                  "condition": "WidgetMode",
                   "param": 3
                 }
               ],
@@ -3171,7 +3171,7 @@
               "alignment": 34,
               "tranmap": null,
               "translation": null,
-              "type": 3,
+              "type": "fps",
               "font": "Digits",
               "conditions": null,
               "children": null
@@ -3185,7 +3185,7 @@
               "alignment": 0,
               "tranmap": null,
               "translation": null,
-              "type": 4,
+              "type": "rate",
               "font": "Digits",
               "conditions": null,
               "children": null
@@ -3199,7 +3199,7 @@
               "alignment": 42,
               "tranmap": null,
               "translation": null,
-              "type": 5,
+              "type": "cmd",
               "font": "Digits",
               "conditions": null,
               "children": null
@@ -3213,7 +3213,7 @@
               "alignment": 9,
               "tranmap": null,
               "translation": null,
-              "type": 6,
+              "type": "speed",
               "font": "Digits",
               "conditions": null,
               "children": null
@@ -3227,7 +3227,7 @@
               "alignment": 16,
               "tranmap": null,
               "translation": null,
-              "type": 7,
+              "type": "message",
               "font": "Console",
               "duration": 4,
               "conditions": null,
@@ -3242,7 +3242,7 @@
               "alignment": 1,
               "tranmap": null,
               "translation": null,
-              "type": 8,
+              "type": "announce",
               "font": "Console",
               "duration": 2.5,
               "conditions": null,
@@ -3257,7 +3257,7 @@
               "alignment": 16,
               "tranmap": null,
               "translation": "CRGOLD",
-              "type": 9,
+              "type": "chat",
               "font": "Console",
               "conditions": null,
               "children": null
@@ -3271,12 +3271,12 @@
               "alignment": 16,
               "tranmap": null,
               "translation": "CRGOLD",
-              "type": 10,
+              "type": "title",
               "font": "Console",
               "conditions":
               [
                 {
-                  "condition": 19,
+                  "condition": "WidgetMode",
                   "param": 3
                 }
               ],

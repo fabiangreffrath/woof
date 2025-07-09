@@ -44,7 +44,7 @@ typedef enum
     sbc_itemnotowned,
     sbc_featurelevelgreaterequal,
     sbc_featurelevelless,
-    sbc_sessiontypeeequal,
+    sbc_sessiontypeequal,
     sbc_sessiontypenotequal,
     sbc_modeeequal,
     sbc_modenotequal,
@@ -113,6 +113,7 @@ typedef enum
 
 typedef enum
 {
+    sbw_none = -1,
     sbw_monsec,
     sbw_time,
     sbw_coord,
