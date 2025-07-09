@@ -441,7 +441,7 @@ static void DrawSkyTex(visplane_t *pl, sky_t *sky, skytex_t *skytex)
         }
     }
 
-    if (side && sky->stretcheable && stretchsky
+    if (side && sky->stretcheble && stretchsky
         && dc_texheight >= 128 && dc_texheight < 200)
     {
         dc_texturemid = dc_texturemid * dc_texheight / SKYSTRETCH_HEIGHT;

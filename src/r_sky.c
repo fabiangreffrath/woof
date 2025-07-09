@@ -165,7 +165,7 @@ void R_InitSkyMap(void)
             skyindex_t index = R_AddLevelsky(sky->foreground.texture);
             sky_t *foregroundsky = R_GetLevelsky(index);
             foregroundsky->background = sky->foreground;
-            foregroundsky->stretcheable = false;
+            foregroundsky->stretcheble = false;
         }
     }
 
@@ -227,7 +227,7 @@ void R_UpdateStretchSkies(void)
     sky_t *sky;
     array_foreach(sky, levelskies)
     {
-        if (sky->stretcheable)
+        if (sky->stretcheble)
         {
             StretchSky(sky);
         }
@@ -285,7 +285,7 @@ static skyindex_t AddLevelsky(int texture, side_t *side)
         new_sky.background.texture = texture;
         new_sky.background.scalex = FRACUNIT;
         new_sky.background.scaley = FRACUNIT;
-        new_sky.stretcheable = true;
+        new_sky.stretcheble = true;
     }
 
     if (side)
@@ -311,11 +311,11 @@ static skyindex_t AddLevelsky(int texture, side_t *side)
 
     if (new_sky.type == SkyType_Fire)
     {
-        new_sky.stretcheable = true;
+        new_sky.stretcheble = true;
         R_InitFireSky(&new_sky);
     }
 
-    if (new_sky.stretcheable)
+    if (new_sky.stretcheble)
     {
         StretchSky(&new_sky);
     }
