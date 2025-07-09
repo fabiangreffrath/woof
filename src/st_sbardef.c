@@ -32,6 +32,12 @@
 static numberfont_t *numberfonts;
 static hudfont_t *hudfonts;
 
+static const char *sbf_names[] = {
+    [sbf_mono0] = "mono0",
+    [sbf_monomax] = "monomax",
+    [sbf_proportional] = "proportional",
+};
+
 static const char *sbn_names[] = {
    [sbn_health] = "health",
    [sbn_armor] = "armor",
@@ -467,11 +473,11 @@ static boolean ParseNumberFont(json_t *json, numberfont_t *out)
     }
 
     json_t *type = JS_GetObject(json, "type");
-    if (!JS_IsNumber(type))
+    out->type = CheckNamedValue(type, sbf_names);
+    if (out->type == sbf_none)
     {
         return false;
     }
-    out->type = JS_GetInteger(type);
 
     char lump[9] = {0};
     int found;
@@ -578,11 +584,11 @@ static boolean ParseHUDFont(json_t *json, hudfont_t *out)
     out->stem = M_StringDuplicate(stem);
 
     json_t *type = JS_GetObject(json, "type");
-    if (!JS_IsNumber(type))
+    out->type = CheckNamedValue(type, sbf_names);
+    if (out->type == sbf_none)
     {
         return false;
     }
-    out->type = JS_GetInteger(type);
 
     LoadHUDFont(out);
 
@@ -636,7 +642,7 @@ static boolean ParseStatusBar(json_t *json, statusbar_t *out)
 
 sbardef_t *ST_ParseSbarDef(void)
 {
-    json_t *json = JS_Open("SBARDEF", "statusbar", (version_t){1, 1, 0});
+    json_t *json = JS_Open("SBARDEF", "statusbar", (version_t){1, 2, 0});
     if (json == NULL)
     {
         return NULL;
