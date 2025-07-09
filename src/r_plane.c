@@ -450,7 +450,7 @@ static void DrawSkyTex(visplane_t *pl, sky_t *sky, skytex_t *skytex)
 
     angle_t an = viewangle + deltax;
 
-    if (colfunc != R_DrawTLColumn && !vertically_scrolling)
+    if (colfunc != R_DrawTLColumn && !vertically_scrolling && dc_texheight >= 128)
     {
         // Make sure the fade-to-color effect doesn't happen too early
         fixed_t diff = dc_texturemid - SCREENHEIGHT / 2 * FRACUNIT;
@@ -460,7 +460,7 @@ static void DrawSkyTex(visplane_t *pl, sky_t *sky, skytex_t *skytex)
             diff %= textureheight[texture];
             dc_texturemid = SCREENHEIGHT / 2 * FRACUNIT + diff;
         }
-        dc_skycolor = skytex->color;
+        dc_skycolor = R_GetSkyColor(skytex->texture);
         colfunc = R_DrawSkyColumn;
     }
 
