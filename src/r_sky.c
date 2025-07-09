@@ -1,7 +1,6 @@
 //
 //  Copyright (C) 1999 by
 //  id Software, Chi Hoang, Lee Killough, Jim Flynn, Rand Phares, Ty Halderman
-//
 //  Copyright (C) 2025 by
 //  Fabian Greffrath, Roman Fomin, Guilherme Miranda
 //
@@ -34,9 +33,8 @@
 #include "m_fixed.h"
 #include "m_random.h"
 #include "r_data.h"
-#include "r_sky.h"
-#include "r_skydefs.h"
 #include "r_plane.h"
+#include "r_sky.h"
 #include "r_skydefs.h"
 #include "r_state.h"
 #include "w_wad.h"
@@ -58,6 +56,7 @@ static void SpreadFire(int src, byte *fire, int width)
 {
     const byte pixel = fire[src];
     const int copyloc0 = src - width;
+
     if (pixel == 0)
     {
         if (copyloc0 >= 0)
@@ -68,8 +67,8 @@ static void SpreadFire(int src, byte *fire, int width)
     else
     {
         const int rand = M_Random() & 3;
-
         const int copyloc1 = copyloc0 - rand + 1;
+
         if (copyloc1 >= 0)
         {
             fire[copyloc1] = pixel - (rand & 1);
@@ -79,7 +78,7 @@ static void SpreadFire(int src, byte *fire, int width)
 
 static void UpdateFireSky(sky_t *sky)
 {
-    // the fire algorithm affects multiple collums at once, therefore both XY
+    // the fire algorithm affects multiple columns at once, therefore both XY
     // loops _must_ be separated, otherwise it will cause noticeable visual
     // disturbance on the resulting fire effect
 
@@ -100,6 +99,7 @@ static void UpdateFireSky(sky_t *sky)
     for (int x = 0; x < width; x++)
     {
         coldata = R_GetColumn(texnum, x);
+
         for (int y = 0; y < height; y++)
         {
             int src = y * width + x;
@@ -108,12 +108,13 @@ static void UpdateFireSky(sky_t *sky)
     }
 }
 
-void R_InitFireSky(sky_t *sky)
+static void R_InitFireSky(sky_t *sky)
 {
     int texnum = sky->background.texture;
     const texture_t *tex = textures[texnum];
     size_t size = tex->width * tex->height;
     int arr_size = array_size(sky->palette);
+
     sky->fire = Z_Calloc(1, size, PU_STATIC, NULL);
 
     for (int i = 0; i < tex->width; i++)
@@ -154,7 +155,7 @@ void R_InitSkyMap(void)
         }
     }
 
-    // in the worst case scenario, each base definition includes a foreground
+    // provide headroom for additional foreground skies
     array_grow(levelskies, array_size(levelskies));
 
     sky_t *sky;
@@ -165,7 +166,7 @@ void R_InitSkyMap(void)
             skyindex_t index = R_AddLevelsky(sky->foreground.texture);
             sky_t *foregroundsky = R_GetLevelsky(index);
             foregroundsky->background = sky->foreground;
-            foregroundsky->stretcheble = false;
+            foregroundsky->stretchable = false;
         }
     }
 
@@ -193,8 +194,8 @@ void R_UpdateSkies(void)
         {
             if (sky->tics_left == 0)
             {
-              UpdateFireSky(sky);
-              sky->tics_left = sky->updatetime;
+                UpdateFireSky(sky);
+                sky->tics_left = sky->updatetime;
             }
             sky->tics_left--;
         }
@@ -203,15 +204,17 @@ void R_UpdateSkies(void)
 
 static void StretchSky(sky_t *sky)
 {
-    // Transfer are stretched at render-time
+    // sidedef-defined skies are stretched at render-time
     if (sky->side)
     {
-      return;
+        return;
     }
 
-    const int skyheight = textureheight[sky->background.texture] >> FRACBITS;
-    if (stretchsky && skyheight >= 128 && skyheight < 200)
+    if (stretchsky)
     {
+        const int skyheight =
+            textureheight[sky->background.texture] >> FRACBITS;
+
         sky->background.mid = -28 * FRACUNIT * skyheight / SKYSTRETCH_HEIGHT;
         sky->background.scaley = FRACUNIT * skyheight / SKYSTRETCH_HEIGHT;
     }
@@ -227,7 +230,7 @@ void R_UpdateStretchSkies(void)
     sky_t *sky;
     array_foreach(sky, levelskies)
     {
-        if (sky->stretcheble)
+        if (sky->stretchable)
         {
             StretchSky(sky);
         }
@@ -281,41 +284,39 @@ static skyindex_t AddLevelsky(int texture, side_t *side)
 
     if (new_sky.type == SkyType_Indetermined)
     {
+        const int skyheight = textureheight[texture] >> FRACBITS;
+
         new_sky.type = SkyType_Normal;
         new_sky.background.texture = texture;
+        new_sky.background.mid = 100 * FRACUNIT;
         new_sky.background.scalex = FRACUNIT;
         new_sky.background.scaley = FRACUNIT;
-        new_sky.stretcheble = true;
+        new_sky.stretchable = (skyheight >= 128 && skyheight < 200);
     }
 
-    if (side)
+    new_sky.side = side;
+    if (new_sky.side)
     {
-        new_sky.side = side;
-
         // sky transfers ignore the vanilla sky mid
         // and define an offset value of (rowoffset - 28px) at render time
         new_sky.background.mid = 0;
         new_sky.foreground.mid = 0;
 
         // Flipped
-        if (side->special == 271)
+        if (new_sky.side->special == 271)
         {
-          new_sky.background.scalex *= -1;
-          new_sky.foreground.scalex *= -1;
+            new_sky.background.scalex *= -1;
+            new_sky.foreground.scalex *= -1;
         }
-    }
-    else
-    {
-        new_sky.side = NULL;
     }
 
     if (new_sky.type == SkyType_Fire)
     {
-        new_sky.stretcheble = true;
+        new_sky.stretchable = true;
         R_InitFireSky(&new_sky);
     }
 
-    if (new_sky.stretcheble)
+    if (new_sky.stretchable)
     {
         StretchSky(&new_sky);
     }

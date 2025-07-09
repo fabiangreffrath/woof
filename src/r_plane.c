@@ -1,10 +1,8 @@
 //
 //  Copyright (C) 1999 by
 //  id Software, Chi Hoang, Lee Killough, Jim Flynn, Rand Phares, Ty Halderman
-//
 //  Copyright (C) 2006-2025 by
 //  The Odamex Team.
-//
 //  Copyright (C) 2025 by
 //  Fabian Greffrath, Roman Fomin, Guilherme Miranda
 //
@@ -423,7 +421,7 @@ static void DrawSkyTex(visplane_t *pl, sky_t *sky, skytex_t *skytex)
         {
             deltax += LerpFixed(side->oldtextureoffset, side->basetextureoffset);
             dc_texturemid += side->baserowoffset - 28 * FRACUNIT;
-            vertically_scrolling = (side->baserowoffset - side->oldrowoffset);
+            vertically_scrolling += (side->baserowoffset - side->oldrowoffset);
         }
     }
     else
@@ -437,12 +435,12 @@ static void DrawSkyTex(visplane_t *pl, sky_t *sky, skytex_t *skytex)
         {
             deltax += side->textureoffset;
             dc_texturemid += side->baserowoffset - 28 * FRACUNIT;
-            vertically_scrolling = (side->baserowoffset - side->oldrowoffset);
+            vertically_scrolling += (side->baserowoffset - side->oldrowoffset);
         }
     }
 
-    if (side && sky->stretcheble && stretchsky
-        && dc_texheight >= 128 && dc_texheight < 200)
+    // sidedef-defined skies are stretched here
+    if (stretchsky && sky->stretchable && side)
     {
         dc_texturemid = dc_texturemid * dc_texheight / SKYSTRETCH_HEIGHT;
         dc_iscale = dc_iscale * dc_texheight / SKYSTRETCH_HEIGHT;

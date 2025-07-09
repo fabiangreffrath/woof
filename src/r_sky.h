@@ -1,7 +1,6 @@
 //
 //  Copyright (C) 1999 by
 //  id Software, Chi Hoang, Lee Killough, Jim Flynn, Rand Phares, Ty Halderman
-//
 //  Copyright (C) 2025 by
 //  Fabian Greffrath, Roman Fomin, Guilherme Miranda
 //
