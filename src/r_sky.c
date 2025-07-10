@@ -166,7 +166,6 @@ void R_InitSkyMap(void)
             skyindex_t index = R_AddLevelsky(sky->foreground.texture);
             sky_t *foregroundsky = R_GetLevelsky(index);
             foregroundsky->background = sky->foreground;
-            foregroundsky->stretchable = false;
         }
     }
 
@@ -284,23 +283,20 @@ static skyindex_t AddLevelsky(int texture, side_t *side)
 
     if (new_sky.type == SkyType_Indetermined)
     {
-        const int skyheight = textureheight[texture] >> FRACBITS;
-
         new_sky.type = SkyType_Normal;
         new_sky.background.texture = texture;
         new_sky.background.mid = 100 * FRACUNIT;
         new_sky.background.scalex = FRACUNIT;
         new_sky.background.scaley = FRACUNIT;
-        new_sky.stretchable = (skyheight >= 128 && skyheight < 200);
     }
 
     new_sky.side = side;
     if (new_sky.side)
     {
-        // sky transfers ignore the vanilla sky mid
-        // and define an offset value of (rowoffset - 28px) at render time
-        new_sky.background.mid = 0;
-        new_sky.foreground.mid = 0;
+        // sky transfers ignore the vanilla sky mid of 100
+        // and define an offset value of (rowoffset - 28px)
+        new_sky.background.mid = -28 * FRACUNIT;
+        new_sky.foreground.mid = -28 * FRACUNIT;
 
         // Flipped
         if (new_sky.side->special == 271)
@@ -312,8 +308,29 @@ static skyindex_t AddLevelsky(int texture, side_t *side)
 
     if (new_sky.type == SkyType_Fire)
     {
-        new_sky.stretchable = true;
         R_InitFireSky(&new_sky);
+    }
+
+    const int skyheight = textureheight[new_sky.background.texture] >> FRACBITS;
+    new_sky.stretchable = true;
+
+    // Do not stretch if either:
+    //
+    // 1. Is a foreground sky -- unpredictable
+    // 2. Scrolls vertically
+    // 3. Has a custom vertical scale
+    // 4. Has a custom mid line
+    // 5. Height is less than 128px
+    // 6. Heaight is equal to, or greater than 200px
+    if (new_sky.type == SkyType_WithForeground
+        || new_sky.background.scrolly != 0
+        || new_sky.background.scaley != FRACUNIT
+        || (!new_sky.side && new_sky.background.mid != 100 * FRACUNIT)
+        || skyheight < 128
+        || skyheight >= 200
+    )
+    {
+        new_sky.stretchable = false;
     }
 
     if (new_sky.stretchable)
