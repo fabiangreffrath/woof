@@ -222,7 +222,7 @@ typedef enum
     MF2_FULLVOLSOUNDS   = 0x00040000, // full volume see / death sound
 } mobjflag2_t;
 
-// [EA] Woof!-exclusive extension
+// Woof!-exclusive extension
 typedef enum
 {
     MFX_COLOREDBLOOD    = 0x00000001, // [FG] colored blood and gibs

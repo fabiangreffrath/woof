@@ -916,8 +916,9 @@ static void G_DoLoadLevel(void)
   //  we look for an actual index, instead of simply
   //  setting one.
 
-  skyflatnum = R_FlatNumForName ( SKYFLATNAME );
+  R_ClearLevelskies();
 
+  int skytexture;
   if (gamemapinfo && gamemapinfo->skytexture[0])
   {
     skytexture = R_TextureNumForName(gamemapinfo->skytexture);
@@ -954,6 +955,8 @@ static void G_DoLoadLevel(void)
         skytexture = R_TextureNumForName ("SKY4");
         break;
       }//jff 3/27/98 end sky setting fix
+
+  R_AddLevelsky(skytexture);
 
   levelstarttic = gametic;        // for time calculation
 
@@ -1003,8 +1006,6 @@ static void G_DoLoadLevel(void)
 
   MN_UpdateFreeLook(!mouselook && !padlook);
   HU_UpdateTurnFormat();
-
-  R_InitSkyMap(); // SKYDEFS flatmapping
 
   // [Woof!] Do not reset chosen player view across levels in multiplayer
   // demo playback. However, it must be reset when starting a new game.

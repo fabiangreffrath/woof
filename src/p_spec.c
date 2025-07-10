@@ -2582,7 +2582,7 @@ void P_UpdateSpecials (void)
   // [crispy] draw fuzz effect independent of rendering frame rate
   R_SetFuzzPosTic();
 
-  R_UpdateSky();
+  R_UpdateSkies();
 }
 
 //////////////////////////////////////////////////////////////////////
@@ -2859,11 +2859,13 @@ void P_SpawnSpecials (void)
 
       case 271:   // Regular sky
       case 272:   // Same, only flipped
+      {
         // Pre-calculate sky color
-        R_GetSkyColor(texturetranslation[sides[*lines[i].sidenum].toptexture]);
+        skyindex_t skyindex = R_AddLevelskyFromLine(&sides[lines[i].sidenum[0]]);
         for (s = -1; (s = P_FindSectorFromLineTag(lines+i,s)) >= 0;)
-          sectors[s].floorsky = sectors[s].ceilingsky = i | PL_SKYFLAT;
+          sectors[s].floorsky = sectors[s].ceilingsky = skyindex | PL_SKYFLAT;
         break;
+      }
 
       case 2048: case 2049: case 2050:
       case 2051: case 2052: case 2053:
@@ -3072,7 +3074,7 @@ static void P_SpawnScrollers(void)
 
       if (demo_compatibility)
       {
-        // [EA] Allow all scrollers that do not break demo compatibility.
+        // Allow all scrollers that do not break demo compatibility.
         // The following are the original Boom scrollers that move Things
         // across the floor, in their accelerative / displacement / normal
         // variants.
