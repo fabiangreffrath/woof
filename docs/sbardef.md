@@ -57,17 +57,17 @@ The new `translucency` boolean field enables rendering elements with a global tr
 |25|Whether health percentage is greater than or equal to the value defined by the **param**.
 |26|Whether health percentage is less than the value defined by **param**.
 |27|Whether armor is greater than or equal to value defined by **param**.
-|29|Whether armor is less than the value defined by **param**.
-|30|Whether armor percentage is greater than or equal to value defined by **param**.
-|31|Whether armor percentage is less than the value defined by **param**.
-|32|Whether ammo is greater than or equal to value defined by **param**.
-|33|Whether ammo is less than the value defined by **param**.
-|34|Whether ammo percentage is greater than or equal to value defined by **param**.
-|35|Whether ammo percentage is less than the value defined by **param**.
-|36|Whether widescreen mode is enabled or disabled defined by **param**.
-|37|Whether current episode is equal the value defined by **param**.
-|38|Whether current level is greater than or equal to value defined by **param**.
-|39|Whether current level is less than value defined by **param**.
+|28|Whether armor is less than the value defined by **param**.
+|29|Whether armor percentage is greater than or equal to value defined by **param**.
+|30|Whether armor percentage is less than the value defined by **param**.
+|31|Whether ammo is greater than or equal to value defined by **param**.
+|32|Whether ammo is less than the value defined by **param**.
+|33|Whether ammo percentage is greater than or equal to value defined by **param**.
+|34|Whether ammo percentage is less than the value defined by **param**.
+|35|Whether widescreen mode is enabled or disabled defined by **param**.
+|36|Whether current episode is equal the value defined by **param**.
+|37|Whether current level is greater than or equal to value defined by **param**.
+|38|Whether current level is less than value defined by **param**.
 
 Automap mode flags:
 |Flag|Description
@@ -90,9 +90,9 @@ The concept of a separate HUD no longer exists. All HUD elements are now defined
 |font|string|The name of the `hudfont` font to render this widget with.
 |tranmap|string|The name of a transparency map lump to resolve. Can be null.
 |translation|string|The name of a translation to resolve. Can be null.
-|translucency|boolean|Enable global translucency
-|conditions|array of `condition`|A series of conditions to meet to render both this |and all child elements. Can be null; an array length of 0 is considered an error |condition.
-|children|array of `sbarelem`|An array of child elements. Can be null; an array length |of 0 is considered an error condition.
+|translucency|boolean|Enable global translucency.
+|conditions|array of `condition`|A series of conditions to meet to render both this and all child elements. Can be null; an array length of 0 is considered an error condition.
+|children|array of `sbarelem`|An array of child elements. Can be null; an array length of 0 is considered an error condition.
 
 The widget type has following values:
 |Type|Description
@@ -122,4 +122,4 @@ This is a weapon carousel HUD element compatible with Unity and KEX ports.
 |translation|string|The name of a translation to resolve. Can be null.
 |translucency|boolean|Enable global translucency.
 |conditions|array of `condition`|A series of conditions to meet to render both this |and all child elements. Can be null; an array length of 0 is considered an error |condition.
-|children|array of `sbarelem`|An array of child elements. Can be null; an array length |of 0 is considered an error condition.
+|children|array of `sbarelem`|An array of child elements. Can be null; an array length of 0 is considered an error condition.
