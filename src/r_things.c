@@ -369,10 +369,10 @@ int64_t sprtopscreen; // [FG] 64-bit integer math
 void R_DrawMaskedColumn(column_t *column)
 {
   int64_t topscreen, bottomscreen; // [FG] 64-bit integer math
-  fixed_t basetexturemid = dc_texturemid;
+  fixed_t basetexturemid = dc->texturemid;
   int top = -1;
   
-  dc_texheight = 0; // killough 11/98
+  dc->texheight = 0; // killough 11/98
 
   while (column->topdelta != 0xff)
     {
@@ -390,20 +390,20 @@ void R_DrawMaskedColumn(column_t *column)
       bottomscreen = topscreen + spryscale*column->length;
 
       // Here's where "sparkles" come in -- killough:
-      dc_yl = (int)((topscreen+FRACMASK)>>FRACBITS); // [FG] 64-bit integer math
-      dc_yh = (int)((bottomscreen-1)>>FRACBITS); // [FG] 64-bit integer math
+      dc->yl = (int)((topscreen+FRACMASK)>>FRACBITS); // [FG] 64-bit integer math
+      dc->yh = (int)((bottomscreen-1)>>FRACBITS); // [FG] 64-bit integer math
 
-      if (dc_yh >= mfloorclip[dc_x])
-        dc_yh = mfloorclip[dc_x]-1;
+      if (dc->yh >= mfloorclip[dc->x])
+        dc->yh = mfloorclip[dc->x]-1;
 
-      if (dc_yl <= mceilingclip[dc_x])
-        dc_yl = mceilingclip[dc_x]+1;
+      if (dc->yl <= mceilingclip[dc->x])
+        dc->yl = mceilingclip[dc->x]+1;
 
       // killough 3/2/98, 3/27/98: Failsafe against overflow/crash:
-      if (dc_yl <= dc_yh && dc_yh < viewheight)
+      if (dc->yl <= dc->yh && dc->yh < viewheight)
         {
-          dc_source = (byte *) column + 3;
-          dc_texturemid = basetexturemid - (top<<FRACBITS);
+          dc->source = (byte *) column + 3;
+          dc->texturemid = basetexturemid - (top<<FRACBITS);
 
           // Drawn by either R_DrawColumn
           //  or (SHADOW) R_DrawFuzzColumn.
@@ -411,7 +411,7 @@ void R_DrawMaskedColumn(column_t *column)
         }
       column = (column_t *)((byte *) column + column->length + 4);
     }
-  dc_texturemid = basetexturemid;
+  dc->texturemid = basetexturemid;
 }
 
 //
@@ -426,27 +426,27 @@ void R_DrawVisSprite(vissprite_t *vis, int x1, int x2)
   fixed_t  frac;
   patch_t  *patch = V_CachePatchNum (vis->patch+firstspritelump, PU_CACHE);
 
-  dc_colormap[0] = vis->colormap[0];
-  dc_colormap[1] = vis->colormap[1];
-  dc_brightmap = vis->brightmap;
+  dc->colormap[0] = vis->colormap[0];
+  dc->colormap[1] = vis->colormap[1];
+  dc->brightmap = vis->brightmap;
 
   // killough 4/11/98: rearrange and handle translucent sprites
   // mixed with translucent/non-translucent 2s normals
 
-  if (!dc_colormap[0])   // NULL colormap = shadow draw
+  if (!dc->colormap[0])   // NULL colormap = shadow draw
     colfunc = R_DrawFuzzColumn;    // killough 3/14/98
   else
     // [FG] colored blood and gibs
     if (vis->mobjflags_extra & MFX_COLOREDBLOOD)
       {
         colfunc = R_DrawTranslatedColumn;
-        dc_translation = red2col[vis->color];
+        dc->translation = red2col[vis->color];
       }
   else
     if (vis->mobjflags & MF_TRANSLATION)
       {
         colfunc = R_DrawTranslatedColumn;
-        dc_translation = translationtables - 256 +
+        dc->translation = translationtables - 256 +
           ((vis->mobjflags & MF_TRANSLATION) >> (MF_TRANSSHIFT-8) );
       }
     else
@@ -459,13 +459,13 @@ void R_DrawVisSprite(vissprite_t *vis, int x1, int x2)
       else
         colfunc = R_DrawColumn;         // killough 3/14/98, 4/11/98
 
-  dc_iscale = abs(vis->xiscale);
-  dc_texturemid = vis->texturemid;
+  dc->iscale = abs(vis->xiscale);
+  dc->texturemid = vis->texturemid;
   frac = vis->startfrac;
   spryscale = vis->scale;
-  sprtopscreen = centeryfrac - FixedMul(dc_texturemid,spryscale);
+  sprtopscreen = centeryfrac - FixedMul(dc->texturemid,spryscale);
 
-  for (dc_x=vis->x1 ; dc_x<=vis->x2 ; dc_x++, frac += vis->xiscale)
+  for (dc->x=vis->x1 ; dc->x<=vis->x2 ; dc->x++, frac += vis->xiscale)
     {
       texturecolumn = frac>>FRACBITS;
 

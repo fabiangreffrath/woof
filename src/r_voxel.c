@@ -886,11 +886,11 @@ static void VX_DrawColumn (vissprite_t * spr, int x, int y)
 				if (! has_side)
 					continue;
 
-				dc_x  = ux  >> FRACBITS;
-				dc_yl = uy1 >> FRACBITS;
-				dc_yh = uy2 >> FRACBITS;
+				dc->x  = ux  >> FRACBITS;
+				dc->yl = uy1 >> FRACBITS;
+				dc->yh = uy2 >> FRACBITS;
 
-				if (dc_yl <= dc_yh)
+				if (dc->yl <= dc->yh)
 					R_DrawFuzzColumn ();
 
 				continue;
