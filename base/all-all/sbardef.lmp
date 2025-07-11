@@ -1,6 +1,6 @@
 {
   "type": "statusbar",
-  "version": "1.2.0",
+  "version": "1.1.0",
   "metadata": null,
   "data":
   {
@@ -8,17 +8,17 @@
     [
       {
         "name": "BigRed",
-        "type": "mono0",
+        "type": 0,
         "stem": "STT"
       },
       {
         "name": "SmallGrey",
-        "type": "mono0",
+        "type": 0,
         "stem": "STG"
       },
       {
         "name": "SmallYellow",
-        "type": "mono0",
+        "type": 0,
         "stem": "STYS"
       }
     ],
@@ -26,12 +26,12 @@
     [
       {
         "name": "Console",
-        "type": "proportional",
+        "type": 2,
         "stem": "STCFN"
       },
       {
         "name": "Digits",
-        "type": "mono0",
+        "type": 0,
         "stem": "DIG"
       }
     ],
