@@ -168,7 +168,7 @@ void R_InitVisplanesRes(void)
 //
 // Uses global vars:
 //  planeheight
-//  ds_source
+//  ds
 //  viewx
 //  viewy
 //  xoffs
@@ -208,34 +208,34 @@ static void R_MapPlane(int y, int x1, int x2)
       cachedrotation[y] = rotation;
       distance = cacheddistance[y] = FixedMul(planeheight, yslope[y]);
       // [FG] avoid right-shifting in FixedMul() followed by left-shifting in FixedDiv()
-      ds_xstep = cachedxstep[y] = (fixed_t)((int64_t)angle_sin * planeheight / dy);
-      ds_ystep = cachedystep[y] = (fixed_t)((int64_t)angle_cos * planeheight / dy);
+      ds->xstep = cachedxstep[y] = (fixed_t)((int64_t)angle_sin * planeheight / dy);
+      ds->ystep = cachedystep[y] = (fixed_t)((int64_t)angle_cos * planeheight / dy);
     }
   else
     {
       distance = cacheddistance[y];
-      ds_xstep = cachedxstep[y];
-      ds_ystep = cachedystep[y];
+      ds->xstep = cachedxstep[y];
+      ds->ystep = cachedystep[y];
     }
 
   dx = x1 - centerx;
 
   // killough 2/28/98: Add offsets
-  ds_xfrac = viewx_trans + FixedMul(angle_cos, distance) + dx * ds_xstep;
-  ds_yfrac = viewy_trans - FixedMul(angle_sin, distance) + dx * ds_ystep;
+  ds->xfrac = viewx_trans + FixedMul(angle_cos, distance) + dx * ds->xstep;
+  ds->yfrac = viewy_trans - FixedMul(angle_sin, distance) + dx * ds->ystep;
 
-  if (!(ds_colormap[0] = ds_colormap[1] = fixedcolormap))
+  if (!(ds->colormap[0] = ds->colormap[1] = fixedcolormap))
     {
       index = distance >> LIGHTZSHIFT;
       if (index >= MAXLIGHTZ )
         index = MAXLIGHTZ-1;
-      ds_colormap[0] = planezlight[index];
-      ds_colormap[1] = fullcolormap;
+      ds->colormap[0] = planezlight[index];
+      ds->colormap[1] = fullcolormap;
     }
 
-  ds_y = y;
-  ds_x1 = x1;
-  ds_x2 = x2;
+  ds->y = y;
+  ds->x1 = x1;
+  ds->x2 = x2;
 
   R_DrawSpan();
 }
@@ -406,21 +406,21 @@ static void DrawSkyTex(visplane_t *pl, sky_t *sky, skytex_t *skytex)
     const side_t * const side = sky->side;
     const int texture = texturetranslation[skytex->texture];
     boolean vertically_scrolling = false;
-    dc_texheight = textureheight[texture] >> FRACBITS;
-    dc_iscale = FixedMul(skyiscale, skytex->scaley);
+    dc->texheight = textureheight[texture] >> FRACBITS;
+    dc->iscale = FixedMul(skyiscale, skytex->scaley);
 
     fixed_t deltax, deltay;
     if (uncapped && leveltime > oldleveltime)
     {
         deltay = LerpFixed(skytex->prevy, skytex->curry);
         deltax = LerpFixed(skytex->prevx, skytex->currx) << (ANGLETOSKYSHIFT - FRACBITS);
-        dc_texturemid = skytex->mid + deltay;
+        dc->texturemid = skytex->mid + deltay;
         vertically_scrolling = skytex->scrolly;
 
         if (side)
         {
             deltax += LerpFixed(side->oldtextureoffset, side->basetextureoffset);
-            dc_texturemid += side->baserowoffset;
+            dc->texturemid += side->baserowoffset;
             vertically_scrolling += (side->baserowoffset - side->oldrowoffset);
         }
     }
@@ -428,13 +428,13 @@ static void DrawSkyTex(visplane_t *pl, sky_t *sky, skytex_t *skytex)
     {
         deltay = skytex->curry;
         deltax = skytex->currx << (ANGLETOSKYSHIFT - FRACBITS);
-        dc_texturemid = skytex->mid + deltay;
+        dc->texturemid = skytex->mid + deltay;
         vertically_scrolling = skytex->scrolly;
 
         if (side)
         {
             deltax += side->textureoffset;
-            dc_texturemid += side->baserowoffset;
+            dc->texturemid += side->baserowoffset;
             vertically_scrolling += (side->baserowoffset - side->oldrowoffset);
         }
     }
@@ -442,37 +442,37 @@ static void DrawSkyTex(visplane_t *pl, sky_t *sky, skytex_t *skytex)
     // sidedef-defined skies are stretched here
     if (stretchsky && sky->stretchable && side)
     {
-        dc_texturemid = dc_texturemid * dc_texheight / SKYSTRETCH_HEIGHT;
-        dc_iscale = dc_iscale * dc_texheight / SKYSTRETCH_HEIGHT;
+        dc->texturemid = dc->texturemid * dc->texheight / SKYSTRETCH_HEIGHT;
+        dc->iscale = dc->iscale * dc->texheight / SKYSTRETCH_HEIGHT;
     }
 
     angle_t an = viewangle + deltax;
 
-    if (colfunc != R_DrawTLColumn && !vertically_scrolling && dc_texheight >= 128)
+    if (colfunc != R_DrawTLColumn && !vertically_scrolling && dc->texheight >= 128)
     {
         // Make sure the fade-to-color effect doesn't happen too early
-        fixed_t diff = dc_texturemid - SCREENHEIGHT / 2 * FRACUNIT;
+        fixed_t diff = dc->texturemid - SCREENHEIGHT / 2 * FRACUNIT;
         if (diff < 0)
         {
             diff += textureheight[texture];
             diff %= textureheight[texture];
-            dc_texturemid = SCREENHEIGHT / 2 * FRACUNIT + diff;
+            dc->texturemid = SCREENHEIGHT / 2 * FRACUNIT + diff;
         }
-        dc_skycolor = R_GetSkyColor(skytex->texture);
+        dc->skycolor = R_GetSkyColor(skytex->texture);
         colfunc = R_DrawSkyColumn;
     }
 
     for (int x = pl->minx; x <= pl->maxx; x++)
     {
-        dc_x = x;
-        dc_yl = pl->top[x];
-        dc_yh = pl->bottom[x];
+        dc->x = x;
+        dc->yl = pl->top[x];
+        dc->yh = pl->bottom[x];
 
-        if (dc_yl != USHRT_MAX && dc_yl <= dc_yh)
+        if (dc->yl != USHRT_MAX && dc->yl <= dc->yh)
         {
             int col = (an + xtoskyangle[x]) >> ANGLETOSKYSHIFT;
             col = FixedToInt(FixedMul(IntToFixed(col), skytex->scalex));
-            dc_source = R_GetColumn(texture, col);
+            dc->source = R_GetColumn(texture, col);
             colfunc();
         }
     }
@@ -488,9 +488,9 @@ static void DrawSkyDef(visplane_t *pl, sky_t *sky)
     // killough 7/19/98: fix hack to be more realistic:
 
     if (STRICTMODE_COMP(comp_skymap)
-        || !(dc_colormap[0] = dc_colormap[1] = fixedcolormap))
+        || !(dc->colormap[0] = dc->colormap[1] = fixedcolormap))
     {
-        dc_colormap[0] = dc_colormap[1] = fullcolormap; // killough 3/20/98
+        dc->colormap[0] = dc->colormap[1] = fullcolormap; // killough 3/20/98
     }
 
     DrawSkyTex(pl, sky, &sky->background);
@@ -539,14 +539,14 @@ static void do_draw_plane(visplane_t *pl)
     // [crispy] add support for SMMU swirling flats
     if (swirling)
     {
-        ds_source = R_DistortedFlat(firstflat + pl->picnum);
-        ds_brightmap = R_BrightmapForFlatNum(pl->picnum);
+        ds->source = R_DistortedFlat(firstflat + pl->picnum);
+        ds->brightmap = R_BrightmapForFlatNum(pl->picnum);
     }
     else
     {
-        ds_source = V_CacheFlatNum(
+        ds->source = V_CacheFlatNum(
             firstflat + flattranslation[pl->picnum], PU_STATIC);
-        ds_brightmap =
+        ds->brightmap =
             R_BrightmapForFlatNum(flattranslation[pl->picnum]);
     }
 
@@ -597,7 +597,7 @@ static void do_draw_plane(visplane_t *pl)
 
     if (!swirling)
     {
-        Z_ChangeTag(ds_source, PU_CACHE);
+        Z_ChangeTag(ds->source, PU_CACHE);
     }
 }
 

@@ -23,18 +23,21 @@
 #include "doomtype.h"
 #include "m_fixed.h"
 
-extern lighttable_t *dc_colormap[2];
-extern int      dc_x;
-extern int      dc_yl;
-extern int      dc_yh;
-extern fixed_t  dc_iscale;
-extern fixed_t  dc_texturemid;
-extern int      dc_texheight;    // killough
-extern byte     dc_skycolor;
-
-// first pixel in a column
-extern byte     *dc_source;         
-extern const byte *dc_brightmap;
+typedef struct
+{
+    lighttable_t *colormap[2];
+    int      x;
+    int      yl;
+    int      yh;
+    fixed_t  iscale;
+    fixed_t  texturemid;
+    int      texheight; // killough
+    byte     skycolor;
+    byte     *source; // first pixel in a column
+    const byte *brightmap;
+    byte *translation;
+} dc_t;
+extern dc_t *const dc;
 
 // The span blitting interface.
 // Hook in assembler or system specific BLT here.
@@ -67,21 +70,20 @@ void R_DrawSkyColumnMasked(void);
 
 extern void (*R_DrawTranslatedColumn)(void);
 
-extern lighttable_t *ds_colormap[2];
-
-extern int     ds_y;
-extern int     ds_x1;
-extern int     ds_x2;
-extern fixed_t ds_xfrac;
-extern fixed_t ds_yfrac;
-extern fixed_t ds_xstep;
-extern fixed_t ds_ystep;
-
-// start of a 64*64 tile image
-extern byte *ds_source;              
-extern byte *translationtables;
-extern byte *dc_translation;
-extern const byte *ds_brightmap;
+typedef struct
+{
+    lighttable_t *colormap[2];
+    int     y;
+    int     x1;
+    int     x2;
+    fixed_t xfrac;
+    fixed_t yfrac;
+    fixed_t xstep;
+    fixed_t ystep;
+    byte *source; // start of a 64*64 tile image
+    const byte *brightmap;
+} ds_t;
+extern ds_t *const ds;
 
 // Span blitting for rows, floor/ceiling. No Spectre effect needed.
 extern void (*R_DrawSpan)(void);
@@ -90,6 +92,7 @@ void R_InitBuffer(void);
 
 // Initialize color translation tables, for player rendering etc.
 void R_InitTranslationTables(void);
+extern byte *translationtables;
 
 // Rendering function.
 void R_VideoErase(int x, int y, int w, int h);

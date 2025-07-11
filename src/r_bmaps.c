@@ -29,6 +29,7 @@
 #include "m_array.h"
 #include "m_misc.h"
 #include "r_data.h"
+#include "r_draw.h"
 #include "m_scanner.h"
 #include "w_wad.h"
 #include "z_zone.h"
@@ -40,8 +41,6 @@ boolean force_brightmaps;
 #define COLORMASK_SIZE 256
 
 const byte nobrightmap[COLORMASK_SIZE] = {0};
-
-const byte *dc_brightmap = nobrightmap;
 
 typedef struct
 {
@@ -253,6 +252,8 @@ const byte *R_BrightmapForState(const int state)
 
 void R_ParseBrightmaps(int lumpnum)
 {
+    dc->brightmap = nobrightmap;
+
     force_brightmaps = W_IsWADLump(lumpnum);
 
     if (!array_size(brightmaps_array))

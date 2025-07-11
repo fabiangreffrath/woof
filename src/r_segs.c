@@ -146,41 +146,41 @@ void R_RenderMaskedSegRange(drawseg_t *ds, int x1, int x2)
   // find positioning
   if (curline->linedef->flags & ML_DONTPEGBOTTOM)
     {
-      dc_texturemid = frontsector->interpfloorheight > backsector->interpfloorheight
+      dc->texturemid = frontsector->interpfloorheight > backsector->interpfloorheight
         ? frontsector->interpfloorheight : backsector->interpfloorheight;
-      dc_texturemid = dc_texturemid + textureheight[texnum] - viewz;
+      dc->texturemid = dc->texturemid + textureheight[texnum] - viewz;
     }
   else
     {
-      dc_texturemid =frontsector->interpceilingheight<backsector->interpceilingheight
+      dc->texturemid =frontsector->interpceilingheight<backsector->interpceilingheight
         ? frontsector->interpceilingheight : backsector->interpceilingheight;
-      dc_texturemid = dc_texturemid - viewz;
+      dc->texturemid = dc->texturemid - viewz;
     }
 
-  dc_texturemid += curline->sidedef->rowoffset;
+  dc->texturemid += curline->sidedef->rowoffset;
 
   if (fixedcolormap)
-    dc_colormap[0] = dc_colormap[1] = fixedcolormap;
+    dc->colormap[0] = dc->colormap[1] = fixedcolormap;
 
   // draw the columns
-  for (dc_x = x1 ; dc_x <= x2 ; dc_x++, spryscale += rw_scalestep)
-    if (maskedtexturecol[dc_x] != INT_MAX) // [FG] 32-bit integer math
+  for (dc->x = x1 ; dc->x <= x2 ; dc->x++, spryscale += rw_scalestep)
+    if (maskedtexturecol[dc->x] != INT_MAX) // [FG] 32-bit integer math
       {
         if (!fixedcolormap)      // calculate lighting
           {                             // killough 11/98:
             const int index = R_GetLightIndex(spryscale);
 
             // [crispy] brightmaps for two sided mid-textures
-            dc_brightmap = texturebrightmap[texnum];
-            dc_colormap[0] = walllights[index];
-            dc_colormap[1] = STRICTMODE(brightmaps) ? fullcolormap : dc_colormap[0];
+            dc->brightmap = texturebrightmap[texnum];
+            dc->colormap[0] = walllights[index];
+            dc->colormap[1] = STRICTMODE(brightmaps) ? fullcolormap : dc->colormap[0];
           }
 
         // killough 3/2/98:
         //
         // This calculation used to overflow and cause crashes in Doom:
         //
-        // sprtopscreen = centeryfrac - FixedMul(dc_texturemid, spryscale);
+        // sprtopscreen = centeryfrac - FixedMul(dc->texturemid, spryscale);
         //
         // This code fixes it, by using double-precision intermediate
         // arithmetic and by skipping the drawing of 2s normals whose
@@ -188,14 +188,14 @@ void R_RenderMaskedSegRange(drawseg_t *ds, int x1, int x2)
 
         {
           int64_t t = ((int64_t) centeryfrac << FRACBITS) -
-            (int64_t) dc_texturemid * spryscale;
+            (int64_t) dc->texturemid * spryscale;
           if (t + (int64_t) textureheight[texnum] * spryscale < 0 ||
               t > (int64_t) video.height << FRACBITS*2)
             continue;        // skip if the texture is out of screen's range
           sprtopscreen = (int64_t)(t >> FRACBITS); // [FG] 64-bit integer math
         }
 
-        dc_iscale = 0xffffffffu / (unsigned) spryscale;
+        dc->iscale = 0xffffffffu / (unsigned) spryscale;
 
         // killough 1/25/98: here's where Medusa came in, because
         // it implicitly assumed that the column was all one patch.
@@ -206,9 +206,9 @@ void R_RenderMaskedSegRange(drawseg_t *ds, int x1, int x2)
         // when forming multipatched textures (see r_data.c).
 
         // draw the texture
-        col = (column_t *)(R_GetColumnMasked(texnum, maskedtexturecol[dc_x]) - 3);
+        col = (column_t *)(R_GetColumnMasked(texnum, maskedtexturecol[dc->x]) - 3);
         R_DrawMaskedColumn (col);
-        maskedtexturecol[dc_x] = INT_MAX; // [FG] 32-bit integer math
+        maskedtexturecol[dc->x] = INT_MAX; // [FG] 32-bit integer math
       }
 
   // [FG] reset column drawing function
@@ -385,22 +385,22 @@ static void R_RenderSegLoop (void)
           texturecolumn >>= FRACBITS;
 
           // calculate lighting
-          dc_colormap[0] = walllights[index];
-          dc_colormap[1] = (!fixedcolormap && STRICTMODE(brightmaps)) ?
-                           fullcolormap : dc_colormap[0];
-          dc_x = rw_x;
-          dc_iscale = 0xffffffffu / (unsigned)rw_scale;
+          dc->colormap[0] = walllights[index];
+          dc->colormap[1] = (!fixedcolormap && STRICTMODE(brightmaps)) ?
+                           fullcolormap : dc->colormap[0];
+          dc->x = rw_x;
+          dc->iscale = 0xffffffffu / (unsigned)rw_scale;
         }
 
       // draw the wall tiers
       if (midtexture)
         {
-          dc_yl = yl;     // single sided line
-          dc_yh = yh;
-          dc_texturemid = rw_midtexturemid;
-          dc_source = R_GetColumn(midtexture, texturecolumn);
-          dc_texheight = textureheight[midtexture]>>FRACBITS; // killough
-          dc_brightmap = texturebrightmap[midtexture];
+          dc->yl = yl;     // single sided line
+          dc->yh = yh;
+          dc->texturemid = rw_midtexturemid;
+          dc->source = R_GetColumn(midtexture, texturecolumn);
+          dc->texheight = textureheight[midtexture]>>FRACBITS; // killough
+          dc->brightmap = texturebrightmap[midtexture];
           colfunc ();
           ceilingclip[rw_x] = viewheight;
           floorclip[rw_x] = -1;
@@ -419,12 +419,12 @@ static void R_RenderSegLoop (void)
 
               if (mid >= yl)
                 {
-                  dc_yl = yl;
-                  dc_yh = mid;
-                  dc_texturemid = rw_toptexturemid;
-                  dc_source = R_GetColumn(toptexture,texturecolumn);
-                  dc_texheight = textureheight[toptexture]>>FRACBITS;//killough
-                  dc_brightmap = texturebrightmap[toptexture];
+                  dc->yl = yl;
+                  dc->yh = mid;
+                  dc->texturemid = rw_toptexturemid;
+                  dc->source = R_GetColumn(toptexture,texturecolumn);
+                  dc->texheight = textureheight[toptexture]>>FRACBITS;//killough
+                  dc->brightmap = texturebrightmap[toptexture];
                   colfunc ();
                   ceilingclip[rw_x] = mid;
                 }
@@ -446,13 +446,13 @@ static void R_RenderSegLoop (void)
 
               if (mid <= yh)
                 {
-                  dc_yl = mid;
-                  dc_yh = yh;
-                  dc_texturemid = rw_bottomtexturemid;
-                  dc_source = R_GetColumn(bottomtexture,
+                  dc->yl = mid;
+                  dc->yh = yh;
+                  dc->texturemid = rw_bottomtexturemid;
+                  dc->source = R_GetColumn(bottomtexture,
                                           texturecolumn);
-                  dc_texheight = textureheight[bottomtexture]>>FRACBITS; // killough
-                  dc_brightmap = texturebrightmap[bottomtexture];
+                  dc->texheight = textureheight[bottomtexture]>>FRACBITS; // killough
+                  dc->brightmap = texturebrightmap[bottomtexture];
                   colfunc ();
                   floorclip[rw_x] = mid;
                 }
