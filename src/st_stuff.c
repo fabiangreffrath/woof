@@ -491,10 +491,6 @@ static boolean CheckConditions(sbarcondition_t *conditions, player_t *player)
                     int maxammo = player->maxammo[type];
                     if (maxammo)
                     {
-                        if (player->backpack)
-                        {
-                            maxammo /= 2;
-                        }
                         result &= ((player->ammo[type] * 100 / maxammo)
                                    >= cond->param);
                     }
@@ -507,10 +503,6 @@ static boolean CheckConditions(sbarcondition_t *conditions, player_t *player)
                     int maxammo = player->maxammo[type];
                     if (maxammo)
                     {
-                        if (player->backpack)
-                        {
-                            maxammo /= 2;
-                        }
                         result &= ((player->ammo[type] * 100 / maxammo)
                                    < cond->param);
                     }
