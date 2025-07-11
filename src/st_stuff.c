@@ -40,6 +40,7 @@
 #include "m_misc.h"
 #include "m_random.h"
 #include "m_swap.h"
+#include "p_inter.h"
 #include "p_mobj.h"
 #include "p_user.h"
 #include "hu_crosshair.h"
@@ -343,7 +344,7 @@ static boolean CheckConditions(sbarcondition_t *conditions, player_t *player)
                 result &= 7 < cond->param;
                 break;
 
-            case sbc_sessiontypeeequal:
+            case sbc_sessiontypeequal:
                 result &= currsessiontype == cond->param;
                 break;
 
@@ -365,7 +366,7 @@ static boolean CheckConditions(sbarcondition_t *conditions, player_t *player)
                 result &= (!!cond->param == false);
                 break;
 
-            case sbc_widgetmode:
+            case sbc_automapmode:
                 {
                     int enabled = 0;
                     if (cond->param & sbc_mode_overlay)
@@ -434,12 +435,86 @@ static boolean CheckConditions(sbarcondition_t *conditions, player_t *player)
                 result &= (player->health < cond->param);
                 break;
 
+            case sbc_healthgreaterequalpct:
+                if (maxhealth)
+                {
+                    result &=
+                        ((player->health * 100 / maxhealth) >= cond->param);
+                }
+                break;
+
+            case sbc_healthlesspct:
+                if (maxhealth)
+                {
+                    result &=
+                        ((player->health * 100 / maxhealth) < cond->param);
+                }
+                break;
+
             case sbc_armorgreaterequal:
                 result &= (player->armorpoints >= cond->param);
                 break;
 
             case sbc_armorless:
                 result &= (player->armorpoints < cond->param);
+                break;
+
+            case sbc_armorgreaterequalpct:
+                if (max_armor)
+                {
+                    result &= ((player->armorpoints * 100 / max_armor)
+                               >= cond->param);
+                }
+                break;
+
+            case sbc_armorlesspct:
+                if (max_armor)
+                {
+                    result &=
+                        ((player->armorpoints * 100 / max_armor) < cond->param);
+                }
+                break;
+
+            case sbc_ammogreaterequal:
+                result &= (player->ammo[weaponinfo[player->readyweapon].ammo]
+                           >= cond->param);
+                break;
+
+            case sbc_ammoless:
+                result &= (player->ammo[weaponinfo[player->readyweapon].ammo]
+                           < cond->param);
+                break;
+
+            case sbc_ammogreaterequalpct:
+                {
+                    ammotype_t type = weaponinfo[player->readyweapon].ammo;
+                    int maxammo = player->maxammo[type];
+                    if (maxammo)
+                    {
+                        if (player->backpack)
+                        {
+                            maxammo /= 2;
+                        }
+                        result &= ((player->ammo[type] * 100 / maxammo)
+                                   >= cond->param);
+                    }
+                }
+                break;
+
+            case sbc_ammolesspct:
+                {
+                    ammotype_t type = weaponinfo[player->readyweapon].ammo;
+                    int maxammo = player->maxammo[type];
+                    if (maxammo)
+                    {
+                        if (player->backpack)
+                        {
+                            maxammo /= 2;
+                        }
+                        result &= ((player->ammo[type] * 100 / maxammo)
+                                   < cond->param);
+                    }
+                }
                 break;
 
             case sbc_widescreenequal:
