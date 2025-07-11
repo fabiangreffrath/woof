@@ -32,194 +32,16 @@
 static numberfont_t *numberfonts;
 static hudfont_t *hudfonts;
 
-static const char *sbf_names[] = {
-    [sbf_mono0] = "mono0",
-    [sbf_monomax] = "monomax",
-    [sbf_proportional] = "proportional",
-};
-
-static const char *sbn_names[] = {
-   [sbn_health] = "health",
-   [sbn_armor] = "armor",
-   [sbn_frags] = "frags",
-   [sbn_ammo] = "ammo",
-   [sbn_ammoselected] = "ammoselected",
-   [sbn_maxammo] = "maxammo",
-   [sbn_weaponammo] = "weaponammo",
-   [sbn_weaponmaxammo] = "weaponmaxammo"
-};
-
-static const char *item_names[] = {
-    [item_messageonly] = "messageonly",
-    [item_bluecard] = "bluecard",
-    [item_yellowcard] = "yellowcard",
-    [item_redcard] = "redcard",
-    [item_blueskull] = "blueskull",
-    [item_yellowskull] = "yellowskull",
-    [item_redskull] = "redskull",
-    [item_backpack] = "backpack",
-    [item_healthbonus] = "healthbonus",
-    [item_stimpack] = "stimpack",
-    [item_medikit] = "medikit",
-    [item_soulsphere] = "soulsphere",
-    [item_megasphere] = "megasphere",
-    [item_armorbonus] = "armorbonus",
-    [item_greenarmor] = "greenarmor",
-    [item_bluearmor] = "bluearmor",
-    [item_areamap] = "areamap",
-    [item_lightamp] = "lightamp",
-    [item_berserk] = "berserk",
-    [item_invisibility] = "invisibility",
-    [item_radsuit] = "radsuit",
-    [item_invulnerability] = "invulnerability",
-};
-
-static const char *session_names[] = {
-    "singleplayer",
-    "cooperative", 
-    "deathmatch",
-};
-
-static const char *gamemode_names[] = {
-    [shareware] = "shareware",
-    [registered] = "registered",
-    [commercial] = "commercial",
-    [retail] = "retail",
-    [indetermined] = "indetermined" 
-};
-
-static const char *widgetenabled_names[] = {
-    [sbw_monsec] = "monsec",
-    [sbw_time] = "time",
-    [sbw_coord] = "coord"
-};
-
-static const char *sbc_names[] = {
-    [sbc_weaponowned] = "weaponowned",
-    [sbc_weaponselected] = "weaponselected",
-    [sbc_weaponnotselected] = "weaponnotselected",
-    [sbc_weaponhasammo] = "weaponhasammo",
-    [sbc_selectedweaponhasammo] = "selectedweaponhasammo",
-    [sbc_selectedweaponammotype] = "selectedweaponammotype",
-    [sbc_weaponslotowned] = "weaponslotowned",
-    [sbc_weaponslotnotowned] = "weaponslotnotowned",
-    [sbc_weaponslotselected] = "weaponslotselected",
-    [sbc_weaponslotnotselected] = "weaponslotnotselected",
-    [sbc_itemowned] = "itemowned",
-    [sbc_itemnotowned] = "itemnotowned",
-    [sbc_featurelevelgreaterequal] = "featurelevelgreaterequal",
-    [sbc_featurelevelless] = "featurelevelless",
-    [sbc_sessiontypeequal] = "sessiontypeequal",
-    [sbc_sessiontypenotequal] = "sessiontypenotequal",
-    [sbc_modeeequal] = "modeeequal",
-    [sbc_modenotequal] = "modenotequal",
-    [sbc_hudmodeequal] = "hudmodeequal",
-    [sbc_widgetmode] = "widgetmode",
-    [sbc_widgetenabled] = "widgetenabled",
-    [sbc_widgetdisabled] = "widgetdisabled",
-    [sbc_weaponnotowned] = "weaponnotowned",
-    [sbc_healthgreaterequal] = "healthgreaterequal",
-    [sbc_healthless] = "healthless",
-    [sbc_armorgreaterequal] = "armorgreaterequal",
-    [sbc_armorless] = "armorless",
-    [sbc_widescreenequal] = "widescreenequal",
-    [sbc_episodeequal] = "episodeequal",
-    [sbc_levelgreaterequal] = "levelgreaterequal",
-    [sbc_levelless] = "levelless",
-};
-
-static const char *sbw_names[] = {
-    [sbw_monsec] = "monsec",
-    [sbw_time] = "time",
-    [sbw_coord] = "coord",
-    [sbw_fps] = "fps",
-    [sbw_rate] = "rate",
-    [sbw_cmd] = "cmd",
-    [sbw_speed] = "speed",
-    [sbw_message] = "message",
-    [sbw_announce] = "announce",
-    [sbw_chat] = "chat",
-    [sbw_title] = "title",
-};
-
-static int CheckNameInternal(const char *name, const char *array[], int size)
-{
-    for (int i = 0; i < size; ++i)
-    {
-        if (!strcasecmp(name, array[i]))
-        {
-            return i;
-        }
-    }
-    return -1;
-}
-
-#define CheckName(name, array) CheckNameInternal(name, array, arrlen(array))
-
-static int CheckNamedValueInternal(json_t *json, const char *array[], int size)
-{
-    if (JS_IsNumber(json))
-    {
-        return JS_GetNumber(json);
-    }
-    else if (JS_IsString(json))
-    {
-        const char *name = JS_GetString(json);
-        return CheckNameInternal(name, array, size);
-    }
-    return -1;
-}
-
-#define CheckNamedValue(json, array) \
-    CheckNamedValueInternal(json, array, arrlen(array))
-
 static boolean ParseSbarCondition(json_t *json, sbarcondition_t *out)
 {
     json_t *condition = JS_GetObject(json, "condition");
-    out->condition = CheckNamedValue(condition, sbc_names);
-    if (out->condition == sbc_none)
-    {
-        return false;
-    }
-
     json_t *param = JS_GetObject(json, "param");
-    if (JS_IsNumber(param))
-    {
-        out->param = JS_GetNumber(param);
-    }
-    else if (JS_IsString(param))
-    {
-        const char *name = JS_GetString(param);
-        switch (out->condition)
-        {
-            case sbc_itemowned:
-            case sbc_itemnotowned:
-                out->param = CheckName(name, item_names);
-                break;
-            case sbc_sessiontypeequal:
-            case sbc_sessiontypenotequal:
-                out->param = CheckName(name, session_names);
-                break;
-            case sbc_modeeequal:
-            case sbc_modenotequal:
-                out->param = CheckName(name, gamemode_names);
-                break;
-            case sbc_widgetenabled:
-            case sbc_widgetdisabled:
-                out->param = CheckName(name, widgetenabled_names);
-                break;
-            default:
-                return false;
-        }
-        if (out->param == -1)
-        {
-            return false;
-        }
-    }
-    else
+    if (!JS_IsNumber(condition) || !JS_IsNumber(param))
     {
         return false;
     }
+    out->condition = JS_GetInteger(condition);
+    out->param = JS_GetInteger(param);
 
     return true;
 }
@@ -342,17 +164,14 @@ static boolean ParseSbarElemType(json_t *json, sbarelementtype_t type,
                     return false;
                 }
                 json_t *type = JS_GetObject(json, "type");
-                number->type = CheckNamedValue(type, sbn_names);
                 json_t *param = JS_GetObject(json, "param");
                 json_t *maxlength = JS_GetObject(json, "maxlength");
-                if (number->type == sbn_none || !JS_IsNumber(param)
+                if (!JS_IsNumber(type) || !JS_IsNumber(param)
                     || !JS_IsNumber(maxlength))
                 {
                     free(number);
                     return false;
                 }
-                number->param = JS_GetInteger(param);
-                number->maxlength = JS_GetInteger(maxlength);
 
                 numberfont_t *font;
                 array_foreach(font, numberfonts)
@@ -363,6 +182,9 @@ static boolean ParseSbarElemType(json_t *json, sbarelementtype_t type,
                         break;
                     }
                 }
+                number->type = JS_GetInteger(type);
+                number->param = JS_GetInteger(param);
+                number->maxlength = JS_GetInteger(maxlength);
                 out->subtype.number = number;
             }
             break;
@@ -376,14 +198,13 @@ static boolean ParseSbarElemType(json_t *json, sbarelementtype_t type,
                     free(widget);
                     return false;
                 }
-
                 json_t *type = JS_GetObject(json, "type");
-                widget->type = CheckNamedValue(type, sbw_names);
-                if (widget->type == sbw_none)
+                if (!JS_IsNumber(type))
                 {
                     free(widget);
                     return false;
                 }
+                widget->type = JS_GetInteger(type);
 
                 hudfont_t *font;
                 array_foreach(font, hudfonts)
