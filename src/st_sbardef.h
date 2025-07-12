@@ -67,6 +67,10 @@ typedef enum
     sbc_ammoless,
     sbc_ammogreaterequalpct,
     sbc_ammolesspct,
+    sbc_ammotypegreaterequal,
+    sbc_ammotypeless,
+    sbc_ammotypegreaterequalpct,
+    sbc_ammotypelesspct,
     sbc_widescreenequal,
     sbc_episodeequal,
     sbc_levelgreaterequal,
@@ -79,6 +83,7 @@ typedef struct
 {
     sbarconditiontype_t condition;
     int param;
+    int param2;
 } sbarcondition_t;
 
 typedef enum

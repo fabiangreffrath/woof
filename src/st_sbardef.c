@@ -43,6 +43,7 @@ static boolean ParseSbarCondition(json_t *json, sbarcondition_t *out)
     out->condition = JS_GetInteger(condition);
     out->param = JS_GetInteger(param);
 
+    out->param2 = JS_GetIntegerValue(json, "param2"); // optional parameter
     return true;
 }
 

@@ -509,6 +509,44 @@ static boolean CheckConditions(sbarcondition_t *conditions, player_t *player)
                 }
                 break;
 
+            case sbc_ammotypegreaterequal:
+                if (cond->param2 >= 0 && cond->param2 < NUMAMMO)
+                {
+                    result &= (player->ammo[cond->param2] >= cond->param);
+                }
+                break;
+
+            case sbc_ammotypeless:
+                if (cond->param2 >= 0 && cond->param2 < NUMAMMO)
+                {
+                    result &= (player->ammo[cond->param2] < cond->param);
+                }
+                break;
+
+            case sbc_ammotypegreaterequalpct:
+                if (cond->param2 >= 0 && cond->param2 < NUMAMMO)
+                {
+                    int maxammo = player->maxammo[cond->param2];
+                    if (maxammo)
+                    {
+                        result &= ((player->ammo[cond->param2] * 100 / maxammo)
+                                   >= cond->param);
+                    }
+                }
+                break;
+
+            case sbc_ammotypelesspct:
+                if (cond->param2 >= 0 && cond->param2 < NUMAMMO)
+                {
+                    int maxammo = player->maxammo[cond->param2];
+                    if (maxammo)
+                    {
+                        result &= ((player->ammo[cond->param2] * 100 / maxammo)
+                                   < cond->param);
+                    }
+                }
+                break;
+
             case sbc_widescreenequal:
                 result &=
                     ((cond->param == 1 && video.unscaledw > SCREENWIDTH)
