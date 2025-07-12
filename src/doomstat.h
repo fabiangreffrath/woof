@@ -102,7 +102,7 @@ typedef enum {
   DV_BOOM    = 202,
   DV_MBF     = 203,
   DV_MBF21   = 221,
-  DV_ID24    = 224, // [EA] (2025-03-20) COMPATIBILITY NOT YET STABLE
+  DV_ID24    = 224, // (2025-03-20) COMPATIBILITY NOT YET STABLE
   DV_UM      = 255,
 } demo_version_t;
 

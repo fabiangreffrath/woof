@@ -1,7 +1,10 @@
 //
 //  Copyright (C) 1999 by
 //  id Software, Chi Hoang, Lee Killough, Jim Flynn, Rand Phares, Ty Halderman
-//  Copyright (C) 2006-2025 by The Odamex Team.
+//  Copyright (C) 2006-2025 by
+//  The Odamex Team.
+//  Copyright (C) 2025 by
+//  Fabian Greffrath, Roman Fomin, Guilherme Miranda
 //
 //  This program is free software; you can redistribute it and/or
 //  modify it under the terms of the GNU General Public License
@@ -112,6 +115,10 @@ fixed_t *yslope = NULL, *distscale = NULL;
 boolean linearsky;
 static angle_t *xtoskyangle;
 
+// Hexen-style foreground sky rendering
+// uses the 0-index for transparency
+static byte *skytran;
+
 //
 // R_InitPlanes
 // Only at game startup.
@@ -119,6 +126,7 @@ static angle_t *xtoskyangle;
 void R_InitPlanes (void)
 {
   xtoskyangle = linearsky ? linearskyangle : xtoviewangle;
+  skytran = W_CacheLumpName("SKYTRAN", PU_STATIC);
 }
 
 void R_InitPlanesRes(void)
@@ -193,7 +201,7 @@ static void R_MapPlane(int y, int x1, int x2)
   else
     dy = (abs(centery - y) << FRACBITS) + FRACUNIT / 2;
 
-  // [EA] plane math updated for accounting flat rotation, thanks to Odamex
+  // plane math updated for accounting flat rotation, thanks to Odamex
   if (planeheight != cachedheight[y] || rotation != cachedrotation[y])
     {
       cachedheight[y] = planeheight;
@@ -393,50 +401,68 @@ static void R_MakeSpans(int x, unsigned int t1, unsigned int b1, unsigned int t2
     spanstart[b2--] = x;
 }
 
-static void DrawSkyFire(visplane_t *pl, fire_t *fire)
+static void DrawSkyTex(visplane_t *pl, sky_t *sky, skytex_t *skytex)
 {
-    dc_texturemid = -28 * FRACUNIT;
-    dc_iscale = skyiscale;
-    dc_texheight = FIRE_HEIGHT;
-
-    for (int x = pl->minx; x <= pl->maxx; x++)
-    {
-        dc_x = x;
-        dc_yl = pl->top[x];
-        dc_yh = pl->bottom[x];
-
-        if (dc_yl != USHRT_MAX && dc_yl <= dc_yh)
-        {
-            dc_source = R_GetFireColumn((viewangle + xtoskyangle[x])
-                                        >> ANGLETOSKYSHIFT);
-            colfunc();
-        }
-    }
-}
-
-static void DrawSkyTex(visplane_t *pl, skytex_t *skytex)
-{
-    int texture = texturetranslation[skytex->texture];
-
-    dc_texturemid = skytex->mid;
+    const side_t * const side = sky->side;
+    const int texture = texturetranslation[skytex->texture];
     dc_texheight = textureheight[texture] >> FRACBITS;
     dc_iscale = FixedMul(skyiscale, skytex->scaley);
 
     fixed_t deltax, deltay;
     if (uncapped && leveltime > oldleveltime)
     {
-        deltax = LerpFixed(skytex->prevx, skytex->currx);
         deltay = LerpFixed(skytex->prevy, skytex->curry);
+        deltax = LerpFixed(skytex->prevx, skytex->currx) << (ANGLETOSKYSHIFT - FRACBITS);
+        dc_texturemid = skytex->mid + deltay;
+
+        if (side)
+        {
+            deltax += LerpFixed(side->oldtextureoffset, side->basetextureoffset);
+            dc_texturemid += side->baserowoffset;
+        }
     }
     else
     {
-        deltax = skytex->currx;
         deltay = skytex->curry;
+        deltax = skytex->currx << (ANGLETOSKYSHIFT - FRACBITS);
+        dc_texturemid = skytex->mid + deltay;
+
+        if (side)
+        {
+            deltax += side->textureoffset;
+            dc_texturemid += side->baserowoffset;
+        }
     }
 
-    dc_texturemid += deltay;
+    // sidedef-defined skies are stretched here
+    if (stretchsky && sky->stretchable && side)
+    {
+        dc_texturemid = dc_texturemid * dc_texheight / SKYSTRETCH_HEIGHT;
+        dc_iscale = dc_iscale * dc_texheight / SKYSTRETCH_HEIGHT;
+    }
 
-    angle_t an = viewangle + (deltax << (ANGLETOSKYSHIFT - FRACBITS));
+    angle_t an = viewangle + deltax;
+
+    if (sky->texturemid_tic != gametic)
+    {
+        sky->vertically_scrolling = (sky->old_texturemid != dc_texturemid);
+        sky->old_texturemid = dc_texturemid;
+        sky->texturemid_tic = gametic;
+    }
+
+    if (colfunc != R_DrawTLColumn && !sky->vertically_scrolling && dc_texheight >= 128)
+    {
+        // Make sure the fade-to-color effect doesn't happen too early
+        fixed_t diff = dc_texturemid - SCREENHEIGHT / 2 * FRACUNIT;
+        if (diff < 0)
+        {
+            diff += textureheight[texture];
+            diff %= textureheight[texture];
+            dc_texturemid = SCREENHEIGHT / 2 * FRACUNIT + diff;
+        }
+        dc_skycolor = R_GetSkyColor(skytex->texture);
+        colfunc = R_DrawSkyColumn;
+    }
 
     for (int x = pl->minx; x <= pl->maxx; x++)
     {
@@ -452,9 +478,11 @@ static void DrawSkyTex(visplane_t *pl, skytex_t *skytex)
             colfunc();
         }
     }
+
+    colfunc = R_DrawColumn;
 }
 
-static void DrawSkyDef(visplane_t *pl)
+static void DrawSkyDef(visplane_t *pl, sky_t *sky)
 {
     // Sky is always drawn full bright, i.e. colormaps[0] is used.
     // Because of this hack, sky is not affected by INVUL inverse mapping.
@@ -467,145 +495,18 @@ static void DrawSkyDef(visplane_t *pl)
         dc_colormap[0] = dc_colormap[1] = fullcolormap; // killough 3/20/98
     }
 
-    if (sky->type == SkyType_Fire)
-    {
-        DrawSkyFire(pl, &sky->fire);
-        return;
-    }
-
-    DrawSkyTex(pl, &sky->skytex);
+    DrawSkyTex(pl, sky, &sky->background);
 
     if (sky->type == SkyType_WithForeground)
     {
         // Special tranmap to avoid custom render path to render sky
         // transparently. See id24 SKYDEFS spec.
-        tranmap = W_CacheLumpName("SKYTRAN", PU_CACHE);
+        tranmap = skytran;
         colfunc = R_DrawTLColumn;
-        DrawSkyTex(pl, &sky->foreground);
+        DrawSkyTex(pl, sky, &sky->foreground);
         tranmap = main_tranmap;
         colfunc = R_DrawColumn;
     }
-}
-
-static void do_draw_mbf_sky(visplane_t *pl)
-{
-    int texture;
-    angle_t an, flip;
-    boolean vertically_scrolling = false;
-
-    // killough 10/98: allow skies to come from sidedefs.
-    // Allows scrolling and/or animated skies, as well as
-    // arbitrary multiple skies per level without having
-    // to use info lumps.
-
-    an = viewangle;
-
-    if ((pl->picnum & PL_FLATMAPPING) == PL_FLATMAPPING)
-    {
-        dc_texturemid = skytexturemid;
-        texture = pl->picnum & ~PL_FLATMAPPING;
-        flip = 0;
-    }
-    else if (pl->picnum & PL_SKYFLAT)
-    {
-        // Sky Linedef
-        const line_t *l = &lines[pl->picnum & ~PL_SKYFLAT];
-
-        // Sky transferred from first sidedef
-        const side_t *s = *l->sidenum + sides;
-
-        if (s->baserowoffset - s->oldrowoffset)
-        {
-            vertically_scrolling = true;
-        }
-
-        // Texture comes from upper texture of reference sidedef
-        texture = texturetranslation[s->toptexture];
-
-        // Horizontal offset is turned into an angle offset,
-        // to allow sky rotation as well as careful positioning.
-        // However, the offset is scaled very small, so that it
-        // allows a long-period of sky rotation.
-
-        if (uncapped && leveltime > oldleveltime)
-        {
-            an += LerpFixed(s->oldtextureoffset, s->basetextureoffset);
-        }
-        else
-        {
-            an += s->textureoffset;
-        }
-
-        // Vertical offset allows careful sky positioning.
-
-        dc_texturemid = s->rowoffset - 28 * FRACUNIT;
-
-        // We sometimes flip the picture horizontally.
-        //
-        // Doom always flipped the picture, so we make it optional,
-        // to make it easier to use the new feature, while to still
-        // allow old sky textures to be used.
-
-        flip = l->special == 272 ? 0u : ~0u;
-    }
-    else // Normal Doom sky, only one allowed per level
-    {
-        dc_texturemid = skytexturemid; // Default y-offset
-        texture = texturetranslation[skytexture]; // Default texture
-        flip = 0;                      // Doom flips it
-    }
-
-    // Sky is always drawn full bright, i.e. colormaps[0] is used.
-    // Because of this hack, sky is not affected by INVUL inverse mapping.
-    //
-    // killough 7/19/98: fix hack to be more realistic:
-
-    if (STRICTMODE_COMP(comp_skymap)
-        || !(dc_colormap[0] = dc_colormap[1] = fixedcolormap))
-    {
-        dc_colormap[0] = dc_colormap[1] = fullcolormap; // killough 3/20/98
-    }
-
-    dc_texheight = textureheight[texture] >> FRACBITS; // killough
-    dc_iscale = skyiscale;
-
-    if (!vertically_scrolling)
-    {
-        // [FG] stretch short skies
-        if (stretchsky && dc_texheight < 200)
-        {
-            dc_iscale = dc_iscale * dc_texheight / SKYSTRETCH_HEIGHT;
-            dc_texturemid = dc_texturemid * dc_texheight / SKYSTRETCH_HEIGHT;
-        }
-
-        // Make sure the fade-to-color effect doesn't happen too early
-        fixed_t diff = dc_texturemid - SCREENHEIGHT / 2 * FRACUNIT;
-        if (diff < 0)
-        {
-            diff += textureheight[texture];
-            diff %= textureheight[texture];
-            dc_texturemid = SCREENHEIGHT / 2 * FRACUNIT + diff;
-        }
-        dc_skycolor = R_GetSkyColor(texture);
-        colfunc = R_DrawSkyColumn;
-    }
-
-    // killough 10/98: Use sky scrolling offset, and possibly flip picture
-    for (int x = pl->minx; x <= pl->maxx; x++)
-    {
-        dc_x = x;
-        dc_yl = pl->top[x];
-        dc_yh = pl->bottom[x];
-
-        if (dc_yl != USHRT_MAX && dc_yl <= dc_yh)
-        {
-            dc_source = R_GetColumn(texture, ((an + xtoskyangle[x]) ^ flip)
-                                                     >> ANGLETOSKYSHIFT);
-            colfunc();
-        }
-    }
-
-    colfunc = R_DrawColumn;
 }
 
 // New function, by Lee Killough
@@ -619,15 +520,16 @@ static void do_draw_plane(visplane_t *pl)
 
     // sky flat
 
-    if (pl->picnum == skyflatnum && sky)
+    if (pl->picnum == skyflatnum)
     {
-        DrawSkyDef(pl);
+        DrawSkyDef(pl, levelskies);
         return;
     }
 
-    if (pl->picnum == skyflatnum || pl->picnum & PL_SKYFLAT)
+    if (pl->picnum & PL_SKYFLAT)
     {
-        do_draw_mbf_sky(pl);
+        sky_t *const sky = R_GetLevelsky(pl->picnum & ~PL_SKYFLAT);
+        DrawSkyDef(pl, sky);
         return;
     }
 
@@ -654,7 +556,7 @@ static void do_draw_plane(visplane_t *pl)
     yoffs = pl->yoffs;
     rotation = pl->rotation;
 
-    // [EA] plane math updated for accounting flat rotation, thanks to Odamex
+    // plane math updated for accounting flat rotation, thanks to Odamex
     angle_sin = finesine[(viewangle + rotation) >> ANGLETOFINESHIFT];
     angle_cos = finecosine[(viewangle + rotation) >> ANGLETOFINESHIFT];
 
