@@ -2154,10 +2154,10 @@ void P_ArchiveWorld (void)
       saveg_write16(sec->special);            // needed?   yes -- transfer types
       saveg_write16(sec->tag);                // needed?   need them -- killough
 
-      saveg_write32(sec->floor_xoffs);
-      saveg_write32(sec->floor_yoffs);
-      saveg_write32(sec->ceiling_xoffs);
-      saveg_write32(sec->ceiling_yoffs);
+      saveg_write32(sec->base_floor_xoffs);
+      saveg_write32(sec->base_floor_yoffs);
+      saveg_write32(sec->base_ceiling_xoffs);
+      saveg_write32(sec->base_ceiling_yoffs);
 
       saveg_write32(sec->floor_rotation);
       saveg_write32(sec->ceiling_rotation);
@@ -2233,14 +2233,14 @@ void P_UnArchiveWorld (void)
 
       if (saveg_compat > saveg_woof1500)
       {
-        sec->floor_xoffs = saveg_read32();
-        sec->floor_yoffs = saveg_read32();
-        sec->ceiling_xoffs = saveg_read32();
-        sec->ceiling_yoffs = saveg_read32();
-        sec->base_floor_xoffs = sec->old_floor_xoffs = sec->floor_xoffs;
-        sec->base_floor_yoffs = sec->old_floor_yoffs = sec->floor_yoffs;
-        sec->base_ceiling_xoffs = sec->old_ceiling_xoffs = sec->ceiling_xoffs;
-        sec->base_ceiling_yoffs = sec->old_ceiling_yoffs = sec->ceiling_yoffs;
+        sec->base_floor_xoffs = saveg_read32();
+        sec->base_floor_yoffs = saveg_read32();
+        sec->base_ceiling_xoffs = saveg_read32();
+        sec->base_ceiling_yoffs = saveg_read32();
+        sec->old_floor_xoffs = sec->base_floor_xoffs;
+        sec->old_floor_yoffs = sec->base_floor_yoffs;
+        sec->old_ceiling_xoffs = sec->base_ceiling_xoffs;
+        sec->old_ceiling_yoffs = sec->base_ceiling_yoffs;
 
         sec->floor_rotation = saveg_read32();
         sec->ceiling_rotation = saveg_read32();
@@ -2293,6 +2293,8 @@ void P_UnArchiveWorld (void)
             {
               si->basetextureoffset = saveg_read32();
               si->baserowoffset = saveg_read32();
+              si->oldtextureoffset = si->basetextureoffset;
+              si->oldrowoffset = si->baserowoffset;
             }
           }
     }
