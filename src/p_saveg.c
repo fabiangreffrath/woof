@@ -2190,6 +2190,9 @@ void P_ArchiveWorld (void)
             saveg_write16(si->toptexture);
             saveg_write16(si->bottomtexture);
             saveg_write16(si->midtexture);
+
+            saveg_write32(si->basetextureoffset);
+            saveg_write32(si->baserowoffset);
           }
     }
 }
@@ -2281,13 +2284,16 @@ void P_UnArchiveWorld (void)
 
 	    si->textureoffset = saveg_read32();
 	    si->rowoffset = saveg_read32();
-	    // [crispy] smooth texture scrolling
-	    si->basetextureoffset = si->textureoffset;
-	    si->baserowoffset = si->rowoffset;
 
             si->toptexture = saveg_read16();
             si->bottomtexture = saveg_read16();
             si->midtexture = saveg_read16();
+
+            if (saveg_compat > saveg_woof1500)
+            {
+              si->basetextureoffset = saveg_read32();
+              si->baserowoffset = saveg_read32();
+            }
           }
     }
 }
