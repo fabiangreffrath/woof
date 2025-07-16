@@ -173,7 +173,9 @@ void R_RenderMaskedSegRange(drawseg_t *ds, int x1, int x2)
             // [crispy] brightmaps for two sided mid-textures
             dc_brightmap = texturebrightmap[texnum];
             dc_colormap[0] = walllights[index];
-            dc_colormap[1] = STRICTMODE(brightmaps) ? fullcolormap : dc_colormap[0];
+            dc_colormap[1] = (STRICTMODE(brightmaps) || force_brightmaps)
+                              ? fullcolormap
+                              : dc_colormap[0];
           }
 
         // killough 3/2/98:
@@ -386,8 +388,10 @@ static void R_RenderSegLoop (void)
 
           // calculate lighting
           dc_colormap[0] = walllights[index];
-          dc_colormap[1] = (!fixedcolormap && STRICTMODE(brightmaps)) ?
-                           fullcolormap : dc_colormap[0];
+          dc_colormap[1] = (!fixedcolormap &&
+                            (STRICTMODE(brightmaps) || force_brightmaps))
+                            ? fullcolormap
+                            : dc_colormap[0];
           dc_x = rw_x;
           dc_iscale = 0xffffffffu / (unsigned)rw_scale;
         }
