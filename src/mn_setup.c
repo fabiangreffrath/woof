@@ -3430,8 +3430,8 @@ void MN_DrawGeneral(void)
 
 static setup_menu_t difficultymod_settings1[] = {
     MI_GAP_Y(30),
-    {"Pistol start", S_ONOFF, CNTR_X, M_SPC, {"pistolstart"}},
-    {"Co-op spawns", S_ONOFF, CNTR_X, M_SPC, {"coop_spawns"}},
+    {"Pistol start", S_ONOFF, CNTR_X, M_SPC, {"clpistolstart"}},
+    {"Co-op spawns", S_ONOFF, CNTR_X, M_SPC, {"clcoopspawns"}},
     {"No monsters", S_ONOFF, CNTR_X, M_SPC, {"clnomonsters"}},
     {"Fast monsters", S_ONOFF, CNTR_X, M_SPC, {"clfastparm"}},
     {"Respawn monsters", S_ONOFF, CNTR_X, M_SPC, {"clrespawnparm"}},
