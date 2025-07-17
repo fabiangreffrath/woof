@@ -2195,8 +2195,6 @@ setup_menu_t comp_settings1[] = {
     {"Auto Strafe 50", S_ONOFF | S_STRICT, M_X, M_SPC, {"autostrafe50"},
      .action = G_UpdateSideMove},
 
-    {"Pistol Start", S_ONOFF | S_STRICT, M_X, M_SPC, {"pistolstart"}},
-
     MI_GAP,
 
     {"Improved Hit Detection", S_ONOFF | S_STRICT, M_X, M_SPC,
@@ -3430,6 +3428,37 @@ void MN_DrawGeneral(void)
     }
 }
 
+static setup_menu_t difficulty_modifiers_settings1[] = {
+    MI_GAP_Y(30),
+    {"Pistol start", S_ONOFF, CNTR_X, M_SPC, {"pistolstart"}},
+    {"Co-op spawns", S_ONOFF, CNTR_X, M_SPC, {"coop_spawns"}},
+    {"No monsters", S_ONOFF, CNTR_X, M_SPC, {"clnomonsters"}},
+    {"Fast monsters", S_ONOFF, CNTR_X, M_SPC, {"clfastparm"}},
+    {"Respawn monsters", S_ONOFF, CNTR_X, M_SPC, {"clrespawnparm"}},
+    MI_END
+};
+
+static setup_menu_t *difficulty_modifiers_settings[] = {difficulty_modifiers_settings1, NULL};
+
+void MN_DifficultyModifiers(void)
+{
+    MN_SetNextMenuAlt(ss_mod);
+    setup_screen = ss_mod;
+    current_page = 0;
+    current_menu = difficulty_modifiers_settings[current_page];
+    current_tabs = NULL;
+    SetupMenu();
+}
+
+void MN_DrawDifficultyModifiers(void)
+{
+    const char *title = "Difficulty Modifiers";
+    MN_DrawString((SCREENWIDTH - MN_GetPixelWidth(title)) / 2, 50, CR_GOLD,
+                  title);
+    DrawInstructions();
+    DrawScreenItems(current_menu);
+}
+
 /////////////////////////////
 //
 // General routines used by the Setup screens.
@@ -3467,6 +3496,7 @@ static setup_menu_t **setup_screens[] = {
     eq_settings,
     padadv_settings,
     gyro_settings,
+    difficulty_modifiers_settings,
 };
 
 // [FG] save the index of the current screen in the first page's S_END element's
@@ -4935,7 +4965,6 @@ void MN_SetupResetMenu(void)
 {
     DisableItem(force_strictmode, comp_settings1, "strictmode");
     DisableItem(force_complevel != CL_NONE, comp_settings1, "default_complevel");
-    DisableItem(M_ParmExists("-pistolstart"), comp_settings1, "pistolstart");
     DisableItem(M_ParmExists("-uncapped") || M_ParmExists("-nouncapped"),
                 gen_settings1, "uncapped");
     DisableItem(deh_set_blood_color, enem_settings1, "colored_blood");

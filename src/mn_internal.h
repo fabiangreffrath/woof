@@ -89,6 +89,7 @@ void MN_StatusBar(int choice);
 void MN_Automap(int choice);
 void MN_Weapons(int choice);
 void MN_Enemy(int choice);
+void MN_DifficultyModifiers(void);
 
 void MN_DrawGeneral(void);
 void MN_DrawKeybnd(void);
@@ -102,6 +103,7 @@ void MN_DrawMidi(void);
 void MN_DrawEqualizer(void);
 void MN_DrawPadAdv(void);
 void MN_DrawGyro(void);
+void MN_DrawDifficultyModifiers(void);
 
 /////////////////////////////
 //
@@ -243,7 +245,8 @@ typedef struct default_s
     {
         number,
         string,
-        input
+        input,
+        temp
     } type; // type
 
     ss_types setupscreen;      // setup screen this appears on

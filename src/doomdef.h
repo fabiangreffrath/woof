@@ -231,6 +231,7 @@ typedef enum {
   ss_eq,
   ss_padadv,
   ss_gyro,
+  ss_mod,
   ss_max
 } ss_types;
 

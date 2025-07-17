@@ -86,6 +86,22 @@ void M_BindNum(const char *name, void *location, void *current,
     array_push(defaults, item);
 }
 
+void M_BindTempNum(const char *name, void *location,
+                   int default_val, int min_val, int max_val,
+                   ss_types screen)
+{
+    default_t item = { name, {.i = location}, {0},
+                       {.number = default_val}, {min_val, max_val},
+                       temp, screen, wad_no, NULL };
+    array_push(defaults, item);
+}
+
+void M_BindTempBool(const char *name, boolean *location, boolean default_val,
+                    ss_types screen)
+{
+    M_BindTempNum(name, location, default_val, 0, 1, screen);
+}
+
 void M_BindBool(const char *name, boolean *location, boolean *current,
                 boolean default_val, ss_types screen, wad_allowed_t wad,
                 const char *help)
@@ -260,6 +276,11 @@ void M_SaveDefaults(void)
         if (!dp->name) // If we're at end of defaults table, exit loop
         {
             break;
+        }
+
+        if (dp->type == temp)
+        {
+            continue;
         }
 
         // jff 3/3/98 output help string
