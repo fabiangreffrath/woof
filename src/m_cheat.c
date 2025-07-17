@@ -111,6 +111,7 @@ static void cheat_autoaim(void);      // killough 7/19/98
 static void cheat_tst(void);
 static void cheat_showfps(void); // [FG] FPS counter widget
 static void cheat_speed(void);
+static void cheat_reflex(void);
 
 //-----------------------------------------------------------------------------
 //
@@ -331,6 +332,9 @@ struct cheat_s cheat[] = {
   {"speed",      NULL,                not_dm,
    {.v = cheat_speed} },
 
+  {"reflex",     NULL,                not_dm | not_demo,
+   {.v = cheat_reflex} },
+
   {NULL}                 // end-of-list marker
 };
 
@@ -345,6 +349,13 @@ static void cheat_showfps(void)
 static void cheat_speed(void)
 {
   speedometer = (speedometer + 1) % 4;
+}
+
+static void cheat_reflex(void)
+{
+  displaymsg((reflexparm = !reflexparm) ?
+    "Nightmare Reflexes On" :
+    "Nightmare Reflexes Off");
 }
 
 // killough 7/19/98: Autoaiming optional in beta emulation mode
