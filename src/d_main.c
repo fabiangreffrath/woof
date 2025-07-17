@@ -138,13 +138,13 @@ boolean devparm;        // started game with -devparm
 boolean clnomonsters;   // checkparm of -nomonsters
 boolean clrespawnparm;  // checkparm of -respawn
 boolean clfastparm;     // checkparm of -fast
-boolean clreflexparm;   // checkparm -reflex
+boolean clreflexparm;   // checkparm -reflex [Woof!]
 // jff 1/24/98 end definition of command line version of play mode switches
 
 boolean nomonsters;     // working -nomonsters
 boolean respawnparm;    // working -respawn
 boolean fastparm;       // working -fast
-boolean reflexparm;     // working -reflex
+boolean reflexparm;     // working -reflex [Woof!]
 
 boolean singletics = false; // debug flag to cancel adaptiveness
 

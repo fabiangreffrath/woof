@@ -2152,6 +2152,7 @@ static void G_DoPlayDemo(void)
           fastparm = *demo_p++;
           nomonsters = *demo_p++;
           consoleplayer = *demo_p++;
+          reflexparm = 0; // [Woof!]
         }
       else
         {
@@ -2159,7 +2160,7 @@ static void G_DoPlayDemo(void)
           episode = *demo_p++;
           map = *demo_p++;
           deathmatch = respawnparm = fastparm =
-            nomonsters = consoleplayer = 0;
+            nomonsters = consoleplayer = reflexparm = 0;
         }
     }
   else    // new versions of demos
@@ -4264,6 +4265,7 @@ byte *G_ReadOptionsMBF21(byte *demo_p)
   respawnparm = *demo_p++;
   fastparm = *demo_p++;
   nomonsters = *demo_p++;
+  reflexparm = 0; // [Woof!]
 
   rngseed  = *demo_p++ & 0xff;
   rngseed <<= 8;
@@ -4329,6 +4331,7 @@ byte *G_ReadOptions(byte *demo_p)
   respawnparm = *demo_p++;
   fastparm = *demo_p++;
   nomonsters = *demo_p++;
+  reflexparm = 0; // [Woof!]
 
   demo_insurance = *demo_p++;              // killough 3/31/98
 
