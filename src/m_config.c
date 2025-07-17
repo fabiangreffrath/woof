@@ -86,20 +86,16 @@ void M_BindNum(const char *name, void *location, void *current,
     array_push(defaults, item);
 }
 
-void M_BindTempNum(const char *name, void *location,
-                   int default_val, int min_val, int max_val,
-                   ss_types screen)
+void M_BindTempNum(const char *name, void *location, int min_val, int max_val)
 {
-    default_t item = { name, {.i = location}, {0},
-                       {.number = default_val}, {min_val, max_val},
-                       temp, screen, wad_no, NULL };
+    default_t item = { name, {.i = location}, {0}, {0}, {min_val, max_val},
+                       temp, ss_none, wad_no, NULL };
     array_push(defaults, item);
 }
 
-void M_BindTempBool(const char *name, boolean *location, boolean default_val,
-                    ss_types screen)
+void M_BindTempBool(const char *name, boolean *location)
 {
-    M_BindTempNum(name, location, default_val, 0, 1, screen);
+    M_BindTempNum(name, location, 0, 1);
 }
 
 void M_BindBool(const char *name, boolean *location, boolean *current,

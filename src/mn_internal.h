@@ -45,6 +45,8 @@ typedef enum
     key_mode
 } menu_input_mode_t;
 
+void M_ChooseSkill(int choice);
+
 extern int maxscreenblocks;
 
 extern int bigfont_priority;
@@ -89,7 +91,7 @@ void MN_StatusBar(int choice);
 void MN_Automap(int choice);
 void MN_Weapons(int choice);
 void MN_Enemy(int choice);
-void MN_DifficultyModifiers(void);
+void MN_CustomSkill(void);
 
 void MN_DrawGeneral(void);
 void MN_DrawKeybnd(void);
@@ -141,6 +143,7 @@ void MN_DrawDifficultyModifiers(void);
 #define S_MBF         0x10000000 // Disable if complevel < mbf
 #define S_THRM_SIZE4  0x20000000 // Thermo bar size 4
 #define S_PCT         0x40000000 // Show % sign
+#define S_CENTER      0x80000000 // Centered
 
 // S_SHOWDESC  = the set of items whose description should be displayed
 // S_SHOWSET   = the set of items whose setting should be displayed
@@ -149,7 +152,7 @@ void MN_DrawDifficultyModifiers(void);
 
 #define S_SHOWDESC                                                       \
     (S_TITLE | S_ONOFF | S_CRITEM | S_RESET | S_INPUT | S_WEAP | S_NUM   \
-     | S_CREDIT | S_CHOICE | S_THERMO | S_FUNC)
+     | S_CREDIT | S_CHOICE | S_THERMO | S_FUNC | S_CENTER)
 
 #define S_SHOWSET \
     (S_ONOFF | S_CRITEM | S_INPUT | S_WEAP | S_NUM | S_CHOICE | S_THERMO \

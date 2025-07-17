@@ -103,7 +103,7 @@ static char saveOldString[SAVESTRINGSIZE];
 boolean menuactive; // The menus are up
 static boolean mouse_active_thermo;
 static boolean options_active;
-static boolean difficultymod_active;
+static boolean customskill_active;
 
 backdrop_t menu_backdrop;
 
@@ -139,7 +139,7 @@ typedef enum
     MF_THRM     = 0x00000002,
     MF_THRM_STR = 0x00000004,
     MF_PAGE     = 0x00000008,
-    MF_SMALLFONT = 0x00000010,
+    MF_OPTLUMP = 0x00000010,
 } mflags_t;
 
 typedef enum
@@ -207,7 +207,6 @@ static menu_t *currentMenu; // current menudef
 //
 static void M_NewGame(int choice);
 static void M_Episode(int choice);
-static void M_ChooseSkill(int choice);
 static void M_LoadGame(int choice);
 static void M_SaveGame(int choice);
 static void M_EndGame(int choice);
@@ -255,7 +254,7 @@ static void M_ExtHelpNextScreen(int choice);
 static void M_ExtHelp(int choice);
 static void M_DrawExtHelp(void);
 
-static void M_DifficultyModifiers(int choice);
+static void M_CustomSkill(int choice);
 
 static void M_PauseSound(void)
 {
@@ -647,7 +646,7 @@ static menuitem_t NewGameMenu[] = {
     {1, "M_HURT",  M_ChooseSkill, 'h', "Hurt me plenty.",       NEW_GAME_RECT(2)},
     {1, "M_ULTRA", M_ChooseSkill, 'u', "Ultra-Violence.",       NEW_GAME_RECT(3)},
     {1, "M_NMARE", M_ChooseSkill, 'n', "Nightmare!",            NEW_GAME_RECT(4)},
-    {1, "", M_DifficultyModifiers, 'd', "Difficulty modifiers", NEW_GAME_RECT(5), MF_SMALLFONT}
+    {1, "M_CSTSKL", M_CustomSkill, 'd', "Custom Skill.", NEW_GAME_RECT(5), MF_OPTLUMP}
 };
 
 static menu_t NewDef = {
@@ -665,7 +664,7 @@ static menu_t NewDef = {
 
 static void M_DrawNewGame(void)
 {
-    difficultymod_active = false;
+    customskill_active = false;
     MN_DrawTitle(96, 14, "M_NEWG", "NEW GAME");
     MN_DrawTitle(54, 38, "M_SKILL", "Choose Skill Level:");
 }
@@ -717,7 +716,7 @@ static void M_VerifyNightmare(int ch)
     MN_ClearMenus();
 }
 
-static void M_ChooseSkill(int choice)
+void M_ChooseSkill(int choice)
 {
     if (choice == nightmare)
     { // Ty 03/27/98 - externalized
@@ -737,10 +736,10 @@ static void M_ChooseSkill(int choice)
     MN_ClearMenus();
 }
 
-static void M_DifficultyModifiers(int choice)
+static void M_CustomSkill(int choice)
 {
-    difficultymod_active = true;
-    MN_DifficultyModifiers();
+    customskill_active = true;
+    MN_CustomSkill();
 }
 
 /////////////////////////////
@@ -3475,7 +3474,7 @@ void MN_StartControlPanel(void)
 
 boolean MN_MenuIsShaded(void)
 {
-    return (options_active || difficultymod_active)
+    return (options_active || customskill_active)
            && menu_backdrop == MENU_BG_DARK;
 }
 
@@ -3545,7 +3544,7 @@ void M_Drawer(void)
     {
         for (int i = 0; i < max; i++)
         {
-            const char *name = currentMenu->menuitems[i].name;
+            char *name = currentMenu->menuitems[i].name;
             int patch_lump = -1;
             int patch_priority = -1;
 
@@ -3556,11 +3555,15 @@ void M_Drawer(void)
                 {
                     patch_priority = lumpinfo[patch_lump].handle.priority;
                 }
+                else
+                {
+                    name[0] = '\0';
+                }
             }
 
             if ((patch_lump < 0 || patch_priority < bigfont_priority)
                 && currentMenu->menuitems[i].alttext
-                && !(currentMenu->menuitems[i].flags & MF_SMALLFONT))
+                && !(currentMenu->menuitems[i].flags & MF_OPTLUMP))
             {
                 currentMenu->lumps_missing++;
                 break;
@@ -3601,12 +3604,8 @@ void M_Drawer(void)
 
         // [FG] at least one menu graphics lump is missing, draw alternative
         // text
-        if (item->flags & MF_SMALLFONT)
-        {
-            MN_DrawStringCR(x, y + 8 - MN_StringHeight(alttext) / 2, cr, NULL,
-                            alttext);
-        }
-        else if (currentMenu->lumps_missing > 0)
+        if (currentMenu->lumps_missing > 0
+            || (!name[0] && item->flags & MF_OPTLUMP))
         {
             if (alttext)
             {

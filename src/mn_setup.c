@@ -172,6 +172,20 @@ static void DisableItem(boolean condition, setup_menu_t *menu, const char *item)
     I_Error("Item \"%s\" not found in menu", item);
 }
 
+static void DisableItemsInternal(boolean condition, setup_menu_t *menu,
+                                 const char *items[], int size)
+{
+    for (int i = 0; i < size; ++i)
+    {
+        DisableItem(condition, menu, items[i]);
+    }
+}
+
+#define DisableItems(condition, menu, ...)                                   \
+    DisableItemsInternal((condition), (menu), (const char *[]){__VA_ARGS__}, \
+                         sizeof((const char *[]){__VA_ARGS__})               \
+                             / sizeof(const char *))
+
 /////////////////////////////
 //
 // booleans for setup screens
@@ -365,6 +379,8 @@ enum
     str_bobbing_pct,
     str_screen_melt,
     str_invul_mode,
+    str_skill_level,
+    str_halfplayerdamage,
 };
 
 static const char **GetStrings(int id);
@@ -423,12 +439,16 @@ static boolean NextItemAvailable(setup_menu_t *s)
 
 static void BlinkingArrowLeft(setup_menu_t *s)
 {
+    int flags = s->m_flags;
+
     if (!ItemSelected(s))
     {
+        if (flags & S_CENTER)
+        {
+            strcpy(menu_buffer, "  ");    
+        }
         return;
     }
-
-    int flags = s->m_flags;
 
     if (menu_input == mouse_mode)
     {
@@ -453,12 +473,16 @@ static void BlinkingArrowLeft(setup_menu_t *s)
 
 static void BlinkingArrowRight(setup_menu_t *s)
 {
+    int flags = s->m_flags;
+
     if (!ItemSelected(s))
     {
+        if (flags & S_CENTER)
+        {
+            strcat(menu_buffer, "  ");    
+        }
         return;
     }
-
-    int flags = s->m_flags;
 
     if (menu_input == mouse_mode)
     {
@@ -577,7 +601,6 @@ static void DrawItem(setup_menu_t *s, int accum_y)
 
     menu_buffer[0] = '\0';
 
-    int w = 0;
     const char *text = s->m_text;
     const int color = GetItemColor(flags);
 
@@ -585,10 +608,9 @@ static void DrawItem(setup_menu_t *s, int accum_y)
 
     // killough 10/98: support left-justification:
     strcat(menu_buffer, text);
-    w = MN_GetPixelWidth(menu_buffer);
-    if (!(flags & S_LEFTJUST))
+    if (!(flags & (S_LEFTJUST | S_CENTER)))
     {
-        x -= (w + 4);
+        x -= (MN_GetPixelWidth(menu_buffer) + 4);
     }
 
     rect->x = 0;
@@ -599,6 +621,12 @@ static void DrawItem(setup_menu_t *s, int accum_y)
     if (flags & S_THERMO)
     {
         y += M_THRM_TXT_OFFSET;
+    }
+
+    if (flags & S_CENTER)
+    {
+        BlinkingArrowRight(s);
+        x = (SCREENWIDTH  - MN_GetPixelWidth(menu_buffer)) / 2;
     }
 
     DrawMenuStringEx(flags, x, y, color);
@@ -3428,31 +3456,89 @@ void MN_DrawGeneral(void)
     }
 }
 
-static setup_menu_t difficultymod_settings1[] = {
-    MI_GAP_Y(30),
-    {"Pistol start", S_ONOFF, CNTR_X, M_SPC, {"clpistolstart"}},
-    {"Co-op spawns", S_ONOFF, CNTR_X, M_SPC, {"clcoopspawns"}},
+static skill_t skill_level = sk_medium;
+boolean halfplayerdamage, cshalfplayerdamage = false;
+boolean doubleammo, csdoubleammo = false;
+boolean aggromonsters, csaggromonsters = false;
+
+static const char *skill_level_strings[] = {
+    "ITYTD", "HNTR", "HMP", "UV", "NM"
+};
+
+static const char *halfplayerdamage_strings[] = {
+    "100%", "50%"
+};
+
+static void SelectSkillLevel(void);
+
+static void StartGame(void)
+{
+    M_ChooseSkill(skill_level);
+    setup_active = false;
+}
+
+static setup_menu_t customskill_settings1[] = {
+    MI_GAP_Y(25),
+    {"Skill level", S_CHOICE, CNTR_X, M_SPC, {"skill_level"},
+     .strings_id = str_skill_level, .action = SelectSkillLevel},
+    {"Double ammo", S_ONOFF, CNTR_X, M_SPC, {"csdoubleammo"}},
+    {"Player damage", S_CHOICE, CNTR_X, M_SPC, {"cshalfplayerdamage"},
+     .strings_id = str_halfplayerdamage},
     {"No monsters", S_ONOFF, CNTR_X, M_SPC, {"clnomonsters"}},
     {"Fast monsters", S_ONOFF, CNTR_X, M_SPC, {"clfastparm"}},
+    {"Aggressive monsters", S_ONOFF, CNTR_X, M_SPC, {"csaggromonsters"}},
     {"Respawn monsters", S_ONOFF, CNTR_X, M_SPC, {"clrespawnparm"}},
+    MI_GAP,
+    {"Pistol start", S_ONOFF, CNTR_X, M_SPC, {"clpistolstart"}},
+    {"Co-op spawns", S_ONOFF, CNTR_X, M_SPC, {"clcoopspawns"}},
+    MI_GAP,
+    {"Start Game", S_CENTER, 0, M_SPC, .action = StartGame},
     MI_END
 };
 
-static setup_menu_t *difficultymod_settings[] = {difficultymod_settings1, NULL};
+static void SelectSkillLevel(void)
+{
+    cshalfplayerdamage = csdoubleammo = csaggromonsters = clfastparm =
+        clrespawnparm = false;
 
-void MN_DifficultyModifiers(void)
+    switch (skill_level)
+    {
+        case sk_baby:
+            cshalfplayerdamage = csdoubleammo = true;
+            break;
+        case sk_nightmare:
+            csdoubleammo = csaggromonsters = clfastparm =
+                clrespawnparm = true;
+            break;
+        default:
+            break;
+    }
+
+    gameskill = skill_level;
+
+    DisableItem(skill_level == sk_baby, customskill_settings1,
+        "cshalfplayerdamage");
+    DisableItem(skill_level == sk_baby || skill_level == sk_nightmare,
+        customskill_settings1, "csdoubleammo");
+    DisableItems(skill_level == sk_nightmare, customskill_settings1,
+        "csaggromonsters", "clfastparm", "clrespawnparm");
+}
+
+static setup_menu_t *customskill_settings[] = {customskill_settings1, NULL};
+
+void MN_CustomSkill(void)
 {
     MN_SetNextMenuAlt(ss_mod);
     setup_screen = ss_mod;
     current_page = 0;
-    current_menu = difficultymod_settings[current_page];
+    current_menu = customskill_settings[current_page];
     current_tabs = NULL;
     SetupMenu();
 }
 
 void MN_DrawDifficultyModifiers(void)
 {
-    const char *title = "Difficulty Modifiers";
+    const char *title = "Custom Skill";
     MN_DrawString((SCREENWIDTH - MN_GetPixelWidth(title)) / 2, 50, CR_GOLD,
                   title);
     DrawInstructions();
@@ -3496,7 +3582,7 @@ static setup_menu_t **setup_screens[] = {
     eq_settings,
     padadv_settings,
     gyro_settings,
-    difficultymod_settings,
+    customskill_settings,
 };
 
 // [FG] save the index of the current screen in the first page's S_END element's
@@ -4301,7 +4387,7 @@ boolean MN_SetupResponder(menu_action_t action, int ch)
        current_item->m_flags |= S_HILITE;
     }
 
-    if ((current_item->m_flags & S_FUNC) && action == MENU_ENTER)
+    if ((current_item->m_flags & (S_FUNC | S_CENTER)) && action == MENU_ENTER)
     {
         if (ItemDisabled(current_item->m_flags))
         {
@@ -4839,52 +4925,54 @@ void MN_DrawTitle(int x, int y, const char *patch, const char *alttext)
 }
 
 static const char **selectstrings[] = {
-    NULL, // str_empty
-    layout_strings,
-    flick_snap_strings,
-    NULL, // str_ms_time
-    NULL, // str_movement_sensitivity
-    movement_type_strings,
-    percent_strings,
-    curve_strings,
-    center_weapon_strings,
-    NULL, // str_screensize
-    st_layout_strings,
-    show_widgets_strings,
-    show_adv_widgets_strings,
-    stats_format_strings,
-    crosshair_strings,
-    crosshair_target_strings,
-    hudcolor_strings,
-    secretmessage_strings,
-    overlay_strings,
-    automap_preset_strings,
-    automap_keyed_door_strings,
-    fuzzmode_strings,
-    weapon_slots_activation_strings,
-    weapon_slots_selection_strings,
-    NULL, // str_weapon_slots
-    NULL, // str_resolution_scale
-    NULL, // str_midi_player
-    gamma_strings,
-    sound_module_strings,
-    extra_music_strings,
-    NULL, // str_resampler
-    equalizer_preset_strings,
-    NULL, // str_mouse_accel
-    NULL, // str_gamepad_device
-    gyro_space_strings,
-    gyro_action_strings,
-    NULL, // str_gyro_sens
-    NULL, // str_gyro_accel
-    default_skill_strings,
-    default_complevel_strings,
-    exit_sequence_strings,
-    death_use_action_strings,
-    widescreen_strings,
-    bobbing_pct_strings,
-    screen_melt_strings,
-    invul_mode_strings,
+    [str_empty] = NULL,
+    [str_layout] = layout_strings,
+    [str_flick_snap] = flick_snap_strings,
+    [str_ms_time] = NULL,
+    [str_movement_sensitivity] = NULL,
+    [str_movement_type] = movement_type_strings,
+    [str_percent] = percent_strings,
+    [str_curve] = curve_strings,
+    [str_center_weapon] = center_weapon_strings,
+    [str_screensize] = NULL,
+    [str_stlayout] = st_layout_strings,
+    [str_show_widgets] = show_widgets_strings,
+    [str_show_adv_widgets] = show_adv_widgets_strings,
+    [str_stats_format] = stats_format_strings,
+    [str_crosshair] = crosshair_strings,
+    [str_crosshair_target] = crosshair_target_strings,
+    [str_hudcolor] = hudcolor_strings,
+    [str_secretmessage] = secretmessage_strings,
+    [str_overlay] = overlay_strings,
+    [str_automap_preset] = automap_preset_strings,
+    [str_automap_keyed_door] = automap_keyed_door_strings,
+    [str_fuzzmode] = fuzzmode_strings,
+    [str_weapon_slots_activation] = weapon_slots_activation_strings,
+    [str_weapon_slots_selection] = weapon_slots_selection_strings,
+    [str_weapon_slots] = NULL,
+    [str_resolution_scale] = NULL,
+    [str_midi_player] = NULL,
+    [str_gamma] = gamma_strings,
+    [str_sound_module] = sound_module_strings,
+    [str_extra_music] = extra_music_strings,
+    [str_resampler] = NULL,
+    [str_equalizer_preset] = equalizer_preset_strings,
+    [str_mouse_accel] = NULL,
+    [str_gamepad_device] = NULL,
+    [str_gyro_space] = gyro_space_strings,
+    [str_gyro_action] = gyro_action_strings,
+    [str_gyro_sens] = NULL,
+    [str_gyro_accel] = NULL,
+    [str_default_skill] = default_skill_strings,
+    [str_default_complevel] = default_complevel_strings,
+    [str_exit_sequence] = exit_sequence_strings,
+    [str_death_use_action] = death_use_action_strings,
+    [str_widescreen] = widescreen_strings,
+    [str_bobbing_pct] = bobbing_pct_strings,
+    [str_screen_melt] = screen_melt_strings,
+    [str_invul_mode] = invul_mode_strings,
+    [str_skill_level] = skill_level_strings,
+    [str_halfplayerdamage] = halfplayerdamage_strings,
 };
 
 static const char **GetStrings(int id)
@@ -4991,4 +5079,8 @@ void MN_BindMenuVariables(void)
         "Menu backdrop (0 = Off; 1 = Dark; 2 = Texture)");
     BIND_NUM_GENERAL(menu_help, MENU_HELP_AUTO, MENU_HELP_OFF, MENU_HELP_PAD,
         "Menu help (0 = Off; 1 = Auto; 2 = Always Keyboard; 3 = Always Gamepad)");
+    BIND_NUM_TMP(skill_level, sk_baby, sk_nightmare);
+    BIND_BOOL_TMP(csdoubleammo);
+    BIND_BOOL_TMP(cshalfplayerdamage);
+    BIND_BOOL_TMP(csaggromonsters);
 }

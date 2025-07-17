@@ -195,6 +195,10 @@ extern  int   gameepisode;
 extern  int   gamemap;
 extern  struct mapentry_s *gamemapinfo;
 
+extern boolean halfplayerdamage, cshalfplayerdamage;
+extern boolean doubleammo, csdoubleammo;
+extern boolean aggromonsters, csaggromonsters;
+
 // If non-zero, exit the level after this number of minutes
 extern  int             timelimit;
 

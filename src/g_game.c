@@ -2543,11 +2543,11 @@ static void DoSaveGame(char *name)
   // save max_kill_requirement
   saveg_write32(max_kill_requirement);
 
-  // save pistolstart
-  saveg_write8(clpistolstart);
-
-  // save coopspawns
-  saveg_write8(clcoopspawns);
+  saveg_write8(pistolstart);
+  saveg_write8(coopspawns);
+  saveg_write8(halfplayerdamage);
+  saveg_write8(doubleammo);
+  saveg_write8(aggromonsters);
 
   // [FG] save snapshot
   saveg_buffer_size(MN_SnapshotDataSize());
@@ -2778,12 +2778,15 @@ static boolean DoLoadGame(boolean do_load_autosave)
   }
 
   // restore pistolstat and coopspawns
-  if (save_p - savebuffer <= length - 2)
+  if (save_p - savebuffer <= length - 5)
   {
      if (saveg_compat > saveg_woof1500)
      {
        pistolstart = saveg_read8();
        coopspawns = saveg_read8();
+       halfplayerdamage = saveg_read8();
+       doubleammo = saveg_read8();
+       aggromonsters = saveg_read8();
      }
   }
 
@@ -3772,6 +3775,10 @@ void G_ReloadDefaults(boolean keep_demover)
   nomonsters = clnomonsters;
   pistolstart = clpistolstart;
   coopspawns = clcoopspawns;
+
+  halfplayerdamage = cshalfplayerdamage;
+  doubleammo = csdoubleammo;
+  aggromonsters = csaggromonsters;
 
   //jff 3/24/98 set startskill from defaultskill in config file, unless
   // it has already been set by a -skill parameter
@@ -4815,11 +4822,11 @@ void G_BindGameVariables(void)
   BIND_BOOL_GENERAL(autosave, true,
     "Auto save at the beginning of a map, after completing the previous one");
 
-  BIND_BOOL_TMP(clnomonsters, false);
-  BIND_BOOL_TMP(clfastparm, false);
-  BIND_BOOL_TMP(clrespawnparm, false);
-  BIND_BOOL_TMP(clpistolstart, false);
-  BIND_BOOL_TMP(clcoopspawns, false);
+  BIND_BOOL_TMP(clnomonsters);
+  BIND_BOOL_TMP(clfastparm);
+  BIND_BOOL_TMP(clrespawnparm);
+  BIND_BOOL_TMP(clpistolstart);
+  BIND_BOOL_TMP(clcoopspawns);
 }
 
 void G_BindEnemVariables(void)

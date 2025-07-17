@@ -69,18 +69,15 @@ void M_BindStr(char *name, const char **location, const char *default_val,
 
 void M_BindInput(const char *name, int input_id, const char *help);
 
-void M_BindTempNum(const char *name, void *current,
-                   int default_val, int min_val, int max_val,
-                   ss_types screen);
+void M_BindTempNum(const char *name, void *location, int min_val, int max_val);
 
-#define BIND_NUM_TMP(name, v, a, b) \
-    M_BindTempNum(#name, &name, v, a, b, ss_none)
+#define BIND_NUM_TMP(name, a, b) \
+    M_BindTempNum(#name, &name, a, b)
 
-void M_BindTempBool(const char *name, boolean *current, boolean default_val,
-                    ss_types screen);
+void M_BindTempBool(const char *name, boolean *current);
 
-#define BIND_BOOL_TMP(name, v) \
-    M_BindTempBool(#name, &name, v, ss_none)
+#define BIND_BOOL_TMP(name) \
+    M_BindTempBool(#name, &name)
 
 #define UL (-123456789) /* magic number for no min or max for parameter */
 
