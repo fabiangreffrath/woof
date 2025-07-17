@@ -171,6 +171,8 @@ void MIDI_CloseDevice(void)
 #include "m_array.h"
 #include "m_misc.h"
 
+#define MIDI_DEFAULT_BUFFER_SIZE 32
+
 static snd_seq_t *seq;
 static snd_seq_port_subscribe_t *subscription;
 static snd_midi_event_t *coder;
@@ -551,7 +553,7 @@ const char *MIDI_GetDeviceName(int device)
     {                                                                     \
         if ((stmt) != noErr)                                              \
         {                                                                 \
-            I_Printf(VB_ERROR, "%s: Failed at line " __LINE__, __func__); \
+            I_Printf(VB_ERROR, "%s: Failed at %d", __func__, __LINE__);   \
             goto error;                                                   \
         }                                                                 \
     } while (0)
