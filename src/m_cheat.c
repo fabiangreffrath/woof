@@ -112,6 +112,7 @@ static void cheat_tst(void);
 static void cheat_showfps(void); // [FG] FPS counter widget
 static void cheat_speed(void);
 static void cheat_reflex(void);
+static void cheat_respawn(void);
 
 //-----------------------------------------------------------------------------
 //
@@ -335,6 +336,9 @@ struct cheat_s cheat[] = {
   {"reflex",     NULL,                not_dm | not_demo,
    {.v = cheat_reflex} },
 
+  {"respawn",     NULL,                not_dm | not_demo,
+   {.v = cheat_respawn} },
+
   {NULL}                 // end-of-list marker
 };
 
@@ -356,6 +360,14 @@ static void cheat_reflex(void)
   displaymsg((reflexparm = !reflexparm) ?
     "Nightmare Reflexes On" :
     "Nightmare Reflexes Off");
+}
+
+static void cheat_respawn(void)
+{
+  displaymsg((respawnparm = !respawnparm) ?
+    "Respawning Monsters On" :
+    "Respawning Monsters Off");
+  respawnmonsters = (gameskill == sk_nightmare) || respawnparm;
 }
 
 // killough 7/19/98: Autoaiming optional in beta emulation mode
