@@ -3428,7 +3428,7 @@ void MN_DrawGeneral(void)
     }
 }
 
-static setup_menu_t difficulty_modifiers_settings1[] = {
+static setup_menu_t difficultymod_settings1[] = {
     MI_GAP_Y(30),
     {"Pistol start", S_ONOFF, CNTR_X, M_SPC, {"pistolstart"}},
     {"Co-op spawns", S_ONOFF, CNTR_X, M_SPC, {"coop_spawns"}},
@@ -3438,14 +3438,14 @@ static setup_menu_t difficulty_modifiers_settings1[] = {
     MI_END
 };
 
-static setup_menu_t *difficulty_modifiers_settings[] = {difficulty_modifiers_settings1, NULL};
+static setup_menu_t *difficultymod_settings[] = {difficultymod_settings1, NULL};
 
 void MN_DifficultyModifiers(void)
 {
     MN_SetNextMenuAlt(ss_mod);
     setup_screen = ss_mod;
     current_page = 0;
-    current_menu = difficulty_modifiers_settings[current_page];
+    current_menu = difficultymod_settings[current_page];
     current_tabs = NULL;
     SetupMenu();
 }
@@ -3496,7 +3496,7 @@ static setup_menu_t **setup_screens[] = {
     eq_settings,
     padadv_settings,
     gyro_settings,
-    difficulty_modifiers_settings,
+    difficultymod_settings,
 };
 
 // [FG] save the index of the current screen in the first page's S_END element's

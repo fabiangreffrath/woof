@@ -103,7 +103,7 @@ static char saveOldString[SAVESTRINGSIZE];
 boolean menuactive; // The menus are up
 static boolean mouse_active_thermo;
 static boolean options_active;
-static boolean difficulty_modifiers_active;
+static boolean difficultymod_active;
 
 backdrop_t menu_backdrop;
 
@@ -665,7 +665,7 @@ static menu_t NewDef = {
 
 static void M_DrawNewGame(void)
 {
-    difficulty_modifiers_active = false;
+    difficultymod_active = false;
     MN_DrawTitle(96, 14, "M_NEWG", "NEW GAME");
     MN_DrawTitle(54, 38, "M_SKILL", "Choose Skill Level:");
 }
@@ -739,7 +739,7 @@ static void M_ChooseSkill(int choice)
 
 static void M_DifficultyModifiers(int choice)
 {
-    difficulty_modifiers_active = true;
+    difficultymod_active = true;
     MN_DifficultyModifiers();
 }
 
@@ -2152,7 +2152,7 @@ static menu_t GyroDef = {
 
 static menu_t DifficultyModDef = {
     generic_setup_end,  // numitems
-    &SetupDef,          // prevMenu
+    &NewDef,            // prevMenu
     Generic_Setup,      // menuitems
     MN_DrawDifficultyModifiers, // routine
     34, 5,              // x, y (skull drawn here)
@@ -3475,7 +3475,7 @@ void MN_StartControlPanel(void)
 
 boolean MN_MenuIsShaded(void)
 {
-    return (options_active || difficulty_modifiers_active)
+    return (options_active || difficultymod_active)
            && menu_backdrop == MENU_BG_DARK;
 }
 
