@@ -138,11 +138,13 @@ boolean devparm;        // started game with -devparm
 boolean clnomonsters;   // checkparm of -nomonsters
 boolean clrespawnparm;  // checkparm of -respawn
 boolean clfastparm;     // checkparm of -fast
+boolean clreflexparm;   // checkparm -reflex
 // jff 1/24/98 end definition of command line version of play mode switches
 
 boolean nomonsters;     // working -nomonsters
 boolean respawnparm;    // working -respawn
 boolean fastparm;       // working -fast
+boolean reflexparm;     // working -reflex
 
 boolean singletics = false; // debug flag to cancel adaptiveness
 
@@ -1983,6 +1985,15 @@ void D_DoomMain(void)
   //
 
   fastparm = clfastparm = M_CheckParm ("-fast");
+
+  //!
+  // @category game
+  // @vanilla
+  //
+  // Monsters have fast reflexes.
+  //
+
+  reflexparm = clreflexparm = M_CheckParm ("-reflex");
   // jff 1/24/98 end of set to both working and command line value
 
   //!

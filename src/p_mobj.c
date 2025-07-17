@@ -854,7 +854,7 @@ mobj_t *P_SpawnMobj(fixed_t x, fixed_t y, fixed_t z, mobjtype_t type)
 
   mobj->health = info->spawnhealth;
 
-  if (gameskill != sk_nightmare)
+  if (!(STRICTMODE(reflexparm) || gameskill == sk_nightmare))
     mobj->reactiontime = info->reactiontime;
 
   if (type != zmt_ambientsound)

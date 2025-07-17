@@ -40,6 +40,7 @@ struct mapentry_s;
 extern  boolean nomonsters; // checkparm of -nomonsters
 extern  boolean respawnparm;  // checkparm of -respawn
 extern  boolean fastparm; // checkparm of -fast
+extern  boolean reflexparm; // checkparm of -reflex
 extern  boolean devparm;  // DEBUG: launched with -devparm
 
 extern  int screenblocks;     // killough 11/98

@@ -12,6 +12,7 @@ static const char *params[] = {
 "-coop_spawns",
 "-dog",
 "-fast",
+"-reflex",
 "-nm",
 "-nomo",
 "-nomonsters",
