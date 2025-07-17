@@ -3757,7 +3757,7 @@ void G_ReloadDefaults(boolean keep_demover)
   respawnparm = clrespawnparm;
   fastparm = clfastparm;
   nomonsters = clnomonsters;
-  reflexparm = clreflexparm;
+  reflexparm = clreflexparm; // [Woof!]
 
   //jff 3/24/98 set startskill from defaultskill in config file, unless
   // it has already been set by a -skill parameter
