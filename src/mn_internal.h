@@ -105,7 +105,7 @@ void MN_DrawMidi(void);
 void MN_DrawEqualizer(void);
 void MN_DrawPadAdv(void);
 void MN_DrawGyro(void);
-void MN_DrawDifficultyModifiers(void);
+void MN_DrawCustomSkill(void);
 
 /////////////////////////////
 //

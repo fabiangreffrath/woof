@@ -629,7 +629,7 @@ enum
     hurtme,
     violence,
     nightmare,
-    difficultymod,
+    customskill,
     newg_end
 } newgame_e;
 
@@ -2149,11 +2149,11 @@ static menu_t GyroDef = {
     34, 5,              // x, y (skull drawn here)
 };
 
-static menu_t DifficultyModDef = {
+static menu_t CustomSkillDef = {
     generic_setup_end,  // numitems
     &NewDef,            // prevMenu
     Generic_Setup,      // menuitems
-    MN_DrawDifficultyModifiers, // routine
+    MN_DrawCustomSkill, // routine
     34, 5,              // x, y (skull drawn here)
 };
 
@@ -2163,7 +2163,7 @@ void MN_SetNextMenuAlt(ss_types type)
         &KeybndDef, &WeaponDef,    &StatusHUDDef, &AutoMapDef,
         &EnemyDef,  &GeneralDef,   &CompatDef,    &SfxDef,
         &MidiDef,   &EqualizerDef, &PadAdvDef,    &GyroDef,
-        &DifficultyModDef
+        &CustomSkillDef
     };
 
     SetNextMenu(setup_defs[type]);

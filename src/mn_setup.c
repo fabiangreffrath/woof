@@ -3514,8 +3514,6 @@ static void SelectSkillLevel(void)
             break;
     }
 
-    gameskill = skill_level;
-
     DisableItem(skill_level == sk_baby, customskill_settings1,
         "cshalfplayerdamage");
     DisableItem(skill_level == sk_baby || skill_level == sk_nightmare,
@@ -3528,15 +3526,15 @@ static setup_menu_t *customskill_settings[] = {customskill_settings1, NULL};
 
 void MN_CustomSkill(void)
 {
-    MN_SetNextMenuAlt(ss_mod);
-    setup_screen = ss_mod;
+    MN_SetNextMenuAlt(ss_cskill);
+    setup_screen = ss_cskill;
     current_page = 0;
     current_menu = customskill_settings[current_page];
     current_tabs = NULL;
     SetupMenu();
 }
 
-void MN_DrawDifficultyModifiers(void)
+void MN_DrawCustomSkill(void)
 {
     const char *title = "Custom Skill";
     MN_DrawString((SCREENWIDTH - MN_GetPixelWidth(title)) / 2, 50, CR_GOLD,
