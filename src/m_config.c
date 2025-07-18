@@ -86,16 +86,16 @@ void M_BindNum(const char *name, void *location, void *current,
     array_push(defaults, item);
 }
 
-void M_BindTempNum(const char *name, void *location, int min_val, int max_val)
+void M_BindMenuNum(const char *name, void *location, int min_val, int max_val)
 {
     default_t item = { name, {.i = location}, {0}, {0}, {min_val, max_val},
-                       temp, ss_none, wad_no, NULL };
+                       menu, ss_none, wad_no, NULL };
     array_push(defaults, item);
 }
 
-void M_BindTempBool(const char *name, boolean *location)
+void M_BindMenuBool(const char *name, boolean *location)
 {
-    M_BindTempNum(name, location, 0, 1);
+    M_BindMenuNum(name, location, 0, 1);
 }
 
 void M_BindBool(const char *name, boolean *location, boolean *current,
@@ -274,7 +274,7 @@ void M_SaveDefaults(void)
             break;
         }
 
-        if (dp->type == temp)
+        if (dp->type == menu)
         {
             continue;
         }

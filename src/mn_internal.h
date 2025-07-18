@@ -249,7 +249,7 @@ typedef struct default_s
         number,
         string,
         input,
-        temp
+        menu // menu only
     } type; // type
 
     ss_types setupscreen;      // setup screen this appears on

@@ -4822,11 +4822,11 @@ void G_BindGameVariables(void)
   BIND_BOOL_GENERAL(autosave, true,
     "Auto save at the beginning of a map, after completing the previous one");
 
-  BIND_BOOL_TMP(clnomonsters);
-  BIND_BOOL_TMP(clfastparm);
-  BIND_BOOL_TMP(clrespawnparm);
-  BIND_BOOL_TMP(clpistolstart);
-  BIND_BOOL_TMP(clcoopspawns);
+  BIND_BOOL_MENU(clnomonsters);
+  BIND_BOOL_MENU(clfastparm);
+  BIND_BOOL_MENU(clrespawnparm);
+  BIND_BOOL_MENU(clpistolstart);
+  BIND_BOOL_MENU(clcoopspawns);
 }
 
 void G_BindEnemVariables(void)

@@ -5071,8 +5071,8 @@ void MN_BindMenuVariables(void)
         "Menu backdrop (0 = Off; 1 = Dark; 2 = Texture)");
     BIND_NUM_GENERAL(menu_help, MENU_HELP_AUTO, MENU_HELP_OFF, MENU_HELP_PAD,
         "Menu help (0 = Off; 1 = Auto; 2 = Always Keyboard; 3 = Always Gamepad)");
-    BIND_NUM_TMP(skill_level, sk_baby, sk_nightmare);
-    BIND_BOOL_TMP(csdoubleammo);
-    BIND_BOOL_TMP(cshalfplayerdamage);
-    BIND_BOOL_TMP(csaggromonsters);
+    BIND_NUM_MENU(skill_level, sk_baby, sk_nightmare);
+    BIND_BOOL_MENU(csdoubleammo);
+    BIND_BOOL_MENU(cshalfplayerdamage);
+    BIND_BOOL_MENU(csaggromonsters);
 }
