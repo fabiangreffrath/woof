@@ -42,8 +42,6 @@ Language_t   language = english;
 // Set if homebrew PWAD stuff has been added.
 boolean modifiedgame;
 
-boolean have_ssg;
-
 //-----------------------------------------------------------------------------
 
 // compatibility with old engines (monster behavior, metrics, etc.)

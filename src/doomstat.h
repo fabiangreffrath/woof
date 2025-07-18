@@ -68,8 +68,7 @@ extern char *MapName(int e, int m);
 // Set if homebrew PWAD stuff has been added.
 extern  boolean modifiedgame;
 
-extern boolean have_ssg;
-#define ALLOW_SSG (gamemode == commercial || CRITICAL(have_ssg))
+#define ALLOW_SSG (gamemode == commercial)
 
 // compatibility with old engines (monster behavior, metrics, etc.)
 extern int compatibility, default_compatibility;          // killough 1/31/98
