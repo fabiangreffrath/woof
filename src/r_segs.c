@@ -157,7 +157,7 @@ void R_RenderMaskedSegRange(drawseg_t *ds, int x1, int x2)
       dc_texturemid = dc_texturemid - viewz;
     }
 
-  dc_texturemid += curline->sidedef->rowoffset;
+  dc_texturemid += curline->sidedef->interprowoffset;
 
   if (fixedcolormap)
     dc_colormap[0] = dc_colormap[1] = fixedcolormap;
@@ -621,7 +621,7 @@ void R_StoreWallRange(const int start, const int stop)
       else        // top of texture at top
         rw_midtexturemid = worldtop;
 
-      rw_midtexturemid += sidedef->rowoffset;
+      rw_midtexturemid += sidedef->interprowoffset;
 
       {      // killough 3/27/98: reduce offset
         fixed_t h = textureheight[sidedef->midtexture];
@@ -700,8 +700,8 @@ void R_StoreWallRange(const int start, const int stop)
         || backsector->lightlevel != frontsector->lightlevel
 
         // killough 3/7/98: Add checks for (x,y) offsets
-        || backsector->floor_xoffs != frontsector->floor_xoffs
-        || backsector->floor_yoffs != frontsector->floor_yoffs
+        || backsector->interp_floor_xoffs != frontsector->interp_floor_xoffs
+        || backsector->interp_floor_yoffs != frontsector->interp_floor_yoffs
         || backsector->floor_rotation != frontsector->floor_rotation
 
         // killough 4/15/98: prevent 2s normals
@@ -720,8 +720,8 @@ void R_StoreWallRange(const int start, const int stop)
         || backsector->lightlevel != frontsector->lightlevel
 
         // killough 3/7/98: Add checks for (x,y) offsets
-        || backsector->ceiling_xoffs != frontsector->ceiling_xoffs
-        || backsector->ceiling_yoffs != frontsector->ceiling_yoffs
+        || backsector->interp_ceiling_xoffs != frontsector->interp_ceiling_xoffs
+        || backsector->interp_ceiling_yoffs != frontsector->interp_ceiling_yoffs
         || backsector->ceiling_rotation != frontsector->ceiling_rotation
 
         // killough 4/15/98: prevent 2s normals
@@ -750,7 +750,7 @@ void R_StoreWallRange(const int start, const int stop)
           rw_bottomtexturemid = linedef->flags & ML_DONTPEGBOTTOM ? worldtop :
             worldlow;
         }
-      rw_toptexturemid += sidedef->rowoffset;
+      rw_toptexturemid += sidedef->interprowoffset;
 
       // killough 3/27/98: reduce offset
       {
@@ -759,7 +759,7 @@ void R_StoreWallRange(const int start, const int stop)
           rw_toptexturemid %= h;
       }
 
-      rw_bottomtexturemid += sidedef->rowoffset;
+      rw_bottomtexturemid += sidedef->interprowoffset;
 
       // killough 3/27/98: reduce offset
       {
@@ -785,7 +785,7 @@ void R_StoreWallRange(const int start, const int stop)
     {
       // [FG] fix long wall wobble
       rw_offset = (fixed_t)(((dx * dx1 + dy * dy1) / len) << 1);
-      rw_offset += sidedef->textureoffset + curline->offset;
+      rw_offset += sidedef->interptextureoffset + curline->offset;
 
       rw_centerangle = ANG90 + viewangle - rw_normalangle;
 

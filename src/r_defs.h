@@ -159,12 +159,12 @@ typedef struct sector_s
   fixed_t	interpfloorheight;
   fixed_t	interpceilingheight;
 
-  fixed_t base_floor_xoffs;
-  fixed_t base_floor_yoffs;
+  fixed_t interp_floor_xoffs;
+  fixed_t interp_floor_yoffs;
   fixed_t old_floor_xoffs;
   fixed_t old_floor_yoffs;
-  fixed_t base_ceiling_xoffs;
-  fixed_t base_ceiling_yoffs;
+  fixed_t interp_ceiling_xoffs;
+  fixed_t interp_ceiling_yoffs;
   fixed_t old_ceiling_xoffs;
   fixed_t old_ceiling_yoffs;
 
@@ -197,8 +197,8 @@ typedef struct side_s
   // [crispy] smooth texture scrolling
   fixed_t oldtextureoffset;
   fixed_t oldrowoffset;
-  fixed_t basetextureoffset;
-  fixed_t baserowoffset;
+  fixed_t interptextureoffset;
+  fixed_t interprowoffset;
   int oldgametic;
 } side_t;
 

@@ -210,8 +210,8 @@ sector_t *R_FakeFlat(sector_t *sec, sector_t *tempsec,
 			 tempsec->ceilingheight = s->floorheight-1, !back))
         {                   // head-below-floor hack
           tempsec->floorpic    = s->floorpic;
-          tempsec->floor_xoffs = s->floor_xoffs;
-          tempsec->floor_yoffs = s->floor_yoffs;
+          tempsec->interp_floor_xoffs = s->interp_floor_xoffs;
+          tempsec->interp_floor_yoffs = s->interp_floor_yoffs;
           tempsec->floor_rotation = s->floor_rotation;
 
           if (underwater)
@@ -221,15 +221,15 @@ sector_t *R_FakeFlat(sector_t *sec, sector_t *tempsec,
                 tempsec->floorheight   = tempsec->ceilingheight+1;
                 tempsec->interpfloorheight = tempsec->interpceilingheight+1;
                 tempsec->ceilingpic    = tempsec->floorpic;
-                tempsec->ceiling_xoffs = tempsec->floor_xoffs;
-                tempsec->ceiling_yoffs = tempsec->floor_yoffs;
+                tempsec->interp_ceiling_xoffs = tempsec->interp_floor_xoffs;
+                tempsec->interp_ceiling_yoffs = tempsec->interp_floor_yoffs;
                 tempsec->ceiling_rotation = tempsec->ceiling_rotation;
               }
             else
               {
                 tempsec->ceilingpic    = s->ceilingpic;
-                tempsec->ceiling_xoffs = s->ceiling_xoffs;
-                tempsec->ceiling_yoffs = s->ceiling_yoffs;
+                tempsec->interp_ceiling_xoffs = s->interp_ceiling_xoffs;
+                tempsec->interp_ceiling_yoffs = s->interp_ceiling_yoffs;
                 tempsec->ceiling_rotation = s->ceiling_rotation;
               }
           }
@@ -254,8 +254,8 @@ sector_t *R_FakeFlat(sector_t *sec, sector_t *tempsec,
             tempsec->interpfloorheight   = s->interpceilingheight + 1;
 
             tempsec->floorpic    = tempsec->ceilingpic    = s->ceilingpic;
-            tempsec->floor_xoffs = tempsec->ceiling_xoffs = s->ceiling_xoffs;
-            tempsec->floor_yoffs = tempsec->ceiling_yoffs = s->ceiling_yoffs;
+            tempsec->interp_floor_xoffs = tempsec->interp_ceiling_xoffs = s->interp_ceiling_xoffs;
+            tempsec->interp_floor_yoffs = tempsec->interp_ceiling_yoffs = s->interp_ceiling_yoffs;
             tempsec->floor_rotation = tempsec->ceiling_rotation = s->ceiling_rotation;
 
             if (s->floorpic != skyflatnum)
@@ -263,8 +263,8 @@ sector_t *R_FakeFlat(sector_t *sec, sector_t *tempsec,
                 tempsec->ceilingheight = sec->ceilingheight;
                 tempsec->interpceilingheight = sec->interpceilingheight;
                 tempsec->floorpic      = s->floorpic;
-                tempsec->floor_xoffs   = s->floor_xoffs;
-                tempsec->floor_yoffs   = s->floor_yoffs;
+                tempsec->interp_floor_xoffs   = s->interp_floor_xoffs;
+                tempsec->interp_floor_yoffs   = s->interp_floor_yoffs;
                 tempsec->floor_rotation = s->floor_rotation;
               }
 
@@ -313,34 +313,34 @@ static void R_MaybeInterpolateSector(sector_t* sector)
 
         if (sector->old_floor_offs_gametic == gametic - 1)
         {
-            sector->floor_xoffs = LerpFixed(sector->old_floor_xoffs, sector->base_floor_xoffs);
-            sector->floor_yoffs = LerpFixed(sector->old_floor_yoffs, sector->base_floor_yoffs);
+            sector->interp_floor_xoffs = LerpFixed(sector->old_floor_xoffs, sector->floor_xoffs);
+            sector->interp_floor_yoffs = LerpFixed(sector->old_floor_yoffs, sector->floor_yoffs);
         }
         else
         {
-            sector->floor_xoffs = sector->base_floor_xoffs;
-            sector->floor_yoffs = sector->base_floor_yoffs;
+            sector->interp_floor_xoffs = sector->floor_xoffs;
+            sector->interp_floor_yoffs = sector->floor_yoffs;
         }
 
         if (sector->old_ceil_offs_gametic == gametic - 1)
         {
-            sector->ceiling_xoffs = LerpFixed(sector->old_ceiling_xoffs, sector->base_ceiling_xoffs);
-            sector->ceiling_yoffs = LerpFixed(sector->old_ceiling_yoffs, sector->base_ceiling_yoffs);
+            sector->interp_ceiling_xoffs = LerpFixed(sector->old_ceiling_xoffs, sector->ceiling_xoffs);
+            sector->interp_ceiling_yoffs = LerpFixed(sector->old_ceiling_yoffs, sector->ceiling_yoffs);
         }
         else
         {
-            sector->ceiling_xoffs = sector->base_ceiling_xoffs;
-            sector->ceiling_yoffs = sector->base_ceiling_yoffs;
+            sector->interp_ceiling_xoffs = sector->ceiling_xoffs;
+            sector->interp_ceiling_yoffs = sector->ceiling_yoffs;
         }
     }
     else
     {
         sector->interpfloorheight = sector->floorheight;
         sector->interpceilingheight = sector->ceilingheight;
-        sector->floor_xoffs = sector->base_floor_xoffs;
-        sector->floor_yoffs = sector->base_floor_yoffs;
-        sector->ceiling_xoffs = sector->base_ceiling_xoffs;
-        sector->ceiling_yoffs = sector->base_ceiling_yoffs;
+        sector->interp_floor_xoffs = sector->floor_xoffs;
+        sector->interp_floor_yoffs = sector->floor_yoffs;
+        sector->interp_ceiling_xoffs = sector->ceiling_xoffs;
+        sector->interp_ceiling_yoffs = sector->ceiling_yoffs;
     }
 }
 
@@ -348,13 +348,13 @@ static void R_MaybeInterpolateTextureOffsets(side_t *side)
 {
     if (uncapped && side->oldgametic == gametic - 1)
     {
-        side->textureoffset = LerpFixed(side->oldtextureoffset, side->basetextureoffset);
-        side->rowoffset = LerpFixed(side->oldrowoffset, side->baserowoffset);
+        side->interptextureoffset = LerpFixed(side->oldtextureoffset, side->textureoffset);
+        side->interprowoffset = LerpFixed(side->oldrowoffset, side->rowoffset);
     }
     else
     {
-        side->textureoffset = side->basetextureoffset;
-        side->rowoffset = side->baserowoffset;
+        side->interptextureoffset = side->textureoffset;
+        side->interprowoffset = side->rowoffset;
     }
 }
 
@@ -478,10 +478,10 @@ static void R_AddLine (seg_t *line)
       && curline->sidedef->midtexture == 0
 
       // killough 3/7/98: Take flats offsets into account:
-      && backsector->floor_xoffs == frontsector->floor_xoffs
-      && backsector->floor_yoffs == frontsector->floor_yoffs
-      && backsector->ceiling_xoffs == frontsector->ceiling_xoffs
-      && backsector->ceiling_yoffs == frontsector->ceiling_yoffs
+      && backsector->interp_floor_xoffs == frontsector->interp_floor_xoffs
+      && backsector->interp_floor_yoffs == frontsector->interp_floor_yoffs
+      && backsector->interp_ceiling_xoffs == frontsector->interp_ceiling_xoffs
+      && backsector->interp_ceiling_yoffs == frontsector->interp_ceiling_yoffs
       && backsector->floor_rotation == frontsector->floor_rotation
       && backsector->ceiling_rotation == frontsector->ceiling_rotation
 
@@ -646,8 +646,8 @@ static void R_Subsector(int num)
 		frontsector->floorsky & PL_SKYFLAT ? frontsector->floorsky :
                 frontsector->floorpic,
                 floorlightlevel,                // killough 3/16/98
-                frontsector->floor_xoffs,       // killough 3/7/98
-                frontsector->floor_yoffs,
+                frontsector->interp_floor_xoffs,       // killough 3/7/98
+                frontsector->interp_floor_yoffs,
                 frontsector->floor_rotation
                 ) : NULL;
 
@@ -660,8 +660,8 @@ static void R_Subsector(int num)
 		frontsector->ceilingsky & PL_SKYFLAT ? frontsector->ceilingsky :
                 frontsector->ceilingpic,
                 ceilinglightlevel,              // killough 4/11/98
-                frontsector->ceiling_xoffs,     // killough 3/7/98
-                frontsector->ceiling_yoffs,
+                frontsector->interp_ceiling_xoffs,     // killough 3/7/98
+                frontsector->interp_ceiling_yoffs,
                 frontsector->ceiling_rotation
                 ) : NULL;
 

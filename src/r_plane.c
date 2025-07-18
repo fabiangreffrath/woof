@@ -417,8 +417,8 @@ static void DrawSkyTex(visplane_t *pl, sky_t *sky, skytex_t *skytex)
 
         if (side)
         {
-            deltax += LerpFixed(side->oldtextureoffset, side->basetextureoffset);
-            dc_texturemid += side->baserowoffset;
+            deltax += LerpFixed(side->oldtextureoffset, side->textureoffset);
+            dc_texturemid += side->rowoffset;
         }
     }
     else
@@ -429,8 +429,8 @@ static void DrawSkyTex(visplane_t *pl, sky_t *sky, skytex_t *skytex)
 
         if (side)
         {
-            deltax += side->textureoffset;
-            dc_texturemid += side->baserowoffset;
+            deltax += side->interptextureoffset;
+            dc_texturemid += side->rowoffset;
         }
     }
 
