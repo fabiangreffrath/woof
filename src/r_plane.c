@@ -405,7 +405,6 @@ static void DrawSkyTex(visplane_t *pl, sky_t *sky, skytex_t *skytex)
 {
     const side_t * const side = sky->side;
     const int texture = texturetranslation[skytex->texture];
-    boolean vertically_scrolling = false;
     dc_texheight = textureheight[texture] >> FRACBITS;
     dc_iscale = FixedMul(skyiscale, skytex->scaley);
 
@@ -415,13 +414,11 @@ static void DrawSkyTex(visplane_t *pl, sky_t *sky, skytex_t *skytex)
         deltay = LerpFixed(skytex->prevy, skytex->curry);
         deltax = LerpFixed(skytex->prevx, skytex->currx) << (ANGLETOSKYSHIFT - FRACBITS);
         dc_texturemid = skytex->mid + deltay;
-        vertically_scrolling = skytex->scrolly;
 
         if (side)
         {
             deltax += LerpFixed(side->oldtextureoffset, side->textureoffset);
             dc_texturemid += side->rowoffset;
-            vertically_scrolling += (side->rowoffset - side->oldrowoffset);
         }
     }
     else
@@ -429,13 +426,11 @@ static void DrawSkyTex(visplane_t *pl, sky_t *sky, skytex_t *skytex)
         deltay = skytex->curry;
         deltax = skytex->currx << (ANGLETOSKYSHIFT - FRACBITS);
         dc_texturemid = skytex->mid + deltay;
-        vertically_scrolling = skytex->scrolly;
 
         if (side)
         {
             deltax += side->interptextureoffset;
             dc_texturemid += side->rowoffset;
-            vertically_scrolling += (side->rowoffset - side->oldrowoffset);
         }
     }
 
@@ -448,7 +443,14 @@ static void DrawSkyTex(visplane_t *pl, sky_t *sky, skytex_t *skytex)
 
     angle_t an = viewangle + deltax;
 
-    if (colfunc != R_DrawTLColumn && !vertically_scrolling && dc_texheight >= 128)
+    if (sky->texturemid_tic != gametic)
+    {
+        sky->vertically_scrolling = (sky->old_texturemid != dc_texturemid);
+        sky->old_texturemid = dc_texturemid;
+        sky->texturemid_tic = gametic;
+    }
+
+    if (colfunc != R_DrawTLColumn && !sky->vertically_scrolling && dc_texheight >= 128)
     {
         // Make sure the fade-to-color effect doesn't happen too early
         fixed_t diff = dc_texturemid - SCREENHEIGHT / 2 * FRACUNIT;
