@@ -23,10 +23,31 @@
 
 #include "doomtype.h"
 
+// A single patch from a texture definition, basically
+// a rectangular area within the texture rectangle.
+typedef struct
+{
+  int originx, originy;  // Block origin, which has already accounted
+  int patch;             // for the internal origin of the patch.
+} texpatch_t;
+
+// A maptexturedef_t describes a rectangular texture, which is composed
+// of one or more mappatch_t structures that arrange graphic patches.
+
+typedef struct
+{
+  char  name[8];         // Keep name for switch changing, etc.
+  int   next, index;     // killough 1/31/98: used in hashing algorithm
+  short width, height;
+  short patchcount;      // All the patches[patchcount] are drawn
+  texpatch_t patches[1]; // back-to-front into the cached texture.
+} texture_t;
+
+extern texture_t **textures;
+
 // Retrieve column data for span blitting.
 byte *R_GetColumn(int tex, int col);
-byte *R_GetColumnMod(int tex, int col);
-byte *R_GetColumnMod2(int tex, int col);
+byte *R_GetColumnMasked(int tex, int col);
 
 // I/O, setting up the stuff.
 void R_InitData (void);

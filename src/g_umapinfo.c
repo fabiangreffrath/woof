@@ -31,7 +31,10 @@
 
 // allow no 0-tag specials here, unless a level exit.
 #define UMAPINFO_BOSS_SPECIAL \
-    (tag != 0 || special == 11 || special == 51 || special == 52 || special == 124)
+    (tag != 0 \
+    || special == 11 || special == 51 || special == 52 || special == 124 \
+    || special == 2069 || special == 2070 || special == 2071 \
+    || special == 2072 || special == 2073 || special == 2074)
 
 mapentry_t *umapinfo = NULL;
 

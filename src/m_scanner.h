@@ -72,6 +72,14 @@ boolean SC_SameLine(scanner_t *s);
 boolean SC_CheckStringOrIdent(scanner_t *s);
 void SC_MustGetStringOrIdent(scanner_t *s);
 
-void SC_Error(scanner_t *s, const char *msg, ...) PRINTF_ATTR(2, 3);
+typedef enum
+{
+    SC_ERROR,
+    SC_WARNING
+} scmsg_t;
+
+void SC_PrintMsg(scmsg_t type, scanner_t *s, const char *msg, ...) PRINTF_ATTR(3, 4);
+#define SC_Error(s, ...) SC_PrintMsg(SC_ERROR, s, __VA_ARGS__)
+#define SC_Warning(s, ...) SC_PrintMsg(SC_WARNING, s, __VA_ARGS__)
 
 #endif

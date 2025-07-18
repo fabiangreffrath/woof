@@ -136,6 +136,8 @@ byte dc_skycolor;
                 dest += linesize;                                        \
                 if ((frac += fracstep) >= heightmask)                    \
                     frac -= heightmask;                                  \
+                if (frac < 0)                                            \
+                    frac += heightmask;                                  \
             } while (--count);                                           \
         }                                                                \
         else                                                             \

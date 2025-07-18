@@ -916,8 +916,9 @@ static void G_DoLoadLevel(void)
   //  we look for an actual index, instead of simply
   //  setting one.
 
-  skyflatnum = R_FlatNumForName ( SKYFLATNAME );
+  R_ClearLevelskies();
 
+  int skytexture;
   if (gamemapinfo && gamemapinfo->skytexture[0])
   {
     skytexture = R_TextureNumForName(gamemapinfo->skytexture);
@@ -954,6 +955,8 @@ static void G_DoLoadLevel(void)
         skytexture = R_TextureNumForName ("SKY4");
         break;
       }//jff 3/27/98 end sky setting fix
+
+  R_AddLevelsky(skytexture);
 
   levelstarttic = gametic;        // for time calculation
 
@@ -1003,8 +1006,6 @@ static void G_DoLoadLevel(void)
 
   MN_UpdateFreeLook(!mouselook && !padlook);
   HU_UpdateTurnFormat();
-
-  R_InitSkyMap(); // SKYDEFS flatmapping
 
   // [Woof!] Do not reset chosen player view across levels in multiplayer
   // demo playback. However, it must be reset when starting a new game.
@@ -3129,12 +3130,17 @@ void G_PlayerReborn(int player)
   int itemcount;
   int secretcount;
   int maxkilldiscount;
+  int num_visitedlevels;
+  level_t *visitedlevels;
+
 
   memcpy (frags, players[player].frags, sizeof frags);
   killcount = players[player].killcount;
   itemcount = players[player].itemcount;
   secretcount = players[player].secretcount;
   maxkilldiscount = players[player].maxkilldiscount;
+  num_visitedlevels = players[player].num_visitedlevels;
+  visitedlevels = players[player].visitedlevels;
 
   p = &players[player];
 
@@ -3150,6 +3156,8 @@ void G_PlayerReborn(int player)
   players[player].itemcount = itemcount;
   players[player].secretcount = secretcount;
   players[player].maxkilldiscount = maxkilldiscount;
+  players[player].num_visitedlevels = num_visitedlevels;
+  players[player].visitedlevels = visitedlevels;
 
   p->usedown = p->attackdown = true;  // don't do anything immediately
   p->playerstate = PST_LIVE;

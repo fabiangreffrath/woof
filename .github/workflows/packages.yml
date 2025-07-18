@@ -69,16 +69,12 @@ jobs:
         with:
           arch: ${{ matrix.config.arch }}
 
-      - name: Generate cache key
-        shell: bash
-        run: echo "CACHE_KEY=vcpkg-${{ matrix.config.triplet }}-${{ hashFiles('vcpkg.json') }}" >> $GITHUB_ENV 
-
       - name: Restore vcpkg cache
+        id: cache
         uses: actions/cache/restore@v4
         with:
           path: ${{ github.workspace }}/vcpkg_cache
-          key: ${{ env.CACHE_KEY }}
-          restore-keys: vcpkg-${{ matrix.config.triplet }}-
+          key: vcpkg-${{ matrix.config.triplet }}
 
       - name: Configure
         run: >-
@@ -96,15 +92,16 @@ jobs:
       # Delete the old cache on hit to emulate a cache update.
       - name: Delete old cache
         continue-on-error: true
+        if: steps.cache.outputs.cache-hit
         env:
           GH_TOKEN: ${{ github.token }}
-        run: gh cache delete --repo ${{ github.repository }} ${{ env.CACHE_KEY }}
+        run: gh cache delete --repo ${{ github.repository }} ${{ steps.cache.outputs.cache-primary-key }}
 
       - name: Save cache
         uses: actions/cache/save@v4
         with:
           path: ${{ github.workspace }}/vcpkg_cache
-          key: ${{ env.CACHE_KEY }}
+          key: ${{ steps.cache.outputs.cache-primary-key }}
 
       - name: Test
         if: github.event_name == 'workflow_dispatch'

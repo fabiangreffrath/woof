@@ -29,10 +29,12 @@
 #include "d_think.h"
 #include "doomdef.h"
 #include "doomstat.h"
+#include "doomtype.h"
 #include "i_printf.h"
 #include "i_system.h"
 #include "info.h"
 #include "m_argv.h" // M_CheckParm()
+#include "m_array.h"
 #include "m_fixed.h"
 #include "m_io.h"
 #include "m_misc.h"
@@ -43,6 +45,7 @@
 #include "r_defs.h"
 #include "r_main.h"
 #include "r_sky.h"
+#include "r_skydefs.h"
 #include "r_state.h"
 #include "v_fmt.h"
 #include "v_video.h" // cr_dark, cr_shaded
@@ -99,28 +102,6 @@ typedef PACKED_PREFIX struct
 #if defined(_MSC_VER)
 #pragma pack(pop)
 #endif
-
-// A single patch from a texture definition, basically
-// a rectangular area within the texture rectangle.
-typedef struct
-{
-  int originx, originy;  // Block origin, which has already accounted
-  int patch;             // for the internal origin of the patch.
-} texpatch_t;
-
-
-// A maptexturedef_t describes a rectangular texture, which is composed
-// of one or more mappatch_t structures that arrange graphic patches.
-
-typedef struct
-{
-  char  name[8];         // Keep name for switch changing, etc.
-  int   next, index;     // killough 1/31/98: used in hashing algorithm
-  short width, height;
-  short patchcount;      // All the patches[patchcount] are drawn
-  texpatch_t patches[1]; // back-to-front into the cached texture.
-} texture_t;
-
 
 // killough 4/17/98: make firstcolormaplump,lastcolormaplump external
 int firstcolormaplump, lastcolormaplump;      // killough 4/17/98
@@ -497,13 +478,28 @@ static void R_GenerateLookup(int texnum, int *const errors)
 
 //
 // R_GetColumn
+// Updated to support Non-power-of-2 textures, everywhere
 //
 
 byte *R_GetColumn(int tex, int col)
 {
+  const int width = texturewidth[tex];
+  const int mask = texturewidthmask[tex];
   int ofs;
 
-  col &= texturewidthmask[tex];
+  if (mask + 1 == width)
+  {
+    col &= mask;
+  }
+  else
+  {
+    while (col < 0)
+    {
+      col += width;
+    }
+    col %= width;
+  }
+
   ofs  = texturecolumnofs2[tex][col];
 
   if (!texturecomposite2[tex])
@@ -513,7 +509,7 @@ byte *R_GetColumn(int tex, int col)
 }
 
 // [FG] wrapping column getter function for composited translucent mid-textures on 2S walls
-byte *R_GetColumnMod(int tex, int col)
+byte *R_GetColumnMasked(int tex, int col)
 {
   int ofs;
 
@@ -527,23 +523,6 @@ byte *R_GetColumnMod(int tex, int col)
     R_GenerateComposite(tex);
 
   return texturecomposite[tex] + ofs;
-}
-
-// [FG] wrapping column getter function for non-power-of-two wide sky textures
-byte *R_GetColumnMod2(int tex, int col)
-{
-  int ofs;
-
-  while (col < 0)
-    col += texturewidth[tex];
-
-  col %= texturewidth[tex];
-  ofs  = texturecolumnofs2[tex][col];
-
-  if (!texturecomposite2[tex])
-    R_GenerateComposite(tex);
-
-  return texturecomposite2[tex] + ofs;
 }
 
 //
@@ -1089,6 +1068,7 @@ void R_InitData(void)
   R_InitSpriteLumps();
     R_InitTranMap(1);                   // killough 2/21/98, 3/6/98
   R_InitColormaps();                    // killough 3/20/98
+  R_InitSkyDefs();
 }
 
 //
@@ -1203,7 +1183,11 @@ void R_PrecacheLevel(void)
   //  a wall texture, with an episode dependend
   //  name.
 
-  hitlist[skytexture] = 1;
+  sky_t *sky;
+  array_foreach(sky, levelskies)
+  {
+    hitlist[sky->background.texture] = 1;
+  }
 
   for (i = numtextures; --i >= 0; )
     if (hitlist[i])

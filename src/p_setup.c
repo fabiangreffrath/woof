@@ -45,6 +45,7 @@
 #include "p_tick.h"
 #include "r_data.h"
 #include "r_defs.h"
+#include "r_sky.h"
 #include "r_main.h"
 #include "r_state.h"
 #include "r_things.h"
@@ -1737,6 +1738,9 @@ void P_SetupLevel(int episode, int map, int playermask, skill_t skill)
 
   // clear special respawning que
   iquehead = iquetail = 0;
+
+  // SKYDEFS flatmapping needs to be loaded before 271/272 transfers
+  R_InitSkyMap();
 
   // set up world state
   P_SpawnSpecials();
