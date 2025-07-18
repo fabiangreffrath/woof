@@ -646,7 +646,7 @@ static menuitem_t NewGameMenu[] = {
     {1, "M_HURT",  M_ChooseSkill, 'h', "Hurt me plenty.",       NEW_GAME_RECT(2)},
     {1, "M_ULTRA", M_ChooseSkill, 'u', "Ultra-Violence.",       NEW_GAME_RECT(3)},
     {1, "M_NMARE", M_ChooseSkill, 'n', "Nightmare!",            NEW_GAME_RECT(4)},
-    {1, "M_CSTSKL", M_CustomSkill, 'd', "Custom Skill.", NEW_GAME_RECT(5), MF_OPTLUMP}
+    {1, "M_CSTSKL", M_CustomSkill, 'd', "Custom Skill...", NEW_GAME_RECT(5), MF_OPTLUMP}
 };
 
 static menu_t NewDef = {

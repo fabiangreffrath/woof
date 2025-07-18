@@ -380,7 +380,6 @@ enum
     str_screen_melt,
     str_invul_mode,
     str_skill_level,
-    str_halfplayerdamage,
 };
 
 static const char **GetStrings(int id);
@@ -3462,11 +3461,8 @@ boolean doubleammo, csdoubleammo = false;
 boolean aggromonsters, csaggromonsters = false;
 
 static const char *skill_level_strings[] = {
-    "ITYTD", "HNTR", "HMP", "UV", "NM"
-};
-
-static const char *halfplayerdamage_strings[] = {
-    "100%", "50%"
+    "I'm too young to die", "Hey, not too rough", "Hurt me plenty",
+    "Ultra-Violence", "NIGHTMARE!",
 };
 
 static void SelectSkillLevel(void);
@@ -3478,19 +3474,18 @@ static void StartGame(void)
 }
 
 static setup_menu_t customskill_settings1[] = {
-    MI_GAP_Y(25),
+    MI_GAP_Y(10),
     {"Skill level", S_CHOICE, CNTR_X, M_SPC, {"skill_level"},
      .strings_id = str_skill_level, .action = SelectSkillLevel},
+    {"Half damage", S_ONOFF, CNTR_X, M_SPC, {"cshalfplayerdamage"}},
     {"Double ammo", S_ONOFF, CNTR_X, M_SPC, {"csdoubleammo"}},
-    {"Player damage", S_CHOICE, CNTR_X, M_SPC, {"cshalfplayerdamage"},
-     .strings_id = str_halfplayerdamage},
-    {"No monsters", S_ONOFF, CNTR_X, M_SPC, {"clnomonsters"}},
     {"Fast monsters", S_ONOFF, CNTR_X, M_SPC, {"clfastparm"}},
     {"Aggressive monsters", S_ONOFF, CNTR_X, M_SPC, {"csaggromonsters"}},
     {"Respawn monsters", S_ONOFF, CNTR_X, M_SPC, {"clrespawnparm"}},
     MI_GAP,
-    {"Pistol start", S_ONOFF, CNTR_X, M_SPC, {"clpistolstart"}},
+    {"No monsters", S_ONOFF, CNTR_X, M_SPC, {"clnomonsters"}},
     {"Co-op spawns", S_ONOFF, CNTR_X, M_SPC, {"clcoopspawns"}},
+    {"Pistol start", S_ONOFF, CNTR_X, M_SPC, {"clpistolstart"}},
     MI_GAP,
     {"Start Game", S_CENTER, 0, M_SPC, .action = StartGame},
     MI_END
@@ -3537,7 +3532,7 @@ void MN_CustomSkill(void)
 void MN_DrawCustomSkill(void)
 {
     const char *title = "Custom Skill";
-    MN_DrawString((SCREENWIDTH - MN_GetPixelWidth(title)) / 2, 50, CR_GOLD,
+    MN_DrawString((SCREENWIDTH - MN_GetPixelWidth(title)) / 2, 30, CR_GOLD,
                   title);
     DrawInstructions();
     DrawScreenItems(current_menu);
@@ -4970,7 +4965,6 @@ static const char **selectstrings[] = {
     [str_screen_melt] = screen_melt_strings,
     [str_invul_mode] = invul_mode_strings,
     [str_skill_level] = skill_level_strings,
-    [str_halfplayerdamage] = halfplayerdamage_strings,
 };
 
 static const char **GetStrings(int id)
