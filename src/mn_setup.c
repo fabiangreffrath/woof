@@ -371,7 +371,6 @@ enum
     str_gyro_sens,
     str_gyro_accel,
 
-    str_default_skill,
     str_default_complevel,
     str_exit_sequence,
     str_death_use_action,
@@ -379,7 +378,7 @@ enum
     str_bobbing_pct,
     str_screen_melt,
     str_invul_mode,
-    str_skill_level,
+    str_skill,
 };
 
 static const char **GetStrings(int id);
@@ -3316,11 +3315,6 @@ static setup_menu_t gen_settings5[] = {
     MI_END
 };
 
-const char *default_skill_strings[] = {
-    // dummy first option because defaultskill is 1-based
-    "", "ITYTD", "HNTR", "HMP", "UV", "NM"
-};
-
 static const char *death_use_action_strings[] = {"default", "last save",
                                                  "nothing"};
 
@@ -3360,9 +3354,6 @@ static setup_menu_t gen_settings6[] = {
 
     {"Game speed", S_NUM | S_STRICT | S_PCT, OFF_CNTR_X, M_SPC,
      {"realtic_clock_rate"}, .action = G_SetTimeScale},
-
-    {"Default Skill", S_CHOICE | S_LEVWARN, OFF_CNTR_X, M_SPC,
-     {"default_skill"}, .strings_id = str_default_skill},
 
     {"Exit Sequence", S_CHOICE, OFF_CNTR_X, M_SPC, {"exit_sequence"},
     .strings_id = str_exit_sequence, .action = UpdatePwadEndoomItem},
@@ -3455,12 +3446,11 @@ void MN_DrawGeneral(void)
     }
 }
 
-static skill_t skill_level = sk_medium;
-boolean halfplayerdamage, cshalfplayerdamage = false;
-boolean doubleammo, csdoubleammo = false;
-boolean aggromonsters, csaggromonsters = false;
+static boolean mnhalfplayerdamage;
+static boolean mndoubleammo;
+static boolean mnaggromonsters;
 
-static const char *skill_level_strings[] = {
+const char *skill_strings[] = {
     "I'm too young to die", "Hey, not too rough", "Hurt me plenty",
     "Ultra-Violence", "NIGHTMARE!",
 };
@@ -3469,18 +3459,21 @@ static void SelectSkillLevel(void);
 
 static void StartGame(void)
 {
-    M_ChooseSkill(skill_level);
+    cshalfplayerdamage = mnhalfplayerdamage;
+    csdoubleammo = mndoubleammo;
+    csaggromonsters = mnaggromonsters;
+    M_ChooseSkill(startskill);
     setup_active = false;
 }
 
 static setup_menu_t customskill_settings1[] = {
     MI_GAP_Y(10),
-    {"Skill level", S_CHOICE, CNTR_X, M_SPC, {"skill_level"},
-     .strings_id = str_skill_level, .action = SelectSkillLevel},
-    {"Half damage", S_ONOFF, CNTR_X, M_SPC, {"cshalfplayerdamage"}},
-    {"Double ammo", S_ONOFF, CNTR_X, M_SPC, {"csdoubleammo"}},
+    {"Skill level", S_CHOICE, CNTR_X, M_SPC, {"startskill"},
+     .strings_id = str_skill, .action = SelectSkillLevel},
+    {"Half damage", S_ONOFF, CNTR_X, M_SPC, {"mnhalfplayerdamage"}},
+    {"Double ammo", S_ONOFF, CNTR_X, M_SPC, {"mndoubleammo"}},
     {"Fast monsters", S_ONOFF, CNTR_X, M_SPC, {"clfastparm"}},
-    {"Aggressive monsters", S_ONOFF, CNTR_X, M_SPC, {"csaggromonsters"}},
+    {"Aggressive monsters", S_ONOFF, CNTR_X, M_SPC, {"mnaggromonsters"}},
     {"Respawn monsters", S_ONOFF, CNTR_X, M_SPC, {"clrespawnparm"}},
     MI_GAP,
     {"No monsters", S_ONOFF, CNTR_X, M_SPC, {"clnomonsters"}},
@@ -3493,28 +3486,27 @@ static setup_menu_t customskill_settings1[] = {
 
 static void SelectSkillLevel(void)
 {
-    cshalfplayerdamage = csdoubleammo = csaggromonsters = clfastparm =
+    mnhalfplayerdamage = mndoubleammo = mnaggromonsters = clfastparm =
         clrespawnparm = false;
 
-    switch (skill_level)
+    switch (startskill)
     {
         case sk_baby:
-            cshalfplayerdamage = csdoubleammo = true;
+            mnhalfplayerdamage = mndoubleammo = true;
             break;
         case sk_nightmare:
-            csdoubleammo = csaggromonsters = clfastparm =
-                clrespawnparm = true;
+            mndoubleammo = mnaggromonsters = clfastparm = clrespawnparm = true;
             break;
         default:
             break;
     }
 
-    DisableItem(skill_level == sk_baby, customskill_settings1,
-        "cshalfplayerdamage");
-    DisableItem(skill_level == sk_baby || skill_level == sk_nightmare,
-        customskill_settings1, "csdoubleammo");
-    DisableItems(skill_level == sk_nightmare, customskill_settings1,
-        "csaggromonsters", "clfastparm", "clrespawnparm");
+    DisableItem(startskill == sk_baby, customskill_settings1,
+        "mnhalfplayerdamage");
+    DisableItem(startskill == sk_baby || startskill == sk_nightmare,
+        customskill_settings1, "mndoubleammo");
+    DisableItems(startskill == sk_nightmare, customskill_settings1,
+        "mnaggromonsters", "clfastparm", "clrespawnparm");
 }
 
 static setup_menu_t *customskill_settings[] = {customskill_settings1, NULL};
@@ -4956,7 +4948,6 @@ static const char **selectstrings[] = {
     [str_gyro_action] = gyro_action_strings,
     [str_gyro_sens] = NULL,
     [str_gyro_accel] = NULL,
-    [str_default_skill] = default_skill_strings,
     [str_default_complevel] = default_complevel_strings,
     [str_exit_sequence] = exit_sequence_strings,
     [str_death_use_action] = death_use_action_strings,
@@ -4964,7 +4955,7 @@ static const char **selectstrings[] = {
     [str_bobbing_pct] = bobbing_pct_strings,
     [str_screen_melt] = screen_melt_strings,
     [str_invul_mode] = invul_mode_strings,
-    [str_skill_level] = skill_level_strings,
+    [str_skill] = skill_strings,
 };
 
 static const char **GetStrings(int id)
@@ -5071,8 +5062,8 @@ void MN_BindMenuVariables(void)
         "Menu backdrop (0 = Off; 1 = Dark; 2 = Texture)");
     BIND_NUM_GENERAL(menu_help, MENU_HELP_AUTO, MENU_HELP_OFF, MENU_HELP_PAD,
         "Menu help (0 = Off; 1 = Auto; 2 = Always Keyboard; 3 = Always Gamepad)");
-    BIND_NUM_MENU(skill_level, sk_baby, sk_nightmare);
-    BIND_BOOL_MENU(csdoubleammo);
-    BIND_BOOL_MENU(cshalfplayerdamage);
-    BIND_BOOL_MENU(csaggromonsters);
+    BIND_NUM_MENU(startskill, sk_baby, sk_nightmare);
+    BIND_BOOL_MENU(mndoubleammo);
+    BIND_BOOL_MENU(mnhalfplayerdamage);
+    BIND_BOOL_MENU(mnaggromonsters);
 }
