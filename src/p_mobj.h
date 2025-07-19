@@ -425,9 +425,9 @@ extern int itemrespawntime[];
 extern int iquehead;
 extern int iquetail;
 
-extern boolean direct_vertical_aiming, default_direct_vertical_aiming;
+extern boolean direct_vertical_aiming;
 extern int max_pitch_angle, default_max_pitch_angle;
-void P_UpdateDirectVerticalAiming(void);
+void P_UpdateDirectVerticalAiming(boolean condition);
 
 extern boolean checksight12;
 void P_UpdateCheckSight(void);

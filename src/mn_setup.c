@@ -2213,9 +2213,6 @@ setup_menu_t comp_settings1[] = {
 
     {"Compatibility-breaking Features", S_SKIP | S_TITLE, M_X, M_SPC},
 
-    {"Direct Vertical Aiming", S_ONOFF | S_STRICT, M_X, M_SPC,
-     {"direct_vertical_aiming"}, .action = P_UpdateDirectVerticalAiming},
-
     {"Auto Strafe 50", S_ONOFF | S_STRICT, M_X, M_SPC, {"autostrafe50"},
      .action = G_UpdateSideMove},
 
@@ -2809,7 +2806,7 @@ void MN_DrawEqualizer(void)
 
 void MN_UpdateFreeLook(boolean condition)
 {
-    P_UpdateDirectVerticalAiming();
+    P_UpdateDirectVerticalAiming(mouselook || (padlook && I_UseGamepad()));
 
     if (condition)
     {
