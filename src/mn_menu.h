@@ -88,7 +88,7 @@ boolean MN_MenuIsShaded(void);
 
 extern int savepage;
 
-extern const char *default_skill_strings[];
+extern const char *skill_strings[];
 extern const char *widescreen_strings[];
 
 void M_ResetAutoSave(void);

@@ -172,6 +172,20 @@ static void DisableItem(boolean condition, setup_menu_t *menu, const char *item)
     I_Error("Item \"%s\" not found in menu", item);
 }
 
+static void DisableItemsInternal(boolean condition, setup_menu_t *menu,
+                                 const char *items[], int size)
+{
+    for (int i = 0; i < size; ++i)
+    {
+        DisableItem(condition, menu, items[i]);
+    }
+}
+
+#define DisableItems(condition, menu, ...)                                   \
+    DisableItemsInternal((condition), (menu), (const char *[]){__VA_ARGS__}, \
+                         sizeof((const char *[]){__VA_ARGS__})               \
+                             / sizeof(const char *))
+
 /////////////////////////////
 //
 // booleans for setup screens
@@ -357,7 +371,6 @@ enum
     str_gyro_sens,
     str_gyro_accel,
 
-    str_default_skill,
     str_default_complevel,
     str_exit_sequence,
     str_death_use_action,
@@ -365,6 +378,7 @@ enum
     str_bobbing_pct,
     str_screen_melt,
     str_invul_mode,
+    str_skill,
 };
 
 static const char **GetStrings(int id);
@@ -423,12 +437,16 @@ static boolean NextItemAvailable(setup_menu_t *s)
 
 static void BlinkingArrowLeft(setup_menu_t *s)
 {
+    int flags = s->m_flags;
+
     if (!ItemSelected(s))
     {
+        if (flags & S_CENTER)
+        {
+            strcpy(menu_buffer, "  ");    
+        }
         return;
     }
-
-    int flags = s->m_flags;
 
     if (menu_input == mouse_mode)
     {
@@ -453,12 +471,16 @@ static void BlinkingArrowLeft(setup_menu_t *s)
 
 static void BlinkingArrowRight(setup_menu_t *s)
 {
+    int flags = s->m_flags;
+
     if (!ItemSelected(s))
     {
+        if (flags & S_CENTER)
+        {
+            strcat(menu_buffer, "  ");    
+        }
         return;
     }
-
-    int flags = s->m_flags;
 
     if (menu_input == mouse_mode)
     {
@@ -577,7 +599,6 @@ static void DrawItem(setup_menu_t *s, int accum_y)
 
     menu_buffer[0] = '\0';
 
-    int w = 0;
     const char *text = s->m_text;
     const int color = GetItemColor(flags);
 
@@ -585,10 +606,9 @@ static void DrawItem(setup_menu_t *s, int accum_y)
 
     // killough 10/98: support left-justification:
     strcat(menu_buffer, text);
-    w = MN_GetPixelWidth(menu_buffer);
-    if (!(flags & S_LEFTJUST))
+    if (!(flags & (S_LEFTJUST | S_CENTER)))
     {
-        x -= (w + 4);
+        x -= (MN_GetPixelWidth(menu_buffer) + 4);
     }
 
     rect->x = 0;
@@ -599,6 +619,12 @@ static void DrawItem(setup_menu_t *s, int accum_y)
     if (flags & S_THERMO)
     {
         y += M_THRM_TXT_OFFSET;
+    }
+
+    if (flags & S_CENTER)
+    {
+        BlinkingArrowRight(s);
+        x = (SCREENWIDTH  - MN_GetPixelWidth(menu_buffer)) / 2;
     }
 
     DrawMenuStringEx(flags, x, y, color);
@@ -2193,8 +2219,6 @@ setup_menu_t comp_settings1[] = {
     {"Auto Strafe 50", S_ONOFF | S_STRICT, M_X, M_SPC, {"autostrafe50"},
      .action = G_UpdateSideMove},
 
-    {"Pistol Start", S_ONOFF | S_STRICT, M_X, M_SPC, {"pistolstart"}},
-
     MI_GAP,
 
     {"Improved Hit Detection", S_ONOFF | S_STRICT, M_X, M_SPC,
@@ -3289,11 +3313,6 @@ static setup_menu_t gen_settings5[] = {
     MI_END
 };
 
-const char *default_skill_strings[] = {
-    // dummy first option because defaultskill is 1-based
-    "", "ITYTD", "HNTR", "HMP", "UV", "NM"
-};
-
 static const char *death_use_action_strings[] = {"default", "last save",
                                                  "nothing"};
 
@@ -3333,9 +3352,6 @@ static setup_menu_t gen_settings6[] = {
 
     {"Game speed", S_NUM | S_STRICT | S_PCT, OFF_CNTR_X, M_SPC,
      {"realtic_clock_rate"}, .action = G_SetTimeScale},
-
-    {"Default Skill", S_CHOICE | S_LEVWARN, OFF_CNTR_X, M_SPC,
-     {"default_skill"}, .strings_id = str_default_skill},
 
     {"Exit Sequence", S_CHOICE, OFF_CNTR_X, M_SPC, {"exit_sequence"},
     .strings_id = str_exit_sequence, .action = UpdatePwadEndoomItem},
@@ -3428,6 +3444,90 @@ void MN_DrawGeneral(void)
     }
 }
 
+static boolean mnhalfplayerdamage;
+static boolean mndoubleammo;
+static boolean mnaggromonsters;
+
+const char *skill_strings[] = {
+    "I'm too young to die", "Hey, not too rough", "Hurt me plenty",
+    "Ultra-Violence", "NIGHTMARE!",
+};
+
+static void SelectSkillLevel(void);
+
+static void StartGame(void)
+{
+    cshalfplayerdamage = mnhalfplayerdamage;
+    csdoubleammo = mndoubleammo;
+    csaggromonsters = mnaggromonsters;
+    M_ChooseSkill(startskill);
+    setup_active = false;
+}
+
+static setup_menu_t customskill_settings1[] = {
+    MI_GAP_Y(10),
+    {"Skill level", S_CHOICE, CNTR_X, M_SPC, {"startskill"},
+     .strings_id = str_skill, .action = SelectSkillLevel},
+    {"Half damage", S_ONOFF, CNTR_X, M_SPC, {"mnhalfplayerdamage"}},
+    {"Double ammo", S_ONOFF, CNTR_X, M_SPC, {"mndoubleammo"}},
+    {"Fast monsters", S_ONOFF, CNTR_X, M_SPC, {"clfastparm"}},
+    {"Aggressive monsters", S_ONOFF, CNTR_X, M_SPC, {"mnaggromonsters"}},
+    {"Respawn monsters", S_ONOFF, CNTR_X, M_SPC, {"clrespawnparm"}},
+    MI_GAP,
+    {"No monsters", S_ONOFF, CNTR_X, M_SPC, {"clnomonsters"}},
+    {"Co-op spawns", S_ONOFF, CNTR_X, M_SPC, {"clcoopspawns"}},
+    {"Pistol start", S_ONOFF, CNTR_X, M_SPC, {"clpistolstart"}},
+    MI_GAP,
+    {"Start Game", S_CENTER, 0, M_SPC, .action = StartGame},
+    MI_END
+};
+
+static void SelectSkillLevel(void)
+{
+    mnhalfplayerdamage = mndoubleammo = mnaggromonsters = clfastparm =
+        clrespawnparm = false;
+
+    switch (startskill)
+    {
+        case sk_baby:
+            mnhalfplayerdamage = mndoubleammo = true;
+            break;
+        case sk_nightmare:
+            mndoubleammo = mnaggromonsters = clfastparm = clrespawnparm = true;
+            break;
+        default:
+            break;
+    }
+
+    DisableItem(startskill == sk_baby, customskill_settings1,
+        "mnhalfplayerdamage");
+    DisableItem(startskill == sk_baby || startskill == sk_nightmare,
+        customskill_settings1, "mndoubleammo");
+    DisableItems(startskill == sk_nightmare, customskill_settings1,
+        "mnaggromonsters", "clfastparm", "clrespawnparm");
+}
+
+static setup_menu_t *customskill_settings[] = {customskill_settings1, NULL};
+
+void MN_CustomSkill(void)
+{
+    MN_SetNextMenuAlt(ss_cskill);
+    setup_screen = ss_cskill;
+    current_page = 0;
+    current_menu = customskill_settings[current_page];
+    current_tabs = NULL;
+    SetupMenu();
+}
+
+void MN_DrawCustomSkill(void)
+{
+    const char *title = "Custom Skill";
+    MN_DrawString((SCREENWIDTH - MN_GetPixelWidth(title)) / 2, 30, CR_GOLD,
+                  title);
+    DrawInstructions();
+    DrawScreenItems(current_menu);
+}
+
 /////////////////////////////
 //
 // General routines used by the Setup screens.
@@ -3465,6 +3565,7 @@ static setup_menu_t **setup_screens[] = {
     eq_settings,
     padadv_settings,
     gyro_settings,
+    customskill_settings,
 };
 
 // [FG] save the index of the current screen in the first page's S_END element's
@@ -4269,7 +4370,7 @@ boolean MN_SetupResponder(menu_action_t action, int ch)
        current_item->m_flags |= S_HILITE;
     }
 
-    if ((current_item->m_flags & S_FUNC) && action == MENU_ENTER)
+    if ((current_item->m_flags & (S_FUNC | S_CENTER)) && action == MENU_ENTER)
     {
         if (ItemDisabled(current_item->m_flags))
         {
@@ -4807,52 +4908,52 @@ void MN_DrawTitle(int x, int y, const char *patch, const char *alttext)
 }
 
 static const char **selectstrings[] = {
-    NULL, // str_empty
-    layout_strings,
-    flick_snap_strings,
-    NULL, // str_ms_time
-    NULL, // str_movement_sensitivity
-    movement_type_strings,
-    percent_strings,
-    curve_strings,
-    center_weapon_strings,
-    NULL, // str_screensize
-    st_layout_strings,
-    show_widgets_strings,
-    show_adv_widgets_strings,
-    stats_format_strings,
-    crosshair_strings,
-    crosshair_target_strings,
-    hudcolor_strings,
-    secretmessage_strings,
-    overlay_strings,
-    automap_preset_strings,
-    automap_keyed_door_strings,
-    fuzzmode_strings,
-    weapon_slots_activation_strings,
-    weapon_slots_selection_strings,
-    NULL, // str_weapon_slots
-    NULL, // str_resolution_scale
-    NULL, // str_midi_player
-    gamma_strings,
-    sound_module_strings,
-    extra_music_strings,
-    NULL, // str_resampler
-    equalizer_preset_strings,
-    NULL, // str_mouse_accel
-    NULL, // str_gamepad_device
-    gyro_space_strings,
-    gyro_action_strings,
-    NULL, // str_gyro_sens
-    NULL, // str_gyro_accel
-    default_skill_strings,
-    default_complevel_strings,
-    exit_sequence_strings,
-    death_use_action_strings,
-    widescreen_strings,
-    bobbing_pct_strings,
-    screen_melt_strings,
-    invul_mode_strings,
+    [str_empty] = NULL,
+    [str_layout] = layout_strings,
+    [str_flick_snap] = flick_snap_strings,
+    [str_ms_time] = NULL,
+    [str_movement_sensitivity] = NULL,
+    [str_movement_type] = movement_type_strings,
+    [str_percent] = percent_strings,
+    [str_curve] = curve_strings,
+    [str_center_weapon] = center_weapon_strings,
+    [str_screensize] = NULL,
+    [str_stlayout] = st_layout_strings,
+    [str_show_widgets] = show_widgets_strings,
+    [str_show_adv_widgets] = show_adv_widgets_strings,
+    [str_stats_format] = stats_format_strings,
+    [str_crosshair] = crosshair_strings,
+    [str_crosshair_target] = crosshair_target_strings,
+    [str_hudcolor] = hudcolor_strings,
+    [str_secretmessage] = secretmessage_strings,
+    [str_overlay] = overlay_strings,
+    [str_automap_preset] = automap_preset_strings,
+    [str_automap_keyed_door] = automap_keyed_door_strings,
+    [str_fuzzmode] = fuzzmode_strings,
+    [str_weapon_slots_activation] = weapon_slots_activation_strings,
+    [str_weapon_slots_selection] = weapon_slots_selection_strings,
+    [str_weapon_slots] = NULL,
+    [str_resolution_scale] = NULL,
+    [str_midi_player] = NULL,
+    [str_gamma] = gamma_strings,
+    [str_sound_module] = sound_module_strings,
+    [str_extra_music] = extra_music_strings,
+    [str_resampler] = NULL,
+    [str_equalizer_preset] = equalizer_preset_strings,
+    [str_mouse_accel] = NULL,
+    [str_gamepad_device] = NULL,
+    [str_gyro_space] = gyro_space_strings,
+    [str_gyro_action] = gyro_action_strings,
+    [str_gyro_sens] = NULL,
+    [str_gyro_accel] = NULL,
+    [str_default_complevel] = default_complevel_strings,
+    [str_exit_sequence] = exit_sequence_strings,
+    [str_death_use_action] = death_use_action_strings,
+    [str_widescreen] = widescreen_strings,
+    [str_bobbing_pct] = bobbing_pct_strings,
+    [str_screen_melt] = screen_melt_strings,
+    [str_invul_mode] = invul_mode_strings,
+    [str_skill] = skill_strings,
 };
 
 static const char **GetStrings(int id)
@@ -4932,7 +5033,6 @@ void MN_InitMenuStrings(void)
 void MN_SetupResetMenu(void)
 {
     DisableItem(force_complevel != CL_NONE, comp_settings1, "default_complevel");
-    DisableItem(M_ParmExists("-pistolstart"), comp_settings1, "pistolstart");
     DisableItem(M_ParmExists("-uncapped") || M_ParmExists("-nouncapped"),
                 gen_settings1, "uncapped");
     DisableItem(deh_set_blood_color, enem_settings1, "colored_blood");
@@ -4959,4 +5059,8 @@ void MN_BindMenuVariables(void)
         "Menu backdrop (0 = Off; 1 = Dark; 2 = Texture)");
     BIND_NUM_GENERAL(menu_help, MENU_HELP_AUTO, MENU_HELP_OFF, MENU_HELP_PAD,
         "Menu help (0 = Off; 1 = Auto; 2 = Always Keyboard; 3 = Always Gamepad)");
+    BIND_NUM_MENU(startskill, sk_baby, sk_nightmare);
+    BIND_BOOL_MENU(mndoubleammo);
+    BIND_BOOL_MENU(mnhalfplayerdamage);
+    BIND_BOOL_MENU(mnaggromonsters);
 }
