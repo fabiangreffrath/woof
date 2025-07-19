@@ -434,12 +434,6 @@ static void DisableGamepadEvents(void)
 static void I_ShutdownGamepad(void)
 {
     I_ShutdownRumble();
-
-    if (gamepad)
-    {
-        SDL_GameControllerSetPlayerIndex(gamepad, -1);
-    }
-
     SDL_QuitSubSystem(SDL_INIT_GAMECONTROLLER);
 }
 
@@ -543,7 +537,6 @@ static void CloseGamepad(void)
     {
         I_ResetAllRumbleChannels();
         I_SetRumbleSupported(NULL);
-        SDL_GameControllerSetPlayerIndex(gamepad, -1);
         SDL_GameControllerClose(gamepad);
         gamepad = NULL;
         gamepad_instance_id = -1;
