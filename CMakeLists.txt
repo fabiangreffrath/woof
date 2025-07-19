@@ -202,7 +202,7 @@ elseif(LINUX)
 
             execute_process(COMMAND
                 ${CMAKE_COMMAND} -E env
-                OUTPUT=${CPACK_PACKAGE_FILE_NAME}.appimage
+                OUTPUT=${CPACK_PACKAGE_FILE_NAME}.AppImage
                 VERSION=$<IF:$<BOOL:${CPACK_PACKAGE_VERSION}>,${CPACK_PACKAGE_VERSION},0.1.0>
                 ${LINUXDEPLOY_EXECUTABLE}
                 --appimage-extract-and-run
@@ -211,7 +211,7 @@ elseif(LINUX)
                 --desktop-file=${CPACK_TEMPORARY_DIRECTORY}/${CPACK_PACKAGING_INSTALL_PREFIX}/share/applications/io.github.fabiangreffrath.woof.desktop
                 --icon-file=${CPACK_TEMPORARY_DIRECTORY}/${CPACK_PACKAGING_INSTALL_PREFIX}/share/icons/hicolor/128x128/apps/woof.png
                 --output=appimage)
-            ]])
+        ]])
 else()
     set(CPACK_GENERATOR TGZ)
 endif()
