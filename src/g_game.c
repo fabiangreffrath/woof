@@ -174,8 +174,7 @@ boolean reset_inventory = false;
 
 static boolean  pistolstart, default_pistolstart;
 
-boolean         strictmode, default_strictmode;
-boolean         force_strictmode;
+boolean         strictmode;
 boolean         critical;
 
 // [crispy] store last cmd to track joins
@@ -3721,6 +3720,48 @@ static void G_BoomComp()
   comp[comp_reservedlineflag] = 0;
 }
 
+static void CheckDemoParams(boolean specified_complevel)
+{
+  const boolean use_recordfrom = (M_CheckParmWithArgs("-recordfrom", 2)
+                                  || M_CheckParmWithArgs("-recordfromto", 2));
+
+  if (use_recordfrom || M_CheckParmWithArgs("-record", 1))
+  {
+    //!
+    // @category demo
+    // @help
+    //
+    // Lifts strict mode restrictions according to DSDA rules.
+    //
+
+    strictmode = !M_ParmExists("-tas");
+
+    if (!specified_complevel)
+    {
+      I_Error("You must specify a compatibility level when recording a demo!\n"
+              "Example: %s -iwad DOOM.WAD -complevel ultimate -skill 4 -record demo",
+              PROJECT_SHORTNAME);
+    }
+
+    if (!use_recordfrom && !M_ParmExists("-skill") && !M_ParmExists("-uv")
+        && !M_ParmExists("-nm"))
+    {
+      I_Error("You must specify a skill level when recording a demo!\n"
+              "Example: %s -iwad DOOM.WAD -complevel ultimate -skill 4 -record demo",
+              PROJECT_SHORTNAME);
+    }
+
+    if (M_ParmExists("-pistolstart"))
+    {
+      I_Error("The -pistolstart option is not allowed when recording a demo!");
+    }
+  }
+  else
+  {
+    strictmode = false;
+  }
+}
+
 // killough 3/1/98: function to reload all the default parameter
 // settings before a new game begins
 
@@ -3818,6 +3859,8 @@ void G_ReloadDefaults(boolean keep_demover)
       }
     }
 
+    CheckDemoParams(p > 0);
+
     if (demover == DV_NONE)
     {
       demover = GetWadDemover();
@@ -3833,21 +3876,6 @@ void G_ReloadDefaults(boolean keep_demover)
       demo_version = demover;
       force_complevel = GetComplevel(demo_version);
     }
-  }
-
-  strictmode = default_strictmode;
-
-  //!
-  // @category demo
-  // @help
-  //
-  // Sets compatibility and cosmetic settings according to DSDA rules.
-  //
-
-  if (M_CheckParm("-strict"))
-  {
-    strictmode = true;
-    force_strictmode = true;
   }
 
   G_UpdateSideMove();
@@ -4858,8 +4886,6 @@ void G_BindCompVariables(void)
             "Default compatibility level (0 = Vanilla; 1 = Boom; 2 = MBF; 3 = MBF21)");
   M_BindBool("autostrafe50", &autostrafe50, NULL, false, ss_comp, wad_no,
              "Automatic strafe50 (SR50)");
-  M_BindBool("strictmode", &default_strictmode, &strictmode,
-             false, ss_comp, wad_no, "Strict mode");
   M_BindBool("hangsolid", &hangsolid, NULL, false, ss_comp, wad_no,
              "Enable walking under solid hanging bodies");
   M_BindBool("blockmapfix", &blockmapfix, NULL, false, ss_comp, wad_no,
