@@ -2430,6 +2430,9 @@ void D_DoomMain(void)
     startloadgame = -1;
   }
 
+  // Allows PWAD HELP2 screen for DOOM 1 wads (using Ultimate Doom IWAD).
+  pwad_help2 = gamemode == retail && W_IsWADLump(W_CheckNumForName("HELP2"));
+
   W_ProcessInWads("SNDINFO", S_ParseSndInfo, PROCESS_IWAD | PROCESS_PWAD);
 
   W_ProcessInWads("TRAKINFO", S_ParseTrakInfo, PROCESS_IWAD | PROCESS_PWAD);

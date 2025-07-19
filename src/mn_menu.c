@@ -219,7 +219,6 @@ static void M_MusicVol(int choice);
 /* void M_ChangeDetail(int choice);  unused -- killough */
 
 static void M_FinishReadThis(int choice);
-static void M_FinishHelp(int choice); // killough 10/98
 static void M_LoadAutoSaveSelect(int choice);
 static void M_LoadSelect(int choice);
 static void M_SaveSelect(int choice);
@@ -236,7 +235,6 @@ static void M_DrawSound(void);
 static void M_DrawLoad(void);
 static void M_DrawSave(void);
 static void M_DrawSetup(void); // phares 3/21/98
-static void M_DrawHelp(void);  // phares 5/04/98
 
 static void M_DrawSaveLoadBorder(int x, int y, byte *cr);
 static void M_DrawThermo(int x, int y, int thermWidth, int thermDot, byte *cr);
@@ -386,10 +384,6 @@ static menuitem_t ReadMenu2[] = {
     {1, "", M_FinishReadThis, 0}
 };
 
-static menuitem_t HelpMenu[] = { // killough 10/98
-    {1, "", M_FinishHelp, 0}
-};
-
 static menu_t ReadDef1 = {
     read1_end,
     &MainDef,
@@ -405,15 +399,6 @@ static menu_t ReadDef2 = {
     &ReadDef1,
     ReadMenu2,
     M_DrawReadThis2,
-    330, 175,
-    0
-};
-
-static menu_t HelpDef = { // killough 10/98
-    help_end,
-    &HelpDef,
-    HelpMenu,
-    M_DrawHelp,
     330, 175,
     0
 };
@@ -437,11 +422,6 @@ static void M_FinishReadThis(int choice)
     SetNextMenu(&MainDef);
 }
 
-static void M_FinishHelp(int choice) // killough 10/98
-{
-    SetNextMenu(&MainDef);
-}
-
 //
 // Read This Menus
 // Had a "quick hack to fix romero bug"
@@ -461,11 +441,18 @@ static void M_DrawReadThis1(void)
 
 static void M_DrawReadThis2(void)
 {
-    // We only ever draw the second page if this is
-    // gameversion == exe_doom_1_9 and gamemode == registered
+    // Display help screen from PWAD
+    int helplump;
+    if (gamemode == commercial)
+    {
+        helplump = W_CheckNumForName(W_CheckWidescreenPatch("HELP"));
+    }
+    else
+    {
+        helplump = W_CheckNumForName(W_CheckWidescreenPatch("HELP1"));
+    }
 
-    V_DrawPatchFullScreen(
-        V_CachePatchName(W_CheckWidescreenPatch("HELP1"), PU_CACHE));
+    V_DrawPatchFullScreen(V_CachePatchNum(helplump, PU_CACHE));
 }
 
 static void M_DrawReadThisCommercial(void)
@@ -1894,13 +1881,8 @@ static void M_InitExtendedHelp(void)
             {
                 // Restore extended help functionality
                 // for all game versions
-                ExtHelpDef.prevMenu = &HelpDef; // previous menu
-                HelpMenu[0].routine = M_ExtHelp;
-
-                if (gamemode != commercial)
-                {
-                    ReadMenu2[0].routine = M_ExtHelp;
-                }
+                ExtHelpDef.prevMenu = &ReadDef2; // previous menu
+                ReadMenu2[0].routine = M_ExtHelp;
             }
             return;
         }
@@ -1924,27 +1906,6 @@ static void M_DrawExtHelp(void)
     namebfr[4] = extended_help_index / 10 + 0x30;
     namebfr[5] = extended_help_index % 10 + 0x30;
     V_DrawPatchFullScreen(V_CachePatchName(namebfr, PU_CACHE));
-}
-
-//
-// M_DrawHelp
-//
-// This displays the help screen
-
-static void M_DrawHelp(void)
-{
-    // Display help screen from PWAD
-    int helplump;
-    if (gamemode == commercial)
-    {
-        helplump = W_CheckNumForName(W_CheckWidescreenPatch("HELP"));
-    }
-    else
-    {
-        helplump = W_CheckNumForName(W_CheckWidescreenPatch("HELP1"));
-    }
-
-    V_DrawPatchFullScreen(V_CachePatchNum(helplump, PU_CACHE));
 }
 
 //
@@ -2338,8 +2299,18 @@ void M_Init(void)
         ReadDef1.routine = M_DrawReadThisCommercial;
         ReadDef1.x = 330;
         ReadDef1.y = 165;
-        HelpDef.y = 165;
         ReadMenu1[0].routine = M_FinishReadThis;
+    }
+
+    if (pwad_help2)
+    {
+        MainMenu[readthis].routine = M_ReadThis;
+        ReadDef2.prevMenu = &ReadDef1;
+    }
+    else if (gamemode == retail)
+    {
+        MainMenu[readthis].routine = M_ReadThis2;
+        ReadDef2.prevMenu = NULL;
     }
 
     // Versions of doom.exe before the Ultimate Doom release only had
@@ -2496,8 +2467,9 @@ boolean M_ShortcutResponder(const event_t *ev)
 
     if (M_InputActivated(input_help)) // Help key
     {
+        boolean help2 = (gamemode < commercial || pwad_help2);
         MN_StartControlPanel();
-        currentMenu = &HelpDef; // killough 10/98: new help screen
+        currentMenu = help2 ? &ReadDef1 : &ReadDef2; // killough 10/98: new help screen
         currentMenu->prevMenu = NULL;
         itemOn = 0;
         return true;
