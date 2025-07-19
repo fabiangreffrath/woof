@@ -205,6 +205,13 @@ target_link_libraries(woof PRIVATE
     sha1
     md5)
 
+target_compile_definitions(woof PUBLIC
+    $<$<CONFIG:Debug>:WOOF_DEBUG>
+    $<$<CONFIG:RelWithDebInfo>:WOOF_DEBUG>
+    $<$<CONFIG:Release>:WOOF_RELEASE>
+    $<$<CONFIG:MinSizeRel>:WOOF_RELEASE>
+)
+
 # Some platforms require standard libraries to be linked against.
 if(HAVE_LIBM)
     target_link_libraries(woof PRIVATE m)
