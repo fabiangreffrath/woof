@@ -323,8 +323,7 @@ extern  int       playback_skiptics;
 
 extern  boolean   frozen_mode;
 
-extern  boolean   strictmode, default_strictmode;
-extern  boolean   force_strictmode;
+extern  boolean   strictmode;
 
 #define STRICTMODE(x) (strictmode ? 0 : (x))
 

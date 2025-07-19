@@ -389,7 +389,7 @@ static boolean ItemDisabled(int flags)
         force_complevel != CL_NONE ? force_complevel : default_complevel;
 
     if ((flags & S_DISABLE)
-        || (flags & S_STRICT && (default_strictmode || force_strictmode))
+        || (flags & S_STRICT && strictmode)
         || (flags & S_BOOM && complevel < CL_BOOM)
         || (flags & S_MBF && complevel < CL_MBF)
         || (flags & S_VANILLA && complevel != CL_VANILLA))
@@ -2208,8 +2208,6 @@ setup_menu_t comp_settings1[] = {
     {"Default Compatibility Level", S_CHOICE | S_LEVWARN, M_X, M_SPC,
      {"default_complevel"}, .strings_id = str_default_complevel,
      .action = UpdateDefaultCompatibilityLevel},
-
-    {"Strict Mode", S_ONOFF | S_LEVWARN, M_X, M_SPC, {"strictmode"}},
 
     MI_GAP,
 
@@ -5034,7 +5032,6 @@ void MN_InitMenuStrings(void)
 
 void MN_SetupResetMenu(void)
 {
-    DisableItem(force_strictmode, comp_settings1, "strictmode");
     DisableItem(force_complevel != CL_NONE, comp_settings1, "default_complevel");
     DisableItem(M_ParmExists("-uncapped") || M_ParmExists("-nouncapped"),
                 gen_settings1, "uncapped");
