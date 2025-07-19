@@ -48,13 +48,12 @@
 #include "v_video.h"
 #include "z_zone.h"
 
-boolean direct_vertical_aiming, default_direct_vertical_aiming;
+boolean direct_vertical_aiming;
 int max_pitch_angle = 32 * ANG1, default_max_pitch_angle;
 
-void P_UpdateDirectVerticalAiming(void)
+void P_UpdateDirectVerticalAiming(boolean condition)
 {
-  direct_vertical_aiming = (CRITICAL(default_direct_vertical_aiming) &&
-                            (mouselook || padlook));
+  direct_vertical_aiming = CRITICAL(condition);
   max_pitch_angle = default_max_pitch_angle * ANG1;
 }
 
