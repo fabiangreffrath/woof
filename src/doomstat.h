@@ -68,6 +68,8 @@ extern char *MapName(int e, int m);
 // Set if homebrew PWAD stuff has been added.
 extern  boolean modifiedgame;
 
+extern boolean pwad_help2;
+
 extern boolean have_ssg;
 #define ALLOW_SSG (gamemode == commercial || CRITICAL(have_ssg))
 

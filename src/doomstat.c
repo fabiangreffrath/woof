@@ -44,6 +44,8 @@ boolean modifiedgame;
 
 boolean have_ssg;
 
+boolean pwad_help2;
+
 //-----------------------------------------------------------------------------
 
 // compatibility with old engines (monster behavior, metrics, etc.)
