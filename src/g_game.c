@@ -4892,8 +4892,6 @@ void G_BindCompVariables(void)
              "Fix blockmap bug (improves hit detection)");
   M_BindBool("checksight12", &checksight12, NULL, false, ss_comp, wad_no,
              "Fast blockmap-based line-of-sight calculation");
-  M_BindBool("direct_vertical_aiming", &default_direct_vertical_aiming, &direct_vertical_aiming,
-             false, ss_comp, wad_no, "Direct vertical aiming");
   M_BindBool("pistolstart", &default_pistolstart, &pistolstart,
              false, ss_comp, wad_no, "Pistol start");
 
