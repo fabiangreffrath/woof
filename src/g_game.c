@@ -4857,12 +4857,6 @@ void G_BindGameVariables(void)
     "Use-button action upon death (0 = Default; 1 = Last Save; 2 = Nothing)");
   BIND_BOOL_GENERAL(autosave, true,
     "Auto save at the beginning of a map, after completing the previous one");
-
-  BIND_BOOL_MENU(clnomonsters);
-  BIND_BOOL_MENU(clfastparm);
-  BIND_BOOL_MENU(clrespawnparm);
-  BIND_BOOL_MENU(clpistolstart);
-  BIND_BOOL_MENU(clcoopspawns);
 }
 
 void G_BindEnemVariables(void)

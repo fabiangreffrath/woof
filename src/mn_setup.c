@@ -3444,9 +3444,19 @@ void MN_DrawGeneral(void)
     }
 }
 
-static boolean mnhalfplayerdamage;
-static boolean mndoubleammo;
-static boolean mnaggromonsters;
+static boolean skill_level;
+
+static struct
+{
+    boolean fastparm;
+    boolean respawnparm;
+    boolean nomonsters;
+    boolean coopspawns;
+    boolean pistolstart;
+    boolean halfplayerdamage;
+    boolean doubleammo;
+    boolean aggromonsters;    
+} csmenu;
 
 const char *skill_strings[] = {
     "I'm too young to die", "Hey, not too rough", "Hurt me plenty",
@@ -3457,26 +3467,32 @@ static void SelectSkillLevel(void);
 
 static void StartGame(void)
 {
-    cshalfplayerdamage = mnhalfplayerdamage;
-    csdoubleammo = mndoubleammo;
-    csaggromonsters = mnaggromonsters;
-    M_ChooseSkill(startskill);
+    clfastparm = csmenu.fastparm;
+    clrespawnparm = csmenu.respawnparm;
+    clnomonsters = csmenu.nomonsters;
+    clcoopspawns = csmenu.coopspawns;
+    clpistolstart = csmenu.pistolstart;
+    cshalfplayerdamage = csmenu.halfplayerdamage;
+    csdoubleammo = csmenu.doubleammo;
+    csaggromonsters = csmenu.aggromonsters;
+
+    M_ChooseSkill(skill_level);
     setup_active = false;
 }
 
 static setup_menu_t customskill_settings1[] = {
     MI_GAP_Y(10),
-    {"Skill level", S_CHOICE, CNTR_X, M_SPC, {"startskill"},
+    {"Skill level", S_CHOICE, CNTR_X, M_SPC, {"skill_level"},
      .strings_id = str_skill, .action = SelectSkillLevel},
-    {"Half damage", S_ONOFF, CNTR_X, M_SPC, {"mnhalfplayerdamage"}},
-    {"Double ammo", S_ONOFF, CNTR_X, M_SPC, {"mndoubleammo"}},
-    {"Fast monsters", S_ONOFF, CNTR_X, M_SPC, {"clfastparm"}},
-    {"Aggressive monsters", S_ONOFF, CNTR_X, M_SPC, {"mnaggromonsters"}},
-    {"Respawn monsters", S_ONOFF, CNTR_X, M_SPC, {"clrespawnparm"}},
+    {"Half damage", S_ONOFF, CNTR_X, M_SPC, {"csmenu.halfplayerdamage"}},
+    {"Double ammo", S_ONOFF, CNTR_X, M_SPC, {"csmenu.doubleammo"}},
+    {"Fast monsters", S_ONOFF, CNTR_X, M_SPC, {"csmenu.fastparm"}},
+    {"Aggressive monsters", S_ONOFF, CNTR_X, M_SPC, {"csmenu.aggromonsters"}},
+    {"Respawn monsters", S_ONOFF, CNTR_X, M_SPC, {"csmenu.respawnparm"}},
     MI_GAP,
-    {"No monsters", S_ONOFF, CNTR_X, M_SPC, {"clnomonsters"}},
-    {"Co-op spawns", S_ONOFF, CNTR_X, M_SPC, {"clcoopspawns"}},
-    {"Pistol start", S_ONOFF, CNTR_X, M_SPC, {"clpistolstart"}},
+    {"No monsters", S_ONOFF, CNTR_X, M_SPC, {"csmenu.nomonsters"}},
+    {"Co-op spawns", S_ONOFF, CNTR_X, M_SPC, {"csmenu.coopspawns"}},
+    {"Pistol start", S_ONOFF, CNTR_X, M_SPC, {"csmenu.pistolstart"}},
     MI_GAP,
     {"Start Game", S_CENTER, 0, M_SPC, .action = StartGame},
     MI_END
@@ -3484,27 +3500,31 @@ static setup_menu_t customskill_settings1[] = {
 
 static void SelectSkillLevel(void)
 {
-    mnhalfplayerdamage = mndoubleammo = mnaggromonsters = clfastparm =
-        clrespawnparm = false;
+    memset(&csmenu, 0, sizeof(csmenu));
 
-    switch (startskill)
+    switch (skill_level)
     {
         case sk_baby:
-            mnhalfplayerdamage = mndoubleammo = true;
+            csmenu.halfplayerdamage = true;
+            csmenu.doubleammo = true;
             break;
         case sk_nightmare:
-            mndoubleammo = mnaggromonsters = clfastparm = clrespawnparm = true;
+            csmenu.doubleammo = true;
+            csmenu.aggromonsters = true;
+            csmenu.fastparm = true;
+            csmenu.respawnparm = true;
             break;
         default:
             break;
     }
 
-    DisableItem(startskill == sk_baby, customskill_settings1,
-        "mnhalfplayerdamage");
-    DisableItem(startskill == sk_baby || startskill == sk_nightmare,
-        customskill_settings1, "mndoubleammo");
-    DisableItems(startskill == sk_nightmare, customskill_settings1,
-        "mnaggromonsters", "clfastparm", "clrespawnparm");
+    DisableItem(skill_level == sk_baby, customskill_settings1,
+                "csmenu.halfplayerdamage");
+    DisableItem(skill_level == sk_baby || skill_level == sk_nightmare,
+                customskill_settings1, "csmenu.doubleammo");
+    DisableItems(skill_level == sk_nightmare, customskill_settings1,
+                 "csmenu.aggromonsters", "csmenu.fastparm",
+                 "csmenu.respawnparm");
 }
 
 static setup_menu_t *customskill_settings[] = {customskill_settings1, NULL};
@@ -3517,6 +3537,9 @@ void MN_CustomSkill(void)
     current_menu = customskill_settings[current_page];
     current_tabs = NULL;
     SetupMenu();
+
+    skill_level =
+        (startskill == default_skill - 1) ? startskill : default_skill - 1;
 }
 
 void MN_DrawCustomSkill(void)
@@ -5059,8 +5082,13 @@ void MN_BindMenuVariables(void)
         "Menu backdrop (0 = Off; 1 = Dark; 2 = Texture)");
     BIND_NUM_GENERAL(menu_help, MENU_HELP_AUTO, MENU_HELP_OFF, MENU_HELP_PAD,
         "Menu help (0 = Off; 1 = Auto; 2 = Always Keyboard; 3 = Always Gamepad)");
-    BIND_NUM_MENU(startskill, sk_baby, sk_nightmare);
-    BIND_BOOL_MENU(mndoubleammo);
-    BIND_BOOL_MENU(mnhalfplayerdamage);
-    BIND_BOOL_MENU(mnaggromonsters);
+    BIND_NUM_MENU(skill_level, sk_baby, sk_nightmare);
+    BIND_BOOL_MENU(csmenu.nomonsters);
+    BIND_BOOL_MENU(csmenu.fastparm);
+    BIND_BOOL_MENU(csmenu.respawnparm);
+    BIND_BOOL_MENU(csmenu.pistolstart);
+    BIND_BOOL_MENU(csmenu.coopspawns);
+    BIND_BOOL_MENU(csmenu.doubleammo);
+    BIND_BOOL_MENU(csmenu.halfplayerdamage);
+    BIND_BOOL_MENU(csmenu.aggromonsters);
 }
