@@ -3444,7 +3444,7 @@ void MN_DrawGeneral(void)
     }
 }
 
-static boolean skill_level;
+static boolean csmenu_skill;
 
 static struct
 {
@@ -3476,13 +3476,13 @@ static void StartGame(void)
     csdoubleammo = csmenu.doubleammo;
     csaggromonsters = csmenu.aggromonsters;
 
-    M_ChooseSkill(skill_level);
+    M_ChooseSkill(csmenu_skill);
     setup_active = false;
 }
 
 static setup_menu_t customskill_settings1[] = {
     MI_GAP_Y(10),
-    {"Skill level", S_CHOICE, CNTR_X, M_SPC, {"skill_level"},
+    {"Skill level", S_CHOICE, CNTR_X, M_SPC, {"csmenu_skill"},
      .strings_id = str_skill, .action = SelectSkillLevel},
     {"Half damage", S_ONOFF, CNTR_X, M_SPC, {"csmenu.halfplayerdamage"}},
     {"Double ammo", S_ONOFF, CNTR_X, M_SPC, {"csmenu.doubleammo"}},
@@ -3502,7 +3502,7 @@ static void SelectSkillLevel(void)
 {
     memset(&csmenu, 0, sizeof(csmenu));
 
-    switch (skill_level)
+    switch (csmenu_skill)
     {
         case sk_baby:
             csmenu.halfplayerdamage = true;
@@ -3518,11 +3518,11 @@ static void SelectSkillLevel(void)
             break;
     }
 
-    DisableItem(skill_level == sk_baby, customskill_settings1,
+    DisableItem(csmenu_skill == sk_baby, customskill_settings1,
                 "csmenu.halfplayerdamage");
-    DisableItem(skill_level == sk_baby || skill_level == sk_nightmare,
+    DisableItem(csmenu_skill == sk_baby || csmenu_skill == sk_nightmare,
                 customskill_settings1, "csmenu.doubleammo");
-    DisableItems(skill_level == sk_nightmare, customskill_settings1,
+    DisableItems(csmenu_skill == sk_nightmare, customskill_settings1,
                  "csmenu.aggromonsters", "csmenu.fastparm",
                  "csmenu.respawnparm");
 }
@@ -3538,7 +3538,7 @@ void MN_CustomSkill(void)
     current_tabs = NULL;
     SetupMenu();
 
-    skill_level = (startskill != sk_default) ? startskill : default_skill - 1;
+    csmenu_skill = default_skill - 1;
 }
 
 void MN_DrawCustomSkill(void)
@@ -5081,7 +5081,7 @@ void MN_BindMenuVariables(void)
         "Menu backdrop (0 = Off; 1 = Dark; 2 = Texture)");
     BIND_NUM_GENERAL(menu_help, MENU_HELP_AUTO, MENU_HELP_OFF, MENU_HELP_PAD,
         "Menu help (0 = Off; 1 = Auto; 2 = Always Keyboard; 3 = Always Gamepad)");
-    BIND_NUM_MENU(skill_level, sk_baby, sk_nightmare);
+    BIND_NUM_MENU(csmenu_skill, sk_baby, sk_nightmare);
     BIND_BOOL_MENU(csmenu.nomonsters);
     BIND_BOOL_MENU(csmenu.fastparm);
     BIND_BOOL_MENU(csmenu.respawnparm);
