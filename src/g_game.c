@@ -172,9 +172,8 @@ complevel_t     force_complevel, default_complevel;
 // ID24 exit line specials
 boolean reset_inventory = false;
 
-static boolean  pistolstart, default_pistolstart;
-
 boolean         strictmode;
+
 boolean         critical;
 
 // [crispy] store last cmd to track joins
@@ -2544,6 +2543,12 @@ static void DoSaveGame(char *name)
   // save max_kill_requirement
   saveg_write32(max_kill_requirement);
 
+  saveg_write8(pistolstart);
+  saveg_write8(coopspawns);
+  saveg_write8(halfplayerdamage);
+  saveg_write8(doubleammo);
+  saveg_write8(aggromonsters);
+
   // [FG] save snapshot
   saveg_buffer_size(MN_SnapshotDataSize());
   MN_WriteSnapshot(save_p);
@@ -2770,6 +2775,19 @@ static boolean DoLoadGame(boolean do_load_autosave)
     {
       max_kill_requirement = saveg_read32();
     }
+  }
+
+  // restore pistolstat and coopspawns
+  if (save_p - savebuffer <= length - 5)
+  {
+     if (saveg_compat > saveg_woof1500)
+     {
+       pistolstart = saveg_read8();
+       coopspawns = saveg_read8();
+       halfplayerdamage = saveg_read8();
+       doubleammo = saveg_read8();
+       aggromonsters = saveg_read8();
+     }
   }
 
   // done
@@ -3804,6 +3822,12 @@ void G_ReloadDefaults(boolean keep_demover)
   respawnparm = clrespawnparm;
   fastparm = clfastparm;
   nomonsters = clnomonsters;
+  pistolstart = clpistolstart;
+  coopspawns = clcoopspawns;
+
+  halfplayerdamage = cshalfplayerdamage;
+  doubleammo = csdoubleammo;
+  aggromonsters = csaggromonsters;
 
   //jff 3/24/98 set startskill from defaultskill in config file, unless
   // it has already been set by a -skill parameter
@@ -3879,18 +3903,6 @@ void G_ReloadDefaults(boolean keep_demover)
   }
 
   G_UpdateSideMove();
-
-  pistolstart = default_pistolstart;
-
-  //!
-  // @category game
-  // @help
-  //
-  // Enables automatic pistol starts on each level.
-  //
-
-  if (M_CheckParm("-pistolstart"))
-    pistolstart = true;
 
   // Reset MBF compatibility options in strict mode
   if (strictmode)
@@ -4620,7 +4632,7 @@ static size_t WriteCmdLineLump(MEMFILE *stream)
       mem_fputs(" -complevel 4", stream);
   }
 
-  if (coop_spawns)
+  if (coopspawns)
   {
     mem_fputs(" -coop_spawns", stream);
   }
@@ -4845,6 +4857,12 @@ void G_BindGameVariables(void)
     "Use-button action upon death (0 = Default; 1 = Last Save; 2 = Nothing)");
   BIND_BOOL_GENERAL(autosave, true,
     "Auto save at the beginning of a map, after completing the previous one");
+
+  BIND_BOOL_MENU(clnomonsters);
+  BIND_BOOL_MENU(clfastparm);
+  BIND_BOOL_MENU(clrespawnparm);
+  BIND_BOOL_MENU(clpistolstart);
+  BIND_BOOL_MENU(clcoopspawns);
 }
 
 void G_BindEnemVariables(void)
@@ -4894,8 +4912,6 @@ void G_BindCompVariables(void)
              "Fast blockmap-based line-of-sight calculation");
   M_BindBool("direct_vertical_aiming", &default_direct_vertical_aiming, &direct_vertical_aiming,
              false, ss_comp, wad_no, "Direct vertical aiming");
-  M_BindBool("pistolstart", &default_pistolstart, &pistolstart,
-             false, ss_comp, wad_no, "Pistol start");
 
 #define BIND_COMP(id, v, help) \
   M_BindNum(#id, &default_comp[(id)], &comp[(id)], (v), 0, 1, ss_none, wad_yes, help)
