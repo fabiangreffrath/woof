@@ -447,7 +447,7 @@ static void saveg_read_mobj_t(mobj_t *str)
     }
 
     // [FG] height of the sprite in pixels
-    str->actualheight = spritetopoffset[sprites[str->sprite].spriteframes[str->frame & FF_FRAMEMASK].lump[0]];
+    P_SetActualHeight(str); 
 }
 
 static void saveg_write_mobj_t(mobj_t *str)

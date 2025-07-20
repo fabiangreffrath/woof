@@ -58,6 +58,16 @@ void P_UpdateDirectVerticalAiming(void)
   max_pitch_angle = default_max_pitch_angle * ANG1;
 }
 
+void P_SetActualHeight(mobj_t *mobj)
+{
+    spritedef_t *sprdef = &sprites[mobj->sprite];
+    spriteframe_t *sprframe = &sprdef->spriteframes[mobj->frame & FF_FRAMEMASK];
+    if (sprframe)
+    {
+        mobj->actualheight = spritetopoffset[sprframe->lump[0]];
+    }
+}
+
 //
 // P_SetMobjState
 // Returns true if the mobj is still present.
@@ -120,7 +130,7 @@ boolean P_SetMobjState(mobj_t* mobj,statenum_t state)
   // [FG] update object's actual height
   if (ret)
   {
-    mobj->actualheight = spritetopoffset[sprites[mobj->sprite].spriteframes[mobj->frame & FF_FRAMEMASK].lump[0]];
+    P_SetActualHeight(mobj);
   }
 
   return ret;
@@ -911,7 +921,7 @@ mobj_t *P_SpawnMobj(fixed_t x, fixed_t y, fixed_t z, mobjtype_t type)
   }
 
   // [FG] initialize object's actual height
-  mobj->actualheight = spritetopoffset[sprites[st->sprite].spriteframes[st->frame & FF_FRAMEMASK].lump[0]];
+  P_SetActualHeight(mobj);
 
   P_AddThinker(&mobj->thinker);
 
