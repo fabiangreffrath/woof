@@ -3538,8 +3538,7 @@ void MN_CustomSkill(void)
     current_tabs = NULL;
     SetupMenu();
 
-    skill_level =
-        (startskill == default_skill - 1) ? startskill : default_skill - 1;
+    skill_level = (startskill != sk_default) ? startskill : default_skill - 1;
 }
 
 void MN_DrawCustomSkill(void)
