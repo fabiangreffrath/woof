@@ -545,7 +545,6 @@ static void CloseGamepad(void)
         DisableGamepadEvents();
         UpdatePlatform();
         I_ResetGamepad();
-        MN_UpdateFreeLook(false);
     }
 }
 
@@ -575,7 +574,6 @@ void I_OpenGamepad(int device_index)
         UpdatePlatform();
         EnableGamepadEvents();
         SDL_GameControllerSetPlayerIndex(gamepad, 0);
-        MN_UpdateFreeLook(false);
 
         if (gyro_supported)
         {

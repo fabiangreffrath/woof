@@ -427,7 +427,7 @@ extern int iquetail;
 
 extern boolean direct_vertical_aiming;
 extern int max_pitch_angle, default_max_pitch_angle;
-void P_UpdateDirectVerticalAiming(boolean condition);
+void P_UpdateDirectVerticalAiming(void);
 
 extern boolean checksight12;
 void P_UpdateCheckSight(void);

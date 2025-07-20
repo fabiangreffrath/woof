@@ -161,8 +161,7 @@ byte            *savebuffer;
 boolean         autorun = false;      // always running?          // phares
 boolean         autostrafe50;
 boolean         novert = false;
-boolean         mouselook = false;
-boolean         padlook = false;
+freelook_t      freelook, default_freelook;
 // killough 4/13/98: Make clock rate adjustable by scale factor
 int             realtic_clock_rate = 100;
 static boolean  doom_weapon_toggles;
@@ -480,7 +479,7 @@ void G_PrepMouseTiccmd(void)
     mousex = 0;
   }
 
-  if (mousey && mouselook)
+  if (mousey && freelook)
   {
     localview.rawpitch += G_CalcMousePitch(mousey);
     basecmd.pitch = G_CarryPitch(localview.rawpitch);
@@ -504,7 +503,7 @@ void G_PrepGamepadTiccmd(void)
       axes[AXIS_TURN] = 0.0f;
     }
 
-    if (axes[AXIS_LOOK] && padlook)
+    if (axes[AXIS_LOOK] && freelook)
     {
       localview.rawpitch -= G_CalcGamepadPitch();
       basecmd.pitch = G_CarryPitch(localview.rawpitch);
@@ -726,7 +725,7 @@ void G_BuildTiccmd(ticcmd_t* cmd)
     side += G_CarrySide(mouseside);
   }
 
-  if (mousey && !mouselook && !novert)
+  if (mousey && !freelook && !novert)
   {
     const double mousevert = G_CalcMouseVert(mousey);
     forward += G_CarryVert(mousevert);
@@ -1002,7 +1001,7 @@ static void G_DoLoadLevel(void)
 
   P_SetupLevel (gameepisode, gamemap, 0, gameskill);
 
-  MN_UpdateFreeLook(!mouselook && !padlook);
+  MN_UpdateFreeLook();
   HU_UpdateTurnFormat();
 
   // [Woof!] Do not reset chosen player view across levels in multiplayer
@@ -4832,10 +4831,11 @@ void doomprintf(player_t *player, msg_category_t category, const char *s, ...)
 void G_BindGameInputVariables(void)
 {
   BIND_BOOL(autorun, true, "Always run");
-  BIND_BOOL_GENERAL(mouselook, false, "Mouselook");
+  M_BindNum("freelook", &default_freelook, &freelook,
+    FREELOOK_OFF, FREELOOK_OFF, FREELOOK_DIRECT_AIM, ss_gen, wad_no,
+    "Free look (0 = Off; 1 = Auto-Aim; 2 = Direct Aim)");
   BIND_BOOL_GENERAL(dclick_use, true, "Double-click acts as use-button");
   BIND_BOOL(novert, true, "Disable vertical mouse movement");
-  BIND_BOOL_GENERAL(padlook, false, "Padlook");
 }
 
 void G_BindGameVariables(void)

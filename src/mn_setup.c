@@ -364,6 +364,7 @@ enum
     str_equalizer_preset,
 
     str_mouse_accel,
+    str_free_look,
 
     str_gamepad_device,
     str_gyro_space,
@@ -2211,12 +2212,8 @@ setup_menu_t comp_settings1[] = {
 
     MI_GAP,
 
-    {"Compatibility-breaking Features", S_SKIP | S_TITLE, M_X, M_SPC},
-
     {"Auto Strafe 50", S_ONOFF | S_STRICT, M_X, M_SPC, {"autostrafe50"},
      .action = G_UpdateSideMove},
-
-    MI_GAP,
 
     {"Improved Hit Detection", S_ONOFF | S_STRICT, M_X, M_SPC,
      {"blockmapfix"}},
@@ -2804,11 +2801,16 @@ void MN_DrawEqualizer(void)
     DrawScreenItems(current_menu);
 }
 
-void MN_UpdateFreeLook(boolean condition)
-{
-    P_UpdateDirectVerticalAiming(mouselook || (padlook && I_UseGamepad()));
+#define LOOKFLAG_ENABLED    0x01 // Free look enabled.
+#define LOOKFLAG_DIRECT_AIM 0x02 // Direct vertical aiming enabled.
+#define LOOKFLAG_BLOCKED    0x04 // Free look blocked.
+static byte freelookflags;
 
-    if (condition)
+void MN_UpdateFreeLook(void)
+{
+    P_UpdateDirectVerticalAiming();
+
+    if (!freelook)
     {
         for (int i = 0; i < MAXPLAYERS; ++i)
         {
@@ -2820,15 +2822,75 @@ void MN_UpdateFreeLook(boolean condition)
     }
 }
 
-void MN_UpdateMouseLook(void)
+boolean MN_ToggleFreeLook(void)
 {
-    MN_UpdateFreeLook(!mouselook);
+    if (!(freelookflags & LOOKFLAG_BLOCKED))
+    {
+        freelookflags ^= LOOKFLAG_ENABLED;
+
+        switch (freelookflags)
+        {
+            case LOOKFLAG_ENABLED:
+                freelook = FREELOOK_AUTO_AIM;
+                break;
+            case (LOOKFLAG_ENABLED | LOOKFLAG_DIRECT_AIM):
+                freelook = FREELOOK_DIRECT_AIM;
+                break;
+            default:
+                freelook = FREELOOK_OFF;
+                break;
+        }
+
+        default_freelook = freelook;
+        MN_UpdateFreeLook();
+        return true;
+    }
+    else
+    {
+        return false;
+    }
 }
 
-void MN_UpdatePadLook(void)
+static void UpdateFreeLookType(void)
 {
-    MN_UpdateFreeLook(!padlook);
+    if (!(freelookflags & LOOKFLAG_BLOCKED))
+    {
+        freelook = default_freelook;
+
+        switch (freelook)
+        {
+            case FREELOOK_AUTO_AIM:
+                freelookflags = LOOKFLAG_ENABLED;
+                break;
+            case FREELOOK_DIRECT_AIM:
+                freelookflags = (LOOKFLAG_ENABLED | LOOKFLAG_DIRECT_AIM);
+                break;
+            default:
+                freelookflags = 0;
+                break;
+        }
+
+        MN_UpdateFreeLook();
+    }
 }
+
+static void DisableFreeLookItems(void);
+
+void MN_InitFreeLook(void)
+{
+    if (demorecording || (netgame && !solonet))
+    {
+        freelook = FREELOOK_OFF;
+        freelookflags = LOOKFLAG_BLOCKED;
+        DisableFreeLookItems();
+    }
+    else
+    {
+        UpdateFreeLookType();
+    }
+}
+
+static const char *free_look_strings[] = {"Off", "Auto-Aim", "Direct Aim"};
 
 #define MOUSE_ACCEL_STRINGS_SIZE (40 + 1)
 
@@ -2871,8 +2933,8 @@ static setup_menu_t gen_settings3[] = {
     // [FG] double click to "use"
     {"Double-Click to \"Use\"", S_ONOFF, CNTR_X, M_SPC, {"dclick_use"}},
 
-    {"Free Look", S_ONOFF, CNTR_X, M_SPC, {"mouselook"},
-     .action = MN_UpdateMouseLook},
+    {"Free Look", S_CHOICE, CNTR_X, M_SPC, {"freelook"},
+     .strings_id = str_free_look, .action = UpdateFreeLookType},
 
     // [FG] invert vertical axis
     {"Invert Look", S_ONOFF, CNTR_X, M_SPC, {"mouse_y_invert"},
@@ -2941,8 +3003,8 @@ static setup_menu_t gen_settings4[] = {
 
     MI_GAP_Y(2),
 
-     {"Free Look", S_ONOFF, CNTR_X, M_SPC, {"padlook"},
-     .action = MN_UpdatePadLook},
+    {"Free Look", S_CHOICE, CNTR_X, M_SPC, {"freelook"},
+     .strings_id = str_free_look, .action = UpdateFreeLookType},
 
     {"Invert Look", S_ONOFF, CNTR_X, M_SPC, {"joy_invert_look"},
      .action = I_ResetGamepad},
@@ -2966,6 +3028,12 @@ static setup_menu_t gen_settings4[] = {
 
     MI_END
 };
+
+static void DisableFreeLookItems(void)
+{
+    DisableItem(true, gen_settings3, "freelook");
+    DisableItem(true, gen_settings4, "freelook");
+}
 
 static const char *movement_type_strings[] = {
     "Normalized", "Faster Diagonals"
@@ -3073,12 +3141,13 @@ static void UpdateGamepadItems(void)
     const boolean flick = (gamepad && sticks && !I_StandardLayout());
     const boolean ramp = (gamepad && sticks && I_RampTimeEnabled());
     const boolean condition = (!gamepad || !sticks);
+    const boolean look = !(freelookflags & LOOKFLAG_BLOCKED);
 
     DisableItem(!devices, gen_settings4, "joy_device");
     DisableItem(!gamepad, gen_settings4, "Advanced Options");
     DisableItem(!gamepad || !I_GyroSupported(), gen_settings4, "Gyro Options");
     DisableItem(!gamepad || !I_RumbleSupported(), gen_settings4, "joy_rumble");
-    DisableItem(!gamepad || (!sticks && !gyro), gen_settings4, "padlook");
+    DisableItem(!gamepad || (!sticks && !gyro) || !look, gen_settings4, "freelook");
     DisableItem(condition, gen_settings4, "joy_invert_look");
     DisableItem(condition, gen_settings4, "joy_movement_inner_deadzone");
     DisableItem(condition, gen_settings4, "joy_camera_inner_deadzone");
@@ -3099,7 +3168,7 @@ static void UpdateGyroItems(void);
 
 static void UpdateGyroAiming(void)
 {
-    UpdateGamepadItems(); // Update "Gyro Options" and padlook.
+    UpdateGamepadItems(); // Update "Gyro Options" and freelook.
     UpdateGyroItems();
     I_SetSensorsEnabled(I_GyroEnabled());
     I_ResetGamepad();
@@ -4960,6 +5029,7 @@ static const char **selectstrings[] = {
     [str_resampler] = NULL,
     [str_equalizer_preset] = equalizer_preset_strings,
     [str_mouse_accel] = NULL,
+    [str_free_look] = free_look_strings,
     [str_gamepad_device] = NULL,
     [str_gyro_space] = gyro_space_strings,
     [str_gyro_action] = gyro_action_strings,

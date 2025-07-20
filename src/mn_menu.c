@@ -2478,19 +2478,9 @@ boolean M_ShortcutResponder(const event_t *ev)
 
     if (M_InputActivated(input_freelook))
     {
-        if (ev->type == ev_joyb_down)
+        if (MN_ToggleFreeLook())
         {
-            // Gamepad free look toggle only affects gamepad.
-            padlook = !padlook;
-            togglemsg("Gamepad Free Look %s", padlook ? "On" : "Off");
-            MN_UpdatePadLook();
-        }
-        else
-        {
-            // Keyboard or mouse free look toggle only affects mouse.
-            mouselook = !mouselook;
-            togglemsg("Free Look %s", mouselook ? "On" : "Off");
-            MN_UpdateMouseLook();
+            togglemsg("Free Look %s", freelook ? "On" : "Off");
         }
         // return true; // [FG] don't let toggles eat keys
     }

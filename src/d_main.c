@@ -2674,6 +2674,7 @@ void D_DoomMain(void)
   I_InitGraphics();
   I_InitKeyboard();
 
+  MN_InitFreeLook();
   MN_InitMenuStrings();
 
   // Auto save slot is 255 for -loadgame command.
