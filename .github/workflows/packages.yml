@@ -58,7 +58,10 @@ jobs:
             triplet: arm64-osx-release
             artifact-name: Mac-arm64
             artifact-path: build/*.zip
-            extra-options: -DCMAKE_INSTALL_PREFIX=/usr
+            extra-options: >-
+              -DCMAKE_INSTALL_PREFIX=/usr
+              -DCMAKE_OSX_ARCHITECTURES=arm64
+              -DCMAKE_CXX_FLAGS="-stdlib=libc++"
 
     steps:
       - uses: actions/checkout@v4
