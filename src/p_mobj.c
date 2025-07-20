@@ -53,8 +53,8 @@ int max_pitch_angle = 32 * ANG1, default_max_pitch_angle;
 
 void P_UpdateDirectVerticalAiming(void)
 {
-  direct_vertical_aiming = (CRITICAL(default_direct_vertical_aiming) &&
-                            (mouselook || padlook));
+  direct_vertical_aiming = (CRITICAL(default_direct_vertical_aiming)
+                            && freelook);
   max_pitch_angle = default_max_pitch_angle * ANG1;
 }
 
