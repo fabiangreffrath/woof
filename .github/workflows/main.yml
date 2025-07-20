@@ -97,7 +97,6 @@ jobs:
           cmake -B build -G Ninja
           -DCMAKE_BUILD_TYPE=Release
           -DENABLE_WERROR=ON -DENABLE_HARDENING=ON -DENABLE_LTO=ON
-          -DWITH_FLUIDSYNTH=ON
           ${{ matrix.config.extra-options }}
 
       - name: Build
@@ -154,7 +153,6 @@ jobs:
       - name: Configure
         run: >-
           cmake -B build -G Ninja
-          -DWITH_FLUIDSYNTH=ON
           -DCMAKE_EXPORT_COMPILE_COMMANDS=ON
           -DCMAKE_FIND_PACKAGE_PREFER_CONFIG=OFF
 

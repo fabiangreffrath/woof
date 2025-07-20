@@ -130,13 +130,11 @@ if(SndFile_VERSION VERSION_GREATER_EQUAL "1.1.0")
 endif()
 
 find_package(yyjson)
+find_package(FluidSynth)
 find_package(libxmp)
 
-if(WITH_FLUIDSYNTH)
-    find_package(FluidSynth)
-    if(FluidSynth_FOUND)
-        set(HAVE_FLUIDSYNTH TRUE)
-    endif()
+if(FluidSynth_FOUND)
+    set(HAVE_FLUIDSYNTH TRUE)
 endif()
 
 if(libxmp_FOUND)
