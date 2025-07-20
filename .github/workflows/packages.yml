@@ -75,7 +75,7 @@ jobs:
         if: runner.os == 'macOS'
         run: |
           brew update
-          brew install cmake ninja pkg-config
+          brew install cmake ninja pkg-config vcpkg
 
       - name: Developer Command Prompt
         if: runner.os == 'Windows'
@@ -92,7 +92,7 @@ jobs:
 
       - name: Configure
         run: >-
-          cmake -B build
+          cmake -B build -G Ninja
           -DCMAKE_BUILD_TYPE=Release
           -DENABLE_WERROR=ON -DENABLE_HARDENING=ON -DENABLE_LTO=ON
           -DWITH_FLUIDSYNTH=ON
