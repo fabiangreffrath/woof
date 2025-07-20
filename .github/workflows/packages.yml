@@ -51,6 +51,14 @@ jobs:
             extra-options: >-
               -DCMAKE_MSVC_RUNTIME_LIBRARY=MultiThreaded
               -DCMAKE_IGNORE_PATH="C:/Strawberry/perl/bin;C:/Strawberry/c/lib"
+          
+          - name: macOS arm64 Clang
+            os: macos-latest
+            toolchain: $VCPKG_INSTALLATION_ROOT
+            triplet: arm64-mac-dynamic-release
+            artifact-name: Mac-arm64
+            artifact-path: build/*.zip
+            extra-options: -DCMAKE_INSTALL_PREFIX=/usr
 
     steps:
       - uses: actions/checkout@v4
@@ -120,6 +128,12 @@ jobs:
 
       - name: Package (Windows)
         if: runner.os == 'Windows'
+        run: |
+          cd build
+          cpack
+          
+      - name: Package (macOS)
+        if: runner.os == 'macOS'
         run: |
           cd build
           cpack
