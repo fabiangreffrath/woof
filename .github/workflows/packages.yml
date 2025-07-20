@@ -55,7 +55,7 @@ jobs:
           - name: macOS arm64 Clang
             os: macos-latest
             toolchain: $VCPKG_INSTALLATION_ROOT
-            triplet: arm64-mac-dynamic-release
+            triplet: arm64-osx-dynamic-release
             artifact-name: Mac-arm64
             artifact-path: build/*.zip
             extra-options: -DCMAKE_INSTALL_PREFIX=/usr
@@ -75,9 +75,7 @@ jobs:
         if: runner.os == 'macOS'
         run: |
           brew update
-          brew install cmake ninja pkg-config vcpkg
-          git clone https://github.com/microsoft/vcpkg "$HOME/vcpkg"
-          export VCPKG_ROOT="$HOME/vcpkg"
+          brew install cmake ninja pkg-config
 
       - name: Developer Command Prompt
         if: runner.os == 'Windows'
