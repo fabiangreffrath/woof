@@ -93,10 +93,11 @@ jobs:
       - name: Configure
         env:
           CC: ${{ matrix.config.compiler }}
-        run: |
-          cmake -B build -G Ninja -DCMAKE_BUILD_TYPE=Release \
-                -DENABLE_WERROR=ON -DENABLE_HARDENING=ON -DENABLE_LTO=ON \
-                ${{ matrix.config.extra-options }}
+        run: >-
+          cmake -B build -G Ninja
+          -DCMAKE_BUILD_TYPE=Release
+          -DENABLE_WERROR=ON -DENABLE_HARDENING=ON -DENABLE_LTO=ON
+          ${{ matrix.config.extra-options }}
 
       - name: Build
         run: cmake --build build
@@ -150,9 +151,10 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Configure
-        run: |
-          cmake -B build -G Ninja -DCMAKE_EXPORT_COMPILE_COMMANDS=ON \
-                -DCMAKE_FIND_PACKAGE_PREFER_CONFIG=OFF
+        run: >-
+          cmake -B build -G Ninja
+          -DCMAKE_EXPORT_COMPILE_COMMANDS=ON
+          -DCMAKE_FIND_PACKAGE_PREFER_CONFIG=OFF
 
       - name: Run Cppcheck
         if: ${{ matrix.name == 'Cppcheck' }}

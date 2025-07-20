@@ -58,6 +58,20 @@ void P_UpdateDirectVerticalAiming(void)
   max_pitch_angle = default_max_pitch_angle * ANG1;
 }
 
+void P_SetActualHeight(mobj_t *mobj)
+{
+    spritedef_t *sprdef = &sprites[mobj->sprite];
+    spriteframe_t *sprframe = &sprdef->spriteframes[mobj->frame & FF_FRAMEMASK];
+    if (sprframe)
+    {
+        mobj->actualheight = spritetopoffset[sprframe->lump[0]];
+    }
+    else
+    {
+        mobj->actualheight = FixedToInt(mobj->height);
+    }
+}
+
 //
 // P_SetMobjState
 // Returns true if the mobj is still present.
@@ -120,7 +134,7 @@ boolean P_SetMobjState(mobj_t* mobj,statenum_t state)
   // [FG] update object's actual height
   if (ret)
   {
-    mobj->actualheight = spritetopoffset[sprites[mobj->sprite].spriteframes[mobj->frame & FF_FRAMEMASK].lump[0]];
+    P_SetActualHeight(mobj);
   }
 
   return ret;
@@ -854,7 +868,7 @@ mobj_t *P_SpawnMobj(fixed_t x, fixed_t y, fixed_t z, mobjtype_t type)
 
   mobj->health = info->spawnhealth;
 
-  if (gameskill != sk_nightmare)
+  if (gameskill != sk_nightmare || !aggromonsters)
     mobj->reactiontime = info->reactiontime;
 
   if (type != zmt_ambientsound)
@@ -911,7 +925,7 @@ mobj_t *P_SpawnMobj(fixed_t x, fixed_t y, fixed_t z, mobjtype_t type)
   }
 
   // [FG] initialize object's actual height
-  mobj->actualheight = spritetopoffset[sprites[st->sprite].spriteframes[st->frame & FF_FRAMEMASK].lump[0]];
+  P_SetActualHeight(mobj);
 
   P_AddThinker(&mobj->thinker);
 
@@ -1238,7 +1252,8 @@ void P_SpawnMapThing (mapthing_t* mthing)
 
   // check for apropriate skill level
 
-  if (!coop_spawns && !netgame && mthing->options & MTF_NOTSINGLE)//jff "not single" thing flag
+  if (!coopspawns && !netgame
+      && mthing->options & MTF_NOTSINGLE) //jff "not single" thing flag
     return;
 
   //jff 3/30/98 implement "not deathmatch" thing flag
@@ -1248,7 +1263,7 @@ void P_SpawnMapThing (mapthing_t* mthing)
 
   //jff 3/30/98 implement "not cooperative" thing flag
 
-  if ((coop_spawns || netgame) && !deathmatch && mthing->options & MTF_NOTCOOP)
+  if ((coopspawns || netgame) && !deathmatch && mthing->options & MTF_NOTCOOP)
     return;
 
   // killough 11/98: simplify

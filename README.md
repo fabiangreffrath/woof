@@ -115,13 +115,19 @@ After successful compilation the resulting binary can be found in the `src/` dir
 
 Visual Studio 2019 and [VSCode](https://code.visualstudio.com/) comes with built-in support for CMake by opening the source tree as a folder.
 
-Install vcpkg <https://github.com/Microsoft/vcpkg#quick-start-windows>. Integrate it into CMake or use toolchain file:
+Install vcpkg <https://github.com/Microsoft/vcpkg?tab=readme-ov-file#get-started>. 
+
+Run the CMake configuration:
 ```
  cd woof
  cmake -B build -DCMAKE_TOOLCHAIN_FILE="[path to vcpkg]/scripts/buildsystems/vcpkg.cmake"
+```
+During this step, vcpkg will build all the dependencies. To enable FluidSynth add `-DWITH_FLUIDSYNTH=ON` option.
+
+Build the project:
+```
  cmake --build build
 ```
-CMake will automatically download and build all dependencies for you.
 
 # Contact
 

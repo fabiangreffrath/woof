@@ -38,6 +38,8 @@ extern const char *gamedescription;
 extern boolean clnomonsters; // checkparm of -nomonsters
 extern boolean clrespawnparm;  // checkparm of -respawn
 extern boolean clfastparm; // checkparm of -fast
+extern boolean clpistolstart; // checkparm of -pistolstart
+extern boolean clcoopspawns; // checkparm of -coop_spawns
 //jff end of external declaration of command line playmode
 
 void D_SetMaxHealth(void);

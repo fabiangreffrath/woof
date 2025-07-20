@@ -19,8 +19,6 @@
 #include "doomtype.h"
 #include "i_printf.h"
 
-#define MIDI_DEFAULT_BUFFER_SIZE 32
-
 //---------------------------------------------------------
 //    WINMM
 //---------------------------------------------------------
@@ -36,7 +34,7 @@
 static HMIDIOUT hMidiOut;
 static HANDLE hCallbackEvent;
 
-static void MidiError(const char *prefix, MMRESULT result)
+static void MidiErrorInternal(const char *prefix, MMRESULT result)
 {
     wchar_t werror[MAXERRORLENGTH];
 
@@ -52,6 +50,8 @@ static void MidiError(const char *prefix, MMRESULT result)
         I_Printf(VB_ERROR, "%s: Unknown error", prefix);
     }
 }
+
+#define MidiError(result) MidiErrorInternal(__func__, result)
 
 static void CALLBACK MidiOutProc(HMIDIOUT hmo, UINT wMsg, DWORD_PTR dwInstance,
                                  DWORD_PTR dwParam1, DWORD_PTR dwParam2)
@@ -69,16 +69,15 @@ void MIDI_SendShortMsg(const byte *message, unsigned int length)
     // Pack MIDI bytes into double word.
     DWORD packet = 0;
     byte *ptr = (byte *)&packet;
-    for (int i = 0; i < length; ++i)
+    for (int i = 0; i < length && i < sizeof(DWORD); ++i)
     {
-        *ptr = message[i];
-        ++ptr;
+        *ptr++ = message[i];
     }
 
     result = midiOutShortMsg(hMidiOut, packet);
     if (result != MMSYSERR_NOERROR)
     {
-        MidiError("MIDI_SendShortMsg", result);
+        MidiError(result);
     }
 }
 
@@ -94,14 +93,14 @@ void MIDI_SendLongMsg(const byte *message, unsigned int length)
     result = midiOutPrepareHeader(hMidiOut, &hdr, sizeof(MIDIHDR));
     if (result != MMSYSERR_NOERROR)
     {
-        MidiError("MIDI_SendLongMsg", result);
+        MidiError(result);
         return;
     }
 
     result = midiOutLongMsg(hMidiOut, &hdr, sizeof(MIDIHDR));
     if (result != MMSYSERR_NOERROR)
     {
-        MidiError("MIDI_SendLongMsg", result);
+        MidiError(result);
         return;
     }
 
@@ -110,7 +109,7 @@ void MIDI_SendLongMsg(const byte *message, unsigned int length)
         result = midiOutUnprepareHeader(hMidiOut, &hdr, sizeof(MIDIHDR));
         if (result != MMSYSERR_NOERROR)
         {
-            MidiError("MIDI_SendLongMsg", result);
+            MidiError(result);
         }
     }
 }
@@ -132,7 +131,7 @@ const char *MIDI_GetDeviceName(int device)
     }
     else
     {
-        MidiError("MIDI_GetDeviceName", result);
+        MidiError(result);
     }
 
     return NULL;
@@ -144,7 +143,7 @@ boolean MIDI_OpenDevice(int device)
                                   (DWORD_PTR)NULL, CALLBACK_FUNCTION);
     if (result != MMSYSERR_NOERROR)
     {
-        MidiError("MIDI_OpenDevice", result);
+        MidiError(result);
         return false;
     }
 
@@ -157,7 +156,7 @@ void MIDI_CloseDevice(void)
     MMRESULT result = midiOutClose(hMidiOut);
     if (result != MMSYSERR_NOERROR)
     {
-        MidiError("MIDI_CloseDevice", result);
+        MidiError(result);
     }
     CloseHandle(hCallbackEvent);
 }
@@ -171,6 +170,8 @@ void MIDI_CloseDevice(void)
 
 #include "m_array.h"
 #include "m_misc.h"
+
+#define MIDI_DEFAULT_BUFFER_SIZE 32
 
 static snd_seq_t *seq;
 static snd_seq_port_subscribe_t *subscription;
@@ -507,13 +508,12 @@ void MIDI_SendShortMsg(const byte *message, unsigned int length)
     }
 
     UInt32 data[3] = {0};
-    for (int i = 0; i < length; ++i)
+    for (int i = 0; i < length && i < 3; ++i)
     {
         data[i] = message[i];
     }
 
-    if (MusicDeviceMIDIEvent(unit, data[0], data[1], data[2], 0)
-        != noErr)
+    if (MusicDeviceMIDIEvent(unit, data[0], data[1], data[2], 0) != noErr)
     {
         I_Printf(VB_ERROR, "MIDI_SendShortMsg: MusicDeviceMIDIEvent failed");
     }
@@ -548,15 +548,14 @@ const char *MIDI_GetDeviceName(int device)
     return devices[device].name;
 }
 
-#define CHECK_ERR(stmt)                                           \
-    do                                                            \
-    {                                                             \
-        if ((stmt) != noErr)                                      \
-        {                                                         \
-            I_Printf(VB_ERROR, "%s: " #stmt " failed", __func__); \
-            Cleanup();                                            \
-            return false;                                         \
-        }                                                         \
+#define CHECK_ERR(stmt)                                                   \
+    do                                                                    \
+    {                                                                     \
+        if ((stmt) != noErr)                                              \
+        {                                                                 \
+            I_Printf(VB_ERROR, "%s: Failed at %d", __func__, __LINE__);   \
+            goto error;                                                   \
+        }                                                                 \
     } while (0)
 
 static boolean OpenDLSSynth(void)
@@ -605,6 +604,10 @@ static boolean OpenDLSSynth(void)
     CHECK_ERR(AUGraphStart(graph));
 
     return true;
+
+error:
+    Cleanup();
+    return false;
 }
 
 boolean MIDI_OpenDevice(int device)
@@ -631,6 +634,10 @@ boolean MIDI_OpenDevice(int device)
     packet_buffer = malloc(PACKET_BUFFER_SIZE);
 
     return true;
+
+error:
+    Cleanup();
+    return false;
 }
 
 void MIDI_CloseDevice(void)

@@ -138,11 +138,24 @@ boolean devparm;        // started game with -devparm
 boolean clnomonsters;   // checkparm of -nomonsters
 boolean clrespawnparm;  // checkparm of -respawn
 boolean clfastparm;     // checkparm of -fast
+boolean clpistolstart;  // checkparm of -pistolstart
+boolean clcoopspawns;   // checkparm of -coop_spawns
 // jff 1/24/98 end definition of command line version of play mode switches
+
+// custom skill options
+boolean cshalfplayerdamage = false;
+boolean csdoubleammo = false;
+boolean csaggromonsters = false;
 
 boolean nomonsters;     // working -nomonsters
 boolean respawnparm;    // working -respawn
 boolean fastparm;       // working -fast
+boolean pistolstart;    // working -pistolstart
+boolean coopspawns;     // working -coop_spawns
+
+boolean halfplayerdamage;
+boolean doubleammo;
+boolean aggromonsters;
 
 boolean singletics = false; // debug flag to cancel adaptiveness
 
@@ -163,8 +176,6 @@ char    *basesavegame = NULL;  // killough 2/16/98: savegame directory
 char    *screenshotdir = NULL; // [FG] screenshot directory
 
 int organize_savefiles;
-
-boolean coop_spawns = false;
 
 static boolean demobar;
 
@@ -1986,6 +1997,23 @@ void D_DoomMain(void)
   // jff 1/24/98 end of set to both working and command line value
 
   //!
+  // @category game
+  // @help
+  //
+  // Enables automatic pistol starts on each level.
+  //
+
+  pistolstart = clpistolstart = M_CheckParm("-pistolstart");
+
+  //!
+  // @category game
+  //
+  // Start single player game with items spawns as in cooperative netgame.
+  //
+
+  coopspawns = clcoopspawns = M_CheckParm("-coop_spawns");
+
+  //!
   // @vanilla
   //
   // Developer mode.
@@ -2496,17 +2524,6 @@ void D_DoomMain(void)
 
   // [FG] check for SSG assets
   have_ssg = CheckHaveSSG();
-
-  //!
-  // @category game
-  //
-  // Start single player game with items spawns as in cooperative netgame.
-  //
-
-  if (M_ParmExists("-coop_spawns"))
-    {
-      coop_spawns = true;
-    }
 
   //!
   // @arg <min:sec>
