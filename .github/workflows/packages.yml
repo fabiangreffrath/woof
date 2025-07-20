@@ -71,6 +71,12 @@ jobs:
           sudo apt-get install ninja-build
           sudo apt-get build-dep libsdl2-dev
 
+      - name: Install dependencies (macOS)
+        if: runner.os == 'macOS'
+        run: |
+          brew update
+          brew install ninja
+
       - name: Developer Command Prompt
         if: runner.os == 'Windows'
         uses: ilammy/msvc-dev-cmd@v1
