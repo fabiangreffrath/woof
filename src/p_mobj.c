@@ -66,6 +66,10 @@ void P_SetActualHeight(mobj_t *mobj)
     {
         mobj->actualheight = spritetopoffset[sprframe->lump[0]];
     }
+    else
+    {
+        mobj->actualheight = FixedToInt(mobj->height);
+    }
 }
 
 //
