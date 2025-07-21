@@ -32,7 +32,7 @@
 #include "sounds.h"
 #include "tables.h"
 
-#define FIXED_TO_ALFLOAT(x) ((ALfloat)(FIXED2DOUBLE(x)))
+#define FIXED_TO_ALFLOAT(x) ((ALfloat)(FixedToDouble(x)))
 
 typedef struct oal_listener_params_s
 {
