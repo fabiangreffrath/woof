@@ -55,7 +55,7 @@ jobs:
           - name: macOS arm64 Clang
             os: macos-latest
             toolchain: $VCPKG_INSTALLATION_ROOT
-            triplet: arm64-osx-dynamic-release
+            triplet: arm64-osx-dynamic
             artifact-name: Mac-arm64
             artifact-path: build/*.zip
             extra-options: >-
@@ -67,7 +67,7 @@ jobs:
           - name: macOS x64 Clang
             os: macos-13
             toolchain: $VCPKG_INSTALLATION_ROOT
-            triplet: x64-osx-dynamic-release
+            triplet: x64-osx-dynamic
             artifact-name: Mac-x64
             artifact-path: build/*.zip
             extra-options: >-
