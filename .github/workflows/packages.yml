@@ -158,7 +158,7 @@ jobs:
         if: runner.os == 'macOS'
         run: |
           cd build
-          cpack
+          cpack -DVCPKG_LIB_PATH="${{ github.workspace }}/build/vcpkg_installed/${{ matrix.config.triplet }}/lib"
 
       - name: Upload Artifacts
         uses: actions/upload-artifact@v4
