@@ -218,6 +218,7 @@ elseif(LINUX)
         set(CPACK_SYSTEM_NAME "mac-${CMAKE_SYSTEM_PROCESSOR}")
         set(CPACK_SYSTEM_PROCESSOR "${CMAKE_SYSTEM_PROCESSOR}")
         set(CPACK_BUILD_DIR "${PROJECT_BINARY_DIR}")
+        set(CPACK_VCPKG_LIB_PATH "${VCPKG_LIB_PATH}")
 
         file(GENERATE
             OUTPUT "${PROJECT_BINARY_DIR}/macbundle-generate.cmake"
@@ -237,7 +238,7 @@ elseif(LINUX)
                     $<TARGET_FILE:woof-setup>
                     ${CPACK_OUTPUT_DIR}/woof-setup)
 
-                message(FATAL_ERROR "${VCPKG_LIB_PATH}")
+                message(FATAL_ERROR "${CPACK_VCPKG_LIB_PATH}")
 
                 execute_process(COMMAND
                     ${CMAKE_COMMAND} -E env
@@ -249,7 +250,7 @@ elseif(LINUX)
                     --fix-file ${CPACK_OUTPUT_DIR}/woof
                     --install-path @executable_path/libs_${CPACK_SYSTEM_PROCESSOR}
                     --dest-dir ${CPACK_OUTPUT_DIR}/libs_${CPACK_SYSTEM_PROCESSOR}
-                    --search-path "${VCPKG_LIB_PATH}")
+                    --search-path "${CPACK_VCPKG_LIB_PATH}")
 
                 file(COPY_FILE
                     ${CPACK_TEMPORARY_DIRECTORY}/${CPACK_PACKAGING_INSTALL_PREFIX}/share/woof/woof.pk3
