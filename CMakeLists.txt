@@ -162,7 +162,7 @@ if(WIN32)
 else()
     install(FILES COPYING DESTINATION "share/doc/${PROJECT_SHORTNAME}")
     if(EXISTS "${CMAKE_SOURCE_DIR}/examples")
-        install(DIRECTORY examples/ 
+        install(DIRECTORY examples/
             DESTINATION "share/doc/${PROJECT_SHORTNAME}/examples")
     endif()
     if(EXISTS "${CMAKE_SOURCE_DIR}/soundfonts" AND FluidSynth_FOUND)
@@ -210,6 +210,64 @@ elseif(LINUX)
                 --icon-file=${CPACK_TEMPORARY_DIRECTORY}/${CPACK_PACKAGING_INSTALL_PREFIX}/share/icons/hicolor/128x128/apps/woof.png
                 --output=appimage)
         ]])
+    elseif(APPLE)
+        set(CPACK_GENERATOR External)
+        set(CPACK_EXTERNAL_ENABLE_STAGING YES)
+        set(CPACK_PACKAGING_INSTALL_PREFIX "${CMAKE_INSTALL_PREFIX}")
+        set(CPACK_EXTERNAL_PACKAGE_SCRIPT "${PROJECT_BINARY_DIR}/macbundle-generate.cmake")
+        set(CPACK_SYSTEM_NAME "mac-${CMAKE_SYSTEM_PROCESSOR}")
+        set(CPACK_SYSTEM_PROCESSOR "${CMAKE_SYSTEM_PROCESSOR}")
+        set(CPACK_BUILD_DIR "${PROJECT_BINARY_DIR}")
+
+        file(GENERATE
+            OUTPUT "${PROJECT_BINARY_DIR}/macbundle-generate.cmake"
+            CONTENT [[
+                set(CPACK_OUTPUT_DIR "${CPACK_BUILD_DIR}/${CPACK_PACKAGE_FILE_NAME}")
+                file(MAKE_DIRECTORY ${CPACK_OUTPUT_DIR})
+
+                find_program(DYLIBBUNDLER_EXECUTABLE NAMES dylibbundler)
+                if(NOT DYLIBBUNDLER_EXECUTABLE)
+                    message(FATAL_ERROR "Missing dylibbundler (brew install dylibbundler)")
+                endif()
+
+                file(COPY_FILE
+                    $<TARGET_FILE:woof>
+                    ${CPACK_OUTPUT_DIR}/woof)
+                file(COPY_FILE
+                    $<TARGET_FILE:woof-setup>
+                    ${CPACK_OUTPUT_DIR}/woof-setup)
+
+                execute_process(COMMAND
+                    ${CMAKE_COMMAND} -E env
+                    OUTPUT=${CPACK_PACKAGE_FILE_NAME}.zip
+                    VERSION=$<IF:$<BOOL:${CPACK_PACKAGE_VERSION}>,${CPACK_PACKAGE_VERSION},0.1.0>
+                    ${DYLIBBUNDLER_EXECUTABLE}
+                    --bundle-deps
+                    --create-dir
+                    --fix-file ${CPACK_OUTPUT_DIR}/woof
+                    --install-path @executable_path/libs_${CPACK_SYSTEM_PROCESSOR}
+                    --dest-dir ${CPACK_OUTPUT_DIR}/libs_${CPACK_SYSTEM_PROCESSOR})
+
+
+                file(COPY_FILE
+                    ${CPACK_TEMPORARY_DIRECTORY}/${CPACK_PACKAGING_INSTALL_PREFIX}/share/woof/woof.pk3
+                    ${CPACK_OUTPUT_DIR}/woof.pk3)
+                file(COPY
+                    ${CPACK_TEMPORARY_DIRECTORY}/${CPACK_PACKAGING_INSTALL_PREFIX}/share/woof/soundfonts
+                    DESTINATION ${CPACK_OUTPUT_DIR})
+                file(RENAME
+                    ${CPACK_TEMPORARY_DIRECTORY}/${CPACK_PACKAGING_INSTALL_PREFIX}/share/doc/woof
+                    ${CPACK_TEMPORARY_DIRECTORY}/${CPACK_PACKAGING_INSTALL_PREFIX}/share/doc/docs)
+                file(COPY
+                    ${CPACK_TEMPORARY_DIRECTORY}/${CPACK_PACKAGING_INSTALL_PREFIX}/share/doc/docs
+                    DESTINATION ${CPACK_OUTPUT_DIR})
+
+                file(CONFIGURE
+                    OUTPUT ${CPACK_OUTPUT_DIR}/Troubleshooting.txt
+                    CONTENT "If you are getting errors like 'libzip.5.5.dylib cant be opened because Apple cannot check it for malicious software.' Run the following command in the woof folder:\n\nxattr -dr com.apple.quarantine path/to/folder")
+
+                execute_process(COMMAND zip -r ${CPACK_PACKAGE_FILE_NAME}.zip ${CPACK_PACKAGE_FILE_NAME})
+                ]])
 else()
     set(CPACK_GENERATOR TGZ)
 endif()
