@@ -91,7 +91,7 @@ jobs:
         if: runner.os == 'macOS'
         run: |
           brew update
-          brew install ninja
+          brew install ninja dylibbundler
           
       - name: Developer Command Prompt
         if: runner.os == 'Windows'
