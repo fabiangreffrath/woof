@@ -96,6 +96,7 @@ void MN_SetQuickSaveSlot(int slot);
 void M_SaveAutoSave(void);
 
 void MN_InitMenuStrings(void);
+void MN_InitFreeLook(void);
 
 boolean MN_StartsWithMapIdentifier(char *str);
 

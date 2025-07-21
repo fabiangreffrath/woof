@@ -2675,6 +2675,7 @@ void D_DoomMain(void)
   I_InitKeyboard();
 
   MN_InitMenuStrings();
+  MN_InitFreeLook();
 
   // Auto save slot is 255 for -loadgame command.
   if (startloadgame == 255 && !demorecording && gameaction != ga_playdemo

@@ -39,7 +39,6 @@
 #include "r_defs.h"
 #include "r_main.h"
 #include "r_state.h"
-#include "r_things.h"
 #include "s_musinfo.h" // [crispy] S_ParseMusInfo()
 #include "s_sound.h"
 #include "sounds.h"

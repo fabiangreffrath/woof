@@ -172,6 +172,29 @@ static void DisableItem(boolean condition, setup_menu_t *menu, const char *item)
     I_Error("Item \"%s\" not found in menu", item);
 }
 
+static void SetItemLimit(setup_menu_t *menu, const char *item, int min, int max)
+{
+    while (!(menu->m_flags & S_END))
+    {
+        if (!(menu->m_flags & (S_SKIP | S_RESET)))
+        {
+            if (((menu->m_flags & S_HASDEFPTR)
+                 && !strcasecmp(menu->var.def->name, item))
+                || !strcasecmp(menu->m_text, item))
+            {
+                default_t *def = menu->var.def;
+                def->limit.min = min;
+                def->limit.max = max;
+                return;
+            }
+        }
+
+        menu++;
+    }
+
+    I_Error("Item \"%s\" not found in menu", item);
+}
+
 static void DisableItemsInternal(boolean condition, setup_menu_t *menu,
                                  const char *items[], int size)
 {
@@ -2810,9 +2833,9 @@ typedef enum
   FREELOOK_OFF,         // Free look disabled.
   FREELOOK_AUTO_AIM,    // Free look enabled with traditional auto-aiming.
   FREELOOK_DIRECT_AIM,  // Free look enabled with direct vertical aiming.
-} freelook_t;
+} freelook_mode_t;
 
-static freelook_t menu_freelook;
+static freelook_mode_t freelook_mode;
 
 static const char *free_look_strings[] = {"Off", "Auto-Aim", "Direct Aim"};
 
@@ -2834,7 +2857,7 @@ void MN_UpdateFreeLook(void)
 
 static void UpdateFreeLookMode(void)
 {
-    switch (menu_freelook)
+    switch (freelook_mode)
     {
         case FREELOOK_OFF:
             freelook = false;
@@ -2894,7 +2917,7 @@ static setup_menu_t gen_settings3[] = {
     // [FG] double click to "use"
     {"Double-Click to \"Use\"", S_ONOFF, CNTR_X, M_SPC, {"dclick_use"}},
 
-    {"Free Look", S_CHOICE, CNTR_X, M_SPC, {"menu_freelook"},
+    {"Free Look", S_CHOICE, CNTR_X, M_SPC, {"freelook_mode"},
      .strings_id = str_freelook, .action = UpdateFreeLookMode},
 
     // [FG] invert vertical axis
@@ -2964,7 +2987,7 @@ static setup_menu_t gen_settings4[] = {
 
     MI_GAP_Y(2),
 
-    {"Free Look", S_CHOICE, CNTR_X, M_SPC, {"menu_freelook"},
+    {"Free Look", S_CHOICE, CNTR_X, M_SPC, {"freelook_mode"},
      .strings_id = str_freelook, .action = UpdateFreeLookMode},
 
     {"Invert Look", S_ONOFF, CNTR_X, M_SPC, {"joy_invert_look"},
@@ -2989,6 +3012,19 @@ static setup_menu_t gen_settings4[] = {
 
     MI_END
 };
+
+void MN_InitFreeLook(void)
+{
+    DisableItem(strictmode, gen_settings3, "freelook_mode");
+    DisableItem(strictmode, gen_settings4, "freelook_mode");
+    if (demorecording || (netgame && !solonet))
+    {
+        SetItemLimit(gen_settings3, "freelook_mode", FREELOOK_OFF,
+                     FREELOOK_AUTO_AIM);
+        SetItemLimit(gen_settings4, "freelook_mode", FREELOOK_OFF,
+                     FREELOOK_AUTO_AIM);
+    }
+}
 
 static const char *movement_type_strings[] = {
     "Normalized", "Faster Diagonals"
@@ -3101,19 +3137,17 @@ static void UpdateGamepadItems(void)
     DisableItem(!gamepad, gen_settings4, "Advanced Options");
     DisableItem(!gamepad || !I_GyroSupported(), gen_settings4, "Gyro Options");
     DisableItem(!gamepad || !I_RumbleSupported(), gen_settings4, "joy_rumble");
-    DisableItem(!gamepad || (!sticks && !gyro), gen_settings4, "menu_freelook");
-    DisableItem(condition, gen_settings4, "joy_invert_look");
-    DisableItem(condition, gen_settings4, "joy_movement_inner_deadzone");
-    DisableItem(condition, gen_settings4, "joy_camera_inner_deadzone");
-    DisableItem(condition, gen_settings4, "joy_turn_speed");
-    DisableItem(condition, gen_settings4, "joy_look_speed");
+    DisableItem(!gamepad || (!sticks && !gyro) || strictmode, gen_settings4,
+        "freelook_mode");
+    DisableItems(condition, gen_settings4, "joy_invert_look",
+        "joy_movement_inner_deadzone", "joy_camera_inner_deadzone",
+        "joy_turn_speed", "joy_look_speed");
 
     DisableItem(!gamepad, padadv_settings1, "joy_stick_layout");
     DisableItem(!flick, padadv_settings1, "joy_flick_time");
-    DisableItem(condition, padadv_settings1, "joy_movement_type");
-    DisableItem(condition, padadv_settings1, "joy_forward_sensitivity");
-    DisableItem(condition, padadv_settings1, "joy_strafe_sensitivity");
-    DisableItem(condition, padadv_settings1, "joy_outer_turn_speed");
+    DisableItems(condition, padadv_settings1, "joy_movement_type",
+        "joy_forward_sensitivity", "joy_strafe_sensitivity",
+        "joy_outer_turn_speed");
     DisableItem(!ramp, padadv_settings1, "joy_outer_ramp_time");
     DisableItem(condition, padadv_settings1, "joy_camera_curve");
 }
@@ -3435,15 +3469,15 @@ void MN_General(int choice)
 
     if (freelook && direct_vertical_aiming)
     {
-        menu_freelook = FREELOOK_DIRECT_AIM;
+        freelook_mode = FREELOOK_DIRECT_AIM;
     }
     else if (freelook && !direct_vertical_aiming)
     {
-        menu_freelook = FREELOOK_AUTO_AIM;
+        freelook_mode = FREELOOK_AUTO_AIM;
     }
     else
     {
-        menu_freelook = FREELOOK_OFF;
+        freelook_mode = FREELOOK_OFF;
     }
 }
 
@@ -5124,5 +5158,5 @@ void MN_BindMenuVariables(void)
     BIND_BOOL_MENU(csmenu.doubleammo);
     BIND_BOOL_MENU(csmenu.halfplayerdamage);
     BIND_BOOL_MENU(csmenu.aggromonsters);
-    BIND_NUM_MENU(menu_freelook, FREELOOK_OFF, FREELOOK_DIRECT_AIM);
+    BIND_NUM_MENU(freelook_mode, FREELOOK_OFF, FREELOOK_DIRECT_AIM);
 }
