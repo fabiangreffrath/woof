@@ -3544,6 +3544,38 @@ const char *G_GetCurrentComplevelName(void)
     }
 }
 
+static GameVersion_t GetWadGameVersion(void)
+{
+    int lumpnum = W_CheckNumForName("GAMEVERS");
+
+    if (lumpnum < 0)
+    {
+        return exe_indetermined;
+    }
+
+    int length = W_LumpLength(lumpnum);
+    char *data = W_CacheLumpNum(lumpnum, PU_CACHE);
+
+    if (length >= 5 && !strncasecmp("1.666", data, 5))
+    {
+        return exe_doom_1_9;
+    }
+    else if (length >= 3 && !strncasecmp("1.9", data, 3))
+    {
+        return exe_doom_1_9;
+    }
+    else if (length >= 8 && !strncasecmp("ultimate", data, 8))
+    {
+        return exe_ultimate;
+    }
+    else if (length >= 5 && !strncasecmp("final", data, 5))
+    {
+        return exe_final;
+    }
+
+    return exe_indetermined;
+}
+
 static demo_version_t GetWadDemover(void)
 {
     int lumpnum = W_CheckNumForName("COMPLVL");
@@ -3738,6 +3770,12 @@ void G_ReloadDefaults(boolean keep_demover)
     if (demover == DV_NONE)
     {
       demover = GetWadDemover();
+      if (demover == DV_VANILLA)
+      {
+        GameVersion_t gamever = GetWadGameVersion();
+        if (gamever != exe_indetermined)
+          gameversion = gamever;
+      }
     }
 
     if (demover == DV_NONE)
