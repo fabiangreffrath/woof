@@ -42,8 +42,6 @@ Language_t   language = english;
 // Set if homebrew PWAD stuff has been added.
 boolean modifiedgame;
 
-boolean have_ssg;
-
 boolean pwad_help2;
 
 //-----------------------------------------------------------------------------
