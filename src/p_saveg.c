@@ -1984,10 +1984,10 @@ static void saveg_read_ambient_t(ambient_t *str)
     str->active = saveg_read32();
 
     // float offset;
-    str->offset = (float)FIXED2DOUBLE(saveg_read32());
+    str->offset = (float)FixedToDouble(saveg_read32());
 
     // float last_offset;
-    str->last_offset = (float)FIXED2DOUBLE(saveg_read32());
+    str->last_offset = (float)FixedToDouble(saveg_read32());
 
     // int last_leveltime;
     str->last_leveltime = saveg_read32();

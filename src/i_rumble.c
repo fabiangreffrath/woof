@@ -686,7 +686,7 @@ static float ScaleHitFloor(const mobj_t *listener)
     }
     else
     {
-        float scale = (float)FIXED2DOUBLE(listener->momz) + 8.0f;
+        float scale = (float)FixedToDouble(listener->momz) + 8.0f;
         //scale = (1 - 0.25) / pow(40 - 8, 2) * pow(scale, 2) + 0.25;
         scale = 0.75f / 1024.0f * scale * scale + 0.25f;
         return CLAMP(scale, 0.25f, 1.0f);
