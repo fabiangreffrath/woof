@@ -237,6 +237,8 @@ elseif(LINUX)
                     $<TARGET_FILE:woof-setup>
                     ${CPACK_OUTPUT_DIR}/woof-setup)
 
+                message(FATAL_ERROR "${VCPKG_LIB_PATH}")
+
                 execute_process(COMMAND
                     ${CMAKE_COMMAND} -E env
                     OUTPUT=${CPACK_PACKAGE_FILE_NAME}.zip
