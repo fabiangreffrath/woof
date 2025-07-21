@@ -3549,8 +3549,6 @@ demo_version_t G_GetNamedComplevel(const char *arg)
     } named_complevel[] = {
         {"vanilla",  DV_VANILLA, exe_indetermined},
         {"doom2",    DV_VANILLA, exe_doom_1_9    },
-        {"1.666",    DV_VANILLA, exe_doom_1_666  },
-        {"1",        DV_VANILLA, exe_doom_1_666  },
         {"1.9",      DV_VANILLA, exe_doom_1_9    },
         {"2",        DV_VANILLA, exe_doom_1_9    },
         {"ultimate", DV_VANILLA, exe_ultimate    },
@@ -3656,7 +3654,7 @@ static GameVersion_t GetWadGameVersion(void)
 
     if (length >= 5 && !strncasecmp("1.666", data, 5))
     {
-        return exe_doom_1_666;
+        return exe_doom_1_9;
     }
     else if (length >= 3 && !strncasecmp("1.9", data, 3))
     {

@@ -58,7 +58,6 @@ typedef enum {
 typedef enum
 {
     exe_indetermined = -1,
-    exe_doom_1_666,  // Doom 1.666
     exe_doom_1_9,    // Doom 1.9: for shareware, registered and commercial
     exe_ultimate,    // Ultimate Doom (retail)
     exe_final,       // Final Doom
