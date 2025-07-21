@@ -429,7 +429,7 @@ static void DrawSkyTex(visplane_t *pl, sky_t *sky, skytex_t *skytex)
 
         if (side)
         {
-            deltax += side->interptextureoffset;
+            deltax += side->textureoffset;
             dc_texturemid += side->rowoffset;
         }
     }
