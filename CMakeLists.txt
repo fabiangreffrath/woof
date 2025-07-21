@@ -247,7 +247,7 @@ elseif(LINUX)
                     --fix-file ${CPACK_OUTPUT_DIR}/woof
                     --install-path @executable_path/libs_${CPACK_SYSTEM_PROCESSOR}
                     --dest-dir ${CPACK_OUTPUT_DIR}/libs_${CPACK_SYSTEM_PROCESSOR})
-
+                    --search-path "${VCPKG_LIB_PATH}"
 
                 file(COPY_FILE
                     ${CPACK_TEMPORARY_DIRECTORY}/${CPACK_PACKAGING_INSTALL_PREFIX}/share/woof/woof.pk3
