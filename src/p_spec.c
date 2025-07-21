@@ -2658,14 +2658,14 @@ void EV_RotateOffsetFlat(line_t *line, sector_t *sector)
   {
     if (offset_floor)
     {
-      sectors[s].base_floor_xoffs -= line->dx;
-      sectors[s].base_floor_yoffs += line->dy;
+      sectors[s].floor_xoffs -= line->dx;
+      sectors[s].floor_yoffs += line->dy;
     }
 
     if (offset_ceiling)
     {
-      sectors[s].base_ceiling_xoffs -= line->dx;
-      sectors[s].base_ceiling_yoffs += line->dy;
+      sectors[s].ceiling_xoffs -= line->dx;
+      sectors[s].ceiling_yoffs += line->dy;
     }
 
     if (rotate_floor)
@@ -2930,36 +2930,36 @@ void T_Scroll(scroll_t *s)
         side = sides + s->affectee;
         if (side->oldgametic != gametic)
         {
-          side->oldtextureoffset = side->basetextureoffset;
-          side->oldrowoffset = side->baserowoffset;
+          side->oldtextureoffset = side->textureoffset;
+          side->oldrowoffset = side->rowoffset;
           side->oldgametic = gametic;
         }
-        side->basetextureoffset += dx;
-        side->baserowoffset += dy;
+        side->textureoffset += dx;
+        side->rowoffset += dy;
         break;
 
     case sc_floor:                  // killough 3/7/98: Scroll floor texture
         sec = sectors + s->affectee;
         if (sec->old_floor_offs_gametic != gametic)
         {
-          sec->old_floor_xoffs = sec->base_floor_xoffs;
-          sec->old_floor_yoffs = sec->base_floor_yoffs;
+          sec->old_floor_xoffs = sec->floor_xoffs;
+          sec->old_floor_yoffs = sec->floor_yoffs;
           sec->old_floor_offs_gametic = gametic;
         }
-        sec->base_floor_xoffs += dx;
-        sec->base_floor_yoffs += dy;
+        sec->floor_xoffs += dx;
+        sec->floor_yoffs += dy;
         break;
 
     case sc_ceiling:               // killough 3/7/98: Scroll ceiling texture
         sec = sectors + s->affectee;
         if (sec->old_ceil_offs_gametic != gametic)
         {
-          sec->old_ceiling_xoffs = sec->base_ceiling_xoffs;
-          sec->old_ceiling_yoffs = sec->base_ceiling_yoffs;
+          sec->old_ceiling_xoffs = sec->ceiling_xoffs;
+          sec->old_ceiling_yoffs = sec->ceiling_yoffs;
           sec->old_ceil_offs_gametic = gametic;
         }
-        sec->base_ceiling_xoffs += dx;
-        sec->base_ceiling_yoffs += dy;
+        sec->ceiling_xoffs += dx;
+        sec->ceiling_yoffs += dy;
         break;
 
     case sc_carry:

@@ -35,18 +35,6 @@ endfunction()
 # that pretend to be MSVC can take both GCC and MSVC-style parameters at the
 # same time, like clang-cl.exe.
 
-_checked_add_compile_option(-Werror=array-bounds)
-_checked_add_compile_option(-Werror=clobbered)
-_checked_add_compile_option(-Werror=format-security)
-_checked_add_compile_option(-Werror=implicit-function-declaration)
-_checked_add_compile_option(-Werror=incompatible-pointer-types)
-_checked_add_compile_option(-Werror=int-conversion)
-_checked_add_compile_option(-Werror=volatile-register-var)
-_checked_add_compile_option(-Wformat=2)
-_checked_add_compile_option(-Wnull-dereference)
-_checked_add_compile_option(-Wredundant-decls)
-_checked_add_compile_option(-Wrestrict)
-
 if(MSVC)
     # Silence the usual warnings for POSIX and standard C functions.
     list(APPEND COMMON_COMPILE_OPTIONS "/D_CRT_NONSTDC_NO_DEPRECATE")
@@ -68,20 +56,29 @@ if(MSVC)
     # Using the token operator to compare signed and unsigned numbers required
     # the compiler to convert the signed value to unsigned.
     _checked_add_compile_option(/wd4018)
-
-    # Extra warnings for clang-cl.exe - prevents warning spam in SDL headers.
-    _checked_add_compile_option(-Wno-pragma-pack)
 else()
+    _checked_add_compile_option(-Werror=array-bounds)
+    _checked_add_compile_option(-Werror=clobbered)
+    _checked_add_compile_option(-Werror=format-security)
+    _checked_add_compile_option(-Werror=implicit-function-declaration)
+    _checked_add_compile_option(-Werror=incompatible-pointer-types)
+    _checked_add_compile_option(-Werror=int-conversion)
+    _checked_add_compile_option(-Werror=volatile-register-var)
+    _checked_add_compile_option(-Wformat=2)
+    _checked_add_compile_option(-Wnull-dereference)
+    _checked_add_compile_option(-Wredundant-decls)
+    _checked_add_compile_option(-Wrestrict)
     # We only want -Wall on GCC compilers, since /Wall on MSVC is noisy.
     _checked_add_compile_option(-Wall)
 endif()
 
 option(ENABLE_WERROR "Treat warnings as errors" OFF)
 if(ENABLE_WERROR)
-  _checked_add_compile_option(-Werror)
-  if(MSVC)
-    _checked_add_compile_option(/WX)
-  endif()
+    if(MSVC)
+        _checked_add_compile_option(/WX)
+    else()
+        _checked_add_compile_option(-Werror)
+    endif()
 endif()
 
 option(ENABLE_ASAN "Enable ASan" OFF)

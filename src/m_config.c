@@ -86,6 +86,18 @@ void M_BindNum(const char *name, void *location, void *current,
     array_push(defaults, item);
 }
 
+void M_BindMenuNum(const char *name, void *location, int min_val, int max_val)
+{
+    default_t item = { name, {.i = location}, {0}, {0}, {min_val, max_val},
+                       menu, ss_none, wad_no, NULL };
+    array_push(defaults, item);
+}
+
+void M_BindMenuBool(const char *name, boolean *location)
+{
+    M_BindMenuNum(name, location, 0, 1);
+}
+
 void M_BindBool(const char *name, boolean *location, boolean *current,
                 boolean default_val, ss_types screen, wad_allowed_t wad,
                 const char *help)
@@ -260,6 +272,11 @@ void M_SaveDefaults(void)
         if (!dp->name) // If we're at end of defaults table, exit loop
         {
             break;
+        }
+
+        if (dp->type == menu)
+        {
+            continue;
         }
 
         // jff 3/3/98 output help string

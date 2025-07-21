@@ -54,12 +54,14 @@ void I_ErrorOrSuccess(int err_code, const char *prefix, const char *error,
     char *curmsg = errmsg + strlen(errmsg);
     char *msgptr = curmsg;
 
+#ifdef WOOF_DEBUG
     if (prefix)
     {
         int offset = M_snprintf(msgptr, len, "%s: ", prefix);
         msgptr += offset;
         len -= offset;
     }
+#endif
 
     va_list argptr;
     va_start(argptr, error);
@@ -79,14 +81,6 @@ void I_ErrorOrSuccess(int err_code, const char *prefix, const char *error,
 
 void I_ErrorMsg()
 {
-    const char note[] = "\nNote: This is an error message and not a \"crash\"!";
-
-    if (*errmsg && exit_code != 0
-        && sizeof(errmsg) - strlen(errmsg) > strlen(note))
-    {
-        strcat(errmsg, note);
-    }
-
     //!
     // @category obscure
     //
