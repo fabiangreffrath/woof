@@ -585,7 +585,7 @@ void G_ParseMapInfo(int lumpnum)
             else if (!strcasecmp(parsed.mapname, "E1M8"))
             {
                 parsed.flags |= MapInfo_EndGameArt;
-                strcpy(parsed.endpic, gamemode == retail ? "CREDIT" : "HELP2");
+                strcpy(parsed.endpic, gamemode == retail && !pwad_help2 ? "CREDIT" : "HELP2");
             }
             else if (!strcasecmp(parsed.mapname, "E2M8"))
             {

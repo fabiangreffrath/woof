@@ -40,6 +40,8 @@ struct mapentry_s;
 extern  boolean nomonsters; // checkparm of -nomonsters
 extern  boolean respawnparm;  // checkparm of -respawn
 extern  boolean fastparm; // checkparm of -fast
+extern  boolean pistolstart; // checkparm of -pistolstart
+extern  boolean coopspawns; // checkparm of -coop_spawns
 extern  boolean devparm;  // DEBUG: launched with -devparm
 
 extern  int screenblocks;     // killough 11/98
@@ -69,6 +71,9 @@ extern char *MapName(int e, int m);
 extern  boolean modifiedgame;
 
 #define ALLOW_SSG (gamemode == commercial)
+
+extern boolean pwad_help2;
+
 
 // compatibility with old engines (monster behavior, metrics, etc.)
 extern int compatibility, default_compatibility;          // killough 1/31/98
@@ -198,6 +203,11 @@ extern  int             timelimit;
 // Nightmare mode flag, single player.
 extern  boolean         respawnmonsters;
 
+// Custom skill flags
+extern boolean halfplayerdamage, cshalfplayerdamage;
+extern boolean doubleammo, csdoubleammo;
+extern boolean aggromonsters, csaggromonsters;
+
 // Netgame? Only true if >1 player.
 extern  boolean netgame;
 extern  boolean solonet;
@@ -207,8 +217,6 @@ extern boolean D_CheckNetConnect(void);
 // Flag: true only if started as net deathmatch.
 // An enum might handle altdeath/cooperative better.
 extern int deathmatch;
-
-extern boolean coop_spawns;
 
 // ------------------------------------------
 // Internal parameters for sound rendering.
@@ -317,8 +325,7 @@ extern  int       playback_skiptics;
 
 extern  boolean   frozen_mode;
 
-extern  boolean   strictmode, default_strictmode;
-extern  boolean   force_strictmode;
+extern  boolean   strictmode;
 
 #define STRICTMODE(x) (strictmode ? 0 : (x))
 

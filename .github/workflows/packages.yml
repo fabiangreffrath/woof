@@ -27,7 +27,7 @@ jobs:
             toolchain: $VCPKG_INSTALLATION_ROOT
             triplet: x64-linux-dynamic-release
             artifact-name: AppImage
-            artifact-path: build/*.appimage
+            artifact-path: build/*.AppImage
             extra-options: -DCMAKE_INSTALL_PREFIX=/usr
 
           - name: MSVC x64
@@ -81,6 +81,7 @@ jobs:
           cmake -B build -G Ninja
           -DCMAKE_BUILD_TYPE=Release
           -DENABLE_WERROR=ON -DENABLE_HARDENING=ON -DENABLE_LTO=ON
+          -DWITH_FLUIDSYNTH=ON
           -DCMAKE_TOOLCHAIN_FILE="${{ matrix.config.toolchain }}/scripts/buildsystems/vcpkg.cmake"
           -DVCPKG_OVERLAY_TRIPLETS="cmake/triplets"
           -DVCPKG_TARGET_TRIPLET=${{ matrix.config.triplet }}

@@ -447,7 +447,7 @@ static void saveg_read_mobj_t(mobj_t *str)
     }
 
     // [FG] height of the sprite in pixels
-    str->actualheight = spritetopoffset[sprites[str->sprite].spriteframes[str->frame & FF_FRAMEMASK].lump[0]];
+    P_SetActualHeight(str); 
 }
 
 static void saveg_write_mobj_t(mobj_t *str)
@@ -2234,10 +2234,10 @@ void P_UnArchiveWorld (void)
         sec->floor_yoffs = saveg_read32();
         sec->ceiling_xoffs = saveg_read32();
         sec->ceiling_yoffs = saveg_read32();
-        sec->base_floor_xoffs = sec->old_floor_xoffs = sec->floor_xoffs;
-        sec->base_floor_yoffs = sec->old_floor_yoffs = sec->floor_yoffs;
-        sec->base_ceiling_xoffs = sec->old_ceiling_xoffs = sec->ceiling_xoffs;
-        sec->base_ceiling_yoffs = sec->old_ceiling_yoffs = sec->ceiling_yoffs;
+        sec->old_floor_xoffs = sec->floor_xoffs;
+        sec->old_floor_yoffs = sec->floor_yoffs;
+        sec->old_ceiling_xoffs = sec->ceiling_xoffs;
+        sec->old_ceiling_yoffs = sec->ceiling_yoffs;
 
         sec->floor_rotation = saveg_read32();
         sec->ceiling_rotation = saveg_read32();
@@ -2281,9 +2281,8 @@ void P_UnArchiveWorld (void)
 
 	    si->textureoffset = saveg_read32();
 	    si->rowoffset = saveg_read32();
-	    // [crispy] smooth texture scrolling
-	    si->basetextureoffset = si->textureoffset;
-	    si->baserowoffset = si->rowoffset;
+            si->oldtextureoffset = si->textureoffset;
+            si->oldrowoffset = si->rowoffset;
 
             si->toptexture = saveg_read16();
             si->bottomtexture = saveg_read16();
