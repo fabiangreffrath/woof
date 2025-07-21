@@ -3605,6 +3605,7 @@ void MN_CustomSkill(void)
     SetupMenu();
 
     csmenu_skill = default_skill - 1;
+    SelectSkillLevel();
 }
 
 void MN_DrawCustomSkill(void)
