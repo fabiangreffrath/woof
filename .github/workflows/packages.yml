@@ -63,7 +63,6 @@ jobs:
               -DCMAKE_OSX_ARCHITECTURES=arm64
               -DCMAKE_CXX_FLAGS="-stdlib=libc++"
               -DCMAKE_MAKE_PROGRAM="/opt/homebrew/bin/ninja"
-              -DVCPKG_LIB_PATH="${{ github.workspace }}/build/vcpkg_installed/${{ matrix.config.triplet }}/lib"
 
           - name: macOS x64 Clang
             os: macos-13
@@ -76,7 +75,6 @@ jobs:
               -DCMAKE_OSX_ARCHITECTURES=x86_64
               -DCMAKE_CXX_FLAGS="-stdlib=libc++"
               -DCMAKE_MAKE_PROGRAM="/usr/local/bin/ninja"
-              -DVCPKG_LIB_PATH="${{ github.workspace }}/build/vcpkg_installed/${{ matrix.config.triplet }}/lib"
 
     steps:
       - uses: actions/checkout@v4
@@ -115,6 +113,7 @@ jobs:
           -DENABLE_WERROR=ON -DENABLE_HARDENING=ON -DENABLE_LTO=ON
           -DWITH_FLUIDSYNTH=ON
           -DCMAKE_TOOLCHAIN_FILE="${{ matrix.config.toolchain }}/scripts/buildsystems/vcpkg.cmake"
+          -DVCPKG_LIB_PATH="${{ github.workspace }}/build/vcpkg_installed/${{ matrix.config.triplet }}/lib"
           -DVCPKG_OVERLAY_TRIPLETS="cmake/triplets"
           -DVCPKG_TARGET_TRIPLET=${{ matrix.config.triplet }}
           ${{ matrix.config.extra-options }}
