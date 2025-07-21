@@ -28,8 +28,8 @@
 #include "f_finale.h"
 #include "g_game.h"
 #include "g_umapinfo.h"
-#include "info.h"
 #include "i_printf.h"
+#include "info.h"
 #include "m_array.h"
 #include "m_json.h"
 #include "m_misc.h" // [FG] M_StringDuplicate()
@@ -49,10 +49,11 @@
 // Stage of animation:
 //  0 = text, 1 = art screen, 2 = character cast
 
-typedef enum {
-  FINALE_STAGE_TEXT,
-  FINALE_STAGE_ART,
-  FINALE_STAGE_CAST
+typedef enum
+{
+    FINALE_STAGE_TEXT,
+    FINALE_STAGE_ART,
+    FINALE_STAGE_CAST
 } finalestage_t;
 
 static finalestage_t finalestage;
@@ -77,11 +78,9 @@ static void F_TextWrite(void);
 static void F_BunnyScroll(void);
 static float Get_TextSpeed(void);
 
-static int midstage;                 // whether we're in "mid-stage"
+static int midstage; // whether we're in "mid-stage"
 
 static boolean mapinfo_finale;
-
-
 
 //
 // ID24 EndFinale extensions
@@ -92,172 +91,177 @@ end_finale_t *endfinale = {0};
 
 end_finale_t VanillaBunnyScroller(void)
 {
-  end_finale_t finale = {
-    .type         = END_SCROLL,
-    .background   = "PUB1",
-    .music        = "D_BUNNY",
-    .donextmap    = false,
-    .musicloops   = false,
-    .castrollcall = {0},
-    .bunny = {
-      .orientation  = BUNNY_LEFT,
-      .stitchimage  = "PFUB2",
-      .overlay      = W_GetNumForName("END0"),
-      .overlaycount = 6,
-      .overlaysound = sfx_pistol,
-      .overlayx     = 100,
-      .overlayy     = 100,
-    },
-  };
+    end_finale_t finale = {
+        .type = END_SCROLL,
+        .background = "PUB1",
+        .music = "D_BUNNY",
+        .donextmap = false,
+        .musicloops = false,
+        .castrollcall = {0},
+        .bunny =
+            {
+                         .orientation = BUNNY_LEFT,
+                         .stitchimage = "PFUB2",
+                         .overlay = W_GetNumForName("END0"),
+                         .overlaycount = 6,
+                         .overlaysound = sfx_pistol,
+                         .overlayx = 100,
+                         .overlayy = 100,
+                         },
+    };
 
-  return finale;
+    return finale;
 }
 
-static void ParseEndFinaleCastAnims(json_t *js_castanim_entry, cast_entry_t *out)
+static void ParseEndFinaleCastAnims(json_t *js_castanim_entry,
+                                    cast_entry_t *out)
 {
-  out->name       = JS_GetStringValue(js_castanim_entry, "name");
-  out->alertsound = JS_GetIntegerValue(js_castanim_entry, "alertsound");
+    out->name = JS_GetStringValue(js_castanim_entry, "name");
+    out->alertsound = JS_GetIntegerValue(js_castanim_entry, "alertsound");
 
-  json_t *js_alive_frame_list = JS_GetObject(js_castanim_entry, "aliveframes");
-  json_t *js_death_frame_list = JS_GetObject(js_castanim_entry, "deathframes");
+    json_t *js_alive_frame_list =
+        JS_GetObject(js_castanim_entry, "aliveframes");
+    json_t *js_death_frame_list =
+        JS_GetObject(js_castanim_entry, "deathframes");
 
-  json_t *js_alive_frame = NULL;
-  json_t *js_death_frame = NULL;
+    json_t *js_alive_frame = NULL;
+    json_t *js_death_frame = NULL;
 
-  cast_frame_t buffer = {0};
+    cast_frame_t buffer = {0};
 
-  JS_ArrayForEach(js_alive_frame, js_alive_frame_list)
-  {
-    buffer.lump     = JS_GetStringValue(js_alive_frame, "lump");
-    buffer.flipped  = JS_GetBooleanValue(js_alive_frame, "flipped");
-    buffer.duration = JS_GetIntegerValue(js_alive_frame, "duration") * TICRATE;
-    buffer.sound    = JS_GetIntegerValue(js_alive_frame, "sound");
-    array_push(out->aliveframes, buffer);
-    out->aliveframescount++;
-  }
+    JS_ArrayForEach(js_alive_frame, js_alive_frame_list)
+    {
+        buffer.lump = JS_GetStringValue(js_alive_frame, "lump");
+        buffer.flipped = JS_GetBooleanValue(js_alive_frame, "flipped");
+        buffer.duration =
+            JS_GetIntegerValue(js_alive_frame, "duration") * TICRATE;
+        buffer.sound = JS_GetIntegerValue(js_alive_frame, "sound");
+        array_push(out->aliveframes, buffer);
+        out->aliveframescount++;
+    }
 
-  JS_ArrayForEach(js_death_frame, js_death_frame_list)
-  {
-    buffer.lump     = JS_GetStringValue(js_death_frame, "lump");
-    buffer.flipped  = JS_GetBooleanValue(js_death_frame, "flipped");
-    buffer.duration = JS_GetIntegerValue(js_death_frame, "duration") * TICRATE;
-    buffer.sound    = JS_GetIntegerValue(js_death_frame, "sound");
-    array_push(out->deathframes, buffer);
-    out->deathframescount++;
-  }
-
+    JS_ArrayForEach(js_death_frame, js_death_frame_list)
+    {
+        buffer.lump = JS_GetStringValue(js_death_frame, "lump");
+        buffer.flipped = JS_GetBooleanValue(js_death_frame, "flipped");
+        buffer.duration =
+            JS_GetIntegerValue(js_death_frame, "duration") * TICRATE;
+        buffer.sound = JS_GetIntegerValue(js_death_frame, "sound");
+        array_push(out->deathframes, buffer);
+        out->deathframescount++;
+    }
 }
 
 end_finale_t *D_ParseEndFinale(const char lump[9])
 {
-  // Does the JSON lump even exist?
-  json_t *json = JS_Open(lump, "finale", (version_t){1, 0, 0});
-  if (json == NULL)
-  {
-    I_Printf(VB_WARNING, "EndFinale: invalid lump \"%s\"", lump);
-    return NULL;
-  }
+    // Does the JSON lump even exist?
+    json_t *json = JS_Open(lump, "finale", (version_t){1, 0, 0});
+    if (json == NULL)
+    {
+        I_Printf(VB_WARNING, "EndFinale: invalid lump \"%s\"", lump);
+        return NULL;
+    }
 
-  // Does the lump actually have any data?
-  json_t *data = JS_GetObject(json, "data");
-  if (JS_IsNull(data) || !JS_IsObject(data))
-  {
-    I_Printf(VB_WARNING, "EndFinale: data object undefined on lump \"%s\"",
-             lump);
+    // Does the lump actually have any data?
+    json_t *data = JS_GetObject(json, "data");
+    if (JS_IsNull(data) || !JS_IsObject(data))
+    {
+        I_Printf(VB_WARNING, "EndFinale: data object undefined on lump \"%s\"",
+                 lump);
+        JS_Close(lump);
+        return NULL;
+    }
+
+    // Now, actually parse it
+    end_finale_t *out = Z_Calloc(1, sizeof(*out), PU_LEVEL, NULL);
+
+    end_type_t type = JS_GetIntegerValue(data, "type");
+    const char *music = JS_GetStringValue(data, "music");
+    const char *background = JS_GetStringValue(data, "background");
+    boolean musicloops = JS_GetBooleanValue(data, "musicloops");
+    boolean donextmap = JS_GetBooleanValue(data, "donextmap");
+    end_bunny_t bunny = {0};
+    end_cast_t castrollcall = {0};
+
+    // Improper definitions should be entirely discarded
+    if (music == NULL || background == NULL)
+    {
+        I_Printf(VB_WARNING,
+                 "EndFinale: invalid music or background fields on lump \"%s\"",
+                 lump);
+        JS_Close(lump);
+        return NULL;
+    }
+
+    switch (type)
+    {
+        // Our hero
+        case END_CAST:
+            {
+                json_t *js_castrollcall = JS_GetObject(data, "castrollcall");
+                json_t *js_castanim_list =
+                    JS_GetObject(js_castrollcall, "castanims");
+
+                json_t *js_castanim_entry = NULL;
+                cast_entry_t castanim_entry = {0};
+
+                JS_ArrayForEach(js_castanim_entry, js_castanim_list)
+                {
+                    ParseEndFinaleCastAnims(js_castanim_entry, &castanim_entry);
+                    castrollcall.castanimscount++;
+                    array_push(castrollcall.castanims, castanim_entry);
+                }
+
+                break;
+            }
+
+        // Pretty Fed Up Bunny
+        case END_SCROLL:
+            {
+                json_t *js_bunny = JS_GetObject(data, "bunny");
+
+                bunny.overlay = JS_GetIntegerValue(js_bunny, "overlay");
+                bunny.overlaycount =
+                    JS_GetIntegerValue(js_bunny, "overlaycount");
+                bunny.overlaysound =
+                    JS_GetIntegerValue(js_bunny, "overlaysound");
+                bunny.overlayx = JS_GetIntegerValue(js_bunny, "overlayx");
+                bunny.overlayy = JS_GetIntegerValue(js_bunny, "overlayy");
+                bunny.orientation = JS_GetIntegerValue(js_bunny, "orientation");
+                bunny.stitchimage = Z_StrDup(
+                    JS_GetStringValue(js_bunny, "stitchimage"), PU_LEVEL);
+                break;
+            }
+
+        // Explicitly do not parse anything needlessly
+        case END_ART:
+            break;
+
+        // Fix you lumps! Fix you editor!
+        default:
+            {
+                I_Printf(VB_WARNING,
+                         "EndFinale: unknown entry of type \"%d\" on lump %s, "
+                         "skipping",
+                         type, lump);
+                JS_Close(lump);
+                return NULL;
+            }
+    }
+
+    // Done parsing everything
+    out->type = type;
+    out->musicloops = musicloops;
+    out->donextmap = donextmap;
+    out->castrollcall = castrollcall;
+    out->bunny = bunny;
+    out->music = Z_StrDup(music, PU_LEVEL);
+    out->background = Z_StrDup(background, PU_LEVEL);
+
+    // No need to keep in memory
     JS_Close(lump);
-    return NULL;
-  }
-
-  // Now, actually parse it
-  end_finale_t *out = Z_Calloc(1, sizeof(*out), PU_LEVEL, NULL);
-
-  end_type_t   type         = JS_GetIntegerValue(data, "type");
-  const char  *music        = JS_GetStringValue(data, "music");
-  const char  *background   = JS_GetStringValue(data, "background");
-  boolean      musicloops   = JS_GetBooleanValue(data, "musicloops");
-  boolean      donextmap    = JS_GetBooleanValue(data, "donextmap");
-  end_bunny_t  bunny        = {0};
-  end_cast_t   castrollcall = {0};
-
-  // Improper definitions should be entirely discarded
-  if (music == NULL || background == NULL)
-  {
-    I_Printf(VB_WARNING,
-             "EndFinale: invalid music or background fields on lump \"%s\"",
-             lump);
-    JS_Close(lump);
-    return NULL;
-  }
-
-  switch (type)
-  {
-    // Our hero
-    case END_CAST:
-    {
-      json_t *js_castrollcall = JS_GetObject(data, "castrollcall");
-      json_t *js_castanim_list = JS_GetObject(js_castrollcall, "castanims");
-
-      json_t *js_castanim_entry = NULL;
-      cast_entry_t castanim_entry = {0};
-
-      JS_ArrayForEach(js_castanim_entry, js_castanim_list)
-      {
-        ParseEndFinaleCastAnims(js_castanim_entry, &castanim_entry);
-        castrollcall.castanimscount++;
-        array_push(castrollcall.castanims, castanim_entry);
-      }
-
-      break;
-    }
-
-    // Pretty Fed Up Bunny
-    case END_SCROLL:
-    {
-      json_t *js_bunny = JS_GetObject(data, "bunny");
-
-      bunny.overlay      = JS_GetIntegerValue(js_bunny, "overlay");
-      bunny.overlaycount = JS_GetIntegerValue(js_bunny, "overlaycount");
-      bunny.overlaysound = JS_GetIntegerValue(js_bunny, "overlaysound");
-      bunny.overlayx     = JS_GetIntegerValue(js_bunny, "overlayx");
-      bunny.overlayy     = JS_GetIntegerValue(js_bunny, "overlayy");
-      bunny.orientation  = JS_GetIntegerValue(js_bunny, "orientation");
-      bunny.stitchimage  = Z_StrDup(
-        JS_GetStringValue(js_bunny, "stitchimage"),
-        PU_LEVEL
-      );
-      break;
-    }
-
-    // Explicitly do not parse anything needlessly
-    case END_ART:
-      break;
-
-    // Fix you lumps! Fix you editor!
-    default:
-    {
-      I_Printf(VB_WARNING,
-               "EndFinale: unknown entry of type \"%d\" on lump %s, skipping",
-               type, lump);
-      JS_Close(lump);
-      return NULL;
-    }
-  }
-
-  // Done parsing everything
-  out->type         = type;
-  out->musicloops   = musicloops;
-  out->donextmap    = donextmap;
-  out->castrollcall = castrollcall;
-  out->bunny        = bunny;
-  out->music        = Z_StrDup(music, PU_LEVEL);
-  out->background   = Z_StrDup(background, PU_LEVEL);
-
-  // No need to keep in memory
-  JS_Close(lump);
-  return out;
+    return out;
 }
-
-
 
 //
 // UMAPINFO
@@ -265,162 +269,161 @@ end_finale_t *D_ParseEndFinale(const char lump[9])
 
 static boolean MapInfo_StartFinale(void)
 {
-  mapinfo_finale = false;
+    mapinfo_finale = false;
 
-  if (!gamemapinfo)
-  {
-    return false;
-  }
-
-  if (secretexit)
-  {
-    if (gamemapinfo->flags & MapInfo_InterTextSecretClear)
+    if (!gamemapinfo)
     {
-      finaletext = NULL;
+        return false;
     }
-    else if (gamemapinfo->intertextsecret)
+
+    if (secretexit)
     {
-      finaletext = gamemapinfo->intertextsecret;
+        if (gamemapinfo->flags & MapInfo_InterTextSecretClear)
+        {
+            finaletext = NULL;
+        }
+        else if (gamemapinfo->intertextsecret)
+        {
+            finaletext = gamemapinfo->intertextsecret;
+        }
     }
-  }
-  else
-  {
-    if (gamemapinfo->flags & MapInfo_InterTextClear)
+    else
     {
-      finaletext = NULL;
+        if (gamemapinfo->flags & MapInfo_InterTextClear)
+        {
+            finaletext = NULL;
+        }
+        else if (gamemapinfo->intertext)
+        {
+            finaletext = gamemapinfo->intertext;
+        }
     }
-    else if (gamemapinfo->intertext)
+
+    if (gamemapinfo->interbackdrop[0])
     {
-      finaletext = gamemapinfo->intertext;
+        finaleflat = gamemapinfo->interbackdrop;
     }
-  }
 
-  if (gamemapinfo->interbackdrop[0])
-  {
-    finaleflat = gamemapinfo->interbackdrop;
-  }
+    if (!finaleflat)
+    {
+        finaleflat = "FLOOR4_8"; // use a single fallback for all maps.
+    }
 
-  if (!finaleflat)
-  {
-    finaleflat = "FLOOR4_8"; // use a single fallback for all maps.
-  }
+    int lumpnum = W_CheckNumForName(gamemapinfo->intermusic);
+    if (lumpnum >= 0)
+    {
+        S_ChangeMusInfoMusic(lumpnum, true);
+    }
 
-  int lumpnum = W_CheckNumForName(gamemapinfo->intermusic);
-  if (lumpnum >= 0)
-  {
-    S_ChangeMusInfoMusic(lumpnum, true);
-  }
+    mapinfo_finale = true;
 
-  mapinfo_finale = true;
-
-  return lumpnum >= 0;
+    return lumpnum >= 0;
 }
 
 static boolean MapInfo_Ticker()
 {
-  if (!mapinfo_finale)
-  {
-    return false;
-  }
-
-  boolean next_level = false;
-
-  WI_checkForAccelerate();
-
-  if (!next_level)
-  {
-    // advance animation
-    finalecount++;
-
-    if (finalestage == FINALE_STAGE_CAST)
+    if (!mapinfo_finale)
     {
-      next_level = F_CastTicker();
-      return true;
+        return false;
     }
 
-    if (finalestage == FINALE_STAGE_TEXT)
-    {
-      int textcount = 0;
-      if (finaletext)
-      {
-        float speed = demo_compatibility ? TEXTSPEED : Get_TextSpeed();
-        textcount = strlen(finaletext) * speed
-                    + (midstage ? NEWTEXTWAIT : TEXTWAIT);
-      }
+    boolean next_level = false;
 
-      if (!textcount || finalecount > textcount
-          || (midstage && acceleratestage))
-      {
-        next_level = true;
-      }
-    }
-  }
+    WI_checkForAccelerate();
 
-  if (next_level)
-  {
-    if (!secretexit && gamemapinfo->flags & MapInfo_EndGame)
+    if (!next_level)
     {
-      if (gamemapinfo->flags & MapInfo_EndGameCast)
-      {
-        F_StartCast();
-      }
-      else
-      {
-        finalecount = 0;
-        finalestage = FINALE_STAGE_ART;
-        wipegamestate = -1; // force a wipe
-        if (gamemapinfo->flags & MapInfo_EndGameBunny)
+        // advance animation
+        finalecount++;
+
+        if (finalestage == FINALE_STAGE_CAST)
         {
-          S_StartMusic(mus_bunny);
+            next_level = F_CastTicker();
+            return true;
         }
-        else if (gamemapinfo->flags & MapInfo_EndGameStandard)
-        {
-          mapinfo_finale = false;
-        }
-      }
-    }
-    else
-    {
-      gameaction = ga_worlddone; // next level, e.g. MAP07
-    }
-  }
 
-  return true;
+        if (finalestage == FINALE_STAGE_TEXT)
+        {
+            int textcount = 0;
+            if (finaletext)
+            {
+                float speed = demo_compatibility ? TEXTSPEED : Get_TextSpeed();
+                textcount = strlen(finaletext) * speed
+                            + (midstage ? NEWTEXTWAIT : TEXTWAIT);
+            }
+
+            if (!textcount || finalecount > textcount
+                || (midstage && acceleratestage))
+            {
+                next_level = true;
+            }
+        }
+    }
+
+    if (next_level)
+    {
+        if (!secretexit && gamemapinfo->flags & MapInfo_EndGame)
+        {
+            if (gamemapinfo->flags & MapInfo_EndGameCast)
+            {
+                F_StartCast();
+            }
+            else
+            {
+                finalecount = 0;
+                finalestage = FINALE_STAGE_ART;
+                wipegamestate = -1; // force a wipe
+                if (gamemapinfo->flags & MapInfo_EndGameBunny)
+                {
+                    S_StartMusic(mus_bunny);
+                }
+                else if (gamemapinfo->flags & MapInfo_EndGameStandard)
+                {
+                    mapinfo_finale = false;
+                }
+            }
+        }
+        else
+        {
+            gameaction = ga_worlddone; // next level, e.g. MAP07
+        }
+    }
+
+    return true;
 }
 
 static boolean MapInfo_Drawer(void)
 {
-  if (!mapinfo_finale)
-  {
-    return false;
-  }
+    if (!mapinfo_finale)
+    {
+        return false;
+    }
 
-  switch (finalestage)
-  {
-    case FINALE_STAGE_TEXT:
-      if (finaletext)
-      {
-        F_TextWrite();
-      }
-      break;
-    case FINALE_STAGE_ART:
-      if (gamemapinfo->flags & MapInfo_EndGameBunny)
-      {
-        F_BunnyScroll();
-      }
-      else if (gamemapinfo->endpic[0])
-      {
-        V_DrawPatchFullScreen(
-          V_CachePatchName(
-            W_CheckWidescreenPatch(gamemapinfo->endpic), PU_CACHE));
-      }
-      break;
-    case FINALE_STAGE_CAST:
-      F_CastDrawer();
-      break;
-  }
+    switch (finalestage)
+    {
+        case FINALE_STAGE_TEXT:
+            if (finaletext)
+            {
+                F_TextWrite();
+            }
+            break;
+        case FINALE_STAGE_ART:
+            if (gamemapinfo->flags & MapInfo_EndGameBunny)
+            {
+                F_BunnyScroll();
+            }
+            else if (gamemapinfo->endpic[0])
+            {
+                V_DrawPatchFullScreen(V_CachePatchName(
+                    W_CheckWidescreenPatch(gamemapinfo->endpic), PU_CACHE));
+            }
+            break;
+        case FINALE_STAGE_CAST:
+            F_CastDrawer();
+            break;
+    }
 
-  return true;
+    return true;
 }
 
 //
@@ -428,123 +431,130 @@ static boolean MapInfo_Drawer(void)
 //
 void F_StartFinale(void)
 {
-  musicenum_t music_id = mus_None;
+    musicenum_t music_id = mus_None;
 
-  gameaction = ga_nothing;
-  gamestate = GS_FINALE;
-  viewactive = false;
-  automapactive = false;
+    gameaction = ga_nothing;
+    gamestate = GS_FINALE;
+    viewactive = false;
+    automapactive = false;
 
-  // killough 3/28/98: clear accelerative text flags
-  acceleratestage = midstage = 0;
+    // killough 3/28/98: clear accelerative text flags
+    acceleratestage = midstage = 0;
 
-  finaletext = NULL;
-  finaleflat = NULL;
+    finaletext = NULL;
+    finaleflat = NULL;
 
-  // Okay - IWAD dependend stuff.
-  // This has been changed severly, and
-  //  some stuff might have changed in the process.
-  switch (gamemode)
-  {
-    // DOOM 1 - E1, E3 or E4, but each nine missions
-    case shareware:
-    case registered:
-    case retail:
-      music_id = mus_victor;
-      switch (gameepisode)
-      {
-        case 1:
-          finaleflat = bgflatE1; // Ty 03/30/98 - new externalized bg flats
-          finaletext = s_E1TEXT; // Ty 03/23/98 - Was e1text variable.
-          break;
-        case 2:
-          finaleflat = bgflatE2;
-          finaletext = s_E2TEXT; // Ty 03/23/98 - Same stuff for each
-          break;
-        case 3:
-          finaleflat = bgflatE3;
-          finaletext = s_E3TEXT;
-          break;
-        case 4:
-          finaleflat = bgflatE4;
-          finaletext = s_E4TEXT;
-          break;
-        default:
-          // Ouch.
-          break;
-      }
-      break;
+    // Okay - IWAD dependend stuff.
+    // This has been changed severly, and
+    //  some stuff might have changed in the process.
+    switch (gamemode)
+    {
+        // DOOM 1 - E1, E3 or E4, but each nine missions
+        case shareware:
+        case registered:
+        case retail:
+            music_id = mus_victor;
+            switch (gameepisode)
+            {
+                case 1:
+                    finaleflat =
+                        bgflatE1; // Ty 03/30/98 - new externalized bg flats
+                    finaletext = s_E1TEXT; // Ty 03/23/98 - Was e1text variable.
+                    break;
+                case 2:
+                    finaleflat = bgflatE2;
+                    finaletext = s_E2TEXT; // Ty 03/23/98 - Same stuff for each
+                    break;
+                case 3:
+                    finaleflat = bgflatE3;
+                    finaletext = s_E3TEXT;
+                    break;
+                case 4:
+                    finaleflat = bgflatE4;
+                    finaletext = s_E4TEXT;
+                    break;
+                default:
+                    // Ouch.
+                    break;
+            }
+            break;
 
-    // DOOM II and missions packs with E1, M34
-    case commercial:
-      music_id = mus_read_m;
+        // DOOM II and missions packs with E1, M34
+        case commercial:
+            music_id = mus_read_m;
 
-      // Ty 08/27/98 - added the gamemission logic
-      switch (gamemap) /* This is regular Doom II */
-      {
-        case 6:
-          finaleflat = bgflat06;
-          finaletext = gamemission == pack_tnt  ? s_T1TEXT :
-                       gamemission == pack_plut ? s_P1TEXT : s_C1TEXT;
-          break;
-        case 11:
-          finaleflat = bgflat11;
-          finaletext = gamemission == pack_tnt  ? s_T2TEXT :
-                       gamemission == pack_plut ? s_P2TEXT : s_C2TEXT;
-          break;
-        case 20:
-          finaleflat = bgflat20;
-          finaletext = gamemission == pack_tnt  ? s_T3TEXT :
-                       gamemission == pack_plut ? s_P3TEXT : s_C3TEXT;
-          break;
-        case 30:
-          finaleflat = bgflat30;
-          finaletext = gamemission == pack_tnt  ? s_T4TEXT :
-                       gamemission == pack_plut ? s_P4TEXT : s_C4TEXT;
-          break;
-        case 15:
-          finaleflat = bgflat15;
-          finaletext = gamemission == pack_tnt  ? s_T5TEXT :
-                       gamemission == pack_plut ? s_P5TEXT : s_C5TEXT;
-          break;
-        case 31:
-          finaleflat = bgflat31;
-          finaletext = gamemission == pack_tnt  ? s_T6TEXT :
-                       gamemission == pack_plut ? s_P6TEXT : s_C6TEXT;
-          break;
-        default:
-          // Ouch.
-          break;
-      }
-      // Ty 08/27/98 - end gamemission logic
+            // Ty 08/27/98 - added the gamemission logic
+            switch (gamemap) /* This is regular Doom II */
+            {
+                case 6:
+                    finaleflat = bgflat06;
+                    finaletext = gamemission == pack_tnt    ? s_T1TEXT
+                                 : gamemission == pack_plut ? s_P1TEXT
+                                                            : s_C1TEXT;
+                    break;
+                case 11:
+                    finaleflat = bgflat11;
+                    finaletext = gamemission == pack_tnt    ? s_T2TEXT
+                                 : gamemission == pack_plut ? s_P2TEXT
+                                                            : s_C2TEXT;
+                    break;
+                case 20:
+                    finaleflat = bgflat20;
+                    finaletext = gamemission == pack_tnt    ? s_T3TEXT
+                                 : gamemission == pack_plut ? s_P3TEXT
+                                                            : s_C3TEXT;
+                    break;
+                case 30:
+                    finaleflat = bgflat30;
+                    finaletext = gamemission == pack_tnt    ? s_T4TEXT
+                                 : gamemission == pack_plut ? s_P4TEXT
+                                                            : s_C4TEXT;
+                    break;
+                case 15:
+                    finaleflat = bgflat15;
+                    finaletext = gamemission == pack_tnt    ? s_T5TEXT
+                                 : gamemission == pack_plut ? s_P5TEXT
+                                                            : s_C5TEXT;
+                    break;
+                case 31:
+                    finaleflat = bgflat31;
+                    finaletext = gamemission == pack_tnt    ? s_T6TEXT
+                                 : gamemission == pack_plut ? s_P6TEXT
+                                                            : s_C6TEXT;
+                    break;
+                default:
+                    // Ouch.
+                    break;
+            }
+            // Ty 08/27/98 - end gamemission logic
 
-      break;
+            break;
 
-    // Indeterminate.
-    default: // Ty 03/30/98 - not externalized
-      music_id = mus_read_m;
-      finaleflat = "F_SKY1"; // Not used anywhere else.
-      finaletext = s_C1TEXT; // FIXME - other text, music?
-      break;
-  }
+        // Indeterminate.
+        default: // Ty 03/30/98 - not externalized
+            music_id = mus_read_m;
+            finaleflat = "F_SKY1"; // Not used anywhere else.
+            finaletext = s_C1TEXT; // FIXME - other text, music?
+            break;
+    }
 
-  if (!MapInfo_StartFinale())
-  {
-    S_ChangeMusic(music_id, true);
-  }
+    if (!MapInfo_StartFinale())
+    {
+        S_ChangeMusic(music_id, true);
+    }
 
-  finalestage = FINALE_STAGE_TEXT;
-  finalecount = 0;
+    finalestage = FINALE_STAGE_TEXT;
+    finalecount = 0;
 }
 
 boolean F_Responder(event_t *event)
 {
-  if (finalestage == FINALE_STAGE_CAST)
-  {
-    return F_CastResponder(event);
-  }
+    if (finalestage == FINALE_STAGE_CAST)
+    {
+        return F_CastResponder(event);
+    }
 
-  return false;
+    return false;
 }
 
 // Get_TextSpeed() returns the value of the text display speed  // phares
@@ -552,8 +562,10 @@ boolean F_Responder(event_t *event)
 
 static float Get_TextSpeed(void)
 {
-  return midstage ? NEWTEXTSPEED : (midstage = acceleratestage)
-             ? acceleratestage = 0, NEWTEXTSPEED : TEXTSPEED;
+    return midstage ? NEWTEXTSPEED
+                    : (midstage = acceleratestage)
+               ? acceleratestage = 0,
+                 NEWTEXTSPEED : TEXTSPEED;
 }
 
 //
@@ -571,67 +583,68 @@ static float Get_TextSpeed(void)
 
 void F_Ticker(void)
 {
-  if (MapInfo_Ticker())
-  {
-    return;
-  }
-
-  int i;
-  if (!demo_compatibility)
-  {
-    WI_checkForAccelerate(); // killough 3/28/98: check for acceleration
-  }
-  else if (gamemode == commercial && finalecount > 50) // check for skipping
-  {
-    for (i = 0; i < MAXPLAYERS; i++)
+    if (MapInfo_Ticker())
     {
-      if (players[i].cmd.buttons)
-      {
-        goto next_level; // go on to the next level
-      }
+        return;
     }
-  }
 
-  // advance animation
-  finalecount++;
-
-  if (finalestage == FINALE_STAGE_CAST)
-  {
-    F_CastTicker();
-  }
-
-  if (finalestage == FINALE_STAGE_TEXT)
-  {
-    float speed = demo_compatibility ? TEXTSPEED : Get_TextSpeed();
-    if (finalecount > strlen(finaletext) * speed + // phares
-        (midstage ? NEWTEXTWAIT : TEXTWAIT) || // killough 2/28/98:
-        (midstage && acceleratestage))         // changed to allow acceleration
+    int i;
+    if (!demo_compatibility)
     {
-      if (gamemode != commercial) // Doom 1 / Ultimate Doom episode end
-      {                           // with enough time, it's automatic
-        finalecount = 0;
-        finalestage = FINALE_STAGE_ART;
-        wipegamestate = -1; // force a wipe
-        if (gameepisode == 3)
+        WI_checkForAccelerate(); // killough 3/28/98: check for acceleration
+    }
+    else if (gamemode == commercial && finalecount > 50) // check for skipping
+    {
+        for (i = 0; i < MAXPLAYERS; i++)
         {
-          S_StartMusic(mus_bunny);
+            if (players[i].cmd.buttons)
+            {
+                goto next_level; // go on to the next level
+            }
         }
-      }
-      // you must press a button to continue in Doom 2
-      else if (!demo_compatibility && midstage)
-      {
-        next_level:
-          if (gamemap == 30)
-          {
-            F_StartCast(); // cast of Doom 2 characters
-          }
-          else
-          {
-            gameaction = ga_worlddone; // next level, e.g. MAP07
-          }
-      }
     }
-  }
+
+    // advance animation
+    finalecount++;
+
+    if (finalestage == FINALE_STAGE_CAST)
+    {
+        F_CastTicker();
+    }
+
+    if (finalestage == FINALE_STAGE_TEXT)
+    {
+        float speed = demo_compatibility ? TEXTSPEED : Get_TextSpeed();
+        if (finalecount > strlen(finaletext) * speed + // phares
+                              (midstage ? NEWTEXTWAIT : TEXTWAIT)
+            ||                             // killough 2/28/98:
+            (midstage && acceleratestage)) // changed to allow acceleration
+        {
+            if (gamemode != commercial) // Doom 1 / Ultimate Doom episode end
+            {                           // with enough time, it's automatic
+                finalecount = 0;
+                finalestage = FINALE_STAGE_ART;
+                wipegamestate = -1; // force a wipe
+                if (gameepisode == 3)
+                {
+                    S_StartMusic(mus_bunny);
+                }
+            }
+            // you must press a button to continue in Doom 2
+            else if (!demo_compatibility && midstage)
+            {
+            next_level:
+                if (gamemap == 30)
+                {
+                    F_StartCast(); // cast of Doom 2 characters
+                }
+                else
+                {
+                    gameaction = ga_worlddone; // next level, e.g. MAP07
+                }
+            }
+        }
+    }
 }
 
 //
@@ -647,187 +660,192 @@ void F_Ticker(void)
 
 static void F_TextWrite(void)
 {
-  int         w; // killough 8/9/98: move variables below
-  int         count;
-  const char *ch;
-  int         c;
-  int         cx;
-  int         cy;
+    int w; // killough 8/9/98: move variables below
+    int count;
+    const char *ch;
+    int c;
+    int cx;
+    int cy;
 
-  // [FG] if interbackdrop does not specify a valid flat, draw it as a patch
-  // instead
-  if (gamemapinfo && W_CheckNumForName(finaleflat) != -1
-      && (W_CheckNumForName)(finaleflat, ns_flats) == -1)
-  {
-    V_DrawPatchFullScreen(V_CachePatchName(finaleflat, PU_LEVEL));
-  }
-  else if ((W_CheckNumForName)(finaleflat, ns_flats) != -1)
-  {
-    // erase the entire screen to a tiled background
-
-    // killough 11/98: the background-filling code was already in m_menu.c
-    V_DrawBackground(finaleflat);
-  }
-
-  // draw some of the text onto the screen
-  cx = 10;
-  cy = 10;
-  ch = finaletext;
-
-  count = (int)((finalecount - 10) / Get_TextSpeed()); // phares
-  if (count < 0)
-  {
-    count = 0;
-  }
-
-  for (; count; count--)
-  {
-    c = *ch++;
-    if (!c)
+    // [FG] if interbackdrop does not specify a valid flat, draw it as a patch
+    // instead
+    if (gamemapinfo && W_CheckNumForName(finaleflat) != -1
+        && (W_CheckNumForName)(finaleflat, ns_flats) == -1)
     {
-      break;
+        V_DrawPatchFullScreen(V_CachePatchName(finaleflat, PU_LEVEL));
     }
-    if (c == '\n')
+    else if ((W_CheckNumForName)(finaleflat, ns_flats) != -1)
     {
-      cx = 10;
-      cy += 11;
-      continue;
+        // erase the entire screen to a tiled background
+
+        // killough 11/98: the background-filling code was already in m_menu.c
+        V_DrawBackground(finaleflat);
     }
 
-    c = M_ToUpper(c) - HU_FONTSTART;
-    if (c < 0 || c >= HU_FONTSIZE || hu_font[c] == NULL)
+    // draw some of the text onto the screen
+    cx = 10;
+    cy = 10;
+    ch = finaletext;
+
+    count = (int)((finalecount - 10) / Get_TextSpeed()); // phares
+    if (count < 0)
     {
-      cx += 4;
-      continue;
+        count = 0;
     }
 
-    w = SHORT(hu_font[c]->width);
-    if (cx + w > video.unscaledw - video.deltaw)
+    for (; count; count--)
     {
-      continue;
+        c = *ch++;
+        if (!c)
+        {
+            break;
+        }
+        if (c == '\n')
+        {
+            cx = 10;
+            cy += 11;
+            continue;
+        }
+
+        c = M_ToUpper(c) - HU_FONTSTART;
+        if (c < 0 || c >= HU_FONTSIZE || hu_font[c] == NULL)
+        {
+            cx += 4;
+            continue;
+        }
+
+        w = SHORT(hu_font[c]->width);
+        if (cx + w > video.unscaledw - video.deltaw)
+        {
+            continue;
+        }
+        // [cispy] prevent text from being drawn off-screen vertically
+        if (cy + SHORT(hu_font[c]->height) > SCREENHEIGHT)
+        {
+            break;
+        }
+        V_DrawPatch(cx, cy, hu_font[c]);
+        cx += w;
     }
-    // [cispy] prevent text from being drawn off-screen vertically
-    if (cy + SHORT(hu_font[c]->height) > SCREENHEIGHT)
-    {
-      break;
-    }
-    V_DrawPatch(cx, cy, hu_font[c]);
-    cx += w;
-  }
 }
 
 // ID24 EndFinale
-static int           ef_callee_count = 0;
-static int           ef_callee_point = 0;
-static cast_entry_t *ef_callee       = NULL;
-static cast_frame_t *ef_frame        = NULL;
-static boolean       ef_alive        = false;
-static int           ef_duration     = 0;
+static int ef_callee_count = 0;
+static int ef_callee_point = 0;
+static cast_entry_t *ef_callee = NULL;
+static cast_frame_t *ef_frame = NULL;
+static boolean ef_alive = false;
+static int ef_duration = 0;
 
 static void EndFinaleCast_Frame(cast_frame_t *frame)
 {
-  ef_frame    = frame;
-  ef_duration = ef_frame->duration;
+    ef_frame = frame;
+    ef_duration = ef_frame->duration;
 
-  if (ef_frame->sound)
-  {
-    S_StartSound(NULL, ef_frame->sound);
-  }
+    if (ef_frame->sound)
+    {
+        S_StartSound(NULL, ef_frame->sound);
+    }
 }
 
 static void EndFinaleCast_Callee(cast_entry_t *callee)
 {
-  if (callee)
-  {
-    ef_alive  = true;
-    ef_callee = callee;
-    EndFinaleCast_Frame(ef_callee->aliveframes);
-  }
+    if (callee)
+    {
+        ef_alive = true;
+        ef_callee = callee;
+        EndFinaleCast_Frame(ef_callee->aliveframes);
+    }
 }
 
 static void EndFinaleCast_Kill(void)
 {
-  ef_alive = false;
-  EndFinaleCast_Frame(ef_callee->deathframes);
+    ef_alive = false;
+    EndFinaleCast_Frame(ef_callee->deathframes);
 }
 
 static void EndFinale_SetupCastCall(void)
 {
-  ef_callee_count = endfinale->castrollcall.castanimscount;
-  const int background = W_GetNumForName(endfinale->background);
-  W_CacheLumpNum(background, PU_LEVEL);
+    ef_callee_count = endfinale->castrollcall.castanimscount;
+    const int background = W_GetNumForName(endfinale->background);
+    W_CacheLumpNum(background, PU_LEVEL);
 
-  cast_entry_t *callee;
-  cast_frame_t *frame;
+    cast_entry_t *callee;
+    cast_frame_t *frame;
 
-  array_foreach(callee, ef_callee)
-  {
-    array_foreach(frame, callee->aliveframes)
+    array_foreach(callee, ef_callee)
     {
-      W_CacheLumpName(frame->lump, PU_LEVEL);
+        array_foreach(frame, callee->aliveframes)
+        {
+            W_CacheLumpName(frame->lump, PU_LEVEL);
+        }
+        array_foreach(frame, callee->deathframes)
+        {
+            W_CacheLumpName(frame->lump, PU_LEVEL);
+        }
     }
-    array_foreach(frame, callee->deathframes)
-    {
-      W_CacheLumpName(frame->lump, PU_LEVEL);
-    }
-  }
 
-  EndFinaleCast_Callee(ef_callee);
+    EndFinaleCast_Callee(ef_callee);
 }
 
 static boolean EndFinale_CastTicker(void)
 {
-  boolean loop_finished = false;
+    boolean loop_finished = false;
 
-  if (--ef_duration <= 0)
-  {
-    cast_frame_t *initial = ef_alive
-                            ? ef_callee->aliveframes
-                            : ef_callee->deathframes;
-    cast_frame_t *last = (ef_alive
-                          ? ef_callee->aliveframescount
-                          : ef_callee->deathframescount) - 1 + initial;
-    cast_frame_t *next = ++ef_frame;
-
-    if (ef_alive || (next != last))
+    if (--ef_duration <= 0)
     {
-      EndFinaleCast_Frame((next != last) ? next : initial);
+        cast_frame_t *initial =
+            ef_alive ? ef_callee->aliveframes : ef_callee->deathframes;
+        cast_frame_t *last = (ef_alive ? ef_callee->aliveframescount
+                                       : ef_callee->deathframescount)
+                             - 1 + initial;
+        cast_frame_t *next = ++ef_frame;
+
+        if (ef_alive || (next != last))
+        {
+            EndFinaleCast_Frame((next != last) ? next : initial);
+        }
+        else
+        {
+            ef_callee_point = (ef_callee_point + 1) % ef_callee_count;
+            cast_entry_t *next_callee = &ef_callee[ef_callee_point];
+
+            // When out of bounds
+            if (next_callee == &ef_callee[ef_callee_count])
+            {
+                // If possible, go to next map, else start again
+                loop_finished = true;
+                next_callee =
+                    endfinale->donextmap || (wminfo.nextmapinfo != NULL)
+                        ? NULL
+                        : ef_callee;
+            }
+
+            if (next_callee)
+            {
+                EndFinaleCast_Callee(next_callee);
+            }
+        }
     }
-    else
-    {
-      ef_callee_point = (ef_callee_point + 1) % ef_callee_count;
-      cast_entry_t *next_callee = &ef_callee[ef_callee_point];
 
-      // When out of bounds
-      if (next_callee == &ef_callee[ef_callee_count])
-      {
-        // If possible, go to next map, else start again
-        loop_finished = true;
-        next_callee =
-          endfinale->donextmap || (wminfo.nextmapinfo != NULL) ? NULL : ef_callee;
-      }
-
-      if (next_callee)
-      {
-        EndFinaleCast_Callee(next_callee);
-      }
-    }
-  }
-
-  return loop_finished;
+    return loop_finished;
 }
 
 static boolean EndFinale_CastResponder(event_t *ev)
 {
-  boolean respond = ev->type == ev_keydown;
+    boolean respond = ev->type == ev_keydown;
 
-  if (!respond)
-    return false;
+    if (!respond)
+    {
+        return false;
+    }
 
-  if (ef_alive)
-    EndFinaleCast_Kill();
+    if (ef_alive)
+    {
+        EndFinaleCast_Kill();
+    }
 
-  return true;
+    return true;
 }
 
 //
@@ -837,65 +855,65 @@ static boolean EndFinale_CastResponder(event_t *ev)
 //
 typedef struct
 {
-  char       *name;
-  mobjtype_t  type;
+    char *name;
+    mobjtype_t type;
 } castinfo_t;
 
 #define MAX_CASTORDER 19             /* Ty - hard coded for now */
-castinfo_t castorder[MAX_CASTORDER]; // Ty 03/22/98 - externalized and init moved into f_startcast()
-int        castnum;
-int        casttics;
-state_t   *caststate;
-boolean    castdeath;
-int        castframes;
-int        castonmelee;
-boolean    castattacking;
+castinfo_t castorder[MAX_CASTORDER]; // Ty 03/22/98 - externalized and init
+                                     // moved into f_startcast()
+int castnum;
+int casttics;
+state_t *caststate;
+boolean castdeath;
+int castframes;
+int castonmelee;
+boolean castattacking;
 
 //
 // F_StartCast
 //
 static void F_StartCast(void)
 {
-  wipegamestate = -1; // force a screen wipe
-  finalestage = FINALE_STAGE_CAST;
+    wipegamestate = -1; // force a screen wipe
+    finalestage = FINALE_STAGE_CAST;
 
-  if (gamemapinfo->flags & MapInfo_EndGameCustomFinale)
-  {
-    endfinale = D_ParseEndFinale(gamemapinfo->endfinale);
-    EndFinale_SetupCastCall();
-    return;
-  }
+    if (gamemapinfo->flags & MapInfo_EndGameCustomFinale)
+    {
+        endfinale = D_ParseEndFinale(gamemapinfo->endfinale);
+        EndFinale_SetupCastCall();
+        return;
+    }
 
+    // Ty 03/23/98 - clumsy but time is of the essence
+    castorder[0].name = s_CC_ZOMBIE, castorder[0].type = MT_POSSESSED;
+    castorder[1].name = s_CC_SHOTGUN, castorder[1].type = MT_SHOTGUY;
+    castorder[2].name = s_CC_HEAVY, castorder[2].type = MT_CHAINGUY;
+    castorder[3].name = s_CC_IMP, castorder[3].type = MT_TROOP;
+    castorder[4].name = s_CC_DEMON, castorder[4].type = MT_SERGEANT;
+    castorder[5].name = s_CC_LOST, castorder[5].type = MT_SKULL;
+    castorder[6].name = s_CC_CACO, castorder[6].type = MT_HEAD;
+    castorder[7].name = s_CC_HELL, castorder[7].type = MT_KNIGHT;
+    castorder[8].name = s_CC_BARON, castorder[8].type = MT_BRUISER;
+    castorder[9].name = s_CC_ARACH, castorder[9].type = MT_BABY;
+    castorder[10].name = s_CC_PAIN, castorder[10].type = MT_PAIN;
+    castorder[11].name = s_CC_REVEN, castorder[11].type = MT_UNDEAD;
+    castorder[12].name = s_CC_MANCU, castorder[12].type = MT_FATSO;
+    castorder[13].name = s_CC_ARCH, castorder[13].type = MT_VILE;
+    castorder[14].name = s_CC_SPIDER, castorder[14].type = MT_SPIDER;
+    castorder[15].name = s_CC_CYBER, castorder[15].type = MT_CYBORG;
+    castorder[16].name = s_CC_HERO, castorder[16].type = MT_PLAYER;
+    castorder[17].name = "HELPER DOG", castorder[17].type = MT_DOGS;
+    castorder[18].name = NULL, castorder[18].type = 0;
 
-  // Ty 03/23/98 - clumsy but time is of the essence
-  castorder[0].name = s_CC_ZOMBIE,  castorder[0].type = MT_POSSESSED;
-  castorder[1].name = s_CC_SHOTGUN, castorder[1].type = MT_SHOTGUY;
-  castorder[2].name = s_CC_HEAVY,   castorder[2].type = MT_CHAINGUY;
-  castorder[3].name = s_CC_IMP,     castorder[3].type = MT_TROOP;
-  castorder[4].name = s_CC_DEMON,   castorder[4].type = MT_SERGEANT;
-  castorder[5].name = s_CC_LOST,    castorder[5].type = MT_SKULL;
-  castorder[6].name = s_CC_CACO,    castorder[6].type = MT_HEAD;
-  castorder[7].name = s_CC_HELL,    castorder[7].type = MT_KNIGHT;
-  castorder[8].name = s_CC_BARON,   castorder[8].type = MT_BRUISER;
-  castorder[9].name = s_CC_ARACH,   castorder[9].type = MT_BABY;
-  castorder[10].name = s_CC_PAIN,   castorder[10].type = MT_PAIN;
-  castorder[11].name = s_CC_REVEN,  castorder[11].type = MT_UNDEAD;
-  castorder[12].name = s_CC_MANCU,  castorder[12].type = MT_FATSO;
-  castorder[13].name = s_CC_ARCH,   castorder[13].type = MT_VILE;
-  castorder[14].name = s_CC_SPIDER, castorder[14].type = MT_SPIDER;
-  castorder[15].name = s_CC_CYBER,  castorder[15].type = MT_CYBORG;
-  castorder[16].name = s_CC_HERO,   castorder[16].type = MT_PLAYER;
-  castorder[17].name = "HELPER DOG",castorder[17].type = MT_DOGS;
-  castorder[18].name = NULL,        castorder[18].type = 0;
-
-  castnum = 0;
-  caststate = &states[mobjinfo[castorder[castnum].type].seestate];
-  casttics = caststate->tics;
-  castdeath = false;
-  castframes = 0;
-  castonmelee = 0;
-  castattacking = false;
-  S_ChangeMusic(mus_evil, true);
+    castnum = 0;
+    caststate = &states[mobjinfo[castorder[castnum].type].seestate];
+    casttics = caststate->tics;
+    castdeath = false;
+    castframes = 0;
+    castonmelee = 0;
+    castattacking = false;
+    S_ChangeMusic(mus_evil, true);
 }
 
 //
@@ -903,128 +921,166 @@ static void F_StartCast(void)
 //
 static boolean F_CastTicker(void)
 {
-  int st;
-  int sfx;
+    int st;
+    int sfx;
 
-  if (endfinale)
-  {
-    return EndFinale_CastTicker();
-  }
-
-  if (--casttics > 0)
-  {
-    return false; // not time to change state yet
-  }
-
-  if (caststate->tics == -1 || caststate->nextstate == S_NULL)
-  {
-    // switch from deathstate to next monster
-    castnum++;
-    castdeath = false;
-    if (castorder[castnum].name == NULL)
+    if (endfinale)
     {
-      castnum = 0;
-    }
-    if (mobjinfo[castorder[castnum].type].seesound)
-    {
-      S_StartSound(NULL, mobjinfo[castorder[castnum].type].seesound);
-    }
-    caststate = &states[mobjinfo[castorder[castnum].type].seestate];
-    castframes = 0;
-  }
-  else
-  {
-    // just advance to next state in animation
-    if (caststate == &states[S_PLAY_ATK1])
-    {
-      goto stopattack; // Oh, gross hack!
-    }
-    st = caststate->nextstate;
-    caststate = &states[st];
-    castframes++;
-
-    // sound hacks....
-    switch (st)
-    {
-      case S_PLAY_ATK1:  sfx = sfx_dshtgn; break;
-      case S_POSS_ATK2:  sfx = sfx_pistol; break;
-      case S_SPOS_ATK2:  sfx = sfx_shotgn; break;
-      case S_VILE_ATK2:  sfx = sfx_vilatk; break;
-      case S_SKEL_FIST2: sfx = sfx_skeswg; break;
-      case S_SKEL_FIST4: sfx = sfx_skepch; break;
-      case S_SKEL_MISS2: sfx = sfx_skeatk; break;
-      case S_FATT_ATK8:
-      case S_FATT_ATK5:
-      case S_FATT_ATK2:  sfx = sfx_firsht; break;
-      case S_CPOS_ATK2:
-      case S_CPOS_ATK3:
-      case S_CPOS_ATK4:  sfx = sfx_shotgn; break;
-      case S_TROO_ATK3:  sfx = sfx_claw; break;
-      case S_SARG_ATK2:  sfx = sfx_sgtatk; break;
-      case S_BOSS_ATK2:
-      case S_BOS2_ATK2:
-      case S_HEAD_ATK2:  sfx = sfx_firsht; break;
-      case S_SKULL_ATK2: sfx = sfx_sklatk; break;
-      case S_SPID_ATK2:
-      case S_SPID_ATK3:  sfx = sfx_shotgn; break;
-      case S_BSPI_ATK2:  sfx = sfx_plasma; break;
-      case S_CYBER_ATK2:
-      case S_CYBER_ATK4:
-      case S_CYBER_ATK6: sfx = sfx_rlaunc; break;
-      case S_PAIN_ATK3:  sfx = sfx_sklatk; break;
-      default: sfx = 0; break;
+        return EndFinale_CastTicker();
     }
 
-    if (sfx)
+    if (--casttics > 0)
     {
-      S_StartSound(NULL, sfx);
+        return false; // not time to change state yet
     }
-  }
 
-  if (castframes == 12)
-  {
-    // go into attack frame
-    castattacking = true;
-    if (castonmelee)
+    if (caststate->tics == -1 || caststate->nextstate == S_NULL)
     {
-      caststate = &states[mobjinfo[castorder[castnum].type].meleestate];
+        // switch from deathstate to next monster
+        castnum++;
+        castdeath = false;
+        if (castorder[castnum].name == NULL)
+        {
+            castnum = 0;
+        }
+        if (mobjinfo[castorder[castnum].type].seesound)
+        {
+            S_StartSound(NULL, mobjinfo[castorder[castnum].type].seesound);
+        }
+        caststate = &states[mobjinfo[castorder[castnum].type].seestate];
+        castframes = 0;
     }
     else
     {
-      caststate = &states[mobjinfo[castorder[castnum].type].missilestate];
-    }
-    castonmelee ^= 1;
-    if (caststate == &states[S_NULL])
-    {
-      if (castonmelee)
-      {
-        caststate = &states[mobjinfo[castorder[castnum].type].meleestate];
-      }
-      else
-      {
-        caststate = &states[mobjinfo[castorder[castnum].type].missilestate];
-      }
-    }
-  }
+        // just advance to next state in animation
+        if (caststate == &states[S_PLAY_ATK1])
+        {
+            goto stopattack; // Oh, gross hack!
+        }
+        st = caststate->nextstate;
+        caststate = &states[st];
+        castframes++;
 
-  if (castattacking)
-  {
-    if (castframes == 24
-        || caststate == &states[mobjinfo[castorder[castnum].type].seestate])
-    {
-    stopattack:
-      castattacking = false;
-      castframes = 0;
-      caststate = &states[mobjinfo[castorder[castnum].type].seestate];
-    }
-  }
+        // sound hacks....
+        switch (st)
+        {
+            case S_PLAY_ATK1:
+                sfx = sfx_dshtgn;
+                break;
+            case S_POSS_ATK2:
+                sfx = sfx_pistol;
+                break;
+            case S_SPOS_ATK2:
+                sfx = sfx_shotgn;
+                break;
+            case S_VILE_ATK2:
+                sfx = sfx_vilatk;
+                break;
+            case S_SKEL_FIST2:
+                sfx = sfx_skeswg;
+                break;
+            case S_SKEL_FIST4:
+                sfx = sfx_skepch;
+                break;
+            case S_SKEL_MISS2:
+                sfx = sfx_skeatk;
+                break;
+            case S_FATT_ATK8:
+            case S_FATT_ATK5:
+            case S_FATT_ATK2:
+                sfx = sfx_firsht;
+                break;
+            case S_CPOS_ATK2:
+            case S_CPOS_ATK3:
+            case S_CPOS_ATK4:
+                sfx = sfx_shotgn;
+                break;
+            case S_TROO_ATK3:
+                sfx = sfx_claw;
+                break;
+            case S_SARG_ATK2:
+                sfx = sfx_sgtatk;
+                break;
+            case S_BOSS_ATK2:
+            case S_BOS2_ATK2:
+            case S_HEAD_ATK2:
+                sfx = sfx_firsht;
+                break;
+            case S_SKULL_ATK2:
+                sfx = sfx_sklatk;
+                break;
+            case S_SPID_ATK2:
+            case S_SPID_ATK3:
+                sfx = sfx_shotgn;
+                break;
+            case S_BSPI_ATK2:
+                sfx = sfx_plasma;
+                break;
+            case S_CYBER_ATK2:
+            case S_CYBER_ATK4:
+            case S_CYBER_ATK6:
+                sfx = sfx_rlaunc;
+                break;
+            case S_PAIN_ATK3:
+                sfx = sfx_sklatk;
+                break;
+            default:
+                sfx = 0;
+                break;
+        }
 
-  casttics = caststate->tics;
-  if (casttics == -1)
-  {
-    casttics = 15;
-  }
-  return false;
+        if (sfx)
+        {
+            S_StartSound(NULL, sfx);
+        }
+    }
+
+    if (castframes == 12)
+    {
+        // go into attack frame
+        castattacking = true;
+        if (castonmelee)
+        {
+            caststate = &states[mobjinfo[castorder[castnum].type].meleestate];
+        }
+        else
+        {
+            caststate = &states[mobjinfo[castorder[castnum].type].missilestate];
+        }
+        castonmelee ^= 1;
+        if (caststate == &states[S_NULL])
+        {
+            if (castonmelee)
+            {
+                caststate =
+                    &states[mobjinfo[castorder[castnum].type].meleestate];
+            }
+            else
+            {
+                caststate =
+                    &states[mobjinfo[castorder[castnum].type].missilestate];
+            }
+        }
+    }
+
+    if (castattacking)
+    {
+        if (castframes == 24
+            || caststate == &states[mobjinfo[castorder[castnum].type].seestate])
+        {
+        stopattack:
+            castattacking = false;
+            castframes = 0;
+            caststate = &states[mobjinfo[castorder[castnum].type].seestate];
+        }
+    }
+
+    casttics = caststate->tics;
+    if (casttics == -1)
+    {
+        casttics = 15;
+    }
+    return false;
 }
 
 //
@@ -1033,86 +1089,87 @@ static boolean F_CastTicker(void)
 
 static boolean F_CastResponder(event_t *ev)
 {
-  if (endfinale)
-    EndFinale_CastResponder(ev);
+    if (endfinale)
+    {
+        EndFinale_CastResponder(ev);
+    }
 
-  if (ev->type != ev_keydown
-      && ev->type != ev_mouseb_down
-      && ev->type != ev_joyb_down)
-  {
-    return false;
-  }
+    if (ev->type != ev_keydown && ev->type != ev_mouseb_down
+        && ev->type != ev_joyb_down)
+    {
+        return false;
+    }
 
-  if (castdeath)
-  {
-    return true; // already in dying frames
-  }
+    if (castdeath)
+    {
+        return true; // already in dying frames
+    }
 
-  // go into death frame
-  castdeath = true;
-  caststate = &states[mobjinfo[castorder[castnum].type].deathstate];
-  casttics = caststate->tics;
-  castframes = 0;
-  castattacking = false;
-  if (mobjinfo[castorder[castnum].type].deathsound)
-  {
-    S_StartSound(NULL, mobjinfo[castorder[castnum].type].deathsound);
-  }
+    // go into death frame
+    castdeath = true;
+    caststate = &states[mobjinfo[castorder[castnum].type].deathstate];
+    casttics = caststate->tics;
+    castframes = 0;
+    castattacking = false;
+    if (mobjinfo[castorder[castnum].type].deathsound)
+    {
+        S_StartSound(NULL, mobjinfo[castorder[castnum].type].deathsound);
+    }
 
-  return true;
+    return true;
 }
 
 static void F_CastPrint(char *text)
 {
-  char *ch;
-  int   c;
-  int   cx;
-  int   w;
-  int   width;
+    char *ch;
+    int c;
+    int cx;
+    int w;
+    int width;
 
-  // find width
-  ch = text;
-  width = 0;
+    // find width
+    ch = text;
+    width = 0;
 
-  while (ch)
-  {
-    c = *ch++;
-    if (!c)
+    while (ch)
     {
-      break;
-    }
-    c = M_ToUpper(c) - HU_FONTSTART;
-    if (c < 0 || c >= HU_FONTSIZE || hu_font[c] == NULL)
-    {
-      width += 4;
-      continue;
-    }
+        c = *ch++;
+        if (!c)
+        {
+            break;
+        }
+        c = M_ToUpper(c) - HU_FONTSTART;
+        if (c < 0 || c >= HU_FONTSIZE || hu_font[c] == NULL)
+        {
+            width += 4;
+            continue;
+        }
 
-    w = SHORT(hu_font[c]->width);
-    width += w;
-  }
-
-  // draw it
-  cx = 160 - width / 2;
-  ch = text;
-  while (ch)
-  {
-    c = *ch++;
-    if (!c)
-    {
-      break;
-    }
-    c = M_ToUpper(c) - HU_FONTSTART;
-    if (c < 0 || c >= HU_FONTSIZE || hu_font[c] == NULL)
-    {
-      cx += 4;
-      continue;
+        w = SHORT(hu_font[c]->width);
+        width += w;
     }
 
-    w = SHORT(hu_font[c]->width);
-    V_DrawPatch(cx, 180, hu_font[c]);
-    cx += w;
-  }
+    // draw it
+    cx = 160 - width / 2;
+    ch = text;
+    while (ch)
+    {
+        c = *ch++;
+        if (!c)
+        {
+            break;
+        }
+        c = M_ToUpper(c) - HU_FONTSTART;
+        if (c < 0 || c >= HU_FONTSIZE || hu_font[c] == NULL)
+        {
+            cx += 4;
+            continue;
+        }
+
+        w = SHORT(hu_font[c]->width);
+        V_DrawPatch(cx, 180, hu_font[c]);
+        cx += w;
+    }
 }
 
 //
@@ -1121,34 +1178,34 @@ static void F_CastPrint(char *text)
 
 static void F_CastDrawer(void)
 {
-  spritedef_t   *sprdef;
-  spriteframe_t *sprframe;
-  int            lump;
-  boolean        flip;
-  patch_t       *patch;
+    spritedef_t *sprdef;
+    spriteframe_t *sprframe;
+    int lump;
+    boolean flip;
+    patch_t *patch;
 
-  // erase the entire screen to a background
-  // Ty 03/30/98 bg texture extern
-  V_DrawPatchFullScreen(
-    V_CachePatchName(W_CheckWidescreenPatch(bgcastcall), PU_CACHE));
+    // erase the entire screen to a background
+    // Ty 03/30/98 bg texture extern
+    V_DrawPatchFullScreen(
+        V_CachePatchName(W_CheckWidescreenPatch(bgcastcall), PU_CACHE));
 
-  F_CastPrint(castorder[castnum].name);
+    F_CastPrint(castorder[castnum].name);
 
-  // draw the current frame in the middle of the screen
-  sprdef = &sprites[caststate->sprite];
-  sprframe = &sprdef->spriteframes[caststate->frame & FF_FRAMEMASK];
-  lump = sprframe->lump[0];
-  flip = (boolean)sprframe->flip[0];
+    // draw the current frame in the middle of the screen
+    sprdef = &sprites[caststate->sprite];
+    sprframe = &sprdef->spriteframes[caststate->frame & FF_FRAMEMASK];
+    lump = sprframe->lump[0];
+    flip = (boolean)sprframe->flip[0];
 
-  patch = V_CachePatchNum(lump + firstspritelump, PU_CACHE);
-  if (flip)
-  {
-    V_DrawPatchFlipped(160, 170, patch);
-  }
-  else
-  {
-    V_DrawPatch(160, 170, patch);
-  }
+    patch = V_CachePatchNum(lump + firstspritelump, PU_CACHE);
+    if (flip)
+    {
+        V_DrawPatchFlipped(160, 170, patch);
+    }
+    else
+    {
+        V_DrawPatch(160, 170, patch);
+    }
 }
 
 //
@@ -1156,75 +1213,74 @@ static void F_CastDrawer(void)
 //
 static void F_BunnyScroll(void)
 {
-  int         scrolled;
-  patch_t    *p1;
-  patch_t    *p2;
-  char        name[16];
-  int         stage;
-  static int  laststage;
+    int scrolled;
+    patch_t *p1;
+    patch_t *p2;
+    char name[16];
+    int stage;
+    static int laststage;
 
-  p1 = V_CachePatchName(W_CheckWidescreenPatch("PFUB1"), PU_LEVEL);
-  p2 = V_CachePatchName(W_CheckWidescreenPatch("PFUB2"), PU_LEVEL);
+    p1 = V_CachePatchName(W_CheckWidescreenPatch("PFUB1"), PU_LEVEL);
+    p2 = V_CachePatchName(W_CheckWidescreenPatch("PFUB2"), PU_LEVEL);
 
-  scrolled = 320 - (finalecount - 230) / 2;
+    scrolled = 320 - (finalecount - 230) / 2;
 
-  int p1offset = DIV_ROUND_CEIL(video.unscaledw - SHORT(p1->width), 2);
-  if (SHORT(p1->width) == 320)
-  {
-    p1offset += (SHORT(p2->width) - 320) / 2;
-  }
+    int p1offset = DIV_ROUND_CEIL(video.unscaledw - SHORT(p1->width), 2);
+    if (SHORT(p1->width) == 320)
+    {
+        p1offset += (SHORT(p2->width) - 320) / 2;
+    }
 
-  int p2offset = DIV_ROUND_CEIL(video.unscaledw - SHORT(p2->width), 2);
+    int p2offset = DIV_ROUND_CEIL(video.unscaledw - SHORT(p2->width), 2);
 
-  if (scrolled <= 0)
-  {
-    V_DrawPatch(p2offset - video.deltaw, 0, p2);
-  }
-  else if (scrolled >= 320)
-  {
-    V_DrawPatch(p1offset - video.deltaw, 0, p1);
-    V_DrawPatch(-320 + p2offset - video.deltaw, 0, p2);
-  }
-  else
-  {
-    V_DrawPatch(320 - scrolled + p1offset - video.deltaw, 0, p1);
-    V_DrawPatch(-scrolled + p2offset - video.deltaw, 0, p2);
-  }
+    if (scrolled <= 0)
+    {
+        V_DrawPatch(p2offset - video.deltaw, 0, p2);
+    }
+    else if (scrolled >= 320)
+    {
+        V_DrawPatch(p1offset - video.deltaw, 0, p1);
+        V_DrawPatch(-320 + p2offset - video.deltaw, 0, p2);
+    }
+    else
+    {
+        V_DrawPatch(320 - scrolled + p1offset - video.deltaw, 0, p1);
+        V_DrawPatch(-scrolled + p2offset - video.deltaw, 0, p2);
+    }
 
-  if (p2offset > 0)
-  {
-    V_FillRect(0, 0, p2offset, SCREENHEIGHT, v_darkest_color);
-    V_FillRect(p2offset + SHORT(p2->width), 0, p2offset, SCREENHEIGHT,
-               v_darkest_color);
-  }
+    if (p2offset > 0)
+    {
+        V_FillRect(0, 0, p2offset, SCREENHEIGHT, v_darkest_color);
+        V_FillRect(p2offset + SHORT(p2->width), 0, p2offset, SCREENHEIGHT,
+                   v_darkest_color);
+    }
 
-  if (finalecount < 1130)
-  {
-    return;
-  }
-  if (finalecount < 1180)
-  {
+    if (finalecount < 1130)
+    {
+        return;
+    }
+    if (finalecount < 1180)
+    {
+        V_DrawPatch((SCREENWIDTH - 13 * 8) / 2, (SCREENHEIGHT - 8 * 8) / 2,
+                    V_CachePatchName("END0", PU_CACHE));
+        laststage = 0;
+        return;
+    }
+
+    stage = (finalecount - 1180) / 5;
+    if (stage > 6)
+    {
+        stage = 6;
+    }
+    if (stage > laststage)
+    {
+        S_StartSound(NULL, sfx_pistol);
+        laststage = stage;
+    }
+
+    M_snprintf(name, sizeof(name), "END%i", stage);
     V_DrawPatch((SCREENWIDTH - 13 * 8) / 2, (SCREENHEIGHT - 8 * 8) / 2,
-                V_CachePatchName("END0", PU_CACHE));
-    laststage = 0;
-    return;
-  }
-
-  stage = (finalecount - 1180) / 5;
-  if (stage > 6)
-  {
-    stage = 6;
-  }
-  if (stage > laststage)
-  {
-    S_StartSound(NULL, sfx_pistol);
-    laststage = stage;
-  }
-
-  M_snprintf(name, sizeof(name), "END%i", stage);
-  V_DrawPatch((SCREENWIDTH - 13 * 8) / 2,
-              (SCREENHEIGHT - 8 * 8) / 2,
-              V_CachePatchName(name, PU_CACHE));
+                V_CachePatchName(name, PU_CACHE));
 }
 
 //
@@ -1232,50 +1288,50 @@ static void F_BunnyScroll(void)
 //
 void F_Drawer(void)
 {
-  if (MapInfo_Drawer())
-  {
-    return;
-  }
-
-  if (finalestage == FINALE_STAGE_CAST)
-  {
-    F_CastDrawer();
-    return;
-  }
-
-  if (finalestage == FINALE_STAGE_TEXT)
-  {
-    F_TextWrite();
-  }
-  else
-  {
-    switch (gameepisode)
+    if (MapInfo_Drawer())
     {
-      case 1:
-        if (gamemode == retail || gamemode == commercial)
-        {
-          V_DrawPatchFullScreen(
-            V_CachePatchName(W_CheckWidescreenPatch("CREDIT"), PU_CACHE));
-        }
-        else
-        {
-          V_DrawPatchFullScreen(
-            V_CachePatchName(W_CheckWidescreenPatch("HELP2"), PU_CACHE));
-        }
-        break;
-      case 2:
-        V_DrawPatchFullScreen(
-          V_CachePatchName(W_CheckWidescreenPatch("VICTORY2"), PU_CACHE));
-        break;
-      case 3:
-        F_BunnyScroll();
-        break;
-      case 4:
-        V_DrawPatchFullScreen(
-          V_CachePatchName(W_CheckWidescreenPatch("ENDPIC"), PU_CACHE));
-        break;
+        return;
     }
-  }
+
+    if (finalestage == FINALE_STAGE_CAST)
+    {
+        F_CastDrawer();
+        return;
+    }
+
+    if (finalestage == FINALE_STAGE_TEXT)
+    {
+        F_TextWrite();
+    }
+    else
+    {
+        switch (gameepisode)
+        {
+            case 1:
+                if (gamemode == retail || gamemode == commercial)
+                {
+                    V_DrawPatchFullScreen(V_CachePatchName(
+                        W_CheckWidescreenPatch("CREDIT"), PU_CACHE));
+                }
+                else
+                {
+                    V_DrawPatchFullScreen(V_CachePatchName(
+                        W_CheckWidescreenPatch("HELP2"), PU_CACHE));
+                }
+                break;
+            case 2:
+                V_DrawPatchFullScreen(V_CachePatchName(
+                    W_CheckWidescreenPatch("VICTORY2"), PU_CACHE));
+                break;
+            case 3:
+                F_BunnyScroll();
+                break;
+            case 4:
+                V_DrawPatchFullScreen(V_CachePatchName(
+                    W_CheckWidescreenPatch("ENDPIC"), PU_CACHE));
+                break;
+        }
+    }
 }
 
 //----------------------------------------------------------------------------
