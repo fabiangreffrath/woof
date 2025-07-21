@@ -3015,8 +3015,11 @@ static setup_menu_t gen_settings4[] = {
 
 void MN_InitFreeLook(void)
 {
-    DisableItem(strictmode, gen_settings3, "freelook_mode");
-    DisableItem(strictmode, gen_settings4, "freelook_mode");
+    if (strictmode)
+    {
+        DisableItem(true, gen_settings3, "freelook_mode");
+        DisableItem(true, gen_settings4, "freelook_mode");
+    }
     if (demorecording || (netgame && !solonet))
     {
         SetItemLimit(gen_settings3, "freelook_mode", FREELOOK_OFF,
