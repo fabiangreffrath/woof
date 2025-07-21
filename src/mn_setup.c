@@ -2235,12 +2235,8 @@ setup_menu_t comp_settings1[] = {
 
     MI_GAP,
 
-    {"Compatibility-breaking Features", S_SKIP | S_TITLE, M_X, M_SPC},
-
     {"Auto Strafe 50", S_ONOFF | S_STRICT, M_X, M_SPC, {"autostrafe50"},
      .action = G_UpdateSideMove},
-
-    MI_GAP,
 
     {"Improved Hit Detection", S_ONOFF | S_STRICT, M_X, M_SPC,
      {"blockmapfix"}},
