@@ -55,7 +55,7 @@ jobs:
           - name: macOS arm64 Clang
             os: macos-latest
             toolchain: $VCPKG_INSTALLATION_ROOT
-            triplet: arm64-osx-dynamic
+            triplet: arm64-osx
             artifact-name: Mac-arm64
             artifact-path: build/*.zip
             extra-options: >-
@@ -64,7 +64,7 @@ jobs:
           - name: macOS x64 Clang
             os: macos-13
             toolchain: $VCPKG_INSTALLATION_ROOT
-            triplet: x64-osx-dynamic
+            triplet: x64-osx
             artifact-name: Mac-x64
             artifact-path: build/*.zip
             extra-options: >-
@@ -85,7 +85,7 @@ jobs:
         if: runner.os == 'macOS'
         run: |
           brew update
-          brew install ninja dylibbundler
+          brew install ninja
           
       - name: Developer Command Prompt
         if: runner.os == 'Windows'
@@ -107,7 +107,6 @@ jobs:
           -DENABLE_WERROR=ON -DENABLE_HARDENING=ON -DENABLE_LTO=ON
           -DWITH_FLUIDSYNTH=ON
           -DCMAKE_TOOLCHAIN_FILE="${{ matrix.config.toolchain }}/scripts/buildsystems/vcpkg.cmake"
-          -DVCPKG_LIB_PATH="${{ github.workspace }}/build/vcpkg_installed/${{ matrix.config.triplet }}/lib"
           -DVCPKG_OVERLAY_TRIPLETS="cmake/triplets"
           -DVCPKG_TARGET_TRIPLET=${{ matrix.config.triplet }}
           ${{ matrix.config.extra-options }}
