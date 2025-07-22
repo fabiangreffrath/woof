@@ -1085,8 +1085,7 @@ int G_GotoNextLevel(int *pEpi, int *pMap)
     32, 16
   };
 
-  int epsd;
-  int map = -1;
+  int epsd = -1, map = -1;
 
   if (gamemapinfo)
   {
