@@ -51,21 +51,13 @@ jobs:
             extra-options: >-
               -DCMAKE_MSVC_RUNTIME_LIBRARY=MultiThreaded
               -DCMAKE_IGNORE_PATH="C:/Strawberry/perl/bin;C:/Strawberry/c/lib"
-          
-          - name: macOS arm64 Clang
+
+          - name: macOS uni
             os: macos-latest
             toolchain: $VCPKG_INSTALLATION_ROOT
+            triplet-x64: x64-osx
             triplet: arm64-osx
-            artifact-name: Mac-arm64
-            artifact-path: build/*.zip
-            extra-options: >-
-              -DCMAKE_INSTALL_PREFIX=/usr
-
-          - name: macOS x64 Clang
-            os: macos-13
-            toolchain: $VCPKG_INSTALLATION_ROOT
-            triplet: x64-osx
-            artifact-name: Mac-x64
+            artifact-name: Mac-uni
             artifact-path: build/*.zip
             extra-options: >-
               -DCMAKE_INSTALL_PREFIX=/usr
@@ -111,8 +103,18 @@ jobs:
           -DVCPKG_TARGET_TRIPLET=${{ matrix.config.triplet }}
           ${{ matrix.config.extra-options }}
 
-      - name: Build
-        run: cmake --build build --config "Release"
+      - name: Configure macOS x64
+        if: ${{ matrix.config.name == 'macOS uni' }}
+        run: >-
+          cmake -B build-x64 -G Ninja
+          -DCMAKE_BUILD_TYPE=Release
+          -DCMAKE_OSX_ARCHITECTURES=x86_64
+          -DENABLE_WERROR=ON -DENABLE_HARDENING=ON -DENABLE_LTO=ON
+          -DWITH_FLUIDSYNTH=ON
+          -DCMAKE_TOOLCHAIN_FILE="${{ matrix.config.toolchain }}/scripts/buildsystems/vcpkg.cmake"
+          -DVCPKG_OVERLAY_TRIPLETS="cmake/triplets"
+          -DVCPKG_TARGET_TRIPLET=${{ matrix.config.triplet-x64 }}
+          ${{ matrix.config.extra-options }}
 
       # Delete the old cache on hit to emulate a cache update.
       - name: Delete old cache
@@ -127,6 +129,13 @@ jobs:
         with:
           path: ${{ github.workspace }}/vcpkg_cache
           key: ${{ steps.cache.outputs.cache-primary-key }}
+
+      - name: Build
+        run: cmake --build build --config "Release"
+
+      - name: Build macOS x64
+        if: ${{ matrix.config.name == 'macOS uni' }}
+        run: cmake --build build-x64 --config "Release"
 
       - name: Test
         if: github.event_name == 'workflow_dispatch'
@@ -147,10 +156,16 @@ jobs:
         run: |
           cd build
           cpack
-          
+
       - name: Package (macOS)
-        if: runner.os == 'macOS'
+        if: ${{ matrix.config.name == 'macOS uni' }}
         run: |
+          lipo -create build/src/woof build-x64/src/woof -output woof
+          lipo -create build/src/woof-setup build-x64/src/woof-setup -output woof-setup
+          rm build/src/woof
+          rm build/src/woof-setup
+          mv woof build/src
+          mv woof-setup build/src
           cd build
           cpack
 
