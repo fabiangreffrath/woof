@@ -51,6 +51,24 @@ jobs:
             extra-options: >-
               -DCMAKE_MSVC_RUNTIME_LIBRARY=MultiThreaded
               -DCMAKE_IGNORE_PATH="C:/Strawberry/perl/bin;C:/Strawberry/c/lib"
+          
+          - name: macOS arm64 Clang
+            os: macos-latest
+            toolchain: $VCPKG_INSTALLATION_ROOT
+            triplet: arm64-osx
+            artifact-name: Mac-arm64
+            artifact-path: build/*.zip
+            extra-options: >-
+              -DCMAKE_INSTALL_PREFIX=/usr
+
+          - name: macOS x64 Clang
+            os: macos-13
+            toolchain: $VCPKG_INSTALLATION_ROOT
+            triplet: x64-osx
+            artifact-name: Mac-x64
+            artifact-path: build/*.zip
+            extra-options: >-
+              -DCMAKE_INSTALL_PREFIX=/usr
 
     steps:
       - uses: actions/checkout@v4
@@ -63,6 +81,12 @@ jobs:
           sudo apt-get install ninja-build
           sudo apt-get build-dep libsdl2-dev
 
+      - name: Install dependencies (macOS)
+        if: runner.os == 'macOS'
+        run: |
+          brew update
+          brew install ninja
+          
       - name: Developer Command Prompt
         if: runner.os == 'Windows'
         uses: ilammy/msvc-dev-cmd@v1
@@ -120,6 +144,12 @@ jobs:
 
       - name: Package (Windows)
         if: runner.os == 'Windows'
+        run: |
+          cd build
+          cpack
+          
+      - name: Package (macOS)
+        if: runner.os == 'macOS'
         run: |
           cd build
           cpack
