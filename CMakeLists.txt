@@ -215,8 +215,7 @@ elseif(LINUX)
         set(CPACK_EXTERNAL_ENABLE_STAGING YES)
         set(CPACK_PACKAGING_INSTALL_PREFIX "${CMAKE_INSTALL_PREFIX}")
         set(CPACK_EXTERNAL_PACKAGE_SCRIPT "${PROJECT_BINARY_DIR}/macbundle-generate.cmake")
-        set(CPACK_SYSTEM_NAME "mac-${CMAKE_SYSTEM_PROCESSOR}")
-        set(CPACK_SYSTEM_PROCESSOR "${CMAKE_SYSTEM_PROCESSOR}")
+        set(CPACK_SYSTEM_NAME "mac")
         set(CPACK_BUILD_DIR "${PROJECT_BINARY_DIR}")
 
         file(GENERATE
@@ -250,7 +249,7 @@ elseif(LINUX)
                     CONTENT "If you are getting errors like 'libzip.5.5.dylib cant be opened because Apple cannot check it for malicious software.' Run the following command in the woof folder:\n\nxattr -dr com.apple.quarantine path/to/folder")
 
                 execute_process(COMMAND zip -r ${CPACK_PACKAGE_FILE_NAME}.zip ${CPACK_PACKAGE_FILE_NAME})
-                ]])
+            ]])
 else()
     set(CPACK_GENERATOR TGZ)
 endif()
