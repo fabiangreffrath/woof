@@ -1,0 +1,18 @@
+Patch File for DeHackEd v3.0
+Doom version = 19
+Patch format = 6
+
+# Make a monster friendly
+#
+# 2 = Trooper, 3 = Sergeant, 4 = Arch-Vile, 6 = Revenant, 9 = Mancubus
+# 11 = Commando, 12 = Imp, 13 = Demon, 14 = Spectre, 15 = Cacodemon,
+# 16 = Baron, 18 = Hell Knight, 19 = Lost Soul, 20 = Spider Mastermind,
+# 21 = Arachnotron, 22 = Cyberdemon, 23 = Pain Elemental, 24 = SS Soldier,
+# 25 = Keen, 27 = Boss Brain Spawner, 140 = Dog
+
+Thing 4
+Bits = FRIEND | COUNTKILL | SHOOTABLE | SOLID
+
+Thing 23
+Bits = FRIEND | COUNTKILL | SHOOTABLE | SOLID | DROPOFF | FLOAT | NOGRAVITY
+

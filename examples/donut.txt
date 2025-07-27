@@ -1,0 +1,46 @@
+==========================================================================
+Title                   : Donut Demo for Marine's Best Friend
+Filename                : DONUT.WAD
+Author                  : Ky "Rez" Moffet
+Email Address           : rez@eqcity.ktb.net
+Misc. Author Info       : 43-year old DOOM fanatic who can't tell
+                          which end of a WAD editor is up
+
+Description             : Watch the corpses ride the donuts!
+
+===========================================================================
+Additional Credits to   : Khoi Pham, who could not find a way to make
+                          a stone roll downhill ... will making a
+                          corpse roll downhill do instead? :)
+===========================================================================
+
+* Play Information *
+
+Game                    : DOOM II
+Requires                : Marine's Best Friend
+                          (modified DOOM engine by Lee Killough)
+
+Episode and Level #     : level 1
+Single Player           : As a feature demo level only
+Cooperative 2-4 Player  : Not hardly
+Deathmatch 2-4 Player   : Only if you like it really cramped
+Difficulty Settings     : If it's too hard, remove half the imps
+
+New Sounds              : NO
+New Graphics            : NO
+New Music               : NO
+Demos Replaced          : NO
+
+* Construction *
+
+Base                    : INDYJONE.WAD by Khoi Pham
+Time                    : 30 minutes
+Editor(s) used          : DCK 2.2f, BSP 2.3x
+Known Bugs              : No way to escape!
+
+
+* Copyright / Permissions *
+
+You can do whatever you want with this wad, tho I don't recommend
+eating it.
+

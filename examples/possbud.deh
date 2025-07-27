@@ -1,0 +1,184 @@
+Patch File for DeHackEd v3.0
+
+# Note: Use the pound sign ('#') to start comment lines.
+
+Doom version = 21
+Patch format = 6
+
+
+Thing 140 (Doggies)
+Initial frame = 726
+First moving frame = 728
+Alert sound = 36
+Attack sound = 0
+Injury frame = 742
+Pain chance = 170
+Pain sound = 27
+Close attack frame = 0
+Far attack frame = 736
+Death frame = 744
+Exploding frame = 749
+Death sound = 59
+Width = 1310720
+Height = 3670016
+Mass = 100
+Action sound = 75
+Bits = 71303174
+Respawn frame = 758
+
+Thing 24 (SS Nazi)
+Attack sound = 0
+Initial frame = 726
+First moving frame = 728
+Alert sound = 36
+Injury frame = 742
+Pain chance = 170
+Pain sound = 27
+Close attack frame = 0
+Far attack frame = 736
+Death frame = 744
+Exploding frame = 749
+Death sound = 59
+Width = 1310720
+Height = 3670016
+Mass = 100
+Action sound = 75
+Respawn frame = 758
+Bits = 138412038
+
+Frame 726
+Sprite number = 29
+
+Frame 727
+Sprite number = 29
+
+Frame 728
+Sprite number = 29
+
+Frame 729
+Sprite number = 29
+
+Frame 730
+Sprite number = 29
+
+Frame 731
+Sprite number = 29
+
+Frame 732
+Sprite number = 29
+
+Frame 733
+Sprite number = 29
+
+Frame 734
+Sprite number = 29
+
+Frame 735
+Sprite number = 29
+
+Frame 736
+Sprite number = 29
+
+Frame 737
+Sprite number = 29
+Sprite subnumber = 4
+
+Frame 738
+Sprite number = 29
+Sprite subnumber = 32773
+
+Frame 739
+Sprite number = 29
+Sprite subnumber = 4
+
+Frame 740
+Sprite number = 29
+Sprite subnumber = 32773
+
+Frame 741
+Sprite number = 29
+Sprite subnumber = 4
+
+Frame 742
+Sprite number = 29
+Sprite subnumber = 6
+
+Frame 743
+Sprite number = 29
+Sprite subnumber = 6
+
+Frame 744
+Sprite number = 29
+Sprite subnumber = 7
+
+Frame 745
+Sprite number = 29
+Sprite subnumber = 8
+
+Frame 746
+Sprite number = 29
+Sprite subnumber = 9
+
+Frame 747
+Sprite number = 29
+Sprite subnumber = 10
+
+Frame 748
+Sprite number = 29
+Sprite subnumber = 11
+
+Frame 749
+Sprite number = 29
+Sprite subnumber = 12
+
+Frame 750
+Sprite number = 29
+Sprite subnumber = 13
+
+Frame 751
+Sprite number = 29
+Sprite subnumber = 14
+
+Frame 752
+Sprite number = 29
+Sprite subnumber = 15
+
+Frame 753
+Sprite number = 29
+Sprite subnumber = 16
+
+Frame 754
+Sprite number = 29
+Sprite subnumber = 17
+
+Frame 755
+Sprite number = 29
+Sprite subnumber = 18
+
+Frame 756
+Sprite number = 29
+Sprite subnumber = 19
+
+Frame 757
+Sprite number = 29
+Sprite subnumber = 20
+
+Frame 758
+Sprite number = 29
+Sprite subnumber = 11
+
+Frame 759
+Sprite number = 29
+Sprite subnumber = 10
+
+Frame 760
+Sprite number = 29
+Sprite subnumber = 9
+
+Frame 761
+Sprite number = 29
+Sprite subnumber = 8
+
+Frame 762
+Sprite number = 29
+Sprite subnumber = 7

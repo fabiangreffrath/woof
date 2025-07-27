@@ -1,0 +1,885 @@
+11/01/98 -- Changes
+
+* Added credits screen.
+
+* Added support for .deh/.bex inside of wads. Found and fixed several more 
+  Boom DEH bugs.
+
+* Added support for user comments to be embedded inside of mbf.cfg.
+
+* Fixed plat speed in -beta emulation.
+
+* Tidied up demonstration wads/dehs.
+
+* Wrote docs.
+
+10/30/98 -- Changes
+
+* Added ability for monsters to be affected by friction (ice/sludge).
+
+* Fixed menu-popup during demo playback if automap is active.
+
+* Fixed EndGame during single-playback demos.
+
+* Fixed dogs' aggressive level to be what it was before.
+
+* Found out that default.cfg is read and understood by Allegro, to the peril
+  of your music :) default.cfg should not be used for any Doom-like engine
+  which uses Allegro, unless you really need it for your sound card.
+
+* Fixed ice bobbing once again (I can see why it led to so many problems :)
+
+* Fixed point-source wind effect so that it affects monsters and players
+  equally, and so that it generates force inversely proportional to distance 
+  squared.
+
+* Fixed Final Doom gamemission setting.
+
+* Made missing patch error output less verbose unless -devparm is specified.
+
+10/29/98 -- Changes
+
+* Fixed problems with backspace in setup/option menus (wrong menu was chosen).
+
+* Fixed bobbing and ice even more, to eliminate the influence of voodoo dolls
+  on bobbing, and to make ice more realistic.
+
+* Stopped recording this log.
+
+10/28/98 -- Changes
+
+* Fixed many Boom bugs
+
+* Wrote my own blockmap builder that I had been planning on doing.
+
+* Fixed slime trails after looking at some demos of it.
+
+* Fixed Boom door lighting effect to have gradual lighting instead
+  of an on/off switch that happens when the door is all the way
+  opened or all the way closed.
+
+* Added 271 & 272 linedefs for sky property transfer. Avoids many
+  of the issues of skies which were imposed on in Doom, and is an
+  elegant solution. Skies can also be rotated if scroll effects are
+  used.
+
+* Imported some minor Boom bugfixes (compatibility mainly, plus messages,
+  Final Doom).
+
+* Fixed Boom v2.02 bugs: underwater sprite lighting, stairbuilding,
+  DEH thing flags by name. DEH flags have separate TRANSLATE1 and
+  TRANSLATE2 flags now, and they are OR'ed instead of added, so as
+  to prevent multiple entries from causing problems. The | symbol
+  may also be used to replace + as a punctuator in such a list,
+  although spaces are all that are needed.
+
+* Fixed player bobbing to only occur when player is applying thrust.
+  Thus players standing still on conveyors, or sliding down ice,
+  aren't affected by bobbing (although ice code makes it difficult
+  to see the difference).
+
+* Saved fractional texture offsets and fractional sector heights in 
+  savegames, mainly for sky rotation.
+
+* Added hotkey for setup menu.
+
+* Fine-tuned automap pointer so that follow-mode-off cursor remains
+  as close to the follow-mode-on cursor as possible, until the player
+  moves it, as far as displayed coordinates go. Verified that there
+  isn't any noticable bias (full zoom-in shows the floor height to
+  change exactly at the right boundary where the pointer points).
+
+* Split compatibility setup menu into two screens, and fixed the
+  highlighting of the two-line FIST/CHAINSAW SG/SSG weapon toggle option.
+
+10/21/98 -- Changes
+
+* Added option to ignore SG/SSG and Fist/Chainsaw toggles
+
+* Fixed savegames during demo recordings
+
+10/20/98 -- Changes
+
+* Made sure beta lost souls stopped moving when dead.
+
+* Added option to prevent zombie players from exiting levels (Phase I goal).
+
+* Tried to address up/down asymmetry in monster behavior on stairs.
+
+* Added support for dogs to jump down off tall ledges.
+
+* Enabled Doom stair builder behavior when compatibility-selected.
+
+* Tidying up menus.
+
+10/18/98 -- Changes
+
+* Added new menus: General and Doom Compatibility.
+
+* Nearly all .cfg variables are now settable in menus, eliminating the need
+  for .cfg editors and front-ends.
+
+* Improved menu system's numeric input, to allow backspace during input, 
+  to allow negative values to be entered, and to avoid changing the original
+  value if the entered value is out of range.
+
+* Made menu system's reset-to-defaults more robust (false activation or 
+  improper functioning of this routine might explain the random resets to
+  defaults that occur, but then again, it may not explain them).
+
+* Added menu support for filenames to be entered.
+
+* Added support for up to two wads and two .deh files to be preloaded. The
+  preloaded ones take precedence over anything on the command line, allowing
+  something like a full-brightness wad (which changes the colormap) to always
+  take precedence. However, -noload can be used to suppress it, such as if a
+  demo that doesn't use the .wad or .deh file(s) needs to be played back.
+
+* Added menu support for options pending until next program invocation, as 
+  well as options which must have a function called after they are changed
+  (e.g. changing the video mode).
+
+* Added optional flashing disk icon, as in Doom.
+
+* Split Doom compatibility variable into separate parts, allowing each to be
+  changed independently in the Doom Compatibility menu.
+
+* Emulated beta lost soul behavior.
+
+* Other touchups in beta: player sprites, E2M5 sky, berserk pickup, and others.
+
+* Made engine clear 2s flags in linedefs without second sidedefs, to prevent
+  SegViols on common wad errors. Doom didn't crash on most of these wads, only
+  because it used a different DOS extender, and the behavior is undefined
+  (it's Russian Roulette when it comes to programs).
+
+* Added automap option to show automap pointer coordinates, instead of player
+  coordinates, when follow mode is turned off.
+
+* Added option to make HOM cheat either a solid color or flashing.
+
+10/06/98 -- Changes
+
+* Less-rapidly changing levels.wad and graphics.wad are now distributed at:
+  http://classicgaming.com/doom/betalevl.zip
+
+* Improved Pause during demo playback. Now it stops intermission and demo pic
+  screens better, and automap and menu are easier to use when demo is paused.
+
+* Fixed underwater sprite drawing slowdown and added lighting flicker to the
+  savegame.
+
+* Added ability to save games during single-player demo playback. Now you can
+  save in the middle of demo playback, as well as recording. Saves that were
+  recorded in the demo, are suppresed during playback and a warning appears.
+
+* Fixed Boom music delta problem (random garbled noise in some music, such as
+  Memento Mori 2, MAP23).
+
+09/29/98 -- Changes
+
+* Pauses are now allowed during demo playback. However, in rare cases, using
+  pause during demo playback may cause desyncing, especially at the beginning
+  of the next level or in cases where the intermission screen is paused
+  (testing is encouraged, but is only good if reproducible by me with a demo).
+
+* Entering the menu while recording a demo does not cause the demo to desync
+  anymore during playback (a Doom bug).
+
+* Savegames recorded in demos get a suppression warning message printed when
+  played back (but no game is saved during playback).
+
+* Fixed Boom bug in which menu messages >= 40 characters would not print 
+  correctly. Pressing F9 before setting quickslot would print a message with
+  garbage at the end. Actually, this was a Doom bug too, but it was probably
+  never visible, due to compiler differences.
+
+09/22/98 -- Changes
+
+* Fixed torque code. Now oscillations don't happen easily -- a falling object
+  now reaches equilibrium, and objects don't fly off ledges at fast speeds.
+
+* Made Boom sprite lighting more consistent under deep water or over fake 
+  ceilings.
+
+* Made config file handling more robust, and added informative diagnostics.
+
+09/15/98 -- Changes
+
+* Fixed bugs in torque code, so that it only affects non-sentient objects
+  that fall under gravity.
+
+* Fixed Boom bug in which "soundtargets" (permanent signatures of sound
+  origins that are left inside sectors) are not saved across savegames. 
+  Soundtargets are saved and restored now.
+
+* Improved bouncing code so that grenades lose less momentum bouncing off of
+  walls, and so that the only momentum that is lost, is the component that is
+  perpendicular to the wall.
+
+* Removed TNT prefixes from all cheat codes. TNT*** should still work (except
+  TNTKA and TNTEM), but the TNT is not a part of the cheat code anymore. Added
+  back IDK, finally, and added KILLEM.
+
+09/13/98 -- Changes
+
+* Commented out code which lets monsters drop off of tall ledges, since it's
+  too risky right now.
+
+* Added code to simulate torque on objects hanging over ledges. Objects at
+  rest can now fall off of ledges if their center hangs off of one. This makes
+  up for the anamoly in which objects could be pushed over ledges, but they
+  often came to rest before falling off, and would stay up at the taller height
+  even though most of their mass was over the ledge. That anamoly did not occur
+  in Doom, because in Doom, tall dropoffs had invisible barriers which blocked
+  the motion of all objects except players and corpses -- if an object was
+  pushed over a ledge, it would stop moving if the ledge was too tall, no
+  matter what force was applied to it. That had to be removed in Boom, to 
+  allow conveyors to push objects off of ledges. Note: multiple ledges can
+  be used, and can cancel each others' effects out, although the amount of
+  realism is limited to what Doom can handle -- after all, there's no such
+  thing in Doom as angular (rotational) momentum, at least not yet :) To
+  simulate it realistically, would require handling angular momenta along
+  the x- and y-axes, and would require being able to rotate sprites. So
+  the realism is necessarily limited, and improving it would be harder.
+  Doom copped out by simply not allowing objects to ever hang over ledges
+  in the first place.
+
+* Fixed minor oversight in stuck-in-wall fix (it didn't account for players
+  stuck under floors). Boomedit.wad's exit teleporter sticking problem is
+  fixed now. (Note: this fix has no relation with TeamTNT's recent effort.)
+
+09/09/98 -- Changes
+
+* Added AI to help monsters stay out from under crushers (they can still get
+  through safely), and to let monsters jump off of tall ledges if that's the
+  only way they can escape from near-death (now, if I can just make the dogs
+  do that normally :).
+
+* Improved stuck-in-door fix to be more accurate. Now it guesses better,
+  so it should almost be unnoticable, except that monsters don't stick to
+  doortracks anymore.
+
+* Made monster AI more uniform (as far as friends vs. enemies of player).
+
+* Tried to maximize AI efficiency without slowing the game down much, by
+  using lots of tricks.
+
+09/08/98 -- Changes
+
+* Added AI to let monsters more easily join friends on crowded lifts.
+
+* Added AI for monsters to help dying friends.
+
+* Added AI for monsters to strafe or back away from enemies when tactically 
+  advantageous (such as in Tyson wads, or when the enemy is one of the dogs).
+
+* Added AI for monsters to be smarter about going after enemies. Specifically,
+  going after enemies in the immediate vicinity first, and tending more to
+  divide up work with others, by passing up enemies that are already engaged
+  with friends (previously there was an overt tendency towards pack-attacks).
+
+* Minor performance tuning.
+
+09/05/98 -- Changes:
+
+* Fixed Doom II SSG gunshot flash to be more uniform in lighting along the
+  gun.
+
+* Fixed Classic BFG to brighten up BFG during firing, and to have less
+  pronounced recoil.
+
+* Fixed Boom bug which was cause of slowdown with friendly monsters, and
+  which caused large levels to slow down under Boom in multiplayer games,
+  when a player went out of view of a monster.
+
+* Improved monster AI to search more quickly and intellgently, by only
+  considering a few monsters at a time, searching in the immediate 
+  vicinity first, and searching monsters in an order which leads naturally
+  to friendly monsters dividing up their work among different targets
+  (instead of all friendly monsters going after one target, then another,
+  etc.).
+
+* Tuned fixed-point arithmetic functions a little more, gaining a few fps
+  under -fastdemo.
+
+8/29/98 -- Changes:
+
+* Fixed Boom friction slowdown problem, I think :)  Boom used a crazy 
+  algorithm, which explains the slowdown:
+
+  * Each object is set to "normal" friction at the beginning of every tic.
+
+  * During EVERY TIC, every sector which is tagged with a friction linedef,
+    is checked to see if it really has friction property (the sector flag).
+    If it does, then every object touching that sector is checked, and has
+    stored into it, the friction it would need if it were moving.
+
+  * Whenever it comes time for an object to be moved, its previously stored
+    friction value is used to reduce or amplify its momentum.
+
+  Friction was being stored as an object's property, when it really should
+  be a sector's property. Thus, every object on the map had to be updated
+  with friction information every gametic, whether or not it really needed it.
+
+  The new approach:
+
+  * Each sector which is tagged with a friction linedef, has friction
+    parameters computed and stored with the sector, at the beginning of
+    the level (this information can't change during the level).
+
+  * When it comes time to compute the friction applied on an object
+    (a computation which doesn't even happen for some objects, or
+    which only happens during certain times), then the sectors which
+    the object is in contact with, are checked for friction and the
+    floor with the most friction which is contacted, is used when
+    updating the object's momentum.
+
+  The result is that we do a little more work per object than the
+  old method did, but we process FAR fewer objects for friction
+  information, and we do so FAR less often.
+
+  Demo sync with past versions of Boom is not guaranteed, but -might-
+  work. Over 50 lines of code were rewritten, and the slightest 
+  difference in timing or anything else, could throw off Boom demos
+  which use friction. The old approach was simply wrong, and keeping
+  it for demos leads to "code explosion": Essentially, to maintain
+  100% demo sync, you've got to double the size of your code, and
+  maintain two completely different versions, one of which is bad, 
+  since there's not enough overlap between the two versions to simply
+  'nudge' one into behaving like the other, based on whether an old
+  demo is running or not. Also, the old version would be prone to
+  "bit rot", because unless it's exercised regularly by testing and
+  playing, it will likely get a bug without notice, and the only
+  symptom may be a demo desync noticed months after the bug was
+  introduced. All my software engineering instincts go against
+  keeping the old, performance-buggy code around for demos, and
+  only for demos.
+
+* Considerably sped up monster searches for targets, by supplementing
+  existing Doom thinker_t data structure with linked lists containing
+  objects in a particular class. Each object can be a friend, an enemy,
+  or a misc object. The regular thinker_t list and operations on it are
+  pretty much unaffected. But each thinker_t now has additional linked
+  listed pointers, cprev and cnext, which point to the previous and next
+  members in the same class as the node. Every time an object is spawned,
+  killed, or changes its friendliness, the node's class links are updated,
+  so that it is placed in the correct list. The result is a continously
+  updated list of possible targets for monsters, without burdening the
+  monster search with extra objects which are not candidates. If there
+  are only 3 friendly monsters, for example, but 10000 other objects,
+  then a search for friendly monsters would only involve those 3 objects,
+  instead of 10003 as with the old method (10000 of which would be rejected
+  immediately, but would still be scanned). Searching the thinker linked
+  list for monster targets that are not really candidates for monster
+  targets, puts a lot of load on the CPU, especially given the linked
+  nature of the list (causes lots of memory cache misses). The new
+  method entirely skips such non-candidates.
+
+* Fixed Beta plasma fireballs, to stop them from activating lifts.
+
+* Made "doomednum" lookups faster, by using hash tables. Only affects
+  level startup time (not performance of regular play), when all of the
+  things are spawned initially, and the thing types are translated to
+  mobj types.
+
+8/23/98 -- Changes:
+
+Too many to remember :)
+
+8/18/98 -- Changes:
+
+* Added Doom-style page flipping for faster display without tearing. Now
+  486 and other low-end systems can have smooth play without slowdowns due
+  to waiting for vsync. (Note: page flipping has nothing to do with memory
+  managers, EMS, or XMS, nor is there any remote similarity. I say this since
+  someone I know, once assumed it had something to do with virtual memory
+  paging. No, it's completely different.)
+ 
+* Improved setup menus to print warnings about modified parameters that are
+  sometimes delayed until the next game, to prevent confusion. This includes
+  the Beta BFG. If you save a game with the Beta BFG turned on, but your
+  default is to have it off, then loading a game may temporarily turn it on.
+  If you go to the menu, you will now be warned about the discrepancy, which
+  is NOT a bug.
+
+Don't ask for any more beta features to be made optional in Boom outside of
+the general -beta option :)  The BFG is the only separate one. Doing it for
+all of the beta's features would take too long and would waste memory while
+you play Boom (because of all the extra sprites which are needed). Use -beta
+for beta features. Only the BFG has enough reason to be a separate weapon,
+and it does not take up much memory as far as sprites go, since it only needs
+the old fireballs (the BFG itself is the same).
+
+8/14/98 -- Changes:
+
+* Fixed rad suit palette bug.
+
+* Fixed Doom bug in which prevented using non-missile exploding objects
+  in blocklists. Fixed grenades on lifts.
+
+* Improved bouncing objects to bounce off of walls.
+
+* Prevented screen palette changes if -nodraw is used.
+
+* Allowed TNTHOM and IDDT cheats to be used during demos.
+
+8/09/98 -- Changes:
+
+Fixed some Doom bugs:
+
+* Monsters stuck in doortracks -- this was a Doom bug, in which Doom thought
+  that since a monster was touching a door linedef, and its motion was blocked,
+  that ALL it had to do was open the door, and this would be enough to free its
+  motion. Of course, this is not true if it was moving towards the doortrack!!!
+  No amount of door-opening will free it up, if it's moving towards the
+  doortrack. The solution was to randomly return failure when a wall obstacle
+  was met but a door linedef was activated. This way, the monster will try
+  other alternatives some of the time, not always assuming that opening a door
+  is sufficient to free itself. Tested it with a Baron, and it works. Note:
+  returning false all the time, would make it look funny, since then a monster
+  would always turn away from a door for a split second after opening it. And
+  determining exactly when it's stuck and when it's not, is difficult to do.
+  A random approach has a much better chance (pun), since it explores different
+  alternatives, independent of their interaction with the environment.
+
+* Beta BFG and other fireballs passing through walls. This was another Doom
+  bug, which just happened to occur more often with the beta BFG because of
+  the number and velocity of fireballs. Doom normally cuts all object motions
+  into steps no larger than a certain distance, so that collisions are not
+  missed. However, someone forgot to use absolute value when comparing speeds,
+  so instead of (|x| > max OR |y| > max) being the test, (x > max OR y > max)
+  was the test. This caused non-uniformity in how collisions were handled,
+  depending on which compass direction the objects were moving. Fix is to
+  make it symmetrical, and this happens to fix most cases of the beta BFG.
+  YabbA DaBba Doom!!!      (Yet Another Doom Bug!!!)
+
+* Fixed Boom bug in setup menu, in which numeric entries (as opposed to yes/no
+  entries, weapons, or keyboard mappings), did not become active during the
+  current game (someone forgot to implement ptr2 for numeric menu items :)
+
+* Fixed bug in cr_brick translation table (16 extraneous bytes right after
+  the active range of 176-191 -- simply deleted the one line of C code which
+  was extraneous).
+
+* Made sky ivulnerability colormap behave like Doom's when compatibility mode
+  is used. In non-compatibility mode, the sky has the same colormap as
+  everything else does, under invulnerability, but in compatibility mode the
+  old behavior is used.
+
+* In non-compatibility mode, made boss spawners, and only boss spawners (and
+  players), telefrag others. Old logic (still used in compatibility mode):
+  Telefrag if agent is a player, or MAP30 is running. New logic: Telefrag if
+  agent is a player, or if it's a boss spawner. Old demo sync is preserved, of
+  course, by reverting to old behavior in old demos.
+
+* Added new automap color to indicate friends under iddt cheat.
+
+* Improved performance of monsters seeking player friends as enemies --
+  previous implementation had a large slowdown caused by excessively
+  searching for them.
+
+* Added BFG2704 message in beta emulation mode (Oh Yes!!!).
+
+* Made friendly monsters tend to stay a certain distance from the player,
+  which can be programmed in the setup menu. It's only very approximate,
+  and does not constitute a hard rule that prevents friends from getting
+  closer. All it does, is that when friends are following the player, they
+  move away from the player when they are within this distance. But if
+  they are attacking another monster, possibly right next to the player,
+  this distance doesn't matter. Making this too strict, makes the friend's
+  behavior too easy to predict. Experiment with the distance (default 128),
+  and tell me what you think -- it's supposed to keep the dogs (or other
+  monsters) out of your feet, but where they can still follow you.
+
+* Improved BFG's bouncing to support other objects as well. As an example,
+  grenade.deh is included. You can also make the player have the MF_BOUNCE
+  flag set, in which case, the player will bounce on the floor and experience
+  a kind of flying :)
+
+... And others I can't remember. Don't waste time writing a LONG description,
+or recording a demo, for a change you notice that I did not mention, without
+first checking with me, because it's most likely a very intentional fix for a
+Doom bug, that I forgot to list. Just mention it if it concerns you, such as if
+it's doing something really crazy, or if it breaks demo sync with Doom or Boom
+demos of version 2.02b or earlier.
+
+8/04/98 -- Changes:
+
+Fixed a teleporter problem in which the height was sometimes off -- oops!!!
+
+8/03/98 -- Changes:
+
+Made regular monsters look for friends and wakeup if they see them or are 
+attacked from behind. Now a dog who goes up and chews a Baron on his rear,
+will have his day :) Enemies still look for players first, but will go after
+friends as well if they are spotted. Not sure of impact yet, or whether this
+needs to be made optional.
+
+Fixed (or rather, worked around) beta chaingun sprite problem. The beta Doom
+did not have complete sprites for its chaingun (some were chopped off at the
+bottom), but this did not matter for the beta, because it did not allow
+fullscreen. Workaround is to lower the chaingun while it fires, so that you
+don't see any of the messed up sprites. In non-fullscreen mode, it still
+works as before.
+
+Included player and rocket sprites, based on two requests / beta discrepency
+reports.
+
+Improved player autoaiming so that friendly monsters can be aimed at by
+players, despite autoaiming preferring enemies when there is a choice.
+If you want to get a kick out of killing dogs, you can do so easily now :)
+
+Fixed -timedemo so that automap, messages, and other things work just as in
+-playdemo and -fastdemo.
+
+8/02/98 -- Changes:
+
+Fixed Boom v2.01/v2.02b bug with not being able to pick up weapons, which
+happened randomly on DM levels. <rant> I'm going to see if the new Ty-rrany
+Source Project can crack this one, which took me 10 hours :) I won't tell
+them, not just yet. If they solve it, it will probably only be through trial
+and error, by backing out past changes and comparing results. </rant>
+
+Removed TNT ENDBOOM screen, replacing it with regular id ENDOOM screen.
+
+Fixed monster movement clipping so that monsters don't hang off ledges
+voluntarily, but can escape if pushed. Previous fix allowed them too much
+freedom.
+
+Fixed player movement clipping so that players can get out of stuck positions,
+such as if they teleport partially inside a closed door or a 1s wall. Needs
+testing again to make sure no "holes" were left :)
+
+Note: movement clipping fixes do NOT currently include removing "bumps" along
+walls when sliding along them. That bug is Doom's and is hard to fix because
+Doom uses something similar to what is termed "impulse-based simulation" in
+the literature -- lots of tiny collisions (impulses) happen along the wall, to
+simulate an overall smooth motion. When the player's motion is at an angle
+towards the wall, the component parallel to the wall, minus friction, becomes
+the resulting movement. Sometimes Doom calculates this very roughly, leading
+to wall-running, "wall bumps", and other effects. Longer-term item, harder to
+fix.
+
+Another note: "getting stuck out of closed doors" does not include monsters
+getting stuck at doorjambs. That's a completely different issue, more related
+to AI than movement clipping (the reason monsters get stuck is not because
+movement clipping says they can't move -- rather, it's because the AI keeps
+trying to make them go in the same direction -- this is known as "getting
+trapped in local minima" in AI literature).
+
+7/29/98 -- Changes:
+
+Fixed problem with walking through closed doors (happened on rare occasions).
+Backed out change to let player walk out closed doors, until this can be fixed
+without side effects.
+
+Tightened stuck-in-wall fix to only cover players, in case wad authors want to
+use it as an effect for monsters (e.g., keep them pinned up to a wall).
+
+7/27/98 -- Changes:
+
+Fixed demo desync problem, which was caused by accidentally making monsters
+respond more quickly to player attacks.
+
+Fixed (or at least, reduced) problem with monsters stuck hanging off ledges.
+In Boom, conveyors and projectiles could push monsters off ledges, but if
+the monsters were not pushed all the way off (only partially), they became
+stuck. The same phenomenon occurred in Doom whenever a monster was lifted
+by a platform but was not completely on it yet. The fix is to relax movement
+clipping so that monsters can move more freely, even when hanging off ledges.
+
+Fixed problem with players and monsters getting stuck in walls if teleported
+with even the slightest roundoff error (such as with Boom line-to-line
+teleporters). Fix allows objects to move out of 1s walls and out of closed
+doors, if they are partially inside. To see the effect, turn on no-clipping,
+move into a wall, and then turn no-clipping back off. You will still be able
+to walk out of the wall, but not back in.
+
+Fixed long-time Doom bug (more of a hack, really) in which sky textures were
+not properly colormapped with the invulnerability colormap (or the light-amp
+visor colormap in beta emulation). Fix makes everything, even the sky, become
+seen through the same glasses :)
+
+Was too tired to work on beta lost soul behavior, or other things. (I needed
+a rest, really, after training all those dogs :-)
+
+7/24/98 -- Changes:
+
+* Recalibrated BFG parameters to more closely match beta, increasing power
+  of fireballs and adjusting exit speed and position along BFG.
+
+* Prevented BFG fireballs from bouncing off of skies.
+
+* Merged friendly monster code and beta code together, now part of same source:
+
+  * You can select the beta BFG as an alternate weapon when playing Doom wads,
+    by changing the Options/Setup/Weapons setting.
+
+  * Beta features besides BFG are enabled with -beta command-line option
+    (eliminates the need to maintain two executables). New boom.exe replaces
+    beta.exe and Boom v2.01.
+
+  * Monster infighting may be disabled in the Options/Setup/Enemies menu.
+
+  * The number of helper dogs (1-3) can be changed in the setup menu or with
+    the -dogs <nnn> command-line option. (-dogs followed by a number from 0
+    to 3).
+
+  * Demos may be recorded and played back with and without -beta. However,
+    -beta MUST be used if a beta demo is played back (allowing the user to
+    override this could result in game crashes -- beta demos require beta
+    emulation mode be turned on, but it must be turned on at game startup
+    -- allowing it to change in the middle of the game would be like asking
+    to load wads in the middle of a game -- turn Doom into its own frontend).
+
+* Autoaiming of projectile weapons is always enabled in non-beta-emulation
+  mode. In beta emulation mode, autoaiming is off unless AIM cheat is used.
+
+* Included friend.deh file as a DEH example of creating friendly monsters.
+  By changing the thing flags you can turn all of a particular monster into
+  a friendly monster (but in the engine itself, not all members of a certain
+  type of monsters need to be friendly or not). Friend.deh is commented and
+  should be easy to change to make any monster friendly (though I don't know
+  what good a friendly Commander Keen will do :).
+
+The following problems / bugs / idiosyncrasies are already known about:
+
+* HOM and slime trails are not 100% emulated in beta. Those are not worth
+  preserving IMO. Artistic errors, yes -- HOM or slime lines (construction
+  errors), no. Case closed. :)
+
+* Beta emulation lost soul behavior / deaths (still working on it)
+
+* Loading 2.01 Boom Savegames give warning but may still work. If this
+  warning were not printed, some savegames might crash and you'd ask me why :)
+
+* Friendly monsters may be telefragged easily (they hang around telerporter
+  exits, especially ones near walls where the only way to go out is to move
+  in a direction that's physically farther away from the player).
+
+* Friendly Arch-Viles don't resurrect dead players yet (how'd you like to
+  be resurrected? :)
+
+* Friendly monsters don't wake up monsters like players do.
+  [FIXED, except performance concerns still valid and need algorithm rewrite.]
+
+* Beta skies are not the drawn the same as in original beta.
+
+* Beta chaingun's bottom is drawn incorrectly.
+  [FIXED by working around it]
+
+* Friendly attack-only monsters cannot be autoaimed at, even if they are
+  the only monsters in sight.
+  [FIXED]
+
+* Helper dogs get replenished health at each level start. Fixing this is
+  a little complicated -- when did you last see a non-player carry over
+  to the next level? :)
+
+* Helpers don't pick up items, need ammo, or use medikits.  They don't
+  get hurt by nukage. This is very complicated to fix systematically and
+  intelligently without messing up the game for the player :)  Not a
+  one-weekend job, so be patient :)
+
+* Beta font is too small or unreadable. For this one, without going the
+  full route of creating two sets of fonts (the beta's and Doom's), there's
+  nothing that can be done about this, other than improving the colors of 
+  the text. Either sacrifice the beta font entirely, live with it, or
+  significantly rewrite source to allow multiple fonts. Note that the
+  setup menu font problem is a completely separate issue from the size
+  of the fonts (it has to do with colors instead of size because of an
+  algorithm in Boom, transparent to the user, which requires red-colored
+  "base fonts").
+
+* Friendly monsters cannot jump down ledges. Requires somewhat complicated
+  AI to fix this, without making them turn into jumping jacks that jump at
+  every opportunity, perhaps into inescapable traps. One idea already
+  considered is to add a weapon key to wave the player's fist once, and
+  then return to whatever weapon was being used. This waving of the fist
+  would not require any new weapons or player signals to be added, but it
+  could be used to signal the dogs or other friendly monsters.
+
+* Some vertices suck up plasma and bullets. This is really just another
+  Doom bug, or a problem in a particular wad's blockmap.
+
+* Friendly monsters get in your way (I'm sorry!!! :)
+
+7/17/98 -- Changes since last version:
+
+* Doubled BFG ammo -- it's hard to tell, but this looks more like the
+  original. It seems slightly large, but it's 2 fireballs per cell energy
+  used up (40 green and 40 orange fireballs).
+
+* Added AUTOAIM and EEK cheats. AUTOAIM cheat toggles projectile
+  autoaiming, which is off by default (it was not present in the 
+  original beta).
+
+* Fixed TNTAMO cheat to prevent it from conflicting with AMO cheat.
+
+* Don't know whether plasma fireballs bounce on floors and ceilings,
+  because there's no way to tell without any z-momentum in the fireballs --
+  no autoaiming existed, and certainly no lookup/down, so the fireballs
+  always shot straight, which means it's impossible to tell if they would
+  bounce. I'll assume they did, since the same fireballs were used for the
+  BFG and the plasma rifle.
+
+7/14/98 -- Changes since last version:
+
+* Fixed invisibility to not affect psprites.
+
+* Adjusted plasma / BFG fireball damage to be like Romero suggested to me:
+  half the strength of normal plasma in later versions of Doom.
+
+7/12/98 -- Changes since last version:
+
+* Problem with fireballs walking up stairsteps fixed (looked funny!!!).
+
+* Angle spread of BFG fireballs fine-tuned, to look more like the beta.
+
+* Fireball exit position improved -- makes fireballs larger when they exit
+  BFG, and makes them move with weapon bobbing.
+
+* Fireball speed fine-tuned. There's no way of telling the true speed except
+  by experimentation (care to become a Doom road cop? :)  I doubt even Romero
+  remembers details such as the speed of fireballs.
+
+* Plasma and BFG fireballs distinguished as far as bouncing.
+
+* Fixed light amp goggles to use a green colormap like real night vision
+  goggles. There is evidence of this special green colormap in the beta,
+  and if you modify the beta's .wad file to insert light goggles, it's
+  used, and it also explains the mystery of the unused 34th colormap in
+  Doom -- there were originally two colormaps besides the 32 light levels:
+  the white one used for invulerability later (used for invisibility in
+  beta), and the one used for light amp, which was not used except in the  
+  beta. Note: the light amp goggles don't ever lose power in the beta,
+  and so to prevent users from having to cheat to turn them off, or else
+  forever see green until the level finishes, I've retained the timeout
+  (I say "retained" since I'm going backwards in time :-).
+
+* Made rad suit last until the end of the level (like berserker strength),
+  just as in the beta (I assume this is what happens -- I can sit for
+  minutes and it never wears off). Also removed palette changes for rad
+  suit and berserker, which were not present in the beta.
+
+* Made invulnerability orb behave exactly as in beta (potion in a tall
+  blue flask colored and shaped like a health bonus in released Doom) --
+  it does not affect any palette or colormap, except to flash the white
+  colormap when it runs out. The tall blue flask is the old invulerability
+  orb, because it has the same sprite name, and it appears under the beta
+  if you change a thing to use its thing id. There is such a flask on the
+  middle of the 3 pillars on E3M2 which rise when the player walks past
+  the UAC room with the unholy bible on the floor, but the flask never
+  shows up, because its flags say it's never on map. Later of course,
+  it was replaced with a backpack.
+
+* E3M2: donut lowers aligned, crushing ceilings changed to correct speed.
+
+* E2M5: marble room doors made like original, 4 crushers' walls made steady,
+  some original beta bugs restored (e.g. crusher room entrance).
+
+Todo list:
+
+* Figure out whether plasma fireballs bounced like BFG fireballs.
+
+* Consider slowing down lifts (they are running faster than in the
+  beta).
+
+* Figure out the exact number and distribution of green/orange BFG
+  fireballs. I'm currently assuming 20 green and 20 orange, each
+  alternating like in the plasma gun, but it looks like there's
+  more in the original, maybe as much as twice as many -- perhaps
+  each of the 40 units of cell energy delivers an orange and a
+  green one. If anyone can run the original beta at ultra slow
+  speed, it might reveal the pattern.
+
+* Figure out exact speed of BFG fireballs.
+
+* Figure out the exact damage of BFG fireballs, possibly depending on color.
+
+* Change lost soul behavior to emulate the beta.
+
+* Optional BFG autoaiming?  (The original BFG did NOT autoaim -- I will 
+  definitely keep this optional, but perhaps autoaiming should be added.)
+
+Files:
+
+BETA.EXE      Version of Boom modified to have beta features, such as the
+              classic BFG9000. This version of Boom is not supported by
+              TeamTNT, just me :)
+
+GRAPHICS.WAD  Replaces and supplies graphics necessary for the Beta.
+              This wad can be used with Doom I, Ultimate Doom, or
+              Doom II, and is necessary to completely reproduce the 
+              BFG9000. BETA.EXE automatically adds this file, which
+              must be in the same directory as BETA.EXE.
+
+LEVELS.WAD    Replaces levels and textures used in the Beta version:
+              E1M2, E2M5, E3M2, which eventually became E1M2, E3M5,
+              and E2M2, respectively. To play these levels requires
+              Doom I or Ultimate Doom.
+
+Some points to note:
+
+* For now, you should copy CWSDPMI.EXE and any other files you 
+  normally use, from an existing Boom directory. For best results,
+  boom.cfg should not be copied over without first reviewing the
+  defaults, which are optimized for the Beta, and which are 
+  different than Boom's defaults.
+
+* Lifts in the original 3 beta levels need to be checked to make
+  sure the lower textures under them are not missing (HOM), and
+  to make sure they are the correct texture (the same as in the
+  original beta).
+
+* It seems like Romero changed all WR linedef types that existed in the
+  beta into W1 linedef types, and then proceeded to add totally new
+  linedef types for the WR ones. I had to convert all of the linedefs in
+  the beta's wad from Beta WR types (which are the same as W1 types in
+  the released Doom), into released WR types. But some might have been
+  missed.
+  
+* Lost souls have not had any behavioral (code) changes made yet.
+  That's on the todo list. Right now, there are only new sprites.
+
+* Translucency and gamma correction are best turned off, to fully get the
+  same "look and feel" as the beta. Oddly, I feel like the beta is more
+  colorful and looks better than Doom, which is sorta washed out (either
+  washed dark or washed bright). With Doom, I turn up the gamma correction
+  because of poor contrast, while the Beta already has better contrast.
+  Part of this perception is pure sentimentality :)
+
+* The Barons' horns are slightly different in the beta, in case you didn't
+  notice :)
+
+* You should be able to play any of your favorite Doom and Doom II wads
+  with this mod. Only if you use a DeHackEd patch or BFG/plasma sprite
+  modifications, should there be any problems, but even then, only DEH
+  patches have any chance of making the game unplayable, and then only
+  when the BFG is modified by the patch. The vast majority of wads are
+  playable with the new BFG.
+
+* The health and armor bonuses use the same thing numbers as the demonic
+  daggers and the skullchests, respectively. Currently, wads which use
+  health and armor bonuses will show demonic daggers and skullchests
+  instead, and they will work just as in the beta (they just disappear,
+  and a message is printed). Later, I might change this, and change the
+  thing numbers in the 3 Beta levels to use 3 unused thing numbers
+  (notwithstanding the JDS, or any other outside organization :-).
+
+* Please keep this quiet for now, so the release will have more value
+  (initially and long-term). If this gets spread around right now,
+  people seeing its bugs might lessen its value, or the planned release
+  might not get the attention it deserves (people seeing it now will
+  be less likely to download it again).
+
+* To prevent confusion, I'm talking above about the binary files,
+  beta.exe and beta.zip. The Doom news pages knowing about my work 
+  is perfectly okay, and is intentional (I told them). It's the
+  "beta beta" binaries (i.e. the product), that I don't want leaked
+  now.
+
+Lee Killough
+killough@rsn.hp.com
+http://classicgaming.com/doom/
