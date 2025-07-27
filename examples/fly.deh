@@ -1,8 +1,0 @@
-Patch File for DeHackEd v3.0
-Doom version = 19
-Patch format = 6
-
-# to make the player fly :)
-
-Thing 01
-Bits = BOUNCES | FRIEND | NOTDMATCH | DROPOFF | PICKUP | SOLID | SHOOTABLE

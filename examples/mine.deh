@@ -1,9 +1,0 @@
-# Turn a rocket launcher into a minelayer
-# By Lee Killough
-# Works only with MBF
-
-Thing 34
-Bits = BOUNCES | DROPOFF | TOUCHY
-Death frame = 969
-Hit points = 10
-Missile damage = 128

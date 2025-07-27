@@ -1,6 +1,0 @@
-# Makes dogs "fly" under gravity, in effect jumping.
-# By Lee Killough
-
-Thing 140
-Bits = BOUNCES | SOLID | SHOOTABLE | FLOAT | COUNTKILL
-Mass = 100
