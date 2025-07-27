@@ -933,61 +933,63 @@ byte *ds_source;
 
 void R_DrawSpan(void)
 {
+    int count = ds_x2 - ds_x1 + 1;
     pixel_t *dest = ylookup[ds_y] + columnofs[ds_x1];
-
-    unsigned count = ds_x2 - ds_x1 + 1;
-    unsigned xtemp, ytemp, spot;
-
     const byte *source = ds_source;
     lighttable_t *const *colormap = ds_colormap;
     const byte *brightmap = ds_brightmap;
 
+    // SoM: we only need 6 bits for the integer part (0 thru 63) so the rest
+    // can be used for the fraction part. This allows calculation of the memory
+    // address in the texture with two shifts, an OR and one AND.
+    unsigned int       xf = ds_xfrac << 10, yf = ds_yfrac << 10;
+    const unsigned int xs = ds_xstep << 10, ys = ds_ystep << 10;
+
+    #define XSHIFT (32 - 6 - 6)
+    #define XMASK  (63 * 64) // 0x0FC0
+    #define YSHIFT (32 - 6)
+
+    byte src;
+
     while (count >= 4)
     {
-        byte src;
-        ytemp = (ds_yfrac >> 10) & 0x0FC0;
-        xtemp = (ds_xfrac >> 16) & 0x003F;
-        spot = xtemp | ytemp;
-        ds_xfrac += ds_xstep;
-        ds_yfrac += ds_ystep;
-        src = source[spot];
+        // SoM: Why didn't I see this earlier? the spot variable is a waste now
+        // because we don't have the uber complicated math to calculate it now,
+        // so that was a memory write we didn't need!
+        src = source[((xf >> XSHIFT) & XMASK) | (yf >> YSHIFT)];
         dest[0] = colormap[brightmap[src]][src];
-        ytemp = (ds_yfrac >> 10) & 0x0FC0;
-        xtemp = (ds_xfrac >> 16) & 0x003F;
-        spot = xtemp | ytemp;
-        ds_xfrac += ds_xstep;
-        ds_yfrac += ds_ystep;
-        src = source[spot];
+        xf += xs;
+        yf += ys;
+
+        src = source[((xf >> XSHIFT) & XMASK) | (yf >> YSHIFT)];
         dest[1] = colormap[brightmap[src]][src];
-        ytemp = (ds_yfrac >> 10) & 0x0FC0;
-        xtemp = (ds_xfrac >> 16) & 0x003F;
-        spot = xtemp | ytemp;
-        ds_xfrac += ds_xstep;
-        ds_yfrac += ds_ystep;
-        src = source[spot];
+        xf += xs;
+        yf += ys;
+
+        src = source[((xf >> XSHIFT) & XMASK) | (yf >> YSHIFT)];
         dest[2] = colormap[brightmap[src]][src];
-        ytemp = (ds_yfrac >> 10) & 0x0FC0;
-        xtemp = (ds_xfrac >> 16) & 0x003F;
-        spot = xtemp | ytemp;
-        ds_xfrac += ds_xstep;
-        ds_yfrac += ds_ystep;
-        src = source[spot];
+        xf += xs;
+        yf += ys;
+
+        src = source[((xf >> XSHIFT) & XMASK) | (yf >> YSHIFT)];
         dest[3] = colormap[brightmap[src]][src];
+        xf += xs;
+        yf += ys;
+
         dest += 4;
         count -= 4;
     }
-    while (count)
+    while (count--)
     {
-        byte src;
-        ytemp = (ds_yfrac >> 10) & 0x0FC0;
-        xtemp = (ds_xfrac >> 16) & 0x003F;
-        spot = xtemp | ytemp;
-        ds_xfrac += ds_xstep;
-        ds_yfrac += ds_ystep;
-        src = source[spot];
+        src = source[((xf >> XSHIFT) & XMASK) | (yf >> YSHIFT)];
         *dest++ = colormap[brightmap[src]][src];
-        count--;
+        xf += xs;
+        yf += ys;
     }
+
+    #undef XSHIFT
+    #undef XMASK
+    #undef YSHIFT
 }
 
 void R_InitBufferRes(void)
