@@ -232,12 +232,6 @@ elseif(LINUX)
                 file(COPY
                     ${CPACK_TEMPORARY_DIRECTORY}/${CPACK_PACKAGING_INSTALL_PREFIX}/share/woof/soundfonts
                     DESTINATION ${CPACK_OUTPUT_DIR})
-                file(RENAME
-                    ${CPACK_TEMPORARY_DIRECTORY}/${CPACK_PACKAGING_INSTALL_PREFIX}/share/doc/woof
-                    ${CPACK_TEMPORARY_DIRECTORY}/${CPACK_PACKAGING_INSTALL_PREFIX}/share/doc/docs)
-                file(COPY
-                    ${CPACK_TEMPORARY_DIRECTORY}/${CPACK_PACKAGING_INSTALL_PREFIX}/share/doc/docs
-                    DESTINATION ${CPACK_OUTPUT_DIR})
 
                 file(CONFIGURE
                     OUTPUT ${CPACK_OUTPUT_DIR}/Troubleshooting.txt
