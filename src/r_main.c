@@ -694,7 +694,6 @@ void R_Init (void)
   R_SetFuzzColumnMode();
 
   colfunc = R_DrawColumn;
-  R_InitDrawFunctions();
 }
 
 //
