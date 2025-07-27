@@ -159,7 +159,7 @@ if(WIN32)
         install(DIRECTORY soundfonts/ DESTINATION soundfonts)
     endif()
 else()
-    install(FILES COPYING DESTINATION "share/${PROJECT_SHORTNAME}")
+    install(FILES COPYING DESTINATION "share/doc/${PROJECT_SHORTNAME}")
     if(EXISTS "${CMAKE_SOURCE_DIR}/soundfonts" AND FluidSynth_FOUND)
         install(DIRECTORY soundfonts/
             DESTINATION "share/${PROJECT_SHORTNAME}/soundfonts")
