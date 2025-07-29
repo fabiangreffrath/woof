@@ -2549,6 +2549,8 @@ static void DoSaveGame(char *name)
 
   int length = save_p - savebuffer;
 
+  M_MakeDirectory(basesavegame);
+
   if (!M_WriteFile(name, savebuffer, length))
   {
       displaymsg("%s", errno ? strerror(errno)
@@ -2561,8 +2563,6 @@ static void DoSaveGame(char *name)
 
   Z_Free(savebuffer);  // killough
   savebuffer = save_p = NULL;
-
-  M_MakeDirectory(basesavegame);
 
   gameaction = ga_nothing;
   savedescription[0] = 0;
