@@ -945,9 +945,9 @@ void R_DrawSpan(void)
     unsigned int       xf = ds_xfrac << 10, yf = ds_yfrac << 10;
     const unsigned int xs = ds_xstep << 10, ys = ds_ystep << 10;
 
-    #define XSHIFT (32 - 6 - 6)
-    #define XMASK  (63 * 64) // 0x0FC0
-    #define YSHIFT (32 - 6)
+    #define XSHIFT (32 - 6)
+    #define YSHIFT (32 - 6 - 6)
+    #define YMASK  (63 * 64) // 0x0FC0
 
     byte src;
 
@@ -956,22 +956,22 @@ void R_DrawSpan(void)
         // SoM: Why didn't I see this earlier? the spot variable is a waste now
         // because we don't have the uber complicated math to calculate it now,
         // so that was a memory write we didn't need!
-        src = source[((xf >> XSHIFT) & XMASK) | (yf >> YSHIFT)];
+        src = source[((yf >> YSHIFT) & YMASK) | (xf >> XSHIFT)];
         dest[0] = colormap[brightmap[src]][src];
         xf += xs;
         yf += ys;
 
-        src = source[((xf >> XSHIFT) & XMASK) | (yf >> YSHIFT)];
+        src = source[((yf >> YSHIFT) & YMASK) | (xf >> XSHIFT)];
         dest[1] = colormap[brightmap[src]][src];
         xf += xs;
         yf += ys;
 
-        src = source[((xf >> XSHIFT) & XMASK) | (yf >> YSHIFT)];
+        src = source[((yf >> YSHIFT) & YMASK) | (xf >> XSHIFT)];
         dest[2] = colormap[brightmap[src]][src];
         xf += xs;
         yf += ys;
 
-        src = source[((xf >> XSHIFT) & XMASK) | (yf >> YSHIFT)];
+        src = source[((yf >> YSHIFT) & YMASK) | (xf >> XSHIFT)];
         dest[3] = colormap[brightmap[src]][src];
         xf += xs;
         yf += ys;
@@ -981,7 +981,7 @@ void R_DrawSpan(void)
     }
     while (count--)
     {
-        src = source[((xf >> XSHIFT) & XMASK) | (yf >> YSHIFT)];
+        src = source[((yf >> YSHIFT) & YMASK) | (xf >> XSHIFT)];
         *dest++ = colormap[brightmap[src]][src];
         xf += xs;
         yf += ys;
