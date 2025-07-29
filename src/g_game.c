@@ -2763,7 +2763,7 @@ static boolean DoLoadGame(boolean do_load_autosave)
   if (saveg_read8() != 0xe6)
     I_Error ("Bad savegame");
 
-  // [FG] restore total time for all completed levelss
+  // [FG] restore total time for all completed levels
   if (saveg_check_size(sizeof(totalleveltimes)))
   {
       totalleveltimes = saveg_read32();
