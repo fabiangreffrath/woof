@@ -1233,6 +1233,9 @@ static void M_ReadSaveString(char *name, int menu_slot, int save_slot,
         return;
     }
 
+    // Ensure that string is terminated
+    savegamestrings[menu_slot][SAVESTRINGSIZE - 1] = '\0';
+
     if (!MN_ReadSnapshot(menu_slot, fp))
     {
         MN_ResetSnapshot(menu_slot);
