@@ -90,7 +90,6 @@
 #include "statdump.h" // [FG] StatCopy()
 #include "tables.h"
 #include "v_video.h"
-#include "version.h"
 #include "w_wad.h"
 #include "wi_stuff.h"
 #include "ws_stuff.h"
@@ -2266,13 +2265,11 @@ static void G_DoPlayDemo(void)
 
 #define VERSIONSIZE   16
 
-// killough 2/22/98: version id string format for savegames
-#define VERSIONID "MBF %d"
-
 #define CURRENT_SAVE_VERSION "Woof 16.0.0"
 
 static const char *saveg_versions[] =
 {
+    [saveg_mbf] = "MBF 203",
     [saveg_woof510] = "Woof 5.1.0",
     [saveg_woof600] = "Woof 6.0.0",
     [saveg_woof1300] = "Woof 13.0.0",
@@ -2453,27 +2450,21 @@ static uint64_t G_Signature(int sig_epi, int sig_map)
 
 static void DoSaveGame(char *name)
 {
-  char name2[VERSIONSIZE];
-  char *description;
-  int  length, i;
-
   S_MarkSounds();
-
-  description = savedescription;
 
   save_p = savebuffer = Z_Malloc(savegamesize, PU_STATIC, 0);
 
-  saveg_buffer_size(SAVESTRINGSIZE + VERSIONSIZE);
-  memcpy (save_p, description, SAVESTRINGSIZE);
+  saveg_grow(SAVESTRINGSIZE + VERSIONSIZE);
+  memcpy(save_p, savedescription, SAVESTRINGSIZE);
   save_p += SAVESTRINGSIZE;
-  memset (name2,0,sizeof(name2));
 
   // killough 2/22/98: "proprietary" version string :-)
-  strcpy(name2, CURRENT_SAVE_VERSION);
-  saveg_compat = saveg_current;
-
-  memcpy (save_p, name2, VERSIONSIZE);
+  char version_name[VERSIONSIZE] = {0};
+  strcpy(version_name, CURRENT_SAVE_VERSION);
+  memcpy(save_p, version_name, VERSIONSIZE);
   save_p += VERSIONSIZE;
+
+  saveg_compat = saveg_current;
 
   saveg_write8(demo_version);
 
@@ -2484,33 +2475,43 @@ static void DoSaveGame(char *name)
   saveg_write8(gameepisode);
   saveg_write8(gamemap);
 
-  {  // killough 3/16/98, 12/98: store lump name checksum
-    uint64_t checksum = G_Signature(gameepisode, gamemap);
-    saveg_write64(checksum);
-  }
+  // killough 3/16/98, 12/98: store lump name checksum
+  saveg_write64(G_Signature(gameepisode, gamemap));
 
   // killough 3/16/98: store pwad filenames in savegame
   {
-    int i;
-    for (*save_p = 0, i = 0; i < array_size(wadfiles); i++)
+      int i;
+      for (*save_p = 0, i = 0; i < array_size(wadfiles); i++)
       {
-        const char *basename = M_BaseName(wadfiles[i]);
-        saveg_buffer_size(strlen(basename)+2);
-        strcat(strcat((char *) save_p, basename), "\n");
+          const char *basename = M_BaseName(wadfiles[i]);
+          saveg_grow(strlen(basename) + 2);
+          strcat(strcat((char *)save_p, basename), "\n");
       }
-    save_p += strlen((char *) save_p)+1;
+      save_p += strlen((char *)save_p) + 1;
   }
 
-  for (i=0 ; i<MAXPLAYERS ; i++)
-    saveg_write8(playeringame[i]);
-
-  for (;i<MIN_MAXPLAYERS;i++)         // killough 2/28/98
-    saveg_write8(0);
+  {
+      int i;
+      for (i = 0; i < MAXPLAYERS; i++)
+      {
+          saveg_write8(playeringame[i]);
+      }
+      for (; i < MIN_MAXPLAYERS; i++) // killough 2/28/98
+      {
+          saveg_write8(0);
+      }
+  }
 
   saveg_write8(idmusnum);               // jff 3/17/98 save idmus state
 
-  saveg_buffer_size(G_GameOptionSize());
+  saveg_grow(G_GameOptionSize());
   save_p = G_WriteOptions(save_p);    // killough 3/1/98: save game options
+
+  saveg_write8(pistolstart);
+  saveg_write8(coopspawns);
+  saveg_write8(halfplayerdamage);
+  saveg_write8(doubleammo);
+  saveg_write8(aggromonsters);
 
   // [FG] fix copy size and pointer progression
   saveg_write32(leveltime); //killough 11/98: save entire word
@@ -2531,7 +2532,7 @@ static void DoSaveGame(char *name)
   saveg_write32(totalleveltimes);
 
   // save lump name for current MUSINFO item
-  saveg_buffer_size(8);
+  saveg_grow(8);
   if (musinfo.current_item > 0)
     memcpy(save_p, lumpinfo[musinfo.current_item].name, 8);
   else
@@ -2541,33 +2542,30 @@ static void DoSaveGame(char *name)
   // save max_kill_requirement
   saveg_write32(max_kill_requirement);
 
-  saveg_write8(pistolstart);
-  saveg_write8(coopspawns);
-  saveg_write8(halfplayerdamage);
-  saveg_write8(doubleammo);
-  saveg_write8(aggromonsters);
-
   // [FG] save snapshot
-  saveg_buffer_size(MN_SnapshotDataSize());
+  saveg_grow(MN_SnapshotDataSize());
   MN_WriteSnapshot(save_p);
   save_p += MN_SnapshotDataSize();
 
-  length = save_p - savebuffer;
+  int length = save_p - savebuffer;
 
   M_MakeDirectory(basesavegame);
 
   if (!M_WriteFile(name, savebuffer, length))
-    displaymsg("%s", errno ? strerror(errno) : "Could not save game: Error unknown");
+  {
+      displaymsg("%s", errno ? strerror(errno)
+                             : "Could not save game: Error unknown");
+  }
   else
-    displaymsg("%s", s_GGSAVED);  // Ty 03/27/98 - externalized
+  {
+      displaymsg("%s", s_GGSAVED); // Ty 03/27/98 - externalized
+  }
 
   Z_Free(savebuffer);  // killough
   savebuffer = save_p = NULL;
 
   gameaction = ga_nothing;
   savedescription[0] = 0;
-
-  if (name) free(name);
 
   drs_skip_frame = true;
 }
@@ -2577,21 +2575,39 @@ static void G_DoSaveGame(void)
   char *name = G_SaveGameName(savegameslot);
   DoSaveGame(name);
   MN_SetQuickSaveSlot(savegameslot);
+  free(name);
 }
 
 static void G_DoSaveAutoSave(void)
 {
   char *name = G_AutoSaveName();
   DoSaveGame(name);
+  free(name);
+}
+
+static byte *LoadCustomSkillOptions(byte *opt_p)
+{
+    if (saveg_compat > saveg_woof1500)
+    {
+        pistolstart = *opt_p++;
+        coopspawns = *opt_p++;
+        halfplayerdamage = *opt_p++;
+        doubleammo = *opt_p++;
+        aggromonsters = *opt_p++;
+    }
+    else
+    {
+        pistolstart = clpistolstart;
+        coopspawns = clcoopspawns;
+        halfplayerdamage = false;
+        doubleammo = false;
+        aggromonsters = false;
+    }
+    return opt_p;
 }
 
 static boolean DoLoadGame(boolean do_load_autosave)
 {
-  int  length, i;
-  char vcheck[VERSIONSIZE];
-  uint64_t checksum;
-  int tmp_compat, tmp_skill, tmp_epi, tmp_map;
-
   I_SetFastdemoTimer(false);
 
   // [crispy] loaded game must always be single player.
@@ -2607,32 +2623,24 @@ static boolean DoLoadGame(boolean do_load_autosave)
 
   gameaction = ga_nothing;
 
-  length = M_ReadFile(savename, &savebuffer);
+  savegamesize = M_ReadFile(savename, &savebuffer);
+
   save_p = savebuffer + SAVESTRINGSIZE;
 
   // skip the description field
 
-  // killough 2/22/98: "proprietary" version string :-)
-  sprintf (vcheck,VERSIONID,MBFVERSION);
-
-  if (strncmp((char *)save_p, vcheck, VERSIONSIZE) == 0)
+  saveg_compat = saveg_indetermined;
+  for (int i = saveg_mbf; i < arrlen(saveg_versions); ++i)
   {
-      saveg_compat = saveg_mbf;
-  }
-  else
-  {
-      for (int i = saveg_woof510; i < arrlen(saveg_versions); ++i)
+      if (strncmp((char *)save_p, saveg_versions[i], VERSIONSIZE) == 0)
       {
-          if (strncmp((char *)save_p, saveg_versions[i], VERSIONSIZE) == 0)
-          {
-              saveg_compat = i;
-              break;
-          }
+          saveg_compat = i;
+          break;
       }
   }
 
   // killough 2/22/98: Friendly savegame version difference message
-  if (!forced_loadgame && saveg_compat != saveg_mbf && saveg_compat < saveg_woof600)
+  if (!forced_loadgame && saveg_compat == saveg_indetermined)
     {
       const char *msg = "Different Savegame Version!!!\n\nAre you sure?";
       if (do_load_autosave)
@@ -2646,25 +2654,25 @@ static boolean DoLoadGame(boolean do_load_autosave)
 
   if (saveg_compat > saveg_woof510)
   {
-    demo_version = *save_p++;
+      demo_version = saveg_read8();
   }
   else
   {
-    demo_version = DV_MBF;
+      demo_version = DV_MBF;
   }
 
   // killough 2/14/98: load compatibility mode
-  tmp_compat = *save_p++;
+  int tmp_compatibility = saveg_read8();
 
-  tmp_skill = *save_p++;
-  tmp_epi = *save_p++;
-  tmp_map = *save_p++;
+  int tmp_skill = saveg_read8();
+  int tmp_episode = saveg_read8();
+  int tmp_map = saveg_read8();
 
-  checksum = saveg_read64();
+  uint64_t checksum = saveg_read64();
 
   if (!forced_loadgame)
    {  // killough 3/16/98, 12/98: check lump name checksum
-     if (checksum != G_Signature(tmp_epi, tmp_map))
+     if (checksum != G_Signature(tmp_episode, tmp_map))
        {
 	 char *msg = malloc(strlen((char *) save_p) + 128);
 	 strcpy(msg,"Incompatible Savegame!!!\n");
@@ -2682,15 +2690,17 @@ static boolean DoLoadGame(boolean do_load_autosave)
 
   while (*save_p++);
 
-  compatibility = tmp_compat;
+  compatibility = tmp_compatibility;
   gameskill = tmp_skill;
-  gameepisode = tmp_epi;
+  gameepisode = tmp_episode;
   gamemap = tmp_map;
   gamemapinfo = G_LookupMapinfo(gameepisode, gamemap);
 
-  for (i=0 ; i<MAXPLAYERS ; i++)
-    playeringame[i] = *save_p++;
-  save_p += MIN_MAXPLAYERS-MAXPLAYERS;         // killough 2/28/98
+  for (int i = 0; i < MAXPLAYERS; i++)
+  {
+      playeringame[i] = saveg_read8();
+  }
+  save_p += MIN_MAXPLAYERS - MAXPLAYERS; // killough 2/28/98
 
   // jff 3/17/98 restore idmus music
   // jff 3/18/98 account for unsigned byte
@@ -2703,6 +2713,8 @@ static boolean DoLoadGame(boolean do_load_autosave)
   else
     G_ReadOptions(save_p);
 
+  LoadCustomSkillOptions(save_p);
+
   // load a base level
   G_InitNew(gameskill, gameepisode, gamemap);
 
@@ -2714,6 +2726,8 @@ static boolean DoLoadGame(boolean do_load_autosave)
     save_p = G_ReadOptionsMBF21(save_p);
   else
     save_p = G_ReadOptions(save_p);
+
+  save_p = LoadCustomSkillOptions(save_p);
 
   // get the times
   // killough 11/98: save entire word
@@ -2733,63 +2747,53 @@ static boolean DoLoadGame(boolean do_load_autosave)
   P_UnArchiveMap();    // killough 1/22/98: load automap information
   P_MapEnd();
 
-  if (*save_p != 0xe6)
+  if (saveg_read8() != 0xe6)
     I_Error ("Bad savegame");
 
   // [FG] restore total time for all completed levels
-  if (save_p++ - savebuffer < length - sizeof totalleveltimes)
+  if (saveg_check_size(sizeof(totalleveltimes)))
   {
-    totalleveltimes = saveg_read32();
+      totalleveltimes = saveg_read32();
   }
 
   // restore MUSINFO music
-  if (save_p - savebuffer <= length - 8)
+  if (saveg_check_size(8))
   {
-    char lump[9] = {0};
-    int i;
+      char lump[9] = {0};
+      for (int i = 0; i < 8; ++i)
+      {
+          lump[i] = saveg_read8();
+      }
+      int lumpnum = W_CheckNumForName(lump);
 
-    memcpy(lump, save_p, 8);
-
-    i = W_CheckNumForName(lump);
-
-    if (lump[0] && i > 0)
-    {
-      musinfo.mapthing = NULL;
-      musinfo.lastmapthing = NULL;
-      musinfo.tics = 0;
-      musinfo.current_item = i;
-      musinfo.from_savegame = true;
-      S_ChangeMusInfoMusic(i, true);
-    }
-
-    save_p += 8;
+      if (lump[0] && lumpnum >= 0)
+      {
+          musinfo.mapthing = NULL;
+          musinfo.lastmapthing = NULL;
+          musinfo.tics = 0;
+          musinfo.current_item = lumpnum;
+          musinfo.from_savegame = true;
+          S_ChangeMusInfoMusic(lumpnum, true);
+      }
   }
 
   // restore max_kill_requirement
-  max_kill_requirement = totalkills;
-  if (save_p - savebuffer <= length - sizeof(max_kill_requirement))
+  if (saveg_check_size(sizeof(max_kill_requirement)))
   {
-    if (saveg_compat > saveg_woof600)
-    {
-      max_kill_requirement = saveg_read32();
-    }
-  }
-
-  // restore pistolstat and coopspawns
-  if (save_p - savebuffer <= length - 5)
-  {
-     if (saveg_compat > saveg_woof1500)
-     {
-       pistolstart = saveg_read8();
-       coopspawns = saveg_read8();
-       halfplayerdamage = saveg_read8();
-       doubleammo = saveg_read8();
-       aggromonsters = saveg_read8();
-     }
+      int tmp_max_kill_requirement = saveg_read32();
+      if (saveg_compat > saveg_woof600)
+      {
+          max_kill_requirement = tmp_max_kill_requirement;
+      }
+      else
+      {
+          max_kill_requirement = totalkills;
+      }
   }
 
   // done
   Z_Free(savebuffer);
+  savegamesize = SAVEGAMESIZE;
 
   if (setsizeneeded)
     R_ExecuteSetViewSize();

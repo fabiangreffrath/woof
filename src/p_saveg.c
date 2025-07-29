@@ -46,7 +46,7 @@
 
 byte *save_p;
 
-saveg_compat_t saveg_compat = saveg_woof510;
+saveg_compat_t saveg_compat;
 
 // Pad to 4-byte boundaries
 
@@ -70,7 +70,7 @@ inline static void saveg_write_pad(void)
 
     padding = (4 - ((intptr_t)save_p & 3)) & 3;
 
-    saveg_buffer_size(padding);
+    saveg_grow(padding);
     for (i=0; i<padding; ++i)
     {
         savep_putbyte(0);
