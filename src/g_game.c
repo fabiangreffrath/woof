@@ -2450,17 +2450,12 @@ static uint64_t G_Signature(int sig_epi, int sig_map)
 
 static void DoSaveGame(char *name)
 {
-  char *description;
-  int  length, i;
-
   S_MarkSounds();
-
-  description = savedescription;
 
   save_p = savebuffer = Z_Malloc(savegamesize, PU_STATIC, 0);
 
   saveg_grow(SAVESTRINGSIZE + VERSIONSIZE);
-  memcpy (save_p, description, SAVESTRINGSIZE);
+  memcpy(save_p, savedescription, SAVESTRINGSIZE);
   save_p += SAVESTRINGSIZE;
 
   // killough 2/22/98: "proprietary" version string :-)
@@ -2480,28 +2475,32 @@ static void DoSaveGame(char *name)
   saveg_write8(gameepisode);
   saveg_write8(gamemap);
 
-  {  // killough 3/16/98, 12/98: store lump name checksum
-    uint64_t checksum = G_Signature(gameepisode, gamemap);
-    saveg_write64(checksum);
-  }
+  // killough 3/16/98, 12/98: store lump name checksum
+  saveg_write64(G_Signature(gameepisode, gamemap));
 
   // killough 3/16/98: store pwad filenames in savegame
   {
-    int i;
-    for (*save_p = 0, i = 0; i < array_size(wadfiles); i++)
+      int i;
+      for (*save_p = 0, i = 0; i < array_size(wadfiles); i++)
       {
-        const char *basename = M_BaseName(wadfiles[i]);
-        saveg_grow(strlen(basename)+2);
-        strcat(strcat((char *) save_p, basename), "\n");
+          const char *basename = M_BaseName(wadfiles[i]);
+          saveg_grow(strlen(basename) + 2);
+          strcat(strcat((char *)save_p, basename), "\n");
       }
-    save_p += strlen((char *) save_p)+1;
+      save_p += strlen((char *)save_p) + 1;
   }
 
-  for (i=0 ; i<MAXPLAYERS ; i++)
-    saveg_write8(playeringame[i]);
-
-  for (;i<MIN_MAXPLAYERS;i++)         // killough 2/28/98
-    saveg_write8(0);
+  {
+      int i;
+      for (i = 0; i < MAXPLAYERS; i++)
+      {
+          saveg_write8(playeringame[i]);
+      }
+      for (; i < MIN_MAXPLAYERS; i++) // killough 2/28/98
+      {
+          saveg_write8(0);
+      }
+  }
 
   saveg_write8(idmusnum);               // jff 3/17/98 save idmus state
 
@@ -2548,22 +2547,25 @@ static void DoSaveGame(char *name)
   MN_WriteSnapshot(save_p);
   save_p += MN_SnapshotDataSize();
 
-  length = save_p - savebuffer;
-
-  M_MakeDirectory(basesavegame);
+  int length = save_p - savebuffer;
 
   if (!M_WriteFile(name, savebuffer, length))
-    displaymsg("%s", errno ? strerror(errno) : "Could not save game: Error unknown");
+  {
+      displaymsg("%s", errno ? strerror(errno)
+                             : "Could not save game: Error unknown");
+  }
   else
-    displaymsg("%s", s_GGSAVED);  // Ty 03/27/98 - externalized
+  {
+      displaymsg("%s", s_GGSAVED); // Ty 03/27/98 - externalized
+  }
 
   Z_Free(savebuffer);  // killough
   savebuffer = save_p = NULL;
 
+  M_MakeDirectory(basesavegame);
+
   gameaction = ga_nothing;
   savedescription[0] = 0;
-
-  if (name) free(name);
 
   drs_skip_frame = true;
 }
@@ -2573,12 +2575,14 @@ static void G_DoSaveGame(void)
   char *name = G_SaveGameName(savegameslot);
   DoSaveGame(name);
   MN_SetQuickSaveSlot(savegameslot);
+  free(name);
 }
 
 static void G_DoSaveAutoSave(void)
 {
   char *name = G_AutoSaveName();
   DoSaveGame(name);
+  free(name);
 }
 
 static byte *LoadCustomSkillOptions(byte *opt_p)
