@@ -161,6 +161,7 @@ inline static int64_t saveg_read64(void)
 
 typedef enum
 {
+  saveg_indetermined = -1,
   saveg_mbf,
   saveg_woof510,
   saveg_woof600,

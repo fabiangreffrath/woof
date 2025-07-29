@@ -90,7 +90,6 @@
 #include "statdump.h" // [FG] StatCopy()
 #include "tables.h"
 #include "v_video.h"
-#include "version.h"
 #include "w_wad.h"
 #include "wi_stuff.h"
 #include "ws_stuff.h"
@@ -2266,13 +2265,11 @@ static void G_DoPlayDemo(void)
 
 #define VERSIONSIZE   16
 
-// killough 2/22/98: version id string format for savegames
-#define VERSIONID "MBF %d"
-
 #define CURRENT_SAVE_VERSION "Woof 16.0.0"
 
 static const char *saveg_versions[] =
 {
+    [saveg_mbf] = "MBF 203",
     [saveg_woof510] = "Woof 5.1.0",
     [saveg_woof600] = "Woof 6.0.0",
     [saveg_woof1300] = "Woof 13.0.0",
@@ -2453,7 +2450,6 @@ static uint64_t G_Signature(int sig_epi, int sig_map)
 
 static void DoSaveGame(char *name)
 {
-  char name2[VERSIONSIZE];
   char *description;
   int  length, i;
 
@@ -2466,14 +2462,14 @@ static void DoSaveGame(char *name)
   saveg_grow(SAVESTRINGSIZE + VERSIONSIZE);
   memcpy (save_p, description, SAVESTRINGSIZE);
   save_p += SAVESTRINGSIZE;
-  memset (name2,0,sizeof(name2));
 
   // killough 2/22/98: "proprietary" version string :-)
-  strcpy(name2, CURRENT_SAVE_VERSION);
-  saveg_compat = saveg_current;
-
-  memcpy (save_p, name2, VERSIONSIZE);
+  char version_name[VERSIONSIZE] = {0};
+  strcpy(version_name, CURRENT_SAVE_VERSION);
+  memcpy(save_p, version_name, VERSIONSIZE);
   save_p += VERSIONSIZE;
+
+  saveg_compat = saveg_current;
 
   saveg_write8(demo_version);
 
@@ -2608,10 +2604,6 @@ static byte *LoadCustomSkillOptions(byte *opt_p)
 
 static boolean DoLoadGame(boolean do_load_autosave)
 {
-  char vcheck[VERSIONSIZE];
-  uint64_t checksum;
-  int tmp_compat, tmp_skill, tmp_epi, tmp_map;
-
   I_SetFastdemoTimer(false);
 
   // [crispy] loaded game must always be single player.
@@ -2633,27 +2625,18 @@ static boolean DoLoadGame(boolean do_load_autosave)
 
   // skip the description field
 
-  // killough 2/22/98: "proprietary" version string :-)
-  sprintf (vcheck,VERSIONID,MBFVERSION);
-
-  if (strncmp((char *)save_p, vcheck, VERSIONSIZE) == 0)
+  saveg_compat = saveg_indetermined;
+  for (int i = saveg_mbf; i < arrlen(saveg_versions); ++i)
   {
-      saveg_compat = saveg_mbf;
-  }
-  else
-  {
-      for (int i = saveg_woof510; i < arrlen(saveg_versions); ++i)
+      if (strncmp((char *)save_p, saveg_versions[i], VERSIONSIZE) == 0)
       {
-          if (strncmp((char *)save_p, saveg_versions[i], VERSIONSIZE) == 0)
-          {
-              saveg_compat = i;
-              break;
-          }
+          saveg_compat = i;
+          break;
       }
   }
 
   // killough 2/22/98: Friendly savegame version difference message
-  if (!forced_loadgame && saveg_compat != saveg_mbf && saveg_compat < saveg_woof600)
+  if (!forced_loadgame && saveg_compat == saveg_indetermined)
     {
       const char *msg = "Different Savegame Version!!!\n\nAre you sure?";
       if (do_load_autosave)
@@ -2675,17 +2658,17 @@ static boolean DoLoadGame(boolean do_load_autosave)
   }
 
   // killough 2/14/98: load compatibility mode
-  tmp_compat = saveg_read8();
+  int tmp_compatibility = saveg_read8();
 
-  tmp_skill = saveg_read8();
-  tmp_epi = saveg_read8();
-  tmp_map = saveg_read8();
+  int tmp_skill = saveg_read8();
+  int tmp_episode = saveg_read8();
+  int tmp_map = saveg_read8();
 
-  checksum = saveg_read64();
+  uint64_t checksum = saveg_read64();
 
   if (!forced_loadgame)
    {  // killough 3/16/98, 12/98: check lump name checksum
-     if (checksum != G_Signature(tmp_epi, tmp_map))
+     if (checksum != G_Signature(tmp_episode, tmp_map))
        {
 	 char *msg = malloc(strlen((char *) save_p) + 128);
 	 strcpy(msg,"Incompatible Savegame!!!\n");
@@ -2703,9 +2686,9 @@ static boolean DoLoadGame(boolean do_load_autosave)
 
   while (*save_p++);
 
-  compatibility = tmp_compat;
+  compatibility = tmp_compatibility;
   gameskill = tmp_skill;
-  gameepisode = tmp_epi;
+  gameepisode = tmp_episode;
   gamemap = tmp_map;
   gamemapinfo = G_LookupMapinfo(gameepisode, gamemap);
 

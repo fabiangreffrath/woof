@@ -46,7 +46,7 @@
 
 byte *save_p;
 
-saveg_compat_t saveg_compat = saveg_woof510;
+saveg_compat_t saveg_compat;
 
 // Pad to 4-byte boundaries
 
