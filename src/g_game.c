@@ -2463,7 +2463,7 @@ static void DoSaveGame(char *name)
 
   save_p = savebuffer = Z_Malloc(savegamesize, PU_STATIC, 0);
 
-  saveg_buffer_size(SAVESTRINGSIZE + VERSIONSIZE);
+  saveg_grow(SAVESTRINGSIZE + VERSIONSIZE);
   memcpy (save_p, description, SAVESTRINGSIZE);
   save_p += SAVESTRINGSIZE;
   memset (name2,0,sizeof(name2));
@@ -2495,7 +2495,7 @@ static void DoSaveGame(char *name)
     for (*save_p = 0, i = 0; i < array_size(wadfiles); i++)
       {
         const char *basename = M_BaseName(wadfiles[i]);
-        saveg_buffer_size(strlen(basename)+2);
+        saveg_grow(strlen(basename)+2);
         strcat(strcat((char *) save_p, basename), "\n");
       }
     save_p += strlen((char *) save_p)+1;
@@ -2509,8 +2509,14 @@ static void DoSaveGame(char *name)
 
   saveg_write8(idmusnum);               // jff 3/17/98 save idmus state
 
-  saveg_buffer_size(G_GameOptionSize());
+  saveg_grow(G_GameOptionSize());
   save_p = G_WriteOptions(save_p);    // killough 3/1/98: save game options
+
+  saveg_write8(pistolstart);
+  saveg_write8(coopspawns);
+  saveg_write8(halfplayerdamage);
+  saveg_write8(doubleammo);
+  saveg_write8(aggromonsters);
 
   // [FG] fix copy size and pointer progression
   saveg_write32(leveltime); //killough 11/98: save entire word
@@ -2531,7 +2537,7 @@ static void DoSaveGame(char *name)
   saveg_write32(totalleveltimes);
 
   // save lump name for current MUSINFO item
-  saveg_buffer_size(8);
+  saveg_grow(8);
   if (musinfo.current_item > 0)
     memcpy(save_p, lumpinfo[musinfo.current_item].name, 8);
   else
@@ -2541,14 +2547,8 @@ static void DoSaveGame(char *name)
   // save max_kill_requirement
   saveg_write32(max_kill_requirement);
 
-  saveg_write8(pistolstart);
-  saveg_write8(coopspawns);
-  saveg_write8(halfplayerdamage);
-  saveg_write8(doubleammo);
-  saveg_write8(aggromonsters);
-
   // [FG] save snapshot
-  saveg_buffer_size(MN_SnapshotDataSize());
+  saveg_grow(MN_SnapshotDataSize());
   MN_WriteSnapshot(save_p);
   save_p += MN_SnapshotDataSize();
 
@@ -2585,9 +2585,29 @@ static void G_DoSaveAutoSave(void)
   DoSaveGame(name);
 }
 
+static byte *LoadCustomSkillOptions(byte *opt_p)
+{
+    if (saveg_compat > saveg_woof1500)
+    {
+        pistolstart = *opt_p++;
+        coopspawns = *opt_p++;
+        halfplayerdamage = *opt_p++;
+        doubleammo = *opt_p++;
+        aggromonsters = *opt_p++;
+    }
+    else
+    {
+        pistolstart = clpistolstart;
+        coopspawns = clcoopspawns;
+        halfplayerdamage = false;
+        doubleammo = false;
+        aggromonsters = false;
+    }
+    return opt_p;
+}
+
 static boolean DoLoadGame(boolean do_load_autosave)
 {
-  int  length, i;
   char vcheck[VERSIONSIZE];
   uint64_t checksum;
   int tmp_compat, tmp_skill, tmp_epi, tmp_map;
@@ -2607,7 +2627,8 @@ static boolean DoLoadGame(boolean do_load_autosave)
 
   gameaction = ga_nothing;
 
-  length = M_ReadFile(savename, &savebuffer);
+  savegamesize = M_ReadFile(savename, &savebuffer);
+
   save_p = savebuffer + SAVESTRINGSIZE;
 
   // skip the description field
@@ -2646,19 +2667,19 @@ static boolean DoLoadGame(boolean do_load_autosave)
 
   if (saveg_compat > saveg_woof510)
   {
-    demo_version = *save_p++;
+      demo_version = saveg_read8();
   }
   else
   {
-    demo_version = DV_MBF;
+      demo_version = DV_MBF;
   }
 
   // killough 2/14/98: load compatibility mode
-  tmp_compat = *save_p++;
+  tmp_compat = saveg_read8();
 
-  tmp_skill = *save_p++;
-  tmp_epi = *save_p++;
-  tmp_map = *save_p++;
+  tmp_skill = saveg_read8();
+  tmp_epi = saveg_read8();
+  tmp_map = saveg_read8();
 
   checksum = saveg_read64();
 
@@ -2688,9 +2709,11 @@ static boolean DoLoadGame(boolean do_load_autosave)
   gamemap = tmp_map;
   gamemapinfo = G_LookupMapinfo(gameepisode, gamemap);
 
-  for (i=0 ; i<MAXPLAYERS ; i++)
-    playeringame[i] = *save_p++;
-  save_p += MIN_MAXPLAYERS-MAXPLAYERS;         // killough 2/28/98
+  for (int i = 0; i < MAXPLAYERS; i++)
+  {
+      playeringame[i] = saveg_read8();
+  }
+  save_p += MIN_MAXPLAYERS - MAXPLAYERS; // killough 2/28/98
 
   // jff 3/17/98 restore idmus music
   // jff 3/18/98 account for unsigned byte
@@ -2703,6 +2726,8 @@ static boolean DoLoadGame(boolean do_load_autosave)
   else
     G_ReadOptions(save_p);
 
+  LoadCustomSkillOptions(save_p);
+
   // load a base level
   G_InitNew(gameskill, gameepisode, gamemap);
 
@@ -2714,6 +2739,8 @@ static boolean DoLoadGame(boolean do_load_autosave)
     save_p = G_ReadOptionsMBF21(save_p);
   else
     save_p = G_ReadOptions(save_p);
+
+  save_p = LoadCustomSkillOptions(save_p);
 
   // get the times
   // killough 11/98: save entire word
@@ -2733,63 +2760,53 @@ static boolean DoLoadGame(boolean do_load_autosave)
   P_UnArchiveMap();    // killough 1/22/98: load automap information
   P_MapEnd();
 
-  if (*save_p != 0xe6)
+  if (saveg_read8() != 0xe6)
     I_Error ("Bad savegame");
 
-  // [FG] restore total time for all completed levels
-  if (save_p++ - savebuffer < length - sizeof totalleveltimes)
+  // [FG] restore total time for all completed levelss
+  if (saveg_check_size(sizeof(totalleveltimes)))
   {
-    totalleveltimes = saveg_read32();
+      totalleveltimes = saveg_read32();
   }
 
   // restore MUSINFO music
-  if (save_p - savebuffer <= length - 8)
+  if (saveg_check_size(8))
   {
-    char lump[9] = {0};
-    int i;
+      char lump[9] = {0};
+      for (int i = 0; i < 8; ++i)
+      {
+          lump[i] = saveg_read8();
+      }
+      int lumpnum = W_CheckNumForName(lump);
 
-    memcpy(lump, save_p, 8);
-
-    i = W_CheckNumForName(lump);
-
-    if (lump[0] && i > 0)
-    {
-      musinfo.mapthing = NULL;
-      musinfo.lastmapthing = NULL;
-      musinfo.tics = 0;
-      musinfo.current_item = i;
-      musinfo.from_savegame = true;
-      S_ChangeMusInfoMusic(i, true);
-    }
-
-    save_p += 8;
+      if (lump[0] && lumpnum >= 0)
+      {
+          musinfo.mapthing = NULL;
+          musinfo.lastmapthing = NULL;
+          musinfo.tics = 0;
+          musinfo.current_item = lumpnum;
+          musinfo.from_savegame = true;
+          S_ChangeMusInfoMusic(lumpnum, true);
+      }
   }
 
   // restore max_kill_requirement
-  max_kill_requirement = totalkills;
-  if (save_p - savebuffer <= length - sizeof(max_kill_requirement))
+  if (saveg_check_size(sizeof(max_kill_requirement)))
   {
-    if (saveg_compat > saveg_woof600)
-    {
-      max_kill_requirement = saveg_read32();
-    }
-  }
-
-  // restore pistolstat and coopspawns
-  if (save_p - savebuffer <= length - 5)
-  {
-     if (saveg_compat > saveg_woof1500)
-     {
-       pistolstart = saveg_read8();
-       coopspawns = saveg_read8();
-       halfplayerdamage = saveg_read8();
-       doubleammo = saveg_read8();
-       aggromonsters = saveg_read8();
-     }
+      int tmp_max_kill_requirement = saveg_read32();
+      if (saveg_compat > saveg_woof600)
+      {
+          max_kill_requirement = tmp_max_kill_requirement;
+      }
+      else
+      {
+          max_kill_requirement = totalkills;
+      }
   }
 
   // done
   Z_Free(savebuffer);
+  savegamesize = SAVEGAMESIZE;
 
   if (setsizeneeded)
     R_ExecuteSetViewSize();
