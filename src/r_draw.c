@@ -987,9 +987,9 @@ void R_DrawSpan(void)
         yf += ys;
     }
 
-    #undef XSHIFT
-    #undef XMASK
     #undef YSHIFT
+    #undef YMASK
+    #undef XSHIFT
 }
 
 void R_InitBufferRes(void)
