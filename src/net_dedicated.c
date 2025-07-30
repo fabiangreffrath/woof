@@ -22,7 +22,7 @@
 #include "i_timer.h"
 #include "m_argv.h"
 #include "net_common.h"
-#include "net_sdl.h"
+#include "net_netlib.h"
 #include "net_server.h"
 
 //

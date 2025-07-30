@@ -90,10 +90,8 @@
 
 #if defined(__GNUC__) || defined(__clang__)
   #define PRINTF_ATTR(fmt, first) __attribute__((format(printf, fmt, first)))
-  #define PRINTF_ARG_ATTR(x)      __attribute__((format_arg(x)))
 #else
   #define PRINTF_ATTR(fmt, first)
-  #define PRINTF_ARG_ATTR(x)
 #endif
 
 static char errorbuf[1024];
@@ -125,7 +123,7 @@ int netlib_init(void)
         if (WSAStartup(version_wanted, &wsaData) != 0)
         {
             netlib_set_error("Couldn't initialize Winsock 1.1\n");
-            return (-1);
+            return -1;
         }
 #else
         // SIGPIPE is generated when a remote socket is closed
@@ -179,7 +177,7 @@ int netlib_resolve_host(ip_address_t *address, const char *host, uint16_t port)
 {
     int retval = 0;
 
-    /* Perform the actual host resolution */
+    // Perform the actual host resolution
     if (host == NULL)
     {
         address->host = INADDR_ANY;
@@ -217,11 +215,7 @@ struct udp_socket_s
     int ready;
     SOCKET channel;
     ip_address_t address;
-
     udp_channel_t binding[NETLIB_MAX_UDPCHANNELS];
-
-    // For debugging purposes
-    int packetloss;
 };
 
 void netlib_udp_close(udp_socket_t sock)
@@ -275,7 +269,7 @@ udp_socket_t netlib_udp_open(uint16_t port)
         goto error_return;
     }
 
-    /* Get the bound address and port */
+    // Get the bound address and port
     sock_len = sizeof(sock_addr);
     if (getsockname(sock->channel, (struct sockaddr *)&sock_addr, &sock_len)
         < 0)
@@ -284,7 +278,7 @@ udp_socket_t netlib_udp_open(uint16_t port)
         goto error_return;
     }
 
-    /* Fill in the channel host address */
+    // Fill in the channel host address
     sock->address.host = sock_addr.sin_addr.s_addr;
     sock->address.port = sock_addr.sin_port;
 
@@ -317,8 +311,7 @@ udp_socket_t netlib_udp_open(uint16_t port)
 #endif
 
     // The socket is ready
-
-    return (sock);
+    return sock;
 
 error_return:
     netlib_udp_close(sock);
@@ -460,7 +453,7 @@ int netlib_udp_recv(udp_socket_t sock, udp_packet_t *packet)
 
     sock->ready = 0;
 
-    return (numrecv);
+    return numrecv;
 }
 
 udp_packet_t *netlib_alloc_packet(int size)

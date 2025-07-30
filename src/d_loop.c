@@ -34,7 +34,7 @@
 #include "net_io.h"
 #include "net_loop.h"
 #include "net_query.h"
-#include "net_sdl.h"
+#include "net_netlib.h"
 #include "net_server.h"
 #include "s_sound.h"
 

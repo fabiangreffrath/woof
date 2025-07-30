@@ -12,7 +12,7 @@
 // GNU General Public License for more details.
 //
 // DESCRIPTION:
-//     Networking module which uses SDL_net
+//     Networking module which uses netlib
 //
 
 #include <stdlib.h>
@@ -25,7 +25,7 @@
 #include "net_defs.h"
 #include "net_io.h"
 #include "net_packet.h"
-#include "net_sdl.h"
+#include "net_netlib.h"
 #include "z_zone.h"
 
 //
@@ -44,7 +44,7 @@ static udp_packet_t *recvpacket;
 typedef struct
 {
     net_addr_t net_addr;
-    ip_address_t sdl_addr;
+    ip_address_t netlib_addr;
 } addrpair_t;
 
 static addrpair_t **addr_table;
@@ -82,7 +82,7 @@ static net_addr_t *FindAddress(ip_address_t *addr)
     for (i = 0; i < addr_table_size; ++i)
     {
         if (addr_table[i] != NULL
-            && AddressesEqual(addr, &addr_table[i]->sdl_addr))
+            && AddressesEqual(addr, &addr_table[i]->netlib_addr))
         {
             return &addr_table[i]->net_addr;
         }
@@ -125,9 +125,9 @@ static net_addr_t *FindAddress(ip_address_t *addr)
 
     new_entry = Z_Malloc(sizeof(addrpair_t), PU_STATIC, 0);
 
-    new_entry->sdl_addr = *addr;
+    new_entry->netlib_addr = *addr;
     new_entry->net_addr.refcount = 0;
-    new_entry->net_addr.handle = &new_entry->sdl_addr;
+    new_entry->net_addr.handle = &new_entry->netlib_addr;
     new_entry->net_addr.module = &netlib_module;
 
     addr_table[empty_entry] = new_entry;
@@ -177,8 +177,7 @@ static boolean NETLIB_InitClient(void)
 
     if (netlib_init() < 0)
     {
-        I_Error("Failed to initialize SDLNet: %s",
-                netlib_get_error());
+        I_Error("Failed to initialize SDLNet: %s", netlib_get_error());
     }
 
     udpsocket = netlib_udp_open(0);
@@ -216,8 +215,7 @@ static boolean NETLIB_InitServer(void)
 
     if (netlib_init() < 0)
     {
-        I_Error("Failed to initialize SDLNet: %s",
-                netlib_get_error());
+        I_Error("Failed to initialize SDLNet: %s", netlib_get_error());
     }
 
     udpsocket = netlib_udp_open(port);
@@ -239,7 +237,7 @@ static boolean NETLIB_InitServer(void)
 
 static void NETLIB_SendPacket(net_addr_t *addr, net_packet_t *packet)
 {
-    udp_packet_t sdl_packet;
+    udp_packet_t netlib_packet;
     ip_address_t ip;
 
     if (addr == &net_broadcast_addr)
@@ -275,15 +273,14 @@ static void NETLIB_SendPacket(net_addr_t *addr, net_packet_t *packet)
     }
 #endif
 
-    sdl_packet.channel = 0;
-    sdl_packet.data = packet->data;
-    sdl_packet.len = packet->len;
-    sdl_packet.address = ip;
+    netlib_packet.channel = 0;
+    netlib_packet.data = packet->data;
+    netlib_packet.len = packet->len;
+    netlib_packet.address = ip;
 
-    if (!netlib_udp_send(udpsocket, -1, &sdl_packet))
+    if (!netlib_udp_send(udpsocket, -1, &netlib_packet))
     {
-        I_Error("Error transmitting packet: %s",
-                netlib_get_error());
+        I_Error("Error transmitting packet: %s", netlib_get_error());
     }
 }
 
@@ -295,8 +292,7 @@ static boolean NETLIB_RecvPacket(net_addr_t **addr, net_packet_t **packet)
 
     if (result < 0)
     {
-        I_Error("Error receiving packet: %s",
-                netlib_get_error());
+        I_Error("Error receiving packet: %s", netlib_get_error());
     }
 
     // no packets received

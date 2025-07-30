@@ -90,7 +90,7 @@ set(WOOF_SOURCES
     net_loop.c             net_loop.h
     net_packet.c           net_packet.h
     net_query.c            net_query.h
-    net_sdl.c              net_sdl.h
+    net_netlib.c           net_netlib.h
     net_server.c           net_server.h
     net_structrw.c         net_structrw.h
                            p_action.h
@@ -263,7 +263,7 @@ set(SETUP_SOURCES
     net_io.c                net_io.h
     net_packet.c            net_packet.h
     net_query.c             net_query.h
-    net_sdl.c               net_sdl.h
+    net_netlib.c            net_netlib.h
     net_structrw.c          net_structrw.h
     z_zone.c                z_zone.h
 )
