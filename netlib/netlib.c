@@ -70,6 +70,7 @@
   #endif
 #else
   #include <signal.h>
+  #include <errno.h>
   static int netlib_get_last_error(void)
   {
       return errno;
@@ -83,10 +84,21 @@
 #include "netlib.h"
 
 #include <stdio.h>
+#include <string.h>
+#include <stdlib.h>
+#include <stdarg.h>
+
+#if defined(__GNUC__) || defined(__clang__)
+  #define PRINTF_ATTR(fmt, first) __attribute__((format(printf, fmt, first)))
+  #define PRINTF_ARG_ATTR(x)      __attribute__((format_arg(x)))
+#else
+  #define PRINTF_ATTR(fmt, first)
+  #define PRINTF_ARG_ATTR(x)
+#endif
 
 static char errorbuf[1024];
 
-static void netlib_set_error(const char *fmt, ...)
+static PRINTF_ATTR(1, 2) void netlib_set_error(const char *fmt, ...)
 {
     va_list argp;
     va_start(argp, fmt);
@@ -344,24 +356,24 @@ int netlib_udp_send(udp_socket_t sock, int channel, udp_packet_t *packet)
             packet->status = status;
             ++numsent;
         }
-        else
-        {
-            // Send to each of the bound addresses on the channel
-            binding = &sock->binding[channel];
+    }
+    else
+    {
+        // Send to each of the bound addresses on the channel
+        binding = &sock->binding[channel];
 
-            for (int i = binding->numbound - 1; i >= 0; --i)
+        for (int i = binding->numbound - 1; i >= 0; --i)
+        {
+            sock_addr.sin_addr.s_addr = binding->address[i].host;
+            sock_addr.sin_port = binding->address[i].port;
+            sock_addr.sin_family = AF_INET;
+            status = sendto(sock->channel, (const char *)packet->data,
+                            packet->len, 0, (struct sockaddr *)&sock_addr,
+                            sock_len);
+            if (status >= 0)
             {
-                sock_addr.sin_addr.s_addr = binding->address[i].host;
-                sock_addr.sin_port = binding->address[i].port;
-                sock_addr.sin_family = AF_INET;
-                status = sendto(sock->channel, (const char *)packet->data,
-                                packet->len, 0, (struct sockaddr *)&sock_addr,
-                                sock_len);
-                if (status >= 0)
-                {
-                    packet->status = status;
-                    ++numsent;
-                }
+                packet->status = status;
+                ++numsent;
             }
         }
     }
