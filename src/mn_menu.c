@@ -51,6 +51,7 @@
 #include "mn_menu.h"
 #include "mn_internal.h"
 #include "mn_snapshot.h"
+#include "p_keyframe.h"
 #include "p_saveg.h"
 #include "r_defs.h"
 #include "r_draw.h"
@@ -2680,6 +2681,11 @@ boolean M_ShortcutResponder(const event_t *ev)
             I_SetFastdemoTimer(fastdemo_timer);
             return true;
         }
+    }
+
+    if (M_InputActivated(input_rewind))
+    {
+        P_LoadKeyframe();
     }
 
     return false;

@@ -17,7 +17,7 @@ project(
     LANGUAGES C CXX
 )
 
-set(CMAKE_C_STANDARD 99)
+set(CMAKE_C_STANDARD 11)
 
 # Set a default build type if none was specified
 set(default_build_type "RelWithDebInfo")

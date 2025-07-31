@@ -31,12 +31,14 @@
 #include "i_printf.h"
 #include "i_system.h"
 #include "info.h"
+#include "m_arena.h"
 #include "m_argv.h"
 #include "m_bbox.h"
 #include "m_swap.h"
 #include "nano_bsp.h"
 #include "p_enemy.h"
 #include "p_extnodes.h"
+#include "p_keyframe.h"
 #include "p_map.h"
 #include "p_maputl.h"
 #include "p_mobj.h"
@@ -101,6 +103,7 @@ long      *blockmaplump;          // was short -- killough
 fixed_t   bmaporgx, bmaporgy;     // origin of block map
 
 mobj_t    **blocklinks;           // for thing chains
+int       blocklinks_size;
 
 boolean   skipblstart;  // MaxW: Skip initial blocklist short
 
@@ -1264,10 +1267,10 @@ boolean P_LoadBlockMap (int lump)
     }
 
   // clear out mobj chains
-  count = sizeof(*blocklinks)* bmapwidth*bmapheight;
-  blocklinks = Z_Malloc (count,PU_LEVEL, 0);
-  memset (blocklinks, 0, count);
-  blockmap = blockmaplump+4;
+  blocklinks_size = sizeof(*blocklinks) * bmapwidth * bmapheight;
+  blocklinks = Z_Malloc(blocklinks_size, PU_LEVEL, 0);
+  memset(blocklinks, 0, blocklinks_size);
+  blockmap = blockmaplump + 4;
 
   return ret;
 }
@@ -1640,6 +1643,10 @@ void P_SetupLevel(int episode, int map, int playermask, skill_t skill)
   S_Start();
 
   Z_FreeTag(PU_LEVEL);
+  M_ClearArena(thinkers);
+  M_ClearArena(msecnodes);
+  P_FreeKeyframeQueue();
+
   Z_FreeTag(PU_CACHE);
 
   P_InitThinkers();
@@ -1774,6 +1781,8 @@ void P_Init (void)
   P_InitSwitchList();
   P_InitPicAnims();
   R_InitSprites(sprnames);
+  thinkers = M_InitArena(100 * 1024 * 1024);
+  msecnodes = M_InitArena(1024 * 1024);
 }
 
 //----------------------------------------------------------------------------

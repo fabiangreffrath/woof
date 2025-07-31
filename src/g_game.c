@@ -68,6 +68,7 @@
 #include "net_defs.h"
 #include "p_enemy.h"
 #include "p_inter.h"
+#include "p_keyframe.h"
 #include "p_map.h"
 #include "p_maputl.h"
 #include "p_mobj.h"
@@ -3012,6 +3013,9 @@ void G_Ticker(void)
     basetic++;  // For revenant tracers and RNG -- we must maintain sync
   else
     {
+      if (gametic == 0 || gametic % 10 == 0)
+        P_SaveKeyframe();
+      
       // get commands, check consistancy, and build new consistancy check
       int buf = (gametic/ticdup)%BACKUPTICS;
 

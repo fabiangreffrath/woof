@@ -23,7 +23,6 @@
 #include "doomdata.h"
 #include "doomdef.h"
 #include "doomstat.h"
-#include "doomtype.h"
 #include "i_printf.h"
 #include "m_fixed.h"
 #include "p_mobj.h"
@@ -33,8 +32,6 @@
 #include "r_state.h"
 #include "s_sound.h"
 #include "sounds.h"
-#include "st_stuff.h"
-#include "z_zone.h"
 
 ///////////////////////////////////////////////////////////////
 //
@@ -324,7 +321,7 @@ int EV_DoDoor(line_t *line, vldoor_e type)
 
       // new door thinker
       rtn = 1;
-      door = Z_Malloc (sizeof(*door), PU_LEVSPEC, 0);
+      door = arena_alloc(thinkers, 1, vldoor_t);
       P_AddThinker(&door->thinker);
       sec->ceilingdata = door; //jff 2/22/98
 
@@ -559,7 +556,7 @@ int EV_VerticalDoor(line_t *line, mobj_t *thing)
     }
 
   // new door thinker
-  door = Z_Malloc (sizeof(*door), PU_LEVSPEC, 0);
+  door = arena_alloc(thinkers, 1, vldoor_t);
   P_AddThinker (&door->thinker);
   sec->ceilingdata = door; //jff 2/22/98
   door->thinker.function.p1 = (actionf_p1)T_VerticalDoor;
@@ -629,7 +626,7 @@ int EV_VerticalDoor(line_t *line, mobj_t *thing)
 
 void P_SpawnDoorCloseIn30 (sector_t* sec)
 {
-  vldoor_t *door = Z_Malloc ( sizeof(*door), PU_LEVSPEC, 0);
+  vldoor_t *door = arena_alloc(thinkers, 1, vldoor_t);
 
   P_AddThinker (&door->thinker);
 
@@ -659,7 +656,7 @@ void P_SpawnDoorRaiseIn5Mins(sector_t *sec, int secnum)
 {
   vldoor_t* door;
 
-  door = Z_Malloc ( sizeof(*door), PU_LEVSPEC, 0);
+  door = arena_alloc(thinkers, 1, vldoor_t);
 
   P_AddThinker (&door->thinker);
 

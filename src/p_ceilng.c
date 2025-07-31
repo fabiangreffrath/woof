@@ -19,7 +19,6 @@
 
 #include "d_think.h"
 #include "doomstat.h"
-#include "doomtype.h"
 #include "m_fixed.h"
 #include "p_mobj.h"
 #include "p_spec.h"
@@ -271,7 +270,7 @@ int EV_DoCeiling
   
     // create a new ceiling thinker
     rtn = 1;
-    ceiling = Z_Malloc (sizeof(*ceiling), PU_LEVSPEC, 0);
+    ceiling = arena_alloc(thinkers, 1, ceiling_t);
     P_AddThinker (&ceiling->thinker);
     sec->ceilingdata = ceiling;               //jff 2/22/98
     ceiling->thinker.function.p1 = (actionf_p1)T_MoveCeiling;

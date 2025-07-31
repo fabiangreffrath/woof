@@ -20,13 +20,13 @@
 #include "doomdef.h"
 #include "doomstat.h"
 #include "info.h"
+#include "m_arena.h"
 #include "p_map.h"
 #include "p_mobj.h"
 #include "p_tick.h"
 #include "p_spec.h"
 #include "p_user.h"
 #include "s_musinfo.h"
-#include "z_zone.h"
 
 int leveltime;
 int oldleveltime;
@@ -48,6 +48,8 @@ thinker_t thinkercap;
 thinker_t thinkerclasscap[NUMTHCLASS];
 
 int init_thinkers_count = 0;
+
+arena_t *thinkers;
 
 //
 // P_InitThinkers
@@ -152,7 +154,7 @@ void P_RemoveThinkerDelayed(thinker_t *thinker)
       // haleyjd 6/17/08: remove from threaded list now
       (thinker->cnext->cprev = thinker->cprev)->cnext = thinker->cnext;
 
-      Z_Free(thinker);
+      //P_ThinkerFree(thinker);
    }
 }
 

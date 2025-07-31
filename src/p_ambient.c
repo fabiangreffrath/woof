@@ -27,7 +27,6 @@
 #include "p_tick.h"
 #include "s_sound.h"
 #include "sounds.h"
-#include "z_zone.h"
 
 #define AMB_UPDATE_TICS 7 // 200 ms
 
@@ -212,7 +211,7 @@ void P_AddAmbientSoundThinker(mobj_t *mobj, int index)
         return;
     }
 
-    ambient_t *ambient = Z_Malloc(sizeof(*ambient), PU_LEVEL, NULL);
+    ambient_t *ambient = arena_alloc(thinkers, 1, ambient_t);
     ambient->data = *data;
 
     switch (ambient->data.mode)

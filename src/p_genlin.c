@@ -30,7 +30,6 @@
 #include "r_state.h"
 #include "s_sound.h"
 #include "sounds.h"
-#include "z_zone.h"
 
 //////////////////////////////////////////////////////////
 //
@@ -100,7 +99,7 @@ manual_floor:
 
     // new floor thinker
     rtn = 1;
-    floor = Z_Malloc (sizeof(*floor), PU_LEVSPEC, 0);
+    floor = arena_alloc(thinkers, 1, floormove_t);
     P_AddThinker (&floor->thinker);
     sec->floordata = floor;
     floor->thinker.function.p1 = (actionf_p1)T_MoveFloor;
@@ -303,7 +302,7 @@ manual_ceiling:
 
     // new ceiling thinker
     rtn = 1;
-    ceiling = Z_Malloc (sizeof(*ceiling), PU_LEVSPEC, 0);
+    ceiling = arena_alloc(thinkers, 1, ceiling_t);
     P_AddThinker (&ceiling->thinker);
     sec->ceilingdata = ceiling; //jff 2/22/98
     ceiling->thinker.function.p1 = (actionf_p1)T_MoveCeiling;
@@ -514,7 +513,7 @@ manual_lift:
       
     // Setup the plat thinker
     rtn = 1;
-    plat = Z_Malloc( sizeof(*plat), PU_LEVSPEC, 0);
+    plat = arena_alloc(thinkers, 1, plat_t);
     P_AddThinker(&plat->thinker);
               
     plat->sector = sec;
@@ -674,7 +673,7 @@ manual_stair:
       
     // new floor thinker
     rtn = 1;
-    floor = Z_Malloc (sizeof(*floor), PU_LEVSPEC, 0);
+    floor = arena_alloc(thinkers, 1, floormove_t);
     P_AddThinker (&floor->thinker);
     sec->floordata = floor;
     floor->thinker.function.p1 = (actionf_p1)T_MoveFloor;
@@ -776,7 +775,7 @@ manual_stair:
 
         sec = tsec;
         secnum = newsecnum;
-        floor = Z_Malloc (sizeof(*floor), PU_LEVSPEC, 0);
+        floor = arena_alloc(thinkers, 1, floormove_t);
 
         P_AddThinker (&floor->thinker);
 
@@ -860,7 +859,7 @@ manual_crusher:
 
     // new ceiling thinker
     rtn = 1;
-    ceiling = Z_Malloc (sizeof(*ceiling), PU_LEVSPEC, 0);
+    ceiling = arena_alloc(thinkers, 1, ceiling_t);
     P_AddThinker (&ceiling->thinker);
     sec->ceilingdata = ceiling; //jff 2/22/98
     ceiling->thinker.function.p1 = (actionf_p1)T_MoveCeiling;
@@ -955,7 +954,7 @@ manual_locked:
   
     // new door thinker
     rtn = 1;
-    door = Z_Malloc (sizeof(*door), PU_LEVSPEC, 0);
+    door = arena_alloc(thinkers, 1, vldoor_t);
     P_AddThinker (&door->thinker);
     sec->ceilingdata = door; //jff 2/22/98
 
@@ -1063,7 +1062,7 @@ manual_door:
   
     // new door thinker
     rtn = 1;
-    door = Z_Malloc (sizeof(*door), PU_LEVSPEC, 0);
+    door = arena_alloc(thinkers, 1, vldoor_t);
     P_AddThinker (&door->thinker);
     sec->ceilingdata = door; //jff 2/22/98
 

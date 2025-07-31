@@ -18,6 +18,7 @@
 #define __P_TICK__
 
 #include "d_think.h"
+#include "m_arena.h"
 
 struct mobj_s;
 
@@ -49,6 +50,8 @@ typedef enum {
 extern thinker_t thinkerclasscap[];
 
 extern int init_thinkers_count;
+
+extern arena_t *thinkers;
 
 #endif
 

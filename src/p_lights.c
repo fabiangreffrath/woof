@@ -27,7 +27,6 @@
 #include "p_tick.h"
 #include "r_defs.h"
 #include "r_state.h"
-#include "z_zone.h"
 
 //////////////////////////////////////////////////////////
 //
@@ -171,7 +170,7 @@ void P_SpawnFireFlicker (sector_t*  sector)
   // Nothing special about it during gameplay.
   sector->special &= ~31; //jff 3/14/98 clear non-generalized sector type
 
-  flick = Z_Malloc ( sizeof(*flick), PU_LEVSPEC, 0);
+  flick = arena_alloc(thinkers, 1, fireflicker_t);
 
   P_AddThinker (&flick->thinker);
 
@@ -197,7 +196,7 @@ void P_SpawnLightFlash (sector_t* sector)
   // nothing special about it during gameplay
   sector->special &= ~31; //jff 3/14/98 clear non-generalized sector type
 
-  flash = Z_Malloc ( sizeof(*flash), PU_LEVSPEC, 0);
+  flash = arena_alloc(thinkers, 1, lightflash_t);
 
   P_AddThinker (&flash->thinker);
 
@@ -228,7 +227,7 @@ void P_SpawnStrobeFlash
 {
   strobe_t* flash;
 
-  flash = Z_Malloc ( sizeof(*flash), PU_LEVSPEC, 0);
+  flash = arena_alloc(thinkers, 1, strobe_t);
 
   P_AddThinker (&flash->thinker);
 
@@ -263,7 +262,7 @@ void P_SpawnGlowingLight(sector_t*  sector)
 {
   glow_t* g;
 
-  g = Z_Malloc( sizeof(*g), PU_LEVSPEC, 0);
+  g = arena_alloc(thinkers, 1, glow_t);
 
   P_AddThinker(&g->thinker);
 

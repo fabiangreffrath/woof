@@ -210,7 +210,7 @@ int EV_DoPlat
       
     // Create a thinker
     rtn = 1;
-    plat = Z_Malloc( sizeof(*plat), PU_LEVSPEC, 0);
+    plat = arena_alloc(thinkers, 1, plat_t);
     P_AddThinker(&plat->thinker);
               
     plat->type = type;
