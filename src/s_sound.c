@@ -51,6 +51,7 @@ typedef struct channel_s
     ambient_t *ambient;   // Ambient sound source using this channel.
     int close_dist;       // Sounds at or under this distance are full volume.
     int clipping_dist;    // Sounds at or over this distance are zero volume.
+    int keep_alive_dist;  // Additional distance allowed for zero-volume sounds.
     int volume_scale;     // volume scale value for effect -- haleyjd 05/29/06
     int handle;           // handle of the sound being played
     int o_priority;       // haleyjd 09/27/06: stored priority value
@@ -471,6 +472,7 @@ static boolean StartSoundEx(const mobj_t *origin, int sfx_id,
     {
         params.close_dist = S_CLOSE_DIST;
         params.clipping_dist = S_CLIPPING_DIST;
+        params.keep_alive_dist = 0;
         params.volume_scale = 127;
     }
 
@@ -523,6 +525,7 @@ static boolean StartSoundEx(const mobj_t *origin, int sfx_id,
         channels[cnum].ambient = ambient;
         channels[cnum].close_dist = params.close_dist;
         channels[cnum].clipping_dist = params.clipping_dist;
+        channels[cnum].keep_alive_dist = params.keep_alive_dist;
         channels[cnum].volume_scale = params.volume_scale;
         channels[cnum].o_priority = o_priority;    // original priority
         channels[cnum].priority = params.priority; // scaled priority
@@ -869,6 +872,7 @@ void S_UpdateSounds(const mobj_t *listener)
                     sfxparams_t params;
                     params.close_dist = c->close_dist;
                     params.clipping_dist = c->clipping_dist;
+                    params.keep_alive_dist = c->keep_alive_dist;
                     params.volume_scale = c->volume_scale;
                     params.priority = c->o_priority; // haleyjd 09/27/06: priority
 

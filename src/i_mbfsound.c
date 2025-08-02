@@ -33,6 +33,17 @@
 
 static boolean force_flip_pan;
 
+static void UpdatePriority(sfxparams_t *params)
+{
+    // haleyjd 09/27/06: decrease priority with volume attenuation
+    params->priority += (127 - params->volume);
+
+    if (params->priority > 255) // cap to 255
+    {
+        params->priority = 255;
+    }
+}
+
 static boolean I_MBF_AdjustSoundParams(const mobj_t *listener,
                                        const mobj_t *source,
                                        sfxparams_t *params)
@@ -96,10 +107,16 @@ static boolean I_MBF_AdjustSoundParams(const mobj_t *listener,
     {
         return true;
     }
-
-    if (dist >= params->clipping_dist)
+    else if (dist >= params->clipping_dist + params->keep_alive_dist)
     {
         return false;
+    }
+    else if (dist >= params->clipping_dist)
+    {
+        // Special case for zero-volume sounds that are allowed to stay active.
+        params->volume = 0;
+        UpdatePriority(params);
+        return true;
     }
 
     if (source->x != players[displayplayer].mo->x
@@ -126,14 +143,7 @@ static boolean I_MBF_AdjustSoundParams(const mobj_t *listener,
                          / (params->clipping_dist - params->close_dist);
     }
 
-    // haleyjd 09/27/06: decrease priority with volume attenuation
-    params->priority += (127 - params->volume);
-
-    if (params->priority > 255) // cap to 255
-    {
-        params->priority = 255;
-    }
-
+    UpdatePriority(params);
     return (params->volume > 0);
 }
 
