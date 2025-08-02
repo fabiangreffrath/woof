@@ -560,8 +560,8 @@ void R_InitTextures (void)
   name_p = names+4;
   numpatches = nummappatches;
 
-  first_tx = W_GetNumForName("TX_START") + 1;
-  last_tx  = W_GetNumForName("TX_END") - 1;
+  first_tx = W_CheckNumForName("TX_START") + 1;
+  last_tx  = W_CheckNumForName("TX_END") - 1;
   tx_numtextures = last_tx - first_tx + 1;
 
   if (tx_numtextures > 0)
@@ -760,7 +760,6 @@ void R_InitTextures (void)
     {
       continue;
     }
-
 
     if (!(i&127))
     {
