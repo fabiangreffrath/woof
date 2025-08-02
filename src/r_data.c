@@ -532,6 +532,29 @@ byte *R_GetColumnMasked(int tex, int col)
 //  with the textures from the world map.
 //
 
+static inline void RegisterTexture(texture_t *texture, int i)
+{
+    // [crispy] initialize brightmaps
+    texturebrightmap[i] = R_BrightmapForTexName(texture->name);
+
+    // killough 4/9/98: make column offsets 32-bit;
+    // clean up malloc-ing to use sizeof
+    // killough 12/98: fix sizeofs
+    texturecolumnlump[i] =
+        Z_Malloc(texture->width * sizeof(**texturecolumnlump), PU_STATIC, 0);
+    texturecolumnofs[i] =
+        Z_Malloc(texture->width * sizeof(**texturecolumnofs), PU_STATIC, 0);
+    texturecolumnofs2[i] =
+        Z_Malloc(texture->width * sizeof(**texturecolumnofs2), PU_STATIC, 0);
+
+    int j;
+    for (j = 1; j * 2 <= texture->width; j <<= 1)
+        ;
+    texturewidthmask[i] = j - 1;
+    textureheight[i] = texture->height << FRACBITS;
+    texturewidth[i] = texture->width;
+}
+
 void R_InitTextures (void)
 {
   maptexture_t *mtexture;
@@ -705,9 +728,6 @@ void R_InitTextures (void)
       mpatch = mtexture->patches;
       patch = texture->patches;
 
-      // [crispy] initialize brightmaps
-      texturebrightmap[i] = R_BrightmapForTexName(texture->name);
-
       for (j=0 ; j<texture->patchcount ; j++, mpatch++, patch++)
         {
           short p;
@@ -733,21 +753,7 @@ void R_InitTextures (void)
             }
         }
 
-      // killough 4/9/98: make column offsets 32-bit;
-      // clean up malloc-ing to use sizeof
-      // killough 12/98: fix sizeofs
-      texturecolumnlump[i] =
-        Z_Malloc(texture->width*sizeof**texturecolumnlump, PU_STATIC,0);
-      texturecolumnofs[i] =
-        Z_Malloc(texture->width*sizeof**texturecolumnofs, PU_STATIC,0);
-      texturecolumnofs2[i] =
-        Z_Malloc(texture->width*sizeof**texturecolumnofs2, PU_STATIC,0);
-
-      for (j=1; j*2 <= texture->width; j<<=1)
-        ;
-      texturewidthmask[i] = j-1;
-      textureheight[i] = texture->height<<FRACBITS;
-      texturewidth[i] = texture->width;
+      RegisterTexture(texture, i);
     }
  
 
@@ -776,21 +782,7 @@ void R_InitTextures (void)
       texture->patches->originx = 0;
       texture->patches->originy = 0;
 
-      // [crispy] initialize brightmaps
-      texturebrightmap[i] = R_BrightmapForTexName(texture->name);
-
-      texturecolumnlump[i] =
-        Z_Malloc(texture->width*sizeof**texturecolumnlump, PU_STATIC,0);
-      texturecolumnofs[i] =
-        Z_Malloc(texture->width*sizeof**texturecolumnofs, PU_STATIC,0);
-      texturecolumnofs2[i] =
-        Z_Malloc(texture->width*sizeof**texturecolumnofs2, PU_STATIC,0);
-
-      for (j=1; j*2 <= texture->width; j<<=1)
-        ;
-      texturewidthmask[i] = j-1;
-      textureheight[i] = texture->height<<FRACBITS;
-      texturewidth[i] = texture->width;
+      RegisterTexture(texture, i);
     }
   }
 
