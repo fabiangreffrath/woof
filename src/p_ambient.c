@@ -30,6 +30,7 @@
 #include "z_zone.h"
 
 #define AMB_UPDATE_TICS 7 // 200 ms
+#define AMB_KEEP_ALIVE_DIST 330 // 23.57 mu/tic (SR50) * 2 (wallrun) * 7 tics
 
 int zmt_ambientsound = ZMT_UNDEFINED;
 
@@ -52,6 +53,7 @@ void P_GetAmbientSoundParams(ambient_t *ambient, sfxparams_t *params)
 {
     params->close_dist = ambient->data.close_dist;
     params->clipping_dist = ambient->data.clipping_dist;
+    params->stop_dist = params->clipping_dist + AMB_KEEP_ALIVE_DIST;
     params->volume_scale = ambient->data.volume_scale;
 }
 
