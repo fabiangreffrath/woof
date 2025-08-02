@@ -667,7 +667,7 @@ patch_t *V_CachePatchNum(int lump, pu_tag tag)
 {
     if (lump >= numlumps)
     {
-        I_Error("V_CachePatchNum: %d >= numlumps", lump);
+        I_Error("%d >= numlumps", lump);
     }
 
     if (lumpcache[lump])
@@ -774,7 +774,7 @@ void *V_CacheFlatNum(int lump, pu_tag tag)
 {
     if (lump >= numlumps)
     {
-        I_Error("V_CacheFlatNum: %d >= numlumps", lump);
+        I_Error("%d >= numlumps", lump);
     }
 
     if (lumpcache[lump])
@@ -831,7 +831,7 @@ int V_LumpSize(int lump)
 {
     if (lump >= numlumps)
     {
-        I_Error("V_LumpSize: %i >= numlumps", lump);
+        I_Error("%i >= numlumps", lump);
     }
 
     return lumpinfo[lump].fmt_size ? lumpinfo[lump].fmt_size

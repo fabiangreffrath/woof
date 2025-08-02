@@ -478,7 +478,7 @@ void W_InitMultipleFiles(void)
 int W_LumpLength (int lump)
 {
   if (lump >= numlumps)
-    I_Error ("W_LumpLength: %i >= numlumps",lump);
+    I_Error ("%i >= numlumps",lump);
   return lumpinfo[lump].size;
 }
 
