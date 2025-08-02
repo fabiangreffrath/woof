@@ -53,7 +53,7 @@ void P_GetAmbientSoundParams(ambient_t *ambient, sfxparams_t *params)
 {
     params->close_dist = ambient->data.close_dist;
     params->clipping_dist = ambient->data.clipping_dist;
-    params->active_dist = params->clipping_dist + AMB_KEEP_ALIVE_DIST;
+    params->stop_dist = params->clipping_dist + AMB_KEEP_ALIVE_DIST;
     params->volume_scale = ambient->data.volume_scale;
 }
 

@@ -107,7 +107,7 @@ static boolean I_MBF_AdjustSoundParams(const mobj_t *listener,
     {
         return true;
     }
-    else if (dist >= params->active_dist)
+    else if (dist >= params->stop_dist)
     {
         return false;
     }
