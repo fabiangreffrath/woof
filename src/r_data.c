@@ -671,7 +671,7 @@ void R_InitTextures (void)
       I_PutChar(VB_INFO, '\x8');
   }
 
-  // TEXTURE1 & TEXTURE2 only, TX marker below
+  // TEXTURE1 & TEXTURE2 only. TX_ markers parsed below.
   for (i=0 ; i<numtextures1 + numtextures2 ; i++, directory++)
     {
       if (!(i&127))          // killough
@@ -751,48 +751,47 @@ void R_InitTextures (void)
     }
  
 
-  // similar behavior as the TEXTURE* parser above, but using TX_ markers
-  for (i = (numtextures1 + numtextures2), k = 0;
-       i < numtextures;
-       i++, k++)
+  // TX_ marker (texture namespace) parsed here
+  if (tx_numtextures > 0)
   {
-    if (tx_numtextures <= 0)
+    for (i = (numtextures1 + numtextures2), k = 0;
+        i < numtextures;
+        i++, k++)
     {
-      continue;
+
+      if (!(i&127))
+      {
+        I_PutChar(VB_INFO, '.');
+      }
+      patch_t* tx_patch = V_CachePatchNum(first_tx + k, PU_CACHE);
+
+      texture = textures[i] = Z_Malloc(sizeof(texture_t), PU_STATIC, 0);
+
+      strcpy(texture->name, lumpinfo[first_tx + k].name);
+      texture->width = tx_patch->width;
+      texture->height = tx_patch->height;
+      texture->patchcount = 1;
+
+      texture->patches->patch = patchlookup[nummappatches + k];
+      texture->patches->originx = 0;
+      texture->patches->originy = 0;
+
+      // [crispy] initialize brightmaps
+      texturebrightmap[i] = R_BrightmapForTexName(texture->name);
+
+      texturecolumnlump[i] =
+        Z_Malloc(texture->width*sizeof**texturecolumnlump, PU_STATIC,0);
+      texturecolumnofs[i] =
+        Z_Malloc(texture->width*sizeof**texturecolumnofs, PU_STATIC,0);
+      texturecolumnofs2[i] =
+        Z_Malloc(texture->width*sizeof**texturecolumnofs2, PU_STATIC,0);
+
+      for (j=1; j*2 <= texture->width; j<<=1)
+        ;
+      texturewidthmask[i] = j-1;
+      textureheight[i] = texture->height<<FRACBITS;
+      texturewidth[i] = texture->width;
     }
-
-    if (!(i&127))
-    {
-      I_PutChar(VB_INFO, '.');
-    }
-    patch_t* tx_patch = V_CachePatchNum(first_tx + k, PU_CACHE);
-
-    texture = textures[i] = Z_Malloc(sizeof(texture_t), PU_STATIC, 0);
-
-    strcpy(texture->name, lumpinfo[first_tx + k].name);
-    texture->width = tx_patch->width;
-    texture->height = tx_patch->height;
-    texture->patchcount = 1;
-
-    texture->patches->patch = patchlookup[nummappatches + k];
-    texture->patches->originx = 0;
-    texture->patches->originy = 0;
-
-    // [crispy] initialize brightmaps
-    texturebrightmap[i] = R_BrightmapForTexName(texture->name);
-
-    texturecolumnlump[i] =
-      Z_Malloc(texture->width*sizeof**texturecolumnlump, PU_STATIC,0);
-    texturecolumnofs[i] =
-      Z_Malloc(texture->width*sizeof**texturecolumnofs, PU_STATIC,0);
-    texturecolumnofs2[i] =
-      Z_Malloc(texture->width*sizeof**texturecolumnofs2, PU_STATIC,0);
-
-    for (j=1; j*2 <= texture->width; j<<=1)
-      ;
-    texturewidthmask[i] = j-1;
-    textureheight[i] = texture->height<<FRACBITS;
-    texturewidth[i] = texture->width;
   }
 
   Z_Free(patchlookup);         // killough
