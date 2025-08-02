@@ -227,7 +227,7 @@ static boolean CalcVolumePriority(int dist, sfxparams_t *params)
     {
         return true;
     }
-    else if (dist >= params->clipping_dist + params->keep_alive_dist)
+    else if (dist >= params->active_dist)
     {
         return false;
     }
