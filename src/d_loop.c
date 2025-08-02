@@ -34,7 +34,7 @@
 #include "net_io.h"
 #include "net_loop.h"
 #include "net_query.h"
-#include "net_sdl.h"
+#include "net_netlib.h"
 #include "net_server.h"
 #include "s_sound.h"
 
@@ -460,7 +460,7 @@ boolean D_InitNetGame(net_connect_data_t *connect_data)
     {
         NET_SV_Init();
         NET_SV_AddModule(&net_loop_server_module);
-        NET_SV_AddModule(&net_sdl_module);
+        NET_SV_AddModule(&netlib_module);
         NET_SV_RegisterWithMaster();
 
         net_loop_client_module.InitClient();
@@ -502,8 +502,8 @@ boolean D_InitNetGame(net_connect_data_t *connect_data)
 
         if (i > 0)
         {
-            net_sdl_module.InitClient();
-            addr = net_sdl_module.ResolveAddress(myargv[i + 1]);
+            netlib_module.InitClient();
+            addr = netlib_module.ResolveAddress(myargv[i + 1]);
             NET_ReferenceAddress(addr);
 
             if (addr == NULL)
@@ -573,7 +573,7 @@ void D_QuitNetGame(void)
 {
     NET_SV_Shutdown();
     NET_CL_Disconnect();
-    net_sdl_module.Shutdown();
+    netlib_module.Shutdown();
 }
 
 static int GetLowTic(void)

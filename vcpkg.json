@@ -37,7 +37,6 @@
         }
       ]
     },
-    "sdl2-net",
     "yyjson"
   ],
   "features": {

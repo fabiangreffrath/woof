@@ -12,4 +12,3 @@ target_woof_settings(opl)
 target_include_directories(opl
                            INTERFACE "."
                            PRIVATE "${CMAKE_CURRENT_BINARY_DIR}/../" "../src/")
-target_link_libraries(opl)
