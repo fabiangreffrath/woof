@@ -1782,7 +1782,7 @@ void P_Init (void)
   P_InitPicAnims();
   R_InitSprites(sprnames);
   thinkers = M_InitArena(100 * 1024 * 1024);
-  msecnodes = M_InitArena(1024 * 1024);
+  msecnodes = M_InitArena(10 * 1024 * 1024);
 }
 
 //----------------------------------------------------------------------------
