@@ -159,6 +159,11 @@ static void D_GetDefaultDemoLoop(GameMode_t mode)
         case retail:
             DEH_MUSIC_LUMP(demoloop_retail[0].secondary_lump, mus_intro)
 
+            if (pwad_help2)
+            {
+                M_CopyLumpName(demoloop_retail[4].primary_lump, "HELP2");
+            }
+
             demoloop = demoloop_retail;
             demoloop_count = arrlen(demoloop_retail);
             break;

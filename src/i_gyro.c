@@ -393,7 +393,7 @@ void I_CalcGyroAxes(boolean strafe)
     {
         gyro_axes[GYRO_TURN] = !strafe ? RAD2TIC(gyro_axes[GYRO_TURN]) : 0.0f;
 
-        if (padlook)
+        if (freelook)
         {
             gyro_axes[GYRO_LOOK] = RAD2TIC(gyro_axes[GYRO_LOOK]);
 

@@ -145,7 +145,6 @@ set(WOOF_SOURCES
     v_fmt.c                v_fmt.h
     v_trans.c              v_trans.h
     v_video.c              v_video.h
-    version.c              version.h
     w_wad.c                w_wad.h
                            w_internal.h
     w_file.c
@@ -266,7 +265,6 @@ set(SETUP_SOURCES
     net_query.c             net_query.h
     net_sdl.c               net_sdl.h
     net_structrw.c          net_structrw.h
-    version.c               version.h
     z_zone.c                z_zone.h
 )
 

@@ -64,9 +64,7 @@ void MN_ForcedLoadAutoSave(const char *msg);
 void MN_ForcedLoadGame(const char *msg); // killough 5/15/98: forced loadgames
 void MN_Trans(void);     // killough 11/98: reset translucency
 void MN_SetupResetMenu(void);
-void MN_UpdateFreeLook(boolean condition);
-void MN_UpdateMouseLook(void);
-void MN_UpdatePadLook(void);
+void MN_UpdateFreeLook(void);
 void MN_UpdateAllGamepadItems(void);
 void MN_UpdateEqualizerItems(void);
 void MN_UpdateAdvancedSoundItems(boolean toggle);
@@ -98,6 +96,7 @@ void MN_SetQuickSaveSlot(int slot);
 void M_SaveAutoSave(void);
 
 void MN_InitMenuStrings(void);
+void MN_InitFreeLook(void);
 
 boolean MN_StartsWithMapIdentifier(char *str);
 

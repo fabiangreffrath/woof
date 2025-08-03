@@ -249,7 +249,7 @@ static void ScaleCamera(axes_t *ax, float *xaxis, float *yaxis)
     {
         *xaxis *= ax->x.sens + ax->extra_scale * ax->x.extra_sens;
 
-        if (padlook && I_StandardLayout())
+        if (freelook && I_StandardLayout())
         {
             *yaxis *= ax->y.sens + ax->extra_scale * ax->y.extra_sens;
         }
