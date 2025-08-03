@@ -22,7 +22,7 @@
 #include "i_timer.h"
 #include "m_argv.h"
 #include "net_common.h"
-#include "net_sdl.h"
+#include "net_netlib.h"
 #include "net_server.h"
 
 //
@@ -64,7 +64,7 @@ void NET_DedicatedServer(void)
 
     NET_OpenLog();
     NET_SV_Init();
-    NET_SV_AddModule(&net_sdl_module);
+    NET_SV_AddModule(&netlib_module);
     NET_SV_RegisterWithMaster();
 
     while (true)
