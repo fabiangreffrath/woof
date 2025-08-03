@@ -5,10 +5,10 @@
 #include "doomtype.h"
 #include "dsdhacked.h"
 #include "i_printf.h"
+#include "i_system.h"
 #include "info.h"
 #include "m_arena.h"
 #include "m_random.h"
-#include "memio.h"
 #include "p_map.h"
 #include "p_maputl.h"
 #include "p_mobj.h"
@@ -22,28 +22,56 @@
 
 typedef struct
 {
-    MEMFILE *in;
-    MEMFILE *out;
+    char *buffer;
+    char *curr_p;
+    size_t buffer_size;
     arena_copy_t *thinkers;
     arena_copy_t *msecnodes;
-    size_t size;
 } keyframe_t;
 
 static keyframe_t *current_keyframe = NULL;
 
+inline static void check_buffer(size_t size)
+{
+    ptrdiff_t offset = current_keyframe->curr_p - current_keyframe->buffer;
+
+    if (offset + size <= current_keyframe->buffer_size)
+    {
+        return;
+    }
+
+    while (offset + size > current_keyframe->buffer_size)
+    {
+        current_keyframe->buffer_size *= 2;
+    }
+
+    current_keyframe->buffer = I_Realloc(current_keyframe->buffer,
+        current_keyframe->buffer_size);
+    current_keyframe->curr_p = current_keyframe->buffer + offset;
+}
+
 inline static void write8_internal(const int8_t data[], int count)
 {
-    mem_fwrite(data, sizeof(int8_t), count, current_keyframe->in);
+    size_t offset = sizeof(int8_t) * count;
+    check_buffer(offset);
+    memcpy(current_keyframe->curr_p, data, offset);
+    current_keyframe->curr_p += offset;
 }
 
 inline static void write16_internal(const int16_t data[], int count)
 {
-    mem_fwrite(data, sizeof(int16_t), count, current_keyframe->in);
+    size_t offset = sizeof(int16_t) * count;
+    check_buffer(offset);
+    memcpy(current_keyframe->curr_p, data, offset);
+    current_keyframe->curr_p += offset;
 }
 
 inline static void write32_internal(const int32_t data[], int count)
 {
-    mem_fwrite(data, sizeof(int32_t), count, current_keyframe->in);
+    size_t offset = sizeof(int32_t) * count;
+    check_buffer(offset);
+    memcpy(current_keyframe->curr_p, data, offset);
+    current_keyframe->curr_p += offset;
 }
 
 #define write8(...)                                \
@@ -61,43 +89,45 @@ inline static void write32_internal(const int32_t data[], int count)
 inline static void writep(void *ptr)
 {
     intptr_t intptr = (intptr_t) ptr;
-    mem_fwrite(&intptr, sizeof(intptr), 1, current_keyframe->in);
+    check_buffer(sizeof(intptr_t));
+    memcpy(current_keyframe->curr_p, &intptr, sizeof(intptr_t));
+    current_keyframe->curr_p += sizeof(intptr_t);
 }
 
 inline static void writex(const void *ptr, size_t size, int count)
 {
-    mem_fwrite(ptr, size, count, current_keyframe->in);
+    size_t offset = size * count;
+    check_buffer(offset);
+    memcpy(current_keyframe->curr_p, ptr, offset);
+    current_keyframe->curr_p += offset;
 }
 
 #define MAX_PARAMS 16
 
 inline static void read8_internal(int8_t *data[], int count)
 {
-    int8_t buffer[MAX_PARAMS];
-    mem_fread(&buffer, sizeof(int8_t), count, current_keyframe->out);
     for (int i = 0; i < count; ++i)
     {
-        *data[i] = buffer[i];
+        *data[i] = *((int8_t *)current_keyframe->curr_p);
+        current_keyframe->curr_p += sizeof(int8_t);
     }
 }
 
 inline static void read16_internal(int16_t *data[], int count)
 {
-    int16_t buffer[MAX_PARAMS];
-    mem_fread(&buffer, sizeof(int16_t), count, current_keyframe->out);
     for (int i = 0; i < count; ++i)
     {
-        *data[i] = buffer[i];
+        *data[i] = *((int16_t *)current_keyframe->curr_p);
+        current_keyframe->curr_p += sizeof(int16_t);
     }
 }
 
 inline static void read32_internal(int32_t *data[], int count)
 {
-    int32_t buffer[MAX_PARAMS];
-    mem_fread(&buffer, sizeof(int32_t), count, current_keyframe->out);
     for (int i = 0; i < count; ++i)
     {
-        *data[i] = buffer[i];
+        *data[i] = *((int32_t *)current_keyframe->curr_p);
+        current_keyframe->curr_p += sizeof(int32_t);
     }
 }
 
@@ -116,13 +146,16 @@ inline static void read32_internal(int32_t *data[], int count)
 static void *readp(void)
 {
     intptr_t intptr = 0;
-    mem_fread(&intptr, sizeof(intptr), 1, current_keyframe->out);
+    memcpy(&intptr, current_keyframe->curr_p, sizeof(intptr_t));
+    current_keyframe->curr_p += sizeof(intptr_t);
     return (void *)intptr;
 }
 
 inline static void readx(void *ptr, size_t size, int count)
 {
-    mem_fread(ptr, size, count, current_keyframe->out);
+    size_t offset = size * count;
+    memcpy(ptr, current_keyframe->curr_p, offset);
+    current_keyframe->curr_p += offset;
 }
 
 static void ArchivePlayers(void)
@@ -352,7 +385,9 @@ static void UnArchiveRNG(void)
 static keyframe_t *SaveKeyFrame(void)
 {
     keyframe_t *keyframe = calloc(1, sizeof(*current_keyframe));
-    keyframe->in = mem_fopen_write();
+    keyframe->buffer_size = 1024 * 1024;
+    keyframe->buffer = malloc(keyframe->buffer_size);
+    keyframe->curr_p = keyframe->buffer;
 
     current_keyframe = keyframe;
 
@@ -370,10 +405,7 @@ static keyframe_t *SaveKeyFrame(void)
 
 static void LoadKeyFrame(keyframe_t *keyframe)
 {
-    void *buffer;
-    size_t lenght;
-    mem_get_buf(keyframe->in, &buffer, &lenght);    
-    keyframe->out = mem_fopen_read(buffer, lenght);
+    keyframe->curr_p = keyframe->buffer;
 
     current_keyframe = keyframe;
 
@@ -393,13 +425,9 @@ static void LoadKeyFrame(keyframe_t *keyframe)
 
 static void FreeKeyFrame(keyframe_t *keyframe)
 {
-    if (keyframe->out)
+    if (keyframe->buffer)
     {
-        mem_fclose(keyframe->out);
-    }
-    if (keyframe->in)
-    {
-        mem_fclose(keyframe->in);
+        free(keyframe->buffer);
     }
     if (keyframe->thinkers)
     {
