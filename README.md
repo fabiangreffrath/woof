@@ -90,7 +90,6 @@ The following build system and libraries need to be installed:
  
  * [CMake](https://cmake.org) (>= 3.15)
  * [SDL2](https://github.com/libsdl-org/SDL/tree/SDL2) (>= 2.0.18)
- * [SDL2_net](https://github.com/libsdl-org/SDL_net)
  * [openal-soft](https://github.com/kcat/openal-soft) (>= 1.22.0 for PC Speaker emulation)
  * [libsndfile](https://github.com/libsndfile/libsndfile) (>= 1.1.0 for MPEG support)
  * [libebur128](https://github.com/jiixyj/libebur128) (>= 1.2.0)
@@ -226,7 +225,7 @@ Copyright:
  © 2017 Shannon Freeman.  
 License: [MIT](https://github.com/sneakernets/DMXOPL/blob/DMXOPL3/LICENSE)
 
-Files: `cmake/FindSDL2.cmake, cmake/FindSDL2_net.cmake`  
+Files: `cmake/FindSDL2.cmake`  
 Copyright:  
  © 2018 Alex Mayfield.  
 License: [BSD-3-Clause](https://opensource.org/licenses/BSD-3-Clause)
@@ -259,6 +258,12 @@ Copyright:
  © 2002-2004 The DOSBox Team;  
  © 2005-2017 Simon Howard.  
 License: [GPL-2.0+](https://www.gnu.org/licenses/old-licenses/gpl-2.0.html)
+
+Files: `netlib/*`  
+Copyright:  
+ © 1997-2025 Sam Lantinga;  
+ © 2012 Simeon Maxein.    
+License: [zlib](https://opensource.org/license/zlib)
 
 Files: `third-party/md5/*`  
 License: public-domain
