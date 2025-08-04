@@ -2534,7 +2534,7 @@ static void DoSaveGame(char *name)
   // save lump name for current MUSINFO item
   saveg_grow(8);
   if (musinfo.current_item > 0)
-    memcpy(save_p, lumpinfo[musinfo.current_item].name, 8);
+    M_CopyLumpName((char*)save_p, lumpinfo[musinfo.current_item].name);
   else
     memset(save_p, 0, 8);
   save_p += 8;
