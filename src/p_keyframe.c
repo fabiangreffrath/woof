@@ -17,7 +17,6 @@
 #include "doomstat.h"
 #include "doomtype.h"
 #include "dsdhacked.h"
-#include "i_printf.h"
 #include "i_system.h"
 #include "info.h"
 #include "m_arena.h"
@@ -31,6 +30,7 @@
 #include "r_defs.h"
 #include "r_state.h"
 
+#include <stddef.h>
 #include <stdint.h>
 #include <string.h>
 
@@ -88,6 +88,22 @@ inline static void write32_internal(const int32_t data[], int count)
     curr_p += offset;
 }
 
+inline static void writep_internal(const void *data[], int count)
+{
+    size_t offset = sizeof(void *) * count;
+    check_buffer(offset);
+    memcpy(curr_p, data, offset);
+    curr_p += offset;
+}
+
+inline static void writex(const void *ptr, size_t size, int count)
+{
+    size_t offset = size * count;
+    check_buffer(offset);
+    memcpy(curr_p, ptr, offset);
+    curr_p += offset;
+}
+
 #define write8(...)                                \
     write8_internal((const int8_t[]){__VA_ARGS__}, \
                     sizeof((const int8_t[]){__VA_ARGS__}) / sizeof(int8_t))
@@ -100,67 +116,37 @@ inline static void write32_internal(const int32_t data[], int count)
     write32_internal((const int32_t[]){__VA_ARGS__}, \
                      sizeof((const int32_t[]){__VA_ARGS__}) / sizeof(int32_t))
 
-inline static void writep(void *ptr)
+#define writep(...)                                \
+    writep_internal((const void *[]){__VA_ARGS__}, \
+                     sizeof((const void *[]){__VA_ARGS__}) / sizeof(void *))
+
+inline static int8_t read8(void)
 {
-    intptr_t intptr = (intptr_t) ptr;
-    check_buffer(sizeof(intptr_t));
-    memcpy(curr_p, &intptr, sizeof(intptr_t));
+    int8_t result = *((int8_t *)curr_p);
+    curr_p += sizeof(int8_t);
+    return result;
+}
+
+inline static int16_t read16(void)
+{
+    int16_t result = *((int16_t *)curr_p);
+    curr_p += sizeof(int16_t);
+    return result;
+}
+
+inline static int32_t read32(void)
+{
+    int32_t result = *((int32_t *)curr_p);
+    curr_p += sizeof(int32_t);
+    return result;
+}
+
+inline static void *readp(void)
+{
+    intptr_t result = 0;
+    memcpy(&result, curr_p, sizeof(intptr_t));
     curr_p += sizeof(intptr_t);
-}
-
-inline static void writex(const void *ptr, size_t size, int count)
-{
-    size_t offset = size * count;
-    check_buffer(offset);
-    memcpy(curr_p, ptr, offset);
-    curr_p += offset;
-}
-
-inline static void read8_internal(int8_t *data[], int count)
-{
-    for (int i = 0; i < count; ++i)
-    {
-        *data[i] = *((int8_t *)curr_p);
-        curr_p += sizeof(int8_t);
-    }
-}
-
-inline static void read16_internal(int16_t *data[], int count)
-{
-    for (int i = 0; i < count; ++i)
-    {
-        *data[i] = *((int16_t *)curr_p);
-        curr_p += sizeof(int16_t);
-    }
-}
-
-inline static void read32_internal(int32_t *data[], int count)
-{
-    for (int i = 0; i < count; ++i)
-    {
-        *data[i] = *((int32_t *)curr_p);
-        curr_p += sizeof(int32_t);
-    }
-}
-
-#define read8(...)                            \
-    read8_internal((int8_t *[]){__VA_ARGS__}, \
-                   sizeof((int8_t *[]){__VA_ARGS__}) / sizeof(int8_t *))
-
-#define read16(...)                             \
-    read16_internal((int16_t *[]){__VA_ARGS__}, \
-                    sizeof((int16_t *[]){__VA_ARGS__}) / sizeof(int16_t *))
-
-#define read32(...)                             \
-    read32_internal((int32_t *[]){__VA_ARGS__}, \
-                    sizeof((int32_t *[]){__VA_ARGS__}) / sizeof(int32_t *))
-
-static void *readp(void)
-{
-    intptr_t intptr = 0;
-    memcpy(&intptr, curr_p, sizeof(intptr_t));
-    curr_p += sizeof(intptr_t);
-    return (void *)intptr;
+    return (void *)result;
 }
 
 inline static void readx(void *ptr, size_t size, int count)
@@ -219,11 +205,11 @@ static void ArchiveWorld(void)
                 sec->tag);    // needed?   need them -- killough 
 
         // Woof!
-        writep(sec->soundtarget);
-        writep(sec->thinglist);
-        writep(sec->floordata);
-        writep(sec->ceilingdata);
-        writep(sec->lightingdata);
+        writep(sec->soundtarget,
+               sec->thinglist,
+               sec->floordata,
+               sec->ceilingdata,
+               sec->lightingdata);
     }
 
     // do lines
@@ -238,8 +224,8 @@ static void ArchiveWorld(void)
                 li->backmusic);
 
         // Woof!
-        writep(li->frontsector);
-        writep(li->backsector);
+        writep(li->frontsector,
+               li->backsector);
 
         for (int j = 0; j < 2; j++)
         {
@@ -268,20 +254,20 @@ static void UnArchiveWorld(void)
     // do sectors
     for (i = 0, sec = sectors; i < numsectors; i++, sec++)
     {
-        read32(&sec->floorheight,
-               &sec->ceilingheight,
-               &sec->floor_xoffs,
-               &sec->floor_yoffs,
-               &sec->ceiling_xoffs,
-               &sec->ceiling_yoffs,
-               (int32_t *)&sec->floor_rotation,
-               (int32_t *)&sec->ceiling_rotation);
+        sec->floorheight = read32();
+        sec->ceilingheight = read32();
+        sec->floor_xoffs = read32();
+        sec->floor_yoffs = read32();
+        sec->ceiling_xoffs = read32();
+        sec->ceiling_yoffs = read32();
+        sec->floor_rotation = read32();
+        sec->ceiling_rotation = read32();
 
-        read16(&sec->floorpic,
-               &sec->ceilingpic,
-               &sec->lightlevel,
-               &sec->special,
-               &sec->tag);
+        sec->floorpic = read16();
+        sec->ceilingpic = read16();
+        sec->lightlevel = read16();
+        sec->special = read16();
+        sec->tag = read16();
 
         // Woof!
         sec->soundtarget = readp();
@@ -294,13 +280,13 @@ static void UnArchiveWorld(void)
     // do lines
     for (i = 0, li = lines; i < numlines; i++, li++)
     {
-        read16((int16_t *)&li->flags,
-               &li->special,
-               &li->tag);
+        li->flags = read16();
+        li->special = read16();
+        li->tag = read16();
         
-        read32((int32_t *)&li->angle,
-               &li->frontmusic,
-               &li->backmusic);
+        li->angle = read32();
+        li->frontmusic = read32();
+        li->backmusic = read32();
 
         // Woof!
         li->frontsector = readp();
@@ -312,12 +298,12 @@ static void UnArchiveWorld(void)
             {
                 si = &sides[li->sidenum[j]];
               
-                read16(&si->toptexture,
-                       &si->bottomtexture,
-                       &si->midtexture);
+                si->toptexture = read16();
+                si->bottomtexture = read16();
+                si->midtexture = read16();
                 
-                read32(&si->textureoffset,
-                       &si->rowoffset);
+                si->textureoffset = read32(); 
+                si->rowoffset = read32(); 
                 si->oldtextureoffset = si->textureoffset;
                 si->oldrowoffset = si->rowoffset;
             }
@@ -330,11 +316,14 @@ static void ArchivePlayState(keyframe_t *keyframe)
     writex(&thinkercap, sizeof(thinkercap), 1);
     writex(thinkerclasscap, sizeof(thinker_t), NUMTHCLASS);
     keyframe->thinkers = M_CopyArena(thinkers_arena);
+
     writep(headsecnode);
     keyframe->msecnodes = M_CopyArena(msecnodes_arena);
-    writex(&activeceilings, sizeof(*activeceilings), 1);
+
+    writep(activeceilings);
     keyframe->activeceilings = M_CopyArena(activeceilings_arena);
-    writex(&activeplats, sizeof(*activeplats), 1);
+
+    writep(activeplats);
     keyframe->activeplats = M_CopyArena(activeplats_arena);
 
     writex(blocklinks, blocklinks_size, 1);
@@ -343,12 +332,13 @@ static void ArchivePlayState(keyframe_t *keyframe)
             felldown,
             tmfloorz,
             tmceilingz);
-    writep(ceilingline);
-    writep(floorline);
-    writep(linetarget);
-    writep(sector_list);
     writex(tmbbox, sizeof(tmbbox), 1);
-    writep(blockline);
+    writep(ceilingline,
+           floorline,
+           linetarget,
+           sector_list,
+           blockline);
+
     write32(hangsolid);
 
     write32(numspechit);
@@ -358,6 +348,7 @@ static void ArchivePlayState(keyframe_t *keyframe)
             openbottom,
             openrange,
             lowfloor);
+
     writex(&trace, sizeof(trace), 1);
     write32(num_intercepts);
     writex(intercepts, sizeof(*intercepts), num_intercepts);
@@ -368,36 +359,41 @@ static void UnArchivePlayState(keyframe_t *keyframe)
     readx(&thinkercap, sizeof(thinkercap), 1);
     readx(thinkerclasscap, sizeof(thinker_t), NUMTHCLASS);
     M_RestoreArena(thinkers_arena, keyframe->thinkers);
+
     headsecnode = readp();
     M_RestoreArena(msecnodes_arena, keyframe->msecnodes);
-    readx(&activeceilings, sizeof(*activeceilings), 1);
+
+    activeceilings = readp();
     M_RestoreArena(activeceilings_arena, keyframe->activeceilings);
-    readx(&activeplats, sizeof(*activeplats), 1);
+
+    activeplats = readp();
     M_RestoreArena(activeplats_arena, keyframe->activeplats);
 
     readx(blocklinks, blocklinks_size, 1);
 
-    read32(&floatok,
-           &felldown,
-           &tmfloorz,
-           &tmceilingz);
+    floatok = read32();
+    felldown = read32();
+    tmfloorz = read32();
+    tmceilingz = read32();
+    readx(tmbbox, sizeof(tmbbox), 1);
+
     ceilingline = readp();
     floorline = readp();
     linetarget = readp();
     sector_list = readp();
-    readx(tmbbox, sizeof(tmbbox), 1);
     blockline = readp();
-    read32(&hangsolid);
+    hangsolid = read32();
 
-    read32(&numspechit);
+    numspechit = read32();
     readx(spechit, sizeof(*spechit), numspechit);
 
-    read32(&opentop,
-           &openbottom,
-           &openrange,
-           &lowfloor);
+    opentop = read32();
+    openbottom = read32();
+    openrange = read32();
+    lowfloor = read32();
+
     readx(&trace, sizeof(trace), 1);
-    read32(&num_intercepts);
+    num_intercepts = read32();
     readx(intercepts, sizeof(*intercepts), num_intercepts);
 
     setmobjstate_recursion = 0;
@@ -438,9 +434,7 @@ static void LoadKeyFrame(keyframe_t *keyframe)
 {
     curr_p = keyframe->buffer;
 
-    int8_t data = 0;
-    read8(&data);
-    basetic = gametic - data;
+    basetic = gametic - read8();
 
     P_MapStart();
     UnArchivePlayers();
