@@ -209,7 +209,8 @@ static void ArchiveWorld(void)
                sec->thinglist,
                sec->floordata,
                sec->ceilingdata,
-               sec->lightingdata);
+               sec->lightingdata,
+               sec->touching_thinglist);
     }
 
     // do lines
@@ -275,6 +276,7 @@ static void UnArchiveWorld(void)
         sec->floordata = readp();
         sec->ceilingdata = readp();
         sec->lightingdata = readp();
+        sec->touching_thinglist = readp();
     }
 
     // do lines

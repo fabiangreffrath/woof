@@ -98,8 +98,8 @@ boolean I_ReleaseRegion(void *ptr, size_t size)
 #ifdef _WIN32
     return VirtualFree(ptr, 0, MEM_RELEASE);
 #else
-    size_t page_size = get_page_size();
-    size_t rounded_size = round_up(size, page_size);
+    size_t page_size = I_GetPageSize();
+    size_t rounded_size = RoundUp(size, page_size);
     return munmap(ptr, rounded_size) == 0;
 #endif
 }
