@@ -55,7 +55,6 @@ set(WOOF_SOURCES
     i_sound.c              i_sound.h
     i_system.c             i_system.h
     i_timer.c              i_timer.h
-    i_region.c             i_region.h
     i_video.c              i_video.h
     info.c                 info.h
     m_argv.c               m_argv.h
