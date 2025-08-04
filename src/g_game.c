@@ -2708,12 +2708,13 @@ static boolean DoLoadGame(boolean do_load_autosave)
   idmusnum = *(signed char *) save_p++;
 
   /* cph 2001/05/23 - Must read options before we set up the level */
+  byte *temp_p;
   if (mbf21)
-    G_ReadOptionsMBF21(save_p);
+    temp_p = G_ReadOptionsMBF21(save_p);
   else
-    G_ReadOptions(save_p);
+    temp_p = G_ReadOptions(save_p);
 
-  LoadCustomSkillOptions(save_p);
+  LoadCustomSkillOptions(temp_p);
 
   // load a base level
   G_InitNew(gameskill, gameepisode, gamemap);
