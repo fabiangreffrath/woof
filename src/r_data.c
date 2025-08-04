@@ -724,7 +724,7 @@ void R_InitTextures (void)
       texture->height = SHORT(mtexture->height);
       texture->patchcount = SHORT(mtexture->patchcount);
 
-      memcpy(texture->name, mtexture->name, sizeof(texture->name));
+      M_CopyLumpName(texture->name, mtexture->name);
       mpatch = mtexture->patches;
       patch = texture->patches;
 
