@@ -724,7 +724,7 @@ void R_InitTextures (void)
       texture->height = SHORT(mtexture->height);
       texture->patchcount = SHORT(mtexture->patchcount);
 
-      memcpy(texture->name, mtexture->name, sizeof(texture->name));
+      M_CopyLumpName(texture->name, mtexture->name);
       mpatch = mtexture->patches;
       patch = texture->patches;
 
@@ -773,7 +773,7 @@ void R_InitTextures (void)
 
       texture = textures[i] = Z_Malloc(sizeof(texture_t), PU_STATIC, 0);
 
-      strcpy(texture->name, lumpinfo[first_tx + k].name);
+      M_CopyLumpName(texture->name, lumpinfo[first_tx + k].name);
       texture->width = tx_patch->width;
       texture->height = tx_patch->height;
       texture->patchcount = 1;
