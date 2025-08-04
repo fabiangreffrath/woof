@@ -22,6 +22,7 @@
 #include "d_think.h"
 #include "doomdef.h"
 #include "doomtype.h"
+#include "m_arena.h"
 #include "m_fixed.h"
 
 struct line_s;
@@ -759,8 +760,10 @@ extern  int levelTimeCount;
 extern button_t buttonlist[MAXBUTTONS];
 
 extern platlist_t *activeplats;        // killough 2/14/98
+extern struct arena_s *activeplats_arena;
 
 extern ceilinglist_t *activeceilings;  // jff 2/22/98
+extern struct arena_s *activeceilings_arena;
 
 ////////////////////////////////////////////////////////////////
 //

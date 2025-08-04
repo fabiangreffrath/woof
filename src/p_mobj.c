@@ -774,14 +774,14 @@ void P_MobjThinker (mobj_t* mobj)
     {
       P_XYMovement(mobj);
       mobj->intflags &= ~MIF_SCROLLING;
-      if (mobj->thinker.function.p1 == (actionf_p1)P_RemoveThinkerDelayed) // killough
+      if (mobj->thinker.function.p1 == (actionf_p1)P_RemoveMobjThinkerDelayed) // killough
 	return;       // mobj was removed
     }
 
   if (mobj->z != mobj->floorz || mobj->momz)
     {
       P_ZMovement(mobj);
-      if (mobj->thinker.function.p1 == (actionf_p1)P_RemoveThinkerDelayed) // killough
+      if (mobj->thinker.function.p1 == (actionf_p1)P_RemoveMobjThinkerDelayed) // killough
 	return;       // mobj was removed
     }
   else
@@ -843,7 +843,7 @@ void P_MobjThinker (mobj_t* mobj)
 
 mobj_t *P_SpawnMobj(fixed_t x, fixed_t y, fixed_t z, mobjtype_t type)
 {
-  mobj_t *mobj = arena_alloc(thinkers, 1, mobj_t);
+  mobj_t *mobj = arena_alloc(thinkers_arena, 1, mobj_t);
   mobjinfo_t *info = &mobjinfo[type];
   state_t    *st;
 
@@ -992,7 +992,7 @@ void P_RemoveMobj (mobj_t *mobj)
 
   // free block
 
-  P_RemoveThinker(&mobj->thinker);
+  P_RemoveMobjThinker(&mobj->thinker);
 }
 
 // Certain functions assume that a mobj_t pointer is non-NULL,

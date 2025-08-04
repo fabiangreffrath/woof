@@ -19,6 +19,7 @@
 
 #include "d_think.h"
 #include "doomstat.h"
+#include "m_arena.h"
 #include "m_fixed.h"
 #include "p_mobj.h"
 #include "p_spec.h"
@@ -31,6 +32,8 @@
 
 // the list of ceilings moving currently, including crushers
 ceilinglist_t *activeceilings;
+
+arena_t *activeceilings_arena;
 
 /////////////////////////////////////////////////////////////////
 //
@@ -270,7 +273,7 @@ int EV_DoCeiling
   
     // create a new ceiling thinker
     rtn = 1;
-    ceiling = arena_alloc(thinkers, 1, ceiling_t);
+    ceiling = arena_alloc(thinkers_arena, 1, ceiling_t);
     P_AddThinker (&ceiling->thinker);
     sec->ceilingdata = ceiling;               //jff 2/22/98
     ceiling->thinker.function.p1 = (actionf_p1)T_MoveCeiling;
@@ -412,7 +415,7 @@ int EV_CeilingCrushStop(line_t* line)
 //
 void P_AddActiveCeiling(ceiling_t* ceiling)
 {
-  ceilinglist_t *list = Z_Malloc(sizeof *list, PU_STATIC, 0);
+  ceilinglist_t *list = arena_alloc(activeceilings_arena, 1, ceilinglist_t);
   list->ceiling = ceiling;
   ceiling->list = list;
   if ((list->next = activeceilings))
@@ -436,7 +439,7 @@ void P_RemoveActiveCeiling(ceiling_t* ceiling)
   P_RemoveThinker(&ceiling->thinker);
   if ((*list->prev = list->next))
     list->next->prev = list->prev;
-  Z_Free(list);
+  //arena_free(activeceilings_arena, list);
 }
 
 //
@@ -451,9 +454,9 @@ void P_RemoveAllActiveCeilings(void)
   while (activeceilings)
   {  
     ceilinglist_t *next = activeceilings->next;
-    Z_Free(activeceilings);
     activeceilings = next;
   }
+  M_ClearArena(activeceilings_arena);
 }
 
 //----------------------------------------------------------------------------

@@ -1,5 +1,18 @@
+//
+// Copyright(C) 2025 Roman Fomin
+//
+// This program is free software; you can redistribute it and/or
+// modify it under the terms of the GNU General Public License
+// as published by the Free Software Foundation; either version 2
+// of the License, or (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
 
 #include "d_player.h"
+#include "d_think.h"
 #include "doomdef.h"
 #include "doomstat.h"
 #include "doomtype.h"
@@ -13,6 +26,7 @@
 #include "p_maputl.h"
 #include "p_mobj.h"
 #include "p_setup.h"
+#include "p_spec.h"
 #include "p_tick.h"
 #include "r_defs.h"
 #include "r_state.h"
@@ -23,55 +37,55 @@
 typedef struct
 {
     char *buffer;
-    char *curr_p;
-    size_t buffer_size;
     arena_copy_t *thinkers;
     arena_copy_t *msecnodes;
+    arena_copy_t *activeceilings;
+    arena_copy_t *activeplats;
 } keyframe_t;
 
-static keyframe_t *current_keyframe = NULL;
+static char *buffer, *curr_p;
+static size_t buffer_size;
 
 inline static void check_buffer(size_t size)
 {
-    ptrdiff_t offset = current_keyframe->curr_p - current_keyframe->buffer;
+    ptrdiff_t offset = curr_p - buffer;
 
-    if (offset + size <= current_keyframe->buffer_size)
+    if (offset + size <= buffer_size)
     {
         return;
     }
 
-    while (offset + size > current_keyframe->buffer_size)
+    while (offset + size > buffer_size)
     {
-        current_keyframe->buffer_size *= 2;
+        buffer_size *= 2;
     }
 
-    current_keyframe->buffer = I_Realloc(current_keyframe->buffer,
-        current_keyframe->buffer_size);
-    current_keyframe->curr_p = current_keyframe->buffer + offset;
+    buffer = I_Realloc(buffer, buffer_size);
+    curr_p = buffer + offset;
 }
 
 inline static void write8_internal(const int8_t data[], int count)
 {
     size_t offset = sizeof(int8_t) * count;
     check_buffer(offset);
-    memcpy(current_keyframe->curr_p, data, offset);
-    current_keyframe->curr_p += offset;
+    memcpy(curr_p, data, offset);
+    curr_p += offset;
 }
 
 inline static void write16_internal(const int16_t data[], int count)
 {
     size_t offset = sizeof(int16_t) * count;
     check_buffer(offset);
-    memcpy(current_keyframe->curr_p, data, offset);
-    current_keyframe->curr_p += offset;
+    memcpy(curr_p, data, offset);
+    curr_p += offset;
 }
 
 inline static void write32_internal(const int32_t data[], int count)
 {
     size_t offset = sizeof(int32_t) * count;
     check_buffer(offset);
-    memcpy(current_keyframe->curr_p, data, offset);
-    current_keyframe->curr_p += offset;
+    memcpy(curr_p, data, offset);
+    curr_p += offset;
 }
 
 #define write8(...)                                \
@@ -90,26 +104,24 @@ inline static void writep(void *ptr)
 {
     intptr_t intptr = (intptr_t) ptr;
     check_buffer(sizeof(intptr_t));
-    memcpy(current_keyframe->curr_p, &intptr, sizeof(intptr_t));
-    current_keyframe->curr_p += sizeof(intptr_t);
+    memcpy(curr_p, &intptr, sizeof(intptr_t));
+    curr_p += sizeof(intptr_t);
 }
 
 inline static void writex(const void *ptr, size_t size, int count)
 {
     size_t offset = size * count;
     check_buffer(offset);
-    memcpy(current_keyframe->curr_p, ptr, offset);
-    current_keyframe->curr_p += offset;
+    memcpy(curr_p, ptr, offset);
+    curr_p += offset;
 }
-
-#define MAX_PARAMS 16
 
 inline static void read8_internal(int8_t *data[], int count)
 {
     for (int i = 0; i < count; ++i)
     {
-        *data[i] = *((int8_t *)current_keyframe->curr_p);
-        current_keyframe->curr_p += sizeof(int8_t);
+        *data[i] = *((int8_t *)curr_p);
+        curr_p += sizeof(int8_t);
     }
 }
 
@@ -117,8 +129,8 @@ inline static void read16_internal(int16_t *data[], int count)
 {
     for (int i = 0; i < count; ++i)
     {
-        *data[i] = *((int16_t *)current_keyframe->curr_p);
-        current_keyframe->curr_p += sizeof(int16_t);
+        *data[i] = *((int16_t *)curr_p);
+        curr_p += sizeof(int16_t);
     }
 }
 
@@ -126,8 +138,8 @@ inline static void read32_internal(int32_t *data[], int count)
 {
     for (int i = 0; i < count; ++i)
     {
-        *data[i] = *((int32_t *)current_keyframe->curr_p);
-        current_keyframe->curr_p += sizeof(int32_t);
+        *data[i] = *((int32_t *)curr_p);
+        curr_p += sizeof(int32_t);
     }
 }
 
@@ -146,16 +158,16 @@ inline static void read32_internal(int32_t *data[], int count)
 static void *readp(void)
 {
     intptr_t intptr = 0;
-    memcpy(&intptr, current_keyframe->curr_p, sizeof(intptr_t));
-    current_keyframe->curr_p += sizeof(intptr_t);
+    memcpy(&intptr, curr_p, sizeof(intptr_t));
+    curr_p += sizeof(intptr_t);
     return (void *)intptr;
 }
 
 inline static void readx(void *ptr, size_t size, int count)
 {
     size_t offset = size * count;
-    memcpy(ptr, current_keyframe->curr_p, offset);
-    current_keyframe->curr_p += offset;
+    memcpy(ptr, curr_p, offset);
+    curr_p += offset;
 }
 
 static void ArchivePlayers(void)
@@ -207,7 +219,11 @@ static void ArchiveWorld(void)
                 sec->tag);    // needed?   need them -- killough 
 
         // Woof!
+        writep(sec->soundtarget);
         writep(sec->thinglist);
+        writep(sec->floordata);
+        writep(sec->ceilingdata);
+        writep(sec->lightingdata);
     }
 
     // do lines
@@ -268,7 +284,11 @@ static void UnArchiveWorld(void)
                &sec->tag);
 
         // Woof!
+        sec->soundtarget = readp();
         sec->thinglist = readp();
+        sec->floordata = readp();
+        sec->ceilingdata = readp();
+        sec->lightingdata = readp();
     }
 
     // do lines
@@ -305,11 +325,18 @@ static void UnArchiveWorld(void)
     }
 }
 
-static void ArchiveThinkers()
+static void ArchivePlayState(keyframe_t *keyframe)
 {
     writex(&thinkercap, sizeof(thinkercap), 1);
-    current_keyframe->thinkers = M_CopyArena(thinkers);
-    current_keyframe->msecnodes = M_CopyArena(msecnodes);
+    writex(thinkerclasscap, sizeof(thinker_t), NUMTHCLASS);
+    keyframe->thinkers = M_CopyArena(thinkers_arena);
+    writep(headsecnode);
+    keyframe->msecnodes = M_CopyArena(msecnodes_arena);
+    writex(&activeceilings, sizeof(*activeceilings), 1);
+    keyframe->activeceilings = M_CopyArena(activeceilings_arena);
+    writex(&activeplats, sizeof(*activeplats), 1);
+    keyframe->activeplats = M_CopyArena(activeplats_arena);
+
     writex(blocklinks, blocklinks_size, 1);
 
     write32(floatok,
@@ -320,7 +347,6 @@ static void ArchiveThinkers()
     writep(floorline);
     writep(linetarget);
     writep(sector_list);
-    writep(headsecnode);
     writex(tmbbox, sizeof(tmbbox), 1);
     writep(blockline);
     write32(hangsolid);
@@ -337,11 +363,18 @@ static void ArchiveThinkers()
     writex(intercepts, sizeof(*intercepts), num_intercepts);
 }
 
-static void UnArchiveThinkers(void)
+static void UnArchivePlayState(keyframe_t *keyframe)
 {
     readx(&thinkercap, sizeof(thinkercap), 1);
-    M_RestoreArena(thinkers, current_keyframe->thinkers);
-    M_RestoreArena(msecnodes, current_keyframe->msecnodes);
+    readx(thinkerclasscap, sizeof(thinker_t), NUMTHCLASS);
+    M_RestoreArena(thinkers_arena, keyframe->thinkers);
+    headsecnode = readp();
+    M_RestoreArena(msecnodes_arena, keyframe->msecnodes);
+    readx(&activeceilings, sizeof(*activeceilings), 1);
+    M_RestoreArena(activeceilings_arena, keyframe->activeceilings);
+    readx(&activeplats, sizeof(*activeplats), 1);
+    M_RestoreArena(activeplats_arena, keyframe->activeplats);
+
     readx(blocklinks, blocklinks_size, 1);
 
     read32(&floatok,
@@ -352,7 +385,6 @@ static void UnArchiveThinkers(void)
     floorline = readp();
     linetarget = readp();
     sector_list = readp();
-    headsecnode = readp();
     readx(tmbbox, sizeof(tmbbox), 1);
     blockline = readp();
     read32(&hangsolid);
@@ -384,30 +416,27 @@ static void UnArchiveRNG(void)
 
 static keyframe_t *SaveKeyFrame(void)
 {
-    keyframe_t *keyframe = calloc(1, sizeof(*current_keyframe));
-    keyframe->buffer_size = 1024 * 1024;
-    keyframe->buffer = malloc(keyframe->buffer_size);
-    keyframe->curr_p = keyframe->buffer;
+    keyframe_t *keyframe = calloc(1, sizeof(*keyframe));
 
-    current_keyframe = keyframe;
+    buffer_size = 1024 * 1024;
+    buffer = malloc(buffer_size);
+    curr_p = buffer;
 
     write8((gametic - basetic) & 255);
 
     ArchivePlayers();
     ArchiveWorld();
-    ArchiveThinkers();
+    ArchivePlayState(keyframe);
     ArchiveRNG();
 
-    current_keyframe = NULL;
+    keyframe->buffer = buffer;
 
     return keyframe;
 }
 
 static void LoadKeyFrame(keyframe_t *keyframe)
 {
-    keyframe->curr_p = keyframe->buffer;
-
-    current_keyframe = keyframe;
+    curr_p = keyframe->buffer;
 
     int8_t data = 0;
     read8(&data);
@@ -416,11 +445,9 @@ static void LoadKeyFrame(keyframe_t *keyframe)
     P_MapStart();
     UnArchivePlayers();
     UnArchiveWorld();
-    UnArchiveThinkers();
+    UnArchivePlayState(keyframe);
     UnArchiveRNG();
     P_MapEnd();
-
-    current_keyframe = NULL;
 }
 
 static void FreeKeyFrame(keyframe_t *keyframe)

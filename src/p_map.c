@@ -93,7 +93,7 @@ int numspechit;
 // Temporary holder for thing_sectorlist threads
 msecnode_t *sector_list = NULL;                             // phares 3/16/98
 
-arena_t *msecnodes;
+arena_t *msecnodes_arena;
 
 //
 // TELEPORT MOVE
@@ -2193,7 +2193,7 @@ static msecnode_t *P_GetSecnode(void)
 
   return headsecnode ?
     node = headsecnode, headsecnode = node->m_snext, node :
-    arena_alloc(msecnodes, 1, msecnode_t);
+    arena_alloc(msecnodes_arena, 1, msecnode_t);
 }
 
 // P_PutSecnode() returns a node to the freelist.

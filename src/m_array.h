@@ -104,24 +104,10 @@ inline static void array_clear(const void *v)
 
 #define array_delete(v, i) array_delete_n(v, i, 1)
 
-#define array_copy(to, from)                                           \
-    do                                                                 \
-    {                                                                  \
-        if (from)                                                      \
-        {                                                              \
-            if (array_capacity(to) <= array_ptr(from)->size)           \
-            {                                                          \
-                array_grow(to, array_ptr(from)->size);                 \
-            }                                                          \
-            memcpy(to, from, array_ptr(from)->size * sizeof(*(from))); \
-            array_ptr(to)->size = array_ptr(from)->size;               \
-        }                                                              \
-    } while (0)
-
 #define array_free(v)                     \
     do                                    \
     {                                     \
-        if (v)                            \
+        if (array_size(v))                \
         {                                 \
             M_ARRAY_FREE(array_ptr(v));   \
             (v) = NULL;                   \

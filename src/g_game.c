@@ -3013,7 +3013,7 @@ void G_Ticker(void)
     basetic++;  // For revenant tracers and RNG -- we must maintain sync
   else
     {
-      if (gametic == 0 || gametic % 10 == 0)
+      if (gametic % TICRATE == 0)
         P_SaveKeyframe();
       
       // get commands, check consistancy, and build new consistancy check

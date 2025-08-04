@@ -19,7 +19,7 @@
 
 #include "d_think.h"
 #include "doomstat.h"
-#include "doomtype.h"
+#include "m_arena.h"
 #include "m_fixed.h"
 #include "m_random.h"
 #include "p_mobj.h"
@@ -29,9 +29,10 @@
 #include "r_state.h"
 #include "s_sound.h"
 #include "sounds.h"
-#include "z_zone.h"
 
 platlist_t *activeplats;       // killough 2/14/98: made global again
+
+arena_t *activeplats_arena;
 
 //
 // T_PlatRaise()
@@ -210,7 +211,7 @@ int EV_DoPlat
       
     // Create a thinker
     rtn = 1;
-    plat = arena_alloc(thinkers, 1, plat_t);
+    plat = arena_alloc(thinkers_arena, 1, plat_t);
     P_AddThinker(&plat->thinker);
               
     plat->type = type;
@@ -383,7 +384,7 @@ int EV_StopPlat(line_t* line)
 //
 void P_AddActivePlat(plat_t* plat)
 {
-  platlist_t *list = Z_Malloc(sizeof *list, PU_STATIC, 0);
+  platlist_t *list = arena_alloc(activeplats_arena, 1, platlist_t);
   list->plat = plat;
   plat->list = list;
   if ((list->next = activeplats))
@@ -407,7 +408,7 @@ void P_RemoveActivePlat(plat_t* plat)
   P_RemoveThinker(&plat->thinker);
   if ((*list->prev = list->next))
     list->next->prev = list->prev;
-  Z_Free(list);
+  //arena_free(activeplats_arena, list);
 }
 
 //
@@ -422,9 +423,9 @@ void P_RemoveAllActivePlats(void)
   while (activeplats)
   {  
     platlist_t *next = activeplats->next;
-    Z_Free(activeplats);
     activeplats = next;
   }
+  M_ClearArena(activeplats_arena);
 }
 
 //----------------------------------------------------------------------------

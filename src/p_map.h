@@ -99,7 +99,7 @@ extern int numspechit;
 
 extern fixed_t attackrange;
 
-extern struct arena_s *msecnodes;
+extern struct arena_s *msecnodes_arena;
 
 #endif // __P_MAP__
 

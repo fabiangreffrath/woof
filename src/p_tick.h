@@ -33,6 +33,8 @@ void P_InitThinkers(void);
 void P_AddThinker(thinker_t *thinker);
 void P_RemoveThinker(thinker_t *thinker);
 void P_RemoveThinkerDelayed(thinker_t *thinker);    // killough 4/25/98
+void P_RemoveMobjThinker(thinker_t *thinker);
+void P_RemoveMobjThinkerDelayed(thinker_t *thinker);
 
 void P_UpdateThinker(thinker_t *thinker);   // killough 8/29/98
 
@@ -51,7 +53,7 @@ extern thinker_t thinkerclasscap[];
 
 extern int init_thinkers_count;
 
-extern arena_t *thinkers;
+extern arena_t *thinkers_arena;
 
 #endif
 

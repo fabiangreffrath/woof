@@ -17,6 +17,7 @@
 //
 //-----------------------------------------------------------------------------
 
+#include "d_think.h"
 #include "doomdef.h"
 #include "doomstat.h"
 #include "info.h"
@@ -49,7 +50,7 @@ thinker_t thinkerclasscap[NUMTHCLASS];
 
 int init_thinkers_count = 0;
 
-arena_t *thinkers;
+arena_t *thinkers_arena;
 
 //
 // P_InitThinkers
@@ -87,7 +88,8 @@ void P_UpdateThinker(thinker_t *thinker)
    // find the class the thinker belongs to
   
    // haleyjd 07/12/03: don't use "class" as a variable name
-   int tclass = thinker->function.p1 == (actionf_p1)P_RemoveThinkerDelayed ? th_delete :
+   int tclass = (thinker->function.p1 == (actionf_p1)P_RemoveThinkerDelayed
+                 || thinker->function.p1 == (actionf_p1)P_RemoveMobjThinkerDelayed) ? th_delete :
      thinker->function.p1 == (actionf_p1)P_MobjThinker &&
      ((mobj_t *) thinker)->health > 0 && 
      (((mobj_t *) thinker)->flags & MF_COUNTKILL ||
@@ -144,18 +146,30 @@ static thinker_t *currentthinker;
 // remove it, and set currentthinker to one node preceeding it, so
 // that the next step in P_RunThinkers() will get its successor.
 //
+inline static void RemoveThinker(thinker_t *thinker)
+{
+    thinker_t *next = thinker->next;
+    (next->prev = currentthinker = thinker->prev)->next = next;
+
+    // haleyjd 6/17/08: remove from threaded list now
+    (thinker->cnext->cprev = thinker->cprev)->cnext = thinker->cnext;
+} 
+
 void P_RemoveThinkerDelayed(thinker_t *thinker)
 {
-   if(!thinker->references)
-   {
-      thinker_t *next = thinker->next;
-      (next->prev = currentthinker = thinker->prev)->next = next;
+    if (!thinker->references)
+    {
+       RemoveThinker(thinker);
+    }
+}
 
-      // haleyjd 6/17/08: remove from threaded list now
-      (thinker->cnext->cprev = thinker->cprev)->cnext = thinker->cnext;
-
-      //P_ThinkerFree(thinker);
-   }
+void P_RemoveMobjThinkerDelayed(thinker_t *thinker)
+{
+    if (!thinker->references)
+    {
+        RemoveThinker(thinker);
+        M_FreeBlock(thinkers_arena, thinker, sizeof(mobj_t));
+    }
 }
 
 //
@@ -187,6 +201,12 @@ void P_RemoveThinker(thinker_t *thinker)
    //(thinker->cnext->cprev = thinker->cprev)->cnext = thinker->cnext;
    
    // Move to th_delete class.
+   P_UpdateThinker(thinker);
+}
+
+void P_RemoveMobjThinker(thinker_t *thinker)
+{
+   thinker->function.p1 = (actionf_p1)P_RemoveMobjThinkerDelayed;
    P_UpdateThinker(thinker);
 }
 

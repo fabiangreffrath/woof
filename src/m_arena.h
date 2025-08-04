@@ -1,5 +1,5 @@
 //
-// Copyright(C) 2024 Roman Fomin
+// Copyright(C) 2025 Roman Fomin
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -24,9 +24,12 @@ typedef struct arena_s arena_t;
 
 void *M_ArenaAlloc(arena_t *arena, size_t count, size_t size, size_t align);
 
+#define arena_free(a, ptr) M_FreeBlock(a, ptr, sizeof(*(ptr)))
+
+void M_FreeBlock(arena_t *arena, void *ptr, size_t size);
+
 arena_t *M_InitArena(size_t cap);
 void M_ClearArena(arena_t *arena);
-
 
 typedef struct arena_copy_s arena_copy_t;
 

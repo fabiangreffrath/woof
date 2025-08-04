@@ -321,7 +321,7 @@ int EV_DoDoor(line_t *line, vldoor_e type)
 
       // new door thinker
       rtn = 1;
-      door = arena_alloc(thinkers, 1, vldoor_t);
+      door = arena_alloc(thinkers_arena, 1, vldoor_t);
       P_AddThinker(&door->thinker);
       sec->ceilingdata = door; //jff 2/22/98
 
@@ -556,7 +556,7 @@ int EV_VerticalDoor(line_t *line, mobj_t *thing)
     }
 
   // new door thinker
-  door = arena_alloc(thinkers, 1, vldoor_t);
+  door = arena_alloc(thinkers_arena, 1, vldoor_t);
   P_AddThinker (&door->thinker);
   sec->ceilingdata = door; //jff 2/22/98
   door->thinker.function.p1 = (actionf_p1)T_VerticalDoor;
@@ -626,7 +626,7 @@ int EV_VerticalDoor(line_t *line, mobj_t *thing)
 
 void P_SpawnDoorCloseIn30 (sector_t* sec)
 {
-  vldoor_t *door = arena_alloc(thinkers, 1, vldoor_t);
+  vldoor_t *door = arena_alloc(thinkers_arena, 1, vldoor_t);
 
   P_AddThinker (&door->thinker);
 
@@ -656,7 +656,7 @@ void P_SpawnDoorRaiseIn5Mins(sector_t *sec, int secnum)
 {
   vldoor_t* door;
 
-  door = arena_alloc(thinkers, 1, vldoor_t);
+  door = arena_alloc(thinkers_arena, 1, vldoor_t);
 
   P_AddThinker (&door->thinker);
 
