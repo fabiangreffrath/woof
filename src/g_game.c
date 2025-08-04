@@ -1710,7 +1710,7 @@ static void G_WriteLevelStat(void)
         return;
     }
 
-    strcpy(levelString, MapName(gameepisode, gamemap));
+    M_CopyLumpName(levelString, MapName(gameepisode, gamemap));
 
     FormatLevelStatTime(levelTimeString, leveltime, false);
     FormatLevelStatTime(totalTimeString, totalleveltimes + leveltime, true);
@@ -2436,7 +2436,7 @@ static uint64_t G_Signature(int sig_epi, int sig_map)
   int lump, i;
   char name[9];
   
-  strcpy(name, MapName(sig_epi, sig_map));
+  M_CopyLumpName(name, MapName(sig_epi, sig_map));
 
   lump = W_CheckNumForName(name);
 
