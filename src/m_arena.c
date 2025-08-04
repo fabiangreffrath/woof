@@ -21,8 +21,11 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "i_region.h"
 #include "i_system.h"
 #include "m_array.h"
+
+#define ARENA_CAP (512 * 1024 * 1024)
 
 typedef struct
 {
@@ -56,7 +59,24 @@ void *M_ArenaAlloc(arena_t *arena, size_t count, size_t size, size_t align)
 
     if (available < 0 || count > available / size)
     {
-        I_Error("Out of memory"); // one possible out-of-memory policy
+        ptrdiff_t buffer_size = arena->end - arena->buffer;
+        if (buffer_size * 2 > ARENA_CAP)
+        {
+            I_Error("Out of memory");
+        }
+        void *buffer = malloc(buffer_size);
+        memcpy(buffer, arena->buffer, buffer_size);
+        if (!I_DecommitRegion(arena->buffer, buffer_size))
+        {
+            I_Error("Failed to decommit region.");
+        }
+        if (!I_CommitRegion(arena->buffer, buffer_size * 2))
+        {
+            I_Error("Failed to commit region.");
+        }
+        memcpy(arena->buffer, buffer, buffer_size);
+        free(buffer);
+        arena->end = arena->buffer + buffer_size * 2;
     }
 
     void *p = arena->beg + padding;
@@ -85,7 +105,15 @@ arena_t *M_InitArena(size_t cap)
 {
     arena_t *arena = calloc(1, sizeof(*arena));
 
-    arena->buffer = malloc(cap);
+    arena->buffer = I_ReserveRegion(ARENA_CAP);
+    if (!arena->buffer)
+    {
+        I_Error("Failed to reserve region.");
+    }
+    if (!I_CommitRegion(arena->buffer, cap))
+    {
+        I_Error("Failed to commit region.");
+    }
     arena->beg = arena->buffer;
     arena->end = arena->beg + cap;
 

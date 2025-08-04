@@ -1781,10 +1781,10 @@ void P_Init (void)
   P_InitSwitchList();
   P_InitPicAnims();
   R_InitSprites(sprnames);
-  thinkers_arena = M_InitArena(128 * 1024 * 1024);
-  msecnodes_arena = M_InitArena(16 * 1024 * 1024);
-  activeceilings_arena = M_InitArena(16 * 1024 * 1024);
-  activeplats_arena = M_InitArena(16 * 1024 * 1024);
+  thinkers_arena = M_InitArena(2 * 1024 * 1024);
+  msecnodes_arena = M_InitArena(512 * 1024);
+  activeceilings_arena = M_InitArena(512 * 1024);
+  activeplats_arena = M_InitArena(512 * 1024);
 }
 
 //----------------------------------------------------------------------------
