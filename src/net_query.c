@@ -28,7 +28,7 @@
 #include "net_io.h"
 #include "net_packet.h"
 #include "net_query.h"
-#include "net_sdl.h"
+#include "net_netlib.h"
 #include "net_structrw.h"
 
 // DNS address of the Internet master server.
@@ -587,8 +587,8 @@ void NET_Query_Init(void)
     if (query_context == NULL)
     {
         query_context = NET_NewContext();
-        NET_AddModule(query_context, &net_sdl_module);
-        net_sdl_module.InitClient();
+        NET_AddModule(query_context, &netlib_module);
+        netlib_module.InitClient();
     }
 
     free(targets);

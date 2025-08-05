@@ -27,6 +27,7 @@ typedef struct sfxparams_s
 {
   int close_dist;
   int clipping_dist;
+  int stop_dist;
   int volume_scale;
   int volume;
   int separation;

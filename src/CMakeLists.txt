@@ -92,7 +92,7 @@ set(WOOF_SOURCES
     net_loop.c             net_loop.h
     net_packet.c           net_packet.h
     net_query.c            net_query.h
-    net_sdl.c              net_sdl.h
+    net_netlib.c           net_netlib.h
     net_server.c           net_server.h
     net_structrw.c         net_structrw.h
                            p_action.h
@@ -185,13 +185,13 @@ endif()
 target_link_libraries(
     woof
     PRIVATE ${SDL2_LIBRARIES}
-            SDL2_net::SDL2_net
             OpenAL::OpenAL
             libebur128::libebur128
             SndFile::sndfile
             yyjson::yyjson
             opl
             textscreen
+            netlib
             pffft
             miniz
             spng
@@ -266,7 +266,7 @@ set(SETUP_SOURCES
     net_io.c                net_io.h
     net_packet.c            net_packet.h
     net_query.c             net_query.h
-    net_sdl.c               net_sdl.h
+    net_netlib.c            net_netlib.h
     net_structrw.c          net_structrw.h
     z_zone.c                z_zone.h
 )
@@ -284,9 +284,9 @@ target_include_directories(woof-setup PRIVATE "${CMAKE_CURRENT_BINARY_DIR}/../")
 target_link_libraries(
   woof-setup
   PRIVATE ${SDL2_LIBRARIES}
-          SDL2_net::SDL2_net
           textscreen
           setup
+          netlib
 )
 
 if(MSVC)

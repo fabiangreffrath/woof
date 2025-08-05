@@ -1711,7 +1711,7 @@ static void G_WriteLevelStat(void)
         return;
     }
 
-    strcpy(levelString, MapName(gameepisode, gamemap));
+    M_CopyLumpName(levelString, MapName(gameepisode, gamemap));
 
     FormatLevelStatTime(levelTimeString, leveltime, false);
     FormatLevelStatTime(totalTimeString, totalleveltimes + leveltime, true);
@@ -2437,7 +2437,7 @@ static uint64_t G_Signature(int sig_epi, int sig_map)
   int lump, i;
   char name[9];
   
-  strcpy(name, MapName(sig_epi, sig_map));
+  M_CopyLumpName(name, MapName(sig_epi, sig_map));
 
   lump = W_CheckNumForName(name);
 
@@ -2535,7 +2535,7 @@ static void DoSaveGame(char *name)
   // save lump name for current MUSINFO item
   saveg_grow(8);
   if (musinfo.current_item > 0)
-    memcpy(save_p, lumpinfo[musinfo.current_item].name, 8);
+    M_CopyLumpName((char*)save_p, lumpinfo[musinfo.current_item].name);
   else
     memset(save_p, 0, 8);
   save_p += 8;
@@ -2709,12 +2709,13 @@ static boolean DoLoadGame(boolean do_load_autosave)
   idmusnum = *(signed char *) save_p++;
 
   /* cph 2001/05/23 - Must read options before we set up the level */
+  byte *temp_p;
   if (mbf21)
-    G_ReadOptionsMBF21(save_p);
+    temp_p = G_ReadOptionsMBF21(save_p);
   else
-    G_ReadOptions(save_p);
+    temp_p = G_ReadOptions(save_p);
 
-  LoadCustomSkillOptions(save_p);
+  LoadCustomSkillOptions(temp_p);
 
   // load a base level
   G_InitNew(gameskill, gameepisode, gamemap);
