@@ -105,7 +105,6 @@ set(CMAKE_FIND_FRAMEWORK NEVER)
 
 # Library requirements.
 find_package(SDL2 2.0.18 REQUIRED)
-find_package(SDL2_net REQUIRED)
 find_package(OpenAL REQUIRED)
 find_package(libebur128 REQUIRED)
 find_package(SndFile 1.0.29 REQUIRED)
@@ -119,10 +118,6 @@ endif()
 
 if(OPENAL_VERSION_STRING VERSION_GREATER_EQUAL "1.22.0")
     set(HAVE_AL_BUFFER_CALLBACK TRUE)
-endif()
-
-if(NOT TARGET SDL2_net::SDL2_net)
-    add_library(SDL2_net::SDL2_net ALIAS SDL2_net::SDL2_net-static)
 endif()
 
 if(SndFile_VERSION VERSION_GREATER_EQUAL "1.1.0")
@@ -270,3 +265,4 @@ add_subdirectory(src)
 add_subdirectory(setup)
 add_subdirectory(docs)
 add_subdirectory(man)
+add_subdirectory(netlib)

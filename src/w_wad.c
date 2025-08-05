@@ -101,6 +101,7 @@ static struct
 } subdirs[] = {
     {"music",     NULL,       NULL,     ns_global   },
     {"graphics",  NULL,       NULL,     ns_global   },
+    {"textures",  "TX_START", "TX_END", ns_textures },
     {"sprites",   "S_START",  "S_END",  ns_sprites  },
     {"flats",     "F_START",  "F_END",  ns_flats    },
     {"colormaps", "C_START",  "C_END",  ns_colormaps},
@@ -691,4 +692,3 @@ void W_Close(void)
 // Improve hashing algorithm
 //
 //----------------------------------------------------------------------------
-

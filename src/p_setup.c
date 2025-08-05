@@ -33,6 +33,7 @@
 #include "info.h"
 #include "m_argv.h"
 #include "m_bbox.h"
+#include "m_misc.h"
 #include "m_swap.h"
 #include "nano_bsp.h"
 #include "p_enemy.h"
@@ -1648,7 +1649,7 @@ void P_SetupLevel(int episode, int map, int playermask, skill_t skill)
   //    W_Reload ();     killough 1/31/98: W_Reload obsolete
 
   // find map name
-  strcpy(lumpname, MapName(episode, map));
+  M_CopyLumpName(lumpname, MapName(episode, map));
 
   lumpnum = W_GetNumForName(lumpname);
 

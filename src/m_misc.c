@@ -553,9 +553,14 @@ int M_snprintf(char *buf, size_t buf_len, const char *s, ...)
 
 void M_CopyLumpName(char *dest, const char *src)
 {
-    size_t len;
+    const char *p = src;
 
-    len = strnlen(src, 8);
+    while (*p && p < src + 8)
+    {
+        p++;
+    }
+
+    size_t len = p - src;
 
     if (len < 8)
     {

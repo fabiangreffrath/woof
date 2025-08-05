@@ -12,14 +12,14 @@
 // GNU General Public License for more details.
 //
 // DESCRIPTION:
-//     Networking module which uses SDL_net
+//     Networking module which uses netlib
 //
 
-#ifndef NET_SDL_H
-#define NET_SDL_H
+#ifndef NET_NETLIB_H
+#define NET_NETLIB_H
 
 #include "net_defs.h"
 
-extern net_module_t net_sdl_module;
+extern net_module_t netlib_module;
 
-#endif /* #ifndef NET_SDL_H */
+#endif /* #ifndef NET_NETLIB_H */

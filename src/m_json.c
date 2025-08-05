@@ -17,6 +17,7 @@
 #include "doomtype.h"
 #include "i_printf.h"
 #include "m_array.h"
+#include "m_misc.h"
 #include "w_wad.h"
 #include "z_zone.h"
 
@@ -63,7 +64,7 @@ json_t *JS_OpenOptions(int lumpnum, boolean comments)
         size_t line, col, chr;
         yyjson_locate_pos(string, length, err.pos, &line, &col, &chr);
         char name[9] = {0};
-        memcpy(name, lumpinfo[lumpnum].name, 8);
+        M_CopyLumpName(name, lumpinfo[lumpnum].name);
         I_Printf(VB_ERROR, "%s(%d:%d): read error: %s\n", name, (int)line,
                  (int)col, err.msg);
         return NULL;
