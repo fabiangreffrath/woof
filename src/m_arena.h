@@ -28,7 +28,7 @@ void *M_ArenaAlloc(arena_t *arena, size_t count, size_t size, size_t align);
 
 void M_FreeBlock(arena_t *arena, void *ptr, size_t size);
 
-arena_t *M_InitArena(size_t cap);
+arena_t *M_InitArena(size_t reserve, size_t commit);
 void M_ClearArena(arena_t *arena);
 
 typedef struct arena_copy_s arena_copy_t;

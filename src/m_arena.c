@@ -25,8 +25,6 @@
 #include "i_system.h"
 #include "m_array.h"
 
-#define ARENA_CAP (512 * 1024 * 1024)
-
 typedef struct
 {
     void **ptrs;
@@ -36,17 +34,18 @@ typedef struct
 struct arena_s
 {
     char *buffer;
+    size_t reserve;
 
     char *beg;
     char *end;
 
-    block_t *blocks;
+    block_t *deleted;
 };
 
 void *M_ArenaAlloc(arena_t *arena, size_t count, size_t size, size_t align)
 {
     block_t *block;
-    array_foreach(block, arena->blocks)
+    array_foreach(block, arena->deleted)
     {
         if (block->size == size && array_size(block->ptrs))
         {
@@ -60,7 +59,7 @@ void *M_ArenaAlloc(arena_t *arena, size_t count, size_t size, size_t align)
     if (available < 0 || count > available / size)
     {
         ptrdiff_t buffer_size = arena->end - arena->buffer;
-        if (buffer_size * 2 > ARENA_CAP)
+        if (buffer_size * 2 > arena->reserve)
         {
             I_Error("Out of memory");
         }
@@ -87,7 +86,7 @@ void *M_ArenaAlloc(arena_t *arena, size_t count, size_t size, size_t align)
 void M_FreeBlock(arena_t *arena, void *ptr, size_t size)
 {
     block_t *block;
-    array_foreach(block, arena->blocks)
+    array_foreach(block, arena->deleted)
     {
         if (block->size == size)
         {
@@ -98,24 +97,25 @@ void M_FreeBlock(arena_t *arena, void *ptr, size_t size)
 
     block_t new_block = {.ptrs = NULL, .size = size};
     array_push(new_block.ptrs, ptr);
-    array_push(arena->blocks, new_block);
+    array_push(arena->deleted, new_block);
 }
 
-arena_t *M_InitArena(size_t cap)
+arena_t *M_InitArena(size_t reserve, size_t commit)
 {
     arena_t *arena = calloc(1, sizeof(*arena));
 
-    arena->buffer = I_ReserveRegion(ARENA_CAP);
+    arena->reserve = reserve;
+    arena->buffer = I_ReserveRegion(reserve);
     if (!arena->buffer)
     {
         I_Error("Failed to reserve region.");
     }
-    if (!I_CommitRegion(arena->buffer, cap))
+    if (!I_CommitRegion(arena->buffer, commit))
     {
         I_Error("Failed to commit region.");
     }
     arena->beg = arena->buffer;
-    arena->end = arena->beg + cap;
+    arena->end = arena->beg + commit;
 
     return arena;
 }
@@ -123,7 +123,7 @@ arena_t *M_InitArena(size_t cap)
 static void FreeBlocks(arena_t *arena)
 {
     block_t *block;
-    array_foreach(block, arena->blocks)
+    array_foreach(block, arena->deleted)
     {
         array_free(block->ptrs);
     }

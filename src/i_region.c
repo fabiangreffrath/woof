@@ -24,7 +24,7 @@
 #include <stdint.h>
 #include <stdlib.h>
 
-size_t I_GetPageSize(void)
+static size_t GetPageSize(void)
 {
 #ifdef _WIN32
     SYSTEM_INFO si;
@@ -53,28 +53,19 @@ static size_t RoundUp(size_t size, size_t multiple)
 
 static void AdjustToPageBoundaries(void **ptr, size_t *size, size_t page_size)
 {
-    if (*size == 0)
-    {
-        return;
-    }
-    uintptr_t uptr = (uintptr_t)*ptr;
     uintptr_t mask = page_size - 1;
-    uintptr_t start = uptr;
+    uintptr_t start = (uintptr_t)*ptr;
     uintptr_t end = start + *size;
     uintptr_t start_page = start & ~mask;
     uintptr_t end_page = (end + mask) & ~mask;
+
     *ptr = (void *)start_page;
     *size = (size_t)(end_page - start_page);
 }
 
 void *I_ReserveRegion(size_t size)
 {
-    if (size == 0)
-    {
-        return NULL;
-    }
-
-    size_t page_size = I_GetPageSize();
+    size_t page_size = GetPageSize();
     size_t rounded_size = RoundUp(size, page_size);
 
 #ifdef _WIN32
@@ -98,7 +89,7 @@ boolean I_ReleaseRegion(void *ptr, size_t size)
 #ifdef _WIN32
     return VirtualFree(ptr, 0, MEM_RELEASE);
 #else
-    size_t page_size = I_GetPageSize();
+    size_t page_size = GetPageSize();
     size_t rounded_size = RoundUp(size, page_size);
     return munmap(ptr, rounded_size) == 0;
 #endif
@@ -106,7 +97,7 @@ boolean I_ReleaseRegion(void *ptr, size_t size)
 
 boolean I_CommitRegion(void *ptr, size_t size)
 {
-    size_t page_size = I_GetPageSize();
+    size_t page_size = GetPageSize();
     void *adjusted_ptr = ptr;
     size_t adjusted_size = size;
     AdjustToPageBoundaries(&adjusted_ptr, &adjusted_size, page_size);
@@ -116,7 +107,8 @@ boolean I_CommitRegion(void *ptr, size_t size)
     }
 
 #ifdef _WIN32
-    return VirtualAlloc(adjusted_ptr, adjusted_size, MEM_COMMIT, PAGE_READWRITE) != NULL;
+    return VirtualAlloc(adjusted_ptr, adjusted_size, MEM_COMMIT, PAGE_READWRITE)
+           != NULL;
 #else
     return mprotect(adjusted_ptr, adjusted_size, PROT_READ | PROT_WRITE) == 0;
 #endif
@@ -124,7 +116,7 @@ boolean I_CommitRegion(void *ptr, size_t size)
 
 boolean I_DecommitRegion(void *ptr, size_t size)
 {
-    size_t page_size = I_GetPageSize();
+    size_t page_size = GetPageSize();
     void *adjusted_ptr = ptr;
     size_t adjusted_size = size;
     AdjustToPageBoundaries(&adjusted_ptr, &adjusted_size, page_size);

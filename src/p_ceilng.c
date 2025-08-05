@@ -439,7 +439,7 @@ void P_RemoveActiveCeiling(ceiling_t* ceiling)
   P_RemoveThinker(&ceiling->thinker);
   if ((*list->prev = list->next))
     list->next->prev = list->prev;
-  //arena_free(activeceilings_arena, list);
+  arena_free(activeceilings_arena, list);
 }
 
 //

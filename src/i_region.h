@@ -16,7 +16,6 @@
 
 #include "doomtype.h"
 
-size_t I_GetPageSize(void);
 void *I_ReserveRegion(size_t size);
 boolean I_ReleaseRegion(void *ptr, size_t size);
 boolean I_CommitRegion(void *ptr, size_t size);
