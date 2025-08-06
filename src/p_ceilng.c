@@ -276,7 +276,7 @@ int EV_DoCeiling
     ceiling = arena_alloc(thinkers_arena, 1, ceiling_t);
     P_AddThinker (&ceiling->thinker);
     sec->ceilingdata = ceiling;               //jff 2/22/98
-    ceiling->thinker.function.p1 = (actionf_p1)T_MoveCeiling;
+    ceiling->thinker.function.pt = (actionf_pt)T_MoveCeiling;
     ceiling->sector = sec;
     ceiling->crush = false;
   
@@ -370,7 +370,7 @@ int P_ActivateInStasisCeiling(line_t *line)
     if (ceiling->tag == line->tag && ceiling->direction == 0)
     {
       ceiling->direction = ceiling->olddirection;
-      ceiling->thinker.function.p1 = (actionf_p1)T_MoveCeiling;
+      ceiling->thinker.function.pt = (actionf_pt)T_MoveCeiling;
       //jff 4/5/98 return if activated
       rtn=1;
     }

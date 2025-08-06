@@ -129,14 +129,16 @@ inline static int8_t read8(void)
 
 inline static int16_t read16(void)
 {
-    int16_t result = *((int16_t *)curr_p);
+    int16_t result = 0;
+    memcpy(&result, curr_p, sizeof(int16_t));
     curr_p += sizeof(int16_t);
     return result;
 }
 
 inline static int32_t read32(void)
 {
-    int32_t result = *((int32_t *)curr_p);
+    int32_t result = 0;
+    memcpy(&result, curr_p, sizeof(int32_t));
     curr_p += sizeof(int32_t);
     return result;
 }
@@ -472,7 +474,6 @@ typedef struct elem_s
     struct elem_s *prev;
 } elem_t;
 
-// LIFO queue structure
 typedef struct
 {
     elem_t* top;

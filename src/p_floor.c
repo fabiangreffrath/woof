@@ -463,7 +463,7 @@ int EV_DoFloor
     floor = arena_alloc(thinkers_arena, 1, floormove_t);
     P_AddThinker (&floor->thinker);
     sec->floordata = floor; //jff 2/22/98
-    floor->thinker.function.p1 = (actionf_p1)T_MoveFloor;
+    floor->thinker.function.pt = (actionf_pt)T_MoveFloor;
     floor->type = floortype;
     floor->crush = false;
 
@@ -769,7 +769,7 @@ int EV_BuildStairs
     floor = arena_alloc(thinkers_arena, 1, floormove_t);
     P_AddThinker (&floor->thinker);
     sec->floordata = floor;
-    floor->thinker.function.p1 = (actionf_p1)T_MoveFloor;
+    floor->thinker.function.pt = (actionf_pt)T_MoveFloor;
     floor->direction = 1;
     floor->sector = sec;
     floor->type = buildStair;   //jff 3/31/98 do not leave uninited
@@ -852,7 +852,7 @@ int EV_BuildStairs
         P_AddThinker (&floor->thinker);
 
         sec->floordata = floor; //jff 2/22/98
-        floor->thinker.function.p1 = (actionf_p1)T_MoveFloor;
+        floor->thinker.function.pt = (actionf_pt)T_MoveFloor;
         floor->direction = 1;
         floor->sector = sec;
         floor->speed = speed;
@@ -1011,7 +1011,7 @@ int EV_DoDonut(line_t*  line)
       floor = arena_alloc(thinkers_arena, 1, floormove_t);
       P_AddThinker (&floor->thinker);
       s2->floordata = floor; //jff 2/22/98
-      floor->thinker.function.p1 = (actionf_p1)T_MoveFloor;
+      floor->thinker.function.pt = (actionf_pt)T_MoveFloor;
       floor->type = donutRaise;
       floor->crush = false;
       floor->direction = 1;
@@ -1025,7 +1025,7 @@ int EV_DoDonut(line_t*  line)
       floor = arena_alloc(thinkers_arena, 1, floormove_t);
       P_AddThinker (&floor->thinker);
       s1->floordata = floor; //jff 2/22/98
-      floor->thinker.function.p1 = (actionf_p1)T_MoveFloor;
+      floor->thinker.function.pt = (actionf_pt)T_MoveFloor;
       floor->type = lowerFloor;
       floor->crush = false;
       floor->direction = -1;
@@ -1073,7 +1073,7 @@ int EV_DoElevator
     P_AddThinker (&elevator->thinker);
     sec->floordata = elevator; //jff 2/22/98
     sec->ceilingdata = elevator; //jff 2/22/98
-    elevator->thinker.function.p1 = (actionf_p1)T_MoveElevator;
+    elevator->thinker.function.pt = (actionf_pt)T_MoveElevator;
     elevator->type = elevtype;
 
     // set up the fields according to the type of elevator action

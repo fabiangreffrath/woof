@@ -88,9 +88,9 @@ void P_UpdateThinker(thinker_t *thinker)
    // find the class the thinker belongs to
   
    // haleyjd 07/12/03: don't use "class" as a variable name
-   int tclass = (thinker->function.p1 == (actionf_p1)P_RemoveThinkerDelayed
-                 || thinker->function.p1 == (actionf_p1)P_RemoveMobjThinkerDelayed) ? th_delete :
-     thinker->function.p1 == (actionf_p1)P_MobjThinker &&
+   int tclass = (thinker->function.pt == P_RemoveThinkerDelayed
+                 || thinker->function.pt == P_RemoveMobjThinkerDelayed) ? th_delete :
+     thinker->function.pm == P_MobjThinker &&
      ((mobj_t *) thinker)->health > 0 && 
      (((mobj_t *) thinker)->flags & MF_COUNTKILL ||
       ((mobj_t *) thinker)->type == MT_SKULL) ?
@@ -186,7 +186,7 @@ void P_RemoveMobjThinkerDelayed(thinker_t *thinker)
 //
 void P_RemoveThinker(thinker_t *thinker)
 {
-   thinker->function.p1 = (actionf_p1)P_RemoveThinkerDelayed;
+   thinker->function.pt = P_RemoveThinkerDelayed;
    
    // killough 8/29/98: remove immediately from threaded list
 
@@ -206,7 +206,7 @@ void P_RemoveThinker(thinker_t *thinker)
 
 void P_RemoveMobjThinker(thinker_t *thinker)
 {
-   thinker->function.p1 = (actionf_p1)P_RemoveMobjThinkerDelayed;
+   thinker->function.pt = P_RemoveMobjThinkerDelayed;
    P_UpdateThinker(thinker);
 }
 
@@ -258,8 +258,8 @@ static void P_RunThinkers (void)
   for (currentthinker = thinkercap.next;
        currentthinker != &thinkercap;
        currentthinker = currentthinker->next)
-    if (currentthinker->function.p1)
-      currentthinker->function.p1((mobj_t *)currentthinker);
+    if (currentthinker->function.pv)
+      currentthinker->function.pv(currentthinker);
 
   // [crispy] support MUSINFO lump (dynamic music changing)
   T_MusInfo();
@@ -285,7 +285,7 @@ static void P_FrozenTicker (void)
         P_MobjThinker(players[i].mo);
 
     for (th = thinkercap.next; th != &thinkercap; th = th->next)
-      if (th->function.p1 == (actionf_p1)P_MobjThinker)
+      if (th->function.pm == P_MobjThinker)
       {
         mo = (mobj_t *) th;
 

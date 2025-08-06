@@ -1350,7 +1350,7 @@ int P_GroupLines (void)
       sector->soundorg.y =
           sector->blockbox[BOXTOP] / 2 + sector->blockbox[BOXBOTTOM] / 2;
 
-      sector->soundorg.thinker.function.p1 = (actionf_p1)P_DegenMobjThinker;
+      sector->soundorg.thinker.function.pv = P_DegenMobjThinker;
 
       // adjust bounding box to map blocks
       block = (sector->blockbox[BOXTOP]-bmaporgy+MAXRADIUS)>>MAPBLOCKSHIFT;

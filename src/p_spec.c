@@ -3015,7 +3015,7 @@ static void Add_Scroller(int type, fixed_t dx, fixed_t dy,
                          int control, int affectee, int accel)
 {
   scroll_t *s = arena_alloc(thinkers_arena, 1, scroll_t);
-  s->thinker.function.p1 = (actionf_p1)T_Scroll;
+  s->thinker.function.pt = (actionf_pt)T_Scroll;
   s->type = type;
   s->dx = dx;
   s->dy = dy;
@@ -3224,7 +3224,7 @@ static void Add_Friction(int friction, int movefactor, int affectee)
 {
     friction_t *f = arena_alloc(thinkers_arena, 1, friction_t);
 
-    f->thinker.function.p1 = (actionf_p1)T_Friction;
+    f->thinker.function.pt = (actionf_pt)T_Friction;
     f->friction = friction;
     f->movefactor = movefactor;
     f->affectee = affectee;
@@ -3455,7 +3455,7 @@ static void Add_Pusher(int type, int x_mag, int y_mag,
 {
   pusher_t *p = arena_alloc(thinkers_arena, 1, pusher_t);
 
-  p->thinker.function.p1 = (actionf_p1)T_Pusher;
+  p->thinker.function.pt = (actionf_pt)T_Pusher;
   p->source = source;
   p->type = type;
   p->x_mag = x_mag>>FRACBITS;

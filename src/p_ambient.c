@@ -245,7 +245,7 @@ void P_AddAmbientSoundThinker(mobj_t *mobj, int index)
     ambient->origin =
         ambient->data.type == AMB_TYPE_POINT ? ambient->source : NULL;
 
-    ambient->thinker.function.p1 = (actionf_p1)T_AmbientSound;
+    ambient->thinker.function.pt = (actionf_pt)T_AmbientSound;
     P_AddThinker(&ambient->thinker);
 }
 
