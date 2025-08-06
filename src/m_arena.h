@@ -17,10 +17,11 @@
 #define M_ARENA_H
 
 #include <stddef.h>
+#include <stdalign.h>
 
 typedef struct arena_s arena_t;
 
-#define arena_alloc(a, n, t) (t *)M_ArenaAlloc(a, n, sizeof(t), _Alignof(t))
+#define arena_alloc(a, n, t) (t *)M_ArenaAlloc(a, n, sizeof(t), alignof(t))
 
 void *M_ArenaAlloc(arena_t *arena, size_t count, size_t size, size_t align);
 
