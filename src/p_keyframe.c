@@ -17,6 +17,8 @@
 #include "doomstat.h"
 #include "doomtype.h"
 #include "dsdhacked.h"
+#include "g_game.h"
+#include "i_printf.h"
 #include "i_system.h"
 #include "info.h"
 #include "m_arena.h"
@@ -429,6 +431,11 @@ static keyframe_t *SaveKeyFrame(void)
     ArchivePlayState(keyframe);
     ArchiveRNG();
 
+    if (demoplayback || demorecording)
+    {
+        writep(demo_p);
+    }
+
     keyframe->buffer = buffer;
 
     return keyframe;
@@ -446,6 +453,11 @@ static void LoadKeyFrame(keyframe_t *keyframe)
     UnArchivePlayState(keyframe);
     UnArchiveRNG();
     P_MapEnd();
+
+    if (demoplayback || demorecording)
+    {
+        demo_p = readp();
+    }
 }
 
 static void FreeKeyFrame(keyframe_t *keyframe)
@@ -580,5 +592,7 @@ void P_LoadKeyframe(void)
     {
         LoadKeyFrame(keyframe);
         FreeKeyFrame(keyframe);
+
+        displaymsg("Restore Kyframe %d", queue.count);
     }
 }
