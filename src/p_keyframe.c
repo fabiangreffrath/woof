@@ -18,10 +18,10 @@
 #include "doomtype.h"
 #include "dsdhacked.h"
 #include "g_game.h"
-#include "i_printf.h"
 #include "i_system.h"
 #include "info.h"
 #include "m_arena.h"
+#include "m_config.h"
 #include "m_random.h"
 #include "p_map.h"
 #include "p_maputl.h"
@@ -31,13 +31,20 @@
 #include "p_tick.h"
 #include "r_defs.h"
 #include "r_state.h"
+#include "st_widgets.h"
 
 #include <stddef.h>
 #include <stdint.h>
 #include <string.h>
 
+int keyframe_tic;
+
+static int rewind_interval;
+static int rewind_depth;
+
 typedef struct
 {
+    int tic;
     char *buffer;
     arena_copy_t *thinkers;
     arena_copy_t *msecnodes;
@@ -416,7 +423,7 @@ static void UnArchiveRNG(void)
     readx(&rng, sizeof(rng_t), 1);
 }
 
-static keyframe_t *SaveKeyFrame(void)
+static keyframe_t *SaveKeyframe(void)
 {
     keyframe_t *keyframe = calloc(1, sizeof(*keyframe));
 
@@ -426,7 +433,10 @@ static keyframe_t *SaveKeyFrame(void)
 
     write8((gametic - basetic) & 255);
 
-    write32(leveltime);
+    write32(leveltime,
+            totalleveltimes,
+            playback_tic,
+            playback_totaltics);
 
     ArchivePlayers();
     ArchiveWorld();
@@ -439,17 +449,21 @@ static keyframe_t *SaveKeyFrame(void)
     }
 
     keyframe->buffer = buffer;
+    keyframe->tic = keyframe_tic;
 
     return keyframe;
 }
 
-static void LoadKeyFrame(keyframe_t *keyframe)
+static void LoadKeyframe(keyframe_t *keyframe)
 {
     curr_p = keyframe->buffer;
 
     basetic = gametic - read8();
 
     leveltime = read32();
+    totalleveltimes = read32();
+    playback_tic = read32();
+    playback_totaltics = read32();
 
     P_MapStart();
     UnArchivePlayers();
@@ -464,7 +478,7 @@ static void LoadKeyFrame(keyframe_t *keyframe)
     }
 }
 
-static void FreeKeyFrame(keyframe_t *keyframe)
+static void FreeKeyframe(keyframe_t *keyframe)
 {
     free(keyframe->buffer);
     M_FreeArenaCopy(keyframe->thinkers);
@@ -473,8 +487,6 @@ static void FreeKeyFrame(keyframe_t *keyframe)
     M_FreeArenaCopy(keyframe->activeplats);
     free(keyframe);
 }
-
-#define MAX_KEYFRAMES 300
 
 typedef struct elem_s
 {
@@ -501,7 +513,7 @@ static boolean IsEmpty(void)
 static void Push(keyframe_t *keyframe)
 {
     // Remove oldest element if queue is full
-    if (queue.count == MAX_KEYFRAMES)
+    if (queue.count == rewind_depth)
     {
         elem_t *oldtail = queue.tail;
         if (oldtail)
@@ -516,7 +528,7 @@ static void Push(keyframe_t *keyframe)
                 // Queue becomes empty after removal
                 queue.top = NULL;
             }
-            FreeKeyFrame(oldtail->keyframe);
+            FreeKeyframe(oldtail->keyframe);
             free(oldtail);
             --queue.count;
         }
@@ -571,7 +583,7 @@ void P_FreeKeyframeQueue(void)
     {
         elem_t* temp = current;
         current = current->next;
-        FreeKeyFrame(temp->keyframe);
+        FreeKeyframe(temp->keyframe);
         free(temp);
     }
     memset(&queue, 0, sizeof(queue));
@@ -579,17 +591,56 @@ void P_FreeKeyframeQueue(void)
 
 void P_SaveKeyframe(void)
 {
-    Push(SaveKeyFrame());
+    int interval_tics = TICRATE * rewind_interval / 1000;
+
+    if (keyframe_tic % interval_tics == 0)
+    {
+        Push(SaveKeyframe());
+    }
+
+    ++keyframe_tic;
 }
 
 void P_LoadKeyframe(void)
 {
-    keyframe_t *keyframe = Pop();
-    if (keyframe)
-    {
-        LoadKeyFrame(keyframe);
-        FreeKeyFrame(keyframe);
+    int interval_tics = TICRATE * rewind_interval / 1000;
 
-        displaymsg("Restore Kyframe %d", queue.count);
+    while (1)
+    {
+        keyframe_t *keyframe = Pop();
+        
+        if (!keyframe)
+        {
+            break;
+        }
+
+        if (keyframe->tic > 0 && keyframe_tic - keyframe->tic < interval_tics)
+        {
+            FreeKeyframe(keyframe);
+            continue;
+        }
+
+        LoadKeyframe(keyframe);
+
+        if (!queue.count) // don't delete first keyframe
+        {
+            Push(keyframe);
+        }
+        else
+        {
+            FreeKeyframe(keyframe);
+        }
+
+        G_ClearInput();
+        displaymsg("Restore Keyframe %d", queue.count);
+        break;
     }
+}
+
+void P_BindKeyframeVariables(void)
+{
+    BIND_NUM(rewind_interval, 1000, 100, 10000,
+        "Rewind interval in miliseconds");
+    BIND_NUM(rewind_depth, 60, 10, 1000,
+        "Number of rewind keyframes to be stored");
 }

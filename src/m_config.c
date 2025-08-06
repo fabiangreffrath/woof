@@ -53,6 +53,7 @@
 #include "m_misc.h"
 #include "mn_internal.h"
 #include "mn_menu.h"
+#include "p_keyframe.h"
 #include "r_main.h"
 #include "s_sound.h"
 #include "st_stuff.h"
@@ -136,6 +137,7 @@ void M_InitConfig(void)
     MN_BindMenuVariables();
     D_BindMiscVariables();
     G_BindGameVariables();
+    P_BindKeyframeVariables();
 
     G_BindGameInputVariables();
     G_BindMouseVariables();

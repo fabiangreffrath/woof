@@ -1664,6 +1664,7 @@ void P_SetupLevel(int episode, int map, int playermask, skill_t skill)
 
   leveltime = 0;
   oldleveltime = 0;
+  keyframe_tic = 0;
 
   // note: most of this ordering is important
 
