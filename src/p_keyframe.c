@@ -426,6 +426,8 @@ static keyframe_t *SaveKeyFrame(void)
 
     write8((gametic - basetic) & 255);
 
+    write32(leveltime);
+
     ArchivePlayers();
     ArchiveWorld();
     ArchivePlayState(keyframe);
@@ -446,6 +448,8 @@ static void LoadKeyFrame(keyframe_t *keyframe)
     curr_p = keyframe->buffer;
 
     basetic = gametic - read8();
+
+    leveltime = read32();
 
     P_MapStart();
     UnArchivePlayers();
