@@ -107,7 +107,7 @@ inline static void array_clear(const void *v)
 #define array_free(v)                     \
     do                                    \
     {                                     \
-        if (array_size(v))                \
+        if (v)                            \
         {                                 \
             M_ARRAY_FREE(array_ptr(v));   \
             (v) = NULL;                   \

@@ -466,18 +466,11 @@ static void LoadKeyFrame(keyframe_t *keyframe)
 
 static void FreeKeyFrame(keyframe_t *keyframe)
 {
-    if (keyframe->buffer)
-    {
-        free(keyframe->buffer);
-    }
-    if (keyframe->thinkers)
-    {
-        M_FreeArenaCopy(keyframe->thinkers);
-    }
-    if (keyframe->msecnodes)
-    {
-        M_FreeArenaCopy(keyframe->msecnodes);
-    }
+    free(keyframe->buffer);
+    M_FreeArenaCopy(keyframe->thinkers);
+    M_FreeArenaCopy(keyframe->msecnodes);
+    M_FreeArenaCopy(keyframe->activeceilings);
+    M_FreeArenaCopy(keyframe->activeplats);
     free(keyframe);
 }
 
