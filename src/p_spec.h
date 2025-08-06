@@ -610,7 +610,7 @@ typedef struct platlist {
 
 // p_ceilng
 
-typedef struct
+typedef struct vldoor_s
 {
   thinker_t thinker;
   vldoor_e type;
@@ -667,7 +667,7 @@ typedef struct ceilinglist {
 
 // p_floor
 
-typedef struct
+typedef struct floormove_s
 {
   thinker_t thinker;
   floor_e type;
@@ -681,7 +681,7 @@ typedef struct
   fixed_t speed;
 } floormove_t;
 
-typedef struct
+typedef struct elevator_s
 {
   thinker_t thinker;
   elevator_e type;

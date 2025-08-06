@@ -436,7 +436,7 @@ void P_RemoveActiveCeiling(ceiling_t* ceiling)
 {
   ceilinglist_t *list = ceiling->list;
   ceiling->sector->ceilingdata = NULL;  //jff 2/22/98
-  P_RemoveThinker(&ceiling->thinker);
+  P_RemoveCeilingThinker(ceiling);
   if ((*list->prev = list->next))
     list->next->prev = list->prev;
   arena_free(activeceilings_arena, list);

@@ -21,6 +21,11 @@
 #include "m_arena.h"
 
 struct mobj_s;
+struct ceiling_s;
+struct vldoor_s;
+struct floormove_s;
+struct elevator_s;
+struct plat_s;
 
 // Called by C_Ticker, can call G_PlayerExited.
 // Carries out all thinking of monsters and players.
@@ -33,8 +38,15 @@ void P_InitThinkers(void);
 void P_AddThinker(thinker_t *thinker);
 void P_RemoveThinker(thinker_t *thinker);
 void P_RemoveThinkerDelayed(thinker_t *thinker);    // killough 4/25/98
-void P_RemoveMobjThinker(thinker_t *thinker);
-void P_RemoveMobjThinkerDelayed(thinker_t *thinker);
+
+void P_RemoveMobjThinker(struct mobj_s *mobj);
+void P_RemoveMobjThinkerDelayed(struct mobj_s *mobj);
+
+void P_RemoveCeilingThinker(struct ceiling_s *ceiling);
+void P_RemoveDoorThinker(struct vldoor_s *door);
+void P_RemoveFloorThinker(struct floormove_s *floor);
+void P_RemoveElevatorThinker(struct elevator_s *floor);
+void P_RemovePlatThinker(struct plat_s *plat);
 
 void P_UpdateThinker(thinker_t *thinker);   // killough 8/29/98
 

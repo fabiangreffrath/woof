@@ -418,7 +418,7 @@ static keyframe_t *SaveKeyFrame(void)
 {
     keyframe_t *keyframe = calloc(1, sizeof(*keyframe));
 
-    buffer_size = 1024 * 1024;
+    buffer_size = 512 * 1024;
     buffer = malloc(buffer_size);
     curr_p = buffer;
 

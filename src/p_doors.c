@@ -129,7 +129,7 @@ void T_VerticalDoor (vldoor_t *door)
           case genBlazeRaise:
           case genBlazeClose:
             door->sector->ceilingdata = NULL;  //jff 2/22/98
-            P_RemoveThinker (&door->thinker);  // unlink and free
+            P_RemoveDoorThinker(door);  // unlink and free
             // killough 4/15/98: remove double-closing sound of blazing doors
             if (STRICTMODE_COMP(comp_blazing))
               S_StartSound((mobj_t *)&door->sector->soundorg,sfx_bdcls);
@@ -140,7 +140,7 @@ void T_VerticalDoor (vldoor_t *door)
           case genRaise:
           case genClose:
             door->sector->ceilingdata = NULL; //jff 2/22/98
-            P_RemoveThinker (&door->thinker);  // unlink and free
+            P_RemoveDoorThinker(door);  // unlink and free
             break;
 
             // close then open doors start waiting
@@ -223,7 +223,7 @@ void T_VerticalDoor (vldoor_t *door)
           case genCdO:
           case genBlazeCdO:
             door->sector->ceilingdata = NULL; //jff 2/22/98
-            P_RemoveThinker (&door->thinker); // unlink and free
+            P_RemoveDoorThinker(door); // unlink and free
             break;
 
           default:

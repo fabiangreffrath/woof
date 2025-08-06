@@ -89,7 +89,7 @@ void P_UpdateThinker(thinker_t *thinker)
   
    // haleyjd 07/12/03: don't use "class" as a variable name
    int tclass = (thinker->function.pt == P_RemoveThinkerDelayed
-                 || thinker->function.pt == P_RemoveMobjThinkerDelayed) ? th_delete :
+                 || thinker->function.pm == P_RemoveMobjThinkerDelayed) ? th_delete :
      thinker->function.pm == P_MobjThinker &&
      ((mobj_t *) thinker)->health > 0 && 
      (((mobj_t *) thinker)->flags & MF_COUNTKILL ||
@@ -163,12 +163,57 @@ void P_RemoveThinkerDelayed(thinker_t *thinker)
     }
 }
 
-void P_RemoveMobjThinkerDelayed(thinker_t *thinker)
+void P_RemoveMobjThinkerDelayed(mobj_t *mobj)
 {
-    if (!thinker->references)
+    if (!mobj->thinker.references)
     {
-        RemoveThinker(thinker);
-        M_FreeBlock(thinkers_arena, thinker, sizeof(mobj_t));
+        RemoveThinker(&mobj->thinker);
+        arena_free(thinkers_arena, mobj);
+    }
+}
+
+static void P_RemoveCeilingThinkerDelayed(ceiling_t *ceiling)
+{
+    if (!ceiling->thinker.references)
+    {
+        RemoveThinker(&ceiling->thinker);
+        arena_free(thinkers_arena, ceiling);
+    }
+}
+
+static void P_RemoveDoorThinkerDelayed(vldoor_t *door)
+{
+    if (!door->thinker.references)
+    {
+        RemoveThinker(&door->thinker);
+        arena_free(thinkers_arena, door);
+    }
+}
+
+static void P_RemoveFloorThinkerDelayed(floormove_t *floor)
+{
+    if (!floor->thinker.references)
+    {
+        RemoveThinker(&floor->thinker);
+        arena_free(thinkers_arena, floor);
+    }
+}
+
+static void P_RemoveElevatorThinkerDelayed(elevator_t *elevator)
+{
+    if (!elevator->thinker.references)
+    {
+        RemoveThinker(&elevator->thinker);
+        arena_free(thinkers_arena, elevator);
+    }
+}
+
+static void P_RemovePlatThinkerDelayed(plat_t *plat)
+{
+    if (!plat->thinker.references)
+    {
+        RemoveThinker(&plat->thinker);
+        arena_free(thinkers_arena, plat);
     }
 }
 
@@ -204,10 +249,40 @@ void P_RemoveThinker(thinker_t *thinker)
    P_UpdateThinker(thinker);
 }
 
-void P_RemoveMobjThinker(thinker_t *thinker)
+void P_RemoveMobjThinker(mobj_t *mobj)
 {
-   thinker->function.pt = P_RemoveMobjThinkerDelayed;
-   P_UpdateThinker(thinker);
+   mobj->thinker.function.pm = P_RemoveMobjThinkerDelayed;
+   P_UpdateThinker(&mobj->thinker);
+}
+
+void P_RemoveCeilingThinker(ceiling_t *ceiling)
+{
+   ceiling->thinker.function.pt = (actionf_pt)P_RemoveCeilingThinkerDelayed;
+   P_UpdateThinker(&ceiling->thinker);
+}
+
+void P_RemoveDoorThinker(vldoor_t *door)
+{
+   door->thinker.function.pt = (actionf_pt)P_RemoveDoorThinkerDelayed;
+   P_UpdateThinker(&door->thinker);
+}
+
+void P_RemoveFloorThinker(floormove_t *floor)
+{
+   floor->thinker.function.pt = (actionf_pt)P_RemoveFloorThinkerDelayed;
+   P_UpdateThinker(&floor->thinker);
+}
+
+void P_RemoveElevatorThinker(elevator_t *elevator)
+{
+   elevator->thinker.function.pt = (actionf_pt)P_RemoveElevatorThinkerDelayed;
+   P_UpdateThinker(&elevator->thinker);
+}
+
+void P_RemovePlatThinker(plat_t *plat)
+{
+   plat->thinker.function.pt = (actionf_pt)P_RemovePlatThinkerDelayed;
+   P_UpdateThinker(&plat->thinker);
 }
 
 //

@@ -405,7 +405,7 @@ void P_RemoveActivePlat(plat_t* plat)
 {
   platlist_t *list = plat->list;
   plat->sector->floordata = NULL; //jff 2/23/98 multiple thinkers
-  P_RemoveThinker(&plat->thinker);
+  P_RemovePlatThinker(plat);
   if ((*list->prev = list->next))
     list->next->prev = list->prev;
   arena_free(activeplats_arena, list);

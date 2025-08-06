@@ -120,27 +120,60 @@ arena_t *M_InitArena(size_t reserve, size_t commit)
     return arena;
 }
 
-static void FreeBlocks(arena_t *arena)
+static void FreeBlocks(block_t *blocks)
 {
     block_t *block;
-    array_foreach(block, arena->deleted)
+    array_foreach(block, blocks)
     {
         array_free(block->ptrs);
     }
-    array_free(block);
+    array_free(blocks);
 }
 
 void M_ClearArena(arena_t *arena)
 {
     arena->beg = arena->buffer;
-    FreeBlocks(arena);
+
+    FreeBlocks(arena->deleted);
+    arena->deleted = NULL;
 }
 
 struct arena_copy_s
 {
     char *buffer;
     size_t size;
+
+    block_t *deleted;
 };
+
+static block_t *CopyBlocks(const block_t *from)
+{
+    int numblocks = array_size(from);
+    if (!numblocks)
+    {
+        return NULL;
+    }
+
+    block_t *to = NULL;
+    array_grow(to, numblocks);
+    array_ptr(to)->size = numblocks;
+
+    for (int i = 0; i < numblocks; ++i)
+    {
+        to[i].ptrs = NULL;
+        to[i].size = from[i].size;
+
+        int numptrs = array_size(from[i].ptrs);
+        if (numptrs)
+        {
+            array_grow(to[i].ptrs, numptrs);
+            memcpy(to[i].ptrs, from[i].ptrs, numptrs * sizeof(void *));
+            array_ptr(to[i].ptrs)->size = numptrs;
+        }
+    }
+
+    return to;
+}
 
 arena_copy_t *M_CopyArena(const arena_t *arena)
 {
@@ -151,6 +184,8 @@ arena_copy_t *M_CopyArena(const arena_t *arena)
     copy->buffer = malloc(size);
     memcpy(copy->buffer, arena->buffer, size);
 
+    copy->deleted = CopyBlocks(arena->deleted);
+
     return copy;
 }
 
@@ -158,11 +193,14 @@ void M_RestoreArena(arena_t *arena, const arena_copy_t *copy)
 {
     arena->beg = arena->buffer + copy->size;
     memcpy(arena->buffer, copy->buffer, copy->size);
-    FreeBlocks(arena);
+
+    FreeBlocks(arena->deleted);
+    arena->deleted = CopyBlocks(copy->deleted);
 }
 
 void M_FreeArenaCopy(arena_copy_t *copy)
 {
+    FreeBlocks(copy->deleted);
     free(copy->buffer);
     free(copy);
 }

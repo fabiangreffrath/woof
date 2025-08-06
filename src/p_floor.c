@@ -309,7 +309,7 @@ void T_MoveFloor(floormove_t* floor)
     }
 
     floor->sector->floordata = NULL; //jff 2/22/98
-    P_RemoveThinker(&floor->thinker);//remove this floor from list of movers
+    P_RemoveFloorThinker(floor);//remove this floor from list of movers
 
     //jff 2/26/98 implement stair retrigger lockout while still building
     // note this only applies to the retriggerable generalized stairs
@@ -416,7 +416,7 @@ void T_MoveElevator(elevator_t* elevator)
   {
     elevator->sector->floordata = NULL;     //jff 2/22/98
     elevator->sector->ceilingdata = NULL;   //jff 2/22/98
-    P_RemoveThinker(&elevator->thinker);    // remove elevator from actives
+    P_RemoveElevatorThinker(elevator);    // remove elevator from actives
 
     // make floor stop sound
     S_StartSound((mobj_t *)&elevator->sector->soundorg, sfx_pstop);
