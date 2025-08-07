@@ -11,6 +11,8 @@
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 // GNU General Public License for more details.
 
+// Wrapper for the virtual memory API, similar to the "region" crate in Rust.
+
 #ifndef I_REGION_H
 #define I_REGION_H
 
