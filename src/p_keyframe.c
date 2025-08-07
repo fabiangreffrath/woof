@@ -76,36 +76,32 @@ inline static void check_buffer(size_t size)
     curr_p = buffer + offset;
 }
 
-inline static void write8_internal(const int8_t data[], int count)
+inline static void write8_internal(const int8_t data[], size_t size)
 {
-    size_t offset = sizeof(int8_t) * count;
-    check_buffer(offset);
-    memcpy(curr_p, data, offset);
-    curr_p += offset;
+    check_buffer(size);
+    memcpy(curr_p, data, size);
+    curr_p += size;
 }
 
-inline static void write16_internal(const int16_t data[], int count)
+inline static void write16_internal(const int16_t data[], size_t size)
 {
-    size_t offset = sizeof(int16_t) * count;
-    check_buffer(offset);
-    memcpy(curr_p, data, offset);
-    curr_p += offset;
+    check_buffer(size);
+    memcpy(curr_p, data, size);
+    curr_p += size;
 }
 
-inline static void write32_internal(const int32_t data[], int count)
+inline static void write32_internal(const int32_t data[], size_t size)
 {
-    size_t offset = sizeof(int32_t) * count;
-    check_buffer(offset);
-    memcpy(curr_p, data, offset);
-    curr_p += offset;
+    check_buffer(size);
+    memcpy(curr_p, data, size);
+    curr_p += size;
 }
 
-inline static void writep_internal(const void *data[], int count)
+inline static void writep_internal(const void *data[], size_t size)
 {
-    size_t offset = sizeof(void *) * count;
-    check_buffer(offset);
-    memcpy(curr_p, data, offset);
-    curr_p += offset;
+    check_buffer(size);
+    memcpy(curr_p, data, size);
+    curr_p += size;
 }
 
 inline static void writex(const void *ptr, size_t size, int count)
@@ -118,19 +114,19 @@ inline static void writex(const void *ptr, size_t size, int count)
 
 #define write8(...)                                \
     write8_internal((const int8_t[]){__VA_ARGS__}, \
-                    sizeof((const int8_t[]){__VA_ARGS__}) / sizeof(int8_t))
+                    sizeof((const int8_t[]){__VA_ARGS__}))
 
 #define write16(...)                                 \
     write16_internal((const int16_t[]){__VA_ARGS__}, \
-                     sizeof((const int16_t[]){__VA_ARGS__}) / sizeof(int16_t))
+                     sizeof((const int16_t[]){__VA_ARGS__}))
 
 #define write32(...)                                 \
     write32_internal((const int32_t[]){__VA_ARGS__}, \
-                     sizeof((const int32_t[]){__VA_ARGS__}) / sizeof(int32_t))
+                     sizeof((const int32_t[]){__VA_ARGS__}))
 
 #define writep(...)                                \
     writep_internal((const void *[]){__VA_ARGS__}, \
-                     sizeof((const void *[]){__VA_ARGS__}) / sizeof(void *))
+                     sizeof((const void *[]){__VA_ARGS__}))
 
 inline static int8_t read8(void)
 {
