@@ -1646,7 +1646,7 @@ void P_SetupLevel(int episode, int map, int playermask, skill_t skill)
   Z_FreeTag(PU_LEVEL);
   M_ClearArena(thinkers_arena);
   M_ClearArena(msecnodes_arena);
-  P_FreeKeyframeQueue();
+  P_ResetKeyframes();
 
   Z_FreeTag(PU_CACHE);
 
@@ -1664,7 +1664,6 @@ void P_SetupLevel(int episode, int map, int playermask, skill_t skill)
 
   leveltime = 0;
   oldleveltime = 0;
-  keyframe_tic = 0;
 
   // note: most of this ordering is important
 

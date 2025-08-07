@@ -19,6 +19,7 @@
 #include "dsdhacked.h"
 #include "g_game.h"
 #include "i_system.h"
+#include "i_timer.h"
 #include "info.h"
 #include "m_arena.h"
 #include "m_config.h"
@@ -37,10 +38,12 @@
 #include <stdint.h>
 #include <string.h>
 
-int keyframe_tic;
-
 static int rewind_interval;
 static int rewind_depth;
+static int rewind_timeout;
+
+static int keyframe_tic;
+static boolean disable_rewind;
 
 typedef struct
 {
@@ -576,7 +579,7 @@ static keyframe_t *Pop(void)
     return keyframe;
 }
 
-void P_FreeKeyframeQueue(void)
+static void FreeKeyframeQueue(void)
 {
     elem_t* current = queue.top;
     while (current)
@@ -593,9 +596,17 @@ void P_SaveKeyframe(void)
 {
     int interval_tics = TICRATE * rewind_interval / 1000;
 
-    if (keyframe_tic % interval_tics == 0)
+    if (!disable_rewind && keyframe_tic % interval_tics == 0)
     {
+        int time = I_GetTimeMS();
+        
         Push(SaveKeyframe());
+
+        disable_rewind = (I_GetTimeMS() - time > rewind_timeout);
+        if (disable_rewind)
+        {
+            displaymsg("Slow key framing: rewind disabled");
+        }
     }
 
     ++keyframe_tic;
@@ -622,7 +633,7 @@ void P_LoadKeyframe(void)
 
         LoadKeyframe(keyframe);
 
-        if (!queue.count) // don't delete first keyframe
+        if (keyframe->tic == 0) // don't delete first keyframe
         {
             Push(keyframe);
         }
@@ -632,9 +643,16 @@ void P_LoadKeyframe(void)
         }
 
         G_ClearInput();
-        displaymsg("Restore Keyframe %d", queue.count);
+        displaymsg("Restored key frame %d", queue.count);
         break;
     }
+}
+
+void P_ResetKeyframes(void)
+{
+    FreeKeyframeQueue();
+    keyframe_tic = 0;
+    disable_rewind = false;
 }
 
 void P_BindKeyframeVariables(void)
@@ -643,4 +661,7 @@ void P_BindKeyframeVariables(void)
         "Rewind interval in miliseconds");
     BIND_NUM(rewind_depth, 60, 10, 1000,
         "Number of rewind keyframes to be stored");
+    BIND_NUM(rewind_timeout, 10, 0, 25,
+        "Time to store a key frame, in milliseconds; if exceeded, storing "
+        "will stop (0 = No limit)");
 }

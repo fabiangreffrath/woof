@@ -14,11 +14,9 @@
 #ifndef P_KEYFRAME_H
 #define P_KEYFRAME_H
 
-extern int keyframe_tic;
-
 void P_SaveKeyframe(void);
 void P_LoadKeyframe(void);
-void P_FreeKeyframeQueue(void);
+void P_ResetKeyframes(void);
 
 void P_BindKeyframeVariables(void);
 
