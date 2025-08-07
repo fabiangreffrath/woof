@@ -632,6 +632,7 @@ void P_LoadKeyframe(void)
         }
 
         LoadKeyframe(keyframe);
+        displaymsg("Restored key frame %d", queue.count + 1);
 
         if (keyframe->tic == 0) // don't delete first keyframe
         {
@@ -643,7 +644,6 @@ void P_LoadKeyframe(void)
         }
 
         G_ClearInput();
-        displaymsg("Restored key frame %d", queue.count);
         break;
     }
 }
