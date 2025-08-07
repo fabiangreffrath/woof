@@ -29,6 +29,7 @@ typedef struct
 {
     void **ptrs;
     size_t size;
+    size_t align;
 } block_t;
 
 struct arena_s
@@ -47,7 +48,8 @@ void *M_ArenaAlloc(arena_t *arena, size_t count, size_t size, size_t align)
     block_t *block;
     array_foreach(block, arena->deleted)
     {
-        if (block->size == size && array_size(block->ptrs))
+        if (block->size == size && block->align == align
+            && array_size(block->ptrs))
         {
             return array_pop(block->ptrs);
         }
@@ -83,19 +85,19 @@ void *M_ArenaAlloc(arena_t *arena, size_t count, size_t size, size_t align)
     return p;
 }
 
-void M_FreeBlock(arena_t *arena, void *ptr, size_t size)
+void M_FreeBlock(arena_t *arena, void *ptr, size_t size, size_t align)
 {
     block_t *block;
     array_foreach(block, arena->deleted)
     {
-        if (block->size == size)
+        if (block->size == size && block->align == align)
         {
             array_push(block->ptrs, ptr);
             return;
         }
     }
 
-    block_t new_block = {.ptrs = NULL, .size = size};
+    block_t new_block = {.ptrs = NULL, .size = size, .align = align};
     array_push(new_block.ptrs, ptr);
     array_push(arena->deleted, new_block);
 }
@@ -162,6 +164,7 @@ static block_t *CopyBlocks(const block_t *from)
     {
         to[i].ptrs = NULL;
         to[i].size = from[i].size;
+        to[i].align = from[i].align;
 
         int numptrs = array_size(from[i].ptrs);
         if (numptrs)

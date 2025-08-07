@@ -408,7 +408,7 @@ void P_RemoveActivePlat(plat_t* plat)
   P_RemovePlatThinker(plat);
   if ((*list->prev = list->next))
     list->next->prev = list->prev;
-  arena_free(activeplats_arena, list);
+  arena_free(activeplats_arena, list, platlist_t);
 }
 
 //

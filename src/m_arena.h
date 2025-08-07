@@ -25,9 +25,9 @@ typedef struct arena_s arena_t;
 
 void *M_ArenaAlloc(arena_t *arena, size_t count, size_t size, size_t align);
 
-#define arena_free(a, ptr) M_FreeBlock(a, ptr, sizeof(*(ptr)))
+#define arena_free(a, p, t) M_FreeBlock(a, p, sizeof(t), alignof(t))
 
-void M_FreeBlock(arena_t *arena, void *ptr, size_t size);
+void M_FreeBlock(arena_t *arena, void *ptr, size_t size, size_t align);
 
 arena_t *M_InitArena(size_t reserve, size_t commit);
 void M_ClearArena(arena_t *arena);

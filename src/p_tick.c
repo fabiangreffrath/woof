@@ -168,7 +168,7 @@ void P_RemoveMobjThinkerDelayed(mobj_t *mobj)
     if (!mobj->thinker.references)
     {
         RemoveThinker(&mobj->thinker);
-        arena_free(thinkers_arena, mobj);
+        arena_free(thinkers_arena, mobj, mobj_t);
     }
 }
 
@@ -177,7 +177,7 @@ static void P_RemoveCeilingThinkerDelayed(ceiling_t *ceiling)
     if (!ceiling->thinker.references)
     {
         RemoveThinker(&ceiling->thinker);
-        arena_free(thinkers_arena, ceiling);
+        arena_free(thinkers_arena, ceiling, ceiling_t);
     }
 }
 
@@ -186,7 +186,7 @@ static void P_RemoveDoorThinkerDelayed(vldoor_t *door)
     if (!door->thinker.references)
     {
         RemoveThinker(&door->thinker);
-        arena_free(thinkers_arena, door);
+        arena_free(thinkers_arena, door, vldoor_t);
     }
 }
 
@@ -195,7 +195,7 @@ static void P_RemoveFloorThinkerDelayed(floormove_t *floor)
     if (!floor->thinker.references)
     {
         RemoveThinker(&floor->thinker);
-        arena_free(thinkers_arena, floor);
+        arena_free(thinkers_arena, floor, floormove_t);
     }
 }
 
@@ -204,7 +204,7 @@ static void P_RemoveElevatorThinkerDelayed(elevator_t *elevator)
     if (!elevator->thinker.references)
     {
         RemoveThinker(&elevator->thinker);
-        arena_free(thinkers_arena, elevator);
+        arena_free(thinkers_arena, elevator, elevator_t);
     }
 }
 
@@ -213,7 +213,7 @@ static void P_RemovePlatThinkerDelayed(plat_t *plat)
     if (!plat->thinker.references)
     {
         RemoveThinker(&plat->thinker);
-        arena_free(thinkers_arena, plat);
+        arena_free(thinkers_arena, plat, plat_t);
     }
 }
 
