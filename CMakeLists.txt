@@ -144,7 +144,7 @@ if(libxmp_FOUND)
 endif()
 
 # Python 3
-find_package(Python3 COMPONENTS Interpreter)
+find_package(Python3 COMPONENTS Interpreter REQUIRED)
 
 configure_file(config.h.in config.h)
 
