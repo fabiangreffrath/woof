@@ -24,6 +24,7 @@
 static int rewind_interval;
 static int rewind_depth;
 static int rewind_timeout;
+static boolean rewind_auto;
 
 static boolean disable_rewind;
 static int current_tic;
@@ -131,6 +132,11 @@ static void FreeKeyframeQueue(void)
 
 void G_SaveAutoKeyframe(void)
 {
+    if (!rewind_auto)
+    {
+        return;
+    }
+
     int interval_tics = TICRATE * rewind_interval / 1000;
 
     if (!disable_rewind && current_tic % interval_tics == 0)
@@ -198,8 +204,9 @@ void G_BindRewindVariables(void)
     BIND_NUM(rewind_interval, 1000, 100, 10000,
         "Rewind interval in miliseconds");
     BIND_NUM(rewind_depth, 60, 10, 1000,
-        "Number of rewind keyframes to be stored");
+        "Number of rewind key frames to be stored");
     BIND_NUM(rewind_timeout, 10, 0, 25,
         "Time to store a key frame, in milliseconds; if exceeded, storing "
         "will stop (0 = No limit)");
+    BIND_BOOL(rewind_auto, true, "Enable storing rewind key frames");
 }
