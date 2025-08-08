@@ -141,14 +141,9 @@ int TXT_Init(void)
 
     if (TXT_SDLWindow == NULL)
     {
-        int w, h;
-
-        w = 3 * screen_image_w / 2;
-        h = 3 * screen_image_h / 2;
-
         TXT_SDLWindow = SDL_CreateWindow("",
                             SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED,
-                            w, h, flags);
+                            screen_image_w, screen_image_h, flags);
         SDL_SetWindowMinimumSize(TXT_SDLWindow, screen_image_w, screen_image_h);
     }
 
@@ -175,6 +170,7 @@ int TXT_Init(void)
                                         8, 0, 0, 0, 0);
 
     // Set width and height of the logical viewport for automatic scaling.
+    SDL_RenderSetIntegerScale(renderer, SDL_TRUE);
     SDL_RenderSetLogicalSize(renderer, screenbuffer->w, screenbuffer->h);
 
     SDL_LockSurface(screenbuffer);
