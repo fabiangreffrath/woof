@@ -13,6 +13,7 @@
 
 #include "p_keyframe.h"
 
+#include "am_map.h"
 #include "d_player.h"
 #include "d_think.h"
 #include "doomdef.h"
@@ -426,6 +427,24 @@ static void UnArchiveRNG(void)
     readx(&rng, sizeof(rng_t), 1);
 }
 
+static void ArchiveAutomap(void)
+{
+    write32(markpointnum);
+    if (markpoints && markpointnum)
+    {
+        writex(markpoints, sizeof(*markpoints), markpointnum);
+    }
+}
+
+static void UnArchiveAutomap(void)
+{
+    markpointnum = read32();
+    if (markpoints && markpointnum)
+    {
+        readx(markpoints, sizeof(*markpoints), markpointnum);
+    }
+}
+
 keyframe_t *P_SaveKeyframe(int tic)
 {
     keyframe_t *keyframe = calloc(1, sizeof(*keyframe));
@@ -445,6 +464,7 @@ keyframe_t *P_SaveKeyframe(int tic)
     ArchiveWorld();
     ArchivePlayState(keyframe);
     ArchiveRNG();
+    ArchiveAutomap();
 
     if (demoplayback || demorecording)
     {
@@ -473,6 +493,7 @@ void P_LoadKeyframe(const keyframe_t *keyframe)
     UnArchiveWorld();
     UnArchivePlayState(keyframe);
     UnArchiveRNG();
+    UnArchiveAutomap();
     P_MapEnd();
 
     if (demoplayback || demorecording)
