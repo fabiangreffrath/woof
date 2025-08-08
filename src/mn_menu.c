@@ -37,6 +37,7 @@
 #include "doomtype.h"
 #include "dstrings.h"
 #include "g_game.h"
+#include "g_rewind.h"
 #include "g_umapinfo.h"
 #include "i_input.h"
 #include "i_printf.h"
@@ -2685,7 +2686,7 @@ boolean M_ShortcutResponder(const event_t *ev)
 
     if (M_InputActivated(input_rewind))
     {
-        P_LoadKeyframe();
+        G_LoadAutoKeyframe();
     }
 
     return false;

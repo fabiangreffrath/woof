@@ -11,18 +11,17 @@
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 // GNU General Public License for more details.
 
+#include "p_keyframe.h"
+
 #include "d_player.h"
 #include "d_think.h"
 #include "doomdef.h"
 #include "doomstat.h"
-#include "doomtype.h"
 #include "dsdhacked.h"
 #include "g_game.h"
 #include "i_system.h"
-#include "i_timer.h"
 #include "info.h"
 #include "m_arena.h"
-#include "m_config.h"
 #include "m_random.h"
 #include "p_map.h"
 #include "p_maputl.h"
@@ -38,14 +37,7 @@
 #include <stdint.h>
 #include <string.h>
 
-static int rewind_interval;
-static int rewind_depth;
-static int rewind_timeout;
-
-static int keyframe_tic;
-static boolean disable_rewind;
-
-typedef struct
+struct keyframe_s
 {
     int tic;
     char *buffer;
@@ -53,7 +45,7 @@ typedef struct
     arena_copy_t *msecnodes;
     arena_copy_t *activeceilings;
     arena_copy_t *activeplats;
-} keyframe_t;
+};
 
 static char *buffer, *curr_p;
 static size_t buffer_size;
@@ -325,88 +317,100 @@ static void UnArchiveWorld(void)
 
 static void ArchivePlayState(keyframe_t *keyframe)
 {
+    // p_tick.h
     writex(&thinkercap, sizeof(thinkercap), 1);
     writex(thinkerclasscap, sizeof(thinker_t), NUMTHCLASS);
     keyframe->thinkers = M_CopyArena(thinkers_arena);
 
-    writep(headsecnode);
-    keyframe->msecnodes = M_CopyArena(msecnodes_arena);
-
-    writep(activeceilings);
-    keyframe->activeceilings = M_CopyArena(activeceilings_arena);
-
-    writep(activeplats);
-    keyframe->activeplats = M_CopyArena(activeplats_arena);
-
-    writex(blocklinks, blocklinks_size, 1);
-
+    // p_map.h
     write32(floatok,
             felldown,
             tmfloorz,
-            tmceilingz);
-    writex(tmbbox, sizeof(tmbbox), 1);
+            tmceilingz,
+            hangsolid);
+
     writep(ceilingline,
            floorline,
            linetarget,
            sector_list,
            blockline);
 
-    write32(hangsolid);
-
     write32(numspechit);
     writex(spechit, sizeof(*spechit), numspechit);
+
+    writex(tmbbox, sizeof(tmbbox), 1);
+
+    writep(headsecnode);
+    keyframe->msecnodes = M_CopyArena(msecnodes_arena);
     
+    // p_maputil.h
     write32(opentop,
             openbottom,
             openrange,
             lowfloor);
 
-    writex(&trace, sizeof(trace), 1);
     write32(num_intercepts);
     writex(intercepts, sizeof(*intercepts), num_intercepts);
+
+    writex(&trace, sizeof(trace), 1);
+
+    // p_setup.h
+    writex(blocklinks, blocklinks_size, 1);
+
+    // p_spec.h
+    writep(activeceilings,
+           activeplats);
+    keyframe->activeceilings = M_CopyArena(activeceilings_arena);
+    keyframe->activeplats = M_CopyArena(activeplats_arena);
 }
 
-static void UnArchivePlayState(keyframe_t *keyframe)
+static void UnArchivePlayState(const keyframe_t *keyframe)
 {
+    // p_tick.h
     readx(&thinkercap, sizeof(thinkercap), 1);
     readx(thinkerclasscap, sizeof(thinker_t), NUMTHCLASS);
     M_RestoreArena(thinkers_arena, keyframe->thinkers);
 
-    headsecnode = readp();
-    M_RestoreArena(msecnodes_arena, keyframe->msecnodes);
-
-    activeceilings = readp();
-    M_RestoreArena(activeceilings_arena, keyframe->activeceilings);
-
-    activeplats = readp();
-    M_RestoreArena(activeplats_arena, keyframe->activeplats);
-
-    readx(blocklinks, blocklinks_size, 1);
-
+    // p_map.h
     floatok = read32();
     felldown = read32();
     tmfloorz = read32();
     tmceilingz = read32();
-    readx(tmbbox, sizeof(tmbbox), 1);
+    hangsolid = read32();
 
     ceilingline = readp();
     floorline = readp();
     linetarget = readp();
     sector_list = readp();
     blockline = readp();
-    hangsolid = read32();
 
     numspechit = read32();
     readx(spechit, sizeof(*spechit), numspechit);
 
+    readx(tmbbox, sizeof(tmbbox), 1);
+
+    headsecnode = readp();
+    M_RestoreArena(msecnodes_arena, keyframe->msecnodes);
+    
+    // p_maputil.h
     opentop = read32();
     openbottom = read32();
     openrange = read32();
     lowfloor = read32();
 
-    readx(&trace, sizeof(trace), 1);
     num_intercepts = read32();
     readx(intercepts, sizeof(*intercepts), num_intercepts);
+
+    readx(&trace, sizeof(trace), 1);
+
+    // p_setup.h
+    readx(blocklinks, blocklinks_size, 1);
+
+    // p_spec.h
+    activeceilings = readp();
+    activeplats = readp();
+    M_RestoreArena(activeceilings_arena, keyframe->activeceilings);
+    M_RestoreArena(activeplats_arena, keyframe->activeplats);
 
     setmobjstate_recursion = 0;
     memset(seenstate_tab, 0, sizeof(statenum_t) * num_states);
@@ -422,7 +426,7 @@ static void UnArchiveRNG(void)
     readx(&rng, sizeof(rng_t), 1);
 }
 
-static keyframe_t *SaveKeyframe(void)
+keyframe_t *P_SaveKeyframe(int tic)
 {
     keyframe_t *keyframe = calloc(1, sizeof(*keyframe));
 
@@ -448,12 +452,12 @@ static keyframe_t *SaveKeyframe(void)
     }
 
     keyframe->buffer = buffer;
-    keyframe->tic = keyframe_tic;
+    keyframe->tic = tic;
 
     return keyframe;
 }
 
-static void LoadKeyframe(keyframe_t *keyframe)
+void P_LoadKeyframe(const keyframe_t *keyframe)
 {
     curr_p = keyframe->buffer;
 
@@ -477,7 +481,7 @@ static void LoadKeyframe(keyframe_t *keyframe)
     }
 }
 
-static void FreeKeyframe(keyframe_t *keyframe)
+void P_FreeKeyframe(keyframe_t *keyframe)
 {
     free(keyframe->buffer);
     M_FreeArenaCopy(keyframe->thinkers);
@@ -487,177 +491,7 @@ static void FreeKeyframe(keyframe_t *keyframe)
     free(keyframe);
 }
 
-typedef struct elem_s
+int P_GetKeyframeTic(const keyframe_t *keyframe)
 {
-    keyframe_t *keyframe;
-    struct elem_s *next;
-    struct elem_s *prev;
-} elem_t;
-
-typedef struct
-{
-    elem_t* top;
-    elem_t* tail;
-    int count;
-} queue_t;
-
-static queue_t queue;
-
-static boolean IsEmpty(void)
-{
-    return queue.top == NULL;
-}
-
-// Add an element to the top of the queue
-static void Push(keyframe_t *keyframe)
-{
-    // Remove oldest element if queue is full
-    if (queue.count == rewind_depth)
-    {
-        elem_t *oldtail = queue.tail;
-        if (oldtail)
-        {
-            queue.tail = oldtail->prev;
-            if (queue.tail)
-            {
-                queue.tail->next = NULL;
-            }
-            else
-            {
-                // Queue becomes empty after removal
-                queue.top = NULL;
-            }
-            FreeKeyframe(oldtail->keyframe);
-            free(oldtail);
-            --queue.count;
-        }
-    }
-
-    elem_t *newelem = calloc(1, sizeof(*newelem));    
-    newelem->keyframe = keyframe;
-    
-    if (IsEmpty())
-    {
-        queue.top = newelem;
-        queue.tail = newelem;
-    }
-    else
-    {
-        newelem->next = queue.top;
-        queue.top->prev = newelem;
-        queue.top = newelem;
-    }
-    ++queue.count;
-}
-
-// Remove and return element from top of queue
-static keyframe_t *Pop(void)
-{
-    if (IsEmpty())
-    {
-        return NULL;
-    }
-    
-    elem_t* temp = queue.top;
-    keyframe_t *keyframe = temp->keyframe;
-    queue.top = temp->next;
-    if (queue.top)
-    {
-        queue.top->prev = NULL;
-    }
-    else
-    {
-        queue.tail = NULL;
-    }
-    free(temp);
-    --queue.count;
-
-    return keyframe;
-}
-
-static void FreeKeyframeQueue(void)
-{
-    elem_t* current = queue.top;
-    while (current)
-    {
-        elem_t* temp = current;
-        current = current->next;
-        FreeKeyframe(temp->keyframe);
-        free(temp);
-    }
-    memset(&queue, 0, sizeof(queue));
-}
-
-void P_SaveKeyframe(void)
-{
-    int interval_tics = TICRATE * rewind_interval / 1000;
-
-    if (!disable_rewind && keyframe_tic % interval_tics == 0)
-    {
-        int time = I_GetTimeMS();
-        
-        Push(SaveKeyframe());
-
-        disable_rewind = (I_GetTimeMS() - time > rewind_timeout);
-        if (disable_rewind)
-        {
-            displaymsg("Slow key framing: rewind disabled");
-        }
-    }
-
-    ++keyframe_tic;
-}
-
-void P_LoadKeyframe(void)
-{
-    int interval_tics = TICRATE * rewind_interval / 1000;
-
-    while (1)
-    {
-        keyframe_t *keyframe = Pop();
-        
-        if (!keyframe)
-        {
-            break;
-        }
-
-        if (keyframe->tic > 0 && keyframe_tic - keyframe->tic < interval_tics)
-        {
-            FreeKeyframe(keyframe);
-            continue;
-        }
-
-        LoadKeyframe(keyframe);
-        displaymsg("Restored key frame %d", queue.count + 1);
-
-        if (keyframe->tic == 0) // don't delete first keyframe
-        {
-            Push(keyframe);
-        }
-        else
-        {
-            FreeKeyframe(keyframe);
-        }
-
-        G_ClearInput();
-        break;
-    }
-}
-
-void P_ResetKeyframes(void)
-{
-    FreeKeyframeQueue();
-    keyframe_tic = 0;
-    disable_rewind = false;
-}
-
-void P_BindKeyframeVariables(void)
-{
-    BIND_NUM(rewind_interval, 1000, 100, 10000,
-        "Rewind interval in miliseconds");
-    BIND_NUM(rewind_depth, 60, 10, 1000,
-        "Number of rewind keyframes to be stored");
-    BIND_NUM(rewind_timeout, 10, 0, 25,
-        "Time to store a key frame, in milliseconds; if exceeded, storing "
-        "will stop (0 = No limit)");
+    return keyframe->tic;
 }

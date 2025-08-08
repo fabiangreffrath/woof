@@ -1646,7 +1646,6 @@ void P_SetupLevel(int episode, int map, int playermask, skill_t skill)
   Z_FreeTag(PU_LEVEL);
   M_ClearArena(thinkers_arena);
   M_ClearArena(msecnodes_arena);
-  P_ResetKeyframes();
 
   Z_FreeTag(PU_CACHE);
 

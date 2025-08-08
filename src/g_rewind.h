@@ -11,15 +11,13 @@
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 // GNU General Public License for more details.
 
-#ifndef P_KEYFRAME_H
-#define P_KEYFRAME_H
+#ifndef G_REWIND_H
+#define G_REWIND_H
 
-typedef struct keyframe_s keyframe_t;
+void G_SaveAutoKeyframe(void);
+void G_LoadAutoKeyframe(void);
+void G_ResetRewind(void);
 
-keyframe_t *P_SaveKeyframe(int tic);
-void P_LoadKeyframe(const keyframe_t *keyframe);
-void P_FreeKeyframe(keyframe_t *keyframe);
-
-int P_GetKeyframeTic(const keyframe_t *keyframe);
+void G_BindRewindVariables(void);
 
 #endif

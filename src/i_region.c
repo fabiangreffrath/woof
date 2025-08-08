@@ -28,13 +28,21 @@
 
 static size_t GetPageSize(void)
 {
+    static size_t page_size;
+
+    if (page_size)
+    {
+        return page_size;
+    }
+
 #ifdef _WIN32
     SYSTEM_INFO si;
     GetSystemInfo(&si);
-    return (size_t)si.dwPageSize;
+    page_size = (size_t)si.dwPageSize;
 #else
-    return (size_t)sysconf(_SC_PAGESIZE);
+    page_size = (size_t)sysconf(_SC_PAGESIZE);
 #endif
+    return page_size;
 }
 
 static size_t RoundUp(size_t size, size_t multiple)

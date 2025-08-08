@@ -41,6 +41,7 @@
 #include "doomtype.h"
 #include "f_finale.h"
 #include "g_game.h"
+#include "g_rewind.h"
 #include "g_nextweapon.h"
 #include "g_umapinfo.h"
 #include "hu_command.h"
@@ -1001,6 +1002,7 @@ static void G_DoLoadLevel(void)
 
   P_SetupLevel (gameepisode, gamemap, 0, gameskill);
 
+  G_ResetRewind();
   MN_UpdateFreeLook();
   HU_UpdateTurnFormat();
 
@@ -3015,7 +3017,7 @@ void G_Ticker(void)
   else
     {
       if (!timingdemo && gamestate == GS_LEVEL && gameaction == ga_nothing)
-        P_SaveKeyframe();
+        G_SaveAutoKeyframe();
       
       // get commands, check consistancy, and build new consistancy check
       int buf = (gametic/ticdup)%BACKUPTICS;

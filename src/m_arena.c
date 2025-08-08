@@ -13,7 +13,6 @@
 
 // Arena allocator, inspired by https://nullprogram.com/blog/2023/09/27/
 
-
 #include "m_arena.h"
 
 #include <stddef.h>

@@ -28,6 +28,7 @@ set(WOOF_SOURCES
     g_game.c               g_game.h
     g_input.c              g_input.h
     g_nextweapon.c         g_nextweapon.h
+    g_rewind.c             g_rewind.h
     g_umapinfo.c           g_umapinfo.h
     hu_command.c           hu_command.h
     hu_coordinates.c       hu_coordinates.h
