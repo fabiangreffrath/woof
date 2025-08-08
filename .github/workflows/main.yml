@@ -75,7 +75,9 @@ jobs:
           update: false
           install: >-
             diffutils
-            ${{ matrix.config.msys-env }}-python-pip
+            ${{ matrix.config.msys-env }}-python-pillow
+            ${{ matrix.config.msys-env }}-python-yaml
+            ${{ matrix.config.msys-env }}-python-joblib
             ${{ matrix.config.msys-env }}-gcc
             ${{ matrix.config.msys-env }}-cmake
             ${{ matrix.config.msys-env }}-ninja
@@ -87,6 +89,15 @@ jobs:
             ${{ matrix.config.msys-env }}-libxmp
 
       - uses: actions/checkout@v4
+
+      - name: Setup Python
+        if: matrix.config.shell != 'msys2 {0}'
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+      - if: matrix.config.shell != 'msys2 {0}'
+        run: |
+          pip install pillow pyyaml joblib
 
       - name: Configure
         env:
@@ -100,15 +111,10 @@ jobs:
       - name: Build
         run: cmake --build build
 
-      - uses: actions/setup-python@v5
-        with:
-          python-version: '3.x'
-
       - name: Test
         if: github.event_name == 'workflow_dispatch'
         run: |
           cd demotest
-          pip install pyyaml joblib
           python3 demotest --jobs 4 --port ../build/src/woof
 
       - name: Install
