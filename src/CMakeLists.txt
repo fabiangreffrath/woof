@@ -28,6 +28,7 @@ set(WOOF_SOURCES
     g_game.c               g_game.h
     g_input.c              g_input.h
     g_nextweapon.c         g_nextweapon.h
+    g_rewind.c             g_rewind.h
     g_umapinfo.c           g_umapinfo.h
     hu_command.c           hu_command.h
     hu_coordinates.c       hu_coordinates.h
@@ -50,6 +51,7 @@ set(WOOF_SOURCES
                            i_oalstream.h
     i_oplmusic.c
     i_printf.c             i_printf.h
+    i_region.c             i_region.h
     i_rumble.c             i_rumble.h
     i_sndfile.c            i_sndfile.h
     i_sound.c              i_sound.h
@@ -59,6 +61,7 @@ set(WOOF_SOURCES
     info.c                 info.h
     m_argv.c               m_argv.h
                            m_array.h
+    m_arena.c              m_arena.h
     m_bbox.c               m_bbox.h
     m_cheat.c              m_cheat.h
     m_config.c             m_config.h
@@ -102,6 +105,7 @@ set(WOOF_SOURCES
     p_floor.c
     p_genlin.c
     p_inter.c              p_inter.h
+    p_keyframe.c           p_keyframe.h
     p_lights.c
     p_map.c                p_map.h
     p_maputl.c             p_maputl.h

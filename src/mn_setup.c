@@ -1466,6 +1466,7 @@ static setup_menu_t keys_settings2[] = {
 
 static setup_menu_t keys_settings3[] = {
     // [FG] reload current level / go to next level
+    {"Rewind",          S_INPUT, KB_X, M_SPC, {0}, m_scrn, input_rewind},
     {"Reload Map/Demo", S_INPUT, KB_X, M_SPC, {0}, m_scrn, input_menu_reloadlevel},
     {"Next Map",        S_INPUT, KB_X, M_SPC, {0}, m_scrn, input_menu_nextlevel},
     {"Previous Map",    S_INPUT, KB_X, M_SPC, {0}, m_scrn, input_menu_prevlevel},

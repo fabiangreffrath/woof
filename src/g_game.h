@@ -138,6 +138,8 @@ extern boolean um_pars;
 
 extern boolean secretexit;
 
+extern byte *demo_p;
+
 #endif
 
 //----------------------------------------------------------------------------

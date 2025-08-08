@@ -27,7 +27,6 @@
 #include "p_tick.h"
 #include "r_defs.h"
 #include "r_state.h"
-#include "z_zone.h"
 
 //////////////////////////////////////////////////////////
 //
@@ -171,11 +170,11 @@ void P_SpawnFireFlicker (sector_t*  sector)
   // Nothing special about it during gameplay.
   sector->special &= ~31; //jff 3/14/98 clear non-generalized sector type
 
-  flick = Z_Malloc ( sizeof(*flick), PU_LEVSPEC, 0);
+  flick = arena_alloc(thinkers_arena, 1, fireflicker_t);
 
   P_AddThinker (&flick->thinker);
 
-  flick->thinker.function.p1 = (actionf_p1)T_FireFlicker;
+  flick->thinker.function.pt = (actionf_pt)T_FireFlicker;
   flick->sector = sector;
   flick->maxlight = sector->lightlevel;
   flick->minlight = P_FindMinSurroundingLight(sector,sector->lightlevel)+16;
@@ -197,11 +196,11 @@ void P_SpawnLightFlash (sector_t* sector)
   // nothing special about it during gameplay
   sector->special &= ~31; //jff 3/14/98 clear non-generalized sector type
 
-  flash = Z_Malloc ( sizeof(*flash), PU_LEVSPEC, 0);
+  flash = arena_alloc(thinkers_arena, 1, lightflash_t);
 
   P_AddThinker (&flash->thinker);
 
-  flash->thinker.function.p1 = (actionf_p1)T_LightFlash;
+  flash->thinker.function.pt = (actionf_pt)T_LightFlash;
   flash->sector = sector;
   flash->maxlight = sector->lightlevel;
 
@@ -228,14 +227,14 @@ void P_SpawnStrobeFlash
 {
   strobe_t* flash;
 
-  flash = Z_Malloc ( sizeof(*flash), PU_LEVSPEC, 0);
+  flash = arena_alloc(thinkers_arena, 1, strobe_t);
 
   P_AddThinker (&flash->thinker);
 
   flash->sector = sector;
   flash->darktime = fastOrSlow;
   flash->brighttime = STROBEBRIGHT;
-  flash->thinker.function.p1 = (actionf_p1)T_StrobeFlash;
+  flash->thinker.function.pt = (actionf_pt)T_StrobeFlash;
   flash->maxlight = sector->lightlevel;
   flash->minlight = P_FindMinSurroundingLight(sector, sector->lightlevel);
   
@@ -263,14 +262,14 @@ void P_SpawnGlowingLight(sector_t*  sector)
 {
   glow_t* g;
 
-  g = Z_Malloc( sizeof(*g), PU_LEVSPEC, 0);
+  g = arena_alloc(thinkers_arena, 1, glow_t);
 
   P_AddThinker(&g->thinker);
 
   g->sector = sector;
   g->minlight = P_FindMinSurroundingLight(sector,sector->lightlevel);
   g->maxlight = sector->lightlevel;
-  g->thinker.function.p1 = (actionf_p1)T_Glow;
+  g->thinker.function.pt = (actionf_pt)T_Glow;
   g->direction = -1;
 
   sector->special &= ~31; //jff 3/14/98 clear non-generalized sector type

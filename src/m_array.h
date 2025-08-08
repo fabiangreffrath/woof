@@ -32,15 +32,15 @@
 #endif
 
 #ifndef M_ARRAY_MALLOC
-#  define M_ARRAY_MALLOC(size) malloc((size))
+#  define M_ARRAY_MALLOC(size) malloc(size)
 #endif
 
 #ifndef M_ARRAY_REALLOC
-#  define M_ARRAY_REALLOC(ptr, size) I_Realloc((ptr), (size))
+#  define M_ARRAY_REALLOC(ptr, size) I_Realloc(ptr, size)
 #endif
 
 #ifndef M_ARRAY_FREE
-#  define M_ARRAY_FREE(ptr) free((ptr))
+#  define M_ARRAY_FREE(ptr) free(ptr)
 #endif
 
 typedef struct
@@ -75,19 +75,21 @@ inline static void array_clear(const void *v)
 
 #define array_grow(v, n) ((v) = M_ArrayGrow(v, sizeof(*(v)), n))
 
-#define array_push(v, e)                                                    \
-    do                                                                      \
-    {                                                                       \
-        if (!(v))                                                           \
-        {                                                                   \
-            (v) = M_ArrayGrow(v, sizeof(*(v)), M_ARRAY_INIT_CAPACITY);      \
-        }                                                                   \
-        else if (array_ptr(v)->size == array_ptr(v)->capacity)              \
-        {                                                                   \
-            (v) = M_ArrayGrow(v, sizeof(*(v)), array_ptr(v)->capacity);     \
-        }                                                                   \
-        (v)[array_ptr(v)->size++] = (e);                                    \
+#define array_push(v, e)                                         \
+    do                                                           \
+    {                                                            \
+        if (!(v))                                                \
+        {                                                        \
+            array_grow(v, M_ARRAY_INIT_CAPACITY);                \
+        }                                                        \
+        else if (array_ptr(v)->size == array_ptr(v)->capacity)   \
+        {                                                        \
+            array_grow(v, array_ptr(v)->capacity);               \
+        }                                                        \
+        (v)[array_ptr(v)->size++] = (e);                         \
     } while (0)
+
+#define array_pop(v) ((v)[--array_ptr(v)->size])
 
 #define array_delete_n(v, i, n)                                   \
     do                                                            \
