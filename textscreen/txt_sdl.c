@@ -45,11 +45,6 @@ typedef struct
 
 #include "fonts/normal.h"
 
-static const txt_font_t normal_font =
-{
-    "normal", normal_font_data, 8, 16,
-};
-
 #include "fonts/codepage.h"
 
 // Time between character blinks in ms
@@ -146,16 +141,9 @@ int TXT_Init(void)
 
     if (TXT_SDLWindow == NULL)
     {
-        int w, h;
-
-        w = 3 * screen_image_w / 2;
-        h = 3 * screen_image_h / 2;
-
-        flags |= SDL_WINDOW_RESIZABLE;
-
         TXT_SDLWindow = SDL_CreateWindow("",
                             SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED,
-                            w, h, flags);
+                            screen_image_w, screen_image_h, flags);
         SDL_SetWindowMinimumSize(TXT_SDLWindow, screen_image_w, screen_image_h);
     }
 
@@ -181,11 +169,9 @@ int TXT_Init(void)
                                         TXT_SCREEN_H * font->h,
                                         8, 0, 0, 0, 0);
 
-    // Apply aspect ratio correction.
-    const int logical_h = screenbuffer->h * 6 / 5;
-
     // Set width and height of the logical viewport for automatic scaling.
-    SDL_RenderSetLogicalSize(renderer, screenbuffer->w, logical_h);
+    SDL_RenderSetIntegerScale(renderer, SDL_TRUE);
+    SDL_RenderSetLogicalSize(renderer, screenbuffer->w, screenbuffer->h);
 
     SDL_LockSurface(screenbuffer);
     SDL_SetPaletteColors(screenbuffer->format->palette, ega_colors, 0, 16);
@@ -207,7 +193,7 @@ int TXT_Init(void)
       texture_upscaled = SDL_CreateTexture(renderer,
                            SDL_GetWindowPixelFormat(TXT_SDLWindow),
                            SDL_TEXTUREACCESS_TARGET,
-                           2*screenbuffer->w, 2*logical_h);
+                           2 * screenbuffer->w, 2 * screenbuffer->h);
     }
 
     return 1;
