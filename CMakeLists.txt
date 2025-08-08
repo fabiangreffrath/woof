@@ -144,7 +144,9 @@ if(libxmp_FOUND)
 endif()
 
 # Python 3
-find_package(Python3 COMPONENTS Interpreter REQUIRED)
+find_package(Python3 COMPONENTS Interpreter)
+
+option(ENABLE_FONTGEN "Generate textscreen font" OFF)
 
 configure_file(config.h.in config.h)
 

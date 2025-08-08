@@ -69,7 +69,7 @@ jobs:
         with:
           python-version: '3.x'
       - run: |
-          pip install pillow pyyaml joblib
+          pip install pyyaml joblib
 
       - name: Install dependencies (Linux)
         if: runner.os == 'Linux'

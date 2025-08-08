@@ -75,7 +75,6 @@ jobs:
           update: false
           install: >-
             diffutils
-            ${{ matrix.config.msys-env }}-python-pillow
             ${{ matrix.config.msys-env }}-python-yaml
             ${{ matrix.config.msys-env }}-python-joblib
             ${{ matrix.config.msys-env }}-gcc
@@ -97,7 +96,7 @@ jobs:
           python-version: '3.x'
       - if: matrix.config.shell != 'msys2 {0}'
         run: |
-          pip install pillow pyyaml joblib
+          pip install pyyaml joblib
 
       - name: Configure
         env:

@@ -31,5 +31,7 @@ target_include_directories(
 )
 target_link_libraries(textscreen SDL2::SDL2)
 
-add_subdirectory(fonts)
-add_dependencies(textscreen textscreen-font)
+if(ENABLE_FONTGEN)
+    add_subdirectory(fonts)
+    add_dependencies(textscreen textscreen-font)
+endif()
