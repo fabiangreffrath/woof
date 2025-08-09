@@ -170,7 +170,6 @@ typedef struct sector_s
 
   // ID24 line specials
   int colormap_index;
-  lighttable_t *colormap;
   angle_t floor_rotation;
   angle_t ceiling_rotation;
 } sector_t;
@@ -236,6 +235,8 @@ typedef struct line_s
   angle_t angle;
   int frontmusic; // Front upper texture -- activated from the front side
   int backmusic; // Front lower texture -- activated from the back side
+  int frontcolormap; // Front upper texture -- activated from the front side
+  int backcolormap; // Front lower texture -- activated from the back side
 } line_t;
 
 //
@@ -391,6 +392,9 @@ typedef struct vissprite_s
   // killough 3/27/98: height sector for underwater/fake ceiling support
   int heightsec;
 
+  // ID24 per-sector colormap
+  lighttable_t *sectorcolormap;
+
   // [FG] colored blood and gibs
   int color;
   const byte *brightmap;
@@ -457,6 +461,7 @@ typedef struct visplane_s
   unsigned short *bottom;
   unsigned short pad1;          // leave pads for [minx-1]/[maxx+1]
   unsigned short top[3];
+  sector_t *sector; // ID24 per-sector colormap
 } visplane_t;
 
 #endif

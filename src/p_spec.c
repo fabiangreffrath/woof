@@ -1777,6 +1777,21 @@ void P_CrossSpecialLine(line_t *line, int side, mobj_t *thing, boolean bossactio
       EV_ChangeMusic(line, side);
       break;
 
+
+    case 2076:
+      line->special = 0;
+      // fallthrough
+
+    case 2077:
+    {
+      int colormap_index = side ? line->backcolormap : line->frontcolormap;
+      for (int s = -1; (s = P_FindSectorFromLineTag(line, s)) >= 0;)
+      {
+        sectors[s].colormap_index = colormap_index;
+      }
+      break;
+    }
+
       // Extended walk triggers
 
       // jff 1/29/98 added new linedef types to fill all functions out so that
@@ -2246,6 +2261,20 @@ void P_ShootSpecialLine(mobj_t *thing, line_t *line, int side)
     case 2062: case 2068: case 2092: case 2098:
       EV_ChangeMusic(line, side);
       break;
+
+    case 2080:
+      line->special = 0;
+      // fallthrough
+
+    case 2081:
+    {
+      int colormap_index = side ? line->backcolormap : line->frontcolormap;
+      for (int s = -1; (s = P_FindSectorFromLineTag(line, s)) >= 0;)
+      {
+        sectors[s].colormap_index = colormap_index;
+      }
+      break;
+    }
 
       //jff 1/30/98 added new gun linedefs here
       // killough 1/31/98: added demo_compatibility check, added inner switch
@@ -2820,8 +2849,9 @@ void P_SpawnSpecials (void)
   }
 
   for (i=0; i<numlines; i++)
+  {
     switch (lines[i].special)
-      {
+    {
         int s, sec;
 
         // killough 3/7/98:
@@ -2872,7 +2902,17 @@ void P_SpawnSpecials (void)
       case 2054: case 2055: case 2056:
         EV_RotateOffsetFlat(&lines[i], sectors);
         break;
+
+      case 2075:
+      {
+        for (int s = -1; (s = P_FindSectorFromLineTag(&lines[i], s)) >= 0;)
+        {
+          sectors[s].colormap_index = lines[i].frontcolormap;
+        }
+        break;
       }
+    }
+  }
 }
 
 // killough 2/28/98:

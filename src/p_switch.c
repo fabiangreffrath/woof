@@ -630,6 +630,20 @@ P_UseSpecialLine
       EV_ChangeMusic(line, side);
       return true;
 
+    case 2078:
+      line->special = 0;
+      // fallthrough
+
+    case 2079:
+    {
+      int colormap_index = side ? line->backcolormap : line->frontcolormap;
+      for (int s = -1; (s = P_FindSectorFromLineTag(line, s)) >= 0;)
+      {
+        sectors[s].colormap_index = colormap_index;
+      }
+      break;
+    }
+
       // killough 1/31/98: factored out compatibility check;
       // added inner switch, relaxed check to demo_compatibility
 

@@ -297,6 +297,7 @@ visplane_t *R_DupPlane(const visplane_t *pl, int start, int stop)
     new_pl->rotation = pl->rotation;
     new_pl->minx = start;
     new_pl->maxx = stop;
+    new_pl->sector = pl->sector;
     memset(new_pl->top, UCHAR_MAX, video.width * sizeof(*new_pl->top));
 
     return new_pl;
@@ -308,7 +309,8 @@ visplane_t *R_DupPlane(const visplane_t *pl, int start, int stop)
 // killough 2/28/98: Add offsets
 
 visplane_t *R_FindPlane(fixed_t height, int picnum, int lightlevel,
-                        fixed_t xoffs, fixed_t yoffs, angle_t rotation)
+                        fixed_t xoffs, fixed_t yoffs, angle_t rotation,
+                        sector_t *sector)
 {
   visplane_t *check;
   unsigned hash;                      // killough
@@ -351,6 +353,7 @@ visplane_t *R_FindPlane(fixed_t height, int picnum, int lightlevel,
   check->xoffs = xoffs;               // killough 2/28/98: Save offsets
   check->yoffs = yoffs;
   check->rotation = rotation;
+  check->sector = sector;
 
   memset(check->top, UCHAR_MAX, video.width * sizeof(*check->top));
 

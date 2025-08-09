@@ -648,7 +648,8 @@ static void R_Subsector(int num)
                 floorlightlevel,                // killough 3/16/98
                 frontsector->interp_floor_xoffs,       // killough 3/7/98
                 frontsector->interp_floor_yoffs,
-                frontsector->floor_rotation
+                frontsector->floor_rotation,
+                frontsector
                 ) : NULL;
 
   ceilingplane = frontsector->interpceilingheight > viewz ||
@@ -662,7 +663,8 @@ static void R_Subsector(int num)
                 ceilinglightlevel,              // killough 4/11/98
                 frontsector->interp_ceiling_xoffs,     // killough 3/7/98
                 frontsector->interp_ceiling_yoffs,
-                frontsector->ceiling_rotation
+                frontsector->ceiling_rotation,
+                frontsector
                 ) : NULL;
 
   // killough 9/18/98: Fix underwater slowdown, by passing real sector 
