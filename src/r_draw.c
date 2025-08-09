@@ -72,6 +72,7 @@ static pixel_t *background_buffer = NULL;
 //
 
 lighttable_t *dc_colormap[2]; // [crispy] brightmaps
+lighttable_t *dc_sectorcolormap;
 int dc_x;
 int dc_yl;
 int dc_yh;
@@ -143,7 +144,7 @@ void R_DrawColumn(void)
         do
         {
             src = source[frac >> 16];
-            *dest = colormap[brightmap[src]][src];
+            *dest = dc_sectorcolormap[colormap[brightmap[src]][src]];
             dest += linesize;
             if ((frac += fracstep) >= heightmask)
             {
@@ -160,18 +161,18 @@ void R_DrawColumn(void)
         while ((count -= 2) >= 0)
         {
             src = source[(frac >> FRACBITS) & heightmask];
-            *dest = colormap[brightmap[src]][src];
+            *dest = dc_sectorcolormap[colormap[brightmap[src]][src]];
             dest += linesize;
             frac += fracstep;
             src = source[(frac >> FRACBITS) & heightmask];
-            *dest = colormap[brightmap[src]][src];
+            *dest = dc_sectorcolormap[colormap[brightmap[src]][src]];
             dest += linesize;
             frac += fracstep;
         }
         if (count & 1)
         {
             src = source[(frac >> FRACBITS) & heightmask];
-            *dest = colormap[brightmap[src]][src];
+            *dest = dc_sectorcolormap[colormap[brightmap[src]][src]];
         }
     }
 }
@@ -234,7 +235,7 @@ void R_DrawTLColumn(void)
         do
         {
             src = source[frac >> 16];
-            *dest = tranmap[(*dest << 8) + colormap[brightmap[src]][src]];
+            *dest = tranmap[(*dest << 8) + dc_sectorcolormap[colormap[brightmap[src]][src]]];
             dest += linesize;
             if ((frac += fracstep) >= heightmask)
             {
@@ -251,18 +252,18 @@ void R_DrawTLColumn(void)
         while ((count -= 2) >= 0)
         {
             src = source[(frac >> FRACBITS) & heightmask];
-            *dest = tranmap[(*dest << 8) + colormap[brightmap[src]][src]];
+            *dest = tranmap[(*dest << 8) + dc_sectorcolormap[colormap[brightmap[src]][src]]];
             dest += linesize;
             frac += fracstep;
             src = source[(frac >> FRACBITS) & heightmask];
-            *dest = tranmap[(*dest << 8) + colormap[brightmap[src]][src]];
+            *dest = tranmap[(*dest << 8) + dc_sectorcolormap[colormap[brightmap[src]][src]]];
             dest += linesize;
             frac += fracstep;
         }
         if (count & 1)
         {
             src = source[(frac >> FRACBITS) & heightmask];
-            *dest = tranmap[(*dest << 8) + colormap[brightmap[src]][src]];
+            *dest = tranmap[(*dest << 8) + dc_sectorcolormap[colormap[brightmap[src]][src]]];
         }
     }
 }
@@ -921,6 +922,7 @@ int ds_x1;
 int ds_x2;
 
 lighttable_t *ds_colormap[2];
+lighttable_t *ds_sectorcolormap;
 const byte *ds_brightmap;
 
 fixed_t ds_xfrac;
@@ -957,22 +959,22 @@ void R_DrawSpan(void)
         // because we don't have the uber complicated math to calculate it now,
         // so that was a memory write we didn't need!
         src = source[((yf >> YSHIFT) & YMASK) | (xf >> XSHIFT)];
-        dest[0] = colormap[brightmap[src]][src];
+        dest[0] = ds_sectorcolormap[colormap[brightmap[src]][src]];
         xf += xs;
         yf += ys;
 
         src = source[((yf >> YSHIFT) & YMASK) | (xf >> XSHIFT)];
-        dest[1] = colormap[brightmap[src]][src];
+        dest[1] = ds_sectorcolormap[colormap[brightmap[src]][src]];
         xf += xs;
         yf += ys;
 
         src = source[((yf >> YSHIFT) & YMASK) | (xf >> XSHIFT)];
-        dest[2] = colormap[brightmap[src]][src];
+        dest[2] = ds_sectorcolormap[colormap[brightmap[src]][src]];
         xf += xs;
         yf += ys;
 
         src = source[((yf >> YSHIFT) & YMASK) | (xf >> XSHIFT)];
-        dest[3] = colormap[brightmap[src]][src];
+        dest[3] = ds_sectorcolormap[colormap[brightmap[src]][src]];
         xf += xs;
         yf += ys;
 
@@ -982,7 +984,7 @@ void R_DrawSpan(void)
     while (count--)
     {
         src = source[((yf >> YSHIFT) & YMASK) | (xf >> XSHIFT)];
-        *dest++ = colormap[brightmap[src]][src];
+        *dest++ = ds_sectorcolormap[colormap[brightmap[src]][src]];
         xf += xs;
         yf += ys;
     }
