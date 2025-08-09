@@ -71,8 +71,8 @@ visplane_t *floorplane, *ceilingplane;
 // killough -- hash function for visplanes
 // Empirically verified to be fairly uniform:
 
-#define visplane_hash(picnum,lightlevel,height) \
-  (((unsigned)(picnum)*3+(unsigned)(lightlevel)+(unsigned)(height)*7) & (MAXVISPLANES-1))
+#define visplane_hash(picnum, lightlevel, height, colormap) \
+  (((unsigned)(picnum) * 3 + (unsigned)(lightlevel) + (unsigned)(height) * 7 + (unsigned)(colormap) * 11) & (MAXVISPLANES - 1))
 
 // killough 8/1/98: set static number of openings to be large enough
 // (a static limit is okay in this case and avoids difficulties in r_segs.c)
@@ -286,7 +286,7 @@ static visplane_t *new_visplane(unsigned hash)
 
 visplane_t *R_DupPlane(const visplane_t *pl, int start, int stop)
 {
-    unsigned hash = visplane_hash(pl->picnum, pl->lightlevel, pl->height);
+    unsigned hash = visplane_hash(pl->picnum, pl->lightlevel, pl->height, pl->colormap);
     visplane_t *new_pl = new_visplane(hash);
 
     new_pl->height = pl->height;
@@ -297,7 +297,7 @@ visplane_t *R_DupPlane(const visplane_t *pl, int start, int stop)
     new_pl->rotation = pl->rotation;
     new_pl->minx = start;
     new_pl->maxx = stop;
-    new_pl->sector = pl->sector;
+    new_pl->colormap = pl->colormap;
     memset(new_pl->top, UCHAR_MAX, video.width * sizeof(*new_pl->top));
 
     return new_pl;
@@ -310,7 +310,7 @@ visplane_t *R_DupPlane(const visplane_t *pl, int start, int stop)
 
 visplane_t *R_FindPlane(fixed_t height, int picnum, int lightlevel,
                         fixed_t xoffs, fixed_t yoffs, angle_t rotation,
-                        sector_t *sector)
+                        int colormap)
 {
   visplane_t *check;
   unsigned hash;                      // killough
@@ -332,7 +332,7 @@ visplane_t *R_FindPlane(fixed_t height, int picnum, int lightlevel,
   }
 
   // New visplane algorithm uses hash table -- killough
-  hash = visplane_hash(picnum,lightlevel,height);
+  hash = visplane_hash(picnum,lightlevel,height,colormap);
 
   for (check=visplanes[hash]; check; check=check->next)  // killough
     if (height == check->height &&
@@ -340,7 +340,8 @@ visplane_t *R_FindPlane(fixed_t height, int picnum, int lightlevel,
         lightlevel == check->lightlevel &&
         xoffs == check->xoffs &&      // killough 2/28/98: Add offset checks
         yoffs == check->yoffs &&
-        rotation == check->rotation)
+        rotation == check->rotation &&
+        colormap == check->colormap)
       return check;
 
   check = new_visplane(hash);         // killough
@@ -353,7 +354,7 @@ visplane_t *R_FindPlane(fixed_t height, int picnum, int lightlevel,
   check->xoffs = xoffs;               // killough 2/28/98: Save offsets
   check->yoffs = yoffs;
   check->rotation = rotation;
-  check->sector = sector;
+  check->colormap = colormap;
 
   memset(check->top, UCHAR_MAX, video.width * sizeof(*check->top));
 
@@ -516,6 +517,8 @@ static void DrawSkyDef(visplane_t *pl, sky_t *sky)
 
 static void do_draw_plane(visplane_t *pl)
 {
+    ds_sectorcolormap = fullcolormap;
+
     if (pl->minx > pl->maxx)
     {
         return;
@@ -554,6 +557,9 @@ static void do_draw_plane(visplane_t *pl)
         ds_brightmap =
             R_BrightmapForFlatNum(flattranslation[pl->picnum]);
     }
+
+    // TODO: crashes, but why?
+    // ds_sectorcolormap = pl->colormap ? colormaps[pl->colormap] : fullcolormap;
 
     xoffs = pl->xoffs; // killough 2/28/98: Add offsets
     yoffs = pl->yoffs;

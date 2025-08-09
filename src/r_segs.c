@@ -160,7 +160,19 @@ void R_RenderMaskedSegRange(drawseg_t *ds, int x1, int x2)
   dc_texturemid += curline->sidedef->interprowoffset;
 
   if (fixedcolormap)
+  {
     dc_colormap[0] = dc_colormap[1] = fixedcolormap;
+    dc_sectorcolormap = ((frontsector->colormap &&
+                          viewplayer->fixedcolormap != INVERSECOLORMAP) ?
+                          colormaps[frontsector->colormap] :
+                          fullcolormap);
+  }
+  else
+  {
+    dc_sectorcolormap = (frontsector->colormap ?
+                        colormaps[frontsector->colormap] :
+                        fullcolormap);
+  }
 
   // draw the columns
   for (dc_x = x1 ; dc_x <= x2 ; dc_x++, spryscale += rw_scalestep)
@@ -387,11 +399,24 @@ static void R_RenderSegLoop (void)
           texturecolumn >>= FRACBITS;
 
           // calculate lighting
-          dc_colormap[0] = walllights[index];
-          dc_colormap[1] = (!fixedcolormap &&
-                            (STRICTMODE(brightmaps) || force_brightmaps))
-                            ? fullcolormap
-                            : dc_colormap[0];
+          if (fixedcolormap)
+          {
+            dc_sectorcolormap = ((frontsector->colormap &&
+                                  viewplayer->fixedcolormap != INVERSECOLORMAP) ?
+                                  colormaps[frontsector->colormap] :
+                                  fullcolormap);
+          }
+          else
+          {
+            dc_colormap[0] = walllights[index];
+            dc_colormap[1] = (!fixedcolormap &&
+                              (STRICTMODE(brightmaps) || force_brightmaps))
+                              ? fullcolormap
+                              : dc_colormap[0];
+            dc_sectorcolormap = (frontsector->colormap ?
+                                  colormaps[frontsector->colormap] :
+                                  fullcolormap);
+          }
           dc_x = rw_x;
           dc_iscale = 0xffffffffu / (unsigned)rw_scale;
         }
@@ -713,6 +738,7 @@ void R_StoreWallRange(const int start, const int stop)
 
         // hexen flowing water
         || backsector->special != frontsector->special
+        || backsector->colormap != frontsector->colormap
         ;
 
       markceiling = worldhigh != worldtop
@@ -731,6 +757,7 @@ void R_StoreWallRange(const int start, const int stop)
 
         // killough 4/17/98: draw ceilings if different light levels
         || backsector->ceilinglightsec != frontsector->ceilinglightsec
+        || backsector->colormap != frontsector->colormap
         ;
 
       if (backsector->interpceilingheight <= frontsector->interpfloorheight

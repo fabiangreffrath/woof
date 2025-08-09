@@ -639,7 +639,7 @@ P_UseSpecialLine
       int colormap_index = side ? line->backcolormap : line->frontcolormap;
       for (int s = -1; (s = P_FindSectorFromLineTag(line, s)) >= 0;)
       {
-        sectors[s].colormap_index = colormap_index;
+        sectors[s].colormap = colormap_index;
       }
       break;
     }

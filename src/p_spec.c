@@ -1787,7 +1787,7 @@ void P_CrossSpecialLine(line_t *line, int side, mobj_t *thing, boolean bossactio
       int colormap_index = side ? line->backcolormap : line->frontcolormap;
       for (int s = -1; (s = P_FindSectorFromLineTag(line, s)) >= 0;)
       {
-        sectors[s].colormap_index = colormap_index;
+        sectors[s].colormap = colormap_index;
       }
       break;
     }
@@ -2271,7 +2271,7 @@ void P_ShootSpecialLine(mobj_t *thing, line_t *line, int side)
       int colormap_index = side ? line->backcolormap : line->frontcolormap;
       for (int s = -1; (s = P_FindSectorFromLineTag(line, s)) >= 0;)
       {
-        sectors[s].colormap_index = colormap_index;
+        sectors[s].colormap = colormap_index;
       }
       break;
     }
@@ -2907,7 +2907,7 @@ void P_SpawnSpecials (void)
       {
         for (int s = -1; (s = P_FindSectorFromLineTag(&lines[i], s)) >= 0;)
         {
-          sectors[s].colormap_index = lines[i].frontcolormap;
+          sectors[s].colormap = lines[i].frontcolormap;
         }
         break;
       }

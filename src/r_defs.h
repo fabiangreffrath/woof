@@ -169,7 +169,7 @@ typedef struct sector_s
   fixed_t old_ceiling_yoffs;
 
   // ID24 line specials
-  int colormap_index;
+  int colormap;
   angle_t floor_rotation;
   angle_t ceiling_rotation;
 } sector_t;
@@ -461,7 +461,7 @@ typedef struct visplane_s
   unsigned short *bottom;
   unsigned short pad1;          // leave pads for [minx-1]/[maxx+1]
   unsigned short top[3];
-  sector_t *sector; // ID24 per-sector colormap
+  int colormap; // ID24 per-sector colormap
 } visplane_t;
 
 #endif

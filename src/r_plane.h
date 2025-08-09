@@ -43,7 +43,7 @@ void R_DrawPlanes (void);
 // killough 2/28/98: add x-y offsets
 struct visplane_s *R_FindPlane(fixed_t height, int picnum, int lightlevel,
                                fixed_t xoffs, fixed_t yoffs, angle_t rotation,
-                               sector_t *sector);
+                               int colormap);
 
 struct visplane_s *R_CheckPlane(struct visplane_s *pl, int start, int stop);
 

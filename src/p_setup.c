@@ -345,8 +345,9 @@ void P_LoadSectors (int lump)
       // killough 4/11/98 sector used to get ceiling lighting:
       ss->ceilinglightsec = -1;
 
+      // ID24 per-sector colormap
       // killough 4/4/98: colormaps:
-      ss->bottommap = ss->midmap = ss->topmap = 0;
+      ss->colormap = ss->bottommap = ss->midmap = ss->topmap = 0;
 
       // killough 10/98: sky textures coming from sidedefs:
       ss->floorsky = ss->ceilingsky = 0;
