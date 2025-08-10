@@ -517,14 +517,13 @@ static void DrawSkyDef(visplane_t *pl, sky_t *sky)
 
 static void do_draw_plane(visplane_t *pl)
 {
-    ds_sectorcolormap = fullcolormap;
-
     if (pl->minx > pl->maxx)
     {
         return;
     }
 
     // sky flat
+    ds_sectorcolormap = fullcolormap;
 
     if (pl->picnum == skyflatnum)
     {
@@ -540,6 +539,10 @@ static void do_draw_plane(visplane_t *pl)
     }
 
     // regular flat
+    if (pl->colormap && viewplayer->fixedcolormap != INVERSECOLORMAP)
+    {
+      ds_sectorcolormap = colormaps[pl->colormap];
+    }
 
     int stop, light;
     boolean swirling = (flattranslation[pl->picnum] == -1);
@@ -557,9 +560,6 @@ static void do_draw_plane(visplane_t *pl)
         ds_brightmap =
             R_BrightmapForFlatNum(flattranslation[pl->picnum]);
     }
-
-    // TODO: crashes, but why?
-    // ds_sectorcolormap = pl->colormap ? colormaps[pl->colormap] : fullcolormap;
 
     xoffs = pl->xoffs; // killough 2/28/98: Add offsets
     yoffs = pl->yoffs;
