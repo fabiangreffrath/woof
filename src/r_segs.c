@@ -162,16 +162,16 @@ void R_RenderMaskedSegRange(drawseg_t *ds, int x1, int x2)
   if (fixedcolormap)
   {
     dc_colormap[0] = dc_colormap[1] = fixedcolormap;
-    dc_sectorcolormap = ((frontsector->colormap &&
-                          viewplayer->fixedcolormap != INVERSECOLORMAP) ?
-                          colormaps[frontsector->colormap] :
-                          fullcolormap);
+    dc_tint = ((frontsector->tint &&
+                viewplayer->fixedcolormap != INVERSECOLORMAP) ?
+                  colormaps[frontsector->tint] :
+                  fullcolormap);
   }
   else
   {
-    dc_sectorcolormap = (frontsector->colormap ?
-                        colormaps[frontsector->colormap] :
-                        fullcolormap);
+    dc_tint = (frontsector->tint ?
+                colormaps[frontsector->tint] :
+                fullcolormap);
   }
 
   // draw the columns
@@ -401,10 +401,10 @@ static void R_RenderSegLoop (void)
           // calculate lighting
           if (fixedcolormap)
           {
-            dc_sectorcolormap = ((frontsector->colormap &&
-                                  viewplayer->fixedcolormap != INVERSECOLORMAP) ?
-                                  colormaps[frontsector->colormap] :
-                                  fullcolormap);
+            dc_tint = ((frontsector->tint &&
+                          viewplayer->fixedcolormap != INVERSECOLORMAP) ?
+                            colormaps[frontsector->tint] :
+                            fullcolormap);
           }
           else
           {
@@ -413,9 +413,9 @@ static void R_RenderSegLoop (void)
                               (STRICTMODE(brightmaps) || force_brightmaps))
                               ? fullcolormap
                               : dc_colormap[0];
-            dc_sectorcolormap = (frontsector->colormap ?
-                                  colormaps[frontsector->colormap] :
-                                  fullcolormap);
+            dc_tint = (frontsector->tint ?
+                        colormaps[frontsector->tint] :
+                        fullcolormap);
           }
           dc_x = rw_x;
           dc_iscale = 0xffffffffu / (unsigned)rw_scale;
@@ -738,7 +738,7 @@ void R_StoreWallRange(const int start, const int stop)
 
         // hexen flowing water
         || backsector->special != frontsector->special
-        || backsector->colormap != frontsector->colormap
+        || backsector->tint != frontsector->tint
         ;
 
       markceiling = worldhigh != worldtop
@@ -757,7 +757,7 @@ void R_StoreWallRange(const int start, const int stop)
 
         // killough 4/17/98: draw ceilings if different light levels
         || backsector->ceilinglightsec != frontsector->ceilinglightsec
-        || backsector->colormap != frontsector->colormap
+        || backsector->tint != frontsector->tint
         ;
 
       if (backsector->interpceilingheight <= frontsector->interpfloorheight

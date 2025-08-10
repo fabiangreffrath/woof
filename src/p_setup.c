@@ -347,7 +347,7 @@ void P_LoadSectors (int lump)
 
       // ID24 per-sector colormap
       // killough 4/4/98: colormaps:
-      ss->colormap = ss->bottommap = ss->midmap = ss->topmap = 0;
+      ss->tint = ss->bottommap = ss->midmap = ss->topmap = 0;
 
       // killough 10/98: sky textures coming from sidedefs:
       ss->floorsky = ss->ceilingsky = 0;
@@ -675,9 +675,9 @@ void P_LoadSideDefs2(int lump)
             if (lines[j].sidenum[0] == i)
             {
               // Front triggered
-              if ((lines[j].frontcolormap = R_ColormapNumForName(msd->toptexture)) < 0)
+              if ((lines[j].fronttint = R_ColormapNumForName(msd->toptexture)) < 0)
               {
-                lines[j].frontcolormap = 0;
+                lines[j].fronttint = 0;
               }
             }
           }
@@ -695,18 +695,20 @@ void P_LoadSideDefs2(int lump)
             if (lines[j].sidenum[0] == i)
             {
               // Back triggered
-              if ((lines[j].backcolormap = R_ColormapNumForName(msd->bottomtexture)) < 0)
+              if ((lines[j].backtint = R_ColormapNumForName(msd->bottomtexture)) < 0)
               {
-                lines[j].backcolormap = 0;
+                lines[j].backtint = 0;
               }
 
               // Front triggered
-              if ((lines[j].frontcolormap = R_ColormapNumForName(msd->toptexture)) < 0)
+              if ((lines[j].fronttint = R_ColormapNumForName(msd->toptexture)) < 0)
               {
-                lines[j].frontcolormap = 0;
+                lines[j].fronttint = 0;
               }
             }
           }
+          sd->midtexture = R_TextureNumForName(msd->midtexture);
+          sd->bottomtexture = R_TextureNumForName(msd->bottomtexture);
           break;
         }
 

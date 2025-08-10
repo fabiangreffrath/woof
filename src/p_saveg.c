@@ -2161,7 +2161,7 @@ void P_ArchiveWorld (void)
 
       saveg_write32(sec->floor_rotation);
       saveg_write32(sec->ceiling_rotation);
-      saveg_write32(sec->colormap);
+      saveg_write32(sec->tint);
     }
 
   // do lines
@@ -2176,8 +2176,8 @@ void P_ArchiveWorld (void)
       saveg_write32(li->angle);
       saveg_write32(li->frontmusic);
       saveg_write32(li->backmusic);
-      saveg_write32(li->frontcolormap);
-      saveg_write32(li->backcolormap);
+      saveg_write32(li->fronttint);
+      saveg_write32(li->backtint);
 
       for (j=0; j<2; j++)
         if (li->sidenum[j] != NO_INDEX)
@@ -2244,7 +2244,7 @@ void P_UnArchiveWorld (void)
 
         sec->floor_rotation = saveg_read32();
         sec->ceiling_rotation = saveg_read32();
-        sec->colormap = saveg_read32();
+        sec->tint = saveg_read32();
       }
 
       // [crispy] add overflow guard for the flattranslation[] array
@@ -2274,8 +2274,8 @@ void P_UnArchiveWorld (void)
         li->angle = saveg_read32();
         li->frontmusic = saveg_read32();
         li->backmusic = saveg_read32();
-        li->frontcolormap = saveg_read32();
-        li->backcolormap = saveg_read32();
+        li->fronttint = saveg_read32();
+        li->backtint = saveg_read32();
       }
 
       for (j=0 ; j<2 ; j++)

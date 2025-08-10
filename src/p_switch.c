@@ -636,10 +636,10 @@ P_UseSpecialLine
 
     case 2079:
     {
-      int colormap_index = side ? line->backcolormap : line->frontcolormap;
+      int colormap_index = side ? line->backtint : line->fronttint;
       for (int s = -1; (s = P_FindSectorFromLineTag(line, s)) >= 0;)
       {
-        sectors[s].colormap = colormap_index;
+        sectors[s].tint = colormap_index;
       }
       break;
     }

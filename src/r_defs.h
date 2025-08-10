@@ -169,7 +169,7 @@ typedef struct sector_s
   fixed_t old_ceiling_yoffs;
 
   // ID24 line specials
-  int colormap;
+  int tint;
   angle_t floor_rotation;
   angle_t ceiling_rotation;
 } sector_t;
@@ -235,8 +235,8 @@ typedef struct line_s
   angle_t angle;
   int frontmusic; // Front upper texture -- activated from the front side
   int backmusic; // Front lower texture -- activated from the back side
-  int frontcolormap; // Front upper texture -- activated from the front side
-  int backcolormap; // Front lower texture -- activated from the back side
+  int fronttint; // Front upper texture -- activated from the front side
+  int backtint; // Front lower texture -- activated from the back side
 } line_t;
 
 //
@@ -393,7 +393,7 @@ typedef struct vissprite_s
   int heightsec;
 
   // ID24 per-sector colormap
-  lighttable_t *sectorcolormap;
+  lighttable_t *tint;
 
   // [FG] colored blood and gibs
   int color;
@@ -459,7 +459,7 @@ typedef struct visplane_s
   fixed_t xoffs, yoffs;         // killough 2/28/98: Support scrolling flats
   angle_t rotation;
   unsigned short *bottom;
-  int colormap; // ID24 per-sector colormap
+  int tint; // ID24 per-sector colormap
   unsigned short pad1;          // leave pads for [minx-1]/[maxx+1]
   unsigned short top[3];
 } visplane_t;

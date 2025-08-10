@@ -286,7 +286,7 @@ static visplane_t *new_visplane(unsigned hash)
 
 visplane_t *R_DupPlane(const visplane_t *pl, int start, int stop)
 {
-    unsigned hash = visplane_hash(pl->picnum, pl->lightlevel, pl->height, pl->colormap);
+    unsigned hash = visplane_hash(pl->picnum, pl->lightlevel, pl->height, pl->tint);
     visplane_t *new_pl = new_visplane(hash);
 
     new_pl->height = pl->height;
@@ -297,7 +297,7 @@ visplane_t *R_DupPlane(const visplane_t *pl, int start, int stop)
     new_pl->rotation = pl->rotation;
     new_pl->minx = start;
     new_pl->maxx = stop;
-    new_pl->colormap = pl->colormap;
+    new_pl->tint = pl->tint;
     memset(new_pl->top, UCHAR_MAX, video.width * sizeof(*new_pl->top));
 
     return new_pl;
@@ -341,7 +341,7 @@ visplane_t *R_FindPlane(fixed_t height, int picnum, int lightlevel,
         xoffs == check->xoffs &&      // killough 2/28/98: Add offset checks
         yoffs == check->yoffs &&
         rotation == check->rotation &&
-        colormap == check->colormap)
+        colormap == check->tint)
       return check;
 
   check = new_visplane(hash);         // killough
@@ -354,7 +354,7 @@ visplane_t *R_FindPlane(fixed_t height, int picnum, int lightlevel,
   check->xoffs = xoffs;               // killough 2/28/98: Save offsets
   check->yoffs = yoffs;
   check->rotation = rotation;
-  check->colormap = colormap;
+  check->tint = colormap;
 
   memset(check->top, UCHAR_MAX, video.width * sizeof(*check->top));
 
@@ -523,7 +523,7 @@ static void do_draw_plane(visplane_t *pl)
     }
 
     // sky flat
-    ds_sectorcolormap = fullcolormap;
+    ds_tint = fullcolormap;
 
     if (pl->picnum == skyflatnum)
     {
@@ -539,9 +539,9 @@ static void do_draw_plane(visplane_t *pl)
     }
 
     // regular flat
-    if (pl->colormap && viewplayer->fixedcolormap != INVERSECOLORMAP)
+    if (pl->tint && viewplayer->fixedcolormap != INVERSECOLORMAP)
     {
-      ds_sectorcolormap = colormaps[pl->colormap];
+      ds_tint = colormaps[pl->tint];
     }
 
     int stop, light;

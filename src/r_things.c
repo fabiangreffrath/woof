@@ -117,14 +117,14 @@ spritedef_t *sprites;
 static spriteframe_t sprtemp[MAX_SPRITE_FRAMES];
 static int maxframe;
 
-static lighttable_t *R_GetSectorColormap(sector_t *sector)
+static lighttable_t *R_GetTint(sector_t *sector)
 {
-  if (sector->floorlightsec && sectors[sector->floorlightsec].colormap)
-    return colormaps[sectors[sector->floorlightsec].colormap];
-  else if (sector->heightsec && sectors[sector->heightsec].colormap)
-    return colormaps[sectors[sector->heightsec].colormap];
-  else if (sector->colormap)
-    return colormaps[sector->colormap];
+  if (sector->floorlightsec && sectors[sector->floorlightsec].tint)
+    return colormaps[sectors[sector->floorlightsec].tint];
+  else if (sector->heightsec && sectors[sector->heightsec].tint)
+    return colormaps[sectors[sector->heightsec].tint];
+  else if (sector->tint)
+    return colormaps[sector->tint];
   else
     return fullcolormap;
 }
@@ -441,7 +441,7 @@ void R_DrawVisSprite(vissprite_t *vis, int x1, int x2)
   dc_colormap[0] = vis->colormap[0];
   dc_colormap[1] = vis->colormap[1];
   dc_brightmap = vis->brightmap;
-  dc_sectorcolormap = vis->sectorcolormap;
+  dc_tint = vis->tint;
 
   // killough 4/11/98: rearrange and handle translucent sprites
   // mixed with translucent/non-translucent 2s normals
@@ -691,17 +691,17 @@ static void R_ProjectSprite (mobj_t* thing)
   if (thing->flags & MF_SHADOW)
   {
     vis->colormap[0] = vis->colormap[1] = NULL;               // shadow draw
-    vis->sectorcolormap = fullcolormap;
+    vis->tint = fullcolormap;
   }
   else if (fixedcolormap)
   {
     vis->colormap[0] = vis->colormap[1] = fixedcolormap;      // fixed map
-    vis->sectorcolormap = fullcolormap;
+    vis->tint = fullcolormap;
   }
   else if (thing->frame & FF_FULLBRIGHT)
   {
     vis->colormap[0] = vis->colormap[1] = fullcolormap;       // full bright  // killough 3/20/98
-    vis->sectorcolormap = R_GetSectorColormap(thing->subsector->sector);
+    vis->tint = R_GetTint(thing->subsector->sector);
   }
   else
     {      // diminished light
@@ -709,7 +709,7 @@ static void R_ProjectSprite (mobj_t* thing)
 
       vis->colormap[0] = spritelights[index];
       vis->colormap[1] = fullcolormap;
-      vis->sectorcolormap = R_GetSectorColormap(thing->subsector->sector);
+      vis->tint = R_GetTint(thing->subsector->sector);
     }
 
   vis->brightmap = R_BrightmapForState(thing->state - states);
@@ -911,23 +911,23 @@ void R_DrawPSprite (pspdef_t *psp)
       || viewplayer->powers[pw_invisibility] & 8) && !beta_emulation)
   {
     vis->colormap[0] = vis->colormap[1] = NULL;                    // shadow draw
-    vis->sectorcolormap = fullcolormap;
+    vis->tint = fullcolormap;
   }
   else if (fixedcolormap)
   {
     vis->colormap[0] = vis->colormap[1] = fixedcolormap;           // fixed color
-    vis->sectorcolormap = fullcolormap;
+    vis->tint = fullcolormap;
   }
   else if (psp->state->frame & FF_FULLBRIGHT)
   {
     vis->colormap[0] = vis->colormap[1] = fullcolormap;            // full bright // killough 3/20/98
-    vis->sectorcolormap = R_GetSectorColormap(viewplayer->mo->subsector->sector);
+    vis->tint = R_GetTint(viewplayer->mo->subsector->sector);
   }
   else
   {
     vis->colormap[0] = spritelights[MAXLIGHTSCALE-1];  // local light
     vis->colormap[1] = fullcolormap;
-    vis->sectorcolormap = R_GetSectorColormap(viewplayer->mo->subsector->sector);
+    vis->tint = R_GetTint(viewplayer->mo->subsector->sector);
   }
   vis->brightmap = R_BrightmapForState(psp->state - states);
 

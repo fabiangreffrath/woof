@@ -488,7 +488,7 @@ static void R_AddLine (seg_t *line)
       // killough 4/16/98: consider altered lighting
       && backsector->floorlightsec == frontsector->floorlightsec
       && backsector->ceilinglightsec == frontsector->ceilinglightsec
-      && backsector->colormap == frontsector->colormap
+      && backsector->tint == frontsector->tint
       )
     return;
 
@@ -662,9 +662,9 @@ static void R_Subsector(int num)
                 frontsector->interp_floor_xoffs,       // killough 3/7/98
                 frontsector->interp_floor_yoffs,
                 frontsector->floor_rotation,
-                (floorlightsec ? floorlightsec->colormap :
-                  (heightsec ? heightsec->colormap :
-                    frontsector->colormap))
+                (floorlightsec ? floorlightsec->tint :
+                  (heightsec ? heightsec->tint :
+                    frontsector->tint))
                 ) : NULL;
 
   ceilingplane = frontsector->interpceilingheight > viewz ||
@@ -678,9 +678,9 @@ static void R_Subsector(int num)
                 frontsector->interp_ceiling_xoffs,     // killough 3/7/98
                 frontsector->interp_ceiling_yoffs,
                 frontsector->ceiling_rotation,
-                (ceilinglightsec ? ceilinglightsec->colormap :
-                  (heightsec ? heightsec->colormap :
-                    frontsector->colormap))
+                (ceilinglightsec ? ceilinglightsec->tint :
+                  (heightsec ? heightsec->tint :
+                    frontsector->tint))
                 ) : NULL;
 
   // killough 9/18/98: Fix underwater slowdown, by passing real sector 
