@@ -638,9 +638,15 @@ static void R_Subsector(int num)
   frontsector = R_FakeFlat(frontsector, &tempsec, &floorlightlevel,
                            &ceilinglightlevel, false);   // killough 4/11/98
 
-  heightsec = &sectors[frontsector->heightsec];
-  floorlightsec = &sectors[frontsector->floorlightsec];
-  ceilinglightsec = &sectors[frontsector->ceilinglightsec];
+  heightsec = frontsector->heightsec >= 0
+            ? &sectors[frontsector->heightsec]
+            : NULL;
+  floorlightsec = frontsector->floorlightsec >= 0
+                ? &sectors[frontsector->floorlightsec]
+                : NULL;
+  ceilinglightsec = frontsector->ceilinglightsec >= 0
+                  ? &sectors[frontsector->ceilinglightsec]
+                  : NULL;
 
   // killough 3/7/98: Add (x,y) offsets to flats, add deep water check
   // killough 3/16/98: add floorlightlevel
@@ -657,7 +663,8 @@ static void R_Subsector(int num)
                 frontsector->interp_floor_yoffs,
                 frontsector->floor_rotation,
                 (floorlightsec ? floorlightsec->colormap :
-                  (heightsec ? heightsec->colormap : frontsector->colormap))
+                  (heightsec ? heightsec->colormap :
+                    frontsector->colormap))
                 ) : NULL;
 
   ceilingplane = frontsector->interpceilingheight > viewz ||
@@ -672,7 +679,8 @@ static void R_Subsector(int num)
                 frontsector->interp_ceiling_yoffs,
                 frontsector->ceiling_rotation,
                 (ceilinglightsec ? ceilinglightsec->colormap :
-                  (heightsec ? heightsec->colormap : frontsector->colormap))
+                  (heightsec ? heightsec->colormap :
+                    frontsector->colormap))
                 ) : NULL;
 
   // killough 9/18/98: Fix underwater slowdown, by passing real sector 
