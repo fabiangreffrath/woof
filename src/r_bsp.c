@@ -1,6 +1,8 @@
 //
 //  Copyright (C) 1999 by
 //  id Software, Chi Hoang, Lee Killough, Jim Flynn, Rand Phares, Ty Halderman
+//  Copyright (C) 2013-2025 by
+//  Brad Harding
 //
 //  This program is free software; you can redistribute it and/or
 //  modify it under the terms of the GNU General Public License
@@ -638,6 +640,7 @@ static void R_Subsector(int num)
   frontsector = R_FakeFlat(frontsector, &tempsec, &floorlightlevel,
                            &ceilinglightlevel, false);   // killough 4/11/98
 
+  // sector tinting, thanks to Doom Retro
   heightsec = frontsector->heightsec >= 0
             ? &sectors[frontsector->heightsec]
             : NULL;

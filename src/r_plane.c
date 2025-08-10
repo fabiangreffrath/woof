@@ -3,6 +3,8 @@
 //  id Software, Chi Hoang, Lee Killough, Jim Flynn, Rand Phares, Ty Halderman
 //  Copyright (C) 2006-2025 by
 //  The Odamex Team.
+//  Copyright (C) 2013-2025 by
+//  Brad Harding
 //  Copyright (C) 2025 by
 //  Fabian Greffrath, Roman Fomin, Guilherme Miranda
 //
@@ -71,6 +73,7 @@ visplane_t *floorplane, *ceilingplane;
 // killough -- hash function for visplanes
 // Empirically verified to be fairly uniform:
 
+// sector tinting, thanks to Doom Retro
 #define visplane_hash(picnum, lightlevel, height, colormap) \
   (((unsigned)(picnum) * 3 + (unsigned)(lightlevel) + (unsigned)(height) * 7 + (unsigned)(colormap) * 11) & (MAXVISPLANES - 1))
 
