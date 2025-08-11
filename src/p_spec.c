@@ -3014,8 +3014,8 @@ void T_Scroll(scroll_t *s)
 static void Add_Scroller(int type, fixed_t dx, fixed_t dy,
                          int control, int affectee, int accel)
 {
-  scroll_t *s = Z_Malloc(sizeof *s, PU_LEVSPEC, 0);
-  s->thinker.function.p1 = (actionf_p1)T_Scroll;
+  scroll_t *s = arena_alloc(thinkers_arena, 1, scroll_t);
+  s->thinker.function.pt = (actionf_pt)T_Scroll;
   s->type = type;
   s->dx = dx;
   s->dy = dy;
@@ -3222,9 +3222,9 @@ static void P_SpawnScrollers(void)
 
 static void Add_Friction(int friction, int movefactor, int affectee)
 {
-    friction_t *f = Z_Malloc(sizeof *f, PU_LEVSPEC, 0);
+    friction_t *f = arena_alloc(thinkers_arena, 1, friction_t);
 
-    f->thinker.function.p1 = (actionf_p1)T_Friction;
+    f->thinker.function.pt = (actionf_pt)T_Friction;
     f->friction = friction;
     f->movefactor = movefactor;
     f->affectee = affectee;
@@ -3453,9 +3453,9 @@ static void P_SpawnFriction(void)
 static void Add_Pusher(int type, int x_mag, int y_mag,
                        mobj_t *source, int affectee)
 {
-  pusher_t *p = Z_Malloc(sizeof *p, PU_LEVSPEC, 0);
+  pusher_t *p = arena_alloc(thinkers_arena, 1, pusher_t);
 
-  p->thinker.function.p1 = (actionf_p1)T_Pusher;
+  p->thinker.function.pt = (actionf_pt)T_Pusher;
   p->source = source;
   p->type = type;
   p->x_mag = x_mag>>FRACBITS;

@@ -37,6 +37,7 @@
 #include "doomtype.h"
 #include "dstrings.h"
 #include "g_game.h"
+#include "g_rewind.h"
 #include "g_umapinfo.h"
 #include "i_input.h"
 #include "i_printf.h"
@@ -51,6 +52,7 @@
 #include "mn_menu.h"
 #include "mn_internal.h"
 #include "mn_snapshot.h"
+#include "p_keyframe.h"
 #include "p_saveg.h"
 #include "r_defs.h"
 #include "r_draw.h"
@@ -2680,6 +2682,11 @@ boolean M_ShortcutResponder(const event_t *ev)
             I_SetFastdemoTimer(fastdemo_timer);
             return true;
         }
+    }
+
+    if (M_InputActivated(input_rewind))
+    {
+        G_LoadAutoKeyframe();
     }
 
     return false;

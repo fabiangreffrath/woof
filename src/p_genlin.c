@@ -30,7 +30,6 @@
 #include "r_state.h"
 #include "s_sound.h"
 #include "sounds.h"
-#include "z_zone.h"
 
 //////////////////////////////////////////////////////////
 //
@@ -100,10 +99,10 @@ manual_floor:
 
     // new floor thinker
     rtn = 1;
-    floor = Z_Malloc (sizeof(*floor), PU_LEVSPEC, 0);
+    floor = arena_alloc(thinkers_arena, 1, floormove_t);
     P_AddThinker (&floor->thinker);
     sec->floordata = floor;
-    floor->thinker.function.p1 = (actionf_p1)T_MoveFloor;
+    floor->thinker.function.pt = (actionf_pt)T_MoveFloor;
     floor->crush = Crsh;
     floor->direction = Dirn? 1 : -1;
     floor->sector = sec;
@@ -303,10 +302,10 @@ manual_ceiling:
 
     // new ceiling thinker
     rtn = 1;
-    ceiling = Z_Malloc (sizeof(*ceiling), PU_LEVSPEC, 0);
+    ceiling = arena_alloc(thinkers_arena, 1, ceiling_t);
     P_AddThinker (&ceiling->thinker);
     sec->ceilingdata = ceiling; //jff 2/22/98
-    ceiling->thinker.function.p1 = (actionf_p1)T_MoveCeiling;
+    ceiling->thinker.function.pt = (actionf_pt)T_MoveCeiling;
     ceiling->crush = Crsh;
     ceiling->direction = Dirn? 1 : -1;
     ceiling->sector = sec;
@@ -514,12 +513,12 @@ manual_lift:
       
     // Setup the plat thinker
     rtn = 1;
-    plat = Z_Malloc( sizeof(*plat), PU_LEVSPEC, 0);
+    plat = arena_alloc(thinkers_arena, 1, plat_t);
     P_AddThinker(&plat->thinker);
               
     plat->sector = sec;
     plat->sector->floordata = plat;
-    plat->thinker.function.p1 = (actionf_p1)T_PlatRaise;
+    plat->thinker.function.pt = (actionf_pt)T_PlatRaise;
     plat->crush = false;
     plat->tag = line->tag;
 
@@ -674,10 +673,10 @@ manual_stair:
       
     // new floor thinker
     rtn = 1;
-    floor = Z_Malloc (sizeof(*floor), PU_LEVSPEC, 0);
+    floor = arena_alloc(thinkers_arena, 1, floormove_t);
     P_AddThinker (&floor->thinker);
     sec->floordata = floor;
-    floor->thinker.function.p1 = (actionf_p1)T_MoveFloor;
+    floor->thinker.function.pt = (actionf_pt)T_MoveFloor;
     floor->direction = Dirn? 1 : -1;
     floor->sector = sec;
 
@@ -776,12 +775,12 @@ manual_stair:
 
         sec = tsec;
         secnum = newsecnum;
-        floor = Z_Malloc (sizeof(*floor), PU_LEVSPEC, 0);
+        floor = arena_alloc(thinkers_arena, 1, floormove_t);
 
         P_AddThinker (&floor->thinker);
 
         sec->floordata = floor;
-        floor->thinker.function.p1 = (actionf_p1)T_MoveFloor;
+        floor->thinker.function.pt = (actionf_pt)T_MoveFloor;
         floor->direction = Dirn? 1 : -1;
         floor->sector = sec;
         floor->speed = speed;
@@ -860,10 +859,10 @@ manual_crusher:
 
     // new ceiling thinker
     rtn = 1;
-    ceiling = Z_Malloc (sizeof(*ceiling), PU_LEVSPEC, 0);
+    ceiling = arena_alloc(thinkers_arena, 1, ceiling_t);
     P_AddThinker (&ceiling->thinker);
     sec->ceilingdata = ceiling; //jff 2/22/98
-    ceiling->thinker.function.p1 = (actionf_p1)T_MoveCeiling;
+    ceiling->thinker.function.pt = (actionf_pt)T_MoveCeiling;
     ceiling->crush = true;
     ceiling->direction = -1;
     ceiling->sector = sec;
@@ -955,11 +954,11 @@ manual_locked:
   
     // new door thinker
     rtn = 1;
-    door = Z_Malloc (sizeof(*door), PU_LEVSPEC, 0);
+    door = arena_alloc(thinkers_arena, 1, vldoor_t);
     P_AddThinker (&door->thinker);
     sec->ceilingdata = door; //jff 2/22/98
 
-    door->thinker.function.p1 = (actionf_p1)T_VerticalDoor;
+    door->thinker.function.pt = (actionf_pt)T_VerticalDoor;
     door->sector = sec;
     door->topwait = VDOORWAIT;
     door->line = line;
@@ -1063,11 +1062,11 @@ manual_door:
   
     // new door thinker
     rtn = 1;
-    door = Z_Malloc (sizeof(*door), PU_LEVSPEC, 0);
+    door = arena_alloc(thinkers_arena, 1, vldoor_t);
     P_AddThinker (&door->thinker);
     sec->ceilingdata = door; //jff 2/22/98
 
-    door->thinker.function.p1 = (actionf_p1)T_VerticalDoor;
+    door->thinker.function.pt = (actionf_pt)T_VerticalDoor;
     door->sector = sec;
     // setup delay for door remaining open/closed
     switch(Dely)

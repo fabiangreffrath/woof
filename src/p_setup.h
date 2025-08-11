@@ -37,6 +37,7 @@ extern int      bmapheight;      // in mapblocks
 extern fixed_t  bmaporgx;
 extern fixed_t  bmaporgy;        // origin of block map
 extern struct mobj_s **blocklinks;    // for thing chains
+extern int blocklinks_size;
 
 extern boolean skipblstart; // MaxW: Skip initial blocklist short
 

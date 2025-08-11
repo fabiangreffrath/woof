@@ -97,6 +97,7 @@ enum
     input_speed_up,
     input_speed_down,
     input_speed_default,
+    input_rewind,
 
     input_map,
     input_map_up,
