@@ -74,8 +74,8 @@ visplane_t *floorplane, *ceilingplane;
 // Empirically verified to be fairly uniform:
 
 // sector tinting, thanks to Doom Retro
-#define visplane_hash(picnum, lightlevel, height, colormap) \
-  (((unsigned)(picnum) * 3 + (unsigned)(lightlevel) + (unsigned)(height) * 7 + (unsigned)(colormap) * 11) & (MAXVISPLANES - 1))
+#define visplane_hash(picnum, lightlevel, height, tint) \
+  (((unsigned)(picnum) * 3 + (unsigned)(lightlevel) + (unsigned)(height) * 7 + (unsigned)(tint) * 11) & (MAXVISPLANES - 1))
 
 // killough 8/1/98: set static number of openings to be large enough
 // (a static limit is okay in this case and avoids difficulties in r_segs.c)
@@ -313,7 +313,7 @@ visplane_t *R_DupPlane(const visplane_t *pl, int start, int stop)
 
 visplane_t *R_FindPlane(fixed_t height, int picnum, int lightlevel,
                         fixed_t xoffs, fixed_t yoffs, angle_t rotation,
-                        int colormap)
+                        int tint)
 {
   visplane_t *check;
   unsigned hash;                      // killough
@@ -335,7 +335,7 @@ visplane_t *R_FindPlane(fixed_t height, int picnum, int lightlevel,
   }
 
   // New visplane algorithm uses hash table -- killough
-  hash = visplane_hash(picnum,lightlevel,height,colormap);
+  hash = visplane_hash(picnum,lightlevel,height,tint);
 
   for (check=visplanes[hash]; check; check=check->next)  // killough
     if (height == check->height &&
@@ -344,7 +344,7 @@ visplane_t *R_FindPlane(fixed_t height, int picnum, int lightlevel,
         xoffs == check->xoffs &&      // killough 2/28/98: Add offset checks
         yoffs == check->yoffs &&
         rotation == check->rotation &&
-        colormap == check->tint)
+        tint == check->tint)
       return check;
 
   check = new_visplane(hash);         // killough
@@ -357,7 +357,7 @@ visplane_t *R_FindPlane(fixed_t height, int picnum, int lightlevel,
   check->xoffs = xoffs;               // killough 2/28/98: Save offsets
   check->yoffs = yoffs;
   check->rotation = rotation;
-  check->tint = colormap;
+  check->tint = tint;
 
   memset(check->top, UCHAR_MAX, video.width * sizeof(*check->top));
 
