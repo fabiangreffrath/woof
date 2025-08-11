@@ -542,7 +542,7 @@ static void do_draw_plane(visplane_t *pl)
     }
 
     // regular flat
-    if (pl->tint && viewplayer->fixedcolormap != INVERSECOLORMAP)
+    if (pl->tint && players[displayplayer].fixedcolormap != INVERSECOLORMAP)
     {
       ds_tint = colormaps[pl->tint];
     }

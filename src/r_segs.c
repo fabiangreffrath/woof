@@ -163,7 +163,7 @@ void R_RenderMaskedSegRange(drawseg_t *ds, int x1, int x2)
   {
     dc_colormap[0] = dc_colormap[1] = fixedcolormap;
     dc_tint = ((frontsector->tint &&
-                viewplayer->fixedcolormap != INVERSECOLORMAP) ?
+                players[displayplayer].fixedcolormap != INVERSECOLORMAP) ?
                   colormaps[frontsector->tint] :
                   fullcolormap);
   }
@@ -402,7 +402,7 @@ static void R_RenderSegLoop (void)
           if (fixedcolormap)
           {
             dc_tint = ((frontsector->tint &&
-                          viewplayer->fixedcolormap != INVERSECOLORMAP) ?
+                          players[displayplayer].fixedcolormap != INVERSECOLORMAP) ?
                             colormaps[frontsector->tint] :
                             fullcolormap);
           }
