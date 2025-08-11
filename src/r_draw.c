@@ -816,6 +816,7 @@ void R_DrawTranslatedColumn(void)
     const byte *source = dc_source;
     const byte *translation = dc_translation;
     lighttable_t *const *colormap = dc_colormap;
+    lighttable_t *const tint = dc_tint;
     const byte *brightmap = dc_brightmap;
     int heightmask = dc_texheight - 1;
 
@@ -841,7 +842,7 @@ void R_DrawTranslatedColumn(void)
         do
         {
             src = source[frac >> 16];
-            *dest = colormap[brightmap[src]][translation[src]];
+            *dest = tint[colormap[brightmap[src]][translation[src]]];
             dest += linesize;
             if ((frac += fracstep) >= heightmask)
             {
@@ -858,18 +859,18 @@ void R_DrawTranslatedColumn(void)
         while ((count -= 2) >= 0)
         {
             src = source[(frac >> FRACBITS) & heightmask];
-            *dest = colormap[brightmap[src]][translation[src]];
+            *dest = tint[colormap[brightmap[src]][translation[src]]];
             dest += linesize;
             frac += fracstep;
             src = source[(frac >> FRACBITS) & heightmask];
-            *dest = colormap[brightmap[src]][translation[src]];
+            *dest = tint[colormap[brightmap[src]][translation[src]]];
             dest += linesize;
             frac += fracstep;
         }
         if (count & 1)
         {
             src = source[(frac >> FRACBITS) & heightmask];
-            *dest = colormap[brightmap[src]][translation[src]];
+            *dest = tint[colormap[brightmap[src]][translation[src]]];
         }
     }
 }
