@@ -117,7 +117,7 @@ spritedef_t *sprites;
 static spriteframe_t sprtemp[MAX_SPRITE_FRAMES];
 static int maxframe;
 
-static lighttable_t *R_GetTint(sector_t *sector)
+lighttable_t *R_GetTint(sector_t *sector)
 {
   if (sector->floorlightsec && sectors[sector->floorlightsec].tint)
     return colormaps[sectors[sector->floorlightsec].tint];

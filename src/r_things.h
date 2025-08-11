@@ -60,6 +60,8 @@ void R_InitSpritesRes(void);
 
 void R_NearbySprites(void);
 
+lighttable_t *R_GetTint(sector_t *sector);
+
 #endif
 
 //----------------------------------------------------------------------------
