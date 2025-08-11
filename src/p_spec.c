@@ -2849,9 +2849,8 @@ void P_SpawnSpecials (void)
   }
 
   for (i=0; i<numlines; i++)
-  {
     switch (lines[i].special)
-    {
+      {
         int s, sec;
 
         // killough 3/7/98:
@@ -2904,15 +2903,12 @@ void P_SpawnSpecials (void)
         break;
 
       case 2075:
-      {
         for (int s = -1; (s = P_FindSectorFromLineTag(&lines[i], s)) >= 0;)
         {
           sectors[s].tint = lines[i].fronttint;
         }
         break;
       }
-    }
-  }
 }
 
 // killough 2/28/98:
