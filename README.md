@@ -259,6 +259,11 @@ Copyright:
  © 2005-2017 Simon Howard.  
 License: [GPL-2.0+](https://www.gnu.org/licenses/old-licenses/gpl-2.0.html)
 
+Files: `textscreen/fonts/hauge-8x18-v1-5.png`
+Copyright:
+ © 2025 Zokum.
+License: [CC BY-SA](https://creativecommons.org/licenses/by-sa/4.0/)
+
 Files: `netlib/*`  
 Copyright:  
  © 1997-2025 Sam Lantinga;  
