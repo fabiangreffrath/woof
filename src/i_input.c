@@ -473,9 +473,6 @@ void I_InitGamepad(void)
     SDL_SetHint(SDL_HINT_JOYSTICK_RAWINPUT, "0");
 #endif
 
-    // Enable bluetooth gyro support for DualShock 4 and DualSense.
-    SDL_SetHint(SDL_HINT_JOYSTICK_ENHANCED_REPORTS, "1");
-
     if (!SDL_Init(SDL_INIT_GAMEPAD))
     {
         I_Printf(VB_WARNING,
@@ -547,13 +544,13 @@ static boolean CheckActiveGamepad(void)
 
 static void CloseGamepad(void)
 {
-    if (gamepad_instance_id != -1)
+    if (gamepad_instance_id)
     {
         I_ResetAllRumbleChannels();
         I_SetRumbleSupported(NULL);
         SDL_CloseGamepad(gamepad);
         gamepad = NULL;
-        gamepad_instance_id = -1;
+        gamepad_instance_id = 0;
         joy_device = 0;
         last_joy_device = joy_device;
         DisableGamepadEvents();
@@ -605,7 +602,7 @@ void I_OpenGamepad(int device_index)
 
 void I_CloseGamepad(SDL_JoystickID instance_id)
 {
-    if (gamepad_instance_id != -1)
+    if (gamepad_instance_id)
     {
         if (instance_id == gamepad_instance_id)
         {
