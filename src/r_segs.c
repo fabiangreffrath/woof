@@ -57,7 +57,6 @@ static int      midtexture;
 angle_t         rw_normalangle; // angle to line origin
 int             rw_angle1;
 fixed_t         rw_distance;
-lighttable_t    **walllights;
 
 //
 // regular wall
@@ -136,10 +135,10 @@ void R_RenderMaskedSegRange(drawseg_t *ds, int x1, int x2)
       lightnum++;
 #endif
 
-  int32_t walllightsindex = fixedcolormapindex
-                          ? fixedcolormapindex
-                          : CLAMP(lightnum, 0, LIGHTLEVELS - 1 );
-  int32_t* walllightoffsets = &scalelightoffset[ walllightsindex * MAXLIGHTSCALE ];
+  walllightindex = fixedcolormapindex
+                 ? fixedcolormapindex
+                 : CLAMP(lightnum, 0, LIGHTLEVELS - 1 );
+  walllightoffset = &scalelightoffset[ walllightindex * MAXLIGHTSCALE ];
 
 
   maskedtexturecol = ds->maskedtexturecol;
@@ -178,7 +177,7 @@ void R_RenderMaskedSegRange(drawseg_t *ds, int x1, int x2)
 
             // [crispy] brightmaps for two sided mid-textures
             dc_brightmap = texturebrightmap[texnum];
-            dc_colormap[0] = thiscolormap + walllightoffsets[index];
+            dc_colormap[0] = thiscolormap + walllightoffset[index];
             dc_colormap[1] = (STRICTMODE(brightmaps) || force_brightmaps)
                               ? thiscolormap
                               : dc_colormap[0];
@@ -334,8 +333,7 @@ void R_FixWiggle (sector_t *sector)
 
 static boolean didsolidcol; // True if at least one column was marked solid
 
-static void R_RenderSegLoop(lighttable_t * thiscolormap, int walllightindex,
-                            int *walllightoffset)
+static void R_RenderSegLoop(lighttable_t * thiscolormap)
 {
   fixed_t  texturecolumn = 0;   // shut up compiler warning
 
@@ -542,8 +540,6 @@ void R_StoreWallRange(const int start, const int stop)
 
   sector_t *sec = curline->sidedef->sector;
   lighttable_t *thiscolormap = sec->tint ? colormaps[sec->tint] : fullcolormap;
-  int walllightindex = 0;
-  int *walllightoffset = NULL;
 
   if (!drawsegs || ds_p == drawsegs+maxdrawsegs) // killough 1/98 -- fix 2s line HOM
     {
@@ -901,7 +897,7 @@ void R_StoreWallRange(const int start, const int stop)
   }
 
   didsolidcol = false;
-  R_RenderSegLoop(thiscolormap, walllightindex, walllightoffset);
+  R_RenderSegLoop(thiscolormap);
 
   // cph - if a column was made solid by this wall, we _must_ save full clipping
   // info

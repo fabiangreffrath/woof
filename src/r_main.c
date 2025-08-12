@@ -1,6 +1,7 @@
 //
 //  Copyright (C) 1999 by
 //  id Software, Chi Hoang, Lee Killough, Jim Flynn, Rand Phares, Ty Halderman
+//  Copyright (C) 2020 by Ethan Watson
 //
 //  This program is free software; you can redistribute it and/or
 //  modify it under the terms of the GNU General Public License
@@ -122,12 +123,15 @@ lighttable_t **(*zlight) = NULL;
 lighttable_t *fullcolormap;
 lighttable_t **colormaps;
 
-int* scalelightindex;
+// thanks to Rum-and-Raisin Doom, Ethan Watson
 int* scalelightoffset;
+int* scalelightindex;
 int* zlightoffset;
 int* zlightindex;
 int* planezlightoffset;
 int  planezlightindex;
+int* walllightoffset;
+int  walllightindex;
 
 // killough 3/20/98, 4/4/98: end dynamic colormaps
 
@@ -502,7 +506,6 @@ void R_InitLightTables (void)
           for (t=0; t<numcolormaps; t++)         // killough 4/4/98
             c_zlight[t][lightlevel][lightz] = colormaps[t] + level;
 
-          // 2025 -- updated thanks to Rum-and-Raisin
           zlightindex[lightlevel * MAXLIGHTZ + lightz] = actual_level;
           zlightoffset[lightlevel * MAXLIGHTZ + lightz] = actual_level * 256;
         }
@@ -893,8 +896,6 @@ void R_SetupFrame (player_t *player)
     {
       fixedcolormap = fullcolormap   // killough 3/20/98: use fullcolormap
         + fixedcolormapindex*256*sizeof(lighttable_t);
-        
-      walllights = scalelightfixed;
 
       for (i=0 ; i<MAXLIGHTSCALE ; i++)
         scalelightfixed[i] = fixedcolormap;

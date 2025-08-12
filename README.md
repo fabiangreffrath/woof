@@ -165,6 +165,7 @@ Copyright:
  © 2013-2025 Brad Harding;  
  © 2017 Christoph Oelckers;  
  © 2020 Alex Mayfield;  
+ © 2020 Ethan Watson;  
  © 2020-2024 Fabian Greffrath;  
  © 2020-2024 Roman Fomin;  
  © 2021-2022 Ryan Krafnick;  

@@ -3,8 +3,7 @@
 //  id Software, Chi Hoang, Lee Killough, Jim Flynn, Rand Phares, Ty Halderman
 //  Copyright (C) 2006-2025 by
 //  The Odamex Team.
-//  Copyright (C) 2013-2025 by
-//  Brad Harding
+//  Copyright (C) 2020 by Ethan Watson
 //  Copyright (C) 2025 by
 //  Fabian Greffrath, Roman Fomin, Guilherme Miranda
 //

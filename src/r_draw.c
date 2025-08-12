@@ -1,8 +1,6 @@
 //
 //  Copyright (C) 1999 by
 //  id Software, Chi Hoang, Lee Killough, Jim Flynn, Rand Phares, Ty Halderman
-//  Copyright (C) 2013-2025 by
-//  Brad Harding
 //
 //  This program is free software; you can redistribute it and/or
 //  modify it under the terms of the GNU General Public License
