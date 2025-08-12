@@ -381,6 +381,8 @@ static void R_RenderSegLoop(lighttable_t * thiscolormap)
       // texturecolumn and lighting are independent of wall tiers
       if (segtextured)
         {
+          const int index = R_GetLightIndex(rw_scale);
+
           // calculate texture offset
           angle_t angle =(rw_centerangle+xtoviewangle[rw_x])>>ANGLETOFINESHIFT;
           angle &= 0xFFF; // Prevent finetangent overflow.
@@ -388,7 +390,6 @@ static void R_RenderSegLoop(lighttable_t * thiscolormap)
           texturecolumn >>= FRACBITS;
 
           // calculate lighting
-          const int index = R_GetLightIndex(rw_scale);
           int colormapindex = fixedcolormapindex;
 
           if (!fixedcolormapindex)

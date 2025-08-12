@@ -685,8 +685,8 @@ boolean VX_ProjectVoxel (mobj_t * thing)
 	vis->x2 = x2;
 
 	// get light level...
-	int tint = R_GetTintIndex(vis->sector);
-	lighttable_t *thiscolormap = tint ? colormaps[tint] : fullcolormap;
+	lighttable_t *thiscolormap = vis->sector->tint ? colormaps[vis->sector->tint]
+	                                               : fullcolormap;
 
 	if (vis->mobjflags & MF_SHADOW)
 	{

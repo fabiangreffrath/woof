@@ -58,8 +58,6 @@ void R_InitSpritesRes(void);
 
 void R_NearbySprites(void);
 
-int R_GetTintIndex(sector_t *sector);
-
 #endif
 
 //----------------------------------------------------------------------------

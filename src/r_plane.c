@@ -73,7 +73,7 @@ visplane_t *floorplane, *ceilingplane;
 // killough -- hash function for visplanes
 // Empirically verified to be fairly uniform:
 
-// sector tinting, thanks to Doom Retro
+// added sector tinting, adapted from Doom Retro
 #define visplane_hash(picnum, lightlevel, height, tint) \
   (((unsigned)(picnum) * 3 + (unsigned)(lightlevel) + (unsigned)(height) * 7 + (unsigned)(tint) * 11) & (MAXVISPLANES - 1))
 
@@ -228,17 +228,17 @@ static void R_MapPlane(int y, int x1, int x2, lighttable_t *thiscolormap)
   ds_yfrac = viewy_trans - FixedMul(angle_sin, distance) + dx * ds_ystep;
 
   // ID24 per-sector colormaps
-  if (!fixedcolormapindex)
+  if (fixedcolormapindex)
+  {
+    ds_colormap[0] = thiscolormap + fixedcolormapindex * 256;
+    ds_colormap[1] = thiscolormap;
+  }
+  else
   {
     lookup = distance >> LIGHTZSHIFT;
     lookup = CLAMP(lookup, 0, MAXLIGHTZ - 1);
     lightindex = zlightindex[planezlightindex * MAXLIGHTZ + lookup];
     ds_colormap[0] = thiscolormap + lightindex * 256;
-    ds_colormap[1] = thiscolormap;
-  }
-  else
-  {
-    ds_colormap[0] = thiscolormap + fixedcolormapindex * 256;
     ds_colormap[1] = thiscolormap;
   }
 

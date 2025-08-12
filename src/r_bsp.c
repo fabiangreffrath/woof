@@ -1,8 +1,6 @@
 //
 //  Copyright (C) 1999 by
 //  id Software, Chi Hoang, Lee Killough, Jim Flynn, Rand Phares, Ty Halderman
-//  Copyright (C) 2013-2025 by
-//  Brad Harding
 //
 //  This program is free software; you can redistribute it and/or
 //  modify it under the terms of the GNU General Public License
@@ -613,9 +611,6 @@ static void R_Subsector(int num)
   sector_t    tempsec;              // killough 3/7/98: deep water hack
   int         floorlightlevel;      // killough 3/16/98: set floor lightlevel
   int         ceilinglightlevel;    // killough 4/11/98
-  sector_t    *heightsec;
-  sector_t    *floorlightsec;
-  sector_t    *ceilinglightsec;
 
 #ifdef RANGECHECK
   if (num>=numsubsectors)
@@ -640,23 +635,13 @@ static void R_Subsector(int num)
   frontsector = R_FakeFlat(frontsector, &tempsec, &floorlightlevel,
                            &ceilinglightlevel, false);   // killough 4/11/98
 
-  // sector tinting, thanks to Doom Retro
-  heightsec = frontsector->heightsec >= 0
-            ? &sectors[frontsector->heightsec]
-            : NULL;
-  floorlightsec = frontsector->floorlightsec >= 0
-                ? &sectors[frontsector->floorlightsec]
-                : NULL;
-  ceilinglightsec = frontsector->ceilinglightsec >= 0
-                  ? &sectors[frontsector->ceilinglightsec]
-                  : NULL;
-
   // killough 3/7/98: Add (x,y) offsets to flats, add deep water check
   // killough 3/16/98: add floorlightlevel
   // killough 10/98: add support for skies transferred from sidedefs
 
   floorplane = frontsector->interpfloorheight < viewz || // killough 3/7/98
-    (heightsec && heightsec->ceilingpic == skyflatnum) ?
+    (frontsector->heightsec != -1 &&
+     sectors[frontsector->heightsec].ceilingpic == skyflatnum) ?
     R_FindPlane(frontsector->interpfloorheight,
 		frontsector->floorpic == skyflatnum &&  // kilough 10/98
 		frontsector->floorsky & PL_SKYFLAT ? frontsector->floorsky :
@@ -665,14 +650,13 @@ static void R_Subsector(int num)
                 frontsector->interp_floor_xoffs,       // killough 3/7/98
                 frontsector->interp_floor_yoffs,
                 frontsector->floor_rotation,
-                (floorlightsec ? floorlightsec->tint :
-                  (heightsec ? heightsec->tint :
-                    frontsector->tint))
+                frontsector->tint
                 ) : NULL;
 
   ceilingplane = frontsector->interpceilingheight > viewz ||
     frontsector->ceilingpic == skyflatnum ||
-    (heightsec && heightsec->floorpic == skyflatnum) ?
+    (frontsector->heightsec != -1 &&
+     sectors[frontsector->heightsec].floorpic == skyflatnum) ?
     R_FindPlane(frontsector->interpceilingheight,     // killough 3/8/98
 		frontsector->ceilingpic == skyflatnum &&  // kilough 10/98
 		frontsector->ceilingsky & PL_SKYFLAT ? frontsector->ceilingsky :
@@ -681,9 +665,7 @@ static void R_Subsector(int num)
                 frontsector->interp_ceiling_xoffs,     // killough 3/7/98
                 frontsector->interp_ceiling_yoffs,
                 frontsector->ceiling_rotation,
-                (ceilinglightsec ? ceilinglightsec->tint :
-                  (heightsec ? heightsec->tint :
-                    frontsector->tint))
+                frontsector->tint
                 ) : NULL;
 
   // killough 9/18/98: Fix underwater slowdown, by passing real sector 

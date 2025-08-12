@@ -117,24 +117,6 @@ spritedef_t *sprites;
 static spriteframe_t sprtemp[MAX_SPRITE_FRAMES];
 static int maxframe;
 
-int R_GetTintIndex(sector_t *sector)
-{
-  if (sector->floorlightsec && sectors[sector->floorlightsec].tint)
-  {
-    return sectors[sector->floorlightsec].tint;
-  }
-  else if (sector->heightsec && sectors[sector->heightsec].tint)
-  {
-    return sectors[sector->heightsec].tint;
-  }
-  else if (sector->tint)
-  {
-    return sector->tint;
-  }
-  else
-    return 0;
-}
-
 void R_InitSpritesRes(void)
 {
   xtoviewangle = Z_Calloc(1, (video.width + 1) * sizeof(*xtoviewangle), PU_RENDERER, NULL);
@@ -693,8 +675,8 @@ static void R_ProjectSprite(mobj_t* thing, int lightlevel_override)
     vis->startfrac += vis->xiscale*(vis->x1-x1);
   vis->patch = lump;
 
-  int tint = R_GetTintIndex(vis->sector);
-  lighttable_t *thiscolormap = tint ? colormaps[tint] : fullcolormap;
+  lighttable_t *thiscolormap = vis->sector->tint ? colormaps[vis->sector->tint]
+                                                 : fullcolormap;
 
   // get light level
   if (thing->flags & MF_SHADOW)
@@ -898,8 +880,8 @@ void R_DrawPSprite (pspdef_t *psp)
 
   vis->patch = lump;
 
-  int tint = R_GetTintIndex(vis->sector);
-  lighttable_t *thiscolormap = tint ? colormaps[tint] : fullcolormap;
+  lighttable_t *thiscolormap = vis->sector->tint ? colormaps[vis->sector->tint]
+                                                 : fullcolormap;
 
   // killough 7/11/98: beta psprites did not draw shadows
   if ((viewplayer->powers[pw_invisibility] > 4*32
