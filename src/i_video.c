@@ -83,7 +83,6 @@ int fps; // [FG] FPS counter widget
 boolean resetneeded;
 boolean setrefreshneeded;
 boolean toggle_fullscreen;
-boolean toggle_exclusive_fullscreen;
 
 static boolean use_vsync; // killough 2/8/98: controls whether vsync is called
 boolean correct_aspect_ratio;
@@ -100,6 +99,7 @@ static boolean disk_icon; // killough 10/98
 // [FG] rendering window, renderer, intermediate ARGB frame buffer and texture
 
 static SDL_Window *screen;
+static SDL_DisplayMode *exclusive_mode;
 static SDL_Renderer *renderer;
 static SDL_Surface *screenbuffer;
 static SDL_Surface *argbbuffer;
@@ -246,34 +246,6 @@ void I_UpdatePriority(boolean active)
                                  : SDL_THREAD_PRIORITY_NORMAL);
 }
 
-// Fix alt+tab and Windows key when using exclusive fullscreen.
-#ifdef _WIN32
-#define NOBLIT (noblit || skip_finish || resetneeded)
-static boolean d3d_renderer = true;
-static boolean skip_finish;
-
-static void FocusGained(void)
-{
-    if (skip_finish)
-    {
-        skip_finish = false;
-        resetneeded = true;
-    }
-}
-
-static void FocusLost(void)
-{
-    if (!skip_finish && exclusive_fullscreen && fullscreen && d3d_renderer)
-    {
-        skip_finish = true;
-    }
-}
-#else
-#define NOBLIT noblit
-#define FocusGained()
-#define FocusLost()
-#endif
-
 // [FG] window event handling from Chocolate Doom 3.0
 
 static void HandleWindowEvent(SDL_WindowEvent *event)
@@ -299,13 +271,11 @@ static void HandleWindowEvent(SDL_WindowEvent *event)
 
         case SDL_EVENT_WINDOW_FOCUS_GAINED:
             window_focused = true;
-            FocusGained();
             I_UpdatePriority(true);
             break;
 
         case SDL_EVENT_WINDOW_FOCUS_LOST:
             window_focused = false;
-            FocusLost();
             I_UpdatePriority(false);
             break;
 
@@ -324,7 +294,12 @@ static void HandleWindowEvent(SDL_WindowEvent *event)
             break;
 
         case SDL_EVENT_WINDOW_MOVED:
-            video_display = SDL_GetDisplayForWindow(screen);
+            {
+                video_display = SDL_GetDisplayForWindow(screen);
+                SDL_DisplayMode **modes =
+                        SDL_GetFullscreenDisplayModes(video_display, NULL);
+                exclusive_mode = modes[0];
+            }
             break;
 
         default:
@@ -386,21 +361,14 @@ static void AdjustWindowSize(void)
     old_h = actualheight;
 }
 
-static void I_ReinitGraphicsMode(void);
-
 static void I_ToggleFullScreen(void)
 {
-    if (exclusive_fullscreen)
-    {
-        I_ReinitGraphicsMode();
-        return;
-    }
-
     if (fullscreen)
     {
         SDL_SetWindowMouseGrab(screen, true);
         SDL_SetWindowResizable(screen, false);
-        SDL_SetWindowFullscreenMode(screen, NULL);
+        SDL_SetWindowFullscreenMode(screen,
+            exclusive_fullscreen ? exclusive_mode : NULL);
     }
     else
     {
@@ -413,16 +381,6 @@ static void I_ToggleFullScreen(void)
 
     SDL_SetWindowFullscreen(screen, fullscreen);
     SDL_SyncWindow(screen);
-}
-
-static void I_ToggleExclusiveFullScreen(void)
-{
-    if (!fullscreen)
-    {
-        return;
-    }
-
-    I_ReinitGraphicsMode();
 }
 
 static void UpdateLimiter(void)
@@ -810,7 +768,7 @@ static void I_ResetTargetRefresh(void);
 
 void I_FinishUpdate(void)
 {
-    if (NOBLIT)
+    if (noblit)
     {
         return;
     }
@@ -819,12 +777,6 @@ void I_FinishUpdate(void)
     {
         I_ToggleFullScreen();
         toggle_fullscreen = false;
-    }
-
-    if (toggle_exclusive_fullscreen)
-    {
-        I_ToggleExclusiveFullScreen();
-        toggle_exclusive_fullscreen = false;
     }
 
     UpdateGrab();
@@ -1661,38 +1613,6 @@ static void I_InitGraphicsMode(void)
     w = window_width;
     h = window_height;
 
-    if (fullscreen)
-    {
-        if (exclusive_fullscreen)
-        {
-            if (change_display_resolution && max_video_width
-                && max_video_height)
-            {
-                w = max_video_width;
-                h = max_video_height;
-            }
-            else
-            {
-                const SDL_DisplayMode *mode =
-                    SDL_GetCurrentDisplayMode(video_display);
-                if (!mode)
-                {
-                    I_Error(
-                        "Could not get display mode for video display #%d: %s",
-                        video_display, SDL_GetError());
-                }
-                w = mode->w;
-                h = mode->h;
-            }
-            // [FG] exclusive fullscreen
-            flags |= SDL_WINDOW_FULLSCREEN;
-        }
-        else
-        {
-            flags |= SDL_WINDOW_BORDERLESS;
-        }
-    }
-
     if (M_CheckParm("-borderless"))
     {
         flags |= SDL_WINDOW_BORDERLESS;
@@ -1713,6 +1633,22 @@ static void I_InitGraphicsMode(void)
     }
 
     I_InitWindowIcon();
+
+    if (change_display_resolution && max_video_width && max_video_height)
+    {
+        SDL_SetWindowMouseGrab(screen, true);
+        w = max_video_width;
+        h = max_video_height;
+        SDL_GetClosestFullscreenDisplayMode(video_display, w, h, 0.0f,
+                                            true, exclusive_mode);
+    }
+    else
+    {
+        SDL_SetWindowResizable(screen, true);
+        SDL_DisplayMode **modes =
+            SDL_GetFullscreenDisplayModes(video_display, NULL);
+        exclusive_mode = modes[0];
+    }
 
     I_ToggleFullScreen();
 
@@ -1736,9 +1672,6 @@ static void I_InitGraphicsMode(void)
              SDL_GetPlatform(),
              renderer_name,
              SDL_GetCurrentVideoDriver());
-#ifdef _WIN32
-    d3d_renderer = !strncmp(renderer_name, "direct3d", strlen(renderer_name));
-#endif
 
     UpdateLimiter();
 }
@@ -1817,31 +1750,6 @@ static void CreateSurfaces(int w, int h)
         AdjustWindowSize();
         SDL_SetWindowSize(screen, window_width, window_height);
     }
-}
-
-static void I_ReinitGraphicsMode(void)
-{
-    if (renderer != NULL)
-    {
-        SDL_DestroyRenderer(renderer);
-        renderer = NULL;
-    }
-
-    if (screen != NULL)
-    {
-        const int i = SDL_GetDisplayForWindow(screen);
-        video_display = i < 0 ? 0 : i;
-        SDL_DestroyWindow(screen);
-        screen = NULL;
-    }
-
-    window_position_x = 0;
-    window_position_y = 0;
-
-    I_InitGraphicsMode();
-    ResetResolution(GetCurrentVideoHeight(), true);
-    CreateSurfaces(video.pitch, video.height);
-    ResetLogicalSize();
 }
 
 void I_ResetScreen(void)

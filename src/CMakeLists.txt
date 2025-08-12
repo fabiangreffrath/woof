@@ -210,7 +210,6 @@ if(HAVE_AL_BUFFER_CALLBACK)
 endif()
 
 if(WIN32)
-    target_include_directories(woof PRIVATE "../win32")
     target_link_libraries(woof PRIVATE winmm shlwapi)
 endif()
 
