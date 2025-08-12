@@ -135,11 +135,9 @@ void R_RenderMaskedSegRange(drawseg_t *ds, int x1, int x2)
       lightnum++;
 #endif
 
-  walllightindex = fixedcolormapindex
-                 ? fixedcolormapindex
-                 : CLAMP(lightnum, 0, LIGHTLEVELS - 1 );
-  walllightoffset = &scalelightoffset[ walllightindex * MAXLIGHTSCALE ];
-
+  walllightindex = fixedcolormapindex ? fixedcolormapindex
+                                      : CLAMP(lightnum, 0, LIGHTLEVELS - 1);
+  walllightoffset = &scalelightoffset[walllightindex * MAXLIGHTSCALE];
 
   maskedtexturecol = ds->maskedtexturecol;
 
@@ -165,7 +163,7 @@ void R_RenderMaskedSegRange(drawseg_t *ds, int x1, int x2)
   dc_texturemid += curline->sidedef->interprowoffset;
 
   if (fixedcolormap)
-    dc_colormap[0] = dc_colormap[1] = fixedcolormap;
+    dc_colormap[0] = dc_colormap[1] = thiscolormap + fixedcolormapindex * 256;
 
   // draw the columns
   for (dc_x = x1 ; dc_x <= x2 ; dc_x++, spryscale += rw_scalestep)

@@ -115,15 +115,10 @@ int LIGHTZSHIFT;
 // killough 4/4/98: support dynamic number of them as well
 
 int numcolormaps;
-lighttable_t ***(*c_scalelight) = NULL;
-lighttable_t ***(*c_zlight) = NULL;
-lighttable_t **(*scalelight) = NULL;
-lighttable_t **scalelightfixed = NULL;
-lighttable_t **(*zlight) = NULL;
 lighttable_t *fullcolormap;
 lighttable_t **colormaps;
 
-// thanks to Rum-and-Raisin Doom, Ethan Watson
+// updated thanks to Rum-and-Raisin Doom, Ethan Watson
 int* scalelightoffset;
 int* scalelightindex;
 int* zlightoffset;
@@ -408,37 +403,6 @@ boolean smoothlight;
 
 void R_InitLightTables (void)
 {
-  int i, cm;
-    
-  if (c_scalelight)
-  {
-    for (cm = 0; cm < numcolormaps; ++cm)
-    {
-      for (i = 0; i < LIGHTLEVELS; ++i)
-        Z_Free(c_scalelight[cm][i]);
-
-      Z_Free(c_scalelight[cm]);
-    }
-    Z_Free(c_scalelight);
-  }
-
-  if (scalelightfixed)
-  {
-    Z_Free(scalelightfixed);
-  }
-
-  if (c_zlight)
-  {
-    for (cm = 0; cm < numcolormaps; ++cm)
-    {
-      for (i = 0; i < LIGHTLEVELS; ++i)
-        Z_Free(c_zlight[cm][i]);
-
-      Z_Free(c_zlight[cm]);
-    }
-    Z_Free(c_zlight);
-  }
-
   if (smoothlight)
   {
       LIGHTLEVELS = 32;
@@ -460,56 +424,30 @@ void R_InitLightTables (void)
       LIGHTZSHIFT = 20;
   }
 
-  scalelightfixed = Z_Malloc(MAXLIGHTSCALE * sizeof(*scalelightfixed), PU_STATIC, 0);
-
+  // killough 4/4/98: dynamic colormaps
   // ScaleLight calculated below
   int NumZLightEntries = LIGHTLEVELS * MAXLIGHTZ;
   zlightoffset = (int*)Z_Malloc(sizeof(int) * NumZLightEntries, PU_STATIC, NULL);
   zlightindex  = (int*)Z_Malloc(sizeof(int) * NumZLightEntries, PU_STATIC, NULL);
 
-  // killough 4/4/98: dynamic colormaps
-  c_zlight = Z_Malloc(sizeof(*c_zlight) * numcolormaps, PU_STATIC, 0);
-  c_scalelight = Z_Malloc(sizeof(*c_scalelight) * numcolormaps, PU_STATIC, 0);
-
-  for (cm = 0; cm < numcolormaps; ++cm)
-  {
-    c_zlight[cm] = Z_Malloc(LIGHTLEVELS * sizeof(**c_zlight), PU_STATIC, 0);
-    c_scalelight[cm] = Z_Malloc(LIGHTLEVELS * sizeof(**c_scalelight), PU_STATIC, 0);
-  }
-
   // Calculate the light levels to use
   //  for each level / distance combination.
   for (int lightlevel = 0; lightlevel < LIGHTLEVELS; lightlevel++)
+  {
+    int lightz, startmap = ((LIGHTLEVELS-LIGHTBRIGHT-lightlevel)*2)*NUMCOLORMAPS/LIGHTLEVELS;
+    for (lightz = 0; lightz < MAXLIGHTZ; lightz++)
     {
-      int lightz, startmap = ((LIGHTLEVELS-LIGHTBRIGHT-lightlevel)*2)*NUMCOLORMAPS/LIGHTLEVELS;
+      int scale = FixedDiv((SCREENWIDTH / 2 * FRACUNIT), (lightz + 1) << LIGHTZSHIFT);
+      int level = startmap - (scale >> LIGHTSCALESHIFT) / DISTMAP;
+      level = CLAMP(level, 0, NUMCOLORMAPS - 1);
 
-      for (cm = 0; cm < numcolormaps; ++cm)
-      {
-        c_scalelight[cm][lightlevel] = Z_Malloc(MAXLIGHTSCALE * sizeof(***c_scalelight), PU_STATIC, 0);
-        c_zlight[cm][lightlevel] = Z_Malloc(MAXLIGHTZ * sizeof(***c_zlight), PU_STATIC, 0);
-      }
-
-      for (lightz = 0; lightz < MAXLIGHTZ; lightz++)
-        {
-          int scale = FixedDiv ((SCREENWIDTH/2*FRACUNIT), (lightz+1)<<LIGHTZSHIFT);
-          int t, level = startmap - (scale >> LIGHTSCALESHIFT)/DISTMAP;
-
-          if (level < 0)
-            level = 0;
-          else
-            if (level >= NUMCOLORMAPS)
-              level = NUMCOLORMAPS-1;
-
-          // killough 3/20/98: Initialize multiple colormaps
-          int actual_level = level;
-          level *= 256;
-          for (t=0; t<numcolormaps; t++)         // killough 4/4/98
-            c_zlight[t][lightlevel][lightz] = colormaps[t] + level;
-
-          zlightindex[lightlevel * MAXLIGHTZ + lightz] = actual_level;
-          zlightoffset[lightlevel * MAXLIGHTZ + lightz] = actual_level * 256;
-        }
+      // killough 3/20/98: Initialize multiple colormaps
+      // killough 4/4/98
+      // updated thanks to Rum-and-Raisin Doom
+      zlightindex[lightlevel * MAXLIGHTZ + lightz] = level;
+      zlightoffset[lightlevel * MAXLIGHTZ + lightz] = level * 256;
     }
+  }
 }
 
 boolean setsmoothlight;
@@ -679,31 +617,21 @@ void R_ExecuteSetViewSize (void)
   // Calculate the light levels to use
   //  for each level / scale combination.
   for (int lightlevel = 0; lightlevel < LIGHTLEVELS; lightlevel++)
+  {
+    int startmap = ((LIGHTLEVELS - LIGHTBRIGHT - lightlevel) * 2) * NUMCOLORMAPS / LIGHTLEVELS;
+    for (int lightscale = 0; lightscale < MAXLIGHTSCALE; lightscale++)
     {
-      int lightscale, startmap = ((LIGHTLEVELS-LIGHTBRIGHT-lightlevel)*2)*NUMCOLORMAPS/LIGHTLEVELS;
+      // killough 11/98:
+      int level = startmap - lightscale / DISTMAP;
+      level = CLAMP(level, 0, NUMCOLORMAPS - 1);
 
-      for (lightscale = 0; lightscale < MAXLIGHTSCALE; lightscale++)
-        {                                       // killough 11/98:
-          int t, level = startmap - lightscale / DISTMAP;
-
-          if (level < 0)
-            level = 0;
-
-          if (level >= NUMCOLORMAPS)
-            level = NUMCOLORMAPS-1;
-
-          // killough 3/20/98: initialize multiple colormaps
-          int actual_level = level;
-          level *= 256;
-
-          for (t=0; t<numcolormaps; t++)     // killough 4/4/98
-            c_scalelight[t][lightlevel][lightscale] = colormaps[t] + level;
-
-          // 2025 -- updated thanks to Rum-and-Raisin
-          scalelightindex[lightlevel * MAXLIGHTSCALE + lightscale] = actual_level;
-          scalelightoffset[lightlevel * MAXLIGHTSCALE + lightscale] = actual_level * 256;
-        }
+      // killough 3/20/98: initialize multiple colormaps
+      // killough 4/4/98
+      // updated thanks to Rum-and-Raisin Doom
+      scalelightindex[lightlevel * MAXLIGHTSCALE + lightscale] = level;
+      scalelightoffset[lightlevel * MAXLIGHTSCALE + lightscale] = level * 256;
     }
+  }
 
   st_refresh_background = true;
 }
@@ -888,20 +816,17 @@ void R_SetupFrame (player_t *player)
     cm = 0;
 
   fullcolormap = colormaps[cm];
-  zlight = c_zlight[cm];
-  scalelight = c_scalelight[cm];
   fixedcolormapindex = player->fixedcolormap;
 
   if (fixedcolormapindex)
-    {
-      fixedcolormap = fullcolormap   // killough 3/20/98: use fullcolormap
-        + fixedcolormapindex*256*sizeof(lighttable_t);
-
-      for (i=0 ; i<MAXLIGHTSCALE ; i++)
-        scalelightfixed[i] = fixedcolormap;
-    }
+  {
+    // killough 3/20/98: use fullcolormap
+    fixedcolormap = fullcolormap + fixedcolormapindex * 256;
+  }
   else
+  {
     fixedcolormap = 0;
+  }
 
   validcount++;
 }

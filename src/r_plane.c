@@ -534,6 +534,7 @@ static void do_draw_plane(visplane_t *pl)
     }
 
     // sky flat
+
     if (pl->picnum == skyflatnum)
     {
         DrawSkyDef(pl, levelskies);
@@ -548,6 +549,7 @@ static void do_draw_plane(visplane_t *pl)
     }
 
     // regular flat
+
     int stop, light;
     boolean swirling = (flattranslation[pl->picnum] == -1);
 

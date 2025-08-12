@@ -73,8 +73,6 @@ extern int MAXLIGHTZ;
 extern int LIGHTZSHIFT;
 
 // killough 3/20/98: Allow colormaps to be dynamic (e.g. underwater)
-extern lighttable_t **(*scalelight);
-extern lighttable_t **(*zlight);
 extern int numcolormaps;    // killough 4/4/98: dynamic number of maps
 // killough 3/20/98, 4/4/98: end dynamic colormaps
 
