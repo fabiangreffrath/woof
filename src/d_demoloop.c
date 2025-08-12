@@ -54,8 +54,18 @@ static demoloop_entry_t demoloop_retail[] = {
     { "DEMO4",    "",         0,   TYPE_DEMO, WIPE_MELT },
 };
 
-// Doom II & Final Doom
+// Doom II
 static demoloop_entry_t demoloop_commercial[] = {
+    { "TITLEPIC", "D_DM2TTL", 385, TYPE_ART,  WIPE_MELT },
+    { "DEMO1",    "",         0,   TYPE_DEMO, WIPE_MELT },
+    { "CREDIT",   "",         200, TYPE_ART,  WIPE_MELT },
+    { "DEMO2",    "",         0,   TYPE_DEMO, WIPE_MELT },
+    { "TITLEPIC", "D_DM2TTL", 385, TYPE_ART,  WIPE_MELT },
+    { "DEMO3",    "",         0,   TYPE_DEMO, WIPE_MELT },
+};
+
+// Final Doom
+static demoloop_entry_t demoloop_final[] = {
     { "TITLEPIC", "D_DM2TTL", 385, TYPE_ART,  WIPE_MELT },
     { "DEMO1",    "",         0,   TYPE_DEMO, WIPE_MELT },
     { "CREDIT",   "",         200, TYPE_ART,  WIPE_MELT },
@@ -144,7 +154,7 @@ static void D_ParseDemoLoop(void)
     JS_Close("DEMOLOOP");
 }
 
-static void D_GetDefaultDemoLoop(GameMode_t mode)
+static void D_GetDefaultDemoLoop(GameMode_t mode, GameVersion_t version)
 {
     switch(mode)
     {
@@ -169,11 +179,12 @@ static void D_GetDefaultDemoLoop(GameMode_t mode)
             break;
 
         case commercial:
-            DEH_MUSIC_LUMP(demoloop_commercial[0].secondary_lump, mus_dm2ttl)
-            DEH_MUSIC_LUMP(demoloop_commercial[4].secondary_lump, mus_dm2ttl)
-
-            demoloop = demoloop_commercial;
-            demoloop_count = arrlen(demoloop_commercial);
+            demoloop = (version == exe_final) ? demoloop_final
+                                              : demoloop_commercial;
+            demoloop_count = (version == exe_final) ? arrlen(demoloop_final)
+                                                    : arrlen(demoloop_commercial);
+            DEH_MUSIC_LUMP(demoloop[0].secondary_lump, mus_dm2ttl)
+            DEH_MUSIC_LUMP(demoloop[4].secondary_lump, mus_dm2ttl)
             break;
 
         case indetermined:
@@ -193,6 +204,6 @@ void D_SetupDemoLoop(void)
 
     if (demoloop == NULL)
     {
-        D_GetDefaultDemoLoop(gamemode);
+        D_GetDefaultDemoLoop(gamemode, gameversion);
     }
 }
