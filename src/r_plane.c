@@ -57,6 +57,7 @@
 #include "r_skydefs.h"
 #include "r_state.h"
 #include "r_swirl.h" // [crispy] R_DistortedFlat()
+#include "r_things.h"
 #include "tables.h"
 #include "v_fmt.h"
 #include "v_video.h"
@@ -180,10 +181,11 @@ void R_InitVisplanesRes(void)
 // BASIC PRIMITIVE
 //
 
-static void R_MapPlane(int y, int x1, int x2)
+static void R_MapPlane(int y, int x1, int x2, lighttable_t *thiscolormap)
 {
   fixed_t distance;
-  unsigned index;
+  unsigned lookup;
+  int lightindex;
   int dx;
   fixed_t dy;
 
@@ -227,14 +229,20 @@ static void R_MapPlane(int y, int x1, int x2)
   ds_xfrac = viewx_trans + FixedMul(angle_cos, distance) + dx * ds_xstep;
   ds_yfrac = viewy_trans - FixedMul(angle_sin, distance) + dx * ds_ystep;
 
-  if (!(ds_colormap[0] = ds_colormap[1] = fixedcolormap))
-    {
-      index = distance >> LIGHTZSHIFT;
-      if (index >= MAXLIGHTZ )
-        index = MAXLIGHTZ-1;
-      ds_colormap[0] = planezlight[index];
-      ds_colormap[1] = fullcolormap;
-    }
+  // ID24 per-sector colormaps
+  if (!fixedcolormapindex)
+  {
+    lookup = distance >> LIGHTZSHIFT;
+    lookup = CLAMP(lookup, 0, MAXLIGHTZ - 1);
+    lightindex = zlightindex[planezlightindex * MAXLIGHTZ + lookup];
+    ds_colormap[0] = thiscolormap + lightindex * 256;
+    ds_colormap[1] = thiscolormap;
+  }
+  else
+  {
+    ds_colormap[0] = thiscolormap + fixedcolormapindex * 256;
+    ds_colormap[1] = thiscolormap;
+  }
 
   ds_y = y;
   ds_x1 = x1;
@@ -396,12 +404,14 @@ visplane_t *R_CheckPlane(visplane_t *pl, int start, int stop)
 // R_MakeSpans
 //
 
-static void R_MakeSpans(int x, unsigned int t1, unsigned int b1, unsigned int t2, unsigned int b2) // [FG] 32-bit integer math
+// [FG] 32-bit integer math
+static void R_MakeSpans(int x, unsigned int t1, unsigned int b1,
+                        unsigned int t2, unsigned int b2, lighttable_t *colormap)
 {
   for (; t1 < t2 && t1 <= b1; t1++)
-    R_MapPlane(t1, spanstart[t1], x-1);
+    R_MapPlane(t1, spanstart[t1], x-1, colormap);
   for (; b1 > b2 && b1 >= t1; b1--)
-    R_MapPlane(b1, spanstart[b1] ,x-1);
+    R_MapPlane(b1, spanstart[b1] ,x-1, colormap);
   while (t2 < t1 && t2 <= b2)
     spanstart[t2++] = x;
   while (b2 > b1 && b2 >= t2)
@@ -593,13 +603,16 @@ static void do_draw_plane(visplane_t *pl)
     }
 
     stop = pl->maxx + 1;
-    planezlight = zlight[light];
     pl->top[pl->minx - 1] = pl->top[stop] = USHRT_MAX;
+
+    planezlightindex = light;
+    planezlightoffset = &zlightoffset[light * MAXLIGHTZ];
+    lighttable_t *thiscolormap = pl->tint ? colormaps[pl->tint] : fullcolormap;
 
     for (int x = pl->minx; x <= stop; x++)
     {
         R_MakeSpans(x, pl->top[x - 1], pl->bottom[x - 1], pl->top[x],
-                    pl->bottom[x]);
+                    pl->bottom[x], thiscolormap);
     }
 
     if (!swirling)

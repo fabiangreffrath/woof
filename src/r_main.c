@@ -126,6 +126,8 @@ int* scalelightindex;
 int* scalelightoffset;
 int* zlightoffset;
 int* zlightindex;
+int* planezlightoffset;
+int  planezlightindex;
 
 // killough 3/20/98, 4/4/98: end dynamic colormaps
 
