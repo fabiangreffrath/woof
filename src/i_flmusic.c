@@ -14,7 +14,7 @@
 // DESCRIPTION:
 //      FluidSynth backend
 
-#include "SDL.h"
+#include <SDL3/SDL.h>
 #include "fluidsynth.h"
 
 #include <stdlib.h>

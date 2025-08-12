@@ -104,7 +104,7 @@ option(CMAKE_FIND_PACKAGE_PREFER_CONFIG
 set(CMAKE_FIND_FRAMEWORK NEVER)
 
 # Library requirements.
-find_package(SDL2 2.0.18 REQUIRED)
+find_package(SDL3 REQUIRED)
 find_package(OpenAL REQUIRED)
 find_package(libebur128 REQUIRED)
 find_package(SndFile 1.0.29 REQUIRED)

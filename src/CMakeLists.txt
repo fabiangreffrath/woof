@@ -185,7 +185,7 @@ endif()
 
 target_link_libraries(
     woof
-    PRIVATE ${SDL2_LIBRARIES}
+    PRIVATE SDL3::SDL3
             OpenAL::OpenAL
             libebur128::libebur128
             SndFile::sndfile
@@ -284,7 +284,7 @@ target_woof_settings(woof-setup)
 target_include_directories(woof-setup PRIVATE "${CMAKE_CURRENT_BINARY_DIR}/../")
 target_link_libraries(
   woof-setup
-  PRIVATE ${SDL2_LIBRARIES}
+  PRIVATE SDL3::SDL3
           textscreen
           setup
           netlib

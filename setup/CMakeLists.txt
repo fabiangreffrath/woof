@@ -11,4 +11,4 @@ target_include_directories(setup
                            INTERFACE "."
                            PRIVATE "../src/" "${CMAKE_CURRENT_BINARY_DIR}/../")
 
-target_link_libraries(setup textscreen SDL2::SDL2)
+target_link_libraries(setup textscreen SDL3::SDL3)
