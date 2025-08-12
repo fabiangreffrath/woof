@@ -1872,6 +1872,8 @@ void I_ResetScreen(void)
     ResetResolution(GetCurrentVideoHeight(), true);
     CreateSurfaces(video.pitch, video.height);
     ResetLogicalSize();
+
+    MN_WideShift();
 }
 
 void I_ShutdownGraphics(void)

@@ -1882,6 +1882,8 @@ static const char *st_layout_strings[] = {
     "Original", "Wide"
 };
 
+void MN_WideShift(void);
+
 #define H_X_THRM8 (M_X_THRM8 - 14)
 #define H_X       (M_X - 14)
 
@@ -1894,6 +1896,9 @@ static setup_menu_t stat_settings1[] = {
 
     {"Layout", S_CHOICE, H_X, M_SPC, {"st_layout"},
      .strings_id = str_stlayout},
+
+    {"Wide Shift", S_THERMO, H_X_THRM8, M_THRM_SPC, {"st_wide_shift"},
+     .action = MN_WideShift},
 
     MI_GAP,
 
@@ -1908,6 +1913,12 @@ static setup_menu_t stat_settings1[] = {
 
     MI_END
 };
+
+void MN_WideShift(void)
+{
+    SetItemLimit(stat_settings1, "st_wide_shift", 0, video.deltaw);
+    ST_WideShift();
+}
 
 static void UpdateStatsFormatItem(void);
 

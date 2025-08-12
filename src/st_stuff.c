@@ -131,6 +131,8 @@ static statusbar_t *statusbar;
 
 static int st_cmd_x, st_cmd_y;
 
+static int st_wide_shift;
+
 typedef enum
 {
     st_original,
@@ -1254,11 +1256,11 @@ static void DrawPatch(int x, int y, int maxheight, sbaralignment_t alignment,
     {
         if (alignment & sbe_wide_left)
         {
-            x -= video.deltaw;
+            x -= st_wide_shift;
         }
         if (alignment & sbe_wide_right)
         {
-            x += video.deltaw;
+            x += st_wide_shift;
         }
     }
 
@@ -2000,10 +2002,17 @@ void WI_DrawWidgets(void)
     }
 }
 
+void ST_WideShift(void)
+{
+    st_wide_shift = CLAMP(st_wide_shift, 0, video.deltaw);
+}
+
 void ST_BindSTSVariables(void)
 {
   M_BindNum("st_layout", &st_layout, NULL,  st_wide, st_original, st_wide,
              ss_stat, wad_no, "HUD layout");
+  M_BindNum("st_wide_shift", &st_wide_shift,
+            NULL, 40, 0, UL, ss_stat, wad_no, "HUD widescreen shift");
   M_BindBool("sts_colored_numbers", &sts_colored_numbers, NULL,
              false, ss_stat, wad_yes, "Colored numbers on the status bar");
   M_BindBool("sts_pct_always_gray", &sts_pct_always_gray, NULL,
