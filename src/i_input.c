@@ -1024,15 +1024,12 @@ void I_ReadMouse(void)
 {
     static event_t ev = {.type = ev_mouse};
 
-    float x, y;
-    SDL_GetRelativeMouseState(&x, &y);
-    ev.data1.i = (int)x;
-    ev.data2.i = (int)y;
+    SDL_GetRelativeMouseState(&ev.data1.f, &ev.data2.f);
 
-    if (ev.data1.i || ev.data2.i)
+    if (ev.data1.f || ev.data2.f)
     {
         D_PostEvent(&ev);
-        ev.data1.i = ev.data2.i = 0;
+        ev.data1.f = ev.data2.f = 0.0f;
     }
 }
 
