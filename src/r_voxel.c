@@ -674,6 +674,7 @@ boolean VX_ProjectVoxel (mobj_t * thing)
 	vis->mobjflags2 = thing->flags2;
 	vis->mobjflags_extra = thing->flags_extra;
 	vis->scale = xscale;
+	vis->sector = thing->subsector->sector;
 
 	vis->gx  = gx;
 	vis->gy  = gy;
@@ -684,30 +685,31 @@ boolean VX_ProjectVoxel (mobj_t * thing)
 	vis->x2 = x2;
 
 	// get light level...
+	int tint = R_GetTintIndex(vis->sector);
+	lighttable_t *thiscolormap = tint ? colormaps[tint] : fullcolormap;
 
 	if (vis->mobjflags & MF_SHADOW)
 	{
 		vis->colormap[0] = vis->colormap[1] = NULL;
-		vis->tint = fullcolormap;
 	}
 	else if (fixedcolormap != NULL)
 	{
-		vis->colormap[0] = vis->colormap[1] = fixedcolormap;
-		vis->tint = fullcolormap;
+		vis->colormap[0] = vis->colormap[1] = thiscolormap + fixedcolormapindex * 256;
 	}
 	else if (thing->frame & FF_FULLBRIGHT)
 	{
-		vis->colormap[0] = vis->colormap[1] = fullcolormap;
-		vis->tint = R_GetTint(thing->subsector->sector);
+		vis->colormap[0] = vis->colormap[1] = thiscolormap;
 	}
 	else
 	{
 		// diminished light
 		const int index = R_GetLightIndex(xscale);
+		int lightnum = (vis->sector->lightlevel >> LIGHTSEGSHIFT) + extralight;
+		lightnum = CLAMP(lightnum, 0, LIGHTLEVELS - 1);
+		int* spritelightoffsets = &scalelightoffset[MAXLIGHTSCALE * lightnum];
 
-		vis->colormap[0] = spritelights[index];
-		vis->colormap[1] = fullcolormap;
-		vis->tint = R_GetTint(thing->subsector->sector);
+		vis->colormap[0] = thiscolormap + spritelightoffsets[index];
+		vis->colormap[1] = thiscolormap;
 	}
 
 	vis->brightmap = R_BrightmapForSprite(thing->sprite);
@@ -925,7 +927,7 @@ static void VX_DrawColumn (vissprite_t * spr, int x, int y)
 					uy = clip_y1;
 
 				byte src = slab[0];
-				byte pix = spr->tint[spr->colormap[spr->brightmap[src]][src]];
+				byte pix = spr->colormap[spr->brightmap[src]][src];
 
 				for (; uy < uy1 ; uy += FRACUNIT)
 				{
@@ -940,7 +942,7 @@ static void VX_DrawColumn (vissprite_t * spr, int x, int y)
 					uy = clip_y2;
 
 				byte src = slab[len - 1];
-				byte pix = spr->tint[spr->colormap[spr->brightmap[src]][src]];
+				byte pix = spr->colormap[spr->brightmap[src]][src];
 
 				for (; uy > uy2 ; uy -= FRACUNIT)
 				{
@@ -960,7 +962,7 @@ static void VX_DrawColumn (vissprite_t * spr, int x, int y)
 					if (i >= len) i = len - 1;
 
 					byte src = slab[i];
-					byte pix = spr->tint[spr->colormap[spr->brightmap[src]][src]];
+					byte pix = spr->colormap[spr->brightmap[src]][src];
 
 					dest[(uy >> FRACBITS) * linesize + (ux >> FRACBITS)] = pix;
 				}

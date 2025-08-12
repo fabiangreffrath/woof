@@ -78,11 +78,17 @@ extern lighttable_t **(*zlight);
 extern int numcolormaps;    // killough 4/4/98: dynamic number of maps
 // killough 3/20/98, 4/4/98: end dynamic colormaps
 
+extern int* scalelightindex;
+extern int* scalelightoffset;
+extern int* zlightoffset;
+extern int* zlightindex;
+
 extern boolean setsmoothlight;
 void R_SmoothLight(void);
 
 extern int          extralight;
 extern lighttable_t *fixedcolormap;
+extern int           fixedcolormapindex;
 
 // Number of diminishing brightness levels.
 // There a 0-31, i.e. 32 LUT in the COLORMAP lump.

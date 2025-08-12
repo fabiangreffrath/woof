@@ -393,7 +393,7 @@ typedef struct vissprite_s
   int heightsec;
 
   // ID24 per-sector colormap
-  lighttable_t *tint;
+  sector_t *sector;
 
   // [FG] colored blood and gibs
   int color;

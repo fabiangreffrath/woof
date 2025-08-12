@@ -117,16 +117,22 @@ spritedef_t *sprites;
 static spriteframe_t sprtemp[MAX_SPRITE_FRAMES];
 static int maxframe;
 
-lighttable_t *R_GetTint(sector_t *sector)
+int R_GetTintIndex(sector_t *sector)
 {
   if (sector->floorlightsec && sectors[sector->floorlightsec].tint)
-    return colormaps[sectors[sector->floorlightsec].tint];
+  {
+    return sectors[sector->floorlightsec].tint;
+  }
   else if (sector->heightsec && sectors[sector->heightsec].tint)
-    return colormaps[sectors[sector->heightsec].tint];
+  {
+    return sectors[sector->heightsec].tint;
+  }
   else if (sector->tint)
-    return colormaps[sector->tint];
+  {
+    return sector->tint;
+  }
   else
-    return fullcolormap;
+    return 0;
 }
 
 void R_InitSpritesRes(void)
@@ -670,6 +676,7 @@ static void R_ProjectSprite (mobj_t* thing)
   vis->x2 = x2 >= viewwidth ? viewwidth-1 : x2;
   iscale = FixedDiv(FRACUNIT, xscale);
   vis->color = thing->bloodcolor;
+  vis->sector = thing->subsector->sector;
 
   if (flip)
     {
@@ -686,29 +693,31 @@ static void R_ProjectSprite (mobj_t* thing)
     vis->startfrac += vis->xiscale*(vis->x1-x1);
   vis->patch = lump;
 
+  int tint = R_GetTintIndex(vis->sector);
+  lighttable_t *thiscolormap = tint ? colormaps[tint] : fullcolormap;
+
   // get light level
   if (thing->flags & MF_SHADOW)
   {
     vis->colormap[0] = vis->colormap[1] = NULL;               // shadow draw
-    vis->tint = fullcolormap;
   }
   else if (fixedcolormap)
   {
-    vis->colormap[0] = vis->colormap[1] = fixedcolormap;      // fixed map
-    vis->tint = fullcolormap;
+    vis->colormap[0] = vis->colormap[1] = thiscolormap + fixedcolormapindex * 256;      // fixed map
   }
   else if (thing->frame & FF_FULLBRIGHT)
   {
-    vis->colormap[0] = vis->colormap[1] = fullcolormap;       // full bright  // killough 3/20/98
-    vis->tint = R_GetTint(thing->subsector->sector);
+    vis->colormap[0] = vis->colormap[1] = thiscolormap;       // full bright  // killough 3/20/98
   }
   else
     {      // diminished light
       const int index = R_GetLightIndex(xscale);
+      int lightnum = (thing->subsector->sector->lightlevel >> LIGHTSEGSHIFT) + extralight;
+      lightnum = CLAMP(lightnum, 0, LIGHTLEVELS - 1);
+      int* spritelightoffsets = &scalelightoffset[MAXLIGHTSCALE * lightnum];
 
-      vis->colormap[0] = spritelights[index];
-      vis->colormap[1] = fullcolormap;
-      vis->tint = R_GetTint(thing->subsector->sector);
+      vis->colormap[0] = thiscolormap + spritelightoffsets[index];
+      vis->colormap[1] = thiscolormap;
     }
 
   vis->brightmap = R_BrightmapForState(thing->state - states);
@@ -880,6 +889,7 @@ void R_DrawPSprite (pspdef_t *psp)
   vis->mobjflags = 0;
   vis->mobjflags2 = 0;
   vis->mobjflags_extra = 0;
+  vis->sector = players[consoleplayer].mo->subsector->sector;
 
   // killough 12/98: fix psprite positioning problem
   vis->texturemid = (BASEYCENTER<<FRACBITS) /* + FRACUNIT/2 */ -
@@ -905,28 +915,32 @@ void R_DrawPSprite (pspdef_t *psp)
 
   vis->patch = lump;
 
+  int tint = R_GetTintIndex(vis->sector);
+  lighttable_t *thiscolormap = tint ? colormaps[tint] : fullcolormap;
+
   // killough 7/11/98: beta psprites did not draw shadows
   if ((viewplayer->powers[pw_invisibility] > 4*32
       || viewplayer->powers[pw_invisibility] & 8) && !beta_emulation)
   {
     vis->colormap[0] = vis->colormap[1] = NULL;                    // shadow draw
-    vis->tint = fullcolormap;
   }
   else if (fixedcolormap)
   {
-    vis->colormap[0] = vis->colormap[1] = fixedcolormap;           // fixed color
-    vis->tint = fullcolormap;
+    vis->colormap[0] = vis->colormap[1] = thiscolormap + fixedcolormapindex * 256;           // fixed color
   }
   else if (psp->state->frame & FF_FULLBRIGHT)
   {
-    vis->colormap[0] = vis->colormap[1] = fullcolormap;            // full bright // killough 3/20/98
-    vis->tint = R_GetTint(viewplayer->mo->subsector->sector);
+    vis->colormap[0] = vis->colormap[1] = thiscolormap;            // full bright // killough 3/20/98
   }
   else
   {
-    vis->colormap[0] = spritelights[MAXLIGHTSCALE-1];  // local light
-    vis->colormap[1] = fullcolormap;
-    vis->tint = R_GetTint(viewplayer->mo->subsector->sector);
+    // local light
+    int lightnum = (vis->sector->lightlevel >> LIGHTSEGSHIFT);
+    lightnum = CLAMP(lightnum, 0, LIGHTLEVELS - 1);
+    int* spritelightoffsets = &scalelightoffset[MAXLIGHTSCALE * lightnum];
+
+    vis->colormap[0] = thiscolormap + spritelightoffsets[MAXLIGHTSCALE - 1];
+    vis->colormap[1] = thiscolormap;
   }
   vis->brightmap = R_BrightmapForState(psp->state - states);
 
