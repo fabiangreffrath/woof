@@ -74,7 +74,6 @@ static pixel_t *background_buffer = NULL;
 //
 
 lighttable_t *dc_colormap[2]; // [crispy] brightmaps
-lighttable_t *dc_tint; // thanks to Doom Retro
 int dc_x;
 int dc_yl;
 int dc_yh;
@@ -121,7 +120,6 @@ void R_DrawColumn(void)
 
     const byte *source = dc_source;
     lighttable_t *const *colormap = dc_colormap;
-    lighttable_t *const tint = dc_tint;
     const byte *brightmap = dc_brightmap;
     int heightmask = dc_texheight - 1;
 
@@ -147,7 +145,7 @@ void R_DrawColumn(void)
         do
         {
             src = source[frac >> 16];
-            *dest = tint[colormap[brightmap[src]][src]];
+            *dest = colormap[brightmap[src]][src];
             dest += linesize;
             if ((frac += fracstep) >= heightmask)
             {
@@ -164,18 +162,18 @@ void R_DrawColumn(void)
         while ((count -= 2) >= 0)
         {
             src = source[(frac >> FRACBITS) & heightmask];
-            *dest = tint[colormap[brightmap[src]][src]];
+            *dest = colormap[brightmap[src]][src];
             dest += linesize;
             frac += fracstep;
             src = source[(frac >> FRACBITS) & heightmask];
-            *dest = tint[colormap[brightmap[src]][src]];
+            *dest = colormap[brightmap[src]][src];
             dest += linesize;
             frac += fracstep;
         }
         if (count & 1)
         {
             src = source[(frac >> FRACBITS) & heightmask];
-            *dest = tint[colormap[brightmap[src]][src]];
+            *dest = colormap[brightmap[src]][src];
         }
     }
 }
@@ -213,7 +211,6 @@ void R_DrawTLColumn(void)
 
     const byte *source = dc_source;
     lighttable_t *const *colormap = dc_colormap;
-    lighttable_t *const tint = dc_tint;
     const byte *brightmap = dc_brightmap;
     int heightmask = dc_texheight - 1;
 
@@ -239,7 +236,7 @@ void R_DrawTLColumn(void)
         do
         {
             src = source[frac >> 16];
-            *dest = tranmap[(*dest << 8) + tint[colormap[brightmap[src]][src]]];
+            *dest = tranmap[(*dest << 8) + colormap[brightmap[src]][src]];
             dest += linesize;
             if ((frac += fracstep) >= heightmask)
             {
@@ -256,18 +253,18 @@ void R_DrawTLColumn(void)
         while ((count -= 2) >= 0)
         {
             src = source[(frac >> FRACBITS) & heightmask];
-            *dest = tranmap[(*dest << 8) + tint[colormap[brightmap[src]][src]]];
+            *dest = tranmap[(*dest << 8) + colormap[brightmap[src]][src]];
             dest += linesize;
             frac += fracstep;
             src = source[(frac >> FRACBITS) & heightmask];
-            *dest = tranmap[(*dest << 8) + tint[colormap[brightmap[src]][src]]];
+            *dest = tranmap[(*dest << 8) + colormap[brightmap[src]][src]];
             dest += linesize;
             frac += fracstep;
         }
         if (count & 1)
         {
             src = source[(frac >> FRACBITS) & heightmask];
-            *dest = tranmap[(*dest << 8) + tint[colormap[brightmap[src]][src]]];
+            *dest = tranmap[(*dest << 8) + colormap[brightmap[src]][src]];
         }
     }
 }
@@ -816,7 +813,6 @@ void R_DrawTranslatedColumn(void)
     const byte *source = dc_source;
     const byte *translation = dc_translation;
     lighttable_t *const *colormap = dc_colormap;
-    lighttable_t *const tint = dc_tint;
     const byte *brightmap = dc_brightmap;
     int heightmask = dc_texheight - 1;
 
@@ -842,7 +838,7 @@ void R_DrawTranslatedColumn(void)
         do
         {
             src = source[frac >> 16];
-            *dest = tint[colormap[brightmap[src]][translation[src]]];
+            *dest = colormap[brightmap[src]][translation[src]];
             dest += linesize;
             if ((frac += fracstep) >= heightmask)
             {
@@ -859,18 +855,18 @@ void R_DrawTranslatedColumn(void)
         while ((count -= 2) >= 0)
         {
             src = source[(frac >> FRACBITS) & heightmask];
-            *dest = tint[colormap[brightmap[src]][translation[src]]];
+            *dest = colormap[brightmap[src]][translation[src]];
             dest += linesize;
             frac += fracstep;
             src = source[(frac >> FRACBITS) & heightmask];
-            *dest = tint[colormap[brightmap[src]][translation[src]]];
+            *dest = colormap[brightmap[src]][translation[src]];
             dest += linesize;
             frac += fracstep;
         }
         if (count & 1)
         {
             src = source[(frac >> FRACBITS) & heightmask];
-            *dest = tint[colormap[brightmap[src]][translation[src]]];
+            *dest = colormap[brightmap[src]][translation[src]];
         }
     }
 }
@@ -927,7 +923,6 @@ int ds_x1;
 int ds_x2;
 
 lighttable_t *ds_colormap[2];
-lighttable_t *ds_tint; // thanks to Doom Retro
 const byte *ds_brightmap;
 
 fixed_t ds_xfrac;
@@ -944,7 +939,6 @@ void R_DrawSpan(void)
     pixel_t *dest = ylookup[ds_y] + columnofs[ds_x1];
     const byte *source = ds_source;
     lighttable_t *const *colormap = ds_colormap;
-    lighttable_t *const tint = ds_tint;
     const byte *brightmap = ds_brightmap;
 
     // SoM: we only need 6 bits for the integer part (0 thru 63) so the rest
@@ -965,22 +959,22 @@ void R_DrawSpan(void)
         // because we don't have the uber complicated math to calculate it now,
         // so that was a memory write we didn't need!
         src = source[((yf >> YSHIFT) & YMASK) | (xf >> XSHIFT)];
-        dest[0] = tint[colormap[brightmap[src]][src]];
+        dest[0] = colormap[brightmap[src]][src];
         xf += xs;
         yf += ys;
 
         src = source[((yf >> YSHIFT) & YMASK) | (xf >> XSHIFT)];
-        dest[1] = tint[colormap[brightmap[src]][src]];
+        dest[1] = colormap[brightmap[src]][src];
         xf += xs;
         yf += ys;
 
         src = source[((yf >> YSHIFT) & YMASK) | (xf >> XSHIFT)];
-        dest[2] = tint[colormap[brightmap[src]][src]];
+        dest[2] = colormap[brightmap[src]][src];
         xf += xs;
         yf += ys;
 
         src = source[((yf >> YSHIFT) & YMASK) | (xf >> XSHIFT)];
-        dest[3] = tint[colormap[brightmap[src]][src]];
+        dest[3] = colormap[brightmap[src]][src];
         xf += xs;
         yf += ys;
 
@@ -990,7 +984,7 @@ void R_DrawSpan(void)
     while (count--)
     {
         src = source[((yf >> YSHIFT) & YMASK) | (xf >> XSHIFT)];
-        *dest++ = tint[colormap[brightmap[src]][src]];
+        *dest++ = colormap[brightmap[src]][src];
         xf += xs;
         yf += ys;
     }

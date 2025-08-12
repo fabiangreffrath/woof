@@ -160,19 +160,7 @@ void R_RenderMaskedSegRange(drawseg_t *ds, int x1, int x2)
   dc_texturemid += curline->sidedef->interprowoffset;
 
   if (fixedcolormap)
-  {
     dc_colormap[0] = dc_colormap[1] = fixedcolormap;
-    dc_tint = ((frontsector->tint &&
-                players[displayplayer].fixedcolormap != INVERSECOLORMAP) ?
-                  colormaps[frontsector->tint] :
-                  fullcolormap);
-  }
-  else
-  {
-    dc_tint = (frontsector->tint ?
-                colormaps[frontsector->tint] :
-                fullcolormap);
-  }
 
   // draw the columns
   for (dc_x = x1 ; dc_x <= x2 ; dc_x++, spryscale += rw_scalestep)
@@ -399,24 +387,11 @@ static void R_RenderSegLoop (void)
           texturecolumn >>= FRACBITS;
 
           // calculate lighting
-          if (fixedcolormap)
-          {
-            dc_tint = ((frontsector->tint &&
-                          players[displayplayer].fixedcolormap != INVERSECOLORMAP) ?
-                            colormaps[frontsector->tint] :
-                            fullcolormap);
-          }
-          else
-          {
-            dc_colormap[0] = walllights[index];
-            dc_colormap[1] = (!fixedcolormap &&
-                              (STRICTMODE(brightmaps) || force_brightmaps))
-                              ? fullcolormap
-                              : dc_colormap[0];
-            dc_tint = (frontsector->tint ?
-                        colormaps[frontsector->tint] :
-                        fullcolormap);
-          }
+          dc_colormap[0] = walllights[index];
+          dc_colormap[1] = (!fixedcolormap &&
+                            (STRICTMODE(brightmaps) || force_brightmaps))
+                            ? fullcolormap
+                            : dc_colormap[0];
           dc_x = rw_x;
           dc_iscale = 0xffffffffu / (unsigned)rw_scale;
         }

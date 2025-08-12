@@ -24,7 +24,6 @@
 #include "m_fixed.h"
 
 extern lighttable_t *dc_colormap[2];
-extern lighttable_t *dc_tint;
 extern int      dc_x;
 extern int      dc_yl;
 extern int      dc_yh;
@@ -69,7 +68,6 @@ void R_DrawSkyColumnMasked(void);
 void R_DrawTranslatedColumn(void);
 
 extern lighttable_t *ds_colormap[2];
-extern lighttable_t *ds_tint;
 
 extern int     ds_y;
 extern int     ds_x1;

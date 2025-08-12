@@ -441,7 +441,6 @@ void R_DrawVisSprite(vissprite_t *vis, int x1, int x2)
   dc_colormap[0] = vis->colormap[0];
   dc_colormap[1] = vis->colormap[1];
   dc_brightmap = vis->brightmap;
-  dc_tint = vis->tint;
 
   // killough 4/11/98: rearrange and handle translucent sprites
   // mixed with translucent/non-translucent 2s normals

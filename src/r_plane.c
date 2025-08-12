@@ -526,8 +526,6 @@ static void do_draw_plane(visplane_t *pl)
     }
 
     // sky flat
-    ds_tint = fullcolormap;
-
     if (pl->picnum == skyflatnum)
     {
         DrawSkyDef(pl, levelskies);
@@ -542,11 +540,6 @@ static void do_draw_plane(visplane_t *pl)
     }
 
     // regular flat
-    if (pl->tint && players[displayplayer].fixedcolormap != INVERSECOLORMAP)
-    {
-      ds_tint = colormaps[pl->tint];
-    }
-
     int stop, light;
     boolean swirling = (flattranslation[pl->picnum] == -1);
 
