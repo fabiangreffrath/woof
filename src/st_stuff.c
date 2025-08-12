@@ -20,6 +20,8 @@
 //
 //-----------------------------------------------------------------------------
 
+#include "st_stuff.h"
+
 #include <math.h>
 #include <stdlib.h>
 
@@ -131,20 +133,21 @@ static statusbar_t *statusbar;
 
 static int st_cmd_x, st_cmd_y;
 
-static int st_wide_shift;
+st_layout_t st_layout;
 
-typedef enum
-{
-    st_original,
-    st_wide
-} st_layout_t;
-
-static st_layout_t st_layout;
+int st_wide_shift;
 
 static patch_t **facepatches = NULL;
 static patch_t **facebackpatches = NULL;
 
 static int have_xdthfaces;
+
+boolean ST_PlayerInvulnerable(player_t *player)
+{
+    return (player->cheats & CF_GODMODE) ||
+        (player->powers[pw_invulnerability] > 4 * 32) ||
+        (player->powers[pw_invulnerability] & 8);
+}
 
 //
 // STATUS BAR CODE
@@ -2000,11 +2003,6 @@ void WI_DrawWidgets(void)
     {
         DrawLines(st_cmd_x, st_cmd_y, st_cmd_elem);
     }
-}
-
-void ST_WideShift(void)
-{
-    st_wide_shift = CLAMP(st_wide_shift, 0, video.deltaw);
 }
 
 void ST_BindSTSVariables(void)

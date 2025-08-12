@@ -27,6 +27,7 @@
 
 struct event_s;
 struct patch_s;
+struct player_s;
 
 // Size of statusbar.
 // Now sensitive for scaling.
@@ -66,12 +67,7 @@ extern int health_red;    // health amount less than which status is red
 extern int health_yellow; // health amount less than which status is yellow
 extern int health_green;  // health amount above is blue, below is green
 
-static inline boolean ST_PlayerInvulnerable(player_t *player)
-{
-    return (player->cheats & CF_GODMODE) ||
-        (player->powers[pw_invulnerability] > 4 * 32) ||
-        (player->powers[pw_invulnerability] & 8);
-}
+boolean ST_PlayerInvulnerable(struct player_s *player);
 
 extern boolean palette_changes;
 
@@ -81,8 +77,16 @@ extern struct patch_s **hu_font;
 void WI_UpdateWidgets(void);
 void WI_DrawWidgets(void);
 
+typedef enum
+{
+    st_original,
+    st_wide
+} st_layout_t;
+
+extern st_layout_t st_layout;
+extern int st_wide_shift;
+
 const char **ST_StatusbarList(void);
-void ST_WideShift(void);
 
 void ST_BindSTSVariables(void);
 
