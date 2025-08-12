@@ -1873,7 +1873,11 @@ void I_ResetScreen(void)
     CreateSurfaces(video.pitch, video.height);
     ResetLogicalSize();
 
-    MN_WideShift();
+    if (widescreen)
+    {
+        MN_WideShift();
+    }
+    MN_UpdateWideShiftItem(widescreen == RATIO_ORIG);
 }
 
 void I_ShutdownGraphics(void)

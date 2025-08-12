@@ -352,7 +352,6 @@ enum
     str_curve,
     str_center_weapon,
     str_screensize,
-    str_stlayout,
     str_show_widgets,
     str_show_adv_widgets,
     str_stats_format,
@@ -724,7 +723,15 @@ static void DrawSetupThermo(const setup_menu_t *s, int x, int y, int width,
         dot = size;
     }
 
-    int step = width * M_THRM_STEP * FRACUNIT / size;
+    int step;
+    if (size)
+    {
+        step = width * M_THRM_STEP * FRACUNIT / size;
+    }
+    else
+    {
+        step = 1;
+    }
 
     if (DrawIndicator)
     {
@@ -1869,12 +1876,6 @@ static void RefreshSolidBackground(void)
     st_refresh_background = true;
 }
 
-static const char *st_layout_strings[] = {
-    "Original", "Wide"
-};
-
-static void UpdateLayout(void);
-
 #define H_X_THRM8 (M_X_THRM8 - 14)
 #define H_X       (M_X - 14)
 
@@ -1885,11 +1886,8 @@ static setup_menu_t stat_settings1[] = {
 
     MI_GAP,
 
-    {"Layout", S_CHOICE, H_X, M_SPC, {"st_layout"},
-     .strings_id = str_stlayout, .action = UpdateLayout},
-
     {"Wide Shift", S_THERMO, H_X_THRM8, M_THRM_SPC, {"st_wide_shift"},
-     .action = MN_WideShift},
+     .action = MN_WideShift, .append = "px"},
 
     MI_GAP,
 
@@ -1911,9 +1909,9 @@ void MN_WideShift(void)
     st_wide_shift = CLAMP(st_wide_shift, 0, video.deltaw);
 }
 
-static void UpdateLayout(void)
+void MN_UpdateWideShiftItem(boolean disable)
 {
-    DisableItem(st_layout == st_original, stat_settings1, "st_wide_shift");
+    DisableItem(disable, stat_settings1, "st_wide_shift");
 }
 
 static void UpdateStatsFormatItem(void);
@@ -5014,7 +5012,6 @@ static const char **selectstrings[] = {
     [str_curve] = curve_strings,
     [str_center_weapon] = center_weapon_strings,
     [str_screensize] = NULL,
-    [str_stlayout] = st_layout_strings,
     [str_show_widgets] = show_widgets_strings,
     [str_show_adv_widgets] = show_adv_widgets_strings,
     [str_stats_format] = stats_format_strings,

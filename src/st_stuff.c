@@ -23,7 +23,6 @@
 #include "st_stuff.h"
 
 #include <math.h>
-#include <stdlib.h>
 
 #include "am_map.h"
 #include "d_event.h"
@@ -132,8 +131,6 @@ static sbardef_t *sbardef;
 static statusbar_t *statusbar;
 
 static int st_cmd_x, st_cmd_y;
-
-st_layout_t st_layout;
 
 int st_wide_shift;
 
@@ -1255,16 +1252,13 @@ static void DrawPatch(int x, int y, int maxheight, sbaralignment_t alignment,
         y -= height;
     }
 
-    if (st_layout == st_wide)
+    if (alignment & sbe_wide_left)
     {
-        if (alignment & sbe_wide_left)
-        {
-            x -= st_wide_shift;
-        }
-        if (alignment & sbe_wide_right)
-        {
-            x += st_wide_shift;
-        }
+        x -= st_wide_shift;
+    }
+    if (alignment & sbe_wide_right)
+    {
+        x += st_wide_shift;
     }
 
     byte *outr = colrngs[cr];
@@ -2007,8 +2001,6 @@ void WI_DrawWidgets(void)
 
 void ST_BindSTSVariables(void)
 {
-  M_BindNum("st_layout", &st_layout, NULL,  st_wide, st_original, st_wide,
-             ss_stat, wad_no, "HUD layout");
   M_BindNum("st_wide_shift", &st_wide_shift,
             NULL, 40, 0, UL, ss_stat, wad_no, "HUD widescreen shift");
   M_BindBool("sts_colored_numbers", &sts_colored_numbers, NULL,

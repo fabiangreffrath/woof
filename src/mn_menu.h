@@ -74,6 +74,7 @@ void MN_UpdateDynamicResolutionItem(void);
 void MN_DisableResolutionScaleItem(void);
 void MN_UpdateFpsLimitItem(void);
 void MN_WideShift(void);
+void MN_UpdateWideShiftItem(boolean disable);
 
 typedef enum
 {

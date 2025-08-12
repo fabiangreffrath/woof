@@ -77,13 +77,6 @@ extern struct patch_s **hu_font;
 void WI_UpdateWidgets(void);
 void WI_DrawWidgets(void);
 
-typedef enum
-{
-    st_original,
-    st_wide
-} st_layout_t;
-
-extern st_layout_t st_layout;
 extern int st_wide_shift;
 
 const char **ST_StatusbarList(void);
