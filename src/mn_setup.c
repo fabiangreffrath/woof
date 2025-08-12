@@ -143,7 +143,7 @@ static boolean default_reset;
 #define MI_GAP_Y(y) \
     {NULL, S_SKIP, 0, (y)}
 
-static void DisableItem(boolean condition, setup_menu_t *menu, const char *item)
+static setup_menu_t *GetMenuItem(setup_menu_t *menu, const char *item)
 {
     while (!(menu->m_flags & S_END))
     {
@@ -153,16 +153,7 @@ static void DisableItem(boolean condition, setup_menu_t *menu, const char *item)
                  && !strcasecmp(menu->var.def->name, item))
                 || !strcasecmp(menu->m_text, item))
             {
-                if (condition)
-                {
-                    menu->m_flags |= S_DISABLE;
-                }
-                else
-                {
-                    menu->m_flags &= ~S_DISABLE;
-                }
-
-                return;
+                return menu;
             }
         }
 
@@ -172,27 +163,27 @@ static void DisableItem(boolean condition, setup_menu_t *menu, const char *item)
     I_Error("Item \"%s\" not found in menu", item);
 }
 
+static void DisableItem(boolean condition, setup_menu_t *menu, const char *item)
+{
+    setup_menu_t *menu_item = GetMenuItem(menu, item);
+
+    if (condition)
+    {
+        menu_item->m_flags |= S_DISABLE;
+    }
+    else
+    {
+        menu_item->m_flags &= ~S_DISABLE;
+    }
+}
+
 static void SetItemLimit(setup_menu_t *menu, const char *item, int min, int max)
 {
-    while (!(menu->m_flags & S_END))
-    {
-        if (!(menu->m_flags & (S_SKIP | S_RESET)))
-        {
-            if (((menu->m_flags & S_HASDEFPTR)
-                 && !strcasecmp(menu->var.def->name, item))
-                || !strcasecmp(menu->m_text, item))
-            {
-                default_t *def = menu->var.def;
-                def->limit.min = min;
-                def->limit.max = max;
-                return;
-            }
-        }
+    setup_menu_t *menu_item = GetMenuItem(menu, item);
 
-        menu++;
-    }
-
-    I_Error("Item \"%s\" not found in menu", item);
+    default_t *def = menu_item->var.def;
+    def->limit.min = min;
+    def->limit.max = max;
 }
 
 static void DisableItemsInternal(boolean condition, setup_menu_t *menu,
@@ -1882,7 +1873,6 @@ static const char *st_layout_strings[] = {
     "Original", "Wide"
 };
 
-void MN_WideShift(void);
 
 #define H_X_THRM8 (M_X_THRM8 - 14)
 #define H_X       (M_X - 14)
