@@ -727,7 +727,7 @@ void R_UpdateViewAngleFunction(void)
 
 void R_SetupFrame (player_t *player)
 {
-  int i, cm;
+  int cm;
   fixed_t pitch;
   const boolean use_localview = CheckLocalView(player);
   const boolean camera_ready = (
