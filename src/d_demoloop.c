@@ -262,11 +262,8 @@ static void D_GetDefaultDemoLoop(GameMode_t mode)
             }
             break;
 
-        case indetermined:
         default:
-            // How did we get here?
-            demoloop = NULL;
-            demoloop_count = 0;
+            I_Error("Invalid gamemode");
             break;
     }
 
