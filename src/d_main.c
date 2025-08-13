@@ -502,20 +502,12 @@ void D_DoAdvanceDemo(void)
     usergame = false; // no save / end game here
     paused = false;
     gameaction = ga_nothing;
+    gamestate = GS_DEMOSCREEN;
 
     D_AdvanceDemoLoop();
     switch (demoloop_point->type)
     {
         case TYPE_ART:
-            gamestate = GS_DEMOSCREEN;
-
-            // Needed to support the Doom 3: BFG Edition variant
-            if (W_CheckNumForName(demoloop_point->primary_lump) < 0
-                && !strcasecmp(demoloop_point->primary_lump, "TITLEPIC"))
-            {
-                M_CopyLumpName(demoloop_point->primary_lump, "DMENUPIC");
-            }
-
             if (W_CheckNumForName(demoloop_point->primary_lump) >= 0)
             {
                 pagename = demoloop_point->primary_lump;
@@ -525,24 +517,18 @@ void D_DoAdvanceDemo(void)
                 {
                     S_ChangeMusInfoMusic(music, false);
                 }
-                break;
             }
-            // fallthrough
+            break;
 
         case TYPE_DEMO:
-            gamestate = GS_DEMOSCREEN;
-
             if (W_CheckNumForName(demoloop_point->primary_lump) >= 0)
             {
                 G_DeferedPlayDemo(demoloop_point->primary_lump);
-                break;
             }
-            // fallthrough
+            break;
 
         default:
-            I_Printf(VB_WARNING,
-                     "D_DoAdvanceDemo: Invalid demoloop[%d] entry, skipping",
-                     demosequence);
+            I_Printf(VB_DEBUG, "D_DoAdvanceDemo: unhandled demoloop type");
             break;
     }
 }
