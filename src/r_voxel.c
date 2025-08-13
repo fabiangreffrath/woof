@@ -499,7 +499,7 @@ static boolean VX_CheckFrustum (fixed_t x1, fixed_t y1, fixed_t x2, fixed_t y2,
 }
 
 
-boolean VX_ProjectVoxel (mobj_t * thing)
+boolean VX_ProjectVoxel(mobj_t *thing, int lightlevel_override)
 {
 	if (!STRICTMODE(voxels_rendering))
 		return false;
@@ -704,7 +704,10 @@ boolean VX_ProjectVoxel (mobj_t * thing)
 	{
 		// diminished light
 		const int index = R_GetLightIndex(xscale);
-		int lightnum = (vis->sector->lightlevel >> LIGHTSEGSHIFT) + extralight;
+		int lightnum = (demo_version >= DV_MBF)
+				? (lightlevel_override >> LIGHTSEGSHIFT)
+				: (vis->sector->lightlevel >> LIGHTSEGSHIFT);
+
 		lightnum = CLAMP(lightnum, 0, LIGHTLEVELS - 1);
 		int* spritelightoffsets = &scalelightoffset[MAXLIGHTSCALE * lightnum];
 

@@ -508,7 +508,7 @@ static void R_ProjectSprite(mobj_t* thing, int lightlevel_override)
   fixed_t interpx, interpy, interpz, interpangle;
 
   // andrewj: voxel support
-  if (VX_ProjectVoxel (thing))
+  if (VX_ProjectVoxel(thing, lightlevel_override))
       return;
 
   // [AM] Interpolate between current and last position,
@@ -699,8 +699,11 @@ static void R_ProjectSprite(mobj_t* thing, int lightlevel_override)
   {
     // diminished light
     const int index = R_GetLightIndex(xscale);
-    int lightnum = (thing->subsector->sector->lightlevel >> LIGHTSEGSHIFT) + extralight;
-    lightnum = CLAMP(lightnum, 0, LIGHTLEVELS - 1);
+    int lightnum = (demo_version >= DV_MBF)
+                 ? (lightlevel_override >> LIGHTSEGSHIFT)
+                 : (vis->sector->lightlevel >> LIGHTSEGSHIFT);
+
+    lightnum = CLAMP(lightnum + extralight, 0, LIGHTLEVELS - 1);
     int* spritelightoffsets = &scalelightoffset[MAXLIGHTSCALE * lightnum];
 
     vis->colormap[0] = thiscolormap + spritelightoffsets[index];
