@@ -254,6 +254,12 @@ static void D_GetDefaultDemoLoop(GameMode_t mode)
 
             demoloop = demoloop_commercial;
             demoloop_count = arrlen(demoloop_commercial);
+
+            if (W_CheckNumForName(demoloop_commercial[6].primary_lump) < 0)
+            {
+                // Ignore missing DEMO4.
+                demoloop_count--;
+            }
             break;
 
         case indetermined:
