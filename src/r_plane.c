@@ -231,7 +231,9 @@ static void R_MapPlane(int y, int x1, int x2, lighttable_t *thiscolormap)
   if (fixedcolormapindex)
   {
     ds_colormap[0] = thiscolormap + fixedcolormapindex * 256;
-    ds_colormap[1] = thiscolormap;
+    ds_colormap[1] = (STRICTMODE(brightmaps) || force_brightmaps)
+                      ? thiscolormap
+                      : dc_colormap[0];
   }
   else
   {
@@ -239,7 +241,9 @@ static void R_MapPlane(int y, int x1, int x2, lighttable_t *thiscolormap)
     lookup = CLAMP(lookup, 0, MAXLIGHTZ - 1);
     lightindex = zlightindex[planezlightindex * MAXLIGHTZ + lookup];
     ds_colormap[0] = thiscolormap + lightindex * 256;
-    ds_colormap[1] = thiscolormap;
+    ds_colormap[1] = (STRICTMODE(brightmaps) || force_brightmaps)
+                      ? thiscolormap
+                      : dc_colormap[0];
   }
 
   ds_y = y;

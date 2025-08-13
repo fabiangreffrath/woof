@@ -707,7 +707,9 @@ static void R_ProjectSprite(mobj_t* thing, int lightlevel_override)
     int* spritelightoffsets = &scalelightoffset[MAXLIGHTSCALE * lightnum];
 
     vis->colormap[0] = thiscolormap + spritelightoffsets[index];
-    vis->colormap[1] = thiscolormap;
+    vis->colormap[1] = (STRICTMODE(brightmaps) || force_brightmaps)
+                       ? thiscolormap
+                       : dc_colormap[0];
   }
 
   vis->brightmap = R_BrightmapForState(thing->state - states);
@@ -912,7 +914,9 @@ void R_DrawPSprite (pspdef_t *psp)
     int* spritelightoffsets = &scalelightoffset[MAXLIGHTSCALE * lightnum];
 
     vis->colormap[0] = thiscolormap + spritelightoffsets[MAXLIGHTSCALE - 1];
-    vis->colormap[1] = thiscolormap;
+    vis->colormap[1] = (STRICTMODE(brightmaps) || force_brightmaps)
+                        ? thiscolormap
+                        : dc_colormap[0];
   }
   vis->brightmap = R_BrightmapForState(psp->state - states);
 
