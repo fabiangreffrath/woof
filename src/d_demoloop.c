@@ -124,22 +124,6 @@ static boolean D_ParsePrimaryLump(json_t *json, demoloop_entry_t *entry)
     }
 
     M_CopyLumpName(entry->primary_lump, primary_lump);
-
-    if (W_CheckNumForName(entry->primary_lump) < 0)
-    {
-        if (!strcasecmp(entry->primary_lump, "TITLEPIC")
-            && W_CheckNumForName("DMENUPIC") >= 0)
-        {
-            // Workaround for Doom 3: BFG Edition.
-            M_CopyLumpName(entry->primary_lump, "DMENUPIC");
-        }
-        else
-        {
-            I_Printf(VB_WARNING, "DEMOLOOP: invalid primarylump");
-            return false;
-        }
-    }
-
     return true;
 }
 
@@ -266,9 +250,11 @@ static void D_GetDefaultDemoLoop(GameMode_t mode)
             I_Error("Invalid gamemode");
             break;
     }
+}
 
-    if (demoloop && W_CheckNumForName("TITLEPIC") < 0
-        && W_CheckNumForName("DMENUPIC") >= 0)
+static void D_TitlePicFix(void)
+{
+    if (W_CheckNumForName("TITLEPIC") < 0 && W_CheckNumForName("DMENUPIC") >= 0)
     {
         for (int i = 0; i < demoloop_count; i++)
         {
@@ -283,12 +269,34 @@ static void D_GetDefaultDemoLoop(GameMode_t mode)
     }
 }
 
+static void D_CheckPrimaryLumps(void)
+{
+    for (int i = 0; i < demoloop_count; i++)
+    {
+        demoloop_entry_t *entry = &demoloop[i];
+
+        if (W_CheckNumForName(entry->primary_lump) < 0)
+        {
+            I_Printf(VB_WARNING, "DEMOLOOP: invalid primarylump");
+            array_free(demoloop);
+            break;
+        }
+    }
+}
+
 void D_SetupDemoLoop(void)
 {
     D_ParseDemoLoop();
 
+    if (demoloop)
+    {
+        D_TitlePicFix();
+        D_CheckPrimaryLumps();
+    }
+
     if (demoloop == NULL)
     {
         D_GetDefaultDemoLoop(gamemode);
+        D_TitlePicFix();
     }
 }
