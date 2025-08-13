@@ -31,6 +31,7 @@
 #include "i_printf.h"
 #include "i_system.h"
 #include "info.h"
+#include "m_arena.h"
 #include "m_argv.h"
 #include "m_bbox.h"
 #include "m_misc.h"
@@ -38,6 +39,7 @@
 #include "nano_bsp.h"
 #include "p_enemy.h"
 #include "p_extnodes.h"
+#include "p_keyframe.h"
 #include "p_map.h"
 #include "p_maputl.h"
 #include "p_mobj.h"
@@ -102,6 +104,7 @@ long      *blockmaplump;          // was short -- killough
 fixed_t   bmaporgx, bmaporgy;     // origin of block map
 
 mobj_t    **blocklinks;           // for thing chains
+int       blocklinks_size;
 
 boolean   skipblstart;  // MaxW: Skip initial blocklist short
 
@@ -1327,10 +1330,10 @@ boolean P_LoadBlockMap (int lump)
     }
 
   // clear out mobj chains
-  count = sizeof(*blocklinks)* bmapwidth*bmapheight;
-  blocklinks = Z_Malloc (count,PU_LEVEL, 0);
-  memset (blocklinks, 0, count);
-  blockmap = blockmaplump+4;
+  blocklinks_size = sizeof(*blocklinks) * bmapwidth * bmapheight;
+  blocklinks = Z_Malloc(blocklinks_size, PU_LEVEL, 0);
+  memset(blocklinks, 0, blocklinks_size);
+  blockmap = blockmaplump + 4;
 
   return ret;
 }
@@ -1409,7 +1412,7 @@ int P_GroupLines (void)
       sector->soundorg.y =
           sector->blockbox[BOXTOP] / 2 + sector->blockbox[BOXBOTTOM] / 2;
 
-      sector->soundorg.thinker.function.p1 = (actionf_p1)P_DegenMobjThinker;
+      sector->soundorg.thinker.function.pv = P_DegenMobjThinker;
 
       // adjust bounding box to map blocks
       block = (sector->blockbox[BOXTOP]-bmaporgy+MAXRADIUS)>>MAPBLOCKSHIFT;
@@ -1703,6 +1706,9 @@ void P_SetupLevel(int episode, int map, int playermask, skill_t skill)
   S_Start();
 
   Z_FreeTag(PU_LEVEL);
+  M_ClearArena(thinkers_arena);
+  M_ClearArena(msecnodes_arena);
+
   Z_FreeTag(PU_CACHE);
 
   P_InitThinkers();
@@ -1837,6 +1843,13 @@ void P_Init (void)
   P_InitSwitchList();
   P_InitPicAnims();
   R_InitSprites(sprnames);
+
+  #define SIZE_MB(x) ((x) * 1024 * 1024)
+  thinkers_arena = M_InitArena(SIZE_MB(256), SIZE_MB(2));
+  msecnodes_arena = M_InitArena(SIZE_MB(32), SIZE_MB(1));
+  activeceilings_arena = M_InitArena(SIZE_MB(32), SIZE_MB(1));
+  activeplats_arena = M_InitArena(SIZE_MB(32), SIZE_MB(1));
+  #undef SIZE_MB
 }
 
 //----------------------------------------------------------------------------

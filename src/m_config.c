@@ -35,6 +35,7 @@
 #include "doomstat.h"
 #include "doomtype.h"
 #include "g_game.h"
+#include "g_rewind.h"
 #include "i_flickstick.h"
 #include "i_gamepad.h"
 #include "i_gyro.h"
@@ -136,6 +137,7 @@ void M_InitConfig(void)
     MN_BindMenuVariables();
     D_BindMiscVariables();
     G_BindGameVariables();
+    G_BindRewindVariables();
 
     G_BindGameInputVariables();
     G_BindMouseVariables();
