@@ -823,12 +823,8 @@ void R_StoreWallRange(const int start, const int stop)
 #endif
           if (fixedcolormapindex)
             walllightindex = fixedcolormapindex;
-          else if (lightnum < 0)
-            walllightindex = 0;
-          else if (lightnum >= LIGHTLEVELS)
-            walllightindex = LIGHTLEVELS - 1;
           else
-            walllightindex = lightnum;
+            walllightindex = CLAMP(lightnum, 0, LIGHTLEVELS - 1);
 
           walllightoffset = &scalelightoffset[walllightindex * MAXLIGHTSCALE];
         }

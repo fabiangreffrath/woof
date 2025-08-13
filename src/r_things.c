@@ -792,7 +792,7 @@ void R_NearbySprites (void)
 // R_DrawPSprite
 //
 
-void R_DrawPSprite (pspdef_t *psp)
+void R_DrawPSprite(pspdef_t *psp, int lightlevel_override)
 {
   fixed_t       tx;
   int           x1, x2;
@@ -909,7 +909,10 @@ void R_DrawPSprite (pspdef_t *psp)
   else
   {
     // local light
-    int lightnum = (vis->sector->lightlevel >> LIGHTSEGSHIFT);
+    int lightnum = (demo_version >= DV_MBF)
+                 ? (lightlevel_override >> LIGHTSEGSHIFT)
+                 : (vis->sector->lightlevel >> LIGHTSEGSHIFT);
+
     lightnum = CLAMP(lightnum, 0, LIGHTLEVELS - 1);
     int* spritelightoffsets = &scalelightoffset[MAXLIGHTSCALE * lightnum];
 
@@ -958,7 +961,7 @@ void R_DrawPlayerSprites(void)
   // add all active psprites
   for (i=0, psp=viewplayer->psprites; i<NUMPSPRITES; i++,psp++)
     if (psp->state)
-      R_DrawPSprite (psp);
+      R_DrawPSprite(psp, ((floorlightlevel + ceilinglightlevel) / 2));
 }
 
 //

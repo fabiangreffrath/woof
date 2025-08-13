@@ -713,8 +713,8 @@ boolean VX_ProjectVoxel(mobj_t *thing, int lightlevel_override)
 
 		vis->colormap[0] = thiscolormap + spritelightoffsets[index];
 		vis->colormap[1] = (STRICTMODE(brightmaps) || force_brightmaps)
-                        ? thiscolormap
-                        : dc_colormap[0];
+				? thiscolormap
+				: dc_colormap[0];
 	}
 
 	vis->brightmap = R_BrightmapForSprite(thing->sprite);
