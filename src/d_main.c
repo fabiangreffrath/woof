@@ -1627,26 +1627,14 @@ void D_SetBloodColor(void)
 // killough 8/1/98: change back to ENDOOM
 
 typedef enum {
-  EXIT_SEQUENCE_OFF,          // Skip sound, skip ENDOOM.
-  EXIT_SEQUENCE_SOUND_ONLY,   // Play sound, skip ENDOOM.
-  EXIT_SEQUENCE_ENDOOM_ONLY,  // Skip sound, show ENDOOM.
-  EXIT_SEQUENCE_FULL          // Play sound, show ENDOOM.
-} exit_sequence_t;
+  ENDOOM_OFF,
+  ENDOOM_PWAD_ONLY,
+  ENDOOM_ALWAYS
+} endoom_t;
 
-static exit_sequence_t exit_sequence;
-static boolean endoom_pwad_only;
-
-boolean D_EndDoomEnabled(void)
-{
-  return (exit_sequence == EXIT_SEQUENCE_FULL
-          || exit_sequence == EXIT_SEQUENCE_ENDOOM_ONLY);
-}
-
-boolean D_QuitSoundEnabled(void)
-{
-  return (exit_sequence == EXIT_SEQUENCE_FULL
-          || exit_sequence == EXIT_SEQUENCE_SOUND_ONLY);
-}
+boolean quit_prompt;
+boolean quit_sound;
+static endoom_t show_endoom;
 
 static void D_ShowEndDoom(void)
 {
@@ -1665,12 +1653,13 @@ boolean D_AllowEndDoom(void)
     return false; // Alt-F4 or pressed the close button.
   }
 
-  if (!D_EndDoomEnabled())
+  if (show_endoom == ENDOOM_OFF)
   {
-    return false; // Exit sequence is set to "Off" or "Sound Only".
+    return false; // ENDOOM disabled.
   }
 
-  if (W_IsIWADLump(W_CheckNumForName("ENDOOM")) && endoom_pwad_only)
+  if (W_IsIWADLump(W_CheckNumForName("ENDOOM"))
+      && show_endoom == ENDOOM_PWAD_ONLY)
   {
     return false; // User prefers PWAD ENDOOM only.
   }
@@ -2685,9 +2674,10 @@ void D_DoomMain(void)
 
 void D_BindMiscVariables(void)
 {
-  BIND_NUM_GENERAL(exit_sequence, 0, 0, EXIT_SEQUENCE_FULL,
-    "Exit sequence (0 = Off; 1 = Sound Only; 2 = ENDOOM Only; 3 = Full)");
-  BIND_BOOL_GENERAL(endoom_pwad_only, false, "Show only ENDOOM from PWAD");
+  BIND_BOOL_GENERAL(quit_prompt, true, "Show quit prompt");
+  BIND_BOOL_GENERAL(quit_sound, false, "Play quit sound");
+  BIND_NUM_GENERAL(show_endoom, ENDOOM_OFF, ENDOOM_OFF, ENDOOM_ALWAYS,
+    "Show ENDOOM screen (0 = Off; 1 = PWAD Only; 2 = Always)");
   BIND_BOOL_GENERAL(demobar, false, "Show demo progress bar");
   BIND_NUM_GENERAL(screen_melt, wipe_Melt, wipe_None, wipe_Fizzle,
     "Screen wipe effect (0 = None; 1 = Melt; 2 = Crossfade; 3 = Fizzlefade)");

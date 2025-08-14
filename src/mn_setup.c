@@ -395,7 +395,7 @@ enum
     str_gyro_accel,
 
     str_default_complevel,
-    str_exit_sequence,
+    str_endoom,
     str_death_use_action,
     str_widescreen,
     str_bobbing_pct,
@@ -3327,10 +3327,6 @@ static void SmoothLight(void)
     setsizeneeded = true; // run R_ExecuteSetViewSize
 }
 
-static const char *exit_sequence_strings[] = {
-    "Off", "Sound Only", "ENDOOM Only", "Full"
-};
-
 static const char *fuzzmode_strings[] = {
     "Blocky", "Refraction", "Shadow", "Original"
 };
@@ -3373,7 +3369,7 @@ static const char *screen_melt_strings[] = {"Off", "Melt", "Crossfade", "Fizzle"
 
 static const char *invul_mode_strings[] = {"Vanilla", "MBF", "Gray"};
 
-static void UpdatePwadEndoomItem(void);
+static const char *endoom_strings[] = {"Off", "PWAD Only", "Always"};
 
 static setup_menu_t gen_settings6[] = {
 
@@ -3406,10 +3402,12 @@ static setup_menu_t gen_settings6[] = {
     {"Game speed", S_NUM | S_STRICT | S_PCT, OFF_CNTR_X, M_SPC,
      {"realtic_clock_rate"}, .action = G_SetTimeScale},
 
-    {"Exit Sequence", S_CHOICE, OFF_CNTR_X, M_SPC, {"exit_sequence"},
-    .strings_id = str_exit_sequence, .action = UpdatePwadEndoomItem},
+    {"Show Quit Prompt", S_ONOFF, OFF_CNTR_X, M_SPC, {"quit_prompt"}},
 
-    {"PWAD ENDOOM Only", S_ONOFF, OFF_CNTR_X, M_SPC, {"endoom_pwad_only"}},
+    {"Play Quit Sound", S_ONOFF, OFF_CNTR_X, M_SPC, {"quit_sound"}},
+
+    {"Show ENDOOM Screen", S_CHOICE, OFF_CNTR_X, M_SPC, {"show_endoom"},
+     .strings_id = str_endoom},
 
     MI_END
 };
@@ -3418,11 +3416,6 @@ static setup_menu_t *gen_settings[] = {
     gen_settings1, gen_settings2, gen_settings3, gen_settings4,
     gen_settings5, gen_settings6, NULL
 };
-
-static void UpdatePwadEndoomItem(void)
-{
-    DisableItem(!D_EndDoomEnabled(), gen_settings6, "endoom_pwad_only");
-}
 
 void MN_UpdateDynamicResolutionItem(void)
 {
@@ -5036,7 +5029,7 @@ static const char **selectstrings[] = {
     [str_gyro_sens] = NULL,
     [str_gyro_accel] = NULL,
     [str_default_complevel] = default_complevel_strings,
-    [str_exit_sequence] = exit_sequence_strings,
+    [str_endoom] = endoom_strings,
     [str_death_use_action] = death_use_action_strings,
     [str_widescreen] = widescreen_strings,
     [str_bobbing_pct] = bobbing_pct_strings,
@@ -5139,7 +5132,6 @@ void MN_SetupResetMenu(void)
     UpdateWeaponSlotItems();
     MN_UpdateEqualizerItems();
     UpdateGainItems();
-    UpdatePwadEndoomItem();
 }
 
 void MN_BindMenuVariables(void)
