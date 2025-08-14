@@ -74,9 +74,8 @@ extern int LIGHTZSHIFT;
 
 // killough 3/20/98: Allow colormaps to be dynamic (e.g. underwater)
 extern int numcolormaps;    // killough 4/4/98: dynamic number of maps
-// killough 3/20/98, 4/4/98: end dynamic colormaps
 
-// thanks to Rum-and-Raisin Doom, Ethan Watson
+// updated thanks to Rum-and-Raisin Doom, Ethan Watson
 extern int* scalelightoffset;
 extern int* scalelightindex;
 extern int* zlightoffset;
@@ -85,6 +84,9 @@ extern int* planezlightoffset;
 extern int  planezlightindex;
 extern int* walllightoffset;
 extern int  walllightindex;
+
+// killough 3/20/98, 4/4/98: end dynamic colormaps
+
 
 extern boolean setsmoothlight;
 void R_SmoothLight(void);
