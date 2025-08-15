@@ -143,7 +143,7 @@ static boolean default_reset;
 #define MI_GAP_Y(y) \
     {NULL, S_SKIP, 0, (y)}
 
-static void DisableItem(boolean condition, setup_menu_t *menu, const char *item)
+static setup_menu_t *GetMenuItem(setup_menu_t *menu, const char *item)
 {
     while (!(menu->m_flags & S_END))
     {
@@ -153,16 +153,7 @@ static void DisableItem(boolean condition, setup_menu_t *menu, const char *item)
                  && !strcasecmp(menu->var.def->name, item))
                 || !strcasecmp(menu->m_text, item))
             {
-                if (condition)
-                {
-                    menu->m_flags |= S_DISABLE;
-                }
-                else
-                {
-                    menu->m_flags &= ~S_DISABLE;
-                }
-
-                return;
+                return menu;
             }
         }
 
@@ -172,27 +163,27 @@ static void DisableItem(boolean condition, setup_menu_t *menu, const char *item)
     I_Error("Item \"%s\" not found in menu", item);
 }
 
+static void DisableItem(boolean condition, setup_menu_t *menu, const char *item)
+{
+    setup_menu_t *menu_item = GetMenuItem(menu, item);
+
+    if (condition)
+    {
+        menu_item->m_flags |= S_DISABLE;
+    }
+    else
+    {
+        menu_item->m_flags &= ~S_DISABLE;
+    }
+}
+
 static void SetItemLimit(setup_menu_t *menu, const char *item, int min, int max)
 {
-    while (!(menu->m_flags & S_END))
-    {
-        if (!(menu->m_flags & (S_SKIP | S_RESET)))
-        {
-            if (((menu->m_flags & S_HASDEFPTR)
-                 && !strcasecmp(menu->var.def->name, item))
-                || !strcasecmp(menu->m_text, item))
-            {
-                default_t *def = menu->var.def;
-                def->limit.min = min;
-                def->limit.max = max;
-                return;
-            }
-        }
+    setup_menu_t *menu_item = GetMenuItem(menu, item);
 
-        menu++;
-    }
-
-    I_Error("Item \"%s\" not found in menu", item);
+    default_t *def = menu_item->var.def;
+    def->limit.min = min;
+    def->limit.max = max;
 }
 
 static void DisableItemsInternal(boolean condition, setup_menu_t *menu,
@@ -361,7 +352,6 @@ enum
     str_curve,
     str_center_weapon,
     str_screensize,
-    str_stlayout,
     str_show_widgets,
     str_show_adv_widgets,
     str_stats_format,
@@ -733,7 +723,15 @@ static void DrawSetupThermo(const setup_menu_t *s, int x, int y, int width,
         dot = size;
     }
 
-    int step = width * M_THRM_STEP * FRACUNIT / size;
+    int step;
+    if (size)
+    {
+        step = width * M_THRM_STEP * FRACUNIT / size;
+    }
+    else
+    {
+        step = 1;
+    }
 
     if (DrawIndicator)
     {
@@ -1878,10 +1876,6 @@ static void RefreshSolidBackground(void)
     st_refresh_background = true;
 }
 
-static const char *st_layout_strings[] = {
-    "Original", "Wide"
-};
-
 #define H_X_THRM8 (M_X_THRM8 - 14)
 #define H_X       (M_X - 14)
 
@@ -1892,8 +1886,8 @@ static setup_menu_t stat_settings1[] = {
 
     MI_GAP,
 
-    {"Layout", S_CHOICE, H_X, M_SPC, {"st_layout"},
-     .strings_id = str_stlayout},
+    {"Wide Shift", S_THERMO, H_X_THRM8, M_THRM_SPC, {"st_wide_shift"},
+     .append = "px"},
 
     MI_GAP,
 
@@ -1908,6 +1902,17 @@ static setup_menu_t stat_settings1[] = {
 
     MI_END
 };
+
+void MN_UpdateWideShiftItem(boolean reset)
+{
+    DisableItem(!video.deltaw, stat_settings1, "st_wide_shift");
+    SetItemLimit(stat_settings1, "st_wide_shift", 0, video.deltaw);
+    if (reset)
+    {
+        st_wide_shift = video.deltaw;
+    }
+    st_wide_shift = CLAMP(st_wide_shift, 0, video.deltaw);
+}
 
 static void UpdateStatsFormatItem(void);
 
@@ -5002,7 +5007,6 @@ static const char **selectstrings[] = {
     [str_curve] = curve_strings,
     [str_center_weapon] = center_weapon_strings,
     [str_screensize] = NULL,
-    [str_stlayout] = st_layout_strings,
     [str_show_widgets] = show_widgets_strings,
     [str_show_adv_widgets] = show_adv_widgets_strings,
     [str_stats_format] = stats_format_strings,
