@@ -250,6 +250,10 @@ typedef enum {
 #define ORIG_FRICTION          0xE800      // original value
 #define ORIG_FRICTION_FACTOR   2048        // original value
 
+// Index of the special effects (INVUL inverse) map.
+
+#define INVERSECOLORMAP 32
+
 #endif          // __DOOMDEF__
 
 //----------------------------------------------------------------------------

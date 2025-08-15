@@ -488,7 +488,7 @@ void R_DrawVisSprite(vissprite_t *vis, int x1, int x2)
 
 boolean flipcorpses = false;
 
-static void R_ProjectSprite (mobj_t* thing)
+static void R_ProjectSprite(mobj_t* thing, int lightlevel_override)
 {
   fixed_t   gzt;               // killough 3/27/98
   fixed_t   tx, txc;
@@ -508,7 +508,7 @@ static void R_ProjectSprite (mobj_t* thing)
   fixed_t interpx, interpy, interpz, interpangle;
 
   // andrewj: voxel support
-  if (VX_ProjectVoxel (thing))
+  if (VX_ProjectVoxel(thing, lightlevel_override))
       return;
 
   // [AM] Interpolate between current and last position,
@@ -658,6 +658,7 @@ static void R_ProjectSprite (mobj_t* thing)
   vis->x2 = x2 >= viewwidth ? viewwidth-1 : x2;
   iscale = FixedDiv(FRACUNIT, xscale);
   vis->color = thing->bloodcolor;
+  vis->sector = thing->subsector->sector;
 
   if (flip)
     {
@@ -674,20 +675,42 @@ static void R_ProjectSprite (mobj_t* thing)
     vis->startfrac += vis->xiscale*(vis->x1-x1);
   vis->patch = lump;
 
+  lighttable_t *thiscolormap = vis->sector->tint ? colormaps[vis->sector->tint]
+                                                 : fullcolormap;
+
   // get light level
   if (thing->flags & MF_SHADOW)
-    vis->colormap[0] = vis->colormap[1] = NULL;               // shadow draw
+  {
+    // shadow draw
+    vis->colormap[0] = vis->colormap[1] = NULL;
+  }
   else if (fixedcolormap)
-    vis->colormap[0] = vis->colormap[1] = fixedcolormap;      // fixed map
+  {
+    // fixed map
+    vis->colormap[0] = vis->colormap[1] = thiscolormap + fixedcolormapindex * 256;
+  }
   else if (thing->frame & FF_FULLBRIGHT)
-    vis->colormap[0] = vis->colormap[1] = fullcolormap;       // full bright  // killough 3/20/98
+  {
+    // full bright
+    // killough 3/20/98
+    vis->colormap[0] = vis->colormap[1] = thiscolormap;
+  }
   else
-    {      // diminished light
-      const int index = R_GetLightIndex(xscale);
+  {
+    // diminished light
+    const int index = R_GetLightIndex(xscale);
+    int lightnum = (demo_version >= DV_MBF)
+                 ? (lightlevel_override >> LIGHTSEGSHIFT)
+                 : (vis->sector->lightlevel >> LIGHTSEGSHIFT);
 
-      vis->colormap[0] = spritelights[index];
-      vis->colormap[1] = fullcolormap;
-    }
+    lightnum = CLAMP(lightnum + extralight, 0, LIGHTLEVELS - 1);
+    int* spritelightoffsets = &scalelightoffset[MAXLIGHTSCALE * lightnum];
+
+    vis->colormap[0] = thiscolormap + spritelightoffsets[index];
+    vis->colormap[1] = (STRICTMODE(brightmaps) || force_brightmaps)
+                       ? thiscolormap
+                       : dc_colormap[0];
+  }
 
   vis->brightmap = R_BrightmapForState(thing->state - states);
   if (vis->brightmap == nobrightmap)
@@ -713,10 +736,9 @@ static void R_ProjectSprite (mobj_t* thing)
 boolean draw_nearby_sprites;
 
 // killough 9/18/98: add lightlevel as parameter, fixing underwater lighting
-void R_AddSprites(sector_t* sec, int lightlevel)
+void R_AddSprites(sector_t* sec, int lightlevel_override)
 {
   mobj_t *thing;
-  int    lightnum;
 
   // BSP is traversed by subsector.
   // A sector might have been split into several
@@ -729,22 +751,10 @@ void R_AddSprites(sector_t* sec, int lightlevel)
   // Well, now it will be done.
   sec->validcount = validcount;
 
-  if (demo_version < DV_MBF)
-    lightlevel = sec->lightlevel;
-
-  lightnum = (lightlevel >> LIGHTSEGSHIFT)+extralight;
-
-  if (lightnum < 0)
-    spritelights = scalelight[0];
-  else if (lightnum >= LIGHTLEVELS)
-    spritelights = scalelight[LIGHTLEVELS-1];
-  else
-    spritelights = scalelight[lightnum];
-
   // Handle all things in sector.
 
   for (thing = sec->thinglist; thing; thing = thing->snext)
-    R_ProjectSprite(thing);
+    R_ProjectSprite(thing, lightlevel_override);
 
   if (STRICTMODE(draw_nearby_sprites))
   {
@@ -771,16 +781,7 @@ void R_NearbySprites (void)
     // [FG] sprites in sector have already been projected
     if (sec->validcount != validcount)
     {
-      int lightnum = (sec->lightlevel >> LIGHTSEGSHIFT) + extralight;
-
-      if (lightnum < 0)
-        spritelights = scalelight[0];
-      else if (lightnum >= LIGHTLEVELS)
-        spritelights = scalelight[LIGHTLEVELS-1];
-      else
-        spritelights = scalelight[lightnum];
-
-      R_ProjectSprite(thing);
+      R_ProjectSprite(thing, 0);
     }
   }
 
@@ -791,7 +792,7 @@ void R_NearbySprites (void)
 // R_DrawPSprite
 //
 
-void R_DrawPSprite (pspdef_t *psp)
+void R_DrawPSprite(pspdef_t *psp, int lightlevel_override)
 {
   fixed_t       tx;
   int           x1, x2;
@@ -858,6 +859,7 @@ void R_DrawPSprite (pspdef_t *psp)
   vis->mobjflags = 0;
   vis->mobjflags2 = 0;
   vis->mobjflags_extra = 0;
+  vis->sector = players[consoleplayer].mo->subsector->sector;
 
   // killough 12/98: fix psprite positioning problem
   vis->texturemid = (BASEYCENTER<<FRACBITS) /* + FRACUNIT/2 */ -
@@ -883,19 +885,41 @@ void R_DrawPSprite (pspdef_t *psp)
 
   vis->patch = lump;
 
+  lighttable_t *thiscolormap = vis->sector->tint ? colormaps[vis->sector->tint]
+                                                 : fullcolormap;
+
   // killough 7/11/98: beta psprites did not draw shadows
   if ((viewplayer->powers[pw_invisibility] > 4*32
       || viewplayer->powers[pw_invisibility] & 8) && !beta_emulation)
-
-    vis->colormap[0] = vis->colormap[1] = NULL;                    // shadow draw
+  {
+    // shadow draw
+    vis->colormap[0] = vis->colormap[1] = NULL;
+  }
   else if (fixedcolormap)
-    vis->colormap[0] = vis->colormap[1] = fixedcolormap;           // fixed color
+  {
+    // fixed color
+    vis->colormap[0] = vis->colormap[1] = thiscolormap + fixedcolormapindex * 256;
+  }
   else if (psp->state->frame & FF_FULLBRIGHT)
-    vis->colormap[0] = vis->colormap[1] = fullcolormap;            // full bright // killough 3/20/98
+  {
+    // full bright
+    // killough 3/20/98
+    vis->colormap[0] = vis->colormap[1] = thiscolormap;
+  }
   else
   {
-    vis->colormap[0] = spritelights[MAXLIGHTSCALE-1];  // local light
-    vis->colormap[1] = fullcolormap;
+    // local light
+    int lightnum = (demo_version >= DV_MBF)
+                 ? (lightlevel_override >> LIGHTSEGSHIFT)
+                 : (vis->sector->lightlevel >> LIGHTSEGSHIFT);
+
+    lightnum = CLAMP(lightnum, 0, LIGHTLEVELS - 1);
+    int* spritelightoffsets = &scalelightoffset[MAXLIGHTSCALE * lightnum];
+
+    vis->colormap[0] = thiscolormap + spritelightoffsets[MAXLIGHTSCALE - 1];
+    vis->colormap[1] = (STRICTMODE(brightmaps) || force_brightmaps)
+                        ? thiscolormap
+                        : dc_colormap[0];
   }
   vis->brightmap = R_BrightmapForState(psp->state - states);
 
@@ -914,7 +938,7 @@ void R_DrawPSprite (pspdef_t *psp)
 
 void R_DrawPlayerSprites(void)
 {
-  int i, lightnum;
+  int i;
   pspdef_t *psp;
   sector_t tmpsec;
   int floorlightlevel, ceilinglightlevel;
@@ -925,15 +949,6 @@ void R_DrawPlayerSprites(void)
 
   R_FakeFlat(viewplayer->mo->subsector->sector, &tmpsec,
              &floorlightlevel, &ceilinglightlevel, 0);
-  lightnum = ((floorlightlevel+ceilinglightlevel) >> (LIGHTSEGSHIFT+1))
-    + extralight;
-
-  if (lightnum < 0)
-    spritelights = scalelight[0];
-  else if (lightnum >= LIGHTLEVELS)
-    spritelights = scalelight[LIGHTLEVELS-1];
-  else
-    spritelights = scalelight[lightnum];
 
   // clip to screen bounds
   mfloorclip = screenheightarray;
@@ -946,7 +961,7 @@ void R_DrawPlayerSprites(void)
   // add all active psprites
   for (i=0, psp=viewplayer->psprites; i<NUMPSPRITES; i++,psp++)
     if (psp->state)
-      R_DrawPSprite (psp);
+      R_DrawPSprite(psp, ((floorlightlevel + ceilinglightlevel) / 2));
 }
 
 //
