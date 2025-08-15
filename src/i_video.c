@@ -88,8 +88,6 @@ static boolean use_vsync; // killough 2/8/98: controls whether vsync is called
 boolean correct_aspect_ratio;
 static int fpslimit; // when uncapped, limit framerate to this value
 static boolean fullscreen;
-static boolean exclusive_fullscreen;
-static boolean change_display_resolution;
 static int widescreen, default_widescreen;
 static boolean vga_porch_flash; // emulate VGA "porch" behaviour
 static boolean smooth_scaling;
@@ -99,7 +97,6 @@ static boolean disk_icon; // killough 10/98
 // [FG] rendering window, renderer, intermediate ARGB frame buffer and texture
 
 static SDL_Window *screen;
-static SDL_DisplayMode *exclusive_mode;
 static SDL_Renderer *renderer;
 static SDL_Surface *screenbuffer;
 static SDL_Surface *argbbuffer;
@@ -294,12 +291,7 @@ static void HandleWindowEvent(SDL_WindowEvent *event)
             break;
 
         case SDL_EVENT_WINDOW_MOVED:
-            {
-                video_display = SDL_GetDisplayForWindow(screen);
-                SDL_DisplayMode **modes =
-                        SDL_GetFullscreenDisplayModes(video_display, NULL);
-                exclusive_mode = modes[0];
-            }
+            video_display = SDL_GetDisplayForWindow(screen);
             break;
 
         default:
@@ -367,8 +359,7 @@ static void I_ToggleFullScreen(void)
     {
         SDL_SetWindowMouseGrab(screen, true);
         SDL_SetWindowResizable(screen, false);
-        SDL_SetWindowFullscreenMode(screen,
-            exclusive_fullscreen ? exclusive_mode : NULL);
+        SDL_SetWindowFullscreenMode(screen, NULL);
     }
     else
     {
@@ -1131,15 +1122,8 @@ static void CenterWindow(int *x, int *y, int w, int h)
         return;
     }
 
-    *x = bounds.x + SDL_max((bounds.w - w) / 2, 0);
-    *y = bounds.y + SDL_max((bounds.h - h) / 2, 0);
-
-    // Fix exclusive fullscreen mode.
-    if (*x == 0 && *y == 0)
-    {
-        *x = SDL_WINDOWPOS_CENTERED;
-        *y = SDL_WINDOWPOS_CENTERED;
-    }
+    *x = bounds.x + MAX((bounds.w - w) / 2, 0);
+    *y = bounds.y + MAX((bounds.h - h) / 2, 0);
 }
 
 static void I_ResetInvalidDisplayIndex(void)
@@ -1634,22 +1618,6 @@ static void I_InitGraphicsMode(void)
 
     I_InitWindowIcon();
 
-    if (change_display_resolution && max_video_width && max_video_height)
-    {
-        SDL_SetWindowMouseGrab(screen, true);
-        w = max_video_width;
-        h = max_video_height;
-        SDL_GetClosestFullscreenDisplayMode(video_display, w, h, 0.0f,
-                                            true, exclusive_mode);
-    }
-    else
-    {
-        SDL_SetWindowResizable(screen, true);
-        SDL_DisplayMode **modes =
-            SDL_GetFullscreenDisplayModes(video_display, NULL);
-        exclusive_mode = modes[0];
-    }
-
     I_ToggleFullScreen();
 
     // [FG] create renderer
@@ -1765,7 +1733,7 @@ void I_ResetScreen(void)
 
 void I_ShutdownGraphics(void)
 {
-    if (!(fullscreen && exclusive_fullscreen))
+    if (!fullscreen)
     {
         SDL_GetWindowPosition(screen, &window_position_x, &window_position_y);
     }
@@ -1822,7 +1790,6 @@ void I_BindVideoVariables(void)
     BIND_BOOL_GENERAL(dynamic_resolution, true, "Dynamic resolution");
     BIND_BOOL(correct_aspect_ratio, true, "Aspect ratio correction");
     BIND_BOOL(fullscreen, true, "Fullscreen");
-    BIND_BOOL(exclusive_fullscreen, false, "Exclusive fullscreen");
     BIND_BOOL_GENERAL(use_vsync, true,
         "Vertical sync to prevent display tearing");
     M_BindBool("uncapped", &default_uncapped, &uncapped, true, ss_gen, wad_no,
@@ -1844,8 +1811,6 @@ void I_BindVideoVariables(void)
         "Maximum horizontal resolution (0 = Native)");
     BIND_NUM(max_video_height, 0, SCREENHEIGHT, UL,
         "Maximum vertical resolution (0 = Native)");
-    BIND_BOOL(change_display_resolution, false,
-        "Change display resolution with exclusive fullscreen (only useful for CRTs)");
     BIND_NUM(window_position_x, 0, UL, UL, "Window position X (0 = Center)");
     BIND_NUM(window_position_y, 0, UL, UL, "Window position Y (0 = Center)");
     M_BindNum("window_width", &default_window_width, &window_width, 1065, 0, UL,
