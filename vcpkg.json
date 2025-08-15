@@ -17,14 +17,11 @@
       ]
     },
     {
-      "name": "sdl2",
+      "name": "sdl3",
       "features": [
+        "vulkan",
         {
           "name": "ibus",
-          "platform": "linux"
-        },
-        {
-          "name": "vulkan",
           "platform": "linux"
         },
         {

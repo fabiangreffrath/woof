@@ -15,7 +15,7 @@
 // DESCRIPTION:
 //
 
-#include "SDL.h"
+#include <SDL3/SDL.h>
 
 #include <math.h>
 #include <stdlib.h>
@@ -34,8 +34,8 @@
 #include "mus2mid.h"
 
 static SDL_Thread *player_thread_handle;
-static SDL_mutex *music_lock;
-static SDL_atomic_t player_thread_running;
+static SDL_Mutex *music_lock;
+static SDL_AtomicInt player_thread_running;
 
 static boolean music_initialized;
 
@@ -1298,12 +1298,12 @@ static boolean RegisterSong(void)
 
 static int PlayerThread(void *unused)
 {
-    SDL_SetThreadPriority(SDL_THREAD_PRIORITY_TIME_CRITICAL);
+    SDL_SetCurrentThreadPriority(SDL_THREAD_PRIORITY_TIME_CRITICAL);
 
     midi_position_t position = {0};
     boolean sleep = false;
 
-    while (SDL_AtomicGet(&player_thread_running))
+    while (SDL_GetAtomicInt(&player_thread_running))
     {
         if (sleep)
         {
@@ -1442,7 +1442,7 @@ static void UpdateVolumeFactor(int volume)
 
 static void I_MID_SetMusicVolume(int volume)
 {
-    if (!SDL_AtomicGet(&player_thread_running))
+    if (!SDL_GetAtomicInt(&player_thread_running))
     {
         UpdateVolumeFactor(volume);
         return;
@@ -1456,12 +1456,12 @@ static void I_MID_SetMusicVolume(int volume)
 
 static void I_MID_StopSong(void *handle)
 {
-    if (!music_initialized || !SDL_AtomicGet(&player_thread_running))
+    if (!music_initialized || !SDL_GetAtomicInt(&player_thread_running))
     {
         return;
     }
 
-    SDL_AtomicSet(&player_thread_running, 0);
+    SDL_SetAtomicInt(&player_thread_running, 0);
     SDL_WaitThread(player_thread_handle, NULL);
     SDL_DestroyMutex(music_lock);
 
@@ -1476,7 +1476,7 @@ static void I_MID_PlaySong(void *handle, boolean looping)
         return;
     }
 
-    SDL_AtomicSet(&player_thread_running, 1);
+    SDL_SetAtomicInt(&player_thread_running, 1);
     song.looping = looping;
     midi_state = STATE_STARTUP;
     music_lock = SDL_CreateMutex();

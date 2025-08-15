@@ -16,7 +16,7 @@
 //     to the IWAD type.
 //
 
-#include "SDL.h"
+#include <SDL3/SDL.h>
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -75,13 +75,11 @@ char *D_DoomExeDir(void)
 
     if (base == NULL) // cache multiple requests
     {
-        char *result;
+        const char *result = SDL_GetBasePath();
 
-        result = SDL_GetBasePath();
         if (result != NULL)
         {
             base = M_DirName(result);
-            SDL_free(result);
         }
         else
         {

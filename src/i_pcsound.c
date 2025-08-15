@@ -15,7 +15,7 @@
 //    PC speaker interface.
 //
 
-#include "SDL.h"
+#include <SDL3/SDL.h>
 #include "al.h"
 #include "alext.h"
 
@@ -40,7 +40,7 @@ static ALuint callback_source;
 
 #define SQUARE_WAVE_AMP 0x1000 // Chocolate Doom: 0x2000
 
-static SDL_mutex *sound_lock;
+static SDL_Mutex *sound_lock;
 static int mixing_freq;
 
 // Currently playing sound
@@ -461,10 +461,7 @@ static boolean I_PCS_StartSound(int channel, sfxinfo_t *sfx,
         return false;
     }
 
-    if (SDL_LockMutex(sound_lock) < 0)
-    {
-        return false;
-    }
+    SDL_LockMutex(sound_lock);
 
     result = CachePCSLump(sfx);
 
@@ -487,10 +484,7 @@ static boolean I_PCS_StartSound(int channel, sfxinfo_t *sfx,
 
 static void I_PCS_StopSound(int channel)
 {
-    if (SDL_LockMutex(sound_lock) < 0)
-    {
-        return;
-    }
+    SDL_LockMutex(sound_lock);
 
     // If this is the channel currently playing, immediately end it.
 

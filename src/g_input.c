@@ -266,27 +266,27 @@ static double mouse_sens_side;
 static double mouse_sens_vert;
 static double mouse_scale;
 
-static double AccelerateMouse_Skip(int val)
+static double AccelerateMouse_Skip(float val)
 {
     return val;
 }
 
-static double AccelerateMouse_RawInput(int val)
+static double AccelerateMouse_RawInput(float val)
 {
     return (val * mouse_scale);
 }
 
-static double AccelerateMouse_Chocolate(int val)
+static double AccelerateMouse_Chocolate(float val)
 {
-    if (val < 0)
+    if (val < 0.0f)
     {
         return -AccelerateMouse_Chocolate(-val);
     }
 
-    if (val > mouse_acceleration_threshold)
+    if (val > (float)mouse_acceleration_threshold)
     {
-        return ((val - mouse_acceleration_threshold) * mouse_scale
-                + mouse_acceleration_threshold);
+        return ((val - (float)mouse_acceleration_threshold) * mouse_scale
+                + (float)mouse_acceleration_threshold);
     }
     else
     {
@@ -294,7 +294,7 @@ static double AccelerateMouse_Chocolate(int val)
     }
 }
 
-static double (*AccelerateMouse)(int val);
+static double (*AccelerateMouse)(float val);
 
 void G_UpdateMouseVariables(void)
 {
@@ -339,22 +339,22 @@ void G_UpdateMouseVariables(void)
     }
 }
 
-double G_CalcMouseAngle(int mousex)
+double G_CalcMouseAngle(float mousex)
 {
     return (AccelerateMouse(mousex) * mouse_sens_angle);
 }
 
-double G_CalcMousePitch(int mousey)
+double G_CalcMousePitch(float mousey)
 {
     return (AccelerateMouse(mousey) * mouse_sens_pitch);
 }
 
-double G_CalcMouseSide(int mousex)
+double G_CalcMouseSide(float mousex)
 {
     return (AccelerateMouse(mousex) * mouse_sens_side);
 }
 
-double G_CalcMouseVert(int mousey)
+double G_CalcMouseVert(float mousey)
 {
     return (AccelerateMouse(mousey) * mouse_sens_vert);
 }

@@ -14,7 +14,7 @@
 // DESCRIPTION:
 //
 
-#include "SDL.h"
+#include <SDL3/SDL.h>
 
 #include <math.h>
 #include <string.h>
@@ -85,10 +85,10 @@ static float GetInputValue(int value);
 
 void I_GetRawAxesScaleMenu(boolean move, float *scale, float *limit)
 {
-    *raw_ptr[AXIS_LEFTX] = I_GetAxisState(SDL_CONTROLLER_AXIS_LEFTX);
-    *raw_ptr[AXIS_LEFTY] = I_GetAxisState(SDL_CONTROLLER_AXIS_LEFTY);
-    *raw_ptr[AXIS_RIGHTX] = I_GetAxisState(SDL_CONTROLLER_AXIS_RIGHTX);
-    *raw_ptr[AXIS_RIGHTY] = I_GetAxisState(SDL_CONTROLLER_AXIS_RIGHTY);
+    *raw_ptr[AXIS_LEFTX] = I_GetAxisState(SDL_GAMEPAD_AXIS_LEFTX);
+    *raw_ptr[AXIS_LEFTY] = I_GetAxisState(SDL_GAMEPAD_AXIS_LEFTY);
+    *raw_ptr[AXIS_RIGHTX] = I_GetAxisState(SDL_GAMEPAD_AXIS_RIGHTX);
+    *raw_ptr[AXIS_RIGHTY] = I_GetAxisState(SDL_GAMEPAD_AXIS_RIGHTY);
 
     const float x = GetInputValue(raw[move ? AXIS_STRAFE : AXIS_TURN]);
     const float y = GetInputValue(raw[move ? AXIS_FORWARD : AXIS_LOOK]);

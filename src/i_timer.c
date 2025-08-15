@@ -17,21 +17,11 @@
 //      Timer functions.
 //
 
-#include "SDL.h"
+#include <SDL3/SDL.h>
 
 #include "doomdef.h"
 #include "doomtype.h"
-#include "i_system.h"
 #include "m_fixed.h"
-
-#ifdef _WIN32
-#define WIN32_LEAN_AND_MEAN
-#include <windows.h>
-
-HANDLE hTimer = NULL;
-#else
-#include <unistd.h>
-#endif
 
 static uint64_t basecounter = 0;
 static uint64_t basecounter_scaled = 0;
@@ -134,39 +124,8 @@ static int I_GetFracTime_FastDemo(void)
 
 int (*I_GetFracTime)(void) = I_GetFracTime_Scaled;
 
-void I_ShutdownTimer(void)
-{
-    SDL_QuitSubSystem(SDL_INIT_TIMER);
-}
-
 void I_InitTimer(void)
 {
-    if (SDL_Init(SDL_INIT_TIMER) < 0)
-    {
-        I_Error("Failed to initialize timer: %s", SDL_GetError());
-    }
-
-#ifdef _WIN32
-    // Create an unnamed waitable timer.
-    hTimer = NULL;
-  #ifdef HAVE_HIGH_RES_TIMER
-    hTimer = CreateWaitableTimerEx(NULL, NULL,
-                                   CREATE_WAITABLE_TIMER_MANUAL_RESET
-                                   | CREATE_WAITABLE_TIMER_HIGH_RESOLUTION,
-                                   TIMER_ALL_ACCESS);
-  #endif
-    if (hTimer == NULL)
-    {
-        hTimer = CreateWaitableTimer(NULL, TRUE, NULL);
-    }
-    if (hTimer == NULL)
-    {
-        I_Error("CreateWaitableTimer failed");
-    }
-#endif
-
-    I_AtExit(I_ShutdownTimer, true);
-
     basefreq = SDL_GetPerformanceFrequency();
 
     I_GetTime = I_GetTime_Scaled;
@@ -215,16 +174,7 @@ void I_Sleep(int ms)
 
 void I_SleepUS(uint64_t us)
 {
-#if defined(_WIN32)
-    LARGE_INTEGER liDueTime;
-    liDueTime.QuadPart = -(LONGLONG)(us * 10);
-    if (SetWaitableTimer(hTimer, &liDueTime, 0, NULL, NULL, 0))
-    {
-        WaitForSingleObject(hTimer, INFINITE);
-    }
-#else
-    usleep(us);
-#endif
+    SDL_DelayPrecise(us * 1000ull);
 }
 
 void I_WaitVBL(int count)
