@@ -245,6 +245,9 @@ target_compile_definitions(woof PRIVATE
 if(WIN32)
     target_link_libraries(woof PRIVATE
         $<IF:$<CONFIG:Debug>,$<CONFIG:RelWithDebInfo>,Dbghelp>)
+else()
+    target_link_options(woof PRIVATE
+        $<IF:$<CONFIG:Debug>,$<CONFIG:RelWithDebInfo>,-rdynamic>)
 endif()
 
 # Optional features.

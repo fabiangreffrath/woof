@@ -112,7 +112,7 @@ static void PrintBacktrace(void)
     I_Printf(VB_INFO, "Backtrace (frames %d):\n", size - 2);
     for (int i = 2; i < size; i++)
     {
-        I_Printf(VB_INFO, " [%2d] %s\n", i - 1, symbols[i]);
+        I_Printf(VB_INFO, " [%2d] %s", i - 1, symbols[i]);
     }
 
     free(symbols);
