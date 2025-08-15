@@ -61,12 +61,12 @@ static void PrintBacktrace(void)
         symbol_available = true;
     }
 
-    // Capture stack frames
+    // Capture stack frames (skip PrintBacktrace and I_ErrorOrSuccess)
     void *stack[100];
     USHORT frames = CaptureStackBackTrace(2, 100, stack, NULL);
 
     // Print backtrace
-    I_Printf(VB_INFO, "Backtrace (frames %d):", frames);
+    I_Printf(VB_INFO, "Backtrace (%d frames):", frames);
     for (USHORT i = 0; i < frames; i++)
     {
         DWORD64 address = (DWORD64)stack[i];
@@ -108,8 +108,8 @@ static void PrintBacktrace(void)
         return;
     }
 
-    // Skip two frames
-    I_Printf(VB_INFO, "Backtrace (frames %d):\n", size - 2);
+    // Print stack frames (skip PrintBacktrace and I_ErrorOrSuccess)
+    I_Printf(VB_INFO, "Backtrace (%d frames):\n", size - 2);
     for (int i = 2; i < size; i++)
     {
         I_Printf(VB_INFO, " [%2d] %s", i - 1, symbols[i]);
