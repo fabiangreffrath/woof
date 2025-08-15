@@ -1308,27 +1308,8 @@ static void CreateUpscaledTexture(boolean force)
     // If one screen dimension matches an integer multiple of the original
     // resolution, there is no need to overscale in this direction.
 
-    int max_texture_size = (int)SDL_GetNumberProperty(
-        SDL_GetRendererProperties(renderer),
-        SDL_PROP_RENDERER_MAX_TEXTURE_SIZE_NUMBER, 0);
-
-    if (!max_texture_size)
-    {
-        I_Error("Failed to get max texture size");
-    }
-
     w_upscale = (w + screen_width - 1) / screen_width;
     h_upscale = (h + screen_height - 1) / screen_height;
-
-    if (max_texture_size > 0)
-    {
-        while (w_upscale * screen_width * h_upscale * screen_height
-               > max_texture_size)
-        {
-            --w_upscale;
-            --h_upscale;
-        }
-    }
 
     if (w_upscale < 1)
     {
