@@ -147,10 +147,8 @@ static void PrintBacktrace(void)
 #endif // WOOF_DEBUG
 
 static char errmsg[2048];    // buffer of error message -- killough
-static int exit_code;
 
-void I_ErrorOrSuccess(int err_code, const char *prefix, const char *error,
-                      ...) // killough 3/20/98: add const
+void I_ErrorInternal(const char *prefix, const char *error, ...)
 {
 #ifdef WOOF_DEBUG
     if (IsDebuggerAttached())
@@ -177,19 +175,14 @@ void I_ErrorOrSuccess(int err_code, const char *prefix, const char *error,
     M_vsnprintf(msgptr, len, error, argptr);
     va_end(argptr);
 
-    I_Printf(err_code == 0 ? VB_ALWAYS : VB_ERROR, "%s", curmsg);
+    I_Printf(VB_ERROR, "%s", curmsg);
     strcat(curmsg, "\n");
-
-    if (exit_code == 0 && err_code != 0)
-    {
-        exit_code = err_code;
-    }
 
 #ifdef WOOF_DEBUG
     PrintBacktrace();
 #endif
 
-    I_SafeExit(exit_code);
+    I_SafeExit(-1);
 }
 
 void I_ErrorMsg()
@@ -202,10 +195,21 @@ void I_ErrorMsg()
 
     if (*errmsg && !M_CheckParm("-nogui") && !I_ConsoleStdout())
     {
-        SDL_ShowSimpleMessageBox(exit_code == 0 ? SDL_MESSAGEBOX_INFORMATION
-                                                : SDL_MESSAGEBOX_ERROR,
-                                 PROJECT_STRING, errmsg, NULL);
+        SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, PROJECT_STRING,
+                                 errmsg, NULL);
     }
+}
+
+void I_MessageBox(const char *message, ...)
+{
+    char buffer[2048];
+    va_list argptr;
+    va_start(argptr, message);
+    M_vsnprintf(buffer, sizeof(buffer), message, argptr);
+    va_end(argptr);
+
+    SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_INFORMATION, PROJECT_STRING,
+                             buffer, NULL);
 }
 
 // Schedule a function to be called when the program exits.
