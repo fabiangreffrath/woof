@@ -120,6 +120,30 @@ static void PrintBacktrace(void)
 
 #endif
 
+#ifdef __has_builtin
+  #if __has_builtin(__builtin_debugtrap)
+    #define DoDebugBreak() __builtin_debugtrap()
+  #endif
+#elif defined(_MSC_VER)
+  #include <intrin.h>
+  #define DoDebugBreak() __debugbreak()
+#endif
+
+#if !defined(DoDebugBreak)
+  #include "signal.h"
+  #if defined(SIGTRAP)
+    #define DoDebugBreak() raise(SIGTRAP)
+  #else
+    #define DoDebugBreak() raise(SIGABRT)
+  #endif
+#endif
+
+#ifdef _WIN32
+  #define IsDebuggerAttached() IsDebuggerPresent()
+#else
+  #define IsDebuggerAttached() true
+#endif
+
 #endif // WOOF_DEBUG
 
 static char errmsg[2048];    // buffer of error message -- killough
@@ -128,6 +152,13 @@ static int exit_code;
 void I_ErrorOrSuccess(int err_code, const char *prefix, const char *error,
                       ...) // killough 3/20/98: add const
 {
+#ifdef WOOF_DEBUG
+    if (IsDebuggerAttached())
+    {
+        DoDebugBreak();
+    }
+#endif
+
     size_t len = sizeof(errmsg) - strlen(errmsg) - 1; // [FG] for '\n'
     char *curmsg = errmsg + strlen(errmsg);
     char *msgptr = curmsg;
