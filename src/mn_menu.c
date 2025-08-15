@@ -107,6 +107,7 @@ static boolean mouse_active_thermo;
 static boolean options_active;
 static boolean customskill_active;
 
+boolean menu_pause_demos;
 backdrop_t menu_backdrop;
 
 int bigfont_priority = -1;

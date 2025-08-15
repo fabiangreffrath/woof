@@ -3384,6 +3384,8 @@ static setup_menu_t gen_settings6[] = {
     {"Invulnerability effect", S_CHOICE | S_STRICT, OFF_CNTR_X, M_SPC,
      {"invul_mode"}, .strings_id = str_invul_mode, .action = R_InvulMode},
 
+    {"Pause Demos in Menu", S_ONOFF, OFF_CNTR_X, M_SPC, {"menu_pause_demos"}},
+
     {"Demo progress bar", S_ONOFF, OFF_CNTR_X, M_SPC, {"demobar"}},
 
     {"On death action", S_CHOICE, OFF_CNTR_X, M_SPC, {"death_use_action"},
@@ -5137,6 +5139,8 @@ void MN_SetupResetMenu(void)
 void MN_BindMenuVariables(void)
 {
     BIND_NUM_MENU(resolution_scale, 0, UL);
+    BIND_BOOL_GENERAL(menu_pause_demos, false,
+        "Pause demo loop while menu is open");
     BIND_NUM_GENERAL(menu_backdrop, MENU_BG_DARK, MENU_BG_OFF, MENU_BG_TEXTURE,
         "Menu backdrop (0 = Off; 1 = Dark; 2 = Texture)");
     BIND_NUM_GENERAL(menu_help, MENU_HELP_AUTO, MENU_HELP_OFF, MENU_HELP_PAD,

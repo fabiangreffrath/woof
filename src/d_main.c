@@ -456,6 +456,11 @@ static demoloop_t demoloop_point;
 //
 void D_PageTicker(void)
 {
+  if (menuactive && !netgame && menu_pause_demos)
+  {
+    return;
+  }
+
   // killough 12/98: don't advance internal demos if a single one is 
   // being played. The only time this matters is when using -loadgame with
   // -fastdemo, -playdemo, or -timedemo, and a consistency error occurs.
