@@ -44,12 +44,119 @@ ticcmd_t *I_BaseTiccmd(void)
 // I_Error
 //
 
-static char errmsg[2048];    // buffer of error message -- killough
-static int exit_code;
+#ifdef WOOF_DEBUG
 
-void I_ErrorOrSuccess(int err_code, const char *prefix, const char *error,
-                      ...) // killough 3/20/98: add const
+#if defined(_WIN32)
+#include <dbghelp.h>
+
+static void PrintBacktrace(void)
 {
+    HANDLE process = GetCurrentProcess();
+
+    boolean symbol_available = false;
+
+    if (SymInitialize(process, NULL, TRUE))
+    {
+        SymSetOptions(SYMOPT_UNDNAME);
+        symbol_available = true;
+    }
+
+    // Capture stack frames (skip PrintBacktrace and I_ErrorOrSuccess)
+    void *stack[100];
+    USHORT frames = CaptureStackBackTrace(2, 100, stack, NULL);
+
+    // Print backtrace
+    I_Printf(VB_INFO, "Backtrace (%d frames):", frames);
+    for (USHORT i = 0; i < frames; i++)
+    {
+        DWORD64 address = (DWORD64)stack[i];
+
+        // Buffer for symbol info
+        char buffer[sizeof(SYMBOL_INFO) + 256 * sizeof(char)];
+        PSYMBOL_INFO symbol = (PSYMBOL_INFO)buffer;
+        symbol->SizeOfStruct = sizeof(SYMBOL_INFO);
+        symbol->MaxNameLen = 256;
+
+        // Try to resolve symbol
+        DWORD64 displacement = 0;
+        if (symbol_available
+            && SymFromAddr(process, address, &displacement, symbol))
+        {
+            I_Printf(VB_INFO, " [%2d] %s (0x%llX)", i, symbol->Name, address);
+        }
+        else
+        {
+            I_Printf(VB_INFO, " [%2d] 0x%llX\n", i, address);
+        }
+    }
+}
+
+#else  // POSIX
+
+#include <execinfo.h>
+#include <unistd.h>
+
+static void PrintBacktrace(void)
+{
+    void *stack[100];
+    int size = backtrace(stack, 100);
+    char **symbols = backtrace_symbols(stack, size);
+
+    if (!symbols)
+    {
+        perror("backtrace_symbols");
+        return;
+    }
+
+    // Print stack frames (skip PrintBacktrace and I_ErrorOrSuccess)
+    I_Printf(VB_INFO, "Backtrace (%d frames):\n", size - 2);
+    for (int i = 2; i < size; i++)
+    {
+        I_Printf(VB_INFO, " [%2d] %s", i - 1, symbols[i]);
+    }
+
+    free(symbols);
+}
+
+#endif
+
+#ifdef __has_builtin
+  #if __has_builtin(__builtin_debugtrap)
+    #define DoDebugBreak() __builtin_debugtrap()
+  #endif
+#elif defined(_MSC_VER)
+  #include <intrin.h>
+  #define DoDebugBreak() __debugbreak()
+#endif
+
+#if !defined(DoDebugBreak)
+  #include "signal.h"
+  #if defined(SIGTRAP)
+    #define DoDebugBreak() raise(SIGTRAP)
+  #else
+    #define DoDebugBreak() raise(SIGABRT)
+  #endif
+#endif
+
+#ifdef _WIN32
+  #define IsDebuggerAttached() IsDebuggerPresent()
+#else
+  #define IsDebuggerAttached() true
+#endif
+
+#endif // WOOF_DEBUG
+
+static char errmsg[2048];    // buffer of error message -- killough
+
+void I_ErrorInternal(const char *prefix, const char *error, ...)
+{
+#ifdef WOOF_DEBUG
+    if (IsDebuggerAttached())
+    {
+        DoDebugBreak();
+    }
+#endif
+
     size_t len = sizeof(errmsg) - strlen(errmsg) - 1; // [FG] for '\n'
     char *curmsg = errmsg + strlen(errmsg);
     char *msgptr = curmsg;
@@ -68,15 +175,14 @@ void I_ErrorOrSuccess(int err_code, const char *prefix, const char *error,
     M_vsnprintf(msgptr, len, error, argptr);
     va_end(argptr);
 
-    I_Printf(err_code == 0 ? VB_ALWAYS : VB_ERROR, "%s", curmsg);
+    I_Printf(VB_ERROR, "%s", curmsg);
     strcat(curmsg, "\n");
 
-    if (exit_code == 0 && err_code != 0)
-    {
-        exit_code = err_code;
-    }
+#ifdef WOOF_DEBUG
+    PrintBacktrace();
+#endif
 
-    I_SafeExit(exit_code);
+    I_SafeExit(-1);
 }
 
 void I_ErrorMsg()
@@ -89,10 +195,21 @@ void I_ErrorMsg()
 
     if (*errmsg && !M_CheckParm("-nogui") && !I_ConsoleStdout())
     {
-        SDL_ShowSimpleMessageBox(exit_code == 0 ? SDL_MESSAGEBOX_INFORMATION
-                                                : SDL_MESSAGEBOX_ERROR,
-                                 PROJECT_STRING, errmsg, NULL);
+        SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, PROJECT_STRING,
+                                 errmsg, NULL);
     }
+}
+
+void I_MessageBox(const char *message, ...)
+{
+    char buffer[2048];
+    va_list argptr;
+    va_start(argptr, message);
+    M_vsnprintf(buffer, sizeof(buffer), message, argptr);
+    va_end(argptr);
+
+    SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_INFORMATION, PROJECT_STRING,
+                             buffer, NULL);
 }
 
 // Schedule a function to be called when the program exits.
