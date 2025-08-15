@@ -1887,7 +1887,7 @@ static setup_menu_t stat_settings1[] = {
     MI_GAP,
 
     {"Wide Shift", S_THERMO, H_X_THRM8, M_THRM_SPC, {"st_wide_shift"},
-     .action = MN_WideShift, .append = "px"},
+     .append = "px"},
 
     MI_GAP,
 
@@ -1903,15 +1903,15 @@ static setup_menu_t stat_settings1[] = {
     MI_END
 };
 
-void MN_WideShift(void)
+void MN_UpdateWideShiftItem(boolean reset)
 {
+    DisableItem(!video.deltaw, stat_settings1, "st_wide_shift");
     SetItemLimit(stat_settings1, "st_wide_shift", 0, video.deltaw);
+    if (reset)
+    {
+        st_wide_shift = video.deltaw;
+    }
     st_wide_shift = CLAMP(st_wide_shift, 0, video.deltaw);
-}
-
-void MN_UpdateWideShiftItem(boolean disable)
-{
-    DisableItem(disable, stat_settings1, "st_wide_shift");
 }
 
 static void UpdateStatsFormatItem(void);

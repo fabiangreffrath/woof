@@ -29,17 +29,6 @@
 #define ASPECT_RATIO_MAX 3.6 // Up to 32:9 aspect ratio.
 #define ASPECT_RATIO_MIN (4.0 / 3.0)
 
-typedef enum
-{
-    RATIO_ORIG,
-    RATIO_AUTO,
-    RATIO_16_10,
-    RATIO_16_9,
-    RATIO_21_9,
-    RATIO_32_9,
-    NUM_RATIOS
-} aspect_ratio_mode_t;
-
 typedef struct
 {
     int max;
