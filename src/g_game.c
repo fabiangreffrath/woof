@@ -3012,7 +3012,7 @@ void G_Ticker(void)
   // P_Ticker() does not stop netgames if a menu is activated, so
   // we do not need to stop if a menu is pulled up during netgames.
 
-  if (paused & 2 || (!demoplayback && menuactive && !netgame))
+  if (paused & 2 || ((!demoplayback || menu_pause_demos) && menuactive && !netgame))
     basetic++;  // For revenant tracers and RNG -- we must maintain sync
   else
     {
@@ -3129,11 +3129,35 @@ void G_Ticker(void)
   // killough 9/29/98: split up switch statement
   // into pauseable and unpauseable parts.
 
-  gamestate == GS_LEVEL ? P_Ticker(), ST_Ticker(), AM_Ticker() :
-    paused & 2 ? (void) 0 :
-      gamestate == GS_INTERMISSION ? WI_Ticker() :
-	gamestate == GS_FINALE ? F_Ticker() :
-	  gamestate == GS_DEMOSCREEN ? D_PageTicker() : (void) 0;
+  if (gamestate == GS_LEVEL)
+  {
+    P_Ticker();
+    ST_Ticker();
+    AM_Ticker();
+  }
+  else if (!(paused & 2))
+  {
+    switch (gamestate)
+    {
+      case GS_INTERMISSION:
+        WI_Ticker();
+        break;
+
+      case GS_FINALE:
+        F_Ticker();
+        break;
+
+      case GS_DEMOSCREEN:
+        if (!menuactive || netgame || !menu_pause_demos)
+        {
+          D_PageTicker();
+        }
+        break;
+
+      default:
+        break;
+    }
+  }
 }
 
 //
