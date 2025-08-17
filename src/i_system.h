@@ -54,10 +54,48 @@ void I_StartDisplay(void);
 
 struct ticcmd_s *I_BaseTiccmd(void);
 
+#ifdef WOOF_DEBUG
+
+#ifdef __has_builtin
+  #if __has_builtin(__builtin_debugtrap)
+    #define DoDebugBreak() __builtin_debugtrap()
+  #endif
+#elif defined(_MSC_VER)
+  #include <intrin.h>
+  #define DoDebugBreak() __debugbreak()
+#endif
+
+#if !defined(DoDebugBreak)
+  #include "signal.h"
+  #if defined(SIGTRAP)
+    #define DoDebugBreak() raise(SIGTRAP)
+  #else
+    #define DoDebugBreak() raise(SIGABRT)
+  #endif
+#endif
+
+boolean I_IsDebuggerAttached(void);
+
+#else // WOOF_DEBUG
+
+#define I_IsDebuggerAttached() false
+#define DoDebugBreak()
+
+#endif
+
 // killough 3/20/98: add const
 // killough 4/25/98: add gcc attributes
 NORETURN void I_ErrorInternal(const char *prefix, const char *error, ...) PRINTF_ATTR(2, 3);
-#define I_Error(...) I_ErrorInternal(__func__, __VA_ARGS__)
+
+#define I_Error(...)                            \
+    do                                          \
+    {                                           \
+        if (I_IsDebuggerAttached())             \
+        {                                       \
+            DoDebugBreak();                     \
+        }                                       \
+        I_ErrorInternal(__func__, __VA_ARGS__); \
+    } while (0)
 
 void I_MessageBox(const char *message, ...) PRINTF_ATTR(1, 2);
 
