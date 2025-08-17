@@ -175,7 +175,6 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          version: 18
           step-summary: true
           files-changed-only: true
           style: ''  # disable clang-format checks.
