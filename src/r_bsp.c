@@ -611,6 +611,8 @@ static void R_Subsector(int num)
   sector_t    tempsec;              // killough 3/7/98: deep water hack
   int         floorlightlevel;      // killough 3/16/98: set floor lightlevel
   int         ceilinglightlevel;    // killough 4/11/98
+  int         floor_tint = 0;
+  int         ceiling_tint = 0;
 
 #ifdef RANGECHECK
   if (num>=numsubsectors)
@@ -635,6 +637,24 @@ static void R_Subsector(int num)
   frontsector = R_FakeFlat(frontsector, &tempsec, &floorlightlevel,
                            &ceilinglightlevel, false);   // killough 4/11/98
 
+  if (frontsector->floorlightsec >= 0)
+  {
+    floor_tint = sectors[frontsector->floorlightsec].tint;
+  }
+  else
+  {
+    floor_tint = frontsector->tint;
+  }
+
+  if (frontsector->ceilinglightsec >= 0)
+  {
+    ceiling_tint = sectors[frontsector->ceilinglightsec].tint;
+  }
+  else
+  {
+    ceiling_tint = frontsector->tint;
+  }
+
   // killough 3/7/98: Add (x,y) offsets to flats, add deep water check
   // killough 3/16/98: add floorlightlevel
   // killough 10/98: add support for skies transferred from sidedefs
@@ -650,7 +670,7 @@ static void R_Subsector(int num)
                 frontsector->interp_floor_xoffs,       // killough 3/7/98
                 frontsector->interp_floor_yoffs,
                 frontsector->floor_rotation,
-                frontsector->tint
+                floor_tint
                 ) : NULL;
 
   ceilingplane = frontsector->interpceilingheight > viewz ||
@@ -665,7 +685,7 @@ static void R_Subsector(int num)
                 frontsector->interp_ceiling_xoffs,     // killough 3/7/98
                 frontsector->interp_ceiling_yoffs,
                 frontsector->ceiling_rotation,
-                frontsector->tint
+                ceiling_tint
                 ) : NULL;
 
   // killough 9/18/98: Fix underwater slowdown, by passing real sector 

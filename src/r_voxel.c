@@ -674,7 +674,6 @@ boolean VX_ProjectVoxel(mobj_t *thing, int lightlevel_override)
 	vis->mobjflags2 = thing->flags2;
 	vis->mobjflags_extra = thing->flags_extra;
 	vis->scale = xscale;
-	vis->sector = thing->subsector->sector;
 
 	vis->gx  = gx;
 	vis->gy  = gy;
@@ -684,9 +683,17 @@ boolean VX_ProjectVoxel(mobj_t *thing, int lightlevel_override)
 	vis->x1 = x1;
 	vis->x2 = x2;
 
+	if (thing->subsector->sector->floorlightsec >= 0)
+	{
+		vis->tint = sectors[thing->subsector->sector->floorlightsec].tint;
+	}
+	else
+	{
+		vis->tint = thing->subsector->sector->tint;
+	}
+
 	// get light level...
-	lighttable_t *thiscolormap = vis->sector->tint ? colormaps[vis->sector->tint]
-	                                               : fullcolormap;
+	lighttable_t *thiscolormap = vis->tint ? colormaps[vis->tint] : fullcolormap;
 
 	if (vis->mobjflags & MF_SHADOW)
 	{
@@ -706,7 +713,7 @@ boolean VX_ProjectVoxel(mobj_t *thing, int lightlevel_override)
 		const int index = R_GetLightIndex(xscale);
 		int lightnum = (demo_version >= DV_MBF)
 				? (lightlevel_override >> LIGHTSEGSHIFT)
-				: (vis->sector->lightlevel >> LIGHTSEGSHIFT);
+				: (thing->subsector->sector->lightlevel >> LIGHTSEGSHIFT);
 
 		lightnum = CLAMP(lightnum, 0, LIGHTLEVELS - 1);
 		int* spritelightoffsets = &scalelightoffset[MAXLIGHTSCALE * lightnum];

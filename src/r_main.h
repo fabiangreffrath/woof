@@ -87,7 +87,6 @@ extern int  walllightindex;
 
 // killough 3/20/98, 4/4/98: end dynamic colormaps
 
-
 extern boolean setsmoothlight;
 void R_SmoothLight(void);
 

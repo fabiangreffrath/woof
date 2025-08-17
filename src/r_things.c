@@ -658,7 +658,15 @@ static void R_ProjectSprite(mobj_t* thing, int lightlevel_override)
   vis->x2 = x2 >= viewwidth ? viewwidth-1 : x2;
   iscale = FixedDiv(FRACUNIT, xscale);
   vis->color = thing->bloodcolor;
-  vis->sector = thing->subsector->sector;
+
+  if (thing->subsector->sector->floorlightsec >= 0)
+  {
+    vis->tint = sectors[thing->subsector->sector->floorlightsec].tint;
+  }
+  else
+  {
+    vis->tint = thing->subsector->sector->tint;
+  }
 
   if (flip)
     {
@@ -675,8 +683,7 @@ static void R_ProjectSprite(mobj_t* thing, int lightlevel_override)
     vis->startfrac += vis->xiscale*(vis->x1-x1);
   vis->patch = lump;
 
-  lighttable_t *thiscolormap = vis->sector->tint ? colormaps[vis->sector->tint]
-                                                 : fullcolormap;
+  lighttable_t *thiscolormap = vis->tint ? colormaps[vis->tint] : fullcolormap;
 
   // get light level
   if (thing->flags & MF_SHADOW)
@@ -701,7 +708,7 @@ static void R_ProjectSprite(mobj_t* thing, int lightlevel_override)
     const int index = R_GetLightIndex(xscale);
     int lightnum = (demo_version >= DV_MBF)
                  ? (lightlevel_override >> LIGHTSEGSHIFT)
-                 : (vis->sector->lightlevel >> LIGHTSEGSHIFT);
+                 : (thing->subsector->sector->lightlevel >> LIGHTSEGSHIFT);
 
     lightnum = CLAMP(lightnum + extralight, 0, LIGHTLEVELS - 1);
     int* spritelightoffsets = &scalelightoffset[MAXLIGHTSCALE * lightnum];
@@ -859,7 +866,6 @@ void R_DrawPSprite(pspdef_t *psp, int lightlevel_override)
   vis->mobjflags = 0;
   vis->mobjflags2 = 0;
   vis->mobjflags_extra = 0;
-  vis->sector = players[consoleplayer].mo->subsector->sector;
 
   // killough 12/98: fix psprite positioning problem
   vis->texturemid = (BASEYCENTER<<FRACBITS) /* + FRACUNIT/2 */ -
@@ -868,6 +874,15 @@ void R_DrawPSprite(pspdef_t *psp, int lightlevel_override)
   vis->x1 = x1 < 0 ? 0 : x1;
   vis->x2 = x2 >= viewwidth ? viewwidth-1 : x2;
   vis->scale = pspritescale;
+
+  if (players[consoleplayer].mo->subsector->sector->floorlightsec >= 0)
+  {
+    vis->tint = sectors[players[consoleplayer].mo->subsector->sector->floorlightsec].tint;
+  }
+  else
+  {
+    vis->tint = players[consoleplayer].mo->subsector->sector->tint;
+  }
 
   if (flip)
     {
@@ -885,8 +900,7 @@ void R_DrawPSprite(pspdef_t *psp, int lightlevel_override)
 
   vis->patch = lump;
 
-  lighttable_t *thiscolormap = vis->sector->tint ? colormaps[vis->sector->tint]
-                                                 : fullcolormap;
+  lighttable_t *thiscolormap = vis->tint ? colormaps[vis->tint] : fullcolormap;
 
   // killough 7/11/98: beta psprites did not draw shadows
   if ((viewplayer->powers[pw_invisibility] > 4*32
@@ -911,7 +925,7 @@ void R_DrawPSprite(pspdef_t *psp, int lightlevel_override)
     // local light
     int lightnum = (demo_version >= DV_MBF)
                  ? (lightlevel_override >> LIGHTSEGSHIFT)
-                 : (vis->sector->lightlevel >> LIGHTSEGSHIFT);
+                 : (players[consoleplayer].mo->subsector->sector->lightlevel >> LIGHTSEGSHIFT);
 
     lightnum = CLAMP(lightnum, 0, LIGHTLEVELS - 1);
     int* spritelightoffsets = &scalelightoffset[MAXLIGHTSCALE * lightnum];
