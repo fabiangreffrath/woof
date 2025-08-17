@@ -45,7 +45,7 @@ arena_t *activeplats_arena;
 // jff 02/08/98 all cases with labels beginning with gen added to support 
 // generalized line type behaviors.
 
-void T_PlatRaise(plat_t* plat)
+static void T_PlatRaise(plat_t* plat)
 {
   result_e      res;
 
@@ -160,6 +160,10 @@ void T_PlatRaise(plat_t* plat)
   }
 }
 
+void T_PlatRaiseAdapter(mobj_t *mo)
+{
+    T_PlatRaise((plat_t *)mo);
+}
 
 //
 // EV_DoPlat
@@ -217,7 +221,7 @@ int EV_DoPlat
     plat->type = type;
     plat->sector = sec;
     plat->sector->floordata = plat; //jff 2/23/98 multiple thinkers
-    plat->thinker.function.pt = (actionf_pt)T_PlatRaise;
+    plat->thinker.function.p1 = T_PlatRaiseAdapter;
     plat->crush = false;
     plat->tag = line->tag;
 
@@ -343,7 +347,7 @@ void P_ActivateInStasis(int tag)
         plat->status = plat->oldstatus==up? down : up;
       else
         plat->status = plat->oldstatus;
-      plat->thinker.function.pt = (actionf_pt)T_PlatRaise;
+      plat->thinker.function.p1 = T_PlatRaiseAdapter;
     }
   }
 }

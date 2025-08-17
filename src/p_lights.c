@@ -23,6 +23,7 @@
 #include "doomstat.h" //jff 5/18/98
 #include "m_fixed.h"
 #include "m_random.h"
+#include "p_mobj.h"
 #include "p_spec.h"
 #include "p_tick.h"
 #include "r_defs.h"
@@ -42,7 +43,7 @@
 // Passed a fireflicker_t structure containing light levels and timing
 // Returns nothing
 //
-void T_FireFlicker (fireflicker_t* flick)
+static void T_FireFlicker(fireflicker_t *flick)
 {
   int amount;
   
@@ -59,6 +60,11 @@ void T_FireFlicker (fireflicker_t* flick)
   flick->count = 4;
 }
 
+void T_FireFlickerAdapter(mobj_t *mobj)
+{
+    T_FireFlicker((fireflicker_t *)mobj);
+}
+
 //
 // T_LightFlash()
 //
@@ -67,7 +73,7 @@ void T_FireFlicker (fireflicker_t* flick)
 // Passed a lightflash_t structure containing light levels and timing
 // Returns nothing
 //
-void T_LightFlash (lightflash_t* flash)
+static void T_LightFlash(lightflash_t* flash)
 {
   if (--flash->count)
     return;
@@ -82,7 +88,11 @@ void T_LightFlash (lightflash_t* flash)
     flash-> sector->lightlevel = flash->maxlight;
     flash->count = (P_Random(pr_lights)&flash->maxtime)+1;
   }
+}
 
+void T_LightFlashAdapter(mobj_t *mobj)
+{
+    T_LightFlash((lightflash_t *)mobj);
 }
 
 //
@@ -93,7 +103,7 @@ void T_LightFlash (lightflash_t* flash)
 // Passed a strobe_t structure containing light levels and timing
 // Returns nothing
 //
-void T_StrobeFlash (strobe_t*   flash)
+static void T_StrobeFlash(strobe_t *flash)
 {
   if (--flash->count)
     return;
@@ -110,6 +120,11 @@ void T_StrobeFlash (strobe_t*   flash)
   }
 }
 
+void T_StrobeFlashAdapter(mobj_t *mobj)
+{
+    T_StrobeFlash((strobe_t *)mobj);
+}
+
 //
 // T_Glow()
 //
@@ -119,7 +134,7 @@ void T_StrobeFlash (strobe_t*   flash)
 // Returns nothing
 //
 
-void T_Glow(glow_t* g)
+static void T_Glow(glow_t *g)
 {
   switch(g->direction)
   {
@@ -143,6 +158,11 @@ void T_Glow(glow_t* g)
       }
       break;
   }
+}
+
+void T_GlowAdapter(mobj_t *mobj)
+{
+    T_Glow((glow_t *)mobj);
 }
 
 //////////////////////////////////////////////////////////
@@ -174,7 +194,7 @@ void P_SpawnFireFlicker (sector_t*  sector)
 
   P_AddThinker (&flick->thinker);
 
-  flick->thinker.function.pt = (actionf_pt)T_FireFlicker;
+  flick->thinker.function.p1 = T_FireFlickerAdapter;
   flick->sector = sector;
   flick->maxlight = sector->lightlevel;
   flick->minlight = P_FindMinSurroundingLight(sector,sector->lightlevel)+16;
@@ -200,7 +220,7 @@ void P_SpawnLightFlash (sector_t* sector)
 
   P_AddThinker (&flash->thinker);
 
-  flash->thinker.function.pt = (actionf_pt)T_LightFlash;
+  flash->thinker.function.p1 = T_LightFlashAdapter;
   flash->sector = sector;
   flash->maxlight = sector->lightlevel;
 
@@ -234,7 +254,7 @@ void P_SpawnStrobeFlash
   flash->sector = sector;
   flash->darktime = fastOrSlow;
   flash->brighttime = STROBEBRIGHT;
-  flash->thinker.function.pt = (actionf_pt)T_StrobeFlash;
+  flash->thinker.function.p1 = T_StrobeFlashAdapter;
   flash->maxlight = sector->lightlevel;
   flash->minlight = P_FindMinSurroundingLight(sector, sector->lightlevel);
   
@@ -269,7 +289,7 @@ void P_SpawnGlowingLight(sector_t*  sector)
   g->sector = sector;
   g->minlight = P_FindMinSurroundingLight(sector,sector->lightlevel);
   g->maxlight = sector->lightlevel;
-  g->thinker.function.pt = (actionf_pt)T_Glow;
+  g->thinker.function.p1 = T_GlowAdapter;
   g->direction = -1;
 
   sector->special &= ~31; //jff 3/14/98 clear non-generalized sector type

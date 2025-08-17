@@ -96,10 +96,10 @@ side_t   *sides;
 int       bmapwidth, bmapheight;  // size in mapblocks
 
 // killough 3/1/98: remove blockmap limit internally:
-long      *blockmap;              // was short -- killough
+int32_t      *blockmap;           // was short -- killough
 
 // offsets in blockmap are from here
-long      *blockmaplump;          // was short -- killough
+int32_t      *blockmaplump;       // was short -- killough
 
 fixed_t   bmaporgx, bmaporgy;     // origin of block map
 
@@ -1194,8 +1194,8 @@ static void P_SetSkipBlockStart(void)
   for(y = 0; y < bmapheight; y++)
     for(x = 0; x < bmapwidth; x++)
     {
-      long *list;
-      long *blockoffset;
+      int32_t *list;
+      int32_t *blockoffset;
 
       blockoffset = blockmaplump + y * bmapwidth + x + 4;
 
@@ -1291,7 +1291,7 @@ static void AddLineToSector(sector_t *s, line_t *l)
   *s->lines++ = l;
 }
 
-void P_DegenMobjThinker(void *p)
+void P_DegenMobjThinker(mobj_t *mobj)
 {
   // no-op
 }
@@ -1350,7 +1350,7 @@ int P_GroupLines (void)
       sector->soundorg.y =
           sector->blockbox[BOXTOP] / 2 + sector->blockbox[BOXBOTTOM] / 2;
 
-      sector->soundorg.thinker.function.pv = P_DegenMobjThinker;
+      sector->soundorg.thinker.function.p1 = P_DegenMobjThinker;
 
       // adjust bounding box to map blocks
       block = (sector->blockbox[BOXTOP]-bmaporgy+MAXRADIUS)>>MAPBLOCKSHIFT;
