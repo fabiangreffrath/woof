@@ -18,6 +18,8 @@
 //    graphic-and-music, or DEMO lump.
 //
 
+#include <math.h>
+
 #include "doomdef.h"
 #include "doomstat.h"
 
@@ -26,6 +28,7 @@
 #include "m_json.h"
 #include "m_misc.h"
 #include "sounds.h"
+#include "w_wad.h"
 
 #include "d_demoloop.h"
 
@@ -68,41 +71,97 @@ static demoloop_entry_t demoloop_commercial[] = {
 demoloop_t demoloop = NULL;
 int        demoloop_count = 0;
 
-void D_ParseDemoLoopEntry(json_t *entry)
+static void D_ParseOutroWipe(json_t *json, demoloop_entry_t *entry)
 {
-    const char* primary_buffer   = JS_GetStringValue(entry, "primarylump");
-    const char* secondary_buffer = JS_GetStringValue(entry, "secondarylump");
-    double      seconds          = JS_GetNumberValue(entry, "duration");
-    int         type             = JS_GetIntegerValue(entry, "type");
-    int         outro_wipe       = JS_GetIntegerValue(entry, "outro_wipe");
+    entry->outro_wipe = JS_GetIntegerValue(json, "outrowipe");
 
-    // We don't want a malformed entry to creep in, and break the titlescreen.
-    // If one such entry does exist, skip it.
-    // TODO: modify later to check locally for lump type.
-    if (primary_buffer == NULL || secondary_buffer == NULL || type < TYPE_ART
-        || type > TYPE_DEMO)
+    if (entry->outro_wipe != WIPE_IMMEDIATE && entry->outro_wipe != WIPE_MELT)
     {
-        return;
+        I_Printf(VB_WARNING, "DEMOLOOP: invalid outrowipe, using screen melt");
+        entry->outro_wipe = WIPE_MELT;
+    }
+}
+
+static void D_ParseDuration(json_t *json, demoloop_entry_t *entry)
+{
+    const double duration_seconds = JS_GetNumberValue(json, "duration");
+    double duration_tics = duration_seconds * TICRATE;
+    duration_tics = CLAMP(duration_tics, 0, INT_MAX);
+    entry->duration = lround(duration_tics);
+}
+
+static boolean D_ParseSecondaryLump(json_t *json, demoloop_entry_t *entry)
+{
+    const char *secondary_lump = JS_GetStringValue(json, "secondarylump");
+
+    if (secondary_lump == NULL || secondary_lump[0] == '\0')
+    {
+        // Secondary lump is optional.
+        entry->secondary_lump[0] = '\0';
+    }
+    else
+    {
+        M_CopyLumpName(entry->secondary_lump, secondary_lump);
+
+        if (W_CheckNumForName(entry->secondary_lump) < 0)
+        {
+            I_Printf(VB_WARNING, "DEMOLOOP: invalid secondarylump");
+            return false;
+        }
     }
 
-    // Similarly, but this time it isn't game-breaking.
-    // Let it gracefully default to "closest vanilla behavior".
-    if (outro_wipe <= WIPE_NONE || outro_wipe > WIPE_MELT)
+    return true;
+}
+
+static boolean D_ParsePrimaryLump(json_t *json, demoloop_entry_t *entry)
+{
+    const char *primary_lump = JS_GetStringValue(json, "primarylump");
+
+    if (primary_lump == NULL || primary_lump[0] == '\0')
     {
-        outro_wipe = WIPE_MELT;
+        I_Printf(VB_WARNING, "DEMOLOOP: undefined primarylump");
+        return false;
     }
 
-    demoloop_entry_t current_entry = {0};
+    M_CopyLumpName(entry->primary_lump, primary_lump);
+    return true;
+}
 
-    // Remove pointer reference to in-memory JSON data.
-    M_CopyLumpName(current_entry.primary_lump, primary_buffer);
-    M_CopyLumpName(current_entry.secondary_lump, secondary_buffer);
-    // Providing the time in seconds is much more intuitive for the end users.
-    current_entry.duration   = seconds * TICRATE;
-    current_entry.type       = type;
-    current_entry.outro_wipe = outro_wipe;
+static boolean D_ParseDemoLoopEntry(json_t *json)
+{
+    demoloop_entry_t entry = {0};
 
-    array_push(demoloop, current_entry);
+    entry.type = JS_GetIntegerValue(json, "type");
+
+    switch (entry.type)
+    {
+        case TYPE_ART:
+            if (!D_ParsePrimaryLump(json, &entry)
+                || !D_ParseSecondaryLump(json, &entry))
+            {
+                return false;
+            }
+            D_ParseDuration(json, &entry);
+            D_ParseOutroWipe(json, &entry);
+            break;
+
+        case TYPE_DEMO:
+            if (!D_ParsePrimaryLump(json, &entry))
+            {
+                return false;
+            }
+            entry.secondary_lump[0] = '\0';
+            entry.duration = 0;
+            D_ParseOutroWipe(json, &entry);
+            break;
+
+        default:
+            I_Printf(VB_WARNING, "DEMOLOOP: invalid type");
+            return false;
+    }
+
+    array_push(demoloop, entry);
+    return true;
 }
 
 static void D_ParseDemoLoop(void)
@@ -136,7 +195,12 @@ static void D_ParseDemoLoop(void)
     json_t *entry;
     JS_ArrayForEach(entry, entry_list)
     {
-        D_ParseDemoLoopEntry(entry);
+        if (!D_ParseDemoLoopEntry(entry))
+        {
+            array_free(demoloop);
+            JS_Close("DEMOLOOP");
+            return;
+        }
     }
     demoloop_count = array_size(demoloop);
 
@@ -174,25 +238,65 @@ static void D_GetDefaultDemoLoop(GameMode_t mode)
 
             demoloop = demoloop_commercial;
             demoloop_count = arrlen(demoloop_commercial);
+
+            if (W_CheckNumForName(demoloop_commercial[6].primary_lump) < 0)
+            {
+                // Ignore missing DEMO4.
+                demoloop_count--;
+            }
             break;
 
-        case indetermined:
         default:
-            // How did we get here?
-            demoloop = NULL;
-            demoloop_count = 0;
+            I_Error("Invalid gamemode");
             break;
     }
+}
 
-    return;
+static void D_TitlePicFix(void)
+{
+    if (W_CheckNumForName("TITLEPIC") < 0 && W_CheckNumForName("DMENUPIC") >= 0)
+    {
+        for (int i = 0; i < demoloop_count; i++)
+        {
+            demoloop_entry_t *entry = &demoloop[i];
+
+            if (!strcasecmp(entry->primary_lump, "TITLEPIC"))
+            {
+                // Workaround for Doom 3: BFG Edition.
+                M_CopyLumpName(entry->primary_lump, "DMENUPIC");
+            }
+        }
+    }
+}
+
+static void D_CheckPrimaryLumps(void)
+{
+    for (int i = 0; i < demoloop_count; i++)
+    {
+        demoloop_entry_t *entry = &demoloop[i];
+
+        if (W_CheckNumForName(entry->primary_lump) < 0)
+        {
+            I_Printf(VB_WARNING, "DEMOLOOP: invalid primarylump");
+            array_free(demoloop);
+            break;
+        }
+    }
 }
 
 void D_SetupDemoLoop(void)
 {
     D_ParseDemoLoop();
 
+    if (demoloop)
+    {
+        D_TitlePicFix();
+        D_CheckPrimaryLumps();
+    }
+
     if (demoloop == NULL)
     {
         D_GetDefaultDemoLoop(gamemode);
+        D_TitlePicFix();
     }
 }

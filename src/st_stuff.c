@@ -20,8 +20,9 @@
 //
 //-----------------------------------------------------------------------------
 
+#include "st_stuff.h"
+
 #include <math.h>
-#include <stdlib.h>
 
 #include "am_map.h"
 #include "d_event.h"
@@ -131,18 +132,19 @@ static statusbar_t *statusbar;
 
 static int st_cmd_x, st_cmd_y;
 
-typedef enum
-{
-    st_original,
-    st_wide
-} st_layout_t;
-
-static st_layout_t st_layout;
+int st_wide_shift;
 
 static patch_t **facepatches = NULL;
 static patch_t **facebackpatches = NULL;
 
 static int have_xdthfaces;
+
+boolean ST_PlayerInvulnerable(player_t *player)
+{
+    return (player->cheats & CF_GODMODE) ||
+        (player->powers[pw_invulnerability] > 4 * 32) ||
+        (player->powers[pw_invulnerability] & 8);
+}
 
 //
 // STATUS BAR CODE
@@ -1250,16 +1252,13 @@ static void DrawPatch(int x, int y, int maxheight, sbaralignment_t alignment,
         y -= height;
     }
 
-    if (st_layout == st_wide)
+    if (alignment & sbe_wide_left)
     {
-        if (alignment & sbe_wide_left)
-        {
-            x -= video.deltaw;
-        }
-        if (alignment & sbe_wide_right)
-        {
-            x += video.deltaw;
-        }
+        x -= st_wide_shift;
+    }
+    if (alignment & sbe_wide_right)
+    {
+        x += st_wide_shift;
     }
 
     byte *outr = colrngs[cr];
@@ -2002,8 +2001,8 @@ void WI_DrawWidgets(void)
 
 void ST_BindSTSVariables(void)
 {
-  M_BindNum("st_layout", &st_layout, NULL,  st_wide, st_original, st_wide,
-             ss_stat, wad_no, "HUD layout");
+  M_BindNum("st_wide_shift", &st_wide_shift,
+            NULL, 40, 0, UL, ss_stat, wad_no, "HUD widescreen shift");
   M_BindBool("sts_colored_numbers", &sts_colored_numbers, NULL,
              false, ss_stat, wad_yes, "Colored numbers on the status bar");
   M_BindBool("sts_pct_always_gray", &sts_pct_always_gray, NULL,

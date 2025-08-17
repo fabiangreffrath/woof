@@ -3012,7 +3012,7 @@ void G_Ticker(void)
   // P_Ticker() does not stop netgames if a menu is activated, so
   // we do not need to stop if a menu is pulled up during netgames.
 
-  if (paused & 2 || (!demoplayback && menuactive && !netgame))
+  if (paused & 2 || ((!demoplayback || menu_pause_demos) && menuactive && !netgame))
     basetic++;  // For revenant tracers and RNG -- we must maintain sync
   else
     {
@@ -4774,9 +4774,10 @@ boolean G_CheckDemoStatus(void)
       int endtime = I_GetTime_RealTime();
       // killough -- added fps information and made it work for longer demos:
       unsigned realtics = endtime-starttime;
-      I_Success("Timed %u gametics in %u realtics = %-.1f frames per second",
-               (unsigned) gametic,realtics,
-               (unsigned) gametic * (double) TICRATE / realtics);
+      I_MessageBox("Timed %u gametics in %u realtics = %-.1f frames per second",
+                   (unsigned)gametic, realtics,
+                   (unsigned)gametic * (double)TICRATE / realtics);
+      I_SafeExit(0);
     }
 
   if (demoplayback)

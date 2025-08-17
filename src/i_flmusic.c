@@ -14,7 +14,6 @@
 // DESCRIPTION:
 //      FluidSynth backend
 
-#include "SDL.h"
 #include "fluidsynth.h"
 
 #include <stdlib.h>
@@ -22,6 +21,7 @@
 
 #include "config.h"
 #include "i_oalstream.h"
+#include "i_system.h"
 #include "m_config.h"
 
 #if (FLUIDSYNTH_VERSION_MAJOR < 2 \
@@ -315,13 +315,8 @@ static boolean I_FL_InitStream(int device)
 
     if (sf_id == FLUID_FAILED)
     {
-        char *errmsg;
-        errmsg = M_StringJoin(
-            "Error loading FluidSynth soundfont: ",
-            lumpnum >= 0 ? "SNDFONT lump" : soundfonts[device]);
-        SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_WARNING, PROJECT_STRING, errmsg,
-                                 NULL);
-        free(errmsg);
+        I_MessageBox("Error loading FluidSynth soundfont: %s",
+                     lumpnum >= 0 ? "SNDFONT lump" : soundfonts[device]);
         FreeSynthAndSettings();
         return false;
     }
