@@ -52,12 +52,7 @@ static void InputRemove(int id, input_type_t type, int value)
     {
         if (inputs[i].type == type && inputs[i].value == value)
         {
-            int left = array_size(inputs) - i - 1;
-            if (left > 0)
-            {
-                memmove(inputs + i, inputs + i + 1, left * sizeof(*inputs));
-            }
-            array_ptr(inputs)->size--;
+            array_delete(inputs, i);
         }
     }
 }
