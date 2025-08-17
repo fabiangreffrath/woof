@@ -106,8 +106,15 @@ void I_MessageBox(const char *message, ...)
     M_vsnprintf(buffer, sizeof(buffer), message, argptr);
     va_end(argptr);
 
-    SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_INFORMATION, PROJECT_STRING,
-                             buffer, NULL);
+    if (!M_CheckParm("-nogui"))
+    {
+        SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_INFORMATION, PROJECT_STRING,
+                                 buffer, NULL);
+    }
+    else
+    {
+        I_Printf(VB_INFO, "%s", buffer);
+    }
 }
 
 // Schedule a function to be called when the program exits.
