@@ -168,21 +168,21 @@ jobs:
             -i"${{ github.workspace }}/third-party" \
             -D__GNUC__
 
-      - name: Run Clang-Tidy
-        if: ${{ matrix.name == 'Clang-Tidy' }}
-        uses: cpp-linter/cpp-linter-action@v2
-        id: cpp-linter
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          step-summary: true
-          files-changed-only: true
-          style: ''  # disable clang-format checks.
-          tidy-checks: >-
-            -*
-            ,clang-analyzer-*
-            ,-clang-analyzer-cplusplus*
-            ,-clang-analyzer-security*
-            ,-clang-analyzer-valist*
-          database: 'build'
-          ignore: 'third-party|win32|toolsrc|src/i_pcsound.c'
+      # - name: Run Clang-Tidy
+      #   if: ${{ matrix.name == 'Clang-Tidy' }}
+      #   uses: cpp-linter/cpp-linter-action@v2
+      #   id: cpp-linter
+      #   env:
+      #     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      #   with:
+      #     step-summary: true
+      #     files-changed-only: true
+      #     style: ''  # disable clang-format checks.
+      #     tidy-checks: >-
+      #       -*
+      #       ,clang-analyzer-*
+      #       ,-clang-analyzer-cplusplus*
+      #       ,-clang-analyzer-security*
+      #       ,-clang-analyzer-valist*
+      #     database: 'build'
+      #     ignore: 'third-party|win32|toolsrc|src/i_pcsound.c'

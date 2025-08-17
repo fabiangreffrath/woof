@@ -242,14 +242,6 @@ endif()
 target_compile_definitions(woof PRIVATE
     $<IF:$<OR:$<CONFIG:Debug>,$<CONFIG:RelWithDebInfo>>,WOOF_DEBUG,WOOF_RELEASE>)
 
-if(WIN32)
-    target_link_libraries(woof PRIVATE
-        $<IF:$<CONFIG:Debug>,$<CONFIG:RelWithDebInfo>,Dbghelp>)
-else()
-    target_link_options(woof PRIVATE
-        $<IF:$<CONFIG:Debug>,$<CONFIG:RelWithDebInfo>,-rdynamic>)
-endif()
-
 # Optional features.
 #
 # Our defines are not namespaced, so we pass them at compile-time instead of
