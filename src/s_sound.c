@@ -1152,6 +1152,9 @@ void S_Start(void)
         return;
     }
 
+    // [crispy] reset musinfo data at the start of a new map
+    memset(&musinfo, 0, sizeof(musinfo));
+
     // start new music for the level
     mus_paused = 0;
 
@@ -1184,9 +1187,6 @@ void S_Start(void)
                           mus_runnin - mus_e1m1);
         }
     }
-
-    // [crispy] reset musinfo data at the start of a new map
-    memset(&musinfo, 0, sizeof(musinfo));
 
     S_ChangeMusic(mnum, true);
 }
