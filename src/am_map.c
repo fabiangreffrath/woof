@@ -2415,7 +2415,7 @@ void AM_ApplyColors(boolean force)
     {
         for (int i = 0; mapcolors[i].cur_var; i++)
         {
-            const int j = mapcolors[i].color[mapcolor_preset];
+            const int j = *mapcolors[i].var;
             byte r = iwad_playpal[3 * j + 0],
                  g = iwad_playpal[3 * j + 1],
                  b = iwad_playpal[3 * j + 2];
