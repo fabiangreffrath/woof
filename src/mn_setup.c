@@ -2323,16 +2323,11 @@ static int resolution_scale;
 static const char **GetResolutionScaleStrings(void)
 {
     const char **strings = NULL;
-    resolution_scaling_t rs;
-    I_GetResolutionScaling(&rs);
+    resolution_scaling_t rs = I_GetResolutionScaling();
 
     array_push(strings, "100%");
 
-    if (current_video_height == SCREENHEIGHT)
-    {
-        resolution_scale = 0;
-    }
-
+    resolution_scale = 0;
     int val = SCREENHEIGHT * 2;
     char buf[8];
     int i;
@@ -2351,7 +2346,10 @@ static const char **GetResolutionScaleStrings(void)
         val += rs.step;
     }
 
-    resolution_scale = CLAMP(resolution_scale, 0, i);
+    if (current_video_height == rs.max)
+    {
+        resolution_scale = i;
+    }
 
     array_push(strings, "max");
 
@@ -2361,8 +2359,7 @@ static const char **GetResolutionScaleStrings(void)
 static void ResetVideoHeight(void)
 {
     const char **strings = GetStrings(str_resolution_scale);
-    resolution_scaling_t rs;
-    I_GetResolutionScaling(&rs);
+    resolution_scaling_t rs = I_GetResolutionScaling();
 
     if (default_reset)
     {

@@ -35,7 +35,7 @@ typedef struct
     int step;
 } resolution_scaling_t;
 
-void I_GetResolutionScaling(resolution_scaling_t *rs);
+resolution_scaling_t I_GetResolutionScaling(void);
 
 // Called by D_DoomMain,
 // determines the hardware configuration

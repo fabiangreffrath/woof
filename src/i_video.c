@@ -1775,10 +1775,10 @@ static void I_InitGraphicsMode(void)
     UpdateLimiter();
 }
 
-void I_GetResolutionScaling(resolution_scaling_t *rs)
+resolution_scaling_t I_GetResolutionScaling(void)
 {
-    rs->max = max_height_adjusted;
-    rs->step = 50;
+    resolution_scaling_t rs = {.max = max_height_adjusted, .step = 50};
+    return rs;
 }
 
 static int GetCurrentVideoHeight(void)
