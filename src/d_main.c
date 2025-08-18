@@ -2451,6 +2451,7 @@ void D_DoomMain(void)
   S_Init(snd_SfxVolume /* *8 */, snd_MusicVolume /* *8*/ );
 
   I_Printf(VB_INFO, "HU_Init: Setting up heads up display.");
+  AM_ApplyColors();
 
   I_Printf(VB_INFO, "ST_Init: Init status bar.");
   ST_Init();
