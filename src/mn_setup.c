@@ -1907,7 +1907,7 @@ void MN_UpdateWideShiftItem(boolean reset)
 {
     DisableItem(!video.deltaw, stat_settings1, "st_wide_shift");
     SetItemLimit(stat_settings1, "st_wide_shift", 0, video.deltaw);
-    if (reset)
+    if (reset || st_wide_shift == -1)
     {
         st_wide_shift = video.deltaw;
     }

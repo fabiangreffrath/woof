@@ -2002,7 +2002,7 @@ void WI_DrawWidgets(void)
 void ST_BindSTSVariables(void)
 {
   M_BindNum("st_wide_shift", &st_wide_shift,
-            NULL, 40, 0, UL, ss_stat, wad_no, "HUD widescreen shift");
+            NULL, -1, -1, UL, ss_stat, wad_no, "HUD widescreen shift (-1 = Default)");
   M_BindBool("sts_colored_numbers", &sts_colored_numbers, NULL,
              false, ss_stat, wad_yes, "Colored numbers on the status bar");
   M_BindBool("sts_pct_always_gray", &sts_pct_always_gray, NULL,
