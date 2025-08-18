@@ -31,6 +31,7 @@
 #include "i_video.h"
 #include "m_config.h"
 #include "m_input.h"
+#include "mn_internal.h"
 #include "mn_menu.h"
 #include "m_misc.h"
 #include "p_maputl.h"
@@ -2340,13 +2341,14 @@ typedef enum {
 
 static am_preset_t mapcolor_preset;
 
+#define MAPCOLOR(x) &mapcolor_##x, &cur_mapcolor_##x
+
 static struct
 {
     int *var, *cur_var;
     int color[NUM_AM_PRESETS]; // Vanilla Doom, Crispy, Boom, ZDoom
 } mapcolors[] =
 {                                              // ZDoom CVAR name
-#define MAPCOLOR(x) &mapcolor_##x, &cur_mapcolor_##x
     {MAPCOLOR(back),    {  0,   0, 247, 139}}, // am_backcolor
     {MAPCOLOR(grid),    {104, 104, 104,  70}}, // am_gridcolor
     {MAPCOLOR(wall),    {176, 180,  23, 239}}, // am_wallcolor
@@ -2375,9 +2377,11 @@ static struct
     {MAPCOLOR(frnd),    {252, 252, 252,   4}}, // am_thingcolor_friend
     {MAPCOLOR(enemy),   {112, 176, 177,   4}}, // am_thingcolor_monster
     {MAPCOLOR(item),    {112, 231, 231,   4}}, // am_thingcolor_item
-#undef MAPCOLOR
+
     {&hudcolor_titl, NULL, {CR_NONE, CR_GOLD, CR_GOLD, CR_GRAY}}, // DrawAutomapHUD()
 };
+
+#undef MAPCOLOR
 
 void AM_ApplyColors(void)
 {
@@ -2393,7 +2397,10 @@ void AM_ApplyColors(void)
         }
     }
 
-    if (playpal == iwad_playpal)
+    // check if map colors got overridden by OPTIONS lump
+    const default_t *dp = M_LookupDefault("mapcolor_preset");
+
+    if (playpal == iwad_playpal || dp->setup_menu->m_flags & S_DISABLE)
     {
         for (int i = 0; mapcolors[i].cur_var; i++)
         {
