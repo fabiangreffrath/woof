@@ -2383,8 +2383,16 @@ static struct
 
 #undef MAPCOLOR
 
-void AM_ApplyColors(void)
+void AM_ApplyColors(boolean force)
 {
+    static boolean first_time = true;
+
+    if (!first_time && !force)
+    {
+        return;
+    }
+    first_time = false;
+
     byte *playpal = W_CacheLumpName("PLAYPAL", PU_STATIC);
     byte *iwad_playpal = NULL;
 
@@ -2431,7 +2439,7 @@ void AM_ColorPreset(void)
         *mapcolors[i].var = mapcolors[i].color[mapcolor_preset];
     }
 
-    AM_ApplyColors();
+    AM_ApplyColors(true);
 
     ST_ResetTitle();
 }
