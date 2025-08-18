@@ -32,6 +32,8 @@
 #include "p_tick.h"
 #include "r_defs.h"
 #include "r_state.h"
+#include "s_musinfo.h"
+#include "s_sound.h"
 #include "st_widgets.h"
 
 #include <stddef.h>
@@ -363,6 +365,10 @@ static void ArchivePlayState(keyframe_t *keyframe)
            activeplats);
     keyframe->activeceilings = M_CopyArena(activeceilings_arena);
     keyframe->activeplats = M_CopyArena(activeplats_arena);
+
+    // music
+    write32(current_musicnum);
+    writex(&musinfo, sizeof(musinfo), 1);
 }
 
 static void UnArchivePlayState(const keyframe_t *keyframe)
@@ -415,6 +421,11 @@ static void UnArchivePlayState(const keyframe_t *keyframe)
 
     setmobjstate_recursion = 0;
     memset(seenstate_tab, 0, sizeof(statenum_t) * num_states);
+
+    // music
+    current_musicnum = read32();
+    readx(&musinfo, sizeof(musinfo), 1);
+    S_RestartMusic();
 }
 
 static void ArchiveRNG(void)

@@ -942,7 +942,7 @@ void S_SetSfxVolume(int volume)
 
 static extra_music_t extra_music;
 
-static int current_musicnum = -1;
+int current_musicnum = -1;
 
 void S_ChangeMusic(int musicnum, int looping)
 {
