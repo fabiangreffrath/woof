@@ -2407,7 +2407,7 @@ void AM_ApplyColors(void)
             *mapcolors[i].cur_var = *mapcolors[i].var;
         }
     }
-    else
+    else if (iwad_playpal)
     {
         for (int i = 0; mapcolors[i].cur_var; i++)
         {
