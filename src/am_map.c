@@ -2404,14 +2404,15 @@ void AM_ApplyColors(boolean force)
         }
     }
 
-    if (playpal == iwad_playpal || M_CheckIfDisabled("mapcolor_preset"))
+    if (iwad_playpal == NULL || playpal == iwad_playpal
+        || M_CheckIfDisabled("mapcolor_preset"))
     {
         for (int i = 0; mapcolors[i].cur_var; i++)
         {
             *mapcolors[i].cur_var = *mapcolors[i].var;
         }
     }
-    else if (iwad_playpal)
+    else
     {
         for (int i = 0; mapcolors[i].cur_var; i++)
         {
