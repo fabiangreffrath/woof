@@ -52,7 +52,7 @@ arena_t *activeceilings_arena;
 // jff 02/08/98 all cases with labels beginning with gen added to support 
 // generalized line type behaviors.
 //
-void T_MoveCeiling (ceiling_t* ceiling)
+static void T_MoveCeiling(ceiling_t* ceiling)
 {
   result_e  res;
 
@@ -228,6 +228,11 @@ void T_MoveCeiling (ceiling_t* ceiling)
   }
 }
 
+void T_MoveCeilingAdapter(mobj_t *mobj)
+{
+    T_MoveCeiling((ceiling_t *)mobj);
+}
+
 
 //
 // EV_DoCeiling
@@ -276,7 +281,7 @@ int EV_DoCeiling
     ceiling = arena_alloc(thinkers_arena, 1, ceiling_t);
     P_AddThinker (&ceiling->thinker);
     sec->ceilingdata = ceiling;               //jff 2/22/98
-    ceiling->thinker.function.pt = (actionf_pt)T_MoveCeiling;
+    ceiling->thinker.function.p1 = T_MoveCeilingAdapter;
     ceiling->sector = sec;
     ceiling->crush = false;
   
@@ -370,7 +375,7 @@ int P_ActivateInStasisCeiling(line_t *line)
     if (ceiling->tag == line->tag && ceiling->direction == 0)
     {
       ceiling->direction = ceiling->olddirection;
-      ceiling->thinker.function.pt = (actionf_pt)T_MoveCeiling;
+      ceiling->thinker.function.p1 = T_MoveCeilingAdapter;
       //jff 4/5/98 return if activated
       rtn=1;
     }

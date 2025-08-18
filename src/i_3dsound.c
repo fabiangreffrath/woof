@@ -190,7 +190,7 @@ static void CalcDistance(const mobj_t *listener, const mobj_t *source,
     // Treat monsters, projectiles, other players, and ambient sounds as point
     // sources.
     src->point_source =
-        (source->thinker.function.pv != P_DegenMobjThinker
+        (source->thinker.function.p1 != P_DegenMobjThinker
          && source->info);
 
     if (src->point_source)
