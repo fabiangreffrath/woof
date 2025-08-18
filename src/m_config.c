@@ -756,3 +756,9 @@ void M_LoadDefaults(void)
                  defaultfile);
     }
 }
+
+boolean M_CheckIfDisabled(const char *name)
+{
+    const default_t *dp = M_LookupDefault(name);
+    return dp->setup_menu->m_flags & S_DISABLE;
+}

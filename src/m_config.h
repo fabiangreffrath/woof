@@ -28,6 +28,7 @@ void M_SaveDefaults(void);
 struct default_s *M_LookupDefault(const char *name);     // killough 11/98
 boolean M_ParseOption(const char *name, boolean wad);    // killough 11/98
 void M_LoadOptions(void);                                // killough 11/98
+boolean M_CheckIfDisabled(const char *name);
 
 void M_InitConfig(void);
 

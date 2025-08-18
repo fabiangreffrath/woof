@@ -31,7 +31,6 @@
 #include "i_video.h"
 #include "m_config.h"
 #include "m_input.h"
-#include "mn_internal.h"
 #include "mn_menu.h"
 #include "m_misc.h"
 #include "p_maputl.h"
@@ -2405,10 +2404,7 @@ void AM_ApplyColors(boolean force)
         }
     }
 
-    // check if map colors got overridden by OPTIONS lump
-    const default_t *dp = M_LookupDefault("mapcolor_preset");
-
-    if (playpal == iwad_playpal || dp->setup_menu->m_flags & S_DISABLE)
+    if (playpal == iwad_playpal || M_CheckIfDisabled("mapcolor_preset"))
     {
         for (int i = 0; mapcolors[i].cur_var; i++)
         {
