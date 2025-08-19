@@ -385,7 +385,7 @@ boolean ThingIsOnLine(mobj_t *t, line_t *l)
 boolean P_BlockLinesIterator(int x, int y, boolean func(line_t*))
 {
   int        offset;
-  const long *list;   // killough 3/1/98: for removal of blockmap limit
+  const int32_t *list;   // killough 3/1/98: for removal of blockmap limit
 
   if (x<0 || y<0 || x>=bmapwidth || y>=bmapheight)
     return true;
@@ -1129,7 +1129,7 @@ mobj_t *P_RoughTargetSearch(mobj_t *mo, angle_t fov, int distance)
 static boolean P_SightBlockLinesIterator(int x, int y)
 {
   int offset;
-  long *list;
+  int32_t *list;
   line_t *ld;
   int s1, s2;
   divline_t dl;

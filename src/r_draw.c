@@ -923,10 +923,10 @@ int ds_x2;
 lighttable_t *ds_colormap[2];
 const byte *ds_brightmap;
 
-fixed_t ds_xfrac;
-fixed_t ds_yfrac;
-fixed_t ds_xstep;
-fixed_t ds_ystep;
+uint32_t ds_xfrac;
+uint32_t ds_yfrac;
+uint32_t ds_xstep;
+uint32_t ds_ystep;
 
 // start of a 64*64 tile image
 byte *ds_source;

@@ -179,7 +179,7 @@ static void UpdateInterval(ambient_t *ambient)
     }
 }
 
-void T_AmbientSound(ambient_t *ambient)
+static void T_AmbientSound(ambient_t *ambient)
 {
     if (nosfxparm || !snd_ambient)
     {
@@ -197,6 +197,11 @@ void T_AmbientSound(ambient_t *ambient)
             UpdateInterval(ambient);
             break;
     }
+}
+
+void T_AmbientSoundAdapter(mobj_t *mobj)
+{
+    T_AmbientSound((ambient_t *)mobj);
 }
 
 void P_AddAmbientSoundThinker(mobj_t *mobj, int index)
@@ -245,7 +250,7 @@ void P_AddAmbientSoundThinker(mobj_t *mobj, int index)
     ambient->origin =
         ambient->data.type == AMB_TYPE_POINT ? ambient->source : NULL;
 
-    ambient->thinker.function.pt = (actionf_pt)T_AmbientSound;
+    ambient->thinker.function.p1 = T_AmbientSoundAdapter;
     P_AddThinker(&ambient->thinker);
 }
 

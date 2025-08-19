@@ -256,6 +256,7 @@ extern  overlay_t automapoverlay;
 #define automap_off (!automapactive || automapoverlay)
 
 extern  boolean menuactive;    // Menu overlayed?
+extern  boolean menu_pause_demos;
 extern  int     paused;        // Game Pause?
 extern  boolean viewactive;
 extern  boolean nodrawers;
