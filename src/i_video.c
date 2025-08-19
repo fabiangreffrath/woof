@@ -1569,14 +1569,23 @@ static void I_InitVideoParms(void)
 
 static void I_InitGraphicsMode(void)
 {
-    int w, h;
-    uint32_t flags = 0;
+    SDL_WindowFlags flags = 0;
 
     // [FG] window flags
     flags |= SDL_WINDOW_HIGH_PIXEL_DENSITY;
 
-    w = window_width;
-    h = window_height;
+    if (fullscreen)
+    {
+        flags |= (SDL_WINDOW_FULLSCREEN | SDL_WINDOW_MOUSE_GRABBED);
+    }
+    else
+    {
+        AdjustWindowSize();
+        flags |= SDL_WINDOW_RESIZABLE;
+    }
+
+    int w = window_width;
+    int h = window_height;
 
     if (M_CheckParm("-borderless"))
     {
@@ -1598,8 +1607,6 @@ static void I_InitGraphicsMode(void)
     }
 
     I_InitWindowIcon();
-
-    I_ToggleFullScreen();
 
     // [FG] create renderer
     renderer = SDL_CreateRenderer(screen, NULL);
