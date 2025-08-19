@@ -470,12 +470,12 @@ static void DrawMaskedColumn(patch_column_t *patchcol, const int ytop,
         }
         if (columntop + column->length - 1 < SCREENHEIGHT)
         {
-            patchcol->y2 = y2lookup[columntop + column->length - 1];
+            int y2 = columntop + column->length - 1;
             if (patchcol->height)
             {
-                int yh = y2lookup[ytop + patchcol->height - 1];
-                patchcol->y2 = MIN(patchcol->y2, yh);
+                y2 = MIN(y2, ytop + patchcol->height - 1);
             }
+            patchcol->y2 = y2lookup[y2];
         }
         else
         {
@@ -600,9 +600,9 @@ static void DrawPatchInternal(int x, int y, crop_t crop, patch_t *patch,
     int texturecolumn;
 
     w = SHORT(patch->width);
-    int leftoffset = crop.midoffset ? w / 2 - crop.midoffset : crop.leftoffset;
+    int leftoffset = crop.midoffset ? w / 2 + crop.midoffset : crop.leftoffset;
 
-    const int ytop = y - SHORT(patch->topoffset) - crop.topoffset;
+    const int ytop = y - SHORT(patch->topoffset) + crop.topoffset;
     for (; patchcol.x <= x2; patchcol.x++, startfrac += xiscale)
     {
         texturecolumn = (startfrac >> FRACBITS) + leftoffset;

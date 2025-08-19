@@ -1232,24 +1232,16 @@ static void DrawPatch(int x, int y, crop_t crop, int maxheight,
         return;
     }
 
-    int width = crop.width ? crop.width : SHORT(patch->width);
-    int height;
-    if (maxheight)
-    {
-        height = maxheight;
-    }
-    else if (crop.height)
-    {
-        height = crop.height;
-    }
-    else
-    {
-        height = SHORT(patch->height);
-    }
+    int width = SHORT(patch->width);
+    int height = maxheight ? maxheight : SHORT(patch->height);
 
     if (alignment & sbe_h_middle)
     {
         x = x - width / 2 + SHORT(patch->leftoffset);
+        if (crop.midoffset)
+        {
+            x += width / 2 + crop.midoffset;
+        }
     }
     else if (alignment & sbe_h_right)
     {
