@@ -245,6 +245,7 @@ typedef struct
     int x;
     int y1, y2;
     int height;
+    int topoffset;
 
     fixed_t frac;
     fixed_t step;
@@ -456,12 +457,12 @@ static void DrawMaskedColumn(patch_column_t *patchcol, const int ytop,
             }
 
             patchcol->y1 = y1lookup[columntop];
-            patchcol->frac = 0;
+            patchcol->frac = patchcol->topoffset << FRACBITS;
         }
         else
         {
             patchcol->frac = (-columntop) << FRACBITS;
-            patchcol->y1 = 0;
+            patchcol->y1 = patchcol->topoffset << FRACBITS;
         }
 
         if (columntop + column->length - 1 < 0)
@@ -595,6 +596,7 @@ static void DrawPatchInternal(int x, int y, crop_t crop, patch_t *patch,
     }
 
     patchcol.height = crop.height;
+    patchcol.topoffset = crop.topoffset;
 
     column_t *column;
     int texturecolumn;
@@ -602,7 +604,7 @@ static void DrawPatchInternal(int x, int y, crop_t crop, patch_t *patch,
     w = SHORT(patch->width);
     int leftoffset = crop.midoffset ? w / 2 + crop.midoffset : crop.leftoffset;
 
-    const int ytop = y - SHORT(patch->topoffset) + crop.topoffset;
+    const int ytop = y - SHORT(patch->topoffset);
     for (; patchcol.x <= x2; patchcol.x++, startfrac += xiscale)
     {
         texturecolumn = (startfrac >> FRACBITS) + leftoffset;
