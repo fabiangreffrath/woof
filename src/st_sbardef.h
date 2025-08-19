@@ -177,6 +177,9 @@ typedef struct
 {
     const char *patch_name;
     patch_t *patch;
+
+    // Woof!
+    crop_t crop;
 } sbe_graphic_t;
 
 typedef struct

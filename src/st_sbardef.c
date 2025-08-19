@@ -148,6 +148,14 @@ static boolean ParseSbarElemType(json_t *json, sbarelementtype_t type,
                     return false;
                 }
                 graphic->patch_name = M_StringDuplicate(patch);
+                crop_t crop = {
+                    .topoffset = JS_GetIntegerValue(json, "topoffset"),
+                    .leftoffset = JS_GetIntegerValue(json, "leftoffset"),
+                    .midoffset = JS_GetIntegerValue(json, "midoffset"),
+                    .width = JS_GetIntegerValue(json, "width"),
+                    .height = JS_GetIntegerValue(json, "height")
+                };
+                graphic->crop = crop;
                 out->subtype.graphic = graphic;
             }
             break;

@@ -3912,7 +3912,7 @@ void MN_DrawStringCR(int cx, int cy, byte *cr1, byte *cr2, const char *ch)
         // desired color, colrngs[color]
         if (cr && cr2)
         {
-            V_DrawPatchTRTR(cx, cy, hu_font[c], cr, cr2);
+            V_DrawPatchTRTR(cx, cy, (crop_t){0}, hu_font[c], cr, cr2);
         }
         else
         {
