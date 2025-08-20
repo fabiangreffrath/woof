@@ -913,13 +913,9 @@ void R_DrawPSprite (pspdef_t *psp)
   }
 
   // ID24 per-state tranmap
-  if (viewplayer->mo->state && viewplayer->mo->state->tranmap)
+  if (psp->state && psp->state->tranmap)
   {
-    vis->tranmap = viewplayer->mo->state->tranmap;
-  }
-  else if (viewplayer->mo->flags & MF_TRANSLUCENT)
-  {
-    vis->tranmap = main_tranmap;
+    vis->tranmap = psp->state->tranmap;
   }
   else
   {
