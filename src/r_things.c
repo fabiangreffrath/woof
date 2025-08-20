@@ -917,6 +917,10 @@ void R_DrawPSprite (pspdef_t *psp)
   {
     vis->tranmap = psp->state->tranmap;
   }
+  else if (viewplayer->mo->flags & MF_TRANSLUCENT)
+  {
+    vis->tranmap = main_tranmap;
+  }
   else
   {
     vis->tranmap = NULL;
