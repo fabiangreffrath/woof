@@ -767,6 +767,8 @@ void R_InitTextures (void)
       }
 
       int tx_lump = first_tx + k;
+      texture = textures[i] = Z_Malloc(sizeof(texture_t), PU_STATIC, 0);
+      M_CopyLumpName(texture->name, lumpinfo[tx_lump].name);
 
       if (!R_IsPatchLump(tx_lump))
       {
@@ -776,10 +778,6 @@ void R_InitTextures (void)
       }
 
       patch_t* tx_patch = V_CachePatchNum(tx_lump, PU_CACHE);
-
-      texture = textures[i] = Z_Malloc(sizeof(texture_t), PU_STATIC, 0);
-
-      M_CopyLumpName(texture->name, lumpinfo[first_tx + k].name);
       texture->width = tx_patch->width;
       texture->height = tx_patch->height;
       texture->patchcount = 1;
