@@ -521,11 +521,19 @@ void I_UpdateRumbleEnabled(void)
 
 void I_SetRumbleSupported(SDL_Gamepad *gamepad)
 {
-    SDL_PropertiesID props = SDL_GetGamepadProperties(gamepad);
     rumble.gamepad = gamepad;
-    rumble.supported = gamepad
-                       && SDL_GetBooleanProperty(
-                           props, SDL_PROP_GAMEPAD_CAP_RUMBLE_BOOLEAN, false);
+    rumble.supported = false;
+
+    if (gamepad)
+    {
+        SDL_PropertiesID props = SDL_GetGamepadProperties(gamepad);
+        if (props > 0)
+        {
+            rumble.supported = SDL_GetBooleanProperty(
+                props, SDL_PROP_GAMEPAD_CAP_RUMBLE_BOOLEAN, false);
+        }
+    }
+
     I_UpdateRumbleEnabled();
 }
 

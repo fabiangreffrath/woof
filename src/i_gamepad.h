@@ -46,6 +46,13 @@ typedef enum joy_platform_e
     PLATFORM_SWITCH_JOYCON_PAIR,
 } joy_platform_t;
 
+typedef enum joy_confirm_e
+{
+    CONFIRM_AUTO,
+    CONFIRM_SOUTH,
+    CONFIRM_EAST,
+} joy_confirm_t;
+
 typedef struct axis_s
 {
     int data;                   // ev_joystick event data.
@@ -72,10 +79,14 @@ typedef struct axes_s
 
 extern int joy_device, last_joy_device;     // Gamepad device.
 extern joy_platform_t joy_platform;         // Gamepad platform (button names).
+extern joy_confirm_t joy_confirm;           // Confirm/cancel preference.
 extern boolean joy_invert_forward;          // Invert forward axis.
 extern boolean joy_invert_strafe;           // Invert strafe axis.
 extern boolean joy_invert_turn;             // Invert turn axis.
 extern boolean joy_invert_look;             // Invert look axis.
+
+extern int gamepad_confirm;
+extern int gamepad_cancel;
 
 extern float axes[NUM_AXES];        // Calculated gamepad values.
 extern int trigger_threshold;       // Trigger threshold (axis resolution).
