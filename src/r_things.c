@@ -689,10 +689,10 @@ static void R_ProjectSprite (mobj_t* thing)
       vis->colormap[1] = fullcolormap;
     }
 
-  // ID24 per-frame tranmap
+  // ID24 per-state tranmap
   if (thing->state && thing->state->tranmap)
   {
-   	vis->tranmap = thing->state->tranmap;
+    vis->tranmap = thing->state->tranmap;
   }
   else if (thing->flags & MF_TRANSLUCENT)
   {
@@ -912,10 +912,10 @@ void R_DrawPSprite (pspdef_t *psp)
     vis->colormap[1] = fullcolormap;
   }
 
-  // ID24 per-frame tranmap
+  // ID24 per-state tranmap
   if (viewplayer->mo->state && viewplayer->mo->state->tranmap)
   {
-   	vis->tranmap = viewplayer->mo->state->tranmap;
+    vis->tranmap = viewplayer->mo->state->tranmap;
   }
   else if (viewplayer->mo->flags & MF_TRANSLUCENT)
   {

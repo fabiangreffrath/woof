@@ -706,7 +706,7 @@ boolean VX_ProjectVoxel (mobj_t * thing)
 		vis->colormap[1] = fullcolormap;
 	}
 
-	// ID24 per-frame tranmap
+	// ID24 per-state tranmap
 	// tranmaps do not work with Voxels yet
 	vis->tranmap = NULL;
 
