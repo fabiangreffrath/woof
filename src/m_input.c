@@ -436,8 +436,8 @@ void M_UpdatePlatform(joy_platform_t platform)
                     JOYB_COPY(GAMEPAD_START, "pad-");
                     JOYB_COPY(GAMEPAD_LEFT_SHOULDER, "L.SL");
                     JOYB_COPY(GAMEPAD_RIGHT_SHOULDER, "L.SR");
-                    JOYB_COPY(GAMEPAD_LEFT_PADDLE1, "LB");
-                    JOYB_COPY(GAMEPAD_LEFT_PADDLE2, "ZL");
+                    JOYB_COPY(GAMEPAD_LEFT_PADDLE1, "L.LB");
+                    JOYB_COPY(GAMEPAD_LEFT_PADDLE2, "L.ZL");
                     break;
 
                 case PLATFORM_SWITCH_JOYCON_RIGHT:
@@ -445,8 +445,8 @@ void M_UpdatePlatform(joy_platform_t platform)
                     JOYB_COPY(GAMEPAD_START, "pad+");
                     JOYB_COPY(GAMEPAD_LEFT_SHOULDER, "R.SL");
                     JOYB_COPY(GAMEPAD_RIGHT_SHOULDER, "R.SR");
-                    JOYB_COPY(GAMEPAD_RIGHT_PADDLE1, "RB");
-                    JOYB_COPY(GAMEPAD_RIGHT_PADDLE2, "ZR");
+                    JOYB_COPY(GAMEPAD_RIGHT_PADDLE1, "R.RB");
+                    JOYB_COPY(GAMEPAD_RIGHT_PADDLE2, "R.ZR");
                     break;
 
                 case PLATFORM_SWITCH_JOYCON_PAIR:
