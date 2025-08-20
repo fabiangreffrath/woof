@@ -21,12 +21,12 @@
 #include "i_printf.h"
 #include "i_video.h"
 #include "info.h"
-#include "m_array.h"
 #include "m_fixed.h"
-#include "mn_menu.h"
 #include "m_misc.h"
+#include "mn_menu.h"
 #include "p_mobj.h"
 #include "r_bmaps.h"
+#include "r_data.h"
 #include "r_defs.h"
 #include "r_draw.h"
 #include "r_main.h"
@@ -705,6 +705,10 @@ boolean VX_ProjectVoxel (mobj_t * thing)
 		vis->colormap[0] = spritelights[index];
 		vis->colormap[1] = fullcolormap;
 	}
+
+	// ID24 per-frame tranmap
+	// tranmaps do not work with Voxels yet
+	vis->tranmap = NULL;
 
 	vis->brightmap = R_BrightmapForSprite(thing->sprite);
 	vis->color = thing->bloodcolor;

@@ -395,6 +395,9 @@ typedef struct vissprite_s
   int color;
   const byte *brightmap;
 
+  // ID24
+  byte *tranmap;
+
   // andrewj: voxel support
   int voxel_index;
 } vissprite_t;
