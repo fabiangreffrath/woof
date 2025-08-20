@@ -1363,6 +1363,11 @@ static void CreateUpscaledTexture(boolean force)
         renderer, SDL_PIXELFORMAT_ARGB8888, SDL_TEXTUREACCESS_TARGET,
         w_upscale * screen_width, h_upscale * screen_height);
 
+    if (texture_upscaled == NULL)
+    {
+        I_Error("Failed to create upscaled texture: %s", SDL_GetError());
+    }
+
     SDL_SetTextureScaleMode(texture_upscaled, SDL_SCALEMODE_LINEAR);
 }
 
@@ -1592,10 +1597,10 @@ static void I_InitGraphicsMode(void)
     }
     else
     {
-        AdjustWindowSize();
         flags |= SDL_WINDOW_RESIZABLE;
     }
 
+    AdjustWindowSize();
     int w = window_width;
     int h = window_height;
 
@@ -1610,7 +1615,6 @@ static void I_InitGraphicsMode(void)
 
     char *title = M_StringJoin(gamedescription, " - ", PROJECT_STRING);
     screen = SDL_CreateWindow(title, w, h, flags);
-    SDL_SetWindowPosition(screen, window_x, window_y);
     free(title);
 
     if (screen == NULL)
@@ -1618,15 +1622,12 @@ static void I_InitGraphicsMode(void)
         I_Error("Error creating window for video startup: %s", SDL_GetError());
     }
 
+    SDL_SetWindowPosition(screen, window_x, window_y);
+
     I_InitWindowIcon();
 
     // [FG] create renderer
     renderer = SDL_CreateRenderer(screen, NULL);
-
-    if (use_vsync && !timingdemo)
-    {
-        SDL_SetRenderVSync(renderer, 1);
-    }
 
     if (renderer == NULL)
     {
@@ -1634,11 +1635,15 @@ static void I_InitGraphicsMode(void)
                 SDL_GetError());
     }
 
-    const char *renderer_name = SDL_GetRendererName(renderer);
+    if (use_vsync && !timingdemo)
+    {
+        SDL_SetRenderVSync(renderer, 1);
+    }
+
     I_Printf(VB_DEBUG, "SDL %d.%d.%d (%s) render driver: %s (%s)",
              SDL_MAJOR_VERSION, SDL_MINOR_VERSION, SDL_MICRO_VERSION,
              SDL_GetPlatform(),
-             renderer_name,
+             SDL_GetRendererName(renderer),
              SDL_GetCurrentVideoDriver());
 
     UpdateLimiter();
