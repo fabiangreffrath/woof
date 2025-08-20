@@ -756,24 +756,28 @@ void R_InitTextures (void)
       RegisterTexture(texture, i);
     }
  
-
   // TX_ marker (texture namespace) parsed here
   if (tx_numtextures > 0)
   {
-    for (i = (numtextures1 + numtextures2), k = 0;
-        i < numtextures;
-        i++, k++)
+    for (i = (numtextures1 + numtextures2), k = 0; i < numtextures; i++, k++)
     {
-
       if (!(i&127))
       {
         I_PutChar(VB_INFO, '.');
       }
-      patch_t* tx_patch = V_CachePatchNum(first_tx + k, PU_CACHE);
 
+      int tx_lump = first_tx + k;
       texture = textures[i] = Z_Malloc(sizeof(texture_t), PU_STATIC, 0);
+      M_CopyLumpName(texture->name, lumpinfo[tx_lump].name);
 
-      M_CopyLumpName(texture->name, lumpinfo[first_tx + k].name);
+      if (!R_IsPatchLump(tx_lump))
+      {
+        I_Printf(VB_WARNING, "R_InitTextures: Texture %s in wrong format",
+                 texture->name);
+        tx_lump = (W_CheckNumForName)("TNT1A0", ns_sprites);
+      }
+
+      patch_t* tx_patch = V_CachePatchNum(tx_lump, PU_CACHE);
       texture->width = tx_patch->width;
       texture->height = tx_patch->height;
       texture->patchcount = 1;
