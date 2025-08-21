@@ -116,7 +116,7 @@ set(BASE_SOURCES
 
     all-all/colormaps/watermap.cmp
 
-    all-all/flats/badflat.png
+    all-all/flats/-NO_TEX-.png
 
     all-all/sprites/dogsa1.png
     all-all/sprites/dogsa2.png

@@ -1143,7 +1143,7 @@ int R_FlatNumForName(const char *name)    // killough -- const added
   if (i == NO_TEXTURE)
   {
     I_Printf(VB_WARNING, "R_FlatNumForName: %.8s not found", name);
-    return R_FlatNumForName("BADFLAT"); // highlight missing flats
+    return R_FlatNumForName("-NO_TEX-"); // highlight missing flats
   }
   return i - firstflat;
 }
