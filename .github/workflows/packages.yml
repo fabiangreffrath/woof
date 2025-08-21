@@ -64,6 +64,13 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+      - run: |
+          pip install pyyaml joblib
+
       - name: Install dependencies (Linux)
         if: runner.os == 'Linux'
         run: |
@@ -130,7 +137,6 @@ jobs:
         if: github.event_name == 'workflow_dispatch'
         run: |
           cd demotest
-          pip install pyyaml joblib
           python demotest --jobs 4 --port ../build/src/woof
 
       - name: Package (Linux)
