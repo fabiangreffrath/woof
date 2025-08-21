@@ -1185,7 +1185,7 @@ int R_TextureNumForName(const char *name)  // const added -- killough
   {
     // [FG] treat missing textures as non-fatal
     I_Printf(VB_WARNING, "R_TextureNumForName: %.8s not found", name);
-    return R_TextureNumForName("BADTEX"); // highlight missing textures
+    return 0;
   }
   return i;
 }
