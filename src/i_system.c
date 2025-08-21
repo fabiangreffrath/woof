@@ -50,7 +50,7 @@ boolean I_IsDebuggerAttached(void)
 #ifdef _WIN32
     return IsDebuggerPresent();
 #else
-    return true;
+    return false;
 #endif
 }
 #endif
