@@ -443,12 +443,9 @@ static void DrawSkyTex(visplane_t *pl, sky_t *sky, skytex_t *skytex)
 
     angle_t an = viewangle + deltax;
 
-    if (sky->texturemid_tic != gametic)
-    {
-        sky->vertically_scrolling = (sky->old_texturemid != dc_texturemid);
-        sky->old_texturemid = dc_texturemid;
-        sky->texturemid_tic = gametic;
-    }
+    sky->vertically_scrolling =
+        sky->background.scrolly
+        || (sky->side && (sky->side->rowoffset - sky->side->oldrowoffset));
 
     if (colfunc != R_DrawTLColumn && !sky->vertically_scrolling && dc_texheight >= 128)
     {

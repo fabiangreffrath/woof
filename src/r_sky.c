@@ -311,8 +311,6 @@ static skyindex_t AddLevelsky(int texture, side_t *side)
         R_InitFireSky(&new_sky);
     }
 
-    new_sky.texturemid_tic = -1;
-
     const int skyheight = textureheight[new_sky.background.texture] >> FRACBITS;
     new_sky.stretchable = true;
 
