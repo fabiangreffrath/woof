@@ -772,7 +772,7 @@ void R_InitTextures (void)
 
       if (!R_IsPatchLump(tx_lump))
       {
-        I_Printf(VB_WARNING, "R_InitTextures: Texture %s in wrong format",
+        I_Printf(VB_WARNING, "R_InitTextures: Texture %.8s in wrong format",
                  texture->name);
         tx_lump = (W_CheckNumForName)("TNT1A0", ns_sprites);
       }
