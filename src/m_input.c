@@ -52,12 +52,7 @@ static void InputRemove(int id, input_type_t type, int value)
     {
         if (inputs[i].type == type && inputs[i].value == value)
         {
-            int left = array_size(inputs) - i - 1;
-            if (left > 0)
-            {
-                memmove(inputs + i, inputs + i + 1, left * sizeof(*inputs));
-            }
-            array_ptr(inputs)->size--;
+            array_delete(inputs, i);
         }
     }
 }
@@ -701,6 +696,7 @@ void M_BindInputVariables(void)
     BIND_INPUT(input_weapontoggle, "Switch between the two most-preferred weapons with ammo");
     BIND_INPUT(input_lastweapon, "Switch to last used weapon");
 
+    BIND_INPUT(input_rewind, "Rewind");
     BIND_INPUT(input_menu_reloadlevel, "Restart current level/demo");
     BIND_INPUT(input_menu_nextlevel, "Go to next level");
     BIND_INPUT(input_menu_prevlevel, "Go to previous level");

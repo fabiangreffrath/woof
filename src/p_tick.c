@@ -17,16 +17,18 @@
 //
 //-----------------------------------------------------------------------------
 
+#include "d_think.h"
 #include "doomdef.h"
 #include "doomstat.h"
 #include "info.h"
+#include "m_arena.h"
+#include "p_ambient.h"
 #include "p_map.h"
 #include "p_mobj.h"
 #include "p_tick.h"
 #include "p_spec.h"
 #include "p_user.h"
 #include "s_musinfo.h"
-#include "z_zone.h"
 
 int leveltime;
 int oldleveltime;
@@ -48,6 +50,8 @@ thinker_t thinkercap;
 thinker_t thinkerclasscap[NUMTHCLASS];
 
 int init_thinkers_count = 0;
+
+arena_t *thinkers_arena;
 
 //
 // P_InitThinkers
@@ -85,8 +89,8 @@ void P_UpdateThinker(thinker_t *thinker)
    // find the class the thinker belongs to
   
    // haleyjd 07/12/03: don't use "class" as a variable name
-   int tclass = thinker->function.p1 == (actionf_p1)P_RemoveThinkerDelayed ? th_delete :
-     thinker->function.p1 == (actionf_p1)P_MobjThinker &&
+   int tclass = (thinker->function.p1 == P_RemoveMobjThinkerDelayed) ? th_delete :
+     thinker->function.p1 == P_MobjThinker &&
      ((mobj_t *) thinker)->health > 0 && 
      (((mobj_t *) thinker)->flags & MF_COUNTKILL ||
       ((mobj_t *) thinker)->type == MT_SKULL) ?
@@ -142,18 +146,68 @@ static thinker_t *currentthinker;
 // remove it, and set currentthinker to one node preceeding it, so
 // that the next step in P_RunThinkers() will get its successor.
 //
+inline static void RemoveThinker(thinker_t *thinker)
+{
+    thinker_t *next = thinker->next;
+    (next->prev = currentthinker = thinker->prev)->next = next;
+
+    // haleyjd 6/17/08: remove from threaded list now
+    (thinker->cnext->cprev = thinker->cprev)->cnext = thinker->cnext;
+} 
+
+#if 0
 void P_RemoveThinkerDelayed(thinker_t *thinker)
 {
-   if(!thinker->references)
-   {
-      thinker_t *next = thinker->next;
-      (next->prev = currentthinker = thinker->prev)->next = next;
+    if (!thinker->references)
+    {
+       RemoveThinker(thinker);
+    }
+}
+#endif
 
-      // haleyjd 6/17/08: remove from threaded list now
-      (thinker->cnext->cprev = thinker->cprev)->cnext = thinker->cnext;
+#define RemoveThinkerDelayed(ptr, type)            \
+    do                                             \
+    {                                              \
+        if (!ptr->thinker.references)              \
+        {                                          \
+            RemoveThinker(&ptr->thinker);          \
+            arena_free(thinkers_arena, ptr, type); \
+        }                                          \
+    } while (0)
 
-      Z_Free(thinker);
-   }
+void P_RemoveMobjThinkerDelayed(mobj_t *mobj)
+{
+    RemoveThinkerDelayed(mobj, mobj_t);
+}
+
+static void P_RemoveCeilingThinkerDelayed(mobj_t *mobj)
+{
+    RemoveThinkerDelayed(mobj, ceiling_t);
+}
+
+static void RemoveDoorThinkerDelayed(mobj_t *mobj)
+{
+    RemoveThinkerDelayed(mobj, vldoor_t);
+}
+
+static void RemoveFloorThinkerDelayed(mobj_t *mobj)
+{
+    RemoveThinkerDelayed(mobj, floormove_t);
+}
+
+static void RemoveElevatorThinkerDelayed(mobj_t *mobj)
+{
+    RemoveThinkerDelayed(mobj, elevator_t);
+}
+
+static void RemovePlatThinkerDelayed(mobj_t *mobj)
+{
+    RemoveThinkerDelayed(mobj, plat_t);
+}
+
+static void RemoveAmbientThinkerDelayed(mobj_t *mobj)
+{
+    RemoveThinkerDelayed(mobj, ambient_t);
 }
 
 //
@@ -168,9 +222,10 @@ void P_RemoveThinkerDelayed(thinker_t *thinker)
 // set the function to P_RemoveThinkerDelayed(), so that later, it will be
 // removed automatically as part of the thinker process.
 //
+#if 0
 void P_RemoveThinker(thinker_t *thinker)
 {
-   thinker->function.p1 = (actionf_p1)P_RemoveThinkerDelayed;
+   thinker->function.pt = P_RemoveThinkerDelayed;
    
    // killough 8/29/98: remove immediately from threaded list
 
@@ -186,6 +241,49 @@ void P_RemoveThinker(thinker_t *thinker)
    
    // Move to th_delete class.
    P_UpdateThinker(thinker);
+}
+#endif
+
+void P_RemoveMobjThinker(mobj_t *mobj)
+{
+   mobj->thinker.function.p1 = P_RemoveMobjThinkerDelayed;
+   P_UpdateThinker(&mobj->thinker);
+}
+
+void P_RemoveCeilingThinker(ceiling_t *ceiling)
+{
+   ceiling->thinker.function.p1 = P_RemoveCeilingThinkerDelayed;
+   P_UpdateThinker(&ceiling->thinker);
+}
+
+void P_RemoveDoorThinker(vldoor_t *door)
+{
+   door->thinker.function.p1 = RemoveDoorThinkerDelayed;
+   P_UpdateThinker(&door->thinker);
+}
+
+void P_RemoveFloorThinker(floormove_t *floor)
+{
+   floor->thinker.function.p1 = RemoveFloorThinkerDelayed;
+   P_UpdateThinker(&floor->thinker);
+}
+
+void P_RemoveElevatorThinker(elevator_t *elevator)
+{
+   elevator->thinker.function.p1 = RemoveElevatorThinkerDelayed;
+   P_UpdateThinker(&elevator->thinker);
+}
+
+void P_RemovePlatThinker(plat_t *plat)
+{
+   plat->thinker.function.p1 = RemovePlatThinkerDelayed;
+   P_UpdateThinker(&plat->thinker);
+}
+
+void P_RemoveAmbientThinker(ambient_t *ambient)
+{
+   ambient->thinker.function.p1 = RemoveAmbientThinkerDelayed;
+   P_UpdateThinker(&ambient->thinker);
 }
 
 //
@@ -263,7 +361,7 @@ static void P_FrozenTicker (void)
         P_MobjThinker(players[i].mo);
 
     for (th = thinkercap.next; th != &thinkercap; th = th->next)
-      if (th->function.p1 == (actionf_p1)P_MobjThinker)
+      if (th->function.p1 == P_MobjThinker)
       {
         mo = (mobj_t *) th;
 
@@ -293,7 +391,7 @@ void P_Ticker (void)
   // 
   // All of this complicated mess is used to preserve demo sync.
 
-  if (paused || (menuactive && !demoplayback && !netgame &&
+  if (paused || (menuactive && (!demoplayback || menu_pause_demos) && !netgame &&
 		 players[consoleplayer].viewz != 1))
     return;
 

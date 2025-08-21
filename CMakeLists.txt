@@ -17,7 +17,7 @@ project(
     LANGUAGES C CXX
 )
 
-set(CMAKE_C_STANDARD 99)
+set(CMAKE_C_STANDARD 11)
 
 # Set a default build type if none was specified
 set(default_build_type "RelWithDebInfo")
@@ -149,17 +149,12 @@ find_package(Python3 COMPONENTS Interpreter)
 configure_file(config.h.in config.h)
 
 if(WIN32)
-    install(FILES COPYING DESTINATION docs RENAME COPYING.txt)
-    install(DIRECTORY examples/ DESTINATION docs/examples)
+    install(FILES COPYING DESTINATION . RENAME COPYING.txt)
     if(FluidSynth_FOUND)
         install(DIRECTORY soundfonts/ DESTINATION soundfonts)
     endif()
 else()
     install(FILES COPYING DESTINATION "share/doc/${PROJECT_SHORTNAME}")
-    if(EXISTS "${CMAKE_SOURCE_DIR}/examples")
-        install(DIRECTORY examples/
-            DESTINATION "share/doc/${PROJECT_SHORTNAME}/examples")
-    endif()
     if(EXISTS "${CMAKE_SOURCE_DIR}/soundfonts" AND FluidSynth_FOUND)
         install(DIRECTORY soundfonts/
             DESTINATION "share/${PROJECT_SHORTNAME}/soundfonts")
@@ -232,12 +227,6 @@ elseif(LINUX)
                 file(COPY
                     ${CPACK_TEMPORARY_DIRECTORY}/${CPACK_PACKAGING_INSTALL_PREFIX}/share/woof/soundfonts
                     DESTINATION ${CPACK_OUTPUT_DIR})
-                file(RENAME
-                    ${CPACK_TEMPORARY_DIRECTORY}/${CPACK_PACKAGING_INSTALL_PREFIX}/share/doc/woof
-                    ${CPACK_TEMPORARY_DIRECTORY}/${CPACK_PACKAGING_INSTALL_PREFIX}/share/doc/docs)
-                file(COPY
-                    ${CPACK_TEMPORARY_DIRECTORY}/${CPACK_PACKAGING_INSTALL_PREFIX}/share/doc/docs
-                    DESTINATION ${CPACK_OUTPUT_DIR})
 
                 file(CONFIGURE
                     OUTPUT ${CPACK_OUTPUT_DIR}/Troubleshooting.txt
@@ -263,6 +252,5 @@ add_subdirectory(textscreen)
 add_subdirectory(third-party)
 add_subdirectory(src)
 add_subdirectory(setup)
-add_subdirectory(docs)
 add_subdirectory(man)
 add_subdirectory(netlib)

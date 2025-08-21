@@ -37,6 +37,7 @@
 #include "doomtype.h"
 #include "dstrings.h"
 #include "g_game.h"
+#include "g_rewind.h"
 #include "g_umapinfo.h"
 #include "i_input.h"
 #include "i_printf.h"
@@ -51,6 +52,7 @@
 #include "mn_menu.h"
 #include "mn_internal.h"
 #include "mn_snapshot.h"
+#include "p_keyframe.h"
 #include "p_saveg.h"
 #include "r_defs.h"
 #include "r_draw.h"
@@ -105,6 +107,7 @@ static boolean mouse_active_thermo;
 static boolean options_active;
 static boolean customskill_active;
 
+boolean menu_pause_demos;
 backdrop_t menu_backdrop;
 
 int bigfont_priority = -1;
@@ -1499,7 +1502,7 @@ static void M_QuitResponse(int ch)
     {
         return;
     }
-    if (D_QuitSoundEnabled() &&
+    if (quit_sound &&
         (!netgame || demoplayback) && // killough 12/98
         !nosfxparm)                   // avoid delay if no sound card
     {
@@ -1533,7 +1536,14 @@ static void M_QuitDOOM(int choice)
                 *endmsg[gametic % (NUM_QUITMESSAGES - 1) + 1], s_DOSY);
     }
 
-    M_StartMessage(endstring, M_QuitResponse, true);
+    if (quit_prompt)
+    {
+        M_StartMessage(endstring, M_QuitResponse, true);
+    }
+    else
+    {
+        M_QuitResponse('y');
+    }
 }
 
 /////////////////////////////
@@ -2547,8 +2557,11 @@ boolean M_ShortcutResponder(const event_t *ev)
 
     if (M_InputActivated(input_quit)) // Quit DOOM
     {
-        M_PauseSound();
-        M_StartSound(sfx_swtchn);
+        if (quit_prompt)
+        {
+            M_PauseSound();
+            M_StartSound(sfx_swtchn);
+        }
         M_QuitDOOM(0);
         return true;
     }
@@ -2680,6 +2693,11 @@ boolean M_ShortcutResponder(const event_t *ev)
             I_SetFastdemoTimer(fastdemo_timer);
             return true;
         }
+    }
+
+    if (M_InputActivated(input_rewind))
+    {
+        G_LoadAutoKeyframe();
     }
 
     return false;

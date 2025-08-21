@@ -549,20 +549,19 @@ int M_snprintf(char *buf, size_t buf_len, const char *s, ...)
     return result;
 }
 
-// Copy lump name (up to 8 chars) to dest buffer.
+// Copies characters until either 8 characters are copied or a null terminator
+// is found.
 
 void M_CopyLumpName(char *dest, const char *src)
 {
-    size_t len;
-
-    len = strnlen(src, 8);
-
-    if (len < 8)
+    for (int i = 0; i < 8; i++)
     {
-        len++;
+        dest[i] = src[i];
+        if (src[i] == '\0')
+        {
+            break;
+        }
     }
-
-    memcpy(dest, src, len);
 }
 
 //

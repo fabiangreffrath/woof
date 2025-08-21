@@ -41,6 +41,7 @@
 #include "doomtype.h"
 #include "f_finale.h"
 #include "g_game.h"
+#include "g_rewind.h"
 #include "g_nextweapon.h"
 #include "g_umapinfo.h"
 #include "hu_command.h"
@@ -68,6 +69,7 @@
 #include "net_defs.h"
 #include "p_enemy.h"
 #include "p_inter.h"
+#include "p_keyframe.h"
 #include "p_map.h"
 #include "p_maputl.h"
 #include "p_mobj.h"
@@ -101,11 +103,11 @@
 size_t savegamesize = SAVEGAMESIZE; // killough
 static char     *demoname = NULL;
 // the original name of the demo, without "-00000" and file extension
-static char *demoname_orig = NULL;
+static char     *demoname_orig = NULL;
 static boolean  netdemo;
 static byte     *demobuffer;   // made some static -- killough
 static size_t   maxdemosize;
-static byte     *demo_p;
+byte            *demo_p;
 static byte     consistancy[MAXPLAYERS][BACKUPTICS];
 
 static int G_GameOptionSize(void);
@@ -1000,6 +1002,7 @@ static void G_DoLoadLevel(void)
 
   P_SetupLevel (gameepisode, gamemap, 0, gameskill);
 
+  G_ResetRewind();
   MN_UpdateFreeLook();
   HU_UpdateTurnFormat();
 
@@ -1710,7 +1713,7 @@ static void G_WriteLevelStat(void)
         return;
     }
 
-    strcpy(levelString, MapName(gameepisode, gamemap));
+    M_CopyLumpName(levelString, MapName(gameepisode, gamemap));
 
     FormatLevelStatTime(levelTimeString, leveltime, false);
     FormatLevelStatTime(totalTimeString, totalleveltimes + leveltime, true);
@@ -2436,7 +2439,7 @@ static uint64_t G_Signature(int sig_epi, int sig_map)
   int lump, i;
   char name[9];
   
-  strcpy(name, MapName(sig_epi, sig_map));
+  M_CopyLumpName(name, MapName(sig_epi, sig_map));
 
   lump = W_CheckNumForName(name);
 
@@ -2534,7 +2537,7 @@ static void DoSaveGame(char *name)
   // save lump name for current MUSINFO item
   saveg_grow(8);
   if (musinfo.current_item > 0)
-    memcpy(save_p, lumpinfo[musinfo.current_item].name, 8);
+    M_CopyLumpName((char*)save_p, lumpinfo[musinfo.current_item].name);
   else
     memset(save_p, 0, 8);
   save_p += 8;
@@ -3009,10 +3012,13 @@ void G_Ticker(void)
   // P_Ticker() does not stop netgames if a menu is activated, so
   // we do not need to stop if a menu is pulled up during netgames.
 
-  if (paused & 2 || (!demoplayback && menuactive && !netgame))
+  if (paused & 2 || ((!demoplayback || menu_pause_demos) && menuactive && !netgame))
     basetic++;  // For revenant tracers and RNG -- we must maintain sync
   else
     {
+      if (!timingdemo && gamestate == GS_LEVEL && gameaction == ga_nothing)
+        G_SaveAutoKeyframe();
+      
       // get commands, check consistancy, and build new consistancy check
       int buf = (gametic/ticdup)%BACKUPTICS;
 
@@ -4768,9 +4774,10 @@ boolean G_CheckDemoStatus(void)
       int endtime = I_GetTime_RealTime();
       // killough -- added fps information and made it work for longer demos:
       unsigned realtics = endtime-starttime;
-      I_Success("Timed %u gametics in %u realtics = %-.1f frames per second",
-               (unsigned) gametic,realtics,
-               (unsigned) gametic * (double) TICRATE / realtics);
+      I_MessageBox("Timed %u gametics in %u realtics = %-.1f frames per second",
+                   (unsigned)gametic, realtics,
+                   (unsigned)gametic * (double)TICRATE / realtics);
+      I_SafeExit(0);
     }
 
   if (demoplayback)

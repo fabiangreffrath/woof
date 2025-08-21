@@ -76,6 +76,8 @@ void P_SetActualHeight(mobj_t *mobj)
 // Returns true if the mobj is still present.
 //
 
+int setmobjstate_recursion = 0; // detects recursion
+
 boolean P_SetMobjState(mobj_t* mobj,statenum_t state)
 {
   state_t*  st;
@@ -84,12 +86,11 @@ boolean P_SetMobjState(mobj_t* mobj,statenum_t state)
 
   // fast transition table
   statenum_t *seenstate = seenstate_tab;      // pointer to table
-  static int recursion;                       // detects recursion
   statenum_t i = state;                       // initial state
   boolean ret = true;                         // return value
   statenum_t* tempstate = NULL;               // for use with recursion
 
-  if (recursion++)                            // if recursion detected,
+  if (setmobjstate_recursion++)               // if recursion detected,
     seenstate = tempstate = Z_Calloc(num_states, sizeof(statenum_t), PU_STATIC, 0); // allocate state table
 
   do
@@ -123,7 +124,7 @@ boolean P_SetMobjState(mobj_t* mobj,statenum_t state)
   if (ret && !mobj->tics)  // killough 4/9/98: detect state cycles
     displaymsg("Warning: State Cycle Detected");
 
-  if (!--recursion)
+  if (!--setmobjstate_recursion)
     for (;(state=seenstate[i]);i=state-1)
       seenstate[i] = 0;  // killough 4/9/98: erase memory of states
 
@@ -773,14 +774,14 @@ void P_MobjThinker (mobj_t* mobj)
     {
       P_XYMovement(mobj);
       mobj->intflags &= ~MIF_SCROLLING;
-      if (mobj->thinker.function.p1 == (actionf_p1)P_RemoveThinkerDelayed) // killough
+      if (mobj->thinker.function.p1 == P_RemoveMobjThinkerDelayed) // killough
 	return;       // mobj was removed
     }
 
   if (mobj->z != mobj->floorz || mobj->momz)
     {
       P_ZMovement(mobj);
-      if (mobj->thinker.function.p1 == (actionf_p1)P_RemoveThinkerDelayed) // killough
+      if (mobj->thinker.function.p1 == P_RemoveMobjThinkerDelayed) // killough
 	return;       // mobj was removed
     }
   else
@@ -814,7 +815,7 @@ void P_MobjThinker (mobj_t* mobj)
       P_DamageMobj(mobj, NULL, NULL, 10000);
 
       // must have been removed
-      if (mobj->thinker.function.p1 != (actionf_p1)P_MobjThinker)
+      if (mobj->thinker.function.p1 != P_MobjThinker)
         return;
     }
   }
@@ -842,7 +843,7 @@ void P_MobjThinker (mobj_t* mobj)
 
 mobj_t *P_SpawnMobj(fixed_t x, fixed_t y, fixed_t z, mobjtype_t type)
 {
-  mobj_t *mobj = Z_Malloc(sizeof *mobj, PU_LEVEL, NULL);
+  mobj_t *mobj = arena_alloc(thinkers_arena, 1, mobj_t);
   mobjinfo_t *info = &mobjinfo[type];
   state_t    *st;
 
@@ -867,7 +868,7 @@ mobj_t *P_SpawnMobj(fixed_t x, fixed_t y, fixed_t z, mobjtype_t type)
 
   mobj->health = info->spawnhealth;
 
-  if (gameskill != sk_nightmare || !aggromonsters)
+  if (gameskill != sk_nightmare && !aggromonsters)
     mobj->reactiontime = info->reactiontime;
 
   if (type != zmt_ambientsound)
@@ -908,7 +909,7 @@ mobj_t *P_SpawnMobj(fixed_t x, fixed_t y, fixed_t z, mobjtype_t type)
   mobj->oldz = mobj->z;
   mobj->oldangle = mobj->angle;
 
-  mobj->thinker.function.p1 = (actionf_p1)P_MobjThinker;
+  mobj->thinker.function.p1 = P_MobjThinker;
   mobj->above_thing = mobj->below_thing = 0;           // phares
 
   // for Boom friction code
@@ -991,7 +992,7 @@ void P_RemoveMobj (mobj_t *mobj)
 
   // free block
 
-  P_RemoveThinker(&mobj->thinker);
+  P_RemoveMobjThinker(mobj);
 }
 
 // Certain functions assume that a mobj_t pointer is non-NULL,

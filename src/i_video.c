@@ -91,11 +91,23 @@ static int fpslimit; // when uncapped, limit framerate to this value
 static boolean fullscreen;
 static boolean exclusive_fullscreen;
 static boolean change_display_resolution;
-static int widescreen, default_widescreen;
 static boolean vga_porch_flash; // emulate VGA "porch" behaviour
 static boolean smooth_scaling;
 static int video_display = 0; // display index
 static boolean disk_icon; // killough 10/98
+
+typedef enum
+{
+    RATIO_ORIG,
+    RATIO_AUTO,
+    RATIO_16_10,
+    RATIO_16_9,
+    RATIO_21_9,
+    RATIO_32_9,
+    NUM_RATIOS
+} aspect_ratio_mode_t;
+
+static aspect_ratio_mode_t widescreen, default_widescreen;
 
 // [FG] rendering window, renderer, intermediate ARGB frame buffer and texture
 
@@ -1763,10 +1775,10 @@ static void I_InitGraphicsMode(void)
     UpdateLimiter();
 }
 
-void I_GetResolutionScaling(resolution_scaling_t *rs)
+resolution_scaling_t I_GetResolutionScaling(void)
 {
-    rs->max = max_height_adjusted;
-    rs->step = 50;
+    resolution_scaling_t rs = {.max = max_height_adjusted, .step = 50};
+    return rs;
 }
 
 static int GetCurrentVideoHeight(void)
@@ -1872,6 +1884,13 @@ void I_ResetScreen(void)
     ResetResolution(GetCurrentVideoHeight(), true);
     CreateSurfaces(video.pitch, video.height);
     ResetLogicalSize();
+
+    static aspect_ratio_mode_t oldwidescreen;
+    if (oldwidescreen != widescreen)
+    {
+        MN_UpdateWideShiftItem(true);
+        oldwidescreen = widescreen;
+    }
 }
 
 void I_ShutdownGraphics(void)
@@ -1917,6 +1936,8 @@ void I_InitGraphics(void)
     ResetResolution(GetCurrentVideoHeight(), true);
     CreateSurfaces(video.pitch, video.height);
     ResetLogicalSize();
+
+    MN_UpdateWideShiftItem(false);
 
     // Mouse motion is based on SDL_GetRelativeMouseState() values only.
     SDL_EventState(SDL_MOUSEMOTION, SDL_IGNORE);
