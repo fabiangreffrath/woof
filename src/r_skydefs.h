@@ -62,6 +62,8 @@ typedef struct sky_s
     boolean stretchable;
 
     boolean vertically_scrolling;
+    int old_texturemid;
+    int texturemid_tic;
 } sky_t;
 
 typedef struct
