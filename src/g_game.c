@@ -4149,6 +4149,7 @@ void G_InitNew(skill_t skill, int episode, int map)
   AM_clearMarks();
 
   M_LoadOptions();     // killough 11/98: read OPTIONS lump from wad
+  AM_ApplyColors(false);
 
   if (demo_version == DV_MBF)
     G_MBFComp();
