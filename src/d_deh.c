@@ -2180,7 +2180,7 @@ static void deh_procFrame(DEHFILE *fpin, char *line)
             deh_log(" - sprite = %ld\n", value);
             states[indexnum].sprite = (spritenum_t)value;
         }
-        else if (!strcasecmp(key, deh_state[DEH_STATE_SPRITE_NUMBER]))
+        else if (!strcasecmp(key, deh_state[DEH_STATE_SPRITE_SUBNUMBER]))
         {
             deh_log(" - frame = %ld\n", value);
             states[indexnum].frame = value; // long
