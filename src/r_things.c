@@ -451,10 +451,10 @@ void R_DrawVisSprite(vissprite_t *vis, int x1, int x2)
       }
     else
       if (translucency && !(strictmode && demo_compatibility)
-          && vis->mobjflags & MF_TRANSLUCENT) // phares
+          && vis->tranmap) // phares // ID24
         {
-          colfunc = R_DrawTLColumn;
-          tranmap = main_tranmap;       // killough 4/11/98
+          colfunc = R_DrawTLColumn; // killough 4/11/98
+          tranmap = vis->tranmap;   // ID24
         }
       else
         colfunc = R_DrawColumn;         // killough 3/14/98, 4/11/98
@@ -719,6 +719,20 @@ static void R_ProjectSprite(mobj_t* thing, int lightlevel_override)
                        : dc_colormap[0];
   }
 
+  // ID24 per-state tranmap
+  if (thing->state && thing->state->tranmap)
+  {
+    vis->tranmap = thing->state->tranmap;
+  }
+  else if (thing->flags & MF_TRANSLUCENT)
+  {
+    vis->tranmap = main_tranmap;
+  }
+  else
+  {
+    vis->tranmap = NULL;
+  }
+
   vis->brightmap = R_BrightmapForState(thing->state - states);
   if (vis->brightmap == nobrightmap)
     vis->brightmap = R_BrightmapForSprite(thing->sprite);
@@ -935,6 +949,21 @@ void R_DrawPSprite(pspdef_t *psp, int lightlevel_override)
                         ? thiscolormap
                         : dc_colormap[0];
   }
+
+  // ID24 per-state tranmap
+  if (psp->state && psp->state->tranmap)
+  {
+    vis->tranmap = psp->state->tranmap;
+  }
+  else if (viewplayer->mo->flags & MF_TRANSLUCENT)
+  {
+    vis->tranmap = main_tranmap;
+  }
+  else
+  {
+    vis->tranmap = NULL;
+  }
+
   vis->brightmap = R_BrightmapForState(psp->state - states);
 
   // [crispy] free look
