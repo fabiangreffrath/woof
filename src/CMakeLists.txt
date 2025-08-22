@@ -190,14 +190,14 @@ target_link_libraries(
             libebur128::libebur128
             SndFile::sndfile
             yyjson::yyjson
-            opl
-            textscreen
+            pffft::pffft
+            miniz::miniz
             netlib
-            pffft
-            miniz
+            md5
             spng
             sha1
-            md5
+            opl
+            textscreen
 )
 
 # Some platforms require standard libraries to be linked against.

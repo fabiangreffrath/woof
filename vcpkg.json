@@ -2,11 +2,18 @@
   "$schema": "https://raw.githubusercontent.com/microsoft/vcpkg-tool/main/docs/vcpkg.schema.json",
   "dependencies": [
     "libebur128",
-    "libsndfile",
+    {
+      "name": "libsndfile",
+      "default-features": false,
+      "features": [
+        "external-libs"
+      ]
+    },
     {
       "name": "libxmp",
       "default-features": false
     },
+    "miniz",
     {
       "name": "openal-soft",
       "features": [
@@ -19,11 +26,11 @@
     {
       "name": "sdl3",
       "features": [
-        "vulkan",
         {
           "name": "ibus",
           "platform": "linux"
         },
+        "vulkan",
         {
           "name": "wayland",
           "platform": "linux"
@@ -34,7 +41,14 @@
         }
       ]
     },
-    "yyjson"
+    {
+      "name": "yyjson",
+      "default-features": false,
+      "features": [
+        "non-standard",
+        "reader"
+      ]
+    }
   ],
   "features": {
     "fluidsynth": {

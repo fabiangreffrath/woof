@@ -16,7 +16,7 @@
 //
 
 #include "alext.h"
-#include "pffft.h"
+#include "pffft/pffft.h"
 
 #include <math.h>
 #include <string.h>
