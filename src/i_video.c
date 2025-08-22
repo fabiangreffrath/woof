@@ -1432,9 +1432,36 @@ static void ResetLogicalSize(void)
     }
 }
 
-static void I_ResetTargetRefresh(void)
+static void UpdateUncapped(void)
 {
     uncapped = default_uncapped;
+
+    //!
+    // @category video
+    //
+    // Enables uncapped framerate.
+    //
+
+    if (M_CheckParm("-uncapped"))
+    {
+        uncapped = true;
+    }
+
+    //!
+    // @category video
+    //
+    // Disables uncapped framerate.
+    //
+
+    else if (M_CheckParm("-nouncapped"))
+    {
+        uncapped = false;
+    }
+}
+
+static void I_ResetTargetRefresh(void)
+{
+    UpdateUncapped();
 
     if (fpslimit < TICRATE)
     {
@@ -1514,31 +1541,8 @@ static void I_InitVideoParms(void)
     window_height = default_window_height;
 
     widescreen = default_widescreen;
-    uncapped = default_uncapped;
     grabmouse = default_grabmouse;
     I_ResetTargetRefresh();
-
-    //!
-    // @category video
-    //
-    // Enables uncapped framerate.
-    //
-
-    if (M_CheckParm("-uncapped"))
-    {
-        uncapped = true;
-    }
-
-    //!
-    // @category video
-    //
-    // Disables uncapped framerate.
-    //
-
-    else if (M_CheckParm("-nouncapped"))
-    {
-        uncapped = false;
-    }
 
     if (M_CheckParm("-grabmouse"))
     {
