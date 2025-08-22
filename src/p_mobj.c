@@ -59,8 +59,12 @@ void P_UpdateDirectVerticalAiming(void)
 
 void P_SetActualHeight(mobj_t *mobj)
 {
-    spritedef_t *sprdef = &sprites[mobj->sprite];
-    spriteframe_t *sprframe = &sprdef->spriteframes[mobj->frame & FF_FRAMEMASK];
+    const spritedef_t *sprdef = &sprites[mobj->sprite];
+    const spriteframe_t *sprframe = NULL;
+    if (sprdef && sprdef->spriteframes)
+    {
+        sprframe = &sprdef->spriteframes[mobj->frame & FF_FRAMEMASK];
+    }
     if (sprframe)
     {
         mobj->actualheight = spritetopoffset[sprframe->lump[0]];
