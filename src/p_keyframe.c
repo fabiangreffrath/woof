@@ -201,7 +201,8 @@ static void ArchiveWorld(void)
                 sec->ceiling_xoffs,
                 sec->ceiling_yoffs,
                 sec->floor_rotation,
-                sec->ceiling_rotation);
+                sec->ceiling_rotation,
+                sec->tint);
 
         write16(sec->floorpic,
                 sec->ceilingpic,
@@ -268,6 +269,7 @@ static void UnArchiveWorld(void)
         sec->ceiling_yoffs = read32();
         sec->floor_rotation = read32();
         sec->ceiling_rotation = read32();
+        sec->tint = read32();
 
         sec->floorpic = read16();
         sec->ceilingpic = read16();

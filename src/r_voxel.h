@@ -22,7 +22,7 @@ void VX_Init (void);
 void VX_ClearVoxels (void);
 
 struct mobj_s;
-boolean VX_ProjectVoxel (struct mobj_s * thing);
+boolean VX_ProjectVoxel(struct mobj_s *thing, int lightlevel_override);
 
 struct vissprite_s;
 void VX_DrawVoxel (struct vissprite_s * vis);

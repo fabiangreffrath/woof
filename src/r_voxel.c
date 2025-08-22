@@ -499,7 +499,7 @@ static boolean VX_CheckFrustum (fixed_t x1, fixed_t y1, fixed_t x2, fixed_t y2,
 }
 
 
-boolean VX_ProjectVoxel (mobj_t * thing)
+boolean VX_ProjectVoxel(mobj_t *thing, int lightlevel_override)
 {
 	if (!STRICTMODE(voxels_rendering))
 		return false;
@@ -683,7 +683,17 @@ boolean VX_ProjectVoxel (mobj_t * thing)
 	vis->x1 = x1;
 	vis->x2 = x2;
 
+	if (thing->subsector->sector->floorlightsec >= 0)
+	{
+		vis->tint = sectors[thing->subsector->sector->floorlightsec].tint;
+	}
+	else
+	{
+		vis->tint = thing->subsector->sector->tint;
+	}
+
 	// get light level...
+	lighttable_t *thiscolormap = vis->tint ? colormaps[vis->tint] : fullcolormap;
 
 	if (vis->mobjflags & MF_SHADOW)
 	{
@@ -691,19 +701,27 @@ boolean VX_ProjectVoxel (mobj_t * thing)
 	}
 	else if (fixedcolormap != NULL)
 	{
-		vis->colormap[0] = vis->colormap[1] = fixedcolormap;
+		vis->colormap[0] = vis->colormap[1] = thiscolormap + fixedcolormapindex * 256;
 	}
 	else if (thing->frame & FF_FULLBRIGHT)
 	{
-		vis->colormap[0] = vis->colormap[1] = fullcolormap;
+		vis->colormap[0] = vis->colormap[1] = thiscolormap;
 	}
 	else
 	{
 		// diminished light
 		const int index = R_GetLightIndex(xscale);
+		int lightnum = (demo_version >= DV_MBF)
+				? (lightlevel_override >> LIGHTSEGSHIFT)
+				: (thing->subsector->sector->lightlevel >> LIGHTSEGSHIFT);
 
-		vis->colormap[0] = spritelights[index];
-		vis->colormap[1] = fullcolormap;
+		lightnum = CLAMP(lightnum, 0, LIGHTLEVELS - 1);
+		int* spritelightoffsets = &scalelightoffset[MAXLIGHTSCALE * lightnum];
+
+		vis->colormap[0] = thiscolormap + spritelightoffsets[index];
+		vis->colormap[1] = (STRICTMODE(brightmaps) || force_brightmaps)
+				? thiscolormap
+				: dc_colormap[0];
 	}
 
 	vis->brightmap = R_BrightmapForSprite(thing->sprite);
