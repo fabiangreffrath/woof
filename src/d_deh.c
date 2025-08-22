@@ -2293,7 +2293,7 @@ static void deh_procFrame(DEHFILE *fpin, char *line)
             char candidate[9] = {0};
             M_CopyLumpName(candidate, ptr_lstrip(strval));
             int len = strlen(candidate);
-            if (len < 1 || len > 7)
+            if (len < 1 || len > 8)
             {
                 deh_log("Bad length for Tranmap lump name '%s'\n", candidate);
                 continue;
