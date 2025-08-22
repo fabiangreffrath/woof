@@ -22,7 +22,7 @@ jobs:
       matrix:
         config:
           - name: Linux GCC
-            os: ubuntu-24.04
+            os: ubuntu-latest
             compiler: gcc
             extra-options: -DCMAKE_FIND_PACKAGE_PREFER_CONFIG=OFF
             shell: bash
@@ -46,7 +46,6 @@ jobs:
           sudo apt-get update
           sudo apt-get install \
             ninja-build \
-            libsdl2-dev \
             libopenal-dev \
             libebur128-dev \
             libsndfile1-dev \
@@ -58,14 +57,13 @@ jobs:
         run: |
           brew install \
             ninja \
-            sdl2 \
+            sdl3 \
             openal-soft \
             libebur128 \
             libsndfile \
             fluid-synth \
             libxmp \
-            yyjson \
-            dylibbundler
+            yyjson
 
       - name: Install dependencies (MSYS2)
         if: matrix.config.shell == 'msys2 {0}'
@@ -79,7 +77,7 @@ jobs:
             ${{ matrix.config.msys-env }}-gcc
             ${{ matrix.config.msys-env }}-cmake
             ${{ matrix.config.msys-env }}-ninja
-            ${{ matrix.config.msys-env }}-SDL2
+            ${{ matrix.config.msys-env }}-sdl3
             ${{ matrix.config.msys-env }}-openal
             ${{ matrix.config.msys-env }}-libebur128
             ${{ matrix.config.msys-env }}-libsndfile
@@ -87,6 +85,14 @@ jobs:
             ${{ matrix.config.msys-env }}-libxmp
 
       - uses: actions/checkout@v4
+
+      - name: Build SDL3
+        if: runner.os == 'Linux'
+        uses: libsdl-org/setup-sdl@main
+        with:
+          install-linux-dependencies: true
+          version: 3-latest
+
 
       - name: Configure
         env:
@@ -125,7 +131,7 @@ jobs:
 
   linter:
     name: ${{ matrix.name }}
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       matrix:
@@ -138,12 +144,17 @@ jobs:
           sudo apt-get install \
             cppcheck \
             ninja-build \
-            libsdl2-dev \
             libopenal-dev \
             libebur128-dev \
             libsndfile1-dev \
             libfluidsynth-dev \
             libxmp-dev
+
+      - name: Build SDL3
+        uses: libsdl-org/setup-sdl@main
+        with:
+          install-linux-dependencies: true
+          version: 3-latest
 
       - uses: actions/checkout@v4
 
@@ -163,7 +174,7 @@ jobs:
             --check-level=exhaustive \
             --inconclusive \
             --inline-suppr \
-            --std=c99 \
+            --std=c11 \
             --project="${{ github.workspace }}/build/compile_commands.json" \
             -i"${{ github.workspace }}/third-party" \
             -D__GNUC__
@@ -186,4 +197,4 @@ jobs:
             ,-clang-analyzer-security*
             ,-clang-analyzer-valist*
           database: 'build'
-          ignore: 'third-party|win32|toolsrc|src/i_pcsound.c'
+          ignore: 'third-party|toolsrc|src/i_pcsound.c'

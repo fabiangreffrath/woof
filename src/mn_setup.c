@@ -1256,7 +1256,7 @@ static void DrawInstructions(void)
     {
         if (pad)
         {
-            second = M_GetPlatformName(GAMEPAD_B);
+            second = M_GetPlatformName(gamepad_cancel);
         }
         else
         {
@@ -1279,8 +1279,8 @@ static void DrawInstructions(void)
         {
             if (pad)
             {
-                first = M_GetPlatformName(GAMEPAD_A);
-                second = M_GetPlatformName(GAMEPAD_B);
+                first = M_GetPlatformName(gamepad_confirm);
+                second = M_GetPlatformName(gamepad_cancel);
             }
             else
             {
@@ -1295,7 +1295,7 @@ static void DrawInstructions(void)
         {
             if (pad)
             {
-                second = M_GetPlatformName(GAMEPAD_B);
+                second = M_GetPlatformName(gamepad_cancel);
             }
             else
             {
@@ -1317,8 +1317,8 @@ static void DrawInstructions(void)
         {
             if (pad)
             {
-                first = M_GetPlatformName(GAMEPAD_A);
-                second = M_GetPlatformName(GAMEPAD_B);
+                first = M_GetPlatformName(gamepad_confirm);
+                second = M_GetPlatformName(gamepad_cancel);
             }
             else
             {
@@ -1335,8 +1335,8 @@ static void DrawInstructions(void)
         {
             if (pad)
             {
-                first = M_GetPlatformName(GAMEPAD_A);
-                second = M_GetPlatformName(GAMEPAD_Y);
+                first = M_GetPlatformName(gamepad_confirm);
+                second = M_GetPlatformName(GAMEPAD_NORTH);
             }
             else
             {
@@ -1351,7 +1351,7 @@ static void DrawInstructions(void)
         {
             if (pad)
             {
-                first = M_GetPlatformName(GAMEPAD_A);
+                first = M_GetPlatformName(gamepad_confirm);
             }
             else
             {
@@ -1364,8 +1364,8 @@ static void DrawInstructions(void)
         {
             if (pad)
             {
-                first = M_GetPlatformName(GAMEPAD_A);
-                second = M_GetPlatformName(GAMEPAD_B);
+                first = M_GetPlatformName(gamepad_confirm);
+                second = M_GetPlatformName(gamepad_cancel);
             }
             else
             {
@@ -1683,7 +1683,6 @@ static char slot_labels[NUM_WS_SLOTS * NUM_WS_WEAPS][WS_BUF_SiZE];
 static void UpdateWeaponSlotLabels(void)
 {
     const char *keys[NUM_WS_SLOTS];
-    int buttons[NUM_WS_SLOTS];
 
     switch (WS_Selection())
     {
@@ -1695,11 +1694,10 @@ static void UpdateWeaponSlotLabels(void)
             break;
 
         case WS_SELECT_FACE_BUTTONS:
-            I_GetFaceButtons(buttons);
-            keys[0] = M_GetPlatformName(buttons[0]);
-            keys[1] = M_GetPlatformName(buttons[1]);
-            keys[2] = M_GetPlatformName(buttons[2]);
-            keys[3] = M_GetPlatformName(buttons[3]);
+            keys[0] = M_GetPlatformName(GAMEPAD_NORTH);
+            keys[1] = M_GetPlatformName(GAMEPAD_SOUTH);
+            keys[2] = M_GetPlatformName(GAMEPAD_WEST);
+            keys[3] = M_GetPlatformName(GAMEPAD_EAST);
             break;
 
         default: // WS_SELECT_1234
@@ -2421,11 +2419,6 @@ static void ToggleFullScreen(void)
     toggle_fullscreen = true;
 }
 
-static void ToggleExclusiveFullScreen(void)
-{
-    toggle_exclusive_fullscreen = true;
-}
-
 static void UpdateFPSLimit(void)
 {
     setrefreshneeded = true;
@@ -2461,9 +2454,6 @@ static setup_menu_t gen_settings1[] = {
 
     {"Fullscreen", S_ONOFF, CNTR_X, M_SPC, {"fullscreen"},
      .action = ToggleFullScreen},
-
-    {"Exclusive Fullscreen", S_ONOFF, CNTR_X, M_SPC, {"exclusive_fullscreen"},
-     .action = ToggleExclusiveFullScreen},
 
     MI_GAP_Y(6),
 

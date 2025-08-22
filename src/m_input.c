@@ -298,10 +298,10 @@ static const struct
 static char joyb_platform_names[NUM_GAMEPAD_BUTTONS][JOYB_LEN];
 
 static const char joyb_names[NUM_GAMEPAD_BUTTONS][JOYB_LEN] = {
-    [GAMEPAD_A]                    = "pada",
-    [GAMEPAD_B]                    = "padb",
-    [GAMEPAD_X]                    = "padx",
-    [GAMEPAD_Y]                    = "pady",
+    [GAMEPAD_SOUTH]                = "pada",
+    [GAMEPAD_EAST]                 = "padb",
+    [GAMEPAD_WEST]                 = "padx",
+    [GAMEPAD_NORTH]                = "pady",
     [GAMEPAD_BACK]                 = "back",
     [GAMEPAD_GUIDE]                = "guide",
     [GAMEPAD_START]                = "start",
@@ -314,11 +314,16 @@ static const char joyb_names[NUM_GAMEPAD_BUTTONS][JOYB_LEN] = {
     [GAMEPAD_DPAD_LEFT]            = "padleft",
     [GAMEPAD_DPAD_RIGHT]           = "padright",
     [GAMEPAD_MISC1]                = "misc1",
-    [GAMEPAD_PADDLE1]              = "paddle1",
-    [GAMEPAD_PADDLE2]              = "paddle2",
-    [GAMEPAD_PADDLE3]              = "paddle3",
-    [GAMEPAD_PADDLE4]              = "paddle4",
+    [GAMEPAD_RIGHT_PADDLE1]        = "rpaddle1",
+    [GAMEPAD_LEFT_PADDLE1]         = "lpaddle1",
+    [GAMEPAD_RIGHT_PADDLE2]        = "rpaddle2",
+    [GAMEPAD_LEFT_PADDLE2]         = "lpaddle2",
     [GAMEPAD_TOUCHPAD_PRESS]       = "tppress",
+    [GAMEPAD_MISC2]                = "misc2",
+    [GAMEPAD_MISC3]                = "misc3",
+    [GAMEPAD_MISC4]                = "misc4",
+    [GAMEPAD_MISC5]                = "misc5",
+    [GAMEPAD_MISC6]                = "misc6",
     [GAMEPAD_TOUCHPAD_TOUCH]       = "tptouch",
     [GAMEPAD_LEFT_TRIGGER]         = "lt",
     [GAMEPAD_RIGHT_TRIGGER]        = "rt",
@@ -332,8 +337,33 @@ static const char joyb_names[NUM_GAMEPAD_BUTTONS][JOYB_LEN] = {
     [GAMEPAD_RIGHT_STICK_RIGHT]    = "rsright",
 };
 
+static void M_UpdateConfirmCancel(boolean swap_confirm);
+
 void M_UpdatePlatform(joy_platform_t platform)
 {
+    boolean swap_confirm = false;
+
+    switch ((int)joy_confirm)
+    {
+        case CONFIRM_AUTO:
+            switch ((int)platform)
+            {
+                case PLATFORM_SWITCH_PRO:
+                case PLATFORM_SWITCH_JOYCON_LEFT:
+                case PLATFORM_SWITCH_JOYCON_RIGHT:
+                case PLATFORM_SWITCH_JOYCON_PAIR:
+                    swap_confirm = true;
+                    break;
+            }
+            break;
+
+        case CONFIRM_EAST:
+            swap_confirm = true;
+            break;
+    }
+
+    M_UpdateConfirmCancel(swap_confirm);
+
     for (int i = 0; i < arrlen(joyb_names); i++)
     {
         JOYB_COPY(i, joyb_names[i]);
@@ -350,10 +380,10 @@ void M_UpdatePlatform(joy_platform_t platform)
         case PLATFORM_PS3:
         case PLATFORM_PS4:
         case PLATFORM_PS5:
-            JOYB_COPY(GAMEPAD_A, "cross");
-            JOYB_COPY(GAMEPAD_B, "circle");
-            JOYB_COPY(GAMEPAD_X, "square");
-            JOYB_COPY(GAMEPAD_Y, "triangle");
+            JOYB_COPY(GAMEPAD_SOUTH, "cross");
+            JOYB_COPY(GAMEPAD_EAST, "circle");
+            JOYB_COPY(GAMEPAD_WEST, "square");
+            JOYB_COPY(GAMEPAD_NORTH, "triangle");
             JOYB_COPY(GAMEPAD_GUIDE, "psbutton");
             JOYB_COPY(GAMEPAD_LEFT_STICK, "L3");
             JOYB_COPY(GAMEPAD_RIGHT_STICK, "R3");
@@ -377,6 +407,10 @@ void M_UpdatePlatform(joy_platform_t platform)
                     JOYB_COPY(GAMEPAD_BACK, "create");
                     JOYB_COPY(GAMEPAD_START, "options");
                     JOYB_COPY(GAMEPAD_MISC1, "mute");
+                    JOYB_COPY(GAMEPAD_RIGHT_PADDLE1, "RB");
+                    JOYB_COPY(GAMEPAD_LEFT_PADDLE1, "LB");
+                    JOYB_COPY(GAMEPAD_RIGHT_PADDLE2, "R.Fn");
+                    JOYB_COPY(GAMEPAD_LEFT_PADDLE2, "L.Fn");
                     break;
             }
             break;
@@ -385,6 +419,10 @@ void M_UpdatePlatform(joy_platform_t platform)
         case PLATFORM_SWITCH_JOYCON_LEFT:
         case PLATFORM_SWITCH_JOYCON_RIGHT:
         case PLATFORM_SWITCH_JOYCON_PAIR:
+            JOYB_COPY(GAMEPAD_SOUTH, "padb");
+            JOYB_COPY(GAMEPAD_EAST, "pada");
+            JOYB_COPY(GAMEPAD_WEST, "pady");
+            JOYB_COPY(GAMEPAD_NORTH, "padx");
             JOYB_COPY(GAMEPAD_BACK, "pad-");
             JOYB_COPY(GAMEPAD_GUIDE, "padhome");
             JOYB_COPY(GAMEPAD_START, "pad+");
@@ -398,8 +436,8 @@ void M_UpdatePlatform(joy_platform_t platform)
                     JOYB_COPY(GAMEPAD_START, "pad-");
                     JOYB_COPY(GAMEPAD_LEFT_SHOULDER, "L.SL");
                     JOYB_COPY(GAMEPAD_RIGHT_SHOULDER, "L.SR");
-                    JOYB_COPY(GAMEPAD_PADDLE2, "LB");
-                    JOYB_COPY(GAMEPAD_PADDLE4, "ZL");
+                    JOYB_COPY(GAMEPAD_LEFT_PADDLE1, "L.LB");
+                    JOYB_COPY(GAMEPAD_LEFT_PADDLE2, "L.ZL");
                     break;
 
                 case PLATFORM_SWITCH_JOYCON_RIGHT:
@@ -407,15 +445,15 @@ void M_UpdatePlatform(joy_platform_t platform)
                     JOYB_COPY(GAMEPAD_START, "pad+");
                     JOYB_COPY(GAMEPAD_LEFT_SHOULDER, "R.SL");
                     JOYB_COPY(GAMEPAD_RIGHT_SHOULDER, "R.SR");
-                    JOYB_COPY(GAMEPAD_PADDLE1, "RB");
-                    JOYB_COPY(GAMEPAD_PADDLE3, "ZR");
+                    JOYB_COPY(GAMEPAD_RIGHT_PADDLE1, "R.RB");
+                    JOYB_COPY(GAMEPAD_RIGHT_PADDLE2, "R.ZR");
                     break;
 
                 case PLATFORM_SWITCH_JOYCON_PAIR:
-                    JOYB_COPY(GAMEPAD_PADDLE1, "R.SR");
-                    JOYB_COPY(GAMEPAD_PADDLE2, "L.SL");
-                    JOYB_COPY(GAMEPAD_PADDLE3, "R.SL");
-                    JOYB_COPY(GAMEPAD_PADDLE4, "L.SR");
+                    JOYB_COPY(GAMEPAD_RIGHT_PADDLE1, "R.SR");
+                    JOYB_COPY(GAMEPAD_LEFT_PADDLE1, "L.SL");
+                    JOYB_COPY(GAMEPAD_RIGHT_PADDLE2, "R.SL");
+                    JOYB_COPY(GAMEPAD_LEFT_PADDLE2, "L.SR");
                     break;
             }
             break;
@@ -514,6 +552,35 @@ boolean M_IsMouseWheel(int mouseb)
     return mouseb >= MOUSE_BUTTON_WHEELUP && mouseb <= MOUSE_BUTTON_WHEELRIGHT;
 }
 
+static void M_UpdateConfirmCancel(boolean swap_confirm)
+{
+    if (swap_confirm)
+    {
+        gamepad_confirm = GAMEPAD_EAST;
+        gamepad_cancel = GAMEPAD_SOUTH;
+    }
+    else
+    {
+        gamepad_confirm = GAMEPAD_SOUTH;
+        gamepad_cancel = GAMEPAD_EAST;
+    }
+
+    input_t back[] = {
+        {INPUT_KEY,    KEY_BACKSPACE     },
+        {INPUT_JOYB,   gamepad_cancel    },
+        {INPUT_MOUSEB, MOUSE_BUTTON_RIGHT}
+    };
+
+    input_t enter[] = {
+        {INPUT_KEY,    KEY_ENTER        },
+        {INPUT_JOYB,   gamepad_confirm  },
+        {INPUT_MOUSEB, MOUSE_BUTTON_LEFT}
+    };
+
+    InputSet(input_menu_backspace, back, arrlen(back));
+    InputSet(input_menu_enter, enter, arrlen(enter));
+}
+
 void M_InputPredefined(void)
 {
     input_t right[] = {
@@ -548,31 +615,19 @@ void M_InputPredefined(void)
     };
     InputSet(input_menu_down, down, arrlen(down));
 
-    input_t back[] = {
-        {INPUT_KEY,    KEY_BACKSPACE     },
-        {INPUT_JOYB,   GAMEPAD_B         },
-        {INPUT_MOUSEB, MOUSE_BUTTON_RIGHT}
-    };
-    InputSet(input_menu_backspace, back, arrlen(back));
-
     input_t esc[] = {
         {INPUT_KEY,  KEY_ESCAPE      },
         {INPUT_JOYB, GAMEPAD_START   }
     };
     InputSet(input_menu_escape, esc, arrlen(esc));
 
-    input_t enter[] = {
-        {INPUT_KEY,    KEY_ENTER        },
-        {INPUT_JOYB,   GAMEPAD_A        },
-        {INPUT_MOUSEB, MOUSE_BUTTON_LEFT}
-    };
-    InputSet(input_menu_enter, enter, arrlen(enter));
-
     input_t clear[] = {
-        {INPUT_KEY,  KEY_DEL     },
-        {INPUT_JOYB, GAMEPAD_Y   }
+        {INPUT_KEY,  KEY_DEL      },
+        {INPUT_JOYB, GAMEPAD_NORTH}
     };
     InputSet(input_menu_clear, clear, arrlen(clear));
+
+    M_UpdateConfirmCancel(false);
 
     M_InputAddKey(input_help, KEY_F1);
     M_InputAddKey(input_escape, KEY_ESCAPE);
@@ -597,7 +652,7 @@ static input_t default_inputs[NUM_INPUT_ID][NUM_INPUTS] =
     [input_gyro]        = { {INPUT_JOYB, GAMEPAD_TOUCHPAD_TOUCH},
                             {INPUT_JOYB, GAMEPAD_LEFT_TRIGGER} },
     [input_use]         = { {INPUT_KEY,' '},
-                            {INPUT_JOYB, GAMEPAD_A} },
+                            {INPUT_JOYB, GAMEPAD_SOUTH} },
     [input_fire]        = { {INPUT_KEY, KEY_RCTRL},
                             {INPUT_MOUSEB, MOUSE_BUTTON_LEFT},
                             {INPUT_JOYB, GAMEPAD_RIGHT_TRIGGER} },
@@ -632,7 +687,7 @@ static input_t default_inputs[NUM_INPUT_ID][NUM_INPUTS] =
     [input_pause]       = { {INPUT_KEY, KEY_PAUSE} },
 
     [input_map]         = { {INPUT_KEY, KEY_TAB},
-                            {INPUT_JOYB, GAMEPAD_Y} },
+                            {INPUT_JOYB, GAMEPAD_NORTH} },
     [input_map_up]      = { {INPUT_KEY, KEY_UPARROW} },
     [input_map_down]    = { {INPUT_KEY, KEY_DOWNARROW} },
     [input_map_left]    = { {INPUT_KEY, KEY_LEFTARROW} },

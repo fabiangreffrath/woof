@@ -185,7 +185,7 @@ endif()
 
 target_link_libraries(
     woof
-    PRIVATE ${SDL2_LIBRARIES}
+    PRIVATE SDL3::SDL3
             OpenAL::OpenAL
             libebur128::libebur128
             SndFile::sndfile
@@ -210,9 +210,7 @@ if(HAVE_AL_BUFFER_CALLBACK)
 endif()
 
 if(WIN32)
-    target_include_directories(woof PRIVATE "../win32")
     target_link_libraries(woof PRIVATE winmm shlwapi)
-    target_sources(woof PRIVATE ../win32/win_opendir.c ../win32/win_opendir.h)
 endif()
 
 if(APPLE)
@@ -284,7 +282,7 @@ target_woof_settings(woof-setup)
 target_include_directories(woof-setup PRIVATE "${CMAKE_CURRENT_BINARY_DIR}/../")
 target_link_libraries(
   woof-setup
-  PRIVATE ${SDL2_LIBRARIES}
+  PRIVATE SDL3::SDL3
           textscreen
           setup
           netlib
