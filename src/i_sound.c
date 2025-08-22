@@ -818,7 +818,7 @@ void I_BindSoundVariables(void)
             sound_modules[i]->BindVariables();
         }
     }
-    BIND_NUM(midi_player_menu, 0, 0, UL, "MIDI Player menu index");
+    BIND_NUM_MENU(midi_player_menu, 0, UL);
     M_BindStr("midi_player_string", &midi_player_string, "", wad_no,
               "MIDI Player string");
     for (int i = 0; i < arrlen(music_modules); ++i)

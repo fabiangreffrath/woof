@@ -31,12 +31,15 @@
 #include "i_printf.h"
 #include "i_system.h"
 #include "info.h"
+#include "m_arena.h"
 #include "m_argv.h"
 #include "m_bbox.h"
+#include "m_misc.h"
 #include "m_swap.h"
 #include "nano_bsp.h"
 #include "p_enemy.h"
 #include "p_extnodes.h"
+#include "p_keyframe.h"
 #include "p_map.h"
 #include "p_maputl.h"
 #include "p_mobj.h"
@@ -93,14 +96,15 @@ side_t   *sides;
 int       bmapwidth, bmapheight;  // size in mapblocks
 
 // killough 3/1/98: remove blockmap limit internally:
-long      *blockmap;              // was short -- killough
+int32_t      *blockmap;           // was short -- killough
 
 // offsets in blockmap are from here
-long      *blockmaplump;          // was short -- killough
+int32_t      *blockmaplump;       // was short -- killough
 
 fixed_t   bmaporgx, bmaporgy;     // origin of block map
 
 mobj_t    **blocklinks;           // for thing chains
+int       blocklinks_size;
 
 boolean   skipblstart;  // MaxW: Skip initial blocklist short
 
@@ -329,13 +333,13 @@ void P_LoadSectors (int lump)
       // killough 3/7/98:
       ss->floor_xoffs = 0;
       ss->floor_yoffs = 0;      // floor and ceiling flats offsets
-      ss->old_floor_xoffs = ss->base_floor_xoffs = 0;
-      ss->old_floor_yoffs = ss->base_floor_yoffs = 0;
+      ss->old_floor_xoffs = ss->interp_floor_xoffs = 0;
+      ss->old_floor_yoffs = ss->interp_floor_yoffs = 0;
       ss->floor_rotation = 0;
       ss->ceiling_xoffs = 0;
       ss->ceiling_yoffs = 0;
-      ss->old_ceiling_xoffs = ss->base_ceiling_xoffs = 0;
-      ss->old_ceiling_yoffs = ss->base_ceiling_yoffs = 0;
+      ss->old_ceiling_xoffs = ss->interp_ceiling_xoffs = 0;
+      ss->old_ceiling_yoffs = ss->interp_ceiling_yoffs = 0;
       ss->ceiling_rotation = 0;
       ss->heightsec = -1;       // sector used to get floor and ceiling height
       ss->floorlightsec = -1;   // sector used to get floor lighting
@@ -616,8 +620,8 @@ void P_LoadSideDefs2(int lump)
       // [crispy] smooth texture scrolling
       sd->oldtextureoffset = sd->textureoffset;
       sd->oldrowoffset = sd->rowoffset;
-      sd->basetextureoffset = sd->textureoffset;
-      sd->baserowoffset = sd->rowoffset;
+      sd->interptextureoffset = sd->textureoffset;
+      sd->interprowoffset = sd->rowoffset;
       sd->oldgametic = -1;
 
       // killough 4/4/98: allow sidedef texture names to be overloaded
@@ -1190,8 +1194,8 @@ static void P_SetSkipBlockStart(void)
   for(y = 0; y < bmapheight; y++)
     for(x = 0; x < bmapwidth; x++)
     {
-      long *list;
-      long *blockoffset;
+      int32_t *list;
+      int32_t *blockoffset;
 
       blockoffset = blockmaplump + y * bmapwidth + x + 4;
 
@@ -1264,10 +1268,10 @@ boolean P_LoadBlockMap (int lump)
     }
 
   // clear out mobj chains
-  count = sizeof(*blocklinks)* bmapwidth*bmapheight;
-  blocklinks = Z_Malloc (count,PU_LEVEL, 0);
-  memset (blocklinks, 0, count);
-  blockmap = blockmaplump+4;
+  blocklinks_size = sizeof(*blocklinks) * bmapwidth * bmapheight;
+  blocklinks = Z_Malloc(blocklinks_size, PU_LEVEL, 0);
+  memset(blocklinks, 0, blocklinks_size);
+  blockmap = blockmaplump + 4;
 
   return ret;
 }
@@ -1287,7 +1291,7 @@ static void AddLineToSector(sector_t *s, line_t *l)
   *s->lines++ = l;
 }
 
-void P_DegenMobjThinker(void *p)
+void P_DegenMobjThinker(mobj_t *mobj)
 {
   // no-op
 }
@@ -1346,7 +1350,7 @@ int P_GroupLines (void)
       sector->soundorg.y =
           sector->blockbox[BOXTOP] / 2 + sector->blockbox[BOXBOTTOM] / 2;
 
-      sector->soundorg.thinker.function.p1 = (actionf_p1)P_DegenMobjThinker;
+      sector->soundorg.thinker.function.p1 = P_DegenMobjThinker;
 
       // adjust bounding box to map blocks
       block = (sector->blockbox[BOXTOP]-bmaporgy+MAXRADIUS)>>MAPBLOCKSHIFT;
@@ -1640,6 +1644,9 @@ void P_SetupLevel(int episode, int map, int playermask, skill_t skill)
   S_Start();
 
   Z_FreeTag(PU_LEVEL);
+  M_ClearArena(thinkers_arena);
+  M_ClearArena(msecnodes_arena);
+
   Z_FreeTag(PU_CACHE);
 
   P_InitThinkers();
@@ -1648,7 +1655,7 @@ void P_SetupLevel(int episode, int map, int playermask, skill_t skill)
   //    W_Reload ();     killough 1/31/98: W_Reload obsolete
 
   // find map name
-  strcpy(lumpname, MapName(episode, map));
+  M_CopyLumpName(lumpname, MapName(episode, map));
 
   lumpnum = W_GetNumForName(lumpname);
 
@@ -1774,6 +1781,13 @@ void P_Init (void)
   P_InitSwitchList();
   P_InitPicAnims();
   R_InitSprites(sprnames);
+
+  #define SIZE_MB(x) ((x) * 1024 * 1024)
+  thinkers_arena = M_InitArena(SIZE_MB(256), SIZE_MB(2));
+  msecnodes_arena = M_InitArena(SIZE_MB(32), SIZE_MB(1));
+  activeceilings_arena = M_InitArena(SIZE_MB(32), SIZE_MB(1));
+  activeplats_arena = M_InitArena(SIZE_MB(32), SIZE_MB(1));
+  #undef SIZE_MB
 }
 
 //----------------------------------------------------------------------------

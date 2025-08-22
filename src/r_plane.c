@@ -417,8 +417,8 @@ static void DrawSkyTex(visplane_t *pl, sky_t *sky, skytex_t *skytex)
 
         if (side)
         {
-            deltax += LerpFixed(side->oldtextureoffset, side->basetextureoffset);
-            dc_texturemid += side->baserowoffset;
+            deltax += LerpFixed(side->oldtextureoffset, side->textureoffset);
+            dc_texturemid += side->rowoffset;
         }
     }
     else
@@ -430,7 +430,7 @@ static void DrawSkyTex(visplane_t *pl, sky_t *sky, skytex_t *skytex)
         if (side)
         {
             deltax += side->textureoffset;
-            dc_texturemid += side->baserowoffset;
+            dc_texturemid += side->rowoffset;
         }
     }
 
@@ -443,11 +443,11 @@ static void DrawSkyTex(visplane_t *pl, sky_t *sky, skytex_t *skytex)
 
     angle_t an = viewangle + deltax;
 
-    if (sky->texturemid_tic != gametic)
+    if (sky->texturemid_tic != leveltime)
     {
         sky->vertically_scrolling = (sky->old_texturemid != dc_texturemid);
         sky->old_texturemid = dc_texturemid;
-        sky->texturemid_tic = gametic;
+        sky->texturemid_tic = leveltime;
     }
 
     if (colfunc != R_DrawTLColumn && !sky->vertically_scrolling && dc_texheight >= 128)
@@ -473,7 +473,7 @@ static void DrawSkyTex(visplane_t *pl, sky_t *sky, skytex_t *skytex)
         if (dc_yl != USHRT_MAX && dc_yl <= dc_yh)
         {
             int col = (an + xtoskyangle[x]) >> ANGLETOSKYSHIFT;
-            col = FixedToInt(FixedMul(IntToFixed(col), skytex->scalex));
+            col = FixedToInt(col * skytex->scalex);
             dc_source = R_GetColumn(texture, col);
             colfunc();
         }

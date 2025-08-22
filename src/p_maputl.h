@@ -79,6 +79,9 @@ boolean P_SightPathTraverse(fixed_t x1, fixed_t y1, fixed_t x2, fixed_t y2);
 boolean PTR_SightTraverse(intercept_t *in);
 boolean P_CheckSight_12(struct mobj_s *t1, struct mobj_s *t2);
 
+extern intercept_t *intercepts;
+extern int num_intercepts;
+
 extern fixed_t opentop;
 extern fixed_t openbottom;
 extern fixed_t openrange;

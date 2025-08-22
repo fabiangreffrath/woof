@@ -24,9 +24,7 @@
 
 #include "config.h"
 #include "i_printf.h"
-#include "i_system.h"
 #include "m_argv.h"
-#include "version.h"
 
 //
 // D_DoomMain()
@@ -36,18 +34,7 @@
 
 void D_DoomMain(void);
 
-#if defined(WIN_LAUNCHER)
-__declspec(dllexport) void Woof_Exit(void)
-{
-    I_SafeExit(0);
-}
-#endif
-
-#if defined(WIN_LAUNCHER)
-__declspec(dllexport) int Woof_Main(int argc, char **argv)
-#else
 int main(int argc, char **argv)
-#endif
 {
    myargc = argc;
    myargv = argv;
@@ -55,7 +42,7 @@ int main(int argc, char **argv)
    // Print date and time in the Load/Save Game menus in the current locale
    setlocale(LC_TIME, "");
 
-   I_Printf(VB_ALWAYS, "%s (built on %s)\n", PROJECT_STRING, version_date);
+   I_Printf(VB_ALWAYS, "%s\n", PROJECT_STRING);
 
    //!
    //

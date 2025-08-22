@@ -385,7 +385,7 @@ boolean ThingIsOnLine(mobj_t *t, line_t *l)
 boolean P_BlockLinesIterator(int x, int y, boolean func(line_t*))
 {
   int        offset;
-  const long *list;   // killough 3/1/98: for removal of blockmap limit
+  const int32_t *list;   // killough 3/1/98: for removal of blockmap limit
 
   if (x<0 || y<0 || x>=bmapwidth || y>=bmapheight)
     return true;
@@ -546,12 +546,13 @@ boolean P_BlockThingsIterator(int x, int y, boolean func(mobj_t*),
 #define MAXINTERCEPTS_ORIGINAL 128
 
 // 1/11/98 killough: Intercept limit removed
-static intercept_t *intercepts, *intercept_p;
+intercept_t *intercepts;
+int num_intercepts = 0;
+static intercept_t *intercept_p;
 
 // Check for limit and double size if necessary -- killough
 static void check_intercept(void)
 {
-  static size_t num_intercepts;
   size_t offset = intercept_p - intercepts;
   if (offset >= num_intercepts)
     {
@@ -1128,7 +1129,7 @@ mobj_t *P_RoughTargetSearch(mobj_t *mo, angle_t fov, int distance)
 static boolean P_SightBlockLinesIterator(int x, int y)
 {
   int offset;
-  long *list;
+  int32_t *list;
   line_t *ld;
   int s1, s2;
   divline_t dl;

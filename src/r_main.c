@@ -358,7 +358,7 @@ static void R_InitTextureMapping(void)
   //  xtoviewangle will give the smallest view angle
   //  that maps to x.
 
-  linearskyfactor = FIXED2DOUBLE(slopefrac) * ANG90;
+  linearskyfactor = FixedToDouble(slopefrac) * ANG90;
 
   for (x=0; x<=viewwidth; x++)
     {
@@ -694,7 +694,6 @@ void R_Init (void)
   R_SetFuzzColumnMode();
 
   colfunc = R_DrawColumn;
-  R_InitDrawFunctions();
 }
 
 //

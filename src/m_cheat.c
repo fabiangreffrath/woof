@@ -740,7 +740,7 @@ static void cheat_friction(void)
 
 static void cheat_skill0(void)
 {
-  displaymsg("Skill: %s", default_skill_strings[gameskill + 1]);
+  displaymsg("Skill: %s", skill_strings[gameskill]);
 }
 
 static void cheat_skill(char *buf)
@@ -750,7 +750,7 @@ static void cheat_skill(char *buf)
   if (skill >= 1 && skill <= 5)
   {
     gameskill = skill - 1;
-    displaymsg("Next Level Skill: %s", default_skill_strings[gameskill + 1]);
+    displaymsg("Next Level Skill: %s", skill_strings[gameskill]);
 
     G_SetFastParms(fastparm || gameskill == sk_nightmare);
     respawnmonsters = gameskill == sk_nightmare || respawnparm;
@@ -787,7 +787,7 @@ static void cheat_massacre(void)    // jff 2/01/98 kill all monsters
   P_MapStart();
   do
     while ((currentthinker=currentthinker->next)!=&thinkercap)
-      if (currentthinker->function.p1 == (actionf_p1)P_MobjThinker &&
+      if (currentthinker->function.p1 == P_MobjThinker &&
 	  !(((mobj_t *) currentthinker)->flags & mask) && // killough 7/20/98
 	  (((mobj_t *) currentthinker)->flags & MF_COUNTKILL ||
 	   ((mobj_t *) currentthinker)->type == MT_SKULL))
@@ -891,7 +891,7 @@ static void cheat_spechits(void)
 
     for (th = thinkercap.next ; th != &thinkercap ; th = th->next)
     {
-      if (th->function.p1 == (actionf_p1)P_MobjThinker)
+      if (th->function.p1 == P_MobjThinker)
       {
         mobj_t *mo = (mobj_t *) th;
 
@@ -1041,7 +1041,7 @@ static void cheat_cycle_mobj(mobj_t **last_mobj, int *last_count,
   do
   {
     th = th->next;
-    if (th->function.p1 == (actionf_p1)P_MobjThinker)
+    if (th->function.p1 == P_MobjThinker)
     {
       mobj_t *mobj;
 

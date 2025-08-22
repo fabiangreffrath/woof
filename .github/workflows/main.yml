@@ -47,7 +47,6 @@ jobs:
           sudo apt-get install \
             ninja-build \
             libsdl2-dev \
-            libsdl2-net-dev \
             libopenal-dev \
             libebur128-dev \
             libsndfile1-dev \
@@ -60,13 +59,13 @@ jobs:
           brew install \
             ninja \
             sdl2 \
-            sdl2_net \
             openal-soft \
             libebur128 \
             libsndfile \
             fluid-synth \
             libxmp \
-            yyjson
+            yyjson \
+            dylibbundler
 
       - name: Install dependencies (MSYS2)
         if: matrix.config.shell == 'msys2 {0}'
@@ -81,7 +80,6 @@ jobs:
             ${{ matrix.config.msys-env }}-cmake
             ${{ matrix.config.msys-env }}-ninja
             ${{ matrix.config.msys-env }}-SDL2
-            ${{ matrix.config.msys-env }}-SDL2_net
             ${{ matrix.config.msys-env }}-openal
             ${{ matrix.config.msys-env }}-libebur128
             ${{ matrix.config.msys-env }}-libsndfile
@@ -93,10 +91,11 @@ jobs:
       - name: Configure
         env:
           CC: ${{ matrix.config.compiler }}
-        run: |
-          cmake -B build -G Ninja -DCMAKE_BUILD_TYPE=Release \
-                -DENABLE_WERROR=ON -DENABLE_HARDENING=ON -DENABLE_LTO=ON \
-                ${{ matrix.config.extra-options }}
+        run: >-
+          cmake -B build -G Ninja
+          -DCMAKE_BUILD_TYPE=Release
+          -DENABLE_WERROR=ON -DENABLE_HARDENING=ON -DENABLE_LTO=ON
+          ${{ matrix.config.extra-options }}
 
       - name: Build
         run: cmake --build build
@@ -140,7 +139,6 @@ jobs:
             cppcheck \
             ninja-build \
             libsdl2-dev \
-            libsdl2-net-dev \
             libopenal-dev \
             libebur128-dev \
             libsndfile1-dev \
@@ -150,9 +148,10 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Configure
-        run: |
-          cmake -B build -G Ninja -DCMAKE_EXPORT_COMPILE_COMMANDS=ON \
-                -DCMAKE_FIND_PACKAGE_PREFER_CONFIG=OFF
+        run: >-
+          cmake -B build -G Ninja
+          -DCMAKE_EXPORT_COMPILE_COMMANDS=ON
+          -DCMAKE_FIND_PACKAGE_PREFER_CONFIG=OFF
 
       - name: Run Cppcheck
         if: ${{ matrix.name == 'Cppcheck' }}
@@ -176,7 +175,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          version: 18
+          version: 19
           step-summary: true
           files-changed-only: true
           style: ''  # disable clang-format checks.

@@ -56,9 +56,30 @@ struct ticcmd_s *I_BaseTiccmd(void);
 
 // killough 3/20/98: add const
 // killough 4/25/98: add gcc attributes
-NORETURN void I_ErrorOrSuccess(int err_code, const char *prefix, const char *error, ...) PRINTF_ATTR(3, 4);
-#define I_Error(...) I_ErrorOrSuccess(-1, __func__, __VA_ARGS__)
-#define I_Success(...) I_ErrorOrSuccess(0, NULL, __VA_ARGS__)
+NORETURN void I_ErrorInternal(const char *prefix, const char *error, ...) PRINTF_ATTR(2, 3);
+
+#ifdef WOOF_DEBUG
+  #if defined(_MSC_VER)
+    #include <intrin.h>
+    #define DoDebugBreak() __debugbreak()
+  #else
+    #define DoDebugBreak()
+  #endif
+  boolean I_IsDebuggerAttached(void);
+  #define I_Error(...)                          \
+    do                                          \
+    {                                           \
+        if (I_IsDebuggerAttached())             \
+        {                                       \
+            DoDebugBreak();                     \
+        }                                       \
+        I_ErrorInternal(__func__, __VA_ARGS__); \
+    } while (0)
+#else // WOOF_DEBUG
+  #define I_Error(...) I_ErrorInternal(__func__, __VA_ARGS__)
+#endif
+
+void I_MessageBox(const char *message, ...) PRINTF_ATTR(1, 2);
 
 // Schedule a function to be called when the program exits.
 // If run_if_error is true, the function is called if the exit

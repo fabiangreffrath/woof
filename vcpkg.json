@@ -1,48 +1,56 @@
 {
   "$schema": "https://raw.githubusercontent.com/microsoft/vcpkg-tool/main/docs/vcpkg.schema.json",
   "dependencies": [
-    {
-        "name": "sdl2",
-        "features": [
-            {
-              "name": "vulkan",
-              "platform": "linux"
-            },
-            {
-              "name": "wayland",
-              "platform": "linux"
-            },
-            {
-              "name": "x11",
-              "platform": "linux"
-            },
-            {
-              "name": "ibus",
-              "platform": "linux"
-            }
-        ]
-    },
-    "sdl2-net",
-    {
-        "name": "openal-soft",
-        "features": [
-            {
-              "name": "pipewire",
-              "platform": "linux"
-            }
-        ]
-    },
     "libebur128",
     "libsndfile",
     {
-        "name": "fluidsynth",
-        "default-features": false,
-        "features": ["sndfile"]
+      "name": "libxmp",
+      "default-features": false
     },
     {
-        "name": "libxmp",
-        "default-features": false
+      "name": "openal-soft",
+      "features": [
+        {
+          "name": "pipewire",
+          "platform": "linux"
+        }
+      ]
+    },
+    {
+      "name": "sdl2",
+      "features": [
+        {
+          "name": "ibus",
+          "platform": "linux"
+        },
+        {
+          "name": "vulkan",
+          "platform": "linux"
+        },
+        {
+          "name": "wayland",
+          "platform": "linux"
+        },
+        {
+          "name": "x11",
+          "platform": "linux"
+        }
+      ]
     },
     "yyjson"
-  ]
+  ],
+  "features": {
+    "fluidsynth": {
+      "description": "Build with FluidSynth support",
+      "dependencies": [
+        {
+          "name": "fluidsynth",
+          "default-features": false,
+          "features": [
+            "sndfile"
+          ]
+        }
+      ]
+    }
+  }
 }

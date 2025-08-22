@@ -38,14 +38,16 @@ extern const char *gamedescription;
 extern boolean clnomonsters; // checkparm of -nomonsters
 extern boolean clrespawnparm;  // checkparm of -respawn
 extern boolean clfastparm; // checkparm of -fast
+extern boolean clpistolstart; // checkparm of -pistolstart
+extern boolean clcoopspawns; // checkparm of -coop_spawns
 //jff end of external declaration of command line playmode
 
 void D_SetMaxHealth(void);
 void D_SetBloodColor(void);
 
+extern boolean quit_prompt;
+extern boolean quit_sound;
 extern boolean fast_exit;
-boolean D_EndDoomEnabled(void);
-boolean D_QuitSoundEnabled(void);
 boolean D_AllowEndDoom(void);
 
 // Called by IO functions when input is detected.
