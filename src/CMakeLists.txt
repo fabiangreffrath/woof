@@ -44,6 +44,7 @@ set(WOOF_SOURCES
     i_main.c
     i_mbfsound.c
     i_midimusic.c
+    i_minimp3.c
                            i_oalcommon.h
     i_oalequalizer.c       i_oalequalizer.h
     i_oalmusic.c
@@ -199,6 +200,8 @@ target_link_libraries(
             opl
             textscreen
 )
+
+target_include_directories(woof PRIVATE "${MINIMP3_INCLUDE_DIRS}/minimp3")
 
 # Some platforms require standard libraries to be linked against.
 if(HAVE_LIBM)

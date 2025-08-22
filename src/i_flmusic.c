@@ -388,19 +388,19 @@ static boolean I_FL_OpenStream(void *data, ALsizei size, ALenum *format,
         return false;
     }
 
-    *format = AL_FORMAT_STEREO16;
+    *format = AL_FORMAT_STEREO_FLOAT32;
     *freq = SND_SAMPLERATE;
-    *frame_size = 2 * sizeof(short);
+    *frame_size = 2 * sizeof(float);
 
     return true;
 }
 
-static int I_FL_FillStream(byte *buffer, int buffer_samples)
+static int I_FL_FillStream(void *buffer, int buffer_samples)
 {
     int result;
 
-    result = fluid_synth_write_s16(synth, buffer_samples, buffer, 0, 2, buffer,
-                                   1, 2);
+    result = fluid_synth_write_float(synth, buffer_samples, buffer, 0, 2,
+                                     buffer, 1, 2);
 
     if (result != FLUID_OK)
     {

@@ -126,6 +126,8 @@ endif()
 find_package(pffft QUIET)
 find_package(miniz QUIET)
 find_package(yyjson QUIET)
+find_path(MINIMP3_INCLUDE_DIRS "minimp3/minimp3.h" NO_CACHE)
+
 find_package(FluidSynth)
 find_package(libxmp)
 

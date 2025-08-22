@@ -270,6 +270,11 @@ License: [zlib](https://opensource.org/license/zlib)
 Files: `third-party/md5/*`  
 License: public-domain
 
+Files: `third-party/minimp3/*`  
+Copyright:  
+ © 2021 lief.      
+License: [CC0-1.0](https://creativecommons.org/publicdomain/zero/1.0/)
+
 Files: `third-party/miniz/*`  
 Copyright:  
  © 2010-2014 Rich Geldreich and Tenacious Software LLC;  

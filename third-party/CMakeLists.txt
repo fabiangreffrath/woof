@@ -8,6 +8,9 @@ add_library(sha1 STATIC sha1/sha1.c)
 target_woof_settings(sha1)
 target_include_directories(sha1 INTERFACE sha1)
 
+if(NOT MINIMP3_INCLUDE_DIRS)
+    set(MINIMP3_INCLUDE_DIRS "${CMAKE_CURRENT_SOURCE_DIR}" PARENT_SCOPE)
+endif()
 
 if(NOT miniz_FOUND)
     add_library(miniz STATIC miniz/miniz.c)

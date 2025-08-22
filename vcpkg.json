@@ -13,6 +13,7 @@
       "name": "libxmp",
       "default-features": false
     },
+    "minimp3",
     "miniz",
     {
       "name": "openal-soft",
