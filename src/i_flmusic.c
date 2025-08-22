@@ -222,12 +222,12 @@ static void FreeSynthAndSettings(void)
 
 static void I_FL_Log_Error(int level, const char *message, void *data)
 {
-    I_Printf(VB_ERROR, "%s", message);
+    I_Printf(VB_ERROR, "Fluidsynth: \"%s\"", message);
 }
 
 static void I_FL_Log_Debug(int level, const char *message, void *data)
 {
-    I_Printf(VB_DEBUG, "%s", message);
+    I_Printf(VB_DEBUG, "Fluidsynth: \"%s\"", message);
 }
 
 static boolean I_FL_InitStream(int device)
