@@ -358,7 +358,6 @@ static void HandleWindowEvent(SDL_WindowEvent *event)
             if (!fullscreen)
             {
                 SDL_GetWindowSize(screen, &window_width, &window_height);
-                SDL_GetWindowPosition(screen, &window_x, &window_y);
             }
             window_resize = true;
             break;
