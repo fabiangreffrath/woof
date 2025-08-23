@@ -129,6 +129,7 @@ static int scalefactor;
 static int actualheight;
 static int unscaled_actualheight;
 
+static int max_video_width, max_video_height;
 static int max_width, max_height;
 static int max_height_adjusted;
 static int display_refresh_rate;
@@ -357,6 +358,7 @@ static void HandleWindowEvent(SDL_WindowEvent *event)
             if (!fullscreen)
             {
                 SDL_GetWindowSize(screen, &window_width, &window_height);
+                SDL_GetWindowPosition(screen, &window_x, &window_y);
             }
             window_resize = true;
             break;
@@ -1511,15 +1513,28 @@ static void I_InitVideoParms(void)
         I_Error("Error getting display mode: %s", SDL_GetError());
     }
 
-    if (mode->w > SCREENWIDTH && mode->h > SCREENHEIGHT)
+    if (max_video_width && max_video_height)
     {
-        max_width = mode->w;
-        max_height = mode->h;
+        if (correct_aspect_ratio && max_video_height < ACTUALHEIGHT)
+        {
+            I_Error("The vertical resolution is too low, turn off the aspect "
+                    "ratio correction.");
+        }
+        double aspect_ratio =
+            (double)max_video_width / (double)max_video_height;
+        if (aspect_ratio < ASPECT_RATIO_MIN)
+        {
+            I_Printf(VB_ERROR, "Aspect ratio not supported, set other resolution");
+            max_video_width = mode->w;
+            max_video_height = mode->h;
+        }
+        max_width = max_video_width;
+        max_height = max_video_height;
     }
     else
     {
-        max_width = SCREENWIDTH;
-        max_height = SCREENHEIGHT;
+        max_width = mode->w;
+        max_height = mode->h;
     }
 
     if (correct_aspect_ratio)
@@ -1864,6 +1879,10 @@ void I_BindVideoVariables(void)
     BIND_BOOL(vga_porch_flash, false, "Emulate VGA \"porch\" behaviour");
     BIND_BOOL(disk_icon, false, "Flashing icon during disk I/O");
     BIND_NUM(video_display, 0, 0, UL, "Current video display index");
+    BIND_NUM(max_video_width, 0, SCREENWIDTH, UL,
+        "Maximum horizontal resolution (0 = Native)");
+    BIND_NUM(max_video_height, 0, SCREENHEIGHT, UL,
+        "Maximum vertical resolution (0 = Native)");
     BIND_NUM(window_position_x, 0, UL, UL, "Window position X (0 = Center)");
     BIND_NUM(window_position_y, 0, UL, UL, "Window position Y (0 = Center)");
     M_BindNum("window_width", &default_window_width, &window_width, 1065, 0, UL,
