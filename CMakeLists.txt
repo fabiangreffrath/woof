@@ -15,11 +15,7 @@ option(ENABLE_ASAN "Enable ASan" OFF)
 option(ENABLE_UBSAN "Enable UBSan" OFF)
 option(ENABLE_TSAN "Enable TSan" OFF)
 option(ENABLE_HARDENING "Enable hardening flags" OFF)
-
-include(CheckIPOSupported)
-check_ipo_supported(RESULT HAVE_LTO)
-include(CMakeDependentOption)
-cmake_dependent_option(ENABLE_LTO "Enable link time optimization" OFF "HAVE_LTO" OFF)
+option(ENABLE_LTO "Enable link time optimization" OFF)
 
 option(WOOF_RANGECHECK "Enable bounds-checking of performance-sensitive functions" ON)
 option(WOOF_STRICT
@@ -71,6 +67,14 @@ set(WOOF_ICON "woof.ico")
 set(SETUP_ICON "setup.ico")
 set(PROJECT_VERSION_RC
     "${PROJECT_VERSION_MAJOR},${PROJECT_VERSION_MINOR},${PROJECT_VERSION_PATCH},0")
+
+if(ENABLE_LTO)
+    include(CheckIPOSupported)
+    check_ipo_supported(RESULT HAVE_LTO OUTPUT output)
+    if(NOT HAVE_LTO)
+        message(WARNING "IPO is not supported: ${output}")
+    endif()
+endif()
 
 include(CheckLibraryExists)
 include(CheckIncludeFile)
