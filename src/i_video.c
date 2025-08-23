@@ -1624,11 +1624,6 @@ static void I_InitGraphicsMode(void)
 
     SDL_SetWindowPosition(screen, window_x, window_y);
 
-    if (fullscreen)
-    {
-        SDL_SetWindowFullscreen(screen, true);
-    }
-
     I_InitWindowIcon();
 
     // [FG] create renderer
