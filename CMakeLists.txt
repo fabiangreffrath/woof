@@ -5,6 +5,11 @@ if(WITH_FLUIDSYNTH)
     list(APPEND VCPKG_MANIFEST_FEATURES "fluidsynth")
 endif()
 
+option(WITH_XMP "Use libxmp if available" ON)
+if(WITH_XMP)
+    list(APPEND VCPKG_MANIFEST_FEATURES "libxmp")
+endif()
+
 # X_VCPKG_APPLOCAL_DEPS_INSTALL automatically installs dependencies.
 set(X_VCPKG_APPLOCAL_DEPS_INSTALL ON)
 
@@ -128,8 +133,12 @@ find_package(miniz QUIET)
 find_package(yyjson QUIET)
 find_path(MINIMP3_INCLUDE_DIRS "minimp3/minimp3.h" NO_CACHE)
 
-find_package(FluidSynth)
-find_package(libxmp)
+if(WITH_FLUIDSYNTH)
+    find_package(FluidSynth)
+endif()
+if(WITH_XMP)
+    find_package(libxmp)
+endif()
 
 if(FluidSynth_FOUND)
     set(HAVE_FLUIDSYNTH TRUE)
