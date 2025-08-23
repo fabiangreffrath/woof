@@ -111,45 +111,13 @@ static fluid_long_long_t FL_sftell(void *handle)
     return mem_ftell((MEMFILE *)handle);
 }
 
-static void ScanDir(const char *dir, boolean recursion)
+
+static void DoScanDir(const char *dir)
 {
-    glob_t *glob;
-
-    if (recursion == false)
-    {
-        // [FG] replace global "/usr/share" with user's "~/.local/share"
-        const char usr_share[] = "/usr/share";
-        if (strncmp(dir, usr_share, strlen(usr_share)) == 0)
-        {
-            char *local_share = M_DataDir();
-            char *local_dir = M_StringReplace(dir, usr_share, local_share);
-            ScanDir(local_dir, true);
-            free(local_dir);
-        }
-        else if (dir[0] == '.')
-        {
-            // [FG] relative to the executable directory
-            char *rel = M_StringJoin(D_DoomExeDir(), DIR_SEPARATOR_S, dir);
-            ScanDir(rel, true);
-            free(rel);
-
-            // [FG] relative to the config directory (if different)
-            if (dir[1] != '.' && strcmp(D_DoomExeDir(), D_DoomPrefDir()) != 0)
-            {
-                rel = M_StringJoin(D_DoomPrefDir(), DIR_SEPARATOR_S, dir);
-                ScanDir(rel, true);
-                free(rel);
-            }
-
-            // [FG] never absolute path
-            return;
-        }
-    }
+    glob_t *glob = I_StartMultiGlob(dir, GLOB_FLAG_NOCASE | GLOB_FLAG_SORTED,
+                                    "*.sf2", "*.sf3");
 
     I_Printf(VB_DEBUG, "Scanning for soundfonts in %s", dir);
-
-    glob = I_StartMultiGlob(dir, GLOB_FLAG_NOCASE | GLOB_FLAG_SORTED, "*.sf2",
-                            "*.sf3");
 
     while (1)
     {
@@ -164,6 +132,50 @@ static void ScanDir(const char *dir, boolean recursion)
     }
 
     I_EndGlob(glob);
+}
+
+static void ScanDir(const char *dir)
+{
+    const char *usr_share = "/usr/share";
+    char *local_dir;
+
+    // replace global "/usr/share" with user's "~/.local/share"
+    if (strncmp(dir, usr_share, strlen(usr_share)) == 0)
+    {
+        DoScanDir(dir);
+
+        local_dir = M_StringReplace(dir, usr_share, M_DataDir());
+        DoScanDir(local_dir);
+        free(local_dir);
+    }
+    // directory traversal relative to the executable directory
+    else if (dir[0] == '.' && dir[1] == '.')
+    {
+        local_dir = M_StringJoin(D_DoomExeDir(), DIR_SEPARATOR_S, dir);
+        DoScanDir(local_dir);
+        free(local_dir);
+    }
+    // relative to the config directory
+    else if (dir[0] == '.')
+    {
+        local_dir = M_StringJoin(D_DoomPrefDir(), DIR_SEPARATOR_S, dir);
+        M_MakeDirectory(local_dir);
+        DoScanDir(local_dir);
+        free(local_dir);
+
+        // relative to the executable directory (if different)
+        if (D_DoomExeDir() != D_DoomPrefDir())
+        {
+            local_dir = M_StringJoin(D_DoomExeDir(), DIR_SEPARATOR_S, dir);
+            DoScanDir(local_dir);
+            free(local_dir);
+        }
+    }
+    else
+    {
+        M_MakeDirectory(dir);
+        DoScanDir(dir);
+    }
 }
 
 static void GetSoundFonts(void)
@@ -189,7 +201,7 @@ static void GetSoundFonts(void)
             // as another soundfont dir
             *p = '\0';
 
-            ScanDir(left, false);
+            ScanDir(left);
 
             left = p + 1;
         }
@@ -199,7 +211,7 @@ static void GetSoundFonts(void)
         }
     }
 
-    ScanDir(left, false);
+    ScanDir(left);
 
     free(dup_path);
 }
