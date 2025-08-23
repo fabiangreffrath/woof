@@ -208,7 +208,16 @@ typedef struct
 
     // used for evil grin
     boolean oldweaponsowned[NUMWEAPONS];
+
+    // Woof!
+    crop_t crop;
 } sbe_face_t;
+
+typedef struct
+{
+    // Woof!
+    crop_t crop;
+} sbe_facebackground_t;
 
 typedef struct
 {
@@ -251,6 +260,7 @@ struct sbarelem_s
         sbe_animation_t *animation;
         sbe_number_t *number;
         sbe_face_t *face;
+        sbe_facebackground_t *facebackground;
 
         // Woof!
         sbe_widget_t *widget;

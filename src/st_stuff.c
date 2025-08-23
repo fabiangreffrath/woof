@@ -1496,7 +1496,8 @@ static void DrawElem(int x, int y, sbarelem_t *elem, player_t *player)
 
         case sbe_facebackground:
             {
-                DrawPatch(x, y, (crop_t){0}, 0, elem->alignment,
+                sbe_facebackground_t *facebackground = elem->subtype.facebackground;
+                DrawPatch(x, y, facebackground->crop, 0, elem->alignment,
                           facebackpatches[displayplayer], elem->cr,
                           elem->tranmap);
             }
@@ -1505,7 +1506,7 @@ static void DrawElem(int x, int y, sbarelem_t *elem, player_t *player)
         case sbe_face:
             {
                 sbe_face_t *face = elem->subtype.face;
-                DrawPatch(x, y, (crop_t){0}, 0, elem->alignment,
+                DrawPatch(x, y, face->crop, 0, elem->alignment,
                           facepatches[face->faceindex], elem->cr,
                           elem->tranmap);
             }
