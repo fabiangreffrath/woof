@@ -10,11 +10,30 @@ if(WITH_XMP)
     list(APPEND VCPKG_MANIFEST_FEATURES "libxmp")
 endif()
 
+option(ENABLE_WERROR "Treat warnings as errors" OFF)
+option(ENABLE_ASAN "Enable ASan" OFF)
+option(ENABLE_UBSAN "Enable UBSan" OFF)
+option(ENABLE_TSAN "Enable TSan" OFF)
+option(ENABLE_HARDENING "Enable hardening flags" OFF)
+
+include(CheckIPOSupported)
+check_ipo_supported(RESULT HAVE_LTO)
+include(CMakeDependentOption)
+cmake_dependent_option(ENABLE_LTO "Enable link time optimization" OFF "HAVE_LTO" OFF)
+
+option(WOOF_RANGECHECK "Enable bounds-checking of performance-sensitive functions" ON)
+option(WOOF_STRICT
+       "Prefer original MBF code paths over demo compatiblity with PrBoom+" OFF)
+
+option(CMAKE_FIND_PACKAGE_PREFER_CONFIG
+       "Lookup package config files before using find modules" ON)
+option(CMAKE_COLOR_DIAGNOSTICS "Colored diagnostics" ON)
+
 # X_VCPKG_APPLOCAL_DEPS_INSTALL automatically installs dependencies.
 set(X_VCPKG_APPLOCAL_DEPS_INSTALL ON)
 
 # Adds the cmake directory to the CMake include path.
-list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
+list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake/modules")
 
 project(
     "Woof"
@@ -52,10 +71,6 @@ set(WOOF_ICON "woof.ico")
 set(SETUP_ICON "setup.ico")
 set(PROJECT_VERSION_RC
     "${PROJECT_VERSION_MAJOR},${PROJECT_VERSION_MINOR},${PROJECT_VERSION_PATCH},0")
-
-# Toggle-able defines added at compile-time.
-option(WOOF_RANGECHECK "Enable bounds-checking of performance-sensitive functions" ON)
-option(WOOF_STRICT "Prefer original MBF code paths over demo compatiblity with PrBoom+" OFF)
 
 include(CheckLibraryExists)
 include(CheckIncludeFile)
@@ -101,9 +116,6 @@ check_c_source_compiles(
     "
     HAVE_EXT_VECTOR_TYPE
 )
-
-option(CMAKE_FIND_PACKAGE_PREFER_CONFIG
-       "Lookup package config files before using find modules" ON)
 
 set(CMAKE_FIND_FRAMEWORK NEVER)
 

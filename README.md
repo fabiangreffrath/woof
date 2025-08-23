@@ -227,11 +227,6 @@ Copyright:
  © 2017 Shannon Freeman.  
 License: [MIT](https://github.com/sneakernets/DMXOPL/blob/DMXOPL3/LICENSE)
 
-Files: `cmake/FindSDL2.cmake`  
-Copyright:  
- © 2018 Alex Mayfield.  
-License: [BSD-3-Clause](https://opensource.org/licenses/BSD-3-Clause)
-
 Files: `base/all-all/sm*.png, data/setup.ico, data/woof-setup.png, data/woof.ico, data/woof.png, setup/setup_icon.c, src/icon.c`  
 Copyright:  
  © 2020-2024 Julia Nechaevskaya.  
@@ -301,9 +296,4 @@ License: [BSD-2-Clause](https://opensource.org/license/bsd-2-clause)
 Files: `third-party/yyjson/*`  
 Copyright:  
  © 2020 YaoYuan.  
-License: [MIT](https://opensource.org/licenses/MIT)
-
-Files: `win32/win_opendir.*`  
-Copyright:  
- © 2019 win32ports.  
 License: [MIT](https://opensource.org/licenses/MIT)
