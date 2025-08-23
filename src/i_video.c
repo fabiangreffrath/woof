@@ -1589,7 +1589,7 @@ static void I_InitGraphicsMode(void)
     SDL_WindowFlags flags = 0;
 
     // [FG] window flags
-    flags |= SDL_WINDOW_HIGH_PIXEL_DENSITY;
+    flags |= (SDL_WINDOW_HIGH_PIXEL_DENSITY | SDL_WINDOW_INPUT_FOCUS);
 
     if (fullscreen)
     {
