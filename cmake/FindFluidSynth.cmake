@@ -37,28 +37,60 @@ The following cache variables may also be set:
 #]=======================================================================]
 
 find_package(PkgConfig QUIET)
-pkg_check_modules(PC_FluidSynth QUIET fluidsynth)
+pkg_check_modules(PC_fluidsynth IMPORTED_TARGET fluidsynth)
 
-find_path(FluidSynth_INCLUDE_DIR
-  NAMES fluidsynth.h
-  HINTS "${PC_FluidSynth_INCLUDEDIR}")
+if(PC_fluidsynth_FOUND)
+  if(NOT TARGET FluidSynth::libfluidsynth)
+    add_library(FluidSynth::libfluidsynth ALIAS PkgConfig::PC_fluidsynth)
+  endif()
+  set(FluidSynth_FOUND TRUE)
+  set(FluidSynth_VERSION ${PC_fluidsynth_VERSION})
+  return()
+endif()
 
-find_library(FluidSynth_LIBRARY
-  NAMES fluidsynth libfluidsynth
-  HINTS "${PC_FluidSynth_LIBDIR}")
+find_path(FluidSynth_INCLUDE_DIR NAMES fluidsynth.h)
+
+find_file(
+  FluidSynth_DLL
+  NAMES fluidsynth.dll libfluidsynth.dll libfluidsynth-3.dll
+  PATH_SUFFIXES bin
+)
+
+find_library(FluidSynth_LIBRARY NAMES fluidsynth libfluidsynth fluidsynth-3
+                                      libfluidsynth-3)
+
+if(FluidSynth_DLL OR FluidSynth_LIBRARY MATCHES ".so|.dylib")
+  set(_fluidsynth_library_type SHARED)
+else()
+  set(_fluidsynth_library_type STATIC)
+endif()
 
 include(FindPackageHandleStandardArgs)
-find_package_handle_standard_args(FluidSynth
-  REQUIRED_VARS "FluidSynth_LIBRARY" "FluidSynth_INCLUDE_DIR"
-  VERSION_VAR "FluidSynth_VERSION")
+find_package_handle_standard_args(
+  FluidSynth REQUIRED_VARS "FluidSynth_LIBRARY" "FluidSynth_INCLUDE_DIR")
 
 if(FluidSynth_FOUND)
   if(NOT TARGET FluidSynth::libfluidsynth)
-    add_library(FluidSynth::libfluidsynth UNKNOWN IMPORTED)
-    set_target_properties(FluidSynth::libfluidsynth
-      PROPERTIES IMPORTED_LOCATION "${FluidSynth_LIBRARY}"
-                 INTERFACE_INCLUDE_DIRECTORIES "${FluidSynth_INCLUDE_DIR}")
+    add_library(FluidSynth::libfluidsynth ${_fluidsynth_library_type} IMPORTED)
+    set_target_properties(
+      FluidSynth::libfluidsynth PROPERTIES INTERFACE_INCLUDE_DIRECTORIES
+                                           "${FluidSynth_INCLUDE_DIR}"
+    )
   endif()
+
+  if(FluidSynth_DLL)
+    set_target_properties(
+      FluidSynth::libfluidsynth
+      PROPERTIES IMPORTED_LOCATION "${FluidSynth_DLL}" IMPORTED_IMPLIB
+                                                       "${FluidSynth_LIBRARY}"
+    )
+  else()
+    set_target_properties(FluidSynth::libfluidsynth
+                          PROPERTIES IMPORTED_LOCATION "${FluidSynth_LIBRARY}")
+  endif()
+
+  set(FluidSynth_LIBRARIES FluidSynth::libfluidsynth)
+  set(FluidSynth_INCLUDE_DIRS "${FluidSynth_INCLUDE_DIR}")
 endif()
 
-mark_as_advanced(FluidSynth_INCLUDE_DIR FluidSynth_LIBRARY)
+mark_as_advanced(FluidSynth_INCLUDE_DIR FluidSynth_DLL FluidSynth_LIBRARY)

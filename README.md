@@ -121,7 +121,7 @@ Run the CMake configuration:
  cd woof
  cmake -B build -DCMAKE_TOOLCHAIN_FILE="[path to vcpkg]/scripts/buildsystems/vcpkg.cmake"
 ```
-During this step, vcpkg will build all the dependencies. To enable FluidSynth add `-DWITH_FLUIDSYNTH=ON` option.
+During this step, vcpkg will build all the dependencies.
 
 Build the project:
 ```

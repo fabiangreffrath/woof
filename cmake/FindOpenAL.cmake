@@ -31,43 +31,56 @@ This module defines the following variables:
 #]=======================================================================]
 
 if(APPLE)
-  if(CMAKE_SYSTEM_PROCESSOR MATCHES "arm64")
-    set(ENV{PKG_CONFIG_PATH} "/opt/homebrew/opt/openal-soft/lib/pkgconfig")
-  else()
-    set(ENV{PKG_CONFIG_PATH} "/usr/local/opt/openal-soft/lib/pkgconfig")
-  endif()
+    if(CMAKE_SYSTEM_PROCESSOR MATCHES "arm64")
+        set(ENV{PKG_CONFIG_PATH} "/opt/homebrew/opt/openal-soft/lib/pkgconfig")
+    else()
+        set(ENV{PKG_CONFIG_PATH} "/usr/local/opt/openal-soft/lib/pkgconfig")
+    endif()
 endif()
 
 find_package(PkgConfig QUIET)
-pkg_check_modules(PC_OpenAL QUIET OpenAL)
+pkg_check_modules(PC_openal IMPORTED_TARGET OpenAL)
 
-find_path(OPENAL_INCLUDE_DIR al.h
-  PATH_SUFFIXES include/AL include/OpenAL include AL OpenAL
-  HINTS "${PC_OpenAL_INCLUDEDIR}")
-
-if(CMAKE_SIZEOF_VOID_P EQUAL 8)
-  set(_OpenAL_ARCH_DIR libs/Win64)
-else()
-  set(_OpenAL_ARCH_DIR libs/Win32)
+if(PC_openal_FOUND)
+    if(NOT TARGET OpenAL::OpenAL)
+        add_library(OpenAL::OpenAL ALIAS PkgConfig::PC_openal)
+    endif()
+    set(OpenAL_FOUND TRUE)
+    set(OpenAL_VERSION ${PC_openal_VERSION})
+    return()
 endif()
 
-find_library(OPENAL_LIBRARY
-  NAMES OpenAL al openal OpenAL32
-  PATH_SUFFIXES libx32 lib64 lib libs64 libs ${_OpenAL_ARCH_DIR}
-  HINTS "${PC_OpenAL_LIBDIR}")
+find_path(
+    OpenAL_INCLUDE_DIR
+    NAMES al.h
+    PATH_SUFFIXES include/AL include/OpenAL include AL OpenAL
+)
+
+if(CMAKE_SIZEOF_VOID_P EQUAL 8)
+    set(_OpenAL_ARCH_DIR libs/Win64)
+else()
+    set(_OpenAL_ARCH_DIR libs/Win32)
+endif()
+
+find_library(
+    OpenAL_LIBRARY
+    NAMES OpenAL al openal OpenAL32
+    PATH_SUFFIXES libx32 lib64 lib libs64 libs ${_OpenAL_ARCH_DIR}
+)
 
 unset(_OpenAL_ARCH_DIR)
 
 include(FindPackageHandleStandardArgs)
-find_package_handle_standard_args(OpenAL
-  REQUIRED_VARS OPENAL_LIBRARY OPENAL_INCLUDE_DIR
-  VERSION_VAR OPENAL_VERSION_STRING)
+find_package_handle_standard_args(OpenAL REQUIRED_VARS OpenAL_LIBRARY
+                                                       OpenAL_INCLUDE_DIR)
 
-mark_as_advanced(OPENAL_LIBRARY OPENAL_INCLUDE_DIR)
-
-if(OPENAL_FOUND AND NOT TARGET OpenAL::OpenAL)
+if(OpenAL_FOUND AND NOT TARGET OpenAL::OpenAL)
     add_library(OpenAL::OpenAL UNKNOWN IMPORTED)
-    set_target_properties(OpenAL::OpenAL PROPERTIES
-      IMPORTED_LOCATION "${OPENAL_LIBRARY}"
-      INTERFACE_INCLUDE_DIRECTORIES "${OPENAL_INCLUDE_DIR}")
+    set_target_properties(
+        OpenAL::OpenAL
+        PROPERTIES IMPORTED_LOCATION "${OpenAL_LIBRARY}"
+                   INTERFACE_INCLUDE_DIRECTORIES "${OpenAL_INCLUDE_DIR}"
+    )
 endif()
+
+mark_as_advanced(OpenAL_LIBRARY OpenAL_INCLUDE_DIR)

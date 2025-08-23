@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.15...4.0)
 
-option(WITH_FLUIDSYNTH "Use FluidSynth if available" OFF)
+option(WITH_FLUIDSYNTH "Use FluidSynth if available" ON)
 if(WITH_FLUIDSYNTH)
     list(APPEND VCPKG_MANIFEST_FEATURES "fluidsynth")
 endif()
@@ -38,7 +38,7 @@ endif()
 
 # Hardcoded defines added to configure and resource files.
 set(PROJECT_COMPANY "Fabian Greffrath and contributors")
-set(PROJECT_COPYRIGHT "Copyright (C) 1993-2024")
+set(PROJECT_COPYRIGHT "Copyright (C) 1993-2025")
 set(PROJECT_LICENSE "GNU General Public License, version 2")
 set(PROJECT_STRING "${PROJECT_NAME} ${PROJECT_VERSION}")
 set(PROJECT_SHORTNAME "woof")
@@ -242,7 +242,7 @@ else()
 endif()
 set(CPACK_SOURCE_GENERATOR TGZ ZIP)
 set(CPACK_SOURCE_IGNORE_FILES "/.git/;/build;/.vs/;/out/;CMakeSettings.json")
-set(CPACK_STRIP_FILES TRUE)
+set(CPACK_STRIP_FILES FALSE)
 include(CPack)
 
 set(BASE_PK3_PATH "${CMAKE_BINARY_DIR}/src/${BASE_PK3}")
