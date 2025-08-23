@@ -62,7 +62,7 @@ static int I_MP3_FillStream(void *buffer, int buffer_samples)
     {
         if (dec.last_error)
         {
-            I_Printf(VB_ERROR, "I_MP3_FillStream: Failed to fill steam");
+            I_Printf(VB_ERROR, "I_MP3_FillStream: Failed to decode");
         }
         else if (stream_looping)
         {
