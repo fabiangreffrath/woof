@@ -17,20 +17,12 @@ elseif(LINUX OR APPLE)
     set(CPACK_EXTERNAL_PACKAGE_SCRIPT
         "${CMAKE_CURRENT_SOURCE_DIR}/${CMAKE_SYSTEM_NAME}Generator.cmake")
     set(CPACK_PACKAGING_INSTALL_PREFIX "${CMAKE_INSTALL_PREFIX}")
-    set(CPACK_SYSTEM_PROCESSOR ${CMAKE_SYSTEM_PROCESSOR})
     set(CPACK_BIN_DIR "${WOOF_INSTALL_BIN_DIR}")
+    set(CPACK_SYSTEM_PROCESSOR ${CMAKE_SYSTEM_PROCESSOR})
 endif()
-
-string(TOLOWER "${CMAKE_SYSTEM_NAME}" platform_name)
-string(REPLACE "windows" "win" platform_name "${platform_name}")
-string(REPLACE "darwin" "mac" platform_name "${platform_name}")
 
 if(APPLE)
-    set(target_arch "uni")
-else()
-    set(target_arch ${CMAKE_SYSTEM_PROCESSOR})
+    set(CPACK_SYSTEM_NAME "uni")
 endif()
-
-set(CPACK_PACKAGE_FILE_NAME "${CPACK_PACKAGE_NAME}-${PROJECT_VERSION}-${platform_name}-${target_arch}")
 
 include(CPack)
