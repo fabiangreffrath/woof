@@ -46,6 +46,7 @@ static stream_module_t *all_modules[] =
 #if defined(HAVE_LIBXMP)
     &stream_xmp_module,
 #endif
+    &stream_mp3_module
 };
 
 static stream_module_t *stream_modules[] =

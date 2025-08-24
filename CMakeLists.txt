@@ -1,15 +1,35 @@
 cmake_minimum_required(VERSION 3.15...4.0)
 
-option(WITH_FLUIDSYNTH "Use FluidSynth if available" OFF)
+option(WITH_FLUIDSYNTH "Use FluidSynth if available" ON)
 if(WITH_FLUIDSYNTH)
     list(APPEND VCPKG_MANIFEST_FEATURES "fluidsynth")
 endif()
+
+option(WITH_XMP "Use libxmp if available" ON)
+if(WITH_XMP)
+    list(APPEND VCPKG_MANIFEST_FEATURES "libxmp")
+endif()
+
+option(ENABLE_WERROR "Treat warnings as errors" OFF)
+option(ENABLE_ASAN "Enable ASan" OFF)
+option(ENABLE_UBSAN "Enable UBSan" OFF)
+option(ENABLE_TSAN "Enable TSan" OFF)
+option(ENABLE_HARDENING "Enable hardening flags" OFF)
+option(ENABLE_LTO "Enable link time optimization" OFF)
+
+option(WOOF_RANGECHECK "Enable bounds-checking of performance-sensitive functions" ON)
+option(WOOF_STRICT
+       "Prefer original MBF code paths over demo compatiblity with PrBoom+" OFF)
+
+option(CMAKE_FIND_PACKAGE_PREFER_CONFIG
+       "Lookup package config files before using find modules" ON)
+option(CMAKE_COLOR_DIAGNOSTICS "Colored diagnostics" ON)
 
 # X_VCPKG_APPLOCAL_DEPS_INSTALL automatically installs dependencies.
 set(X_VCPKG_APPLOCAL_DEPS_INSTALL ON)
 
 # Adds the cmake directory to the CMake include path.
-list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
+list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake/modules")
 
 project(
     "Woof"
@@ -38,7 +58,7 @@ endif()
 
 # Hardcoded defines added to configure and resource files.
 set(PROJECT_COMPANY "Fabian Greffrath and contributors")
-set(PROJECT_COPYRIGHT "Copyright (C) 1993-2024")
+set(PROJECT_COPYRIGHT "Copyright (C) 1993-2025")
 set(PROJECT_LICENSE "GNU General Public License, version 2")
 set(PROJECT_STRING "${PROJECT_NAME} ${PROJECT_VERSION}")
 set(PROJECT_SHORTNAME "woof")
@@ -48,9 +68,13 @@ set(SETUP_ICON "setup.ico")
 set(PROJECT_VERSION_RC
     "${PROJECT_VERSION_MAJOR},${PROJECT_VERSION_MINOR},${PROJECT_VERSION_PATCH},0")
 
-# Toggle-able defines added at compile-time.
-option(WOOF_RANGECHECK "Enable bounds-checking of performance-sensitive functions" ON)
-option(WOOF_STRICT "Prefer original MBF code paths over demo compatiblity with PrBoom+" OFF)
+if(ENABLE_LTO)
+    include(CheckIPOSupported)
+    check_ipo_supported(RESULT HAVE_LTO OUTPUT output)
+    if(NOT HAVE_LTO)
+        message(WARNING "IPO is not supported: ${output}")
+    endif()
+endif()
 
 include(CheckLibraryExists)
 include(CheckIncludeFile)
@@ -97,9 +121,6 @@ check_c_source_compiles(
     HAVE_EXT_VECTOR_TYPE
 )
 
-option(CMAKE_FIND_PACKAGE_PREFER_CONFIG
-       "Lookup package config files before using find modules" ON)
-
 set(CMAKE_FIND_FRAMEWORK NEVER)
 
 # Library requirements.
@@ -123,9 +144,17 @@ if(SndFile_VERSION VERSION_GREATER_EQUAL "1.1.0")
    set(HAVE_SNDFILE_MPEG TRUE)
 endif()
 
-find_package(yyjson)
-find_package(FluidSynth)
-find_package(libxmp)
+find_package(pffft QUIET)
+find_package(miniz QUIET)
+find_package(yyjson QUIET)
+find_path(MINIMP3_INCLUDE_DIRS "minimp3/minimp3.h" NO_CACHE)
+
+if(WITH_FLUIDSYNTH)
+    find_package(FluidSynth)
+endif()
+if(WITH_XMP)
+    find_package(libxmp)
+endif()
 
 if(FluidSynth_FOUND)
     set(HAVE_FLUIDSYNTH TRUE)
@@ -238,7 +267,7 @@ else()
 endif()
 set(CPACK_SOURCE_GENERATOR TGZ ZIP)
 set(CPACK_SOURCE_IGNORE_FILES "/.git/;/build;/.vs/;/out/;CMakeSettings.json")
-set(CPACK_STRIP_FILES TRUE)
+set(CPACK_STRIP_FILES FALSE)
 include(CPack)
 
 set(BASE_PK3_PATH "${CMAKE_BINARY_DIR}/src/${BASE_PK3}")
