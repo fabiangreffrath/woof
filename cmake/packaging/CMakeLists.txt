@@ -1,0 +1,36 @@
+set(CPACK_PACKAGE_NAME ${PROJECT_NAME})
+set(CPACK_PACKAGE_VENDOR "Fabian Greffrath and contributors")
+set(CPACK_PACKAGE_DESCRIPTION_SUMMARY
+    "Continuation of the Boom/MBF bloodline of Doom source ports.")
+set(CPACK_PACKAGE_INSTALL_DIRECTORY ${CPACK_PACKAGE_NAME})
+set(CPACK_PACKAGE_VERSION_MAJOR ${PROJECT_VERSION_MAJOR})
+set(CPACK_PACKAGE_VERSION_MINOR ${PROJECT_VERSION_MINOR})
+set(CPACK_PACKAGE_VERSION_PATCH ${PROJECT_VERSION_PATCH})
+set(CPACK_VERBATIM_VARIABLES YES)
+set(CPACK_RESOURCE_FILE_LICENSE ${PROJECT_SOURCE_DIR}/COPYING)
+
+if(WIN32)
+    set(CPACK_GENERATOR ZIP)
+elseif(LINUX OR APPLE)
+    set(CPACK_GENERATOR External)
+    set(CPACK_EXTERNAL_ENABLE_STAGING TRUE)
+    set(CPACK_EXTERNAL_PACKAGE_SCRIPT
+        "${CMAKE_CURRENT_SOURCE_DIR}/${CMAKE_SYSTEM_NAME}Generator.cmake")
+    set(CPACK_PACKAGING_INSTALL_PREFIX "${CMAKE_INSTALL_PREFIX}")
+    set(CPACK_SYSTEM_PROCESSOR ${CMAKE_SYSTEM_PROCESSOR})
+    set(CPACK_BIN_DIR "${WOOF_INSTALL_BIN_DIR}")
+endif()
+
+string(TOLOWER "${CMAKE_SYSTEM_NAME}" platform_name)
+string(REPLACE "windows" "win" platform_name "${platform_name}")
+string(REPLACE "darwin" "mac" platform_name "${platform_name}")
+
+if(APPLE)
+    set(target_arch "uni")
+else()
+    set(target_arch ${CMAKE_SYSTEM_PROCESSOR})
+endif()
+
+set(CPACK_PACKAGE_FILE_NAME "${CPACK_PACKAGE_NAME}-${PROJECT_VERSION}-${platform_name}-${target_arch}")
+
+include(CPack)

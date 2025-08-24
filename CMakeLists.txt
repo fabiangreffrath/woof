@@ -165,98 +165,24 @@ find_package(Python3 COMPONENTS Interpreter)
 configure_file(config.h.in config.h)
 
 if(WIN32)
+    set(WOOF_INSTALL_BIN_DIR  ".")
+else()
+    include(GNUInstallDirs)
+    set(WOOF_INSTALL_BIN_DIR "${CMAKE_INSTALL_BINDIR}")
+endif()
+
+if(WIN32)
     install(FILES COPYING DESTINATION . RENAME COPYING.txt)
-    if(FluidSynth_FOUND)
+    if(HAVE_FLUIDSYNTH)
         install(DIRECTORY soundfonts/ DESTINATION soundfonts)
     endif()
 else()
     install(FILES COPYING DESTINATION "share/doc/${PROJECT_SHORTNAME}")
-    if(EXISTS "${CMAKE_SOURCE_DIR}/soundfonts" AND FluidSynth_FOUND)
+    if(EXISTS "${CMAKE_SOURCE_DIR}/soundfonts" AND HAVE_FLUIDSYNTH)
         install(DIRECTORY soundfonts/
             DESTINATION "share/${PROJECT_SHORTNAME}/soundfonts")
     endif()
 endif()
-
-# Generate distribution packages with CPack.
-if(WIN32)
-    set(CPACK_GENERATOR ZIP)
-elseif(LINUX)
-    set(CPACK_GENERATOR External)
-    set(CPACK_EXTERNAL_ENABLE_STAGING YES)
-    set(CPACK_PACKAGING_INSTALL_PREFIX "${CMAKE_INSTALL_PREFIX}")
-    set(CPACK_EXTERNAL_PACKAGE_SCRIPT "${PROJECT_BINARY_DIR}/appimage-generate.cmake")
-
-    file(GENERATE
-        OUTPUT "${PROJECT_BINARY_DIR}/appimage-generate.cmake"
-        CONTENT [[
-            find_program(LINUXDEPLOY_EXECUTABLE
-                NAMES linuxdeploy linuxdeploy-x86_64.AppImage
-                PATHS ${CPACK_PACKAGE_DIRECTORY}/linuxdeploy)
-
-            if(NOT LINUXDEPLOY_EXECUTABLE)
-                message(STATUS "Downloading linuxdeploy")
-                set(LINUXDEPLOY_EXECUTABLE ${CPACK_PACKAGE_DIRECTORY}/linuxdeploy/linuxdeploy)
-                file(DOWNLOAD
-                    https://github.com/linuxdeploy/linuxdeploy/releases/download/continuous/linuxdeploy-x86_64.AppImage
-                    ${LINUXDEPLOY_EXECUTABLE}
-                    INACTIVITY_TIMEOUT 10)
-                execute_process(COMMAND
-                    chmod +x ${LINUXDEPLOY_EXECUTABLE} COMMAND_ECHO STDOUT)
-            endif()
-
-            execute_process(COMMAND
-                ${CMAKE_COMMAND} -E env
-                OUTPUT=${CPACK_PACKAGE_FILE_NAME}.AppImage
-                VERSION=$<IF:$<BOOL:${CPACK_PACKAGE_VERSION}>,${CPACK_PACKAGE_VERSION},0.1.0>
-                ${LINUXDEPLOY_EXECUTABLE}
-                --appimage-extract-and-run
-                --appdir=${CPACK_TEMPORARY_DIRECTORY}
-                --executable=$<TARGET_FILE:woof>
-                --desktop-file=${CPACK_TEMPORARY_DIRECTORY}/${CPACK_PACKAGING_INSTALL_PREFIX}/share/applications/io.github.fabiangreffrath.woof.desktop
-                --icon-file=${CPACK_TEMPORARY_DIRECTORY}/${CPACK_PACKAGING_INSTALL_PREFIX}/share/icons/hicolor/128x128/apps/woof.png
-                --output=appimage)
-        ]])
-    elseif(APPLE)
-        set(CPACK_GENERATOR External)
-        set(CPACK_EXTERNAL_ENABLE_STAGING YES)
-        set(CPACK_PACKAGING_INSTALL_PREFIX "${CMAKE_INSTALL_PREFIX}")
-        set(CPACK_EXTERNAL_PACKAGE_SCRIPT "${PROJECT_BINARY_DIR}/macbundle-generate.cmake")
-        set(CPACK_SYSTEM_NAME "mac")
-        set(CPACK_BUILD_DIR "${PROJECT_BINARY_DIR}")
-
-        file(GENERATE
-            OUTPUT "${PROJECT_BINARY_DIR}/macbundle-generate.cmake"
-            CONTENT [[
-                set(CPACK_OUTPUT_DIR "${CPACK_BUILD_DIR}/${CPACK_PACKAGE_FILE_NAME}")
-                file(MAKE_DIRECTORY ${CPACK_OUTPUT_DIR})
-
-                file(COPY_FILE
-                    $<TARGET_FILE:woof>
-                    ${CPACK_OUTPUT_DIR}/woof)
-                file(COPY_FILE
-                    $<TARGET_FILE:woof-setup>
-                    ${CPACK_OUTPUT_DIR}/woof-setup)
-
-                file(COPY_FILE
-                    ${CPACK_TEMPORARY_DIRECTORY}/${CPACK_PACKAGING_INSTALL_PREFIX}/share/woof/woof.pk3
-                    ${CPACK_OUTPUT_DIR}/woof.pk3)
-                file(COPY
-                    ${CPACK_TEMPORARY_DIRECTORY}/${CPACK_PACKAGING_INSTALL_PREFIX}/share/woof/soundfonts
-                    DESTINATION ${CPACK_OUTPUT_DIR})
-
-                file(CONFIGURE
-                    OUTPUT ${CPACK_OUTPUT_DIR}/Troubleshooting.txt
-                    CONTENT "If you are getting errors like 'libzip.5.5.dylib cant be opened because Apple cannot check it for malicious software.' Run the following command in the woof folder:\n\nxattr -dr com.apple.quarantine path/to/folder")
-
-                execute_process(COMMAND zip -r ${CPACK_PACKAGE_FILE_NAME}.zip ${CPACK_PACKAGE_FILE_NAME})
-            ]])
-else()
-    set(CPACK_GENERATOR TGZ)
-endif()
-set(CPACK_SOURCE_GENERATOR TGZ ZIP)
-set(CPACK_SOURCE_IGNORE_FILES "/.git/;/build;/.vs/;/out/;CMakeSettings.json")
-set(CPACK_STRIP_FILES FALSE)
-include(CPack)
 
 set(BASE_PK3_PATH "${CMAKE_BINARY_DIR}/src/${BASE_PK3}")
 
@@ -270,3 +196,4 @@ add_subdirectory(src)
 add_subdirectory(setup)
 add_subdirectory(man)
 add_subdirectory(netlib)
+add_subdirectory(cmake/packaging)
