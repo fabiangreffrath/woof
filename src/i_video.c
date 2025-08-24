@@ -91,6 +91,7 @@ static boolean fullscreen;
 static boolean vga_porch_flash; // emulate VGA "porch" behaviour
 static boolean smooth_scaling;
 static int video_display = 0; // display index
+static SDL_DisplayID video_display_id; // display instance id
 static boolean disk_icon; // killough 10/98
 
 typedef enum
@@ -155,6 +156,50 @@ void *I_GetSDLWindow(void)
 void *I_GetSDLRenderer(void)
 {
     return renderer;
+}
+
+static int GetDisplayIndexFromID(SDL_DisplayID display_id)
+{
+    int num_displays = 0;
+    SDL_DisplayID *display_ids = SDL_GetDisplays(&num_displays);
+    int display_index = 0;
+
+    if (!display_ids)
+    {
+        I_Error("Failed to get display list: %s", SDL_GetError());
+    }
+
+    for (int i = 0; i < num_displays; i++)
+    {
+        if (display_ids[i] == display_id)
+        {
+            display_index = i;
+            break;
+        }
+    }
+
+    SDL_free(display_ids);
+    return display_index;
+}
+
+static SDL_DisplayID GetDisplayIDFromIndex(int display_index)
+{
+    int num_displays = 0;
+    SDL_DisplayID *display_ids = SDL_GetDisplays(&num_displays);
+    SDL_DisplayID display_id = 0;
+
+    if (!display_ids)
+    {
+        I_Error("Failed to get display list: %s", SDL_GetError());
+    }
+
+    if (display_index >= 0 && display_index < num_displays)
+    {
+        display_id = display_ids[display_index];
+    }
+
+    SDL_free(display_ids);
+    return display_id;
 }
 
 //
@@ -255,6 +300,22 @@ void I_UpdatePriority(boolean active)
                                  : SDL_THREAD_PRIORITY_NORMAL);
 }
 
+static void UpdateDisplayIndex(void)
+{
+    SDL_DisplayID current_id = SDL_GetDisplayForWindow(screen);
+
+    if (current_id == 0)
+    {
+        I_Error("Failed to get display: %s", SDL_GetError());
+    }
+
+    if (video_display_id != current_id)
+    {
+        video_display_id = current_id;
+        video_display = GetDisplayIndexFromID(video_display_id);
+    }
+}
+
 // [FG] window event handling from Chocolate Doom 3.0
 
 static void HandleWindowEvent(SDL_WindowEvent *event)
@@ -297,13 +358,12 @@ static void HandleWindowEvent(SDL_WindowEvent *event)
             if (!fullscreen)
             {
                 SDL_GetWindowSize(screen, &window_width, &window_height);
-                SDL_GetWindowPosition(screen, &window_x, &window_y);
             }
             window_resize = true;
             break;
 
         case SDL_EVENT_WINDOW_MOVED:
-            video_display = SDL_GetDisplayForWindow(screen);
+            UpdateDisplayIndex();
             break;
 
         default:
@@ -1125,7 +1185,7 @@ static void CenterWindow(int *x, int *y, int w, int h)
 {
     SDL_Rect bounds;
 
-    if (!SDL_GetDisplayBounds(video_display, &bounds))
+    if (!SDL_GetDisplayBounds(video_display_id, &bounds))
     {
         I_Printf(VB_WARNING,
                  "CenterWindow: Failed to read display bounds "
@@ -1136,26 +1196,6 @@ static void CenterWindow(int *x, int *y, int w, int h)
 
     *x = bounds.x + MAX((bounds.w - w) / 2, 0);
     *y = bounds.y + MAX((bounds.h - h) / 2, 0);
-}
-
-static void I_ResetInvalidDisplayIndex(void)
-{
-    // Check that video_display corresponds to a display that really exists,
-    // and if it doesn't, reset it.
-    int count;
-    SDL_DisplayID *ids = SDL_GetDisplays(&count);
-    if (!ids)
-    {
-        I_Error("Failed to get display list: %s", SDL_GetError());
-    }
-    for (int i = 0; i < count; ++i)
-    {
-        if (video_display == ids[i])
-        {
-            return;
-        }
-    }
-    video_display = ids[0];
 }
 
 static void I_GetWindowPosition(int *x, int *y, int w, int h)
@@ -1393,9 +1433,36 @@ static void ResetLogicalSize(void)
     }
 }
 
-static void I_ResetTargetRefresh(void)
+static void UpdateUncapped(void)
 {
     uncapped = default_uncapped;
+
+    //!
+    // @category video
+    //
+    // Enables uncapped framerate.
+    //
+
+    if (M_CheckParm("-uncapped"))
+    {
+        uncapped = true;
+    }
+
+    //!
+    // @category video
+    //
+    // Disables uncapped framerate.
+    //
+
+    else if (M_CheckParm("-nouncapped"))
+    {
+        uncapped = false;
+    }
+}
+
+static void I_ResetTargetRefresh(void)
+{
+    UpdateUncapped();
 
     if (fpslimit < TICRATE)
     {
@@ -1417,6 +1484,19 @@ static void I_ResetTargetRefresh(void)
     drs_skip_frame = true;
 }
 
+static void I_ResetInvalidDisplayIndex(void)
+{
+    // Check that video_display corresponds to a display that really exists,
+    // and if it doesn't, reset it.
+    video_display_id = GetDisplayIDFromIndex(video_display);
+
+    if (video_display_id == 0)
+    {
+        video_display = 0;
+        video_display_id = GetDisplayIDFromIndex(video_display);
+    }
+}
+
 //
 // killough 11/98: New routine, for setting hires and page flipping
 //
@@ -1426,7 +1506,7 @@ static void I_InitVideoParms(void)
     int p, tmp_scalefactor;
 
     I_ResetInvalidDisplayIndex();
-    const SDL_DisplayMode *mode = SDL_GetCurrentDisplayMode(video_display);
+    const SDL_DisplayMode *mode = SDL_GetCurrentDisplayMode(video_display_id);
     if (!mode)
     {
         I_Error("Error getting display mode: %s", SDL_GetError());
@@ -1475,31 +1555,8 @@ static void I_InitVideoParms(void)
     window_height = default_window_height;
 
     widescreen = default_widescreen;
-    uncapped = default_uncapped;
     grabmouse = default_grabmouse;
     I_ResetTargetRefresh();
-
-    //!
-    // @category video
-    //
-    // Enables uncapped framerate.
-    //
-
-    if (M_CheckParm("-uncapped"))
-    {
-        uncapped = true;
-    }
-
-    //!
-    // @category video
-    //
-    // Disables uncapped framerate.
-    //
-
-    else if (M_CheckParm("-nouncapped"))
-    {
-        uncapped = false;
-    }
 
     if (M_CheckParm("-grabmouse"))
     {
@@ -1589,7 +1646,7 @@ static void I_InitGraphicsMode(void)
     SDL_WindowFlags flags = 0;
 
     // [FG] window flags
-    flags |= SDL_WINDOW_HIGH_PIXEL_DENSITY;
+    flags |= (SDL_WINDOW_HIGH_PIXEL_DENSITY | SDL_WINDOW_INPUT_FOCUS);
 
     if (fullscreen)
     {

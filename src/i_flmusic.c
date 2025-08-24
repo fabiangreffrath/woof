@@ -19,11 +19,6 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "config.h"
-#include "i_oalstream.h"
-#include "i_system.h"
-#include "m_config.h"
-
 #if (FLUIDSYNTH_VERSION_MAJOR < 2 \
      || (FLUIDSYNTH_VERSION_MAJOR == 2 && FLUIDSYNTH_VERSION_MINOR < 2))
 typedef int fluid_int_t;
@@ -33,13 +28,14 @@ typedef fluid_long_long_t fluid_int_t;
 #endif
 
 #include "d_iwad.h"
-#include "d_main.h"
 #include "doomtype.h"
 #include "i_glob.h"
+#include "i_oalstream.h"
 #include "i_printf.h"
 #include "i_sound.h"
+#include "i_system.h"
 #include "m_array.h"
-#include "m_io.h"
+#include "m_config.h"
 #include "m_misc.h"
 #include "memio.h"
 #include "mus2mid.h"
@@ -302,8 +298,7 @@ static boolean I_FL_InitStream(int device)
 
     if (synth == NULL)
     {
-        I_Printf(VB_ERROR,
-                 "I_FL_InitMusic: FluidSynth failed to initialize synth.");
+        I_Printf(VB_ERROR, "FluidSynth: Failed to initialize synth.");
         return false;
     }
 
@@ -369,8 +364,7 @@ static boolean I_FL_OpenStream(void *data, ALsizei size, ALenum *format,
 
     if (player == NULL)
     {
-        I_Printf(VB_ERROR,
-                 "I_FL_InitMusic: FluidSynth failed to initialize player.");
+        I_Printf(VB_ERROR, "FluidSynth: Failed to initialize player.");
         return false;
     }
 
@@ -405,27 +399,27 @@ static boolean I_FL_OpenStream(void *data, ALsizei size, ALenum *format,
     {
         delete_fluid_player(player);
         player = NULL;
-        I_Printf(VB_ERROR, "I_FL_RegisterSong: Failed to load in-memory song.");
+        I_Printf(VB_ERROR, "FluidSynth: Failed to load in-memory song.");
         return false;
     }
 
-    *format = AL_FORMAT_STEREO16;
+    *format = AL_FORMAT_STEREO_FLOAT32;
     *freq = SND_SAMPLERATE;
-    *frame_size = 2 * sizeof(short);
+    *frame_size = 2 * sizeof(float);
 
     return true;
 }
 
-static int I_FL_FillStream(byte *buffer, int buffer_samples)
+static int I_FL_FillStream(void *buffer, int buffer_samples)
 {
     int result;
 
-    result = fluid_synth_write_s16(synth, buffer_samples, buffer, 0, 2, buffer,
-                                   1, 2);
+    result = fluid_synth_write_float(synth, buffer_samples, buffer, 0, 2,
+                                     buffer, 1, 2);
 
     if (result != FLUID_OK)
     {
-        I_Printf(VB_ERROR, "FL_Callback: Error generating FluidSynth audio");
+        I_Printf(VB_ERROR, "FluidSynth: Error generating audio");
     }
 
     return buffer_samples;

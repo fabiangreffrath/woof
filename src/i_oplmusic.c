@@ -1618,7 +1618,7 @@ static void I_OPL_PlayStream(boolean looping)
     }
 }
 
-static int I_OPL_FillStream(byte *buffer, int buffer_samples)
+static int I_OPL_FillStream(void *buffer, int buffer_samples)
 {
     return OPL_FillBuffer(buffer, buffer_samples);
 }
