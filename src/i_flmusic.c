@@ -36,6 +36,7 @@ typedef fluid_long_long_t fluid_int_t;
 #include "i_system.h"
 #include "m_array.h"
 #include "m_config.h"
+#include "m_io.h"
 #include "m_misc.h"
 #include "memio.h"
 #include "mus2mid.h"
