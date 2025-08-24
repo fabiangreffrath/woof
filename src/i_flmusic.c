@@ -141,24 +141,24 @@ static void ScanDir(const char *dir, boolean makedir)
 typedef struct {
     char *(*func)(void);
     const char *dir;
-    char *(*other_func)(void);
+    char *(*check_func)(void);
     boolean makedir;
 } soundfont_dir_t;
 
 static const soundfont_dir_t soundfont_dirs[] = {
     {D_DoomPrefDir, "soundfonts", NULL, true},
-    {D_DoomExeDir, "soundfonts", D_DoomPrefDir, false},
+    {D_DoomExeDir, "soundfonts", D_DoomPrefDir},
 #if !defined(_WIN32)
     // RedHat/Fedora/Arch
-    {NULL, "/usr/share/soundfonts", NULL, false},
-    {M_DataDir, "soundfonts", NULL, false},
+    {NULL, "/usr/share/soundfonts"},
+    {M_DataDir, "soundfonts"},
     // Debian/Ubuntu/OpenSUSE
-    {NULL, "/usr/share/sounds/sf2", NULL, false},
-    {M_DataDir, "sounds/sf2", NULL, false},
-    {NULL, "/usr/share/sounds/sf3", NULL, false},
-    {M_DataDir, "sounds/sf3", NULL, false},
+    {NULL, "/usr/share/sounds/sf2"},
+    {M_DataDir, "sounds/sf2"},
+    {NULL, "/usr/share/sounds/sf3"},
+    {M_DataDir, "sounds/sf3"},
     // AppImage
-    {D_DoomExeDir, "../share/" PROJECT_SHORTNAME "/soundfonts", NULL, false},
+    {D_DoomExeDir, "../share/" PROJECT_SHORTNAME "/soundfonts"},
 #endif
 };
 
@@ -173,7 +173,7 @@ static void GetSoundFonts(void)
     {
         const soundfont_dir_t d = soundfont_dirs[i];
 
-        if (d.other_func != NULL && d.other_func() == d.func())
+        if (d.check_func && d.func && d.check_func() == d.func())
         {
             continue;
         }
