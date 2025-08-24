@@ -244,6 +244,8 @@ typedef struct
 {
     int x;
     int y1, y2;
+    int height;
+    int topoffset;
 
     fixed_t frac;
     fixed_t step;
@@ -455,12 +457,12 @@ static void DrawMaskedColumn(patch_column_t *patchcol, const int ytop,
             }
 
             patchcol->y1 = y1lookup[columntop];
-            patchcol->frac = 0;
+            patchcol->frac = patchcol->topoffset << FRACBITS;
         }
         else
         {
             patchcol->frac = (-columntop) << FRACBITS;
-            patchcol->y1 = 0;
+            patchcol->y1 = patchcol->topoffset << FRACBITS;
         }
 
         if (columntop + column->length - 1 < 0)
@@ -469,7 +471,12 @@ static void DrawMaskedColumn(patch_column_t *patchcol, const int ytop,
         }
         if (columntop + column->length - 1 < SCREENHEIGHT)
         {
-            patchcol->y2 = y2lookup[columntop + column->length - 1];
+            int y2 = columntop + column->length - 1;
+            if (patchcol->height)
+            {
+                y2 = MIN(y2, ytop + patchcol->height - 1);
+            }
+            patchcol->y2 = y2lookup[y2];
         }
         else
         {
@@ -493,13 +500,21 @@ static void DrawMaskedColumn(patch_column_t *patchcol, const int ytop,
     }
 }
 
-static void DrawPatchInternal(int x, int y, patch_t *patch, boolean flipped)
+static void DrawPatchInternal(int x, int y, crop_t crop, patch_t *patch,
+                              boolean flipped)
 {
     int x1, x2, w;
     fixed_t iscale, xiscale, startfrac = 0;
     patch_column_t patchcol = {0};
 
-    w = SHORT(patch->width);
+    if (crop.width)
+    {
+        w = crop.width;
+    }
+    else
+    {
+        w = SHORT(patch->width);
+    }
 
     // calculate edges of the shape
     if (flipped)
@@ -580,28 +595,32 @@ static void DrawPatchInternal(int x, int y, patch_t *patch, boolean flipped)
         startfrac += xiscale * (patchcol.x - x1);
     }
 
+    patchcol.height = crop.height;
+    patchcol.topoffset = crop.topoffset;
+
+    column_t *column;
+    int texturecolumn;
+
+    w = SHORT(patch->width);
+    int leftoffset = crop.midoffset ? w / 2 + crop.midoffset : crop.leftoffset;
+
+    const int ytop = y - SHORT(patch->topoffset);
+    for (; patchcol.x <= x2; patchcol.x++, startfrac += xiscale)
     {
-        column_t *column;
-        int texturecolumn;
+        texturecolumn = (startfrac >> FRACBITS) + leftoffset;
 
-        const int ytop = y - SHORT(patch->topoffset);
-        for (; patchcol.x <= x2; patchcol.x++, startfrac += xiscale)
+        if (texturecolumn < 0)
         {
-            texturecolumn = startfrac >> FRACBITS;
-
-            if (texturecolumn < 0)
-            {
-                continue;
-            }
-            else if (texturecolumn >= w)
-            {
-                break;
-            }
-
-            column = (column_t *)((byte *)patch
-                                  + LONG(patch->columnofs[texturecolumn]));
-            DrawMaskedColumn(&patchcol, ytop, column);
+            continue;
         }
+        else if (texturecolumn >= w)
+        {
+            break;
+        }
+
+        column = (column_t *)((byte *)patch
+                              + LONG(patch->columnofs[texturecolumn]));
+        DrawMaskedColumn(&patchcol, ytop, column);
     }
 }
 
@@ -624,16 +643,17 @@ static void DrawPatchInternal(int x, int y, patch_t *patch, boolean flipped)
 // killough 11/98: Consolidated V_DrawPatch and V_DrawPatchFlipped into one
 //
 
-void V_DrawPatchGeneral(int x, int y, patch_t *patch, boolean flipped)
+void V_DrawPatchGeneral(int x, int y, crop_t crop,
+                        patch_t *patch, boolean flipped)
 {
     x += video.deltaw;
 
     drawcolfunc = DrawPatchColumn;
 
-    DrawPatchInternal(x, y, patch, flipped);
+    DrawPatchInternal(x, y, crop, patch, flipped);
 }
 
-void V_DrawPatchTranslated(int x, int y, patch_t *patch, byte *outr)
+void V_DrawPatchTR(int x, int y, crop_t crop, patch_t *patch, byte *outr)
 {
     x += video.deltaw;
 
@@ -647,20 +667,26 @@ void V_DrawPatchTranslated(int x, int y, patch_t *patch, byte *outr)
         drawcolfunc = DrawPatchColumn;
     }
 
-    DrawPatchInternal(x, y, patch, false);
+    DrawPatchInternal(x, y, crop, patch, false);
 }
 
-void V_DrawPatchTL(int x, int y, struct patch_s *patch, byte *tl)
+void V_DrawPatchTranslated(int x, int y, patch_t *patch, byte *outr)
+{
+    V_DrawPatchTR(x, y, (crop_t){0}, patch, outr);
+}
+
+void V_DrawPatchTL(int x, int y, crop_t crop, struct patch_s *patch, byte *tl)
 {
     x += video.deltaw;
 
     tranmap = tl;
     drawcolfunc = DrawPatchColumnTL;
 
-    DrawPatchInternal(x, y, patch, false);
+    DrawPatchInternal(x, y, crop, patch, false);
 }
 
-void V_DrawPatchTRTL(int x, int y, struct patch_s *patch, byte *outr, byte *tl)
+void V_DrawPatchTRTL(int x, int y, crop_t crop, struct patch_s *patch,
+                     byte *outr, byte *tl)
 {
     x += video.deltaw;
 
@@ -668,10 +694,11 @@ void V_DrawPatchTRTL(int x, int y, struct patch_s *patch, byte *outr, byte *tl)
     tranmap = tl;
     drawcolfunc = DrawPatchColumnTRTL;
 
-    DrawPatchInternal(x, y, patch, false);
+    DrawPatchInternal(x, y, crop, patch, false);
 }
 
-void V_DrawPatchTRTR(int x, int y, patch_t *patch, byte *outr1, byte *outr2)
+void V_DrawPatchTRTR(int x, int y, crop_t crop, patch_t *patch,
+                     byte *outr1, byte *outr2)
 {
     x += video.deltaw;
 
@@ -679,7 +706,7 @@ void V_DrawPatchTRTR(int x, int y, patch_t *patch, byte *outr1, byte *outr2)
     translation2 = outr2;
     drawcolfunc = DrawPatchColumnTRTR;
 
-    DrawPatchInternal(x, y, patch, false);
+    DrawPatchInternal(x, y, crop, patch, false);
 }
 
 void V_DrawPatchFullScreen(patch_t *patch)
@@ -697,7 +724,7 @@ void V_DrawPatchFullScreen(patch_t *patch)
 
     drawcolfunc = DrawPatchColumn;
 
-    DrawPatchInternal(x, 0, patch, false);
+    DrawPatchInternal(x, 0, (crop_t){0}, patch, false);
 }
 
 void V_ShadeScreen(void)

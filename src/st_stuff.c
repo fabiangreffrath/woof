@@ -1223,8 +1223,9 @@ static void ResetStatusBar(void)
     ST_ResetTitle();
 }
 
-static void DrawPatch(int x, int y, int maxheight, sbaralignment_t alignment,
-                      patch_t *patch, crange_idx_e cr, byte *tl)
+static void DrawPatch(int x, int y, crop_t crop, int maxheight,
+                      sbaralignment_t alignment, patch_t *patch,
+                      crange_idx_e cr, byte *tl)
 {
     if (!patch)
     {
@@ -1237,6 +1238,10 @@ static void DrawPatch(int x, int y, int maxheight, sbaralignment_t alignment,
     if (alignment & sbe_h_middle)
     {
         x = x - width / 2 + SHORT(patch->leftoffset);
+        if (crop.midoffset)
+        {
+            x += width / 2 + crop.midoffset;
+        }
     }
     else if (alignment & sbe_h_right)
     {
@@ -1265,15 +1270,15 @@ static void DrawPatch(int x, int y, int maxheight, sbaralignment_t alignment,
 
     if (outr && tl)
     {
-        V_DrawPatchTRTL(x, y, patch, outr, tl);
+        V_DrawPatchTRTL(x, y, crop, patch, outr, tl);
     }
     else if (tl)
     {
-        V_DrawPatchTL(x, y, patch, tl);
+        V_DrawPatchTL(x, y, crop, patch, tl);
     }
     else
     {
-        V_DrawPatchTranslated(x, y, patch, outr);
+        V_DrawPatchTR(x, y, crop, patch, outr);
     }
 }
 
@@ -1306,8 +1311,9 @@ static void DrawGlyphNumber(int x, int y, sbarelem_t *elem, patch_t *glyph)
 
     if (glyph)
     {
-        DrawPatch(x + number->xoffset, y, font->maxheight, elem->alignment,
-                  glyph, elem->crboom == CR_NONE ? elem->cr : elem->crboom,
+        DrawPatch(x + number->xoffset, y, (crop_t){0}, font->maxheight,
+                  elem->alignment, glyph,
+                  elem->crboom == CR_NONE ? elem->cr : elem->crboom,
                   elem->tranmap);
     }
 
@@ -1355,8 +1361,8 @@ static void DrawGlyphLine(int x, int y, sbarelem_t *elem, widgetline_t *line,
 
     if (glyph)
     {
-        DrawPatch(x + line->xoffset, y, font->maxheight, elem->alignment, glyph,
-                  elem->cr, elem->tranmap);
+        DrawPatch(x + line->xoffset, y, (crop_t){0}, font->maxheight,
+                  elem->alignment, glyph, elem->cr, elem->tranmap);
     }
 
     if (elem->alignment & sbe_h_middle)
@@ -1483,14 +1489,15 @@ static void DrawElem(int x, int y, sbarelem_t *elem, player_t *player)
         case sbe_graphic:
             {
                 sbe_graphic_t *graphic = elem->subtype.graphic;
-                DrawPatch(x, y, 0, elem->alignment, graphic->patch, elem->cr,
-                          elem->tranmap);
+                DrawPatch(x, y, graphic->crop, 0, elem->alignment,
+                          graphic->patch, elem->cr, elem->tranmap);
             }
             break;
 
         case sbe_facebackground:
             {
-                DrawPatch(x, y, 0, elem->alignment,
+                sbe_facebackground_t *facebackground = elem->subtype.facebackground;
+                DrawPatch(x, y, facebackground->crop, 0, elem->alignment,
                           facebackpatches[displayplayer], elem->cr,
                           elem->tranmap);
             }
@@ -1499,7 +1506,7 @@ static void DrawElem(int x, int y, sbarelem_t *elem, player_t *player)
         case sbe_face:
             {
                 sbe_face_t *face = elem->subtype.face;
-                DrawPatch(x, y, 0, elem->alignment,
+                DrawPatch(x, y, face->crop, 0, elem->alignment,
                           facepatches[face->faceindex], elem->cr,
                           elem->tranmap);
             }
@@ -1510,8 +1517,8 @@ static void DrawElem(int x, int y, sbarelem_t *elem, player_t *player)
                 sbe_animation_t *animation = elem->subtype.animation;
                 patch_t *patch =
                     animation->frames[animation->frame_index].patch;
-                DrawPatch(x, y, 0, elem->alignment, patch, elem->cr,
-                          elem->tranmap);
+                DrawPatch(x, y, (crop_t){0}, 0, elem->alignment, patch,
+                          elem->cr, elem->tranmap);
             }
             break;
 
