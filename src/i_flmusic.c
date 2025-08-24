@@ -110,7 +110,7 @@ static fluid_long_long_t FL_sftell(void *handle)
     return mem_ftell((MEMFILE *)handle);
 }
 
-static void DoScanDir(const char *dir, boolean makedir)
+static void ScanDir(const char *dir, boolean makedir)
 {
     I_Printf(VB_DEBUG, "Scanning for soundfonts in %s", dir);
 
@@ -184,16 +184,16 @@ static void GetSoundFonts(void)
         if (d.func && d.dir)
         {
             char *dir = M_StringJoin(d.func(), DIR_SEPARATOR_S, d.dir);
-            DoScanDir(dir, d.makedir);
+            ScanDir(dir, d.makedir);
             free(dir);
         }
         else if (d.dir)
         {
-            DoScanDir(d.dir, d.makedir);
+            ScanDir(d.dir, d.makedir);
         }
         else if (d.func)
         {
-            DoScanDir(d.func(), d.makedir);
+            ScanDir(d.func(), d.makedir);
         }
     }
 }
