@@ -138,18 +138,16 @@ static void ScanDir(const char *dir, boolean makedir)
     I_EndGlob(glob);
 }
 
-static boolean exe_not_equal_pref;
-
 typedef struct {
     char *(*func)(void);
     const char *dir;
-    boolean *condition;
+    char *(*other_func)(void);
     boolean makedir;
 } soundfont_dir_t;
 
 static const soundfont_dir_t soundfont_dirs[] = {
     {D_DoomPrefDir, "soundfonts", NULL, true},
-    {D_DoomExeDir, "soundfonts", &exe_not_equal_pref, false},
+    {D_DoomExeDir, "soundfonts", D_DoomPrefDir, false},
 #if !defined(_WIN32)
     // RedHat/Fedora/Arch
     {NULL, "/usr/share/soundfonts", NULL, false},
@@ -171,13 +169,11 @@ static void GetSoundFonts(void)
         return;
     }
 
-    exe_not_equal_pref = (D_DoomExeDir() != D_DoomPrefDir());
-
     for (int i = 0; i < arrlen(soundfont_dirs); ++i)
     {
         const soundfont_dir_t d = soundfont_dirs[i];
 
-        if (d.condition != NULL && *d.condition == false)
+        if (d.other_func != NULL && d.other_func() == d.func())
         {
             continue;
         }
