@@ -46,6 +46,7 @@ typedef fluid_long_long_t fluid_int_t;
 #include "w_wad.h"
 #include "z_zone.h"
 
+static const char *soundfont_dir = "";
 static int fl_polyphony;
 static boolean fl_interpolation;
 static boolean fl_reverb;
@@ -195,6 +196,36 @@ static void GetSoundFonts(void)
         {
             ScanDir(d.func(), d.makedir);
         }
+    }
+
+    if (strlen(soundfont_dir) > 0)
+    {
+        // Split into individual dirs within the list.
+        char *dup_path = M_StringDuplicate(soundfont_dir);
+        char *left = dup_path;
+
+        while (1)
+        {
+            char *p = strchr(left, PATH_SEPARATOR);
+            if (p != NULL)
+            {
+                // Break at the separator and use the left hand side
+                // as another soundfont dir
+                *p = '\0';
+
+                ScanDir(left, false);
+
+                left = p + 1;
+            }
+            else
+            {
+                break;
+            }
+        }
+
+        ScanDir(left, false);
+
+        free(dup_path);
     }
 }
 
@@ -472,6 +503,8 @@ static const char **I_FL_DeviceList(void)
 
 static void I_FL_BindVariables(void)
 {
+    M_BindStr("soundfont_dir", &soundfont_dir, "", wad_no,
+        "[FluidSynth] Additional soundfont directories");
     BIND_NUM(fl_polyphony, 256, 1, 65535,
         "[FluidSynth] Number of voices that can be played in parallel");
     BIND_BOOL(fl_interpolation, false,
