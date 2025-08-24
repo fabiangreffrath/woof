@@ -1,8 +1,8 @@
 vcpkg_from_github(
     OUT_SOURCE_PATH SOURCE_PATH
     REPO FluidSynth/fluidsynth
-    REF 671d80fffbc61ddc86b64b61c5d4b788d69f5009
-    SHA512 7e910cca0bb86badd45ae8de7638c1ffcb1478af2cd97b9bcfa5607e627cd2177d2f53e598ee4b1532e39047c01c94fb8732f05e23092f428ede26c3057f4012
+    REF c5125b5dfee828ea715618d620651b6d135a39cb
+    SHA512 e01a2c4c6d7c3c22b298202e6e6d824dd4afa0b5ba59d556da9a3e89b704751fc904ec8e549cecaf25a8f1da46b630a595f4838cf50d10451e9099433cc65e4e
     HEAD_REF master
 )
 # Do not use or install FindSndFileLegacy.cmake and its deps
@@ -40,15 +40,12 @@ foreach(_option IN LISTS OPTIONS_TO_DISABLE IGNORED_OPTIONS)
     list(APPEND DISABLED_OPTIONS "-D${_option}:BOOL=OFF")
 endforeach()
 
-vcpkg_find_acquire_program(PKGCONFIG)
 vcpkg_cmake_configure(
     SOURCE_PATH "${SOURCE_PATH}"
     OPTIONS
-        "-DVCPKG_HOST_TRIPLET=${HOST_TRIPLET}"
         "-Dosal=cpp11"
         ${FEATURE_OPTIONS}
         ${DISABLED_OPTIONS}
-        "-DPKG_CONFIG_EXECUTABLE=${PKGCONFIG}"
         "-DCMAKE_CXX_FLAGS=${STATIC_LIBSTDPP}"
     MAYBE_UNUSED_VARIABLES
         ${OPTIONS_TO_DISABLE}

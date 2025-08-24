@@ -6,11 +6,7 @@
   "license": "LGPL-2.1-or-later",
   "supports": "!xbox",
   "dependencies": [
-    {
-      "name": "fluidsynth",
-      "host": true,
-      "default-features": false
-    },
+    "gcem",
     {
       "name": "vcpkg-cmake",
       "host": true
