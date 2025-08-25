@@ -36,13 +36,14 @@ typedef fluid_long_long_t fluid_int_t;
 #include "i_system.h"
 #include "m_array.h"
 #include "m_config.h"
+#include "m_io.h"
 #include "m_misc.h"
 #include "memio.h"
 #include "mus2mid.h"
 #include "w_wad.h"
 #include "z_zone.h"
 
-static const char *soundfont_dir = "";
+static const char *soundfont_dirs = "";
 static int fl_polyphony;
 static boolean fl_interpolation;
 static boolean fl_reverb;
@@ -107,45 +108,17 @@ static fluid_long_long_t FL_sftell(void *handle)
     return mem_ftell((MEMFILE *)handle);
 }
 
-static void ScanDir(const char *dir, boolean recursion)
+static void ScanDir(const char *dir, boolean makedir)
 {
-    glob_t *glob;
-
-    if (recursion == false)
-    {
-        // [FG] replace global "/usr/share" with user's "~/.local/share"
-        const char usr_share[] = "/usr/share";
-        if (strncmp(dir, usr_share, strlen(usr_share)) == 0)
-        {
-            char *local_share = M_DataDir();
-            char *local_dir = M_StringReplace(dir, usr_share, local_share);
-            ScanDir(local_dir, true);
-            free(local_dir);
-        }
-        else if (dir[0] == '.')
-        {
-            // [FG] relative to the executable directory
-            char *rel = M_StringJoin(D_DoomExeDir(), DIR_SEPARATOR_S, dir);
-            ScanDir(rel, true);
-            free(rel);
-
-            // [FG] relative to the config directory (if different)
-            if (dir[1] != '.' && strcmp(D_DoomExeDir(), D_DoomPrefDir()) != 0)
-            {
-                rel = M_StringJoin(D_DoomPrefDir(), DIR_SEPARATOR_S, dir);
-                ScanDir(rel, true);
-                free(rel);
-            }
-
-            // [FG] never absolute path
-            return;
-        }
-    }
-
     I_Printf(VB_DEBUG, "Scanning for soundfonts in %s", dir);
 
-    glob = I_StartMultiGlob(dir, GLOB_FLAG_NOCASE | GLOB_FLAG_SORTED, "*.sf2",
-                            "*.sf3");
+    if (makedir)
+    {
+        M_MakeDirectory(dir);
+    }
+
+    glob_t *glob = I_StartMultiGlob(dir, GLOB_FLAG_NOCASE | GLOB_FLAG_SORTED,
+                                    "*.sf2", "*.sf3");
 
     while (1)
     {
@@ -164,40 +137,92 @@ static void ScanDir(const char *dir, boolean recursion)
 
 static void GetSoundFonts(void)
 {
-    char *left, *p, *dup_path;
-
     if (array_size(soundfonts))
     {
         return;
     }
 
-    // Split into individual dirs within the list.
-    dup_path = M_StringDuplicate(soundfont_dir);
-
-    left = dup_path;
-
-    while (1)
+    if (strlen(soundfont_dirs) > 0)
     {
-        p = strchr(left, PATH_SEPARATOR);
-        if (p != NULL)
+        // Split into individual dirs within the list.
+        char *dup_path = M_StringDuplicate(soundfont_dirs);
+        char *left = dup_path;
+
+        while (1)
         {
-            // Break at the separator and use the left hand side
-            // as another soundfont dir
-            *p = '\0';
+            char *p = strchr(left, PATH_SEPARATOR);
+            if (p != NULL)
+            {
+                // Break at the separator and use the left hand side
+                // as another soundfont dir
+                *p = '\0';
 
-            ScanDir(left, false);
+                ScanDir(left, false);
 
-            left = p + 1;
+                left = p + 1;
+            }
+            else
+            {
+                break;
+            }
         }
-        else
+
+        ScanDir(left, false);
+
+        free(dup_path);
+    }
+    else
+    {
+        typedef struct
         {
-            break;
+            char *(*func)(void);
+            const char *dir;
+            char *(*check_func)(void);
+            boolean makedir;
+        } constructed_dir_t;
+
+        const constructed_dir_t constructed_dirs[] = {
+            {D_DoomPrefDir, "soundfonts", NULL, true},
+            {D_DoomExeDir, "soundfonts", D_DoomPrefDir},
+#if !defined(_WIN32)
+            // RedHat/Fedora/Arch
+            {NULL, "/usr/share/soundfonts"},
+            {M_DataDir, "soundfonts"},
+            // Debian/Ubuntu/OpenSUSE
+            {NULL, "/usr/share/sounds/sf2"},
+            {M_DataDir, "sounds/sf2"},
+            {NULL, "/usr/share/sounds/sf3"},
+            {M_DataDir, "sounds/sf3"},
+            // AppImage
+            {D_DoomExeDir, "../share/" PROJECT_SHORTNAME "/soundfonts"},
+#endif
+        };
+
+        for (int i = 0; i < arrlen(constructed_dirs); ++i)
+        {
+            const constructed_dir_t d = constructed_dirs[i];
+
+            if (d.check_func && d.func && d.check_func() == d.func())
+            {
+                continue;
+            }
+
+            if (d.func && d.dir)
+            {
+                char *dir = M_StringJoin(d.func(), DIR_SEPARATOR_S, d.dir);
+                ScanDir(dir, d.makedir);
+                free(dir);
+            }
+            else if (d.dir)
+            {
+                ScanDir(d.dir, d.makedir);
+            }
+            else if (d.func)
+            {
+                ScanDir(d.func(), d.makedir);
+            }
         }
     }
-
-    ScanDir(left, false);
-
-    free(dup_path);
 }
 
 static void FreeSynthAndSettings(void)
@@ -472,20 +497,8 @@ static const char **I_FL_DeviceList(void)
 
 static void I_FL_BindVariables(void)
 {
-    M_BindStr("soundfont_dir", &soundfont_dir,
-#if defined(_WIN32)
-    "soundfonts",
-#else
-    "./soundfonts:"
-    // RedHat/Fedora/Arch
-    "/usr/share/soundfonts:"
-    // Debian/Ubuntu/OpenSUSE
-    "/usr/share/sounds/sf2:"
-    "/usr/share/sounds/sf3:"
-    // AppImage
-    "../share/" PROJECT_SHORTNAME "/soundfonts",
-#endif
-    wad_no, "[FluidSynth] Soundfont directories");
+    M_BindStr("soundfont_dirs", &soundfont_dirs, "", wad_no,
+        "[FluidSynth] Soundfont directories");
     BIND_NUM(fl_polyphony, 256, 1, 65535,
         "[FluidSynth] Number of voices that can be played in parallel");
     BIND_BOOL(fl_interpolation, false,
