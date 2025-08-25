@@ -55,6 +55,7 @@ static stream_module_t *stream_modules[] =
 #if defined(HAVE_LIBXMP)
     &stream_xmp_module,
 #endif
+    &stream_mp3_module
 };
 
 static stream_module_t *midi_modules[] =
@@ -412,7 +413,7 @@ void I_OAL_ShutdownStream(void)
     alDeleteBuffers(NUM_BUFFERS, player.buffers);
     if (alGetError() != AL_NO_ERROR)
     {
-        I_Printf(VB_ERROR, "I_OAL_ShutdownMusic: Failed to delete object IDs.");
+        I_Printf(VB_ERROR, "I_OAL_ShutdownStream: Failed to delete object IDs.");
     }
 
     memset(&player, 0, sizeof(stream_player_t));
