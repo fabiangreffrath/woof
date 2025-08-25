@@ -461,7 +461,7 @@ void P_RemoveAllActiveCeilings(void)
     ceilinglist_t *next = activeceilings->next;
     activeceilings = next;
   }
-  M_ClearArena(activeceilings_arena);
+  M_ArenaClear(activeceilings_arena);
 }
 
 //----------------------------------------------------------------------------

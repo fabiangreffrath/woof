@@ -429,7 +429,7 @@ void P_RemoveAllActivePlats(void)
     platlist_t *next = activeplats->next;
     activeplats = next;
   }
-  M_ClearArena(activeplats_arena);
+  M_ArenaClear(activeplats_arena);
 }
 
 //----------------------------------------------------------------------------

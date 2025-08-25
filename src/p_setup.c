@@ -1706,8 +1706,8 @@ void P_SetupLevel(int episode, int map, int playermask, skill_t skill)
   S_Start();
 
   Z_FreeTag(PU_LEVEL);
-  M_ClearArena(thinkers_arena);
-  M_ClearArena(msecnodes_arena);
+  M_ArenaClear(thinkers_arena);
+  M_ArenaClear(msecnodes_arena);
 
   Z_FreeTag(PU_CACHE);
 
@@ -1845,10 +1845,10 @@ void P_Init (void)
   R_InitSprites(sprnames);
 
   #define SIZE_MB(x) ((x) * 1024 * 1024)
-  thinkers_arena = M_InitArena(SIZE_MB(256), SIZE_MB(2));
-  msecnodes_arena = M_InitArena(SIZE_MB(32), SIZE_MB(1));
-  activeceilings_arena = M_InitArena(SIZE_MB(32), SIZE_MB(1));
-  activeplats_arena = M_InitArena(SIZE_MB(32), SIZE_MB(1));
+  thinkers_arena = M_ArenaInit(SIZE_MB(256), SIZE_MB(2));
+  msecnodes_arena = M_ArenaInit(SIZE_MB(32), SIZE_MB(1));
+  activeceilings_arena = M_ArenaInit(SIZE_MB(32), SIZE_MB(1));
+  activeplats_arena = M_ArenaInit(SIZE_MB(32), SIZE_MB(1));
   #undef SIZE_MB
 }
 

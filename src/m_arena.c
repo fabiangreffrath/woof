@@ -22,6 +22,8 @@
 
 #include "i_region.h"
 #include "i_system.h"
+
+#define M_ARRAY_INIT_CAPACITY 32
 #include "m_array.h"
 
 typedef struct
@@ -44,9 +46,11 @@ struct arena_s
 
 void *M_ArenaAlloc(arena_t *arena, size_t count, size_t size, size_t align)
 {
-    block_t *block;
-    array_foreach(block, arena->deleted)
+    int deleted_size = array_size(arena->deleted);
+    for (int i = 0; i < deleted_size; ++i)
     {
+        block_t *block = &arena->deleted[i];
+
         if (block->size == size && block->align == align
             && array_size(block->ptrs))
         {
@@ -79,16 +83,18 @@ void *M_ArenaAlloc(arena_t *arena, size_t count, size_t size, size_t align)
         arena->end = arena->buffer + buffer_size * 2;
     }
 
-    void *p = arena->beg + padding;
+    void *ptr = arena->beg + padding;
     arena->beg += padding + count * size;
-    return p;
+    return ptr;
 }
 
-void M_FreeBlock(arena_t *arena, void *ptr, size_t size, size_t align)
+void M_ArenaFree(arena_t *arena, void *ptr, size_t size, size_t align)
 {
-    block_t *block;
-    array_foreach(block, arena->deleted)
+    int deleted_size = array_size(arena->deleted);
+    for (int i = 0; i < deleted_size; ++i)
     {
+        block_t *block = &arena->deleted[i];
+
         if (block->size == size && block->align == align)
         {
             array_push(block->ptrs, ptr);
@@ -96,12 +102,12 @@ void M_FreeBlock(arena_t *arena, void *ptr, size_t size, size_t align)
         }
     }
 
-    block_t new_block = {.ptrs = NULL, .size = size, .align = align};
-    array_push(new_block.ptrs, ptr);
-    array_push(arena->deleted, new_block);
+    block_t block = {.ptrs = NULL, .size = size, .align = align};
+    array_push(block.ptrs, ptr);
+    array_push(arena->deleted, block);
 }
 
-arena_t *M_InitArena(size_t reserve, size_t commit)
+arena_t *M_ArenaInit(size_t reserve, size_t commit)
 {
     arena_t *arena = calloc(1, sizeof(*arena));
 
@@ -131,7 +137,7 @@ static void FreeBlocks(block_t *blocks)
     array_free(blocks);
 }
 
-void M_ClearArena(arena_t *arena)
+void M_ArenaClear(arena_t *arena)
 {
     arena->beg = arena->buffer;
 
@@ -177,7 +183,7 @@ static block_t *CopyBlocks(const block_t *from)
     return to;
 }
 
-arena_copy_t *M_CopyArena(const arena_t *arena)
+arena_copy_t *M_ArenaCopy(const arena_t *arena)
 {
     arena_copy_t *copy = calloc(1, sizeof(*copy));
 
@@ -191,7 +197,7 @@ arena_copy_t *M_CopyArena(const arena_t *arena)
     return copy;
 }
 
-void M_RestoreArena(arena_t *arena, const arena_copy_t *copy)
+void M_ArenaRestore(arena_t *arena, const arena_copy_t *copy)
 {
     arena->beg = arena->buffer + copy->size;
     memcpy(arena->buffer, copy->buffer, copy->size);
@@ -200,7 +206,7 @@ void M_RestoreArena(arena_t *arena, const arena_copy_t *copy)
     arena->deleted = CopyBlocks(copy->deleted);
 }
 
-void M_FreeArenaCopy(arena_copy_t *copy)
+void M_ArenaFreeCopy(arena_copy_t *copy)
 {
     FreeBlocks(copy->deleted);
     free(copy->buffer);

@@ -25,17 +25,17 @@ typedef struct arena_s arena_t;
 
 void *M_ArenaAlloc(arena_t *arena, size_t count, size_t size, size_t align);
 
-#define arena_free(a, p, t) M_FreeBlock(a, p, sizeof(t), alignof(t))
+#define arena_free(a, p, t) M_ArenaFree(a, p, sizeof(t), alignof(t))
 
-void M_FreeBlock(arena_t *arena, void *ptr, size_t size, size_t align);
+void M_ArenaFree(arena_t *arena, void *ptr, size_t size, size_t align);
 
-arena_t *M_InitArena(size_t reserve, size_t commit);
-void M_ClearArena(arena_t *arena);
+arena_t *M_ArenaInit(size_t reserve, size_t commit);
+void M_ArenaClear(arena_t *arena);
 
 typedef struct arena_copy_s arena_copy_t;
 
-arena_copy_t *M_CopyArena(const arena_t *arena);
-void M_RestoreArena(arena_t *arena, const arena_copy_t *copy);
-void M_FreeArenaCopy(arena_copy_t *copy);
+arena_copy_t *M_ArenaCopy(const arena_t *arena);
+void M_ArenaRestore(arena_t *arena, const arena_copy_t *copy);
+void M_ArenaFreeCopy(arena_copy_t *copy);
 
 #endif
