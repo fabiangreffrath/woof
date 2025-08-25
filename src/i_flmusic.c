@@ -43,7 +43,7 @@ typedef fluid_long_long_t fluid_int_t;
 #include "w_wad.h"
 #include "z_zone.h"
 
-static const char *soundfont_dir = "";
+static const char *soundfont_dirs = "";
 static int fl_polyphony;
 static boolean fl_interpolation;
 static boolean fl_reverb;
@@ -142,10 +142,10 @@ static void GetSoundFonts(void)
         return;
     }
 
-    if (strlen(soundfont_dir) > 0)
+    if (strlen(soundfont_dirs) > 0)
     {
         // Split into individual dirs within the list.
-        char *dup_path = M_StringDuplicate(soundfont_dir);
+        char *dup_path = M_StringDuplicate(soundfont_dirs);
         char *left = dup_path;
 
         while (1)
@@ -179,9 +179,9 @@ static void GetSoundFonts(void)
             const char *dir;
             char *(*check_func)(void);
             boolean makedir;
-        } soundfont_dir_t;
+        } constructed_dir_t;
 
-        const soundfont_dir_t soundfont_dirs[] = {
+        const constructed_dir_t constructed_dirs[] = {
             {D_DoomPrefDir, "soundfonts", NULL, true},
             {D_DoomExeDir, "soundfonts", D_DoomPrefDir},
 #if !defined(_WIN32)
@@ -198,9 +198,9 @@ static void GetSoundFonts(void)
 #endif
         };
 
-        for (int i = 0; i < arrlen(soundfont_dirs); ++i)
+        for (int i = 0; i < arrlen(constructed_dirs); ++i)
         {
-            const soundfont_dir_t d = soundfont_dirs[i];
+            const constructed_dir_t d = constructed_dirs[i];
 
             if (d.check_func && d.func && d.check_func() == d.func())
             {
@@ -497,7 +497,7 @@ static const char **I_FL_DeviceList(void)
 
 static void I_FL_BindVariables(void)
 {
-    M_BindStr("soundfont_dir", &soundfont_dir, "", wad_no,
+    M_BindStr("soundfont_dirs", &soundfont_dirs, "", wad_no,
         "[FluidSynth] Soundfont directories");
     BIND_NUM(fl_polyphony, 256, 1, 65535,
         "[FluidSynth] Number of voices that can be played in parallel");
