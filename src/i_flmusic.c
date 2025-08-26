@@ -173,14 +173,6 @@ static void GetSoundFonts(void)
     }
     else
     {
-        typedef struct
-        {
-            char *(*func)(void);
-            const char *dir;
-            char *(*check_func)(void);
-            boolean makedir;
-        } constructed_dir_t;
-
         const constructed_dir_t constructed_dirs[] = {
             {D_DoomPrefDir, "soundfonts", NULL, true},
             {D_DoomExeDir, "soundfonts", D_DoomPrefDir},
