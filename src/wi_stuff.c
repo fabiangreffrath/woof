@@ -2100,7 +2100,6 @@ static void WI_overlayNetgameStats(void)
         WI_drawPercent(x - pwidth, y + 10, 100 * players[i].itemcount / (totalitems ? totalitems : 1));
         x += NG_SPACINGX;
         WI_drawPercent(x - pwidth, y + 10, totalsecret ? (100 * players[i].secretcount / totalsecret) : 100);
-        x += NG_SPACINGX;
 
         y += WI_SPACINGY;
     }
