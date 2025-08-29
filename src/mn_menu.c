@@ -65,6 +65,7 @@
 #include "v_fmt.h"
 #include "v_video.h"
 #include "w_wad.h"
+#include "wi_stuff.h"
 #include "z_zone.h"
 
 // [crispy] remove DOS reference from the game quit confirmation dialogs
@@ -2498,6 +2499,11 @@ boolean M_ShortcutResponder(const event_t *ev)
 
     if (M_InputActivated(input_help)) // Help key
     {
+        if (WI_toggleOverlayStats())
+        {
+            return true;
+        }
+
         boolean help2 = (gamemode < commercial || pwad_help2);
         MN_StartControlPanel();
         currentMenu = help2 ? &ReadDef1 : &ReadDef2; // killough 10/98: new help screen

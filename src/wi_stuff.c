@@ -1210,10 +1210,15 @@ WI_drawTime
 // Args:    none
 // Returns: void
 //
+
+static boolean wi_inited = false;
+
 static void WI_unloadData(void)
 {
   int   i;
   int   j;
+
+  wi_inited = false;
 
   if (wiminus)
   Z_ChangeTag(wiminus, PU_CACHE);
@@ -1323,6 +1328,7 @@ static void WI_updateNoState(void)
 
 static boolean    snl_pointeron = false;
 
+static void WI_loadData(void);
 
 // ====================================================================
 // WI_initShowNextLoc
@@ -1347,8 +1353,6 @@ static void WI_initShowNextLoc(void)
       // episode change
       if (wbs->epsd != wbs->nextep)
       {
-          void WI_loadData(void);
-
           wbs->epsd = wbs->nextep;
           wbs->last = wbs->next - 1;
           WI_loadData();
@@ -1721,6 +1725,71 @@ static void WI_drawDeathmatchStats(void)
     }
 }
 
+static void WI_overlayDeathmatchStats(void)
+{
+    V_DrawPatch(DM_TOTALSX - SHORT(total->width) / 2,
+                DM_MATRIXY - WI_SPACINGY + 10, total);
+    V_DrawPatch(DM_KILLERSX, DM_KILLERSY, killers);
+    V_DrawPatch(DM_VICTIMSX, DM_VICTIMSY, victims);
+
+    int x = DM_MATRIXX + DM_SPACINGX;
+    int y = DM_MATRIXY;
+
+    for (int i = 0; i < MAXPLAYERS; i++)
+    {
+        if (playeringame[i])
+        {
+            V_DrawPatch(x - SHORT(p[i]->width) / 2, DM_MATRIXY - WI_SPACINGY,
+                        p[i]);
+
+            V_DrawPatch(DM_MATRIXX - SHORT(p[i]->width) / 2, y, p[i]);
+
+            if (i == displayplayer)
+            {
+                V_DrawPatch(x - SHORT(p[i]->width) / 2,
+                            DM_MATRIXY - WI_SPACINGY, bstar);
+
+                V_DrawPatch(DM_MATRIXX - SHORT(p[i]->width) / 2, y, star);
+            }
+        }
+        x += DM_SPACINGX;
+        y += WI_SPACINGY;
+    }
+
+    // draw stats
+    y = DM_MATRIXY + 10;
+    int w = SHORT(num[0]->width);
+
+    for (int i = 0; i < MAXPLAYERS; i++)
+    {
+        x = DM_MATRIXX + DM_SPACINGX;
+
+        if (playeringame[i])
+        {
+            int totals = 0;
+
+            for (int j = 0; j < MAXPLAYERS; j++)
+            {
+                if (playeringame[j])
+                {
+                    WI_drawNum(x + w, y, CLAMP(players[i].frags[j], -999, 999), 2);
+
+                    if (i != j)
+                    {
+                        totals += players[i].frags[j];
+                    }
+                    else
+                    {
+                        totals -= players[i].frags[j];
+                    }
+                }
+                x += DM_SPACINGX;
+            }
+            WI_drawNum(DM_TOTALSX + w, y, CLAMP(totals, -999, 999), 2);
+        }
+        y += WI_SPACINGY;
+    }
+}
 
 //
 // Note: The term "Netgame" means a coop game
@@ -1995,6 +2064,78 @@ static void WI_drawNetgameStats(void)
         WI_drawNum(x, y+10, cnt_frags[i], -1);
 
       y += WI_SPACINGY;
+    }
+}
+
+static void WI_overlayNetgameStats(void)
+{
+    V_DrawPatch(NG_STATSX + NG_SPACINGX - SHORT(kills->width), NG_STATSY,
+                kills);
+    V_DrawPatch(NG_STATSX + 2 * NG_SPACINGX - SHORT(items->width), NG_STATSY,
+                items);
+    V_DrawPatch(NG_STATSX + 3 * NG_SPACINGX - SHORT(secret->width), NG_STATSY,
+                secret);
+
+    const int pwidth = SHORT(percent->width);
+    int y = NG_STATSY + SHORT(kills->height);
+
+    for (int i = 0; i < MAXPLAYERS; i++)
+    {
+        if (!playeringame[i])
+        {
+            continue;
+        }
+
+        int x = NG_STATSX;
+        V_DrawPatch(x - SHORT(p[i]->width), y, p[i]);
+
+        if (i == displayplayer)
+        {
+            V_DrawPatch(x - SHORT(p[i]->width), y, star);
+        }
+
+        x += NG_SPACINGX;
+        WI_drawPercent(x - pwidth, y + 10, 100 * players[i].killcount / (totalkills ? totalkills : 1));
+        x += NG_SPACINGX;
+        WI_drawPercent(x - pwidth, y + 10, 100 * players[i].itemcount / (totalitems ? totalitems : 1));
+        x += NG_SPACINGX;
+        WI_drawPercent(x - pwidth, y + 10, totalsecret ? (100 * players[i].secretcount / totalsecret) : 100);
+        x += NG_SPACINGX;
+
+        y += WI_SPACINGY;
+    }
+}
+
+static boolean wi_overlay = false;
+
+boolean WI_toggleOverlayStats(void)
+{
+    if (netgame || deathmatch)
+    {
+        wi_overlay = !wi_overlay;
+        return true;
+    }
+
+    return false;
+}
+
+void WI_drawOverlayStats(void)
+{
+    if (wi_overlay)
+    {
+        if (!wi_inited)
+        {
+            WI_loadData();
+        }
+
+        if (deathmatch)
+        {
+            WI_overlayDeathmatchStats();
+        }
+        else if (netgame)
+        {
+            WI_overlayNetgameStats();
+        }
     }
 }
 
@@ -2304,7 +2445,7 @@ void WI_Ticker(void)
 // Args:    none
 // Returns: void
 //
-void WI_loadData(void)
+static void WI_loadData(void)
 {
   int   i,j;
   char name[32];
@@ -2474,6 +2615,8 @@ void WI_loadData(void)
       M_snprintf(name, sizeof(name), "WIBP%d", i + 1);
       bp[i] = V_CachePatchName(name, PU_STATIC);
     }
+
+  wi_inited = true;
 }
 
 // ====================================================================
