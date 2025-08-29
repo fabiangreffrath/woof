@@ -436,7 +436,7 @@ boolean ST_MessagesResponder(event_t *ev)
 
     if (!chat_on)
     {
-        if (M_InputActivated(input_chat_enter)) // phares
+        if (M_InputActivated(input_msgreview)) // phares
         {
             //jff 2/26/98 toggle list of messages
             message_review = true;
