@@ -2127,6 +2127,8 @@ void WI_drawOverlayStats(void)
             WI_loadData();
         }
 
+        V_ShadeScreen();
+
         if (deathmatch)
         {
             WI_overlayDeathmatchStats();
