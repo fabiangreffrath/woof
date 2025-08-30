@@ -620,8 +620,8 @@ static void R_ProjectSprite(mobj_t* thing, int lightlevel_override)
   // killough 3/27/98: exclude things totally separated
   // from the viewer, by either water or fake ceilings
   // killough 4/11/98: improve sprite clipping for underwater/fake ceilings
-
-  heightsec = thing->subsector->sector->heightsec;
+  sector_t * thing_sector = thing->subsector->sector;
+  heightsec = thing_sector->heightsec;
 
   if (heightsec != -1)   // only clip things which are in special sectors
     {
@@ -659,14 +659,15 @@ static void R_ProjectSprite(mobj_t* thing, int lightlevel_override)
   iscale = FixedDiv(FRACUNIT, xscale);
   vis->color = thing->bloodcolor;
 
-  if (comp[comp_thingsectorlight] == 2
-      && thing->subsector->sector->floorlightsec >= 0)
+  if (comp[comp_thingsectorlight] == 2 && thing_sector->floorlightsec >= 0)
   {
-    vis->tint = sectors[thing->subsector->sector->floorlightsec].tint;
+    // Use KEX/GZDoom-style floor light only
+    vis->tint = sectors[thing_sector->floorlightsec].tint;
   }
   else
   {
-    vis->tint = thing->subsector->sector->tint;
+    // Use sector's true light level
+    vis->tint = thing_sector->tint;
   }
 
   if (flip)
@@ -708,11 +709,13 @@ static void R_ProjectSprite(mobj_t* thing, int lightlevel_override)
     // diminished light
     const int index = R_GetLightIndex(xscale);
 
-    int lightnum = thing->subsector->sector->lightlevel;
-    if ((comp[comp_thingsectorlight] == 2) && thing->subsector->sector->floorlightsec)
+    // Use sector's true light level
+    int lightnum = thing_sector->lightlevel;
+
+    if ((comp[comp_thingsectorlight] == 2) && thing_sector->floorlightsec >= 0)
     {
-      // Use KEX/GZDoom-style floor light only
-       lightnum = sectors[thing->subsector->sector->floorlightsec].lightlevel;
+       // Use KEX/GZDoom-style floor light only
+       lightnum = sectors[thing_sector->floorlightsec].lightlevel;
     }
     else if (comp[comp_thingsectorlight] == 1)
     {
