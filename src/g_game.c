@@ -4322,7 +4322,7 @@ byte *G_WriteOptions(byte *demo_p)
 
   {   // killough 10/98: a compatibility vector now
     int i;
-    for (i=0; i < COMP_TOTAL; i++)
+    for (i=0; i < DEMO_COMP_TOTAL; i++)
       *demo_p++ = comp[i] != 0;
   }
 
@@ -4467,7 +4467,7 @@ byte *G_ReadOptions(byte *demo_p)
 
       {   // killough 10/98: a compatibility vector now
 	int i;
-	for (i=0; i < COMP_TOTAL; i++)
+	for (i=0; i < DEMO_COMP_TOTAL; i++)
 	  comp[i] = *demo_p++;
       }
 
@@ -4476,7 +4476,7 @@ byte *G_ReadOptions(byte *demo_p)
   else  // defaults for versions < 2.02
     {
       int i;  // killough 10/98: a compatibility vector now
-      for (i=0; i < COMP_TOTAL; i++)
+      for (i=0; i < DEMO_COMP_TOTAL; i++)
 	comp[i] = compatibility;
 
       if (demo_version == DV_BOOM || demo_version == DV_BOOM201)
@@ -4958,6 +4958,7 @@ void G_BindCompVariables(void)
 #define BIND_COMP(id, v, help) \
   M_BindNum(#id, &default_comp[(id)], &comp[(id)], (v), 0, 1, ss_none, wad_yes, help)
 
+  // Boom & MBF
   BIND_COMP(comp_zombie,    1, "Dead players can trigger linedef actions");
   BIND_COMP(comp_infcheat,  0, "Powerup cheats don't last forever");
   BIND_COMP(comp_stairs,    0, "Build stairs exactly the same way that Doom does");
@@ -4977,12 +4978,17 @@ void G_BindCompVariables(void)
   BIND_COMP(comp_floors,    0, "Use exactly Doom's floor motion behavior");
   BIND_COMP(comp_model,     0, "Use exactly Doom's linedef trigger model");
   BIND_COMP(comp_zerotags,  0, "Linedef actions work on sectors with tag 0");
+
+  // MBF21
   BIND_COMP(comp_soul,      0, "Lost souls bounce on floors and ceilings");
   BIND_COMP(comp_respawn,   0, "Monsters not spawned at level start respawn at map origin");
   BIND_COMP(comp_ledgeblock, 1, "Ledges block monsters");
   BIND_COMP(comp_friendlyspawn, 1, "Things spawned by A_Spawn inherit friendliness of spawner");
   BIND_COMP(comp_voodooscroller, 0, "Voodoo dolls on slow scrollers move too slowly");
   BIND_COMP(comp_reservedlineflag, 1, "ML_RESERVED clears extended flags");
+
+  // Woof!
+  BIND_COMP(comp_thingsectorlight, 0, "Things are lit according to transferred light level");
 
 #define BIND_EMU(id, v, help) \
   M_BindBool(#id, &overflow[(id)].enabled, NULL, (v), ss_none, wad_no, help)
