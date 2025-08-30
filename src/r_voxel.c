@@ -686,10 +686,12 @@ boolean VX_ProjectVoxel(mobj_t *thing, int lightlevel_override)
 
 	if (comp[comp_thingsectorlight] == 2 && thing_sector->floorlightsec >= 0)
 	{
+		// Use ID24-style floor light only
 		vis->tint = sectors[thing_sector->floorlightsec].tint;
 	}
 	else
 	{
+		// Use sector's true light level
 		vis->tint = thing_sector->tint;
 	}
 
@@ -713,10 +715,12 @@ boolean VX_ProjectVoxel(mobj_t *thing, int lightlevel_override)
 		// diminished light
 		const int index = R_GetLightIndex(xscale);
 
+		// Use sector's true light level
 		int lightnum = thing_sector->lightlevel;
-		if ((comp[comp_thingsectorlight] == 2) && thing_sector->floorlightsec >= 0)
+
+		if (comp[comp_thingsectorlight] == 2 && thing_sector->floorlightsec >= 0)
 		{
-			// Use KEX/GZDoom-style floor light only
+			// Use ID24-style floor light only
 			lightnum = sectors[thing_sector->floorlightsec].lightlevel;
 		}
 		else if (comp[comp_thingsectorlight] == 1)

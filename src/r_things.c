@@ -661,7 +661,7 @@ static void R_ProjectSprite(mobj_t* thing, int lightlevel_override)
 
   if (comp[comp_thingsectorlight] == 2 && thing_sector->floorlightsec >= 0)
   {
-    // Use KEX/GZDoom-style floor light only
+    // Use ID24-style floor light only
     vis->tint = sectors[thing_sector->floorlightsec].tint;
   }
   else
@@ -714,8 +714,8 @@ static void R_ProjectSprite(mobj_t* thing, int lightlevel_override)
 
     if ((comp[comp_thingsectorlight] == 2) && thing_sector->floorlightsec >= 0)
     {
-       // Use KEX/GZDoom-style floor light only
-       lightnum = sectors[thing_sector->floorlightsec].lightlevel;
+      // Use ID24-style floor light only
+      lightnum = sectors[thing_sector->floorlightsec].lightlevel;
     }
     else if (comp[comp_thingsectorlight] == 1)
     {
@@ -906,11 +906,12 @@ void R_DrawPSprite(pspdef_t *psp, int lightlevel_override)
 
   if ((comp[comp_thingsectorlight] == 2) && player_sector->floorlightsec >= 0)
   {
-    // Use KEX/GZDoom-style floor light only
+    // Use ID24-style floor light only
     vis->tint = sectors[player_sector->floorlightsec].tint;
   }
   else
   {
+    // Use sector's true light level
     vis->tint = player_sector->tint;
   }
 
@@ -954,10 +955,12 @@ void R_DrawPSprite(pspdef_t *psp, int lightlevel_override)
   {
     // local light
 
+    // Use sector's true light level
     int lightnum = player_sector->lightlevel;
-    if ((comp[comp_thingsectorlight] == 2) && player_sector->floorlightsec)
+
+    if (comp[comp_thingsectorlight] == 2 && player_sector->floorlightsec >= 0)
     {
-      // Use KEX/GZDoom-style floor light only
+      // Use ID24-style floor light only
        lightnum = sectors[player_sector->floorlightsec].lightlevel;
     }
     else if (comp[comp_thingsectorlight] == 1)
