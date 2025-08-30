@@ -1734,9 +1734,12 @@ static void WI_overlayDeathmatchStats(void)
 
     int x = DM_MATRIXX + DM_SPACINGX;
     int y = DM_MATRIXY;
+    const int w = SHORT(num[0]->width);
 
     for (int i = 0; i < MAXPLAYERS; i++)
     {
+        int x2 = DM_MATRIXX + DM_SPACINGX;
+
         if (playeringame[i])
         {
             V_DrawPatch(x - SHORT(p[i]->width) / 2, DM_MATRIXY - WI_SPACINGY,
@@ -1751,28 +1754,14 @@ static void WI_overlayDeathmatchStats(void)
 
                 V_DrawPatch(DM_MATRIXX - SHORT(p[i]->width) / 2, y, star);
             }
-        }
-        x += DM_SPACINGX;
-        y += WI_SPACINGY;
-    }
 
-    // draw stats
-    y = DM_MATRIXY + 10;
-    int w = SHORT(num[0]->width);
-
-    for (int i = 0; i < MAXPLAYERS; i++)
-    {
-        x = DM_MATRIXX + DM_SPACINGX;
-
-        if (playeringame[i])
-        {
             int totals = 0;
 
             for (int j = 0; j < MAXPLAYERS; j++)
             {
                 if (playeringame[j])
                 {
-                    WI_drawNum(x + w, y, CLAMP(players[i].frags[j], -999, 999), 2);
+                    WI_drawNum(x2 + w, y + 10, CLAMP(players[i].frags[j], -999, 999), 2);
 
                     if (i != j)
                     {
@@ -1783,10 +1772,11 @@ static void WI_overlayDeathmatchStats(void)
                         totals -= players[i].frags[j];
                     }
                 }
-                x += DM_SPACINGX;
+                x2 += DM_SPACINGX;
             }
-            WI_drawNum(DM_TOTALSX + w, y, CLAMP(totals, -999, 999), 2);
+            WI_drawNum(DM_TOTALSX + w, y + 10, CLAMP(totals, -999, 999), 2);
         }
+        x += DM_SPACINGX;
         y += WI_SPACINGY;
     }
 }
