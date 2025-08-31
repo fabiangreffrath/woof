@@ -118,8 +118,7 @@ extern int  key_help;
 extern boolean autorun;           // always running?                   // phares
 extern boolean autostrafe50;
 extern boolean novert;
-extern boolean mouselook;
-extern boolean padlook;
+extern boolean freelook;
 
 extern fixed_t forwardmove[2];
 extern fixed_t default_sidemove[2];
@@ -138,6 +137,8 @@ extern int cpars[];     // hardcoded array size
 extern boolean um_pars;
 
 extern boolean secretexit;
+
+extern byte *demo_p;
 
 #endif
 

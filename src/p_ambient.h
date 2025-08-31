@@ -46,7 +46,7 @@ boolean P_PlayingAmbientSound(ambient_t *ambient);
 void P_StopAmbientSound(ambient_t *ambient);
 void P_MarkAmbientSound(ambient_t *ambient, int handle);
 void P_EvictAmbientSound(ambient_t *ambient, int handle);
-void T_AmbientSound(ambient_t *ambient);
+void T_AmbientSoundAdapter(mobj_t *mobj);
 void P_AddAmbientSoundThinker(mobj_t *mobj, int index);
 void P_InitAmbientSoundMobjInfo(void);
 

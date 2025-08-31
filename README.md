@@ -90,7 +90,6 @@ The following build system and libraries need to be installed:
  
  * [CMake](https://cmake.org) (>= 3.15)
  * [SDL2](https://github.com/libsdl-org/SDL/tree/SDL2) (>= 2.0.18)
- * [SDL2_net](https://github.com/libsdl-org/SDL_net)
  * [openal-soft](https://github.com/kcat/openal-soft) (>= 1.22.0 for PC Speaker emulation)
  * [libsndfile](https://github.com/libsndfile/libsndfile) (>= 1.1.0 for MPEG support)
  * [libebur128](https://github.com/jiixyj/libebur128) (>= 1.2.0)
@@ -115,13 +114,19 @@ After successful compilation the resulting binary can be found in the `src/` dir
 
 Visual Studio 2019 and [VSCode](https://code.visualstudio.com/) comes with built-in support for CMake by opening the source tree as a folder.
 
-Install vcpkg <https://github.com/Microsoft/vcpkg#quick-start-windows>. Integrate it into CMake or use toolchain file:
+Install vcpkg <https://github.com/Microsoft/vcpkg?tab=readme-ov-file#get-started>. 
+
+Run the CMake configuration:
 ```
  cd woof
  cmake -B build -DCMAKE_TOOLCHAIN_FILE="[path to vcpkg]/scripts/buildsystems/vcpkg.cmake"
+```
+During this step, vcpkg will build all the dependencies.
+
+Build the project:
+```
  cmake --build build
 ```
-CMake will automatically download and build all dependencies for you.
 
 # Contact
 
@@ -157,8 +162,10 @@ Copyright:
  © 2006-2025 by The Odamex Team;  
  © 2007-2011 Moritz "Ripper" Kroll;  
  © 2008-2019 Simon Judd;  
+ © 2013-2025 Brad Harding;  
  © 2017 Christoph Oelckers;  
  © 2020 Alex Mayfield;  
+ © 2020 Ethan Watson;  
  © 2020-2024 Fabian Greffrath;  
  © 2020-2024 Roman Fomin;  
  © 2021-2022 Ryan Krafnick;  
@@ -220,11 +227,6 @@ Copyright:
  © 2017 Shannon Freeman.  
 License: [MIT](https://github.com/sneakernets/DMXOPL/blob/DMXOPL3/LICENSE)
 
-Files: `cmake/FindSDL2.cmake, cmake/FindSDL2_net.cmake`  
-Copyright:  
- © 2018 Alex Mayfield.  
-License: [BSD-3-Clause](https://opensource.org/licenses/BSD-3-Clause)
-
 Files: `base/all-all/sm*.png, data/setup.ico, data/woof-setup.png, data/woof.ico, data/woof.png, setup/setup_icon.c, src/icon.c`  
 Copyright:  
  © 2020-2024 Julia Nechaevskaya.  
@@ -254,8 +256,19 @@ Copyright:
  © 2005-2017 Simon Howard.  
 License: [GPL-2.0+](https://www.gnu.org/licenses/old-licenses/gpl-2.0.html)
 
+Files: `netlib/*`  
+Copyright:  
+ © 1997-2025 Sam Lantinga;  
+ © 2012 Simeon Maxein.    
+License: [zlib](https://opensource.org/license/zlib)
+
 Files: `third-party/md5/*`  
 License: public-domain
+
+Files: `third-party/minimp3/*`  
+Copyright:  
+ © 2021 lief.      
+License: [CC0-1.0](https://creativecommons.org/publicdomain/zero/1.0/)
 
 Files: `third-party/miniz/*`  
 Copyright:  
@@ -283,9 +296,4 @@ License: [BSD-2-Clause](https://opensource.org/license/bsd-2-clause)
 Files: `third-party/yyjson/*`  
 Copyright:  
  © 2020 YaoYuan.  
-License: [MIT](https://opensource.org/licenses/MIT)
-
-Files: `win32/win_opendir.*`  
-Copyright:  
- © 2019 win32ports.  
 License: [MIT](https://opensource.org/licenses/MIT)

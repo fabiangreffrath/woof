@@ -17,16 +17,15 @@
 #ifndef __I_INPUT__
 #define __I_INPUT__
 
-#include "SDL.h"
+#include <SDL3/SDL.h>
 
 #include "doomtype.h"
 
 enum evtype_e;
 
-int I_GetAxisState(int axis);
+int I_GetAxisState(SDL_GamepadAxis axis);
 boolean I_UseGamepad(void);
 boolean I_GyroSupported(void);
-void I_GetFaceButtons(int *buttons);
 void I_FlushGamepadSensorEvents(void);
 void I_FlushGamepadEvents(void);
 void I_SetSensorEventState(boolean condition);

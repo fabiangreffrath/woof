@@ -39,7 +39,6 @@
 #include "r_defs.h"
 #include "r_main.h"
 #include "r_state.h"
-#include "r_things.h"
 #include "s_musinfo.h" // [crispy] S_ParseMusInfo()
 #include "s_sound.h"
 #include "sounds.h"
@@ -53,15 +52,35 @@ int max_pitch_angle = 32 * ANG1, default_max_pitch_angle;
 
 void P_UpdateDirectVerticalAiming(void)
 {
-  direct_vertical_aiming = (CRITICAL(default_direct_vertical_aiming) &&
-                            (mouselook || padlook));
+  direct_vertical_aiming = (CRITICAL(default_direct_vertical_aiming)
+                            && freelook);
   max_pitch_angle = default_max_pitch_angle * ANG1;
+}
+
+void P_SetActualHeight(mobj_t *mobj)
+{
+    const spritedef_t *sprdef = &sprites[mobj->sprite];
+    const spriteframe_t *sprframe = NULL;
+    if (sprdef && sprdef->spriteframes)
+    {
+        sprframe = &sprdef->spriteframes[mobj->frame & FF_FRAMEMASK];
+    }
+    if (sprframe)
+    {
+        mobj->actualheight = spritetopoffset[sprframe->lump[0]];
+    }
+    else
+    {
+        mobj->actualheight = FixedToInt(mobj->height);
+    }
 }
 
 //
 // P_SetMobjState
 // Returns true if the mobj is still present.
 //
+
+int setmobjstate_recursion = 0; // detects recursion
 
 boolean P_SetMobjState(mobj_t* mobj,statenum_t state)
 {
@@ -71,12 +90,11 @@ boolean P_SetMobjState(mobj_t* mobj,statenum_t state)
 
   // fast transition table
   statenum_t *seenstate = seenstate_tab;      // pointer to table
-  static int recursion;                       // detects recursion
   statenum_t i = state;                       // initial state
   boolean ret = true;                         // return value
   statenum_t* tempstate = NULL;               // for use with recursion
 
-  if (recursion++)                            // if recursion detected,
+  if (setmobjstate_recursion++)               // if recursion detected,
     seenstate = tempstate = Z_Calloc(num_states, sizeof(statenum_t), PU_STATIC, 0); // allocate state table
 
   do
@@ -110,7 +128,7 @@ boolean P_SetMobjState(mobj_t* mobj,statenum_t state)
   if (ret && !mobj->tics)  // killough 4/9/98: detect state cycles
     displaymsg("Warning: State Cycle Detected");
 
-  if (!--recursion)
+  if (!--setmobjstate_recursion)
     for (;(state=seenstate[i]);i=state-1)
       seenstate[i] = 0;  // killough 4/9/98: erase memory of states
 
@@ -120,7 +138,7 @@ boolean P_SetMobjState(mobj_t* mobj,statenum_t state)
   // [FG] update object's actual height
   if (ret)
   {
-    mobj->actualheight = spritetopoffset[sprites[mobj->sprite].spriteframes[mobj->frame & FF_FRAMEMASK].lump[0]];
+    P_SetActualHeight(mobj);
   }
 
   return ret;
@@ -760,14 +778,14 @@ void P_MobjThinker (mobj_t* mobj)
     {
       P_XYMovement(mobj);
       mobj->intflags &= ~MIF_SCROLLING;
-      if (mobj->thinker.function.p1 == (actionf_p1)P_RemoveThinkerDelayed) // killough
+      if (mobj->thinker.function.p1 == P_RemoveMobjThinkerDelayed) // killough
 	return;       // mobj was removed
     }
 
   if (mobj->z != mobj->floorz || mobj->momz)
     {
       P_ZMovement(mobj);
-      if (mobj->thinker.function.p1 == (actionf_p1)P_RemoveThinkerDelayed) // killough
+      if (mobj->thinker.function.p1 == P_RemoveMobjThinkerDelayed) // killough
 	return;       // mobj was removed
     }
   else
@@ -801,7 +819,7 @@ void P_MobjThinker (mobj_t* mobj)
       P_DamageMobj(mobj, NULL, NULL, 10000);
 
       // must have been removed
-      if (mobj->thinker.function.p1 != (actionf_p1)P_MobjThinker)
+      if (mobj->thinker.function.p1 != P_MobjThinker)
         return;
     }
   }
@@ -829,7 +847,7 @@ void P_MobjThinker (mobj_t* mobj)
 
 mobj_t *P_SpawnMobj(fixed_t x, fixed_t y, fixed_t z, mobjtype_t type)
 {
-  mobj_t *mobj = Z_Malloc(sizeof *mobj, PU_LEVEL, NULL);
+  mobj_t *mobj = arena_alloc(thinkers_arena, 1, mobj_t);
   mobjinfo_t *info = &mobjinfo[type];
   state_t    *st;
 
@@ -854,7 +872,7 @@ mobj_t *P_SpawnMobj(fixed_t x, fixed_t y, fixed_t z, mobjtype_t type)
 
   mobj->health = info->spawnhealth;
 
-  if (gameskill != sk_nightmare)
+  if (gameskill != sk_nightmare && !aggromonsters)
     mobj->reactiontime = info->reactiontime;
 
   if (type != zmt_ambientsound)
@@ -895,7 +913,7 @@ mobj_t *P_SpawnMobj(fixed_t x, fixed_t y, fixed_t z, mobjtype_t type)
   mobj->oldz = mobj->z;
   mobj->oldangle = mobj->angle;
 
-  mobj->thinker.function.p1 = (actionf_p1)P_MobjThinker;
+  mobj->thinker.function.p1 = P_MobjThinker;
   mobj->above_thing = mobj->below_thing = 0;           // phares
 
   // for Boom friction code
@@ -911,7 +929,7 @@ mobj_t *P_SpawnMobj(fixed_t x, fixed_t y, fixed_t z, mobjtype_t type)
   }
 
   // [FG] initialize object's actual height
-  mobj->actualheight = spritetopoffset[sprites[st->sprite].spriteframes[st->frame & FF_FRAMEMASK].lump[0]];
+  P_SetActualHeight(mobj);
 
   P_AddThinker(&mobj->thinker);
 
@@ -978,7 +996,7 @@ void P_RemoveMobj (mobj_t *mobj)
 
   // free block
 
-  P_RemoveThinker(&mobj->thinker);
+  P_RemoveMobjThinker(mobj);
 }
 
 // Certain functions assume that a mobj_t pointer is non-NULL,
@@ -1238,7 +1256,8 @@ void P_SpawnMapThing (mapthing_t* mthing)
 
   // check for apropriate skill level
 
-  if (!coop_spawns && !netgame && mthing->options & MTF_NOTSINGLE)//jff "not single" thing flag
+  if (!coopspawns && !netgame
+      && mthing->options & MTF_NOTSINGLE) //jff "not single" thing flag
     return;
 
   //jff 3/30/98 implement "not deathmatch" thing flag
@@ -1248,7 +1267,7 @@ void P_SpawnMapThing (mapthing_t* mthing)
 
   //jff 3/30/98 implement "not cooperative" thing flag
 
-  if ((coop_spawns || netgame) && !deathmatch && mthing->options & MTF_NOTCOOP)
+  if ((coopspawns || netgame) && !deathmatch && mthing->options & MTF_NOTCOOP)
     return;
 
   // killough 11/98: simplify

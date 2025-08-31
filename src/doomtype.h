@@ -63,78 +63,78 @@ typedef byte lighttable_t;
 #endif
 
 #ifdef _WIN32
- #define DIR_SEPARATOR '\\'
- #define DIR_SEPARATOR_S "\\"
- #define PATH_SEPARATOR ';'
+  #define DIR_SEPARATOR   '\\'
+  #define DIR_SEPARATOR_S "\\"
+  #define PATH_SEPARATOR  ';'
 #else
- #define DIR_SEPARATOR '/'
- #define DIR_SEPARATOR_S "/"
- #define PATH_SEPARATOR ':'
+  #define DIR_SEPARATOR   '/'
+  #define DIR_SEPARATOR_S "/"
+  #define PATH_SEPARATOR  ':'
 #endif
 
 #define arrlen(array) (sizeof(array) / sizeof(*array))
 
 #if defined(__GNUC__) || defined(__clang__)
- #define MIN(a,b)             \
- ({                           \
-     __typeof__ (a) _a = (a); \
-     __typeof__ (b) _b = (b); \
-     _a < _b ? _a : _b;       \
- })
- #define MAX(a,b)             \
- ({                           \
-     __typeof__ (a) _a = (a); \
-     __typeof__ (b) _b = (b); \
-     _a > _b ? _a : _b;       \
- })
- #define CLAMP(x, min, max)                    \
- ({                                            \
-     __typeof__ (x) _x = (x);                  \
-     __typeof__ (min) _min = (min);            \
-     __typeof__ (max) _max = (max);            \
-     _min > _x ? _min : _x > _max ? _max : _x; \
- })
+  #define MIN(a, b)               \
+      ({                          \
+          __typeof__(a) _a = (a); \
+          __typeof__(b) _b = (b); \
+          _a < _b ? _a : _b;      \
+      })
+  #define MAX(a, b)               \
+      ({                          \
+          __typeof__(a) _a = (a); \
+          __typeof__(b) _b = (b); \
+          _a > _b ? _a : _b;      \
+      })
+  #define CLAMP(x, min, max)                        \
+      ({                                            \
+          __typeof__(x) _x = (x);                   \
+          __typeof__(min) _min = (min);             \
+          __typeof__(max) _max = (max);             \
+          _min > _x ? _min : _x > _max ? _max : _x; \
+      })
 #else
- #define MIN(a, b) (((a) < (b)) ? (a) : (b))
- #define MAX(a, b) (((a) > (b)) ? (a) : (b))
- #define CLAMP(x, min, max) ((min) > (x) ? (min) : (x) > (max) ? (max) : (x))
-#endif
-
-#define DIV_ROUND_FLOOR(n, d) (((n) - (d) / 2) / (d))
-
-#define DIV_ROUND_CEIL(n, d) (((n) + (d) / 2) / (d))
-
-#define DIV_ROUND_CLOSEST(n, d) \
-    (((n) < 0) == ((d) < 0)) ? DIV_ROUND_CEIL(n, d) : DIV_ROUND_FLOOR(n, d)
-
-#if defined(_MSC_VER) && !defined(__cplusplus)
-#define inline __inline
+  #define MIN(a, b)          (((a) < (b)) ? (a) : (b))
+  #define MAX(a, b)          (((a) > (b)) ? (a) : (b))
+  #define CLAMP(x, min, max) ((min) > (x) ? (min) : (x) > (max) ? (max) : (x))
 #endif
 
 inline static int clampi(int x, int min, int max)
 {
-  return (min > x ? min : x > max ? max : x);
+    return (min > x ? min : x > max ? max : x);
 }
 
 inline static float clampf(float x, float min, float max)
 {
-  return (min > x ? min : x > max ? max : x);
+    return (min > x ? min : x > max ? max : x);
 }
 
-#if defined(__GNUC__) || defined(__clang__)
- #define PRINTF_ATTR(fmt, first) __attribute__((format(printf, fmt, first)))
- #define PRINTF_ARG_ATTR(x) __attribute__((format_arg(x)))
-#else
- #define PRINTF_ATTR(fmt, first)
- #define PRINTF_ARG_ATTR(x)
+#define DIV_ROUND_FLOOR(n, d) (((n) - (d) / 2) / (d))
+
+#define DIV_ROUND_CEIL(n, d)  (((n) + (d) / 2) / (d))
+
+#define DIV_ROUND_CLOSEST(n, d) \
+      (((n) < 0) == ((d) < 0)) ? DIV_ROUND_CEIL(n, d) : DIV_ROUND_FLOOR(n, d)
+
+#if defined(_MSC_VER) && !defined(__cplusplus)
+  #define inline __inline
 #endif
 
 #if defined(__GNUC__) || defined(__clang__)
- #define NORETURN __attribute__((noreturn))
-#elif defined (_MSC_VER)
- #define NORETURN __declspec(noreturn)
+  #define PRINTF_ATTR(fmt, first) __attribute__((format(printf, fmt, first)))
+  #define PRINTF_ARG_ATTR(x)      __attribute__((format_arg(x)))
 #else
- #define NORETURN
+  #define PRINTF_ATTR(fmt, first)
+  #define PRINTF_ARG_ATTR(x)
+#endif
+
+#if defined(__GNUC__) || defined(__clang__)
+  #define NORETURN __attribute__((noreturn))
+#elif defined(_MSC_VER)
+  #define NORETURN __declspec(noreturn)
+#else
+  #define NORETURN
 #endif
 
 // The packed attribute forces structures to be packed into the minimum
@@ -145,18 +145,18 @@ inline static float clampf(float x, float min, float max)
 // to disk.
 
 #if defined(__GNUC__)
- #define PACKED_PREFIX
- #if defined(_WIN32) && !defined(__clang__)
-  #define PACKED_SUFFIX __attribute__((packed,gcc_struct))
- #else
-  #define PACKED_SUFFIX __attribute__((packed))
- #endif
+  #define PACKED_PREFIX
+  #if defined(_WIN32) && !defined(__clang__)
+    #define PACKED_SUFFIX __attribute__((packed, gcc_struct))
+  #else
+    #define PACKED_SUFFIX __attribute__((packed))
+  #endif
 #elif defined(__WATCOMC__)
- #define PACKED_PREFIX _Packed
- #define PACKED_SUFFIX
+  #define PACKED_PREFIX _Packed
+  #define PACKED_SUFFIX
 #else
- #define PACKED_PREFIX
- #define PACKED_SUFFIX
+  #define PACKED_PREFIX
+  #define PACKED_SUFFIX
 #endif
 
 #endif

@@ -47,10 +47,6 @@ static fixed_t PlayerSlope(player_t *player)
   return pitch ? -finetangent[(ANG90 - pitch) >> ANGLETOFINESHIFT] : 0;
 }
 
-// Index of the special effects (INVUL inverse) map.
-
-#define INVERSECOLORMAP 32
-
 //
 // Movement.
 //
@@ -622,7 +618,8 @@ boolean P_EvaluateItemOwned(itemtype_t item, player_t *player)
             return player->powers[pw_ironfeet] != 0;
 
         case item_invulnerability:
-            return player->powers[pw_invulnerability] != 0;
+            return player->powers[pw_invulnerability]
+                   || (player->cheats & CF_GODMODE);
 
         case item_healthbonus:
         case item_stimpack:

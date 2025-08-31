@@ -218,6 +218,11 @@ void P_InitPicAnims (void)
                  animdefs[i].endname);
       }
 
+      if (lastanim->speed == 0)
+        I_Error ("%s to %s animation cannot have speed 0",
+                 animdefs[i].startname,
+                 animdefs[i].endname);
+
       lastanim++;
     }
   Z_ChangeTag (animdefs,PU_CACHE); //jff 3/23/98 allow table to be freed
@@ -1772,6 +1777,21 @@ void P_CrossSpecialLine(line_t *line, int side, mobj_t *thing, boolean bossactio
       EV_ChangeMusic(line, side);
       break;
 
+
+    case 2076:
+      line->special = 0;
+      // fallthrough
+
+    case 2077:
+    {
+      int colormap_index = side ? line->backtint : line->fronttint;
+      for (int s = -1; (s = P_FindSectorFromLineTag(line, s)) >= 0;)
+      {
+        sectors[s].tint = colormap_index;
+      }
+      break;
+    }
+
       // Extended walk triggers
 
       // jff 1/29/98 added new linedef types to fill all functions out so that
@@ -2242,6 +2262,20 @@ void P_ShootSpecialLine(mobj_t *thing, line_t *line, int side)
       EV_ChangeMusic(line, side);
       break;
 
+    case 2080:
+      line->special = 0;
+      // fallthrough
+
+    case 2081:
+    {
+      int colormap_index = side ? line->backtint : line->fronttint;
+      for (int s = -1; (s = P_FindSectorFromLineTag(line, s)) >= 0;)
+      {
+        sectors[s].tint = colormap_index;
+      }
+      break;
+    }
+
       //jff 1/30/98 added new gun linedefs here
       // killough 1/31/98: added demo_compatibility check, added inner switch
 
@@ -2577,7 +2611,7 @@ void P_UpdateSpecials (void)
   // [crispy] draw fuzz effect independent of rendering frame rate
   R_SetFuzzPosTic();
 
-  R_UpdateSky();
+  R_UpdateSkies();
 }
 
 //////////////////////////////////////////////////////////////////////
@@ -2653,14 +2687,14 @@ void EV_RotateOffsetFlat(line_t *line, sector_t *sector)
   {
     if (offset_floor)
     {
-      sectors[s].base_floor_xoffs -= line->dx;
-      sectors[s].base_floor_yoffs += line->dy;
+      sectors[s].floor_xoffs -= line->dx;
+      sectors[s].floor_yoffs += line->dy;
     }
 
     if (offset_ceiling)
     {
-      sectors[s].base_ceiling_xoffs -= line->dx;
-      sectors[s].base_ceiling_yoffs += line->dy;
+      sectors[s].ceiling_xoffs -= line->dx;
+      sectors[s].ceiling_yoffs += line->dy;
     }
 
     if (rotate_floor)
@@ -2854,16 +2888,25 @@ void P_SpawnSpecials (void)
 
       case 271:   // Regular sky
       case 272:   // Same, only flipped
+      {
         // Pre-calculate sky color
-        R_GetSkyColor(texturetranslation[sides[*lines[i].sidenum].toptexture]);
+        skyindex_t skyindex = R_AddLevelskyFromLine(&sides[lines[i].sidenum[0]]);
         for (s = -1; (s = P_FindSectorFromLineTag(lines+i,s)) >= 0;)
-          sectors[s].floorsky = sectors[s].ceilingsky = i | PL_SKYFLAT;
+          sectors[s].floorsky = sectors[s].ceilingsky = skyindex | PL_SKYFLAT;
         break;
+      }
 
       case 2048: case 2049: case 2050:
       case 2051: case 2052: case 2053:
       case 2054: case 2055: case 2056:
         EV_RotateOffsetFlat(&lines[i], sectors);
+        break;
+
+      case 2075:
+        for (int s = -1; (s = P_FindSectorFromLineTag(&lines[i], s)) >= 0;)
+        {
+          sectors[s].tint = lines[i].fronttint;
+        }
         break;
       }
 }
@@ -2887,7 +2930,7 @@ void P_SpawnSpecials (void)
 // This is the main scrolling code
 // killough 3/7/98
 
-void T_Scroll(scroll_t *s)
+static void T_Scroll(scroll_t *s)
 {
   fixed_t dx = s->dx, dy = s->dy;
 
@@ -2923,36 +2966,36 @@ void T_Scroll(scroll_t *s)
         side = sides + s->affectee;
         if (side->oldgametic != gametic)
         {
-          side->oldtextureoffset = side->basetextureoffset;
-          side->oldrowoffset = side->baserowoffset;
+          side->oldtextureoffset = side->textureoffset;
+          side->oldrowoffset = side->rowoffset;
           side->oldgametic = gametic;
         }
-        side->basetextureoffset += dx;
-        side->baserowoffset += dy;
+        side->textureoffset += dx;
+        side->rowoffset += dy;
         break;
 
     case sc_floor:                  // killough 3/7/98: Scroll floor texture
         sec = sectors + s->affectee;
         if (sec->old_floor_offs_gametic != gametic)
         {
-          sec->old_floor_xoffs = sec->base_floor_xoffs;
-          sec->old_floor_yoffs = sec->base_floor_yoffs;
+          sec->old_floor_xoffs = sec->floor_xoffs;
+          sec->old_floor_yoffs = sec->floor_yoffs;
           sec->old_floor_offs_gametic = gametic;
         }
-        sec->base_floor_xoffs += dx;
-        sec->base_floor_yoffs += dy;
+        sec->floor_xoffs += dx;
+        sec->floor_yoffs += dy;
         break;
 
     case sc_ceiling:               // killough 3/7/98: Scroll ceiling texture
         sec = sectors + s->affectee;
         if (sec->old_ceil_offs_gametic != gametic)
         {
-          sec->old_ceiling_xoffs = sec->base_ceiling_xoffs;
-          sec->old_ceiling_yoffs = sec->base_ceiling_yoffs;
+          sec->old_ceiling_xoffs = sec->ceiling_xoffs;
+          sec->old_ceiling_yoffs = sec->ceiling_yoffs;
           sec->old_ceil_offs_gametic = gametic;
         }
-        sec->base_ceiling_xoffs += dx;
-        sec->base_ceiling_yoffs += dy;
+        sec->ceiling_xoffs += dx;
+        sec->ceiling_yoffs += dy;
         break;
 
     case sc_carry:
@@ -2986,6 +3029,11 @@ void T_Scroll(scroll_t *s)
     }
 }
 
+void T_ScrollAdapter(mobj_t *mobj)
+{
+    T_Scroll((scroll_t *)mobj);
+}
+
 //
 // Add_Scroller()
 //
@@ -3007,8 +3055,8 @@ void T_Scroll(scroll_t *s)
 static void Add_Scroller(int type, fixed_t dx, fixed_t dy,
                          int control, int affectee, int accel)
 {
-  scroll_t *s = Z_Malloc(sizeof *s, PU_LEVSPEC, 0);
-  s->thinker.function.p1 = (actionf_p1)T_Scroll;
+  scroll_t *s = arena_alloc(thinkers_arena, 1, scroll_t);
+  s->thinker.function.p1 = T_ScrollAdapter;
   s->type = type;
   s->dx = dx;
   s->dy = dy;
@@ -3067,7 +3115,7 @@ static void P_SpawnScrollers(void)
 
       if (demo_compatibility)
       {
-        // [EA] Allow all scrollers that do not break demo compatibility.
+        // Allow all scrollers that do not break demo compatibility.
         // The following are the original Boom scrollers that move Things
         // across the floor, in their accelerative / displacement / normal
         // variants.
@@ -3215,9 +3263,9 @@ static void P_SpawnScrollers(void)
 
 static void Add_Friction(int friction, int movefactor, int affectee)
 {
-    friction_t *f = Z_Malloc(sizeof *f, PU_LEVSPEC, 0);
+    friction_t *f = arena_alloc(thinkers_arena, 1, friction_t);
 
-    f->thinker.function.p1 = (actionf_p1)T_Friction;
+    f->thinker.function.p1 = T_FrictionAdapter;
     f->friction = friction;
     f->movefactor = movefactor;
     f->affectee = affectee;
@@ -3275,6 +3323,11 @@ void T_Friction(friction_t *f)
             }
         node = node->m_snext;
     }
+}
+
+void T_FrictionAdapter(mobj_t *mobj)
+{
+    T_Friction((friction_t *)mobj);
 }
 
 // killough 3/7/98 -- end generalized scroll effects
@@ -3446,9 +3499,9 @@ static void P_SpawnFriction(void)
 static void Add_Pusher(int type, int x_mag, int y_mag,
                        mobj_t *source, int affectee)
 {
-  pusher_t *p = Z_Malloc(sizeof *p, PU_LEVSPEC, 0);
+  pusher_t *p = arena_alloc(thinkers_arena, 1, pusher_t);
 
-  p->thinker.function.p1 = (actionf_p1)T_Pusher;
+  p->thinker.function.p1 = T_PusherAdapter;
   p->source = source;
   p->type = type;
   p->x_mag = x_mag>>FRACBITS;
@@ -3529,7 +3582,7 @@ boolean PIT_PushThing(mobj_t* thing)
 // the effect.
 //
 
-void T_Pusher(pusher_t *p)
+static void T_Pusher(pusher_t *p)
 {
   sector_t *sec;
   mobj_t   *thing;
@@ -3649,6 +3702,11 @@ void T_Pusher(pusher_t *p)
       thing->momy += yspeed<<(FRACBITS-PUSH_FACTOR);
       thing->intflags |= MIF_SCROLLING;
     }
+}
+
+void T_PusherAdapter(mobj_t *mobj)
+{
+    T_Pusher((pusher_t *)mobj);
 }
 
 /////////////////////////////

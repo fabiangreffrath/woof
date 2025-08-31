@@ -3,11 +3,9 @@
 #cmakedefine PROJECT_STRING "@PROJECT_STRING@"
 #cmakedefine PROJECT_SHORTNAME "@PROJECT_SHORTNAME@"
 #cmakedefine HAVE_LIBM
-#cmakedefine HAVE_DIRENT_H
 #cmakedefine01 HAVE_DECL_STRCASECMP
 #cmakedefine01 HAVE_DECL_STRNCASECMP
 #cmakedefine HAVE_GETPWUID
-#cmakedefine HAVE_HIGH_RES_TIMER
 #cmakedefine HAVE__DIV64
 #cmakedefine HAVE_ALSA
 #cmakedefine HAVE_FLUIDSYNTH

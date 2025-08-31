@@ -34,6 +34,7 @@
 #include "i_system.h"
 #include "info.h"
 #include "m_argv.h" // M_CheckParm()
+#include "m_array.h"
 #include "m_fixed.h"
 #include "m_io.h"
 #include "m_misc.h"
@@ -44,6 +45,7 @@
 #include "r_defs.h"
 #include "r_main.h"
 #include "r_sky.h"
+#include "r_skydefs.h"
 #include "r_state.h"
 #include "v_fmt.h"
 #include "v_video.h" // cr_dark, cr_shaded
@@ -101,32 +103,11 @@ typedef PACKED_PREFIX struct
 #pragma pack(pop)
 #endif
 
-// A single patch from a texture definition, basically
-// a rectangular area within the texture rectangle.
-typedef struct
-{
-  int originx, originy;  // Block origin, which has already accounted
-  int patch;             // for the internal origin of the patch.
-} texpatch_t;
-
-
-// A maptexturedef_t describes a rectangular texture, which is composed
-// of one or more mappatch_t structures that arrange graphic patches.
-
-typedef struct
-{
-  char  name[8];         // Keep name for switch changing, etc.
-  int   next, index;     // killough 1/31/98: used in hashing algorithm
-  short width, height;
-  short patchcount;      // All the patches[patchcount] are drawn
-  texpatch_t patches[1]; // back-to-front into the cached texture.
-} texture_t;
-
-
 // killough 4/17/98: make firstcolormaplump,lastcolormaplump external
 int firstcolormaplump, lastcolormaplump;      // killough 4/17/98
 
 int       firstflat, lastflat, numflats;
+int       first_tx, last_tx, num_tx;
 int       firstspritelump, lastspritelump, numspritelumps;
 int       numtextures;
 texture_t **textures;
@@ -498,7 +479,7 @@ static void R_GenerateLookup(int texnum, int *const errors)
 
 //
 // R_GetColumn
-// [EA] Updated to support Non-power-of-2 textures, everywhere
+// Updated to support Non-power-of-2 textures, everywhere
 //
 
 byte *R_GetColumn(int tex, int col)
@@ -551,23 +532,47 @@ byte *R_GetColumnMasked(int tex, int col)
 //  with the textures from the world map.
 //
 
+static inline void RegisterTexture(texture_t *texture, int i)
+{
+    // [crispy] initialize brightmaps
+    texturebrightmap[i] = R_BrightmapForTexName(texture->name);
+
+    // killough 4/9/98: make column offsets 32-bit;
+    // clean up malloc-ing to use sizeof
+    // killough 12/98: fix sizeofs
+    texturecolumnlump[i] =
+        Z_Malloc(texture->width * sizeof(**texturecolumnlump), PU_STATIC, 0);
+    texturecolumnofs[i] =
+        Z_Malloc(texture->width * sizeof(**texturecolumnofs), PU_STATIC, 0);
+    texturecolumnofs2[i] =
+        Z_Malloc(texture->width * sizeof(**texturecolumnofs2), PU_STATIC, 0);
+
+    int j;
+    for (j = 1; j * 2 <= texture->width; j <<= 1)
+        ;
+    texturewidthmask[i] = j - 1;
+    textureheight[i] = texture->height << FRACBITS;
+    texturewidth[i] = texture->width;
+}
+
 void R_InitTextures (void)
 {
   maptexture_t *mtexture;
   texture_t    *texture;
   mappatch_t   *mpatch;
   texpatch_t   *patch;
-  int  i, j;
+  int  i, j, k;
   int  *maptex;
   int  *maptex1, *maptex2;
   char name[9];
   char *names;
   char *name_p;
   int  *patchlookup;
+  int  numpatches;
   int  nummappatches;
   int  offset;
   int  maxoff, maxoff2;
-  int  numtextures1, numtextures2;
+  int  numtextures1, numtextures2, tx_numtextures;
   int  *directory;
   int  errors = 0;
 
@@ -576,7 +581,18 @@ void R_InitTextures (void)
   names = W_CacheLumpName("PNAMES", PU_STATIC);
   nummappatches = LONG(*((int *)names));
   name_p = names+4;
-  patchlookup = Z_Malloc(nummappatches*sizeof(*patchlookup), PU_STATIC, 0);  // killough
+  numpatches = nummappatches;
+
+  first_tx = W_CheckNumForName("TX_START") + 1;
+  last_tx  = W_CheckNumForName("TX_END") - 1;
+  tx_numtextures = last_tx - first_tx + 1;
+
+  if (tx_numtextures > 0)
+  {
+    numpatches += tx_numtextures;
+  }
+
+  patchlookup = Z_Malloc(numpatches*sizeof(*patchlookup), PU_STATIC, 0);  // killough
 
   for (i=0 ; i<nummappatches ; i++)
     {
@@ -630,6 +646,15 @@ void R_InitTextures (void)
     }
   numtextures = numtextures1 + numtextures2;
 
+  if (tx_numtextures > 0)
+  {
+    for (int p = 0; p < tx_numtextures ; p++)
+    {
+      patchlookup[nummappatches + p] = first_tx + p;
+    }
+    numtextures += tx_numtextures;
+  }
+
   // killough 4/9/98: make column offsets 32-bit;
   // clean up malloc-ing to use sizeof
 
@@ -669,7 +694,8 @@ void R_InitTextures (void)
       I_PutChar(VB_INFO, '\x8');
   }
 
-  for (i=0 ; i<numtextures ; i++, directory++)
+  // TEXTURE1 & TEXTURE2 only. TX_ markers parsed below.
+  for (i=0 ; i<numtextures1 + numtextures2 ; i++, directory++)
     {
       if (!(i&127))          // killough
         I_PutChar(VB_INFO, '.');
@@ -698,12 +724,9 @@ void R_InitTextures (void)
       texture->height = SHORT(mtexture->height);
       texture->patchcount = SHORT(mtexture->patchcount);
 
-      memcpy(texture->name, mtexture->name, sizeof(texture->name));
+      M_CopyLumpName(texture->name, mtexture->name);
       mpatch = mtexture->patches;
       patch = texture->patches;
-
-      // [crispy] initialize brightmaps
-      texturebrightmap[i] = R_BrightmapForTexName(texture->name);
 
       for (j=0 ; j<texture->patchcount ; j++, mpatch++, patch++)
         {
@@ -730,23 +753,43 @@ void R_InitTextures (void)
             }
         }
 
-      // killough 4/9/98: make column offsets 32-bit;
-      // clean up malloc-ing to use sizeof
-      // killough 12/98: fix sizeofs
-      texturecolumnlump[i] =
-        Z_Malloc(texture->width*sizeof**texturecolumnlump, PU_STATIC,0);
-      texturecolumnofs[i] =
-        Z_Malloc(texture->width*sizeof**texturecolumnofs, PU_STATIC,0);
-      texturecolumnofs2[i] =
-        Z_Malloc(texture->width*sizeof**texturecolumnofs2, PU_STATIC,0);
-
-      for (j=1; j*2 <= texture->width; j<<=1)
-        ;
-      texturewidthmask[i] = j-1;
-      textureheight[i] = texture->height<<FRACBITS;
-      texturewidth[i] = texture->width;
+      RegisterTexture(texture, i);
     }
  
+  // TX_ marker (texture namespace) parsed here
+  if (tx_numtextures > 0)
+  {
+    for (i = (numtextures1 + numtextures2), k = 0; i < numtextures; i++, k++)
+    {
+      if (!(i&127))
+      {
+        I_PutChar(VB_INFO, '.');
+      }
+
+      int tx_lump = first_tx + k;
+      texture = textures[i] = Z_Malloc(sizeof(texture_t), PU_STATIC, 0);
+      M_CopyLumpName(texture->name, lumpinfo[tx_lump].name);
+
+      if (!R_IsPatchLump(tx_lump))
+      {
+        I_Printf(VB_WARNING, "R_InitTextures: Texture %.8s in wrong format",
+                 texture->name);
+        tx_lump = (W_CheckNumForName)("TNT1A0", ns_sprites);
+      }
+
+      patch_t* tx_patch = V_CachePatchNum(tx_lump, PU_CACHE);
+      texture->width = tx_patch->width;
+      texture->height = tx_patch->height;
+      texture->patchcount = 1;
+
+      texture->patches->patch = patchlookup[nummappatches + k];
+      texture->patches->originx = 0;
+      texture->patches->originy = 0;
+
+      RegisterTexture(texture, i);
+    }
+  }
+
   Z_Free(patchlookup);         // killough
 
   Z_Free(maptex1);
@@ -1088,6 +1131,7 @@ void R_InitData(void)
   R_InitSpriteLumps();
     R_InitTranMap(1);                   // killough 2/21/98, 3/6/98
   R_InitColormaps();                    // killough 3/20/98
+  R_InitSkyDefs();
 }
 
 //
@@ -1103,7 +1147,11 @@ int R_FlatNumForName(const char *name)    // killough -- const added
   if (i == NO_TEXTURE)
   {
     I_Printf(VB_WARNING, "R_FlatNumForName: %.8s not found", name);
-    return i;
+    i = (W_CheckNumForName)("-NO_TEX-", ns_flats); // highlight missing flats
+    if (i == NO_TEXTURE)
+    {
+      I_Error("Could not find '-NO_TEX-' lump");
+    }
   }
   return i - firstflat;
 }
@@ -1202,7 +1250,11 @@ void R_PrecacheLevel(void)
   //  a wall texture, with an episode dependend
   //  name.
 
-  hitlist[skytexture] = 1;
+  sky_t *sky;
+  array_foreach(sky, levelskies)
+  {
+    hitlist[sky->background.texture] = 1;
+  }
 
   for (i = numtextures; --i >= 0; )
     if (hitlist[i])
@@ -1219,7 +1271,7 @@ void R_PrecacheLevel(void)
   {
     thinker_t *th;
     for (th = thinkercap.next ; th != &thinkercap ; th=th->next)
-      if (th->function.p1 == (actionf_p1)P_MobjThinker)
+      if (th->function.p1 == P_MobjThinker)
         hitlist[((mobj_t *)th)->sprite] = 1;
   }
 

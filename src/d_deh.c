@@ -1317,6 +1317,32 @@ static const deh_flag_t deh_weaponflags_mbf21[] = {
 // that Dehacked uses and is useless to us.
 // * states are base zero and have a dummy #0 (TROO)
 
+enum
+{
+  // Vanilla
+  DEH_STATE_SPRITE_NUMBER,
+  DEH_STATE_SPRITE_SUBNUMBER,
+  DEH_STATE_DURATION,
+  DEH_STATE_NEXT_FRAME,
+  DEH_STATE_CODEP_FRAME,
+  DEH_STATE_UNKNOWN1,
+  DEH_STATE_UNKNOWN2,
+
+  // MBF21
+  DEH_STATE_ARGS1,
+  DEH_STATE_ARGS2,
+  DEH_STATE_ARGS3,
+  DEH_STATE_ARGS4,
+  DEH_STATE_ARGS5,
+  DEH_STATE_ARGS6,
+  DEH_STATE_ARGS7,
+  DEH_STATE_ARGS8,
+  DEH_STATE_MBF21_BITS,
+
+  // ID24
+  DEH_STATE_TRANMAP,
+};
+
 static const char *deh_state[] =
 {
   "Sprite number",    // .sprite (spritenum_t) // an enum
@@ -1336,6 +1362,7 @@ static const char *deh_state[] =
   "Args7",            // .args[6] (long)
   "Args8",            // .args[7] (long)
   "MBF21 Bits",       // .flags
+  "Tranmap",          // .tranmap
 };
 
 static const deh_flag_t deh_stateflags_mbf21[] = {
@@ -2148,90 +2175,90 @@ static void deh_procFrame(DEHFILE *fpin, char *line)
             deh_log("Bad data pair in '%s'\n", inbuffer);
             continue;
         }
-        if (!strcasecmp(key, deh_state[0])) // Sprite number
+        if (!strcasecmp(key, deh_state[DEH_STATE_SPRITE_NUMBER]))
         {
             deh_log(" - sprite = %ld\n", value);
             states[indexnum].sprite = (spritenum_t)value;
         }
-        else if (!strcasecmp(key, deh_state[1])) // Sprite subnumber
+        else if (!strcasecmp(key, deh_state[DEH_STATE_SPRITE_SUBNUMBER]))
         {
             deh_log(" - frame = %ld\n", value);
             states[indexnum].frame = value; // long
         }
-        else if (!strcasecmp(key, deh_state[2])) // Duration
+        else if (!strcasecmp(key, deh_state[DEH_STATE_DURATION]))
         {
             deh_log(" - tics = %ld\n", value);
             states[indexnum].tics = value; // long
         }
-        else if (!strcasecmp(key, deh_state[3])) // Next frame
+        else if (!strcasecmp(key, deh_state[DEH_STATE_NEXT_FRAME]))
         {
             deh_log(" - nextstate = %ld\n", value);
             states[indexnum].nextstate = (statenum_t)value;
         }
-        else if (!strcasecmp(key, deh_state[4])) // Codep frame (not set in Frame deh block)
+        else if (!strcasecmp(key, deh_state[DEH_STATE_CODEP_FRAME])) // not set in Frame deh block
         {
             deh_log(" - codep, should not be set in Frame section!\n");
             /* nop */;
         }
-        else if (!strcasecmp(key, deh_state[5])) // Unknown 1
+        else if (!strcasecmp(key, deh_state[DEH_STATE_UNKNOWN1]))
         {
             deh_log(" - misc1 = %ld\n", value);
             states[indexnum].misc1 = value; // long
         }
-        else if (!strcasecmp(key, deh_state[6])) // Unknown 2
+        else if (!strcasecmp(key, deh_state[DEH_STATE_UNKNOWN2]))
         {
             deh_log(" - misc2 = %ld\n", value);
             states[indexnum].misc2 = value; // long
         }
-        else if (!strcasecmp(key, deh_state[7])) // Args1
+        else if (!strcasecmp(key, deh_state[DEH_STATE_ARGS1]))
         {
             deh_log(" - args[0] = %ld\n", (long)value);
             states[indexnum].args[0] = (long)value; // long
             defined_codeptr_args[indexnum] |= (1 << 0);
         }
-        else if (!strcasecmp(key, deh_state[8])) // Args2
+        else if (!strcasecmp(key, deh_state[DEH_STATE_ARGS2]))
         {
             deh_log(" - args[1] = %ld\n", (long)value);
             states[indexnum].args[1] = (long)value; // long
             defined_codeptr_args[indexnum] |= (1 << 1);
         }
-        else if (!strcasecmp(key, deh_state[9])) // Args3
+        else if (!strcasecmp(key, deh_state[DEH_STATE_ARGS3]))
         {
             deh_log(" - args[2] = %ld\n", (long)value);
             states[indexnum].args[2] = (long)value; // long
             defined_codeptr_args[indexnum] |= (1 << 2);
         }
-        else if (!strcasecmp(key, deh_state[10])) // Args4
+        else if (!strcasecmp(key, deh_state[DEH_STATE_ARGS4]))
         {
             deh_log(" - args[3] = %ld\n", (long)value);
             states[indexnum].args[3] = (long)value; // long
             defined_codeptr_args[indexnum] |= (1 << 3);
         }
-        else if (!strcasecmp(key, deh_state[11])) // Args5
+        else if (!strcasecmp(key, deh_state[DEH_STATE_ARGS5]))
         {
             deh_log(" - args[4] = %ld\n", (long)value);
             states[indexnum].args[4] = (long)value; // long
             defined_codeptr_args[indexnum] |= (1 << 4);
         }
-        else if (!strcasecmp(key, deh_state[12])) // Args6
+        else if (!strcasecmp(key, deh_state[DEH_STATE_ARGS6]))
         {
             deh_log(" - args[5] = %ld\n", (long)value);
             states[indexnum].args[5] = (long)value; // long
             defined_codeptr_args[indexnum] |= (1 << 5);
         }
-        else if (!strcasecmp(key, deh_state[13])) // Args7
+        else if (!strcasecmp(key, deh_state[DEH_STATE_ARGS7]))
         {
             deh_log(" - args[6] = %ld\n", (long)value);
             states[indexnum].args[6] = (long)value; // long
             defined_codeptr_args[indexnum] |= (1 << 6);
         }
-        else if (!strcasecmp(key, deh_state[14])) // Args8
+        else if (!strcasecmp(key, deh_state[DEH_STATE_ARGS8]))
         {
             deh_log(" - args[7] = %ld\n", (long)value);
             states[indexnum].args[7] = (long)value; // long
             defined_codeptr_args[indexnum] |= (1 << 7);
         }
-        else if (!strcasecmp(key, deh_state[15])) // MBF21 Bits
+        else if (!strcasecmp(key, deh_state[DEH_STATE_MBF21_BITS]))
         {
             if (!value)
             {
@@ -2260,6 +2287,18 @@ static void deh_procFrame(DEHFILE *fpin, char *line)
             }
 
             states[indexnum].flags = value;
+        }
+        else if (!strcasecmp(key, deh_state[DEH_STATE_TRANMAP]))
+        {
+            char candidate[9] = {0};
+            M_CopyLumpName(candidate, ptr_lstrip(strval));
+            int len = strlen(candidate);
+            if (len < 1 || len > 8)
+            {
+                deh_log("Bad length for Tranmap lump name '%s'\n", candidate);
+                continue;
+            }
+            states[indexnum].tranmap = W_CacheLumpName(candidate, PU_STATIC);
         }
         else
         {

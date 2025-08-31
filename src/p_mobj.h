@@ -222,7 +222,7 @@ typedef enum
     MF2_FULLVOLSOUNDS   = 0x00040000, // full volume see / death sound
 } mobjflag2_t;
 
-// [EA] Woof!-exclusive extension
+// Woof!-exclusive extension
 typedef enum
 {
     MFX_COLOREDBLOOD    = 0x00000001, // [FG] colored blood and gibs
@@ -432,10 +432,13 @@ void P_UpdateDirectVerticalAiming(void);
 extern boolean checksight12;
 void P_UpdateCheckSight(void);
 
+void P_SetActualHeight(mobj_t *mobj);
+
 mobj_t *P_SubstNullMobj(mobj_t *mobj);
 void    P_RespawnSpecials(void);
 mobj_t  *P_SpawnMobj(fixed_t x, fixed_t y, fixed_t z, mobjtype_t type);
 void    P_RemoveMobj(mobj_t *th);
+extern int setmobjstate_recursion;
 boolean P_SetMobjState(mobj_t *mobj, statenum_t state);
 void    P_MobjThinker(mobj_t *mobj);
 void    P_SpawnPuff(fixed_t x, fixed_t y, fixed_t z);

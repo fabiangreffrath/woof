@@ -159,18 +159,17 @@ typedef struct sector_s
   fixed_t	interpfloorheight;
   fixed_t	interpceilingheight;
 
-  fixed_t base_floor_xoffs;
-  fixed_t base_floor_yoffs;
+  fixed_t interp_floor_xoffs;
+  fixed_t interp_floor_yoffs;
   fixed_t old_floor_xoffs;
   fixed_t old_floor_yoffs;
-  fixed_t base_ceiling_xoffs;
-  fixed_t base_ceiling_yoffs;
+  fixed_t interp_ceiling_xoffs;
+  fixed_t interp_ceiling_yoffs;
   fixed_t old_ceiling_xoffs;
   fixed_t old_ceiling_yoffs;
 
   // ID24 line specials
-  int colormap_index;
-  lighttable_t *colormap;
+  int tint;
   angle_t floor_rotation;
   angle_t ceiling_rotation;
 } sector_t;
@@ -197,8 +196,8 @@ typedef struct side_s
   // [crispy] smooth texture scrolling
   fixed_t oldtextureoffset;
   fixed_t oldrowoffset;
-  fixed_t basetextureoffset;
-  fixed_t baserowoffset;
+  fixed_t interptextureoffset;
+  fixed_t interprowoffset;
   int oldgametic;
 } side_t;
 
@@ -236,6 +235,8 @@ typedef struct line_s
   angle_t angle;
   int frontmusic; // Front upper texture -- activated from the front side
   int backmusic; // Front lower texture -- activated from the back side
+  int fronttint; // Front upper texture -- activated from the front side
+  int backtint; // Front lower texture -- activated from the back side
 } line_t;
 
 //
@@ -391,9 +392,15 @@ typedef struct vissprite_s
   // killough 3/27/98: height sector for underwater/fake ceiling support
   int heightsec;
 
+  // ID24 per-sector colormap
+  int tint;
+
   // [FG] colored blood and gibs
   int color;
   const byte *brightmap;
+
+  // ID24
+  byte *tranmap;
 
   // andrewj: voxel support
   int voxel_index;
@@ -455,6 +462,7 @@ typedef struct visplane_s
   fixed_t xoffs, yoffs;         // killough 2/28/98: Support scrolling flats
   angle_t rotation;
   unsigned short *bottom;
+  int tint; // ID24 per-sector colormap
   unsigned short pad1;          // leave pads for [minx-1]/[maxx+1]
   unsigned short top[3];
 } visplane_t;

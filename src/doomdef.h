@@ -231,6 +231,7 @@ typedef enum {
   ss_eq,
   ss_padadv,
   ss_gyro,
+  ss_cskill,
   ss_max
 } ss_types;
 
@@ -248,6 +249,10 @@ typedef enum {
 #define MORE_FRICTION_MOMENTUM 15000       // mud factor based on momentum
 #define ORIG_FRICTION          0xE800      // original value
 #define ORIG_FRICTION_FACTOR   2048        // original value
+
+// Index of the special effects (INVUL inverse) map.
+
+#define INVERSECOLORMAP 32
 
 #endif          // __DOOMDEF__
 

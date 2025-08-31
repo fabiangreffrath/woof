@@ -1,5 +1,5 @@
 //
-// Copyright(C) 2022 Roman Fomin
+// Copyright(C) 2005-2014 Simon Howard
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -11,27 +11,15 @@
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 // GNU General Public License for more details.
 //
+// DESCRIPTION:
+//     Networking module which uses netlib
+//
 
-#include "SDL.h"
-#define WIN32_LEAN_AND_MEAN
-#include <windows.h>
+#ifndef NET_NETLIB_H
+#define NET_NETLIB_H
 
-__declspec(dllexport) extern int Woof_Main(int argc, char **argv);
-__declspec(dllexport) extern void Woof_Exit(void);
+#include "net_defs.h"
 
-BOOL CtrlHandler(DWORD event)
-{
-    if (event == CTRL_CLOSE_EVENT)
-    {
-        Woof_Exit();
-        return TRUE;
-    }
-    return FALSE;
-}
+extern net_module_t netlib_module;
 
-int main(int argc, char **argv)
-{
-    SetConsoleCtrlHandler((PHANDLER_ROUTINE)(CtrlHandler), TRUE);
-
-    return Woof_Main(argc, argv);
-}
+#endif /* #ifndef NET_NETLIB_H */

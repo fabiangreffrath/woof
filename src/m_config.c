@@ -35,6 +35,7 @@
 #include "doomstat.h"
 #include "doomtype.h"
 #include "g_game.h"
+#include "g_rewind.h"
 #include "i_flickstick.h"
 #include "i_gamepad.h"
 #include "i_gyro.h"
@@ -86,6 +87,18 @@ void M_BindNum(const char *name, void *location, void *current,
     array_push(defaults, item);
 }
 
+void M_BindMenuNum(const char *name, void *location, int min_val, int max_val)
+{
+    default_t item = { name, {.i = location}, {0}, {0}, {min_val, max_val},
+                       menu, ss_none, wad_no, NULL };
+    array_push(defaults, item);
+}
+
+void M_BindMenuBool(const char *name, boolean *location)
+{
+    M_BindMenuNum(name, location, 0, 1);
+}
+
 void M_BindBool(const char *name, boolean *location, boolean *current,
                 boolean default_val, ss_types screen, wad_allowed_t wad,
                 const char *help)
@@ -124,6 +137,7 @@ void M_InitConfig(void)
     MN_BindMenuVariables();
     D_BindMiscVariables();
     G_BindGameVariables();
+    G_BindRewindVariables();
 
     G_BindGameInputVariables();
     G_BindMouseVariables();
@@ -260,6 +274,11 @@ void M_SaveDefaults(void)
         if (!dp->name) // If we're at end of defaults table, exit loop
         {
             break;
+        }
+
+        if (dp->type == menu)
+        {
+            continue;
         }
 
         // jff 3/3/98 output help string
@@ -736,4 +755,10 @@ void M_LoadDefaults(void)
                  " Warning: Cannot read %s -- using built-in defaults",
                  defaultfile);
     }
+}
+
+boolean M_CheckIfDisabled(const char *name)
+{
+    const default_t *dp = M_LookupDefault(name);
+    return dp->setup_menu->m_flags & S_DISABLE;
 }

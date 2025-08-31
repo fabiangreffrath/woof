@@ -585,12 +585,12 @@ void G_ParseMapInfo(int lumpnum)
             else if (!strcasecmp(parsed.mapname, "E1M8"))
             {
                 parsed.flags |= MapInfo_EndGameArt;
-                strcpy(parsed.endpic, gamemode == retail ? "CREDIT" : "HELP2");
+                M_CopyLumpName(parsed.endpic, gamemode == retail && !pwad_help2 ? "CREDIT" : "HELP2");
             }
             else if (!strcasecmp(parsed.mapname, "E2M8"))
             {
                 parsed.flags |= MapInfo_EndGameArt;
-                strcpy(parsed.endpic, "VICTORY2");
+                M_CopyLumpName(parsed.endpic, "VICTORY2");
             }
             else if (!strcasecmp(parsed.mapname, "E3M8"))
             {
@@ -599,14 +599,14 @@ void G_ParseMapInfo(int lumpnum)
             else if (!strcasecmp(parsed.mapname, "E4M8"))
             {
                 parsed.flags |= MapInfo_EndGameArt;
-                strcpy(parsed.endpic, "ENDPIC");
+                M_CopyLumpName(parsed.endpic, "ENDPIC");
             }
             else
             {
                 int ep, map;
                 if (G_ValidateMapName(parsed.mapname, &ep, &map))
                 {
-                    strcpy(parsed.nextmap, MapName(ep, map + 1));
+                    M_CopyLumpName(parsed.nextmap, MapName(ep, map + 1));
                 }
             }
         }
@@ -672,7 +672,7 @@ boolean G_ValidateMapName(const char *mapname, int *episode, int *map)
         {
             return false;
         }
-        strcpy(lumpname, MapName(e, m));
+        M_CopyLumpName(lumpname, MapName(e, m));
     }
     else
     {
@@ -680,7 +680,7 @@ boolean G_ValidateMapName(const char *mapname, int *episode, int *map)
         {
             return false;
         }
-        strcpy(lumpname, MapName(e = 1, m));
+        M_CopyLumpName(lumpname, MapName(e = 1, m));
     }
 
     if (episode)

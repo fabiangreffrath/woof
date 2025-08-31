@@ -24,6 +24,7 @@
 
 // Needed for action function pointer handling.
 #include "d_think.h"
+#include "doomtype.h"
 
 #define MAXSTATEARGS 8
 
@@ -1261,6 +1262,7 @@ typedef struct
   statenum_t  nextstate;    // linked list pointer to next state or zero
   long        misc1, misc2; // used for psprite positioning
   long        args[MAXSTATEARGS]; // [XA] mbf21 args
+  byte       *tranmap; // ID24
   int         flags;
 } state_t;
 
@@ -1519,7 +1521,7 @@ typedef struct
     int meleerange;
 
     // [Woof!]
-    int flags_extra;  // [EA] Woof!-exclusive extension
+    int flags_extra;  // Woof!-exclusive extension
     int bloodcolor;   // [FG] colored blood and gibs
     // DEHEXTRA
     mobjtype_t droppeditem; // mobj to drop after death
