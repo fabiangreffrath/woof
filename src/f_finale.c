@@ -226,9 +226,7 @@ static boolean MapInfo_Drawer(void)
             }
             else if (gamemapinfo->endpic[0])
             {
-                V_DrawPatchFullScreen(
-                    V_CachePatchName(
-                        W_CheckWidescreenPatch(gamemapinfo->endpic), PU_CACHE));
+                V_DrawPatchFullScreen(W_CheckWidescreenPatch(gamemapinfo->endpic));
             }
             break;
         case FINALE_STAGE_CAST:
@@ -463,7 +461,7 @@ static void F_TextWrite(void)
   if (gamemapinfo && W_CheckNumForName(finaleflat) != -1 &&
       (W_CheckNumForName)(finaleflat, ns_flats) == -1)
   {
-    V_DrawPatchFullScreen(V_CachePatchName(finaleflat, PU_LEVEL));
+    V_DrawPatchFullScreen(finaleflat);
   }
   else if ((W_CheckNumForName)(finaleflat, ns_flats) != -1)
   {
@@ -770,8 +768,7 @@ static void F_CastDrawer(void)
     
   // erase the entire screen to a background
   // Ty 03/30/98 bg texture extern
-  V_DrawPatchFullScreen(
-    V_CachePatchName(W_CheckWidescreenPatch(bgcastcall), PU_CACHE));
+  V_DrawPatchFullScreen(W_CheckWidescreenPatch(bgcastcall));
 
   F_CastPrint (castorder[castnum].name);
     
@@ -886,22 +883,18 @@ void F_Drawer (void)
     {
       case 1:
            if ( (gamemode == retail && !pwad_help2) || gamemode == commercial )
-             V_DrawPatchFullScreen(
-              V_CachePatchName(W_CheckWidescreenPatch("CREDIT"), PU_CACHE));
+             V_DrawPatchFullScreen(W_CheckWidescreenPatch("CREDIT"));
            else
-             V_DrawPatchFullScreen(
-              V_CachePatchName(W_CheckWidescreenPatch("HELP2"), PU_CACHE));
+             V_DrawPatchFullScreen(W_CheckWidescreenPatch("HELP2"));
            break;
       case 2:
-           V_DrawPatchFullScreen(
-            V_CachePatchName(W_CheckWidescreenPatch("VICTORY2"), PU_CACHE));
+           V_DrawPatchFullScreen(W_CheckWidescreenPatch("VICTORY2"));
            break;
       case 3:
            F_BunnyScroll();
            break;
       case 4:
-           V_DrawPatchFullScreen(
-            V_CachePatchName(W_CheckWidescreenPatch("ENDPIC"), PU_CACHE));
+           V_DrawPatchFullScreen(W_CheckWidescreenPatch("ENDPIC"));
            break;
     }
   }

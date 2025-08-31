@@ -798,9 +798,14 @@ byte V_GetBorderColor(const char* lump)
   return col;
 }
 
-void V_DrawPatchFullScreen(patch_t *patch)
+void V_DrawPatchFullScreen(const char *name)
 {
+    patch_t *patch = V_CachePatchName(name, PU_CACHE);
     const int x = DIV_ROUND_CLOSEST(video.unscaledw - SHORT(patch->width), 2);
+
+    byte color = R_IsPatchLump(W_GetNumForName(name))
+               ? V_GetBorderColor(name)
+               : v_darkest_color;
 
     patch->leftoffset = 0;
     patch->topoffset = 0;
@@ -808,7 +813,7 @@ void V_DrawPatchFullScreen(patch_t *patch)
     // [crispy] fill pillarboxes in widescreen mode
     if (video.unscaledw != NONWIDEWIDTH)
     {
-        V_FillRect(0, 0, video.unscaledw, SCREENHEIGHT, v_darkest_color);
+        V_FillRect(0, 0, video.unscaledw, SCREENHEIGHT, color);
     }
 
     drawcolfunc = DrawPatchColumn;

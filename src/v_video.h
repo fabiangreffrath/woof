@@ -192,7 +192,7 @@ void V_DrawPatchTL(int x, int y, crop_t rect, struct patch_s *patch, byte *tl);
 void V_DrawPatchTRTL(int x, int y, crop_t rect, struct patch_s *patch,
                      byte *outr, byte *tl);
 
-void V_DrawPatchFullScreen(struct patch_s *patch);
+void V_DrawPatchFullScreen(const char *name);
 
 // Draw a linear block of pixels into the view buffer.
 

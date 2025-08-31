@@ -436,8 +436,7 @@ static void M_FinishReadThis(int choice)
 
 static void M_DrawReadThis1(void)
 {
-    V_DrawPatchFullScreen(
-        V_CachePatchName(W_CheckWidescreenPatch("HELP2"), PU_CACHE));
+    V_DrawPatchFullScreen(W_CheckWidescreenPatch("HELP2"));
 }
 
 //
@@ -448,23 +447,22 @@ static void M_DrawReadThis1(void)
 static void M_DrawReadThis2(void)
 {
     // Display help screen from PWAD
-    int helplump;
+    const char * helplump = NULL;
     if (gamemode == commercial)
     {
-        helplump = W_CheckNumForName(W_CheckWidescreenPatch("HELP"));
+        helplump = W_CheckWidescreenPatch("HELP");
     }
     else
     {
-        helplump = W_CheckNumForName(W_CheckWidescreenPatch("HELP1"));
+        helplump = W_CheckWidescreenPatch("HELP1");
     }
 
-    V_DrawPatchFullScreen(V_CachePatchNum(helplump, PU_CACHE));
+    V_DrawPatchFullScreen(helplump);
 }
 
 static void M_DrawReadThisCommercial(void)
 {
-    V_DrawPatchFullScreen(
-        V_CachePatchName(W_CheckWidescreenPatch("HELP"), PU_CACHE));
+    V_DrawPatchFullScreen(W_CheckWidescreenPatch("HELP"));
 }
 
 /////////////////////////////
@@ -1938,7 +1936,7 @@ static void M_DrawExtHelp(void)
     char namebfr[] = "HELPnn"; // [FG] char array!
     namebfr[4] = extended_help_index / 10 + 0x30;
     namebfr[5] = extended_help_index % 10 + 0x30;
-    V_DrawPatchFullScreen(V_CachePatchName(namebfr, PU_CACHE));
+    V_DrawPatchFullScreen(namebfr);
 }
 
 //
