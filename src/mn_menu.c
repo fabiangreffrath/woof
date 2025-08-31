@@ -2447,6 +2447,18 @@ boolean M_ShortcutResponder(const event_t *ev)
         return false;
     }
 
+    if (M_InputActivated(input_netgame_stats))
+    {
+        if (WI_enableOverlayStats())
+        {
+            return true;
+        }
+    }
+    else
+    {
+        WI_disableOverlayStats();
+    }
+
     if (M_InputActivated(input_autorun)) // Autorun
     {
         autorun = !autorun;
@@ -2499,11 +2511,6 @@ boolean M_ShortcutResponder(const event_t *ev)
 
     if (M_InputActivated(input_help)) // Help key
     {
-        if (WI_toggleOverlayStats())
-        {
-            return true;
-        }
-
         boolean help2 = (gamemode < commercial || pwad_help2);
         MN_StartControlPanel();
         currentMenu = help2 ? &ReadDef1 : &ReadDef2; // killough 10/98: new help screen

@@ -2097,15 +2097,20 @@ static void WI_overlayNetgameStats(void)
 
 static boolean wi_overlay = false;
 
-boolean WI_toggleOverlayStats(void)
+boolean WI_enableOverlayStats(void)
 {
-    if (netgame || deathmatch)
+    if (gamestate == GS_LEVEL && (netgame || deathmatch))
     {
-        wi_overlay = !wi_overlay;
+        wi_overlay = true;
         return true;
     }
 
     return false;
+}
+
+void WI_disableOverlayStats(void)
+{
+    wi_overlay = false;
 }
 
 void WI_drawOverlayStats(void)

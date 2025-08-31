@@ -709,6 +709,7 @@ static input_t default_inputs[NUM_INPUT_ID][NUM_INPUTS] =
     [input_chat_dest1]  = { {INPUT_KEY, 'i'} },
     [input_chat_dest2]  = { {INPUT_KEY, 'b'} },
     [input_chat_dest3]  = { {INPUT_KEY, 'r'} },
+    [input_netgame_stats] = { {INPUT_KEY, KEY_F1} },
 };
 
 void M_InputSetDefault(int id)
@@ -803,6 +804,7 @@ void M_BindInputVariables(void)
     BIND_INPUT(input_chat_dest1, "Chat with player 2");
     BIND_INPUT(input_chat_dest2, "Chat with player 3");
     BIND_INPUT(input_chat_dest3, "Chat with player 4");
+    BIND_INPUT(input_netgame_stats, "Display netgame stats overlay");
 
     BIND_INPUT(input_iddqd, "Toggle god mode");
     BIND_INPUT(input_idkfa, "Give ammo and keys");

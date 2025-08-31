@@ -49,7 +49,8 @@ void WI_checkForAccelerate(void);      // killough 11/98
 
 void WI_slamBackground(void);          // killough 11/98
 
-boolean WI_toggleOverlayStats(void);
+boolean WI_enableOverlayStats(void);
+void WI_disableOverlayStats(void);
 void WI_drawOverlayStats(void);
 
 #endif

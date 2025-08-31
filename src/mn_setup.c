@@ -1478,6 +1478,7 @@ static setup_menu_t keys_settings3[] = {
     {"Default Speed",   S_INPUT, KB_X, M_SPC, {0}, m_scrn, input_speed_default},
     MI_GAP,
     {"Begin Chat",      S_INPUT, KB_X, M_SPC, {0}, m_scrn, input_chat},
+    {"Netgame Stats",   S_INPUT, KB_X, M_SPC, {0}, m_scrn, input_netgame_stats},
     MI_END
 };
 
