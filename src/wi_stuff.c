@@ -2134,6 +2134,7 @@ static void WI_initStats(void)
   cnt_kills[0] = cnt_items[0] = cnt_secret[0] = -1;
   cnt_time = cnt_par = cnt_total_time = -1;
   cnt_pause = TICRATE;
+  wi_overlay = false;
 
   WI_initAnimatedBack(true);
 }
