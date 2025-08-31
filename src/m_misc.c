@@ -482,31 +482,32 @@ boolean M_StringCaseEndsWith(const char *s, const char *suffix)
 
 char *M_StringJoinInternal(const char *s[], size_t n)
 {
-    int length = 1;
+    size_t length = 1; // Start with 1 for the null terminator
 
+    // Check for NULL arguments and calculate total length
     for (int i = 0; i < n; ++i)
     {
         if (s[i] == NULL)
         {
-            I_Error("%d argument is NULL", i);
+            I_Error("%d argument is NULL", i + 1);
         }
-
         length += strlen(s[i]);
     }
 
     char *result = malloc(length);
-
     if (result == NULL)
     {
         I_Error("Failed to allocate new string");
     }
 
-    M_StringCopy(result, s[0], length);
-
-    for (int i = 1; i < n; ++i)
+    int pos = 0;
+    for (int i = 0; i < n; ++i)
     {
-        M_StringConcat(result, s[i], length);
+        size_t slen = strlen(s[i]);
+        memcpy(result + pos, s[i], slen);
+        pos += slen;
     }
+    result[pos] = '\0'; // Null-terminate the result
 
     return result;
 }
@@ -549,20 +550,19 @@ int M_snprintf(char *buf, size_t buf_len, const char *s, ...)
     return result;
 }
 
-// Copy lump name (up to 8 chars) to dest buffer.
+// Copies characters until either 8 characters are copied or a null terminator
+// is found.
 
 void M_CopyLumpName(char *dest, const char *src)
 {
-    size_t len;
-
-    len = strnlen(src, 8);
-
-    if (len < 8)
+    for (int i = 0; i < 8; i++)
     {
-        len++;
+        dest[i] = src[i];
+        if (src[i] == '\0')
+        {
+            break;
+        }
     }
-
-    memcpy(dest, src, len);
 }
 
 //

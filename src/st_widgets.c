@@ -436,7 +436,7 @@ boolean ST_MessagesResponder(event_t *ev)
 
     if (!chat_on)
     {
-        if (M_InputActivated(input_chat_enter)) // phares
+        if (M_InputActivated(input_msgreview)) // phares
         {
             //jff 2/26/98 toggle list of messages
             message_review = true;
@@ -1046,9 +1046,9 @@ static void UpdateSpeed(sbe_widget_t *widget, player_t *player)
     static const char *units[] = {"ups", "km/h", "mph"};
     const int type = speedometer - 1;
     const mobj_t *mo = player->mo;
-    const double dx = FIXED2DOUBLE(mo->x - mo->oldx);
-    const double dy = FIXED2DOUBLE(mo->y - mo->oldy);
-    const double dz = FIXED2DOUBLE(mo->z - mo->oldz);
+    const double dx = FixedToDouble(mo->x - mo->oldx);
+    const double dy = FixedToDouble(mo->y - mo->oldy);
+    const double dz = FixedToDouble(mo->z - mo->oldz);
     const double speed = sqrt(dx * dx + dy * dy + dz * dz) * factor[type];
 
     static char string[60];

@@ -143,7 +143,7 @@ static boolean default_reset;
 #define MI_GAP_Y(y) \
     {NULL, S_SKIP, 0, (y)}
 
-static void DisableItem(boolean condition, setup_menu_t *menu, const char *item)
+static setup_menu_t *GetMenuItem(setup_menu_t *menu, const char *item)
 {
     while (!(menu->m_flags & S_END))
     {
@@ -153,16 +153,7 @@ static void DisableItem(boolean condition, setup_menu_t *menu, const char *item)
                  && !strcasecmp(menu->var.def->name, item))
                 || !strcasecmp(menu->m_text, item))
             {
-                if (condition)
-                {
-                    menu->m_flags |= S_DISABLE;
-                }
-                else
-                {
-                    menu->m_flags &= ~S_DISABLE;
-                }
-
-                return;
+                return menu;
             }
         }
 
@@ -170,6 +161,29 @@ static void DisableItem(boolean condition, setup_menu_t *menu, const char *item)
     }
 
     I_Error("Item \"%s\" not found in menu", item);
+}
+
+static void DisableItem(boolean condition, setup_menu_t *menu, const char *item)
+{
+    setup_menu_t *menu_item = GetMenuItem(menu, item);
+
+    if (condition)
+    {
+        menu_item->m_flags |= S_DISABLE;
+    }
+    else
+    {
+        menu_item->m_flags &= ~S_DISABLE;
+    }
+}
+
+static void SetItemLimit(setup_menu_t *menu, const char *item, int min, int max)
+{
+    setup_menu_t *menu_item = GetMenuItem(menu, item);
+
+    default_t *def = menu_item->var.def;
+    def->limit.min = min;
+    def->limit.max = max;
 }
 
 static void DisableItemsInternal(boolean condition, setup_menu_t *menu,
@@ -338,7 +352,6 @@ enum
     str_curve,
     str_center_weapon,
     str_screensize,
-    str_stlayout,
     str_show_widgets,
     str_show_adv_widgets,
     str_stats_format,
@@ -372,13 +385,14 @@ enum
     str_gyro_accel,
 
     str_default_complevel,
-    str_exit_sequence,
+    str_endoom,
     str_death_use_action,
     str_widescreen,
     str_bobbing_pct,
     str_screen_melt,
     str_invul_mode,
     str_skill,
+    str_freelook
 };
 
 static const char **GetStrings(int id);
@@ -709,7 +723,15 @@ static void DrawSetupThermo(const setup_menu_t *s, int x, int y, int width,
         dot = size;
     }
 
-    int step = width * M_THRM_STEP * FRACUNIT / size;
+    int step;
+    if (size)
+    {
+        step = width * M_THRM_STEP * FRACUNIT / size;
+    }
+    else
+    {
+        step = 1;
+    }
 
     if (DrawIndicator)
     {
@@ -1234,7 +1256,7 @@ static void DrawInstructions(void)
     {
         if (pad)
         {
-            second = M_GetPlatformName(GAMEPAD_B);
+            second = M_GetPlatformName(gamepad_cancel);
         }
         else
         {
@@ -1257,8 +1279,8 @@ static void DrawInstructions(void)
         {
             if (pad)
             {
-                first = M_GetPlatformName(GAMEPAD_A);
-                second = M_GetPlatformName(GAMEPAD_B);
+                first = M_GetPlatformName(gamepad_confirm);
+                second = M_GetPlatformName(gamepad_cancel);
             }
             else
             {
@@ -1273,7 +1295,7 @@ static void DrawInstructions(void)
         {
             if (pad)
             {
-                second = M_GetPlatformName(GAMEPAD_B);
+                second = M_GetPlatformName(gamepad_cancel);
             }
             else
             {
@@ -1295,8 +1317,8 @@ static void DrawInstructions(void)
         {
             if (pad)
             {
-                first = M_GetPlatformName(GAMEPAD_A);
-                second = M_GetPlatformName(GAMEPAD_B);
+                first = M_GetPlatformName(gamepad_confirm);
+                second = M_GetPlatformName(gamepad_cancel);
             }
             else
             {
@@ -1313,8 +1335,8 @@ static void DrawInstructions(void)
         {
             if (pad)
             {
-                first = M_GetPlatformName(GAMEPAD_A);
-                second = M_GetPlatformName(GAMEPAD_Y);
+                first = M_GetPlatformName(gamepad_confirm);
+                second = M_GetPlatformName(GAMEPAD_NORTH);
             }
             else
             {
@@ -1329,7 +1351,7 @@ static void DrawInstructions(void)
         {
             if (pad)
             {
-                first = M_GetPlatformName(GAMEPAD_A);
+                first = M_GetPlatformName(gamepad_confirm);
             }
             else
             {
@@ -1342,8 +1364,8 @@ static void DrawInstructions(void)
         {
             if (pad)
             {
-                first = M_GetPlatformName(GAMEPAD_A);
-                second = M_GetPlatformName(GAMEPAD_B);
+                first = M_GetPlatformName(gamepad_confirm);
+                second = M_GetPlatformName(gamepad_cancel);
             }
             else
             {
@@ -1442,6 +1464,7 @@ static setup_menu_t keys_settings2[] = {
 
 static setup_menu_t keys_settings3[] = {
     // [FG] reload current level / go to next level
+    {"Rewind",          S_INPUT, KB_X, M_SPC, {0}, m_scrn, input_rewind},
     {"Reload Map/Demo", S_INPUT, KB_X, M_SPC, {0}, m_scrn, input_menu_reloadlevel},
     {"Next Map",        S_INPUT, KB_X, M_SPC, {0}, m_scrn, input_menu_nextlevel},
     {"Previous Map",    S_INPUT, KB_X, M_SPC, {0}, m_scrn, input_menu_prevlevel},
@@ -1660,7 +1683,6 @@ static char slot_labels[NUM_WS_SLOTS * NUM_WS_WEAPS][WS_BUF_SiZE];
 static void UpdateWeaponSlotLabels(void)
 {
     const char *keys[NUM_WS_SLOTS];
-    int buttons[NUM_WS_SLOTS];
 
     switch (WS_Selection())
     {
@@ -1672,11 +1694,10 @@ static void UpdateWeaponSlotLabels(void)
             break;
 
         case WS_SELECT_FACE_BUTTONS:
-            I_GetFaceButtons(buttons);
-            keys[0] = M_GetPlatformName(buttons[0]);
-            keys[1] = M_GetPlatformName(buttons[1]);
-            keys[2] = M_GetPlatformName(buttons[2]);
-            keys[3] = M_GetPlatformName(buttons[3]);
+            keys[0] = M_GetPlatformName(GAMEPAD_NORTH);
+            keys[1] = M_GetPlatformName(GAMEPAD_SOUTH);
+            keys[2] = M_GetPlatformName(GAMEPAD_WEST);
+            keys[3] = M_GetPlatformName(GAMEPAD_EAST);
             break;
 
         default: // WS_SELECT_1234
@@ -1853,10 +1874,6 @@ static void RefreshSolidBackground(void)
     st_refresh_background = true;
 }
 
-static const char *st_layout_strings[] = {
-    "Original", "Wide"
-};
-
 #define H_X_THRM8 (M_X_THRM8 - 14)
 #define H_X       (M_X - 14)
 
@@ -1867,8 +1884,8 @@ static setup_menu_t stat_settings1[] = {
 
     MI_GAP,
 
-    {"Layout", S_CHOICE, H_X, M_SPC, {"st_layout"},
-     .strings_id = str_stlayout},
+    {"Wide Shift", S_THERMO, H_X_THRM8, M_THRM_SPC, {"st_wide_shift"},
+     .append = "px"},
 
     MI_GAP,
 
@@ -1883,6 +1900,17 @@ static setup_menu_t stat_settings1[] = {
 
     MI_END
 };
+
+void MN_UpdateWideShiftItem(boolean reset)
+{
+    DisableItem(!video.deltaw, stat_settings1, "st_wide_shift");
+    SetItemLimit(stat_settings1, "st_wide_shift", 0, video.deltaw);
+    if (reset || st_wide_shift == -1)
+    {
+        st_wide_shift = video.deltaw;
+    }
+    st_wide_shift = CLAMP(st_wide_shift, 0, video.deltaw);
+}
 
 static void UpdateStatsFormatItem(void);
 
@@ -2211,15 +2239,8 @@ setup_menu_t comp_settings1[] = {
 
     MI_GAP,
 
-    {"Compatibility-breaking Features", S_SKIP | S_TITLE, M_X, M_SPC},
-
-    {"Direct Vertical Aiming", S_ONOFF | S_STRICT, M_X, M_SPC,
-     {"direct_vertical_aiming"}, .action = P_UpdateDirectVerticalAiming},
-
     {"Auto Strafe 50", S_ONOFF | S_STRICT, M_X, M_SPC, {"autostrafe50"},
      .action = G_UpdateSideMove},
-
-    MI_GAP,
 
     {"Improved Hit Detection", S_ONOFF | S_STRICT, M_X, M_SPC,
      {"blockmapfix"}},
@@ -2300,16 +2321,11 @@ static int resolution_scale;
 static const char **GetResolutionScaleStrings(void)
 {
     const char **strings = NULL;
-    resolution_scaling_t rs;
-    I_GetResolutionScaling(&rs);
+    resolution_scaling_t rs = I_GetResolutionScaling();
 
     array_push(strings, "100%");
 
-    if (current_video_height == SCREENHEIGHT)
-    {
-        resolution_scale = 0;
-    }
-
+    resolution_scale = 0;
     int val = SCREENHEIGHT * 2;
     char buf[8];
     int i;
@@ -2328,7 +2344,10 @@ static const char **GetResolutionScaleStrings(void)
         val += rs.step;
     }
 
-    resolution_scale = CLAMP(resolution_scale, 0, i);
+    if (current_video_height == rs.max)
+    {
+        resolution_scale = i;
+    }
 
     array_push(strings, "max");
 
@@ -2338,8 +2357,7 @@ static const char **GetResolutionScaleStrings(void)
 static void ResetVideoHeight(void)
 {
     const char **strings = GetStrings(str_resolution_scale);
-    resolution_scaling_t rs;
-    I_GetResolutionScaling(&rs);
+    resolution_scaling_t rs = I_GetResolutionScaling();
 
     if (default_reset)
     {
@@ -2401,11 +2419,6 @@ static void ToggleFullScreen(void)
     toggle_fullscreen = true;
 }
 
-static void ToggleExclusiveFullScreen(void)
-{
-    toggle_exclusive_fullscreen = true;
-}
-
 static void UpdateFPSLimit(void)
 {
     setrefreshneeded = true;
@@ -2441,9 +2454,6 @@ static setup_menu_t gen_settings1[] = {
 
     {"Fullscreen", S_ONOFF, CNTR_X, M_SPC, {"fullscreen"},
      .action = ToggleFullScreen},
-
-    {"Exclusive Fullscreen", S_ONOFF, CNTR_X, M_SPC, {"exclusive_fullscreen"},
-     .action = ToggleExclusiveFullScreen},
 
     MI_GAP_Y(6),
 
@@ -2807,11 +2817,22 @@ void MN_DrawEqualizer(void)
     DrawScreenItems(current_menu);
 }
 
-void MN_UpdateFreeLook(boolean condition)
+typedef enum
+{
+  FREELOOK_OFF,         // Free look disabled.
+  FREELOOK_AUTO_AIM,    // Free look enabled with traditional auto-aiming.
+  FREELOOK_DIRECT_AIM,  // Free look enabled with direct vertical aiming.
+} freelook_mode_t;
+
+static freelook_mode_t freelook_mode;
+
+static const char *free_look_strings[] = {"Off", "Auto-Aim", "Direct Aim"};
+
+void MN_UpdateFreeLook(void)
 {
     P_UpdateDirectVerticalAiming();
 
-    if (condition)
+    if (!freelook)
     {
         for (int i = 0; i < MAXPLAYERS; ++i)
         {
@@ -2823,14 +2844,25 @@ void MN_UpdateFreeLook(boolean condition)
     }
 }
 
-void MN_UpdateMouseLook(void)
+static void UpdateFreeLookMode(void)
 {
-    MN_UpdateFreeLook(!mouselook);
-}
+    switch (freelook_mode)
+    {
+        case FREELOOK_OFF:
+            freelook = false;
+            default_direct_vertical_aiming = false;
+            break;
+        case FREELOOK_AUTO_AIM:
+            freelook = true;
+            default_direct_vertical_aiming = false;
+            break;
+        case FREELOOK_DIRECT_AIM:
+            freelook = true;
+            default_direct_vertical_aiming = true;
+            break;
+    }
 
-void MN_UpdatePadLook(void)
-{
-    MN_UpdateFreeLook(!padlook);
+    MN_UpdateFreeLook();
 }
 
 #define MOUSE_ACCEL_STRINGS_SIZE (40 + 1)
@@ -2874,8 +2906,8 @@ static setup_menu_t gen_settings3[] = {
     // [FG] double click to "use"
     {"Double-Click to \"Use\"", S_ONOFF, CNTR_X, M_SPC, {"dclick_use"}},
 
-    {"Free Look", S_ONOFF, CNTR_X, M_SPC, {"mouselook"},
-     .action = MN_UpdateMouseLook},
+    {"Free Look", S_CHOICE, CNTR_X, M_SPC, {"freelook_mode"},
+     .strings_id = str_freelook, .action = UpdateFreeLookMode},
 
     // [FG] invert vertical axis
     {"Invert Look", S_ONOFF, CNTR_X, M_SPC, {"mouse_y_invert"},
@@ -2944,8 +2976,8 @@ static setup_menu_t gen_settings4[] = {
 
     MI_GAP_Y(2),
 
-     {"Free Look", S_ONOFF, CNTR_X, M_SPC, {"padlook"},
-     .action = MN_UpdatePadLook},
+    {"Free Look", S_CHOICE, CNTR_X, M_SPC, {"freelook_mode"},
+     .strings_id = str_freelook, .action = UpdateFreeLookMode},
 
     {"Invert Look", S_ONOFF, CNTR_X, M_SPC, {"joy_invert_look"},
      .action = I_ResetGamepad},
@@ -2969,6 +3001,22 @@ static setup_menu_t gen_settings4[] = {
 
     MI_END
 };
+
+void MN_InitFreeLook(void)
+{
+    if (strictmode)
+    {
+        DisableItem(true, gen_settings3, "freelook_mode");
+        DisableItem(true, gen_settings4, "freelook_mode");
+    }
+    if (demorecording || (netgame && !solonet))
+    {
+        SetItemLimit(gen_settings3, "freelook_mode", FREELOOK_OFF,
+                     FREELOOK_AUTO_AIM);
+        SetItemLimit(gen_settings4, "freelook_mode", FREELOOK_OFF,
+                     FREELOOK_AUTO_AIM);
+    }
+}
 
 static const char *movement_type_strings[] = {
     "Normalized", "Faster Diagonals"
@@ -3081,19 +3129,17 @@ static void UpdateGamepadItems(void)
     DisableItem(!gamepad, gen_settings4, "Advanced Options");
     DisableItem(!gamepad || !I_GyroSupported(), gen_settings4, "Gyro Options");
     DisableItem(!gamepad || !I_RumbleSupported(), gen_settings4, "joy_rumble");
-    DisableItem(!gamepad || (!sticks && !gyro), gen_settings4, "padlook");
-    DisableItem(condition, gen_settings4, "joy_invert_look");
-    DisableItem(condition, gen_settings4, "joy_movement_inner_deadzone");
-    DisableItem(condition, gen_settings4, "joy_camera_inner_deadzone");
-    DisableItem(condition, gen_settings4, "joy_turn_speed");
-    DisableItem(condition, gen_settings4, "joy_look_speed");
+    DisableItem(!gamepad || (!sticks && !gyro) || strictmode, gen_settings4,
+        "freelook_mode");
+    DisableItems(condition, gen_settings4, "joy_invert_look",
+        "joy_movement_inner_deadzone", "joy_camera_inner_deadzone",
+        "joy_turn_speed", "joy_look_speed");
 
     DisableItem(!gamepad, padadv_settings1, "joy_stick_layout");
     DisableItem(!flick, padadv_settings1, "joy_flick_time");
-    DisableItem(condition, padadv_settings1, "joy_movement_type");
-    DisableItem(condition, padadv_settings1, "joy_forward_sensitivity");
-    DisableItem(condition, padadv_settings1, "joy_strafe_sensitivity");
-    DisableItem(condition, padadv_settings1, "joy_outer_turn_speed");
+    DisableItems(condition, padadv_settings1, "joy_movement_type",
+        "joy_forward_sensitivity", "joy_strafe_sensitivity",
+        "joy_outer_turn_speed");
     DisableItem(!ramp, padadv_settings1, "joy_outer_ramp_time");
     DisableItem(condition, padadv_settings1, "joy_camera_curve");
 }
@@ -3102,7 +3148,7 @@ static void UpdateGyroItems(void);
 
 static void UpdateGyroAiming(void)
 {
-    UpdateGamepadItems(); // Update "Gyro Options" and padlook.
+    UpdateGamepadItems(); // Update "Gyro Options" and freelook.
     UpdateGyroItems();
     I_SetSensorsEnabled(I_GyroEnabled());
     I_ResetGamepad();
@@ -3273,10 +3319,6 @@ static void SmoothLight(void)
     setsizeneeded = true; // run R_ExecuteSetViewSize
 }
 
-static const char *exit_sequence_strings[] = {
-    "Off", "Sound Only", "ENDOOM Only", "Full"
-};
-
 static const char *fuzzmode_strings[] = {
     "Blocky", "Refraction", "Shadow", "Original"
 };
@@ -3296,8 +3338,7 @@ static setup_menu_t gen_settings5[] = {
 
     {"Voxels", S_ONOFF | S_STRICT, OFF_CNTR_X, M_SPC, {"voxels_rendering"}},
 
-    {"Brightmaps", S_ONOFF | S_STRICT, OFF_CNTR_X, M_SPC, {"brightmaps"},
-     .action = R_InitDrawFunctions},
+    {"Brightmaps", S_ONOFF | S_STRICT, OFF_CNTR_X, M_SPC, {"brightmaps"}},
 
     {"Stretch Short Skies", S_ONOFF, OFF_CNTR_X, M_SPC, {"stretchsky"},
      .action = R_UpdateStretchSkies},
@@ -3320,7 +3361,7 @@ static const char *screen_melt_strings[] = {"Off", "Melt", "Crossfade", "Fizzle"
 
 static const char *invul_mode_strings[] = {"Vanilla", "MBF", "Gray"};
 
-static void UpdatePwadEndoomItem(void);
+static const char *endoom_strings[] = {"Off", "PWAD Only", "Always"};
 
 static setup_menu_t gen_settings6[] = {
 
@@ -3334,6 +3375,8 @@ static setup_menu_t gen_settings6[] = {
 
     {"Invulnerability effect", S_CHOICE | S_STRICT, OFF_CNTR_X, M_SPC,
      {"invul_mode"}, .strings_id = str_invul_mode, .action = R_InvulMode},
+
+    {"Pause Demos in Menu", S_ONOFF, OFF_CNTR_X, M_SPC, {"menu_pause_demos"}},
 
     {"Demo progress bar", S_ONOFF, OFF_CNTR_X, M_SPC, {"demobar"}},
 
@@ -3353,10 +3396,12 @@ static setup_menu_t gen_settings6[] = {
     {"Game speed", S_NUM | S_STRICT | S_PCT, OFF_CNTR_X, M_SPC,
      {"realtic_clock_rate"}, .action = G_SetTimeScale},
 
-    {"Exit Sequence", S_CHOICE, OFF_CNTR_X, M_SPC, {"exit_sequence"},
-    .strings_id = str_exit_sequence, .action = UpdatePwadEndoomItem},
+    {"Show Quit Prompt", S_ONOFF, OFF_CNTR_X, M_SPC, {"quit_prompt"}},
 
-    {"PWAD ENDOOM Only", S_ONOFF, OFF_CNTR_X, M_SPC, {"endoom_pwad_only"}},
+    {"Play Quit Sound", S_ONOFF, OFF_CNTR_X, M_SPC, {"quit_sound"}},
+
+    {"Show ENDOOM Screen", S_CHOICE, OFF_CNTR_X, M_SPC, {"show_endoom"},
+     .strings_id = str_endoom},
 
     MI_END
 };
@@ -3365,11 +3410,6 @@ static setup_menu_t *gen_settings[] = {
     gen_settings1, gen_settings2, gen_settings3, gen_settings4,
     gen_settings5, gen_settings6, NULL
 };
-
-static void UpdatePwadEndoomItem(void)
-{
-    DisableItem(!D_EndDoomEnabled(), gen_settings6, "endoom_pwad_only");
-}
 
 void MN_UpdateDynamicResolutionItem(void)
 {
@@ -3412,6 +3452,19 @@ void MN_General(int choice)
     current_menu = gen_settings[current_page];
     current_tabs = gen_tabs;
     SetupMenu();
+
+    if (freelook && direct_vertical_aiming)
+    {
+        freelook_mode = FREELOOK_DIRECT_AIM;
+    }
+    else if (freelook && !direct_vertical_aiming)
+    {
+        freelook_mode = FREELOOK_AUTO_AIM;
+    }
+    else
+    {
+        freelook_mode = FREELOOK_OFF;
+    }
 }
 
 // The drawing part of the General Setup initialization. Draw the
@@ -3539,6 +3592,7 @@ void MN_CustomSkill(void)
     SetupMenu();
 
     csmenu_skill = default_skill - 1;
+    SelectSkillLevel();
 }
 
 void MN_DrawCustomSkill(void)
@@ -3848,7 +3902,7 @@ void MN_DrawStringCR(int cx, int cy, byte *cr1, byte *cr2, const char *ch)
         // desired color, colrngs[color]
         if (cr && cr2)
         {
-            V_DrawPatchTRTR(cx, cy, hu_font[c], cr, cr2);
+            V_DrawPatchTRTR(cx, cy, (crop_t){0}, hu_font[c], cr, cr2);
         }
         else
         {
@@ -4940,7 +4994,6 @@ static const char **selectstrings[] = {
     [str_curve] = curve_strings,
     [str_center_weapon] = center_weapon_strings,
     [str_screensize] = NULL,
-    [str_stlayout] = st_layout_strings,
     [str_show_widgets] = show_widgets_strings,
     [str_show_adv_widgets] = show_adv_widgets_strings,
     [str_stats_format] = stats_format_strings,
@@ -4969,13 +5022,14 @@ static const char **selectstrings[] = {
     [str_gyro_sens] = NULL,
     [str_gyro_accel] = NULL,
     [str_default_complevel] = default_complevel_strings,
-    [str_exit_sequence] = exit_sequence_strings,
+    [str_endoom] = endoom_strings,
     [str_death_use_action] = death_use_action_strings,
     [str_widescreen] = widescreen_strings,
     [str_bobbing_pct] = bobbing_pct_strings,
     [str_screen_melt] = screen_melt_strings,
     [str_invul_mode] = invul_mode_strings,
     [str_skill] = skill_strings,
+    [str_freelook] = free_look_strings,
 };
 
 static const char **GetStrings(int id)
@@ -5071,12 +5125,13 @@ void MN_SetupResetMenu(void)
     UpdateWeaponSlotItems();
     MN_UpdateEqualizerItems();
     UpdateGainItems();
-    UpdatePwadEndoomItem();
 }
 
 void MN_BindMenuVariables(void)
 {
-    BIND_NUM(resolution_scale, 0, 0, UL, "Position of resolution scale slider (do not modify)");
+    BIND_NUM_MENU(resolution_scale, 0, UL);
+    BIND_BOOL_GENERAL(menu_pause_demos, false,
+        "Pause demo loop while menu is open");
     BIND_NUM_GENERAL(menu_backdrop, MENU_BG_DARK, MENU_BG_OFF, MENU_BG_TEXTURE,
         "Menu backdrop (0 = Off; 1 = Dark; 2 = Texture)");
     BIND_NUM_GENERAL(menu_help, MENU_HELP_AUTO, MENU_HELP_OFF, MENU_HELP_PAD,
@@ -5090,4 +5145,5 @@ void MN_BindMenuVariables(void)
     BIND_BOOL_MENU(csmenu.doubleammo);
     BIND_BOOL_MENU(csmenu.halfplayerdamage);
     BIND_BOOL_MENU(csmenu.aggromonsters);
+    BIND_NUM_MENU(freelook_mode, FREELOOK_OFF, FREELOOK_DIRECT_AIM);
 }

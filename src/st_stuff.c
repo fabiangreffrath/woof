@@ -20,8 +20,9 @@
 //
 //-----------------------------------------------------------------------------
 
+#include "st_stuff.h"
+
 #include <math.h>
-#include <stdlib.h>
 
 #include "am_map.h"
 #include "d_event.h"
@@ -131,18 +132,19 @@ static statusbar_t *statusbar;
 
 static int st_cmd_x, st_cmd_y;
 
-typedef enum
-{
-    st_original,
-    st_wide
-} st_layout_t;
-
-static st_layout_t st_layout;
+int st_wide_shift;
 
 static patch_t **facepatches = NULL;
 static patch_t **facebackpatches = NULL;
 
 static int have_xdthfaces;
+
+boolean ST_PlayerInvulnerable(player_t *player)
+{
+    return (player->cheats & CF_GODMODE) ||
+        (player->powers[pw_invulnerability] > 4 * 32) ||
+        (player->powers[pw_invulnerability] & 8);
+}
 
 //
 // STATUS BAR CODE
@@ -1221,8 +1223,9 @@ static void ResetStatusBar(void)
     ST_ResetTitle();
 }
 
-static void DrawPatch(int x, int y, int maxheight, sbaralignment_t alignment,
-                      patch_t *patch, crange_idx_e cr, byte *tl)
+static void DrawPatch(int x, int y, crop_t crop, int maxheight,
+                      sbaralignment_t alignment, patch_t *patch,
+                      crange_idx_e cr, byte *tl)
 {
     if (!patch)
     {
@@ -1235,6 +1238,10 @@ static void DrawPatch(int x, int y, int maxheight, sbaralignment_t alignment,
     if (alignment & sbe_h_middle)
     {
         x = x - width / 2 + SHORT(patch->leftoffset);
+        if (crop.midoffset)
+        {
+            x += width / 2 + crop.midoffset;
+        }
     }
     else if (alignment & sbe_h_right)
     {
@@ -1250,31 +1257,28 @@ static void DrawPatch(int x, int y, int maxheight, sbaralignment_t alignment,
         y -= height;
     }
 
-    if (st_layout == st_wide)
+    if (alignment & sbe_wide_left)
     {
-        if (alignment & sbe_wide_left)
-        {
-            x -= video.deltaw;
-        }
-        if (alignment & sbe_wide_right)
-        {
-            x += video.deltaw;
-        }
+        x -= st_wide_shift;
+    }
+    if (alignment & sbe_wide_right)
+    {
+        x += st_wide_shift;
     }
 
     byte *outr = colrngs[cr];
 
     if (outr && tl)
     {
-        V_DrawPatchTRTL(x, y, patch, outr, tl);
+        V_DrawPatchTRTL(x, y, crop, patch, outr, tl);
     }
     else if (tl)
     {
-        V_DrawPatchTL(x, y, patch, tl);
+        V_DrawPatchTL(x, y, crop, patch, tl);
     }
     else
     {
-        V_DrawPatchTranslated(x, y, patch, outr);
+        V_DrawPatchTR(x, y, crop, patch, outr);
     }
 }
 
@@ -1307,8 +1311,9 @@ static void DrawGlyphNumber(int x, int y, sbarelem_t *elem, patch_t *glyph)
 
     if (glyph)
     {
-        DrawPatch(x + number->xoffset, y, font->maxheight, elem->alignment,
-                  glyph, elem->crboom == CR_NONE ? elem->cr : elem->crboom,
+        DrawPatch(x + number->xoffset, y, (crop_t){0}, font->maxheight,
+                  elem->alignment, glyph,
+                  elem->crboom == CR_NONE ? elem->cr : elem->crboom,
                   elem->tranmap);
     }
 
@@ -1356,8 +1361,8 @@ static void DrawGlyphLine(int x, int y, sbarelem_t *elem, widgetline_t *line,
 
     if (glyph)
     {
-        DrawPatch(x + line->xoffset, y, font->maxheight, elem->alignment, glyph,
-                  elem->cr, elem->tranmap);
+        DrawPatch(x + line->xoffset, y, (crop_t){0}, font->maxheight,
+                  elem->alignment, glyph, elem->cr, elem->tranmap);
     }
 
     if (elem->alignment & sbe_h_middle)
@@ -1484,14 +1489,15 @@ static void DrawElem(int x, int y, sbarelem_t *elem, player_t *player)
         case sbe_graphic:
             {
                 sbe_graphic_t *graphic = elem->subtype.graphic;
-                DrawPatch(x, y, 0, elem->alignment, graphic->patch, elem->cr,
-                          elem->tranmap);
+                DrawPatch(x, y, graphic->crop, 0, elem->alignment,
+                          graphic->patch, elem->cr, elem->tranmap);
             }
             break;
 
         case sbe_facebackground:
             {
-                DrawPatch(x, y, 0, elem->alignment,
+                sbe_facebackground_t *facebackground = elem->subtype.facebackground;
+                DrawPatch(x, y, facebackground->crop, 0, elem->alignment,
                           facebackpatches[displayplayer], elem->cr,
                           elem->tranmap);
             }
@@ -1500,7 +1506,7 @@ static void DrawElem(int x, int y, sbarelem_t *elem, player_t *player)
         case sbe_face:
             {
                 sbe_face_t *face = elem->subtype.face;
-                DrawPatch(x, y, 0, elem->alignment,
+                DrawPatch(x, y, face->crop, 0, elem->alignment,
                           facepatches[face->faceindex], elem->cr,
                           elem->tranmap);
             }
@@ -1511,8 +1517,8 @@ static void DrawElem(int x, int y, sbarelem_t *elem, player_t *player)
                 sbe_animation_t *animation = elem->subtype.animation;
                 patch_t *patch =
                     animation->frames[animation->frame_index].patch;
-                DrawPatch(x, y, 0, elem->alignment, patch, elem->cr,
-                          elem->tranmap);
+                DrawPatch(x, y, (crop_t){0}, 0, elem->alignment, patch,
+                          elem->cr, elem->tranmap);
             }
             break;
 
@@ -2002,8 +2008,8 @@ void WI_DrawWidgets(void)
 
 void ST_BindSTSVariables(void)
 {
-  M_BindNum("st_layout", &st_layout, NULL,  st_wide, st_original, st_wide,
-             ss_stat, wad_no, "HUD layout");
+  M_BindNum("st_wide_shift", &st_wide_shift,
+            NULL, -1, -1, UL, ss_stat, wad_no, "HUD widescreen shift (-1 = Default)");
   M_BindBool("sts_colored_numbers", &sts_colored_numbers, NULL,
              false, ss_stat, wad_yes, "Colored numbers on the status bar");
   M_BindBool("sts_pct_always_gray", &sts_pct_always_gray, NULL,

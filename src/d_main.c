@@ -456,6 +456,11 @@ static demoloop_t demoloop_point;
 //
 void D_PageTicker(void)
 {
+  if (menuactive && !netgame && menu_pause_demos)
+  {
+    return;
+  }
+
   // killough 12/98: don't advance internal demos if a single one is 
   // being played. The only time this matters is when using -loadgame with
   // -fastdemo, -playdemo, or -timedemo, and a consistency error occurs.
@@ -502,20 +507,12 @@ void D_DoAdvanceDemo(void)
     usergame = false; // no save / end game here
     paused = false;
     gameaction = ga_nothing;
+    gamestate = GS_DEMOSCREEN;
 
     D_AdvanceDemoLoop();
     switch (demoloop_point->type)
     {
         case TYPE_ART:
-            gamestate = GS_DEMOSCREEN;
-
-            // Needed to support the Doom 3: BFG Edition variant
-            if (W_CheckNumForName(demoloop_point->primary_lump) < 0
-                && !strcasecmp(demoloop_point->primary_lump, "TITLEPIC"))
-            {
-                M_CopyLumpName(demoloop_point->primary_lump, "DMENUPIC");
-            }
-
             if (W_CheckNumForName(demoloop_point->primary_lump) >= 0)
             {
                 pagename = demoloop_point->primary_lump;
@@ -525,24 +522,18 @@ void D_DoAdvanceDemo(void)
                 {
                     S_ChangeMusInfoMusic(music, false);
                 }
-                break;
             }
-            // fallthrough
+            break;
 
         case TYPE_DEMO:
-            gamestate = GS_DEMOSCREEN;
-
             if (W_CheckNumForName(demoloop_point->primary_lump) >= 0)
             {
                 G_DeferedPlayDemo(demoloop_point->primary_lump);
-                break;
             }
-            // fallthrough
+            break;
 
         default:
-            I_Printf(VB_WARNING,
-                     "D_DoAdvanceDemo: Invalid demoloop[%d] entry, skipping",
-                     demosequence);
+            I_Printf(VB_DEBUG, "D_DoAdvanceDemo: unhandled demoloop type");
             break;
     }
 }
@@ -554,6 +545,7 @@ void D_StartTitle (void)
 {
   gameaction = ga_nothing;
   demosequence = -1;
+  demoplayback = false;
   D_AdvanceDemo();
 }
 
@@ -585,30 +577,27 @@ const char *D_DoomExeName(void)
 // Calculate the path to the directory for autoloaded WADs/DEHs.
 // Creates the directory as necessary.
 
-typedef struct {
-    const char *dir;
-    char *(*func)(void);
-    boolean createdir;
-} basedir_t;
-
-static basedir_t basedirs[] = {
+static constructed_dir_t basedirs[] = {
 #if !defined(_WIN32)
-    {"../share/" PROJECT_SHORTNAME, D_DoomExeDir, false},
+    {D_DoomExeDir, "../share/" PROJECT_SHORTNAME},
 #endif
-    {NULL, D_DoomPrefDir, true},
-#if !defined(_WIN32) || defined(_WIN32_WCE)
-    {NULL, D_DoomExeDir, false},
-#endif
+    {D_DoomPrefDir, NULL, NULL, true},
+    {D_DoomExeDir, NULL, D_DoomPrefDir},
 };
 
 static void LoadBaseFile(void)
 {
     for (int i = 0; i < arrlen(basedirs); ++i)
     {
-        basedir_t d = basedirs[i];
+        constructed_dir_t d = basedirs[i];
         boolean result = false;
 
-        if (d.dir && d.func)
+        if (d.check_func && d.func && d.check_func() == d.func())
+        {
+            continue;
+        }
+
+        if (d.func && d.dir)
         {
             char *s = M_StringJoin(d.func(), DIR_SEPARATOR_S, d.dir);
             result = W_InitBaseFile(s);
@@ -667,9 +656,14 @@ static void PrepareAutoloadPaths(void)
 
     for (int i = 0; i < arrlen(basedirs); i++)
     {
-        basedir_t d = basedirs[i];
+        constructed_dir_t d = basedirs[i];
 
-        if (d.dir && d.func)
+        if (d.check_func && d.func && d.check_func() == d.func())
+        {
+            continue;
+        }
+
+        if (d.func && d.dir)
         {
             array_push(autoload_paths,
                        M_StringJoin(d.func(), DIR_SEPARATOR_S, d.dir,
@@ -686,7 +680,7 @@ static void PrepareAutoloadPaths(void)
                                                     "autoload"));
         }
 
-        if (d.createdir)
+        if (d.makedir)
         {
             M_MakeDirectory(autoload_paths[i]);
         }
@@ -1641,26 +1635,14 @@ void D_SetBloodColor(void)
 // killough 8/1/98: change back to ENDOOM
 
 typedef enum {
-  EXIT_SEQUENCE_OFF,          // Skip sound, skip ENDOOM.
-  EXIT_SEQUENCE_SOUND_ONLY,   // Play sound, skip ENDOOM.
-  EXIT_SEQUENCE_ENDOOM_ONLY,  // Skip sound, show ENDOOM.
-  EXIT_SEQUENCE_FULL          // Play sound, show ENDOOM.
-} exit_sequence_t;
+  ENDOOM_OFF,
+  ENDOOM_PWAD_ONLY,
+  ENDOOM_ALWAYS
+} endoom_t;
 
-static exit_sequence_t exit_sequence;
-static boolean endoom_pwad_only;
-
-boolean D_EndDoomEnabled(void)
-{
-  return (exit_sequence == EXIT_SEQUENCE_FULL
-          || exit_sequence == EXIT_SEQUENCE_ENDOOM_ONLY);
-}
-
-boolean D_QuitSoundEnabled(void)
-{
-  return (exit_sequence == EXIT_SEQUENCE_FULL
-          || exit_sequence == EXIT_SEQUENCE_SOUND_ONLY);
-}
+boolean quit_prompt;
+boolean quit_sound;
+static endoom_t show_endoom;
 
 static void D_ShowEndDoom(void)
 {
@@ -1679,12 +1661,13 @@ boolean D_AllowEndDoom(void)
     return false; // Alt-F4 or pressed the close button.
   }
 
-  if (!D_EndDoomEnabled())
+  if (show_endoom == ENDOOM_OFF)
   {
-    return false; // Exit sequence is set to "Off" or "Sound Only".
+    return false; // ENDOOM disabled.
   }
 
-  if (W_IsIWADLump(W_CheckNumForName("ENDOOM")) && endoom_pwad_only)
+  if (W_IsIWADLump(W_CheckNumForName("ENDOOM"))
+      && show_endoom == ENDOOM_PWAD_ONLY)
   {
     return false; // User prefers PWAD ENDOOM only.
   }
@@ -1702,39 +1685,6 @@ static void D_EndDoom(void)
 
 // [FG] fast-forward demo to the desired map
 int playback_warp = -1;
-
-// [FG] check for SSG assets
-static boolean CheckHaveSSG (void)
-{
-  const int ssg_sfx[] = {sfx_dshtgn, sfx_dbopn, sfx_dbload, sfx_dbcls};
-  char ssg_sprite[] = "SHT2A0";
-  int i;
-
-  if (gamemode == commercial)
-  {
-    return true;
-  }
-
-  for (i = 0; i < arrlen(ssg_sfx); i++)
-  {
-    if (I_GetSfxLumpNum(&S_sfx[ssg_sfx[i]]) < 0)
-    {
-      return false;
-    }
-  }
-
-  for (i = 'A'; i <= 'J'; i++)
-  {
-    ssg_sprite[4] = i;
-
-    if ((W_CheckNumForName)(ssg_sprite, ns_sprites) < 0)
-    {
-      return false;
-    }
-  }
-
-  return true;
-}
 
 static int mainwadfile;
 
@@ -2458,6 +2408,9 @@ void D_DoomMain(void)
     startloadgame = -1;
   }
 
+  // Allows PWAD HELP2 screen for DOOM 1 wads (using Ultimate Doom IWAD).
+  pwad_help2 = gamemode == retail && W_IsWADLump(W_CheckNumForName("HELP2"));
+
   W_ProcessInWads("SNDINFO", S_ParseSndInfo, PROCESS_IWAD | PROCESS_PWAD);
 
   W_ProcessInWads("TRAKINFO", S_ParseTrakInfo, PROCESS_IWAD | PROCESS_PWAD);
@@ -2521,9 +2474,6 @@ void D_DoomMain(void)
       I_AtExit(StatDump, true);
       I_Printf(VB_INFO, "External statistics registered.");
     }
-
-  // [FG] check for SSG assets
-  have_ssg = CheckHaveSSG();
 
   //!
   // @arg <min:sec>
@@ -2675,6 +2625,7 @@ void D_DoomMain(void)
   I_InitKeyboard();
 
   MN_InitMenuStrings();
+  MN_InitFreeLook();
 
   // Auto save slot is 255 for -loadgame command.
   if (startloadgame == 255 && !demorecording && gameaction != ga_playdemo
@@ -2731,9 +2682,10 @@ void D_DoomMain(void)
 
 void D_BindMiscVariables(void)
 {
-  BIND_NUM_GENERAL(exit_sequence, 0, 0, EXIT_SEQUENCE_FULL,
-    "Exit sequence (0 = Off; 1 = Sound Only; 2 = ENDOOM Only; 3 = Full)");
-  BIND_BOOL_GENERAL(endoom_pwad_only, false, "Show only ENDOOM from PWAD");
+  BIND_BOOL_GENERAL(quit_prompt, true, "Show quit prompt");
+  BIND_BOOL_GENERAL(quit_sound, false, "Play quit sound");
+  BIND_NUM_GENERAL(show_endoom, ENDOOM_OFF, ENDOOM_OFF, ENDOOM_ALWAYS,
+    "Show ENDOOM screen (0 = Off; 1 = PWAD Only; 2 = Always)");
   BIND_BOOL_GENERAL(demobar, false, "Show demo progress bar");
   BIND_NUM_GENERAL(screen_melt, wipe_Melt, wipe_None, wipe_Fizzle,
     "Screen wipe effect (0 = None; 1 = Melt; 2 = Crossfade; 3 = Fizzlefade)");

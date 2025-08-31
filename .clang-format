@@ -1,4 +1,5 @@
 ﻿---
+Language: Cpp
 AlignAfterOpenBracket: Align
 AlignArrayOfStructures: Left
 AlignConsecutiveAssignments:
@@ -51,14 +52,13 @@ ColumnLimit: 80
 IncludeBlocks: Preserve
 IndentCaseBlocks: true
 IndentCaseLabels: true
-IndentPPDirectives: AfterHash
+IndentPPDirectives: BeforeHash
 IndentWidth: 4
 IndentWrappedFunctionNames: false
 InsertBraces: true
 InsertNewlineAtEOF: true
 InsertTrailingCommas: None
 KeepEmptyLinesAtTheStartOfBlocks: true
-Language: Cpp
 MaxEmptyLinesToKeep: 1
 PPIndentWidth: 2
 PointerAlignment: Right

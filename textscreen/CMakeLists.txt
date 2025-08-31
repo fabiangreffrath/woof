@@ -27,4 +27,4 @@ target_woof_settings(textscreen)
 target_include_directories(textscreen
                            INTERFACE "."
                            PRIVATE "${CMAKE_CURRENT_BINARY_DIR}/../" "../src/")
-target_link_libraries(textscreen SDL2::SDL2)
+target_link_libraries(textscreen SDL3::SDL3)

@@ -32,7 +32,7 @@
 #include "sounds.h"
 #include "tables.h"
 
-#define FIXED_TO_ALFLOAT(x) ((ALfloat)(FIXED2DOUBLE(x)))
+#define FIXED_TO_ALFLOAT(x) ((ALfloat)(FixedToDouble(x)))
 
 typedef struct oal_listener_params_s
 {
@@ -190,7 +190,7 @@ static void CalcDistance(const mobj_t *listener, const mobj_t *source,
     // Treat monsters, projectiles, other players, and ambient sounds as point
     // sources.
     src->point_source =
-        (source->thinker.function.p1 != (actionf_p1)P_DegenMobjThinker
+        (source->thinker.function.p1 != P_DegenMobjThinker
          && source->info);
 
     if (src->point_source)
@@ -210,15 +210,33 @@ static void CalcDistance(const mobj_t *listener, const mobj_t *source,
     }
 }
 
+static void UpdatePriority(sfxparams_t *params)
+{
+    // Decrease priority with volume attenuation.
+    params->priority += (127 - params->volume);
+
+    if (params->priority > 255)
+    {
+        params->priority = 255;
+    }
+}
+
 static boolean CalcVolumePriority(int dist, sfxparams_t *params)
 {
     if (dist == 0)
     {
         return true;
     }
-    else if (dist >= params->clipping_dist)
+    else if (dist >= params->stop_dist)
     {
         return false;
+    }
+    else if (dist >= params->clipping_dist)
+    {
+        // Special case for zero-volume sounds that are allowed to stay active.
+        params->volume = 0;
+        UpdatePriority(params);
+        return true;
     }
     else if (dist > params->close_dist)
     {
@@ -228,14 +246,7 @@ static boolean CalcVolumePriority(int dist, sfxparams_t *params)
                          / (params->clipping_dist - params->close_dist);
     }
 
-    // Decrease priority with volume attenuation.
-    params->priority += (127 - params->volume);
-
-    if (params->priority > 255)
-    {
-        params->priority = 255;
-    }
-
+    UpdatePriority(params);
     return (params->volume > 0);
 }
 

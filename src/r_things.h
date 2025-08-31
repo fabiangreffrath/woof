@@ -41,8 +41,6 @@ extern fixed_t pspriteiscale;
 
 extern boolean flipcorpses;
 
-extern lighttable_t **spritelights;
-
 extern boolean draw_nearby_sprites;
 
 void R_DrawMaskedColumn(column_t *column);

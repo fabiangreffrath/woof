@@ -16,7 +16,7 @@
 //
 //-----------------------------------------------------------------------------
 
-#include "SDL.h"
+#include <SDL3/SDL.h>
 
 #ifdef _WIN32
 #define WIN32_LEAN_AND_MEAN
@@ -44,11 +44,20 @@ ticcmd_t *I_BaseTiccmd(void)
 // I_Error
 //
 
-static char errmsg[2048];    // buffer of error message -- killough
-static int exit_code;
+#ifdef WOOF_DEBUG
+boolean I_IsDebuggerAttached(void)
+{
+#ifdef _WIN32
+    return IsDebuggerPresent();
+#else
+    return false;
+#endif
+}
+#endif
 
-void I_ErrorOrSuccess(int err_code, const char *prefix, const char *error,
-                      ...) // killough 3/20/98: add const
+static char errmsg[2048];    // buffer of error message -- killough
+
+void I_ErrorInternal(const char *prefix, const char *error, ...)
 {
     size_t len = sizeof(errmsg) - strlen(errmsg) - 1; // [FG] for '\n'
     char *curmsg = errmsg + strlen(errmsg);
@@ -68,15 +77,10 @@ void I_ErrorOrSuccess(int err_code, const char *prefix, const char *error,
     M_vsnprintf(msgptr, len, error, argptr);
     va_end(argptr);
 
-    I_Printf(err_code == 0 ? VB_ALWAYS : VB_ERROR, "%s", curmsg);
+    I_Printf(VB_ERROR, "%s", curmsg);
     strcat(curmsg, "\n");
 
-    if (exit_code == 0 && err_code != 0)
-    {
-        exit_code = err_code;
-    }
-
-    I_SafeExit(exit_code);
+    I_SafeExit(-1);
 }
 
 void I_ErrorMsg()
@@ -89,9 +93,27 @@ void I_ErrorMsg()
 
     if (*errmsg && !M_CheckParm("-nogui") && !I_ConsoleStdout())
     {
-        SDL_ShowSimpleMessageBox(exit_code == 0 ? SDL_MESSAGEBOX_INFORMATION
-                                                : SDL_MESSAGEBOX_ERROR,
-                                 PROJECT_STRING, errmsg, NULL);
+        SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, PROJECT_STRING,
+                                 errmsg, NULL);
+    }
+}
+
+void I_MessageBox(const char *message, ...)
+{
+    char buffer[2048];
+    va_list argptr;
+    va_start(argptr, message);
+    M_vsnprintf(buffer, sizeof(buffer), message, argptr);
+    va_end(argptr);
+
+    if (!M_CheckParm("-nogui"))
+    {
+        SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_INFORMATION, PROJECT_STRING,
+                                 buffer, NULL);
+    }
+    else
+    {
+        I_Printf(VB_INFO, "%s", buffer);
     }
 }
 

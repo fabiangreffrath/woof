@@ -18,7 +18,7 @@
 #ifndef __I_RUMBLE__
 #define __I_RUMBLE__
 
-#include "SDL.h"
+#include <SDL3/SDL.h>
 
 #include "doomtype.h"
 
@@ -57,7 +57,7 @@ boolean I_RumbleEnabled(void);
 boolean I_RumbleSupported(void);
 void I_RumbleMenuFeedback(void);
 void I_UpdateRumbleEnabled(void);
-void I_SetRumbleSupported(SDL_GameController *gamepad);
+void I_SetRumbleSupported(SDL_Gamepad *gamepad);
 
 void I_ResetRumbleChannel(int handle);
 void I_ResetAllRumbleChannels(void);

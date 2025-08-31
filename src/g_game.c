@@ -41,6 +41,7 @@
 #include "doomtype.h"
 #include "f_finale.h"
 #include "g_game.h"
+#include "g_rewind.h"
 #include "g_nextweapon.h"
 #include "g_umapinfo.h"
 #include "hu_command.h"
@@ -68,6 +69,7 @@
 #include "net_defs.h"
 #include "p_enemy.h"
 #include "p_inter.h"
+#include "p_keyframe.h"
 #include "p_map.h"
 #include "p_maputl.h"
 #include "p_mobj.h"
@@ -90,7 +92,6 @@
 #include "statdump.h" // [FG] StatCopy()
 #include "tables.h"
 #include "v_video.h"
-#include "version.h"
 #include "w_wad.h"
 #include "wi_stuff.h"
 #include "ws_stuff.h"
@@ -102,11 +103,11 @@
 size_t savegamesize = SAVEGAMESIZE; // killough
 static char     *demoname = NULL;
 // the original name of the demo, without "-00000" and file extension
-static char *demoname_orig = NULL;
+static char     *demoname_orig = NULL;
 static boolean  netdemo;
 static byte     *demobuffer;   // made some static -- killough
 static size_t   maxdemosize;
-static byte     *demo_p;
+byte            *demo_p;
 static byte     consistancy[MAXPLAYERS][BACKUPTICS];
 
 static int G_GameOptionSize(void);
@@ -161,8 +162,7 @@ byte            *savebuffer;
 boolean         autorun = false;      // always running?          // phares
 boolean         autostrafe50;
 boolean         novert = false;
-boolean         mouselook = false;
-boolean         padlook = false;
+boolean         freelook = false;
 // killough 4/13/98: Make clock rate adjustable by scale factor
 int             realtic_clock_rate = 100;
 static boolean  doom_weapon_toggles;
@@ -204,8 +204,8 @@ int     turnheld;       // for accelerative turning
 boolean mousebuttons[NUM_MOUSE_BUTTONS];
 
 // mouse values are used once
-static int mousex;
-static int mousey;
+static float mousex;
+static float mousey;
 boolean dclick;
 
 static ticcmd_t basecmd;
@@ -400,20 +400,20 @@ static int quickstart_cache_tics;
 static boolean quickstart_queued;
 static float axis_turn_tic;
 static float gyro_turn_tic;
-static int mousex_tic;
+static float mousex_tic;
 
 static void ClearQuickstartTic(void)
 {
   axis_turn_tic = 0.0f;
   gyro_turn_tic = 0.0f;
-  mousex_tic = 0;
+  mousex_tic = 0.0f;
 }
 
 static void ApplyQuickstartCache(ticcmd_t *cmd, boolean strafe)
 {
   static float axis_turn_cache[TICRATE];
   static float gyro_turn_cache[TICRATE];
-  static int mousex_cache[TICRATE];
+  static float mousex_cache[TICRATE];
   static short angleturn_cache[TICRATE];
   static int index;
 
@@ -426,7 +426,7 @@ static void ApplyQuickstartCache(ticcmd_t *cmd, boolean strafe)
   {
     axes[AXIS_TURN] = 0.0f;
     gyro_axes[GYRO_TURN] = 0.0f;
-    mousex = 0;
+    mousex = 0.0f;
 
     if (strafe)
     {
@@ -477,14 +477,14 @@ void G_PrepMouseTiccmd(void)
   {
     localview.rawangle -= G_CalcMouseAngle(mousex);
     basecmd.angleturn = G_CarryAngle(localview.rawangle);
-    mousex = 0;
+    mousex = 0.0f;
   }
 
-  if (mousey && mouselook)
+  if (mousey && STRICTMODE(freelook))
   {
     localview.rawpitch += G_CalcMousePitch(mousey);
     basecmd.pitch = G_CarryPitch(localview.rawpitch);
-    mousey = 0;
+    mousey = 0.0f;
   }
 }
 
@@ -504,7 +504,7 @@ void G_PrepGamepadTiccmd(void)
       axes[AXIS_TURN] = 0.0f;
     }
 
-    if (axes[AXIS_LOOK] && padlook)
+    if (axes[AXIS_LOOK] && STRICTMODE(freelook))
     {
       localview.rawpitch -= G_CalcGamepadPitch();
       basecmd.pitch = G_CarryPitch(localview.rawpitch);
@@ -726,7 +726,7 @@ void G_BuildTiccmd(ticcmd_t* cmd)
     side += G_CarrySide(mouseside);
   }
 
-  if (mousey && !mouselook && !novert)
+  if (mousey && !STRICTMODE(freelook) && !novert)
   {
     const double mousevert = G_CalcMouseVert(mousey);
     forward += G_CarryVert(mousevert);
@@ -756,7 +756,7 @@ void G_BuildTiccmd(ticcmd_t* cmd)
   ClearQuickstartTic();
   I_ResetGamepadAxes();
   I_ResetGyroAxes();
-  mousex = mousey = 0;
+  mousex = mousey = 0.0f;
   UpdateLocalView();
   G_UpdateCarry();
 
@@ -889,7 +889,7 @@ void G_ClearInput(void)
   ClearQuickstartTic();
   I_ResetGamepadState();
   I_FlushGamepadSensorEvents();
-  mousex = mousey = 0;
+  mousex = mousey = 0.0f;
   ClearLocalView();
   G_ClearCarry();
   memset(&basecmd, 0, sizeof(basecmd));
@@ -1002,7 +1002,8 @@ static void G_DoLoadLevel(void)
 
   P_SetupLevel (gameepisode, gamemap, 0, gameskill);
 
-  MN_UpdateFreeLook(!mouselook && !padlook);
+  G_ResetRewind();
+  MN_UpdateFreeLook();
   HU_UpdateTurnFormat();
 
   // [Woof!] Do not reset chosen player view across levels in multiplayer
@@ -1086,8 +1087,7 @@ int G_GotoNextLevel(int *pEpi, int *pMap)
     32, 16
   };
 
-  int epsd;
-  int map = -1;
+  int epsd = -1, map = -1;
 
   if (gamemapinfo)
   {
@@ -1305,9 +1305,9 @@ boolean G_MovementResponder(event_t *ev)
   switch (ev->type)
   {
     case ev_mouse:
-      mousex_tic += ev->data1.i;
-      mousex += ev->data1.i;
-      mousey -= ev->data2.i;
+      mousex_tic += ev->data1.f;
+      mousex += ev->data1.f;
+      mousey -= ev->data2.f;
       return true;
 
     case ev_joystick:
@@ -1713,7 +1713,7 @@ static void G_WriteLevelStat(void)
         return;
     }
 
-    strcpy(levelString, MapName(gameepisode, gamemap));
+    M_CopyLumpName(levelString, MapName(gameepisode, gamemap));
 
     FormatLevelStatTime(levelTimeString, leveltime, false);
     FormatLevelStatTime(totalTimeString, totalleveltimes + leveltime, true);
@@ -2268,13 +2268,11 @@ static void G_DoPlayDemo(void)
 
 #define VERSIONSIZE   16
 
-// killough 2/22/98: version id string format for savegames
-#define VERSIONID "MBF %d"
-
 #define CURRENT_SAVE_VERSION "Woof 16.0.0"
 
 static const char *saveg_versions[] =
 {
+    [saveg_mbf] = "MBF 203",
     [saveg_woof510] = "Woof 5.1.0",
     [saveg_woof600] = "Woof 6.0.0",
     [saveg_woof1300] = "Woof 13.0.0",
@@ -2441,7 +2439,7 @@ static uint64_t G_Signature(int sig_epi, int sig_map)
   int lump, i;
   char name[9];
   
-  strcpy(name, MapName(sig_epi, sig_map));
+  M_CopyLumpName(name, MapName(sig_epi, sig_map));
 
   lump = W_CheckNumForName(name);
 
@@ -2455,27 +2453,21 @@ static uint64_t G_Signature(int sig_epi, int sig_map)
 
 static void DoSaveGame(char *name)
 {
-  char name2[VERSIONSIZE];
-  char *description;
-  int  length, i;
-
   S_MarkSounds();
-
-  description = savedescription;
 
   save_p = savebuffer = Z_Malloc(savegamesize, PU_STATIC, 0);
 
-  saveg_buffer_size(SAVESTRINGSIZE + VERSIONSIZE);
-  memcpy (save_p, description, SAVESTRINGSIZE);
+  saveg_grow(SAVESTRINGSIZE + VERSIONSIZE);
+  memcpy(save_p, savedescription, SAVESTRINGSIZE);
   save_p += SAVESTRINGSIZE;
-  memset (name2,0,sizeof(name2));
 
   // killough 2/22/98: "proprietary" version string :-)
-  strcpy(name2, CURRENT_SAVE_VERSION);
-  saveg_compat = saveg_current;
-
-  memcpy (save_p, name2, VERSIONSIZE);
+  char version_name[VERSIONSIZE] = {0};
+  strcpy(version_name, CURRENT_SAVE_VERSION);
+  memcpy(save_p, version_name, VERSIONSIZE);
   save_p += VERSIONSIZE;
+
+  saveg_compat = saveg_current;
 
   saveg_write8(demo_version);
 
@@ -2486,33 +2478,43 @@ static void DoSaveGame(char *name)
   saveg_write8(gameepisode);
   saveg_write8(gamemap);
 
-  {  // killough 3/16/98, 12/98: store lump name checksum
-    uint64_t checksum = G_Signature(gameepisode, gamemap);
-    saveg_write64(checksum);
-  }
+  // killough 3/16/98, 12/98: store lump name checksum
+  saveg_write64(G_Signature(gameepisode, gamemap));
 
   // killough 3/16/98: store pwad filenames in savegame
   {
-    int i;
-    for (*save_p = 0, i = 0; i < array_size(wadfiles); i++)
+      int i;
+      for (*save_p = 0, i = 0; i < array_size(wadfiles); i++)
       {
-        const char *basename = M_BaseName(wadfiles[i]);
-        saveg_buffer_size(strlen(basename)+2);
-        strcat(strcat((char *) save_p, basename), "\n");
+          const char *basename = M_BaseName(wadfiles[i]);
+          saveg_grow(strlen(basename) + 2);
+          strcat(strcat((char *)save_p, basename), "\n");
       }
-    save_p += strlen((char *) save_p)+1;
+      save_p += strlen((char *)save_p) + 1;
   }
 
-  for (i=0 ; i<MAXPLAYERS ; i++)
-    saveg_write8(playeringame[i]);
-
-  for (;i<MIN_MAXPLAYERS;i++)         // killough 2/28/98
-    saveg_write8(0);
+  {
+      int i;
+      for (i = 0; i < MAXPLAYERS; i++)
+      {
+          saveg_write8(playeringame[i]);
+      }
+      for (; i < MIN_MAXPLAYERS; i++) // killough 2/28/98
+      {
+          saveg_write8(0);
+      }
+  }
 
   saveg_write8(idmusnum);               // jff 3/17/98 save idmus state
 
-  saveg_buffer_size(G_GameOptionSize());
+  saveg_grow(G_GameOptionSize());
   save_p = G_WriteOptions(save_p);    // killough 3/1/98: save game options
+
+  saveg_write8(pistolstart);
+  saveg_write8(coopspawns);
+  saveg_write8(halfplayerdamage);
+  saveg_write8(doubleammo);
+  saveg_write8(aggromonsters);
 
   // [FG] fix copy size and pointer progression
   saveg_write32(leveltime); //killough 11/98: save entire word
@@ -2533,9 +2535,9 @@ static void DoSaveGame(char *name)
   saveg_write32(totalleveltimes);
 
   // save lump name for current MUSINFO item
-  saveg_buffer_size(8);
+  saveg_grow(8);
   if (musinfo.current_item > 0)
-    memcpy(save_p, lumpinfo[musinfo.current_item].name, 8);
+    M_CopyLumpName((char*)save_p, lumpinfo[musinfo.current_item].name);
   else
     memset(save_p, 0, 8);
   save_p += 8;
@@ -2543,33 +2545,30 @@ static void DoSaveGame(char *name)
   // save max_kill_requirement
   saveg_write32(max_kill_requirement);
 
-  saveg_write8(pistolstart);
-  saveg_write8(coopspawns);
-  saveg_write8(halfplayerdamage);
-  saveg_write8(doubleammo);
-  saveg_write8(aggromonsters);
-
   // [FG] save snapshot
-  saveg_buffer_size(MN_SnapshotDataSize());
+  saveg_grow(MN_SnapshotDataSize());
   MN_WriteSnapshot(save_p);
   save_p += MN_SnapshotDataSize();
 
-  length = save_p - savebuffer;
+  int length = save_p - savebuffer;
 
   M_MakeDirectory(basesavegame);
 
   if (!M_WriteFile(name, savebuffer, length))
-    displaymsg("%s", errno ? strerror(errno) : "Could not save game: Error unknown");
+  {
+      displaymsg("%s", errno ? strerror(errno)
+                             : "Could not save game: Error unknown");
+  }
   else
-    displaymsg("%s", s_GGSAVED);  // Ty 03/27/98 - externalized
+  {
+      displaymsg("%s", s_GGSAVED); // Ty 03/27/98 - externalized
+  }
 
   Z_Free(savebuffer);  // killough
   savebuffer = save_p = NULL;
 
   gameaction = ga_nothing;
   savedescription[0] = 0;
-
-  if (name) free(name);
 
   drs_skip_frame = true;
 }
@@ -2579,21 +2578,39 @@ static void G_DoSaveGame(void)
   char *name = G_SaveGameName(savegameslot);
   DoSaveGame(name);
   MN_SetQuickSaveSlot(savegameslot);
+  free(name);
 }
 
 static void G_DoSaveAutoSave(void)
 {
   char *name = G_AutoSaveName();
   DoSaveGame(name);
+  free(name);
+}
+
+static byte *LoadCustomSkillOptions(byte *opt_p)
+{
+    if (saveg_compat > saveg_woof1500)
+    {
+        pistolstart = *opt_p++;
+        coopspawns = *opt_p++;
+        halfplayerdamage = *opt_p++;
+        doubleammo = *opt_p++;
+        aggromonsters = *opt_p++;
+    }
+    else
+    {
+        pistolstart = clpistolstart;
+        coopspawns = clcoopspawns;
+        halfplayerdamage = false;
+        doubleammo = false;
+        aggromonsters = false;
+    }
+    return opt_p;
 }
 
 static boolean DoLoadGame(boolean do_load_autosave)
 {
-  int  length, i;
-  char vcheck[VERSIONSIZE];
-  uint64_t checksum;
-  int tmp_compat, tmp_skill, tmp_epi, tmp_map;
-
   I_SetFastdemoTimer(false);
 
   // [crispy] loaded game must always be single player.
@@ -2609,32 +2626,24 @@ static boolean DoLoadGame(boolean do_load_autosave)
 
   gameaction = ga_nothing;
 
-  length = M_ReadFile(savename, &savebuffer);
+  savegamesize = M_ReadFile(savename, &savebuffer);
+
   save_p = savebuffer + SAVESTRINGSIZE;
 
   // skip the description field
 
-  // killough 2/22/98: "proprietary" version string :-)
-  sprintf (vcheck,VERSIONID,MBFVERSION);
-
-  if (strncmp((char *)save_p, vcheck, VERSIONSIZE) == 0)
+  saveg_compat = saveg_indetermined;
+  for (int i = saveg_mbf; i < arrlen(saveg_versions); ++i)
   {
-      saveg_compat = saveg_mbf;
-  }
-  else
-  {
-      for (int i = saveg_woof510; i < arrlen(saveg_versions); ++i)
+      if (strncmp((char *)save_p, saveg_versions[i], VERSIONSIZE) == 0)
       {
-          if (strncmp((char *)save_p, saveg_versions[i], VERSIONSIZE) == 0)
-          {
-              saveg_compat = i;
-              break;
-          }
+          saveg_compat = i;
+          break;
       }
   }
 
   // killough 2/22/98: Friendly savegame version difference message
-  if (!forced_loadgame && saveg_compat != saveg_mbf && saveg_compat < saveg_woof600)
+  if (!forced_loadgame && saveg_compat == saveg_indetermined)
     {
       const char *msg = "Different Savegame Version!!!\n\nAre you sure?";
       if (do_load_autosave)
@@ -2648,25 +2657,25 @@ static boolean DoLoadGame(boolean do_load_autosave)
 
   if (saveg_compat > saveg_woof510)
   {
-    demo_version = *save_p++;
+      demo_version = saveg_read8();
   }
   else
   {
-    demo_version = DV_MBF;
+      demo_version = DV_MBF;
   }
 
   // killough 2/14/98: load compatibility mode
-  tmp_compat = *save_p++;
+  int tmp_compatibility = saveg_read8();
 
-  tmp_skill = *save_p++;
-  tmp_epi = *save_p++;
-  tmp_map = *save_p++;
+  int tmp_skill = saveg_read8();
+  int tmp_episode = saveg_read8();
+  int tmp_map = saveg_read8();
 
-  checksum = saveg_read64();
+  uint64_t checksum = saveg_read64();
 
   if (!forced_loadgame)
    {  // killough 3/16/98, 12/98: check lump name checksum
-     if (checksum != G_Signature(tmp_epi, tmp_map))
+     if (checksum != G_Signature(tmp_episode, tmp_map))
        {
 	 char *msg = malloc(strlen((char *) save_p) + 128);
 	 strcpy(msg,"Incompatible Savegame!!!\n");
@@ -2684,15 +2693,17 @@ static boolean DoLoadGame(boolean do_load_autosave)
 
   while (*save_p++);
 
-  compatibility = tmp_compat;
+  compatibility = tmp_compatibility;
   gameskill = tmp_skill;
-  gameepisode = tmp_epi;
+  gameepisode = tmp_episode;
   gamemap = tmp_map;
   gamemapinfo = G_LookupMapinfo(gameepisode, gamemap);
 
-  for (i=0 ; i<MAXPLAYERS ; i++)
-    playeringame[i] = *save_p++;
-  save_p += MIN_MAXPLAYERS-MAXPLAYERS;         // killough 2/28/98
+  for (int i = 0; i < MAXPLAYERS; i++)
+  {
+      playeringame[i] = saveg_read8();
+  }
+  save_p += MIN_MAXPLAYERS - MAXPLAYERS; // killough 2/28/98
 
   // jff 3/17/98 restore idmus music
   // jff 3/18/98 account for unsigned byte
@@ -2700,10 +2711,13 @@ static boolean DoLoadGame(boolean do_load_autosave)
   idmusnum = *(signed char *) save_p++;
 
   /* cph 2001/05/23 - Must read options before we set up the level */
+  byte *temp_p;
   if (mbf21)
-    G_ReadOptionsMBF21(save_p);
+    temp_p = G_ReadOptionsMBF21(save_p);
   else
-    G_ReadOptions(save_p);
+    temp_p = G_ReadOptions(save_p);
+
+  LoadCustomSkillOptions(temp_p);
 
   // load a base level
   G_InitNew(gameskill, gameepisode, gamemap);
@@ -2716,6 +2730,8 @@ static boolean DoLoadGame(boolean do_load_autosave)
     save_p = G_ReadOptionsMBF21(save_p);
   else
     save_p = G_ReadOptions(save_p);
+
+  save_p = LoadCustomSkillOptions(save_p);
 
   // get the times
   // killough 11/98: save entire word
@@ -2735,63 +2751,53 @@ static boolean DoLoadGame(boolean do_load_autosave)
   P_UnArchiveMap();    // killough 1/22/98: load automap information
   P_MapEnd();
 
-  if (*save_p != 0xe6)
+  if (saveg_read8() != 0xe6)
     I_Error ("Bad savegame");
 
   // [FG] restore total time for all completed levels
-  if (save_p++ - savebuffer < length - sizeof totalleveltimes)
+  if (saveg_check_size(sizeof(totalleveltimes)))
   {
-    totalleveltimes = saveg_read32();
+      totalleveltimes = saveg_read32();
   }
 
   // restore MUSINFO music
-  if (save_p - savebuffer <= length - 8)
+  if (saveg_check_size(8))
   {
-    char lump[9] = {0};
-    int i;
+      char lump[9] = {0};
+      for (int i = 0; i < 8; ++i)
+      {
+          lump[i] = saveg_read8();
+      }
+      int lumpnum = W_CheckNumForName(lump);
 
-    memcpy(lump, save_p, 8);
-
-    i = W_CheckNumForName(lump);
-
-    if (lump[0] && i > 0)
-    {
-      musinfo.mapthing = NULL;
-      musinfo.lastmapthing = NULL;
-      musinfo.tics = 0;
-      musinfo.current_item = i;
-      musinfo.from_savegame = true;
-      S_ChangeMusInfoMusic(i, true);
-    }
-
-    save_p += 8;
+      if (lump[0] && lumpnum >= 0)
+      {
+          musinfo.mapthing = NULL;
+          musinfo.lastmapthing = NULL;
+          musinfo.tics = 0;
+          musinfo.current_item = lumpnum;
+          musinfo.from_savegame = true;
+          S_ChangeMusInfoMusic(lumpnum, true);
+      }
   }
 
   // restore max_kill_requirement
-  max_kill_requirement = totalkills;
-  if (save_p - savebuffer <= length - sizeof(max_kill_requirement))
+  if (saveg_check_size(sizeof(max_kill_requirement)))
   {
-    if (saveg_compat > saveg_woof600)
-    {
-      max_kill_requirement = saveg_read32();
-    }
-  }
-
-  // restore pistolstat and coopspawns
-  if (save_p - savebuffer <= length - 5)
-  {
-     if (saveg_compat > saveg_woof1500)
-     {
-       pistolstart = saveg_read8();
-       coopspawns = saveg_read8();
-       halfplayerdamage = saveg_read8();
-       doubleammo = saveg_read8();
-       aggromonsters = saveg_read8();
-     }
+      int tmp_max_kill_requirement = saveg_read32();
+      if (saveg_compat > saveg_woof600)
+      {
+          max_kill_requirement = tmp_max_kill_requirement;
+      }
+      else
+      {
+          max_kill_requirement = totalkills;
+      }
   }
 
   // done
   Z_Free(savebuffer);
+  savegamesize = SAVEGAMESIZE;
 
   if (setsizeneeded)
     R_ExecuteSetViewSize();
@@ -3006,10 +3012,13 @@ void G_Ticker(void)
   // P_Ticker() does not stop netgames if a menu is activated, so
   // we do not need to stop if a menu is pulled up during netgames.
 
-  if (paused & 2 || (!demoplayback && menuactive && !netgame))
+  if (paused & 2 || ((!demoplayback || menu_pause_demos) && menuactive && !netgame))
     basetic++;  // For revenant tracers and RNG -- we must maintain sync
   else
     {
+      if (!timingdemo && gamestate == GS_LEVEL && gameaction == ga_nothing)
+        G_SaveAutoKeyframe();
+      
       // get commands, check consistancy, and build new consistancy check
       int buf = (gametic/ticdup)%BACKUPTICS;
 
@@ -3640,6 +3649,38 @@ const char *G_GetCurrentComplevelName(void)
     }
 }
 
+static GameVersion_t GetWadGameVersion(void)
+{
+    int lumpnum = W_CheckNumForName("GAMEVERS");
+
+    if (lumpnum < 0)
+    {
+        return exe_indetermined;
+    }
+
+    int length = W_LumpLength(lumpnum);
+    char *data = W_CacheLumpNum(lumpnum, PU_CACHE);
+
+    if (length >= 5 && !strncasecmp("1.666", data, 5))
+    {
+        return exe_doom_1_9;
+    }
+    else if (length >= 3 && !strncasecmp("1.9", data, 3))
+    {
+        return exe_doom_1_9;
+    }
+    else if (length >= 8 && !strncasecmp("ultimate", data, 8))
+    {
+        return exe_ultimate;
+    }
+    else if (length >= 5 && !strncasecmp("final", data, 5))
+    {
+        return exe_final;
+    }
+
+    return exe_indetermined;
+}
+
 static demo_version_t GetWadDemover(void)
 {
     int lumpnum = W_CheckNumForName("COMPLVL");
@@ -3888,6 +3929,12 @@ void G_ReloadDefaults(boolean keep_demover)
     if (demover == DV_NONE)
     {
       demover = GetWadDemover();
+      if (demover == DV_VANILLA)
+      {
+        GameVersion_t gamever = GetWadGameVersion();
+        if (gamever != exe_indetermined)
+          gameversion = gamever;
+      }
     }
 
     if (demover == DV_NONE)
@@ -4102,6 +4149,7 @@ void G_InitNew(skill_t skill, int episode, int map)
   AM_clearMarks();
 
   M_LoadOptions();     // killough 11/98: read OPTIONS lump from wad
+  AM_ApplyColors(false);
 
   if (demo_version == DV_MBF)
     G_MBFComp();
@@ -4727,9 +4775,10 @@ boolean G_CheckDemoStatus(void)
       int endtime = I_GetTime_RealTime();
       // killough -- added fps information and made it work for longer demos:
       unsigned realtics = endtime-starttime;
-      I_Success("Timed %u gametics in %u realtics = %-.1f frames per second",
-               (unsigned) gametic,realtics,
-               (unsigned) gametic * (double) TICRATE / realtics);
+      I_MessageBox("Timed %u gametics in %u realtics = %-.1f frames per second",
+                   (unsigned)gametic, realtics,
+                   (unsigned)gametic * (double)TICRATE / realtics);
+      I_SafeExit(0);
     }
 
   if (demoplayback)
@@ -4832,10 +4881,11 @@ void doomprintf(player_t *player, msg_category_t category, const char *s, ...)
 void G_BindGameInputVariables(void)
 {
   BIND_BOOL(autorun, true, "Always run");
-  BIND_BOOL_GENERAL(mouselook, false, "Mouselook");
   BIND_BOOL_GENERAL(dclick_use, true, "Double-click acts as use-button");
   BIND_BOOL(novert, true, "Disable vertical mouse movement");
-  BIND_BOOL_GENERAL(padlook, false, "Padlook");
+  BIND_BOOL_GENERAL(freelook, false, "Free look");
+  M_BindBool("direct_vertical_aiming", &default_direct_vertical_aiming, &direct_vertical_aiming,
+             false, ss_gen, wad_no, "Direct vertical aiming");
 }
 
 void G_BindGameVariables(void)
@@ -4904,8 +4954,6 @@ void G_BindCompVariables(void)
              "Fix blockmap bug (improves hit detection)");
   M_BindBool("checksight12", &checksight12, NULL, false, ss_comp, wad_no,
              "Fast blockmap-based line-of-sight calculation");
-  M_BindBool("direct_vertical_aiming", &default_direct_vertical_aiming, &direct_vertical_aiming,
-             false, ss_comp, wad_no, "Direct vertical aiming");
 
 #define BIND_COMP(id, v, help) \
   M_BindNum(#id, &default_comp[(id)], &comp[(id)], (v), 0, 1, ss_none, wad_yes, help)

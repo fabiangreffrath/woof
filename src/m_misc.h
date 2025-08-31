@@ -23,6 +23,14 @@
 
 #include "doomtype.h"
 
+typedef struct
+{
+    char *(*func)(void);
+    const char *dir;
+    char *(*check_func)(void);
+    boolean makedir;
+} constructed_dir_t;
+
 boolean M_DirExists(const char *path);
 int M_FileLength(const char *path);
 char *M_TempFile(const char *s);

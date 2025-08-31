@@ -1,5 +1,5 @@
 //
-// Copyright(C) 2005-2014 Simon Howard
+// Copyright(C) 2025 Roman Fomin
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -10,16 +10,16 @@
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 // GNU General Public License for more details.
-//
-// DESCRIPTION:
-//     Networking module which uses SDL_net
-//
 
-#ifndef NET_SDL_H
-#define NET_SDL_H
+#ifndef P_KEYFRAME_H
+#define P_KEYFRAME_H
 
-#include "net_defs.h"
+typedef struct keyframe_s keyframe_t;
 
-extern net_module_t net_sdl_module;
+keyframe_t *P_SaveKeyframe(int tic);
+void P_LoadKeyframe(const keyframe_t *keyframe);
+void P_FreeKeyframe(keyframe_t *keyframe);
 
-#endif /* #ifndef NET_SDL_H */
+int P_GetKeyframeTic(const keyframe_t *keyframe);
+
+#endif

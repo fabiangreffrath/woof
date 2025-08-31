@@ -17,7 +17,7 @@
 //
 
 
-#include "SDL.h"
+#include <SDL3/SDL.h>
 
 #include "doomstat.h"
 #include "g_game.h"
