@@ -17,6 +17,7 @@
 //
 //-----------------------------------------------------------------------------
 
+
 #include <stdlib.h>
 #include <string.h>
 
@@ -89,40 +90,14 @@ static boolean mapinfo_finale;
 // Current finale being played
 end_finale_t *endfinale = {0};
 
-end_finale_t VanillaBunnyScroller(void)
-{
-    end_finale_t finale = {
-        .type = END_SCROLL,
-        .background = "PUB1",
-        .music = "D_BUNNY",
-        .donextmap = false,
-        .musicloops = false,
-        .castrollcall = {0},
-        .bunny =
-        {
-            .orientation = BUNNY_LEFT,
-            .stitchimage = "PFUB2",
-            .overlay = W_GetNumForName("END0"),
-            .overlaycount = 6,
-            .overlaysound = sfx_pistol,
-            .overlayx = 100,
-            .overlayy = 100,
-        },
-    };
-
-    return finale;
-}
-
 static void ParseEndFinaleCastAnims(json_t *js_castanim_entry,
                                     cast_entry_t *out)
 {
     out->name = JS_GetStringValue(js_castanim_entry, "name");
     out->alertsound = JS_GetIntegerValue(js_castanim_entry, "alertsound");
 
-    json_t *js_alive_frame_list =
-        JS_GetObject(js_castanim_entry, "aliveframes");
-    json_t *js_death_frame_list =
-        JS_GetObject(js_castanim_entry, "deathframes");
+    json_t *js_alive_frame_list = JS_GetObject(js_castanim_entry, "aliveframes");
+    json_t *js_death_frame_list = JS_GetObject(js_castanim_entry, "deathframes");
 
     json_t *js_alive_frame = NULL;
     json_t *js_death_frame = NULL;
@@ -133,8 +108,7 @@ static void ParseEndFinaleCastAnims(json_t *js_castanim_entry,
     {
         buffer.lump = JS_GetStringValue(js_alive_frame, "lump");
         buffer.flipped = JS_GetBooleanValue(js_alive_frame, "flipped");
-        buffer.duration =
-            JS_GetIntegerValue(js_alive_frame, "duration") * TICRATE;
+        buffer.duration = JS_GetIntegerValue(js_alive_frame, "duration") * TICRATE;
         buffer.sound = JS_GetIntegerValue(js_alive_frame, "sound");
         array_push(out->aliveframes, buffer);
         out->aliveframescount++;
@@ -144,8 +118,7 @@ static void ParseEndFinaleCastAnims(json_t *js_castanim_entry,
     {
         buffer.lump = JS_GetStringValue(js_death_frame, "lump");
         buffer.flipped = JS_GetBooleanValue(js_death_frame, "flipped");
-        buffer.duration =
-            JS_GetIntegerValue(js_death_frame, "duration") * TICRATE;
+        buffer.duration = JS_GetIntegerValue(js_death_frame, "duration") * TICRATE;
         buffer.sound = JS_GetIntegerValue(js_death_frame, "sound");
         array_push(out->deathframes, buffer);
         out->deathframescount++;
@@ -158,7 +131,7 @@ end_finale_t *D_ParseEndFinale(const char lump[9])
     json_t *json = JS_Open(lump, "finale", (version_t){1, 0, 0});
     if (json == NULL)
     {
-        I_Printf(VB_WARNING, "EndFinale: invalid lump \"%s\"", lump);
+        I_Printf(VB_WARNING, "EndFinale: invalid lump '%s'", lump);
         return NULL;
     }
 
@@ -166,8 +139,7 @@ end_finale_t *D_ParseEndFinale(const char lump[9])
     json_t *data = JS_GetObject(json, "data");
     if (JS_IsNull(data) || !JS_IsObject(data))
     {
-        I_Printf(VB_WARNING, "EndFinale: data object undefined on lump \"%s\"",
-                 lump);
+        I_Printf(VB_WARNING, "EndFinale: data object undefined on lump '%s'", lump);
         JS_Close(lump);
         return NULL;
     }
@@ -186,9 +158,7 @@ end_finale_t *D_ParseEndFinale(const char lump[9])
     // Improper definitions should be entirely discarded
     if (music == NULL || background == NULL)
     {
-        I_Printf(VB_WARNING,
-                 "EndFinale: invalid music or background fields on lump \"%s\"",
-                 lump);
+        I_Printf(VB_WARNING, "EndFinale: invalid music or background fields on lump '%s'", lump);
         JS_Close(lump);
         return NULL;
     }
@@ -197,41 +167,36 @@ end_finale_t *D_ParseEndFinale(const char lump[9])
     {
         // Our hero
         case END_CAST:
+        {
+            json_t *js_castrollcall = JS_GetObject(data, "castrollcall");
+            json_t *js_castanim_list = JS_GetObject(js_castrollcall, "castanims");
+
+            json_t *js_castanim_entry = NULL;
+            cast_entry_t castanim_entry = {0};
+
+            JS_ArrayForEach(js_castanim_entry, js_castanim_list)
             {
-                json_t *js_castrollcall = JS_GetObject(data, "castrollcall");
-                json_t *js_castanim_list =
-                    JS_GetObject(js_castrollcall, "castanims");
-
-                json_t *js_castanim_entry = NULL;
-                cast_entry_t castanim_entry = {0};
-
-                JS_ArrayForEach(js_castanim_entry, js_castanim_list)
-                {
-                    ParseEndFinaleCastAnims(js_castanim_entry, &castanim_entry);
-                    castrollcall.castanimscount++;
-                    array_push(castrollcall.castanims, castanim_entry);
-                }
-
-                break;
+                ParseEndFinaleCastAnims(js_castanim_entry, &castanim_entry);
+                castrollcall.castanimscount++;
+                array_push(castrollcall.castanims, castanim_entry);
             }
+
+            break;
+        }
 
         // Pretty Fed Up Bunny
         case END_SCROLL:
-            {
-                json_t *js_bunny = JS_GetObject(data, "bunny");
-
-                bunny.overlay = JS_GetIntegerValue(js_bunny, "overlay");
-                bunny.overlaycount =
-                    JS_GetIntegerValue(js_bunny, "overlaycount");
-                bunny.overlaysound =
-                    JS_GetIntegerValue(js_bunny, "overlaysound");
-                bunny.overlayx = JS_GetIntegerValue(js_bunny, "overlayx");
-                bunny.overlayy = JS_GetIntegerValue(js_bunny, "overlayy");
-                bunny.orientation = JS_GetIntegerValue(js_bunny, "orientation");
-                bunny.stitchimage = Z_StrDup(
-                    JS_GetStringValue(js_bunny, "stitchimage"), PU_LEVEL);
-                break;
-            }
+        {
+            json_t *js_bunny = JS_GetObject(data, "bunny");
+            bunny.overlay = JS_GetIntegerValue(js_bunny, "overlay");
+            bunny.overlaycount = JS_GetIntegerValue(js_bunny, "overlaycount");
+            bunny.overlaysound = JS_GetIntegerValue(js_bunny, "overlaysound");
+            bunny.overlayx = JS_GetIntegerValue(js_bunny, "overlayx");
+            bunny.overlayy = JS_GetIntegerValue(js_bunny, "overlayy");
+            bunny.orientation = JS_GetIntegerValue(js_bunny, "orientation");
+            bunny.stitchimage = Z_StrDup(JS_GetStringValue(js_bunny, "stitchimage"), PU_LEVEL);
+            break;
+        }
 
         // Explicitly do not parse anything needlessly
         case END_ART:
@@ -239,14 +204,12 @@ end_finale_t *D_ParseEndFinale(const char lump[9])
 
         // Fix you lumps! Fix you editor!
         default:
-            {
-                I_Printf(VB_WARNING,
-                         "EndFinale: unknown entry of type \"%d\" on lump %s, "
-                         "skipping",
-                         type, lump);
-                JS_Close(lump);
-                return NULL;
-            }
+        {
+            I_Printf(VB_WARNING, "EndFinale: unknown entry of type '%d' on lump %s, skipping",
+                     type, lump);
+            JS_Close(lump);
+            return NULL;
+        }
     }
 
     // Done parsing everything
