@@ -2059,6 +2059,8 @@ static void WI_drawNetgameStats(void)
 
 static void WI_overlayNetgameStats(void)
 {
+    dofrags = false;
+
     V_DrawPatch(NG_STATSX + NG_SPACINGX - SHORT(kills->width), NG_STATSY,
                 kills);
     V_DrawPatch(NG_STATSX + 2 * NG_SPACINGX - SHORT(items->width), NG_STATSY,
@@ -2134,7 +2136,6 @@ static void WI_initStats(void)
   cnt_kills[0] = cnt_items[0] = cnt_secret[0] = -1;
   cnt_time = cnt_par = cnt_total_time = -1;
   cnt_pause = TICRATE;
-  wi_overlay = false;
 
   WI_initAnimatedBack(true);
 }
@@ -2742,6 +2743,8 @@ void WI_Start(wbstartstruct_t* wbstartstruct)
       WI_initNetgameStats();
     else
       WI_initStats();
+
+  wi_overlay = false;
 }
 
 
