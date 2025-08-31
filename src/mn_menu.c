@@ -2454,7 +2454,7 @@ boolean M_ShortcutResponder(const event_t *ev)
             return true;
         }
     }
-    else
+    else if (M_InputDeactivated(input_netgame_stats))
     {
         WI_disableOverlayStats();
     }
