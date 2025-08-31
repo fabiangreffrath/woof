@@ -2449,14 +2449,15 @@ boolean M_ShortcutResponder(const event_t *ev)
 
     if (M_InputActivated(input_netgame_stats))
     {
-        if (WI_enableOverlayStats())
+        if (gamestate == GS_LEVEL && (netgame || deathmatch))
         {
+            wi_overlay = true;
             return true;
         }
     }
     else if (M_InputDeactivated(input_netgame_stats))
     {
-        WI_disableOverlayStats();
+        wi_overlay = false;
     }
 
     if (M_InputActivated(input_autorun)) // Autorun

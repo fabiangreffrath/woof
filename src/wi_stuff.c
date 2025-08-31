@@ -2095,43 +2095,24 @@ static void WI_overlayNetgameStats(void)
     }
 }
 
-static boolean wi_overlay = false;
-
-boolean WI_enableOverlayStats(void)
-{
-    if (gamestate == GS_LEVEL && (netgame || deathmatch))
-    {
-        wi_overlay = true;
-        return true;
-    }
-
-    return false;
-}
-
-void WI_disableOverlayStats(void)
-{
-    wi_overlay = false;
-}
+boolean wi_overlay = false;
 
 void WI_drawOverlayStats(void)
 {
-    if (wi_overlay)
+    if (!wi_inited)
     {
-        if (!wi_inited)
-        {
-            WI_loadData();
-        }
+        WI_loadData();
+    }
 
-        V_ShadeScreen();
+    V_ShadeScreen();
 
-        if (deathmatch)
-        {
-            WI_overlayDeathmatchStats();
-        }
-        else if (netgame)
-        {
-            WI_overlayNetgameStats();
-        }
+    if (deathmatch)
+    {
+        WI_overlayDeathmatchStats();
+    }
+    else if (netgame)
+    {
+        WI_overlayNetgameStats();
     }
 }
 
