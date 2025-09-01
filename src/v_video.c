@@ -717,10 +717,8 @@ void V_DrawPatchFullScreen(patch_t *patch)
     patch->topoffset = 0;
 
     // [crispy] fill pillarboxes in widescreen mode
-    if (video.unscaledw != NONWIDEWIDTH)
-    {
-        V_FillRect(0, 0, video.unscaledw, SCREENHEIGHT, v_darkest_color);
-    }
+    // always clear screen, fixes eternall.wad's partly transparent CREDIT in non-widescreen
+    V_FillRect(0, 0, video.unscaledw, SCREENHEIGHT, v_darkest_color);
 
     drawcolfunc = DrawPatchColumn;
 
