@@ -620,8 +620,8 @@ static void R_ProjectSprite(mobj_t* thing, int lightlevel_override)
   // killough 3/27/98: exclude things totally separated
   // from the viewer, by either water or fake ceilings
   // killough 4/11/98: improve sprite clipping for underwater/fake ceilings
-  sector_t * thing_sector = thing->subsector->sector;
-  heightsec = thing_sector->heightsec;
+
+  heightsec = thing->subsector->sector->heightsec;
 
   if (heightsec != -1)   // only clip things which are in special sectors
     {
@@ -658,17 +658,8 @@ static void R_ProjectSprite(mobj_t* thing, int lightlevel_override)
   vis->x2 = x2 >= viewwidth ? viewwidth-1 : x2;
   iscale = FixedDiv(FRACUNIT, xscale);
   vis->color = thing->bloodcolor;
+  vis->tint = thing->subsector->sector->tint;
 
-  if (comp[comp_thingsectorlight] == 2 && thing_sector->floorlightsec >= 0)
-  {
-    // Use ID24-style floor light only
-    vis->tint = sectors[thing_sector->floorlightsec].tint;
-  }
-  else
-  {
-    // Use sector's true light level
-    vis->tint = thing_sector->tint;
-  }
 
   if (flip)
     {
@@ -710,14 +701,9 @@ static void R_ProjectSprite(mobj_t* thing, int lightlevel_override)
     const int index = R_GetLightIndex(xscale);
 
     // Use sector's true light level
-    int lightnum = thing_sector->lightlevel;
+    int lightnum = thing->subsector->sector->lightlevel;
 
-    if ((comp[comp_thingsectorlight] == 2) && thing_sector->floorlightsec >= 0)
-    {
-      // Use ID24-style floor light only
-      lightnum = sectors[thing_sector->floorlightsec].lightlevel;
-    }
-    else if (comp[comp_thingsectorlight] == 1)
+    if (comp[comp_thingsectorlight])
     {
       // Use MBF-style average light level
       lightnum = lightlevel_override;
@@ -837,7 +823,6 @@ void R_DrawPSprite(pspdef_t *psp, int lightlevel_override)
   boolean       flip;
   vissprite_t   *vis;
   vissprite_t   avis;
-  const sector_t * player_sector = players[consoleplayer].mo->subsector->sector;
 
   // decide which patch to use
 
@@ -903,17 +888,7 @@ void R_DrawPSprite(pspdef_t *psp, int lightlevel_override)
   vis->x1 = x1 < 0 ? 0 : x1;
   vis->x2 = x2 >= viewwidth ? viewwidth-1 : x2;
   vis->scale = pspritescale;
-
-  if ((comp[comp_thingsectorlight] == 2) && player_sector->floorlightsec >= 0)
-  {
-    // Use ID24-style floor light only
-    vis->tint = sectors[player_sector->floorlightsec].tint;
-  }
-  else
-  {
-    // Use sector's true light level
-    vis->tint = player_sector->tint;
-  }
+  vis->tint = viewplayer->mo->subsector->sector->tint;
 
   if (flip)
     {
@@ -956,14 +931,9 @@ void R_DrawPSprite(pspdef_t *psp, int lightlevel_override)
     // local light
 
     // Use sector's true light level
-    int lightnum = player_sector->lightlevel;
+    int lightnum = viewplayer->mo->subsector->sector->lightlevel;
 
-    if (comp[comp_thingsectorlight] == 2 && player_sector->floorlightsec >= 0)
-    {
-      // Use ID24-style floor light only
-       lightnum = sectors[player_sector->floorlightsec].lightlevel;
-    }
-    else if (comp[comp_thingsectorlight] == 1)
+    if (comp[comp_thingsectorlight])
     {
       // Use MBF-style average light level
       lightnum = lightlevel_override;

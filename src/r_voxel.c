@@ -668,8 +668,7 @@ boolean VX_ProjectVoxel(mobj_t *thing, int lightlevel_override)
 	vissprite_t * vis = R_NewVisSprite ();
 	vis->voxel_index = voxel_index;
 
-	sector_t *thing_sector = thing->subsector->sector;
-	vis->heightsec = thing_sector->heightsec;
+	vis->heightsec = thing->subsector->sector->heightsec;
 
 	vis->mobjflags = thing->flags;
 	vis->mobjflags2 = thing->flags2;
@@ -684,16 +683,7 @@ boolean VX_ProjectVoxel(mobj_t *thing, int lightlevel_override)
 	vis->x1 = x1;
 	vis->x2 = x2;
 
-	if (comp[comp_thingsectorlight] == 2 && thing_sector->floorlightsec >= 0)
-	{
-		// Use ID24-style floor light only
-		vis->tint = sectors[thing_sector->floorlightsec].tint;
-	}
-	else
-	{
-		// Use sector's true light level
-		vis->tint = thing_sector->tint;
-	}
+	vis->tint = thing->subsector->sector->tint;
 
 	// get light level...
 	lighttable_t *thiscolormap = vis->tint ? colormaps[vis->tint] : fullcolormap;
@@ -716,14 +706,9 @@ boolean VX_ProjectVoxel(mobj_t *thing, int lightlevel_override)
 		const int index = R_GetLightIndex(xscale);
 
 		// Use sector's true light level
-		int lightnum = thing_sector->lightlevel;
+		int lightnum = thing->subsector->sector->lightlevel;
 
-		if (comp[comp_thingsectorlight] == 2 && thing_sector->floorlightsec >= 0)
-		{
-			// Use ID24-style floor light only
-			lightnum = sectors[thing_sector->floorlightsec].lightlevel;
-		}
-		else if (comp[comp_thingsectorlight] == 1)
+		if (comp[comp_thingsectorlight])
 		{
 			// Use MBF-style average light level
 			lightnum = lightlevel_override;

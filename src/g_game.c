@@ -4958,9 +4958,6 @@ void G_BindCompVariables(void)
 #define BIND_COMP(id, v, help) \
   M_BindNum(#id, &default_comp[(id)], &comp[(id)], (v), 0, 1, ss_none, wad_yes, help)
 
-#define BIND_COMP_MAX(id, v, max, help) \
-  M_BindNum(#id, &default_comp[(id)], &comp[(id)], (v), 0, max, ss_none, wad_yes, help)
-
   // Boom & MBF
   BIND_COMP(comp_zombie,    1, "Dead players can trigger linedef actions");
   BIND_COMP(comp_infcheat,  0, "Powerup cheats don't last forever");
@@ -4991,7 +4988,7 @@ void G_BindCompVariables(void)
   BIND_COMP(comp_reservedlineflag, 1, "ML_RESERVED clears extended flags");
 
   // ID24 & MBF2Y
-  BIND_COMP_MAX(comp_thingsectorlight, 0, 2, "Things are lit according to transferred light level");
+  BIND_COMP(comp_thingsectorlight, 0, "Things are lit according to transferred light level");
 
 #define BIND_EMU(id, v, help) \
   M_BindBool(#id, &overflow[(id)].enabled, NULL, (v), ss_none, wad_no, help)
