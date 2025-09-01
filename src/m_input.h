@@ -122,6 +122,7 @@ enum
     input_chat_backspace,
     input_chat_enter,
     input_netgame_stats,
+    input_msgreview,
 
     input_iddqd,
     input_idkfa,
