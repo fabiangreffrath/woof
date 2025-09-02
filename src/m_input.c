@@ -805,7 +805,7 @@ void M_BindInputVariables(void)
     BIND_INPUT(input_chat_dest1, "Chat with player 2");
     BIND_INPUT(input_chat_dest2, "Chat with player 3");
     BIND_INPUT(input_chat_dest3, "Chat with player 4");
-    BIND_INPUT(input_netgame_stats, "Display netgame stats overlay");
+    BIND_INPUT(input_netgame_stats, "Toggle display of netgame stats overlay");
     BIND_INPUT(input_msgreview, "Review the last message");
 
     BIND_INPUT(input_iddqd, "Toggle god mode");
