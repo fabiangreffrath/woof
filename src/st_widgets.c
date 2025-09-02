@@ -925,7 +925,7 @@ static void UpdateDM(sbe_widget_t *widget)
         }
 
         offset += M_snprintf(string + offset, sizeof(string) - offset,
-                             "\x1b%c%d/%d ", (i == displayplayer) ?
+                             "\x1b%c%02d/%02d ", (i == displayplayer) ?
                              '0' + cr_blue : '0' + CR_GRAY, result, others);
     }
 
