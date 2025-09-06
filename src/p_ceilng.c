@@ -278,7 +278,7 @@ int EV_DoCeiling
   
     // create a new ceiling thinker
     rtn = 1;
-    ceiling = arena_alloc(thinkers_arena, 1, ceiling_t);
+    ceiling = arena_alloc(thinkers_arena, ceiling_t);
     P_AddThinker (&ceiling->thinker);
     sec->ceilingdata = ceiling;               //jff 2/22/98
     ceiling->thinker.function.p1 = T_MoveCeilingAdapter;
@@ -420,7 +420,7 @@ int EV_CeilingCrushStop(line_t* line)
 //
 void P_AddActiveCeiling(ceiling_t* ceiling)
 {
-  ceilinglist_t *list = arena_alloc(activeceilings_arena, 1, ceilinglist_t);
+  ceilinglist_t *list = arena_alloc(activeceilings_arena, ceilinglist_t);
   list->ceiling = ceiling;
   ceiling->list = list;
   if ((list->next = activeceilings))

@@ -215,7 +215,7 @@ int EV_DoPlat
       
     // Create a thinker
     rtn = 1;
-    plat = arena_alloc(thinkers_arena, 1, plat_t);
+    plat = arena_alloc(thinkers_arena, plat_t);
     P_AddThinker(&plat->thinker);
               
     plat->type = type;
@@ -388,7 +388,7 @@ int EV_StopPlat(line_t* line)
 //
 void P_AddActivePlat(plat_t* plat)
 {
-  platlist_t *list = arena_alloc(activeplats_arena, 1, platlist_t);
+  platlist_t *list = arena_alloc(activeplats_arena, platlist_t);
   list->plat = plat;
   plat->list = list;
   if ((list->next = activeplats))

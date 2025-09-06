@@ -847,7 +847,7 @@ void P_MobjThinker (mobj_t* mobj)
 
 mobj_t *P_SpawnMobj(fixed_t x, fixed_t y, fixed_t z, mobjtype_t type)
 {
-  mobj_t *mobj = arena_alloc(thinkers_arena, 1, mobj_t);
+  mobj_t *mobj = arena_alloc(thinkers_arena, mobj_t);
   mobjinfo_t *info = &mobjinfo[type];
   state_t    *st;
 

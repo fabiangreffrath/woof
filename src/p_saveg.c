@@ -2520,7 +2520,7 @@ void P_UnArchiveThinkers (void)
 
     if (tc == tc_ambient)
     {
-      ambient_t *ambient = arena_alloc(thinkers_arena, 1, ambient_t);
+      ambient_t *ambient = arena_alloc(thinkers_arena, ambient_t);
       saveg_read_ambient_t(ambient);
       ambient->update_tics = AMB_UPDATE_NOW;
       ambient->playing = false;
@@ -2531,7 +2531,7 @@ void P_UnArchiveThinkers (void)
 
     if (tc == tc_mobj)
     {
-      mobj_t *mobj = arena_alloc(thinkers_arena, 1, mobj_t);
+      mobj_t *mobj = arena_alloc(thinkers_arena, mobj_t);
 
       // killough 2/14/98 -- insert pointers to thinkers into table, in order:
       mobj_p[idx] = mobj;
@@ -2814,7 +2814,7 @@ void P_UnArchiveSpecials (void)
       case tc_ceiling:
         saveg_read_pad();
         {
-          ceiling_t *ceiling = arena_alloc(thinkers_arena, 1, ceiling_t);
+          ceiling_t *ceiling = arena_alloc(thinkers_arena, ceiling_t);
           saveg_read_ceiling_t(ceiling);
           ceiling->sector->ceilingdata = ceiling; //jff 2/22/98
 
@@ -2829,7 +2829,7 @@ void P_UnArchiveSpecials (void)
       case tc_door:
         saveg_read_pad();
         {
-          vldoor_t *door = arena_alloc(thinkers_arena, 1, vldoor_t);
+          vldoor_t *door = arena_alloc(thinkers_arena, vldoor_t);
           saveg_read_vldoor_t(door);
           door->sector->ceilingdata = door;       //jff 2/22/98
           door->thinker.function.p1 = T_VerticalDoorAdapter;
@@ -2840,7 +2840,7 @@ void P_UnArchiveSpecials (void)
       case tc_floor:
         saveg_read_pad();
         {
-          floormove_t *floor = arena_alloc(thinkers_arena, 1, floormove_t);
+          floormove_t *floor = arena_alloc(thinkers_arena, floormove_t);
           saveg_read_floormove_t(floor);
           floor->sector->floordata = floor; //jff 2/22/98
           floor->thinker.function.p1 = T_MoveFloorAdapter;
@@ -2851,7 +2851,7 @@ void P_UnArchiveSpecials (void)
       case tc_plat:
         saveg_read_pad();
         {
-          plat_t *plat = arena_alloc(thinkers_arena, 1, plat_t);
+          plat_t *plat = arena_alloc(thinkers_arena, plat_t);
           saveg_read_plat_t(plat);
           plat->sector->floordata = plat; //jff 2/22/98
 
@@ -2866,7 +2866,7 @@ void P_UnArchiveSpecials (void)
       case tc_flash:
         saveg_read_pad();
         {
-          lightflash_t *flash = arena_alloc(thinkers_arena, 1, lightflash_t);
+          lightflash_t *flash = arena_alloc(thinkers_arena, lightflash_t);
           saveg_read_lightflash_t(flash);
           flash->thinker.function.p1 = T_LightFlashAdapter;
           P_AddThinker (&flash->thinker);
@@ -2876,7 +2876,7 @@ void P_UnArchiveSpecials (void)
       case tc_strobe:
         saveg_read_pad();
         {
-          strobe_t *strobe = arena_alloc(thinkers_arena, 1, strobe_t);
+          strobe_t *strobe = arena_alloc(thinkers_arena, strobe_t);
           saveg_read_strobe_t(strobe);
           strobe->thinker.function.p1 = T_StrobeFlashAdapter;
           P_AddThinker (&strobe->thinker);
@@ -2886,7 +2886,7 @@ void P_UnArchiveSpecials (void)
       case tc_glow:
         saveg_read_pad();
         {
-          glow_t *glow = arena_alloc(thinkers_arena, 1, glow_t);
+          glow_t *glow = arena_alloc(thinkers_arena, glow_t);
           saveg_read_glow_t(glow);
           glow->thinker.function.p1 = T_GlowAdapter;
           P_AddThinker (&glow->thinker);
@@ -2896,7 +2896,7 @@ void P_UnArchiveSpecials (void)
       case tc_flicker:           // killough 10/4/98
         saveg_read_pad();
         {
-          fireflicker_t *flicker = arena_alloc(thinkers_arena, 1, fireflicker_t);
+          fireflicker_t *flicker = arena_alloc(thinkers_arena, fireflicker_t);
           saveg_read_fireflicker_t(flicker);
           flicker->thinker.function.p1 = T_FireFlickerAdapter;
           P_AddThinker (&flicker->thinker);
@@ -2907,7 +2907,7 @@ void P_UnArchiveSpecials (void)
       case tc_elevator:
         saveg_read_pad();
         {
-          elevator_t *elevator = arena_alloc(thinkers_arena, 1, elevator_t);
+          elevator_t *elevator = arena_alloc(thinkers_arena, elevator_t);
           saveg_read_elevator_t(elevator);
           elevator->sector->floordata = elevator; //jff 2/22/98
           elevator->sector->ceilingdata = elevator; //jff 2/22/98
@@ -2918,7 +2918,7 @@ void P_UnArchiveSpecials (void)
 
       case tc_scroll:       // killough 3/7/98: scroll effect thinkers
         {
-          scroll_t *scroll = arena_alloc(thinkers_arena, 1, scroll_t);
+          scroll_t *scroll = arena_alloc(thinkers_arena, scroll_t);
           saveg_read_scroll_t(scroll);
           scroll->thinker.function.p1 = T_ScrollAdapter;
           P_AddThinker(&scroll->thinker);
@@ -2927,7 +2927,7 @@ void P_UnArchiveSpecials (void)
 
       case tc_pusher:   // phares 3/22/98: new Push/Pull effect thinkers
         {
-          pusher_t *pusher = arena_alloc(thinkers_arena, 1, pusher_t);
+          pusher_t *pusher = arena_alloc(thinkers_arena, pusher_t);
           saveg_read_pusher_t(pusher);
           pusher->thinker.function.p1 = T_PusherAdapter;
           // can't convert from index to pointer, old save version
@@ -2946,7 +2946,7 @@ void P_UnArchiveSpecials (void)
       case tc_friction:
         saveg_read_pad();
         {
-          friction_t *friction = arena_alloc(thinkers_arena, 1, friction_t);
+          friction_t *friction = arena_alloc(thinkers_arena, friction_t);
           saveg_read_friction_t(friction);
           friction->thinker.function.p1 = T_FrictionAdapter;
           P_AddThinker(&friction->thinker);

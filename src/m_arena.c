@@ -44,7 +44,7 @@ struct arena_s
     block_t *deleted;
 };
 
-void *M_ArenaAlloc(arena_t *arena, size_t count, size_t size, size_t align)
+void *M_ArenaAlloc(arena_t *arena, size_t size, size_t align)
 {
     int deleted_size = array_size(arena->deleted);
     for (int i = 0; i < deleted_size; ++i)
@@ -61,7 +61,7 @@ void *M_ArenaAlloc(arena_t *arena, size_t count, size_t size, size_t align)
     ptrdiff_t padding = -(uintptr_t)arena->beg & (align - 1);
     ptrdiff_t available = arena->end - arena->beg - padding;
 
-    if (available < 0 || count > available / size)
+    if (available < 0 || size > available)
     {
         ptrdiff_t buffer_size = arena->end - arena->buffer;
         if (buffer_size * 2 > arena->reserve)
@@ -84,7 +84,7 @@ void *M_ArenaAlloc(arena_t *arena, size_t count, size_t size, size_t align)
     }
 
     void *ptr = arena->beg + padding;
-    arena->beg += padding + count * size;
+    arena->beg += padding + size;
     return ptr;
 }
 

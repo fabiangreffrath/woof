@@ -3055,7 +3055,7 @@ void T_ScrollAdapter(mobj_t *mobj)
 static void Add_Scroller(int type, fixed_t dx, fixed_t dy,
                          int control, int affectee, int accel)
 {
-  scroll_t *s = arena_alloc(thinkers_arena, 1, scroll_t);
+  scroll_t *s = arena_alloc(thinkers_arena, scroll_t);
   s->thinker.function.p1 = T_ScrollAdapter;
   s->type = type;
   s->dx = dx;
@@ -3263,7 +3263,7 @@ static void P_SpawnScrollers(void)
 
 static void Add_Friction(int friction, int movefactor, int affectee)
 {
-    friction_t *f = arena_alloc(thinkers_arena, 1, friction_t);
+    friction_t *f = arena_alloc(thinkers_arena, friction_t);
 
     f->thinker.function.p1 = T_FrictionAdapter;
     f->friction = friction;
@@ -3499,7 +3499,7 @@ static void P_SpawnFriction(void)
 static void Add_Pusher(int type, int x_mag, int y_mag,
                        mobj_t *source, int affectee)
 {
-  pusher_t *p = arena_alloc(thinkers_arena, 1, pusher_t);
+  pusher_t *p = arena_alloc(thinkers_arena, pusher_t);
 
   p->thinker.function.p1 = T_PusherAdapter;
   p->source = source;

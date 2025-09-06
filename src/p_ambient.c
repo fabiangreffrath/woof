@@ -218,7 +218,7 @@ void P_AddAmbientSoundThinker(mobj_t *mobj, int index)
         return;
     }
 
-    ambient_t *ambient = arena_alloc(thinkers_arena, 1, ambient_t);
+    ambient_t *ambient = arena_alloc(thinkers_arena, ambient_t);
     ambient->data = *data;
 
     switch (ambient->data.mode)
