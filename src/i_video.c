@@ -1624,8 +1624,12 @@ static void CreateSurfaces(int w, int h)
     texture = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_ARGB8888,
                                 SDL_TEXTUREACCESS_STREAMING, w, h);
 
+#ifdef HAVE_SCALEMODE_PIXELART
     SDL_SetTextureScaleMode(texture,
         smooth_scaling ? SDL_SCALEMODE_PIXELART : SDL_SCALEMODE_NEAREST);
+#else
+    SDL_SetTextureScaleMode(texture, SDL_SCALEMODE_NEAREST);
+#endif
 
     Z_FreeTag(PU_RENDERER);
     R_InitAnyRes();

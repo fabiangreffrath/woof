@@ -124,6 +124,21 @@ if(ALSA_FOUND)
     set(HAVE_ALSA TRUE)
 endif()
 
+set(CMAKE_REQUIRED_LIBRARIES SDL3::SDL3)
+check_c_source_compiles(
+    "
+    #include <SDL3/SDL.h>
+    int main()
+    {
+        SDL_Texture *texture;
+        SDL_SetTextureScaleMode(texture, SDL_SCALEMODE_PIXELART);
+        return 0;
+    }
+    "
+    HAVE_SCALEMODE_PIXELART
+)
+unset(CMAKE_REQUIRED_LIBRARIES)
+
 if(OPENAL_VERSION_STRING VERSION_GREATER_EQUAL "1.22.0")
     set(HAVE_AL_BUFFER_CALLBACK TRUE)
 endif()
