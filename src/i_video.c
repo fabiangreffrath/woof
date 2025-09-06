@@ -115,14 +115,13 @@ static SDL_Surface *screenbuffer;
 static SDL_Surface *argbbuffer;
 static SDL_Palette *palette;
 static SDL_Texture *texture;
-static SDL_Texture *texture_upscaled;
 static SDL_Rect blit_rect = {0};
+static SDL_FRect renderer_rect = {0.0f};
 
 static int window_x, window_y;
 static int window_width, window_height;
 static int default_window_width, default_window_height;
 static int window_position_x, window_position_y;
-static boolean window_resize;
 static boolean window_focused = true;
 static int scalefactor;
 
@@ -359,7 +358,6 @@ static void HandleWindowEvent(SDL_WindowEvent *event)
             {
                 SDL_GetWindowSize(screen, &window_width, &window_height);
             }
-            window_resize = true;
             break;
 
         case SDL_EVENT_WINDOW_MOVED:
@@ -688,27 +686,7 @@ static void UpdateRender(void)
     SDL_UnlockTexture(texture);
 
     SDL_RenderClear(renderer);
-
-    SDL_FRect rect;
-    SDL_RectToFRect(&blit_rect, &rect);
-
-    if (texture_upscaled)
-    {
-        // Render this intermediate texture into the upscaled texture
-        // using "nearest" integer scaling.
-
-        SDL_SetRenderTarget(renderer, texture_upscaled);
-        SDL_RenderTexture(renderer, texture, &rect, NULL);
-
-        // Finally, render this upscaled texture to screen using linear scaling.
-
-        SDL_SetRenderTarget(renderer, NULL);
-        SDL_RenderTexture(renderer, texture_upscaled, NULL, NULL);
-    }
-    else
-    {
-        SDL_RenderTexture(renderer, texture, &rect, NULL);
-    }
+    SDL_RenderTexture(renderer, texture, &renderer_rect, NULL);
 }
 
 static uint64_t frametime_start, frametime_withoutpresent;
@@ -876,15 +854,6 @@ void I_FinishUpdate(void)
     SDL_RenderPresent(renderer);
 
     I_RestoreDiskBackground();
-
-    if (window_resize)
-    {
-        if (smooth_scaling)
-        {
-            CreateUpscaledTexture(false);
-        }
-        window_resize = false;
-    }
 
     if (use_limiter)
     {
@@ -1313,123 +1282,16 @@ static void ResetResolution(int height, boolean reset_pitch)
     drs_skip_frame = true;
 }
 
-static void DestroyUpscaledTexture(void)
-{
-    if (texture_upscaled)
-    {
-        SDL_DestroyTexture(texture_upscaled);
-        texture_upscaled = NULL;
-    }
-}
-
-static void CreateUpscaledTexture(boolean force)
-{
-    int w, h, w_upscale, h_upscale;
-    static int h_upscale_old, w_upscale_old;
-
-    const int screen_width = video.width;
-    const int screen_height = video.height;
-
-    // Get the size of the renderer output. The units this gives us will be
-    // real world pixels, which are not necessarily equivalent to the screen's
-    // window size (because of highdpi).
-
-    if (!SDL_GetCurrentRenderOutputSize(renderer, &w, &h))
-    {
-        I_Error("Failed to get renderer output size: %s", SDL_GetError());
-    }
-
-    // When the screen or window dimensions do not match the aspect ratio
-    // of the texture, the rendered area is scaled down to fit. Calculate
-    // the actual dimensions of the rendered area.
-
-    if (w * actualheight < h * screen_width)
-    {
-        // Tall window.
-
-        h = w * actualheight / screen_width;
-    }
-    else
-    {
-        // Wide window.
-
-        w = h * screen_width / actualheight;
-    }
-
-    // Pick texture size the next integer multiple of the screen dimensions.
-    // If one screen dimension matches an integer multiple of the original
-    // resolution, there is no need to overscale in this direction.
-
-    w_upscale = (w + screen_width - 1) / screen_width;
-    h_upscale = (h + screen_height - 1) / screen_height;
-
-    if (w_upscale < 1)
-    {
-        w_upscale = 1;
-    }
-    if (h_upscale < 1)
-    {
-        h_upscale = 1;
-    }
-
-    // Create a new texture only if the upscale factors have actually changed.
-
-    if (h_upscale == h_upscale_old && w_upscale == w_upscale_old && !force)
-    {
-        return;
-    }
-
-    h_upscale_old = h_upscale;
-    w_upscale_old = w_upscale;
-
-    DestroyUpscaledTexture();
-
-    if (w_upscale == 1)
-    {
-        SDL_SetTextureScaleMode(texture, SDL_SCALEMODE_LINEAR);
-        return;
-    }
-    else
-    {
-        SDL_SetTextureScaleMode(texture, SDL_SCALEMODE_NEAREST);
-    }
-
-    // Set the scaling quality for rendering the upscaled texture
-    // to "linear", which looks much softer and smoother than "nearest"
-    // but does a better job at downscaling from the upscaled texture to
-    // screen.
-
-    texture_upscaled = SDL_CreateTexture(
-        renderer, SDL_PIXELFORMAT_ARGB8888, SDL_TEXTUREACCESS_TARGET,
-        w_upscale * screen_width, h_upscale * screen_height);
-
-    if (texture_upscaled == NULL)
-    {
-        I_Error("Failed to create upscaled texture: %s", SDL_GetError());
-    }
-
-    SDL_SetTextureScaleMode(texture_upscaled, SDL_SCALEMODE_LINEAR);
-}
-
 static void ResetLogicalSize(void)
 {
     blit_rect.w = video.width;
     blit_rect.h = video.height;
+    SDL_RectToFRect(&blit_rect, &renderer_rect);
 
     if (!SDL_SetRenderLogicalPresentation(renderer, video.width, actualheight,
         SDL_LOGICAL_PRESENTATION_LETTERBOX))
     {
         I_Printf(VB_ERROR, "Failed to set logical size: %s", SDL_GetError());
-    }
-
-    if (smooth_scaling)
-    {
-        CreateUpscaledTexture(true);
-    }
-    else
-    {
-        DestroyUpscaledTexture();
-        SDL_SetTextureScaleMode(texture, SDL_SCALEMODE_NEAREST);
     }
 }
 
@@ -1763,7 +1625,8 @@ static void CreateSurfaces(int w, int h)
     texture = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_ARGB8888,
                                 SDL_TEXTUREACCESS_STREAMING, w, h);
 
-    SDL_SetTextureScaleMode(texture, SDL_SCALEMODE_NEAREST);
+    SDL_SetTextureScaleMode(texture,
+        smooth_scaling ? SDL_SCALEMODE_PIXELART : SDL_SCALEMODE_NEAREST);
 
     Z_FreeTag(PU_RENDERER);
     R_InitAnyRes();
@@ -1818,7 +1681,6 @@ void I_ShutdownGraphics(void)
 
     SDL_DestroySurface(argbbuffer);
     SDL_DestroySurface(screenbuffer);
-    SDL_DestroyTexture(texture_upscaled);
     SDL_DestroyTexture(texture);
 
     if (!D_AllowEndDoom())
