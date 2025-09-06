@@ -93,7 +93,6 @@ jobs:
           install-linux-dependencies: true
           version: 3-latest
 
-
       - name: Configure
         env:
           CC: ${{ matrix.config.compiler }}
