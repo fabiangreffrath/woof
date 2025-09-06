@@ -32,13 +32,6 @@ jobs:
             compiler: clang
             shell: bash
 
-          - name: MSYS2 UCRT64
-            os: windows-latest
-            compiler: gcc
-            shell: 'msys2 {0}'
-            msystem: ucrt64
-            msys-env: mingw-w64-ucrt-x86_64
-
     steps:
       - name: Install dependencies (Linux)
         if: runner.os == 'Linux'

@@ -804,7 +804,6 @@ void I_DynamicResolution(void)
 static void I_DrawDiskIcon(), I_RestoreDiskBackground();
 static unsigned int disk_to_draw, disk_to_restore;
 
-static void CreateUpscaledTexture(boolean force);
 static void I_ResetTargetRefresh(void);
 
 void I_FinishUpdate(void)
