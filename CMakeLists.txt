@@ -89,7 +89,7 @@ check_symbol_exists(getpwuid "unistd.h;sys/types.h;pwd.h" HAVE_GETPWUID)
 check_c_source_compiles(
     "
     #include <immintrin.h>
-    int main()
+    int main(void)
     {
         int tmp = _div64(4, 2, NULL);
         return 0;
@@ -100,7 +100,7 @@ check_c_source_compiles(
 check_c_source_compiles(
     "
     typedef float vec __attribute__((ext_vector_type(4)));
-    int main()
+    int main(void)
     {
         vec a = (vec){0, 1, 2, 3};
         return 0;
@@ -128,7 +128,7 @@ set(CMAKE_REQUIRED_LIBRARIES SDL3::SDL3)
 check_c_source_compiles(
     "
     #include <SDL3/SDL.h>
-    int main()
+    int main(void)
     {
         SDL_Texture *texture;
         SDL_SetTextureScaleMode(texture, SDL_SCALEMODE_PIXELART);
