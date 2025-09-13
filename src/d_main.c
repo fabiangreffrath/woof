@@ -391,6 +391,9 @@ void D_Display (void)
   if (gamestate == GS_LEVEL && gametic)
     ST_Drawer();
 
+  if (wi_overlay)
+    WI_drawOverlayStats();
+
   // draw pause pic
   if (paused)
     {

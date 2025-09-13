@@ -1031,6 +1031,8 @@ static void G_DoLoadLevel(void)
   // killough 5/13/98: in case netdemo has consoleplayer other than green
   ST_Start();
 
+  wi_overlay = false;
+
   // killough: make -timedemo work on multilevel demos
   // Move to end of function to minimize noise -- killough 2/22/98:
 

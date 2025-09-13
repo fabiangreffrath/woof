@@ -65,6 +65,7 @@
 #include "v_fmt.h"
 #include "v_video.h"
 #include "w_wad.h"
+#include "wi_stuff.h"
 #include "z_zone.h"
 
 // [crispy] remove DOS reference from the game quit confirmation dialogs
@@ -2444,6 +2445,15 @@ boolean M_ShortcutResponder(const event_t *ev)
     if (menuactive || chat_on)
     {
         return false;
+    }
+
+    if (M_InputActivated(input_netgame_stats))
+    {
+        if (gamestate == GS_LEVEL && (netgame || deathmatch))
+        {
+            wi_overlay = !wi_overlay;
+            return true;
+        }
     }
 
     if (M_InputActivated(input_autorun)) // Autorun
