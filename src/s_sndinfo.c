@@ -312,6 +312,8 @@ static boolean SkipRandomSoundCommand(scanner_t *s)
 {
     int brackets_found = 0;
 
+    SC_Warning(s, "skip $random record");
+
     while (SC_TokensLeft(s))
     {
         SC_CheckToken(s, TK_RawString);
