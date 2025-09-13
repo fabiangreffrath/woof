@@ -2386,11 +2386,7 @@ void M_Init(void)
         replace = M_StringReplace(string, "dos", platform);
 
 #if defined(_WIN32)
-#  if defined(WIN_LAUNCHER)
-        string = M_StringReplace(replace, "prompt", "console");
-#  else
         string = M_StringReplace(replace, "prompt", "desktop");
-#  endif
 #else
         if (isatty(STDOUT_FILENO))
         {

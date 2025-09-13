@@ -173,11 +173,7 @@ void I_SafeExit(int rc)
         }
     }
 
-#if defined(WIN_LAUNCHER)
-    ExitProcess(rc);
-#else
     exit(rc);
-#endif
 }
 
 //
