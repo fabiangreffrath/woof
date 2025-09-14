@@ -1355,7 +1355,8 @@ static void AddLineToSector(sector_t *s, line_t *l)
 
 void P_DegenMobjThinker(mobj_t *mobj)
 {
-  // no-op
+  (void)mobj;
+  I_Error("This function should never get called.");
 }
 
 int P_GroupLines (void)
