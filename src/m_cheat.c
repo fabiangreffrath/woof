@@ -850,6 +850,14 @@ static void cheat_spechits(void)
         case 208:
         case 209:
         case 210:
+        case 243:
+        case 244:
+        case 262:
+        case 263:
+        case 264:
+        case 265:
+        case 266:
+        case 267:
         case 268:
         case 269:
         {
