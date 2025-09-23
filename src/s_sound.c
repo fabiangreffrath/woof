@@ -599,6 +599,7 @@ void S_StartSoundCGun(const mobj_t *origin, int sfx_id)
 
 void S_StartSoundBFG(const mobj_t *origin, int sfx_id)
 {
+    S_sfx[sfx_id].singularity = (demo_version < DV_MBF) ? sg_oof : sg_none;
     StartSound(origin, sfx_id, PITCH_FULL, RumbleType(origin, RUMBLE_BFG));
 }
 
