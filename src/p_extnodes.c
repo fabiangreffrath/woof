@@ -42,7 +42,7 @@
 // [FG] support maps with NODES in DeePBSP format
 
 #if defined(_MSC_VER)
-#  pragma pack(push, 1)
+  #pragma pack(push, 1)
 #endif
 
 typedef PACKED_PREFIX struct
@@ -122,25 +122,17 @@ typedef PACKED_PREFIX struct
 } PACKED_SUFFIX mapnode_xgl3_t;
 
 #if defined(_MSC_VER)
-#  pragma pack(pop)
+  #pragma pack(pop)
 #endif
 
 // [FG] support maps with NODES in uncompressed XNOD/XGLN or compressed
 // ZNOD/ZGLN formats, or DeePBSP format
 
-const char * const node_format_names[] = {
-    [MFMT_DOOM] = "Doom",
-    [MFMT_DEEP] = "DeepBSP",
-    [MFMT_XNOD] = "XNOD",
-    [MFMT_ZNOD] = "ZNOD",
-    [MFMT_XGLN] = "XGLN",
-    [MFMT_ZGLN] = "ZGLN",
-    [MFMT_XGL2] = "XGL2",
-    [MFMT_ZGL2] = "ZGL2",
-    [MFMT_XGL3] = "XGL3",
-    [MFMT_ZGL3] = "ZGL3",
-    [MFMT_NANO] = "NanoBSP"
-};
+const char *const node_format_names[] = {
+    [MFMT_DOOM] = "Doom", [MFMT_DEEP] = "DeepBSP", [MFMT_XNOD] = "XNOD",
+    [MFMT_ZNOD] = "ZNOD", [MFMT_XGLN] = "XGLN",    [MFMT_ZGLN] = "ZGLN",
+    [MFMT_XGL2] = "XGL2", [MFMT_ZGL2] = "ZGL2",    [MFMT_XGL3] = "XGL3",
+    [MFMT_ZGL3] = "ZGL3", [MFMT_NANO] = "NanoBSP"};
 
 mapformat_t P_CheckMapFormat(int lumpnum)
 {
@@ -434,8 +426,9 @@ static void P_LoadSegs_XNOD(byte *data)
         // Andrey Budko: check for wrong indexes
         if ((unsigned)ldef->sidenum[side] >= (unsigned)numsides)
         {
-            I_Error("linedef %d for seg %d references a non-existent sidedef %d",
-                    linedef, i, (unsigned)ldef->sidenum[side]);
+            I_Error(
+                "linedef %d for seg %d references a non-existent sidedef %d",
+                linedef, i, (unsigned)ldef->sidenum[side]);
         }
 
         li->sidedef = &sides[ldef->sidenum[side]];
@@ -487,23 +480,23 @@ static void P_LoadSegs_XGL(byte *data, mapformat_t format)
 
             if (format == MFMT_XGLN || format == MFMT_ZGLN)
             {
-              v1 = LONG(mln->vertex);
-              // partner = LONG(mln->partner);
-              line = (unsigned short)SHORT(mln->linedef);
-              side = mln->side;
-              if (line == 0xffff)
-              {
-                  line = 0xffffffff;
-              }
-              mln++;
+                v1 = LONG(mln->vertex);
+                // partner = LONG(mln->partner);
+                line = (unsigned short)SHORT(mln->linedef);
+                side = mln->side;
+                if (line == 0xffff)
+                {
+                    line = 0xffffffff;
+                }
+                mln++;
             }
             else
             {
-              v1 = LONG(ml2->vertex);
-              // partner = LONG(ml2->partner);
-              line = (unsigned int)LONG(ml2->linedef);
-              side = ml2->side;
-              ml2++;
+                v1 = LONG(ml2->vertex);
+                // partner = LONG(ml2->partner);
+                line = (unsigned int)LONG(ml2->linedef);
+                side = ml2->side;
+                ml2++;
             }
 
             seg = &segs[subsectors[i].firstline + j];
@@ -533,8 +526,8 @@ static void P_LoadSegs_XGL(byte *data, mapformat_t format)
 
                 if (side != 0 && side != 1)
                 {
-                    I_Error("seg %d, %d references a non-existent side %d",
-                            i, j, (unsigned int)side);
+                    I_Error("seg %d, %d references a non-existent side %d", i,
+                            j, (unsigned int)side);
                 }
 
                 if ((unsigned)ldef->sidenum[side] >= (unsigned)numsides)
@@ -614,16 +607,13 @@ void P_LoadNodes_ZDoom(int lump, mapformat_t format)
     unsigned int numNodes;
     vertex_t *newvertarray = NULL;
 
-    lump = (format >= MFMT_XGLN)
-         ? lump + ML_SSECTORS
-         : lump + ML_NODES;
+    lump = (format >= MFMT_XGLN) ? lump + ML_SSECTORS : lump + ML_NODES;
 
     data = W_CacheLumpNum(lump, PU_LEVEL);
 
     // 0. Uncompress nodes lump (or simply skip header)
-    boolean compressed = format == MFMT_ZNOD || format == MFMT_ZGLN ||
-                         format == MFMT_ZGL2 || format == MFMT_ZGL3;
-
+    boolean compressed = format == MFMT_ZNOD || format == MFMT_ZGLN
+                         || format == MFMT_ZGL2 || format == MFMT_ZGL3;
 
     if (compressed)
     {
@@ -778,8 +768,8 @@ void P_LoadNodes_ZDoom(int lump, mapformat_t format)
         P_LoadSegs_XGL(data, format);
         data += numsegs * sizeof(mapseg_xgln_t);
     }
-    else if (format == MFMT_XGL2 || format == MFMT_ZGL2 ||
-             format == MFMT_XGL3 || format == MFMT_ZGL3)
+    else if (format == MFMT_XGL2 || format == MFMT_ZGL2 || format == MFMT_XGL3
+             || format == MFMT_ZGL3)
     {
         P_LoadSegs_XGL(data, format);
         data += numsegs * sizeof(mapseg_xgl2_t);
@@ -830,7 +820,6 @@ void P_LoadNodes_ZDoom(int lump, mapformat_t format)
                 }
             }
         }
-
     }
 
     if (compressed && output)

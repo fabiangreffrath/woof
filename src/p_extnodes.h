@@ -39,7 +39,7 @@ typedef enum
     MFMT_NANO,
 } mapformat_t;
 
-extern const char * const node_format_names[];
+extern const char *const node_format_names[];
 
 extern mapformat_t P_CheckMapFormat(int lumpnum);
 extern int P_GetOffset(struct vertex_s *v1, struct vertex_s *v2);
