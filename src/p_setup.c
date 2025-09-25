@@ -1744,18 +1744,14 @@ void P_SetupLevel(int episode, int map, int playermask, skill_t skill)
   P_LoadLineDefs2 (lumpnum+ML_LINEDEFS);             // killough 4/4/98
   gen_blockmap = P_LoadBlockMap  (lumpnum+ML_BLOCKMAP);             // killough 3/1/98
   // [FG] build nodes with NanoBSP
-  if (mapformat >= MFMT_UNSUPPORTED)
+  if (mapformat == MFMT_NANO)
   {
     BSP_BuildNodes();
   }
-  // [FG] support maps with NODES in uncompressed XNOD/XGLN or compressed ZNOD/ZGLN formats, or DeePBSP format
-  else if (mapformat == MFMT_XGLN || mapformat == MFMT_ZGLN)
+  // support all ZDoom extended node formats
+  else if (mapformat >= MFMT_XNOD)
   {
-    P_LoadNodes_XNOD (lumpnum+ML_SSECTORS, mapformat == MFMT_ZGLN, true);
-  }
-  else if (mapformat == MFMT_XNOD || mapformat == MFMT_ZNOD)
-  {
-    P_LoadNodes_XNOD (lumpnum+ML_NODES, mapformat == MFMT_ZNOD, false);
+    P_LoadNodes_ZDoom(lumpnum, mapformat);
   }
   else if (mapformat == MFMT_DEEP)
   {
@@ -1773,7 +1769,7 @@ void P_SetupLevel(int episode, int map, int playermask, skill_t skill)
   // [FG] pad the REJECT table when the lump is too small
   pad_reject = P_LoadReject (lumpnum+ML_REJECT, P_GroupLines());
 
-  if (mapformat != MFMT_UNSUPPORTED)
+  if (mapformat != MFMT_NANO)
     P_RemoveSlimeTrails();    // killough 10/98: remove slime trails from wad
 
   // [crispy] fix long wall wobble
@@ -1824,13 +1820,7 @@ void P_SetupLevel(int episode, int map, int playermask, skill_t skill)
   I_Printf(VB_DEMO, "P_SetupLevel: %.8s (%s), Skill %d, %s%s%s, %s",
     lumpname, W_WadNameForLump(lumpnum),
     gameskill + 1,
-    mapformat >= MFMT_UNSUPPORTED ? "NanoBSP" :
-    mapformat == MFMT_XNOD ? "XNOD" :
-    mapformat == MFMT_ZNOD ? "ZNOD" :
-    mapformat == MFMT_XGLN ? "XGLN" :
-    mapformat == MFMT_ZGLN ? "ZGLN" :
-    mapformat == MFMT_DEEP ? "DeepBSP" :
-    "Doom",
+    node_format_names[mapformat],
     gen_blockmap ? "+Blockmap" : "",
     pad_reject ? "+Reject" : "",
     G_GetCurrentComplevelName());
