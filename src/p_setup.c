@@ -1744,7 +1744,7 @@ void P_SetupLevel(int episode, int map, int playermask, skill_t skill)
   P_LoadLineDefs2 (lumpnum+ML_LINEDEFS);             // killough 4/4/98
   gen_blockmap = P_LoadBlockMap  (lumpnum+ML_BLOCKMAP);             // killough 3/1/98
   // [FG] build nodes with NanoBSP
-  if (mapformat >= MFMT_NANO)
+  if (mapformat == MFMT_NANO)
   {
     BSP_BuildNodes();
   }

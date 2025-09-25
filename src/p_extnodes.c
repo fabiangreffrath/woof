@@ -216,7 +216,7 @@ mapformat_t P_CheckMapFormat(int lumpnum)
         lump_data = NULL;
     }
 
-    if (format == MFMT_DOOM || format >= MFMT_NANO)
+    if (format == MFMT_DOOM || format == MFMT_NANO)
     {
         size_nodes = W_LumpLengthWithName(lumpnum + ML_NODES, "NODES");
 
