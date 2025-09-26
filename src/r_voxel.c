@@ -683,14 +683,7 @@ boolean VX_ProjectVoxel(mobj_t *thing, int lightlevel_override)
 	vis->x1 = x1;
 	vis->x2 = x2;
 
-	if (thing->subsector->sector->floorlightsec >= 0)
-	{
-		vis->tint = sectors[thing->subsector->sector->floorlightsec].tint;
-	}
-	else
-	{
-		vis->tint = thing->subsector->sector->tint;
-	}
+	vis->tint = thing->subsector->sector->tint;
 
 	// get light level...
 	lighttable_t *thiscolormap = vis->tint ? colormaps[vis->tint] : fullcolormap;
@@ -711,9 +704,15 @@ boolean VX_ProjectVoxel(mobj_t *thing, int lightlevel_override)
 	{
 		// diminished light
 		const int index = R_GetLightIndex(xscale);
-		int lightnum = (demo_version >= DV_MBF)
-				? (lightlevel_override >> LIGHTSEGSHIFT)
-				: (thing->subsector->sector->lightlevel >> LIGHTSEGSHIFT);
+
+		// Use sector's true light level
+		int lightnum = thing->subsector->sector->lightlevel;
+
+		if (comp[comp_thingsectorlight])
+		{
+			// Use MBF-style average light level
+			lightnum = lightlevel_override;
+		}
 
 		lightnum = CLAMP(lightnum, 0, LIGHTLEVELS - 1);
 		int* spritelightoffsets = &scalelightoffset[MAXLIGHTSCALE * lightnum];
