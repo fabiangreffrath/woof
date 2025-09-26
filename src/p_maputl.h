@@ -63,8 +63,8 @@ void    P_MakeDivline(struct line_s *li, divline_t *dl);
 fixed_t P_InterceptVector(divline_t *v2, divline_t *v1);
 int     P_BoxOnLineSide(fixed_t *tmbox, struct line_s *ld);
 void    P_LineOpening(struct line_s *linedef);
-void    P_UnsetThingPosition(struct mobj_s *thing);
-void    P_SetThingPosition(struct mobj_s *thing);
+extern void (*P_UnsetThingPosition)(struct mobj_s *thing);
+extern void (*P_SetThingPosition)(struct mobj_s *thing);
 boolean P_BlockLinesIterator (int x, int y, boolean func(struct line_s *));
 boolean P_BlockThingsIterator(int x, int y, boolean func(struct mobj_s *),
                               boolean do_blockmapfix);
@@ -78,6 +78,7 @@ struct mobj_s *P_RoughTargetSearch(struct mobj_s *mo, angle_t fov, int distance)
 boolean P_SightPathTraverse(fixed_t x1, fixed_t y1, fixed_t x2, fixed_t y2);
 boolean PTR_SightTraverse(intercept_t *in);
 boolean P_CheckSight_12(struct mobj_s *t1, struct mobj_s *t2);
+void P_SetThingPosition_SetFuncs (void);
 
 extern intercept_t *intercepts;
 extern int num_intercepts;
