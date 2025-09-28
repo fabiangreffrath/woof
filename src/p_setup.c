@@ -1747,8 +1747,8 @@ void P_SetupLevel(int episode, int map, int playermask, skill_t skill)
   int   i;
   char  lumpname[9];
   int   lumpnum;
-  nodeformat_t nodeformat;
-  boolean gen_blockmap, pad_reject;
+  nodeformat_t nodeformat = NFMT_NANO;
+  boolean gen_blockmap = false, pad_reject = false;
 
   totalkills = totalitems = totalsecret = wminfo.maxfrags = 0;
   max_kill_requirement = 0;
