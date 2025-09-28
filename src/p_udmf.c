@@ -38,8 +38,98 @@
 #include "w_wad.h"
 
 //
-// UDMF
+// Universal Doom Map Format (UDMF) support
 //
+
+typedef enum
+{
+    UDMF_LABEL,
+    UDMF_TEXTMAP,
+    UDMF_ZNODES,
+    UDMF_BLOCKMAP,
+    UDMF_REJECT,
+    UDMF_BEHAVIOR, // known of, but not supported
+    UDMF_DIALOGUE, //
+    UDMF_LIGHTMAP, //
+    UDMF_ENDMAP,
+} UDMF_Lumps_t;
+
+typedef enum
+{
+    UDMF_BASE = (0),
+
+    // Base games
+    UDMF_DOOM = (1 << 0),
+    UDMF_HERETIC = (1 << 1),
+    UDMF_HEXEN = (1 << 2),
+    UDMF_STRIFE = (1 << 3),
+
+    // Doom extensions
+    UDMF_BOOM = (1 << 4),
+    UDMF_MBF = (1 << 5),
+    UDMF_MBF21 = (1 << 6),
+    UDMF_ID24 = (1 << 7),
+
+    // Port exclusivity
+    UDMF_WOOF = (1 << 31),
+} UDMF_Features_t;
+
+typedef struct
+{
+    // Base spec
+    int id;
+    int type;
+    double x;
+    double y;
+    double height;
+    int angle;
+    int options;
+} UDMF_Thing_t;
+
+typedef struct
+{
+    // Base spec
+    double x;
+    double y;
+} UDMF_Vertex_t;
+
+typedef struct
+{
+    // Base spec
+    int id;
+    int v1_id;
+    int v2_id;
+    int special;
+    int sidefront;
+    int sideback;
+    int flags;
+
+    // Woof!
+    char tranmap[9];
+} UDMF_Linedef_t;
+
+typedef struct
+{
+    // Base spec
+    int sector_id;
+    char texturetop[9];
+    char texturemiddle[9];
+    char texturebottom[9];
+    int offsetx;
+    int offsety;
+} UDMF_Sidedef_t;
+
+typedef struct
+{
+    // Base spec
+    int tag;
+    int heightfloor;
+    int heightceiling;
+    char texturefloor[9];
+    char textureceiling[9];
+    int lightlevel;
+    int special;
+} UDMF_Sector_t;
 
 static char *const UDMF_Lumps[] = {
     [UDMF_LABEL] = "-",           [UDMF_TEXTMAP] = "TEXTMAP",
