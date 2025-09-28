@@ -22,7 +22,6 @@
 #include <math.h>
 #include <stdlib.h>
 #include <string.h>
-#include <strings.h>
 
 #include "d_think.h"
 #include "doomdata.h"
