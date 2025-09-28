@@ -98,8 +98,8 @@ typedef struct
     char texturetop[9];
     char texturemiddle[9];
     char texturebottom[9];
-    double offsetx;
-    double offsety;
+    int offsetx;
+    int offsety;
 } UDMF_Sidedef_t;
 
 typedef struct

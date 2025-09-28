@@ -328,11 +328,11 @@ static void UDMF_ParseSidedef(scanner_t *s)
         const char *prop = SC_GetString(s);
         if (BASE_PROP(offsetx))
         {
-            UDMF_ScanDouble(s, side.offsetx);
+            UDMF_ScanInt(s, side.offsetx);
         }
         else if (BASE_PROP(offsety))
         {
-            UDMF_ScanDouble(s, side.offsety);
+            UDMF_ScanInt(s, side.offsety);
         }
         else if (BASE_PROP(sector))
         {
@@ -614,8 +614,8 @@ static void UDMF_LoadSideDefs(void)
     for (int i = 0; i < numsides; i++)
     {
         sides[i].sector = &sectors[udmf_sidedefs[i].sector_id];
-        sides[i].textureoffset = DoubleToFixed(udmf_sidedefs[i].offsetx);
-        sides[i].rowoffset = DoubleToFixed(udmf_sidedefs[i].offsety);
+        sides[i].textureoffset = udmf_sidedefs[i].offsetx;
+        sides[i].rowoffset = udmf_sidedefs[i].offsety;
 
         // [crispy] smooth texture scrolling
         sides[i].oldtextureoffset = sides[i].interptextureoffset =
