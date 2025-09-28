@@ -110,21 +110,21 @@ typedef struct {
 
 typedef enum linedef_flags_e
 {
-  ML_BLOCKING          = (1 << 0),  // Solid, is an obstacle.
-  ML_BLOCKMONSTERS     = (1 << 1),  // Blocks monsters only.
-  ML_TWOSIDED          = (1 << 2),  // Backside will not be drawn if not two sided.
-  ML_DONTPEGTOP        = (1 << 3),  // upper texture unpegged
-  ML_DONTPEGBOTTOM     = (1 << 4),  // lower texture unpegged
-  ML_SECRET            = (1 << 5),  // In AutoMap: don't map as two sided: IT'S A SECRET!
-  ML_SOUNDBLOCK        = (1 << 6),  // Sound rendering: don't let sound cross two of these.
-  ML_DONTDRAW          = (1 << 7),  // Don't draw on the automap at all.
-  ML_MAPPED            = (1 << 8),  // Set if already seen, thus drawn in automap.
-  ML_PASSUSE           = (1 << 9),  // jff 3/21/98 Set if line absorbs use by player
-                                    // allow multiple push/switch triggers to be used on one push
-  ML_3DMIDTEX          = (1 << 10), // SoM 9/02/02: 3D Middletexture flag!
-  ML_RESERVED          = (1 << 11),
-  ML_BLOCKLANDMONSTERS = (1 << 12), // mbf21
-  ML_BLOCKPLAYERS      = (1 << 13), // mbf21
+  ML_BLOCKING          = (1u << 0),  // Solid, is an obstacle.
+  ML_BLOCKMONSTERS     = (1u << 1),  // Blocks monsters only.
+  ML_TWOSIDED          = (1u << 2),  // Backside will not be drawn if not two sided.
+  ML_DONTPEGTOP        = (1u << 3),  // upper texture unpegged
+  ML_DONTPEGBOTTOM     = (1u << 4),  // lower texture unpegged
+  ML_SECRET            = (1u << 5),  // In AutoMap: don't map as two sided: IT'S A SECRET!
+  ML_SOUNDBLOCK        = (1u << 6),  // Sound rendering: don't let sound cross two of these.
+  ML_DONTDRAW          = (1u << 7),  // Don't draw on the automap at all.
+  ML_MAPPED            = (1u << 8),  // Set if already seen, thus drawn in automap.
+  ML_PASSUSE           = (1u << 9),  // jff 3/21/98 Set if line absorbs use by player
+                                     // allow multiple push/switch triggers to be used on one push
+  ML_3DMIDTEX          = (1u << 10), // SoM 9/02/02: 3D Middletexture flag!
+  ML_RESERVED          = (1u << 11),
+  ML_BLOCKLANDMONSTERS = (1u << 12), // mbf21
+  ML_BLOCKPLAYERS      = (1u << 13), // mbf21
 } linedef_flags_t;
 
 // Sector definition, from editing.
