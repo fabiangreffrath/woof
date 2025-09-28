@@ -102,19 +102,26 @@ typedef enum {
 //
 // These are Thing flags
 
-// Skill flags.
-#define MTF_EASY                1
-#define MTF_NORMAL              2
-#define MTF_HARD                4
-// Deaf monsters/do not react to sound.
-#define MTF_AMBUSH              8
+typedef enum mapthing_options_e {
+  // Doom-format
+  MTF_EASY      = (1 << 0), // Skill flags.
+  MTF_NORMAL    = (1 << 1),
+  MTF_HARD      = (1 << 2),
+  MTF_AMBUSH    = (1 << 3), // Deaf monsters/do not react to sound.
+  MTF_NOTSINGLE = (1 << 4), // killough 11/98
+  MTF_NOTDM     = (1 << 5),
+  MTF_NOTCOOP   = (1 << 6),
+  MTF_FRIEND    = (1 << 7),
+  MTF_RESERVED  = (1 << 8),
+  // Bits 8-15 are reserved for the future
 
-// killough 11/98
-#define MTF_NOTSINGLE          16
-#define MTF_NOTDM              32
-#define MTF_NOTCOOP            64
-#define MTF_FRIEND            128
-#define MTF_RESERVED          256
+  // UDMF
+  MTF_SKILL1 = (1 << 15),
+  MTF_SKILL2 = (1 << 16),
+  MTF_SKILL3 = (1 << 17),
+  MTF_SKILL4 = (1 << 18),
+  MTF_SKILL5 = (1 << 19),
+} mapthing_options_t;
 
 typedef enum {
   sk_default=-2,

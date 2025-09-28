@@ -45,6 +45,10 @@ struct sector_s *GetSectorAtNullAddress(void);
 void P_DegenMobjThinker(struct mobj_s *mobj);
 void P_SegLengths(boolean contrast_only);
 
+void P_CreateBlockMap(void);
+void P_SetSkipBlockStart(void);
+int P_GroupLines (void);
+
 #endif
 
 //----------------------------------------------------------------------------

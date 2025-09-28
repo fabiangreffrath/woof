@@ -23,6 +23,7 @@
 #include <string.h>
 
 #include "doomdata.h"
+#include "doomtype.h"
 #include "i_printf.h"
 #include "i_system.h"
 #include "m_argv.h"
@@ -30,6 +31,7 @@
 #include "m_swap.h"
 #include "p_extnodes.h"
 #include "p_setup.h"
+#include "p_udmf.h"
 #include "r_defs.h"
 #include "r_main.h"
 #include "r_state.h"
@@ -125,26 +127,47 @@ typedef PACKED_PREFIX struct
   #pragma pack(pop)
 #endif
 
-// [FG] support maps with NODES in uncompressed XNOD/XGLN or compressed
-// ZNOD/ZGLN formats, or DeePBSP format
-
 const char *const node_format_names[] = {
-    [MFMT_DOOM] = "Doom", [MFMT_DEEP] = "DeepBSP", [MFMT_XNOD] = "XNOD",
-    [MFMT_ZNOD] = "ZNOD", [MFMT_XGLN] = "XGLN",    [MFMT_ZGLN] = "ZGLN",
-    [MFMT_XGL2] = "XGL2", [MFMT_ZGL2] = "ZGL2",    [MFMT_XGL3] = "XGL3",
-    [MFMT_ZGL3] = "ZGL3", [MFMT_NANO] = "NanoBSP"};
+    [NFMT_DOOM] = "Doom", [NFMT_DEEP] = "DeepBSP", [NFMT_XNOD] = "XNOD",
+    [NFMT_ZNOD] = "ZNOD", [NFMT_XGLN] = "XGLN",    [NFMT_ZGLN] = "ZGLN",
+    [NFMT_XGL2] = "XGL2", [NFMT_ZGL2] = "ZGL2",    [NFMT_XGL3] = "XGL3",
+    [NFMT_ZGL3] = "ZGL3", [NFMT_NANO] = "NanoBSP"};
 
 mapformat_t P_CheckMapFormat(int lumpnum)
 {
-    mapformat_t format = MFMT_DOOM;
+    mapformat_t format = MFMT_Invalid;
+
+    if (W_LumpExistsWithName(lumpnum + ML_THINGS, "THINGS")
+        && W_LumpExistsWithName(lumpnum + ML_LINEDEFS, "LINEDEFS")
+        && W_LumpExistsWithName(lumpnum + ML_SIDEDEFS, "SIDEDEFS")
+        && W_LumpExistsWithName(lumpnum + ML_VERTEXES, "VERTEXES")
+        && W_LumpExistsWithName(lumpnum + ML_SECTORS, "SECTORS"))
+    {
+        format = MFMT_Doom;
+    }
+
+    if (format == MFMT_Doom
+        && W_LumpExistsWithName(lumpnum + ML_BEHAVIOR, "BEHAVIOR"))
+    {
+        format = MFMT_Hexen;
+    }
+
+    if (W_LumpExistsWithName(lumpnum + UDMF_TEXTMAP, "TEXTMAP"))
+    {
+        format = MFMT_UDMF;
+    }
+
+    return format;
+}
+
+// [FG] support maps with NODES in uncompressed XNOD/XGLN or compressed
+// ZNOD/ZGLN formats, or DeePBSP format
+
+nodeformat_t P_CheckDoomNodeFormat(int lumpnum)
+{
+    nodeformat_t format = NFMT_DOOM;
     byte *lump_data = NULL;
     int size_subs = 0, size_nodes = 0;
-
-    if (W_LumpExistsWithName(lumpnum + ML_BLOCKMAP + 1, "BEHAVIOR"))
-    {
-        I_Error("Hexen map format not supported in %s.\n",
-                lumpinfo[lumpnum].name);
-    }
 
     //!
     // @category mod
@@ -154,7 +177,7 @@ mapformat_t P_CheckMapFormat(int lumpnum)
 
     if (M_CheckParm("-bsp"))
     {
-        return MFMT_NANO;
+        return NFMT_NANO;
     }
 
     //!
@@ -173,32 +196,32 @@ mapformat_t P_CheckMapFormat(int lumpnum)
 
             if (!memcmp(lump_data, "XGLN", 4))
             {
-                format = MFMT_XGLN;
+                format = NFMT_XGLN;
             }
             else if (!memcmp(lump_data, "ZGLN", 4))
             {
-                format = MFMT_ZGLN;
+                format = NFMT_ZGLN;
             }
             else if (!memcmp(lump_data, "XGL2", 4))
             {
-                format = MFMT_XGL2;
+                format = NFMT_XGL2;
             }
             else if (!memcmp(lump_data, "ZGL2", 4))
             {
-                format = MFMT_ZGL2;
+                format = NFMT_ZGL2;
             }
             else if (!memcmp(lump_data, "XGL3", 4))
             {
-                format = MFMT_XGL3;
+                format = NFMT_XGL3;
             }
             else if (!memcmp(lump_data, "ZGL3", 4))
             {
-                format = MFMT_ZGL3;
+                format = NFMT_ZGL3;
             }
         }
         else
         {
-            format = MFMT_NANO;
+            format = NFMT_NANO;
         }
     }
 
@@ -208,7 +231,7 @@ mapformat_t P_CheckMapFormat(int lumpnum)
         lump_data = NULL;
     }
 
-    if (format == MFMT_DOOM || format == MFMT_NANO)
+    if (format == NFMT_DOOM || format == NFMT_NANO)
     {
         size_nodes = W_LumpLengthWithName(lumpnum + ML_NODES, "NODES");
 
@@ -218,27 +241,27 @@ mapformat_t P_CheckMapFormat(int lumpnum)
 
             if (!memcmp(lump_data, "xNd4\0\0\0\0", 8))
             {
-                format = MFMT_DEEP;
+                format = NFMT_DEEP;
             }
             else if (!memcmp(lump_data, "XNOD", 4))
             {
-                format = MFMT_XNOD;
+                format = NFMT_XNOD;
             }
             else if (!memcmp(lump_data, "ZNOD", 4))
             {
-                format = MFMT_ZNOD;
+                format = NFMT_ZNOD;
             }
         }
         else
         {
-            format = MFMT_NANO;
+            format = NFMT_NANO;
         }
     }
 
     // [FG] no nodes for exactly one subsector
     if (size_subs == sizeof(mapsubsector_t) && size_nodes == 0)
     {
-        format = MFMT_DOOM;
+        format = NFMT_DOOM;
     }
 
     if (lump_data)
@@ -247,6 +270,42 @@ mapformat_t P_CheckMapFormat(int lumpnum)
         lump_data = NULL;
     }
 
+    return format;
+}
+
+nodeformat_t P_CheckUDMFNodeFormat(int lumpnum)
+{
+    nodeformat_t format = NFMT_NANO;
+
+    if(W_LumpExistsWithName(lumpnum, "ZNODES"))
+    {
+      byte *lump_data = W_CacheLumpNum(lumpnum, PU_STATIC);
+      if (!memcmp(lump_data, "XGLN", 4))
+      {
+          format = NFMT_XGLN;
+      }
+      else if (!memcmp(lump_data, "ZGLN", 4))
+      {
+          format = NFMT_ZGLN;
+      }
+      else if (!memcmp(lump_data, "XGL2", 4))
+      {
+          format = NFMT_XGL2;
+      }
+      else if (!memcmp(lump_data, "ZGL2", 4))
+      {
+          format = NFMT_ZGL2;
+      }
+      else if (!memcmp(lump_data, "XGL3", 4))
+      {
+          format = NFMT_XGL3;
+      }
+      else if (!memcmp(lump_data, "ZGL3", 4))
+      {
+          format = NFMT_ZGL3;
+      }
+      Z_Free(lump_data);
+    }
     return format;
 }
 
@@ -462,7 +521,7 @@ static void P_LoadSegs_XNOD(byte *data)
 
 // adapted from dsda-doom/prboom2/src/p_setup.c:P_LoadGLZSegs()
 
-static void P_LoadSegs_XGL(byte *data, mapformat_t format)
+static void P_LoadSegs_XGL(byte *data, nodeformat_t format)
 {
     int i, j;
     const mapseg_xgln_t *mln = (const mapseg_xgln_t *)data;
@@ -478,7 +537,7 @@ static void P_LoadSegs_XGL(byte *data, mapformat_t format)
             unsigned char side;
             seg_t *seg;
 
-            if (format == MFMT_XGLN || format == MFMT_ZGLN)
+            if (format == NFMT_XGLN || format == NFMT_ZGLN)
             {
                 v1 = LONG(mln->vertex);
                 // partner = LONG(mln->partner);
@@ -595,7 +654,7 @@ static void P_LoadSegs_XGL(byte *data, mapformat_t format)
     }
 }
 
-void P_LoadNodes_ZDoom(int lump, mapformat_t format)
+void P_LoadNodes_ZDoom(int lump, nodeformat_t format)
 {
     byte *data;
     unsigned int i;
@@ -607,13 +666,12 @@ void P_LoadNodes_ZDoom(int lump, mapformat_t format)
     unsigned int numNodes;
     vertex_t *newvertarray = NULL;
 
-    lump = (format >= MFMT_XGLN) ? lump + ML_SSECTORS : lump + ML_NODES;
-
     data = W_CacheLumpNum(lump, PU_LEVEL);
 
     // 0. Uncompress nodes lump (or simply skip header)
-    boolean compressed = format == MFMT_ZNOD || format == MFMT_ZGLN
-                         || format == MFMT_ZGL2 || format == MFMT_ZGL3;
+    boolean compressed = format == NFMT_ZNOD || format == NFMT_ZGLN
+                         || format == NFMT_ZGL2 || format == NFMT_ZGL3;
+
 
     if (compressed)
     {
@@ -758,18 +816,18 @@ void P_LoadNodes_ZDoom(int lump, mapformat_t format)
     numsegs = numSegs;
     segs = Z_Malloc(numsegs * sizeof(seg_t), PU_LEVEL, 0);
 
-    if (format == MFMT_XNOD || format == MFMT_ZNOD)
+    if (format == NFMT_XNOD || format == NFMT_ZNOD)
     {
         P_LoadSegs_XNOD(data);
         data += numsegs * sizeof(mapseg_xnod_t);
     }
-    else if (format == MFMT_XGLN || format == MFMT_ZGLN)
+    else if (format == NFMT_XGLN || format == NFMT_ZGLN)
     {
         P_LoadSegs_XGL(data, format);
         data += numsegs * sizeof(mapseg_xgln_t);
     }
-    else if (format == MFMT_XGL2 || format == MFMT_ZGL2 || format == MFMT_XGL3
-             || format == MFMT_ZGL3)
+    else if (format == NFMT_XGL2 || format == NFMT_ZGL2 || format == NFMT_XGL3
+             || format == NFMT_ZGL3)
     {
         P_LoadSegs_XGL(data, format);
         data += numsegs * sizeof(mapseg_xgl2_t);
@@ -788,7 +846,7 @@ void P_LoadNodes_ZDoom(int lump, mapformat_t format)
         int j, k;
         node_t *no = nodes + i;
 
-        if (format == MFMT_XGL3 || format == MFMT_ZGL3)
+        if (format == NFMT_XGL3 || format == NFMT_ZGL3)
         {
             const mapnode_xgl3_t *mn3 = (const mapnode_xgl3_t *)data + i;
             no->x = LONG(mn3->x);
