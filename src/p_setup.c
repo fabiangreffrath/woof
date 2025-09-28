@@ -1792,7 +1792,7 @@ void P_SetupLevel(int episode, int map, int playermask, skill_t skill)
   lumpnum = W_GetNumForName(lumpname);
 
   mapformat = P_CheckMapFormat(lumpnum);
-  G_ApplyLevelCompatibility(lumpnum, mapformat);
+  G_ApplyLevelCompatibility(lumpnum);
 
   leveltime = 0;
   oldleveltime = 0;
