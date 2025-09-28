@@ -1281,27 +1281,13 @@ void P_SpawnMapThing (mapthing_t* mthing)
     return;
 
   // killough 11/98: simplify
-  if (gameskill == sk_none && demo_compatibility)
-  {
-    return;
-  }
-  else if (!(mthing->options & MTF_SKILL1) && gameskill == sk_baby)
-  {
-    return;
-  }
-  else if (!(mthing->options & MTF_SKILL2) && gameskill == sk_easy)
-  {
-    return;
-  }
-  else if (!(mthing->options & MTF_SKILL3) && gameskill == sk_medium)
-  {
-    return;
-  }
-  else if (!(mthing->options & MTF_SKILL4) && gameskill == sk_hard)
-  {
-    return;
-  }
-  else if (!(mthing->options & MTF_SKILL5) && gameskill == sk_nightmare)
+  if ((gameskill == sk_none && demo_compatibility)
+      || (!(mthing->options & MTF_SKILL1) && gameskill == sk_baby)
+      || (!(mthing->options & MTF_SKILL2) && gameskill == sk_easy)
+      || (!(mthing->options & MTF_SKILL3) && gameskill == sk_medium)
+      || (!(mthing->options & MTF_SKILL4) && gameskill == sk_hard)
+      || (!(mthing->options & MTF_SKILL5) && gameskill == sk_nightmare)
+    )
   {
     return;
   }
