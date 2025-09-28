@@ -1360,7 +1360,6 @@ spawnit:
   if (mobj->tics > 0)
     mobj->tics = 1 + (P_Random (pr_spawnthing) % mobj->tics);
 
-
   if (!(mobj->flags & MF_FRIEND) &&
       mthing->options & MTF_FRIEND && 
       demo_version >= DV_MBF)
@@ -1389,7 +1388,6 @@ spawnit:
   mobj->angle = (angle_t)ANG45 * (mthing->angle/45);
   if (mthing->options & MTF_AMBUSH)
     mobj->flags |= MF_AMBUSH;
-
 
   // [crispy] support MUSINFO lump (dynamic music changing)
   if (i == MT_MUSICSOURCE)
