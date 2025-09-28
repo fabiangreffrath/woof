@@ -43,19 +43,6 @@
 
 typedef enum
 {
-    UDMF_LABEL,
-    UDMF_TEXTMAP,
-    UDMF_ZNODES,
-    UDMF_BLOCKMAP,
-    UDMF_REJECT,
-    UDMF_BEHAVIOR, // known of, but not supported
-    UDMF_DIALOGUE, //
-    UDMF_LIGHTMAP, //
-    UDMF_ENDMAP,
-} UDMF_Lumps_t;
-
-typedef enum
-{
     UDMF_BASE = (0),
 
     // Base games
