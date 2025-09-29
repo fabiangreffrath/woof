@@ -52,6 +52,7 @@ static const char* const token_names[] =
 typedef struct
 {
     char *string;
+    int length;
     int number;
     double decimal;
     char token;
@@ -170,16 +171,26 @@ static void CheckForWhitespace(scanner_t *s)
     }
 }
 
+static void CopyString(parserstate_t *state, const char *string, int length)
+{
+    if (state->length < length)
+    {
+        if (state->string)
+        {
+            free(state->string);
+        }
+        state->string = malloc(length + 1);
+        state->length = length;
+    }
+    memcpy(state->string, string, length);
+    state->string[length] = '\0';
+}
+
 static void CopyState(parserstate_t *to, const parserstate_t *from)
 {
-    if (to->string)
+    if (from->length)
     {
-        free(to->string);
-        to->string = NULL;
-    }
-    if (from->string)
-    {
-        to->string = M_StringDuplicate(from->string);
+        CopyString(to, from->string, from->length);
     }
     to->number = from->number;
     to->decimal = from->decimal;
@@ -478,15 +489,7 @@ boolean SC_GetNextToken(scanner_t *s, boolean expandstate)
     s->nextstate.scanpos = s->scanpos;
     if (end - start > 0 || string_finished)
     {
-        if (s->nextstate.string)
-        {
-            free(s->nextstate.string);
-        }
-        int length = end - start;
-        s->nextstate.string = malloc(length + 1);
-        memcpy(s->nextstate.string, s->data + start, length);
-        s->nextstate.string[length] = '\0';
-
+        CopyString(&s->nextstate, s->data + start, end - start);
         if (s->nextstate.token == TK_FloatConst)
         {
             if (float_has_decimal && strlen(s->nextstate.string) == 1)
@@ -570,13 +573,7 @@ static boolean SC_GetNextTokenRawString(scanner_t *s)
     if (length > 0)
     {
         s->nextstate.token = TK_RawString;
-        if (s->nextstate.string)
-        {
-            free(s->nextstate.string);
-        }
-        s->nextstate.string = malloc(length + 1);
-        memcpy(s->nextstate.string, s->data + start, length);
-        s->nextstate.string[length] = '\0';
+        CopyString(&s->nextstate, s->data + start, length);
         return true;
     }
 
