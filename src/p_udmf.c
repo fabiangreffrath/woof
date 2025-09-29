@@ -334,6 +334,26 @@ static void UDMF_ParseLinedef(scanner_t *s)
         {
             line.id = UDMF_ScanInt(s);
         }
+        else if (BASE_PROP(arg0))
+        {
+            line.args[0] = UDMF_ScanInt(s);
+        }
+        else if (BASE_PROP(arg1))
+        {
+            line.args[1] = UDMF_ScanInt(s);
+        }
+        else if (BASE_PROP(arg2))
+        {
+            line.args[2] = UDMF_ScanInt(s);
+        }
+        else if (BASE_PROP(arg3))
+        {
+            line.args[3] = UDMF_ScanInt(s);
+        }
+        else if (BASE_PROP(arg4))
+        {
+            line.args[4] = UDMF_ScanInt(s);
+        }
         else if (BASE_PROP(sidefront))
         {
             line.sidefront = UDMF_ScanInt(s);

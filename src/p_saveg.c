@@ -2210,6 +2210,12 @@ void P_ArchiveWorld (void)
       saveg_write32(li->fronttint);
       saveg_write32(li->backtint);
 
+      saveg_write32(li->args[0]);
+      saveg_write32(li->args[1]);
+      saveg_write32(li->args[2]);
+      saveg_write32(li->args[3]);
+      saveg_write32(li->args[4]);
+
       for (j=0; j<2; j++)
         if (li->sidenum[j] != NO_INDEX)
           {
@@ -2302,6 +2308,12 @@ void P_UnArchiveWorld (void)
 
       if (saveg_compat > saveg_woof1500)
       {
+        li->args[0] = saveg_read32();
+        li->args[1] = saveg_read32();
+        li->args[2] = saveg_read32();
+        li->args[3] = saveg_read32();
+        li->args[4] = saveg_read32();
+
         li->angle = saveg_read32();
         li->frontmusic = saveg_read32();
         li->backmusic = saveg_read32();

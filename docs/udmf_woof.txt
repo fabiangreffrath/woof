@@ -79,6 +79,8 @@ All boolean fields take the keyword values true and false.
 
   linedef
   {
+    id = <integer>; // ID of line.
+
     v1 = <integer>; // Index of first vertex. No valid default.
     v2 = <integer>; // Index of second vertex. No valid default.
 
@@ -101,7 +103,7 @@ All boolean fields take the keyword values true and false.
     blockplayer      = <bool>; // true = line blocks players.
 
     special = <integer>; // Special. Default = 0.
-    tag     = <integer>; // Target id. Default = 0.
+    arg0    = <integer>; // Special action's target id. Default = 0.
 
     sidefront = <integer>; // Sidedef 1 index. No valid default.
     sideback  = <integer>; // Sidedef 2 index. Default = -1.
