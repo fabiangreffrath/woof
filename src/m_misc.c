@@ -21,6 +21,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <ctype.h>
 
 #include "i_system.h"
 #include "m_io.h"
@@ -353,13 +354,25 @@ char *M_StringDuplicate(const char *orig)
 
 // String replace function.
 
-char *M_StringReplace(const char *haystack, const char *needle,
-                      const char *replacement)
+static boolean is_boundary(char c)
+{
+    return c == '\0' || isspace((unsigned char)c) || ispunct((unsigned char)c);
+}
+
+static boolean always_true(char c)
+{
+    return true;
+}
+
+char *M_StringReplaceWord(const char *haystack, const char *needle,
+                          const char *replacement, const boolean whole_word)
 {
     char *result, *dst;
     const char *p;
     size_t needle_len = strlen(needle);
     size_t result_len, dst_len;
+
+    boolean (*const check)(char c) = whole_word ? is_boundary : always_true;
 
     // Iterate through occurrences of 'needle' and calculate the size of
     // the new string.
@@ -374,8 +387,13 @@ char *M_StringReplace(const char *haystack, const char *needle,
             break;
         }
 
+        if ((p == haystack || check(*(p - 1))) &&
+            check(*(p + needle_len)))
+        {
+            result_len += strlen(replacement) - needle_len;
+        }
+
         p += needle_len;
-        result_len += strlen(replacement) - needle_len;
     }
 
     // Construct new string.
@@ -393,7 +411,9 @@ char *M_StringReplace(const char *haystack, const char *needle,
 
     while (*p != '\0')
     {
-        if (!strncmp(p, needle, needle_len))
+        if (!strncmp(p, needle, needle_len) &&
+            (p == haystack || check(*(p - 1))) &&
+            check(*(p + needle_len)))
         {
             M_StringCopy(dst, replacement, dst_len);
             p += needle_len;
@@ -412,6 +432,12 @@ char *M_StringReplace(const char *haystack, const char *needle,
     *dst = '\0';
 
     return result;
+}
+
+char *M_StringReplace(const char *haystack, const char *needle,
+                      const char *replacement)
+{
+    return M_StringReplaceWord(haystack, needle, replacement, false);
 }
 
 // Safe string copy function that works like OpenBSD's strlcpy().
