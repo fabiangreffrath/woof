@@ -98,7 +98,6 @@ static const char *params_with_args[] = {
 "-setmem",
 "-spechit",
 "-statdump",
-"-reject_pad_with_ff",
 };
 
 #define HELP_STRING "Usage: woof [options] \n\
