@@ -730,6 +730,7 @@ static void UDMF_LoadLineDefs(void)
         lines[i].sidenum[1] = udmf_linedefs[i].sideback;
 
         lines[i].flags = udmf_linedefs[i].flags;
+        lines[i].special = udmf_linedefs[i].special;
         lines[i].tag = udmf_linedefs[i].id;
 
         if (strcasecmp(udmf_linedefs[i].tranmap, "-"))
