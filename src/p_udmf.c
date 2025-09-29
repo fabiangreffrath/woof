@@ -956,7 +956,10 @@ boolean UDMF_LoadReject(int reject_num, int totallines)
         unsigned int padvalue = 0x00;
 
         rejectmatrix = Z_Malloc(minlength, PU_LEVEL, (void **)&rejectmatrix);
-        W_ReadLump(reject_num, rejectmatrix);
+        if (reject_num >= 0)
+        {
+          W_ReadLump(reject_num, rejectmatrix);
+        }
 
         if (M_CheckParm("-reject_pad_with_ff"))
         {
