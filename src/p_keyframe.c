@@ -224,7 +224,7 @@ static void ArchiveWorld(void)
     {
         write16(li->flags,
                 li->special,
-                li->tag);
+                li->id);
 
         write32(li->angle,
                 li->frontmusic,
@@ -291,7 +291,7 @@ static void UnArchiveWorld(void)
     {
         li->flags = read16();
         li->special = read16();
-        li->tag = read16();
+        li->id = read16();
         
         li->angle = read32();
         li->frontmusic = read32();

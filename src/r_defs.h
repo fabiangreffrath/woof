@@ -219,7 +219,8 @@ typedef struct line_s
   // [FG] extended nodes
   unsigned short flags;           // Animation related.
   short special;         
-  short tag;
+  short id;
+  int args[5];
   // [FG] extended nodes
   unsigned short sidenum[2];      // Visual appearance: SideDefs.
   fixed_t bbox[4];       // A bounding box, for the linedef's extent

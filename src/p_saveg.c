@@ -2202,7 +2202,7 @@ void P_ArchiveWorld (void)
 
       saveg_write16(li->flags);
       saveg_write16(li->special);
-      saveg_write16(li->tag);
+      saveg_write16(li->id);
 
       saveg_write32(li->angle);
       saveg_write32(li->frontmusic);
@@ -2298,7 +2298,7 @@ void P_UnArchiveWorld (void)
 
       li->flags = saveg_read16();
       li->special = saveg_read16();
-      li->tag = saveg_read16();
+      li->id = saveg_read16();
 
       if (saveg_compat > saveg_woof1500)
       {

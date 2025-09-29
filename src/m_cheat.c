@@ -872,7 +872,7 @@ static void cheat_spechits(void)
 
       // [crispy] special without tag --> DR linedef type
       // do not change door direction if it is already moving
-      if (lines[i].tag == 0 &&
+      if (lines[i].args[0] == 0 &&
           lines[i].sidenum[1] != NO_INDEX &&
          (sides[lines[i].sidenum[1]].sector->floordata ||
           sides[lines[i].sidenum[1]].sector->ceilingdata))
@@ -910,14 +910,14 @@ static void cheat_spechits(void)
           {
             dummy = *lines;
             dummy.special = (short)bossaction->special;
-            dummy.tag = (short)bossaction->tag;
+            dummy.args[0] = (short)bossaction->tag;
             // use special semantics for line activation to block problem types.
             if (!P_UseSpecialLine(mo, &dummy, 0, true))
               P_CrossSpecialLine(&dummy, 0, mo, true);
 
             speciallines++;
 
-            if (dummy.tag == 666)
+            if (dummy.args[0] == 666)
               trigger_keen = false;
           }
         }
@@ -932,12 +932,12 @@ static void cheat_spechits(void)
       if (gamemap == 7)
       {
         // Mancubi
-        dummy.tag = 666;
+        dummy.args[0] = 666;
         speciallines += EV_DoFloor(&dummy, lowerFloorToLowest);
         trigger_keen = false;
 
         // Arachnotrons
-        dummy.tag = 667;
+        dummy.args[0] = 667;
         speciallines += EV_DoFloor(&dummy, raiseToTexture);
       }
     }
@@ -946,7 +946,7 @@ static void cheat_spechits(void)
       if (gameepisode == 1)
       {
         // Barons of Hell
-        dummy.tag = 666;
+        dummy.args[0] = 666;
         speciallines += EV_DoFloor(&dummy, lowerFloorToLowest);
         trigger_keen = false;
       }
@@ -955,14 +955,14 @@ static void cheat_spechits(void)
         if (gamemap == 6)
         {
           // Cyberdemons
-          dummy.tag = 666;
+          dummy.args[0] = 666;
           speciallines += EV_DoDoor(&dummy, blazeOpen);
           trigger_keen = false;
         }
         else if (gamemap == 8)
         {
           // Spider Masterminds
-          dummy.tag = 666;
+          dummy.args[0] = 666;
           speciallines += EV_DoFloor(&dummy, lowerFloorToLowest);
           trigger_keen = false;
         }
@@ -973,7 +973,7 @@ static void cheat_spechits(void)
   // Keens (no matter which level they are on)
   if (trigger_keen)
   {
-    dummy.tag = 666;
+    dummy.args[0] = 666;
     speciallines += EV_DoDoor(&dummy, doorOpen);
   }
 

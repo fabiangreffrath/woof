@@ -91,9 +91,17 @@ typedef struct
     int sideback;
     int flags;
 
+    // Hexen
+    int args[5];
+
     // Woof!
     char tranmap[9];
 } UDMF_Linedef_t;
+
+// Important note about line tag/id/arg0, in the Doom namespace:
+// The base UDMF spec makes a distinction between the value used to identify a
+// specific line (id), and the value used when an action is executed (arg0),
+// as opposed to the binary Doom format, that used both as  the same (tag).
 
 typedef struct
 {
@@ -730,7 +738,12 @@ static void UDMF_LoadLineDefs(void)
 
         lines[i].flags = udmf_linedefs[i].flags;
         lines[i].special = udmf_linedefs[i].special;
-        lines[i].tag = udmf_linedefs[i].id;
+        lines[i].id = udmf_linedefs[i].id;
+        lines[i].args[0] = udmf_linedefs[i].args[0];
+        lines[i].args[1] = udmf_linedefs[i].args[1];
+        lines[i].args[2] = udmf_linedefs[i].args[2];
+        lines[i].args[3] = udmf_linedefs[i].args[3];
+        lines[i].args[4] = udmf_linedefs[i].args[4];
 
         if (strcasecmp(udmf_linedefs[i].tranmap, "-"))
         {

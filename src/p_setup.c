@@ -522,7 +522,9 @@ void P_LoadLineDefs (int lump)
       // [FG] extended nodes
       ld->flags = (unsigned short)SHORT(mld->flags);
       ld->special = SHORT(mld->special);
-      ld->tag = SHORT(mld->tag);
+      ld->id = SHORT(mld->tag);
+      ld->args[0] = ld->id; // UDMF spec
+
       v1 = ld->v1 = &vertexes[(unsigned short)SHORT(mld->v1)];
       v2 = ld->v2 = &vertexes[(unsigned short)SHORT(mld->v2)];
       ld->dx = v2->x - v1->x;
@@ -600,11 +602,11 @@ void P_LoadLineDefs2(int lump)
 
         case 260:               // killough 4/11/98: translucent 2s textures
             lump = sides[*ld->sidenum].special; // translucency from sidedef
-            if (!ld->tag)                       // if tag==0,
+            if (!ld->args[0])                       // if tag==0,
               ld->tranlump = lump;              // affect this linedef only
             else
               for (j=0;j<numlines;j++)          // if tag!=0,
-                if (lines[j].tag == ld->tag)    // affect all matching linedefs
+                if (lines[j].id == ld->args[0])    // affect all matching linedefs
                   lines[j].tranlump = lump;
             break;
         }
