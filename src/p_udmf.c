@@ -249,15 +249,16 @@ static void UDMF_ParseNamespace(scanner_t *s)
     SC_MustGetToken(s, '=');
     SC_MustGetToken(s, TK_StringConst);
     const char *name = SC_GetString(s);
+    udmf_features = UDMF_BASE;
 
     if (!strcasecmp(name, "doom"))
     {
-        udmf_features = UDMF_DOOM | UDMF_BOOM | UDMF_MBF;
+        udmf_features |= UDMF_DOOM | UDMF_BOOM | UDMF_MBF;
     }
     else if (!strcasecmp(name, "woof"))
     {
-        udmf_features = UDMF_DOOM | UDMF_BOOM | UDMF_MBF | UDMF_MBF21
-                        | UDMF_ID24 | UDMF_WOOF;
+        udmf_features |= UDMF_DOOM | UDMF_BOOM | UDMF_MBF | UDMF_MBF21
+                         | UDMF_ID24 | UDMF_WOOF;
     }
     else
     {
