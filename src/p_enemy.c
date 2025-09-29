@@ -3051,7 +3051,7 @@ void A_MonsterMeleeAttack(mobj_t *actor)
   S_StartSound(actor, hitsound);
 
   damage = (P_Random(pr_mbf21) % damagemod + 1) * damagebase;
-  P_DamageMobj(actor->target, actor, actor, damage);
+  P_DamageMobjBy(actor->target, actor, actor, damage, MOD_Melee);
 }
 
 //
