@@ -151,7 +151,7 @@ inline static int UDMF_ScanInt(scanner_t *s)
     return x;
 }
 
-// Retrieve double, converted to fixed_t
+// Retrieve plain double
 inline static double UDMF_ScanDouble(scanner_t *s)
 {
     double x = 0;
@@ -655,8 +655,8 @@ static void UDMF_LoadSectors(void)
 
     for (int i = 0; i < numsectors; i++)
     {
-        sectors[i].floorheight = udmf_sectors[i].heightfloor << FRACBITS;
-        sectors[i].ceilingheight = udmf_sectors[i].heightceiling << FRACBITS;
+        sectors[i].floorheight = IntToFixed(udmf_sectors[i].heightfloor);
+        sectors[i].ceilingheight = IntToFixed(udmf_sectors[i].heightceiling);
         sectors[i].floorpic = R_FlatNumForName(udmf_sectors[i].texturefloor);
         sectors[i].ceilingpic =
             R_FlatNumForName(udmf_sectors[i].textureceiling);
@@ -699,8 +699,8 @@ static void UDMF_LoadSideDefs(void)
     for (int i = 0; i < numsides; i++)
     {
         sides[i].sector = &sectors[udmf_sidedefs[i].sector_id];
-        sides[i].textureoffset = udmf_sidedefs[i].offsetx;
-        sides[i].rowoffset = udmf_sidedefs[i].offsety;
+        sides[i].textureoffset = IntToFixed(udmf_sidedefs[i].offsetx);
+        sides[i].rowoffset = IntToFixed(udmf_sidedefs[i].offsety);
 
         // [crispy] smooth texture scrolling
         sides[i].oldtextureoffset = sides[i].interptextureoffset =
