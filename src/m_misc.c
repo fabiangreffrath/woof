@@ -354,14 +354,9 @@ char *M_StringDuplicate(const char *orig)
 
 // String replace function.
 
-static boolean is_boundary(char c)
+static inline int is_boundary(char c)
 {
     return c == '\0' || isspace((unsigned char)c) || ispunct((unsigned char)c);
-}
-
-static boolean always_true(char c)
-{
-    return true;
 }
 
 char *M_StringReplaceWord(const char *haystack, const char *needle,
@@ -371,8 +366,6 @@ char *M_StringReplaceWord(const char *haystack, const char *needle,
     const char *p;
     size_t needle_len = strlen(needle);
     size_t result_len, dst_len;
-
-    boolean (*const check)(char c) = whole_word ? is_boundary : always_true;
 
     // Iterate through occurrences of 'needle' and calculate the size of
     // the new string.
@@ -387,8 +380,9 @@ char *M_StringReplaceWord(const char *haystack, const char *needle,
             break;
         }
 
-        if ((p == haystack || check(*(p - 1))) &&
-            check(*(p + needle_len)))
+        if (!whole_word ||
+            ((p == haystack || is_boundary(*(p - 1))) &&
+            is_boundary(*(p + needle_len))))
         {
             result_len += strlen(replacement) - needle_len;
         }
@@ -412,8 +406,9 @@ char *M_StringReplaceWord(const char *haystack, const char *needle,
     while (*p != '\0')
     {
         if (!strncmp(p, needle, needle_len) &&
-            (p == haystack || check(*(p - 1))) &&
-            check(*(p + needle_len)))
+            (!whole_word ||
+            ((p == haystack || is_boundary(*(p - 1))) &&
+            is_boundary(*(p + needle_len)))))
         {
             M_StringCopy(dst, replacement, dst_len);
             p += needle_len;
