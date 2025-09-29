@@ -121,10 +121,8 @@ typedef struct
 static char *const UDMF_Lumps[] = {
     [UDMF_LABEL] = "-",           [UDMF_TEXTMAP] = "TEXTMAP",
     [UDMF_ZNODES] = "ZNODES",     [UDMF_BLOCKMAP] = "BLOCKMAP",
-    [UDMF_REJECT] = "REJECT",
-    [UDMF_BEHAVIOR] = "BEHAVIOR",
-    [UDMF_DIALOGUE] = "DIALOGUE",
-    [UDMF_LIGHTMAP] = "LIGHTMAP",
+    [UDMF_REJECT] = "REJECT",     [UDMF_BEHAVIOR] = "BEHAVIOR",
+    [UDMF_DIALOGUE] = "DIALOGUE", [UDMF_LIGHTMAP] = "LIGHTMAP",
     [UDMF_ENDMAP] = "ENDMAP",
 };
 
