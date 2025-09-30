@@ -180,19 +180,6 @@ inline static int UDMF_ScanFlag(scanner_t *s, int f)
     return x;
 }
 
-// Sets provided flag on, if value is false
-// i.e NOTSINGLE, NOTDM, NOTCOOP, etc
-inline static int UDMF_ScanFlagInverted(scanner_t *s, int f)
-{
-    int x = 0;
-    SC_MustGetToken(s, '=');
-    SC_MustGetToken(s, TK_BoolConst);
-    if (!SC_GetBoolean(s))
-        x |= f;
-    SC_MustGetToken(s, ';');
-    return x;
-}
-
 // Retrieve plain string
 inline static void UDMF_ScanLumpName(scanner_t *s, char *x)
 {
@@ -527,6 +514,7 @@ static void UDMF_ParseSector(scanner_t *s)
 static void UDMF_ParseThing(scanner_t *s)
 {
     UDMF_Thing_t thing = {0};
+    thing.options |= MTF_NOTSINGLE | MTF_NOTCOOP | MTF_NOTDM;
 
     SC_MustGetToken(s, '{');
     while (!SC_CheckToken(s, '}'))
@@ -579,15 +567,15 @@ static void UDMF_ParseThing(scanner_t *s)
         }
         else if (BASE_PROP(single))
         {
-            thing.options |= UDMF_ScanFlagInverted(s, MTF_NOTSINGLE);
+            thing.options &= ~UDMF_ScanFlag(s, MTF_NOTSINGLE);
         }
         else if (PROP(dm, UDMF_BOOM))
         {
-            thing.options |= UDMF_ScanFlagInverted(s, MTF_NOTDM);
+            thing.options &= ~UDMF_ScanFlag(s, MTF_NOTDM);
         }
         else if (PROP(coop, UDMF_BOOM))
         {
-            thing.options |= UDMF_ScanFlagInverted(s, MTF_NOTCOOP);
+            thing.options &= ~UDMF_ScanFlag(s, MTF_NOTCOOP);
         }
         else if (PROP(friend, UDMF_MBF))
         {
