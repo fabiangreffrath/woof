@@ -364,7 +364,8 @@ char *M_StringReplaceWord(const char *haystack, const char *needle,
 {
     char *result, *dst;
     const char *p;
-    size_t needle_len = strlen(needle);
+    const size_t needle_len = strlen(needle);
+    const size_t repl_len = strlen(replacement);
     size_t result_len, dst_len;
 
     // Iterate through occurrences of 'needle' and calculate the size of
@@ -384,7 +385,7 @@ char *M_StringReplaceWord(const char *haystack, const char *needle,
             ((p == haystack || is_boundary(*(p - 1))) &&
             is_boundary(*(p + needle_len))))
         {
-            result_len += strlen(replacement) - needle_len;
+            result_len += repl_len - needle_len;
         }
 
         p += needle_len;
@@ -412,8 +413,8 @@ char *M_StringReplaceWord(const char *haystack, const char *needle,
         {
             M_StringCopy(dst, replacement, dst_len);
             p += needle_len;
-            dst += strlen(replacement);
-            dst_len -= strlen(replacement);
+            dst += repl_len;
+            dst_len -= repl_len;
         }
         else
         {
