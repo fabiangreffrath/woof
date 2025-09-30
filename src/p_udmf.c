@@ -299,6 +299,7 @@ static void UDMF_ParseLinedef(scanner_t *s)
 {
     UDMF_Linedef_t line = {0};
     line.sideback = -1;
+    line.tranmap[0] = '-';
 
     SC_MustGetToken(s, '{');
     while (!SC_CheckToken(s, '}'))
@@ -753,6 +754,7 @@ static void UDMF_LoadLineDefs(void)
         lines[i].args[3] = udmf_linedefs[i].args[3];
         lines[i].args[4] = udmf_linedefs[i].args[4];
 
+        lines[i].tranlump = -1;
         if (strcasecmp(udmf_linedefs[i].tranmap, "-"))
         {
             // Line has TRANMAP lump
