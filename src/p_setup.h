@@ -23,6 +23,7 @@
 #include "doomdef.h"
 #include "doomtype.h"
 #include "m_fixed.h"
+#include "r_defs.h"
 
 void P_SetupLevel(int episode, int map, int playermask, skill_t skill);
 void P_Init(void);               // Called by startup code.
@@ -48,6 +49,7 @@ void P_SegLengths(boolean contrast_only);
 void P_CreateBlockMap(void);
 void P_SetSkipBlockStart(void);
 int P_GroupLines (void);
+void P_ProcessSideDefs(side_t *side, int i, char *bottomtexture, char *midtexture, char *toptexture);
 
 #endif
 

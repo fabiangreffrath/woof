@@ -723,12 +723,6 @@ static void UDMF_LoadSideDefs(void)
             sides[i].textureoffset;
         sides[i].oldrowoffset = sides[i].interprowoffset = sides[i].rowoffset;
         sides[i].oldgametic = -1;
-
-        sides[i].toptexture = R_TextureNumForName(udmf_sidedefs[i].texturetop);
-        sides[i].midtexture =
-            R_TextureNumForName(udmf_sidedefs[i].texturemiddle);
-        sides[i].bottomtexture =
-            R_TextureNumForName(udmf_sidedefs[i].texturebottom);
     }
 }
 
@@ -831,12 +825,63 @@ static void UDMF_LoadLineDefs(void)
 
         if (lines[i].sidenum[0] != NO_INDEX)
         {
-            lines[i].frontsector = sides[lines[i].sidenum[0]].sector;
+            side_t *frontside = &sides[lines[i].sidenum[0]];
+            lines[i].frontsector = frontside->sector;
+            frontside->special = lines[i].special;
         }
 
         if (lines[i].sidenum[1] != NO_INDEX)
         {
-            lines[i].backsector = sides[lines[i].sidenum[1]].sector;
+            side_t *backside = &sides[lines[i].sidenum[1]];
+            lines[i].backsector = backside->sector;
+            backside->special = lines[i].special;
+        }
+    }
+}
+
+static void UDMF_LoadSideDefs_Post(void)
+{
+    for (int i = 0; i < numsides; i++)
+    {
+        P_ProcessSideDefs(&sides[i], i,
+                          udmf_sidedefs[i].texturebottom,
+                          udmf_sidedefs[i].texturemiddle,
+                          udmf_sidedefs[i].texturetop);
+    }
+}
+
+static void UDMF_LoadLineDefs_Post(void)
+{
+    for (int i = 0; i < numlines; i++)
+    {
+        // killough 4/11/98: handle special types
+        switch (lines[i].special)
+        {
+            // killough 4/11/98: translucent 2s textures
+            case 260:
+            {
+                // translucency from sidedef
+                int lump = sides[*lines[i].sidenum].special;
+                if (!lines[i].args[0])
+                {
+                    // if tag==0,
+                    // affect this linedef only
+                    lines[i].tranlump = lump;
+                }
+                else
+                {
+                    // if tag!=0,
+                    // affect all matching linedefs
+                    for (int j = 0; j < numlines; j++)
+                    {
+                        if (lines[j].id == lines[i].args[0])
+                        {
+                            lines[j].tranlump = lump;
+                        }
+                    }
+                }
+                break;
+            }
         }
     }
 }
@@ -1041,6 +1086,8 @@ void UDMF_LoadMap(int lumpnum, nodeformat_t *nodeformat, int *gen_blockmap,
     UDMF_LoadSectors();
     UDMF_LoadSideDefs(); // <- This needs Sectors
     UDMF_LoadLineDefs(); // <- this needs Sides
+    UDMF_LoadSideDefs_Post(); // <- this needs side_t::special
+    UDMF_LoadLineDefs_Post(); // <- this needs Sides Post Processing
 
     *gen_blockmap = UDMF_LoadBlockMap(blockmap_num);
     *nodeformat = UDMF_LoadZNodes(znodes_num);

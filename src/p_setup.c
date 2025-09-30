@@ -618,6 +618,143 @@ void P_LoadLineDefs2(int lump)
 //
 // killough 4/4/98: split into two functions
 
+void P_ProcessSideDefs(side_t *side, int i, char *bottomtexture, char *midtexture, char *toptexture)
+{
+  sector_t *sec = side->sector;
+  switch (side->special)
+  {
+    case 2057: case 2058: case 2059: case 2060: case 2061: case 2062:
+    case 2063: case 2064: case 2065: case 2066: case 2067: case 2068:
+    case 2087: case 2088: case 2089: case 2090: case 2091: case 2092:
+    case 2093: case 2094: case 2095: case 2096: case 2097: case 2098:
+    {
+      // All of the W1, WR, S1, SR, G1, GR activations can be triggered from
+      // the back sidedef (reading the front bottom texture) and triggered
+      // from the front sidedef (reading the front upper texture).
+      for (int j = 0; j < numlines; j++)
+      {
+        if (lines[j].sidenum[0] == i)
+        {
+          // Back triggered
+          if ((lines[j].backmusic = W_CheckNumForName(bottomtexture)) < 0)
+          {
+            lines[j].backmusic = 0;
+            side->bottomtexture = R_TextureNumForName(bottomtexture);
+          }
+          else
+          {
+            side->bottomtexture = 0;
+          }
+
+          // Front triggered
+          if ((lines[j].frontmusic = W_CheckNumForName(toptexture)) < 0)
+          {
+            lines[j].frontmusic = 0;
+            side->toptexture = R_TextureNumForName(toptexture);
+          }
+          else
+          {
+            side->toptexture = 0;
+          }
+        }
+      }
+      side->midtexture = R_TextureNumForName(midtexture);
+      break;
+    }
+
+    case 2075:
+    // Sector tinting
+    {
+      for (int j = 0; j < numlines; j++)
+      {
+        if (lines[j].sidenum[0] == i)
+        {
+          // Front triggered
+          if ((lines[j].fronttint = R_ColormapNumForName(toptexture)) < 0)
+          {
+            lines[j].fronttint = 0;
+            side->toptexture = R_TextureNumForName(toptexture);
+          }
+          else
+          {
+            side->toptexture = 0;
+          }
+        }
+      }
+      side->midtexture = R_TextureNumForName(midtexture);
+      side->bottomtexture = R_TextureNumForName(bottomtexture);
+      break;
+    }
+
+    case 2076: case 2077: case 2078: case 2079: case 2080: case 2081:
+    // Sector tinting
+    // All of the W1, WR, S1, SR, G1, GR activations can be triggered from
+    // the back sidedef (reading the front bottom texture) and triggered
+    // from the front sidedef (reading the front upper texture).
+    {
+      for (int j = 0; j < numlines; j++)
+      {
+        if (lines[j].sidenum[0] == i)
+        {
+          // Back triggered
+          if ((lines[j].backtint = R_ColormapNumForName(bottomtexture)) < 0)
+          {
+            lines[j].backtint = 0;
+            side->bottomtexture = R_TextureNumForName(bottomtexture);
+          }
+          else
+          {
+            side->bottomtexture = 0;
+          }
+          // Front triggered
+          if ((lines[j].fronttint = R_ColormapNumForName(toptexture)) < 0)
+          {
+            lines[j].fronttint = 0;
+            side->toptexture = R_TextureNumForName(toptexture);
+          }
+          else
+          {
+            side->toptexture = 0;
+          }
+        }
+      }
+      side->midtexture = R_TextureNumForName(midtexture);
+      break;
+    }
+
+    // variable colormap via 242 linedef
+    case 242:
+      side->bottomtexture =
+        (sec->bottommap =   R_ColormapNumForName(bottomtexture)) < 0 ?
+        sec->bottommap = 0, R_TextureNumForName(bottomtexture): 0 ;
+      side->midtexture =
+        (sec->midmap =   R_ColormapNumForName(midtexture)) < 0 ?
+        sec->midmap = 0, R_TextureNumForName(midtexture)  : 0 ;
+      side->toptexture =
+        (sec->topmap =   R_ColormapNumForName(toptexture)) < 0 ?
+        sec->topmap = 0, R_TextureNumForName(toptexture)  : 0 ;
+      break;
+
+    // killough 4/11/98: apply translucency to 2s normal texture
+    case 260:
+      side->midtexture = strncasecmp("TRANMAP", midtexture, 8) ?
+        (side->special = W_CheckNumForName(midtexture)) < 0 ||
+        W_LumpLength(side->special) != 65536 ?
+        side->special=0, R_TextureNumForName(midtexture) :
+          (side->special++, 0) : (side->special=0);
+      side->toptexture = R_TextureNumForName(toptexture);
+      side->bottomtexture = R_TextureNumForName(bottomtexture);
+      break;
+
+    // normal cases
+    default:
+      side->midtexture = R_TextureNumForName(midtexture);
+      side->toptexture = R_TextureNumForName(toptexture);
+      side->bottomtexture = R_TextureNumForName(bottomtexture);
+      break;
+  }
+}
+
 void P_LoadSideDefs (int lump)
 {
   numsides = W_LumpLength(lump) / sizeof(mapsidedef_t);
@@ -654,136 +791,7 @@ void P_LoadSideDefs2(int lump)
       // textures if invalid as colormaps but valid as textures.
 
       sd->sector = sec = &sectors[SHORT(msd->sector)];
-      switch (sd->special)
-        {
-        case 2057: case 2058: case 2059: case 2060: case 2061: case 2062:
-        case 2063: case 2064: case 2065: case 2066: case 2067: case 2068:
-        case 2087: case 2088: case 2089: case 2090: case 2091: case 2092:
-        case 2093: case 2094: case 2095: case 2096: case 2097: case 2098:
-        {
-          // All of the W1, WR, S1, SR, G1, GR activations can be triggered from
-          // the back sidedef (reading the front bottom texture) and triggered
-          // from the front sidedef (reading the front upper texture).
-          for (int j = 0; j < numlines; j++)
-          {
-            if (lines[j].sidenum[0] == i)
-            {
-              // Back triggered
-              if ((lines[j].backmusic = W_CheckNumForName(msd->bottomtexture)) < 0)
-              {
-                lines[j].backmusic = 0;
-                sd->bottomtexture = R_TextureNumForName(msd->bottomtexture);
-              }
-              else
-              {
-                sd->bottomtexture = 0;
-              }
-
-              // Front triggered
-              if ((lines[j].frontmusic = W_CheckNumForName(msd->toptexture)) < 0)
-              {
-                lines[j].frontmusic = 0;
-                sd->toptexture = R_TextureNumForName(msd->toptexture);
-              }
-              else
-              {
-                sd->toptexture = 0;
-              }
-            }
-          }
-          sd->midtexture = R_TextureNumForName(msd->midtexture);
-          break;
-        }
-
-        case 2075:
-        // Sector tinting
-        {
-          for (int j = 0; j < numlines; j++)
-          {
-            if (lines[j].sidenum[0] == i)
-            {
-              // Front triggered
-              if ((lines[j].fronttint = R_ColormapNumForName(msd->toptexture)) < 0)
-              {
-                lines[j].fronttint = 0;
-                sd->toptexture = R_TextureNumForName(msd->toptexture);
-              }
-              else
-              {
-                sd->toptexture = 0;
-              }
-            }
-          }
-          sd->midtexture = R_TextureNumForName(msd->midtexture);
-          sd->bottomtexture = R_TextureNumForName(msd->bottomtexture);
-          break;
-        }
-
-        case 2076: case 2077: case 2078: case 2079: case 2080: case 2081:
-        // Sector tinting
-        // All of the W1, WR, S1, SR, G1, GR activations can be triggered from
-        // the back sidedef (reading the front bottom texture) and triggered
-        // from the front sidedef (reading the front upper texture).
-        {
-          for (int j = 0; j < numlines; j++)
-          {
-            if (lines[j].sidenum[0] == i)
-            {
-              // Back triggered
-              if ((lines[j].backtint = R_ColormapNumForName(msd->bottomtexture)) < 0)
-              {
-                lines[j].backtint = 0;
-                sd->bottomtexture = R_TextureNumForName(msd->bottomtexture);
-              }
-              else
-              {
-                sd->bottomtexture = 0;
-              }
-
-              // Front triggered
-              if ((lines[j].fronttint = R_ColormapNumForName(msd->toptexture)) < 0)
-              {
-                lines[j].fronttint = 0;
-                sd->toptexture = R_TextureNumForName(msd->toptexture);
-              }
-              else
-              {
-                sd->toptexture = 0;
-              }
-            }
-          }
-          sd->midtexture = R_TextureNumForName(msd->midtexture);
-          break;
-        }
-
-        case 242:                       // variable colormap via 242 linedef
-          sd->bottomtexture =
-            (sec->bottommap =   R_ColormapNumForName(msd->bottomtexture)) < 0 ?
-            sec->bottommap = 0, R_TextureNumForName(msd->bottomtexture): 0 ;
-          sd->midtexture =
-            (sec->midmap =   R_ColormapNumForName(msd->midtexture)) < 0 ?
-            sec->midmap = 0, R_TextureNumForName(msd->midtexture)  : 0 ;
-          sd->toptexture =
-            (sec->topmap =   R_ColormapNumForName(msd->toptexture)) < 0 ?
-            sec->topmap = 0, R_TextureNumForName(msd->toptexture)  : 0 ;
-          break;
-
-        case 260: // killough 4/11/98: apply translucency to 2s normal texture
-          sd->midtexture = strncasecmp("TRANMAP", msd->midtexture, 8) ?
-            (sd->special = W_CheckNumForName(msd->midtexture)) < 0 ||
-            W_LumpLength(sd->special) != 65536 ?
-            sd->special=0, R_TextureNumForName(msd->midtexture) :
-              (sd->special++, 0) : (sd->special=0);
-          sd->toptexture = R_TextureNumForName(msd->toptexture);
-          sd->bottomtexture = R_TextureNumForName(msd->bottomtexture);
-          break;
-
-        default:                        // normal cases
-          sd->midtexture = R_TextureNumForName(msd->midtexture);
-          sd->toptexture = R_TextureNumForName(msd->toptexture);
-          sd->bottomtexture = R_TextureNumForName(msd->bottomtexture);
-          break;
-        }
+      P_ProcessSideDefs(sd, i, msd->bottomtexture, msd->midtexture, msd->toptexture);
     }
   Z_Free (data);
 }
