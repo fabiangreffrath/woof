@@ -386,7 +386,7 @@ static void UDMF_ParseLinedef(scanner_t *s)
         {
             line.flags |= UDMF_ScanFlag(s, ML_MAPPED);
         }
-        else if (PROP(tranmap, UDMF_WOOF))
+        else if (PROP(tranmap, UDMF_MBF21))
         {
             UDMF_ScanLumpName(s, line.tranmap);
         }
@@ -753,29 +753,26 @@ static void UDMF_LoadLineDefs(void)
         lines[i].args[4] = udmf_linedefs[i].args[4];
 
         lines[i].tranlump = -1;
-        if (strcasecmp(udmf_linedefs[i].tranmap, "-"))
+        // Line has TRANMAP lump
+        if (!strcasecmp(udmf_linedefs[i].tranmap, "TRANMAP"))
         {
-            // Line has TRANMAP lump
-            if (!strcasecmp(udmf_linedefs[i].tranmap, "TRANMAP"))
+            // Is using default built-in TRANMAP lump
+            lines[i].tranlump = 0;
+        }
+        else
+        {
+            lines[i].tranlump = W_CheckNumForName(udmf_linedefs[i].tranmap);
+            if (lines[i].tranlump < 0
+                || W_LumpLength(lines[i].tranlump) != 65536)
             {
-                // Is using default built-in TRANMAP lump
+                // Is using improper or non-existent custom TRANMAP lump
                 lines[i].tranlump = 0;
             }
             else
             {
-                lines[i].tranlump = W_CheckNumForName(udmf_linedefs[i].tranmap);
-                if (lines[i].tranlump < 0
-                    || W_LumpLength(lines[i].tranlump) != 65536)
-                {
-                    // Is using improper or non-existent custom TRANMAP lump
-                    lines[i].tranlump = 0;
-                }
-                else
-                {
-                    // Is using proper custom TRANMAP lump
-                    W_CacheLumpNum(lines[i].tranlump, PU_CACHE);
-                    lines[i].tranlump++;
-                }
+                // Is using proper custom TRANMAP lump
+                W_CacheLumpNum(lines[i].tranlump, PU_CACHE);
+                lines[i].tranlump++;
             }
         }
 
