@@ -602,11 +602,11 @@ void P_LoadLineDefs2(int lump)
 
         case 260:               // killough 4/11/98: translucent 2s textures
             lump = sides[*ld->sidenum].special; // translucency from sidedef
-            if (!ld->args[0])                       // if tag==0,
+            if (!ld->args[0])                   // if tag==0,
               ld->tranlump = lump;              // affect this linedef only
             else
               for (j=0;j<numlines;j++)          // if tag!=0,
-                if (lines[j].id == ld->args[0])    // affect all matching linedefs
+                if (lines[j].id == ld->args[0]) // affect all matching linedefs
                   lines[j].tranlump = lump;
             break;
         }

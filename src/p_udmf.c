@@ -495,6 +495,10 @@ static void UDMF_ParseSector(scanner_t *s)
         {
             sector.lightlevel = UDMF_ScanInt(s);
         }
+        else if (BASE_PROP(special))
+        {
+            sector.special = UDMF_ScanInt(s);
+        }
         else if (BASE_PROP(id))
         {
             sector.tag = UDMF_ScanInt(s);
