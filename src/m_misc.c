@@ -382,8 +382,8 @@ char *M_StringReplaceWord(const char *haystack, const char *needle,
         }
 
         if (!whole_word ||
-            ((p == haystack || is_boundary(*(p - 1))) &&
-            is_boundary(*(p + needle_len))))
+            ((p == haystack || is_boundary(p[-1])) &&
+            is_boundary(p[needle_len])))
         {
             result_len += repl_len - needle_len;
         }
@@ -408,8 +408,8 @@ char *M_StringReplaceWord(const char *haystack, const char *needle,
     {
         if (!strncmp(p, needle, needle_len) &&
             (!whole_word ||
-            ((p == haystack || is_boundary(*(p - 1))) &&
-            is_boundary(*(p + needle_len)))))
+            ((p == haystack || is_boundary(p[-1])) &&
+            is_boundary(p[needle_len]))))
         {
             M_StringCopy(dst, replacement, dst_len);
             p += needle_len;
