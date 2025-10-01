@@ -818,8 +818,7 @@ static void UDMF_LoadLineDefs(void)
         }
 
         // Clear 2s flag for missing left side
-        if (lines[i].sidenum[1] == NO_INDEX
-            && (!demo_compatibility || !overflow[emu_missedbackside].enabled))
+        if (lines[i].sidenum[1] == NO_INDEX && !demo_compatibility)
         {
             lines[i].flags &= ~ML_TWOSIDED;
         }
