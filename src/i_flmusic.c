@@ -142,6 +142,19 @@ static void GetSoundFonts(void)
         return;
     }
 
+#if defined(_WIN32)
+    const char *sys = M_getenv("SystemRoot");
+    char *path = M_StringJoin(sys, "\\System32\\drivers\\gm.dls");
+    if (M_FileExistsNotDir(path))
+    {
+        array_push(soundfonts, path);
+    }
+    else
+    {
+        free(path);
+    }
+#endif
+
     if (strlen(soundfont_dirs) > 0)
     {
         // Split into individual dirs within the list.

@@ -34,6 +34,7 @@ typedef struct
 boolean M_DirExists(const char *path);
 int M_FileLength(const char *path);
 char *M_TempFile(const char *s);
+boolean M_FileExistsNotDir(const char *filename);
 char *M_FileCaseExists(const char *file);
 boolean M_StrToInt(const char *str, int *result);
 char *M_DirName(const char *path);
