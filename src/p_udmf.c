@@ -192,7 +192,7 @@ inline static void UDMF_ScanLumpName(scanner_t *s, char *x)
 // Property is valid in all namespaces
 #define BASE_PROP(keyword) (!strcasecmp(prop, #keyword))
 
-// Property is valid in the current namspace
+// Property is valid in the current namespace
 #define PROP(keyword, flags) \
     (!strcasecmp(prop, #keyword) && (udmf_features & flags))
 
@@ -214,25 +214,22 @@ static inline void UDMF_SkipScan(scanner_t *s)
     }
 
     SC_MustGetToken(s, '{');
+    int brace_count = 1;
+    while (SC_TokensLeft(s))
     {
-        int brace_count = 1;
-        while (SC_TokensLeft(s))
+        if (SC_CheckToken(s, '}'))
         {
-            if (SC_CheckToken(s, '}'))
-            {
-                --brace_count;
-            }
-            else if (SC_CheckToken(s, '{'))
-            {
-                ++brace_count;
-            }
-            if (!brace_count)
-            {
-                break;
-            }
-            SC_GetNextToken(s, true);
+            --brace_count;
         }
-        return;
+        else if (SC_CheckToken(s, '{'))
+        {
+            ++brace_count;
+        }
+        if (!brace_count)
+        {
+            break;
+        }
+        SC_GetNextToken(s, true);
     }
 }
 
