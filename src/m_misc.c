@@ -359,8 +359,8 @@ static inline int is_boundary(char c)
     return c == '\0' || isspace((unsigned char)c) || ispunct((unsigned char)c);
 }
 
-char *M_StringReplaceWord(const char *haystack, const char *needle,
-                          const char *replacement, const boolean whole_word)
+static char *M_StringReplaceEx(const char *haystack, const char *needle,
+                               const char *replacement, const boolean whole_word)
 {
     char *result, *dst;
     const char *p;
@@ -433,7 +433,13 @@ char *M_StringReplaceWord(const char *haystack, const char *needle,
 char *M_StringReplace(const char *haystack, const char *needle,
                       const char *replacement)
 {
-    return M_StringReplaceWord(haystack, needle, replacement, false);
+    return M_StringReplaceEx(haystack, needle, replacement, false);
+}
+
+char *M_StringReplaceWord(const char *haystack, const char *needle,
+                          const char *replacement)
+{
+    return M_StringReplaceEx(haystack, needle, replacement, true);
 }
 
 // Safe string copy function that works like OpenBSD's strlcpy().

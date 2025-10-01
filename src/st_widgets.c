@@ -1129,7 +1129,7 @@ static char* PrepareColor(const char *str, const char *col)
 
     M_snprintf(col_replace, sizeof(col_replace),
                ORIG_S "%s" ORIG_S, col);
-    str_replace = M_StringReplaceWord(str, col, col_replace, true);
+    str_replace = M_StringReplaceWord(str, col, col_replace);
 
     return str_replace;
 }

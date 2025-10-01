@@ -50,7 +50,7 @@ boolean M_StringConcat(char *dest, const char *src, size_t dest_size);
 char *M_StringReplace(const char *haystack, const char *needle,
                       const char *replacement);
 char *M_StringReplaceWord(const char *haystack, const char *needle,
-                          const char *replacement, const boolean whole_word);
+                          const char *replacement);
 
 char *M_StringJoinInternal(const char *s[], size_t n);
 #define M_StringJoin(...)                                      \
