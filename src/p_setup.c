@@ -1618,6 +1618,12 @@ static boolean P_LoadReject(int lumpnum, int totallines)
         rejectmatrix = Z_Malloc(minlength, PU_LEVEL, (void **) &rejectmatrix);
         W_ReadLump(lumpnum, rejectmatrix);
 
+        //!
+        // @category mod
+        //
+        // Pad the remaining REJECT table space with 0xff.
+        //
+
         if (M_CheckParm("-reject_pad_with_ff"))
         {
             padvalue = 0xff;
