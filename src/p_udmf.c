@@ -57,6 +57,9 @@ typedef enum
     UDMF_MBF21 = (1 << 6),
     UDMF_ID24 = (1 << 7),
 
+    // Compatibility
+    UDMF_COMP_NO_ARG0 = (1 << 30),
+
     // Port exclusivity
     UDMF_WOOF = (1 << 31),
 } UDMF_Features_t;
@@ -748,6 +751,11 @@ static void UDMF_LoadLineDefs(void)
         lines[i].args[2] = udmf_linedefs[i].args[2];
         lines[i].args[3] = udmf_linedefs[i].args[3];
         lines[i].args[4] = udmf_linedefs[i].args[4];
+
+        if (udmf_features & UDMF_COMP_NO_ARG0)
+        {
+            lines[i].args[0] = lines[i].id;
+        }
 
         lines[i].tranlump = -1;
         // Line has TRANMAP lump
