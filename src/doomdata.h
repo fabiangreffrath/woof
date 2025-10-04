@@ -165,7 +165,7 @@ typedef struct {
  // [FG] extended nodes
 #define NO_INDEX        ((unsigned int)-1)
 // UDMF support
-#define FIX_NO_INDEX(x) if (x == (unsigned short)0xFFFF) { x = NO_INDEX; }
+#define FIX_NO_INDEX(x) if (x == (unsigned short)-1) { x = NO_INDEX; }
 
 typedef struct {
   short x;  // Partition line from (x,y) to x+dx,y+dy)

@@ -225,8 +225,6 @@ void P_LoadSegs (int lump)
       li->angle = (SHORT(ml->angle))<<16;
       li->offset = (SHORT(ml->offset))<<16;
       linedef = (unsigned short)SHORT(ml->linedef); // [FG] extended nodes
-
-      FIX_NO_INDEX(linedef);
       ldef = &lines[linedef];
       li->linedef = ldef;
       side = SHORT(ml->side);
@@ -566,6 +564,7 @@ void P_LoadLineDefs (int lump)
 
       FIX_NO_INDEX(ld->sidenum[0]);
       FIX_NO_INDEX(ld->sidenum[1]);
+
       // killough 4/4/98: support special sidedef interpretation below
       if (ld->sidenum[0] != NO_INDEX && ld->special)
         sides[*ld->sidenum].special = ld->special;

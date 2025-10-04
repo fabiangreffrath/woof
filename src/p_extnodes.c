@@ -366,9 +366,6 @@ void P_LoadSegs_DEEP(int lump)
         li->offset = (SHORT(ml->offset)) << 16;
 
         linedef = (unsigned short)SHORT(ml->linedef); // [FG] extended nodes
-
-        FIX_NO_INDEX(linedef);
-
         ldef = &lines[linedef];
         li->linedef = ldef;
 
@@ -496,8 +493,6 @@ static void P_LoadSegs_XNOD(byte *data)
         li->v2 = &vertexes[v2];
 
         linedef = (unsigned short)SHORT(ml->linedef);
-
-        FIX_NO_INDEX(linedef);
         ldef = &lines[linedef];
         li->linedef = ldef;
         side = ml->side;
