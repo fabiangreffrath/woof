@@ -222,7 +222,7 @@ static void ArchiveWorld(void)
     // do lines
     for (i = 0, li = lines; i < numlines; i++, li++)
     {
-        write32(li->flags,
+        write16(li->flags,
                 li->special,
                 li->id);
 
@@ -285,9 +285,9 @@ static void UnArchiveWorld(void)
     // do lines
     for (i = 0, li = lines; i < numlines; i++, li++)
     {
-        li->flags = read32();
-        li->special = read32();
-        li->id = read32();
+        li->flags = read16();
+        li->special = read16();
+        li->id = read16();
 
         // Woof!
         li->frontsector = readp();
