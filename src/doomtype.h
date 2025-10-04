@@ -159,8 +159,20 @@ inline static float clampf(float x, float min, float max)
   #define PACKED_SUFFIX
 #endif
 
+#if defined(_MSC_VER)
+#define ALIGNED(x) __declspec(align(x))
+#define ALIGNOF(x) __alignof(x)
+#elif defined(__GNUC__) || defined(__clang__)
+#include <stdalign.h>
+#define ALIGNED(x) __attribute__((aligned(x)))
+#if ((__STDC_VERSION__ >= 202000) || defined (__alignof_is_defined))
+#define ALIGNOF(x) __alignof__(x)
 #endif
-
+#else
+#define ALIGNED(x) 
+#define ALIGNOF(x) alignof
+#endif
+#endif
 //----------------------------------------------------------------------------
 //
 // $Log: doomtype.h,v $
