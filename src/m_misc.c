@@ -37,7 +37,7 @@
 
 // Check if a file exists
 
-static boolean M_FileExistsNotDir(const char *filename)
+boolean M_FileExistsNotDir(const char *filename)
 {
     FILE *fstream;
 
