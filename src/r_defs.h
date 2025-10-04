@@ -218,11 +218,11 @@ typedef struct line_s
   fixed_t dx, dy;        // Precalculated v2 - v1 for side checking.
   // [FG] extended nodes
   // UDMF -- further extend to 32bit
-  uint flags;            // Animation related.
-  int special;           // Special action
-  int id;                // Tag -> id/arg0 split
-  int args[5];           // Hexen-style parameterized actions
-  uint sidenum[2];       // Visual appearance: SideDefs.
+  uint32_t flags;        // Animation related.
+  int32_t special;       // Special action
+  int32_t id;            // Tag -> id/arg0 split
+  int32_t args[5];       // Hexen-style parameterized actions
+  uint32_t sidenum[2];   // Visual appearance: SideDefs.
 
   fixed_t bbox[4];       // A bounding box, for the linedef's extent
   slopetype_t slopetype; // To aid move clipping.

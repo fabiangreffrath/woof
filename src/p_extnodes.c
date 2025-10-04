@@ -368,7 +368,7 @@ void P_LoadSegs_DEEP(int lump)
         linedef = (unsigned short)SHORT(ml->linedef); // [FG] extended nodes
 
         // UDMF
-        if (linedef == (ushort)0xFFFF)
+        if (linedef == (unsigned short)0xFFFF)
             linedef = NO_INDEX;
 
         ldef = &lines[linedef];
@@ -424,7 +424,7 @@ void P_LoadSubsectors_DEEP(int lump)
         // [MB] 2020-04-22: Fix endianess for DeePBSDP V4 nodes
         subsectors[i].numlines = (unsigned short)SHORT(data[i].numsegs);
         // UDMF
-        if (subsectors[i].numlines == (ushort)0xFFFF)
+        if (subsectors[i].numlines == (unsigned short)0xFFFF)
             subsectors[i].numlines = NO_INDEX;
         subsectors[i].firstline = LONG(data[i].firstseg);
     }
@@ -503,7 +503,7 @@ static void P_LoadSegs_XNOD(byte *data)
         linedef = (unsigned short)SHORT(ml->linedef);
 
         // UDMF
-        if (linedef == (ushort)0xFFFF)
+        if (linedef == (unsigned short)0xFFFF)
             linedef = NO_INDEX;
 
         ldef = &lines[linedef];

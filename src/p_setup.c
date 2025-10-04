@@ -227,7 +227,7 @@ void P_LoadSegs (int lump)
       linedef = (unsigned short)SHORT(ml->linedef); // [FG] extended nodes
 
       // UDMF
-      if (linedef == (ushort)0xFFFF)
+      if (linedef == (unsigned short)0xFFFF)
           linedef = NO_INDEX;
 
       ldef = &lines[linedef];
@@ -292,10 +292,10 @@ void P_LoadSubsectors (int lump)
       subsectors[i].firstline = (unsigned short)SHORT(((mapsubsector_t *) data)[i].firstseg);
 
       // UDMF
-      if (subsectors[i].numlines == (ushort)0xFFFF)
+      if (subsectors[i].numlines == (unsigned short)0xFFFF)
           subsectors[i].numlines = NO_INDEX;
 
-      if (subsectors[i].firstline == (ushort)0xFFFF)
+      if (subsectors[i].firstline == (unsigned short)0xFFFF)
           subsectors[i].firstline = NO_INDEX;
 
     }
@@ -576,10 +576,10 @@ void P_LoadLineDefs (int lump)
       ld->sidenum[1] = SHORT(mld->sidenum[1]);
 
       // UDMF
-      if (ld->sidenum[0] == (ushort)0xFFFF)
+      if (ld->sidenum[0] == (unsigned short)0xFFFF)
         ld->sidenum[0] = NO_INDEX;
 
-      if (ld->sidenum[1] == (ushort)0xFFFF)
+      if (ld->sidenum[1] == (unsigned short)0xFFFF)
         ld->sidenum[1] = NO_INDEX;
 
       // killough 4/4/98: support special sidedef interpretation below
