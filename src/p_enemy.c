@@ -2845,8 +2845,8 @@ void A_LineEffect(mobj_t *mo)
 	  player_t *oldplayer = mo->player;          // Remember player status
 	  mo->player = &player;                      // Fake player
 	  player.health = 100;                       // Alive player
-	  junk.args[0] = (short)mo->state->misc2;        // Sector tag for linedef
-		if (!P_UseSpecialLine(mo, &junk, 0, false)) // Try using it
+	  junk.args[0] = (short)mo->state->misc2;    // Sector tag for linedef
+	  if (!P_UseSpecialLine(mo, &junk, 0, false))// Try using it
 	    P_CrossSpecialLine(&junk, 0, mo, false); // Try crossing it
 	  if (!junk.special)                         // If type cleared,
 	    mo->intflags |= MIF_LINEDONE;            // no more for this thing
