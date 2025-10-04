@@ -222,13 +222,9 @@ static void ArchiveWorld(void)
     // do lines
     for (i = 0, li = lines; i < numlines; i++, li++)
     {
-        write16(li->flags,
+        write32(li->flags,
                 li->special,
                 li->id);
-
-        write32(li->angle,
-                li->frontmusic,
-                li->backmusic);
 
         // Woof!
         writep(li->frontsector,
@@ -289,13 +285,9 @@ static void UnArchiveWorld(void)
     // do lines
     for (i = 0, li = lines; i < numlines; i++, li++)
     {
-        li->flags = read16();
-        li->special = read16();
-        li->id = read16();
-        
-        li->angle = read32();
-        li->frontmusic = read32();
-        li->backmusic = read32();
+        li->flags = read32();
+        li->special = read32();
+        li->id = read32();
 
         // Woof!
         li->frontsector = readp();

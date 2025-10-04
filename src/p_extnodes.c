@@ -277,6 +277,17 @@ nodeformat_t P_CheckUDMFNodeFormat(int lumpnum)
 {
     nodeformat_t format = NFMT_NANO;
 
+    //!
+    // @category mod
+    //
+    // Forces rebuilding of nodes.
+    //
+
+    if (M_CheckParm("-bsp"))
+    {
+        return NFMT_NANO;
+    }
+
     if(W_LumpExistsWithName(lumpnum, "ZNODES"))
     {
       byte *lump_data = W_CacheLumpNum(lumpnum, PU_STATIC);
@@ -355,10 +366,19 @@ void P_LoadSegs_DEEP(int lump)
         li->offset = (SHORT(ml->offset)) << 16;
 
         linedef = (unsigned short)SHORT(ml->linedef); // [FG] extended nodes
+
+        // UDMF
+        if (linedef == (ushort)0xFFFF)
+            linedef = NO_INDEX;
+
         ldef = &lines[linedef];
         li->linedef = ldef;
 
         side = SHORT(ml->side);
+        // e6y: fix wrong side index
+        if(side != 0 && side != 1)
+            side = 1;
+
         li->sidedef = &sides[ldef->sidenum[side]];
         li->frontsector = sides[ldef->sidenum[side]].sector;
 
@@ -403,6 +423,9 @@ void P_LoadSubsectors_DEEP(int lump)
     {
         // [MB] 2020-04-22: Fix endianess for DeePBSDP V4 nodes
         subsectors[i].numlines = (unsigned short)SHORT(data[i].numsegs);
+        // UDMF
+        if (subsectors[i].numlines == (ushort)0xFFFF)
+            subsectors[i].numlines = NO_INDEX;
         subsectors[i].firstline = LONG(data[i].firstseg);
     }
 
@@ -478,9 +501,18 @@ static void P_LoadSegs_XNOD(byte *data)
         li->v2 = &vertexes[v2];
 
         linedef = (unsigned short)SHORT(ml->linedef);
+
+        // UDMF
+        if (linedef == (ushort)0xFFFF)
+            linedef = NO_INDEX;
+
         ldef = &lines[linedef];
         li->linedef = ldef;
         side = ml->side;
+
+        // e6y: fix wrong side index
+        if(side != 0 && side != 1)
+            side = 1;
 
         // Andrey Budko: check for wrong indexes
         if ((unsigned)ldef->sidenum[side] >= (unsigned)numsides)

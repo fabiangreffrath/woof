@@ -163,7 +163,7 @@ typedef struct {
 #define NF_SUBSECTOR_VANILLA 0x8000
 #define NF_SUBSECTOR    0x80000000
  // [FG] extended nodes
-#define NO_INDEX        ((unsigned short)-1)
+#define NO_INDEX        ((unsigned int)-1)
 
 typedef struct {
   short x;  // Partition line from (x,y) to x+dx,y+dy)
