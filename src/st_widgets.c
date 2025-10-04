@@ -436,7 +436,7 @@ boolean ST_MessagesResponder(event_t *ev)
 
     if (!chat_on)
     {
-        if (M_InputActivated(input_chat_enter)) // phares
+        if (M_InputActivated(input_msgreview)) // phares
         {
             //jff 2/26/98 toggle list of messages
             message_review = true;
@@ -925,7 +925,7 @@ static void UpdateDM(sbe_widget_t *widget)
         }
 
         offset += M_snprintf(string + offset, sizeof(string) - offset,
-                             "\x1b%c%d/%d ", (i == displayplayer) ?
+                             "\x1b%c%02d/%02d ", (i == displayplayer) ?
                              '0' + cr_blue : '0' + CR_GRAY, result, others);
     }
 
@@ -1097,30 +1097,30 @@ struct
     const char *col;
 } static const colorize_strings[] = {
     // [Woof!] colorize keycard and skull key messages
-    {&s_GOTBLUECARD,     CR_BLUE2, " blue "  },
-    {&s_GOTBLUESKUL,     CR_BLUE2, " blue "  },
-    {&s_GOTREDCARD,      CR_RED,   " red "   },
-    {&s_GOTREDSKULL,     CR_RED,   " red "   },
-    {&s_GOTYELWCARD,     CR_GOLD,  " yellow "},
-    {&s_GOTYELWSKUL,     CR_GOLD,  " yellow "},
-    {&s_PD_BLUEC,        CR_BLUE2, " blue "  },
-    {&s_PD_BLUEK,        CR_BLUE2, " blue "  },
-    {&s_PD_BLUEO,        CR_BLUE2, " blue "  },
-    {&s_PD_BLUES,        CR_BLUE2, " blue "  },
-    {&s_PD_REDC,         CR_RED,   " red "   },
-    {&s_PD_REDK,         CR_RED,   " red "   },
-    {&s_PD_REDO,         CR_RED,   " red "   },
-    {&s_PD_REDS,         CR_RED,   " red "   },
-    {&s_PD_YELLOWC,      CR_GOLD,  " yellow "},
-    {&s_PD_YELLOWK,      CR_GOLD,  " yellow "},
-    {&s_PD_YELLOWO,      CR_GOLD,  " yellow "},
-    {&s_PD_YELLOWS,      CR_GOLD,  " yellow "},
+    {&s_GOTBLUECARD,     CR_BLUE2, "blue"  },
+    {&s_GOTBLUESKUL,     CR_BLUE2, "blue"  },
+    {&s_GOTREDCARD,      CR_RED,   "red"   },
+    {&s_GOTREDSKULL,     CR_RED,   "red"   },
+    {&s_GOTYELWCARD,     CR_GOLD,  "yellow"},
+    {&s_GOTYELWSKUL,     CR_GOLD,  "yellow"},
+    {&s_PD_BLUEC,        CR_BLUE2, "blue"  },
+    {&s_PD_BLUEK,        CR_BLUE2, "blue"  },
+    {&s_PD_BLUEO,        CR_BLUE2, "blue"  },
+    {&s_PD_BLUES,        CR_BLUE2, "blue"  },
+    {&s_PD_REDC,         CR_RED,   "red"   },
+    {&s_PD_REDK,         CR_RED,   "red"   },
+    {&s_PD_REDO,         CR_RED,   "red"   },
+    {&s_PD_REDS,         CR_RED,   "red"   },
+    {&s_PD_YELLOWC,      CR_GOLD,  "yellow"},
+    {&s_PD_YELLOWK,      CR_GOLD,  "yellow"},
+    {&s_PD_YELLOWO,      CR_GOLD,  "yellow"},
+    {&s_PD_YELLOWS,      CR_GOLD,  "yellow"},
 
     // [Woof!] colorize multi-player messages
-    {&s_HUSTR_PLRGREEN,  CR_GREEN, "Green: " },
-    {&s_HUSTR_PLRINDIGO, CR_GRAY,  "Indigo: "},
-    {&s_HUSTR_PLRBROWN,  CR_BROWN, "Brown: " },
-    {&s_HUSTR_PLRRED,    CR_RED,   "Red: "   },
+    {&s_HUSTR_PLRGREEN,  CR_GREEN, "Green:" },
+    {&s_HUSTR_PLRINDIGO, CR_GRAY,  "Indigo:"},
+    {&s_HUSTR_PLRBROWN,  CR_BROWN, "Brown:" },
+    {&s_HUSTR_PLRRED,    CR_RED,   "Red:"   },
 };
 
 static char* PrepareColor(const char *str, const char *col)
@@ -1129,7 +1129,7 @@ static char* PrepareColor(const char *str, const char *col)
 
     M_snprintf(col_replace, sizeof(col_replace),
                ORIG_S "%s" ORIG_S, col);
-    str_replace = M_StringReplace(str, col, col_replace);
+    str_replace = M_StringReplaceWord(str, col, col_replace);
 
     return str_replace;
 }

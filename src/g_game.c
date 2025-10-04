@@ -204,8 +204,8 @@ int     turnheld;       // for accelerative turning
 boolean mousebuttons[NUM_MOUSE_BUTTONS];
 
 // mouse values are used once
-static int mousex;
-static int mousey;
+static float mousex;
+static float mousey;
 boolean dclick;
 
 static ticcmd_t basecmd;
@@ -400,20 +400,20 @@ static int quickstart_cache_tics;
 static boolean quickstart_queued;
 static float axis_turn_tic;
 static float gyro_turn_tic;
-static int mousex_tic;
+static float mousex_tic;
 
 static void ClearQuickstartTic(void)
 {
   axis_turn_tic = 0.0f;
   gyro_turn_tic = 0.0f;
-  mousex_tic = 0;
+  mousex_tic = 0.0f;
 }
 
 static void ApplyQuickstartCache(ticcmd_t *cmd, boolean strafe)
 {
   static float axis_turn_cache[TICRATE];
   static float gyro_turn_cache[TICRATE];
-  static int mousex_cache[TICRATE];
+  static float mousex_cache[TICRATE];
   static short angleturn_cache[TICRATE];
   static int index;
 
@@ -426,7 +426,7 @@ static void ApplyQuickstartCache(ticcmd_t *cmd, boolean strafe)
   {
     axes[AXIS_TURN] = 0.0f;
     gyro_axes[GYRO_TURN] = 0.0f;
-    mousex = 0;
+    mousex = 0.0f;
 
     if (strafe)
     {
@@ -477,14 +477,14 @@ void G_PrepMouseTiccmd(void)
   {
     localview.rawangle -= G_CalcMouseAngle(mousex);
     basecmd.angleturn = G_CarryAngle(localview.rawangle);
-    mousex = 0;
+    mousex = 0.0f;
   }
 
   if (mousey && STRICTMODE(freelook))
   {
     localview.rawpitch += G_CalcMousePitch(mousey);
     basecmd.pitch = G_CarryPitch(localview.rawpitch);
-    mousey = 0;
+    mousey = 0.0f;
   }
 }
 
@@ -756,7 +756,7 @@ void G_BuildTiccmd(ticcmd_t* cmd)
   ClearQuickstartTic();
   I_ResetGamepadAxes();
   I_ResetGyroAxes();
-  mousex = mousey = 0;
+  mousex = mousey = 0.0f;
   UpdateLocalView();
   G_UpdateCarry();
 
@@ -889,7 +889,7 @@ void G_ClearInput(void)
   ClearQuickstartTic();
   I_ResetGamepadState();
   I_FlushGamepadSensorEvents();
-  mousex = mousey = 0;
+  mousex = mousey = 0.0f;
   ClearLocalView();
   G_ClearCarry();
   memset(&basecmd, 0, sizeof(basecmd));
@@ -1030,6 +1030,8 @@ static void G_DoLoadLevel(void)
   //jff 4/26/98 wake up the status bar in case were coming out of a DM demo
   // killough 5/13/98: in case netdemo has consoleplayer other than green
   ST_Start();
+
+  wi_overlay = false;
 
   // killough: make -timedemo work on multilevel demos
   // Move to end of function to minimize noise -- killough 2/22/98:
@@ -1305,9 +1307,9 @@ boolean G_MovementResponder(event_t *ev)
   switch (ev->type)
   {
     case ev_mouse:
-      mousex_tic += ev->data1.i;
-      mousex += ev->data1.i;
-      mousey -= ev->data2.i;
+      mousex_tic += ev->data1.f;
+      mousex += ev->data1.f;
+      mousey -= ev->data2.f;
       return true;
 
     case ev_joystick:
@@ -3012,7 +3014,7 @@ void G_Ticker(void)
   // P_Ticker() does not stop netgames if a menu is activated, so
   // we do not need to stop if a menu is pulled up during netgames.
 
-  if (paused & 2 || (!demoplayback && menuactive && !netgame))
+  if (paused & 2 || ((!demoplayback || menu_pause_demos) && menuactive && !netgame))
     basetic++;  // For revenant tracers and RNG -- we must maintain sync
   else
     {
@@ -4149,6 +4151,7 @@ void G_InitNew(skill_t skill, int episode, int map)
   AM_clearMarks();
 
   M_LoadOptions();     // killough 11/98: read OPTIONS lump from wad
+  AM_ApplyColors(false);
 
   if (demo_version == DV_MBF)
     G_MBFComp();
@@ -4774,9 +4777,10 @@ boolean G_CheckDemoStatus(void)
       int endtime = I_GetTime_RealTime();
       // killough -- added fps information and made it work for longer demos:
       unsigned realtics = endtime-starttime;
-      I_Success("Timed %u gametics in %u realtics = %-.1f frames per second",
-               (unsigned) gametic,realtics,
-               (unsigned) gametic * (double) TICRATE / realtics);
+      I_MessageBox("Timed %u gametics in %u realtics = %-.1f frames per second",
+                   (unsigned)gametic, realtics,
+                   (unsigned)gametic * (double)TICRATE / realtics);
+      I_SafeExit(0);
     }
 
   if (demoplayback)

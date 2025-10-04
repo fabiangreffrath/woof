@@ -147,7 +147,7 @@ void P_StartButton
       return;
     }
     
-  I_Error("no button slots left!");
+  I_Printf(VB_WARNING, "no button slots left!");
 }
 
 //
@@ -629,6 +629,20 @@ P_UseSpecialLine
     case 2060: case 2066: case 2090: case 2096:
       EV_ChangeMusic(line, side);
       return true;
+
+    case 2078:
+      line->special = 0;
+      // fallthrough
+
+    case 2079:
+    {
+      int colormap_index = side ? line->backtint : line->fronttint;
+      for (int s = -1; (s = P_FindSectorFromLineTag(line, s)) >= 0;)
+      {
+        sectors[s].tint = colormap_index;
+      }
+      break;
+    }
 
       // killough 1/31/98: factored out compatibility check;
       // added inner switch, relaxed check to demo_compatibility

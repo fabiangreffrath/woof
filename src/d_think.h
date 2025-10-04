@@ -27,20 +27,15 @@
 struct player_s;
 struct pspdef_s;
 struct mobj_s;
-struct thinker_s;
 
 typedef void (*actionf_v)(void);
-typedef void (*actionf_pm)(struct mobj_s *);
-typedef void (*actionf_pt)(struct thinker_s *);
-typedef void (*actionf_pv)(void *);
+typedef void (*actionf_p1)(struct mobj_s *);
 typedef void (*actionf_p2)(struct player_s *, struct pspdef_s *);
 
 typedef union actionf_u
 {
   actionf_v v;
-  actionf_pm pm;
-  actionf_pt pt;
-  actionf_pv pv;
+  actionf_p1 p1;
   actionf_p2 p2;
 } actionf_t;
 

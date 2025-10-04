@@ -1317,6 +1317,32 @@ static const deh_flag_t deh_weaponflags_mbf21[] = {
 // that Dehacked uses and is useless to us.
 // * states are base zero and have a dummy #0 (TROO)
 
+enum
+{
+  // Vanilla
+  DEH_STATE_SPRITE_NUMBER,
+  DEH_STATE_SPRITE_SUBNUMBER,
+  DEH_STATE_DURATION,
+  DEH_STATE_NEXT_FRAME,
+  DEH_STATE_CODEP_FRAME,
+  DEH_STATE_UNKNOWN1,
+  DEH_STATE_UNKNOWN2,
+
+  // MBF21
+  DEH_STATE_ARGS1,
+  DEH_STATE_ARGS2,
+  DEH_STATE_ARGS3,
+  DEH_STATE_ARGS4,
+  DEH_STATE_ARGS5,
+  DEH_STATE_ARGS6,
+  DEH_STATE_ARGS7,
+  DEH_STATE_ARGS8,
+  DEH_STATE_MBF21_BITS,
+
+  // ID24
+  DEH_STATE_TRANMAP,
+};
+
 static const char *deh_state[] =
 {
   "Sprite number",    // .sprite (spritenum_t) // an enum
@@ -1336,6 +1362,7 @@ static const char *deh_state[] =
   "Args7",            // .args[6] (long)
   "Args8",            // .args[7] (long)
   "MBF21 Bits",       // .flags
+  "Tranmap",          // .tranmap
 };
 
 static const deh_flag_t deh_stateflags_mbf21[] = {
@@ -1480,94 +1507,94 @@ static const deh_bexptr_t deh_bexptrs[] = {
     {{.p2 = A_FirePlasma}, "A_FirePlasma"},
     {{.p2 = A_BFGsound}, "A_BFGsound"},
     {{.p2 = A_FireBFG}, "A_FireBFG"},
-    {{.pm = A_BFGSpray}, "A_BFGSpray"},
-    {{.pm = A_Explode}, "A_Explode"},
-    {{.pm = A_Pain}, "A_Pain"},
-    {{.pm = A_PlayerScream}, "A_PlayerScream"},
-    {{.pm = A_Fall}, "A_Fall"},
-    {{.pm = A_XScream}, "A_XScream"},
-    {{.pm = A_Look}, "A_Look"},
-    {{.pm = A_Chase}, "A_Chase"},
-    {{.pm = A_FaceTarget}, "A_FaceTarget"},
-    {{.pm = A_PosAttack}, "A_PosAttack"},
-    {{.pm = A_Scream}, "A_Scream"},
-    {{.pm = A_SPosAttack}, "A_SPosAttack"},
-    {{.pm = A_VileChase}, "A_VileChase"},
-    {{.pm = A_VileStart}, "A_VileStart"},
-    {{.pm = A_VileTarget}, "A_VileTarget"},
-    {{.pm = A_VileAttack}, "A_VileAttack"},
-    {{.pm = A_StartFire}, "A_StartFire"},
-    {{.pm = A_Fire}, "A_Fire"},
-    {{.pm = A_FireCrackle}, "A_FireCrackle"},
-    {{.pm = A_Tracer}, "A_Tracer"},
-    {{.pm = A_SkelWhoosh}, "A_SkelWhoosh"},
-    {{.pm = A_SkelFist}, "A_SkelFist"},
-    {{.pm = A_SkelMissile}, "A_SkelMissile"},
-    {{.pm = A_FatRaise}, "A_FatRaise"},
-    {{.pm = A_FatAttack1}, "A_FatAttack1"},
-    {{.pm = A_FatAttack2}, "A_FatAttack2"},
-    {{.pm = A_FatAttack3}, "A_FatAttack3"},
-    {{.pm = A_BossDeath}, "A_BossDeath"},
-    {{.pm = A_CPosAttack}, "A_CPosAttack"},
-    {{.pm = A_CPosRefire}, "A_CPosRefire"},
-    {{.pm = A_TroopAttack}, "A_TroopAttack"},
-    {{.pm = A_SargAttack}, "A_SargAttack"},
-    {{.pm = A_HeadAttack}, "A_HeadAttack"},
-    {{.pm = A_BruisAttack}, "A_BruisAttack"},
-    {{.pm = A_SkullAttack}, "A_SkullAttack"},
-    {{.pm = A_Metal}, "A_Metal"},
-    {{.pm = A_SpidRefire}, "A_SpidRefire"},
-    {{.pm = A_BabyMetal}, "A_BabyMetal"},
-    {{.pm = A_BspiAttack}, "A_BspiAttack"},
-    {{.pm = A_Hoof}, "A_Hoof"},
-    {{.pm = A_CyberAttack}, "A_CyberAttack"},
-    {{.pm = A_PainAttack}, "A_PainAttack"},
-    {{.pm = A_PainDie}, "A_PainDie"},
-    {{.pm = A_KeenDie}, "A_KeenDie"},
-    {{.pm = A_BrainPain}, "A_BrainPain"},
-    {{.pm = A_BrainScream}, "A_BrainScream"},
-    {{.pm = A_BrainDie}, "A_BrainDie"},
-    {{.pm = A_BrainAwake}, "A_BrainAwake"},
-    {{.pm = A_BrainSpit}, "A_BrainSpit"},
-    {{.pm = A_SpawnSound}, "A_SpawnSound"},
-    {{.pm = A_SpawnFly}, "A_SpawnFly"},
-    {{.pm = A_BrainExplode}, "A_BrainExplode"},
-    {{.pm = A_Detonate}, "A_Detonate"}, // killough 8/9/98
-    {{.pm = A_Mushroom}, "A_Mushroom"}, // killough 10/98
-    {{.pm = A_Die}, "A_Die"}, // killough 11/98
-    {{.pm = A_Spawn}, "A_Spawn"}, // killough 11/98
-    {{.pm = A_Turn}, "A_Turn"}, // killough 11/98
-    {{.pm = A_Face}, "A_Face"}, // killough 11/98
-    {{.pm = A_Scratch}, "A_Scratch"}, // killough 11/98
-    {{.pm = A_PlaySound}, "A_PlaySound"}, // killough 11/98
-    {{.pm = A_RandomJump}, "A_RandomJump"}, // killough 11/98
-    {{.pm = A_LineEffect}, "A_LineEffect"}, // killough 11/98
+    {{.p1 = A_BFGSpray}, "A_BFGSpray"},
+    {{.p1 = A_Explode}, "A_Explode"},
+    {{.p1 = A_Pain}, "A_Pain"},
+    {{.p1 = A_PlayerScream}, "A_PlayerScream"},
+    {{.p1 = A_Fall}, "A_Fall"},
+    {{.p1 = A_XScream}, "A_XScream"},
+    {{.p1 = A_Look}, "A_Look"},
+    {{.p1 = A_Chase}, "A_Chase"},
+    {{.p1 = A_FaceTarget}, "A_FaceTarget"},
+    {{.p1 = A_PosAttack}, "A_PosAttack"},
+    {{.p1 = A_Scream}, "A_Scream"},
+    {{.p1 = A_SPosAttack}, "A_SPosAttack"},
+    {{.p1 = A_VileChase}, "A_VileChase"},
+    {{.p1 = A_VileStart}, "A_VileStart"},
+    {{.p1 = A_VileTarget}, "A_VileTarget"},
+    {{.p1 = A_VileAttack}, "A_VileAttack"},
+    {{.p1 = A_StartFire}, "A_StartFire"},
+    {{.p1 = A_Fire}, "A_Fire"},
+    {{.p1 = A_FireCrackle}, "A_FireCrackle"},
+    {{.p1 = A_Tracer}, "A_Tracer"},
+    {{.p1 = A_SkelWhoosh}, "A_SkelWhoosh"},
+    {{.p1 = A_SkelFist}, "A_SkelFist"},
+    {{.p1 = A_SkelMissile}, "A_SkelMissile"},
+    {{.p1 = A_FatRaise}, "A_FatRaise"},
+    {{.p1 = A_FatAttack1}, "A_FatAttack1"},
+    {{.p1 = A_FatAttack2}, "A_FatAttack2"},
+    {{.p1 = A_FatAttack3}, "A_FatAttack3"},
+    {{.p1 = A_BossDeath}, "A_BossDeath"},
+    {{.p1 = A_CPosAttack}, "A_CPosAttack"},
+    {{.p1 = A_CPosRefire}, "A_CPosRefire"},
+    {{.p1 = A_TroopAttack}, "A_TroopAttack"},
+    {{.p1 = A_SargAttack}, "A_SargAttack"},
+    {{.p1 = A_HeadAttack}, "A_HeadAttack"},
+    {{.p1 = A_BruisAttack}, "A_BruisAttack"},
+    {{.p1 = A_SkullAttack}, "A_SkullAttack"},
+    {{.p1 = A_Metal}, "A_Metal"},
+    {{.p1 = A_SpidRefire}, "A_SpidRefire"},
+    {{.p1 = A_BabyMetal}, "A_BabyMetal"},
+    {{.p1 = A_BspiAttack}, "A_BspiAttack"},
+    {{.p1 = A_Hoof}, "A_Hoof"},
+    {{.p1 = A_CyberAttack}, "A_CyberAttack"},
+    {{.p1 = A_PainAttack}, "A_PainAttack"},
+    {{.p1 = A_PainDie}, "A_PainDie"},
+    {{.p1 = A_KeenDie}, "A_KeenDie"},
+    {{.p1 = A_BrainPain}, "A_BrainPain"},
+    {{.p1 = A_BrainScream}, "A_BrainScream"},
+    {{.p1 = A_BrainDie}, "A_BrainDie"},
+    {{.p1 = A_BrainAwake}, "A_BrainAwake"},
+    {{.p1 = A_BrainSpit}, "A_BrainSpit"},
+    {{.p1 = A_SpawnSound}, "A_SpawnSound"},
+    {{.p1 = A_SpawnFly}, "A_SpawnFly"},
+    {{.p1 = A_BrainExplode}, "A_BrainExplode"},
+    {{.p1 = A_Detonate}, "A_Detonate"}, // killough 8/9/98
+    {{.p1 = A_Mushroom}, "A_Mushroom"}, // killough 10/98
+    {{.p1 = A_Die}, "A_Die"}, // killough 11/98
+    {{.p1 = A_Spawn}, "A_Spawn"}, // killough 11/98
+    {{.p1 = A_Turn}, "A_Turn"}, // killough 11/98
+    {{.p1 = A_Face}, "A_Face"}, // killough 11/98
+    {{.p1 = A_Scratch}, "A_Scratch"}, // killough 11/98
+    {{.p1 = A_PlaySound}, "A_PlaySound"}, // killough 11/98
+    {{.p1 = A_RandomJump}, "A_RandomJump"}, // killough 11/98
+    {{.p1 = A_LineEffect}, "A_LineEffect"}, // killough 11/98
 
     {{.p2 = A_FireOldBFG},
      "A_FireOldBFG"}, // killough 7/19/98: classic BFG firing function
-    {{.pm = A_BetaSkullAttack},
+    {{.p1 = A_BetaSkullAttack},
      "A_BetaSkullAttack"}, // killough 10/98: beta lost souls attacked different
-    {{.pm = A_Stop}, "A_Stop"},
+    {{.p1 = A_Stop}, "A_Stop"},
 
     // [XA] New mbf21 codepointers
-    {{.pm = A_SpawnObject}, "A_SpawnObject", 8},
-    {{.pm = A_MonsterProjectile}, "A_MonsterProjectile", 5},
-    {{.pm = A_MonsterBulletAttack},"A_MonsterBulletAttack", 5, {0, 0, 1, 3, 5}},
-    {{.pm = A_MonsterMeleeAttack}, "A_MonsterMeleeAttack", 4, {3, 8, 0, 0}},
-    {{.pm = A_RadiusDamage}, "A_RadiusDamage", 2},
-    {{.pm = A_NoiseAlert}, "A_NoiseAlert", 0},
-    {{.pm = A_HealChase}, "A_HealChase", 2},
-    {{.pm = A_SeekTracer}, "A_SeekTracer", 2},
-    {{.pm = A_FindTracer}, "A_FindTracer", 2, {0, 10}},
-    {{.pm = A_ClearTracer}, "A_ClearTracer", 0},
-    {{.pm = A_JumpIfHealthBelow}, "A_JumpIfHealthBelow", 2},
-    {{.pm = A_JumpIfTargetInSight}, "A_JumpIfTargetInSight", 2},
-    {{.pm = A_JumpIfTargetCloser}, "A_JumpIfTargetCloser", 2},
-    {{.pm = A_JumpIfTracerInSight}, "A_JumpIfTracerInSight", 2},
-    {{.pm = A_JumpIfTracerCloser}, "A_JumpIfTracerCloser", 2},
-    {{.pm = A_JumpIfFlagsSet}, "A_JumpIfFlagsSet", 3},
-    {{.pm = A_AddFlags}, "A_AddFlags", 2},
-    {{.pm = A_RemoveFlags}, "A_RemoveFlags", 2},
+    {{.p1 = A_SpawnObject}, "A_SpawnObject", 8},
+    {{.p1 = A_MonsterProjectile}, "A_MonsterProjectile", 5},
+    {{.p1 = A_MonsterBulletAttack},"A_MonsterBulletAttack", 5, {0, 0, 1, 3, 5}},
+    {{.p1 = A_MonsterMeleeAttack}, "A_MonsterMeleeAttack", 4, {3, 8, 0, 0}},
+    {{.p1 = A_RadiusDamage}, "A_RadiusDamage", 2},
+    {{.p1 = A_NoiseAlert}, "A_NoiseAlert", 0},
+    {{.p1 = A_HealChase}, "A_HealChase", 2},
+    {{.p1 = A_SeekTracer}, "A_SeekTracer", 2},
+    {{.p1 = A_FindTracer}, "A_FindTracer", 2, {0, 10}},
+    {{.p1 = A_ClearTracer}, "A_ClearTracer", 0},
+    {{.p1 = A_JumpIfHealthBelow}, "A_JumpIfHealthBelow", 2},
+    {{.p1 = A_JumpIfTargetInSight}, "A_JumpIfTargetInSight", 2},
+    {{.p1 = A_JumpIfTargetCloser}, "A_JumpIfTargetCloser", 2},
+    {{.p1 = A_JumpIfTracerInSight}, "A_JumpIfTracerInSight", 2},
+    {{.p1 = A_JumpIfTracerCloser}, "A_JumpIfTracerCloser", 2},
+    {{.p1 = A_JumpIfFlagsSet}, "A_JumpIfFlagsSet", 3},
+    {{.p1 = A_AddFlags}, "A_AddFlags", 2},
+    {{.p1 = A_RemoveFlags}, "A_RemoveFlags", 2},
     {{.p2 = A_WeaponProjectile}, "A_WeaponProjectile", 5},
     {{.p2 = A_WeaponBulletAttack}, "A_WeaponBulletAttack", 5, {0, 0, 1, 5, 3}},
     {{.p2 = A_WeaponMeleeAttack}, "A_WeaponMeleeAttack", 5, {2, 10, 1 * FRACUNIT, 0, 0}},
@@ -2148,90 +2175,90 @@ static void deh_procFrame(DEHFILE *fpin, char *line)
             deh_log("Bad data pair in '%s'\n", inbuffer);
             continue;
         }
-        if (!strcasecmp(key, deh_state[0])) // Sprite number
+        if (!strcasecmp(key, deh_state[DEH_STATE_SPRITE_NUMBER]))
         {
             deh_log(" - sprite = %ld\n", value);
             states[indexnum].sprite = (spritenum_t)value;
         }
-        else if (!strcasecmp(key, deh_state[1])) // Sprite subnumber
+        else if (!strcasecmp(key, deh_state[DEH_STATE_SPRITE_SUBNUMBER]))
         {
             deh_log(" - frame = %ld\n", value);
             states[indexnum].frame = value; // long
         }
-        else if (!strcasecmp(key, deh_state[2])) // Duration
+        else if (!strcasecmp(key, deh_state[DEH_STATE_DURATION]))
         {
             deh_log(" - tics = %ld\n", value);
             states[indexnum].tics = value; // long
         }
-        else if (!strcasecmp(key, deh_state[3])) // Next frame
+        else if (!strcasecmp(key, deh_state[DEH_STATE_NEXT_FRAME]))
         {
             deh_log(" - nextstate = %ld\n", value);
             states[indexnum].nextstate = (statenum_t)value;
         }
-        else if (!strcasecmp(key, deh_state[4])) // Codep frame (not set in Frame deh block)
+        else if (!strcasecmp(key, deh_state[DEH_STATE_CODEP_FRAME])) // not set in Frame deh block
         {
             deh_log(" - codep, should not be set in Frame section!\n");
             /* nop */;
         }
-        else if (!strcasecmp(key, deh_state[5])) // Unknown 1
+        else if (!strcasecmp(key, deh_state[DEH_STATE_UNKNOWN1]))
         {
             deh_log(" - misc1 = %ld\n", value);
             states[indexnum].misc1 = value; // long
         }
-        else if (!strcasecmp(key, deh_state[6])) // Unknown 2
+        else if (!strcasecmp(key, deh_state[DEH_STATE_UNKNOWN2]))
         {
             deh_log(" - misc2 = %ld\n", value);
             states[indexnum].misc2 = value; // long
         }
-        else if (!strcasecmp(key, deh_state[7])) // Args1
+        else if (!strcasecmp(key, deh_state[DEH_STATE_ARGS1]))
         {
             deh_log(" - args[0] = %ld\n", (long)value);
             states[indexnum].args[0] = (long)value; // long
             defined_codeptr_args[indexnum] |= (1 << 0);
         }
-        else if (!strcasecmp(key, deh_state[8])) // Args2
+        else if (!strcasecmp(key, deh_state[DEH_STATE_ARGS2]))
         {
             deh_log(" - args[1] = %ld\n", (long)value);
             states[indexnum].args[1] = (long)value; // long
             defined_codeptr_args[indexnum] |= (1 << 1);
         }
-        else if (!strcasecmp(key, deh_state[9])) // Args3
+        else if (!strcasecmp(key, deh_state[DEH_STATE_ARGS3]))
         {
             deh_log(" - args[2] = %ld\n", (long)value);
             states[indexnum].args[2] = (long)value; // long
             defined_codeptr_args[indexnum] |= (1 << 2);
         }
-        else if (!strcasecmp(key, deh_state[10])) // Args4
+        else if (!strcasecmp(key, deh_state[DEH_STATE_ARGS4]))
         {
             deh_log(" - args[3] = %ld\n", (long)value);
             states[indexnum].args[3] = (long)value; // long
             defined_codeptr_args[indexnum] |= (1 << 3);
         }
-        else if (!strcasecmp(key, deh_state[11])) // Args5
+        else if (!strcasecmp(key, deh_state[DEH_STATE_ARGS5]))
         {
             deh_log(" - args[4] = %ld\n", (long)value);
             states[indexnum].args[4] = (long)value; // long
             defined_codeptr_args[indexnum] |= (1 << 4);
         }
-        else if (!strcasecmp(key, deh_state[12])) // Args6
+        else if (!strcasecmp(key, deh_state[DEH_STATE_ARGS6]))
         {
             deh_log(" - args[5] = %ld\n", (long)value);
             states[indexnum].args[5] = (long)value; // long
             defined_codeptr_args[indexnum] |= (1 << 5);
         }
-        else if (!strcasecmp(key, deh_state[13])) // Args7
+        else if (!strcasecmp(key, deh_state[DEH_STATE_ARGS7]))
         {
             deh_log(" - args[6] = %ld\n", (long)value);
             states[indexnum].args[6] = (long)value; // long
             defined_codeptr_args[indexnum] |= (1 << 6);
         }
-        else if (!strcasecmp(key, deh_state[14])) // Args8
+        else if (!strcasecmp(key, deh_state[DEH_STATE_ARGS8]))
         {
             deh_log(" - args[7] = %ld\n", (long)value);
             states[indexnum].args[7] = (long)value; // long
             defined_codeptr_args[indexnum] |= (1 << 7);
         }
-        else if (!strcasecmp(key, deh_state[15])) // MBF21 Bits
+        else if (!strcasecmp(key, deh_state[DEH_STATE_MBF21_BITS]))
         {
             if (!value)
             {
@@ -2260,6 +2287,18 @@ static void deh_procFrame(DEHFILE *fpin, char *line)
             }
 
             states[indexnum].flags = value;
+        }
+        else if (!strcasecmp(key, deh_state[DEH_STATE_TRANMAP]))
+        {
+            char candidate[9] = {0};
+            M_CopyLumpName(candidate, ptr_lstrip(strval));
+            int len = strlen(candidate);
+            if (len < 1 || len > 8)
+            {
+                deh_log("Bad length for Tranmap lump name '%s'\n", candidate);
+                continue;
+            }
+            states[indexnum].tranmap = W_CacheLumpName(candidate, PU_STATIC);
         }
         else
         {

@@ -17,7 +17,7 @@
 //
 //-----------------------------------------------------------------------------
 
-#include "SDL.h"
+#include <SDL3/SDL_main.h>
 
 #include <stdlib.h>
 #include <locale.h>

@@ -14,7 +14,7 @@
 // DESCRIPTION:
 //
 
-#include "SDL.h"
+#include <SDL3/SDL.h>
 
 #include <math.h>
 #include <string.h>
@@ -48,6 +48,7 @@ enum
 static boolean joy_enable;
 int joy_device, last_joy_device;
 joy_platform_t joy_platform;
+joy_confirm_t joy_confirm;
 static int joy_stick_layout;
 static int joy_forward_sensitivity;
 static int joy_strafe_sensitivity;
@@ -71,6 +72,9 @@ boolean joy_invert_strafe;
 boolean joy_invert_turn;
 boolean joy_invert_look;
 
+int gamepad_confirm = GAMEPAD_SOUTH;
+int gamepad_cancel = GAMEPAD_EAST;
+
 static int *axes_data[NUM_AXES]; // Pointers to ev_joystick event data.
 float axes[NUM_AXES];
 int trigger_threshold;
@@ -85,10 +89,10 @@ static float GetInputValue(int value);
 
 void I_GetRawAxesScaleMenu(boolean move, float *scale, float *limit)
 {
-    *raw_ptr[AXIS_LEFTX] = I_GetAxisState(SDL_CONTROLLER_AXIS_LEFTX);
-    *raw_ptr[AXIS_LEFTY] = I_GetAxisState(SDL_CONTROLLER_AXIS_LEFTY);
-    *raw_ptr[AXIS_RIGHTX] = I_GetAxisState(SDL_CONTROLLER_AXIS_RIGHTX);
-    *raw_ptr[AXIS_RIGHTY] = I_GetAxisState(SDL_CONTROLLER_AXIS_RIGHTY);
+    *raw_ptr[AXIS_LEFTX] = I_GetAxisState(SDL_GAMEPAD_AXIS_LEFTX);
+    *raw_ptr[AXIS_LEFTY] = I_GetAxisState(SDL_GAMEPAD_AXIS_LEFTY);
+    *raw_ptr[AXIS_RIGHTX] = I_GetAxisState(SDL_GAMEPAD_AXIS_RIGHTX);
+    *raw_ptr[AXIS_RIGHTY] = I_GetAxisState(SDL_GAMEPAD_AXIS_RIGHTY);
 
     const float x = GetInputValue(raw[move ? AXIS_STRAFE : AXIS_TURN]);
     const float y = GetInputValue(raw[move ? AXIS_FORWARD : AXIS_LOOK]);
@@ -494,6 +498,9 @@ void I_BindGamepadVariables(void)
     BIND_NUM(joy_platform, PLATFORM_AUTO, PLATFORM_AUTO, NUM_PLATFORMS - 1,
         "Gamepad platform (0 = Auto; 1 = Xbox 360; 2 = Xbox One/Series; "
         "3 = Playstation 3; 4 = Playstation 4; 5 = Playstation 5; 6 = Switch)");
+    BIND_NUM(joy_confirm, CONFIRM_AUTO, CONFIRM_AUTO, CONFIRM_EAST,
+        "Confirm/cancel button preference (0 = Auto; 1 = South/East; "
+        "2 = East/South)");
     BIND_NUM_PADADV(joy_stick_layout, LAYOUT_DEFAULT, 0, NUM_LAYOUTS - 1,
         "Analog stick layout (0 = Off; 1 = Default; 2 = Southpaw; 3 = Legacy; "
         "4 = Legacy Southpaw; 5 = Flick Stick; 6 = Flick Stick Southpaw)");

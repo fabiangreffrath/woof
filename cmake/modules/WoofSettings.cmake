@@ -3,9 +3,6 @@
 include(CheckCCompilerFlag)
 include(CheckLinkerFlag)
 
-# Ninja can suppress colored output, toggle this to enable it again.
-option(FORCE_COLORED_OUTPUT "Always produce ANSI-colored output (GNU/Clang only)." FALSE)
-
 # Add compiler option if compiler supports it.
 function(_checked_add_compile_option FLAG)
     # Turn flag into suitable internal cache variable.
@@ -72,7 +69,6 @@ else()
     _checked_add_compile_option(-Wall)
 endif()
 
-option(ENABLE_WERROR "Treat warnings as errors" OFF)
 if(ENABLE_WERROR)
     if(MSVC)
         _checked_add_compile_option(/WX)
@@ -81,7 +77,6 @@ if(ENABLE_WERROR)
     endif()
 endif()
 
-option(ENABLE_ASAN "Enable ASan" OFF)
 if(ENABLE_ASAN)
     if(MSVC)
         _checked_add_compile_option(-fsanitize=address)
@@ -96,7 +91,6 @@ if(ENABLE_ASAN)
     _checked_add_link_option(-fsanitize=address)
 endif()
 
-option(ENABLE_UBSAN "Enable UBSan" OFF)
 if(ENABLE_UBSAN)
     # Set -Werror to catch "argument unused during compilation" warnings.
     # Also needs to be a link flag for test to pass.
@@ -106,7 +100,6 @@ if(ENABLE_UBSAN)
     _checked_add_link_option(-fsanitize=undefined)
 endif()
 
-option(ENABLE_TSAN "Enable TSan" OFF)
 if(ENABLE_TSAN)
     # Set -Werror to catch "argument unused during compilation" warnings.
     # Also needs to be a link flag for test to pass.
@@ -117,30 +110,18 @@ if(ENABLE_TSAN)
     _checked_add_link_option(-fsanitize=thread)
 endif()
 
-option(ENABLE_HARDENING "Enable hardening flags" OFF)
 if(ENABLE_HARDENING)
     _checked_add_compile_option(-fstack-protector-strong)
     _checked_add_compile_option(-D_FORTIFY_SOURCE=2)
     _checked_add_link_option(-Wl,-z,relro)
 endif()
 
-include(CheckIPOSupported)
-check_ipo_supported(RESULT HAVE_LTO)
-
-include(CMakeDependentOption)
-cmake_dependent_option(ENABLE_LTO "Enable link time optimization" OFF "HAVE_LTO" OFF)
-
-if(${FORCE_COLORED_OUTPUT})
-    _checked_add_compile_option(-fdiagnostics-color=always F_DIAG_COLOR)
-    if (NOT F_DIAG_COLOR)
-        _checked_add_compile_option(-fcolor-diagnostics F_COLOR_DIAG)
-    endif()
-endif()
-
 function(target_woof_settings)
     foreach(target ${ARGN})
         target_compile_options(${target} PRIVATE ${COMMON_COMPILE_OPTIONS})
         target_link_options(${target} PRIVATE ${COMMON_LINK_OPTIONS})
-        set_target_properties(${target} PROPERTIES INTERPROCEDURAL_OPTIMIZATION ${ENABLE_LTO})
+        if(HAVE_LTO)
+            set_target_properties(${target} PROPERTIES INTERPROCEDURAL_OPTIMIZATION TRUE)
+        endif()
     endforeach()
 endfunction()

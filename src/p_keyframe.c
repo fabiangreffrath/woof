@@ -32,6 +32,8 @@
 #include "p_tick.h"
 #include "r_defs.h"
 #include "r_state.h"
+#include "s_musinfo.h"
+#include "s_sound.h"
 #include "st_widgets.h"
 
 #include <stddef.h>
@@ -199,7 +201,8 @@ static void ArchiveWorld(void)
                 sec->ceiling_xoffs,
                 sec->ceiling_yoffs,
                 sec->floor_rotation,
-                sec->ceiling_rotation);
+                sec->ceiling_rotation,
+                sec->tint);
 
         write16(sec->floorpic,
                 sec->ceilingpic,
@@ -266,6 +269,7 @@ static void UnArchiveWorld(void)
         sec->ceiling_yoffs = read32();
         sec->floor_rotation = read32();
         sec->ceiling_rotation = read32();
+        sec->tint = read32();
 
         sec->floorpic = read16();
         sec->ceilingpic = read16();
@@ -321,7 +325,7 @@ static void ArchivePlayState(keyframe_t *keyframe)
     // p_tick.h
     writex(&thinkercap, sizeof(thinkercap), 1);
     writex(thinkerclasscap, sizeof(thinker_t), NUMTHCLASS);
-    keyframe->thinkers = M_CopyArena(thinkers_arena);
+    keyframe->thinkers = M_ArenaCopy(thinkers_arena);
 
     // p_map.h
     write32(floatok,
@@ -342,7 +346,7 @@ static void ArchivePlayState(keyframe_t *keyframe)
     writex(tmbbox, sizeof(tmbbox), 1);
 
     writep(headsecnode);
-    keyframe->msecnodes = M_CopyArena(msecnodes_arena);
+    keyframe->msecnodes = M_ArenaCopy(msecnodes_arena);
     
     // p_maputil.h
     write32(opentop,
@@ -361,8 +365,12 @@ static void ArchivePlayState(keyframe_t *keyframe)
     // p_spec.h
     writep(activeceilings,
            activeplats);
-    keyframe->activeceilings = M_CopyArena(activeceilings_arena);
-    keyframe->activeplats = M_CopyArena(activeplats_arena);
+    keyframe->activeceilings = M_ArenaCopy(activeceilings_arena);
+    keyframe->activeplats = M_ArenaCopy(activeplats_arena);
+
+    // music
+    write32(current_musicnum);
+    writex(&musinfo, sizeof(musinfo), 1);
 }
 
 static void UnArchivePlayState(const keyframe_t *keyframe)
@@ -370,7 +378,7 @@ static void UnArchivePlayState(const keyframe_t *keyframe)
     // p_tick.h
     readx(&thinkercap, sizeof(thinkercap), 1);
     readx(thinkerclasscap, sizeof(thinker_t), NUMTHCLASS);
-    M_RestoreArena(thinkers_arena, keyframe->thinkers);
+    M_ArenaRestore(thinkers_arena, keyframe->thinkers);
 
     // p_map.h
     floatok = read32();
@@ -391,7 +399,7 @@ static void UnArchivePlayState(const keyframe_t *keyframe)
     readx(tmbbox, sizeof(tmbbox), 1);
 
     headsecnode = readp();
-    M_RestoreArena(msecnodes_arena, keyframe->msecnodes);
+    M_ArenaRestore(msecnodes_arena, keyframe->msecnodes);
     
     // p_maputil.h
     opentop = read32();
@@ -410,11 +418,16 @@ static void UnArchivePlayState(const keyframe_t *keyframe)
     // p_spec.h
     activeceilings = readp();
     activeplats = readp();
-    M_RestoreArena(activeceilings_arena, keyframe->activeceilings);
-    M_RestoreArena(activeplats_arena, keyframe->activeplats);
+    M_ArenaRestore(activeceilings_arena, keyframe->activeceilings);
+    M_ArenaRestore(activeplats_arena, keyframe->activeplats);
 
     setmobjstate_recursion = 0;
     memset(seenstate_tab, 0, sizeof(statenum_t) * num_states);
+
+    // music
+    current_musicnum = read32();
+    readx(&musinfo, sizeof(musinfo), 1);
+    S_RestartMusic();
 }
 
 static void ArchiveRNG(void)
@@ -505,10 +518,10 @@ void P_LoadKeyframe(const keyframe_t *keyframe)
 void P_FreeKeyframe(keyframe_t *keyframe)
 {
     free(keyframe->buffer);
-    M_FreeArenaCopy(keyframe->thinkers);
-    M_FreeArenaCopy(keyframe->msecnodes);
-    M_FreeArenaCopy(keyframe->activeceilings);
-    M_FreeArenaCopy(keyframe->activeplats);
+    M_ArenaFreeCopy(keyframe->thinkers);
+    M_ArenaFreeCopy(keyframe->msecnodes);
+    M_ArenaFreeCopy(keyframe->activeceilings);
+    M_ArenaFreeCopy(keyframe->activeplats);
     free(keyframe);
 }
 

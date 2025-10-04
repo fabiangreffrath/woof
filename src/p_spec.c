@@ -1777,6 +1777,21 @@ void P_CrossSpecialLine(line_t *line, int side, mobj_t *thing, boolean bossactio
       EV_ChangeMusic(line, side);
       break;
 
+
+    case 2076:
+      line->special = 0;
+      // fallthrough
+
+    case 2077:
+    {
+      int colormap_index = side ? line->backtint : line->fronttint;
+      for (int s = -1; (s = P_FindSectorFromLineTag(line, s)) >= 0;)
+      {
+        sectors[s].tint = colormap_index;
+      }
+      break;
+    }
+
       // Extended walk triggers
 
       // jff 1/29/98 added new linedef types to fill all functions out so that
@@ -2246,6 +2261,20 @@ void P_ShootSpecialLine(mobj_t *thing, line_t *line, int side)
     case 2062: case 2068: case 2092: case 2098:
       EV_ChangeMusic(line, side);
       break;
+
+    case 2080:
+      line->special = 0;
+      // fallthrough
+
+    case 2081:
+    {
+      int colormap_index = side ? line->backtint : line->fronttint;
+      for (int s = -1; (s = P_FindSectorFromLineTag(line, s)) >= 0;)
+      {
+        sectors[s].tint = colormap_index;
+      }
+      break;
+    }
 
       //jff 1/30/98 added new gun linedefs here
       // killough 1/31/98: added demo_compatibility check, added inner switch
@@ -2872,6 +2901,13 @@ void P_SpawnSpecials (void)
       case 2054: case 2055: case 2056:
         EV_RotateOffsetFlat(&lines[i], sectors);
         break;
+
+      case 2075:
+        for (int s = -1; (s = P_FindSectorFromLineTag(&lines[i], s)) >= 0;)
+        {
+          sectors[s].tint = lines[i].fronttint;
+        }
+        break;
       }
 }
 
@@ -2894,7 +2930,7 @@ void P_SpawnSpecials (void)
 // This is the main scrolling code
 // killough 3/7/98
 
-void T_Scroll(scroll_t *s)
+static void T_Scroll(scroll_t *s)
 {
   fixed_t dx = s->dx, dy = s->dy;
 
@@ -2993,6 +3029,11 @@ void T_Scroll(scroll_t *s)
     }
 }
 
+void T_ScrollAdapter(mobj_t *mobj)
+{
+    T_Scroll((scroll_t *)mobj);
+}
+
 //
 // Add_Scroller()
 //
@@ -3014,8 +3055,8 @@ void T_Scroll(scroll_t *s)
 static void Add_Scroller(int type, fixed_t dx, fixed_t dy,
                          int control, int affectee, int accel)
 {
-  scroll_t *s = arena_alloc(thinkers_arena, 1, scroll_t);
-  s->thinker.function.pt = (actionf_pt)T_Scroll;
+  scroll_t *s = arena_alloc(thinkers_arena, scroll_t);
+  s->thinker.function.p1 = T_ScrollAdapter;
   s->type = type;
   s->dx = dx;
   s->dy = dy;
@@ -3222,9 +3263,9 @@ static void P_SpawnScrollers(void)
 
 static void Add_Friction(int friction, int movefactor, int affectee)
 {
-    friction_t *f = arena_alloc(thinkers_arena, 1, friction_t);
+    friction_t *f = arena_alloc(thinkers_arena, friction_t);
 
-    f->thinker.function.pt = (actionf_pt)T_Friction;
+    f->thinker.function.p1 = T_FrictionAdapter;
     f->friction = friction;
     f->movefactor = movefactor;
     f->affectee = affectee;
@@ -3282,6 +3323,11 @@ void T_Friction(friction_t *f)
             }
         node = node->m_snext;
     }
+}
+
+void T_FrictionAdapter(mobj_t *mobj)
+{
+    T_Friction((friction_t *)mobj);
 }
 
 // killough 3/7/98 -- end generalized scroll effects
@@ -3453,9 +3499,9 @@ static void P_SpawnFriction(void)
 static void Add_Pusher(int type, int x_mag, int y_mag,
                        mobj_t *source, int affectee)
 {
-  pusher_t *p = arena_alloc(thinkers_arena, 1, pusher_t);
+  pusher_t *p = arena_alloc(thinkers_arena, pusher_t);
 
-  p->thinker.function.pt = (actionf_pt)T_Pusher;
+  p->thinker.function.p1 = T_PusherAdapter;
   p->source = source;
   p->type = type;
   p->x_mag = x_mag>>FRACBITS;
@@ -3536,7 +3582,7 @@ boolean PIT_PushThing(mobj_t* thing)
 // the effect.
 //
 
-void T_Pusher(pusher_t *p)
+static void T_Pusher(pusher_t *p)
 {
   sector_t *sec;
   mobj_t   *thing;
@@ -3656,6 +3702,11 @@ void T_Pusher(pusher_t *p)
       thing->momy += yspeed<<(FRACBITS-PUSH_FACTOR);
       thing->intflags |= MIF_SCROLLING;
     }
+}
+
+void T_PusherAdapter(mobj_t *mobj)
+{
+    T_Pusher((pusher_t *)mobj);
 }
 
 /////////////////////////////

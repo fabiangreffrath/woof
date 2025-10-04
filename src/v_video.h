@@ -157,20 +157,33 @@ void V_CopyRect(int srcx, int srcy, pixel_t *source, int width, int height,
 
 // killough 11/98: Consolidated V_DrawPatch and V_DrawPatchFlipped
 
-void V_DrawPatchGeneral(int x, int y, struct patch_s *patch, boolean flipped);
+typedef struct
+{
+    int topoffset;
+    int leftoffset;
+    int midoffset;
+    int width;
+    int height;    
+} crop_t;
 
-#define V_DrawPatch(x, y, p) V_DrawPatchGeneral(x, y, p, false)
+void V_DrawPatchGeneral(int x, int y, crop_t rect, struct patch_s *patch,
+                        boolean flipped);
 
-#define V_DrawPatchFlipped(x, y, p) V_DrawPatchGeneral(x, y, p, true)
+#define V_DrawPatch(x, y, p) V_DrawPatchGeneral(x, y, (crop_t){0}, p, false)
+
+#define V_DrawPatchFlipped(x, y, p) V_DrawPatchGeneral(x, y, (crop_t){0}, p, true)
 
 void V_DrawPatchTranslated(int x, int y, struct patch_s *patch, byte *outr);
 
-void V_DrawPatchTRTR(int x, int y, struct patch_s *patch, byte *outr1,
-                     byte *outr2);
+void V_DrawPatchTR(int x, int y, crop_t rect, struct patch_s *patch, byte *outr);
 
-void V_DrawPatchTL(int x, int y, struct patch_s *patch, byte *tl);
+void V_DrawPatchTRTR(int x, int y, crop_t rect, struct patch_s *patch,
+                     byte *outr1, byte *outr2);
 
-void V_DrawPatchTRTL(int x, int y, struct patch_s *patch, byte *outr, byte *tl);
+void V_DrawPatchTL(int x, int y, crop_t rect, struct patch_s *patch, byte *tl);
+
+void V_DrawPatchTRTL(int x, int y, crop_t rect, struct patch_s *patch,
+                     byte *outr, byte *tl);
 
 void V_DrawPatchFullScreen(struct patch_s *patch);
 

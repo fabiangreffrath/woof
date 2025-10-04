@@ -23,9 +23,18 @@
 
 #include "doomtype.h"
 
+typedef struct
+{
+    char *(*func)(void);
+    const char *dir;
+    char *(*check_func)(void);
+    boolean makedir;
+} constructed_dir_t;
+
 boolean M_DirExists(const char *path);
 int M_FileLength(const char *path);
 char *M_TempFile(const char *s);
+boolean M_FileExistsNotDir(const char *filename);
 char *M_FileCaseExists(const char *file);
 boolean M_StrToInt(const char *str, int *result);
 char *M_DirName(const char *path);
@@ -41,6 +50,8 @@ boolean M_StringCopy(char *dest, const char *src, size_t dest_size);
 boolean M_StringConcat(char *dest, const char *src, size_t dest_size);
 char *M_StringReplace(const char *haystack, const char *needle,
                       const char *replacement);
+char *M_StringReplaceWord(const char *haystack, const char *needle,
+                          const char *replacement);
 
 char *M_StringJoinInternal(const char *s[], size_t n);
 #define M_StringJoin(...)                                      \

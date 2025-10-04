@@ -96,10 +96,10 @@ side_t   *sides;
 int       bmapwidth, bmapheight;  // size in mapblocks
 
 // killough 3/1/98: remove blockmap limit internally:
-long      *blockmap;              // was short -- killough
+int32_t      *blockmap;           // was short -- killough
 
 // offsets in blockmap are from here
-long      *blockmaplump;          // was short -- killough
+int32_t      *blockmaplump;       // was short -- killough
 
 fixed_t   bmaporgx, bmaporgy;     // origin of block map
 
@@ -348,8 +348,9 @@ void P_LoadSectors (int lump)
       // killough 4/11/98 sector used to get ceiling lighting:
       ss->ceilinglightsec = -1;
 
+      // ID24 per-sector colormap
       // killough 4/4/98: colormaps:
-      ss->bottommap = ss->midmap = ss->topmap = 0;
+      ss->tint = ss->bottommap = ss->midmap = ss->topmap = 0;
 
       // killough 10/98: sky textures coming from sidedefs:
       ss->floorsky = ss->ceilingsky = 0;
@@ -635,6 +636,7 @@ void P_LoadSideDefs2(int lump)
         case 2063: case 2064: case 2065: case 2066: case 2067: case 2068:
         case 2087: case 2088: case 2089: case 2090: case 2091: case 2092:
         case 2093: case 2094: case 2095: case 2096: case 2097: case 2098:
+        {
           // All of the W1, WR, S1, SR, G1, GR activations can be triggered from
           // the back sidedef (reading the front bottom texture) and triggered
           // from the front sidedef (reading the front upper texture).
@@ -643,8 +645,7 @@ void P_LoadSideDefs2(int lump)
             if (lines[j].sidenum[0] == i)
             {
               // Back triggered
-              lines[j].backmusic = W_CheckNumForName(msd->bottomtexture);
-              if (lines[j].backmusic < 0)
+              if ((lines[j].backmusic = W_CheckNumForName(msd->bottomtexture)) < 0)
               {
                 lines[j].backmusic = 0;
                 sd->bottomtexture = R_TextureNumForName(msd->bottomtexture);
@@ -655,8 +656,7 @@ void P_LoadSideDefs2(int lump)
               }
 
               // Front triggered
-              lines[j].frontmusic = W_CheckNumForName(msd->toptexture);
-              if (lines[j].frontmusic < 0)
+              if ((lines[j].frontmusic = W_CheckNumForName(msd->toptexture)) < 0)
               {
                 lines[j].frontmusic = 0;
                 sd->toptexture = R_TextureNumForName(msd->toptexture);
@@ -667,8 +667,70 @@ void P_LoadSideDefs2(int lump)
               }
             }
           }
+          sd->midtexture = R_TextureNumForName(msd->midtexture);
           break;
+        }
 
+        case 2075:
+        // Sector tinting
+        {
+          for (int j = 0; j < numlines; j++)
+          {
+            if (lines[j].sidenum[0] == i)
+            {
+              // Front triggered
+              if ((lines[j].fronttint = R_ColormapNumForName(msd->toptexture)) < 0)
+              {
+                lines[j].fronttint = 0;
+                sd->toptexture = R_TextureNumForName(msd->toptexture);
+              }
+              else
+              {
+                sd->toptexture = 0;
+              }
+            }
+          }
+          sd->midtexture = R_TextureNumForName(msd->midtexture);
+          sd->bottomtexture = R_TextureNumForName(msd->bottomtexture);
+          break;
+        }
+
+        case 2076: case 2077: case 2078: case 2079: case 2080: case 2081:
+        // Sector tinting
+        // All of the W1, WR, S1, SR, G1, GR activations can be triggered from
+        // the back sidedef (reading the front bottom texture) and triggered
+        // from the front sidedef (reading the front upper texture).
+        {
+          for (int j = 0; j < numlines; j++)
+          {
+            if (lines[j].sidenum[0] == i)
+            {
+              // Back triggered
+              if ((lines[j].backtint = R_ColormapNumForName(msd->bottomtexture)) < 0)
+              {
+                lines[j].backtint = 0;
+                sd->bottomtexture = R_TextureNumForName(msd->bottomtexture);
+              }
+              else
+              {
+                sd->bottomtexture = 0;
+              }
+
+              // Front triggered
+              if ((lines[j].fronttint = R_ColormapNumForName(msd->toptexture)) < 0)
+              {
+                lines[j].fronttint = 0;
+                sd->toptexture = R_TextureNumForName(msd->toptexture);
+              }
+              else
+              {
+                sd->toptexture = 0;
+              }
+            }
+          }
+          sd->midtexture = R_TextureNumForName(msd->midtexture);
+          break;
+        }
 
         case 242:                       // variable colormap via 242 linedef
           sd->bottomtexture =
@@ -1194,8 +1256,8 @@ static void P_SetSkipBlockStart(void)
   for(y = 0; y < bmapheight; y++)
     for(x = 0; x < bmapwidth; x++)
     {
-      long *list;
-      long *blockoffset;
+      int32_t *list;
+      int32_t *blockoffset;
 
       blockoffset = blockmaplump + y * bmapwidth + x + 4;
 
@@ -1291,9 +1353,10 @@ static void AddLineToSector(sector_t *s, line_t *l)
   *s->lines++ = l;
 }
 
-void P_DegenMobjThinker(void *p)
+void P_DegenMobjThinker(mobj_t *mobj)
 {
-  // no-op
+  (void)mobj;
+  I_Error("This function should never get called.");
 }
 
 int P_GroupLines (void)
@@ -1350,7 +1413,7 @@ int P_GroupLines (void)
       sector->soundorg.y =
           sector->blockbox[BOXTOP] / 2 + sector->blockbox[BOXBOTTOM] / 2;
 
-      sector->soundorg.thinker.function.pv = P_DegenMobjThinker;
+      sector->soundorg.thinker.function.p1 = P_DegenMobjThinker;
 
       // adjust bounding box to map blocks
       block = (sector->blockbox[BOXTOP]-bmaporgy+MAXRADIUS)>>MAPBLOCKSHIFT;
@@ -1555,6 +1618,12 @@ static boolean P_LoadReject(int lumpnum, int totallines)
         rejectmatrix = Z_Malloc(minlength, PU_LEVEL, (void **) &rejectmatrix);
         W_ReadLump(lumpnum, rejectmatrix);
 
+        //!
+        // @category mod
+        //
+        // Pad the remaining REJECT table space with 0xff.
+        //
+
         if (M_CheckParm("-reject_pad_with_ff"))
         {
             padvalue = 0xff;
@@ -1644,8 +1713,8 @@ void P_SetupLevel(int episode, int map, int playermask, skill_t skill)
   S_Start();
 
   Z_FreeTag(PU_LEVEL);
-  M_ClearArena(thinkers_arena);
-  M_ClearArena(msecnodes_arena);
+  M_ArenaClear(thinkers_arena);
+  M_ArenaClear(msecnodes_arena);
 
   Z_FreeTag(PU_CACHE);
 
@@ -1681,18 +1750,14 @@ void P_SetupLevel(int episode, int map, int playermask, skill_t skill)
   P_LoadLineDefs2 (lumpnum+ML_LINEDEFS);             // killough 4/4/98
   gen_blockmap = P_LoadBlockMap  (lumpnum+ML_BLOCKMAP);             // killough 3/1/98
   // [FG] build nodes with NanoBSP
-  if (mapformat >= MFMT_UNSUPPORTED)
+  if (mapformat == MFMT_NANO)
   {
     BSP_BuildNodes();
   }
-  // [FG] support maps with NODES in uncompressed XNOD/XGLN or compressed ZNOD/ZGLN formats, or DeePBSP format
-  else if (mapformat == MFMT_XGLN || mapformat == MFMT_ZGLN)
+  // support all ZDoom extended node formats
+  else if (mapformat >= MFMT_XNOD)
   {
-    P_LoadNodes_XNOD (lumpnum+ML_SSECTORS, mapformat == MFMT_ZGLN, true);
-  }
-  else if (mapformat == MFMT_XNOD || mapformat == MFMT_ZNOD)
-  {
-    P_LoadNodes_XNOD (lumpnum+ML_NODES, mapformat == MFMT_ZNOD, false);
+    P_LoadNodes_ZDoom(lumpnum, mapformat);
   }
   else if (mapformat == MFMT_DEEP)
   {
@@ -1710,7 +1775,7 @@ void P_SetupLevel(int episode, int map, int playermask, skill_t skill)
   // [FG] pad the REJECT table when the lump is too small
   pad_reject = P_LoadReject (lumpnum+ML_REJECT, P_GroupLines());
 
-  if (mapformat != MFMT_UNSUPPORTED)
+  if (mapformat != MFMT_NANO)
     P_RemoveSlimeTrails();    // killough 10/98: remove slime trails from wad
 
   // [crispy] fix long wall wobble
@@ -1761,13 +1826,7 @@ void P_SetupLevel(int episode, int map, int playermask, skill_t skill)
   I_Printf(VB_DEMO, "P_SetupLevel: %.8s (%s), Skill %d, %s%s%s, %s",
     lumpname, W_WadNameForLump(lumpnum),
     gameskill + 1,
-    mapformat >= MFMT_UNSUPPORTED ? "NanoBSP" :
-    mapformat == MFMT_XNOD ? "XNOD" :
-    mapformat == MFMT_ZNOD ? "ZNOD" :
-    mapformat == MFMT_XGLN ? "XGLN" :
-    mapformat == MFMT_ZGLN ? "ZGLN" :
-    mapformat == MFMT_DEEP ? "DeepBSP" :
-    "Doom",
+    node_format_names[mapformat],
     gen_blockmap ? "+Blockmap" : "",
     pad_reject ? "+Reject" : "",
     G_GetCurrentComplevelName());
@@ -1783,10 +1842,10 @@ void P_Init (void)
   R_InitSprites(sprnames);
 
   #define SIZE_MB(x) ((x) * 1024 * 1024)
-  thinkers_arena = M_InitArena(SIZE_MB(256), SIZE_MB(2));
-  msecnodes_arena = M_InitArena(SIZE_MB(32), SIZE_MB(1));
-  activeceilings_arena = M_InitArena(SIZE_MB(32), SIZE_MB(1));
-  activeplats_arena = M_InitArena(SIZE_MB(32), SIZE_MB(1));
+  thinkers_arena = M_ArenaInit(SIZE_MB(256), SIZE_MB(2));
+  msecnodes_arena = M_ArenaInit(SIZE_MB(32), SIZE_MB(1));
+  activeceilings_arena = M_ArenaInit(SIZE_MB(32), SIZE_MB(1));
+  activeplats_arena = M_ArenaInit(SIZE_MB(32), SIZE_MB(1));
   #undef SIZE_MB
 }
 

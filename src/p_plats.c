@@ -45,7 +45,7 @@ arena_t *activeplats_arena;
 // jff 02/08/98 all cases with labels beginning with gen added to support 
 // generalized line type behaviors.
 
-void T_PlatRaise(plat_t* plat)
+static void T_PlatRaise(plat_t* plat)
 {
   result_e      res;
 
@@ -160,6 +160,10 @@ void T_PlatRaise(plat_t* plat)
   }
 }
 
+void T_PlatRaiseAdapter(mobj_t *mo)
+{
+    T_PlatRaise((plat_t *)mo);
+}
 
 //
 // EV_DoPlat
@@ -211,13 +215,13 @@ int EV_DoPlat
       
     // Create a thinker
     rtn = 1;
-    plat = arena_alloc(thinkers_arena, 1, plat_t);
+    plat = arena_alloc(thinkers_arena, plat_t);
     P_AddThinker(&plat->thinker);
               
     plat->type = type;
     plat->sector = sec;
     plat->sector->floordata = plat; //jff 2/23/98 multiple thinkers
-    plat->thinker.function.pt = (actionf_pt)T_PlatRaise;
+    plat->thinker.function.p1 = T_PlatRaiseAdapter;
     plat->crush = false;
     plat->tag = line->tag;
 
@@ -343,7 +347,7 @@ void P_ActivateInStasis(int tag)
         plat->status = plat->oldstatus==up? down : up;
       else
         plat->status = plat->oldstatus;
-      plat->thinker.function.pt = (actionf_pt)T_PlatRaise;
+      plat->thinker.function.p1 = T_PlatRaiseAdapter;
     }
   }
 }
@@ -384,7 +388,7 @@ int EV_StopPlat(line_t* line)
 //
 void P_AddActivePlat(plat_t* plat)
 {
-  platlist_t *list = arena_alloc(activeplats_arena, 1, platlist_t);
+  platlist_t *list = arena_alloc(activeplats_arena, platlist_t);
   list->plat = plat;
   plat->list = list;
   if ((list->next = activeplats))
@@ -425,7 +429,7 @@ void P_RemoveAllActivePlats(void)
     platlist_t *next = activeplats->next;
     activeplats = next;
   }
-  M_ClearArena(activeplats_arena);
+  M_ArenaClear(activeplats_arena);
 }
 
 //----------------------------------------------------------------------------

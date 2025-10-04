@@ -121,7 +121,7 @@ Run the CMake configuration:
  cd woof
  cmake -B build -DCMAKE_TOOLCHAIN_FILE="[path to vcpkg]/scripts/buildsystems/vcpkg.cmake"
 ```
-During this step, vcpkg will build all the dependencies. To enable FluidSynth add `-DWITH_FLUIDSYNTH=ON` option.
+During this step, vcpkg will build all the dependencies.
 
 Build the project:
 ```
@@ -162,8 +162,10 @@ Copyright:
  © 2006-2025 by The Odamex Team;  
  © 2007-2011 Moritz "Ripper" Kroll;  
  © 2008-2019 Simon Judd;  
+ © 2013-2025 Brad Harding;  
  © 2017 Christoph Oelckers;  
  © 2020 Alex Mayfield;  
+ © 2020 Ethan Watson;  
  © 2020-2024 Fabian Greffrath;  
  © 2020-2024 Roman Fomin;  
  © 2021-2022 Ryan Krafnick;  
@@ -225,11 +227,6 @@ Copyright:
  © 2017 Shannon Freeman.  
 License: [MIT](https://github.com/sneakernets/DMXOPL/blob/DMXOPL3/LICENSE)
 
-Files: `cmake/FindSDL2.cmake`  
-Copyright:  
- © 2018 Alex Mayfield.  
-License: [BSD-3-Clause](https://opensource.org/licenses/BSD-3-Clause)
-
 Files: `base/all-all/sm*.png, data/setup.ico, data/woof-setup.png, data/woof.ico, data/woof.png, setup/setup_icon.c, src/icon.c`  
 Copyright:  
  © 2020-2024 Julia Nechaevskaya.  
@@ -268,6 +265,11 @@ License: [zlib](https://opensource.org/license/zlib)
 Files: `third-party/md5/*`  
 License: public-domain
 
+Files: `third-party/minimp3/*`  
+Copyright:  
+ © 2021 lief.      
+License: [CC0-1.0](https://creativecommons.org/publicdomain/zero/1.0/)
+
 Files: `third-party/miniz/*`  
 Copyright:  
  © 2010-2014 Rich Geldreich and Tenacious Software LLC;  
@@ -294,9 +296,4 @@ License: [BSD-2-Clause](https://opensource.org/license/bsd-2-clause)
 Files: `third-party/yyjson/*`  
 Copyright:  
  © 2020 YaoYuan.  
-License: [MIT](https://opensource.org/licenses/MIT)
-
-Files: `win32/win_opendir.*`  
-Copyright:  
- © 2019 win32ports.  
 License: [MIT](https://opensource.org/licenses/MIT)

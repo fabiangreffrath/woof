@@ -244,7 +244,7 @@ result_e T_MovePlane
 // jff 02/08/98 all cases with labels beginning with gen added to support 
 // generalized line type behaviors.
 
-void T_MoveFloor(floormove_t* floor)
+static void T_MoveFloor(floormove_t* floor)
 {
   result_e      res;
 
@@ -343,6 +343,11 @@ void T_MoveFloor(floormove_t* floor)
   }
 }
 
+void T_MoveFloorAdapter(mobj_t *mobj)
+{
+    T_MoveFloor((floormove_t *)mobj);
+}
+
 //
 // T_MoveElevator()
 //
@@ -355,7 +360,7 @@ void T_MoveFloor(floormove_t* floor)
 //
 // jff 02/22/98 added to support parallel floor/ceiling motion
 //
-void T_MoveElevator(elevator_t* elevator)
+static void T_MoveElevator(elevator_t *elevator)
 {
   result_e      res;
 
@@ -423,6 +428,11 @@ void T_MoveElevator(elevator_t* elevator)
   }
 }
 
+void T_MoveElevatorAdapter(mobj_t *mobj)
+{
+    T_MoveElevator((elevator_t *)mobj);
+}
+
 ///////////////////////////////////////////////////////////////////////
 // 
 // Floor motion linedef handlers
@@ -460,10 +470,10 @@ int EV_DoFloor
       
     // new floor thinker
     rtn = 1;
-    floor = arena_alloc(thinkers_arena, 1, floormove_t);
+    floor = arena_alloc(thinkers_arena, floormove_t);
     P_AddThinker (&floor->thinker);
     sec->floordata = floor; //jff 2/22/98
-    floor->thinker.function.pt = (actionf_pt)T_MoveFloor;
+    floor->thinker.function.p1 = T_MoveFloorAdapter;
     floor->type = floortype;
     floor->crush = false;
 
@@ -766,10 +776,10 @@ int EV_BuildStairs
       
     // create new floor thinker for first step
     rtn = 1;
-    floor = arena_alloc(thinkers_arena, 1, floormove_t);
+    floor = arena_alloc(thinkers_arena, floormove_t);
     P_AddThinker (&floor->thinker);
     sec->floordata = floor;
-    floor->thinker.function.pt = (actionf_pt)T_MoveFloor;
+    floor->thinker.function.p1 = T_MoveFloorAdapter;
     floor->direction = 1;
     floor->sector = sec;
     floor->type = buildStair;   //jff 3/31/98 do not leave uninited
@@ -848,11 +858,11 @@ int EV_BuildStairs
         secnum = newsecnum;
 
         // create and initialize a thinker for the next step
-        floor = arena_alloc(thinkers_arena, 1, floormove_t);
+        floor = arena_alloc(thinkers_arena, floormove_t);
         P_AddThinker (&floor->thinker);
 
         sec->floordata = floor; //jff 2/22/98
-        floor->thinker.function.pt = (actionf_pt)T_MoveFloor;
+        floor->thinker.function.p1 = T_MoveFloorAdapter;
         floor->direction = 1;
         floor->sector = sec;
         floor->speed = speed;
@@ -1008,10 +1018,10 @@ int EV_DoDonut(line_t*  line)
       }
 
       //  Spawn rising slime
-      floor = arena_alloc(thinkers_arena, 1, floormove_t);
+      floor = arena_alloc(thinkers_arena, floormove_t);
       P_AddThinker (&floor->thinker);
       s2->floordata = floor; //jff 2/22/98
-      floor->thinker.function.pt = (actionf_pt)T_MoveFloor;
+      floor->thinker.function.p1 = T_MoveFloorAdapter;
       floor->type = donutRaise;
       floor->crush = false;
       floor->direction = 1;
@@ -1022,10 +1032,10 @@ int EV_DoDonut(line_t*  line)
       floor->floordestheight = s3_floorheight;
         
       //  Spawn lowering donut-hole pillar
-      floor = arena_alloc(thinkers_arena, 1, floormove_t);
+      floor = arena_alloc(thinkers_arena, floormove_t);
       P_AddThinker (&floor->thinker);
       s1->floordata = floor; //jff 2/22/98
-      floor->thinker.function.pt = (actionf_pt)T_MoveFloor;
+      floor->thinker.function.p1 = T_MoveFloorAdapter;
       floor->type = lowerFloor;
       floor->crush = false;
       floor->direction = -1;
@@ -1069,11 +1079,11 @@ int EV_DoElevator
       
     // create and initialize new elevator thinker
     rtn = 1;
-    elevator = arena_alloc(thinkers_arena, 1, elevator_t);
+    elevator = arena_alloc(thinkers_arena, elevator_t);
     P_AddThinker (&elevator->thinker);
     sec->floordata = elevator; //jff 2/22/98
     sec->ceilingdata = elevator; //jff 2/22/98
-    elevator->thinker.function.pt = (actionf_pt)T_MoveElevator;
+    elevator->thinker.function.p1 = T_MoveElevatorAdapter;
     elevator->type = elevtype;
 
     // set up the fields according to the type of elevator action

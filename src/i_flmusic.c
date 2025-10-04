@@ -14,15 +14,10 @@
 // DESCRIPTION:
 //      FluidSynth backend
 
-#include "SDL.h"
 #include "fluidsynth.h"
 
 #include <stdlib.h>
 #include <string.h>
-
-#include "config.h"
-#include "i_oalstream.h"
-#include "m_config.h"
 
 #if (FLUIDSYNTH_VERSION_MAJOR < 2 \
      || (FLUIDSYNTH_VERSION_MAJOR == 2 && FLUIDSYNTH_VERSION_MINOR < 2))
@@ -33,12 +28,14 @@ typedef fluid_long_long_t fluid_int_t;
 #endif
 
 #include "d_iwad.h"
-#include "d_main.h"
 #include "doomtype.h"
 #include "i_glob.h"
+#include "i_oalstream.h"
 #include "i_printf.h"
 #include "i_sound.h"
+#include "i_system.h"
 #include "m_array.h"
+#include "m_config.h"
 #include "m_io.h"
 #include "m_misc.h"
 #include "memio.h"
@@ -46,7 +43,7 @@ typedef fluid_long_long_t fluid_int_t;
 #include "w_wad.h"
 #include "z_zone.h"
 
-static const char *soundfont_dir = "";
+static const char *soundfont_dirs = "";
 static int fl_polyphony;
 static boolean fl_interpolation;
 static boolean fl_reverb;
@@ -111,45 +108,17 @@ static fluid_long_long_t FL_sftell(void *handle)
     return mem_ftell((MEMFILE *)handle);
 }
 
-static void ScanDir(const char *dir, boolean recursion)
+static void ScanDir(const char *dir, boolean makedir)
 {
-    glob_t *glob;
-
-    if (recursion == false)
-    {
-        // [FG] replace global "/usr/share" with user's "~/.local/share"
-        const char usr_share[] = "/usr/share";
-        if (strncmp(dir, usr_share, strlen(usr_share)) == 0)
-        {
-            char *local_share = M_DataDir();
-            char *local_dir = M_StringReplace(dir, usr_share, local_share);
-            ScanDir(local_dir, true);
-            free(local_dir);
-        }
-        else if (dir[0] == '.')
-        {
-            // [FG] relative to the executable directory
-            char *rel = M_StringJoin(D_DoomExeDir(), DIR_SEPARATOR_S, dir);
-            ScanDir(rel, true);
-            free(rel);
-
-            // [FG] relative to the config directory (if different)
-            if (dir[1] != '.' && strcmp(D_DoomExeDir(), D_DoomPrefDir()) != 0)
-            {
-                rel = M_StringJoin(D_DoomPrefDir(), DIR_SEPARATOR_S, dir);
-                ScanDir(rel, true);
-                free(rel);
-            }
-
-            // [FG] never absolute path
-            return;
-        }
-    }
-
     I_Printf(VB_DEBUG, "Scanning for soundfonts in %s", dir);
 
-    glob = I_StartMultiGlob(dir, GLOB_FLAG_NOCASE | GLOB_FLAG_SORTED, "*.sf2",
-                            "*.sf3");
+    if (makedir)
+    {
+        M_MakeDirectory(dir);
+    }
+
+    glob_t *glob = I_StartMultiGlob(dir, GLOB_FLAG_NOCASE | GLOB_FLAG_SORTED,
+                                    "*.sf2", "*.sf3");
 
     while (1)
     {
@@ -168,40 +137,97 @@ static void ScanDir(const char *dir, boolean recursion)
 
 static void GetSoundFonts(void)
 {
-    char *left, *p, *dup_path;
-
     if (array_size(soundfonts))
     {
         return;
     }
 
-    // Split into individual dirs within the list.
-    dup_path = M_StringDuplicate(soundfont_dir);
-
-    left = dup_path;
-
-    while (1)
+#if defined(_WIN32)
+    const char *sys = M_getenv("SystemRoot");
+    char *path = M_StringJoin(sys, "\\System32\\drivers\\gm.dls");
+    if (M_FileExistsNotDir(path))
     {
-        p = strchr(left, PATH_SEPARATOR);
-        if (p != NULL)
+        array_push(soundfonts, path);
+    }
+    else
+    {
+        free(path);
+    }
+#endif
+
+    if (strlen(soundfont_dirs) > 0)
+    {
+        // Split into individual dirs within the list.
+        char *dup_path = M_StringDuplicate(soundfont_dirs);
+        char *left = dup_path;
+
+        while (1)
         {
-            // Break at the separator and use the left hand side
-            // as another soundfont dir
-            *p = '\0';
+            char *p = strchr(left, PATH_SEPARATOR);
+            if (p != NULL)
+            {
+                // Break at the separator and use the left hand side
+                // as another soundfont dir
+                *p = '\0';
 
-            ScanDir(left, false);
+                ScanDir(left, false);
 
-            left = p + 1;
+                left = p + 1;
+            }
+            else
+            {
+                break;
+            }
         }
-        else
+
+        ScanDir(left, false);
+
+        free(dup_path);
+    }
+    else
+    {
+        const constructed_dir_t constructed_dirs[] = {
+            {D_DoomPrefDir, "soundfonts", NULL, true},
+            {D_DoomExeDir, "soundfonts", D_DoomPrefDir},
+#if !defined(_WIN32)
+            // RedHat/Fedora/Arch
+            {NULL, "/usr/share/soundfonts"},
+            {M_DataDir, "soundfonts"},
+            // Debian/Ubuntu/OpenSUSE
+            {NULL, "/usr/share/sounds/sf2"},
+            {M_DataDir, "sounds/sf2"},
+            {NULL, "/usr/share/sounds/sf3"},
+            {M_DataDir, "sounds/sf3"},
+            // AppImage
+            {D_DoomExeDir, "../share/" PROJECT_SHORTNAME "/soundfonts"},
+#endif
+        };
+
+        for (int i = 0; i < arrlen(constructed_dirs); ++i)
         {
-            break;
+            const constructed_dir_t d = constructed_dirs[i];
+
+            if (d.check_func && d.func && d.check_func() == d.func())
+            {
+                continue;
+            }
+
+            if (d.func && d.dir)
+            {
+                char *dir = M_StringJoin(d.func(), DIR_SEPARATOR_S, d.dir);
+                ScanDir(dir, d.makedir);
+                free(dir);
+            }
+            else if (d.dir)
+            {
+                ScanDir(d.dir, d.makedir);
+            }
+            else if (d.func)
+            {
+                ScanDir(d.func(), d.makedir);
+            }
         }
     }
-
-    ScanDir(left, false);
-
-    free(dup_path);
 }
 
 static void FreeSynthAndSettings(void)
@@ -222,12 +248,12 @@ static void FreeSynthAndSettings(void)
 
 static void I_FL_Log_Error(int level, const char *message, void *data)
 {
-    I_Printf(VB_ERROR, "%s", message);
+    I_Printf(VB_ERROR, "FluidSynth: \"%s\"", message);
 }
 
 static void I_FL_Log_Debug(int level, const char *message, void *data)
 {
-    I_Printf(VB_DEBUG, "%s", message);
+    I_Printf(VB_DEBUG, "FluidSynth: \"%s\"", message);
 }
 
 static boolean I_FL_InitStream(int device)
@@ -281,8 +307,7 @@ static boolean I_FL_InitStream(int device)
 
     if (synth == NULL)
     {
-        I_Printf(VB_ERROR,
-                 "I_FL_InitMusic: FluidSynth failed to initialize synth.");
+        I_Printf(VB_ERROR, "FluidSynth: Failed to initialize synth.");
         return false;
     }
 
@@ -315,13 +340,8 @@ static boolean I_FL_InitStream(int device)
 
     if (sf_id == FLUID_FAILED)
     {
-        char *errmsg;
-        errmsg = M_StringJoin(
-            "Error loading FluidSynth soundfont: ",
-            lumpnum >= 0 ? "SNDFONT lump" : soundfonts[device]);
-        SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_WARNING, PROJECT_STRING, errmsg,
-                                 NULL);
-        free(errmsg);
+        I_MessageBox("Error loading FluidSynth soundfont: %s",
+                     lumpnum >= 0 ? "SNDFONT lump" : soundfonts[device]);
         FreeSynthAndSettings();
         return false;
     }
@@ -353,8 +373,7 @@ static boolean I_FL_OpenStream(void *data, ALsizei size, ALenum *format,
 
     if (player == NULL)
     {
-        I_Printf(VB_ERROR,
-                 "I_FL_InitMusic: FluidSynth failed to initialize player.");
+        I_Printf(VB_ERROR, "FluidSynth: Failed to initialize player.");
         return false;
     }
 
@@ -389,27 +408,27 @@ static boolean I_FL_OpenStream(void *data, ALsizei size, ALenum *format,
     {
         delete_fluid_player(player);
         player = NULL;
-        I_Printf(VB_ERROR, "I_FL_RegisterSong: Failed to load in-memory song.");
+        I_Printf(VB_ERROR, "FluidSynth: Failed to load in-memory song.");
         return false;
     }
 
-    *format = AL_FORMAT_STEREO16;
+    *format = AL_FORMAT_STEREO_FLOAT32;
     *freq = SND_SAMPLERATE;
-    *frame_size = 2 * sizeof(short);
+    *frame_size = 2 * sizeof(float);
 
     return true;
 }
 
-static int I_FL_FillStream(byte *buffer, int buffer_samples)
+static int I_FL_FillStream(void *buffer, int buffer_samples)
 {
     int result;
 
-    result = fluid_synth_write_s16(synth, buffer_samples, buffer, 0, 2, buffer,
-                                   1, 2);
+    result = fluid_synth_write_float(synth, buffer_samples, buffer, 0, 2,
+                                     buffer, 1, 2);
 
     if (result != FLUID_OK)
     {
-        I_Printf(VB_ERROR, "FL_Callback: Error generating FluidSynth audio");
+        I_Printf(VB_ERROR, "FluidSynth: Error generating audio");
     }
 
     return buffer_samples;
@@ -483,20 +502,8 @@ static const char **I_FL_DeviceList(void)
 
 static void I_FL_BindVariables(void)
 {
-    M_BindStr("soundfont_dir", &soundfont_dir,
-#if defined(_WIN32)
-    "soundfonts",
-#else
-    "./soundfonts:"
-    // RedHat/Fedora/Arch
-    "/usr/share/soundfonts:"
-    // Debian/Ubuntu/OpenSUSE
-    "/usr/share/sounds/sf2:"
-    "/usr/share/sounds/sf3:"
-    // AppImage
-    "../share/" PROJECT_SHORTNAME "/soundfonts",
-#endif
-    wad_no, "[FluidSynth] Soundfont directories");
+    M_BindStr("soundfont_dirs", &soundfont_dirs, "", wad_no,
+        "[FluidSynth] Soundfont directories");
     BIND_NUM(fl_polyphony, 256, 1, 65535,
         "[FluidSynth] Number of voices that can be played in parallel");
     BIND_BOOL(fl_interpolation, false,

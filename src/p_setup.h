@@ -30,8 +30,8 @@ void P_Init(void);               // Called by startup code.
 extern byte     *rejectmatrix;   // for fast sight rejection
 
 // killough 3/1/98: change blockmap from "short" to "long" offsets:
-extern long     *blockmaplump;   // offsets in blockmap are from here
-extern long     *blockmap;
+extern int32_t  *blockmaplump;   // offsets in blockmap are from here
+extern int32_t  *blockmap;
 extern int      bmapwidth;
 extern int      bmapheight;      // in mapblocks
 extern fixed_t  bmaporgx;
@@ -42,7 +42,7 @@ extern int blocklinks_size;
 extern boolean skipblstart; // MaxW: Skip initial blocklist short
 
 struct sector_s *GetSectorAtNullAddress(void);
-void P_DegenMobjThinker(void *p);
+void P_DegenMobjThinker(struct mobj_s *mobj);
 void P_SegLengths(boolean contrast_only);
 
 #endif

@@ -59,8 +59,12 @@ void P_UpdateDirectVerticalAiming(void)
 
 void P_SetActualHeight(mobj_t *mobj)
 {
-    spritedef_t *sprdef = &sprites[mobj->sprite];
-    spriteframe_t *sprframe = &sprdef->spriteframes[mobj->frame & FF_FRAMEMASK];
+    const spritedef_t *sprdef = &sprites[mobj->sprite];
+    const spriteframe_t *sprframe = NULL;
+    if (sprdef && sprdef->spriteframes)
+    {
+        sprframe = &sprdef->spriteframes[mobj->frame & FF_FRAMEMASK];
+    }
     if (sprframe)
     {
         mobj->actualheight = spritetopoffset[sprframe->lump[0]];
@@ -112,8 +116,8 @@ boolean P_SetMobjState(mobj_t* mobj,statenum_t state)
       // Modified handling.
       // Call action functions when the state is set
 
-      if (st->action.pm)
-	st->action.pm(mobj);
+      if (st->action.p1)
+	st->action.p1(mobj);
 
       seenstate[state] = 1 + st->nextstate;   // killough 4/9/98
 
@@ -774,14 +778,14 @@ void P_MobjThinker (mobj_t* mobj)
     {
       P_XYMovement(mobj);
       mobj->intflags &= ~MIF_SCROLLING;
-      if (mobj->thinker.function.pm == P_RemoveMobjThinkerDelayed) // killough
+      if (mobj->thinker.function.p1 == P_RemoveMobjThinkerDelayed) // killough
 	return;       // mobj was removed
     }
 
   if (mobj->z != mobj->floorz || mobj->momz)
     {
       P_ZMovement(mobj);
-      if (mobj->thinker.function.pm == P_RemoveMobjThinkerDelayed) // killough
+      if (mobj->thinker.function.p1 == P_RemoveMobjThinkerDelayed) // killough
 	return;       // mobj was removed
     }
   else
@@ -815,7 +819,7 @@ void P_MobjThinker (mobj_t* mobj)
       P_DamageMobj(mobj, NULL, NULL, 10000);
 
       // must have been removed
-      if (mobj->thinker.function.pm != P_MobjThinker)
+      if (mobj->thinker.function.p1 != P_MobjThinker)
         return;
     }
   }
@@ -843,7 +847,7 @@ void P_MobjThinker (mobj_t* mobj)
 
 mobj_t *P_SpawnMobj(fixed_t x, fixed_t y, fixed_t z, mobjtype_t type)
 {
-  mobj_t *mobj = arena_alloc(thinkers_arena, 1, mobj_t);
+  mobj_t *mobj = arena_alloc(thinkers_arena, mobj_t);
   mobjinfo_t *info = &mobjinfo[type];
   state_t    *st;
 
@@ -868,7 +872,7 @@ mobj_t *P_SpawnMobj(fixed_t x, fixed_t y, fixed_t z, mobjtype_t type)
 
   mobj->health = info->spawnhealth;
 
-  if (gameskill != sk_nightmare || !aggromonsters)
+  if (gameskill != sk_nightmare && !aggromonsters)
     mobj->reactiontime = info->reactiontime;
 
   if (type != zmt_ambientsound)
@@ -909,7 +913,7 @@ mobj_t *P_SpawnMobj(fixed_t x, fixed_t y, fixed_t z, mobjtype_t type)
   mobj->oldz = mobj->z;
   mobj->oldangle = mobj->angle;
 
-  mobj->thinker.function.pm = P_MobjThinker;
+  mobj->thinker.function.p1 = P_MobjThinker;
   mobj->above_thing = mobj->below_thing = 0;           // phares
 
   // for Boom friction code

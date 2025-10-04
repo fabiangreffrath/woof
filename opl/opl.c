@@ -26,7 +26,7 @@
 
 static opl_driver_t *drivers[] =
 {
-    &opl_sdl_driver,
+    &opl_emu_driver,
     NULL
 };
 

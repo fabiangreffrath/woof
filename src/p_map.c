@@ -2193,7 +2193,7 @@ static msecnode_t *P_GetSecnode(void)
 
   return headsecnode ?
     node = headsecnode, headsecnode = node->m_snext, node :
-    arena_alloc(msecnodes_arena, 1, msecnode_t);
+    arena_alloc(msecnodes_arena, msecnode_t);
 }
 
 // P_PutSecnode() returns a node to the freelist.

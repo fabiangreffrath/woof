@@ -73,9 +73,18 @@ extern int MAXLIGHTZ;
 extern int LIGHTZSHIFT;
 
 // killough 3/20/98: Allow colormaps to be dynamic (e.g. underwater)
-extern lighttable_t **(*scalelight);
-extern lighttable_t **(*zlight);
 extern int numcolormaps;    // killough 4/4/98: dynamic number of maps
+
+// updated thanks to Rum-and-Raisin Doom, Ethan Watson
+extern int* scalelightoffset;
+extern int* scalelightindex;
+extern int* zlightoffset;
+extern int* zlightindex;
+extern int* planezlightoffset;
+extern int  planezlightindex;
+extern int* walllightoffset;
+extern int  walllightindex;
+
 // killough 3/20/98, 4/4/98: end dynamic colormaps
 
 extern boolean setsmoothlight;
@@ -83,6 +92,7 @@ void R_SmoothLight(void);
 
 extern int          extralight;
 extern lighttable_t *fixedcolormap;
+extern int           fixedcolormapindex;
 
 // Number of diminishing brightness levels.
 // There a 0-31, i.e. 32 LUT in the COLORMAP lump.
