@@ -483,7 +483,7 @@ int EV_DoGenLift
   // Activate all <type> plats that are in_stasis
 
   if (Targ==LnF2HnF)
-    P_ActivateInStasis(line->tag);
+    P_ActivateInStasis(line->args[0]);
         
   // check if a manual trigger, if so do just the sector on the backside
   manual = false;
@@ -520,7 +520,7 @@ manual_lift:
     plat->sector->floordata = plat;
     plat->thinker.function.p1 = T_PlatRaiseAdapter;
     plat->crush = false;
-    plat->tag = line->tag;
+    plat->tag = line->args[0];
 
     plat->type = genLift;
     plat->high = sec->floorheight;
@@ -968,7 +968,7 @@ manual_locked:
 
     // killough 10/98: implement gradual lighting
     door->lighttag = !STRICTMODE_COMP(comp_doorlight) && (line->special&6) == 6 && 
-      line->special > GenLockedBase ? line->tag : 0;
+      line->special > GenLockedBase ? line->args[0] : 0;
 
     // setup speed of door motion
     switch(Sped)
@@ -1107,7 +1107,7 @@ manual_door:
 
     // killough 10/98: implement gradual lighting
     door->lighttag = !STRICTMODE_COMP(comp_doorlight) && (line->special&6) == 6 && 
-      line->special > GenLockedBase ? line->tag : 0;
+      line->special > GenLockedBase ? line->args[0] : 0;
 
     // set kind of door, whether it opens then close, opens, closes etc.
     // assign target heights accordingly
@@ -1206,4 +1206,3 @@ manual_door:
 //
 //
 //----------------------------------------------------------------------------
-          

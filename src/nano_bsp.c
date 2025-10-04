@@ -56,10 +56,6 @@
 #undef MIN
 #define MIN(a, b)  ((a) < (b) ? (a) : (b))
 
-#ifndef NO_INDEX
-#define NO_INDEX  ((int) -1)
-#endif
-
 
 typedef struct Nanode  nanode_t;
 

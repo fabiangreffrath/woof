@@ -57,8 +57,12 @@ typedef struct {
 typedef boolean (*traverser_t)(intercept_t *in);
 
 fixed_t P_AproxDistance(fixed_t dx, fixed_t dy);
-int     P_PointOnLineSide(fixed_t x, fixed_t y, struct line_s *line);
-int     P_PointOnDivlineSide(fixed_t x, fixed_t y, divline_t *line);
+extern int (*P_PointOnLineSide)(fixed_t x, fixed_t y, struct line_s *line);
+int     P_PointOnLineSideClassic(fixed_t x, fixed_t y, struct line_s *line);
+int     P_PointOnDivlineSideClassic(fixed_t x, fixed_t y, divline_t *line);
+extern int (*P_PointOnDivlineSide)(fixed_t x, fixed_t y, divline_t *line);
+int     P_PointOnLineSidePrecise(fixed_t x, fixed_t y, struct line_s *line);
+int     P_PointOnDivlineSidePrecise(fixed_t x, fixed_t y, divline_t *line);
 void    P_MakeDivline(struct line_s *li, divline_t *dl);
 fixed_t P_InterceptVector(divline_t *v2, divline_t *v1);
 int     P_BoxOnLineSide(fixed_t *tmbox, struct line_s *ld);

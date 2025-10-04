@@ -56,13 +56,24 @@ fixed_t P_AproxDistance(fixed_t dx, fixed_t dy)
 //
 // killough 5/3/98: reformatted, cleaned up
 
-int P_PointOnLineSide(fixed_t x, fixed_t y, line_t *line)
+int (*P_PointOnLineSide)(fixed_t x, fixed_t y, line_t *line);
+
+int P_PointOnLineSideClassic(fixed_t x, fixed_t y, line_t *line)
 {
   return
     !line->dx ? x <= line->v1->x ? line->dy > 0 : line->dy < 0 :
     !line->dy ? y <= line->v1->y ? line->dx < 0 : line->dx > 0 :
     FixedMul(y-line->v1->y, line->dx>>FRACBITS) >=
     FixedMul(line->dy>>FRACBITS, x-line->v1->x);
+}
+
+int P_PointOnLineSidePrecise(fixed_t x, fixed_t y, line_t *line)
+{
+  return
+    !line->dx ? x <= line->v1->x ? line->dy > 0 : line->dy < 0 :
+    !line->dy ? y <= line->v1->y ? line->dx < 0 : line->dx > 0 :
+    ((int64_t) y - line->v1->y) * line->dx >=
+    ((int64_t) x - line->v1->x) * line->dy;
 }
 
 //
@@ -103,13 +114,24 @@ int P_BoxOnLineSide(fixed_t *tmbox, line_t *ld)
 //
 // killough 5/3/98: reformatted, cleaned up
 
-int P_PointOnDivlineSide(fixed_t x, fixed_t y, divline_t *line)
+int (*P_PointOnDivlineSide)(fixed_t x, fixed_t y, divline_t *line);
+
+int P_PointOnDivlineSideClassic(fixed_t x, fixed_t y, divline_t *line)
 {
   return
     !line->dx ? x <= line->x ? line->dy > 0 : line->dy < 0 :
     !line->dy ? y <= line->y ? line->dx < 0 : line->dx > 0 :
     (line->dy^line->dx^(x -= line->x)^(y -= line->y)) < 0 ? (line->dy^x) < 0 :
     FixedMul(y>>8, line->dx>>8) >= FixedMul(line->dy>>8, x>>8);
+}
+
+int P_PointOnDivlineSidePrecise(fixed_t x, fixed_t y, divline_t *line)
+{
+  return
+    !line->dx ? x <= line->x ? line->dy > 0 : line->dy < 0 :
+    !line->dy ? y <= line->y ? line->dx < 0 : line->dx > 0 :
+    (line->dy^line->dx^(x -= line->x)^(y -= line->y)) < 0 ? (line->dy^x) < 0 :
+    (int64_t) y * line->dx >= (int64_t) x * line->dy;
 }
 
 //

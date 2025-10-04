@@ -147,7 +147,7 @@ static thinker_t* P_IndexToThinker(int index)
 // mapthing_t
 //
 
-static void saveg_read_mapthing_t(mapthing_t *str)
+static void saveg_read_mapthing_doom_t(mapthing_doom_t *str)
 {
     // short x;
     str->x = saveg_read16();
@@ -165,13 +165,37 @@ static void saveg_read_mapthing_t(mapthing_t *str)
     str->options = saveg_read16();
 }
 
+static void saveg_read_mapthing_t(mapthing_t *str)
+{
+    // fixed_t x;
+    str->x = saveg_read32();
+
+    // fixed_t y;
+    str->y = saveg_read32();
+
+    // fixed_t height;
+    str->height = saveg_read32();
+
+    // short angle;
+    str->angle = saveg_read16();
+
+    // short type;
+    str->type = saveg_read16();
+
+    // int options;
+    str->options = saveg_read32();
+}
+
 static void saveg_write_mapthing_t(mapthing_t *str)
 {
-    // short x;
-    saveg_write16(str->x);
+    // fixed_t x;
+    saveg_write32(str->x);
 
-    // short y;
-    saveg_write16(str->y);
+    // fixed_t y;
+    saveg_write32(str->y);
+
+    // fixed_t height;
+    saveg_write32(str->height);
 
     // short angle;
     saveg_write16(str->angle);
@@ -179,8 +203,8 @@ static void saveg_write_mapthing_t(mapthing_t *str)
     // short type;
     saveg_write16(str->type);
 
-    // short options;
-    saveg_write16(str->options);
+    // int options;
+    saveg_write32(str->options);
 }
 
 //
@@ -379,7 +403,14 @@ static void saveg_read_mobj_t(mobj_t *str)
     str->lastlook = saveg_read16();
 
     // mapthing_t spawnpoint;
-    saveg_read_mapthing_t(&str->spawnpoint);
+    if (saveg_compat > saveg_woof1500)
+    {
+        saveg_read_mapthing_t(&str->spawnpoint);
+    }
+    else
+    {
+        saveg_read_mapthing_doom_t((mapthing_doom_t*)&str->spawnpoint);
+    }
 
     // struct mobj_s* tracer;
     str->tracer = saveg_readp();
@@ -2171,13 +2202,19 @@ void P_ArchiveWorld (void)
 
       saveg_write16(li->flags);
       saveg_write16(li->special);
-      saveg_write16(li->tag);
+      saveg_write16(li->id);
 
       saveg_write32(li->angle);
       saveg_write32(li->frontmusic);
       saveg_write32(li->backmusic);
       saveg_write32(li->fronttint);
       saveg_write32(li->backtint);
+
+      saveg_write32(li->args[0]);
+      saveg_write32(li->args[1]);
+      saveg_write32(li->args[2]);
+      saveg_write32(li->args[3]);
+      saveg_write32(li->args[4]);
 
       for (j=0; j<2; j++)
         if (li->sidenum[j] != NO_INDEX)
@@ -2267,10 +2304,16 @@ void P_UnArchiveWorld (void)
 
       li->flags = saveg_read16();
       li->special = saveg_read16();
-      li->tag = saveg_read16();
+      li->id = saveg_read16();
 
       if (saveg_compat > saveg_woof1500)
       {
+        li->args[0] = saveg_read32();
+        li->args[1] = saveg_read32();
+        li->args[2] = saveg_read32();
+        li->args[3] = saveg_read32();
+        li->args[4] = saveg_read32();
+
         li->angle = saveg_read32();
         li->frontmusic = saveg_read32();
         li->backmusic = saveg_read32();
