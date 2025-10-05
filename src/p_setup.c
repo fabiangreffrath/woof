@@ -465,8 +465,8 @@ void P_LoadThings (int lump)
           }
 
       // Do spawn all other stuff.
-      mt.x = IntToFixed(SHORT(mtd->x));
-      mt.y = IntToFixed(SHORT(mtd->y));
+      mt.x = IntToFixed((int32_t)SHORT(mtd->x));
+      mt.y = IntToFixed((int32_t)SHORT(mtd->y));
       mt.angle = SHORT(mtd->angle);
       mt.type = SHORT(mtd->type);
       mt.options = SHORT(mtd->options);
