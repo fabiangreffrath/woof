@@ -346,15 +346,28 @@ static void R_MaybeInterpolateSector(sector_t* sector)
 
 static void R_MaybeInterpolateTextureOffsets(side_t *side)
 {
+    // TODO: why is tiered scrolling busted?
     if (uncapped && side->oldgametic == gametic - 1)
     {
-        side->interptextureoffset = LerpFixed(side->oldtextureoffset, side->textureoffset);
-        side->interprowoffset = LerpFixed(side->oldrowoffset, side->rowoffset);
+        side->interpoffsetx = LerpFixed(side->oldoffsetx, side->offsetx);
+        side->interpoffsety = LerpFixed(side->oldoffsety, side->offsety);
+        side->interpoffsetx_top = LerpFixed(side->oldoffsetx_top, side->offsetx_top);
+        side->interpoffsety_top = LerpFixed(side->oldoffsety_top, side->offsety_top);
+        side->interpoffsetx_mid = LerpFixed(side->oldoffsetx_mid, side->offsetx_mid);
+        side->interpoffsety_mid = LerpFixed(side->oldoffsety_mid, side->offsety_mid);
+        side->interpoffsetx_bottom = LerpFixed(side->oldoffsetx_bottom, side->offsetx_bottom);
+        side->interpoffsety_bottom = LerpFixed(side->oldoffsety_bottom, side->offsety_bottom);
     }
     else
     {
-        side->interptextureoffset = side->textureoffset;
-        side->interprowoffset = side->rowoffset;
+        side->interpoffsetx = side->offsetx;
+        side->interpoffsety = side->offsety;
+        side->interpoffsetx_top = side->offsetx_top;
+        side->interpoffsety_top = side->offsety_top;
+        side->interpoffsetx_mid = side->offsetx_mid;
+        side->interpoffsety_mid = side->offsety_mid;
+        side->interpoffsetx_bottom = side->offsetx_bottom;
+        side->interpoffsety_bottom = side->offsety_bottom;
     }
 }
 

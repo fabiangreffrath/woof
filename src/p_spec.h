@@ -696,14 +696,32 @@ typedef struct elevator_s
 
 // killough 3/7/98: Add generalized scroll effects
 
+typedef enum scroller_types_e
+{
+  SIDE_BASE,
+  SIDE_TOP,
+  SIDE_MID,
+  SIDE_BOTTOM,
+  SECTOR_FLOOR,
+  SECTOR_CEIL,
+  CARRY_FLOOR,
+  CARRY_CEIL,
+  CONTROLLER,
+  ACCELERATIVE,
+} scroller_types_t;
+
 typedef struct {
   thinker_t thinker;   // Thinker structure for scrolling
   fixed_t dx, dy;      // (dx,dy) scroll speeds
   int affectee;        // Number of affected sidedef, sector, tag, or whatever
+
+  // Control and acceleration:
   int control;         // Control sector (-1 if none) used to control scrolling
   fixed_t last_height; // Last known height of control sector
   fixed_t vdx, vdy;    // Accumulated velocity if accelerative
   int accel;           // Whether it's accelerative
+
+  // TODO: remove me
   enum
   {
     sc_side,
@@ -713,6 +731,9 @@ typedef struct {
     sc_carry_ceiling,  // killough 4/11/98: carry objects hanging on ceilings
   } type;              // Type of scroll effect
 } scroll_t;
+
+void Scroll_AddSideBase(fixed_t dx, fixed_t dy, int affectee);
+void Scroll_AddSideTier(fixed_t dx, fixed_t dy, int affectee, int flags);
 
 // phares 3/12/98: added new model of friction for ice/sludge effects
 

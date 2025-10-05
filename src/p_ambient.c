@@ -204,14 +204,14 @@ void T_AmbientSoundAdapter(mobj_t *mobj)
     T_AmbientSound((ambient_t *)mobj);
 }
 
-void P_AddAmbientSoundThinker(mobj_t *mobj, int index)
+void P_AddAmbientSoundThinker(mobj_t *mobj)
 {
     if (!snd_ambient || !mobj)
     {
         return;
     }
 
-    const ambient_data_t *data = S_GetAmbientData(index);
+    const ambient_data_t *data = S_GetAmbientData(mobj->args[0]);
 
     if (!data || data->sfx_id == sfx_None || !S_sfx[data->sfx_id].length)
     {
@@ -257,7 +257,7 @@ void P_AddAmbientSoundThinker(mobj_t *mobj, int index)
 void P_InitAmbientSoundMobjInfo(void)
 {
     mobjinfo_t amb_mobjinfo = {
-        .doomednum = 14064,
+        .doomednum = 14065,
         .spawnstate = S_NULL,
         .spawnhealth = 1000,
         .seestate = S_NULL,

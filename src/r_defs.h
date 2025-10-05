@@ -180,8 +180,17 @@ typedef struct sector_s
 
 typedef struct side_s
 {
-  fixed_t textureoffset; // add this to the calculated texture column
-  fixed_t rowoffset;     // add this to the calculated texture top
+  fixed_t offsetx; // add this to the calculated texture column
+  fixed_t offsety; // add this to the calculated texture top
+
+  // UDMF
+  fixed_t offsetx_top;
+  fixed_t offsety_top;
+  fixed_t offsetx_mid;
+  fixed_t offsety_mid;
+  fixed_t offsetx_bottom;
+  fixed_t offsety_bottom;
+
   short toptexture;      // Texture indices. We do not maintain names here. 
   short bottomtexture;
   short midtexture;
@@ -194,13 +203,29 @@ typedef struct side_s
   int special;
 
   // [crispy] smooth texture scrolling
-  fixed_t oldtextureoffset;
-  fixed_t oldrowoffset;
-  fixed_t interptextureoffset;
-  fixed_t interprowoffset;
+  fixed_t oldoffsetx;
+  fixed_t oldoffsety;
+  fixed_t interpoffsetx;
+  fixed_t interpoffsety;
   int oldgametic;
 
   boolean dirty;
+
+  // UDMF
+  fixed_t oldoffsetx_top;
+  fixed_t oldoffsety_top;
+  fixed_t interpoffsetx_top;
+  fixed_t interpoffsety_top;
+
+  fixed_t oldoffsetx_mid;
+  fixed_t oldoffsety_mid;
+  fixed_t interpoffsetx_mid;
+  fixed_t interpoffsety_mid;
+
+  fixed_t oldoffsetx_bottom;
+  fixed_t oldoffsety_bottom;
+  fixed_t interpoffsetx_bottom;
+  fixed_t interpoffsety_bottom;
 } side_t;
 
 //
