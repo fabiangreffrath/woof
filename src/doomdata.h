@@ -192,9 +192,10 @@ typedef struct {
   fixed_t x;
   fixed_t y;
   fixed_t height;
-  short angle;
-  short type;
-  int options;
+  int32_t args[5];
+  int16_t angle;
+  int16_t type;
+  int32_t options;
 } mapthing_t;
 
 #endif // __DOOMDATA__
