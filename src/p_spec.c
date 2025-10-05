@@ -2931,6 +2931,184 @@ void P_SpawnSpecials (void)
 // This is the main scrolling code
 // killough 3/7/98
 
+// [Woof!]
+// completely reworked structure, made each type of scroller it's own thinker
+
+static void T_ScrollStaticSideBase(mobj_t *mo)
+{
+  scroll_t *s = (scroll_t *)mo;
+  side_t* side;
+
+  // if (!(s->dx || s->dy))
+  //   return;
+
+  side = &sides[s->affectee];
+  if (side->oldgametic != gametic)
+  {
+    side->oldoffsetx = side->offsetx;
+    side->oldoffsety = side->offsety;
+    side->oldgametic = gametic;
+  }
+  side->offsetx += s->dx;
+  side->offsety += s->dy;
+}
+
+static void T_ScrollStaticSideUpper(mobj_t *mo)
+{
+  scroll_t *s = (scroll_t *)mo;
+  side_t* side;
+
+  // if (!(s->dx || s->dy))
+  //   return;
+
+  side = &sides[s->affectee];
+
+  if (side->oldgametic != gametic)
+  {
+    side->oldoffsetx_top = side->offsetx_top;
+    side->oldoffsety_top = side->offsety_top;
+    side->oldgametic = gametic;
+  }
+  side->offsetx_top += s->dx;
+  side->offsety_top += s->dy;
+}
+
+static void T_ScrollStaticSideMiddle(mobj_t *mo)
+{
+  scroll_t *s = (scroll_t *)mo;
+  side_t* side;
+
+  // if (!(s->dx || s->dy))
+  //   return;
+
+  side = &sides[s->affectee];
+  if (side->oldgametic != gametic)
+  {
+    side->oldoffsetx_mid = side->offsetx_mid;
+    side->oldoffsety_mid = side->offsety_mid;
+    side->oldgametic = gametic;
+  }
+  side->offsetx_mid += s->dx;
+  side->offsety_mid += s->dy;
+}
+
+static void T_ScrollStaticSideBottom(mobj_t *mo)
+{
+  scroll_t *s = (scroll_t *)mo;
+  side_t* side;
+  side = &sides[s->affectee];
+  if (side->oldgametic != gametic)
+  {
+    side->oldoffsetx_bottom = side->offsetx_bottom;
+    side->oldoffsety_bottom = side->offsety_bottom;
+    side->oldgametic = gametic;
+  }
+  side->offsetx_bottom += s->dx;
+  side->offsety_bottom += s->dy;
+}
+
+static void T_ScrollStaticFloor(mobj_t *mo)
+{
+  scroll_t *s = (scroll_t *)mo;
+  sector_t *sec;
+
+  // if (!(s->dx || s->dy))
+  //   return;
+
+  sec = &sectors[s->affectee];
+  sec->floor_xoffs += s->dx;
+  sec->floor_yoffs += s->dy;
+}
+
+static void T_ScrollStaticCeiling(mobj_t *mo)
+{
+  scroll_t *s = (scroll_t *)mo;
+  sector_t *sec;
+
+  sec = &sectors[s->affectee];
+  sec->ceiling_xoffs += s->dx;
+  sec->ceiling_yoffs += s->dy;
+}
+
+static void T_ScrollStaticFloorCarry(scroll_t* s)
+{
+  sector_t* sec;
+  fixed_t height;
+  fixed_t waterheight;
+  msecnode_t* node;
+  mobj_t* thing;
+
+  if (!s->dx && !s->dy)
+    return;
+
+  // killough 3/7/98: Carry things on floor
+  // killough 3/20/98: use new sector list which reflects true members
+  // killough 3/27/98: fix carrier bug
+  // killough 4/4/98: Underwater, carry things even w/o gravity
+  sec = &sectors[s->affectee];
+  height = sec->floorheight;
+  waterheight = sec->heightsec != -1 &&
+    sectors[sec->heightsec].floorheight > height ?
+    sectors[sec->heightsec].floorheight : INT_MIN;
+
+  // Move objects only if on floor or underwater,
+  // non-floating, and clipped.
+  for (node = sec->touching_thinglist; node; node = node->m_snext)
+  {
+    if (!((thing = node->m_thing)->flags & MF_NOCLIP)
+        && (!(thing->flags & MF_NOGRAVITY || thing->z > height) || thing->z < waterheight))
+    {
+      thing->momx += s->dx;
+      thing->momy += s->dy;
+      thing->intflags |= MIF_SCROLLING;
+    }
+  }
+}
+
+static void T_ScrollController(mobj_t* mo)
+{
+  scroll_t *s = (scroll_t *)mo;
+  fixed_t dx, dy;
+  fixed_t height;
+  fixed_t delta;
+
+  dx = s->dx;
+  dy = s->dy;
+
+  height = sectors[s->control].floorheight + sectors[s->control].ceilingheight;
+  delta = height - s->last_height;
+  s->last_height = height;
+  dx = FixedMul(dx, delta);
+  dy = FixedMul(dy, delta);
+
+  if (s->accel)
+  {
+    s->vdx += dx;
+    s->vdy += dy;
+  }
+  else
+  {
+    s->vdx = dx;
+    s->vdy = dy;
+  }
+}
+
+const actionf_p1 ScrollerThinkers[] = {
+  T_ScrollStaticSideBase,
+  T_ScrollStaticSideUpper,
+  T_ScrollStaticSideMiddle,
+  T_ScrollStaticSideBottom,
+  T_ScrollStaticFloor,
+  T_ScrollStaticCeiling,
+  // T_ScrollStaticFloorCarry,
+  T_ScrollController, // TODO: accel
+};
+
+// END NEW SCROLLER
+
+
+// START NEW SCROLLER
+
 static void T_Scroll(scroll_t *s)
 {
   fixed_t dx = s->dx, dy = s->dy;
@@ -2967,12 +3145,12 @@ static void T_Scroll(scroll_t *s)
         side = sides + s->affectee;
         if (side->oldgametic != gametic)
         {
-          side->oldtextureoffset = side->textureoffset;
-          side->oldrowoffset = side->rowoffset;
+          side->oldoffsetx = side->offsetx;
+          side->oldoffsety = side->offsety;
           side->oldgametic = gametic;
         }
-        dirty_side(side)->textureoffset += dx;
-        side->rowoffset += dy;
+        dirty_side(side)->offsetx += dx;
+        side->offsety += dy;
         break;
 
     case sc_floor:                  // killough 3/7/98: Scroll floor texture
@@ -3104,6 +3282,19 @@ static void Add_WallScroller(int64_t dx, int64_t dy, const line_t *l,
   Add_Scroller(sc_side, x, y, control, *l->sidenum, accel);
 }
 
+// [Woof!]
+// completely reworked structure, made each type of scroller it's own thinker
+
+void Scroll_AddSideSimple(fixed_t dx, fixed_t dy, int affectee, int type)
+{
+  scroll_t *scroll = arena_alloc(thinkers_arena, scroll_t);
+  scroll->thinker.function.p1 = ScrollerThinkers[type];
+  scroll->dx = dx;
+  scroll->dy = dy;
+  scroll->affectee = affectee;
+  P_AddThinker(&scroll->thinker);
+}
+
 // Amount (dx,dy) vector linedef is shifted right to get scroll amount
 #define SCROLL_SHIFT 5
 
@@ -3197,8 +3388,8 @@ static void P_SpawnScrollers(void)
 
         case 255:    // killough 3/2/98: scroll according to sidedef offsets
           s = lines[i].sidenum[0];
-          Add_Scroller(sc_side, -sides[s].textureoffset,
-                       sides[s].rowoffset, -1, s, accel);
+          Add_Scroller(sc_side, -sides[s].offsetx,
+                       sides[s].offsety, -1, s, accel);
           break;
 
         // special 255 with tag control
@@ -3226,8 +3417,8 @@ static void P_SpawnScrollers(void)
             I_Error("Line %d is missing a tag!", i);
 
           s = lines[i].sidenum[0];
-          dx = -sides[s].textureoffset / 8;
-          dy = sides[s].rowoffset / 8;
+          dx = -sides[s].offsetx / 8;
+          dy = sides[s].offsety / 8;
           for (s = -1; (s = P_FindLineFromLineTag(l, s)) >= 0;)
             if (s != i)
             {

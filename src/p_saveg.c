@@ -176,6 +176,13 @@ static void saveg_read_mapthing_t(mapthing_t *str)
     // fixed_t height;
     str->height = saveg_read32();
 
+    // int args[5];
+    str->args[0] = saveg_read32();
+    str->args[1] = saveg_read32();
+    str->args[2] = saveg_read32();
+    str->args[3] = saveg_read32();
+    str->args[4] = saveg_read32();
+
     // short angle;
     str->angle = saveg_read16();
 
@@ -196,6 +203,13 @@ static void saveg_write_mapthing_t(mapthing_t *str)
 
     // fixed_t height;
     saveg_write32(str->height);
+
+    // int args[5];
+    saveg_write32(str->args[0]);
+    saveg_write32(str->args[1]);
+    saveg_write32(str->args[2]);
+    saveg_write32(str->args[3]);
+    saveg_write32(str->args[4]);
 
     // short angle;
     saveg_write16(str->angle);
@@ -2224,8 +2238,8 @@ void P_ArchiveWorld (void)
 	    // killough 10/98: save full sidedef offsets,
 	    // preserving fractional scroll offsets
 
-	    saveg_write32(si->textureoffset);
-	    saveg_write32(si->rowoffset);
+	    saveg_write32(si->offsetx);
+	    saveg_write32(si->offsety);
 
             saveg_write16(si->toptexture);
             saveg_write16(si->bottomtexture);
@@ -2328,10 +2342,10 @@ void P_UnArchiveWorld (void)
 
 	    // killough 10/98: load full sidedef offsets, including fractions
 
-	    si->textureoffset = saveg_read32();
-	    si->rowoffset = saveg_read32();
-            si->oldtextureoffset = si->textureoffset;
-            si->oldrowoffset = si->rowoffset;
+	    si->offsetx = saveg_read32();
+	    si->offsety = saveg_read32();
+            si->oldoffsetx = si->offsetx;
+            si->oldoffsety = si->offsety;
 
             si->toptexture = saveg_read16();
             si->bottomtexture = saveg_read16();
