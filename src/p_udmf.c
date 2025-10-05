@@ -70,6 +70,10 @@ typedef struct
     double height;
     int angle;
     int options;
+
+    // Hexen
+    int special;
+    int args[5];
 } UDMF_Thing_t;
 
 typedef struct
@@ -317,21 +321,22 @@ static void UDMF_ParseLinedef(scanner_t *s)
         }
         else if (BASE_PROP(arg0))
         {
+            // Tag -> id/arg0 split means arg0 is always enabled
             line.args[0] = UDMF_ScanInt(s);
         }
-        else if (BASE_PROP(arg1))
+        else if (PROP(arg1, UDMF_HEXEN))
         {
             line.args[1] = UDMF_ScanInt(s);
         }
-        else if (BASE_PROP(arg2))
+        else if (PROP(arg2, UDMF_HEXEN))
         {
             line.args[2] = UDMF_ScanInt(s);
         }
-        else if (BASE_PROP(arg3))
+        else if (PROP(arg3, UDMF_HEXEN))
         {
             line.args[3] = UDMF_ScanInt(s);
         }
-        else if (BASE_PROP(arg4))
+        else if (PROP(arg4, UDMF_HEXEN))
         {
             line.args[4] = UDMF_ScanInt(s);
         }
@@ -523,6 +528,10 @@ static void UDMF_ParseThing(scanner_t *s)
         {
             thing.type = UDMF_ScanInt(s);
         }
+        else if (BASE_PROP(id))
+        {
+            thing.id = UDMF_ScanInt(s);
+        }
         else if (BASE_PROP(x))
         {
             thing.x = UDMF_ScanDouble(s);
@@ -578,6 +587,26 @@ static void UDMF_ParseThing(scanner_t *s)
         else if (PROP(friend, UDMF_MBF))
         {
             thing.options |= UDMF_ScanFlag(s, MTF_FRIEND);
+        }
+        else if (PROP(arg0, UDMF_HEXEN))
+        {
+            thing.args[0] = UDMF_ScanInt(s);
+        }
+        else if (PROP(arg1, UDMF_HEXEN))
+        {
+            thing.args[1] = UDMF_ScanInt(s);
+        }
+        else if (PROP(arg2, UDMF_HEXEN))
+        {
+            thing.args[2] = UDMF_ScanInt(s);
+        }
+        else if (PROP(arg3, UDMF_HEXEN))
+        {
+            thing.args[3] = UDMF_ScanInt(s);
+        }
+        else if (PROP(arg4, UDMF_HEXEN))
+        {
+            thing.args[4] = UDMF_ScanInt(s);
         }
         else
         {
