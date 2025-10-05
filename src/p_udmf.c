@@ -174,7 +174,9 @@ inline static int UDMF_ScanFlag(scanner_t *s, int f)
     SC_MustGetToken(s, '=');
     SC_MustGetToken(s, TK_BoolConst);
     if (SC_GetBoolean(s))
+    {
         x |= f;
+    }
     SC_MustGetToken(s, ';');
     return x;
 }
@@ -839,8 +841,7 @@ static void UDMF_LoadSideDefs_Post(void)
 {
     for (int i = 0; i < numsides; i++)
     {
-        P_ProcessSideDefs(&sides[i], i,
-                          udmf_sidedefs[i].texturebottom,
+        P_ProcessSideDefs(&sides[i], i, udmf_sidedefs[i].texturebottom,
                           udmf_sidedefs[i].texturemiddle,
                           udmf_sidedefs[i].texturetop);
     }
@@ -855,29 +856,29 @@ static void UDMF_LoadLineDefs_Post(void)
         {
             // killough 4/11/98: translucent 2s textures
             case 260:
-            {
-                // translucency from sidedef
-                int lump = sides[*lines[i].sidenum].special;
-                if (!lines[i].args[0])
                 {
-                    // if tag==0,
-                    // affect this linedef only
-                    lines[i].tranlump = lump;
-                }
-                else
-                {
-                    // if tag!=0,
-                    // affect all matching linedefs
-                    for (int j = 0; j < numlines; j++)
+                    // translucency from sidedef
+                    int lump = sides[*lines[i].sidenum].special;
+                    if (!lines[i].args[0])
                     {
-                        if (lines[j].id == lines[i].args[0])
+                        // if tag==0,
+                        // affect this linedef only
+                        lines[i].tranlump = lump;
+                    }
+                    else
+                    {
+                        // if tag!=0,
+                        // affect all matching linedefs
+                        for (int j = 0; j < numlines; j++)
                         {
-                            lines[j].tranlump = lump;
+                            if (lines[j].id == lines[i].args[0])
+                            {
+                                lines[j].tranlump = lump;
+                            }
                         }
                     }
+                    break;
                 }
-                break;
-            }
         }
     }
 }
@@ -1004,7 +1005,7 @@ boolean UDMF_LoadReject(int reject_num, int totallines)
         rejectmatrix = Z_Malloc(minlength, PU_LEVEL, (void **)&rejectmatrix);
         if (reject_num >= 0)
         {
-          W_ReadLump(reject_num, rejectmatrix);
+            W_ReadLump(reject_num, rejectmatrix);
         }
 
         if (M_CheckParm("-reject_pad_with_ff"))
@@ -1076,8 +1077,8 @@ void UDMF_LoadMap(int lumpnum, nodeformat_t *nodeformat, int *gen_blockmap,
     // note: most of this ordering is important
     UDMF_LoadVertexes();
     UDMF_LoadSectors();
-    UDMF_LoadSideDefs(); // <- This needs Sectors
-    UDMF_LoadLineDefs(); // <- this needs Sides
+    UDMF_LoadSideDefs();      // <- This needs Sectors
+    UDMF_LoadLineDefs();      // <- this needs Sides
     UDMF_LoadSideDefs_Post(); // <- this needs side_t::special
     UDMF_LoadLineDefs_Post(); // <- this needs Sides Post Processing
 

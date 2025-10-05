@@ -357,8 +357,10 @@ void P_LoadSegs_DEEP(int lump)
 
         side = SHORT(ml->side);
         // e6y: fix wrong side index
-        if(side != 0 && side != 1)
+        if (side != 0 && side != 1)
+        {
             side = 1;
+        }
 
         li->sidedef = &sides[ldef->sidenum[side]];
         li->frontsector = sides[ldef->sidenum[side]].sector;
@@ -484,8 +486,10 @@ static void P_LoadSegs_XNOD(byte *data)
         side = ml->side;
 
         // e6y: fix wrong side index
-        if(side != 0 && side != 1)
+        if (side != 0 && side != 1)
+        {
             side = 1;
+        }
 
         // Andrey Budko: check for wrong indexes
         if ((unsigned)ldef->sidenum[side] >= (unsigned)numsides)
@@ -676,7 +680,6 @@ void P_LoadNodes_ZDoom(int lump, nodeformat_t format)
     // 0. Uncompress nodes lump (or simply skip header)
     boolean compressed = format == NFMT_ZNOD || format == NFMT_ZGLN
                          || format == NFMT_ZGL2 || format == NFMT_ZGL3;
-
 
     if (compressed)
     {
