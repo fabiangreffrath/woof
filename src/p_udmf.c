@@ -58,10 +58,7 @@ typedef enum
     UDMF_ID24 = (1 << 7),
 
     // Compatibility
-    UDMF_COMP_NO_ARG0 = (1 << 30),
-
-    // Port exclusivity
-    UDMF_WOOF = (1 << 31),
+    UDMF_COMP_NO_ARG0 = (1 << 31),
 } UDMF_Features_t;
 
 typedef struct
@@ -247,11 +244,6 @@ static void UDMF_ParseNamespace(scanner_t *s)
     if (!strcasecmp(name, "doom"))
     {
         udmf_features |= UDMF_DOOM | UDMF_BOOM | UDMF_MBF;
-    }
-    else if (!strcasecmp(name, "woof"))
-    {
-        udmf_features |= UDMF_DOOM | UDMF_BOOM | UDMF_MBF | UDMF_MBF21
-                         | UDMF_ID24 | UDMF_WOOF;
     }
     else
     {
