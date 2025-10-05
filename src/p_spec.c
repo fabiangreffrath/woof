@@ -724,8 +724,8 @@ sector_t *P_FindModelCeilingSector(fixed_t ceildestheight, int secnum)
 int P_FindSectorFromLineTag(const line_t *line, int start)
 {
   start = start >= 0 ? sectors[start].nexttag :
-    sectors[(unsigned) line->tag % (unsigned) numsectors].firsttag;
-  while (start >= 0 && sectors[start].tag != line->tag)
+    sectors[(unsigned) line->args[0] % (unsigned) numsectors].firsttag;
+  while (start >= 0 && sectors[start].tag != line->args[0])
     start = sectors[start].nexttag;
   return start;
 }
@@ -735,8 +735,8 @@ int P_FindSectorFromLineTag(const line_t *line, int start)
 int P_FindLineFromLineTag(const line_t *line, int start)
 {
   start = start >= 0 ? lines[start].nexttag :
-    lines[(unsigned) line->tag % (unsigned) numlines].firsttag;
-  while (start >= 0 && lines[start].tag != line->tag)
+    lines[(unsigned) line->args[0] % (unsigned) numlines].firsttag;
+  while (start >= 0 && lines[start].id != line->args[0])
     start = lines[start].nexttag;
   return start;
 }
@@ -763,7 +763,7 @@ static void P_InitTagLists(void)
 
   for (i=numlines; --i>=0; )        // Proceed from last to first linedef
     {                               // so that lower linedefs appear first
-      int j = (unsigned) lines[i].tag % (unsigned) numlines; // Hash func
+      int j = (unsigned) lines[i].id % (unsigned) numlines; // Hash func
       lines[i].nexttag = lines[j].firsttag;   // Prepend linedef to chain
       lines[j].firsttag = i;
     }
@@ -948,7 +948,7 @@ int P_CheckTag(line_t *line)
 {
   // killough 11/98: compatibility option:
 
-  if (comp[comp_zerotags] || line->tag)
+  if (comp[comp_zerotags] || line->args[0])
     return 1;
 
   switch (line->special)
@@ -1206,7 +1206,7 @@ void P_CrossSpecialLine(line_t *line, int side, mobj_t *thing, boolean bossactio
           if (!thing->player && !bossaction)
             if ((line->special & FloorChange) || !(line->special & FloorModel))
               return;     // FloorModel is "Allow Monsters" if FloorChange is 0
-          if (!line->tag) //jff 2/27/98 all walk generalized types require tag
+          if (!line->args[0]) //jff 2/27/98 all walk generalized types require tag
             return;
           linefunc = EV_DoGenFloor;
         }
@@ -1216,7 +1216,7 @@ void P_CrossSpecialLine(line_t *line, int side, mobj_t *thing, boolean bossactio
             if (!thing->player && !bossaction)
               if ((line->special & CeilingChange) || !(line->special & CeilingModel))
                 return;     // CeilingModel is "Allow Monsters" if CeilingChange is 0
-            if (!line->tag) //jff 2/27/98 all walk generalized types require tag
+            if (!line->args[0]) //jff 2/27/98 all walk generalized types require tag
               return;
             linefunc = EV_DoGenCeiling;
           }
@@ -1230,7 +1230,7 @@ void P_CrossSpecialLine(line_t *line, int side, mobj_t *thing, boolean bossactio
                   if (line->flags & ML_SECRET) // they can't open secret doors either
                     return;
                 }
-              if (!line->tag) //3/2/98 move outside the monster check
+              if (!line->args[0]) //3/2/98 move outside the monster check
                 return;
               linefunc = EV_DoGenDoor;
             }
@@ -1254,7 +1254,7 @@ void P_CrossSpecialLine(line_t *line, int side, mobj_t *thing, boolean bossactio
                   if (!thing->player && !bossaction)
                     if (!(line->special & LiftMonster))
                       return; // monsters disallowed
-                  if (!line->tag) //jff 2/27/98 all walk generalized types require tag
+                  if (!line->args[0]) //jff 2/27/98 all walk generalized types require tag
                     return;
                   linefunc = EV_DoGenLift;
                 }
@@ -1264,7 +1264,7 @@ void P_CrossSpecialLine(line_t *line, int side, mobj_t *thing, boolean bossactio
                     if (!thing->player && !bossaction)
                       if (!(line->special & StairMonster))
                         return; // monsters disallowed
-                    if (!line->tag) //jff 2/27/98 all walk generalized types require tag
+                    if (!line->args[0]) //jff 2/27/98 all walk generalized types require tag
                       return;
                     linefunc = EV_DoGenStairs;
                   }
@@ -1276,7 +1276,7 @@ void P_CrossSpecialLine(line_t *line, int side, mobj_t *thing, boolean bossactio
                     if (!thing->player && !bossaction)
                       if (!(line->special & StairMonster))
                         return; // monsters disallowed
-                    if (!line->tag) //jff 2/27/98 all walk generalized types require tag
+                    if (!line->args[0]) //jff 2/27/98 all walk generalized types require tag
                       return;
                     linefunc = EV_DoGenCrusher;
                   }
@@ -2127,7 +2127,7 @@ void P_ShootSpecialLine(mobj_t *thing, line_t *line, int side)
           if (!thing->player)
             if ((line->special & FloorChange) || !(line->special & FloorModel))
               return;   // FloorModel is "Allow Monsters" if FloorChange is 0
-          if (!line->tag) //jff 2/27/98 all gun generalized types require tag
+          if (!line->args[0]) //jff 2/27/98 all gun generalized types require tag
             return;
 
           linefunc = EV_DoGenFloor;
@@ -2138,7 +2138,7 @@ void P_ShootSpecialLine(mobj_t *thing, line_t *line, int side)
             if (!thing->player)
               if ((line->special & CeilingChange) || !(line->special & CeilingModel))
                 return;   // CeilingModel is "Allow Monsters" if CeilingChange is 0
-            if (!line->tag) //jff 2/27/98 all gun generalized types require tag
+            if (!line->args[0]) //jff 2/27/98 all gun generalized types require tag
               return;
             linefunc = EV_DoGenCeiling;
           }
@@ -2152,7 +2152,7 @@ void P_ShootSpecialLine(mobj_t *thing, line_t *line, int side)
                   if (line->flags & ML_SECRET) // they can't open secret doors either
                     return;
                 }
-              if (!line->tag) //jff 3/2/98 all gun generalized types require tag
+              if (!line->args[0]) //jff 3/2/98 all gun generalized types require tag
                 return;
               linefunc = EV_DoGenDoor;
             }
@@ -2168,7 +2168,7 @@ void P_ShootSpecialLine(mobj_t *thing, line_t *line, int side)
                   }
                 else
                   return;
-                if (!line->tag) //jff 2/27/98 all gun generalized types require tag
+                if (!line->args[0]) //jff 2/27/98 all gun generalized types require tag
                   return;
 
                 linefunc = EV_DoGenLockedDoor;
@@ -2187,7 +2187,7 @@ void P_ShootSpecialLine(mobj_t *thing, line_t *line, int side)
                     if (!thing->player)
                       if (!(line->special & StairMonster))
                         return; // monsters disallowed
-                    if (!line->tag) //jff 2/27/98 all gun generalized types require tag
+                    if (!line->args[0]) //jff 2/27/98 all gun generalized types require tag
                       return;
                     linefunc = EV_DoGenStairs;
                   }
@@ -2197,7 +2197,7 @@ void P_ShootSpecialLine(mobj_t *thing, line_t *line, int side)
                       if (!thing->player)
                         if (!(line->special & StairMonster))
                           return; // monsters disallowed
-                      if (!line->tag) //jff 2/27/98 all gun generalized types require tag
+                      if (!line->args[0]) //jff 2/27/98 all gun generalized types require tag
                         return;
                       linefunc = EV_DoGenCrusher;
                     }
@@ -3211,7 +3211,7 @@ static void P_SpawnScrollers(void)
         // according to the target sector's scroll values divided by 8
         case 2084:
         case 1024:
-          if (l->tag == 0)
+          if (l->args[0] == 0)
             I_Error("Line %d is missing a tag!", i);
 
           s = lines[i].sidenum[0];

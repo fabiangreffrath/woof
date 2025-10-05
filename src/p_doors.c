@@ -572,7 +572,7 @@ int EV_VerticalDoor(line_t *line, mobj_t *thing)
   door->line = line; // jff 1/31/98 remember line that triggered us
 
   // killough 10/98: use gradual lighting changes if nonzero tag given
-  door->lighttag = STRICTMODE_COMP(comp_doorlight) ? 0 : line->tag; // killough 10/98
+  door->lighttag = STRICTMODE_COMP(comp_doorlight) ? 0 : line->args[0]; // killough 10/98
 
   // set the type of door from the activating linedef type
   switch(line->special)
