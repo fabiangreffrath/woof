@@ -219,11 +219,14 @@ typedef struct line_s
   vertex_t *v1, *v2;     // Vertices, from v1 to v2.
   fixed_t dx, dy;        // Precalculated v2 - v1 for side checking.
   // [FG] extended nodes
-  unsigned short flags;           // Animation related.
-  short special;         
-  short tag;
-  // [FG] extended nodes
-  unsigned short sidenum[2];      // Visual appearance: SideDefs.
+  uint16_t flags;        // Animation related.
+  int16_t special;       // Special action
+  int16_t id;            // Tag -> id/arg0 split
+  int32_t args[5];       // Hexen-style parameterized actions
+
+  // UDMF -- further extend to 32bit
+  int32_t sidenum[2];    // Visual appearance: SideDefs.
+
   fixed_t bbox[4];       // A bounding box, for the linedef's extent
   slopetype_t slopetype; // To aid move clipping.
   sector_t *frontsector; // Front and back sector.

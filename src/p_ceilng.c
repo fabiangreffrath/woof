@@ -372,7 +372,7 @@ int P_ActivateInStasisCeiling(line_t *line)
   for (cl=activeceilings; cl; cl=cl->next)
   {
     ceiling_t *ceiling = cl->ceiling;
-    if (ceiling->tag == line->tag && ceiling->direction == 0)
+    if (ceiling->tag == line->args[0] && ceiling->direction == 0)
     {
       ceiling->direction = ceiling->olddirection;
       ceiling->thinker.function.p1 = T_MoveCeilingAdapter;
@@ -399,7 +399,7 @@ int EV_CeilingCrushStop(line_t* line)
   for (cl=activeceilings; cl; cl=cl->next)
   {
     ceiling_t *ceiling = cl->ceiling;
-    if (ceiling->direction != 0 && ceiling->tag == line->tag)
+    if (ceiling->direction != 0 && ceiling->tag == line->args[0])
     {
       ceiling->olddirection = ceiling->direction;
       ceiling->direction = 0;

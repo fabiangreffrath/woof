@@ -224,11 +224,7 @@ static void ArchiveWorld(void)
     {
         write16(li->flags,
                 li->special,
-                li->tag);
-
-        write32(li->angle,
-                li->frontmusic,
-                li->backmusic);
+                li->id);
 
         // Woof!
         writep(li->frontsector,
@@ -291,11 +287,7 @@ static void UnArchiveWorld(void)
     {
         li->flags = read16();
         li->special = read16();
-        li->tag = read16();
-        
-        li->angle = read32();
-        li->frontmusic = read32();
-        li->backmusic = read32();
+        li->id = read16();
 
         // Woof!
         li->frontsector = readp();
