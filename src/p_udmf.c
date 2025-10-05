@@ -20,6 +20,7 @@
 #include "doomdef.h"
 #include "doomstat.h"
 #include "doomtype.h"
+#include "i_printf.h"
 #include "i_system.h"
 #include "m_argv.h"
 #include "m_array.h"
@@ -253,9 +254,10 @@ static void UDMF_ParseNamespace(scanner_t *s)
     {
         udmf_features |= UDMF_DOOM | UDMF_BOOM | UDMF_MBF;
     }
-    else if (!strcasecmp(name, "hexen") && devparm)
+    else if (devparm && !strcasecmp(name, "hexen"))
     {
-        udmf_features |= UDMF_PARAM | UDMF_BOOM | UDMF_MBF;
+        I_Printf(VB_WARNING, "Loading development-only UDMF namespace: \"%s\"", name);
+        udmf_features |= UDMF_DOOM | UDMF_BOOM | UDMF_MBF | UDMF_PARAM;
     }
     else
     {
@@ -955,6 +957,12 @@ void UDMF_LoadThings(void)
         mt.angle = CLAMP(udmf_things[i].angle, 0, 360);
         mt.type = udmf_things[i].type;
         mt.options = udmf_things[i].options;
+
+        mt.args[0] = udmf_things[i].args[0];
+        mt.args[1] = udmf_things[i].args[1];
+        mt.args[2] = udmf_things[i].args[2];
+        mt.args[3] = udmf_things[i].args[3];
+        mt.args[4] = udmf_things[i].args[4];
 
         P_SpawnMapThing(&mt);
     }
