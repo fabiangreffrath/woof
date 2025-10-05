@@ -595,6 +595,10 @@ static void UDMF_ParseThing(scanner_t *s)
         {
             thing.options |= UDMF_ScanFlag(s, MTF_FRIEND);
         }
+        else if (PROP(special, UDMF_PARAM))
+        {
+            thing.special = UDMF_ScanInt(s);
+        }
         else if (PROP(arg0, UDMF_PARAM))
         {
             thing.args[0] = UDMF_ScanInt(s);
