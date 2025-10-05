@@ -28,7 +28,6 @@
 #include "m_misc.h"
 #include "m_scanner.h"
 #include "m_swap.h"
-#include "nano_bsp.h"
 #include "p_extnodes.h"
 #include "p_mobj.h"
 #include "p_setup.h"
@@ -920,24 +919,6 @@ void UDMF_LoadThings(void)
     }
 }
 
-nodeformat_t UDMF_LoadZNodes(int znodes_num)
-{
-    nodeformat_t nodeformat = P_CheckUDMFNodeFormat(znodes_num);
-
-    if (nodeformat == NFMT_NANO)
-    {
-        // [FG] build nodes with NanoBSP
-        BSP_BuildNodes();
-    }
-    else
-    {
-        // support all ZDoom extended node formats
-        P_LoadNodes_ZDoom(znodes_num, nodeformat);
-    }
-
-    return nodeformat;
-}
-
 boolean UDMF_LoadBlockMap(int blockmap_num)
 {
     long count;
@@ -1048,6 +1029,7 @@ void UDMF_LoadMap(int lumpnum, nodeformat_t *nodeformat, int *gen_blockmap,
     int reject_num = -1;
     int blockmap_num = -1;
 
+    // +2 skips label, and TEXTMAP
     for (int i = lumpnum + 2; i < numlumps; ++i)
     {
         char *name = lumpinfo[i].name;
@@ -1069,6 +1051,19 @@ void UDMF_LoadMap(int lumpnum, nodeformat_t *nodeformat, int *gen_blockmap,
         }
     }
 
+    if (znodes_num < 0)
+    {
+        I_Error("Could not find ZNODES lump for UDMF map: %s.",
+                lumpinfo[lumpnum].name);
+    }
+
+    *nodeformat = P_CheckUDMFNodeFormat(znodes_num);
+    if (*nodeformat == NFMT_NANO)
+    {
+        I_Error("Invalid format found on ZNODES lump for UDMF map: %s",
+                lumpinfo[lumpnum].name);
+    }
+
     // Clear everything
     array_free(udmf_vertexes);
     array_free(udmf_linedefs);
@@ -1087,6 +1082,6 @@ void UDMF_LoadMap(int lumpnum, nodeformat_t *nodeformat, int *gen_blockmap,
     UDMF_LoadLineDefs_Post(); // <- this needs Sides Post Processing
 
     *gen_blockmap = UDMF_LoadBlockMap(blockmap_num);
-    *nodeformat = UDMF_LoadZNodes(znodes_num);
+    P_LoadNodes_ZDoom(znodes_num, *nodeformat);
     *pad_reject = UDMF_LoadReject(reject_num, P_GroupLines());
 }

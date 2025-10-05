@@ -277,46 +277,32 @@ nodeformat_t P_CheckUDMFNodeFormat(int lumpnum)
 {
     nodeformat_t format = NFMT_NANO;
 
-    //!
-    // @category mod
-    //
-    // Forces rebuilding of nodes.
-    //
-
-    if (M_CheckParm("-bsp"))
+    byte *lump_data = W_CacheLumpNum(lumpnum, PU_STATIC);
+    if (!memcmp(lump_data, "XGLN", 4))
     {
-        return NFMT_NANO;
+        format = NFMT_XGLN;
     }
-
-    if(W_LumpExistsWithName(lumpnum, "ZNODES"))
+    else if (!memcmp(lump_data, "ZGLN", 4))
     {
-      byte *lump_data = W_CacheLumpNum(lumpnum, PU_STATIC);
-      if (!memcmp(lump_data, "XGLN", 4))
-      {
-          format = NFMT_XGLN;
-      }
-      else if (!memcmp(lump_data, "ZGLN", 4))
-      {
-          format = NFMT_ZGLN;
-      }
-      else if (!memcmp(lump_data, "XGL2", 4))
-      {
-          format = NFMT_XGL2;
-      }
-      else if (!memcmp(lump_data, "ZGL2", 4))
-      {
-          format = NFMT_ZGL2;
-      }
-      else if (!memcmp(lump_data, "XGL3", 4))
-      {
-          format = NFMT_XGL3;
-      }
-      else if (!memcmp(lump_data, "ZGL3", 4))
-      {
-          format = NFMT_ZGL3;
-      }
-      Z_Free(lump_data);
+        format = NFMT_ZGLN;
     }
+    else if (!memcmp(lump_data, "XGL2", 4))
+    {
+        format = NFMT_XGL2;
+    }
+    else if (!memcmp(lump_data, "ZGL2", 4))
+    {
+        format = NFMT_ZGL2;
+    }
+    else if (!memcmp(lump_data, "XGL3", 4))
+    {
+        format = NFMT_XGL3;
+    }
+    else if (!memcmp(lump_data, "ZGL3", 4))
+    {
+        format = NFMT_ZGL3;
+    }
+    Z_Free(lump_data);
     return format;
 }
 
