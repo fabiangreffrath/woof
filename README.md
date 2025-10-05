@@ -54,6 +54,7 @@ If you turn the [Doom logo upside down](https://www.reddit.com/r/Doom/comments/8
  * Support for additional node types, including DeePBSP and ZDoom's XNOD/ZNOD, XGLN/ZGLN, XGL2/ZGL2 & XGL3/ZGL3 extended formats.
  * Integration of the NanoBSP node builder (enforce with `-bsp`) for maps without nodes or with unsupported nodes (not demo compatible).
  * Tall textures and sprites in DeePsea format.
+ * Support for UDMF maps, in the "Doom" namespace, compliant with version 1.1 of the [spec](https://github.com/fabiangreffrath/woof/blob/master/docs/udmf11.txt).
  * Unlimited extra states, sprites, mobjtypes and sounds for use in Dehacked patches (supporting the "DEHEXTRA" and "DSDHacked" specs).
  * Ambient sounds using SNDINFO and DoomEdNums 14001 to 14064.
  * In-game music changing using MUSINFO and DoomEdNums 14101 to 14164.
