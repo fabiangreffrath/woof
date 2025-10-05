@@ -56,6 +56,9 @@ typedef enum
     UDMF_MBF21 = (1 << 6),
     UDMF_ID24 = (1 << 7),
 
+    // General behavior
+    UDMF_PARAM = (1 << 8),
+
     // Compatibility
     UDMF_COMP_NO_ARG0 = (1 << 31),
 } UDMF_Features_t;
@@ -250,6 +253,10 @@ static void UDMF_ParseNamespace(scanner_t *s)
     {
         udmf_features |= UDMF_DOOM | UDMF_BOOM | UDMF_MBF;
     }
+    else if (!strcasecmp(name, "hexen") && devparm)
+    {
+        udmf_features |= UDMF_PARAM | UDMF_BOOM | UDMF_MBF;
+    }
     else
     {
         I_Error("Unknown UDMF namespace: \"%s\".", name);
@@ -324,19 +331,19 @@ static void UDMF_ParseLinedef(scanner_t *s)
             // Tag -> id/arg0 split means arg0 is always enabled
             line.args[0] = UDMF_ScanInt(s);
         }
-        else if (PROP(arg1, UDMF_HEXEN))
+        else if (PROP(arg1, UDMF_PARAM))
         {
             line.args[1] = UDMF_ScanInt(s);
         }
-        else if (PROP(arg2, UDMF_HEXEN))
+        else if (PROP(arg2, UDMF_PARAM))
         {
             line.args[2] = UDMF_ScanInt(s);
         }
-        else if (PROP(arg3, UDMF_HEXEN))
+        else if (PROP(arg3, UDMF_PARAM))
         {
             line.args[3] = UDMF_ScanInt(s);
         }
-        else if (PROP(arg4, UDMF_HEXEN))
+        else if (PROP(arg4, UDMF_PARAM))
         {
             line.args[4] = UDMF_ScanInt(s);
         }
@@ -588,23 +595,23 @@ static void UDMF_ParseThing(scanner_t *s)
         {
             thing.options |= UDMF_ScanFlag(s, MTF_FRIEND);
         }
-        else if (PROP(arg0, UDMF_HEXEN))
+        else if (PROP(arg0, UDMF_PARAM))
         {
             thing.args[0] = UDMF_ScanInt(s);
         }
-        else if (PROP(arg1, UDMF_HEXEN))
+        else if (PROP(arg1, UDMF_PARAM))
         {
             thing.args[1] = UDMF_ScanInt(s);
         }
-        else if (PROP(arg2, UDMF_HEXEN))
+        else if (PROP(arg2, UDMF_PARAM))
         {
             thing.args[2] = UDMF_ScanInt(s);
         }
-        else if (PROP(arg3, UDMF_HEXEN))
+        else if (PROP(arg3, UDMF_PARAM))
         {
             thing.args[3] = UDMF_ScanInt(s);
         }
-        else if (PROP(arg4, UDMF_HEXEN))
+        else if (PROP(arg4, UDMF_PARAM))
         {
             thing.args[4] = UDMF_ScanInt(s);
         }
