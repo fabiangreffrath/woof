@@ -51,7 +51,7 @@ If you turn the [Doom logo upside down](https://www.reddit.com/r/Doom/comments/8
 
 ## Capabilities
 
- * Support for extended nodes in uncompressed XNOD or XGLN and compressed ZNOD or ZGLN formats, and DeePBSP format.
+ * Support for additional node types, including DeePBSP and ZDoom's XNOD/ZNOD, XGLN/ZGLN, XGL2/ZGL2 & XGL3/ZGL3 extended formats.
  * Integration of the NanoBSP node builder (enforce with `-bsp`) for maps without nodes or with unsupported nodes (not demo compatible).
  * Tall textures and sprites in DeePsea format.
  * Unlimited extra states, sprites, mobjtypes and sounds for use in Dehacked patches (supporting the "DEHEXTRA" and "DSDHacked" specs).
