@@ -1,8 +1,8 @@
 vcpkg_from_github(
     OUT_SOURCE_PATH SOURCE_PATH
     REPO FluidSynth/fluidsynth
-    REF d4a6056f9ab0df0711ca8a3ffec9af5e4456db1c
-    SHA512 1014d3fde2b787078b0139a5c8ce499329ac6cbda8f9dd95570d43691177aef4872cde9e11052ab4c592ee8e7ad7a7716c57b56fe7efc0f6d874f7905e6f0e2e
+    REF "v${VERSION}"
+    SHA512 8f326db4049b3241c7a0472aa5db8c715dcfc0a1ce9c5fda492bf84e6c17e27a2298131a58a51e275797259a434e59bfe3f53d85358f903652dca8de753a3376
     HEAD_REF master
 )
 # Do not use or install FindSndFileLegacy.cmake and its deps
