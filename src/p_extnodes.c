@@ -356,7 +356,7 @@ void P_LoadSegs_DEEP(int lump)
         li->linedef = ldef;
 
         side = SHORT(ml->side);
-        // e6y: fix wrong side index
+        // Andrey Budko: fix wrong side index
         if (side != 0 && side != 1)
         {
             side = 1;
@@ -485,7 +485,7 @@ static void P_LoadSegs_XNOD(byte *data)
         li->linedef = ldef;
         side = ml->side;
 
-        // e6y: fix wrong side index
+        // Andrey Budko: fix wrong side index
         if (side != 0 && side != 1)
         {
             side = 1;
