@@ -254,7 +254,7 @@ static void UDMF_ParseNamespace(scanner_t *s)
     {
         udmf_features |= UDMF_DOOM | UDMF_BOOM | UDMF_MBF;
     }
-    else if (devparm && !strcasecmp(name, "hexen"))
+    else if (devparm && !strcasecmp(name, "dsda"))
     {
         I_Printf(VB_WARNING, "Loading development-only UDMF namespace: \"%s\"", name);
         udmf_features |= UDMF_DOOM | UDMF_BOOM | UDMF_MBF | UDMF_PARAM;
