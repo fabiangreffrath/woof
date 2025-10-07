@@ -37,7 +37,7 @@ void I_Quit(void)
 
     W_Close();
 
-    I_UpdateDiscordPresence(false, NULL);
+    I_UpdateDiscordPresence(false, NULL, NULL);
 }
 
 void I_QuitFirst(void)

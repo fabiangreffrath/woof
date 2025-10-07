@@ -16,6 +16,7 @@
 
 #include "doomtype.h"
 
-void I_UpdateDiscordPresence(boolean sendpresence, const char *curstatus);
+void I_UpdateDiscordPresence(boolean sendpresence, const char *curstate,
+                             const char *curstatus);
 
 #endif

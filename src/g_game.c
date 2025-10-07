@@ -50,6 +50,7 @@
 #include "i_gyro.h"
 #include "i_input.h"
 #include "i_printf.h"
+#include "i_richpresence.h"
 #include "i_rumble.h"
 #include "i_system.h"
 #include "i_timer.h"
@@ -69,7 +70,6 @@
 #include "net_defs.h"
 #include "p_enemy.h"
 #include "p_inter.h"
-#include "p_keyframe.h"
 #include "p_map.h"
 #include "p_maputl.h"
 #include "p_mobj.h"
@@ -1005,6 +1005,8 @@ static void G_DoLoadLevel(void)
   G_ResetRewind();
   MN_UpdateFreeLook();
   HU_UpdateTurnFormat();
+
+  I_UpdateDiscordPresence(true, G_GetLevelTitle(), gamedescription);
 
   // [Woof!] Do not reset chosen player view across levels in multiplayer
   // demo playback. However, it must be reset when starting a new game.
@@ -4849,6 +4851,70 @@ boolean G_CheckDemoStatus(void)
     }
 
   return false;
+}
+
+static boolean IsVanillaMap(int e, int m)
+{
+    if (gamemode == commercial)
+    {
+        return (e == 1 && m > 0 && m <= 32);
+    }
+    else
+    {
+        return (e > 0 && e <= 4 && m > 0 && m <= 9);
+    }
+}
+
+const char *G_GetLevelTitle(void)
+{
+    const char *result;
+
+    if (gamemapinfo && gamemapinfo->levelname)
+    {
+        if (!(gamemapinfo->flags & MapInfo_LabelClear))
+        {
+            static char *string;
+            if (string)
+            {
+                free(string);
+            }
+            string = M_StringJoin(gamemapinfo->label ? gamemapinfo->label
+                                                     : gamemapinfo->mapname,
+                                  ": ", gamemapinfo->levelname);
+            result = string;
+        }
+        else
+        {
+            result = gamemapinfo->levelname;
+        }
+    }
+    else
+    {
+        if (IsVanillaMap(gameepisode, gamemap))
+        {
+            result = (gamemode != commercial)
+                         ? *mapnames[(gameepisode - 1) * 9 + gamemap - 1]
+                     : (gamemission == pack_tnt)  ? *mapnamest[gamemap - 1]
+                     : (gamemission == pack_plut) ? *mapnamesp[gamemap - 1]
+                                                  : *mapnames2[gamemap - 1];
+        }
+        // WADs like pl2.wad have a MAP33, and rely on the layout in the
+        // Vanilla executable, where it is possible to overflow the end of one
+        // array into the next.
+        else if (gamemode == commercial && gamemap >= 33 && gamemap <= 35)
+        {
+            result = (gamemission == doom2)       ? *mapnamesp[gamemap - 33]
+                     : (gamemission == pack_plut) ? *mapnamest[gamemap - 33]
+                                                  : "";
+        }
+        else
+        {
+            // initialize the map title widget with the generic map lump name
+            result = MapName(gameepisode, gamemap);
+        }
+    }
+
+    return result;
 }
 
 // killough 1/22/98: this is a "Doom printf" for messages. I've gotten

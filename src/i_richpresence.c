@@ -58,7 +58,8 @@ static void DiscordJoinRequest(const DiscordUser *request)
            request->discriminator, request->userId);
 }
 
-void I_UpdateDiscordPresence(boolean sendpresence, const char *curstatus)
+void I_UpdateDiscordPresence(boolean sendpresence, const char *curstate,
+                             const char *curstatus)
 {
     static boolean initialized;
     static int64_t starttime;
@@ -82,7 +83,7 @@ void I_UpdateDiscordPresence(boolean sendpresence, const char *curstatus)
     if (sendpresence)
     {
         DiscordRichPresence presence = {0};
-        presence.state = "Playing";
+        presence.state = curstate;
         if (!starttime)
         {
             starttime = time(0);
