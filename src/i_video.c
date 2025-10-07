@@ -111,8 +111,6 @@ static aspect_ratio_mode_t widescreen, default_widescreen;
 
 static SDL_Window *screen;
 static SDL_Renderer *renderer;
-static SDL_Surface *screenbuffer;
-static SDL_Surface *argbbuffer;
 static SDL_Palette *palette;
 static SDL_Texture *texture;
 static SDL_Rect blit_rect = {0};
@@ -676,16 +674,31 @@ void I_StartFrame(void)
 
 static void UpdateRender(void)
 {
-    // Blit from the paletted 8-bit screen buffer to the intermediate
-    // 32-bit RGBA buffer and update the intermediate texture with the
-    // contents of the RGBA buffer.
-
-    SDL_LockTexture(texture, &blit_rect, &argbbuffer->pixels,
-                    &argbbuffer->pitch);
-    SDL_BlitSurfaceUnchecked(screenbuffer, &blit_rect, argbbuffer, &blit_rect);
+    // When using SDL_LockTexture, the pixels made available for editing may not
+    // contain the original texture data. We have to maintain a copy of the
+    // video buffer in order to emulate HOM effects.
+    void *pixels;
+    int dst_pitch;
+    SDL_LockTexture(texture, &blit_rect, &pixels, &dst_pitch);
+    int h = blit_rect.h;
+    int src_pitch = video.pitch;
+    if (dst_pitch == src_pitch)
+    {
+        memcpy(pixels, I_VideoBuffer, src_pitch * h);
+    }
+    else
+    {
+        pixel_t *src = I_VideoBuffer;
+        pixel_t *dst = pixels;
+        while (h--)
+        {
+            memcpy(dst, src, src_pitch);
+            dst += dst_pitch;        
+            src += src_pitch;
+        }
+    }
     SDL_UnlockTexture(texture);
 
-    SDL_RenderClear(renderer);
     SDL_RenderTexture(renderer, texture, &renderer_rect, NULL);
 }
 
@@ -1588,31 +1601,13 @@ static int GetCurrentVideoHeight(void)
 
 static void CreateSurfaces(int w, int h)
 {
-    // [FG] create paletted frame buffer
-
-    if (screenbuffer != NULL)
+    if (I_VideoBuffer)
     {
-        SDL_DestroySurface(screenbuffer);
+        free(I_VideoBuffer);
     }
 
-    screenbuffer = SDL_CreateSurface(w, h, SDL_PIXELFORMAT_INDEX8);
-
-    I_SetPalette(W_CacheLumpName("PLAYPAL", PU_CACHE));
-
-    SDL_SetSurfacePalette(screenbuffer, palette);
-
-    I_VideoBuffer = screenbuffer->pixels;
+    I_VideoBuffer = malloc(w * h * sizeof(pixel_t));
     V_RestoreBuffer();
-
-    if (argbbuffer != NULL)
-    {
-        SDL_DestroySurface(argbbuffer);
-    }
-
-    // [FG] create intermediate ARGB frame buffer
-
-    argbbuffer = SDL_CreateSurfaceFrom(w, h, SDL_PIXELFORMAT_ARGB8888,
-                                       NULL, w * 4);
 
     // [FG] create texture
 
@@ -1621,8 +1616,12 @@ static void CreateSurfaces(int w, int h)
         SDL_DestroyTexture(texture);
     }
 
-    texture = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_ARGB8888,
+    texture = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_INDEX8,
                                 SDL_TEXTUREACCESS_STREAMING, w, h);
+
+    I_SetPalette(W_CacheLumpName("PLAYPAL", PU_CACHE));
+
+    SDL_SetTexturePalette(texture, palette);
 
 #ifdef HAVE_SCALEMODE_PIXELART
     SDL_SetTextureScaleMode(texture,
@@ -1682,8 +1681,6 @@ void I_ShutdownGraphics(void)
 
     UpdateGrab();
 
-    SDL_DestroySurface(argbbuffer);
-    SDL_DestroySurface(screenbuffer);
     SDL_DestroyTexture(texture);
 
     if (!D_AllowEndDoom())
