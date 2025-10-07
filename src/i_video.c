@@ -1611,7 +1611,7 @@ static void CreateSurfaces(int w, int h)
 
     // [FG] create texture
 
-    if (texture != NULL)
+    if (texture)
     {
         SDL_DestroyTexture(texture);
     }

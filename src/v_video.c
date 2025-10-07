@@ -46,7 +46,7 @@
 #include "w_wad.h" // needed for color translation lump lookup
 #include "z_zone.h"
 
-pixel_t *I_VideoBuffer;
+pixel_t *I_VideoBuffer = NULL;
 
 // The screen buffer that the v_video.c code draws to.
 
