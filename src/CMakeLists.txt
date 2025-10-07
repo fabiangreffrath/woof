@@ -195,7 +195,6 @@ target_link_libraries(
             yyjson::yyjson
             pffft::pffft
             miniz::miniz
-            DiscordRPC::discord-rpc
             netlib
             md5
             spng
@@ -241,6 +240,10 @@ endif()
 if(HAVE_LIBXMP)
     target_sources(woof PRIVATE i_xmp.c)
     target_link_libraries(woof PRIVATE libxmp::xmp)
+endif()
+
+if(HAVE_DISCORD_RPC)
+    target_link_libraries(woof PRIVATE DiscordRPC::discord-rpc)
 endif()
 
 target_compile_definitions(woof PRIVATE
