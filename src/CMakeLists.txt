@@ -53,6 +53,7 @@ set(WOOF_SOURCES
     i_oplmusic.c
     i_printf.c             i_printf.h
     i_region.c             i_region.h
+    i_richpresence.c       i_richpresence.h
     i_rumble.c             i_rumble.h
     i_sndfile.c            i_sndfile.h
     i_sound.c              i_sound.h
@@ -194,6 +195,7 @@ target_link_libraries(
             yyjson::yyjson
             pffft::pffft
             miniz::miniz
+            DiscordRPC::discord-rpc
             netlib
             md5
             spng
