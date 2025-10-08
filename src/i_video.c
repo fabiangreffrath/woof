@@ -1598,15 +1598,9 @@ static void CreateVideoBuffer(void)
         SDL_DestroyTexture(texture);
     }
 
-    // [FG] For performance reasons, SDL insists that the screen pitch, i.e.
-    // the *number of bytes* that one horizontal row of pixels occupy in
-    // memory, must be a multiple of 4.
-
-    int width = (video.width + 3) & ~3;
-
     texture = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_INDEX8,
                                 SDL_TEXTUREACCESS_STREAMING,
-                                width, video.height);
+                                video.width, video.height);
     if (!texture)
     {
         I_Error("Failed to create texture: %s", SDL_GetError());
