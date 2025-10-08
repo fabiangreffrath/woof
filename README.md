@@ -91,7 +91,7 @@ Install vcpkg <https://github.com/Microsoft/vcpkg?tab=readme-ov-file#get-started
  cd ..
 ```
 
-Clone woof repository:
+Clone the woof repository:
 
 ```
  git clone https://github.com/fabiangreffrath/woof.git
@@ -104,12 +104,12 @@ Run the CMake configuration:
 ```
 During this step, vcpkg will build all the dependencies.
 
-Build the project:
+Finally, build the project:
 ```
  cmake --build build
 ```
 
-The executable will be avaible in `build/src` directory.
+After successful compilation, the executable will be avaible in the `build/src` directory.
 
 ## Linux, and Windows with MSYS2
 
@@ -125,18 +125,18 @@ The following build system and libraries need to be installed:
  * [libxmp](https://github.com/libxmp/libxmp) (optional)
  * [discord-rpc](https://github.com/discord/discord-rpc) (optional)
  
-Usually your distribution should have the corresponding packages in its repositories, and if your distribution has "dev" versions of those libraries, those are the ones you'll need.
+Usually your distribution should have the corresponding packages in its repositories. If "development" ("dev") versions of these libraries are available, make sure to install them.
 
-Once installed, compilation should be as simple as:
+Once installed, clone the woof repository, run the CMake configuration and build the project:
 
 ```
+ git clone https://github.com/fabiangreffrath/woof.git
  cd woof
- mkdir build; cd build
- cmake ..
- make
+ cmake -B build
+ cmake --build build
 ```
 
-After successful compilation the resulting binary can be found in the `src/` directory.
+After successful compilation, the executable will be avaible in the `build/src` directory.
 
 # Contact
 
