@@ -21,7 +21,6 @@
 
 #include "doomstat.h"
 #include "g_game.h"
-#include "i_richpresence.h"
 #include "m_config.h"
 #include "w_wad.h"
 
@@ -36,8 +35,6 @@ void I_Quit(void)
     SDL_Quit();
 
     W_Close();
-
-    I_UpdateDiscordPresence(false, NULL, NULL);
 }
 
 void I_QuitFirst(void)

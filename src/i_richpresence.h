@@ -14,9 +14,6 @@
 #ifndef I_RICHPRESENCE_H
 #define I_RICHPRESENCE_H
 
-#include "doomtype.h"
-
-void I_UpdateDiscordPresence(boolean sendpresence, const char *curstate,
-                             const char *curstatus);
+void I_UpdateDiscordPresence(const char *curstate, const char *curstatus);
 
 #endif

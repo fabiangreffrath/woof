@@ -1006,7 +1006,7 @@ static void G_DoLoadLevel(void)
   MN_UpdateFreeLook();
   HU_UpdateTurnFormat();
 
-  I_UpdateDiscordPresence(true, G_GetLevelTitle(), gamedescription);
+  I_UpdateDiscordPresence(G_GetLevelTitle(), gamedescription);
 
   // [Woof!] Do not reset chosen player view across levels in multiplayer
   // demo playback. However, it must be reset when starting a new game.

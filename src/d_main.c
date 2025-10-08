@@ -2626,7 +2626,7 @@ void D_DoomMain(void)
 
   // [FG] init graphics (video.widedelta) before HUD widgets
   I_InitGraphics();
-  I_UpdateDiscordPresence(true, "Playing", gamedescription);
+  I_UpdateDiscordPresence("Playing", gamedescription);
   I_InitKeyboard();
 
   MN_InitMenuStrings();

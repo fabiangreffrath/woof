@@ -14,6 +14,7 @@
 #include "config.h"
 #include "doomtype.h"
 #include "i_printf.h"
+#include "i_system.h"
 
 #ifdef HAVE_DISCORD_RPC
 
@@ -59,8 +60,7 @@ static void DiscordJoinRequest(const DiscordUser *request)
            request->discriminator, request->userId);
 }
 
-void I_UpdateDiscordPresence(boolean sendpresence, const char *curstate,
-                             const char *curstatus)
+void I_UpdateDiscordPresence(const char *curstate, const char *curstatus)
 {
     static boolean initialized;
     static int64_t starttime;
@@ -79,31 +79,26 @@ void I_UpdateDiscordPresence(boolean sendpresence, const char *curstate,
             .joinRequest = DiscordJoinRequest
         };
         Discord_Initialize(curappid, &handlers, 1, NULL);
+        
+        I_AtExit(Discord_ClearPresence, true);
     }
 
-    if (sendpresence)
+    DiscordRichPresence presence = {0};
+    presence.state = curstate;
+    if (!starttime)
     {
-        DiscordRichPresence presence = {0};
-        presence.state = curstate;
-        if (!starttime)
-        {
-            starttime = time(0);
-        }
-        presence.startTimestamp = starttime;
-        presence.details = curstatus;
-        presence.largeImageKey = "game-image";
-        presence.instance = 0;
-        Discord_UpdatePresence(&presence);
+        starttime = time(0);
     }
-    else
-    {
-        Discord_ClearPresence();
-    }
+    presence.startTimestamp = starttime;
+    presence.details = curstatus;
+    presence.largeImageKey = "game-image";
+    presence.instance = 0;
+    Discord_UpdatePresence(&presence);
 }
 
 #else
 
-void I_UpdateDiscordPresence(boolean sendpresence, const char *curstatus)
+void I_UpdateDiscordPresence(const char *curstatus)
 {
     Printf("Build without discord-rpc");
 }
