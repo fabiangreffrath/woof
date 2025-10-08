@@ -699,6 +699,7 @@ static void UpdateRender(void)
     }
     SDL_UnlockTexture(texture);
 
+    SDL_RenderClear(renderer);
     SDL_RenderTexture(renderer, texture, &renderer_rect, NULL);
 }
 
