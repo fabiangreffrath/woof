@@ -46,7 +46,7 @@
 #include "w_wad.h" // needed for color translation lump lookup
 #include "z_zone.h"
 
-pixel_t *I_VideoBuffer;
+pixel_t *I_VideoBuffer = NULL;
 
 // The screen buffer that the v_video.c code draws to.
 
@@ -1072,14 +1072,21 @@ void V_DrawBackground(const char *patchname)
 
 void V_Init(void)
 {
-    fixed_t frac, lastfrac;
+    if (I_VideoBuffer)
+    {
+        free(I_VideoBuffer);
+    }
+    I_VideoBuffer = malloc(video.width * video.height);
+    V_RestoreBuffer();
 
-    linesize = video.pitch;
+    linesize = video.width;
 
     video.xscale = (video.width << FRACBITS) / video.unscaledw;
     video.yscale = (video.height << FRACBITS) / SCREENHEIGHT;
     video.xstep = ((video.unscaledw << FRACBITS) / video.width) + 1;
     video.ystep = ((SCREENHEIGHT << FRACBITS) / video.height) + 1;
+   
+    fixed_t frac, lastfrac;
 
     x1lookup[0] = 0;
     lastfrac = frac = 0;

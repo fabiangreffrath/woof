@@ -1091,13 +1091,7 @@ void AM_Ticker (void)
 //
 static void AM_clearFB(int color)
 {
-  int h = f_h;
-  pixel_t *src = I_VideoBuffer;
-  while (h--)
-  {
-    memset(src, color, f_w);
-    src += video.pitch;
-  }
+  memset(I_VideoBuffer, color, f_h * f_w);
 }
 
 //
@@ -1275,7 +1269,7 @@ static void AM_drawFline_Vanilla(fline_t* fl, int color)
   }
 #endif
 
-#define PUTDOT(xx,yy,cc) I_VideoBuffer[(yy)*video.pitch+(xx)]=(cc)
+#define PUTDOT(xx,yy,cc) I_VideoBuffer[(yy)*video.width+(xx)]=(cc)
 
   dx = fl->b.x - fl->a.x;
   ax = 2 * (dx<0 ? -dx : dx);
@@ -1329,7 +1323,7 @@ static void AM_drawFline_Vanilla(fline_t* fl, int color)
 //
 static void AM_putWuDot(int x, int y, int color, int weight)
 {
-   pixel_t *dest = &I_VideoBuffer[y * video.pitch + x];
+   pixel_t *dest = &I_VideoBuffer[y * video.width + x];
    unsigned int *fg2rgb = Col2RGB8[weight];
    unsigned int *bg2rgb = Col2RGB8[64 - weight];
    unsigned int fg, bg;

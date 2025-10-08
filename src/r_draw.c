@@ -1011,7 +1011,7 @@ void R_InitBuffer(void)
 {
     int i;
 
-    linesize = video.pitch; // killough 11/98
+    linesize = video.width; // killough 11/98
 
     // Handle resize,
     //  e.g. smaller view windows
@@ -1094,7 +1094,7 @@ void R_FillBackScreen(void)
     // Allocate the background buffer if necessary
     if (background_buffer == NULL)
     {
-        int size = video.pitch * video.height;
+        int size = video.width * video.height;
         background_buffer =
             Z_Malloc(size * sizeof(*background_buffer), PU_STATIC, NULL);
     }
