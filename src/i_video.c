@@ -1616,12 +1616,8 @@ static void CreateVideoBuffer(void)
 
     SDL_SetTexturePalette(texture, palette);
 
-#ifdef HAVE_SCALEMODE_PIXELART
     SDL_SetTextureScaleMode(texture,
         smooth_scaling ? SDL_SCALEMODE_PIXELART : SDL_SCALEMODE_NEAREST);
-#else
-    SDL_SetTextureScaleMode(texture, SDL_SCALEMODE_NEAREST);
-#endif
 
     if (I_VideoBuffer)
     {
