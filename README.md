@@ -79,18 +79,44 @@ The most recent list of changes can be found in the current [Changelog](https://
 
 The Woof! source code is available at GitHub: <https://github.com/fabiangreffrath/woof>.
 
-It can be cloned via
+## Building with vcpkg (Recommended - All Platforms)
+
+Install vcpkg <https://github.com/Microsoft/vcpkg?tab=readme-ov-file#get-started>.
+```
+ git clone https://github.com/Microsoft/vcpkg.git
+ cd vcpkg
+ ./bootstrap-vcpkg.sh  # Unix/macOS
+ # or
+ .\bootstrap-vcpkg.bat  # Windows
+ cd ..
+```
+
+Clone woof repository:
 
 ```
  git clone https://github.com/fabiangreffrath/woof.git
+``` 
+
+Run the CMake configuration:
 ```
+ cd woof
+ cmake -B build -DCMAKE_TOOLCHAIN_FILE="[path to vcpkg]/scripts/buildsystems/vcpkg.cmake"
+```
+During this step, vcpkg will build all the dependencies.
+
+Build the project:
+```
+ cmake --build build
+```
+
+The executable will be avaible in `build/src` directory.
 
 ## Linux, and Windows with MSYS2
 
 The following build system and libraries need to be installed:
  
  * [CMake](https://cmake.org) (>= 3.15)
- * [SDL2](https://github.com/libsdl-org/SDL/tree/SDL2) (>= 2.0.18)
+ * [SDL3](https://github.com/libsdl-org/SDL) (>= 3.3.0)
  * [openal-soft](https://github.com/kcat/openal-soft) (>= 1.22.0 for PC Speaker emulation)
  * [libsndfile](https://github.com/libsndfile/libsndfile) (>= 1.1.0 for MPEG support)
  * [libebur128](https://github.com/jiixyj/libebur128) (>= 1.2.0)
@@ -111,24 +137,6 @@ Once installed, compilation should be as simple as:
 ```
 
 After successful compilation the resulting binary can be found in the `src/` directory.
-
-## Windows with Visual Studio
-
-Visual Studio 2019 and [VSCode](https://code.visualstudio.com/) comes with built-in support for CMake by opening the source tree as a folder.
-
-Install vcpkg <https://github.com/Microsoft/vcpkg?tab=readme-ov-file#get-started>. 
-
-Run the CMake configuration:
-```
- cd woof
- cmake -B build -DCMAKE_TOOLCHAIN_FILE="[path to vcpkg]/scripts/buildsystems/vcpkg.cmake"
-```
-During this step, vcpkg will build all the dependencies.
-
-Build the project:
-```
- cmake --build build
-```
 
 # Contact
 
