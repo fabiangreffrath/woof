@@ -1072,13 +1072,6 @@ void V_DrawBackground(const char *patchname)
 
 void V_Init(void)
 {
-    if (I_VideoBuffer)
-    {
-        free(I_VideoBuffer);
-    }
-    I_VideoBuffer = malloc(video.width * video.height);
-    V_RestoreBuffer();
-
     linesize = video.width;
 
     video.xscale = (video.width << FRACBITS) / video.unscaledw;

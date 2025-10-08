@@ -1591,7 +1591,7 @@ static int GetCurrentVideoHeight(void)
     return current_video_height;
 }
 
-static void CreateTexture(void)
+static void CreateVideoBuffer(void)
 {
     if (texture)
     {
@@ -1623,6 +1623,13 @@ static void CreateTexture(void)
     SDL_SetTextureScaleMode(texture, SDL_SCALEMODE_NEAREST);
 #endif
 
+    if (I_VideoBuffer)
+    {
+        free(I_VideoBuffer);
+    }
+    I_VideoBuffer = malloc(video.width * video.height);
+    V_RestoreBuffer();
+
     Z_FreeTag(PU_RENDERER);
     R_InitAnyRes();
     ST_InitRes();
@@ -1647,7 +1654,7 @@ void I_ResetScreen(void)
     widescreen = default_widescreen;
 
     ResetResolution(GetCurrentVideoHeight());
-    CreateTexture();
+    CreateVideoBuffer();
     ResetLogicalSize();
 
     static aspect_ratio_mode_t oldwidescreen;
@@ -1696,7 +1703,7 @@ void I_InitGraphics(void)
     I_InitVideoParms();
     I_InitGraphicsMode(); // killough 10/98
     ResetResolution(GetCurrentVideoHeight());
-    CreateTexture();
+    CreateVideoBuffer();
     ResetLogicalSize();
 
     MN_UpdateWideShiftItem(false);
