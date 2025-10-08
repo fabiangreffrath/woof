@@ -1585,10 +1585,10 @@ static void DrawSolidBackground(void)
 
         for (y = v0; y < v1; y++)
         {
+            int line = V_ScaleY(y) * video.width;
             for (x = 0; x < depth; x++)
             {
-                pixel_t *c = st_backing_screen + V_ScaleY(y) * video.pitch
-                          + V_ScaleX(x);
+                pixel_t *c = st_backing_screen + line + V_ScaleX(x);
                 r += pal[3 * c[0] + 0];
                 g += pal[3 * c[0] + 1];
                 b += pal[3 * c[0] + 2];
@@ -1941,7 +1941,7 @@ void ST_InitRes(void)
 {
     // killough 11/98: allocate enough for hires
     st_backing_screen =
-        Z_Malloc(video.pitch * V_ScaleY(ST_HEIGHT) * sizeof(*st_backing_screen),
+        Z_Malloc(video.width * V_ScaleY(ST_HEIGHT) * sizeof(*st_backing_screen),
                  PU_RENDERER, 0);
 }
 

@@ -681,15 +681,15 @@ static void UpdateRender(void)
     int dst_pitch;
     SDL_LockTexture(texture, &blit_rect, &pixels, &dst_pitch);
     int h = blit_rect.h;
-    int src_pitch = video.pitch;
+    int src_pitch = video.width;
     if (dst_pitch == src_pitch)
     {
         memcpy(pixels, I_VideoBuffer, src_pitch * h);
     }
     else
     {
-        pixel_t *src = I_VideoBuffer;
         pixel_t *dst = pixels;
+        pixel_t *src = I_VideoBuffer;
         while (h--)
         {
             memcpy(dst, src, src_pitch);
@@ -704,7 +704,7 @@ static void UpdateRender(void)
 
 static uint64_t frametime_start, frametime_withoutpresent;
 
-static void ResetResolution(int height, boolean reset_pitch);
+static void ResetResolution(int height);
 static void ResetLogicalSize(void);
 
 void I_DynamicResolution(void)
@@ -810,7 +810,7 @@ void I_DynamicResolution(void)
         VX_IncreaseMaxDist();
     }
 
-    ResetResolution(newheight, false);
+    ResetResolution(newheight);
     ResetLogicalSize();
 }
 
@@ -1248,7 +1248,7 @@ static double CurrentAspectRatio(void)
     return aspect_ratio;
 }
 
-static void ResetResolution(int height, boolean reset_pitch)
+static void ResetResolution(int height)
 {
     double aspect_ratio = CurrentAspectRatio();
 
@@ -1265,19 +1265,11 @@ static void ResetResolution(int height, boolean reset_pitch)
     double vertscale = (double)actualheight / (double)unscaled_actualheight;
     video.width = (int)ceil(video.unscaledw * vertscale);
 
-    // [FG] For performance reasons, SDL2 insists that the screen pitch, i.e.
-    // the *number of bytes* that one horizontal row of pixels occupy in
-    // memory, must be a multiple of 4.
-
-    if (reset_pitch)
-    {
-        video.pitch = (video.width + 3) & ~3;
-    }
-
     video.deltaw = (video.unscaledw - NONWIDEWIDTH) / 2;
 
     Z_FreeTag(PU_VALLOC);
 
+    V_CreateBuffer(video.width * video.height);
     V_Init();
     R_InitVisplanesRes();
     R_SetFuzzColumnMode();
@@ -1599,15 +1591,9 @@ static int GetCurrentVideoHeight(void)
     return current_video_height;
 }
 
-static void CreateSurfaces(int w, int h)
+static void CreateTexture(void)
 {
-    if (I_VideoBuffer)
-    {
-        free(I_VideoBuffer);
-    }
-
-    I_VideoBuffer = malloc(w * h * sizeof(pixel_t));
-    V_RestoreBuffer();
+    V_CreateBuffer(video.width * video.height);
 
     // [FG] create texture
 
@@ -1616,8 +1602,19 @@ static void CreateSurfaces(int w, int h)
         SDL_DestroyTexture(texture);
     }
 
+    // [FG] For performance reasons, SDL insists that the screen pitch, i.e.
+    // the *number of bytes* that one horizontal row of pixels occupy in
+    // memory, must be a multiple of 4.
+
+    int width = (video.width + 3) & ~3;
+
     texture = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_INDEX8,
-                                SDL_TEXTUREACCESS_STREAMING, w, h);
+                                SDL_TEXTUREACCESS_STREAMING,
+                                width, video.height);
+    if (!texture)
+    {
+        I_Error("Failed to create texture: %s", SDL_GetError());
+    }
 
     I_SetPalette(W_CacheLumpName("PLAYPAL", PU_CACHE));
 
@@ -1653,8 +1650,8 @@ void I_ResetScreen(void)
 
     widescreen = default_widescreen;
 
-    ResetResolution(GetCurrentVideoHeight(), true);
-    CreateSurfaces(video.pitch, video.height);
+    ResetResolution(GetCurrentVideoHeight());
+    CreateTexture();
     ResetLogicalSize();
 
     static aspect_ratio_mode_t oldwidescreen;
@@ -1702,8 +1699,8 @@ void I_InitGraphics(void)
 
     I_InitVideoParms();
     I_InitGraphicsMode(); // killough 10/98
-    ResetResolution(GetCurrentVideoHeight(), true);
-    CreateSurfaces(video.pitch, video.height);
+    ResetResolution(GetCurrentVideoHeight());
+    CreateTexture();
     ResetLogicalSize();
 
     MN_UpdateWideShiftItem(false);

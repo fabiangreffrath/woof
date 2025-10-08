@@ -109,7 +109,6 @@ typedef struct
 {
     int width;
     int height;
-    int pitch;
     int unscaledw; // unscaled width with correction for widecreen
     int deltaw;    // widescreen delta
 
@@ -151,6 +150,8 @@ void V_Init(void);
 void V_UseBuffer(pixel_t *buffer);
 
 void V_RestoreBuffer(void);
+
+void V_CreateBuffer(int size);
 
 void V_CopyRect(int srcx, int srcy, pixel_t *source, int width, int height,
                 int destx, int desty);

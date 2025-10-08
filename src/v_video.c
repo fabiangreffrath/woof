@@ -1074,7 +1074,7 @@ void V_Init(void)
 {
     fixed_t frac, lastfrac;
 
-    linesize = video.pitch;
+    linesize = video.width;
 
     video.xscale = (video.width << FRACBITS) / video.unscaledw;
     video.yscale = (video.height << FRACBITS) / SCREENHEIGHT;
@@ -1126,6 +1126,16 @@ void V_UseBuffer(pixel_t *buffer)
 void V_RestoreBuffer(void)
 {
     dest_screen = I_VideoBuffer;
+}
+
+void V_CreateBuffer(int size)
+{
+    if (I_VideoBuffer)
+    {
+        free(I_VideoBuffer);
+    }
+    I_VideoBuffer = malloc(size);
+    V_RestoreBuffer();
 }
 
 //
