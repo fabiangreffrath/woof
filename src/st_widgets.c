@@ -24,6 +24,7 @@
 #include "doomstat.h"
 #include "doomtype.h"
 #include "dstrings.h"
+#include "g_game.h"
 #include "g_umapinfo.h"
 #include "hu_command.h"
 #include "hu_coordinates.h"
@@ -563,23 +564,6 @@ static void UpdateChat(sbe_widget_t *widget)
     }
 }
 
-static boolean IsVanillaMap(int e, int m)
-{
-    if (gamemode == commercial)
-    {
-        return (e == 1 && m > 0 && m <= 32);
-    }
-    else
-    {
-        return (e > 0 && e <= 4 && m > 0 && m <= 9);
-    }
-}
-
-#define HU_TITLE  (*mapnames[(gameepisode - 1) * 9 + gamemap - 1])
-#define HU_TITLE2 (*mapnames2[gamemap - 1])
-#define HU_TITLEP (*mapnamesp[gamemap - 1])
-#define HU_TITLET (*mapnamest[gamemap - 1])
-
 static char title_string[HU_MAXLINELENGTH];
 
 void ST_ResetTitle(void)
@@ -587,54 +571,7 @@ void ST_ResetTitle(void)
     char string[120];
     string[0] = '\0';
 
-    char *s;
-
-    if (gamemapinfo && gamemapinfo->levelname)
-    {
-        if (gamemapinfo->label)
-        {
-            s = gamemapinfo->label;
-        }
-        else
-        {
-            s = gamemapinfo->mapname;
-        }
-
-        if (!(gamemapinfo->flags & MapInfo_LabelClear))
-        {
-            M_snprintf(string, sizeof(string), "%s: ", s);
-        }
-
-        s = gamemapinfo->levelname;
-    }
-    else if (gamestate == GS_LEVEL)
-    {
-        if (IsVanillaMap(gameepisode, gamemap))
-        {
-            s = (gamemode != commercial)     ? HU_TITLE
-                : (gamemission == pack_tnt)  ? HU_TITLET
-                : (gamemission == pack_plut) ? HU_TITLEP
-                                             : HU_TITLE2;
-        }
-        // WADs like pl2.wad have a MAP33, and rely on the layout in the
-        // Vanilla executable, where it is possible to overflow the end of one
-        // array into the next.
-        else if (gamemode == commercial && gamemap >= 33 && gamemap <= 35)
-        {
-            s = (gamemission == doom2)       ? (*mapnamesp[gamemap - 33])
-                : (gamemission == pack_plut) ? (*mapnamest[gamemap - 33])
-                                             : "";
-        }
-        else
-        {
-            // initialize the map title widget with the generic map lump name
-            s = MapName(gameepisode, gamemap);
-        }
-    }
-    else
-    {
-        s = "";
-    }
+    const char *s = G_GetLevelTitle();
 
     char *n;
 

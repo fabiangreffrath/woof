@@ -49,6 +49,7 @@
 #include "i_glob.h"
 #include "i_input.h"
 #include "i_printf.h"
+#include "i_richpresence.h"
 #include "i_sound.h"
 #include "i_system.h"
 #include "i_timer.h"
@@ -2625,6 +2626,7 @@ void D_DoomMain(void)
 
   // [FG] init graphics (video.widedelta) before HUD widgets
   I_InitGraphics();
+  I_UpdateDiscordPresence("Playing", gamedescription);
   I_InitKeyboard();
 
   MN_InitMenuStrings();
