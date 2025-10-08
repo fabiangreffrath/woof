@@ -1072,7 +1072,12 @@ void V_DrawBackground(const char *patchname)
 
 void V_Init(void)
 {
-    fixed_t frac, lastfrac;
+    if (I_VideoBuffer)
+    {
+        free(I_VideoBuffer);
+    }
+    I_VideoBuffer = malloc(video.width * video.height);
+    V_RestoreBuffer();
 
     linesize = video.width;
 
@@ -1080,6 +1085,8 @@ void V_Init(void)
     video.yscale = (video.height << FRACBITS) / SCREENHEIGHT;
     video.xstep = ((video.unscaledw << FRACBITS) / video.width) + 1;
     video.ystep = ((SCREENHEIGHT << FRACBITS) / video.height) + 1;
+   
+    fixed_t frac, lastfrac;
 
     x1lookup[0] = 0;
     lastfrac = frac = 0;
@@ -1126,16 +1133,6 @@ void V_UseBuffer(pixel_t *buffer)
 void V_RestoreBuffer(void)
 {
     dest_screen = I_VideoBuffer;
-}
-
-void V_CreateBuffer(int size)
-{
-    if (I_VideoBuffer)
-    {
-        free(I_VideoBuffer);
-    }
-    I_VideoBuffer = malloc(size);
-    V_RestoreBuffer();
 }
 
 //

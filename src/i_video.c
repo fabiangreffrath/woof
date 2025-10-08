@@ -1269,7 +1269,6 @@ static void ResetResolution(int height)
 
     Z_FreeTag(PU_VALLOC);
 
-    V_CreateBuffer(video.width * video.height);
     V_Init();
     R_InitVisplanesRes();
     R_SetFuzzColumnMode();
@@ -1593,10 +1592,6 @@ static int GetCurrentVideoHeight(void)
 
 static void CreateTexture(void)
 {
-    V_CreateBuffer(video.width * video.height);
-
-    // [FG] create texture
-
     if (texture)
     {
         SDL_DestroyTexture(texture);
