@@ -4867,7 +4867,7 @@ static boolean IsVanillaMap(int e, int m)
 
 const char *G_GetLevelTitle(void)
 {
-    const char *result;
+    const char *result = "";
 
     if (gamemapinfo && gamemapinfo->levelname)
     {
@@ -4888,7 +4888,7 @@ const char *G_GetLevelTitle(void)
             result = gamemapinfo->levelname;
         }
     }
-    else
+    else if (gamestate == GS_LEVEL)
     {
         if (IsVanillaMap(gameepisode, gamemap))
         {
