@@ -109,7 +109,7 @@ Finally, build the project:
  cmake --build build
 ```
 
-After successful compilation, the executable will be avaible in the `build/src` directory.
+After successful compilation, the executable will be available in the `build/src` directory.
 
 ## Linux, and Windows with MSYS2
 
@@ -136,7 +136,7 @@ Once installed, clone the woof repository, run the CMake configuration and build
  cmake --build build
 ```
 
-After successful compilation, the executable will be avaible in the `build/src` directory.
+After successful compilation, the executable will be available in the `build/src` directory.
 
 # Contact
 
