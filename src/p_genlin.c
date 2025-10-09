@@ -23,6 +23,7 @@
 #include "doomtype.h"
 #include "m_fixed.h"
 #include "m_random.h"
+#include "p_dirty.h"
 #include "p_mobj.h"
 #include "p_spec.h"
 #include "p_tick.h"
@@ -798,7 +799,7 @@ manual_stair:
   }
   // retriggerable generalized stairs build up or down alternately
   if (rtn)
-    line->special ^= StairDirection; // alternate dir on succ activations
+    dirty_line(line)->special ^= StairDirection; // alternate dir on succ activations
   return rtn;
 }
 

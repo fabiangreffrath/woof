@@ -68,6 +68,7 @@
 #include "mn_menu.h"
 #include "mn_snapshot.h"
 #include "net_defs.h"
+#include "p_dirty.h"
 #include "p_enemy.h"
 #include "p_inter.h"
 #include "p_map.h"
@@ -999,6 +1000,8 @@ static void G_DoLoadLevel(void)
     }
     reset_inventory = false;
   }
+
+  P_ClearDirtyArrays();
 
   P_SetupLevel (gameepisode, gamemap, 0, gameskill);
 

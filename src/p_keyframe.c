@@ -23,7 +23,9 @@
 #include "i_system.h"
 #include "info.h"
 #include "m_arena.h"
+#include "m_array.h"
 #include "m_random.h"
+#include "p_dirty.h"
 #include "p_map.h"
 #include "p_maputl.h"
 #include "p_mobj.h"
@@ -219,31 +221,31 @@ static void ArchiveWorld(void)
                sec->touching_thinglist);
     }
 
-    // do lines
-    for (i = 0, li = lines; i < numlines; i++, li++)
+    int size = array_size(dirty_lines);
+    write32(size);
+    for (int i = 0; i < size; ++i)
     {
-        write16(li->flags,
-                li->special,
-                li->id);
+        li = dirty_lines[i];
+
+        write16(li->special);
 
         // Woof!
         writep(li->frontsector,
                li->backsector);
+    }
 
-        for (int j = 0; j < 2; j++)
-        {
-            if (li->sidenum[j] != NO_INDEX)
-            {
-                si = &sides[li->sidenum[j]];
+    size = array_size(dirty_sides);
+    write32(size);
+    for (int i = 0; i < size; ++i)
+    {
+        si = dirty_sides[i];
 
-                write16(si->toptexture,
-                        si->bottomtexture,
-                        si->midtexture);
+        write16(si->toptexture,
+                si->bottomtexture,
+                si->midtexture);
 
-                write32(si->textureoffset,
-                        si->rowoffset);
-            }
-        }
+        write32(si->textureoffset,
+                si->rowoffset);
     }
 }
 
@@ -282,33 +284,55 @@ static void UnArchiveWorld(void)
         sec->touching_thinglist = readp();
     }
 
-    // do lines
-    for (i = 0, li = lines; i < numlines; i++, li++)
+    int oldsize = read32();
+    int size = array_size(dirty_lines);
+    for (i = 0; i < size; ++i)
     {
-        li->flags = read16();
+        li = dirty_lines[i];
+
+        if (i >= oldsize)
+        {
+            *li = clean_lines[i];
+            continue;
+        }
+
         li->special = read16();
-        li->id = read16();
 
         // Woof!
         li->frontsector = readp();
         li->backsector = readp();
+    }
+    if (size > oldsize)
+    {
+        array_ptr(dirty_lines)->size = array_ptr(clean_lines)->size =
+            oldsize;
+    }
 
-        for (int j = 0; j < 2; j++)
+    oldsize = read32();
+    size = array_size(dirty_sides);
+    for (i = 0; i < size; ++i)
+    {
+        si = dirty_sides[i];
+
+        if (i >= oldsize)
         {
-            if (li->sidenum[j] != NO_INDEX)
-            {
-                si = &sides[li->sidenum[j]];
-              
-                si->toptexture = read16();
-                si->bottomtexture = read16();
-                si->midtexture = read16();
-                
-                si->textureoffset = read32(); 
-                si->rowoffset = read32(); 
-                si->oldtextureoffset = si->textureoffset;
-                si->oldrowoffset = si->rowoffset;
-            }
+            *si = clean_sides[i];
+            continue;
         }
+
+        si->toptexture = read16();
+        si->bottomtexture = read16();
+        si->midtexture = read16();
+        
+        si->textureoffset = read32(); 
+        si->rowoffset = read32(); 
+        si->oldtextureoffset = si->textureoffset;
+        si->oldrowoffset = si->rowoffset;
+    }
+    if (size > oldsize)
+    {
+        array_ptr(dirty_sides)->size = array_ptr(clean_sides)->size =
+            oldsize;
     }
 }
 
