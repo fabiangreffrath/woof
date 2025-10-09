@@ -100,7 +100,7 @@ void I_UpdateDiscordPresence(const char *curstate, const char *curstatus)
 
 void I_UpdateDiscordPresence(const char *curstate, const char *curstatus)
 {
-    Printf("Build without discord-rpc");
+    ;
 }
 
 #endif
