@@ -1074,41 +1074,48 @@ void V_Init(void)
 {
     linesize = video.width;
 
-    video.xscale = (video.width << FRACBITS) / video.unscaledw;
-    video.yscale = (video.height << FRACBITS) / SCREENHEIGHT;
-    video.xstep = ((video.unscaledw << FRACBITS) / video.width) + 1;
-    video.ystep = ((SCREENHEIGHT << FRACBITS) / video.height) + 1;
+    video.xscale = IntToFixed(video.width) / video.unscaledw;
+    video.yscale = IntToFixed(video.height) / SCREENHEIGHT;
+    video.xstep = IntToFixed(video.unscaledw) / video.width + 1;
+    video.ystep = IntToFixed(SCREENHEIGHT) / video.height + 1;
    
-    fixed_t frac, lastfrac;
+    const int width = video.width;
+    const int height = video.height;
+    fixed_t frac, lastfrac, step;
+    int i1, i2;
 
     x1lookup[0] = 0;
     lastfrac = frac = 0;
-    for (int i = 0; i < video.width; i++)
+    step = video.xstep;
+    for (int i = 0; i < width; i++)
     {
-        if (frac >> FRACBITS > lastfrac >> FRACBITS)
+        i1 = FixedToInt(frac);
+        i2 = FixedToInt(lastfrac);
+        if (i1 > i2)
         {
-            x1lookup[frac >> FRACBITS] = i;
-            x2lookup[lastfrac >> FRACBITS] = i - 1;
+            x1lookup[i1] = i;
+            x2lookup[i2] = i - 1;
             lastfrac = frac;
         }
-
-        frac += video.xstep;
+        frac += step;
     }
     x2lookup[video.unscaledw - 1] = video.width - 1;
     x1lookup[video.unscaledw] = x2lookup[video.unscaledw] = video.width;
 
     y1lookup[0] = 0;
     lastfrac = frac = 0;
-    for (int i = 0; i < video.height; i++)
+    step = video.ystep;
+    for (int i = 0; i < height; i++)
     {
-        if (frac >> FRACBITS > lastfrac >> FRACBITS)
+        i1 = FixedToInt(frac);
+        i2 = FixedToInt(lastfrac);
+        if (i1 > i2)
         {
-            y1lookup[frac >> FRACBITS] = i;
-            y2lookup[lastfrac >> FRACBITS] = i - 1;
+            y1lookup[i1] = i;
+            y2lookup[i2] = i - 1;
             lastfrac = frac;
         }
-
-        frac += video.ystep;
+        frac += step;
     }
     y2lookup[SCREENHEIGHT - 1] = video.height - 1;
     y1lookup[SCREENHEIGHT] = y2lookup[SCREENHEIGHT] = video.height;
