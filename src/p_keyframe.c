@@ -289,18 +289,20 @@ static void UnArchiveWorld(void)
     for (i = 0; i < size; ++i)
     {
         li = dirty_lines[i];
-
-        if (i >= oldsize)
+        if (i < oldsize)
         {
-            *li = clean_lines[i];
-            continue;
+            li->special = read16();
+            li->frontsector = readp();
+            li->backsector = readp();
         }
-
-        li->special = read16();
-
-        // Woof!
-        li->frontsector = readp();
-        li->backsector = readp();
+        else
+        {
+            const partial_line_t *pl = &clean_lines[i];
+            li->special = pl->special;
+            li->frontsector = pl->frontsector;
+            li->backsector = pl->backsector;
+            li->dirty = false;
+        }
     }
     if (size > oldsize)
     {
@@ -313,21 +315,24 @@ static void UnArchiveWorld(void)
     for (i = 0; i < size; ++i)
     {
         si = dirty_sides[i];
-
-        if (i >= oldsize)
+        if (i < oldsize)
         {
-            *si = clean_sides[i];
-            continue;
+            si->toptexture = read16();
+            si->bottomtexture = read16();
+            si->midtexture = read16();    
+            si->textureoffset = read32();
+            si->rowoffset = read32(); 
         }
-
-        si->toptexture = read16();
-        si->bottomtexture = read16();
-        si->midtexture = read16();
-        
-        si->textureoffset = read32(); 
-        si->rowoffset = read32(); 
-        si->oldtextureoffset = si->textureoffset;
-        si->oldrowoffset = si->rowoffset;
+        else
+        {
+            const partial_side_t *ps = &clean_sides[i];
+            si->toptexture = ps->toptexture;
+            si->bottomtexture = ps->bottomtexture;
+            si->midtexture = ps->midtexture;
+            si->textureoffset = ps->textureoffset;
+            si->rowoffset = ps->rowoffset;
+            si->dirty = false;
+        }
     }
     if (size > oldsize)
     {

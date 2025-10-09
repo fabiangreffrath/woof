@@ -16,10 +16,26 @@
 
 #include "r_defs.h"
 
+typedef struct
+{
+    sector_t *frontsector;
+    sector_t *backsector;
+    int16_t special;
+} partial_line_t;
+
+typedef struct
+{
+    fixed_t textureoffset;
+    fixed_t rowoffset;
+    int16_t toptexture;
+    int16_t bottomtexture;
+    int16_t midtexture;
+} partial_side_t;
+
 extern line_t **dirty_lines;
-extern line_t *clean_lines;
+extern partial_line_t *clean_lines;
 extern side_t **dirty_sides;
-extern side_t *clean_sides;
+extern partial_side_t *clean_sides;
 
 void P_DirtyLine(line_t *line);
 void P_DirtySide(side_t *side);
