@@ -87,6 +87,7 @@ jobs:
         uses: libsdl-org/setup-sdl@main
         with:
           shell: ${{ matrix.config.shell }}
+          build-type: Release
           install-linux-dependencies: true
           version: 3-head
 
