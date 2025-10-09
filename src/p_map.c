@@ -33,6 +33,7 @@
 #include "m_bbox.h"
 #include "m_misc.h"
 #include "m_random.h"
+#include "p_dirty.h"
 #include "p_inter.h"
 #include "p_map.h"
 #include "p_maputl.h"
@@ -2324,6 +2325,8 @@ static boolean PIT_GetSectors(line_t *ld)
     return true;
 
   // This line crosses through the object.
+
+  dirty_line(ld);
 
   // Collect the sector(s) from the line and add to the
   // sector_list you're examining. If the Thing ends up being

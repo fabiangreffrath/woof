@@ -25,6 +25,7 @@
 #include "doomstat.h"
 #include "i_printf.h"
 #include "m_fixed.h"
+#include "p_dirty.h"
 #include "p_mobj.h"
 #include "p_spec.h"
 #include "p_tick.h"
@@ -589,7 +590,7 @@ int EV_VerticalDoor(line_t *line, mobj_t *thing)
     case 33:
     case 34:
       door->type = doorOpen;
-      line->special = 0;
+      dirty_line(line)->special = 0;
       break;
 
     case 117: // blazing door raise
@@ -599,7 +600,7 @@ int EV_VerticalDoor(line_t *line, mobj_t *thing)
 
     case 118: // blazing door open
       door->type = blazeOpen;
-      line->special = 0;
+      dirty_line(line)->special = 0;
       door->speed = VDOORSPEED*4;
       break;
 
