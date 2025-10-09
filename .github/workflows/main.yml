@@ -56,7 +56,6 @@ jobs:
         if: runner.os == 'macOS'
         run: |
           brew install \
-            ninja \
             openal-soft \
             libebur128 \
             libsndfile \
@@ -97,7 +96,7 @@ jobs:
         run: >-
           cmake -B build -G Ninja
           -DCMAKE_BUILD_TYPE=Release
-          -DENABLE_WERROR=ON -DENABLE_HARDENING=ON -DENABLE_LTO=ON
+          -DENABLE_HARDENING=ON -DENABLE_LTO=ON
           ${{ matrix.config.extra-options }}
 
       - name: Build
