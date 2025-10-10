@@ -25,8 +25,6 @@ partial_side_t *clean_sides = NULL;
 void P_DirtyLine(line_t *line)
 {
     partial_line_t clean_line = {
-        .frontsector = line->frontsector,
-        .backsector = line->backsector,
         .special = line->special
     };
     array_push(clean_lines, clean_line);

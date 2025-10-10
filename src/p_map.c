@@ -2326,8 +2326,6 @@ static boolean PIT_GetSectors(line_t *ld)
 
   // This line crosses through the object.
 
-  dirty_line(ld);
-
   // Collect the sector(s) from the line and add to the
   // sector_list you're examining. If the Thing ends up being
   // allowed to move to this position, then the sector_list

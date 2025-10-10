@@ -226,12 +226,7 @@ static void ArchiveWorld(void)
     for (int i = 0; i < size; ++i)
     {
         line = dirty_lines[i];
-
         write16(line->special);
-
-        // Woof!
-        writep(line->frontsector,
-               line->backsector);
     }
 
     const side_t *side;
@@ -295,15 +290,11 @@ static void UnArchiveWorld(void)
         if (i < oldsize)
         {
             line->special = read16();
-            line->frontsector = readp();
-            line->backsector = readp();
         }
         else
         {
             clean_line = &clean_lines[i];
             line->special = clean_line->special;
-            line->frontsector = clean_line->frontsector;
-            line->backsector = clean_line->backsector;
             line->dirty = false;
         }
     }

@@ -18,8 +18,6 @@
 
 typedef struct
 {
-    sector_t *frontsector;
-    sector_t *backsector;
     int16_t special;
 } partial_line_t;
 
