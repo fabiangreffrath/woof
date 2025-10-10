@@ -145,7 +145,10 @@ void G_SaveAutoKeyframe(void)
         
         Push(P_SaveKeyframe(current_tic));
 
-        disable_rewind = (I_GetTimeMS() - time > rewind_timeout);
+        if (rewind_timeout)
+        {
+            disable_rewind = (I_GetTimeMS() - time > rewind_timeout);
+        }
         if (disable_rewind)
         {
             displaymsg("Slow key framing: rewind disabled");

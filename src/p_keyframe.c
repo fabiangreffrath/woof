@@ -223,7 +223,7 @@ static void ArchiveWorld(void)
 
     int size = array_size(dirty_lines);
     write32(size);
-    for (int i = 0; i < size; ++i)
+    for (i = 0; i < size; ++i)
     {
         line = dirty_lines[i];
         write16(line->special);
@@ -233,7 +233,7 @@ static void ArchiveWorld(void)
 
     size = array_size(dirty_sides);
     write32(size);
-    for (int i = 0; i < size; ++i)
+    for (i = 0; i < size; ++i)
     {
         side = dirty_sides[i];
 
@@ -358,9 +358,6 @@ static void ArchivePlayState(keyframe_t *keyframe)
            sector_list,
            blockline);
 
-    write32(numspechit);
-    writex(spechit, sizeof(*spechit), numspechit);
-
     writex(tmbbox, sizeof(tmbbox), 1);
 
     writep(headsecnode);
@@ -371,9 +368,6 @@ static void ArchivePlayState(keyframe_t *keyframe)
             openbottom,
             openrange,
             lowfloor);
-
-    write32(num_intercepts);
-    writex(intercepts, sizeof(*intercepts), num_intercepts);
 
     writex(&trace, sizeof(trace), 1);
 
@@ -411,9 +405,6 @@ static void UnArchivePlayState(const keyframe_t *keyframe)
     sector_list = readp();
     blockline = readp();
 
-    numspechit = read32();
-    readx(spechit, sizeof(*spechit), numspechit);
-
     readx(tmbbox, sizeof(tmbbox), 1);
 
     headsecnode = readp();
@@ -425,9 +416,6 @@ static void UnArchivePlayState(const keyframe_t *keyframe)
     openrange = read32();
     lowfloor = read32();
 
-    num_intercepts = read32();
-    readx(intercepts, sizeof(*intercepts), num_intercepts);
-
     readx(&trace, sizeof(trace), 1);
 
     // p_setup.h
@@ -438,9 +426,6 @@ static void UnArchivePlayState(const keyframe_t *keyframe)
     activeplats = readp();
     M_ArenaRestore(activeceilings_arena, keyframe->activeceilings);
     M_ArenaRestore(activeplats_arena, keyframe->activeplats);
-
-    setmobjstate_recursion = 0;
-    memset(seenstate_tab, 0, sizeof(statenum_t) * num_states);
 
     // music
     current_musicnum = read32();
