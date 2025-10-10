@@ -890,29 +890,30 @@ static void UDMF_LoadSideDefs(void)
 
         if (udmf_sidedefs[i].xscroll || udmf_sidedefs[i].yscroll)
         {
-            Scroll_AddSideBase(DoubleToFixed(udmf_sidedefs[i].xscroll),
-                               DoubleToFixed(udmf_sidedefs[i].yscroll), i);
+            Scroll_AddStatic(DoubleToFixed(udmf_sidedefs[i].xscroll),
+                             DoubleToFixed(udmf_sidedefs[i].yscroll), i,
+                             SIDE_BASE);
         }
 
         if (udmf_sidedefs[i].xscrolltop || udmf_sidedefs[i].yscrolltop)
         {
-            Scroll_AddSideTier(DoubleToFixed(udmf_sidedefs[i].xscrolltop),
-                               DoubleToFixed(udmf_sidedefs[i].yscrolltop), i,
-                               SIDE_TOP);
+            Scroll_AddStatic(DoubleToFixed(udmf_sidedefs[i].xscrolltop),
+                             DoubleToFixed(udmf_sidedefs[i].yscrolltop), i,
+                             SIDE_TOP);
         }
 
         if (udmf_sidedefs[i].xscrollmid || udmf_sidedefs[i].yscrollmid)
         {
-            Scroll_AddSideTier(DoubleToFixed(udmf_sidedefs[i].xscrollmid),
-                               DoubleToFixed(udmf_sidedefs[i].yscrollmid), i,
-                               SIDE_MID);
+            Scroll_AddStatic(DoubleToFixed(udmf_sidedefs[i].xscrollmid),
+                             DoubleToFixed(udmf_sidedefs[i].yscrollmid), i,
+                             SIDE_MID);
         }
 
         if (udmf_sidedefs[i].xscrollbottom || udmf_sidedefs[i].yscrollbottom)
         {
-            Scroll_AddSideTier(DoubleToFixed(udmf_sidedefs[i].xscrollbottom),
-                               DoubleToFixed(udmf_sidedefs[i].yscrollbottom), i,
-                               SIDE_BOTTOM);
+            Scroll_AddStatic(DoubleToFixed(udmf_sidedefs[i].xscrollbottom),
+                             DoubleToFixed(udmf_sidedefs[i].yscrollbottom), i,
+                             SIDE_BOTTOM);
         }
 
         // [crispy] smooth texture scrolling

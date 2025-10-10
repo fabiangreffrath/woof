@@ -3030,8 +3030,9 @@ static void T_ScrollStaticCeiling(mobj_t *mo)
   sec->ceiling_yoffs += s->dy;
 }
 
-static void T_ScrollStaticFloorCarry(scroll_t* s)
+static void T_ScrollStaticFloorCarry(mobj_t* mo)
 {
+  scroll_t *s = (scroll_t *)mo;
   sector_t* sec;
   fixed_t height;
   fixed_t waterheight;
@@ -3091,23 +3092,78 @@ static void T_ScrollController(mobj_t* mo)
     s->vdx = dx;
     s->vdy = dy;
   }
-}
 
-const actionf_p1 ScrollerThinkers[] = {
-  T_ScrollStaticSideBase,
-  T_ScrollStaticSideUpper,
-  T_ScrollStaticSideMiddle,
-  T_ScrollStaticSideBottom,
-  T_ScrollStaticFloor,
-  T_ScrollStaticCeiling,
-  // T_ScrollStaticFloorCarry,
-  T_ScrollController, // TODO: accel
-};
+  s->dx = s->vdx;
+  s->dy = s->vdy;
+}
 
 // END NEW SCROLLER
 
 
 // START NEW SCROLLER
+static void T_ScrollControllerSideBase(mobj_t *mo)
+{
+  T_ScrollController(mo);
+  T_ScrollStaticSideBase(mo);
+}
+
+static void T_ScrollControllerSideUpper(mobj_t *mo)
+{
+  T_ScrollController(mo);
+  T_ScrollStaticSideUpper(mo);
+}
+
+static void T_ScrollControllerSideMiddle(mobj_t *mo)
+{
+  T_ScrollController(mo);
+  T_ScrollStaticSideMiddle(mo);
+}
+
+static void T_ScrollControllerSideBottom(mobj_t *mo)
+{
+  T_ScrollController(mo);
+  T_ScrollStaticSideBottom(mo);
+}
+
+static void T_ScrollControllerFloor(mobj_t *mo)
+{
+  T_ScrollController(mo);
+  T_ScrollStaticFloor(mo);
+}
+
+static void T_ScrollControllerCeiling(mobj_t *mo)
+{
+  T_ScrollController(mo);
+  T_ScrollStaticCeiling(mo);
+}
+
+static void T_ScrollControllerFloorCarry(mobj_t *mo)
+{
+  T_ScrollController(mo);
+  T_ScrollStaticFloorCarry(mo);
+}
+
+const actionf_p1 ScrollerThinkersStatic[] = {
+  [SIDE_BASE] = T_ScrollStaticSideBase,
+  [SIDE_TOP] = T_ScrollStaticSideUpper,
+  [SIDE_MID] = T_ScrollStaticSideMiddle,
+  [SIDE_BOTTOM] = T_ScrollStaticSideBottom,
+  [SECTOR_FLOOR] = T_ScrollStaticFloor,
+  [SECTOR_CEIL] = T_ScrollStaticCeiling,
+  [CARRY_FLOOR] = T_ScrollStaticFloorCarry,
+  [CARRY_CEIL] = T_ScrollStaticCeiling, // TODO: mbf2y
+};
+
+const actionf_p1 ScrollerThinkersController[] = {
+  [SIDE_BASE] = T_ScrollControllerSideBase,
+  [SIDE_TOP] = T_ScrollControllerSideUpper,
+  [SIDE_MID] = T_ScrollControllerSideMiddle,
+  [SIDE_BOTTOM] = T_ScrollControllerSideBottom,
+  [SECTOR_FLOOR] = T_ScrollControllerFloor,
+  [SECTOR_CEIL] = T_ScrollControllerCeiling,
+  [CARRY_FLOOR] = T_ScrollControllerFloorCarry,
+  [CARRY_CEIL] = T_ScrollControllerCeiling, // TODO: mbf2y
+};
 
 static void T_Scroll(scroll_t *s)
 {
@@ -3285,13 +3341,30 @@ static void Add_WallScroller(int64_t dx, int64_t dy, const line_t *l,
 // [Woof!]
 // completely reworked structure, made each type of scroller it's own thinker
 
-void Scroll_AddSideSimple(fixed_t dx, fixed_t dy, int affectee, int type)
+void Scroll_AddStatic(fixed_t dx, fixed_t dy, int32_t affectee, scroller_t type)
 {
   scroll_t *scroll = arena_alloc(thinkers_arena, scroll_t);
-  scroll->thinker.function.p1 = ScrollerThinkers[type];
+  scroll->thinker.function.p1 = ScrollerThinkersStatic[type];
   scroll->dx = dx;
   scroll->dy = dy;
   scroll->affectee = affectee;
+  P_AddThinker(&scroll->thinker);
+}
+
+void Scroll_AddController(fixed_t dx, fixed_t dy, int32_t affectee,
+                          int32_t control, int32_t accel, scroller_t type)
+{
+  scroll_t *scroll = arena_alloc(thinkers_arena, scroll_t);
+  scroll->thinker.function.p1 = ScrollerThinkersController[type];
+  scroll->dx = dx;
+  scroll->dy = dy;
+  scroll->affectee = affectee;
+  scroll->control = control;
+  scroll->accel = accel;
+  if (scroll->control != -1)
+  {
+    scroll->last_height = sectors[control].floorheight + sectors[control].ceilingheight;
+  }
   P_AddThinker(&scroll->thinker);
 }
 

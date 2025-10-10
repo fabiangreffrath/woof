@@ -706,9 +706,7 @@ typedef enum scroller_types_e
   SECTOR_CEIL,
   CARRY_FLOOR,
   CARRY_CEIL,
-  CONTROLLER,
-  ACCELERATIVE,
-} scroller_types_t;
+} scroller_t;
 
 typedef struct {
   thinker_t thinker;   // Thinker structure for scrolling
@@ -732,8 +730,9 @@ typedef struct {
   } type;              // Type of scroll effect
 } scroll_t;
 
-void Scroll_AddSideBase(fixed_t dx, fixed_t dy, int affectee);
-void Scroll_AddSideTier(fixed_t dx, fixed_t dy, int affectee, int flags);
+void Scroll_AddStatic(fixed_t dx, fixed_t dy, int32_t affectee, scroller_t type);
+void Scroll_AddControl(fixed_t dx, fixed_t dy, int32_t affectee,
+                       int32_t control, int32_t accel, scroller_t type);
 
 // phares 3/12/98: added new model of friction for ice/sludge effects
 
