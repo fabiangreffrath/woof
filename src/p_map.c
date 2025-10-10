@@ -33,6 +33,7 @@
 #include "m_bbox.h"
 #include "m_misc.h"
 #include "m_random.h"
+#include "p_dirty.h"
 #include "p_inter.h"
 #include "p_map.h"
 #include "p_maputl.h"

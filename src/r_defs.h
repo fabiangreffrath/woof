@@ -201,6 +201,8 @@ typedef struct side_s
   fixed_t interptextureoffset;
   fixed_t interprowoffset;
   int oldgametic;
+
+  boolean dirty;
 } side_t;
 
 //
@@ -242,6 +244,8 @@ typedef struct line_s
   int backmusic; // Front lower texture -- activated from the back side
   int fronttint; // Front upper texture -- activated from the front side
   int backtint; // Front lower texture -- activated from the back side
+
+  boolean dirty;
 } line_t;
 
 //

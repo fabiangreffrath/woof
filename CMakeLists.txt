@@ -10,6 +10,11 @@ if(WITH_XMP)
     list(APPEND VCPKG_MANIFEST_FEATURES "libxmp")
 endif()
 
+option(WITH_DISCORD_RPC "Use discord-rpc if available" ON)
+if(WITH_DISCORD_RPC)
+    list(APPEND VCPKG_MANIFEST_FEATURES "discord-rpc")
+endif()
+
 option(ENABLE_WERROR "Treat warnings as errors" OFF)
 option(ENABLE_ASAN "Enable ASan" OFF)
 option(ENABLE_UBSAN "Enable UBSan" OFF)
@@ -124,21 +129,6 @@ if(ALSA_FOUND)
     set(HAVE_ALSA TRUE)
 endif()
 
-set(CMAKE_REQUIRED_LIBRARIES SDL3::SDL3)
-check_c_source_compiles(
-    "
-    #include <SDL3/SDL.h>
-    int main(void)
-    {
-        SDL_Texture *texture;
-        SDL_SetTextureScaleMode(texture, SDL_SCALEMODE_PIXELART);
-        return 0;
-    }
-    "
-    HAVE_SCALEMODE_PIXELART
-)
-unset(CMAKE_REQUIRED_LIBRARIES)
-
 if(OPENAL_VERSION_STRING VERSION_GREATER_EQUAL "1.22.0")
     set(HAVE_AL_BUFFER_CALLBACK TRUE)
 endif()
@@ -154,23 +144,29 @@ find_path(MINIMP3_INCLUDE_DIRS "minimp3/minimp3.h" NO_CACHE)
 
 if(WITH_FLUIDSYNTH)
     find_package(FluidSynth)
+    if(FluidSynth_FOUND)
+        set(HAVE_FLUIDSYNTH TRUE)
+    endif()
 endif()
+
 if(WITH_XMP)
     find_package(libxmp)
-endif()
-
-if(FluidSynth_FOUND)
-    set(HAVE_FLUIDSYNTH TRUE)
-endif()
-
-if(libxmp_FOUND)
-    set(HAVE_LIBXMP TRUE)
-    if(NOT TARGET libxmp::xmp)
-        if(TARGET libxmp::xmp_shared)
-            add_library(libxmp::xmp ALIAS libxmp::xmp_shared)
-        else()
-            add_library(libxmp::xmp ALIAS libxmp::xmp_static)
+    if(libxmp_FOUND)
+        set(HAVE_LIBXMP TRUE)
+        if(NOT TARGET libxmp::xmp)
+            if(TARGET libxmp::xmp_shared)
+                add_library(libxmp::xmp ALIAS libxmp::xmp_shared)
+            else()
+                add_library(libxmp::xmp ALIAS libxmp::xmp_static)
+            endif()
         endif()
+    endif()
+endif()
+
+if(WITH_DISCORD_RPC)
+    find_package(DiscordRPC)
+    if(DiscordRPC_FOUND)
+        set(HAVE_DISCORD_RPC TRUE)
     endif()
 endif()
 

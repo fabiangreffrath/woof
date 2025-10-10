@@ -53,6 +53,7 @@ set(WOOF_SOURCES
     i_oplmusic.c
     i_printf.c             i_printf.h
     i_region.c             i_region.h
+    i_richpresence.c       i_richpresence.h
     i_rumble.c             i_rumble.h
     i_sndfile.c            i_sndfile.h
     i_sound.c              i_sound.h
@@ -100,6 +101,7 @@ set(WOOF_SOURCES
                            p_action.h
     p_ambient.c            p_ambient.h
     p_ceilng.c
+    p_dirty.c              p_dirty.h
     p_doors.c
     p_enemy.c              p_enemy.h
     p_extnodes.c           p_extnodes.h
@@ -239,6 +241,10 @@ endif()
 if(HAVE_LIBXMP)
     target_sources(woof PRIVATE i_xmp.c)
     target_link_libraries(woof PRIVATE libxmp::xmp)
+endif()
+
+if(HAVE_DISCORD_RPC)
+    target_link_libraries(woof PRIVATE DiscordRPC::discord-rpc)
 endif()
 
 target_compile_definitions(woof PRIVATE

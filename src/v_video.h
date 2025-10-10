@@ -109,7 +109,6 @@ typedef struct
 {
     int width;
     int height;
-    int pitch;
     int unscaledw; // unscaled width with correction for widecreen
     int deltaw;    // widescreen delta
 

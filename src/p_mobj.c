@@ -912,7 +912,7 @@ mobj_t *P_SpawnMobj(fixed_t x, fixed_t y, fixed_t z, mobjtype_t type)
   else
   {
     mobj->z = z;
-  };
+  }
 
   // [AM] Do not interpolate on spawn.
   mobj->interp = false;
