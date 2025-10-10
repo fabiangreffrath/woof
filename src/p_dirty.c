@@ -39,8 +39,8 @@ void P_DirtyLine(line_t *line)
 void P_DirtySide(side_t *side)
 {
     partial_side_t clean_side = {
-        .textureoffset = side->textureoffset,
-        .rowoffset = side->rowoffset,
+        .offsetx = side->offsetx,
+        .offsety = side->offsety,
         .toptexture = side->toptexture,
         .bottomtexture = side->bottomtexture,
         .midtexture = side->midtexture
