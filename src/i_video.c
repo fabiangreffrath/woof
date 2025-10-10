@@ -1093,7 +1093,7 @@ boolean I_WritePNGfile(char *filename)
     int size = surface->h * pitch;
     void *pixels = malloc(size);
     if (!SDL_ConvertPixels(surface->w, surface->h,
-                           SDL_GetWindowPixelFormat(screen), surface->pixels,
+                           surface->format, surface->pixels,
                            surface->pitch, SDL_PIXELFORMAT_RGB24, pixels,
                            pitch))
     {
