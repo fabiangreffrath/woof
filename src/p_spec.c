@@ -2934,113 +2934,100 @@ void P_SpawnSpecials (void)
 // [Woof!]
 // completely reworked structure, made each type of scroller it's own thinker
 
-static void T_ScrollStaticSideBase(mobj_t *mo)
+static void Scroll_StaticSideBase(scroll_t *s, fixed_t dx, fixed_t dy)
 {
-  scroll_t *s = (scroll_t *)mo;
-  side_t* side;
+  if (!(dx || dy))
+    return;
 
-  // if (!(s->dx || s->dy))
-  //   return;
-
-  side = &sides[s->affectee];
+  side_t* side = &sides[s->affectee];
   if (side->oldgametic != gametic)
   {
     side->oldoffsetx = side->offsetx;
     side->oldoffsety = side->offsety;
     side->oldgametic = gametic;
   }
-  side->offsetx += s->dx;
-  side->offsety += s->dy;
+  side->offsetx += dx;
+  side->offsety += dy;
 }
 
-static void T_ScrollStaticSideUpper(mobj_t *mo)
+static void Scroll_StaticSideUpper(scroll_t *s, fixed_t dx, fixed_t dy)
 {
-  scroll_t *s = (scroll_t *)mo;
-  side_t* side;
+  if (!(dx || dy))
+    return;
 
-  // if (!(s->dx || s->dy))
-  //   return;
-
-  side = &sides[s->affectee];
-
+  side_t* side = &sides[s->affectee];
   if (side->oldgametic != gametic)
   {
     side->oldoffsetx_top = side->offsetx_top;
     side->oldoffsety_top = side->offsety_top;
     side->oldgametic = gametic;
   }
-  side->offsetx_top += s->dx;
-  side->offsety_top += s->dy;
+  side->offsetx_top += dx;
+  side->offsety_top += dy;
 }
 
-static void T_ScrollStaticSideMiddle(mobj_t *mo)
+static void Scroll_StaticSideMiddle(scroll_t *s, fixed_t dx, fixed_t dy)
 {
-  scroll_t *s = (scroll_t *)mo;
-  side_t* side;
+  if (!(dx || dy))
+    return;
 
-  // if (!(s->dx || s->dy))
-  //   return;
-
-  side = &sides[s->affectee];
+  side_t* side = &sides[s->affectee];
   if (side->oldgametic != gametic)
   {
     side->oldoffsetx_mid = side->offsetx_mid;
     side->oldoffsety_mid = side->offsety_mid;
     side->oldgametic = gametic;
   }
-  side->offsetx_mid += s->dx;
-  side->offsety_mid += s->dy;
+  side->offsetx_mid += dx;
+  side->offsety_mid += dy;
 }
 
-static void T_ScrollStaticSideBottom(mobj_t *mo)
+static void Scroll_StaticSideBottom(scroll_t *s, fixed_t dx, fixed_t dy)
 {
-  scroll_t *s = (scroll_t *)mo;
-  side_t* side;
-  side = &sides[s->affectee];
+  if (!(dx || dy))
+    return;
+
+  side_t* side = &sides[s->affectee];
   if (side->oldgametic != gametic)
   {
     side->oldoffsetx_bottom = side->offsetx_bottom;
     side->oldoffsety_bottom = side->offsety_bottom;
     side->oldgametic = gametic;
   }
-  side->offsetx_bottom += s->dx;
-  side->offsety_bottom += s->dy;
+  side->offsetx_bottom += dx;
+  side->offsety_bottom += dy;
 }
 
-static void T_ScrollStaticFloor(mobj_t *mo)
+static void Scroll_StaticFloor(scroll_t *s, fixed_t dx, fixed_t dy)
 {
-  scroll_t *s = (scroll_t *)mo;
-  sector_t *sec;
+  if (!(dx || dy))
+    return;
 
-  // if (!(s->dx || s->dy))
-  //   return;
-
-  sec = &sectors[s->affectee];
-  sec->floor_xoffs += s->dx;
-  sec->floor_yoffs += s->dy;
+  sector_t *sec = &sectors[s->affectee];
+  sec->floor_xoffs += dx;
+  sec->floor_yoffs += dy;
 }
 
-static void T_ScrollStaticCeiling(mobj_t *mo)
+static void Scroll_StaticCeiling(scroll_t *s, fixed_t dx, fixed_t dy)
 {
-  scroll_t *s = (scroll_t *)mo;
-  sector_t *sec;
+  if (!(dx || dy))
+    return;
 
-  sec = &sectors[s->affectee];
-  sec->ceiling_xoffs += s->dx;
-  sec->ceiling_yoffs += s->dy;
+  sector_t *sec = &sectors[s->affectee];
+  sec->ceiling_xoffs += dx;
+  sec->ceiling_yoffs += dy;
 }
 
-static void T_ScrollStaticFloorCarry(mobj_t* mo)
+static void Scroll_StaticFloorCarry(scroll_t *s, fixed_t dx, fixed_t dy)
 {
-  scroll_t *s = (scroll_t *)mo;
+  if (!dx && !dy)
+    return;
+
   sector_t* sec;
   fixed_t height;
   fixed_t waterheight;
   msecnode_t* node;
   mobj_t* thing;
-
-  if (!s->dx && !s->dy)
-    return;
 
   // killough 3/7/98: Carry things on floor
   // killough 3/20/98: use new sector list which reflects true members
@@ -3059,25 +3046,17 @@ static void T_ScrollStaticFloorCarry(mobj_t* mo)
     if (!((thing = node->m_thing)->flags & MF_NOCLIP)
         && (!(thing->flags & MF_NOGRAVITY || thing->z > height) || thing->z < waterheight))
     {
-      thing->momx += s->dx;
-      thing->momy += s->dy;
+      thing->momx += dx;
+      thing->momy += dy;
       thing->intflags |= MIF_SCROLLING;
     }
   }
 }
 
-static void T_ScrollController(mobj_t* mo)
+static void Scroll_Controller(scroll_t *s, fixed_t dx, fixed_t dy)
 {
-  scroll_t *s = (scroll_t *)mo;
-  fixed_t dx, dy;
-  fixed_t height;
-  fixed_t delta;
-
-  dx = s->dx;
-  dy = s->dy;
-
-  height = sectors[s->control].floorheight + sectors[s->control].ceilingheight;
-  delta = height - s->last_height;
+  fixed_t height = sectors[s->control].floorheight + sectors[s->control].ceilingheight;
+  fixed_t delta = height - s->last_height;
   s->last_height = height;
   dx = FixedMul(dx, delta);
   dy = FixedMul(dy, delta);
@@ -3092,55 +3071,97 @@ static void T_ScrollController(mobj_t* mo)
     s->vdx = dx;
     s->vdy = dy;
   }
-
-  s->dx = s->vdx;
-  s->dy = s->vdy;
 }
 
-// END NEW SCROLLER
+static void T_ScrollStaticSideBase(mobj_t *mo)
+{
+  scroll_t *s = (scroll_t*) mo;
+  Scroll_StaticSideBase(s, s->dx, s->dy);
+}
 
+static void T_ScrollStaticSideUpper(mobj_t *mo)
+{
+  scroll_t *s = (scroll_t*) mo;
+  Scroll_StaticSideUpper(s, s->dx, s->dy);
+}
 
-// START NEW SCROLLER
+static void T_ScrollStaticSideMiddle(mobj_t *mo)
+{
+  scroll_t *s = (scroll_t*) mo;
+  Scroll_StaticSideMiddle(s, s->dx, s->dy);
+}
+
+static void T_ScrollStaticSideBottom(mobj_t *mo)
+{
+  scroll_t *s = (scroll_t*) mo;
+  Scroll_StaticSideBottom(s, s->dx, s->dy);
+}
+
+static void T_ScrollStaticFloor(mobj_t *mo)
+{
+  scroll_t *s = (scroll_t*) mo;
+  Scroll_StaticFloor(s, s->dx, s->dy);
+}
+
+static void T_ScrollStaticCeiling(mobj_t *mo)
+{
+  scroll_t *s = (scroll_t*) mo;
+  Scroll_StaticCeiling(s, s->dx, s->dy);
+}
+
+static void T_ScrollStaticFloorCarry(mobj_t *mo)
+{
+  scroll_t *s = (scroll_t*) mo;
+  Scroll_StaticFloorCarry(s, s->dx, s->dy);
+}
+
 static void T_ScrollControllerSideBase(mobj_t *mo)
 {
-  T_ScrollController(mo);
-  T_ScrollStaticSideBase(mo);
+  scroll_t *s = (scroll_t *)mo;
+  Scroll_Controller(s, s->dx, s->dy);
+  Scroll_StaticSideBase(s, s->vdx, s->vdy);
 }
 
 static void T_ScrollControllerSideUpper(mobj_t *mo)
 {
-  T_ScrollController(mo);
-  T_ScrollStaticSideUpper(mo);
+  scroll_t *s = (scroll_t *)mo;
+  Scroll_Controller(s, s->dx, s->dy);
+  Scroll_StaticSideUpper(s, s->vdx, s->vdy);
 }
 
 static void T_ScrollControllerSideMiddle(mobj_t *mo)
 {
-  T_ScrollController(mo);
-  T_ScrollStaticSideMiddle(mo);
+  scroll_t *s = (scroll_t *)mo;
+  Scroll_Controller(s, s->dx, s->dy);
+  Scroll_StaticSideMiddle(s, s->vdx, s->vdy);
 }
 
 static void T_ScrollControllerSideBottom(mobj_t *mo)
 {
-  T_ScrollController(mo);
-  T_ScrollStaticSideBottom(mo);
+  scroll_t *s = (scroll_t *)mo;
+  Scroll_Controller(s, s->dx, s->dy);
+  Scroll_StaticSideBottom(s, s->vdx, s->vdy);
 }
 
 static void T_ScrollControllerFloor(mobj_t *mo)
 {
-  T_ScrollController(mo);
-  T_ScrollStaticFloor(mo);
+  scroll_t *s = (scroll_t *)mo;
+  Scroll_Controller(s, s->dx, s->dy);
+  Scroll_StaticFloor(s, s->vdx, s->vdy);
 }
 
 static void T_ScrollControllerCeiling(mobj_t *mo)
 {
-  T_ScrollController(mo);
-  T_ScrollStaticCeiling(mo);
+  scroll_t *s = (scroll_t *)mo;
+  Scroll_Controller(s, s->dx, s->dy);
+  Scroll_StaticCeiling(s, s->vdx, s->vdy);
 }
 
 static void T_ScrollControllerFloorCarry(mobj_t *mo)
 {
-  T_ScrollController(mo);
-  T_ScrollStaticFloorCarry(mo);
+  scroll_t *s = (scroll_t *)mo;
+  Scroll_Controller(s, s->dx, s->dy);
+  Scroll_StaticFloorCarry(s, s->vdx, s->vdy);
 }
 
 const actionf_p1 ScrollerThinkersStatic[] = {
