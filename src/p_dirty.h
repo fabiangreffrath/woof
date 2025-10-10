@@ -34,6 +34,7 @@ typedef struct
 
 extern line_t **dirty_lines;
 extern partial_line_t *clean_lines;
+
 extern side_t **dirty_sides;
 extern partial_side_t *clean_sides;
 

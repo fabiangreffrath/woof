@@ -188,120 +188,123 @@ static void UnArchivePlayers(void)
 static void ArchiveWorld(void)
 {
     int i;
-    const sector_t *sec;
-    const line_t *li;
-    const side_t *si;
+    const sector_t *sector;
 
     // do sectors
-    for (i = 0, sec = sectors; i < numsectors; i++, sec++)
+    for (i = 0, sector = sectors; i < numsectors; i++, sector++)
     {
         // killough 10/98: save full floor & ceiling heights, including fraction
-        write32(sec->floorheight,
-                sec->ceilingheight,
-                sec->floor_xoffs,
-                sec->floor_yoffs,
-                sec->ceiling_xoffs,
-                sec->ceiling_yoffs,
-                sec->floor_rotation,
-                sec->ceiling_rotation,
-                sec->tint);
+        write32(sector->floorheight,
+                sector->ceilingheight,
+                sector->floor_xoffs,
+                sector->floor_yoffs,
+                sector->ceiling_xoffs,
+                sector->ceiling_yoffs,
+                sector->floor_rotation,
+                sector->ceiling_rotation,
+                sector->tint);
 
-        write16(sec->floorpic,
-                sec->ceilingpic,
-                sec->lightlevel,
-                sec->special, // needed?   yes -- transfer types
-                sec->tag);    // needed?   need them -- killough 
+        write16(sector->floorpic,
+                sector->ceilingpic,
+                sector->lightlevel,
+                sector->special, // needed?   yes -- transfer types
+                sector->tag);    // needed?   need them -- killough 
 
         // Woof!
-        writep(sec->soundtarget,
-               sec->thinglist,
-               sec->floordata,
-               sec->ceilingdata,
-               sec->lightingdata,
-               sec->touching_thinglist);
+        writep(sector->soundtarget,
+               sector->thinglist,
+               sector->floordata,
+               sector->ceilingdata,
+               sector->lightingdata,
+               sector->touching_thinglist);
     }
+
+    const line_t *line;
 
     int size = array_size(dirty_lines);
     write32(size);
     for (int i = 0; i < size; ++i)
     {
-        li = dirty_lines[i];
+        line = dirty_lines[i];
 
-        write16(li->special);
+        write16(line->special);
 
         // Woof!
-        writep(li->frontsector,
-               li->backsector);
+        writep(line->frontsector,
+               line->backsector);
     }
+
+    const side_t *side;
 
     size = array_size(dirty_sides);
     write32(size);
     for (int i = 0; i < size; ++i)
     {
-        si = dirty_sides[i];
+        side = dirty_sides[i];
 
-        write16(si->toptexture,
-                si->bottomtexture,
-                si->midtexture);
+        write16(side->toptexture,
+                side->bottomtexture,
+                side->midtexture);
 
-        write32(si->textureoffset,
-                si->rowoffset);
+        write32(side->textureoffset,
+                side->rowoffset);
     }
 }
 
 static void UnArchiveWorld(void)
 {
     int i;
-    sector_t *sec;
-    line_t *li;
-    side_t *si;
+    sector_t *sector;
 
     // do sectors
-    for (i = 0, sec = sectors; i < numsectors; i++, sec++)
+    for (i = 0, sector = sectors; i < numsectors; i++, sector++)
     {
-        sec->floorheight = read32();
-        sec->ceilingheight = read32();
-        sec->floor_xoffs = read32();
-        sec->floor_yoffs = read32();
-        sec->ceiling_xoffs = read32();
-        sec->ceiling_yoffs = read32();
-        sec->floor_rotation = read32();
-        sec->ceiling_rotation = read32();
-        sec->tint = read32();
+        sector->floorheight = read32();
+        sector->ceilingheight = read32();
+        sector->floor_xoffs = read32();
+        sector->floor_yoffs = read32();
+        sector->ceiling_xoffs = read32();
+        sector->ceiling_yoffs = read32();
+        sector->floor_rotation = read32();
+        sector->ceiling_rotation = read32();
+        sector->tint = read32();
 
-        sec->floorpic = read16();
-        sec->ceilingpic = read16();
-        sec->lightlevel = read16();
-        sec->special = read16();
-        sec->tag = read16();
+        sector->floorpic = read16();
+        sector->ceilingpic = read16();
+        sector->lightlevel = read16();
+        sector->special = read16();
+        sector->tag = read16();
 
         // Woof!
-        sec->soundtarget = readp();
-        sec->thinglist = readp();
-        sec->floordata = readp();
-        sec->ceilingdata = readp();
-        sec->lightingdata = readp();
-        sec->touching_thinglist = readp();
+        sector->soundtarget = readp();
+        sector->thinglist = readp();
+        sector->floordata = readp();
+        sector->ceilingdata = readp();
+        sector->lightingdata = readp();
+        sector->touching_thinglist = readp();
     }
+
+    line_t *line;
+    const partial_line_t *clean_line;
 
     int oldsize = read32();
     int size = array_size(dirty_lines);
     for (i = 0; i < size; ++i)
     {
-        li = dirty_lines[i];
+        line = dirty_lines[i];
         if (i < oldsize)
         {
-            li->special = read16();
-            li->frontsector = readp();
-            li->backsector = readp();
+            line->special = read16();
+            line->frontsector = readp();
+            line->backsector = readp();
         }
         else
         {
-            const partial_line_t *pl = &clean_lines[i];
-            li->special = pl->special;
-            li->frontsector = pl->frontsector;
-            li->backsector = pl->backsector;
-            li->dirty = false;
+            clean_line = &clean_lines[i];
+            line->special = clean_line->special;
+            line->frontsector = clean_line->frontsector;
+            line->backsector = clean_line->backsector;
+            line->dirty = false;
         }
     }
     if (size > oldsize)
@@ -310,28 +313,31 @@ static void UnArchiveWorld(void)
             oldsize;
     }
 
+    side_t *side;
+    const partial_side_t *clean_side;
+
     oldsize = read32();
     size = array_size(dirty_sides);
     for (i = 0; i < size; ++i)
     {
-        si = dirty_sides[i];
+        side = dirty_sides[i];
         if (i < oldsize)
         {
-            si->toptexture = read16();
-            si->bottomtexture = read16();
-            si->midtexture = read16();    
-            si->textureoffset = read32();
-            si->rowoffset = read32(); 
+            side->toptexture = read16();
+            side->bottomtexture = read16();
+            side->midtexture = read16();    
+            side->textureoffset = read32();
+            side->rowoffset = read32(); 
         }
         else
         {
-            const partial_side_t *ps = &clean_sides[i];
-            si->toptexture = ps->toptexture;
-            si->bottomtexture = ps->bottomtexture;
-            si->midtexture = ps->midtexture;
-            si->textureoffset = ps->textureoffset;
-            si->rowoffset = ps->rowoffset;
-            si->dirty = false;
+            clean_side = &clean_sides[i];
+            side->toptexture = clean_side->toptexture;
+            side->bottomtexture = clean_side->bottomtexture;
+            side->midtexture = clean_side->midtexture;
+            side->textureoffset = clean_side->textureoffset;
+            side->rowoffset = clean_side->rowoffset;
+            side->dirty = false;
         }
     }
     if (size > oldsize)

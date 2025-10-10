@@ -24,26 +24,26 @@ partial_side_t *clean_sides = NULL;
 
 void P_DirtyLine(line_t *line)
 {
-    partial_line_t partial_line = {
+    partial_line_t clean_line = {
         .frontsector = line->frontsector,
         .backsector = line->backsector,
         .special = line->special
     };
-    array_push(clean_lines, partial_line);
+    array_push(clean_lines, clean_line);
     line->dirty = true;
     array_push(dirty_lines, line);
 }
 
 void P_DirtySide(side_t *side)
 {
-    partial_side_t partial_side = {
+    partial_side_t clean_side = {
         .textureoffset = side->textureoffset,
         .rowoffset = side->rowoffset,
         .toptexture = side->toptexture,
         .bottomtexture = side->bottomtexture,
         .midtexture = side->midtexture
     };
-    array_push(clean_sides, partial_side);
+    array_push(clean_sides, clean_side);
     side->dirty = true;
     array_push(dirty_sides, side);
 }
