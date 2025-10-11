@@ -704,6 +704,8 @@ static void R_Subsector(int num)
                 floorlightlevel,                // killough 3/16/98
                 frontsector->interp_floor_xoffs,       // killough 3/7/98
                 frontsector->interp_floor_yoffs,
+                frontsector->floor_xoffs_post,
+                frontsector->floor_yoffs_post,
                 frontsector->floor_rotation,
                 floor_tint
                 ) : NULL;
@@ -719,6 +721,8 @@ static void R_Subsector(int num)
                 ceilinglightlevel,              // killough 4/11/98
                 frontsector->interp_ceiling_xoffs,     // killough 3/7/98
                 frontsector->interp_ceiling_yoffs,
+                frontsector->ceiling_xoffs_post,
+                frontsector->ceiling_yoffs_post,
                 frontsector->ceiling_rotation,
                 ceiling_tint
                 ) : NULL;

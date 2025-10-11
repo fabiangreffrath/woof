@@ -168,8 +168,8 @@ typedef struct
 
     int32_t lightfloor, lightceiling; // TODO: FIXME: LATER
 
-    double xpanningfloor,   ypanningfloor; // TODO: FIXME: LATER
-    double xpanningceiling, ypanningceiling; // TODO: FIXME: LATER
+    double xpanningfloor,   ypanningfloor;
+    double xpanningceiling, ypanningceiling;
 
     double xscrollfloor,   yscrollfloor; // TODO: FIXME: LATER
     double xscrollceiling, yscrollceiling; // TODO: FIXME: LATER
@@ -305,7 +305,7 @@ static void UDMF_ParseNamespace(scanner_t *s)
         I_Printf(VB_WARNING, "Loading development-only UDMF namespace: \"%s\"", name);
         udmf_features |= UDMF_DOOM | UDMF_BOOM | UDMF_MBF | UDMF_MBF21
                          | UDMF_PARAM | UDMF_SIDEDEF_OFFSET
-                         | UDMF_SIDEDEF_SCROLL | UDMF_SECTOR_ANGLE;
+                         | UDMF_SIDEDEF_SCROLL | UDMF_SECTOR_ANGLE | UDMF_SECTOR_OFFSET;
     }
     else
     {
@@ -624,13 +624,29 @@ static void UDMF_ParseSector(scanner_t *s)
         {
             sector.tag = UDMF_ScanInt(s);
         }
+        else if (PROP(rotationfloor, UDMF_SECTOR_ANGLE))
+        {
+            sector.rotationfloor = UDMF_ScanDouble(s);
+        }
         else if (PROP(rotationceiling, UDMF_SECTOR_ANGLE))
         {
             sector.rotationceiling = UDMF_ScanDouble(s);
         }
-        else if (PROP(rotationfloor, UDMF_SECTOR_ANGLE))
+        else if (PROP(xpanningfloor, UDMF_SECTOR_OFFSET))
         {
-            sector.rotationfloor = UDMF_ScanDouble(s);
+            sector.xpanningfloor = UDMF_ScanDouble(s);
+        }
+        else if (PROP(ypanningfloor, UDMF_SECTOR_OFFSET))
+        {
+            sector.ypanningfloor = UDMF_ScanDouble(s);
+        }
+        else if (PROP(xpanningceiling, UDMF_SECTOR_OFFSET))
+        {
+            sector.xpanningceiling = UDMF_ScanDouble(s);
+        }
+        else if (PROP(ypanningceiling, UDMF_SECTOR_OFFSET))
+        {
+            sector.ypanningceiling = UDMF_ScanDouble(s);
         }
         else
         {
@@ -844,6 +860,11 @@ static void UDMF_LoadSectors(void)
         sectors[i].ceiling_rotation =
             FixedToAngle(DoubleToFixed(udmf_sectors[i].rotationceiling));
 
+        sectors[i].floor_xoffs = DoubleToFixed(udmf_sectors[i].xpanningfloor);
+        sectors[i].floor_yoffs = DoubleToFixed(udmf_sectors[i].ypanningfloor);
+        sectors[i].ceiling_xoffs = DoubleToFixed(udmf_sectors[i].xpanningceiling);
+        sectors[i].ceiling_yoffs = DoubleToFixed(udmf_sectors[i].ypanningceiling);
+
         sectors[i].thinglist = NULL;
         sectors[i].touching_thinglist = NULL; // phares 3/14/98
 
@@ -861,6 +882,11 @@ static void UDMF_LoadSectors(void)
             sectors[i].floorheight;
         sectors[i].oldceilingheight = sectors[i].interpceilingheight =
             sectors[i].ceilingheight;
+
+        sectors[i].old_floor_xoffs = sectors[i].interp_floor_xoffs = sectors[i].floor_xoffs;
+        sectors[i].old_floor_yoffs = sectors[i].interp_floor_yoffs = sectors[i].floor_yoffs;
+        sectors[i].old_ceiling_xoffs = sectors[i].interp_ceiling_xoffs = sectors[i].ceiling_xoffs;
+        sectors[i].old_ceiling_yoffs = sectors[i].interp_ceiling_yoffs = sectors[i].ceiling_yoffs;
 
         // [FG] inhibit sector interpolation during the 0th gametic
         sectors[i].oldceilgametic = sectors[i].oldfloorgametic = -1;
