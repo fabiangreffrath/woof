@@ -3089,8 +3089,18 @@ static void Add_WallScroller(int64_t dx, int64_t dy, const line_t *l,
   d = FixedDiv(x, finesine[(tantoangle[FixedDiv(y,x) >> DBITS] + ANG90)
                           >> ANGLETOFINESHIFT]);
 
-  x = (fixed_t)((dy * -l->dy - dx * l->dx) / d);  // killough 10/98:
-  y = (fixed_t)((dy * l->dx - dx * l->dy) / d);   // Use long long arithmetic
+  // CPhipps - Import scroller calc overflow fix, compatibility optioned
+  if (demo_version >= DV_MBF)
+  {
+    x = (fixed_t) (((int64_t) dy * -l->dy - (int64_t) dx * l->dx) / d); // killough 10/98:
+    y = (fixed_t) (((int64_t) dy * l->dx - (int64_t) dx * l->dy) / d);  // Use long long arithmetic
+  }
+  else
+  {
+    x = -FixedDiv(FixedMul(dy, l->dy) + FixedMul(dx, l->dx), d);
+    y = -FixedDiv(FixedMul(dx, l->dy) - FixedMul(dy, l->dx), d);
+  }
+
   Add_Scroller(sc_side, x, y, control, *l->sidenum, accel);
 }
 
