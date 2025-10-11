@@ -2688,14 +2688,14 @@ void EV_RotateOffsetFlat(line_t *line, sector_t *sector)
   {
     if (offset_floor)
     {
-      sectors[s].floor_xoffs -= line->dx;
-      sectors[s].floor_yoffs += line->dy;
+      sectors[s].floor_xoffs_post -= line->dx;
+      sectors[s].floor_yoffs_post += line->dy;
     }
 
     if (offset_ceiling)
     {
-      sectors[s].ceiling_xoffs -= line->dx;
-      sectors[s].ceiling_yoffs += line->dy;
+      sectors[s].ceiling_xoffs_post -= line->dx;
+      sectors[s].ceiling_yoffs_post += line->dy;
     }
 
     if (rotate_floor)

@@ -716,6 +716,8 @@ void R_StoreWallRange(const int start, const int stop)
         // killough 3/7/98: Add checks for (x,y) offsets
         || backsector->interp_floor_xoffs != frontsector->interp_floor_xoffs
         || backsector->interp_floor_yoffs != frontsector->interp_floor_yoffs
+        || backsector->floor_xoffs_post != frontsector->floor_xoffs_post
+        || backsector->floor_yoffs_post != frontsector->floor_yoffs_post
         || backsector->floor_rotation != frontsector->floor_rotation
 
         // killough 4/15/98: prevent 2s normals

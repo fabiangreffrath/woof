@@ -172,6 +172,8 @@ typedef struct sector_s
   int tint;
   angle_t floor_rotation;
   angle_t ceiling_rotation;
+  fixed_t   floor_xoffs_post,   floor_yoffs_post;
+  fixed_t ceiling_xoffs_post, ceiling_yoffs_post;
 } sector_t;
 
 //
@@ -495,6 +497,7 @@ typedef struct visplane_s
   int picnum, lightlevel, minx, maxx;
   fixed_t height;
   fixed_t xoffs, yoffs;         // killough 2/28/98: Support scrolling flats
+  fixed_t xoffs_post, yoffs_post; // ID24 offset math
   angle_t rotation;
   unsigned short *bottom;
   int tint; // ID24 per-sector colormap

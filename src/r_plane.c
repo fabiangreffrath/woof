@@ -106,6 +106,7 @@ static fixed_t *cachedxstep = NULL;
 static fixed_t *cachedystep = NULL;
 static fixed_t *cachedrotation = NULL;
 static fixed_t xoffs,yoffs;    // killough 2/28/98: flat offsets
+static fixed_t xoffs_post, yoffs_post; // ID24 offset math
 static angle_t rotation;
 
 static fixed_t angle_sin, angle_cos;
@@ -307,6 +308,8 @@ visplane_t *R_DupPlane(const visplane_t *pl, int start, int stop)
     new_pl->lightlevel = pl->lightlevel;
     new_pl->xoffs = pl->xoffs;           // killough 2/28/98
     new_pl->yoffs = pl->yoffs;
+    new_pl->xoffs_post = pl->xoffs_post;
+    new_pl->yoffs_post = pl->yoffs_post;
     new_pl->rotation = pl->rotation;
     new_pl->minx = start;
     new_pl->maxx = stop;
@@ -322,8 +325,8 @@ visplane_t *R_DupPlane(const visplane_t *pl, int start, int stop)
 // killough 2/28/98: Add offsets
 
 visplane_t *R_FindPlane(fixed_t height, int picnum, int lightlevel,
-                        fixed_t xoffs, fixed_t yoffs, angle_t rotation,
-                        int tint)
+                        fixed_t xoffs, fixed_t yoffs, fixed_t xoffs_post,
+                        fixed_t yoffs_post, angle_t rotation, int tint)
 {
   visplane_t *check;
   unsigned hash;                      // killough
@@ -366,6 +369,8 @@ visplane_t *R_FindPlane(fixed_t height, int picnum, int lightlevel,
   check->maxx = -1;
   check->xoffs = xoffs;               // killough 2/28/98: Save offsets
   check->yoffs = yoffs;
+  check->xoffs_post = xoffs_post;
+  check->yoffs_post = yoffs_post;
   check->rotation = rotation;
   check->tint = tint;
 
@@ -573,6 +578,8 @@ static void do_draw_plane(visplane_t *pl)
 
     xoffs = pl->xoffs; // killough 2/28/98: Add offsets
     yoffs = pl->yoffs;
+    xoffs_post = pl->xoffs_post;
+    yoffs_post = pl->yoffs_post;
     rotation = pl->rotation;
 
     // plane math updated for accounting flat rotation, thanks to Odamex
@@ -581,16 +588,18 @@ static void do_draw_plane(visplane_t *pl)
 
     if (pl->rotation == 0)
     {
-      viewx_trans = xoffs + viewx;
-      viewy_trans = yoffs - viewy;
+      viewx_trans = xoffs + xoffs_post + viewx;
+      viewy_trans = yoffs - yoffs_post - viewy;
     }
     else
     {
       const fixed_t sin = finesine[pl->rotation >> ANGLETOFINESHIFT];
       const fixed_t cos = finecosine[pl->rotation >> ANGLETOFINESHIFT];
 
-      viewx_trans =   FixedMul(viewx + xoffs, cos) - FixedMul(viewy - yoffs, sin);
-      viewy_trans = -(FixedMul(viewx + xoffs, sin) + FixedMul(viewy - yoffs, cos));
+      // ZDoom + ID24 math combined
+      viewx_trans = xoffs +  FixedMul(viewx + xoffs_post, cos) - FixedMul(viewy - yoffs_post, sin);
+      viewy_trans = yoffs - (FixedMul(viewx + xoffs_post, sin) + FixedMul(viewy - yoffs_post, cos));
+
     }
 
     planeheight = abs(pl->height - viewz);
