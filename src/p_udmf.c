@@ -136,20 +136,20 @@ typedef struct
     // UDMF Extensions
     int32_t flags; // TODO: FIXME: LATER
 
-    int32_t xscroll, yscroll; // TODO: FIXME: LATER
+    int32_t xscroll, yscroll;
 
     int32_t light; // TODO: FIXME: LATER
     int32_t light_top; // TODO: FIXME: LATER
     int32_t light_mid; // TODO: FIXME: LATER
     int32_t light_bottom; // TODO: FIXME: LATER
 
-    double offsetx_top,    offsety_top; // TODO: FIXME: LATER
-    double offsetx_mid,    offsety_mid; // TODO: FIXME: LATER
-    double offsetx_bottom, offsety_bottom; // TODO: FIXME: LATER
+    double offsetx_top,    offsety_top;
+    double offsetx_mid,    offsety_mid;
+    double offsetx_bottom, offsety_bottom;
 
-    double xscrolltop,    yscrolltop; // TODO: FIXME: LATER
-    double xscrollmid,    yscrollmid; // TODO: FIXME: LATER
-    double xscrollbottom, yscrollbottom; // TODO: FIXME: LATER
+    double xscrolltop,    yscrolltop;
+    double xscrollmid,    yscrollmid;
+    double xscrollbottom, yscrollbottom;
 } UDMF_Sidedef_t;
 
 typedef struct
