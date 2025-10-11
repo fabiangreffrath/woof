@@ -3092,8 +3092,8 @@ static void Add_WallScroller(int64_t dx, int64_t dy, const line_t *l,
   // CPhipps - Import scroller calc overflow fix, compatibility optioned
   if (demo_version >= DV_MBF)
   {
-    x = (fixed_t)((dy * -l->dy - dx * l->dx) / d);  // killough 10/98:
-    y = (fixed_t)((dy * l->dx - dx * l->dy) / d);   // Use long long arithmetic
+    x = (fixed_t) (((int64_t) dy * -l->dy - (int64_t) dx * l->dx) / d); // killough 10/98:
+    y = (fixed_t) (((int64_t) dy * l->dx - (int64_t) dx * l->dy) / d);  // Use long long arithmetic
   }
   else
   {
