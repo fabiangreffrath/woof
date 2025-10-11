@@ -300,8 +300,8 @@ static void UnArchiveWorld(void)
     }
     if (size > oldsize)
     {
-        array_ptr(dirty_lines)->size = array_ptr(clean_lines)->size =
-            oldsize;
+        array_resize(dirty_lines, oldsize);
+        array_resize(clean_lines, oldsize);
     }
 
     side_t *side;
@@ -333,8 +333,8 @@ static void UnArchiveWorld(void)
     }
     if (size > oldsize)
     {
-        array_ptr(dirty_sides)->size = array_ptr(clean_sides)->size =
-            oldsize;
+        array_resize(dirty_sides, oldsize);
+        array_resize(clean_sides, oldsize);
     }
 }
 

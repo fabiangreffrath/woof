@@ -46,11 +46,8 @@ struct arena_s
 
 void *M_ArenaAlloc(arena_t *arena, size_t size, size_t align)
 {
-    int deleted_size = array_size(arena->deleted);
-    for (int i = 0; i < deleted_size; ++i)
+    array_foreach_type(block, arena->deleted, block_t)
     {
-        block_t *block = &arena->deleted[i];
-
         if (block->size == size && block->align == align
             && array_size(block->ptrs))
         {
@@ -90,11 +87,8 @@ void *M_ArenaAlloc(arena_t *arena, size_t size, size_t align)
 
 void M_ArenaFree(arena_t *arena, void *ptr, size_t size, size_t align)
 {
-    int deleted_size = array_size(arena->deleted);
-    for (int i = 0; i < deleted_size; ++i)
+    array_foreach_type(block, arena->deleted, block_t)
     {
-        block_t *block = &arena->deleted[i];
-
         if (block->size == size && block->align == align)
         {
             array_push(block->ptrs, ptr);
@@ -162,8 +156,7 @@ static block_t *CopyBlocks(const block_t *from)
     }
 
     block_t *to = NULL;
-    array_grow(to, numblocks);
-    array_ptr(to)->size = numblocks;
+    array_resize(to, numblocks);
 
     for (int i = 0; i < numblocks; ++i)
     {
@@ -174,9 +167,8 @@ static block_t *CopyBlocks(const block_t *from)
         int numptrs = array_size(from[i].ptrs);
         if (numptrs)
         {
-            array_grow(to[i].ptrs, numptrs);
+            array_resize(to[i].ptrs, numptrs);
             memcpy(to[i].ptrs, from[i].ptrs, numptrs * sizeof(void *));
-            array_ptr(to[i].ptrs)->size = numptrs;
         }
     }
 

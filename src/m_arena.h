@@ -21,11 +21,13 @@
 
 typedef struct arena_s arena_t;
 
-#define arena_alloc(a, t) (t *)M_ArenaAlloc(a, sizeof(t), alignof(t))
+#define arena_alloc(arena, type) \
+    (type *)M_ArenaAlloc(arena, sizeof(type), alignof(type))
 
 void *M_ArenaAlloc(arena_t *arena, size_t size, size_t align);
 
-#define arena_free(a, p, t) M_ArenaFree(a, p, sizeof(t), alignof(t))
+#define arena_free(arena, ptr, type) \
+    M_ArenaFree(arena, ptr, sizeof(type), alignof(type))
 
 void M_ArenaFree(arena_t *arena, void *ptr, size_t size, size_t align);
 
