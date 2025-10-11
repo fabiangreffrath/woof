@@ -1027,11 +1027,6 @@ void I_SetPalette(byte *playpal)
         colors[i].a = 0xffu;
     }
 
-    if (!palette)
-    {
-        palette = SDL_CreatePalette(256);
-    }
-
     SDL_SetPaletteColors(palette, colors, 0, 256);
 
     if (vga_porch_flash)
@@ -1512,11 +1507,11 @@ static void I_InitGraphicsMode(void)
     SDL_WindowFlags flags = 0;
 
     // [FG] window flags
-    flags |= (SDL_WINDOW_HIGH_PIXEL_DENSITY | SDL_WINDOW_INPUT_FOCUS);
+    flags |= SDL_WINDOW_HIGH_PIXEL_DENSITY | SDL_WINDOW_INPUT_FOCUS;
 
     if (fullscreen)
     {
-        flags |= (SDL_WINDOW_FULLSCREEN | SDL_WINDOW_MOUSE_GRABBED);
+        flags |= SDL_WINDOW_FULLSCREEN | SDL_WINDOW_MOUSE_GRABBED;
     }
     else
     {
@@ -1563,6 +1558,26 @@ static void I_InitGraphicsMode(void)
         SDL_SetRenderVSync(renderer, 1);
     }
 
+    texture = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_INDEX8,
+                                SDL_TEXTUREACCESS_STREAMING,
+                                max_width, max_height);
+    if (!texture)
+    {
+        I_Error("Failed to create texture: %s", SDL_GetError());
+    }
+
+    palette = SDL_CreatePalette(256);
+
+    I_SetPalette(W_CacheLumpName("PLAYPAL", PU_CACHE));
+
+    if (!SDL_SetTexturePalette(texture, palette))
+    {
+        I_Error("Failed to set palette: %s", SDL_GetError());
+    }
+
+    SDL_SetTextureScaleMode(texture,
+        smooth_scaling ? SDL_SCALEMODE_PIXELART : SDL_SCALEMODE_NEAREST);
+
     I_Printf(VB_DEBUG, "SDL %d.%d.%d (%s) render driver: %s (%s)",
              SDL_MAJOR_VERSION, SDL_MINOR_VERSION, SDL_MICRO_VERSION,
              SDL_GetPlatform(),
@@ -1593,26 +1608,6 @@ static int GetCurrentVideoHeight(void)
 
 static void CreateVideoBuffer(void)
 {
-    if (texture)
-    {
-        SDL_DestroyTexture(texture);
-    }
-
-    texture = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_INDEX8,
-                                SDL_TEXTUREACCESS_STREAMING,
-                                video.width, video.height);
-    if (!texture)
-    {
-        I_Error("Failed to create texture: %s", SDL_GetError());
-    }
-
-    I_SetPalette(W_CacheLumpName("PLAYPAL", PU_CACHE));
-
-    SDL_SetTexturePalette(texture, palette);
-
-    SDL_SetTextureScaleMode(texture,
-        smooth_scaling ? SDL_SCALEMODE_PIXELART : SDL_SCALEMODE_NEAREST);
-
     if (I_VideoBuffer)
     {
         free(I_VideoBuffer);
