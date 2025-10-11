@@ -160,28 +160,52 @@ void G_SaveAutoKeyframe(void)
 
 void G_LoadAutoKeyframe(void)
 {
+    if (IsEmpty())
+    {
+        return;
+    }
+
     int interval_tics = TICRATE * rewind_interval / 1000;
 
-    while (1)
+    // Search for the closest keyframe by interval.
+    elem_t* elem = queue.top;
+    while (elem)
     {
-        keyframe_t *keyframe = Pop();
-        
-        if (!keyframe)
+        int tic = P_GetKeyframeTic(elem->keyframe);
+        if (tic > 0 && current_tic - tic < interval_tics)
+        {
+            elem = elem->next;
+        }
+        else
         {
             break;
         }
+    }
 
-        int tic = P_GetKeyframeTic(keyframe);
-        if (tic > 0 && current_tic - tic < interval_tics)
+    if (!elem)
+    {
+        // No suitable keyframe found (all are too recent).
+        return;
+    }
+
+    // Delete from queue skipped keyframes.
+    while (queue.top != elem)
+    {
+        keyframe_t* skipped = Pop();
+        if (skipped)
         {
-            P_FreeKeyframe(keyframe);
-            continue;
+            P_FreeKeyframe(skipped);
         }
+    }
 
+    keyframe_t* keyframe = Pop();
+    if (keyframe)
+    {
         P_LoadKeyframe(keyframe);
         displaymsg("Restored key frame");
 
-        if (tic == 0) // don't delete first keyframe
+        int tic = P_GetKeyframeTic(keyframe);
+        if (tic == 0) // Don't delete the first keyframe.
         {
             Push(keyframe);
         }
@@ -195,7 +219,6 @@ void G_LoadAutoKeyframe(void)
         {
             players[consoleplayer].pitch = 0;
         }
-        break;
     }
 }
 
