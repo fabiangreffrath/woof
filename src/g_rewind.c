@@ -11,12 +11,12 @@
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 // GNU General Public License for more details.
 
-#include "p_keyframe.h"
-
+#include "doomstat.h"
 #include "doomtype.h"
 #include "g_game.h"
 #include "i_timer.h"
 #include "m_config.h"
+#include "p_keyframe.h"
 
 #include <stdlib.h>
 #include <string.h>
@@ -191,6 +191,10 @@ void G_LoadAutoKeyframe(void)
         }
 
         G_ClearInput();
+        if (!freelook)
+        {
+            players[consoleplayer].pitch = 0;
+        }
         break;
     }
 }
