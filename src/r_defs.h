@@ -216,16 +216,19 @@ typedef struct side_s
   fixed_t oldoffsety_top;
   fixed_t interpoffsetx_top;
   fixed_t interpoffsety_top;
+  int oldgametic_top;
 
   fixed_t oldoffsetx_mid;
   fixed_t oldoffsety_mid;
   fixed_t interpoffsetx_mid;
   fixed_t interpoffsety_mid;
+  int oldgametic_mid;
 
   fixed_t oldoffsetx_bottom;
   fixed_t oldoffsety_bottom;
   fixed_t interpoffsetx_bottom;
   fixed_t interpoffsety_bottom;
+  int oldgametic_bottom;
 } side_t;
 
 //
