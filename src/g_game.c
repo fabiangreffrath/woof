@@ -358,6 +358,7 @@ void G_SetTimeScale(void)
 
     I_SetTimeScale(time_scale);
 
+    I_ResetDRS();
     setrefreshneeded = true;
 }
 
@@ -2577,7 +2578,7 @@ static void DoSaveGame(char *name)
   gameaction = ga_nothing;
   savedescription[0] = 0;
 
-  drs_skip_frame = true;
+  I_ResetDRS();
 }
 
 static void G_DoSaveGame(void)
