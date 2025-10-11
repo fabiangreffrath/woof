@@ -696,16 +696,18 @@ typedef struct elevator_s
 
 // killough 3/7/98: Add generalized scroll effects
 
-typedef enum scroller_types_e
+typedef enum scroller_e
 {
-  SIDE_BASE,
-  SIDE_TOP,
-  SIDE_MID,
-  SIDE_BOTTOM,
-  SECTOR_FLOOR,
-  SECTOR_CEIL,
-  CARRY_FLOOR,
-  CARRY_CEIL,
+  // Boom
+  sc_side,
+  sc_floor,
+  sc_ceiling,
+  sc_carry,
+  sc_carry_ceiling,  // killough 4/11/98: carry objects hanging on ceilings
+  // UDMF extension
+  sc_side_top,
+  sc_side_mid,
+  sc_side_bottom,
 } scroller_t;
 
 typedef struct {
@@ -719,20 +721,14 @@ typedef struct {
   fixed_t vdx, vdy;    // Accumulated velocity if accelerative
   int accel;           // Whether it's accelerative
 
-  // TODO: remove me
-  enum
-  {
-    sc_side,
-    sc_floor,
-    sc_ceiling,
-    sc_carry,
-    sc_carry_ceiling,  // killough 4/11/98: carry objects hanging on ceilings
-  } type;              // Type of scroll effect
+  scroller_t type;     // Type of scroll effect
 } scroll_t;
 
-void Scroll_AddStatic(fixed_t dx, fixed_t dy, int32_t affectee, scroller_t type);
-void Scroll_AddControl(fixed_t dx, fixed_t dy, int32_t affectee,
-                       int32_t control, int32_t accel, scroller_t type);
+#define Add_ScrollerStatic(type, affectee, dx, dy) \
+        Add_Scroller(type, dx, dy, -1, affectee, 0);
+
+extern void Add_Scroller(scroller_t type, fixed_t dx, fixed_t dy,
+                         int32_t control, int32_t affectee, int32_t accel);
 
 // phares 3/12/98: added new model of friction for ice/sludge effects
 
