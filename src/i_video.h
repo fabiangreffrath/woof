@@ -55,9 +55,9 @@ void I_ResetScreen(void); // killough 10/98
 void I_ToggleVsync(void); // [JN] Calls native SDL vsync toggle
 
 void I_DynamicResolution(void);
+void I_ResetDRS(void);
 
 extern int current_video_height;
-extern boolean drs_skip_frame;
 #define DRS_MIN_HEIGHT 400
 extern boolean dynamic_resolution;
 extern boolean uncapped;

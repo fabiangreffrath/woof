@@ -129,10 +129,10 @@ static int unscaled_actualheight;
 static int max_video_width, max_video_height;
 static int max_width, max_height;
 static int max_height_adjusted;
-static int display_refresh_rate;
+static float display_refresh_rate;
 
 static boolean use_limiter;
-static int targetrefresh;
+static float targetrefresh;
 
 // haleyjd 10/08/05: Chocolate DOOM application focus state code added
 
@@ -143,7 +143,7 @@ static boolean grabmouse = true, default_grabmouse;
 // when the screen isnt visible, don't render the screen
 boolean screenvisible = true;
 
-boolean drs_skip_frame;
+static boolean drs_skip_frame;
 
 void *I_GetSDLWindow(void)
 {
@@ -366,7 +366,7 @@ static void HandleWindowEvent(SDL_WindowEvent *event)
             break;
     }
 
-    drs_skip_frame = true;
+    I_ResetDRS();
 }
 
 // [FG] fullscreen toggle from Chocolate Doom 3.0
@@ -446,13 +446,13 @@ static void UpdateLimiter(void)
 {
     if (uncapped)
     {
-        if (fpslimit >= display_refresh_rate && display_refresh_rate > 0
+        if (fpslimit >= display_refresh_rate && display_refresh_rate > 0.0f
             && use_vsync)
         {
             // SDL will limit framerate using vsync.
             use_limiter = false;
         }
-        else if (fpslimit >= TICRATE && targetrefresh > 0)
+        else if (fpslimit >= TICRATE && targetrefresh > 0.0f)
         {
             use_limiter = true;
         }
@@ -682,20 +682,13 @@ static void UpdateRender(void)
     SDL_LockTexture(texture, &blit_rect, &pixels, &dst_pitch);
     int h = blit_rect.h;
     int src_pitch = video.width;
-    if (dst_pitch == src_pitch)
+    pixel_t *dst = pixels;
+    pixel_t *src = I_VideoBuffer;
+    while (h--)
     {
-        memcpy(pixels, I_VideoBuffer, src_pitch * h);
-    }
-    else
-    {
-        pixel_t *dst = pixels;
-        pixel_t *src = I_VideoBuffer;
-        while (h--)
-        {
-            memcpy(dst, src, src_pitch);
-            dst += dst_pitch;        
-            src += src_pitch;
-        }
+        memcpy(dst, src, src_pitch);
+        dst += dst_pitch;        
+        src += src_pitch;
     }
     SDL_UnlockTexture(texture);
 
@@ -708,11 +701,33 @@ static uint64_t frametime_start, frametime_withoutpresent;
 static void ResetResolution(int height);
 static void ResetLogicalSize(void);
 
+#define DRS_FRAME_HISTORY 60
+
+typedef struct
+{
+    double history[DRS_FRAME_HISTORY];
+    int history_index;
+    int history_frames;
+    int cooldown_counter;
+    int cooldown_frames;
+} drs_t;
+
+static drs_t drs;
+
+void I_ResetDRS(void)
+{
+    memset(drs.history, 0, sizeof(drs.history));
+    drs.history_index = 0;
+    drs.history_frames = MAX(DRS_FRAME_HISTORY, (int)(targetrefresh / 2.0f));
+    drs.cooldown_counter = 0;
+    drs.cooldown_frames = drs.history_frames;
+    drs_skip_frame = true;
+}
+
 void I_DynamicResolution(void)
 {
     if (!dynamic_resolution || current_video_height <= DRS_MIN_HEIGHT
-        || frametime_withoutpresent == 0 || targetrefresh <= 0
-        || menuactive)
+        || frametime_withoutpresent == 0 || menuactive)
     {
         return;
     }
@@ -724,12 +739,9 @@ void I_DynamicResolution(void)
         return;
     }
 
-    #define DRS_COOLDOWN_FRAMES 15
-    static int cooldown_counter;
-
-    if (cooldown_counter > 0)
+    if (drs.cooldown_counter > 0)
     {
-        --cooldown_counter;
+        --drs.cooldown_counter;
         return;
     }
 
@@ -737,18 +749,14 @@ void I_DynamicResolution(void)
     double target = (1.0 / targetrefresh) - 0.00125;
     double actual = frametime_withoutpresent / 1000000.0;
 
-    #define DRS_FRAME_HISTORY 30
-    static double frame_history[DRS_FRAME_HISTORY];
-    static int    frame_index;
-
-    frame_history[frame_index] = actual;
-    frame_index = (frame_index + 1) % DRS_FRAME_HISTORY;
+    drs.history[drs.history_index] = actual;
+    drs.history_index = (drs.history_index + 1) % drs.history_frames;
     double total = 0;
-    for (int i = 0; i < DRS_FRAME_HISTORY; ++i)
+    for (int i = 0; i < drs.history_frames; ++i)
     {
-        total += frame_history[i];
+        total += drs.history[i];
     }
-    const double avg_frame_time = total / DRS_FRAME_HISTORY;
+    const double avg_frame_time = total / drs.history_frames;
     const double performance_ratio = avg_frame_time / target;
 
     static boolean needs_upscale;
@@ -793,6 +801,12 @@ void I_DynamicResolution(void)
         return;
     }
 
+    if (newheight < current_video_height)
+    {
+        int mul = (newheight + (DRS_STEP - 1)) / DRS_STEP;
+        newheight = mul * DRS_STEP;
+    }
+
     if (newheight == oldheight)
     {
         return;
@@ -800,7 +814,7 @@ void I_DynamicResolution(void)
 
     needs_upscale = newheight < current_video_height;
 
-    cooldown_counter = DRS_COOLDOWN_FRAMES;
+    drs.cooldown_counter = drs.cooldown_frames;
 
     if (newheight < oldheight)
     {
@@ -870,12 +884,12 @@ void I_FinishUpdate(void)
 
     if (use_limiter)
     {
-        uint64_t target_time = 1000000ull / targetrefresh;
+        uint64_t target_time = (uint64_t)(1000000.0f / targetrefresh);
 
         while (true)
         {
             uint64_t current_time = I_GetTimeUS();
-            uint64_t elapsed_time = current_time - frametime_start;
+            int64_t elapsed_time = current_time - frametime_start;
 
             if (elapsed_time >= target_time)
             {
@@ -883,7 +897,7 @@ void I_FinishUpdate(void)
                 break;
             }
 
-            uint64_t remaining_time = target_time - elapsed_time;
+            int64_t remaining_time = target_time - elapsed_time;
 
             if (remaining_time > 1000ull)
             {
@@ -1136,7 +1150,7 @@ boolean I_WritePNGfile(char *filename)
     free(pixels);
     SDL_DestroySurface(surface);
 
-    drs_skip_frame = true;
+    I_ResetDRS();
 
     return !ret;
 }
@@ -1332,17 +1346,27 @@ static void I_ResetTargetRefresh(void)
 
     if (uncapped)
     {
-        // SDL may report native refresh rate as zero.
-        targetrefresh = (fpslimit >= TICRATE) ? fpslimit : display_refresh_rate;
+        if (fpslimit >= TICRATE)
+        {
+            targetrefresh = fpslimit;
+        }
+        else if (display_refresh_rate)
+        {
+            targetrefresh = display_refresh_rate;
+        }
+        else
+        {
+            targetrefresh = 60.0f;
+        }
     }
     else
     {
-        targetrefresh = TICRATE * realtic_clock_rate / 100;
+        targetrefresh = (float)TICRATE * realtic_clock_rate / 100.0f;
     }
 
     UpdateLimiter();
     MN_UpdateFpsLimitItem();
-    drs_skip_frame = true;
+    I_ResetDRS();
 }
 
 static void I_ResetInvalidDisplayIndex(void)
