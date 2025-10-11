@@ -890,30 +890,30 @@ static void UDMF_LoadSideDefs(void)
 
         if (udmf_sidedefs[i].xscroll || udmf_sidedefs[i].yscroll)
         {
-            Scroll_AddStatic(DoubleToFixed(udmf_sidedefs[i].xscroll),
-                             DoubleToFixed(udmf_sidedefs[i].yscroll), i,
-                             SIDE_BASE);
+            Add_ScrollerStatic(sc_side, i,
+                               DoubleToFixed(udmf_sidedefs[i].xscroll),
+                               DoubleToFixed(udmf_sidedefs[i].yscroll));
         }
 
         if (udmf_sidedefs[i].xscrolltop || udmf_sidedefs[i].yscrolltop)
         {
-            Scroll_AddStatic(DoubleToFixed(udmf_sidedefs[i].xscrolltop),
-                             DoubleToFixed(udmf_sidedefs[i].yscrolltop), i,
-                             SIDE_TOP);
+            Add_ScrollerStatic(sc_side_top, i,
+                               DoubleToFixed(udmf_sidedefs[i].xscrolltop),
+                               DoubleToFixed(udmf_sidedefs[i].yscrolltop));
         }
 
         if (udmf_sidedefs[i].xscrollmid || udmf_sidedefs[i].yscrollmid)
         {
-            Scroll_AddStatic(DoubleToFixed(udmf_sidedefs[i].xscrollmid),
-                             DoubleToFixed(udmf_sidedefs[i].yscrollmid), i,
-                             SIDE_MID);
+            Add_ScrollerStatic(sc_side_mid, i,
+                               DoubleToFixed(udmf_sidedefs[i].xscrollmid),
+                               DoubleToFixed(udmf_sidedefs[i].yscrollmid));
         }
 
         if (udmf_sidedefs[i].xscrollbottom || udmf_sidedefs[i].yscrollbottom)
         {
-            Scroll_AddStatic(DoubleToFixed(udmf_sidedefs[i].xscrollbottom),
-                             DoubleToFixed(udmf_sidedefs[i].yscrollbottom), i,
-                             SIDE_BOTTOM);
+            Add_ScrollerStatic(sc_side_bottom, i,
+                               DoubleToFixed(udmf_sidedefs[i].xscrollbottom),
+                               DoubleToFixed(udmf_sidedefs[i].yscrollbottom));
         }
 
         // [crispy] smooth texture scrolling
@@ -925,7 +925,7 @@ static void UDMF_LoadSideDefs(void)
         sides[i].oldoffsety_mid = sides[i].interpoffsety_mid = sides[i].offsety_mid;
         sides[i].oldoffsetx_bottom = sides[i].interpoffsetx_bottom = sides[i].offsetx_bottom;
         sides[i].oldoffsety_bottom = sides[i].interpoffsety_bottom = sides[i].offsety_bottom;
-        sides[i].oldgametic = -1;
+        sides[i].oldgametic_bottom = sides[i].oldgametic_mid = sides[i].oldgametic_top = sides[i].oldgametic = -1;
     }
 }
 

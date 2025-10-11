@@ -2693,22 +2693,6 @@ enum {
   tc_endspecials,
   tc_friction,    // store friction for complevel Boom
   tc_button,
-  tc_scroll_static_side_base,
-  tc_scroll_static_side_top,
-  tc_scroll_static_side_mid,
-  tc_scroll_static_side_bottom,
-  tc_scroll_static_floor_static,
-  tc_scroll_static_floor_carry,
-  tc_scroll_static_ceil_static,
-  tc_scroll_static_ceil_carry,
-  tc_scroll_control_side_base,
-  tc_scroll_control_side_top,
-  tc_scroll_control_side_mid,
-  tc_scroll_control_side_bottom,
-  tc_scroll_control_floor_static,
-  tc_scroll_control_floor_carry,
-  tc_scroll_control_ceil_static,
-  tc_scroll_control_ceil_carry,
 } specials_e;
 
 //

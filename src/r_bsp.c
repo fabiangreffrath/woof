@@ -351,21 +351,43 @@ static void R_MaybeInterpolateTextureOffsets(side_t *side)
     {
         side->interpoffsetx = LerpFixed(side->oldoffsetx, side->offsetx);
         side->interpoffsety = LerpFixed(side->oldoffsety, side->offsety);
-        side->interpoffsetx_top = LerpFixed(side->oldoffsetx_top, side->offsetx_top);
-        side->interpoffsety_top = LerpFixed(side->oldoffsety_top, side->offsety_top);
-        side->interpoffsetx_mid = LerpFixed(side->oldoffsetx_mid, side->offsetx_mid);
-        side->interpoffsety_mid = LerpFixed(side->oldoffsety_mid, side->offsety_mid);
-        side->interpoffsetx_bottom = LerpFixed(side->oldoffsetx_bottom, side->offsetx_bottom);
-        side->interpoffsety_bottom = LerpFixed(side->oldoffsety_bottom, side->offsety_bottom);
     }
     else
     {
         side->interpoffsetx = side->offsetx;
         side->interpoffsety = side->offsety;
+    }
+
+    if (uncapped && side->oldgametic_top == gametic - 1)
+    {
+        side->interpoffsetx_top = LerpFixed(side->oldoffsetx_top, side->offsetx_top);
+        side->interpoffsety_top = LerpFixed(side->oldoffsety_top, side->offsety_top);
+    }
+    else
+    {
         side->interpoffsetx_top = side->offsetx_top;
         side->interpoffsety_top = side->offsety_top;
+    }
+
+
+    if (uncapped && side->oldgametic_mid == gametic - 1)
+    {
+        side->interpoffsetx_mid = LerpFixed(side->oldoffsetx_mid, side->offsetx_mid);
+        side->interpoffsety_mid = LerpFixed(side->oldoffsety_mid, side->offsety_mid);
+    }
+    else
+    {
         side->interpoffsetx_mid = side->offsetx_mid;
         side->interpoffsety_mid = side->offsety_mid;
+    }
+
+    if (uncapped && side->oldgametic_bottom == gametic - 1)
+    {
+        side->interpoffsetx_bottom = LerpFixed(side->oldoffsetx_bottom, side->offsetx_bottom);
+        side->interpoffsety_bottom = LerpFixed(side->oldoffsety_bottom, side->offsety_bottom);
+    }
+    else
+    {
         side->interpoffsetx_bottom = side->offsetx_bottom;
         side->interpoffsety_bottom = side->offsety_bottom;
     }
