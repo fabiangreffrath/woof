@@ -1519,23 +1519,17 @@ static void I_InitGraphicsMode(void)
     }
 
     AdjustWindowSize();
-    int w = window_width;
-    int h = window_height;
 
     if (M_CheckParm("-borderless"))
     {
         flags |= SDL_WINDOW_BORDERLESS;
     }
 
-    I_GetWindowPosition(&window_x, &window_y, w, h);
-
-    // [FG] create rendering window
+    I_GetWindowPosition(&window_x, &window_y, window_width, window_height);
 
     char *title = M_StringJoin(gamedescription, " - ", PROJECT_STRING);
-    screen = SDL_CreateWindow(title, w, h, flags);
-    free(title);
-
-    if (screen == NULL)
+    if (!SDL_CreateWindowAndRenderer(title, window_width, window_height, flags,
+                                     &screen, &renderer))
     {
         I_Error("Error creating window for video startup: %s", SDL_GetError());
     }
@@ -1543,15 +1537,6 @@ static void I_InitGraphicsMode(void)
     SDL_SetWindowPosition(screen, window_x, window_y);
 
     I_InitWindowIcon();
-
-    // [FG] create renderer
-    renderer = SDL_CreateRenderer(screen, NULL);
-
-    if (renderer == NULL)
-    {
-        I_Error("Error creating renderer for screen window: %s",
-                SDL_GetError());
-    }
 
     if (use_vsync && !timingdemo)
     {
