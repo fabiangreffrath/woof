@@ -62,16 +62,17 @@ typedef enum
     UDMF_MBF2Y = (1 << 8),
 
     // General behavior
-    UDMF_PARAM = (1 << 9),
+    UDMF_LINE_PARAM = (1 << 9),
+    UDMF_THING_PARAM = (1 << 10),
 
-    UDMF_SIDEDEF_OFFSET = (1 << 10),
-    UDMF_SIDEDEF_SCROLL = (1 << 11),
-    UDMF_SIDEDEF_LIGHT = (1 << 12),
+    UDMF_SIDEDEF_OFFSET = (1 << 11),
+    UDMF_SIDEDEF_SCROLL = (1 << 12),
+    UDMF_SIDEDEF_LIGHT = (1 << 13),
 
-    UDMF_SECTOR_OFFSET = (1 << 13),
-    UDMF_SECTOR_SCROLL = (1 << 14),
-    UDMF_SECTOR_LIGHT = (1 << 15),
-    UDMF_SECTOR_ANGLE = (1 << 16),
+    UDMF_SECTOR_OFFSET = (1 << 14),
+    UDMF_SECTOR_SCROLL = (1 << 15),
+    UDMF_SECTOR_LIGHT = (1 << 16),
+    UDMF_SECTOR_ANGLE = (1 << 17),
 
     // Compatibility
     UDMF_COMP_NO_ARG0 = (1 << 31),
@@ -166,7 +167,7 @@ typedef struct
     // UDMF Extensions
     int32_t flags; // TODO: FIXME: LATER
 
-    int32_t lightfloor, lightceiling; // TODO: FIXME: LATER
+    int32_t lightfloor, lightceiling;
 
     double xpanningfloor,   ypanningfloor;
     double xpanningceiling, ypanningceiling;
@@ -303,9 +304,11 @@ static void UDMF_ParseNamespace(scanner_t *s)
     else if (devparm && !strcasecmp(name, "dsda"))
     {
         I_Printf(VB_WARNING, "Loading development-only UDMF namespace: \"%s\"", name);
-        udmf_features |= UDMF_DOOM | UDMF_BOOM | UDMF_MBF | UDMF_MBF21
-                         | UDMF_PARAM | UDMF_SIDEDEF_OFFSET
-                         | UDMF_SIDEDEF_SCROLL | UDMF_SECTOR_ANGLE | UDMF_SECTOR_OFFSET;
+        udmf_features |=
+            UDMF_DOOM | UDMF_BOOM | UDMF_MBF | UDMF_MBF21 | UDMF_LINE_PARAM
+            | UDMF_THING_PARAM | UDMF_SIDEDEF_OFFSET | UDMF_SIDEDEF_SCROLL
+            | UDMF_SIDEDEF_LIGHT | UDMF_SECTOR_OFFSET | UDMF_SECTOR_SCROLL
+            | UDMF_SECTOR_LIGHT | UDMF_SECTOR_ANGLE;
     }
     else
     {
@@ -381,19 +384,19 @@ static void UDMF_ParseLinedef(scanner_t *s)
             // Tag -> id/arg0 split means arg0 is always enabled
             line.args[0] = UDMF_ScanInt(s);
         }
-        else if (PROP(arg1, UDMF_PARAM))
+        else if (PROP(arg1, UDMF_LINE_PARAM))
         {
             line.args[1] = UDMF_ScanInt(s);
         }
-        else if (PROP(arg2, UDMF_PARAM))
+        else if (PROP(arg2, UDMF_LINE_PARAM))
         {
             line.args[2] = UDMF_ScanInt(s);
         }
-        else if (PROP(arg3, UDMF_PARAM))
+        else if (PROP(arg3, UDMF_LINE_PARAM))
         {
             line.args[3] = UDMF_ScanInt(s);
         }
-        else if (PROP(arg4, UDMF_PARAM))
+        else if (PROP(arg4, UDMF_LINE_PARAM))
         {
             line.args[4] = UDMF_ScanInt(s);
         }
@@ -735,27 +738,27 @@ static void UDMF_ParseThing(scanner_t *s)
         {
             thing.options |= UDMF_ScanFlag(s, MTF_FRIEND);
         }
-        else if (PROP(special, UDMF_PARAM))
+        else if (PROP(special, UDMF_THING_PARAM))
         {
             thing.special = UDMF_ScanInt(s);
         }
-        else if (PROP(arg0, UDMF_PARAM))
+        else if (PROP(arg0, UDMF_THING_PARAM))
         {
             thing.args[0] = UDMF_ScanInt(s);
         }
-        else if (PROP(arg1, UDMF_PARAM))
+        else if (PROP(arg1, UDMF_THING_PARAM))
         {
             thing.args[1] = UDMF_ScanInt(s);
         }
-        else if (PROP(arg2, UDMF_PARAM))
+        else if (PROP(arg2, UDMF_THING_PARAM))
         {
             thing.args[2] = UDMF_ScanInt(s);
         }
-        else if (PROP(arg3, UDMF_PARAM))
+        else if (PROP(arg3, UDMF_THING_PARAM))
         {
             thing.args[3] = UDMF_ScanInt(s);
         }
-        else if (PROP(arg4, UDMF_PARAM))
+        else if (PROP(arg4, UDMF_THING_PARAM))
         {
             thing.args[4] = UDMF_ScanInt(s);
         }
@@ -977,6 +980,13 @@ static void UDMF_LoadLineDefs(void)
         lines[i].args[3] = udmf_linedefs[i].args[3];
         lines[i].args[4] = udmf_linedefs[i].args[4];
 
+        // Woof! currently does not support parameterized line specials
+        if (udmf_features & UDMF_LINE_PARAM)
+        {
+            udmf_linedefs[i].special = 0;
+        }
+
+        // Support for namespaces that do not make the tag -> arg0/id split
         if (udmf_features & UDMF_COMP_NO_ARG0)
         {
             lines[i].args[0] = lines[i].id;
