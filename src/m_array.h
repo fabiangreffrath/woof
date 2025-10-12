@@ -143,31 +143,28 @@ inline static void *M_ArrayGrow(void *v, size_t esize, int n)
     return p->buffer;
 }
 
-// If n > current size, new elements are zero-initialized
-// If n < current size, array is truncated
-#define array_resize(v, n)                                                     \
-    do                                                                         \
-    {                                                                          \
-        int _new_size = (n);                                                   \
-        if (_new_size > array_capacity(v))                                     \
-        {                                                                      \
-            int _new_capacity = array_capacity(v) > 0 ? array_capacity(v)      \
-                                                      : M_ARRAY_INIT_CAPACITY; \
-            while (_new_capacity < _new_size)                                  \
-            {                                                                  \
-                _new_capacity *= 2;                                            \
-            }                                                                  \
-            array_grow(v, _new_capacity - array_capacity(v));                  \
-        }                                                                      \
-        if (v)                                                                 \
-        {                                                                      \
-            if (_new_size > array_ptr(v)->size)                                \
-            {                                                                  \
-                memset(&(v)[array_ptr(v)->size], 0,                            \
-                       sizeof(*(v)) * (_new_size - array_ptr(v)->size));       \
-            }                                                                  \
-            array_ptr(v)->size = _new_size;                                    \
-        }                                                                      \
+// If n > current size, new elements are zero-initialized.
+// If n < current size, array is truncated.
+#define array_resize(v, n)                                    \
+    do                                                        \
+    {                                                         \
+        int _new_size = (n);                                  \
+        int _old_size = array_size(v);                        \
+        if (_new_size > array_capacity(v))                    \
+        {                                                     \
+            int _new_capacity = M_ARRAY_INIT_CAPACITY;        \
+            while (_new_capacity < _new_size)                 \
+            {                                                 \
+                _new_capacity *= 2;                           \
+            }                                                 \
+            array_grow(v, _new_capacity - array_capacity(v)); \
+        }                                                     \
+        if (_new_size > _old_size)                            \
+        {                                                     \
+            memset(&(v)[_old_size], 0,                        \
+                   sizeof(*(v)) * (_new_size - _old_size));   \
+        }                                                     \
+        array_ptr(v)->size = _new_size;                       \
     } while (0)
 
 #endif // M_ARRAY_H
