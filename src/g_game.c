@@ -1005,7 +1005,6 @@ static void G_DoLoadLevel(void)
 
   P_SetupLevel (gameepisode, gamemap, 0, gameskill);
 
-  G_ResetRewind();
   MN_UpdateFreeLook();
   HU_UpdateTurnFormat();
 
@@ -1967,6 +1966,8 @@ frommapinfo:
 
 static void G_DoWorldDone(void)
 {
+  P_ArchiveDirtyArraysCurrentLevel();
+
   idmusnum = -1;             //jff 3/17/98 allow new level's music to be loaded
   musinfo.from_savegame = false;
   gamestate = GS_LEVEL;
@@ -4160,6 +4161,18 @@ void G_InitNew(skill_t skill, int episode, int map)
 
   if (demo_version == DV_MBF)
     G_MBFComp();
+
+  G_DoLoadLevel();
+}
+
+void G_PreparedInitNew(int episode, int map)
+{
+  gameepisode = episode;
+  gamemap = map;
+
+  gameaction = ga_nothing;
+
+  AM_clearMarks();
 
   G_DoLoadLevel();
 }

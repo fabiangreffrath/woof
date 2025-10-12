@@ -22,6 +22,7 @@
 #include "doomtype.h"
 #include "i_system.h"
 #include "m_argv.h"
+#include "m_arena.h"
 #include "m_array.h"
 #include "m_bbox.h"
 #include "m_fixed.h"
@@ -595,7 +596,7 @@ static void UDMF_ParseThing(scanner_t *s)
 static void UDMF_ParseTextMap(int lumpnum)
 {
     scanner_t *s =
-        SC_Open("TEXTMAP", W_CacheLumpNum(lumpnum + UDMF_TEXTMAP, PU_LEVEL),
+        SC_Open("TEXTMAP", W_CacheLumpNum(lumpnum + UDMF_TEXTMAP, PU_CACHE),
                 W_LumpLength(lumpnum + UDMF_TEXTMAP));
 
     const char *toplevel = NULL;
@@ -663,7 +664,7 @@ static void UDMF_LoadVertexes(void)
 static void UDMF_LoadSectors(void)
 {
     numsectors = array_size(udmf_sectors);
-    sectors = Z_Malloc(numsectors * sizeof(sector_t), PU_LEVEL, 0);
+    sectors = arena_alloc_num(world_arena, sector_t, numsectors);
     memset(sectors, 0, numsectors * sizeof(sector_t));
 
     for (int i = 0; i < numsectors; i++)
@@ -706,7 +707,7 @@ static void UDMF_LoadSectors(void)
 static void UDMF_LoadSideDefs(void)
 {
     numsides = array_size(udmf_sidedefs);
-    sides = Z_Malloc(numsides * sizeof(side_t), PU_LEVEL, 0);
+    sides = arena_alloc_num(world_arena, side_t, numsides);
     memset(sides, 0, numsides * sizeof(side_t));
 
     for (int i = 0; i < numsides; i++)
@@ -726,7 +727,7 @@ static void UDMF_LoadSideDefs(void)
 static void UDMF_LoadLineDefs(void)
 {
     numlines = array_size(udmf_linedefs);
-    lines = Z_Malloc(numlines * sizeof(line_t), PU_LEVEL, 0);
+    lines = arena_alloc_num(world_arena, line_t, numlines);
     memset(lines, 0, numlines * sizeof(line_t));
 
     for (int i = 0; i < numlines; i++)
@@ -975,7 +976,7 @@ boolean UDMF_LoadBlockMap(int blockmap_num)
 
     // clear out mobj chains
     blocklinks_size = sizeof(*blocklinks) * bmapwidth * bmapheight;
-    blocklinks = Z_Malloc(blocklinks_size, PU_LEVEL, 0);
+    blocklinks = M_ArenaAlloc(world_arena, blocklinks_size, alignof(mobj_t *));
     memset(blocklinks, 0, blocklinks_size);
     blockmap = blockmaplump + 4;
 

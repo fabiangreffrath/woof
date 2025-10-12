@@ -24,6 +24,9 @@ typedef struct arena_s arena_t;
 #define arena_alloc(arena, type) \
     (type *)M_ArenaAlloc(arena, sizeof(type), alignof(type))
 
+#define arena_alloc_num(arena, type, num) \
+    (type *)M_ArenaAlloc(arena, sizeof(type) * num, alignof(type))
+
 void *M_ArenaAlloc(arena_t *arena, size_t size, size_t align);
 
 #define arena_free(arena, ptr, type) \

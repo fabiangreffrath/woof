@@ -16,6 +16,7 @@
 #include "g_game.h"
 #include "i_timer.h"
 #include "m_config.h"
+#include "p_dirty.h"
 #include "p_keyframe.h"
 
 #include <stdlib.h>
@@ -117,19 +118,6 @@ static keyframe_t *Pop(void)
     return keyframe;
 }
 
-static void FreeKeyframeQueue(void)
-{
-    elem_t* current = queue.top;
-    while (current)
-    {
-        elem_t* temp = current;
-        current = current->next;
-        P_FreeKeyframe(temp->keyframe);
-        free(temp);
-    }
-    memset(&queue, 0, sizeof(queue));
-}
-
 void G_SaveAutoKeyframe(void)
 {
     if (!rewind_auto)
@@ -171,7 +159,7 @@ void G_LoadAutoKeyframe(void)
     elem_t* elem = queue.top;
     while (elem)
     {
-        int tic = P_GetKeyframeTic(elem->keyframe);
+        int tic = elem->keyframe->tic;
         if (tic > 0 && current_time - tic < interval_tics)
         {
             elem = elem->next;
@@ -201,6 +189,11 @@ void G_LoadAutoKeyframe(void)
     keyframe_t* keyframe = Pop();
     if (keyframe)
     {
+        if (keyframe->episode != gameepisode || keyframe->map != gamemap)
+        {
+            G_PreparedInitNew(keyframe->episode, keyframe->map);
+            P_UnArchiveDirtyArrays(keyframe->episode, keyframe->map);
+        }
         P_LoadKeyframe(keyframe);
         displaymsg("Restored key frame");
 
@@ -219,12 +212,6 @@ void G_LoadAutoKeyframe(void)
             players[consoleplayer].pitch = 0;
         }
     }
-}
-
-void G_ResetRewind(void)
-{
-    FreeKeyframeQueue();
-    disable_rewind = false;
 }
 
 void G_BindRewindVariables(void)

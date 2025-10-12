@@ -16,7 +16,6 @@
 
 void G_SaveAutoKeyframe(void);
 void G_LoadAutoKeyframe(void);
-void G_ResetRewind(void);
 
 void G_BindRewindVariables(void);
 

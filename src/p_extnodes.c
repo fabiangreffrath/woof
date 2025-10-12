@@ -26,6 +26,7 @@
 #include "doomtype.h"
 #include "i_printf.h"
 #include "i_system.h"
+#include "m_arena.h"
 #include "m_argv.h"
 #include "m_fixed.h"
 #include "m_swap.h"
@@ -328,7 +329,7 @@ void P_LoadSegs_DEEP(int lump)
     byte *data;
 
     numsegs = W_LumpLength(lump) / sizeof(mapseg_deep_t);
-    segs = Z_Malloc(numsegs * sizeof(seg_t), PU_LEVEL, 0);
+    segs = arena_alloc_num(world_arena, seg_t, numsegs);
     memset(segs, 0, numsegs * sizeof(seg_t));
     data = W_CacheLumpNum(lump, PU_STATIC);
 
@@ -397,7 +398,7 @@ void P_LoadSubsectors_DEEP(int lump)
     int i;
 
     numsubsectors = W_LumpLength(lump) / sizeof(mapsubsector_deep_t);
-    subsectors = Z_Malloc(numsubsectors * sizeof(subsector_t), PU_LEVEL, 0);
+    subsectors = arena_alloc_num(world_arena, subsector_t, numsubsectors);
     data = (mapsubsector_deep_t *)W_CacheLumpNum(lump, PU_STATIC);
 
     memset(subsectors, 0, numsubsectors * sizeof(subsector_t));
@@ -796,7 +797,7 @@ void P_LoadNodes_ZDoom(int lump, nodeformat_t format)
     }
 
     numsubsectors = numSubs;
-    subsectors = Z_Malloc(numsubsectors * sizeof(subsector_t), PU_LEVEL, 0);
+    subsectors = arena_alloc_num(world_arena, subsector_t, numsubsectors);
 
     for (i = currSeg = 0; i < numsubsectors; i++)
     {
@@ -822,7 +823,7 @@ void P_LoadNodes_ZDoom(int lump, nodeformat_t format)
     }
 
     numsegs = numSegs;
-    segs = Z_Malloc(numsegs * sizeof(seg_t), PU_LEVEL, 0);
+    segs = arena_alloc_num(world_arena, seg_t, numsegs);
 
     if (format == NFMT_XNOD || format == NFMT_ZNOD)
     {

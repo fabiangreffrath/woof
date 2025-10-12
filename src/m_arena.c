@@ -123,8 +123,7 @@ arena_t *M_ArenaInit(size_t reserve, size_t commit)
 
 static void FreeBlocks(block_t *blocks)
 {
-    block_t *block;
-    array_foreach(block, blocks)
+    array_foreach_type(block, blocks, block_t)
     {
         array_free(block->ptrs);
     }
