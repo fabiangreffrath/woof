@@ -3023,9 +3023,10 @@ void G_Ticker(void)
     basetic++;  // For revenant tracers and RNG -- we must maintain sync
   else
     {
-      if (!timingdemo && gamestate == GS_LEVEL && gameaction == ga_nothing)
+      if (!timingdemo && !paused && gamestate == GS_LEVEL
+          && gameaction == ga_nothing)
         G_SaveAutoKeyframe();
-      
+
       // get commands, check consistancy, and build new consistancy check
       int buf = (gametic/ticdup)%BACKUPTICS;
 
