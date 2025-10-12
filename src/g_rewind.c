@@ -127,13 +127,13 @@ void G_SaveAutoKeyframe(void)
 
     interval_tics = TICRATE * rewind_interval / 1000;
 
-    int current_time = totalleveltimes + leveltime;
+    int current_tic = gametic - true_basetic;
 
-    if (!disable_rewind && current_time % interval_tics == 0)
+    if (!disable_rewind && current_tic % interval_tics == 0)
     {
         int time = I_GetTimeMS();
         
-        Push(P_SaveKeyframe(current_time));
+        Push(P_SaveKeyframe(current_tic));
 
         if (rewind_timeout)
         {
@@ -155,14 +155,14 @@ void G_LoadAutoKeyframe(void)
         return;
     }
 
-    int current_time = totalleveltimes + leveltime;
+    int current_tic = gametic - true_basetic;
 
     // Search for the closest keyframe by interval.
     elem_t* elem = queue.top;
     while (elem)
     {
         int tic = elem->keyframe->tic;
-        if (tic > 0 && current_time - tic < interval_tics)
+        if (tic > 0 && current_tic - tic < interval_tics)
         {
             elem = elem->next;
         }
@@ -213,6 +213,7 @@ void G_LoadAutoKeyframe(void)
         {
             players[consoleplayer].pitch = 0;
         }
+        gamestate = GS_LEVEL;
     }
 }
 

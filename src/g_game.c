@@ -146,6 +146,7 @@ int             displayplayer; // view being displayed
 int             gametic;
 int             levelstarttic; // gametic at level start
 int             basetic;       // killough 9/29/98: for demo sync
+int             true_basetic;
 int             totalkills, totalitems, totalsecret;    // for intermission
 int             max_kill_requirement; // DSDA UV Max category requirements
 int             totalleveltimes; // [FG] total time for all completed levels
@@ -1060,6 +1061,7 @@ static void G_ReloadLevel(void)
   }
 
   basetic = gametic;
+  true_basetic = gametic;
   rngseed += gametic;
 
   if (demorecording)
@@ -2022,7 +2024,10 @@ static void G_DoPlayDemo(void)
   int demolength;
 
   if (gameaction != ga_loadgame)      // killough 12/98: support -loadgame
-    basetic = gametic;  // killough 9/29/98
+  {
+      basetic = gametic;  // killough 9/29/98
+      true_basetic = gametic;
+  }
 
   // [crispy] in demo continue mode free the obsolete demo buffer
   // of size 'maxdemosize' previously allocated in G_RecordDemo()
@@ -3043,11 +3048,14 @@ void G_Ticker(void)
   // we do not need to stop if a menu is pulled up during netgames.
 
   if (paused & 2 || ((!demoplayback || menu_pause_demos) && menuactive && !netgame))
-    basetic++;  // For revenant tracers and RNG -- we must maintain sync
+    {
+      basetic++;  // For revenant tracers and RNG -- we must maintain sync
+      true_basetic++;
+    }
   else
     {
-      if (!timingdemo && !paused && gamestate == GS_LEVEL
-          && gameaction == ga_nothing)
+      if (!timingdemo && !paused
+          && gamestate == GS_LEVEL && gameaction == ga_nothing)
         G_SaveAutoKeyframe();
 
       // get commands, check consistancy, and build new consistancy check
@@ -4062,6 +4070,7 @@ void G_DoNewGame (void)
   solonet = false;
   deathmatch = false;
   basetic = gametic;             // killough 9/29/98
+  true_basetic = gametic;
 
   G_InitNew(d_skill, d_episode, d_map);
   gameaction = ga_nothing;
