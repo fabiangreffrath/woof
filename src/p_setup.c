@@ -151,7 +151,7 @@ void P_LoadVertexes (int lump)
   numvertexes = W_LumpLength(lump) / sizeof(mapvertex_t);
 
   // Allocate zone memory for buffer.
-  vertexes = Z_Malloc(numvertexes*sizeof(vertex_t),PU_LEVEL,0);
+  vertexes = arena_alloc_num(world_arena, vertex_t, numvertexes);
 
   // Load data into cache.
   data = W_CacheLumpNum(lump, PU_STATIC);

@@ -757,7 +757,7 @@ void P_LoadNodes_ZDoom(int lump, nodeformat_t format)
     else
     {
         newvertarray =
-            Z_Malloc((orgVerts + newVerts) * sizeof(vertex_t), PU_LEVEL, 0);
+            arena_alloc_num(world_arena, vertex_t, orgVerts + newVerts);
         memcpy(newvertarray, vertexes, orgVerts * sizeof(vertex_t));
         memset(newvertarray + orgVerts, 0, newVerts * sizeof(vertex_t));
     }
@@ -781,7 +781,6 @@ void P_LoadNodes_ZDoom(int lump, nodeformat_t format)
             lines[i].v2 = lines[i].v2 - vertexes + newvertarray;
         }
 
-        Z_Free(vertexes);
         vertexes = newvertarray;
         numvertexes = orgVerts + newVerts;
     }

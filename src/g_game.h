@@ -78,6 +78,7 @@ void G_DoVictory(void);
 
 void G_EnableWarp(boolean warp);
 void G_SetTimeScale(void);
+void G_Rewind(void);
 
 demo_version_t G_GetNamedComplevel(const char *arg);
 const char *G_GetCurrentComplevelName(void);

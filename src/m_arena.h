@@ -25,7 +25,7 @@ typedef struct arena_s arena_t;
     (type *)M_ArenaAlloc(arena, sizeof(type), alignof(type))
 
 #define arena_alloc_num(arena, type, num) \
-    (type *)M_ArenaAlloc(arena, sizeof(type) * num, alignof(type))
+    (type *)M_ArenaAlloc(arena, sizeof(type) * (num), alignof(type))
 
 void *M_ArenaAlloc(arena_t *arena, size_t size, size_t align);
 

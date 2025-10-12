@@ -1955,9 +1955,23 @@ frommapinfo:
 
   for (int i = 0; i < MAXPLAYERS; ++i)
   {
-      level_t level = {gameepisode, gamemap};
-      array_push(players[i].visitedlevels, level);
-      players[i].num_visitedlevels = array_size(players[i].visitedlevels);
+      if (playeringame[i])
+      {
+          level_t *level;
+          array_foreach(level, players[i].visitedlevels)
+          {
+              if (level->episode == gameepisode && level->map == gamemap)
+              {
+                  break;
+              }
+          }
+          if (level == array_end(players[i].visitedlevels))
+          {
+              level_t newlevel = {gameepisode, gamemap};
+              array_push(players[i].visitedlevels, newlevel);
+          }
+          players[i].num_visitedlevels = array_size(players[i].visitedlevels);
+      }
   }
   wminfo.visitedlevels = players[consoleplayer].visitedlevels;
 
@@ -2432,6 +2446,11 @@ char* G_MBFSaveGameName(int slot)
   {
     return filepath;
   }
+}
+
+void G_Rewind(void)
+{
+    gameaction = ga_rewind;
 }
 
 // killough 12/98:
@@ -2993,6 +3012,9 @@ void G_Ticker(void)
 	break;
       case ga_saveautosave:
 	G_DoSaveAutoSave();
+	break;
+      case ga_rewind:
+	G_LoadAutoKeyframe();
 	break;
       default:  // killough 9/29/98
 	gameaction = ga_nothing;
@@ -4169,8 +4191,6 @@ void G_PreparedInitNew(int episode, int map)
 {
   gameepisode = episode;
   gamemap = map;
-
-  gameaction = ga_nothing;
 
   AM_clearMarks();
 

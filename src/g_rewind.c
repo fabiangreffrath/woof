@@ -11,6 +11,7 @@
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 // GNU General Public License for more details.
 
+#include "d_event.h"
 #include "doomstat.h"
 #include "doomtype.h"
 #include "g_game.h"
@@ -20,7 +21,6 @@
 #include "p_keyframe.h"
 
 #include <stdlib.h>
-#include <string.h>
 
 static int rewind_interval;
 static int rewind_depth;
@@ -148,6 +148,8 @@ void G_SaveAutoKeyframe(void)
 
 void G_LoadAutoKeyframe(void)
 {
+    gameaction = ga_nothing;
+
     if (IsEmpty())
     {
         return;

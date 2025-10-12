@@ -177,7 +177,13 @@ static void UnArchivePlayers(void)
     {
         if (playeringame[i])
         {
+            int num_visitedlevels = players[i].num_visitedlevels;
+            level_t* visitedlevels = players[i].visitedlevels;
+
             readx(&players[i], sizeof(player_t), 1);
+
+            players[i].num_visitedlevels = num_visitedlevels;
+            players[i].visitedlevels = visitedlevels;
         }
     }
 }

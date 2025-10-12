@@ -648,7 +648,7 @@ static void UDMF_ParseTextMap(int lumpnum)
 static void UDMF_LoadVertexes(void)
 {
     numvertexes = array_size(udmf_vertexes);
-    vertexes = Z_Malloc(numvertexes * sizeof(vertex_t), PU_LEVEL, 0);
+    vertexes = arena_alloc_num(world_arena, vertex_t, numvertexes);
     memset(vertexes, 0, numvertexes * sizeof(vertex_t));
 
     for (int i = 0; i < numvertexes; i++)
