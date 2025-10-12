@@ -27,7 +27,7 @@ static int rewind_timeout;
 static boolean rewind_auto;
 
 static boolean disable_rewind;
-static int current_tic;
+static int interval_tics;
 
 typedef struct elem_s
 {
@@ -137,13 +137,15 @@ void G_SaveAutoKeyframe(void)
         return;
     }
 
-    int interval_tics = TICRATE * rewind_interval / 1000;
+    interval_tics = TICRATE * rewind_interval / 1000;
 
-    if (!disable_rewind && current_tic % interval_tics == 0)
+    int current_time = totalleveltimes + leveltime;
+
+    if (!disable_rewind && current_time % interval_tics == 0)
     {
         int time = I_GetTimeMS();
         
-        Push(P_SaveKeyframe(current_tic));
+        Push(P_SaveKeyframe(current_time));
 
         if (rewind_timeout)
         {
@@ -154,8 +156,6 @@ void G_SaveAutoKeyframe(void)
             displaymsg("Slow key framing: rewind disabled");
         }
     }
-
-    ++current_tic;
 }
 
 void G_LoadAutoKeyframe(void)
@@ -165,14 +165,14 @@ void G_LoadAutoKeyframe(void)
         return;
     }
 
-    int interval_tics = TICRATE * rewind_interval / 1000;
+    int current_time = totalleveltimes + leveltime;
 
     // Search for the closest keyframe by interval.
     elem_t* elem = queue.top;
     while (elem)
     {
         int tic = P_GetKeyframeTic(elem->keyframe);
-        if (tic > 0 && current_tic - tic < interval_tics)
+        if (tic > 0 && current_time - tic < interval_tics)
         {
             elem = elem->next;
         }
@@ -204,8 +204,7 @@ void G_LoadAutoKeyframe(void)
         P_LoadKeyframe(keyframe);
         displaymsg("Restored key frame");
 
-        int tic = P_GetKeyframeTic(keyframe);
-        if (tic == 0) // Don't delete the first keyframe.
+        if (IsEmpty()) // Don't delete the first keyframe.
         {
             Push(keyframe);
         }
@@ -225,7 +224,6 @@ void G_LoadAutoKeyframe(void)
 void G_ResetRewind(void)
 {
     FreeKeyframeQueue();
-    current_tic = 0;
     disable_rewind = false;
 }
 
