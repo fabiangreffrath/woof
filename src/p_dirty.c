@@ -11,8 +11,6 @@
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 // GNU General Public License for more details.
 
-#include <string.h>
-
 #include "p_dirty.h"
 
 #include "doomstat.h"
@@ -74,14 +72,6 @@ typedef struct
 
 static dirty_t *levels;
 
-#define CopyArray(a, b)                  \
-    do                                   \
-    {                                    \
-        int size = array_size(b);        \
-        array_resize(a, size);           \
-        memcpy(a, b, sizeof(*(b)) * size); \
-    } while (0)
-
 #define SetDirty(v)                    \
     do                                 \
     {                                  \
@@ -98,11 +88,11 @@ void P_ArchiveDirtyArraysCurrentLevel(void)
     level.map = gamemap;
     level.episode = gameepisode;
 
-    CopyArray(level.dirty_lines, dirty_lines);
-    CopyArray(level.clean_lines, clean_lines);
+    array_copy(level.dirty_lines, dirty_lines);
+    array_copy(level.clean_lines, clean_lines);
 
-    CopyArray(level.dirty_sides, dirty_sides);
-    CopyArray(level.clean_sides, clean_sides);
+    array_copy(level.dirty_sides, dirty_sides);
+    array_copy(level.clean_sides, clean_sides);
 
     array_push(levels, level);
 }
@@ -115,13 +105,13 @@ boolean P_UnArchiveDirtyArrays(int episode, int map)
 
         if (level->map == map && level->episode == episode)
         {
-            CopyArray(dirty_lines, level->dirty_lines);
+            array_copy(dirty_lines, level->dirty_lines);
             SetDirty(dirty_lines);
-            CopyArray(clean_lines, level->clean_lines);
+            array_copy(clean_lines, level->clean_lines);
 
-            CopyArray(dirty_sides, level->dirty_sides);
+            array_copy(dirty_sides, level->dirty_sides);
             SetDirty(dirty_sides);
-            CopyArray(clean_sides, level->clean_sides);
+            array_copy(clean_sides, level->clean_sides);
 
             array_free(level->dirty_lines);
             array_free(level->clean_lines);
