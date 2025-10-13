@@ -167,7 +167,10 @@ inline static void *M_ArrayGrow(void *v, size_t esize, int n)
         {                                                                    \
             memset(&(v)[old_size], 0, sizeof(*(v)) * (new_size - old_size)); \
         }                                                                    \
-        array_ptr(v)->size = new_size;                                       \
+        if (v)                                                               \
+        {                                                                    \
+            array_ptr(v)->size = new_size;                                   \
+        }                                                                    \
     } while (0)
 
 #define array_copy(dst, src)                         \
