@@ -1794,6 +1794,8 @@ void D_DoomMain(void)
 
   setbuf(stdout,NULL);
 
+  I_AtSignal(I_QuitFirst);
+
   I_AtExitPrio(I_QuitFirst, true,  "I_QuitFirst", exit_priority_first);
   I_AtExitPrio(I_QuitLast,  false, "I_QuitLast",  exit_priority_last);
   I_AtExitPrio(I_Quit,      true,  "I_Quit",      exit_priority_last);
