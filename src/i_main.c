@@ -88,7 +88,9 @@ int main(int argc, char **argv)
       exit(0);
    }
 
+#if !defined(_WIN32)
    I_Signal();
+#endif
 
    D_DoomMain();
 
