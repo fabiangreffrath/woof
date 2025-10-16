@@ -1166,7 +1166,7 @@ WI_drawTime
   int   t,
   boolean suck )
 {
-  int32_t sucks_time = 100 * 60 * 60;
+  const int32_t sucks_time = 100 * 60 * 60;
   int   div;
   int   n;
 
