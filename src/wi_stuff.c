@@ -2317,7 +2317,10 @@ static void WI_drawStats(void)
   const boolean wide_time = (wide_total && !draw_partime);
 
   V_DrawPatch(SP_TIMEX, SP_TIMEY, witime);
-  WI_drawTime((wide_time ? SCREENWIDTH : SCREENWIDTH/2) - SP_TIMEX,
+  // Why add a hardcoded +8 you ask?
+  // in oder to allow >1h long times, some minor alignment shifting is needed
+  // i.e. PrBoom switched SP_TIMEX to 8, instead of vanilla's 16
+  WI_drawTime((wide_time ? (SCREENWIDTH - SP_TIMEX) : (SCREENWIDTH/2 + 8)),
               SP_TIMEY, cnt_time, true);
 
   // Ty 04/11/98: redid logic: should skip only if with pwad but 
