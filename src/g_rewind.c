@@ -21,6 +21,7 @@
 #include "p_keyframe.h"
 
 #include <stdlib.h>
+#include <string.h>
 
 static int rewind_interval;
 static int rewind_depth;
@@ -214,6 +215,28 @@ void G_LoadAutoKeyframe(void)
             players[consoleplayer].pitch = 0;
         }
         gamestate = GS_LEVEL;
+    }
+}
+
+static void FreeKeyframeQueue(void)
+{
+    elem_t* current = queue.top;
+    while (current)
+    {
+        elem_t* temp = current;
+        current = current->next;
+        P_FreeKeyframe(temp->keyframe);
+        free(temp);
+    }
+    memset(&queue, 0, sizeof(queue));
+}
+
+void G_ResetRewind(boolean force)
+{
+    if (disable_rewind || force)
+    {
+        FreeKeyframeQueue();
+        disable_rewind = false;
     }
 }
 

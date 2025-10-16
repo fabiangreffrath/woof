@@ -1990,6 +1990,7 @@ static void G_DoWorldDone(void)
   gameepisode = wminfo.nextep + 1;
   gamemap = wminfo.next+1;
   gamemapinfo = G_LookupMapinfo(gameepisode, gamemap);
+  G_ResetRewind(false);
   G_DoLoadLevel();
   gameaction = ga_nothing;
   viewactive = true;
@@ -4193,6 +4194,8 @@ void G_InitNew(skill_t skill, int episode, int map)
   if (demo_version == DV_MBF)
     G_MBFComp();
 
+  G_ResetRewind(true);
+
   G_DoLoadLevel();
 }
 
@@ -4203,6 +4206,8 @@ void G_PreparedInitNew(int episode, int map)
   gamemapinfo = G_LookupMapinfo(episode, gamemap);
 
   AM_clearMarks();
+
+  G_ResetRewind(false);
 
   G_DoLoadLevel();
 }
