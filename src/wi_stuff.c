@@ -1173,8 +1173,8 @@ WI_drawTime
   if (t<0)
     return;
 
-  // [FG] total time for all levels never "sucks"
   // otherwise known as 60*60 -1 == 3599
+  // [FG] total time for all levels never "sucks"
   // Updated to match PrBoom's 100 hours, instead of vanilla's 1 hour
   if (t < sucks_time || !suck) 
     {
