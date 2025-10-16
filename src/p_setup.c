@@ -90,6 +90,8 @@ line_t   *lines;
 int      numsides;
 side_t   *sides;
 
+arena_t *world_arena;
+
 // BLOCKMAP
 // Created from axis aligned bounding box
 // of the map, a rectangular array of
@@ -149,7 +151,7 @@ void P_LoadVertexes (int lump)
   numvertexes = W_LumpLength(lump) / sizeof(mapvertex_t);
 
   // Allocate zone memory for buffer.
-  vertexes = Z_Malloc(numvertexes*sizeof(vertex_t),PU_LEVEL,0);
+  vertexes = arena_alloc_num(world_arena, vertex_t, numvertexes);
 
   // Load data into cache.
   data = W_CacheLumpNum(lump, PU_STATIC);
@@ -206,7 +208,7 @@ void P_LoadSegs (int lump)
   byte *data;
 
   numsegs = W_LumpLength(lump) / sizeof(mapseg_t);
-  segs = Z_Malloc(numsegs*sizeof(seg_t),PU_LEVEL,0);
+  segs = arena_alloc_num(world_arena, seg_t, numsegs);
   memset(segs, 0, numsegs*sizeof(seg_t));
   data = W_CacheLumpNum(lump,PU_STATIC);
 
@@ -275,7 +277,7 @@ void P_LoadSubsectors (int lump)
   int  i;
 
   numsubsectors = W_LumpLength (lump) / sizeof(mapsubsector_t);
-  subsectors = Z_Malloc(numsubsectors*sizeof(subsector_t),PU_LEVEL,0);
+  subsectors = arena_alloc_num(world_arena, subsector_t, numsubsectors);
   data = W_CacheLumpNum(lump, PU_STATIC);
 
   memset(subsectors, 0, numsubsectors*sizeof(subsector_t));
@@ -311,7 +313,7 @@ void P_LoadSectors (int lump)
   }
 
   numsectors = W_LumpLength (lump) / sizeof(mapsector_t);
-  sectors = Z_Malloc (numsectors*sizeof(sector_t),PU_LEVEL,0);
+  sectors = arena_alloc_num(world_arena, sector_t, numsectors);
   memset (sectors, 0, numsectors*sizeof(sector_t));
   data = W_CacheLumpNum (lump,PU_STATIC);
 
@@ -509,7 +511,7 @@ void P_LoadLineDefs (int lump)
   int  i;
 
   numlines = W_LumpLength (lump) / sizeof(maplinedef_t);
-  lines = Z_Malloc (numlines*sizeof(line_t),PU_LEVEL,0);
+  lines = arena_alloc_num(world_arena, line_t, numlines);
   memset (lines, 0, numlines*sizeof(line_t));
   data = W_CacheLumpNum (lump,PU_STATIC);
 
@@ -761,7 +763,7 @@ void P_ProcessSideDefs(side_t *side, int i, char *bottomtexture, char *midtextur
 void P_LoadSideDefs (int lump)
 {
   numsides = W_LumpLength(lump) / sizeof(mapsidedef_t);
-  sides = Z_Malloc(numsides*sizeof(side_t),PU_LEVEL,0);
+  sides = arena_alloc_num(world_arena, side_t, numsides);
   memset(sides, 0, numsides*sizeof(side_t));
 }
 
@@ -1365,7 +1367,7 @@ boolean P_LoadBlockMap (int lump)
 
   // clear out mobj chains
   blocklinks_size = sizeof(*blocklinks) * bmapwidth * bmapheight;
-  blocklinks = Z_Malloc(blocklinks_size, PU_LEVEL, 0);
+  blocklinks = M_ArenaAlloc(world_arena, blocklinks_size, alignof(mobj_t *));
   memset(blocklinks, 0, blocklinks_size);
   blockmap = blockmaplump + 4;
 
@@ -1418,7 +1420,7 @@ int P_GroupLines (void)
     }
 
   // build line tables for each sector
-  linebuffer = Z_Malloc(total * sizeof(*linebuffer), PU_LEVEL, 0);
+  linebuffer = arena_alloc_num(world_arena, line_t *, total);
 
   for (i=0; i<numsectors; i++)
     {
@@ -1793,6 +1795,7 @@ void P_SetupLevel(int episode, int map, int playermask, skill_t skill)
   S_Start();
 
   Z_FreeTag(PU_LEVEL);
+  M_ArenaClear(world_arena);
   M_ArenaClear(thinkers_arena);
   M_ArenaClear(msecnodes_arena);
 
@@ -1918,7 +1921,8 @@ void P_Init (void)
   R_InitSprites(sprnames);
 
   #define SIZE_MB(x) ((x) * 1024 * 1024)
-  thinkers_arena = M_ArenaInit(SIZE_MB(256), SIZE_MB(2));
+  world_arena = M_ArenaInit(SIZE_MB(128), SIZE_MB(4));
+  thinkers_arena = M_ArenaInit(SIZE_MB(128), SIZE_MB(2));
   msecnodes_arena = M_ArenaInit(SIZE_MB(32), SIZE_MB(1));
   activeceilings_arena = M_ArenaInit(SIZE_MB(32), SIZE_MB(1));
   activeplats_arena = M_ArenaInit(SIZE_MB(32), SIZE_MB(1));

@@ -145,7 +145,8 @@ int             consoleplayer; // player taking events and displaying
 int             displayplayer; // view being displayed
 int             gametic;
 int             levelstarttic; // gametic at level start
-int             basetic;       // killough 9/29/98: for demo sync
+int             boom_basetic;       // killough 9/29/98: for demo sync
+int             true_basetic;
 int             totalkills, totalitems, totalsecret;    // for intermission
 int             max_kill_requirement; // DSDA UV Max category requirements
 int             totalleveltimes; // [FG] total time for all completed levels
@@ -963,7 +964,7 @@ static void G_DoLoadLevel(void)
   playback_levelstarttic = playback_tic;
 
   if (!demo_compatibility && demo_version < DV_MBF)   // killough 9/29/98
-    basetic = gametic;
+    boom_basetic = gametic;
 
   if (wipegamestate == GS_LEVEL)
     wipegamestate = -1;             // force a wipe
@@ -1006,7 +1007,6 @@ static void G_DoLoadLevel(void)
 
   P_SetupLevel (gameepisode, gamemap, 0, gameskill);
 
-  G_ResetRewind();
   MN_UpdateFreeLook();
   HU_UpdateTurnFormat();
 
@@ -1061,7 +1061,8 @@ static void G_ReloadLevel(void)
     gameepisode = startepisode;
   }
 
-  basetic = gametic;
+  boom_basetic = gametic;
+  true_basetic = gametic;
   rngseed += gametic;
 
   if (demorecording)
@@ -1957,9 +1958,23 @@ frommapinfo:
 
   for (int i = 0; i < MAXPLAYERS; ++i)
   {
-      level_t level = {gameepisode, gamemap};
-      array_push(players[i].visitedlevels, level);
-      players[i].num_visitedlevels = array_size(players[i].visitedlevels);
+      if (playeringame[i])
+      {
+          level_t *level;
+          array_foreach(level, players[i].visitedlevels)
+          {
+              if (level->episode == gameepisode && level->map == gamemap)
+              {
+                  break;
+              }
+          }
+          if (level == array_end(players[i].visitedlevels))
+          {
+              level_t newlevel = {gameepisode, gamemap};
+              array_push(players[i].visitedlevels, newlevel);
+          }
+          players[i].num_visitedlevels = array_size(players[i].visitedlevels);
+      }
   }
   wminfo.visitedlevels = players[consoleplayer].visitedlevels;
 
@@ -1968,12 +1983,15 @@ frommapinfo:
 
 static void G_DoWorldDone(void)
 {
+  P_ArchiveDirtyArraysCurrentLevel();
+
   idmusnum = -1;             //jff 3/17/98 allow new level's music to be loaded
   musinfo.from_savegame = false;
   gamestate = GS_LEVEL;
   gameepisode = wminfo.nextep + 1;
   gamemap = wminfo.next+1;
   gamemapinfo = G_LookupMapinfo(gameepisode, gamemap);
+  G_ResetRewind(false);
   G_DoLoadLevel();
   gameaction = ga_nothing;
   viewactive = true;
@@ -2008,7 +2026,10 @@ static void G_DoPlayDemo(void)
   int demolength;
 
   if (gameaction != ga_loadgame)      // killough 12/98: support -loadgame
-    basetic = gametic;  // killough 9/29/98
+  {
+      boom_basetic = gametic;  // killough 9/29/98
+      true_basetic = gametic;
+  }
 
   // [crispy] in demo continue mode free the obsolete demo buffer
   // of size 'maxdemosize' previously allocated in G_RecordDemo()
@@ -2434,6 +2455,11 @@ char* G_MBFSaveGameName(int slot)
   }
 }
 
+void G_Rewind(void)
+{
+    gameaction = ga_rewind;
+}
+
 // killough 12/98:
 // This function returns a signature for the current wad.
 // It is used to distinguish between wads, for the purposes
@@ -2528,7 +2554,7 @@ static void DoSaveGame(char *name)
   saveg_write32(leveltime); //killough 11/98: save entire word
 
   // killough 11/98: save revenant tracer state
-  saveg_write8((gametic-basetic) & 255);
+  saveg_write8((gametic - boom_basetic) & 255);
 
   P_ArchivePlayers();
   P_ArchiveWorld();
@@ -2747,7 +2773,7 @@ static boolean DoLoadGame(boolean do_load_autosave)
   leveltime = saveg_read32();
 
   // killough 11/98: load revenant tracer state
-  basetic = gametic - (int) *save_p++;
+  boom_basetic = gametic - (int) *save_p++;
 
   // dearchive all the modifications
   P_MapStart();
@@ -2994,6 +3020,9 @@ void G_Ticker(void)
       case ga_saveautosave:
 	G_DoSaveAutoSave();
 	break;
+      case ga_rewind:
+	G_LoadAutoKeyframe();
+	break;
       default:  // killough 9/29/98
 	gameaction = ga_nothing;
 	break;
@@ -3021,12 +3050,16 @@ void G_Ticker(void)
   // we do not need to stop if a menu is pulled up during netgames.
 
   if (paused & 2 || ((!demoplayback || menu_pause_demos) && menuactive && !netgame))
-    basetic++;  // For revenant tracers and RNG -- we must maintain sync
+    {
+      boom_basetic++;  // For revenant tracers and RNG -- we must maintain sync
+      true_basetic++;
+    }
   else
     {
-      if (!timingdemo && gamestate == GS_LEVEL && gameaction == ga_nothing)
+      if (!timingdemo && !paused
+          && gamestate == GS_LEVEL && gameaction == ga_nothing)
         G_SaveAutoKeyframe();
-      
+
       // get commands, check consistancy, and build new consistancy check
       int buf = (gametic/ticdup)%BACKUPTICS;
 
@@ -4038,7 +4071,8 @@ void G_DoNewGame (void)
   netgame = false;               // killough 3/29/98
   solonet = false;
   deathmatch = false;
-  basetic = gametic;             // killough 9/29/98
+  boom_basetic = gametic;             // killough 9/29/98
+  true_basetic = gametic;
 
   G_InitNew(d_skill, d_episode, d_map);
   gameaction = ga_nothing;
@@ -4160,6 +4194,21 @@ void G_InitNew(skill_t skill, int episode, int map)
 
   if (demo_version == DV_MBF)
     G_MBFComp();
+
+  G_ResetRewind(true);
+
+  G_DoLoadLevel();
+}
+
+void G_PreparedInitNew(int episode, int map)
+{
+  gameepisode = episode;
+  gamemap = map;
+  gamemapinfo = G_LookupMapinfo(episode, gamemap);
+
+  AM_clearMarks();
+
+  G_ResetRewind(false);
 
   G_DoLoadLevel();
 }

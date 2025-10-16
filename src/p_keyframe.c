@@ -37,17 +37,17 @@
 
 #include <stddef.h>
 #include <stdint.h>
+#include <stdlib.h>
 #include <string.h>
 
-struct keyframe_s
+typedef struct keyframe_data_s
 {
-    int tic;
     char *buffer;
     arena_copy_t *thinkers;
     arena_copy_t *msecnodes;
     arena_copy_t *activeceilings;
     arena_copy_t *activeplats;
-};
+} keyframe_data_t;
 
 static char *buffer, *curr_p;
 static size_t buffer_size;
@@ -177,7 +177,13 @@ static void UnArchivePlayers(void)
     {
         if (playeringame[i])
         {
+            int num_visitedlevels = players[i].num_visitedlevels;
+            level_t* visitedlevels = players[i].visitedlevels;
+
             readx(&players[i], sizeof(player_t), 1);
+
+            players[i].num_visitedlevels = num_visitedlevels;
+            players[i].visitedlevels = visitedlevels;
         }
     }
 }
@@ -295,11 +301,6 @@ static void UnArchiveWorld(void)
             line->dirty = false;
         }
     }
-    if (size > oldsize)
-    {
-        array_resize(dirty_lines, oldsize);
-        array_resize(clean_lines, oldsize);
-    }
 
     side_t *side;
     const partial_side_t *clean_side;
@@ -328,11 +329,6 @@ static void UnArchiveWorld(void)
             side->dirty = false;
         }
     }
-    if (size > oldsize)
-    {
-        array_resize(dirty_sides, oldsize);
-        array_resize(clean_sides, oldsize);
-    }
 }
 
 static void ArchivePlayState(keyframe_t *keyframe)
@@ -340,7 +336,7 @@ static void ArchivePlayState(keyframe_t *keyframe)
     // p_tick.h
     writex(&thinkercap, sizeof(thinkercap), 1);
     writex(thinkerclasscap, sizeof(thinker_t), NUMTHCLASS);
-    keyframe->thinkers = M_ArenaCopy(thinkers_arena);
+    keyframe->data->thinkers = M_ArenaCopy(thinkers_arena);
 
     // p_map.h
     write32(floatok,
@@ -358,7 +354,7 @@ static void ArchivePlayState(keyframe_t *keyframe)
     writex(tmbbox, sizeof(tmbbox), 1);
 
     writep(headsecnode);
-    keyframe->msecnodes = M_ArenaCopy(msecnodes_arena);
+    keyframe->data->msecnodes = M_ArenaCopy(msecnodes_arena);
     
     // p_maputil.h
     write32(opentop,
@@ -374,8 +370,8 @@ static void ArchivePlayState(keyframe_t *keyframe)
     // p_spec.h
     writep(activeceilings,
            activeplats);
-    keyframe->activeceilings = M_ArenaCopy(activeceilings_arena);
-    keyframe->activeplats = M_ArenaCopy(activeplats_arena);
+    keyframe->data->activeceilings = M_ArenaCopy(activeceilings_arena);
+    keyframe->data->activeplats = M_ArenaCopy(activeplats_arena);
 
     // music
     write32(current_musicnum);
@@ -387,7 +383,7 @@ static void UnArchivePlayState(const keyframe_t *keyframe)
     // p_tick.h
     readx(&thinkercap, sizeof(thinkercap), 1);
     readx(thinkerclasscap, sizeof(thinker_t), NUMTHCLASS);
-    M_ArenaRestore(thinkers_arena, keyframe->thinkers);
+    M_ArenaRestore(thinkers_arena, keyframe->data->thinkers);
 
     // p_map.h
     floatok = read32();
@@ -405,7 +401,7 @@ static void UnArchivePlayState(const keyframe_t *keyframe)
     readx(tmbbox, sizeof(tmbbox), 1);
 
     headsecnode = readp();
-    M_ArenaRestore(msecnodes_arena, keyframe->msecnodes);
+    M_ArenaRestore(msecnodes_arena, keyframe->data->msecnodes);
     
     // p_maputil.h
     opentop = read32();
@@ -421,8 +417,8 @@ static void UnArchivePlayState(const keyframe_t *keyframe)
     // p_spec.h
     activeceilings = readp();
     activeplats = readp();
-    M_ArenaRestore(activeceilings_arena, keyframe->activeceilings);
-    M_ArenaRestore(activeplats_arena, keyframe->activeplats);
+    M_ArenaRestore(activeceilings_arena, keyframe->data->activeceilings);
+    M_ArenaRestore(activeplats_arena, keyframe->data->activeplats);
 
     // music
     current_musicnum = read32();
@@ -461,12 +457,13 @@ static void UnArchiveAutomap(void)
 keyframe_t *P_SaveKeyframe(int tic)
 {
     keyframe_t *keyframe = calloc(1, sizeof(*keyframe));
+    keyframe->data = calloc(1, sizeof(*keyframe->data));
 
     buffer_size = 512 * 1024;
     buffer = malloc(buffer_size);
     curr_p = buffer;
 
-    write8((gametic - basetic) & 255);
+    write8((gametic - boom_basetic) & 255);
 
     write32(leveltime,
             totalleveltimes,
@@ -484,17 +481,19 @@ keyframe_t *P_SaveKeyframe(int tic)
         writep(demo_p);
     }
 
-    keyframe->buffer = buffer;
+    keyframe->data->buffer = buffer;
     keyframe->tic = tic;
+    keyframe->episode = gameepisode;
+    keyframe->map = gamemap;
 
     return keyframe;
 }
 
 void P_LoadKeyframe(const keyframe_t *keyframe)
 {
-    curr_p = keyframe->buffer;
+    curr_p = keyframe->data->buffer;
 
-    basetic = gametic - read8();
+    boom_basetic = gametic - read8();
 
     leveltime = read32();
     totalleveltimes = read32();
@@ -517,15 +516,12 @@ void P_LoadKeyframe(const keyframe_t *keyframe)
 
 void P_FreeKeyframe(keyframe_t *keyframe)
 {
-    free(keyframe->buffer);
-    M_ArenaFreeCopy(keyframe->thinkers);
-    M_ArenaFreeCopy(keyframe->msecnodes);
-    M_ArenaFreeCopy(keyframe->activeceilings);
-    M_ArenaFreeCopy(keyframe->activeplats);
+    keyframe_data_t *data = keyframe->data;
+    free(data->buffer);
+    M_ArenaFreeCopy(data->thinkers);
+    M_ArenaFreeCopy(data->msecnodes);
+    M_ArenaFreeCopy(data->activeceilings);
+    M_ArenaFreeCopy(data->activeplats);
+    free(data);
     free(keyframe);
-}
-
-int P_GetKeyframeTic(const keyframe_t *keyframe)
-{
-    return keyframe->tic;
 }

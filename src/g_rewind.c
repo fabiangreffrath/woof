@@ -11,11 +11,13 @@
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 // GNU General Public License for more details.
 
+#include "d_event.h"
 #include "doomstat.h"
 #include "doomtype.h"
 #include "g_game.h"
 #include "i_timer.h"
 #include "m_config.h"
+#include "p_dirty.h"
 #include "p_keyframe.h"
 
 #include <stdlib.h>
@@ -27,7 +29,7 @@ static int rewind_timeout;
 static boolean rewind_auto;
 
 static boolean disable_rewind;
-static int current_tic;
+static int interval_tics;
 
 typedef struct elem_s
 {
@@ -117,19 +119,6 @@ static keyframe_t *Pop(void)
     return keyframe;
 }
 
-static void FreeKeyframeQueue(void)
-{
-    elem_t* current = queue.top;
-    while (current)
-    {
-        elem_t* temp = current;
-        current = current->next;
-        P_FreeKeyframe(temp->keyframe);
-        free(temp);
-    }
-    memset(&queue, 0, sizeof(queue));
-}
-
 void G_SaveAutoKeyframe(void)
 {
     if (!rewind_auto)
@@ -137,7 +126,9 @@ void G_SaveAutoKeyframe(void)
         return;
     }
 
-    int interval_tics = TICRATE * rewind_interval / 1000;
+    interval_tics = TICRATE * rewind_interval / 1000;
+
+    int current_tic = gametic - true_basetic;
 
     if (!disable_rewind && current_tic % interval_tics == 0)
     {
@@ -154,34 +145,62 @@ void G_SaveAutoKeyframe(void)
             displaymsg("Slow key framing: rewind disabled");
         }
     }
-
-    ++current_tic;
 }
 
 void G_LoadAutoKeyframe(void)
 {
-    int interval_tics = TICRATE * rewind_interval / 1000;
+    gameaction = ga_nothing;
 
-    while (1)
+    if (IsEmpty())
     {
-        keyframe_t *keyframe = Pop();
-        
-        if (!keyframe)
+        return;
+    }
+
+    int current_tic = gametic - true_basetic;
+
+    // Search for the closest keyframe by interval.
+    elem_t* elem = queue.top;
+    while (elem)
+    {
+        int tic = elem->keyframe->tic;
+        if (tic > 0 && current_tic - tic < interval_tics)
+        {
+            elem = elem->next;
+        }
+        else
         {
             break;
         }
+    }
 
-        int tic = P_GetKeyframeTic(keyframe);
-        if (tic > 0 && current_tic - tic < interval_tics)
+    if (!elem)
+    {
+        // No suitable keyframe found (all are too recent).
+        return;
+    }
+
+    // Delete from queue skipped keyframes.
+    while (queue.top != elem)
+    {
+        keyframe_t* skipped = Pop();
+        if (skipped)
         {
-            P_FreeKeyframe(keyframe);
-            continue;
+            P_FreeKeyframe(skipped);
         }
+    }
 
+    keyframe_t* keyframe = Pop();
+    if (keyframe)
+    {
+        if (keyframe->episode != gameepisode || keyframe->map != gamemap)
+        {
+            G_PreparedInitNew(keyframe->episode, keyframe->map);
+            P_UnArchiveDirtyArrays(keyframe->episode, keyframe->map);
+        }
         P_LoadKeyframe(keyframe);
         displaymsg("Restored key frame");
 
-        if (tic == 0) // don't delete first keyframe
+        if (IsEmpty()) // Don't delete the first keyframe.
         {
             Push(keyframe);
         }
@@ -195,15 +214,30 @@ void G_LoadAutoKeyframe(void)
         {
             players[consoleplayer].pitch = 0;
         }
-        break;
+        gamestate = GS_LEVEL;
     }
 }
 
-void G_ResetRewind(void)
+static void FreeKeyframeQueue(void)
 {
-    FreeKeyframeQueue();
-    current_tic = 0;
-    disable_rewind = false;
+    elem_t* current = queue.top;
+    while (current)
+    {
+        elem_t* temp = current;
+        current = current->next;
+        P_FreeKeyframe(temp->keyframe);
+        free(temp);
+    }
+    memset(&queue, 0, sizeof(queue));
+}
+
+void G_ResetRewind(boolean force)
+{
+    if (disable_rewind || force)
+    {
+        FreeKeyframeQueue();
+        disable_rewind = false;
+    }
 }
 
 void G_BindRewindVariables(void)
