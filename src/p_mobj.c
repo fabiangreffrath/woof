@@ -1170,11 +1170,6 @@ void P_SpawnPlayer (mapthing_t* mthing)
   if (deathmatch)
     for (i = 0 ; i < NUMCARDS ; i++)
       p->cards[i] = true;
-
-  if (mthing->type-1 == consoleplayer)
-    {
-      ST_Start(); // wake up the status bar
-    }
 }
 
 

@@ -4200,6 +4200,7 @@ void G_PreparedInitNew(int episode, int map)
 {
   gameepisode = episode;
   gamemap = map;
+  gamemapinfo = G_LookupMapinfo(episode, gamemap);
 
   AM_clearMarks();
 

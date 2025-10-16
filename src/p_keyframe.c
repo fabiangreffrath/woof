@@ -476,8 +476,6 @@ keyframe_t *P_SaveKeyframe(int tic)
     ArchiveRNG();
     ArchiveAutomap();
 
-    writep(gamemapinfo);
-
     if (demoplayback || demorecording)
     {
         writep(demo_p);
@@ -509,8 +507,6 @@ void P_LoadKeyframe(const keyframe_t *keyframe)
     UnArchiveRNG();
     UnArchiveAutomap();
     P_MapEnd();
-
-    gamemapinfo = readp();
 
     if (demoplayback || demorecording)
     {
