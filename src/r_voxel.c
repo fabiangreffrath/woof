@@ -316,21 +316,18 @@ void VX_Init (void)
 #define VX_MINZ         (   4 * FRACUNIT)
 #define VX_MAX_DIST     (2048 * FRACUNIT)
 #define VX_MIN_DIST     ( 512 * FRACUNIT)
+#define VX_DIST_STEP    ( 512 * FRACUNIT)
 
 static int vx_max_dist = VX_MAX_DIST;
 
-void VX_IncreaseMaxDist (void)
+void VX_IncreaseMaxDist (int step_multipler)
 {
-	vx_max_dist *= 2;
-	if (vx_max_dist > VX_MAX_DIST)
-		vx_max_dist = VX_MAX_DIST;
+	vx_max_dist = MIN (VX_MAX_DIST, vx_max_dist + VX_DIST_STEP * step_multipler);
 }
 
-void VX_DecreaseMaxDist (void)
+void VX_DecreaseMaxDist (int step_multipler)
 {
-	vx_max_dist /= 2;
-	if (vx_max_dist < VX_MIN_DIST)
-		vx_max_dist = VX_MIN_DIST;
+	vx_max_dist = MAX (VX_MIN_DIST, vx_max_dist - VX_DIST_STEP * step_multipler);
 }
 
 void VX_ResetMaxDist (void)

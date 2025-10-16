@@ -770,10 +770,10 @@ void I_DynamicResolution(void)
 
     int oldheight = video.height;
     int newheight = 0;
+    int step_multipler = 1;
 
     if (performance_ratio > DRS_DOWNSCALE_T1)
     {
-        int step_multipler = 1;
         if (performance_ratio > DRS_DOWNSCALE_T3)
         {
             step_multipler = 3;
@@ -787,14 +787,13 @@ void I_DynamicResolution(void)
     }
     else if (performance_ratio < DRS_UPSCALE_T1 && needs_upscale)
     {
-        int step_multiplier = 1;
         if (performance_ratio < DRS_UPSCALE_T2)
         {
-            step_multiplier = 2;
+            step_multipler = 2;
         }
 
         newheight =
-            MIN(current_video_height, oldheight + DRS_STEP * step_multiplier);
+            MIN(current_video_height, oldheight + DRS_STEP * step_multipler);
     }
     else
     {
@@ -818,11 +817,11 @@ void I_DynamicResolution(void)
 
     if (newheight < oldheight)
     {
-        VX_DecreaseMaxDist();
+        VX_DecreaseMaxDist(step_multipler);
     }
     else
     {
-        VX_IncreaseMaxDist();
+        VX_IncreaseMaxDist(step_multipler);
     }
 
     ResetResolution(newheight);
