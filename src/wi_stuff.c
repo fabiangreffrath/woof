@@ -1166,7 +1166,7 @@ WI_drawTime
   int   t,
   boolean suck )
 {
-  
+  int32_t sucks_time = 100 * 60 * 60;
   int   div;
   int   n;
 
@@ -1174,7 +1174,9 @@ WI_drawTime
     return;
 
   // [FG] total time for all levels never "sucks"
-  if (t <= 61*59 || !suck)  // otherwise known as 60*60 -1 == 3599
+  // otherwise known as 60*60 -1 == 3599
+  // Updated to match PrBoom's 100 hours, instead of vanilla's 1 hour
+  if (t < sucks_time || !suck) 
     {
       div = 1;
 
@@ -1189,7 +1191,7 @@ WI_drawTime
             V_DrawPatch(x, y, colon);
       
         } 
-      while (t / div && div < 3600);
+      while (t / div && div < sucks_time);
 
       // [FG] print at most in hhhh:mm:ss format
       if ((n = (t / div)))
