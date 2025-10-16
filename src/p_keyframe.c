@@ -463,7 +463,7 @@ keyframe_t *P_SaveKeyframe(int tic)
     buffer = malloc(buffer_size);
     curr_p = buffer;
 
-    write8((gametic - basetic) & 255);
+    write8((gametic - boom_basetic) & 255);
 
     write32(leveltime,
             totalleveltimes,
@@ -493,7 +493,7 @@ void P_LoadKeyframe(const keyframe_t *keyframe)
 {
     curr_p = keyframe->data->buffer;
 
-    basetic = gametic - read8();
+    boom_basetic = gametic - read8();
 
     leveltime = read32();
     totalleveltimes = read32();

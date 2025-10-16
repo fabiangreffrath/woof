@@ -285,7 +285,7 @@ extern  int max_kill_requirement;
 
 // Timer, for scores.
 extern  int levelstarttic;  // gametic at level start
-extern  int basetic;    // killough 9/29/98: levelstarttic, adjusted
+extern  int boom_basetic;    // killough 9/29/98: levelstarttic, adjusted
 extern  int true_basetic;
 extern  int leveltime;  // tics in game play for par
 extern  int oldleveltime;
