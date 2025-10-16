@@ -50,19 +50,17 @@ static void I_SignalHandler(int sig)
 
     raise(sig);
 }
-#endif
 
 static void I_Signal(void)
 {
-#if !defined(_WIN32)
     const int sigs[] = {SIGABRT, SIGFPE, SIGILL, SIGSEGV};
 
     for (int i = 0; i < arrlen(sigs); i++)
     {
         signal(sigs[i], I_SignalHandler);
     }
-#endif
 }
+#endif
 
 //
 // D_DoomMain()
@@ -92,7 +90,9 @@ int main(int argc, char **argv)
       exit(0);
    }
 
+#if !defined(_WIN32)
    I_Signal();
+#endif
 
    D_DoomMain();
 
