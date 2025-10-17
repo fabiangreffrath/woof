@@ -38,6 +38,7 @@ jobs:
             shell: 'msys2 {0}'
             msystem: ucrt64
             msys-env: mingw-w64-ucrt-x86_64
+            extra-options: -DCMAKE_PREFIX_PATH=/usr/local
 
     steps:
       - name: Install dependencies (Linux)
