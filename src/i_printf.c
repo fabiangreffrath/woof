@@ -150,6 +150,7 @@ void I_Printf(verbosity_t prio, const char *msg, ...)
         return;
     }
 
+#ifndef _WIN32
     switch (prio)
     {
         case VB_WARNING:
@@ -160,6 +161,7 @@ void I_Printf(verbosity_t prio, const char *msg, ...)
         default:
             break;
     }
+#endif
 
     if (I_ConsoleStdout()
 #ifdef _WIN32

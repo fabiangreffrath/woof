@@ -923,10 +923,10 @@ int ds_x2;
 lighttable_t *ds_colormap[2];
 const byte *ds_brightmap;
 
-fixed_t ds_xfrac;
-fixed_t ds_yfrac;
-fixed_t ds_xstep;
-fixed_t ds_ystep;
+uint32_t ds_xfrac;
+uint32_t ds_yfrac;
+uint32_t ds_xstep;
+uint32_t ds_ystep;
 
 // start of a 64*64 tile image
 byte *ds_source;
@@ -1011,7 +1011,7 @@ void R_InitBuffer(void)
 {
     int i;
 
-    linesize = video.pitch; // killough 11/98
+    linesize = video.width; // killough 11/98
 
     // Handle resize,
     //  e.g. smaller view windows
@@ -1094,7 +1094,7 @@ void R_FillBackScreen(void)
     // Allocate the background buffer if necessary
     if (background_buffer == NULL)
     {
-        int size = video.pitch * video.height;
+        int size = video.width * video.height;
         background_buffer =
             Z_Malloc(size * sizeof(*background_buffer), PU_STATIC, NULL);
     }

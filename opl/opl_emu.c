@@ -10,10 +10,6 @@
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 // GNU General Public License for more details.
-//
-// DESCRIPTION:
-//     OPL SDL interface.
-//
 
 #include <stdlib.h>
 
@@ -47,7 +43,7 @@ static uint64_t current_time;
 
 // If non-zero, playback is currently paused.
 
-static int opl_sdl_paused;
+static int opl_paused;
 
 // Time offset (in us) due to the fact that callbacks
 // were previously paused.
@@ -86,7 +82,7 @@ static void AdvanceTime(unsigned int nsamples)
     us = ((uint64_t) nsamples * OPL_SECOND) / OPL_SAMPLE_RATE;
     current_time += us;
 
-    if (opl_sdl_paused)
+    if (opl_paused)
     {
         pause_offset += us;
     }
@@ -160,7 +156,7 @@ int OPL_FillBuffer(byte *buffer, int buffer_samples)
         // the callback queue must be invoked.  We can then fill the
         // buffer with this many samples.
 
-        if (opl_sdl_paused || OPL_Queue_IsEmpty(callback_queue))
+        if (opl_paused || OPL_Queue_IsEmpty(callback_queue))
         {
             nsamples = buffer_samples - filled;
         }
@@ -230,7 +226,7 @@ int OPL_FillBuffer(byte *buffer, int buffer_samples)
     return buffer_samples;
 }
 
-static void OPL_SDL_Shutdown(void)
+static void OPL_EMU_Shutdown(void)
 {
     OPL_Queue_Destroy(callback_queue);
 
@@ -243,9 +239,9 @@ static void OPL_SDL_Shutdown(void)
     */
 }
 
-static int OPL_SDL_Init(unsigned int port_base, int num_chips)
+static int OPL_EMU_Init(unsigned int port_base, int num_chips)
 {
-    opl_sdl_paused = 0;
+    opl_paused = 0;
     pause_offset = 0;
 
     // Queue structure of callbacks to invoke.
@@ -273,7 +269,7 @@ static int OPL_SDL_Init(unsigned int port_base, int num_chips)
     return 1;
 }
 
-static unsigned int OPL_SDL_PortRead(int chip, opl_port_t port)
+static unsigned int OPL_EMU_PortRead(int chip, opl_port_t port)
 {
     unsigned int result = 0;
 
@@ -385,7 +381,7 @@ static void WriteRegister(int chip, unsigned int reg_num, unsigned int value)
     }
 }
 
-static void OPL_SDL_PortWrite(int chip, opl_port_t port, unsigned int value)
+static void OPL_EMU_PortWrite(int chip, opl_port_t port, unsigned int value)
 {
     if (port == OPL_REGISTER_PORT)
     {
@@ -401,32 +397,32 @@ static void OPL_SDL_PortWrite(int chip, opl_port_t port, unsigned int value)
     }
 }
 
-static void OPL_SDL_SetCallback(uint64_t us, opl_callback_t callback,
+static void OPL_EMU_SetCallback(uint64_t us, opl_callback_t callback,
                                 void *data)
 {
     OPL_Queue_Push(callback_queue, callback, data,
                    current_time - pause_offset + us);
 }
 
-static void OPL_SDL_ClearCallbacks(void)
+static void OPL_EMU_ClearCallbacks(void)
 {
     OPL_Queue_Clear(callback_queue);
 }
 
-static void OPL_SDL_AdjustCallbacks(float factor)
+static void OPL_EMU_AdjustCallbacks(float factor)
 {
     OPL_Queue_AdjustCallbacks(callback_queue, current_time, factor);
 }
 
-opl_driver_t opl_sdl_driver =
+opl_driver_t opl_emu_driver =
 {
-    "SDL",
-    OPL_SDL_Init,
-    OPL_SDL_Shutdown,
-    OPL_SDL_PortRead,
-    OPL_SDL_PortWrite,
-    OPL_SDL_SetCallback,
-    OPL_SDL_ClearCallbacks,
-    OPL_SDL_AdjustCallbacks,
+    "Software Emulation",
+    OPL_EMU_Init,
+    OPL_EMU_Shutdown,
+    OPL_EMU_PortRead,
+    OPL_EMU_PortWrite,
+    OPL_EMU_SetCallback,
+    OPL_EMU_ClearCallbacks,
+    OPL_EMU_AdjustCallbacks,
 };
 

@@ -19,7 +19,7 @@
 
 #include "d_think.h"
 #include "doomstat.h"
-#include "doomtype.h"
+#include "m_arena.h"
 #include "m_fixed.h"
 #include "p_mobj.h"
 #include "p_spec.h"
@@ -32,6 +32,8 @@
 
 // the list of ceilings moving currently, including crushers
 ceilinglist_t *activeceilings;
+
+arena_t *activeceilings_arena;
 
 /////////////////////////////////////////////////////////////////
 //
@@ -50,7 +52,7 @@ ceilinglist_t *activeceilings;
 // jff 02/08/98 all cases with labels beginning with gen added to support 
 // generalized line type behaviors.
 //
-void T_MoveCeiling (ceiling_t* ceiling)
+static void T_MoveCeiling(ceiling_t* ceiling)
 {
   result_e  res;
 
@@ -226,6 +228,11 @@ void T_MoveCeiling (ceiling_t* ceiling)
   }
 }
 
+void T_MoveCeilingAdapter(mobj_t *mobj)
+{
+    T_MoveCeiling((ceiling_t *)mobj);
+}
+
 
 //
 // EV_DoCeiling
@@ -271,10 +278,10 @@ int EV_DoCeiling
   
     // create a new ceiling thinker
     rtn = 1;
-    ceiling = Z_Malloc (sizeof(*ceiling), PU_LEVSPEC, 0);
+    ceiling = arena_alloc(thinkers_arena, ceiling_t);
     P_AddThinker (&ceiling->thinker);
     sec->ceilingdata = ceiling;               //jff 2/22/98
-    ceiling->thinker.function.p1 = (actionf_p1)T_MoveCeiling;
+    ceiling->thinker.function.p1 = T_MoveCeilingAdapter;
     ceiling->sector = sec;
     ceiling->crush = false;
   
@@ -365,10 +372,10 @@ int P_ActivateInStasisCeiling(line_t *line)
   for (cl=activeceilings; cl; cl=cl->next)
   {
     ceiling_t *ceiling = cl->ceiling;
-    if (ceiling->tag == line->tag && ceiling->direction == 0)
+    if (ceiling->tag == line->args[0] && ceiling->direction == 0)
     {
       ceiling->direction = ceiling->olddirection;
-      ceiling->thinker.function.p1 = (actionf_p1)T_MoveCeiling;
+      ceiling->thinker.function.p1 = T_MoveCeilingAdapter;
       //jff 4/5/98 return if activated
       rtn=1;
     }
@@ -392,7 +399,7 @@ int EV_CeilingCrushStop(line_t* line)
   for (cl=activeceilings; cl; cl=cl->next)
   {
     ceiling_t *ceiling = cl->ceiling;
-    if (ceiling->direction != 0 && ceiling->tag == line->tag)
+    if (ceiling->direction != 0 && ceiling->tag == line->args[0])
     {
       ceiling->olddirection = ceiling->direction;
       ceiling->direction = 0;
@@ -413,7 +420,7 @@ int EV_CeilingCrushStop(line_t* line)
 //
 void P_AddActiveCeiling(ceiling_t* ceiling)
 {
-  ceilinglist_t *list = Z_Malloc(sizeof *list, PU_STATIC, 0);
+  ceilinglist_t *list = arena_alloc(activeceilings_arena, ceilinglist_t);
   list->ceiling = ceiling;
   ceiling->list = list;
   if ((list->next = activeceilings))
@@ -434,10 +441,10 @@ void P_RemoveActiveCeiling(ceiling_t* ceiling)
 {
   ceilinglist_t *list = ceiling->list;
   ceiling->sector->ceilingdata = NULL;  //jff 2/22/98
-  P_RemoveThinker(&ceiling->thinker);
+  P_RemoveCeilingThinker(ceiling);
   if ((*list->prev = list->next))
     list->next->prev = list->prev;
-  Z_Free(list);
+  arena_free(activeceilings_arena, list, ceilinglist_t);
 }
 
 //
@@ -452,9 +459,9 @@ void P_RemoveAllActiveCeilings(void)
   while (activeceilings)
   {  
     ceilinglist_t *next = activeceilings->next;
-    Z_Free(activeceilings);
     activeceilings = next;
   }
+  M_ArenaClear(activeceilings_arena);
 }
 
 //----------------------------------------------------------------------------

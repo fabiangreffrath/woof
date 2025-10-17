@@ -17,11 +17,10 @@
 //
 
 
-#include "SDL.h"
+#include <SDL3/SDL.h>
 
 #include "doomstat.h"
 #include "g_game.h"
-#include "m_array.h"
 #include "m_config.h"
 #include "w_wad.h"
 

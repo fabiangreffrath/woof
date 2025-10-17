@@ -169,8 +169,7 @@ typedef struct sector_s
   fixed_t old_ceiling_yoffs;
 
   // ID24 line specials
-  int colormap_index;
-  lighttable_t *colormap;
+  int tint;
   angle_t floor_rotation;
   angle_t ceiling_rotation;
 } sector_t;
@@ -200,6 +199,8 @@ typedef struct side_s
   fixed_t interptextureoffset;
   fixed_t interprowoffset;
   int oldgametic;
+
+  boolean dirty;
 } side_t;
 
 //
@@ -218,11 +219,14 @@ typedef struct line_s
   vertex_t *v1, *v2;     // Vertices, from v1 to v2.
   fixed_t dx, dy;        // Precalculated v2 - v1 for side checking.
   // [FG] extended nodes
-  unsigned short flags;           // Animation related.
-  short special;         
-  short tag;
-  // [FG] extended nodes
-  unsigned short sidenum[2];      // Visual appearance: SideDefs.
+  uint16_t flags;        // Animation related.
+  int16_t special;       // Special action
+  int16_t id;            // Tag -> id/arg0 split
+  int32_t args[5];       // Hexen-style parameterized actions
+
+  // UDMF -- further extend to 32bit
+  int32_t sidenum[2];    // Visual appearance: SideDefs.
+
   fixed_t bbox[4];       // A bounding box, for the linedef's extent
   slopetype_t slopetype; // To aid move clipping.
   sector_t *frontsector; // Front and back sector.
@@ -236,6 +240,10 @@ typedef struct line_s
   angle_t angle;
   int frontmusic; // Front upper texture -- activated from the front side
   int backmusic; // Front lower texture -- activated from the back side
+  int fronttint; // Front upper texture -- activated from the front side
+  int backtint; // Front lower texture -- activated from the back side
+
+  boolean dirty;
 } line_t;
 
 //
@@ -391,9 +399,15 @@ typedef struct vissprite_s
   // killough 3/27/98: height sector for underwater/fake ceiling support
   int heightsec;
 
+  // ID24 per-sector colormap
+  int tint;
+
   // [FG] colored blood and gibs
   int color;
   const byte *brightmap;
+
+  // ID24
+  byte *tranmap;
 
   // andrewj: voxel support
   int voxel_index;
@@ -455,6 +469,7 @@ typedef struct visplane_s
   fixed_t xoffs, yoffs;         // killough 2/28/98: Support scrolling flats
   angle_t rotation;
   unsigned short *bottom;
+  int tint; // ID24 per-sector colormap
   unsigned short pad1;          // leave pads for [minx-1]/[maxx+1]
   unsigned short top[3];
 } visplane_t;

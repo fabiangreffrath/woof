@@ -689,7 +689,7 @@ static void I_SND_PlayStream(boolean looping)
     stream_looping = looping;
 }
 
-static int I_SND_FillStream(byte *data, int frames)
+static int I_SND_FillStream(void *data, int frames)
 {
     sf_count_t filled = 0;
     boolean restart = false;
@@ -707,11 +707,11 @@ static int I_SND_FillStream(byte *data, int frames)
 
     if (stream.sample_format == Int16)
     {
-        filled = sf_readf_short(stream.sndfile, (short *)data, frames);
+        filled = sf_readf_short(stream.sndfile, data, frames);
     }
     else if (stream.sample_format == Float)
     {
-        filled = sf_readf_float(stream.sndfile, (float *)data, frames);
+        filled = sf_readf_float(stream.sndfile, data, frames);
     }
 
     if (stream_looping && (restart || filled < frames))

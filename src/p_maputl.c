@@ -56,13 +56,24 @@ fixed_t P_AproxDistance(fixed_t dx, fixed_t dy)
 //
 // killough 5/3/98: reformatted, cleaned up
 
-int P_PointOnLineSide(fixed_t x, fixed_t y, line_t *line)
+int (*P_PointOnLineSide)(fixed_t x, fixed_t y, line_t *line);
+
+int P_PointOnLineSideClassic(fixed_t x, fixed_t y, line_t *line)
 {
   return
     !line->dx ? x <= line->v1->x ? line->dy > 0 : line->dy < 0 :
     !line->dy ? y <= line->v1->y ? line->dx < 0 : line->dx > 0 :
     FixedMul(y-line->v1->y, line->dx>>FRACBITS) >=
     FixedMul(line->dy>>FRACBITS, x-line->v1->x);
+}
+
+int P_PointOnLineSidePrecise(fixed_t x, fixed_t y, line_t *line)
+{
+  return
+    !line->dx ? x <= line->v1->x ? line->dy > 0 : line->dy < 0 :
+    !line->dy ? y <= line->v1->y ? line->dx < 0 : line->dx > 0 :
+    ((int64_t) y - line->v1->y) * line->dx >=
+    ((int64_t) x - line->v1->x) * line->dy;
 }
 
 //
@@ -103,13 +114,24 @@ int P_BoxOnLineSide(fixed_t *tmbox, line_t *ld)
 //
 // killough 5/3/98: reformatted, cleaned up
 
-int P_PointOnDivlineSide(fixed_t x, fixed_t y, divline_t *line)
+int (*P_PointOnDivlineSide)(fixed_t x, fixed_t y, divline_t *line);
+
+int P_PointOnDivlineSideClassic(fixed_t x, fixed_t y, divline_t *line)
 {
   return
     !line->dx ? x <= line->x ? line->dy > 0 : line->dy < 0 :
     !line->dy ? y <= line->y ? line->dx < 0 : line->dx > 0 :
     (line->dy^line->dx^(x -= line->x)^(y -= line->y)) < 0 ? (line->dy^x) < 0 :
     FixedMul(y>>8, line->dx>>8) >= FixedMul(line->dy>>8, x>>8);
+}
+
+int P_PointOnDivlineSidePrecise(fixed_t x, fixed_t y, divline_t *line)
+{
+  return
+    !line->dx ? x <= line->x ? line->dy > 0 : line->dy < 0 :
+    !line->dy ? y <= line->y ? line->dx < 0 : line->dx > 0 :
+    (line->dy^line->dx^(x -= line->x)^(y -= line->y)) < 0 ? (line->dy^x) < 0 :
+    (int64_t) y * line->dx >= (int64_t) x * line->dy;
 }
 
 //
@@ -385,7 +407,7 @@ boolean ThingIsOnLine(mobj_t *t, line_t *l)
 boolean P_BlockLinesIterator(int x, int y, boolean func(line_t*))
 {
   int        offset;
-  const long *list;   // killough 3/1/98: for removal of blockmap limit
+  const int32_t *list;   // killough 3/1/98: for removal of blockmap limit
 
   if (x<0 || y<0 || x>=bmapwidth || y>=bmapheight)
     return true;
@@ -546,12 +568,13 @@ boolean P_BlockThingsIterator(int x, int y, boolean func(mobj_t*),
 #define MAXINTERCEPTS_ORIGINAL 128
 
 // 1/11/98 killough: Intercept limit removed
-static intercept_t *intercepts, *intercept_p;
+intercept_t *intercepts;
+int num_intercepts = 0;
+static intercept_t *intercept_p;
 
 // Check for limit and double size if necessary -- killough
 static void check_intercept(void)
 {
-  static size_t num_intercepts;
   size_t offset = intercept_p - intercepts;
   if (offset >= num_intercepts)
     {
@@ -1128,7 +1151,7 @@ mobj_t *P_RoughTargetSearch(mobj_t *mo, angle_t fov, int distance)
 static boolean P_SightBlockLinesIterator(int x, int y)
 {
   int offset;
-  long *list;
+  int32_t *list;
   line_t *ld;
   int s1, s2;
   divline_t dl;

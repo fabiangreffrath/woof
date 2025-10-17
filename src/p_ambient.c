@@ -27,7 +27,6 @@
 #include "p_tick.h"
 #include "s_sound.h"
 #include "sounds.h"
-#include "z_zone.h"
 
 #define AMB_UPDATE_TICS 7 // 200 ms
 #define AMB_KEEP_ALIVE_DIST 330 // 23.57 mu/tic (SR50) * 2 (wallrun) * 7 tics
@@ -180,7 +179,7 @@ static void UpdateInterval(ambient_t *ambient)
     }
 }
 
-void T_AmbientSound(ambient_t *ambient)
+static void T_AmbientSound(ambient_t *ambient)
 {
     if (nosfxparm || !snd_ambient)
     {
@@ -200,6 +199,11 @@ void T_AmbientSound(ambient_t *ambient)
     }
 }
 
+void T_AmbientSoundAdapter(mobj_t *mobj)
+{
+    T_AmbientSound((ambient_t *)mobj);
+}
+
 void P_AddAmbientSoundThinker(mobj_t *mobj, int index)
 {
     if (!snd_ambient || !mobj)
@@ -214,7 +218,7 @@ void P_AddAmbientSoundThinker(mobj_t *mobj, int index)
         return;
     }
 
-    ambient_t *ambient = Z_Malloc(sizeof(*ambient), PU_LEVEL, NULL);
+    ambient_t *ambient = arena_alloc(thinkers_arena, ambient_t);
     ambient->data = *data;
 
     switch (ambient->data.mode)
@@ -246,7 +250,7 @@ void P_AddAmbientSoundThinker(mobj_t *mobj, int index)
     ambient->origin =
         ambient->data.type == AMB_TYPE_POINT ? ambient->source : NULL;
 
-    ambient->thinker.function.p1 = (actionf_p1)T_AmbientSound;
+    ambient->thinker.function.p1 = T_AmbientSoundAdapter;
     P_AddThinker(&ambient->thinker);
 }
 

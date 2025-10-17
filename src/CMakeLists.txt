@@ -28,6 +28,7 @@ set(WOOF_SOURCES
     g_game.c               g_game.h
     g_input.c              g_input.h
     g_nextweapon.c         g_nextweapon.h
+    g_rewind.c             g_rewind.h
     g_umapinfo.c           g_umapinfo.h
     hu_command.c           hu_command.h
     hu_coordinates.c       hu_coordinates.h
@@ -43,6 +44,7 @@ set(WOOF_SOURCES
     i_main.c
     i_mbfsound.c
     i_midimusic.c
+    i_minimp3.c
                            i_oalcommon.h
     i_oalequalizer.c       i_oalequalizer.h
     i_oalmusic.c
@@ -50,6 +52,8 @@ set(WOOF_SOURCES
                            i_oalstream.h
     i_oplmusic.c
     i_printf.c             i_printf.h
+    i_region.c             i_region.h
+    i_richpresence.c       i_richpresence.h
     i_rumble.c             i_rumble.h
     i_sndfile.c            i_sndfile.h
     i_sound.c              i_sound.h
@@ -59,6 +63,7 @@ set(WOOF_SOURCES
     info.c                 info.h
     m_argv.c               m_argv.h
                            m_array.h
+    m_arena.c              m_arena.h
     m_bbox.c               m_bbox.h
     m_cheat.c              m_cheat.h
     m_config.c             m_config.h
@@ -96,12 +101,14 @@ set(WOOF_SOURCES
                            p_action.h
     p_ambient.c            p_ambient.h
     p_ceilng.c
+    p_dirty.c              p_dirty.h
     p_doors.c
     p_enemy.c              p_enemy.h
     p_extnodes.c           p_extnodes.h
     p_floor.c
     p_genlin.c
     p_inter.c              p_inter.h
+    p_keyframe.c           p_keyframe.h
     p_lights.c
     p_map.c                p_map.h
     p_maputl.c             p_maputl.h
@@ -115,6 +122,7 @@ set(WOOF_SOURCES
     p_switch.c
     p_telept.c
     p_tick.c               p_tick.h
+    p_udmf.c               p_udmf.h
     p_user.c               p_user.h
     r_bmaps.c              r_bmaps.h
     r_bsp.c                r_bsp.h
@@ -181,20 +189,22 @@ endif()
 
 target_link_libraries(
     woof
-    PRIVATE ${SDL2_LIBRARIES}
+    PRIVATE SDL3::SDL3
             OpenAL::OpenAL
             libebur128::libebur128
             SndFile::sndfile
             yyjson::yyjson
-            opl
-            textscreen
+            pffft::pffft
+            miniz::miniz
             netlib
-            pffft
-            miniz
+            md5
             spng
             sha1
-            md5
+            opl
+            textscreen
 )
+
+target_include_directories(woof PRIVATE "${MINIMP3_INCLUDE_DIRS}/minimp3")
 
 # Some platforms require standard libraries to be linked against.
 if(HAVE_LIBM)
@@ -206,9 +216,7 @@ if(HAVE_AL_BUFFER_CALLBACK)
 endif()
 
 if(WIN32)
-    target_include_directories(woof PRIVATE "../win32")
     target_link_libraries(woof PRIVATE winmm shlwapi)
-    target_sources(woof PRIVATE ../win32/win_opendir.c ../win32/win_opendir.h)
 endif()
 
 if(APPLE)
@@ -220,19 +228,23 @@ if(APPLE)
     )
 endif()
 
-if(ALSA_FOUND)
+if(HAVE_ALSA)
     target_include_directories(woof PRIVATE ${ALSA_INCLUDE_DIR})
     target_link_libraries(woof PRIVATE ALSA::ALSA)
 endif()
 
-if(FluidSynth_FOUND)
+if(HAVE_FLUIDSYNTH)
     target_sources(woof PRIVATE i_flmusic.c)
     target_link_libraries(woof PRIVATE FluidSynth::libfluidsynth)
 endif()
 
-if(libxmp_FOUND)
+if(HAVE_LIBXMP)
     target_sources(woof PRIVATE i_xmp.c)
     target_link_libraries(woof PRIVATE libxmp::xmp)
+endif()
+
+if(HAVE_DISCORD_RPC)
+    target_link_libraries(woof PRIVATE DiscordRPC::discord-rpc)
 endif()
 
 target_compile_definitions(woof PRIVATE
@@ -280,7 +292,7 @@ target_woof_settings(woof-setup)
 target_include_directories(woof-setup PRIVATE "${CMAKE_CURRENT_BINARY_DIR}/../")
 target_link_libraries(
   woof-setup
-  PRIVATE ${SDL2_LIBRARIES}
+  PRIVATE SDL3::SDL3
           textscreen
           setup
           netlib

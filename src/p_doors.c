@@ -23,9 +23,9 @@
 #include "doomdata.h"
 #include "doomdef.h"
 #include "doomstat.h"
-#include "doomtype.h"
 #include "i_printf.h"
 #include "m_fixed.h"
+#include "p_dirty.h"
 #include "p_mobj.h"
 #include "p_spec.h"
 #include "p_tick.h"
@@ -33,8 +33,6 @@
 #include "r_state.h"
 #include "s_sound.h"
 #include "sounds.h"
-#include "st_stuff.h"
-#include "z_zone.h"
 
 ///////////////////////////////////////////////////////////////
 //
@@ -52,7 +50,7 @@
 // jff 02/08/98 all cases with labels beginning with gen added to support
 // generalized line type behaviors.
 
-void T_VerticalDoor (vldoor_t *door)
+static void T_VerticalDoor(vldoor_t *door)
 {
   result_e  res;
 
@@ -132,7 +130,7 @@ void T_VerticalDoor (vldoor_t *door)
           case genBlazeRaise:
           case genBlazeClose:
             door->sector->ceilingdata = NULL;  //jff 2/22/98
-            P_RemoveThinker (&door->thinker);  // unlink and free
+            P_RemoveDoorThinker(door);  // unlink and free
             // killough 4/15/98: remove double-closing sound of blazing doors
             if (STRICTMODE_COMP(comp_blazing))
               S_StartSound((mobj_t *)&door->sector->soundorg,sfx_bdcls);
@@ -143,7 +141,7 @@ void T_VerticalDoor (vldoor_t *door)
           case genRaise:
           case genClose:
             door->sector->ceilingdata = NULL; //jff 2/22/98
-            P_RemoveThinker (&door->thinker);  // unlink and free
+            P_RemoveDoorThinker(door);  // unlink and free
             break;
 
             // close then open doors start waiting
@@ -226,7 +224,7 @@ void T_VerticalDoor (vldoor_t *door)
           case genCdO:
           case genBlazeCdO:
             door->sector->ceilingdata = NULL; //jff 2/22/98
-            P_RemoveThinker (&door->thinker); // unlink and free
+            P_RemoveDoorThinker(door); // unlink and free
             break;
 
           default:
@@ -237,6 +235,11 @@ void T_VerticalDoor (vldoor_t *door)
       // killough 10/98: replaced with gradual lighting code
       break;
     }
+}
+
+void T_VerticalDoorAdapter(mobj_t *mobj)
+{
+    T_VerticalDoor((vldoor_t *)mobj);
 }
 
 ///////////////////////////////////////////////////////////////
@@ -324,11 +327,11 @@ int EV_DoDoor(line_t *line, vldoor_e type)
 
       // new door thinker
       rtn = 1;
-      door = Z_Malloc (sizeof(*door), PU_LEVSPEC, 0);
+      door = arena_alloc(thinkers_arena, vldoor_t);
       P_AddThinker(&door->thinker);
       sec->ceilingdata = door; //jff 2/22/98
 
-      door->thinker.function.p1 = (actionf_p1)T_VerticalDoor;
+      door->thinker.function.p1 = T_VerticalDoorAdapter;
       door->sector = sec;
       door->type = type;
       door->topwait = VDOORWAIT;
@@ -490,7 +493,7 @@ int EV_VerticalDoor(line_t *line, mobj_t *thing)
      * mess up non-T_VerticalDoor actions.
      */
     if (demo_version < DV_MBF21
-        || door->thinker.function.p1 == (actionf_p1)T_VerticalDoor)
+        || door->thinker.function.p1 == T_VerticalDoorAdapter)
     {
       /* cph - we are writing outval to door->direction iff it is non-zero */
       signed int outval = 0;
@@ -499,7 +502,7 @@ int EV_VerticalDoor(line_t *line, mobj_t *thing)
        * monster is trying to open a closing door - so change direction
        * DEMOSYNC: we only read door->direction now if it really is a door.
        */
-      if (door->thinker.function.p1 == (actionf_p1)T_VerticalDoor
+      if (door->thinker.function.p1 == T_VerticalDoorAdapter
           && door->direction == -1)
       {
         outval = 1; /* go back up */
@@ -516,11 +519,11 @@ int EV_VerticalDoor(line_t *line, mobj_t *thing)
        */
       if (outval)
       {
-        if (door->thinker.function.p1 == (actionf_p1)T_VerticalDoor)
+        if (door->thinker.function.p1 == T_VerticalDoorAdapter)
         {
           door->direction = outval;
         }
-        else if (door->thinker.function.p1 == (actionf_p1)T_PlatRaise)
+        else if (door->thinker.function.p1 == T_PlatRaiseAdapter)
         {
           plat_t *p = (plat_t *)door;
           p->wait = outval;
@@ -559,10 +562,10 @@ int EV_VerticalDoor(line_t *line, mobj_t *thing)
     }
 
   // new door thinker
-  door = Z_Malloc (sizeof(*door), PU_LEVSPEC, 0);
+  door = arena_alloc(thinkers_arena, vldoor_t);
   P_AddThinker (&door->thinker);
   sec->ceilingdata = door; //jff 2/22/98
-  door->thinker.function.p1 = (actionf_p1)T_VerticalDoor;
+  door->thinker.function.p1 = T_VerticalDoorAdapter;
   door->sector = sec;
   door->direction = 1;
   door->speed = VDOORSPEED;
@@ -570,7 +573,7 @@ int EV_VerticalDoor(line_t *line, mobj_t *thing)
   door->line = line; // jff 1/31/98 remember line that triggered us
 
   // killough 10/98: use gradual lighting changes if nonzero tag given
-  door->lighttag = STRICTMODE_COMP(comp_doorlight) ? 0 : line->tag; // killough 10/98
+  door->lighttag = STRICTMODE_COMP(comp_doorlight) ? 0 : line->args[0]; // killough 10/98
 
   // set the type of door from the activating linedef type
   switch(line->special)
@@ -587,7 +590,7 @@ int EV_VerticalDoor(line_t *line, mobj_t *thing)
     case 33:
     case 34:
       door->type = doorOpen;
-      line->special = 0;
+      dirty_line(line)->special = 0;
       break;
 
     case 117: // blazing door raise
@@ -597,7 +600,7 @@ int EV_VerticalDoor(line_t *line, mobj_t *thing)
 
     case 118: // blazing door open
       door->type = blazeOpen;
-      line->special = 0;
+      dirty_line(line)->special = 0;
       door->speed = VDOORSPEED*4;
       break;
 
@@ -629,14 +632,14 @@ int EV_VerticalDoor(line_t *line, mobj_t *thing)
 
 void P_SpawnDoorCloseIn30 (sector_t* sec)
 {
-  vldoor_t *door = Z_Malloc ( sizeof(*door), PU_LEVSPEC, 0);
+  vldoor_t *door = arena_alloc(thinkers_arena, vldoor_t);
 
   P_AddThinker (&door->thinker);
 
   sec->ceilingdata = door; //jff 2/22/98
   sec->special = 0;
 
-  door->thinker.function.p1 = (actionf_p1)T_VerticalDoor;
+  door->thinker.function.p1 = T_VerticalDoorAdapter;
   door->sector = sec;
   door->direction = 0;
   door->type = doorNormal;
@@ -659,14 +662,14 @@ void P_SpawnDoorRaiseIn5Mins(sector_t *sec, int secnum)
 {
   vldoor_t* door;
 
-  door = Z_Malloc ( sizeof(*door), PU_LEVSPEC, 0);
+  door = arena_alloc(thinkers_arena, vldoor_t);
 
   P_AddThinker (&door->thinker);
 
   sec->ceilingdata = door; //jff 2/22/98
   sec->special = 0;
 
-  door->thinker.function.p1 = (actionf_p1)T_VerticalDoor;
+  door->thinker.function.p1 = T_VerticalDoorAdapter;
   door->sector = sec;
   door->direction = 2;
   door->type = raiseIn5Mins;

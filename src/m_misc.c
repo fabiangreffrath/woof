@@ -21,6 +21,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <ctype.h>
 
 #include "i_system.h"
 #include "m_io.h"
@@ -36,7 +37,7 @@
 
 // Check if a file exists
 
-static boolean M_FileExistsNotDir(const char *filename)
+boolean M_FileExistsNotDir(const char *filename)
 {
     FILE *fstream;
 
@@ -353,12 +354,18 @@ char *M_StringDuplicate(const char *orig)
 
 // String replace function.
 
-char *M_StringReplace(const char *haystack, const char *needle,
-                      const char *replacement)
+static inline int is_boundary(char c)
+{
+    return c == '\0' || isspace((unsigned char)c) || ispunct((unsigned char)c);
+}
+
+static char *M_StringReplaceEx(const char *haystack, const char *needle,
+                               const char *replacement, const boolean whole_word)
 {
     char *result, *dst;
     const char *p;
-    size_t needle_len = strlen(needle);
+    const size_t needle_len = strlen(needle);
+    const size_t repl_len = strlen(replacement);
     size_t result_len, dst_len;
 
     // Iterate through occurrences of 'needle' and calculate the size of
@@ -374,8 +381,14 @@ char *M_StringReplace(const char *haystack, const char *needle,
             break;
         }
 
+        if (!whole_word ||
+            ((p == haystack || is_boundary(p[-1])) &&
+            is_boundary(p[needle_len])))
+        {
+            result_len += repl_len - needle_len;
+        }
+
         p += needle_len;
-        result_len += strlen(replacement) - needle_len;
     }
 
     // Construct new string.
@@ -393,12 +406,15 @@ char *M_StringReplace(const char *haystack, const char *needle,
 
     while (*p != '\0')
     {
-        if (!strncmp(p, needle, needle_len))
+        if (!strncmp(p, needle, needle_len) &&
+            (!whole_word ||
+            ((p == haystack || is_boundary(p[-1])) &&
+            is_boundary(p[needle_len]))))
         {
             M_StringCopy(dst, replacement, dst_len);
             p += needle_len;
-            dst += strlen(replacement);
-            dst_len -= strlen(replacement);
+            dst += repl_len;
+            dst_len -= repl_len;
         }
         else
         {
@@ -412,6 +428,18 @@ char *M_StringReplace(const char *haystack, const char *needle,
     *dst = '\0';
 
     return result;
+}
+
+char *M_StringReplace(const char *haystack, const char *needle,
+                      const char *replacement)
+{
+    return M_StringReplaceEx(haystack, needle, replacement, false);
+}
+
+char *M_StringReplaceWord(const char *haystack, const char *needle,
+                          const char *replacement)
+{
+    return M_StringReplaceEx(haystack, needle, replacement, true);
 }
 
 // Safe string copy function that works like OpenBSD's strlcpy().
@@ -482,31 +510,32 @@ boolean M_StringCaseEndsWith(const char *s, const char *suffix)
 
 char *M_StringJoinInternal(const char *s[], size_t n)
 {
-    int length = 1;
+    size_t length = 1; // Start with 1 for the null terminator
 
+    // Check for NULL arguments and calculate total length
     for (int i = 0; i < n; ++i)
     {
         if (s[i] == NULL)
         {
-            I_Error("%d argument is NULL", i);
+            I_Error("%d argument is NULL", i + 1);
         }
-
         length += strlen(s[i]);
     }
 
     char *result = malloc(length);
-
     if (result == NULL)
     {
         I_Error("Failed to allocate new string");
     }
 
-    M_StringCopy(result, s[0], length);
-
-    for (int i = 1; i < n; ++i)
+    int pos = 0;
+    for (int i = 0; i < n; ++i)
     {
-        M_StringConcat(result, s[i], length);
+        size_t slen = strlen(s[i]);
+        memcpy(result + pos, s[i], slen);
+        pos += slen;
     }
+    result[pos] = '\0'; // Null-terminate the result
 
     return result;
 }
@@ -549,20 +578,19 @@ int M_snprintf(char *buf, size_t buf_len, const char *s, ...)
     return result;
 }
 
-// Copy lump name (up to 8 chars) to dest buffer.
+// Copies characters until either 8 characters are copied or a null terminator
+// is found.
 
 void M_CopyLumpName(char *dest, const char *src)
 {
-    size_t len;
-
-    len = strnlen(src, 8);
-
-    if (len < 8)
+    for (int i = 0; i < 8; i++)
     {
-        len++;
+        dest[i] = src[i];
+        if (src[i] == '\0')
+        {
+            break;
+        }
     }
-
-    memcpy(dest, src, len);
 }
 
 //

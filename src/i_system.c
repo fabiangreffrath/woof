@@ -16,7 +16,7 @@
 //
 //-----------------------------------------------------------------------------
 
-#include "SDL.h"
+#include <SDL3/SDL.h>
 
 #ifdef _WIN32
 #define WIN32_LEAN_AND_MEAN
@@ -44,11 +44,20 @@ ticcmd_t *I_BaseTiccmd(void)
 // I_Error
 //
 
-static char errmsg[2048];    // buffer of error message -- killough
-static int exit_code;
+#ifdef WOOF_DEBUG
+boolean I_IsDebuggerAttached(void)
+{
+#ifdef _WIN32
+    return IsDebuggerPresent();
+#else
+    return false;
+#endif
+}
+#endif
 
-void I_ErrorOrSuccess(int err_code, const char *prefix, const char *error,
-                      ...) // killough 3/20/98: add const
+static char errmsg[2048];    // buffer of error message -- killough
+
+void I_ErrorInternal(const char *prefix, const char *error, ...)
 {
     size_t len = sizeof(errmsg) - strlen(errmsg) - 1; // [FG] for '\n'
     char *curmsg = errmsg + strlen(errmsg);
@@ -68,15 +77,10 @@ void I_ErrorOrSuccess(int err_code, const char *prefix, const char *error,
     M_vsnprintf(msgptr, len, error, argptr);
     va_end(argptr);
 
-    I_Printf(err_code == 0 ? VB_ALWAYS : VB_ERROR, "%s", curmsg);
+    I_Printf(VB_ERROR, "%s", curmsg);
     strcat(curmsg, "\n");
 
-    if (exit_code == 0 && err_code != 0)
-    {
-        exit_code = err_code;
-    }
-
-    I_SafeExit(exit_code);
+    I_SafeExit(-1);
 }
 
 void I_ErrorMsg()
@@ -89,9 +93,28 @@ void I_ErrorMsg()
 
     if (*errmsg && !M_CheckParm("-nogui") && !I_ConsoleStdout())
     {
-        SDL_ShowSimpleMessageBox(exit_code == 0 ? SDL_MESSAGEBOX_INFORMATION
-                                                : SDL_MESSAGEBOX_ERROR,
-                                 PROJECT_STRING, errmsg, NULL);
+        SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, PROJECT_STRING,
+                                 errmsg, NULL);
+    }
+}
+
+void I_MessageBox(const char *message, ...)
+{
+    char buffer[2048];
+    va_list argptr;
+    va_start(argptr, message);
+    M_vsnprintf(buffer, sizeof(buffer), message, argptr);
+    va_end(argptr);
+
+    if (I_ConsoleStdout())
+    {
+        I_Printf(VB_INFO, "%s", buffer);
+    }
+
+    if (!M_CheckParm("-nogui"))
+    {
+        SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_INFORMATION, PROJECT_STRING,
+                                 buffer, NULL);
     }
 }
 
@@ -99,15 +122,15 @@ void I_ErrorMsg()
 // If run_if_error is true, the function is called if the exit
 // is due to an error (I_Error)
 
-typedef struct atexit_listentry_s atexit_listentry_t;
+#define M_ARRAY_INIT_CAPACITY 16
+#include "m_array.h"
 
-struct atexit_listentry_s
+typedef struct atexit_listentry_s
 {
     atexit_func_t func;
     boolean run_on_error;
-    atexit_listentry_t *next;
     const char *name;
-};
+} atexit_listentry_t;
 
 static atexit_listentry_t *exit_funcs[exit_priority_max];
 static exit_priority_t exit_priority;
@@ -115,15 +138,13 @@ static exit_priority_t exit_priority;
 void I_AtExitPrio(atexit_func_t func, boolean run_on_error,
                   const char *name, exit_priority_t priority)
 {
-    atexit_listentry_t *entry;
+    atexit_listentry_t entry;
 
-    entry = malloc(sizeof(*entry));
+    entry.func = func;
+    entry.run_on_error = run_on_error;
+    entry.name = name;
 
-    entry->func = func;
-    entry->run_on_error = run_on_error;
-    entry->next = exit_funcs[priority];
-    entry->name = name;
-    exit_funcs[priority] = entry;
+    array_push(exit_funcs[priority], entry);
 }
 
 // I_SafeExit
@@ -138,10 +159,8 @@ void I_SafeExit(int rc)
 
     for (; exit_priority < exit_priority_max; ++exit_priority)
     {
-        while ((entry = exit_funcs[exit_priority]))
+        array_foreach(entry, exit_funcs[exit_priority])
         {
-            exit_funcs[exit_priority] = exit_funcs[exit_priority]->next;
-
             if (rc == 0 || entry->run_on_error)
             {
                 I_Printf(VB_DEBUG, "Exit Sequence[%d]: %s (%d)",
@@ -151,11 +170,7 @@ void I_SafeExit(int rc)
         }
     }
 
-#if defined(WIN_LAUNCHER)
-    ExitProcess(rc);
-#else
     exit(rc);
-#endif
 }
 
 //

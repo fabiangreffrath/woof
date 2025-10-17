@@ -47,10 +47,6 @@ static fixed_t PlayerSlope(player_t *player)
   return pitch ? -finetangent[(ANG90 - pitch) >> ANGLETOFINESHIFT] : 0;
 }
 
-// Index of the special effects (INVUL inverse) map.
-
-#define INVERSECOLORMAP 32
-
 //
 // Movement.
 //

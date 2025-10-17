@@ -97,6 +97,7 @@ enum
     input_speed_up,
     input_speed_down,
     input_speed_default,
+    input_rewind,
 
     input_map,
     input_map_up,
@@ -120,6 +121,8 @@ enum
     input_chat_dest3,
     input_chat_backspace,
     input_chat_enter,
+    input_netgame_stats,
+    input_msgreview,
 
     input_iddqd,
     input_idkfa,

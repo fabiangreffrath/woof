@@ -24,6 +24,7 @@
 #include "doomstat.h"
 #include "doomtype.h"
 #include "dstrings.h"
+#include "g_game.h"
 #include "g_umapinfo.h"
 #include "hu_command.h"
 #include "hu_coordinates.h"
@@ -436,7 +437,7 @@ boolean ST_MessagesResponder(event_t *ev)
 
     if (!chat_on)
     {
-        if (M_InputActivated(input_chat_enter)) // phares
+        if (M_InputActivated(input_msgreview)) // phares
         {
             //jff 2/26/98 toggle list of messages
             message_review = true;
@@ -563,23 +564,6 @@ static void UpdateChat(sbe_widget_t *widget)
     }
 }
 
-static boolean IsVanillaMap(int e, int m)
-{
-    if (gamemode == commercial)
-    {
-        return (e == 1 && m > 0 && m <= 32);
-    }
-    else
-    {
-        return (e > 0 && e <= 4 && m > 0 && m <= 9);
-    }
-}
-
-#define HU_TITLE  (*mapnames[(gameepisode - 1) * 9 + gamemap - 1])
-#define HU_TITLE2 (*mapnames2[gamemap - 1])
-#define HU_TITLEP (*mapnamesp[gamemap - 1])
-#define HU_TITLET (*mapnamest[gamemap - 1])
-
 static char title_string[HU_MAXLINELENGTH];
 
 void ST_ResetTitle(void)
@@ -587,54 +571,7 @@ void ST_ResetTitle(void)
     char string[120];
     string[0] = '\0';
 
-    char *s;
-
-    if (gamemapinfo && gamemapinfo->levelname)
-    {
-        if (gamemapinfo->label)
-        {
-            s = gamemapinfo->label;
-        }
-        else
-        {
-            s = gamemapinfo->mapname;
-        }
-
-        if (!(gamemapinfo->flags & MapInfo_LabelClear))
-        {
-            M_snprintf(string, sizeof(string), "%s: ", s);
-        }
-
-        s = gamemapinfo->levelname;
-    }
-    else if (gamestate == GS_LEVEL)
-    {
-        if (IsVanillaMap(gameepisode, gamemap))
-        {
-            s = (gamemode != commercial)     ? HU_TITLE
-                : (gamemission == pack_tnt)  ? HU_TITLET
-                : (gamemission == pack_plut) ? HU_TITLEP
-                                             : HU_TITLE2;
-        }
-        // WADs like pl2.wad have a MAP33, and rely on the layout in the
-        // Vanilla executable, where it is possible to overflow the end of one
-        // array into the next.
-        else if (gamemode == commercial && gamemap >= 33 && gamemap <= 35)
-        {
-            s = (gamemission == doom2)       ? (*mapnamesp[gamemap - 33])
-                : (gamemission == pack_plut) ? (*mapnamest[gamemap - 33])
-                                             : "";
-        }
-        else
-        {
-            // initialize the map title widget with the generic map lump name
-            s = MapName(gameepisode, gamemap);
-        }
-    }
-    else
-    {
-        s = "";
-    }
+    const char *s = G_GetLevelTitle();
 
     char *n;
 
@@ -925,7 +862,7 @@ static void UpdateDM(sbe_widget_t *widget)
         }
 
         offset += M_snprintf(string + offset, sizeof(string) - offset,
-                             "\x1b%c%d/%d ", (i == displayplayer) ?
+                             "\x1b%c%02d/%02d ", (i == displayplayer) ?
                              '0' + cr_blue : '0' + CR_GRAY, result, others);
     }
 
@@ -1097,30 +1034,30 @@ struct
     const char *col;
 } static const colorize_strings[] = {
     // [Woof!] colorize keycard and skull key messages
-    {&s_GOTBLUECARD,     CR_BLUE2, " blue "  },
-    {&s_GOTBLUESKUL,     CR_BLUE2, " blue "  },
-    {&s_GOTREDCARD,      CR_RED,   " red "   },
-    {&s_GOTREDSKULL,     CR_RED,   " red "   },
-    {&s_GOTYELWCARD,     CR_GOLD,  " yellow "},
-    {&s_GOTYELWSKUL,     CR_GOLD,  " yellow "},
-    {&s_PD_BLUEC,        CR_BLUE2, " blue "  },
-    {&s_PD_BLUEK,        CR_BLUE2, " blue "  },
-    {&s_PD_BLUEO,        CR_BLUE2, " blue "  },
-    {&s_PD_BLUES,        CR_BLUE2, " blue "  },
-    {&s_PD_REDC,         CR_RED,   " red "   },
-    {&s_PD_REDK,         CR_RED,   " red "   },
-    {&s_PD_REDO,         CR_RED,   " red "   },
-    {&s_PD_REDS,         CR_RED,   " red "   },
-    {&s_PD_YELLOWC,      CR_GOLD,  " yellow "},
-    {&s_PD_YELLOWK,      CR_GOLD,  " yellow "},
-    {&s_PD_YELLOWO,      CR_GOLD,  " yellow "},
-    {&s_PD_YELLOWS,      CR_GOLD,  " yellow "},
+    {&s_GOTBLUECARD,     CR_BLUE2, "blue"  },
+    {&s_GOTBLUESKUL,     CR_BLUE2, "blue"  },
+    {&s_GOTREDCARD,      CR_RED,   "red"   },
+    {&s_GOTREDSKULL,     CR_RED,   "red"   },
+    {&s_GOTYELWCARD,     CR_GOLD,  "yellow"},
+    {&s_GOTYELWSKUL,     CR_GOLD,  "yellow"},
+    {&s_PD_BLUEC,        CR_BLUE2, "blue"  },
+    {&s_PD_BLUEK,        CR_BLUE2, "blue"  },
+    {&s_PD_BLUEO,        CR_BLUE2, "blue"  },
+    {&s_PD_BLUES,        CR_BLUE2, "blue"  },
+    {&s_PD_REDC,         CR_RED,   "red"   },
+    {&s_PD_REDK,         CR_RED,   "red"   },
+    {&s_PD_REDO,         CR_RED,   "red"   },
+    {&s_PD_REDS,         CR_RED,   "red"   },
+    {&s_PD_YELLOWC,      CR_GOLD,  "yellow"},
+    {&s_PD_YELLOWK,      CR_GOLD,  "yellow"},
+    {&s_PD_YELLOWO,      CR_GOLD,  "yellow"},
+    {&s_PD_YELLOWS,      CR_GOLD,  "yellow"},
 
     // [Woof!] colorize multi-player messages
-    {&s_HUSTR_PLRGREEN,  CR_GREEN, "Green: " },
-    {&s_HUSTR_PLRINDIGO, CR_GRAY,  "Indigo: "},
-    {&s_HUSTR_PLRBROWN,  CR_BROWN, "Brown: " },
-    {&s_HUSTR_PLRRED,    CR_RED,   "Red: "   },
+    {&s_HUSTR_PLRGREEN,  CR_GREEN, "Green:" },
+    {&s_HUSTR_PLRINDIGO, CR_GRAY,  "Indigo:"},
+    {&s_HUSTR_PLRBROWN,  CR_BROWN, "Brown:" },
+    {&s_HUSTR_PLRRED,    CR_RED,   "Red:"   },
 };
 
 static char* PrepareColor(const char *str, const char *col)
@@ -1129,7 +1066,7 @@ static char* PrepareColor(const char *str, const char *col)
 
     M_snprintf(col_replace, sizeof(col_replace),
                ORIG_S "%s" ORIG_S, col);
-    str_replace = M_StringReplace(str, col, col_replace);
+    str_replace = M_StringReplaceWord(str, col, col_replace);
 
     return str_replace;
 }

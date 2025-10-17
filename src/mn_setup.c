@@ -143,7 +143,7 @@ static boolean default_reset;
 #define MI_GAP_Y(y) \
     {NULL, S_SKIP, 0, (y)}
 
-static void DisableItem(boolean condition, setup_menu_t *menu, const char *item)
+static setup_menu_t *GetMenuItem(setup_menu_t *menu, const char *item)
 {
     while (!(menu->m_flags & S_END))
     {
@@ -153,16 +153,7 @@ static void DisableItem(boolean condition, setup_menu_t *menu, const char *item)
                  && !strcasecmp(menu->var.def->name, item))
                 || !strcasecmp(menu->m_text, item))
             {
-                if (condition)
-                {
-                    menu->m_flags |= S_DISABLE;
-                }
-                else
-                {
-                    menu->m_flags &= ~S_DISABLE;
-                }
-
-                return;
+                return menu;
             }
         }
 
@@ -172,27 +163,27 @@ static void DisableItem(boolean condition, setup_menu_t *menu, const char *item)
     I_Error("Item \"%s\" not found in menu", item);
 }
 
+static void DisableItem(boolean condition, setup_menu_t *menu, const char *item)
+{
+    setup_menu_t *menu_item = GetMenuItem(menu, item);
+
+    if (condition)
+    {
+        menu_item->m_flags |= S_DISABLE;
+    }
+    else
+    {
+        menu_item->m_flags &= ~S_DISABLE;
+    }
+}
+
 static void SetItemLimit(setup_menu_t *menu, const char *item, int min, int max)
 {
-    while (!(menu->m_flags & S_END))
-    {
-        if (!(menu->m_flags & (S_SKIP | S_RESET)))
-        {
-            if (((menu->m_flags & S_HASDEFPTR)
-                 && !strcasecmp(menu->var.def->name, item))
-                || !strcasecmp(menu->m_text, item))
-            {
-                default_t *def = menu->var.def;
-                def->limit.min = min;
-                def->limit.max = max;
-                return;
-            }
-        }
+    setup_menu_t *menu_item = GetMenuItem(menu, item);
 
-        menu++;
-    }
-
-    I_Error("Item \"%s\" not found in menu", item);
+    default_t *def = menu_item->var.def;
+    def->limit.min = min;
+    def->limit.max = max;
 }
 
 static void DisableItemsInternal(boolean condition, setup_menu_t *menu,
@@ -361,7 +352,6 @@ enum
     str_curve,
     str_center_weapon,
     str_screensize,
-    str_stlayout,
     str_show_widgets,
     str_show_adv_widgets,
     str_stats_format,
@@ -395,7 +385,7 @@ enum
     str_gyro_accel,
 
     str_default_complevel,
-    str_exit_sequence,
+    str_endoom,
     str_death_use_action,
     str_widescreen,
     str_bobbing_pct,
@@ -733,7 +723,15 @@ static void DrawSetupThermo(const setup_menu_t *s, int x, int y, int width,
         dot = size;
     }
 
-    int step = width * M_THRM_STEP * FRACUNIT / size;
+    int step;
+    if (size)
+    {
+        step = width * M_THRM_STEP * FRACUNIT / size;
+    }
+    else
+    {
+        step = 1;
+    }
 
     if (DrawIndicator)
     {
@@ -1258,7 +1256,7 @@ static void DrawInstructions(void)
     {
         if (pad)
         {
-            second = M_GetPlatformName(GAMEPAD_B);
+            second = M_GetPlatformName(gamepad_cancel);
         }
         else
         {
@@ -1281,8 +1279,8 @@ static void DrawInstructions(void)
         {
             if (pad)
             {
-                first = M_GetPlatformName(GAMEPAD_A);
-                second = M_GetPlatformName(GAMEPAD_B);
+                first = M_GetPlatformName(gamepad_confirm);
+                second = M_GetPlatformName(gamepad_cancel);
             }
             else
             {
@@ -1297,7 +1295,7 @@ static void DrawInstructions(void)
         {
             if (pad)
             {
-                second = M_GetPlatformName(GAMEPAD_B);
+                second = M_GetPlatformName(gamepad_cancel);
             }
             else
             {
@@ -1319,8 +1317,8 @@ static void DrawInstructions(void)
         {
             if (pad)
             {
-                first = M_GetPlatformName(GAMEPAD_A);
-                second = M_GetPlatformName(GAMEPAD_B);
+                first = M_GetPlatformName(gamepad_confirm);
+                second = M_GetPlatformName(gamepad_cancel);
             }
             else
             {
@@ -1337,8 +1335,8 @@ static void DrawInstructions(void)
         {
             if (pad)
             {
-                first = M_GetPlatformName(GAMEPAD_A);
-                second = M_GetPlatformName(GAMEPAD_Y);
+                first = M_GetPlatformName(gamepad_confirm);
+                second = M_GetPlatformName(GAMEPAD_NORTH);
             }
             else
             {
@@ -1353,7 +1351,7 @@ static void DrawInstructions(void)
         {
             if (pad)
             {
-                first = M_GetPlatformName(GAMEPAD_A);
+                first = M_GetPlatformName(gamepad_confirm);
             }
             else
             {
@@ -1366,8 +1364,8 @@ static void DrawInstructions(void)
         {
             if (pad)
             {
-                first = M_GetPlatformName(GAMEPAD_A);
-                second = M_GetPlatformName(GAMEPAD_B);
+                first = M_GetPlatformName(gamepad_confirm);
+                second = M_GetPlatformName(gamepad_cancel);
             }
             else
             {
@@ -1466,6 +1464,7 @@ static setup_menu_t keys_settings2[] = {
 
 static setup_menu_t keys_settings3[] = {
     // [FG] reload current level / go to next level
+    {"Rewind",          S_INPUT, KB_X, M_SPC, {0}, m_scrn, input_rewind},
     {"Reload Map/Demo", S_INPUT, KB_X, M_SPC, {0}, m_scrn, input_menu_reloadlevel},
     {"Next Map",        S_INPUT, KB_X, M_SPC, {0}, m_scrn, input_menu_nextlevel},
     {"Previous Map",    S_INPUT, KB_X, M_SPC, {0}, m_scrn, input_menu_prevlevel},
@@ -1479,6 +1478,7 @@ static setup_menu_t keys_settings3[] = {
     {"Default Speed",   S_INPUT, KB_X, M_SPC, {0}, m_scrn, input_speed_default},
     MI_GAP,
     {"Begin Chat",      S_INPUT, KB_X, M_SPC, {0}, m_scrn, input_chat},
+    {"Show Netgame Stats", S_INPUT, KB_X, M_SPC, {0}, m_scrn, input_netgame_stats},
     MI_END
 };
 
@@ -1684,7 +1684,6 @@ static char slot_labels[NUM_WS_SLOTS * NUM_WS_WEAPS][WS_BUF_SiZE];
 static void UpdateWeaponSlotLabels(void)
 {
     const char *keys[NUM_WS_SLOTS];
-    int buttons[NUM_WS_SLOTS];
 
     switch (WS_Selection())
     {
@@ -1696,11 +1695,10 @@ static void UpdateWeaponSlotLabels(void)
             break;
 
         case WS_SELECT_FACE_BUTTONS:
-            I_GetFaceButtons(buttons);
-            keys[0] = M_GetPlatformName(buttons[0]);
-            keys[1] = M_GetPlatformName(buttons[1]);
-            keys[2] = M_GetPlatformName(buttons[2]);
-            keys[3] = M_GetPlatformName(buttons[3]);
+            keys[0] = M_GetPlatformName(GAMEPAD_NORTH);
+            keys[1] = M_GetPlatformName(GAMEPAD_SOUTH);
+            keys[2] = M_GetPlatformName(GAMEPAD_WEST);
+            keys[3] = M_GetPlatformName(GAMEPAD_EAST);
             break;
 
         default: // WS_SELECT_1234
@@ -1877,10 +1875,6 @@ static void RefreshSolidBackground(void)
     st_refresh_background = true;
 }
 
-static const char *st_layout_strings[] = {
-    "Original", "Wide"
-};
-
 #define H_X_THRM8 (M_X_THRM8 - 14)
 #define H_X       (M_X - 14)
 
@@ -1891,8 +1885,8 @@ static setup_menu_t stat_settings1[] = {
 
     MI_GAP,
 
-    {"Layout", S_CHOICE, H_X, M_SPC, {"st_layout"},
-     .strings_id = str_stlayout},
+    {"Wide Shift", S_THERMO, H_X_THRM8, M_THRM_SPC, {"st_wide_shift"},
+     .append = "px"},
 
     MI_GAP,
 
@@ -1907,6 +1901,17 @@ static setup_menu_t stat_settings1[] = {
 
     MI_END
 };
+
+void MN_UpdateWideShiftItem(boolean reset)
+{
+    DisableItem(!video.deltaw, stat_settings1, "st_wide_shift");
+    SetItemLimit(stat_settings1, "st_wide_shift", 0, video.deltaw);
+    if (reset || st_wide_shift == -1)
+    {
+        st_wide_shift = video.deltaw;
+    }
+    st_wide_shift = CLAMP(st_wide_shift, 0, video.deltaw);
+}
 
 static void UpdateStatsFormatItem(void);
 
@@ -2317,16 +2322,11 @@ static int resolution_scale;
 static const char **GetResolutionScaleStrings(void)
 {
     const char **strings = NULL;
-    resolution_scaling_t rs;
-    I_GetResolutionScaling(&rs);
+    resolution_scaling_t rs = I_GetResolutionScaling();
 
     array_push(strings, "100%");
 
-    if (current_video_height == SCREENHEIGHT)
-    {
-        resolution_scale = 0;
-    }
-
+    resolution_scale = 0;
     int val = SCREENHEIGHT * 2;
     char buf[8];
     int i;
@@ -2345,7 +2345,10 @@ static const char **GetResolutionScaleStrings(void)
         val += rs.step;
     }
 
-    resolution_scale = CLAMP(resolution_scale, 0, i);
+    if (current_video_height == rs.max)
+    {
+        resolution_scale = i;
+    }
 
     array_push(strings, "max");
 
@@ -2355,8 +2358,7 @@ static const char **GetResolutionScaleStrings(void)
 static void ResetVideoHeight(void)
 {
     const char **strings = GetStrings(str_resolution_scale);
-    resolution_scaling_t rs;
-    I_GetResolutionScaling(&rs);
+    resolution_scaling_t rs = I_GetResolutionScaling();
 
     if (default_reset)
     {
@@ -2418,11 +2420,6 @@ static void ToggleFullScreen(void)
     toggle_fullscreen = true;
 }
 
-static void ToggleExclusiveFullScreen(void)
-{
-    toggle_exclusive_fullscreen = true;
-}
-
 static void UpdateFPSLimit(void)
 {
     setrefreshneeded = true;
@@ -2458,9 +2455,6 @@ static setup_menu_t gen_settings1[] = {
 
     {"Fullscreen", S_ONOFF, CNTR_X, M_SPC, {"fullscreen"},
      .action = ToggleFullScreen},
-
-    {"Exclusive Fullscreen", S_ONOFF, CNTR_X, M_SPC, {"exclusive_fullscreen"},
-     .action = ToggleExclusiveFullScreen},
 
     MI_GAP_Y(6),
 
@@ -3326,10 +3320,6 @@ static void SmoothLight(void)
     setsizeneeded = true; // run R_ExecuteSetViewSize
 }
 
-static const char *exit_sequence_strings[] = {
-    "Off", "Sound Only", "ENDOOM Only", "Full"
-};
-
 static const char *fuzzmode_strings[] = {
     "Blocky", "Refraction", "Shadow", "Original"
 };
@@ -3372,7 +3362,7 @@ static const char *screen_melt_strings[] = {"Off", "Melt", "Crossfade", "Fizzle"
 
 static const char *invul_mode_strings[] = {"Vanilla", "MBF", "Gray"};
 
-static void UpdatePwadEndoomItem(void);
+static const char *endoom_strings[] = {"Off", "PWAD Only", "Always"};
 
 static setup_menu_t gen_settings6[] = {
 
@@ -3386,6 +3376,8 @@ static setup_menu_t gen_settings6[] = {
 
     {"Invulnerability effect", S_CHOICE | S_STRICT, OFF_CNTR_X, M_SPC,
      {"invul_mode"}, .strings_id = str_invul_mode, .action = R_InvulMode},
+
+    {"Pause Demos in Menu", S_ONOFF, OFF_CNTR_X, M_SPC, {"menu_pause_demos"}},
 
     {"Demo progress bar", S_ONOFF, OFF_CNTR_X, M_SPC, {"demobar"}},
 
@@ -3405,10 +3397,12 @@ static setup_menu_t gen_settings6[] = {
     {"Game speed", S_NUM | S_STRICT | S_PCT, OFF_CNTR_X, M_SPC,
      {"realtic_clock_rate"}, .action = G_SetTimeScale},
 
-    {"Exit Sequence", S_CHOICE, OFF_CNTR_X, M_SPC, {"exit_sequence"},
-    .strings_id = str_exit_sequence, .action = UpdatePwadEndoomItem},
+    {"Show Quit Prompt", S_ONOFF, OFF_CNTR_X, M_SPC, {"quit_prompt"}},
 
-    {"PWAD ENDOOM Only", S_ONOFF, OFF_CNTR_X, M_SPC, {"endoom_pwad_only"}},
+    {"Play Quit Sound", S_ONOFF, OFF_CNTR_X, M_SPC, {"quit_sound"}},
+
+    {"Show ENDOOM Screen", S_CHOICE, OFF_CNTR_X, M_SPC, {"show_endoom"},
+     .strings_id = str_endoom},
 
     MI_END
 };
@@ -3417,11 +3411,6 @@ static setup_menu_t *gen_settings[] = {
     gen_settings1, gen_settings2, gen_settings3, gen_settings4,
     gen_settings5, gen_settings6, NULL
 };
-
-static void UpdatePwadEndoomItem(void)
-{
-    DisableItem(!D_EndDoomEnabled(), gen_settings6, "endoom_pwad_only");
-}
 
 void MN_UpdateDynamicResolutionItem(void)
 {
@@ -3914,7 +3903,7 @@ void MN_DrawStringCR(int cx, int cy, byte *cr1, byte *cr2, const char *ch)
         // desired color, colrngs[color]
         if (cr && cr2)
         {
-            V_DrawPatchTRTR(cx, cy, hu_font[c], cr, cr2);
+            V_DrawPatchTRTR(cx, cy, (crop_t){0}, hu_font[c], cr, cr2);
         }
         else
         {
@@ -5006,7 +4995,6 @@ static const char **selectstrings[] = {
     [str_curve] = curve_strings,
     [str_center_weapon] = center_weapon_strings,
     [str_screensize] = NULL,
-    [str_stlayout] = st_layout_strings,
     [str_show_widgets] = show_widgets_strings,
     [str_show_adv_widgets] = show_adv_widgets_strings,
     [str_stats_format] = stats_format_strings,
@@ -5035,7 +5023,7 @@ static const char **selectstrings[] = {
     [str_gyro_sens] = NULL,
     [str_gyro_accel] = NULL,
     [str_default_complevel] = default_complevel_strings,
-    [str_exit_sequence] = exit_sequence_strings,
+    [str_endoom] = endoom_strings,
     [str_death_use_action] = death_use_action_strings,
     [str_widescreen] = widescreen_strings,
     [str_bobbing_pct] = bobbing_pct_strings,
@@ -5138,12 +5126,13 @@ void MN_SetupResetMenu(void)
     UpdateWeaponSlotItems();
     MN_UpdateEqualizerItems();
     UpdateGainItems();
-    UpdatePwadEndoomItem();
 }
 
 void MN_BindMenuVariables(void)
 {
     BIND_NUM_MENU(resolution_scale, 0, UL);
+    BIND_BOOL_GENERAL(menu_pause_demos, false,
+        "Pause demo loop while menu is open");
     BIND_NUM_GENERAL(menu_backdrop, MENU_BG_DARK, MENU_BG_OFF, MENU_BG_TEXTURE,
         "Menu backdrop (0 = Off; 1 = Dark; 2 = Texture)");
     BIND_NUM_GENERAL(menu_help, MENU_HELP_AUTO, MENU_HELP_OFF, MENU_HELP_PAD,

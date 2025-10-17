@@ -434,8 +434,8 @@ static void cheat_god(void)
     mapthing_t mt = {0};
 
     P_MapStart();
-    mt.x = plyr->mo->x >> FRACBITS;
-    mt.y = plyr->mo->y >> FRACBITS;
+    mt.x = plyr->mo->x;
+    mt.y = plyr->mo->y;
     mt.angle = (plyr->mo->angle + ANG45/2)*(uint64_t)45/ANG45;
     mt.type = consoleplayer + 1;
     P_SpawnPlayer(&mt);
@@ -787,7 +787,7 @@ static void cheat_massacre(void)    // jff 2/01/98 kill all monsters
   P_MapStart();
   do
     while ((currentthinker=currentthinker->next)!=&thinkercap)
-      if (currentthinker->function.p1 == (actionf_p1)P_MobjThinker &&
+      if (currentthinker->function.p1 == P_MobjThinker &&
 	  !(((mobj_t *) currentthinker)->flags & mask) && // killough 7/20/98
 	  (((mobj_t *) currentthinker)->flags & MF_COUNTKILL ||
 	   ((mobj_t *) currentthinker)->type == MT_SKULL))
@@ -850,6 +850,14 @@ static void cheat_spechits(void)
         case 208:
         case 209:
         case 210:
+        case 243:
+        case 244:
+        case 262:
+        case 263:
+        case 264:
+        case 265:
+        case 266:
+        case 267:
         case 268:
         case 269:
         {
@@ -864,7 +872,7 @@ static void cheat_spechits(void)
 
       // [crispy] special without tag --> DR linedef type
       // do not change door direction if it is already moving
-      if (lines[i].tag == 0 &&
+      if (lines[i].args[0] == 0 &&
           lines[i].sidenum[1] != NO_INDEX &&
          (sides[lines[i].sidenum[1]].sector->floordata ||
           sides[lines[i].sidenum[1]].sector->ceilingdata))
@@ -891,7 +899,7 @@ static void cheat_spechits(void)
 
     for (th = thinkercap.next ; th != &thinkercap ; th = th->next)
     {
-      if (th->function.p1 == (actionf_p1)P_MobjThinker)
+      if (th->function.p1 == P_MobjThinker)
       {
         mobj_t *mo = (mobj_t *) th;
 
@@ -902,14 +910,14 @@ static void cheat_spechits(void)
           {
             dummy = *lines;
             dummy.special = (short)bossaction->special;
-            dummy.tag = (short)bossaction->tag;
+            dummy.args[0] = (short)bossaction->tag;
             // use special semantics for line activation to block problem types.
             if (!P_UseSpecialLine(mo, &dummy, 0, true))
               P_CrossSpecialLine(&dummy, 0, mo, true);
 
             speciallines++;
 
-            if (dummy.tag == 666)
+            if (dummy.args[0] == 666)
               trigger_keen = false;
           }
         }
@@ -924,12 +932,12 @@ static void cheat_spechits(void)
       if (gamemap == 7)
       {
         // Mancubi
-        dummy.tag = 666;
+        dummy.args[0] = 666;
         speciallines += EV_DoFloor(&dummy, lowerFloorToLowest);
         trigger_keen = false;
 
         // Arachnotrons
-        dummy.tag = 667;
+        dummy.args[0] = 667;
         speciallines += EV_DoFloor(&dummy, raiseToTexture);
       }
     }
@@ -938,7 +946,7 @@ static void cheat_spechits(void)
       if (gameepisode == 1)
       {
         // Barons of Hell
-        dummy.tag = 666;
+        dummy.args[0] = 666;
         speciallines += EV_DoFloor(&dummy, lowerFloorToLowest);
         trigger_keen = false;
       }
@@ -947,14 +955,14 @@ static void cheat_spechits(void)
         if (gamemap == 6)
         {
           // Cyberdemons
-          dummy.tag = 666;
+          dummy.args[0] = 666;
           speciallines += EV_DoDoor(&dummy, blazeOpen);
           trigger_keen = false;
         }
         else if (gamemap == 8)
         {
           // Spider Masterminds
-          dummy.tag = 666;
+          dummy.args[0] = 666;
           speciallines += EV_DoFloor(&dummy, lowerFloorToLowest);
           trigger_keen = false;
         }
@@ -965,7 +973,7 @@ static void cheat_spechits(void)
   // Keens (no matter which level they are on)
   if (trigger_keen)
   {
-    dummy.tag = 666;
+    dummy.args[0] = 666;
     speciallines += EV_DoDoor(&dummy, doorOpen);
   }
 
@@ -1041,7 +1049,7 @@ static void cheat_cycle_mobj(mobj_t **last_mobj, int *last_count,
   do
   {
     th = th->next;
-    if (th->function.p1 == (actionf_p1)P_MobjThinker)
+    if (th->function.p1 == P_MobjThinker)
     {
       mobj_t *mobj;
 
