@@ -21,6 +21,7 @@ option(ENABLE_UBSAN "Enable UBSan" OFF)
 option(ENABLE_TSAN "Enable TSan" OFF)
 option(ENABLE_HARDENING "Enable hardening flags" OFF)
 option(ENABLE_LTO "Enable link time optimization" OFF)
+option(ENABLE_FONTGEN "Generate textscreen font" OFF)
 
 option(WOOF_RANGECHECK "Enable bounds-checking of performance-sensitive functions" ON)
 option(WOOF_STRICT
@@ -172,8 +173,6 @@ endif()
 
 # Python 3
 find_package(Python3 COMPONENTS Interpreter)
-
-option(ENABLE_FONTGEN "Generate textscreen font" OFF)
 
 configure_file(config.h.in config.h)
 
