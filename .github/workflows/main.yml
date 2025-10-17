@@ -71,6 +71,7 @@ jobs:
           update: false
           install: >-
             diffutils
+            unzip
             ${{ matrix.config.msys-env }}-python-pip
             ${{ matrix.config.msys-env }}-gcc
             ${{ matrix.config.msys-env }}-cmake
