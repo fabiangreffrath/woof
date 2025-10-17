@@ -65,8 +65,7 @@ jobs:
           update: false
           install: >-
             diffutils
-            ${{ matrix.config.msys-env }}-python-yaml
-            ${{ matrix.config.msys-env }}-python-joblib
+            ${{ matrix.config.msys-env }}-python-pip
             ${{ matrix.config.msys-env }}-gcc
             ${{ matrix.config.msys-env }}-cmake
             ${{ matrix.config.msys-env }}-ninja
@@ -97,10 +96,15 @@ jobs:
       - name: Build
         run: cmake --build build
 
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+
       - name: Test
         if: github.event_name == 'workflow_dispatch'
         run: |
           cd demotest
+          pip install pyyaml joblib
           python3 demotest --jobs 4 --port ../build/src/woof
 
       - name: Install
