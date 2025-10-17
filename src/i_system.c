@@ -122,13 +122,11 @@ void I_MessageBox(const char *message, ...)
 // If run_if_error is true, the function is called if the exit
 // is due to an error (I_Error)
 
-#define M_ARRAY_INIT_CAPACITY 16
-#include "m_array.h"
-
 typedef struct atexit_listentry_s
 {
     atexit_func_t func;
     boolean run_on_error;
+    struct atexit_listentry_s *next;
     const char *name;
 } atexit_listentry_t;
 
@@ -138,13 +136,12 @@ static exit_priority_t exit_priority;
 void I_AtExitPrio(atexit_func_t func, boolean run_on_error,
                   const char *name, exit_priority_t priority)
 {
-    atexit_listentry_t entry;
-
-    entry.func = func;
-    entry.run_on_error = run_on_error;
-    entry.name = name;
-
-    array_push(exit_funcs[priority], entry);
+    atexit_listentry_t *entry = malloc(sizeof(*entry));
+    entry->func = func;
+    entry->run_on_error = run_on_error;
+    entry->next = exit_funcs[priority];
+    entry->name = name;
+    exit_funcs[priority] = entry;
 }
 
 // I_SafeExit
@@ -159,8 +156,10 @@ void I_SafeExit(int rc)
 
     for (; exit_priority < exit_priority_max; ++exit_priority)
     {
-        array_foreach(entry, exit_funcs[exit_priority])
+        while ((entry = exit_funcs[exit_priority]))
         {
+            exit_funcs[exit_priority] = exit_funcs[exit_priority]->next;
+
             if (rc == 0 || entry->run_on_error)
             {
                 I_Printf(VB_DEBUG, "Exit Sequence[%d]: %s (%d)",
