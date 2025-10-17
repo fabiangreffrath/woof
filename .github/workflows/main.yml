@@ -84,12 +84,22 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Build SDL3
+        if: runner.os != 'Windows'
         uses: libsdl-org/setup-sdl@main
         with:
-          shell: ${{ matrix.config.shell }}
-          build-type: Release
           install-linux-dependencies: true
           version: 3-head
+
+      - name: Build SDL3 (MSYS2)
+        if: matrix.config.shell == 'msys2 {0}'
+        run: |
+          wget -O sdl3-main.zip "https://github.com/libsdl-org/SDL/archive/refs/heads/main.zip"
+          unzip sdl3-main.zip
+
+          cd SDL-main
+          cmake -B build -G Ninja
+          cmake --build build
+          cmake --install build --prefix /usr/local
 
       - name: Configure
         env:
@@ -97,7 +107,7 @@ jobs:
         run: >-
           cmake -B build -G Ninja
           -DCMAKE_BUILD_TYPE=Release
-          -DENABLE_HARDENING=ON -DENABLE_LTO=ON
+          -DENABLE_WERROR=ON -DENABLE_HARDENING=ON -DENABLE_LTO=ON
           ${{ matrix.config.extra-options }}
 
       - name: Build
