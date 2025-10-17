@@ -113,8 +113,8 @@ static SDL_Window *screen;
 static SDL_Renderer *renderer;
 static SDL_Palette *palette;
 static SDL_Texture *texture;
-static SDL_Rect blit_rect = {0};
-static SDL_FRect renderer_rect = {0.0f};
+static SDL_Rect rect = {0};
+static SDL_FRect frect = {0.0f};
 
 static int window_x, window_y;
 static int window_width, window_height;
@@ -679,8 +679,8 @@ static void UpdateRender(void)
     // video buffer in order to emulate HOM effects.
     void *pixels;
     int dst_pitch;
-    SDL_LockTexture(texture, &blit_rect, &pixels, &dst_pitch);
-    int h = blit_rect.h;
+    SDL_LockTexture(texture, &rect, &pixels, &dst_pitch);
+    int h = rect.h;
     int src_pitch = video.width;
     pixel_t *dst = pixels;
     pixel_t *src = I_VideoBuffer;
@@ -693,7 +693,7 @@ static void UpdateRender(void)
     SDL_UnlockTexture(texture);
 
     SDL_RenderClear(renderer);
-    SDL_RenderTexture(renderer, texture, &renderer_rect, NULL);
+    SDL_RenderTexture(renderer, texture, &frect, NULL);
 }
 
 static uint64_t frametime_start, frametime_withoutpresent;
@@ -1296,9 +1296,9 @@ static void ResetResolution(int height)
 
 static void ResetLogicalSize(void)
 {
-    blit_rect.w = video.width;
-    blit_rect.h = video.height;
-    SDL_RectToFRect(&blit_rect, &renderer_rect);
+    rect.w = video.width;
+    rect.h = video.height;
+    SDL_RectToFRect(&rect, &frect);
 
     if (!SDL_SetRenderLogicalPresentation(renderer, video.width, actualheight,
         SDL_LOGICAL_PRESENTATION_LETTERBOX))

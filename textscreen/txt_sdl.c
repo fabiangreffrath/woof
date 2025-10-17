@@ -298,9 +298,7 @@ void TXT_UpdateScreenArea(int x, int y, int w, int h)
     SDL_UnlockTexture(texture);
 
     SDL_RenderClear(renderer);
-
     SDL_RenderTexture(renderer, texture, NULL, NULL);
-
     SDL_RenderPresent(renderer);
 }
 
