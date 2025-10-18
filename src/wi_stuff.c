@@ -1178,7 +1178,7 @@ static void WI_drawTime(int x, int y, int seconds, boolean suck)
     }
 
     seconds -= hours * 3600;
-    int minutes = seconds / 60;
+    const int minutes = seconds / 60;
     seconds -= minutes * 60;
 
     const short colon_width = SHORT(colon->width);
