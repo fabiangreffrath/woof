@@ -1159,50 +1159,41 @@ WI_drawPercent
 //          t      -- the time value to be drawn
 // Returns: void
 //
-static void
-WI_drawTime
-( int   x,
-  int   y,
-  int   t,
-  boolean suck )
+static void WI_drawTime(int x, int y, int seconds, boolean suck)
 {
-  const int32_t sucks_time = 100 * 60 * 60;
-  int   div;
-  int   n;
-
-  if (t<0)
-    return;
-
-  // otherwise known as 60*60 -1 == 3599
-  // [FG] total time for all levels never "sucks"
-  // Updated to match PrBoom's 100 hours, instead of vanilla's 1 hour
-  if (t < sucks_time || !suck) 
+    if (seconds < 0)
     {
-      div = 1;
-
-      do
-        {
-          n = (t / div) % 60;
-          x = WI_drawNum(x, y, n, 2) - SHORT(colon->width);
-          div *= 60;
-
-          // draw
-          if (div==60 || t / div)
-            V_DrawPatch(x, y, colon);
-      
-        } 
-      while (t / div && div < sucks_time);
-
-      // [FG] print at most in hhhh:mm:ss format
-      if ((n = (t / div)))
-      {
-        WI_drawNum(x, y, n, -1);
-      }
+        return;
     }
-  else
+
+    const int hours = seconds / 3600;
+
+    // [FG] total time for all levels never "sucks"
+    // Updated to match PrBoom's 100 hours, instead of vanilla's 1 hour
+    if (suck && hours >= 100)
     {
-      // "sucks"
-      V_DrawPatch(x - SHORT(sucks->width), y, sucks); 
+        // "sucks"
+        V_DrawPatch(x - SHORT(sucks->width), y, sucks);
+        return;
+    }
+
+    seconds -= hours * 3600;
+    int minutes = seconds / 60;
+    seconds -= minutes * 60;
+
+    x = WI_drawNum(x, y, seconds, 2) - SHORT(colon->width);
+    V_DrawPatch(x, y, colon);
+
+    // [FG] print at most in hhhh:mm:ss format
+    if (hours)
+    {
+        x = WI_drawNum(x, y, minutes, 2) - SHORT(colon->width);
+        V_DrawPatch(x, y, colon);
+        x = WI_drawNum(x, y, hours, -1);
+    }
+    else if (minutes)
+    {
+        x = WI_drawNum(x, y, minutes, -1);
     }
 }
 
@@ -2336,7 +2327,7 @@ static void WI_drawStats(void)
 
   // [FG] draw total time alongside level time and par time
   V_DrawPatch(SP_TIMEX, SP_TIMEY + 16, total);
-  WI_drawTime((wide_total ? SCREENWIDTH : SCREENWIDTH/2) - SP_TIMEX,
+  WI_drawTime((wide_total ? (SCREENWIDTH - SP_TIMEX) : (SCREENWIDTH/2 + 8)),
               SP_TIMEY + 16, cnt_total_time, false);
 }
 
