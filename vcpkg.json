@@ -17,25 +17,17 @@
         {
           "name": "pipewire",
           "platform": "linux"
+        },
+        {
+          "name": "pulseaudio",
+          "platform": "linux"
         }
       ]
     },
     {
       "name": "sdl3",
       "features": [
-        {
-          "name": "ibus",
-          "platform": "linux"
-        },
-        "vulkan",
-        {
-          "name": "wayland",
-          "platform": "linux"
-        },
-        {
-          "name": "x11",
-          "platform": "linux"
-        }
+        "vulkan"
       ]
     },
     {
@@ -48,6 +40,12 @@
     }
   ],
   "features": {
+    "discord-rpc": {
+      "description": "Build with Discord RPC support",
+      "dependencies": [
+        "discord-rpc"
+      ]
+    },
     "fluidsynth": {
       "description": "Build with FluidSynth support",
       "dependencies": [
@@ -65,15 +63,6 @@
       "dependencies": [
         {
           "name": "libxmp",
-          "default-features": false
-        }
-      ]
-    },
-    "discord-rpc": {
-      "description": "Build with Discord RPC support",
-      "dependencies": [
-        {
-          "name": "discord-rpc",
           "default-features": false
         }
       ]
