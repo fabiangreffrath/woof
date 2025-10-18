@@ -1166,15 +1166,17 @@ WI_drawTime
   int   t,
   boolean suck )
 {
-  
+  const int32_t sucks_time = 100 * 60 * 60;
   int   div;
   int   n;
 
   if (t<0)
     return;
 
+  // otherwise known as 60*60 -1 == 3599
   // [FG] total time for all levels never "sucks"
-  if (t <= 61*59 || !suck)  // otherwise known as 60*60 -1 == 3599
+  // Updated to match PrBoom's 100 hours, instead of vanilla's 1 hour
+  if (t < sucks_time || !suck) 
     {
       div = 1;
 
@@ -1189,7 +1191,7 @@ WI_drawTime
             V_DrawPatch(x, y, colon);
       
         } 
-      while (t / div && div < 3600);
+      while (t / div && div < sucks_time);
 
       // [FG] print at most in hhhh:mm:ss format
       if ((n = (t / div)))
@@ -2315,7 +2317,10 @@ static void WI_drawStats(void)
   const boolean wide_time = (wide_total && !draw_partime);
 
   V_DrawPatch(SP_TIMEX, SP_TIMEY, witime);
-  WI_drawTime((wide_time ? SCREENWIDTH : SCREENWIDTH/2) - SP_TIMEX,
+  // Why add a hardcoded +8 you ask?
+  // in oder to allow >1h long times, some minor alignment shifting is needed
+  // i.e. PrBoom switched SP_TIMEX to 8, instead of vanilla's 16
+  WI_drawTime((wide_time ? (SCREENWIDTH - SP_TIMEX) : (SCREENWIDTH/2 + 8)),
               SP_TIMEY, cnt_time, true);
 
   // Ty 04/11/98: redid logic: should skip only if with pwad but 
