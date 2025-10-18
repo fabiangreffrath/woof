@@ -24,7 +24,7 @@ jobs:
         config:
           - name: Linux GCC
             os: ubuntu-22.04
-            toolchain: $VCPKG_INSTALLATION_ROOT
+            vcpkg-root: $VCPKG_INSTALLATION_ROOT
             triplet: x64-linux-dynamic-release
             artifact-name: AppImage
             artifact-path: build/*.AppImage
@@ -33,7 +33,7 @@ jobs:
           - name: MSVC x64
             os: windows-latest
             arch: x64
-            toolchain: ${env:VCPKG_INSTALLATION_ROOT}
+            vcpkg-root: ${env:VCPKG_INSTALLATION_ROOT}
             triplet: x64-windows-static-release
             artifact-name: Win-64
             artifact-path: build/*.zip
@@ -44,7 +44,7 @@ jobs:
           - name: MSVC x86
             os: windows-latest
             arch: x86
-            toolchain: ${env:VCPKG_INSTALLATION_ROOT}
+            vcpkg-root: ${env:VCPKG_INSTALLATION_ROOT}
             triplet: x86-windows-static-release
             artifact-name: Win-32
             artifact-path: build/*.zip
@@ -54,7 +54,7 @@ jobs:
 
           - name: macOS uni
             os: macos-latest
-            toolchain: $VCPKG_INSTALLATION_ROOT
+            vcpkg-root: $VCPKG_INSTALLATION_ROOT
             triplet: arm64-osx
             triplet-x64: x64-osx
             artifact-name: Mac-uni
@@ -66,11 +66,19 @@ jobs:
 
       - name: Install dependencies (Linux)
         if: runner.os == 'Linux'
+        run: >-
+          sudo apt-get update && sudo apt-get install
+          libasound2-dev libpulse-dev libaudio-dev libfribidi-dev libjack-dev
+          libsndio-dev libx11-dev libxext-dev libxrandr-dev libxcursor-dev
+          libxfixes-dev libxi-dev libxss-dev libxtst-dev libxkbcommon-dev
+          libdrm-dev libgbm-dev libgl1-mesa-dev libgles2-mesa-dev
+          libegl1-mesa-dev libdbus-1-dev libibus-1.0-dev libudev-dev
+          libpipewire-0.3-dev libwayland-dev libdecor-0-dev liburing-dev
+
+      - name: Update vcpkg
         run: |
-          sudo sed -i 's/# deb-src/deb-src/' /etc/apt/sources.list
-          sudo apt-get update
-          sudo apt-get install ninja-build
-          sudo apt-get build-dep libsdl2-dev
+          cd ${{ matrix.config.vcpkg-root }}
+          git pull
           
       - name: Developer Command Prompt
         if: runner.os == 'Windows'
@@ -89,8 +97,7 @@ jobs:
         run: >-
           cmake -B build -G Ninja -DCMAKE_BUILD_TYPE=Release
           -DENABLE_WERROR=ON -DENABLE_HARDENING=ON -DENABLE_LTO=ON
-          -DWITH_DISCORD_RPC=ON
-          -DCMAKE_TOOLCHAIN_FILE="${{ matrix.config.toolchain }}/scripts/buildsystems/vcpkg.cmake"
+          -DCMAKE_TOOLCHAIN_FILE="${{ matrix.config.vcpkg-root }}/scripts/buildsystems/vcpkg.cmake"
           -DVCPKG_TARGET_TRIPLET=${{ matrix.config.triplet }}
           ${{ matrix.config.extra-options }}
 
@@ -99,9 +106,8 @@ jobs:
         run: >-
           cmake -B build-x64 -G Ninja -DCMAKE_BUILD_TYPE=Release
           -DENABLE_WERROR=ON -DENABLE_HARDENING=ON -DENABLE_LTO=ON
-          -DWITH_DISCORD_RPC=ON
           -DCMAKE_OSX_ARCHITECTURES=x86_64
-          -DCMAKE_TOOLCHAIN_FILE="${{ matrix.config.toolchain }}/scripts/buildsystems/vcpkg.cmake"
+          -DCMAKE_TOOLCHAIN_FILE="${{ matrix.config.vcpkg-root }}/scripts/buildsystems/vcpkg.cmake"
           -DVCPKG_TARGET_TRIPLET=${{ matrix.config.triplet-x64 }}
           ${{ matrix.config.extra-options }}
 
