@@ -78,6 +78,7 @@ jobs:
       - name: Update vcpkg
         run: |
           cd ${{ matrix.config.vcpkg-root }}
+          git stash
           git pull
           
       - name: Developer Command Prompt
