@@ -1181,19 +1181,21 @@ static void WI_drawTime(int x, int y, int seconds, boolean suck)
     int minutes = seconds / 60;
     seconds -= minutes * 60;
 
-    x = WI_drawNum(x, y, seconds, 2) - SHORT(colon->width);
+    const short colon_width = SHORT(colon->width);
+
+    x = WI_drawNum(x, y, seconds, 2) - colon_width;
     V_DrawPatch(x, y, colon);
 
     // [FG] print at most in hhhh:mm:ss format
     if (hours)
     {
-        x = WI_drawNum(x, y, minutes, 2) - SHORT(colon->width);
+        x = WI_drawNum(x, y, minutes, 2) - colon_width;
         V_DrawPatch(x, y, colon);
-        x = WI_drawNum(x, y, hours, -1);
+        WI_drawNum(x, y, hours, -1);
     }
     else if (minutes)
     {
-        x = WI_drawNum(x, y, minutes, -1);
+        WI_drawNum(x, y, minutes, -1);
     }
 }
 
