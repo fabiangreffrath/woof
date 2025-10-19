@@ -48,10 +48,16 @@ void *M_ArenaAlloc(arena_t *arena, size_t size, size_t align)
 {
     array_foreach_type(block, arena->deleted, block_t)
     {
-        if (block->size == size && block->align == align
-            && array_size(block->ptrs))
+        if (block->size == size && block->align == align)
         {
-            return array_pop(block->ptrs);
+            if (array_size(block->ptrs))
+            {
+                return array_pop(block->ptrs);
+            }
+            else
+            {
+                break;
+            }
         }
     }
 
