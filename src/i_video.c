@@ -1665,6 +1665,9 @@ void I_ResetScreen(void)
     CreateVideoBuffer();
     ResetLogicalSize();
 
+    SDL_SetTextureScaleMode(texture, smooth_scaling ? SDL_SCALEMODE_PIXELART
+                                                    : SDL_SCALEMODE_NEAREST);
+
     static aspect_ratio_mode_t oldwidescreen;
     if (oldwidescreen != widescreen)
     {
