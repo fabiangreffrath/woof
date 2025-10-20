@@ -49,33 +49,33 @@ typedef enum
     UDMF_BASE = (0),
 
     // Base games
-    UDMF_DOOM = (1 << 0),
-    UDMF_HERETIC = (1 << 1),
-    UDMF_HEXEN = (1 << 2),
-    UDMF_STRIFE = (1 << 3),
+    UDMF_DOOM    = (1u << 0),
+    UDMF_HERETIC = (1u << 1),
+    UDMF_HEXEN   = (1u << 2),
+    UDMF_STRIFE  = (1u << 3),
 
     // Doom extensions
-    UDMF_BOOM = (1 << 4),
-    UDMF_MBF = (1 << 5),
-    UDMF_MBF21 = (1 << 6),
-    UDMF_ID24 = (1 << 7),
-    UDMF_MBF2Y = (1 << 8),
+    UDMF_BOOM  = (1u << 4),
+    UDMF_MBF   = (1u << 5),
+    UDMF_MBF21 = (1u << 6),
+    UDMF_ID24  = (1u << 7),
+    UDMF_MBF2Y = (1u << 8),
 
     // General behavior
-    UDMF_LINE_PARAM = (1 << 9),
-    UDMF_THING_PARAM = (1 << 10),
+    UDMF_LINE_PARAM  = (1u << 9),
+    UDMF_THING_PARAM = (1u << 10),
 
-    UDMF_SIDEDEF_OFFSET = (1 << 11),
-    UDMF_SIDEDEF_SCROLL = (1 << 12),
-    UDMF_SIDEDEF_LIGHT = (1 << 13),
+    UDMF_SIDEDEF_OFFSET = (1u << 11),
+    UDMF_SIDEDEF_SCROLL = (1u << 12),
+    UDMF_SIDEDEF_LIGHT  = (1u << 13),
 
-    UDMF_SECTOR_OFFSET = (1 << 14),
-    UDMF_SECTOR_SCROLL = (1 << 15),
-    UDMF_SECTOR_LIGHT = (1 << 16),
-    UDMF_SECTOR_ANGLE = (1 << 17),
+    UDMF_SECTOR_OFFSET = (1u << 14),
+    UDMF_SECTOR_SCROLL = (1u << 15),
+    UDMF_SECTOR_LIGHT  = (1u << 16),
+    UDMF_SECTOR_ANGLE  = (1u << 17),
 
     // Compatibility
-    UDMF_COMP_NO_ARG0 = (1 << 31),
+    UDMF_COMP_NO_ARG0 = (1u << 31),
 } UDMF_Features_t;
 
 typedef struct
