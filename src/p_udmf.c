@@ -678,7 +678,7 @@ static void UDMF_ParseThing(scanner_t *s)
         {
             thing.type = UDMF_ScanInt(s);
         }
-        else if (BASE_PROP(id))
+        else if (PROP(id, UDMF_THING_PARAM))
         {
             thing.id = UDMF_ScanInt(s);
         }
