@@ -1015,15 +1015,13 @@ static void CreateTranMapBaseDir(void)
 
 static void CreateTranMapPaletteDir(void)
 {
-  int length;
-
   if (!tranmap_base_dir)
     CreateTranMapBaseDir();
 
   if (!playpal_string[0])
     CalculatePlaypalChecksum();
 
-  length = strlen(tranmap_base_dir) + 34; // "/<cksum (32)>\0"
+  int32_t length = strlen(tranmap_base_dir) + 34; // "/<cksum (32)>\0"
   tranmap_palette_dir = Z_Malloc(length, PU_STATIC, 0);
   snprintf(tranmap_palette_dir, length, "%s/%s", tranmap_base_dir, playpal_string);
 
@@ -1107,20 +1105,22 @@ static byte* Alpha_TranMap(uint32_t alpha)
 
   if (!alpha_tranmap[alpha])
   {
-    const int32_t dir_length = strlen(tranmap_palette_dir) + 16; // "/tranmap_99.dat\0"
-    char *filename = Z_Malloc(dir_length, PU_STATIC, 0);
-    byte *buffer = NULL;
-
     if (!tranmap_palette_dir)
       CreateTranMapPaletteDir();
 
-    snprintf(filename, dir_length, "%s/tranmap_%02d.dat", tranmap_palette_dir, alpha);
+    const int32_t path_length = strlen(tranmap_palette_dir) + 16; // "/tranmap_99.dat\0"
+    char *filename = Z_Malloc(path_length, PU_STATIC, 0);
+    snprintf(filename, path_length, "%s/tranmap_%02d.dat", tranmap_palette_dir, alpha);
 
-    const int32_t file_length = M_ReadFile(filename, &buffer);
-    if (buffer && file_length != tranmap_lump_length)
+    byte *buffer = NULL;
+    if (M_FileExistsNotDir(filename))
     {
-      Z_Free(buffer);
-      buffer = NULL;
+      const int32_t file_length = M_ReadFile(filename, &buffer);
+      if (buffer && file_length != tranmap_lump_length)
+      {
+        Z_Free(buffer);
+        buffer = NULL;
+      }
     }
 
     if (!buffer)
