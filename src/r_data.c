@@ -1176,6 +1176,9 @@ void R_InitTranMap(int progress)
     if (progress)
       I_Printf(VB_INFO, "........");
   }
+
+  if (progress)
+    I_Printf(VB_DEBUG, "Playpal checksum: %s", playpal_string);
 }
 
 //
