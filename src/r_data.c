@@ -975,8 +975,7 @@ int R_ColormapNumForName(const char *name)
 // pre-computation
 static byte playpal_digest[16];
 static char playpal_string[33];
-static char* tranmap_dir;
-static char* playpal_dir;
+static char *tranmap_dir, *playpal_dir;
 
 // filter percent defined in config file
 int32_t tran_filter_pct = 66;
@@ -994,7 +993,7 @@ static void CalculatePlaypalChecksum(void)
   MD5Update(&md5, W_CacheLumpNum(lump, PU_STATIC), W_LumpLength(lump));
   MD5Final(playpal_digest, &md5);
 
-  for (int i = 0; i < sizeof(playpal_digest); ++i)
+  for (int32_t i = 0; i < sizeof(playpal_digest); ++i)
   {
     sprintf(&playpal_string[i * 2], "%02x", playpal_digest[i]);
   }
@@ -1004,7 +1003,7 @@ static void CalculatePlaypalChecksum(void)
 static void CreateTranMapBaseDir(void)
 {
   const char* data_root = D_DoomPrefDir();
-  const int32_t length = strlen(data_root) + 10; // "/tranmaps\0"
+  const int32_t length = strlen(data_root) + sizeof("/tranmaps");
 
   tranmap_dir = Z_Malloc(length, PU_STATIC, 0);
   snprintf(tranmap_dir, length, "%s/tranmaps", data_root);
@@ -1015,13 +1014,16 @@ static void CreateTranMapBaseDir(void)
 static void CreateTranMapPaletteDir(void)
 {
   if (!tranmap_dir)
+  {
     CreateTranMapBaseDir();
+  }
 
   if (!playpal_string[0])
+  {
     CalculatePlaypalChecksum();
+  }
 
-  // Using vanilla's playpal checksum as example
-  int32_t length = strlen(tranmap_dir) + sizeof("/4804c7f34b5285c334a7913dd98fae16");
+  int32_t length = strlen(tranmap_dir) + sizeof(playpal_string) + 1;
   playpal_dir = Z_Malloc(length, PU_STATIC, 0);
   snprintf(playpal_dir, length, "%s/%s", tranmap_dir, playpal_string);
 
@@ -1085,7 +1087,9 @@ static byte* GenerateAlphaTranMapData(uint32_t alpha, boolean progress)
 
     // [FG] finish progress line
     if (progress)
+    {
       I_PutChar(VB_INFO, '\n');
+    }
   }
 
   return buffer;
@@ -1099,7 +1103,9 @@ static byte* Alpha_TranMap(uint32_t alpha, boolean progress)
   if (!alpha_tranmap[alpha])
   {
     if (!playpal_dir)
+    {
       CreateTranMapPaletteDir();
+    }
 
     const int32_t length = strlen(playpal_dir) + sizeof("/tranmap_XY.dat");
     char *filename = Z_Malloc(length, PU_STATIC, 0);
@@ -1152,11 +1158,15 @@ void R_InitTranMap(int progress)
     int32_t alpha = strictmode ? default_tranmap_alpha : tran_filter_pct;
     main_tranmap = Alpha_TranMap(alpha, progress);
     if (progress)
+    {
       I_Printf(VB_INFO, "........");
+    }
   }
 
   if (progress)
+  {
     I_Printf(VB_DEBUG, "Playpal checksum: %s", playpal_string);
+  }
 }
 
 //
