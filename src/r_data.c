@@ -25,6 +25,7 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "i_video.h"
 #include "md5.h"
 #include "d_iwad.h"
 #include "d_think.h"
@@ -1031,80 +1032,59 @@ static void CreateTranMapPaletteDir(void)
 
 static byte* GenerateAlphaTranMapData(uint32_t alpha, boolean progress)
 {
-  const byte* playpal = W_CacheLumpName("PLAYPAL", PU_STATIC);
-  const int32_t w1 = (alpha << TSC) / 100;
-  const int32_t w2 = (1l << TSC) - w1;
+  byte* playpal = W_CacheLumpName("PLAYPAL", PU_STATIC);
 
   // killough 4/11/98
   byte* buffer = Z_Malloc(tranmap_lump_length, PU_STATIC, 0);
+  byte* tp = buffer;
 
-  int32_t pal[3][256];
-  int32_t tot[256];
-  int32_t pal_w1[3][256];
+  // [crispy]
+  enum {r, g, b};
+  byte blend[3];
+  const int32_t inv_alpha = (100 - alpha);
 
-  // First, convert playpal into long int type, and transpose array,
-  // for fast inner-loop calculations. Precompute tot array.
+  // Background
+  for (int32_t i = 0; i < 256; i++)
   {
-    register int32_t i = 255;
-    register const byte *p = playpal + 255 * 3;
-
-    do
+    if (!(i & 31) && progress)
     {
-      register int t, d;
-      pal_w1[0][i] = (pal[0][i] = t = p[0]) * w1;
-      d = t * t;
-      pal_w1[1][i] = (pal[1][i] = t = p[1]) * w1;
-      d += t * t;
-      pal_w1[2][i] = (pal[2][i] = t = p[2]) * w1;
-      d += t * t;
-      p -= 3;
-      tot[i] = d << (TSC - 1);
+      I_PutChar(VB_INFO, '.');
     }
-    while (--i >= 0);
-  }
 
-  // Next, compute all entries using minimum arithmetic.
-  {
-    byte *tp = buffer;
-
-    for (int32_t i = 0; i < 256; i++)
+    // killough 10/98: display flashing disk
+    if (!(~i & 15))
     {
-      const int32_t r1 = pal[0][i] * w2;
-      const int32_t g1 = pal[1][i] * w2;
-      const int32_t b1 = pal[2][i] * w2;
-
-      if (!(i & 31) && progress)
-        I_PutChar(VB_INFO, '.');
-
-      // killough 10/98: display flashing disk
-      if (!(~i & 15))
+      if (i & 32)
       {
-        if (i & 32)
-          I_EndRead();
-        else
-          I_BeginRead(DISK_ICON_THRESHOLD);
+        I_EndRead();
+      }
+      else
+      {
+        I_BeginRead(DISK_ICON_THRESHOLD);
+      }
+    }
+
+    // Foreground
+    for (int32_t j = 0; j < 256; j++, tp++)
+    {
+      const byte *bg = playpal + 3 * i;
+      const byte *fg = playpal + 3 * j;
+      blend[r] = MIN(fg[r] + bg[r], 255);
+      blend[g] = MIN(fg[g] + bg[g], 255);
+      blend[b] = MIN(fg[b] + bg[b], 255);
+
+      // [crispy] shortcut: identical foreground and background
+      if (i == j)
+      {
+        *tp++ = i;
+        continue;
       }
 
-      for (int32_t j = 0; j < 256; j++, tp++)
-      {
-        register int32_t color = 255;
-        register int32_t err;
-        const int32_t r = pal_w1[0][j] + r1;
-        const int32_t g = pal_w1[1][j] + g1;
-        const int32_t b = pal_w1[2][j] + b1;
-        int32_t best = INT_MAX;
-
-        do
-        {
-          err = tot[color] - pal[0][color] * r - pal[1][color] * g - pal[2][color] * b;
-          if (err < best)
-          {
-            best = err;
-            *tp = color;
-          }
-        }
-        while (--color >= 0);
-      }
+      // [crispy] blended color
+      blend[r] = (alpha * fg[r] + inv_alpha * bg[r]) / 100;
+      blend[g] = (alpha * fg[g] + inv_alpha * bg[g]) / 100;
+      blend[b] = (alpha * fg[b] + inv_alpha * bg[b]) / 100;
+      *tp++ = I_GetNearestColor(playpal, blend[r], blend[g], blend[b]);
     }
 
     // [FG] finish progress line
