@@ -1237,8 +1237,8 @@ static double CurrentAspectRatio(void)
             h = 9;
             break;
         case RATIO_21_9:
-            w = 21;
-            h = 9;
+            w = 64; // Marketing!
+            h = 27; // https://en.wikipedia.org/wiki/21%3A9_aspect_ratio
             break;
         case RATIO_32_9:
             w = 32;
