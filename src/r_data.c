@@ -25,6 +25,8 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "i_video.h"
+#include "md5.h"
 #include "d_iwad.h"
 #include "d_think.h"
 #include "doomdef.h"
@@ -966,149 +968,204 @@ int R_ColormapNumForName(const char *name)
 // By Lee Killough 2/21/98
 //
 
-int tran_filter_pct = 66;       // filter percent
+//
+// Adapted improvements from DSDA
+//
 
-#define TSC 12        /* number of fixed point digits in filter percent */
+// pre-computation
+static byte playpal_digest[16];
+static char playpal_string[33];
+static char *tranmap_dir, *playpal_dir;
+
+// filter percent defined in config file
+int32_t tran_filter_pct = 66;
+// strict mode
+static const int32_t default_tranmap_alpha = 66;
+static const int32_t tranmap_lump_length = 256 * 256;
+static byte* alpha_tranmap[100];
+
+static void CalculatePlaypalChecksum(void)
+{
+  const int32_t lump = W_GetNumForName("PLAYPAL");
+  struct MD5Context md5;
+
+  MD5Init(&md5);
+  MD5Update(&md5, W_CacheLumpNum(lump, PU_STATIC), W_LumpLength(lump));
+  MD5Final(playpal_digest, &md5);
+
+  for (int32_t i = 0; i < sizeof(playpal_digest); ++i)
+  {
+    sprintf(&playpal_string[i * 2], "%02x", playpal_digest[i]);
+  }
+  playpal_string[32] = '\0';
+}
+
+static void CreateTranMapBaseDir(void)
+{
+  const char* data_root = D_DoomPrefDir();
+  const int32_t length = strlen(data_root) + sizeof("/tranmaps");
+
+  tranmap_dir = Z_Malloc(length, PU_STATIC, 0);
+  snprintf(tranmap_dir, length, "%s/tranmaps", data_root);
+
+  M_MakeDirectory(tranmap_dir);
+}
+
+static void CreateTranMapPaletteDir(void)
+{
+  if (!tranmap_dir)
+  {
+    CreateTranMapBaseDir();
+  }
+
+  if (!playpal_string[0])
+  {
+    CalculatePlaypalChecksum();
+  }
+
+  int32_t length = strlen(tranmap_dir) + sizeof(playpal_string) + 1;
+  playpal_dir = Z_Malloc(length, PU_STATIC, 0);
+  snprintf(playpal_dir, length, "%s/%s", tranmap_dir, playpal_string);
+
+  M_MakeDirectory(playpal_dir);
+}
+
+static byte* GenerateAlphaTranMapData(uint32_t alpha, boolean progress)
+{
+  byte* playpal = W_CacheLumpName("PLAYPAL", PU_STATIC);
+
+  // killough 4/11/98
+  byte* buffer = Z_Malloc(tranmap_lump_length, PU_STATIC, 0);
+  byte* tp = buffer;
+
+  // [crispy]
+  enum {r, g, b};
+  byte blend[3];
+  const int32_t inv_alpha = (100 - alpha);
+
+  // Background
+  for (int32_t i = 0; i < 256; i++)
+  {
+    const byte *bg = playpal + 3 * i;
+
+    if (!(i & 31) && progress)
+    {
+      I_PutChar(VB_INFO, '.');
+    }
+
+    // killough 10/98: display flashing disk
+    if (!(~i & 15))
+    {
+      if (i & 32)
+      {
+        I_EndRead();
+      }
+      else
+      {
+        I_BeginRead(DISK_ICON_THRESHOLD);
+      }
+    }
+
+    // Foreground
+    for (int32_t j = 0; j < 256; j++, tp++)
+    {
+      // [crispy] shortcut: identical foreground and background
+      if (i == j)
+      {
+        *tp++ = i;
+        continue;
+      }
+
+      const byte *fg = playpal + 3 * j;
+
+      // [crispy] blended color
+      blend[r] = (alpha * fg[r] + inv_alpha * bg[r]) / 100;
+      blend[g] = (alpha * fg[g] + inv_alpha * bg[g]) / 100;
+      blend[b] = (alpha * fg[b] + inv_alpha * bg[b]) / 100;
+      *tp++ = I_GetNearestColor(playpal, blend[r], blend[g], blend[b]);
+    }
+
+    // [FG] finish progress line
+    if (progress)
+    {
+      I_PutChar(VB_INFO, '\n');
+    }
+  }
+
+  return buffer;
+}
+
+static byte* Alpha_TranMap(uint32_t alpha, boolean progress)
+{
+  if (alpha > 99)
+    return NULL;
+
+  if (!alpha_tranmap[alpha])
+  {
+    if (!playpal_dir)
+    {
+      CreateTranMapPaletteDir();
+    }
+
+    const int32_t length = strlen(playpal_dir) + sizeof("/tranmap_XY.dat");
+    char *filename = Z_Malloc(length, PU_STATIC, 0);
+    snprintf(filename, length, "%s/tranmap_%02d.dat", playpal_dir, alpha);
+
+    byte *buffer = NULL;
+    if (M_FileExistsNotDir(filename))
+    {
+      const int32_t file_length = M_ReadFile(filename, &buffer);
+      if (buffer && file_length != tranmap_lump_length)
+      {
+        Z_Free(buffer);
+        buffer = NULL;
+      }
+    }
+
+    if (!buffer)
+    {
+      buffer = GenerateAlphaTranMapData(alpha, progress);
+      M_WriteFile(filename, buffer, tranmap_lump_length);
+    }
+
+    alpha_tranmap[alpha] = buffer;
+  }
+
+  // Use cached translucency filter if it's available
+  return alpha_tranmap[alpha];
+}
 
 void R_InitTranMap(int progress)
 {
-  int lump = W_CheckNumForName("TRANMAP");
   //!
   // @category mod
   //
   // Forces a (re-)building of the translucency and color translation tables.
   //
-  int force_rebuild = M_CheckParm("-tranmap");
+  const int32_t force_rebuild = M_CheckParm("-tranmap");
 
   // If a tranlucency filter map lump is present, use it
+  const int32_t lump = W_CheckNumForName("TRANMAP");
 
-  if (lump != -1 && !force_rebuild)  // Set a pointer to the translucency filter maps.
-    main_tranmap = W_CacheLumpNum(lump, PU_STATIC);   // killough 4/11/98
-  else
-    {   // Compose a default transparent filter map based on PLAYPAL.
-      unsigned char *playpal = W_CacheLumpName("PLAYPAL", PU_STATIC);
-      char *fname = M_StringJoin(D_DoomPrefDir(), DIR_SEPARATOR_S, "tranmap.dat");
-      struct {
-        unsigned char pct;
-        unsigned char playpal[256*3]; // [FG] a palette has 256 colors saved as byte triples
-      } cache;
-      FILE *cachefp = M_fopen(fname,"r+b");
-
-      if (main_tranmap == NULL) // [FG] prevent memory leak
-      {
-      main_tranmap = Z_Malloc(256*256, PU_STATIC, 0);  // killough 4/11/98
-      }
-
-      // Use cached translucency filter if it's available
-
-      if (!cachefp ? cachefp = M_fopen(fname,"w+b") , 1 : // [FG] open for writing and reading
-          fread(&cache, 1, sizeof cache, cachefp) != sizeof cache ||
-          cache.pct != tran_filter_pct ||
-          memcmp(cache.playpal, playpal, sizeof cache.playpal) ||
-          fread(main_tranmap, 256, 256, cachefp) != 256 ||  // killough 4/11/98
-          force_rebuild)
-        {
-          long pal[3][256], tot[256], pal_w1[3][256];
-          long w1 = ((unsigned long) tran_filter_pct<<TSC)/100;
-          long w2 = (1l<<TSC)-w1;
-
-          // First, convert playpal into long int type, and transpose array,
-          // for fast inner-loop calculations. Precompute tot array.
-
-          {
-            register int i = 255;
-            register const unsigned char *p = playpal+255*3;
-            do
-              {
-                register long t,d;
-                pal_w1[0][i] = (pal[0][i] = t = p[0]) * w1;
-                d = t*t;
-                pal_w1[1][i] = (pal[1][i] = t = p[1]) * w1;
-                d += t*t;
-                pal_w1[2][i] = (pal[2][i] = t = p[2]) * w1;
-                d += t*t;
-                p -= 3;
-                tot[i] = d << (TSC-1);
-              }
-            while (--i>=0);
-          }
-
-          // Next, compute all entries using minimum arithmetic.
-
-          {
-            int i,j;
-            byte *tp = main_tranmap;
-            for (i=0;i<256;i++)
-              {
-                long r1 = pal[0][i] * w2;
-                long g1 = pal[1][i] * w2;
-                long b1 = pal[2][i] * w2;
-
-                if (!(i & 31) && progress)
-		  I_PutChar(VB_INFO, '.');
-
-		if (!(~i & 15))
-		{
-		  if (i & 32)       // killough 10/98: display flashing disk
-		    I_EndRead();
-		  else
-		    I_BeginRead(DISK_ICON_THRESHOLD);
-		}
-
-                for (j=0;j<256;j++,tp++)
-                  {
-                    register int color = 255;
-                    register long err;
-                    long r = pal_w1[0][j] + r1;
-                    long g = pal_w1[1][j] + g1;
-                    long b = pal_w1[2][j] + b1;
-                    long best = LONG_MAX;
-                    do
-                      if ((err = tot[color] - pal[0][color]*r
-                          - pal[1][color]*g - pal[2][color]*b) < best)
-                        best = err, *tp = color;
-                    while (--color >= 0);
-                  }
-              }
-            // [FG] finish progress line
-            if (progress)
-              I_PutChar(VB_INFO, '\n');
-          }
-          if (cachefp && !force_rebuild) // write out the cached translucency map
-            {
-              cache.pct = tran_filter_pct;
-              memcpy(cache.playpal, playpal, sizeof cache.playpal); // [FG] a palette has 256 colors saved as byte triples
-              fseek(cachefp, 0, SEEK_SET);
-              fwrite(&cache, 1, sizeof cache, cachefp);
-              fwrite(main_tranmap, 256, 256, cachefp);
-            }
-        }
-      else
-	if (progress)
-	  I_Printf(VB_INFO, "........");
-
-      if (cachefp)              // killough 11/98: fix filehandle leak
-	fclose(cachefp);
-
-      Z_ChangeTag(playpal, PU_CACHE);
-      free(fname);
-    }
-
-  //!
-  // @category mod
-  // @arg <name>
-  //
-  // Dump tranmap lump.
-  //
-
-  int p = M_CheckParmWithArgs("-dumptranmap", 1);
-  if (p > 0)
+  // Set a pointer to the translucency filter maps.
+  if (lump != -1 && !force_rebuild)
   {
-      char *path = AddDefaultExtension(myargv[p + 1], ".lmp");
+    // killough 4/11/98
+    main_tranmap = W_CacheLumpNum(lump, PU_STATIC);
+  }
+  else
+  {
+    int32_t alpha = strictmode ? default_tranmap_alpha : tran_filter_pct;
+    main_tranmap = Alpha_TranMap(alpha, progress);
+    if (progress)
+    {
+      I_Printf(VB_INFO, "........");
+    }
+  }
 
-      M_WriteFile(path, main_tranmap, 256 * 256);
-
-      free(path);
+  if (progress)
+  {
+    I_Printf(VB_DEBUG, "Playpal checksum: %s", playpal_string);
   }
 }
 
