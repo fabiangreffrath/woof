@@ -980,8 +980,6 @@ static char* playpal_dir;
 
 // filter percent defined in config file
 int32_t tran_filter_pct = 66;
-// number of fixed point digits in filter percent
-static const int32_t TSC = 12;
 // strict mode
 static const int32_t default_tranmap_alpha = 66;
 static const int32_t tranmap_lump_length = 256 * 256;
