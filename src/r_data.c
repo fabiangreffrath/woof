@@ -1151,7 +1151,8 @@ void R_InitTranMap(int progress)
   }
   else
   {
-    main_tranmap = Alpha_TranMap(default_tranmap_alpha, progress);
+    int32_t alpha = strictmode ? default_tranmap_alpha : tran_filter_pct;
+    main_tranmap = Alpha_TranMap(alpha, progress);
     if (progress)
       I_Printf(VB_INFO, "........");
   }
