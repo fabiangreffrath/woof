@@ -1044,6 +1044,8 @@ static byte* GenerateAlphaTranMapData(uint32_t alpha, boolean progress)
   // Background
   for (int32_t i = 0; i < 256; i++)
   {
+    const byte *bg = playpal + 3 * i;
+
     if (!(i & 31) && progress)
     {
       I_PutChar(VB_INFO, '.');
@@ -1065,18 +1067,14 @@ static byte* GenerateAlphaTranMapData(uint32_t alpha, boolean progress)
     // Foreground
     for (int32_t j = 0; j < 256; j++, tp++)
     {
-      const byte *bg = playpal + 3 * i;
-      const byte *fg = playpal + 3 * j;
-      blend[r] = MIN(fg[r] + bg[r], 255);
-      blend[g] = MIN(fg[g] + bg[g], 255);
-      blend[b] = MIN(fg[b] + bg[b], 255);
-
       // [crispy] shortcut: identical foreground and background
       if (i == j)
       {
         *tp++ = i;
         continue;
       }
+
+      const byte *fg = playpal + 3 * j;
 
       // [crispy] blended color
       blend[r] = (alpha * fg[r] + inv_alpha * bg[r]) / 100;
