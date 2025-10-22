@@ -868,6 +868,21 @@ static void UDMF_LoadSectors(void)
         sectors[i].ceiling_xoffs = DoubleToFixed(udmf_sectors[i].xpanningceiling);
         sectors[i].ceiling_yoffs = DoubleToFixed(udmf_sectors[i].ypanningceiling);
 
+        // TODO: Add ZDoom-logic-based scroller
+        if (udmf_sectors[i].scrollfloormode && (udmf_sectors[i].xscrollfloor || udmf_sectors[i].yscrollfloor))
+        {
+            Add_ScrollerStatic(sc_floor, i,
+                               DoubleToFixed(udmf_sectors[i].xscrollfloor),
+                               DoubleToFixed(udmf_sectors[i].yscrollfloor));
+        }
+
+        if (udmf_sectors[i].scrollceilingmode && (udmf_sectors[i].xscrollceiling || udmf_sectors[i].yscrollceiling))
+        {
+            Add_ScrollerStatic(sc_ceiling, i,
+                               DoubleToFixed(udmf_sectors[i].xscrollceiling),
+                               DoubleToFixed(udmf_sectors[i].yscrollceiling));
+        }
+
         sectors[i].thinglist = NULL;
         sectors[i].touching_thinglist = NULL; // phares 3/14/98
 
