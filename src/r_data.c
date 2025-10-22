@@ -974,8 +974,8 @@ int R_ColormapNumForName(const char *name)
 // pre-computation
 static byte playpal_digest[16];
 static char playpal_string[33];
-static char* tranmap_base_dir;
-static char* tranmap_palette_dir;
+static char* tranmap_dir;
+static char* playpal_dir;
 
 // filter percent defined in config file
 int32_t tran_filter_pct = 66;
@@ -1007,25 +1007,26 @@ static void CreateTranMapBaseDir(void)
   const char* data_root = D_DoomPrefDir();
   const int32_t length = strlen(data_root) + 10; // "/tranmaps\0"
 
-  tranmap_base_dir = Z_Malloc(length, PU_STATIC, 0);
-  snprintf(tranmap_base_dir, length, "%s/tranmaps", data_root);
+  tranmap_dir = Z_Malloc(length, PU_STATIC, 0);
+  snprintf(tranmap_dir, length, "%s/tranmaps", data_root);
 
-  M_MakeDirectory(tranmap_base_dir);
+  M_MakeDirectory(tranmap_dir);
 }
 
 static void CreateTranMapPaletteDir(void)
 {
-  if (!tranmap_base_dir)
+  if (!tranmap_dir)
     CreateTranMapBaseDir();
 
   if (!playpal_string[0])
     CalculatePlaypalChecksum();
 
-  int32_t length = strlen(tranmap_base_dir) + 34; // "/<cksum (32)>\0"
-  tranmap_palette_dir = Z_Malloc(length, PU_STATIC, 0);
-  snprintf(tranmap_palette_dir, length, "%s/%s", tranmap_base_dir, playpal_string);
+  // Using vanilla's playpal checksum as example
+  int32_t length = strlen(tranmap_dir) + sizeof("/4804c7f34b5285c334a7913dd98fae16");
+  playpal_dir = Z_Malloc(length, PU_STATIC, 0);
+  snprintf(playpal_dir, length, "%s/%s", tranmap_dir, playpal_string);
 
-  M_MakeDirectory(tranmap_palette_dir);
+  M_MakeDirectory(playpal_dir);
 }
 
 static byte* GenerateAlphaTranMapData(uint32_t alpha, boolean progress)
@@ -1121,12 +1122,12 @@ static byte* Alpha_TranMap(uint32_t alpha, boolean progress)
 
   if (!alpha_tranmap[alpha])
   {
-    if (!tranmap_palette_dir)
+    if (!playpal_dir)
       CreateTranMapPaletteDir();
 
-    const int32_t path_length = strlen(tranmap_palette_dir) + 16; // "/tranmap_99.dat\0"
-    char *filename = Z_Malloc(path_length, PU_STATIC, 0);
-    snprintf(filename, path_length, "%s/tranmap_%02d.dat", tranmap_palette_dir, alpha);
+    const int32_t length = strlen(playpal_dir) + sizeof("/tranmap_XY.dat");
+    char *filename = Z_Malloc(length, PU_STATIC, 0);
+    snprintf(filename, length, "%s/tranmap_%02d.dat", playpal_dir, alpha);
 
     byte *buffer = NULL;
     if (M_FileExistsNotDir(filename))
