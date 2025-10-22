@@ -1004,7 +1004,7 @@ static void CalculatePlaypalChecksum(void)
 
 static void CreateTranMapBaseDir(void)
 {
-  const char* data_root = M_DataDir();
+  const char* data_root = D_DoomPrefDir();
   const int32_t length = strlen(data_root) + 10; // "/tranmaps\0"
 
   tranmap_base_dir = Z_Malloc(length, PU_STATIC, 0);
@@ -1028,7 +1028,7 @@ static void CreateTranMapPaletteDir(void)
   M_MakeDirectory(tranmap_palette_dir);
 }
 
-static byte* GenerateAlphaTranMapData(uint32_t alpha)
+static byte* GenerateAlphaTranMapData(uint32_t alpha, boolean progress)
 {
   const byte* playpal = W_CacheLumpName("PLAYPAL", PU_STATIC);
   const int32_t w1 = (alpha << TSC) / 100;
@@ -1072,6 +1072,18 @@ static byte* GenerateAlphaTranMapData(uint32_t alpha)
       const int32_t g1 = pal[1][i] * w2;
       const int32_t b1 = pal[2][i] * w2;
 
+      if (!(i & 31) && progress)
+        I_PutChar(VB_INFO, '.');
+
+      // killough 10/98: display flashing disk
+      if (!(~i & 15))
+      {
+        if (i & 32)
+          I_EndRead();
+        else
+          I_BeginRead(DISK_ICON_THRESHOLD);
+      }
+
       for (int32_t j = 0; j < 256; j++, tp++)
       {
         register int32_t color = 255;
@@ -1093,12 +1105,16 @@ static byte* GenerateAlphaTranMapData(uint32_t alpha)
         while (--color >= 0);
       }
     }
+
+    // [FG] finish progress line
+    if (progress)
+      I_PutChar(VB_INFO, '\n');
   }
 
   return buffer;
 }
 
-static byte* Alpha_TranMap(uint32_t alpha)
+static byte* Alpha_TranMap(uint32_t alpha, boolean progress)
 {
   if (alpha > 99)
     return NULL;
@@ -1125,7 +1141,7 @@ static byte* Alpha_TranMap(uint32_t alpha)
 
     if (!buffer)
     {
-      buffer = GenerateAlphaTranMapData(alpha);
+      buffer = GenerateAlphaTranMapData(alpha, progress);
       M_WriteFile(filename, buffer, tranmap_lump_length);
     }
 
@@ -1156,7 +1172,9 @@ void R_InitTranMap(int progress)
   }
   else
   {
-    main_tranmap = Alpha_TranMap(default_tranmap_alpha);
+    main_tranmap = Alpha_TranMap(default_tranmap_alpha, progress);
+    if (progress)
+      I_Printf(VB_INFO, "........");
   }
 }
 
