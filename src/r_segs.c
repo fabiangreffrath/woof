@@ -128,13 +128,6 @@ void R_RenderMaskedSegRange(drawseg_t *ds, int x1, int x2)
 
   // [crispy] smoother fake contrast
   lightnum += curline->fakecontrast;
-#if 0
-  if (curline->v1->y == curline->v2->y)
-    lightnum--;
-  else
-    if (curline->v1->x == curline->v2->x)
-      lightnum++;
-#endif
 
   walllightindex = fixedcolormapindex ? fixedcolormapindex
                                       : CLAMP(lightnum, 0, LIGHTLEVELS - 1);
@@ -730,6 +723,9 @@ void R_StoreWallRange(const int start, const int stop)
         // hexen flowing water
         || backsector->special != frontsector->special
         || backsector->tint != frontsector->tint
+
+        // Clipping flags
+        || (sidedef->midtexture && (sidedef->flags & SF_CLIP_MIDTEX || sidedef->flags & SF_WRAP_MIDTEX))
         ;
 
       markceiling = worldhigh != worldtop
@@ -749,6 +745,9 @@ void R_StoreWallRange(const int start, const int stop)
         // killough 4/17/98: draw ceilings if different light levels
         || backsector->ceilinglightsec != frontsector->ceilinglightsec
         || backsector->tint != frontsector->tint
+
+        // Clipping flags
+        || (sidedef->midtexture && (sidedef->flags & SF_CLIP_MIDTEX || sidedef->flags & SF_WRAP_MIDTEX))
         ;
 
       if (backsector->interpceilingheight <= frontsector->interpfloorheight
@@ -817,12 +816,7 @@ void R_StoreWallRange(const int start, const int stop)
 
           // [crispy] smoother fake contrast
           lightnum += curline->fakecontrast;
-#if 0
-          if (curline->v1->y == curline->v2->y)
-            lightnum--;
-          else if (curline->v1->x == curline->v2->x)
-            lightnum++;
-#endif
+
           if (fixedcolormapindex)
             walllightindex = fixedcolormapindex;
           else

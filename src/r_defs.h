@@ -22,6 +22,7 @@
 
 // Some more or less basic data types
 // we depend on.
+#include "doomdata.h"
 #include "m_fixed.h"
 #include "tables.h"
 
@@ -197,6 +198,8 @@ typedef struct side_s
   short bottomtexture;
   short midtexture;
   sector_t* sector;      // Sector the SideDef is facing.
+
+  sidedef_flags_t flags;
 
   // killough 4/4/98, 4/11/98: highest referencing special linedef's type,
   // or lump number of special effect. Allows texture names to be overloaded
