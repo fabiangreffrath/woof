@@ -167,15 +167,15 @@ typedef struct
     // UDMF Extensions
     int32_t flags; // TODO: FIXME: LATER
 
-    int32_t lightfloor, lightceiling;
+    int32_t lightfloor, lightceiling; // TODO: FIXME: LATER
 
     double xpanningfloor,   ypanningfloor;
     double xpanningceiling, ypanningceiling;
 
-    double xscrollfloor,   yscrollfloor; // TODO: FIXME: LATER
-    double xscrollceiling, yscrollceiling; // TODO: FIXME: LATER
+    double xscrollfloor,   yscrollfloor;
+    double xscrollceiling, yscrollceiling;
 
-    int32_t scrollfloormode, scrollceilingmode; // TODO: FIXME: LATER
+    int32_t scrollfloormode, scrollceilingmode;
 
     double rotationfloor, rotationceiling;
 } UDMF_Sector_t;
@@ -650,6 +650,30 @@ static void UDMF_ParseSector(scanner_t *s)
         else if (PROP(ypanningceiling, UDMF_SECTOR_OFFSET))
         {
             sector.ypanningceiling = UDMF_ScanDouble(s);
+        }
+        else if (PROP(xscrollfloor, UDMF_SECTOR_SCROLL))
+        {
+            sector.xscrollfloor = UDMF_ScanDouble(s);
+        }
+        else if (PROP(yscrollfloor, UDMF_SECTOR_SCROLL))
+        {
+            sector.yscrollfloor = UDMF_ScanDouble(s);
+        }
+        else if (PROP(xscrollceiling, UDMF_SECTOR_SCROLL))
+        {
+            sector.xscrollceiling = UDMF_ScanDouble(s);
+        }
+        else if (PROP(yscrollceiling, UDMF_SECTOR_SCROLL))
+        {
+            sector.yscrollceiling = UDMF_ScanDouble(s);
+        }
+        else if (PROP(scrollfloormode, UDMF_SECTOR_SCROLL))
+        {
+            sector.scrollfloormode = UDMF_ScanInt(s);
+        }
+        else if (PROP(scrollceilingmode, UDMF_SECTOR_SCROLL))
+        {
+            sector.scrollceilingmode = UDMF_ScanInt(s);
         }
         else
         {
