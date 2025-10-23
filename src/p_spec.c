@@ -3082,6 +3082,119 @@ void T_ScrollAdapter(mobj_t *mobj)
     T_Scroll((scroll_t *)mobj);
 }
 
+static void T_ParamScrollFloor(scroll_t *s)
+{
+  if (!s->dx && !s->dy)
+    return;
+
+  sector_t* sec = sectors + s->affectee;
+
+  if (s->type & SCROLL_TEXTURE)
+  {
+    if (sec->old_floor_offs_gametic != gametic)
+    {
+      sec->old_floor_xoffs = sec->floor_xoffs;
+      sec->old_floor_yoffs = sec->floor_yoffs;
+      sec->old_floor_offs_gametic = gametic;
+    }
+    sec->floor_xoffs -= s->dx;
+    sec->floor_yoffs += s->dy;
+  }
+
+  if (s->type & (SCROLL_STATIC | SCROLL_PLAYER | SCROLL_MONSTER))
+  {
+    fixed_t height = sec->floorheight;
+    fixed_t waterheight = (sec->heightsec != -1 && sectors[sec->heightsec].floorheight > height)
+                        ? sectors[sec->heightsec].floorheight
+                        : INT_MIN;
+
+    for (msecnode_t* node = sec->touching_thinglist; node; node = node->m_snext)
+    {
+      mobj_t* thing = node->m_thing;
+
+      // Move objects only if on floor or underwater, non-floating, and clipped
+      if (!(thing->flags & MF_NOCLIP) && (!(thing->flags & MF_NOGRAVITY || thing->z > height) || thing->z < waterheight))
+      {
+        boolean scroll_it = false;
+
+        if ((s->type & SCROLL_MONSTER && (thing->type == MT_SKULL || thing->flags & MF_COUNTKILL))
+            || (s->type & SCROLL_PLAYER && thing->player)
+            || (s->type & SCROLL_STATIC))
+        {
+          scroll_it = true;
+        }
+
+        if (scroll_it)
+        {
+          thing->momx += s->dx * 3 / 32;
+          thing->momy += s->dy * 3 / 32;
+          thing->intflags |= MIF_SCROLLING;
+        }
+      }
+    }
+  }
+}
+
+static void T_ParamScrollCeiling(scroll_t *s)
+{
+  if (!s->dx && !s->dy)
+    return;
+
+  sector_t* sec = sectors + s->affectee;
+
+  if (s->type & SCROLL_TEXTURE)
+  {
+    if (sec->old_ceil_offs_gametic != gametic)
+    {
+        sec->old_ceiling_xoffs = sec->ceiling_xoffs;
+        sec->old_ceiling_yoffs = sec->ceiling_yoffs;
+        sec->old_ceil_offs_gametic = gametic;
+    }
+    sec->ceiling_xoffs -= s->dx;
+    sec->ceiling_yoffs += s->dy;
+  }
+
+  if (s->type & (SCROLL_STATIC | SCROLL_PLAYER | SCROLL_MONSTER))
+  {
+    for (msecnode_t* node = sec->touching_thinglist; node; node = node->m_snext)
+    {
+      mobj_t* thing = node->m_thing;
+
+      if (!(thing->flags & MF_NOCLIP)
+          && thing->flags & MF_SPAWNCEILING
+          && thing->flags & MF_NOGRAVITY
+          && thing->z + thing->height == sec->ceilingheight)
+      {
+        boolean scroll_it = false;
+
+        if ((s->type & SCROLL_MONSTER && (thing->type == MT_SKULL || thing->flags & MF_COUNTKILL))
+            || (s->type & SCROLL_PLAYER && thing->player)
+            || (s->type & SCROLL_STATIC))
+        {
+          scroll_it = true;
+        }
+
+        if (scroll_it)
+        {
+          thing->momx += s->dx * 3 / 32;
+          thing->momy += s->dy * 3 / 32;
+          thing->intflags |= MIF_SCROLLING;
+        }
+      }
+    }
+  }
+}
+
+void T_ParamScrollFloorAdapter(mobj_t *mobj)
+{
+    T_ParamScrollFloor((scroll_t *)mobj);
+}
+
+void T_ParamScrollCeilingAdapter(mobj_t *mobj)
+{
+    T_ParamScrollCeiling((scroll_t *)mobj);
+}
+
 //
 // Add_Scroller()
 //
@@ -3114,6 +3227,23 @@ void Add_Scroller(scroller_t type, fixed_t dx, fixed_t dy, int32_t control,
     s->last_height =
       sectors[control].floorheight + sectors[control].ceilingheight;
   s->affectee = affectee;
+  P_AddThinker(&s->thinker);
+}
+
+void Add_ParamSectorScroller(scroller_t type, int32_t affectee,
+                             boolean isCeiling, fixed_t dx, fixed_t dy)
+{
+  scroll_t *s = arena_alloc(thinkers_arena, scroll_t);
+  s->thinker.function.p1 = isCeiling ? T_ParamScrollCeilingAdapter
+                                     : T_ParamScrollFloorAdapter;
+  s->type = type;
+  s->dx = dx;
+  s->dy = dy;
+  s->affectee = affectee;
+
+  s->control = -1;
+  s->accel = s->vdx = s->vdy = s->last_height = 0;
+
   P_AddThinker(&s->thinker);
 }
 
