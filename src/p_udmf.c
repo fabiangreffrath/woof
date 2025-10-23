@@ -69,10 +69,10 @@ typedef enum
     UDMF_SIDEDEF_SCROLL = (1u << 12),
     UDMF_SIDEDEF_LIGHT  = (1u << 13),
 
-    UDMF_SECTOR_OFFSET = (1u << 14),
-    UDMF_SECTOR_SCROLL = (1u << 15),
-    UDMF_SECTOR_LIGHT  = (1u << 16),
-    UDMF_SECTOR_ANGLE  = (1u << 17),
+    UDMF_SECTOR_ANGLE  = (1u << 14),
+    UDMF_SECTOR_OFFSET = (1u << 15),
+    UDMF_SECTOR_SCROLL = (1u << 16),
+    UDMF_SECTOR_LIGHT  = (1u << 17),
 
     // Compatibility
     UDMF_COMP_NO_ARG0 = (1u << 31),
@@ -517,6 +517,46 @@ static void UDMF_ParseSidedef(scanner_t *s)
         else if (BASE_PROP(texturebottom))
         {
             UDMF_ScanLumpName(s, side.texturebottom);
+        }
+        else if (PROP(light, UDMF_SIDEDEF_LIGHT))
+        {
+            side.light = UDMF_ScanInt(s);
+        }
+        else if (PROP(light_top, UDMF_SIDEDEF_LIGHT))
+        {
+            side.light_top = UDMF_ScanInt(s);
+        }
+        else if (PROP(light_mid, UDMF_SIDEDEF_LIGHT))
+        {
+            side.light_mid = UDMF_ScanInt(s);
+        }
+        else if (PROP(light_bottom, UDMF_SIDEDEF_LIGHT))
+        {
+            side.light_bottom = UDMF_ScanInt(s);
+        }
+        else if (PROP(lightabsolute, UDMF_SIDEDEF_LIGHT))
+        {
+            side.flags |= UDMF_ScanFlag(s, SF_ABS_LIGHT);
+        }
+        else if (PROP(lightabsolute_top, UDMF_SIDEDEF_LIGHT))
+        {
+            side.flags |= UDMF_ScanFlag(s, SF_ABS_LIGHT_TOP);
+        }
+        else if (PROP(lightabsolute_mid, UDMF_SIDEDEF_LIGHT))
+        {
+            side.flags |= UDMF_ScanFlag(s, SF_ABS_LIGHT_MID);
+        }
+        else if (PROP(lightabsolute_bottom, UDMF_SIDEDEF_LIGHT))
+        {
+            side.flags |= UDMF_ScanFlag(s, SF_ABS_LIGHT_BOTTOM);
+        }
+        else if (PROP(nofakecontrast, UDMF_SIDEDEF_LIGHT))
+        {
+            side.flags |= UDMF_ScanFlag(s, SF_NO_FAKE_CONTRAST);
+        }
+        else if (PROP(smoothfakecontrast, UDMF_SIDEDEF_LIGHT))
+        {
+            side.flags |= UDMF_ScanFlag(s, SF_SMOOTH_CONTRAST);
         }
         else if (PROP(offsetx_top, UDMF_SIDEDEF_OFFSET))
         {
