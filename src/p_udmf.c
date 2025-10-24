@@ -135,14 +135,14 @@ typedef struct
     int32_t offsety;
 
     // UDMF Extensions
-    int32_t flags; // TODO: FIXME: LATER
+    int32_t flags;
 
     int32_t xscroll, yscroll;
 
-    int32_t light; // TODO: FIXME: LATER
-    int32_t light_top; // TODO: FIXME: LATER
-    int32_t light_mid; // TODO: FIXME: LATER
-    int32_t light_bottom; // TODO: FIXME: LATER
+    int32_t light;
+    int32_t light_top;
+    int32_t light_mid;
+    int32_t light_bottom;
 
     double offsetx_top,    offsety_top;
     double offsetx_mid,    offsety_mid;
@@ -307,8 +307,8 @@ static void UDMF_ParseNamespace(scanner_t *s)
         udmf_features |=
             UDMF_DOOM | UDMF_BOOM | UDMF_MBF | UDMF_MBF21 | UDMF_LINE_PARAM
             | UDMF_THING_PARAM | UDMF_SIDEDEF_OFFSET | UDMF_SIDEDEF_SCROLL
-            | UDMF_SIDEDEF_LIGHT | UDMF_SECTOR_OFFSET | UDMF_SECTOR_SCROLL
-            | UDMF_SECTOR_LIGHT | UDMF_SECTOR_ANGLE;
+            | UDMF_SIDEDEF_LIGHT | UDMF_SECTOR_ANGLE | UDMF_SECTOR_OFFSET
+            | UDMF_SECTOR_SCROLL | UDMF_SECTOR_LIGHT;
     }
     else
     {
@@ -996,6 +996,12 @@ static void UDMF_LoadSideDefs(void)
         sides[i].offsety_mid = DoubleToFixed(udmf_sidedefs[i].offsety_mid);
         sides[i].offsetx_bottom = DoubleToFixed(udmf_sidedefs[i].offsetx_bottom);
         sides[i].offsety_bottom = DoubleToFixed(udmf_sidedefs[i].offsety_bottom);
+
+        sides[i].flags = udmf_sidedefs[i].flags;
+        sides[i].light = udmf_sidedefs[i].light;
+        sides[i].light_top = udmf_sidedefs[i].light_top;
+        sides[i].light_mid = udmf_sidedefs[i].light_mid;
+        sides[i].light_bottom = udmf_sidedefs[i].light_bottom;
 
         if (udmf_sidedefs[i].xscroll || udmf_sidedefs[i].yscroll)
         {
