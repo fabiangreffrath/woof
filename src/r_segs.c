@@ -92,23 +92,18 @@ static int    *maskedtexturecol; // [FG] 32-bit integer math
 
 static void SetLight(const int32_t lightlevel)
 {
-    if (!fixedcolormap)
+    if (!fixedcolormapindex)
     {
         int32_t lightnum = (lightlevel >> LIGHTSEGSHIFT) + extralight;
-
         // [crispy]
         lightnum += curline->fakecontrast;
-
-        if (fixedcolormapindex)
-        {
-            walllightindex = fixedcolormapindex;
-        }
-        else
-        {
-            walllightindex = CLAMP(lightnum, 0, LIGHTLEVELS - 1);
-        }
-        walllightoffset = &scalelightoffset[walllightindex * MAXLIGHTSCALE];
+        walllightindex = CLAMP(lightnum, 0, LIGHTLEVELS - 1);
     }
+    else
+    {
+        walllightindex = fixedcolormapindex;
+    }
+    walllightoffset = &scalelightoffset[walllightindex * MAXLIGHTSCALE];
 }
 
 static void CalculateLighting(lighttable_t *const thiscolormap, fixed_t scale)
@@ -198,7 +193,7 @@ void R_RenderMaskedSegRange(drawseg_t *ds, int x1, int x2)
   // killough 4/13/98: get correct lightlevel for 2s normal textures
   rw_lightlevel = (R_FakeFlat(frontsector, &tempsec, NULL, NULL, false)->lightlevel);
 
-  SideLightLevel_Mid(sidedef);
+  SideLightLevel_Mid(curline->sidedef);
 
   maskedtexturecol = ds->maskedtexturecol;
 
@@ -448,7 +443,7 @@ static void R_RenderSegLoop(lighttable_t * thiscolormap)
           dc_source = R_GetColumn(midtexture, texturecolumn + FixedToInt(curline->sidedef->interpoffsetx_mid));
           dc_texheight = textureheight[midtexture]>>FRACBITS; // killough
           dc_brightmap = texturebrightmap[midtexture];
-          SideLightLevel_Mid(sidedef);
+          SideLightLevel_Mid(curline->sidedef);
           CalculateLighting(thiscolormap, rw_scale);
           colfunc ();
           ceilingclip[rw_x] = viewheight;
@@ -474,7 +469,7 @@ static void R_RenderSegLoop(lighttable_t * thiscolormap)
                   dc_source = R_GetColumn(toptexture, texturecolumn + FixedToInt(curline->sidedef->interpoffsetx_top));
                   dc_texheight = textureheight[toptexture]>>FRACBITS;//killough
                   dc_brightmap = texturebrightmap[toptexture];
-                  SideLightLevel_Top(sidedef);
+                  SideLightLevel_Top(curline->sidedef);
                   CalculateLighting(thiscolormap, rw_scale);
                   colfunc ();
                   ceilingclip[rw_x] = mid;
@@ -503,7 +498,7 @@ static void R_RenderSegLoop(lighttable_t * thiscolormap)
                   dc_source = R_GetColumn(bottomtexture, texturecolumn + FixedToInt(curline->sidedef->interpoffsetx_bottom));
                   dc_texheight = textureheight[bottomtexture]>>FRACBITS; // killough
                   dc_brightmap = texturebrightmap[bottomtexture];
-                  SideLightLevel_Bottom(sidedef);
+                  SideLightLevel_Bottom(curline->sidedef);
                   CalculateLighting(thiscolormap, rw_scale);
                   colfunc ();
                   floorclip[rw_x] = mid;
