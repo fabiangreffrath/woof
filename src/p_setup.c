@@ -1591,7 +1591,9 @@ void P_SegLengths()
 
         int64_t dx = li->v2->r_x - li->v1->r_x;
         int64_t dy = li->v2->r_y - li->v1->r_y;
-        sidedef_flags_t side_flags = li->sidedef->flags;
+        sidedef_flags_t flags = (li->sidedef) // mini segs!!
+                              ? li->sidedef->flags
+                              : 0;
 
         li->r_length = (uint32_t)(sqrt((double)dx*dx + (double)dy*dy)/2);
 
@@ -1606,33 +1608,26 @@ void P_SegLengths()
             li->r_angle = li->angle;
         }
 
-        if (side_flags & SF_NO_FAKE_CONTRAST)
+        if (flags & SF_NO_FAKE_CONTRAST)
         {
             li->fakecontrast = 0;
         }
         else
         {
-            if (!(side_flags & SF_SMOOTH_CONTRAST))
-            { // vanilla
-                if (!dy)
-                  li->fakecontrast--;
-                else if (!dx)
-                  li->fakecontrast++;
-                else
-                  li->fakecontrast = 0;
-            }
-            else
-            { // [crispy]
-                if (!dy)
-                    li->fakecontrast = -LIGHTBRIGHT;
-                else if (abs(finesine[li->r_angle >> ANGLETOFINESHIFT]) < rightangle)
+            // vanilla
+            if (!dy)
+              li->fakecontrast = -LIGHTBRIGHT;
+            else if (!dx)
+              li->fakecontrast = +LIGHTBRIGHT;
+
+            // [crispy]
+            // TODO: smooth out even more
+            if (flags & SF_SMOOTH_CONTRAST)
+            {
+                if (abs(finesine[li->r_angle >> ANGLETOFINESHIFT]) < rightangle)
                     li->fakecontrast = -(LIGHTBRIGHT >> 1);
-                else if (!dx)
-                    li->fakecontrast = LIGHTBRIGHT;
                 else if (abs(finecosine[li->r_angle >> ANGLETOFINESHIFT]) < rightangle)
                     li->fakecontrast = LIGHTBRIGHT >> 1;
-                else
-                    li->fakecontrast = 0;
             }
         }
     }
