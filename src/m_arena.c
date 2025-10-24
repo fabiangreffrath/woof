@@ -91,6 +91,13 @@ void *M_ArenaAlloc(arena_t *arena, size_t size, size_t align)
     return ptr;
 }
 
+void *M_ArenaCalloc(arena_t *arena, size_t size, size_t align)
+{
+    void *ptr = M_ArenaAlloc(arena, size, align);
+    memset(ptr, 0, size);
+    return ptr;
+}
+
 void M_ArenaFree(arena_t *arena, void *ptr, size_t size, size_t align)
 {
     array_foreach_type(block, arena->deleted, block_t)

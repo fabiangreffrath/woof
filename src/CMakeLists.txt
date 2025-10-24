@@ -61,9 +61,12 @@ set(WOOF_SOURCES
     i_timer.c              i_timer.h
     i_video.c              i_video.h
     info.c                 info.h
+                           kf_common.h
+    kf_file.c
+    kf_memory.c
+    m_arena.c              m_arena.h
     m_argv.c               m_argv.h
                            m_array.h
-    m_arena.c              m_arena.h
     m_bbox.c               m_bbox.h
     m_cheat.c              m_cheat.h
     m_config.c             m_config.h
@@ -108,7 +111,7 @@ set(WOOF_SOURCES
     p_floor.c
     p_genlin.c
     p_inter.c              p_inter.h
-    p_keyframe.c           p_keyframe.h
+                           p_keyframe.h
     p_lights.c
     p_map.c                p_map.h
     p_maputl.c             p_maputl.h

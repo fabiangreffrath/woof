@@ -16,18 +16,23 @@
 #ifndef M_ARENA_H
 #define M_ARENA_H
 
-#include <stddef.h>
 #include <stdalign.h>
+#include <stddef.h>
+#include <stdint.h>
 
 typedef struct arena_s arena_t;
 
 #define arena_alloc(arena, type) \
     (type *)M_ArenaAlloc(arena, sizeof(type), alignof(type))
 
+#define arena_calloc(arena, type) \
+    (type *)M_ArenaCalloc(arena, sizeof(type), alignof(type))
+
 #define arena_alloc_num(arena, type, num) \
     (type *)M_ArenaAlloc(arena, sizeof(type) * (num), alignof(type))
 
 void *M_ArenaAlloc(arena_t *arena, size_t size, size_t align);
+void *M_ArenaCalloc(arena_t *arena, size_t size, size_t align);
 
 #define arena_free(arena, ptr, type) \
     M_ArenaFree(arena, ptr, sizeof(type), alignof(type))

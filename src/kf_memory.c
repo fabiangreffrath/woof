@@ -21,16 +21,12 @@
 #include "g_game.h"
 #include "i_system.h"
 #include "m_arena.h"
-#include "m_array.h"
 #include "m_random.h"
-#include "p_dirty.h"
 #include "p_map.h"
 #include "p_maputl.h"
 #include "p_setup.h"
 #include "p_spec.h"
 #include "p_tick.h"
-#include "r_defs.h"
-#include "r_state.h"
 #include "s_musinfo.h"
 #include "s_sound.h"
 #include "st_widgets.h"
@@ -39,6 +35,8 @@
 #include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
+
+#define KEYFRAME_BUFFER_SIZE (256 * 1024)
 
 typedef struct keyframe_data_s
 {
@@ -188,148 +186,17 @@ static void UnArchivePlayers(void)
     }
 }
 
-static void ArchiveWorld(void)
-{
-    int i;
-    const sector_t *sector;
+#define writep_mobj writep
+#define writep_thinker writep
+#define readp_mobj readp
+#define readp_thinker readp
 
-    // do sectors
-    for (i = 0, sector = sectors; i < numsectors; i++, sector++)
-    {
-        // killough 10/98: save full floor & ceiling heights, including fraction
-        write32(sector->floorheight,
-                sector->ceilingheight,
-                sector->floor_xoffs,
-                sector->floor_yoffs,
-                sector->ceiling_xoffs,
-                sector->ceiling_yoffs,
-                sector->floor_rotation,
-                sector->ceiling_rotation,
-                sector->tint);
+#define ArchiveThingList(sector) writep(sector->thinglist)
+#define PrepareArchiveTouchingThingList(sector) writep(sector->touching_thinglist)
+#define UnArchiveThingList(sector) sector->thinglist = readp()
+#define PrepareUnArchiveTouchingThingList(sector) sector->touching_thinglist = readp()
 
-        write16(sector->floorpic,
-                sector->ceilingpic,
-                sector->lightlevel,
-                sector->special, // needed?   yes -- transfer types
-                sector->tag);    // needed?   need them -- killough 
-
-        // Woof!
-        writep(sector->soundtarget,
-               sector->thinglist,
-               sector->floordata,
-               sector->ceilingdata,
-               sector->lightingdata,
-               sector->touching_thinglist);
-    }
-
-    const line_t *line;
-
-    int size = array_size(dirty_lines);
-    write32(size);
-    for (i = 0; i < size; ++i)
-    {
-        line = dirty_lines[i];
-        write16(line->special);
-    }
-
-    const side_t *side;
-
-    size = array_size(dirty_sides);
-    write32(size);
-    for (i = 0; i < size; ++i)
-    {
-        side = dirty_sides[i];
-
-        write16(side->toptexture,
-                side->bottomtexture,
-                side->midtexture);
-
-        write32(side->textureoffset,
-                side->rowoffset);
-    }
-}
-
-static void UnArchiveWorld(void)
-{
-    int i;
-    sector_t *sector;
-
-    // do sectors
-    for (i = 0, sector = sectors; i < numsectors; i++, sector++)
-    {
-        sector->floorheight = read32();
-        sector->ceilingheight = read32();
-        sector->floor_xoffs = read32();
-        sector->floor_yoffs = read32();
-        sector->ceiling_xoffs = read32();
-        sector->ceiling_yoffs = read32();
-        sector->floor_rotation = read32();
-        sector->ceiling_rotation = read32();
-        sector->tint = read32();
-
-        sector->floorpic = read16();
-        sector->ceilingpic = read16();
-        sector->lightlevel = read16();
-        sector->special = read16();
-        sector->tag = read16();
-
-        // Woof!
-        sector->soundtarget = readp();
-        sector->thinglist = readp();
-        sector->floordata = readp();
-        sector->ceilingdata = readp();
-        sector->lightingdata = readp();
-        sector->touching_thinglist = readp();
-    }
-
-    line_t *line;
-    const partial_line_t *clean_line;
-
-    int oldsize = read32();
-    int size = array_size(dirty_lines);
-    for (i = 0; i < size; ++i)
-    {
-        line = dirty_lines[i];
-        if (i < oldsize)
-        {
-            line->special = read16();
-        }
-        else
-        {
-            clean_line = &clean_lines[i];
-            line->special = clean_line->special;
-            line->dirty = false;
-        }
-    }
-
-    side_t *side;
-    const partial_side_t *clean_side;
-
-    oldsize = read32();
-    size = array_size(dirty_sides);
-    for (i = 0; i < size; ++i)
-    {
-        side = dirty_sides[i];
-        if (i < oldsize)
-        {
-            side->toptexture = read16();
-            side->bottomtexture = read16();
-            side->midtexture = read16();    
-            side->textureoffset = read32();
-            side->rowoffset = read32(); 
-        }
-        else
-        {
-            clean_side = &clean_sides[i];
-            side->toptexture = clean_side->toptexture;
-            side->bottomtexture = clean_side->bottomtexture;
-            side->midtexture = clean_side->midtexture;
-            side->textureoffset = clean_side->textureoffset;
-            side->rowoffset = clean_side->rowoffset;
-            side->dirty = false;
-        }
-    }
-}
+#include "kf_common.h"
 
 static void ArchivePlayState(keyframe_t *keyframe)
 {
@@ -459,7 +326,7 @@ keyframe_t *P_SaveKeyframe(int tic)
     keyframe_t *keyframe = calloc(1, sizeof(*keyframe));
     keyframe->data = calloc(1, sizeof(*keyframe->data));
 
-    buffer_size = 512 * 1024;
+    buffer_size = KEYFRAME_BUFFER_SIZE;
     buffer = malloc(buffer_size);
     curr_p = buffer;
 

@@ -41,8 +41,8 @@
 #include "doomtype.h"
 #include "f_finale.h"
 #include "g_game.h"
-#include "g_rewind.h"
 #include "g_nextweapon.h"
+#include "g_rewind.h"
 #include "g_umapinfo.h"
 #include "hu_command.h"
 #include "hu_obituary.h"
@@ -71,6 +71,7 @@
 #include "p_dirty.h"
 #include "p_enemy.h"
 #include "p_inter.h"
+#include "p_keyframe.h"
 #include "p_map.h"
 #include "p_maputl.h"
 #include "p_mobj.h"
@@ -2556,12 +2557,7 @@ static void DoSaveGame(char *name)
   // killough 11/98: save revenant tracer state
   saveg_write8((gametic - boom_basetic) & 255);
 
-  P_ArchivePlayers();
-  P_ArchiveWorld();
-  P_ArchiveThinkers();
-  P_ArchiveSpecials();
-  P_ArchiveRNG();    // killough 1/18/98: save RNG information
-  P_ArchiveMap();    // killough 1/22/98: save automap information
+  P_ArchiveKeyframe();
 
   saveg_write8(0xe6);   // consistancy marker
 
@@ -2775,6 +2771,14 @@ static boolean DoLoadGame(boolean do_load_autosave)
   // killough 11/98: load revenant tracer state
   boom_basetic = gametic - (int) *save_p++;
 
+  if (saveg_compat > saveg_woof1500)
+  {
+    P_MapStart();
+    P_UnArchiveKeyframe();
+    P_MapEnd();
+  }
+  else
+  {
   // dearchive all the modifications
   P_MapStart();
   P_UnArchivePlayers();
@@ -2784,6 +2788,7 @@ static boolean DoLoadGame(boolean do_load_autosave)
   P_UnArchiveRNG();    // killough 1/18/98: load RNG information
   P_UnArchiveMap();    // killough 1/22/98: load automap information
   P_MapEnd();
+  }
 
   if (saveg_read8() != 0xe6)
     I_Error ("Bad savegame");
