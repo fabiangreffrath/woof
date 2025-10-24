@@ -225,7 +225,7 @@ static int hashmap_get(hashmap_t *map, uintptr_t key)
     {
         return map->entries[index].value;
     }
-    I_Error("Not found %"PRIuPTR, key);
+    I_Error("Not found %" PRIuPTR, key);
 }
 
 static hashmap_t *thinker_hashmap;
@@ -334,7 +334,7 @@ static void writep_msecnode(const msecnode_t *node)
     }
     else
     {
-        index = hashmap_get(msecnode_hashmap, (uintptr_t)node); 
+        index = hashmap_get(msecnode_hashmap, (uintptr_t)node);
     }
     write32(index);
 }
@@ -528,7 +528,8 @@ static void read_mobj_t(mobj_t *str, thinker_class_t tc)
     str->oldangle = read32();
     str->bloodcolor = read32();
 
-    //P_SetActualHeight(str);
+    // TODO
+    // P_SetActualHeight(str);
 }
 
 static void write_mobj_t(mobj_t *str)
@@ -706,7 +707,7 @@ static void read_player_t(player_t *str)
     str->oldpitch = read32();
     str->slope = read32();
     str->maxkilldiscount = read32();
-    
+
     str->num_visitedlevels = read32();
     array_clear(str->visitedlevels);
     for (int i = 0; i < str->num_visitedlevels; ++i)
@@ -1709,9 +1710,9 @@ static void PrepareArchiveCeilingList(void)
 {
     for (ceilinglist_t *cl = activeceilings; cl; cl = cl->next)
     {
-        array_push(ceilinglist_pointers, (uintptr_t)cl);  
+        array_push(ceilinglist_pointers, (uintptr_t)cl);
     }
-    
+
     int count = array_size(ceilinglist_pointers);
     write32(count);
     ceilinglist_hashmap = hashmap_create(count * 2);
@@ -1747,7 +1748,7 @@ static void UnArchiveCeilingList(void)
     ceilinglist_t *cl = NULL, *prev = NULL;
     for (int i = 0; i < count; ++i)
     {
-        cl = (ceilinglist_t *)ceilinglist_pointers[i]; 
+        cl = (ceilinglist_t *)ceilinglist_pointers[i];
         cl->ceiling = (ceiling_t *)readp_thinker();
         cl->next = NULL;
         if (prev)
@@ -1767,9 +1768,9 @@ static void PrepareArchivePlatList(void)
 {
     for (platlist_t *pl = activeplats; pl; pl = pl->next)
     {
-        array_push(platlist_pointers, (uintptr_t)pl);  
+        array_push(platlist_pointers, (uintptr_t)pl);
     }
-    
+
     int count = array_size(platlist_pointers);
     write32(count);
     platlist_hashmap = hashmap_create(count * 2);
@@ -1805,7 +1806,7 @@ static void UnArchivePlatList(void)
     platlist_t *pl = NULL, *prev = NULL;
     for (int i = 0; i < count; ++i)
     {
-        pl = (platlist_t *)platlist_pointers[i]; 
+        pl = (platlist_t *)platlist_pointers[i];
         pl->plat = (plat_t *)readp_thinker();
         pl->next = NULL;
         if (prev)
