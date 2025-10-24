@@ -1087,18 +1087,12 @@ static void UDMF_LoadLineDefs(void)
         }
         else
         {
-            lines[i].tranlump = W_CheckNumForName(udmf_linedefs[i].tranmap);
-            if (lines[i].tranlump < 0
-                || W_LumpLength(lines[i].tranlump) != 65536)
-            {
-                // Is using improper or non-existent custom TRANMAP lump
-                lines[i].tranlump = 0;
-            }
-            else
+            int32_t lump = W_CheckNumForName(udmf_linedefs[i].tranmap);
+            if (lump > 0 && W_LumpLength(lump) == 256 * 256)
             {
                 // Is using proper custom TRANMAP lump
-                W_CacheLumpNum(lines[i].tranlump, PU_CACHE);
-                lines[i].tranlump++;
+                W_CacheLumpNum(lump, PU_CACHE);
+                lines[i].tranlump = lump++;
             }
         }
 
@@ -1160,7 +1154,6 @@ static void UDMF_LoadLineDefs(void)
         {
             side_t *backside = &sides[lines[i].sidenum[1]];
             lines[i].backsector = backside->sector;
-            backside->special = lines[i].special;
         }
     }
 }
