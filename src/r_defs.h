@@ -217,6 +217,11 @@ typedef struct side_s
   boolean dirty;
 
   // UDMF
+  int32_t light;
+  int32_t light_top;
+  int32_t light_mid;
+  int32_t light_bottom;
+
   fixed_t oldoffsetx_top;
   fixed_t oldoffsety_top;
   fixed_t interpoffsetx_top;
