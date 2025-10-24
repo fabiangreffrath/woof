@@ -97,7 +97,9 @@ typedef enum
 typedef void (*atexit_func_t)(void);
 void I_AtExitPrio(atexit_func_t func, boolean run_if_error,
                   const char* name, exit_priority_t priority);
-#define I_AtExit(a,b) I_AtExitPrio(a,b,#a,exit_priority_normal)
+#define I_AtExit(func, run_if_error) \
+    I_AtExitPrio(func, run_if_error, #func, exit_priority_normal)
+void I_AtSignal(atexit_func_t func);
 NORETURN void I_SafeExit(int rc);
 void I_ErrorMsg(void);
 

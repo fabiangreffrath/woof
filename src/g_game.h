@@ -44,6 +44,7 @@ boolean G_Responder(struct event_s *ev);
 boolean G_CheckDemoStatus(void);
 void G_DeathMatchSpawnPlayer(int playernum);
 void G_InitNew(skill_t skill, int episode, int map);
+void G_PreparedInitNew(int episode, int map);
 void G_DeferedInitNew(skill_t skill, int episode, int map);
 void G_DeferedPlayDemo(const char *demo);
 void G_LoadAutoSave(char *name, boolean is_command);
@@ -77,6 +78,7 @@ void G_DoVictory(void);
 
 void G_EnableWarp(boolean warp);
 void G_SetTimeScale(void);
+void G_Rewind(void);
 
 demo_version_t G_GetNamedComplevel(const char *arg);
 const char *G_GetCurrentComplevelName(void);

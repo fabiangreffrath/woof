@@ -20,11 +20,47 @@
 #include <SDL3/SDL_main.h>
 
 #include <stdlib.h>
+#include <signal.h>
 #include <locale.h>
 
 #include "config.h"
 #include "i_printf.h"
 #include "m_argv.h"
+
+#define M_ARRAY_INIT_CAPACITY 4
+#include "m_array.h"
+
+static atexit_func_t *atsignal_funcs;
+
+void I_AtSignal(atexit_func_t func)
+{
+    array_push(atsignal_funcs, func);
+}
+
+#if !defined(_WIN32)
+static void I_SignalHandler(int sig)
+{
+    signal(sig, SIG_DFL);
+
+    atexit_func_t *func;
+    array_foreach(func, atsignal_funcs)
+    {
+        (*func)();
+    }
+
+    raise(sig);
+}
+
+static void I_Signal(void)
+{
+    const int sigs[] = {SIGABRT, SIGFPE, SIGILL, SIGSEGV};
+
+    for (int i = 0; i < arrlen(sigs); i++)
+    {
+        signal(sigs[i], I_SignalHandler);
+    }
+}
+#endif
 
 //
 // D_DoomMain()
@@ -53,6 +89,10 @@ int main(int argc, char **argv)
    {
       exit(0);
    }
+
+#if !defined(_WIN32)
+   I_Signal();
+#endif
 
    D_DoomMain();
 

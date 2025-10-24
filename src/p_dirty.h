@@ -41,6 +41,9 @@ void P_DirtySide(side_t *side);
 
 void P_ClearDirtyArrays(void);
 
+void P_ArchiveDirtyArraysCurrentLevel(void);
+boolean P_UnArchiveDirtyArrays(int episode, int map);
+
 inline static line_t *dirty_line(line_t *line)
 {
     if (!line->dirty)

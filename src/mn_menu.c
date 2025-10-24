@@ -2703,7 +2703,8 @@ boolean M_ShortcutResponder(const event_t *ev)
 
     if (M_InputActivated(input_rewind))
     {
-        G_LoadAutoKeyframe();
+        G_Rewind();
+        return true;
     }
 
     return false;

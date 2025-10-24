@@ -106,14 +106,15 @@ void I_MessageBox(const char *message, ...)
     M_vsnprintf(buffer, sizeof(buffer), message, argptr);
     va_end(argptr);
 
+    if (I_ConsoleStdout())
+    {
+        I_Printf(VB_INFO, "%s", buffer);
+    }
+
     if (!M_CheckParm("-nogui"))
     {
         SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_INFORMATION, PROJECT_STRING,
                                  buffer, NULL);
-    }
-    else
-    {
-        I_Printf(VB_INFO, "%s", buffer);
     }
 }
 
@@ -121,15 +122,13 @@ void I_MessageBox(const char *message, ...)
 // If run_if_error is true, the function is called if the exit
 // is due to an error (I_Error)
 
-typedef struct atexit_listentry_s atexit_listentry_t;
-
-struct atexit_listentry_s
+typedef struct atexit_listentry_s
 {
     atexit_func_t func;
     boolean run_on_error;
-    atexit_listentry_t *next;
+    struct atexit_listentry_s *next;
     const char *name;
-};
+} atexit_listentry_t;
 
 static atexit_listentry_t *exit_funcs[exit_priority_max];
 static exit_priority_t exit_priority;
@@ -137,10 +136,7 @@ static exit_priority_t exit_priority;
 void I_AtExitPrio(atexit_func_t func, boolean run_on_error,
                   const char *name, exit_priority_t priority)
 {
-    atexit_listentry_t *entry;
-
-    entry = malloc(sizeof(*entry));
-
+    atexit_listentry_t *entry = malloc(sizeof(*entry));
     entry->func = func;
     entry->run_on_error = run_on_error;
     entry->next = exit_funcs[priority];
