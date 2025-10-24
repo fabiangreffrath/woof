@@ -37,6 +37,7 @@
 
 #include <stddef.h>
 #include <stdint.h>
+#include <inttypes.h>
 
 #define read8 saveg_read8
 #define write8 saveg_write8
@@ -224,7 +225,7 @@ static int hashmap_get(hashmap_t *map, uintptr_t key)
     {
         return map->entries[index].value;
     }
-    I_Error("hashmap_get: Not found %lld", key);
+    I_Error("Not found %"PRIuPTR, key);
 }
 
 static hashmap_t *thinker_hashmap;
@@ -1170,6 +1171,7 @@ static void write_rng_t(rng_t *str)
 }
 
 // TODO
+#if 0
 static void read_button_t(button_t *str)
 {
     readp_index(str->line, lines);
@@ -1186,6 +1188,7 @@ static void write_button_t(button_t *str)
     write32(str->btexture);
     write32(str->btimer);
 }
+#endif
 
 static void read_msecnode_t(msecnode_t *str)
 {
