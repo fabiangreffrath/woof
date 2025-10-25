@@ -335,6 +335,9 @@ void P_LoadSectors (int lump)
       // WiggleFix: [kb] for R_FixWiggle()
       ss->cachedheight = 0;
 
+      // UDMF
+      ss->lightfloor = ss->lightceiling = ss->lightlevel;
+
       ss->nextsec = -1; //jff 2/26/98 add fields to support locking out
       ss->prevsec = -1; // stair retriggering until build completes
 
@@ -781,13 +784,13 @@ void P_LoadSideDefs2(int lump)
       register mapsidedef_t *msd = (mapsidedef_t *) data + i;
       register side_t *sd = sides + i;
 
-      sd->textureoffset = SHORT(msd->textureoffset)<<FRACBITS;
-      sd->rowoffset = SHORT(msd->rowoffset)<<FRACBITS;
+      sd->offsetx = SHORT(msd->textureoffset)<<FRACBITS;
+      sd->offsety = SHORT(msd->rowoffset)<<FRACBITS;
       // [crispy] smooth texture scrolling
-      sd->oldtextureoffset = sd->textureoffset;
-      sd->oldrowoffset = sd->rowoffset;
-      sd->interptextureoffset = sd->textureoffset;
-      sd->interprowoffset = sd->rowoffset;
+      sd->oldoffsetx = sd->offsetx;
+      sd->oldoffsety = sd->offsety;
+      sd->interpoffsetx = sd->offsetx;
+      sd->interpoffsety = sd->offsety;
       sd->oldgametic = -1;
 
       // killough 4/4/98: allow sidedef texture names to be overloaded
@@ -1581,46 +1584,55 @@ static angle_t anglediff(angle_t a, angle_t b)
         return b - a;
 }
 
-void P_SegLengths(boolean contrast_only)
+void P_SegLengths()
 {
-    int i;
     const int rightangle = abs(finesine[(ANG60/2) >> ANGLETOFINESHIFT]);
 
-    for (i = 0; i < numsegs; i++)
+    for (int32_t i = 0; i < numsegs; i++)
     {
         seg_t *li = segs+i;
-        int64_t dx, dy;
 
-        dx = li->v2->r_x - li->v1->r_x;
-        dy = li->v2->r_y - li->v1->r_y;
+        int64_t dx = li->v2->r_x - li->v1->r_x;
+        int64_t dy = li->v2->r_y - li->v1->r_y;
+        sidedef_flags_t flags = (li->sidedef) // mini segs!!
+                              ? li->sidedef->flags
+                              : 0;
 
-        if (!contrast_only)
+        li->r_length = (uint32_t)(sqrt((double)dx*dx + (double)dy*dy)/2);
+
+        // [crispy] re-calculate angle used for rendering
+        viewx = li->v1->r_x;
+        viewy = li->v1->r_y;
+        li->r_angle = R_PointToAngleCrispy(li->v2->r_x, li->v2->r_y);
+        // [crispy] more than just a little adjustment?
+        // back to the original angle then
+        if (anglediff(li->r_angle, li->angle) > ANG60/2)
         {
-            li->r_length = (uint32_t)(sqrt((double)dx*dx + (double)dy*dy)/2);
-
-            // [crispy] re-calculate angle used for rendering
-            viewx = li->v1->r_x;
-            viewy = li->v1->r_y;
-            li->r_angle = R_PointToAngleCrispy(li->v2->r_x, li->v2->r_y);
-            // [crispy] more than just a little adjustment?
-            // back to the original angle then
-            if (anglediff(li->r_angle, li->angle) > ANG60/2)
-            {
-                li->r_angle = li->angle;
-            }
+            li->r_angle = li->angle;
         }
 
-        // [crispy] smoother fake contrast
-        if (!dy)
-            li->fakecontrast = -LIGHTBRIGHT;
-        else if (abs(finesine[li->r_angle >> ANGLETOFINESHIFT]) < rightangle)
-            li->fakecontrast = -(LIGHTBRIGHT >> 1);
-        else if (!dx)
-            li->fakecontrast = LIGHTBRIGHT;
-        else if (abs(finecosine[li->r_angle >> ANGLETOFINESHIFT]) < rightangle)
-            li->fakecontrast = LIGHTBRIGHT >> 1;
-        else
+        if (flags & SF_NO_FAKE_CONTRAST)
+        {
             li->fakecontrast = 0;
+        }
+        else
+        {
+            // vanilla
+            if (!dy)
+              li->fakecontrast = -LIGHTBRIGHT;
+            else if (!dx)
+              li->fakecontrast = +LIGHTBRIGHT;
+
+            // [crispy]
+            // TODO: smooth out even more
+            if (flags & SF_SMOOTH_CONTRAST)
+            {
+                if (abs(finesine[li->r_angle >> ANGLETOFINESHIFT]) < rightangle)
+                    li->fakecontrast = -(LIGHTBRIGHT >> 1);
+                else if (abs(finecosine[li->r_angle >> ANGLETOFINESHIFT]) < rightangle)
+                    li->fakecontrast = LIGHTBRIGHT >> 1;
+            }
+        }
     }
 }
 
@@ -1850,7 +1862,7 @@ void P_SetupLevel(int episode, int map, int playermask, skill_t skill)
     P_RemoveSlimeTrails();    // killough 10/98: remove slime trails from wad
 
   // [crispy] fix long wall wobble
-  P_SegLengths(false);
+  P_SegLengths();
 
   // Note: you don't need to clear player queue slots --
   // a much simpler fix is in g_game.c -- killough 10/98

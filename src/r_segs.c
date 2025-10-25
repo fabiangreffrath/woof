@@ -64,6 +64,7 @@ fixed_t         rw_distance;
 int      rw_x;
 int      rw_stopx;
 static angle_t  rw_centerangle;
+static int32_t  rw_lightlevel;
 static fixed_t  rw_offset;
 static fixed_t  rw_scale;
 static fixed_t  rw_scalestep;
@@ -85,13 +86,80 @@ static fixed_t  bottomstep;
 static int    *maskedtexturecol; // [FG] 32-bit integer math
 
 //
+// UDMF extensions, adapted from DSDA
+//
+
+static void SetLight(const int32_t lightlevel)
+{
+    if (!fixedcolormapindex)
+    {
+        int32_t lightnum = (lightlevel >> LIGHTSEGSHIFT) + extralight;
+        // [crispy]
+        lightnum += curline->fakecontrast;
+        walllightindex = CLAMP(lightnum, 0, LIGHTLEVELS - 1);
+    }
+    else
+    {
+        walllightindex = fixedcolormapindex;
+    }
+    walllightoffset = &scalelightoffset[walllightindex * MAXLIGHTSCALE];
+}
+
+static void CalculateLighting(lighttable_t *const thiscolormap, fixed_t scale)
+{
+    // dimishing
+    int32_t colormapindex = fixedcolormapindex;
+    if (!fixedcolormapindex)
+    {
+        int32_t lightindex = R_GetLightIndex(scale);
+        colormapindex = walllightindex < NUMCOLORMAPS
+                      ? scalelightindex[walllightindex * MAXLIGHTSCALE + lightindex]
+                      : walllightindex;
+    }
+    // per-sector colormap
+    dc_colormap[0] = thiscolormap + colormapindex * 256;
+    dc_colormap[1] = (!fixedcolormap && (STRICTMODE(brightmaps) || force_brightmaps))
+                   ? thiscolormap
+                   : dc_colormap[0];
+}
+
+static const int32_t R_SideLightLevel(const side_t *side)
+{
+    return (side->flags & SF_ABS_LIGHT) ? side->light
+                                        : side->light + rw_lightlevel;
+}
+
+static void SideLightLevel_Top(const side_t *side)
+{
+    const int32_t light = (side->flags & SF_ABS_LIGHT_TOP)
+                        ? side->light_top
+                        : side->light_top + R_SideLightLevel(side);
+    SetLight(light);
+}
+
+static void SideLightLevel_Mid(const side_t *side)
+{
+    const int32_t light = (side->flags & SF_ABS_LIGHT_MID)
+                        ? side->light_mid
+                        : side->light_mid + R_SideLightLevel(side);
+    SetLight(light);
+}
+
+static void SideLightLevel_Bottom(const side_t *side)
+{
+    const int32_t light = (side->flags & SF_ABS_LIGHT_BOTTOM)
+                        ? side->light_bottom
+                        : side->light_bottom + R_SideLightLevel(side);
+    SetLight(light);
+}
+
+//
 // R_RenderMaskedSegRange
 //
 
 void R_RenderMaskedSegRange(drawseg_t *ds, int x1, int x2)
 {
   column_t *col;
-  int      lightnum;
   int      texnum;
   sector_t tempsec;      // killough 4/13/98
 
@@ -122,22 +190,9 @@ void R_RenderMaskedSegRange(drawseg_t *ds, int x1, int x2)
   texnum = texturetranslation[curline->sidedef->midtexture];
 
   // killough 4/13/98: get correct lightlevel for 2s normal textures
-  lightnum = (R_FakeFlat(frontsector, &tempsec, NULL, NULL, false)
-              ->lightlevel >> LIGHTSEGSHIFT)+extralight;
+  rw_lightlevel = (R_FakeFlat(frontsector, &tempsec, NULL, NULL, false)->lightlevel);
 
-  // [crispy] smoother fake contrast
-  lightnum += curline->fakecontrast;
-#if 0
-  if (curline->v1->y == curline->v2->y)
-    lightnum--;
-  else
-    if (curline->v1->x == curline->v2->x)
-      lightnum++;
-#endif
-
-  walllightindex = fixedcolormapindex ? fixedcolormapindex
-                                      : CLAMP(lightnum, 0, LIGHTLEVELS - 1);
-  walllightoffset = &scalelightoffset[walllightindex * MAXLIGHTSCALE];
+  SideLightLevel_Mid(curline->sidedef);
 
   maskedtexturecol = ds->maskedtexturecol;
 
@@ -160,26 +215,14 @@ void R_RenderMaskedSegRange(drawseg_t *ds, int x1, int x2)
       dc_texturemid = dc_texturemid - viewz;
     }
 
-  dc_texturemid += curline->sidedef->interprowoffset;
-
-  if (fixedcolormap)
-    dc_colormap[0] = dc_colormap[1] = thiscolormap + fixedcolormapindex * 256;
+  dc_texturemid += curline->sidedef->interpoffsety;
 
   // draw the columns
   for (dc_x = x1 ; dc_x <= x2 ; dc_x++, spryscale += rw_scalestep)
     if (maskedtexturecol[dc_x] != INT_MAX) // [FG] 32-bit integer math
       {
-        if (!fixedcolormap)      // calculate lighting
-          {                             // killough 11/98:
-            const int index = R_GetLightIndex(spryscale);
-
-            // [crispy] brightmaps for two sided mid-textures
-            dc_brightmap = texturebrightmap[texnum];
-            dc_colormap[0] = thiscolormap + walllightoffset[index];
-            dc_colormap[1] = (STRICTMODE(brightmaps) || force_brightmaps)
-                              ? thiscolormap
-                              : dc_colormap[0];
-          }
+        // killough 11/98:
+        CalculateLighting(thiscolormap, spryscale);
 
         // killough 3/2/98:
         //
@@ -381,28 +424,11 @@ static void R_RenderSegLoop(lighttable_t * thiscolormap)
       // texturecolumn and lighting are independent of wall tiers
       if (segtextured)
         {
-          const int index = R_GetLightIndex(rw_scale);
-
           // calculate texture offset
           angle_t angle =(rw_centerangle+xtoviewangle[rw_x])>>ANGLETOFINESHIFT;
           angle &= 0xFFF; // Prevent finetangent overflow.
           texturecolumn = rw_offset-FixedMul(finetangent[angle],rw_distance);
           texturecolumn >>= FRACBITS;
-
-          // calculate lighting
-          int colormapindex = fixedcolormapindex;
-
-          if (!fixedcolormapindex)
-          {
-            colormapindex = walllightindex < NUMCOLORMAPS
-                          ? scalelightindex[walllightindex * MAXLIGHTSCALE + index]
-                          : walllightindex;
-          }
-          dc_colormap[0] = thiscolormap + colormapindex * 256;
-          dc_colormap[1] = (!fixedcolormap &&
-                            (STRICTMODE(brightmaps) || force_brightmaps))
-                            ? thiscolormap
-                            : dc_colormap[0];
           dc_x = rw_x;
           dc_iscale = 0xffffffffu / (unsigned)rw_scale;
         }
@@ -413,9 +439,11 @@ static void R_RenderSegLoop(lighttable_t * thiscolormap)
           dc_yl = yl;     // single sided line
           dc_yh = yh;
           dc_texturemid = rw_midtexturemid;
-          dc_source = R_GetColumn(midtexture, texturecolumn);
+          dc_source = R_GetColumn(midtexture, texturecolumn + FixedToInt(curline->sidedef->interpoffsetx_mid));
           dc_texheight = textureheight[midtexture]>>FRACBITS; // killough
           dc_brightmap = texturebrightmap[midtexture];
+          SideLightLevel_Mid(curline->sidedef);
+          CalculateLighting(thiscolormap, rw_scale);
           colfunc ();
           ceilingclip[rw_x] = viewheight;
           floorclip[rw_x] = -1;
@@ -437,9 +465,11 @@ static void R_RenderSegLoop(lighttable_t * thiscolormap)
                   dc_yl = yl;
                   dc_yh = mid;
                   dc_texturemid = rw_toptexturemid;
-                  dc_source = R_GetColumn(toptexture,texturecolumn);
+                  dc_source = R_GetColumn(toptexture, texturecolumn + FixedToInt(curline->sidedef->interpoffsetx_top));
                   dc_texheight = textureheight[toptexture]>>FRACBITS;//killough
                   dc_brightmap = texturebrightmap[toptexture];
+                  SideLightLevel_Top(curline->sidedef);
+                  CalculateLighting(thiscolormap, rw_scale);
                   colfunc ();
                   ceilingclip[rw_x] = mid;
                 }
@@ -464,10 +494,11 @@ static void R_RenderSegLoop(lighttable_t * thiscolormap)
                   dc_yl = mid;
                   dc_yh = yh;
                   dc_texturemid = rw_bottomtexturemid;
-                  dc_source = R_GetColumn(bottomtexture,
-                                          texturecolumn);
+                  dc_source = R_GetColumn(bottomtexture, texturecolumn + FixedToInt(curline->sidedef->interpoffsetx_bottom));
                   dc_texheight = textureheight[bottomtexture]>>FRACBITS; // killough
                   dc_brightmap = texturebrightmap[bottomtexture];
+                  SideLightLevel_Bottom(curline->sidedef);
+                  CalculateLighting(thiscolormap, rw_scale);
                   colfunc ();
                   floorclip[rw_x] = mid;
                 }
@@ -635,7 +666,7 @@ void R_StoreWallRange(const int start, const int stop)
       else        // top of texture at top
         rw_midtexturemid = worldtop;
 
-      rw_midtexturemid += sidedef->interprowoffset;
+      rw_midtexturemid += (sidedef->interpoffsety + sidedef->interpoffsety_mid);
 
       {      // killough 3/27/98: reduce offset
         fixed_t h = textureheight[sidedef->midtexture];
@@ -713,9 +744,14 @@ void R_StoreWallRange(const int start, const int stop)
         || backsector->floorpic != frontsector->floorpic
         || backsector->lightlevel != frontsector->lightlevel
 
+        // UDMF
+        || backsector->lightfloor != frontsector->lightfloor
+
         // killough 3/7/98: Add checks for (x,y) offsets
         || backsector->interp_floor_xoffs != frontsector->interp_floor_xoffs
         || backsector->interp_floor_yoffs != frontsector->interp_floor_yoffs
+        || backsector->floor_xoffs_post != frontsector->floor_xoffs_post
+        || backsector->floor_yoffs_post != frontsector->floor_yoffs_post
         || backsector->floor_rotation != frontsector->floor_rotation
 
         // killough 4/15/98: prevent 2s normals
@@ -728,11 +764,17 @@ void R_StoreWallRange(const int start, const int stop)
         // hexen flowing water
         || backsector->special != frontsector->special
         || backsector->tint != frontsector->tint
+
+        // Clipping flags
+        || (sidedef->midtexture && (sidedef->flags & SF_CLIP_MIDTEX || sidedef->flags & SF_WRAP_MIDTEX))
         ;
 
       markceiling = worldhigh != worldtop
         || backsector->ceilingpic != frontsector->ceilingpic
         || backsector->lightlevel != frontsector->lightlevel
+
+        // UDMF
+        || backsector->lightceiling != frontsector->lightceiling
 
         // killough 3/7/98: Add checks for (x,y) offsets
         || backsector->interp_ceiling_xoffs != frontsector->interp_ceiling_xoffs
@@ -747,6 +789,9 @@ void R_StoreWallRange(const int start, const int stop)
         // killough 4/17/98: draw ceilings if different light levels
         || backsector->ceilinglightsec != frontsector->ceilinglightsec
         || backsector->tint != frontsector->tint
+
+        // Clipping flags
+        || (sidedef->midtexture && (sidedef->flags & SF_CLIP_MIDTEX || sidedef->flags & SF_WRAP_MIDTEX))
         ;
 
       if (backsector->interpceilingheight <= frontsector->interpfloorheight
@@ -766,7 +811,7 @@ void R_StoreWallRange(const int start, const int stop)
           rw_bottomtexturemid = linedef->flags & ML_DONTPEGBOTTOM ? worldtop :
             worldlow;
         }
-      rw_toptexturemid += sidedef->interprowoffset;
+      rw_toptexturemid += (sidedef->interpoffsety + sidedef->interpoffsety_top);
 
       // killough 3/27/98: reduce offset
       {
@@ -775,7 +820,7 @@ void R_StoreWallRange(const int start, const int stop)
           rw_toptexturemid %= h;
       }
 
-      rw_bottomtexturemid += sidedef->interprowoffset;
+      rw_bottomtexturemid += (sidedef->interpoffsety + sidedef->interpoffsety_bottom);
 
       // killough 3/27/98: reduce offset
       {
@@ -801,33 +846,10 @@ void R_StoreWallRange(const int start, const int stop)
     {
       // [FG] fix long wall wobble
       rw_offset = (fixed_t)(((dx * dx1 + dy * dy1) / len) << 1);
-      rw_offset += sidedef->interptextureoffset + curline->offset;
+      rw_offset += sidedef->interpoffsetx + curline->offset;
 
       rw_centerangle = ANG90 + viewangle - rw_normalangle;
-
-      // calculate light table
-      //  use different light tables
-      //  for horizontal / vertical / diagonal
-      // OPTIMIZE: get rid of LIGHTSEGSHIFT globally
-      if (!fixedcolormap)
-        {
-          int lightnum = (frontsector->lightlevel >> LIGHTSEGSHIFT)+extralight;
-
-          // [crispy] smoother fake contrast
-          lightnum += curline->fakecontrast;
-#if 0
-          if (curline->v1->y == curline->v2->y)
-            lightnum--;
-          else if (curline->v1->x == curline->v2->x)
-            lightnum++;
-#endif
-          if (fixedcolormapindex)
-            walllightindex = fixedcolormapindex;
-          else
-            walllightindex = CLAMP(lightnum, 0, LIGHTLEVELS - 1);
-
-          walllightoffset = &scalelightoffset[walllightindex * MAXLIGHTSCALE];
-        }
+      rw_lightlevel = frontsector->lightlevel;
     }
 
   // if a floor / ceiling plane is on the wrong side of the view

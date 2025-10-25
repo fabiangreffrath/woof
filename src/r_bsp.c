@@ -163,6 +163,30 @@ int R_DoorClosed(void)
         frontsector->ceilingpic!=skyflatnum);
 }
 
+static const int16_t FloorLight(const sector_t *sec)
+{
+  // get vanilla/boom light level
+  const int16_t light = (sec->floorlightsec == -1)
+                      ? sec->lightlevel
+                      : sectors[sec->floorlightsec].lightlevel;
+
+  // then apply UDMF light
+  return (sec->flags & SECF_ABS_LIGHT_FLOOR) ? sec->lightfloor
+                                             : sec->lightfloor + light;
+}
+
+static const int16_t CeilingLight(const sector_t *sec)
+{
+  // get vanilla/boom light level
+  const int16_t light = (sec->ceilinglightsec == -1)
+                      ? sec->lightlevel
+                      : sectors[sec->ceilinglightsec].lightlevel;
+
+  // then apply UDMF light
+  return (sec->flags & SECF_ABS_LIGHT_CEIL) ? sec->lightceiling
+                                            : sec->lightceiling + light;
+}
+
 //
 // killough 3/7/98: Hack floor/ceiling heights for deep water etc.
 //
@@ -181,12 +205,10 @@ sector_t *R_FakeFlat(sector_t *sec, sector_t *tempsec,
                      boolean back)
 {
   if (floorlightlevel)
-    *floorlightlevel = sec->floorlightsec == -1 ?
-      sec->lightlevel : sectors[sec->floorlightsec].lightlevel;
+    *floorlightlevel = FloorLight(sec);
 
   if (ceilinglightlevel)
-    *ceilinglightlevel = sec->ceilinglightsec == -1 ? // killough 4/11/98
-      sec->lightlevel : sectors[sec->ceilinglightsec].lightlevel;
+    *ceilinglightlevel = CeilingLight(sec); // killough 4/11/98
 
   if (sec->heightsec != -1)
     {
@@ -237,12 +259,10 @@ sector_t *R_FakeFlat(sector_t *sec, sector_t *tempsec,
           tempsec->lightlevel  = s->lightlevel;
 
           if (floorlightlevel)
-            *floorlightlevel = s->floorlightsec == -1 ? s->lightlevel :
-            sectors[s->floorlightsec].lightlevel; // killough 3/16/98
+            *floorlightlevel = FloorLight(sec); // killough 3/16/98
 
           if (ceilinglightlevel)
-            *ceilinglightlevel = s->ceilinglightsec == -1 ? s->lightlevel :
-            sectors[s->ceilinglightsec].lightlevel; // killough 4/11/98
+            *ceilinglightlevel = CeilingLight(sec); // killough 4/11/98
         }
       else
         if (heightsec != -1 && viewz >= sectors[heightsec].ceilingheight &&
@@ -271,12 +291,10 @@ sector_t *R_FakeFlat(sector_t *sec, sector_t *tempsec,
             tempsec->lightlevel  = s->lightlevel;
 
             if (floorlightlevel)
-              *floorlightlevel = s->floorlightsec == -1 ? s->lightlevel :
-              sectors[s->floorlightsec].lightlevel; // killough 3/16/98
+              *floorlightlevel = FloorLight(sec); // killough 3/16/98
 
             if (ceilinglightlevel)
-              *ceilinglightlevel = s->ceilinglightsec == -1 ? s->lightlevel :
-              sectors[s->ceilinglightsec].lightlevel; // killough 4/11/98
+              *ceilinglightlevel = CeilingLight(sec); // killough 4/11/98
           }
       sec = tempsec;               // Use other sector
     }
@@ -346,15 +364,62 @@ static void R_MaybeInterpolateSector(sector_t* sector)
 
 static void R_MaybeInterpolateTextureOffsets(side_t *side)
 {
-    if (uncapped && side->oldgametic == gametic - 1)
+    if (uncapped)
     {
-        side->interptextureoffset = LerpFixed(side->oldtextureoffset, side->textureoffset);
-        side->interprowoffset = LerpFixed(side->oldrowoffset, side->rowoffset);
+        if (side->oldgametic == gametic - 1)
+        {
+            side->interpoffsetx = LerpFixed(side->oldoffsetx, side->offsetx);
+            side->interpoffsety = LerpFixed(side->oldoffsety, side->offsety);
+        }
+        else
+        {
+            side->interpoffsetx = side->offsetx;
+            side->interpoffsety = side->offsety;
+        }
+
+        if (side->oldgametic_top == gametic - 1)
+        {
+            side->interpoffsetx_top = LerpFixed(side->oldoffsetx_top, side->offsetx_top);
+            side->interpoffsety_top = LerpFixed(side->oldoffsety_top, side->offsety_top);
+        }
+        else
+        {
+            side->interpoffsetx_top = side->offsetx_top;
+            side->interpoffsety_top = side->offsety_top;
+        }
+
+        if (side->oldgametic_mid == gametic - 1)
+        {
+            side->interpoffsetx_mid = LerpFixed(side->oldoffsetx_mid, side->offsetx_mid);
+            side->interpoffsety_mid = LerpFixed(side->oldoffsety_mid, side->offsety_mid);
+        }
+        else
+        {
+            side->interpoffsetx_mid = side->offsetx_mid;
+            side->interpoffsety_mid = side->offsety_mid;
+        }
+
+        if (side->oldgametic_bottom == gametic - 1)
+        {
+            side->interpoffsetx_bottom = LerpFixed(side->oldoffsetx_bottom, side->offsetx_bottom);
+            side->interpoffsety_bottom = LerpFixed(side->oldoffsety_bottom, side->offsety_bottom);
+        }
+        else
+        {
+            side->interpoffsetx_bottom = side->offsetx_bottom;
+            side->interpoffsety_bottom = side->offsety_bottom;
+        }
     }
     else
     {
-        side->interptextureoffset = side->textureoffset;
-        side->interprowoffset = side->rowoffset;
+        side->interpoffsetx = side->offsetx;
+        side->interpoffsety = side->offsety;
+        side->interpoffsetx_top = side->offsetx_top;
+        side->interpoffsety_top = side->offsety_top;
+        side->interpoffsetx_mid = side->offsetx_mid;
+        side->interpoffsety_mid = side->offsety_mid;
+        side->interpoffsetx_bottom = side->offsetx_bottom;
+        side->interpoffsety_bottom = side->offsety_bottom;
     }
 }
 
@@ -475,6 +540,8 @@ static void R_AddLine (seg_t *line)
   if (backsector->ceilingpic == frontsector->ceilingpic
       && backsector->floorpic == frontsector->floorpic
       && backsector->lightlevel == frontsector->lightlevel
+      && backsector->lightfloor == frontsector->lightfloor
+      && backsector->lightceiling == frontsector->lightceiling
       && curline->sidedef->midtexture == 0
 
       // killough 3/7/98: Take flats offsets into account:
@@ -669,6 +736,8 @@ static void R_Subsector(int num)
                 floorlightlevel,                // killough 3/16/98
                 frontsector->interp_floor_xoffs,       // killough 3/7/98
                 frontsector->interp_floor_yoffs,
+                frontsector->floor_xoffs_post,
+                frontsector->floor_yoffs_post,
                 frontsector->floor_rotation,
                 floor_tint
                 ) : NULL;
@@ -684,6 +753,8 @@ static void R_Subsector(int num)
                 ceilinglightlevel,              // killough 4/11/98
                 frontsector->interp_ceiling_xoffs,     // killough 3/7/98
                 frontsector->interp_ceiling_yoffs,
+                frontsector->ceiling_xoffs_post,
+                frontsector->ceiling_yoffs_post,
                 frontsector->ceiling_rotation,
                 ceiling_tint
                 ) : NULL;

@@ -2688,14 +2688,14 @@ void EV_RotateOffsetFlat(line_t *line, sector_t *sector)
   {
     if (offset_floor)
     {
-      sectors[s].floor_xoffs -= line->dx;
-      sectors[s].floor_yoffs += line->dy;
+      sectors[s].floor_xoffs_post -= line->dx;
+      sectors[s].floor_yoffs_post += line->dy;
     }
 
     if (offset_ceiling)
     {
-      sectors[s].ceiling_xoffs -= line->dx;
-      sectors[s].ceiling_yoffs += line->dy;
+      sectors[s].ceiling_xoffs_post -= line->dx;
+      sectors[s].ceiling_yoffs_post += line->dy;
     }
 
     if (rotate_floor)
@@ -2935,104 +2935,270 @@ static void T_Scroll(scroll_t *s)
 {
   fixed_t dx = s->dx, dy = s->dy;
 
-  if (s->control != -1)
-    {   // compute scroll amounts based on a sector's height changes
-      fixed_t height = sectors[s->control].floorheight +
-        sectors[s->control].ceilingheight;
-      fixed_t delta = height - s->last_height;
-      s->last_height = height;
-      dx = FixedMul(dx, delta);
-      dy = FixedMul(dy, delta);
+    // compute scroll amounts based on a sector's height changes
+    if (s->control != -1)
+    {
+        fixed_t height =
+            sectors[s->control].floorheight + sectors[s->control].ceilingheight;
+        fixed_t delta = height - s->last_height;
+        s->last_height = height;
+        dx = FixedMul(dx, delta);
+        dy = FixedMul(dy, delta);
     }
 
-  // killough 3/14/98: Add acceleration
-  if (s->accel)
+    // killough 3/14/98: Add acceleration
+    if (s->accel)
     {
-      s->vdx = dx += s->vdx;
-      s->vdy = dy += s->vdy;
+        s->vdx = dx += s->vdx;
+        s->vdy = dy += s->vdy;
     }
 
-  if (!(dx | dy))                   // no-op if both (x,y) offsets 0
-    return;
+    // no-op if both (x,y) offsets 0
+    if (!(dx | dy))
+        return;
 
-  switch (s->type)
+    switch (s->type)
     {
-      side_t *side;
-      sector_t *sec;
-      fixed_t height, waterheight;  // killough 4/4/98: add waterheight
-      msecnode_t *node;
-      mobj_t *thing;
+        side_t *side;
+        sector_t *sec;
+        fixed_t height, waterheight; // killough 4/4/98: add waterheight
+        msecnode_t *node;
+        mobj_t *thing;
 
-    case sc_side:                   // killough 3/7/98: Scroll wall texture
-        side = sides + s->affectee;
-        if (side->oldgametic != gametic)
-        {
-          side->oldtextureoffset = side->textureoffset;
-          side->oldrowoffset = side->rowoffset;
-          side->oldgametic = gametic;
-        }
-        dirty_side(side)->textureoffset += dx;
-        side->rowoffset += dy;
-        break;
+        // killough 3/7/98: Scroll wall texture
+        case sc_side:
+            side = sides + s->affectee;
+            if (side->oldgametic != gametic)
+            {
+                side->oldoffsetx = side->offsetx;
+                side->oldoffsety = side->offsety;
+                side->oldgametic = gametic;
+            }
+            dirty_side(side)->offsetx += dx;
+            side->offsety += dy;
+            break;
 
-    case sc_floor:                  // killough 3/7/98: Scroll floor texture
-        sec = sectors + s->affectee;
-        if (sec->old_floor_offs_gametic != gametic)
-        {
-          sec->old_floor_xoffs = sec->floor_xoffs;
-          sec->old_floor_yoffs = sec->floor_yoffs;
-          sec->old_floor_offs_gametic = gametic;
-        }
-        sec->floor_xoffs += dx;
-        sec->floor_yoffs += dy;
-        break;
+        // killough 3/7/98: Scroll floor texture
+        case sc_floor:
+            sec = sectors + s->affectee;
+            if (sec->old_floor_offs_gametic != gametic)
+            {
+                sec->old_floor_xoffs = sec->floor_xoffs;
+                sec->old_floor_yoffs = sec->floor_yoffs;
+                sec->old_floor_offs_gametic = gametic;
+            }
+            sec->floor_xoffs += dx;
+            sec->floor_yoffs += dy;
+            break;
 
-    case sc_ceiling:               // killough 3/7/98: Scroll ceiling texture
-        sec = sectors + s->affectee;
-        if (sec->old_ceil_offs_gametic != gametic)
-        {
-          sec->old_ceiling_xoffs = sec->ceiling_xoffs;
-          sec->old_ceiling_yoffs = sec->ceiling_yoffs;
-          sec->old_ceil_offs_gametic = gametic;
-        }
-        sec->ceiling_xoffs += dx;
-        sec->ceiling_yoffs += dy;
-        break;
+        // killough 3/7/98: Scroll ceiling texture
+        case sc_ceiling:
+            sec = sectors + s->affectee;
+            if (sec->old_ceil_offs_gametic != gametic)
+            {
+                sec->old_ceiling_xoffs = sec->ceiling_xoffs;
+                sec->old_ceiling_yoffs = sec->ceiling_yoffs;
+                sec->old_ceil_offs_gametic = gametic;
+            }
+            sec->ceiling_xoffs += dx;
+            sec->ceiling_yoffs += dy;
+            break;
 
-    case sc_carry:
+        case sc_carry:
 
-      // killough 3/7/98: Carry things on floor
-      // killough 3/20/98: use new sector list which reflects true members
-      // killough 3/27/98: fix carrier bug
-      // killough 4/4/98: Underwater, carry things even w/o gravity
+            // killough 3/7/98: Carry things on floor
+            // killough 3/20/98: use new sector list which reflects true members
+            // killough 3/27/98: fix carrier bug
+            // killough 4/4/98: Underwater, carry things even w/o gravity
 
-      sec = sectors + s->affectee;
-      height = sec->floorheight;
-      waterheight = sec->heightsec != -1 &&
-        sectors[sec->heightsec].floorheight > height ?
-        sectors[sec->heightsec].floorheight : INT_MIN;
+            sec = sectors + s->affectee;
+            height = sec->floorheight;
+            waterheight =
+                sec->heightsec != -1
+                        && sectors[sec->heightsec].floorheight > height
+                    ? sectors[sec->heightsec].floorheight
+                    : INT_MIN;
 
-      // Move objects only if on floor or underwater,
-      // non-floating, and clipped.
+            // Move objects only if on floor or underwater,
+            // non-floating, and clipped.
 
-      for (node = sec->touching_thinglist; node; node = node->m_snext)
-        if (!((thing = node->m_thing)->flags & MF_NOCLIP) &&
-            (!(thing->flags & MF_NOGRAVITY || thing->z > height) ||
-             thing->z < waterheight))
-          {
-	  thing->momx += dx, thing->momy += dy;
-	  thing->intflags |= MIF_SCROLLING;
-          }
-      break;
+            for (node = sec->touching_thinglist; node; node = node->m_snext)
+            {
+                if (!((thing = node->m_thing)->flags & MF_NOCLIP)
+                    && (!(thing->flags & MF_NOGRAVITY || thing->z > height)
+                        || thing->z < waterheight))
+                {
+                    thing->momx += dx, thing->momy += dy;
+                    thing->intflags |= MIF_SCROLLING;
+                }
+            }
+            break;
 
-    case sc_carry_ceiling:       // to be added later
-      break;
+        // to be added later
+        case sc_carry_ceiling:
+            break;
+
+        // UDMF extensions
+        case sc_side_top:
+            side = sides + s->affectee;
+            if (side->oldgametic_top != gametic)
+            {
+                side->oldoffsetx_top = side->offsetx_top;
+                side->oldoffsety_top = side->offsety_top;
+                side->oldgametic_top = gametic;
+            }
+            dirty_side(side)->offsetx_top += dx;
+            side->offsety_top += dy;
+            break;
+
+        case sc_side_mid:
+            side = sides + s->affectee;
+            if (side->oldgametic_mid != gametic)
+            {
+                side->oldoffsetx_mid = side->offsetx_mid;
+                side->oldoffsety_mid = side->offsety_mid;
+                side->oldgametic_mid = gametic;
+            }
+            dirty_side(side)->offsetx_mid += dx;
+            side->offsety_mid += dy;
+            break;
+
+        case sc_side_bottom:
+            side = sides + s->affectee;
+            if (side->oldgametic_bottom != gametic)
+            {
+                side->oldoffsetx_bottom = side->offsetx_bottom;
+                side->oldoffsety_bottom = side->offsety_bottom;
+                side->oldgametic_bottom = gametic;
+            }
+            dirty_side(side)->offsetx_bottom += dx;
+            side->offsety_bottom += dy;
+            break;
     }
 }
 
 void T_ScrollAdapter(mobj_t *mobj)
 {
     T_Scroll((scroll_t *)mobj);
+}
+
+static void T_ParamScrollFloor(scroll_t *s)
+{
+  if (!s->dx && !s->dy)
+    return;
+
+  sector_t* sec = sectors + s->affectee;
+
+  if (s->type & SCROLL_TEXTURE)
+  {
+    if (sec->old_floor_offs_gametic != gametic)
+    {
+      sec->old_floor_xoffs = sec->floor_xoffs;
+      sec->old_floor_yoffs = sec->floor_yoffs;
+      sec->old_floor_offs_gametic = gametic;
+    }
+    sec->floor_xoffs -= s->dx;
+    sec->floor_yoffs += s->dy;
+  }
+
+  if (s->type & (SCROLL_STATIC | SCROLL_PLAYER | SCROLL_MONSTER))
+  {
+    fixed_t height = sec->floorheight;
+    fixed_t waterheight = (sec->heightsec != -1 && sectors[sec->heightsec].floorheight > height)
+                        ? sectors[sec->heightsec].floorheight
+                        : INT_MIN;
+
+    for (msecnode_t* node = sec->touching_thinglist; node; node = node->m_snext)
+    {
+      mobj_t* thing = node->m_thing;
+
+      // Move objects only if on floor or underwater, non-floating, and clipped
+      if (!(thing->flags & MF_NOCLIP) && (!(thing->flags & MF_NOGRAVITY || thing->z > height) || thing->z < waterheight))
+      {
+        boolean scroll_it = false;
+
+        if (thing->type == MT_SKULL || thing->flags & MF_COUNTKILL)
+        {
+          if (s->type & SCROLL_MONSTER) scroll_it = true;
+        }
+        else if (thing->player)
+        {
+          if (s->type & SCROLL_PLAYER) scroll_it = true;
+        }
+        else
+        {
+          if (s->type & SCROLL_STATIC) scroll_it = true;
+        }
+
+        if (scroll_it)
+        {
+          thing->momx += s->dx * 3 / 32;
+          thing->momy += s->dy * 3 / 32;
+          thing->intflags |= MIF_SCROLLING;
+        }
+      }
+    }
+  }
+}
+
+static void T_ParamScrollCeiling(scroll_t *s)
+{
+  if (!s->dx && !s->dy)
+    return;
+
+  sector_t* sec = sectors + s->affectee;
+
+  if (s->type & SCROLL_TEXTURE)
+  {
+    if (sec->old_ceil_offs_gametic != gametic)
+    {
+        sec->old_ceiling_xoffs = sec->ceiling_xoffs;
+        sec->old_ceiling_yoffs = sec->ceiling_yoffs;
+        sec->old_ceil_offs_gametic = gametic;
+    }
+    sec->ceiling_xoffs -= s->dx;
+    sec->ceiling_yoffs += s->dy;
+  }
+
+  if (s->type & (SCROLL_STATIC | SCROLL_PLAYER | SCROLL_MONSTER))
+  {
+    for (msecnode_t* node = sec->touching_thinglist; node; node = node->m_snext)
+    {
+      mobj_t* thing = node->m_thing;
+
+      if (!(thing->flags & MF_NOCLIP)
+          && thing->flags & MF_SPAWNCEILING
+          && thing->flags & MF_NOGRAVITY
+          && thing->z + thing->height == sec->ceilingheight)
+      {
+        boolean scroll_it = false;
+
+        if ((s->type & SCROLL_MONSTER && (thing->type == MT_SKULL || thing->flags & MF_COUNTKILL))
+            || (s->type & SCROLL_PLAYER && thing->player)
+            || (s->type & SCROLL_STATIC))
+        {
+          scroll_it = true;
+        }
+
+        if (scroll_it)
+        {
+          thing->momx += s->dx * 3 / 32;
+          thing->momy += s->dy * 3 / 32;
+          thing->intflags |= MIF_SCROLLING;
+        }
+      }
+    }
+  }
+}
+
+void T_ParamScrollFloorAdapter(mobj_t *mobj)
+{
+    T_ParamScrollFloor((scroll_t *)mobj);
+}
+
+void T_ParamScrollCeilingAdapter(mobj_t *mobj)
+{
+    T_ParamScrollCeiling((scroll_t *)mobj);
 }
 
 //
@@ -3053,8 +3219,8 @@ void T_ScrollAdapter(mobj_t *mobj)
 // accel: non-zero if this is an accelerative effect
 //
 
-static void Add_Scroller(int type, fixed_t dx, fixed_t dy,
-                         int control, int affectee, int accel)
+void Add_Scroller(scroller_t type, fixed_t dx, fixed_t dy, int32_t control,
+                  int32_t affectee, int32_t accel)
 {
   scroll_t *s = arena_alloc(thinkers_arena, scroll_t);
   s->thinker.function.p1 = T_ScrollAdapter;
@@ -3067,6 +3233,23 @@ static void Add_Scroller(int type, fixed_t dx, fixed_t dy,
     s->last_height =
       sectors[control].floorheight + sectors[control].ceilingheight;
   s->affectee = affectee;
+  P_AddThinker(&s->thinker);
+}
+
+void Add_ParamSectorScroller(scroller_t type, int32_t affectee,
+                             boolean isCeiling, fixed_t dx, fixed_t dy)
+{
+  scroll_t *s = arena_alloc(thinkers_arena, scroll_t);
+  s->thinker.function.p1 = isCeiling ? T_ParamScrollCeilingAdapter
+                                     : T_ParamScrollFloorAdapter;
+  s->type = type;
+  s->dx = dx;
+  s->dy = dy;
+  s->affectee = affectee;
+
+  s->control = -1;
+  s->accel = s->vdx = s->vdy = s->last_height = 0;
+
   P_AddThinker(&s->thinker);
 }
 
@@ -3197,8 +3380,8 @@ static void P_SpawnScrollers(void)
 
         case 255:    // killough 3/2/98: scroll according to sidedef offsets
           s = lines[i].sidenum[0];
-          Add_Scroller(sc_side, -sides[s].textureoffset,
-                       sides[s].rowoffset, -1, s, accel);
+          Add_Scroller(sc_side, -sides[s].offsetx,
+                       sides[s].offsety, -1, s, accel);
           break;
 
         // special 255 with tag control
@@ -3226,8 +3409,8 @@ static void P_SpawnScrollers(void)
             I_Error("Line %d is missing a tag!", i);
 
           s = lines[i].sidenum[0];
-          dx = -sides[s].textureoffset / 8;
-          dy = sides[s].rowoffset / 8;
+          dx = -sides[s].offsetx / 8;
+          dy = sides[s].offsety / 8;
           for (s = -1; (s = P_FindLineFromLineTag(l, s)) >= 0;)
             if (s != i)
             {

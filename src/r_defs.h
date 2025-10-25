@@ -22,6 +22,7 @@
 
 // Some more or less basic data types
 // we depend on.
+#include "doomdata.h"
 #include "m_fixed.h"
 #include "tables.h"
 
@@ -172,6 +173,12 @@ typedef struct sector_s
   int tint;
   angle_t floor_rotation;
   angle_t ceiling_rotation;
+  fixed_t   floor_xoffs_post,   floor_yoffs_post;
+  fixed_t ceiling_xoffs_post, ceiling_yoffs_post;
+
+  // UDMF
+  int32_t flags;
+  int16_t lightfloor, lightceiling;
 } sector_t;
 
 //
@@ -180,12 +187,23 @@ typedef struct sector_s
 
 typedef struct side_s
 {
-  fixed_t textureoffset; // add this to the calculated texture column
-  fixed_t rowoffset;     // add this to the calculated texture top
+  fixed_t offsetx; // add this to the calculated texture column
+  fixed_t offsety; // add this to the calculated texture top
+
+  // UDMF
+  fixed_t offsetx_top;
+  fixed_t offsety_top;
+  fixed_t offsetx_mid;
+  fixed_t offsety_mid;
+  fixed_t offsetx_bottom;
+  fixed_t offsety_bottom;
+
   short toptexture;      // Texture indices. We do not maintain names here. 
   short bottomtexture;
   short midtexture;
   sector_t* sector;      // Sector the SideDef is facing.
+
+  sidedef_flags_t flags;
 
   // killough 4/4/98, 4/11/98: highest referencing special linedef's type,
   // or lump number of special effect. Allows texture names to be overloaded
@@ -194,13 +212,37 @@ typedef struct side_s
   int special;
 
   // [crispy] smooth texture scrolling
-  fixed_t oldtextureoffset;
-  fixed_t oldrowoffset;
-  fixed_t interptextureoffset;
-  fixed_t interprowoffset;
+  fixed_t oldoffsetx;
+  fixed_t oldoffsety;
+  fixed_t interpoffsetx;
+  fixed_t interpoffsety;
   int oldgametic;
 
   boolean dirty;
+
+  // UDMF
+  int32_t light;
+  int32_t light_top;
+  int32_t light_mid;
+  int32_t light_bottom;
+
+  fixed_t oldoffsetx_top;
+  fixed_t oldoffsety_top;
+  fixed_t interpoffsetx_top;
+  fixed_t interpoffsety_top;
+  int oldgametic_top;
+
+  fixed_t oldoffsetx_mid;
+  fixed_t oldoffsety_mid;
+  fixed_t interpoffsetx_mid;
+  fixed_t interpoffsety_mid;
+  int oldgametic_mid;
+
+  fixed_t oldoffsetx_bottom;
+  fixed_t oldoffsety_bottom;
+  fixed_t interpoffsetx_bottom;
+  fixed_t interpoffsety_bottom;
+  int oldgametic_bottom;
 } side_t;
 
 //
@@ -467,6 +509,7 @@ typedef struct visplane_s
   int picnum, lightlevel, minx, maxx;
   fixed_t height;
   fixed_t xoffs, yoffs;         // killough 2/28/98: Support scrolling flats
+  fixed_t xoffs_post, yoffs_post; // ID24 offset math
   angle_t rotation;
   unsigned short *bottom;
   int tint; // ID24 per-sector colormap
