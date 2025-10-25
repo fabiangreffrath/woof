@@ -228,7 +228,7 @@ static void ArchiveWorld(void)
     write32(size);
     for (i = 0; i < size; ++i)
     {
-        line = dirty_lines[i];
+        line = dirty_lines[i].line;
         write16(line->special);
     }
 
@@ -238,7 +238,7 @@ static void ArchiveWorld(void)
     write32(size);
     for (i = 0; i < size; ++i)
     {
-        side = dirty_sides[i];
+        side = dirty_sides[i].side;
 
         write16(side->toptexture,
                 side->bottomtexture,
@@ -287,14 +287,14 @@ static void UnArchiveWorld(void)
     int size = array_size(dirty_lines);
     for (i = 0; i < size; ++i)
     {
-        line = dirty_lines[i];
+        line = dirty_lines[i].line;
         if (i < oldsize)
         {
             line->special = read16();
         }
         else
         {
-            P_CleanLine(line, i);
+            P_CleanLine(&dirty_lines[i]);
         }
     }
 
@@ -303,7 +303,7 @@ static void UnArchiveWorld(void)
     size = array_size(dirty_sides);
     for (i = 0; i < size; ++i)
     {
-        side = dirty_sides[i];
+        side = dirty_sides[i].side;
         if (i < oldsize)
         {
             side->toptexture = read16();
@@ -314,7 +314,7 @@ static void UnArchiveWorld(void)
         }
         else
         {
-            P_CleanSide(side, i);
+            P_CleanSide(&dirty_sides[i]);
         }
     }
 }
