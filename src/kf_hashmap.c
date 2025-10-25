@@ -14,7 +14,7 @@
 #include "kf_hashmap.h"
 
 #include "doomtype.h"
-#include "m_array.h"
+#include "i_system.h"
 
 #include <inttypes.h>
 #include <stdint.h>
@@ -40,15 +40,16 @@ hashmap_t *hashmap_create(int capacity)
         actual_capacity <<= 1;
     }
 
-    array_resize(map->entries, actual_capacity);
+    map->capacity = actual_capacity;
+    map->entries = calloc(map->capacity, sizeof(hashmap_entry_t));
     return map;
 }
 
-void hashmap_free(hashmap_t *map)    
+void hashmap_free(hashmap_t *map)
 {
     if (map)
     {
-        array_free(map->entries);
+        free(map->entries);
         free(map);
     }
 }
@@ -67,7 +68,7 @@ inline static int hash(uintptr_t key, int capacity)
 // Linear probing to find slot for key
 static int find_slot(hashmap_t *map, uintptr_t key)
 {
-    int capacity = array_capacity(map->entries);
+    int capacity = map->capacity;
     int index = hash(key, capacity);
     int start_index = index;
 
@@ -88,13 +89,11 @@ static int find_slot(hashmap_t *map, uintptr_t key)
 
 static void hashmap_grow(hashmap_t *map)
 {
-    int old_capacity = array_capacity(map->entries);
+    int old_capacity = map->capacity;
     hashmap_entry_t *old_entries = map->entries;
 
     int new_capacity = old_capacity * 2;
-
-    hashmap_entry_t *new_entries = NULL;
-    array_resize(new_entries, new_capacity);
+    hashmap_entry_t *new_entries = calloc(new_capacity, sizeof(hashmap_entry_t));
 
     // Rehash
     for (int i = 0; i < old_capacity; ++i)
@@ -113,13 +112,14 @@ static void hashmap_grow(hashmap_t *map)
         }
     }
 
-    array_free(old_entries);
+    free(old_entries);
     map->entries = new_entries;
+    map->capacity = new_capacity;
 }
 
 boolean hashmap_put(hashmap_t *map, uintptr_t key)
 {
-    if (map->size + 1 > 3 * array_capacity(map->entries) / 4)
+    if (map->size + 1 > 3 * map->capacity / 4)
     {
         hashmap_grow(map);
     }
@@ -156,7 +156,7 @@ hashmap_iterator_t hashmap_iterator(hashmap_t *map)
 
 boolean hashmap_next(hashmap_iterator_t *iter, uintptr_t *key, int *number)
 {
-    int capacity = array_capacity(iter->map->entries);
+    int capacity = iter->map->capacity;
     while (++iter->index < capacity)
     {
         if (iter->map->entries[iter->index].occupied)

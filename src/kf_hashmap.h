@@ -22,6 +22,7 @@ typedef struct
 {
     hashmap_entry_t *entries;
     int size;
+    int capacity;
 } hashmap_t;
 
 hashmap_t *hashmap_create(int capacity);

@@ -1206,7 +1206,7 @@ static void ArchiveDirty(void)
     write32(count);
     array_foreach_type(dl, dirty_lines, dirty_line_t)
     {
-        writep_index(dl->line, lines);
+        write32(dl->line - lines);
         write16(dl->clean_line.special);
     }
 
@@ -1214,7 +1214,7 @@ static void ArchiveDirty(void)
     write32(count);
     array_foreach_type(ds, dirty_sides, dirty_side_t)
     {
-        writep_index(ds->side, sides);
+        write32(ds->side - sides);
         write_partial_side_t(&ds->clean_side);
     }
 }
@@ -1225,7 +1225,7 @@ static void UnArchiveDirty(void)
     array_resize(dirty_lines, count);
     array_foreach_type(dl, dirty_lines, dirty_line_t)
     {
-        readp_index(dl->line, lines);
+        dl->line = lines + read32();
         dl->line->dirty = true;
         dl->clean_line.special = read16();
     }
@@ -1234,7 +1234,7 @@ static void UnArchiveDirty(void)
     array_resize(dirty_sides, count);
     array_foreach_type(ds, dirty_sides, dirty_side_t)
     {
-        readp_index(ds->side, sides);
+        ds->side = sides + read32();
         ds->side->dirty = true;
         read_partial_side_t(&ds->clean_side);
     }
@@ -1712,7 +1712,7 @@ static void UnArchiveFreeList(void)
 static void ArchiveMSecNodes(void)
 {
     int count = msecnode_hashmap->size;
-    uintptr_t *table = malloc(count * sizeof(*table));
+    uintptr_t *table = calloc(count, sizeof(*table));
 
     hashmap_iterator_t iter = hashmap_iterator(msecnode_hashmap);
     uintptr_t pointer;
@@ -1827,7 +1827,7 @@ static void PrepareArchiveCeilingList(void)
 static void ArchiveCeilingList(void)
 {
     int count = ceilinglist_hashmap->size;
-    uintptr_t *table = malloc(count * sizeof(*table));
+    uintptr_t *table = calloc(count, sizeof(*table));
 
     hashmap_iterator_t iter = hashmap_iterator(ceilinglist_hashmap);
     uintptr_t pointer;
@@ -1889,7 +1889,7 @@ static void PrepareArchivePlatList(void)
 static void ArchivePlatList(void)
 {
     int count = platlist_hashmap->size;
-    uintptr_t *table = malloc(count * sizeof(*table));
+    uintptr_t *table = calloc(count, sizeof(*table));
 
     hashmap_iterator_t iter = hashmap_iterator(platlist_hashmap);
     uintptr_t pointer;
