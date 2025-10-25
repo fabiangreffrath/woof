@@ -396,7 +396,7 @@ static void write_thinker_t(thinker_t *str)
 {
     writep_thinker(str->prev);
     writep_thinker(str->next);
-    writep_thclass(str->cprev);
+    writep_thclass(str->cnext);
     writep_thclass(str->cprev);
     write32(str->references);
 }
