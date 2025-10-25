@@ -175,6 +175,10 @@ typedef struct sector_s
   angle_t ceiling_rotation;
   fixed_t   floor_xoffs_post,   floor_yoffs_post;
   fixed_t ceiling_xoffs_post, ceiling_yoffs_post;
+
+  // UDMF
+  int32_t flags;
+  int16_t lightfloor, lightceiling;
 } sector_t;
 
 //

@@ -717,11 +717,11 @@ static void UDMF_ParseSector(scanner_t *s)
         }
         else if (PROP(lightfloorabsolute, UDMF_SECTOR_LIGHT))
         {
-            sector.flags = UDMF_ScanFlag(s, SECF_ABS_LIGHT_FLOOR);
+            sector.flags |= UDMF_ScanFlag(s, SECF_ABS_LIGHT_FLOOR);
         }
         else if (PROP(lightceilingabsolute, UDMF_SECTOR_LIGHT))
         {
-            sector.flags = UDMF_ScanFlag(s, SECF_ABS_LIGHT_CEIL);
+            sector.flags |= UDMF_ScanFlag(s, SECF_ABS_LIGHT_CEIL);
         }
         else
         {
@@ -929,6 +929,10 @@ static void UDMF_LoadSectors(void)
         sectors[i].ceilingpic = R_FlatNumForName(udmf_sectors[i].textureceiling);
         sectors[i].lightlevel = udmf_sectors[i].lightlevel;
         sectors[i].tag = udmf_sectors[i].tag;
+
+        sectors[i].flags = udmf_sectors[i].flags;
+        sectors[i].lightfloor = udmf_sectors[i].lightfloor;
+        sectors[i].lightceiling = udmf_sectors[i].lightceiling;
 
         sectors[i].floor_rotation =
             FixedToAngle(DoubleToFixed(udmf_sectors[i].rotationfloor));

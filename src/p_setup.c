@@ -335,6 +335,9 @@ void P_LoadSectors (int lump)
       // WiggleFix: [kb] for R_FixWiggle()
       ss->cachedheight = 0;
 
+      // UDMF
+      ss->lightfloor = ss->lightceiling = ss->lightlevel;
+
       ss->nextsec = -1; //jff 2/26/98 add fields to support locking out
       ss->prevsec = -1; // stair retriggering until build completes
 
