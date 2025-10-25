@@ -48,6 +48,13 @@ void P_RemoveElevatorThinker(struct elevator_s *floor);
 void P_RemovePlatThinker(struct plat_s *plat);
 void P_RemoveAmbientThinker(struct ambient_s *ambient);
 
+void P_RemoveCeilingThinkerDelayed(struct mobj_s *mobj);
+void P_RemoveDoorThinkerDelayed(struct mobj_s *mobj);
+void P_RemoveFloorThinkerDelayed(struct mobj_s *mobj);
+void P_RemoveElevatorThinkerDelayed(struct mobj_s *mobj);
+void P_RemovePlatThinkerDelayed(struct mobj_s *mobj);
+void P_RemoveAmbientThinkerDelayed(struct mobj_s *mobj);
+
 void P_UpdateThinker(thinker_t *thinker);   // killough 8/29/98
 
 void P_SetTarget(struct mobj_s **mo, struct mobj_s *target);   // killough 11/98

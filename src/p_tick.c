@@ -42,12 +42,12 @@ int oldleveltime;
 //
 
 // Both the head and tail of the thinker list.
-thinker_t thinkercap;
+thinker_t thinkercap = {0};
 
 // killough 8/29/98: we maintain several separate threads, each containing
 // a special class of thinkers, to allow more efficient searches. 
 
-thinker_t thinkerclasscap[NUMTHCLASS];
+thinker_t thinkerclasscap[NUMTHCLASS] = {0};
 
 int init_thinkers_count = 0;
 
@@ -180,32 +180,32 @@ void P_RemoveMobjThinkerDelayed(mobj_t *mobj)
     RemoveThinkerDelayed(mobj, mobj_t);
 }
 
-static void P_RemoveCeilingThinkerDelayed(mobj_t *mobj)
+void P_RemoveCeilingThinkerDelayed(mobj_t *mobj)
 {
     RemoveThinkerDelayed(mobj, ceiling_t);
 }
 
-static void RemoveDoorThinkerDelayed(mobj_t *mobj)
+void P_RemoveDoorThinkerDelayed(mobj_t *mobj)
 {
     RemoveThinkerDelayed(mobj, vldoor_t);
 }
 
-static void RemoveFloorThinkerDelayed(mobj_t *mobj)
+void P_RemoveFloorThinkerDelayed(mobj_t *mobj)
 {
     RemoveThinkerDelayed(mobj, floormove_t);
 }
 
-static void RemoveElevatorThinkerDelayed(mobj_t *mobj)
+void P_RemoveElevatorThinkerDelayed(mobj_t *mobj)
 {
     RemoveThinkerDelayed(mobj, elevator_t);
 }
 
-static void RemovePlatThinkerDelayed(mobj_t *mobj)
+void P_RemovePlatThinkerDelayed(mobj_t *mobj)
 {
     RemoveThinkerDelayed(mobj, plat_t);
 }
 
-static void RemoveAmbientThinkerDelayed(mobj_t *mobj)
+void P_RemoveAmbientThinkerDelayed(mobj_t *mobj)
 {
     RemoveThinkerDelayed(mobj, ambient_t);
 }
@@ -258,31 +258,31 @@ void P_RemoveCeilingThinker(ceiling_t *ceiling)
 
 void P_RemoveDoorThinker(vldoor_t *door)
 {
-   door->thinker.function.p1 = RemoveDoorThinkerDelayed;
+   door->thinker.function.p1 = P_RemoveDoorThinkerDelayed;
    P_UpdateThinker(&door->thinker);
 }
 
 void P_RemoveFloorThinker(floormove_t *floor)
 {
-   floor->thinker.function.p1 = RemoveFloorThinkerDelayed;
+   floor->thinker.function.p1 = P_RemoveFloorThinkerDelayed;
    P_UpdateThinker(&floor->thinker);
 }
 
 void P_RemoveElevatorThinker(elevator_t *elevator)
 {
-   elevator->thinker.function.p1 = RemoveElevatorThinkerDelayed;
+   elevator->thinker.function.p1 = P_RemoveElevatorThinkerDelayed;
    P_UpdateThinker(&elevator->thinker);
 }
 
 void P_RemovePlatThinker(plat_t *plat)
 {
-   plat->thinker.function.p1 = RemovePlatThinkerDelayed;
+   plat->thinker.function.p1 = P_RemovePlatThinkerDelayed;
    P_UpdateThinker(&plat->thinker);
 }
 
 void P_RemoveAmbientThinker(ambient_t *ambient)
 {
-   ambient->thinker.function.p1 = RemoveAmbientThinkerDelayed;
+   ambient->thinker.function.p1 = P_RemoveAmbientThinkerDelayed;
    P_UpdateThinker(&ambient->thinker);
 }
 
