@@ -83,13 +83,10 @@ typedef struct
     // Base spec
     int32_t id;
     int32_t type;
-    double x;
-    double y;
+    double x, y;
     double height;
     int32_t angle;
     int32_t options;
-
-    // Hexen
     int32_t special;
     int32_t args[5];
 } UDMF_Thing_t;
@@ -105,17 +102,13 @@ typedef struct
 {
     // Base spec
     int32_t id;
-    int32_t v1_id;
-    int32_t v2_id;
+    int32_t v1_id, v2_id;
     int32_t special;
-    int32_t sidefront;
-    int32_t sideback;
+    int32_t args[5];
+    int32_t sidefront, sideback;
     int32_t flags;
 
-    // Hexen
-    int32_t args[5];
-
-    // Woof!
+    // Extension
     char tranmap[9];
 } UDMF_Linedef_t;
 
@@ -131,10 +124,9 @@ typedef struct
     char texturetop[9];
     char texturemiddle[9];
     char texturebottom[9];
-    int32_t offsetx;
-    int32_t offsety;
+    int32_t offsetx, offsety;
 
-    // UDMF Extensions
+    // Extensions
     int32_t flags;
 
     int32_t xscroll, yscroll;
@@ -164,10 +156,10 @@ typedef struct
     int32_t lightlevel;
     int32_t special;
 
-    // UDMF Extensions
-    int32_t flags; // TODO: FIXME: LATER
+    // Extensions
+    int32_t flags;
 
-    int32_t lightfloor, lightceiling; // TODO: FIXME: LATER
+    int32_t lightfloor, lightceiling;
 
     double xpanningfloor,   ypanningfloor;
     double xpanningceiling, ypanningceiling;
@@ -714,6 +706,22 @@ static void UDMF_ParseSector(scanner_t *s)
         else if (PROP(scrollceilingmode, UDMF_SECTOR_SCROLL))
         {
             sector.scrollceilingmode = UDMF_ScanInt(s);
+        }
+        else if (PROP(lightfloor, UDMF_SECTOR_LIGHT))
+        {
+            sector.lightfloor = UDMF_ScanInt(s);
+        }
+        else if (PROP(lightceiling, UDMF_SECTOR_LIGHT))
+        {
+            sector.lightceiling = UDMF_ScanInt(s);
+        }
+        else if (PROP(lightfloorabsolute, UDMF_SECTOR_LIGHT))
+        {
+            sector.flags = UDMF_ScanFlag(s, SECF_ABS_LIGHT_FLOOR);
+        }
+        else if (PROP(lightceilingabsolute, UDMF_SECTOR_LIGHT))
+        {
+            sector.flags = UDMF_ScanFlag(s, SECF_ABS_LIGHT_CEIL);
         }
         else
         {
