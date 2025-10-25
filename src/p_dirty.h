@@ -39,6 +39,9 @@ extern partial_side_t *clean_sides;
 void P_DirtyLine(line_t *line);
 void P_DirtySide(side_t *side);
 
+void P_CleanLine(line_t *line, int index);
+void P_CleanSide(side_t *side, int index);
+
 void P_ClearDirtyArrays(void);
 
 void P_ArchiveDirtyArraysCurrentLevel(void);

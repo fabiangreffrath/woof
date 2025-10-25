@@ -21,12 +21,15 @@
 #include "g_game.h"
 #include "i_system.h"
 #include "m_arena.h"
+#include "m_array.h"
 #include "m_random.h"
+#include "p_dirty.h"
 #include "p_map.h"
 #include "p_maputl.h"
 #include "p_setup.h"
 #include "p_spec.h"
 #include "p_tick.h"
+#include "r_state.h"
 #include "s_musinfo.h"
 #include "s_sound.h"
 #include "st_widgets.h"
@@ -186,17 +189,135 @@ static void UnArchivePlayers(void)
     }
 }
 
-#define writep_mobj writep
-#define writep_thinker writep
-#define readp_mobj readp
-#define readp_thinker readp
+static void ArchiveWorld(void)
+{
+    int i;
+    const sector_t *sector;
 
-#define ArchiveThingList(sector) writep(sector->thinglist)
-#define PrepareArchiveTouchingThingList(sector) writep(sector->touching_thinglist)
-#define UnArchiveThingList(sector) sector->thinglist = readp()
-#define PrepareUnArchiveTouchingThingList(sector) sector->touching_thinglist = readp()
+    // do sectors
+    for (i = 0, sector = sectors; i < numsectors; i++, sector++)
+    {
+        // killough 10/98: save full floor & ceiling heights, including fraction
+        write32(sector->floorheight,
+                sector->ceilingheight,
+                sector->floor_xoffs,
+                sector->floor_yoffs,
+                sector->ceiling_xoffs,
+                sector->ceiling_yoffs,
+                sector->floor_rotation,
+                sector->ceiling_rotation,
+                sector->tint);
 
-#include "kf_common.h"
+        write16(sector->floorpic,
+                sector->ceilingpic,
+                sector->lightlevel,
+                sector->special, // needed?   yes -- transfer types
+                sector->tag);    // needed?   need them -- killough 
+
+        // Woof!
+        writep(sector->soundtarget,
+               sector->floordata,
+               sector->ceilingdata,
+               sector->thinglist,
+               sector->touching_thinglist);
+    }
+
+    const line_t *line;
+
+    int size = array_size(dirty_lines);
+    write32(size);
+    for (i = 0; i < size; ++i)
+    {
+        line = dirty_lines[i];
+        write16(line->special);
+    }
+
+    const side_t *side;
+
+    size = array_size(dirty_sides);
+    write32(size);
+    for (i = 0; i < size; ++i)
+    {
+        side = dirty_sides[i];
+
+        write16(side->toptexture,
+                side->bottomtexture,
+                side->midtexture);
+
+        write32(side->textureoffset,
+                side->rowoffset);
+    }
+}
+
+static void UnArchiveWorld(void)
+{
+    int i;
+    sector_t *sector;
+
+    // do sectors
+    for (i = 0, sector = sectors; i < numsectors; i++, sector++)
+    {
+        sector->floorheight = read32();
+        sector->ceilingheight = read32();
+        sector->floor_xoffs = read32();
+        sector->floor_yoffs = read32();
+        sector->ceiling_xoffs = read32();
+        sector->ceiling_yoffs = read32();
+        sector->floor_rotation = read32();
+        sector->ceiling_rotation = read32();
+        sector->tint = read32();
+
+        sector->floorpic = read16();
+        sector->ceilingpic = read16();
+        sector->lightlevel = read16();
+        sector->special = read16();
+        sector->tag = read16();
+
+        // Woof!
+        sector->soundtarget = readp();
+        sector->floordata = readp();
+        sector->ceilingdata = readp();
+        sector->thinglist = readp();
+        sector->touching_thinglist = readp();
+    }
+
+    line_t *line;
+
+    int oldsize = read32();
+    int size = array_size(dirty_lines);
+    for (i = 0; i < size; ++i)
+    {
+        line = dirty_lines[i];
+        if (i < oldsize)
+        {
+            line->special = read16();
+        }
+        else
+        {
+            P_CleanLine(line, i);
+        }
+    }
+
+    side_t *side;
+    oldsize = read32();
+    size = array_size(dirty_sides);
+    for (i = 0; i < size; ++i)
+    {
+        side = dirty_sides[i];
+        if (i < oldsize)
+        {
+            side->toptexture = read16();
+            side->bottomtexture = read16();
+            side->midtexture = read16();    
+            side->textureoffset = read32();
+            side->rowoffset = read32(); 
+        }
+        else
+        {
+            P_CleanSide(side, i);
+        }
+    }
+}
 
 static void ArchivePlayState(keyframe_t *keyframe)
 {

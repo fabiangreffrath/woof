@@ -50,6 +50,24 @@ void P_DirtySide(side_t *side)
     array_push(dirty_sides, side);
 }
 
+void P_CleanLine(line_t *line, int index)
+{
+    const partial_line_t *clean_line = &clean_lines[index];
+    line->special = clean_line->special;
+    line->dirty = false;
+}
+
+void P_CleanSide(side_t *side, int index)
+{
+    const partial_side_t *clean_side = &clean_sides[index];
+    side->textureoffset = clean_side->textureoffset;
+    side->rowoffset = clean_side->rowoffset;
+    side->toptexture = clean_side->toptexture;
+    side->bottomtexture = clean_side->bottomtexture;
+    side->midtexture = clean_side->midtexture;
+    side->dirty = false;
+}
+
 void P_ClearDirtyArrays(void)
 {
     array_clear(dirty_lines);

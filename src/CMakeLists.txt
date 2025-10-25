@@ -61,8 +61,8 @@ set(WOOF_SOURCES
     i_timer.c              i_timer.h
     i_video.c              i_video.h
     info.c                 info.h
-                           kf_common.h
     kf_file.c
+    kf_hashmap.c           kf_hashmap.h
     kf_memory.c
     m_arena.c              m_arena.h
     m_argv.c               m_argv.h

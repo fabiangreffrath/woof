@@ -16,11 +16,12 @@
 #include "doomdata.h"
 #include "doomstat.h"
 #include "doomtype.h"
-#include "i_printf.h"
 #include "i_system.h"
 #include "info.h"
+#include "kf_hashmap.h"
 #include "m_arena.h"
 #include "m_array.h"
+#include "m_fixed.h"
 #include "m_random.h"
 #include "p_ambient.h"
 #include "p_dirty.h"
@@ -39,21 +40,61 @@
 #include <stdint.h>
 #include <inttypes.h>
 
+inline static void write8_internal(const int8_t data[], int count)
+{
+    saveg_grow(sizeof(int8_t) * count);
+    for (int i = 0; i < count; ++i)
+    {
+        savep_putbyte(data[i]);
+    }
+}
+
+#define write8(...)                                       \
+    write8_internal((const int8_t[]){__VA_ARGS__},        \
+                    sizeof((const int8_t[]){__VA_ARGS__}) \
+                        / sizeof(const int8_t))
+
+inline static void write16_internal(const int16_t data[], int count)
+{
+    saveg_grow(sizeof(int16_t) * count);
+    for (int i = 0; i < count; ++i)
+    {
+        savep_putbyte(data[i] & 0xff);
+        savep_putbyte((data[i] >> 8) & 0xff);
+    }
+}
+
+#define write16(...)                                        \
+    write16_internal((const int16_t[]){__VA_ARGS__},        \
+                     sizeof((const int16_t[]){__VA_ARGS__}) \
+                         / sizeof(const int16_t))
+
+inline static void write32_internal(const int32_t data[], int count)
+{
+    saveg_grow(sizeof(int32_t) * count);
+    for (int i = 0; i < count; ++i)
+    {
+        savep_putbyte(data[i] & 0xff);
+        savep_putbyte((data[i] >> 8) & 0xff);
+        savep_putbyte((data[i] >> 16) & 0xff);
+        savep_putbyte((data[i] >> 24) & 0xff);
+    }
+}
+
+#define write32(...)                                        \
+    write32_internal((const int32_t[]){__VA_ARGS__},        \
+                     sizeof((const int32_t[]){__VA_ARGS__}) \
+                         / sizeof(const int32_t))
+
 #define read8 saveg_read8
-#define write8 saveg_write8
 #define read16 saveg_read16
-#define write16 saveg_write16
 #define read32 saveg_read32
-#define write32 saveg_write32
-#define read64 saveg_read64
-#define write64 saveg_write64
 
 #define read_enum read32
 #define write_enum write32
 
 enum
 {
-    normal_index = 0,
     null_index = -1,
     head_index = -2,
     dummy_index = -3,
@@ -125,108 +166,9 @@ typedef struct
 } thinker_pointer_t;
 
 static thinker_pointer_t *thinker_pointers;
-
-typedef struct
-{
-    uintptr_t key;
-    int value;
-    boolean occupied;
-} hashmap_entry_t;
-
-typedef struct
-{
-    hashmap_entry_t *entries;
-    size_t capacity;
-    size_t size;
-} hashmap_t;
-
-static hashmap_t *hashmap_create(size_t capacity)
-{
-    hashmap_t *map = malloc(sizeof(hashmap_t));
-
-    // Round up to nearest power of 2 for efficient modulo
-    size_t actual_capacity = 1;
-    while (actual_capacity < capacity)
-    {
-        actual_capacity <<= 1;
-    }
-
-    map->entries = calloc(actual_capacity, sizeof(hashmap_entry_t));
-
-    map->capacity = actual_capacity;
-    map->size = 0;
-    return map;
-}
-
-#define hashmap_free(map)       \
-    do                          \
-    {                           \
-        if (map)                \
-        {                       \
-            free(map->entries); \
-            free(map);          \
-        }                       \
-        (map) = NULL;           \
-    } while (0)
-
-inline static size_t hash(uintptr_t key, size_t capacity)
-{
-#if UINTPTR_MAX == UINT64_MAX
-    // 64-bit optimized constant (golden ratio)
-    return (key * 11400714819323198485ull) & (capacity - 1);
-#else
-    // 32-bit optimized constant
-    return (key * 2654435761ul) & (capacity - 1);
-#endif
-}
-
-// Linear probing to find slot for key
-static size_t find_slot(hashmap_t *map, uintptr_t key)
-{
-    size_t index = hash(key, map->capacity);
-    size_t start_index = index;
-
-    while (map->entries[index].occupied)
-    {
-        if (map->entries[index].key == key)
-        {
-            return index;
-        }
-        index = (index + 1) & (map->capacity - 1);
-        if (index == start_index)
-        {
-            break; // Full table
-        }
-    }
-    return index;
-}
-
-static void hashmap_put(hashmap_t *map, uintptr_t key, int value)
-{
-    if (map->size >= map->capacity)
-    {
-        I_Error("Hash map is full");
-    }
-
-    size_t index = find_slot(map, key);
-    if (!map->entries[index].occupied)
-    {
-        map->entries[index].key = key;
-        map->entries[index].occupied = true;
-        map->size++;
-    }
-    map->entries[index].value = value;
-}
-
-static int hashmap_get(hashmap_t *map, uintptr_t key)
-{
-    size_t index = find_slot(map, key);
-    if (map->entries[index].occupied && map->entries[index].key == key)
-    {
-        return map->entries[index].value;
-    }
-    I_Error("Not found %" PRIuPTR, key);
-}
+static uintptr_t *msecnode_pointers;
+static uintptr_t *ceilinglist_pointers;
+static uintptr_t *platlist_pointers;
 
 static hashmap_t *thinker_hashmap;
 static hashmap_t *msecnode_hashmap;
@@ -309,8 +251,6 @@ static void writep_mobj(const mobj_t *mobj)
     writep_thinker(&mobj->thinker);
 }
 
-static uintptr_t *msecnode_pointers;
-
 static msecnode_t *readp_msecnode(void)
 {
     int index = read32();
@@ -339,8 +279,6 @@ static void writep_msecnode(const msecnode_t *node)
     write32(index);
 }
 
-static uintptr_t *ceilinglist_pointers;
-
 static ceilinglist_t *readp_activeceilings(void)
 {
     int index = read32();
@@ -368,8 +306,6 @@ static void writep_activeceilings(const ceilinglist_t *cl)
     }
     write32(index);
 }
-
-static uintptr_t *platlist_pointers;
 
 static platlist_t *readp_activeplats(void)
 {
@@ -465,6 +401,9 @@ static void write_thinker_t(thinker_t *str)
     write32(str->references);
 }
 
+inline static void UnArchiveTouchingSectorList(mobj_t *mobj);
+inline static void ArchiveTouchingSectorList(const mobj_t *mobj);
+
 static void read_mobj_t(mobj_t *str, thinker_class_t tc)
 {
     read_thinker_t(&str->thinker, tc);
@@ -520,7 +459,7 @@ static void read_mobj_t(mobj_t *str, thinker_class_t tc)
     str->below_thing = readp_mobj();
     str->friction = read32();
     str->movefactor = read32();
-    str->touching_sectorlist = readp_msecnode();
+    UnArchiveTouchingSectorList(str);
     str->interp = read32();
     str->oldx = read32();
     str->oldy = read32();
@@ -587,7 +526,7 @@ static void write_mobj_t(mobj_t *str)
     writep_mobj(str->below_thing);
     write32(str->friction);
     write32(str->movefactor);
-    writep_msecnode(str->touching_sectorlist);
+    ArchiveTouchingSectorList(str);
     write32(str->interp);
     write32(str->oldx);
     write32(str->oldy);
@@ -1256,6 +1195,10 @@ static void write_partial_side_t(partial_side_t *str)
     write16(str->midtexture);
 }
 
+//
+// World
+//
+
 static void ArchiveDirty(void)
 {
     int count = array_size(dirty_lines);
@@ -1347,33 +1290,143 @@ inline static void UnArchiveThingList(sector_t *sector)
     }
 }
 
-inline static void PrepareUnArchiveTouchingThingList(sector_t *sector)
+inline static void UnArchiveTouchingThingList(sector_t *sector);
+inline static void ArchiveTouchingThingList(const sector_t *sector);
+
+static void ArchiveWorld(void)
 {
-    sector->touching_thinglist = NULL;
-    int count = read32();
-    while (count--)
+    int i;
+    const sector_t *sector;
+
+    // do sectors
+    for (i = 0, sector = sectors; i < numsectors; i++, sector++)
     {
-        msecnode_t *node = arena_calloc(msecnodes_arena, msecnode_t);
-        if (!sector->touching_thinglist)
+        // killough 10/98: save full floor & ceiling heights, including fraction
+        write32(sector->floorheight,
+                sector->ceilingheight,
+                sector->floor_xoffs,
+                sector->floor_yoffs,
+                sector->ceiling_xoffs,
+                sector->ceiling_yoffs,
+                sector->floor_rotation,
+                sector->ceiling_rotation,
+                sector->tint);
+
+        write16(sector->floorpic,
+                sector->ceilingpic,
+                sector->lightlevel,
+                sector->special, // needed?   yes -- transfer types
+                sector->tag);    // needed?   need them -- killough 
+
+        // Woof!
+        writep_mobj(sector->soundtarget);
+        writep_thinker(sector->floordata);
+        writep_thinker(sector->ceilingdata);
+        ArchiveThingList(sector);
+        ArchiveTouchingThingList(sector);
+    }
+
+    const line_t *line;
+
+    int size = array_size(dirty_lines);
+    write32(size);
+    for (i = 0; i < size; ++i)
+    {
+        line = dirty_lines[i];
+        write16(line->special);
+    }
+
+    const side_t *side;
+
+    size = array_size(dirty_sides);
+    write32(size);
+    for (i = 0; i < size; ++i)
+    {
+        side = dirty_sides[i];
+
+        write16(side->toptexture,
+                side->bottomtexture,
+                side->midtexture);
+
+        write32(side->textureoffset,
+                side->rowoffset);
+    }
+}
+
+static void UnArchiveWorld(void)
+{
+    int i;
+    sector_t *sector;
+
+    // do sectors
+    for (i = 0, sector = sectors; i < numsectors; i++, sector++)
+    {
+        sector->floorheight = read32();
+        sector->ceilingheight = read32();
+        sector->floor_xoffs = read32();
+        sector->floor_yoffs = read32();
+        sector->ceiling_xoffs = read32();
+        sector->ceiling_yoffs = read32();
+        sector->floor_rotation = read32();
+        sector->ceiling_rotation = read32();
+        sector->tint = read32();
+
+        sector->floorpic = read16();
+        sector->ceilingpic = read16();
+        sector->lightlevel = read16();
+        sector->special = read16();
+        sector->tag = read16();
+
+        // Woof!
+        sector->soundtarget = readp_mobj();
+        sector->floordata = readp_thinker();
+        sector->ceilingdata = readp_thinker();
+        UnArchiveThingList(sector);
+        UnArchiveTouchingThingList(sector);
+    }
+
+    line_t *line;
+
+    int oldsize = read32();
+    int size = array_size(dirty_lines);
+    for (i = 0; i < size; ++i)
+    {
+        line = dirty_lines[i];
+        if (i < oldsize)
         {
-            sector->touching_thinglist = node;
+            line->special = read16();
         }
-        array_push(msecnode_pointers, (uintptr_t)node);
+        else
+        {
+            P_CleanLine(line, i);
+        }
     }
-}
 
-inline static void PrepareArchiveTouchingThingList(const sector_t *sector)
-{
-    int count = array_size(msecnode_pointers);
-    for (msecnode_t *node = sector->touching_thinglist; node; node = node->m_snext)
+    side_t *side;
+
+    oldsize = read32();
+    size = array_size(dirty_sides);
+    for (i = 0; i < size; ++i)
     {
-        array_push(msecnode_pointers, (uintptr_t)node);
+        side = dirty_sides[i];
+        if (i < oldsize)
+        {
+            side->toptexture = read16();
+            side->bottomtexture = read16();
+            side->midtexture = read16();    
+            side->textureoffset = read32();
+            side->rowoffset = read32(); 
+        }
+        else
+        {
+            P_CleanSide(side, i);
+        }
     }
-
-    write32(array_size(msecnode_pointers) - count);
 }
 
-#include "kf_common.h"
+//
+// Thinkers
+//
 
 static void PrepareArchiveThinkers(void)
 {
@@ -1393,21 +1446,17 @@ static void PrepareArchiveThinkers(void)
         {
             I_Error("Thinker class not found");
         }
-
         pointer.value = (uintptr_t)th;
+
         array_push(thinker_pointers, pointer);
+        hashmap_put(thinker_hashmap, pointer.value);
     }
 
     int count = array_size(thinker_pointers);
-
-    thinker_hashmap = hashmap_create(count * 2);
-
     write32(count);
 
-    for (int i = 0; i < count; ++i)
+    array_foreach_type(pointer, thinker_pointers, thinker_pointer_t)
     {
-        thinker_pointer_t *pointer = &thinker_pointers[i];
-        hashmap_put(thinker_hashmap, pointer->value, i);
         write8(pointer->tc);
     }
 }
@@ -1530,6 +1579,7 @@ static void PrepareUnArchiveThinkers(void)
                 pointer.value = (uintptr_t)arena_calloc(thinkers_arena, ambient_t);
                 break;
             case tc_none:
+                pointer.value = (uintptr_t)arena_calloc(thinkers_arena, thinker_t);
                 break;
         }
         array_push(thinker_pointers, pointer);
@@ -1591,30 +1641,80 @@ static void UnArchiveThinkers(void)
                 read_ambient_t((ambient_t *)pointer->value);
                 break;
             case tc_none:
+                read_thinker_t((thinker_t *)pointer->value, pointer->tc);
                 break;
         }
     }
 }
 
-static void PrepareArchiveMSecNodes(void)
+//
+// MSecNodes
+//
+
+inline static void UnArchiveTouchingThingList(sector_t *sector)
 {
-    int oldcount = array_size(msecnode_pointers);
-    for (msecnode_t *node = headsecnode; node; node = node->m_snext)
+    sector->touching_thinglist = NULL;
+    int count = read32();
+    while (count--)
     {
+        msecnode_t *node = arena_calloc(msecnodes_arena, msecnode_t);
+        if (!sector->touching_thinglist)
+        {
+            sector->touching_thinglist = node;
+        }
         array_push(msecnode_pointers, (uintptr_t)node);
     }
-
-    int count = array_size(msecnode_pointers);
-    msecnode_hashmap = hashmap_create(count * 2);
-    for (int i = 0; i < count; ++i)
-    {
-        hashmap_put(msecnode_hashmap, msecnode_pointers[i], i);
-    }
-
-    write32(count - oldcount);
 }
 
-static void PrepareUnArchiveMSecNodes(void)
+inline static void ArchiveTouchingThingList(const sector_t *sector)
+{
+    int oldsize = msecnode_hashmap->size;
+    for (msecnode_t *node = sector->touching_thinglist; node; node = node->m_snext)
+    {
+        hashmap_put(msecnode_hashmap, (uintptr_t)node);
+    }
+    int count = msecnode_hashmap->size - oldsize;
+    write32(count);
+}
+
+inline static void UnArchiveTouchingSectorList(mobj_t *mobj)
+{
+    mobj->touching_sectorlist = NULL;
+    int count = read32();
+    while (count--)
+    {
+        msecnode_t *node = arena_calloc(msecnodes_arena, msecnode_t);
+        if (!mobj->touching_sectorlist)
+        {
+            mobj->touching_sectorlist = node;
+        }
+        array_push(msecnode_pointers, (uintptr_t)node);
+    }
+}
+
+inline static void ArchiveTouchingSectorList(const mobj_t *mobj)
+{
+    int oldsize = msecnode_hashmap->size;
+    for (msecnode_t *node = mobj->touching_sectorlist; node; node = node->m_tnext)
+    {
+        hashmap_put(msecnode_hashmap, (uintptr_t)node);
+    }
+    int count = msecnode_hashmap->size - oldsize;
+    write32(count);
+}
+
+static void ArchiveFreeList(void)
+{
+    int oldcount = msecnode_hashmap->size;
+    for (msecnode_t *node = headsecnode; node; node = node->m_snext)
+    {
+        hashmap_put(msecnode_hashmap, (uintptr_t)node);
+    }
+    int count = msecnode_hashmap->size - oldcount; 
+    write32(count);
+}
+
+static void UnArchiveFreeList(void)
 {
     int count = read32();
     while (count--)
@@ -1626,11 +1726,22 @@ static void PrepareUnArchiveMSecNodes(void)
 
 static void ArchiveMSecNodes(void)
 {
-    int count = array_size(msecnode_pointers);
+    int count = msecnode_hashmap->size;
+    uintptr_t *table = malloc(count * sizeof(*table));
+
+    hashmap_iterator_t iter = hashmap_iterator(msecnode_hashmap);
+    uintptr_t pointer;
+    int number;
+    while (hashmap_next(&iter, &pointer, &number))
+    {
+        table[number] = pointer;
+    }
     for (int i = 0; i < count; ++i)
     {
-        write_msecnode_t((msecnode_t *)msecnode_pointers[i]);
+        write_msecnode_t((msecnode_t *)table[i]);
     }
+
+    free(table);
 }
 
 static void UnArchiveMSecNodes(void)
@@ -1641,6 +1752,10 @@ static void UnArchiveMSecNodes(void)
         read_msecnode_t((msecnode_t *)msecnode_pointers[i]);
     }
 }
+
+//
+// Players
+//
 
 static void ArchivePlayers(void)
 {
@@ -1663,6 +1778,10 @@ static void UnArchivePlayers(void)
         }
     }
 }
+
+//
+// Blocklinks
+//
 
 static void ArchiveBlocklinks(void)
 {
@@ -1706,30 +1825,39 @@ static void UnArchiveBlocklinks(void)
     }
 }
 
+//
+// CeilingList
+//
+
 static void PrepareArchiveCeilingList(void)
 {
     for (ceilinglist_t *cl = activeceilings; cl; cl = cl->next)
     {
-        array_push(ceilinglist_pointers, (uintptr_t)cl);
+        hashmap_put(ceilinglist_hashmap, (uintptr_t)cl);
     }
-
-    int count = array_size(ceilinglist_pointers);
+    int count = ceilinglist_hashmap->size;
     write32(count);
-    ceilinglist_hashmap = hashmap_create(count * 2);
-    for (int i = 0; i < count; ++i)
-    {
-        hashmap_put(ceilinglist_hashmap, ceilinglist_pointers[i], i);
-    }
 }
 
 static void ArchiveCeilingList(void)
 {
-    int count = array_size(ceilinglist_pointers);
+    int count = ceilinglist_hashmap->size;
+    uintptr_t *table = malloc(count * sizeof(*table));
+
+    hashmap_iterator_t iter = hashmap_iterator(ceilinglist_hashmap);
+    uintptr_t pointer;
+    int number;
+    while (hashmap_next(&iter, &pointer, &number))
+    {
+        table[number] = pointer;
+    }
     for (int i = 0; i < count; ++i)
     {
-        ceilinglist_t *cl = (ceilinglist_t *)ceilinglist_pointers[i];
+        ceilinglist_t *cl = (ceilinglist_t *)table[i];
         writep_thinker(&cl->ceiling->thinker);
     }
+
+    free(table);
 }
 
 static void PrepareUnArchiveCeilingList(void)
@@ -1745,49 +1873,53 @@ static void PrepareUnArchiveCeilingList(void)
 static void UnArchiveCeilingList(void)
 {
     int count = array_size(ceilinglist_pointers);
-    ceilinglist_t *cl = NULL, *prev = NULL;
+    ceilinglist_t *cl, **prev;
+    prev = &activeceilings;
     for (int i = 0; i < count; ++i)
     {
         cl = (ceilinglist_t *)ceilinglist_pointers[i];
         cl->ceiling = (ceiling_t *)readp_thinker();
+        *prev = cl;
+        cl->prev = prev;
         cl->next = NULL;
-        if (prev)
-        {
-            cl->prev = &prev;
-            prev->next = cl;
-        }
-        else
-        {
-            cl->prev = NULL;
-        }
-        prev = cl;
+        prev = &cl->next;
     }
 }
+
+//
+// PlatList
+//
 
 static void PrepareArchivePlatList(void)
 {
     for (platlist_t *pl = activeplats; pl; pl = pl->next)
     {
-        array_push(platlist_pointers, (uintptr_t)pl);
+        hashmap_put(platlist_hashmap, (uintptr_t)pl);
     }
 
-    int count = array_size(platlist_pointers);
+    int count = platlist_hashmap->size;
     write32(count);
-    platlist_hashmap = hashmap_create(count * 2);
-    for (int i = 0; i < count; ++i)
-    {
-        hashmap_put(platlist_hashmap, platlist_pointers[i], i);
-    }
 }
 
 static void ArchivePlatList(void)
 {
-    int count = array_size(platlist_pointers);
+    int count = platlist_hashmap->size;
+    uintptr_t *table = malloc(count * sizeof(*table));
+
+    hashmap_iterator_t iter = hashmap_iterator(platlist_hashmap);
+    uintptr_t pointer;
+    int number;
+    while (hashmap_next(&iter, &pointer, &number))
+    {
+        table[number] = pointer;
+    }
     for (int i = 0; i < count; ++i)
     {
-        platlist_t *pl = (platlist_t *)platlist_pointers[i];
+        platlist_t *pl = (platlist_t *)table[i];
         writep_thinker(&pl->plat->thinker);
     }
+
+    free(table);
 }
 
 static void PrepareUnArchivePlatList(void)
@@ -1803,39 +1935,50 @@ static void PrepareUnArchivePlatList(void)
 static void UnArchivePlatList(void)
 {
     int count = array_size(platlist_pointers);
-    platlist_t *pl = NULL, *prev = NULL;
+    platlist_t *pl, **prev;
+    prev = &activeplats;
     for (int i = 0; i < count; ++i)
     {
         pl = (platlist_t *)platlist_pointers[i];
         pl->plat = (plat_t *)readp_thinker();
+        *prev = pl;
+        pl->prev = prev;
         pl->next = NULL;
-        if (prev)
-        {
-            pl->prev = &prev;
-            prev->next = pl;
-        }
-        else
-        {
-            pl->prev = NULL;
-        }
-        prev = pl;
+        prev = &pl->next;
     }
 }
 
-static void Startup(void)
+//
+// Buttons
+//
+
+static void ArchiveButtons(void)
 {
-    M_ArenaClear(thinkers_arena);
-    M_ArenaClear(msecnodes_arena);
-    M_ArenaClear(activeceilings_arena);
-    M_ArenaClear(activeplats_arena);
+    for (int i = 0; i < MAXBUTTONS; i++)
+    {
+        write_button_t(&buttonlist[i]);
+    }
 }
 
-static void Cleanup(void)
+static void UnArchiveButtons(void)
+{
+    for (int i = 0; i < MAXBUTTONS; ++i)
+    {
+        read_button_t(&buttonlist[i]);
+    }
+}
+
+static void StartArchive(void)
+{
+    thinker_hashmap = hashmap_create(4 * 1024);
+    msecnode_hashmap = hashmap_create(128);
+    ceilinglist_hashmap = hashmap_create(128);
+    platlist_hashmap = hashmap_create(128);
+}
+
+static void EndArchive(void)
 {
     array_free(thinker_pointers);
-    array_free(msecnode_pointers);
-    array_free(ceilinglist_pointers);
-    array_free(platlist_pointers);
 
     hashmap_free(thinker_hashmap);
     hashmap_free(msecnode_hashmap);
@@ -1843,8 +1986,26 @@ static void Cleanup(void)
     hashmap_free(platlist_hashmap);
 }
 
+static void StartUnArchive(void)
+{
+    M_ArenaClear(thinkers_arena);
+    M_ArenaClear(msecnodes_arena);
+    M_ArenaClear(activeceilings_arena);
+    M_ArenaClear(activeplats_arena);
+}
+
+static void EndUnArchive(void)
+{
+    array_free(thinker_pointers);
+    array_free(msecnode_pointers);
+    array_free(ceilinglist_pointers);
+    array_free(platlist_pointers);
+}
+
 void P_ArchiveKeyframe(void)
 {
+    StartArchive();
+
     PrepareArchiveThinkers();
     write_thinker_t(&thinkercap);
     for (int i = 0; i < NUMTHCLASS; ++i)
@@ -1856,7 +2017,7 @@ void P_ArchiveKeyframe(void)
     ArchiveWorld();
 
     // p_map.h
-    PrepareArchiveMSecNodes();
+    ArchiveFreeList();
     writep_msecnode(headsecnode);
 
     write32(floatok,
@@ -1904,12 +2065,12 @@ void P_ArchiveKeyframe(void)
 
     write_rng_t(&rng);
 
-    Cleanup();
+    EndArchive();
 }
 
 void P_UnArchiveKeyframe(void)
 {
-    Startup();
+    StartUnArchive();
 
     PrepareUnArchiveThinkers();
     read_thinker_t(&thinkercap, tc_none);
@@ -1922,7 +2083,7 @@ void P_UnArchiveKeyframe(void)
     UnArchiveWorld();
 
     // p_map.h
-    PrepareUnArchiveMSecNodes();
+    UnArchiveFreeList();
     headsecnode = readp_msecnode();
 
     floatok = read32();
@@ -1970,5 +2131,5 @@ void P_UnArchiveKeyframe(void)
 
     read_rng_t(&rng);
 
-    Cleanup();
+    EndUnArchive();
 }

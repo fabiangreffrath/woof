@@ -75,51 +75,27 @@ inline static void savep_putbyte(byte value)
     *save_p++ = value;
 }
 
-inline static void saveg_write8_internal(const int8_t data[], int count)
+inline static void saveg_write8(byte value)
 {
-    saveg_grow(sizeof(int8_t) * count);
-    for (int i = 0; i < count; ++i)
-    {
-        savep_putbyte(data[i]);
-    }
+    saveg_grow(sizeof(byte));
+    savep_putbyte(value);
 }
 
-#define saveg_write8(...)                                           \
-        saveg_write8_internal((const int8_t[]){__VA_ARGS__},        \
-                              sizeof((const int8_t[]){__VA_ARGS__}) \
-                                  / sizeof(const int8_t))
-
-inline static void saveg_write16_internal(const int16_t data[], int count)
+inline static void saveg_write16(short value)
 {
-    saveg_grow(sizeof(int16_t) * count);
-    for (int i = 0; i < count; ++i)
-    {
-        savep_putbyte(data[i] & 0xff);
-        savep_putbyte((data[i] >> 8) & 0xff);
-    }
+    saveg_grow(sizeof(int16_t));
+    savep_putbyte(value & 0xff);
+    savep_putbyte((value >> 8) & 0xff);
 }
 
-#define saveg_write16(...)                                            \
-        saveg_write16_internal((const int16_t[]){__VA_ARGS__},        \
-                               sizeof((const int16_t[]){__VA_ARGS__}) \
-                                  / sizeof(const int16_t))
-
-inline static void saveg_write32_internal(const int32_t data[], int count)
+inline static void saveg_write32(int value)
 {
-    saveg_grow(sizeof(int32_t) * count);
-    for (int i = 0; i < count; ++i)
-    {
-        savep_putbyte(data[i] & 0xff);
-        savep_putbyte((data[i] >> 8) & 0xff);
-        savep_putbyte((data[i] >> 16) & 0xff);
-        savep_putbyte((data[i] >> 24) & 0xff);
-    }
+    saveg_grow(sizeof(int32_t));
+    savep_putbyte(value & 0xff);
+    savep_putbyte((value >> 8) & 0xff);
+    savep_putbyte((value >> 16) & 0xff);
+    savep_putbyte((value >> 24) & 0xff);
 }
-
-#define saveg_write32(...)                                            \
-        saveg_write32_internal((const int32_t[]){__VA_ARGS__},        \
-                               sizeof((const int32_t[]){__VA_ARGS__}) \
-                                  / sizeof(const int32_t))
 
 inline static void saveg_write64(int64_t value)
 {
