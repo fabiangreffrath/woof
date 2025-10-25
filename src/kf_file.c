@@ -1070,9 +1070,12 @@ static void read_ambient_t(ambient_t *str)
 {
     read_thinker_t(&str->thinker, tc_ambient);
     str->source = readp_mobj();
+    str->origin = readp_mobj();
     read_ambient_data_t(&str->data);
+    str->update_tics = AMB_UPDATE_NOW;
     str->wait_tics = read32();
     str->active = read32();
+    str->playing = false;// read32();
     str->offset = (float)FixedToDouble(read32());
     str->last_offset = (float)FixedToDouble(read32());
     str->last_leveltime = read32();
@@ -1082,11 +1085,12 @@ static void write_ambient_t(ambient_t *str)
 {
     write_thinker_t(&str->thinker);
     writep_mobj(str->source);
+    writep_mobj(str->origin);
     write_ambient_data_t(&str->data);
     write32(str->wait_tics);
     write32(str->active);
-    write32((fixed_t)(str->offset * FRACUNIT));
-    write32((fixed_t)(str->last_offset * FRACUNIT));
+    write32(DoubleToFixed(str->offset));
+    write32(DoubleToFixed(str->last_offset));
     write32(str->last_leveltime);
 }
 
@@ -1110,8 +1114,6 @@ static void write_rng_t(rng_t *str)
     write32(str->prndindex);
 }
 
-// TODO
-#if 0
 static void read_button_t(button_t *str)
 {
     readp_index(str->line, lines);
@@ -1120,7 +1122,6 @@ static void read_button_t(button_t *str)
     str->btimer = read32();
 }
 
-//TODO
 static void write_button_t(button_t *str)
 {
     writep_index(str->line, lines);
@@ -1128,7 +1129,7 @@ static void write_button_t(button_t *str)
     write32(str->btexture);
     write32(str->btimer);
 }
-#endif
+
 
 static void read_msecnode_t(msecnode_t *str)
 {
@@ -2064,6 +2065,7 @@ void P_ArchiveKeyframe(void)
     writep_activeplats(activeplats);
 
     write_rng_t(&rng);
+    ArchiveButtons();
 
     EndArchive();
 }
@@ -2130,6 +2132,7 @@ void P_UnArchiveKeyframe(void)
     activeplats = readp_activeplats();
 
     read_rng_t(&rng);
+    UnArchiveButtons();
 
     EndUnArchive();
 }
