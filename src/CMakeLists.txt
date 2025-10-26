@@ -62,7 +62,6 @@ set(WOOF_SOURCES
     i_video.c              i_video.h
     info.c                 info.h
     kf_file.c
-    kf_hashmap.c           kf_hashmap.h
     kf_memory.c
     m_arena.c              m_arena.h
     m_argv.c               m_argv.h
@@ -70,6 +69,7 @@ set(WOOF_SOURCES
     m_bbox.c               m_bbox.h
     m_cheat.c              m_cheat.h
     m_config.c             m_config.h
+    m_hashmap.c            m_hashmap.h
                            m_fixed.h
     m_input.c              m_input.h
     m_io.c                 m_io.h

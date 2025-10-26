@@ -22,6 +22,7 @@
 
 #include "i_region.h"
 #include "i_system.h"
+#include "m_hashmap.h"
 
 #define M_ARRAY_INIT_CAPACITY 32
 #include "m_array.h"
@@ -29,22 +30,23 @@
 typedef struct
 {
     void **ptrs;
-    size_t size;
-    size_t align;
+    int size;
+    int align;
 } block_t;
 
 struct arena_s
 {
     char *buffer;
-    size_t reserve;
+    int reserve;
 
     char *beg;
     char *end;
 
     block_t *deleted;
+    hashmap_t *hashmap;
 };
 
-void *M_ArenaAlloc(arena_t *arena, size_t size, size_t align)
+void *M_ArenaAlloc(arena_t *arena, int size, int align)
 {
     array_foreach_type(block, arena->deleted, block_t)
     {
@@ -88,33 +90,39 @@ void *M_ArenaAlloc(arena_t *arena, size_t size, size_t align)
 
     void *ptr = arena->beg + padding;
     arena->beg += padding + size;
+
+    M_HashMapPut(arena->hashmap, (uintptr_t)ptr, (hashmap_value_t){size, align});
+
     return ptr;
 }
 
-void *M_ArenaCalloc(arena_t *arena, size_t size, size_t align)
+void *M_ArenaCalloc(arena_t *arena, int size, int align)
 {
     void *ptr = M_ArenaAlloc(arena, size, align);
     memset(ptr, 0, size);
     return ptr;
 }
 
-void M_ArenaFree(arena_t *arena, void *ptr, size_t size, size_t align)
+void arena_free(arena_t *arena, void *ptr)
 {
+    hashmap_value_t value;
+    M_HashMapGet(arena->hashmap, (uintptr_t)ptr, &value);
+
     array_foreach_type(block, arena->deleted, block_t)
     {
-        if (block->size == size && block->align == align)
+        if (block->size == value.size && block->align == value.align)
         {
             array_push(block->ptrs, ptr);
             return;
         }
     }
 
-    block_t block = {.ptrs = NULL, .size = size, .align = align};
+    block_t block = {.ptrs = NULL, .size = value.size, .align = value.align};
     array_push(block.ptrs, ptr);
     array_push(arena->deleted, block);
 }
 
-arena_t *M_ArenaInit(size_t reserve, size_t commit)
+arena_t *M_ArenaInit(int reserve, int commit)
 {
     arena_t *arena = calloc(1, sizeof(*arena));
 
@@ -130,6 +138,8 @@ arena_t *M_ArenaInit(size_t reserve, size_t commit)
     }
     arena->beg = arena->buffer;
     arena->end = arena->beg + commit;
+
+    arena->hashmap = M_HashMapInit();
 
     return arena;
 }
@@ -149,6 +159,9 @@ void M_ArenaClear(arena_t *arena)
 
     FreeBlocks(arena->deleted);
     arena->deleted = NULL;
+
+    M_HashMapFree(arena->hashmap);
+    arena->hashmap = M_HashMapInit();
 }
 
 struct arena_copy_s
@@ -157,6 +170,7 @@ struct arena_copy_s
     size_t size;
 
     block_t *deleted;
+    hashmap_t *hashmap;
 };
 
 static block_t *CopyBlocks(const block_t *from)
@@ -192,6 +206,7 @@ arena_copy_t *M_ArenaCopy(const arena_t *arena)
     memcpy(copy->buffer, arena->buffer, size);
 
     copy->deleted = CopyBlocks(arena->deleted);
+    copy->hashmap = M_HashMapCopy(arena->hashmap);
 
     return copy;
 }
@@ -203,11 +218,19 @@ void M_ArenaRestore(arena_t *arena, const arena_copy_t *copy)
 
     FreeBlocks(arena->deleted);
     arena->deleted = CopyBlocks(copy->deleted);
+    M_HashMapFree(arena->hashmap);
+    arena->hashmap = M_HashMapCopy(copy->hashmap);
 }
 
 void M_ArenaFreeCopy(arena_copy_t *copy)
 {
     FreeBlocks(copy->deleted);
+    M_HashMapFree(copy->hashmap);
     free(copy->buffer);
     free(copy);
+}
+
+hashmap_t *M_ArenaHashMap(const arena_t *arena)
+{
+    return arena->hashmap;
 }
