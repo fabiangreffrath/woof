@@ -66,22 +66,20 @@ typedef enum
     UDMF_PARAM_THING   = (1u << 10),
     UDMF_3DMIDTEX = (1u << 11),
 
-    UDMF_SIDE_SKEW   = (1u << 12),
-    UDMF_SIDE_OFFSET = (1u << 13),
-    UDMF_SIDE_SCROLL = (1u << 14),
-    UDMF_SIDE_LIGHT  = (1u << 15),
+    UDMF_SIDE_OFFSET = (1u << 12),
+    UDMF_SIDE_SCROLL = (1u << 13),
+    UDMF_SIDE_LIGHT  = (1u << 14),
 
-    UDMF_SEC_ANGLE  = (1u << 16),
-    UDMF_SEC_OFFSET = (1u << 17),
-    UDMF_SEC_SCROLL = (1u << 18),
-    UDMF_SEC_LIGHT  = (1u << 19),
+    UDMF_SEC_ANGLE  = (1u << 15),
+    UDMF_SEC_OFFSET = (1u << 16),
+    UDMF_SEC_SCROLL = (1u << 17),
+    UDMF_SEC_LIGHT  = (1u << 18),
 
     // Compatibility
     UDMF_COMP_NO_ARG0 = (1u << 31),
 
     // Combined options
-    UDMF_SIDE_MOST = UDMF_SIDE_OFFSET|UDMF_SIDE_SCROLL|UDMF_SIDE_LIGHT,
-    UDMF_SIDE_ALL = UDMF_SIDE_SKEW|UDMF_SIDE_OFFSET|UDMF_SIDE_SCROLL|UDMF_SIDE_LIGHT,
+    UDMF_SIDE_ALL = UDMF_SIDE_OFFSET|UDMF_SIDE_SCROLL|UDMF_SIDE_LIGHT,
     UDMF_SEC_ALL = UDMF_SEC_ANGLE|UDMF_SEC_OFFSET|UDMF_SEC_SCROLL|UDMF_SEC_LIGHT,
 } UDMF_Features_t;
 
@@ -305,7 +303,7 @@ static void UDMF_ParseNamespace(scanner_t *s)
         I_Printf(VB_WARNING, "Loading development-only UDMF namespace: \"%s\"", name);
         udmf_features |= UDMF_DOOM | UDMF_BOOM | UDMF_MBF | UDMF_MBF21
                          | UDMF_PARAM_LINE | UDMF_PARAM_THING | UDMF_3DMIDTEX
-                         | UDMF_SIDE_MOST | UDMF_SEC_ALL;
+                         | UDMF_SIDE_ALL | UDMF_SEC_ALL;
     }
     else
     {
