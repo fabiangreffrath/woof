@@ -22,7 +22,6 @@
 #include "m_arena.h"
 #include "m_array.h"
 #include "m_fixed.h"
-#include "m_hashmap.h"
 #include "m_random.h"
 #include "p_ambient.h"
 #include "p_dirty.h"
@@ -37,6 +36,14 @@
 #include "r_state.h"
 #include "s_sndinfo.h"
 #include "st_widgets.h"
+
+typedef struct
+{
+    int size;
+    int align;
+} hashmap_value_t;
+#define M_HASHMAP_VALUE_T hashmap_value_t
+#include "m_hashmap.h"
 
 #include <stddef.h>
 #include <stdint.h>

@@ -69,7 +69,7 @@ set(WOOF_SOURCES
     m_bbox.c               m_bbox.h
     m_cheat.c              m_cheat.h
     m_config.c             m_config.h
-    m_hashmap.c            m_hashmap.h
+                           m_hashmap.h
                            m_fixed.h
     m_input.c              m_input.h
     m_io.c                 m_io.h
