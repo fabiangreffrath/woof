@@ -3020,8 +3020,8 @@ static void T_Scroll(scroll_t *s)
             (!(thing->flags & MF_NOGRAVITY || thing->z > height) ||
              thing->z < waterheight))
           {
-         thing->momx += dx, thing->momy += dy;
-         thing->intflags |= MIF_SCROLLING;
+	  thing->momx += dx, thing->momy += dy;
+	  thing->intflags |= MIF_SCROLLING;
           }
       break;
 
