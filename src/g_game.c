@@ -46,13 +46,13 @@
 #include "g_umapinfo.h"
 #include "hu_command.h"
 #include "hu_obituary.h"
+#include "i_exit.h"
 #include "i_gamepad.h"
 #include "i_gyro.h"
 #include "i_input.h"
 #include "i_printf.h"
 #include "i_richpresence.h"
 #include "i_rumble.h"
-#include "i_system.h"
 #include "i_timer.h"
 #include "i_video.h"
 #include "info.h"
@@ -4904,6 +4904,14 @@ boolean G_CheckDemoStatus(void)
     }
 
   return false;
+}
+
+void G_CheckDemoRecordingStatus(void)
+{
+    if (demorecording)
+    {
+        G_CheckDemoStatus();
+    }
 }
 
 static boolean IsVanillaMap(int e, int m)

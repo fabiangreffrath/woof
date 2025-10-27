@@ -23,6 +23,7 @@
 #include "d_ticcmd.h"
 #include "doomdef.h"
 #include "doomstat.h"
+#include "i_exit.h"
 #include "i_printf.h"
 #include "i_system.h"
 #include "i_timer.h"

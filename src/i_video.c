@@ -37,6 +37,7 @@
 #include "doomdef.h"
 #include "doomstat.h"
 #include "g_game.h"
+#include "i_exit.h"
 #include "i_input.h"
 #include "i_printf.h"
 #include "i_system.h"
@@ -1724,6 +1725,13 @@ void I_InitGraphics(void)
 
     // clear out events waiting at the start and center the mouse
     I_ResetRelativeMouseState();
+}
+
+void I_QuitVideo(void)
+{
+    SDL_QuitSubSystem(SDL_INIT_VIDEO);
+
+    SDL_Quit();
 }
 
 void I_BindVideoVariables(void)

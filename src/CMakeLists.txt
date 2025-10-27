@@ -13,7 +13,6 @@ set(WOOF_SOURCES
     d_main.c               d_main.h
     d_net.c
                            d_player.h
-    d_quit.c               d_quit.h
                            d_think.h
                            d_ticcmd.h
                            doomdata.h
@@ -36,6 +35,7 @@ set(WOOF_SOURCES
     hu_obituary.c          hu_obituary.h
     i_3dsound.c
     i_endoom.c             i_endoom.h
+    i_exit.c               i_exit.h
     i_flickstick.c         i_flickstick.h
     i_gamepad.c            i_gamepad.h
     i_glob.c               i_glob.h
@@ -264,6 +264,7 @@ endif()
 # Setup tool
 set(SETUP_SOURCES
     d_iwad.c                d_iwad.h
+    i_exit.c                i_exit.h
     i_main.c
     i_printf.c              i_printf.h
     i_system.c              i_system.h
