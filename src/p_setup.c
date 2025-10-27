@@ -512,47 +512,16 @@ void P_LoadLineDefs (int lump)
     {
       maplinedef_t *mld = (maplinedef_t *) data + i;
       line_t *ld = lines+i;
-      vertex_t *v1, *v2;
 
       // [FG] extended nodes
       ld->flags = (unsigned short)SHORT(mld->flags);
       ld->special = SHORT(mld->special);
       ld->id = SHORT(mld->tag);
       ld->args[0] = ld->id; // UDMF spec
+      ld->v1 = &vertexes[(unsigned short)SHORT(mld->v1)];
+      ld->v2 = &vertexes[(unsigned short)SHORT(mld->v2)];
 
-      v1 = ld->v1 = &vertexes[(unsigned short)SHORT(mld->v1)];
-      v2 = ld->v2 = &vertexes[(unsigned short)SHORT(mld->v2)];
-      ld->dx = v2->x - v1->x;
-      ld->dy = v2->y - v1->y;
-      ld->angle = R_PointToAngle2(lines[i].v1->x, lines[i].v1->y,
-                                  lines[i].v2->x, lines[i].v2->y);
-
-      ld->tranlump = -1;   // killough 4/11/98: no translucency by default
-
-      ld->slopetype = !ld->dx ? ST_VERTICAL : !ld->dy ? ST_HORIZONTAL :
-        FixedDiv(ld->dy, ld->dx) > 0 ? ST_POSITIVE : ST_NEGATIVE;
-
-      if (v1->x < v2->x)
-        {
-          ld->bbox[BOXLEFT] = v1->x;
-          ld->bbox[BOXRIGHT] = v2->x;
-        }
-      else
-        {
-          ld->bbox[BOXLEFT] = v2->x;
-          ld->bbox[BOXRIGHT] = v1->x;
-        }
-
-      if (v1->y < v2->y)
-        {
-          ld->bbox[BOXBOTTOM] = v1->y;
-          ld->bbox[BOXTOP] = v2->y;
-        }
-      else
-        {
-          ld->bbox[BOXBOTTOM] = v2->y;
-          ld->bbox[BOXTOP] = v1->y;
-        }
+      P_LinedefInit(ld);
 
       ld->sidenum[0] = (unsigned short)SHORT(mld->sidenum[0]);
       ld->sidenum[1] = (unsigned short)SHORT(mld->sidenum[1]);
@@ -565,6 +534,46 @@ void P_LoadLineDefs (int lump)
         sides[*ld->sidenum].special = ld->special;
     }
   Z_Free (data);
+}
+
+void P_LinedefInit(line_t * const linedef)
+{
+  const vertex_t v1 = *linedef->v1;
+  const vertex_t v2 = *linedef->v2;
+  const fixed_t dx = linedef->dx = v2.x - v1.x;
+  const fixed_t dy = linedef->dy = v2.y - v1.y;
+
+  // killough 4/11/98: no translucency by default
+  linedef->tranlump = -1;
+
+  linedef->angle = R_PointToAngle2(v1.x, v1.y, v2.x, v2.y);
+
+  linedef->slopetype = !dx                  ? ST_VERTICAL
+                     : !dy                  ? ST_HORIZONTAL
+                     : FixedDiv(dy, dx) > 0 ? ST_POSITIVE
+                                            : ST_NEGATIVE;
+
+  if (v1.x < v2.x)
+  {
+    linedef->bbox[BOXLEFT] = v1.x;
+    linedef->bbox[BOXRIGHT] = v2.x;
+  }
+  else
+  {
+    linedef->bbox[BOXLEFT] = v2.x;
+    linedef->bbox[BOXRIGHT] = v1.x;
+  }
+
+  if (v1.y < v2.y)
+  {
+    linedef->bbox[BOXBOTTOM] = v1.y;
+    linedef->bbox[BOXTOP] = v2.y;
+  }
+  else
+  {
+    linedef->bbox[BOXBOTTOM] = v2.y;
+    linedef->bbox[BOXTOP] = v1.y;
+  }
 }
 
 // killough 4/4/98: delay using sidedefs until they are loaded

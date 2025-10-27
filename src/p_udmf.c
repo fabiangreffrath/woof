@@ -1052,7 +1052,8 @@ static void UDMF_LoadLineDefs(void)
             lines[i].args[0] = lines[i].id;
         }
 
-        lines[i].tranlump = -1;
+        P_LinedefInit(&lines[i]);
+
         // Line has TRANMAP lump
         if (!strcasecmp(udmf_linedefs[i].tranmap, "TRANMAP"))
         {
@@ -1068,40 +1069,6 @@ static void UDMF_LoadLineDefs(void)
                 W_CacheLumpNum(lump, PU_CACHE);
                 lines[i].tranlump = lump++;
             }
-        }
-
-        vertex_t *v1 = lines[i].v1;
-        vertex_t *v2 = lines[i].v2;
-        lines[i].dx = v2->x - v1->x;
-        lines[i].dy = v2->y - v1->y;
-        lines[i].angle = R_PointToAngle2(v1->x, v1->y, v2->x, v2->y);
-
-        lines[i].slopetype = !lines[i].dx   ? ST_VERTICAL
-                             : !lines[i].dy ? ST_HORIZONTAL
-                             : FixedDiv(lines[i].dy, lines[i].dx) > 0
-                                 ? ST_POSITIVE
-                                 : ST_NEGATIVE;
-
-        if (v1->x < v2->x)
-        {
-            lines[i].bbox[BOXLEFT] = v1->x;
-            lines[i].bbox[BOXRIGHT] = v2->x;
-        }
-        else
-        {
-            lines[i].bbox[BOXLEFT] = v2->x;
-            lines[i].bbox[BOXRIGHT] = v1->x;
-        }
-
-        if (v1->y < v2->y)
-        {
-            lines[i].bbox[BOXBOTTOM] = v1->y;
-            lines[i].bbox[BOXTOP] = v2->y;
-        }
-        else
-        {
-            lines[i].bbox[BOXBOTTOM] = v2->y;
-            lines[i].bbox[BOXTOP] = v1->y;
         }
 
         // killough 11/98: fix common wad errors (missing sidedefs):
