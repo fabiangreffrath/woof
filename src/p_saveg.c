@@ -2238,8 +2238,8 @@ void P_ArchiveWorld (void)
 	    // killough 10/98: save full sidedef offsets,
 	    // preserving fractional scroll offsets
 
-	    saveg_write32(si->offsetx);
-	    saveg_write32(si->offsety);
+	    saveg_write32(si->textureoffset);
+	    saveg_write32(si->rowoffset);
 
             saveg_write16(si->toptexture);
             saveg_write16(si->bottomtexture);
@@ -2342,10 +2342,10 @@ void P_UnArchiveWorld (void)
 
 	    // killough 10/98: load full sidedef offsets, including fractions
 
-	    si->offsetx = saveg_read32();
-	    si->offsety = saveg_read32();
-            si->oldoffsetx = si->offsetx;
-            si->oldoffsety = si->offsety;
+	    si->textureoffset = saveg_read32();
+	    si->rowoffset = saveg_read32();
+            si->oldtextureoffset = si->textureoffset;
+            si->oldrowoffset = si->rowoffset;
 
             si->toptexture = saveg_read16();
             si->bottomtexture = saveg_read16();

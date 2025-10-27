@@ -187,8 +187,8 @@ typedef struct sector_s
 
 typedef struct side_s
 {
-  fixed_t offsetx; // add this to the calculated texture column
-  fixed_t offsety; // add this to the calculated texture top
+  fixed_t textureoffset; // add this to the calculated texture column
+  fixed_t rowoffset; // add this to the calculated texture top
 
   // UDMF
   fixed_t offsetx_top;
@@ -212,10 +212,10 @@ typedef struct side_s
   int special;
 
   // [crispy] smooth texture scrolling
-  fixed_t oldoffsetx;
-  fixed_t oldoffsety;
-  fixed_t interpoffsetx;
-  fixed_t interpoffsety;
+  fixed_t oldtextureoffset;
+  fixed_t oldrowoffset;
+  fixed_t interptextureoffset;
+  fixed_t interprowoffset;
   int oldgametic;
 
   boolean dirty;

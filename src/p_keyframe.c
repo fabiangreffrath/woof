@@ -244,8 +244,8 @@ static void ArchiveWorld(void)
                 side->bottomtexture,
                 side->midtexture);
 
-        write32(side->offsetx,
-                side->offsety);
+        write32(side->textureoffset,
+                side->rowoffset);
     }
 }
 
@@ -315,8 +315,8 @@ static void UnArchiveWorld(void)
             side->toptexture = read16();
             side->bottomtexture = read16();
             side->midtexture = read16();    
-            side->offsetx = read32();
-            side->offsety = read32(); 
+            side->textureoffset = read32();
+            side->rowoffset = read32(); 
         }
         else
         {
@@ -324,8 +324,8 @@ static void UnArchiveWorld(void)
             side->toptexture = clean_side->toptexture;
             side->bottomtexture = clean_side->bottomtexture;
             side->midtexture = clean_side->midtexture;
-            side->offsetx = clean_side->offsetx;
-            side->offsety = clean_side->offsety;
+            side->textureoffset = clean_side->textureoffset;
+            side->rowoffset = clean_side->rowoffset;
             side->dirty = false;
         }
     }

@@ -364,13 +364,13 @@ static void R_MaybeInterpolateTextureOffsets(side_t *side)
     {
         if (side->oldgametic == gametic - 1)
         {
-            side->interpoffsetx = LerpFixed(side->oldoffsetx, side->offsetx);
-            side->interpoffsety = LerpFixed(side->oldoffsety, side->offsety);
+            side->interptextureoffset = LerpFixed(side->oldtextureoffset, side->textureoffset);
+            side->interprowoffset = LerpFixed(side->oldrowoffset, side->rowoffset);
         }
         else
         {
-            side->interpoffsetx = side->offsetx;
-            side->interpoffsety = side->offsety;
+            side->interptextureoffset = side->textureoffset;
+            side->interprowoffset = side->rowoffset;
         }
 
         if (side->oldgametic_top == gametic - 1)
@@ -408,8 +408,8 @@ static void R_MaybeInterpolateTextureOffsets(side_t *side)
     }
     else
     {
-        side->interpoffsetx = side->offsetx;
-        side->interpoffsety = side->offsety;
+        side->interptextureoffset = side->textureoffset;
+        side->interprowoffset = side->rowoffset;
         side->interpoffsetx_top = side->offsetx_top;
         side->interpoffsety_top = side->offsety_top;
         side->interpoffsetx_mid = side->offsetx_mid;

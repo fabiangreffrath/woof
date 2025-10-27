@@ -23,8 +23,8 @@ typedef struct
 
 typedef struct
 {
-    fixed_t offsetx;
-    fixed_t offsety;
+    fixed_t textureoffset;
+    fixed_t rowoffset;
     int16_t toptexture;
     int16_t bottomtexture;
     int16_t midtexture;
