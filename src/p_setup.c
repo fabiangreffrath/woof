@@ -776,21 +776,29 @@ void P_LoadSideDefs2(int lump)
 
       sd->textureoffset = SHORT(msd->textureoffset)<<FRACBITS;
       sd->rowoffset = SHORT(msd->rowoffset)<<FRACBITS;
-      // [crispy] smooth texture scrolling
-      sd->oldtextureoffset = sd->textureoffset;
-      sd->oldrowoffset = sd->rowoffset;
-      sd->interptextureoffset = sd->textureoffset;
-      sd->interprowoffset = sd->rowoffset;
-      sd->oldgametic = -1;
+      sd->sector = &sectors[SHORT(msd->sector)];
+      P_SidedefInit(sd);
 
       // killough 4/4/98: allow sidedef texture names to be overloaded
       // killough 4/11/98: refined to allow colormaps to work as wall
       // textures if invalid as colormaps but valid as textures.
-
-      sd->sector = &sectors[SHORT(msd->sector)];
       P_ProcessSideDefs(sd, i, msd->bottomtexture, msd->midtexture, msd->toptexture);
     }
   Z_Free (data);
+}
+
+void P_SidedefInit(side_t * const sidedef)
+{
+  // [crispy] smooth texture scrolling
+  sidedef->oldtextureoffset = sidedef->interptextureoffset = sidedef->textureoffset;
+  sidedef->oldrowoffset = sidedef->interprowoffset = sidedef->rowoffset;
+  sidedef->oldoffsetx_top = sidedef->interpoffsetx_top = sidedef->offsetx_top;
+  sidedef->oldoffsety_top = sidedef->interpoffsety_top = sidedef->offsety_top;
+  sidedef->oldoffsetx_mid = sidedef->interpoffsetx_mid = sidedef->offsetx_mid;
+  sidedef->oldoffsety_mid = sidedef->interpoffsety_mid = sidedef->offsety_mid;
+  sidedef->oldoffsetx_bottom = sidedef->interpoffsetx_bottom = sidedef->offsetx_bottom;
+  sidedef->oldoffsety_bottom = sidedef->interpoffsety_bottom = sidedef->offsety_bottom;
+  sidedef->oldgametic_bottom = sidedef->oldgametic_mid = sidedef->oldgametic_top = sidedef->oldgametic = -1;
 }
 
 #ifndef MBF_STRICT

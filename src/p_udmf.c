@@ -1014,17 +1014,7 @@ static void UDMF_LoadSideDefs(void)
                                DoubleToFixed(udmf_sidedefs[i].xscrollbottom),
                                DoubleToFixed(udmf_sidedefs[i].yscrollbottom));
         }
-
-        // [crispy] smooth texture scrolling
-        sides[i].oldtextureoffset = sides[i].interptextureoffset = sides[i].textureoffset;
-        sides[i].oldrowoffset = sides[i].interprowoffset = sides[i].rowoffset;
-        sides[i].oldoffsetx_top = sides[i].interpoffsetx_top = sides[i].offsetx_top;
-        sides[i].oldoffsety_top = sides[i].interpoffsety_top = sides[i].offsety_top;
-        sides[i].oldoffsetx_mid = sides[i].interpoffsetx_mid = sides[i].offsetx_mid;
-        sides[i].oldoffsety_mid = sides[i].interpoffsety_mid = sides[i].offsety_mid;
-        sides[i].oldoffsetx_bottom = sides[i].interpoffsetx_bottom = sides[i].offsetx_bottom;
-        sides[i].oldoffsety_bottom = sides[i].interpoffsety_bottom = sides[i].offsety_bottom;
-        sides[i].oldgametic_bottom = sides[i].oldgametic_mid = sides[i].oldgametic_top = sides[i].oldgametic = -1;
+        P_SidedefInit(&sides[i]);
     }
 }
 
