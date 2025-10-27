@@ -958,33 +958,7 @@ static void UDMF_LoadSectors(void)
                 DoubleToFixed(udmf_sectors[i].yscrollceiling));
         }
 
-        sectors[i].thinglist = NULL;
-        sectors[i].touching_thinglist = NULL; // phares 3/14/98
-
-        sectors[i].nextsec = -1; // jff 2/26/98 add fields to support locking out
-        sectors[i].prevsec = -1; // stair retriggering until build completes
-
-        sectors[i].heightsec = -1;       // sector used to get floor and ceiling height
-        sectors[i].floorlightsec = -1;   // sector used to get floor lighting
-        sectors[i].ceilinglightsec = -1; // sector used to get ceiling lighting:
-
-        // [AM] Sector interpolation.  Even if we're
-        //    not running uncapped, the renderer still
-        //    uses this data.
-        sectors[i].oldfloorheight = sectors[i].interpfloorheight =
-            sectors[i].floorheight;
-        sectors[i].oldceilingheight = sectors[i].interpceilingheight =
-            sectors[i].ceilingheight;
-
-        sectors[i].old_floor_xoffs = sectors[i].interp_floor_xoffs = sectors[i].floor_xoffs;
-        sectors[i].old_floor_yoffs = sectors[i].interp_floor_yoffs = sectors[i].floor_yoffs;
-        sectors[i].old_ceiling_xoffs = sectors[i].interp_ceiling_xoffs = sectors[i].ceiling_xoffs;
-        sectors[i].old_ceiling_yoffs = sectors[i].interp_ceiling_yoffs = sectors[i].ceiling_yoffs;
-
-        // [FG] inhibit sector interpolation during the 0th gametic
-        sectors[i].oldceilgametic = sectors[i].oldfloorgametic = -1;
-        sectors[i].old_ceil_offs_gametic = sectors[i].old_floor_offs_gametic =
-            -1;
+        P_SectorInit(&sectors[i]);
     }
 }
 
