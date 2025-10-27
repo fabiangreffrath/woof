@@ -22,14 +22,6 @@
 
 #include "i_region.h"
 #include "i_system.h"
-
-typedef struct
-{
-    int size;
-    int align;
-} hashmap_value_t;
-
-#define M_HASHMAP_VALUE_T hashmap_value_t
 #include "m_hashmap.h"
 
 #define M_ARRAY_INIT_CAPACITY 32
@@ -99,7 +91,7 @@ void *M_ArenaAlloc(arena_t *arena, int size, int align)
     void *ptr = arena->beg + padding;
     arena->beg += padding + size;
 
-    hashmap_put(arena->hashmap, (uintptr_t)ptr, (hashmap_value_t){size, align});
+    hashmap_put(arena->hashmap, (uintptr_t)ptr, size, align);
 
     return ptr;
 }
@@ -113,22 +105,22 @@ void *M_ArenaCalloc(arena_t *arena, int size, int align)
 
 void arena_free(arena_t *arena, void *ptr)
 {
-    hashmap_value_t value;
-    if (!hashmap_get(arena->hashmap, (uintptr_t)ptr, &value))
+    int size, align;
+    if (!hashmap_get(arena->hashmap, (uintptr_t)ptr, &size, &align))
     {
         I_Error("Freed a pointer not from arena");
     }
 
     array_foreach_type(block, arena->deleted, block_t)
     {
-        if (block->size == value.size && block->align == value.align)
+        if (block->size == size && block->align == align)
         {
             array_push(block->ptrs, ptr);
             return;
         }
     }
 
-    block_t block = {.ptrs = NULL, .size = value.size, .align = value.align};
+    block_t block = {.ptrs = NULL, .size = size, .align = align};
     array_push(block.ptrs, ptr);
     array_push(arena->deleted, block);
 }
