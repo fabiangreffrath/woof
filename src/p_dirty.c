@@ -36,26 +36,6 @@ void P_DirtyLine(line_t *line)
 
 void P_DirtySide(side_t *side)
 {
-<<<<<<< HEAD
-||||||| parent of de1cab8c (scroller rework)
-    partial_side_t clean_side = {
-        .textureoffset = side->textureoffset,
-        .rowoffset = side->rowoffset,
-        .toptexture = side->toptexture,
-        .bottomtexture = side->bottomtexture,
-        .midtexture = side->midtexture
-    };
-    array_push(clean_sides, clean_side);
-=======
-    partial_side_t clean_side = {
-        .offsetx = side->offsetx,
-        .offsety = side->offsety,
-        .toptexture = side->toptexture,
-        .bottomtexture = side->bottomtexture,
-        .midtexture = side->midtexture
-    };
-    array_push(clean_sides, clean_side);
->>>>>>> de1cab8c (scroller rework)
     side->dirty = true;
 
     dirty_side_t dirty_side = {

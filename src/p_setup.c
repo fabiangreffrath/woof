@@ -774,13 +774,13 @@ void P_LoadSideDefs2(int lump)
       register mapsidedef_t *msd = (mapsidedef_t *) data + i;
       register side_t *sd = sides + i;
 
-      sd->offsetx = SHORT(msd->textureoffset)<<FRACBITS;
-      sd->offsety = SHORT(msd->rowoffset)<<FRACBITS;
+      sd->textureoffset = SHORT(msd->textureoffset)<<FRACBITS;
+      sd->rowoffset = SHORT(msd->rowoffset)<<FRACBITS;
       // [crispy] smooth texture scrolling
-      sd->oldoffsetx = sd->offsetx;
-      sd->oldoffsety = sd->offsety;
-      sd->interpoffsetx = sd->offsetx;
-      sd->interpoffsety = sd->offsety;
+      sd->oldtextureoffset = sd->textureoffset;
+      sd->oldrowoffset = sd->rowoffset;
+      sd->interptextureoffset = sd->textureoffset;
+      sd->interprowoffset = sd->rowoffset;
       sd->oldgametic = -1;
 
       // killough 4/4/98: allow sidedef texture names to be overloaded

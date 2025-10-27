@@ -971,8 +971,8 @@ static void UDMF_LoadSideDefs(void)
     for (int i = 0; i < numsides; i++)
     {
         sides[i].sector = &sectors[udmf_sidedefs[i].sector_id];
-        sides[i].offsetx = IntToFixed(udmf_sidedefs[i].offsetx);
-        sides[i].offsety = IntToFixed(udmf_sidedefs[i].offsety);
+        sides[i].textureoffset = IntToFixed(udmf_sidedefs[i].offsetx);
+        sides[i].rowoffset = IntToFixed(udmf_sidedefs[i].offsety);
 
         sides[i].offsetx_top = DoubleToFixed(udmf_sidedefs[i].offsetx_top);
         sides[i].offsety_top = DoubleToFixed(udmf_sidedefs[i].offsety_top);
@@ -1016,8 +1016,8 @@ static void UDMF_LoadSideDefs(void)
         }
 
         // [crispy] smooth texture scrolling
-        sides[i].oldoffsetx = sides[i].interpoffsetx = sides[i].offsetx;
-        sides[i].oldoffsety = sides[i].interpoffsety = sides[i].offsety;
+        sides[i].oldtextureoffset = sides[i].interptextureoffset = sides[i].textureoffset;
+        sides[i].oldrowoffset = sides[i].interprowoffset = sides[i].rowoffset;
         sides[i].oldoffsetx_top = sides[i].interpoffsetx_top = sides[i].offsetx_top;
         sides[i].oldoffsety_top = sides[i].interpoffsety_top = sides[i].offsety_top;
         sides[i].oldoffsetx_mid = sides[i].interpoffsetx_mid = sides[i].offsetx_mid;

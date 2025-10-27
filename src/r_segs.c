@@ -216,7 +216,7 @@ void R_RenderMaskedSegRange(drawseg_t *ds, int x1, int x2)
       dc_texturemid = dc_texturemid - viewz;
     }
 
-  dc_texturemid += curline->sidedef->interpoffsety;
+  dc_texturemid += curline->sidedef->interprowoffset;
 
   // draw the columns
   for (dc_x = x1 ; dc_x <= x2 ; dc_x++, spryscale += rw_scalestep)
@@ -667,7 +667,7 @@ void R_StoreWallRange(const int start, const int stop)
       else        // top of texture at top
         rw_midtexturemid = worldtop;
 
-      rw_midtexturemid += (sidedef->interpoffsety + sidedef->interpoffsety_mid);
+      rw_midtexturemid += (sidedef->interprowoffset + sidedef->interpoffsety_mid);
 
       {      // killough 3/27/98: reduce offset
         fixed_t h = textureheight[sidedef->midtexture];
@@ -812,7 +812,7 @@ void R_StoreWallRange(const int start, const int stop)
           rw_bottomtexturemid = linedef->flags & ML_DONTPEGBOTTOM ? worldtop :
             worldlow;
         }
-      rw_toptexturemid += (sidedef->interpoffsety + sidedef->interpoffsety_top);
+      rw_toptexturemid += (sidedef->interprowoffset + sidedef->interpoffsety_top);
 
       // killough 3/27/98: reduce offset
       {
@@ -821,7 +821,7 @@ void R_StoreWallRange(const int start, const int stop)
           rw_toptexturemid %= h;
       }
 
-      rw_bottomtexturemid += (sidedef->interpoffsety + sidedef->interpoffsety_bottom);
+      rw_bottomtexturemid += (sidedef->interprowoffset + sidedef->interpoffsety_bottom);
 
       // killough 3/27/98: reduce offset
       {
@@ -847,7 +847,7 @@ void R_StoreWallRange(const int start, const int stop)
     {
       // [FG] fix long wall wobble
       rw_offset = (fixed_t)(((dx * dx1 + dy * dy1) / len) << 1);
-      rw_offset += sidedef->interpoffsetx + curline->offset;
+      rw_offset += sidedef->interptextureoffset + curline->offset;
 
       rw_centerangle = ANG90 + viewangle - rw_normalangle;
       rw_lightlevel = frontsector->lightlevel;
