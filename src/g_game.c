@@ -2750,7 +2750,9 @@ static boolean DoLoadGame(boolean do_load_autosave)
   LoadCustomSkillOptions(temp_p);
 
   // load a base level
-  G_SimplifiedInitNew(gameepisode, gamemap);
+  AM_clearMarks();
+  G_ResetRewind(true);
+  G_DoLoadLevel();
 
   // killough 3/1/98: Read game options
   // killough 11/98: move down to here

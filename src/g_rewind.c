@@ -233,10 +233,13 @@ static void FreeKeyframeQueue(void)
 
 void G_ResetRewind(boolean force)
 {
-    if (disable_rewind || force)
+    if (disable_rewind)
+    {
+        disable_rewind = false;
+    }
+    if (force)
     {
         FreeKeyframeQueue();
-        disable_rewind = false;
     }
 }
 

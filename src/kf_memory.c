@@ -464,10 +464,7 @@ keyframe_t *P_SaveKeyframe(int tic)
     ArchiveRNG();
     ArchiveAutomap();
 
-    if (demoplayback || demorecording)
-    {
-        writep(demo_p);
-    }
+    writep(demo_p);
 
     keyframe->data->buffer = buffer;
     keyframe->tic = tic;
@@ -496,10 +493,7 @@ void P_LoadKeyframe(const keyframe_t *keyframe)
     UnArchiveAutomap();
     P_MapEnd();
 
-    if (demoplayback || demorecording)
-    {
-        demo_p = readp();
-    }
+    demo_p = readp();
 }
 
 void P_FreeKeyframe(keyframe_t *keyframe)
