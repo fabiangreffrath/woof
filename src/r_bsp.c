@@ -165,24 +165,20 @@ int R_DoorClosed(void)
 
 static const int16_t FloorLight(const sector_t *sec)
 {
-  // get vanilla/boom light level
   const int16_t light = (sec->floorlightsec == -1)
                       ? sec->lightlevel
                       : sectors[sec->floorlightsec].lightlevel;
 
-  // then apply UDMF light
   return (sec->flags & SECF_ABS_LIGHT_FLOOR) ? sec->lightfloor
                                              : sec->lightfloor + light;
 }
 
 static const int16_t CeilingLight(const sector_t *sec)
 {
-  // get vanilla/boom light level
   const int16_t light = (sec->ceilinglightsec == -1)
                       ? sec->lightlevel
                       : sectors[sec->ceilinglightsec].lightlevel;
 
-  // then apply UDMF light
   return (sec->flags & SECF_ABS_LIGHT_CEIL) ? sec->lightceiling
                                             : sec->lightceiling + light;
 }
@@ -259,10 +255,10 @@ sector_t *R_FakeFlat(sector_t *sec, sector_t *tempsec,
           tempsec->lightlevel  = s->lightlevel;
 
           if (floorlightlevel)
-            *floorlightlevel = FloorLight(sec); // killough 3/16/98
+            *floorlightlevel = FloorLight(s); // killough 3/16/98
 
           if (ceilinglightlevel)
-            *ceilinglightlevel = CeilingLight(sec); // killough 4/11/98
+            *ceilinglightlevel = CeilingLight(s); // killough 4/11/98
         }
       else
         if (heightsec != -1 && viewz >= sectors[heightsec].ceilingheight &&
@@ -291,10 +287,10 @@ sector_t *R_FakeFlat(sector_t *sec, sector_t *tempsec,
             tempsec->lightlevel  = s->lightlevel;
 
             if (floorlightlevel)
-              *floorlightlevel = FloorLight(sec); // killough 3/16/98
+              *floorlightlevel = FloorLight(s); // killough 3/16/98
 
             if (ceilinglightlevel)
-              *ceilinglightlevel = CeilingLight(sec); // killough 4/11/98
+              *ceilinglightlevel = CeilingLight(s); // killough 4/11/98
           }
       sec = tempsec;               // Use other sector
     }
