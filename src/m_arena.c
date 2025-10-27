@@ -66,26 +66,30 @@ void *M_ArenaAlloc(arena_t *arena, int size, int align)
     ptrdiff_t padding = -(uintptr_t)arena->beg & (align - 1);
     ptrdiff_t available = arena->end - arena->beg - padding;
 
-    if (available < 0 || size > available)
+    while (available < 0 || size > available)
     {
         ptrdiff_t buffer_size = arena->end - arena->buffer;
-        if (buffer_size * 2 > arena->reserve)
+        ptrdiff_t new_buffer_size = buffer_size * 2;
+        if (new_buffer_size > arena->reserve)
         {
             I_Error("Out of memory");
         }
+
         void *buffer = malloc(buffer_size);
         memcpy(buffer, arena->buffer, buffer_size);
         if (!I_DecommitRegion(arena->buffer, buffer_size))
         {
             I_Error("Failed to decommit region.");
         }
-        if (!I_CommitRegion(arena->buffer, buffer_size * 2))
+        if (!I_CommitRegion(arena->buffer, new_buffer_size))
         {
             I_Error("Failed to commit region.");
         }
         memcpy(arena->buffer, buffer, buffer_size);
         free(buffer);
-        arena->end = arena->buffer + buffer_size * 2;
+
+        arena->end = arena->buffer + new_buffer_size;
+        available = arena->end - arena->beg - padding;
     }
 
     void *ptr = arena->beg + padding;
