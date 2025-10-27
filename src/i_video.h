@@ -43,6 +43,7 @@ resolution_scaling_t I_GetResolutionScaling(void);
 
 void I_InitGraphics(void);
 void I_ShutdownGraphics(void);
+void I_QuitVideo(void);
 
 // Takes full 8 bit values.
 void I_SetPalette(byte *palette);

@@ -27,8 +27,8 @@
 #  include <unistd.h> // [FG] isatty()
 #endif
 
+#include "i_exit.h"
 #include "i_printf.h"
-#include "i_system.h"
 #include "m_argv.h"
 
 // [FG] returns true if stdout is a real console, false if it is a file

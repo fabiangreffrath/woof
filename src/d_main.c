@@ -35,7 +35,6 @@
 #include "d_loop.h"
 #include "d_main.h"
 #include "d_player.h"
-#include "d_quit.h"
 #include "d_ticcmd.h"
 #include "doomdef.h"
 #include "doomstat.h"
@@ -46,12 +45,12 @@
 #include "g_compatibility.h"
 #include "g_game.h"
 #include "i_endoom.h"
+#include "i_exit.h"
 #include "i_glob.h"
 #include "i_input.h"
 #include "i_printf.h"
 #include "i_richpresence.h"
 #include "i_sound.h"
-#include "i_system.h"
 #include "i_timer.h"
 #include "i_video.h"
 #include "info.h"
@@ -1794,13 +1793,18 @@ void D_DoomMain(void)
 
   setbuf(stdout,NULL);
 
-  I_AtSignal(I_QuitFirst);
+  I_AtSignal(G_CheckDemoRecordingStatus);
 
-  I_AtExitPrio(I_QuitFirst, true,  "I_QuitFirst", exit_priority_first);
-  I_AtExitPrio(I_QuitLast,  false, "I_QuitLast",  exit_priority_last);
-  I_AtExitPrio(I_Quit,      true,  "I_Quit",      exit_priority_last);
-
-  I_AtExitPrio(I_ErrorMsg,  true,  "I_ErrorMsg",  exit_priority_verylast);
+  I_AtExitPrio(G_CheckDemoRecordingStatus,
+               true, "G_CheckDemoRecordingStatus", exit_priority_first);
+  I_AtExitPrio(M_SaveDefaults,
+               false, "M_SaveDefaults", exit_priority_last);
+  I_AtExitPrio(I_QuitVideo,
+               true, "I_QuitVideo", exit_priority_last);
+  I_AtExitPrio(W_Close,
+               true, "W_Close", exit_priority_last);
+  I_AtExitPrio(I_ErrorMsg,
+               true, "I_ErrorMsg", exit_priority_verylast);
 
   I_UpdatePriority(true);
 

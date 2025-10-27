@@ -24,10 +24,10 @@
 
 #include "doomstat.h"
 #include "doomtype.h"
+#include "i_exit.h"
 #include "i_oalstream.h"
 #include "i_printf.h"
 #include "i_rumble.h"
-#include "i_system.h"
 #include "m_array.h"
 #include "mn_menu.h"
 #include "p_mobj.h"
