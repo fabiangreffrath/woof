@@ -148,9 +148,9 @@ inline static int32_t read32(void)
 
 inline static void *readp(void)
 {
-    intptr_t result = 0;
-    memcpy(&result, curr_p, sizeof(intptr_t));
-    curr_p += sizeof(intptr_t);
+    uintptr_t result = 0;
+    memcpy(&result, curr_p, sizeof(uintptr_t));
+    curr_p += sizeof(uintptr_t);
     return (void *)result;
 }
 

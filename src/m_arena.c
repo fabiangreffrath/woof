@@ -22,6 +22,14 @@
 
 #include "i_region.h"
 #include "i_system.h"
+
+typedef struct
+{
+    int size;
+    int align;
+} hashmap_value_t;
+
+#define M_HASHMAP_VALUE_T hashmap_value_t
 #include "m_hashmap.h"
 
 #define M_ARRAY_INIT_CAPACITY 32
@@ -91,7 +99,7 @@ void *M_ArenaAlloc(arena_t *arena, int size, int align)
     void *ptr = arena->beg + padding;
     arena->beg += padding + size;
 
-    M_HashMapPut(arena->hashmap, (uintptr_t)ptr, (hashmap_value_t){size, align});
+    hashmap_put(arena->hashmap, (uintptr_t)ptr, (hashmap_value_t){size, align});
 
     return ptr;
 }
@@ -106,7 +114,10 @@ void *M_ArenaCalloc(arena_t *arena, int size, int align)
 void arena_free(arena_t *arena, void *ptr)
 {
     hashmap_value_t value;
-    M_HashMapGet(arena->hashmap, (uintptr_t)ptr, &value);
+    if (!hashmap_get(arena->hashmap, (uintptr_t)ptr, &value))
+    {
+        I_Error("Freed a pointer not from arena");
+    }
 
     array_foreach_type(block, arena->deleted, block_t)
     {
@@ -139,7 +150,7 @@ arena_t *M_ArenaInit(int reserve, int commit)
     arena->beg = arena->buffer;
     arena->end = arena->beg + commit;
 
-    arena->hashmap = M_HashMapInit();
+    arena->hashmap = hashmap_init(1024);
 
     return arena;
 }
@@ -160,8 +171,8 @@ void M_ArenaClear(arena_t *arena)
     FreeBlocks(arena->deleted);
     arena->deleted = NULL;
 
-    M_HashMapFree(arena->hashmap);
-    arena->hashmap = M_HashMapInit();
+    hashmap_free(arena->hashmap);
+    arena->hashmap = hashmap_init(1024);
 }
 
 struct arena_copy_s
@@ -218,14 +229,14 @@ void M_ArenaRestore(arena_t *arena, const arena_copy_t *copy)
 
     FreeBlocks(arena->deleted);
     arena->deleted = CopyBlocks(copy->deleted);
-    M_HashMapFree(arena->hashmap);
+    hashmap_free(arena->hashmap);
     arena->hashmap = M_HashMapCopy(copy->hashmap);
 }
 
 void M_ArenaFreeCopy(arena_copy_t *copy)
 {
     FreeBlocks(copy->deleted);
-    M_HashMapFree(copy->hashmap);
+    hashmap_free(copy->hashmap);
     free(copy->buffer);
     free(copy);
 }
@@ -233,4 +244,22 @@ void M_ArenaFreeCopy(arena_copy_t *copy)
 hashmap_t *M_ArenaHashMap(const arena_t *arena)
 {
     return arena->hashmap;
+}
+
+// Get an ordered array of pointers to the allocated memory.
+uintptr_t *M_ArenaTable(const arena_t *arena)
+{
+    uintptr_t *table = NULL;
+
+    array_resize(table, hashmap_get_size(arena->hashmap));
+
+    hashmap_iterator_t iter = hashmap_iterator(arena->hashmap);
+    uintptr_t key;
+    int index;
+    while (hashmap_next(&iter, &key, &index))
+    {
+        table[index] = key;
+    }
+
+    return table;
 }

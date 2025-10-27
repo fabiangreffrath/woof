@@ -253,7 +253,7 @@ static void writep_thinker(const thinker_t *thinker)
     }
     else
     {
-        index = M_HashMapGetIndex(thinker_hashmap, (uintptr_t)thinker);
+        index = hashmap_get_index(thinker_hashmap, (uintptr_t)thinker);
     }
     write32(index);
 }
@@ -291,7 +291,7 @@ static void writep_msecnode(const msecnode_t *node)
     }
     else
     {
-        index = M_HashMapGetIndex(msecnode_hashmap, (uintptr_t)node);
+        index = hashmap_get_index(msecnode_hashmap, (uintptr_t)node);
     }
     write32(index);
 }
@@ -319,7 +319,7 @@ static void writep_activeceilings(const ceilinglist_t *cl)
     }
     else
     {
-        index = M_HashMapGetIndex(ceilinglist_hashmap, (uintptr_t)cl);
+        index = hashmap_get_index(ceilinglist_hashmap, (uintptr_t)cl);
     }
     write32(index);
 }
@@ -347,7 +347,7 @@ static void writep_activeplats(const platlist_t *pl)
     }
     else
     {
-        index = M_HashMapGetIndex(platlist_hashmap, (uintptr_t)pl);
+        index = hashmap_get_index(platlist_hashmap, (uintptr_t)pl);
     }
     write32(index);
 }
@@ -403,7 +403,7 @@ static void read_thinker_t(thinker_t *str, thinker_class_t tc)
 {
     str->prev = readp_thinker();
     str->next = readp_thinker();
-    str->function.p1 = tc != tc_none ? actions[tc] : NULL;
+    str->function.p1 = (tc != tc_none) ? actions[tc] : NULL;
     str->cnext = readp_thclass();
     str->cprev = readp_thclass();
     str->references = read32();
@@ -1441,7 +1441,7 @@ static thinker_class_t GetThinkerClass(actionf_p1 func)
 static void PrepareArchiveThinkers(void)
 {
     thinker_hashmap = M_ArenaHashMap(thinkers_arena);
-    uintptr_t *table = M_HashMapTable(thinker_hashmap);
+    uintptr_t *table = M_ArenaTable(thinkers_arena);
 
     int count = array_size(table);
 
@@ -1667,13 +1667,13 @@ static void UnArchiveThinkers(void)
 static void PrepareArchiveMSecNodes(void)
 {
     msecnode_hashmap = M_ArenaHashMap(msecnodes_arena);
-    int count = M_HashMapSize(msecnode_hashmap);
+    int count = hashmap_get_size(msecnode_hashmap);
     write32(count);
 }
 
 static void ArchiveMSecNodes(void)
 {
-    uintptr_t *table = M_HashMapTable(msecnode_hashmap);
+    uintptr_t *table = M_ArenaTable(msecnodes_arena);
     int count = array_size(table);
     for (int i = 0; i < count; ++i)
     {
@@ -1781,13 +1781,13 @@ static void UnArchiveBlocklinks(void)
 static void PrepareArchiveCeilingList(void)
 {
     ceilinglist_hashmap = M_ArenaHashMap(activeceilings_arena);
-    int count = M_HashMapSize(ceilinglist_hashmap);
+    int count = hashmap_get_size(ceilinglist_hashmap);
     write32(count);
 }
 
 static void ArchiveCeilingList(void)
 {
-    uintptr_t *table = M_HashMapTable(ceilinglist_hashmap);
+    uintptr_t *table = M_ArenaTable(activeceilings_arena);
     int count = array_size(table);
     for (int i = 0; i < count; ++i)
     {
@@ -1831,13 +1831,13 @@ static void UnArchiveCeilingList(void)
 static void PrepareArchivePlatList(void)
 {
     platlist_hashmap = M_ArenaHashMap(activeplats_arena);
-    int count = M_HashMapSize(platlist_hashmap);
+    int count = hashmap_get_size(platlist_hashmap);
     write32(count);
 }
 
 static void ArchivePlatList(void)
 {
-    uintptr_t *table = M_HashMapTable(platlist_hashmap);
+    uintptr_t *table = M_ArenaTable(activeplats_arena);
     int count = array_size(table);
     for (int i = 0; i < count; ++i)
     {

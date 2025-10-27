@@ -46,5 +46,6 @@ void M_ArenaRestore(arena_t *arena, const arena_copy_t *copy);
 void M_ArenaFreeCopy(arena_copy_t *copy);
 
 struct hashmap_s *M_ArenaHashMap(const arena_t *arena);
+uintptr_t *M_ArenaTable(const arena_t *arena);
 
 #endif

@@ -12,20 +12,18 @@
 // GNU General Public License for more details.
 
 #include "m_hashmap.h"
+
 #include "doomtype.h"
-#include "m_array.h"
 
 #include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
 
-#define INITIAL_CAPACITY 1024
-
 // FNV-1a hash
 static uint64_t hash_key(uintptr_t key)
 {
     uint64_t hash = 0xcbf29ce484222325;
-    for (size_t i = 0; i < sizeof(key); ++i)
+    for (int i = 0; i < sizeof(key); ++i)
     {
         hash ^= (key >> (i * 8)) & 0xff;
         hash *= 0x100000001b3;
@@ -35,8 +33,8 @@ static uint64_t hash_key(uintptr_t key)
 
 typedef struct
 {
+    M_HASHMAP_VALUE_T value;
     uintptr_t key;
-    hashmap_value_t value;
     int index;
 } hashmap_entry_t;
 
@@ -47,15 +45,23 @@ struct hashmap_s
     int size;
 };
 
-hashmap_t *M_HashMapInit(void)
+hashmap_t *hashmap_init(int initial_capacity)
 {
     hashmap_t *map = calloc(1, sizeof(hashmap_t));
-    map->entries = calloc(INITIAL_CAPACITY, sizeof(hashmap_entry_t));
-    map->capacity = INITIAL_CAPACITY;
+
+    // Round up to nearest power of 2 for efficient modulo
+    int capacity = 16;
+    while (capacity < initial_capacity)
+    {
+        capacity <<= 1;
+    }
+
+    map->entries = calloc(capacity, sizeof(hashmap_entry_t));
+    map->capacity = capacity;
     return map;
 }
 
-void M_HashMapFree(hashmap_t *map)
+void hashmap_free(hashmap_t *map)
 {
     free(map->entries);
     free(map);
@@ -84,7 +90,7 @@ static void resize(hashmap_t *map, int new_capacity)
     map->capacity = new_capacity;
 }
 
-void M_HashMapPut(hashmap_t *map, uintptr_t key, hashmap_value_t value)
+void hashmap_put(hashmap_t *map, uintptr_t key, M_HASHMAP_VALUE_T value)
 {
     if (map->size > map->capacity / 2)
     {
@@ -92,6 +98,7 @@ void M_HashMapPut(hashmap_t *map, uintptr_t key, hashmap_value_t value)
     }
 
     int index = hash_key(key) & (map->capacity - 1);
+    // Linear probing to find slot for key
     while (map->entries[index].key != 0 && map->entries[index].key != key)
     {
         index = (index + 1) & (map->capacity - 1);
@@ -108,7 +115,7 @@ void M_HashMapPut(hashmap_t *map, uintptr_t key, hashmap_value_t value)
 }
 
 static boolean get(const hashmap_t *map, uintptr_t key, int *index, 
-                   hashmap_value_t *value)
+                   M_HASHMAP_VALUE_T *value)
 {
     int i = hash_key(key) & (map->capacity - 1);
     while (map->entries[i].key != 0)
@@ -130,12 +137,12 @@ static boolean get(const hashmap_t *map, uintptr_t key, int *index,
     return false;
 }
 
-boolean M_HashMapGet(hashmap_t *map, uintptr_t key, hashmap_value_t *value)
+boolean hashmap_get(hashmap_t *map, uintptr_t key, M_HASHMAP_VALUE_T *value)
 {
     return get(map, key, NULL, value);
 }
 
-int M_HashMapGetIndex(const hashmap_t *map, uintptr_t key)
+int hashmap_get_index(const hashmap_t *map, uintptr_t key)
 {
     int index;
     if (get(map, key, &index, NULL))
@@ -145,17 +152,12 @@ int M_HashMapGetIndex(const hashmap_t *map, uintptr_t key)
     return -1;
 }
 
-hashmap_t *M_HashMapCopy(const hashmap_t *from)
+int hashmap_get_size(const hashmap_t *map)
 {
-    hashmap_t *to = calloc(1, sizeof(hashmap_t));
-    to->capacity = from->capacity;
-    to->size = from->size;
-    to->entries = malloc(from->capacity * sizeof(hashmap_entry_t));
-    memcpy(to->entries, from->entries, from->capacity * sizeof(hashmap_entry_t));
-    return to;
+    return map->size;
 }
 
-hashmap_iterator_t M_HashMapIterator(const hashmap_t *map)
+hashmap_iterator_t hashmap_iterator(const hashmap_t *map)
 {
     hashmap_iterator_t iter;
     iter.map = map;
@@ -163,7 +165,7 @@ hashmap_iterator_t M_HashMapIterator(const hashmap_t *map)
     return iter;
 }
 
-boolean M_HashMapNext(hashmap_iterator_t *iter, uintptr_t *key, int *index)
+boolean hashmap_next(hashmap_iterator_t *iter, uintptr_t *key, int *index)
 {
     int capacity = iter->map->capacity;
     while (++iter->index < capacity)
@@ -184,23 +186,12 @@ boolean M_HashMapNext(hashmap_iterator_t *iter, uintptr_t *key, int *index)
     return false;
 }
 
-uintptr_t *M_HashMapTable(const hashmap_t *map)
+hashmap_t *M_HashMapCopy(const hashmap_t *from)
 {
-    uintptr_t *table = NULL;
-    array_resize(table, map->size);
-
-    hashmap_iterator_t iter = M_HashMapIterator(map);
-    uintptr_t key;
-    int index;
-    while (M_HashMapNext(&iter, &key, &index))
-    {
-        table[index] = key;
-    }
-
-    return table;
-}
-
-int M_HashMapSize(const hashmap_t *map)
-{
-    return map->size;
+    hashmap_t *to = calloc(1, sizeof(hashmap_t));
+    to->capacity = from->capacity;
+    to->size = from->size;
+    to->entries = malloc(from->capacity * sizeof(hashmap_entry_t));
+    memcpy(to->entries, from->entries, from->capacity * sizeof(hashmap_entry_t));
+    return to;
 }
