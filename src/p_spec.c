@@ -2688,14 +2688,14 @@ void EV_RotateOffsetFlat(line_t *line, sector_t *sector)
   {
     if (offset_floor)
     {
-      sectors[s].floor_xoffs_post -= line->dx;
-      sectors[s].floor_yoffs_post += line->dy;
+      sectors[s].floor_xoffs -= line->dx;
+      sectors[s].floor_yoffs += line->dy;
     }
 
     if (offset_ceiling)
     {
-      sectors[s].ceiling_xoffs_post -= line->dx;
-      sectors[s].ceiling_yoffs_post += line->dy;
+      sectors[s].ceiling_xoffs -= line->dx;
+      sectors[s].ceiling_yoffs += line->dy;
     }
 
     if (rotate_floor)
@@ -3045,9 +3045,9 @@ static void T_Scroll(scroll_t *s)
       side = sides + s->affectee;
       if (side->oldgametic_mid != gametic)
       {
-          side->oldoffsetx_mid = side->offsetx_mid;
-          side->oldoffsety_mid = side->offsety_mid;
-          side->oldgametic_mid = gametic;
+        side->oldoffsetx_mid = side->offsetx_mid;
+        side->oldoffsety_mid = side->offsety_mid;
+        side->oldgametic_mid = gametic;
       }
       dirty_side(side)->offsetx_mid += dx;
       side->offsety_mid += dy;
@@ -3057,9 +3057,9 @@ static void T_Scroll(scroll_t *s)
       side = sides + s->affectee;
       if (side->oldgametic_bottom != gametic)
       {
-          side->oldoffsetx_bottom = side->offsetx_bottom;
-          side->oldoffsety_bottom = side->offsety_bottom;
-          side->oldgametic_bottom = gametic;
+        side->oldoffsetx_bottom = side->offsetx_bottom;
+        side->oldoffsety_bottom = side->offsety_bottom;
+        side->oldgametic_bottom = gametic;
       }
       dirty_side(side)->offsetx_bottom += dx;
       side->offsety_bottom += dy;
@@ -3074,7 +3074,7 @@ void T_ScrollAdapter(mobj_t *mobj)
 
 static void T_ParamScrollFloor(scroll_t *s)
 {
-  if (!s->dx && !s->dy)
+  if (!(s->dx | s->dy))
     return;
 
   sector_t* sec = sectors + s->affectee;
@@ -3133,7 +3133,7 @@ static void T_ParamScrollFloor(scroll_t *s)
 
 static void T_ParamScrollCeiling(scroll_t *s)
 {
-  if (!s->dx && !s->dy)
+  if (!(s->dx | s->dy))
     return;
 
   sector_t* sec = sectors + s->affectee;
