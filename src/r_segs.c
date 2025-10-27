@@ -191,7 +191,7 @@ void R_RenderMaskedSegRange(drawseg_t *ds, int x1, int x2)
   texnum = texturetranslation[curline->sidedef->midtexture];
 
   // killough 4/13/98: get correct lightlevel for 2s normal textures
-  rw_lightlevel = (R_FakeFlat(frontsector, &tempsec, NULL, NULL, false)->lightlevel);
+  rw_lightlevel = R_FakeFlat(frontsector, &tempsec, NULL, NULL, false)->lightlevel;
 
   SideLightLevel_Mid(curline->sidedef);
 
