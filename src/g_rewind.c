@@ -194,7 +194,7 @@ void G_LoadAutoKeyframe(void)
     {
         if (keyframe->episode != gameepisode || keyframe->map != gamemap)
         {
-            G_PreparedInitNew(keyframe->episode, keyframe->map);
+            G_SimplifiedInitNew(keyframe->episode, keyframe->map);
             P_UnArchiveDirtyArrays(keyframe->episode, keyframe->map);
         }
         P_LoadKeyframe(keyframe);
