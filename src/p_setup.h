@@ -49,6 +49,7 @@ void P_SegLengths();
 void P_CreateBlockMap(void);
 void P_SetSkipBlockStart(void);
 int P_GroupLines (void);
+void P_SectorInit(sector_t * const sector);
 void P_ProcessSideDefs(side_t *side, int i, char *bottomtexture, char *midtexture, char *toptexture);
 
 #endif

@@ -330,57 +330,47 @@ void P_LoadSectors (int lump)
       ss->special = SHORT(ms->special);
       ss->oldspecial = SHORT(ms->special);
       ss->tag = SHORT(ms->tag);
-      ss->thinglist = NULL;
-      ss->touching_thinglist = NULL;            // phares 3/14/98
-      // WiggleFix: [kb] for R_FixWiggle()
-      ss->cachedheight = 0;
-
-      // UDMF
-      ss->lightfloor = ss->lightceiling = ss->lightlevel;
-
-      ss->nextsec = -1; //jff 2/26/98 add fields to support locking out
-      ss->prevsec = -1; // stair retriggering until build completes
-
-      // killough 3/7/98:
-      ss->floor_xoffs = 0;
-      ss->floor_yoffs = 0;      // floor and ceiling flats offsets
-      ss->old_floor_xoffs = ss->interp_floor_xoffs = 0;
-      ss->old_floor_yoffs = ss->interp_floor_yoffs = 0;
-      ss->floor_rotation = 0;
-      ss->ceiling_xoffs = 0;
-      ss->ceiling_yoffs = 0;
-      ss->old_ceiling_xoffs = ss->interp_ceiling_xoffs = 0;
-      ss->old_ceiling_yoffs = ss->interp_ceiling_yoffs = 0;
-      ss->ceiling_rotation = 0;
-      ss->heightsec = -1;       // sector used to get floor and ceiling height
-      ss->floorlightsec = -1;   // sector used to get floor lighting
-      // killough 3/7/98: end changes
-
-      // killough 4/11/98 sector used to get ceiling lighting:
-      ss->ceilinglightsec = -1;
-
-      // ID24 per-sector colormap
-      // killough 4/4/98: colormaps:
-      ss->tint = ss->bottommap = ss->midmap = ss->topmap = 0;
-
-      // killough 10/98: sky textures coming from sidedefs:
-      ss->floorsky = ss->ceilingsky = 0;
-
-      // [AM] Sector interpolation.  Even if we're
-      //      not running uncapped, the renderer still
-      //      uses this data.
-      ss->oldfloorheight = ss->floorheight;
-      ss->interpfloorheight = ss->floorheight;
-      ss->oldceilingheight = ss->ceilingheight;
-      ss->interpceilingheight = ss->ceilingheight;
-      // [FG] inhibit sector interpolation during the 0th gametic
-      ss->oldceilgametic = -1;
-      ss->oldfloorgametic = -1;
-      ss->old_ceil_offs_gametic = -1;
-      ss->old_floor_offs_gametic = -1;
+      P_SectorInit(ss);
     }
 
   Z_Free (data);
+}
+
+//
+// factored out, removed properties that are zero by default
+//
+void P_SectorInit(sector_t * const sector)
+{
+  sector->thinglist = NULL;
+  sector->touching_thinglist = NULL; // phares 3/14/98
+
+  sector->nextsec = -1; // jff 2/26/98 add fields to support locking out
+  sector->prevsec = -1; // stair retriggering until build completes
+
+  sector->heightsec = -1;       // sector used to get floor and ceiling height
+  sector->floorlightsec = -1;   // sector used to get floor lighting
+  sector->ceilinglightsec = -1; // sector used to get ceiling lighting:
+
+  // killough 8/28/98: initialize all sectors to normal friction first
+  sector->friction = ORIG_FRICTION;
+  sector->movefactor = ORIG_FRICTION_FACTOR;
+
+  // killough 3/7/98:
+  // floor and ceiling flats offsets
+  sector->old_floor_xoffs = sector->interp_floor_xoffs = sector->floor_xoffs;
+  sector->old_floor_yoffs = sector->interp_floor_yoffs = sector->floor_yoffs;
+  sector->old_ceiling_xoffs = sector->interp_ceiling_xoffs = sector->ceiling_xoffs;
+  sector->old_ceiling_yoffs = sector->interp_ceiling_yoffs = sector->ceiling_yoffs;
+
+  // [AM] Sector interpolation.  Even if we're
+  //      not running uncapped, the renderer still
+  //      uses this data.
+  sector->oldfloorheight = sector->interpfloorheight = sector->floorheight;
+  sector->oldceilingheight = sector->interpceilingheight = sector->ceilingheight;
+
+  // [FG] inhibit sector interpolation during the 0th gametic
+  sector->oldceilgametic = sector->oldfloorgametic = -1;
+  sector->old_ceil_offs_gametic = sector->old_floor_offs_gametic = -1;
 }
 
 
