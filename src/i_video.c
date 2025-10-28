@@ -1691,7 +1691,7 @@ void I_ShutdownGraphics(void)
         default_current_video_height = current_video_height;
     }
 
-    UpdateGrab();
+    SetShowCursor(true);
 
     SDL_DestroyTexture(texture);
 
