@@ -23,6 +23,21 @@
         "complevel": "1.9"
       },
       {
+        "name": "the_sky_may_be_e1m1",
+        "md5": "94f2cfda8686ef9c719931c5012219d0",
+        "complevel": "1.9"
+      },
+      {
+        "name": "the_sky_may_be_e1m2",
+        "md5": "3f84580ac6aa56cc370bbb0968de0cf5",
+        "complevel": "1.9"
+      },
+      {
+        "name": "the_sky_may_be_e2m1",
+        "md5": "022206a606a0c753a38595f1c1d25d1e",
+        "complevel": "1.9"
+      },
+      {
         "name": "hell_revealed_map19",
         "md5": "811a0c97777a198bc9b2bb558cb46e6a",
         "options": [

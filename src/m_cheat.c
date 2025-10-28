@@ -161,7 +161,7 @@ struct cheat_s cheat[] = {
   {"idclip",     "No Clipping 2",     not_net | not_demo,
    {.v = cheat_noclip} },
 
-  {"idbeholdo",  NULL,                not_net | not_demo | not_deh,
+  {"idbehold0",  NULL,                not_net | not_demo | not_deh,
    {.i = cheat_pw}, NUMPOWERS }, // [FG] disable all powerups at once
 
   {"idbeholdh",  "Health",            not_net | not_demo,
@@ -225,16 +225,16 @@ struct cheat_s cheat[] = {
    {.v = cheat_freeze} },
 
   {"iddt",       "Map cheat",         not_dm,
-   {.v = cheat_ddt} },        // killough 2/07/98: moved from am_map.c
+   {.v = cheat_ddt}, .repeatable = true },        // killough 2/07/98: moved from am_map.c
 
   {"iddst",      NULL,                not_dm,
-   {.v = cheat_reveal_secret} },
+   {.v = cheat_reveal_secret}, .repeatable = true },
 
   {"iddkt",      NULL,                not_dm,
-   {.v = cheat_reveal_kill} },
+   {.v = cheat_reveal_kill}, .repeatable = true },
 
   {"iddit",      NULL,                not_dm,
-   {.v = cheat_reveal_item} },
+   {.v = cheat_reveal_item}, .repeatable = true },
 
   {"hom",     NULL,                   always,
    {.v = cheat_hom} },        // killough 2/07/98: HOM autodetector
@@ -1211,144 +1211,173 @@ static void cheat_rate(void)
   plyr->cheats ^= CF_RENDERSTATS;
 }
 
-//-----------------------------------------------------------------------------
-// 2/7/98: Cheat detection rewritten by Lee Killough, to avoid
-// scrambling and to use a more general table-driven approach.
-//-----------------------------------------------------------------------------
-
-static boolean M_CheatAllowed(cheat_when_t when)
+static boolean CheatAllowed(cheat_when_t when)
 {
-  return
-    !(when & not_dm   && deathmatch && !demoplayback) &&
-    !(when & not_coop && netgame && !deathmatch) &&
-    !(when & not_demo && (demorecording || demoplayback)) &&
-    !(when & not_menu && menuactive) &&
-    !(when & beta_only && !beta_emulation);
+    return !(when & not_dm && deathmatch && !demoplayback)
+           && !(when & not_coop && netgame && !deathmatch)
+           && !(when & not_demo && (demorecording || demoplayback))
+           && !(when & not_menu && menuactive)
+           && !(when & beta_only && !beta_emulation);
 }
 
-#define CHEAT_ARGS_MAX 8  /* Maximum number of args at end of cheats */
+// The cheat detection function was replaced with a version from Chocolate Doom
+// that included improvements from DSDA-Doom.
 
-boolean M_FindCheats(int key)
+static void InitCheats(void)
 {
-  static uint64_t sr;
-  static char argbuf[CHEAT_ARGS_MAX+1], *arg;
-  static int init, argsleft, cht;
-  int i, ret, matchedbefore;
+    static boolean init = false;
 
-  // If we are expecting arguments to a cheat
-  // (e.g. idclev), put them in the arg buffer
-
-  if (argsleft)
+    if (!init)
     {
-      *arg++ = M_ToLower(key);             // store key in arg buffer
-      if (!--argsleft)                   // if last key in arg list,
-        cheat[cht].func.s(argbuf);       // process the arg buffer
-      return 1;                          // affirmative response
-    }
+        struct cheat_s *cht;
 
-  key = M_ToLower(key) - 'a';
-  if (key < 0 || key >= 32)              // ignore most non-alpha cheat letters
-    {
-      sr = 0;        // clear shift register
-      return 0;
-    }
+        init = true;
 
-  if (!init)                             // initialize aux entries of table
-    {
-      init = 1;
-      for (i=0;cheat[i].cheat;i++)
+        for (cht = cheat; cht->cheat; cht++)
         {
-          uint64_t c=0, m=0;
-          const char *p; // [FG] char!
-          for (p=cheat[i].cheat; *p; p++)
+            cht->sequence_len = strlen(cht->cheat);
+        }
+    }
+}
+
+static int M_FindCheats(char key)
+{
+    int rc = 0;
+    struct cheat_s *cht;
+
+    InitCheats();
+
+    for (cht = cheat; cht->cheat; cht++)
+    {
+        if (!CheatAllowed(cht->when)
+            || (cht->when & not_deh && cht->deh_modified))
+        {
+            continue;
+        }
+
+        if (cht->chars_read < cht->sequence_len)
+        {
+            // still reading characters from the cheat code
+            // and verifying.  reset back to the beginning
+            // if a key is wrong
+
+            if (key == cht->cheat[cht->chars_read])
             {
-              unsigned key = M_ToLower(*p)-'a';  // convert to 0-31
-              if (key >= 32)            // ignore most non-alpha cheat letters
-                continue;
-              c = (c<<5) + key;         // shift key into code
-              m = (m<<5) + 31;          // shift 1's into mask
+                ++cht->chars_read;
             }
-          cheat[i].code = c;            // code for this cheat key
-          cheat[i].mask = m;            // mask for this cheat key
+            else if (key == cht->cheat[0])
+            {
+                cht->chars_read = 1;
+            }
+            else
+            {
+                cht->chars_read = 0;
+            }
+
+            cht->param_chars_read = 0;
         }
-    }
-
-  sr = (sr<<5) + key;                   // shift this key into shift register
-
-#if 0
-  {signed/*long*/volatile/*double *x,*y;*/static/*const*/int/*double*/i;/**/char/*(*)*/*D_DoomExeName/*(int)*/(void)/*?*/;(void/*)^x*/)((/*sr|1024*/32767/*|8%key*/&sr)-19891||/*isupper(c*/strcasecmp/*)*/("b"/*"'%2d!"*/"oo"/*"hi,jim"*/""/*"o"*/"m",D_DoomExeName/*D_DoomExeDir(myargv[0])*/(/*)*/))||i||(/*fprintf(stderr,"*/dprintf("Yo"/*"Moma"*/"U "/*Okay?*/"mUSt"/*for(you;read;tHis){/_*/" be a "/*MAN! Re-*/"member"/*That.*/" TO uSe"/*x++*/" t"/*(x%y)+5*/"HiS "/*"Life"*/"cHe"/*"eze"**/"aT"),i/*+--*/++/*;&^*/));}
-#endif
-
-  for (matchedbefore = ret = i = 0; cheat[i].cheat; i++)
-    if ((sr & cheat[i].mask) == cheat[i].code &&  // if match found & allowed
-        M_CheatAllowed(cheat[i].when) &&
-        !(cheat[i].when & not_deh  && cheat[i].deh_modified))
-    {
-      if (cheat[i].arg < 0)               // if additional args are required
+        else if (cht->param_chars_read < -cht->arg)
         {
-          cht = i;                        // remember this cheat code
-          arg = argbuf;                   // point to start of arg buffer
-          argsleft = -cheat[i].arg;       // number of args expected
-          ret = 1;                        // responder has eaten key
+            // we have passed the end of the cheat sequence and are
+            // entering parameters now
+
+            cht->parameter_buf[cht->param_chars_read] = key;
+
+            ++cht->param_chars_read;
+
+            // affirmative response
+            rc = 1;
         }
-      else
-        if (!matchedbefore)               // allow only one cheat at a time 
-          {
-            matchedbefore = ret = 1;      // responder has eaten key
-            cheat[i].func.i(cheat[i].arg); // call cheat handler
-          }
+
+        if (cht->chars_read >= cht->sequence_len
+            && cht->param_chars_read >= -cht->arg)
+        {
+            if (cht->param_chars_read)
+            {
+                static char argbuf[CHEAT_ARGS_MAX + 1];
+
+                // process the arg buffer
+                memcpy(argbuf, cht->parameter_buf, -cht->arg);
+
+                cht->func.s(argbuf);
+            }
+            else
+            {
+                // call cheat handler
+                cht->func.i(cht->arg);
+
+                if (cht->repeatable)
+                {
+                    --cht->chars_read;
+                }
+            }
+
+            if (!cht->repeatable)
+            {
+                cht->chars_read = cht->param_chars_read = 0;
+            }
+            rc = 1;
+        }
     }
-  return ret;
+
+    return rc;
 }
 
-static const struct {
-  int input;
-  const cheat_when_t when;
-  const cheatf_t func;
-  const int arg;
+static const struct
+{
+    int input;
+    const cheat_when_t when;
+    const cheatf_t func;
+    const int arg;
 } cheat_input[] = {
-  { input_iddqd,     not_net|not_demo, {.v = cheat_god},      0 },
-  { input_idkfa,     not_net|not_demo, {.v = cheat_kfa},      0 },
-  { input_idfa,      not_net|not_demo, {.v = cheat_fa},       0 },
-  { input_idclip,    not_net|not_demo, {.v = cheat_noclip},   0 },
-  { input_idbeholdh, not_net|not_demo, {.v = cheat_health},   0 },
-  { input_idbeholdm, not_net|not_demo, {.v = cheat_megaarmour}, 0 },
-  { input_idbeholdv, not_net|not_demo, {.i = cheat_pw},       pw_invulnerability },
-  { input_idbeholds, not_net|not_demo, {.i = cheat_pw},       pw_strength },
-  { input_idbeholdi, not_net|not_demo, {.i = cheat_pw},       pw_invisibility },
-  { input_idbeholdr, not_net|not_demo, {.i = cheat_pw},       pw_ironfeet },
-  { input_idbeholdl, not_dm,           {.i = cheat_pw},       pw_infrared },
-  { input_iddt,      not_dm,           {.v = cheat_ddt},      0 },
-  { input_notarget,  not_net|not_demo, {.v = cheat_notarget}, 0 },
-  { input_freeze,    not_net|not_demo, {.v = cheat_freeze},   0 },
-  { input_avj,       not_net|not_demo, {.v = cheat_avj},      0 },
+    { input_iddqd,     not_net | not_demo, {.v = cheat_god} },
+    { input_idkfa,     not_net | not_demo, {.v = cheat_kfa} },
+    { input_idfa,      not_net | not_demo, {.v = cheat_fa} },
+    { input_idclip,    not_net | not_demo, {.v = cheat_noclip} },
+    { input_idbeholdh, not_net | not_demo, {.v = cheat_health} },
+    { input_idbeholdm, not_net | not_demo, {.v = cheat_megaarmour} },
+    { input_idbeholdv, not_net | not_demo, {.i = cheat_pw}, pw_invulnerability },
+    { input_idbeholds, not_net | not_demo, {.i = cheat_pw}, pw_strength },
+    { input_idbeholdi, not_net | not_demo, {.i = cheat_pw}, pw_invisibility },
+    { input_idbeholdr, not_net | not_demo, {.i = cheat_pw}, pw_ironfeet },
+    { input_idbeholdl, not_dm,             {.i = cheat_pw}, pw_infrared },
+    { input_iddt,      not_dm,             {.v = cheat_ddt} },
+    { input_notarget,  not_net | not_demo, {.v = cheat_notarget} },
+    { input_freeze,    not_net | not_demo, {.v = cheat_freeze} },
+    { input_avj,       not_net | not_demo, {.v = cheat_avj} },
 };
 
 boolean M_CheatResponder(event_t *ev)
 {
-  int i;
-
-  if (strictmode && demorecording)
-    return false;
-
-  if (ev->type == ev_keydown && M_FindCheats(ev->data2.i))
-    return true;
-
-  if (WS_Override())
-    return false;
-
-  for (i = 0; i < arrlen(cheat_input); ++i)
-  {
-    if (M_InputActivated(cheat_input[i].input))
+    if (strictmode && demorecording)
     {
-      if (M_CheatAllowed(cheat_input[i].when))
-        cheat_input[i].func.i(cheat_input[i].arg);
-
-      return true;
+        return false;
     }
-  }
 
-  return false;
+    if (ev->type == ev_keydown && M_FindCheats(ev->data2.i))
+    {
+        return true;
+    }
+
+    if (WS_Override())
+    {
+        return false;
+    }
+
+    for (int i = 0; i < arrlen(cheat_input); ++i)
+    {
+        if (M_InputActivated(cheat_input[i].input))
+        {
+            if (CheatAllowed(cheat_input[i].when))
+            {
+                cheat_input[i].func.i(cheat_input[i].arg);
+            }
+
+            return true;
+        }
+    }
+
+    return false;
 }
 
 //----------------------------------------------------------------------------
