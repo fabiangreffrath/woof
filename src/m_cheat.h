@@ -48,14 +48,20 @@ typedef enum {
   not_net = not_dm | not_coop
 } cheat_when_t;
 
+#define CHEAT_ARGS_MAX 8
+
 extern struct cheat_s {
   const char *cheat; // [FG] char!
   const char *const deh_cheat;
   const cheat_when_t when;
   const cheatf_t func;
   const int arg;
-  uint64_t code, mask;
+  boolean repeatable;
   boolean deh_modified;                // killough 9/12/98
+
+  int sequence_len;
+  int chars_read, param_chars_read;
+  char parameter_buf[CHEAT_ARGS_MAX];
 } cheat[];
 
 void cheat_mypos_print();
