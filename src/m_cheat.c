@@ -161,7 +161,7 @@ struct cheat_s cheat[] = {
   {"idclip",     "No Clipping 2",     not_net | not_demo,
    {.v = cheat_noclip} },
 
-  {"idbeholdo",  NULL,                not_net | not_demo | not_deh,
+  {"idbehold0",  NULL,                not_net | not_demo | not_deh,
    {.i = cheat_pw}, NUMPOWERS }, // [FG] disable all powerups at once
 
   {"idbeholdh",  "Health",            not_net | not_demo,
@@ -1220,6 +1220,9 @@ static boolean CheatAllowed(cheat_when_t when)
            && !(when & beta_only && !beta_emulation);
 }
 
+// The cheat detection function was replaced with a version from Chocolate Doom
+// that included improvements from DSDA-Doom.
+
 static void InitCheats(void)
 {
     static boolean init = false;
@@ -1237,7 +1240,7 @@ static void InitCheats(void)
     }
 }
 
-static int FindCheats(char key)
+static int M_FindCheats(char key)
 {
     int rc = 0;
     struct cheat_s *cht;
@@ -1351,7 +1354,7 @@ boolean M_CheatResponder(event_t *ev)
         return false;
     }
 
-    if (ev->type == ev_keydown && FindCheats(ev->data2.i))
+    if (ev->type == ev_keydown && M_FindCheats(ev->data2.i))
     {
         return true;
     }
