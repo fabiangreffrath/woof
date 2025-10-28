@@ -56,12 +56,13 @@ extern struct cheat_s {
   const cheat_when_t when;
   const cheatf_t func;
   const int arg;
-  boolean repeatable;
   boolean deh_modified;                // killough 9/12/98
 
   int sequence_len;
-  int chars_read, param_chars_read;
+  int chars_read;
+  int param_chars_read;
   char parameter_buf[CHEAT_ARGS_MAX];
+  boolean repeatable;
 } cheat[];
 
 void cheat_mypos_print();

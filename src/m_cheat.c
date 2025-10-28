@@ -1211,19 +1211,13 @@ static void cheat_rate(void)
   plyr->cheats ^= CF_RENDERSTATS;
 }
 
-//-----------------------------------------------------------------------------
-// 2/7/98: Cheat detection rewritten by Lee Killough, to avoid
-// scrambling and to use a more general table-driven approach.
-//-----------------------------------------------------------------------------
-
-static boolean M_CheatAllowed(cheat_when_t when)
+static boolean CheatAllowed(cheat_when_t when)
 {
-  return
-    !(when & not_dm   && deathmatch && !demoplayback) &&
-    !(when & not_coop && netgame && !deathmatch) &&
-    !(when & not_demo && (demorecording || demoplayback)) &&
-    !(when & not_menu && menuactive) &&
-    !(when & beta_only && !beta_emulation);
+    return !(when & not_dm && deathmatch && !demoplayback)
+           && !(when & not_coop && netgame && !deathmatch)
+           && !(when & not_demo && (demorecording || demoplayback))
+           && !(when & not_menu && menuactive)
+           && !(when & beta_only && !beta_emulation);
 }
 
 static void InitCheats(void)
@@ -1243,7 +1237,7 @@ static void InitCheats(void)
     }
 }
 
-static int M_FindCheats(char key)
+static int FindCheats(char key)
 {
     int rc = 0;
     struct cheat_s *cht;
@@ -1252,7 +1246,7 @@ static int M_FindCheats(char key)
 
     for (cht = cheat; cht->cheat; cht++)
     {
-        if (!M_CheatAllowed(cht->when)
+        if (!CheatAllowed(cht->when)
             || (cht->when & not_deh && cht->deh_modified))
         {
             continue;
@@ -1326,54 +1320,61 @@ static int M_FindCheats(char key)
     return rc;
 }
 
-static const struct {
-  int input;
-  const cheat_when_t when;
-  const cheatf_t func;
-  const int arg;
+static const struct
+{
+    int input;
+    const cheat_when_t when;
+    const cheatf_t func;
+    const int arg;
 } cheat_input[] = {
-  { input_iddqd,     not_net|not_demo, {.v = cheat_god},      0 },
-  { input_idkfa,     not_net|not_demo, {.v = cheat_kfa},      0 },
-  { input_idfa,      not_net|not_demo, {.v = cheat_fa},       0 },
-  { input_idclip,    not_net|not_demo, {.v = cheat_noclip},   0 },
-  { input_idbeholdh, not_net|not_demo, {.v = cheat_health},   0 },
-  { input_idbeholdm, not_net|not_demo, {.v = cheat_megaarmour}, 0 },
-  { input_idbeholdv, not_net|not_demo, {.i = cheat_pw},       pw_invulnerability },
-  { input_idbeholds, not_net|not_demo, {.i = cheat_pw},       pw_strength },
-  { input_idbeholdi, not_net|not_demo, {.i = cheat_pw},       pw_invisibility },
-  { input_idbeholdr, not_net|not_demo, {.i = cheat_pw},       pw_ironfeet },
-  { input_idbeholdl, not_dm,           {.i = cheat_pw},       pw_infrared },
-  { input_iddt,      not_dm,           {.v = cheat_ddt},      0 },
-  { input_notarget,  not_net|not_demo, {.v = cheat_notarget}, 0 },
-  { input_freeze,    not_net|not_demo, {.v = cheat_freeze},   0 },
-  { input_avj,       not_net|not_demo, {.v = cheat_avj},      0 },
+    { input_iddqd,     not_net | not_demo, {.v = cheat_god} },
+    { input_idkfa,     not_net | not_demo, {.v = cheat_kfa} },
+    { input_idfa,      not_net | not_demo, {.v = cheat_fa} },
+    { input_idclip,    not_net | not_demo, {.v = cheat_noclip} },
+    { input_idbeholdh, not_net | not_demo, {.v = cheat_health} },
+    { input_idbeholdm, not_net | not_demo, {.v = cheat_megaarmour} },
+    { input_idbeholdv, not_net | not_demo, {.i = cheat_pw}, pw_invulnerability },
+    { input_idbeholds, not_net | not_demo, {.i = cheat_pw}, pw_strength },
+    { input_idbeholdi, not_net | not_demo, {.i = cheat_pw}, pw_invisibility },
+    { input_idbeholdr, not_net | not_demo, {.i = cheat_pw}, pw_ironfeet },
+    { input_idbeholdl, not_dm,             {.i = cheat_pw}, pw_infrared },
+    { input_iddt,      not_dm,             {.v = cheat_ddt} },
+    { input_notarget,  not_net | not_demo, {.v = cheat_notarget} },
+    { input_freeze,    not_net | not_demo, {.v = cheat_freeze} },
+    { input_avj,       not_net | not_demo, {.v = cheat_avj} },
 };
 
 boolean M_CheatResponder(event_t *ev)
 {
-  int i;
-
-  if (strictmode && demorecording)
-    return false;
-
-  if (ev->type == ev_keydown && M_FindCheats(ev->data2.i))
-    return true;
-
-  if (WS_Override())
-    return false;
-
-  for (i = 0; i < arrlen(cheat_input); ++i)
-  {
-    if (M_InputActivated(cheat_input[i].input))
+    if (strictmode && demorecording)
     {
-      if (M_CheatAllowed(cheat_input[i].when))
-        cheat_input[i].func.i(cheat_input[i].arg);
-
-      return true;
+        return false;
     }
-  }
 
-  return false;
+    if (ev->type == ev_keydown && FindCheats(ev->data2.i))
+    {
+        return true;
+    }
+
+    if (WS_Override())
+    {
+        return false;
+    }
+
+    for (int i = 0; i < arrlen(cheat_input); ++i)
+    {
+        if (M_InputActivated(cheat_input[i].input))
+        {
+            if (CheatAllowed(cheat_input[i].when))
+            {
+                cheat_input[i].func.i(cheat_input[i].arg);
+            }
+
+            return true;
+        }
+    }
+
+    return false;
 }
 
 //----------------------------------------------------------------------------
