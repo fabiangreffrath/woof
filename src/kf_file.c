@@ -17,6 +17,7 @@
 #include "doomstat.h"
 #include "doomtype.h"
 #include "g_game.h"
+#include "i_printf.h"
 #include "i_system.h"
 #include "info.h"
 #include "m_arena.h"
@@ -114,7 +115,6 @@ static int tclass_to_index[] = {
 
 typedef enum
 {
-    tc_none = -1,
     tc_mobj,
     tc_mobj_del,
     tc_ceiling,
@@ -134,7 +134,8 @@ typedef enum
     tc_pusher,
     tc_flicker,
     tc_friction,
-    tc_ambient
+    tc_ambient,
+    tc_none
 } thinker_class_t;
 
 static actionf_p1 actions[] = {
@@ -157,7 +158,8 @@ static actionf_p1 actions[] = {
     [tc_pusher] = T_PusherAdapter,
     [tc_flicker] = T_FireFlickerAdapter,
     [tc_friction] = T_FrictionAdapter,
-    [tc_ambient] = T_AmbientSoundAdapter
+    [tc_ambient] = T_AmbientSoundAdapter,
+    [tc_none] = NULL
 };
 
 typedef struct
@@ -405,7 +407,7 @@ static void read_thinker_t(thinker_t *str, thinker_class_t tc)
 {
     str->prev = readp_thinker();
     str->next = readp_thinker();
-    str->function.p1 = (tc != tc_none) ? actions[tc] : NULL;
+    str->function.p1 = actions[tc];
     str->cnext = readp_thclass();
     str->cprev = readp_thclass();
     str->references = read32();
@@ -1457,7 +1459,8 @@ static void PrepareArchiveThinkers(void)
         thinker_class_t tc = GetThinkerClass(thinker->function.p1);
         if (tc == tc_none)
         {
-            I_Error("Unknown thinker class: %d", tc);
+            I_Printf(VB_WARNING,
+                     "PrepareArchiveThinkers: Unknown thinker class");
         }
 
         write8(tc);
