@@ -1940,7 +1940,7 @@ void P_Init (void)
   R_InitSprites(sprnames);
 
   #define SIZE_MB(x) ((x) * 1024 * 1024)
-  world_arena = M_ArenaInit(SIZE_MB(128), SIZE_MB(4));
+  world_arena = M_ArenaInit(SIZE_MB(128), SIZE_MB(8));
   thinkers_arena = M_ArenaInit(SIZE_MB(128), SIZE_MB(2));
   msecnodes_arena = M_ArenaInit(SIZE_MB(32), SIZE_MB(1));
   activeceilings_arena = M_ArenaInit(SIZE_MB(32), SIZE_MB(1));
