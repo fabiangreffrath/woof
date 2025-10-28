@@ -10,7 +10,7 @@ Typing IDBEHOLD will bring up a small menu where you can choose to enable one of
 `S`: Toggles berserk strength  
 `H`: Gives 200% health points  
 `M`: Gives megaarmor, with 200% armor points  
-`O`: Disables all currently active power-ups  
+`0`: Disables all currently active power-ups  
 
 `IDCLEV00` restarts the current level.
 
