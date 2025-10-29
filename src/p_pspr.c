@@ -830,7 +830,7 @@ void A_FireOldBFG(player_t *player, pspdef_t *psp)
 #ifdef MBF_STRICT
       if (autoaim || !beta_emulation)
 #else
-      if (autoaim)
+      if (autoaim || direct_vertical_aiming)
 #endif
 	{
 	  // killough 8/2/98: make autoaiming prefer enemies
