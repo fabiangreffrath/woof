@@ -3159,15 +3159,21 @@ static void T_ParamScrollCeiling(scroll_t *s)
       if (!(thing->flags & MF_NOCLIP)
           && thing->flags & MF_SPAWNCEILING
           && thing->flags & MF_NOGRAVITY
-          && thing->z + thing->height == sec->ceilingheight)
+          && (thing->z + thing->height) == sec->ceilingheight)
       {
         boolean scroll_it = false;
 
-        if ((s->type & SCROLL_MONSTER && (thing->type == MT_SKULL || thing->flags & MF_COUNTKILL))
-            || (s->type & SCROLL_PLAYER && thing->player)
-            || (s->type & SCROLL_STATIC))
+        if (thing->type == MT_SKULL || thing->flags & MF_COUNTKILL)
         {
-          scroll_it = true;
+          if (s->type & SCROLL_MONSTER) scroll_it = true;
+        }
+        else if (thing->player)
+        {
+          if (s->type & SCROLL_PLAYER) scroll_it = true;
+        }
+        else
+        {
+          if (s->type & SCROLL_STATIC) scroll_it = true;
         }
 
         if (scroll_it)
