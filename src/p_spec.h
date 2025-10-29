@@ -710,6 +710,11 @@ typedef enum scroller_e
   sc_side_bottom,
 } scroller_t;
 
+// Eternity-style
+#define SCROLL_TEXTURE 0x01
+#define SCROLL_CARRY   0x02
+#define SCROLL_ALL     (SCROLL_TEXTURE|SCROLL_CARRY)
+
 // ZDoom-style
 #define SCROLL_TEXTURE 0x01
 #define SCROLL_STATIC  0x02
@@ -738,6 +743,9 @@ extern void Add_Scroller(scroller_t type, fixed_t dx, fixed_t dy,
 
 extern void Add_ParamSectorScroller(scroller_t type, int32_t affectee,
                                     boolean isCeiling, fixed_t dx, fixed_t dy);
+
+extern void Add_EESectorScroller(int32_t type, int32_t affectee,
+                                 boolean isCeiling, double x, double y);
 
 // phares 3/12/98: added new model of friction for ice/sludge effects
 

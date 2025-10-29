@@ -70,10 +70,11 @@ typedef enum
     UDMF_SIDE_SCROLL = (1u << 13),
     UDMF_SIDE_LIGHT  = (1u << 14),
 
-    UDMF_SEC_ANGLE  = (1u << 15),
-    UDMF_SEC_OFFSET = (1u << 16),
-    UDMF_SEC_SCROLL = (1u << 17),
-    UDMF_SEC_LIGHT  = (1u << 18),
+    UDMF_SEC_ANGLE     = (1u << 15),
+    UDMF_SEC_OFFSET    = (1u << 16),
+    UDMF_SEC_EE_SCROLL = (1u << 17),
+    UDMF_SEC_SCROLL    = (1u << 18),
+    UDMF_SEC_LIGHT     = (1u << 19),
 
     // Compatibility
     UDMF_COMP_NO_ARG0 = (1u << 31),
@@ -169,13 +170,15 @@ typedef struct
 
     double xpanningfloor,   ypanningfloor;
     double xpanningceiling, ypanningceiling;
+    double rotationfloor, rotationceiling;
 
     double xscrollfloor,   yscrollfloor;
     double xscrollceiling, yscrollceiling;
-
     int32_t scrollfloormode, scrollceilingmode;
 
-    double rotationfloor, rotationceiling;
+    double scroll_floor_x, scroll_floor_y;
+    double scroll_ceil_x,  scroll_ceil_y;
+    int32_t scroll_floor_type, scroll_ceil_type;
 } UDMF_Sector_t;
 
 static char *const UDMF_Lumps[] = {
@@ -681,6 +684,30 @@ static void UDMF_ParseSector(scanner_t *s)
         {
             sector.ypanningceiling = UDMF_ScanDouble(s);
         }
+        else if (PROP(scroll_floor_x, UDMF_SEC_EE_SCROLL))
+        {
+            sector.scroll_floor_x = UDMF_ScanDouble(s);
+        }
+        else if (PROP(scroll_floor_, UDMF_SEC_EE_SCROLL))
+        {
+            sector.scroll_floor_y = UDMF_ScanDouble(s);
+        }
+        else if (PROP(scroll_floor_, UDMF_SEC_EE_SCROLL))
+        {
+            sector.scroll_floor_type = UDMF_ScanDouble(s);
+        }
+        else if (PROP(scroll_ceil_x, UDMF_SEC_EE_SCROLL))
+        {
+            sector.scroll_ceil_x = UDMF_ScanDouble(s);
+        }
+        else if (PROP(scroll_ceil_y, UDMF_SEC_EE_SCROLL))
+        {
+            sector.scroll_ceil_y = UDMF_ScanDouble(s);
+        }
+        else if (PROP(scroll_ceil_type, UDMF_SEC_EE_SCROLL))
+        {
+            sector.scroll_ceil_type = UDMF_ScanInt(s);
+        }
         else if (PROP(xscrollfloor, UDMF_SEC_SCROLL))
         {
             sector.xscrollfloor = UDMF_ScanDouble(s);
@@ -941,6 +968,20 @@ static void UDMF_LoadSectors(void)
         sectors[i].floor_yoffs = DoubleToFixed(udmf_sectors[i].ypanningfloor);
         sectors[i].ceiling_xoffs = DoubleToFixed(udmf_sectors[i].xpanningceiling);
         sectors[i].ceiling_yoffs = DoubleToFixed(udmf_sectors[i].ypanningceiling);
+
+        if (udmf_sectors[i].scroll_floor_type && (udmf_sectors[i].scroll_floor_x || udmf_sectors[i].scroll_floor_y))
+        {
+            Add_EESectorScroller(udmf_sectors[i].scroll_floor_type, i, false,
+                                 udmf_sectors[i].scroll_floor_x,
+                                 udmf_sectors[i].scroll_floor_y);
+        }
+
+        if (udmf_sectors[i].scroll_ceil_type && (udmf_sectors[i].scroll_ceil_x || udmf_sectors[i].scroll_ceil_y))
+        {
+            Add_EESectorScroller(udmf_sectors[i].scroll_floor_type, i, true,
+                                 udmf_sectors[i].scroll_floor_x,
+                                 udmf_sectors[i].scroll_floor_y);
+        }
 
         if (udmf_sectors[i].scrollfloormode && (udmf_sectors[i].xscrollfloor || udmf_sectors[i].yscrollfloor))
         {

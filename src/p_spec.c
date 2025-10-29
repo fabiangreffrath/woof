@@ -3284,6 +3284,23 @@ static void Add_WallScroller(int64_t dx, int64_t dy, const line_t *l,
 // (This is so scrolling floors and objects on them can move at same speed.)
 #define CARRYFACTOR ((fixed_t)(FRACUNIT*.09375))
 
+// Eternity scrollers are weird...
+#define EE_SCROLLFACTOR 10
+
+void Add_EESectorScroller(int32_t type, int32_t affectee, boolean isCeiling, double x, double y)
+{
+  fixed_t dx = DoubleToFixed(x * EE_SCROLLFACTOR) >> SCROLL_SHIFT;
+  fixed_t dy = DoubleToFixed(y * EE_SCROLLFACTOR) >> SCROLL_SHIFT;
+  if (type & SCROLL_TEXTURE)
+    Add_ScrollerStatic(isCeiling ? sc_ceiling : sc_floor, affectee, dx, dy);
+  if (type & SCROLL_CARRY)
+  {
+    dx = FixedMul(dx, CARRYFACTOR);
+    dy = FixedMul(dy, CARRYFACTOR);
+    Add_ScrollerStatic(isCeiling ? sc_carry_ceiling : sc_carry, affectee, dx, dy);
+  }
+}
+
 // Initialize the scrollers
 static void P_SpawnScrollers(void)
 {
