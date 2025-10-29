@@ -825,7 +825,13 @@ void A_FireOldBFG(player_t *player, pspdef_t *psp)
       angle_t an1 = ((P_Random(pr_bfg)&127) - 64) * (ANG90/768) + an;
       angle_t an2 = ((P_Random(pr_bfg)&127) - 64) * (ANG90/640) + ANG90;
 
+// desync fix: mh1910-430
+// in PrBoom, autoaim can only be activated with AIM cheat in beta emulation
+#ifdef MBF_STRICT
       if (autoaim || !beta_emulation)
+#else
+      if (autoaim || direct_vertical_aiming)
+#endif
 	{
 	  // killough 8/2/98: make autoaiming prefer enemies
 	  int mask = MF_FRIEND;
