@@ -274,7 +274,7 @@ void D_ReceiveTic(ticcmd_t *ticcmds, boolean *players_mask)
 
     // Disconnected from server?
 
-    if (ticcmds == NULL && players_mask == NULL)
+    if (ticcmds == NULL || players_mask == NULL)
     {
         D_Disconnected();
         return;
