@@ -78,11 +78,6 @@ typedef enum
 
     // Compatibility
     UDMF_COMP_NO_ARG0 = (1u << 31),
-
-    // Combined options
-    UDMF_DOOM_ALL = UDMF_BOOM|UDMF_MBF|UDMF_MBF21|UDMF_ID24|UDMF_MBF2Y,
-    UDMF_SIDE_EXT = UDMF_SIDE_OFFSET|UDMF_SIDE_SCROLL|UDMF_SIDE_LIGHT,
-    UDMF_SEC_EXT = UDMF_SEC_ANGLE|UDMF_SEC_OFFSET|UDMF_SEC_SCROLL|UDMF_SEC_LIGHT,
 } UDMF_Features_t;
 
 typedef struct
@@ -189,7 +184,7 @@ static char *const UDMF_Lumps[] = {
     [UDMF_ENDMAP] = "ENDMAP",
 };
 
-static UDMF_Features_t udmf_features = UDMF_BASE;
+static UDMF_Features_t udmf_flags = UDMF_BASE;
 
 static UDMF_Vertex_t *udmf_vertexes = NULL;
 static UDMF_Linedef_t *udmf_linedefs = NULL;
@@ -251,7 +246,7 @@ inline static void UDMF_ScanLumpName(scanner_t *s, char *x)
 
 // Property is valid in the current namespace
 #define PROP(keyword, flags) \
-    (!strcasecmp(prop, #keyword) && (udmf_features & (flags)))
+    (!strcasecmp(prop, #keyword) && (udmf_flags & (flags)))
 
 // Skip unknown keyword
 static inline void UDMF_SkipScan(scanner_t *s)
@@ -296,18 +291,19 @@ static void UDMF_ParseNamespace(scanner_t *s)
     SC_MustGetToken(s, '=');
     SC_MustGetToken(s, TK_StringConst);
     const char *name = SC_GetString(s);
-    udmf_features = UDMF_BASE;
+    udmf_flags = UDMF_BASE;
 
     if (!strcasecmp(name, "doom"))
     {
-        udmf_features |= UDMF_DOOM | UDMF_BOOM | UDMF_MBF;
+        udmf_flags |= UDMF_DOOM | UDMF_BOOM | UDMF_MBF;
     }
     else if (devparm && !strcasecmp(name, "dsda"))
     {
         I_Printf(VB_WARNING, "Loading development-only UDMF namespace: \"%s\"", name);
-        udmf_features |= UDMF_DOOM | UDMF_BOOM | UDMF_MBF | UDMF_MBF21
-                         | UDMF_PARAM_LINE | UDMF_PARAM_THING | UDMF_3DMIDTEX
-                         | UDMF_SIDE_EXT | UDMF_SEC_EXT;
+        udmf_flags |= UDMF_DOOM | UDMF_BOOM | UDMF_MBF | UDMF_MBF21;
+        udmf_flags |= UDMF_PARAM_LINE | UDMF_PARAM_THING | UDMF_3DMIDTEX;
+        udmf_flags |= UDMF_SIDE_OFFSET | UDMF_SIDE_SCROLL | UDMF_SIDE_LIGHT;
+        udmf_flags |= UDMF_SEC_ANGLE | UDMF_SEC_OFFSET | UDMF_SEC_SCROLL | UDMF_SEC_LIGHT;
     }
     else
     {
@@ -1082,13 +1078,13 @@ static void UDMF_LoadLineDefs(void)
         lines[i].args[4] = udmf_linedefs[i].args[4];
 
         // Woof! currently does not support parameterized line specials
-        if (udmf_features & UDMF_PARAM_LINE)
+        if (udmf_flags & UDMF_PARAM_LINE)
         {
             udmf_linedefs[i].special = 0;
         }
 
         // Support for namespaces that do not make the tag -> arg0/id split
-        if (udmf_features & UDMF_COMP_NO_ARG0)
+        if (udmf_flags & UDMF_COMP_NO_ARG0)
         {
             lines[i].args[0] = lines[i].id;
         }
