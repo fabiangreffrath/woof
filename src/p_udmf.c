@@ -25,7 +25,6 @@
 #include "m_argv.h"
 #include "m_arena.h"
 #include "m_array.h"
-#include "m_bbox.h"
 #include "m_fixed.h"
 #include "m_misc.h"
 #include "m_scanner.h"
@@ -35,7 +34,6 @@
 #include "p_setup.h"
 #include "p_spec.h"
 #include "r_data.h"
-#include "r_main.h"
 #include "r_state.h"
 #include "tables.h"
 #include "w_wad.h"
@@ -114,10 +112,10 @@ typedef struct
     char tranmap[9];
 } UDMF_Linedef_t;
 
-// Important note about line tag/id/arg0, in the Doom namespace:
+// Important note about line tag/id/arg0, in the Doom/Heretic/Strife namespaces:
 // The base UDMF spec makes a distinction between the value used to identify a
 // specific line (id), and the value used when an action is executed (arg0),
-// as opposed to the binary Doom format, that used both as the same (tag).
+// as opposed to the Doom map format, that used both as the same (tag).
 
 typedef struct
 {
@@ -247,6 +245,24 @@ inline static void UDMF_ScanLumpName(scanner_t *s, char *x)
 // Property is valid in the current namespace
 #define PROP(keyword, flags) \
     (!strcasecmp(prop, #keyword) && (udmf_flags & (flags)))
+
+// Parse specific string properties
+inline static int32_t UDMF_ScanSectorScroll(scanner_t *s)
+{
+    const char *buf;
+    int32_t mode = 0;
+    SC_MustGetToken(s, '=');
+    SC_MustGetToken(s, TK_StringConst);
+    buf = SC_GetString(s);
+    if (!strcasecmp(buf, "visual"))
+      mode = SCROLL_TEXTURE;
+    else if (!strcasecmp(buf, "physical"))
+      mode = SCROLL_CARRY;
+    else if (!strcasecmp(buf, "both"))
+      mode = SCROLL_ALL;
+    SC_MustGetToken(s, ';');
+    return mode;
+}
 
 // Skip unknown keyword
 static inline void UDMF_SkipScan(scanner_t *s)
@@ -688,9 +704,9 @@ static void UDMF_ParseSector(scanner_t *s)
         {
             sector.scroll_floor_y = UDMF_ScanDouble(s);
         }
-        else if (PROP(scroll_floor_, UDMF_SEC_EE_SCROLL))
+        else if (PROP(scroll_floor_type, UDMF_SEC_EE_SCROLL))
         {
-            sector.scroll_floor_type = UDMF_ScanDouble(s);
+            sector.scroll_floor_type = UDMF_ScanSectorScroll(s);
         }
         else if (PROP(scroll_ceil_x, UDMF_SEC_EE_SCROLL))
         {
@@ -702,7 +718,7 @@ static void UDMF_ParseSector(scanner_t *s)
         }
         else if (PROP(scroll_ceil_type, UDMF_SEC_EE_SCROLL))
         {
-            sector.scroll_ceil_type = UDMF_ScanInt(s);
+            sector.scroll_ceil_type = UDMF_ScanSectorScroll(s);
         }
         else if (PROP(xscrollfloor, UDMF_SEC_SCROLL))
         {
