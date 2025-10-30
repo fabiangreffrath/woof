@@ -504,8 +504,6 @@ void R_SmoothLight(void)
   R_InitLightTables();
   // [crispy] re-calculate the scalelight[][] array
   // R_ExecuteSetViewSize();
-  // [crispy] re-calculate fake contrast
-  P_SegLengths(true);
 }
 
 int R_GetLightIndex(fixed_t scale)

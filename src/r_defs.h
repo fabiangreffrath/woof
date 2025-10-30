@@ -22,6 +22,7 @@
 
 // Some more or less basic data types
 // we depend on.
+#include "doomdata.h"
 #include "m_fixed.h"
 #include "tables.h"
 
@@ -172,6 +173,10 @@ typedef struct sector_s
   int tint;
   angle_t floor_rotation;
   angle_t ceiling_rotation;
+
+  // UDMF
+  int32_t flags;
+  int16_t lightfloor, lightceiling;
 } sector_t;
 
 //
@@ -182,10 +187,21 @@ typedef struct side_s
 {
   fixed_t textureoffset; // add this to the calculated texture column
   fixed_t rowoffset;     // add this to the calculated texture top
+
+  // UDMF
+  fixed_t offsetx_top;
+  fixed_t offsety_top;
+  fixed_t offsetx_mid;
+  fixed_t offsety_mid;
+  fixed_t offsetx_bottom;
+  fixed_t offsety_bottom;
+
   short toptexture;      // Texture indices. We do not maintain names here. 
   short bottomtexture;
   short midtexture;
   sector_t* sector;      // Sector the SideDef is facing.
+
+  sidedef_flags_t flags;
 
   // killough 4/4/98, 4/11/98: highest referencing special linedef's type,
   // or lump number of special effect. Allows texture names to be overloaded
@@ -201,6 +217,30 @@ typedef struct side_s
   int oldgametic;
 
   boolean dirty;
+
+  // UDMF
+  int32_t light;
+  int32_t light_top;
+  int32_t light_mid;
+  int32_t light_bottom;
+
+  fixed_t oldoffsetx_top;
+  fixed_t oldoffsety_top;
+  fixed_t interpoffsetx_top;
+  fixed_t interpoffsety_top;
+  int oldgametic_top;
+
+  fixed_t oldoffsetx_mid;
+  fixed_t oldoffsety_mid;
+  fixed_t interpoffsetx_mid;
+  fixed_t interpoffsety_mid;
+  int oldgametic_mid;
+
+  fixed_t oldoffsetx_bottom;
+  fixed_t oldoffsety_bottom;
+  fixed_t interpoffsetx_bottom;
+  fixed_t interpoffsety_bottom;
+  int oldgametic_bottom;
 } side_t;
 
 //

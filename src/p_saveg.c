@@ -176,6 +176,13 @@ static void saveg_read_mapthing_t(mapthing_t *str)
     // fixed_t height;
     str->height = saveg_read32();
 
+    // int args[5];
+    str->args[0] = saveg_read32();
+    str->args[1] = saveg_read32();
+    str->args[2] = saveg_read32();
+    str->args[3] = saveg_read32();
+    str->args[4] = saveg_read32();
+
     // short angle;
     str->angle = saveg_read16();
 
@@ -196,6 +203,13 @@ static void saveg_write_mapthing_t(mapthing_t *str)
 
     // fixed_t height;
     saveg_write32(str->height);
+
+    // int args[5];
+    saveg_write32(str->args[0]);
+    saveg_write32(str->args[1]);
+    saveg_write32(str->args[2]);
+    saveg_write32(str->args[3]);
+    saveg_write32(str->args[4]);
 
     // short angle;
     saveg_write16(str->angle);
