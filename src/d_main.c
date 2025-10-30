@@ -2308,6 +2308,12 @@ void D_DoomMain(void)
 
   W_InitMultipleFiles();
 
+  // Always process chex.deh first
+  if (gamemission == pack_chex)
+  {
+    ProcessDehLump(W_GetNumForName("chexdeh"));
+  }
+
   // Check for wolf levels
   haswolflevels = (W_CheckNumForName("map31") >= 0);
 
