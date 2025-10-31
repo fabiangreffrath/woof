@@ -23,6 +23,7 @@
 #include "doomdef.h"
 #include "doomstat.h"
 
+#include "doomtype.h"
 #include "i_printf.h"
 #include "m_array.h"
 #include "m_json.h"
@@ -86,7 +87,7 @@ static void D_ParseDuration(json_t *json, demoloop_entry_t *entry)
 {
     const double duration_seconds = JS_GetNumberValue(json, "duration");
     double duration_tics = duration_seconds * TICRATE;
-    duration_tics = CLAMP(duration_tics, 0, INT_MAX);
+    duration_tics = BETWEEN(0, INT_MAX, duration_tics);
     entry->duration = lround(duration_tics);
 }
 
