@@ -1582,25 +1582,11 @@ static void I_InitGraphicsMode(void)
         SDL_SetRenderVSync(renderer, 1);
     }
 
-    texture = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_INDEX8,
-                                SDL_TEXTUREACCESS_STREAMING,
-                                max_width, max_height);
-    if (!texture)
-    {
-        I_Error("Failed to create texture: %s", SDL_GetError());
-    }
-
     palette = SDL_CreatePalette(256);
 
     I_SetPalette(W_CacheLumpName("PLAYPAL", PU_CACHE));
 
-    if (!SDL_SetTexturePalette(texture, palette))
-    {
-        I_Error("Failed to set palette: %s", SDL_GetError());
-    }
 
-    SDL_SetTextureScaleMode(texture,
-        smooth_scaling ? SDL_SCALEMODE_PIXELART : SDL_SCALEMODE_NEAREST);
 
     I_Printf(VB_DEBUG, "SDL %d.%d.%d (%s) render driver: %s (%s)",
              SDL_MAJOR_VERSION, SDL_MINOR_VERSION, SDL_MICRO_VERSION,
@@ -1632,6 +1618,27 @@ static int GetCurrentVideoHeight(void)
 
 static void CreateVideoBuffer(void)
 {
+    if (texture)
+    {
+        SDL_DestroyTexture(texture);
+    }
+
+    texture = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_INDEX8,
+                                SDL_TEXTUREACCESS_STREAMING,
+                                max_width, max_height);
+    if (!texture)
+    {
+        I_Error("Failed to create texture: %s", SDL_GetError());
+    }
+
+    if (!SDL_SetTexturePalette(texture, palette))
+    {
+        I_Error("Failed to set palette: %s", SDL_GetError());
+    }
+
+    SDL_SetTextureScaleMode(texture,
+        smooth_scaling ? SDL_SCALEMODE_PIXELART : SDL_SCALEMODE_NEAREST);
+
     if (I_VideoBuffer)
     {
         free(I_VideoBuffer);
