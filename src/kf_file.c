@@ -16,7 +16,6 @@
 #include "doomdata.h"
 #include "doomstat.h"
 #include "doomtype.h"
-#include "g_game.h"
 #include "i_printf.h"
 #include "i_system.h"
 #include "info.h"
@@ -37,7 +36,6 @@
 #include "r_defs.h"
 #include "r_state.h"
 #include "s_sndinfo.h"
-#include "st_widgets.h"
 
 #include <stddef.h>
 #include <stdint.h>
@@ -1899,22 +1897,6 @@ static void UnArchiveButtons(void)
     }
 }
 
-static void ArchiveDemoState(void)
-{
-    write32(demoplayback);
-    write32(playback_tic);
-    write32(playback_totaltics);
-    writep_index(demo_p, demobuffer);
-}
-
-static void UnArchiveDemoState(void)
-{
-    demoplayback = read32();
-    playback_tic = read32();
-    playback_totaltics = read32();
-    readp_index(demo_p, demobuffer);
-}
-
 static void EndArchive(void)
 {
     array_free(thinker_pointers);
@@ -1999,8 +1981,6 @@ void P_ArchiveKeyframe(void)
     write_rng_t(&rng);
     ArchiveButtons();
 
-    ArchiveDemoState();
-
     EndArchive();
 }
 
@@ -2068,8 +2048,6 @@ void P_UnArchiveKeyframe(void)
 
     read_rng_t(&rng);
     UnArchiveButtons();
-
-    UnArchiveDemoState();
 
     EndUnArchive();
 }

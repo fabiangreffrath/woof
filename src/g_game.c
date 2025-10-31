@@ -107,7 +107,7 @@ static char     *demoname = NULL;
 // the original name of the demo, without "-00000" and file extension
 static char     *demoname_orig = NULL;
 static boolean  netdemo;
-byte            *demobuffer;
+static byte     *demobuffer;   // made some static -- killough
 static size_t   maxdemosize;
 byte            *demo_p;
 static byte     consistancy[MAXPLAYERS][BACKUPTICS];
@@ -2750,9 +2750,7 @@ static boolean DoLoadGame(boolean do_load_autosave)
   LoadCustomSkillOptions(temp_p);
 
   // load a base level
-  AM_clearMarks();
-  G_ResetRewind(true);
-  G_DoLoadLevel();
+  G_InitNew(gameskill, gameepisode, gamemap);
 
   // killough 3/1/98: Read game options
   // killough 11/98: move down to here
@@ -2848,7 +2846,7 @@ static boolean DoLoadGame(boolean do_load_autosave)
 
   // killough 12/98: support -recordfrom and -loadgame -playdemo
   if (!command_loadgame)
-    ;//singledemo = false;         // Clear singledemo flag if loading from menu
+    singledemo = false;         // Clear singledemo flag if loading from menu
   else
     if (singledemo)
       {
