@@ -1327,28 +1327,25 @@ static void ArchiveWorld(void)
 
     const line_t *line;
 
-    int size = array_size(dirty_lines);
-    write32(size);
-    for (i = 0; i < size; ++i)
+    for (i = 0, line = lines; i < numlines; i++, line++)
     {
-        line = dirty_lines[i].line;
+        write16(line->flags);
         write16(line->special);
-    }
 
-    const side_t *side;
+        for (int j = 0; j < 2; j++)
+        {
+            if (line->sidenum[j] != NO_INDEX)
+            {
+                side_t *side = &sides[line->sidenum[j]];
 
-    size = array_size(dirty_sides);
-    write32(size);
-    for (i = 0; i < size; ++i)
-    {
-        side = dirty_sides[i].side;
+                write32(side->textureoffset,
+                        side->rowoffset);
 
-        write16(side->toptexture,
-                side->bottomtexture,
-                side->midtexture);
-
-        write32(side->textureoffset,
-                side->rowoffset);
+                write16(side->toptexture,
+                        side->bottomtexture,
+                        side->midtexture);
+            }
+        }
     }
 }
 
@@ -1386,39 +1383,27 @@ static void UnArchiveWorld(void)
 
     line_t *line;
 
-    int oldsize = read32();
-    int size = array_size(dirty_lines);
-    for (i = 0; i < size; ++i)
+    for (i = 0, line = lines; i < numlines; i++, line++)
     {
-        line = dirty_lines[i].line;
-        if (i < oldsize)
-        {
-            line->special = read16();
-        }
-        else
-        {
-            P_CleanLine(&dirty_lines[i]);
-        }
-    }
+        line->flags = read16();
+        line->special = read16();
 
-    side_t *side;
+        for (int j = 0; j < 2; j++)
+        {
+            if (line->sidenum[j] != NO_INDEX)
+            {
+                side_t *side = &sides[line->sidenum[j]];
 
-    oldsize = read32();
-    size = array_size(dirty_sides);
-    for (i = 0; i < size; ++i)
-    {
-        side = dirty_sides[i].side;
-        if (i < oldsize)
-        {
-            side->toptexture = read16();
-            side->bottomtexture = read16();
-            side->midtexture = read16();    
-            side->textureoffset = read32();
-            side->rowoffset = read32(); 
-        }
-        else
-        {
-            P_CleanSide(&dirty_sides[i]);
+                // killough 10/98: load full sidedef offsets, including
+                // fractions
+                
+                side->textureoffset = read32();
+                side->rowoffset = read32();
+                
+                side->toptexture = read16();
+                side->bottomtexture = read16();
+                side->midtexture = read16();
+            }
         }
     }
 }
