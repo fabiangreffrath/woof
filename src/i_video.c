@@ -1586,7 +1586,12 @@ static void I_InitGraphicsMode(void)
 
     I_SetPalette(W_CacheLumpName("PLAYPAL", PU_CACHE));
 
+    // Blank out the full screen area in case there is any junk in
+    // the borders that won't otherwise be overwritten.
 
+    SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
+    SDL_RenderClear(renderer);
+    SDL_RenderPresent(renderer);
 
     I_Printf(VB_DEBUG, "SDL %d.%d.%d (%s) render driver: %s (%s)",
              SDL_MAJOR_VERSION, SDL_MINOR_VERSION, SDL_MICRO_VERSION,
