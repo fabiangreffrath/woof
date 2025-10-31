@@ -1630,7 +1630,7 @@ static void CreateVideoBuffer(void)
 
     texture = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_INDEX8,
                                 SDL_TEXTUREACCESS_STREAMING,
-                                max_width, max_height);
+                                video.width, video.height);
     if (!texture)
     {
         I_Error("Failed to create texture: %s", SDL_GetError());
