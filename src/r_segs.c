@@ -35,6 +35,7 @@
 #include "r_main.h"
 #include "r_plane.h"
 #include "r_state.h"
+#include "r_tranmap.h"
 #include "r_things.h"
 #include "tables.h"
 #include "v_video.h"

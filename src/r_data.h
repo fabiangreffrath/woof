@@ -63,7 +63,6 @@ int R_FlatNumForName (const char* name);   // killough -- const added
 int R_TextureNumForName (const char *name);    // killough -- const added
 int R_CheckTextureNumForName (const char *name); 
 
-void R_InitTranMap(int);      // killough 3/6/98: translucency initialization
 int R_ColormapNumForName(const char *name);      // killough 4/4/98
 
 void R_InitColormaps(void);   // killough 8/9/98
@@ -74,9 +73,8 @@ boolean R_IsPatchLump (const int lump);
 
 extern int numflats;
 
-extern byte *main_tranmap, *tranmap;
 
-extern int tran_filter_pct;
+extern int32_t tranmap_alpha;
 
 typedef enum
 {

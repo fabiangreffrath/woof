@@ -28,11 +28,11 @@
 #include "i_video.h"
 #include "m_fixed.h"
 #include "r_bsp.h"
-#include "r_bmaps.h"
 #include "r_defs.h"
 #include "r_draw.h"
 #include "r_main.h"
 #include "r_state.h"
+#include "r_tranmap.h"
 #include "v_fmt.h"
 #include "v_video.h"
 #include "z_zone.h"
@@ -57,9 +57,6 @@ int viewwindowy;
 static pixel_t **ylookup = NULL;
 static int *columnofs = NULL;
 static int linesize; // killough 11/98
-
-byte *tranmap;          // translucency filter maps 256x256   // phares 
-byte *main_tranmap;     // killough 4/11/98
 
 // Backing buffer containing the bezel drawn around the screen and surrounding
 // background.

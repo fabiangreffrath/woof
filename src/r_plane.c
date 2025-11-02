@@ -55,8 +55,8 @@
 #include "r_sky.h"
 #include "r_skydefs.h"
 #include "r_state.h"
+#include "r_tranmap.h"
 #include "r_swirl.h" // [crispy] R_DistortedFlat()
-#include "r_things.h"
 #include "tables.h"
 #include "v_fmt.h"
 #include "v_video.h"
