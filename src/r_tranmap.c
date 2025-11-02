@@ -140,7 +140,7 @@ static byte* GenerateNormalTranmapData(uint32_t alpha, boolean progress)
     }
 
     // Foreground
-    for (int32_t j = 0; j < 256; j++, tp++)
+    for (int32_t j = 0; j < 256; j++)
     {
       // [crispy] shortcut: identical foreground and background
       if (i == j)
