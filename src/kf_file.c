@@ -11,6 +11,7 @@
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 // GNU General Public License for more details.
 
+#include "am_map.h"
 #include "d_player.h"
 #include "d_think.h"
 #include "doomdata.h"
@@ -89,6 +90,8 @@ inline static void write32_internal(const int32_t data[], int count)
 #define read8 saveg_read8
 #define read16 saveg_read16
 #define read32 saveg_read32
+#define read64 saveg_read64
+#define write64 saveg_write64
 
 #define read_enum read32
 #define write_enum write32
@@ -1882,6 +1885,61 @@ static void UnArchiveButtons(void)
     }
 }
 
+//
+// Automap
+//
+
+static void ArchiveAutoMap(void)
+{
+    write32(automapactive,
+            viewactive,
+            followplayer,
+            automap_grid);
+
+    write32(markpointnum);
+
+    if (markpointnum)
+    {
+        for (int i = 0; i < markpointnum; ++i)
+        {
+            write64(markpoints[i].x);
+            write64(markpoints[i].y);
+        }
+    }
+}
+
+static void UnArchiveAutoMap(void)
+{
+    automapactive = read32();
+    viewactive = read32();
+    followplayer = read32();
+    automap_grid = read32();
+
+    if (automapactive)
+    {
+        AM_Start();
+    }
+
+    markpointnum = read32();
+
+    if (markpointnum)
+    {
+        while (markpointnum >= markpointnum_max)
+        {
+            markpointnum_max = markpointnum_max ? markpointnum_max * 2 : 16;
+            markpoints =
+                Z_Realloc(markpoints, sizeof(*markpoints) * markpointnum_max,
+                          PU_STATIC, 0);
+        }
+
+        for (int i = 0; i < markpointnum; ++i)
+        {
+            markpoints[i].x = read64();
+            markpoints[i].y = read64();
+        }
+    }
+}
+
 static void EndArchive(void)
 {
     array_free(thinker_pointers);
@@ -1966,6 +2024,8 @@ void P_ArchiveKeyframe(void)
     write_rng_t(&rng);
     ArchiveButtons();
 
+    ArchiveAutoMap();
+
     EndArchive();
 }
 
@@ -2033,6 +2093,8 @@ void P_UnArchiveKeyframe(void)
 
     read_rng_t(&rng);
     UnArchiveButtons();
+
+    UnArchiveAutoMap();
 
     EndUnArchive();
 }
