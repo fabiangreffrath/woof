@@ -37,7 +37,7 @@
 #include "r_tranmap.h"
 #include "w_wad.h"
 
-byte *tranmap;      // translucency filter maps 256x256   // phares 
+byte *tranmap;      // translucency filter maps 256x256   // phares
 byte *main_tranmap; // killough 4/11/98
 
 //
@@ -55,24 +55,30 @@ int32_t tranmap_alpha = 66;
 static byte playpal_digest[16];
 static char playpal_string[33];
 static char *tranmap_dir, *playpal_dir;
-static byte* normal_tranmap[100];
+static byte *normal_tranmap[100];
 
 //
 // Blending algorthims!
 //
 
-enum {r, g, b};
+enum
+{
+    r,
+    g,
+    b
+};
 
 #define ChannelBlend_Normal(blend, bg, fg, alpha) \
-  blend = ( ( alpha * fg ) + ( ( 100 - alpha ) * bg ) ) / 100;
+    (blend = ((alpha * fg) + ((100 - alpha) * bg)) / 100)
 
-static const byte CrispyBlend_Normal(byte *playpal, const byte *bg, const byte *fg, const int32_t alpha)
+static const byte CrispyBlend_Normal(byte *playpal, const byte *bg,
+                                     const byte *fg, const int32_t alpha)
 {
-  int32_t blend[3] = {0};
-  ChannelBlend_Normal(blend[r], bg[r], fg[r], alpha)
-  ChannelBlend_Normal(blend[g], bg[g], fg[g], alpha)
-  ChannelBlend_Normal(blend[b], bg[b], fg[b], alpha)
-  return I_GetNearestColor(playpal, blend[r], blend[g], blend[b]);
+    int32_t blend[3] = {0};
+    ChannelBlend_Normal(blend[r], bg[r], fg[r], alpha);
+    ChannelBlend_Normal(blend[g], bg[g], fg[g], alpha);
+    ChannelBlend_Normal(blend[b], bg[b], fg[b], alpha);
+    return I_GetNearestColor(playpal, blend[r], blend[g], blend[b]);
 }
 
 //
@@ -81,195 +87,195 @@ static const byte CrispyBlend_Normal(byte *playpal, const byte *bg, const byte *
 
 static void CalculatePlaypalChecksum(void)
 {
-  const int32_t lump = W_GetNumForName("PLAYPAL");
-  struct MD5Context md5;
+    const int32_t lump = W_GetNumForName("PLAYPAL");
+    struct MD5Context md5;
 
-  MD5Init(&md5);
-  MD5Update(&md5, W_CacheLumpNum(lump, PU_STATIC), W_LumpLength(lump));
-  MD5Final(playpal_digest, &md5);
+    MD5Init(&md5);
+    MD5Update(&md5, W_CacheLumpNum(lump, PU_STATIC), W_LumpLength(lump));
+    MD5Final(playpal_digest, &md5);
 
-  for (int32_t i = 0; i < sizeof(playpal_digest); ++i)
-  {
-    sprintf(&playpal_string[i * 2], "%02x", playpal_digest[i]);
-  }
-  playpal_string[32] = '\0';
+    for (int32_t i = 0; i < sizeof(playpal_digest); ++i)
+    {
+        sprintf(&playpal_string[i * 2], "%02x", playpal_digest[i]);
+    }
+    playpal_string[32] = '\0';
 }
 
 static void CreateTranMapBaseDir(void)
 {
-  const char* data_root = D_DoomPrefDir();
-  const int32_t length = strlen(data_root) + sizeof("/tranmaps");
+    const char *data_root = D_DoomPrefDir();
+    const int32_t length = strlen(data_root) + sizeof("/tranmaps");
 
-  tranmap_dir = Z_Malloc(length, PU_STATIC, 0);
-  snprintf(tranmap_dir, length, "%s/tranmaps", data_root);
+    tranmap_dir = Z_Malloc(length, PU_STATIC, 0);
+    snprintf(tranmap_dir, length, "%s/tranmaps", data_root);
 
-  M_MakeDirectory(tranmap_dir);
+    M_MakeDirectory(tranmap_dir);
 }
 
 static void CreateTranMapPaletteDir(void)
 {
-  if (!tranmap_dir)
-  {
-    CreateTranMapBaseDir();
-  }
+    if (!tranmap_dir)
+    {
+        CreateTranMapBaseDir();
+    }
 
-  if (!playpal_string[0])
-  {
-    CalculatePlaypalChecksum();
-  }
+    if (!playpal_string[0])
+    {
+        CalculatePlaypalChecksum();
+    }
 
-  int32_t length = strlen(tranmap_dir) + sizeof(playpal_string) + 1;
-  playpal_dir = Z_Malloc(length, PU_STATIC, 0);
-  snprintf(playpal_dir, length, "%s/%s", tranmap_dir, playpal_string);
+    int32_t length = strlen(tranmap_dir) + sizeof(playpal_string) + 1;
+    playpal_dir = Z_Malloc(length, PU_STATIC, 0);
+    snprintf(playpal_dir, length, "%s/%s", tranmap_dir, playpal_string);
 
-  M_MakeDirectory(playpal_dir);
+    M_MakeDirectory(playpal_dir);
 }
 
 //
 // The heart of it all
 //
 
-static byte* GenerateNormalTranmapData(uint32_t alpha, boolean progress)
+static byte *GenerateNormalTranmapData(uint32_t alpha, boolean progress)
 {
-  byte* playpal = W_CacheLumpName("PLAYPAL", PU_STATIC);
+    byte *playpal = W_CacheLumpName("PLAYPAL", PU_STATIC);
 
-  // killough 4/11/98
-  byte* buffer = Z_Malloc(tranmap_lump_length, PU_STATIC, 0);
-  byte* tp = buffer;
+    // killough 4/11/98
+    byte *buffer = Z_Malloc(tranmap_lump_length, PU_STATIC, 0);
+    byte *tp = buffer;
 
-  // Background
-  for (int32_t i = 0; i < 256; i++)
-  {
-    const byte *bg = playpal + 3 * i;
-
-    if (!(i & 31) && progress)
+    // Background
+    for (int32_t i = 0; i < 256; i++)
     {
-      I_PutChar(VB_INFO, '.');
+        const byte *bg = playpal + 3 * i;
+
+        if (!(i & 31) && progress)
+        {
+            I_PutChar(VB_INFO, '.');
+        }
+
+        // killough 10/98: display flashing disk
+        if (!(~i & 15))
+        {
+            if (i & 32)
+            {
+                I_EndRead();
+            }
+            else
+            {
+                I_BeginRead(DISK_ICON_THRESHOLD);
+            }
+        }
+
+        // Foreground
+        for (int32_t j = 0; j < 256; j++)
+        {
+            // [crispy] shortcut: identical foreground and background
+            if (i == j)
+            {
+                *tp++ = i;
+                continue;
+            }
+
+            const byte *fg = playpal + 3 * j;
+
+            *tp++ = CrispyBlend_Normal(playpal, bg, fg, alpha);
+        }
     }
 
-    // killough 10/98: display flashing disk
-    if (!(~i & 15))
+    // [FG] finish progress line
+    if (progress)
     {
-      if (i & 32)
-      {
-        I_EndRead();
-      }
-      else
-      {
-        I_BeginRead(DISK_ICON_THRESHOLD);
-      }
+        I_PutChar(VB_INFO, '\n');
     }
 
-    // Foreground
-    for (int32_t j = 0; j < 256; j++)
-    {
-      // [crispy] shortcut: identical foreground and background
-      if (i == j)
-      {
-        *tp++ = i;
-        continue;
-      }
-
-      const byte *fg = playpal + 3 * j;
-
-      *tp++ = CrispyBlend_Normal(playpal, bg, fg, alpha);
-    }
-
-  }
-
-  // [FG] finish progress line
-  if (progress)
-  {
-    I_PutChar(VB_INFO, '\n');
-  }
-
-  return buffer;
+    return buffer;
 }
 
-byte* R_NormalTranMap(uint32_t alpha, boolean progress, boolean force)
+byte *R_NormalTranMap(uint32_t alpha, boolean progress, boolean force)
 {
-  if (alpha > 99)
-    return NULL;
-
-  if (force || !normal_tranmap[alpha])
-  {
-    if (!playpal_dir)
+    if (alpha > 99)
     {
-      CreateTranMapPaletteDir();
+        return NULL;
     }
 
-    const int32_t length = strlen(playpal_dir) + sizeof("/tranmap_XY.dat");
-    char *filename = Z_Malloc(length, PU_STATIC, 0);
-    snprintf(filename, length, "%s/tranmap_%02d.dat", playpal_dir, alpha);
-
-    byte *buffer = NULL;
-    if (M_FileExistsNotDir(filename))
+    if (force || !normal_tranmap[alpha])
     {
-      const int32_t file_length = M_ReadFile(filename, &buffer);
-      if (buffer && file_length != tranmap_lump_length)
-      {
-        Z_Free(buffer);
-        buffer = NULL;
-      }
+        if (!playpal_dir)
+        {
+            CreateTranMapPaletteDir();
+        }
+
+        const int32_t length = strlen(playpal_dir) + sizeof("/tranmap_XY.dat");
+        char *filename = Z_Malloc(length, PU_STATIC, 0);
+        snprintf(filename, length, "%s/tranmap_%02d.dat", playpal_dir, alpha);
+
+        byte *buffer = NULL;
+        if (M_FileExistsNotDir(filename))
+        {
+            const int32_t file_length = M_ReadFile(filename, &buffer);
+            if (buffer && file_length != tranmap_lump_length)
+            {
+                Z_Free(buffer);
+                buffer = NULL;
+            }
+        }
+
+        if (!buffer)
+        {
+            buffer = GenerateNormalTranmapData(alpha, progress);
+            M_WriteFile(filename, buffer, tranmap_lump_length);
+        }
+
+        normal_tranmap[alpha] = buffer;
     }
 
-    if (!buffer)
-    {
-      buffer = GenerateNormalTranmapData(alpha, progress);
-      M_WriteFile(filename, buffer, tranmap_lump_length);
-    }
-
-    normal_tranmap[alpha] = buffer;
-  }
-
-  // Use cached translucency filter if it's available
-  return normal_tranmap[alpha];
+    // Use cached translucency filter if it's available
+    return normal_tranmap[alpha];
 }
 
 void R_InitTranMap(boolean progress)
 {
-  //!
-  // @category mod
-  //
-  // Forces the (re-)building of the translucency table.
-  //
-  const int32_t force_rebuild = M_CheckParm("-tranmap");
+    //!
+    // @category mod
+    //
+    // Forces the (re-)building of the translucency table.
+    //
+    const int32_t force_rebuild = M_CheckParm("-tranmap");
 
-  //!
-  // @category mod
-  //
-  // Dumps translucency tables for all alpha values (0-99)
-  //
-  const int32_t build_all_alphas = M_CheckParm("-dumptranmap");
+    //!
+    // @category mod
+    //
+    // Dumps translucency tables for all alpha values (0-99)
+    //
+    const int32_t build_all_alphas = M_CheckParm("-dumptranmap");
 
-  const int32_t lump = W_CheckNumForName("TRANMAP");
+    const int32_t lump = W_CheckNumForName("TRANMAP");
 
-
-  if (build_all_alphas)
-  {
-    for (uint32_t alpha = 0; alpha < 100; ++alpha)
+    if (build_all_alphas)
     {
-      R_NormalTranMap(alpha, false, true);
+        for (uint32_t alpha = 0; alpha < 100; ++alpha)
+        {
+            R_NormalTranMap(alpha, false, true);
+        }
     }
-  }
 
-  if (lump != -1 && !force_rebuild && !build_all_alphas)
-  {
-    main_tranmap = W_CacheLumpNum(lump, PU_STATIC); // killough 4/11/98
-  }
-  else
-  {
-    // Only do alpha of 66 in strictmode, also force rebuild
-    int32_t alpha = strictmode ? default_tranmap_alpha : tranmap_alpha;
-    main_tranmap = R_NormalTranMap(alpha, progress, strictmode);
+    if (lump != -1 && !force_rebuild && !build_all_alphas)
+    {
+        main_tranmap = W_CacheLumpNum(lump, PU_STATIC); // killough 4/11/98
+    }
+    else
+    {
+        // Only do alpha of 66 in strictmode, also force rebuild
+        int32_t alpha = strictmode ? default_tranmap_alpha : tranmap_alpha;
+        main_tranmap = R_NormalTranMap(alpha, progress, strictmode);
+        if (progress)
+        {
+            I_Printf(VB_INFO, "........");
+        }
+    }
+
     if (progress)
     {
-      I_Printf(VB_INFO, "........");
+        I_Printf(VB_DEBUG, "Playpal checksum: %s", playpal_string);
     }
-  }
-
-  if (progress)
-  {
-    I_Printf(VB_DEBUG, "Playpal checksum: %s", playpal_string);
-  }
 }
