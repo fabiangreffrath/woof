@@ -360,62 +360,15 @@ static void R_MaybeInterpolateSector(sector_t* sector)
 
 static void R_MaybeInterpolateTextureOffsets(side_t *side)
 {
-    if (uncapped)
+    if (uncapped && side->oldgametic == gametic - 1)
     {
-        if (side->oldgametic == gametic - 1)
-        {
-            side->interptextureoffset = LerpFixed(side->oldtextureoffset, side->textureoffset);
-            side->interprowoffset = LerpFixed(side->oldrowoffset, side->rowoffset);
-        }
-        else
-        {
-            side->interptextureoffset = side->textureoffset;
-            side->interprowoffset = side->rowoffset;
-        }
-
-        if (side->oldgametic_top == gametic - 1)
-        {
-            side->interpoffsetx_top = LerpFixed(side->oldoffsetx_top, side->offsetx_top);
-            side->interpoffsety_top = LerpFixed(side->oldoffsety_top, side->offsety_top);
-        }
-        else
-        {
-            side->interpoffsetx_top = side->offsetx_top;
-            side->interpoffsety_top = side->offsety_top;
-        }
-
-        if (side->oldgametic_mid == gametic - 1)
-        {
-            side->interpoffsetx_mid = LerpFixed(side->oldoffsetx_mid, side->offsetx_mid);
-            side->interpoffsety_mid = LerpFixed(side->oldoffsety_mid, side->offsety_mid);
-        }
-        else
-        {
-            side->interpoffsetx_mid = side->offsetx_mid;
-            side->interpoffsety_mid = side->offsety_mid;
-        }
-
-        if (side->oldgametic_bottom == gametic - 1)
-        {
-            side->interpoffsetx_bottom = LerpFixed(side->oldoffsetx_bottom, side->offsetx_bottom);
-            side->interpoffsety_bottom = LerpFixed(side->oldoffsety_bottom, side->offsety_bottom);
-        }
-        else
-        {
-            side->interpoffsetx_bottom = side->offsetx_bottom;
-            side->interpoffsety_bottom = side->offsety_bottom;
-        }
+        side->interptextureoffset = LerpFixed(side->oldtextureoffset, side->textureoffset);
+        side->interprowoffset = LerpFixed(side->oldrowoffset, side->rowoffset);
     }
     else
     {
         side->interptextureoffset = side->textureoffset;
         side->interprowoffset = side->rowoffset;
-        side->interpoffsetx_top = side->offsetx_top;
-        side->interpoffsety_top = side->offsety_top;
-        side->interpoffsetx_mid = side->offsetx_mid;
-        side->interpoffsety_mid = side->offsety_mid;
-        side->interpoffsetx_bottom = side->offsetx_bottom;
-        side->interpoffsety_bottom = side->offsety_bottom;
     }
 }
 

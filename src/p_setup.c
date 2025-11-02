@@ -801,13 +801,7 @@ void P_SidedefInit(side_t * const sidedef)
   // [crispy] smooth texture scrolling
   sidedef->oldtextureoffset = sidedef->interptextureoffset = sidedef->textureoffset;
   sidedef->oldrowoffset = sidedef->interprowoffset = sidedef->rowoffset;
-  sidedef->oldoffsetx_top = sidedef->interpoffsetx_top = sidedef->offsetx_top;
-  sidedef->oldoffsety_top = sidedef->interpoffsety_top = sidedef->offsety_top;
-  sidedef->oldoffsetx_mid = sidedef->interpoffsetx_mid = sidedef->offsetx_mid;
-  sidedef->oldoffsety_mid = sidedef->interpoffsety_mid = sidedef->offsety_mid;
-  sidedef->oldoffsetx_bottom = sidedef->interpoffsetx_bottom = sidedef->offsetx_bottom;
-  sidedef->oldoffsety_bottom = sidedef->interpoffsety_bottom = sidedef->offsety_bottom;
-  sidedef->oldgametic_bottom = sidedef->oldgametic_mid = sidedef->oldgametic_top = sidedef->oldgametic = -1;
+  sidedef->oldgametic = -1;
 }
 
 #ifndef MBF_STRICT
