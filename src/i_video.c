@@ -1053,7 +1053,7 @@ void I_SetPalette(byte *playpal)
 
 // Taken from Chocolate Doom chocolate-doom/src/i_video.c:L841-867
 
-byte I_GetNearestColor(const byte *palette, int r, int g, int b)
+byte I_GetNearestColor(byte *palette, int r, int g, int b)
 {
     byte best;
     int best_diff, diff;
