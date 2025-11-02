@@ -33,7 +33,7 @@
   - Bring back "Original" fuzz mode option.
   - Remove SSG in Doom 1 feature (compatibility with RUST series).
   - If level title announce string is too long, draw author on next line.
-  - Prevent `P_LookForPlayers` from retrying sighting a player who failed (from Eternity Engine). Improve perfomance Necromantic Thirst MAP25.
+  - Prevent `P_LookForPlayers` from retrying sighting a player who failed (from Eternity Engine). Improve perfomance in Necromantic Thirst MAP25.
   - Use $TMPDIR to find tempdir on Unix (thanks to @Usinganame).
   - Replace whole words in strings, use in player messages.
   - Update SUCKS time to match PrBoom's 100 hours.
