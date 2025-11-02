@@ -57,6 +57,28 @@ static char playpal_string[33];
 static char *tranmap_dir, *playpal_dir;
 static byte* normal_tranmap[100];
 
+//
+// Blending algorthims!
+//
+
+enum {r, g, b};
+
+#define ChannelBlend_Normal(blend, bg, fg, alpha) \
+  blend = ( ( alpha * fg ) + ( ( 100 - alpha ) * bg ) ) / 100;
+
+static const byte CrispyBlend_Normal(byte *playpal, const byte *bg, const byte *fg, const int32_t alpha)
+{
+  int32_t blend[3] = {0};
+  ChannelBlend_Normal(blend[r], bg[r], fg[r], alpha)
+  ChannelBlend_Normal(blend[g], bg[g], fg[g], alpha)
+  ChannelBlend_Normal(blend[b], bg[b], fg[b], alpha)
+  return I_GetNearestColor(playpal, blend[r], blend[g], blend[b]);
+}
+
+//
+// Util functions to handle caching in the form of local tranmap file
+//
+
 static void CalculatePlaypalChecksum(void)
 {
   const int32_t lump = W_GetNumForName("PLAYPAL");
@@ -103,6 +125,10 @@ static void CreateTranMapPaletteDir(void)
   M_MakeDirectory(playpal_dir);
 }
 
+//
+// The heart of it all
+//
+
 static byte* GenerateNormalTranmapData(uint32_t alpha, boolean progress)
 {
   byte* playpal = W_CacheLumpName("PLAYPAL", PU_STATIC);
@@ -110,11 +136,6 @@ static byte* GenerateNormalTranmapData(uint32_t alpha, boolean progress)
   // killough 4/11/98
   byte* buffer = Z_Malloc(tranmap_lump_length, PU_STATIC, 0);
   byte* tp = buffer;
-
-  // [crispy]
-  enum {r, g, b};
-  byte blend[3];
-  const int32_t inv_alpha = (100 - alpha);
 
   // Background
   for (int32_t i = 0; i < 256; i++)
@@ -151,11 +172,7 @@ static byte* GenerateNormalTranmapData(uint32_t alpha, boolean progress)
 
       const byte *fg = playpal + 3 * j;
 
-      // [crispy] blended color
-      blend[r] = (alpha * fg[r] + inv_alpha * bg[r]) / 100;
-      blend[g] = (alpha * fg[g] + inv_alpha * bg[g]) / 100;
-      blend[b] = (alpha * fg[b] + inv_alpha * bg[b]) / 100;
-      *tp++ = I_GetNearestColor(playpal, blend[r], blend[g], blend[b]);
+      *tp++ = CrispyBlend_Normal(playpal, bg, fg, alpha);
     }
 
   }
@@ -236,7 +253,7 @@ void R_InitTranMap(boolean progress)
     }
   }
 
-  if (lump != -1 && !force_rebuild)
+  if (lump != -1 && !force_rebuild && !build_all_alphas)
   {
     main_tranmap = W_CacheLumpNum(lump, PU_STATIC); // killough 4/11/98
   }
