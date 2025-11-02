@@ -48,9 +48,9 @@ byte *main_tranmap; // killough 4/11/98
 // By Lee Killough 2/21/98
 //
 
-static const int32_t tranmap_lump_length = 256 * 256;
-static const int32_t default_tranmap_alpha = 66;
-int32_t tranmap_alpha = 66;
+static const int tranmap_lump_length = 256 * 256;
+static const int default_tranmap_alpha = 66;
+int tranmap_alpha = 66;
 
 static byte playpal_digest[16];
 static char playpal_string[33];
@@ -72,9 +72,9 @@ enum
     (blend = ((alpha * fg) + ((100 - alpha) * bg)) / 100)
 
 static const byte CrispyBlend_Normal(byte *playpal, const byte *bg,
-                                     const byte *fg, const int32_t alpha)
+                                     const byte *fg, const int alpha)
 {
-    int32_t blend[3] = {0};
+    int blend[3] = {0};
     ChannelBlend_Normal(blend[r], bg[r], fg[r], alpha);
     ChannelBlend_Normal(blend[g], bg[g], fg[g], alpha);
     ChannelBlend_Normal(blend[b], bg[b], fg[b], alpha);
@@ -87,14 +87,14 @@ static const byte CrispyBlend_Normal(byte *playpal, const byte *bg,
 
 static void CalculatePlaypalChecksum(void)
 {
-    const int32_t lump = W_GetNumForName("PLAYPAL");
+    const int lump = W_GetNumForName("PLAYPAL");
     struct MD5Context md5;
 
     MD5Init(&md5);
     MD5Update(&md5, W_CacheLumpNum(lump, PU_STATIC), W_LumpLength(lump));
     MD5Final(playpal_digest, &md5);
 
-    for (int32_t i = 0; i < sizeof(playpal_digest); ++i)
+    for (int i = 0; i < sizeof(playpal_digest); ++i)
     {
         sprintf(&playpal_string[i * 2], "%02x", playpal_digest[i]);
     }
@@ -104,7 +104,7 @@ static void CalculatePlaypalChecksum(void)
 static void CreateTranMapBaseDir(void)
 {
     const char *data_root = D_DoomPrefDir();
-    const int32_t length = strlen(data_root) + sizeof("/tranmaps");
+    const int length = strlen(data_root) + sizeof("/tranmaps");
 
     tranmap_dir = Z_Malloc(length, PU_STATIC, 0);
     snprintf(tranmap_dir, length, "%s/tranmaps", data_root);
@@ -124,7 +124,7 @@ static void CreateTranMapPaletteDir(void)
         CalculatePlaypalChecksum();
     }
 
-    int32_t length = strlen(tranmap_dir) + sizeof(playpal_string) + 1;
+    int length = strlen(tranmap_dir) + sizeof(playpal_string) + 1;
     playpal_dir = Z_Malloc(length, PU_STATIC, 0);
     snprintf(playpal_dir, length, "%s/%s", tranmap_dir, playpal_string);
 
@@ -135,7 +135,7 @@ static void CreateTranMapPaletteDir(void)
 // The heart of it all
 //
 
-static byte *GenerateNormalTranmapData(uint32_t alpha, boolean progress)
+static byte *GenerateNormalTranmapData(int alpha, boolean progress)
 {
     byte *playpal = W_CacheLumpName("PLAYPAL", PU_STATIC);
 
@@ -144,7 +144,7 @@ static byte *GenerateNormalTranmapData(uint32_t alpha, boolean progress)
     byte *tp = buffer;
 
     // Background
-    for (int32_t i = 0; i < 256; i++)
+    for (int i = 0; i < 256; i++)
     {
         const byte *bg = playpal + 3 * i;
 
@@ -167,7 +167,7 @@ static byte *GenerateNormalTranmapData(uint32_t alpha, boolean progress)
         }
 
         // Foreground
-        for (int32_t j = 0; j < 256; j++)
+        for (int j = 0; j < 256; j++)
         {
             // [crispy] shortcut: identical foreground and background
             if (i == j)
@@ -191,7 +191,7 @@ static byte *GenerateNormalTranmapData(uint32_t alpha, boolean progress)
     return buffer;
 }
 
-byte *R_NormalTranMap(uint32_t alpha, boolean progress, boolean force)
+byte *R_NormalTranMap(int alpha, boolean progress, boolean force)
 {
     if (alpha > 99)
     {
@@ -205,14 +205,14 @@ byte *R_NormalTranMap(uint32_t alpha, boolean progress, boolean force)
             CreateTranMapPaletteDir();
         }
 
-        const int32_t length = strlen(playpal_dir) + sizeof("/tranmap_XY.dat");
+        const int length = strlen(playpal_dir) + sizeof("/tranmap_XY.dat");
         char *filename = Z_Malloc(length, PU_STATIC, 0);
         snprintf(filename, length, "%s/tranmap_%02d.dat", playpal_dir, alpha);
 
         byte *buffer = NULL;
         if (M_FileExistsNotDir(filename))
         {
-            const int32_t file_length = M_ReadFile(filename, &buffer);
+            const int file_length = M_ReadFile(filename, &buffer);
             if (buffer && file_length != tranmap_lump_length)
             {
                 Z_Free(buffer);
@@ -240,20 +240,20 @@ void R_InitTranMap(boolean progress)
     //
     // Forces the (re-)building of the translucency table.
     //
-    const int32_t force_rebuild = M_CheckParm("-tranmap");
+    const int force_rebuild = M_CheckParm("-tranmap");
 
     //!
     // @category mod
     //
     // Dumps translucency tables for all alpha values (0-99)
     //
-    const int32_t build_all_alphas = M_CheckParm("-dumptranmap");
+    const int build_all_alphas = M_CheckParm("-dumptranmap");
 
-    const int32_t lump = W_CheckNumForName("TRANMAP");
+    const int lump = W_CheckNumForName("TRANMAP");
 
     if (build_all_alphas)
     {
-        for (uint32_t alpha = 0; alpha < 100; ++alpha)
+        for (int alpha = 0; alpha < 100; ++alpha)
         {
             R_NormalTranMap(alpha, false, true);
         }
@@ -266,7 +266,7 @@ void R_InitTranMap(boolean progress)
     else
     {
         // Only do alpha of 66 in strictmode, also force rebuild
-        int32_t alpha = strictmode ? default_tranmap_alpha : tranmap_alpha;
+        int alpha = strictmode ? default_tranmap_alpha : tranmap_alpha;
         main_tranmap = R_NormalTranMap(alpha, progress, strictmode);
         if (progress)
         {
