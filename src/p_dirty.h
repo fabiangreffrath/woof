@@ -23,6 +23,14 @@ typedef struct
 
 typedef struct
 {
+    line_t *line;
+    partial_line_t clean_line;
+} dirty_line_t;
+
+extern dirty_line_t *dirty_lines;
+
+typedef struct 
+{
     fixed_t textureoffset;
     fixed_t rowoffset;
     int16_t toptexture;
@@ -30,14 +38,19 @@ typedef struct
     int16_t midtexture;
 } partial_side_t;
 
-extern line_t **dirty_lines;
-extern partial_line_t *clean_lines;
+typedef struct
+{
+    side_t *side;
+    partial_side_t clean_side;
+} dirty_side_t;
 
-extern side_t **dirty_sides;
-extern partial_side_t *clean_sides;
+extern dirty_side_t *dirty_sides;
 
 void P_DirtyLine(line_t *line);
 void P_DirtySide(side_t *side);
+
+void P_CleanLine(dirty_line_t *dirty_line);
+void P_CleanSide(dirty_side_t *dirty_side);
 
 void P_ClearDirtyArrays(void);
 
