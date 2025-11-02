@@ -38,6 +38,7 @@
 #include "r_data.h"
 #include "r_defs.h"
 #include "r_state.h"
+#include "r_tranmap.h"
 #include "s_sound.h"
 #include "sounds.h"
 #include "v_fmt.h"

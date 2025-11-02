@@ -34,12 +34,12 @@
 #include "p_pspr.h"
 #include "r_bmaps.h" // [crispy] R_BrightmapForTexName()
 #include "r_bsp.h"
-#include "r_data.h"
 #include "r_draw.h"
 #include "r_main.h"
 #include "r_segs.h"
 #include "r_state.h"
 #include "r_things.h"
+#include "r_tranmap.h"
 #include "r_voxel.h"
 #include "tables.h"
 #include "v_fmt.h"

@@ -54,6 +54,7 @@
 #include "r_main.h"
 #include "r_plane.h" // [FG] R_InitPlanes()
 #include "r_sky.h"   // [FG] R_UpdateStretchSkies()
+#include "r_tranmap.h"
 #include "r_voxel.h"
 #include "s_sound.h"
 #include "s_trakinfo.h"
@@ -3438,7 +3439,7 @@ void MN_DisableVoxelsRenderingItem(void)
 
 void MN_Trans(void) // To reset translucency after setting it in menu
 {
-    R_InitTranMap(0);
+    R_InitTranMap(false);
 }
 
 // Setting up for the General screen. Turn on flags, set pointers,

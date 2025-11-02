@@ -51,6 +51,7 @@ static const char *params[] = {
 "-nooptions",
 "-reject_pad_with_ff",
 "-tranmap",
+"-dumptranmap",
 "-levelstat",
 "-longtics",
 "-shorttics",
