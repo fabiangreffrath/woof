@@ -31,7 +31,7 @@
   - The map reveal cheats (IDDT) can now be repeated by repeating the final character (from DSDA-Doom).
   - Remove "Animated Health/Armor Count" feature.
   - Bring back "Original" fuzz mode option.
-  - Remove SSG in Doom 1 feature (fix compatibility with RUST series).
+  - Remove SSG in Doom 1 feature (compatibility with RUST series).
   - If level title announce string is too long, draw author on next line.
   - Prevent `P_LookForPlayers` from retrying sighting a player who failed (from Eternity Engine). Improve perfomance Necromantic Thirst MAP25.
   - Use $TMPDIR to find tempdir on Unix (thanks to @Usinganame).
@@ -57,4 +57,4 @@
 * Fixed crash if animation speed is 0 in ANIMATED lump.
 * Fixed tracker music looping.
 * Fixed MUSINFO reset after level reload.
-* Fixed desync in mh1910-430.lmp demo. Match PrBoom+ A_FireOldBFG autoaim behavior.
+* Fixed desync in mh1910-430.lmp demo. Match PrBoom+ `A_FireOldBFG` autoaim behavior.
