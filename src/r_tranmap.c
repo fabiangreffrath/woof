@@ -48,14 +48,14 @@ byte *main_tranmap; // killough 4/11/98
 // By Lee Killough 2/21/98
 //
 
-int32_t tran_filter_pct = 66;
+static const int32_t tranmap_lump_length = 256 * 256;
+static const int32_t default_tranmap_alpha = 66;
+int32_t tranmap_alpha = 66;
 
 static byte playpal_digest[16];
 static char playpal_string[33];
 static char *tranmap_dir, *playpal_dir;
-static const int32_t default_tranmap_alpha = 66;
-static const int32_t tranmap_lump_length = 256 * 256;
-static byte* alpha_tranmap[100];
+static byte* normal_tranmap[100];
 
 static void CalculatePlaypalChecksum(void)
 {
@@ -158,22 +158,23 @@ static byte* GenerateNormalTranmapData(uint32_t alpha, boolean progress)
       *tp++ = I_GetNearestColor(playpal, blend[r], blend[g], blend[b]);
     }
 
-    // [FG] finish progress line
-    if (progress)
-    {
-      I_PutChar(VB_INFO, '\n');
-    }
+  }
+
+  // [FG] finish progress line
+  if (progress)
+  {
+    I_PutChar(VB_INFO, '\n');
   }
 
   return buffer;
 }
 
-byte* R_NormalTranMap(uint32_t alpha, boolean progress)
+byte* R_NormalTranMap(uint32_t alpha, boolean progress, boolean force)
 {
   if (alpha > 99)
     return NULL;
 
-  if (!alpha_tranmap[alpha])
+  if (force || !normal_tranmap[alpha])
   {
     if (!playpal_dir)
     {
@@ -201,11 +202,11 @@ byte* R_NormalTranMap(uint32_t alpha, boolean progress)
       M_WriteFile(filename, buffer, tranmap_lump_length);
     }
 
-    alpha_tranmap[alpha] = buffer;
+    normal_tranmap[alpha] = buffer;
   }
 
   // Use cached translucency filter if it's available
-  return alpha_tranmap[alpha];
+  return normal_tranmap[alpha];
 }
 
 void R_InitTranMap(boolean progress)
@@ -231,7 +232,7 @@ void R_InitTranMap(boolean progress)
   {
     for (uint32_t alpha = 0; alpha < 100; ++alpha)
     {
-      R_NormalTranMap(alpha, false);
+      R_NormalTranMap(alpha, false, true);
     }
   }
 
@@ -241,8 +242,9 @@ void R_InitTranMap(boolean progress)
   }
   else
   {
-    int32_t alpha = strictmode ? default_tranmap_alpha : tran_filter_pct;
-    main_tranmap = R_NormalTranMap(alpha, progress);
+    // Only do alpha of 66 in strictmode, also force rebuild
+    int32_t alpha = strictmode ? default_tranmap_alpha : tranmap_alpha;
+    main_tranmap = R_NormalTranMap(alpha, progress, strictmode);
     if (progress)
     {
       I_Printf(VB_INFO, "........");

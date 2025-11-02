@@ -74,7 +74,7 @@ boolean R_IsPatchLump (const int lump);
 extern int numflats;
 
 
-extern int tran_filter_pct;
+extern int32_t tranmap_alpha;
 
 typedef enum
 {
