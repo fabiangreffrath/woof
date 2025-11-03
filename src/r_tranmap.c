@@ -210,7 +210,7 @@ byte *R_NormalTranMap(int alpha, boolean progress, boolean force)
         snprintf(filename, length, "%s/tranmap_%02d.dat", playpal_dir, alpha);
 
         byte *buffer = NULL;
-        if (!force || M_FileExistsNotDir(filename))
+        if (!force && M_FileExistsNotDir(filename))
         {
             const int file_length = M_ReadFile(filename, &buffer);
             if (buffer && file_length != tranmap_lump_length)
