@@ -440,7 +440,7 @@ static void R_RenderSegLoop(lighttable_t * thiscolormap)
           dc_yl = yl;     // single sided line
           dc_yh = yh;
           dc_texturemid = rw_midtexturemid;
-          dc_source = R_GetColumn(midtexture, texturecolumn + FixedToInt(curline->sidedef->interpoffsetx_mid));
+          dc_source = R_GetColumn(midtexture, texturecolumn + FixedToInt(curline->sidedef->offsetx_mid));
           dc_texheight = textureheight[midtexture]>>FRACBITS; // killough
           dc_brightmap = texturebrightmap[midtexture];
           SideLightLevel_Mid(curline->sidedef);
@@ -466,7 +466,7 @@ static void R_RenderSegLoop(lighttable_t * thiscolormap)
                   dc_yl = yl;
                   dc_yh = mid;
                   dc_texturemid = rw_toptexturemid;
-                  dc_source = R_GetColumn(toptexture, texturecolumn + FixedToInt(curline->sidedef->interpoffsetx_top));
+                  dc_source = R_GetColumn(toptexture, texturecolumn + FixedToInt(curline->sidedef->offsetx_top));
                   dc_texheight = textureheight[toptexture]>>FRACBITS;//killough
                   dc_brightmap = texturebrightmap[toptexture];
                   SideLightLevel_Top(curline->sidedef);
@@ -495,7 +495,7 @@ static void R_RenderSegLoop(lighttable_t * thiscolormap)
                   dc_yl = mid;
                   dc_yh = yh;
                   dc_texturemid = rw_bottomtexturemid;
-                  dc_source = R_GetColumn(bottomtexture, texturecolumn + FixedToInt(curline->sidedef->interpoffsetx_bottom));
+                  dc_source = R_GetColumn(bottomtexture, texturecolumn + FixedToInt(curline->sidedef->offsetx_bottom));
                   dc_texheight = textureheight[bottomtexture]>>FRACBITS; // killough
                   dc_brightmap = texturebrightmap[bottomtexture];
                   SideLightLevel_Bottom(curline->sidedef);
@@ -667,7 +667,7 @@ void R_StoreWallRange(const int start, const int stop)
       else        // top of texture at top
         rw_midtexturemid = worldtop;
 
-      rw_midtexturemid += (sidedef->interprowoffset + sidedef->interpoffsety_mid);
+      rw_midtexturemid += (sidedef->interprowoffset + sidedef->offsety_mid);
 
       {      // killough 3/27/98: reduce offset
         fixed_t h = textureheight[sidedef->midtexture];
@@ -810,7 +810,7 @@ void R_StoreWallRange(const int start, const int stop)
           rw_bottomtexturemid = linedef->flags & ML_DONTPEGBOTTOM ? worldtop :
             worldlow;
         }
-      rw_toptexturemid += (sidedef->interprowoffset + sidedef->interpoffsety_top);
+      rw_toptexturemid += (sidedef->interprowoffset + sidedef->offsety_top);
 
       // killough 3/27/98: reduce offset
       {
@@ -819,7 +819,7 @@ void R_StoreWallRange(const int start, const int stop)
           rw_toptexturemid %= h;
       }
 
-      rw_bottomtexturemid += (sidedef->interprowoffset + sidedef->interpoffsety_bottom);
+      rw_bottomtexturemid += (sidedef->interprowoffset + sidedef->offsety_bottom);
 
       // killough 3/27/98: reduce offset
       {

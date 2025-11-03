@@ -3031,36 +3031,18 @@ static void T_Scroll(scroll_t *s)
     // UDMF extensions
     case sc_side_top:
       side = sides + s->affectee;
-      if (side->oldgametic_top != gametic)
-      {
-          side->oldoffsetx_top = side->offsetx_top;
-          side->oldoffsety_top = side->offsety_top;
-          side->oldgametic_top = gametic;
-      }
       dirty_side(side)->offsetx_top += dx;
       side->offsety_top += dy;
       break;
 
     case sc_side_mid:
       side = sides + s->affectee;
-      if (side->oldgametic_mid != gametic)
-      {
-        side->oldoffsetx_mid = side->offsetx_mid;
-        side->oldoffsety_mid = side->offsety_mid;
-        side->oldgametic_mid = gametic;
-      }
       dirty_side(side)->offsetx_mid += dx;
       side->offsety_mid += dy;
       break;
 
     case sc_side_bottom:
       side = sides + s->affectee;
-      if (side->oldgametic_bottom != gametic)
-      {
-        side->oldoffsetx_bottom = side->offsetx_bottom;
-        side->oldoffsety_bottom = side->offsety_bottom;
-        side->oldgametic_bottom = gametic;
-      }
       dirty_side(side)->offsetx_bottom += dx;
       side->offsety_bottom += dy;
       break;
