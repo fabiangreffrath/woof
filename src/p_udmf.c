@@ -1107,10 +1107,9 @@ static void UDMF_LoadLineDefs(void)
 
         P_LinedefInit(&lines[i]);
 
-        // Line has TRANMAP lump
         if (!strcasecmp(udmf_linedefs[i].tranmap, "TRANMAP"))
         {
-            // Is using default built-in TRANMAP lump
+            // Is using default built-in WAD TRANMAP lump
             lines[i].tranlump = 0;
         }
         else
