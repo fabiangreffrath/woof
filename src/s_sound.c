@@ -1357,7 +1357,7 @@ static void InitPitchStepTable(void)
     for (int i = 0; i < arrlen(steptable); i++)
     {
         // [FG] variable pitch bend range
-        steptable[i] = pow(base, (double)(2 * (i - NORM_PITCH)) / NORM_PITCH);
+        steptable[i] = pow(base, (double)(i - NORM_PITCH) / NORM_PITCH);
     }
 }
 
