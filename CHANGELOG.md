@@ -25,7 +25,7 @@
   - Added gamepad device selection to menu.
   - Added reset camera options for gyro button.
   - Don't turn off gamepad LED when exiting game.
-  - Added support binding the non-US backslash key.
+  - Added support for binding the non-US backslash key.
 
 * Miscellaneous:
   - The map reveal cheats (IDDT) can now be repeated by repeating the final character (from DSDA-Doom).
