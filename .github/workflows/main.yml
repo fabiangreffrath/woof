@@ -151,7 +151,7 @@ jobs:
         uses: libsdl-org/setup-sdl@main
         with:
           install-linux-dependencies: true
-          version: 3-head
+          version: 3-latest
 
       - uses: actions/checkout@v4
 
