@@ -32,6 +32,13 @@ jobs:
             compiler: clang
             shell: bash
 
+          - name: MSYS2 UCRT64
+            os: windows-latest
+            compiler: gcc
+            shell: 'msys2 {0}'
+            msystem: ucrt64
+            msys-env: mingw-w64-ucrt-x86_64
+
     steps:
       - name: Install dependencies (Linux)
         if: runner.os == 'Linux'
@@ -69,7 +76,6 @@ jobs:
             ${{ matrix.config.msys-env }}-gcc
             ${{ matrix.config.msys-env }}-cmake
             ${{ matrix.config.msys-env }}-ninja
-            ${{ matrix.config.msys-env }}-sdl3
             ${{ matrix.config.msys-env }}-openal
             ${{ matrix.config.msys-env }}-libebur128
             ${{ matrix.config.msys-env }}-libsndfile
@@ -81,8 +87,9 @@ jobs:
       - name: Build SDL3
         uses: libsdl-org/setup-sdl@main
         with:
+          shell: ${{ matrix.config.shell }}
           install-linux-dependencies: true
-          version: 3-head
+          version: 3-latest
 
       - name: Configure
         env:
