@@ -797,8 +797,6 @@ void I_BindSoundVariables(void)
         "Play SNDINFO ambient sounds");
     BIND_BOOL_SFX(pitched_sounds, false,
         "Variable pitch for sound effects");
-    BIND_NUM(pitch_bend_range, 120, 100, 300,
-        "Variable pitch bend range (100 = None)");
     BIND_BOOL_SFX(full_sounds, false, "Play sounds in full length (prevents cutoffs)");
     BIND_NUM_SFX(snd_channels, MAX_CHANNELS, 1, MAX_CHANNELS,
         "Number of sound channels");
