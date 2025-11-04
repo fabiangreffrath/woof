@@ -719,7 +719,7 @@ void I_ResetDRS(void)
 {
     memset(drs.history, 0, sizeof(drs.history));
     drs.history_index = 0;
-    drs.history_frames = MAX(DRS_FRAME_HISTORY, (int)(targetrefresh / 2.0f));
+    drs.history_frames = MIN(DRS_FRAME_HISTORY, (int)(targetrefresh / 2.0f));
     drs.cooldown_counter = 0;
     drs.cooldown_frames = drs.history_frames;
     drs_skip_frame = true;
