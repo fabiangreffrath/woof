@@ -415,11 +415,11 @@ static float GetPitch(pitchrange_t pitch_range)
         // hacks to vary the sfx pitches
         if (pitch_range == PITCH_HALF)
         {
-            pitch += 64 - (M_Random() & 0x70);
+            pitch += 8 - (M_Random() & 15);
         }
         else if (pitch_range == PITCH_FULL)
         {
-            pitch += 128 - (M_Random() & 0xf0);
+            pitch += 16 - (M_Random() & 31);
         }
 
         return steptable[pitch];
@@ -1351,13 +1351,9 @@ static void InitFinalDoomMusic()
 
 static void InitPitchStepTable(void)
 {
-    const double base = pitch_bend_range / 100.0;
-
-    // This table provides step widths for pitch parameters.
     for (int i = 0; i < arrlen(steptable); i++)
     {
-        // [FG] variable pitch bend range
-        steptable[i] = pow(base, (double)(i - NORM_PITCH) / NORM_PITCH);
+        steptable[i] = 1.0f + (1.0f - (float)i / NORM_PITCH);
     }
 }
 
