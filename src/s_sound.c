@@ -415,7 +415,7 @@ static float GetPitch(pitchrange_t pitch_range)
         // hacks to vary the sfx pitches
         if (pitch_range == PITCH_HALF)
         {
-            pitch += 64 - (M_Random() & 0xf0);
+            pitch += 64 - (M_Random() & 0x70);
         }
         else if (pitch_range == PITCH_FULL)
         {
