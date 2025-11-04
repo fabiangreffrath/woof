@@ -415,11 +415,11 @@ static float GetPitch(pitchrange_t pitch_range)
         // hacks to vary the sfx pitches
         if (pitch_range == PITCH_HALF)
         {
-            pitch += 64 - (M_Random() & 127);
+            pitch += 64 - (M_Random() & 0xf0);
         }
         else if (pitch_range == PITCH_FULL)
         {
-            pitch += 128 - (M_Random() & 255);
+            pitch += 128 - (M_Random() & 0xf0);
         }
 
         return steptable[pitch];
