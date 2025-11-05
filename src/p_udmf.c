@@ -321,7 +321,7 @@ static void UDMF_ParseNamespace(scanner_t *s)
     {
         I_Printf(VB_WARNING, "Loading development-only UDMF namespace: \"%s\"", name);
         udmf_flags |= UDMF_DOOM | UDMF_BOOM | UDMF_MBF | UDMF_MBF21;
-        udmf_flags |= UDMF_PARAM_LINE | UDMF_PARAM_THING | UDMF_3DMIDTEX;
+        udmf_flags |= UDMF_PARAM_LINE | UDMF_PARAM_THING | UDMF_3DMIDTEX | UDMF_ALPHA;
         udmf_flags |= UDMF_SIDE_OFFSET | UDMF_SIDE_SCROLL | UDMF_SIDE_LIGHT;
         udmf_flags |= UDMF_SEC_ANGLE | UDMF_SEC_OFFSET | UDMF_SEC_SCROLL | UDMF_SEC_LIGHT;
     }
@@ -372,6 +372,7 @@ static void UDMF_ParseLinedef(scanner_t *s)
     UDMF_Linedef_t line = {0};
     line.sideback = -1;
     line.tranmap[0] = '-';
+    line.alpha = 1.0f;
 
     SC_MustGetToken(s, '{');
     while (!SC_CheckToken(s, '}'))
@@ -1115,9 +1116,10 @@ static void UDMF_LoadLineDefs(void)
 
         P_LinedefInit(&lines[i]);
 
-        if (udmf_linedefs[i].alpha > 0.0f && udmf_linedefs[i].alpha < 1.0f)
+        if (udmf_linedefs[i].alpha < 1.0f)
         {
           const int32_t alpha = (int32_t)floorf(udmf_linedefs[i].alpha * 100.0f);
+          lines[i].alpha = alpha;
           lines[i].tranmap = R_NormalTranMap(alpha, false, true);
         }
 
