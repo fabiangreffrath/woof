@@ -1353,7 +1353,14 @@ static void InitPitchStepTable(void)
 {
     for (int i = 0; i < arrlen(steptable); i++)
     {
-        steptable[i] = 1.0f + (1.0f - (float)i / NORM_PITCH);
+        // Strictly speaking, it should be the inverse of that value.
+        // In Chocolate Doom, this formula determines how much larger the
+        // destination buffer for the pitch-shifted sound is compared to the
+        // original sound. That is, how much *slower* this sound is played.
+        // In OpenAL, though, the pitch value means how much *faster* the sound
+        // is played.
+
+        steptable[i] = 2.0f - (float)i / NORM_PITCH;
     }
 }
 
