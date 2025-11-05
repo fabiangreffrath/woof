@@ -48,6 +48,7 @@ byte *main_tranmap; // killough 4/11/98
 // By Lee Killough 2/21/98
 //
 
+static const int playpal_base_layer = 256 * 3; // RGB triplets
 static const int tranmap_lump_length = 256 * 256;
 static const int default_tranmap_alpha = 66;
 int tranmap_alpha = 66;
@@ -91,7 +92,7 @@ static void CalculatePlaypalChecksum(void)
     struct MD5Context md5;
 
     MD5Init(&md5);
-    MD5Update(&md5, W_CacheLumpNum(lump, PU_STATIC), W_LumpLength(lump));
+    MD5Update(&md5, W_CacheLumpNum(lump, PU_STATIC), playpal_base_layer);
     MD5Final(playpal_digest, &md5);
 
     for (int i = 0; i < sizeof(playpal_digest); ++i)
