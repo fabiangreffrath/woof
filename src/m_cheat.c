@@ -1242,7 +1242,7 @@ static void InitCheats(void)
 
 static int M_FindCheats(char key)
 {
-    int rc = 0;
+    int rc = 0, matchedbefore = 0;
     struct cheat_s *cht;
 
     InitCheats();
@@ -1292,24 +1292,28 @@ static int M_FindCheats(char key)
         if (cht->chars_read >= cht->sequence_len
             && cht->param_chars_read >= -cht->arg)
         {
-            if (cht->param_chars_read)
+            if (!matchedbefore)
             {
-                static char argbuf[CHEAT_ARGS_MAX + 1];
-
-                // process the arg buffer
-                memcpy(argbuf, cht->parameter_buf, -cht->arg);
-
-                cht->func.s(argbuf);
-            }
-            else
-            {
-                // call cheat handler
-                cht->func.i(cht->arg);
-
-                if (cht->repeatable)
+                if (cht->param_chars_read)
                 {
-                    --cht->chars_read;
+                    static char argbuf[CHEAT_ARGS_MAX + 1];
+
+                    // process the arg buffer
+                    memcpy(argbuf, cht->parameter_buf, -cht->arg);
+
+                    cht->func.s(argbuf);
                 }
+                else
+                {
+                    // call cheat handler
+                    cht->func.i(cht->arg);
+
+                    if (cht->repeatable)
+                    {
+                        --cht->chars_read;
+                    }
+                }
+                matchedbefore = 1;
             }
 
             if (!cht->repeatable)
