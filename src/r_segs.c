@@ -216,12 +216,14 @@ void R_RenderMaskedSegRange(drawseg_t *ds, int x1, int x2)
       dc_texturemid = dc_texturemid - viewz;
     }
 
-  dc_texturemid += curline->sidedef->interprowoffset;
+  dc_texturemid += curline->sidedef->interprowoffset + curline->sidedef->offsety_mid;
 
   // draw the columns
   for (dc_x = x1 ; dc_x <= x2 ; dc_x++, spryscale += rw_scalestep)
     if (maskedtexturecol[dc_x] != INT_MAX) // [FG] 32-bit integer math
       {
+        fixed_t column = maskedtexturecol[dc_x]
+                       + FixedToInt(curline->sidedef->offsetx_mid);
         // killough 11/98:
         CalculateLighting(thiscolormap, spryscale);
 
@@ -255,7 +257,7 @@ void R_RenderMaskedSegRange(drawseg_t *ds, int x1, int x2)
         // when forming multipatched textures (see r_data.c).
 
         // draw the texture
-        col = (column_t *)(R_GetColumnMasked(texnum, maskedtexturecol[dc_x]) - 3);
+        col = (column_t *)(R_GetColumnMasked(texnum, column) - 3);
         R_DrawMaskedColumn (col);
         maskedtexturecol[dc_x] = INT_MAX; // [FG] 32-bit integer math
       }
