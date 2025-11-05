@@ -35,8 +35,10 @@
 #include "p_spec.h"
 #include "r_data.h"
 #include "r_state.h"
+#include "r_tranmap.h"
 #include "tables.h"
 #include "w_wad.h"
+#include <math.h>
 
 //
 // Universal Doom Map Format (UDMF) support
@@ -63,16 +65,17 @@ typedef enum
     UDMF_PARAM_LINE  = (1u << 9),
     UDMF_PARAM_THING = (1u << 10),
     UDMF_3DMIDTEX    = (1u << 11),
+    UDMF_ALPHA       = (1u << 12),
 
-    UDMF_SIDE_OFFSET = (1u << 12),
-    UDMF_SIDE_SCROLL = (1u << 13),
-    UDMF_SIDE_LIGHT  = (1u << 14),
+    UDMF_SIDE_OFFSET = (1u << 13),
+    UDMF_SIDE_SCROLL = (1u << 14),
+    UDMF_SIDE_LIGHT  = (1u << 15),
 
-    UDMF_SEC_ANGLE     = (1u << 15),
-    UDMF_SEC_OFFSET    = (1u << 16),
-    UDMF_SEC_EE_SCROLL = (1u << 17),
-    UDMF_SEC_SCROLL    = (1u << 18),
-    UDMF_SEC_LIGHT     = (1u << 19),
+    UDMF_SEC_ANGLE     = (1u << 16),
+    UDMF_SEC_OFFSET    = (1u << 17),
+    UDMF_SEC_EE_SCROLL = (1u << 18),
+    UDMF_SEC_SCROLL    = (1u << 19),
+    UDMF_SEC_LIGHT     = (1u << 20),
 
     // Compatibility
     UDMF_COMP_NO_ARG0 = (1u << 31),
@@ -110,6 +113,7 @@ typedef struct
 
     // Extension
     char tranmap[9];
+    double alpha;
 } UDMF_Linedef_t;
 
 // Important note about line tag/id/arg0, in the Doom/Heretic/Strife namespaces:
@@ -474,6 +478,10 @@ static void UDMF_ParseLinedef(scanner_t *s)
         else if (PROP(midtex3d, UDMF_MBF2Y|UDMF_3DMIDTEX))
         {
             line.flags |= UDMF_ScanFlag(s, ML_3DMIDTEX);
+        }
+        else if (PROP(alpha, UDMF_ALPHA))
+        {
+            line.alpha = UDMF_ScanDouble(s);
         }
         else
         {
@@ -1107,20 +1115,17 @@ static void UDMF_LoadLineDefs(void)
 
         P_LinedefInit(&lines[i]);
 
-        if (!strcasecmp(udmf_linedefs[i].tranmap, "TRANMAP"))
+        if (udmf_linedefs[i].alpha > 0.0f && udmf_linedefs[i].alpha < 1.0f)
         {
-            // Is using default built-in WAD TRANMAP lump
-            lines[i].tranlump = 0;
+          const int32_t alpha = (int32_t)floorf(udmf_linedefs[i].alpha * 100.0f);
+          lines[i].tranmap = R_NormalTranMap(alpha, false, true);
         }
-        else
+
+        int32_t lump = W_CheckNumForName(udmf_linedefs[i].tranmap);
+        if (lump >= 0 && W_LumpLength(lump) == 256 * 256)
         {
-            int32_t lump = W_CheckNumForName(udmf_linedefs[i].tranmap);
-            if (lump > 0 && W_LumpLength(lump) == 256 * 256)
-            {
-                // Is using proper custom TRANMAP lump
-                W_CacheLumpNum(lump, PU_CACHE);
-                lines[i].tranlump = lump++;
-            }
+            // Is using proper TRANMAP lump
+            lines[i].tranmap = W_CacheLumpNum(lump, PU_CACHE);
         }
 
         // killough 11/98: fix common wad errors (missing sidedefs):
@@ -1170,29 +1175,31 @@ static void UDMF_LoadLineDefs_Post(void)
         {
             // killough 4/11/98: translucent 2s textures
             case 260:
+            {
+                // translucency from sidedef
+                int32_t lump = sides[*lines[i].sidenum].special;
+                byte *tranmap = (!lump) ? main_tranmap
+                                        : W_CacheLumpNum(lump - 1, PU_STATIC);
+                if (!lines[i].args[0])
                 {
-                    // translucency from sidedef
-                    int lump = sides[*lines[i].sidenum].special;
-                    if (!lines[i].args[0])
+                    // if tag==0, affect this linedef only
+                    lines[i].tranmap = tranmap;
+                    lines[i].alpha = main_alpha;
+                }
+                else
+                {
+                    for (int j = 0; j < numlines; j++)
                     {
-                        // if tag==0,
-                        // affect this linedef only
-                        lines[i].tranlump = lump;
-                    }
-                    else
-                    {
-                        // if tag!=0,
-                        // affect all matching linedefs
-                        for (int j = 0; j < numlines; j++)
+                        if (lines[j].id == lines[i].args[0])
                         {
-                            if (lines[j].id == lines[i].args[0])
-                            {
-                                lines[j].tranlump = lump;
-                            }
+                            // if tag!=0, affect all matching linedefs
+                            lines[i].tranmap = tranmap;
+                            lines[i].alpha = main_alpha;
                         }
                     }
-                    break;
                 }
+                break;
+            }
         }
     }
 }

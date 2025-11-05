@@ -55,6 +55,7 @@
 #include "r_main.h"
 #include "r_state.h"
 #include "r_things.h"
+#include "r_tranmap.h"
 #include "s_musinfo.h" // [crispy] S_ParseMusInfo()
 #include "s_sound.h"
 #include "tables.h"
@@ -544,7 +545,7 @@ void P_LinedefInit(line_t * const linedef)
   const fixed_t dy = linedef->dy = v2.y - v1.y;
 
   // killough 4/11/98: no translucency by default
-  linedef->tranlump = -1;
+  linedef->tranmap = NULL;
 
   linedef->angle = R_PointToAngle2(v1.x, v1.y, v2.x, v2.y);
 
@@ -603,20 +604,30 @@ void P_LoadLineDefs2(int lump)
 
       ld->frontsector = ld->sidenum[0]!=NO_INDEX ? sides[ld->sidenum[0]].sector : 0;
       ld->backsector  = ld->sidenum[1]!=NO_INDEX ? sides[ld->sidenum[1]].sector : 0;
-      switch (ld->special)
-        {                       // killough 4/11/98: handle special types
-          int lump, j;
-
-        case 260:               // killough 4/11/98: translucent 2s textures
-            lump = sides[*ld->sidenum].special; // translucency from sidedef
-            if (!ld->args[0])                   // if tag==0,
-              ld->tranlump = lump;              // affect this linedef only
-            else
-              for (j=0;j<numlines;j++)          // if tag!=0,
-                if (lines[j].id == ld->args[0]) // affect all matching linedefs
-                  lines[j].tranlump = lump;
-            break;
+      switch (ld->special) // killough 4/11/98: handle special types
+      {
+        case 260: // killough 4/11/98: translucent 2s textures
+        {
+          int32_t lump = sides[*ld->sidenum].special; // translucency from sidedef
+          byte* tranmap = (!lump) ? main_tranmap
+                                  : W_CacheLumpNum(lump - 1, PU_STATIC);
+          if (!ld->args[0])
+          {
+            // if tag==0, affect this linedef only
+            ld->tranmap = tranmap;
+            ld->alpha = main_alpha;
+          }
+          else
+            for (int j = 0; j < numlines; j++)
+              if (lines[j].id == ld->args[0])
+              {
+                // if tag!=0, affect all matching linedefs
+                ld->tranmap = tranmap;
+;               ld->alpha = main_alpha;
+              }
+          break;
         }
+      }
     }
 }
 
