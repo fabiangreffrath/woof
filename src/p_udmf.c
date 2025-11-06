@@ -62,22 +62,23 @@ typedef enum
     UDMF_MBF2Y = (1u << 8),
 
     // General behavior
-    UDMF_THING_PARAM = (1u << 9),
-    UDMF_THING_ALPHA = (1u << 10),
+    UDMF_THING_SPECIAL = (1u << 9),
+    UDMF_THING_PARAM   = (1u << 10),
+    UDMF_THING_ALPHA   = (1u << 12),
 
-    UDMF_LINE_PARAM    = (1u << 12),
-    UDMF_LINE_3DMIDTEX = (1u << 13),
-    UDMF_LINE_ALPHA    = (1u << 14),
+    UDMF_LINE_PARAM    = (1u << 13),
+    UDMF_LINE_3DMIDTEX = (1u << 14),
+    UDMF_LINE_ALPHA    = (1u << 15),
 
-    UDMF_SIDE_OFFSET = (1u << 15),
-    UDMF_SIDE_SCROLL = (1u << 16),
-    UDMF_SIDE_LIGHT  = (1u << 17),
+    UDMF_SIDE_OFFSET = (1u << 16),
+    UDMF_SIDE_SCROLL = (1u << 17),
+    UDMF_SIDE_LIGHT  = (1u << 18),
 
-    UDMF_SEC_ANGLE     = (1u << 18),
-    UDMF_SEC_OFFSET    = (1u << 19),
-    UDMF_SEC_EE_SCROLL = (1u << 20),
-    UDMF_SEC_SCROLL    = (1u << 21),
-    UDMF_SEC_LIGHT     = (1u << 22),
+    UDMF_SEC_ANGLE     = (1u << 19),
+    UDMF_SEC_OFFSET    = (1u << 20),
+    UDMF_SEC_EE_SCROLL = (1u << 21),
+    UDMF_SEC_SCROLL    = (1u << 22),
+    UDMF_SEC_LIGHT     = (1u << 23),
 
     // Compatibility
     UDMF_COMP_NO_ARG0 = (1u << 31),
@@ -865,11 +866,11 @@ static void UDMF_ParseThing(scanner_t *s)
         {
             thing.options |= UDMF_ScanFlag(s, MTF_FRIEND);
         }
-        else if (PROP(special, UDMF_THING_PARAM))
+        else if (PROP(special, UDMF_THING_SPECIAL))
         {
             thing.special = UDMF_ScanInt(s);
         }
-        else if (PROP(arg0, UDMF_THING_PARAM))
+        else if (PROP(arg0, UDMF_THING_SPECIAL|UDMF_THING_PARAM))
         {
             thing.args[0] = UDMF_ScanInt(s);
         }
@@ -1248,6 +1249,7 @@ void UDMF_LoadThings(void)
         mt.type = udmf_things[i].type;
         mt.options = udmf_things[i].options;
 
+        mt.special = udmf_things[i].special;
         mt.args[0] = udmf_things[i].args[0];
         mt.args[1] = udmf_things[i].args[1];
         mt.args[2] = udmf_things[i].args[2];
