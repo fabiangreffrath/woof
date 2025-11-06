@@ -62,20 +62,22 @@ typedef enum
     UDMF_MBF2Y = (1u << 8),
 
     // General behavior
-    UDMF_PARAM_LINE  = (1u << 9),
-    UDMF_PARAM_THING = (1u << 10),
-    UDMF_3DMIDTEX    = (1u << 11),
-    UDMF_ALPHA       = (1u << 12),
+    UDMF_THING_PARAM = (1u << 9),
+    UDMF_THING_ALPHA = (1u << 10),
 
-    UDMF_SIDE_OFFSET = (1u << 13),
-    UDMF_SIDE_SCROLL = (1u << 14),
-    UDMF_SIDE_LIGHT  = (1u << 15),
+    UDMF_LINE_PARAM    = (1u << 12),
+    UDMF_LINE_3DMIDTEX = (1u << 13),
+    UDMF_LINE_ALPHA    = (1u << 14),
 
-    UDMF_SEC_ANGLE     = (1u << 16),
-    UDMF_SEC_OFFSET    = (1u << 17),
-    UDMF_SEC_EE_SCROLL = (1u << 18),
-    UDMF_SEC_SCROLL    = (1u << 19),
-    UDMF_SEC_LIGHT     = (1u << 20),
+    UDMF_SIDE_OFFSET = (1u << 15),
+    UDMF_SIDE_SCROLL = (1u << 16),
+    UDMF_SIDE_LIGHT  = (1u << 17),
+
+    UDMF_SEC_ANGLE     = (1u << 18),
+    UDMF_SEC_OFFSET    = (1u << 19),
+    UDMF_SEC_EE_SCROLL = (1u << 20),
+    UDMF_SEC_SCROLL    = (1u << 21),
+    UDMF_SEC_LIGHT     = (1u << 22),
 
     // Compatibility
     UDMF_COMP_NO_ARG0 = (1u << 31),
@@ -92,6 +94,10 @@ typedef struct
     int32_t options;
     int32_t special;
     int32_t args[5];
+
+    // Extensions
+    char tranmap[9];
+    double alpha;
 } UDMF_Thing_t;
 
 typedef struct
@@ -111,7 +117,7 @@ typedef struct
     int32_t sidefront, sideback;
     int32_t flags;
 
-    // Extension
+    // Extensions
     char tranmap[9];
     double alpha;
 } UDMF_Linedef_t;
@@ -321,7 +327,8 @@ static void UDMF_ParseNamespace(scanner_t *s)
     {
         I_Printf(VB_WARNING, "Loading development-only UDMF namespace: \"%s\"", name);
         udmf_flags |= UDMF_DOOM | UDMF_BOOM | UDMF_MBF | UDMF_MBF21;
-        udmf_flags |= UDMF_PARAM_LINE | UDMF_PARAM_THING | UDMF_3DMIDTEX | UDMF_ALPHA;
+        udmf_flags |= UDMF_LINE_PARAM | UDMF_LINE_3DMIDTEX;
+        udmf_flags |= UDMF_THING_PARAM | UDMF_THING_ALPHA;
         udmf_flags |= UDMF_SIDE_OFFSET | UDMF_SIDE_SCROLL | UDMF_SIDE_LIGHT;
         udmf_flags |= UDMF_SEC_ANGLE | UDMF_SEC_OFFSET | UDMF_SEC_SCROLL | UDMF_SEC_LIGHT;
     }
@@ -400,19 +407,19 @@ static void UDMF_ParseLinedef(scanner_t *s)
             // Tag -> id/arg0 split means arg0 is always enabled
             line.args[0] = UDMF_ScanInt(s);
         }
-        else if (PROP(arg1, UDMF_PARAM_LINE))
+        else if (PROP(arg1, UDMF_LINE_PARAM))
         {
             line.args[1] = UDMF_ScanInt(s);
         }
-        else if (PROP(arg2, UDMF_PARAM_LINE))
+        else if (PROP(arg2, UDMF_LINE_PARAM))
         {
             line.args[2] = UDMF_ScanInt(s);
         }
-        else if (PROP(arg3, UDMF_PARAM_LINE))
+        else if (PROP(arg3, UDMF_LINE_PARAM))
         {
             line.args[3] = UDMF_ScanInt(s);
         }
-        else if (PROP(arg4, UDMF_PARAM_LINE))
+        else if (PROP(arg4, UDMF_LINE_PARAM))
         {
             line.args[4] = UDMF_ScanInt(s);
         }
@@ -476,11 +483,11 @@ static void UDMF_ParseLinedef(scanner_t *s)
         {
             line.flags |= UDMF_ScanFlag(s, ML_BLOCKPLAYERS);
         }
-        else if (PROP(midtex3d, UDMF_MBF2Y|UDMF_3DMIDTEX))
+        else if (PROP(midtex3d, UDMF_MBF2Y|UDMF_LINE_3DMIDTEX))
         {
             line.flags |= UDMF_ScanFlag(s, ML_3DMIDTEX);
         }
-        else if (PROP(alpha, UDMF_ALPHA))
+        else if (PROP(alpha, UDMF_THING_ALPHA))
         {
             line.alpha = UDMF_ScanDouble(s);
         }
@@ -786,6 +793,8 @@ static void UDMF_ParseThing(scanner_t *s)
 {
     UDMF_Thing_t thing = {0};
     thing.options |= MTF_NOTSINGLE | MTF_NOTCOOP | MTF_NOTDM;
+    thing.tranmap[0] = '-';
+    thing.alpha = 1.0f;
 
     SC_MustGetToken(s, '{');
     while (!SC_CheckToken(s, '}'))
@@ -796,7 +805,7 @@ static void UDMF_ParseThing(scanner_t *s)
         {
             thing.type = UDMF_ScanInt(s);
         }
-        else if (PROP(id, UDMF_PARAM_THING))
+        else if (PROP(id, UDMF_THING_PARAM))
         {
             thing.id = UDMF_ScanInt(s);
         }
@@ -844,11 +853,11 @@ static void UDMF_ParseThing(scanner_t *s)
         {
             thing.options &= ~UDMF_ScanFlag(s, MTF_NOTSINGLE);
         }
-        else if (PROP(dm, UDMF_BOOM))
+        else if (BASE_PROP(dm))
         {
             thing.options &= ~UDMF_ScanFlag(s, MTF_NOTDM);
         }
-        else if (PROP(coop, UDMF_BOOM))
+        else if (BASE_PROP(coop))
         {
             thing.options &= ~UDMF_ScanFlag(s, MTF_NOTCOOP);
         }
@@ -856,29 +865,33 @@ static void UDMF_ParseThing(scanner_t *s)
         {
             thing.options |= UDMF_ScanFlag(s, MTF_FRIEND);
         }
-        else if (PROP(special, UDMF_PARAM_THING))
+        else if (PROP(special, UDMF_THING_PARAM))
         {
             thing.special = UDMF_ScanInt(s);
         }
-        else if (PROP(arg0, UDMF_PARAM_THING))
+        else if (PROP(arg0, UDMF_THING_PARAM))
         {
             thing.args[0] = UDMF_ScanInt(s);
         }
-        else if (PROP(arg1, UDMF_PARAM_THING))
+        else if (PROP(arg1, UDMF_THING_PARAM))
         {
             thing.args[1] = UDMF_ScanInt(s);
         }
-        else if (PROP(arg2, UDMF_PARAM_THING))
+        else if (PROP(arg2, UDMF_THING_PARAM))
         {
             thing.args[2] = UDMF_ScanInt(s);
         }
-        else if (PROP(arg3, UDMF_PARAM_THING))
+        else if (PROP(arg3, UDMF_THING_PARAM))
         {
             thing.args[3] = UDMF_ScanInt(s);
         }
-        else if (PROP(arg4, UDMF_PARAM_THING))
+        else if (PROP(arg4, UDMF_THING_PARAM))
         {
             thing.args[4] = UDMF_ScanInt(s);
+        }
+        else if (PROP(alpha, UDMF_THING_ALPHA))
+        {
+            thing.alpha = UDMF_ScanDouble(s);
         }
         else
         {
@@ -1103,7 +1116,7 @@ static void UDMF_LoadLineDefs(void)
         lines[i].args[4] = udmf_linedefs[i].args[4];
 
         // Woof! currently does not support parameterized line specials
-        if (udmf_flags & UDMF_PARAM_LINE)
+        if (udmf_flags & UDMF_LINE_PARAM)
         {
             udmf_linedefs[i].special = 0;
         }
@@ -1119,14 +1132,12 @@ static void UDMF_LoadLineDefs(void)
         if (udmf_linedefs[i].alpha < 1.0f)
         {
           const int32_t alpha = (int32_t)floorf(udmf_linedefs[i].alpha * 100.0f);
-          lines[i].alpha = alpha;
-          lines[i].tranmap = R_NormalTranMap(alpha, false, true);
+          lines[i].tranmap = R_NormalTranMap(alpha, false, false);
         }
 
         int32_t lump = W_CheckNumForName(udmf_linedefs[i].tranmap);
         if (lump >= 0 && W_LumpLength(lump) == 256 * 256)
         {
-            // Is using proper TRANMAP lump
             lines[i].tranmap = W_CacheLumpNum(lump, PU_CACHE);
         }
 
@@ -1186,7 +1197,6 @@ static void UDMF_LoadLineDefs_Post(void)
                 {
                     // if tag==0, affect this linedef only
                     lines[i].tranmap = tranmap;
-                    lines[i].alpha = main_alpha;
                 }
                 else
                 {
@@ -1196,7 +1206,6 @@ static void UDMF_LoadLineDefs_Post(void)
                         {
                             // if tag!=0, affect all matching linedefs
                             lines[i].tranmap = tranmap;
-                            lines[i].alpha = main_alpha;
                         }
                     }
                 }
@@ -1244,6 +1253,18 @@ void UDMF_LoadThings(void)
         mt.args[2] = udmf_things[i].args[2];
         mt.args[3] = udmf_things[i].args[3];
         mt.args[4] = udmf_things[i].args[4];
+
+        if (udmf_things[i].alpha < 1.0f)
+        {
+          const int32_t alpha = (int32_t)floorf(udmf_things[i].alpha * 100.0f);
+          mt.tranmap = R_NormalTranMap(alpha, false, false);
+        }
+
+        int32_t lump = W_CheckNumForName(udmf_things[i].tranmap);
+        if (lump >= 0 && W_LumpLength(lump) == 256 * 256)
+        {
+            mt.tranmap = W_CacheLumpNum(lump, PU_CACHE);
+        }
 
         P_SpawnMapThing(&mt);
     }

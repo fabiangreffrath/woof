@@ -27,7 +27,6 @@
 
 extern byte *main_tranmap;
 extern byte *tranmap;
-extern int32_t main_alpha;
 
 // killough 3/6/98: translucency initialization
 void R_InitTranMap(boolean progress);

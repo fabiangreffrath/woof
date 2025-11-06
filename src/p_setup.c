@@ -612,19 +612,13 @@ void P_LoadLineDefs2(int lump)
           byte* tranmap = (!lump) ? main_tranmap
                                   : W_CacheLumpNum(lump - 1, PU_STATIC);
           if (!ld->args[0])
-          {
             // if tag==0, affect this linedef only
             ld->tranmap = tranmap;
-            ld->alpha = main_alpha;
-          }
           else
             for (int j = 0; j < numlines; j++)
               if (lines[j].id == ld->args[0])
-              {
                 // if tag!=0, affect all matching linedefs
                 ld->tranmap = tranmap;
-;               ld->alpha = main_alpha;
-              }
           break;
         }
       }

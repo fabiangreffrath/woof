@@ -39,7 +39,6 @@
 
 byte *tranmap;      // translucency filter maps 256x256   // phares
 byte *main_tranmap; // killough 4/11/98
-int32_t main_alpha;
 
 //
 // R_InitTranMap
@@ -261,8 +260,6 @@ void R_InitTranMap(boolean progress)
         }
     }
 
-    main_alpha = strictmode ? default_tranmap_alpha : tranmap_alpha;
-
     if (lump != -1 && !force_rebuild && !build_all_alphas)
     {
         main_tranmap = W_CacheLumpNum(lump, PU_STATIC); // killough 4/11/98
@@ -270,7 +267,8 @@ void R_InitTranMap(boolean progress)
     else
     {
         // Only do alpha of 66 in strictmode, also force rebuild
-        main_tranmap = R_NormalTranMap(main_alpha, progress, strictmode);
+        int alpha = strictmode ? default_tranmap_alpha : tranmap_alpha;
+        main_tranmap = R_NormalTranMap(alpha, progress, strictmode);
         if (progress)
         {
             I_Printf(VB_INFO, "........");

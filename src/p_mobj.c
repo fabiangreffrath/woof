@@ -1357,12 +1357,16 @@ spawnit:
     mobj->z -= mthing->height;
   }
 
-  // UDMF thing args
+  // Action specials
+  mobj->special = mthing->special;
   mobj->args[0] = mthing->args[0];
   mobj->args[1] = mthing->args[1];
   mobj->args[2] = mthing->args[2];
   mobj->args[3] = mthing->args[3];
   mobj->args[4] = mthing->args[4];
+
+  // Translucency
+  mobj->tranmap = mthing->tranmap;
 
   // killough 7/20/98: exclude friends
   if (!((mobj->flags ^ MF_COUNTKILL) & (MF_FRIEND | MF_COUNTKILL)))

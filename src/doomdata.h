@@ -22,6 +22,7 @@
 #ifndef __DOOMDATA__
 #define __DOOMDATA__
 
+#include "doomtype.h"
 #include "m_fixed.h"
 
 typedef enum {
@@ -225,10 +226,12 @@ typedef struct {
   fixed_t x;
   fixed_t y;
   fixed_t height;
+  int32_t special;
   int32_t args[5];
   int16_t angle;
   int16_t type;
   int32_t options;
+  byte *tranmap;
 } mapthing_t;
 
 #endif // __DOOMDATA__

@@ -315,8 +315,12 @@ typedef struct mobj_s
     int                 intflags;  // killough 9/15/98: internal flags
     int                 health;
 
-    // UDMF extensions
-    int32_t args[5];
+    // Action specials
+    int32_t             special;
+    int32_t             args[5];
+
+    // Translucency
+    byte*               tranmap;
 
     // Movement direction, movement generation (zig-zagging).
     short               movedir;        // 0-7
