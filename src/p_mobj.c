@@ -1317,10 +1317,13 @@ void P_SpawnMapThing (mapthing_t* mthing)
               VB_DEBUG,
               "P_SpawnMapThing: Found level editor camera spawn at (%i, %i)",
               FixedToInt(mthing->x), FixedToInt(mthing->y));
-          return;
       }
-      I_Printf(VB_WARNING, "P_SpawnMapThing: Unknown Thing type %i at (%i, %i)",
-               mthing->type, FixedToInt(mthing->x), FixedToInt(mthing->y));
+      else
+      {
+          I_Printf(VB_WARNING,
+                   "P_SpawnMapThing: Unknown Thing type %i at (%i, %i)",
+                   mthing->type, FixedToInt(mthing->x), FixedToInt(mthing->y));
+      }
       return;
   }
 
