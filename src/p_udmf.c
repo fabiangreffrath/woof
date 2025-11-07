@@ -49,7 +49,7 @@ typedef enum
     UDMF_BASE = (0),
 
     UDMF_THING_FRIEND  = (1u << 1), // Marine's Best Friend :)
-    UDMF_THING_SPECIAL = (1u << 2), // Hexen-style param actions
+    UDMF_THING_SPECIAL = (1u << 2), // Death/Pickup/etc-activated actions
     UDMF_THING_PARAM   = (1u << 3), // ditto, also customizes some MObjs
     UDMF_THING_ALPHA   = (1u << 4), // opacity percentage
     UDMF_THING_TRANMAP = (1u << 5), // ditto, also customizable LUT
