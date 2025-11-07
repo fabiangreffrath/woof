@@ -48,37 +48,28 @@ typedef enum
 {
     UDMF_BASE = (0),
 
-    // Base games
-    UDMF_DOOM    = (1u << 0),
-    UDMF_HERETIC = (1u << 1),
-    UDMF_HEXEN   = (1u << 2),
-    UDMF_STRIFE  = (1u << 3),
+    UDMF_THING_FRIEND  = (1u << 1), // Marine's Best Friend :)
+    UDMF_THING_SPECIAL = (1u << 2), // Hexen-style param actions
+    UDMF_THING_PARAM   = (1u << 3), // ditto, also customizes some MObjs
+    UDMF_THING_ALPHA   = (1u << 4), // opacity percentage
+    UDMF_THING_TRANMAP = (1u << 5), // ditto, also customizable LUT
 
-    // Doom extensions
-    UDMF_BOOM  = (1u << 4),
-    UDMF_MBF   = (1u << 5),
-    UDMF_MBF21 = (1u << 6),
-    UDMF_ID24  = (1u << 7),
-    UDMF_MBF2Y = (1u << 8),
+    UDMF_LINE_PARAM    = (1u << 6), // Hexen-style param actions
+    UDMF_LINE_PASSUSE  = (1u << 7), // Boom's "Pass Use Through" line flag
+    UDMF_LINE_BLOCK    = (1u << 8), // MBF21's entity blocking flag
+    UDMF_LINE_3DMIDTEX = (1u << 9), // EE's 3D middle texture
+    UDMF_LINE_ALPHA    = (1u << 10), // opacity percentage
+    UDMF_LINE_TRANMAP  = (1u << 11), // ditto, also customizable LUT
 
-    // General behavior
-    UDMF_THING_SPECIAL = (1u << 9),
-    UDMF_THING_PARAM   = (1u << 10),
-    UDMF_THING_ALPHA   = (1u << 12),
+    UDMF_SIDE_OFFSET   = (1u << 12), // texture X/Y alignment
+    UDMF_SIDE_SCROLL   = (1u << 13), // texture scrolling property
+    UDMF_SIDE_LIGHT    = (1u << 14), // independent light levels
 
-    UDMF_LINE_PARAM    = (1u << 13),
-    UDMF_LINE_3DMIDTEX = (1u << 14),
-    UDMF_LINE_ALPHA    = (1u << 15),
-
-    UDMF_SIDE_OFFSET = (1u << 16),
-    UDMF_SIDE_SCROLL = (1u << 17),
-    UDMF_SIDE_LIGHT  = (1u << 18),
-
-    UDMF_SEC_ANGLE     = (1u << 19),
-    UDMF_SEC_OFFSET    = (1u << 20),
-    UDMF_SEC_EE_SCROLL = (1u << 21),
-    UDMF_SEC_SCROLL    = (1u << 22),
-    UDMF_SEC_LIGHT     = (1u << 23),
+    UDMF_SEC_ANGLE     = (1u << 15), // plane rotation
+    UDMF_SEC_OFFSET    = (1u << 16), // plane X/Y alignment
+    UDMF_SEC_EE_SCROLL = (1u << 17), // EE's original plane scrolling property
+    UDMF_SEC_SCROLL    = (1u << 18), // DSDA's latter plane scrolling property
+    UDMF_SEC_LIGHT     = (1u << 19), // independent light levels
 
     // Compatibility
     UDMF_COMP_NO_ARG0 = (1u << 31),
@@ -322,12 +313,12 @@ static void UDMF_ParseNamespace(scanner_t *s)
 
     if (!strcasecmp(name, "doom"))
     {
-        udmf_flags |= UDMF_DOOM | UDMF_BOOM | UDMF_MBF;
+        udmf_flags |= UDMF_LINE_PASSUSE | UDMF_THING_FRIEND;
     }
     else if (devparm && !strcasecmp(name, "dsda"))
     {
         I_Printf(VB_WARNING, "Loading development-only UDMF namespace: \"%s\"", name);
-        udmf_flags |= UDMF_DOOM | UDMF_BOOM | UDMF_MBF | UDMF_MBF21;
+        udmf_flags |= UDMF_LINE_PASSUSE | UDMF_THING_FRIEND | UDMF_LINE_BLOCK;
         udmf_flags |= UDMF_LINE_PARAM | UDMF_LINE_3DMIDTEX;
         udmf_flags |= UDMF_THING_PARAM | UDMF_THING_ALPHA;
         udmf_flags |= UDMF_SIDE_OFFSET | UDMF_SIDE_SCROLL | UDMF_SIDE_LIGHT;
@@ -468,23 +459,23 @@ static void UDMF_ParseLinedef(scanner_t *s)
         {
             line.flags |= UDMF_ScanFlag(s, ML_MAPPED);
         }
-        else if (PROP(tranmap, UDMF_MBF21))
+        else if (PROP(tranmap, UDMF_LINE_TRANMAP))
         {
             UDMF_ScanLumpName(s, line.tranmap);
         }
-        else if (PROP(passuse, UDMF_BOOM))
+        else if (PROP(passuse, UDMF_LINE_PASSUSE))
         {
             line.flags |= UDMF_ScanFlag(s, ML_PASSUSE);
         }
-        else if (PROP(blocklandmonsters, UDMF_MBF21))
+        else if (PROP(blocklandmonsters, UDMF_LINE_BLOCK))
         {
             line.flags |= UDMF_ScanFlag(s, ML_BLOCKLANDMONSTERS);
         }
-        else if (PROP(blockplayers, UDMF_MBF21))
+        else if (PROP(blockplayers, UDMF_LINE_BLOCK))
         {
             line.flags |= UDMF_ScanFlag(s, ML_BLOCKPLAYERS);
         }
-        else if (PROP(midtex3d, UDMF_MBF2Y|UDMF_LINE_3DMIDTEX))
+        else if (PROP(midtex3d, UDMF_LINE_3DMIDTEX))
         {
             line.flags |= UDMF_ScanFlag(s, ML_3DMIDTEX);
         }
@@ -862,7 +853,7 @@ static void UDMF_ParseThing(scanner_t *s)
         {
             thing.options &= ~UDMF_ScanFlag(s, MTF_NOTCOOP);
         }
-        else if (PROP(friend, UDMF_MBF))
+        else if (PROP(friend, UDMF_THING_FRIEND))
         {
             thing.options |= UDMF_ScanFlag(s, MTF_FRIEND);
         }
