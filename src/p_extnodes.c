@@ -823,6 +823,7 @@ void P_LoadNodes_ZDoom(int lump, nodeformat_t format)
 
     numsegs = numSegs;
     segs = arena_alloc_num(world_arena, seg_t, numsegs);
+    memset(segs, 0, sizeof(seg_t) * numsegs);
 
     if (format == NFMT_XNOD || format == NFMT_ZNOD)
     {
