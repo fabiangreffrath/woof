@@ -19,6 +19,7 @@
 
 #include "config.h"
 #include "doomkeys.h"
+#include "i_system.h"
 #include "i_timer.h"
 #include "m_misc.h"
 #include "multiplayer.h"
@@ -160,6 +161,8 @@ void RestartTextscreen(void)
 
 static void RunGUI(void)
 {
+    I_SetMetadata(PROJECT_NAME " Setup", PROJECT_VERSION, PROJECT_APPID);
+
     I_InitTimer();
 
     InitTextscreen();

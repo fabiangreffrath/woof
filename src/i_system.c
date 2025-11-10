@@ -253,6 +253,12 @@ const char *I_GetPlatform(void)
     return SDL_GetPlatform();
 }
 
+void I_SetMetadata(const char *appname, const char *appversion,
+                   const char *appidentifier)
+{
+    SDL_SetAppMetadata(appname, appversion, appidentifier);
+}
+
 //----------------------------------------------------------------------------
 //
 // $Log: i_system.c,v $
