@@ -371,7 +371,7 @@ static void UDMF_ParseLinedef(scanner_t *s)
     UDMF_Linedef_t line = {0};
     line.sideback = -1;
     line.tranmap[0] = '-';
-    line.alpha = 1.0f;
+    line.alpha = 1.0;
 
     SC_MustGetToken(s, '{');
     while (!SC_CheckToken(s, '}'))
@@ -786,7 +786,7 @@ static void UDMF_ParseThing(scanner_t *s)
     UDMF_Thing_t thing = {0};
     thing.options |= MTF_NOTSINGLE | MTF_NOTCOOP | MTF_NOTDM;
     thing.tranmap[0] = '-';
-    thing.alpha = 1.0f;
+    thing.alpha = 1.0;
 
     SC_MustGetToken(s, '{');
     while (!SC_CheckToken(s, '}'))
@@ -1121,9 +1121,9 @@ static void UDMF_LoadLineDefs(void)
 
         P_LinedefInit(&lines[i]);
 
-        if (udmf_linedefs[i].alpha < 1.0f)
+        if (udmf_linedefs[i].alpha < 1.0)
         {
-          const int32_t alpha = (int32_t)floorf(udmf_linedefs[i].alpha * 100.0f);
+          const int32_t alpha = (int32_t)floorf(udmf_linedefs[i].alpha * 100.0);
           lines[i].tranmap = R_NormalTranMap(alpha, false, false);
         }
 
@@ -1247,9 +1247,9 @@ void UDMF_LoadThings(void)
         mt.args[3] = udmf_things[i].args[3];
         mt.args[4] = udmf_things[i].args[4];
 
-        if (udmf_things[i].alpha < 1.0f)
+        if (udmf_things[i].alpha < 1.0)
         {
-          const int32_t alpha = (int32_t)floorf(udmf_things[i].alpha * 100.0f);
+          const int32_t alpha = (int32_t)floor(udmf_things[i].alpha * 100.0);
           mt.tranmap = R_NormalTranMap(alpha, false, false);
         }
 
