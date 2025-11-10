@@ -1602,7 +1602,7 @@ void P_SegLengths(void)
         int64_t dy = li->v2->r_y - li->v1->r_y;
         sidedef_flags_t flags = (li->sidedef) // mini segs!!
                               ? li->sidedef->flags
-                              : 0;
+                              : SF_NONE;
 
         li->r_length = (uint32_t)(sqrt((double)dx*dx + (double)dy*dy)/2);
 

@@ -77,6 +77,7 @@ typedef struct {
 
 typedef enum sidedef_flags_e
 {
+  SF_NONE             = (0),
   SF_ABS_LIGHT        = (1u << 0),
   SF_ABS_LIGHT_TOP    = (1u << 1),
   SF_ABS_LIGHT_MID    = (1u << 2),
