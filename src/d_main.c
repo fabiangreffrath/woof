@@ -2442,6 +2442,7 @@ void D_DoomMain(void)
   P_Init();
 
   I_Printf(VB_INFO, "I_Init: Setting up machine state.");
+  I_SetMetadata(PROJECT_NAME, PROJECT_VERSION, PROJECT_APPID);
   I_InitTimer();
   I_InitGamepad();
   I_InitSound();

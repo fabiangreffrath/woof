@@ -89,6 +89,9 @@ boolean I_GetMemoryValue(unsigned int offset, void *value, int size);
 
 const char *I_GetPlatform(void);
 
+void I_SetMetadata(const char *appname, const char *appversion,
+                   const char *appidentifier);
+
 #endif
 
 //----------------------------------------------------------------------------
