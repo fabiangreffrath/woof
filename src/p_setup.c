@@ -1590,7 +1590,7 @@ static angle_t anglediff(angle_t a, angle_t b)
         return b - a;
 }
 
-void P_SegLengths()
+void P_SegLengths(void)
 {
     const int rightangle = abs(finesine[(ANG60/2) >> ANGLETOFINESHIFT]);
 

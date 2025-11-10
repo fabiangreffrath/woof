@@ -34,7 +34,6 @@
 #include "i_video.h"
 #include "p_mobj.h"
 #include "p_pspr.h"
-#include "p_setup.h" // P_SegLengths
 #include "r_bsp.h"
 #include "r_data.h"
 #include "r_defs.h"
