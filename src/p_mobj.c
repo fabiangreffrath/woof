@@ -27,6 +27,7 @@
 #include "g_game.h"
 #include "i_printf.h"
 #include "info.h"
+#include "m_fixed.h"
 #include "m_random.h"
 #include "p_ambient.h"
 #include "p_inter.h"
@@ -1308,11 +1309,23 @@ void P_SpawnMapThing (mapthing_t* mthing)
   // warning message for the player.
 
   if (i == num_mobj_types)
-    {
-      I_Printf(VB_WARNING, "P_SpawnMapThing: Unknown Thing type %i at (%i, %i)",
-	      mthing->type, mthing->x, mthing->y);
+  {
+      // No warning for Doom Builder Camera
+      if (mthing->type == 32000)
+      {
+          I_Printf(
+              VB_DEBUG,
+              "P_SpawnMapThing: Found level editor camera spawn at (%i, %i)",
+              FixedToInt(mthing->x), FixedToInt(mthing->y));
+      }
+      else
+      {
+          I_Printf(VB_WARNING,
+                   "P_SpawnMapThing: Unknown Thing type %i at (%i, %i)",
+                   mthing->type, FixedToInt(mthing->x), FixedToInt(mthing->y));
+      }
       return;
-    }
+  }
 
   // don't spawn keycards and players in deathmatch
 
