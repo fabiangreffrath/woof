@@ -342,9 +342,6 @@ void P_LoadSectors (int lump)
 //
 void P_SectorInit(sector_t * const sector)
 {
-  sector->thinglist = NULL;
-  sector->touching_thinglist = NULL; // phares 3/14/98
-
   sector->nextsec = -1; // jff 2/26/98 add fields to support locking out
   sector->prevsec = -1; // stair retriggering until build completes
 
