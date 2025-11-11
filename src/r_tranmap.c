@@ -47,8 +47,8 @@
 // * https://www.youtube.com/watch?v=LKnqECcg6Gw
 // * https://www.nayuki.io/page/srgb-transform-library
 //
-static double LinearSRGB_ToFloat[101][256];
-static byte LinearSRGB_ToByte[10001];
+static double SRGB_ByteToLinear[101][256];
+static byte SRGB_LinearToByte[10001];
 
 //
 // R_InitTranMap
@@ -75,7 +75,7 @@ const byte *main_tranmap; // killough 4/11/98
 // Blending algorthims!
 //
 
-static inline const double srgb_to_linear(const byte c)
+static inline const double byte_to_linear(const byte c)
 {
     double cs = c / 255.0;
     if (cs <= 0.04045)
@@ -84,7 +84,7 @@ static inline const double srgb_to_linear(const byte c)
         return pow((cs + 0.055) / 1.055, 2.4);
 }
 
-static inline const byte linear_to_srgb(double x)
+static inline const byte linear_to_byte(double x)
 {
     if (x <= 0.0031308)
         x *= 12.92;
@@ -105,10 +105,10 @@ enum
 // The heart of the calculation
 static inline const byte BlendChannelNormal(const byte bg, const byte fg, const int a)
 {
-    const double fg_linear = LinearSRGB_ToFloat[    a][fg];
-    const double bg_linear = LinearSRGB_ToFloat[100-a][bg];
+    const double fg_linear = SRGB_ByteToLinear[    a][fg];
+    const double bg_linear = SRGB_ByteToLinear[100-a][bg];
     const int r_linear = fg_linear + bg_linear;
-    return LinearSRGB_ToByte[r_linear];
+    return SRGB_LinearToByte[r_linear];
 }
 
 static inline const byte CrispyBlend_Normal(byte *playpal, const byte *bg,
@@ -272,10 +272,10 @@ void InitLinearTables(void)
     {
         for (int a = 0; a <= 100; a++)
             for (int i = 0; i <= 255; i++)
-                LinearSRGB_ToFloat[a][i] = 10000.0 * (srgb_to_linear(i) * a / 100.0);
+                SRGB_ByteToLinear[a][i] = 10000.0 * (byte_to_linear(i) * a / 100.0);
 
         for (int l = 0; l <= 10000; l++)
-            LinearSRGB_ToByte[l] = linear_to_srgb(l / 10000.0);
+            SRGB_LinearToByte[l] = linear_to_byte(l / 10000.0);
 
         do_once = false;
     }
