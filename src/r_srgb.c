@@ -30,7 +30,7 @@
 #include "doomtype.h"
 #include "r_srgb.h"
 
-inline const double byte_to_linear(const byte c)
+const double byte_to_linear(const byte c)
 {
     double cs = c / 255.0;
     if (cs <= 0.04045)
@@ -39,7 +39,7 @@ inline const double byte_to_linear(const byte c)
         return pow((cs + 0.055) / 1.055, 2.4);
 }
 
-inline const byte linear_to_byte(double x)
+const byte linear_to_byte(double x)
 {
     if (x <= 0.0031308)
         x *= 12.92;
