@@ -46,6 +46,7 @@
 static const double LinearRGB_ToFloat[256];
 static const byte LinearRGB_ToByte[10001];
 static const double AlphaFloat[101];
+static const double AlphaFloatInverse[101];
 
 const byte *tranmap;      // translucency filter maps 256x256   // phares
 const byte *main_tranmap; // killough 4/11/98
@@ -84,9 +85,9 @@ static inline const byte BlendChannelNormal(const byte bg, const byte fg, const 
 {
     const double foreground_linear = LinearRGB_ToFloat[fg];
     const double background_linear = LinearRGB_ToFloat[bg];
-    const double alpha = AlphaFloat[a];
-    const double result_float = (foreground_linear * alpha) + (background_linear * (1.0 - alpha));
-    const int    result_linear = result_float * 10000.0;
+    const double result_float = (foreground_linear * AlphaFloat[a])
+                                + (background_linear * AlphaFloatInverse[a]);
+    const int result_linear = result_float * 10000.0;
     return LinearRGB_ToByte[result_linear];
 }
 
@@ -301,6 +302,18 @@ static const double AlphaFloat[101] = {
     0.72, 0.73, 0.74, 0.75, 0.76, 0.77, 0.78, 0.79, 0.80, 0.81, 0.82, 0.83,
     0.84, 0.85, 0.86, 0.87, 0.88, 0.89, 0.90, 0.91, 0.92, 0.93, 0.94, 0.95,
     0.96, 0.97, 0.98, 0.99, 1.00,
+};
+
+static const double AlphaFloatInverse[101] = {
+    1.00, 0.99, 0.98, 0.97, 0.96, 0.95, 0.94, 0.93, 0.92, 0.91, 0.90, 0.89,
+    0.88, 0.87, 0.86, 0.85, 0.84, 0.83, 0.82, 0.81, 0.80, 0.79, 0.78, 0.77,
+    0.76, 0.75, 0.74, 0.73, 0.72, 0.71, 0.70, 0.69, 0.68, 0.67, 0.66, 0.65,
+    0.64, 0.63, 0.62, 0.61, 0.60, 0.59, 0.58, 0.57, 0.56, 0.55, 0.54, 0.53,
+    0.52, 0.51, 0.50, 0.49, 0.48, 0.47, 0.46, 0.45, 0.44, 0.43, 0.42, 0.41,
+    0.40, 0.39, 0.38, 0.37, 0.36, 0.35, 0.34, 0.33, 0.32, 0.31, 0.30, 0.29,
+    0.28, 0.27, 0.26, 0.25, 0.24, 0.23, 0.22, 0.21, 0.20, 0.19, 0.18, 0.17,
+    0.16, 0.15, 0.14, 0.13, 0.12, 0.11, 0.10, 0.09, 0.08, 0.07, 0.06, 0.05,
+    0.04, 0.03, 0.02, 0.01, 0.00,
 };
 
 static const double LinearRGB_ToFloat[256] = {
