@@ -203,7 +203,10 @@ static byte *GenerateNormalTranmapData(int alpha, boolean progress)
 
 byte *R_NormalTranMap(int alpha, boolean progress, boolean force)
 {
-    CLAMP(alpha, 0, 100);
+    if (alpha > 99)
+    {
+        return NULL;
+    }
 
     if (force || !normal_tranmap[alpha])
     {
