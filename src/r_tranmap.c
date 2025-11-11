@@ -83,12 +83,10 @@ enum
 // The heart of the calculation
 static inline const byte BlendChannelNormal(const byte bg, const byte fg, const int a)
 {
-    const double foreground_linear = LinearRGB_ToFloat[fg];
-    const double background_linear = LinearRGB_ToFloat[bg];
-    const double result_float = (foreground_linear * AlphaFloat[a])
-                                + (background_linear * AlphaFloatInverse[a]);
-    const int result_linear = result_float * 10000.0;
-    return LinearRGB_ToByte[result_linear];
+    const double fg_linear = LinearRGB_ToFloat[fg];
+    const double bg_linear = LinearRGB_ToFloat[bg];
+    const int r_linear = 10000 * (fg_linear * AlphaFloat[a] + bg_linear * AlphaFloatInverse[a]);
+    return LinearRGB_ToByte[r_linear];
 }
 
 static inline const byte CrispyBlend_Normal(byte *playpal, const byte *bg,
