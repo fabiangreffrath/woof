@@ -137,7 +137,7 @@ set(WOOF_SOURCES
     r_segs.c               r_segs.h
     r_sky.c                r_sky.h
     r_skydefs.c            r_skydefs.h
-    r_srgb.c               r_srgb.h
+                           r_srgb.h
                            r_state.h
     r_swirl.c              r_swirl.h
     r_things.c             r_things.h
