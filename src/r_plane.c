@@ -589,8 +589,9 @@ static void do_draw_plane(visplane_t *pl)
       const fixed_t sin = finesine[pl->rotation >> ANGLETOFINESHIFT];
       const fixed_t cos = finecosine[pl->rotation >> ANGLETOFINESHIFT];
 
-      viewx_trans =   FixedMul(viewx + xoffs, cos) - FixedMul(viewy - yoffs, sin);
-      viewy_trans = -(FixedMul(viewx + xoffs, sin) + FixedMul(viewy - yoffs, cos));
+      viewx_trans = xoffs +  FixedMul(viewx, cos) - FixedMul(viewy, sin);
+      viewy_trans = yoffs - (FixedMul(viewx, sin) + FixedMul(viewy, cos));
+
     }
 
     planeheight = abs(pl->height - viewz);

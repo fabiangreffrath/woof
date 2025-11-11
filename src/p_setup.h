@@ -44,11 +44,14 @@ extern boolean skipblstart; // MaxW: Skip initial blocklist short
 
 struct sector_s *GetSectorAtNullAddress(void);
 void P_DegenMobjThinker(struct mobj_s *mobj);
-void P_SegLengths(boolean contrast_only);
+void P_SegLengths(void);
 
 void P_CreateBlockMap(void);
 void P_SetSkipBlockStart(void);
 int P_GroupLines (void);
+void P_SectorInit(sector_t * const sector);
+void P_SidedefInit(side_t * const sidedef);
+void P_LinedefInit(line_t * const linedef);
 void P_ProcessSideDefs(side_t *side, int i, char *bottomtexture, char *midtexture, char *toptexture);
 
 #endif

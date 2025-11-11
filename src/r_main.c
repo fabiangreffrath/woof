@@ -34,7 +34,6 @@
 #include "i_video.h"
 #include "p_mobj.h"
 #include "p_pspr.h"
-#include "p_setup.h" // P_SegLengths
 #include "r_bsp.h"
 #include "r_data.h"
 #include "r_defs.h"
@@ -504,8 +503,6 @@ void R_SmoothLight(void)
   R_InitLightTables();
   // [crispy] re-calculate the scalelight[][] array
   // R_ExecuteSetViewSize();
-  // [crispy] re-calculate fake contrast
-  P_SegLengths(true);
 }
 
 int R_GetLightIndex(fixed_t scale)
