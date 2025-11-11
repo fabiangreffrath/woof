@@ -38,7 +38,7 @@
 #include "w_wad.h"
 
 // Proper gamma adjustment, convert back and forth between byte values and
-// their corrected folat values, before doing any color blending.
+// their corrected float values, before doing any color blending.
 // References:
 // * https://en.wikipedia.org/wiki/SRGB#Definition
 // * https://www.youtube.com/watch?v=LKnqECcg6Gw
