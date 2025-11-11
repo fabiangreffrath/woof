@@ -1,8 +1,6 @@
 //
 //  Copyright (C) 1999 by
 //   id Software, Chi Hoang, Lee Killough, Jim Flynn, Rand Phares, Ty Halderman
-//  Copyright (C) 2017 by
-//   Project Nayuki
 //  Copyright (C) 2023 by
 //   Ryan Krafnick
 //  Copyright (C) 2025 by
@@ -20,11 +18,6 @@
 //
 // DESCRIPTION:
 //   Generation of transparency lookup tables.
-//
-// References for gamma adjustment:
-//   https://en.wikipedia.org/wiki/SRGB#Definition
-//   https://www.youtube.com/watch?v=LKnqECcg6Gw
-//   https://www.nayuki.io/page/srgb-transform-library
 //
 
 #include "doomtype.h"
