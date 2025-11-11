@@ -46,8 +46,8 @@
 static const double LinearRGB_ToFloat[256];
 static const byte LinearRGB_ToByte[10001];
 
-byte *tranmap;      // translucency filter maps 256x256   // phares
-byte *main_tranmap; // killough 4/11/98
+const byte *tranmap;      // translucency filter maps 256x256   // phares
+const byte *main_tranmap; // killough 4/11/98
 
 //
 // R_InitTranMap

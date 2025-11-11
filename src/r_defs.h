@@ -256,7 +256,7 @@ typedef struct line_s
   int validcount;        // if == validcount, already checked
   void *specialdata;     // thinker_t for reversable actions
 
-  byte *tranmap;         // better translucency handling
+  const byte *tranmap;   // better translucency handling
 
   int firsttag,nexttag;  // killough 4/17/98: improves searches for tags.
 
@@ -431,7 +431,7 @@ typedef struct vissprite_s
   const byte *brightmap;
 
   // ID24
-  byte *tranmap;
+  const byte *tranmap;
 
   // andrewj: voxel support
   int voxel_index;

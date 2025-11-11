@@ -1225,7 +1225,7 @@ static void ResetStatusBar(void)
 
 static void DrawPatch(int x, int y, crop_t crop, int maxheight,
                       sbaralignment_t alignment, patch_t *patch,
-                      crange_idx_e cr, byte *tl)
+                      crange_idx_e cr, const byte *tl)
 {
     if (!patch)
     {
