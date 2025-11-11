@@ -45,6 +45,7 @@
 // * https://www.nayuki.io/page/srgb-transform-library
 static const double LinearRGB_ToFloat[256];
 static const byte LinearRGB_ToByte[10001];
+static const double AlphaFloat[101];
 
 const byte *tranmap;      // translucency filter maps 256x256   // phares
 const byte *main_tranmap; // killough 4/11/98
@@ -83,8 +84,8 @@ static inline const byte BlendChannelNormal(const byte bg, const byte fg, const 
 {
     const double foreground_linear = LinearRGB_ToFloat[fg];
     const double background_linear = LinearRGB_ToFloat[bg];
-    const double alpha_float = a / 100.0;
-    const double result_float = (foreground_linear * alpha_float) + (background_linear * (1.0 - alpha_float));
+    const double alpha = AlphaFloat[a];
+    const double result_float = (foreground_linear * alpha) + (background_linear * (1.0 - alpha));
     const int    result_linear = result_float * 10000.0;
     return LinearRGB_ToByte[result_linear];
 }
@@ -289,6 +290,18 @@ void R_InitTranMap(boolean progress)
         I_Printf(VB_DEBUG, "Playpal checksum: %s", playpal_string);
     }
 }
+
+static const double AlphaFloat[101] = {
+    0.00, 0.01, 0.02, 0.03, 0.04, 0.05, 0.06, 0.07, 0.08, 0.09, 0.10, 0.11,
+    0.12, 0.13, 0.14, 0.15, 0.16, 0.17, 0.18, 0.19, 0.20, 0.21, 0.22, 0.23,
+    0.24, 0.25, 0.26, 0.27, 0.28, 0.29, 0.30, 0.31, 0.32, 0.33, 0.34, 0.35,
+    0.36, 0.37, 0.38, 0.39, 0.40, 0.41, 0.42, 0.43, 0.44, 0.45, 0.46, 0.47,
+    0.48, 0.49, 0.50, 0.51, 0.52, 0.53, 0.54, 0.55, 0.56, 0.57, 0.58, 0.59,
+    0.60, 0.61, 0.62, 0.63, 0.64, 0.65, 0.66, 0.67, 0.68, 0.69, 0.70, 0.71,
+    0.72, 0.73, 0.74, 0.75, 0.76, 0.77, 0.78, 0.79, 0.80, 0.81, 0.82, 0.83,
+    0.84, 0.85, 0.86, 0.87, 0.88, 0.89, 0.90, 0.91, 0.92, 0.93, 0.94, 0.95,
+    0.96, 0.97, 0.98, 0.99, 1.00,
+};
 
 static const double LinearRGB_ToFloat[256] = {
     0.0000, 0.0003, 0.0006, 0.0009, 0.0012, 0.0015, 0.0018, 0.0021, 0.0024,
