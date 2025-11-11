@@ -86,8 +86,8 @@ static inline const byte BlendChannelNormal(const byte bg, const byte fg, const 
     return SRGB_LinearToByte[r_linear];
 }
 
-static inline const byte CrispyBlend_Normal(byte *playpal, const byte *bg,
-                                            const byte *fg, const int alpha)
+static inline const byte ColorBlend_Normal(byte *playpal, const byte *bg,
+                                           const byte *fg, const int alpha)
 {
     int blend[3] = {0};
     blend[r] = BlendChannelNormal(bg[r], fg[r], alpha);
@@ -185,7 +185,7 @@ static byte *GenerateNormalTranmapData(int alpha, boolean progress)
             const byte *bg = playpal + 3 * i;
             const byte *fg = playpal + 3 * j;
 
-            *tp++ = CrispyBlend_Normal(playpal, bg, fg, alpha);
+            *tp++ = ColorBlend_Normal(playpal, bg, fg, alpha);
         }
     }
 
@@ -240,7 +240,7 @@ byte *R_NormalTranMap(int alpha, boolean progress, boolean force)
     return normal_tranmap[alpha];
 }
 
-void InitLinearTables(void)
+static void InitLinearTables(void)
 {
     static boolean do_once = true;
     if (do_once)
