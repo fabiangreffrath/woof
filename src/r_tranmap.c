@@ -255,17 +255,17 @@ void R_InitTranMap(boolean progress)
     // Dumps translucency tables for all alpha values (0-99)
     //
     const int build_all_alphas = M_CheckParm("-dumptranmap");
-
-    const int lump = W_CheckNumForName("TRANMAP");
-
-    if (build_all_alphas)
+    static boolean do_once = true; // otherise, always gets called by InitNew
+    if (build_all_alphas && do_once)
     {
         for (int alpha = 0; alpha < 100; ++alpha)
         {
             R_NormalTranMap(alpha, false, true);
         }
+        do_once = false;
     }
 
+    const int lump = W_CheckNumForName("TRANMAP");
     if (lump != -1 && !force_rebuild && !build_all_alphas)
     {
         main_tranmap = W_CacheLumpNum(lump, PU_STATIC); // killough 4/11/98
