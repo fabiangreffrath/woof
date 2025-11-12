@@ -29,7 +29,7 @@ extern const byte *main_tranmap;
 extern const byte *tranmap;
 
 // killough 3/6/98: translucency initialization
-void R_InitTranMap(boolean progress);
-byte *R_NormalTranMap(int alpha, boolean progress, boolean force);
+void R_InitTranMap(void);
+byte *R_NormalTranMap(int alpha, boolean force);
 
 #endif

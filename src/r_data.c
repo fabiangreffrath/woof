@@ -682,7 +682,7 @@ void R_InitTextures (void)
     // 1/18/98 killough:  reduce the number of initialization dots
     // and make more accurate
 
-    int temp3 = 8+(temp2-temp1+255)/128 + (numtextures+255)/128;  // killough
+    int temp3 = (temp2 - temp1 + 255) / 128 + (numtextures + 255)/128;  // killough
     I_PutChar(VB_INFO, '[');
     for (i = 0; i < temp3; i++)
       I_PutChar(VB_INFO, ' ');
@@ -885,6 +885,9 @@ void R_InitSpriteLumps(void)
       spriteoffset[i] = SHORT(patch->leftoffset)<<FRACBITS;
       spritetopoffset[i] = SHORT(patch->topoffset)<<FRACBITS;
     }
+
+  // [FG] finish progress line
+  I_PutChar(VB_INFO, '\n');
 }
 
 //
@@ -972,7 +975,7 @@ void R_InitData(void)
   R_InitFlatBrightmaps();
   R_InitTextures();
   R_InitSpriteLumps();
-  R_InitTranMap(true);                  // killough 2/21/98, 3/6/98
+  R_InitTranMap();                      // killough 2/21/98, 3/6/98
   R_InitColormaps();                    // killough 3/20/98
   R_InitSkyDefs();
 }

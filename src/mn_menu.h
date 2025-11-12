@@ -62,7 +62,6 @@ void MN_ClearEpisodes(void);
 
 void MN_ForcedLoadAutoSave(const char *msg);
 void MN_ForcedLoadGame(const char *msg); // killough 5/15/98: forced loadgames
-void MN_Trans(void);     // killough 11/98: reset translucency
 void MN_SetupResetMenu(void);
 void MN_UpdateFreeLook(void);
 void MN_UpdateAllGamepadItems(void);

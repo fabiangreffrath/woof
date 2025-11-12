@@ -1124,7 +1124,7 @@ static void UDMF_LoadLineDefs(void)
         if (udmf_linedefs[i].alpha < 1.0)
         {
           const int32_t alpha = (int32_t)floorf(udmf_linedefs[i].alpha * 100.0);
-          lines[i].tranmap = R_NormalTranMap(alpha, false, false);
+          lines[i].tranmap = R_NormalTranMap(alpha, false);
         }
 
         int32_t lump = W_CheckNumForName(udmf_linedefs[i].tranmap);
@@ -1250,7 +1250,7 @@ void UDMF_LoadThings(void)
         if (udmf_things[i].alpha < 1.0)
         {
           const int32_t alpha = (int32_t)floor(udmf_things[i].alpha * 100.0);
-          mt.tranmap = R_NormalTranMap(alpha, false, false);
+          mt.tranmap = R_NormalTranMap(alpha, false);
         }
 
         int32_t lump = W_CheckNumForName(udmf_things[i].tranmap);

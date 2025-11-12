@@ -33,7 +33,6 @@
 #include "m_io.h"
 #include "m_misc.h"
 #include "md5.h"
-#include "r_data.h"
 #include "r_srgb.h"
 #include "r_tranmap.h"
 #include "w_wad.h"
@@ -49,7 +48,6 @@
 static const int playpal_base_layer = 256 * 3; // RGB triplets
 static const int tranmap_lump_length = 256 * 256;
 static const int default_tranmap_alpha = 66;
-int tranmap_alpha = 66;
 
 static byte playpal_digest[16];
 static char playpal_string[33];
@@ -143,7 +141,7 @@ static void CreateTranMapPaletteDir(void)
 // The heart of it all
 //
 
-static byte *GenerateNormalTranmapData(double alpha, boolean progress)
+static byte *GenerateNormalTranmapData(double alpha)
 {
     byte *playpal = W_CacheLumpName("PLAYPAL", PU_STATIC);
 
@@ -154,11 +152,6 @@ static byte *GenerateNormalTranmapData(double alpha, boolean progress)
     // Background
     for (int i = 0; i < 256; i++)
     {
-        if (!(i & 31) && progress)
-        {
-            I_PutChar(VB_INFO, '.');
-        }
-
         // killough 10/98: display flashing disk
         if (!(~i & 15))
         {
@@ -182,16 +175,10 @@ static byte *GenerateNormalTranmapData(double alpha, boolean progress)
         }
     }
 
-    // [FG] finish progress line
-    if (progress)
-    {
-        I_PutChar(VB_INFO, '\n');
-    }
-
     return buffer;
 }
 
-byte *R_NormalTranMap(int alpha, boolean progress, boolean force)
+byte *R_NormalTranMap(int alpha, boolean force)
 {
     if (alpha > 99)
     {
@@ -222,7 +209,7 @@ byte *R_NormalTranMap(int alpha, boolean progress, boolean force)
 
         if (force || !buffer)
         {
-            buffer = GenerateNormalTranmapData(alpha/100.0, progress);
+            buffer = GenerateNormalTranmapData(alpha/100.0);
             M_WriteFile(filename, buffer, tranmap_lump_length);
         }
 
@@ -233,7 +220,7 @@ byte *R_NormalTranMap(int alpha, boolean progress, boolean force)
     return normal_tranmap[alpha];
 }
 
-void R_InitTranMap(boolean progress)
+void R_InitTranMap(void)
 {
     //!
     // @category mod
@@ -242,39 +229,25 @@ void R_InitTranMap(boolean progress)
     //
     const int force_rebuild = M_CheckParm("-tranmap");
 
-    //!
-    // @category mod
-    //
-    // Dumps translucency tables for all alpha values (0-99)
-    //
-    const int build_all_alphas = M_CheckParm("-dumptranmap");
-
-    if (build_all_alphas)
+    if (force_rebuild)
     {
         for (int alpha = 0; alpha < 100; ++alpha)
         {
-            R_NormalTranMap(alpha, false, true);
+            R_NormalTranMap(alpha, true);
         }
     }
 
     const int lump = W_CheckNumForName("TRANMAP");
-    if (lump != -1 && !force_rebuild && !build_all_alphas)
+    if (lump != -1 && !force_rebuild)
     {
-        main_tranmap = W_CacheLumpNum(lump, PU_STATIC); // killough 4/11/98
+        // killough 4/11/98
+        main_tranmap = W_CacheLumpNum(lump, PU_STATIC);
     }
     else
     {
-        // Only do alpha of 66 in strictmode, also force rebuild
-        int alpha = strictmode ? default_tranmap_alpha : tranmap_alpha;
-        main_tranmap = R_NormalTranMap(alpha, progress, strictmode);
-        if (progress)
-        {
-            I_Printf(VB_INFO, "........");
-        }
+        // Only do alpha of 66, also force rebuild in strictmode
+        main_tranmap = R_NormalTranMap(default_tranmap_alpha, strictmode);
     }
 
-    if (progress)
-    {
-        I_Printf(VB_DEBUG, "Playpal checksum: %s", playpal_string);
-    }
+    I_Printf(VB_DEBUG, "Playpal checksum: %s", playpal_string);
 }
