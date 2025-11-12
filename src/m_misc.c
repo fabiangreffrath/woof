@@ -23,6 +23,7 @@
 #include <string.h>
 #include <ctype.h>
 
+#include "i_printf.h"
 #include "i_system.h"
 #include "m_io.h"
 #include "m_misc.h"
@@ -687,4 +688,37 @@ boolean M_StringToDigest(const char *string, byte *digest, int size)
         digest[offset] = i;
     }
     return true;
+}
+
+// Really complex printing shit...
+void M_ProgressBarStart(const int item_count, const char *msg)
+{
+  const int loop_count = (item_count + 255) / 128;
+  I_Printf(VB_INFO, " %s: ", msg);
+
+  I_PutChar(VB_INFO, '[');
+  for (int i = 0; i <= loop_count; i++)
+  {
+    I_PutChar(VB_INFO, ' ');
+  }
+  I_PutChar(VB_INFO, ']');
+
+  for (int i = 0; i <= loop_count; i++)
+  {
+    I_PutChar(VB_INFO, '\x8');
+  }
+}
+
+void M_ProgressBarMove(const int item_current)
+{
+  if (!(item_current & 127))
+  {
+    I_PutChar(VB_INFO, '.');
+  }
+}
+
+// [FG] finish progress line
+void M_ProgressBarEnd(void)
+{
+  I_PutChar(VB_INFO, '\n');
 }

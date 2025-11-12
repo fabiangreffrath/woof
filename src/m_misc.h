@@ -72,4 +72,9 @@ boolean M_WriteFile(const char *name, void *source, int length);
 int M_ReadFile(const char *name, byte **buffer);
 boolean M_StringToDigest(const char *string, byte *digest, int size);
 
+// Really complex printing shit...
+void M_ProgressBarStart(const int item_count, const char *msg);
+void M_ProgressBarMove(const int item_current);
+void M_ProgressBarEnd(void); // [FG] finish progress line
+
 #endif
