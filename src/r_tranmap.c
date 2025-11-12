@@ -226,10 +226,13 @@ void R_InitTranMap(void)
 
     if (force_rebuild)
     {
+        M_ProgressBarStart(100 * 128, __FUNCTION__);
         for (int alpha = 0; alpha < 100; ++alpha)
         {
             R_NormalTranMap(alpha, true);
+            M_ProgressBarMove(alpha * 128);
         }
+        M_ProgressBarEnd();
     }
 
     const int lump = W_CheckNumForName("TRANMAP");
