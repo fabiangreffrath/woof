@@ -36,19 +36,27 @@ inline static const double byte_to_linear(const byte c)
 {
     double cs = c / 255.0;
     if (cs <= 0.04045)
+    {
         return cs / 12.92;
+    }
     else
+    {
         return pow((cs + 0.055) / 1.055, 2.4);
+    }
 }
 
 inline static const byte linear_to_byte(double x)
 {
     if (x <= 0.0031308)
+    {
         x *= 12.92;
+    }
     else
-        x = 1.055 * pow(x, 1.0/2.4) - 0.055;
+    {
+        x = 1.055 * pow(x, 1.0 / 2.4) - 0.055;
+    }
 
-    CLAMP(x, 0, 1);
+    x = CLAMP(x, 0.0, 1.0);
     return (x * 255.0 + 0.5);
 }
 
