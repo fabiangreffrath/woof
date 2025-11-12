@@ -690,6 +690,15 @@ boolean M_StringToDigest(const char *string, byte *digest, int size)
     return true;
 }
 
+void M_DigestToString(const byte *digest, char *string, int size)
+{
+    for (int i = 0; i < size; ++i)
+    {
+        sprintf(&string[i * 2], "%02x", digest[i]);
+    }
+    string[size * 2] = '\0';
+}
+
 // Really complex printing shit...
 void M_ProgressBarStart(const int item_count, const char *msg)
 {

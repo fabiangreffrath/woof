@@ -71,6 +71,7 @@ char *AddDefaultExtension(const char *path, const char *ext);
 boolean M_WriteFile(const char *name, void *source, int length);
 int M_ReadFile(const char *name, byte **buffer);
 boolean M_StringToDigest(const char *string, byte *digest, int size);
+void M_DigestToString(const byte *digest, char *string, int size);
 
 // Really complex printing shit...
 void M_ProgressBarStart(const int item_count, const char *msg);

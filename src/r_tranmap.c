@@ -99,12 +99,7 @@ static void CalculatePlaypalChecksum(void)
     MD5Init(&md5);
     MD5Update(&md5, W_CacheLumpNum(lump, PU_STATIC), playpal_base_layer);
     MD5Final(playpal_digest, &md5);
-
-    for (int i = 0; i < sizeof(playpal_digest); ++i)
-    {
-        sprintf(&playpal_string[i * 2], "%02x", playpal_digest[i]);
-    }
-    playpal_string[32] = '\0';
+    M_DigestToString(playpal_digest, playpal_string, sizeof(playpal_digest));
 }
 
 static void CreateTranMapBaseDir(void)
