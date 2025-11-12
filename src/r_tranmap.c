@@ -34,11 +34,9 @@
 #include "m_misc.h"
 #include "md5.h"
 #include "r_data.h"
+#include "r_srgb.h"
 #include "r_tranmap.h"
 #include "w_wad.h"
-
-byte *tranmap;      // translucency filter maps 256x256   // phares
-byte *main_tranmap; // killough 4/11/98
 
 //
 // R_InitTranMap
@@ -58,6 +56,9 @@ static char playpal_string[33];
 static char *tranmap_dir, *playpal_dir;
 static byte *normal_tranmap[100];
 
+const byte *tranmap;      // translucency filter maps 256x256   // phares
+const byte *main_tranmap; // killough 4/11/98
+
 //
 // Blending algorthims!
 //
@@ -69,16 +70,22 @@ enum
     b
 };
 
-#define ChannelBlend_Normal(blend, bg, fg, alpha) \
-    (blend = ((alpha * fg) + ((100 - alpha) * bg)) / 100)
+// The heart of the calculation
+inline static const byte BlendChannelNormal(const byte bg, const byte fg, const double a)
+{
+    const double fg_linear = byte_to_linear(fg);
+    const double bg_linear = byte_to_linear(bg);
+    const double r_linear = (fg_linear * a) + (bg_linear * (1.0 - a));
+    return linear_to_byte(r_linear);
+}
 
-static const byte CrispyBlend_Normal(byte *playpal, const byte *bg,
-                                     const byte *fg, const int alpha)
+inline static const byte ColorBlend_Normal(byte *playpal, const byte *bg,
+                                           const byte *fg, const double alpha)
 {
     int blend[3] = {0};
-    ChannelBlend_Normal(blend[r], bg[r], fg[r], alpha);
-    ChannelBlend_Normal(blend[g], bg[g], fg[g], alpha);
-    ChannelBlend_Normal(blend[b], bg[b], fg[b], alpha);
+    blend[r] = BlendChannelNormal(bg[r], fg[r], alpha);
+    blend[g] = BlendChannelNormal(bg[g], fg[g], alpha);
+    blend[b] = BlendChannelNormal(bg[b], fg[b], alpha);
     return I_GetNearestColor(playpal, blend[r], blend[g], blend[b]);
 }
 
@@ -136,7 +143,7 @@ static void CreateTranMapPaletteDir(void)
 // The heart of it all
 //
 
-static byte *GenerateNormalTranmapData(int alpha, boolean progress)
+static byte *GenerateNormalTranmapData(double alpha, boolean progress)
 {
     byte *playpal = W_CacheLumpName("PLAYPAL", PU_STATIC);
 
@@ -147,8 +154,6 @@ static byte *GenerateNormalTranmapData(int alpha, boolean progress)
     // Background
     for (int i = 0; i < 256; i++)
     {
-        const byte *bg = playpal + 3 * i;
-
         if (!(i & 31) && progress)
         {
             I_PutChar(VB_INFO, '.');
@@ -170,16 +175,10 @@ static byte *GenerateNormalTranmapData(int alpha, boolean progress)
         // Foreground
         for (int j = 0; j < 256; j++)
         {
-            // [crispy] shortcut: identical foreground and background
-            if (i == j)
-            {
-                *tp++ = i;
-                continue;
-            }
-
+            const byte *bg = playpal + 3 * i;
             const byte *fg = playpal + 3 * j;
 
-            *tp++ = CrispyBlend_Normal(playpal, bg, fg, alpha);
+            *tp++ = ColorBlend_Normal(playpal, bg, fg, alpha);
         }
     }
 
@@ -223,7 +222,7 @@ byte *R_NormalTranMap(int alpha, boolean progress, boolean force)
 
         if (force || !buffer)
         {
-            buffer = GenerateNormalTranmapData(alpha, progress);
+            buffer = GenerateNormalTranmapData(alpha/100.0, progress);
             M_WriteFile(filename, buffer, tranmap_lump_length);
         }
 
@@ -250,8 +249,6 @@ void R_InitTranMap(boolean progress)
     //
     const int build_all_alphas = M_CheckParm("-dumptranmap");
 
-    const int lump = W_CheckNumForName("TRANMAP");
-
     if (build_all_alphas)
     {
         for (int alpha = 0; alpha < 100; ++alpha)
@@ -260,6 +257,7 @@ void R_InitTranMap(boolean progress)
         }
     }
 
+    const int lump = W_CheckNumForName("TRANMAP");
     if (lump != -1 && !force_rebuild && !build_all_alphas)
     {
         main_tranmap = W_CacheLumpNum(lump, PU_STATIC); // killough 4/11/98

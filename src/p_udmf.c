@@ -1183,8 +1183,8 @@ static void UDMF_LoadLineDefs_Post(void)
             {
                 // translucency from sidedef
                 int32_t lump = sides[*lines[i].sidenum].special;
-                byte *tranmap = (!lump) ? main_tranmap
-                                        : W_CacheLumpNum(lump - 1, PU_STATIC);
+                const byte *tranmap =
+                    !lump ? main_tranmap : W_CacheLumpNum(lump - 1, PU_STATIC);
                 if (!lines[i].args[0])
                 {
                     // if tag==0, affect this linedef only
