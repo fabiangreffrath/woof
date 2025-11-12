@@ -39,13 +39,6 @@
 #include "w_wad.h"
 
 //
-// Proper gamma adjustment, convert back and forth between byte values and
-// their corrected float values, before doing any color blending.
-//
-static double SRGB_ByteToLinear[101][256];
-static byte SRGB_LinearToByte[10001];
-
-//
 // R_InitTranMap
 //
 // Initialize translucency filter map
@@ -78,16 +71,16 @@ enum
 };
 
 // The heart of the calculation
-static inline const byte BlendChannelNormal(const byte bg, const byte fg, const int a)
+inline static const byte BlendChannelNormal(const byte bg, const byte fg, const double a)
 {
-    const double fg_linear = SRGB_ByteToLinear[    a][fg];
-    const double bg_linear = SRGB_ByteToLinear[100-a][bg];
-    const int r_linear = fg_linear + bg_linear;
-    return SRGB_LinearToByte[r_linear];
+    const double fg_linear = byte_to_linear(fg);
+    const double bg_linear = byte_to_linear(bg);
+    const double r_linear = (fg_linear * a) + (bg_linear * (1.0 - a));
+    return linear_to_byte(r_linear);
 }
 
-static inline const byte ColorBlend_Normal(byte *playpal, const byte *bg,
-                                           const byte *fg, const int alpha)
+inline static const byte ColorBlend_Normal(byte *playpal, const byte *bg,
+                                           const byte *fg, const double alpha)
 {
     int blend[3] = {0};
     blend[r] = BlendChannelNormal(bg[r], fg[r], alpha);
@@ -150,7 +143,7 @@ static void CreateTranMapPaletteDir(void)
 // The heart of it all
 //
 
-static byte *GenerateNormalTranmapData(int alpha, boolean progress)
+static byte *GenerateNormalTranmapData(double alpha, boolean progress)
 {
     byte *playpal = W_CacheLumpName("PLAYPAL", PU_STATIC);
 
@@ -229,7 +222,7 @@ byte *R_NormalTranMap(int alpha, boolean progress, boolean force)
 
         if (force || !buffer)
         {
-            buffer = GenerateNormalTranmapData(alpha, progress);
+            buffer = GenerateNormalTranmapData(alpha/100.0, progress);
             M_WriteFile(filename, buffer, tranmap_lump_length);
         }
 
@@ -240,27 +233,8 @@ byte *R_NormalTranMap(int alpha, boolean progress, boolean force)
     return normal_tranmap[alpha];
 }
 
-static void InitLinearTables(void)
-{
-    static boolean do_once = true;
-    if (do_once)
-    {
-        for (int a = 0; a <= 100; a++)
-            for (int i = 0; i <= 255; i++)
-                SRGB_ByteToLinear[a][i] = 10000.0 * (byte_to_linear(i) * a / 100.0);
-
-        for (int l = 0; l <= 10000; l++)
-            SRGB_LinearToByte[l] = linear_to_byte(l / 10000.0);
-
-        do_once = false;
-    }
-}
-
-
 void R_InitTranMap(boolean progress)
 {
-    InitLinearTables();
-
     //!
     // @category mod
     //
