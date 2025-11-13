@@ -247,5 +247,5 @@ void R_InitTranMap(void)
         main_tranmap = R_NormalTranMap(default_tranmap_alpha, strictmode);
     }
 
-    I_Printf(VB_DEBUG, "Playpal checksum: %s", playpal_string);
+    I_Printf(force_rebuild ? VB_INFO : VB_DEBUG, "Playpal checksum: %s", playpal_string);
 }
