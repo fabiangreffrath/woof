@@ -250,10 +250,9 @@ void R_InitTranMap(void)
     {
         const int alpha = CLAMP(M_ParmArgToInt(p), 0, 99);
         const byte *tranmap = R_NormalTranMap(alpha, true);
-        const int name_length = sizeof("tranmap_xy");
 
-        char filename[name_length];
-        snprintf(filename, name_length, "tranmap_%02d", alpha);
+        char filename[11];
+        snprintf(filename, 11, "tranmap_%02d", alpha);
 
         char *path = AddDefaultExtension(filename, ".lmp");
         M_WriteFile(path, tranmap, tranmap_lump_length);
