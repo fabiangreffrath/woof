@@ -83,6 +83,7 @@ static const char *params_with_args[] = {
 "-bexout",
 "-deh",
 "-dehout",
+"-dumptranmap",
 "-fastdemo",
 "-maxdemo",
 "-playdemo",

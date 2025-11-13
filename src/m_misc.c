@@ -616,7 +616,7 @@ char *AddDefaultExtension(const char *path, const char *ext)
 //
 // killough 9/98: rewritten to use stdio and to flash disk icon
 
-boolean M_WriteFile(char const *name, void *source, int length)
+boolean M_WriteFile(char const *name, const void *source, int length)
 {
     FILE *fp;
 

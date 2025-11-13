@@ -68,7 +68,7 @@ int M_snprintf(char *buf, size_t buf_len, const char *s, ...) PRINTF_ATTR(3, 4);
 
 void M_CopyLumpName(char *dest, const char *src);
 char *AddDefaultExtension(const char *path, const char *ext);
-boolean M_WriteFile(const char *name, void *source, int length);
+boolean M_WriteFile(const char *name, const void *source, int length);
 int M_ReadFile(const char *name, byte **buffer);
 boolean M_StringToDigest(const char *string, byte *digest, int size);
 void M_DigestToString(const byte *digest, char *string, int size);

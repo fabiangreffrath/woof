@@ -21,12 +21,13 @@
 //
 
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 
 #include "d_iwad.h"
 #include "doomdef.h"
-#include "doomstat.h"
 #include "doomtype.h"
+#include "i_exit.h"
 #include "i_printf.h"
 #include "i_video.h"
 #include "m_argv.h"
@@ -36,6 +37,7 @@
 #include "r_srgb.h"
 #include "r_tranmap.h"
 #include "w_wad.h"
+#include "z_zone.h"
 
 //
 // R_InitTranMap
@@ -235,4 +237,28 @@ void R_InitTranMap(void)
     }
 
     I_Printf(VB_INFO, "Playpal checksum: %s", playpal_string);
+
+    //!
+    // @category mod
+    // @arg <alpha>
+    //
+    // Dump tranmap lump, given an alpha level (opacity percentage).
+    // Valid values are 0 through to 99.
+    //
+    int p = M_CheckParmWithArgs("-dumptranmap", 1);
+    if (p > 0)
+    {
+        const int alpha = CLAMP(M_ParmArgToInt(p), 0, 99);
+        const byte *tranmap = R_NormalTranMap(alpha, true);
+        const int name_length = sizeof("tranmap_xy");
+
+        char filename[name_length];
+        snprintf(filename, name_length, "tranmap_%02d", alpha);
+
+        char *path = AddDefaultExtension(filename, ".lmp");
+        M_WriteFile(path, tranmap, tranmap_lump_length);
+        free(path);
+
+        I_SafeExit(0);
+    }
 }
