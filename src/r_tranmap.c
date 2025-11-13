@@ -45,9 +45,9 @@
 // By Lee Killough 2/21/98
 //
 
-static const int playpal_base_layer = 256 * 3; // RGB triplets
-static const int tranmap_lump_length = 256 * 256;
-static const int default_tranmap_alpha = 66;
+static const int playpal_base_layer = 256 * 3;    // RGB triplets
+static const int tranmap_lump_length = 256 * 256; // Plain RAW graphic
+static const int default_tranmap_alpha = 66;      // Keep it simple, only do alpha of 66
 
 static byte playpal_digest[16];
 static char playpal_string[33];
@@ -223,29 +223,16 @@ void R_InitTranMap(void)
     // Forces the (re-)building of the translucency table.
     //
     const int force_rebuild = M_CheckParm("-tranmap");
-
-    if (force_rebuild)
-    {
-        M_ProgressBarStart(100 * 128, __func__);
-        for (int alpha = 0; alpha < 100; ++alpha)
-        {
-            R_NormalTranMap(alpha, true);
-            M_ProgressBarMove(alpha * 128);
-        }
-        M_ProgressBarEnd();
-    }
-
     const int lump = W_CheckNumForName("TRANMAP");
+
     if (lump != -1 && !force_rebuild)
     {
-        // killough 4/11/98
         main_tranmap = W_CacheLumpNum(lump, PU_STATIC);
     }
     else
     {
-        // Only do alpha of 66, also force rebuild in strictmode
-        main_tranmap = R_NormalTranMap(default_tranmap_alpha, strictmode);
+        main_tranmap = R_NormalTranMap(default_tranmap_alpha, true);
     }
 
-    I_Printf(force_rebuild ? VB_INFO : VB_DEBUG, "Playpal checksum: %s", playpal_string);
+    I_Printf(VB_INFO, "Playpal checksum: %s", playpal_string);
 }
