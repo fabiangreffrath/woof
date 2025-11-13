@@ -226,7 +226,7 @@ void R_InitTranMap(void)
 
     if (force_rebuild)
     {
-        M_ProgressBarStart(100 * 128, __FUNCTION__);
+        M_ProgressBarStart(100 * 128, __func__);
         for (int alpha = 0; alpha < 100; ++alpha)
         {
             R_NormalTranMap(alpha, true);

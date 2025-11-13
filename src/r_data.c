@@ -676,7 +676,7 @@ void R_InitTextures (void)
   texturebrightmap = Z_Malloc (numtextures * sizeof(*texturebrightmap), PU_STATIC, 0);
 
   // Complex printing shit factored out
-  M_ProgressBarStart(numtextures, __FUNCTION__);
+  M_ProgressBarStart(numtextures, __func__);
 
   // TEXTURE1 & TEXTURE2 only. TX_ markers parsed below.
   for (i=0 ; i<numtextures1 + numtextures2 ; i++, directory++)
@@ -860,7 +860,7 @@ void R_InitSpriteLumps(void)
   spritetopoffset =
     Z_Malloc(numspritelumps*sizeof*spritetopoffset, PU_STATIC, 0);
 
-  M_ProgressBarStart(numspritelumps, __FUNCTION__);
+  M_ProgressBarStart(numspritelumps, __func__);
 
   for (i=0 ; i< numspritelumps ; i++)
     {
