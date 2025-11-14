@@ -110,7 +110,7 @@ static void CreateTranMapBaseDir(void)
     const int length = strlen(data_root) + sizeof("/tranmaps");
 
     tranmap_dir = Z_Malloc(length, PU_STATIC, 0);
-    snprintf(tranmap_dir, length, "%s/tranmaps", data_root);
+    M_snprintf(tranmap_dir, length, "%s/tranmaps", data_root);
 
     M_MakeDirectory(tranmap_dir);
 }
@@ -129,7 +129,7 @@ static void CreateTranMapPaletteDir(void)
 
     int length = strlen(tranmap_dir) + sizeof(playpal_string) + 1;
     playpal_dir = Z_Malloc(length, PU_STATIC, 0);
-    snprintf(playpal_dir, length, "%s/%s", tranmap_dir, playpal_string);
+    M_snprintf(playpal_dir, length, "%s/%s", tranmap_dir, playpal_string);
 
     M_MakeDirectory(playpal_dir);
 }
@@ -191,7 +191,7 @@ byte *R_NormalTranMap(int alpha, boolean force)
 
         const int length = strlen(playpal_dir) + sizeof("/tranmap_XY.dat");
         char *filename = Z_Malloc(length, PU_STATIC, 0);
-        snprintf(filename, length, "%s/tranmap_%02d.dat", playpal_dir, alpha);
+        M_snprintf(filename, length, "%s/tranmap_%02d.dat", playpal_dir, alpha);
 
         byte *buffer = NULL;
         if (!force && M_FileExistsNotDir(filename))

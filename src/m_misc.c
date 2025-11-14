@@ -694,9 +694,8 @@ void M_DigestToString(const byte *digest, char *string, int size)
 {
     for (int i = 0; i < size; ++i)
     {
-        sprintf(&string[i * 2], "%02x", digest[i]);
+        M_snprintf(&string[i * 2], 3, "%02x", digest[i]);
     }
-    string[size * 2] = '\0';
 }
 
 // Really complex printing shit...
