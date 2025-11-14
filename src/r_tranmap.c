@@ -240,21 +240,17 @@ void R_InitTranMap(void)
 
     //!
     // @category mod
-    // @arg <alpha>
+    // @arg <alpha> <name>
     //
     // Dump tranmap lump, given an alpha level (opacity percentage).
     // Valid values are 0 through to 99.
     //
-    int p = M_CheckParmWithArgs("-dumptranmap", 1);
+    const int p = M_CheckParmWithArgs("-dumptranmap", 2);
     if (p > 0)
     {
         const int alpha = CLAMP(M_ParmArgToInt(p), 0, 99);
         const byte *tranmap = R_NormalTranMap(alpha, true);
-
-        char filename[11];
-        snprintf(filename, 11, "tranmap_%02d", alpha);
-
-        char *path = AddDefaultExtension(filename, ".lmp");
+        char *path = AddDefaultExtension(myargv[p + 2], ".lmp");
         M_WriteFile(path, tranmap, tranmap_lump_length);
         free(path);
 
