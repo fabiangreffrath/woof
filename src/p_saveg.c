@@ -601,6 +601,15 @@ static void saveg_read_player_t(player_t *str)
     }
 
     str->nextweapon = str->readyweapon;
+
+    if (saveg_compat > saveg_woof1500)
+    {
+      str->switching = saveg_read_enum();
+    }
+    else
+    {
+      str->switching = weapswitch_none;
+    }
 }
 
 static void saveg_read_ceiling_t(ceiling_t *str)

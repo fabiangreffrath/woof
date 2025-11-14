@@ -678,6 +678,7 @@ static void read_player_t(player_t *str)
 
     str->lastweapon = read_enum();
     str->nextweapon = read_enum();
+    str->switching = read_enum();
 }
 
 static void write_player_t(player_t *str)
@@ -757,6 +758,7 @@ static void write_player_t(player_t *str)
 
     write_enum(str->lastweapon);
     write_enum(str->nextweapon);
+    write_enum(str->switching);
 }
 
 static void read_ceiling_t(ceiling_t *str, thinker_class_t tc)
