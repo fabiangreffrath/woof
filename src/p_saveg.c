@@ -402,6 +402,20 @@ static void saveg_read_pspdef_t(pspdef_t *str)
 
     str->oldsx2 = str->sx2;
     str->oldsy2 = str->sy2;
+
+    if (saveg_compat > saveg_woof1500)
+    {
+        // [Woof!]: fixed_t sxf;
+        str->sxf = saveg_read32();
+
+        // [Woof!]: fixed_t syf;
+        str->syf = saveg_read32();
+    }
+    else
+    {
+        str->sxf = 0;
+        str->syf = 0;
+    }
 }
 
 static void saveg_read_player_t(player_t *str)
