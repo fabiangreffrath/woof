@@ -601,6 +601,8 @@ static void saveg_read_player_t(player_t *str)
     }
 
     str->nextweapon = str->readyweapon;
+
+    str->switching = weapswitch_none;
 }
 
 static void saveg_read_ceiling_t(ceiling_t *str)
