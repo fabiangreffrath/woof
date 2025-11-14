@@ -3437,11 +3437,6 @@ void MN_DisableVoxelsRenderingItem(void)
     DisableItem(true, gen_settings5, "voxels_rendering");
 }
 
-void MN_Trans(void) // To reset translucency after setting it in menu
-{
-    R_InitTranMap(false);
-}
-
 // Setting up for the General screen. Turn on flags, set pointers,
 // locate the first item on the screen where the cursor is allowed to
 // land.

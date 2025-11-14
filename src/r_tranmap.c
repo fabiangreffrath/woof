@@ -21,22 +21,23 @@
 //
 
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 
 #include "d_iwad.h"
 #include "doomdef.h"
-#include "doomstat.h"
 #include "doomtype.h"
+#include "i_exit.h"
 #include "i_printf.h"
 #include "i_video.h"
 #include "m_argv.h"
 #include "m_io.h"
 #include "m_misc.h"
 #include "md5.h"
-#include "r_data.h"
 #include "r_srgb.h"
 #include "r_tranmap.h"
 #include "w_wad.h"
+#include "z_zone.h"
 
 //
 // R_InitTranMap
@@ -46,10 +47,9 @@
 // By Lee Killough 2/21/98
 //
 
-static const int playpal_base_layer = 256 * 3; // RGB triplets
-static const int tranmap_lump_length = 256 * 256;
-static const int default_tranmap_alpha = 66;
-int tranmap_alpha = 66;
+static const int playpal_base_layer = 256 * 3;    // RGB triplets
+static const int tranmap_lump_length = 256 * 256; // Plain RAW graphic
+static const int default_tranmap_alpha = 66;      // Keep it simple, only do alpha of 66
 
 static byte playpal_digest[16];
 static char playpal_string[33];
@@ -101,12 +101,7 @@ static void CalculatePlaypalChecksum(void)
     MD5Init(&md5);
     MD5Update(&md5, W_CacheLumpNum(lump, PU_STATIC), playpal_base_layer);
     MD5Final(playpal_digest, &md5);
-
-    for (int i = 0; i < sizeof(playpal_digest); ++i)
-    {
-        sprintf(&playpal_string[i * 2], "%02x", playpal_digest[i]);
-    }
-    playpal_string[32] = '\0';
+    M_DigestToString(playpal_digest, playpal_string, sizeof(playpal_digest));
 }
 
 static void CreateTranMapBaseDir(void)
@@ -115,7 +110,7 @@ static void CreateTranMapBaseDir(void)
     const int length = strlen(data_root) + sizeof("/tranmaps");
 
     tranmap_dir = Z_Malloc(length, PU_STATIC, 0);
-    snprintf(tranmap_dir, length, "%s/tranmaps", data_root);
+    M_snprintf(tranmap_dir, length, "%s/tranmaps", data_root);
 
     M_MakeDirectory(tranmap_dir);
 }
@@ -134,7 +129,7 @@ static void CreateTranMapPaletteDir(void)
 
     int length = strlen(tranmap_dir) + sizeof(playpal_string) + 1;
     playpal_dir = Z_Malloc(length, PU_STATIC, 0);
-    snprintf(playpal_dir, length, "%s/%s", tranmap_dir, playpal_string);
+    M_snprintf(playpal_dir, length, "%s/%s", tranmap_dir, playpal_string);
 
     M_MakeDirectory(playpal_dir);
 }
@@ -143,7 +138,7 @@ static void CreateTranMapPaletteDir(void)
 // The heart of it all
 //
 
-static byte *GenerateNormalTranmapData(double alpha, boolean progress)
+static byte *GenerateNormalTranmapData(double alpha)
 {
     byte *playpal = W_CacheLumpName("PLAYPAL", PU_STATIC);
 
@@ -154,11 +149,6 @@ static byte *GenerateNormalTranmapData(double alpha, boolean progress)
     // Background
     for (int i = 0; i < 256; i++)
     {
-        if (!(i & 31) && progress)
-        {
-            I_PutChar(VB_INFO, '.');
-        }
-
         // killough 10/98: display flashing disk
         if (!(~i & 15))
         {
@@ -182,16 +172,10 @@ static byte *GenerateNormalTranmapData(double alpha, boolean progress)
         }
     }
 
-    // [FG] finish progress line
-    if (progress)
-    {
-        I_PutChar(VB_INFO, '\n');
-    }
-
     return buffer;
 }
 
-byte *R_NormalTranMap(int alpha, boolean progress, boolean force)
+byte *R_NormalTranMap(int alpha, boolean force)
 {
     if (alpha > 99)
     {
@@ -207,7 +191,7 @@ byte *R_NormalTranMap(int alpha, boolean progress, boolean force)
 
         const int length = strlen(playpal_dir) + sizeof("/tranmap_XY.dat");
         char *filename = Z_Malloc(length, PU_STATIC, 0);
-        snprintf(filename, length, "%s/tranmap_%02d.dat", playpal_dir, alpha);
+        M_snprintf(filename, length, "%s/tranmap_%02d.dat", playpal_dir, alpha);
 
         byte *buffer = NULL;
         if (!force && M_FileExistsNotDir(filename))
@@ -222,7 +206,7 @@ byte *R_NormalTranMap(int alpha, boolean progress, boolean force)
 
         if (force || !buffer)
         {
-            buffer = GenerateNormalTranmapData(alpha/100.0, progress);
+            buffer = GenerateNormalTranmapData(alpha/100.0);
             M_WriteFile(filename, buffer, tranmap_lump_length);
         }
 
@@ -233,7 +217,7 @@ byte *R_NormalTranMap(int alpha, boolean progress, boolean force)
     return normal_tranmap[alpha];
 }
 
-void R_InitTranMap(boolean progress)
+void R_InitTranMap(void)
 {
     //!
     // @category mod
@@ -241,40 +225,35 @@ void R_InitTranMap(boolean progress)
     // Forces the (re-)building of the translucency table.
     //
     const int force_rebuild = M_CheckParm("-tranmap");
-
-    //!
-    // @category mod
-    //
-    // Dumps translucency tables for all alpha values (0-99)
-    //
-    const int build_all_alphas = M_CheckParm("-dumptranmap");
-
-    if (build_all_alphas)
-    {
-        for (int alpha = 0; alpha < 100; ++alpha)
-        {
-            R_NormalTranMap(alpha, false, true);
-        }
-    }
-
     const int lump = W_CheckNumForName("TRANMAP");
-    if (lump != -1 && !force_rebuild && !build_all_alphas)
+
+    if (lump != -1 && !force_rebuild)
     {
-        main_tranmap = W_CacheLumpNum(lump, PU_STATIC); // killough 4/11/98
+        main_tranmap = W_CacheLumpNum(lump, PU_STATIC);
     }
     else
     {
-        // Only do alpha of 66 in strictmode, also force rebuild
-        int alpha = strictmode ? default_tranmap_alpha : tranmap_alpha;
-        main_tranmap = R_NormalTranMap(alpha, progress, strictmode);
-        if (progress)
-        {
-            I_Printf(VB_INFO, "........");
-        }
+        main_tranmap = R_NormalTranMap(default_tranmap_alpha, true);
     }
 
-    if (progress)
+    I_Printf(VB_INFO, "Playpal checksum: %s", playpal_string);
+
+    //!
+    // @category mod
+    // @arg <alpha> <name>
+    //
+    // Dump tranmap lump, given an alpha level (opacity percentage).
+    // Valid values are 0 through to 99.
+    //
+    const int p = M_CheckParmWithArgs("-dumptranmap", 2);
+    if (p > 0)
     {
-        I_Printf(VB_DEBUG, "Playpal checksum: %s", playpal_string);
+        const int alpha = CLAMP(M_ParmArgToInt(p), 0, 99);
+        const byte *tranmap = R_NormalTranMap(alpha, true);
+        char *path = AddDefaultExtension(myargv[p + 2], ".lmp");
+        M_WriteFile(path, tranmap, tranmap_lump_length);
+        free(path);
+
+        I_SafeExit(0);
     }
 }

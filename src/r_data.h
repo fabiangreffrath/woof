@@ -73,9 +73,6 @@ boolean R_IsPatchLump (const int lump);
 
 extern int numflats;
 
-
-extern int32_t tranmap_alpha;
-
 typedef enum
 {
   INVUL_VANILLA,

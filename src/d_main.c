@@ -2435,7 +2435,7 @@ void D_DoomMain(void)
   I_Printf(VB_INFO, "M_Init: Init miscellaneous info.");
   M_Init();
 
-  I_Printf(VB_INFO, "R_Init: Init DOOM refresh daemon - ");
+  I_Printf(VB_INFO, "R_Init: Init DOOM refresh daemon.");
   R_Init();
 
   I_Printf(VB_INFO, "P_Init: Init Playloop state.");
