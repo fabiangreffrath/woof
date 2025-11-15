@@ -263,16 +263,15 @@ void D_ProcessEvents (void)
 
 // wipegamestate can be set to -1 to force a wipe on the next draw
 gamestate_t    wipegamestate = GS_DEMOSCREEN;
-static int     screen_melt = wipe_Melt;
+static int     screen_melt = wipe_None;
 
-void D_Display (void)
+boolean D_Display (void)
 {
   static boolean viewactivestate = false;
   static boolean menuactivestate = false;
   static gamestate_t oldgamestate = GS_NONE;
   static boolean borderdrawcount;
-  int wipestart;
-  boolean done, wipe;
+  boolean wipe = false;
 
   if (demobar && PLAYBACK_SKIP)
   {
@@ -520,6 +519,7 @@ void D_DoAdvanceDemo(void)
             {
                 pagename = demoloop_point->primary_lump;
                 pagetic = demoloop_point->duration;
+                screen_melt = demoloop_point->outro_wipe;
                 int music = W_CheckNumForName(demoloop_point->secondary_lump);
                 if (music >= 0)
                 {
@@ -531,6 +531,7 @@ void D_DoAdvanceDemo(void)
         case TYPE_DEMO:
             if (W_CheckNumForName(demoloop_point->primary_lump) >= 0)
             {
+                screen_melt = demoloop_point->outro_wipe;
                 G_DeferedPlayDemo(demoloop_point->primary_lump);
             }
             break;
@@ -2705,8 +2706,6 @@ void D_BindMiscVariables(void)
   BIND_NUM_GENERAL(show_endoom, ENDOOM_OFF, ENDOOM_OFF, ENDOOM_ALWAYS,
     "Show ENDOOM screen (0 = Off; 1 = PWAD Only; 2 = Always)");
   BIND_BOOL_GENERAL(demobar, false, "Show demo progress bar");
-  BIND_NUM_GENERAL(screen_melt, wipe_Melt, wipe_None, wipe_Fizzle,
-    "Screen wipe effect (0 = None; 1 = Melt; 2 = Crossfade; 3 = Fizzlefade)");
   BIND_BOOL_GENERAL(palette_changes, true, "Palette changes when taking damage or picking up items");
   BIND_NUM_GENERAL(organize_savefiles, -1, -1, 1,
     "Organize save files");

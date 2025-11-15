@@ -24,13 +24,14 @@
 // SCREEN WIPE PACKAGE
 //
 
-enum {
+typedef enum dl_wipe_e
+{
   wipe_None,
   wipe_Melt,        // weird screen melt
   wipe_ColorXForm,
   wipe_Fizzle,
   wipe_NUMWIPES
-};
+} dl_wipe_t;
 
 int wipe_ScreenWipe (int wipeno,
                      int x, int y, int width, int height, int ticks);
