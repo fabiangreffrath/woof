@@ -402,6 +402,9 @@ static void saveg_read_pspdef_t(pspdef_t *str)
 
     str->oldsx2 = str->sx2;
     str->oldsy2 = str->sy2;
+
+    str->sxf = 0;
+    str->syf = 0;
 }
 
 static void saveg_read_player_t(player_t *str)
