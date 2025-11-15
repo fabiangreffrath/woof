@@ -743,6 +743,9 @@ static const statsformatfunc_t StatsFormatFuncs[] = {
     StatsFormatFunc_Remaining, StatsFormatFunc_Count,
 };
 
+static char killchar = 'K';
+static char statscolor = '\x36'; // red
+
 static void UpdateMonSec(sbe_widget_t *widget)
 {
     ST_ClearLines(widget);
@@ -797,22 +800,22 @@ static void UpdateMonSec(sbe_widget_t *widget)
     {
         static char string[120];
         M_snprintf(string, sizeof(string),
-            RED_S "K \x1b%c%s " RED_S "I \x1b%c%s " RED_S "S \x1b%c%s",
-            killcolor, kill_str,
-            itemcolor, item_str,
-            secretcolor, secret_str);
+            "\x1b%c%c \x1b%c%s \x1b%cI \x1b%c%s \x1b%cS \x1b%c%s",
+            statscolor, killchar, killcolor, kill_str,
+            statscolor, itemcolor, item_str,
+            statscolor, secretcolor, secret_str);
         ST_AddLine(widget, string);
     }
     else
     {
         static char string1[80];
-        M_snprintf(string1, sizeof(string1), RED_S "K \x1b%c%s", killcolor, kill_str);
+        M_snprintf(string1, sizeof(string1), "\x1b%c%c \x1b%c%s", statscolor, killchar, killcolor, kill_str);
         ST_AddLine(widget, string1);
         static char string2[80];
-        M_snprintf(string2, sizeof(string2), RED_S "I \x1b%c%s", itemcolor, item_str);
+        M_snprintf(string2, sizeof(string2), "\x1b%cI \x1b%c%s", statscolor, itemcolor, item_str);
         ST_AddLine(widget, string2);
         static char string3[80];
-        M_snprintf(string3, sizeof(string3), RED_S "S \x1b%c%s", secretcolor, secret_str);
+        M_snprintf(string3, sizeof(string3), "\x1b%cS \x1b%c%s", statscolor, secretcolor, secret_str);
         ST_AddLine(widget, string3);
     }
 }
@@ -1101,6 +1104,20 @@ void ST_InitWidgets(void)
     }
 
     ST_ResetMessageColors();
+
+    if (gamemission == pack_chex || gamemission == pack_chex3v)
+    {
+        killchar = 'F';
+        statscolor = '\x33'; // green
+    }
+    else if (gamemission == pack_hacx)
+    {
+        statscolor = '\x3a'; // blue2
+    }
+    else if (gamemission == pack_rekkr)
+    {
+        statscolor = '\x35'; // gold
+    }
 }
 
 void ST_ResetMessageColors(void)
