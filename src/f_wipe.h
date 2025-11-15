@@ -33,10 +33,11 @@ typedef enum dl_wipe_e
   wipe_NUMWIPES
 } dl_wipe_t;
 
-int wipe_ScreenWipe (int wipeno,
-                     int x, int y, int width, int height, int ticks);
+int wipe_ScreenWipe (int x, int y, int width, int height, int ticks);
 int wipe_StartScreen(int x, int y, int width, int height);
 int wipe_EndScreen  (int x, int y, int width, int height);
+
+extern void F_ForceWipe(dl_wipe_t wipe);
 
 #endif
 

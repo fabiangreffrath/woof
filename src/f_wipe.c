@@ -19,6 +19,7 @@
 
 #include <string.h>
 
+#include "doomstat.h"
 #include "doomtype.h"
 #include "f_wipe.h"
 #include "i_video.h"
@@ -438,8 +439,9 @@ static wipe_t wipes[] = {
 };
 
 // killough 3/5/98: reformatted and cleaned up
-int wipe_ScreenWipe(int wipeno, int x, int y, int width, int height, int ticks)
+int wipe_ScreenWipe(int x, int y, int width, int height, int ticks)
 {
+    dl_wipe_t wipeno = screen_wipe;
     static boolean go; // when zero, stop the wipe
 
     if (!go) // initial stuff
@@ -459,6 +461,13 @@ int wipe_ScreenWipe(int wipeno, int x, int y, int width, int height, int ticks)
     }
     return !go;
 }
+
+void F_ForceWipe(dl_wipe_t wipe)
+{
+  wipegamestate = -1;
+  screen_wipe = wipe;
+}
+
 
 //----------------------------------------------------------------------------
 //

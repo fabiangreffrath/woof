@@ -30,6 +30,7 @@
 #include "doomdata.h"
 #include "doomdef.h"
 #include "doomtype.h"
+#include "f_wipe.h"
 
 struct mapentry_s;
 
@@ -381,6 +382,7 @@ extern  boolean precache;
 // wipegamestate can be set to -1
 //  to force a wipe on the next draw
 extern  gamestate_t     wipegamestate;
+extern  dl_wipe_t       screen_wipe;
 
 // debug flag to cancel adaptiveness
 extern  boolean         singletics;

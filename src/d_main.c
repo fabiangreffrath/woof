@@ -262,16 +262,17 @@ void D_ProcessEvents (void)
 //
 
 // wipegamestate can be set to -1 to force a wipe on the next draw
-gamestate_t    wipegamestate = GS_DEMOSCREEN;
-static int     screen_melt = wipe_None;
+gamestate_t wipegamestate = GS_DEMOSCREEN;
+dl_wipe_t   screen_wipe = wipe_None;
 
-boolean D_Display (void)
+void D_Display (void)
 {
   static boolean viewactivestate = false;
   static boolean menuactivestate = false;
   static gamestate_t oldgamestate = GS_NONE;
   static boolean borderdrawcount;
-  boolean wipe = false;
+  int wipestart;
+  boolean done, wipe;
 
   if (demobar && PLAYBACK_SKIP)
   {
@@ -299,7 +300,7 @@ boolean D_Display (void)
   wipe = false;
 
   // save the current screen if about to wipe
-  if (gamestate != wipegamestate && (strictmode || screen_melt))
+  if (gamestate != wipegamestate && screen_wipe)
     {
       wipe = true;
       wipe_StartScreen(0, 0, video.width, video.height);
@@ -434,8 +435,7 @@ boolean D_Display (void)
 
       fractionaltic = I_GetFracTime();
 
-      done = wipe_ScreenWipe(strictmode ? wipe_Melt : screen_melt,
-                             0, 0, video.width, video.height, tics);
+      done = wipe_ScreenWipe(0, 0, video.width, video.height, tics);
       wipestart = nowtime;
       M_Drawer();                   // menu is drawn even on top of wipes
       I_FinishUpdate();             // page flip or blit buffer
@@ -519,7 +519,7 @@ void D_DoAdvanceDemo(void)
             {
                 pagename = demoloop_point->primary_lump;
                 pagetic = demoloop_point->duration;
-                screen_melt = demoloop_point->outro_wipe;
+                F_ForceWipe(demoloop_point->outro_wipe);
                 int music = W_CheckNumForName(demoloop_point->secondary_lump);
                 if (music >= 0)
                 {
@@ -531,7 +531,7 @@ void D_DoAdvanceDemo(void)
         case TYPE_DEMO:
             if (W_CheckNumForName(demoloop_point->primary_lump) >= 0)
             {
-                screen_melt = demoloop_point->outro_wipe;
+                F_ForceWipe(demoloop_point->outro_wipe);
                 G_DeferedPlayDemo(demoloop_point->primary_lump);
             }
             break;
