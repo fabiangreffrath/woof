@@ -2980,6 +2980,9 @@ void G_Ticker(void)
       G_DoReborn (i);
   P_MapEnd();
 
+  if (gameaction != ga_nothing && gameaction != ga_playdemo)
+    D_RestoreScreenWipe();
+
   // do things to change the game state
   while (gameaction != ga_nothing)
     switch (gameaction)

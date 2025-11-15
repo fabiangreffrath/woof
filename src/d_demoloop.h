@@ -37,7 +37,7 @@ typedef struct
     char      secondary_lump[9]; // Music lump for screen graphic.
     int       duration;          // Game tics.
     dl_type_t type;
-    dl_wipe_t outro_wipe;
+    wipe_type_t outro_wipe;
 } demoloop_entry_t;
 
 typedef demoloop_entry_t* demoloop_t;

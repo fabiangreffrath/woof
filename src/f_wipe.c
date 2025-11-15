@@ -441,7 +441,7 @@ static wipe_t wipes[] = {
 // killough 3/5/98: reformatted and cleaned up
 int wipe_ScreenWipe(int x, int y, int width, int height, int ticks)
 {
-    dl_wipe_t wipeno = screen_wipe;
+    wipe_type_t wipeno = screen_wipe;
     static boolean go; // when zero, stop the wipe
 
     if (!go) // initial stuff
@@ -462,7 +462,7 @@ int wipe_ScreenWipe(int x, int y, int width, int height, int ticks)
     return !go;
 }
 
-void F_ForceWipe(dl_wipe_t wipe)
+void F_ForceWipe(wipe_type_t wipe)
 {
   wipegamestate = -1;
   screen_wipe = wipe;

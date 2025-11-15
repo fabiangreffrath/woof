@@ -263,7 +263,17 @@ void D_ProcessEvents (void)
 
 // wipegamestate can be set to -1 to force a wipe on the next draw
 gamestate_t wipegamestate = GS_DEMOSCREEN;
-dl_wipe_t   screen_wipe = wipe_None;
+wipe_type_t screen_wipe = wipe_None;
+wipe_type_t screen_wipe_old = wipe_None;
+
+void D_RestoreScreenWipe(void)
+{
+    if (screen_wipe_old >= 0)
+    {
+      screen_wipe = screen_wipe_old;
+      screen_wipe_old = -1;
+    }
+}
 
 void D_Display (void)
 {
@@ -539,6 +549,12 @@ void D_DoAdvanceDemo(void)
         default:
             I_Printf(VB_DEBUG, "D_DoAdvanceDemo: unhandled demoloop type");
             break;
+    }
+
+    // Without this, an "outro wipe" is an "intro wipe"
+    if (screen_wipe_old < 0)
+    {
+      screen_wipe_old = screen_wipe;
     }
 }
 

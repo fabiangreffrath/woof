@@ -24,20 +24,21 @@
 // SCREEN WIPE PACKAGE
 //
 
-typedef enum dl_wipe_e
+typedef enum wipe_type_e
 {
+  wipe_Invalid = -1,
   wipe_None,
   wipe_Melt,        // weird screen melt
   wipe_ColorXForm,
   wipe_Fizzle,
   wipe_NUMWIPES
-} dl_wipe_t;
+} wipe_type_t;
 
 int wipe_ScreenWipe (int x, int y, int width, int height, int ticks);
 int wipe_StartScreen(int x, int y, int width, int height);
 int wipe_EndScreen  (int x, int y, int width, int height);
 
-extern void F_ForceWipe(dl_wipe_t wipe);
+extern void F_ForceWipe(wipe_type_t wipe);
 
 #endif
 
