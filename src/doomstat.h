@@ -383,7 +383,6 @@ extern  boolean precache;
 //  to force a wipe on the next draw
 extern  gamestate_t     wipegamestate;
 extern  wipe_type_t     screen_wipe;
-void D_RestoreScreenWipe(void);
 
 // debug flag to cancel adaptiveness
 extern  boolean         singletics;

@@ -265,17 +265,6 @@ void D_ProcessEvents (void)
 gamestate_t wipegamestate = GS_DEMOSCREEN;
 wipe_type_t screen_wipe = wipe_None;
 
-// Minor hack, but it works
-wipe_type_t screen_wipe_old = wipe_None;
-void D_RestoreScreenWipe(void)
-{
-    if (screen_wipe_old >= 0)
-    {
-      screen_wipe = screen_wipe_old;
-      screen_wipe_old = -1;
-    }
-}
-
 void D_Display (void)
 {
   static boolean viewactivestate = false;
@@ -462,6 +451,7 @@ static int demosequence;         // killough 5/2/98: made static
 static int pagetic;
 static const char *pagename;
 static demoloop_t demoloop_point;
+static demoloop_t demoloop_prev;
 
 //
 // D_PageTicker
@@ -507,6 +497,8 @@ void D_AdvanceDemo(void)
 // This cycles through the demo sequences.
 void D_AdvanceDemoLoop(void)
 {
+  if (demosequence >= 0)
+    demoloop_prev = &demoloop[demosequence];
   demosequence = (demosequence + 1) % demoloop_count;
   demoloop_point = &demoloop[demosequence];
 }
@@ -550,12 +542,10 @@ void D_DoAdvanceDemo(void)
             break;
     }
 
-    // Without this, an "outro wipe" is an "intro wipe"
-    if (screen_wipe_old < 0)
+    if (demoloop_prev)
     {
-      screen_wipe_old = screen_wipe;
+      F_ForceWipe(demoloop_prev->outro_wipe);
     }
-    F_ForceWipe(demoloop_point->outro_wipe);
 }
 
 //
