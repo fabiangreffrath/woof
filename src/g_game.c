@@ -41,6 +41,7 @@
 #include "doomtype.h"
 #include "f_finale.h"
 #include "g_game.h"
+#include "f_wipe.h"
 #include "g_nextweapon.h"
 #include "g_rewind.h"
 #include "g_umapinfo.h"
@@ -968,7 +969,7 @@ static void G_DoLoadLevel(void)
     boom_basetic = gametic;
 
   if (wipegamestate == GS_LEVEL)
-    wipegamestate = -1;             // force a wipe
+    F_ForceWipe(wipe_Melt); // force a wipe
 
   gamestate = GS_LEVEL;
 
