@@ -52,14 +52,14 @@ static pixel_t *wipe_scr;
 
 static int fade_tick;
 
-static int wipe_initColorXForm(int width, int height, int ticks)
+static int wipe_initCrossfade(int width, int height, int ticks)
 {
     V_PutBlock(0, 0, width, height, wipe_scr_start);
     fade_tick = 0;
     return 0;
 }
 
-static int wipe_doColorXForm(int width, int height, int ticks)
+static int wipe_doCrossfade(int width, int height, int ticks)
 {
     if (ticks <= 0)
     {
@@ -178,7 +178,7 @@ static int wipe_doMelt(int width, int height, int ticks)
     return done;
 }
 
-int wipe_renderMelt(int width, int height, int ticks)
+static int wipe_renderMelt(int width, int height, int ticks)
 {
     boolean done = true;
 
@@ -432,10 +432,10 @@ typedef struct
 } wipe_t;
 
 static wipe_t wipes[] = {
-    {wipe_NOP,            wipe_NOP,          wipe_NOP,        wipe_exit    },
-    {wipe_initMelt,       wipe_doMelt,       wipe_renderMelt, wipe_exitMelt},
-    {wipe_initColorXForm, wipe_doColorXForm, wipe_NOP,        wipe_exit    },
-    {wipe_initFizzle,     wipe_doFizzle,     wipe_NOP,        wipe_exit    },
+    {wipe_NOP,           wipe_NOP,         wipe_NOP,        wipe_exit    },
+    {wipe_initMelt,      wipe_doMelt,      wipe_renderMelt, wipe_exitMelt},
+    {wipe_initCrossfade, wipe_doCrossfade, wipe_NOP,        wipe_exit    },
+    {wipe_initFizzle,    wipe_doFizzle,    wipe_NOP,        wipe_exit    },
 };
 
 // killough 3/5/98: reformatted and cleaned up
