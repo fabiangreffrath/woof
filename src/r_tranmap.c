@@ -20,12 +20,12 @@
 //   Generation of transparency lookup tables.
 //
 
-#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
 #include "d_iwad.h"
 #include "doomdef.h"
+#include "doomstat.h"
 #include "doomtype.h"
 #include "i_exit.h"
 #include "i_printf.h"
@@ -75,7 +75,7 @@ enum
 // The heart of the calculation, the blending algorithm. Currently supported:
 // * Normal -- applies standard alpha interpolation
 // * Additive -- alpha is a foreground multiplier, added to unmodified background
-// 
+//
 // TODO, tentative additions:
 // * Subtractive -- alpha is a foreground multiplier, subtracted from unmodifed background
 //
@@ -257,7 +257,8 @@ void R_InitTranMap(void)
     }
 
     // Some things look better with added luminosity :)
-    main_addimap = GenerateTranmapData(BlendChannelAdditive, 1.0);
+    main_addimap = strictmode ? main_tranmap
+                 : GenerateTranmapData(BlendChannelAdditive, 1.0);
 
     I_Printf(VB_INFO, "Playpal checksum: %s", playpal_string);
 
