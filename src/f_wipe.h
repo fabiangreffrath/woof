@@ -24,21 +24,22 @@
 // SCREEN WIPE PACKAGE
 //
 
-typedef enum wipe_type_e
+typedef enum wipefx_e
 {
-  wipe_Invalid = -1,
-  wipe_None,
-  wipe_Melt,        // weird screen melt
-  wipe_ColorXForm,
-  wipe_Fizzle,
-  wipe_NUMWIPES
-} wipe_type_t;
+  wipe_None,      // no effect
+  wipe_Melt,      // weird screen melt
+  wipe_Crossfade, // transparency-based fade through
+  wipe_Fizzle,    // random pixels disapear
+
+  wipe_NUMWIPES,
+  wipe_DemoLoopMax = wipe_Crossfade,
+} wipefx_t;
 
 int wipe_ScreenWipe (int x, int y, int width, int height, int ticks);
 int wipe_StartScreen(int x, int y, int width, int height);
 int wipe_EndScreen  (int x, int y, int width, int height);
 
-extern void F_ForceWipe(wipe_type_t wipe);
+extern void F_ForceWipe(wipefx_t wipe);
 
 #endif
 

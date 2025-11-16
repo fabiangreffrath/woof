@@ -382,7 +382,7 @@ extern  boolean precache;
 // wipegamestate can be set to -1
 //  to force a wipe on the next draw
 extern  gamestate_t     wipegamestate;
-extern  wipe_type_t     screen_wipe;
+extern  wipefx_t        screen_wipe;
 
 // debug flag to cancel adaptiveness
 extern  boolean         singletics;

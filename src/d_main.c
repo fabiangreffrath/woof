@@ -263,7 +263,7 @@ void D_ProcessEvents (void)
 
 // wipegamestate can be set to -1 to force a wipe on the next draw
 gamestate_t wipegamestate = GS_DEMOSCREEN;
-wipe_type_t screen_wipe = wipe_None;
+wipefx_t    screen_wipe = wipe_None;
 
 void D_Display (void)
 {

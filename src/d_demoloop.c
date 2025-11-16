@@ -76,7 +76,7 @@ static void D_ParseOutroWipe(json_t *json, demoloop_entry_t *entry)
 {
     entry->outro_wipe = JS_GetIntegerValue(json, "outrowipe");
 
-    if (entry->outro_wipe < wipe_None || entry->outro_wipe > wipe_NUMWIPES)
+    if (entry->outro_wipe < wipe_None || entry->outro_wipe > wipe_DemoLoopMax)
     {
         I_Printf(VB_WARNING, "DEMOLOOP: invalid outrowipe, using screen melt");
         entry->outro_wipe = wipe_Melt;
@@ -168,7 +168,7 @@ static boolean D_ParseDemoLoopEntry(json_t *json)
 static void D_ParseDemoLoop(void)
 {
     // Does the JSON lump even exist?
-    json_t *json = JS_Open("DEMOLOOP", "demoloop", (version_t){1, 0, 0});
+    json_t *json = JS_Open("DEMOLOOP", "demoloop", (version_t){1, 1, 0});
     if (json == NULL)
     {
         return;
