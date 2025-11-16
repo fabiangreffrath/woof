@@ -584,6 +584,8 @@ static void read_pspdef_t(pspdef_t *str)
     str->sy2 = read32();
     str->oldsx2 = read32();
     str->oldsy2 = read32();
+    str->sxf = read32();
+    str->syf = read32();
 }
 
 static void write_pspdef_t(pspdef_t *str)
@@ -596,6 +598,8 @@ static void write_pspdef_t(pspdef_t *str)
     write32(str->sy2);
     write32(str->oldsx2);
     write32(str->oldsy2);
+    write32(str->sxf);
+    write32(str->syf);
 }
 
 static void read_player_t(player_t *str)
