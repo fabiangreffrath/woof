@@ -264,8 +264,9 @@ void D_ProcessEvents (void)
 // wipegamestate can be set to -1 to force a wipe on the next draw
 gamestate_t wipegamestate = GS_DEMOSCREEN;
 wipe_type_t screen_wipe = wipe_None;
-wipe_type_t screen_wipe_old = wipe_None;
 
+// Minor hack, but it works
+wipe_type_t screen_wipe_old = wipe_None;
 void D_RestoreScreenWipe(void)
 {
     if (screen_wipe_old >= 0)
@@ -529,7 +530,6 @@ void D_DoAdvanceDemo(void)
             {
                 pagename = demoloop_point->primary_lump;
                 pagetic = demoloop_point->duration;
-                F_ForceWipe(demoloop_point->outro_wipe);
                 int music = W_CheckNumForName(demoloop_point->secondary_lump);
                 if (music >= 0)
                 {
@@ -541,7 +541,6 @@ void D_DoAdvanceDemo(void)
         case TYPE_DEMO:
             if (W_CheckNumForName(demoloop_point->primary_lump) >= 0)
             {
-                F_ForceWipe(demoloop_point->outro_wipe);
                 G_DeferedPlayDemo(demoloop_point->primary_lump);
             }
             break;
@@ -556,6 +555,7 @@ void D_DoAdvanceDemo(void)
     {
       screen_wipe_old = screen_wipe;
     }
+    F_ForceWipe(demoloop_point->outro_wipe);
 }
 
 //
