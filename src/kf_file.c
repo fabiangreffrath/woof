@@ -136,6 +136,8 @@ typedef enum
     tc_flicker,
     tc_friction,
     tc_ambient,
+    tc_param_scroll_floor,
+    tc_param_scroll_ceiling,
     tc_none
 } thinker_class_t;
 
@@ -160,6 +162,8 @@ static actionf_p1 actions[] = {
     [tc_flicker] = T_FireFlickerAdapter,
     [tc_friction] = T_FrictionAdapter,
     [tc_ambient] = T_AmbientSoundAdapter,
+    [tc_param_scroll_floor] = T_ParamScrollFloorAdapter,
+    [tc_param_scroll_ceiling] = T_ParamScrollCeilingAdapter,
     [tc_none] = NULL
 };
 
@@ -1119,6 +1123,24 @@ static void write_ambient_t(ambient_t *str)
     write32(str->last_leveltime);
 }
 
+static void read_param_scroll_t(scroll_t *str)
+{
+    read_thinker_t(&str->thinker, tc_scroll);
+    str->dx = read32();
+    str->dy = read32();
+    str->affectee = read32();
+    str->type = read32();
+}
+
+static void write_param_scroll_t(scroll_t *str)
+{
+    write_thinker_t(&str->thinker);
+    write32(str->dx);
+    write32(str->dy);
+    write32(str->affectee);
+    write32(str->type);
+}
+
 static void read_rng_t(rng_t *str)
 {
     for (int i = 0; i < NUMPRCLASS; ++i)
@@ -1521,6 +1543,10 @@ static void ArchiveThinkers(void)
             case tc_ambient:
                 write_ambient_t(pointer->p.ambient);
                 break;
+            case tc_param_scroll_floor:
+            case tc_param_scroll_ceiling:
+                write_param_scroll_t(pointer->p.scroll);
+                break;
             case tc_none:
                 write_thinker_t(pointer->p.thinker);
                 break;
@@ -1649,6 +1675,10 @@ static void UnArchiveThinkers(void)
                 break;
             case tc_ambient:
                 read_ambient_t(pointer->p.ambient);
+                break;
+            case tc_param_scroll_floor:
+            case tc_param_scroll_ceiling:
+                read_param_scroll_t(pointer->p.scroll);
                 break;
             case tc_none:
                 read_thinker_t(pointer->p.thinker, pointer->tc);
