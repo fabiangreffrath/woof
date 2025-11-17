@@ -136,6 +136,8 @@ typedef enum
     tc_flicker,
     tc_friction,
     tc_ambient,
+    tc_param_scroll_floor,
+    tc_param_scroll_ceiling,
     tc_none
 } thinker_class_t;
 
@@ -160,6 +162,8 @@ static actionf_p1 actions[] = {
     [tc_flicker] = T_FireFlickerAdapter,
     [tc_friction] = T_FrictionAdapter,
     [tc_ambient] = T_AmbientSoundAdapter,
+    [tc_param_scroll_floor] = T_ParamScrollFloorAdapter,
+    [tc_param_scroll_ceiling] = T_ParamScrollCeilingAdapter,
     [tc_none] = NULL
 };
 
@@ -995,9 +999,9 @@ static void write_elevator_t(elevator_t *str)
     write32(str->speed);
 }
 
-static void read_scroll_t(scroll_t *str)
+static void read_scroll_t(scroll_t *str, thinker_class_t tc)
 {
-    read_thinker_t(&str->thinker, tc_scroll);
+    read_thinker_t(&str->thinker, tc);
     str->dx = read32();
     str->dy = read32();
     str->affectee = read32();
@@ -1507,6 +1511,8 @@ static void ArchiveThinkers(void)
                 write_elevator_t(pointer->p.elevator);
                 break;
             case tc_scroll:
+            case tc_param_scroll_floor:
+            case tc_param_scroll_ceiling:
                 write_scroll_t(pointer->p.scroll);
                 break;
             case tc_pusher:
@@ -1571,6 +1577,8 @@ static void PrepareUnArchiveThinkers(void)
                 pointer.p.elevator = arena_calloc(thinkers_arena, elevator_t);
                 break;
             case tc_scroll:
+            case tc_param_scroll_floor:
+            case tc_param_scroll_ceiling:
                 pointer.p.scroll = arena_calloc(thinkers_arena, scroll_t);
                 break;
             case tc_pusher:
@@ -1636,7 +1644,7 @@ static void UnArchiveThinkers(void)
                 read_elevator_t(pointer->p.elevator, pointer->tc);
                 break;
             case tc_scroll:
-                read_scroll_t(pointer->p.scroll);
+                read_scroll_t(pointer->p.scroll, tc_scroll);
                 break;
             case tc_pusher:
                 read_pusher_t(pointer->p.pusher);
@@ -1649,6 +1657,12 @@ static void UnArchiveThinkers(void)
                 break;
             case tc_ambient:
                 read_ambient_t(pointer->p.ambient);
+                break;
+            case tc_param_scroll_floor:
+                read_scroll_t(pointer->p.scroll, tc_param_scroll_floor);
+                break;
+            case tc_param_scroll_ceiling:
+                read_scroll_t(pointer->p.scroll, tc_param_scroll_ceiling);
                 break;
             case tc_none:
                 read_thinker_t(pointer->p.thinker, pointer->tc);
