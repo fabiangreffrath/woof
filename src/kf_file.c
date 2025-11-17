@@ -999,9 +999,9 @@ static void write_elevator_t(elevator_t *str)
     write32(str->speed);
 }
 
-static void read_scroll_t(scroll_t *str)
+static void read_scroll_t(scroll_t *str, thinker_class_t tc)
 {
-    read_thinker_t(&str->thinker, tc_scroll);
+    read_thinker_t(&str->thinker, tc);
     str->dx = read32();
     str->dy = read32();
     str->affectee = read32();
@@ -1121,33 +1121,6 @@ static void write_ambient_t(ambient_t *str)
     write32(DoubleToFixed(str->offset));
     write32(DoubleToFixed(str->last_offset));
     write32(str->last_leveltime);
-}
-
-static void read_param_scroll_floor_t(scroll_t *str)
-{
-    read_thinker_t(&str->thinker, tc_param_scroll_floor);
-    str->dx = read32();
-    str->dy = read32();
-    str->affectee = read32();
-    str->type = read32();
-}
-
-static void read_param_scroll_ceiling_t(scroll_t *str)
-{
-    read_thinker_t(&str->thinker, tc_param_scroll_ceiling);
-    str->dx = read32();
-    str->dy = read32();
-    str->affectee = read32();
-    str->type = read32();
-}
-
-static void write_param_scroll_t(scroll_t *str)
-{
-    write_thinker_t(&str->thinker);
-    write32(str->dx);
-    write32(str->dy);
-    write32(str->affectee);
-    write32(str->type);
 }
 
 static void read_rng_t(rng_t *str)
@@ -1538,6 +1511,8 @@ static void ArchiveThinkers(void)
                 write_elevator_t(pointer->p.elevator);
                 break;
             case tc_scroll:
+            case tc_param_scroll_floor:
+            case tc_param_scroll_ceiling:
                 write_scroll_t(pointer->p.scroll);
                 break;
             case tc_pusher:
@@ -1551,10 +1526,6 @@ static void ArchiveThinkers(void)
                 break;
             case tc_ambient:
                 write_ambient_t(pointer->p.ambient);
-                break;
-            case tc_param_scroll_floor:
-            case tc_param_scroll_ceiling:
-                write_param_scroll_t(pointer->p.scroll);
                 break;
             case tc_none:
                 write_thinker_t(pointer->p.thinker);
@@ -1673,7 +1644,7 @@ static void UnArchiveThinkers(void)
                 read_elevator_t(pointer->p.elevator, pointer->tc);
                 break;
             case tc_scroll:
-                read_scroll_t(pointer->p.scroll);
+                read_scroll_t(pointer->p.scroll, tc_scroll);
                 break;
             case tc_pusher:
                 read_pusher_t(pointer->p.pusher);
@@ -1688,10 +1659,10 @@ static void UnArchiveThinkers(void)
                 read_ambient_t(pointer->p.ambient);
                 break;
             case tc_param_scroll_floor:
-                read_param_scroll_floor_t(pointer->p.scroll);
+                read_scroll_t(pointer->p.scroll, tc_param_scroll_floor);
                 break;
             case tc_param_scroll_ceiling:
-                read_param_scroll_ceiling_t(pointer->p.scroll);
+                read_scroll_t(pointer->p.scroll, tc_param_scroll_ceiling);
                 break;
             case tc_none:
                 read_thinker_t(pointer->p.thinker, pointer->tc);
