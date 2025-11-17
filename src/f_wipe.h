@@ -39,7 +39,6 @@ int wipe_ScreenWipe (int x, int y, int width, int height, int ticks);
 int wipe_StartScreen(int x, int y, int width, int height);
 int wipe_EndScreen  (int x, int y, int width, int height);
 
-extern void F_ForceWipe(wipefx_t wipe);
 extern void F_SetWipe(wipefx_t wipe);
 
 #endif

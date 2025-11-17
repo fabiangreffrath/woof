@@ -462,13 +462,6 @@ int wipe_ScreenWipe(int x, int y, int width, int height, int ticks)
     return !go;
 }
 
-void F_ForceWipe(wipefx_t wipe)
-{
-  wipegamestate = -1;
-  screen_wipe = wipe;
-}
-
-// WIP
 void F_SetWipe(wipefx_t wipe)
 {
   wipegamestate = -1;

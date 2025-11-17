@@ -545,7 +545,7 @@ void D_DoAdvanceDemo(void)
 
     if (demoloop_prev)
     {
-      F_ForceWipe(demoloop_prev->outro_wipe);
+        screen_wipe = demoloop_prev->outro_wipe;
     }
 }
 
