@@ -3359,7 +3359,7 @@ static setup_menu_t gen_settings5[] = {
 static const char *death_use_action_strings[] = {"default", "last save",
                                                  "nothing"};
 
-static const char *screen_melt_strings[] = {"Off", "Melt", "Crossfade", "Fizzle"};
+static const char *screen_wipe_strings[] = {"Off", "Melt", "Crossfade", "Fizzle"};
 
 static const char *invul_mode_strings[] = {"Vanilla", "MBF", "Gray"};
 
@@ -3368,6 +3368,9 @@ static const char *endoom_strings[] = {"Off", "PWAD Only", "Always"};
 static setup_menu_t gen_settings6[] = {
 
     {"Quality of life", S_SKIP | S_TITLE, OFF_CNTR_X, M_SPC},
+
+    {"Screen wipe effect", S_CHOICE | S_STRICT, OFF_CNTR_X, M_SPC,
+     {"screen_wipe_user"}, .strings_id = str_screen_wipe},
 
     {"Pain/Pickup/Powerup flashes", S_ONOFF | S_STRICT, OFF_CNTR_X, M_SPC,
      {"palette_changes"}},
@@ -5020,7 +5023,7 @@ static const char **selectstrings[] = {
     [str_death_use_action] = death_use_action_strings,
     [str_widescreen] = widescreen_strings,
     [str_bobbing_pct] = bobbing_pct_strings,
-    [str_screen_wipe] = screen_melt_strings,
+    [str_screen_wipe] = screen_wipe_strings,
     [str_invul_mode] = invul_mode_strings,
     [str_skill] = skill_strings,
     [str_freelook] = free_look_strings,
