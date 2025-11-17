@@ -185,7 +185,7 @@ static boolean MapInfo_Ticker()
             {
                 finalecount = 0;
                 finalestage = FINALE_STAGE_ART;
-                F_ForceWipe(wipe_Melt); // force a wipe
+                F_SetWipe(wipe_Melt); // force a wipe
                 if (gamemapinfo->flags & MapInfo_EndGameBunny)
                 {
                     S_StartMusic(mus_bunny);
@@ -423,7 +423,7 @@ void F_Ticker(void)
           {                               // with enough time, it's automatic
             finalecount = 0;
             finalestage = FINALE_STAGE_ART;
-            F_ForceWipe(wipe_Melt); // force a wipe
+            F_SetWipe(wipe_Melt); // force a wipe
             if (gameepisode == 3)
               S_StartMusic(mus_bunny);
           }
@@ -563,7 +563,7 @@ static void F_StartCast(void)
   castorder[16].name = s_CC_HERO,   castorder[16].type = MT_PLAYER;
   castorder[17].name = NULL,        castorder[17].type = 0;
 
-  F_ForceWipe(wipe_Melt); // force a screen wipe
+  F_SetWipe(wipe_Melt); // force a screen wipe
   castnum = 0;
   caststate = &states[mobjinfo[castorder[castnum].type].seestate];
   casttics = caststate->tics;

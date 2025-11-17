@@ -969,7 +969,7 @@ static void G_DoLoadLevel(void)
     boom_basetic = gametic;
 
   if (wipegamestate == GS_LEVEL)
-    F_ForceWipe(wipe_Melt); // force a wipe
+    F_SetWipe(wipe_Melt); // force a wipe
 
   gamestate = GS_LEVEL;
 

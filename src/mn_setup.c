@@ -390,6 +390,7 @@ enum
     str_death_use_action,
     str_widescreen,
     str_bobbing_pct,
+    str_screen_wipe,
     str_invul_mode,
     str_skill,
     str_freelook
@@ -3358,6 +3359,8 @@ static setup_menu_t gen_settings5[] = {
 static const char *death_use_action_strings[] = {"default", "last save",
                                                  "nothing"};
 
+static const char *screen_melt_strings[] = {"Off", "Melt", "Crossfade", "Fizzle"};
+
 static const char *invul_mode_strings[] = {"Vanilla", "MBF", "Gray"};
 
 static const char *endoom_strings[] = {"Off", "PWAD Only", "Always"};
@@ -5017,6 +5020,7 @@ static const char **selectstrings[] = {
     [str_death_use_action] = death_use_action_strings,
     [str_widescreen] = widescreen_strings,
     [str_bobbing_pct] = bobbing_pct_strings,
+    [str_screen_wipe] = screen_melt_strings,
     [str_invul_mode] = invul_mode_strings,
     [str_skill] = skill_strings,
     [str_freelook] = free_look_strings,

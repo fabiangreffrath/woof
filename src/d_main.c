@@ -264,6 +264,7 @@ void D_ProcessEvents (void)
 // wipegamestate can be set to -1 to force a wipe on the next draw
 gamestate_t wipegamestate = GS_DEMOSCREEN;
 wipefx_t    screen_wipe = wipe_None;
+wipefx_t    screen_wipe_user = wipe_None;
 
 void D_Display (void)
 {
@@ -2712,6 +2713,8 @@ void D_BindMiscVariables(void)
   BIND_NUM_GENERAL(show_endoom, ENDOOM_OFF, ENDOOM_OFF, ENDOOM_ALWAYS,
     "Show ENDOOM screen (0 = Off; 1 = PWAD Only; 2 = Always)");
   BIND_BOOL_GENERAL(demobar, false, "Show demo progress bar");
+  BIND_NUM_GENERAL(screen_wipe_user, wipe_Melt, wipe_None, wipe_Fizzle,
+    "Screen wipe effect (0 = None; 1 = Melt; 2 = Crossfade; 3 = Fizzlefade)");
   BIND_BOOL_GENERAL(palette_changes, true, "Palette changes when taking damage or picking up items");
   BIND_NUM_GENERAL(organize_savefiles, -1, -1, 1,
     "Organize save files");

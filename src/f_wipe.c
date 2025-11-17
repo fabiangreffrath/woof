@@ -468,6 +468,12 @@ void F_ForceWipe(wipefx_t wipe)
   screen_wipe = wipe;
 }
 
+// WIP
+void F_SetWipe(wipefx_t wipe)
+{
+  wipegamestate = -1;
+  screen_wipe = (strictmode) ? wipe : screen_wipe_user;
+}
 
 //----------------------------------------------------------------------------
 //
