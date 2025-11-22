@@ -2032,10 +2032,10 @@ void P_ArchiveKeyframe(void)
 
     ArchiveMSecNodes();
 
-    ArchiveCeilingList();
     writep_activeceilings(activeceilings);
-    ArchivePlatList();
+    ArchiveCeilingList();
     writep_activeplats(activeplats);
+    ArchivePlatList();
 
     write_rng_t(&rng);
     ArchiveButtons();
@@ -2102,10 +2102,10 @@ void P_UnArchiveKeyframe(void)
 
     UnArchiveMSecNodes();
 
-    UnArchiveCeilingList();
     activeceilings = readp_activeceilings();
-    UnArchivePlatList();
+    UnArchiveCeilingList();
     activeplats = readp_activeplats();
+    UnArchivePlatList();
 
     read_rng_t(&rng);
     UnArchiveButtons();
