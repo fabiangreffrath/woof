@@ -690,8 +690,10 @@ static void P_KillMobj(mobj_t *source, mobj_t *target, method_t mod)
   if (source && source->player)
     {
       // count for intermission
+#ifdef MBF_STRICT
       // killough 7/20/98: don't count friends
       if (!(target->flags & MF_FRIEND))
+#endif
 	if (target->flags & MF_COUNTKILL)
 	  WatchKill(source->player, target);
       if (target->player)
@@ -702,8 +704,10 @@ static void P_KillMobj(mobj_t *source, mobj_t *target, method_t mod)
         {
           // count all monster deaths,
           // even those caused by other monsters
+#ifdef MBF_STRICT
 	  // killough 7/20/98: don't count friends
 	  if (!(target->flags & MF_FRIEND))
+#endif
 	    WatchKill(players, target);
         }
 #ifndef MBF_STRICT
