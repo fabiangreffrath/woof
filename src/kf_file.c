@@ -465,6 +465,12 @@ static void read_mobj_t(mobj_t *str, thinker_class_t tc)
     str->flags_extra = read32();
     str->intflags = read32();
     str->health = read32();
+    str->special = read32();
+    str->args[0] = read32();
+    str->args[1] = read32();
+    str->args[2] = read32();
+    str->args[3] = read32();
+    str->args[4] = read32();
     str->movedir = read16();
     str->movecount = read16();
     str->strafecount = read16();
@@ -532,6 +538,12 @@ static void write_mobj_t(mobj_t *str)
     write32(str->flags_extra);
     write32(str->intflags);
     write32(str->health);
+    write32(str->special);
+    write32(str->args[0]);
+    write32(str->args[1]);
+    write32(str->args[2]);
+    write32(str->args[3]);
+    write32(str->args[4]);
     write16(str->movedir);
     write16(str->movecount);
     write16(str->strafecount);
