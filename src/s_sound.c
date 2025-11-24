@@ -1146,6 +1146,7 @@ void S_Start(void)
 
     // [crispy] reset musinfo data at the start of a new map
     memset(&musinfo, 0, sizeof(musinfo));
+    musinfo.current_item = -1;
 
     // start new music for the level
     mus_paused = 0;
