@@ -3370,7 +3370,7 @@ static setup_menu_t gen_settings6[] = {
     {"Quality of life", S_SKIP | S_TITLE, OFF_CNTR_X, M_SPC},
 
     {"Screen wipe effect", S_CHOICE | S_STRICT, OFF_CNTR_X, M_SPC,
-     {"screen_wipe_user"}, .strings_id = str_screen_wipe},
+     {"screen_wipe"}, .strings_id = str_screen_wipe},
 
     {"Pain/Pickup/Powerup flashes", S_ONOFF | S_STRICT, OFF_CNTR_X, M_SPC,
      {"palette_changes"}},
