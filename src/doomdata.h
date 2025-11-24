@@ -227,6 +227,7 @@ typedef struct {
   fixed_t x;
   fixed_t y;
   fixed_t height;
+  int32_t id;
   int32_t special;
   int32_t args[5];
   int16_t angle;
