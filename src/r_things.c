@@ -854,6 +854,14 @@ void R_DrawPSprite(pspdef_t *psp, int lightlevel_override)
   flip = (boolean) sprframe->flip[0];
 
   fixed_t sx2, sy2;
+  static int oldlump = -1; 
+
+  if (oldlump != lump)
+  {
+    psp->oldsx2 = psp->sx2;
+    psp->oldsy2 = psp->sy2;
+    oldlump = lump;
+  }
 
   if (uncapped && oldleveltime < leveltime)
   {
