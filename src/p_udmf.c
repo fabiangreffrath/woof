@@ -1240,6 +1240,7 @@ void UDMF_LoadThings(void)
         mt.type = udmf_things[i].type;
         mt.options = udmf_things[i].options;
 
+        mt.id = udmf_things[i].id;
         mt.special = udmf_things[i].special;
         mt.args[0] = udmf_things[i].args[0];
         mt.args[1] = udmf_things[i].args[1];

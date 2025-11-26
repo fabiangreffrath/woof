@@ -1144,16 +1144,9 @@ void S_Start(void)
         }
     }
 
-    // [crispy] don't load map's default music if loaded from a savegame with
-    // MUSINFO data
-    if (musinfo.from_savegame)
-    {
-        musinfo.from_savegame = false;
-        return;
-    }
-
     // [crispy] reset musinfo data at the start of a new map
     memset(&musinfo, 0, sizeof(musinfo));
+    musinfo.current_item = -1;
 
     // start new music for the level
     mus_paused = 0;

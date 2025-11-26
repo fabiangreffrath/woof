@@ -316,6 +316,7 @@ typedef struct mobj_s
     int                 health;
 
     // Action specials
+    int32_t             id;
     int32_t             special;
     int32_t             args[5];
 

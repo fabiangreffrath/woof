@@ -1229,6 +1229,12 @@ void P_UnArchiveThinkers(void)
 
         mobj->thinker.function.p1 = P_MobjThinker;
         P_AddThinker(&mobj->thinker);
+
+        // pre Woof 16.0.0 hack
+        if (mobj->type == MT_MUSICSOURCE)
+        {
+            mobj->args[0] = mobj->health - 1000;
+        }
     }
 
     // killough 2/14/98: adjust target and tracer fields, plus

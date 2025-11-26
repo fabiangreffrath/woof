@@ -1371,6 +1371,7 @@ spawnit:
   }
 
   // Action specials
+  mobj->id = mthing->id;
   mobj->special = mthing->special;
   mobj->args[0] = mthing->args[0];
   mobj->args[1] = mthing->args[1];
