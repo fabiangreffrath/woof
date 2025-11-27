@@ -75,6 +75,8 @@ extern boolean boom_weapon_state_injection;
 extern fixed_t bulletslope;
 extern int lastshottic;
 
+extern boolean psp_interp;
+
 int P_SwitchWeapon(struct player_s *player);
 boolean P_CheckAmmo(struct player_s *player);
 void P_SetupPsprites(struct player_s *curplayer);
