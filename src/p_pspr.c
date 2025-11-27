@@ -1209,8 +1209,14 @@ void P_MovePsprites(player_t *player)
   static int oldframe = -1;
   static fixed_t oldsxf = -1, oldsyf = -1;
 
-  const spritenum_t sprite = psp->state->sprite;
-  const int frame = psp->state->frame & ~FF_FULLBRIGHT;
+  spritenum_t sprite = -1;
+  int frame = -1;
+
+  if (psp->state)
+  {
+    sprite = psp->state->sprite;
+    frame = psp->state->frame & FF_FRAMEMASK;
+  }
 
   psp_interp = !((oldsprite != sprite || oldframe != frame) &&
                  (oldsxf != psp->sxf || oldsyf != psp->syf));
