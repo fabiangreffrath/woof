@@ -1014,7 +1014,7 @@ void R_DrawPlayerSprites(void)
   mceilingclip = negonearray;
 
   // display crosshair
-  if (hud_crosshair)
+  if (hud_crosshair && !hide_weapon)
     HU_DrawCrosshair();
 
   // add all active psprites
