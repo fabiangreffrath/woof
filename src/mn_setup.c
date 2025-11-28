@@ -2014,14 +2014,12 @@ static void UpdateStatsFormatItem(void)
 
 static void UpdateCrosshairItems(void)
 {
-    const boolean hide_crosshair = hide_weapon || !hud_crosshair;
-    DisableItem(hide_weapon,    stat_settings3, "hud_crosshair");
-    DisableItem(hide_crosshair, stat_settings3, "hud_crosshair_health");
-    DisableItem(hide_crosshair, stat_settings3, "hud_crosshair_target");
-    DisableItem(hide_crosshair, stat_settings3, "hud_crosshair_lockon");
-    DisableItem(hide_crosshair, stat_settings3, "hud_crosshair_color");
+    DisableItem(!hud_crosshair, stat_settings3, "hud_crosshair_health");
+    DisableItem(!hud_crosshair, stat_settings3, "hud_crosshair_target");
+    DisableItem(!hud_crosshair, stat_settings3, "hud_crosshair_lockon");
+    DisableItem(!hud_crosshair, stat_settings3, "hud_crosshair_color");
     DisableItem(
-        hide_crosshair || hud_crosshair_target != crosstarget_highlight,
+        !(hud_crosshair && hud_crosshair_target == crosstarget_highlight),
         stat_settings3, "hud_crosshair_target_color");
 
     HU_StartCrosshair();
