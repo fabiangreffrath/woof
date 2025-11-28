@@ -855,7 +855,7 @@ void R_DrawPSprite(pspdef_t *psp, int lightlevel_override)
 
   fixed_t sx2, sy2;
 
-  if (uncapped && oldleveltime < leveltime)
+  if (uncapped && oldleveltime < leveltime && psp_interp)
   {
     sx2 = LerpFixed(psp->oldsx2, psp->sx2);
     sy2 = LerpFixed(psp->oldsy2, psp->sy2);
