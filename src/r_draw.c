@@ -928,7 +928,7 @@ uint32_t ds_ystep;
 // start of a 64*64 tile image
 byte *ds_source;
 
-void R_DrawSpan(void)
+static void R_DrawSpanFlat(void)
 {
     int count = ds_x2 - ds_x1 + 1;
     pixel_t *dest = ylookup[ds_y] + columnofs[ds_x1];
@@ -987,6 +987,36 @@ void R_DrawSpan(void)
     #undef YSHIFT
     #undef YMASK
     #undef XSHIFT
+}
+
+static void R_DrawSpanNoFlat(void)
+{
+    int count = ds_x2 - ds_x1 + 1;
+    pixel_t *dest = ylookup[ds_y] + columnofs[ds_x1];
+
+    if (count > 0)
+    {
+        memset(dest,
+               (leveltime & 16) ? v_darkest_color
+                                : colrngs[CR_PURPLE][v_lightest_color],
+               count);
+    }
+}
+
+void (*R_DrawSpan)(void) = R_DrawSpanFlat;
+
+boolean R_SetDrawSpan(int picnum)
+{
+    if (picnum == NO_TEXTURE)
+    {
+        R_DrawSpan = R_DrawSpanNoFlat;
+        return false;
+    }
+    else
+    {
+        R_DrawSpan = R_DrawSpanFlat;
+        return true;
+    }
 }
 
 void R_InitBufferRes(void)
