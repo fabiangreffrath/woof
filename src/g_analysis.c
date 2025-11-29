@@ -48,18 +48,6 @@ boolean demo_fast = false;
 boolean demo_turbo = false;
 boolean demo_weapon_collector = true;
 
-// TODO?
-// DSDA's -track params are not supported
-
-/*
-int demo_kills_on_map = 0;
-boolean demo_100k_on_map = false;
-boolean demo_100k_note_shown = false;
-boolean demo_pacifist_note_shown = false;
-boolean demo_reality_note_shown = false;
-boolean demo_almost_reality_note_shown = false;
-*/
-
 // TODO: update to support arbitrarily any weapons
 inline boolean G_IsWeapon(mobj_t *thing)
 {

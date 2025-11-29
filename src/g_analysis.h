@@ -45,18 +45,6 @@ extern boolean demo_fast;
 extern boolean demo_turbo;
 extern boolean demo_weapon_collector;
 
-// TODO?
-// DSDA's -track params are not supported
-
-/*
-extern int demo_kills_on_map;
-extern boolean demo_100k_on_map;
-extern boolean demo_100k_note_shown;
-extern boolean demo_pacifist_note_shown;
-extern boolean demo_reality_note_shown;
-extern boolean demo_almost_reality_note_shown;
-*/
-
 extern boolean G_IsWeapon(mobj_t *mobj);
 extern void G_ResetAnalysis(void);
 extern void G_WriteAnalysis(void);

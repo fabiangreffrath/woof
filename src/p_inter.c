@@ -672,17 +672,6 @@ static inline void WatchKill(player_t* player, mobj_t* target)
   }
 }
 
-static inline void WatchDeath(mobj_t *thing)
-{
-  if (thing->flags & MF_COUNTKILL)
-  {
-    if (++demo_kills_on_map >= totalkills)
-    {
-      demo_100k_on_map = true;
-    }
-  }
-}
-
 static void P_KillMobj(mobj_t *source, mobj_t *target, method_t mod)
 {
   mobjtype_t item;
@@ -698,8 +687,6 @@ static void P_KillMobj(mobj_t *source, mobj_t *target, method_t mod)
 
   // killough 8/29/98: remove from threaded list
   P_UpdateThinker(&target->thinker);
-
-  WatchDeath(target);
 
   if (source && source->player)
     {
