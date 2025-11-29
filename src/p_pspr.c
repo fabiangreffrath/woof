@@ -447,7 +447,7 @@ static inline void WatchWeaponFire(weapontype_t weapon)
         return;
     }
 
-    demo_tyson_weapons = false;
+    analysis.tyson = false;
 }
 
 int lastshottic; // killough 3/22/98

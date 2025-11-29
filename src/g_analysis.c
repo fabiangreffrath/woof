@@ -25,30 +25,10 @@
 #include "i_printf.h"
 #include "m_io.h"
 
-int demo_analysis = false;
+boolean demo_analysis = false;
+demo_analysis_t analysis = {0};
 
-boolean demo_pacifist = true;
-boolean demo_reality = true;
-boolean demo_almost_reality = true;
-boolean demo_reborn = false;
-int demo_missed_monsters = 0;
-int demo_missed_secrets = 0;
-int demo_missed_weapons = 0;
-boolean demo_tyson_weapons = true;
-boolean demo_100k = true;
-boolean demo_100s = true;
-boolean demo_any_counted_monsters = false;
-boolean demo_any_monsters = false;
-boolean demo_any_secrets = false;
-boolean demo_any_weapons = false;
-boolean demo_stroller = true;
-boolean demo_nomo = false;
-boolean demo_respawn = false;
-boolean demo_fast = false;
-boolean demo_turbo = false;
-boolean demo_weapon_collector = true;
-
-// TODO: update to support arbitrarily any weapons
+// TODO: update to support arbitrarily any weapons, ID24hacked
 inline boolean G_IsWeapon(mobj_t *thing)
 {
     switch (thing->sprite)
@@ -68,23 +48,23 @@ inline boolean G_IsWeapon(mobj_t *thing)
 
 void G_ResetAnalysis(void)
 {
-    demo_pacifist = true;
-    demo_reality = true;
-    demo_almost_reality = true;
-    demo_reborn = false;
-    demo_missed_monsters = 0;
-    demo_missed_secrets = 0;
-    demo_missed_weapons = 0;
-    demo_tyson_weapons = true;
-    demo_100k = true;
-    demo_100s = true;
-    demo_any_counted_monsters = false;
-    demo_any_monsters = false;
-    demo_any_secrets = false;
-    demo_any_weapons = false;
-    demo_stroller = true;
-    demo_turbo = false;
-    demo_weapon_collector = true;
+    analysis.pacifist = true;
+    analysis.reality = true;
+    analysis.almost_reality = true;
+    analysis.reborn = false;
+    analysis.missed_monsters = 0;
+    analysis.missed_secrets = 0;
+    analysis.missed_weapons = 0;
+    analysis.tyson = true;
+    analysis.kill_100 = true;
+    analysis.secret_100 = true;
+    analysis.any_counted_monsters = false;
+    analysis.any_monsters = false;
+    analysis.any_secrets = false;
+    analysis.any_weapons = false;
+    analysis.stroller = true;
+    analysis.turbo = false;
+    analysis.collector = true;
 }
 
 void G_WriteAnalysis(void)
@@ -102,42 +82,42 @@ void G_WriteAnalysis(void)
         return;
     }
 
-    if (demo_reality)
+    if (analysis.reality)
     {
-        demo_almost_reality = false;
+        analysis.almost_reality = false;
     }
-    if (!demo_pacifist)
+    if (!analysis.pacifist)
     {
-        demo_stroller = false;
+        analysis.stroller = false;
     }
-    if (!demo_any_weapons)
+    if (!analysis.any_weapons)
     {
-        demo_weapon_collector = false;
+        analysis.collector = false;
     }
 
-    demo_nomo = nomonsters > 0;
-    demo_respawn = respawnparm > 0;
-    demo_fast = fastparm > 0;
+    analysis.nomo = nomonsters > 0;
+    analysis.respawn = respawnparm > 0;
+    analysis.fast = fastparm > 0;
 
     const char *category = G_DetectCategory();
     const int is_signed = -1; // Woof does not support ExCmdDemo
 
     fprintf(fstream, "skill %d\n", gameskill + 1);
-    fprintf(fstream, "nomonsters %d\n", demo_nomo);
-    fprintf(fstream, "respawn %d\n", demo_respawn);
-    fprintf(fstream, "fast %d\n", demo_fast);
-    fprintf(fstream, "pacifist %d\n", demo_pacifist);
-    fprintf(fstream, "stroller %d\n", demo_stroller);
-    fprintf(fstream, "reality %d\n", demo_reality);
-    fprintf(fstream, "almost_reality %d\n", demo_almost_reality);
-    fprintf(fstream, "reborn %d\n", demo_reborn);
-    fprintf(fstream, "100k %d\n", demo_100k);
-    fprintf(fstream, "100s %d\n", demo_100s);
-    fprintf(fstream, "missed_monsters %d\n", demo_missed_monsters);
-    fprintf(fstream, "missed_secrets %d\n", demo_missed_secrets);
-    fprintf(fstream, "weapon_collector %d\n", demo_weapon_collector);
-    fprintf(fstream, "tyson_weapons %d\n", demo_tyson_weapons);
-    fprintf(fstream, "turbo %d\n", demo_turbo);
+    fprintf(fstream, "nomonsters %d\n", analysis.nomo);
+    fprintf(fstream, "respawn %d\n", analysis.respawn);
+    fprintf(fstream, "fast %d\n", analysis.fast);
+    fprintf(fstream, "pacifist %d\n", analysis.pacifist);
+    fprintf(fstream, "stroller %d\n", analysis.stroller);
+    fprintf(fstream, "reality %d\n", analysis.reality);
+    fprintf(fstream, "almost_reality %d\n", analysis.almost_reality);
+    fprintf(fstream, "reborn %d\n", analysis.reborn);
+    fprintf(fstream, "100k %d\n", analysis.kill_100);
+    fprintf(fstream, "100s %d\n", analysis.secret_100);
+    fprintf(fstream, "missed_monsters %d\n", analysis.missed_monsters);
+    fprintf(fstream, "missed_secrets %d\n", analysis.missed_secrets);
+    fprintf(fstream, "weapon_collector %d\n", analysis.collector);
+    fprintf(fstream, "tyson_weapons %d\n", analysis.tyson);
+    fprintf(fstream, "turbo %d\n", analysis.turbo);
     fprintf(fstream, "solo_net %d\n", solonet);
     fprintf(fstream, "coop_spawns %d\n", coopspawns);
     fprintf(fstream, "category %s\n", category);
@@ -150,32 +130,32 @@ void G_WriteAnalysis(void)
 
 const char *G_DetectCategory(void)
 {
-    const boolean satisfies_max = (demo_missed_monsters == 0
-                                   && demo_100s
-                                   && (demo_any_secrets
-                                      || demo_any_counted_monsters));
+    const boolean satisfies_max = analysis.missed_monsters == 0
+                                  && analysis.secret_100
+                                  && (analysis.any_secrets
+                                     || analysis.any_counted_monsters);
 
-    const boolean satisfies_respawn = (demo_100s
-                                       && demo_100k
-                                       && demo_any_monsters
-                                       && (demo_any_secrets
-                                          || demo_any_counted_monsters));
+    const boolean satisfies_respawn = analysis.secret_100
+                                      && analysis.kill_100
+                                      && analysis.any_monsters
+                                      && (analysis.any_secrets
+                                         || analysis.any_counted_monsters);
 
-    const boolean satisfies_tyson = (demo_missed_monsters == 0
-                                     && demo_tyson_weapons
-                                     && demo_any_counted_monsters);
+    const boolean satisfies_tyson = analysis.missed_monsters == 0
+                                    && analysis.tyson
+                                    && analysis.any_counted_monsters;
 
-    const boolean satisfies_100s = demo_any_secrets
-                                   && demo_100s;
+    const boolean satisfies_100s = analysis.any_secrets
+                                   && analysis.secret_100;
 
-    if (demo_turbo || coopspawns || solonet || demo_reborn)
+    if (analysis.turbo || coopspawns || solonet || analysis.reborn)
     {
         return "Other";
     }
 
     if (gameskill == sk_hard)
     {
-        if (demo_nomo && !demo_respawn && !demo_fast)
+        if (analysis.nomo && !analysis.respawn && !analysis.fast)
         {
             if (satisfies_100s)
             {
@@ -185,7 +165,7 @@ const char *G_DetectCategory(void)
             return "NoMo";
         }
 
-        if (demo_respawn && !demo_nomo && !demo_fast)
+        if (analysis.respawn && !analysis.nomo && !analysis.fast)
         {
             if (satisfies_respawn)
             {
@@ -195,7 +175,7 @@ const char *G_DetectCategory(void)
             return "Other";
         }
 
-        if (demo_fast && !demo_nomo && !demo_respawn)
+        if (analysis.fast && !analysis.nomo && !analysis.respawn)
         {
             if (satisfies_max)
             {
@@ -205,7 +185,7 @@ const char *G_DetectCategory(void)
             return "Other";
         }
 
-        if (demo_nomo || demo_respawn || demo_fast)
+        if (analysis.nomo || analysis.respawn || analysis.fast)
         {
             return "Other";
         }
@@ -218,11 +198,11 @@ const char *G_DetectCategory(void)
         {
             return "UV Tyson";
         }
-        if (demo_any_monsters && demo_stroller)
+        if (analysis.any_monsters && analysis.stroller)
         {
             return "Stroller";
         }
-        if (demo_any_monsters && demo_pacifist)
+        if (analysis.any_monsters && analysis.pacifist)
         {
             return "Pacifist";
         }

@@ -22,28 +22,31 @@
 #include "doomtype.h"
 #include "p_mobj.h"
 
-extern int demo_analysis;
+typedef struct demo_analysis_s
+{
+    boolean pacifist;
+    boolean reality;
+    boolean almost_reality;
+    boolean reborn;
+    int missed_monsters;
+    int missed_secrets;
+    int missed_weapons;
+    boolean tyson;
+    boolean kill_100;
+    boolean secret_100;
+    boolean any_counted_monsters;
+    boolean any_monsters;
+    boolean any_secrets;
+    boolean any_weapons;
+    boolean stroller;
+    boolean nomo;
+    boolean respawn;
+    boolean fast;
+    boolean turbo;
+    boolean collector;
+} demo_analysis_t;
 
-extern boolean demo_pacifist;
-extern boolean demo_reality;
-extern boolean demo_almost_reality;
-extern boolean demo_reborn;
-extern int demo_missed_monsters;
-extern int demo_missed_secrets;
-extern int demo_missed_weapons;
-extern boolean demo_tyson_weapons;
-extern boolean demo_100k;
-extern boolean demo_100s;
-extern boolean demo_any_counted_monsters;
-extern boolean demo_any_monsters;
-extern boolean demo_any_secrets;
-extern boolean demo_any_weapons;
-extern boolean demo_stroller;
-extern boolean demo_nomo;
-extern boolean demo_respawn;
-extern boolean demo_fast;
-extern boolean demo_turbo;
-extern boolean demo_weapon_collector;
+extern demo_analysis_t analysis;
 
 extern boolean G_IsWeapon(mobj_t *mobj);
 extern void G_ResetAnalysis(void);

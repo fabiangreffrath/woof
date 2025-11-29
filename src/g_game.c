@@ -194,6 +194,7 @@ int     key_help = KEY_F1;                                 // phares 4/13/98
 static boolean dclick_use;
 
 #define MAXPLMOVE   (forwardmove[1])
+#define STROLLERTHRESHOLD  0x19
 #define TURBOTHRESHOLD  0x32
 #define SLOWTURNTICS  6
 #define QUICKREVERSE 32768 // 180 degree reverse                    // phares
@@ -1777,8 +1778,8 @@ static inline void WatchLevelCompletion(void)
 
         if (G_IsWeapon(mobj))
         {
-            ++demo_missed_weapons;
-            demo_weapon_collector = false;
+            ++analysis.missed_weapons;
+            analysis.collector = false;
         }
     }
 
@@ -1793,24 +1794,24 @@ static inline void WatchLevelCompletion(void)
         secret_count += players[i].secretcount;
     }
 
-    demo_missed_monsters += missed_monsters;
-    demo_missed_secrets += (totalsecret - secret_count);
+    analysis.missed_monsters += missed_monsters;
+    analysis.missed_secrets += (totalsecret - secret_count);
 
     if (kill_count < totalkills)
     {
-        demo_100k = false;
+        analysis.kill_100 = false;
     }
     if (secret_count < totalsecret)
     {
-        demo_100s = false;
+        analysis.secret_100 = false;
     }
     if (totalkills > 0)
     {
-        demo_any_counted_monsters = true;
+        analysis.any_counted_monsters = true;
     }
     if (totalsecret > 0)
     {
-        demo_any_secrets = true;
+        analysis.any_secrets = true;
     }
 }
 
@@ -3174,6 +3175,18 @@ void G_Ticker(void)
 		  displaymsg("%s is turbo!", *player_names[i]); // killough 9/29/98
 		}
 
+	        // check for stroller
+          if (cmd->sidemove != 0 &&  abs(cmd->forwardmove) > STROLLERTHRESHOLD)
+          {
+              analysis.stroller = false;
+          }
+
+	        // check for turbo
+          if (abs(cmd->forwardmove) > TURBOTHRESHOLD || abs(cmd->sidemove) > TURBOTHRESHOLD)
+          {
+              analysis.turbo = true;
+          }
+
 	      if (netgame && !netdemo && !(gametic%ticdup) )
 		{
 		  if (gametic > BACKUPTICS
@@ -3481,7 +3494,7 @@ void G_DeathMatchSpawnPlayer(int playernum)
 
 void G_DoReborn(int playernum)
 {
-  demo_reborn = true;
+  analysis.reborn = true;
 
   if (!netgame)
   {
@@ -3627,6 +3640,7 @@ void G_DeferedInitNew(skill_t skill, int episode, int map)
   d_map = map;
   gameaction = ga_newgame;
 
+  G_ResetAnalysis();
   if (demorecording)
   {
     ddt_cheating = 0;

@@ -820,20 +820,20 @@ static inline void WatchDamage(mobj_t *target, mobj_t *inflictor, mobj_t *source
         }
         else if (!target->player)
         {
-            demo_pacifist = false;
+            analysis.pacifist = false;
         }
     }
 
     if (target->player)
     {
-        demo_reality = false;
+        analysis.reality = false;
 
         // "almost reality" means allowing nukage damage
         // we cannot differentiate between crushers and nukage in this scope
         // we account for crushers in dsda_WatchCrush instead
         if (inflictor)
         {
-            demo_almost_reality = false;
+            analysis.almost_reality = false;
         }
     }
 }

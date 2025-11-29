@@ -850,12 +850,12 @@ static inline void WatchSpawn(mobj_t *mo)
 {
     if ((mo->flags & MF_COUNTKILL) || mo->type == MT_SKULL || mo->type == MT_BOSSBRAIN)
     {
-        demo_any_monsters = true;
+        analysis.any_monsters = true;
     }
 
-    if (!demo_any_weapons)
+    if (!analysis.any_weapons)
     {
-        demo_any_weapons = G_IsWeapon(mo);
+        analysis.any_weapons = G_IsWeapon(mo);
     }
 
     if (!((mo->flags ^ MF_COUNTKILL) & (MF_FRIEND | MF_COUNTKILL)))
