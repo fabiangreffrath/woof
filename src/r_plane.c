@@ -328,7 +328,11 @@ visplane_t *R_FindPlane(fixed_t height, int picnum, int lightlevel,
   visplane_t *check;
   unsigned hash;                      // killough
 
-  if (picnum == skyflatnum || picnum & PL_SKYFLAT)  // killough 10/98
+  if (picnum == NO_TEXTURE)
+  {
+    lightlevel = 255;
+  }
+  else if (picnum == skyflatnum || picnum & PL_SKYFLAT)  // killough 10/98
   {
     lightlevel = 0;   // killough 7/19/98: most skies map together
 
@@ -593,7 +597,6 @@ static void do_draw_plane(visplane_t *pl)
     else
     {
         ds_source = missing_flat();
-        ds_brightmap = fullbrightmap;
     }
 
     xoffs = pl->xoffs; // killough 2/28/98: Add offsets

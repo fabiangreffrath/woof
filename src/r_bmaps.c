@@ -40,7 +40,6 @@ boolean force_brightmaps;
 #define COLORMASK_SIZE 256
 
 const byte nobrightmap[COLORMASK_SIZE] = {0};
-byte fullbrightmap[COLORMASK_SIZE];
 
 const byte *dc_brightmap = nobrightmap;
 
@@ -178,8 +177,6 @@ void R_InitFlatBrightmaps(void)
     {
         flats_bm[i].num = R_FlatNumForName(flats_bm[i].name);
     }
-
-    memset(fullbrightmap, 0x01, COLORMASK_SIZE);
 }
 
 const byte *R_BrightmapForTexName(const char *texname)
