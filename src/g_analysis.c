@@ -67,68 +67,7 @@ void G_ResetAnalysis(void)
     analysis.collector = true;
 }
 
-void G_WriteAnalysis(void)
-{
-    if (!demo_analysis)
-    {
-        return;
-    }
-
-    FILE *fstream = M_fopen("analysis.txt", "w");
-
-    if (!fstream)
-    {
-        I_Printf(VB_WARNING, "Unable to open analysis.txt for writing!\n");
-        return;
-    }
-
-    if (analysis.reality)
-    {
-        analysis.almost_reality = false;
-    }
-    if (!analysis.pacifist)
-    {
-        analysis.stroller = false;
-    }
-    if (!analysis.any_weapons)
-    {
-        analysis.collector = false;
-    }
-
-    analysis.nomo = nomonsters > 0;
-    analysis.respawn = respawnparm > 0;
-    analysis.fast = fastparm > 0;
-
-    const char *category = G_DetectCategory();
-    const int is_signed = -1; // Woof does not support ExCmdDemo
-
-    fprintf(fstream, "skill %d\n", gameskill + 1);
-    fprintf(fstream, "nomonsters %d\n", analysis.nomo);
-    fprintf(fstream, "respawn %d\n", analysis.respawn);
-    fprintf(fstream, "fast %d\n", analysis.fast);
-    fprintf(fstream, "pacifist %d\n", analysis.pacifist);
-    fprintf(fstream, "stroller %d\n", analysis.stroller);
-    fprintf(fstream, "reality %d\n", analysis.reality);
-    fprintf(fstream, "almost_reality %d\n", analysis.almost_reality);
-    fprintf(fstream, "reborn %d\n", analysis.reborn);
-    fprintf(fstream, "100k %d\n", analysis.kill_100);
-    fprintf(fstream, "100s %d\n", analysis.secret_100);
-    fprintf(fstream, "missed_monsters %d\n", analysis.missed_monsters);
-    fprintf(fstream, "missed_secrets %d\n", analysis.missed_secrets);
-    fprintf(fstream, "weapon_collector %d\n", analysis.collector);
-    fprintf(fstream, "tyson_weapons %d\n", analysis.tyson);
-    fprintf(fstream, "turbo %d\n", analysis.turbo);
-    fprintf(fstream, "solo_net %d\n", solonet);
-    fprintf(fstream, "coop_spawns %d\n", coopspawns);
-    fprintf(fstream, "category %s\n", category);
-    fprintf(fstream, "signature %d\n", is_signed);
-
-    fclose(fstream);
-
-    return;
-}
-
-const char *G_DetectCategory(void)
+static inline const char *G_DetectCategory(demo_analysis_t analysis)
 {
     const boolean satisfies_max = analysis.missed_monsters == 0
                                   && analysis.secret_100
@@ -224,4 +163,65 @@ const char *G_DetectCategory(void)
     }
 
     return "Other";
+}
+
+void G_WriteAnalysis(void)
+{
+    if (!demo_analysis)
+    {
+        return;
+    }
+
+    FILE *fstream = M_fopen("analysis.txt", "w");
+
+    if (!fstream)
+    {
+        I_Printf(VB_WARNING, "Unable to open analysis.txt for writing!\n");
+        return;
+    }
+
+    if (analysis.reality)
+    {
+        analysis.almost_reality = false;
+    }
+    if (!analysis.pacifist)
+    {
+        analysis.stroller = false;
+    }
+    if (!analysis.any_weapons)
+    {
+        analysis.collector = false;
+    }
+
+    analysis.nomo = nomonsters > 0;
+    analysis.respawn = respawnparm > 0;
+    analysis.fast = fastparm > 0;
+
+    const char *category = G_DetectCategory(analysis);
+    const int is_signed = -1; // Woof does not support ExCmdDemo
+
+    fprintf(fstream, "skill %d\n", gameskill + 1);
+    fprintf(fstream, "nomonsters %d\n", analysis.nomo);
+    fprintf(fstream, "respawn %d\n", analysis.respawn);
+    fprintf(fstream, "fast %d\n", analysis.fast);
+    fprintf(fstream, "pacifist %d\n", analysis.pacifist);
+    fprintf(fstream, "stroller %d\n", analysis.stroller);
+    fprintf(fstream, "reality %d\n", analysis.reality);
+    fprintf(fstream, "almost_reality %d\n", analysis.almost_reality);
+    fprintf(fstream, "reborn %d\n", analysis.reborn);
+    fprintf(fstream, "100k %d\n", analysis.kill_100);
+    fprintf(fstream, "100s %d\n", analysis.secret_100);
+    fprintf(fstream, "missed_monsters %d\n", analysis.missed_monsters);
+    fprintf(fstream, "missed_secrets %d\n", analysis.missed_secrets);
+    fprintf(fstream, "weapon_collector %d\n", analysis.collector);
+    fprintf(fstream, "tyson_weapons %d\n", analysis.tyson);
+    fprintf(fstream, "turbo %d\n", analysis.turbo);
+    fprintf(fstream, "solo_net %d\n", solonet);
+    fprintf(fstream, "coop_spawns %d\n", coopspawns);
+    fprintf(fstream, "category %s\n", category);
+    fprintf(fstream, "signature %d\n", is_signed);
+
+    fclose(fstream);
+
+    return;
 }

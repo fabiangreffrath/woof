@@ -51,6 +51,5 @@ extern demo_analysis_t analysis;
 extern boolean G_IsWeapon(mobj_t *mobj);
 extern void G_ResetAnalysis(void);
 extern void G_WriteAnalysis(void);
-extern const char* G_DetectCategory(void);
 
 #endif
