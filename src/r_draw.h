@@ -84,8 +84,7 @@ extern byte *dc_translation;
 extern const byte *ds_brightmap;
 
 // Span blitting for rows, floor/ceiling. No Spectre effect needed.
-extern void (*R_DrawSpan)(void);
-boolean R_SetDrawSpan(int picnum);
+void R_DrawSpan(void);
 
 void R_InitBuffer(void);
 

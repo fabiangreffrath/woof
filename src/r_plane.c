@@ -527,6 +527,26 @@ static void DrawSkyDef(visplane_t *pl, sky_t *sky)
 
 // New function, by Lee Killough
 
+static byte *missing_flat(void)
+{
+    static byte *buffer = NULL;
+
+    if (buffer == NULL)
+    {
+        const byte c1 = v_lightest_color;
+        const byte c2 = v_darkest_color;
+
+        buffer = Z_Malloc(64 * 64, PU_LEVEL, (void **)&buffer);
+
+        for (int i = 0; i < 64 * 64; i++)
+        {
+            buffer[i] = ((i & 8) == 8) != ((i & 512) == 512) ? c1 : c2;
+        }
+    }
+
+    return buffer;
+}
+
 static void do_draw_plane(visplane_t *pl)
 {
     if (pl->minx > pl->maxx)
@@ -536,7 +556,7 @@ static void do_draw_plane(visplane_t *pl)
 
     boolean swirling = false;
 
-    if (R_SetDrawSpan(pl->picnum))
+    if (pl->picnum != NO_TEXTURE)
     {
         // sky flat
 
@@ -569,6 +589,11 @@ static void do_draw_plane(visplane_t *pl)
                                        PU_STATIC);
             ds_brightmap = R_BrightmapForFlatNum(flattranslation[pl->picnum]);
         }
+    }
+    else
+    {
+        ds_source = missing_flat();
+        ds_brightmap = fullbrightmap;
     }
 
     xoffs = pl->xoffs; // killough 2/28/98: Add offsets

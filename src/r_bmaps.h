@@ -23,6 +23,7 @@
 #include "doomtype.h"
 
 extern const byte nobrightmap[];
+extern byte fullbrightmap[];
 
 extern boolean brightmaps;
 extern boolean brightmaps_found;
