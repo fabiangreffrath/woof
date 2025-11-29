@@ -1795,8 +1795,8 @@ void D_DoomMain(void)
 
   I_AtSignal(G_CheckDemoRecordingStatus);
 
-  I_AtExitPrio(G_CheckDemoRecordingStatus,
-               true, "G_CheckDemoRecordingStatus", exit_priority_first);
+  I_AtExitPrio(G_DemoAnalysis,
+               true, "G_DemoAnalysis", exit_priority_first);
   I_AtExitPrio(M_SaveDefaults,
                false, "M_SaveDefaults", exit_priority_last);
   I_AtExitPrio(I_QuitVideo,

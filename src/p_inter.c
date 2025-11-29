@@ -26,6 +26,7 @@
 #include "d_think.h"
 #include "doomdef.h"
 #include "doomstat.h"
+#include "g_analysis.h"
 #include "i_system.h"
 #include "info.h"
 #include "m_fixed.h"
@@ -661,13 +662,24 @@ void P_TouchSpecialThing(mobj_t *special, mobj_t *toucher)
 //
 // killough 11/98: make static
 
-static void WatchKill(player_t* player, mobj_t* target)
+static inline void WatchKill(player_t* player, mobj_t* target)
 {
   player->killcount++;
 
   if (target->intflags & MIF_SPAWNED_BY_ICON)
   {
     player->maxkilldiscount++;
+  }
+}
+
+static inline void WatchDeath(mobj_t *thing)
+{
+  if (thing->flags & MF_COUNTKILL)
+  {
+    if (++demo_kills_on_map >= totalkills)
+    {
+      demo_100k_on_map = true;
+    }
   }
 }
 
@@ -686,6 +698,8 @@ static void P_KillMobj(mobj_t *source, mobj_t *target, method_t mod)
 
   // killough 8/29/98: remove from threaded list
   P_UpdateThinker(&target->thinker);
+
+  WatchDeath(target);
 
   if (source && source->player)
     {
@@ -807,6 +821,36 @@ static void P_KillMobj(mobj_t *source, mobj_t *target, method_t mod)
 // and other environmental stuff.
 //
 
+static inline void WatchDamage(mobj_t *target, mobj_t *inflictor, mobj_t *source, int damage)
+{
+    if (((source && source->player)
+         || (inflictor && inflictor->intflags & MIF_PLAYER_DAMAGED_BARREL))
+        && damage != 10000) // telefrag damage
+    {
+        if (target->type == MT_BARREL)
+        {
+            target->intflags |= MIF_PLAYER_DAMAGED_BARREL;
+        }
+        else if (!target->player)
+        {
+            demo_pacifist = false;
+        }
+    }
+
+    if (target->player)
+    {
+        demo_reality = false;
+
+        // "almost reality" means allowing nukage damage
+        // we cannot differentiate between crushers and nukage in this scope
+        // we account for crushers in dsda_WatchCrush instead
+        if (inflictor)
+        {
+            demo_almost_reality = false;
+        }
+    }
+}
+
 // mbf21: dehacked infighting groups
 static boolean P_InfightingImmune(mobj_t *target, mobj_t *source)
 {
@@ -923,6 +967,8 @@ void P_DamageMobjBy(mobj_t *target,mobj_t *inflictor, mobj_t *source, int damage
 #endif
 
     }
+
+  WatchDamage(target, inflictor, source, damage);
 
   // do the damage
   target->health -= damage;

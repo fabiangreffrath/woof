@@ -241,6 +241,7 @@ enum {
   // cosmetic
   MIF_FLIP = 16,
   MIF_SPAWNED_BY_ICON = 32,
+  MIF_PLAYER_DAMAGED_BARREL = (1u << 6),
 };
 
 // Map Object definition.

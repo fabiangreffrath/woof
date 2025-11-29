@@ -41,6 +41,7 @@
 #include "doomtype.h"
 #include "f_finale.h"
 #include "g_game.h"
+#include "g_analysis.h"
 #include "g_nextweapon.h"
 #include "g_rewind.h"
 #include "g_umapinfo.h"
@@ -1751,6 +1752,68 @@ static void G_WriteLevelStat(void)
 // G_DoCompleted
 //
 
+static inline void WatchLevelCompletion(void)
+{
+    int secret_count = 0;
+    int kill_count = 0;
+    int missed_monsters = 0;
+
+    for (thinker_t * th = thinkercap.next; th != &thinkercap; th = th->next)
+    {
+        if (th->function.p1 != P_MobjThinker)
+        {
+            continue;
+        }
+
+        mobj_t *mobj = (mobj_t *)th;
+
+        // max rules: everything dead that affects kill counter except ios spawns
+        if (!((mobj->flags ^ MF_COUNTKILL) & (MF_FRIEND | MF_COUNTKILL))
+            && !(mobj->intflags & MIF_SPAWNED_BY_ICON)
+            && mobj->health > 0)
+        {
+            ++missed_monsters;
+        }
+
+        if (G_IsWeapon(mobj))
+        {
+            ++demo_missed_weapons;
+            demo_weapon_collector = false;
+        }
+    }
+
+    for (int i = 0; i < MAXPLAYERS; ++i)
+    {
+        if (!playeringame[i])
+        {
+            continue;
+        }
+
+        kill_count += players[i].killcount;
+        secret_count += players[i].secretcount;
+    }
+
+    demo_missed_monsters += missed_monsters;
+    demo_missed_secrets += (totalsecret - secret_count);
+
+    if (kill_count < totalkills)
+    {
+        demo_100k = false;
+    }
+    if (secret_count < totalsecret)
+    {
+        demo_100s = false;
+    }
+    if (totalkills > 0)
+    {
+        demo_any_counted_monsters = true;
+    }
+    if (totalsecret > 0)
+    {
+        demo_any_secrets = true;
+    }
+}
+
 boolean um_pars = false;
 
 static void G_DoCompleted(void)
@@ -1779,6 +1842,8 @@ static void G_DoCompleted(void)
 
   if (automapactive)
     AM_Stop();
+
+  WatchLevelCompletion();
 
   wminfo.nextep = wminfo.epsd = gameepisode -1;
   wminfo.last = gamemap -1;
@@ -3416,6 +3481,8 @@ void G_DeathMatchSpawnPlayer(int playernum)
 
 void G_DoReborn(int playernum)
 {
+  demo_reborn = true;
+
   if (!netgame)
   {
     if (gameaction != ga_reloadlevel)
@@ -4918,6 +4985,15 @@ void G_CheckDemoRecordingStatus(void)
     {
         G_CheckDemoStatus();
     }
+}
+
+void G_DemoAnalysis(void)
+{
+    if (demorecording)
+    {
+        G_CheckDemoStatus();
+    }
+    G_WriteAnalysis();
 }
 
 static boolean IsVanillaMap(int e, int m)

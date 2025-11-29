@@ -20,6 +20,7 @@
 #define __G_ANALYSIS__
 
 #include "doomtype.h"
+#include "p_mobj.h"
 
 extern int demo_analysis;
 
@@ -56,6 +57,7 @@ extern boolean demo_reality_note_shown;
 extern boolean demo_almost_reality_note_shown;
 */
 
+extern boolean G_IsWeapon(mobj_t *mobj);
 extern void G_ResetAnalysis(void);
 extern void G_WriteAnalysis(void);
 extern const char* G_DetectCategory(void);

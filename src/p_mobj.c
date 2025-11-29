@@ -24,6 +24,7 @@
 #include "doomdef.h"
 #include "doomstat.h"
 #include "dsdhacked.h"
+#include "g_analysis.h"
 #include "g_game.h"
 #include "i_printf.h"
 #include "info.h"
@@ -845,6 +846,24 @@ void P_MobjThinker (mobj_t* mobj)
 // P_SpawnMobj
 //
 
+static inline void WatchSpawn(mobj_t *mo)
+{
+    if ((mo->flags & MF_COUNTKILL) || mo->type == MT_SKULL || mo->type == MT_BOSSBRAIN)
+    {
+        demo_any_monsters = true;
+    }
+
+    if (!demo_any_weapons)
+    {
+        demo_any_weapons = G_IsWeapon(mo);
+    }
+
+    if (!((mo->flags ^ MF_COUNTKILL) & (MF_FRIEND | MF_COUNTKILL)))
+    {
+        ++max_kill_requirement;
+    }
+}
+
 mobj_t *P_SpawnMobj(fixed_t x, fixed_t y, fixed_t z, mobjtype_t type)
 {
   mobj_t *mobj = arena_alloc(thinkers_arena, mobj_t);
@@ -943,10 +962,7 @@ mobj_t *P_SpawnMobj(fixed_t x, fixed_t y, fixed_t z, mobjtype_t type)
 
   P_AddThinker(&mobj->thinker);
 
-  if (!((mobj->flags ^ MF_COUNTKILL) & (MF_FRIEND | MF_COUNTKILL)))
-  {
-    ++max_kill_requirement;
-  }
+  WatchSpawn(mobj);
 
   return mobj;
 }

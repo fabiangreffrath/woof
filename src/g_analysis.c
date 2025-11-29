@@ -60,6 +60,24 @@ boolean demo_reality_note_shown = false;
 boolean demo_almost_reality_note_shown = false;
 */
 
+// TODO: update to support arbitrarily any weapons
+inline boolean G_IsWeapon(mobj_t *thing)
+{
+    switch (thing->sprite)
+    {
+        case SPR_BFUG:
+        case SPR_MGUN:
+        case SPR_CSAW:
+        case SPR_LAUN:
+        case SPR_PLAS:
+        case SPR_SHOT:
+        case SPR_SGN2:
+            return true;
+        default:
+            return false;
+    }
+}
+
 void G_ResetAnalysis(void)
 {
     demo_pacifist = true;
