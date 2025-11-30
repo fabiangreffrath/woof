@@ -1085,12 +1085,12 @@ void P_UnArchiveWorld(void)
 
         // [crispy] add overflow guard for the flattranslation[] array
         if (floorpic >= 0 && floorpic < numflats
-            && W_LumpLength(firstflat + floorpic) >= 64 * 64)
+            && W_LumpLength(firstflat + floorpic) >= FLATSIZE)
         {
             sec->floorpic = floorpic;
         }
         if (ceilingpic >= 0 && ceilingpic < numflats
-            && W_LumpLength(firstflat + ceilingpic) >= 64 * 64)
+            && W_LumpLength(firstflat + ceilingpic) >= FLATSIZE)
         {
             sec->ceilingpic = ceilingpic;
         }

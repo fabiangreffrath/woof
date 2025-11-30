@@ -329,9 +329,10 @@ visplane_t *R_FindPlane(fixed_t height, int picnum, int lightlevel,
   unsigned hash;                      // killough
 
   if (picnum == NO_TEXTURE)
-    return NULL;
-
-  if (picnum == skyflatnum || picnum & PL_SKYFLAT)  // killough 10/98
+  {
+    lightlevel = 255;
+  }
+  else if (picnum == skyflatnum || picnum & PL_SKYFLAT)  // killough 10/98
   {
     lightlevel = 0;   // killough 7/19/98: most skies map together
 
@@ -530,6 +531,26 @@ static void DrawSkyDef(visplane_t *pl, sky_t *sky)
 
 // New function, by Lee Killough
 
+static byte *missing_flat(void)
+{
+    static byte *buffer = NULL;
+
+    if (buffer == NULL)
+    {
+        const byte c1 = colrngs[CR_PURPLE][v_lightest_color];
+        const byte c2 = v_darkest_color;
+
+        buffer = Z_Malloc(FLATSIZE, PU_LEVEL, (void **)&buffer);
+
+        for (int i = 0; i < FLATSIZE; i++)
+        {
+            buffer[i] = ((i & 16) == 16) != ((i & 1024) == 1024) ? c1 : c2;
+        }
+    }
+
+    return buffer;
+}
+
 static void do_draw_plane(visplane_t *pl)
 {
     if (pl->minx > pl->maxx)
@@ -537,38 +558,45 @@ static void do_draw_plane(visplane_t *pl)
         return;
     }
 
-    // sky flat
+    boolean swirling = false;
 
-    if (pl->picnum == skyflatnum)
+    if (pl->picnum != NO_TEXTURE)
     {
-        DrawSkyDef(pl, levelskies);
-        return;
-    }
+        // sky flat
 
-    if (pl->picnum & PL_SKYFLAT)
-    {
-        sky_t *const sky = R_GetLevelsky(pl->picnum & ~PL_SKYFLAT);
-        DrawSkyDef(pl, sky);
-        return;
-    }
+        if (pl->picnum == skyflatnum)
+        {
+            DrawSkyDef(pl, levelskies);
+            return;
+        }
 
-    // regular flat
+        if (pl->picnum & PL_SKYFLAT)
+        {
+            sky_t *const sky = R_GetLevelsky(pl->picnum & ~PL_SKYFLAT);
+            DrawSkyDef(pl, sky);
+            return;
+        }
 
-    int stop, light;
-    boolean swirling = (flattranslation[pl->picnum] == -1);
+        // regular flat
 
-    // [crispy] add support for SMMU swirling flats
-    if (swirling)
-    {
-        ds_source = R_DistortedFlat(firstflat + pl->picnum);
-        ds_brightmap = R_BrightmapForFlatNum(pl->picnum);
+        swirling = (flattranslation[pl->picnum] == -1);
+
+        // [crispy] add support for SMMU swirling flats
+        if (swirling)
+        {
+            ds_source = R_DistortedFlat(firstflat + pl->picnum);
+            ds_brightmap = R_BrightmapForFlatNum(pl->picnum);
+        }
+        else
+        {
+            ds_source = V_CacheFlatNum(firstflat + flattranslation[pl->picnum],
+                                       PU_STATIC);
+            ds_brightmap = R_BrightmapForFlatNum(flattranslation[pl->picnum]);
+        }
     }
     else
     {
-        ds_source = V_CacheFlatNum(
-            firstflat + flattranslation[pl->picnum], PU_STATIC);
-        ds_brightmap =
-            R_BrightmapForFlatNum(flattranslation[pl->picnum]);
+        ds_source = missing_flat();
     }
 
     xoffs = pl->xoffs; // killough 2/28/98: Add offsets
@@ -581,19 +609,19 @@ static void do_draw_plane(visplane_t *pl)
 
     if (pl->rotation == 0)
     {
-      viewx_trans = xoffs + viewx;
-      viewy_trans = yoffs - viewy;
+        viewx_trans = xoffs + viewx;
+        viewy_trans = yoffs - viewy;
     }
     else
     {
-      const fixed_t sin = finesine[pl->rotation >> ANGLETOFINESHIFT];
-      const fixed_t cos = finecosine[pl->rotation >> ANGLETOFINESHIFT];
+        const fixed_t sin = finesine[pl->rotation >> ANGLETOFINESHIFT];
+        const fixed_t cos = finecosine[pl->rotation >> ANGLETOFINESHIFT];
 
-      viewx_trans = xoffs +  FixedMul(viewx, cos) - FixedMul(viewy, sin);
-      viewy_trans = yoffs - (FixedMul(viewx, sin) + FixedMul(viewy, cos));
-
+        viewx_trans = xoffs + FixedMul(viewx, cos) - FixedMul(viewy, sin);
+        viewy_trans = yoffs - (FixedMul(viewx, sin) + FixedMul(viewy, cos));
     }
 
+    int stop, light;
     planeheight = abs(pl->height - viewz);
     light = (pl->lightlevel >> LIGHTSEGSHIFT) + extralight;
 

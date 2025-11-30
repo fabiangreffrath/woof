@@ -1,6 +1,5 @@
 set(BASE_SOURCES
     all-all/animated.lmp
-    all-all/brghtmps.lmp
     all-all/chexdeh.lmp
     all-all/compdb.lmp
     all-all/crblack.lmp
@@ -116,8 +115,6 @@ set(BASE_SOURCES
     all-all/switches.lmp
 
     all-all/colormaps/watermap.cmp
-
-    all-all/flats/-NO_TEX-.png
 
     all-all/sprites/dogsa1.png
     all-all/sprites/dogsa2.png
