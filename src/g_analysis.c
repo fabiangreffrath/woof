@@ -197,7 +197,7 @@ void G_WriteAnalysis(void)
     analysis.fast = fastparm > 0;
 
     const char *category = G_DetectCategory(analysis);
-    const int is_signed = -1; // Woof does not support ExCmdDemo
+    const int is_signed = 0; // Woof does not support ExCmdDemo
 
     fprintf(fstream, "skill %d\n", gameskill + 1);
     fprintf(fstream, "nomonsters %d\n", analysis.nomo);
