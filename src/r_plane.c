@@ -540,9 +540,9 @@ static byte *missing_flat(void)
         const byte c1 = v_lightest_color;
         const byte c2 = v_darkest_color;
 
-        buffer = Z_Malloc(64 * 64, PU_LEVEL, (void **)&buffer);
+        buffer = Z_Malloc(FLATSIZE, PU_LEVEL, (void **)&buffer);
 
-        for (int i = 0; i < 64 * 64; i++)
+        for (int i = 0; i < FLATSIZE; i++)
         {
             buffer[i] = ((i & 8) == 8) != ((i & 512) == 512) ? c1 : c2;
         }

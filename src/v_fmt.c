@@ -261,10 +261,8 @@ static patch_t *DummyPatch(int lump, pu_tag tag)
 
 static void *DummyFlat(int lump, pu_tag tag)
 {
-    const int size = 64 * 64;
-
-    Z_Malloc(size, tag, &lumpcache[lump]);
-    memset(lumpcache[lump], v_darkest_color, size);
+    Z_Malloc(FLATSIZE, tag, &lumpcache[lump]);
+    memset(lumpcache[lump], v_darkest_color, FLATSIZE);
     return lumpcache[lump];
 }
 
