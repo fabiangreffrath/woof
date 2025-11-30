@@ -537,7 +537,7 @@ static byte *missing_flat(void)
 
     if (buffer == NULL)
     {
-        const byte c1 = v_lightest_color;
+        const byte c1 = colrngs[CR_PURPLE][v_lightest_color];
         const byte c2 = v_darkest_color;
 
         buffer = Z_Malloc(FLATSIZE, PU_LEVEL, (void **)&buffer);
