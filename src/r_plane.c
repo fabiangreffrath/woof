@@ -544,7 +544,7 @@ static byte *missing_flat(void)
 
         for (int i = 0; i < FLATSIZE; i++)
         {
-            buffer[i] = ((i & 8) == 8) != ((i & 512) == 512) ? c1 : c2;
+            buffer[i] = ((i & 16) == 16) != ((i & 1024) == 1024) ? c1 : c2;
         }
     }
 
