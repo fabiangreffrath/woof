@@ -25,8 +25,7 @@
 #include "i_printf.h"
 #include "m_io.h"
 
-boolean demo_analysis = false;
-demo_analysis_t analysis = {0};
+demo_analysis_t analysis;
 
 // TODO: update to support arbitrarily any weapons, ID24hacked
 inline boolean G_IsWeapon(mobj_t *thing)
@@ -167,7 +166,7 @@ static inline const char *G_DetectCategory(demo_analysis_t analysis)
 
 void G_WriteAnalysis(void)
 {
-    if (!demo_analysis)
+    if (!analysis.enabled)
     {
         return;
     }

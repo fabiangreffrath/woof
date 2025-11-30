@@ -24,6 +24,7 @@
 
 typedef struct demo_analysis_s
 {
+    boolean enabled;
     boolean pacifist;
     boolean reality;
     boolean almost_reality;
