@@ -164,7 +164,7 @@ int TXT_Init(void)
 
     // Set width and height of the logical viewport for automatic scaling.
     SDL_SetRenderLogicalPresentation(renderer, screen_image_w, screen_image_h,
-                                     SDL_LOGICAL_PRESENTATION_LETTERBOX);
+                                     SDL_LOGICAL_PRESENTATION_INTEGER_SCALE);
 
     texture = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_INDEX8,
                                 SDL_TEXTUREACCESS_STREAMING, screen_image_w,
