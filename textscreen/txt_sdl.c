@@ -170,6 +170,8 @@ int TXT_Init(void)
                                 SDL_TEXTUREACCESS_STREAMING, screen_image_w,
                                 screen_image_h);
 
+    SDL_SetTextureScaleMode(texture, SDL_SCALEMODE_PIXELART);
+
     palette = SDL_CreatePalette(256);
     SDL_SetPaletteColors(palette, ega_colors, 0, 16);
     SDL_SetTexturePalette(texture, palette);
