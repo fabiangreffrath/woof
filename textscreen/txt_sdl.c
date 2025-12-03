@@ -133,7 +133,7 @@ static void UpdateLogicalPresentation(void)
         // Window width is the constraint.
         const int border_w = w % screen_image_w;
 
-        if (border_w >= 0 && border_w <= w / 5)
+        if (border_w >= 0 && border_w <= w / 6)
         {
             // Borders are small enough, so use integer scaling.
             mode = SDL_LOGICAL_PRESENTATION_INTEGER_SCALE;
@@ -144,7 +144,7 @@ static void UpdateLogicalPresentation(void)
         // Window height is the constraint.
         const int border_h = h % screen_image_h;
 
-        if (border_h >= 0 && border_h <= h / 5)
+        if (border_h >= 0 && border_h <= h / 6)
         {
             // Borders are small enough, so use integer scaling.
             mode = SDL_LOGICAL_PRESENTATION_INTEGER_SCALE;
