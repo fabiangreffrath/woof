@@ -120,7 +120,7 @@ void TXT_PreInit(SDL_Window *preset_window, SDL_Renderer *preset_renderer)
     }
 }
 
-int TXT_Init(void)
+int TXT_Init(txt_window_type_t window_type)
 {
     SDL_WindowFlags flags = 0;
 
@@ -162,13 +162,31 @@ int TXT_Init(void)
         return 0;
     }
 
+    SDL_RendererLogicalPresentation mode = SDL_LOGICAL_PRESENTATION_LETTERBOX;
+
+    if (window_type == TXT_WINDOW_ENDOOM)
+    {
+        int h, border_h;
+
+        SDL_GetWindowSizeInPixels(TXT_SDLWindow, NULL, &h);
+        border_h = h % screen_image_h;
+
+        if (border_h >= 0 && border_h <= h / 4)
+        {
+            // Borders are small enough, so use integer scaling.
+            mode = SDL_LOGICAL_PRESENTATION_INTEGER_SCALE;
+        }
+    }
+
     // Set width and height of the logical viewport for automatic scaling.
     SDL_SetRenderLogicalPresentation(renderer, screen_image_w, screen_image_h,
-                                     SDL_LOGICAL_PRESENTATION_LETTERBOX);
+                                     mode);
 
     texture = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_INDEX8,
                                 SDL_TEXTUREACCESS_STREAMING, screen_image_w,
                                 screen_image_h);
+
+    SDL_SetTextureScaleMode(texture, SDL_SCALEMODE_PIXELART);
 
     palette = SDL_CreatePalette(256);
     SDL_SetPaletteColors(palette, ega_colors, 0, 16);

@@ -133,9 +133,15 @@ typedef enum
 
 #endif  // __GNUC__
 
+typedef enum
+{
+    TXT_WINDOW_SETUP,
+    TXT_WINDOW_ENDOOM,
+} txt_window_type_t;
+
 // Initialize the screen
 // Returns 1 if successful, 0 if failed.
-int TXT_Init(void);
+int TXT_Init(txt_window_type_t window_type);
 
 // Shut down text mode emulation
 void TXT_Shutdown(void);

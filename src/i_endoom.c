@@ -40,7 +40,7 @@ void I_Endoom(byte *endoom_data)
 
     TXT_PreInit(I_GetSDLWindow(), I_GetSDLRenderer());
 
-    if (!TXT_Init())
+    if (!TXT_Init(TXT_WINDOW_ENDOOM))
     {
         I_Printf(VB_ERROR, "Failed to initialize libtextscreen");
         return;
