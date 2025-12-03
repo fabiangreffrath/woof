@@ -120,6 +120,25 @@ void TXT_PreInit(SDL_Window *preset_window, SDL_Renderer *preset_renderer)
     }
 }
 
+static void UpdateLogicalPresentation(void)
+{
+    SDL_RendererLogicalPresentation mode = SDL_LOGICAL_PRESENTATION_LETTERBOX;
+    int h, border_h;
+
+    SDL_GetWindowSizeInPixels(TXT_SDLWindow, NULL, &h);
+    border_h = h % screen_image_h;
+
+    if (border_h >= 0 && border_h <= h / 5)
+    {
+        // Borders are small enough, so use integer scaling.
+        mode = SDL_LOGICAL_PRESENTATION_INTEGER_SCALE;
+    }
+
+    // Set width and height of the logical viewport for automatic scaling.
+    SDL_SetRenderLogicalPresentation(renderer, screen_image_w, screen_image_h,
+                                     mode);
+}
+
 int TXT_Init(void)
 {
     SDL_WindowFlags flags = 0;
@@ -162,22 +181,7 @@ int TXT_Init(void)
         return 0;
     }
 
-    SDL_RendererLogicalPresentation mode = SDL_LOGICAL_PRESENTATION_LETTERBOX;
-
-    int h, border_h;
-
-    SDL_GetWindowSizeInPixels(TXT_SDLWindow, NULL, &h);
-    border_h = h % screen_image_h;
-
-    if (border_h >= 0 && border_h <= h / 5)
-    {
-        // Borders are small enough, so use integer scaling.
-        mode = SDL_LOGICAL_PRESENTATION_INTEGER_SCALE;
-    }
-
-    // Set width and height of the logical viewport for automatic scaling.
-    SDL_SetRenderLogicalPresentation(renderer, screen_image_w, screen_image_h,
-                                     mode);
+    UpdateLogicalPresentation();
 
     texture = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_INDEX8,
                                 SDL_TEXTUREACCESS_STREAMING, screen_image_w,
