@@ -825,7 +825,7 @@ static void WI_drawEL(void)
 
         if (SHORT(patch->height) < SCREENHEIGHT)
         {
-            y += (5 * SHORT(patch->height)) / 4;
+            y += (5 * SHORT(entering->height)) / 4;
         }
 
         V_DrawPatch((SCREENWIDTH - SHORT(patch->width)) / 2, y, patch);
