@@ -132,7 +132,7 @@ static void SetWindowTitle(void)
 
 static void InitTextscreen(void)
 {
-    if (!TXT_Init(0))
+    if (!TXT_Init())
     {
         fprintf(stderr, "Failed to initialize GUI\n");
         exit(-1);
