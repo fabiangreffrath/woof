@@ -546,6 +546,13 @@ signed int TXT_GetChar(void)
                 SDL_PushEvent(&ev);
                 break;
 
+            case SDL_EVENT_WINDOW_RESIZED:
+                if (ev.window.windowID == SDL_GetWindowID(TXT_SDLWindow))
+                {
+                    UpdateLogicalPresentation();
+                }
+                break;
+
             default:
                 break;
         }
