@@ -120,7 +120,7 @@ void TXT_PreInit(SDL_Window *preset_window, SDL_Renderer *preset_renderer)
     }
 }
 
-int TXT_Init(txt_window_type_t window_type)
+int TXT_Init(void)
 {
     SDL_WindowFlags flags = 0;
 
@@ -164,18 +164,15 @@ int TXT_Init(txt_window_type_t window_type)
 
     SDL_RendererLogicalPresentation mode = SDL_LOGICAL_PRESENTATION_LETTERBOX;
 
-    if (window_type == TXT_WINDOW_ENDOOM)
+    int h, border_h;
+
+    SDL_GetWindowSizeInPixels(TXT_SDLWindow, NULL, &h);
+    border_h = h % screen_image_h;
+
+    if (border_h >= 0 && border_h <= h / 5)
     {
-        int h, border_h;
-
-        SDL_GetWindowSizeInPixels(TXT_SDLWindow, NULL, &h);
-        border_h = h % screen_image_h;
-
-        if (border_h >= 0 && border_h <= h / 5)
-        {
-            // Borders are small enough, so use integer scaling.
-            mode = SDL_LOGICAL_PRESENTATION_INTEGER_SCALE;
-        }
+        // Borders are small enough, so use integer scaling.
+        mode = SDL_LOGICAL_PRESENTATION_INTEGER_SCALE;
     }
 
     // Set width and height of the logical viewport for automatic scaling.

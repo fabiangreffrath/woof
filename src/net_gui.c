@@ -279,7 +279,7 @@ static void CheckAutoLaunch(void)
 
 void NET_WaitForLaunch(void)
 {
-    if (!TXT_Init(TXT_WINDOW_SETUP))
+    if (!TXT_Init())
     {
         I_Printf(VB_ERROR, "Failed to initialize GUI");
         I_SafeExit(-1);
