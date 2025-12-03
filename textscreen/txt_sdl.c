@@ -123,15 +123,32 @@ void TXT_PreInit(SDL_Window *preset_window, SDL_Renderer *preset_renderer)
 static void UpdateLogicalPresentation(void)
 {
     SDL_RendererLogicalPresentation mode = SDL_LOGICAL_PRESENTATION_LETTERBOX;
-    int h, border_h;
+    int w, h;
 
-    SDL_GetWindowSizeInPixels(TXT_SDLWindow, NULL, &h);
-    border_h = h % screen_image_h;
+    SDL_GetWindowSizeInPixels(TXT_SDLWindow, &w, &h);
 
-    if (border_h >= 0 && border_h <= h / 5)
+    // Window aspect ratio less than txt aspect ratio?
+    if (w * screen_image_h < h * screen_image_w)
     {
-        // Borders are small enough, so use integer scaling.
-        mode = SDL_LOGICAL_PRESENTATION_INTEGER_SCALE;
+        // Window width is the constraint.
+        const int border_w = w % screen_image_w;
+
+        if (border_w >= 0 && border_w <= w / 5)
+        {
+            // Borders are small enough, so use integer scaling.
+            mode = SDL_LOGICAL_PRESENTATION_INTEGER_SCALE;
+        }
+    }
+    else
+    {
+        // Window height is the constraint.
+        const int border_h = h % screen_image_h;
+
+        if (border_h >= 0 && border_h <= h / 5)
+        {
+            // Borders are small enough, so use integer scaling.
+            mode = SDL_LOGICAL_PRESENTATION_INTEGER_SCALE;
+        }
     }
 
     // Set width and height of the logical viewport for automatic scaling.
