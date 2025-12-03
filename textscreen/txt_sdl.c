@@ -120,7 +120,7 @@ void TXT_PreInit(SDL_Window *preset_window, SDL_Renderer *preset_renderer)
     }
 }
 
-int TXT_Init(void)
+int TXT_Init(int font_correction)
 {
     SDL_WindowFlags flags = 0;
 
@@ -134,6 +134,20 @@ int TXT_Init(void)
     screen_image_w = TXT_SCREEN_W * font->w;
     screen_image_h = TXT_SCREEN_H * font->h;
 
+    int logical_w;
+
+    if (font_correction)
+    {
+        // Aspect ratio correction for logical output when using Zokum's font.
+        logical_w = screen_image_w * 15 / 16;
+    }
+    else
+    {
+        // Zokum's font is the wrong aspect ratio for both CRTs and modern
+        // displays, but the multiplayer "setup" window looks better this way.
+        logical_w = screen_image_w;
+    }
+
     // try to initialize high dpi rendering.
     flags |= SDL_WINDOW_HIGH_PIXEL_DENSITY;
 
@@ -142,8 +156,8 @@ int TXT_Init(void)
         flags |= SDL_WINDOW_RESIZABLE;
 
         TXT_SDLWindow =
-            SDL_CreateWindow(NULL, screen_image_w, screen_image_h, flags);
-        SDL_SetWindowMinimumSize(TXT_SDLWindow, screen_image_w, screen_image_h);
+            SDL_CreateWindow(NULL, logical_w, screen_image_h, flags);
+        SDL_SetWindowMinimumSize(TXT_SDLWindow, logical_w, screen_image_h);
     }
 
     if (TXT_SDLWindow == NULL)
@@ -163,12 +177,14 @@ int TXT_Init(void)
     }
 
     // Set width and height of the logical viewport for automatic scaling.
-    SDL_SetRenderLogicalPresentation(renderer, screen_image_w, screen_image_h,
+    SDL_SetRenderLogicalPresentation(renderer, logical_w, screen_image_h,
                                      SDL_LOGICAL_PRESENTATION_LETTERBOX);
 
     texture = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_INDEX8,
                                 SDL_TEXTUREACCESS_STREAMING, screen_image_w,
                                 screen_image_h);
+
+    SDL_SetTextureScaleMode(texture, SDL_SCALEMODE_PIXELART);
 
     palette = SDL_CreatePalette(256);
     SDL_SetPaletteColors(palette, ega_colors, 0, 16);

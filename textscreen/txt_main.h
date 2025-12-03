@@ -135,7 +135,7 @@ typedef enum
 
 // Initialize the screen
 // Returns 1 if successful, 0 if failed.
-int TXT_Init(void);
+int TXT_Init(int font_correction);
 
 // Shut down text mode emulation
 void TXT_Shutdown(void);
