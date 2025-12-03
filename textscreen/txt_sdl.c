@@ -171,7 +171,7 @@ int TXT_Init(txt_window_type_t window_type)
         SDL_GetWindowSizeInPixels(TXT_SDLWindow, NULL, &h);
         border_h = h % screen_image_h;
 
-        if (border_h >= 0 && border_h <= h / 4)
+        if (border_h >= 0 && border_h <= h / 5)
         {
             // Borders are small enough, so use integer scaling.
             mode = SDL_LOGICAL_PRESENTATION_INTEGER_SCALE;
