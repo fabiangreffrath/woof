@@ -1667,7 +1667,7 @@ static boolean P_LoadReject(int lumpnum, int totallines)
         unsigned int padvalue;
 
         rejectmatrix = Z_Malloc(minlength, PU_LEVEL, (void **) &rejectmatrix);
-        W_ReadLump(lumpnum, rejectmatrix);
+        W_ReadLumpSize(lumpnum, rejectmatrix, minlength);
 
         //!
         // @category mod
