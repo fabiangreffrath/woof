@@ -1655,7 +1655,7 @@ static boolean P_LoadReject(int lumpnum, int totallines)
     // Otherwise, we need to allocate a buffer of the correct size
     // and pad it with appropriate data.
 
-    lumplen = W_LumpLengthWithName(lumpnum, "REJECT");
+    lumplen = W_LumpLength(lumpnum);
 
     if (lumplen >= minlength)
     {
