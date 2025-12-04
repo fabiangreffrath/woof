@@ -1655,7 +1655,7 @@ static boolean P_LoadReject(int lumpnum, int totallines)
     // Otherwise, we need to allocate a buffer of the correct size
     // and pad it with appropriate data.
 
-    lumplen = W_LumpLength(lumpnum);
+    lumplen = W_LumpLengthWithName(lumpnum, "REJECT");
 
     if (lumplen >= minlength)
     {
@@ -1667,7 +1667,7 @@ static boolean P_LoadReject(int lumpnum, int totallines)
         unsigned int padvalue;
 
         rejectmatrix = Z_Malloc(minlength, PU_LEVEL, (void **) &rejectmatrix);
-        W_ReadLump(lumpnum, rejectmatrix);
+        W_ReadLumpSize(lumpnum, rejectmatrix, minlength);
 
         //!
         // @category mod

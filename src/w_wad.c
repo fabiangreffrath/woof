@@ -488,7 +488,7 @@ int W_LumpLength (int lump)
 //  which must be >= W_LumpLength().
 //
 
-void W_ReadLump(int lump, void *dest)
+void W_ReadLumpSize(int lump, void *dest, int size)
 {
     lumpinfo_t *info = lumpinfo + lump;
 
@@ -504,17 +504,27 @@ void W_ReadLump(int lump, void *dest)
         return;
     }
 
+    if (!size)
+    {
+        size = info->size;
+    }
+
     if (info->data) // killough 1/31/98: predefined lump data
     {
-        memcpy(dest, info->data, info->size);
+        memcpy(dest, info->data, size);
         return;
     }
 
-    I_BeginRead(info->size);
+    I_BeginRead(size);
 
-    info->module->Read(info->handle, dest, info->size);
+    info->module->Read(info->handle, dest, size);
 
     I_EndRead();
+}
+
+void W_ReadLump(int lump, void *dest)
+{
+    W_ReadLumpSize(lump, dest, 0);
 }
 
 //
