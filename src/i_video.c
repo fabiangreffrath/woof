@@ -532,7 +532,9 @@ static void ProcessEvent(SDL_Event *ev)
             break;
 
         default:
-            if (ev->window.windowID == SDL_GetWindowID(screen))
+            if (ev->type >= SDL_EVENT_WINDOW_FIRST
+                && ev->type <= SDL_EVENT_WINDOW_LAST
+                && ev->window.windowID == SDL_GetWindowID(screen))
             {
                 HandleWindowEvent(&ev->window);
             }
