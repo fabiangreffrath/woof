@@ -499,12 +499,12 @@ void W_ReadLumpSize(int lump, void *dest, int size)
     }
 #endif
 
-    if (!info->size)
+    if (!size || !info->size)
     {
         return;
     }
 
-    if (!size)
+    if (size < 0)
     {
         size = info->size;
     }
@@ -524,7 +524,7 @@ void W_ReadLumpSize(int lump, void *dest, int size)
 
 void W_ReadLump(int lump, void *dest)
 {
-    W_ReadLumpSize(lump, dest, 0);
+    W_ReadLumpSize(lump, dest, -1);
 }
 
 //
