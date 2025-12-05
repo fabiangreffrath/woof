@@ -823,9 +823,11 @@ static void WI_drawEL(void)
     {
         patch_t *patch = V_CachePatchName(mapinfo->levelpic, PU_CACHE);
 
+        // If the levelpic graphics lump is not fullscreen,
+        // draw it right below the "entering" graphics lump
         if (SHORT(patch->height) < SCREENHEIGHT)
         {
-            y += (5 * SHORT(patch->height)) / 4;
+            y += (5 * SHORT(entering->height)) / 4;
         }
 
         V_DrawPatch((SCREENWIDTH - SHORT(patch->width)) / 2, y, patch);
