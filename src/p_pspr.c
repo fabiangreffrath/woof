@@ -274,7 +274,7 @@ int P_SwitchWeapon(player_t *player)
   int newweapon = currentweapon;
   int i = NUMWEAPONS+1;   // killough 5/2/98
 
-  G_NextWeaponReset();
+  G_NextWeaponReset(currentweapon);
 
   // [XA] use fixed behavior for mbf21. no need
   // for a discrete compat option for this, as

@@ -849,7 +849,7 @@ void G_BuildTiccmd(ticcmd_t* cmd)
       cmd->buttons |= BT_CHANGE;
       cmd->buttons |= newweapon<<BT_WEAPONSHIFT;
       if (!nextweapon_cmd)
-        G_NextWeaponReset();
+        G_NextWeaponReset(newweapon);
     }
 
     WS_UpdateStateTic();

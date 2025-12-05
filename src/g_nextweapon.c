@@ -216,9 +216,10 @@ void G_NextWeaponResendCmd(void)
     }
 }
 
-void G_NextWeaponReset(void)
+void G_NextWeaponReset(weapontype_t weapon)
 {
     currently_active = false;
     state = nw_state_none;
+    players[consoleplayer].nextweapon = weapon;
     ST_ResetCarousel();
 }
