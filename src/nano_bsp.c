@@ -154,16 +154,8 @@ void DumpNode (nanode_t * N, int lev)
 void BSP_CalcOffset (seg_t * seg)
 {
 	line_t * ld = seg->linedef;
-
-	// compute which side of the linedef the seg is on
-	int side;
-
-	if (abs (ld->dx) > abs (ld->dy))
-		side = ((ld->dx < 0) == (seg->v2->x - seg->v1->x < 0)) ? 0 : 1;
-	else
-		side = ((ld->dy < 0) == (seg->v2->y - seg->v1->y < 0)) ? 0 : 1;
-
-	seg->offset = P_GetOffset (seg->v1, side ? ld->v2 : ld->v1);
+	int side = P_GetSidedefNum(seg, ld);
+	seg->offset = P_GetOffset(seg->v1, side ? ld->v2 : ld->v1);
 }
 
 void BSP_BoundingBox (seg_t * soup, fixed_t * bbox)

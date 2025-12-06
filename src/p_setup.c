@@ -230,7 +230,9 @@ void P_LoadSegs (int lump)
       linedef = (unsigned short)SHORT(ml->linedef); // [FG] extended nodes
       ldef = &lines[linedef];
       li->linedef = ldef;
-      side = SHORT(ml->side);
+      // ignored
+      // side = SHORT(ml->side);
+      side = P_GetSidedefNum(li, ldef);
 
       // Andrey Budko: check for wrong indexes
       if ((unsigned)ldef->sidenum[side] >= (unsigned)numsides)

@@ -307,6 +307,17 @@ nodeformat_t P_CheckUDMFNodeFormat(int lumpnum)
     return format;
 }
 
+// compute which side of the linedef the seg is on
+int P_GetSidedefNum(seg_t * li, line_t * ldef)
+{
+    int side = 0;
+    if (abs(ldef->dx) > abs(ldef->dy))
+        side = ((ldef->dx < 0) == (li->v2->x - li->v1->x < 0)) ? 0 : 1;
+    else
+        side = ((ldef->dy < 0) == (li->v2->y - li->v1->y < 0)) ? 0 : 1;
+    return side;
+}
+
 // [FG] recalculate seg offsets
 
 int P_GetOffset(vertex_t *v1, vertex_t *v2)
@@ -356,18 +367,15 @@ void P_LoadSegs_DEEP(int lump)
         ldef = &lines[linedef];
         li->linedef = ldef;
 
-        side = SHORT(ml->side);
-        // Andrey Budko: fix wrong side index
-        if (side != 0 && side != 1)
-        {
-            side = 1;
-        }
+        // ignored
+        // side = SHORT(ml->side);
 
+        side = P_GetSidedefNum(li, ldef);
         li->sidedef = &sides[ldef->sidenum[side]];
         li->frontsector = sides[ldef->sidenum[side]].sector;
 
         // [FG] recalculate
-        li->offset = P_GetOffset(li->v1, (ml->side ? ldef->v2 : ldef->v1));
+        li->offset = P_GetOffset(li->v1, (side ? ldef->v2 : ldef->v1));
 
         if (ldef->flags & ML_TWOSIDED)
         {
@@ -484,13 +492,9 @@ static void P_LoadSegs_XNOD(byte *data)
         linedef = (unsigned short)SHORT(ml->linedef);
         ldef = &lines[linedef];
         li->linedef = ldef;
-        side = ml->side;
-
-        // Andrey Budko: fix wrong side index
-        if (side != 0 && side != 1)
-        {
-            side = 1;
-        }
+        // ignored
+        // side = ml->side;
+        side = P_GetSidedefNum(li, ldef);
 
         // Andrey Budko: check for wrong indexes
         if ((unsigned)ldef->sidenum[side] >= (unsigned)numsides)
@@ -504,9 +508,9 @@ static void P_LoadSegs_XNOD(byte *data)
         li->frontsector = sides[ldef->sidenum[side]].sector;
 
         // seg angle and offset are not included
-        li->angle = R_PointToAngle2(segs[i].v1->x, segs[i].v1->y, segs[i].v2->x,
-                                    segs[i].v2->y);
-        li->offset = P_GetOffset(li->v1, (ml->side ? ldef->v2 : ldef->v1));
+        li->angle = R_PointToAngle2(li->v1->x, li->v1->y, li->v2->x, li->v2->y);
+
+        li->offset = P_GetOffset(li->v1, (side ? ldef->v2 : ldef->v1));
 
         if (ldef->flags & ML_TWOSIDED)
         {
@@ -552,7 +556,7 @@ static void P_LoadSegs_XGL(byte *data, nodeformat_t format)
                 v1 = LONG(mln->vertex);
                 // partner = LONG(mln->partner);
                 line = (unsigned short)SHORT(mln->linedef);
-                side = mln->side;
+                // side = mln->side;
                 if (line == 0xffff)
                 {
                     line = 0xffffffff;
@@ -564,7 +568,7 @@ static void P_LoadSegs_XGL(byte *data, nodeformat_t format)
                 v1 = LONG(ml2->vertex);
                 // partner = LONG(ml2->partner);
                 line = (unsigned int)LONG(ml2->linedef);
-                side = ml2->side;
+                // side = ml2->side;
                 ml2++;
             }
 
@@ -593,11 +597,7 @@ static void P_LoadSegs_XGL(byte *data, nodeformat_t format)
                 ldef = &lines[line];
                 seg->linedef = ldef;
 
-                if (side != 0 && side != 1)
-                {
-                    I_Error("seg %d, %d references a non-existent side %d", i,
-                            j, (unsigned int)side);
-                }
+                side = P_GetSidedefNum(seg, ldef);
 
                 if ((unsigned)ldef->sidenum[side] >= (unsigned)numsides)
                 {
