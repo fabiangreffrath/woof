@@ -41,6 +41,7 @@
 #include "doomtype.h"
 #include "f_finale.h"
 #include "g_game.h"
+#include "g_analysis.h"
 #include "g_nextweapon.h"
 #include "g_rewind.h"
 #include "g_umapinfo.h"
@@ -193,6 +194,7 @@ int     key_help = KEY_F1;                                 // phares 4/13/98
 static boolean dclick_use;
 
 #define MAXPLMOVE   (forwardmove[1])
+#define STROLLERTHRESHOLD  0x19
 #define TURBOTHRESHOLD  0x32
 #define SLOWTURNTICS  6
 #define QUICKREVERSE 32768 // 180 degree reverse                    // phares
@@ -1751,6 +1753,68 @@ static void G_WriteLevelStat(void)
 // G_DoCompleted
 //
 
+static inline void WatchLevelCompletion(void)
+{
+    int secret_count = 0;
+    int kill_count = 0;
+    int missed_monsters = 0;
+
+    for (thinker_t * th = thinkercap.next; th != &thinkercap; th = th->next)
+    {
+        if (th->function.p1 != P_MobjThinker)
+        {
+            continue;
+        }
+
+        mobj_t *mobj = (mobj_t *)th;
+
+        // max rules: everything dead that affects kill counter except ios spawns
+        if (!((mobj->flags ^ MF_COUNTKILL) & (MF_FRIEND | MF_COUNTKILL))
+            && !(mobj->intflags & MIF_SPAWNED_BY_ICON)
+            && mobj->health > 0)
+        {
+            ++missed_monsters;
+        }
+
+        if (G_IsWeapon(mobj))
+        {
+            ++analysis.missed_weapons;
+            analysis.collector = false;
+        }
+    }
+
+    for (int i = 0; i < MAXPLAYERS; ++i)
+    {
+        if (!playeringame[i])
+        {
+            continue;
+        }
+
+        kill_count += players[i].killcount;
+        secret_count += players[i].secretcount;
+    }
+
+    analysis.missed_monsters += missed_monsters;
+    analysis.missed_secrets += (totalsecret - secret_count);
+
+    if (kill_count < totalkills)
+    {
+        analysis.kill_100 = false;
+    }
+    if (secret_count < totalsecret)
+    {
+        analysis.secret_100 = false;
+    }
+    if (totalkills > 0)
+    {
+        analysis.any_counted_monsters = true;
+    }
+    if (totalsecret > 0)
+    {
+        analysis.any_secrets = true;
+    }
+}
+
 boolean um_pars = false;
 
 static void G_DoCompleted(void)
@@ -1779,6 +1843,8 @@ static void G_DoCompleted(void)
 
   if (automapactive)
     AM_Stop();
+
+  WatchLevelCompletion();
 
   wminfo.nextep = wminfo.epsd = gameepisode -1;
   wminfo.last = gamemap -1;
@@ -3109,6 +3175,18 @@ void G_Ticker(void)
 		  displaymsg("%s is turbo!", *player_names[i]); // killough 9/29/98
 		}
 
+	        // check for stroller
+          if (cmd->sidemove != 0 &&  abs(cmd->forwardmove) > STROLLERTHRESHOLD)
+          {
+              analysis.stroller = false;
+          }
+
+	        // check for turbo
+          if (abs(cmd->forwardmove) > TURBOTHRESHOLD || abs(cmd->sidemove) > TURBOTHRESHOLD)
+          {
+              analysis.turbo = true;
+          }
+
 	      if (netgame && !netdemo && !(gametic%ticdup) )
 		{
 		  if (gametic > BACKUPTICS
@@ -3416,6 +3494,8 @@ void G_DeathMatchSpawnPlayer(int playernum)
 
 void G_DoReborn(int playernum)
 {
+  analysis.reborn = true;
+
   if (!netgame)
   {
     if (gameaction != ga_reloadlevel)
@@ -3560,6 +3640,7 @@ void G_DeferedInitNew(skill_t skill, int episode, int map)
   d_map = map;
   gameaction = ga_newgame;
 
+  G_ResetAnalysis();
   if (demorecording)
   {
     ddt_cheating = 0;
@@ -4918,6 +4999,15 @@ void G_CheckDemoRecordingStatus(void)
     {
         G_CheckDemoStatus();
     }
+}
+
+void G_DemoAnalysis(void)
+{
+    if (demorecording)
+    {
+        G_CheckDemoStatus();
+    }
+    G_WriteAnalysis();
 }
 
 static boolean IsVanillaMap(int e, int m)
