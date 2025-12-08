@@ -570,17 +570,14 @@ static void I_GetEvent(void)
 
 static void UpdateMouseMenu(void)
 {
-    static event_t ev;
-    static int oldx, oldy;
-    static SDL_FRect old_rect;
-    int x, y;
-
+    static event_t ev = {.type = ev_mouse_state};
     float outx, outy;
     SDL_GetMouseState(&outx, &outy);
 
     SDL_FRect rect;
     SDL_GetRenderLogicalPresentationRect(renderer, &rect);
 
+    static SDL_FRect old_rect;
     if (SDL_RectsEqualFloat(&rect, &old_rect))
     {
         ev.data1.i = 0;
@@ -594,9 +591,11 @@ static void UpdateMouseMenu(void)
     outx = clampf((outx - rect.x) / rect.w, 0.0f, 1.0f);
     outy = clampf((outy - rect.y) / rect.h, 0.0f, 1.0f);
 
+    int x, y;
     x = (int)(outx * video.unscaledw);
     y = (int)(outy * SCREENHEIGHT);
 
+    static int oldx, oldy;
     if (x != oldx || y != oldy)
     {
         oldx = x;
@@ -607,7 +606,6 @@ static void UpdateMouseMenu(void)
         return;
     }
 
-    ev.type = ev_mouse_state;
     ev.data2.i = x;
     ev.data3.i = y;
 
