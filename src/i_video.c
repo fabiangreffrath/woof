@@ -591,11 +591,11 @@ static void UpdateMouseMenu(void)
         ev.data1.i = EV_RESIZE_VIEWPORT;
     }
 
-    x = (int)((outx - rect.x) * video.unscaledw / rect.w);
-    y = (int)((outy - rect.y) * SCREENHEIGHT / rect.h);
+    outx = clampf((outx - rect.x) / rect.w, 0.0f, 1.0f);
+    outy = clampf((outy - rect.y) / rect.h, 0.0f, 1.0f);
 
-    x = CLAMP(x, 0, video.unscaledw);
-    y = CLAMP(y, 0, SCREENHEIGHT);
+    x = (int)(outx * video.unscaledw);
+    y = (int)(outy * SCREENHEIGHT);
 
     if (x != oldx || y != oldy)
     {
