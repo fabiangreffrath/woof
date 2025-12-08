@@ -572,21 +572,16 @@ static void UpdateMouseMenu(void)
 {
     static event_t ev;
     static int oldx, oldy;
-    static SDL_Rect old_rect;
+    static SDL_FRect old_rect;
     int x, y;
 
     float outx, outy;
     SDL_GetMouseState(&outx, &outy);
 
-    SDL_FRect lprect;
-    SDL_GetRenderLogicalPresentationRect(renderer, &lprect);
+    SDL_FRect rect;
+    SDL_GetRenderLogicalPresentationRect(renderer, &rect);
 
-    x = (int)CLAMP(outx - lprect.x, 0, lprect.w - 1);
-    y = (int)CLAMP(outy - lprect.y, 0, lprect.h - 1);
-
-    SDL_Rect rect;
-    SDL_GetRenderViewport(renderer, &rect);
-    if (SDL_RectsEqual(&rect, &old_rect))
+    if (SDL_RectsEqualFloat(&rect, &old_rect))
     {
         ev.data1.i = 0;
     }
@@ -596,8 +591,11 @@ static void UpdateMouseMenu(void)
         ev.data1.i = EV_RESIZE_VIEWPORT;
     }
 
-    x = x * video.unscaledw / lprect.w;
-    y = y * SCREENHEIGHT / lprect.h;
+    x = (int)((outx - rect.x) * video.unscaledw / rect.w);
+    y = (int)((outy - rect.y) * SCREENHEIGHT / rect.h);
+
+    x = CLAMP(x, 0, video.unscaledw);
+    y = CLAMP(y, 0, SCREENHEIGHT);
 
     if (x != oldx || y != oldy)
     {
