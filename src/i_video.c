@@ -591,9 +591,8 @@ static void UpdateMouseMenu(void)
     outx = clampf((outx - rect.x) / rect.w, 0.0f, 1.0f);
     outy = clampf((outy - rect.y) / rect.h, 0.0f, 1.0f);
 
-    int x, y;
-    x = (int)(outx * video.unscaledw);
-    y = (int)(outy * SCREENHEIGHT);
+    int x = (int)(outx * video.unscaledw);
+    int y = (int)(outy * SCREENHEIGHT);
 
     static int oldx, oldy;
     if (x != oldx || y != oldy)
