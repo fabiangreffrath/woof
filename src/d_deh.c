@@ -2128,37 +2128,43 @@ static void deh_procThing(DEHFILE *fpin, char *line)
                     break;
 
                 case DEH_MOBJINFO_OBITUARY:
-                    char *stripped_string = ptr_lstrip(strval);
-                    int len = strlen(stripped_string);
-                    if (len < 1)
                     {
-                        deh_log("Obituary is empty\n");
-                        continue;
+                        char *stripped_string = ptr_lstrip(strval);
+                        int len = strlen(stripped_string);
+                        if (len < 1)
+                        {
+                            deh_log("Obituary is empty\n");
+                            continue;
+                        }
+                        mobjinfo[indexnum].obituary = strdup(stripped_string);
+                        break;
                     }
-                    mobjinfo[indexnum].obituary = strdup(stripped_string);
-                    break;
 
                 case DEH_MOBJINFO_MELEE_OBITUARY:
-                    stripped_string = ptr_lstrip(strval);
-                    len = strlen(stripped_string);
-                    if (len < 1)
                     {
-                        deh_log("Melee obituary is empty\n");
-                        continue;
+                        char *stripped_string = ptr_lstrip(strval);
+                        int len = strlen(stripped_string);
+                        if (len < 1)
+                        {
+                            deh_log("Melee obituary is empty\n");
+                            continue;
+                        }
+                        mobjinfo[indexnum].obituary_melee = strdup(stripped_string);
+                        break;
                     }
-                    mobjinfo[indexnum].obituary_melee = strdup(stripped_string);
-                    break;
 
                 case DEH_MOBJINFO_SELF_OBITUARY:
-                    stripped_string = ptr_lstrip(strval);
-                    len = strlen(stripped_string);
-                    if (len < 1)
                     {
-                        deh_log("Self obituary is empty\n");
-                        continue;
+                        char *stripped_string = ptr_lstrip(strval);
+                        int len = strlen(stripped_string);
+                        if (len < 1)
+                        {
+                            deh_log("Self obituary is empty\n");
+                            continue;
+                        }
+                        mobjinfo[indexnum].obituary_self = strdup(stripped_string);
+                        break;
                     }
-                    mobjinfo[indexnum].obituary_self = strdup(stripped_string);
-                    break;
 
                 default:
                     pix = (int *)&mobjinfo[indexnum];
