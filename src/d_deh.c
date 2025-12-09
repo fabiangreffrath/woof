@@ -1168,6 +1168,11 @@ enum
     // DEHEXTRA
     DEH_MOBJINFO_DROPPEDITEM,
 
+    // ZDoom
+    DEH_MOBJINFO_OBITUARY,
+    DEH_MOBJINFO_MELEE_OBITUARY,
+    DEH_MOBJINFO_SELF_OBITUARY,
+
     DEH_MOBJINFOMAX
 };
 
@@ -1211,6 +1216,11 @@ static const char *deh_mobjinfo[] = {
 
     // DEHEXTRA
     "Dropped item", // .droppeditem
+
+    // ZDoom
+    "Obituary",       // .obituary
+    "Melee obituary", // .obituary_melee
+    "Self obituary",  // .obituary_self
 };
 
 // Strings that are used to indicate flags ("Bits" in mobjinfo)
@@ -2115,6 +2125,39 @@ static void deh_procThing(DEHFILE *fpin, char *line)
                     }
                     // make it base zero (deh is 1-based)
                     mobjinfo[indexnum].droppeditem = (int)(value - 1);
+                    break;
+
+                case DEH_MOBJINFO_OBITUARY:
+                    char *stripped_string = ptr_lstrip(strval);
+                    int len = strlen(stripped_string);
+                    if (len < 1)
+                    {
+                        deh_log("Obituary is empty\n");
+                        continue;
+                    }
+                    mobjinfo[indexnum].obituary = strdup(stripped_string);
+                    break;
+
+                case DEH_MOBJINFO_MELEE_OBITUARY:
+                    stripped_string = ptr_lstrip(strval);
+                    len = strlen(stripped_string);
+                    if (len < 1)
+                    {
+                        deh_log("Melee obituary is empty\n");
+                        continue;
+                    }
+                    mobjinfo[indexnum].obituary_melee = strdup(stripped_string);
+                    break;
+
+                case DEH_MOBJINFO_SELF_OBITUARY:
+                    stripped_string = ptr_lstrip(strval);
+                    len = strlen(stripped_string);
+                    if (len < 1)
+                    {
+                        deh_log("Self obituary is empty\n");
+                        continue;
+                    }
+                    mobjinfo[indexnum].obituary_self = strdup(stripped_string);
                     break;
 
                 default:
