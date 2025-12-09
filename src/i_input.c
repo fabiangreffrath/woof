@@ -466,10 +466,9 @@ void I_InitGamepad(void)
     SDL_SetHint(SDL_HINT_JOYSTICK_RAWINPUT, "0");
 #endif
 
-    // Allow gyro, rumble, and effects on Bluetooth PlayStation controllers
-    // and gyro on Nintendo Switch controllers, but only when a supported
-    // controller is actually used.
-    SDL_SetHint(SDL_HINT_JOYSTICK_ENHANCED_REPORTS, "auto");
+    // Enable gyro, rumble, and effects on Bluetooth PlayStation controllers
+    // and gyro on Nintendo Switch controllers.
+    SDL_SetHint(SDL_HINT_JOYSTICK_ENHANCED_REPORTS, "1");
 
     if (!SDL_Init(SDL_INIT_GAMEPAD))
     {
