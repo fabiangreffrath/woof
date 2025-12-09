@@ -428,10 +428,14 @@ static void I_ToggleFullScreen(void)
     {
         SDL_SetWindowMouseGrab(screen, true);
         SDL_SetWindowResizable(screen, false);
+        SDL_SetWindowFullscreen(screen, true);
+        SDL_SyncWindow(screen);
         SDL_SetWindowFullscreenMode(screen, NULL);
     }
     else
     {
+        SDL_SetWindowFullscreen(screen, false);
+        SDL_SyncWindow(screen);
         SDL_SetWindowMouseGrab(screen, false);
         SDL_SetWindowResizable(screen, true);
         SDL_SetWindowBordered(screen, true);
@@ -439,7 +443,6 @@ static void I_ToggleFullScreen(void)
         SDL_SetWindowSize(screen, window_width, window_height);
     }
 
-    SDL_SetWindowFullscreen(screen, fullscreen);
     SDL_SyncWindow(screen);
 }
 
@@ -1667,6 +1670,7 @@ static void CreateVideoBuffer(void)
     {
         AdjustWindowSize();
         SDL_SetWindowSize(screen, window_width, window_height);
+        SDL_SyncWindow(screen);
     }
 }
 
