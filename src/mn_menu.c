@@ -3045,8 +3045,8 @@ boolean M_Responder(event_t *ev)
                 return true;
             }
             menu_input = mouse_mode;
-            mouse_state_x = ev->data2.i;
-            mouse_state_y = ev->data3.i;
+            mouse_state_x = (int)ev->data2.f;
+            mouse_state_y = (int)ev->data3.f;
             CursorPosition();
             MouseResponder();
             return true;

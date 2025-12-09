@@ -570,21 +570,15 @@ static void I_GetEvent(void)
 
 static void UpdateMouseMenu(void)
 {
-    static event_t ev;
-    static int oldx, oldy;
-    static SDL_Rect old_rect;
-    int x, y, w, h;
+    static event_t ev = {.type = ev_mouse_state};
+    float x, y;
+    SDL_GetMouseState(&x, &y);
 
-    float outx, outy;
-    SDL_GetMouseState(&outx, &outy);
-    x = (int)outx;
-    y = (int)outy;
+    SDL_FRect rect;
+    SDL_GetRenderLogicalPresentationRect(renderer, &rect);
 
-    SDL_GetWindowSize(screen, &w, &h);
-
-    SDL_Rect rect;
-    SDL_GetRenderViewport(renderer, &rect);
-    if (SDL_RectsEqual(&rect, &old_rect))
+    static SDL_FRect old_rect;
+    if (SDL_RectsEqualFloat(&rect, &old_rect))
     {
         ev.data1.i = 0;
     }
@@ -594,15 +588,10 @@ static void UpdateMouseMenu(void)
         ev.data1.i = EV_RESIZE_VIEWPORT;
     }
 
-    float scalex, scaley;
-    SDL_GetRenderScale(renderer, &scalex, &scaley);
+    x = clampf((x - rect.x) / rect.w, 0.0f, 1.0f) * video.unscaledw;
+    y = clampf((y - rect.y) / rect.h, 0.0f, 1.0f) * SCREENHEIGHT;
 
-    int deltax = rect.x * scalex;
-    int deltay = rect.y * scaley;
-
-    x = (x - deltax) * video.unscaledw / (w - deltax * 2);
-    y = (y - deltay) * SCREENHEIGHT / (h - deltay * 2);
-
+    static float oldx, oldy;
     if (x != oldx || y != oldy)
     {
         oldx = x;
@@ -613,9 +602,8 @@ static void UpdateMouseMenu(void)
         return;
     }
 
-    ev.type = ev_mouse_state;
-    ev.data2.i = x;
-    ev.data3.i = y;
+    ev.data2.f = x;
+    ev.data3.f = y;
 
     D_PostEvent(&ev);
 }
