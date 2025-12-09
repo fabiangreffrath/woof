@@ -197,7 +197,7 @@ void P_SpawnFireFlicker (sector_t*  sector)
   flick->thinker.function.p1 = T_FireFlickerAdapter;
   flick->sector = sector;
   flick->maxlight = sector->lightlevel;
-  flick->minlight = P_FindMinSurroundingLight(sector,sector->lightlevel)+16;
+  flick->minlight = P_FindMinSurroundingLight(sector,sector->lightlevel) + FIREFLICKER;
   flick->count = 4;
 }
 

@@ -24,6 +24,7 @@
 #include "doomtype.h"
 #include "m_arena.h"
 #include "m_fixed.h"
+#include "r_main.h"
 
 struct line_s;
 struct mobj_s;
@@ -65,7 +66,8 @@ struct sector_s;
 
 // p_lights
 
-#define GLOWSPEED       8
+#define FIREFLICKER     (16 >> LIGHTSEGSHIFT)
+#define GLOWSPEED       (8 >> LIGHTSEGSHIFT)
 #define STROBEBRIGHT    5
 #define FASTDARK        15
 #define SLOWDARK        35

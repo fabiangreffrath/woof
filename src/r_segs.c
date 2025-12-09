@@ -94,7 +94,7 @@ static void SetLight(const int32_t lightlevel)
 {
     if (!fixedcolormapindex)
     {
-        int32_t lightnum = (lightlevel >> LIGHTSEGSHIFT) + extralight;
+        int32_t lightnum = lightlevel + extralight;
         // [crispy]
         lightnum += curline->fakecontrast;
         walllightindex = CLAMP(lightnum, 0, LIGHTLEVELS - 1);
@@ -168,7 +168,7 @@ void R_RenderMaskedSegRange(drawseg_t *ds, int x1, int x2)
   // Use different light tables
   //   for horizontal / vertical / diagonal. Diagonal?
 
-  curline = ds->curline;  // OPTIMIZE: get rid of LIGHTSEGSHIFT globally
+  curline = ds->curline;
   lighttable_t *thiscolormap = curline->sidedef->sector->tint
                              ? colormaps[curline->sidedef->sector->tint]
                              : fullcolormap;

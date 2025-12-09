@@ -34,6 +34,7 @@
 #include "p_setup.h"
 #include "p_spec.h"
 #include "r_data.h"
+#include "r_main.h"
 #include "r_state.h"
 #include "r_tranmap.h"
 #include "tables.h"
@@ -978,12 +979,12 @@ static void UDMF_LoadSectors(void)
         sectors[i].ceilingheight = IntToFixed(udmf_sectors[i].heightceiling);
         sectors[i].floorpic = R_FlatNumForName(udmf_sectors[i].texturefloor);
         sectors[i].ceilingpic = R_FlatNumForName(udmf_sectors[i].textureceiling);
-        sectors[i].lightlevel = udmf_sectors[i].lightlevel;
+        sectors[i].lightlevel = udmf_sectors[i].lightlevel >> LIGHTSEGSHIFT;
         sectors[i].tag = udmf_sectors[i].tag;
 
         sectors[i].flags = udmf_sectors[i].flags;
-        sectors[i].lightfloor = udmf_sectors[i].lightfloor;
-        sectors[i].lightceiling = udmf_sectors[i].lightceiling;
+        sectors[i].lightfloor = udmf_sectors[i].lightfloor >> LIGHTSEGSHIFT;
+        sectors[i].lightceiling = udmf_sectors[i].lightceiling >> LIGHTSEGSHIFT;
 
         sectors[i].floor_rotation =
             FixedToAngle(DoubleToFixed(udmf_sectors[i].rotationfloor));
@@ -1049,10 +1050,10 @@ static void UDMF_LoadSideDefs(void)
         sides[i].offsety_bottom = DoubleToFixed(udmf_sidedefs[i].offsety_bottom);
 
         sides[i].flags = udmf_sidedefs[i].flags;
-        sides[i].light = udmf_sidedefs[i].light;
-        sides[i].light_top = udmf_sidedefs[i].light_top;
-        sides[i].light_mid = udmf_sidedefs[i].light_mid;
-        sides[i].light_bottom = udmf_sidedefs[i].light_bottom;
+        sides[i].light = udmf_sidedefs[i].light >> LIGHTSEGSHIFT;
+        sides[i].light_top = udmf_sidedefs[i].light_top >> LIGHTSEGSHIFT;
+        sides[i].light_mid = udmf_sidedefs[i].light_mid >> LIGHTSEGSHIFT;
+        sides[i].light_bottom = udmf_sidedefs[i].light_bottom >> LIGHTSEGSHIFT;
 
         if (udmf_sidedefs[i].xscroll || udmf_sidedefs[i].yscroll)
         {

@@ -603,7 +603,7 @@ static void do_draw_plane(visplane_t *pl)
 
     int stop, light;
     planeheight = abs(pl->height - viewz);
-    light = (pl->lightlevel >> LIGHTSEGSHIFT) + extralight;
+    light = pl->lightlevel + extralight;
 
     if (light >= LIGHTLEVELS)
     {

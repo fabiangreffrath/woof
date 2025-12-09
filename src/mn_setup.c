@@ -3315,12 +3315,6 @@ void MN_DrawGyro(void)
     DrawGyroCalibration();
 }
 
-static void SmoothLight(void)
-{
-    setsmoothlight = true;
-    setsizeneeded = true; // run R_ExecuteSetViewSize
-}
-
 static const char *fuzzmode_strings[] = {
     "Blocky", "Refraction", "Shadow", "Original"
 };
@@ -3349,9 +3343,6 @@ static setup_menu_t gen_settings5[] = {
      .action = R_InitPlanes},
 
     {"Swirling Flats", S_ONOFF, OFF_CNTR_X, M_SPC, {"r_swirl"}},
-
-    {"Smooth Diminishing Lighting", S_ONOFF, OFF_CNTR_X, M_SPC, {"smoothlight"},
-     .action = SmoothLight},
 
     MI_END
 };
