@@ -604,16 +604,7 @@ static void do_draw_plane(visplane_t *pl)
     int stop, light;
     planeheight = abs(pl->height - viewz);
     light = pl->lightlevel + extralight;
-
-    if (light >= LIGHTLEVELS)
-    {
-        light = LIGHTLEVELS - 1;
-    }
-
-    if (light < 0)
-    {
-        light = 0;
-    }
+    light = CLAMP(light, 0, LIGHTLEVELS - 1);
 
     stop = pl->maxx + 1;
     pl->top[pl->minx - 1] = pl->top[stop] = USHRT_MAX;
