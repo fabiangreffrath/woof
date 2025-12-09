@@ -117,7 +117,6 @@ static SDL_Texture *texture;
 static SDL_Rect rect = {0};
 static SDL_FRect frect = {0.0f};
 
-static int window_x, window_y;
 static int window_width, window_height;
 static int default_window_width, default_window_height;
 static int window_position_x, window_position_y;
@@ -428,10 +427,14 @@ static void I_ToggleFullScreen(void)
     {
         SDL_SetWindowMouseGrab(screen, true);
         SDL_SetWindowResizable(screen, false);
+        SDL_SetWindowFullscreen(screen, true);
+        SDL_SyncWindow(screen);
         SDL_SetWindowFullscreenMode(screen, NULL);
     }
     else
     {
+        SDL_SetWindowFullscreen(screen, false);
+        SDL_SyncWindow(screen);
         SDL_SetWindowMouseGrab(screen, false);
         SDL_SetWindowResizable(screen, true);
         SDL_SetWindowBordered(screen, true);
@@ -439,7 +442,6 @@ static void I_ToggleFullScreen(void)
         SDL_SetWindowSize(screen, window_width, window_height);
     }
 
-    SDL_SetWindowFullscreen(screen, fullscreen);
     SDL_SyncWindow(screen);
 }
 
@@ -1159,50 +1161,43 @@ void I_InitWindowIcon(void)
     SDL_DestroySurface(surface);
 }
 
-// Check the display bounds of the display referred to by 'video_display' and
-// set x and y to a location that places the window in the center of that
-// display.
-static void CenterWindow(int *x, int *y, int w, int h)
+static boolean WindowOutOfBounds(void)
 {
     SDL_Rect bounds;
 
     if (!SDL_GetDisplayBounds(video_display_id, &bounds))
     {
-        I_Printf(VB_WARNING,
-                 "CenterWindow: Failed to read display bounds "
-                 "for display #%d!",
+        I_Printf(VB_WARNING, "Failed to read display bounds for display #%d!",
                  video_display);
-        return;
+        return true;
     }
 
-    *x = bounds.x + MAX((bounds.w - w) / 2, 0);
-    *y = bounds.y + MAX((bounds.h - h) / 2, 0);
+    return ((window_position_x + window_width > bounds.x + bounds.w)
+            || window_position_x < bounds.x
+            || (window_position_y + window_height > bounds.y + bounds.h)
+            || window_position_y < bounds.y);
 }
 
-static void I_GetWindowPosition(int *x, int *y, int w, int h)
+static void SetWindowPosition(void)
 {
     // in fullscreen mode, the window "position" still matters, because
     // we use it to control which display we run fullscreen on.
 
-    if (fullscreen)
-    {
-        CenterWindow(x, y, w, h);
-        return;
-    }
+    int x, y;
 
-    // center
-    if (window_position_x == 0 && window_position_y == 0)
+    if (fullscreen || (window_position_x == 0 && window_position_y == 0)
+        || WindowOutOfBounds())
     {
-        // Note: SDL has a SDL_WINDOWPOS_CENTERED, but this is useless for our
-        // purposes, since we also want to control which display we appear on.
-        // So we have to do this ourselves.
-        CenterWindow(x, y, w, h);
+        x = y = (int)SDL_WINDOWPOS_CENTERED_DISPLAY(video_display_id);
     }
     else
     {
-        *x = window_position_x;
-        *y = window_position_y;
+        x = window_position_x;
+        y = window_position_y;
     }
+
+    SDL_SetWindowPosition(screen, x, y);
+    SDL_SyncWindow(screen);
 }
 
 static double CurrentAspectRatio(void)
@@ -1532,21 +1527,17 @@ static void I_InitGraphicsMode(void)
         flags |= SDL_WINDOW_RESIZABLE;
     }
 
-    AdjustWindowSize();
-    int w = window_width;
-    int h = window_height;
-
     if (M_CheckParm("-borderless"))
     {
         flags |= SDL_WINDOW_BORDERLESS;
     }
 
-    I_GetWindowPosition(&window_x, &window_y, w, h);
+    AdjustWindowSize();
 
     // [FG] create rendering window
 
     char *title = M_StringJoin(gamedescription, " - ", PROJECT_STRING);
-    screen = SDL_CreateWindow(title, w, h, flags);
+    screen = SDL_CreateWindow(title, window_width, window_height, flags);
     free(title);
 
     if (screen == NULL)
@@ -1554,7 +1545,7 @@ static void I_InitGraphicsMode(void)
         I_Error("Error creating window for video startup: %s", SDL_GetError());
     }
 
-    SDL_SetWindowPosition(screen, window_x, window_y);
+    SetWindowPosition();
 
     I_InitWindowIcon();
 
@@ -1655,6 +1646,7 @@ static void CreateVideoBuffer(void)
     {
         AdjustWindowSize();
         SDL_SetWindowSize(screen, window_width, window_height);
+        SDL_SyncWindow(screen);
     }
 }
 
