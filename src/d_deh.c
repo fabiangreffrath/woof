@@ -1168,7 +1168,7 @@ enum
     // DEHEXTRA
     DEH_MOBJINFO_DROPPEDITEM,
 
-    // ZDoom
+    // MBF2y
     DEH_MOBJINFO_OBITUARY,
     DEH_MOBJINFO_MELEE_OBITUARY,
     DEH_MOBJINFO_SELF_OBITUARY,
@@ -1217,7 +1217,7 @@ static const char *deh_mobjinfo[] = {
     // DEHEXTRA
     "Dropped item", // .droppeditem
 
-    // ZDoom
+    // MBF2y
     "Obituary",       // .obituary
     "Melee obituary", // .obituary_melee
     "Self obituary",  // .obituary_self
