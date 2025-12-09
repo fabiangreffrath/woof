@@ -1173,6 +1173,23 @@ void I_InitWindowIcon(void)
     SDL_DestroySurface(surface);
 }
 
+static boolean WindowOutOfBounds(void)
+{
+    SDL_Rect bounds;
+
+    if (!SDL_GetDisplayBounds(video_display_id, &bounds))
+    {
+        I_Printf(VB_WARNING, "Failed to read display bounds for display #%d!",
+                 video_display);
+        return true;
+    }
+
+    return ((window_position_x + window_width > bounds.x + bounds.w)
+            || window_position_x < bounds.x
+            || (window_position_y + window_height > bounds.y + bounds.h)
+            || window_position_y < bounds.y);
+}
+
 static void SetWindowPosition(void)
 {
     // in fullscreen mode, the window "position" still matters, because
@@ -1180,7 +1197,8 @@ static void SetWindowPosition(void)
 
     int x, y;
 
-    if (fullscreen || (window_position_x == 0 && window_position_y == 0))
+    if (fullscreen || (window_position_x == 0 && window_position_y == 0)
+        || WindowOutOfBounds())
     {
         x = y = (int)SDL_WINDOWPOS_CENTERED_DISPLAY(video_display_id);
     }
