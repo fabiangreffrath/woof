@@ -353,6 +353,7 @@ enum
     str_curve,
     str_center_weapon,
     str_screensize,
+    str_hud_anchoring,
     str_show_widgets,
     str_show_adv_widgets,
     str_stats_format,
@@ -1876,6 +1877,10 @@ static void RefreshSolidBackground(void)
     st_refresh_background = true;
 }
 
+static const char *hud_anchoring_strings[] = {
+    "Wide", "4:3", "16:9", "21:9"
+};
+
 #define H_X_THRM8 (M_X_THRM8 - 14)
 #define H_X       (M_X - 14)
 
@@ -1886,8 +1891,8 @@ static setup_menu_t stat_settings1[] = {
 
     MI_GAP,
 
-    {"Wide Shift", S_THERMO, H_X_THRM8, M_THRM_SPC, {"st_wide_shift"},
-     .append = "px"},
+    {"HUD Anchoring", S_CHOICE, H_X, M_SPC, {"hud_anchoring"},
+     .strings_id = str_hud_anchoring, .action = I_UpdateHudAnchoring},
 
     MI_GAP,
 
@@ -1903,15 +1908,9 @@ static setup_menu_t stat_settings1[] = {
     MI_END
 };
 
-void MN_UpdateWideShiftItem(boolean reset)
+void MN_UpdateHudAnchoringItem(void)
 {
-    DisableItem(!video.deltaw, stat_settings1, "st_wide_shift");
-    SetItemLimit(stat_settings1, "st_wide_shift", 0, video.deltaw);
-    if (reset || st_wide_shift == -1)
-    {
-        st_wide_shift = video.deltaw;
-    }
-    st_wide_shift = CLAMP(st_wide_shift, 0, video.deltaw);
+    DisableItem(!video.deltaw, stat_settings1, "hud_anchoring");
 }
 
 static void UpdateStatsFormatItem(void);
@@ -4991,6 +4990,7 @@ static const char **selectstrings[] = {
     [str_curve] = curve_strings,
     [str_center_weapon] = center_weapon_strings,
     [str_screensize] = NULL,
+    [str_hud_anchoring] = hud_anchoring_strings,
     [str_show_widgets] = show_widgets_strings,
     [str_show_adv_widgets] = show_adv_widgets_strings,
     [str_stats_format] = stats_format_strings,

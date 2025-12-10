@@ -1650,6 +1650,45 @@ static void CreateVideoBuffer(void)
     }
 }
 
+void I_UpdateHudAnchoring(void)
+{
+    int w, h;
+
+    switch (hud_anchoring)
+    {
+        case HUD_ANCHORING_4_3:
+            w = 4;
+            h = 3;
+            break;
+
+        case HUD_ANCHORING_16_9:
+            w = 16;
+            h = 9;
+            break;
+
+        case HUD_ANCHORING_21_9:
+            w = 21;
+            h = 9;
+            break;
+
+        default: // HUD_ANCHORING_WIDE
+            w = video.unscaledw;
+            h = unscaled_actualheight;
+            break;
+    }
+
+    st_wide_shift = (unscaled_actualheight * w / h - NONWIDEWIDTH) / 2;
+    st_wide_shift = CLAMP(st_wide_shift, 0, video.deltaw);
+
+    if (st_wide_shift > 0.9f * video.deltaw)
+    {
+        // Snap to edges when close.
+        st_wide_shift = video.deltaw;
+    }
+
+    MN_UpdateHudAnchoringItem();
+}
+
 void I_ResetScreen(void)
 {
     resetneeded = false;
@@ -1657,18 +1696,12 @@ void I_ResetScreen(void)
     widescreen = default_widescreen;
 
     ResetResolution(GetCurrentVideoHeight());
+    I_UpdateHudAnchoring();
     CreateVideoBuffer();
     ResetLogicalSize();
 
     SDL_SetTextureScaleMode(texture, smooth_scaling ? SDL_SCALEMODE_PIXELART
                                                     : SDL_SCALEMODE_NEAREST);
-
-    static aspect_ratio_mode_t oldwidescreen;
-    if (oldwidescreen != widescreen)
-    {
-        MN_UpdateWideShiftItem(true);
-        oldwidescreen = widescreen;
-    }
 }
 
 void I_ShutdownGraphics(void)
@@ -1709,10 +1742,9 @@ void I_InitGraphics(void)
     I_InitVideoParms();
     I_InitGraphicsMode(); // killough 10/98
     ResetResolution(GetCurrentVideoHeight());
+    I_UpdateHudAnchoring();
     CreateVideoBuffer();
     ResetLogicalSize();
-
-    MN_UpdateWideShiftItem(false);
 
     // Mouse motion is based on SDL_GetRelativeMouseState() values only.
     SDL_SetEventEnabled(SDL_EVENT_MOUSE_MOTION, false);
