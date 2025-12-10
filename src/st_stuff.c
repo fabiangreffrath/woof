@@ -132,6 +132,7 @@ static statusbar_t *statusbar;
 
 static int st_cmd_x, st_cmd_y;
 
+hud_anchoring_t hud_anchoring;
 int st_wide_shift;
 
 static patch_t **facepatches = NULL;
@@ -2008,8 +2009,9 @@ void WI_DrawWidgets(void)
 
 void ST_BindSTSVariables(void)
 {
-  M_BindNum("st_wide_shift", &st_wide_shift,
-            NULL, -1, -1, UL, ss_stat, wad_no, "HUD widescreen shift (-1 = Default)");
+  M_BindNum("hud_anchoring", &hud_anchoring, NULL, HUD_ANCHORING_16_9,
+            HUD_ANCHORING_WIDE, HUD_ANCHORING_21_9, ss_stat, wad_no,
+            "HUD anchoring (0 = Wide; 1 = 4:3; 2 = 16:9; 3 = 21:9)");
   M_BindBool("sts_colored_numbers", &sts_colored_numbers, NULL,
              false, ss_stat, wad_yes, "Colored numbers on the status bar");
   M_BindBool("sts_pct_always_gray", &sts_pct_always_gray, NULL,

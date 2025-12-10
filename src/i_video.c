@@ -117,7 +117,6 @@ static SDL_Texture *texture;
 static SDL_Rect rect = {0};
 static SDL_FRect frect = {0.0f};
 
-static int window_x, window_y;
 static int window_width, window_height;
 static int default_window_width, default_window_height;
 static int window_position_x, window_position_y;
@@ -428,10 +427,14 @@ static void I_ToggleFullScreen(void)
     {
         SDL_SetWindowMouseGrab(screen, true);
         SDL_SetWindowResizable(screen, false);
+        SDL_SetWindowFullscreen(screen, true);
+        SDL_SyncWindow(screen);
         SDL_SetWindowFullscreenMode(screen, NULL);
     }
     else
     {
+        SDL_SetWindowFullscreen(screen, false);
+        SDL_SyncWindow(screen);
         SDL_SetWindowMouseGrab(screen, false);
         SDL_SetWindowResizable(screen, true);
         SDL_SetWindowBordered(screen, true);
@@ -439,7 +442,6 @@ static void I_ToggleFullScreen(void)
         SDL_SetWindowSize(screen, window_width, window_height);
     }
 
-    SDL_SetWindowFullscreen(screen, fullscreen);
     SDL_SyncWindow(screen);
 }
 
@@ -570,21 +572,15 @@ static void I_GetEvent(void)
 
 static void UpdateMouseMenu(void)
 {
-    static event_t ev;
-    static int oldx, oldy;
-    static SDL_Rect old_rect;
-    int x, y, w, h;
+    static event_t ev = {.type = ev_mouse_state};
+    float x, y;
+    SDL_GetMouseState(&x, &y);
 
-    float outx, outy;
-    SDL_GetMouseState(&outx, &outy);
-    x = (int)outx;
-    y = (int)outy;
+    SDL_FRect rect;
+    SDL_GetRenderLogicalPresentationRect(renderer, &rect);
 
-    SDL_GetWindowSize(screen, &w, &h);
-
-    SDL_Rect rect;
-    SDL_GetRenderViewport(renderer, &rect);
-    if (SDL_RectsEqual(&rect, &old_rect))
+    static SDL_FRect old_rect;
+    if (SDL_RectsEqualFloat(&rect, &old_rect))
     {
         ev.data1.i = 0;
     }
@@ -594,15 +590,10 @@ static void UpdateMouseMenu(void)
         ev.data1.i = EV_RESIZE_VIEWPORT;
     }
 
-    float scalex, scaley;
-    SDL_GetRenderScale(renderer, &scalex, &scaley);
+    x = clampf((x - rect.x) / rect.w, 0.0f, 1.0f) * video.unscaledw;
+    y = clampf((y - rect.y) / rect.h, 0.0f, 1.0f) * SCREENHEIGHT;
 
-    int deltax = rect.x * scalex;
-    int deltay = rect.y * scaley;
-
-    x = (x - deltax) * video.unscaledw / (w - deltax * 2);
-    y = (y - deltay) * SCREENHEIGHT / (h - deltay * 2);
-
+    static float oldx, oldy;
     if (x != oldx || y != oldy)
     {
         oldx = x;
@@ -613,9 +604,8 @@ static void UpdateMouseMenu(void)
         return;
     }
 
-    ev.type = ev_mouse_state;
-    ev.data2.i = x;
-    ev.data3.i = y;
+    ev.data2.f = x;
+    ev.data3.f = y;
 
     D_PostEvent(&ev);
 }
@@ -1171,50 +1161,43 @@ void I_InitWindowIcon(void)
     SDL_DestroySurface(surface);
 }
 
-// Check the display bounds of the display referred to by 'video_display' and
-// set x and y to a location that places the window in the center of that
-// display.
-static void CenterWindow(int *x, int *y, int w, int h)
+static boolean WindowOutOfBounds(void)
 {
     SDL_Rect bounds;
 
     if (!SDL_GetDisplayBounds(video_display_id, &bounds))
     {
-        I_Printf(VB_WARNING,
-                 "CenterWindow: Failed to read display bounds "
-                 "for display #%d!",
+        I_Printf(VB_WARNING, "Failed to read display bounds for display #%d!",
                  video_display);
-        return;
+        return true;
     }
 
-    *x = bounds.x + MAX((bounds.w - w) / 2, 0);
-    *y = bounds.y + MAX((bounds.h - h) / 2, 0);
+    return ((window_position_x + window_width > bounds.x + bounds.w)
+            || window_position_x < bounds.x
+            || (window_position_y + window_height > bounds.y + bounds.h)
+            || window_position_y < bounds.y);
 }
 
-static void I_GetWindowPosition(int *x, int *y, int w, int h)
+static void SetWindowPosition(void)
 {
     // in fullscreen mode, the window "position" still matters, because
     // we use it to control which display we run fullscreen on.
 
-    if (fullscreen)
-    {
-        CenterWindow(x, y, w, h);
-        return;
-    }
+    int x, y;
 
-    // center
-    if (window_position_x == 0 && window_position_y == 0)
+    if (fullscreen || (window_position_x == 0 && window_position_y == 0)
+        || WindowOutOfBounds())
     {
-        // Note: SDL has a SDL_WINDOWPOS_CENTERED, but this is useless for our
-        // purposes, since we also want to control which display we appear on.
-        // So we have to do this ourselves.
-        CenterWindow(x, y, w, h);
+        x = y = (int)SDL_WINDOWPOS_CENTERED_DISPLAY(video_display_id);
     }
     else
     {
-        *x = window_position_x;
-        *y = window_position_y;
+        x = window_position_x;
+        y = window_position_y;
     }
+
+    SDL_SetWindowPosition(screen, x, y);
+    SDL_SyncWindow(screen);
 }
 
 static double CurrentAspectRatio(void)
@@ -1544,21 +1527,17 @@ static void I_InitGraphicsMode(void)
         flags |= SDL_WINDOW_RESIZABLE;
     }
 
-    AdjustWindowSize();
-    int w = window_width;
-    int h = window_height;
-
     if (M_CheckParm("-borderless"))
     {
         flags |= SDL_WINDOW_BORDERLESS;
     }
 
-    I_GetWindowPosition(&window_x, &window_y, w, h);
+    AdjustWindowSize();
 
     // [FG] create rendering window
 
     char *title = M_StringJoin(gamedescription, " - ", PROJECT_STRING);
-    screen = SDL_CreateWindow(title, w, h, flags);
+    screen = SDL_CreateWindow(title, window_width, window_height, flags);
     free(title);
 
     if (screen == NULL)
@@ -1566,7 +1545,7 @@ static void I_InitGraphicsMode(void)
         I_Error("Error creating window for video startup: %s", SDL_GetError());
     }
 
-    SDL_SetWindowPosition(screen, window_x, window_y);
+    SetWindowPosition();
 
     I_InitWindowIcon();
 
@@ -1667,7 +1646,47 @@ static void CreateVideoBuffer(void)
     {
         AdjustWindowSize();
         SDL_SetWindowSize(screen, window_width, window_height);
+        SDL_SyncWindow(screen);
     }
+}
+
+void I_UpdateHudAnchoring(void)
+{
+    int w, h;
+
+    switch (hud_anchoring)
+    {
+        case HUD_ANCHORING_4_3:
+            w = 4;
+            h = 3;
+            break;
+
+        case HUD_ANCHORING_16_9:
+            w = 16;
+            h = 9;
+            break;
+
+        case HUD_ANCHORING_21_9:
+            w = 21;
+            h = 9;
+            break;
+
+        default: // HUD_ANCHORING_WIDE
+            w = video.unscaledw;
+            h = unscaled_actualheight;
+            break;
+    }
+
+    st_wide_shift = (unscaled_actualheight * w / h - NONWIDEWIDTH) / 2;
+    st_wide_shift = CLAMP(st_wide_shift, 0, video.deltaw);
+
+    if (st_wide_shift > 0.9f * video.deltaw)
+    {
+        // Snap to edges when close.
+        st_wide_shift = video.deltaw;
+    }
+
+    MN_UpdateHudAnchoringItem();
 }
 
 void I_ResetScreen(void)
@@ -1677,18 +1696,12 @@ void I_ResetScreen(void)
     widescreen = default_widescreen;
 
     ResetResolution(GetCurrentVideoHeight());
+    I_UpdateHudAnchoring();
     CreateVideoBuffer();
     ResetLogicalSize();
 
     SDL_SetTextureScaleMode(texture, smooth_scaling ? SDL_SCALEMODE_PIXELART
                                                     : SDL_SCALEMODE_NEAREST);
-
-    static aspect_ratio_mode_t oldwidescreen;
-    if (oldwidescreen != widescreen)
-    {
-        MN_UpdateWideShiftItem(true);
-        oldwidescreen = widescreen;
-    }
 }
 
 void I_ShutdownGraphics(void)
@@ -1729,10 +1742,9 @@ void I_InitGraphics(void)
     I_InitVideoParms();
     I_InitGraphicsMode(); // killough 10/98
     ResetResolution(GetCurrentVideoHeight());
+    I_UpdateHudAnchoring();
     CreateVideoBuffer();
     ResetLogicalSize();
-
-    MN_UpdateWideShiftItem(false);
 
     // Mouse motion is based on SDL_GetRelativeMouseState() values only.
     SDL_SetEventEnabled(SDL_EVENT_MOUSE_MOTION, false);
