@@ -1776,7 +1776,7 @@ boolean ST_Responder(event_t *ev)
     }
 }
 
-int palette_changes = 1;
+pal_change_t palette_changes = PAL_CHANGE_ON;
 
 static void DoPaletteStuff(player_t *player)
 {
@@ -1800,7 +1800,7 @@ static void DoPaletteStuff(player_t *player)
         }
     }
 
-    if (STRICTMODE(palette_changes == 0))
+    if (STRICTMODE(palette_changes == PAL_CHANGE_OFF))
     {
         palette = 0;
     }
@@ -1821,7 +1821,7 @@ static void DoPaletteStuff(player_t *player)
                 palette = NUMREDPALS - 1;
             }
             // tune down a bit so the menu remains legible
-            if (menuactive || paused || STRICTMODE(palette_changes == 2))
+            if (menuactive || paused || STRICTMODE(palette_changes == PAL_CHANGE_REDUCED))
             {
                 palette /= 2;
             }
@@ -1835,7 +1835,7 @@ static void DoPaletteStuff(player_t *player)
         {
             palette = NUMBONUSPALS - 1;
         }
-        if (STRICTMODE(palette_changes == 2))
+        if (STRICTMODE(palette_changes == PAL_CHANGE_REDUCED))
         {
             palette /= 2;
         }

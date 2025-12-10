@@ -69,7 +69,14 @@ extern int health_green;  // health amount above is blue, below is green
 
 boolean ST_PlayerInvulnerable(struct player_s *player);
 
-extern int palette_changes;
+typedef enum
+{
+  PAL_CHANGE_OFF,
+  PAL_CHANGE_ON,
+  PAL_CHANGE_REDUCED,
+} pal_change_t;
+
+extern pal_change_t palette_changes;
 
 extern struct hudfont_s *stcfnt;
 extern struct patch_s **hu_font;
