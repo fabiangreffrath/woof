@@ -1680,7 +1680,7 @@ void I_UpdateHudAnchoring(void)
     st_wide_shift = (unscaled_actualheight * w / h - NONWIDEWIDTH) / 2;
     st_wide_shift = CLAMP(st_wide_shift, 0, video.deltaw);
 
-    if (video.deltaw > 0 && (float)st_wide_shift / (float)video.deltaw > 0.9f)
+    if (st_wide_shift > 0.9f * video.deltaw)
     {
         // Snap to edges when close.
         st_wide_shift = video.deltaw;
