@@ -27,6 +27,7 @@
 #include "g_game.h"
 #include "i_printf.h"
 #include "info.h"
+#include "m_fixed.h"
 #include "m_random.h"
 #include "p_ambient.h"
 #include "p_inter.h"
@@ -1184,7 +1185,6 @@ void P_SpawnMapThing (mapthing_t* mthing)
   int    i;
   mobj_t *mobj;
   fixed_t x, y, z;
-  int id = 0;
 
   switch(mthing->type)
     {
@@ -1289,12 +1289,12 @@ void P_SpawnMapThing (mapthing_t* mthing)
   // [crispy] support MUSINFO lump (dynamic music changing)
   if (mthing->type >= 14100 && mthing->type <= 14164)
   {
-      id = mthing->type - 14100;
+      mthing->args[0] = mthing->type - 14100;
       mthing->type = mobjinfo[MT_MUSICSOURCE].doomednum;
   }
   else if (mthing->type >= 14001 && mthing->type <= 14064)
   {
-      id = mthing->type - 14000;
+      mthing->args[0] = mthing->type - 14000;
       mthing->type = mobjinfo[zmt_ambientsound].doomednum;
   }
 
@@ -1308,11 +1308,23 @@ void P_SpawnMapThing (mapthing_t* mthing)
   // warning message for the player.
 
   if (i == num_mobj_types)
-    {
-      I_Printf(VB_WARNING, "P_SpawnMapThing: Unknown Thing type %i at (%i, %i)",
-	      mthing->type, mthing->x, mthing->y);
+  {
+      // No warning for Doom Builder Camera
+      if (mthing->type == 32000)
+      {
+          I_Printf(
+              VB_DEBUG,
+              "P_SpawnMapThing: Found level editor camera spawn at (%i, %i)",
+              FixedToInt(mthing->x), FixedToInt(mthing->y));
+      }
+      else
+      {
+          I_Printf(VB_WARNING,
+                   "P_SpawnMapThing: Unknown Thing type %i at (%i, %i)",
+                   mthing->type, FixedToInt(mthing->x), FixedToInt(mthing->y));
+      }
       return;
-    }
+  }
 
   // don't spawn keycards and players in deathmatch
 
@@ -1358,6 +1370,18 @@ spawnit:
     mobj->z -= mthing->height;
   }
 
+  // Action specials
+  mobj->id = mthing->id;
+  mobj->special = mthing->special;
+  mobj->args[0] = mthing->args[0];
+  mobj->args[1] = mthing->args[1];
+  mobj->args[2] = mthing->args[2];
+  mobj->args[3] = mthing->args[3];
+  mobj->args[4] = mthing->args[4];
+
+  // Translucency
+  mobj->tranmap = mthing->tranmap;
+
   // killough 7/20/98: exclude friends
   if (!((mobj->flags ^ MF_COUNTKILL) & (MF_FRIEND | MF_COUNTKILL)))
     totalkills++;
@@ -1369,14 +1393,9 @@ spawnit:
   if (mthing->options & MTF_AMBUSH)
     mobj->flags |= MF_AMBUSH;
 
-  // [crispy] support MUSINFO lump (dynamic music changing)
-  if (i == MT_MUSICSOURCE)
+  if (i == zmt_ambientsound)
   {
-      mobj->health = 1000 + id;
-  }
-  else if (i == zmt_ambientsound)
-  {
-      P_AddAmbientSoundThinker(mobj, id);
+      P_AddAmbientSoundThinker(mobj);
   }
 }
 

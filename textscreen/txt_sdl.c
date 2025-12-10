@@ -120,6 +120,42 @@ void TXT_PreInit(SDL_Window *preset_window, SDL_Renderer *preset_renderer)
     }
 }
 
+static void UpdateLogicalPresentation(void)
+{
+    SDL_RendererLogicalPresentation mode = SDL_LOGICAL_PRESENTATION_LETTERBOX;
+    int w, h;
+
+    SDL_GetWindowSizeInPixels(TXT_SDLWindow, &w, &h);
+
+    // Window aspect ratio less than txt aspect ratio?
+    if (w * screen_image_h < h * screen_image_w)
+    {
+        // Window width is the constraint.
+        const int border_w = w % screen_image_w;
+
+        if (border_w >= 0 && border_w <= w / 6)
+        {
+            // Borders are small enough, so use integer scaling.
+            mode = SDL_LOGICAL_PRESENTATION_INTEGER_SCALE;
+        }
+    }
+    else
+    {
+        // Window height is the constraint.
+        const int border_h = h % screen_image_h;
+
+        if (border_h >= 0 && border_h <= h / 6)
+        {
+            // Borders are small enough, so use integer scaling.
+            mode = SDL_LOGICAL_PRESENTATION_INTEGER_SCALE;
+        }
+    }
+
+    // Set width and height of the logical viewport for automatic scaling.
+    SDL_SetRenderLogicalPresentation(renderer, screen_image_w, screen_image_h,
+                                     mode);
+}
+
 int TXT_Init(void)
 {
     SDL_WindowFlags flags = 0;
@@ -162,13 +198,13 @@ int TXT_Init(void)
         return 0;
     }
 
-    // Set width and height of the logical viewport for automatic scaling.
-    SDL_SetRenderLogicalPresentation(renderer, screen_image_w, screen_image_h,
-                                     SDL_LOGICAL_PRESENTATION_LETTERBOX);
+    UpdateLogicalPresentation();
 
     texture = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_INDEX8,
                                 SDL_TEXTUREACCESS_STREAMING, screen_image_w,
                                 screen_image_h);
+
+    SDL_SetTextureScaleMode(texture, SDL_SCALEMODE_PIXELART);
 
     palette = SDL_CreatePalette(256);
     SDL_SetPaletteColors(palette, ega_colors, 0, 16);
@@ -525,6 +561,13 @@ signed int TXT_GetChar(void)
             case SDL_EVENT_GAMEPAD_ADDED:
             case SDL_EVENT_GAMEPAD_REMOVED:
                 SDL_PushEvent(&ev);
+                break;
+
+            case SDL_EVENT_WINDOW_RESIZED:
+                if (ev.window.windowID == SDL_GetWindowID(TXT_SDLWindow))
+                {
+                    UpdateLogicalPresentation();
+                }
                 break;
 
             default:

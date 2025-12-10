@@ -25,11 +25,11 @@
 #include "doomkeys.h"
 #include "doomstat.h"
 #include "doomtype.h"
+#include "i_exit.h"
 #include "i_gamepad.h"
 #include "i_gyro.h"
 #include "i_printf.h"
 #include "i_rumble.h"
-#include "i_system.h"
 #include "i_timer.h"
 #include "i_video.h"
 #include "m_array.h"
@@ -466,10 +466,9 @@ void I_InitGamepad(void)
     SDL_SetHint(SDL_HINT_JOYSTICK_RAWINPUT, "0");
 #endif
 
-    // Allow gyro, rumble, and effects on Bluetooth PlayStation controllers
-    // and gyro on Nintendo Switch controllers, but only when a supported
-    // controller is actually used.
-    SDL_SetHint(SDL_HINT_JOYSTICK_ENHANCED_REPORTS, "auto");
+    // Enable gyro, rumble, and effects on Bluetooth PlayStation controllers
+    // and gyro on Nintendo Switch controllers.
+    SDL_SetHint(SDL_HINT_JOYSTICK_ENHANCED_REPORTS, "1");
 
     if (!SDL_Init(SDL_INIT_GAMEPAD))
     {

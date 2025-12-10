@@ -47,7 +47,7 @@
 // [FG] moved here from i_sound.c
 #define MAX_CHANNELS    32
 // [FG] moved here from s_sound.c
-#define NORM_PITCH      128
+#define NORM_PITCH      127
 #define NORM_PRIORITY   64
 #define NORM_SEP        128
 #define S_STEREO_SWING  96

@@ -666,8 +666,6 @@ void M_LoadOptions(void)
             Z_ChangeTag(options, PU_CACHE);
         }
     }
-
-    MN_Trans();     // reset translucency in case of change
 }
 
 //

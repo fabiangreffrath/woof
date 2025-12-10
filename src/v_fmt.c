@@ -22,6 +22,7 @@
 #include "i_printf.h"
 #include "i_video.h"
 #include "m_swap.h"
+#include "r_data.h"
 #include "r_defs.h"
 #include "v_video.h"
 #include "w_wad.h"
@@ -261,10 +262,8 @@ static patch_t *DummyPatch(int lump, pu_tag tag)
 
 static void *DummyFlat(int lump, pu_tag tag)
 {
-    const int size = 64 * 64;
-
-    Z_Malloc(size, tag, &lumpcache[lump]);
-    memset(lumpcache[lump], v_darkest_color, size);
+    Z_Malloc(FLATSIZE, tag, &lumpcache[lump]);
+    memcpy(lumpcache[lump], R_MissingFlat(), FLATSIZE);
     return lumpcache[lump];
 }
 

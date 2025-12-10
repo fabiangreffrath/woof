@@ -119,7 +119,7 @@ static void ScanDir(const char *dir, boolean makedir)
     }
 
     glob_t *glob = I_StartMultiGlob(dir, GLOB_FLAG_NOCASE | GLOB_FLAG_SORTED,
-                                    "*.sf2", "*.sf3");
+                                    "*.sf2", "*.sf3", "*.dls");
 
     while (1)
     {

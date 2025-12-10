@@ -55,6 +55,7 @@
 #include "r_main.h"
 #include "r_state.h"
 #include "r_things.h"
+#include "r_tranmap.h"
 #include "s_musinfo.h" // [crispy] S_ParseMusInfo()
 #include "s_sound.h"
 #include "tables.h"
@@ -330,54 +331,44 @@ void P_LoadSectors (int lump)
       ss->special = SHORT(ms->special);
       ss->oldspecial = SHORT(ms->special);
       ss->tag = SHORT(ms->tag);
-      ss->thinglist = NULL;
-      ss->touching_thinglist = NULL;            // phares 3/14/98
-      // WiggleFix: [kb] for R_FixWiggle()
-      ss->cachedheight = 0;
-
-      ss->nextsec = -1; //jff 2/26/98 add fields to support locking out
-      ss->prevsec = -1; // stair retriggering until build completes
-
-      // killough 3/7/98:
-      ss->floor_xoffs = 0;
-      ss->floor_yoffs = 0;      // floor and ceiling flats offsets
-      ss->old_floor_xoffs = ss->interp_floor_xoffs = 0;
-      ss->old_floor_yoffs = ss->interp_floor_yoffs = 0;
-      ss->floor_rotation = 0;
-      ss->ceiling_xoffs = 0;
-      ss->ceiling_yoffs = 0;
-      ss->old_ceiling_xoffs = ss->interp_ceiling_xoffs = 0;
-      ss->old_ceiling_yoffs = ss->interp_ceiling_yoffs = 0;
-      ss->ceiling_rotation = 0;
-      ss->heightsec = -1;       // sector used to get floor and ceiling height
-      ss->floorlightsec = -1;   // sector used to get floor lighting
-      // killough 3/7/98: end changes
-
-      // killough 4/11/98 sector used to get ceiling lighting:
-      ss->ceilinglightsec = -1;
-
-      // ID24 per-sector colormap
-      // killough 4/4/98: colormaps:
-      ss->tint = ss->bottommap = ss->midmap = ss->topmap = 0;
-
-      // killough 10/98: sky textures coming from sidedefs:
-      ss->floorsky = ss->ceilingsky = 0;
-
-      // [AM] Sector interpolation.  Even if we're
-      //      not running uncapped, the renderer still
-      //      uses this data.
-      ss->oldfloorheight = ss->floorheight;
-      ss->interpfloorheight = ss->floorheight;
-      ss->oldceilingheight = ss->ceilingheight;
-      ss->interpceilingheight = ss->ceilingheight;
-      // [FG] inhibit sector interpolation during the 0th gametic
-      ss->oldceilgametic = -1;
-      ss->oldfloorgametic = -1;
-      ss->old_ceil_offs_gametic = -1;
-      ss->old_floor_offs_gametic = -1;
+      P_SectorInit(ss);
     }
 
   Z_Free (data);
+}
+
+//
+// factored out, removed properties that are zero by default
+//
+void P_SectorInit(sector_t * const sector)
+{
+  sector->nextsec = -1; // jff 2/26/98 add fields to support locking out
+  sector->prevsec = -1; // stair retriggering until build completes
+
+  sector->heightsec = -1;       // sector used to get floor and ceiling height
+  sector->floorlightsec = -1;   // sector used to get floor lighting
+  sector->ceilinglightsec = -1; // sector used to get ceiling lighting:
+
+  // killough 8/28/98: initialize all sectors to normal friction first
+  sector->friction = ORIG_FRICTION;
+  sector->movefactor = ORIG_FRICTION_FACTOR;
+
+  // killough 3/7/98:
+  // floor and ceiling flats offsets
+  sector->old_floor_xoffs = sector->interp_floor_xoffs = sector->floor_xoffs;
+  sector->old_floor_yoffs = sector->interp_floor_yoffs = sector->floor_yoffs;
+  sector->old_ceiling_xoffs = sector->interp_ceiling_xoffs = sector->ceiling_xoffs;
+  sector->old_ceiling_yoffs = sector->interp_ceiling_yoffs = sector->ceiling_yoffs;
+
+  // [AM] Sector interpolation.  Even if we're
+  //      not running uncapped, the renderer still
+  //      uses this data.
+  sector->oldfloorheight = sector->interpfloorheight = sector->floorheight;
+  sector->oldceilingheight = sector->interpceilingheight = sector->ceilingheight;
+
+  // [FG] inhibit sector interpolation during the 0th gametic
+  sector->oldceilgametic = sector->oldfloorgametic = -1;
+  sector->old_ceil_offs_gametic = sector->old_floor_offs_gametic = -1;
 }
 
 
@@ -519,47 +510,16 @@ void P_LoadLineDefs (int lump)
     {
       maplinedef_t *mld = (maplinedef_t *) data + i;
       line_t *ld = lines+i;
-      vertex_t *v1, *v2;
 
       // [FG] extended nodes
       ld->flags = (unsigned short)SHORT(mld->flags);
       ld->special = SHORT(mld->special);
       ld->id = SHORT(mld->tag);
       ld->args[0] = ld->id; // UDMF spec
+      ld->v1 = &vertexes[(unsigned short)SHORT(mld->v1)];
+      ld->v2 = &vertexes[(unsigned short)SHORT(mld->v2)];
 
-      v1 = ld->v1 = &vertexes[(unsigned short)SHORT(mld->v1)];
-      v2 = ld->v2 = &vertexes[(unsigned short)SHORT(mld->v2)];
-      ld->dx = v2->x - v1->x;
-      ld->dy = v2->y - v1->y;
-      ld->angle = R_PointToAngle2(lines[i].v1->x, lines[i].v1->y,
-                                  lines[i].v2->x, lines[i].v2->y);
-
-      ld->tranlump = -1;   // killough 4/11/98: no translucency by default
-
-      ld->slopetype = !ld->dx ? ST_VERTICAL : !ld->dy ? ST_HORIZONTAL :
-        FixedDiv(ld->dy, ld->dx) > 0 ? ST_POSITIVE : ST_NEGATIVE;
-
-      if (v1->x < v2->x)
-        {
-          ld->bbox[BOXLEFT] = v1->x;
-          ld->bbox[BOXRIGHT] = v2->x;
-        }
-      else
-        {
-          ld->bbox[BOXLEFT] = v2->x;
-          ld->bbox[BOXRIGHT] = v1->x;
-        }
-
-      if (v1->y < v2->y)
-        {
-          ld->bbox[BOXBOTTOM] = v1->y;
-          ld->bbox[BOXTOP] = v2->y;
-        }
-      else
-        {
-          ld->bbox[BOXBOTTOM] = v2->y;
-          ld->bbox[BOXTOP] = v1->y;
-        }
+      P_LinedefInit(ld);
 
       ld->sidenum[0] = (unsigned short)SHORT(mld->sidenum[0]);
       ld->sidenum[1] = (unsigned short)SHORT(mld->sidenum[1]);
@@ -572,6 +532,46 @@ void P_LoadLineDefs (int lump)
         sides[*ld->sidenum].special = ld->special;
     }
   Z_Free (data);
+}
+
+void P_LinedefInit(line_t * const linedef)
+{
+  const vertex_t v1 = *linedef->v1;
+  const vertex_t v2 = *linedef->v2;
+  const fixed_t dx = linedef->dx = v2.x - v1.x;
+  const fixed_t dy = linedef->dy = v2.y - v1.y;
+
+  // killough 4/11/98: no translucency by default
+  linedef->tranmap = NULL;
+
+  linedef->angle = R_PointToAngle2(v1.x, v1.y, v2.x, v2.y);
+
+  linedef->slopetype = !dx                  ? ST_VERTICAL
+                     : !dy                  ? ST_HORIZONTAL
+                     : FixedDiv(dy, dx) > 0 ? ST_POSITIVE
+                                            : ST_NEGATIVE;
+
+  if (v1.x < v2.x)
+  {
+    linedef->bbox[BOXLEFT] = v1.x;
+    linedef->bbox[BOXRIGHT] = v2.x;
+  }
+  else
+  {
+    linedef->bbox[BOXLEFT] = v2.x;
+    linedef->bbox[BOXRIGHT] = v1.x;
+  }
+
+  if (v1.y < v2.y)
+  {
+    linedef->bbox[BOXBOTTOM] = v1.y;
+    linedef->bbox[BOXTOP] = v2.y;
+  }
+  else
+  {
+    linedef->bbox[BOXBOTTOM] = v2.y;
+    linedef->bbox[BOXTOP] = v1.y;
+  }
 }
 
 // killough 4/4/98: delay using sidedefs until they are loaded
@@ -601,20 +601,24 @@ void P_LoadLineDefs2(int lump)
 
       ld->frontsector = ld->sidenum[0]!=NO_INDEX ? sides[ld->sidenum[0]].sector : 0;
       ld->backsector  = ld->sidenum[1]!=NO_INDEX ? sides[ld->sidenum[1]].sector : 0;
-      switch (ld->special)
-        {                       // killough 4/11/98: handle special types
-          int lump, j;
-
-        case 260:               // killough 4/11/98: translucent 2s textures
-            lump = sides[*ld->sidenum].special; // translucency from sidedef
-            if (!ld->args[0])                   // if tag==0,
-              ld->tranlump = lump;              // affect this linedef only
-            else
-              for (j=0;j<numlines;j++)          // if tag!=0,
-                if (lines[j].id == ld->args[0]) // affect all matching linedefs
-                  lines[j].tranlump = lump;
-            break;
+      switch (ld->special) // killough 4/11/98: handle special types
+      {
+        case 260: // killough 4/11/98: translucent 2s textures
+        {
+          int32_t lump = sides[*ld->sidenum].special; // translucency from sidedef
+          const byte *tranmap =
+              !lump ? main_tranmap : W_CacheLumpNum(lump - 1, PU_STATIC);
+          if (!ld->args[0])
+            // if tag==0, affect this linedef only
+            ld->tranmap = tranmap;
+          else
+            for (int j = 0; j < numlines; j++)
+              if (lines[j].id == ld->args[0])
+                // if tag!=0, affect all matching linedefs
+                ld->tranmap = tranmap;
+          break;
         }
+      }
     }
 }
 
@@ -783,21 +787,23 @@ void P_LoadSideDefs2(int lump)
 
       sd->textureoffset = SHORT(msd->textureoffset)<<FRACBITS;
       sd->rowoffset = SHORT(msd->rowoffset)<<FRACBITS;
-      // [crispy] smooth texture scrolling
-      sd->oldtextureoffset = sd->textureoffset;
-      sd->oldrowoffset = sd->rowoffset;
-      sd->interptextureoffset = sd->textureoffset;
-      sd->interprowoffset = sd->rowoffset;
-      sd->oldgametic = -1;
+      sd->sector = &sectors[SHORT(msd->sector)];
+      P_SidedefInit(sd);
 
       // killough 4/4/98: allow sidedef texture names to be overloaded
       // killough 4/11/98: refined to allow colormaps to work as wall
       // textures if invalid as colormaps but valid as textures.
-
-      sd->sector = &sectors[SHORT(msd->sector)];
       P_ProcessSideDefs(sd, i, msd->bottomtexture, msd->midtexture, msd->toptexture);
     }
   Z_Free (data);
+}
+
+void P_SidedefInit(side_t * const sidedef)
+{
+  // [crispy] smooth texture scrolling
+  sidedef->oldtextureoffset = sidedef->interptextureoffset = sidedef->textureoffset;
+  sidedef->oldrowoffset = sidedef->interprowoffset = sidedef->rowoffset;
+  sidedef->oldgametic = -1;
 }
 
 #ifndef MBF_STRICT
@@ -1581,46 +1587,55 @@ static angle_t anglediff(angle_t a, angle_t b)
         return b - a;
 }
 
-void P_SegLengths(boolean contrast_only)
+void P_SegLengths(void)
 {
-    int i;
     const int rightangle = abs(finesine[(ANG60/2) >> ANGLETOFINESHIFT]);
 
-    for (i = 0; i < numsegs; i++)
+    for (int32_t i = 0; i < numsegs; i++)
     {
         seg_t *li = segs+i;
-        int64_t dx, dy;
 
-        dx = li->v2->r_x - li->v1->r_x;
-        dy = li->v2->r_y - li->v1->r_y;
+        int64_t dx = li->v2->r_x - li->v1->r_x;
+        int64_t dy = li->v2->r_y - li->v1->r_y;
+        sidedef_flags_t flags = (li->sidedef) // mini segs!!
+                              ? li->sidedef->flags
+                              : SF_NONE;
 
-        if (!contrast_only)
+        li->r_length = (uint32_t)(sqrt((double)dx*dx + (double)dy*dy)/2);
+
+        // [crispy] re-calculate angle used for rendering
+        viewx = li->v1->r_x;
+        viewy = li->v1->r_y;
+        li->r_angle = R_PointToAngleCrispy(li->v2->r_x, li->v2->r_y);
+        // [crispy] more than just a little adjustment?
+        // back to the original angle then
+        if (anglediff(li->r_angle, li->angle) > ANG60/2)
         {
-            li->r_length = (uint32_t)(sqrt((double)dx*dx + (double)dy*dy)/2);
-
-            // [crispy] re-calculate angle used for rendering
-            viewx = li->v1->r_x;
-            viewy = li->v1->r_y;
-            li->r_angle = R_PointToAngleCrispy(li->v2->r_x, li->v2->r_y);
-            // [crispy] more than just a little adjustment?
-            // back to the original angle then
-            if (anglediff(li->r_angle, li->angle) > ANG60/2)
-            {
-                li->r_angle = li->angle;
-            }
+            li->r_angle = li->angle;
         }
 
-        // [crispy] smoother fake contrast
-        if (!dy)
-            li->fakecontrast = -LIGHTBRIGHT;
-        else if (abs(finesine[li->r_angle >> ANGLETOFINESHIFT]) < rightangle)
-            li->fakecontrast = -(LIGHTBRIGHT >> 1);
-        else if (!dx)
-            li->fakecontrast = LIGHTBRIGHT;
-        else if (abs(finecosine[li->r_angle >> ANGLETOFINESHIFT]) < rightangle)
-            li->fakecontrast = LIGHTBRIGHT >> 1;
-        else
+        if (flags & SF_NO_FAKE_CONTRAST)
+        {
             li->fakecontrast = 0;
+        }
+        else
+        {
+            // vanilla
+            if (!dy)
+              li->fakecontrast = -LIGHTBRIGHT;
+            else if (!dx)
+              li->fakecontrast = +LIGHTBRIGHT;
+
+            // [crispy]
+            // TODO: smooth out even more
+            if (flags & SF_SMOOTH_CONTRAST)
+            {
+                if (abs(finesine[li->r_angle >> ANGLETOFINESHIFT]) < rightangle)
+                    li->fakecontrast = -(LIGHTBRIGHT >> 1);
+                else if (abs(finecosine[li->r_angle >> ANGLETOFINESHIFT]) < rightangle)
+                    li->fakecontrast = LIGHTBRIGHT >> 1;
+            }
+        }
     }
 }
 
@@ -1652,7 +1667,7 @@ static boolean P_LoadReject(int lumpnum, int totallines)
         unsigned int padvalue;
 
         rejectmatrix = Z_Malloc(minlength, PU_LEVEL, (void **) &rejectmatrix);
-        W_ReadLump(lumpnum, rejectmatrix);
+        W_ReadLumpSize(lumpnum, rejectmatrix, minlength);
 
         //!
         // @category mod
@@ -1850,7 +1865,7 @@ void P_SetupLevel(int episode, int map, int playermask, skill_t skill)
     P_RemoveSlimeTrails();    // killough 10/98: remove slime trails from wad
 
   // [crispy] fix long wall wobble
-  P_SegLengths(false);
+  P_SegLengths();
 
   // Note: you don't need to clear player queue slots --
   // a much simpler fix is in g_game.c -- killough 10/98

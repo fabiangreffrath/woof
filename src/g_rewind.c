@@ -194,7 +194,7 @@ void G_LoadAutoKeyframe(void)
     {
         if (keyframe->episode != gameepisode || keyframe->map != gamemap)
         {
-            G_PreparedInitNew(keyframe->episode, keyframe->map);
+            G_SimplifiedInitNew(keyframe->episode, keyframe->map);
             P_UnArchiveDirtyArrays(keyframe->episode, keyframe->map);
         }
         P_LoadKeyframe(keyframe);
@@ -233,10 +233,13 @@ static void FreeKeyframeQueue(void)
 
 void G_ResetRewind(boolean force)
 {
-    if (disable_rewind || force)
+    if (disable_rewind)
+    {
+        disable_rewind = false;
+    }
+    if (force)
     {
         FreeKeyframeQueue();
-        disable_rewind = false;
     }
 }
 

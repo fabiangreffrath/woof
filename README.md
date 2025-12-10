@@ -203,6 +203,11 @@ Copyright:
  © 2015 Braden "Blzut3" Obrzut.  
 License: [BSD-3-Clause](https://opensource.org/licenses/BSD-3-Clause)
 
+Files: `src/r_srgb.*`  
+Copyright:  
+ © 2017 Project Nayuki.  
+License: [MIT](https://opensource.org/licenses/MIT)
+
 Files: `src/v_flextran.*`  
 Copyright:  
  © 2013 James Haley et al.;  
@@ -266,15 +271,15 @@ Copyright:
  © 2005-2017 Simon Howard.  
 License: [GPL-2.0+](https://www.gnu.org/licenses/old-licenses/gpl-2.0.html)
 
-Files: `textscreen/fonts/hauge-8x18-v1-5.png`
-Copyright:
- © 2025 Zokum.
+Files: `textscreen/fonts/hauge-8x18-v1-5.png`  
+Copyright:  
+ © 2025 Zokum.  
 License: [CC BY-SA](https://creativecommons.org/licenses/by-sa/4.0/)
 
 Files: `netlib/*`  
 Copyright:  
  © 1997-2025 Sam Lantinga;  
- © 2012 Simeon Maxein.    
+ © 2012 Simeon Maxein.  
 License: [zlib](https://opensource.org/license/zlib)
 
 Files: `third-party/md5/*`  
@@ -282,7 +287,7 @@ License: public-domain
 
 Files: `third-party/minimp3/*`  
 Copyright:  
- © 2021 lief.      
+ © 2021 lief.  
 License: [CC0-1.0](https://creativecommons.org/publicdomain/zero/1.0/)
 
 Files: `third-party/miniz/*`  

@@ -3027,12 +3027,156 @@ static void T_Scroll(scroll_t *s)
 
     case sc_carry_ceiling:       // to be added later
       break;
+
+    // UDMF extensions
+    case sc_side_top:
+      side = sides + s->affectee;
+      dirty_side(side)->offsetx_top += dx;
+      side->offsety_top += dy;
+      break;
+
+    case sc_side_mid:
+      side = sides + s->affectee;
+      dirty_side(side)->offsetx_mid += dx;
+      side->offsety_mid += dy;
+      break;
+
+    case sc_side_bottom:
+      side = sides + s->affectee;
+      dirty_side(side)->offsetx_bottom += dx;
+      side->offsety_bottom += dy;
+      break;
     }
 }
 
 void T_ScrollAdapter(mobj_t *mobj)
 {
     T_Scroll((scroll_t *)mobj);
+}
+
+static void T_ParamScrollFloor(scroll_t *s)
+{
+  if (!(s->dx | s->dy))
+    return;
+
+  sector_t* sec = sectors + s->affectee;
+
+  if (s->type & SCROLL_TEXTURE)
+  {
+    if (sec->old_floor_offs_gametic != gametic)
+    {
+      sec->old_floor_xoffs = sec->floor_xoffs;
+      sec->old_floor_yoffs = sec->floor_yoffs;
+      sec->old_floor_offs_gametic = gametic;
+    }
+    sec->floor_xoffs -= s->dx;
+    sec->floor_yoffs += s->dy;
+  }
+
+  if (s->type & (SCROLL_STATIC | SCROLL_PLAYER | SCROLL_MONSTER))
+  {
+    fixed_t height = sec->floorheight;
+    fixed_t waterheight = (sec->heightsec != -1 && sectors[sec->heightsec].floorheight > height)
+                        ? sectors[sec->heightsec].floorheight
+                        : INT_MIN;
+
+    for (msecnode_t* node = sec->touching_thinglist; node; node = node->m_snext)
+    {
+      mobj_t* thing = node->m_thing;
+
+      // Move objects only if on floor or underwater, non-floating, and clipped
+      if (!(thing->flags & MF_NOCLIP) && (!(thing->flags & MF_NOGRAVITY || thing->z > height) || thing->z < waterheight))
+      {
+        boolean scroll_it = false;
+
+        if (thing->type == MT_SKULL || thing->flags & MF_COUNTKILL)
+        {
+          if (s->type & SCROLL_MONSTER) scroll_it = true;
+        }
+        else if (thing->player)
+        {
+          if (s->type & SCROLL_PLAYER) scroll_it = true;
+        }
+        else
+        {
+          if (s->type & SCROLL_STATIC) scroll_it = true;
+        }
+
+        if (scroll_it)
+        {
+          thing->momx += s->dx * 3 / 32;
+          thing->momy += s->dy * 3 / 32;
+          thing->intflags |= MIF_SCROLLING;
+        }
+      }
+    }
+  }
+}
+
+static void T_ParamScrollCeiling(scroll_t *s)
+{
+  if (!(s->dx | s->dy))
+    return;
+
+  sector_t* sec = sectors + s->affectee;
+
+  if (s->type & SCROLL_TEXTURE)
+  {
+    if (sec->old_ceil_offs_gametic != gametic)
+    {
+        sec->old_ceiling_xoffs = sec->ceiling_xoffs;
+        sec->old_ceiling_yoffs = sec->ceiling_yoffs;
+        sec->old_ceil_offs_gametic = gametic;
+    }
+    sec->ceiling_xoffs -= s->dx;
+    sec->ceiling_yoffs += s->dy;
+  }
+
+  if (s->type & (SCROLL_STATIC | SCROLL_PLAYER | SCROLL_MONSTER))
+  {
+    for (msecnode_t* node = sec->touching_thinglist; node; node = node->m_snext)
+    {
+      mobj_t* thing = node->m_thing;
+
+      if (!(thing->flags & MF_NOCLIP)
+          && thing->flags & MF_SPAWNCEILING
+          && thing->flags & MF_NOGRAVITY
+          && (thing->z + thing->height) == sec->ceilingheight)
+      {
+        boolean scroll_it = false;
+
+        if (thing->type == MT_SKULL || thing->flags & MF_COUNTKILL)
+        {
+          if (s->type & SCROLL_MONSTER) scroll_it = true;
+        }
+        else if (thing->player)
+        {
+          if (s->type & SCROLL_PLAYER) scroll_it = true;
+        }
+        else
+        {
+          if (s->type & SCROLL_STATIC) scroll_it = true;
+        }
+
+        if (scroll_it)
+        {
+          thing->momx += s->dx * 3 / 32;
+          thing->momy += s->dy * 3 / 32;
+          thing->intflags |= MIF_SCROLLING;
+        }
+      }
+    }
+  }
+}
+
+void T_ParamScrollFloorAdapter(mobj_t *mobj)
+{
+    T_ParamScrollFloor((scroll_t *)mobj);
+}
+
+void T_ParamScrollCeilingAdapter(mobj_t *mobj)
+{
+    T_ParamScrollCeiling((scroll_t *)mobj);
 }
 
 //
@@ -3053,8 +3197,8 @@ void T_ScrollAdapter(mobj_t *mobj)
 // accel: non-zero if this is an accelerative effect
 //
 
-static void Add_Scroller(int type, fixed_t dx, fixed_t dy,
-                         int control, int affectee, int accel)
+void Add_Scroller(scroller_t type, fixed_t dx, fixed_t dy, int32_t control,
+                  int32_t affectee, int32_t accel)
 {
   scroll_t *s = arena_alloc(thinkers_arena, scroll_t);
   s->thinker.function.p1 = T_ScrollAdapter;
@@ -3067,6 +3211,23 @@ static void Add_Scroller(int type, fixed_t dx, fixed_t dy,
     s->last_height =
       sectors[control].floorheight + sectors[control].ceilingheight;
   s->affectee = affectee;
+  P_AddThinker(&s->thinker);
+}
+
+void Add_ParamSectorScroller(scroller_t type, int32_t affectee,
+                             boolean isCeiling, fixed_t dx, fixed_t dy)
+{
+  scroll_t *s = arena_alloc(thinkers_arena, scroll_t);
+  s->thinker.function.p1 = isCeiling ? T_ParamScrollCeilingAdapter
+                                     : T_ParamScrollFloorAdapter;
+  s->type = type;
+  s->dx = dx;
+  s->dy = dy;
+  s->affectee = affectee;
+
+  s->control = -1;
+  s->accel = s->vdx = s->vdy = s->last_height = 0;
+
   P_AddThinker(&s->thinker);
 }
 
@@ -3110,6 +3271,23 @@ static void Add_WallScroller(int64_t dx, int64_t dy, const line_t *l,
 // Factor to scale scrolling effect into mobj-carrying properties = 3/32.
 // (This is so scrolling floors and objects on them can move at same speed.)
 #define CARRYFACTOR ((fixed_t)(FRACUNIT*.09375))
+
+// Eternity scrollers are weird...
+#define EE_SCROLLFACTOR 10
+
+void Add_EESectorScroller(int32_t type, int32_t affectee, boolean isCeiling, double x, double y)
+{
+  fixed_t dx = DoubleToFixed(x * EE_SCROLLFACTOR) >> SCROLL_SHIFT;
+  fixed_t dy = DoubleToFixed(y * EE_SCROLLFACTOR) >> SCROLL_SHIFT;
+  if (type & SCROLL_TEXTURE)
+    Add_ScrollerStatic(isCeiling ? sc_ceiling : sc_floor, affectee, dx, dy);
+  if (type & SCROLL_CARRY)
+  {
+    dx = FixedMul(dx, CARRYFACTOR);
+    dy = FixedMul(dy, CARRYFACTOR);
+    Add_ScrollerStatic(isCeiling ? sc_carry_ceiling : sc_carry, affectee, dx, dy);
+  }
+}
 
 // Initialize the scrollers
 static void P_SpawnScrollers(void)
@@ -3396,13 +3574,6 @@ static void P_SpawnFriction(void)
 {
   int i;
   line_t *l = lines;
-
-  // killough 8/28/98: initialize all sectors to normal friction first
-  for (i = 0; i < numsectors; i++)
-    {
-      sectors[i].friction = ORIG_FRICTION;
-      sectors[i].movefactor = ORIG_FRICTION_FACTOR;
-    }
 
   for (i = 0 ; i < numlines ; i++,l++)
     if (l->special == 223)

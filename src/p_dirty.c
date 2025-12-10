@@ -20,67 +20,69 @@
 #define M_ARRAY_INIT_CAPACITY 64
 #include "m_array.h"
 
-line_t **dirty_lines = NULL;
-partial_line_t *clean_lines = NULL;
-
-side_t **dirty_sides = NULL;
-partial_side_t *clean_sides = NULL;
+dirty_line_t *dirty_lines = NULL;
+dirty_side_t *dirty_sides = NULL;
 
 void P_DirtyLine(line_t *line)
 {
-    partial_line_t clean_line = {
-        .special = line->special
-    };
-    array_push(clean_lines, clean_line);
     line->dirty = true;
-    array_push(dirty_lines, line);
+
+    dirty_line_t dirty_line = {
+        .line = line,
+        .clean_line.special = line->special
+    };
+    array_push(dirty_lines, dirty_line);
 }
 
 void P_DirtySide(side_t *side)
 {
-    partial_side_t clean_side = {
-        .textureoffset = side->textureoffset,
-        .rowoffset = side->rowoffset,
-        .toptexture = side->toptexture,
-        .bottomtexture = side->bottomtexture,
-        .midtexture = side->midtexture
-    };
-    array_push(clean_sides, clean_side);
     side->dirty = true;
-    array_push(dirty_sides, side);
+
+    dirty_side_t dirty_side = {
+        .side = side,
+        .clean_side.textureoffset = side->textureoffset,
+        .clean_side.rowoffset = side->rowoffset,
+        .clean_side.toptexture = side->toptexture,
+        .clean_side.bottomtexture = side->bottomtexture,
+        .clean_side.midtexture = side->midtexture
+    };
+    array_push(dirty_sides, dirty_side);
+}
+
+void P_CleanLine(dirty_line_t *dl)
+{
+    dl->line->dirty = false;
+
+    dl->line->special = dl->clean_line.special;
+}
+
+void P_CleanSide(dirty_side_t *ds)
+{
+    ds->side->dirty = false;
+
+    ds->side->textureoffset = ds->clean_side.textureoffset;
+    ds->side->rowoffset = ds->clean_side.rowoffset;
+    ds->side->toptexture = ds->clean_side.toptexture;
+    ds->side->bottomtexture = ds->clean_side.bottomtexture;
+    ds->side->midtexture = ds->clean_side.midtexture;
 }
 
 void P_ClearDirtyArrays(void)
 {
     array_clear(dirty_lines);
-    array_clear(clean_lines);
     array_clear(dirty_sides);
-    array_clear(clean_sides);
 }
 
 typedef struct
 {
-    line_t **dirty_lines;
-    partial_line_t *clean_lines;
-
-    side_t **dirty_sides;
-    partial_side_t *clean_sides;
+    dirty_line_t *dirty_lines;
+    dirty_side_t *dirty_sides;
 
     int episode;
     int map;
 } dirty_t;
 
 static dirty_t *levels;
-
-#define SetDirty(v)                    \
-    do                                 \
-    {                                  \
-        int size = array_size(v);      \
-        for (int i = 0; i < size; ++i) \
-        {                              \
-            (v)[i]->dirty = true;      \
-        }                              \
-    } while (0)
 
 void P_ArchiveDirtyArraysCurrentLevel(void)
 {
@@ -89,10 +91,7 @@ void P_ArchiveDirtyArraysCurrentLevel(void)
     level.episode = gameepisode;
 
     array_copy(level.dirty_lines, dirty_lines);
-    array_copy(level.clean_lines, clean_lines);
-
     array_copy(level.dirty_sides, dirty_sides);
-    array_copy(level.clean_sides, clean_sides);
 
     array_push(levels, level);
 }
@@ -106,17 +105,19 @@ boolean P_UnArchiveDirtyArrays(int episode, int map)
         if (level->map == map && level->episode == episode)
         {
             array_copy(dirty_lines, level->dirty_lines);
-            SetDirty(dirty_lines);
-            array_copy(clean_lines, level->clean_lines);
+            array_foreach_type(dl, dirty_lines, dirty_line_t)
+            {
+                dl->line->dirty = true;
+            }
 
             array_copy(dirty_sides, level->dirty_sides);
-            SetDirty(dirty_sides);
-            array_copy(clean_sides, level->clean_sides);
+            array_foreach_type(ds, dirty_sides, dirty_side_t)
+            {
+                ds->side->dirty = true;
+            }
 
             array_free(level->dirty_lines);
-            array_free(level->clean_lines);
             array_free(level->dirty_sides);
-            array_free(level->clean_sides);
             array_delete(levels, i);
             return true;
         }

@@ -13,8 +13,8 @@
 
 #include "config.h"
 #include "doomtype.h"
+#include "i_exit.h"
 #include "i_printf.h"
-#include "i_system.h"
 
 #ifdef HAVE_DISCORD_RPC
 

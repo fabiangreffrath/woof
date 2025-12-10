@@ -68,6 +68,7 @@ set(PROJECT_COPYRIGHT "Copyright (C) 1993-2025")
 set(PROJECT_LICENSE "GNU General Public License, version 2")
 set(PROJECT_STRING "${PROJECT_NAME} ${PROJECT_VERSION}")
 set(PROJECT_SHORTNAME "woof")
+set(PROJECT_APPID "io.github.fabiangreffrath.woof")
 set(BASE_PK3 "woof.pk3")
 set(WOOF_ICON "woof.ico")
 set(SETUP_ICON "setup.ico")
@@ -118,7 +119,7 @@ check_c_source_compiles(
 set(CMAKE_FIND_FRAMEWORK NEVER)
 
 # Library requirements.
-find_package(SDL3 REQUIRED)
+find_package(SDL3 3.3 REQUIRED)
 find_package(OpenAL REQUIRED)
 find_package(libebur128 REQUIRED)
 find_package(SndFile 1.0.29 REQUIRED)

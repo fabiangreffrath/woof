@@ -29,7 +29,6 @@
 #include "p_setup.h"
 #include "p_spec.h"
 #include "p_tick.h"
-#include "r_defs.h"
 #include "r_state.h"
 #include "s_musinfo.h"
 #include "s_sound.h"
@@ -39,6 +38,8 @@
 #include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
+
+#define KEYFRAME_BUFFER_SIZE (256 * 1024)
 
 typedef struct keyframe_data_s
 {
@@ -147,9 +148,9 @@ inline static int32_t read32(void)
 
 inline static void *readp(void)
 {
-    intptr_t result = 0;
-    memcpy(&result, curr_p, sizeof(intptr_t));
-    curr_p += sizeof(intptr_t);
+    uintptr_t result = 0;
+    memcpy(&result, curr_p, sizeof(uintptr_t));
+    curr_p += sizeof(uintptr_t);
     return (void *)result;
 }
 
@@ -215,10 +216,9 @@ static void ArchiveWorld(void)
 
         // Woof!
         writep(sector->soundtarget,
-               sector->thinglist,
                sector->floordata,
                sector->ceilingdata,
-               sector->lightingdata,
+               sector->thinglist,
                sector->touching_thinglist);
     }
 
@@ -228,7 +228,7 @@ static void ArchiveWorld(void)
     write32(size);
     for (i = 0; i < size; ++i)
     {
-        line = dirty_lines[i];
+        line = dirty_lines[i].line;
         write16(line->special);
     }
 
@@ -238,7 +238,7 @@ static void ArchiveWorld(void)
     write32(size);
     for (i = 0; i < size; ++i)
     {
-        side = dirty_sides[i];
+        side = dirty_sides[i].side;
 
         write16(side->toptexture,
                 side->bottomtexture,
@@ -275,41 +275,35 @@ static void UnArchiveWorld(void)
 
         // Woof!
         sector->soundtarget = readp();
-        sector->thinglist = readp();
         sector->floordata = readp();
         sector->ceilingdata = readp();
-        sector->lightingdata = readp();
+        sector->thinglist = readp();
         sector->touching_thinglist = readp();
     }
 
     line_t *line;
-    const partial_line_t *clean_line;
 
     int oldsize = read32();
     int size = array_size(dirty_lines);
     for (i = 0; i < size; ++i)
     {
-        line = dirty_lines[i];
+        line = dirty_lines[i].line;
         if (i < oldsize)
         {
             line->special = read16();
         }
         else
         {
-            clean_line = &clean_lines[i];
-            line->special = clean_line->special;
-            line->dirty = false;
+            P_CleanLine(&dirty_lines[i]);
         }
     }
 
     side_t *side;
-    const partial_side_t *clean_side;
-
     oldsize = read32();
     size = array_size(dirty_sides);
     for (i = 0; i < size; ++i)
     {
-        side = dirty_sides[i];
+        side = dirty_sides[i].side;
         if (i < oldsize)
         {
             side->toptexture = read16();
@@ -320,13 +314,7 @@ static void UnArchiveWorld(void)
         }
         else
         {
-            clean_side = &clean_sides[i];
-            side->toptexture = clean_side->toptexture;
-            side->bottomtexture = clean_side->bottomtexture;
-            side->midtexture = clean_side->midtexture;
-            side->textureoffset = clean_side->textureoffset;
-            side->rowoffset = clean_side->rowoffset;
-            side->dirty = false;
+            P_CleanSide(&dirty_sides[i]);
         }
     }
 }
@@ -459,7 +447,7 @@ keyframe_t *P_SaveKeyframe(int tic)
     keyframe_t *keyframe = calloc(1, sizeof(*keyframe));
     keyframe->data = calloc(1, sizeof(*keyframe->data));
 
-    buffer_size = 512 * 1024;
+    buffer_size = KEYFRAME_BUFFER_SIZE;
     buffer = malloc(buffer_size);
     curr_p = buffer;
 
@@ -476,10 +464,7 @@ keyframe_t *P_SaveKeyframe(int tic)
     ArchiveRNG();
     ArchiveAutomap();
 
-    if (demoplayback || demorecording)
-    {
-        writep(demo_p);
-    }
+    writep(demo_p);
 
     keyframe->data->buffer = buffer;
     keyframe->tic = tic;
@@ -508,10 +493,7 @@ void P_LoadKeyframe(const keyframe_t *keyframe)
     UnArchiveAutomap();
     P_MapEnd();
 
-    if (demoplayback || demorecording)
-    {
-        demo_p = readp();
-    }
+    demo_p = readp();
 }
 
 void P_FreeKeyframe(keyframe_t *keyframe)

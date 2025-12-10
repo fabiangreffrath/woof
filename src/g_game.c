@@ -41,18 +41,19 @@
 #include "doomtype.h"
 #include "f_finale.h"
 #include "g_game.h"
-#include "g_rewind.h"
 #include "g_nextweapon.h"
+#include "g_rewind.h"
 #include "g_umapinfo.h"
 #include "hu_command.h"
+#include "hu_crosshair.h"
 #include "hu_obituary.h"
+#include "i_exit.h"
 #include "i_gamepad.h"
 #include "i_gyro.h"
 #include "i_input.h"
 #include "i_printf.h"
 #include "i_richpresence.h"
 #include "i_rumble.h"
-#include "i_system.h"
 #include "i_timer.h"
 #include "i_video.h"
 #include "info.h"
@@ -71,6 +72,7 @@
 #include "p_dirty.h"
 #include "p_enemy.h"
 #include "p_inter.h"
+#include "p_keyframe.h"
 #include "p_map.h"
 #include "p_maputl.h"
 #include "p_mobj.h"
@@ -847,7 +849,7 @@ void G_BuildTiccmd(ticcmd_t* cmd)
       cmd->buttons |= BT_CHANGE;
       cmd->buttons |= newweapon<<BT_WEAPONSHIFT;
       if (!nextweapon_cmd)
-        G_NextWeaponReset();
+        G_NextWeaponReset(newweapon);
     }
 
     WS_UpdateStateTic();
@@ -1986,7 +1988,6 @@ static void G_DoWorldDone(void)
   P_ArchiveDirtyArraysCurrentLevel();
 
   idmusnum = -1;             //jff 3/17/98 allow new level's music to be loaded
-  musinfo.from_savegame = false;
   gamestate = GS_LEVEL;
   gameepisode = wminfo.nextep + 1;
   gamemap = wminfo.next+1;
@@ -2556,12 +2557,7 @@ static void DoSaveGame(char *name)
   // killough 11/98: save revenant tracer state
   saveg_write8((gametic - boom_basetic) & 255);
 
-  P_ArchivePlayers();
-  P_ArchiveWorld();
-  P_ArchiveThinkers();
-  P_ArchiveSpecials();
-  P_ArchiveRNG();    // killough 1/18/98: save RNG information
-  P_ArchiveMap();    // killough 1/22/98: save automap information
+  P_ArchiveKeyframe();
 
   saveg_write8(0xe6);   // consistancy marker
 
@@ -2775,6 +2771,14 @@ static boolean DoLoadGame(boolean do_load_autosave)
   // killough 11/98: load revenant tracer state
   boom_basetic = gametic - (int) *save_p++;
 
+  if (saveg_compat > saveg_woof1500)
+  {
+    P_MapStart();
+    P_UnArchiveKeyframe();
+    P_MapEnd();
+  }
+  else
+  {
   // dearchive all the modifications
   P_MapStart();
   P_UnArchivePlayers();
@@ -2784,6 +2788,7 @@ static boolean DoLoadGame(boolean do_load_autosave)
   P_UnArchiveRNG();    // killough 1/18/98: load RNG information
   P_UnArchiveMap();    // killough 1/22/98: load automap information
   P_MapEnd();
+  }
 
   if (saveg_read8() != 0xe6)
     I_Error ("Bad savegame");
@@ -2810,7 +2815,6 @@ static boolean DoLoadGame(boolean do_load_autosave)
           musinfo.lastmapthing = NULL;
           musinfo.tics = 0;
           musinfo.current_item = lumpnum;
-          musinfo.from_savegame = true;
           S_ChangeMusInfoMusic(lumpnum, true);
       }
   }
@@ -2940,21 +2944,24 @@ boolean clean_screenshot;
 
 void G_CleanScreenshot(void)
 {
-  int old_screenblocks;
-  boolean old_hide_weapon;
+  const int old_screenblocks = screenblocks;
+  const int old_hud_crosshair = hud_crosshair;
+  const boolean old_hide_weapon = hide_weapon;
 
   ST_ResetPalette();
 
   if (gamestate != GS_LEVEL)
       return;
 
-  old_screenblocks = screenblocks;
-  old_hide_weapon = hide_weapon;
+  hud_crosshair = 0;
   hide_weapon = true;
+
   R_SetViewSize(11);
   R_ExecuteSetViewSize();
   R_RenderPlayerView(&players[displayplayer]);
   R_SetViewSize(old_screenblocks);
+
+  hud_crosshair = old_hud_crosshair;
   hide_weapon = old_hide_weapon;
 }
 
@@ -3552,7 +3559,6 @@ void G_DeferedInitNew(skill_t skill, int episode, int map)
   d_episode = episode;
   d_map = map;
   gameaction = ga_newgame;
-  musinfo.from_savegame = false;
 
   if (demorecording)
   {
@@ -4200,7 +4206,7 @@ void G_InitNew(skill_t skill, int episode, int map)
   G_DoLoadLevel();
 }
 
-void G_PreparedInitNew(int episode, int map)
+void G_SimplifiedInitNew(int episode, int map)
 {
   gameepisode = episode;
   gamemap = map;
@@ -4904,6 +4910,14 @@ boolean G_CheckDemoStatus(void)
     }
 
   return false;
+}
+
+void G_CheckDemoRecordingStatus(void)
+{
+    if (demorecording)
+    {
+        G_CheckDemoStatus();
+    }
 }
 
 static boolean IsVanillaMap(int e, int m)
