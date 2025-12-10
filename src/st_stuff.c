@@ -2009,7 +2009,7 @@ void WI_DrawWidgets(void)
 
 void ST_BindSTSVariables(void)
 {
-  M_BindNum("hud_anchoring", &hud_anchoring, NULL, HUD_ANCHORING_WIDE,
+  M_BindNum("hud_anchoring", &hud_anchoring, NULL, HUD_ANCHORING_16_9,
             HUD_ANCHORING_WIDE, HUD_ANCHORING_21_9, ss_stat, wad_no,
             "HUD anchoring (0 = Wide; 1 = 4:3; 2 = 16:9; 3 = 21:9)");
   M_BindBool("sts_colored_numbers", &sts_colored_numbers, NULL,
