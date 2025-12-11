@@ -1777,7 +1777,7 @@ boolean ST_Responder(event_t *ev)
     }
 }
 
-boolean palette_changes = true;
+pal_change_t palette_changes = PAL_CHANGE_ON;
 
 static void DoPaletteStuff(player_t *player)
 {
@@ -1801,7 +1801,7 @@ static void DoPaletteStuff(player_t *player)
         }
     }
 
-    if (STRICTMODE(!palette_changes))
+    if (STRICTMODE(palette_changes == PAL_CHANGE_OFF))
     {
         palette = 0;
     }
@@ -1821,10 +1821,10 @@ static void DoPaletteStuff(player_t *player)
             {
                 palette = NUMREDPALS - 1;
             }
-            // [crispy] tune down a bit so the menu remains legible
-            if (menuactive || paused)
+            // tune down a bit so the menu remains legible
+            if (menuactive || paused || STRICTMODE(palette_changes == PAL_CHANGE_REDUCED))
             {
-                palette >>= 1;
+                palette /= 2;
             }
             palette += STARTREDPALS;
         }
@@ -1835,6 +1835,10 @@ static void DoPaletteStuff(player_t *player)
         if (palette >= NUMBONUSPALS)
         {
             palette = NUMBONUSPALS - 1;
+        }
+        if (STRICTMODE(palette_changes == PAL_CHANGE_REDUCED))
+        {
+            palette /= 2;
         }
         palette += STARTBONUSPALS;
     }
