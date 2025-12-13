@@ -105,7 +105,7 @@ static inline char *StrReplace(char *str, const char *from, const char *to)
     return str;
 }
 
-void HU_Obituary(mobj_t *target, mobj_t *source, method_t mod)
+void HU_Obituary(mobj_t *target, mobj_t *inflictor, mobj_t *source, method_t mod)
 {
     int i;
     char *ob = s_OB_DEFAULT, *str;
@@ -117,6 +117,12 @@ void HU_Obituary(mobj_t *target, mobj_t *source, method_t mod)
     else if (target == source)
     {
         ob = s_OB_KILLEDSELF;
+
+        if (inflictor && inflictor != target
+            && mobjinfo[inflictor->type].obituary_self)
+        {
+            ob = mobjinfo[inflictor->type].obituary_self;
+        }
     }
     else if (source)
     {
