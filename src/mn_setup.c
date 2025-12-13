@@ -392,6 +392,7 @@ enum
     str_widescreen,
     str_bobbing_pct,
     str_screen_melt,
+    str_palette_changes,
     str_invul_mode,
     str_skill,
     str_freelook
@@ -3360,6 +3361,8 @@ static const char *death_use_action_strings[] = {"default", "last save",
 
 static const char *screen_melt_strings[] = {"Off", "Melt", "Crossfade", "Fizzle"};
 
+static const char *palette_changes_strings[] = {"Off", "On", "Reduced"};
+
 static const char *invul_mode_strings[] = {"Vanilla", "MBF", "Gray"};
 
 static const char *endoom_strings[] = {"Off", "PWAD Only", "Always"};
@@ -3371,8 +3374,8 @@ static setup_menu_t gen_settings6[] = {
     {"Screen wipe effect", S_CHOICE | S_STRICT, OFF_CNTR_X, M_SPC,
      {"screen_melt"}, .strings_id = str_screen_melt},
 
-    {"Pain/Pickup/Powerup flashes", S_ONOFF | S_STRICT, OFF_CNTR_X, M_SPC,
-     {"palette_changes"}},
+    {"Pain/Pickup/Powerup flashes", S_CHOICE | S_STRICT, OFF_CNTR_X, M_SPC,
+     {"palette_changes"}, .strings_id = str_palette_changes},
 
     {"Invulnerability effect", S_CHOICE | S_STRICT, OFF_CNTR_X, M_SPC,
      {"invul_mode"}, .strings_id = str_invul_mode, .action = R_InvulMode},
@@ -5024,6 +5027,7 @@ static const char **selectstrings[] = {
     [str_widescreen] = widescreen_strings,
     [str_bobbing_pct] = bobbing_pct_strings,
     [str_screen_melt] = screen_melt_strings,
+    [str_palette_changes] = palette_changes_strings,
     [str_invul_mode] = invul_mode_strings,
     [str_skill] = skill_strings,
     [str_freelook] = free_look_strings,
