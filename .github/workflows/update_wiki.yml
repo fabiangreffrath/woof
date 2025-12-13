@@ -14,12 +14,12 @@ jobs:
       contents: write
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           path: code
 
       - name: Checkout wiki
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           repository: ${{github.repository}}.wiki
           path: wiki

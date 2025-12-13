@@ -82,7 +82,7 @@ jobs:
             ${{ matrix.config.msys-env }}-fluidsynth
             ${{ matrix.config.msys-env }}-libxmp
 
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - name: Build SDL3
         uses: libsdl-org/setup-sdl@main
@@ -103,7 +103,7 @@ jobs:
       - name: Build
         run: cmake --build build
 
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@v6
         with:
           python-version: '3.x'
 
@@ -121,7 +121,7 @@ jobs:
 
       - name: Upload Artifacts
         if: runner.os == 'Windows'
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: MSYS2-UCRT64
           path: build/*.zip
@@ -153,7 +153,7 @@ jobs:
           install-linux-dependencies: true
           version: 3-latest
 
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - name: Configure
         run: >-
@@ -183,7 +183,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          version: 19
+          version: 21
           step-summary: true
           files-changed-only: true
           style: ''  # disable clang-format checks.
