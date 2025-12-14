@@ -23,6 +23,7 @@
 #include "doomtype.h"
 #include "i_system.h"
 #include "m_fixed.h"
+#include "r_defs.h"
 #include "tables.h"
 #include "v_fmt.h"
 #include "z_zone.h"
@@ -38,7 +39,6 @@ boolean r_swirl;
 #define swirlfactor2 (FINEANGLES / 32)
 
 #define SEQUENCE     256
-#define FLATSIZE     (64 * 64)
 
 static int *offsets = NULL;
 static int *offset;

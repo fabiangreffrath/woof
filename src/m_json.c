@@ -198,6 +198,23 @@ json_t *JS_GetArrayItem(json_t *json, int index)
     return yyjson_arr_get(json, index);
 }
 
+json_arr_iter_t *JS_ArrayIterator(json_t *json)
+{
+    json_arr_iter_t *iter = malloc(sizeof(*iter));
+    yyjson_arr_iter_init(json, iter);
+    return iter;
+}
+
+json_t *JS_ArrayNext(json_arr_iter_t *iter)
+{
+    json_t *value = yyjson_arr_iter_next(iter);
+    if (!value)
+    {
+        free(iter);
+    }
+    return value;
+}
+
 boolean JS_GetBoolean(json_t *json)
 {
     return yyjson_get_bool(json);

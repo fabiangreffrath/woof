@@ -44,11 +44,6 @@ typedef struct
 
 #include "fonts/normal.h"
 
-static const txt_font_t normal_font =
-{
-    "normal", normal_font_data, 8, 16,
-};
-
 #include "fonts/codepage.h"
 
 // Time between character blinks in ms
@@ -56,11 +51,10 @@ static const txt_font_t normal_font =
 #define BLINK_PERIOD 250
 
 SDL_Window *TXT_SDLWindow = NULL;
-static SDL_Surface *screenbuffer;
 static SDL_Palette *palette;
 static unsigned char *screendata;
 static SDL_Renderer *renderer;
-static SDL_Texture *texture_upscaled;
+static SDL_Texture *texture;
 
 // Current input mode.
 static txt_input_mode_t input_mode = TXT_INPUT_NORMAL;
@@ -126,6 +120,42 @@ void TXT_PreInit(SDL_Window *preset_window, SDL_Renderer *preset_renderer)
     }
 }
 
+static void UpdateLogicalPresentation(void)
+{
+    SDL_RendererLogicalPresentation mode = SDL_LOGICAL_PRESENTATION_LETTERBOX;
+    int w, h;
+
+    SDL_GetWindowSizeInPixels(TXT_SDLWindow, &w, &h);
+
+    // Window aspect ratio less than txt aspect ratio?
+    if (w * screen_image_h < h * screen_image_w)
+    {
+        // Window width is the constraint.
+        const int border_w = w % screen_image_w;
+
+        if (border_w >= 0 && border_w <= w / 6)
+        {
+            // Borders are small enough, so use integer scaling.
+            mode = SDL_LOGICAL_PRESENTATION_INTEGER_SCALE;
+        }
+    }
+    else
+    {
+        // Window height is the constraint.
+        const int border_h = h % screen_image_h;
+
+        if (border_h >= 0 && border_h <= h / 6)
+        {
+            // Borders are small enough, so use integer scaling.
+            mode = SDL_LOGICAL_PRESENTATION_INTEGER_SCALE;
+        }
+    }
+
+    // Set width and height of the logical viewport for automatic scaling.
+    SDL_SetRenderLogicalPresentation(renderer, screen_image_w, screen_image_h,
+                                     mode);
+}
+
 int TXT_Init(void)
 {
     SDL_WindowFlags flags = 0;
@@ -145,26 +175,17 @@ int TXT_Init(void)
 
     if (TXT_SDLWindow == NULL)
     {
-        int w, h;
-
-        w = 3 * screen_image_w / 2;
-        h = 3 * screen_image_h / 2;
-
         flags |= SDL_WINDOW_RESIZABLE;
 
-        TXT_SDLWindow = SDL_CreateWindow(NULL, w, h, flags);
+        TXT_SDLWindow =
+            SDL_CreateWindow(NULL, screen_image_w, screen_image_h, flags);
         SDL_SetWindowMinimumSize(TXT_SDLWindow, screen_image_w, screen_image_h);
     }
 
     if (TXT_SDLWindow == NULL)
+    {
         return 0;
-
-    // Instead, we draw everything into an intermediate 8-bit surface
-    // the same dimensions as the screen. SDL then takes care of all the
-    // 8->32 bit (or whatever depth) color conversions for us.
-
-    screenbuffer = SDL_CreateSurface(
-        TXT_SCREEN_W * font->w, TXT_SCREEN_H * font->h, SDL_PIXELFORMAT_INDEX8);
+    }
 
     if (renderer == NULL)
     {
@@ -173,29 +194,24 @@ int TXT_Init(void)
     }
 
     if (renderer == NULL)
+    {
         return 0;
+    }
 
-    // Apply aspect ratio correction.
-    const int logical_h = screenbuffer->h * 6 / 5;
+    UpdateLogicalPresentation();
 
-    // Set width and height of the logical viewport for automatic scaling.
-    SDL_SetRenderLogicalPresentation(renderer, screenbuffer->w, logical_h,
-                                     SDL_LOGICAL_PRESENTATION_LETTERBOX);
+    texture = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_INDEX8,
+                                SDL_TEXTUREACCESS_STREAMING, screen_image_w,
+                                screen_image_h);
 
-    palette = SDL_CreateSurfacePalette(screenbuffer);
+    SDL_SetTextureScaleMode(texture, SDL_SCALEMODE_PIXELART);
+
+    palette = SDL_CreatePalette(256);
     SDL_SetPaletteColors(palette, ega_colors, 0, 16);
+    SDL_SetTexturePalette(texture, palette);
 
     screendata = malloc(TXT_SCREEN_W * TXT_SCREEN_H * 2);
     memset(screendata, 0, TXT_SCREEN_W * TXT_SCREEN_H * 2);
-
-    // Set the scaling quality for rendering the upscaled texture to "linear",
-    // which looks much softer and smoother than "nearest" but does a better
-    // job at downscaling from the upscaled texture to screen.
-
-    texture_upscaled = SDL_CreateTexture(
-        renderer, SDL_GetWindowPixelFormat(TXT_SDLWindow),
-        SDL_TEXTUREACCESS_TARGET, 2 * screenbuffer->w, 2 * logical_h);
-    SDL_SetTextureScaleMode(texture_upscaled, SDL_SCALEMODE_LINEAR);
 
     return 1;
 }
@@ -204,8 +220,8 @@ void TXT_Shutdown(void)
 {
     free(screendata);
     screendata = NULL;
-    SDL_DestroySurface(screenbuffer);
-    screenbuffer = NULL;
+    SDL_DestroyTexture(texture);
+    texture = NULL;
     SDL_QuitSubSystem(SDL_INIT_VIDEO);
 }
 
@@ -220,7 +236,7 @@ unsigned char *TXT_GetScreenData(void)
     return screendata;
 }
 
-static inline void UpdateCharacter(int x, int y)
+static inline void UpdateCharacter(unsigned char *pixels, int pitch, int x, int y)
 {
     unsigned char character;
     const uint8_t *p;
@@ -251,9 +267,7 @@ static inline void UpdateCharacter(int x, int y)
     p = &font->data[(character * font->w * font->h) / 8];
     bit = 0;
 
-    s = ((unsigned char *) screenbuffer->pixels)
-      + (y * font->h * screenbuffer->pitch)
-      + (x * font->w);
+    s = pixels + (y * font->h * pitch) + (x * font->w);
 
     for (y1=0; y1<font->h; ++y1)
     {
@@ -278,7 +292,7 @@ static inline void UpdateCharacter(int x, int y)
             }
         }
 
-        s += screenbuffer->pitch;
+        s += pitch;
     }
 }
 
@@ -298,70 +312,30 @@ static int LimitToRange(int val, int min, int max)
     }
 }
 
-static void GetDestRect(SDL_FRect *rect)
-{
-    // Set x and y to 0 due to SDL auto-centering.
-    rect->x = 0.0f;
-    rect->y = 0.0f;
-    rect->w = (float)screenbuffer->w;
-    rect->h = (float)screenbuffer->h;
-}
-
 void TXT_UpdateScreenArea(int x, int y, int w, int h)
 {
-    SDL_Texture *screentx;
-    SDL_FRect rect;
-    int x1, y1;
-    int x_end;
-    int y_end;
+    void *pixels;
+    int pitch;
+    SDL_LockTexture(texture, NULL, &pixels, &pitch);
 
-    SDL_LockSurface(screenbuffer);
-
-    x_end = LimitToRange(x + w, 0, TXT_SCREEN_W);
-    y_end = LimitToRange(y + h, 0, TXT_SCREEN_H);
+    int x_end = LimitToRange(x + w, 0, TXT_SCREEN_W);
+    int y_end = LimitToRange(y + h, 0, TXT_SCREEN_H);
     x = LimitToRange(x, 0, TXT_SCREEN_W);
     y = LimitToRange(y, 0, TXT_SCREEN_H);
 
-    for (y1=y; y1<y_end; ++y1)
+    for (int y1 = y; y1 < y_end; ++y1)
     {
-        for (x1=x; x1<x_end; ++x1)
+        for (int x1 = x; x1 < x_end; ++x1)
         {
-            UpdateCharacter(x1, y1);
+            UpdateCharacter(pixels, pitch, x1, y1);
         }
     }
 
-    SDL_UnlockSurface(screenbuffer);
-
-    // TODO: This is currently creating a new texture every time we render
-    // the screen; find a more efficient way to do it.
-    screentx = SDL_CreateTextureFromSurface(renderer, screenbuffer);
-
-    SDL_SetTextureScaleMode(screentx, texture_upscaled ? SDL_SCALEMODE_NEAREST
-                                                       : SDL_SCALEMODE_LINEAR);
+    SDL_UnlockTexture(texture);
 
     SDL_RenderClear(renderer);
-    GetDestRect(&rect);
-
-    if (texture_upscaled)
-    {
-        // Render this intermediate texture into the upscaled texture
-        // using "nearest" integer scaling.
-
-        SDL_SetRenderTarget(renderer, texture_upscaled);
-        SDL_RenderTexture(renderer, screentx, NULL, NULL);
-
-        // Finally, render this upscaled texture to screen using linear scaling.
-
-        SDL_SetRenderTarget(renderer, NULL);
-        SDL_RenderTexture(renderer, texture_upscaled, NULL, NULL);
-    }
-    else
-    {
-        SDL_RenderTexture(renderer, screentx, NULL, &rect);
-    }
-
+    SDL_RenderTexture(renderer, texture, NULL, NULL);
     SDL_RenderPresent(renderer);
-    SDL_DestroyTexture(screentx);
 }
 
 void TXT_UpdateScreen(void)
@@ -587,6 +561,13 @@ signed int TXT_GetChar(void)
             case SDL_EVENT_GAMEPAD_ADDED:
             case SDL_EVENT_GAMEPAD_REMOVED:
                 SDL_PushEvent(&ev);
+                break;
+
+            case SDL_EVENT_WINDOW_RESIZED:
+                if (ev.window.windowID == SDL_GetWindowID(TXT_SDLWindow))
+                {
+                    UpdateLogicalPresentation();
+                }
                 break;
 
             default:

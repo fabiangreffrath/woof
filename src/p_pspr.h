@@ -62,6 +62,9 @@ typedef struct pspdef_s
   fixed_t sy2;
   fixed_t oldsx2;
   fixed_t oldsy2;
+  // Fixed position, as set by the `misc#` values
+  fixed_t sxf;
+  fixed_t syf;
 } pspdef_t;
 
 extern int weapon_preferences[2][NUMWEAPONS+1];      // killough 5/2/98
@@ -71,6 +74,8 @@ extern boolean weapon_recoilpitch;
 extern boolean boom_weapon_state_injection;
 extern fixed_t bulletslope;
 extern int lastshottic;
+
+extern boolean psp_interp;
 
 int P_SwitchWeapon(struct player_s *player);
 boolean P_CheckAmmo(struct player_s *player);

@@ -13,7 +13,6 @@ set(WOOF_SOURCES
     d_main.c               d_main.h
     d_net.c
                            d_player.h
-    d_quit.c               d_quit.h
                            d_think.h
                            d_ticcmd.h
                            doomdata.h
@@ -36,6 +35,7 @@ set(WOOF_SOURCES
     hu_obituary.c          hu_obituary.h
     i_3dsound.c
     i_endoom.c             i_endoom.h
+    i_exit.c               i_exit.h
     i_flickstick.c         i_flickstick.h
     i_gamepad.c            i_gamepad.h
     i_glob.c               i_glob.h
@@ -53,6 +53,7 @@ set(WOOF_SOURCES
     i_oplmusic.c
     i_printf.c             i_printf.h
     i_region.c             i_region.h
+    i_richpresence.c       i_richpresence.h
     i_rumble.c             i_rumble.h
     i_sndfile.c            i_sndfile.h
     i_sound.c              i_sound.h
@@ -60,12 +61,15 @@ set(WOOF_SOURCES
     i_timer.c              i_timer.h
     i_video.c              i_video.h
     info.c                 info.h
+    kf_file.c
+    kf_memory.c
+    m_arena.c              m_arena.h
     m_argv.c               m_argv.h
                            m_array.h
-    m_arena.c              m_arena.h
     m_bbox.c               m_bbox.h
     m_cheat.c              m_cheat.h
     m_config.c             m_config.h
+    m_hashmap.c            m_hashmap.h
                            m_fixed.h
     m_input.c              m_input.h
     m_io.c                 m_io.h
@@ -100,13 +104,14 @@ set(WOOF_SOURCES
                            p_action.h
     p_ambient.c            p_ambient.h
     p_ceilng.c
+    p_dirty.c              p_dirty.h
     p_doors.c
     p_enemy.c              p_enemy.h
     p_extnodes.c           p_extnodes.h
     p_floor.c
     p_genlin.c
     p_inter.c              p_inter.h
-    p_keyframe.c           p_keyframe.h
+                           p_keyframe.h
     p_lights.c
     p_map.c                p_map.h
     p_maputl.c             p_maputl.h
@@ -120,6 +125,7 @@ set(WOOF_SOURCES
     p_switch.c
     p_telept.c
     p_tick.c               p_tick.h
+    p_udmf.c               p_udmf.h
     p_user.c               p_user.h
     r_bmaps.c              r_bmaps.h
     r_bsp.c                r_bsp.h
@@ -131,9 +137,11 @@ set(WOOF_SOURCES
     r_segs.c               r_segs.h
     r_sky.c                r_sky.h
     r_skydefs.c            r_skydefs.h
+                           r_srgb.h
                            r_state.h
     r_swirl.c              r_swirl.h
     r_things.c             r_things.h
+    r_tranmap.c            r_tranmap.h
     r_voxel.c              r_voxel.h
     s_musinfo.c            s_musinfo.h
     s_sndinfo.c            s_sndinfo.h
@@ -240,6 +248,10 @@ if(HAVE_LIBXMP)
     target_link_libraries(woof PRIVATE libxmp::xmp)
 endif()
 
+if(HAVE_DISCORD_RPC)
+    target_link_libraries(woof PRIVATE DiscordRPC::discord-rpc)
+endif()
+
 target_compile_definitions(woof PRIVATE
     $<IF:$<OR:$<CONFIG:Debug>,$<CONFIG:RelWithDebInfo>>,WOOF_DEBUG,WOOF_RELEASE>)
 
@@ -257,6 +269,7 @@ endif()
 # Setup tool
 set(SETUP_SOURCES
     d_iwad.c                d_iwad.h
+    i_exit.c                i_exit.h
     i_main.c
     i_printf.c              i_printf.h
     i_system.c              i_system.h

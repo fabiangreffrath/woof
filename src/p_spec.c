@@ -42,6 +42,7 @@
 #include "m_misc.h"
 #include "m_random.h"
 #include "m_swap.h"
+#include "p_dirty.h"
 #include "p_inter.h"
 #include "p_map.h"
 #include "p_maputl.h"
@@ -724,8 +725,8 @@ sector_t *P_FindModelCeilingSector(fixed_t ceildestheight, int secnum)
 int P_FindSectorFromLineTag(const line_t *line, int start)
 {
   start = start >= 0 ? sectors[start].nexttag :
-    sectors[(unsigned) line->tag % (unsigned) numsectors].firsttag;
-  while (start >= 0 && sectors[start].tag != line->tag)
+    sectors[(unsigned) line->args[0] % (unsigned) numsectors].firsttag;
+  while (start >= 0 && sectors[start].tag != line->args[0])
     start = sectors[start].nexttag;
   return start;
 }
@@ -735,8 +736,8 @@ int P_FindSectorFromLineTag(const line_t *line, int start)
 int P_FindLineFromLineTag(const line_t *line, int start)
 {
   start = start >= 0 ? lines[start].nexttag :
-    lines[(unsigned) line->tag % (unsigned) numlines].firsttag;
-  while (start >= 0 && lines[start].tag != line->tag)
+    lines[(unsigned) line->args[0] % (unsigned) numlines].firsttag;
+  while (start >= 0 && lines[start].id != line->args[0])
     start = lines[start].nexttag;
   return start;
 }
@@ -763,7 +764,7 @@ static void P_InitTagLists(void)
 
   for (i=numlines; --i>=0; )        // Proceed from last to first linedef
     {                               // so that lower linedefs appear first
-      int j = (unsigned) lines[i].tag % (unsigned) numlines; // Hash func
+      int j = (unsigned) lines[i].id % (unsigned) numlines; // Hash func
       lines[i].nexttag = lines[j].firsttag;   // Prepend linedef to chain
       lines[j].firsttag = i;
     }
@@ -948,7 +949,7 @@ int P_CheckTag(line_t *line)
 {
   // killough 11/98: compatibility option:
 
-  if (comp[comp_zerotags] || line->tag)
+  if (comp[comp_zerotags] || line->args[0])
     return 1;
 
   switch (line->special)
@@ -1147,7 +1148,7 @@ void EV_ChangeMusic(line_t *line, int side)
     S_ChangeMusInfoMusic(musinfo.items[0], true); // Always loops when defaulting
 
   if (once)
-    line->special = 0;
+    dirty_line(line)->special = 0;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -1206,7 +1207,7 @@ void P_CrossSpecialLine(line_t *line, int side, mobj_t *thing, boolean bossactio
           if (!thing->player && !bossaction)
             if ((line->special & FloorChange) || !(line->special & FloorModel))
               return;     // FloorModel is "Allow Monsters" if FloorChange is 0
-          if (!line->tag) //jff 2/27/98 all walk generalized types require tag
+          if (!line->args[0]) //jff 2/27/98 all walk generalized types require tag
             return;
           linefunc = EV_DoGenFloor;
         }
@@ -1216,7 +1217,7 @@ void P_CrossSpecialLine(line_t *line, int side, mobj_t *thing, boolean bossactio
             if (!thing->player && !bossaction)
               if ((line->special & CeilingChange) || !(line->special & CeilingModel))
                 return;     // CeilingModel is "Allow Monsters" if CeilingChange is 0
-            if (!line->tag) //jff 2/27/98 all walk generalized types require tag
+            if (!line->args[0]) //jff 2/27/98 all walk generalized types require tag
               return;
             linefunc = EV_DoGenCeiling;
           }
@@ -1230,7 +1231,7 @@ void P_CrossSpecialLine(line_t *line, int side, mobj_t *thing, boolean bossactio
                   if (line->flags & ML_SECRET) // they can't open secret doors either
                     return;
                 }
-              if (!line->tag) //3/2/98 move outside the monster check
+              if (!line->args[0]) //3/2/98 move outside the monster check
                 return;
               linefunc = EV_DoGenDoor;
             }
@@ -1254,7 +1255,7 @@ void P_CrossSpecialLine(line_t *line, int side, mobj_t *thing, boolean bossactio
                   if (!thing->player && !bossaction)
                     if (!(line->special & LiftMonster))
                       return; // monsters disallowed
-                  if (!line->tag) //jff 2/27/98 all walk generalized types require tag
+                  if (!line->args[0]) //jff 2/27/98 all walk generalized types require tag
                     return;
                   linefunc = EV_DoGenLift;
                 }
@@ -1264,7 +1265,7 @@ void P_CrossSpecialLine(line_t *line, int side, mobj_t *thing, boolean bossactio
                     if (!thing->player && !bossaction)
                       if (!(line->special & StairMonster))
                         return; // monsters disallowed
-                    if (!line->tag) //jff 2/27/98 all walk generalized types require tag
+                    if (!line->args[0]) //jff 2/27/98 all walk generalized types require tag
                       return;
                     linefunc = EV_DoGenStairs;
                   }
@@ -1276,7 +1277,7 @@ void P_CrossSpecialLine(line_t *line, int side, mobj_t *thing, boolean bossactio
                     if (!thing->player && !bossaction)
                       if (!(line->special & StairMonster))
                         return; // monsters disallowed
-                    if (!line->tag) //jff 2/27/98 all walk generalized types require tag
+                    if (!line->args[0]) //jff 2/27/98 all walk generalized types require tag
                       return;
                     linefunc = EV_DoGenCrusher;
                   }
@@ -1286,7 +1287,7 @@ void P_CrossSpecialLine(line_t *line, int side, mobj_t *thing, boolean bossactio
           {
           case WalkOnce:
             if (linefunc(line))
-              line->special = 0;    // clear special if a walk once type
+              dirty_line(line)->special = 0;    // clear special if a walk once type
             return;
           case WalkMany:
             linefunc(line);
@@ -1342,122 +1343,122 @@ void P_CrossSpecialLine(line_t *line, int side, mobj_t *thing, boolean bossactio
     case 2:
       // Open Door
       if (EV_DoDoor(line,doorOpen) || demo_compatibility)
-        line->special = 0;
+        dirty_line(line)->special = 0;
       break;
 
     case 3:
       // Close Door
       if (EV_DoDoor(line,doorClose) || demo_compatibility)
-        line->special = 0;
+        dirty_line(line)->special = 0;
       break;
 
     case 4:
       // Raise Door
       if (EV_DoDoor(line,doorNormal) || demo_compatibility)
-        line->special = 0;
+        dirty_line(line)->special = 0;
       break;
 
     case 5:
       // Raise Floor
       if (EV_DoFloor(line,raiseFloor) || demo_compatibility)
-        line->special = 0;
+        dirty_line(line)->special = 0;
       break;
 
     case 6:
       // Fast Ceiling Crush & Raise
       if (EV_DoCeiling(line,fastCrushAndRaise) || demo_compatibility)
-        line->special = 0;
+        dirty_line(line)->special = 0;
       break;
 
     case 8:
       // Build Stairs
       if (EV_BuildStairs(line,build8) || demo_compatibility)
-        line->special = 0;
+        dirty_line(line)->special = 0;
       break;
 
     case 10:
       // PlatDownWaitUp
       if (EV_DoPlat(line,downWaitUpStay,0) || demo_compatibility)
-        line->special = 0;
+        dirty_line(line)->special = 0;
       break;
 
     case 12:
       // Light Turn On - brightest near
       if (EV_LightTurnOn(line,0) || demo_compatibility)
-        line->special = 0;
+        dirty_line(line)->special = 0;
       break;
 
     case 13:
       // Light Turn On 255
       if (EV_LightTurnOn(line,255) || demo_compatibility)
-        line->special = 0;
+        dirty_line(line)->special = 0;
       break;
 
     case 16:
       // Close Door 30
       if (EV_DoDoor(line,close30ThenOpen) || demo_compatibility)
-        line->special = 0;
+        dirty_line(line)->special = 0;
       break;
 
     case 17:
       // Start Light Strobing
       if (EV_StartLightStrobing(line) || demo_compatibility)
-        line->special = 0;
+        dirty_line(line)->special = 0;
       break;
 
     case 19:
       // Lower Floor
       if (EV_DoFloor(line,lowerFloor) || demo_compatibility)
-        line->special = 0;
+        dirty_line(line)->special = 0;
       break;
 
     case 22:
       // Raise floor to nearest height and change texture
       if (EV_DoPlat(line,raiseToNearestAndChange,0) || demo_compatibility)
-        line->special = 0;
+        dirty_line(line)->special = 0;
       break;
 
     case 25:
       // Ceiling Crush and Raise
       if (EV_DoCeiling(line,crushAndRaise) || demo_compatibility)
-        line->special = 0;
+        dirty_line(line)->special = 0;
       break;
 
     case 30:
       // Raise floor to shortest texture height
       //  on either side of lines.
       if (EV_DoFloor(line,raiseToTexture) || demo_compatibility)
-        line->special = 0;
+        dirty_line(line)->special = 0;
       break;
 
     case 35:
       // Lights Very Dark
       if (EV_LightTurnOn(line,35) || demo_compatibility)
-        line->special = 0;
+        dirty_line(line)->special = 0;
       break;
 
     case 36:
       // Lower Floor (TURBO)
       if (EV_DoFloor(line,turboLower) || demo_compatibility)
-        line->special = 0;
+        dirty_line(line)->special = 0;
       break;
 
     case 37:
       // LowerAndChange
       if (EV_DoFloor(line,lowerAndChange) || demo_compatibility)
-        line->special = 0;
+        dirty_line(line)->special = 0;
       break;
 
     case 38:
       // Lower Floor To Lowest
       if (EV_DoFloor(line, lowerFloorToLowest) || demo_compatibility)
-        line->special = 0;
+        dirty_line(line)->special = 0;
       break;
 
     case 39:
       // TELEPORT! //jff 02/09/98 fix using up with wrong side crossing
       if (EV_Teleport(line, side, thing) || demo_compatibility)
-        line->special = 0;
+        dirty_line(line)->special = 0;
       break;
 
     case 40:
@@ -1466,17 +1467,17 @@ void P_CrossSpecialLine(line_t *line, int side, mobj_t *thing, boolean bossactio
         {
           EV_DoCeiling( line, raiseToHighest );
           EV_DoFloor( line, lowerFloorToLowest ); //jff 02/12/98 doesn't work
-          line->special = 0;
+          dirty_line(line)->special = 0;
         }
       else
         if (EV_DoCeiling(line, raiseToHighest))
-          line->special = 0;
+          dirty_line(line)->special = 0;
       break;
 
     case 44:
       // Ceiling Crush
       if (EV_DoCeiling(line, lowerAndCrush) || demo_compatibility)
-        line->special = 0;
+        dirty_line(line)->special = 0;
       break;
 
     // W1 - Exit to the next map and reset inventory.
@@ -1497,79 +1498,79 @@ void P_CrossSpecialLine(line_t *line, int side, mobj_t *thing, boolean bossactio
     case 53:
       // Perpetual Platform Raise
       if (EV_DoPlat(line,perpetualRaise,0) || demo_compatibility)
-        line->special = 0;
+        dirty_line(line)->special = 0;
       break;
 
     case 54:
       // Platform Stop
       if (EV_StopPlat(line) || demo_compatibility)
-        line->special = 0;
+        dirty_line(line)->special = 0;
       break;
 
     case 56:
       // Raise Floor Crush
       if (EV_DoFloor(line,raiseFloorCrush) || demo_compatibility)
-        line->special = 0;
+        dirty_line(line)->special = 0;
       break;
 
     case 57:
       // Ceiling Crush Stop
       if (EV_CeilingCrushStop(line) || demo_compatibility)
-        line->special = 0;
+        dirty_line(line)->special = 0;
       break;
 
     case 58:
       // Raise Floor 24
       if (EV_DoFloor(line,raiseFloor24) || demo_compatibility)
-        line->special = 0;
+        dirty_line(line)->special = 0;
       break;
 
     case 59:
       // Raise Floor 24 And Change
       if (EV_DoFloor(line,raiseFloor24AndChange) || demo_compatibility)
-        line->special = 0;
+        dirty_line(line)->special = 0;
       break;
 
     case 100:
       // Build Stairs Turbo 16
       if (EV_BuildStairs(line,turbo16) || demo_compatibility)
-        line->special = 0;
+        dirty_line(line)->special = 0;
       break;
 
     case 104:
       // Turn lights off in sector(tag)
       if (EV_TurnTagLightsOff(line) || demo_compatibility)
-        line->special = 0;
+        dirty_line(line)->special = 0;
       break;
 
     case 108:
       // Blazing Door Raise (faster than TURBO!)
       if (EV_DoDoor(line,blazeRaise) || demo_compatibility)
-        line->special = 0;
+        dirty_line(line)->special = 0;
       break;
 
     case 109:
       // Blazing Door Open (faster than TURBO!)
       if (EV_DoDoor (line,blazeOpen) || demo_compatibility)
-        line->special = 0;
+        dirty_line(line)->special = 0;
       break;
 
     case 110:
       // Blazing Door Close (faster than TURBO!)
       if (EV_DoDoor (line,blazeClose) || demo_compatibility)
-        line->special = 0;
+        dirty_line(line)->special = 0;
       break;
 
     case 119:
       // Raise floor to nearest surr. floor
       if (EV_DoFloor(line,raiseFloorToNearest) || demo_compatibility)
-        line->special = 0;
+        dirty_line(line)->special = 0;
       break;
 
     case 121:
       // Blazing PlatDownWaitUpStay
       if (EV_DoPlat(line,blazeDWUS,0) || demo_compatibility)
-        line->special = 0;
+        dirty_line(line)->special = 0;
       break;
 
     // W1 - Exit to the secret map and reset inventory.
@@ -1591,19 +1592,19 @@ void P_CrossSpecialLine(line_t *line, int side, mobj_t *thing, boolean bossactio
       // TELEPORT MonsterONLY
       if (!thing->player &&
           (EV_Teleport(line, side, thing) || demo_compatibility))
-        line->special = 0;
+        dirty_line(line)->special = 0;
       break;
 
     case 130:
       // Raise Floor Turbo
       if (EV_DoFloor(line,raiseFloorTurbo) || demo_compatibility)
-        line->special = 0;
+        dirty_line(line)->special = 0;
       break;
 
     case 141:
       // Silent Ceiling Crush & Raise
       if (EV_DoCeiling(line,silentCrushAndRaise) || demo_compatibility)
-        line->special = 0;
+        dirty_line(line)->special = 0;
       break;
 
       // Regular walk many retriggerable
@@ -1779,7 +1780,7 @@ void P_CrossSpecialLine(line_t *line, int side, mobj_t *thing, boolean bossactio
 
 
     case 2076:
-      line->special = 0;
+      dirty_line(line)->special = 0;
       // fallthrough
 
     case 2077:
@@ -1813,55 +1814,55 @@ void P_CrossSpecialLine(line_t *line, int side, mobj_t *thing, boolean bossactio
             // Raise Floor 512
             // 142 W1  EV_DoFloor(raiseFloor512)
             if (EV_DoFloor(line,raiseFloor512))
-              line->special = 0;
+              dirty_line(line)->special = 0;
             break;
 
           case 143:
             // Raise Floor 24 and change
             // 143 W1  EV_DoPlat(raiseAndChange,24)
             if (EV_DoPlat(line,raiseAndChange,24))
-              line->special = 0;
+              dirty_line(line)->special = 0;
             break;
 
           case 144:
             // Raise Floor 32 and change
             // 144 W1  EV_DoPlat(raiseAndChange,32)
             if (EV_DoPlat(line,raiseAndChange,32))
-              line->special = 0;
+              dirty_line(line)->special = 0;
             break;
 
           case 145:
             // Lower Ceiling to Floor
             // 145 W1  EV_DoCeiling(lowerToFloor)
             if (EV_DoCeiling( line, lowerToFloor ))
-              line->special = 0;
+              dirty_line(line)->special = 0;
             break;
 
           case 146:
             // Lower Pillar, Raise Donut
             // 146 W1  EV_DoDonut()
             if (EV_DoDonut(line))
-              line->special = 0;
+              dirty_line(line)->special = 0;
             break;
 
           case 199:
             // Lower ceiling to lowest surrounding ceiling
             // 199 W1 EV_DoCeiling(lowerToLowest)
             if (EV_DoCeiling(line,lowerToLowest))
-              line->special = 0;
+              dirty_line(line)->special = 0;
             break;
 
           case 200:
             // Lower ceiling to highest surrounding floor
             // 200 W1 EV_DoCeiling(lowerToMaxFloor)
             if (EV_DoCeiling(line,lowerToMaxFloor))
-              line->special = 0;
+              dirty_line(line)->special = 0;
             break;
 
           case 207:
             // killough 2/16/98: W1 silent teleporter (normal kind)
             if (EV_SilentTeleport(line, side, thing))
-              line->special = 0;
+              dirty_line(line)->special = 0;
             break;
 
             //jff 3/16/98 renumber 215->153
@@ -1869,70 +1870,70 @@ void P_CrossSpecialLine(line_t *line, int side, mobj_t *thing, boolean bossactio
             // Texture/Type Change Only (Trig)
             // 153 W1 Change Texture/Type Only
             if (EV_DoChange(line,trigChangeOnly))
-              line->special = 0;
+              dirty_line(line)->special = 0;
             break;
 
           case 239: //jff 3/15/98 create texture change no motion type
             // Texture/Type Change Only (Numeric)
             // 239 W1 Change Texture/Type Only
             if (EV_DoChange(line,numChangeOnly))
-              line->special = 0;
+              dirty_line(line)->special = 0;
             break;
 
           case 219:
             // Lower floor to next lower neighbor
             // 219 W1 Lower Floor Next Lower Neighbor
             if (EV_DoFloor(line,lowerFloorToNearest))
-              line->special = 0;
+              dirty_line(line)->special = 0;
             break;
 
           case 227:
             // Raise elevator next floor
             // 227 W1 Raise Elevator next floor
             if (EV_DoElevator(line,elevateUp))
-              line->special = 0;
+              dirty_line(line)->special = 0;
             break;
 
           case 231:
             // Lower elevator next floor
             // 231 W1 Lower Elevator next floor
             if (EV_DoElevator(line,elevateDown))
-              line->special = 0;
+              dirty_line(line)->special = 0;
             break;
 
           case 235:
             // Elevator to current floor
             // 235 W1 Elevator to current floor
             if (EV_DoElevator(line,elevateCurrent))
-              line->special = 0;
+              dirty_line(line)->special = 0;
             break;
 
           case 243: //jff 3/6/98 make fit within DCK's 256 linedef types
             // killough 2/16/98: W1 silent teleporter (linedef-linedef kind)
             if (EV_SilentLineTeleport(line, side, thing, false))
-              line->special = 0;
+              dirty_line(line)->special = 0;
             break;
 
           case 262: //jff 4/14/98 add silent line-line reversed
             if (EV_SilentLineTeleport(line, side, thing, true))
-              line->special = 0;
+              dirty_line(line)->special = 0;
             break;
 
           case 264: //jff 4/14/98 add monster-only silent line-line reversed
             if (!thing->player &&
                 EV_SilentLineTeleport(line, side, thing, true))
-              line->special = 0;
+              dirty_line(line)->special = 0;
             break;
 
           case 266: //jff 4/14/98 add monster-only silent line-line
             if (!thing->player &&
                 EV_SilentLineTeleport(line, side, thing, false))
-              line->special = 0;
+              dirty_line(line)->special = 0;
             break;
 
           case 268: //jff 4/14/98 add monster-only silent
             if (!thing->player && EV_SilentTeleport(line, side, thing))
-              line->special = 0;
+              dirty_line(line)->special = 0;
             break;
 
             //jff 1/29/98 end of added W1 linedef types
@@ -2127,7 +2128,7 @@ void P_ShootSpecialLine(mobj_t *thing, line_t *line, int side)
           if (!thing->player)
             if ((line->special & FloorChange) || !(line->special & FloorModel))
               return;   // FloorModel is "Allow Monsters" if FloorChange is 0
-          if (!line->tag) //jff 2/27/98 all gun generalized types require tag
+          if (!line->args[0]) //jff 2/27/98 all gun generalized types require tag
             return;
 
           linefunc = EV_DoGenFloor;
@@ -2138,7 +2139,7 @@ void P_ShootSpecialLine(mobj_t *thing, line_t *line, int side)
             if (!thing->player)
               if ((line->special & CeilingChange) || !(line->special & CeilingModel))
                 return;   // CeilingModel is "Allow Monsters" if CeilingChange is 0
-            if (!line->tag) //jff 2/27/98 all gun generalized types require tag
+            if (!line->args[0]) //jff 2/27/98 all gun generalized types require tag
               return;
             linefunc = EV_DoGenCeiling;
           }
@@ -2152,7 +2153,7 @@ void P_ShootSpecialLine(mobj_t *thing, line_t *line, int side)
                   if (line->flags & ML_SECRET) // they can't open secret doors either
                     return;
                 }
-              if (!line->tag) //jff 3/2/98 all gun generalized types require tag
+              if (!line->args[0]) //jff 3/2/98 all gun generalized types require tag
                 return;
               linefunc = EV_DoGenDoor;
             }
@@ -2168,7 +2169,7 @@ void P_ShootSpecialLine(mobj_t *thing, line_t *line, int side)
                   }
                 else
                   return;
-                if (!line->tag) //jff 2/27/98 all gun generalized types require tag
+                if (!line->args[0]) //jff 2/27/98 all gun generalized types require tag
                   return;
 
                 linefunc = EV_DoGenLockedDoor;
@@ -2187,7 +2188,7 @@ void P_ShootSpecialLine(mobj_t *thing, line_t *line, int side)
                     if (!thing->player)
                       if (!(line->special & StairMonster))
                         return; // monsters disallowed
-                    if (!line->tag) //jff 2/27/98 all gun generalized types require tag
+                    if (!line->args[0]) //jff 2/27/98 all gun generalized types require tag
                       return;
                     linefunc = EV_DoGenStairs;
                   }
@@ -2197,7 +2198,7 @@ void P_ShootSpecialLine(mobj_t *thing, line_t *line, int side)
                       if (!thing->player)
                         if (!(line->special & StairMonster))
                           return; // monsters disallowed
-                      if (!line->tag) //jff 2/27/98 all gun generalized types require tag
+                      if (!line->args[0]) //jff 2/27/98 all gun generalized types require tag
                         return;
                       linefunc = EV_DoGenCrusher;
                     }
@@ -2263,7 +2264,7 @@ void P_ShootSpecialLine(mobj_t *thing, line_t *line, int side)
       break;
 
     case 2080:
-      line->special = 0;
+      dirty_line(line)->special = 0;
       // fallthrough
 
     case 2081:
@@ -2589,17 +2590,17 @@ void P_UpdateSpecials (void)
             switch(buttonlist[i].where)
               {
               case top:
-                sides[buttonlist[i].line->sidenum[0]].toptexture =
+                dirty_side(&sides[buttonlist[i].line->sidenum[0]])->toptexture =
                   buttonlist[i].btexture;
                 break;
 
               case middle:
-                sides[buttonlist[i].line->sidenum[0]].midtexture =
+                dirty_side(&sides[buttonlist[i].line->sidenum[0]])->midtexture =
                   buttonlist[i].btexture;
                 break;
 
               case bottom:
-                sides[buttonlist[i].line->sidenum[0]].bottomtexture =
+                dirty_side(&sides[buttonlist[i].line->sidenum[0]])->bottomtexture =
                   buttonlist[i].btexture;
                 break;
               }
@@ -2970,7 +2971,7 @@ static void T_Scroll(scroll_t *s)
           side->oldrowoffset = side->rowoffset;
           side->oldgametic = gametic;
         }
-        side->textureoffset += dx;
+        dirty_side(side)->textureoffset += dx;
         side->rowoffset += dy;
         break;
 
@@ -3026,12 +3027,156 @@ static void T_Scroll(scroll_t *s)
 
     case sc_carry_ceiling:       // to be added later
       break;
+
+    // UDMF extensions
+    case sc_side_top:
+      side = sides + s->affectee;
+      dirty_side(side)->offsetx_top += dx;
+      side->offsety_top += dy;
+      break;
+
+    case sc_side_mid:
+      side = sides + s->affectee;
+      dirty_side(side)->offsetx_mid += dx;
+      side->offsety_mid += dy;
+      break;
+
+    case sc_side_bottom:
+      side = sides + s->affectee;
+      dirty_side(side)->offsetx_bottom += dx;
+      side->offsety_bottom += dy;
+      break;
     }
 }
 
 void T_ScrollAdapter(mobj_t *mobj)
 {
     T_Scroll((scroll_t *)mobj);
+}
+
+static void T_ParamScrollFloor(scroll_t *s)
+{
+  if (!(s->dx | s->dy))
+    return;
+
+  sector_t* sec = sectors + s->affectee;
+
+  if (s->type & SCROLL_TEXTURE)
+  {
+    if (sec->old_floor_offs_gametic != gametic)
+    {
+      sec->old_floor_xoffs = sec->floor_xoffs;
+      sec->old_floor_yoffs = sec->floor_yoffs;
+      sec->old_floor_offs_gametic = gametic;
+    }
+    sec->floor_xoffs -= s->dx;
+    sec->floor_yoffs += s->dy;
+  }
+
+  if (s->type & (SCROLL_STATIC | SCROLL_PLAYER | SCROLL_MONSTER))
+  {
+    fixed_t height = sec->floorheight;
+    fixed_t waterheight = (sec->heightsec != -1 && sectors[sec->heightsec].floorheight > height)
+                        ? sectors[sec->heightsec].floorheight
+                        : INT_MIN;
+
+    for (msecnode_t* node = sec->touching_thinglist; node; node = node->m_snext)
+    {
+      mobj_t* thing = node->m_thing;
+
+      // Move objects only if on floor or underwater, non-floating, and clipped
+      if (!(thing->flags & MF_NOCLIP) && (!(thing->flags & MF_NOGRAVITY || thing->z > height) || thing->z < waterheight))
+      {
+        boolean scroll_it = false;
+
+        if (thing->type == MT_SKULL || thing->flags & MF_COUNTKILL)
+        {
+          if (s->type & SCROLL_MONSTER) scroll_it = true;
+        }
+        else if (thing->player)
+        {
+          if (s->type & SCROLL_PLAYER) scroll_it = true;
+        }
+        else
+        {
+          if (s->type & SCROLL_STATIC) scroll_it = true;
+        }
+
+        if (scroll_it)
+        {
+          thing->momx += s->dx * 3 / 32;
+          thing->momy += s->dy * 3 / 32;
+          thing->intflags |= MIF_SCROLLING;
+        }
+      }
+    }
+  }
+}
+
+static void T_ParamScrollCeiling(scroll_t *s)
+{
+  if (!(s->dx | s->dy))
+    return;
+
+  sector_t* sec = sectors + s->affectee;
+
+  if (s->type & SCROLL_TEXTURE)
+  {
+    if (sec->old_ceil_offs_gametic != gametic)
+    {
+        sec->old_ceiling_xoffs = sec->ceiling_xoffs;
+        sec->old_ceiling_yoffs = sec->ceiling_yoffs;
+        sec->old_ceil_offs_gametic = gametic;
+    }
+    sec->ceiling_xoffs -= s->dx;
+    sec->ceiling_yoffs += s->dy;
+  }
+
+  if (s->type & (SCROLL_STATIC | SCROLL_PLAYER | SCROLL_MONSTER))
+  {
+    for (msecnode_t* node = sec->touching_thinglist; node; node = node->m_snext)
+    {
+      mobj_t* thing = node->m_thing;
+
+      if (!(thing->flags & MF_NOCLIP)
+          && thing->flags & MF_SPAWNCEILING
+          && thing->flags & MF_NOGRAVITY
+          && (thing->z + thing->height) == sec->ceilingheight)
+      {
+        boolean scroll_it = false;
+
+        if (thing->type == MT_SKULL || thing->flags & MF_COUNTKILL)
+        {
+          if (s->type & SCROLL_MONSTER) scroll_it = true;
+        }
+        else if (thing->player)
+        {
+          if (s->type & SCROLL_PLAYER) scroll_it = true;
+        }
+        else
+        {
+          if (s->type & SCROLL_STATIC) scroll_it = true;
+        }
+
+        if (scroll_it)
+        {
+          thing->momx += s->dx * 3 / 32;
+          thing->momy += s->dy * 3 / 32;
+          thing->intflags |= MIF_SCROLLING;
+        }
+      }
+    }
+  }
+}
+
+void T_ParamScrollFloorAdapter(mobj_t *mobj)
+{
+    T_ParamScrollFloor((scroll_t *)mobj);
+}
+
+void T_ParamScrollCeilingAdapter(mobj_t *mobj)
+{
+    T_ParamScrollCeiling((scroll_t *)mobj);
 }
 
 //
@@ -3052,10 +3197,10 @@ void T_ScrollAdapter(mobj_t *mobj)
 // accel: non-zero if this is an accelerative effect
 //
 
-static void Add_Scroller(int type, fixed_t dx, fixed_t dy,
-                         int control, int affectee, int accel)
+void Add_Scroller(scroller_t type, fixed_t dx, fixed_t dy, int32_t control,
+                  int32_t affectee, int32_t accel)
 {
-  scroll_t *s = arena_alloc(thinkers_arena, 1, scroll_t);
+  scroll_t *s = arena_alloc(thinkers_arena, scroll_t);
   s->thinker.function.p1 = T_ScrollAdapter;
   s->type = type;
   s->dx = dx;
@@ -3066,6 +3211,23 @@ static void Add_Scroller(int type, fixed_t dx, fixed_t dy,
     s->last_height =
       sectors[control].floorheight + sectors[control].ceilingheight;
   s->affectee = affectee;
+  P_AddThinker(&s->thinker);
+}
+
+void Add_ParamSectorScroller(scroller_t type, int32_t affectee,
+                             boolean isCeiling, fixed_t dx, fixed_t dy)
+{
+  scroll_t *s = arena_alloc(thinkers_arena, scroll_t);
+  s->thinker.function.p1 = isCeiling ? T_ParamScrollCeilingAdapter
+                                     : T_ParamScrollFloorAdapter;
+  s->type = type;
+  s->dx = dx;
+  s->dy = dy;
+  s->affectee = affectee;
+
+  s->control = -1;
+  s->accel = s->vdx = s->vdy = s->last_height = 0;
+
   P_AddThinker(&s->thinker);
 }
 
@@ -3088,8 +3250,18 @@ static void Add_WallScroller(int64_t dx, int64_t dy, const line_t *l,
   d = FixedDiv(x, finesine[(tantoangle[FixedDiv(y,x) >> DBITS] + ANG90)
                           >> ANGLETOFINESHIFT]);
 
-  x = (fixed_t)((dy * -l->dy - dx * l->dx) / d);  // killough 10/98:
-  y = (fixed_t)((dy * l->dx - dx * l->dy) / d);   // Use long long arithmetic
+  // CPhipps - Import scroller calc overflow fix, compatibility optioned
+  if (demo_version >= DV_MBF)
+  {
+    x = (fixed_t) (((int64_t) dy * -l->dy - (int64_t) dx * l->dx) / d); // killough 10/98:
+    y = (fixed_t) (((int64_t) dy * l->dx - (int64_t) dx * l->dy) / d);  // Use long long arithmetic
+  }
+  else
+  {
+    x = -FixedDiv(FixedMul(dy, l->dy) + FixedMul(dx, l->dx), d);
+    y = -FixedDiv(FixedMul(dx, l->dy) - FixedMul(dy, l->dx), d);
+  }
+
   Add_Scroller(sc_side, x, y, control, *l->sidenum, accel);
 }
 
@@ -3099,6 +3271,23 @@ static void Add_WallScroller(int64_t dx, int64_t dy, const line_t *l,
 // Factor to scale scrolling effect into mobj-carrying properties = 3/32.
 // (This is so scrolling floors and objects on them can move at same speed.)
 #define CARRYFACTOR ((fixed_t)(FRACUNIT*.09375))
+
+// Eternity scrollers are weird...
+#define EE_SCROLLFACTOR 10
+
+void Add_EESectorScroller(int32_t type, int32_t affectee, boolean isCeiling, double x, double y)
+{
+  fixed_t dx = DoubleToFixed(x * EE_SCROLLFACTOR) >> SCROLL_SHIFT;
+  fixed_t dy = DoubleToFixed(y * EE_SCROLLFACTOR) >> SCROLL_SHIFT;
+  if (type & SCROLL_TEXTURE)
+    Add_ScrollerStatic(isCeiling ? sc_ceiling : sc_floor, affectee, dx, dy);
+  if (type & SCROLL_CARRY)
+  {
+    dx = FixedMul(dx, CARRYFACTOR);
+    dy = FixedMul(dy, CARRYFACTOR);
+    Add_ScrollerStatic(isCeiling ? sc_carry_ceiling : sc_carry, affectee, dx, dy);
+  }
+}
 
 // Initialize the scrollers
 static void P_SpawnScrollers(void)
@@ -3211,7 +3400,7 @@ static void P_SpawnScrollers(void)
         // according to the target sector's scroll values divided by 8
         case 2084:
         case 1024:
-          if (l->tag == 0)
+          if (l->args[0] == 0)
             I_Error("Line %d is missing a tag!", i);
 
           s = lines[i].sidenum[0];
@@ -3263,7 +3452,7 @@ static void P_SpawnScrollers(void)
 
 static void Add_Friction(int friction, int movefactor, int affectee)
 {
-    friction_t *f = arena_alloc(thinkers_arena, 1, friction_t);
+    friction_t *f = arena_alloc(thinkers_arena, friction_t);
 
     f->thinker.function.p1 = T_FrictionAdapter;
     f->friction = friction;
@@ -3386,13 +3575,6 @@ static void P_SpawnFriction(void)
   int i;
   line_t *l = lines;
 
-  // killough 8/28/98: initialize all sectors to normal friction first
-  for (i = 0; i < numsectors; i++)
-    {
-      sectors[i].friction = ORIG_FRICTION;
-      sectors[i].movefactor = ORIG_FRICTION_FACTOR;
-    }
-
   for (i = 0 ; i < numlines ; i++,l++)
     if (l->special == 223)
       {
@@ -3499,7 +3681,7 @@ static void P_SpawnFriction(void)
 static void Add_Pusher(int type, int x_mag, int y_mag,
                        mobj_t *source, int affectee)
 {
-  pusher_t *p = arena_alloc(thinkers_arena, 1, pusher_t);
+  pusher_t *p = arena_alloc(thinkers_arena, pusher_t);
 
   p->thinker.function.p1 = T_PusherAdapter;
   p->source = source;

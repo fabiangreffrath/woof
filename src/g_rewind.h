@@ -14,9 +14,13 @@
 #ifndef G_REWIND_H
 #define G_REWIND_H
 
+#include "doomtype.h"
+
 void G_SaveAutoKeyframe(void);
+
 void G_LoadAutoKeyframe(void);
-void G_ResetRewind(void);
+
+void G_ResetRewind(boolean force);
 
 void G_BindRewindVariables(void);
 

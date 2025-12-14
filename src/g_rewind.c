@@ -11,12 +11,14 @@
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 // GNU General Public License for more details.
 
-#include "p_keyframe.h"
-
+#include "d_event.h"
+#include "doomstat.h"
 #include "doomtype.h"
 #include "g_game.h"
 #include "i_timer.h"
 #include "m_config.h"
+#include "p_dirty.h"
+#include "p_keyframe.h"
 
 #include <stdlib.h>
 #include <string.h>
@@ -27,7 +29,7 @@ static int rewind_timeout;
 static boolean rewind_auto;
 
 static boolean disable_rewind;
-static int current_tic;
+static int interval_tics;
 
 typedef struct elem_s
 {
@@ -117,6 +119,105 @@ static keyframe_t *Pop(void)
     return keyframe;
 }
 
+void G_SaveAutoKeyframe(void)
+{
+    if (!rewind_auto)
+    {
+        return;
+    }
+
+    interval_tics = TICRATE * rewind_interval / 1000;
+
+    int current_tic = gametic - true_basetic;
+
+    if (!disable_rewind && current_tic % interval_tics == 0)
+    {
+        int time = I_GetTimeMS();
+        
+        Push(P_SaveKeyframe(current_tic));
+
+        if (rewind_timeout)
+        {
+            disable_rewind = (I_GetTimeMS() - time > rewind_timeout);
+        }
+        if (disable_rewind)
+        {
+            displaymsg("Slow key framing: rewind disabled");
+        }
+    }
+}
+
+void G_LoadAutoKeyframe(void)
+{
+    gameaction = ga_nothing;
+
+    if (IsEmpty())
+    {
+        return;
+    }
+
+    int current_tic = gametic - true_basetic;
+
+    // Search for the closest keyframe by interval.
+    elem_t* elem = queue.top;
+    while (elem)
+    {
+        int tic = elem->keyframe->tic;
+        if (tic > 0 && current_tic - tic < interval_tics)
+        {
+            elem = elem->next;
+        }
+        else
+        {
+            break;
+        }
+    }
+
+    if (!elem)
+    {
+        // No suitable keyframe found (all are too recent).
+        return;
+    }
+
+    // Delete from queue skipped keyframes.
+    while (queue.top != elem)
+    {
+        keyframe_t* skipped = Pop();
+        if (skipped)
+        {
+            P_FreeKeyframe(skipped);
+        }
+    }
+
+    keyframe_t* keyframe = Pop();
+    if (keyframe)
+    {
+        if (keyframe->episode != gameepisode || keyframe->map != gamemap)
+        {
+            G_SimplifiedInitNew(keyframe->episode, keyframe->map);
+            P_UnArchiveDirtyArrays(keyframe->episode, keyframe->map);
+        }
+        P_LoadKeyframe(keyframe);
+        displaymsg("Restored key frame");
+
+        if (IsEmpty()) // Don't delete the first keyframe.
+        {
+            Push(keyframe);
+        }
+        else
+        {
+            P_FreeKeyframe(keyframe);
+        }
+
+        G_ClearInput();
+        if (!freelook)
+        {
+            players[consoleplayer].pitch = 0;
+        }
+        gamestate = GS_LEVEL;
+    }
+}
+
 static void FreeKeyframeQueue(void)
 {
     elem_t* current = queue.top;
@@ -130,73 +231,16 @@ static void FreeKeyframeQueue(void)
     memset(&queue, 0, sizeof(queue));
 }
 
-void G_SaveAutoKeyframe(void)
+void G_ResetRewind(boolean force)
 {
-    if (!rewind_auto)
+    if (disable_rewind)
     {
-        return;
+        disable_rewind = false;
     }
-
-    int interval_tics = TICRATE * rewind_interval / 1000;
-
-    if (!disable_rewind && current_tic % interval_tics == 0)
+    if (force)
     {
-        int time = I_GetTimeMS();
-        
-        Push(P_SaveKeyframe(current_tic));
-
-        disable_rewind = (I_GetTimeMS() - time > rewind_timeout);
-        if (disable_rewind)
-        {
-            displaymsg("Slow key framing: rewind disabled");
-        }
+        FreeKeyframeQueue();
     }
-
-    ++current_tic;
-}
-
-void G_LoadAutoKeyframe(void)
-{
-    int interval_tics = TICRATE * rewind_interval / 1000;
-
-    while (1)
-    {
-        keyframe_t *keyframe = Pop();
-        
-        if (!keyframe)
-        {
-            break;
-        }
-
-        int tic = P_GetKeyframeTic(keyframe);
-        if (tic > 0 && current_tic - tic < interval_tics)
-        {
-            P_FreeKeyframe(keyframe);
-            continue;
-        }
-
-        P_LoadKeyframe(keyframe);
-        displaymsg("Restored key frame");
-
-        if (tic == 0) // don't delete first keyframe
-        {
-            Push(keyframe);
-        }
-        else
-        {
-            P_FreeKeyframe(keyframe);
-        }
-
-        G_ClearInput();
-        break;
-    }
-}
-
-void G_ResetRewind(void)
-{
-    FreeKeyframeQueue();
-    current_tic = 0;
-    disable_rewind = false;
 }
 
 void G_BindRewindVariables(void)

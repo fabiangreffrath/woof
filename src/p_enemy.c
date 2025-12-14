@@ -51,6 +51,7 @@
 #include "r_defs.h"
 #include "r_main.h"
 #include "r_state.h"
+#include "r_tranmap.h"
 #include "s_sound.h"
 #include "sounds.h"
 #include "tables.h"
@@ -283,7 +284,7 @@ static boolean P_IsOnLift(const mobj_t *actor)
     return true;
 
   // Check to see if it's in a sector which can be activated as a lift.
-  if ((line.tag = sec->tag))
+  if ((line.args[0] = sec->tag))
     for (l = -1; (l = P_FindLineFromLineTag(&line, l)) >= 0;)
       switch (lines[l].special)
 	{
@@ -1513,7 +1514,7 @@ void A_Tracer(mobj_t *actor)
   // since old demos were recorded using gametic, we must stick with it, 
   // and improvise around it (using leveltime causes desync across levels).
 
-  if ((gametic-basetic) & 3)
+  if ((gametic - boom_basetic) & 3)
     return;
 
   // spawn a puff of smoke behind the rocket
@@ -1766,7 +1767,7 @@ static boolean P_HealCorpse(mobj_t* actor, int radius, statenum_t healstate, sfx
 		  if (STRICTMODE(ghost_monsters) && corpsehit->height == 0
 		      && corpsehit->radius == 0)
 		  {
-		      corpsehit->flags |= MF_TRANSLUCENT;
+		      corpsehit->tranmap = GetNormalTranMap(66);
 		      I_Printf(VB_WARNING, "A_VileChase: Resurrected ghost monster (%d) at (%d/%d)!",
 		              corpsehit->type, corpsehit->x>>FRACBITS, corpsehit->y>>FRACBITS);
 		  }
@@ -2345,7 +2346,7 @@ void A_BossDeath(mobj_t *mo)
           {
               junk = *lines;
               junk.special = (short)bossaction->special;
-              junk.tag = (short)bossaction->tag;
+              junk.args[0] = (short)bossaction->tag;
               // use special semantics for line activation to block problem
               // types.
               if (!P_UseSpecialLine(mo, &junk, 0, true))
@@ -2457,14 +2458,14 @@ void A_BossDeath(mobj_t *mo)
         {
           if (mo->flags2 & MF2_MAP07BOSS1)
             {
-              junk.tag = 666;
+              junk.args[0] = 666;
               EV_DoFloor(&junk,lowerFloorToLowest);
               return;
             }
 
           if (mo->flags2 & MF2_MAP07BOSS2)
             {
-              junk.tag = 667;
+              junk.args[0] = 667;
               EV_DoFloor(&junk,raiseToTexture);
               return;
             }
@@ -2475,7 +2476,7 @@ void A_BossDeath(mobj_t *mo)
       switch(gameepisode)
         {
         case 1:
-          junk.tag = 666;
+          junk.args[0] = 666;
           EV_DoFloor(&junk, lowerFloorToLowest);
           return;
           break;
@@ -2484,13 +2485,13 @@ void A_BossDeath(mobj_t *mo)
           switch(gamemap)
             {
             case 6:
-              junk.tag = 666;
+              junk.args[0] = 666;
               EV_DoDoor(&junk, blazeOpen);
               return;
               break;
 
             case 8:
-              junk.tag = 666;
+              junk.args[0] = 666;
               EV_DoFloor(&junk, lowerFloorToLowest);
               return;
               break;
@@ -2760,7 +2761,7 @@ void A_KeenDie(mobj_t* mo)
           return;                           // other Keen not dead
       }
 
-  junk.tag = 666;
+  junk.args[0] = 666;
   EV_DoDoor(&junk,doorOpen);
 }
 
@@ -2845,8 +2846,8 @@ void A_LineEffect(mobj_t *mo)
 	  player_t *oldplayer = mo->player;          // Remember player status
 	  mo->player = &player;                      // Fake player
 	  player.health = 100;                       // Alive player
-	  junk.tag = (short)mo->state->misc2;        // Sector tag for linedef
-	  if (!P_UseSpecialLine(mo, &junk, 0, false)) // Try using it
+	  junk.args[0] = (short)mo->state->misc2;    // Sector tag for linedef
+	  if (!P_UseSpecialLine(mo, &junk, 0, false))// Try using it
 	    P_CrossSpecialLine(&junk, 0, mo, false); // Try crossing it
 	  if (!junk.special)                         // If type cleared,
 	    mo->intflags |= MIF_LINEDONE;            // no more for this thing
@@ -3051,7 +3052,7 @@ void A_MonsterMeleeAttack(mobj_t *actor)
   S_StartSound(actor, hitsound);
 
   damage = (P_Random(pr_mbf21) % damagemod + 1) * damagebase;
-  P_DamageMobj(actor->target, actor, actor, damage);
+  P_DamageMobjBy(actor->target, actor, actor, damage, MOD_Melee);
 }
 
 //

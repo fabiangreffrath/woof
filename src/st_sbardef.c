@@ -24,6 +24,7 @@
 #include "m_swap.h"
 #include "r_data.h"
 #include "r_defs.h"
+#include "r_tranmap.h"
 #include "v_fmt.h"
 #include "v_video.h"
 #include "w_wad.h"

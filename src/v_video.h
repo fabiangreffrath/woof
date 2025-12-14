@@ -109,7 +109,6 @@ typedef struct
 {
     int width;
     int height;
-    int pitch;
     int unscaledw; // unscaled width with correction for widecreen
     int deltaw;    // widescreen delta
 
@@ -180,10 +179,11 @@ void V_DrawPatchTR(int x, int y, crop_t rect, struct patch_s *patch, byte *outr)
 void V_DrawPatchTRTR(int x, int y, crop_t rect, struct patch_s *patch,
                      byte *outr1, byte *outr2);
 
-void V_DrawPatchTL(int x, int y, crop_t rect, struct patch_s *patch, byte *tl);
+void V_DrawPatchTL(int x, int y, crop_t rect, struct patch_s *patch,
+                   const byte *tl);
 
 void V_DrawPatchTRTL(int x, int y, crop_t rect, struct patch_s *patch,
-                     byte *outr, byte *tl);
+                     byte *outr, const byte *tl);
 
 void V_DrawPatchFullScreen(struct patch_s *patch);
 

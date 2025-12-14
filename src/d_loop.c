@@ -23,6 +23,7 @@
 #include "d_ticcmd.h"
 #include "doomdef.h"
 #include "doomstat.h"
+#include "i_exit.h"
 #include "i_printf.h"
 #include "i_system.h"
 #include "i_timer.h"
@@ -273,7 +274,7 @@ void D_ReceiveTic(ticcmd_t *ticcmds, boolean *players_mask)
 
     // Disconnected from server?
 
-    if (ticcmds == NULL && players_mask == NULL)
+    if (ticcmds == NULL || players_mask == NULL)
     {
         D_Disconnected();
         return;

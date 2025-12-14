@@ -15,8 +15,9 @@
 // in C++. The array must be initialised to NULL. Inspired by
 // https://github.com/nothings/stb/blob/master/stb_ds.h
 //
-// array_push(), array_grow() and array_free() may change the buffer pointer,
-// and any previously-taken pointers should be considered invalidated.
+// array_push(), array_grow(), array_resize(), array_copy() and array_free() may
+// change the buffer pointer, and any previously-taken pointers should be
+// considered invalidated.
 
 #ifndef M_ARRAY_H
 #define M_ARRAY_H
@@ -65,59 +66,13 @@ inline static int array_capacity(const void *v)
     return v ? array_ptr(v)->capacity : 0;
 }
 
-inline static void array_clear(const void *v)
+inline static void array_clear(void *v)
 {
     if (v)
     {
         array_ptr(v)->size = 0;
     }
 }
-
-#define array_grow(v, n) ((v) = M_ArrayGrow(v, sizeof(*(v)), n))
-
-#define array_push(v, e)                                         \
-    do                                                           \
-    {                                                            \
-        if (!(v))                                                \
-        {                                                        \
-            array_grow(v, M_ARRAY_INIT_CAPACITY);                \
-        }                                                        \
-        else if (array_ptr(v)->size == array_ptr(v)->capacity)   \
-        {                                                        \
-            array_grow(v, array_ptr(v)->capacity);               \
-        }                                                        \
-        (v)[array_ptr(v)->size++] = (e);                         \
-    } while (0)
-
-#define array_pop(v) ((v)[--array_ptr(v)->size])
-
-#define array_delete_n(v, i, n)                                   \
-    do                                                            \
-    {                                                             \
-        if (v)                                                    \
-        {                                                         \
-            memmove(&(v)[i], &(v)[i + n],                         \
-                    sizeof(*(v)) * (array_ptr(v)->size - n - i)); \
-            array_ptr(v)->size -= n;                              \
-        }                                                         \
-    } while (0)
-
-#define array_delete(v, i) array_delete_n(v, i, 1)
-
-#define array_free(v)                     \
-    do                                    \
-    {                                     \
-        if (v)                            \
-        {                                 \
-            M_ARRAY_FREE(array_ptr(v));   \
-            (v) = NULL;                   \
-        }                                 \
-    } while (0)
-
-#define array_end(v) ((v) ? (v) + array_ptr(v)->size : (v))
-
-#define array_foreach(ptr, v) \
-    for (ptr = (v); ptr < array_end(v); ++ptr)
 
 inline static void *M_ArrayGrow(void *v, size_t esize, int n)
 {
@@ -139,5 +94,105 @@ inline static void *M_ArrayGrow(void *v, size_t esize, int n)
 
     return p->buffer;
 }
+
+#define array_grow(v, n) ((v) = M_ArrayGrow(v, sizeof(*(v)), n))
+
+// Appends an element to the end of the array.
+#define array_push(v, e)                                       \
+    do                                                         \
+    {                                                          \
+        if (!(v))                                              \
+        {                                                      \
+            array_grow(v, M_ARRAY_INIT_CAPACITY);              \
+        }                                                      \
+        else if (array_ptr(v)->size == array_ptr(v)->capacity) \
+        {                                                      \
+            array_grow(v, array_ptr(v)->capacity);             \
+        }                                                      \
+        (v)[array_ptr(v)->size++] = (e);                       \
+    } while (0)
+
+// Removes and returns the last element of the array.
+// The array must not be empty.
+#define array_pop(v) ((v)[--array_ptr(v)->size])
+
+// Deletes 'n' elements from the array starting at index 'i'.
+#define array_delete_n(v, i, n)                                               \
+    do                                                                        \
+    {                                                                         \
+        if (v)                                                                \
+        {                                                                     \
+            int to_delete = (n);                                              \
+            int index = (i);                                                  \
+            memmove(&(v)[index], &(v)[index + to_delete],                     \
+                    sizeof(*(v)) * (array_ptr(v)->size - to_delete - index)); \
+            array_ptr(v)->size -= to_delete;                                  \
+        }                                                                     \
+    } while (0)
+
+#define array_delete(v, i) array_delete_n(v, i, 1)
+
+#define array_free(v)                     \
+    do                                    \
+    {                                     \
+        if (v)                            \
+        {                                 \
+            M_ARRAY_FREE(array_ptr(v));   \
+            (v) = NULL;                   \
+        }                                 \
+    } while (0)
+
+#define array_end(v) ((v) ? (v) + array_ptr(v)->size : (v))
+
+#define array_foreach(ptr, v) for (ptr = (v); ptr != array_end(v); ++ptr)
+
+#define array_foreach_type(ptr, v, type)                                   \
+    for (type *ptr = (v), *m_array_end = array_end(v); ptr != m_array_end; \
+         ++ptr)
+
+// If n > current size, new elements are zero-initialized.
+// If n < current size, array is truncated.
+#define array_resize(v, n)                                    \
+    do                                                        \
+    {                                                         \
+        int new_size = (n);                                   \
+        int old_size = array_size(v);                         \
+        if (new_size > array_capacity(v))                     \
+        {                                                     \
+            int new_capacity = M_ARRAY_INIT_CAPACITY;         \
+            while (new_capacity < new_size)                   \
+            {                                                 \
+                new_capacity *= 2;                            \
+            }                                                 \
+            array_grow(v, new_capacity - array_capacity(v));  \
+        }                                                     \
+        if (v)                                                \
+        {                                                     \
+            if (new_size > old_size)                          \
+            {                                                 \
+                memset(&(v)[old_size], 0,                     \
+                       sizeof(*(v)) * (new_size - old_size)); \
+            }                                                 \
+            array_ptr(v)->size = new_size;                    \
+        }                                                     \
+    } while (0)
+
+#define array_copy(dst, src)                             \
+    do                                                   \
+    {                                                    \
+        int size = array_size(src);                      \
+        if (!size)                                       \
+        {                                                \
+            array_clear(dst);                            \
+        }                                                \
+        else                                             \
+        {                                                \
+            array_resize(dst, size);                     \
+            if (dst)                                     \
+            {                                            \
+                memcpy(dst, src, sizeof(*(src)) * size); \
+            }                                            \
+        }                                                \
+    } while (0)
 
 #endif // M_ARRAY_H

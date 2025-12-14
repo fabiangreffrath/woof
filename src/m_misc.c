@@ -21,7 +21,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <ctype.h>
 
+#include "i_printf.h"
 #include "i_system.h"
 #include "m_io.h"
 #include "m_misc.h"
@@ -36,7 +38,7 @@
 
 // Check if a file exists
 
-static boolean M_FileExistsNotDir(const char *filename)
+boolean M_FileExistsNotDir(const char *filename)
 {
     FILE *fstream;
 
@@ -353,12 +355,18 @@ char *M_StringDuplicate(const char *orig)
 
 // String replace function.
 
-char *M_StringReplace(const char *haystack, const char *needle,
-                      const char *replacement)
+static inline int is_boundary(char c)
+{
+    return c == '\0' || isspace((unsigned char)c) || ispunct((unsigned char)c);
+}
+
+static char *M_StringReplaceEx(const char *haystack, const char *needle,
+                               const char *replacement, const boolean whole_word)
 {
     char *result, *dst;
     const char *p;
-    size_t needle_len = strlen(needle);
+    const size_t needle_len = strlen(needle);
+    const size_t repl_len = strlen(replacement);
     size_t result_len, dst_len;
 
     // Iterate through occurrences of 'needle' and calculate the size of
@@ -374,8 +382,14 @@ char *M_StringReplace(const char *haystack, const char *needle,
             break;
         }
 
+        if (!whole_word ||
+            ((p == haystack || is_boundary(p[-1])) &&
+            is_boundary(p[needle_len])))
+        {
+            result_len += repl_len - needle_len;
+        }
+
         p += needle_len;
-        result_len += strlen(replacement) - needle_len;
     }
 
     // Construct new string.
@@ -393,12 +407,15 @@ char *M_StringReplace(const char *haystack, const char *needle,
 
     while (*p != '\0')
     {
-        if (!strncmp(p, needle, needle_len))
+        if (!strncmp(p, needle, needle_len) &&
+            (!whole_word ||
+            ((p == haystack || is_boundary(p[-1])) &&
+            is_boundary(p[needle_len]))))
         {
             M_StringCopy(dst, replacement, dst_len);
             p += needle_len;
-            dst += strlen(replacement);
-            dst_len -= strlen(replacement);
+            dst += repl_len;
+            dst_len -= repl_len;
         }
         else
         {
@@ -412,6 +429,18 @@ char *M_StringReplace(const char *haystack, const char *needle,
     *dst = '\0';
 
     return result;
+}
+
+char *M_StringReplace(const char *haystack, const char *needle,
+                      const char *replacement)
+{
+    return M_StringReplaceEx(haystack, needle, replacement, false);
+}
+
+char *M_StringReplaceWord(const char *haystack, const char *needle,
+                          const char *replacement)
+{
+    return M_StringReplaceEx(haystack, needle, replacement, true);
 }
 
 // Safe string copy function that works like OpenBSD's strlcpy().
@@ -587,7 +616,7 @@ char *AddDefaultExtension(const char *path, const char *ext)
 //
 // killough 9/98: rewritten to use stdio and to flash disk icon
 
-boolean M_WriteFile(char const *name, void *source, int length)
+boolean M_WriteFile(char const *name, const void *source, int length)
 {
     FILE *fp;
 
@@ -659,4 +688,45 @@ boolean M_StringToDigest(const char *string, byte *digest, int size)
         digest[offset] = i;
     }
     return true;
+}
+
+void M_DigestToString(const byte *digest, char *string, int size)
+{
+    for (int i = 0; i < size; ++i)
+    {
+        M_snprintf(&string[i * 2], 3, "%02x", digest[i]);
+    }
+}
+
+// Really complex printing shit...
+void M_ProgressBarStart(const int item_count, const char *msg)
+{
+    const int loop_count = (item_count + 255) / 128;
+    I_Printf(VB_INFO, " %s: ", msg);
+
+    I_PutChar(VB_INFO, '[');
+    for (int i = 0; i <= loop_count; i++)
+    {
+        I_PutChar(VB_INFO, ' ');
+    }
+    I_PutChar(VB_INFO, ']');
+
+    for (int i = 0; i <= loop_count; i++)
+    {
+        I_PutChar(VB_INFO, '\x8');
+    }
+}
+
+void M_ProgressBarMove(const int item_current)
+{
+    if (!(item_current & 127))
+    {
+        I_PutChar(VB_INFO, '.');
+    }
+}
+
+// [FG] finish progress line
+void M_ProgressBarEnd(void)
+{
+    I_PutChar(VB_INFO, '\n');
 }

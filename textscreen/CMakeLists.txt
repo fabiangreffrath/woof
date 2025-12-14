@@ -28,3 +28,8 @@ target_include_directories(textscreen
                            INTERFACE "."
                            PRIVATE "${CMAKE_CURRENT_BINARY_DIR}/../" "../src/")
 target_link_libraries(textscreen SDL3::SDL3)
+
+if(ENABLE_FONTGEN)
+    add_subdirectory(fonts)
+    add_dependencies(textscreen textscreen-font)
+endif()

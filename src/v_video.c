@@ -38,6 +38,7 @@
 #include "r_data.h"
 #include "r_defs.h"
 #include "r_state.h"
+#include "r_tranmap.h"
 #include "s_sound.h"
 #include "sounds.h"
 #include "v_fmt.h"
@@ -46,7 +47,7 @@
 #include "w_wad.h" // needed for color translation lump lookup
 #include "z_zone.h"
 
-pixel_t *I_VideoBuffer;
+pixel_t *I_VideoBuffer = NULL;
 
 // The screen buffer that the v_video.c code draws to.
 
@@ -675,7 +676,8 @@ void V_DrawPatchTranslated(int x, int y, patch_t *patch, byte *outr)
     V_DrawPatchTR(x, y, (crop_t){0}, patch, outr);
 }
 
-void V_DrawPatchTL(int x, int y, crop_t crop, struct patch_s *patch, byte *tl)
+void V_DrawPatchTL(int x, int y, crop_t crop, struct patch_s *patch,
+                   const byte *tl)
 {
     x += video.deltaw;
 
@@ -686,7 +688,7 @@ void V_DrawPatchTL(int x, int y, crop_t crop, struct patch_s *patch, byte *tl)
 }
 
 void V_DrawPatchTRTL(int x, int y, crop_t crop, struct patch_s *patch,
-                     byte *outr, byte *tl)
+                     byte *outr, const byte *tl)
 {
     x += video.deltaw;
 
@@ -717,10 +719,8 @@ void V_DrawPatchFullScreen(patch_t *patch)
     patch->topoffset = 0;
 
     // [crispy] fill pillarboxes in widescreen mode
-    if (video.unscaledw != NONWIDEWIDTH)
-    {
-        V_FillRect(0, 0, video.unscaledw, SCREENHEIGHT, v_darkest_color);
-    }
+    // always clear screen, fixes eternall.wad's partly transparent CREDIT in non-widescreen
+    V_FillRect(0, 0, video.unscaledw, SCREENHEIGHT, v_darkest_color);
 
     drawcolfunc = DrawPatchColumn;
 
@@ -1074,43 +1074,50 @@ void V_DrawBackground(const char *patchname)
 
 void V_Init(void)
 {
-    fixed_t frac, lastfrac;
+    linesize = video.width;
 
-    linesize = video.pitch;
-
-    video.xscale = (video.width << FRACBITS) / video.unscaledw;
-    video.yscale = (video.height << FRACBITS) / SCREENHEIGHT;
-    video.xstep = ((video.unscaledw << FRACBITS) / video.width) + 1;
-    video.ystep = ((SCREENHEIGHT << FRACBITS) / video.height) + 1;
+    video.xscale = IntToFixed(video.width) / video.unscaledw;
+    video.yscale = IntToFixed(video.height) / SCREENHEIGHT;
+    video.xstep = IntToFixed(video.unscaledw) / video.width + 1;
+    video.ystep = IntToFixed(SCREENHEIGHT) / video.height + 1;
+   
+    const int width = video.width;
+    const int height = video.height;
+    fixed_t frac, lastfrac, step;
+    int i1, i2;
 
     x1lookup[0] = 0;
     lastfrac = frac = 0;
-    for (int i = 0; i < video.width; i++)
+    step = video.xstep;
+    for (int i = 0; i < width; i++)
     {
-        if (frac >> FRACBITS > lastfrac >> FRACBITS)
+        i1 = FixedToInt(frac);
+        i2 = FixedToInt(lastfrac);
+        if (i1 > i2)
         {
-            x1lookup[frac >> FRACBITS] = i;
-            x2lookup[lastfrac >> FRACBITS] = i - 1;
+            x1lookup[i1] = i;
+            x2lookup[i2] = i - 1;
             lastfrac = frac;
         }
-
-        frac += video.xstep;
+        frac += step;
     }
     x2lookup[video.unscaledw - 1] = video.width - 1;
     x1lookup[video.unscaledw] = x2lookup[video.unscaledw] = video.width;
 
     y1lookup[0] = 0;
     lastfrac = frac = 0;
-    for (int i = 0; i < video.height; i++)
+    step = video.ystep;
+    for (int i = 0; i < height; i++)
     {
-        if (frac >> FRACBITS > lastfrac >> FRACBITS)
+        i1 = FixedToInt(frac);
+        i2 = FixedToInt(lastfrac);
+        if (i1 > i2)
         {
-            y1lookup[frac >> FRACBITS] = i;
-            y2lookup[lastfrac >> FRACBITS] = i - 1;
+            y1lookup[i1] = i;
+            y2lookup[i2] = i - 1;
             lastfrac = frac;
         }
-
-        frac += video.ystep;
+        frac += step;
     }
     y2lookup[SCREENHEIGHT - 1] = video.height - 1;
     y1lookup[SCREENHEIGHT] = y2lookup[SCREENHEIGHT] = video.height;

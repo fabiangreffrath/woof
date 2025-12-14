@@ -34,7 +34,6 @@
 #include "i_video.h"
 #include "p_mobj.h"
 #include "p_pspr.h"
-#include "p_setup.h" // P_SegLengths
 #include "r_bsp.h"
 #include "r_data.h"
 #include "r_defs.h"
@@ -144,13 +143,14 @@ void (*colfunc)(void);                    // current column draw function
 //
 // killough 5/2/98: reformatted
 //
+int (*R_PointOnSide)(fixed_t x, fixed_t y, struct node_s *node);
 
 // Workaround for optimization bug in clang
 // fixes desync in competn/doom/fp2-3655.lmp and in dmnsns.wad dmn01m909.lmp
 #if defined(__clang__)
-int R_PointOnSide(volatile fixed_t x, volatile fixed_t y, node_t *node)
+int R_PointOnSideClassic(volatile fixed_t x, volatile fixed_t y, node_t *node)
 #else
-int R_PointOnSide(fixed_t x, fixed_t y, node_t *node)
+int R_PointOnSideClassic(fixed_t x, fixed_t y, node_t *node)
 #endif
 {
   if (!node->dx)
@@ -168,9 +168,31 @@ int R_PointOnSide(fixed_t x, fixed_t y, node_t *node)
   return FixedMul(y, node->dx>>FRACBITS) >= FixedMul(node->dy>>FRACBITS, x);
 }
 
-// killough 5/2/98: reformatted
+#if defined(__clang__)
+int R_PointOnSidePrecise(volatile fixed_t x, volatile fixed_t y, node_t *node)
+#else
+int R_PointOnSidePrecise(fixed_t x, fixed_t y, node_t *node)
+#endif
+{
+   if(!node->dx)
+      return x <= node->x ? node->dy > 0 : node->dy < 0;
 
-int R_PointOnSegSide(fixed_t x, fixed_t y, seg_t *line)
+   if(!node->dy)
+      return y <= node->y ? node->dx < 0 : node->dx > 0;
+
+   x -= node->x;
+   y -= node->y;
+
+   // Try to quickly decide by looking at sign bits.
+   if((node->dy ^ node->dx ^ x ^ y) < 0)
+      return (node->dy ^ x) < 0;  // (left is negative)
+   return (int64_t)y * node->dx >= (int64_t)node->dy * x;
+}
+
+// killough 5/2/98: reformatted
+int (*R_PointOnSegSide)(fixed_t x, fixed_t y, seg_t *line);
+
+int R_PointOnSegSideClassic(fixed_t x, fixed_t y, seg_t *line)
 {
   fixed_t lx = line->v1->x;
   fixed_t ly = line->v1->y;
@@ -190,6 +212,28 @@ int R_PointOnSegSide(fixed_t x, fixed_t y, seg_t *line)
   if ((ldy ^ ldx ^ x ^ y) < 0)
     return (ldy ^ x) < 0;          // (left is negative)
   return FixedMul(y, ldx>>FRACBITS) >= FixedMul(ldy>>FRACBITS, x);
+}
+
+int R_PointOnSegSidePrecise(fixed_t x, fixed_t y, seg_t *line)
+{
+  fixed_t lx = line->v1->x;
+  fixed_t ly = line->v1->y;
+  fixed_t ldx = line->v2->x - lx;
+  fixed_t ldy = line->v2->y - ly;
+
+  if (!ldx)
+    return x <= lx ? ldy > 0 : ldy < 0;
+
+  if (!ldy)
+    return y <= ly ? ldx < 0 : ldx > 0;
+
+  x -= lx;
+  y -= ly;
+
+  // Try to quickly decide by looking at sign bits.
+  if ((ldy ^ ldx ^ x ^ y) < 0)
+    return (ldy ^ x) < 0;          // (left is negative)
+  return (int64_t) y * ldx >= (int64_t) x * ldy;
 }
 
 //
@@ -459,8 +503,6 @@ void R_SmoothLight(void)
   R_InitLightTables();
   // [crispy] re-calculate the scalelight[][] array
   // R_ExecuteSetViewSize();
-  // [crispy] re-calculate fake contrast
-  P_SegLengths(true);
 }
 
 int R_GetLightIndex(fixed_t scale)
@@ -991,9 +1033,6 @@ void R_BindRenderVariables(void)
 
   M_BindBool("translucency", &translucency, NULL, true, ss_gen, wad_yes,
              "Translucency for some things");
-  M_BindNum("tran_filter_pct", &tran_filter_pct, NULL,
-            66, 0, 100, ss_none, wad_yes,
-            "Percent of foreground/background translucency mix");
 
   M_BindBool("flipcorpses", &flipcorpses, NULL, false, ss_enem, wad_no,
              "Randomly mirrored death animations");

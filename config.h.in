@@ -2,6 +2,7 @@
 #cmakedefine PROJECT_VERSION "@PROJECT_VERSION@"
 #cmakedefine PROJECT_STRING "@PROJECT_STRING@"
 #cmakedefine PROJECT_SHORTNAME "@PROJECT_SHORTNAME@"
+#cmakedefine PROJECT_APPID "@PROJECT_APPID@"
 #cmakedefine HAVE_LIBM
 #cmakedefine01 HAVE_DECL_STRCASECMP
 #cmakedefine01 HAVE_DECL_STRNCASECMP
@@ -12,3 +13,4 @@
 #cmakedefine HAVE_LIBXMP
 #cmakedefine HAVE_SNDFILE_MPEG
 #cmakedefine HAVE_AL_BUFFER_CALLBACK
+#cmakedefine HAVE_DISCORD_RPC
