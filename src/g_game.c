@@ -4451,12 +4451,16 @@ byte *G_ReadOptionsMBF21(byte *demo_p)
     comp[i] = *demo_p++;
 
   // comp_voodooscroller
-  if (count < MBF21_COMP_TOTAL - 2)
+  if (count < MBF21_COMP_TOTAL - 3)
     comp[comp_voodooscroller] = 1;
 
   // comp_reservedlineflag
-  if (count < MBF21_COMP_TOTAL - 1)
+  if (count < MBF21_COMP_TOTAL - 2)
     comp[comp_reservedlineflag] = 0;
+
+  // comp_thingsectorlight
+  if (count < MBF21_COMP_TOTAL - 1)
+    comp[comp_thingsectorlight] = 0;
 
   return demo_p;
 }
@@ -5120,9 +5124,7 @@ void G_BindCompVariables(void)
   BIND_COMP(comp_friendlyspawn, 1, "Things spawned by A_Spawn inherit friendliness of spawner");
   BIND_COMP(comp_voodooscroller, 0, "Voodoo dolls on slow scrollers move too slowly");
   BIND_COMP(comp_reservedlineflag, 1, "ML_RESERVED clears extended flags");
-
-  // ID24 & MBF2Y
-  BIND_COMP(comp_thingsectorlight, 0, "Things are lit according to transferred light level");
+  BIND_COMP(comp_thingsectorlight, 0, "MObjs are lit according to the average of transferred light levels");
 
 #define BIND_EMU(id, v, help) \
   M_BindBool(#id, &overflow[(id)].enabled, NULL, (v), ss_none, wad_no, help)

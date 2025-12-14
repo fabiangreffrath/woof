@@ -164,14 +164,13 @@ enum {
   comp_friendlyspawn,
   comp_voodooscroller,
   comp_reservedlineflag,
+  comp_thingsectorlight,
 
   MBF21_COMP_TOTAL,
 
   // Some extra room for additional variables
   // Splitting COMP_TOTAL, as some comp vars are not written to DEMOs
   DEMO_COMP_TOTAL = 32,
-
-  comp_thingsectorlight,
 
   COMP_TOTAL,
 };
