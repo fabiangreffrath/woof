@@ -3201,11 +3201,17 @@ static boolean deh_procObituarySub(char *key, char *newstring)
         {
             if (M_StringEndsWith(key, "_Melee"))
             {
-                mobjinfo[actor].obituary_melee = strdup(newstring);
+                if (!mobjinfo[actor].obituary_melee)
+                {
+                    mobjinfo[actor].obituary_melee = strdup(newstring);
+                }
             }
             else
             {
-                mobjinfo[actor].obituary = strdup(newstring);
+                if (!mobjinfo[actor].obituary)
+                {
+                    mobjinfo[actor].obituary = strdup(newstring);
+                }
             }
 
             found = true;
