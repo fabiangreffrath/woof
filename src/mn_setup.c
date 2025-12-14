@@ -5026,14 +5026,8 @@ static const char **selectstrings[] = {
     [str_death_use_action] = death_use_action_strings,
     [str_widescreen] = widescreen_strings,
     [str_bobbing_pct] = bobbing_pct_strings,
-<<<<<<< HEAD
     [str_screen_wipe] = screen_wipe_strings,
-||||||| b37e651e
-    [str_screen_melt] = screen_melt_strings,
-=======
-    [str_screen_melt] = screen_melt_strings,
     [str_palette_changes] = palette_changes_strings,
->>>>>>> master
     [str_invul_mode] = invul_mode_strings,
     [str_skill] = skill_strings,
     [str_freelook] = free_look_strings,
