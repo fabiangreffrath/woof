@@ -25,8 +25,9 @@
 #ifndef __R_TRANMAP__
 #define __R_TRANMAP__
 
-extern const byte *main_tranmap;
 extern const byte *tranmap;
+extern const byte *main_tranmap;
+extern const byte *main_addimap;
 
 // killough 3/6/98: translucency initialization
 void R_InitTranMap(void);

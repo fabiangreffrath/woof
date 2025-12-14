@@ -1526,7 +1526,7 @@ typedef struct
     // DEHEXTRA
     mobjtype_t droppeditem; // mobj to drop after death
     // [FG] Obituaries
-    char *obituary, *obituary_melee;
+    char *obituary, *obituary_melee, *obituary_self;
 } mobjinfo_t;
 
 #define NO_ALTSPEED -1

@@ -728,6 +728,10 @@ static void R_ProjectSprite(mobj_t* thing, int lightlevel_override)
   {
     vis->tranmap = thing->tranmap;
   }
+  else if (thing->flags & MF_TRANSLUCENT && thing->state->sprite & FF_FULLBRIGHT)
+  {
+    vis->tranmap = main_addimap;
+  }
   else if (thing->flags & MF_TRANSLUCENT)
   {
     vis->tranmap = main_tranmap;
@@ -851,7 +855,7 @@ void R_DrawPSprite(pspdef_t *psp, int lightlevel_override)
 
   fixed_t sx2, sy2;
 
-  if (uncapped && oldleveltime < leveltime)
+  if (uncapped && oldleveltime < leveltime && psp_interp)
   {
     sx2 = LerpFixed(psp->oldsx2, psp->sx2);
     sy2 = LerpFixed(psp->oldsy2, psp->sy2);
@@ -962,6 +966,10 @@ void R_DrawPSprite(pspdef_t *psp, int lightlevel_override)
   else if (viewplayer->mo->tranmap)
   {
     vis->tranmap = viewplayer->mo->tranmap;
+  }
+  else if (viewplayer->mo->flags & MF_TRANSLUCENT && psp->state->sprite & FF_FULLBRIGHT)
+  {
+    vis->tranmap = main_addimap;
   }
   else if (viewplayer->mo->flags & MF_TRANSLUCENT)
   {

@@ -1168,6 +1168,11 @@ enum
     // DEHEXTRA
     DEH_MOBJINFO_DROPPEDITEM,
 
+    // MBF2y
+    DEH_MOBJINFO_OBITUARY,
+    DEH_MOBJINFO_MELEE_OBITUARY,
+    DEH_MOBJINFO_SELF_OBITUARY,
+
     DEH_MOBJINFOMAX
 };
 
@@ -1211,6 +1216,11 @@ static const char *deh_mobjinfo[] = {
 
     // DEHEXTRA
     "Dropped item", // .droppeditem
+
+    // MBF2y
+    "Obituary",       // .obituary
+    "Melee obituary", // .obituary_melee
+    "Self obituary",  // .obituary_self
 };
 
 // Strings that are used to indicate flags ("Bits" in mobjinfo)
@@ -2116,6 +2126,45 @@ static void deh_procThing(DEHFILE *fpin, char *line)
                     // make it base zero (deh is 1-based)
                     mobjinfo[indexnum].droppeditem = (int)(value - 1);
                     break;
+
+                case DEH_MOBJINFO_OBITUARY:
+                    {
+                        char *stripped_string = ptr_lstrip(strval);
+                        int len = strlen(stripped_string);
+                        if (len < 1)
+                        {
+                            deh_log("Obituary is empty\n");
+                            continue;
+                        }
+                        mobjinfo[indexnum].obituary = strdup(stripped_string);
+                        break;
+                    }
+
+                case DEH_MOBJINFO_MELEE_OBITUARY:
+                    {
+                        char *stripped_string = ptr_lstrip(strval);
+                        int len = strlen(stripped_string);
+                        if (len < 1)
+                        {
+                            deh_log("Melee obituary is empty\n");
+                            continue;
+                        }
+                        mobjinfo[indexnum].obituary_melee = strdup(stripped_string);
+                        break;
+                    }
+
+                case DEH_MOBJINFO_SELF_OBITUARY:
+                    {
+                        char *stripped_string = ptr_lstrip(strval);
+                        int len = strlen(stripped_string);
+                        if (len < 1)
+                        {
+                            deh_log("Self obituary is empty\n");
+                            continue;
+                        }
+                        mobjinfo[indexnum].obituary_self = strdup(stripped_string);
+                        break;
+                    }
 
                 default:
                     pix = (int *)&mobjinfo[indexnum];
@@ -3152,11 +3201,17 @@ static boolean deh_procObituarySub(char *key, char *newstring)
         {
             if (M_StringEndsWith(key, "_Melee"))
             {
-                mobjinfo[actor].obituary_melee = strdup(newstring);
+                if (!mobjinfo[actor].obituary_melee)
+                {
+                    mobjinfo[actor].obituary_melee = strdup(newstring);
+                }
             }
             else
             {
-                mobjinfo[actor].obituary = strdup(newstring);
+                if (!mobjinfo[actor].obituary)
+                {
+                    mobjinfo[actor].obituary = strdup(newstring);
+                }
             }
 
             found = true;

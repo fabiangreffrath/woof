@@ -274,7 +274,7 @@ int P_SwitchWeapon(player_t *player)
   int newweapon = currentweapon;
   int i = NUMWEAPONS+1;   // killough 5/2/98
 
-  G_NextWeaponReset();
+  G_NextWeaponReset(currentweapon);
 
   // [XA] use fixed behavior for mbf21. no need
   // for a discrete compat option for this, as
@@ -1131,6 +1131,8 @@ void P_SetupPsprites(player_t *player)
 #define WEAPON_CENTERED 1
 #define WEAPON_BOBBING 2
 
+boolean psp_interp;
+
 void P_MovePsprites(player_t *player)
 {
   pspdef_t *psp = player->psprites;
@@ -1202,6 +1204,27 @@ void P_MovePsprites(player_t *player)
       }
     }
   }
+
+  static spritenum_t oldsprite = -1;
+  static int oldframe = -1;
+  static fixed_t oldsxf = -1, oldsyf = -1;
+
+  spritenum_t sprite = -1;
+  int frame = -1;
+
+  if (psp->state)
+  {
+    sprite = psp->state->sprite;
+    frame = psp->state->frame & FF_FRAMEMASK;
+  }
+
+  psp_interp = !((oldsprite != sprite || oldframe != frame) &&
+                 (oldsxf != psp->sxf || oldsyf != psp->syf));
+
+  oldsprite = sprite;
+  oldframe = frame;
+  oldsxf = psp->sxf;
+  oldsyf = psp->syf;
 
   player->psprites[ps_flash].sx2 = player->psprites[ps_weapon].sx2;
   player->psprites[ps_flash].sy2 = player->psprites[ps_weapon].sy2;

@@ -43,6 +43,7 @@ struct mobj_s;
 #define MAXDRAWSEGS   256
 
 #define NO_TEXTURE (-1)
+#define FLATSIZE (64 * 64)
 
 //
 // INTERNAL MAP TYPES

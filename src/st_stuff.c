@@ -132,6 +132,7 @@ static statusbar_t *statusbar;
 
 static int st_cmd_x, st_cmd_y;
 
+hud_anchoring_t hud_anchoring;
 int st_wide_shift;
 
 static patch_t **facepatches = NULL;
@@ -1776,7 +1777,7 @@ boolean ST_Responder(event_t *ev)
     }
 }
 
-boolean palette_changes = true;
+pal_change_t palette_changes = PAL_CHANGE_ON;
 
 static void DoPaletteStuff(player_t *player)
 {
@@ -1800,7 +1801,7 @@ static void DoPaletteStuff(player_t *player)
         }
     }
 
-    if (STRICTMODE(!palette_changes))
+    if (STRICTMODE(palette_changes == PAL_CHANGE_OFF))
     {
         palette = 0;
     }
@@ -1820,10 +1821,10 @@ static void DoPaletteStuff(player_t *player)
             {
                 palette = NUMREDPALS - 1;
             }
-            // [crispy] tune down a bit so the menu remains legible
-            if (menuactive || paused)
+            // tune down a bit so the menu remains legible
+            if (menuactive || paused || STRICTMODE(palette_changes == PAL_CHANGE_REDUCED))
             {
-                palette >>= 1;
+                palette /= 2;
             }
             palette += STARTREDPALS;
         }
@@ -1834,6 +1835,10 @@ static void DoPaletteStuff(player_t *player)
         if (palette >= NUMBONUSPALS)
         {
             palette = NUMBONUSPALS - 1;
+        }
+        if (STRICTMODE(palette_changes == PAL_CHANGE_REDUCED))
+        {
+            palette /= 2;
         }
         palette += STARTBONUSPALS;
     }
@@ -2008,8 +2013,9 @@ void WI_DrawWidgets(void)
 
 void ST_BindSTSVariables(void)
 {
-  M_BindNum("st_wide_shift", &st_wide_shift,
-            NULL, -1, -1, UL, ss_stat, wad_no, "HUD widescreen shift (-1 = Default)");
+  M_BindNum("hud_anchoring", &hud_anchoring, NULL, HUD_ANCHORING_16_9,
+            HUD_ANCHORING_WIDE, HUD_ANCHORING_21_9, ss_stat, wad_no,
+            "HUD anchoring (0 = Wide; 1 = 4:3; 2 = 16:9; 3 = 21:9)");
   M_BindBool("sts_colored_numbers", &sts_colored_numbers, NULL,
              false, ss_stat, wad_yes, "Colored numbers on the status bar");
   M_BindBool("sts_pct_always_gray", &sts_pct_always_gray, NULL,

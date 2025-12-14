@@ -34,6 +34,6 @@ boolean G_NextWeaponDeactivate(void);
 
 void G_NextWeaponResendCmd(void);
 
-void G_NextWeaponReset(void);
+void G_NextWeaponReset(weapontype_t weapon);
 
 #endif

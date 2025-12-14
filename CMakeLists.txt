@@ -119,7 +119,7 @@ check_c_source_compiles(
 set(CMAKE_FIND_FRAMEWORK NEVER)
 
 # Library requirements.
-find_package(SDL3 REQUIRED)
+find_package(SDL3 3.3 REQUIRED)
 find_package(OpenAL REQUIRED)
 find_package(libebur128 REQUIRED)
 find_package(SndFile 1.0.29 REQUIRED)

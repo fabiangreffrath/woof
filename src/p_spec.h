@@ -901,6 +901,9 @@ void T_FrictionAdapter(struct mobj_s *mobj); // phares 3/12/98: friction thinker
 
 void T_PusherAdapter(struct mobj_s *mobj); // phares 3/20/98: Push thinker
 
+void T_ParamScrollFloorAdapter(struct mobj_s *mobj);
+void T_ParamScrollCeilingAdapter(struct mobj_s *mobj);
+
 ////////////////////////////////////////////////////////////////
 //
 // Linedef and sector special handler prototypes

@@ -136,6 +136,8 @@ typedef enum
     tc_flicker,
     tc_friction,
     tc_ambient,
+    tc_param_scroll_floor,
+    tc_param_scroll_ceiling,
     tc_none
 } thinker_class_t;
 
@@ -160,6 +162,8 @@ static actionf_p1 actions[] = {
     [tc_flicker] = T_FireFlickerAdapter,
     [tc_friction] = T_FrictionAdapter,
     [tc_ambient] = T_AmbientSoundAdapter,
+    [tc_param_scroll_floor] = T_ParamScrollFloorAdapter,
+    [tc_param_scroll_ceiling] = T_ParamScrollCeilingAdapter,
     [tc_none] = NULL
 };
 
@@ -461,6 +465,13 @@ static void read_mobj_t(mobj_t *str, thinker_class_t tc)
     str->flags_extra = read32();
     str->intflags = read32();
     str->health = read32();
+    str->id = read32();
+    str->special = read32();
+    str->args[0] = read32();
+    str->args[1] = read32();
+    str->args[2] = read32();
+    str->args[3] = read32();
+    str->args[4] = read32();
     str->movedir = read16();
     str->movecount = read16();
     str->strafecount = read16();
@@ -528,6 +539,13 @@ static void write_mobj_t(mobj_t *str)
     write32(str->flags_extra);
     write32(str->intflags);
     write32(str->health);
+    write32(str->id);
+    write32(str->special);
+    write32(str->args[0]);
+    write32(str->args[1]);
+    write32(str->args[2]);
+    write32(str->args[3]);
+    write32(str->args[4]);
     write16(str->movedir);
     write16(str->movecount);
     write16(str->strafecount);
@@ -995,9 +1013,9 @@ static void write_elevator_t(elevator_t *str)
     write32(str->speed);
 }
 
-static void read_scroll_t(scroll_t *str)
+static void read_scroll_t(scroll_t *str, thinker_class_t tc)
 {
-    read_thinker_t(&str->thinker, tc_scroll);
+    read_thinker_t(&str->thinker, tc);
     str->dx = read32();
     str->dy = read32();
     str->affectee = read32();
@@ -1507,6 +1525,8 @@ static void ArchiveThinkers(void)
                 write_elevator_t(pointer->p.elevator);
                 break;
             case tc_scroll:
+            case tc_param_scroll_floor:
+            case tc_param_scroll_ceiling:
                 write_scroll_t(pointer->p.scroll);
                 break;
             case tc_pusher:
@@ -1571,6 +1591,8 @@ static void PrepareUnArchiveThinkers(void)
                 pointer.p.elevator = arena_calloc(thinkers_arena, elevator_t);
                 break;
             case tc_scroll:
+            case tc_param_scroll_floor:
+            case tc_param_scroll_ceiling:
                 pointer.p.scroll = arena_calloc(thinkers_arena, scroll_t);
                 break;
             case tc_pusher:
@@ -1636,7 +1658,9 @@ static void UnArchiveThinkers(void)
                 read_elevator_t(pointer->p.elevator, pointer->tc);
                 break;
             case tc_scroll:
-                read_scroll_t(pointer->p.scroll);
+            case tc_param_scroll_floor:
+            case tc_param_scroll_ceiling:
+                read_scroll_t(pointer->p.scroll, pointer->tc);
                 break;
             case tc_pusher:
                 read_pusher_t(pointer->p.pusher);
@@ -2022,10 +2046,10 @@ void P_ArchiveKeyframe(void)
 
     ArchiveMSecNodes();
 
-    ArchiveCeilingList();
     writep_activeceilings(activeceilings);
-    ArchivePlatList();
+    ArchiveCeilingList();
     writep_activeplats(activeplats);
+    ArchivePlatList();
 
     write_rng_t(&rng);
     ArchiveButtons();
@@ -2092,10 +2116,10 @@ void P_UnArchiveKeyframe(void)
 
     UnArchiveMSecNodes();
 
-    UnArchiveCeilingList();
     activeceilings = readp_activeceilings();
-    UnArchivePlatList();
+    UnArchiveCeilingList();
     activeplats = readp_activeplats();
+    UnArchivePlatList();
 
     read_rng_t(&rng);
     UnArchiveButtons();

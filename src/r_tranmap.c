@@ -20,12 +20,12 @@
 //   Generation of transparency lookup tables.
 //
 
-#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
 #include "d_iwad.h"
 #include "doomdef.h"
+#include "doomstat.h"
 #include "doomtype.h"
 #include "i_exit.h"
 #include "i_printf.h"
@@ -58,6 +58,7 @@ static byte *normal_tranmap[100];
 
 const byte *tranmap;      // translucency filter maps 256x256   // phares
 const byte *main_tranmap; // killough 4/11/98
+const byte *main_addimap; // Some things look better with added luminosity :)
 
 //
 // Blending algorthims!
@@ -70,7 +71,17 @@ enum
     b
 };
 
-// The heart of the calculation
+//
+// The heart of the calculation, the blending algorithm. Currently supported:
+// * Normal -- applies standard alpha interpolation
+// * Additive -- alpha is a foreground multiplier, added to unmodified background
+//
+// TODO, tentative additions:
+// * Subtractive -- alpha is a foreground multiplier, subtracted from unmodifed background
+//
+
+typedef const byte (blendfunc_t)(const byte, const byte, const double);
+
 inline static const byte BlendChannelNormal(const byte bg, const byte fg, const double a)
 {
     const double fg_linear = byte_to_linear(fg);
@@ -79,13 +90,22 @@ inline static const byte BlendChannelNormal(const byte bg, const byte fg, const 
     return linear_to_byte(r_linear);
 }
 
-inline static const byte ColorBlend_Normal(byte *playpal, const byte *bg,
-                                           const byte *fg, const double alpha)
+inline static const byte BlendChannelAdditive(const byte bg, const byte fg, const double a)
+{
+    const double fg_linear = byte_to_linear(fg);
+    const double bg_linear = byte_to_linear(bg);
+    const double r_linear = (fg_linear * a) + bg_linear;
+    return linear_to_byte(r_linear);
+}
+
+inline static const byte ColorBlend(byte *playpal, blendfunc_t blendfunc,
+                                    const byte *bg, const byte *fg,
+                                    const double alpha)
 {
     int blend[3] = {0};
-    blend[r] = BlendChannelNormal(bg[r], fg[r], alpha);
-    blend[g] = BlendChannelNormal(bg[g], fg[g], alpha);
-    blend[b] = BlendChannelNormal(bg[b], fg[b], alpha);
+    blend[r] = blendfunc(bg[r], fg[r], alpha);
+    blend[g] = blendfunc(bg[g], fg[g], alpha);
+    blend[b] = blendfunc(bg[b], fg[b], alpha);
     return I_GetNearestColor(playpal, blend[r], blend[g], blend[b]);
 }
 
@@ -138,7 +158,7 @@ static void CreateTranMapPaletteDir(void)
 // The heart of it all
 //
 
-static byte *GenerateNormalTranmapData(double alpha)
+static byte *GenerateTranmapData(blendfunc_t blendfunc, double alpha)
 {
     byte *playpal = W_CacheLumpName("PLAYPAL", PU_STATIC);
 
@@ -168,7 +188,7 @@ static byte *GenerateNormalTranmapData(double alpha)
             const byte *bg = playpal + 3 * i;
             const byte *fg = playpal + 3 * j;
 
-            *tp++ = ColorBlend_Normal(playpal, bg, fg, alpha);
+            *tp++ = ColorBlend(playpal, blendfunc, bg, fg, alpha);
         }
     }
 
@@ -206,7 +226,7 @@ byte *R_NormalTranMap(int alpha, boolean force)
 
         if (force || !buffer)
         {
-            buffer = GenerateNormalTranmapData(alpha/100.0);
+            buffer = GenerateTranmapData(BlendChannelNormal, alpha/100.0);
             M_WriteFile(filename, buffer, tranmap_lump_length);
         }
 
@@ -235,6 +255,10 @@ void R_InitTranMap(void)
     {
         main_tranmap = R_NormalTranMap(default_tranmap_alpha, true);
     }
+
+    // Some things look better with added luminosity :)
+    main_addimap = strictmode ? main_tranmap
+                 : GenerateTranmapData(BlendChannelAdditive, 1.0);
 
     I_Printf(VB_INFO, "Playpal checksum: %s", playpal_string);
 
