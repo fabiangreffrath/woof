@@ -1571,6 +1571,12 @@ static void D_InitTables(void)
   mobjinfo[MT_SHOTGUY].droppeditem = MT_SHOTGUN;
   mobjinfo[MT_CHAINGUY].droppeditem = MT_CHAINGUN;
 
+  // umapinfo
+  for (i = 0; i < arrlen(actor_names); ++i)
+  {
+      mobjinfo[i].mnemonic = actor_names[i];
+  }
+
   // [crispy] randomly mirrored death animations
   for (i = MT_PLAYER; i <= MT_KEEN; ++i)
   {

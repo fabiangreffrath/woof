@@ -26,11 +26,9 @@
 
 #include <stddef.h>
 
-#include "doomtype.h"
 #include "m_fixed.h"
 #include "p_mobj.h"
 #include "sounds.h"
-#include "w_wad.h"
 
 // ********************************************************************
 // Sprite names
@@ -82,6 +80,44 @@ char *original_sprnames[NUMSPRITES+1] = {
   "SP90", "SP91", "SP92", "SP93", "SP94", "SP95", "SP96", "SP97", "SP98", "SP99",
 
   NULL
+};
+
+// ********************************************************************
+// UMAPINFO MObj Mnemonics
+// ********************************************************************
+const char *const actor_names[NUMMOBJTYPES] =
+{
+    "DoomPlayer", "ZombieMan", "ShotgunGuy", "Archvile", "ArchvileFire",
+    "Revenant", "RevenantTracer", "RevenantTracerSmoke", "Fatso", "FatShot",
+    "ChaingunGuy", "DoomImp", "Demon", "Spectre", "Cacodemon", "BaronOfHell",
+    "BaronBall", "HellKnight", "LostSoul", "SpiderMastermind", "Arachnotron",
+    "Cyberdemon", "PainElemental", "WolfensteinSS", "CommanderKeen",
+    "BossBrain", "BossEye", "BossTarget", "SpawnShot", "SpawnFire",
+    "ExplosiveBarrel", "DoomImpBall", "CacodemonBall", "Rocket", "PlasmaBall",
+    "BFGBall", "ArachnotronPlasma", "BulletPuff", "Blood", "TeleportFog",
+    "ItemFog", "TeleportDest", "BFGExtra", "GreenArmor", "BlueArmor",
+    "HealthBonus", "ArmorBonus", "BlueCard", "RedCard", "YellowCard",
+    "YellowSkull", "RedSkull", "BlueSkull", "Stimpack", "Medikit", "Soulsphere",
+    "InvulnerabilitySphere", "Berserk", "BlurSphere", "RadSuit", "Allmap",
+    "Infrared", "Megasphere", "Clip", "ClipBox", "RocketAmmo", "RocketBox",
+    "Cell", "CellPack", "Shell", "ShellBox", "Backpack", "BFG9000", "Chaingun",
+    "Chainsaw", "RocketLauncher", "PlasmaRifle", "Shotgun", "SuperShotgun",
+    "TechLamp", "TechLamp2", "Column", "TallGreenColumn", "ShortGreenColumn",
+    "TallRedColumn", "ShortRedColumn", "SkullColumn", "HeartColumn", "EvilEye",
+    "FloatingSkull", "TorchTree", "BlueTorch", "GreenTorch", "RedTorch",
+    "ShortBlueTorch", "ShortGreenTorch", "ShortRedTorch", "Stalagtite",
+    "TechPillar", "CandleStick", "Candelabra", "BloodyTwitch", "Meat2", "Meat3",
+    "Meat4", "Meat5", "NonsolidMeat2", "NonsolidMeat4", "NonsolidMeat3",
+    "NonsolidMeat5", "NonsolidTwitch", "DeadCacodemon", "DeadMarine",
+    "DeadZombieMan", "DeadDemon", "DeadLostSoul", "DeadDoomImp",
+    "DeadShotgunGuy", "GibbedMarine", "GibbedMarineExtra", "HeadsOnAStick",
+    "Gibs", "HeadOnAStick", "HeadCandles", "DeadStick", "LiveStick", "BigTree",
+    "BurningBarrel", "HangNoGuts", "HangBNoBrain", "HangTLookingDown",
+    "HangTSkull", "HangTLookingUp", "HangTNoBrain", "ColonGibs",
+    "SmallBloodPool", "BrainStem",
+    // Boom/MBF additions
+    "PointPusher", "PointPuller", "MBFHelperDog", "PlasmaBall1", "PlasmaBall2",
+    "EvilSceptre", "UnholyBible", "MusicChanger",
 };
 
 #include "p_action.h"

@@ -1459,6 +1459,11 @@ typedef enum {
 } splash_group_t;
 
 // ********************************************************************
+// UMAPINFO MObj Mnemonics
+// ********************************************************************
+extern const char *const actor_names[NUMMOBJTYPES];
+
+// ********************************************************************
 // Definition of the Thing structure
 // ********************************************************************
 // Note that these are only indices to the state, sound, etc. arrays
@@ -1519,6 +1524,9 @@ typedef struct
     int ripsound;
     int altspeed;
     int meleerange;
+
+    // umapinfo
+    const char * mnemonic;
 
     // [Woof!]
     int flags_extra;  // Woof!-exclusive extension
