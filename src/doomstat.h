@@ -168,11 +168,7 @@ enum {
 
   MBF21_COMP_TOTAL,
 
-  // Some extra room for additional variables
-  // Splitting COMP_TOTAL, as some comp vars are not written to DEMOs
-  DEMO_COMP_TOTAL = 32,
-
-  COMP_TOTAL,
+  COMP_TOTAL=32  // Some extra room for additional variables,
 };
 
 extern int comp[COMP_TOTAL], default_comp[COMP_TOTAL];

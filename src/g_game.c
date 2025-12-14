@@ -3780,6 +3780,7 @@ static void G_MBFDefaults(void)
   memset(comp, 0, sizeof comp);
 
   comp[comp_zombie] = 1;
+  comp[comp_thingsectorlight] = 1;
 }
 
 static void G_MBF21Defaults(void)
@@ -3794,6 +3795,7 @@ static void G_MBF21Defaults(void)
   comp[comp_friendlyspawn] = 1;
   comp[comp_voodooscroller] = 0;
   comp[comp_reservedlineflag] = 1;
+  comp[comp_thingsectorlight] = 0;
 }
 
 static void G_MBFComp()
@@ -3804,6 +3806,7 @@ static void G_MBFComp()
   comp[comp_friendlyspawn] = 1;
   comp[comp_voodooscroller] = 1;
   comp[comp_reservedlineflag] = 0;
+  comp[comp_thingsectorlight] = 1;
 }
 
 static void G_BoomComp()
@@ -3823,6 +3826,7 @@ static void G_BoomComp()
   comp[comp_friendlyspawn] = 1;
   comp[comp_voodooscroller] = 0;
   comp[comp_reservedlineflag] = 0;
+  comp[comp_thingsectorlight] = 0;
 }
 
 static void CheckDemoParams(boolean specified_complevel)
@@ -4384,7 +4388,7 @@ byte *G_WriteOptions(byte *demo_p)
 
   {   // killough 10/98: a compatibility vector now
     int i;
-    for (i=0; i < DEMO_COMP_TOTAL; i++)
+    for (i=0; i < COMP_TOTAL; i++)
       *demo_p++ = comp[i] != 0;
   }
 
@@ -4451,15 +4455,15 @@ byte *G_ReadOptionsMBF21(byte *demo_p)
     comp[i] = *demo_p++;
 
   // comp_voodooscroller
-  if (count < MBF21_COMP_TOTAL - 3)
+  if (count < 24)
     comp[comp_voodooscroller] = 1;
 
   // comp_reservedlineflag
-  if (count < MBF21_COMP_TOTAL - 2)
+  if (count < 25)
     comp[comp_reservedlineflag] = 0;
 
   // comp_thingsectorlight
-  if (count < MBF21_COMP_TOTAL - 1)
+  if (count < 26)
     comp[comp_thingsectorlight] = 0;
 
   return demo_p;
@@ -4533,7 +4537,7 @@ byte *G_ReadOptions(byte *demo_p)
 
       {   // killough 10/98: a compatibility vector now
 	int i;
-	for (i=0; i < DEMO_COMP_TOTAL; i++)
+	for (i=0; i < COMP_TOTAL; i++)
 	  comp[i] = *demo_p++;
       }
 
@@ -4542,7 +4546,7 @@ byte *G_ReadOptions(byte *demo_p)
   else  // defaults for versions < 2.02
     {
       int i;  // killough 10/98: a compatibility vector now
-      for (i=0; i < DEMO_COMP_TOTAL; i++)
+      for (i=0; i < COMP_TOTAL; i++)
 	comp[i] = compatibility;
 
       if (demo_version == DV_BOOM || demo_version == DV_BOOM201)
