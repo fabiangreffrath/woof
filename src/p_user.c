@@ -47,10 +47,6 @@ static fixed_t PlayerSlope(player_t *player)
   return pitch ? -finetangent[(ANG90 - pitch) >> ANGLETOFINESHIFT] : 0;
 }
 
-// Index of the special effects (INVUL inverse) map.
-
-#define INVERSECOLORMAP 32
-
 //
 // Movement.
 //
@@ -492,7 +488,7 @@ void P_PlayerThink (player_t* player)
 
 	if ((newweapon != wp_plasma && newweapon != wp_bfg)
 	    || (gamemode != shareware) )
-	  player->nextweapon = player->pendingweapon = newweapon;
+	  player->pendingweapon = newweapon;
     }
 
   // check for use
@@ -563,7 +559,7 @@ void P_PlayerThink (player_t* player)
   // invulernability, and the light amp visor used the last colormap.
   // But white flashes occurred when invulnerability wore off.
 
-  if (STRICTMODE(!palette_changes))
+  if (STRICTMODE(palette_changes == PAL_CHANGE_OFF))
   {
     if (player->powers[pw_invulnerability] || player->powers[pw_infrared])
       player->fixedcolormap = 1;

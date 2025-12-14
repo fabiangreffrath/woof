@@ -24,6 +24,7 @@
 #include "m_swap.h"
 #include "r_data.h"
 #include "r_defs.h"
+#include "r_tranmap.h"
 #include "v_fmt.h"
 #include "v_video.h"
 #include "w_wad.h"
@@ -79,6 +80,18 @@ static const char *sbw_names[] =
     [sbw_chat] = "chat",
     [sbw_title] = "level_title",
 };
+
+static crop_t ParseCrop(json_t *json)
+{
+    crop_t crop = {
+        .topoffset = JS_GetIntegerValue(json, "topoffset"),
+        .leftoffset = JS_GetIntegerValue(json, "leftoffset"),
+        .midoffset = JS_GetIntegerValue(json, "midoffset"),
+        .width = JS_GetIntegerValue(json, "width"),
+        .height = JS_GetIntegerValue(json, "height")
+    };
+    return crop;
+}
 
 static boolean ParseSbarElem(json_t *json, sbarelem_t *out);
 
@@ -148,6 +161,7 @@ static boolean ParseSbarElemType(json_t *json, sbarelementtype_t type,
                     return false;
                 }
                 graphic->patch_name = M_StringDuplicate(patch);
+                graphic->crop = ParseCrop(json);
                 out->subtype.graphic = graphic;
             }
             break;
@@ -275,7 +289,15 @@ static boolean ParseSbarElemType(json_t *json, sbarelementtype_t type,
         case sbe_face:
             {
                 sbe_face_t *face = calloc(1, sizeof(*face));
+                face->crop = ParseCrop(json);
                 out->subtype.face = face;
+            }
+            break;
+        case sbe_facebackground:
+            {
+                sbe_facebackground_t *facebackground = calloc(1, sizeof(*facebackground));
+                facebackground->crop = ParseCrop(json);
+                out->subtype.facebackground = facebackground;
             }
             break;
 

@@ -16,26 +16,36 @@
 #ifndef M_ARENA_H
 #define M_ARENA_H
 
-#include <stddef.h>
 #include <stdalign.h>
+#include <stddef.h>
+#include <stdint.h>
 
 typedef struct arena_s arena_t;
 
-#define arena_alloc(a, n, t) (t *)M_ArenaAlloc(a, n, sizeof(t), alignof(t))
+#define arena_alloc(arena, type) \
+    (type *)M_ArenaAlloc(arena, sizeof(type), alignof(type))
 
-void *M_ArenaAlloc(arena_t *arena, size_t count, size_t size, size_t align);
+#define arena_calloc(arena, type) \
+    (type *)M_ArenaCalloc(arena, sizeof(type), alignof(type))
 
-#define arena_free(a, p, t) M_FreeBlock(a, p, sizeof(t), alignof(t))
+#define arena_alloc_num(arena, type, num) \
+    (type *)M_ArenaAlloc(arena, sizeof(type) * (num), alignof(type))
 
-void M_FreeBlock(arena_t *arena, void *ptr, size_t size, size_t align);
+void *M_ArenaAlloc(arena_t *arena, int size, int align);
+void *M_ArenaCalloc(arena_t *arena, int size, int align);
 
-arena_t *M_InitArena(size_t reserve, size_t commit);
-void M_ClearArena(arena_t *arena);
+void arena_free(arena_t *arena, void *ptr);
+
+arena_t *M_ArenaInit(int reserve, int commit);
+void M_ArenaClear(arena_t *arena);
 
 typedef struct arena_copy_s arena_copy_t;
 
-arena_copy_t *M_CopyArena(const arena_t *arena);
-void M_RestoreArena(arena_t *arena, const arena_copy_t *copy);
-void M_FreeArenaCopy(arena_copy_t *copy);
+arena_copy_t *M_ArenaCopy(const arena_t *arena);
+void M_ArenaRestore(arena_t *arena, const arena_copy_t *copy);
+void M_ArenaFreeCopy(arena_copy_t *copy);
+
+struct hashmap_s *M_ArenaHashMap(const arena_t *arena);
+uintptr_t *M_ArenaTable(const arena_t *arena);
 
 #endif

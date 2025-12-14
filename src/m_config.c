@@ -198,6 +198,11 @@ default_t *M_LookupDefault(const char *name)
          dp && strcasecmp(name, dp->name); dp = dp->next)
         ;
 
+    if (!dp)
+    {
+        I_Printf(VB_WARNING, "Unknown config key: %s", name);
+    }
+
     return dp;
 }
 
@@ -661,8 +666,6 @@ void M_LoadOptions(void)
             Z_ChangeTag(options, PU_CACHE);
         }
     }
-
-    MN_Trans();     // reset translucency in case of change
 }
 
 //
@@ -730,23 +733,18 @@ void M_LoadDefaults(void)
     // killough 9/21/98: Print warning if file missing, and use fgets for
     // reading
 
+    I_Printf(VB_INFO, "M_LoadDefaults: Load system defaults.");
+
     if ((f = M_fopen(defaultfile, "r")))
     {
-        char s[256];
+        I_Printf(VB_INFO, " default file: %s", defaultfile);
 
+        char s[256];
         while (fgets(s, sizeof s, f))
         {
             M_ParseOption(s, false);
         }
-    }
 
-    defaults_loaded = true; // killough 10/98
-
-    I_Printf(VB_INFO, "M_LoadDefaults: Load system defaults.");
-
-    if (f)
-    {
-        I_Printf(VB_INFO, " default file: %s", defaultfile);
         fclose(f);
     }
     else
@@ -755,6 +753,8 @@ void M_LoadDefaults(void)
                  " Warning: Cannot read %s -- using built-in defaults",
                  defaultfile);
     }
+
+    defaults_loaded = true; // killough 10/98
 }
 
 boolean M_CheckIfDisabled(const char *name)

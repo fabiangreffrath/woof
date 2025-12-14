@@ -315,6 +315,14 @@ typedef struct mobj_s
     int                 intflags;  // killough 9/15/98: internal flags
     int                 health;
 
+    // Action specials
+    int32_t             id;
+    int32_t             special;
+    int32_t             args[5];
+
+    // Translucency
+    byte*               tranmap;
+
     // Movement direction, movement generation (zig-zagging).
     short               movedir;        // 0-7
     short               movecount;      // when 0, select a new dir
@@ -438,7 +446,6 @@ mobj_t *P_SubstNullMobj(mobj_t *mobj);
 void    P_RespawnSpecials(void);
 mobj_t  *P_SpawnMobj(fixed_t x, fixed_t y, fixed_t z, mobjtype_t type);
 void    P_RemoveMobj(mobj_t *th);
-extern int setmobjstate_recursion;
 boolean P_SetMobjState(mobj_t *mobj, statenum_t state);
 void    P_MobjThinker(mobj_t *mobj);
 void    P_SpawnPuff(fixed_t x, fixed_t y, fixed_t z);

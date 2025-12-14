@@ -21,12 +21,12 @@
 #include "i_printf.h"
 #include "i_video.h"
 #include "info.h"
-#include "m_array.h"
 #include "m_fixed.h"
-#include "mn_menu.h"
 #include "m_misc.h"
+#include "mn_menu.h"
 #include "p_mobj.h"
 #include "r_bmaps.h"
+#include "r_data.h"
 #include "r_defs.h"
 #include "r_draw.h"
 #include "r_main.h"
@@ -316,21 +316,18 @@ void VX_Init (void)
 #define VX_MINZ         (   4 * FRACUNIT)
 #define VX_MAX_DIST     (2048 * FRACUNIT)
 #define VX_MIN_DIST     ( 512 * FRACUNIT)
+#define VX_DIST_STEP    ( 512 * FRACUNIT)
 
 static int vx_max_dist = VX_MAX_DIST;
 
-void VX_IncreaseMaxDist (void)
+void VX_IncreaseMaxDist (int step_multipler)
 {
-	vx_max_dist *= 2;
-	if (vx_max_dist > VX_MAX_DIST)
-		vx_max_dist = VX_MAX_DIST;
+	vx_max_dist = MIN (VX_MAX_DIST, vx_max_dist + VX_DIST_STEP * step_multipler);
 }
 
-void VX_DecreaseMaxDist (void)
+void VX_DecreaseMaxDist (int step_multipler)
 {
-	vx_max_dist /= 2;
-	if (vx_max_dist < VX_MIN_DIST)
-		vx_max_dist = VX_MIN_DIST;
+	vx_max_dist = MAX (VX_MIN_DIST, vx_max_dist - VX_DIST_STEP * step_multipler);
 }
 
 void VX_ResetMaxDist (void)
@@ -499,7 +496,7 @@ static boolean VX_CheckFrustum (fixed_t x1, fixed_t y1, fixed_t x2, fixed_t y2,
 }
 
 
-boolean VX_ProjectVoxel (mobj_t * thing)
+boolean VX_ProjectVoxel(mobj_t *thing, int lightlevel_override)
 {
 	if (!STRICTMODE(voxels_rendering))
 		return false;
@@ -683,7 +680,17 @@ boolean VX_ProjectVoxel (mobj_t * thing)
 	vis->x1 = x1;
 	vis->x2 = x2;
 
+	if (thing->subsector->sector->floorlightsec >= 0)
+	{
+		vis->tint = sectors[thing->subsector->sector->floorlightsec].tint;
+	}
+	else
+	{
+		vis->tint = thing->subsector->sector->tint;
+	}
+
 	// get light level...
+	lighttable_t *thiscolormap = vis->tint ? colormaps[vis->tint] : fullcolormap;
 
 	if (vis->mobjflags & MF_SHADOW)
 	{
@@ -691,20 +698,32 @@ boolean VX_ProjectVoxel (mobj_t * thing)
 	}
 	else if (fixedcolormap != NULL)
 	{
-		vis->colormap[0] = vis->colormap[1] = fixedcolormap;
+		vis->colormap[0] = vis->colormap[1] = thiscolormap + fixedcolormapindex * 256;
 	}
 	else if (thing->frame & FF_FULLBRIGHT)
 	{
-		vis->colormap[0] = vis->colormap[1] = fullcolormap;
+		vis->colormap[0] = vis->colormap[1] = thiscolormap;
 	}
 	else
 	{
 		// diminished light
 		const int index = R_GetLightIndex(xscale);
+		int lightnum = (demo_version >= DV_MBF)
+				? (lightlevel_override >> LIGHTSEGSHIFT)
+				: (thing->subsector->sector->lightlevel >> LIGHTSEGSHIFT);
 
-		vis->colormap[0] = spritelights[index];
-		vis->colormap[1] = fullcolormap;
+		lightnum = CLAMP(lightnum, 0, LIGHTLEVELS - 1);
+		int* spritelightoffsets = &scalelightoffset[MAXLIGHTSCALE * lightnum];
+
+		vis->colormap[0] = thiscolormap + spritelightoffsets[index];
+		vis->colormap[1] = (STRICTMODE(brightmaps) || force_brightmaps)
+				? thiscolormap
+				: dc_colormap[0];
 	}
+
+	// ID24 per-state tranmap
+	// tranmaps do not work with Voxels yet
+	vis->tranmap = NULL;
 
 	vis->brightmap = R_BrightmapForSprite(thing->sprite);
 	vis->color = thing->bloodcolor;
@@ -828,7 +847,7 @@ static void VX_DrawColumn (vissprite_t * spr, int x, int y)
 
 	boolean shadow = ((spr->mobjflags & MF_SHADOW) != 0);
 
-	int linesize = video.pitch;
+	int linesize = video.width;
 	pixel_t * dest = I_VideoBuffer + viewwindowy * linesize + viewwindowx;
 
 	// iterate over screen columns

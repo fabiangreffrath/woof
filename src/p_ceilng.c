@@ -278,7 +278,7 @@ int EV_DoCeiling
   
     // create a new ceiling thinker
     rtn = 1;
-    ceiling = arena_alloc(thinkers_arena, 1, ceiling_t);
+    ceiling = arena_alloc(thinkers_arena, ceiling_t);
     P_AddThinker (&ceiling->thinker);
     sec->ceilingdata = ceiling;               //jff 2/22/98
     ceiling->thinker.function.p1 = T_MoveCeilingAdapter;
@@ -372,7 +372,7 @@ int P_ActivateInStasisCeiling(line_t *line)
   for (cl=activeceilings; cl; cl=cl->next)
   {
     ceiling_t *ceiling = cl->ceiling;
-    if (ceiling->tag == line->tag && ceiling->direction == 0)
+    if (ceiling->tag == line->args[0] && ceiling->direction == 0)
     {
       ceiling->direction = ceiling->olddirection;
       ceiling->thinker.function.p1 = T_MoveCeilingAdapter;
@@ -399,7 +399,7 @@ int EV_CeilingCrushStop(line_t* line)
   for (cl=activeceilings; cl; cl=cl->next)
   {
     ceiling_t *ceiling = cl->ceiling;
-    if (ceiling->direction != 0 && ceiling->tag == line->tag)
+    if (ceiling->direction != 0 && ceiling->tag == line->args[0])
     {
       ceiling->olddirection = ceiling->direction;
       ceiling->direction = 0;
@@ -420,7 +420,7 @@ int EV_CeilingCrushStop(line_t* line)
 //
 void P_AddActiveCeiling(ceiling_t* ceiling)
 {
-  ceilinglist_t *list = arena_alloc(activeceilings_arena, 1, ceilinglist_t);
+  ceilinglist_t *list = arena_alloc(activeceilings_arena, ceilinglist_t);
   list->ceiling = ceiling;
   ceiling->list = list;
   if ((list->next = activeceilings))
@@ -444,7 +444,7 @@ void P_RemoveActiveCeiling(ceiling_t* ceiling)
   P_RemoveCeilingThinker(ceiling);
   if ((*list->prev = list->next))
     list->next->prev = list->prev;
-  arena_free(activeceilings_arena, list, ceilinglist_t);
+  arena_free(activeceilings_arena, list);
 }
 
 //
@@ -461,7 +461,7 @@ void P_RemoveAllActiveCeilings(void)
     ceilinglist_t *next = activeceilings->next;
     activeceilings = next;
   }
-  M_ClearArena(activeceilings_arena);
+  M_ArenaClear(activeceilings_arena);
 }
 
 //----------------------------------------------------------------------------

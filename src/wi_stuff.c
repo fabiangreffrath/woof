@@ -823,9 +823,11 @@ static void WI_drawEL(void)
     {
         patch_t *patch = V_CachePatchName(mapinfo->levelpic, PU_CACHE);
 
+        // If the levelpic graphics lump is not fullscreen,
+        // draw it right below the "entering" graphics lump
         if (SHORT(patch->height) < SCREENHEIGHT)
         {
-            y += (5 * SHORT(patch->height)) / 4;
+            y += (5 * SHORT(entering->height)) / 4;
         }
 
         V_DrawPatch((SCREENWIDTH - SHORT(patch->width)) / 2, y, patch);
@@ -1159,48 +1161,43 @@ WI_drawPercent
 //          t      -- the time value to be drawn
 // Returns: void
 //
-static void
-WI_drawTime
-( int   x,
-  int   y,
-  int   t,
-  boolean suck )
+static void WI_drawTime(int x, int y, int seconds, boolean suck)
 {
-  
-  int   div;
-  int   n;
-
-  if (t<0)
-    return;
-
-  // [FG] total time for all levels never "sucks"
-  if (t <= 61*59 || !suck)  // otherwise known as 60*60 -1 == 3599
+    if (seconds < 0)
     {
-      div = 1;
-
-      do
-        {
-          n = (t / div) % 60;
-          x = WI_drawNum(x, y, n, 2) - SHORT(colon->width);
-          div *= 60;
-
-          // draw
-          if (div==60 || t / div)
-            V_DrawPatch(x, y, colon);
-      
-        } 
-      while (t / div && div < 3600);
-
-      // [FG] print at most in hhhh:mm:ss format
-      if ((n = (t / div)))
-      {
-        WI_drawNum(x, y, n, -1);
-      }
+        return;
     }
-  else
+
+    const int hours = seconds / 3600;
+
+    // [FG] total time for all levels never "sucks"
+    // Updated to match PrBoom's 100 hours, instead of vanilla's 1 hour
+    if (suck && hours >= 100)
     {
-      // "sucks"
-      V_DrawPatch(x - SHORT(sucks->width), y, sucks); 
+        // "sucks"
+        V_DrawPatch(x - SHORT(sucks->width), y, sucks);
+        return;
+    }
+
+    seconds -= hours * 3600;
+    const int minutes = seconds / 60;
+    seconds -= minutes * 60;
+
+    const short colon_width = SHORT(colon->width);
+
+    x = WI_drawNum(x, y, seconds, 2) - colon_width;
+    V_DrawPatch(x, y, colon);
+
+    // [FG] print at most in hhhh:mm:ss format
+    if (hours)
+    {
+        x = WI_drawNum(x, y, minutes, 2) - colon_width;
+        V_DrawPatch(x, y, colon);
+        WI_drawNum(x, y, hours, -1);
+    }
+    else if (minutes)
+    {
+        WI_drawNum(x, y, minutes, -1);
     }
 }
 
@@ -1210,10 +1207,15 @@ WI_drawTime
 // Args:    none
 // Returns: void
 //
+
+static boolean wi_inited = false;
+
 static void WI_unloadData(void)
 {
   int   i;
   int   j;
+
+  wi_inited = false;
 
   if (wiminus)
   Z_ChangeTag(wiminus, PU_CACHE);
@@ -1323,6 +1325,7 @@ static void WI_updateNoState(void)
 
 static boolean    snl_pointeron = false;
 
+static void WI_loadData(void);
 
 // ====================================================================
 // WI_initShowNextLoc
@@ -1347,8 +1350,6 @@ static void WI_initShowNextLoc(void)
       // episode change
       if (wbs->epsd != wbs->nextep)
       {
-          void WI_loadData(void);
-
           wbs->epsd = wbs->nextep;
           wbs->last = wbs->next - 1;
           WI_loadData();
@@ -1721,6 +1722,61 @@ static void WI_drawDeathmatchStats(void)
     }
 }
 
+static void WI_overlayDeathmatchStats(void)
+{
+    V_DrawPatch(DM_TOTALSX - SHORT(total->width) / 2,
+                DM_MATRIXY - WI_SPACINGY + 10, total);
+    V_DrawPatch(DM_KILLERSX, DM_KILLERSY, killers);
+    V_DrawPatch(DM_VICTIMSX, DM_VICTIMSY, victims);
+
+    int x = DM_MATRIXX + DM_SPACINGX;
+    int y = DM_MATRIXY;
+    const int w = SHORT(num[0]->width);
+
+    for (int i = 0; i < MAXPLAYERS; i++)
+    {
+        int x2 = DM_MATRIXX + DM_SPACINGX;
+
+        if (playeringame[i])
+        {
+            V_DrawPatch(x - SHORT(p[i]->width) / 2, DM_MATRIXY - WI_SPACINGY,
+                        p[i]);
+
+            V_DrawPatch(DM_MATRIXX - SHORT(p[i]->width) / 2, y, p[i]);
+
+            if (i == displayplayer)
+            {
+                V_DrawPatch(x - SHORT(p[i]->width) / 2,
+                            DM_MATRIXY - WI_SPACINGY, bstar);
+
+                V_DrawPatch(DM_MATRIXX - SHORT(p[i]->width) / 2, y, star);
+            }
+
+            int totals = 0;
+
+            for (int j = 0; j < MAXPLAYERS; j++)
+            {
+                if (playeringame[j])
+                {
+                    WI_drawNum(x2 + w, y + 10, CLAMP(players[i].frags[j], -999, 999), 2);
+
+                    if (i != j)
+                    {
+                        totals += players[i].frags[j];
+                    }
+                    else
+                    {
+                        totals -= players[i].frags[j];
+                    }
+                }
+                x2 += DM_SPACINGX;
+            }
+            WI_drawNum(DM_TOTALSX + w, y + 10, CLAMP(totals, -999, 999), 2);
+        }
+        x += DM_SPACINGX;
+        y += WI_SPACINGY;
+    }
+}
 
 //
 // Note: The term "Netgame" means a coop game
@@ -1998,6 +2054,67 @@ static void WI_drawNetgameStats(void)
     }
 }
 
+static void WI_overlayNetgameStats(void)
+{
+    dofrags = false;
+
+    V_DrawPatch(NG_STATSX + NG_SPACINGX - SHORT(kills->width), NG_STATSY,
+                kills);
+    V_DrawPatch(NG_STATSX + 2 * NG_SPACINGX - SHORT(items->width), NG_STATSY,
+                items);
+    V_DrawPatch(NG_STATSX + 3 * NG_SPACINGX - SHORT(secret->width), NG_STATSY,
+                secret);
+
+    const int pwidth = SHORT(percent->width);
+    int y = NG_STATSY + SHORT(kills->height);
+
+    for (int i = 0; i < MAXPLAYERS; i++)
+    {
+        if (!playeringame[i])
+        {
+            continue;
+        }
+
+        int x = NG_STATSX;
+        V_DrawPatch(x - SHORT(p[i]->width), y, p[i]);
+
+        if (i == displayplayer)
+        {
+            V_DrawPatch(x - SHORT(p[i]->width), y, star);
+        }
+
+        x += NG_SPACINGX;
+        WI_drawPercent(x - pwidth, y + 10, 100 * players[i].killcount / (totalkills ? totalkills : 1));
+        x += NG_SPACINGX;
+        WI_drawPercent(x - pwidth, y + 10, 100 * players[i].itemcount / (totalitems ? totalitems : 1));
+        x += NG_SPACINGX;
+        WI_drawPercent(x - pwidth, y + 10, totalsecret ? (100 * players[i].secretcount / totalsecret) : 100);
+
+        y += WI_SPACINGY;
+    }
+}
+
+boolean wi_overlay = false;
+
+void WI_drawOverlayStats(void)
+{
+    if (!wi_inited)
+    {
+        WI_loadData();
+    }
+
+    V_ShadeScreen();
+
+    if (deathmatch)
+    {
+        WI_overlayDeathmatchStats();
+    }
+    else if (netgame)
+    {
+        WI_overlayNetgameStats();
+    }
+}
+
 static int  sp_state;
 
 // ====================================================================
@@ -2195,7 +2312,10 @@ static void WI_drawStats(void)
   const boolean wide_time = (wide_total && !draw_partime);
 
   V_DrawPatch(SP_TIMEX, SP_TIMEY, witime);
-  WI_drawTime((wide_time ? SCREENWIDTH : SCREENWIDTH/2) - SP_TIMEX,
+  // Why add a hardcoded +8 you ask?
+  // in oder to allow >1h long times, some minor alignment shifting is needed
+  // i.e. PrBoom switched SP_TIMEX to 8, instead of vanilla's 16
+  WI_drawTime((wide_time ? (SCREENWIDTH - SP_TIMEX) : (SCREENWIDTH/2 + 8)),
               SP_TIMEY, cnt_time, true);
 
   // Ty 04/11/98: redid logic: should skip only if with pwad but 
@@ -2211,7 +2331,7 @@ static void WI_drawStats(void)
 
   // [FG] draw total time alongside level time and par time
   V_DrawPatch(SP_TIMEX, SP_TIMEY + 16, total);
-  WI_drawTime((wide_total ? SCREENWIDTH : SCREENWIDTH/2) - SP_TIMEX,
+  WI_drawTime((wide_total ? (SCREENWIDTH - SP_TIMEX) : (SCREENWIDTH/2 + 8)),
               SP_TIMEY + 16, cnt_total_time, false);
 }
 
@@ -2304,7 +2424,7 @@ void WI_Ticker(void)
 // Args:    none
 // Returns: void
 //
-void WI_loadData(void)
+static void WI_loadData(void)
 {
   int   i,j;
   char name[32];
@@ -2474,6 +2594,8 @@ void WI_loadData(void)
       M_snprintf(name, sizeof(name), "WIBP%d", i + 1);
       bp[i] = V_CachePatchName(name, PU_STATIC);
     }
+
+  wi_inited = true;
 }
 
 // ====================================================================
@@ -2621,6 +2743,8 @@ void WI_Start(wbstartstruct_t* wbstartstruct)
       WI_initNetgameStats();
     else
       WI_initStats();
+
+  wi_overlay = false;
 }
 
 

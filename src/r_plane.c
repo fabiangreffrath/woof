@@ -3,6 +3,7 @@
 //  id Software, Chi Hoang, Lee Killough, Jim Flynn, Rand Phares, Ty Halderman
 //  Copyright (C) 2006-2025 by
 //  The Odamex Team.
+//  Copyright (C) 2020 by Ethan Watson
 //  Copyright (C) 2025 by
 //  Fabian Greffrath, Roman Fomin, Guilherme Miranda
 //
@@ -54,6 +55,7 @@
 #include "r_sky.h"
 #include "r_skydefs.h"
 #include "r_state.h"
+#include "r_tranmap.h"
 #include "r_swirl.h" // [crispy] R_DistortedFlat()
 #include "tables.h"
 #include "v_fmt.h"
@@ -71,8 +73,9 @@ visplane_t *floorplane, *ceilingplane;
 // killough -- hash function for visplanes
 // Empirically verified to be fairly uniform:
 
-#define visplane_hash(picnum,lightlevel,height) \
-  (((unsigned)(picnum)*3+(unsigned)(lightlevel)+(unsigned)(height)*7) & (MAXVISPLANES-1))
+// added sector tinting, adapted from Doom Retro
+#define visplane_hash(picnum, lightlevel, height, tint) \
+  (((unsigned)(picnum) * 3 + (unsigned)(lightlevel) + (unsigned)(height) * 7 + (unsigned)(tint) * 11) & (MAXVISPLANES - 1))
 
 // killough 8/1/98: set static number of openings to be large enough
 // (a static limit is okay in this case and avoids difficulties in r_segs.c)
@@ -93,7 +96,6 @@ static int *spanstart = NULL;                // killough 2/8/98
 // texture mapping
 //
 
-static lighttable_t **planezlight;
 static fixed_t planeheight;
 
 // killough 2/8/98: make variables static
@@ -177,10 +179,11 @@ void R_InitVisplanesRes(void)
 // BASIC PRIMITIVE
 //
 
-static void R_MapPlane(int y, int x1, int x2)
+static void R_MapPlane(int y, int x1, int x2, lighttable_t *thiscolormap)
 {
   fixed_t distance;
-  unsigned index;
+  unsigned lookup;
+  int lightindex;
   int dx;
   fixed_t dy;
 
@@ -224,14 +227,24 @@ static void R_MapPlane(int y, int x1, int x2)
   ds_xfrac = viewx_trans + FixedMul(angle_cos, distance) + dx * ds_xstep;
   ds_yfrac = viewy_trans - FixedMul(angle_sin, distance) + dx * ds_ystep;
 
-  if (!(ds_colormap[0] = ds_colormap[1] = fixedcolormap))
-    {
-      index = distance >> LIGHTZSHIFT;
-      if (index >= MAXLIGHTZ )
-        index = MAXLIGHTZ-1;
-      ds_colormap[0] = planezlight[index];
-      ds_colormap[1] = fullcolormap;
-    }
+  // ID24 per-sector colormaps
+  if (fixedcolormapindex)
+  {
+    ds_colormap[0] = thiscolormap + fixedcolormapindex * 256;
+    ds_colormap[1] = (STRICTMODE(brightmaps) || force_brightmaps)
+                      ? thiscolormap
+                      : ds_colormap[0];
+  }
+  else
+  {
+    lookup = distance >> LIGHTZSHIFT;
+    lookup = CLAMP(lookup, 0, MAXLIGHTZ - 1);
+    lightindex = zlightindex[planezlightindex * MAXLIGHTZ + lookup];
+    ds_colormap[0] = thiscolormap + lightindex * 256;
+    ds_colormap[1] = (STRICTMODE(brightmaps) || force_brightmaps)
+                      ? thiscolormap
+                      : ds_colormap[0];
+  }
 
   ds_y = y;
   ds_x1 = x1;
@@ -286,7 +299,7 @@ static visplane_t *new_visplane(unsigned hash)
 
 visplane_t *R_DupPlane(const visplane_t *pl, int start, int stop)
 {
-    unsigned hash = visplane_hash(pl->picnum, pl->lightlevel, pl->height);
+    unsigned hash = visplane_hash(pl->picnum, pl->lightlevel, pl->height, pl->tint);
     visplane_t *new_pl = new_visplane(hash);
 
     new_pl->height = pl->height;
@@ -297,6 +310,7 @@ visplane_t *R_DupPlane(const visplane_t *pl, int start, int stop)
     new_pl->rotation = pl->rotation;
     new_pl->minx = start;
     new_pl->maxx = stop;
+    new_pl->tint = pl->tint;
     memset(new_pl->top, UCHAR_MAX, video.width * sizeof(*new_pl->top));
 
     return new_pl;
@@ -308,15 +322,17 @@ visplane_t *R_DupPlane(const visplane_t *pl, int start, int stop)
 // killough 2/28/98: Add offsets
 
 visplane_t *R_FindPlane(fixed_t height, int picnum, int lightlevel,
-                        fixed_t xoffs, fixed_t yoffs, angle_t rotation)
+                        fixed_t xoffs, fixed_t yoffs, angle_t rotation,
+                        int tint)
 {
   visplane_t *check;
   unsigned hash;                      // killough
 
   if (picnum == NO_TEXTURE)
-    return NULL;
-
-  if (picnum == skyflatnum || picnum & PL_SKYFLAT)  // killough 10/98
+  {
+    lightlevel = 255;
+  }
+  else if (picnum == skyflatnum || picnum & PL_SKYFLAT)  // killough 10/98
   {
     lightlevel = 0;   // killough 7/19/98: most skies map together
 
@@ -330,7 +346,7 @@ visplane_t *R_FindPlane(fixed_t height, int picnum, int lightlevel,
   }
 
   // New visplane algorithm uses hash table -- killough
-  hash = visplane_hash(picnum,lightlevel,height);
+  hash = visplane_hash(picnum,lightlevel,height,tint);
 
   for (check=visplanes[hash]; check; check=check->next)  // killough
     if (height == check->height &&
@@ -338,7 +354,8 @@ visplane_t *R_FindPlane(fixed_t height, int picnum, int lightlevel,
         lightlevel == check->lightlevel &&
         xoffs == check->xoffs &&      // killough 2/28/98: Add offset checks
         yoffs == check->yoffs &&
-        rotation == check->rotation)
+        rotation == check->rotation &&
+        tint == check->tint)
       return check;
 
   check = new_visplane(hash);         // killough
@@ -351,6 +368,7 @@ visplane_t *R_FindPlane(fixed_t height, int picnum, int lightlevel,
   check->xoffs = xoffs;               // killough 2/28/98: Save offsets
   check->yoffs = yoffs;
   check->rotation = rotation;
+  check->tint = tint;
 
   memset(check->top, UCHAR_MAX, video.width * sizeof(*check->top));
 
@@ -389,12 +407,14 @@ visplane_t *R_CheckPlane(visplane_t *pl, int start, int stop)
 // R_MakeSpans
 //
 
-static void R_MakeSpans(int x, unsigned int t1, unsigned int b1, unsigned int t2, unsigned int b2) // [FG] 32-bit integer math
+// [FG] 32-bit integer math
+static void R_MakeSpans(int x, unsigned int t1, unsigned int b1,
+                        unsigned int t2, unsigned int b2, lighttable_t *colormap)
 {
   for (; t1 < t2 && t1 <= b1; t1++)
-    R_MapPlane(t1, spanstart[t1], x-1);
+    R_MapPlane(t1, spanstart[t1], x-1, colormap);
   for (; b1 > b2 && b1 >= t1; b1--)
-    R_MapPlane(b1, spanstart[b1] ,x-1);
+    R_MapPlane(b1, spanstart[b1] ,x-1, colormap);
   while (t2 < t1 && t2 <= b2)
     spanstart[t2++] = x;
   while (b2 > b1 && b2 >= t2)
@@ -518,38 +538,45 @@ static void do_draw_plane(visplane_t *pl)
         return;
     }
 
-    // sky flat
+    boolean swirling = false;
 
-    if (pl->picnum == skyflatnum)
+    if (pl->picnum != NO_TEXTURE)
     {
-        DrawSkyDef(pl, levelskies);
-        return;
-    }
+        // sky flat
 
-    if (pl->picnum & PL_SKYFLAT)
-    {
-        sky_t *const sky = R_GetLevelsky(pl->picnum & ~PL_SKYFLAT);
-        DrawSkyDef(pl, sky);
-        return;
-    }
+        if (pl->picnum == skyflatnum)
+        {
+            DrawSkyDef(pl, levelskies);
+            return;
+        }
 
-    // regular flat
+        if (pl->picnum & PL_SKYFLAT)
+        {
+            sky_t *const sky = R_GetLevelsky(pl->picnum & ~PL_SKYFLAT);
+            DrawSkyDef(pl, sky);
+            return;
+        }
 
-    int stop, light;
-    boolean swirling = (flattranslation[pl->picnum] == -1);
+        // regular flat
 
-    // [crispy] add support for SMMU swirling flats
-    if (swirling)
-    {
-        ds_source = R_DistortedFlat(firstflat + pl->picnum);
-        ds_brightmap = R_BrightmapForFlatNum(pl->picnum);
+        swirling = (flattranslation[pl->picnum] == -1);
+
+        // [crispy] add support for SMMU swirling flats
+        if (swirling)
+        {
+            ds_source = R_DistortedFlat(firstflat + pl->picnum);
+            ds_brightmap = R_BrightmapForFlatNum(pl->picnum);
+        }
+        else
+        {
+            ds_source = V_CacheFlatNum(firstflat + flattranslation[pl->picnum],
+                                       PU_STATIC);
+            ds_brightmap = R_BrightmapForFlatNum(flattranslation[pl->picnum]);
+        }
     }
     else
     {
-        ds_source = V_CacheFlatNum(
-            firstflat + flattranslation[pl->picnum], PU_STATIC);
-        ds_brightmap =
-            R_BrightmapForFlatNum(flattranslation[pl->picnum]);
+        ds_source = R_MissingFlat();
     }
 
     xoffs = pl->xoffs; // killough 2/28/98: Add offsets
@@ -562,18 +589,19 @@ static void do_draw_plane(visplane_t *pl)
 
     if (pl->rotation == 0)
     {
-      viewx_trans = xoffs + viewx;
-      viewy_trans = yoffs - viewy;
+        viewx_trans = xoffs + viewx;
+        viewy_trans = yoffs - viewy;
     }
     else
     {
-      const fixed_t sin = finesine[pl->rotation >> ANGLETOFINESHIFT];
-      const fixed_t cos = finecosine[pl->rotation >> ANGLETOFINESHIFT];
+        const fixed_t sin = finesine[pl->rotation >> ANGLETOFINESHIFT];
+        const fixed_t cos = finecosine[pl->rotation >> ANGLETOFINESHIFT];
 
-      viewx_trans =   FixedMul(viewx + xoffs, cos) - FixedMul(viewy - yoffs, sin);
-      viewy_trans = -(FixedMul(viewx + xoffs, sin) + FixedMul(viewy - yoffs, cos));
+        viewx_trans = xoffs + FixedMul(viewx, cos) - FixedMul(viewy, sin);
+        viewy_trans = yoffs - (FixedMul(viewx, sin) + FixedMul(viewy, cos));
     }
 
+    int stop, light;
     planeheight = abs(pl->height - viewz);
     light = (pl->lightlevel >> LIGHTSEGSHIFT) + extralight;
 
@@ -588,13 +616,16 @@ static void do_draw_plane(visplane_t *pl)
     }
 
     stop = pl->maxx + 1;
-    planezlight = zlight[light];
     pl->top[pl->minx - 1] = pl->top[stop] = USHRT_MAX;
+
+    planezlightindex = light;
+    planezlightoffset = &zlightoffset[light * MAXLIGHTZ];
+    lighttable_t *thiscolormap = pl->tint ? colormaps[pl->tint] : fullcolormap;
 
     for (int x = pl->minx; x <= stop; x++)
     {
         R_MakeSpans(x, pl->top[x - 1], pl->bottom[x - 1], pl->top[x],
-                    pl->bottom[x]);
+                    pl->bottom[x], thiscolormap);
     }
 
     if (!swirling)

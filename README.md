@@ -51,12 +51,13 @@ If you turn the [Doom logo upside down](https://www.reddit.com/r/Doom/comments/8
 
 ## Capabilities
 
- * Support for extended nodes in uncompressed XNOD or XGLN and compressed ZNOD or ZGLN formats, and DeePBSP format.
+ * Support for additional node types, including DeePBSP and ZDoom's XNOD/ZNOD, XGLN/ZGLN, XGL2/ZGL2 & XGL3/ZGL3 extended formats.
  * Integration of the NanoBSP node builder (enforce with `-bsp`) for maps without nodes or with unsupported nodes (not demo compatible).
  * Tall textures and sprites in DeePsea format.
+ * Support for UDMF maps, in the "Doom" namespace, compliant with version 1.1 of the [spec](https://github.com/fabiangreffrath/woof/blob/master/docs/udmf11.txt).
  * Unlimited extra states, sprites, mobjtypes and sounds for use in Dehacked patches (supporting the "DEHEXTRA" and "DSDHacked" specs).
  * Ambient sounds using SNDINFO and DoomEdNums 14001 to 14064.
- * In-game music changing using MUSINFO.
+ * In-game music changing using MUSINFO and DoomEdNums 14101 to 14164.
  * UMAPINFO support, compliant to Rev 2.2 of the [spec](https://github.com/kraflab/umapinfo).
  * MBF21 compatibility level, compliant to Rev 1.4 of the [spec](https://github.com/kraflab/mbf21).
  * Support for PNG graphics.
@@ -78,55 +79,64 @@ The most recent list of changes can be found in the current [Changelog](https://
 
 The Woof! source code is available at GitHub: <https://github.com/fabiangreffrath/woof>.
 
-It can be cloned via
+## Building with vcpkg (Recommended - All Platforms)
+
+Install vcpkg <https://github.com/Microsoft/vcpkg?tab=readme-ov-file#get-started>.
+```
+ git clone https://github.com/Microsoft/vcpkg.git
+ cd vcpkg
+ ./bootstrap-vcpkg.sh  # Unix/macOS
+ # or
+ .\bootstrap-vcpkg.bat  # Windows
+ cd ..
+```
+
+Clone the woof repository:
 
 ```
  git clone https://github.com/fabiangreffrath/woof.git
-```
-
-## Linux, and Windows with MSYS2
-
-The following build system and libraries need to be installed:
- 
- * [CMake](https://cmake.org) (>= 3.15)
- * [SDL2](https://github.com/libsdl-org/SDL/tree/SDL2) (>= 2.0.18)
- * [openal-soft](https://github.com/kcat/openal-soft) (>= 1.22.0 for PC Speaker emulation)
- * [libsndfile](https://github.com/libsndfile/libsndfile) (>= 1.1.0 for MPEG support)
- * [libebur128](https://github.com/jiixyj/libebur128) (>= 1.2.0)
- * [yyjson](https://github.com/ibireme/yyjson) (>= 0.10.0, optional)
- * [fluidsynth](https://github.com/FluidSynth/fluidsynth) (>= 2.2.0, optional)
- * [libxmp](https://github.com/libxmp/libxmp) (optional)
- 
-Usually your distribution should have the corresponding packages in its repositories, and if your distribution has "dev" versions of those libraries, those are the ones you'll need.
-
-Once installed, compilation should be as simple as:
-
-```
- cd woof
- mkdir build; cd build
- cmake ..
- make
-```
-
-After successful compilation the resulting binary can be found in the `src/` directory.
-
-## Windows with Visual Studio
-
-Visual Studio 2019 and [VSCode](https://code.visualstudio.com/) comes with built-in support for CMake by opening the source tree as a folder.
-
-Install vcpkg <https://github.com/Microsoft/vcpkg?tab=readme-ov-file#get-started>. 
+``` 
 
 Run the CMake configuration:
 ```
  cd woof
  cmake -B build -DCMAKE_TOOLCHAIN_FILE="[path to vcpkg]/scripts/buildsystems/vcpkg.cmake"
 ```
-During this step, vcpkg will build all the dependencies. To enable FluidSynth add `-DWITH_FLUIDSYNTH=ON` option.
+During this step, vcpkg will build all the dependencies.
 
-Build the project:
+Finally, build the project:
 ```
  cmake --build build
 ```
+
+After successful compilation, the executable will be available in the `build/src` directory.
+
+## Linux, and Windows with MSYS2
+
+The following build system and libraries need to be installed:
+ 
+ * [CMake](https://cmake.org) (>= 3.15)
+ * [SDL3](https://github.com/libsdl-org/SDL) (>= 3.3.0)
+ * [openal-soft](https://github.com/kcat/openal-soft) (>= 1.22.0 for PC Speaker emulation)
+ * [libsndfile](https://github.com/libsndfile/libsndfile) (>= 1.1.0 for MPEG support)
+ * [libebur128](https://github.com/jiixyj/libebur128) (>= 1.2.0)
+ * [yyjson](https://github.com/ibireme/yyjson) (>= 0.10.0, optional)
+ * [fluidsynth](https://github.com/FluidSynth/fluidsynth) (>= 2.2.0, optional)
+ * [libxmp](https://github.com/libxmp/libxmp) (optional)
+ * [discord-rpc](https://github.com/discord/discord-rpc) (optional)
+ 
+Usually your distribution should have the corresponding packages in its repositories. If "development" ("dev") versions of these libraries are available, make sure to install them.
+
+Once installed, clone the woof repository, run the CMake configuration and build the project:
+
+```
+ git clone https://github.com/fabiangreffrath/woof.git
+ cd woof
+ cmake -B build
+ cmake --build build
+```
+
+After successful compilation, the executable will be available in the `build/src` directory.
 
 # Contact
 
@@ -162,8 +172,10 @@ Copyright:
  © 2006-2025 by The Odamex Team;  
  © 2007-2011 Moritz "Ripper" Kroll;  
  © 2008-2019 Simon Judd;  
+ © 2013-2025 Brad Harding;  
  © 2017 Christoph Oelckers;  
  © 2020 Alex Mayfield;  
+ © 2020 Ethan Watson;  
  © 2020-2024 Fabian Greffrath;  
  © 2020-2024 Roman Fomin;  
  © 2021-2022 Ryan Krafnick;  
@@ -190,6 +202,11 @@ Files: `src/m_scanner.*`
 Copyright:  
  © 2015 Braden "Blzut3" Obrzut.  
 License: [BSD-3-Clause](https://opensource.org/licenses/BSD-3-Clause)
+
+Files: `src/r_srgb.*`  
+Copyright:  
+ © 2017 Project Nayuki.  
+License: [MIT](https://opensource.org/licenses/MIT)
 
 Files: `src/v_flextran.*`  
 Copyright:  
@@ -225,11 +242,6 @@ Copyright:
  © 2017 Shannon Freeman.  
 License: [MIT](https://github.com/sneakernets/DMXOPL/blob/DMXOPL3/LICENSE)
 
-Files: `cmake/FindSDL2.cmake`  
-Copyright:  
- © 2018 Alex Mayfield.  
-License: [BSD-3-Clause](https://opensource.org/licenses/BSD-3-Clause)
-
 Files: `base/all-all/sm*.png, data/setup.ico, data/woof-setup.png, data/woof.ico, data/woof.png, setup/setup_icon.c, src/icon.c`  
 Copyright:  
  © 2020-2024 Julia Nechaevskaya.  
@@ -259,14 +271,24 @@ Copyright:
  © 2005-2017 Simon Howard.  
 License: [GPL-2.0+](https://www.gnu.org/licenses/old-licenses/gpl-2.0.html)
 
+Files: `textscreen/fonts/hauge-8x18-v1-5.png`  
+Copyright:  
+ © 2025 Zokum.  
+License: [CC BY-SA](https://creativecommons.org/licenses/by-sa/4.0/)
+
 Files: `netlib/*`  
 Copyright:  
  © 1997-2025 Sam Lantinga;  
- © 2012 Simeon Maxein.    
+ © 2012 Simeon Maxein.  
 License: [zlib](https://opensource.org/license/zlib)
 
 Files: `third-party/md5/*`  
 License: public-domain
+
+Files: `third-party/minimp3/*`  
+Copyright:  
+ © 2021 lief.  
+License: [CC0-1.0](https://creativecommons.org/publicdomain/zero/1.0/)
 
 Files: `third-party/miniz/*`  
 Copyright:  
@@ -294,9 +316,4 @@ License: [BSD-2-Clause](https://opensource.org/license/bsd-2-clause)
 Files: `third-party/yyjson/*`  
 Copyright:  
  © 2020 YaoYuan.  
-License: [MIT](https://opensource.org/licenses/MIT)
-
-Files: `win32/win_opendir.*`  
-Copyright:  
- © 2019 win32ports.  
 License: [MIT](https://opensource.org/licenses/MIT)

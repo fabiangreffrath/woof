@@ -54,6 +54,7 @@
 #include "r_main.h"
 #include "r_plane.h" // [FG] R_InitPlanes()
 #include "r_sky.h"   // [FG] R_UpdateStretchSkies()
+#include "r_tranmap.h"
 #include "r_voxel.h"
 #include "s_sound.h"
 #include "s_trakinfo.h"
@@ -352,6 +353,7 @@ enum
     str_curve,
     str_center_weapon,
     str_screensize,
+    str_hud_anchoring,
     str_show_widgets,
     str_show_adv_widgets,
     str_stats_format,
@@ -390,6 +392,7 @@ enum
     str_widescreen,
     str_bobbing_pct,
     str_screen_melt,
+    str_palette_changes,
     str_invul_mode,
     str_skill,
     str_freelook
@@ -1256,7 +1259,7 @@ static void DrawInstructions(void)
     {
         if (pad)
         {
-            second = M_GetPlatformName(GAMEPAD_B);
+            second = M_GetPlatformName(gamepad_cancel);
         }
         else
         {
@@ -1279,8 +1282,8 @@ static void DrawInstructions(void)
         {
             if (pad)
             {
-                first = M_GetPlatformName(GAMEPAD_A);
-                second = M_GetPlatformName(GAMEPAD_B);
+                first = M_GetPlatformName(gamepad_confirm);
+                second = M_GetPlatformName(gamepad_cancel);
             }
             else
             {
@@ -1295,7 +1298,7 @@ static void DrawInstructions(void)
         {
             if (pad)
             {
-                second = M_GetPlatformName(GAMEPAD_B);
+                second = M_GetPlatformName(gamepad_cancel);
             }
             else
             {
@@ -1317,8 +1320,8 @@ static void DrawInstructions(void)
         {
             if (pad)
             {
-                first = M_GetPlatformName(GAMEPAD_A);
-                second = M_GetPlatformName(GAMEPAD_B);
+                first = M_GetPlatformName(gamepad_confirm);
+                second = M_GetPlatformName(gamepad_cancel);
             }
             else
             {
@@ -1335,8 +1338,8 @@ static void DrawInstructions(void)
         {
             if (pad)
             {
-                first = M_GetPlatformName(GAMEPAD_A);
-                second = M_GetPlatformName(GAMEPAD_Y);
+                first = M_GetPlatformName(gamepad_confirm);
+                second = M_GetPlatformName(GAMEPAD_NORTH);
             }
             else
             {
@@ -1351,7 +1354,7 @@ static void DrawInstructions(void)
         {
             if (pad)
             {
-                first = M_GetPlatformName(GAMEPAD_A);
+                first = M_GetPlatformName(gamepad_confirm);
             }
             else
             {
@@ -1364,8 +1367,8 @@ static void DrawInstructions(void)
         {
             if (pad)
             {
-                first = M_GetPlatformName(GAMEPAD_A);
-                second = M_GetPlatformName(GAMEPAD_B);
+                first = M_GetPlatformName(gamepad_confirm);
+                second = M_GetPlatformName(gamepad_cancel);
             }
             else
             {
@@ -1478,6 +1481,7 @@ static setup_menu_t keys_settings3[] = {
     {"Default Speed",   S_INPUT, KB_X, M_SPC, {0}, m_scrn, input_speed_default},
     MI_GAP,
     {"Begin Chat",      S_INPUT, KB_X, M_SPC, {0}, m_scrn, input_chat},
+    {"Show Netgame Stats", S_INPUT, KB_X, M_SPC, {0}, m_scrn, input_netgame_stats},
     MI_END
 };
 
@@ -1683,7 +1687,6 @@ static char slot_labels[NUM_WS_SLOTS * NUM_WS_WEAPS][WS_BUF_SiZE];
 static void UpdateWeaponSlotLabels(void)
 {
     const char *keys[NUM_WS_SLOTS];
-    int buttons[NUM_WS_SLOTS];
 
     switch (WS_Selection())
     {
@@ -1695,11 +1698,10 @@ static void UpdateWeaponSlotLabels(void)
             break;
 
         case WS_SELECT_FACE_BUTTONS:
-            I_GetFaceButtons(buttons);
-            keys[0] = M_GetPlatformName(buttons[0]);
-            keys[1] = M_GetPlatformName(buttons[1]);
-            keys[2] = M_GetPlatformName(buttons[2]);
-            keys[3] = M_GetPlatformName(buttons[3]);
+            keys[0] = M_GetPlatformName(GAMEPAD_NORTH);
+            keys[1] = M_GetPlatformName(GAMEPAD_SOUTH);
+            keys[2] = M_GetPlatformName(GAMEPAD_WEST);
+            keys[3] = M_GetPlatformName(GAMEPAD_EAST);
             break;
 
         default: // WS_SELECT_1234
@@ -1876,6 +1878,10 @@ static void RefreshSolidBackground(void)
     st_refresh_background = true;
 }
 
+static const char *hud_anchoring_strings[] = {
+    "Wide", "4:3", "16:9", "21:9"
+};
+
 #define H_X_THRM8 (M_X_THRM8 - 14)
 #define H_X       (M_X - 14)
 
@@ -1886,8 +1892,8 @@ static setup_menu_t stat_settings1[] = {
 
     MI_GAP,
 
-    {"Wide Shift", S_THERMO, H_X_THRM8, M_THRM_SPC, {"st_wide_shift"},
-     .append = "px"},
+    {"HUD Anchoring", S_CHOICE, H_X, M_SPC, {"hud_anchoring"},
+     .strings_id = str_hud_anchoring, .action = I_UpdateHudAnchoring},
 
     MI_GAP,
 
@@ -1903,15 +1909,9 @@ static setup_menu_t stat_settings1[] = {
     MI_END
 };
 
-void MN_UpdateWideShiftItem(boolean reset)
+void MN_UpdateHudAnchoringItem(void)
 {
-    DisableItem(!video.deltaw, stat_settings1, "st_wide_shift");
-    SetItemLimit(stat_settings1, "st_wide_shift", 0, video.deltaw);
-    if (reset || st_wide_shift == -1)
-    {
-        st_wide_shift = video.deltaw;
-    }
-    st_wide_shift = CLAMP(st_wide_shift, 0, video.deltaw);
+    DisableItem(!video.deltaw, stat_settings1, "hud_anchoring");
 }
 
 static void UpdateStatsFormatItem(void);
@@ -2421,11 +2421,6 @@ static void ToggleFullScreen(void)
     toggle_fullscreen = true;
 }
 
-static void ToggleExclusiveFullScreen(void)
-{
-    toggle_exclusive_fullscreen = true;
-}
-
 static void UpdateFPSLimit(void)
 {
     setrefreshneeded = true;
@@ -2461,9 +2456,6 @@ static setup_menu_t gen_settings1[] = {
 
     {"Fullscreen", S_ONOFF, CNTR_X, M_SPC, {"fullscreen"},
      .action = ToggleFullScreen},
-
-    {"Exclusive Fullscreen", S_ONOFF, CNTR_X, M_SPC, {"exclusive_fullscreen"},
-     .action = ToggleExclusiveFullScreen},
 
     MI_GAP_Y(6),
 
@@ -3369,6 +3361,8 @@ static const char *death_use_action_strings[] = {"default", "last save",
 
 static const char *screen_melt_strings[] = {"Off", "Melt", "Crossfade", "Fizzle"};
 
+static const char *palette_changes_strings[] = {"Off", "On", "Reduced"};
+
 static const char *invul_mode_strings[] = {"Vanilla", "MBF", "Gray"};
 
 static const char *endoom_strings[] = {"Off", "PWAD Only", "Always"};
@@ -3380,8 +3374,8 @@ static setup_menu_t gen_settings6[] = {
     {"Screen wipe effect", S_CHOICE | S_STRICT, OFF_CNTR_X, M_SPC,
      {"screen_melt"}, .strings_id = str_screen_melt},
 
-    {"Pain/Pickup/Powerup flashes", S_ONOFF | S_STRICT, OFF_CNTR_X, M_SPC,
-     {"palette_changes"}},
+    {"Pain/Pickup/Powerup flashes", S_CHOICE | S_STRICT, OFF_CNTR_X, M_SPC,
+     {"palette_changes"}, .strings_id = str_palette_changes},
 
     {"Invulnerability effect", S_CHOICE | S_STRICT, OFF_CNTR_X, M_SPC,
      {"invul_mode"}, .strings_id = str_invul_mode, .action = R_InvulMode},
@@ -3443,11 +3437,6 @@ void MN_UpdateFpsLimitItem(void)
 void MN_DisableVoxelsRenderingItem(void)
 {
     DisableItem(true, gen_settings5, "voxels_rendering");
-}
-
-void MN_Trans(void) // To reset translucency after setting it in menu
-{
-    R_InitTranMap(0);
 }
 
 // Setting up for the General screen. Turn on flags, set pointers,
@@ -3912,7 +3901,7 @@ void MN_DrawStringCR(int cx, int cy, byte *cr1, byte *cr2, const char *ch)
         // desired color, colrngs[color]
         if (cr && cr2)
         {
-            V_DrawPatchTRTR(cx, cy, hu_font[c], cr, cr2);
+            V_DrawPatchTRTR(cx, cy, (crop_t){0}, hu_font[c], cr, cr2);
         }
         else
         {
@@ -5004,6 +4993,7 @@ static const char **selectstrings[] = {
     [str_curve] = curve_strings,
     [str_center_weapon] = center_weapon_strings,
     [str_screensize] = NULL,
+    [str_hud_anchoring] = hud_anchoring_strings,
     [str_show_widgets] = show_widgets_strings,
     [str_show_adv_widgets] = show_adv_widgets_strings,
     [str_stats_format] = stats_format_strings,
@@ -5037,6 +5027,7 @@ static const char **selectstrings[] = {
     [str_widescreen] = widescreen_strings,
     [str_bobbing_pct] = bobbing_pct_strings,
     [str_screen_melt] = screen_melt_strings,
+    [str_palette_changes] = palette_changes_strings,
     [str_invul_mode] = invul_mode_strings,
     [str_skill] = skill_strings,
     [str_freelook] = free_look_strings,

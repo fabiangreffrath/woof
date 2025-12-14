@@ -52,6 +52,7 @@ static const char* const token_names[] =
 typedef struct
 {
     char *string;
+    int length;
     int number;
     double decimal;
     char token;
@@ -170,16 +171,26 @@ static void CheckForWhitespace(scanner_t *s)
     }
 }
 
+static void CopyString(parserstate_t *state, const char *string, int length)
+{
+    if (state->length < length)
+    {
+        if (state->string)
+        {
+            free(state->string);
+        }
+        state->string = malloc(length + 1);
+        state->length = length;
+    }
+    memcpy(state->string, string, length);
+    state->string[length] = '\0';
+}
+
 static void CopyState(parserstate_t *to, const parserstate_t *from)
 {
-    if (to->string)
+    if (from->length)
     {
-        free(to->string);
-        to->string = NULL;
-    }
-    if (from->string)
-    {
-        to->string = M_StringDuplicate(from->string);
+        CopyString(to, from->string, from->length);
     }
     to->number = from->number;
     to->decimal = from->decimal;
@@ -266,59 +277,93 @@ boolean SC_GetNextToken(scanner_t *s, boolean expandstate)
     boolean float_has_exponent = false;
     boolean string_finished =
         false; // Strings are the only things that can have 0 length tokens.
+    boolean is_negative = false;
 
     char cur = s->data[s->scanpos++];
-    // Determine by first character
-    if (cur == '_' || (cur >= 'A' && cur <= 'Z') || (cur >= 'a' && cur <= 'z'))
+
+    // Check for negative number first
+    if (cur == '-' && s->scanpos < s->length)
     {
-        s->nextstate.token = TK_Identifier;
-    }
-    else if (cur >= '0' && cur <= '9')
-    {
-        if (cur == '0')
+        char next_char = s->data[s->scanpos];
+        if (next_char >= '0' && next_char <= '9')
         {
-            integer_base = 8;
+            is_negative = true;
+            start = s->scanpos - 1; // Include the minus sign in the token
+            cur = s->data[s->scanpos++]; // Move to the digit after '-'
+            s->nextstate.token = TK_IntConst;
+            if (cur == '0')
+            {
+                integer_base = 8;
+            }
         }
-        s->nextstate.token = TK_IntConst;
-    }
-    else if (cur == '.' && s->scanpos < s->length && s->data[s->scanpos] != '.')
-    {
-        float_has_decimal = true;
-        s->nextstate.token = TK_FloatConst;
-    }
-    else if (cur == '"')
-    {
-        end = ++start; // Move the start up one character so we don't have to
-                       // trim it later.
-        s->nextstate.token = TK_StringConst;
-    }
-    else
-    {
-        end = s->scanpos;
-        s->nextstate.token = cur;
-
-        // Now check for operator tokens
-        if (s->scanpos < s->length)
+        else if (next_char == '.' && s->scanpos + 1 < s->length)
         {
-            char next = s->data[s->scanpos];
+            char after_dot = s->data[s->scanpos + 1];
+            if (after_dot >= '0' && after_dot <= '9')
+            {
+                is_negative = true;
+                start = s->scanpos - 1; // Include the minus sign in the token
+                cur = s->data[s->scanpos++]; // Move to the '.' after '-'
+                float_has_decimal = true;
+                s->nextstate.token = TK_FloatConst;
+            }
+        }
+    }
 
-            if (cur == ':' && next == ':')
+    // If not a negative number, determine by first character
+    if (!is_negative)
+    {
+        if (cur == '_' || (cur >= 'A' && cur <= 'Z') || (cur >= 'a' && cur <= 'z'))
+        {
+            s->nextstate.token = TK_Identifier;
+        }
+        else if (cur >= '0' && cur <= '9')
+        {
+            if (cur == '0')
             {
-                s->nextstate.token = TK_ScopeResolution;
+                integer_base = 8;
             }
-            else if (cur == '/' && next == '*')
-            {
-                s->nextstate.token = TK_AnnotateStart;
-            }
-            else if (cur == '*' && next == '/')
-            {
-                s->nextstate.token = TK_AnnotateEnd;
-            }
+            s->nextstate.token = TK_IntConst;
+        }
+        else if (cur == '.' && s->scanpos < s->length && s->data[s->scanpos] != '.')
+        {
+            float_has_decimal = true;
+            s->nextstate.token = TK_FloatConst;
+        }
+        else if (cur == '"')
+        {
+            end = ++start; // Move the start up one character so we don't have to
+                           // trim it later.
+            s->nextstate.token = TK_StringConst;
+        }
+        else
+        {
+            end = s->scanpos;
+            s->nextstate.token = cur;
 
-            if (s->nextstate.token != cur)
+            // Now check for operator tokens
+            if (s->scanpos < s->length)
             {
-                s->scanpos++;
-                end = s->scanpos;
+                char next = s->data[s->scanpos];
+
+                if (cur == ':' && next == ':')
+                {
+                    s->nextstate.token = TK_ScopeResolution;
+                }
+                else if (cur == '/' && next == '*')
+                {
+                    s->nextstate.token = TK_AnnotateStart;
+                }
+                else if (cur == '*' && next == '/')
+                {
+                    s->nextstate.token = TK_AnnotateEnd;
+                }
+
+                if (s->nextstate.token != cur)
+                {
+                    s->scanpos++;
+                    end = s->scanpos;
+                }
             }
         }
     }
@@ -444,15 +489,7 @@ boolean SC_GetNextToken(scanner_t *s, boolean expandstate)
     s->nextstate.scanpos = s->scanpos;
     if (end - start > 0 || string_finished)
     {
-        if (s->nextstate.string)
-        {
-            free(s->nextstate.string);
-        }
-        int length = end - start;
-        s->nextstate.string = malloc(length + 1);
-        memcpy(s->nextstate.string, s->data + start, length);
-        s->nextstate.string[length] = '\0';
-
+        CopyString(&s->nextstate, s->data + start, end - start);
         if (s->nextstate.token == TK_FloatConst)
         {
             if (float_has_decimal && strlen(s->nextstate.string) == 1)
@@ -536,13 +573,7 @@ static boolean SC_GetNextTokenRawString(scanner_t *s)
     if (length > 0)
     {
         s->nextstate.token = TK_RawString;
-        if (s->nextstate.string)
-        {
-            free(s->nextstate.string);
-        }
-        s->nextstate.string = malloc(length + 1);
-        memcpy(s->nextstate.string, s->data + start, length);
-        s->nextstate.string[length] = '\0';
+        CopyString(&s->nextstate, s->data + start, length);
         return true;
     }
 

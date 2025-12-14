@@ -14,12 +14,19 @@
 #ifndef P_KEYFRAME_H
 #define P_KEYFRAME_H
 
-typedef struct keyframe_s keyframe_t;
+typedef struct
+{
+    struct keyframe_data_s *data;
+    int tic;
+    int episode;
+    int map;
+} keyframe_t;
 
 keyframe_t *P_SaveKeyframe(int tic);
 void P_LoadKeyframe(const keyframe_t *keyframe);
 void P_FreeKeyframe(keyframe_t *keyframe);
 
-int P_GetKeyframeTic(const keyframe_t *keyframe);
+void P_ArchiveKeyframe(void);
+void P_UnArchiveKeyframe(void);
 
 #endif

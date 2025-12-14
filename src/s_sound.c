@@ -422,7 +422,6 @@ static float GetPitch(pitchrange_t pitch_range)
             pitch += 16 - (M_Random() & 31);
         }
 
-        pitch = CLAMP(pitch, 0, 255);
         return steptable[pitch];
     }
     else
@@ -599,6 +598,7 @@ void S_StartSoundCGun(const mobj_t *origin, int sfx_id)
 
 void S_StartSoundBFG(const mobj_t *origin, int sfx_id)
 {
+    S_sfx[sfx_id].singularity = (demo_version < DV_MBF) ? sg_oof : sg_none;
     StartSound(origin, sfx_id, PITCH_FULL, RumbleType(origin, RUMBLE_BFG));
 }
 
@@ -1144,16 +1144,9 @@ void S_Start(void)
         }
     }
 
-    // [crispy] don't load map's default music if loaded from a savegame with
-    // MUSINFO data
-    if (musinfo.from_savegame)
-    {
-        musinfo.from_savegame = false;
-        return;
-    }
-
     // [crispy] reset musinfo data at the start of a new map
     memset(&musinfo, 0, sizeof(musinfo));
+    musinfo.current_item = -1;
 
     // start new music for the level
     mus_paused = 0;
@@ -1351,13 +1344,16 @@ static void InitFinalDoomMusic()
 
 static void InitPitchStepTable(void)
 {
-    const double base = pitch_bend_range / 100.0;
-
-    // This table provides step widths for pitch parameters.
     for (int i = 0; i < arrlen(steptable); i++)
     {
-        // [FG] variable pitch bend range
-        steptable[i] = pow(base, (double)(2 * (i - NORM_PITCH)) / NORM_PITCH);
+        // Strictly speaking, it should be the inverse of that value.
+        // In Chocolate Doom, this formula determines how much larger the
+        // destination buffer for the pitch-shifted sound is compared to the
+        // original sound. That is, how much *slower* this sound is played.
+        // In OpenAL, though, the pitch value means how much *faster* the sound
+        // is played.
+
+        steptable[i] = 2.0f - (float)i / NORM_PITCH;
     }
 }
 

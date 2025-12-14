@@ -16,7 +16,7 @@
 //
 
 #include "alext.h"
-#include "pffft.h"
+#include "pffft/pffft.h"
 
 #include <math.h>
 #include <string.h>
@@ -54,7 +54,7 @@ typedef struct rumble_channel_s
 
 typedef struct
 {
-    SDL_GameController *gamepad;
+    SDL_Gamepad *gamepad;
     boolean enabled;            // Rumble enabled?
     boolean supported;          // Rumble supported?
     float scale;                // Overall rumble scale, based on joy_rumble.
@@ -240,7 +240,7 @@ void I_ShutdownRumble(void)
 
     if (rumble.enabled)
     {
-        SDL_GameControllerRumble(rumble.gamepad, 0, 0, 0);
+        SDL_RumbleGamepad(rumble.gamepad, 0, 0, 0);
     }
 
     for (int i = 1; i < num_sfx; i++)
@@ -510,7 +510,7 @@ void I_RumbleMenuFeedback(void)
 
     last_rumble = joy_rumble;
     const uint16_t test = (uint16_t)(rumble.scale * 0.25f);
-    SDL_GameControllerRumble(rumble.gamepad, test, test, 125);
+    SDL_RumbleGamepad(rumble.gamepad, test, test, 125);
 }
 
 void I_UpdateRumbleEnabled(void)
@@ -519,11 +519,21 @@ void I_UpdateRumbleEnabled(void)
     rumble.enabled = (joy_rumble && rumble.supported);
 }
 
-void I_SetRumbleSupported(SDL_GameController *gamepad)
+void I_SetRumbleSupported(SDL_Gamepad *gamepad)
 {
     rumble.gamepad = gamepad;
-    rumble.supported =
-        gamepad && (SDL_GameControllerHasRumble(gamepad) == SDL_TRUE);
+    rumble.supported = false;
+
+    if (gamepad)
+    {
+        SDL_PropertiesID props = SDL_GetGamepadProperties(gamepad);
+        if (props > 0)
+        {
+            rumble.supported = SDL_GetBooleanProperty(
+                props, SDL_PROP_GAMEPAD_CAP_RUMBLE_BOOLEAN, false);
+        }
+    }
+
     I_UpdateRumbleEnabled();
 }
 
@@ -552,7 +562,7 @@ void I_ResetAllRumbleChannels(void)
     }
 
     ResetAllChannels();
-    SDL_GameControllerRumble(rumble.gamepad, 0, 0, 0);
+    SDL_RumbleGamepad(rumble.gamepad, 0, 0, 0);
 }
 
 static void GetNodeScale(const rumble_channel_t *node, float *scale_down,
@@ -614,7 +624,7 @@ void I_UpdateRumble(void)
     scale_high *= rumble.scale;
     const uint16_t low = lroundf(MIN(scale_low, MAX_RUMBLE_SDL));
     const uint16_t high = lroundf(MIN(scale_high, MAX_RUMBLE_SDL));
-    SDL_GameControllerRumble(rumble.gamepad, low, high, RUMBLE_DURATION);
+    SDL_RumbleGamepad(rumble.gamepad, low, high, RUMBLE_DURATION);
 }
 
 static boolean CalcChannelScale(const mobj_t *listener, const mobj_t *origin,
@@ -789,7 +799,7 @@ void I_DisableRumble(void)
 
     rumble.enabled = false;
     ResetAllChannels();
-    SDL_GameControllerRumble(rumble.gamepad, 0, 0, 0);
+    SDL_RumbleGamepad(rumble.gamepad, 0, 0, 0);
 }
 
 void I_BindRumbleVariables(void)

@@ -1,5 +1,6 @@
 set(BASE_SOURCES
     all-all/animated.lmp
+    all-all/chexdeh.lmp
     all-all/compdb.lmp
     all-all/crblack.lmp
     all-all/crblue.lmp
@@ -202,7 +203,6 @@ set(BASE_SOURCES
     betalevl.wad/umapinfo.lmp
 
     chex.wad/brghtmps.lmp
-    chex.wad/dehacked.lmp
     chex.wad/umapinfo.lmp
 
     chex2.wad/brghtmps.lmp

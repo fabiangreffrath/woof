@@ -19,6 +19,7 @@
 #include <stdlib.h>
 
 #include "doomtype.h"
+#include "i_exit.h"
 #include "i_system.h"
 #include "i_timer.h"
 #include "m_argv.h"
