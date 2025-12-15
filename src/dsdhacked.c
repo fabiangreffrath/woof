@@ -19,6 +19,7 @@
 #include <string.h>
 
 #include "d_think.h"
+#include "doomdef.h"
 #include "doomtype.h"
 #include "info.h"
 #include "m_array.h"
@@ -435,12 +436,17 @@ void dsdh_EnsureMobjInfoCapacity(int limit)
 
     for (int i = old_num_mobj_types; i < num_mobj_types; ++i)
     {
+        // MBF21
         mobjinfo[i].droppeditem = MT_NULL;
         mobjinfo[i].infighting_group = IG_DEFAULT;
         mobjinfo[i].projectile_group = PG_DEFAULT;
         mobjinfo[i].splash_group = SG_DEFAULT;
         mobjinfo[i].altspeed = NO_ALTSPEED;
         mobjinfo[i].meleerange = MELEERANGE;
+        // ID24
+        mobjinfo[i].flags3           = 0;
+        mobjinfo[i].respawn_min_tics = 12 * TICRATE;
+        mobjinfo[i].respawn_dice     = 4;
     }
 }
 

@@ -1303,6 +1303,13 @@ static const deh_flag_t deh_mobjflags_mbf21[] = {
     {"FULLVOLSOUNDS",  MF2_FULLVOLSOUNDS}, // full volume see / death sound
 };
 
+static const deh_flag_t deh_mobjflags_id24[] = {
+    {"NORESPAWN",          MF3_NORESPAWN         }, // Disable nightmare respawn
+    {"SPECIALSTAYSSINGLE", MF3_SPECIALSTAYSSINGLE}, // Item pickup stays, in singleplayer
+    {"SPECIALSTAYSCOOP",   MF3_SPECIALSTAYSCOOP  }, // Item pickup stays, in cooperative
+    {"SPECIALSTAYSDM",     MF3_SPECIALSTAYSDM    }, // Item pickup stays, in deathmatch
+};
+
 static const deh_flag_t deh_mobjflags_extra[] = {
     {"MIRROREDCORPSE", MFX_MIRROREDCORPSE} // [crispy] randomly flip corpse, blood and death animation sprites
 };

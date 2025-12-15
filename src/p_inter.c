@@ -301,359 +301,506 @@ boolean P_GivePower(player_t *player, int power)
 // P_TouchSpecialThing
 //
 
-void P_TouchSpecialThing(mobj_t *special, mobj_t *toucher)
+// Ty 03/22/98 - externalized strings
+static inline boolean TouchThingVanilla(int sprite, player_t *player,
+                                        boolean dropped, int *sound)
 {
-  player_t *player;
-  int      i;
-  int      sound;
-  fixed_t  delta = special->z - toucher->z;
-
-  if (delta > toucher->height || delta < -8*FRACUNIT)
-    return;        // out of reach
-
-  sound = sfx_itemup;
-  player = toucher->player;
-
-  // Dead thing touching.
-  // Can happen with a sliding player corpse.
-  if (toucher->health <= 0)
-    return;
-
     // Identify by sprite.
-  switch (special->sprite)
+    switch (sprite)
     {
-      // armor
-    case SPR_ARM1:
-      if (!P_GiveArmor (player, green_armor_class))
-        return;
-      pickupmsg(player, "%s", s_GOTARMOR); // Ty 03/22/98 - externalized
-      break;
+        // armor
+        case SPR_ARM1:
+            if (!P_GiveArmor(player, green_armor_class))
+            {
+                return false;
+            }
+            pickupmsg(player, "%s", s_GOTARMOR);
+            break;
 
-    case SPR_ARM2:
-      if (!P_GiveArmor (player, blue_armor_class))
-        return;
-      pickupmsg(player, "%s", s_GOTMEGA); // Ty 03/22/98 - externalized
-      break;
+        case SPR_ARM2:
+            if (!P_GiveArmor(player, blue_armor_class))
+            {
+                return false;
+            }
+            pickupmsg(player, "%s", s_GOTMEGA);
+            break;
 
-      // bonus items
-    case SPR_BON1:
+        // bonus items
+        case SPR_BON1:
+            // killough 7/11/98: beta version items did not have any effect
+            if (beta_emulation)
+            {
+                pickupmsg(player, "You pick up a demonic dagger.");
+                break;
+            }
 
-      if (beta_emulation)
-	{   // killough 7/11/98: beta version items did not have any effect
-	  pickupmsg(player, "You pick up a demonic dagger.");
-	  break;
-	}
+            player->health++; // can go over 100%
+            if (player->health > maxhealthbonus)
+            {
+                player->health = maxhealthbonus;
+            }
+            player->mo->health = player->health;
+            pickupmsg(player, "%s", s_GOTHTHBONUS);
+            break;
 
-      player->health++;               // can go over 100%
-      if (player->health > maxhealthbonus)
-        player->health = maxhealthbonus;
-      player->mo->health = player->health;
-      pickupmsg(player, "%s", s_GOTHTHBONUS); // Ty 03/22/98 - externalized
-      break;
+        case SPR_BON2:
 
-    case SPR_BON2:
+            // killough 7/11/98: beta version items did not have any effect
+            if (beta_emulation)
+            {
+                pickupmsg(player, "You pick up a skullchest.");
+                break;
+            }
 
-      if (beta_emulation)
-	{ // killough 7/11/98: beta version items did not have any effect
-	  pickupmsg(player, "You pick up a skullchest.");
-	  break;
-	}
+            player->armorpoints++; // can go over 100%
+            if (player->armorpoints > max_armor)
+            {
+                player->armorpoints = max_armor;
+            }
+            if (!player->armortype)
+            {
+                player->armortype = green_armor_class;
+            }
+            pickupmsg(player, "%s", s_GOTARMBONUS);
+            break;
 
-      player->armorpoints++;          // can go over 100%
-      if (player->armorpoints > max_armor)
-        player->armorpoints = max_armor;
-      if (!player->armortype)
-        player->armortype = green_armor_class;
-      pickupmsg(player, "%s", s_GOTARMBONUS); // Ty 03/22/98 - externalized
-      break;
+        case SPR_BON3:
+            // killough 7/11/98: evil sceptre from beta version
+            pickupmsg(player, "%s", s_BETA_BONUS3);
+            break;
 
-    case SPR_BON3:      // killough 7/11/98: evil sceptre from beta version
-      pickupmsg(player, "%s", s_BETA_BONUS3);
-      break;
+        case SPR_BON4:
+            // killough 7/11/98: unholy bible from beta version
+            pickupmsg(player, "%s", s_BETA_BONUS4);
+            break;
 
-    case SPR_BON4:      // killough 7/11/98: unholy bible from beta version
-      pickupmsg(player, "%s", s_BETA_BONUS4);
-      break;
+        case SPR_SOUL:
+            player->health += soul_health;
+            if (player->health > max_soul)
+            {
+                player->health = max_soul;
+            }
+            player->mo->health = player->health;
+            pickupmsg(player, "%s", s_GOTSUPER);
+            *sound = sfx_getpow;
+            break;
 
-    case SPR_SOUL:
-      player->health += soul_health;
-      if (player->health > max_soul)
-        player->health = max_soul;
-      player->mo->health = player->health;
-      pickupmsg(player, "%s", s_GOTSUPER); // Ty 03/22/98 - externalized
-      sound = sfx_getpow;
-      break;
-
-    case SPR_MEGA:
-      if (gamemode != commercial)
-        return;
-      player->health = mega_health;
-      player->mo->health = player->health;
-      P_GiveArmor (player,blue_armor_class);
-      pickupmsg(player, "%s", s_GOTMSPHERE); // Ty 03/22/98 - externalized
-      sound = sfx_getpow;
-      break;
+        case SPR_MEGA:
+            if (gamemode != commercial)
+            {
+                return false;
+            }
+            player->health = mega_health;
+            player->mo->health = player->health;
+            P_GiveArmor(player, blue_armor_class);
+            pickupmsg(player, "%s", s_GOTMSPHERE);
+            *sound = sfx_getpow;
+            break;
 
         // cards
         // leave cards for everyone
-    case SPR_BKEY:
-      if (!player->cards[it_bluecard])
-        pickupmsg(player, "%s", s_GOTBLUECARD); // Ty 03/22/98 - externalized
-      P_GiveCard (player, it_bluecard);
-      if (!netgame)
-        break;
-      return;
+        case SPR_BKEY:
+            if (!player->cards[it_bluecard])
+            {
+                pickupmsg(player, "%s", s_GOTBLUECARD);
+            }
+            P_GiveCard(player, it_bluecard);
+            if (!netgame)
+            {
+                break;
+            }
+            return false;
 
-    case SPR_YKEY:
-      if (!player->cards[it_yellowcard])
-        pickupmsg(player, "%s", s_GOTYELWCARD); // Ty 03/22/98 - externalized
-      P_GiveCard (player, it_yellowcard);
-      if (!netgame)
-        break;
-      return;
+        case SPR_YKEY:
+            if (!player->cards[it_yellowcard])
+            {
+                pickupmsg(player, "%s", s_GOTYELWCARD);
+            }
+            P_GiveCard(player, it_yellowcard);
+            if (!netgame)
+            {
+                break;
+            }
+            return false;
 
-    case SPR_RKEY:
-      if (!player->cards[it_redcard])
-        pickupmsg(player, "%s", s_GOTREDCARD); // Ty 03/22/98 - externalized
-      P_GiveCard (player, it_redcard);
-      if (!netgame)
-        break;
-      return;
+        case SPR_RKEY:
+            if (!player->cards[it_redcard])
+            {
+                pickupmsg(player, "%s", s_GOTREDCARD);
+            }
+            P_GiveCard(player, it_redcard);
+            if (!netgame)
+            {
+                break;
+            }
+            return false;
 
-    case SPR_BSKU:
-      if (!player->cards[it_blueskull])
-        pickupmsg(player, "%s", s_GOTBLUESKUL); // Ty 03/22/98 - externalized
-      P_GiveCard (player, it_blueskull);
-      if (!netgame)
-        break;
-      return;
+        case SPR_BSKU:
+            if (!player->cards[it_blueskull])
+            {
+                pickupmsg(player, "%s", s_GOTBLUESKUL);
+            }
+            P_GiveCard(player, it_blueskull);
+            if (!netgame)
+            {
+                break;
+            }
+            return false;
 
-    case SPR_YSKU:
-      if (!player->cards[it_yellowskull])
-        pickupmsg(player, "%s", s_GOTYELWSKUL); // Ty 03/22/98 - externalized
-      P_GiveCard (player, it_yellowskull);
-      if (!netgame)
-        break;
-      return;
+        case SPR_YSKU:
+            if (!player->cards[it_yellowskull])
+            {
+                pickupmsg(player, "%s", s_GOTYELWSKUL);
+            }
+            P_GiveCard(player, it_yellowskull);
+            if (!netgame)
+            {
+                break;
+            }
+            return false;
 
-    case SPR_RSKU:
-      if (!player->cards[it_redskull])
-        pickupmsg(player, "%s", s_GOTREDSKULL); // Ty 03/22/98 - externalized
-      P_GiveCard (player, it_redskull);
-      if (!netgame)
-        break;
-      return;
+        case SPR_RSKU:
+            if (!player->cards[it_redskull])
+            {
+                pickupmsg(player, "%s", s_GOTREDSKULL);
+            }
+            P_GiveCard(player, it_redskull);
+            if (!netgame)
+            {
+                break;
+            }
+            return false;
 
-      // medikits, heals
-    case SPR_STIM:
-      if (!P_GiveBody (player, 10))
-        return;
-      pickupmsg(player, "%s", s_GOTSTIM); // Ty 03/22/98 - externalized
-      break;
+        // medikits, heals
+        case SPR_STIM:
+            if (!P_GiveBody(player, 10))
+            {
+                return false;
+            }
+            pickupmsg(player, "%s", s_GOTSTIM);
+            break;
 
-    case SPR_MEDI:
-      if (!P_GiveBody (player, 25))
-        return;
+        case SPR_MEDI:
+            if (!P_GiveBody(player, 25))
+            {
+                return false;
+            }
 
-      // [FG] show "Picked up a Medikit that you really need" message as intended
-      if (player->health < 50)
-        pickupmsg(player, "%s", s_GOTMEDINEED); // Ty 03/22/98 - externalized
-      else
-        pickupmsg(player, "%s", s_GOTMEDIKIT); // Ty 03/22/98 - externalized
-      break;
+            // [FG] show "Picked up a Medikit that you really need" message as intended
+            if (player->health < 50)
+            {
+                pickupmsg(player, "%s", s_GOTMEDINEED);
+            }
+            else
+            {
+                pickupmsg(player, "%s", s_GOTMEDIKIT);
+            }
+            break;
 
+        // power ups
+        case SPR_PINV:
+            if (!P_GivePower(player, pw_invulnerability))
+            {
+                return false;
+            }
+            pickupmsg(player, "%s", s_GOTINVUL);
+            *sound = sfx_getpow;
+            break;
 
-      // power ups
-    case SPR_PINV:
-      if (!P_GivePower (player, pw_invulnerability))
-        return;
-      pickupmsg(player, "%s", s_GOTINVUL); // Ty 03/22/98 - externalized
-      sound = sfx_getpow;
-      break;
+        case SPR_PSTR:
+            if (!P_GivePower(player, pw_strength))
+            {
+                return false;
+            }
+            pickupmsg(player, "%s", s_GOTBERSERK);
+            if (player->readyweapon != wp_fist)
+            {
+                // killough 10/98: don't switch as much in -beta
+                if (!beta_emulation || player->readyweapon == wp_pistol)
+                {
+                    player->nextweapon = player->pendingweapon = wp_fist;
+                }
+            }
+            *sound = sfx_getpow;
+            break;
 
-    case SPR_PSTR:
-      if (!P_GivePower (player, pw_strength))
-        return;
-      pickupmsg(player, "%s", s_GOTBERSERK); // Ty 03/22/98 - externalized
-      if (player->readyweapon != wp_fist)
-	if (!beta_emulation // killough 10/98: don't switch as much in -beta
-	    || player->readyweapon == wp_pistol)
-	  player->nextweapon = player->pendingweapon = wp_fist;
-      sound = sfx_getpow;
-      break;
+        case SPR_PINS:
+            if (!P_GivePower(player, pw_invisibility))
+            {
+                return false;
+            }
+            pickupmsg(player, "%s", s_GOTINVIS);
+            *sound = sfx_getpow;
+            break;
 
-    case SPR_PINS:
-      if (!P_GivePower (player, pw_invisibility))
-        return;
-      pickupmsg(player, "%s", s_GOTINVIS); // Ty 03/22/98 - externalized
-      sound = sfx_getpow;
-      break;
+        case SPR_SUIT:
+            if (!P_GivePower(player, pw_ironfeet))
+            {
+                return false;
+            }
 
-    case SPR_SUIT:
-      if (!P_GivePower (player, pw_ironfeet))
-        return;
+            // killough 7/19/98: beta rad suit did not wear off
+            if (beta_emulation)
+            {
+                player->powers[pw_ironfeet] = -1;
+            }
 
-      if (beta_emulation)  // killough 7/19/98: beta rad suit did not wear off
-	player->powers[pw_ironfeet] = -1;
+            pickupmsg(player, "%s", s_GOTSUIT);
+            *sound = sfx_getpow;
+            break;
 
-      pickupmsg(player, "%s", s_GOTSUIT); // Ty 03/22/98 - externalized
-      sound = sfx_getpow;
-      break;
+        case SPR_PMAP:
+            if (!P_GivePower(player, pw_allmap))
+            {
+                return false;
+            }
+            pickupmsg(player, "%s", s_GOTMAP);
+            *sound = sfx_getpow;
+            break;
 
-    case SPR_PMAP:
-      if (!P_GivePower (player, pw_allmap))
-        return;
-      pickupmsg(player, "%s", s_GOTMAP); // Ty 03/22/98 - externalized
-      sound = sfx_getpow;
-      break;
+        case SPR_PVIS:
 
-    case SPR_PVIS:
+            if (!P_GivePower(player, pw_infrared))
+            {
+                return false;
+            }
 
-      if (!P_GivePower (player, pw_infrared))
-        return;
+            // killough 7/19/98: light-amp visor did not wear off in beta
+            if (beta_emulation)
+            {
+                player->powers[pw_infrared] = -1;
+            }
 
-      // killough 7/19/98: light-amp visor did not wear off in beta
-      if (beta_emulation)
-	player->powers[pw_infrared] = -1;
+            *sound = sfx_getpow;
+            pickupmsg(player, "%s", s_GOTVISOR);
+            break;
 
-      sound = sfx_getpow;
-      pickupmsg(player, "%s", s_GOTVISOR); // Ty 03/22/98 - externalized
-      break;
+        // ammo
+        case SPR_CLIP:
+            if (dropped)
+            {
+                if (!P_GiveAmmo(player, am_clip, 0))
+                {
+                    return false;
+                }
+            }
+            else
+            {
+                if (!P_GiveAmmo(player, am_clip, 1))
+                {
+                    return false;
+                }
+            }
+            pickupmsg(player, "%s", s_GOTCLIP);
+            break;
 
-      // ammo
-    case SPR_CLIP:
-      if (special->flags & MF_DROPPED)
-        {
-          if (!P_GiveAmmo (player,am_clip,0))
-            return;
-        }
-      else
-        {
-          if (!P_GiveAmmo (player,am_clip,1))
-            return;
-        }
-      pickupmsg(player, "%s", s_GOTCLIP); // Ty 03/22/98 - externalized
-      break;
+        case SPR_AMMO:
+            if (!P_GiveAmmo(player, am_clip, 5))
+            {
+                return false;
+            }
+            pickupmsg(player, "%s", s_GOTCLIPBOX);
+            break;
 
-    case SPR_AMMO:
-      if (!P_GiveAmmo (player, am_clip,5))
-        return;
-      pickupmsg(player, "%s", s_GOTCLIPBOX); // Ty 03/22/98 - externalized
-      break;
+        case SPR_ROCK:
+            if (!P_GiveAmmo(player, am_misl, 1))
+            {
+                return false;
+            }
+            pickupmsg(player, "%s", s_GOTROCKET);
+            break;
 
-    case SPR_ROCK:
-      if (!P_GiveAmmo (player, am_misl,1))
-        return;
-      pickupmsg(player, "%s", s_GOTROCKET); // Ty 03/22/98 - externalized
-      break;
+        case SPR_BROK:
+            if (!P_GiveAmmo(player, am_misl, 5))
+            {
+                return false;
+            }
+            pickupmsg(player, "%s", s_GOTROCKBOX);
+            break;
 
-    case SPR_BROK:
-      if (!P_GiveAmmo (player, am_misl,5))
-        return;
-      pickupmsg(player, "%s", s_GOTROCKBOX); // Ty 03/22/98 - externalized
-      break;
+        case SPR_CELL:
+            if (!P_GiveAmmo(player, am_cell, 1))
+            {
+                return false;
+            }
+            pickupmsg(player, "%s", s_GOTCELL);
+            break;
 
-    case SPR_CELL:
-      if (!P_GiveAmmo (player, am_cell,1))
-        return;
-      pickupmsg(player, "%s", s_GOTCELL); // Ty 03/22/98 - externalized
-      break;
+        case SPR_CELP:
+            if (!P_GiveAmmo(player, am_cell, 5))
+            {
+                return false;
+            }
+            pickupmsg(player, "%s", s_GOTCELLBOX);
+            break;
 
-    case SPR_CELP:
-      if (!P_GiveAmmo (player, am_cell,5))
-        return;
-      pickupmsg(player, "%s", s_GOTCELLBOX); // Ty 03/22/98 - externalized
-      break;
+        case SPR_SHEL:
+            if (!P_GiveAmmo(player, am_shell, 1))
+            {
+                return false;
+            }
+            pickupmsg(player, "%s", s_GOTSHELLS);
+            break;
 
-    case SPR_SHEL:
-      if (!P_GiveAmmo (player, am_shell,1))
-        return;
-      pickupmsg(player, "%s", s_GOTSHELLS); // Ty 03/22/98 - externalized
-      break;
+        case SPR_SBOX:
+            if (!P_GiveAmmo(player, am_shell, 5))
+            {
+                return false;
+            }
+            pickupmsg(player, "%s", s_GOTSHELLBOX);
+            break;
 
-    case SPR_SBOX:
-      if (!P_GiveAmmo (player, am_shell,5))
-        return;
-      pickupmsg(player, "%s", s_GOTSHELLBOX); // Ty 03/22/98 - externalized
-      break;
-
-    case SPR_BPAK:
-      if (!player->backpack)
-        {
-          for (i=0 ; i<NUMAMMO ; i++)
-            player->maxammo[i] *= 2;
-          player->backpack = true;
-        }
-      for (i=0 ; i<NUMAMMO ; i++)
-        P_GiveAmmo (player, i, 1);
-      pickupmsg(player, "%s", s_GOTBACKPACK); // Ty 03/22/98 - externalized
-      break;
+        case SPR_BPAK:
+            if (!player->backpack)
+            {
+                for (int i = 0; i < NUMAMMO; i++)
+                {
+                    player->maxammo[i] *= 2;
+                }
+                player->backpack = true;
+            }
+            for (int i = 0; i < NUMAMMO; i++)
+            {
+                P_GiveAmmo(player, i, 1);
+            }
+            pickupmsg(player, "%s", s_GOTBACKPACK);
+            break;
 
         // weapons
-    case SPR_BFUG:
-      if (!P_GiveWeapon (player, wp_bfg, false) )
-        return;
-      if (STRICTMODE(classic_bfg) || beta_emulation)
-        pickupmsg(player, "You got the BFG2704!  Oh, yes."); // killough 8/9/98: beta BFG
-      else
-        pickupmsg(player, "%s", s_GOTBFG9000); // Ty 03/22/98 - externalized
-      sound = sfx_wpnup;
-      break;
+        case SPR_BFUG:
+            if (!P_GiveWeapon(player, wp_bfg, false))
+            {
+                return false;
+            }
+            if (STRICTMODE(classic_bfg) || beta_emulation)
+            {
+                // killough 8/9/98: beta BFG
+                pickupmsg(player, "You got the BFG2704!  Oh, yes.");
+            }
+            else
+            {
+                pickupmsg(player, "%s", s_GOTBFG9000);
+            }
+            *sound = sfx_wpnup;
+            break;
 
-    case SPR_MGUN:
-      if (!P_GiveWeapon (player, wp_chaingun, special->flags & MF_DROPPED))
-        return;
-      pickupmsg(player, "%s", s_GOTCHAINGUN); // Ty 03/22/98 - externalized
-      sound = sfx_wpnup;
-      break;
+        case SPR_MGUN:
+            if (!P_GiveWeapon(player, wp_chaingun, dropped))
+            {
+                return false;
+            }
+            pickupmsg(player, "%s", s_GOTCHAINGUN);
+            *sound = sfx_wpnup;
+            break;
 
-    case SPR_CSAW:
-      if (!P_GiveWeapon(player, wp_chainsaw, false))
-        return;
-      pickupmsg(player, "%s", s_GOTCHAINSAW); // Ty 03/22/98 - externalized
-      sound = sfx_wpnup;
-      break;
+        case SPR_CSAW:
+            if (!P_GiveWeapon(player, wp_chainsaw, false))
+            {
+                return false;
+            }
+            pickupmsg(player, "%s", s_GOTCHAINSAW);
+            *sound = sfx_wpnup;
+            break;
 
-    case SPR_LAUN:
-      if (!P_GiveWeapon (player, wp_missile, false) )
-        return;
-      pickupmsg(player, "%s", s_GOTLAUNCHER); // Ty 03/22/98 - externalized
-      sound = sfx_wpnup;
-      break;
+        case SPR_LAUN:
+            if (!P_GiveWeapon(player, wp_missile, false))
+            {
+                return false;
+            }
+            pickupmsg(player, "%s", s_GOTLAUNCHER);
+            *sound = sfx_wpnup;
+            break;
 
-    case SPR_PLAS:
-      if (!P_GiveWeapon(player, wp_plasma, false))
-        return;
-      pickupmsg(player, "%s", s_GOTPLASMA); // Ty 03/22/98 - externalized
-      sound = sfx_wpnup;
-      break;
+        case SPR_PLAS:
+            if (!P_GiveWeapon(player, wp_plasma, false))
+            {
+                return false;
+            }
+            pickupmsg(player, "%s", s_GOTPLASMA);
+            *sound = sfx_wpnup;
+            break;
 
-    case SPR_SHOT:
-      if (!P_GiveWeapon(player, wp_shotgun, special->flags & MF_DROPPED))
-        return;
-      pickupmsg(player, "%s", s_GOTSHOTGUN); // Ty 03/22/98 - externalized
-      sound = sfx_wpnup;
-      break;
+        case SPR_SHOT:
+            if (!P_GiveWeapon(player, wp_shotgun, dropped))
+            {
+                return false;
+            }
+            pickupmsg(player, "%s", s_GOTSHOTGUN);
+            *sound = sfx_wpnup;
+            break;
 
-    case SPR_SGN2:
-      if (!P_GiveWeapon(player, wp_supershotgun, special->flags & MF_DROPPED))
-        return;
-      pickupmsg(player, "%s", s_GOTSHOTGUN2); // Ty 03/22/98 - externalized
-      sound = sfx_wpnup;
-      break;
+        case SPR_SGN2:
+            if (!P_GiveWeapon(player, wp_supershotgun, dropped))
+            {
+                return false;
+            }
+            pickupmsg(player, "%s", s_GOTSHOTGUN2);
+            *sound = sfx_wpnup;
+            break;
 
-    default:
-      // I_Error("Unknown gettable thing");
-      return;      // killough 12/98: suppress error message
+        default:
+            // killough 12/98: suppress error message
+            // I_Error("Unknown gettable thing");
+            return false;
+    }
+    return true;
+}
+
+static inline boolean TouchThingID24(const mobjinfo_t * info, player_t *player,
+                                     boolean dropped, int *sound)
+{
+    return false;
+}
+
+void P_TouchSpecialThing(mobj_t *special, mobj_t *toucher)
+{
+    const fixed_t delta = special->z - toucher->z;
+
+    if (delta > toucher->height || delta < -8 * FRACUNIT)
+    {
+        return; // out of reach
     }
 
-  if (special->flags & MF_COUNTITEM)
-    player->itemcount++;
-  P_RemoveMobj (special);
-  player->bonuscount += BONUSADD;
+    // Dead thing touching.
+    // Can happen with a sliding player corpse.
+    if (toucher->health <= 0)
+    {
+        return;
+    }
 
-  S_StartSoundPreset(player->mo, sound, // killough 4/25/98, 12/98
-                     sound == sfx_itemup ? PITCH_NONE : PITCH_FULL);
+    boolean handled = false;
+    int sound = sfx_itemup;
+    player_t *player = toucher->player;
+    boolean dropped = (special->flags & MF_DROPPED) != 0;
+
+    if (demo_version < DV_ID24)
+    {
+        handled = TouchThingVanilla(special->sprite, player, dropped, &sound);
+    }
+    else
+    {
+        handled = TouchThingID24(special->info, player, dropped, &sound);
+    }
+
+    if (handled)
+    {
+        if (special->flags & MF_COUNTITEM)
+        {
+            player->itemcount++;
+        }
+
+        if ((!netgame && !(special->flags3 & MF3_SPECIALSTAYSSINGLE))
+            || (netgame && deathmatch == 0 && !(special->flags3 & MF3_SPECIALSTAYSCOOP))
+            || (netgame && deathmatch != 0 && !(special->flags3 & MF3_SPECIALSTAYSDM)))
+        {
+            P_RemoveMobj(special);
+        }
+
+        player->bonuscount += BONUSADD;
+
+        // killough 4/25/98, 12/98
+        S_StartSoundPreset(player->mo, sound, (sound == sfx_itemup) ? PITCH_NONE : PITCH_FULL);
+    }
 }
 
 //

@@ -828,16 +828,24 @@ void P_MobjThinker (mobj_t* mobj)
   // calling action functions at transitions
   // killough 11/98: simplify
 
-  if (mobj->tics != -1)      // you can cycle through multiple states in a tic
+  // you can cycle through multiple states in a tic
+  if (mobj->tics != -1)
+  {
+    if (!--mobj->tics)
     {
-      if (!--mobj->tics)
-	P_SetMobjState(mobj, mobj->state->nextstate);
+      P_SetMobjState(mobj, mobj->state->nextstate);
     }
-  else                       
-    if (mobj->flags & MF_COUNTKILL && respawnmonsters &&
-	++mobj->movecount >= 12*35 && !(leveltime & 31) &&
-	P_Random (pr_respawn) <= 4)
-      P_NightmareRespawn(mobj);          // check for nightmare respawn
+  }
+  // check for nightmare respawn
+  else if (mobj->flags & MF_COUNTKILL
+            && !(mobj->flags3 & MF3_NORESPAWN)
+            && respawnmonsters
+            && ++mobj->movecount >= mobj->respawn_min_tics
+            && !(leveltime & 31)
+            && P_Random(pr_respawn) <= mobj->respawn_dice)
+  {
+    P_NightmareRespawn(mobj);
+  }
 }
 
 
@@ -861,7 +869,10 @@ mobj_t *P_SpawnMobj(fixed_t x, fixed_t y, fixed_t z, mobjtype_t type)
   mobj->height = info->height;                                      // phares
   mobj->flags  = info->flags;
   mobj->flags2 = info->flags2;
+  mobj->flags3 = info->flags3;
   mobj->flags_extra = info->flags_extra;
+  mobj->health = info->spawnhealth;
+  mobj->friction = ORIG_FRICTION;                           // phares 3/17/98
 
   // killough 8/23/98: no friends, bouncers, or touchy things in old demos
   if (demo_version < DV_MBF)
@@ -870,10 +881,21 @@ mobj_t *P_SpawnMobj(fixed_t x, fixed_t y, fixed_t z, mobjtype_t type)
     if (type == MT_PLAYER)         // Except in old demos, players
       mobj->flags |= MF_FRIEND;    // are always friends.
 
-  mobj->health = info->spawnhealth;
-
   if (gameskill != sk_nightmare && !aggromonsters)
     mobj->reactiontime = info->reactiontime;
+
+  if (demo_version < DV_ID24)
+  {
+    // Customizable nightmare respawn
+    mobj->flags3 &= ~MF3_NORESPAWN;
+    mobj->respawn_min_tics = 12 * TICRATE;
+    mobj->respawn_dice = 4;
+  }
+  else
+  {
+    mobj->respawn_min_tics = info->respawn_min_tics;
+    mobj->respawn_dice = info->respawn_dice;
+  }
 
   if (type != zmt_ambientsound)
   {
@@ -925,9 +947,6 @@ mobj_t *P_SpawnMobj(fixed_t x, fixed_t y, fixed_t z, mobjtype_t type)
 
   mobj->thinker.function.p1 = P_MobjThinker;
   mobj->above_thing = mobj->below_thing = 0;           // phares
-
-  // for Boom friction code
-  mobj->friction    = ORIG_FRICTION;                        // phares 3/17/98
 
   // [crispy] randomly flip corpse, blood and death animation sprites
   if (mobj->flags_extra & MFX_MIRROREDCORPSE && !(mobj->flags & MF_SHOOTABLE))

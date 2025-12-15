@@ -199,6 +199,7 @@ typedef enum
     MF_TRANSLUCENT      = (int)0x80000000,                          // phares
 } mobjflag_t;
 
+// MBF21
 typedef enum
 {
     MF2_LOGRAV          = 0x00000001, // alternate gravity setting
@@ -221,6 +222,15 @@ typedef enum
     MF2_RIP             = 0x00020000, // missile rips through solid
     MF2_FULLVOLSOUNDS   = 0x00040000, // full volume see / death sound
 } mobjflag2_t;
+
+// ID24
+typedef enum
+{
+    MF3_NORESPAWN          = 0x00000001, // Disable nightmare respawn
+    MF3_SPECIALSTAYSSINGLE = 0x00000002, // Item pickup stays, in singleplayer
+    MF3_SPECIALSTAYSCOOP   = 0x00000004, // Item pickup stays, in cooperative
+    MF3_SPECIALSTAYSDM     = 0x00000008, // Item pickup stays, in deathmatch
+} mobjflag3_t;
 
 // Woof!-exclusive extension
 typedef enum
@@ -309,11 +319,16 @@ typedef struct mobj_s
     
     int                 tics;   // state tic counter
     state_t*            state;
-    int                 flags;
-    int                 flags2; // mbf21
+    mobjflag_t          flags;
+    mobjflag2_t         flags2; // mbf21
+    mobjflag3_t         flags3; // id24
     int                 flags_extra; // Woof!
     int                 intflags;  // killough 9/15/98: internal flags
     int                 health;
+
+    // Nightmare respawn
+    int                 respawn_dice;
+    int                 respawn_min_tics;
 
     // Action specials
     int32_t             id;

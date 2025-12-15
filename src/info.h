@@ -1520,6 +1520,11 @@ typedef struct
     int altspeed;
     int meleerange;
 
+    // id24
+    int flags3;
+    int respawn_min_tics;
+    int respawn_dice;
+
     // [Woof!]
     int flags_extra;  // Woof!-exclusive extension
     int bloodcolor;   // [FG] colored blood and gibs

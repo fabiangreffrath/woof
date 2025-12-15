@@ -1545,6 +1545,10 @@ static void D_InitTables(void)
     mobjinfo[i].bloodcolor       = 0; // Normal
     // DEHEXTRA
     mobjinfo[i].droppeditem      = MT_NULL;
+    // ID24
+    mobjinfo[i].flags3           = 0;
+    mobjinfo[i].respawn_min_tics = 12 * TICRATE;
+    mobjinfo[i].respawn_dice     = 4;
   }
 
   mobjinfo[MT_VILE].flags2    = MF2_SHORTMRANGE | MF2_DMGIGNORED | MF2_NOTHRESHOLD;
@@ -1570,6 +1574,14 @@ static void D_InitTables(void)
   mobjinfo[MT_POSSESSED].droppeditem = MT_CLIP;
   mobjinfo[MT_SHOTGUY].droppeditem = MT_SHOTGUN;
   mobjinfo[MT_CHAINGUY].droppeditem = MT_CHAINGUN;
+
+  // ID24
+  mobjinfo[MT_MISC4].flags3 |= MF3_SPECIALSTAYSCOOP;
+  mobjinfo[MT_MISC5].flags3 |= MF3_SPECIALSTAYSCOOP;
+  mobjinfo[MT_MISC6].flags3 |= MF3_SPECIALSTAYSCOOP;
+  mobjinfo[MT_MISC7].flags3 |= MF3_SPECIALSTAYSCOOP;
+  mobjinfo[MT_MISC8].flags3 |= MF3_SPECIALSTAYSCOOP;
+  mobjinfo[MT_MISC9].flags3 |= MF3_SPECIALSTAYSCOOP;
 
   // [crispy] randomly mirrored death animations
   for (i = MT_PLAYER; i <= MT_KEEN; ++i)
