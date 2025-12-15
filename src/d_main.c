@@ -2713,8 +2713,11 @@ void D_BindMiscVariables(void)
   BIND_NUM_GENERAL(show_endoom, ENDOOM_OFF, ENDOOM_OFF, ENDOOM_ALWAYS,
     "Show ENDOOM screen (0 = Off; 1 = PWAD Only; 2 = Always)");
   BIND_BOOL_GENERAL(demobar, false, "Show demo progress bar");
-  BIND_NUM_GENERAL(screen_wipe, wipe_Melt, wipe_None, wipe_Fizzle,
+
+  M_BindNum(
+    "screen_melt", &screen_wipe, NULL, wipe_Melt, wipe_None, wipe_Fizzle, ss_gen, wad_no,
     "Screen wipe effect (0 = None; 1 = Melt; 2 = Crossfade; 3 = Fizzlefade)");
+
   BIND_NUM_GENERAL(palette_changes, PAL_CHANGE_ON, PAL_CHANGE_OFF, PAL_CHANGE_REDUCED,
     "Palette changes when taking damage or picking up items (0 = Off; 1 = On; 2 = Reduced)");
   BIND_NUM_GENERAL(organize_savefiles, -1, -1, 1,
