@@ -38,6 +38,8 @@
 #include "s_sound.h"
 #include "sounds.h"
 #include "tables.h"
+#include <cstring>
+#include <string.h>
 
 #define BONUSADD        6
 
@@ -255,12 +257,13 @@ boolean P_GiveArmor(player_t *player, int armortype)
 // P_GiveCard
 //
 
-void P_GiveCard(player_t *player, card_t card)
+static inline const boolean P_GiveCard(player_t *player, card_t card)
 {
   if (player->cards[card])
-    return;
+    return false;
   player->bonuscount = BONUSADD;
   player->cards[card] = 1;
+  return true;
 }
 
 //
@@ -753,6 +756,132 @@ static inline const boolean TouchThingID24(const mobjinfo_t *const info,
                                            const boolean dropped,
                                            int *const sound)
 {
+    // TODO: weapons and ammo
+
+    boolean handle = (info->pickup_item_type == item_noitem || info->pickup_item_type == item_messageonly);
+
+		const char* mnemonic = info->pickup_mnemonic;
+    switch (info->pickup_item_type)
+    {
+        case item_noitem:
+        case item_messageonly:
+            break;
+
+        case item_bluecard:
+            handle |= P_GiveCard(player, it_bluecard);
+            break;
+
+        case item_yellowcard:
+            handle |= P_GiveCard(player, it_yellowcard);
+            break;
+
+        case item_redcard:
+            handle |= P_GiveCard(player, it_redcard);
+            break;
+
+        case item_blueskull:
+            handle |= P_GiveCard(player, it_blueskull);
+            break;
+
+        case item_yellowskull:
+            handle |= P_GiveCard(player, it_yellowskull);
+            break;
+
+        case item_redskull:
+            handle |= P_GiveCard(player, it_redskull);
+            break;
+
+        case item_backpack:
+            // TODO: weapons and ammo
+            handle = false;
+            break;
+
+        case item_healthbonus:
+            handle |= true;
+            player->health++;
+            player->health = MIN(player->health, deh_maxhealth);
+            player->mo->health = player->health;
+            break;
+
+        case item_stimpack:
+            handle |= P_GiveBody(player, 10);
+            break;
+
+        case item_medikit:
+            handle |= P_GiveBody(player, 25);
+            mnemonic = (player->health < 25) ? "GOTMEDINEED" : mnemonic;
+            break;
+
+        case item_soulsphere:
+            handle |= true;
+            player->health += soul_health;
+            player->health = MIN(player->health, max_soul);
+            player->mo->health = player->health;
+            break;
+
+        case item_megasphere:
+            handle |= true;
+            player->health = mega_health;
+            player->mo->health = player->health;
+            P_GiveArmor(player, 2);
+            break;
+
+        case item_armorbonus:
+            handle |= true;
+            player->armorpoints++;
+            player->armorpoints = MIN(player->armorpoints, max_armor);
+            if (!player->armortype)
+            {
+                player->armortype = 1;
+            }
+            break;
+
+        case item_greenarmor:
+            handle |= P_GiveArmor(player, green_armor_class);
+            break;
+
+        case item_bluearmor:
+            handle |= P_GiveArmor(player, blue_armor_class);
+            break;
+
+        case item_areamap:
+            handle |= P_GivePower(player, pw_allmap);
+            break;
+
+        case item_lightamp:
+            handle |= P_GivePower(player, pw_infrared);
+            break;
+
+        case item_berserk:
+            {
+                boolean gaveberserk = P_GivePower(player, pw_strength);
+                handle |= gaveberserk;
+                if (gaveberserk && player->readyweapon != wp_fist)
+                {
+                    player->pendingweapon = wp_fist;
+                }
+            }
+            break;
+
+        case item_invisibility:
+            handle |= P_GivePower(player, pw_invisibility);
+            break;
+
+        case item_radsuit:
+            handle |= P_GivePower(player, pw_ironfeet);
+            break;
+
+        case item_invulnerability:
+            handle |= P_GivePower(player, pw_invulnerability);
+            break;
+    }
+
+    if (handle)
+    {
+        strcpy(player->message, mnemonic); // WIP
+        *sound = info->pickup_sound;
+    }
+
     return false;
 }
 

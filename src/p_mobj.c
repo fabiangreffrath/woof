@@ -842,7 +842,7 @@ void P_MobjThinker (mobj_t* mobj)
     if (!(mobj->flags & MF_COUNTKILL))
       return;
 
-    if (mobj->flags3 & MF3_NORESPAWN)
+    if (demo_version >= DV_ID24 && mobj->flags3 & MF3_NORESPAWN)
       return;
 
     if (!respawnmonsters)
@@ -902,13 +902,6 @@ mobj_t *P_SpawnMobj(fixed_t x, fixed_t y, fixed_t z, mobjtype_t type)
 
   if (gameskill != sk_nightmare && !aggromonsters)
     mobj->reactiontime = info->reactiontime;
-
-  if (demo_version < DV_ID24)
-  {
-    // Customizable nightmare respawn
-    mobj->flags3   &= ~MF3_NORESPAWN;
-    mobj->intflags |= MIF_VANILLA_RESPAWN;
-  }
 
   if (type != zmt_ambientsound)
   {
