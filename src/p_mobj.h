@@ -251,6 +251,7 @@ enum {
   // cosmetic
   MIF_FLIP = 16,
   MIF_SPAWNED_BY_ICON = 32,
+  MIF_VANILLA_RESPAWN = (1u << 6),
 };
 
 // Map Object definition.
@@ -325,10 +326,6 @@ typedef struct mobj_s
     int                 flags_extra; // Woof!
     int                 intflags;  // killough 9/15/98: internal flags
     int                 health;
-
-    // Nightmare respawn
-    int                 respawn_dice;
-    int                 respawn_min_tics;
 
     // Action specials
     int32_t             id;

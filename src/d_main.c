@@ -1546,9 +1546,15 @@ static void D_InitTables(void)
     // DEHEXTRA
     mobjinfo[i].droppeditem      = MT_NULL;
     // ID24
-    mobjinfo[i].flags3           = 0;
-    mobjinfo[i].respawn_min_tics = 12 * TICRATE;
-    mobjinfo[i].respawn_dice     = 4;
+    mobjinfo[i].flags3             = 0;
+    mobjinfo[i].respawn_min_tics   = 12 * TICRATE;
+    mobjinfo[i].respawn_dice       = 4;
+    mobjinfo[i].pickup_ammo_type   = NO_INDEX;
+    mobjinfo[i].pickup_weapon_type = NO_INDEX;
+    mobjinfo[i].pickup_item_type   = NO_INDEX;
+    mobjinfo[i].pickup_sound       = sfx_None;
+    mobjinfo[i].pickup_bonus       = 6;
+    mobjinfo[i].pickup_mnemonic    = NULL;
   }
 
   mobjinfo[MT_VILE].flags2    = MF2_SHORTMRANGE | MF2_DMGIGNORED | MF2_NOTHRESHOLD;

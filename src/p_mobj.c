@@ -649,7 +649,7 @@ floater:
 // P_NightmareRespawn
 //
 
-void P_NightmareRespawn(mobj_t* mobj)
+static inline void P_NightmareRespawn(mobj_t* mobj)
 {
   fixed_t      x;
   fixed_t      y;
@@ -837,13 +837,32 @@ void P_MobjThinker (mobj_t* mobj)
     }
   }
   // check for nightmare respawn
-  else if (mobj->flags & MF_COUNTKILL
-            && !(mobj->flags3 & MF3_NORESPAWN)
-            && respawnmonsters
-            && ++mobj->movecount >= mobj->respawn_min_tics
-            && !(leveltime & 31)
-            && P_Random(pr_respawn) <= mobj->respawn_dice)
+  else
   {
+    if (!(mobj->flags & MF_COUNTKILL))
+      return;
+
+    if (mobj->flags3 & MF3_NORESPAWN)
+      return;
+
+    if (!respawnmonsters)
+      return;
+
+    int tics = (demo_version >= DV_ID24) ? mobj->info->respawn_min_tics
+                                         : 12 * TICRATE;
+
+    if (++mobj->movecount < tics)
+      return;
+
+    if (leveltime & 31)
+      return;
+
+    int dice = (demo_version >= DV_ID24) ? mobj->info->respawn_dice
+                                         : 4;
+
+    if (P_Random(pr_respawn) > dice)
+      return;
+
     P_NightmareRespawn(mobj);
   }
 }
@@ -887,14 +906,8 @@ mobj_t *P_SpawnMobj(fixed_t x, fixed_t y, fixed_t z, mobjtype_t type)
   if (demo_version < DV_ID24)
   {
     // Customizable nightmare respawn
-    mobj->flags3 &= ~MF3_NORESPAWN;
-    mobj->respawn_min_tics = 12 * TICRATE;
-    mobj->respawn_dice = 4;
-  }
-  else
-  {
-    mobj->respawn_min_tics = info->respawn_min_tics;
-    mobj->respawn_dice = info->respawn_dice;
+    mobj->flags3   &= ~MF3_NORESPAWN;
+    mobj->intflags |= MIF_VANILLA_RESPAWN;
   }
 
   if (type != zmt_ambientsound)

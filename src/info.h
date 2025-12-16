@@ -1524,6 +1524,12 @@ typedef struct
     int flags3;
     int respawn_min_tics;
     int respawn_dice;
+    int pickup_ammo_type;
+    int pickup_weapon_type;
+    int pickup_item_type;
+    int pickup_sound;
+    int pickup_bonus;
+    const char *pickup_mnemonic;
 
     // [Woof!]
     int flags_extra;  // Woof!-exclusive extension

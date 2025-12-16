@@ -302,8 +302,10 @@ boolean P_GivePower(player_t *player, int power)
 //
 
 // Ty 03/22/98 - externalized strings
-static inline boolean TouchThingVanilla(int sprite, player_t *player,
-                                        boolean dropped, int *sound)
+static inline const boolean TouchThingVanilla(const int sprite,
+                                              player_t *const player,
+                                              const boolean dropped,
+                                              int *const sound)
 {
     // Identify by sprite.
     switch (sprite)
@@ -672,9 +674,9 @@ static inline boolean TouchThingVanilla(int sprite, player_t *player,
             {
                 return false;
             }
+            // killough 8/9/98: beta BFG
             if (STRICTMODE(classic_bfg) || beta_emulation)
             {
-                // killough 8/9/98: beta BFG
                 pickupmsg(player, "You got the BFG2704!  Oh, yes.");
             }
             else
@@ -746,10 +748,28 @@ static inline boolean TouchThingVanilla(int sprite, player_t *player,
     return true;
 }
 
-static inline boolean TouchThingID24(const mobjinfo_t * info, player_t *player,
-                                     boolean dropped, int *sound)
+static inline const boolean TouchThingID24(const mobjinfo_t *const info,
+                                           player_t *const player,
+                                           const boolean dropped,
+                                           int *const sound)
 {
     return false;
+}
+
+static inline const boolean info_has_custom_pickup(mobjinfo_t *info)
+{
+    return (info->pickup_ammo_type      != NO_INDEX
+            || info->pickup_weapon_type != NO_INDEX
+            || info->pickup_item_type   != NO_INDEX
+            || info->pickup_sound       != sfx_None
+            || info->pickup_mnemonic    != NULL);
+}
+
+static inline const boolean should_be_removed(mobjflag3_t flags3)
+{
+    return (!netgame && !(flags3 & MF3_SPECIALSTAYSSINGLE))
+           || (netgame && deathmatch == 0 && !(flags3 & MF3_SPECIALSTAYSCOOP))
+           || (netgame && deathmatch != 0 && !(flags3 & MF3_SPECIALSTAYSDM));
 }
 
 void P_TouchSpecialThing(mobj_t *special, mobj_t *toucher)
@@ -773,34 +793,34 @@ void P_TouchSpecialThing(mobj_t *special, mobj_t *toucher)
     player_t *player = toucher->player;
     boolean dropped = (special->flags & MF_DROPPED) != 0;
 
-    if (demo_version < DV_ID24)
-    {
-        handled = TouchThingVanilla(special->sprite, player, dropped, &sound);
-    }
-    else
+    if (demo_version >= DV_ID24 && info_has_custom_pickup(special->info))
     {
         handled = TouchThingID24(special->info, player, dropped, &sound);
     }
-
-    if (handled)
+    else
     {
-        if (special->flags & MF_COUNTITEM)
-        {
-            player->itemcount++;
-        }
-
-        if ((!netgame && !(special->flags3 & MF3_SPECIALSTAYSSINGLE))
-            || (netgame && deathmatch == 0 && !(special->flags3 & MF3_SPECIALSTAYSCOOP))
-            || (netgame && deathmatch != 0 && !(special->flags3 & MF3_SPECIALSTAYSDM)))
-        {
-            P_RemoveMobj(special);
-        }
-
-        player->bonuscount += BONUSADD;
-
-        // killough 4/25/98, 12/98
-        S_StartSoundPreset(player->mo, sound, (sound == sfx_itemup) ? PITCH_NONE : PITCH_FULL);
+        handled = TouchThingVanilla(special->sprite, player, dropped, &sound);
     }
+
+    if (!handled)
+    {
+        return;
+    }
+
+    if (special->flags & MF_COUNTITEM)
+    {
+        player->itemcount++;
+    }
+
+    if (should_be_removed(special->flags3))
+    {
+        P_RemoveMobj(special);
+    }
+
+    player->bonuscount += special->info->pickup_bonus;
+
+    // killough 4/25/98, 12/98
+    S_StartSoundPreset(player->mo, sound, (sound == sfx_itemup) ? PITCH_NONE : PITCH_FULL);
 }
 
 //
