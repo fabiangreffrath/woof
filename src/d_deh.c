@@ -1168,6 +1168,19 @@ enum
     // DEHEXTRA
     DEH_MOBJINFO_DROPPEDITEM,
 
+    // ID24
+    DEH_MOBJINFO_FLAGS3,
+    DEH_MOBJINFO_RESPAWN_MIN_TICS,
+    DEH_MOBJINFO_RESPAWN_DICE,
+    DEH_MOBJINFO_PICKUP_AMMO_TYPE,
+    DEH_MOBJINFO_PICKUP_AMMO_CATEGORY,
+    DEH_MOBJINFO_PICKUP_WEAPON_TYPE,
+    DEH_MOBJINFO_PICKUP_ITEM_TYPE,
+    DEH_MOBJINFO_PICKUP_BONUS,
+    DEH_MOBJINFO_PICKUP_SOUND,
+    DEH_MOBJINFO_PICKUP_MESSAGE,
+    // TODO: DEH_MOBJINFO_TRANSLATION,
+
     // MBF2y
     DEH_MOBJINFO_OBITUARY,
     DEH_MOBJINFO_MELEE_OBITUARY,
@@ -1216,6 +1229,19 @@ static const char *deh_mobjinfo[] = {
 
     // DEHEXTRA
     "Dropped item", // .droppeditem
+
+    // ID24
+    "ID24 Bits",            // .flags3
+    "Min respawn tics",     // .respawn_min_tics
+    "Respawn dice",         // .respawn_dice
+    "Pickup ammo type",     // .pickup_ammo_type
+    "Pickup ammo category", // .pickup_ammo_category
+    "Pickup weapon type",   // .pickup_weapon_type
+    "Pickup item type",     // .pickup_item_type
+    "Pickup bonus count",   // .pickup_sound
+    "Pickup sound",         // .pickup_bonus
+    "Pickup message",       // .pickup_mnemonic
+    // TODO: "Translation",          // .translation
 
     // MBF2y
     "Obituary",       // .obituary
@@ -1892,6 +1918,55 @@ static void deh_procBexCodePointers(DEHFILE *fpin, char *line)
 }
 
 // ====================================================================
+// deh_procThingBits
+// Purpose: Read DEH Thing Bit flags
+// Args:    value  -- existing Decimal representation of bitflags
+//          strval -- bit mnemonic strings
+//          flags  -- array containing the mnemonic-bitflag pairs
+//          len    -- length of the above array
+//
+// Returns: Bitflags
+//
+
+static inline const int deh_procThingBits(long value, char * strval, const deh_flag_t *flags, int len)
+{
+    // killough 10/98
+    if (!value)
+    {
+        // figure out what the bits are
+        value = 0;
+
+        // killough 10/98: replace '+' kludge with strtok() loop
+        // Fix error-handling case ('found' var wasn't being
+        // reset)
+        //
+        // Use OR logic instead of addition, to allow repetition
+
+        for (; (strval = strtok(strval, ",+| \t\f\r")); strval = NULL)
+        {
+            int iy;
+            for (iy = 0; iy < len; iy++)
+            {
+                if (strcasecmp(strval, flags[iy].name))
+                {
+                    continue;
+                }
+                deh_log("ORed value 0x%08lx %s\n", flags[iy].value, strval);
+                value |= flags[iy].value;
+            }
+            if (iy >= len)
+            {
+                deh_log("Could not find bit mnemonic %s\n", strval);
+            }
+        }
+
+        // Don't worry about conversion -- simply print values
+        deh_log("Bits = 0x%08lX = %ld \n", value, value);
+    }
+    return value;
+}
+
+// ====================================================================
 // deh_procThing
 // Purpose: Handle DEH Thing block
 // Args:    fpin  -- input file stream
@@ -1961,108 +2036,20 @@ static void deh_procThing(DEHFILE *fpin, char *line)
             {
                 // Woof!
                 case DEH_MOBJINFO_FLAGS_EXTRA:
-                    if (!value)
-                    {
-                        for (value = 0; (strval = strtok(strval, ",+| \t\f\r"));
-                            strval = NULL)
-                        {
-                            size_t iy;
+                    mobjinfo[indexnum].flags_extra = deh_procThingBits(value, strval, deh_mobjflags_extra, arrlen(deh_mobjflags_extra));
+                    break;
 
-                            for (iy = 0; iy < arrlen(deh_mobjflags_extra); iy++)
-                            {
-                                if (strcasecmp(strval,
-                                              deh_mobjflags_extra[iy].name))
-                                {
-                                    continue;
-                                }
-
-                                value |= deh_mobjflags_extra[iy].value;
-                                break;
-                            }
-
-                            if (iy >= arrlen(deh_mobjflags_extra))
-                            {
-                                deh_log(
-                                    "Could not find Woof bit mnemonic %s\n",
-                                    strval);
-                            }
-                        }
-                    }
-
-                    mobjinfo[indexnum].flags_extra = value;
+                case DEH_MOBJINFO_FLAGS3:
+                    mobjinfo[indexnum].flags3 = deh_procThingBits(value, strval, deh_mobjflags_id24, arrlen(deh_mobjflags_id24));
                     break;
 
                 // mbf21: process thing flags
                 case DEH_MOBJINFO_FLAGS2:
-                    if (!value)
-                    {
-                        for (value = 0; (strval = strtok(strval, ",+| \t\f\r"));
-                             strval = NULL)
-                        {
-                            size_t iy;
-
-                            for (iy = 0; iy < arrlen(deh_mobjflags_mbf21); iy++)
-                            {
-                                if (strcasecmp(strval,
-                                               deh_mobjflags_mbf21[iy].name))
-                                {
-                                    continue;
-                                }
-
-                                value |= deh_mobjflags_mbf21[iy].value;
-                                break;
-                            }
-
-                            if (iy >= arrlen(deh_mobjflags_mbf21))
-                            {
-                                deh_log(
-                                    "Could not find MBF21 bit mnemonic %s\n",
-                                    strval);
-                            }
-                        }
-                    }
-
-                    mobjinfo[indexnum].flags2 = value;
+                    mobjinfo[indexnum].flags2 = deh_procThingBits(value, strval, deh_mobjflags_mbf21, arrlen(deh_mobjflags_mbf21));
                     break;
 
                 case DEH_MOBJINFO_FLAGS:
-                    if (!value) // killough 10/98
-                    {
-                        // figure out what the bits are
-                        value = 0;
-
-                        // killough 10/98: replace '+' kludge with strtok() loop
-                        // Fix error-handling case ('found' var wasn't being
-                        // reset)
-                        //
-                        // Use OR logic instead of addition, to allow repetition
-
-                        for (; (strval = strtok(strval, ",+| \t\f\r"));
-                             strval = NULL)
-                        {
-                            int iy;
-                            for (iy = 0; iy < arrlen(deh_mobjflags); iy++)
-                            {
-                                if (!strcasecmp(strval, deh_mobjflags[iy].name))
-                                {
-                                    deh_log("ORed value 0x%08lx %s\n",
-                                            deh_mobjflags[iy].value, strval);
-                                    value |= deh_mobjflags[iy].value;
-                                    break;
-                                }
-                            }
-                            if (iy >= arrlen(deh_mobjflags))
-                            {
-                                deh_log("Could not find bit mnemonic %s\n",
-                                        strval);
-                            }
-                        }
-
-                        // Don't worry about conversion -- simply print values
-                        deh_log("Bits = 0x%08lX = %ld \n", value, value);
-                    }
-
-                    mobjinfo[indexnum].flags = value;
+                    mobjinfo[indexnum].flags = deh_procThingBits(value, strval, deh_mobjflags, arrlen(deh_mobjflags));
                     break;
 
                 case DEH_MOBJINFO_INFIGHTING_GROUP:
