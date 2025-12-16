@@ -19,6 +19,7 @@
 #define DEH_IO_H
 
 #include "deh_defs.h"
+#include "doomtype.h"
 
 deh_context_t *DEH_OpenFile(const char *filename);
 deh_context_t *DEH_OpenLump(int lumpnum);
@@ -31,4 +32,3 @@ boolean DEH_HadError(deh_context_t *context);
 char *DEH_FileName(deh_context_t *context); // [crispy] returns filename
 
 #endif /* #ifndef DEH_IO_H */
-

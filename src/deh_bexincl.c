@@ -20,74 +20,72 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "m_misc.h"
-
 #include "deh_io.h"
 #include "deh_main.h"
+#include "m_misc.h"
 
 static boolean bex_nested = false;
 
 static void *DEH_BEXInclStart(deh_context_t *context, char *line)
 {
-    char *deh_file, *inc_file, *try_path;
     extern boolean bex_notext;
 
     if (!DEH_FileName(context))
     {
-	DEH_Warning(context, "DEHACKED lumps may not include files");
-	return NULL;
+        DEH_Warning(context, "DEHACKED lumps may not include files");
+        return NULL;
     }
 
-    deh_file = DEH_FileName(context);
+    char *deh_file = DEH_FileName(context);
 
     if (bex_nested)
     {
-	DEH_Warning(context, "Included files may not include other files");
-	return NULL;
+        DEH_Warning(context, "Included files may not include other files");
+        return NULL;
     }
 
-    inc_file = malloc(strlen(line) + 1);
+    char *inc_file = malloc(strlen(line) + 1);
 
     if (sscanf(line, "INCLUDE NOTEXT %32s", inc_file) == 1)
     {
-	bex_notext = true;
+        bex_notext = true;
+    }
+    else if (sscanf(line, "INCLUDE %32s", inc_file) == 1)
+    {
+        // well, fine
     }
     else
-    if (sscanf(line, "INCLUDE %32s", inc_file) == 1)
     {
-	// well, fine
-    }
-    else
-    {
-	DEH_Warning(context, "Parse error on section start");
-	free(inc_file);
-	return NULL;
+        DEH_Warning(context, "Parse error on section start");
+        free(inc_file);
+        return NULL;
     }
 
     // first, try loading the file right away
-    try_path = inc_file;
-
-    if (!M_FileExists(try_path))
+    char *try_path = inc_file;
+    if (!M_FileExistsNotDir(try_path))
     {
-	// second, try loading the file in the directory of the current file
-	char *dir;
-	dir = M_DirName(deh_file);
-	try_path = M_StringJoin(dir, DIR_SEPARATOR_S, inc_file, NULL);
-	free(dir);
+        // second, try loading the file in the directory of the current file
+        char *dir;
+        dir = M_DirName(deh_file);
+        try_path = M_StringJoin(dir, DIR_SEPARATOR_S, inc_file, NULL);
+        free(dir);
     }
 
     bex_nested = true;
 
-    if (!M_FileExists(try_path) || !DEH_LoadFile(try_path))
+    if (!M_FileExistsNotDir(try_path) || !DEH_LoadFile(try_path))
     {
-	DEH_Warning(context, "Could not include \"%s\"", inc_file);
+        DEH_Warning(context, "Could not include \"%s\"", inc_file);
     }
 
     bex_nested = false;
     bex_notext = false;
 
     if (try_path != inc_file)
-	free(try_path);
+    {
+        free(try_path);
+    }
     free(inc_file);
 
     return NULL;

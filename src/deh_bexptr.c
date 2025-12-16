@@ -17,200 +17,139 @@
 //
 
 #include <stdio.h>
-#include <stdlib.h>
 #include <string.h>
-
-#include "info.h"
 
 #include "deh_io.h"
 #include "deh_main.h"
+#include "info.h"
+#include "p_action.h"
 
-extern void A_Light0();
-extern void A_WeaponReady();
-extern void A_Lower();
-extern void A_Raise();
-extern void A_Punch();
-extern void A_ReFire();
-extern void A_FirePistol();
-extern void A_Light1();
-extern void A_FireShotgun();
-extern void A_Light2();
-extern void A_FireShotgun2();
-extern void A_CheckReload();
-extern void A_OpenShotgun2();
-extern void A_LoadShotgun2();
-extern void A_CloseShotgun2();
-extern void A_FireCGun();
-extern void A_GunFlash();
-extern void A_FireMissile();
-extern void A_Saw();
-extern void A_FirePlasma();
-extern void A_BFGsound();
-extern void A_FireBFG();
-extern void A_BFGSpray();
-extern void A_Explode();
-extern void A_Pain();
-extern void A_PlayerScream();
-extern void A_Fall();
-extern void A_XScream();
-extern void A_Look();
-extern void A_Chase();
-extern void A_FaceTarget();
-extern void A_PosAttack();
-extern void A_Scream();
-extern void A_SPosAttack();
-extern void A_VileChase();
-extern void A_VileStart();
-extern void A_VileTarget();
-extern void A_VileAttack();
-extern void A_StartFire();
-extern void A_Fire();
-extern void A_FireCrackle();
-extern void A_Tracer();
-extern void A_SkelWhoosh();
-extern void A_SkelFist();
-extern void A_SkelMissile();
-extern void A_FatRaise();
-extern void A_FatAttack1();
-extern void A_FatAttack2();
-extern void A_FatAttack3();
-extern void A_BossDeath();
-extern void A_CPosAttack();
-extern void A_CPosRefire();
-extern void A_TroopAttack();
-extern void A_SargAttack();
-extern void A_HeadAttack();
-extern void A_BruisAttack();
-extern void A_SkullAttack();
-extern void A_Metal();
-extern void A_SpidRefire();
-extern void A_BabyMetal();
-extern void A_BspiAttack();
-extern void A_Hoof();
-extern void A_CyberAttack();
-extern void A_PainAttack();
-extern void A_PainDie();
-extern void A_KeenDie();
-extern void A_BrainPain();
-extern void A_BrainScream();
-extern void A_BrainDie();
-extern void A_BrainAwake();
-extern void A_BrainSpit();
-extern void A_SpawnSound();
-extern void A_SpawnFly();
-extern void A_BrainExplode();
-// [crispy] additional BOOM and MBF states, sprites and code pointers
-extern void A_Stop();
-extern void A_Die();
-extern void A_FireOldBFG();
-extern void A_Detonate();
-extern void A_Mushroom();
-extern void A_BetaSkullAttack();
-// [crispy] more MBF code pointers
-extern void A_Spawn();
-extern void A_Turn();
-extern void A_Face();
-extern void A_Scratch();
-extern void A_PlaySound();
-extern void A_RandomJump();
-extern void A_LineEffect();
-
-typedef struct {
+typedef struct
+{
     const char *mnemonic;
     const actionf_t pointer;
 } bex_codeptr_t;
 
-static const bex_codeptr_t bex_codeptrtable[] = {
-    {"Light0", {A_Light0}},
-    {"WeaponReady", {A_WeaponReady}},
-    {"Lower", {A_Lower}},
-    {"Raise", {A_Raise}},
-    {"Punch", {A_Punch}},
-    {"ReFire", {A_ReFire}},
-    {"FirePistol", {A_FirePistol}},
-    {"Light1", {A_Light1}},
-    {"FireShotgun", {A_FireShotgun}},
-    {"Light2", {A_Light2}},
-    {"FireShotgun2", {A_FireShotgun2}},
-    {"CheckReload", {A_CheckReload}},
-    {"OpenShotgun2", {A_OpenShotgun2}},
-    {"LoadShotgun2", {A_LoadShotgun2}},
-    {"CloseShotgun2", {A_CloseShotgun2}},
-    {"FireCGun", {A_FireCGun}},
-    {"GunFlash", {A_GunFlash}},
-    {"FireMissile", {A_FireMissile}},
-    {"Saw", {A_Saw}},
-    {"FirePlasma", {A_FirePlasma}},
-    {"BFGsound", {A_BFGsound}},
-    {"FireBFG", {A_FireBFG}},
-    {"BFGSpray", {A_BFGSpray}},
-    {"Explode", {A_Explode}},
-    {"Pain", {A_Pain}},
-    {"PlayerScream", {A_PlayerScream}},
-    {"Fall", {A_Fall}},
-    {"XScream", {A_XScream}},
-    {"Look", {A_Look}},
-    {"Chase", {A_Chase}},
-    {"FaceTarget", {A_FaceTarget}},
-    {"PosAttack", {A_PosAttack}},
-    {"Scream", {A_Scream}},
-    {"SPosAttack", {A_SPosAttack}},
-    {"VileChase", {A_VileChase}},
-    {"VileStart", {A_VileStart}},
-    {"VileTarget", {A_VileTarget}},
-    {"VileAttack", {A_VileAttack}},
-    {"StartFire", {A_StartFire}},
-    {"Fire", {A_Fire}},
-    {"FireCrackle", {A_FireCrackle}},
-    {"Tracer", {A_Tracer}},
-    {"SkelWhoosh", {A_SkelWhoosh}},
-    {"SkelFist", {A_SkelFist}},
-    {"SkelMissile", {A_SkelMissile}},
-    {"FatRaise", {A_FatRaise}},
-    {"FatAttack1", {A_FatAttack1}},
-    {"FatAttack2", {A_FatAttack2}},
-    {"FatAttack3", {A_FatAttack3}},
-    {"BossDeath", {A_BossDeath}},
-    {"CPosAttack", {A_CPosAttack}},
-    {"CPosRefire", {A_CPosRefire}},
-    {"TroopAttack", {A_TroopAttack}},
-    {"SargAttack", {A_SargAttack}},
-    {"HeadAttack", {A_HeadAttack}},
-    {"BruisAttack", {A_BruisAttack}},
-    {"SkullAttack", {A_SkullAttack}},
-    {"Metal", {A_Metal}},
-    {"SpidRefire", {A_SpidRefire}},
-    {"BabyMetal", {A_BabyMetal}},
-    {"BspiAttack", {A_BspiAttack}},
-    {"Hoof", {A_Hoof}},
-    {"CyberAttack", {A_CyberAttack}},
-    {"PainAttack", {A_PainAttack}},
-    {"PainDie", {A_PainDie}},
-    {"KeenDie", {A_KeenDie}},
-    {"BrainPain", {A_BrainPain}},
-    {"BrainScream", {A_BrainScream}},
-    {"BrainDie", {A_BrainDie}},
-    {"BrainAwake", {A_BrainAwake}},
-    {"BrainSpit", {A_BrainSpit}},
-    {"SpawnSound", {A_SpawnSound}},
-    {"SpawnFly", {A_SpawnFly}},
-    {"BrainExplode", {A_BrainExplode}},
-    // [crispy] additional BOOM and MBF states, sprites and code pointers
-    {"Stop", {A_Stop}},
-    {"Die", {A_Die}},
-    {"FireOldBFG", {A_FireOldBFG}},
-    {"Detonate", {A_Detonate}},
-    {"Mushroom", {A_Mushroom}},
-    {"BetaSkullAttack", {A_BetaSkullAttack}},
-    // [crispy] more MBF code pointers
-    {"Spawn", {A_Spawn}},
-    {"Turn", {A_Turn}},
-    {"Face", {A_Face}},
-    {"Scratch", {A_Scratch}},
-    {"PlaySound", {A_PlaySound}},
-    {"RandomJump", {A_RandomJump}},
-    {"LineEffect", {A_LineEffect}},
-    {"NULL", {NULL}},
+static const bex_codeptr_t bex_codeptrtable[] =
+{
+    {"Light0",              {.p2 = A_Light0}             },
+    {"WeaponReady",         {.p2 = A_WeaponReady}        },
+    {"Lower",               {.p2 = A_Lower}              },
+    {"Raise",               {.p2 = A_Raise}              },
+    {"Punch",               {.p2 = A_Punch}              },
+    {"ReFire",              {.p2 = A_ReFire}             },
+    {"FirePistol",          {.p2 = A_FirePistol}         },
+    {"Light1",              {.p2 = A_Light1}             },
+    {"FireShotgun",         {.p2 = A_FireShotgun}        },
+    {"Light2",              {.p2 = A_Light2}             },
+    {"FireShotgun2",        {.p2 = A_FireShotgun2}       },
+    {"CheckReload",         {.p2 = A_CheckReload}        },
+    {"OpenShotgun2",        {.p2 = A_OpenShotgun2}       },
+    {"LoadShotgun2",        {.p2 = A_LoadShotgun2}       },
+    {"CloseShotgun2",       {.p2 = A_CloseShotgun2}      },
+    {"FireCGun",            {.p2 = A_FireCGun}           },
+    {"GunFlash",            {.p2 = A_GunFlash}           },
+    {"FireMissile",         {.p2 = A_FireMissile}        },
+    {"Saw",                 {.p2 = A_Saw}                },
+    {"FirePlasma",          {.p2 = A_FirePlasma}         },
+    {"BFGsound",            {.p2 = A_BFGsound}           },
+    {"FireBFG",             {.p2 = A_FireBFG}            },
+    {"BFGSpray",            {.p1 = A_BFGSpray}           },
+    {"Explode",             {.p1 = A_Explode}            },
+    {"Pain",                {.p1 = A_Pain}               },
+    {"PlayerScream",        {.p1 = A_PlayerScream}       },
+    {"Fall",                {.p1 = A_Fall}               },
+    {"XScream",             {.p1 = A_XScream}            },
+    {"Look",                {.p1 = A_Look}               },
+    {"Chase",               {.p1 = A_Chase}              },
+    {"FaceTarget",          {.p1 = A_FaceTarget}         },
+    {"PosAttack",           {.p1 = A_PosAttack}          },
+    {"Scream",              {.p1 = A_Scream}             },
+    {"SPosAttack",          {.p1 = A_SPosAttack}         },
+    {"VileChase",           {.p1 = A_VileChase}          },
+    {"VileStart",           {.p1 = A_VileStart}          },
+    {"VileTarget",          {.p1 = A_VileTarget}         },
+    {"VileAttack",          {.p1 = A_VileAttack}         },
+    {"StartFire",           {.p1 = A_StartFire}          },
+    {"Fire",                {.p1 = A_Fire}               },
+    {"FireCrackle",         {.p1 = A_FireCrackle}        },
+    {"Tracer",              {.p1 = A_Tracer}             },
+    {"SkelWhoosh",          {.p1 = A_SkelWhoosh}         },
+    {"SkelFist",            {.p1 = A_SkelFist}           },
+    {"SkelMissile",         {.p1 = A_SkelMissile}        },
+    {"FatRaise",            {.p1 = A_FatRaise}           },
+    {"FatAttack1",          {.p1 = A_FatAttack1}         },
+    {"FatAttack2",          {.p1 = A_FatAttack2}         },
+    {"FatAttack3",          {.p1 = A_FatAttack3}         },
+    {"BossDeath",           {.p1 = A_BossDeath}          },
+    {"CPosAttack",          {.p1 = A_CPosAttack}         },
+    {"CPosRefire",          {.p1 = A_CPosRefire}         },
+    {"TroopAttack",         {.p1 = A_TroopAttack}        },
+    {"SargAttack",          {.p1 = A_SargAttack}         },
+    {"HeadAttack",          {.p1 = A_HeadAttack}         },
+    {"BruisAttack",         {.p1 = A_BruisAttack}        },
+    {"SkullAttack",         {.p1 = A_SkullAttack}        },
+    {"Metal",               {.p1 = A_Metal}              },
+    {"SpidRefire",          {.p1 = A_SpidRefire}         },
+    {"BabyMetal",           {.p1 = A_BabyMetal}          },
+    {"BspiAttack",          {.p1 = A_BspiAttack}         },
+    {"Hoof",                {.p1 = A_Hoof}               },
+    {"CyberAttack",         {.p1 = A_CyberAttack}        },
+    {"PainAttack",          {.p1 = A_PainAttack}         },
+    {"PainDie",             {.p1 = A_PainDie}            },
+    {"KeenDie",             {.p1 = A_KeenDie}            },
+    {"BrainPain",           {.p1 = A_BrainPain}          },
+    {"BrainScream",         {.p1 = A_BrainScream}        },
+    {"BrainDie",            {.p1 = A_BrainDie}           },
+    {"BrainAwake",          {.p1 = A_BrainAwake}         },
+    {"BrainSpit",           {.p1 = A_BrainSpit}          },
+    {"SpawnSound",          {.p1 = A_SpawnSound}         },
+    {"SpawnFly",            {.p1 = A_SpawnFly}           },
+    {"BrainExplode",        {.p1 = A_BrainExplode}       },
+    // MBF
+    {"Detonate",            {.p1 = A_Detonate}           },
+    {"Mushroom",            {.p1 = A_Mushroom}           },
+    {"Die",                 {.p1 = A_Die}                },
+    {"Spawn",               {.p1 = A_Spawn}              },
+    {"Turn",                {.p1 = A_Turn}               },
+    {"Face",                {.p1 = A_Face}               },
+    {"Scratch",             {.p1 = A_Scratch}            },
+    {"PlaySound",           {.p1 = A_PlaySound}          },
+    {"RandomJump",          {.p1 = A_RandomJump}         },
+    {"LineEffect",          {.p1 = A_LineEffect}         },
+    {"FireOldBFG",          {.p2 = A_FireOldBFG}         },
+    {"BetaSkullAttack",     {.p1 = A_BetaSkullAttack}    },
+    {"Stop",                {.p1 = A_Stop}               },
+    // MBF21
+    {"SpawnObject",         {.p1 = A_SpawnObject}        },
+    {"MonsterProjectile",   {.p1 = A_MonsterProjectile}  },
+    {"MonsterBulletAttack", {.p1 = A_MonsterBulletAttack}},
+    {"MonsterMeleeAttack",  {.p1 = A_MonsterMeleeAttack} },
+    {"RadiusDamage",        {.p1 = A_RadiusDamage}       },
+    {"NoiseAlert",          {.p1 = A_NoiseAlert}         },
+    {"HealChase",           {.p1 = A_HealChase}          },
+    {"SeekTracer",          {.p1 = A_SeekTracer}         },
+    {"FindTracer",          {.p1 = A_FindTracer}         },
+    {"ClearTracer",         {.p1 = A_ClearTracer}        },
+    {"JumpIfHealthBelow",   {.p1 = A_JumpIfHealthBelow}  },
+    {"JumpIfTargetInSight", {.p1 = A_JumpIfTargetInSight}},
+    {"JumpIfTargetCloser",  {.p1 = A_JumpIfTargetCloser} },
+    {"JumpIfTracerInSight", {.p1 = A_JumpIfTracerInSight}},
+    {"JumpIfTracerCloser",  {.p1 = A_JumpIfTracerCloser} },
+    {"JumpIfFlagsSet",      {.p1 = A_JumpIfFlagsSet}     },
+    {"AddFlags",            {.p1 = A_AddFlags}           },
+    {"RemoveFlags",         {.p1 = A_RemoveFlags}        },
+    {"WeaponProjectile",    {.p2 = A_WeaponProjectile}   },
+    {"WeaponBulletAttack",  {.p2 = A_WeaponBulletAttack} },
+    {"WeaponMeleeAttack",   {.p2 = A_WeaponMeleeAttack}  },
+    {"WeaponSound",         {.p2 = A_WeaponSound}        },
+    {"WeaponAlert",         {.p2 = A_WeaponAlert}        },
+    {"WeaponJump",          {.p2 = A_WeaponJump}         },
+    {"ConsumeAmmo",         {.p2 = A_ConsumeAmmo}        },
+    {"CheckAmmo",           {.p2 = A_CheckAmmo}          },
+    {"RefireTo",            {.p2 = A_RefireTo}           },
+    {"GunFlashTo",          {.p2 = A_GunFlashTo}         },
+    {"NULL",                {NULL}                       },
 };
 
 extern actionf_t codeptrs[NUMSTATES];
@@ -221,7 +160,7 @@ static void *DEH_BEXPtrStart(deh_context_t *context, char *line)
 
     if (sscanf(line, "%9s", s) == 0 || strcmp("[CODEPTR]", s))
     {
-	DEH_Warning(context, "Parse error on section start");
+        DEH_Warning(context, "Parse error on section start");
     }
 
     return NULL;
@@ -237,33 +176,33 @@ static void DEH_BEXPtrParseLine(deh_context_t *context, char *line, void *tag)
     // variable_name = "FRAME nn" and value = "mnemonic"
     if (!DEH_ParseAssignment(line, &variable_name, &value))
     {
-	DEH_Warning(context, "Failed to parse assignment: %s", line);
-	return;
+        DEH_Warning(context, "Failed to parse assignment: %s", line);
+        return;
     }
 
     // parse "FRAME nn", where frame_number = "nn"
-    if (sscanf(variable_name, "%5s %32d", frame_str, &frame_number) != 2 ||
-        strcasecmp(frame_str, "FRAME"))
+    if (sscanf(variable_name, "%5s %32d", frame_str, &frame_number) != 2
+        || strcasecmp(frame_str, "FRAME"))
     {
-	DEH_Warning(context, "Failed to parse assignment: %s", variable_name);
-	return;
+        DEH_Warning(context, "Failed to parse assignment: %s", variable_name);
+        return;
     }
 
     if (frame_number < 0 || frame_number >= NUMSTATES)
     {
-	DEH_Warning(context, "Invalid frame number: %i", frame_number);
-	return;
+        DEH_Warning(context, "Invalid frame number: %i", frame_number);
+        return;
     }
 
-    state = (state_t *) &states[frame_number];
+    state = (state_t *)&states[frame_number];
 
     for (i = 0; i < arrlen(bex_codeptrtable); i++)
     {
-	if (!strcasecmp(bex_codeptrtable[i].mnemonic, value))
-	{
-	    state->action = bex_codeptrtable[i].pointer;
-	    return;
-	}
+        if (!strcasecmp(bex_codeptrtable[i].mnemonic, value))
+        {
+            state->action = bex_codeptrtable[i].pointer;
+            return;
+        }
     }
 
     DEH_Warning(context, "Invalid mnemonic '%s'", value);

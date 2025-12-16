@@ -17,23 +17,20 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
-
-#include "doomtype.h"
 
 #include "d_items.h"
-
 #include "deh_defs.h"
+#include "deh_io.h"
 #include "deh_main.h"
 #include "deh_mapping.h"
 
 DEH_BEGIN_MAPPING(weapon_mapping, weaponinfo_t)
-  DEH_MAPPING("Ammo type",        ammo)
-  DEH_MAPPING("Deselect frame",   upstate)
-  DEH_MAPPING("Select frame",     downstate)
-  DEH_MAPPING("Bobbing frame",    readystate)
-  DEH_MAPPING("Shooting frame",   atkstate)
-  DEH_MAPPING("Firing frame",     flashstate)
+    DEH_MAPPING("Ammo type", ammo)
+    DEH_MAPPING("Deselect frame", upstate)
+    DEH_MAPPING("Select frame", downstate)
+    DEH_MAPPING("Bobbing frame", readystate)
+    DEH_MAPPING("Shooting frame", atkstate)
+    DEH_MAPPING("Firing frame", flashstate)
 DEH_END_MAPPING
 
 static void *DEH_WeaponStart(deh_context_t *context, char *line)
@@ -51,7 +48,7 @@ static void *DEH_WeaponStart(deh_context_t *context, char *line)
         DEH_Warning(context, "Invalid weapon number: %i", weapon_number);
         return NULL;
     }
-    
+
     return &weaponinfo[weapon_number];
 }
 
@@ -60,11 +57,13 @@ static void DEH_WeaponParseLine(deh_context_t *context, char *line, void *tag)
     char *variable_name, *value;
     weaponinfo_t *weapon;
     int ivalue;
-    
-    if (tag == NULL)
-        return;
 
-    weapon = (weaponinfo_t *) tag;
+    if (tag == NULL)
+    {
+        return;
+    }
+
+    weapon = (weaponinfo_t *)tag;
 
     if (!DEH_ParseAssignment(line, &variable_name, &value))
     {
@@ -83,7 +82,7 @@ static void DEH_WeaponSHA1Sum(sha1_context_t *context)
 {
     int i;
 
-    for (i=0; i<NUMWEAPONS ;++i)
+    for (i = 0; i < NUMWEAPONS; ++i)
     {
         DEH_StructSHA1Sum(context, &weapon_mapping, &weaponinfo[i]);
     }
@@ -98,4 +97,3 @@ deh_section_t deh_section_weapon =
     NULL,
     DEH_WeaponSHA1Sum,
 };
-

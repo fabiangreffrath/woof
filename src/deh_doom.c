@@ -15,9 +15,7 @@
 // Top-level dehacked definitions for Doom dehacked.
 //
 
-#include <stdlib.h>
 #include "deh_defs.h"
-#include "deh_main.h"
 
 const char *deh_signatures[] =
 {
@@ -25,7 +23,6 @@ const char *deh_signatures[] =
     "Patch File for DeHackEd v3.0",
     NULL
 };
-
 
 //
 // List of section types:
@@ -48,4 +45,3 @@ deh_section_t *deh_section_types[] =
     &deh_section_bexincl,
     NULL
 };
-

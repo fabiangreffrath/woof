@@ -18,28 +18,36 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#include "doomtype.h"
 #include "deh_defs.h"
+#include "deh_io.h"
 #include "deh_main.h"
 #include "deh_mapping.h"
 #include "sounds.h"
 
+//
+// So what's going on in here?
+// Most of these options actually pose potential security risks,
+// and/or aren't very useful, anyway.
+//
+// See: https://eternity.youfailit.net/wiki/DeHackEd_/_BEX_Reference/Sound_Block
+//
+
 DEH_BEGIN_MAPPING(sound_mapping, sfxinfo_t)
     DEH_UNSUPPORTED_MAPPING("Offset")
-    DEH_UNSUPPORTED_MAPPING("Zero/One")
+    DEH_MAPPING("Zero/One", singularity)
     DEH_MAPPING("Value", priority)
-    DEH_MAPPING("Zero 1", link)
-    DEH_MAPPING("Zero 2", pitch)
-    DEH_MAPPING("Zero 3", volume)
+    DEH_UNSUPPORTED_MAPPING("Zero 1")
+    DEH_UNSUPPORTED_MAPPING("Zero 2")
+    DEH_UNSUPPORTED_MAPPING("Zero 3")
     DEH_UNSUPPORTED_MAPPING("Zero 4")
-    DEH_MAPPING("Neg. One 1", usefulness)
-    DEH_MAPPING("Neg. One 2", lumpnum)
+    DEH_UNSUPPORTED_MAPPING("Neg. One 1")
+    DEH_UNSUPPORTED_MAPPING("Neg. One 2")
 DEH_END_MAPPING
 
 static void *DEH_SoundStart(deh_context_t *context, char *line)
 {
     int sound_number = 0;
-    
+
     if (sscanf(line, "Sound %i", &sound_number) != 1)
     {
         DEH_Warning(context, "Parse error on section start");
@@ -54,8 +62,10 @@ static void *DEH_SoundStart(deh_context_t *context, char *line)
 
     if (sound_number >= DEH_VANILLA_NUMSFX)
     {
-        DEH_Warning(context, "Attempt to modify SFX %i.  This will cause "
-                             "problems in Vanilla dehacked.", sound_number); 
+        DEH_Warning(context,
+                    "Attempt to modify SFX %i.  This will cause "
+                    "problems in Vanilla dehacked.",
+                    sound_number);
     }
 
     return &S_sfx[sound_number];
@@ -63,30 +73,26 @@ static void *DEH_SoundStart(deh_context_t *context, char *line)
 
 static void DEH_SoundParseLine(deh_context_t *context, char *line, void *tag)
 {
-    sfxinfo_t *sfx;
-    char *variable_name, *value;
-    int ivalue;
-    
     if (tag == NULL)
-       return;
+    {
+        return;
+    }
 
-    sfx = (sfxinfo_t *) tag;
+    sfxinfo_t *sfx = (sfxinfo_t *)tag;
 
     // Parse the assignment
-
+    char *variable_name, *value;
     if (!DEH_ParseAssignment(line, &variable_name, &value))
     {
         // Failed to parse
         DEH_Warning(context, "Failed to parse assignment");
         return;
     }
-    
+
     // all values are integers
+    int ivalue = atoi(value);
 
-    ivalue = atoi(value);
-    
     // Set the field value
-
     DEH_SetMapping(context, &sound_mapping, sfx, variable_name, ivalue);
 }
 
@@ -99,4 +105,3 @@ deh_section_t deh_section_sound =
     NULL,
     NULL,
 };
-

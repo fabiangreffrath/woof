@@ -15,18 +15,18 @@
 // Dehacked I/O code (does all reads from dehacked files)
 //
 
+#include <ctype.h>
 #include <stdarg.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <ctype.h>
-
-#include "m_misc.h"
-#include "w_wad.h"
-#include "z_zone.h"
 
 #include "deh_defs.h"
 #include "deh_io.h"
+#include "m_io.h"
+#include "m_misc.h"
+#include "w_wad.h"
+#include "z_zone.h"
 
 typedef enum
 {
@@ -39,15 +39,13 @@ struct deh_context_s
     deh_input_type_t type;
     char *filename;
 
-    // If the input comes from a memory buffer, pointer to the memory
-    // buffer.
+    // If the input comes from a memory buffer, pointer to the memory buffer.
     unsigned char *input_buffer;
     size_t input_buffer_len;
     unsigned int input_buffer_pos;
     int lumpnum;
 
-    // If the input comes from a file, the file stream for reading
-    // data.
+    // If the input comes from a file, the file stream for reading data.
     FILE *stream;
 
     // Current line number that we have reached:
@@ -67,12 +65,9 @@ struct deh_context_s
 
 static deh_context_t *DEH_NewContext(void)
 {
-    deh_context_t *context;
-
-    context = Z_Malloc(sizeof(*context), PU_STATIC, NULL);
+    deh_context_t *context = Z_Malloc(sizeof(*context), PU_STATIC, NULL);
 
     // Initial read buffer size of 128 bytes
-
     context->readbuffer_size = 128;
     context->readbuffer = Z_Malloc(context->readbuffer_size, PU_STATIC, NULL);
     context->linenum = 0;
@@ -89,15 +84,14 @@ static deh_context_t *DEH_NewContext(void)
 
 deh_context_t *DEH_OpenFile(const char *filename)
 {
-    FILE *fstream;
-    deh_context_t *context;
-
-    fstream = M_fopen(filename, "r");
+    FILE *fstream = M_fopen(filename, "r");
 
     if (fstream == NULL)
+    {
         return NULL;
+    }
 
-    context = DEH_NewContext();
+    deh_context_t *context = DEH_NewContext();
 
     context->type = DEH_INPUT_FILE;
     context->stream = fstream;
@@ -110,12 +104,8 @@ deh_context_t *DEH_OpenFile(const char *filename)
 
 deh_context_t *DEH_OpenLump(int lumpnum)
 {
-    deh_context_t *context;
-    void *lump;
-
-    lump = W_CacheLumpNum(lumpnum, PU_STATIC);
-
-    context = DEH_NewContext();
+    void *lump = W_CacheLumpNum(lumpnum, PU_STATIC);
+    deh_context_t *context = DEH_NewContext();
 
     context->type = DEH_INPUT_LUMP;
     context->lumpnum = lumpnum;
@@ -124,7 +114,7 @@ deh_context_t *DEH_OpenLump(int lumpnum)
     context->input_buffer_pos = 0;
 
     context->filename = malloc(9);
-    M_StringCopy(context->filename, lumpinfo[lumpnum]->name, 9);
+    M_StringCopy(context->filename, lumpinfo[lumpnum].name, 9);
 
     return context;
 }
@@ -139,7 +129,7 @@ void DEH_CloseFile(deh_context_t *context)
     }
     else if (context->type == DEH_INPUT_LUMP)
     {
-        W_ReleaseLumpNum(context->lumpnum);
+        Z_ChangeTag(lumpcache[context->lumpnum], PU_CACHE); // W_ReleaseLumpNum
     }
 
     free(context->filename);
@@ -152,7 +142,6 @@ int DEH_GetCharFile(deh_context_t *context)
     if (feof(context->stream))
     {
         // end of file
-
         return -1;
     }
 
@@ -161,35 +150,29 @@ int DEH_GetCharFile(deh_context_t *context)
 
 int DEH_GetCharLump(deh_context_t *context)
 {
-    int result;
-
     if (context->input_buffer_pos >= context->input_buffer_len)
     {
         return -1;
     }
 
-    result = context->input_buffer[context->input_buffer_pos];
+    int result = context->input_buffer[context->input_buffer_pos];
     ++context->input_buffer_pos;
-
     return result;
 }
 
 // Reads a single character from a dehacked file
-
 int DEH_GetChar(deh_context_t *context)
 {
     int result = 0;
     boolean last_was_cr = false;
 
     // Track the current line number
-
     if (context->last_was_newline)
     {
         ++context->linenum;
     }
 
     // Read characters, converting CRLF to LF
-
     do
     {
         switch (context->type)
@@ -225,7 +208,6 @@ int DEH_GetChar(deh_context_t *context)
     } while (last_was_cr);
 
     context->last_was_newline = result == '\n';
-
     return result;
 }
 
@@ -233,11 +215,8 @@ int DEH_GetChar(deh_context_t *context)
 
 static void IncreaseReadBuffer(deh_context_t *context)
 {
-    char *newbuffer;
-    int newbuffer_size;
-
-    newbuffer_size = context->readbuffer_size * 2;
-    newbuffer = Z_Malloc(newbuffer_size, PU_STATIC, NULL);
+    int newbuffer_size = context->readbuffer_size * 2;
+    char *newbuffer = Z_Malloc(newbuffer_size, PU_STATIC, NULL);
 
     memcpy(newbuffer, context->readbuffer, context->readbuffer_size);
 
@@ -248,35 +227,35 @@ static void IncreaseReadBuffer(deh_context_t *context)
 }
 
 // [crispy] Save pointer to start of current line ...
-void DEH_SaveLineStart (deh_context_t *context)
+void DEH_SaveLineStart(deh_context_t *context)
 {
     if (context->type == DEH_INPUT_FILE)
     {
-	context->linestart = ftell(context->stream);
+        context->linestart = ftell(context->stream);
     }
-    else
-    if (context->type == DEH_INPUT_LUMP)
+    else if (context->type == DEH_INPUT_LUMP)
     {
-	context->linestart = context->input_buffer_pos;
+        context->linestart = context->input_buffer_pos;
     }
 }
 
 // [crispy] ... and reset context to start of current line
 // to retry with previous line parser in case of a parsing error
-void DEH_RestoreLineStart (deh_context_t *context)
+void DEH_RestoreLineStart(deh_context_t *context)
 {
     // [crispy] never point past the start
     if (context->linestart < 0)
-	return;
+    {
+        return;
+    }
 
     if (context->type == DEH_INPUT_FILE)
     {
-	fseek(context->stream, context->linestart, SEEK_SET);
+        fseek(context->stream, context->linestart, SEEK_SET);
     }
-    else
-    if (context->type == DEH_INPUT_LUMP)
+    else if (context->type == DEH_INPUT_LUMP)
     {
-	context->input_buffer_pos = context->linestart;
+        context->input_buffer_pos = context->linestart;
     }
 
     // [crispy] don't count this line twice
@@ -345,20 +324,17 @@ char *DEH_ReadLine(deh_context_t *context, boolean extended)
         if (c == '\n' || c < 0)
         {
             // end of line: a full line has been read
-
             context->readbuffer[pos] = '\0';
             break;
         }
         else if (c != '\0')
         {
-            // normal character; don't allow NUL characters to be
-            // added.
-
-            context->readbuffer[pos] = (char) c;
+            // normal character; don't allow NUL characters to be added.
+            context->readbuffer[pos] = (char)c;
             ++pos;
         }
     }
-    
+
     return context->readbuffer;
 }
 
@@ -406,4 +382,3 @@ char *DEH_FileName(deh_context_t *context)
 
     return NULL;
 }
-

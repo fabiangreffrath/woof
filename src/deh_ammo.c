@@ -17,14 +17,12 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
 
-#include "doomdef.h"
-#include "doomtype.h"
 #include "deh_defs.h"
 #include "deh_io.h"
 #include "deh_main.h"
-#include "p_local.h"
+#include "doomdef.h"
+#include "p_inter.h"
 
 static void *DEH_AmmoStart(deh_context_t *context, char *line)
 {
@@ -41,7 +39,7 @@ static void *DEH_AmmoStart(deh_context_t *context, char *line)
         DEH_Warning(context, "Invalid ammo number: %i", ammo_number);
         return NULL;
     }
-    
+
     return &maxammo[ammo_number];
 }
 
@@ -52,16 +50,16 @@ static void DEH_AmmoParseLine(deh_context_t *context, char *line, void *tag)
     int ammo_number;
 
     if (tag == NULL)
+    {
         return;
+    }
 
-    ammo_number = ((int *) tag) - maxammo;
+    ammo_number = ((int *)tag) - maxammo;
 
     // Parse the assignment
-
     if (!DEH_ParseAssignment(line, &variable_name, &value))
     {
         // Failed to parse
-
         DEH_Warning(context, "Failed to parse assignment");
         return;
     }
@@ -69,11 +67,14 @@ static void DEH_AmmoParseLine(deh_context_t *context, char *line, void *tag)
     ivalue = atoi(value);
 
     // maxammo
-
     if (!strcasecmp(variable_name, "Per ammo"))
+    {
         clipammo[ammo_number] = ivalue;
+    }
     else if (!strcasecmp(variable_name, "Max ammo"))
+    {
         maxammo[ammo_number] = ivalue;
+    }
     else
     {
         DEH_Warning(context, "Field named '%s' not found", variable_name);
@@ -82,9 +83,7 @@ static void DEH_AmmoParseLine(deh_context_t *context, char *line, void *tag)
 
 static void DEH_AmmoSHA1Hash(sha1_context_t *context)
 {
-    int i;
-
-    for (i=0; i<NUMAMMO; ++i)
+    for (int i = 0; i < NUMAMMO; ++i)
     {
         SHA1_UpdateInt32(context, clipammo[i]);
         SHA1_UpdateInt32(context, maxammo[i]);
@@ -100,4 +99,3 @@ deh_section_t deh_section_ammo =
     NULL,
     DEH_AmmoSHA1Hash,
 };
-
