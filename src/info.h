@@ -24,6 +24,7 @@
 
 // Needed for action function pointer handling.
 #include "d_think.h"
+#include "doomdef.h"
 #include "doomtype.h"
 
 #define MAXSTATEARGS 8
@@ -1527,7 +1528,7 @@ typedef struct
     int pickup_ammo_type;
     int pickup_ammo_category;
     int pickup_weapon_type;
-    int pickup_item_type;
+    itemtype_t pickup_item_type;
     int pickup_sound;
     int pickup_bonus;
     char *pickup_mnemonic;

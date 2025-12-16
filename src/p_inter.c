@@ -762,6 +762,10 @@ static inline const boolean TouchThingID24(const mobjinfo_t *const info,
 		const char* mnemonic = info->pickup_mnemonic;
     switch (info->pickup_item_type)
     {
+        case item_noitem:
+        case item_messageonly:
+            break;
+
         case item_bluecard:
             handle |= P_GiveCard(player, it_bluecard);
             break;
@@ -873,7 +877,7 @@ static inline const boolean TouchThingID24(const mobjinfo_t *const info,
 
     if (handle)
     {
-        pickupmsg(player, "%s", mnemonic); // WIP
+        pickupmsg(player, "testing %d", info->pickup_item_type); // WIP
         *sound = info->pickup_sound;
     }
 
