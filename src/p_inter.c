@@ -38,7 +38,6 @@
 #include "s_sound.h"
 #include "sounds.h"
 #include "tables.h"
-#include <cstring>
 #include <string.h>
 
 #define BONUSADD        6
