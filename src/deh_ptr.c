@@ -19,12 +19,10 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "doomtype.h"
-#include "info.h"
-
 #include "deh_defs.h"
 #include "deh_io.h"
 #include "deh_main.h"
+#include "info.h"
 
 actionf_t codeptrs[NUMSTATES]; // [crispy] share with deh_bexptr.c
 

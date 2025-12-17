@@ -36,8 +36,6 @@ static void *DEH_BEXInclStart(deh_context_t *context, char *line)
         return NULL;
     }
 
-    char *deh_file = DEH_FileName(context);
-
     if (bex_nested)
     {
         DEH_Warning(context, "Included files may not include other files");
@@ -63,6 +61,7 @@ static void *DEH_BEXInclStart(deh_context_t *context, char *line)
 
     // first, try loading the file right away
     char *try_path = inc_file;
+    char *deh_file = DEH_FileName(context);
     if (!M_FileExistsNotDir(try_path))
     {
         // second, try loading the file in the directory of the current file
@@ -96,7 +95,7 @@ static void DEH_BEXInclParseLine(deh_context_t *context, char *line, void *tag)
     // not used
 }
 
-deh_section_t deh_section_bexincl =
+deh_section_t deh_section_bex_includes =
 {
     "INCLUDE",
     NULL,

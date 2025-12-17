@@ -81,7 +81,6 @@ static deh_context_t *DEH_NewContext(void)
 
 // Open a dehacked file for reading
 // Returns NULL if open failed
-
 deh_context_t *DEH_OpenFile(const char *filename)
 {
     FILE *fstream = M_fopen(filename, "r");
@@ -101,7 +100,6 @@ deh_context_t *DEH_OpenFile(const char *filename)
 }
 
 // Open a WAD lump for reading.
-
 deh_context_t *DEH_OpenLump(int lumpnum)
 {
     void *lump = W_CacheLumpNum(lumpnum, PU_STATIC);
@@ -120,7 +118,6 @@ deh_context_t *DEH_OpenLump(int lumpnum)
 }
 
 // Close dehacked file
-
 void DEH_CloseFile(deh_context_t *context)
 {
     if (context->type == DEH_INPUT_FILE)
@@ -212,7 +209,6 @@ int DEH_GetChar(deh_context_t *context)
 }
 
 // Increase the read buffer size
-
 static void IncreaseReadBuffer(deh_context_t *context)
 {
     int newbuffer_size = context->readbuffer_size * 2;
@@ -263,7 +259,6 @@ void DEH_RestoreLineStart(deh_context_t *context)
 }
 
 // Read a whole line
-
 char *DEH_ReadLine(deh_context_t *context, boolean extended)
 {
     int c;
@@ -282,7 +277,6 @@ char *DEH_ReadLine(deh_context_t *context, boolean extended)
         }
 
         // cope with lines of any length: increase the buffer size
-
         if (pos >= context->readbuffer_size)
         {
             IncreaseReadBuffer(context);

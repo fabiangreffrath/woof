@@ -24,6 +24,15 @@
 #include "deh_main.h"
 #include "deh_mapping.h"
 
+const bex_bitflags_t mbf21_flags[] = {
+    {"NOTHRUST",       WPF_NOTHRUST      },
+    {"SILENT",         WPF_SILENT        },
+    {"NOAUTOFIRE",     WPF_NOAUTOFIRE    },
+    {"FLEEMELEE",      WPF_FLEEMELEE     },
+    {"AUTOSWITCHFROM", WPF_AUTOSWITCHFROM},
+    {"NOAUTOSWITCHTO", WPF_NOAUTOSWITCHTO},
+};
+
 DEH_BEGIN_MAPPING(weapon_mapping, weaponinfo_t)
     DEH_MAPPING("Ammo type", ammo)
     DEH_MAPPING("Deselect frame", upstate)
@@ -31,7 +40,32 @@ DEH_BEGIN_MAPPING(weapon_mapping, weaponinfo_t)
     DEH_MAPPING("Bobbing frame", readystate)
     DEH_MAPPING("Shooting frame", atkstate)
     DEH_MAPPING("Firing frame", flashstate)
+    // mbf21
+    DEH_MAPPING("MBF21 Bits", flags)
+    DEH_MAPPING("Ammo per shot", ammopershot)
+    // id24
+    DEH_UNSUPPORTED_MAPPING("Slot")
+    DEH_UNSUPPORTED_MAPPING("Slot Priority")
+    DEH_UNSUPPORTED_MAPPING("Switch Priority")
+    DEH_UNSUPPORTED_MAPPING("Initial Owned")
+    DEH_UNSUPPORTED_MAPPING("Initial Raised")
+    DEH_MAPPING("Carousel Icon", carouselicon)
+    DEH_UNSUPPORTED_MAPPING("Allow switch with owned weapon")
+    DEH_UNSUPPORTED_MAPPING("No switch with owned weapon")
+    DEH_UNSUPPORTED_MAPPING("Allow switch with owned item")
+    DEH_UNSUPPORTED_MAPPING("No switch with owned item")
+    // mbf2y
+    DEH_UNSUPPORTED_MAPPING("MBF2y Bits")
 DEH_END_MAPPING
+
+//
+// Notable, unsupported properties:
+//
+// From ZDoom:
+// * "Decal"
+// * "Ammo use"
+// * "Min ammo"
+//
 
 static void *DEH_WeaponStart(deh_context_t *context, char *line)
 {
@@ -54,35 +88,30 @@ static void *DEH_WeaponStart(deh_context_t *context, char *line)
 
 static void DEH_WeaponParseLine(deh_context_t *context, char *line, void *tag)
 {
-    char *variable_name, *value;
-    weaponinfo_t *weapon;
-    int ivalue;
-
     if (tag == NULL)
     {
         return;
     }
 
-    weapon = (weaponinfo_t *)tag;
+    weaponinfo_t *weapon = (weaponinfo_t *)tag;
 
+    char *variable_name, *value;
     if (!DEH_ParseAssignment(line, &variable_name, &value))
     {
         // Failed to parse
-
         DEH_Warning(context, "Failed to parse assignment");
         return;
     }
 
-    ivalue = atoi(value);
+    // all values are integers
+    int ivalue = atoi(value);
 
     DEH_SetMapping(context, &weapon_mapping, weapon, variable_name, ivalue);
 }
 
 static void DEH_WeaponSHA1Sum(sha1_context_t *context)
 {
-    int i;
-
-    for (i = 0; i < NUMWEAPONS; ++i)
+    for (int i = 0; i < NUMWEAPONS; ++i)
     {
         DEH_StructSHA1Sum(context, &weapon_mapping, &weaponinfo[i]);
     }

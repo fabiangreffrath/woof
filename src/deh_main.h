@@ -35,8 +35,7 @@ void DEH_ParseCommandLine(void);
 int DEH_LoadFile(const char *filename);
 void DEH_AutoLoadPatches(const char *path);
 int DEH_LoadLump(int lumpnum, boolean allow_long, boolean allow_error);
-int DEH_LoadLumpByName(const char *name, boolean allow_long,
-                       boolean allow_error);
+int DEH_LoadLumpByName(const char *name, boolean allow_long, boolean allow_error);
 
 boolean DEH_ParseAssignment(char *line, char **variable_name, char **value);
 
@@ -45,5 +44,15 @@ void DEH_Checksum(sha1_digest_t digest);
 char **DEH_GetFileNames(void);
 
 extern boolean deh_apply_cheats;
+
+typedef struct bex_bitflags_s bex_bitflags_t;
+
+struct bex_bitflags_s
+{
+    const char *flag;
+    int bits;
+};
+
+extern int DEH_BexParseBitFlags(int ivalue, char *value, const bex_bitflags_t flags[], int len);
 
 #endif /* #ifndef DEH_MAIN_H */

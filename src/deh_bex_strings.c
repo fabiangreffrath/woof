@@ -22,7 +22,6 @@
 #include "deh_defs.h"
 #include "deh_io.h"
 #include "deh_main.h"
-
 #include "deh_str.h"
 #include "dstrings.h"
 
@@ -353,7 +352,6 @@ static void *DEH_BEXStrStart(deh_context_t *context, char *line)
 static void DEH_BEXStrParseLine(deh_context_t *context, char *line, void *tag)
 {
     char *variable_name, *value;
-    int i;
 
     if (!DEH_ParseAssignment(line, &variable_name, &value))
     {
@@ -361,7 +359,7 @@ static void DEH_BEXStrParseLine(deh_context_t *context, char *line, void *tag)
         return;
     }
 
-    for (i = 0; i < arrlen(bex_stringtable); i++)
+    for (int i = 0; i < arrlen(bex_stringtable); i++)
     {
         if (!strcasecmp(bex_stringtable[i].macro, variable_name))
         {
@@ -370,7 +368,7 @@ static void DEH_BEXStrParseLine(deh_context_t *context, char *line, void *tag)
     }
 }
 
-deh_section_t deh_section_bexstr =
+deh_section_t deh_section_bex_strings =
 {
     "[STRINGS]",
     NULL,

@@ -28,9 +28,9 @@ typedef struct
 {
     const char *mnemonic;
     const actionf_t pointer;
-} bex_codeptr_t;
+} bex_codepointer_t;
 
-static const bex_codeptr_t bex_codeptrtable[] =
+static const bex_codepointer_t bex_pointer_table[] =
 {
     {"Light0",              {.p2 = A_Light0}             },
     {"WeaponReady",         {.p2 = A_WeaponReady}        },
@@ -168,9 +168,8 @@ static void *DEH_BEXPtrStart(deh_context_t *context, char *line)
 
 static void DEH_BEXPtrParseLine(deh_context_t *context, char *line, void *tag)
 {
-    state_t *state;
     char *variable_name, *value, frame_str[6];
-    int frame_number, i;
+    int frame_number;
 
     // parse "FRAME nn = mnemonic", where
     // variable_name = "FRAME nn" and value = "mnemonic"
@@ -181,8 +180,7 @@ static void DEH_BEXPtrParseLine(deh_context_t *context, char *line, void *tag)
     }
 
     // parse "FRAME nn", where frame_number = "nn"
-    if (sscanf(variable_name, "%5s %32d", frame_str, &frame_number) != 2
-        || strcasecmp(frame_str, "FRAME"))
+    if (sscanf(variable_name, "%5s %32d", frame_str, &frame_number) != 2 || strcasecmp(frame_str, "FRAME"))
     {
         DEH_Warning(context, "Failed to parse assignment: %s", variable_name);
         return;
@@ -194,13 +192,13 @@ static void DEH_BEXPtrParseLine(deh_context_t *context, char *line, void *tag)
         return;
     }
 
-    state = (state_t *)&states[frame_number];
+    state_t *state = (state_t *)&states[frame_number];
 
-    for (i = 0; i < arrlen(bex_codeptrtable); i++)
+    for (int i = 0; i < arrlen(bex_pointer_table); i++)
     {
-        if (!strcasecmp(bex_codeptrtable[i].mnemonic, value))
+        if (!strcasecmp(bex_pointer_table[i].mnemonic, value))
         {
-            state->action = bex_codeptrtable[i].pointer;
+            state->action = bex_pointer_table[i].pointer;
             return;
         }
     }
@@ -208,7 +206,7 @@ static void DEH_BEXPtrParseLine(deh_context_t *context, char *line, void *tag)
     DEH_Warning(context, "Invalid mnemonic '%s'", value);
 }
 
-deh_section_t deh_section_bexptr =
+deh_section_t deh_section_bex_codepointers =
 {
     "[CODEPTR]",
     NULL,

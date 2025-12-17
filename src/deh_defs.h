@@ -20,6 +20,7 @@
 
 #include "sha1.h"
 
+
 typedef struct deh_context_s deh_context_t;
 typedef struct deh_section_s deh_section_t;
 typedef void (*deh_section_init_t)(void);
@@ -63,9 +64,9 @@ extern deh_section_t deh_section_text;
 extern deh_section_t deh_section_thing;
 extern deh_section_t deh_section_weapon;
 
-extern deh_section_t deh_section_bexstr;
-extern deh_section_t deh_section_bexpars;
-extern deh_section_t deh_section_bexptr;
-extern deh_section_t deh_section_bexincl;
+extern deh_section_t deh_section_bex_strings;
+extern deh_section_t deh_section_bex_partimess;
+extern deh_section_t deh_section_bex_codepointers;
+extern deh_section_t deh_section_bex_includes;
 
 #endif /* #ifndef DEH_DEFS_H */

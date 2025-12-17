@@ -119,21 +119,38 @@ static struct
     const char *deh_name;
     int *value;
 } misc_settings[] = {
-    {"Initial Health",    &deh_initial_health    },
-    {"Initial Bullets",   &deh_initial_bullets   },
-    {"Max Health",        &deh_max_health        },
-    {"Max Armor",         &deh_max_armor         },
-    {"Green Armor Class", &deh_green_armor_class },
-    {"Blue Armor Class",  &deh_blue_armor_class  },
-    {"Max Soulsphere",    &deh_max_soulsphere    },
-    {"Soulsphere Health", &deh_soulsphere_health },
-    {"Megasphere Health", &deh_megasphere_health },
-    {"God Mode Health",   &deh_god_mode_health   },
-    {"IDFA Armor",        &deh_idfa_armor        },
-    {"IDFA Armor Class",  &deh_idfa_armor_class  },
-    {"IDKFA Armor",       &deh_idkfa_armor       },
-    {"IDKFA Armor Class", &deh_idkfa_armor_class },
-    {"BFG Cells/Shot",    &deh_bfg_cells_per_shot},
+    {"Initial Health",                &deh_initial_health    },
+    {"Initial Bullets",               &deh_initial_bullets   },
+    {"Max Health",                    &deh_max_health        },
+    {"Max Armor",                     &deh_max_armor         },
+    {"Green Armor Class",             &deh_green_armor_class },
+    {"Blue Armor Class",              &deh_blue_armor_class  },
+    {"Max Soulsphere",                &deh_max_soulsphere    },
+    {"Soulsphere Health",             &deh_soulsphere_health },
+    {"Megasphere Health",             &deh_megasphere_health },
+    {"God Mode Health",               &deh_god_mode_health   },
+    {"IDFA Armor",                    &deh_idfa_armor        },
+    {"IDFA Armor Class",              &deh_idfa_armor_class  },
+    {"IDKFA Armor",                   &deh_idkfa_armor       },
+    {"IDKFA Armor Class",             &deh_idkfa_armor_class },
+    {"BFG Cells/Shot",                &deh_bfg_cells_per_shot},
+    // mbf2y
+    {"Max Green Armor",               NULL                   },
+    // zdoom
+    {"No Autofreeze",                 NULL                   },
+    {"Monsters Ignore Each Other",    NULL                   },
+    {"Rocket Explosion Alpha",        NULL                   },
+    {"Rocket Explosion Style",        NULL                   },
+    {"Powerup Color ",                NULL                   },
+    {"Powerup Color Invulnerability", NULL                   },
+    {"Powerup Color Berserk",         NULL                   },
+    {"Powerup Color Invisibility",    NULL                   },
+    {"Powerup Color Radiation Suit",  NULL                   },
+    {"Powerup Color Infrared",        NULL                   },
+    {"Powerup Color Tome of Power",   NULL                   },
+    {"Powerup Color Wings of Wrath",  NULL                   },
+    {"Powerup Color Speed",           NULL                   },
+    {"Powerup Color Minotaur",        NULL                   },
 };
 
 static void *DEH_MiscStart(deh_context_t *context, char *line)
@@ -144,7 +161,6 @@ static void *DEH_MiscStart(deh_context_t *context, char *line)
 static void DEH_MiscParseLine(deh_context_t *context, char *line, void *tag)
 {
     char *variable_name, *value;
-
     if (!DEH_ParseAssignment(line, &variable_name, &value))
     {
         // Failed to parse
@@ -153,7 +169,6 @@ static void DEH_MiscParseLine(deh_context_t *context, char *line, void *tag)
     }
 
     int ivalue = atoi(value);
-
     if (!strcasecmp(variable_name, "Monsters Infight"))
     {
         // See notes above.
@@ -178,6 +193,12 @@ static void DEH_MiscParseLine(deh_context_t *context, char *line, void *tag)
     {
         if (!strcasecmp(variable_name, misc_settings[i].deh_name))
         {
+            if (misc_settings[i].value == NULL)
+            {
+              DEH_Warning(context, "Known, unsupported Misc variable '%s'", variable_name);
+              return;
+            }
+
             *misc_settings[i].value = ivalue;
             return;
         }

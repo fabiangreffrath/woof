@@ -39,9 +39,9 @@ deh_section_t *deh_section_types[] =
     &deh_section_text,
     &deh_section_thing,
     &deh_section_weapon,
-    &deh_section_bexstr,
-    &deh_section_bexpars,
-    &deh_section_bexptr,
-    &deh_section_bexincl,
+    &deh_section_bex_strings,
+    &deh_section_bex_partimess,
+    &deh_section_bex_codepointers,
+    &deh_section_bex_includes,
     NULL
 };

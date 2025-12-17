@@ -62,10 +62,7 @@ static void *DEH_SoundStart(deh_context_t *context, char *line)
 
     if (sound_number >= DEH_VANILLA_NUMSFX)
     {
-        DEH_Warning(context,
-                    "Attempt to modify SFX %i.  This will cause "
-                    "problems in Vanilla dehacked.",
-                    sound_number);
+        DEH_Warning(context, "Attempt to modify SFX %i. This will cause problems in Vanilla dehacked.", sound_number);
     }
 
     return &S_sfx[sound_number];

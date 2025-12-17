@@ -53,6 +53,25 @@ char **DEH_GetFileNames(void)
     return deh_filenames;
 }
 
+int DEH_BexParseBitFlags(int ivalue, char *value, const bex_bitflags_t flags[], int len)
+{
+    if (!ivalue)
+    {
+        for (; (value = strtok(value, ",+| \t\f\r")); value = NULL)
+        {
+            for (int i = 0; i < len; i++)
+            {
+                if (!strcasecmp(value, flags[i].flag))
+                {
+                    ivalue |= flags[i].bits;
+                    break;
+                }
+            }
+        }
+    }
+    return ivalue;
+}
+
 void DEH_Checksum(sha1_digest_t digest)
 {
     sha1_context_t sha1_context;
@@ -386,8 +405,8 @@ void DEH_AutoLoadPatches(const char *path)
     const char *filename;
     glob_t *glob;
 
-    glob = I_StartMultiGlob(path, GLOB_FLAG_NOCASE | GLOB_FLAG_SORTED, "*.deh",
-                            "*.bex", "*.hhe", "*.seh", NULL); // [crispy] *.bex
+    glob = I_StartMultiGlob(path, GLOB_FLAG_NOCASE | GLOB_FLAG_SORTED, "*.deh", "*.bex", NULL);
+
     for (;;)
     {
         filename = I_NextGlob(glob);
@@ -414,14 +433,6 @@ int DEH_LoadLump(int lumpnum, boolean allow_long, boolean allow_error)
         DEH_Init();
     }
 
-    // Reset all special flags to defaults.
-    // [crispy] always allow everything
-    /*
-        deh_allow_long_strings = allow_long;
-        deh_allow_long_cheats = allow_long;
-        deh_allow_extended_strings = false;
-    */
-
     context = DEH_OpenLump(lumpnum);
 
     if (context == NULL)
@@ -444,8 +455,7 @@ int DEH_LoadLump(int lumpnum, boolean allow_long, boolean allow_error)
     return 1;
 }
 
-int DEH_LoadLumpByName(const char *name, boolean allow_long,
-                       boolean allow_error)
+int DEH_LoadLumpByName(const char *name, boolean allow_long, boolean allow_error)
 {
     int lumpnum;
 

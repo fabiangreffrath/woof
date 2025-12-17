@@ -19,7 +19,7 @@
 #include <stdio.h>
 #include <string.h>
 
-#include "deh_bexpars.h"
+#include "deh_bex_partimes.h"
 #include "deh_io.h"
 
 int bex_pars[7][10] = {{0}};
@@ -72,7 +72,7 @@ static void DEH_BEXParsParseLine(deh_context_t *context, char *line, void *tag)
     }
 }
 
-deh_section_t deh_section_bexpars =
+deh_section_t deh_section_bex_partimess =
 {
     "[PARS]",
     NULL,

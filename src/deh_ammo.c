@@ -21,8 +21,34 @@
 #include "deh_defs.h"
 #include "deh_io.h"
 #include "deh_main.h"
+// #include "deh_mapping.h"
 #include "doomdef.h"
 #include "p_inter.h"
+
+// TODO:
+
+/*
+DEH_BEGIN_MAPPING(ammo_mapping, ammoinfo_t)
+    DEH_MAPPING("Per ammo", clipammo)
+    DEH_MAPPING("Max ammo", maxammo)
+    // id24
+    DEH_UNSUPPORTED_MAPPING("Initial ammo")
+    DEH_UNSUPPORTED_MAPPING("Max upgraded ammo")
+    DEH_UNSUPPORTED_MAPPING("Box ammo")
+    DEH_UNSUPPORTED_MAPPING("Backpack ammo")
+    DEH_UNSUPPORTED_MAPPING("Weapon ammo")
+    DEH_UNSUPPORTED_MAPPING("Dropped ammo")
+    DEH_UNSUPPORTED_MAPPING("Dropped box ammo")
+    DEH_UNSUPPORTED_MAPPING("Dropped backpack ammo")
+    DEH_UNSUPPORTED_MAPPING("Dropped weapon ammo")
+    DEH_UNSUPPORTED_MAPPING("Deathmatch weapon ammo")
+    DEH_UNSUPPORTED_MAPPING("Skill 1 multiplier")
+    DEH_UNSUPPORTED_MAPPING("Skill 2 multiplier")
+    DEH_UNSUPPORTED_MAPPING("Skill 3 multiplier")
+    DEH_UNSUPPORTED_MAPPING("Skill 4 multiplier")
+    DEH_UNSUPPORTED_MAPPING("Skill 5 multiplier")
+DEH_END_MAPPING
+*/
 
 static void *DEH_AmmoStart(deh_context_t *context, char *line)
 {

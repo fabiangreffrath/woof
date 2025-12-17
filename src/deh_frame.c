@@ -33,6 +33,21 @@ DEH_BEGIN_MAPPING(state_mapping, state_t)
     DEH_MAPPING("Unknown 1", misc1)
     DEH_MAPPING("Unknown 2", misc2)
     DEH_UNSUPPORTED_MAPPING("Codep frame")
+    // mbf21
+    DEH_MAPPING("MBF21 Bits", flags)
+    DEH_MAPPING("Args1", args[0])
+    DEH_MAPPING("Args2", args[1])
+    DEH_MAPPING("Args3", args[2])
+    DEH_MAPPING("Args4", args[3])
+    DEH_MAPPING("Args5", args[4])
+    DEH_MAPPING("Args6", args[5])
+    DEH_MAPPING("Args7", args[6])
+    DEH_MAPPING("Args8", args[7])
+    // id24
+    DEH_MAPPING("Tranmap", tranmap)
+    // mbf2y
+    DEH_UNSUPPORTED_MAPPING("MBF2y Bits")
+    DEH_UNSUPPORTED_MAPPING("Min brightness")
 DEH_END_MAPPING
 
 static void *DEH_FrameStart(deh_context_t *context, char *line)
@@ -102,19 +117,15 @@ static void DEH_FrameOverflow(deh_context_t *context, char *varname, int value)
 
 static void DEH_FrameParseLine(deh_context_t *context, char *line, void *tag)
 {
-    state_t *state;
-    char *variable_name, *value;
-    int ivalue;
-
     if (tag == NULL)
     {
         return;
     }
 
-    state = (state_t *)tag;
+    state_t *state = (state_t *)tag;
 
     // Parse the assignment
-
+    char *variable_name, *value;
     if (!DEH_ParseAssignment(line, &variable_name, &value))
     {
         // Failed to parse
@@ -123,8 +134,7 @@ static void DEH_FrameParseLine(deh_context_t *context, char *line, void *tag)
     }
 
     // all values are integers
-
-    ivalue = atoi(value);
+    int ivalue = atoi(value);
 
     // [crispy] drop the overflow simulation into the frame table
     if (state == &states[NUMSTATES - 1] && false)

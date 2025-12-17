@@ -17,7 +17,6 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
 
 #include "deh_io.h"
 #include "doomtype.h"
@@ -27,13 +26,7 @@
 #include "info.h"
 #include "p_mobj.h"
 
-typedef struct
-{
-    const char *flag;
-    int bits;
-} bex_thingbits_t;
-
-static const bex_thingbits_t bex_thingbitstable[] = {
+static const bex_bitflags_t mobj_flags_base[] = {
     {"SPECIAL",      MF_SPECIAL     },
     {"SOLID",        MF_SOLID       },
     {"SHOOTABLE",    MF_SHOOTABLE   },
@@ -60,18 +53,46 @@ static const bex_thingbits_t bex_thingbitstable[] = {
     {"COUNTITEM",    MF_COUNTITEM   },
     {"SKULLFLY",     MF_SKULLFLY    },
     {"NOTDMATCH",    MF_NOTDMATCH   },
-    {"TRANSLUCENT",  MF_TRANSLUCENT },
-    // [NS] Beta projectile bouncing.
+    {"TRANSLATION1", MF_TRANSLATION1},
+    {"TRANSLATION2", MF_TRANSLATION2},
+    // MBF
+    {"TOUCHY",       MF_TOUCHY      },
     {"BOUNCES",      MF_BOUNCES     },
-    // TRANSLATION consists of 2 bits, not 1
-    {"TRANSLATION",  0x04000000     },
-    {"TRANSLATION1", 0x04000000     },
-    {"TRANSLATION2", 0x08000000     },
-    // unused bits, for Boom compatibility
-    {"UNUSED1",      0x08000000     },
-    {"UNUSED2",      0x10000000     },
-    {"UNUSED3",      0x20000000     },
-    {"UNUSED4",      0x40000000     },
+    {"FRIEND",       MF_FRIEND      },
+    // Boom
+    {"TRANSLUCENT",  MF_TRANSLUCENT },
+    // Boom bug compatibility
+    {"TRANSLATION",  MF_TRANSLATION1},
+    {"UNUSED1",      MF_TRANSLATION2},
+    {"UNUSED2",      MF_TOUCHY      },
+    {"UNUSED3",      MF_BOUNCES     },
+    {"UNUSED4",      MF_FRIEND      },
+};
+
+static const bex_bitflags_t mobj_flags_mbf21[] = {
+    {"LOGRAV",         MF2_LOGRAV        },
+    {"SHORTMRANGE",    MF2_SHORTMRANGE   },
+    {"DMGIGNORED",     MF2_DMGIGNORED    },
+    {"NORADIUSDMG",    MF2_NORADIUSDMG   },
+    {"FORCERADIUSDMG", MF2_FORCERADIUSDMG},
+    {"HIGHERMPROB",    MF2_HIGHERMPROB   },
+    {"RANGEHALF",      MF2_RANGEHALF     },
+    {"NOTHRESHOLD",    MF2_NOTHRESHOLD   },
+    {"LONGMELEE",      MF2_LONGMELEE     },
+    {"BOSS",           MF2_BOSS          },
+    {"MAP07BOSS1",     MF2_MAP07BOSS1    },
+    {"MAP07BOSS2",     MF2_MAP07BOSS2    },
+    {"E1M8BOSS",       MF2_E1M8BOSS      },
+    {"E2M8BOSS",       MF2_E2M8BOSS      },
+    {"E3M8BOSS",       MF2_E3M8BOSS      },
+    {"E4M6BOSS",       MF2_E4M6BOSS      },
+    {"E4M8BOSS",       MF2_E4M8BOSS      },
+    {"RIP",            MF2_RIP           },
+    {"FULLVOLSOUNDS",  MF2_FULLVOLSOUNDS },
+};
+
+static const bex_bitflags_t mobj_flags_woof[] = {
+    {"MIRROREDCORPSE", MFX_MIRROREDCORPSE}
 };
 
 DEH_BEGIN_MAPPING(thing_mapping, mobjinfo_t)
@@ -98,43 +119,83 @@ DEH_BEGIN_MAPPING(thing_mapping, mobjinfo_t)
     DEH_MAPPING("Action sound", activesound)
     DEH_MAPPING("Bits", flags)
     DEH_MAPPING("Respawn frame", raisestate)
-    // [crispy] Thing id to drop after death
+    // dehextra
     DEH_MAPPING("Dropped item", droppeditem)
+    // mbf21
+    DEH_MAPPING("MBF21 Bits", flags2)
+    DEH_MAPPING("Infighting group", infighting_group)
+    DEH_MAPPING("Projectile group", projectile_group)
+    DEH_MAPPING("Splash group", splash_group)
+    DEH_MAPPING("Fast speed", altspeed)
+    DEH_MAPPING("Melee range", meleerange)
+    DEH_MAPPING("Rip sound", ripsound)
+    // id24
+    DEH_UNSUPPORTED_MAPPING("ID24 Bits")
+    DEH_UNSUPPORTED_MAPPING("Min respawn tics")
+    DEH_UNSUPPORTED_MAPPING("Respawn dice")
+    DEH_UNSUPPORTED_MAPPING("Pickup ammo type")
+    DEH_UNSUPPORTED_MAPPING("Pickup ammo category")
+    DEH_UNSUPPORTED_MAPPING("Pickup weapon type")
+    DEH_UNSUPPORTED_MAPPING("Pickup item type")
+    DEH_UNSUPPORTED_MAPPING("Pickup bonus count")
+    DEH_UNSUPPORTED_MAPPING("Pickup sound")
+    DEH_UNSUPPORTED_MAPPING("Pickup message")
+    DEH_UNSUPPORTED_MAPPING("Translation")
+    // mbf2y
+    DEH_UNSUPPORTED_MAPPING("MBF2y Bits")
+    DEH_UNSUPPORTED_MAPPING("Projectile collision group") // i.b mbf21
+    DEH_UNSUPPORTED_MAPPING("Pickup health amount")       // i.b id24
+    DEH_UNSUPPORTED_MAPPING("Pickup armor amount")        // i.b id24
+    DEH_UNSUPPORTED_MAPPING("Pickup powerup duration")    // i.b id24
+    DEH_MAPPING("Obituary", obituary)                     // p.f ZDoom
+    DEH_MAPPING("Melee obituary", obituary_melee)         // p.f ZDoom
+    DEH_MAPPING("Self obituary", obituary_self)           // p.f ZDoom
+    DEH_UNSUPPORTED_MAPPING("Gib Health")                 // p.f Retro
+    DEH_UNSUPPORTED_MAPPING("Blood Thing")                // i.b Eternity
+    DEH_UNSUPPORTED_MAPPING("Crush State")                // i.b Eternity
+    DEH_UNSUPPORTED_MAPPING("Melee threshold")            // p.f crispy
+    DEH_UNSUPPORTED_MAPPING("Max target range")           // p.f crispy
+    DEH_UNSUPPORTED_MAPPING("Min missile chance")         // p.f crispy
+    DEH_UNSUPPORTED_MAPPING("Missile chance multiplier")  // p.f crispy
+    // eternity
+    DEH_MAPPING("Blood Color", bloodcolor)
 DEH_END_MAPPING
+
+//
+// Notable, unsupported properties:
+//
+// From Retro:
+// * "Retro Bits"
+// * "Pickup Width"
+// * "Fullbright"
+// * "Shadow Offset"
+// * "Name", "Name1", "Name2", "Name3", "Plural", "Plural1", "Plural2", "Plura3"
+//
+// From ZDoom:
+// * "Tag"
+// * "No Ice Death"
+// * "Translucency"
+// * "Render Style"
+// * "Alpha"
+// * "Scale"
+// * "Decal"
+// * "Physical height"
+// * "Projectile pass height"
+//
 
 // [crispy] initialize Thing extra properties (keeping vanilla props in info.c)
 static void DEH_InitThingProperties(void)
 {
-    int i;
-
-    for (i = 0; i < NUMMOBJTYPES; i++)
-    {
-        // [crispy] mobj id for item dropped on death
-        switch (i)
-        {
-            case MT_WOLFSS:
-            case MT_POSSESSED:
-                mobjinfo[i].droppeditem = MT_CLIP;
-                break;
-
-            case MT_SHOTGUY:
-                mobjinfo[i].droppeditem = MT_SHOTGUN;
-                break;
-
-            case MT_CHAINGUY:
-                mobjinfo[i].droppeditem = MT_CHAINGUN;
-                break;
-
-            default:
-                mobjinfo[i].droppeditem = MT_NULL;
-        }
-    }
+    // TODO: rope in the dsdhacked code
+    mobjinfo[MT_POSSESSED].droppeditem = MT_CLIP;
+    mobjinfo[MT_WOLFSS].droppeditem = MT_CLIP;
+    mobjinfo[MT_SHOTGUY].droppeditem = MT_SHOTGUN;
+    mobjinfo[MT_CHAINGUY].droppeditem = MT_CHAINGUN;
 }
 
 static void *DEH_ThingStart(deh_context_t *context, char *line)
 {
     int thing_number = 0;
-    mobjinfo_t *mobj;
 
     if (sscanf(line, "Thing %i", &thing_number) != 1)
     {
@@ -151,7 +212,7 @@ static void *DEH_ThingStart(deh_context_t *context, char *line)
         return NULL;
     }
 
-    mobj = &mobjinfo[thing_number];
+    mobjinfo_t *mobj = &mobjinfo[thing_number];
 
     return mobj;
 }
@@ -179,33 +240,26 @@ static void DEH_ThingParseLine(deh_context_t *context, char *line, void *tag)
     // all values are integers
     int ivalue = atoi(value);
 
-    // [crispy] support BEX bits mnemonics in Things fields
-    if (!strcasecmp(variable_name, "bits"))
+    if (!strcasecmp(variable_name, "Bits"))
     {
-        if (!ivalue)
-        {
-            for (; (value = strtok(value, ",+| \t\f\r")); value = NULL)
-            {
-                for (int i = 0; i < arrlen(bex_thingbitstable); i++)
-                {
-                    if (!strcasecmp(value, bex_thingbitstable[i].flag))
-                    {
-                        ivalue |= bex_thingbitstable[i].bits;
-                        break;
-                    }
-                }
-            }
-        }
+        ivalue = DEH_BexParseBitFlags(ivalue, value, mobj_flags_base, arrlen(mobj_flags_base));
 
         if ((ivalue & (MF_NOBLOCKMAP | MF_MISSILE)) == MF_MISSILE)
         {
             DEH_Warning(context, "Thing %ld has MF_MISSILE without MF_NOBLOCKMAP", (long)(mobj - mobjinfo) + 1);
         }
     }
-
-    // [crispy] Thing ids in dehacked are 1-based, convert dropped item to 0-based
-    if (!strcasecmp(variable_name, "dropped item"))
+    else if (!strcasecmp(variable_name, "MBF21 Bits"))
     {
+        ivalue = DEH_BexParseBitFlags(ivalue, value, mobj_flags_mbf21, arrlen(mobj_flags_mbf21));
+    }
+    else if (!strcasecmp(variable_name, "Woof Bits"))
+    {
+        ivalue = DEH_BexParseBitFlags(ivalue, value, mobj_flags_woof, arrlen(mobj_flags_woof));
+    }
+    else if (!strcasecmp(variable_name, "Dropped Item"))
+    {
+        // [crispy] Thing ids in dehacked are 1-based, convert dropped item to 0-based
         ivalue -= 1;
     }
 
