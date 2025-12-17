@@ -30,7 +30,7 @@
 #include "d_think.h"
 #include "doomdef.h"
 #include "doomtype.h"
-#include "dsdhacked.h"
+#include "deh_dsdhacked.h"
 #include "dstrings.h"
 #include "g_game.h"
 #include "i_printf.h"

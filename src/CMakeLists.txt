@@ -19,7 +19,22 @@ set(WOOF_SOURCES
                            doomdef.h
     doomstat.c             doomstat.h
                            doomtype.h
-    dsdhacked.c            dsdhacked.h
+    deh_ammo.c
+    deh_cheat.c
+    deh_defs.h
+    deh_doom.c
+    deh_dsdhacked.c        deh_dsdhacked.h
+    deh_frame.c
+    deh_io.c               deh_io.h
+    deh_main.c             deh_main.h
+    deh_mapping.c          deh_mapping.h
+    deh_misc.c             deh_misc.h
+    deh_pointer.c
+    deh_sound,c
+    deh_strings.c          deh_strings.h
+    deh_text.c
+    deh_thing.c
+    deh_weapon.c
     dstrings.c             dstrings.h
     f_finale.c             f_finale.h
     f_wipe.c               f_wipe.h

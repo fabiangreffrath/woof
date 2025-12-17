@@ -259,7 +259,7 @@ static void DEH_ThingParseLine(deh_context_t *context, char *line, void *tag)
     }
     else if (!strcasecmp(variable_name, "Dropped Item"))
     {
-        // [crispy] Thing ids in dehacked are 1-based, convert dropped item to 0-based
+        // Thing ids in dehacked are 1-based
         ivalue -= 1;
     }
 

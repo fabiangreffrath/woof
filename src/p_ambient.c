@@ -17,7 +17,7 @@
 
 #include <math.h>
 
-#include "dsdhacked.h"
+#include "deh_dsdhacked.h"
 #include "g_game.h"
 #include "i_sound.h"
 #include "info.h"

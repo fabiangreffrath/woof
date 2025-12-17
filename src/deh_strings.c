@@ -20,7 +20,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "deh_str.h"
+#include "deh_strings.h"
 #include "doomtype.h"
 #include "z_zone.h"
 

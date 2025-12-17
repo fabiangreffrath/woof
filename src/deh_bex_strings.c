@@ -22,7 +22,7 @@
 #include "deh_defs.h"
 #include "deh_io.h"
 #include "deh_main.h"
-#include "deh_str.h"
+#include "deh_strings.h"
 #include "dstrings.h"
 
 typedef struct

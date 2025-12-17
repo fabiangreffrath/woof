@@ -20,7 +20,7 @@
 
 #include "deh_defs.h"
 #include "deh_io.h"
-#include "deh_str.h"
+#include "deh_strings.h"
 #include "doomtype.h"
 
 // [crispy] support INCLUDE NOTEXT directive in BEX files

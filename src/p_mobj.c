@@ -21,9 +21,9 @@
 #include <string.h>
 
 #include "d_player.h"
+#include "deh_dsdhacked.h"
 #include "doomdef.h"
 #include "doomstat.h"
-#include "dsdhacked.h"
 #include "g_game.h"
 #include "i_printf.h"
 #include "info.h"

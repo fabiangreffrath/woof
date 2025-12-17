@@ -17,9 +17,9 @@
 
 #include <math.h>
 
-#include "doomtype.h"
+#include "deh_dsdhacked.h"
 #include "doomdef.h"
-#include "dsdhacked.h"
+#include "doomtype.h"
 #include "i_printf.h"
 #include "i_sound.h"
 #include "m_array.h"
