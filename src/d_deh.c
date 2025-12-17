@@ -29,10 +29,11 @@
 #include "d_main.h"
 #include "d_think.h"
 #include "doomdef.h"
+#include "doomstat.h"
 #include "doomtype.h"
+#include "deh_misc.h"
 #include "deh_dsdhacked.h"
 #include "dstrings.h"
-#include "g_game.h"
 #include "i_printf.h"
 #include "i_system.h"
 #include "info.h"
@@ -154,9 +155,6 @@ static void PRINTF_ATTR(1, 2) deh_log(const char *fmt, ...)
 // variables used in other routines
 
 boolean deh_set_blood_color = false;
-
-int deh_maxhealth;
-boolean deh_set_maxhealth = false;
 
 char **dehfiles = NULL; // filenames of .deh files for demo footer
 
@@ -2893,64 +2891,64 @@ static void deh_procMisc(DEHFILE *fpin, char *line) // done
 
         if (!strcasecmp(key, deh_misc[0])) // Initial Health
         {
-            initial_health = value;
+            deh_initial_health = value;
         }
         else if (!strcasecmp(key, deh_misc[1])) // Initial Bullets
         {
-            initial_bullets = value;
+            deh_initial_bullets = value;
         }
         else if (!strcasecmp(key, deh_misc[2])) // Max Health
         {
-            deh_maxhealth = value;
+            deh_max_health = value;
             deh_set_maxhealth = true;
         }
         else if (!strcasecmp(key, deh_misc[3])) // Max Armor
         {
-            max_armor = value;
+            deh_max_armor = value;
         }
         else if (!strcasecmp(key, deh_misc[4])) // Green Armor Class
         {
-            green_armor_class = value;
+            deh_green_armor_class = value;
         }
         else if (!strcasecmp(key, deh_misc[5])) // Blue Armor Class
         {
-            blue_armor_class = value;
+            deh_blue_armor_class = value;
         }
         else if (!strcasecmp(key, deh_misc[6])) // Max Soulsphere
         {
-            max_soul = value;
+            deh_max_soulsphere = value;
         }
         else if (!strcasecmp(key, deh_misc[7])) // Soulsphere Health
         {
-            soul_health = value;
+            deh_soulsphere_health = value;
         }
         else if (!strcasecmp(key, deh_misc[8])) // Megasphere Health
         {
-            mega_health = value;
+            deh_megasphere_health = value;
         }
         else if (!strcasecmp(key, deh_misc[9])) // God Mode Health
         {
-            god_health = value;
+            deh_god_mode_health = value;
         }
         else if (!strcasecmp(key, deh_misc[10])) // IDFA Armor
         {
-            idfa_armor = value;
+            deh_idfa_armor = value;
         }
         else if (!strcasecmp(key, deh_misc[11])) // IDFA Armor Class
         {
-            idfa_armor_class = value;
+            deh_idfa_armor_class = value;
         }
         else if (!strcasecmp(key, deh_misc[12])) // IDKFA Armor
         {
-            idkfa_armor = value;
+            deh_idkfa_armor = value;
         }
         else if (!strcasecmp(key, deh_misc[13])) // IDKFA Armor Class
         {
-            idkfa_armor_class = value;
+            deh_idkfa_armor_class = value;
         }
         else if (!strcasecmp(key, deh_misc[14])) // BFG Cells/Shot
         {
-            weaponinfo[wp_bfg].ammopershot = bfgcells = value;
+            weaponinfo[wp_bfg].ammopershot = deh_bfg_cells_per_shot = value;
             bfgcells_modified = true;
         }
         else if (!strcasecmp(key, deh_misc[15])) // Monsters Infight
@@ -2958,11 +2956,11 @@ static void deh_procMisc(DEHFILE *fpin, char *line) // done
             // Andrey Budko: Dehacked support - monsters infight
             if (value == 202)
             {
-                old_deh_species_infighting = 0;
+                deh_species_infighting = 0;
             }
             else if (value == 221)
             {
-                old_deh_species_infighting = 1;
+                deh_species_infighting = 1;
             }
             else
             {
@@ -3669,7 +3667,7 @@ void PostProcessDeh(void)
 
     // sanity-check bfgcells and bfg ammopershot
     if (bfgcells_modified && weaponinfo[wp_bfg].intflags & WIF_ENABLEAPS
-        && bfgcells != weaponinfo[wp_bfg].ammopershot)
+        && deh_bfg_cells_per_shot != weaponinfo[wp_bfg].ammopershot)
     {
         I_Error("Mismatch between bfgcells and bfg ammo per shot "
                 "modifications! Check your dehacked.");

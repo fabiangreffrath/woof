@@ -29,7 +29,6 @@
 
 #include "doomtype.h"
 
-extern int deh_maxhealth;
 extern boolean deh_set_maxhealth;
 extern boolean deh_set_blood_color;
 

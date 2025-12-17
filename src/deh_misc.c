@@ -17,6 +17,7 @@
 
 #include <stdlib.h>
 #include <string.h>
+#include <strings.h>
 
 #include "deh_defs.h"
 #include "deh_io.h"
@@ -114,6 +115,14 @@ int deh_bfg_cells_per_shot = DEH_DEFAULT_BFG_CELLS_PER_SHOT;
 // See PIT_CheckThing in p_map.c
 int deh_species_infighting = DEH_DEFAULT_SPECIES_INFIGHTING;
 
+// Dehacked: N/A
+// Not actually a property that can be controlled by the user, but instead
+// used to account for the Boom tweak to how deh_max_health is handled.
+//
+// See D_SetMaxHealth in d_main.c
+int deh_max_health_bonus = DEH_DEFAULT_MAX_HEALTH;
+boolean deh_set_maxhealth = false;
+
 static struct
 {
     const char *deh_name;
@@ -187,6 +196,11 @@ static void DEH_MiscParseLine(deh_context_t *context, char *line, void *tag)
         }
 
         return;
+    }
+
+    if (!strcasecmp(variable_name, "Max Health"))
+    {
+        deh_set_maxhealth |= true;
     }
 
     for (size_t i = 0; i < arrlen(misc_settings); ++i)

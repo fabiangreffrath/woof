@@ -24,6 +24,7 @@
 #include "d_items.h"
 #include "d_player.h"
 #include "d_think.h"
+#include "deh_misc.h"
 #include "doomdef.h"
 #include "doomstat.h"
 #include "i_system.h"
@@ -40,32 +41,6 @@
 #include "tables.h"
 
 #define BONUSADD        6
-
-// Ty 03/07/98 - add deh externals
-// Maximums and such were hardcoded values.  Need to externalize those for
-// dehacked support (and future flexibility).  Most var names came from the key
-// strings used in dehacked.
-
-int initial_health = 100;
-int initial_bullets = 50;
-int maxhealth = 100; // was MAXHEALTH as a #define, used only in this module
-int maxhealthbonus = 200;
-int max_armor = 200;
-int green_armor_class = 1;  // these are involved with armortype below
-int blue_armor_class = 2;
-int max_soul = 200;
-int soul_health = 100;
-int mega_health = 200;
-int god_health = 100;   // these are used in cheats (see st_stuff.c)
-int idfa_armor = 200;
-int idfa_armor_class = 2;
-// not actually used due to pairing of cheat_k and cheat_fa
-int idkfa_armor = 200;
-int idkfa_armor_class = 2;
-
-int bfgcells = 40;      // used in p_pspr.c
-int old_deh_species_infighting = 0;
-// Ty 03/07/98 - end deh externals
 
 // a weapon is found with two clip loads,
 // a big item has five clip loads
@@ -226,11 +201,11 @@ boolean P_GiveWeapon(player_t *player, weapontype_t weapon, boolean dropped)
 
 boolean P_GiveBody(player_t *player, int num)
 {
-  if (player->health >= maxhealth)
+  if (player->health >= deh_max_health)
     return false; // Ty 03/09/98 externalized MAXHEALTH to maxhealth
   player->health += num;
-  if (player->health > maxhealth)
-    player->health = maxhealth;
+  if (player->health > deh_max_health)
+    player->health = deh_max_health;
   player->mo->health = player->health;
   return true;
 }
@@ -324,13 +299,13 @@ void P_TouchSpecialThing(mobj_t *special, mobj_t *toucher)
     {
       // armor
     case SPR_ARM1:
-      if (!P_GiveArmor (player, green_armor_class))
+      if (!P_GiveArmor (player, deh_green_armor_class))
         return;
       pickupmsg(player, "%s", s_GOTARMOR); // Ty 03/22/98 - externalized
       break;
 
     case SPR_ARM2:
-      if (!P_GiveArmor (player, blue_armor_class))
+      if (!P_GiveArmor (player, deh_blue_armor_class))
         return;
       pickupmsg(player, "%s", s_GOTMEGA); // Ty 03/22/98 - externalized
       break;
@@ -345,8 +320,8 @@ void P_TouchSpecialThing(mobj_t *special, mobj_t *toucher)
 	}
 
       player->health++;               // can go over 100%
-      if (player->health > maxhealthbonus)
-        player->health = maxhealthbonus;
+      if (player->health > deh_max_health_bonus)
+        player->health = deh_max_health_bonus;
       player->mo->health = player->health;
       pickupmsg(player, "%s", s_GOTHTHBONUS); // Ty 03/22/98 - externalized
       break;
@@ -360,10 +335,10 @@ void P_TouchSpecialThing(mobj_t *special, mobj_t *toucher)
 	}
 
       player->armorpoints++;          // can go over 100%
-      if (player->armorpoints > max_armor)
-        player->armorpoints = max_armor;
+      if (player->armorpoints > deh_max_armor)
+        player->armorpoints = deh_max_armor;
       if (!player->armortype)
-        player->armortype = green_armor_class;
+        player->armortype = deh_green_armor_class;
       pickupmsg(player, "%s", s_GOTARMBONUS); // Ty 03/22/98 - externalized
       break;
 
@@ -376,9 +351,9 @@ void P_TouchSpecialThing(mobj_t *special, mobj_t *toucher)
       break;
 
     case SPR_SOUL:
-      player->health += soul_health;
-      if (player->health > max_soul)
-        player->health = max_soul;
+      player->health += deh_soulsphere_health;
+      if (player->health > deh_max_soulsphere)
+        player->health = deh_max_soulsphere;
       player->mo->health = player->health;
       pickupmsg(player, "%s", s_GOTSUPER); // Ty 03/22/98 - externalized
       sound = sfx_getpow;
@@ -387,9 +362,9 @@ void P_TouchSpecialThing(mobj_t *special, mobj_t *toucher)
     case SPR_MEGA:
       if (gamemode != commercial)
         return;
-      player->health = mega_health;
+      player->health = deh_megasphere_health;
       player->mo->health = player->health;
-      P_GiveArmor (player,blue_armor_class);
+      P_GiveArmor (player,deh_blue_armor_class);
       pickupmsg(player, "%s", s_GOTMSPHERE); // Ty 03/22/98 - externalized
       sound = sfx_getpow;
       break;

@@ -18,6 +18,7 @@
 #ifndef DEH_MISC_H
 #define DEH_MISC_H
 
+#include "doomtype.h"
 #define DEH_DEFAULT_INITIAL_HEALTH     100
 #define DEH_DEFAULT_INITIAL_BULLETS    50
 #define DEH_DEFAULT_MAX_HEALTH         200
@@ -51,5 +52,9 @@ extern int deh_idkfa_armor;
 extern int deh_idkfa_armor_class;
 extern int deh_bfg_cells_per_shot;
 extern int deh_species_infighting;
+
+// Some extensions:
+extern int deh_max_health_bonus;
+extern boolean deh_set_maxhealth;
 
 #endif /* #ifndef DEH_MISC_H */

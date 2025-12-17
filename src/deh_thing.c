@@ -307,6 +307,11 @@ static void DEH_ThingParseLine(deh_context_t *context, char *line, void *tag)
         }
         return;
     }
+    else if (!strcasecmp(variable_name, "Blood Color"))
+    {
+        extern int deh_set_blood_color;
+        deh_set_blood_color |= true;
+    }
 
     // Set the field value
     DEH_SetMapping(context, &thing_mapping, mobj, variable_name, ivalue);

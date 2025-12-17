@@ -34,6 +34,7 @@
 #include "d_player.h"
 #include "d_ticcmd.h"
 #include "deh_bex_partimes.h"
+#include "deh_misc.h"
 #include "doomdata.h"
 #include "doomdef.h"
 #include "doomkeys.h"
@@ -3235,12 +3236,12 @@ void G_PlayerReborn(int player)
 
   p->usedown = p->attackdown = true;  // don't do anything immediately
   p->playerstate = PST_LIVE;
-  p->health = initial_health;  // Ty 03/12/98 - use dehacked values
+  p->health = deh_initial_health;  // Ty 03/12/98 - use dehacked values
   p->lastweapon = wp_fist;
   p->nextweapon = p->readyweapon = p->pendingweapon = wp_pistol;
   p->weaponowned[wp_fist] = true;
   p->weaponowned[wp_pistol] = true;
-  p->ammo[am_clip] = initial_bullets; // Ty 03/12/98 - use dehacked values
+  p->ammo[am_clip] = deh_initial_bullets; // Ty 03/12/98 - use dehacked values
 
   for (i=0 ; i<NUMAMMO ; i++)
     p->maxammo[i] = maxammo[i];

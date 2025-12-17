@@ -26,6 +26,7 @@
 #include "d_event.h"
 #include "d_player.h"
 #include "d_think.h"
+#include "deh_misc.h"
 #include "doomdata.h"
 #include "doomdef.h"
 #include "doomstat.h"
@@ -448,17 +449,17 @@ static void cheat_god(void)
 
     // Fix reviving as "zombie" if god mode was already enabled
     if (plyr->mo)
-      plyr->mo->health = god_health;  // Ty 03/09/98 - deh
-    plyr->health = god_health;
+      plyr->mo->health = deh_god_mode_health;  // Ty 03/09/98 - deh
+    plyr->health = deh_god_mode_health;
   }
 
   plyr->cheats ^= CF_GODMODE;
   if (plyr->cheats & CF_GODMODE)
     {
       if (plyr->mo)
-        plyr->mo->health = god_health;  // Ty 03/09/98 - deh
+        plyr->mo->health = deh_god_mode_health;  // Ty 03/09/98 - deh
           
-      plyr->health = god_health;
+      plyr->health = deh_god_mode_health;
       displaymsg("%s", s_STSTR_DQDON); // Ty 03/27/98 - externalized
     }
   else 
@@ -508,16 +509,16 @@ static void cheat_health(void)
   if (!(plyr->cheats & CF_GODMODE))
   {
     if (plyr->mo)
-      plyr->mo->health = mega_health;
-    plyr->health = mega_health;
+      plyr->mo->health = deh_megasphere_health;
+    plyr->health = deh_megasphere_health;
     displaymsg("%s", s_STSTR_BEHOLDX); // Ty 03/27/98 - externalized
   }
 }
 
 static void cheat_megaarmour(void)
 {
-  plyr->armorpoints = idfa_armor;      // Ty 03/09/98 - deh
-  plyr->armortype = idfa_armor_class;  // Ty 03/09/98 - deh
+  plyr->armorpoints = deh_idfa_armor;      // Ty 03/09/98 - deh
+  plyr->armortype = deh_idfa_armor_class;  // Ty 03/09/98 - deh
   displaymsg("%s", s_STSTR_BEHOLDX); // Ty 03/27/98 - externalized
 }
 
@@ -538,8 +539,8 @@ static void cheat_fa(void)
       plyr->backpack = true;
     }
 
-  plyr->armorpoints = idfa_armor;      // Ty 03/09/98 - deh
-  plyr->armortype = idfa_armor_class;  // Ty 03/09/98 - deh
+  plyr->armorpoints = deh_idfa_armor;      // Ty 03/09/98 - deh
+  plyr->armortype = deh_idfa_armor_class;  // Ty 03/09/98 - deh
         
   // You can't own weapons that aren't in the game // phares 02/27/98
   for (i=0;i<NUMWEAPONS;i++)

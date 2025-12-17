@@ -21,6 +21,7 @@
 #include "d_event.h"
 #include "d_items.h"
 #include "d_player.h"
+#include "deh_misc.h"
 #include "doomstat.h"
 #include "g_nextweapon.h"
 #include "i_printf.h"
@@ -369,7 +370,7 @@ boolean P_CheckAmmo(player_t *player)
     count = weaponinfo[player->readyweapon].ammopershot;
   else
   if (player->readyweapon == wp_bfg)  // Minimal amount for one shot varies.
-    count = BFGCELLS;
+      count = deh_bfg_cells_per_shot;
   else
     if (player->readyweapon == wp_supershotgun)        // Double barrel.
       count = 2;
@@ -794,7 +795,7 @@ void A_FireMissile(player_t *player, pspdef_t *psp)
 
 void A_FireBFG(player_t *player, pspdef_t *psp)
 {
-  P_SubtractAmmo(player, BFGCELLS);
+  P_SubtractAmmo(player, deh_bfg_cells_per_shot);
   P_SpawnPlayerMissile(player->mo, MT_BFG);
 }
 

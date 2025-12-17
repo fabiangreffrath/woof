@@ -20,7 +20,6 @@
 //
 //-----------------------------------------------------------------------------
 
-#include <ctype.h>
 #include <limits.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -66,7 +65,7 @@
 #include "net_client.h"
 #include "net_dedicated.h"
 #include "p_ambient.h"
-#include "p_inter.h" // maxhealthbonus
+#include "deh_misc.h" // deh_max_health_bonus
 #include "p_map.h"   // MELEERANGE
 #include "p_mobj.h"
 #include "p_setup.h"
@@ -1605,13 +1604,13 @@ void D_SetMaxHealth(void)
 {
   if (demo_compatibility)
   {
-    maxhealth = 100;
-    maxhealthbonus = deh_set_maxhealth ? deh_maxhealth : 200;
+    deh_max_health = 100;
+    deh_max_health_bonus = deh_set_maxhealth ? deh_max_health : 200;
   }
   else
   {
-    maxhealth = deh_set_maxhealth ? deh_maxhealth : 100;
-    maxhealthbonus = maxhealth * 2;
+    deh_max_health = deh_set_maxhealth ? deh_max_health : 100;
+    deh_max_health_bonus = deh_max_health * 2;
   }
 }
 
