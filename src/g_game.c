@@ -17,7 +17,6 @@
 //-----------------------------------------------------------------------------
 
 #include <errno.h>
-#include <math.h>
 #include <stdarg.h>
 #include <stddef.h>
 #include <stdio.h>
@@ -34,6 +33,7 @@
 #include "d_main.h"
 #include "d_player.h"
 #include "d_ticcmd.h"
+#include "deh_bex_partimes.h"
 #include "doomdata.h"
 #include "doomdef.h"
 #include "doomkeys.h"
@@ -1751,7 +1751,7 @@ static void G_WriteLevelStat(void)
 // G_DoCompleted
 //
 
-boolean um_pars = false;
+boolean umapinfo_partimes = false;
 
 static void G_DoCompleted(void)
 {
@@ -1785,7 +1785,7 @@ static void G_DoCompleted(void)
 
   wminfo.lastmapinfo = gamemapinfo;
   wminfo.nextmapinfo = NULL;
-  um_pars = false;
+  umapinfo_partimes = false;
   if (gamemapinfo)
   {
     const char *next = NULL;
@@ -1827,7 +1827,7 @@ static void G_DoCompleted(void)
       wminfo.didsecret = players[consoleplayer].didsecret;
       wminfo.partime = gamemapinfo->partime * TICRATE;
       if (wminfo.partime > 0)
-        um_pars = true;
+        umapinfo_partimes = true;
       goto frommapinfo;	// skip past the default setup.
     }
   }
@@ -1907,7 +1907,7 @@ static void G_DoCompleted(void)
     }
     else if (gamemap >= 1 && gamemap <= 34)
     {
-      wminfo.partime = TICRATE*cpars[gamemap-1];
+      wminfo.partime = TICRATE * bex_cpars[gamemap - 1];
     }
   }
   else
@@ -1915,11 +1915,11 @@ static void G_DoCompleted(void)
     // Doom Episode 4 doesn't have a par time, so this overflows into the cpars[] array.
     if (demo_compatibility && gameepisode == 4 && gamemap >= 1 && gamemap <= 9)
     {
-      wminfo.partime = TICRATE*cpars[gamemap];
+      wminfo.partime = TICRATE * bex_cpars[gamemap];
     }
-    else if (gameepisode >= 1 && gameepisode <= 3 && gamemap >= 1 && gamemap <= 9)
+    else if (gameepisode >= 1 && gameepisode <= 6 && gamemap >= 1 && gamemap <= 9)
     {
-      wminfo.partime = TICRATE*pars[gameepisode][gamemap];
+      wminfo.partime = TICRATE * bex_pars[gameepisode - 1][gamemap - 1];
     }
   }
 
@@ -3461,22 +3461,6 @@ void G_ScreenShot(void)
 {
   gameaction = ga_screenshot;
 }
-
-// DOOM Par Times
-int pars[4][10] = {
-  {0},
-  {0,30,75,120,90,165,180,180,30,165},
-  {0,90,90,90,120,90,360,240,30,170},
-  {0,90,45,90,150,90,90,165,30,135}
-};
-
-// DOOM II Par Times
-int cpars[34] = {
-  30,90,120,120,90,150,120,120,270,90,  //  1-10
-  210,150,150,150,210,150,420,150,210,150,  // 11-20
-  240,150,180,150,150,300,330,420,300,180,  // 21-30
-  120,30,30,30          // 31-34
-};
 
 //
 // G_WorldDone

@@ -22,8 +22,24 @@
 #include "deh_bex_partimes.h"
 #include "deh_io.h"
 
-int bex_pars[7][10] = {{0}};
-int bex_cpars[32] = {0};
+boolean bex_partimes = false;
+
+int bex_pars[][9] = {
+    {30,  75,  120, 90,  165, 180, 180, 30,  165},
+    {90,  90,  90,  120, 90,  360, 240, 30,  170},
+    {90,  45,  90,  150, 90,  90,  165, 30,  135},
+    {165, 255, 135, 150, 180, 390, 135, 360, 180}, // E4:BFG
+    {90,  150, 360, 420, 780, 420, 780, 300, 660}, // Sigil v1.21
+    {480, 300, 240, 420, 510, 840, 960, 390, 450}, // Sigil II v1.0
+};
+
+int bex_cpars[] =
+{
+    30,  90,  120, 120, 90,  150, 120, 120, 270, 90, 210,
+    150, 150, 150, 210, 150, 420, 150, 210, 150,
+    240, 150, 180, 150, 150, 300, 330, 420, 300, 180, 120, 30,
+    30,  30
+};
 
 static void *DEH_BEXParsStart(deh_context_t *context, char *line)
 {
@@ -43,9 +59,11 @@ static void DEH_BEXParsParseLine(deh_context_t *context, char *line, void *tag)
 
     if (sscanf(line, "par %32d %32d %32d", &episode, &map, &partime) == 3)
     {
+        // E4:BFG, Sigil, Sigil II
         if (episode >= 1 && episode <= 6 && map >= 1 && map <= 9)
         {
-            bex_pars[episode][map] = partime;
+            bex_pars[episode - 1][map - 1] = partime;
+            bex_partimes |= true;
         }
         else
         {
@@ -55,9 +73,11 @@ static void DEH_BEXParsParseLine(deh_context_t *context, char *line, void *tag)
     }
     else if (sscanf(line, "par %32d %32d", &map, &partime) == 2)
     {
-        if (map >= 1 && map <= 32)
+        // maps 33 & 34
+        if (map >= 1 && map <= 34)
         {
             bex_cpars[map - 1] = partime;
+            bex_partimes |= true;
         }
         else
         {
@@ -72,7 +92,7 @@ static void DEH_BEXParsParseLine(deh_context_t *context, char *line, void *tag)
     }
 }
 
-deh_section_t deh_section_bex_partimess =
+deh_section_t deh_section_bex_partimes =
 {
     "[PARS]",
     NULL,

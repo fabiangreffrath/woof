@@ -65,7 +65,7 @@ extern deh_section_t deh_section_thing;
 extern deh_section_t deh_section_weapon;
 
 extern deh_section_t deh_section_bex_strings;
-extern deh_section_t deh_section_bex_partimess;
+extern deh_section_t deh_section_bex_partimes;
 extern deh_section_t deh_section_bex_codepointers;
 extern deh_section_t deh_section_bex_includes;
 

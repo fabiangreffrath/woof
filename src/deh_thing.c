@@ -17,16 +17,18 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 #include "deh_io.h"
 #include "doomtype.h"
 #include "deh_defs.h"
 #include "deh_main.h"
 #include "deh_mapping.h"
+#include "i_system.h"
 #include "info.h"
 #include "p_mobj.h"
 
-static const bex_bitflags_t mobj_flags_base[] = {
+static const bex_bitflags_t mobj_flags_vanilla[] = {
     {"SPECIAL",      MF_SPECIAL     },
     {"SOLID",        MF_SOLID       },
     {"SHOOTABLE",    MF_SHOOTABLE   },
@@ -230,19 +232,18 @@ static void DEH_ThingParseLine(deh_context_t *context, char *line, void *tag)
     char *variable_name, *value;
     if (!DEH_ParseAssignment(line, &variable_name, &value))
     {
-        // Failed to parse
         DEH_Warning(context, "Failed to parse assignment");
         return;
     }
 
     //    printf("Set %s to %s for mobj\n", variable_name, value);
 
-    // all values are integers
+    // most values are integers
     int ivalue = atoi(value);
 
     if (!strcasecmp(variable_name, "Bits"))
     {
-        ivalue = DEH_BexParseBitFlags(ivalue, value, mobj_flags_base, arrlen(mobj_flags_base));
+        ivalue = DEH_BexParseBitFlags(ivalue, value, mobj_flags_vanilla, arrlen(mobj_flags_vanilla));
 
         if ((ivalue & (MF_NOBLOCKMAP | MF_MISSILE)) == MF_MISSILE)
         {
@@ -259,8 +260,52 @@ static void DEH_ThingParseLine(deh_context_t *context, char *line, void *tag)
     }
     else if (!strcasecmp(variable_name, "Dropped Item"))
     {
-        // Thing ids in dehacked are 1-based
-        ivalue -= 1;
+        if (ivalue < 0)
+        {
+            I_Error("Dropped item must be >= 0 (check your dehacked)");
+        }
+        ivalue += MT_NULL; // DeHackEd is off-by-one
+    }
+    else if (!strcasecmp(variable_name, "Infighting group"))
+    {
+        if (ivalue < 0)
+        {
+            I_Error("Infighting groups must be >= 0 (check your dehacked)");
+        }
+        ivalue += IG_END;
+    }
+    else if (!strcasecmp(variable_name, "Splash group"))
+    {
+        if (ivalue < 0)
+        {
+            I_Error("Splash groups must be >= 0 (check your dehacked)");
+        }
+        ivalue += SG_END;
+    }
+    else if (!strcasecmp(variable_name, "Projectile group"))
+    {
+        if (ivalue >= PG_DEFAULT)
+        {
+            ivalue += PG_END;
+        }
+        else
+        {
+            ivalue = PG_GROUPLESS;
+        }
+    }
+    else if (!strcasecmp(variable_name, "Obituray")
+            || !strcasecmp(variable_name, "Melee Obituray")
+            || !strcasecmp(variable_name, "Self Obituray"))
+    {
+        if (strlen(value) >= 1)
+        {
+            DEH_SetStringMapping(context, &thing_mapping, mobj, variable_name, value);
+        }
+        else
+        {
+            DEH_Warning(context, "%s is empty!", variable_name);
+        }
+        return;
     }
 
     // Set the field value

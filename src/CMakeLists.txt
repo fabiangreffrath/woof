@@ -20,6 +20,10 @@ set(WOOF_SOURCES
     doomstat.c             doomstat.h
                            doomtype.h
     deh_ammo.c
+    deh_bex_includes.c
+    deh_bex_partimes.c     deh_bex_partimes.h
+    deh_bex_pointers.c
+    deh_bex_strings.c
     deh_cheat.c
     deh_defs.h
     deh_doom.c
@@ -30,7 +34,7 @@ set(WOOF_SOURCES
     deh_mapping.c          deh_mapping.h
     deh_misc.c             deh_misc.h
     deh_pointer.c
-    deh_sound,c
+    deh_sound.c
     deh_strings.c          deh_strings.h
     deh_text.c
     deh_thing.c

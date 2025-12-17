@@ -19,7 +19,12 @@
 #ifndef DEH_BEXPARS_H
 #define DEH_BEXPARS_H
 
-extern int bex_pars[7][10];
-extern int bex_cpars[32];
+#include "doomtype.h"
+
+extern boolean bex_partimes;      // in wi_stuff to allow pars in modified games
+extern boolean umapinfo_partimes; //
+
+extern int bex_pars[][9];       // includes E4:BFG, Sigil, Sigil II
+extern int bex_cpars[];         // includes dummy for maps 33 & 24
 
 #endif /* #ifndef DEH_BEXPARS_H */

@@ -40,7 +40,7 @@ deh_section_t *deh_section_types[] =
     &deh_section_thing,
     &deh_section_weapon,
     &deh_section_bex_strings,
-    &deh_section_bex_partimess,
+    &deh_section_bex_partimes,
     &deh_section_bex_codepointers,
     &deh_section_bex_includes,
     NULL

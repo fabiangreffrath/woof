@@ -36,6 +36,13 @@ static void *DEH_TextStart(deh_context_t *context, char *line)
         return NULL;
     }
 
+    // We do not care about any Text blocks outside of music and sprite names
+    if (fromlen >= 7 || tolen >= 7)
+    {
+        DEH_Warning(context, "Strings too long!");
+        return NULL;
+    }
+
     char *from_text = malloc(fromlen + 1);
     char *to_text = malloc(tolen + 1);
 

@@ -18,12 +18,17 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#include "d_items.h"
 #include "deh_defs.h"
 #include "deh_io.h"
 #include "deh_main.h"
 #include "deh_mapping.h"
 #include "info.h"
+#include "w_wad.h"
+
+const bex_bitflags_t frame_flags_mbf21[] =
+{
+    {"SKILL5FAST", STATEF_SKILL5FAST}
+};
 
 DEH_BEGIN_MAPPING(state_mapping, state_t)
     DEH_MAPPING("Sprite number", sprite)
@@ -44,7 +49,7 @@ DEH_BEGIN_MAPPING(state_mapping, state_t)
     DEH_MAPPING("Args7", args[6])
     DEH_MAPPING("Args8", args[7])
     // id24
-    DEH_MAPPING("Tranmap", tranmap)
+    DEH_MAPPING_STRING("Tranmap", tranmap)
     // mbf2y
     DEH_UNSUPPORTED_MAPPING("MBF2y Bits")
     DEH_UNSUPPORTED_MAPPING("Min brightness")
@@ -53,7 +58,6 @@ DEH_END_MAPPING
 static void *DEH_FrameStart(deh_context_t *context, char *line)
 {
     int frame_number = 0;
-    state_t *state;
 
     if (sscanf(line, "Frame %i", &frame_number) != 1)
     {
@@ -69,50 +73,12 @@ static void *DEH_FrameStart(deh_context_t *context, char *line)
 
     if (frame_number >= DEH_VANILLA_NUMSTATES)
     {
-        DEH_Warning(context,
-                    "Attempt to modify frame %i: this will cause problems in Vanilla dehacked.",
-                    frame_number);
+        DEH_Warning(context, "Attempt to modify frame %i: this will cause problems in Vanilla dehacked.", frame_number);
     }
 
-    state = &states[frame_number];
+    state_t *state = &states[frame_number];
 
     return state;
-}
-
-// Simulate a frame overflow: Doom has 967 frames in the states[] array, but
-// DOS dehacked internally only allocates memory for 966.  As a result,
-// attempts to set frame 966 (the last frame) will overflow the dehacked
-// array and overwrite the weaponinfo[] array instead.
-//
-// This is noticable in Batman Doom where it is impossible to switch weapons
-// away from the fist once selected.
-
-static void DEH_FrameOverflow(deh_context_t *context, char *varname, int value)
-{
-    if (!strcasecmp(varname, "Duration"))
-    {
-        weaponinfo[0].ammo = value;
-    }
-    else if (!strcasecmp(varname, "Codep frame"))
-    {
-        weaponinfo[0].upstate = value;
-    }
-    else if (!strcasecmp(varname, "Next frame"))
-    {
-        weaponinfo[0].downstate = value;
-    }
-    else if (!strcasecmp(varname, "Unknown 1"))
-    {
-        weaponinfo[0].readystate = value;
-    }
-    else if (!strcasecmp(varname, "Unknown 2"))
-    {
-        weaponinfo[0].atkstate = value;
-    }
-    else
-    {
-        DEH_Error(context, "Unable to simulate frame overflow: field '%s'", varname);
-    }
 }
 
 static void DEH_FrameParseLine(deh_context_t *context, char *line, void *tag)
@@ -128,24 +94,24 @@ static void DEH_FrameParseLine(deh_context_t *context, char *line, void *tag)
     char *variable_name, *value;
     if (!DEH_ParseAssignment(line, &variable_name, &value))
     {
-        // Failed to parse
         DEH_Warning(context, "Failed to parse assignment");
         return;
     }
 
-    // all values are integers
+    // most values are integers
     int ivalue = atoi(value);
 
-    // [crispy] drop the overflow simulation into the frame table
-    if (state == &states[NUMSTATES - 1] && false)
+    if (!strcasecmp(variable_name, "MBF21 Bits"))
     {
-        DEH_FrameOverflow(context, variable_name, ivalue);
+        ivalue = DEH_BexParseBitFlags(ivalue, value, frame_flags_mbf21, arrlen(frame_flags_mbf21));
     }
-    else
+    else if (!strcasecmp(variable_name, "Tranmap"))
     {
-        // set the appropriate field
-        DEH_SetMapping(context, &state_mapping, state, variable_name, ivalue);
+        state->tranmap = W_CacheLumpName(value, PU_STATIC);
     }
+
+    // set the appropriate field
+    DEH_SetMapping(context, &state_mapping, state, variable_name, ivalue);
 }
 
 static void DEH_FrameSHA1Sum(sha1_context_t *context)

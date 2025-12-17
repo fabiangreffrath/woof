@@ -81,7 +81,6 @@ static void DEH_SoundParseLine(deh_context_t *context, char *line, void *tag)
     char *variable_name, *value;
     if (!DEH_ParseAssignment(line, &variable_name, &value))
     {
-        // Failed to parse
         DEH_Warning(context, "Failed to parse assignment");
         return;
     }

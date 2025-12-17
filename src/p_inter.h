@@ -57,7 +57,7 @@ extern int max_soul;
 extern int soul_health;
 extern int mega_health;
 extern int bfgcells;
-extern int deh_species_infighting;
+extern int old_deh_species_infighting;
 extern int maxammo[], clipammo[];
 
 #endif
