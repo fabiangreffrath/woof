@@ -19,6 +19,7 @@
 #define DEH_MAIN_H
 
 #include "doomtype.h"
+#include "info.h"
 #include "sha1.h"
 
 // These are the limits that dehacked uses (from dheinit.h in the dehacked
@@ -54,9 +55,12 @@ struct bex_bitflags_s
 };
 
 // Extensions
+extern boolean post_process;
 
 extern void DEH_InitTables(void);
 extern void DEH_FreeTables(void);
 extern int DEH_ParseBexBitFlags(int ivalue, char *value, const bex_bitflags_t flags[], int len);
+extern void DEH_PostProcess(void);
+extern boolean DEH_CheckSafeState(statenum_t state);
 
 #endif /* #ifndef DEH_MAIN_H */

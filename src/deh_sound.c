@@ -18,6 +18,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#include "deh_bex_sounds.h"
 #include "deh_defs.h"
 #include "deh_io.h"
 #include "deh_main.h"
@@ -54,16 +55,14 @@ static void *DEH_SoundStart(deh_context_t *context, char *line)
         return NULL;
     }
 
-    if (sound_number < 0 || sound_number >= NUMSFX)
+    if (sound_number < 0)
     {
         DEH_Warning(context, "Invalid sound number: %i", sound_number);
         return NULL;
     }
 
-    if (sound_number >= DEH_VANILLA_NUMSFX)
-    {
-        DEH_Warning(context, "Attempt to modify SFX %i. This will cause problems in Vanilla dehacked.", sound_number);
-    }
+    // DSDHacked
+    DEH_SoundsEnsureCapacity(sound_number);
 
     return &S_sfx[sound_number];
 }

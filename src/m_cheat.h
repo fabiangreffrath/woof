@@ -50,8 +50,9 @@ typedef enum {
 
 #define CHEAT_ARGS_MAX 8
 
-extern struct cheat_s {
-  const char *cheat; // [FG] char!
+typedef struct
+{
+  char *sequence; // [FG] char!
   const char *const deh_cheat;
   const cheat_when_t when;
   const cheatf_t func;
@@ -63,7 +64,9 @@ extern struct cheat_s {
   int param_chars_read;
   char parameter_buf[CHEAT_ARGS_MAX];
   boolean repeatable;
-} cheat[];
+} cheat_sequence_t;
+
+extern cheat_sequence_t cheat_seq[];
 
 void cheat_mypos_print();
 

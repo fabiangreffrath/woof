@@ -36,6 +36,7 @@
 #include "w_wad.h"
 
 static boolean deh_initialized = false;
+boolean post_process = true;
 
 // If false, dehacked cheat replacements are ignored.
 boolean deh_apply_cheats = true;
@@ -479,6 +480,22 @@ void DEH_ParseCommandLine(void)
             ++p;
         }
     }
+}
+
+void DEH_PostProcess(void)
+{
+    if (post_process)
+    {
+        DEH_ValidateStateArgs();
+    }
+
+    // [FG] fix desyncs by SSG-flash correction
+    if (DEH_CheckSafeState(S_DSGUNFLASH1) && states[S_DSGUNFLASH1].tics == 5)
+    {
+        states[S_DSGUNFLASH1].tics = 4;
+    }
+
+    DEH_FreeTables();
 }
 
 void DEH_InitTables(void)

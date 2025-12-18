@@ -64,7 +64,7 @@ void DEH_FreeSprites(void)
     array_free(sprnames_state);
 }
 
-static void EnsureSpritesCapacity(int limit)
+static void SpritesEnsureCapacity(int limit)
 {
     if (limit < num_sprites)
     {
@@ -94,7 +94,7 @@ static void EnsureSpritesCapacity(int limit)
     memset(sprnames_state + old_num_sprites, 0, size_delta * sizeof(*sprnames_state));
 }
 
-int DEH_SpriteGetIndex(const char *key)
+int DEH_SpritesGetIndex(const char *key)
 {
     for (int i = 0; i < num_sprites; ++i)
     {
@@ -130,7 +130,7 @@ int DEH_SpritesGetOriginalIndex(const char *key)
     }
 
     int i = atoi(key);
-    EnsureSpritesCapacity(i);
+    SpritesEnsureCapacity(i);
 
     return i;
 }

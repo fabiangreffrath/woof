@@ -26,11 +26,15 @@
 #include "m_array.h"
 #include "w_wad.h"
 
+//
+// DSDHacked states
+//
+
 state_t *states = NULL;
 int num_states;
-byte *defined_codeptr_args = NULL;
+byte *defined_codepointer_args = NULL;
 statenum_t *seenstate_tab = NULL;
-actionf_t *deh_codeptr = NULL;
+actionf_t *deh_codepointer = NULL;
 
 void DEH_InitStates(void)
 {
@@ -40,23 +44,23 @@ void DEH_InitStates(void)
     array_grow(seenstate_tab, num_states);
     memset(seenstate_tab, 0, num_states * sizeof(*seenstate_tab));
 
-    array_grow(deh_codeptr, num_states);
+    array_grow(deh_codepointer, num_states);
     for (int i = 0; i < num_states; i++)
     {
-        deh_codeptr[i] = states[i].action;
+        deh_codepointer[i] = states[i].action;
     }
 
-    array_grow(defined_codeptr_args, num_states);
-    memset(defined_codeptr_args, 0, num_states * sizeof(*defined_codeptr_args));
+    array_grow(defined_codepointer_args, num_states);
+    memset(defined_codepointer_args, 0, num_states * sizeof(*defined_codepointer_args));
 }
 
 void DEH_FreeStates(void)
 {
-    array_free(defined_codeptr_args);
-    array_free(deh_codeptr);
+    array_free(defined_codepointer_args);
+    array_free(deh_codepointer);
 }
 
-void DEH_EnsureStatesCapacity(int limit)
+void DEH_StatesEnsureCapacity(int limit)
 {
     if (limit < num_states)
     {
@@ -82,11 +86,11 @@ void DEH_EnsureStatesCapacity(int limit)
     const int size_delta = num_states - old_num_states;
     memset(states + old_num_states, 0, size_delta * sizeof(*states));
 
-    array_grow(deh_codeptr, size_delta);
-    memset(deh_codeptr + old_num_states, 0, size_delta * sizeof(*deh_codeptr));
+    array_grow(deh_codepointer, size_delta);
+    memset(deh_codepointer + old_num_states, 0, size_delta * sizeof(*deh_codepointer));
 
-    array_grow(defined_codeptr_args, size_delta);
-    memset(defined_codeptr_args + old_num_states, 0, size_delta * sizeof(*defined_codeptr_args));
+    array_grow(defined_codepointer_args, size_delta);
+    memset(defined_codepointer_args + old_num_states, 0, size_delta * sizeof(*defined_codepointer_args));
 
     array_grow(seenstate_tab, size_delta);
     memset(seenstate_tab + old_num_states, 0, size_delta * sizeof(*seenstate_tab));
@@ -143,16 +147,14 @@ static void *DEH_FrameStart(deh_context_t *context, char *line)
         return NULL;
     }
 
-    if (frame_number < 0 || frame_number >= NUMSTATES)
+    if (frame_number < 0)
     {
         DEH_Warning(context, "Invalid frame number: %i", frame_number);
         return NULL;
     }
 
-    if (frame_number >= DEH_VANILLA_NUMSTATES)
-    {
-        DEH_Warning(context, "Attempt to modify frame %i: this will cause problems in Vanilla dehacked.", frame_number);
-    }
+    // DSDHacked
+    DEH_StatesEnsureCapacity(frame_number);
 
     state_t *state = &states[frame_number];
 
@@ -179,6 +181,8 @@ static void DEH_FrameParseLine(deh_context_t *context, char *line, void *tag)
     // most values are integers
     int ivalue = atoi(value);
 
+    // TODO:
+    // * defined_codeptr_args
     if (!strcasecmp(variable_name, "MBF21 Bits"))
     {
         ivalue = DEH_ParseBexBitFlags(ivalue, value, frame_flags_mbf21, arrlen(frame_flags_mbf21));
@@ -195,7 +199,7 @@ static void DEH_FrameParseLine(deh_context_t *context, char *line, void *tag)
 
 static void DEH_FrameSHA1Sum(sha1_context_t *context)
 {
-    for (int i = 0; i < NUMSTATES; ++i)
+    for (int i = 0; i < num_states; ++i)
     {
         DEH_StructSHA1Sum(context, &state_mapping, &states[i]);
     }

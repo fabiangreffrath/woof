@@ -134,7 +134,7 @@ static void cheat_speed(void);
 //
 //-----------------------------------------------------------------------------
 
-struct cheat_s cheat[] = {
+cheat_sequence_t cheat_seq[] = {
   {"idmus",      "Change music",      always,
    {.s = cheat_mus}, -2 },
 
@@ -1230,13 +1230,13 @@ static void InitCheats(void)
 
     if (!init)
     {
-        struct cheat_s *cht;
+        cheat_sequence_t *cht;
 
         init = true;
 
-        for (cht = cheat; cht->cheat; cht++)
+        for (cht = cheat; cht->sequence; cht++)
         {
-            cht->sequence_len = strlen(cht->cheat);
+            cht->sequence_len = strlen(cht->sequence);
         }
     }
 }
@@ -1244,11 +1244,11 @@ static void InitCheats(void)
 static int M_FindCheats(char key)
 {
     int rc = 0, matchedbefore = 0;
-    struct cheat_s *cht;
+    cheat_sequence_t *cht;
 
     InitCheats();
 
-    for (cht = cheat; cht->cheat; cht++)
+    for (cht = cheat; cht->sequence; cht++)
     {
         if (!CheatAllowed(cht->when)
             || (cht->when & not_deh && cht->deh_modified))
@@ -1262,11 +1262,11 @@ static int M_FindCheats(char key)
             // and verifying.  reset back to the beginning
             // if a key is wrong
 
-            if (key == cht->cheat[cht->chars_read])
+            if (key == cht->sequence[cht->chars_read])
             {
                 ++cht->chars_read;
             }
-            else if (key == cht->cheat[0])
+            else if (key == cht->sequence[0])
             {
                 cht->chars_read = 1;
             }

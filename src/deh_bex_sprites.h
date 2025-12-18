@@ -25,7 +25,7 @@
 extern void DEH_InitSprites(void);
 extern void DEH_FreeSprites(void);
 
-extern int DEH_SpriteGetIndex(const char *key);
+extern int DEH_SpritesGetIndex(const char *key);
 extern int DEH_SpritesGetOriginalIndex(const char *key);
 
 #endif

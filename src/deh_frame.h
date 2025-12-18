@@ -21,15 +21,14 @@
 #include "doomtype.h"
 #include "info.h"
 
-extern byte *defined_codeptr_args;
-extern union actionf_u *deh_codeptr;
+extern byte *defined_codepointer_args;
+extern union actionf_u *deh_codepointer;
 extern statenum_t *seenstate_tab;
 
 extern void DEH_InitStates(void);
 extern void DEH_FreeStates(void);
 
-extern void DEH_EnsureStatesCapacity(int limit);
-extern void DEH_EnsureMobjInfoCapacity(int limit);
-extern int DEH_MobjInfoGetNewIndex(void);
+extern void DEH_StatesEnsureCapacity(int limit);
+extern void DEH_ValidateStateArgs(void);
 
 #endif

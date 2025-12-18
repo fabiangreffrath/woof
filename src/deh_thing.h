@@ -20,8 +20,7 @@
 
 extern void DEH_InitMobjInfo(void);
 
-extern void DEH_EnsureStatesCapacity(int limit);
-extern void DEH_EnsureMobjInfoCapacity(int limit);
+extern void DEH_MobjInfoEnsureCapacity(int limit);
 extern int DEH_MobjInfoGetNewIndex(void);
 
 #endif

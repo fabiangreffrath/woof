@@ -23,39 +23,15 @@
 #include "deh_main.h"
 #include "m_cheat.h"
 
-typedef struct
-{
-    const char *name;
-    struct cheat_s *seq;
-} deh_cheat_t;
+extern cheat_sequence_t cheat_seq[];
 
-static deh_cheat_t allcheats[] = {
-    {"Change music",     NULL},
-    {"Chainsaw",         NULL},
-    {"God mode",         NULL},
-    {"Ammo & Keys",      NULL},
-    {"Ammo",             NULL},
-    {"No Clipping 1",    NULL},
-    {"No Clipping 2",    NULL},
-    {"Invincibility",    NULL},
-    {"Berserk",          NULL},
-    {"Invisibility",     NULL},
-    {"Radiation Suit",   NULL},
-    {"Auto-map",         NULL},
-    {"Lite-Amp Goggles", NULL},
-    {"BEHOLD menu",      NULL},
-    {"Level Warp",       NULL},
-    {"Player Position",  NULL},
-    {"Map cheat",        NULL},
-};
-
-static deh_cheat_t *FindCheatByName(char *name)
+cheat_sequence_t *FindCheatByName(char *name)
 {
-    for (size_t i = 0; i < arrlen(allcheats); ++i)
+    for (size_t i = 0; i < arrlen(cheat_seq); ++i)
     {
-        if (!strcasecmp(allcheats[i].name, name))
+        if (!strcasecmp(cheat_seq[i].deh_cheat, name))
         {
-            return &allcheats[i];
+            return &cheat_seq[i];
         }
     }
 
@@ -77,14 +53,26 @@ static void DEH_CheatParseLine(deh_context_t *context, char *line, void *tag)
         return;
     }
 
-    deh_cheat_t *cheat = FindCheatByName(variable_name);
-    if (cheat == NULL)
+    cheat_sequence_t *cheat_seq = FindCheatByName(variable_name);
+    if (cheat_seq == NULL)
     {
         DEH_Warning(context, "Unknown cheat '%s'", variable_name);
         return;
     }
 
-    // TODO: currently no-op, need to merge inmore changes
+    if (!deh_apply_cheats)
+    {
+        return;
+    }
+
+    int i = 0;
+    unsigned char *unsvalue = (unsigned char*)value;
+    while (unsvalue[i] != 0 && unsvalue[i] != 0xff)
+    {
+        cheat_seq->sequence[i] = unsvalue[i];
+        ++i;
+    }
+    cheat_seq->sequence[i] = '\0';
 }
 
 deh_section_t deh_section_cheat =

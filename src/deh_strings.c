@@ -35,7 +35,6 @@ static int hash_table_entries;
 static int hash_table_length = -1;
 
 // This is the algorithm used by glib
-
 static unsigned int strhash(const char *s)
 {
     const char *p = s;

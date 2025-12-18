@@ -24,12 +24,17 @@
 #include "deh_main.h"
 #include "deh_mapping.h"
 #include "deh_thing.h"
+#include "doomstat.h"
 #include "doomtype.h"
 #include "i_system.h"
 #include "info.h"
+#include "m_argv.h"
 #include "m_array.h"
+#include "m_fixed.h"
+#include "p_ambient.h"
 #include "p_map.h"
 #include "p_mobj.h"
+#include "sounds.h"
 
 //
 // DSDhacked Things
@@ -44,9 +49,108 @@ void DEH_InitMobjInfo(void)
     mobjinfo = original_mobjinfo;
     num_mobj_types = NUMMOBJTYPES;
     mobj_index = NUMMOBJTYPES - 1;
+
+    // don't want to reorganize info.c structure for a few tweaks...
+    for (int i = 0; i < num_mobj_types; ++i)
+    {
+        // DEHEXTRA
+        mobjinfo[i].droppeditem = MT_NULL;
+        // MBF21
+        mobjinfo[i].flags2           = 0;
+        mobjinfo[i].infighting_group = IG_DEFAULT;
+        mobjinfo[i].projectile_group = PG_DEFAULT;
+        mobjinfo[i].splash_group     = SG_DEFAULT;
+        mobjinfo[i].ripsound         = sfx_None;
+        mobjinfo[i].altspeed         = NO_ALTSPEED;
+        mobjinfo[i].meleerange       = MELEERANGE;
+        // Eternity
+        mobjinfo[i].bloodcolor = 0;
+    }
+
+    // DEHEXTRA
+    mobjinfo[MT_WOLFSS].droppeditem    = MT_CLIP;
+    mobjinfo[MT_POSSESSED].droppeditem = MT_CLIP;
+    mobjinfo[MT_SHOTGUY].droppeditem   = MT_SHOTGUN;
+    mobjinfo[MT_CHAINGUY].droppeditem  = MT_CHAINGUN;
+
+    // MBF21
+    mobjinfo[MT_VILE].flags2    = MF2_SHORTMRANGE|MF2_DMGIGNORED|MF2_NOTHRESHOLD;
+    mobjinfo[MT_UNDEAD].flags2  = MF2_LONGMELEE|MF2_RANGEHALF;
+    mobjinfo[MT_FATSO].flags2   = MF2_MAP07BOSS1;
+    mobjinfo[MT_BRUISER].flags2 = MF2_E1M8BOSS;
+    mobjinfo[MT_SKULL].flags2   = MF2_RANGEHALF;
+    mobjinfo[MT_SPIDER].flags2  = MF2_NORADIUSDMG|MF2_RANGEHALF|MF2_FULLVOLSOUNDS|MF2_E3M8BOSS|MF2_E4M8BOSS;
+    mobjinfo[MT_BABY].flags2    = MF2_MAP07BOSS2;
+    mobjinfo[MT_CYBORG].flags2  = MF2_NORADIUSDMG|MF2_HIGHERMPROB|MF2_RANGEHALF|MF2_FULLVOLSOUNDS|MF2_E2M8BOSS|MF2_E4M6BOSS;
+
+    mobjinfo[MT_BRUISER].projectile_group = PG_BARON;
+    mobjinfo[MT_KNIGHT].projectile_group  = PG_BARON;
+
+    mobjinfo[MT_BRUISERSHOT].altspeed = IntToFixed(20);
+    mobjinfo[MT_TROOPSHOT].altspeed   = IntToFixed(20);
+    mobjinfo[MT_HEADSHOT].altspeed    = IntToFixed(20);
+
+    for (int i = S_SARG_RUN1; i <= S_SARG_PAIN2; ++i)
+    {
+        states[i].flags |= STATEF_SKILL5FAST;
+    }
+
+    // Woof! randomly mirrored death animations
+    for (int i = MT_PLAYER; i <= MT_KEEN; ++i)
+    {
+        switch (i)
+        {
+            case MT_FIRE:
+            case MT_TRACER:
+            case MT_SMOKE:
+            case MT_FATSHOT:
+            case MT_BRUISERSHOT:
+            case MT_CYBORG:
+                continue;
+        }
+        mobjinfo[i].flags_extra |= MFX_MIRROREDCORPSE;
+    }
+
+    mobjinfo[MT_PUFF].flags_extra  |= MFX_MIRROREDCORPSE;
+    mobjinfo[MT_BLOOD].flags_extra |= MFX_MIRROREDCORPSE;
+
+    for (int i = MT_MISC61; i <= MT_MISC69; ++i)
+    {
+        mobjinfo[i].flags_extra |= MFX_MIRROREDCORPSE;
+    }
+
+    mobjinfo[MT_DOGS].flags_extra |= MFX_MIRROREDCORPSE;
+
+    // SNDINFO
+    P_InitAmbientSoundMobjInfo();
+
+    //!
+    // @category game
+    //
+    // Press beta emulation mode (complevel mbf only).
+    //
+    beta_emulation = !!M_CheckParm("-beta");
+    if (beta_emulation)
+    {
+        // killough 10/98: beta lost soul has different behavior frames
+        mobjinfo[MT_SKULL].spawnstate   = S_BSKUL_STND;
+        mobjinfo[MT_SKULL].seestate     = S_BSKUL_RUN1;
+        mobjinfo[MT_SKULL].painstate    = S_BSKUL_PAIN1;
+        mobjinfo[MT_SKULL].missilestate = S_BSKUL_ATK1;
+        mobjinfo[MT_SKULL].deathstate   = S_BSKUL_DIE1;
+        mobjinfo[MT_SKULL].damage       = 1;
+    }
+#ifdef MBF_STRICT
+    else
+    {
+        // This code causes MT_SCEPTRE and MT_BIBLE to not spawn on the map,
+        // which causes desync in Eviternity.wad demos.
+        mobjinfo[MT_SCEPTRE].doomednum = mobjinfo[MT_BIBLE].doomednum = -1;
+    }
+#endif
 }
 
-void DEH_EnsureMobjInfoCapacity(int limit)
+void DEH_MobjInfoEnsureCapacity(int limit)
 {
     if (limit > mobj_index)
     {
@@ -78,19 +182,21 @@ void DEH_EnsureMobjInfoCapacity(int limit)
 
     for (int i = old_num_mobj_types; i < num_mobj_types; ++i)
     {
+        // DEHEXTRA
         mobjinfo[i].droppeditem = MT_NULL;
+        // MBF21
         mobjinfo[i].infighting_group = IG_DEFAULT;
         mobjinfo[i].projectile_group = PG_DEFAULT;
-        mobjinfo[i].splash_group = SG_DEFAULT;
-        mobjinfo[i].altspeed = NO_ALTSPEED;
-        mobjinfo[i].meleerange = MELEERANGE;
+        mobjinfo[i].splash_group     = SG_DEFAULT;
+        mobjinfo[i].altspeed         = NO_ALTSPEED;
+        mobjinfo[i].meleerange       = MELEERANGE;
     }
 }
 
 int DEH_MobjInfoGetNewIndex(void)
 {
     mobj_index++;
-    DEH_EnsureMobjInfoCapacity(mobj_index);
+    DEH_MobjInfoEnsureCapacity(mobj_index);
     return mobj_index;
 }
 
@@ -215,22 +321,24 @@ DEH_BEGIN_MAPPING(thing_mapping, mobjinfo_t)
     DEH_UNSUPPORTED_MAPPING("Translation")
     // mbf2y
     DEH_UNSUPPORTED_MAPPING("MBF2y Bits")
-    DEH_UNSUPPORTED_MAPPING("Projectile collision group") // i.b mbf21
-    DEH_UNSUPPORTED_MAPPING("Pickup health amount")       // i.b id24
-    DEH_UNSUPPORTED_MAPPING("Pickup armor amount")        // i.b id24
-    DEH_UNSUPPORTED_MAPPING("Pickup powerup duration")    // i.b id24
-    DEH_MAPPING("Obituary", obituary)                     // p.f ZDoom
-    DEH_MAPPING("Melee obituary", obituary_melee)         // p.f ZDoom
-    DEH_MAPPING("Self obituary", obituary_self)           // p.f ZDoom
-    DEH_UNSUPPORTED_MAPPING("Gib Health")                 // p.f Retro
-    DEH_UNSUPPORTED_MAPPING("Blood Thing")                // i.b Eternity
-    DEH_UNSUPPORTED_MAPPING("Crush State")                // i.b Eternity
     DEH_UNSUPPORTED_MAPPING("Melee threshold")            // p.f crispy
     DEH_UNSUPPORTED_MAPPING("Max target range")           // p.f crispy
     DEH_UNSUPPORTED_MAPPING("Min missile chance")         // p.f crispy
     DEH_UNSUPPORTED_MAPPING("Missile chance multiplier")  // p.f crispy
+    DEH_UNSUPPORTED_MAPPING("Projectile collision group") // i.b mbf21
+    DEH_UNSUPPORTED_MAPPING("Pickup health amount")       // i.b id24
+    DEH_UNSUPPORTED_MAPPING("Pickup armor amount")        // i.b id24
+    DEH_UNSUPPORTED_MAPPING("Pickup powerup duration")    // i.b id24
+    DEH_UNSUPPORTED_MAPPING("Gib Health")                 // p.f Retro
+    DEH_UNSUPPORTED_MAPPING("Blood Thing")                // i.b Eternity
+    DEH_UNSUPPORTED_MAPPING("Crush State")                // i.b Eternity
+    DEH_MAPPING("Obituary", obituary)                     // p.f ZDoom
+    DEH_MAPPING("Melee obituary", obituary_melee)         // p.f ZDoom
+    DEH_MAPPING("Self obituary", obituary_self)           // p.f ZDoom
     // eternity
     DEH_MAPPING("Blood Color", bloodcolor)
+    // woof
+    DEH_MAPPING("Woof Bits", flags_extra)
 DEH_END_MAPPING
 
 //
@@ -241,7 +349,8 @@ DEH_END_MAPPING
 // * "Pickup Width"
 // * "Fullbright"
 // * "Shadow Offset"
-// * "Name", "Name1", "Name2", "Name3", "Plural", "Plural1", "Plural2", "Plura3"
+// * "Name", "Name1", "Name2", "Name3",
+// * "Plural", "Plural1", "Plural2", "Plura3"
 //
 // From ZDoom:
 // * "Tag"
@@ -254,16 +363,6 @@ DEH_END_MAPPING
 // * "Physical height"
 // * "Projectile pass height"
 //
-
-// [crispy] initialize Thing extra properties (keeping vanilla props in info.c)
-static void DEH_InitThingProperties(void)
-{
-    // TODO: rope in the dsdhacked code
-    mobjinfo[MT_POSSESSED].droppeditem = MT_CLIP;
-    mobjinfo[MT_WOLFSS].droppeditem = MT_CLIP;
-    mobjinfo[MT_SHOTGUY].droppeditem = MT_SHOTGUN;
-    mobjinfo[MT_CHAINGUY].droppeditem = MT_CHAINGUN;
-}
 
 static void *DEH_ThingStart(deh_context_t *context, char *line)
 {
@@ -278,11 +377,14 @@ static void *DEH_ThingStart(deh_context_t *context, char *line)
     // dehacked files are indexed from 1
     --thing_number;
 
-    if (thing_number < 0 || thing_number >= NUMMOBJTYPES)
+    if (thing_number < 0)
     {
         DEH_Warning(context, "Invalid thing number: %i", thing_number);
         return NULL;
     }
+
+    // DSDhacked
+    DEH_MobjInfoEnsureCapacity(thing_number);
 
     mobjinfo_t *mobj = &mobjinfo[thing_number];
 
@@ -398,7 +500,7 @@ static void DEH_ThingSHA1Sum(sha1_context_t *context)
 deh_section_t deh_section_thing =
 {
     "Thing",
-    DEH_InitThingProperties, // [crispy] initialize Thing extra properties
+    NULL,
     DEH_ThingStart,
     DEH_ThingParseLine,
     NULL,

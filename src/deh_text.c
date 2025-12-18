@@ -37,7 +37,7 @@ static void *DEH_TextStart(deh_context_t *context, char *line)
     }
 
     // We do not care about any Text blocks outside of music and sprite names
-    if (fromlen > 6 || tolen > 6 || fromlen < 4 || tolen < 4)
+    if (fromlen < 4 || tolen < 4 || fromlen > 6 || tolen > 6)
     {
         DEH_Warning(context, "Unsupported text replacement, invalid string size.");
         return NULL;

@@ -24,6 +24,8 @@
 #include "deh_main.h"
 #include "deh_strings.h"
 #include "dstrings.h"
+#include "info.h"
+#include "m_misc.h"
 
 typedef struct
 {
@@ -406,6 +408,38 @@ static const bex_string_t bex_stringtable[] = {
     {"OB_MPTELEFRAG",      OB_MPTELEFRAG     },
 };
 
+// [FG] Obituaries
+static boolean DEH_ExtendedObituary(char *mnemonic, char *string)
+{
+    boolean found = false;
+    int actor = MT_NULL;
+
+    if (sscanf(mnemonic, "Obituary_Deh_Actor_%d", &actor) == 1)
+    {
+        if (actor >= 0 && actor < num_mobj_types)
+        {
+            if (M_StringEndsWith(mnemonic, "_Melee"))
+            {
+                if (!mobjinfo[actor].obituary_melee)
+                {
+                    mobjinfo[actor].obituary_melee = strdup(string);
+                }
+            }
+            else
+            {
+                if (!mobjinfo[actor].obituary)
+                {
+                    mobjinfo[actor].obituary = strdup(string);
+                }
+            }
+
+            found = true;
+        }
+    }
+
+    return found;
+}
+
 static void *DEH_BEXStrStart(deh_context_t *context, char *line)
 {
     char s[10];
@@ -428,12 +462,20 @@ static void DEH_BEXStrParseLine(deh_context_t *context, char *line, void *tag)
         return;
     }
 
+    boolean matched = false;
     for (int i = 0; i < arrlen(bex_stringtable); i++)
     {
         if (!strcasecmp(bex_stringtable[i].macro, variable_name))
         {
             DEH_AddStringReplacement(bex_stringtable[i].string, value);
+            matched = true;
         }
+    }
+
+    // [FG] Obituaries
+    if (!matched)
+    {
+        DEH_ExtendedObituary(variable_name, value);
     }
 }
 

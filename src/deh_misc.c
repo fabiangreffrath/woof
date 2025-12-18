@@ -19,6 +19,7 @@
 #include <string.h>
 #include <strings.h>
 
+#include "d_items.h"
 #include "deh_defs.h"
 #include "deh_io.h"
 #include "deh_main.h"
@@ -204,6 +205,7 @@ static void DEH_MiscParseLine(deh_context_t *context, char *line, void *tag)
     }
     else if (!strcasecmp(variable_name, "BFG Cells/Shot"))
     {
+        weaponinfo[wp_bfg].ammopershot = ivalue;
         deh_set_bfgcells |= true;
     }
 
