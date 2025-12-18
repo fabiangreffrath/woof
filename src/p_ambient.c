@@ -293,6 +293,6 @@ void P_InitAmbientSoundMobjInfo(void)
         .obituary_melee = NULL,
     };
 
-    zmt_ambientsound = dsdh_GetNewMobjInfoIndex();
+    zmt_ambientsound = DEH_MobjInfoGetNewIndex();
     mobjinfo[zmt_ambientsound] = amb_mobjinfo;
 }

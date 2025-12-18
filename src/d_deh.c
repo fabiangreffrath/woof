@@ -28,11 +28,14 @@
 #include "d_items.h"
 #include "d_main.h"
 #include "d_think.h"
+#include "deh_bex_sounds.h"
+#include "deh_bex_sprites.h"
+#include "deh_frame.h"
+#include "deh_main.h"
+#include "deh_misc.h"
 #include "doomdef.h"
 #include "doomstat.h"
 #include "doomtype.h"
-#include "deh_misc.h"
-#include "deh_dsdhacked.h"
 #include "dstrings.h"
 #include "i_printf.h"
 #include "i_system.h"
@@ -50,8 +53,6 @@
 #include "sounds.h"
 #include "w_wad.h"
 #include "z_zone.h"
-
-static boolean bfgcells_modified = false;
 
 // killough 10/98: new functions, to allow processing DEH files in-memory
 // (e.g. from wads)
@@ -1853,7 +1854,7 @@ static void deh_procBexCodePointers(DEHFILE *fpin, char *line)
             return; // killough 10/98: fix SegViol
         }
 
-        dsdh_EnsureStatesCapacity(indexnum);
+        DEH_EnsureStatesCapacity(indexnum);
 
         strcpy(key, "A_"); // reusing the key area to prefix the mnemonic
         strcat(key, ptr_lstrip(mnemonic));
@@ -1914,7 +1915,7 @@ static void deh_procThing(DEHFILE *fpin, char *line)
     // in the dehacked file start with one.  Grumble.
     --indexnum;
 
-    dsdh_EnsureMobjInfoCapacity(indexnum);
+    DEH_EnsureMobjInfoCapacity(indexnum);
 
     // now process the stuff
     // Note that for Things we can look up the key and use its offset
@@ -2203,7 +2204,7 @@ static void deh_procFrame(DEHFILE *fpin, char *line)
         return;
     }
 
-    dsdh_EnsureStatesCapacity(indexnum);
+    DEH_EnsureStatesCapacity(indexnum);
 
     while (!deh_feof(fpin) && *inbuffer && (*inbuffer != ' '))
     {
@@ -2387,7 +2388,7 @@ static void deh_procPointer(DEHFILE *fpin, char *line) // done
         return;
     }
 
-    dsdh_EnsureStatesCapacity(indexnum);
+    DEH_EnsureStatesCapacity(indexnum);
 
     while (!deh_feof(fpin) && *inbuffer && (*inbuffer != ' '))
     {
@@ -2412,7 +2413,7 @@ static void deh_procPointer(DEHFILE *fpin, char *line) // done
             return;
         }
 
-        dsdh_EnsureStatesCapacity(value);
+        DEH_EnsureStatesCapacity(value);
 
         if (!strcasecmp(key, deh_state[4])) // Codep frame (not set in Frame deh block)
         {
@@ -2464,7 +2465,7 @@ static void deh_procSounds(DEHFILE *fpin, char *line)
         deh_log("Sound number must be positive (%d)\n", indexnum);
     }
 
-    dsdh_EnsureSFXCapacity(indexnum);
+    DEH_SoundsEnsureCapacity(indexnum);
 
     while (!deh_feof(fpin) && *inbuffer && (*inbuffer != ' '))
     {
@@ -2949,7 +2950,7 @@ static void deh_procMisc(DEHFILE *fpin, char *line) // done
         else if (!strcasecmp(key, deh_misc[14])) // BFG Cells/Shot
         {
             weaponinfo[wp_bfg].ammopershot = deh_bfg_cells_per_shot = value;
-            bfgcells_modified = true;
+            deh_set_bfgcells = true;
         }
         else if (!strcasecmp(key, deh_misc[15])) // Monsters Infight
         {
@@ -3033,7 +3034,7 @@ static void deh_procText(DEHFILE *fpin, char *line)
     // Future: this will be from a separate [SPRITES] block.
     if (fromlen == 4 && tolen == 4)
     {
-        i = dsdh_GetDehSpriteIndex(inbuffer);
+        i = DEH_SpriteGetIndex(inbuffer);
 
         if (i >= 0)
         {
@@ -3059,7 +3060,7 @@ static void deh_procText(DEHFILE *fpin, char *line)
             deh_log("Warning: Mismatched lengths from=%d, to=%d, used %d\n",
                     fromlen, tolen, usedlen);
         }
-        i = dsdh_GetDehSFXIndex(inbuffer, (size_t)fromlen);
+        i = DEH_SoundsGetIndex(inbuffer, (size_t)fromlen);
         if (i >= 0)
         {
             deh_log("Changing name of sfx from %s to %*s\n", S_sfx[i].name,
@@ -3070,7 +3071,7 @@ static void deh_procText(DEHFILE *fpin, char *line)
         }
         if (!found) // not yet
         {
-            i = dsdh_GetDehMusicIndex(inbuffer, fromlen);
+            i = DEH_MusicGetIndex(inbuffer, fromlen);
             if (i >= 0)
             {
                 deh_log("Changing name of music from %s to %*s\n",
@@ -3407,7 +3408,7 @@ static void deh_procBexSprites(DEHFILE *fpin, char *line)
             continue;
         }
 
-        match = dsdh_GetOriginalSpriteIndex(key);
+        match = DEH_SpritesGetOriginalIndex(key);
         if (match >= 0)
         {
             deh_log("Substituting '%s' for sprite '%s'\n", candidate, key);
@@ -3461,7 +3462,7 @@ static void deh_procBexSounds(DEHFILE *fpin, char *line)
             continue;
         }
 
-        match = dsdh_GetOriginalSFXIndex(key);
+        match = DEH_SoundsGetOriginalIndex(key);
         if (match >= 0)
         {
             deh_log("Substituting '%s' for sound '%s'\n", candidate, key);
@@ -3666,7 +3667,7 @@ void PostProcessDeh(void)
     const deh_bexptr_t *bexptr_match;
 
     // sanity-check bfgcells and bfg ammopershot
-    if (bfgcells_modified && weaponinfo[wp_bfg].intflags & WIF_ENABLEAPS
+    if (deh_set_bfgcells && weaponinfo[wp_bfg].intflags & WIF_ENABLEAPS
         && deh_bfg_cells_per_shot != weaponinfo[wp_bfg].ammopershot)
     {
         I_Error("Mismatch between bfgcells and bfg ammo per shot "
@@ -3718,7 +3719,7 @@ void PostProcessDeh(void)
         states[S_DSGUNFLASH1].tics = 4;
     }
 
-    dsdh_FreeTables();
+    DEH_FreeTables();
 }
 
 //---------------------------------------------------------------------

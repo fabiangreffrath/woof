@@ -123,6 +123,8 @@ int deh_species_infighting = DEH_DEFAULT_SPECIES_INFIGHTING;
 int deh_max_health_bonus = DEH_DEFAULT_MAX_HEALTH;
 boolean deh_set_maxhealth = false;
 
+boolean deh_set_bfgcells = false;
+
 static struct
 {
     const char *deh_name;
@@ -181,7 +183,6 @@ static void DEH_MiscParseLine(deh_context_t *context, char *line, void *tag)
     if (!strcasecmp(variable_name, "Monsters Infight"))
     {
         // See notes above.
-
         if (ivalue == 202)
         {
             deh_species_infighting = 0;
@@ -197,10 +198,13 @@ static void DEH_MiscParseLine(deh_context_t *context, char *line, void *tag)
 
         return;
     }
-
-    if (!strcasecmp(variable_name, "Max Health"))
+    else if (!strcasecmp(variable_name, "Max Health"))
     {
         deh_set_maxhealth |= true;
+    }
+    else if (!strcasecmp(variable_name, "BFG Cells/Shot"))
+    {
+        deh_set_bfgcells |= true;
     }
 
     for (size_t i = 0; i < arrlen(misc_settings); ++i)
@@ -209,11 +213,13 @@ static void DEH_MiscParseLine(deh_context_t *context, char *line, void *tag)
         {
             if (misc_settings[i].value == NULL)
             {
-              DEH_Warning(context, "Known, unsupported Misc variable '%s'", variable_name);
-              return;
+                DEH_Warning(context, "Known, unsupported Misc variable '%s'", variable_name);
+            }
+            else
+            {
+                *misc_settings[i].value = ivalue;
             }
 
-            *misc_settings[i].value = ivalue;
             return;
         }
     }

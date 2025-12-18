@@ -19,14 +19,84 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "deh_io.h"
-#include "doomtype.h"
 #include "deh_defs.h"
+#include "deh_io.h"
 #include "deh_main.h"
 #include "deh_mapping.h"
+#include "deh_thing.h"
+#include "doomtype.h"
 #include "i_system.h"
 #include "info.h"
+#include "m_array.h"
+#include "p_map.h"
 #include "p_mobj.h"
+
+//
+// DSDhacked Things
+//
+
+mobjinfo_t *mobjinfo = NULL;
+int num_mobj_types;
+static int mobj_index;
+
+void DEH_InitMobjInfo(void)
+{
+    mobjinfo = original_mobjinfo;
+    num_mobj_types = NUMMOBJTYPES;
+    mobj_index = NUMMOBJTYPES - 1;
+}
+
+void DEH_EnsureMobjInfoCapacity(int limit)
+{
+    if (limit > mobj_index)
+    {
+        mobj_index = limit;
+    }
+
+    if (limit < num_mobj_types)
+    {
+        return;
+    }
+
+    const int old_num_mobj_types = num_mobj_types;
+
+    static boolean first_allocation = true;
+    if (first_allocation)
+    {
+        mobjinfo = NULL;
+        array_grow(mobjinfo, old_num_mobj_types + limit);
+        memcpy(mobjinfo, original_mobjinfo, old_num_mobj_types * sizeof(*mobjinfo));
+        first_allocation = false;
+    }
+    else
+    {
+        array_grow(mobjinfo, limit);
+    }
+
+    num_mobj_types = array_capacity(mobjinfo);
+    memset(mobjinfo + old_num_mobj_types, 0, (num_mobj_types - old_num_mobj_types) * sizeof(*mobjinfo));
+
+    for (int i = old_num_mobj_types; i < num_mobj_types; ++i)
+    {
+        mobjinfo[i].droppeditem = MT_NULL;
+        mobjinfo[i].infighting_group = IG_DEFAULT;
+        mobjinfo[i].projectile_group = PG_DEFAULT;
+        mobjinfo[i].splash_group = SG_DEFAULT;
+        mobjinfo[i].altspeed = NO_ALTSPEED;
+        mobjinfo[i].meleerange = MELEERANGE;
+    }
+}
+
+int DEH_MobjInfoGetNewIndex(void)
+{
+    mobj_index++;
+    DEH_EnsureMobjInfoCapacity(mobj_index);
+    return mobj_index;
+}
+
+//
+// BEX flag mnemonics with matching bit flags
+//
 
 static const bex_bitflags_t mobj_flags_vanilla[] = {
     {"SPECIAL",      MF_SPECIAL     },
@@ -243,7 +313,7 @@ static void DEH_ThingParseLine(deh_context_t *context, char *line, void *tag)
 
     if (!strcasecmp(variable_name, "Bits"))
     {
-        ivalue = DEH_BexParseBitFlags(ivalue, value, mobj_flags_vanilla, arrlen(mobj_flags_vanilla));
+        ivalue = DEH_ParseBexBitFlags(ivalue, value, mobj_flags_vanilla, arrlen(mobj_flags_vanilla));
 
         if ((ivalue & (MF_NOBLOCKMAP | MF_MISSILE)) == MF_MISSILE)
         {
@@ -252,11 +322,11 @@ static void DEH_ThingParseLine(deh_context_t *context, char *line, void *tag)
     }
     else if (!strcasecmp(variable_name, "MBF21 Bits"))
     {
-        ivalue = DEH_BexParseBitFlags(ivalue, value, mobj_flags_mbf21, arrlen(mobj_flags_mbf21));
+        ivalue = DEH_ParseBexBitFlags(ivalue, value, mobj_flags_mbf21, arrlen(mobj_flags_mbf21));
     }
     else if (!strcasecmp(variable_name, "Woof Bits"))
     {
-        ivalue = DEH_BexParseBitFlags(ivalue, value, mobj_flags_woof, arrlen(mobj_flags_woof));
+        ivalue = DEH_ParseBexBitFlags(ivalue, value, mobj_flags_woof, arrlen(mobj_flags_woof));
     }
     else if (!strcasecmp(variable_name, "Dropped Item"))
     {

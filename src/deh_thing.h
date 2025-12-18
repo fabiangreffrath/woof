@@ -1,6 +1,5 @@
 //
 // Copyright(C) 2005-2014 Simon Howard
-// Copyright(C) 2014-2019 Fabian Greffrath
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -13,18 +12,16 @@
 // GNU General Public License for more details.
 //
 //
-// Parses [PARS] sections in BEX files
+// Parses "Thing" sections in dehacked files
 //
 
-#ifndef DEH_BEX_PARS_H
-#define DEH_BEX_PARS_H
+#ifndef DEH_THINS_H
+#define DEH_THINS_H
 
-#include "doomtype.h"
+extern void DEH_InitMobjInfo(void);
 
-extern boolean bex_partimes;      // in wi_stuff to allow pars in modified games
-extern boolean umapinfo_partimes; //
+extern void DEH_EnsureStatesCapacity(int limit);
+extern void DEH_EnsureMobjInfoCapacity(int limit);
+extern int DEH_MobjInfoGetNewIndex(void);
 
-extern int bex_pars[][9];       // includes E4:BFG, Sigil, Sigil II
-extern int bex_cpars[];         // includes dummy for maps 33 & 24
-
-#endif /* #ifndef DEH_BEXPARS_H */
+#endif

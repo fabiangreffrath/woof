@@ -50,7 +50,7 @@ DEH_BEGIN_MAPPING(weapon_mapping, weaponinfo_t)
     DEH_UNSUPPORTED_MAPPING("Switch Priority")
     DEH_UNSUPPORTED_MAPPING("Initial Owned")
     DEH_UNSUPPORTED_MAPPING("Initial Raised")
-    DEH_MAPPING_STRING("Carousel Icon", carouselicon)
+    DEH_MAPPING("Carousel Icon", carouselicon)
     DEH_UNSUPPORTED_MAPPING("Allow switch with owned weapon")
     DEH_UNSUPPORTED_MAPPING("No switch with owned weapon")
     DEH_UNSUPPORTED_MAPPING("Allow switch with owned item")
@@ -104,18 +104,18 @@ static void DEH_WeaponParseLine(deh_context_t *context, char *line, void *tag)
         return;
     }
 
-    // all values are integers
-    int ivalue = atoi(value);
-
     if (!strcasecmp(variable_name, "Carousel Icon"))
     {
         weapon->carouselicon = M_StringDuplicate(value);
+        return;
     }
     else if (!strcasecmp(variable_name, "Ammo per shot"))
     {
-        weaponinfo->intflags |= WIF_ENABLEAPS;
+        weapon->intflags |= WIF_ENABLEAPS;
     }
 
+    // most values are integers
+    int ivalue = atoi(value);
     DEH_SetMapping(context, &weapon_mapping, weapon, variable_name, ivalue);
 }
 

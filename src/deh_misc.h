@@ -56,5 +56,6 @@ extern int deh_species_infighting;
 // Some extensions:
 extern int deh_max_health_bonus;
 extern boolean deh_set_maxhealth;
+extern boolean deh_set_bfgcells;
 
 #endif /* #ifndef DEH_MISC_H */

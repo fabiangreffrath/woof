@@ -15,8 +15,8 @@
 // Dehacked string replacements
 //
 
-#ifndef DEH_STR_H
-#define DEH_STR_H
+#ifndef DEH_STRINGS_H
+#define DEH_STRINGS_H
 
 #include "doomtype.h"
 

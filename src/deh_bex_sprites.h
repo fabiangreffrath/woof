@@ -1,6 +1,7 @@
 //
 // Copyright(C) 2005-2014 Simon Howard
-// Copyright(C) 2014-2019 Fabian Greffrath
+// Copyright(C) 2014 Fabian Greffrath
+// Copyright(C) 2025 Guilherme Miranda
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -13,18 +14,18 @@
 // GNU General Public License for more details.
 //
 //
-// Parses [PARS] sections in BEX files
+// Parses [SPRITES] sections in BEX files
 //
 
-#ifndef DEH_BEX_PARS_H
-#define DEH_BEX_PARS_H
+#ifndef DEH_BEX_SPRITES_H
+#define DEH_BEX_SPRITES_H
 
-#include "doomtype.h"
+#include <stddef.h>
 
-extern boolean bex_partimes;      // in wi_stuff to allow pars in modified games
-extern boolean umapinfo_partimes; //
+extern void DEH_InitSprites(void);
+extern void DEH_FreeSprites(void);
 
-extern int bex_pars[][9];       // includes E4:BFG, Sigil, Sigil II
-extern int bex_cpars[];         // includes dummy for maps 33 & 24
+extern int DEH_SpriteGetIndex(const char *key);
+extern int DEH_SpritesGetOriginalIndex(const char *key);
 
-#endif /* #ifndef DEH_BEXPARS_H */
+#endif

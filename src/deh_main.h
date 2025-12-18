@@ -53,6 +53,10 @@ struct bex_bitflags_s
     int bits;
 };
 
-extern int DEH_BexParseBitFlags(int ivalue, char *value, const bex_bitflags_t flags[], int len);
+// Extensions
+
+extern void DEH_InitTables(void);
+extern void DEH_FreeTables(void);
+extern int DEH_ParseBexBitFlags(int ivalue, char *value, const bex_bitflags_t flags[], int len);
 
 #endif /* #ifndef DEH_MAIN_H */

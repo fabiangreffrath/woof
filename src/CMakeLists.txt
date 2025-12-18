@@ -23,11 +23,12 @@ set(WOOF_SOURCES
     deh_bex_includes.c
     deh_bex_partimes.c     deh_bex_partimes.h
     deh_bex_pointers.c
+    deh_bex_sounds.c       deh_bex_sounds.h
+    deh_bex_sprites.c      deh_bex_sprites.h
     deh_bex_strings.c
     deh_cheat.c
     deh_defs.h
     deh_doom.c
-    deh_dsdhacked.c        deh_dsdhacked.h
     deh_frame.c
     deh_io.c               deh_io.h
     deh_main.c             deh_main.h

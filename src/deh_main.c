@@ -21,16 +21,19 @@
 #include <string.h>
 
 #include "d_iwad.h"
+#include "deh_bex_sounds.h"
+#include "deh_bex_sprites.h"
+#include "deh_defs.h"
+#include "deh_frame.h"
+#include "deh_io.h"
+#include "deh_main.h"
+#include "deh_thing.h"
 #include "doomtype.h"
 #include "i_glob.h"
 #include "i_system.h"
 #include "m_argv.h"
 #include "m_misc.h"
 #include "w_wad.h"
-
-#include "deh_defs.h"
-#include "deh_io.h"
-#include "deh_main.h"
 
 static boolean deh_initialized = false;
 
@@ -53,7 +56,7 @@ char **DEH_GetFileNames(void)
     return deh_filenames;
 }
 
-int DEH_BexParseBitFlags(int ivalue, char *value, const bex_bitflags_t flags[], int len)
+int DEH_ParseBexBitFlags(int ivalue, char *value, const bex_bitflags_t flags[], int len)
 {
     if (!ivalue)
     {
@@ -75,11 +78,10 @@ int DEH_BexParseBitFlags(int ivalue, char *value, const bex_bitflags_t flags[], 
 void DEH_Checksum(sha1_digest_t digest)
 {
     sha1_context_t sha1_context;
-    unsigned int i;
 
     SHA1_Init(&sha1_context);
 
-    for (i = 0; deh_section_types[i] != NULL; ++i)
+    for (unsigned int i = 0; deh_section_types[i] != NULL; ++i)
     {
         if (deh_section_types[i]->sha1_hash != NULL)
         {
@@ -94,9 +96,7 @@ void DEH_Checksum(sha1_digest_t digest)
 
 static void InitializeSections(void)
 {
-    unsigned int i;
-
-    for (i = 0; deh_section_types[i] != NULL; ++i)
+    for (unsigned int i = 0; deh_section_types[i] != NULL; ++i)
     {
         if (deh_section_types[i]->init != NULL)
         {
@@ -128,9 +128,7 @@ void DEH_Init(void) // [crispy] un-static
 
 static deh_section_t *GetSectionByName(char *name)
 {
-    unsigned int i;
-
-    for (i = 0; deh_section_types[i] != NULL; ++i)
+    for (unsigned int i = 0; deh_section_types[i] != NULL; ++i)
     {
         if (!strcasecmp(deh_section_types[i]->name, name))
         {
@@ -160,18 +158,14 @@ static boolean IsWhitespace(char *s)
 
 char *CleanString(char *s) // [crispy] un-static
 {
-    char *strending;
-
     // Leading whitespace
-
     while (*s && isspace(*s))
     {
         ++s;
     }
 
     // Trailing whitespace
-
-    strending = s + strlen(s) - 1;
+    char *strending = s + strlen(s) - 1;
 
     while (strlen(s) > 0 && isspace(*strending))
     {
@@ -194,12 +188,8 @@ char *CleanString(char *s) // [crispy] un-static
 
 boolean DEH_ParseAssignment(char *line, char **variable_name, char **value)
 {
-    char *p;
-
     // find the equals
-
-    p = strchr(line, '=');
-
+    char *p = strchr(line, '=');
     if (p == NULL)
     {
         return false;
@@ -212,7 +202,6 @@ boolean DEH_ParseAssignment(char *line, char **variable_name, char **value)
     *variable_name = CleanString(line);
 
     // value immediately follows the '='
-
     *value = CleanString(p + 1);
 
     return true;
@@ -223,15 +212,11 @@ extern void DEH_RestoreLineStart(deh_context_t *context);
 
 static boolean CheckSignatures(deh_context_t *context)
 {
-    size_t i;
-    char *line;
-
     // [crispy] save pointer to start of line (should be 0 here)
     DEH_SaveLineStart(context);
 
     // Read the first line
-
-    line = DEH_ReadLine(context, false);
+    char *line = DEH_ReadLine(context, false);
 
     if (line == NULL)
     {
@@ -239,8 +224,7 @@ static boolean CheckSignatures(deh_context_t *context)
     }
 
     // Check all signatures to see if one matches
-
-    for (i = 0; deh_signatures[i] != NULL; ++i)
+    for (size_t i = 0; deh_signatures[i] != NULL; ++i)
     {
         if (!strcmp(deh_signatures[i], line))
         {
@@ -260,11 +244,8 @@ static boolean CheckSignatures(deh_context_t *context)
 static void DEH_ParseContext(deh_context_t *context)
 {
     deh_section_t *current_section = NULL;
-    deh_section_t *prev_section =
-        NULL; // [crispy] remember previous line parser
-    char section_name[20];
+    deh_section_t *prev_section = NULL; // [crispy] remember previous line parser
     void *tag = NULL;
-    boolean extended;
     char *line;
 
     // Read the header and check it matches the signature
@@ -281,7 +262,7 @@ static void DEH_ParseContext(deh_context_t *context)
     {
         // Read the next line. We only allow the special extended parsing
         // for the BEX [STRINGS] section.
-        extended = current_section != NULL && !strcasecmp(current_section->name, "[STRINGS]");
+        boolean extended = current_section != NULL && !strcasecmp(current_section->name, "[STRINGS]");
 
         // [crispy] save pointer to start of line, just in case
         DEH_SaveLineStart(context);
@@ -340,6 +321,7 @@ static void DEH_ParseContext(deh_context_t *context)
             else
             {
                 // possibly the start of a new section
+                char section_name[20];
                 sscanf(line, "%19s", section_name);
                 current_section = GetSectionByName(section_name);
 
@@ -497,4 +479,21 @@ void DEH_ParseCommandLine(void)
             ++p;
         }
     }
+}
+
+void DEH_InitTables(void)
+{
+    DEH_InitStates();
+    DEH_InitSprites();
+    DEH_InitSFX();
+    DEH_InitMusic();
+    DEH_InitMobjInfo();
+}
+
+void DEH_FreeTables(void)
+{
+    DEH_FreeStates();
+    DEH_FreeSprites();
+    DEH_FreeSFX();
+    DEH_FreeMusic();
 }

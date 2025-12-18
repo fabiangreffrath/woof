@@ -23,7 +23,85 @@
 #include "deh_main.h"
 #include "deh_mapping.h"
 #include "info.h"
+#include "m_array.h"
 #include "w_wad.h"
+
+state_t *states = NULL;
+int num_states;
+byte *defined_codeptr_args = NULL;
+statenum_t *seenstate_tab = NULL;
+actionf_t *deh_codeptr = NULL;
+
+void DEH_InitStates(void)
+{
+    states = original_states;
+    num_states = NUMSTATES;
+
+    array_grow(seenstate_tab, num_states);
+    memset(seenstate_tab, 0, num_states * sizeof(*seenstate_tab));
+
+    array_grow(deh_codeptr, num_states);
+    for (int i = 0; i < num_states; i++)
+    {
+        deh_codeptr[i] = states[i].action;
+    }
+
+    array_grow(defined_codeptr_args, num_states);
+    memset(defined_codeptr_args, 0, num_states * sizeof(*defined_codeptr_args));
+}
+
+void DEH_FreeStates(void)
+{
+    array_free(defined_codeptr_args);
+    array_free(deh_codeptr);
+}
+
+void DEH_EnsureStatesCapacity(int limit)
+{
+    if (limit < num_states)
+    {
+        return;
+    }
+
+    const int old_num_states = num_states;
+
+    static boolean first_allocation = true;
+    if (first_allocation)
+    {
+        states = NULL;
+        array_grow(states, old_num_states + limit);
+        memcpy(states, original_states, old_num_states * sizeof(*states));
+        first_allocation = false;
+    }
+    else
+    {
+        array_grow(states, limit);
+    }
+
+    num_states = array_capacity(states);
+    const int size_delta = num_states - old_num_states;
+    memset(states + old_num_states, 0, size_delta * sizeof(*states));
+
+    array_grow(deh_codeptr, size_delta);
+    memset(deh_codeptr + old_num_states, 0, size_delta * sizeof(*deh_codeptr));
+
+    array_grow(defined_codeptr_args, size_delta);
+    memset(defined_codeptr_args + old_num_states, 0, size_delta * sizeof(*defined_codeptr_args));
+
+    array_grow(seenstate_tab, size_delta);
+    memset(seenstate_tab + old_num_states, 0, size_delta * sizeof(*seenstate_tab));
+
+    for (int i = old_num_states; i < num_states; ++i)
+    {
+        states[i].sprite = SPR_TNT1;
+        states[i].tics = -1;
+        states[i].nextstate = i;
+    }
+}
+
+//
+// BEX flag mnemonics with matching bit flags
+//
 
 const bex_bitflags_t frame_flags_mbf21[] =
 {
@@ -49,7 +127,7 @@ DEH_BEGIN_MAPPING(state_mapping, state_t)
     DEH_MAPPING("Args7", args[6])
     DEH_MAPPING("Args8", args[7])
     // id24
-    DEH_MAPPING_STRING("Tranmap", tranmap)
+    DEH_MAPPING("Tranmap", tranmap)
     // mbf2y
     DEH_UNSUPPORTED_MAPPING("MBF2y Bits")
     DEH_UNSUPPORTED_MAPPING("Min brightness")
@@ -103,11 +181,12 @@ static void DEH_FrameParseLine(deh_context_t *context, char *line, void *tag)
 
     if (!strcasecmp(variable_name, "MBF21 Bits"))
     {
-        ivalue = DEH_BexParseBitFlags(ivalue, value, frame_flags_mbf21, arrlen(frame_flags_mbf21));
+        ivalue = DEH_ParseBexBitFlags(ivalue, value, frame_flags_mbf21, arrlen(frame_flags_mbf21));
     }
     else if (!strcasecmp(variable_name, "Tranmap"))
     {
         state->tranmap = W_CacheLumpName(value, PU_STATIC);
+        return;
     }
 
     // set the appropriate field

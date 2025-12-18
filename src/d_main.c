@@ -35,7 +35,7 @@
 #include "d_main.h"
 #include "d_player.h"
 #include "d_ticcmd.h"
-#include "deh_dsdhacked.h"
+#include "deh_main.h"
 #include "doomdef.h"
 #include "doomstat.h"
 #include "dstrings.h"
@@ -1879,7 +1879,7 @@ void D_DoomMain(void)
   // [FG] emulate a specific version of Doom
   InitGameVersion();
 
-  dsdh_InitTables();
+  DEH_InitTables();
 
   D_InitTables();
 

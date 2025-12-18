@@ -37,36 +37,36 @@ static void *DEH_TextStart(deh_context_t *context, char *line)
     }
 
     // We do not care about any Text blocks outside of music and sprite names
-    if (fromlen >= 7 || tolen >= 7)
+    if (fromlen > 6 || tolen > 6 || fromlen < 4 || tolen < 4)
     {
-        DEH_Warning(context, "Strings too long!");
+        DEH_Warning(context, "Unsupported text replacement, invalid string size.");
         return NULL;
     }
 
-    char *from_text = malloc(fromlen + 1);
-    char *to_text = malloc(tolen + 1);
-
-    // read in the "from" text
-    for (int i = 0; i < fromlen; ++i)
-    {
-        from_text[i] = DEH_GetChar(context);
-    }
-    from_text[fromlen] = '\0';
-
-    // read in the "to" text
-    for (int i = 0; i < tolen; ++i)
-    {
-        to_text[i] = DEH_GetChar(context);
-    }
-    to_text[tolen] = '\0';
-
     if (!bex_notext)
     {
-        DEH_AddStringReplacement(from_text, to_text);
-    }
+        char *from_text = malloc(fromlen + 1);
+        char *to_text = malloc(tolen + 1);
 
-    free(from_text);
-    free(to_text);
+        // read in the "from" text
+        for (int i = 0; i < fromlen; ++i)
+        {
+            from_text[i] = DEH_GetChar(context);
+        }
+        from_text[fromlen] = '\0';
+
+        // read in the "to" text
+        for (int i = 0; i < tolen; ++i)
+        {
+            to_text[i] = DEH_GetChar(context);
+        }
+        to_text[tolen] = '\0';
+
+        DEH_AddStringReplacement(from_text, to_text);
+
+        free(from_text);
+        free(to_text);
+    }
 
     return NULL;
 }

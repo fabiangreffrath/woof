@@ -1916,7 +1916,7 @@ static void G_DoCompleted(void)
     // Doom Episode 4 doesn't have a par time, so this overflows into the cpars[] array.
     if (demo_compatibility && gameepisode == 4 && gamemap >= 1 && gamemap <= 9)
     {
-      wminfo.partime = TICRATE * bex_cpars[gamemap];
+      wminfo.partime = TICRATE * bex_cpars[gamemap - 1];
     }
     else if (gameepisode >= 1 && gameepisode <= 6 && gamemap >= 1 && gamemap <= 9)
     {
