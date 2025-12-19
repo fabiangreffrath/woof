@@ -32,7 +32,7 @@ typedef enum
 } method_t;
 
 void HU_InitObituaries(void);
-void HU_Obituary(struct mobj_s *target, struct mobj_s *source, method_t mod);
+void HU_Obituary(struct mobj_s *target, struct mobj_s *inflictor, struct mobj_s *source, method_t mod);
 
 extern boolean show_obituary_messages;
 extern int hudcolor_obituary;
