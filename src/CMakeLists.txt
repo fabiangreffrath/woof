@@ -2,7 +2,6 @@ include(WoofSettings)
 
 set(WOOF_SOURCES
     am_map.c               am_map.h
-    d_deh.c                d_deh.h
     d_demoloop.c           d_demoloop.h
                            d_englsh.h
                            d_event.h
@@ -28,7 +27,6 @@ set(WOOF_SOURCES
     deh_bex_strings.c
     deh_cheat.c
     deh_defs.h
-    deh_doom.c
     deh_frame.c
     deh_io.c               deh_io.h
     deh_main.c             deh_main.h

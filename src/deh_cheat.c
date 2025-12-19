@@ -15,9 +15,6 @@
 // Parses "Cheat" sections in dehacked files
 //
 
-#include <stdlib.h>
-#include <string.h>
-
 #include "deh_defs.h"
 #include "deh_io.h"
 #include "deh_main.h"
@@ -27,11 +24,12 @@ extern cheat_sequence_t cheat_seq[];
 
 cheat_sequence_t *FindCheatByName(char *name)
 {
-    for (size_t i = 0; i < arrlen(cheat_seq); ++i)
+    cheat_sequence_t *c = &cheat_seq[0];
+    for (; c != NULL; c++)
     {
-        if (!strcasecmp(cheat_seq[i].deh_cheat, name))
+        if (!strcasecmp(c->deh_cheat, name))
         {
-            return &cheat_seq[i];
+            return c;
         }
     }
 
@@ -53,8 +51,8 @@ static void DEH_CheatParseLine(deh_context_t *context, char *line, void *tag)
         return;
     }
 
-    cheat_sequence_t *cheat_seq = FindCheatByName(variable_name);
-    if (cheat_seq == NULL)
+    cheat_sequence_t *c = FindCheatByName(variable_name);
+    if (c == NULL)
     {
         DEH_Warning(context, "Unknown cheat '%s'", variable_name);
         return;
@@ -69,10 +67,10 @@ static void DEH_CheatParseLine(deh_context_t *context, char *line, void *tag)
     unsigned char *unsvalue = (unsigned char*)value;
     while (unsvalue[i] != 0 && unsvalue[i] != 0xff)
     {
-        cheat_seq->sequence[i] = unsvalue[i];
+        c->sequence[i] = unsvalue[i];
         ++i;
     }
-    cheat_seq->sequence[i] = '\0';
+    c->sequence[i] = '\0';
 }
 
 deh_section_t deh_section_cheat =

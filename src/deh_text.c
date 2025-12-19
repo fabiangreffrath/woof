@@ -23,6 +23,78 @@
 #include "deh_strings.h"
 #include "doomtype.h"
 
+// Strings for dehacked replacements of the startup banner
+//
+// These are from the original source: some of them are perhaps
+// not used in any dehacked patches
+static const char * const game_banners[] = {
+    // doom2.wad
+    "                         "
+    "DOOM 2: Hell on Earth v%i.%i"
+    "                           ",
+    // doom2.wad v1.666
+    "                         "
+    "DOOM 2: Hell on Earth v%i.%i66"
+    "                          ",
+    // doom1.wad
+    "                            "
+    "DOOM Shareware Startup v%i.%i"
+    "                           ",
+    // doom.wad
+    "                            "
+    "DOOM Registered Startup v%i.%i"
+    "                           ",
+    // Registered DOOM uses this
+    "                          "
+    "DOOM System Startup v%i.%i"
+    "                          ",
+    // Doom v1.666
+    "                          "
+    "DOOM System Startup v%i.%i66"
+    "                          "
+    // doom.wad (Ultimate DOOM)
+    "                         "
+    "The Ultimate DOOM Startup v%i.%i"
+    "                        ",
+    // tnt.wad
+    "                     "
+    "DOOM 2: TNT - Evilution v%i.%i"
+    "                           ",
+    // plutonia.wad
+    "                   "
+    "DOOM 2: Plutonia Experiment v%i.%i"
+    "                           ",
+};
+
+/*
+  const int version = DV_VANILLA; // We only support version 1.9 of Vanilla Doom
+  char *deh_gamename = M_StringDuplicate(newstring);
+  char *fmt = deh_gamename;
+
+  // Expand "%i" in deh_gamename to include the Doom version
+  // number We cannot use sprintf() here, because deh_gamename
+  // isn't a string literal
+
+  fmt = strstr(fmt, "%i");
+  if (fmt)
+  {
+      *fmt++ = '0' + version / 100;
+      memmove(fmt, fmt + 1, strlen(fmt));
+
+      fmt = strstr(fmt, "%i");
+      if (fmt)
+      {
+          *fmt++ = '0' + version % 100;
+          memmove(fmt, fmt + 1, strlen(fmt));
+      }
+  }
+
+  // Cut off trailing and leading spaces to get the basic name
+
+  rstrip(deh_gamename);
+  gamedescription = ptr_lstrip(deh_gamename);
+*/
+
 // [crispy] support INCLUDE NOTEXT directive in BEX files
 boolean bex_notext = false;
 
@@ -37,7 +109,7 @@ static void *DEH_TextStart(deh_context_t *context, char *line)
     }
 
     // We do not care about any Text blocks outside of music and sprite names
-    if (fromlen < 4 || tolen < 4 || fromlen > 6 || tolen > 6)
+    if (fromlen > 6 || tolen > 6)
     {
         DEH_Warning(context, "Unsupported text replacement, invalid string size.");
         return NULL;

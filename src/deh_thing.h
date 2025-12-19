@@ -18,6 +18,8 @@
 #ifndef DEH_THINS_H
 #define DEH_THINS_H
 
+extern int deh_set_blood_color;
+
 extern void DEH_InitMobjInfo(void);
 
 extern void DEH_MobjInfoEnsureCapacity(int limit);

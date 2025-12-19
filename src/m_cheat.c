@@ -1234,7 +1234,7 @@ static void InitCheats(void)
 
         init = true;
 
-        for (cht = cheat; cht->sequence; cht++)
+        for (cht = cheat_seq; cht->sequence; cht++)
         {
             cht->sequence_len = strlen(cht->sequence);
         }
@@ -1248,7 +1248,7 @@ static int M_FindCheats(char key)
 
     InitCheats();
 
-    for (cht = cheat; cht->sequence; cht++)
+    for (cht = cheat_seq; cht->sequence; cht++)
     {
         if (!CheatAllowed(cht->when)
             || (cht->when & not_deh && cht->deh_modified))

@@ -35,6 +35,31 @@
 #include "m_misc.h"
 #include "w_wad.h"
 
+static const char *deh_signatures[] =
+{
+    "Patch File for DeHackEd v2.3",
+    "Patch File for DeHackEd v3.0",
+    NULL
+};
+
+static deh_section_t *deh_section_types[] =
+{
+    &deh_section_ammo,
+    &deh_section_cheat,
+    &deh_section_frame,
+    &deh_section_misc,
+    &deh_section_pointer,
+    &deh_section_sound,
+    &deh_section_text,
+    &deh_section_thing,
+    &deh_section_weapon,
+    &deh_section_bex_strings,
+    &deh_section_bex_partimes,
+    &deh_section_bex_codepointers,
+    &deh_section_bex_includes,
+    NULL
+};
+
 static boolean deh_initialized = false;
 boolean post_process = true;
 

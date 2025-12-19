@@ -49,9 +49,6 @@ struct deh_section_s
     deh_sha1_hash_t sha1_hash;
 };
 
-extern deh_section_t *deh_section_types[];
-extern const char *deh_signatures[];
-
 extern deh_section_t deh_section_ammo;
 extern deh_section_t deh_section_cheat;
 extern deh_section_t deh_section_frame;

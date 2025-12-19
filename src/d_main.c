@@ -27,7 +27,7 @@
 
 #include "am_map.h"
 #include "config.h"
-#include "d_deh.h"  // Ty 04/08/98 - Externalizations
+#include "d_deh.h"
 #include "d_demoloop.h"
 #include "d_event.h"
 #include "d_iwad.h"
@@ -36,6 +36,7 @@
 #include "d_player.h"
 #include "d_ticcmd.h"
 #include "deh_main.h"
+#include "deh_thing.h"
 #include "doomdef.h"
 #include "doomstat.h"
 #include "dstrings.h"
@@ -2288,11 +2289,11 @@ void D_DoomMain(void)
 
   // Ty 04/08/98 - Add 5 lines of misc. data, only if nonblank
   // The expectation is that these will be set in a .bex file
-  if (*startup1) I_Printf(VB_INFO, "%s", startup1);
-  if (*startup2) I_Printf(VB_INFO, "%s", startup2);
-  if (*startup3) I_Printf(VB_INFO, "%s", startup3);
-  if (*startup4) I_Printf(VB_INFO, "%s", startup4);
-  if (*startup5) I_Printf(VB_INFO, "%s", startup5);
+  // if (*startup1) I_Printf(VB_INFO, "%s", startup1);
+  // if (*startup2) I_Printf(VB_INFO, "%s", startup2);
+  // if (*startup3) I_Printf(VB_INFO, "%s", startup3);
+  // if (*startup4) I_Printf(VB_INFO, "%s", startup4);
+  // if (*startup5) I_Printf(VB_INFO, "%s", startup5);
   // End new startup strings
 
   //!

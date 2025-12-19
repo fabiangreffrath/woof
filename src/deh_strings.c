@@ -19,6 +19,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <strings.h>
 
 #include "deh_strings.h"
 #include "doomtype.h"
@@ -96,6 +97,19 @@ const char *DEH_String(const char *s)
 boolean DEH_HasStringReplacement(const char *s)
 {
     return DEH_String(s) != s;
+}
+
+const char *DEH_StringMnemonic(const char *mnemonic)
+{
+    const bex_string_t *bex = &bex_stringtable[0];
+    for (; bex != NULL; bex++)
+    {
+        if (!strcasecmp(bex->macro, mnemonic))
+        {
+            return bex->string;
+        }
+    }
+    return NULL;
 }
 
 static void InitHashTable(void)

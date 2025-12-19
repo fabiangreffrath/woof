@@ -21,9 +21,9 @@
 #include <string.h>
 
 #include "am_map.h"
-#include "d_deh.h"
 #include "d_event.h"
 #include "d_player.h"
+#include "dstrings.h"
 #include "doomdata.h"
 #include "doomdef.h"
 #include "doomstat.h"
@@ -882,25 +882,25 @@ boolean AM_Responder
       followplayer = !followplayer;
       memset(buttons_state, 0, sizeof(buttons_state));
       // Ty 03/27/98 - externalized
-      togglemsg("%s", followplayer ? s_AMSTR_FOLLOWON : s_AMSTR_FOLLOWOFF);
+      togglemsg("%s", followplayer ? AMSTR_FOLLOWON : AMSTR_FOLLOWOFF);
     }
     else if (M_InputActivated(input_map_grid))
     {
       automap_grid = !automap_grid;      // killough 2/28/98
       // Ty 03/27/98 - *not* externalized
-      togglemsg("%s", automap_grid ? s_AMSTR_GRIDON : s_AMSTR_GRIDOFF);
+      togglemsg("%s", automap_grid ? AMSTR_GRIDON : AMSTR_GRIDOFF);
     }
     else if (M_InputActivated(input_map_mark))
     {
       // Ty 03/27/98 - *not* externalized     
-      displaymsg("%s %d", s_AMSTR_MARKEDSPOT, markpointnum);
+      displaymsg("%s %d", AMSTR_MARKEDSPOT, markpointnum);
       AM_addMark();
     }
     else if (M_InputActivated(input_map_clear))
     {
       // [Alaux] Clear just the last mark
       if (!markpointnum)
-        displaymsg("%s", s_AMSTR_MARKSCLEARED);
+        displaymsg("%s", AMSTR_MARKSCLEARED);
       else {
         AM_clearLastMark();
         displaymsg("Cleared spot %d", markpointnum);
@@ -915,8 +915,8 @@ boolean AM_Responder
       switch (automapoverlay)
       {
         case 2:  togglemsg("Dark Overlay On");        break;
-        case 1:  togglemsg("%s", s_AMSTR_OVERLAYON);  break;
-        default: togglemsg("%s", s_AMSTR_OVERLAYOFF); break;
+        case 1:  togglemsg("%s", AMSTR_OVERLAYON);  break;
+        default: togglemsg("%s", AMSTR_OVERLAYOFF); break;
       }
 
       AM_initScreenSize();
@@ -925,7 +925,7 @@ boolean AM_Responder
     else if (M_InputActivated(input_map_rotate))
     {
       automaprotate = !automaprotate;
-      togglemsg("%s", automaprotate ? s_AMSTR_ROTATEON : s_AMSTR_ROTATEOFF);
+      togglemsg("%s", automaprotate ? AMSTR_ROTATEON : AMSTR_ROTATEOFF);
     }
     else
     {
@@ -2573,4 +2573,3 @@ void AM_BindAutomapVariables(void)
 //
 //
 //----------------------------------------------------------------------------
-

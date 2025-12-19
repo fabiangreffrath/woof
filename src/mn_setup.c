@@ -18,6 +18,7 @@
 #include <stdio.h>
 #include <string.h>
 
+#include "deh_thing.h"
 #include "hu_command.h"
 #include "mn_internal.h"
 

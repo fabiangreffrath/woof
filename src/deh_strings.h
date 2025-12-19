@@ -26,4 +26,17 @@ const char *DEH_String(const char *s) PRINTF_ARG_ATTR(1);
 void DEH_AddStringReplacement(const char *from_text, const char *to_text);
 boolean DEH_HasStringReplacement(const char *s);
 
+typedef struct bex_string_s bex_string_t;
+
+extern const struct bex_string_s
+{
+    const char *macro;
+    const char *string;
+} bex_stringtable[];
+
+extern char *mapnames[];
+extern char *mapnames2[];
+extern char *mapnamesp[];
+extern char *mapnamest[];
+
 #endif /* #ifndef DEH_STR_H */

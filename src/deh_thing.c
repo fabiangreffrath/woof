@@ -481,7 +481,6 @@ static void DEH_ThingParseLine(deh_context_t *context, char *line, void *tag)
     }
     else if (!strcasecmp(variable_name, "Blood Color"))
     {
-        extern int deh_set_blood_color;
         deh_set_blood_color |= true;
     }
 
