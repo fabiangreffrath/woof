@@ -33,6 +33,7 @@
 #include "d_player.h"
 #include "d_ticcmd.h"
 #include "deh_bex_partimes.h"
+#include "deh_main.h"
 #include "deh_strings.h"
 #include "deh_misc.h"
 #include "doomdata.h"
@@ -4706,6 +4707,7 @@ static size_t WriteCmdLineLump(MEMFILE *stream)
     free(tmp);
   }
 
+  char **dehfiles = DEH_GetFileNames();
   if (dehfiles)
   {
     mem_fputs(" -deh", stream);

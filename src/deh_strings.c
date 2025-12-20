@@ -94,7 +94,7 @@ char *DEH_String(char *s)
 }
 
 // [crispy] returns true if a string has been substituted
-boolean DEH_HasStringReplacement(const char *s)
+boolean DEH_HasStringReplacement(char *s)
 {
     return DEH_String(s) != s;
 }

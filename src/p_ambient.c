@@ -17,6 +17,7 @@
 
 #include <math.h>
 
+#include "deh_thing.h"
 #include "g_game.h"
 #include "i_sound.h"
 #include "info.h"

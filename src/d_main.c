@@ -86,45 +86,6 @@
 #include "ws_stuff.h"
 #include "z_zone.h"
 
-// DEHacked support - Ty 03/09/97
-// killough 10/98:
-// Add lump number as third argument, for use when filename==NULL
-void ProcessDehFile(const char *filename, char *outfilename, int lump);
-
-// killough 10/98: support -dehout filename
-static char *D_dehout(void)
-{
-  static char *s;      // cache results over multiple calls
-  if (!s)
-    {
-      //!
-      // @category mod
-      // @arg <filename>
-      //
-      // Enables verbose dehacked parser logging.
-      //
-
-      int p = M_CheckParm("-dehout");
-      if (!p)
-
-        //!
-        // @category mod
-        // @arg <filename>
-        //
-        // Alias to -dehout.
-        //
-
-        p = M_CheckParm("-bexout");
-      s = p && ++p < myargc ? myargv[p] : "";
-    }
-  return s;
-}
-
-static void ProcessDehLump(int lumpnum)
-{
-  ProcessDehFile(NULL, D_dehout(), lumpnum);
-}
-
 boolean devparm;        // started game with -devparm
 
 // jff 1/24/98 add new versions of these variables to remember command line
@@ -1317,7 +1278,7 @@ static void D_ProcessDehCommandLine(void)
                 }
               // during the beta we have debug output to dehout.txt
               // (apparently, this was never removed after Boom beta-killough)
-              ProcessDehFile(probe, D_dehout(), 0);  // killough 10/98
+              DEH_LoadFile(probe);  // killough 10/98
               free(probe);
             }
     }
@@ -1497,28 +1458,6 @@ static void AutoloadPWadDir(void (*AutoLoadFunc)(const char *path))
             free(dir);
         }
     }
-}
-
-// Load all dehacked patches from the given directory.
-
-static void AutoLoadPatches(const char *path)
-{
-    const char *filename;
-    glob_t *glob;
-
-    glob = I_StartMultiGlob(path, GLOB_FLAG_NOCASE|GLOB_FLAG_SORTED,
-                            "*.deh", "*.bex");
-    for (;;)
-    {
-        filename = I_NextGlob(glob);
-        if (filename == NULL)
-        {
-            break;
-        }
-        ProcessDehFile(filename, D_dehout(), 0);
-    }
-
-    I_EndGlob(glob);
 }
 
 void D_SetMaxHealth(void)
@@ -2203,7 +2142,7 @@ void D_DoomMain(void)
   // Always process chex.deh first
   if (gamemission == pack_chex)
   {
-    ProcessDehLump(W_GetNumForName("chexdeh"));
+    DEH_LoadLumpByName("CHEXDEH");
   }
 
   // Check for wolf levels
@@ -2219,7 +2158,7 @@ void D_DoomMain(void)
 
   if (!M_ParmExists("-nodeh"))
   {
-    W_ProcessInWads("DEHACKED", ProcessDehLump, PROCESS_IWAD);
+    W_ProcessInWads("DEHACKED", DEH_LoadLump, PROCESS_IWAD);
   }
 
   // process .deh files specified on the command line with -deh or -bex.
@@ -2227,16 +2166,16 @@ void D_DoomMain(void)
 
   // process deh in wads and .deh files from autoload directory
   // before deh in wads from -file parameter
-  AutoloadIWadDir(AutoLoadPatches);
+  AutoloadIWadDir(DEH_AutoLoadPatches);
 
   // killough 10/98: now process all deh in wads
   if (!M_ParmExists("-nodeh"))
   {
-    W_ProcessInWads("DEHACKED", ProcessDehLump, PROCESS_PWAD);
+    W_ProcessInWads("DEHACKED", DEH_LoadLump, PROCESS_PWAD);
   }
 
   // process .deh files from PWADs autoload directories
-  AutoloadPWadDir(AutoLoadPatches);
+  AutoloadPWadDir(DEH_AutoLoadPatches);
 
   DEH_PostProcess();
 

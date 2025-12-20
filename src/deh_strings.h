@@ -25,7 +25,7 @@
 
 char *DEH_String(char *s) PRINTF_ARG_ATTR(1);
 void DEH_AddStringReplacement(const char *from_text, const char *to_text);
-boolean DEH_HasStringReplacement(const char *s);
+boolean DEH_HasStringReplacement(char *s);
 
 typedef struct bex_string_s bex_string_t;
 

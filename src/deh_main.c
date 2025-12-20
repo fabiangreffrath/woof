@@ -430,9 +430,7 @@ void DEH_AutoLoadPatches(const char *path)
 }
 
 // Load dehacked file from WAD lump.
-// If allow_long is set, allow long strings and cheats just for this lump.
-
-int DEH_LoadLump(int lumpnum, boolean allow_long, boolean allow_error)
+void DEH_LoadLump(int lumpnum)
 {
     deh_context_t *context;
 
@@ -446,36 +444,29 @@ int DEH_LoadLump(int lumpnum, boolean allow_long, boolean allow_error)
     if (context == NULL)
     {
         fprintf(stderr, "DEH_LoadFile: Unable to open lump %i\n", lumpnum);
-        return 0;
+        return;
     }
 
     DEH_ParseContext(context);
 
     DEH_CloseFile(context);
 
-    // If there was an error while parsing, abort with an error, but allow
-    // errors to just be ignored if allow_error=true.
-    if (!allow_error && DEH_HadError(context))
+    // If there was an error while parsing, abort.
+    if (DEH_HadError(context))
     {
         I_Error("Error parsing dehacked lump");
     }
-
-    return 1;
 }
 
-int DEH_LoadLumpByName(const char *name, boolean allow_long, boolean allow_error)
+void DEH_LoadLumpByName(const char *name)
 {
-    int lumpnum;
-
-    lumpnum = W_CheckNumForName(name);
-
+    int lumpnum = W_CheckNumForName(name);
     if (lumpnum == -1)
     {
         fprintf(stderr, "DEH_LoadLumpByName: '%s' lump not found\n", name);
-        return 0;
     }
 
-    return DEH_LoadLump(lumpnum, allow_long, allow_error);
+    DEH_LoadLump(lumpnum);
 }
 
 // Check the command line for -deh argument, and others.

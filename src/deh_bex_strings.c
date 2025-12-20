@@ -29,7 +29,8 @@
 #include "m_misc.h"
 
 // mnemonic keys table
-const bex_string_t bex_stringtable[] = {
+const bex_string_t bex_stringtable[] =
+{
     // part 1 - general initialization and prompts
     {"D_DEVSTR",           D_DEVSTR          },
     {"D_CDROM",            D_CDROM           },
@@ -401,7 +402,6 @@ const bex_string_t bex_stringtable[] = {
     {"OB_MPPLASMARIFLE",   OB_MPPLASMARIFLE  },
     {"OB_MPBFG_BOOM",      OB_MPBFG_BOOM     },
     {"OB_MPTELEFRAG",      OB_MPTELEFRAG     },
-    NULL
 };
 
 char * const mapnames[] =

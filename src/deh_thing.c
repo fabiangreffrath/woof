@@ -36,6 +36,8 @@
 #include "p_mobj.h"
 #include "sounds.h"
 
+boolean deh_set_blood_color = false;
+
 //
 // DSDhacked Things
 //

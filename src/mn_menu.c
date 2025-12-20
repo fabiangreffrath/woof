@@ -664,7 +664,7 @@ static void M_NewGame(int choice)
 {
     if (netgame && !demoplayback)
     {
-        M_StartMessage(s_NEWGAME, NULL, false); // Ty 03/27/98 - externalized
+        M_StartMessage(DEH_String(NEWGAME), NULL, false); // Ty 03/27/98 - externalized
         return;
     }
 
@@ -714,8 +714,8 @@ static void M_VerifyNightmare(int ch)
 void M_ChooseSkill(int choice)
 {
     if (choice == nightmare)
-    { // Ty 03/27/98 - externalized
-        M_StartMessage(s_NIGHTMARE, M_VerifyNightmare, true);
+    {
+        M_StartMessage(DEH_String(NIGHTMARE), M_VerifyNightmare, true);
         return;
     }
 
@@ -1116,7 +1116,7 @@ static void M_LoadGame(int choice)
 
     if (netgame && !demoplayback) // killough 5/26/98: add !demoplayback
     {
-        M_StartMessage(s_LOADNET, NULL, false); // Ty 03/27/98 - externalized
+        M_StartMessage(DEH_String(LOADNET), NULL, false); // Ty 03/27/98 - externalized
         return;
     }
 
@@ -1193,11 +1193,11 @@ static void EmptySaveString(char *name, boolean is_autosave)
 {
     if (is_autosave)
     {
-        M_snprintf(name, SAVESTRINGSIZE, "%s (Auto)", s_EMPTYSTRING);
+        M_snprintf(name, SAVESTRINGSIZE, "%s (Auto)", DEH_String(EMPTYSTRING));
     }
     else
     {
-        M_snprintf(name, SAVESTRINGSIZE, "%s", s_EMPTYSTRING);
+        M_snprintf(name, SAVESTRINGSIZE, "%s", DEH_String(EMPTYSTRING));
     }
 }
 
@@ -1450,7 +1450,7 @@ static void M_SaveSelect(int choice)
     saveSlot = choice;
     strcpy(saveOldString, savegamestrings[choice]);
     // [FG] override savegame name if it already starts with a map identifier
-    if (!strcmp(savegamestrings[choice], s_EMPTYSTRING) // Ty 03/27/98 - externalized
+    if (!strcmp(savegamestrings[choice], DEH_String(EMPTYSTRING))
         || MN_StartsWithMapIdentifier(savegamestrings[choice]))
     {
         savegamestrings[choice][0] = 0;
@@ -1474,7 +1474,7 @@ static void M_SaveGame(int choice)
     // killough 10/6/98: allow savegames during single-player demo playback
     if (!usergame && (!demoplayback || netgame))
     {
-        M_StartMessage(s_SAVEDEAD, NULL, false); // Ty 03/27/98 - externalized
+        M_StartMessage(DEH_String(SAVEDEAD), NULL, false);
         return;
     }
 
@@ -1739,7 +1739,7 @@ static void M_QuickLoad(void)
     if (netgame && !demoplayback) // killough 5/26/98: add !demoplayback
     {
         M_StartSound(sfx_swtchn);
-        M_StartMessage(s_QLOADNET, NULL, false); // Ty 03/27/98 - externalized
+        M_StartMessage(DEH_String(QLOADNET), NULL, false); // Ty 03/27/98 - externalized
         return;
     }
 
@@ -1795,10 +1795,10 @@ static void M_EndGame(int choice)
 {
     if (netgame)
     {
-        M_StartMessage(s_NETEND, NULL, false); // Ty 03/27/98 - externalized
+        M_StartMessage(DEH_String(NETEND), NULL, false); // Ty 03/27/98 - externalized
         return;
     }
-    M_StartMessage(s_ENDGAME, M_EndGameResponse,
+    M_StartMessage(DEH_String(ENDGAME), M_EndGameResponse,
                    true); // Ty 03/27/98 - externalized
 }
 
@@ -1813,11 +1813,11 @@ static void M_ChangeMessages(int choice)
 
     if (!show_messages)
     {
-        displaymsg("%s", s_MSGOFF); // Ty 03/27/98 - externalized
+        displaymsg(DEH_String(MSGOFF));
     }
     else
     {
-        displaymsg("%s", s_MSGON); // Ty 03/27/98 - externalized
+        displaymsg(DEH_String(MSGON));
     }
 }
 
