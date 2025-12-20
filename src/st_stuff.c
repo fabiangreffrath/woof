@@ -1636,7 +1636,8 @@ static void DrawBackground(const char *name)
 
             V_TileBlock64(ST_Y, video.unscaledw, ST_HEIGHT, flat);
 
-            if (screenblocks == 10)
+            if (screenblocks == 10
+                || (automapactive && automapoverlay == AM_OVERLAY_OFF))
             {
                 patch_t *patch = V_CachePatchName("brdr_b", PU_CACHE);
                 for (int x = 0; x < video.unscaledw; x += 8)
@@ -1666,7 +1667,8 @@ static void DrawStatusBar(void)
 {
     player_t *player = &players[displayplayer];
 
-    if (!statusbar->fullscreenrender)
+    if (screenblocks <= 10
+        || (automapactive && automapoverlay == AM_OVERLAY_OFF))
     {
         DrawBackground(statusbar->fillflat);
     }
