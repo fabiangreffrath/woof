@@ -28,16 +28,15 @@
 #include <string.h>
 
 #include "config.h"
-#include "d_deh.h"
 #include "d_event.h"
 #include "d_main.h"
+#include "deh_strings.h"
 #include "doomdef.h"
 #include "doomkeys.h"
 #include "doomstat.h"
 #include "doomtype.h"
-#include "dstrings.h"
+#include "d_englsh.h"
 #include "g_game.h"
-#include "g_rewind.h"
 #include "g_umapinfo.h"
 #include "i_exit.h"
 #include "i_input.h"
@@ -592,7 +591,7 @@ static void M_Episode(int choice)
     {
         if ((gamemode == shareware) && choice)
         {
-            M_StartMessage(s_SWSTRING, NULL, false); // Ty 03/27/98 - externalized
+            M_StartMessage(DEH_String(SWSTRING), NULL, false); // Ty 03/27/98 - externalized
             SetNextMenu(&ReadDef1);
             return;
         }
@@ -1530,12 +1529,13 @@ static void M_QuitDOOM(int choice)
     // Ty 03/27/98 - externalized DOSY as a string s_DOSY that's in the sprintf
     if (language != english)
     {
-        sprintf(endstring, "%s\n\n%s", s_DOSY, *endmsg[0]);
+        sprintf(endstring, "%s\n\n%s", DOSY, mnemonics_quit_messages[0]);
     }
     else // killough 1/18/98: fix endgame message calculation:
     {
         sprintf(endstring, "%s\n\n%s",
-                *endmsg[gametic % (NUM_QUITMESSAGES - 1) + 1], s_DOSY);
+                DEH_StringMnemonic(mnemonics_quit_messages[gametic % (num_quit_mnemonics - 1) + 1]),
+                DEH_StringMnemonic("DOSY"));
     }
 
     if (quit_prompt)
@@ -2370,45 +2370,46 @@ void M_Init(void)
     M_InitExtendedHelp(); // init extended help screens // phares 3/30/98
 
     // [crispy] remove DOS reference from the game quit confirmation dialogs
+// TODO: more shit to fix!
+//     {
+//         const char *platform = I_GetPlatform();
+//         char *string;
+//         char *replace;
+//
+//         string = DEH_StringMnemonic(mnemonics_quit_messages[3]);
+//         replace = M_StringReplace(string, "dos", platform);
+//         DEH_StringMnemonic(mnemonics_quit_messages[3]) = replace;
+//
+//         string = DEH_StringMnemonic(mnemonics_quit_messages[4]);
+//         replace = M_StringReplace(string, "dos", platform);
+//         DEH_StringMnemonic(mnemonics_quit_messages[4]) = replace;
+//
+//         string = DEH_StringMnemonic(mnemonics_quit_messages[9]);
+//         replace = M_StringReplace(string, "dos", platform);
+//
+// #if defined(_WIN32)
+//         string = M_StringReplace(replace, "prompt", "desktop");
+// #else
+//         if (isatty(STDOUT_FILENO))
+//         {
+//             string = M_StringReplace(replace, "prompt", "shell");
+//         }
+//         else
+//         {
+//             string = M_StringReplace(replace, "prompt", "desktop");
+//         }
+// #endif
+//         free(replace);
+//         DEH_StringMnemonic(mnemonics_quit_messages[9]) = string;
+//     }
+
+    for (int i = 0; i < num_quit_mnemonics; i++)
     {
-        const char *platform = I_GetPlatform();
-        char *string;
-        char *replace;
-
-        string = *endmsg[3];
-        replace = M_StringReplace(string, "dos", platform);
-        *endmsg[3] = replace;
-
-        string = *endmsg[4];
-        replace = M_StringReplace(string, "dos", platform);
-        *endmsg[4] = replace;
-
-        string = *endmsg[9];
-        replace = M_StringReplace(string, "dos", platform);
-
-#if defined(_WIN32)
-        string = M_StringReplace(replace, "prompt", "desktop");
-#else
-        if (isatty(STDOUT_FILENO))
-        {
-            string = M_StringReplace(replace, "prompt", "shell");
-        }
-        else
-        {
-            string = M_StringReplace(replace, "prompt", "desktop");
-        }
-#endif
-        free(replace);
-        *endmsg[9] = string;
-    }
-
-    for (int i = 0; i < NUM_QUITMESSAGES; i++)
-    {
-        char *const msg = *endmsg[i];
+        const char * msg = mnemonics_quit_messages[i];
 
         if (strchr(msg, '\n') == NULL)
         {
-            AddLineBreaks(*endmsg[i]);
+            AddLineBreaks(DEH_StringMnemonic(mnemonics_quit_messages[i]));
         }
     }
 }

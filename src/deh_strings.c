@@ -79,7 +79,7 @@ static deh_substitution_t *SubstitutionForString(const char *s)
 
 // Look up a string to see if it has been replaced with something else
 // This will be used throughout the program to substitute text
-const char *DEH_String(const char *s)
+char *DEH_String(char *s)
 {
     deh_substitution_t *subst = SubstitutionForString(s);
 
@@ -97,19 +97,6 @@ const char *DEH_String(const char *s)
 boolean DEH_HasStringReplacement(const char *s)
 {
     return DEH_String(s) != s;
-}
-
-const char *DEH_StringMnemonic(const char *mnemonic)
-{
-    const bex_string_t *bex = &bex_stringtable[0];
-    for (; bex != NULL; bex++)
-    {
-        if (!strcasecmp(bex->macro, mnemonic))
-        {
-            return bex->string;
-        }
-    }
-    return NULL;
 }
 
 static void InitHashTable(void)

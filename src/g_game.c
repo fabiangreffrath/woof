@@ -27,13 +27,13 @@
 
 #include "am_map.h"
 #include "config.h"
-#include "d_deh.h" // Ty 3/27/98 deh declarations
 #include "d_event.h"
 #include "d_iwad.h"
 #include "d_main.h"
 #include "d_player.h"
 #include "d_ticcmd.h"
 #include "deh_bex_partimes.h"
+#include "deh_strings.h"
 #include "deh_misc.h"
 #include "doomdata.h"
 #include "doomdef.h"
@@ -1903,7 +1903,7 @@ static void G_DoCompleted(void)
     {
       int cpars32;
 
-      memcpy(&cpars32, s_GAMMALVL0, sizeof(int));
+      memcpy(&cpars32, DEH_String(GAMMALVL0), sizeof(int));
       wminfo.partime = TICRATE*LONG(cpars32);
     }
     else if (gamemap >= 1 && gamemap <= 34)
@@ -2592,7 +2592,7 @@ static void DoSaveGame(char *name)
   }
   else
   {
-      displaymsg("%s", s_GGSAVED); // Ty 03/27/98 - externalized
+      displaymsg("%s", DEH_String(GGSAVED));
   }
 
   Z_Free(savebuffer);  // killough
@@ -3107,7 +3107,7 @@ void G_Ticker(void)
 		  cmd->forwardmove > TURBOTHRESHOLD &&
 		  !(gametic&31) && ((gametic>>5)&3) == i )
 		{
-		  displaymsg("%s is turbo!", *player_names[i]); // killough 9/29/98
+		  displaymsg("%s is turbo!", mnemonics_players[i]); // killough 9/29/98
 		}
 
 	      if (netgame && !netdemo && !(gametic%ticdup) )
@@ -4919,7 +4919,7 @@ static boolean IsVanillaMap(int e, int m)
 
 const char *G_GetLevelTitle(void)
 {
-    const char *result = "";
+    char *result = "";
 
     if (gamemapinfo && gamemapinfo->levelname)
     {
@@ -4945,18 +4945,18 @@ const char *G_GetLevelTitle(void)
         if (IsVanillaMap(gameepisode, gamemap))
         {
             result = (gamemode != commercial)
-                         ? *mapnames[(gameepisode - 1) * 9 + gamemap - 1]
-                     : (gamemission == pack_tnt)  ? *mapnamest[gamemap - 1]
-                     : (gamemission == pack_plut) ? *mapnamesp[gamemap - 1]
-                                                  : *mapnames2[gamemap - 1];
+                           ? mapnames[(gameepisode - 1) * 9 + gamemap - 1]
+                     : (gamemission == pack_tnt)  ? mapnamest[gamemap - 1]
+                     : (gamemission == pack_plut) ? mapnamesp[gamemap - 1]
+                                                  : mapnames2[gamemap - 1];
         }
         // WADs like pl2.wad have a MAP33, and rely on the layout in the
         // Vanilla executable, where it is possible to overflow the end of one
         // array into the next.
         else if (gamemode == commercial && gamemap >= 33 && gamemap <= 35)
         {
-            result = (gamemission == doom2)       ? *mapnamesp[gamemap - 33]
-                     : (gamemission == pack_plut) ? *mapnamest[gamemap - 33]
+            result = (gamemission == doom2)       ? mapnamesp[gamemap - 33]
+                     : (gamemission == pack_plut) ? mapnamest[gamemap - 33]
                                                   : "";
         }
         else
@@ -4964,6 +4964,7 @@ const char *G_GetLevelTitle(void)
             // initialize the map title widget with the generic map lump name
             result = MapName(gameepisode, gamemap);
         }
+        DEH_String(result);
     }
 
     return result;

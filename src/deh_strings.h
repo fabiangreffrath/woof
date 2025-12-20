@@ -19,10 +19,11 @@
 #define DEH_STRINGS_H
 
 #include "doomtype.h"
+#include "d_englsh.h" // In order to not 'double include' in other files
 
 // Used to do dehacked text substitutions throughout the program
 
-const char *DEH_String(const char *s) PRINTF_ARG_ATTR(1);
+char *DEH_String(char *s) PRINTF_ARG_ATTR(1);
 void DEH_AddStringReplacement(const char *from_text, const char *to_text);
 boolean DEH_HasStringReplacement(const char *s);
 
@@ -31,12 +32,21 @@ typedef struct bex_string_s bex_string_t;
 extern const struct bex_string_s
 {
     const char *macro;
-    const char *string;
+    char *string;
 } bex_stringtable[];
 
-extern char *mapnames[];
-extern char *mapnames2[];
-extern char *mapnamesp[];
-extern char *mapnamest[];
+extern char* DEH_StringMnemonic(const char *);
+
+extern char * const mapnames[];
+extern char * const mapnames2[];
+extern char * const mapnamesp[];
+extern char * const mapnamest[];
+extern char * const mnemonics_players[];
+extern char * const mnemonics_quit_messages[]; // killough 1/18/98 const added
+
+// killough 1/18/98:
+// replace hardcoded limit with extern var (silly hack, I know)
+extern const int num_quit_mnemonics;
+
 
 #endif /* #ifndef DEH_STR_H */

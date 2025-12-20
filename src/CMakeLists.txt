@@ -3,9 +3,7 @@ include(WoofSettings)
 set(WOOF_SOURCES
     am_map.c               am_map.h
     d_demoloop.c           d_demoloop.h
-                           d_englsh.h
                            d_event.h
-                           d_french.h
     d_items.c              d_items.h
     d_iwad.c               d_iwad.h
     d_loop.c               d_loop.h
@@ -38,7 +36,6 @@ set(WOOF_SOURCES
     deh_text.c
     deh_thing.c
     deh_weapon.c
-    dstrings.c             dstrings.h
     f_finale.c             f_finale.h
     f_wipe.c               f_wipe.h
     g_compatibility.c      g_compatibility.h

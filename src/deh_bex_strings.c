@@ -23,7 +23,8 @@
 #include "deh_io.h"
 #include "deh_main.h"
 #include "deh_strings.h"
-#include "dstrings.h"
+#include "doomtype.h"
+#include "d_englsh.h"
 #include "info.h"
 #include "m_misc.h"
 
@@ -55,7 +56,7 @@ const bex_string_t bex_stringtable[] = {
     {"GAMMALVL4",          GAMMALVL4         },
     {"EMPTYSTRING",        EMPTYSTRING       },
     {"GGSAVED",            GGSAVED           },
-    {"SAVEGAMENAME",       "PLACEHOLDERNAME" },
+    // {"SAVEGAMENAME",       SAVEGAMENAME      },
     // part 2 - messages when the player gets things
     {"GOTARMOR",           GOTARMOR          },
     {"GOTMEGA",            GOTMEGA           },
@@ -339,23 +340,23 @@ const bex_string_t bex_stringtable[] = {
     {"CC_CYBER",           CC_CYBER          },
     {"CC_HERO",            CC_HERO           },
     // part 9 - intermission tiled backgrounds
-    {"BGFLATE1",           "FLOOR4_8"        },
-    {"BGFLATE2",           "SFLR6_1"         },
-    {"BGFLATE3",           "MFLR8_4"         },
-    {"BGFLATE4",           "MFLR8_3"         },
-    {"BGFLAT06",           "SLIME16"         },
-    {"BGFLAT11",           "RROCK14"         },
-    {"BGFLAT20",           "RROCK07"         },
-    {"BGFLAT30",           "RROCK17"         },
-    {"BGFLAT15",           "RROCK13"         },
-    {"BGFLAT31",           "RROCK19"         },
-    {"BGCASTCALL",         "BOSSBACK"        },
+    {"BGFLATE1",           BGFLATE1          },
+    {"BGFLATE2",           BGFLATE2          },
+    {"BGFLATE3",           BGFLATE3          },
+    {"BGFLATE4",           BGFLATE4          },
+    {"BGFLAT06",           BGFLAT06          },
+    {"BGFLAT11",           BGFLAT11          },
+    {"BGFLAT20",           BGFLAT20          },
+    {"BGFLAT30",           BGFLAT30          },
+    {"BGFLAT15",           BGFLAT15          },
+    {"BGFLAT31",           BGFLAT31          },
+    {"BGCASTCALL",         BGCASTCALL        },
     // part 10 boom startup message
-    {"STARTUP1",           ""                },
-    {"STARTUP2",           ""                },
-    {"STARTUP3",           ""                },
-    {"STARTUP4",           ""                },
-    {"STARTUP5",           ""                },
+    {"STARTUP1",           STARTUP1          },
+    {"STARTUP2",           STARTUP2          },
+    {"STARTUP3",           STARTUP3          },
+    {"STARTUP4",           STARTUP4          },
+    {"STARTUP5",           STARTUP5          },
     // part 11 - general obituaris
     {"OB_CRUSH",           OB_CRUSH          },
     {"OB_SLIME",           OB_SLIME          },
@@ -403,7 +404,7 @@ const bex_string_t bex_stringtable[] = {
     NULL
 };
 
-char *mapnames[] = // DOOM shareware/registered/retail (Ultimate) names.
+char * const mapnames[] =
 {
     HUSTR_E1M1, HUSTR_E1M2, HUSTR_E1M3, HUSTR_E1M4, HUSTR_E1M5,
     HUSTR_E1M6, HUSTR_E1M7, HUSTR_E1M8, HUSTR_E1M9,
@@ -418,7 +419,7 @@ char *mapnames[] = // DOOM shareware/registered/retail (Ultimate) names.
     HUSTR_E4M6, HUSTR_E4M7, HUSTR_E4M8, HUSTR_E4M9,
 };
 
-char *mapnames2[] = // DOOM 2 map names.
+char * const mapnames2[] =
 {
     HUSTR_1,  HUSTR_2,  HUSTR_3,  HUSTR_4,  HUSTR_5,
     HUSTR_6,  HUSTR_7,  HUSTR_8,  HUSTR_9,  HUSTR_10,
@@ -429,7 +430,7 @@ char *mapnames2[] = // DOOM 2 map names.
     HUSTR_31, HUSTR_32,
 };
 
-char *mapnamesp[] = // Plutonia WAD map names.
+char * const mapnamesp[] =
 {
     PHUSTR_1,  PHUSTR_2,  PHUSTR_3,  PHUSTR_4,  PHUSTR_5,
     PHUSTR_6,  PHUSTR_7,  PHUSTR_8,  PHUSTR_9,  PHUSTR_10,
@@ -440,7 +441,7 @@ char *mapnamesp[] = // Plutonia WAD map names.
     PHUSTR_31, PHUSTR_32,
 };
 
-char *mapnamest[] = // TNT WAD map names.
+char * const mapnamest[] =
 {
     THUSTR_1,  THUSTR_2,  THUSTR_3,  THUSTR_4,  THUSTR_5,
     THUSTR_6,  THUSTR_7,  THUSTR_8,  THUSTR_9,  THUSTR_10,
@@ -451,8 +452,37 @@ char *mapnamest[] = // TNT WAD map names.
     THUSTR_31, THUSTR_32,
 };
 
+char * const mnemonics_players[] =
+{
+    HUSTR_PLRGREEN, HUSTR_PLRINDIGO, HUSTR_PLRBROWN, HUSTR_PLRRED,
+};
+
+char * const mnemonics_quit_messages[] = 
+{
+    QUITMSG,   QUITMSG1,  QUITMSG2,  QUITMSG3, QUITMSG4,  QUITMSG5,
+    QUITMSG6,  QUITMSG7,  QUITMSG8,  QUITMSG9, QUITMSG10, QUITMSG11,
+    QUITMSG12, QUITMSG13, QUITMSG14, QUITMSGD,
+};
+
+
+// killough 1/18/98: remove hardcoded limit and replace with var (silly hack):
+const int num_quit_mnemonics = arrlen(mnemonics_quit_messages) - 1;
+
+char *DEH_StringMnemonic(const char *mnemonic)
+{
+    const bex_string_t *bex = &bex_stringtable[0];
+    for (; bex != NULL; bex++)
+    {
+        if (!strcasecmp(bex->macro, mnemonic))
+        {
+            return bex->string;
+        }
+    }
+    return NULL;
+}
+
 // [FG] Obituaries
-static boolean DEH_ExtendedObituary(char *mnemonic, char *string)
+static boolean HandleExtendedObituary(char *mnemonic, char *string)
 {
     boolean found = false;
     int actor = MT_NULL;
@@ -518,7 +548,7 @@ static void DEH_BEXStrParseLine(deh_context_t *context, char *line, void *tag)
     // [FG] Obituaries
     if (!matched)
     {
-        DEH_ExtendedObituary(variable_name, value);
+        HandleExtendedObituary(variable_name, value);
     }
 }
 

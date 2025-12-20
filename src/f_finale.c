@@ -18,11 +18,10 @@
 //-----------------------------------------------------------------------------
 
 
-#include <stdlib.h>
 #include <string.h>
 
-#include "d_deh.h" // Ty 03/22/98 - externalizations
 #include "d_event.h"
+#include "deh_strings.h"
 #include "doomdef.h"
 #include "doomstat.h"
 #include "doomtype.h"
@@ -272,24 +271,24 @@ void F_StartFinale (void)
       switch (gameepisode)
       {
         case 1:
-             finaleflat = bgflatE1; // Ty 03/30/98 - new externalized bg flats
-             finaletext = s_E1TEXT; // Ty 03/23/98 - Was e1text variable.
-             break;
+          finaleflat = DEH_String(BGFLATE1);
+          finaletext = DEH_String(E1TEXT);
+          break;
         case 2:
-             finaleflat = bgflatE2;
-             finaletext = s_E2TEXT; // Ty 03/23/98 - Same stuff for each 
-             break;
+          finaleflat = DEH_String(BGFLATE2);
+          finaletext = DEH_String(E2TEXT);
+          break;
         case 3:
-             finaleflat = bgflatE3;
-             finaletext = s_E3TEXT;
-             break;
+          finaleflat = DEH_String(BGFLATE3);
+          finaletext = DEH_String(E3TEXT);
+          break;
         case 4:
-             finaleflat = bgflatE4;
-             finaletext = s_E4TEXT;
-             break;
+          finaleflat = DEH_String(BGFLATE4);
+          finaletext = DEH_String(E4TEXT);
+          break;
         default:
-             // Ouch.
-             break;
+          // Ouch.
+          break;
       }
       break;
     }
@@ -304,35 +303,41 @@ void F_StartFinale (void)
       switch (gamemap)      /* This is regular Doom II */
       {
         case 6:
-             finaleflat = bgflat06;
-             finaletext = gamemission == pack_tnt  ? s_T1TEXT :
-	                  gamemission == pack_plut ? s_P1TEXT : s_C1TEXT;
-             break;
+          finaleflat = DEH_String(BGFLAT06);
+          finaletext = gamemission == pack_tnt  ? DEH_String(T1TEXT) :
+                       gamemission == pack_plut ? DEH_String(P1TEXT) :
+                                                  DEH_String(C1TEXT);
+          break;
         case 11:
-             finaleflat = bgflat11;
-             finaletext = gamemission == pack_tnt  ? s_T2TEXT :
-	                  gamemission == pack_plut ? s_P2TEXT : s_C2TEXT;
-             break;
+          finaleflat = DEH_String(BGFLAT11);
+          finaletext = gamemission == pack_tnt  ? DEH_String(T2TEXT) :
+                       gamemission == pack_plut ? DEH_String(P2TEXT) :
+                                                  DEH_String(C2TEXT);
+          break;
         case 20:
-             finaleflat = bgflat20;
-             finaletext = gamemission == pack_tnt  ? s_T3TEXT :
-	                  gamemission == pack_plut ? s_P3TEXT : s_C3TEXT;
-             break;
+          finaleflat = DEH_String(BGFLAT20);
+          finaletext = gamemission == pack_tnt  ? DEH_String(T3TEXT) :
+                       gamemission == pack_plut ? DEH_String(P3TEXT) :
+                                                  DEH_String(C3TEXT);
+          break;
         case 30:
-             finaleflat = bgflat30;
-             finaletext = gamemission == pack_tnt  ? s_T4TEXT :
-	                  gamemission == pack_plut ? s_P4TEXT : s_C4TEXT;
-             break;
+          finaleflat = DEH_String(BGFLAT30);
+          finaletext = gamemission == pack_tnt  ? DEH_String(T4TEXT) :
+                       gamemission == pack_plut ? DEH_String(P4TEXT) :
+                                                  DEH_String(C4TEXT);
+          break;
         case 15:
-             finaleflat = bgflat15;
-             finaletext = gamemission == pack_tnt  ? s_T5TEXT :
-	                  gamemission == pack_plut ? s_P5TEXT : s_C5TEXT;
-             break;
+          finaleflat = DEH_String(BGFLAT15);
+          finaletext = gamemission == pack_tnt  ? DEH_String(T5TEXT) :
+                       gamemission == pack_plut ? DEH_String(P5TEXT) :
+                                                  DEH_String(C5TEXT);
+          break;
         case 31:
-             finaleflat = bgflat31;
-             finaletext = gamemission == pack_tnt  ? s_T6TEXT :
-	                  gamemission == pack_plut ? s_P6TEXT : s_C6TEXT;
-             break;
+          finaleflat = DEH_String(BGFLAT31);
+          finaletext = gamemission == pack_tnt  ? DEH_String(T6TEXT) :
+                       gamemission == pack_plut ? DEH_String(P6TEXT) :
+                                                  DEH_String(C6TEXT);
+          break;
         default:
              // Ouch.
              break;
@@ -344,10 +349,10 @@ void F_StartFinale (void)
 
     // Indeterminate.
     default:  // Ty 03/30/98 - not externalized
-         music_id = mus_read_m;
-         finaleflat = "F_SKY1"; // Not used anywhere else.
-         finaletext = s_C1TEXT;  // FIXME - other text, music?
-         break;
+      music_id = mus_read_m;
+      finaleflat = "F_SKY1"; // Not used anywhere else.
+      finaletext = DEH_String(C1TEXT);  // FIXME - other text, music?
+      break;
   }
   
   if (!MapInfo_StartFinale())
@@ -543,23 +548,23 @@ boolean         castattacking;
 static void F_StartCast(void)
 {
   // Ty 03/23/98 - clumsy but time is of the essence
-  castorder[0].name = s_CC_ZOMBIE,  castorder[0].type = MT_POSSESSED;
-  castorder[1].name = s_CC_SHOTGUN, castorder[1].type = MT_SHOTGUY;
-  castorder[2].name = s_CC_HEAVY,   castorder[2].type = MT_CHAINGUY;
-  castorder[3].name = s_CC_IMP,     castorder[3].type = MT_TROOP;
-  castorder[4].name = s_CC_DEMON,   castorder[4].type = MT_SERGEANT;
-  castorder[5].name = s_CC_LOST,    castorder[5].type = MT_SKULL;
-  castorder[6].name = s_CC_CACO,    castorder[6].type = MT_HEAD;
-  castorder[7].name = s_CC_HELL,    castorder[7].type = MT_KNIGHT;
-  castorder[8].name = s_CC_BARON,   castorder[8].type = MT_BRUISER;
-  castorder[9].name = s_CC_ARACH,   castorder[9].type = MT_BABY;
-  castorder[10].name = s_CC_PAIN,   castorder[10].type = MT_PAIN;
-  castorder[11].name = s_CC_REVEN,  castorder[11].type = MT_UNDEAD;
-  castorder[12].name = s_CC_MANCU,  castorder[12].type = MT_FATSO;
-  castorder[13].name = s_CC_ARCH,   castorder[13].type = MT_VILE;
-  castorder[14].name = s_CC_SPIDER, castorder[14].type = MT_SPIDER;
-  castorder[15].name = s_CC_CYBER,  castorder[15].type = MT_CYBORG;
-  castorder[16].name = s_CC_HERO,   castorder[16].type = MT_PLAYER;
+  castorder[0].name = DEH_String(CC_ZOMBIE),  castorder[0].type = MT_POSSESSED;
+  castorder[1].name = DEH_String(CC_SHOTGUN), castorder[1].type = MT_SHOTGUY;
+  castorder[2].name = DEH_String(CC_HEAVY),   castorder[2].type = MT_CHAINGUY;
+  castorder[3].name = DEH_String(CC_IMP),     castorder[3].type = MT_TROOP;
+  castorder[4].name = DEH_String(CC_DEMON),   castorder[4].type = MT_SERGEANT;
+  castorder[5].name = DEH_String(CC_LOST),    castorder[5].type = MT_SKULL;
+  castorder[6].name = DEH_String(CC_CACO),    castorder[6].type = MT_HEAD;
+  castorder[7].name = DEH_String(CC_HELL),    castorder[7].type = MT_KNIGHT;
+  castorder[8].name = DEH_String(CC_BARON),   castorder[8].type = MT_BRUISER;
+  castorder[9].name = DEH_String(CC_ARACH),   castorder[9].type = MT_BABY;
+  castorder[10].name = DEH_String(CC_PAIN),   castorder[10].type = MT_PAIN;
+  castorder[11].name = DEH_String(CC_REVEN),  castorder[11].type = MT_UNDEAD;
+  castorder[12].name = DEH_String(CC_MANCU),  castorder[12].type = MT_FATSO;
+  castorder[13].name = DEH_String(CC_ARCH),   castorder[13].type = MT_VILE;
+  castorder[14].name = DEH_String(CC_SPIDER), castorder[14].type = MT_SPIDER;
+  castorder[15].name = DEH_String(CC_CYBER),  castorder[15].type = MT_CYBORG;
+  castorder[16].name = DEH_String(CC_HERO),   castorder[16].type = MT_PLAYER;
   castorder[17].name = NULL,        castorder[17].type = 0;
 
   wipegamestate = -1;         // force a screen wipe
@@ -771,7 +776,7 @@ static void F_CastDrawer(void)
   // erase the entire screen to a background
   // Ty 03/30/98 bg texture extern
   V_DrawPatchFullScreen(
-    V_CachePatchName(W_CheckWidescreenPatch(bgcastcall), PU_CACHE));
+    V_CachePatchName(W_CheckWidescreenPatch(DEH_String(BGCASTCALL)), PU_CACHE));
 
   F_CastPrint (castorder[castnum].name);
     

@@ -27,7 +27,6 @@
 
 #include "am_map.h"
 #include "config.h"
-#include "d_deh.h"
 #include "d_demoloop.h"
 #include "d_event.h"
 #include "d_iwad.h"
@@ -36,10 +35,11 @@
 #include "d_player.h"
 #include "d_ticcmd.h"
 #include "deh_main.h"
+#include "deh_strings.h"
 #include "deh_thing.h"
 #include "doomdef.h"
 #include "doomstat.h"
-#include "dstrings.h"
+#include "d_englsh.h"
 #include "f_finale.h"
 #include "f_wipe.h"
 #include "g_compatibility.h"
@@ -167,6 +167,7 @@ boolean advancedemo;
 char    *basedefault = NULL;   // default file
 char    *basesavegame = NULL;  // killough 2/16/98: savegame directory
 char    *screenshotdir = NULL; // [FG] screenshot directory
+char    *savegamename = NULL;
 
 int organize_savefiles;
 
@@ -2289,11 +2290,11 @@ void D_DoomMain(void)
 
   // Ty 04/08/98 - Add 5 lines of misc. data, only if nonblank
   // The expectation is that these will be set in a .bex file
-  // if (*startup1) I_Printf(VB_INFO, "%s", startup1);
-  // if (*startup2) I_Printf(VB_INFO, "%s", startup2);
-  // if (*startup3) I_Printf(VB_INFO, "%s", startup3);
-  // if (*startup4) I_Printf(VB_INFO, "%s", startup4);
-  // if (*startup5) I_Printf(VB_INFO, "%s", startup5);
+  if (DEH_HasStringReplacement(STARTUP1)) I_Printf(VB_INFO, DEH_String(STARTUP1));
+  if (DEH_HasStringReplacement(STARTUP2)) I_Printf(VB_INFO, DEH_String(STARTUP2));
+  if (DEH_HasStringReplacement(STARTUP3)) I_Printf(VB_INFO, DEH_String(STARTUP3));
+  if (DEH_HasStringReplacement(STARTUP4)) I_Printf(VB_INFO, DEH_String(STARTUP4));
+  if (DEH_HasStringReplacement(STARTUP5)) I_Printf(VB_INFO, DEH_String(STARTUP5));
   // End new startup strings
 
   //!
