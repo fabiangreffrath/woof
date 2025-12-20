@@ -468,19 +468,6 @@ char * const mnemonics_quit_messages[] =
 // killough 1/18/98: remove hardcoded limit and replace with var (silly hack):
 const int num_quit_mnemonics = arrlen(mnemonics_quit_messages) - 1;
 
-char *DEH_StringMnemonic(const char *mnemonic)
-{
-    const bex_string_t *bex = &bex_stringtable[0];
-    for (; bex != NULL; bex++)
-    {
-        if (!strcasecmp(bex->macro, mnemonic))
-        {
-            return bex->string;
-        }
-    }
-    return NULL;
-}
-
 // [FG] Obituaries
 static boolean HandleExtendedObituary(char *mnemonic, char *string)
 {

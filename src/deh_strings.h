@@ -35,8 +35,6 @@ extern const struct bex_string_s
     char *string;
 } bex_stringtable[];
 
-extern char* DEH_StringMnemonic(const char *);
-
 extern char * const mapnames[];
 extern char * const mapnames2[];
 extern char * const mapnamesp[];

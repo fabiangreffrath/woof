@@ -310,7 +310,7 @@ void ST_UpdateChatMessage(void)
                                          || chat_dest[p] == HU_BROADCAST))
                     {
                         M_snprintf(message_string, sizeof(message_string),
-                            "%s%s", DEH_StringMnemonic(mnemonics_players[p]), lines[p].string);
+                            "%s%s", DEH_String(mnemonics_players[p]), lines[p].string);
 
                         S_StartSoundPitch(0,
                                           gamemode == commercial ? sfx_radio

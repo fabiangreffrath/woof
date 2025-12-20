@@ -1534,8 +1534,8 @@ static void M_QuitDOOM(int choice)
     else // killough 1/18/98: fix endgame message calculation:
     {
         sprintf(endstring, "%s\n\n%s",
-                DEH_StringMnemonic(mnemonics_quit_messages[gametic % (num_quit_mnemonics - 1) + 1]),
-                DEH_StringMnemonic("DOSY"));
+                DEH_String(mnemonics_quit_messages[gametic % (num_quit_mnemonics - 1) + 1]),
+                DEH_String(DOSY));
     }
 
     if (quit_prompt)
@@ -2376,15 +2376,15 @@ void M_Init(void)
 //         char *string;
 //         char *replace;
 //
-//         string = DEH_StringMnemonic(mnemonics_quit_messages[3]);
+//         string = DEH_String(mnemonics_quit_messages[3]);
 //         replace = M_StringReplace(string, "dos", platform);
-//         DEH_StringMnemonic(mnemonics_quit_messages[3]) = replace;
+//         DEH_String(mnemonics_quit_messages[3]) = replace;
 //
-//         string = DEH_StringMnemonic(mnemonics_quit_messages[4]);
+//         string = DEH_String(mnemonics_quit_messages[4]);
 //         replace = M_StringReplace(string, "dos", platform);
-//         DEH_StringMnemonic(mnemonics_quit_messages[4]) = replace;
+//         DEH_String(mnemonics_quit_messages[4]) = replace;
 //
-//         string = DEH_StringMnemonic(mnemonics_quit_messages[9]);
+//         string = DEH_String(mnemonics_quit_messages[9]);
 //         replace = M_StringReplace(string, "dos", platform);
 //
 // #if defined(_WIN32)
@@ -2400,7 +2400,7 @@ void M_Init(void)
 //         }
 // #endif
 //         free(replace);
-//         DEH_StringMnemonic(mnemonics_quit_messages[9]) = string;
+//         DEH_String(mnemonics_quit_messages[9]) = string;
 //     }
 
     for (int i = 0; i < num_quit_mnemonics; i++)
@@ -2409,7 +2409,7 @@ void M_Init(void)
 
         if (strchr(msg, '\n') == NULL)
         {
-            AddLineBreaks(DEH_StringMnemonic(mnemonics_quit_messages[i]));
+            AddLineBreaks(DEH_String(mnemonics_quit_messages[i]));
         }
     }
 }
