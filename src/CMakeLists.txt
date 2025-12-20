@@ -3,6 +3,7 @@ include(WoofSettings)
 set(WOOF_SOURCES
     am_map.c               am_map.h
     d_demoloop.c           d_demoloop.h
+                           d_englsh.h
                            d_event.h
     d_items.c              d_items.h
     d_iwad.c               d_iwad.h
