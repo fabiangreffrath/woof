@@ -36,9 +36,6 @@ GameVersions_t gameversions[] = {
     { NULL,           NULL,       0},
 };
 
-// Language.
-Language_t   language = english;
-
 // Set if homebrew PWAD stuff has been added.
 boolean modifiedgame;
 

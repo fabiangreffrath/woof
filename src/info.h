@@ -1524,7 +1524,7 @@ typedef struct
     int meleerange;
 
     // MBF2y
-    char *obituary, *obituary_melee, *obituary_self;
+    const char *obituary, *obituary_melee, *obituary_self;
 
     // [Woof!]
     int flags_extra;  // Woof!-exclusive extension

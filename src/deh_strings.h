@@ -36,14 +36,14 @@ extern const struct bex_string_s
 {
     const char *macro;
     char *string;
-} bex_stringtable[];
+} bex_mnemonic_strings[];
 
-extern char * const mapnames[];
-extern char * const mapnames2[];
-extern char * const mapnamesp[];
-extern char * const mapnamest[];
-extern char * const mnemonics_players[];
-extern char * const mnemonics_quit_messages[]; // killough 1/18/98 const added
+extern const char * const mapnames[];
+extern const char * const mapnames2[];
+extern const char * const mapnamesp[];
+extern const char * const mapnamest[];
+extern const char * const mnemonics_players[];
+extern const char * const mnemonics_quit_messages[]; // killough 1/18/98 const added
 
 // killough 1/18/98:
 // replace hardcoded limit with extern var (silly hack, I know)

@@ -28,6 +28,7 @@
 #include <string.h>
 
 #include "config.h"
+#include "d_englsh.h"
 #include "d_event.h"
 #include "d_main.h"
 #include "deh_strings.h"
@@ -35,7 +36,6 @@
 #include "doomkeys.h"
 #include "doomstat.h"
 #include "doomtype.h"
-#include "d_englsh.h"
 #include "g_game.h"
 #include "g_umapinfo.h"
 #include "i_exit.h"
@@ -44,15 +44,15 @@
 #include "i_system.h"
 #include "i_timer.h"
 #include "i_video.h"
+#include "m_argv.h"
 #include "m_input.h"
 #include "m_io.h"
 #include "m_misc.h"
 #include "m_swap.h"
 #include "mn_font.h"
-#include "mn_menu.h"
 #include "mn_internal.h"
+#include "mn_menu.h"
 #include "mn_snapshot.h"
-#include "p_keyframe.h"
 #include "p_saveg.h"
 #include "r_defs.h"
 #include "r_draw.h"
@@ -85,7 +85,7 @@ static int quickSaveSlot; // -1 = no quicksave slot picked!
 
 static int messageToPrint; // 1 = message to be printed
 
-static char *messageString; // ...and here is the message string!
+static const char *messageString; // ...and here is the message string!
 
 static int messageLastMenuActive;
 
@@ -244,7 +244,7 @@ static void M_DrawSetup(void); // phares 3/21/98
 static void M_DrawSaveLoadBorder(int x, int y, byte *cr);
 static void M_DrawThermo(int x, int y, int thermWidth, int thermDot, byte *cr);
 static void WriteText(int x, int y, const char *string);
-static void M_StartMessage(char *string, void (*routine)(int), boolean input);
+static void M_StartMessage(const char *string, void (*routine)(int), boolean input);
 
 // phares 3/30/98
 // prototypes added to support Setup Menus and Extended HELP screens
@@ -591,7 +591,7 @@ static void M_Episode(int choice)
     {
         if ((gamemode == shareware) && choice)
         {
-            M_StartMessage(DEH_String(SWSTRING), NULL, false); // Ty 03/27/98 - externalized
+            M_StartMessage(DEH_String(SWSTRING), NULL, false);
             SetNextMenu(&ReadDef1);
             return;
         }
@@ -664,7 +664,7 @@ static void M_NewGame(int choice)
 {
     if (netgame && !demoplayback)
     {
-        M_StartMessage(DEH_String(NEWGAME), NULL, false); // Ty 03/27/98 - externalized
+        M_StartMessage(DEH_String(NEWGAME), NULL, false);
         return;
     }
 
@@ -1082,7 +1082,6 @@ static void M_VerifyForcedLoadAutoSave(int ch)
     {
         G_ForcedLoadAutoSave();
     }
-    free(messageString);
     MN_ClearMenus();
 }
 
@@ -1092,7 +1091,6 @@ static void M_VerifyForcedLoadGame(int ch)
     {
         G_ForcedLoadGame();
     }
-    free(messageString); // free the message strdup()'ed below
     MN_ClearMenus();
 }
 
@@ -1214,7 +1212,6 @@ static void M_ReadSaveString(char *name, int menu_slot, int save_slot,
     {
         if (!is_autosave)
         {
-            // Ty 03/27/98 - externalized:
             name = G_MBFSaveGameName(save_slot);
             fp = M_fopen(name, "rb");
             free(name);
@@ -1524,19 +1521,10 @@ static void M_QuitDOOM(int choice)
 {
     static char endstring[160];
 
-    // We pick index 0 which is language sensitive,
-    // or one at random, between 1 and maximum number.
-    // Ty 03/27/98 - externalized DOSY as a string s_DOSY that's in the sprintf
-    if (language != english)
-    {
-        sprintf(endstring, "%s\n\n%s", DOSY, mnemonics_quit_messages[0]);
-    }
-    else // killough 1/18/98: fix endgame message calculation:
-    {
-        sprintf(endstring, "%s\n\n%s",
-                DEH_String(mnemonics_quit_messages[gametic % (num_quit_mnemonics - 1) + 1]),
+    // killough 1/18/98: fix endgame message calculation:
+    M_snprintf(endstring, sizeof(endstring), "%s\n\n%s",
+                DEH_String(mnemonics_quit_messages[gametic % num_quit_mnemonics]),
                 DEH_String(DOSY));
-    }
 
     if (quit_prompt)
     {
@@ -1739,7 +1727,7 @@ static void M_QuickLoad(void)
     if (netgame && !demoplayback) // killough 5/26/98: add !demoplayback
     {
         M_StartSound(sfx_swtchn);
-        M_StartMessage(DEH_String(QLOADNET), NULL, false); // Ty 03/27/98 - externalized
+        M_StartMessage(DEH_String(QLOADNET), NULL, false);
         return;
     }
 
@@ -1795,11 +1783,10 @@ static void M_EndGame(int choice)
 {
     if (netgame)
     {
-        M_StartMessage(DEH_String(NETEND), NULL, false); // Ty 03/27/98 - externalized
+        M_StartMessage(DEH_String(NETEND), NULL, false);
         return;
     }
-    M_StartMessage(DEH_String(ENDGAME), M_EndGameResponse,
-                   true); // Ty 03/27/98 - externalized
+    M_StartMessage(DEH_String(ENDGAME), M_EndGameResponse, true);
 }
 
 /////////////////////////////
@@ -2260,36 +2247,6 @@ void M_ResetAutoSave(void)
 // M_Init
 //
 
-#define MAX_STRLEN 42
-
-static void AddLineBreaks(char *string)
-{
-    char *start = string;
-    char *p = start;
-
-    while (strlen(p) > MAX_STRLEN)
-    {
-        start = p;
-        p += MAX_STRLEN;
-
-        do
-        {
-            if (*p == ' ')
-            {
-                *p++ = '\n';
-                break;
-            }
-        } while (--p > start);
-
-        if (p == start)
-        {
-            break;
-        }
-    }
-}
-
-#undef MAX_STRLEN
-
 void M_Init(void)
 {
     MN_InitDefaults(); // killough 11/98
@@ -2370,46 +2327,47 @@ void M_Init(void)
     M_InitExtendedHelp(); // init extended help screens // phares 3/30/98
 
     // [crispy] remove DOS reference from the game quit confirmation dialogs
-// TODO: more shit to fix!
-//     {
-//         const char *platform = I_GetPlatform();
-//         char *string;
-//         char *replace;
-//
-//         string = DEH_String(mnemonics_quit_messages[3]);
-//         replace = M_StringReplace(string, "dos", platform);
-//         DEH_String(mnemonics_quit_messages[3]) = replace;
-//
-//         string = DEH_String(mnemonics_quit_messages[4]);
-//         replace = M_StringReplace(string, "dos", platform);
-//         DEH_String(mnemonics_quit_messages[4]) = replace;
-//
-//         string = DEH_String(mnemonics_quit_messages[9]);
-//         replace = M_StringReplace(string, "dos", platform);
-//
-// #if defined(_WIN32)
-//         string = M_StringReplace(replace, "prompt", "desktop");
-// #else
-//         if (isatty(STDOUT_FILENO))
-//         {
-//             string = M_StringReplace(replace, "prompt", "shell");
-//         }
-//         else
-//         {
-//             string = M_StringReplace(replace, "prompt", "desktop");
-//         }
-// #endif
-//         free(replace);
-//         DEH_String(mnemonics_quit_messages[9]) = string;
-//     }
-
-    for (int i = 0; i < num_quit_mnemonics; i++)
     {
-        const char * msg = mnemonics_quit_messages[i];
+        const char *platform = I_GetPlatform();
+        const char *string;
+        char *replace;
 
-        if (strchr(msg, '\n') == NULL)
+        // [crispy] "i wouldn't leave if i were you.\ndos is much worse."
+        string = mnemonics_quit_messages[3];
+        if (!DEH_HasStringReplacement(string))
         {
-            AddLineBreaks(DEH_String(mnemonics_quit_messages[i]));
+            replace = M_StringReplace(string, "dos", platform);
+            DEH_AddStringReplacement(mnemonics_quit_messages[3], replace);
+            free(replace);
+        }
+
+        // [crispy] "you're trying to say you like dos\nbetter than me, right?"
+        string = mnemonics_quit_messages[4];
+        if (!DEH_HasStringReplacement(string))
+        {
+            replace = M_StringReplace(string, "dos", platform);
+            DEH_AddStringReplacement(mnemonics_quit_messages[3], replace);
+            free(replace);
+        }
+
+        // [crispy] "don't go now, there's a \ndimensional shambler waiting\nat the dos prompt!"
+        string = mnemonics_quit_messages[9];
+        if (!DEH_HasStringReplacement(string))
+        {
+            replace = M_StringReplace(string, "dos", platform);
+#if defined(_WIN32)
+            string = M_StringReplace(replace, "prompt", "desktop");
+#else
+            if (isatty(STDOUT_FILENO))
+            {
+                string = M_StringReplace(replace, "prompt", "shell");
+            }
+            else
+            {
+                string = M_StringReplace(replace, "prompt", "desktop");
+            }
+#endif
+            free(replace);
         }
     }
 }
@@ -3643,7 +3601,7 @@ void M_Drawer(void)
 // Message Routines
 //
 
-static void M_StartMessage(char *string, void (*routine)(int), boolean input)
+static void M_StartMessage(const char *string, void (*routine)(int), boolean input)
 {
     messageLastMenuActive = menuactive;
     messageToPrint = 1;

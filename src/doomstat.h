@@ -173,10 +173,6 @@ enum {
 extern int comp[COMP_TOTAL], default_comp[COMP_TOTAL];
 
 // -------------------------------------------
-// Language.
-extern  Language_t   language;
-
-// -------------------------------------------
 // Selected skill type, map etc.
 //
 

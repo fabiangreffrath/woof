@@ -29,7 +29,7 @@
 #include "m_misc.h"
 
 // mnemonic keys table
-const bex_string_t bex_stringtable[] =
+const bex_string_t bex_mnemonic_strings[] =
 {
     // part 1 - general initialization and prompts
     {"D_DEVSTR",           D_DEVSTR          },
@@ -404,7 +404,7 @@ const bex_string_t bex_stringtable[] =
     {"OB_MPTELEFRAG",      OB_MPTELEFRAG     },
 };
 
-char * const mapnames[] =
+const char * const mapnames[] =
 {
     HUSTR_E1M1, HUSTR_E1M2, HUSTR_E1M3, HUSTR_E1M4, HUSTR_E1M5,
     HUSTR_E1M6, HUSTR_E1M7, HUSTR_E1M8, HUSTR_E1M9,
@@ -419,7 +419,7 @@ char * const mapnames[] =
     HUSTR_E4M6, HUSTR_E4M7, HUSTR_E4M8, HUSTR_E4M9,
 };
 
-char * const mapnames2[] =
+const char * const mapnames2[] =
 {
     HUSTR_1,  HUSTR_2,  HUSTR_3,  HUSTR_4,  HUSTR_5,
     HUSTR_6,  HUSTR_7,  HUSTR_8,  HUSTR_9,  HUSTR_10,
@@ -430,7 +430,7 @@ char * const mapnames2[] =
     HUSTR_31, HUSTR_32,
 };
 
-char * const mapnamesp[] =
+const char * const mapnamesp[] =
 {
     PHUSTR_1,  PHUSTR_2,  PHUSTR_3,  PHUSTR_4,  PHUSTR_5,
     PHUSTR_6,  PHUSTR_7,  PHUSTR_8,  PHUSTR_9,  PHUSTR_10,
@@ -441,7 +441,7 @@ char * const mapnamesp[] =
     PHUSTR_31, PHUSTR_32,
 };
 
-char * const mapnamest[] =
+const char * const mapnamest[] =
 {
     THUSTR_1,  THUSTR_2,  THUSTR_3,  THUSTR_4,  THUSTR_5,
     THUSTR_6,  THUSTR_7,  THUSTR_8,  THUSTR_9,  THUSTR_10,
@@ -452,16 +452,16 @@ char * const mapnamest[] =
     THUSTR_31, THUSTR_32,
 };
 
-char * const mnemonics_players[] =
+const char * const mnemonics_players[] =
 {
     HUSTR_PLRGREEN, HUSTR_PLRINDIGO, HUSTR_PLRBROWN, HUSTR_PLRRED,
 };
 
-char * const mnemonics_quit_messages[] = 
+const char * const mnemonics_quit_messages[] = 
 {
     QUITMSG,   QUITMSG1,  QUITMSG2,  QUITMSG3, QUITMSG4,  QUITMSG5,
     QUITMSG6,  QUITMSG7,  QUITMSG8,  QUITMSG9, QUITMSG10, QUITMSG11,
-    QUITMSG12, QUITMSG13, QUITMSG14, QUITMSGD,
+    QUITMSG12, QUITMSG13, QUITMSG14,
 };
 
 
@@ -500,7 +500,7 @@ static boolean HandleExtendedObituary(char *mnemonic, char *string)
     return found;
 }
 
-static void *DEH_BEXStrStart(deh_context_t *context, char *line)
+static void *DEH_BEXStringsStart(deh_context_t *context, char *line)
 {
     char s[10];
 
@@ -512,7 +512,7 @@ static void *DEH_BEXStrStart(deh_context_t *context, char *line)
     return NULL;
 }
 
-static void DEH_BEXStrParseLine(deh_context_t *context, char *line, void *tag)
+static void DEH_BEXStringsParseLine(deh_context_t *context, char *line, void *tag)
 {
     char *variable_name, *value;
 
@@ -523,11 +523,11 @@ static void DEH_BEXStrParseLine(deh_context_t *context, char *line, void *tag)
     }
 
     boolean matched = false;
-    for (int i = 0; i < arrlen(bex_stringtable); i++)
+    for (int i = 0; i < arrlen(bex_mnemonic_strings); i++)
     {
-        if (!strcasecmp(bex_stringtable[i].macro, variable_name))
+        if (!strcasecmp(bex_mnemonic_strings[i].macro, variable_name))
         {
-            DEH_AddStringReplacement(bex_stringtable[i].string, value);
+            DEH_AddStringReplacement(bex_mnemonic_strings[i].string, value);
             matched = true;
         }
     }
@@ -543,8 +543,8 @@ deh_section_t deh_section_bex_strings =
 {
     "[STRINGS]",
     NULL,
-    DEH_BEXStrStart,
-    DEH_BEXStrParseLine,
+    DEH_BEXStringsStart,
+    DEH_BEXStringsParseLine,
     NULL,
     NULL,
 };

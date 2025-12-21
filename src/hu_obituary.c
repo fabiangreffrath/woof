@@ -107,8 +107,8 @@ static inline char *StrReplace(char *str, const char *from, const char *to)
 
 void HU_Obituary(mobj_t *target, mobj_t *inflictor, mobj_t *source, method_t mod)
 {
-    int i;
-    char *ob = OB_DEFAULT, *str;
+    char *str;
+    const char *ob = OB_DEFAULT;
 
     if (target->player->mo != target)
     {
@@ -203,7 +203,7 @@ void HU_Obituary(mobj_t *target, mobj_t *inflictor, mobj_t *source, method_t mod
 
     str = M_StringDuplicate(DEH_String(ob));
 
-    for (i = 0; i < arrlen(pronouns); i++)
+    for (int i = 0; i < arrlen(pronouns); i++)
     {
         str = StrReplace(str, pronouns[i].from, pronouns[i].to);
     }
@@ -215,7 +215,7 @@ void HU_Obituary(mobj_t *target, mobj_t *inflictor, mobj_t *source, method_t mod
 
     str = StrReplace(str, "%o", playerstr[target->player - players]);
 
-    for (i = 0; i < MAXPLAYERS; i++)
+    for (int i = 0; i < MAXPLAYERS; i++)
     {
         if (!playeringame[i])
         {

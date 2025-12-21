@@ -26,7 +26,7 @@
 
 static boolean bex_nested = false;
 
-static void *DEH_BEXInclStart(deh_context_t *context, char *line)
+static void *DEH_BEXIncludeStart(deh_context_t *context, char *line)
 {
     extern boolean bex_notext;
 
@@ -89,7 +89,7 @@ static void *DEH_BEXInclStart(deh_context_t *context, char *line)
     return NULL;
 }
 
-static void DEH_BEXInclParseLine(deh_context_t *context, char *line, void *tag)
+static void DEH_BEXIncludeParseLine(deh_context_t *context, char *line, void *tag)
 {
     // not used
 }
@@ -98,8 +98,8 @@ deh_section_t deh_section_bex_includes =
 {
     "INCLUDE",
     NULL,
-    DEH_BEXInclStart,
-    DEH_BEXInclParseLine,
+    DEH_BEXIncludeStart,
+    DEH_BEXIncludeParseLine,
     NULL,
     NULL,
 };

@@ -202,7 +202,7 @@ boolean P_GiveWeapon(player_t *player, weapontype_t weapon, boolean dropped)
 boolean P_GiveBody(player_t *player, int num)
 {
   if (player->health >= deh_max_health)
-    return false; // Ty 03/09/98 externalized MAXHEALTH to maxhealth
+    return false;
   player->health += num;
   if (player->health > deh_max_health)
     player->health = deh_max_health;
@@ -301,7 +301,7 @@ void P_TouchSpecialThing(mobj_t *special, mobj_t *toucher)
     case SPR_ARM1:
       if (!P_GiveArmor (player, deh_green_armor_class))
         return;
-      pickupmsg(player, DEH_String(GOTARMOR)); // Ty 03/22/98 - externalized
+      pickupmsg(player, DEH_String(GOTARMOR));
       break;
 
     case SPR_ARM2:

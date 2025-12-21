@@ -45,8 +45,6 @@
 #define WEAPONBOTTOM (FRACUNIT*128)
 #define WEAPONTOP    (FRACUNIT*32)
 
-#define BFGCELLS bfgcells        /* Ty 03/09/98 externalized in p_inter.c */
-
 // The following array holds the recoil values         // phares
 static struct
 {
