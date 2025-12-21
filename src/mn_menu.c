@@ -1535,7 +1535,7 @@ static void M_QuitDOOM(int choice)
     else // killough 1/18/98: fix endgame message calculation:
     {
         sprintf(endstring, "%s\n\n%s",
-                *endmsg[gametic % (NUM_QUITMESSAGES - 1) + 1], s_DOSY);
+                *endmsg[gametic % NUM_QUITMESSAGES], s_DOSY);
     }
 
     if (quit_prompt)
