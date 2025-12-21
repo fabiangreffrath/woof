@@ -62,8 +62,7 @@ char *M_StringJoinInternal(const char *s[], size_t n);
 boolean M_StringStartsWith(const char *s, const char *prefix);
 boolean M_StringEndsWith(const char *s, const char *suffix);
 boolean M_StringCaseEndsWith(const char *s, const char *suffix);
-int M_vsnprintf(char *buf, size_t buf_len, const char *s, va_list args)
-    PRINTF_ATTR(3, 0);
+int M_vsnprintf(char *buf, size_t buf_len, const char *s, va_list args);
 int M_snprintf(char *buf, size_t buf_len, const char *s, ...) PRINTF_ATTR(3, 4);
 
 void M_CopyLumpName(char *dest, const char *src);

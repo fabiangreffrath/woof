@@ -542,8 +542,7 @@ char *M_StringJoinInternal(const char *s[], size_t n)
 }
 
 // Safe, portable vsnprintf().
-int PRINTF_ATTR(3, 0)
-    M_vsnprintf(char *buf, size_t buf_len, const char *s, va_list args)
+int M_vsnprintf(char *buf, size_t buf_len, const char *s, va_list args)
 {
     int result;
 

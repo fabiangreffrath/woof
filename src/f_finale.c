@@ -526,7 +526,7 @@ static void F_TextWrite(void)
 //
 typedef struct
 {
-  char       *name;
+  const char *name;
   mobjtype_t  type;
 } castinfo_t;
 
@@ -711,9 +711,9 @@ static boolean F_CastResponder(event_t* ev)
 }
 
 
-static void F_CastPrint(char* text)
+static void F_CastPrint(const char* text)
 {
-  char*       ch;
+  const char* ch;
   int         c;
   int         cx;
   int         w;

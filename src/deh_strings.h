@@ -18,14 +18,17 @@
 #ifndef DEH_STRINGS_H
 #define DEH_STRINGS_H
 
+#include <stdio.h>
+
 #include "doomtype.h"
 #include "d_englsh.h" // In order to not 'double include' in other files
 
 // Used to do dehacked text substitutions throughout the program
 
-char *DEH_String(char *s) PRINTF_ARG_ATTR(1);
+const char *DEH_String(const char *s) PRINTF_ARG_ATTR(1);
+void DEH_snprintf(char *buffer, size_t len, const char *fmt, ...) PRINTF_ATTR(3, 4);
 void DEH_AddStringReplacement(const char *from_text, const char *to_text);
-boolean DEH_HasStringReplacement(char *s);
+boolean DEH_HasStringReplacement(const char *s);
 
 typedef struct bex_string_s bex_string_t;
 

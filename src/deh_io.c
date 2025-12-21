@@ -23,6 +23,7 @@
 
 #include "deh_defs.h"
 #include "deh_io.h"
+#include "i_printf.h"
 #include "m_io.h"
 #include "m_misc.h"
 #include "w_wad.h"
@@ -330,6 +331,17 @@ char *DEH_ReadLine(deh_context_t *context, boolean extended)
     }
 
     return context->readbuffer;
+}
+
+void DEH_PrintMessage(deh_context_t *context, verbosity_t verbosity, const char *msg, ...)
+{
+    char buffer[1024];
+    va_list args;
+    va_start(args, msg);
+    M_vsnprintf(buffer, sizeof(buffer), msg, args);
+    va_end(args);
+
+    I_Printf(verbosity, "%s:%i: %s", context->filename, context->linenum, buffer);
 }
 
 boolean DEH_HadError(deh_context_t *context)

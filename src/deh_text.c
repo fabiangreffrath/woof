@@ -23,49 +23,6 @@
 #include "deh_strings.h"
 #include "doomtype.h"
 
-// Strings for dehacked replacements of the startup banner
-//
-// These are from the original source: some of them are perhaps
-// not used in any dehacked patches
-static const char * const game_banners[] = {
-    // doom2.wad
-    "                         "
-    "DOOM 2: Hell on Earth v%i.%i"
-    "                           ",
-    // doom2.wad v1.666
-    "                         "
-    "DOOM 2: Hell on Earth v%i.%i66"
-    "                          ",
-    // doom1.wad
-    "                            "
-    "DOOM Shareware Startup v%i.%i"
-    "                           ",
-    // doom.wad
-    "                            "
-    "DOOM Registered Startup v%i.%i"
-    "                           ",
-    // Registered DOOM uses this
-    "                          "
-    "DOOM System Startup v%i.%i"
-    "                          ",
-    // Doom v1.666
-    "                          "
-    "DOOM System Startup v%i.%i66"
-    "                          "
-    // doom.wad (Ultimate DOOM)
-    "                         "
-    "The Ultimate DOOM Startup v%i.%i"
-    "                        ",
-    // tnt.wad
-    "                     "
-    "DOOM 2: TNT - Evilution v%i.%i"
-    "                           ",
-    // plutonia.wad
-    "                   "
-    "DOOM 2: Plutonia Experiment v%i.%i"
-    "                           ",
-};
-
 /*
   const int version = DV_VANILLA; // We only support version 1.9 of Vanilla Doom
   char *deh_gamename = M_StringDuplicate(newstring);

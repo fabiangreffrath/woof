@@ -20,6 +20,7 @@
 //
 //-----------------------------------------------------------------------------
 
+#include <ctype.h>
 #include <limits.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -507,6 +508,89 @@ void D_StartTitle (void)
   D_AdvanceDemo();
 }
 
+// Strings for dehacked replacements of the startup banner
+//
+// These are from the original source: some of them are perhaps
+// not used in any dehacked patches
+static const char *banners[] =
+{
+    // doom2.wad
+    "                         "
+    "DOOM 2: Hell on Earth v%i.%i"
+    "                           ",
+    // doom2.wad v1.666
+    "                         "
+    "DOOM 2: Hell on Earth v%i.%i66"
+    "                          ",
+    // doom1.wad
+    "                            "
+    "DOOM Shareware Startup v%i.%i"
+    "                           ",
+    // doom.wad
+    "                            "
+    "DOOM Registered Startup v%i.%i"
+    "                           ",
+    // Registered DOOM uses this
+    "                          "
+    "DOOM System Startup v%i.%i"
+    "                          ",
+    // Doom v1.666
+    "                          "
+    "DOOM System Startup v%i.%i66"
+    "                          "
+    // doom.wad (Ultimate DOOM)
+    "                         "
+    "The Ultimate DOOM Startup v%i.%i"
+    "                        ",
+    // tnt.wad
+    "                     "
+    "DOOM 2: TNT - Evilution v%i.%i"
+    "                           ",
+    // plutonia.wad
+    "                   "
+    "DOOM 2: Plutonia Experiment v%i.%i"
+    "                           ",
+};
+
+//
+// Get game name: if the startup banner has been replaced, use that.
+// Otherwise, use the name given
+// 
+static char *GetGameName(const char *gamename)
+{
+    for (int i = 0; i < arrlen(banners); ++i)
+    {
+        if (DEH_HasStringReplacement(banners[i]))
+        {
+            // We need to expand via printf to include the Doom version number
+            // We also need to cut off spaces to get the basic name
+            const size_t gamename_size = strlen(DEH_String(banners[i])) + 10;
+            char *deh_gamename = malloc(gamename_size);
+            if (deh_gamename == NULL)
+            {
+                I_Error("GetGameName: Failed to allocate new string");
+            }
+
+            const int version = DV_VANILLA;
+            DEH_snprintf(deh_gamename, gamename_size, banners[i], version / 100, version % 100);
+
+            while (deh_gamename[0] != '\0' && isspace(deh_gamename[0]))
+            {
+                memmove(deh_gamename, deh_gamename + 1, gamename_size - 1);
+            }
+
+            while (deh_gamename[0] != '\0' && isspace(deh_gamename[strlen(deh_gamename)-1]))
+            {
+                deh_gamename[strlen(deh_gamename) - 1] = '\0';
+            }
+
+            return deh_gamename;
+        }
+    }
+
+    return M_StringDuplicate(gamename);
+}
+
 //
 // D_AddFile
 //
@@ -762,7 +846,7 @@ static boolean FileContainsMaps(const char *filename)
 
 const char *gamedescription = NULL;
 
-void IdentifyVersion(void)
+static void IdentifyVersion(void)
 {
     // get config file from same directory as executable
     // killough 10/98
