@@ -1511,7 +1511,10 @@ typedef struct
                       //  resurrection.  Zero means it won't come
                       //  back to life.
 
-    // mbf21
+    // DEHEXTRA
+    mobjtype_t droppeditem; // mobj to drop after death
+
+    // MBF21
     int flags2;
     int infighting_group;
     int projectile_group;
@@ -1520,13 +1523,12 @@ typedef struct
     int altspeed;
     int meleerange;
 
+    // MBF2y
+    char *obituary, *obituary_melee, *obituary_self;
+
     // [Woof!]
     int flags_extra;  // Woof!-exclusive extension
     int bloodcolor;   // [FG] colored blood and gibs
-    // DEHEXTRA
-    mobjtype_t droppeditem; // mobj to drop after death
-    // [FG] Obituaries
-    char *obituary, *obituary_melee, *obituary_self;
 } mobjinfo_t;
 
 #define NO_ALTSPEED -1

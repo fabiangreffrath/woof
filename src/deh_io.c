@@ -332,34 +332,6 @@ char *DEH_ReadLine(deh_context_t *context, boolean extended)
     return context->readbuffer;
 }
 
-void DEH_Warning(deh_context_t *context, const char *msg, ...)
-{
-    va_list args;
-
-    va_start(args, msg);
-
-    fprintf(stderr, "%s:%i: warning: ", context->filename, context->linenum);
-    vfprintf(stderr, msg, args);
-    fprintf(stderr, "\n");
-
-    va_end(args);
-}
-
-void DEH_Error(deh_context_t *context, const char *msg, ...)
-{
-    va_list args;
-
-    va_start(args, msg);
-
-    fprintf(stderr, "%s:%i: ", context->filename, context->linenum);
-    vfprintf(stderr, msg, args);
-    fprintf(stderr, "\n");
-
-    va_end(args);
-
-    context->had_error = true;
-}
-
 boolean DEH_HadError(deh_context_t *context)
 {
     return context->had_error;

@@ -30,6 +30,7 @@
 #include "deh_thing.h"
 #include "doomtype.h"
 #include "i_glob.h"
+#include "i_printf.h"
 #include "i_system.h"
 #include "m_argv.h"
 #include "m_misc.h"
@@ -44,6 +45,7 @@ static const char *deh_signatures[] =
 
 static deh_section_t *deh_section_types[] =
 {
+    // Original DEH blocks
     &deh_section_ammo,
     &deh_section_cheat,
     &deh_section_frame,
@@ -53,15 +55,21 @@ static deh_section_t *deh_section_types[] =
     &deh_section_text,
     &deh_section_thing,
     &deh_section_weapon,
-    &deh_section_bex_strings,
-    &deh_section_bex_partimes,
+    // Boom BEX
     &deh_section_bex_codepointers,
     &deh_section_bex_includes,
+    &deh_section_bex_partimes,
+    &deh_section_bex_strings,
+    // Eternity BEX
+    &deh_section_bex_sounds,
+    &deh_section_bex_sprites,
+    // &deh_section_bex_helper,
+    // &deh_section_bex_music,
     NULL
 };
 
 static boolean deh_initialized = false;
-boolean post_process = true;
+static boolean post_process = false;
 
 // If false, dehacked cheat replacements are ignored.
 boolean deh_apply_cheats = true;
@@ -71,7 +79,6 @@ static char **deh_filenames;
 void AddDEHFileName(const char *filename)
 {
     static int i;
-
     deh_filenames = I_Realloc(deh_filenames, (i + 2) * sizeof(*deh_filenames));
     deh_filenames[i++] = M_StringDuplicate(filename);
     deh_filenames[i] = NULL;
@@ -104,7 +111,6 @@ int DEH_ParseBexBitFlags(int ivalue, char *value, const bex_bitflags_t flags[], 
 void DEH_Checksum(sha1_digest_t digest)
 {
     sha1_context_t sha1_context;
-
     SHA1_Init(&sha1_context);
 
     for (unsigned int i = 0; deh_section_types[i] != NULL; ++i)
@@ -119,7 +125,6 @@ void DEH_Checksum(sha1_digest_t digest)
 }
 
 // Called on startup to call the Init functions
-
 static void InitializeSections(void)
 {
     for (unsigned int i = 0; deh_section_types[i] != NULL; ++i)
@@ -138,7 +143,6 @@ void DEH_Init(void) // [crispy] un-static
     //
     // Ignore cheats in dehacked files.
     //
-
     if (M_CheckParm("-nocheats") > 0)
     {
         deh_apply_cheats = false;
@@ -146,12 +150,10 @@ void DEH_Init(void) // [crispy] un-static
 
     // Call init functions for all the section definitions.
     InitializeSections();
-
     deh_initialized = true;
 }
 
 // Given a section name, get the section structure which corresponds
-
 static deh_section_t *GetSectionByName(char *name)
 {
     for (unsigned int i = 0; deh_section_types[i] != NULL; ++i)
@@ -166,7 +168,6 @@ static deh_section_t *GetSectionByName(char *name)
 }
 
 // Is the string passed just whitespace?
-
 static boolean IsWhitespace(char *s)
 {
     for (; *s; ++s)
@@ -181,7 +182,6 @@ static boolean IsWhitespace(char *s)
 }
 
 // Strip whitespace from the start and end of a string
-
 char *CleanString(char *s) // [crispy] un-static
 {
     // Leading whitespace
@@ -192,7 +192,6 @@ char *CleanString(char *s) // [crispy] un-static
 
     // Trailing whitespace
     char *strending = s + strlen(s) - 1;
-
     while (strlen(s) > 0 && isspace(*strending))
     {
         *strending = '\0';
@@ -211,7 +210,6 @@ char *CleanString(char *s) // [crispy] un-static
 // The string is split on the '=', essentially.
 //
 // Returns true if read correctly
-
 boolean DEH_ParseAssignment(char *line, char **variable_name, char **value)
 {
     // find the equals
@@ -243,7 +241,6 @@ static boolean CheckSignatures(deh_context_t *context)
 
     // Read the first line
     char *line = DEH_ReadLine(context, false);
-
     if (line == NULL)
     {
         return false;
@@ -252,7 +249,7 @@ static boolean CheckSignatures(deh_context_t *context)
     // Check all signatures to see if one matches
     for (size_t i = 0; deh_signatures[i] != NULL; ++i)
     {
-        if (!strcmp(deh_signatures[i], line))
+        if (!strcasecmp(deh_signatures[i], line))
         {
             return true;
         }
@@ -266,7 +263,6 @@ static boolean CheckSignatures(deh_context_t *context)
 }
 
 // Parses a dehacked file by reading from the context
-
 static void DEH_ParseContext(deh_context_t *context)
 {
     deh_section_t *current_section = NULL;
@@ -275,15 +271,13 @@ static void DEH_ParseContext(deh_context_t *context)
     char *line;
 
     // Read the header and check it matches the signature
-
     if (!CheckSignatures(context))
     {
         // [crispy] make non-fatal
-        fprintf(stderr, "This is not a valid dehacked patch file!\n");
+        I_Printf(VB_DEBUG, "Invalid DeHackEd signature found.");
     }
 
     // Read the file
-
     while (!DEH_HadError(context))
     {
         // Read the next line. We only allow the special extended parsing
@@ -295,7 +289,6 @@ static void DEH_ParseContext(deh_context_t *context)
         line = DEH_ReadLine(context, extended);
 
         // end of file?
-
         if (line == NULL)
         {
             return;
@@ -306,9 +299,9 @@ static void DEH_ParseContext(deh_context_t *context)
             ++line;
         }
 
+        // dehacked comments are
         if (line[0] == '#')
         {
-            // comment
             continue;
         }
 
@@ -333,7 +326,7 @@ static void DEH_ParseContext(deh_context_t *context)
                     prev_section = NULL;
                 }
 
-                // printf("end %s tag\n", current_section->name);
+                I_Printf(VB_DEBUG, "End '%s' tag", current_section->name);
                 current_section = NULL;
             }
         }
@@ -353,8 +346,8 @@ static void DEH_ParseContext(deh_context_t *context)
 
                 if (current_section != NULL)
                 {
+                    I_Printf(VB_DEBUG, "Started '%s' tag", current_section->name);
                     tag = current_section->start(context, line);
-                    // printf("started %s tag\n", section_name);
                 }
                 else if (prev_section != NULL)
                 {
@@ -365,7 +358,7 @@ static void DEH_ParseContext(deh_context_t *context)
                 }
                 else
                 {
-                    // printf("unknown section name %s\n", section_name);
+                    DEH_Warning(context, "Unkown DeHackEd section name '%s', WAD may not work properlly!", section_name);
                 }
             }
         }
@@ -373,23 +366,19 @@ static void DEH_ParseContext(deh_context_t *context)
 }
 
 // Parses a dehacked file
-
 int DEH_LoadFile(const char *filename)
 {
-    deh_context_t *context;
-
+    post_process = true;
     if (!deh_initialized)
     {
         DEH_Init();
     }
 
-    printf(" loading %s\n", filename);
-
-    context = DEH_OpenFile(filename);
-
+    I_Printf(VB_DEBUG, "DEH_LoadFile: Loading %s", filename);
+    deh_context_t *context = DEH_OpenFile(filename);
     if (context == NULL)
     {
-        fprintf(stderr, "DEH_LoadFile: Unable to open %s\n", filename);
+        I_Printf(VB_ERROR, "DEH_LoadFile: Unable to open '%s'.", filename);
         return 0;
     }
 
@@ -411,9 +400,7 @@ int DEH_LoadFile(const char *filename)
 void DEH_AutoLoadPatches(const char *path)
 {
     const char *filename;
-    glob_t *glob;
-
-    glob = I_StartMultiGlob(path, GLOB_FLAG_NOCASE | GLOB_FLAG_SORTED, "*.deh", "*.bex", NULL);
+    glob_t *glob = I_StartMultiGlob(path, GLOB_FLAG_NOCASE|GLOB_FLAG_SORTED, "*.deh", "*.bex");
 
     for (;;)
     {
@@ -422,7 +409,6 @@ void DEH_AutoLoadPatches(const char *path)
         {
             break;
         }
-        printf(" [autoload]");
         DEH_LoadFile(filename);
     }
 
@@ -432,18 +418,16 @@ void DEH_AutoLoadPatches(const char *path)
 // Load dehacked file from WAD lump.
 void DEH_LoadLump(int lumpnum)
 {
-    deh_context_t *context;
-
+    post_process = true;
     if (!deh_initialized)
     {
         DEH_Init();
     }
 
-    context = DEH_OpenLump(lumpnum);
-
+    deh_context_t *context = DEH_OpenLump(lumpnum);
     if (context == NULL)
     {
-        fprintf(stderr, "DEH_LoadFile: Unable to open lump %i\n", lumpnum);
+        I_Printf(VB_WARNING, "DEH_LoadFile: Unable to open lump %i", lumpnum);
         return;
     }
 
@@ -463,7 +447,7 @@ void DEH_LoadLumpByName(const char *name)
     int lumpnum = W_CheckNumForName(name);
     if (lumpnum == -1)
     {
-        fprintf(stderr, "DEH_LoadLumpByName: '%s' lump not found\n", name);
+        I_Printf(VB_WARNING, "DEH_LoadLumpByName: '%s' lump not found", name);
     }
 
     DEH_LoadLump(lumpnum);
@@ -472,25 +456,20 @@ void DEH_LoadLumpByName(const char *name)
 // Check the command line for -deh argument, and others.
 void DEH_ParseCommandLine(void)
 {
-    char *filename;
-    int p;
-
     //!
     // @arg <files>
     // @category mod
     //
     // Load the given dehacked patch(es)
     //
-
-    p = M_CheckParm("-deh");
+    int p = M_CheckParm("-deh");
 
     if (p > 0)
     {
         ++p;
-
         while (p < myargc && myargv[p][0] != '-')
         {
-            filename = D_TryFindWADByName(myargv[p]);
+            char *filename = D_TryFindWADByName(myargv[p]);
             DEH_LoadFile(filename);
             free(filename);
             ++p;

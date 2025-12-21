@@ -26,6 +26,7 @@
 #include "deh_thing.h"
 #include "doomstat.h"
 #include "doomtype.h"
+#include "i_printf.h"
 #include "i_system.h"
 #include "info.h"
 #include "m_argv.h"
@@ -131,7 +132,7 @@ void DEH_InitMobjInfo(void)
     //
     // Press beta emulation mode (complevel mbf only).
     //
-    beta_emulation = !!M_CheckParm("-beta");
+    beta_emulation = M_CheckParm("-beta");
     if (beta_emulation)
     {
         // killough 10/98: beta lost soul has different behavior frames
@@ -142,14 +143,14 @@ void DEH_InitMobjInfo(void)
         mobjinfo[MT_SKULL].deathstate   = S_BSKUL_DIE1;
         mobjinfo[MT_SKULL].damage       = 1;
     }
-#ifdef MBF_STRICT
     else
     {
         // This code causes MT_SCEPTRE and MT_BIBLE to not spawn on the map,
         // which causes desync in Eviternity.wad demos.
+#ifdef MBF_STRICT
         mobjinfo[MT_SCEPTRE].doomednum = mobjinfo[MT_BIBLE].doomednum = -1;
-    }
 #endif
+    }
 }
 
 void DEH_MobjInfoEnsureCapacity(int limit)
@@ -410,7 +411,7 @@ static void DEH_ThingParseLine(deh_context_t *context, char *line, void *tag)
         return;
     }
 
-    //    printf("Set %s to %s for mobj\n", variable_name, value);
+    I_Printf(VB_DEBUG, "Set %s to %s for mobj", variable_name, value);
 
     // most values are integers
     int ivalue = atoi(value);

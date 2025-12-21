@@ -59,12 +59,14 @@ extern deh_section_t deh_section_text;
 extern deh_section_t deh_section_thing;
 extern deh_section_t deh_section_weapon;
 
-extern deh_section_t deh_section_bex_strings;
-extern deh_section_t deh_section_bex_partimes;
 extern deh_section_t deh_section_bex_codepointers;
 extern deh_section_t deh_section_bex_includes;
+extern deh_section_t deh_section_bex_partimes;
+extern deh_section_t deh_section_bex_strings;
 
-extern deh_section_t deh_section_bex_sprites;
+extern deh_section_t deh_section_bex_helper;
+extern deh_section_t deh_section_bex_music;
 extern deh_section_t deh_section_bex_sounds;
+extern deh_section_t deh_section_bex_sprites;
 
 #endif /* #ifndef DEH_DEFS_H */

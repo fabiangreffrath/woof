@@ -1217,74 +1217,6 @@ static void M_AddLooseFiles(void)
     myargv = newargv;
 }
 
-// killough 10/98: moved code to separate function
-
-static void D_ProcessDehCommandLine(void)
-{
-  // ty 03/09/98 do dehacked stuff
-  // Note: do this before any other since it is expected by
-  // the deh patch author that this is actually part of the EXE itself
-  // Using -deh in BOOM, others use -dehacked.
-  // Ty 03/18/98 also allow .bex extension.  .bex overrides if both exist.
-  // killough 11/98: also allow -bex
-
-  //!
-  // @arg <files>
-  // @category mod
-  // @help
-  //
-  // Load the given dehacked/bex patch(es).
-  //
-
-  int p = M_CheckParm ("-deh");
-
-  //!
-  // @arg <files>
-  // @category mod
-  //
-  // Alias to -deh.
-  //
-
-  if (p || (p = M_CheckParm("-bex")))
-    {
-      // the parms after p are deh/bex file names,
-      // until end of parms or another - preceded parm
-      // Ty 04/11/98 - Allow multiple -deh files in a row
-      // killough 11/98: allow multiple -deh parameters
-
-      boolean deh = true;
-      while (++p < myargc)
-        if (*myargv[p] == '-')
-          deh = !strcasecmp(myargv[p],"-deh") || !strcasecmp(myargv[p],"-bex");
-        else
-          if (deh)
-            {
-              char *probe;
-              char *file = AddDefaultExtension(myargv[p], ".bex");
-              probe = D_TryFindWADByName(file);
-              free(file);
-              if (M_access(probe, F_OK))  // nope
-                {
-                  free(probe);
-                  file = AddDefaultExtension(myargv[p], ".deh");
-                  probe = D_TryFindWADByName(file);
-                  free(file);
-                  if (M_access(probe, F_OK))  // still nope
-                  {
-                    free(probe);
-                    I_Error("Cannot find .deh or .bex file named %s",
-                            myargv[p]);
-                  }
-                }
-              // during the beta we have debug output to dehout.txt
-              // (apparently, this was never removed after Boom beta-killough)
-              DEH_LoadFile(probe);  // killough 10/98
-              free(probe);
-            }
-    }
-  // ty 03/09/98 end of do dehacked stuff
-}
-
 // Load all WAD files from the given directory.
 
 static void AutoLoadWADs(const char *path)
@@ -1845,7 +1777,7 @@ void D_DoomMain(void)
     deathmatch = 3;
 
   if (devparm)
-    I_Printf(VB_INFO, "%s", D_DEVSTR);
+    I_Printf(VB_INFO, DEH_String(D_DEVSTR));
 
   //!
   // @category game
@@ -2162,7 +2094,7 @@ void D_DoomMain(void)
   }
 
   // process .deh files specified on the command line with -deh or -bex.
-  D_ProcessDehCommandLine();
+  DEH_ParseCommandLine();
 
   // process deh in wads and .deh files from autoload directory
   // before deh in wads from -file parameter
