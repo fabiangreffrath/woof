@@ -40,6 +40,7 @@
 #include "deh_thing.h"
 #include "doomdef.h"
 #include "doomstat.h"
+#include "doomtype.h"
 #include "d_englsh.h"
 #include "f_finale.h"
 #include "f_wipe.h"
@@ -568,7 +569,7 @@ static char *GetGameName(const char *gamename)
             char *deh_gamename = malloc(gamename_size);
             if (deh_gamename == NULL)
             {
-                I_Error("GetGameName: Failed to allocate new string");
+                I_Error("Failed to allocate new string");
             }
 
             const int version = DV_VANILLA;

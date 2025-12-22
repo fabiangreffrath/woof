@@ -44,7 +44,6 @@
 #include "i_system.h"
 #include "i_timer.h"
 #include "i_video.h"
-#include "m_argv.h"
 #include "m_input.h"
 #include "m_io.h"
 #include "m_misc.h"
@@ -2247,6 +2246,36 @@ void M_ResetAutoSave(void)
 // M_Init
 //
 
+#define MAX_STRLEN 42
+
+static void AddLineBreaks(char *string)
+{
+    char *start = string;
+    char *p = start;
+
+    while (strlen(p) > MAX_STRLEN)
+    {
+        start = p;
+        p += MAX_STRLEN;
+
+        do
+        {
+            if (*p == ' ')
+            {
+                *p++ = '\n';
+                break;
+            }
+        } while (--p > start);
+
+        if (p == start)
+        {
+            break;
+        }
+    }
+}
+
+#undef MAX_STRLEN
+
 void M_Init(void)
 {
     MN_InitDefaults(); // killough 11/98
@@ -2367,6 +2396,17 @@ void M_Init(void)
                 string = M_StringReplace(replace, "prompt", "desktop");
             }
 #endif
+            free(replace);
+        }
+
+        for (int i = 0; i < num_quit_mnemonics; )
+        {
+            replace = M_StringDuplicate(mnemonics_quit_messages[i]);
+            if (strchr(replace, '\n') == NULL)
+            {
+                AddLineBreaks(replace);
+            }
+            DEH_AddStringReplacement(mnemonics_quit_messages[i], replace);
             free(replace);
         }
     }
