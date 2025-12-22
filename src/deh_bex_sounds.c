@@ -24,49 +24,9 @@
 #include "deh_bex_sounds.h"
 #include "deh_defs.h"
 #include "deh_io.h"
-
 #include "deh_main.h"
 #include "m_array.h"
 #include "sounds.h"
-
-//
-//   Music
-//
-
-musicinfo_t *S_music = NULL;
-int num_music;
-static byte *music_state = NULL;
-
-void DEH_InitMusic(void)
-{
-    S_music = original_S_music;
-    num_music = NUMMUSIC;
-
-    array_grow(music_state, num_music);
-    memset(music_state, 0, num_music * sizeof(*music_state));
-}
-
-void DEH_FreeMusic(void)
-{
-    array_free(music_state);
-}
-
-int DEH_MusicGetIndex(const char *key, int length)
-{
-    for (int i = 1; i < num_music; ++i)
-    {
-        if (S_music[i].name
-            && strlen(S_music[i].name) == length
-            && !strncasecmp(S_music[i].name, key, length)
-            && !music_state[i])
-        {
-            music_state[i] = true; // music has been edited
-            return i;
-        }
-    }
-
-    return -1;
-}
 
 //
 // DSDHacked Sounds

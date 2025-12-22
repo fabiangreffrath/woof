@@ -19,6 +19,7 @@ set(WOOF_SOURCES
                            doomtype.h
     deh_ammo.c
     deh_bex_includes.c
+    deh_bex_music.c        deh_bex_music.h
     deh_bex_partimes.c     deh_bex_partimes.h
     deh_bex_pointers.c
     deh_bex_sounds.c       deh_bex_sounds.h

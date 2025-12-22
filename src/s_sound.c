@@ -22,6 +22,8 @@
 
 #include <string.h>
 
+#include "deh_bex_music.h"
+#include "deh_bex_sounds.h"
 #include "deh_strings.h"
 #include "doomdef.h"
 #include "doomstat.h"

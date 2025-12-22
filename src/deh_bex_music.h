@@ -14,26 +14,22 @@
 // GNU General Public License for more details.
 //
 //
-// Parses [SOUNDS] sections in BEX files
+// Parses [MUSIC] sections in BEX files
 //
 
-#ifndef DEH_BEX_SOUNDS_H
-#define DEH_BEX_SOUNDS_H
+#ifndef DEH_BEX_MUSIC_H
+#define DEH_BEX_MUSIC_H
 
 #include <stddef.h>
-
 #include "sounds.h"
 
 // DSDHacked
-extern sfxinfo_t* S_sfx;
-extern int num_sfx;
+extern musicinfo_t *S_music;
+extern int num_music;
 
-extern void DEH_InitSFX(void);
-extern void DEH_InitMusic(void);
+extern void DEH_FreeSFX(void);
+extern void DEH_FreeMusic(void);
 
-extern void DEH_SoundsEnsureCapacity(int limit);
-extern int DEH_SoundsGetIndex(const char *key, size_t length);
-extern int DEH_SoundsGetOriginalIndex(const char *key);
-extern int DEH_SoundsGetNewIndex(void);
+extern int DEH_MusicGetIndex(const char *key, int length);
 
 #endif
