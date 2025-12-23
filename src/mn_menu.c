@@ -2398,7 +2398,7 @@ void M_Init(void)
             free(replace);
         }
 
-        for (int i = 0; i < num_quit_mnemonics; )
+        for (int i = 0; i < num_quit_mnemonics; i++)
         {
             replace = M_StringDuplicate(mnemonics_quit_messages[i]);
             if (strchr(replace, '\n') == NULL)
