@@ -4919,9 +4919,23 @@ static boolean IsVanillaMap(int e, int m)
     }
 }
 
+static inline const char * GetVanillaMapname()
+{
+    return (gamemode != commercial) ? mapnames[(gameepisode - 1) * 9 + gamemap - 1] :
+          (gamemission == pack_tnt) ? mapnamest[gamemap - 1] :
+         (gamemission == pack_plut) ? mapnamesp[gamemap - 1] :
+                                      mapnames2[gamemap - 1];
+}
+
+static inline const char * GetVanillaMapnameOverflow()
+{
+    return (gamemission == doom2) ? mapnamesp[gamemap - 33] :
+       (gamemission == pack_plut) ? mapnamest[gamemap - 33] : "";
+}
+
 const char *G_GetLevelTitle(void)
 {
-    char *result = "";
+    const char *result = "";
 
     if (gamemapinfo && gamemapinfo->levelname)
     {
@@ -4946,27 +4960,20 @@ const char *G_GetLevelTitle(void)
     {
         if (IsVanillaMap(gameepisode, gamemap))
         {
-            result = (gamemode != commercial)
-                           ? mapnames[(gameepisode - 1) * 9 + gamemap - 1]
-                     : (gamemission == pack_tnt)  ? mapnamest[gamemap - 1]
-                     : (gamemission == pack_plut) ? mapnamesp[gamemap - 1]
-                                                  : mapnames2[gamemap - 1];
+            result = DEH_String(GetVanillaMapname());
         }
         // WADs like pl2.wad have a MAP33, and rely on the layout in the
         // Vanilla executable, where it is possible to overflow the end of one
         // array into the next.
         else if (gamemode == commercial && gamemap >= 33 && gamemap <= 35)
         {
-            result = (gamemission == doom2)       ? mapnamesp[gamemap - 33]
-                     : (gamemission == pack_plut) ? mapnamest[gamemap - 33]
-                                                  : "";
+            result = DEH_String(GetVanillaMapnameOverflow());
         }
         else
         {
             // initialize the map title widget with the generic map lump name
             result = MapName(gameepisode, gamemap);
         }
-        DEH_String(result);
     }
 
     return result;

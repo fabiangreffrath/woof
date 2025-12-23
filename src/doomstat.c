@@ -110,6 +110,9 @@ boolean monkeys, default_monkeys;
 
 boolean hide_weapon;
 
+// haleyjd 9/22/99
+int helper_type = -1; // in P_SpawnMapThing to substitute helper thing
+
 // [FG] centered weapon sprite
 int center_weapon;
 

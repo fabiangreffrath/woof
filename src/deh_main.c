@@ -300,7 +300,7 @@ static void DEH_ParseContext(deh_context_t *context)
             ++line;
         }
 
-        // dehacked comments are
+        // comments
         if (line[0] == '#')
         {
             continue;
