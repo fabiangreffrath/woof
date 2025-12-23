@@ -56,7 +56,6 @@ const bex_string_t bex_mnemonic_strings[] =
     {"GAMMALVL4",          GAMMALVL4         },
     {"EMPTYSTRING",        EMPTYSTRING       },
     {"GGSAVED",            GGSAVED           },
-    // {"SAVEGAMENAME",       SAVEGAMENAME      },
     // part 2 - messages when the player gets things
     {"GOTARMOR",           GOTARMOR          },
     {"GOTMEGA",            GOTMEGA           },

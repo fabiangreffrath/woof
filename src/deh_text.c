@@ -23,35 +23,6 @@
 #include "deh_strings.h"
 #include "doomtype.h"
 
-/*
-  const int version = DV_VANILLA; // We only support version 1.9 of Vanilla Doom
-  char *deh_gamename = M_StringDuplicate(newstring);
-  char *fmt = deh_gamename;
-
-  // Expand "%i" in deh_gamename to include the Doom version
-  // number We cannot use sprintf() here, because deh_gamename
-  // isn't a string literal
-
-  fmt = strstr(fmt, "%i");
-  if (fmt)
-  {
-      *fmt++ = '0' + version / 100;
-      memmove(fmt, fmt + 1, strlen(fmt));
-
-      fmt = strstr(fmt, "%i");
-      if (fmt)
-      {
-          *fmt++ = '0' + version % 100;
-          memmove(fmt, fmt + 1, strlen(fmt));
-      }
-  }
-
-  // Cut off trailing and leading spaces to get the basic name
-
-  rstrip(deh_gamename);
-  gamedescription = ptr_lstrip(deh_gamename);
-*/
-
 // [crispy] support INCLUDE NOTEXT directive in BEX files
 boolean bex_notext = false;
 

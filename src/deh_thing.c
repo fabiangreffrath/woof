@@ -411,8 +411,6 @@ static void DEH_ThingParseLine(deh_context_t *context, char *line, void *tag)
         return;
     }
 
-    I_Printf(VB_DEBUG, "Set %s to %s for mobj", variable_name, value);
-
     // most values are integers
     int ivalue = atoi(value);
 

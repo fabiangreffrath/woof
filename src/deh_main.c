@@ -275,7 +275,7 @@ static void DEH_ParseContext(deh_context_t *context)
     if (!CheckSignatures(context))
     {
         // [crispy] make non-fatal
-        I_Printf(VB_DEBUG, "Invalid DeHackEd signature found.");
+        DEH_Debug(context, "Invalid DeHackEd signature found.");
     }
 
     // Read the file
@@ -327,7 +327,6 @@ static void DEH_ParseContext(deh_context_t *context)
                     prev_section = NULL;
                 }
 
-                I_Printf(VB_DEBUG, "End '%s' tag", current_section->name);
                 current_section = NULL;
             }
         }
@@ -347,7 +346,6 @@ static void DEH_ParseContext(deh_context_t *context)
 
                 if (current_section != NULL)
                 {
-                    I_Printf(VB_DEBUG, "Started '%s' tag", current_section->name);
                     tag = current_section->start(context, line);
                 }
                 else if (prev_section != NULL)
@@ -359,7 +357,7 @@ static void DEH_ParseContext(deh_context_t *context)
                 }
                 else
                 {
-                    DEH_Warning(context, "Unkown DeHackEd section name '%s', WAD may not work properlly!", section_name);
+                    DEH_Debug(context, "Unkown DeHackEd section name '%s', WAD may not work properlly!", section_name);
                 }
             }
         }
@@ -458,10 +456,10 @@ void DEH_LoadLumpByName(const char *name)
 void DEH_ParseCommandLine(void)
 {
     //!
-    // @arg <files>
     // @category mod
+    // @arg <files>
     //
-    // Load the given dehacked patch(es)
+    // Load the given dehacked/bex patch(es)
     //
     int p = M_CheckParm("-deh");
 

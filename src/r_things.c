@@ -228,7 +228,7 @@ void R_InitSpriteDefs(char **namelist)
 
   for (i=0 ; i<num_sprites ; i++)
     {
-      const char *spritename = DEH_String(namelist[i]);
+      const char *spritename = namelist[i] ? DEH_String(namelist[i]) : namelist[i];
       int j;
 
       if (!spritename)

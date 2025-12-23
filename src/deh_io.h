@@ -30,6 +30,7 @@ char *DEH_ReadLine(deh_context_t *context, boolean extended);
 void DEH_PrintMessage(deh_context_t *context, verbosity_t verbosity, const char *msg, ...) PRINTF_ATTR(3, 4);
 boolean DEH_HadError(deh_context_t *context);
 char *DEH_FileName(deh_context_t *context); // [crispy] returns filename
+#define DEH_Debug(context, ...) DEH_PrintMessage(context, VB_DEBUG, __VA_ARGS__)
 #define DEH_Warning(context, ...) DEH_PrintMessage(context, VB_WARNING, __VA_ARGS__)
 #define DEH_Error(context, ...) DEH_PrintMessage(context, VB_ERROR, __VA_ARGS__)
 
