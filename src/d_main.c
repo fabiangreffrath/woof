@@ -20,6 +20,10 @@
 //
 //-----------------------------------------------------------------------------
 
+#if defined(_WIN32)
+#include <ctype.h>
+#endif
+
 #include <limits.h>
 #include <stdio.h>
 #include <stdlib.h>
