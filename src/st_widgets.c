@@ -23,7 +23,6 @@
 #include "doomkeys.h"
 #include "doomstat.h"
 #include "doomtype.h"
-#include "d_englsh.h"
 #include "g_game.h"
 #include "g_umapinfo.h"
 #include "hu_command.h"

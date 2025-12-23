@@ -23,7 +23,6 @@
 #include "am_map.h"
 #include "d_event.h"
 #include "d_player.h"
-#include "d_englsh.h"
 #include "deh_strings.h"
 #include "doomdef.h"
 #include "doomstat.h"

@@ -28,7 +28,6 @@
 #include <string.h>
 
 #include "config.h"
-#include "d_englsh.h"
 #include "d_event.h"
 #include "d_main.h"
 #include "deh_strings.h"

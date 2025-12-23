@@ -24,7 +24,6 @@
 #include "deh_main.h"
 #include "deh_strings.h"
 #include "doomtype.h"
-#include "d_englsh.h"
 #include "info.h"
 #include "m_misc.h"
 

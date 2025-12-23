@@ -41,7 +41,6 @@
 #include "doomdef.h"
 #include "doomstat.h"
 #include "doomtype.h"
-#include "d_englsh.h"
 #include "f_finale.h"
 #include "f_wipe.h"
 #include "g_compatibility.h"
