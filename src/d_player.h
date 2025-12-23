@@ -185,7 +185,7 @@ typedef struct player_s
   fixed_t             oldviewz;
 
   // [Woof!] show centered "A secret is revealed!" message
-  char*               secretmessage;
+  const char*         secretmessage;
 
   int                 btuse, btuse_tics;
 
