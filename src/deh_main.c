@@ -62,7 +62,7 @@ static deh_section_t *deh_section_types[] =
     &deh_section_bex_partimes,
     &deh_section_bex_strings,
     // Eternity BEX
-    // &deh_section_bex_helper,
+    &deh_section_bex_helper,
     &deh_section_bex_music,
     &deh_section_bex_sounds,
     &deh_section_bex_sprites,
