@@ -19,7 +19,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <strings.h>
+#include <string.h>
 
 #include "deh_strings.h"
 #include "doomtype.h"

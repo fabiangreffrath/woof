@@ -19,7 +19,6 @@
 
 #include <stdio.h>
 #include <string.h>
-#include <strings.h>
 
 #include "deh_defs.h"
 #include "deh_io.h"
