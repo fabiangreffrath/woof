@@ -26,7 +26,6 @@
 // Used to do dehacked text substitutions throughout the program
 
 const char *DEH_String(const char *s) PRINTF_ARG_ATTR(1);
-extern void DEH_snprintf(char *buffer, size_t len, const char *fmt, ...) PRINTF_ATTR(3, 4);
 void DEH_AddStringReplacement(const char *from_text, const char *to_text);
 boolean DEH_HasStringReplacement(const char *s);
 
