@@ -23,8 +23,8 @@
 
 #include <math.h>
 #include <stdlib.h>
-#include <string.h>
 
+#include "deh_bex_sounds.h"
 #include "i_oalcommon.h"
 #include "i_oalequalizer.h"
 #include "i_oalsound.h"
