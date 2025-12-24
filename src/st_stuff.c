@@ -1477,7 +1477,7 @@ static void DrawLines(int x, int y, sbarelem_t *elem)
     }
 }
 
-static void DrawElem(int x, int y, sbarelem_t *elem, player_t *player)
+static void DrawElem(int x, int y, int y0, sbarelem_t *elem, player_t *player)
 {
     if (!CheckConditions(elem->conditions, player))
     {
@@ -1486,6 +1486,7 @@ static void DrawElem(int x, int y, sbarelem_t *elem, player_t *player)
 
     x += elem->x_pos;
     y += elem->y_pos;
+    y0 += elem->y_pos;
 
     switch (elem->type)
     {
@@ -1534,19 +1535,19 @@ static void DrawElem(int x, int y, sbarelem_t *elem, player_t *player)
             if (elem == st_cmd_elem)
             {
                 st_cmd_x = x;
-                st_cmd_y = y;
+                st_cmd_y = y0;
             }
             if (message_centered && elem == st_msg_elem)
             {
                 break;
             }
-            DrawLines(x, y, elem);
+            DrawLines(x, y0, elem);
             break;
 
         case sbe_carousel:
             if (weapon_carousel)
             {
-                ST_DrawCarousel(x, y, elem);
+                ST_DrawCarousel(x, y0, elem);
             }
             break;
 
@@ -1557,7 +1558,7 @@ static void DrawElem(int x, int y, sbarelem_t *elem, player_t *player)
     sbarelem_t *child;
     array_foreach(child, elem->children)
     {
-        DrawElem(x, y, child, player);
+        DrawElem(x, y, y0, child, player);
     }
 }
 
@@ -1682,7 +1683,7 @@ static void DrawStatusBar(void)
     sbarelem_t *child;
     array_foreach(child, statusbar->children)
     {
-        DrawElem(0, SCREENHEIGHT - statusbar->height, child, player);
+        DrawElem(0, SCREENHEIGHT - statusbar->height, 0, child, player);
     }
 
     DrawCenteredMessage();
