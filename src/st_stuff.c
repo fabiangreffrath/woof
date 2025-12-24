@@ -1651,7 +1651,7 @@ static void DrawBackground(const char *name)
 
             V_TileBlock64(ST_Y, video.unscaledw, st_height, flat);
 
-            if (!statusbar->fullscreenrender
+            if ((!statusbar->fullscreenrender && screenblocks >= 10)
                 || (automapactive && automapoverlay == AM_OVERLAY_OFF))
             {
                 patch_t *patch = V_CachePatchName("brdr_b", PU_CACHE);
