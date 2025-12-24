@@ -1252,9 +1252,9 @@ static void DrawPatch(int x, int y, crop_t crop, int maxheight,
     if (alignment & sbe_h_middle)
     {
         x = x - width / 2 + xoffset;
-        if (crop.midoffset)
+        if (crop.center)
         {
-            x += width / 2 + crop.midoffset;
+            x += width / 2 + crop.left;
         }
     }
     else if (alignment & sbe_h_right)
@@ -1265,6 +1265,10 @@ static void DrawPatch(int x, int y, crop_t crop, int maxheight,
     if (alignment & sbe_v_middle)
     {
         y = y - height / 2 + yoffset;
+        if (crop.center)
+        {
+            y += height / 2 + crop.left;
+        }
     }
     else if (alignment & sbe_v_bottom)
     {
@@ -1582,7 +1586,7 @@ static void DrawSolidBackground(void)
 
     patch_t *sbar = V_CachePatchName(W_CheckWidescreenPatch("STBAR"), PU_CACHE);
     // [FG] temporarily draw status bar to background buffer
-    crop_t crop = {0, 0, 0, SHORT(sbar->width), st_height};
+    crop_t crop = {.width = SHORT(sbar->width), .height = st_height};
     V_DrawPatchGeneral(-video.deltaw, 0, 0, 0, crop, sbar, false);
 
     byte *pal = W_CacheLumpName("PLAYPAL", PU_CACHE);
@@ -1657,9 +1661,11 @@ static void DrawBackground(const char *name)
                 patch_t *patch = V_CachePatchName("brdr_b", PU_CACHE);
                 for (int x = 0; x < video.unscaledw; x += 8)
                 {
-                    crop_t crop = {0, 0, 0, patch->width, st_height};
+                    crop_t crop = {.width = SHORT(patch->width),
+                                   .height = st_height};
                     V_DrawPatchGeneral(x - video.deltaw, 0,
-                        patch->leftoffset, patch->topoffset, crop, patch, false);
+                        SHORT(patch->leftoffset), SHORT(patch->topoffset),
+                        crop, patch, false);
                 }
             }
         }

@@ -158,9 +158,9 @@ void V_CopyRect(int srcx, int srcy, pixel_t *source, int width, int height,
 
 typedef struct
 {
-    int topoffset;
-    int leftoffset;
-    int midoffset;
+    int left;
+    int top;
+    boolean center;
     int width;
     int height;    
 } crop_t;

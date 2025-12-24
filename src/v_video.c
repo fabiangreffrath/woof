@@ -458,12 +458,12 @@ static void DrawMaskedColumn(patch_column_t *patchcol, const int ytop,
             }
 
             patchcol->y1 = y1lookup[columntop];
-            patchcol->frac = patchcol->topoffset << FRACBITS;
+            patchcol->frac = IntToFixed(patchcol->topoffset);
         }
         else
         {
             patchcol->frac = (-columntop) << FRACBITS;
-            patchcol->y1 = patchcol->topoffset << FRACBITS;
+            patchcol->y1 = patchcol->topoffset;
         }
 
         if (columntop + column->length - 1 < 0)
@@ -504,7 +504,7 @@ static void DrawMaskedColumn(patch_column_t *patchcol, const int ytop,
 static void DrawPatchInternal(int x, int y, int xoffset, int yoffset,
                               crop_t crop, patch_t *patch, boolean flipped)
 {
-    int x1, x2, w;
+    int x1, x2, w, h;
     fixed_t iscale, xiscale, startfrac = 0;
     patch_column_t patchcol = {0};
 
@@ -597,13 +597,14 @@ static void DrawPatchInternal(int x, int y, int xoffset, int yoffset,
     }
 
     patchcol.height = crop.height;
-    patchcol.topoffset = crop.topoffset;
+    h = SHORT(patch->height);
+    patchcol.topoffset = (crop.center && crop.top) ? h / 2 + crop.top : crop.top;
 
     column_t *column;
     int texturecolumn;
 
     w = SHORT(patch->width);
-    int leftoffset = crop.midoffset ? w / 2 + crop.midoffset : crop.leftoffset;
+    int leftoffset = (crop.center && crop.left) ? w / 2 + crop.left : crop.left;
 
     const int ytop = y - yoffset;
     for (; patchcol.x <= x2; patchcol.x++, startfrac += xiscale)

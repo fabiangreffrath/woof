@@ -82,14 +82,20 @@ static const char *sbw_names[] =
 
 static crop_t ParseCrop(json_t *json)
 {
-    crop_t crop = {
-        .topoffset = JS_GetIntegerValue(json, "topoffset"),
-        .leftoffset = JS_GetIntegerValue(json, "leftoffset"),
-        .midoffset = JS_GetIntegerValue(json, "midoffset"),
-        .width = JS_GetIntegerValue(json, "width"),
-        .height = JS_GetIntegerValue(json, "height")
-    };
-    return crop;
+    json_t *js_crop = JS_GetObject(json, "crop");
+    if (js_crop)
+    {
+        crop_t crop = {
+            .top = JS_GetIntegerValue(js_crop, "top"),
+            .left = JS_GetIntegerValue(js_crop, "left"),
+            .center = JS_GetBooleanValue(js_crop, "center"),
+            .width = JS_GetIntegerValue(js_crop, "width"),
+            .height = JS_GetIntegerValue(js_crop, "height")
+        };
+        return crop;
+    }
+
+    return (crop_t){0};
 }
 
 static boolean ParseSbarElem(json_t *json, sbarelem_t *out);
