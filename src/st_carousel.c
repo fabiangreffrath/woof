@@ -183,15 +183,18 @@ static void DrawIcon(int x, int y, sbarelem_t *elem, weapon_icon_t icon)
 
     if (cr && elem->tranmap)
     {
-        V_DrawPatchTRTL(x, y, (crop_t){0}, patch, cr, elem->tranmap);
+        V_DrawPatchTRTL(x, y, patch->leftoffset, patch->topoffset, (crop_t){0},
+                        patch, cr, elem->tranmap);
     }
     else if (elem->tranmap)
     {
-        V_DrawPatchTL(x, y, (crop_t){0}, patch, elem->tranmap);
+        V_DrawPatchTL(x, y, patch->leftoffset, patch->topoffset, (crop_t){0},
+                      patch, elem->tranmap);
     }
     else
     {
-        V_DrawPatchTR(x, y, (crop_t){0}, patch, cr);
+        V_DrawPatchTR(x, y, patch->leftoffset, patch->topoffset, (crop_t){0},
+                      patch, cr);
     }
 }
 

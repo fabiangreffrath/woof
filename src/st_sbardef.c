@@ -22,7 +22,6 @@
 #include "m_json.h"
 #include "m_misc.h"
 #include "m_swap.h"
-#include "r_data.h"
 #include "r_defs.h"
 #include "r_tranmap.h"
 #include "v_fmt.h"
@@ -95,6 +94,8 @@ static crop_t ParseCrop(json_t *json)
 
 static boolean ParseSbarElem(json_t *json, sbarelem_t *out);
 
+static boolean translate_alignment;
+
 static boolean ParseSbarElemType(json_t *json, sbarelementtype_t type,
                                  sbarelem_t *out)
 {
@@ -110,6 +111,19 @@ static boolean ParseSbarElemType(json_t *json, sbarelementtype_t type,
     out->x_pos = JS_GetInteger(x_pos);
     out->y_pos = JS_GetInteger(y_pos);
     out->alignment = JS_GetInteger(alignment);
+    if (translate_alignment)
+    {
+        if (out->alignment & sbe_ignore_xoffset)
+        {
+            out->alignment &= ~sbe_ignore_xoffset;
+            out->alignment |= sbe_wide_left;
+        }
+        if (out->alignment & sbe_ignore_yoffset)
+        {
+            out->alignment &= ~sbe_ignore_yoffset;
+            out->alignment |= sbe_wide_right;
+        }
+    }
 
     const char *tranmap = JS_GetStringValue(json, "tranmap");
     if (tranmap)
@@ -519,7 +533,7 @@ static boolean ParseStatusBar(json_t *json, statusbar_t *out)
 
 sbardef_t *ST_ParseSbarDef(void)
 {
-    json_t *json = JS_Open("SBARDEF", "statusbar", (version_t){1, 1, 0});
+    json_t *json = JS_Open("SBARDEF", "statusbar", (version_t){1, 1, 1});
     if (json == NULL)
     {
         return NULL;
@@ -531,6 +545,11 @@ sbardef_t *ST_ParseSbarDef(void)
     if (v.major == 1 && v.minor < 1)
     {
         load_defaults = true;
+    }
+
+    if (v.major == 1 && v.minor == 1 && v.revision == 0)
+    {
+        translate_alignment = true;
     }
 
     json_t *data = JS_GetObject(json, "data");

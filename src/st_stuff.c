@@ -1238,9 +1238,20 @@ static void DrawPatch(int x, int y, crop_t crop, int maxheight,
     int width = SHORT(patch->width);
     int height = maxheight ? maxheight : SHORT(patch->height);
 
+    int xoffset = 0;
+    if (!(alignment & sbe_ignore_yoffset))
+    {
+        xoffset = SHORT(patch->leftoffset);
+    }
+    int yoffset = 0;
+    if (!(alignment & sbe_ignore_yoffset))
+    {
+        yoffset = SHORT(patch->topoffset);
+    }
+
     if (alignment & sbe_h_middle)
     {
-        x = x - width / 2 + SHORT(patch->leftoffset);
+        x = x - width / 2 + xoffset;
         if (crop.midoffset)
         {
             x += width / 2 + crop.midoffset;
@@ -1253,7 +1264,7 @@ static void DrawPatch(int x, int y, crop_t crop, int maxheight,
 
     if (alignment & sbe_v_middle)
     {
-        y = y - height / 2 + SHORT(patch->topoffset);
+        y = y - height / 2 + yoffset;
     }
     else if (alignment & sbe_v_bottom)
     {
@@ -1273,15 +1284,15 @@ static void DrawPatch(int x, int y, crop_t crop, int maxheight,
 
     if (outr && tl)
     {
-        V_DrawPatchTRTL(x, y, crop, patch, outr, tl);
+        V_DrawPatchTRTL(x, y, xoffset, yoffset, crop, patch, outr, tl);
     }
     else if (tl)
     {
-        V_DrawPatchTL(x, y, crop, patch, tl);
+        V_DrawPatchTL(x, y, xoffset, yoffset, crop, patch, tl);
     }
     else
     {
-        V_DrawPatchTR(x, y, crop, patch, outr);
+        V_DrawPatchTR(x, y, xoffset, yoffset, crop, patch, outr);
     }
 }
 

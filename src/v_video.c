@@ -501,8 +501,8 @@ static void DrawMaskedColumn(patch_column_t *patchcol, const int ytop,
     }
 }
 
-static void DrawPatchInternal(int x, int y, crop_t crop, patch_t *patch,
-                              boolean flipped)
+static void DrawPatchInternal(int x, int y, int xoffset, int yoffset,
+                              crop_t crop, patch_t *patch, boolean flipped)
 {
     int x1, x2, w;
     fixed_t iscale, xiscale, startfrac = 0;
@@ -522,12 +522,12 @@ static void DrawPatchInternal(int x, int y, crop_t crop, patch_t *patch,
     {
         // If flipped, then offsets are flipped as well which means they
         // technically offset from the right side of the patch (x2)
-        x2 = x + SHORT(patch->leftoffset);
+        x2 = x + xoffset;
         x1 = x2 - (w - 1);
     }
     else
     {
-        x1 = x - SHORT(patch->leftoffset);
+        x1 = x - xoffset;
         x2 = x1 + w - 1;
     }
 
@@ -605,7 +605,7 @@ static void DrawPatchInternal(int x, int y, crop_t crop, patch_t *patch,
     w = SHORT(patch->width);
     int leftoffset = crop.midoffset ? w / 2 + crop.midoffset : crop.leftoffset;
 
-    const int ytop = y - SHORT(patch->topoffset);
+    const int ytop = y - yoffset;
     for (; patchcol.x <= x2; patchcol.x++, startfrac += xiscale)
     {
         texturecolumn = (startfrac >> FRACBITS) + leftoffset;
@@ -644,17 +644,18 @@ static void DrawPatchInternal(int x, int y, crop_t crop, patch_t *patch,
 // killough 11/98: Consolidated V_DrawPatch and V_DrawPatchFlipped into one
 //
 
-void V_DrawPatchGeneral(int x, int y, crop_t crop,
+void V_DrawPatchGeneral(int x, int y, int xoffset, int yoffset, crop_t crop,
                         patch_t *patch, boolean flipped)
 {
     x += video.deltaw;
 
     drawcolfunc = DrawPatchColumn;
 
-    DrawPatchInternal(x, y, crop, patch, flipped);
+    DrawPatchInternal(x, y, xoffset, yoffset, crop, patch, flipped);
 }
 
-void V_DrawPatchTR(int x, int y, crop_t crop, patch_t *patch, byte *outr)
+void V_DrawPatchTR(int x, int y, int xoffset, int yoffset, crop_t crop,
+                   patch_t *patch, byte *outr)
 {
     x += video.deltaw;
 
@@ -668,26 +669,27 @@ void V_DrawPatchTR(int x, int y, crop_t crop, patch_t *patch, byte *outr)
         drawcolfunc = DrawPatchColumn;
     }
 
-    DrawPatchInternal(x, y, crop, patch, false);
+    DrawPatchInternal(x, y, xoffset, yoffset, crop, patch, false);
 }
 
 void V_DrawPatchTranslated(int x, int y, patch_t *patch, byte *outr)
 {
-    V_DrawPatchTR(x, y, (crop_t){0}, patch, outr);
+    V_DrawPatchTR(x, y, patch->leftoffset, patch->topoffset, (crop_t){0}, patch,
+                  outr);
 }
 
-void V_DrawPatchTL(int x, int y, crop_t crop, struct patch_s *patch,
-                   const byte *tl)
+void V_DrawPatchTL(int x, int y, int xoffset, int yoffset, crop_t crop,
+                   patch_t *patch, const byte *tl)
 {
     x += video.deltaw;
 
     tranmap = tl;
     drawcolfunc = DrawPatchColumnTL;
 
-    DrawPatchInternal(x, y, crop, patch, false);
+    DrawPatchInternal(x, y, xoffset, yoffset, crop, patch, false);
 }
 
-void V_DrawPatchTRTL(int x, int y, crop_t crop, struct patch_s *patch,
+void V_DrawPatchTRTL(int x, int y, int xoffset, int yoffset, crop_t crop, struct patch_s *patch,
                      byte *outr, const byte *tl)
 {
     x += video.deltaw;
@@ -696,11 +698,11 @@ void V_DrawPatchTRTL(int x, int y, crop_t crop, struct patch_s *patch,
     tranmap = tl;
     drawcolfunc = DrawPatchColumnTRTL;
 
-    DrawPatchInternal(x, y, crop, patch, false);
+    DrawPatchInternal(x, y, xoffset, yoffset, crop, patch, false);
 }
 
-void V_DrawPatchTRTR(int x, int y, crop_t crop, patch_t *patch,
-                     byte *outr1, byte *outr2)
+void V_DrawPatchTRTR(int x, int y, int xoffset, int yoffset,
+                     crop_t crop, patch_t *patch, byte *outr1, byte *outr2)
 {
     x += video.deltaw;
 
@@ -708,23 +710,20 @@ void V_DrawPatchTRTR(int x, int y, crop_t crop, patch_t *patch,
     translation2 = outr2;
     drawcolfunc = DrawPatchColumnTRTR;
 
-    DrawPatchInternal(x, y, crop, patch, false);
+    DrawPatchInternal(x, y, xoffset, yoffset, crop, patch, false);
 }
 
 void V_DrawPatchFullScreen(patch_t *patch)
 {
     const int x = DIV_ROUND_CLOSEST(video.unscaledw - SHORT(patch->width), 2);
 
-    patch->leftoffset = 0;
-    patch->topoffset = 0;
-
-    // [crispy] fill pillarboxes in widescreen mode
-    // always clear screen, fixes eternall.wad's partly transparent CREDIT in non-widescreen
+    // [crispy] fill pillarboxes in widescreen mode always clear screen, fixes
+    // eternall.wad's partly transparent CREDIT in non-widescreen
     V_FillRect(0, 0, video.unscaledw, SCREENHEIGHT, v_darkest_color);
 
     drawcolfunc = DrawPatchColumn;
 
-    DrawPatchInternal(x, 0, (crop_t){0}, patch, false);
+    DrawPatchInternal(x, 0, 0, 0, (crop_t){0}, patch, false);
 }
 
 void V_ShadeScreen(void)

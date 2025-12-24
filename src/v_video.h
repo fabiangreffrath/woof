@@ -25,8 +25,7 @@
 
 #include "doomtype.h"
 #include "m_fixed.h"
-
-struct patch_s;
+#include "r_defs.h"
 
 //
 // VIDEO
@@ -165,27 +164,36 @@ typedef struct
     int height;    
 } crop_t;
 
-void V_DrawPatchGeneral(int x, int y, crop_t rect, struct patch_s *patch,
-                        boolean flipped);
+void V_DrawPatchGeneral(int x, int y, int xoffset, int yoffset, crop_t rect,
+                        struct patch_s *patch, boolean flipped);
 
-#define V_DrawPatch(x, y, p) V_DrawPatchGeneral(x, y, (crop_t){0}, p, false)
+inline static void V_DrawPatch(int x, int y, patch_t *patch)
+{
+    V_DrawPatchGeneral(x, y, patch->leftoffset, patch->topoffset, (crop_t){0},
+                       patch, false);
+}
 
-#define V_DrawPatchFlipped(x, y, p) V_DrawPatchGeneral(x, y, (crop_t){0}, p, true)
+inline static void V_DrawPatchFlipped(int x, int y, patch_t *patch)
+{
+    V_DrawPatchGeneral(x, y, patch->leftoffset, patch->topoffset, (crop_t){0},
+                       patch, true);
+}
 
-void V_DrawPatchTranslated(int x, int y, struct patch_s *patch, byte *outr);
+void V_DrawPatchTranslated(int x, int y, patch_t *patch, byte *outr);
 
-void V_DrawPatchTR(int x, int y, crop_t rect, struct patch_s *patch, byte *outr);
+void V_DrawPatchTR(int x, int y, int xoffset, int yoffset, crop_t rect,
+                   patch_t *patch, byte *outr);
 
-void V_DrawPatchTRTR(int x, int y, crop_t rect, struct patch_s *patch,
-                     byte *outr1, byte *outr2);
+void V_DrawPatchTRTR(int x, int y, int xoffset, int yoffset, crop_t rect,
+                     patch_t *patch, byte *outr1, byte *outr2);
 
-void V_DrawPatchTL(int x, int y, crop_t rect, struct patch_s *patch,
-                   const byte *tl);
+void V_DrawPatchTL(int x, int y, int xoffset, int yoffset, crop_t rect,
+                   patch_t *patch, const byte *tl);
 
-void V_DrawPatchTRTL(int x, int y, crop_t rect, struct patch_s *patch,
-                     byte *outr, const byte *tl);
+void V_DrawPatchTRTL(int x, int y, int xoffset, int yoffset, crop_t rect,
+                     patch_t *patch, byte *outr, const byte *tl);
 
-void V_DrawPatchFullScreen(struct patch_s *patch);
+void V_DrawPatchFullScreen(patch_t *patch);
 
 // Draw a linear block of pixels into the view buffer.
 

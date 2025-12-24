@@ -157,9 +157,12 @@ typedef enum
 
     sbe_v_mask = 0x0C,
 
+    sbe_ignore_xoffset = 0x10,
+    sbe_ignore_yoffset = 0x20,
+
     // Woof!
-    sbe_wide_left = 0x10,
-    sbe_wide_right = 0x20,
+    sbe_wide_left = 0x40,
+    sbe_wide_right = 0x80,
 } sbaralignment_t;
 
 typedef struct

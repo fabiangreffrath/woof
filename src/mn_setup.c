@@ -3897,15 +3897,18 @@ void MN_DrawStringCR(int cx, int cy, byte *cr1, byte *cr2, const char *ch)
             break;
         }
 
+        patch_t *patch = hu_font[c];
+
         // V_DrawpatchTranslated() will draw the string in the
         // desired color, colrngs[color]
         if (cr && cr2)
         {
-            V_DrawPatchTRTR(cx, cy, (crop_t){0}, hu_font[c], cr, cr2);
+            V_DrawPatchTRTR(cx, cy, patch->leftoffset, patch->topoffset,
+                            (crop_t){0}, patch, cr, cr2);
         }
         else
         {
-            V_DrawPatchTranslated(cx, cy, hu_font[c], cr);
+            V_DrawPatchTranslated(cx, cy, patch, cr);
         }
 
         // The screen is cramped, so trim one unit from each
