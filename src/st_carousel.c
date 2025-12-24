@@ -183,7 +183,7 @@ static void DrawIcon(int x, int y, sbarelem_t *elem, weapon_icon_t icon)
     byte *cr = icon.state == wpi_disabled ? cr_dark : NULL;
 
     int xoffset = SHORT(patch->leftoffset);
-    int yoffset = SHORT(patch->leftoffset);
+    int yoffset = SHORT(patch->topoffset);
 
     if (cr && elem->tranmap)
     {
