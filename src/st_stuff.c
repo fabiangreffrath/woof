@@ -1582,7 +1582,8 @@ static void DrawSolidBackground(void)
 
     patch_t *sbar = V_CachePatchName(W_CheckWidescreenPatch("STBAR"), PU_CACHE);
     // [FG] temporarily draw status bar to background buffer
-    V_DrawPatch(-video.deltaw, 0, sbar);
+    crop_t crop = {0, 0, 0, SHORT(sbar->width), st_height};
+    V_DrawPatchGeneral(-video.deltaw, 0, 0, 0, crop, sbar, false);
 
     byte *pal = W_CacheLumpName("PLAYPAL", PU_CACHE);
 

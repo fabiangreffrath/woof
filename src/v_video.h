@@ -165,7 +165,7 @@ typedef struct
 } crop_t;
 
 void V_DrawPatchGeneral(int x, int y, int xoffset, int yoffset, crop_t rect,
-                        struct patch_s *patch, boolean flipped);
+                        patch_t *patch, boolean flipped);
 
 inline static void V_DrawPatch(int x, int y, patch_t *patch)
 {
