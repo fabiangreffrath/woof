@@ -45,7 +45,7 @@ static void *DEH_PointerStart(deh_context_t *context, char *line)
     // FIXME: can the third argument here be something other than "Frame"
     // or are we ok?
 
-    int frame_number = 0;
+    int frame_number = -1;
     if (sscanf(line, "Pointer %*i (%*s %i)", &frame_number) != 1)
     {
         DEH_Warning(context, "Parse error on section start");
@@ -81,12 +81,11 @@ static void DEH_PointerParseLine(deh_context_t *context, char *line, void *tag)
         return;
     }
 
-    // all values are integers
-    int ivalue = atoi(value);
-
     // set the appropriate field
     if (!strcasecmp(variable_name, "Codep frame"))
     {
+        // all values are integers
+        int ivalue = atoi(value);
         if (ivalue < 0)
         {
             DEH_Warning(context, "Invalid state '%i'", ivalue);

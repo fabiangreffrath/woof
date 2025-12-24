@@ -141,7 +141,7 @@ DEH_END_MAPPING
 
 static void *DEH_FrameStart(deh_context_t *context, char *line)
 {
-    int frame_number = 0;
+    int frame_number = -1;
 
     if (sscanf(line, "Frame %i", &frame_number) != 1)
     {
@@ -158,9 +158,7 @@ static void *DEH_FrameStart(deh_context_t *context, char *line)
     // DSDHacked
     DEH_StatesEnsureCapacity(frame_number);
 
-    state_t *state = &states[frame_number];
-
-    return state;
+    return &states[frame_number];
 }
 
 static void DEH_FrameParseLine(deh_context_t *context, char *line, void *tag)
@@ -183,8 +181,6 @@ static void DEH_FrameParseLine(deh_context_t *context, char *line, void *tag)
     // most values are integers
     int ivalue = atoi(value);
 
-    // TODO:
-    // * defined_codeptr_args
     if (!strcasecmp(variable_name, "MBF21 Bits"))
     {
         ivalue = DEH_ParseBexBitFlags(ivalue, value, frame_flags_mbf21, arrlen(frame_flags_mbf21));
@@ -193,6 +189,38 @@ static void DEH_FrameParseLine(deh_context_t *context, char *line, void *tag)
     {
         state->tranmap = W_CacheLumpName(value, PU_STATIC);
         return;
+    }
+    else if (!strcasecmp(variable_name, "Args1"))
+    {
+        defined_codepointer_args[state - states] |= (1u << 0);
+    }
+    else if (!strcasecmp(variable_name, "Args2"))
+    {
+        defined_codepointer_args[state - states] |= (1u << 1);
+    }
+    else if (!strcasecmp(variable_name, "Args3"))
+    {
+        defined_codepointer_args[state - states] |= (1u << 2);
+    }
+    else if (!strcasecmp(variable_name, "Args4"))
+    {
+        defined_codepointer_args[state - states] |= (1u << 3);
+    }
+    else if (!strcasecmp(variable_name, "Args5"))
+    {
+        defined_codepointer_args[state - states] |= (1u << 4);
+    }
+    else if (!strcasecmp(variable_name, "Args6"))
+    {
+        defined_codepointer_args[state - states] |= (1u << 5);
+    }
+    else if (!strcasecmp(variable_name, "Args7"))
+    {
+        defined_codepointer_args[state - states] |= (1u << 6);
+    }
+    else if (!strcasecmp(variable_name, "Args8"))
+    {
+        defined_codepointer_args[state - states] |= (1u << 7);
     }
 
     // set the appropriate field

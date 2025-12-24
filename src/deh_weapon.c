@@ -72,7 +72,7 @@ DEH_END_MAPPING
 
 static void *DEH_WeaponStart(deh_context_t *context, char *line)
 {
-    int weapon_number = 0;
+    int weapon_number = -1;
 
     if (sscanf(line, "Weapon %i", &weapon_number) != 1)
     {

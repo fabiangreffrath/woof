@@ -370,7 +370,7 @@ DEH_END_MAPPING
 
 static void *DEH_ThingStart(deh_context_t *context, char *line)
 {
-    int thing_number = 0;
+    int thing_number = -1;
 
     if (sscanf(line, "Thing %i", &thing_number) != 1)
     {

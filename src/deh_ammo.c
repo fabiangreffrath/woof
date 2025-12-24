@@ -53,7 +53,7 @@ DEH_END_MAPPING
 
 static void *DEH_AmmoStart(deh_context_t *context, char *line)
 {
-    int ammo_number = 0;
+    int ammo_number = -1;
 
     if (sscanf(line, "Ammo %i", &ammo_number) != 1)
     {

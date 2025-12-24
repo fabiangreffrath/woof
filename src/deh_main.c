@@ -21,6 +21,7 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "d_items.h"
 #include "d_iwad.h"
 #include "deh_bex_music.h"
 #include "deh_bex_sounds.h"
@@ -29,6 +30,7 @@
 #include "deh_frame.h"
 #include "deh_io.h"
 #include "deh_main.h"
+#include "deh_misc.h"
 #include "deh_thing.h"
 #include "doomtype.h"
 #include "i_glob.h"
@@ -479,6 +481,15 @@ void DEH_ParseCommandLine(void)
 
 void DEH_PostProcess(void)
 {
+    // sanity-check bfgcells and bfg ammopershot
+    if (deh_set_bfgcells
+        && weaponinfo[wp_bfg].intflags & WIF_ENABLEAPS
+        && deh_bfg_cells_per_shot != weaponinfo[wp_bfg].ammopershot)
+    {
+        I_Error("Mismatch between bfgcells and bfg ammo per shot "
+                "modifications! Check your dehacked.");
+    }
+
     if (post_process)
     {
         DEH_ValidateStateArgs();

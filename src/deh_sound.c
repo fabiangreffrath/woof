@@ -49,7 +49,7 @@ DEH_END_MAPPING
 
 static void *DEH_SoundStart(deh_context_t *context, char *line)
 {
-    int sound_number = 0;
+    int sound_number = -1;
 
     if (sscanf(line, "Sound %i", &sound_number) != 1)
     {
