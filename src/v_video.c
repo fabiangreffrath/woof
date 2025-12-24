@@ -674,8 +674,8 @@ void V_DrawPatchTR(int x, int y, int xoffset, int yoffset, crop_t crop,
 
 void V_DrawPatchTranslated(int x, int y, patch_t *patch, byte *outr)
 {
-    V_DrawPatchTR(x, y, patch->leftoffset, patch->topoffset, (crop_t){0}, patch,
-                  outr);
+    V_DrawPatchTR(x, y, SHORT(patch->leftoffset), SHORT(patch->topoffset),
+                  (crop_t){0}, patch, outr);
 }
 
 void V_DrawPatchTL(int x, int y, int xoffset, int yoffset, crop_t crop,
@@ -689,8 +689,8 @@ void V_DrawPatchTL(int x, int y, int xoffset, int yoffset, crop_t crop,
     DrawPatchInternal(x, y, xoffset, yoffset, crop, patch, false);
 }
 
-void V_DrawPatchTRTL(int x, int y, int xoffset, int yoffset, crop_t crop, struct patch_s *patch,
-                     byte *outr, const byte *tl)
+void V_DrawPatchTRTL(int x, int y, int xoffset, int yoffset, crop_t crop,
+                     patch_t *patch, byte *outr, const byte *tl)
 {
     x += video.deltaw;
 

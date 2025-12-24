@@ -25,6 +25,7 @@
 
 #include "doomtype.h"
 #include "m_fixed.h"
+#include "m_swap.h"
 #include "r_defs.h"
 
 //
@@ -169,14 +170,14 @@ void V_DrawPatchGeneral(int x, int y, int xoffset, int yoffset, crop_t rect,
 
 inline static void V_DrawPatch(int x, int y, patch_t *patch)
 {
-    V_DrawPatchGeneral(x, y, patch->leftoffset, patch->topoffset, (crop_t){0},
-                       patch, false);
+    V_DrawPatchGeneral(x, y, SHORT(patch->leftoffset), SHORT(patch->topoffset),
+                       (crop_t){0}, patch, false);
 }
 
 inline static void V_DrawPatchFlipped(int x, int y, patch_t *patch)
 {
-    V_DrawPatchGeneral(x, y, patch->leftoffset, patch->topoffset, (crop_t){0},
-                       patch, true);
+    V_DrawPatchGeneral(x, y, SHORT(patch->leftoffset), SHORT(patch->topoffset),
+                       (crop_t){0}, patch, true);
 }
 
 void V_DrawPatchTranslated(int x, int y, patch_t *patch, byte *outr);
