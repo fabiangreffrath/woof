@@ -126,16 +126,16 @@ static boolean ParseSbarElemType(json_t *json, sbarelementtype_t type,
         }
     }
 
-    const char *tranmap = JS_GetStringValue(json, "tranmap");
-    if (tranmap)
-    {
-        out->tranmap = W_CacheLumpName(tranmap, PU_STATIC);
-    }
-
     json_t *translucency = JS_GetObject(json, "translucency");
     if (JS_IsBoolean(translucency) && JS_GetBoolean(translucency))
     {
         out->tranmap = main_tranmap;
+    }
+
+    const char *tranmap = JS_GetStringValue(json, "tranmap");
+    if (tranmap)
+    {
+        out->tranmap = W_CacheLumpName(tranmap, PU_STATIC);
     }
 
     const char *translation = JS_GetStringValue(json, "translation");
