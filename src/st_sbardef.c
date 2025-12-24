@@ -632,7 +632,7 @@ sbardef_t *ST_ParseSbarDef(void)
     statusbar_t *statusbar;
     array_foreach(statusbar, out->statusbars)
     {
-        json_t *js_widgets = JS_GetObject(data, "widgets");
+        json_t *js_widgets = JS_GetObject(data, "components");
         json_t *js_widget = NULL;
 
         JS_ArrayForEach(js_widget, js_widgets)
@@ -640,7 +640,6 @@ sbardef_t *ST_ParseSbarDef(void)
             sbarelem_t elem = {0};
             if (ParseSbarElem(js_widget, &elem))
             {
-                elem.y_pos += (statusbar->height - SCREENHEIGHT);
                 array_push(statusbar->children, elem);
             }
         }

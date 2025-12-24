@@ -14,7 +14,7 @@
         "stem": "DIG"
       }
     ],
-    "widgets": [
+    "components": [
       {
         "component": {
           "x": 2,
