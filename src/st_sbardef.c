@@ -110,6 +110,7 @@ static boolean ParseSbarElemType(json_t *json, sbarelementtype_t type,
     }
     out->x_pos = JS_GetInteger(x_pos);
     out->y_pos = JS_GetInteger(y_pos);
+
     out->alignment = JS_GetInteger(alignment);
     if (translate_alignment)
     {
@@ -611,6 +612,8 @@ sbardef_t *ST_ParseSbarDef(void)
         free(out);
         return NULL;
     }
+
+    translate_alignment = false;
 
     data = JS_GetObject(json, "data");
 
