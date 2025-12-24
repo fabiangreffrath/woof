@@ -645,8 +645,6 @@ void R_ExecuteSetViewSize (void)
 
   for (i=0 ; i<viewwidth ; i++)
     {
-      fixed_t cosadj = abs(finecosine[xtoviewangle[i]>>ANGLETOFINESHIFT]);
-      distscale[i] = FixedDiv(FRACUNIT,cosadj);
       // thing clipping
       screenheightarray[i] = viewheight;
     }

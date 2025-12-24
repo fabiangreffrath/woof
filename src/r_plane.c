@@ -111,7 +111,7 @@ static angle_t rotation;
 static fixed_t angle_sin, angle_cos;
 static fixed_t viewx_trans, viewy_trans;
 
-fixed_t *yslope = NULL, *distscale = NULL;
+fixed_t *yslope = NULL;
 
 // [FG] linear horizontal sky scrolling
 boolean linearsky;
@@ -144,7 +144,6 @@ void R_InitPlanesRes(void)
   cachedrotation = Z_Calloc(1, video.height * sizeof(*cachedrotation), PU_RENDERER, NULL);
 
   yslope = Z_Calloc(1, video.height * sizeof(*yslope), PU_RENDERER, NULL);
-  distscale = Z_Calloc(1, video.width * sizeof(*distscale), PU_RENDERER, NULL);
 
   maxopenings = video.width * video.height;
   openings = Z_Calloc(1, maxopenings * sizeof(*openings), PU_RENDERER, NULL);

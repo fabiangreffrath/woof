@@ -74,7 +74,7 @@ jobs:
           libxkbcommon-dev libdrm-dev libgbm-dev libgl1-mesa-dev libgles2-mesa-dev \
           libegl1-mesa-dev libdbus-1-dev libibus-1.0-dev libudev-dev \
           libpipewire-0.3-dev libwayland-dev libdecor-0-dev liburing-dev
-          
+
       - name: Developer Command Prompt
         if: runner.os == 'Windows'
         uses: ilammy/msvc-dev-cmd@v1
@@ -180,3 +180,10 @@ jobs:
           bodyFile: CHANGELOG.md
           allowUpdates: true
           artifacts: ${{ matrix.config.artifact-path }}
+
+      - name: Release (zsync)
+        if: runner.os == 'Linux' && contains(github.ref, 'tags')
+        uses: ncipollo/release-action@v1
+        with:
+          allowUpdates: true
+          artifacts: build/*.zsync
