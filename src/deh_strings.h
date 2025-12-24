@@ -1,5 +1,6 @@
 //
 // Copyright(C) 2005-2014 Simon Howard
+// Copyright(C) 2025 Guilherme Miranda
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -17,8 +18,6 @@
 
 #ifndef DEH_STRINGS_H
 #define DEH_STRINGS_H
-
-#include <stdio.h>
 
 #include "doomtype.h"
 #include "d_englsh.h" // In order to not 'double include' in other files

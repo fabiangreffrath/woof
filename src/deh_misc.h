@@ -1,5 +1,6 @@
 //
 // Copyright(C) 2005-2014 Simon Howard
+// Copyright(C) 2025 Guilherme Miranda
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -19,6 +20,7 @@
 #define DEH_MISC_H
 
 #include "doomtype.h"
+
 #define DEH_DEFAULT_INITIAL_HEALTH     100
 #define DEH_DEFAULT_INITIAL_BULLETS    50
 #define DEH_DEFAULT_MAX_HEALTH         200

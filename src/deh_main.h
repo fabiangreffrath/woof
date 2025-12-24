@@ -1,5 +1,6 @@
 //
 // Copyright(C) 2005-2014 Simon Howard
+// Copyright(C) 2025 Guilherme Miranda
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -21,13 +22,6 @@
 #include "doomtype.h"
 #include "info.h"
 #include "sha1.h"
-
-// These are the limits that dehacked uses (from dheinit.h in the dehacked
-// source).  If these limits are exceeded, it does not generate an error, but
-// a warning is displayed.
-
-#define DEH_VANILLA_NUMSTATES 966
-#define DEH_VANILLA_NUMSFX    107
 
 void DEH_Init(void);        // [crispy] un-static
 char *CleanString(char *s); // [crispy] un-static
