@@ -1635,7 +1635,7 @@ static void DrawBackground(const char *name)
     {
         V_UseBuffer(st_backing_screen);
 
-        if (st_solidbackground)
+        if (st_solidbackground && st_height > 3)
         {
             DrawSolidBackground();
         }
@@ -1651,13 +1651,15 @@ static void DrawBackground(const char *name)
 
             V_TileBlock64(ST_Y, video.unscaledw, st_height, flat);
 
-            if (screenblocks == 10
+            if (!statusbar->fullscreenrender
                 || (automapactive && automapoverlay == AM_OVERLAY_OFF))
             {
                 patch_t *patch = V_CachePatchName("brdr_b", PU_CACHE);
                 for (int x = 0; x < video.unscaledw; x += 8)
                 {
-                    V_DrawPatch(x - video.deltaw, 0, patch);
+                    crop_t crop = {0, 0, 0, patch->width, st_height};
+                    V_DrawPatchGeneral(x - video.deltaw, 0,
+                        patch->leftoffset, patch->topoffset, crop, patch, false);
                 }
             }
         }
@@ -1682,14 +1684,15 @@ static void DrawStatusBar(void)
 {
     player_t *player = &players[displayplayer];
 
-    if (screenblocks <= 10
+    if (!statusbar->fullscreenrender
         || (automapactive && automapoverlay == AM_OVERLAY_OFF))
     {
-        if (!statusbar->fullscreenrender && statusbar->height != st_height)
+        st_height = CLAMP(statusbar->height, 0, SCREENHEIGHT) & ~1;
+
+        if (st_height)
         {
-            st_height = CLAMP(statusbar->height, 0, SCREENHEIGHT) & ~1;
+            DrawBackground(statusbar->fillflat);
         }
-        DrawBackground(statusbar->fillflat);
     }
 
     sbarelem_t *child;
