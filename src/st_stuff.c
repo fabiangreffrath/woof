@@ -1944,7 +1944,7 @@ void ST_Init(void)
     if (array_size(sbardef->statusbars))
     {
         statusbar_t *sb = &sbardef->statusbars[0];
-        if (screenblocks <= 10 && !sb->fullscreenrender)
+        if (!sb->fullscreenrender)
         {
             st_height = CLAMP(sb->height, 0, SCREENHEIGHT);
         }
