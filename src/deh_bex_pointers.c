@@ -24,6 +24,7 @@
 #include "deh_frame.h"
 #include "deh_io.h"
 #include "deh_main.h"
+#include "i_printf.h"
 #include "i_system.h"
 #include "info.h"
 #include "m_fixed.h"
@@ -167,6 +168,12 @@ void DEH_ValidateStateArgs(void)
 
     for (int i = 0; i < num_states; i++)
     {
+        I_Printf(VB_DEBUG, "Checking state: %d\nFrame/Subframe: %d\nMisc1: %d\nMisc2: %d\nArg0: %d\nArg1: %d\nArg2: %d\nArg3: %d\nArg4: %d\nArg5: %d\nArg6: %d\nFlags: %d\n\n",
+                 i, states[i].frame, states[i].misc1, states[i].misc2,
+                 states[i].args[0], states[i].args[1], states[i].args[2],
+                 states[i].args[3], states[i].args[4], states[i].args[5],
+                 states[i].args[6], states[i].args[7]);
+
         bex_pointer_match = &bex_pointer_null;
 
         for (int j = 0; bex_pointer_table[j].pointer.v != NULL; ++j)
