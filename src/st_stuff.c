@@ -1674,7 +1674,7 @@ static void DrawStatusBar(void)
     {
         if (!statusbar->fullscreenrender && statusbar->height != st_height)
         {
-            st_height = CLAMP(statusbar->height, 0, SCREENHEIGHT);
+            st_height = CLAMP(statusbar->height, 0, SCREENHEIGHT) & ~1;
         }
         DrawBackground(statusbar->fillflat);
     }
@@ -1946,7 +1946,7 @@ void ST_Init(void)
         statusbar_t *sb = &sbardef->statusbars[0];
         if (!sb->fullscreenrender)
         {
-            st_height = CLAMP(sb->height, 0, SCREENHEIGHT);
+            st_height = CLAMP(sb->height, 0, SCREENHEIGHT) & ~1;
         }
     }
 
