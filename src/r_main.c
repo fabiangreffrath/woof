@@ -576,14 +576,17 @@ void R_ExecuteSetViewSize (void)
     {
       scaledviewwidth_nonwide = NONWIDEWIDTH;
       scaledviewwidth = video.unscaledw;
-      scaledviewheight = SCREENHEIGHT - ST_HEIGHT;
+      scaledviewheight = SCREENHEIGHT - st_height;
     }
   else
     {
-      const int st_screen = SCREENHEIGHT - ST_HEIGHT;
+      const int st_screen = SCREENHEIGHT - st_height;
 
       scaledviewwidth_nonwide = setblocks * 32;
       scaledviewheight = (setblocks * st_screen / 10) & ~7; // killough 11/98
+
+      if (!scaledviewheight)
+        return;
 
       if (video.unscaledw > SCREENWIDTH)
         scaledviewwidth = (scaledviewheight * video.unscaledw / st_screen) & ~7;
@@ -596,7 +599,7 @@ void R_ExecuteSetViewSize (void)
   if (scaledviewwidth == video.unscaledw)
     scaledviewy = 0;
   else
-    scaledviewy = (SCREENHEIGHT - ST_HEIGHT - scaledviewheight) / 2;
+    scaledviewy = (SCREENHEIGHT - st_height - scaledviewheight) / 2;
 
   view.x = scaledviewx;
   view.y = scaledviewy;

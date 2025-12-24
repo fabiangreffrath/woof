@@ -61,6 +61,8 @@
 #include "w_wad.h"
 #include "z_zone.h"
 
+int st_height = 32;
+
 //
 // STATUS BAR DATA
 //
@@ -1564,7 +1566,7 @@ static boolean st_solidbackground;
 static void DrawSolidBackground(void)
 {
     // [FG] calculate average color of the 16px left and right of the status bar
-    const int vstep[][2] = { {0, 1}, {1, 2}, {2, ST_HEIGHT} };
+    const int vstep[][2] = { {0, 1}, {1, 2}, {2, st_height} };
 
     patch_t *sbar = V_CachePatchName(W_CheckWidescreenPatch("STBAR"), PU_CACHE);
     // [FG] temporarily draw status bar to background buffer
@@ -1634,7 +1636,7 @@ static void DrawBackground(const char *name)
             byte *flat =
                 V_CacheFlatNum(firstflat + R_FlatNumForName(name), PU_CACHE);
 
-            V_TileBlock64(ST_Y, video.unscaledw, ST_HEIGHT, flat);
+            V_TileBlock64(ST_Y, video.unscaledw, st_height, flat);
 
             if (screenblocks == 10
                 || (automapactive && automapoverlay == AM_OVERLAY_OFF))
@@ -1652,7 +1654,7 @@ static void DrawBackground(const char *name)
         st_refresh_background = false;
     }
 
-    V_CopyRect(0, 0, st_backing_screen, video.unscaledw, ST_HEIGHT, 0, ST_Y);
+    V_CopyRect(0, 0, st_backing_screen, video.unscaledw, st_height, 0, ST_Y);
 }
 
 static void DrawCenteredMessage(void)
@@ -1670,6 +1672,10 @@ static void DrawStatusBar(void)
     if (screenblocks <= 10
         || (automapactive && automapoverlay == AM_OVERLAY_OFF))
     {
+        if (!statusbar->fullscreenrender && statusbar->height != st_height)
+        {
+            st_height = CLAMP(statusbar->height, 0, SCREENHEIGHT);
+        }
         DrawBackground(statusbar->fillflat);
     }
 
@@ -1935,6 +1941,15 @@ void ST_Init(void)
         return;
     }
 
+    if (array_size(sbardef->statusbars))
+    {
+        statusbar_t *sb = &sbardef->statusbars[0];
+        if (screenblocks <= 10 && !sb->fullscreenrender)
+        {
+            st_height = CLAMP(sb->height, 0, SCREENHEIGHT);
+        }
+    }
+
     LoadFacePatches();
 
     HU_InitCrosshair();
@@ -1948,7 +1963,7 @@ void ST_InitRes(void)
 {
     // killough 11/98: allocate enough for hires
     st_backing_screen =
-        Z_Malloc(video.width * V_ScaleY(ST_HEIGHT) * sizeof(*st_backing_screen),
+        Z_Malloc(video.width * V_ScaleY(st_height) * sizeof(*st_backing_screen),
                  PU_RENDERER, 0);
 }
 

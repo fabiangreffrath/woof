@@ -127,7 +127,7 @@ void HU_UpdateCrosshair(void)
     plr = &players[displayplayer];
 
     crosshair.x = SCREENWIDTH / 2;
-    crosshair.y = (screenblocks <= 10) ? (SCREENHEIGHT - ST_HEIGHT) / 2
+    crosshair.y = (screenblocks <= 10) ? (SCREENHEIGHT - st_height) / 2
                                        : SCREENHEIGHT / 2;
 
     boolean invul = ST_PlayerInvulnerable(plr);
