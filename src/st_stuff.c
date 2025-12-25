@@ -571,32 +571,16 @@ static boolean CheckConditions(sbarcondition_t *conditions, player_t *player)
                 break;
 
             case sbc_patchempty:
+                if (cond->params)
                 {
-                    int lumpnum =
-                        cond->params ? W_CheckNumForName(cond->params) : -1;
-                    if (lumpnum >= 0)
-                    {
-                        result &= V_PatchIsEmpty(lumpnum);
-                    }
-                    else
-                    {
-                        result = true;
-                    }
+                    result &= V_PatchIsEmpty(W_GetNumForName(cond->params));
                 }
                 break;
 
             case sbc_patchnotempty:
+                if (cond->params)
                 {
-                    int lumpnum =
-                        cond->params ? W_CheckNumForName(cond->params) : -1;
-                    if (lumpnum >= 0)
-                    {
-                        result &= (!V_PatchIsEmpty(lumpnum));
-                    }
-                    else
-                    {
-                        result = false;
-                    }
+                    result &= (!V_PatchIsEmpty(W_GetNumForName(cond->params)));
                 }
                 break;
 
