@@ -831,7 +831,7 @@ boolean P_CanUnlockGenDoor(line_t *line, player_t *player)
       if (!player->cards[it_redcard] &&
           (!skulliscard || !player->cards[it_redskull]))
         {
-          doomprintf(player, MESSAGES_NONE, DEH_String(skulliscard ? PD_REDK : PD_REDC));
+          doomprintf(player, MESSAGES_NONE, "%s", (skulliscard ? color_PD_REDK : color_PD_REDC));
           S_StartSound(player->mo,sfx_oof);             // killough 3/20/98
           return false;
         }
@@ -840,7 +840,7 @@ boolean P_CanUnlockGenDoor(line_t *line, player_t *player)
       if (!player->cards[it_bluecard] &&
           (!skulliscard || !player->cards[it_blueskull]))
         {
-          doomprintf(player, MESSAGES_NONE, DEH_String(skulliscard ? PD_BLUEK : PD_BLUEC));
+          doomprintf(player, MESSAGES_NONE, "%s", (skulliscard ? color_PD_BLUEK : color_PD_BLUEC));
           S_StartSound(player->mo,sfx_oof);             // killough 3/20/98
           return false;
         }
@@ -849,7 +849,7 @@ boolean P_CanUnlockGenDoor(line_t *line, player_t *player)
       if (!player->cards[it_yellowcard] &&
           (!skulliscard || !player->cards[it_yellowskull]))
         {
-          doomprintf(player, MESSAGES_NONE, DEH_String(skulliscard ? PD_YELLOWK : PD_YELLOWC));
+          doomprintf(player, MESSAGES_NONE, "%s", (skulliscard ? color_PD_YELLOWK : color_PD_YELLOWC));
           S_StartSound(player->mo,sfx_oof);             // killough 3/20/98
           return false;
         }
@@ -858,7 +858,7 @@ boolean P_CanUnlockGenDoor(line_t *line, player_t *player)
       if (!player->cards[it_redskull] &&
           (!skulliscard || !player->cards[it_redcard]))
         {
-          doomprintf(player, MESSAGES_NONE, DEH_String(skulliscard ? PD_REDK : PD_REDS));
+          doomprintf(player, MESSAGES_NONE, "%s", (skulliscard ? color_PD_REDK : color_PD_REDS));
           S_StartSound(player->mo,sfx_oof);             // killough 3/20/98
           return false;
         }
@@ -867,7 +867,7 @@ boolean P_CanUnlockGenDoor(line_t *line, player_t *player)
       if (!player->cards[it_blueskull] &&
           (!skulliscard || !player->cards[it_bluecard]))
         {
-          doomprintf(player, MESSAGES_NONE, DEH_String(skulliscard ? PD_BLUEK : PD_BLUES));
+          doomprintf(player, MESSAGES_NONE, "%s", (skulliscard ? color_PD_BLUEK : color_PD_BLUES));
           S_StartSound(player->mo,sfx_oof);             // killough 3/20/98
           return false;
         }
@@ -876,7 +876,7 @@ boolean P_CanUnlockGenDoor(line_t *line, player_t *player)
       if (!player->cards[it_yellowskull] &&
           (!skulliscard || !player->cards[it_yellowcard]))
         {
-          doomprintf(player, MESSAGES_NONE, DEH_String(skulliscard ? PD_YELLOWK : PD_YELLOWS));
+          doomprintf(player, MESSAGES_NONE, "%s", (skulliscard ? color_PD_YELLOWK : color_PD_YELLOWS));
           S_StartSound(player->mo,sfx_oof);             // killough 3/20/98
           return false;
         }

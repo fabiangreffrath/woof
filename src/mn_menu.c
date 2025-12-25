@@ -1521,7 +1521,7 @@ static void M_QuitDOOM(int choice)
 
     // killough 1/18/98: fix endgame message calculation:
     M_snprintf(endstring, sizeof(endstring), "%s\n\n%s",
-                DEH_String(mnemonics_quit_messages[gametic % num_quit_mnemonics]),
+                DEH_String(strings_quit_messages[gametic % num_quit_mnemonics]),
                 DEH_String(DOSY));
 
     if (quit_prompt)
@@ -2361,51 +2361,52 @@ void M_Init(void)
         char *replace;
 
         // [crispy] "i wouldn't leave if i were you.\ndos is much worse."
-        string = mnemonics_quit_messages[3];
+        string = strings_quit_messages[3];
         if (!DEH_HasStringReplacement(string))
         {
             replace = M_StringReplace(string, "dos", platform);
-            DEH_AddStringReplacement(mnemonics_quit_messages[3], replace);
+            DEH_AddStringReplacement(strings_quit_messages[3], replace);
             free(replace);
         }
 
         // [crispy] "you're trying to say you like dos\nbetter than me, right?"
-        string = mnemonics_quit_messages[4];
+        string = strings_quit_messages[4];
         if (!DEH_HasStringReplacement(string))
         {
             replace = M_StringReplace(string, "dos", platform);
-            DEH_AddStringReplacement(mnemonics_quit_messages[3], replace);
+            DEH_AddStringReplacement(strings_quit_messages[3], replace);
             free(replace);
         }
 
         // [crispy] "don't go now, there's a \ndimensional shambler waiting\nat the dos prompt!"
-        string = mnemonics_quit_messages[9];
+        string = strings_quit_messages[9];
         if (!DEH_HasStringReplacement(string))
         {
             replace = M_StringReplace(string, "dos", platform);
 #if defined(_WIN32)
-            string = M_StringReplace(replace, "prompt", "desktop");
+            replace = M_StringReplace(string, "prompt", "desktop");
 #else
             if (isatty(STDOUT_FILENO))
             {
-                string = M_StringReplace(replace, "prompt", "shell");
+                replace = M_StringReplace(string, "prompt", "shell");
             }
             else
             {
-                string = M_StringReplace(replace, "prompt", "desktop");
+                replace = M_StringReplace(string, "prompt", "desktop");
             }
 #endif
+            DEH_AddStringReplacement(strings_quit_messages[9], replace);
             free(replace);
         }
 
         for (int i = 0; i < num_quit_mnemonics; i++)
         {
-            replace = M_StringDuplicate(mnemonics_quit_messages[i]);
+            replace = M_StringDuplicate(strings_quit_messages[i]);
             if (strchr(replace, '\n') == NULL)
             {
                 AddLineBreaks(replace);
             }
-            DEH_AddStringReplacement(mnemonics_quit_messages[i], replace);
+            DEH_AddStringReplacement(strings_quit_messages[i], replace);
             free(replace);
         }
     }

@@ -38,6 +38,7 @@
 #include "r_main.h"
 #include "s_sound.h"
 #include "sounds.h"
+#include "st_widgets.h"
 #include "tables.h"
 
 #define BONUSADD        6
@@ -373,7 +374,7 @@ void P_TouchSpecialThing(mobj_t *special, mobj_t *toucher)
         // leave cards for everyone
     case SPR_BKEY:
       if (!player->cards[it_bluecard])
-        pickupmsg(player, DEH_String(GOTBLUECARD));
+        pickupmsg(player, "%s", color_GOTBLUECARD);
       P_GiveCard (player, it_bluecard);
       if (!netgame)
         break;
@@ -381,7 +382,7 @@ void P_TouchSpecialThing(mobj_t *special, mobj_t *toucher)
 
     case SPR_YKEY:
       if (!player->cards[it_yellowcard])
-        pickupmsg(player, DEH_String(GOTYELWCARD));
+        pickupmsg(player, "%s", color_GOTYELWCARD);
       P_GiveCard (player, it_yellowcard);
       if (!netgame)
         break;
@@ -389,7 +390,7 @@ void P_TouchSpecialThing(mobj_t *special, mobj_t *toucher)
 
     case SPR_RKEY:
       if (!player->cards[it_redcard])
-        pickupmsg(player, DEH_String(GOTREDCARD));
+        pickupmsg(player, "%s", color_GOTREDCARD);
       P_GiveCard (player, it_redcard);
       if (!netgame)
         break;
@@ -397,7 +398,7 @@ void P_TouchSpecialThing(mobj_t *special, mobj_t *toucher)
 
     case SPR_BSKU:
       if (!player->cards[it_blueskull])
-        pickupmsg(player, DEH_String(GOTBLUESKUL));
+        pickupmsg(player, "%s", color_GOTBLUESKUL);
       P_GiveCard (player, it_blueskull);
       if (!netgame)
         break;
@@ -405,7 +406,7 @@ void P_TouchSpecialThing(mobj_t *special, mobj_t *toucher)
 
     case SPR_YSKU:
       if (!player->cards[it_yellowskull])
-        pickupmsg(player, DEH_String(GOTYELWSKUL));
+        pickupmsg(player, "%s", color_GOTYELWSKUL);
       P_GiveCard (player, it_yellowskull);
       if (!netgame)
         break;
@@ -413,7 +414,7 @@ void P_TouchSpecialThing(mobj_t *special, mobj_t *toucher)
 
     case SPR_RSKU:
       if (!player->cards[it_redskull])
-        pickupmsg(player, DEH_String(GOTREDSKULL));
+        pickupmsg(player, "%s", color_GOTREDSKULL);
       P_GiveCard (player, it_redskull);
       if (!netgame)
         break;

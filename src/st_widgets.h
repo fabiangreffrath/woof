@@ -78,8 +78,6 @@ extern int playback_tic, playback_totaltics;
 boolean ST_DemoProgressBar(boolean force);
 
 void ST_InitWidgets(void);
-void ST_ResetMessageColors(void);
-
 void ST_BindHUDVariables(void);
 
 #endif
