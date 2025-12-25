@@ -16,22 +16,25 @@
 // Parses "Cheat" sections in dehacked files
 //
 
+#include <stdlib.h>
+#include <string.h>
+
 #include "deh_defs.h"
 #include "deh_io.h"
 #include "deh_main.h"
 #include "m_cheat.h"
-
-extern cheat_sequence_t cheat_seq[];
+#include "m_misc.h"
 
 cheat_sequence_t *FindCheatByName(char *name)
 {
-    cheat_sequence_t *c = &cheat_seq[0];
-    for (; c != NULL; c++)
+    cheat_sequence_t *c = &cheats_table[0];
+    while (c != NULL)
     {
-        if (!strcasecmp(c->deh_cheat, name))
+        if (c->deh_cheat != NULL && !strcasecmp(c->deh_cheat, name))
         {
             return c;
         }
+        c++;
     }
 
     return NULL;
@@ -59,19 +62,32 @@ static void DEH_CheatParseLine(deh_context_t *context, char *line, void *tag)
         return;
     }
 
-    if (!deh_apply_cheats)
-    {
-        return;
-    }
-
     int i = 0;
-    unsigned char *unsvalue = (unsigned char*)value;
+    unsigned char *unsvalue = (unsigned char *)value;
+    char *placeholder = malloc(sizeof(char) * strlen(value));
     while (unsvalue[i] != 0 && unsvalue[i] != 0xff)
     {
-        c->sequence[i] = unsvalue[i];
+        if (deh_apply_cheats)
+        {
+            placeholder[i] = unsvalue[i];
+        }
         ++i;
+
+        // Absolute limit - don't exceed
+        if (i >= MAX_CHEAT_LEN - c->arg)
+        {
+            DEH_Error(context, "Cheat sequence too long!");
+            return;
+        }
     }
-    c->sequence[i] = '\0';
+
+    if (deh_apply_cheats)
+    {
+        placeholder[i] = '\0';
+        c->sequence = M_StringDuplicate(placeholder);
+        c->sequence_len = strlen(placeholder);
+    }
+    free(placeholder);
 }
 
 deh_section_t deh_section_cheat =

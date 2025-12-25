@@ -134,7 +134,7 @@ static void cheat_speed(void);
 //
 //-----------------------------------------------------------------------------
 
-cheat_sequence_t cheat_seq[] = {
+cheat_sequence_t cheats_table[] = {
   {"idmus",      "Change music",      always,
    {.s = cheat_mus}, -2 },
 
@@ -1229,11 +1229,9 @@ static void InitCheats(void)
 
     if (!init)
     {
-        cheat_sequence_t *cht;
-
         init = true;
 
-        for (cht = cheat_seq; cht->sequence; cht++)
+        for (cheat_sequence_t *cht = cheats_table; cht->sequence; cht++)
         {
             cht->sequence_len = strlen(cht->sequence);
         }
@@ -1247,7 +1245,7 @@ static int M_FindCheats(char key)
 
     InitCheats();
 
-    for (cht = cheat_seq; cht->sequence; cht++)
+    for (cht = cheats_table; cht->sequence; cht++)
     {
         if (!CheatAllowed(cht->when)
             || (cht->when & not_deh && cht->deh_modified))
@@ -1296,7 +1294,7 @@ static int M_FindCheats(char key)
             {
                 if (cht->param_chars_read)
                 {
-                    static char argbuf[CHEAT_ARGS_MAX + 1];
+                    static char argbuf[MAX_CHEAT_PARAMS + 1];
 
                     // process the arg buffer
                     memcpy(argbuf, cht->parameter_buf, -cht->arg);

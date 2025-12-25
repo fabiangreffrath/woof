@@ -48,7 +48,8 @@ typedef enum {
   not_net = not_dm | not_coop
 } cheat_when_t;
 
-#define CHEAT_ARGS_MAX 8
+#define MAX_CHEAT_LEN 25
+#define MAX_CHEAT_PARAMS 5
 
 typedef struct
 {
@@ -62,11 +63,11 @@ typedef struct
   int sequence_len;
   int chars_read;
   int param_chars_read;
-  char parameter_buf[CHEAT_ARGS_MAX];
+  char parameter_buf[MAX_CHEAT_PARAMS];
   boolean repeatable;
 } cheat_sequence_t;
 
-extern cheat_sequence_t cheat_seq[];
+extern cheat_sequence_t cheats_table[];
 
 void cheat_mypos_print();
 

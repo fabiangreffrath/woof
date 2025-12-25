@@ -37,13 +37,6 @@ static void *DEH_TextStart(deh_context_t *context, char *line)
         return NULL;
     }
 
-    // We do not care about any Text blocks outside of music and sprite names
-    if (fromlen > 6 || tolen > 6)
-    {
-        DEH_Warning(context, "Unsupported text replacement, invalid string size.");
-        return NULL;
-    }
-
     if (!bex_notext)
     {
         char *from_text = malloc(fromlen + 1);
