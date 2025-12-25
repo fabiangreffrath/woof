@@ -18,7 +18,6 @@
 //-----------------------------------------------------------------------------
 
 
-#include <stdlib.h>
 #include <string.h>
 
 #include "d_deh.h" // Ty 03/22/98 - externalizations
@@ -88,10 +87,9 @@ static boolean mapinfo_finale;
 //
 
 // Current finale being played
-end_finale_t *endfinale = {0};
+end_finale_t *endfinale = NULL;
 
-static void ParseEndFinaleCastAnims(json_t *js_castanim_entry,
-                                    cast_entry_t *out)
+static void ParseEndFinaleCastAnims(json_t *js_castanim_entry, cast_entry_t *out)
 {
     out->name = JS_GetStringValue(js_castanim_entry, "name");
     out->alertsound = JS_GetIntegerValue(js_castanim_entry, "alertsound");
@@ -100,12 +98,9 @@ static void ParseEndFinaleCastAnims(json_t *js_castanim_entry,
     json_t *js_death_frame_list = JS_GetObject(js_castanim_entry, "deathframes");
 
     json_t *js_alive_frame = NULL;
-    json_t *js_death_frame = NULL;
-
-    cast_frame_t buffer = {0};
-
     JS_ArrayForEach(js_alive_frame, js_alive_frame_list)
     {
+        cast_frame_t buffer = {0};
         buffer.lump = JS_GetStringValue(js_alive_frame, "lump");
         buffer.flipped = JS_GetBooleanValue(js_alive_frame, "flipped");
         buffer.duration = JS_GetIntegerValue(js_alive_frame, "duration") * TICRATE;
@@ -114,8 +109,10 @@ static void ParseEndFinaleCastAnims(json_t *js_castanim_entry,
         out->aliveframescount++;
     }
 
+    json_t *js_death_frame = NULL;
     JS_ArrayForEach(js_death_frame, js_death_frame_list)
     {
+        cast_frame_t buffer = {0};
         buffer.lump = JS_GetStringValue(js_death_frame, "lump");
         buffer.flipped = JS_GetBooleanValue(js_death_frame, "flipped");
         buffer.duration = JS_GetIntegerValue(js_death_frame, "duration") * TICRATE;
@@ -172,10 +169,9 @@ end_finale_t *D_ParseEndFinale(const char lump[9])
             json_t *js_castanim_list = JS_GetObject(js_castrollcall, "castanims");
 
             json_t *js_castanim_entry = NULL;
-            cast_entry_t castanim_entry = {0};
-
             JS_ArrayForEach(js_castanim_entry, js_castanim_list)
             {
+                cast_entry_t castanim_entry = {0};
                 ParseEndFinaleCastAnims(js_castanim_entry, &castanim_entry);
                 castrollcall.castanimscount++;
                 array_push(castrollcall.castanims, castanim_entry);
@@ -198,7 +194,7 @@ end_finale_t *D_ParseEndFinale(const char lump[9])
             break;
         }
 
-        // Explicitly do not parse anything needlessly
+        // Explicitly do not parse anything extra
         case END_ART:
             break;
 
@@ -675,6 +671,7 @@ static int ef_duration = 0;
 
 static void EndFinaleCast_Frame(cast_frame_t *frame)
 {
+    I_Printf(VB_DEMO, "Reached %s:%d", __func__, __LINE__);
     ef_frame = frame;
     ef_duration = ef_frame->duration;
 
@@ -686,6 +683,7 @@ static void EndFinaleCast_Frame(cast_frame_t *frame)
 
 static void EndFinaleCast_Callee(cast_entry_t *callee)
 {
+    I_Printf(VB_DEMO, "Reached %s:%d", __func__, __LINE__);
     if (callee)
     {
         ef_alive = true;
@@ -702,6 +700,7 @@ static void EndFinaleCast_Kill(void)
 
 static void EndFinale_SetupCastCall(void)
 {
+    I_Printf(VB_DEMO, "Reached %s:%d", __func__, __LINE__);
     ef_callee_count = endfinale->castrollcall.castanimscount;
     const int background = W_GetNumForName(endfinale->background);
     W_CacheLumpNum(background, PU_LEVEL);
@@ -730,11 +729,8 @@ static boolean EndFinale_CastTicker(void)
 
     if (--ef_duration <= 0)
     {
-        cast_frame_t *initial =
-            ef_alive ? ef_callee->aliveframes : ef_callee->deathframes;
-        cast_frame_t *last = (ef_alive ? ef_callee->aliveframescount
-                                       : ef_callee->deathframescount)
-                             - 1 + initial;
+        cast_frame_t *initial = ef_alive ? ef_callee->aliveframes : ef_callee->deathframes;
+        cast_frame_t *last = (ef_alive ? ef_callee->aliveframescount : ef_callee->deathframescount) + initial - 1 ;
         cast_frame_t *next = ++ef_frame;
 
         if (ef_alive || (next != last))
@@ -751,10 +747,9 @@ static boolean EndFinale_CastTicker(void)
             {
                 // If possible, go to next map, else start again
                 loop_finished = true;
-                next_callee =
-                    endfinale->donextmap || (wminfo.nextmapinfo != NULL)
-                        ? NULL
-                        : ef_callee;
+                next_callee = endfinale->donextmap || (wminfo.nextmapinfo != NULL)
+                            ? NULL
+                            : ef_callee;
             }
 
             if (next_callee)
@@ -817,9 +812,10 @@ static void F_StartCast(void)
 
   if (gamemapinfo->flags & MapInfo_EndGameCustomFinale)
   {
-      endfinale = D_ParseEndFinale(gamemapinfo->endfinale);
-      EndFinale_SetupCastCall();
-      return;
+    I_Printf(VB_DEMO, "Reached %s:%d", __func__, __LINE__);
+    endfinale = D_ParseEndFinale(gamemapinfo->endfinale);
+    EndFinale_SetupCastCall();
+    return;
   }
 
   // Ty 03/23/98 - clumsy but time is of the essence
