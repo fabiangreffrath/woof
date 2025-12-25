@@ -23,6 +23,7 @@
 #include <locale.h>
 
 #include "config.h"
+#include "i_exit.h"
 #include "i_printf.h"
 #include "m_argv.h"
 
@@ -53,6 +54,10 @@ int main(int argc, char **argv)
    {
       exit(0);
    }
+
+#if !defined(_WIN32)
+   I_Signal();
+#endif
 
    D_DoomMain();
 

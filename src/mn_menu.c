@@ -39,6 +39,7 @@
 #include "g_game.h"
 #include "g_rewind.h"
 #include "g_umapinfo.h"
+#include "i_exit.h"
 #include "i_input.h"
 #include "i_printf.h"
 #include "i_system.h"
@@ -65,6 +66,7 @@
 #include "v_fmt.h"
 #include "v_video.h"
 #include "w_wad.h"
+#include "wi_stuff.h"
 #include "z_zone.h"
 
 // [crispy] remove DOS reference from the game quit confirmation dialogs
@@ -2385,11 +2387,7 @@ void M_Init(void)
         replace = M_StringReplace(string, "dos", platform);
 
 #if defined(_WIN32)
-#  if defined(WIN_LAUNCHER)
-        string = M_StringReplace(replace, "prompt", "console");
-#  else
         string = M_StringReplace(replace, "prompt", "desktop");
-#  endif
 #else
         if (isatty(STDOUT_FILENO))
         {
@@ -2444,6 +2442,15 @@ boolean M_ShortcutResponder(const event_t *ev)
     if (menuactive || chat_on)
     {
         return false;
+    }
+
+    if (M_InputActivated(input_netgame_stats))
+    {
+        if (gamestate == GS_LEVEL && (netgame || deathmatch))
+        {
+            wi_overlay = !wi_overlay;
+            return true;
+        }
     }
 
     if (M_InputActivated(input_autorun)) // Autorun
@@ -2697,7 +2704,8 @@ boolean M_ShortcutResponder(const event_t *ev)
 
     if (M_InputActivated(input_rewind))
     {
-        G_LoadAutoKeyframe();
+        G_Rewind();
+        return true;
     }
 
     return false;
@@ -3037,8 +3045,8 @@ boolean M_Responder(event_t *ev)
                 return true;
             }
             menu_input = mouse_mode;
-            mouse_state_x = ev->data2.i;
-            mouse_state_y = ev->data3.i;
+            mouse_state_x = (int)ev->data2.f;
+            mouse_state_y = (int)ev->data3.f;
             CursorPosition();
             MouseResponder();
             return true;

@@ -62,16 +62,19 @@ jobs:
             extra-options: -DCMAKE_INSTALL_PREFIX=/usr
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - name: Install dependencies (Linux)
         if: runner.os == 'Linux'
         run: |
-          sudo sed -i 's/# deb-src/deb-src/' /etc/apt/sources.list
-          sudo apt-get update
-          sudo apt-get install ninja-build
-          sudo apt-get build-dep libsdl2-dev
-          
+          sudo apt-get install build-essential libtool autoconf-archive git make \
+          pkg-config cmake ninja-build gnome-desktop-testing libasound2-dev libpulse-dev \
+          libaudio-dev libfribidi-dev libjack-dev libsndio-dev libx11-dev libxext-dev \
+          libxrandr-dev libxcursor-dev libxfixes-dev libxi-dev libxss-dev libxtst-dev \
+          libxkbcommon-dev libdrm-dev libgbm-dev libgl1-mesa-dev libgles2-mesa-dev \
+          libegl1-mesa-dev libdbus-1-dev libibus-1.0-dev libudev-dev \
+          libpipewire-0.3-dev libwayland-dev libdecor-0-dev liburing-dev
+
       - name: Developer Command Prompt
         if: runner.os == 'Windows'
         uses: ilammy/msvc-dev-cmd@v1
@@ -80,7 +83,7 @@ jobs:
 
       - name: Restore vcpkg cache
         id: cache
-        uses: actions/cache/restore@v4
+        uses: actions/cache/restore@v5
         with:
           path: ${{ github.workspace }}/vcpkg_cache
           key: vcpkg-${{ matrix.config.triplet }}
@@ -89,7 +92,7 @@ jobs:
         run: >-
           cmake -B build -G Ninja -DCMAKE_BUILD_TYPE=Release
           -DENABLE_WERROR=ON -DENABLE_HARDENING=ON -DENABLE_LTO=ON
-          -DWITH_FLUIDSYNTH=ON
+          -DWITH_DISCORD_RPC=ON
           -DCMAKE_TOOLCHAIN_FILE="${{ matrix.config.toolchain }}/scripts/buildsystems/vcpkg.cmake"
           -DVCPKG_TARGET_TRIPLET=${{ matrix.config.triplet }}
           ${{ matrix.config.extra-options }}
@@ -99,7 +102,7 @@ jobs:
         run: >-
           cmake -B build-x64 -G Ninja -DCMAKE_BUILD_TYPE=Release
           -DENABLE_WERROR=ON -DENABLE_HARDENING=ON -DENABLE_LTO=ON
-          -DWITH_FLUIDSYNTH=ON
+          -DWITH_DISCORD_RPC=ON
           -DCMAKE_OSX_ARCHITECTURES=x86_64
           -DCMAKE_TOOLCHAIN_FILE="${{ matrix.config.toolchain }}/scripts/buildsystems/vcpkg.cmake"
           -DVCPKG_TARGET_TRIPLET=${{ matrix.config.triplet-x64 }}
@@ -114,7 +117,7 @@ jobs:
         run: gh cache delete --repo ${{ github.repository }} ${{ steps.cache.outputs.cache-primary-key }}
 
       - name: Save cache
-        uses: actions/cache/save@v4
+        uses: actions/cache/save@v5
         with:
           path: ${{ github.workspace }}/vcpkg_cache
           key: ${{ steps.cache.outputs.cache-primary-key }}
@@ -159,7 +162,7 @@ jobs:
           cpack
 
       - name: Upload Artifacts
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: ${{ matrix.config.artifact-name }}
           path: ${{ matrix.config.artifact-path }}
@@ -177,3 +180,10 @@ jobs:
           bodyFile: CHANGELOG.md
           allowUpdates: true
           artifacts: ${{ matrix.config.artifact-path }}
+
+      - name: Release (zsync)
+        if: runner.os == 'Linux' && contains(github.ref, 'tags')
+        uses: ncipollo/release-action@v1
+        with:
+          allowUpdates: true
+          artifacts: build/*.zsync

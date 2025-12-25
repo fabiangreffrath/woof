@@ -304,6 +304,40 @@ static boolean ResolveAmbientSounds(sound_def_t *sound_defs,
     return (num_resolved > 0);
 }
 
+// If "$random" is found, search for '{'. If no '{' is found, ignore the `SNDINFO` lump.
+// Then search for '}'. If no '}' is found, ignore the `SNDINFO` lump.
+// Otherwise, skip ahead to the next line after '}' and continue parsing.
+
+static boolean SkipRandomSoundCommand(scanner_t *s)
+{
+    int brackets_found = 0;
+
+    SC_Warning(s, "skip $random record");
+
+    while (SC_TokensLeft(s))
+    {
+        SC_CheckToken(s, TK_RawString);
+        const char *string = SC_GetString(s);
+
+        if (string[0] == '{' && brackets_found == 0)
+        {
+            brackets_found = 1;
+            continue;
+        }
+        else if (string[0] == '}' && brackets_found == 1)
+        {
+            if (SC_SameLine(s))
+            {
+                SC_GetNextLineToken(s);
+            }
+            brackets_found = 2;
+            break;
+        }
+    }
+
+    return (brackets_found == 2);
+}
+
 static void FreeSoundDefinitions(sound_def_t **sound_defs)
 {
     for (int i = 0; i < array_size(*sound_defs); i++)
@@ -353,6 +387,14 @@ void S_ParseSndInfo(int lumpnum)
         if (string[0] != '$')
         {
             ParseSoundDefinition(s, &sound_defs);
+        }
+        else if (!strcasecmp(string, "$random"))
+        {
+            if (!SkipRandomSoundCommand(s))
+            {
+                FreeSoundDefinitions(&sound_defs);
+                break;
+            }
         }
         else if (!strcasecmp(string, "$ambient"))
         {

@@ -24,8 +24,8 @@
 #include "doomtype.h"
 #include "g_game.h"
 #include "i_printf.h"
-#include "i_system.h"
 #include "m_swap.h"
+#include "p_dirty.h"
 #include "p_mobj.h"
 #include "p_spec.h"
 #include "r_data.h"
@@ -147,7 +147,7 @@ void P_StartButton
       return;
     }
     
-  I_Error("no button slots left!");
+  I_Printf(VB_WARNING, "no button slots left!");
 }
 
 //
@@ -171,7 +171,7 @@ void P_ChangeSwitchTexture
   int     sound;
 
   if (!useAgain)
-    line->special = 0;
+    dirty_line(line)->special = 0;
 
   texTop = sides[line->sidenum[0]].toptexture;
   texMid = sides[line->sidenum[0]].midtexture;
@@ -188,7 +188,7 @@ void P_ChangeSwitchTexture
     if (switchlist[i] == texTop)     // if an upper texture
     {
       S_StartSound(buttonlist->soundorg,sound);     // switch activation sound
-      sides[line->sidenum[0]].toptexture = switchlist[i^1];       //chg texture
+      dirty_side(&sides[line->sidenum[0]])->toptexture = switchlist[i^1];       //chg texture
 
       if (useAgain)
         P_StartButton(line,top,switchlist[i],BUTTONTIME);         //start timer
@@ -200,7 +200,7 @@ void P_ChangeSwitchTexture
       if (switchlist[i] == texMid)   // if a normal texture
       {
         S_StartSound(buttonlist->soundorg,sound);   // switch activation sound
-        sides[line->sidenum[0]].midtexture = switchlist[i^1];     //chg texture
+        dirty_side(&sides[line->sidenum[0]])->midtexture = switchlist[i^1];     //chg texture
 
         if (useAgain)
           P_StartButton(line, middle,switchlist[i],BUTTONTIME);   //start timer
@@ -212,7 +212,7 @@ void P_ChangeSwitchTexture
         if (switchlist[i] == texBot) // if a lower texture
         {
           S_StartSound(buttonlist->soundorg,sound); // switch activation sound
-          sides[line->sidenum[0]].bottomtexture = switchlist[i^1];//chg texture
+          dirty_side(&sides[line->sidenum[0]])->bottomtexture = switchlist[i^1];//chg texture
 
           if (useAgain)
             P_StartButton(line, bottom,switchlist[i],BUTTONTIME); //start timer
@@ -260,7 +260,7 @@ P_UseSpecialLine
       if (!thing->player && !bossaction)
         if ((line->special & FloorChange) || !(line->special & FloorModel))
           return false; // FloorModel is "Allow Monsters" if FloorChange is 0
-      if (!line->tag && ((line->special&6)!=6)) //jff 2/27/98 all non-manual
+      if (!line->args[0] && ((line->special&6)!=6)) //jff 2/27/98 all non-manual
         return false;                         // generalized types require tag
       linefunc = EV_DoGenFloor;
     }
@@ -269,7 +269,7 @@ P_UseSpecialLine
       if (!thing->player && !bossaction)
         if ((line->special & CeilingChange) || !(line->special & CeilingModel))
           return false;   // CeilingModel is "Allow Monsters" if CeilingChange is 0
-      if (!line->tag && ((line->special&6)!=6)) //jff 2/27/98 all non-manual
+      if (!line->args[0] && ((line->special&6)!=6)) //jff 2/27/98 all non-manual
         return false;                         // generalized types require tag
       linefunc = EV_DoGenCeiling;
     }
@@ -282,7 +282,7 @@ P_UseSpecialLine
         if (line->flags & ML_SECRET) // they can't open secret doors either
           return false;
       }
-      if (!line->tag && ((line->special&6)!=6)) //jff 3/2/98 all non-manual
+      if (!line->args[0] && ((line->special&6)!=6)) //jff 3/2/98 all non-manual
         return false;                         // generalized types require tag
       linefunc = EV_DoGenDoor;
     }
@@ -292,7 +292,7 @@ P_UseSpecialLine
         return false;   // monsters disallowed from unlocking doors
       if (!P_CanUnlockGenDoor(line,thing->player))
         return false;
-      if (!line->tag && ((line->special&6)!=6)) //jff 2/27/98 all non-manual
+      if (!line->args[0] && ((line->special&6)!=6)) //jff 2/27/98 all non-manual
         return false;                         // generalized types require tag
 
       linefunc = EV_DoGenLockedDoor;
@@ -302,7 +302,7 @@ P_UseSpecialLine
       if (!thing->player && !bossaction)
         if (!(line->special & LiftMonster))
           return false; // monsters disallowed
-      if (!line->tag && ((line->special&6)!=6)) //jff 2/27/98 all non-manual
+      if (!line->args[0] && ((line->special&6)!=6)) //jff 2/27/98 all non-manual
         return false;                         // generalized types require tag
       linefunc = EV_DoGenLift;
     }
@@ -311,7 +311,7 @@ P_UseSpecialLine
       if (!thing->player && !bossaction)
         if (!(line->special & StairMonster))
           return false; // monsters disallowed
-      if (!line->tag && ((line->special&6)!=6)) //jff 2/27/98 all non-manual
+      if (!line->args[0] && ((line->special&6)!=6)) //jff 2/27/98 all non-manual
         return false;                         // generalized types require tag
       linefunc = EV_DoGenStairs;
     }
@@ -320,7 +320,7 @@ P_UseSpecialLine
       if (!thing->player && !bossaction)
         if (!(line->special & CrusherMonster))
           return false; // monsters disallowed
-      if (!line->tag && ((line->special&6)!=6)) //jff 2/27/98 all non-manual
+      if (!line->args[0] && ((line->special&6)!=6)) //jff 2/27/98 all non-manual
         return false;                         // generalized types require tag
       linefunc = EV_DoGenCrusher;
     }
@@ -331,7 +331,7 @@ P_UseSpecialLine
         case PushOnce:
           if (!side)
             if (linefunc(line))
-              line->special = 0;
+              dirty_line(line)->special = 0;
           return true;
         case PushMany:
           if (!side)
@@ -631,7 +631,7 @@ P_UseSpecialLine
       return true;
 
     case 2078:
-      line->special = 0;
+      dirty_line(line)->special = 0;
       // fallthrough
 
     case 2079:

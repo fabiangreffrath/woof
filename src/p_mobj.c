@@ -27,6 +27,7 @@
 #include "g_game.h"
 #include "i_printf.h"
 #include "info.h"
+#include "m_fixed.h"
 #include "m_random.h"
 #include "p_ambient.h"
 #include "p_inter.h"
@@ -80,8 +81,6 @@ void P_SetActualHeight(mobj_t *mobj)
 // Returns true if the mobj is still present.
 //
 
-int setmobjstate_recursion = 0; // detects recursion
-
 boolean P_SetMobjState(mobj_t* mobj,statenum_t state)
 {
   state_t*  st;
@@ -90,11 +89,12 @@ boolean P_SetMobjState(mobj_t* mobj,statenum_t state)
 
   // fast transition table
   statenum_t *seenstate = seenstate_tab;      // pointer to table
+  static int recursion;                       // detects recursion
   statenum_t i = state;                       // initial state
   boolean ret = true;                         // return value
   statenum_t* tempstate = NULL;               // for use with recursion
 
-  if (setmobjstate_recursion++)               // if recursion detected,
+  if (recursion++)                            // if recursion detected,
     seenstate = tempstate = Z_Calloc(num_states, sizeof(statenum_t), PU_STATIC, 0); // allocate state table
 
   do
@@ -128,7 +128,7 @@ boolean P_SetMobjState(mobj_t* mobj,statenum_t state)
   if (ret && !mobj->tics)  // killough 4/9/98: detect state cycles
     displaymsg("Warning: State Cycle Detected");
 
-  if (!--setmobjstate_recursion)
+  if (!--recursion)
     for (;(state=seenstate[i]);i=state-1)
       seenstate[i] = 0;  // killough 4/9/98: erase memory of states
 
@@ -658,8 +658,8 @@ void P_NightmareRespawn(mobj_t* mobj)
   mobj_t*      mo;
   mapthing_t*  mthing;
 
-  x = mobj->spawnpoint.x << FRACBITS;
-  y = mobj->spawnpoint.y << FRACBITS;
+  x = mobj->spawnpoint.x;
+  y = mobj->spawnpoint.y;
 
   // haleyjd: stupid nightmare respawning bug fix
   //
@@ -847,7 +847,7 @@ void P_MobjThinker (mobj_t* mobj)
 
 mobj_t *P_SpawnMobj(fixed_t x, fixed_t y, fixed_t z, mobjtype_t type)
 {
-  mobj_t *mobj = arena_alloc(thinkers_arena, 1, mobj_t);
+  mobj_t *mobj = arena_alloc(thinkers_arena, mobj_t);
   mobjinfo_t *info = &mobjinfo[type];
   state_t    *st;
 
@@ -900,9 +900,19 @@ mobj_t *P_SpawnMobj(fixed_t x, fixed_t y, fixed_t z, mobjtype_t type)
   mobj->dropoffz =           // killough 11/98: for tracking dropoffs
   mobj->floorz   = mobj->subsector->sector->floorheight;
   mobj->ceilingz = mobj->subsector->sector->ceilingheight;
-  
-  mobj->z = z == ONFLOORZ ? mobj->floorz : z == ONCEILINGZ ?
-    mobj->ceilingz - mobj->height : z;
+
+  if (z == ONFLOORZ)
+  {
+    mobj->z = mobj->floorz;
+  }
+  else if (z == ONCEILINGZ)
+  {
+    mobj->z = mobj->ceilingz - mobj->height;
+  }
+  else
+  {
+    mobj->z = z;
+  }
 
   // [AM] Do not interpolate on spawn.
   mobj->interp = false;
@@ -1075,8 +1085,8 @@ void P_RespawnSpecials (void)
   
   mthing = &itemrespawnque[iquetail];
 
-  x = mthing->x << FRACBITS;
-  y = mthing->y << FRACBITS;
+  x = mthing->x;
+  y = mthing->y;
 
   // spawn a teleport fog at the new spot
 
@@ -1125,8 +1135,8 @@ void P_SpawnPlayer (mapthing_t* mthing)
   if (p->playerstate == PST_REBORN)
     G_PlayerReborn (mthing->type-1);
 
-  x    = mthing->x << FRACBITS;
-  y    = mthing->y << FRACBITS;
+  x    = mthing->x;
+  y    = mthing->y;
   z    = ONFLOORZ;
   mobj = P_SpawnMobj (x,y,z, MT_PLAYER);
 
@@ -1161,11 +1171,6 @@ void P_SpawnPlayer (mapthing_t* mthing)
   if (deathmatch)
     for (i = 0 ; i < NUMCARDS ; i++)
       p->cards[i] = true;
-
-  if (mthing->type-1 == consoleplayer)
-    {
-      ST_Start(); // wake up the status bar
-    }
 }
 
 
@@ -1180,7 +1185,6 @@ void P_SpawnMapThing (mapthing_t* mthing)
   int    i;
   mobj_t *mobj;
   fixed_t x, y, z;
-  int id = 0;
 
   switch(mthing->type)
     {
@@ -1202,7 +1206,7 @@ void P_SpawnMapThing (mapthing_t* mthing)
 
   if (demo_compatibility || 
       (demo_version >= DV_MBF && mthing->options & MTF_RESERVED))
-    mthing->options &= MTF_EASY|MTF_NORMAL|MTF_HARD|MTF_AMBUSH|MTF_NOTSINGLE;
+    mthing->options &= MTF_SKILL1|MTF_SKILL2|MTF_SKILL3|MTF_SKILL4|MTF_SKILL5|MTF_AMBUSH|MTF_NOTSINGLE;
 
   // count deathmatch start positions
 
@@ -1271,22 +1275,26 @@ void P_SpawnMapThing (mapthing_t* mthing)
     return;
 
   // killough 11/98: simplify
-  if ((gameskill == sk_none && demo_compatibility) ||
-      (gameskill == sk_baby || gameskill == sk_easy ?
-      !(mthing->options & MTF_EASY) :
-      gameskill == sk_hard || gameskill == sk_nightmare ?
-      !(mthing->options & MTF_HARD) : !(mthing->options & MTF_NORMAL)))
+  if ((gameskill == sk_none && demo_compatibility)
+      || (!(mthing->options & MTF_SKILL1) && gameskill == sk_baby)
+      || (!(mthing->options & MTF_SKILL2) && gameskill == sk_easy)
+      || (!(mthing->options & MTF_SKILL3) && gameskill == sk_medium)
+      || (!(mthing->options & MTF_SKILL4) && gameskill == sk_hard)
+      || (!(mthing->options & MTF_SKILL5) && gameskill == sk_nightmare)
+    )
+  {
     return;
+  }
 
   // [crispy] support MUSINFO lump (dynamic music changing)
   if (mthing->type >= 14100 && mthing->type <= 14164)
   {
-      id = mthing->type - 14100;
+      mthing->args[0] = mthing->type - 14100;
       mthing->type = mobjinfo[MT_MUSICSOURCE].doomednum;
   }
   else if (mthing->type >= 14001 && mthing->type <= 14064)
   {
-      id = mthing->type - 14000;
+      mthing->args[0] = mthing->type - 14000;
       mthing->type = mobjinfo[zmt_ambientsound].doomednum;
   }
 
@@ -1300,11 +1308,23 @@ void P_SpawnMapThing (mapthing_t* mthing)
   // warning message for the player.
 
   if (i == num_mobj_types)
-    {
-      I_Printf(VB_WARNING, "P_SpawnMapThing: Unknown Thing type %i at (%i, %i)",
-	      mthing->type, mthing->x, mthing->y);
+  {
+      // No warning for Doom Builder Camera
+      if (mthing->type == 32000)
+      {
+          I_Printf(
+              VB_DEBUG,
+              "P_SpawnMapThing: Found level editor camera spawn at (%i, %i)",
+              FixedToInt(mthing->x), FixedToInt(mthing->y));
+      }
+      else
+      {
+          I_Printf(VB_WARNING,
+                   "P_SpawnMapThing: Unknown Thing type %i at (%i, %i)",
+                   mthing->type, FixedToInt(mthing->x), FixedToInt(mthing->y));
+      }
       return;
-    }
+  }
 
   // don't spawn keycards and players in deathmatch
 
@@ -1319,8 +1339,8 @@ void P_SpawnMapThing (mapthing_t* mthing)
   // spawn it
 spawnit:
 
-  x = mthing->x << FRACBITS;
-  y = mthing->y << FRACBITS;
+  x = mthing->x;
+  y = mthing->y;
 
   z = mobjinfo[i].flags & MF_SPAWNCEILING ? ONCEILINGZ : ONFLOORZ;
 
@@ -1340,6 +1360,28 @@ spawnit:
       P_UpdateThinker(&mobj->thinker);     // transfer friendliness flag
     }
 
+  // UDMF thing height
+  if (z == ONFLOORZ)
+  {
+    mobj->z += mthing->height;
+  }
+  else if (z == ONCEILINGZ)
+  {
+    mobj->z -= mthing->height;
+  }
+
+  // Action specials
+  mobj->id = mthing->id;
+  mobj->special = mthing->special;
+  mobj->args[0] = mthing->args[0];
+  mobj->args[1] = mthing->args[1];
+  mobj->args[2] = mthing->args[2];
+  mobj->args[3] = mthing->args[3];
+  mobj->args[4] = mthing->args[4];
+
+  // Translucency
+  mobj->tranmap = mthing->tranmap;
+
   // killough 7/20/98: exclude friends
   if (!((mobj->flags ^ MF_COUNTKILL) & (MF_FRIEND | MF_COUNTKILL)))
     totalkills++;
@@ -1351,14 +1393,9 @@ spawnit:
   if (mthing->options & MTF_AMBUSH)
     mobj->flags |= MF_AMBUSH;
 
-  // [crispy] support MUSINFO lump (dynamic music changing)
-  if (i == MT_MUSICSOURCE)
+  if (i == zmt_ambientsound)
   {
-      mobj->health = 1000 + id;
-  }
-  else if (i == zmt_ambientsound)
-  {
-      P_AddAmbientSoundThinker(mobj, id);
+      P_AddAmbientSoundThinker(mobj);
   }
 }
 

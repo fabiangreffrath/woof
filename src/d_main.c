@@ -35,7 +35,6 @@
 #include "d_loop.h"
 #include "d_main.h"
 #include "d_player.h"
-#include "d_quit.h"
 #include "d_ticcmd.h"
 #include "doomdef.h"
 #include "doomstat.h"
@@ -46,11 +45,12 @@
 #include "g_compatibility.h"
 #include "g_game.h"
 #include "i_endoom.h"
+#include "i_exit.h"
 #include "i_glob.h"
 #include "i_input.h"
 #include "i_printf.h"
+#include "i_richpresence.h"
 #include "i_sound.h"
-#include "i_system.h"
 #include "i_timer.h"
 #include "i_video.h"
 #include "info.h"
@@ -390,6 +390,9 @@ void D_Display (void)
 
   if (gamestate == GS_LEVEL && gametic)
     ST_Drawer();
+
+  if (wi_overlay)
+    WI_drawOverlayStats();
 
   // draw pause pic
   if (paused)
@@ -1790,11 +1793,18 @@ void D_DoomMain(void)
 
   setbuf(stdout,NULL);
 
-  I_AtExitPrio(I_QuitFirst, true,  "I_QuitFirst", exit_priority_first);
-  I_AtExitPrio(I_QuitLast,  false, "I_QuitLast",  exit_priority_last);
-  I_AtExitPrio(I_Quit,      true,  "I_Quit",      exit_priority_last);
+  I_AtSignal(G_CheckDemoRecordingStatus);
 
-  I_AtExitPrio(I_ErrorMsg,  true,  "I_ErrorMsg",  exit_priority_verylast);
+  I_AtExitPrio(G_CheckDemoRecordingStatus,
+               true, "G_CheckDemoRecordingStatus", exit_priority_first);
+  I_AtExitPrio(M_SaveDefaults,
+               false, "M_SaveDefaults", exit_priority_last);
+  I_AtExitPrio(I_QuitVideo,
+               true, "I_QuitVideo", exit_priority_last);
+  I_AtExitPrio(W_Close,
+               true, "W_Close", exit_priority_last);
+  I_AtExitPrio(I_ErrorMsg,
+               true, "I_ErrorMsg", exit_priority_verylast);
 
   I_UpdatePriority(true);
 
@@ -2298,6 +2308,12 @@ void D_DoomMain(void)
 
   W_InitMultipleFiles();
 
+  // Always process chex.deh first
+  if (gamemission == pack_chex)
+  {
+    ProcessDehLump(W_GetNumForName("chexdeh"));
+  }
+
   // Check for wolf levels
   haswolflevels = (W_CheckNumForName("map31") >= 0);
 
@@ -2419,13 +2435,14 @@ void D_DoomMain(void)
   I_Printf(VB_INFO, "M_Init: Init miscellaneous info.");
   M_Init();
 
-  I_Printf(VB_INFO, "R_Init: Init DOOM refresh daemon - ");
+  I_Printf(VB_INFO, "R_Init: Init DOOM refresh daemon.");
   R_Init();
 
   I_Printf(VB_INFO, "P_Init: Init Playloop state.");
   P_Init();
 
   I_Printf(VB_INFO, "I_Init: Setting up machine state.");
+  I_SetMetadata(PROJECT_NAME, PROJECT_VERSION, PROJECT_APPID);
   I_InitTimer();
   I_InitGamepad();
   I_InitSound();
@@ -2622,6 +2639,7 @@ void D_DoomMain(void)
 
   // [FG] init graphics (video.widedelta) before HUD widgets
   I_InitGraphics();
+  I_UpdateDiscordPresence("Playing", gamedescription);
   I_InitKeyboard();
 
   MN_InitMenuStrings();
@@ -2689,7 +2707,8 @@ void D_BindMiscVariables(void)
   BIND_BOOL_GENERAL(demobar, false, "Show demo progress bar");
   BIND_NUM_GENERAL(screen_melt, wipe_Melt, wipe_None, wipe_Fizzle,
     "Screen wipe effect (0 = None; 1 = Melt; 2 = Crossfade; 3 = Fizzlefade)");
-  BIND_BOOL_GENERAL(palette_changes, true, "Palette changes when taking damage or picking up items");
+  BIND_NUM_GENERAL(palette_changes, PAL_CHANGE_ON, PAL_CHANGE_OFF, PAL_CHANGE_REDUCED,
+    "Palette changes when taking damage or picking up items (0 = Off; 1 = On; 2 = Reduced)");
   BIND_NUM_GENERAL(organize_savefiles, -1, -1, 1,
     "Organize save files");
   M_BindStr("net_player_name", &net_player_name, DEFAULT_PLAYER_NAME, wad_no,

@@ -63,7 +63,6 @@ else()
     _checked_add_compile_option(-Werror=volatile-register-var)
     _checked_add_compile_option(-Wformat=2)
     _checked_add_compile_option(-Wnull-dereference)
-    _checked_add_compile_option(-Wredundant-decls)
     _checked_add_compile_option(-Wrestrict)
     # We only want -Wall on GCC compilers, since /Wall on MSVC is noisy.
     _checked_add_compile_option(-Wall)

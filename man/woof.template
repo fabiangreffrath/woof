@@ -26,8 +26,8 @@ The main configuration file for @PROJECT_NAME@.  See \fBdefault.cfg\fR(5).
 \fB$HOME/.local/share/@PROJECT_SHORTNAME@/@PROJECT_SHORTNAME@sav*.dsg\fR
 Savegame files.
 .TP
-\fB$HOME/.local/share/@PROJECT_SHORTNAME@/tranmap.dat\fR
-Cached translucency table.
+\fB$HOME/.local/share/@PROJECT_SHORTNAME@/tranmaps/\fR
+Cached translucency tables.
 .TP
 \fB/usr/share/@PROJECT_SHORTNAME@/autoload\fR, \fB$HOME/.local/share/@PROJECT_SHORTNAME@/autoload/\fR
 WAD files and DEH patches in the subdirectories of these paths are added

@@ -68,6 +68,15 @@
           "default-features": false
         }
       ]
+    },
+    "discord-rpc": {
+      "description": "Build with Discord RPC support",
+      "dependencies": [
+        {
+          "name": "discord-rpc",
+          "default-features": false
+        }
+      ]
     }
   }
 }

@@ -163,6 +163,26 @@ int R_DoorClosed(void)
         frontsector->ceilingpic!=skyflatnum);
 }
 
+static const int16_t FloorLight(const sector_t *sec)
+{
+  const int16_t light = (sec->floorlightsec == -1)
+                      ? sec->lightlevel
+                      : sectors[sec->floorlightsec].lightlevel;
+
+  return (sec->flags & SECF_ABS_LIGHT_FLOOR) ? sec->lightfloor
+                                             : sec->lightfloor + light;
+}
+
+static const int16_t CeilingLight(const sector_t *sec)
+{
+  const int16_t light = (sec->ceilinglightsec == -1)
+                      ? sec->lightlevel
+                      : sectors[sec->ceilinglightsec].lightlevel;
+
+  return (sec->flags & SECF_ABS_LIGHT_CEIL) ? sec->lightceiling
+                                            : sec->lightceiling + light;
+}
+
 //
 // killough 3/7/98: Hack floor/ceiling heights for deep water etc.
 //
@@ -181,12 +201,10 @@ sector_t *R_FakeFlat(sector_t *sec, sector_t *tempsec,
                      boolean back)
 {
   if (floorlightlevel)
-    *floorlightlevel = sec->floorlightsec == -1 ?
-      sec->lightlevel : sectors[sec->floorlightsec].lightlevel;
+    *floorlightlevel = FloorLight(sec);
 
   if (ceilinglightlevel)
-    *ceilinglightlevel = sec->ceilinglightsec == -1 ? // killough 4/11/98
-      sec->lightlevel : sectors[sec->ceilinglightsec].lightlevel;
+    *ceilinglightlevel = CeilingLight(sec); // killough 4/11/98
 
   if (sec->heightsec != -1)
     {
@@ -237,12 +255,10 @@ sector_t *R_FakeFlat(sector_t *sec, sector_t *tempsec,
           tempsec->lightlevel  = s->lightlevel;
 
           if (floorlightlevel)
-            *floorlightlevel = s->floorlightsec == -1 ? s->lightlevel :
-            sectors[s->floorlightsec].lightlevel; // killough 3/16/98
+            *floorlightlevel = FloorLight(s); // killough 3/16/98
 
           if (ceilinglightlevel)
-            *ceilinglightlevel = s->ceilinglightsec == -1 ? s->lightlevel :
-            sectors[s->ceilinglightsec].lightlevel; // killough 4/11/98
+            *ceilinglightlevel = CeilingLight(s); // killough 4/11/98
         }
       else
         if (heightsec != -1 && viewz >= sectors[heightsec].ceilingheight &&
@@ -271,12 +287,10 @@ sector_t *R_FakeFlat(sector_t *sec, sector_t *tempsec,
             tempsec->lightlevel  = s->lightlevel;
 
             if (floorlightlevel)
-              *floorlightlevel = s->floorlightsec == -1 ? s->lightlevel :
-              sectors[s->floorlightsec].lightlevel; // killough 3/16/98
+              *floorlightlevel = FloorLight(s); // killough 3/16/98
 
             if (ceilinglightlevel)
-              *ceilinglightlevel = s->ceilinglightsec == -1 ? s->lightlevel :
-              sectors[s->ceilinglightsec].lightlevel; // killough 4/11/98
+              *ceilinglightlevel = CeilingLight(s); // killough 4/11/98
           }
       sec = tempsec;               // Use other sector
     }
@@ -475,6 +489,8 @@ static void R_AddLine (seg_t *line)
   if (backsector->ceilingpic == frontsector->ceilingpic
       && backsector->floorpic == frontsector->floorpic
       && backsector->lightlevel == frontsector->lightlevel
+      && backsector->lightfloor == frontsector->lightfloor
+      && backsector->lightceiling == frontsector->lightceiling
       && curline->sidedef->midtexture == 0
 
       // killough 3/7/98: Take flats offsets into account:

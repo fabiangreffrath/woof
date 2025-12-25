@@ -132,6 +132,7 @@ static statusbar_t *statusbar;
 
 static int st_cmd_x, st_cmd_y;
 
+hud_anchoring_t hud_anchoring;
 int st_wide_shift;
 
 static patch_t **facepatches = NULL;
@@ -1225,7 +1226,7 @@ static void ResetStatusBar(void)
 
 static void DrawPatch(int x, int y, crop_t crop, int maxheight,
                       sbaralignment_t alignment, patch_t *patch,
-                      crange_idx_e cr, byte *tl)
+                      crange_idx_e cr, const byte *tl)
 {
     if (!patch)
     {
@@ -1585,10 +1586,10 @@ static void DrawSolidBackground(void)
 
         for (y = v0; y < v1; y++)
         {
+            int line = V_ScaleY(y) * video.width;
             for (x = 0; x < depth; x++)
             {
-                pixel_t *c = st_backing_screen + V_ScaleY(y) * video.pitch
-                          + V_ScaleX(x);
+                pixel_t *c = st_backing_screen + line + V_ScaleX(x);
                 r += pal[3 * c[0] + 0];
                 g += pal[3 * c[0] + 1];
                 b += pal[3 * c[0] + 2];
@@ -1635,7 +1636,8 @@ static void DrawBackground(const char *name)
 
             V_TileBlock64(ST_Y, video.unscaledw, ST_HEIGHT, flat);
 
-            if (screenblocks == 10)
+            if (screenblocks == 10
+                || (automapactive && automapoverlay == AM_OVERLAY_OFF))
             {
                 patch_t *patch = V_CachePatchName("brdr_b", PU_CACHE);
                 for (int x = 0; x < video.unscaledw; x += 8)
@@ -1665,7 +1667,8 @@ static void DrawStatusBar(void)
 {
     player_t *player = &players[displayplayer];
 
-    if (!statusbar->fullscreenrender)
+    if (screenblocks <= 10
+        || (automapactive && automapoverlay == AM_OVERLAY_OFF))
     {
         DrawBackground(statusbar->fillflat);
     }
@@ -1776,7 +1779,7 @@ boolean ST_Responder(event_t *ev)
     }
 }
 
-boolean palette_changes = true;
+pal_change_t palette_changes = PAL_CHANGE_ON;
 
 static void DoPaletteStuff(player_t *player)
 {
@@ -1800,7 +1803,7 @@ static void DoPaletteStuff(player_t *player)
         }
     }
 
-    if (STRICTMODE(!palette_changes))
+    if (STRICTMODE(palette_changes == PAL_CHANGE_OFF))
     {
         palette = 0;
     }
@@ -1820,10 +1823,10 @@ static void DoPaletteStuff(player_t *player)
             {
                 palette = NUMREDPALS - 1;
             }
-            // [crispy] tune down a bit so the menu remains legible
-            if (menuactive || paused)
+            // tune down a bit so the menu remains legible
+            if (menuactive || paused || STRICTMODE(palette_changes == PAL_CHANGE_REDUCED))
             {
-                palette >>= 1;
+                palette /= 2;
             }
             palette += STARTREDPALS;
         }
@@ -1834,6 +1837,10 @@ static void DoPaletteStuff(player_t *player)
         if (palette >= NUMBONUSPALS)
         {
             palette = NUMBONUSPALS - 1;
+        }
+        if (STRICTMODE(palette_changes == PAL_CHANGE_REDUCED))
+        {
+            palette /= 2;
         }
         palette += STARTBONUSPALS;
     }
@@ -1941,7 +1948,7 @@ void ST_InitRes(void)
 {
     // killough 11/98: allocate enough for hires
     st_backing_screen =
-        Z_Malloc(video.pitch * V_ScaleY(ST_HEIGHT) * sizeof(*st_backing_screen),
+        Z_Malloc(video.width * V_ScaleY(ST_HEIGHT) * sizeof(*st_backing_screen),
                  PU_RENDERER, 0);
 }
 
@@ -2008,8 +2015,9 @@ void WI_DrawWidgets(void)
 
 void ST_BindSTSVariables(void)
 {
-  M_BindNum("st_wide_shift", &st_wide_shift,
-            NULL, -1, -1, UL, ss_stat, wad_no, "HUD widescreen shift (-1 = Default)");
+  M_BindNum("hud_anchoring", &hud_anchoring, NULL, HUD_ANCHORING_16_9,
+            HUD_ANCHORING_WIDE, HUD_ANCHORING_21_9, ss_stat, wad_no,
+            "HUD anchoring (0 = Wide; 1 = 4:3; 2 = 16:9; 3 = 21:9)");
   M_BindBool("sts_colored_numbers", &sts_colored_numbers, NULL,
              false, ss_stat, wad_yes, "Colored numbers on the status bar");
   M_BindBool("sts_pct_always_gray", &sts_pct_always_gray, NULL,

@@ -696,23 +696,56 @@ typedef struct elevator_s
 
 // killough 3/7/98: Add generalized scroll effects
 
+typedef enum scroller_e
+{
+  // Boom
+  sc_side,
+  sc_floor,
+  sc_ceiling,
+  sc_carry,
+  sc_carry_ceiling,  // killough 4/11/98: carry objects hanging on ceilings
+  // UDMF extension
+  sc_side_top,
+  sc_side_mid,
+  sc_side_bottom,
+} scroller_t;
+
+// Eternity-style
+#define SCROLL_TEXTURE 0x01
+#define SCROLL_CARRY   0x02
+#define SCROLL_ALL     (SCROLL_TEXTURE|SCROLL_CARRY)
+
+// ZDoom-style
+#define SCROLL_TEXTURE 0x01
+#define SCROLL_STATIC  0x02
+#define SCROLL_PLAYER  0x04
+#define SCROLL_MONSTER 0x08
+
 typedef struct {
   thinker_t thinker;   // Thinker structure for scrolling
   fixed_t dx, dy;      // (dx,dy) scroll speeds
   int affectee;        // Number of affected sidedef, sector, tag, or whatever
+
+  // Control and acceleration:
   int control;         // Control sector (-1 if none) used to control scrolling
   fixed_t last_height; // Last known height of control sector
   fixed_t vdx, vdy;    // Accumulated velocity if accelerative
   int accel;           // Whether it's accelerative
-  enum
-  {
-    sc_side,
-    sc_floor,
-    sc_ceiling,
-    sc_carry,
-    sc_carry_ceiling,  // killough 4/11/98: carry objects hanging on ceilings
-  } type;              // Type of scroll effect
+
+  scroller_t type;     // Type of scroll effect
 } scroll_t;
+
+#define Add_ScrollerStatic(type, affectee, dx, dy) \
+        Add_Scroller(type, dx, dy, -1, affectee, 0);
+
+extern void Add_Scroller(scroller_t type, fixed_t dx, fixed_t dy,
+                         int32_t control, int32_t affectee, int32_t accel);
+
+extern void Add_ParamSectorScroller(scroller_t type, int32_t affectee,
+                                    boolean isCeiling, fixed_t dx, fixed_t dy);
+
+extern void Add_EESectorScroller(int32_t type, int32_t affectee,
+                                 boolean isCeiling, double x, double y);
 
 // phares 3/12/98: added new model of friction for ice/sludge effects
 
@@ -867,6 +900,9 @@ void T_ScrollAdapter(struct mobj_s *mobj); // killough 3/7/98: scroll effect thi
 void T_FrictionAdapter(struct mobj_s *mobj); // phares 3/12/98: friction thinker
 
 void T_PusherAdapter(struct mobj_s *mobj); // phares 3/20/98: Push thinker
+
+void T_ParamScrollFloorAdapter(struct mobj_s *mobj);
+void T_ParamScrollCeilingAdapter(struct mobj_s *mobj);
 
 ////////////////////////////////////////////////////////////////
 //

@@ -42,12 +42,12 @@ int oldleveltime;
 //
 
 // Both the head and tail of the thinker list.
-thinker_t thinkercap;
+thinker_t thinkercap = {0};
 
 // killough 8/29/98: we maintain several separate threads, each containing
 // a special class of thinkers, to allow more efficient searches. 
 
-thinker_t thinkerclasscap[NUMTHCLASS];
+thinker_t thinkerclasscap[NUMTHCLASS] = {0};
 
 int init_thinkers_count = 0;
 
@@ -148,66 +148,53 @@ static thinker_t *currentthinker;
 //
 inline static void RemoveThinker(thinker_t *thinker)
 {
+    if (thinker->references)
+    {
+        return;
+    }
+
     thinker_t *next = thinker->next;
     (next->prev = currentthinker = thinker->prev)->next = next;
 
     // haleyjd 6/17/08: remove from threaded list now
     (thinker->cnext->cprev = thinker->cprev)->cnext = thinker->cnext;
+
+    arena_free(thinkers_arena, thinker);
 } 
-
-#if 0
-void P_RemoveThinkerDelayed(thinker_t *thinker)
-{
-    if (!thinker->references)
-    {
-       RemoveThinker(thinker);
-    }
-}
-#endif
-
-#define RemoveThinkerDelayed(ptr, type)            \
-    do                                             \
-    {                                              \
-        if (!ptr->thinker.references)              \
-        {                                          \
-            RemoveThinker(&ptr->thinker);          \
-            arena_free(thinkers_arena, ptr, type); \
-        }                                          \
-    } while (0)
 
 void P_RemoveMobjThinkerDelayed(mobj_t *mobj)
 {
-    RemoveThinkerDelayed(mobj, mobj_t);
+    RemoveThinker(&mobj->thinker);
 }
 
-static void P_RemoveCeilingThinkerDelayed(mobj_t *mobj)
+void P_RemoveCeilingThinkerDelayed(mobj_t *mobj)
 {
-    RemoveThinkerDelayed(mobj, ceiling_t);
+    RemoveThinker(&mobj->thinker);
 }
 
-static void RemoveDoorThinkerDelayed(mobj_t *mobj)
+void P_RemoveDoorThinkerDelayed(mobj_t *mobj)
 {
-    RemoveThinkerDelayed(mobj, vldoor_t);
+    RemoveThinker(&mobj->thinker);
 }
 
-static void RemoveFloorThinkerDelayed(mobj_t *mobj)
+void P_RemoveFloorThinkerDelayed(mobj_t *mobj)
 {
-    RemoveThinkerDelayed(mobj, floormove_t);
+    RemoveThinker(&mobj->thinker);
 }
 
-static void RemoveElevatorThinkerDelayed(mobj_t *mobj)
+void P_RemoveElevatorThinkerDelayed(mobj_t *mobj)
 {
-    RemoveThinkerDelayed(mobj, elevator_t);
+    RemoveThinker(&mobj->thinker);
 }
 
-static void RemovePlatThinkerDelayed(mobj_t *mobj)
+void P_RemovePlatThinkerDelayed(mobj_t *mobj)
 {
-    RemoveThinkerDelayed(mobj, plat_t);
+    RemoveThinker(&mobj->thinker);
 }
 
-static void RemoveAmbientThinkerDelayed(mobj_t *mobj)
+void P_RemoveAmbientThinkerDelayed(mobj_t *mobj)
 {
-    RemoveThinkerDelayed(mobj, ambient_t);
+    RemoveThinker(&mobj->thinker);
 }
 
 //
@@ -258,31 +245,31 @@ void P_RemoveCeilingThinker(ceiling_t *ceiling)
 
 void P_RemoveDoorThinker(vldoor_t *door)
 {
-   door->thinker.function.p1 = RemoveDoorThinkerDelayed;
+   door->thinker.function.p1 = P_RemoveDoorThinkerDelayed;
    P_UpdateThinker(&door->thinker);
 }
 
 void P_RemoveFloorThinker(floormove_t *floor)
 {
-   floor->thinker.function.p1 = RemoveFloorThinkerDelayed;
+   floor->thinker.function.p1 = P_RemoveFloorThinkerDelayed;
    P_UpdateThinker(&floor->thinker);
 }
 
 void P_RemoveElevatorThinker(elevator_t *elevator)
 {
-   elevator->thinker.function.p1 = RemoveElevatorThinkerDelayed;
+   elevator->thinker.function.p1 = P_RemoveElevatorThinkerDelayed;
    P_UpdateThinker(&elevator->thinker);
 }
 
 void P_RemovePlatThinker(plat_t *plat)
 {
-   plat->thinker.function.p1 = RemovePlatThinkerDelayed;
+   plat->thinker.function.p1 = P_RemovePlatThinkerDelayed;
    P_UpdateThinker(&plat->thinker);
 }
 
 void P_RemoveAmbientThinker(ambient_t *ambient)
 {
-   ambient->thinker.function.p1 = RemoveAmbientThinkerDelayed;
+   ambient->thinker.function.p1 = P_RemoveAmbientThinkerDelayed;
    P_UpdateThinker(&ambient->thinker);
 }
 

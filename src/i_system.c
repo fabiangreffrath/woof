@@ -29,6 +29,7 @@
 
 #include "config.h"
 #include "d_ticcmd.h"
+#include "i_exit.h"
 #include "i_printf.h"
 #include "i_system.h"
 #include "m_argv.h"
@@ -106,78 +107,16 @@ void I_MessageBox(const char *message, ...)
     M_vsnprintf(buffer, sizeof(buffer), message, argptr);
     va_end(argptr);
 
+    if (I_ConsoleStdout())
+    {
+        I_Printf(VB_INFO, "%s", buffer);
+    }
+
     if (!M_CheckParm("-nogui"))
     {
         SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_INFORMATION, PROJECT_STRING,
                                  buffer, NULL);
     }
-    else
-    {
-        I_Printf(VB_INFO, "%s", buffer);
-    }
-}
-
-// Schedule a function to be called when the program exits.
-// If run_if_error is true, the function is called if the exit
-// is due to an error (I_Error)
-
-typedef struct atexit_listentry_s atexit_listentry_t;
-
-struct atexit_listentry_s
-{
-    atexit_func_t func;
-    boolean run_on_error;
-    atexit_listentry_t *next;
-    const char *name;
-};
-
-static atexit_listentry_t *exit_funcs[exit_priority_max];
-static exit_priority_t exit_priority;
-
-void I_AtExitPrio(atexit_func_t func, boolean run_on_error,
-                  const char *name, exit_priority_t priority)
-{
-    atexit_listentry_t *entry;
-
-    entry = malloc(sizeof(*entry));
-
-    entry->func = func;
-    entry->run_on_error = run_on_error;
-    entry->next = exit_funcs[priority];
-    entry->name = name;
-    exit_funcs[priority] = entry;
-}
-
-// I_SafeExit
-// This function is called instead of exit() by functions that might be called
-// during the exit process (i.e. after exit() has already been called)
-
-void I_SafeExit(int rc)
-{
-    atexit_listentry_t *entry;
-
-    // Run through all exit functions
-
-    for (; exit_priority < exit_priority_max; ++exit_priority)
-    {
-        while ((entry = exit_funcs[exit_priority]))
-        {
-            exit_funcs[exit_priority] = exit_funcs[exit_priority]->next;
-
-            if (rc == 0 || entry->run_on_error)
-            {
-                I_Printf(VB_DEBUG, "Exit Sequence[%d]: %s (%d)",
-                         exit_priority, entry->name, rc);
-                entry->func();
-            }
-        }
-    }
-
-#if defined(WIN_LAUNCHER)
-    ExitProcess(rc);
-#else
-    exit(rc);
-#endif
 }
 
 //
@@ -312,6 +251,12 @@ boolean I_GetMemoryValue(unsigned int offset, void *value, int size)
 const char *I_GetPlatform(void)
 {
     return SDL_GetPlatform();
+}
+
+void I_SetMetadata(const char *appname, const char *appversion,
+                   const char *appidentifier)
+{
+    SDL_SetAppMetadata(appname, appversion, appidentifier);
 }
 
 //----------------------------------------------------------------------------

@@ -126,7 +126,6 @@ extern boolean monkeys, default_monkeys;
 
 // v1.1-like pitched sounds
 extern boolean pitched_sounds;
-extern int pitch_bend_range; // [FG] variable pitch bend range
 
 extern boolean translucency;
 
@@ -285,7 +284,8 @@ extern  int max_kill_requirement;
 
 // Timer, for scores.
 extern  int levelstarttic;  // gametic at level start
-extern  int basetic;    // killough 9/29/98: levelstarttic, adjusted
+extern  int boom_basetic;    // killough 9/29/98: levelstarttic, adjusted
+extern  int true_basetic;
 extern  int leveltime;  // tics in game play for par
 extern  int oldleveltime;
 extern  int totalleveltimes; // [FG] total time for all completed levels

@@ -22,6 +22,7 @@
 
 // Some more or less basic data types
 // we depend on.
+#include "doomdata.h"
 #include "m_fixed.h"
 #include "tables.h"
 
@@ -42,6 +43,7 @@ struct mobj_s;
 #define MAXDRAWSEGS   256
 
 #define NO_TEXTURE (-1)
+#define FLATSIZE (64 * 64)
 
 //
 // INTERNAL MAP TYPES
@@ -172,6 +174,10 @@ typedef struct sector_s
   int tint;
   angle_t floor_rotation;
   angle_t ceiling_rotation;
+
+  // UDMF
+  int32_t flags;
+  int16_t lightfloor, lightceiling;
 } sector_t;
 
 //
@@ -182,10 +188,21 @@ typedef struct side_s
 {
   fixed_t textureoffset; // add this to the calculated texture column
   fixed_t rowoffset;     // add this to the calculated texture top
+
+  // UDMF
+  fixed_t offsetx_top;
+  fixed_t offsety_top;
+  fixed_t offsetx_mid;
+  fixed_t offsety_mid;
+  fixed_t offsetx_bottom;
+  fixed_t offsety_bottom;
+
   short toptexture;      // Texture indices. We do not maintain names here. 
   short bottomtexture;
   short midtexture;
   sector_t* sector;      // Sector the SideDef is facing.
+
+  sidedef_flags_t flags;
 
   // killough 4/4/98, 4/11/98: highest referencing special linedef's type,
   // or lump number of special effect. Allows texture names to be overloaded
@@ -199,6 +216,14 @@ typedef struct side_s
   fixed_t interptextureoffset;
   fixed_t interprowoffset;
   int oldgametic;
+
+  boolean dirty;
+
+  // UDMF
+  int32_t light;
+  int32_t light_top;
+  int32_t light_mid;
+  int32_t light_bottom;
 } side_t;
 
 //
@@ -217,18 +242,23 @@ typedef struct line_s
   vertex_t *v1, *v2;     // Vertices, from v1 to v2.
   fixed_t dx, dy;        // Precalculated v2 - v1 for side checking.
   // [FG] extended nodes
-  unsigned short flags;           // Animation related.
-  short special;         
-  short tag;
-  // [FG] extended nodes
-  unsigned short sidenum[2];      // Visual appearance: SideDefs.
+  uint16_t flags;        // Animation related.
+  int16_t special;       // Special action
+  int16_t id;            // Tag -> id/arg0 split
+  int32_t args[5];       // Hexen-style parameterized actions
+
+  // UDMF -- further extend to 32bit
+  int32_t sidenum[2];    // Visual appearance: SideDefs.
+
   fixed_t bbox[4];       // A bounding box, for the linedef's extent
   slopetype_t slopetype; // To aid move clipping.
   sector_t *frontsector; // Front and back sector.
   sector_t *backsector; 
   int validcount;        // if == validcount, already checked
   void *specialdata;     // thinker_t for reversable actions
-  int tranlump;          // killough 4/11/98: translucency filter, -1 == none
+
+  const byte *tranmap;   // better translucency handling
+
   int firsttag,nexttag;  // killough 4/17/98: improves searches for tags.
 
   // ID24 line specials
@@ -237,6 +267,8 @@ typedef struct line_s
   int backmusic; // Front lower texture -- activated from the back side
   int fronttint; // Front upper texture -- activated from the front side
   int backtint; // Front lower texture -- activated from the back side
+
+  boolean dirty;
 } line_t;
 
 //
@@ -400,7 +432,7 @@ typedef struct vissprite_s
   const byte *brightmap;
 
   // ID24
-  byte *tranmap;
+  const byte *tranmap;
 
   // andrewj: voxel support
   int voxel_index;

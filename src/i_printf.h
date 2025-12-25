@@ -37,6 +37,7 @@ int I_ConsoleStdout(void);
 
 void I_InitPrintf(void);
 void I_Printf(verbosity_t prio, const char *msg, ...) PRINTF_ATTR(2, 3);
+#define Printf(...) I_Printf(VB_INFO, __VA_ARGS__)
 void I_PutChar(verbosity_t prio, int c);
 
 #endif

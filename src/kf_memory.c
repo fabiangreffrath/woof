@@ -18,19 +18,17 @@
 #include "d_think.h"
 #include "doomdef.h"
 #include "doomstat.h"
-#include "dsdhacked.h"
 #include "g_game.h"
 #include "i_system.h"
-#include "info.h"
 #include "m_arena.h"
+#include "m_array.h"
 #include "m_random.h"
+#include "p_dirty.h"
 #include "p_map.h"
 #include "p_maputl.h"
-#include "p_mobj.h"
 #include "p_setup.h"
 #include "p_spec.h"
 #include "p_tick.h"
-#include "r_defs.h"
 #include "r_state.h"
 #include "s_musinfo.h"
 #include "s_sound.h"
@@ -38,17 +36,19 @@
 
 #include <stddef.h>
 #include <stdint.h>
+#include <stdlib.h>
 #include <string.h>
 
-struct keyframe_s
+#define KEYFRAME_BUFFER_SIZE (256 * 1024)
+
+typedef struct keyframe_data_s
 {
-    int tic;
     char *buffer;
     arena_copy_t *thinkers;
     arena_copy_t *msecnodes;
     arena_copy_t *activeceilings;
     arena_copy_t *activeplats;
-};
+} keyframe_data_t;
 
 static char *buffer, *curr_p;
 static size_t buffer_size;
@@ -148,9 +148,9 @@ inline static int32_t read32(void)
 
 inline static void *readp(void)
 {
-    intptr_t result = 0;
-    memcpy(&result, curr_p, sizeof(intptr_t));
-    curr_p += sizeof(intptr_t);
+    uintptr_t result = 0;
+    memcpy(&result, curr_p, sizeof(uintptr_t));
+    curr_p += sizeof(uintptr_t);
     return (void *)result;
 }
 
@@ -178,7 +178,13 @@ static void UnArchivePlayers(void)
     {
         if (playeringame[i])
         {
+            int num_visitedlevels = players[i].num_visitedlevels;
+            level_t* visitedlevels = players[i].visitedlevels;
+
             readx(&players[i], sizeof(player_t), 1);
+
+            players[i].num_visitedlevels = num_visitedlevels;
+            players[i].visitedlevels = visitedlevels;
         }
     }
 }
@@ -186,136 +192,129 @@ static void UnArchivePlayers(void)
 static void ArchiveWorld(void)
 {
     int i;
-    const sector_t *sec;
-    const line_t *li;
-    const side_t *si;
+    const sector_t *sector;
 
     // do sectors
-    for (i = 0, sec = sectors; i < numsectors; i++, sec++)
+    for (i = 0, sector = sectors; i < numsectors; i++, sector++)
     {
         // killough 10/98: save full floor & ceiling heights, including fraction
-        write32(sec->floorheight,
-                sec->ceilingheight,
-                sec->floor_xoffs,
-                sec->floor_yoffs,
-                sec->ceiling_xoffs,
-                sec->ceiling_yoffs,
-                sec->floor_rotation,
-                sec->ceiling_rotation,
-                sec->tint);
+        write32(sector->floorheight,
+                sector->ceilingheight,
+                sector->floor_xoffs,
+                sector->floor_yoffs,
+                sector->ceiling_xoffs,
+                sector->ceiling_yoffs,
+                sector->floor_rotation,
+                sector->ceiling_rotation,
+                sector->tint);
 
-        write16(sec->floorpic,
-                sec->ceilingpic,
-                sec->lightlevel,
-                sec->special, // needed?   yes -- transfer types
-                sec->tag);    // needed?   need them -- killough 
+        write16(sector->floorpic,
+                sector->ceilingpic,
+                sector->lightlevel,
+                sector->special, // needed?   yes -- transfer types
+                sector->tag);    // needed?   need them -- killough 
 
         // Woof!
-        writep(sec->soundtarget,
-               sec->thinglist,
-               sec->floordata,
-               sec->ceilingdata,
-               sec->lightingdata,
-               sec->touching_thinglist);
+        writep(sector->soundtarget,
+               sector->floordata,
+               sector->ceilingdata,
+               sector->thinglist,
+               sector->touching_thinglist);
     }
 
-    // do lines
-    for (i = 0, li = lines; i < numlines; i++, li++)
+    const line_t *line;
+
+    int size = array_size(dirty_lines);
+    write32(size);
+    for (i = 0; i < size; ++i)
     {
-        write16(li->flags,
-                li->special,
-                li->tag);
+        line = dirty_lines[i].line;
+        write16(line->special);
+    }
 
-        write32(li->angle,
-                li->frontmusic,
-                li->backmusic);
+    const side_t *side;
 
-        // Woof!
-        writep(li->frontsector,
-               li->backsector);
+    size = array_size(dirty_sides);
+    write32(size);
+    for (i = 0; i < size; ++i)
+    {
+        side = dirty_sides[i].side;
 
-        for (int j = 0; j < 2; j++)
-        {
-            if (li->sidenum[j] != NO_INDEX)
-            {
-                si = &sides[li->sidenum[j]];
+        write16(side->toptexture,
+                side->bottomtexture,
+                side->midtexture);
 
-                write16(si->toptexture,
-                        si->bottomtexture,
-                        si->midtexture);
-
-                write32(si->textureoffset,
-                        si->rowoffset);
-            }
-        }
+        write32(side->textureoffset,
+                side->rowoffset);
     }
 }
 
 static void UnArchiveWorld(void)
 {
     int i;
-    sector_t *sec;
-    line_t *li;
-    side_t *si;
+    sector_t *sector;
 
     // do sectors
-    for (i = 0, sec = sectors; i < numsectors; i++, sec++)
+    for (i = 0, sector = sectors; i < numsectors; i++, sector++)
     {
-        sec->floorheight = read32();
-        sec->ceilingheight = read32();
-        sec->floor_xoffs = read32();
-        sec->floor_yoffs = read32();
-        sec->ceiling_xoffs = read32();
-        sec->ceiling_yoffs = read32();
-        sec->floor_rotation = read32();
-        sec->ceiling_rotation = read32();
-        sec->tint = read32();
+        sector->floorheight = read32();
+        sector->ceilingheight = read32();
+        sector->floor_xoffs = read32();
+        sector->floor_yoffs = read32();
+        sector->ceiling_xoffs = read32();
+        sector->ceiling_yoffs = read32();
+        sector->floor_rotation = read32();
+        sector->ceiling_rotation = read32();
+        sector->tint = read32();
 
-        sec->floorpic = read16();
-        sec->ceilingpic = read16();
-        sec->lightlevel = read16();
-        sec->special = read16();
-        sec->tag = read16();
+        sector->floorpic = read16();
+        sector->ceilingpic = read16();
+        sector->lightlevel = read16();
+        sector->special = read16();
+        sector->tag = read16();
 
         // Woof!
-        sec->soundtarget = readp();
-        sec->thinglist = readp();
-        sec->floordata = readp();
-        sec->ceilingdata = readp();
-        sec->lightingdata = readp();
-        sec->touching_thinglist = readp();
+        sector->soundtarget = readp();
+        sector->floordata = readp();
+        sector->ceilingdata = readp();
+        sector->thinglist = readp();
+        sector->touching_thinglist = readp();
     }
 
-    // do lines
-    for (i = 0, li = lines; i < numlines; i++, li++)
+    line_t *line;
+
+    int oldsize = read32();
+    int size = array_size(dirty_lines);
+    for (i = 0; i < size; ++i)
     {
-        li->flags = read16();
-        li->special = read16();
-        li->tag = read16();
-        
-        li->angle = read32();
-        li->frontmusic = read32();
-        li->backmusic = read32();
-
-        // Woof!
-        li->frontsector = readp();
-        li->backsector = readp();
-
-        for (int j = 0; j < 2; j++)
+        line = dirty_lines[i].line;
+        if (i < oldsize)
         {
-            if (li->sidenum[j] != NO_INDEX)
-            {
-                si = &sides[li->sidenum[j]];
-              
-                si->toptexture = read16();
-                si->bottomtexture = read16();
-                si->midtexture = read16();
-                
-                si->textureoffset = read32(); 
-                si->rowoffset = read32(); 
-                si->oldtextureoffset = si->textureoffset;
-                si->oldrowoffset = si->rowoffset;
-            }
+            line->special = read16();
+        }
+        else
+        {
+            P_CleanLine(&dirty_lines[i]);
+        }
+    }
+
+    side_t *side;
+    oldsize = read32();
+    size = array_size(dirty_sides);
+    for (i = 0; i < size; ++i)
+    {
+        side = dirty_sides[i].side;
+        if (i < oldsize)
+        {
+            side->toptexture = read16();
+            side->bottomtexture = read16();
+            side->midtexture = read16();    
+            side->textureoffset = read32();
+            side->rowoffset = read32(); 
+        }
+        else
+        {
+            P_CleanSide(&dirty_sides[i]);
         }
     }
 }
@@ -325,7 +324,7 @@ static void ArchivePlayState(keyframe_t *keyframe)
     // p_tick.h
     writex(&thinkercap, sizeof(thinkercap), 1);
     writex(thinkerclasscap, sizeof(thinker_t), NUMTHCLASS);
-    keyframe->thinkers = M_ArenaCopy(thinkers_arena);
+    keyframe->data->thinkers = M_ArenaCopy(thinkers_arena);
 
     // p_map.h
     write32(floatok,
@@ -340,22 +339,16 @@ static void ArchivePlayState(keyframe_t *keyframe)
            sector_list,
            blockline);
 
-    write32(numspechit);
-    writex(spechit, sizeof(*spechit), numspechit);
-
     writex(tmbbox, sizeof(tmbbox), 1);
 
     writep(headsecnode);
-    keyframe->msecnodes = M_ArenaCopy(msecnodes_arena);
+    keyframe->data->msecnodes = M_ArenaCopy(msecnodes_arena);
     
     // p_maputil.h
     write32(opentop,
             openbottom,
             openrange,
             lowfloor);
-
-    write32(num_intercepts);
-    writex(intercepts, sizeof(*intercepts), num_intercepts);
 
     writex(&trace, sizeof(trace), 1);
 
@@ -365,8 +358,8 @@ static void ArchivePlayState(keyframe_t *keyframe)
     // p_spec.h
     writep(activeceilings,
            activeplats);
-    keyframe->activeceilings = M_ArenaCopy(activeceilings_arena);
-    keyframe->activeplats = M_ArenaCopy(activeplats_arena);
+    keyframe->data->activeceilings = M_ArenaCopy(activeceilings_arena);
+    keyframe->data->activeplats = M_ArenaCopy(activeplats_arena);
 
     // music
     write32(current_musicnum);
@@ -378,7 +371,7 @@ static void UnArchivePlayState(const keyframe_t *keyframe)
     // p_tick.h
     readx(&thinkercap, sizeof(thinkercap), 1);
     readx(thinkerclasscap, sizeof(thinker_t), NUMTHCLASS);
-    M_ArenaRestore(thinkers_arena, keyframe->thinkers);
+    M_ArenaRestore(thinkers_arena, keyframe->data->thinkers);
 
     // p_map.h
     floatok = read32();
@@ -393,22 +386,16 @@ static void UnArchivePlayState(const keyframe_t *keyframe)
     sector_list = readp();
     blockline = readp();
 
-    numspechit = read32();
-    readx(spechit, sizeof(*spechit), numspechit);
-
     readx(tmbbox, sizeof(tmbbox), 1);
 
     headsecnode = readp();
-    M_ArenaRestore(msecnodes_arena, keyframe->msecnodes);
+    M_ArenaRestore(msecnodes_arena, keyframe->data->msecnodes);
     
     // p_maputil.h
     opentop = read32();
     openbottom = read32();
     openrange = read32();
     lowfloor = read32();
-
-    num_intercepts = read32();
-    readx(intercepts, sizeof(*intercepts), num_intercepts);
 
     readx(&trace, sizeof(trace), 1);
 
@@ -418,11 +405,8 @@ static void UnArchivePlayState(const keyframe_t *keyframe)
     // p_spec.h
     activeceilings = readp();
     activeplats = readp();
-    M_ArenaRestore(activeceilings_arena, keyframe->activeceilings);
-    M_ArenaRestore(activeplats_arena, keyframe->activeplats);
-
-    setmobjstate_recursion = 0;
-    memset(seenstate_tab, 0, sizeof(statenum_t) * num_states);
+    M_ArenaRestore(activeceilings_arena, keyframe->data->activeceilings);
+    M_ArenaRestore(activeplats_arena, keyframe->data->activeplats);
 
     // music
     current_musicnum = read32();
@@ -461,12 +445,13 @@ static void UnArchiveAutomap(void)
 keyframe_t *P_SaveKeyframe(int tic)
 {
     keyframe_t *keyframe = calloc(1, sizeof(*keyframe));
+    keyframe->data = calloc(1, sizeof(*keyframe->data));
 
-    buffer_size = 512 * 1024;
+    buffer_size = KEYFRAME_BUFFER_SIZE;
     buffer = malloc(buffer_size);
     curr_p = buffer;
 
-    write8((gametic - basetic) & 255);
+    write8((gametic - boom_basetic) & 255);
 
     write32(leveltime,
             totalleveltimes,
@@ -479,22 +464,21 @@ keyframe_t *P_SaveKeyframe(int tic)
     ArchiveRNG();
     ArchiveAutomap();
 
-    if (demoplayback || demorecording)
-    {
-        writep(demo_p);
-    }
+    writep(demo_p);
 
-    keyframe->buffer = buffer;
+    keyframe->data->buffer = buffer;
     keyframe->tic = tic;
+    keyframe->episode = gameepisode;
+    keyframe->map = gamemap;
 
     return keyframe;
 }
 
 void P_LoadKeyframe(const keyframe_t *keyframe)
 {
-    curr_p = keyframe->buffer;
+    curr_p = keyframe->data->buffer;
 
-    basetic = gametic - read8();
+    boom_basetic = gametic - read8();
 
     leveltime = read32();
     totalleveltimes = read32();
@@ -509,23 +493,17 @@ void P_LoadKeyframe(const keyframe_t *keyframe)
     UnArchiveAutomap();
     P_MapEnd();
 
-    if (demoplayback || demorecording)
-    {
-        demo_p = readp();
-    }
+    demo_p = readp();
 }
 
 void P_FreeKeyframe(keyframe_t *keyframe)
 {
-    free(keyframe->buffer);
-    M_ArenaFreeCopy(keyframe->thinkers);
-    M_ArenaFreeCopy(keyframe->msecnodes);
-    M_ArenaFreeCopy(keyframe->activeceilings);
-    M_ArenaFreeCopy(keyframe->activeplats);
+    keyframe_data_t *data = keyframe->data;
+    free(data->buffer);
+    M_ArenaFreeCopy(data->thinkers);
+    M_ArenaFreeCopy(data->msecnodes);
+    M_ArenaFreeCopy(data->activeceilings);
+    M_ArenaFreeCopy(data->activeplats);
+    free(data);
     free(keyframe);
-}
-
-int P_GetKeyframeTic(const keyframe_t *keyframe)
-{
-    return keyframe->tic;
 }

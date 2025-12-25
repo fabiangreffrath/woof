@@ -81,24 +81,6 @@ NORETURN void I_ErrorInternal(const char *prefix, const char *error, ...) PRINTF
 
 void I_MessageBox(const char *message, ...) PRINTF_ATTR(1, 2);
 
-// Schedule a function to be called when the program exits.
-// If run_if_error is true, the function is called if the exit
-// is due to an error (I_Error)
-
-typedef enum
-{
-  exit_priority_first,
-  exit_priority_normal,
-  exit_priority_last,
-  exit_priority_verylast,
-  exit_priority_max,
-} exit_priority_t;
-
-typedef void (*atexit_func_t)(void);
-void I_AtExitPrio(atexit_func_t func, boolean run_if_error,
-                  const char* name, exit_priority_t priority);
-#define I_AtExit(a,b) I_AtExitPrio(a,b,#a,exit_priority_normal)
-NORETURN void I_SafeExit(int rc);
 void I_ErrorMsg(void);
 
 void *I_Realloc(void *ptr, size_t size);
@@ -106,6 +88,9 @@ void *I_Realloc(void *ptr, size_t size);
 boolean I_GetMemoryValue(unsigned int offset, void *value, int size);
 
 const char *I_GetPlatform(void);
+
+void I_SetMetadata(const char *appname, const char *appversion,
+                   const char *appidentifier);
 
 #endif
 

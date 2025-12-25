@@ -10,12 +10,18 @@ if(WITH_XMP)
     list(APPEND VCPKG_MANIFEST_FEATURES "libxmp")
 endif()
 
+option(WITH_DISCORD_RPC "Use discord-rpc if available" ON)
+if(WITH_DISCORD_RPC)
+    list(APPEND VCPKG_MANIFEST_FEATURES "discord-rpc")
+endif()
+
 option(ENABLE_WERROR "Treat warnings as errors" OFF)
 option(ENABLE_ASAN "Enable ASan" OFF)
 option(ENABLE_UBSAN "Enable UBSan" OFF)
 option(ENABLE_TSAN "Enable TSan" OFF)
 option(ENABLE_HARDENING "Enable hardening flags" OFF)
 option(ENABLE_LTO "Enable link time optimization" OFF)
+option(ENABLE_FONTGEN "Generate textscreen font" OFF)
 
 option(WOOF_RANGECHECK "Enable bounds-checking of performance-sensitive functions" ON)
 option(WOOF_STRICT
@@ -62,6 +68,7 @@ set(PROJECT_COPYRIGHT "Copyright (C) 1993-2025")
 set(PROJECT_LICENSE "GNU General Public License, version 2")
 set(PROJECT_STRING "${PROJECT_NAME} ${PROJECT_VERSION}")
 set(PROJECT_SHORTNAME "woof")
+set(PROJECT_APPID "io.github.fabiangreffrath.woof")
 set(BASE_PK3 "woof.pk3")
 set(WOOF_ICON "woof.ico")
 set(SETUP_ICON "setup.ico")
@@ -89,7 +96,7 @@ check_symbol_exists(getpwuid "unistd.h;sys/types.h;pwd.h" HAVE_GETPWUID)
 check_c_source_compiles(
     "
     #include <immintrin.h>
-    int main()
+    int main(void)
     {
         int tmp = _div64(4, 2, NULL);
         return 0;
@@ -100,7 +107,7 @@ check_c_source_compiles(
 check_c_source_compiles(
     "
     typedef float vec __attribute__((ext_vector_type(4)));
-    int main()
+    int main(void)
     {
         vec a = (vec){0, 1, 2, 3};
         return 0;
@@ -112,7 +119,7 @@ check_c_source_compiles(
 set(CMAKE_FIND_FRAMEWORK NEVER)
 
 # Library requirements.
-find_package(SDL3 REQUIRED)
+find_package(SDL3 3.3 REQUIRED)
 find_package(OpenAL REQUIRED)
 find_package(libebur128 REQUIRED)
 find_package(SndFile 1.0.29 REQUIRED)
@@ -139,23 +146,29 @@ find_path(MINIMP3_INCLUDE_DIRS "minimp3/minimp3.h" NO_CACHE)
 
 if(WITH_FLUIDSYNTH)
     find_package(FluidSynth)
+    if(FluidSynth_FOUND)
+        set(HAVE_FLUIDSYNTH TRUE)
+    endif()
 endif()
+
 if(WITH_XMP)
     find_package(libxmp)
-endif()
-
-if(FluidSynth_FOUND)
-    set(HAVE_FLUIDSYNTH TRUE)
-endif()
-
-if(libxmp_FOUND)
-    set(HAVE_LIBXMP TRUE)
-    if(NOT TARGET libxmp::xmp)
-        if(TARGET libxmp::xmp_shared)
-            add_library(libxmp::xmp ALIAS libxmp::xmp_shared)
-        else()
-            add_library(libxmp::xmp ALIAS libxmp::xmp_static)
+    if(libxmp_FOUND)
+        set(HAVE_LIBXMP TRUE)
+        if(NOT TARGET libxmp::xmp)
+            if(TARGET libxmp::xmp_shared)
+                add_library(libxmp::xmp ALIAS libxmp::xmp_shared)
+            else()
+                add_library(libxmp::xmp ALIAS libxmp::xmp_static)
+            endif()
         endif()
+    endif()
+endif()
+
+if(WITH_DISCORD_RPC)
+    find_package(DiscordRPC)
+    if(DiscordRPC_FOUND)
+        set(HAVE_DISCORD_RPC TRUE)
     endif()
 endif()
 
@@ -174,7 +187,7 @@ endif()
 if(WIN32)
     install(FILES COPYING DESTINATION . RENAME COPYING.txt)
     if(HAVE_FLUIDSYNTH)
-        install(DIRECTORY soundfonts/ DESTINATION soundfonts)
+        install(DIRECTORY DESTINATION soundfonts)
     endif()
 else()
     install(FILES COPYING DESTINATION "share/doc/${PROJECT_SHORTNAME}")
