@@ -13,7 +13,7 @@
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 // GNU General Public License for more details.
 
-#include "v_fmt.h"
+#include "v_patch.h"
 
 #include <stdlib.h>
 #include <string.h>
@@ -662,32 +662,6 @@ static void TranslatePatch(patch_t *patch, const byte *translate)
     }
 }
 
-boolean V_PatchIsEmpty(const patch_t *patch)
-{
-    int width = SHORT(patch->width);
-
-    for (int i = 0; i < width; i++)
-    {
-        int offset = LONG(patch->columnofs[i]);
-        byte *rover = (byte *)patch + offset;
-
-        while (*rover != 0xff)
-        {
-            int count = *(rover + 1);
-            byte *src = rover + 3;
-
-            while (count--)
-            {
-                return false;
-            }
-
-            rover = src + 1;
-        }
-    }
-
-    return true;
-}
-
 patch_t *V_CachePatchNum(int lump, pu_tag tag)
 {
     if (lump >= numlumps)
@@ -861,4 +835,87 @@ int V_LumpSize(int lump)
 
     return lumpinfo[lump].fmt_size ? lumpinfo[lump].fmt_size
                                    : lumpinfo[lump].size;
+}
+
+// [FG] check if the lump can be a Doom patch
+// taken from PrBoom+ prboom2/src/r_patch.c:L350-L390
+
+boolean V_LumpIsPatch(const int lump)
+{
+    // [FG] non-existent cannot be a patch lump
+    if (lump < 0)
+    {
+        return false;
+    }
+
+    int size = V_LumpSize(lump);
+
+    // minimum length of a valid Doom patch
+    if (size < 13)
+    {
+        return false;
+    }
+
+    const patch_t *patch = V_CachePatchNum(lump, PU_CACHE);
+
+    int width = SHORT(patch->width);
+    int height = SHORT(patch->height);
+
+    boolean result = (height > 0 && height <= 16384 && width > 0
+                      && width <= 16384 && width < size / 4);
+
+    if (result)
+    {
+        // The dimensions seem like they might be valid for a patch, so
+        // check the column directory for extra security. All columns
+        // must begin after the column directory, and none of them must
+        // point past the end of the patch.
+        for (int x = 0; x < width; x++)
+        {
+            unsigned int ofs = LONG(patch->columnofs[x]);
+
+            // Need one byte for an empty column (but there's patches that don't
+            // know that!)
+            if (ofs < (unsigned int)width * 4 + 8 || ofs >= (unsigned int)size)
+            {
+                result = false;
+                break;
+            }
+        }
+    }
+
+    return result;
+}
+
+boolean V_PatchIsEmpty(const int lump)
+{
+    if (!V_LumpIsPatch(lump))
+    {
+        return true;
+    }
+
+    const patch_t *patch = V_CachePatchNum(lump, PU_CACHE);
+
+    int width = SHORT(patch->width);
+
+    for (int i = 0; i < width; i++)
+    {
+        int offset = LONG(patch->columnofs[i]);
+        byte *rover = (byte *)patch + offset;
+
+        while (*rover != 0xff)
+        {
+            int count = *(rover + 1);
+            byte *src = rover + 3;
+
+            if (count)
+            {
+                return false;
+            }
+
+            rover = src + 1;
+        }
+    }
+
+    return true;
 }

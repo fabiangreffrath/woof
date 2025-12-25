@@ -56,7 +56,7 @@
 #include "st_sbardef.h"
 #include "st_widgets.h"
 #include "tables.h"
-#include "v_fmt.h"
+#include "v_patch.h"
 #include "v_video.h"
 #include "w_wad.h"
 #include "z_zone.h"
@@ -572,11 +572,11 @@ static boolean CheckConditions(sbarcondition_t *conditions, player_t *player)
 
             case sbc_patchempty:
                 {
-                    int lumpnum = W_CheckNumForName(cond->params);
+                    int lumpnum =
+                        cond->params ? W_CheckNumForName(cond->params) : -1;
                     if (lumpnum >= 0)
                     {
-                        result &=
-                            V_PatchIsEmpty(V_CachePatchNum(lumpnum, PU_STATIC));
+                        result &= V_PatchIsEmpty(lumpnum);
                     }
                     else
                     {
@@ -587,11 +587,11 @@ static boolean CheckConditions(sbarcondition_t *conditions, player_t *player)
 
             case sbc_patchnotempty:
                 {
-                    int lumpnum = W_CheckNumForName(cond->params);
+                    int lumpnum =
+                        cond->params ? W_CheckNumForName(cond->params) : -1;
                     if (lumpnum >= 0)
                     {
-                        result &= (!V_PatchIsEmpty(
-                            V_CachePatchNum(lumpnum, PU_STATIC)));
+                        result &= (!V_PatchIsEmpty(lumpnum));
                     }
                     else
                     {

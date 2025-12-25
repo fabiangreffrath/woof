@@ -41,7 +41,7 @@
 #include "r_tranmap.h"
 #include "s_sound.h"
 #include "sounds.h"
-#include "v_fmt.h"
+#include "v_patch.h"
 #include "v_trans.h"
 #include "v_video.h"
 #include "w_wad.h" // needed for color translation lump lookup

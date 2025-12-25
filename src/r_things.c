@@ -42,7 +42,7 @@
 #include "r_tranmap.h"
 #include "r_voxel.h"
 #include "tables.h"
-#include "v_fmt.h"
+#include "v_patch.h"
 #include "v_video.h"
 #include "w_wad.h"
 #include "z_zone.h"

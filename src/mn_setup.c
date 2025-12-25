@@ -62,7 +62,7 @@
 #include "st_stuff.h"
 #include "sounds.h"
 #include "st_widgets.h"
-#include "v_fmt.h"
+#include "v_patch.h"
 #include "v_video.h"
 #include "w_wad.h"
 #include "ws_stuff.h"
