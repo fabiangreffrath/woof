@@ -874,7 +874,14 @@ static void UpdateNumber(sbarelem_t *elem, player_t *player)
     }
 
     int totalwidth = font->monowidth * valglyphs;
-    if (font->type == sbf_proportional)
+    if (font->type == sbf_mono0)
+    {
+        if (elem->type == sbe_percent && font->percent != NULL)
+        {
+            totalwidth += SHORT(font->percent->width) - font->monowidth;
+        }
+    }
+    else if (font->type == sbf_proportional)
     {
         totalwidth = 0;
         if (value < 0 && font->minus != NULL)
