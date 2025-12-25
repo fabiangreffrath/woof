@@ -1730,7 +1730,7 @@ static void EraseBackground(int y, int height)
     }
 }
 
-static void EraseElem(int x, int y, sbarelem_t *elem, player_t *player)
+static void EraseElem(int x, int y, int y0, sbarelem_t *elem, player_t *player)
 {
     if (!CheckConditions(elem->conditions, player))
     {
@@ -1739,6 +1739,7 @@ static void EraseElem(int x, int y, sbarelem_t *elem, player_t *player)
 
     x += elem->x_pos;
     y += elem->y_pos;
+    y0 += elem->y_pos;
 
     if (elem->type == sbe_widget)
     {
@@ -1751,31 +1752,31 @@ static void EraseElem(int x, int y, sbarelem_t *elem, player_t *player)
         {
             if (elem->alignment & sbe_v_bottom)
             {
-                y -= font->maxheight;
+                y0 -= font->maxheight;
             }
             height += font->maxheight;
         }
 
         if (height > 0)
         {
-            EraseBackground(y, height);
+            EraseBackground(y0, height);
             widget->height = height;
         }
         else if (widget->height)
         {
-            EraseBackground(y, widget->height);
+            EraseBackground(y0, widget->height);
             widget->height = 0;
         }
     }
     else if (elem->type == sbe_carousel)
     {
-        ST_EraseCarousel(y);
+        ST_EraseCarousel(y0);
     }
 
     sbarelem_t *child;
     array_foreach(child, elem->children)
     {
-        EraseElem(x, y, child, player);
+        EraseElem(x, y, y0, child, player);
     }
 }
 
@@ -1791,7 +1792,7 @@ void ST_Erase(void)
     sbarelem_t *child;
     array_foreach(child, statusbar->children)
     {
-        EraseElem(0, SCREENHEIGHT - statusbar->height, child, player);
+        EraseElem(0, SCREENHEIGHT - statusbar->height, 0, child, player);
     }
 }
 
