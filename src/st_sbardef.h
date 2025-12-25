@@ -75,6 +75,8 @@ typedef enum
     sbc_episodeequal,
     sbc_levelgreaterequal,
     sbc_levelless,
+    sbc_patchempty,
+    sbc_patchnotempty,
 
     sbc_max,
 } sbarconditiontype_t;
@@ -84,6 +86,7 @@ typedef struct
     sbarconditiontype_t condition;
     int param;
     int param2;
+    const char *params;
 } sbarcondition_t;
 
 typedef enum

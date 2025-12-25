@@ -570,6 +570,36 @@ static boolean CheckConditions(sbarcondition_t *conditions, player_t *player)
                 result &= (gamemap < cond->param);
                 break;
 
+            case sbc_patchempty:
+                {
+                    int lumpnum = W_CheckNumForName(cond->params);
+                    if (lumpnum >= 0)
+                    {
+                        result &=
+                            V_PatchIsEmpty(V_CachePatchNum(lumpnum, PU_STATIC));
+                    }
+                    else
+                    {
+                        result = true;
+                    }
+                }
+                break;
+
+            case sbc_patchnotempty:
+                {
+                    int lumpnum = W_CheckNumForName(cond->params);
+                    if (lumpnum >= 0)
+                    {
+                        result &= (!V_PatchIsEmpty(
+                            V_CachePatchNum(lumpnum, PU_STATIC)));
+                    }
+                    else
+                    {
+                        result = false;
+                    }
+                }
+                break;
+
             case sbc_none:
             default:
                 result = false;

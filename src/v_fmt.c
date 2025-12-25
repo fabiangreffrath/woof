@@ -662,6 +662,32 @@ static void TranslatePatch(patch_t *patch, const byte *translate)
     }
 }
 
+boolean V_PatchIsEmpty(const patch_t *patch)
+{
+    int width = SHORT(patch->width);
+
+    for (int i = 0; i < width; i++)
+    {
+        int offset = LONG(patch->columnofs[i]);
+        byte *rover = (byte *)patch + offset;
+
+        while (*rover != 0xff)
+        {
+            int count = *(rover + 1);
+            byte *src = rover + 3;
+
+            while (count--)
+            {
+                return false;
+            }
+
+            rover = src + 1;
+        }
+    }
+
+    return true;
+}
+
 patch_t *V_CachePatchNum(int lump, pu_tag tag)
 {
     if (lump >= numlumps)

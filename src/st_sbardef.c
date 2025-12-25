@@ -35,15 +35,18 @@ static hudfont_t *hudfonts;
 static boolean ParseSbarCondition(json_t *json, sbarcondition_t *out)
 {
     json_t *condition = JS_GetObject(json, "condition");
-    json_t *param = JS_GetObject(json, "param");
-    if (!JS_IsNumber(condition) || !JS_IsNumber(param))
+    if (!JS_IsNumber(condition))
     {
         return false;
     }
     out->condition = JS_GetInteger(condition);
-    out->param = JS_GetInteger(param);
-
-    out->param2 = JS_GetIntegerValue(json, "param2"); // optional parameter
+    out->param = JS_GetIntegerValue(json, "param");
+    out->param2 = JS_GetIntegerValue(json, "param2");
+    const char *params = JS_GetStringValue(json, "params");
+    if (params)
+    {
+        out->params = M_StringDuplicate(params);
+    }
     return true;
 }
 

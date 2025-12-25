@@ -35,4 +35,6 @@ void *V_CacheFlatNum(int lump, pu_tag tag);
 
 int V_LumpSize(int lump);
 
+boolean V_PatchIsEmpty(const struct patch_s *patch);
+
 #endif
