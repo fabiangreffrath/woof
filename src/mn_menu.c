@@ -2374,7 +2374,7 @@ void M_Init(void)
         if (!DEH_HasStringReplacement(string))
         {
             replace = M_StringReplace(string, "dos", platform);
-            DEH_AddStringReplacement(strings_quit_messages[3], replace);
+            DEH_AddStringReplacement(strings_quit_messages[4], replace);
             free(replace);
         }
 
@@ -2384,18 +2384,13 @@ void M_Init(void)
         {
             replace = M_StringReplace(string, "dos", platform);
 #if defined(_WIN32)
-            replace = M_StringReplace(string, "prompt", "desktop");
+            string = M_StringReplace(replace, "prompt", "desktop");
 #else
-            if (isatty(STDOUT_FILENO))
-            {
-                replace = M_StringReplace(string, "prompt", "shell");
-            }
-            else
-            {
-                replace = M_StringReplace(string, "prompt", "desktop");
-            }
+            string = isatty(STDOUT_FILENO)
+                    ? M_StringReplace(replace, "prompt", "shell")
+                    : M_StringReplace(replace, "prompt", "desktop");
 #endif
-            DEH_AddStringReplacement(strings_quit_messages[9], replace);
+            DEH_AddStringReplacement(strings_quit_messages[9], string);
             free(replace);
         }
 
