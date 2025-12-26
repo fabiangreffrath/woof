@@ -1109,7 +1109,7 @@ void R_FillBackScreen(void)
 // Copy a screen buffer.
 //
 
-void R_VideoErase(int x, int y, int w, int h)
+static void R_VideoErase(int x, int y, int w, int h)
 {
     if (background_buffer == NULL)
     {

@@ -219,22 +219,6 @@ static int CalcOffset(void)
     return 0;
 }
 
-void ST_EraseCarousel(int y)
-{
-    static boolean erase;
-
-    if (duration > 0)
-    {
-        R_VideoErase(0, y - 16, video.unscaledw, 32);
-        erase = true;
-    }
-    else if (erase)
-    {
-        R_VideoErase(0, y - 16, video.unscaledw, 32);
-        erase = false;
-    }
-}
-
 void ST_DrawCarousel(int x, int y, sbarelem_t *elem)
 {
     if (duration == 0)

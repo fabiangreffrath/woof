@@ -1731,69 +1731,6 @@ static void DrawStatusBar(void)
     DrawCenteredMessage();
 }
 
-static void EraseBackground(int y, int height)
-{
-    if (y > scaledviewy && y < scaledviewy + scaledviewheight - height)
-    {
-        R_VideoErase(0, y, scaledviewx, height);
-        R_VideoErase(scaledviewx + scaledviewwidth, y, scaledviewx, height);
-    }
-    else
-    {
-        R_VideoErase(0, y, video.unscaledw, height);
-    }
-}
-
-static void EraseElem(int x, int y, int y0, sbarelem_t *elem, player_t *player)
-{
-    if (!CheckConditions(elem->conditions, player))
-    {
-        return;
-    }
-
-    x += elem->x_pos;
-    y += elem->y_pos;
-    y0 += elem->y_pos;
-
-    if (elem->type == sbe_widget)
-    {
-        sbe_widget_t *widget = elem->subtype.widget;
-        hudfont_t *font = widget->font;
-
-        int height = 0;
-        widgetline_t *line;
-        array_foreach(line, widget->lines)
-        {
-            if (elem->alignment & sbe_v_bottom)
-            {
-                y0 -= font->maxheight;
-            }
-            height += font->maxheight;
-        }
-
-        if (height > 0)
-        {
-            EraseBackground(y0, height);
-            widget->height = height;
-        }
-        else if (widget->height)
-        {
-            EraseBackground(y0, widget->height);
-            widget->height = 0;
-        }
-    }
-    else if (elem->type == sbe_carousel)
-    {
-        ST_EraseCarousel(y0);
-    }
-
-    sbarelem_t *child;
-    array_foreach(child, elem->children)
-    {
-        EraseElem(x, y, y0, child, player);
-    }
-}
-
 void ST_Erase(void)
 {
     if (!sbardef || screenblocks >= 10)
@@ -1801,13 +1738,7 @@ void ST_Erase(void)
         return;
     }
 
-    player_t *player = &players[displayplayer];
-
-    sbarelem_t *child;
-    array_foreach(child, statusbar->children)
-    {
-        EraseElem(0, SCREENHEIGHT - statusbar->height, 0, child, player);
-    }
+    R_DrawViewBorder();
 }
 
 // Respond to keyboard input events,
