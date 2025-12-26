@@ -22,7 +22,6 @@
 #include "doomstat.h"
 #include "doomtype.h"
 #include "f_finale.h"
-#include "i_printf.h"
 #include "m_array.h"
 #include "m_misc.h"
 #include "m_scanner.h"
