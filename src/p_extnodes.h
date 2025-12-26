@@ -25,6 +25,8 @@
 #include "doomdata.h"
 
 struct vertex_s;
+struct seg_s;
+struct line_s;
 
 typedef enum
 {
@@ -46,6 +48,7 @@ extern const char *const node_format_names[];
 extern mapformat_t P_CheckMapFormat(int lumpnum);
 extern nodeformat_t P_CheckDoomNodeFormat(int lumpnum);
 extern nodeformat_t P_CheckUDMFNodeFormat(int lumpnum);
+extern int P_GetSidedefNum(struct seg_s * li, struct line_s * ldef);
 extern int P_GetOffset(struct vertex_s *v1, struct vertex_s *v2);
 
 extern void P_LoadSegs_DEEP(int lump);
