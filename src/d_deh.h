@@ -556,6 +556,8 @@ extern char *s_OB_MPPLASMARIFLE;
 extern char *s_OB_MPBFG_BOOM;
 extern char *s_OB_MPTELEFRAG;
 
+extern const char *D_GetStringForMnemonic(const char*);
+
 #endif
 
 //--------------------------------------------------------------------

@@ -388,12 +388,10 @@ static void ParseStandardProperty(scanner_t *s, mapentry_t *mape)
     }
     else if (!strcasecmp(prop, "endfinale"))
     {
-        I_Printf(VB_DEBUG, "Reached %s:%d", __func__, __LINE__);
         mape->flags |= MapInfo_EndGameCustomFinale;
         char buffer[9];
         ParseLumpName(s, buffer);
         mape->endfinale = F_ParseEndFinale(buffer);
-        I_Printf(VB_DEBUG, "Found endfinale lump: %s -- lumpnum: %d", buffer, W_CheckNumForName(buffer));
     }
     else if (!strcasecmp(prop, "endgame"))
     {

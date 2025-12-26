@@ -25,6 +25,7 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "d_deh.h"
 #include "d_items.h"
 #include "d_main.h"
 #include "d_think.h"
@@ -963,6 +964,25 @@ static deh_strs deh_strlookup[] = {
     {&s_OB_MPBFG_BOOM,      "OB_MPBFG_BOOM"     },
     {&s_OB_MPTELEFRAG,      "OB_MPTELEFRAG"     },
 };
+
+static int deh_strlookup_size = arrlen(deh_strlookup);
+static const char * deh_str_placeholder = "(NULL)";
+
+const char * D_GetStringForMnemonic(const char * mnemonic)
+{
+    if (!mnemonic)
+        return deh_str_placeholder;
+
+    for (int i = 0; i < deh_strlookup_size; i++)
+    {
+        if (!strcasecmp(deh_strlookup[i].lookup, mnemonic))
+        {
+            return *deh_strlookup[i].ppstr;
+        }
+    }
+
+    return deh_str_placeholder;
+}
 
 static char *deh_newlevel = "NEWLEVEL";
 
