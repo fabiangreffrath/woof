@@ -595,6 +595,11 @@ void R_InitTextures (void)
     {
       strncpy (name,name_p+i*8, 8);
       patchlookup[i] = W_CheckNumForName(name);
+
+      // [EB] some wads use the texture namespace but then still use those in pnames
+      if (patchlookup[i] == -1)
+        patchlookup[i] = (W_CheckNumForName)(name, ns_textures);
+
       if (patchlookup[i] == -1)
         {
           // killough 4/17/98:
