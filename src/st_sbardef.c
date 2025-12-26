@@ -103,8 +103,6 @@ static crop_t ParseCrop(json_t *json)
 
 static boolean ParseSbarElem(json_t *json, sbarelem_t *out);
 
-static boolean translate_alignment;
-
 static boolean ParseSbarElemType(json_t *json, sbarelementtype_t type,
                                  sbarelem_t *out)
 {
@@ -119,21 +117,7 @@ static boolean ParseSbarElemType(json_t *json, sbarelementtype_t type,
     }
     out->x_pos = JS_GetInteger(x_pos);
     out->y_pos = JS_GetInteger(y_pos);
-
     out->alignment = JS_GetInteger(alignment);
-    if (translate_alignment)
-    {
-        if (out->alignment & sbe_ignore_xoffset)
-        {
-            out->alignment &= ~sbe_ignore_xoffset;
-            out->alignment |= sbe_wide_left;
-        }
-        if (out->alignment & sbe_ignore_yoffset)
-        {
-            out->alignment &= ~sbe_ignore_yoffset;
-            out->alignment |= sbe_wide_right;
-        }
-    }
 
     json_t *translucency = JS_GetObject(json, "translucency");
     if (JS_IsBoolean(translucency) && JS_GetBoolean(translucency))
@@ -559,7 +543,7 @@ sbardef_t *ST_ParseSbarDef(void)
 
     if (v.major == 1 && v.minor == 1 && v.revision == 0)
     {
-        translate_alignment = true;
+        I_Error("SBARDEF v1.1.0 is not supported. Update your HUD mod.");
     }
 
     json_t *data = JS_GetObject(json, "data");
@@ -621,8 +605,6 @@ sbardef_t *ST_ParseSbarDef(void)
         free(out);
         return NULL;
     }
-
-    translate_alignment = false;
 
     data = JS_GetObject(json, "data");
 
