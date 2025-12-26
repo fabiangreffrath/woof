@@ -16,6 +16,7 @@
 #define G_UMAPINFO_H
 
 #include "doomtype.h"
+#include "f_finale.h"
 
 typedef enum
 {
@@ -58,7 +59,6 @@ typedef struct mapentry_s
     char music[9];
     char skytexture[9];
     char endpic[9];
-    char endfinale[9];
     char exitpic[9];
     char enterpic[9];
     char exitanim[9];
@@ -66,6 +66,7 @@ typedef struct mapentry_s
     char interbackdrop[9];
     char intermusic[9];
     int partime;
+    end_finale_t *endfinale;
     bossaction_t *bossactions;
     mapinfo_flags_t flags;
 } mapentry_t;

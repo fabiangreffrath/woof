@@ -53,37 +53,25 @@ typedef enum end_type_e
   END_CAST,   // Custom cast call
 } end_type_t;
 
-// ID24 EndFinale - [EA] Woof extension to the spec
-typedef enum bunny_line_e
+// Added in 1.1.0, direction of bunny scroll
+typedef enum bunny_dir_e
 {
   BUNNY_LEFT,
   BUNNY_UP,
   BUNNY_RIGHT,
   BUNNY_DOWN,
-} bunny_line_t;
+} bunny_dir_t;
 
-// ID24 EndFinale - Custom "bunny" scroller
-typedef struct end_bunny_s
-{
-  bunny_line_t  orientation;  // Left, up, right or down
-  const char   *stitchimage;  // e.g PFUB2
-  int           overlay;      // e.g END0
-  int           overlaycount; // How many frames?
-  int           overlaysound; // Sound index
-  int           overlayx;
-  int           overlayy;
-} end_bunny_t;
-
-// ID24 EndFinale - Custom cast call, per-callee frame
+// Custom cast call, per-callee frame
 typedef struct cast_frame_s
 {
-  const char *lump;
+  char        lump[9];
   boolean     flipped;
   int         duration;
   int         sound;
 } cast_frame_t;
 
-// ID24 EndFinale - Custom cast call, callee
+// Custom cast call, callee
 typedef struct cast_entry_s
 {
   const char   *name;             // BEX [STRINGS] mnemonic
@@ -92,31 +80,29 @@ typedef struct cast_entry_s
   cast_frame_t *deathframes;
   int           aliveframescount; // Book-keeping
   int           deathframescount; // Book-keeping
-} cast_entry_t;
+} cast_anim_t;
 
-// [EA] Not sure why it is like this, but this is the setup in the official
-// Legacy of Rust's finale lumps. Why the awkward nesting? Not obviously useful,
-// but keeping it anyway as a mirror of the actual JSON and just in case.
-typedef struct end_cast_s
-{
-  cast_entry_t *castanims;
-  int           castanimscount; // Book-keeping
-} end_cast_t;
 
 // ID24 EndFinale
 typedef struct end_finale_s
 {
   end_type_t   type;
-  const char  *music;      // e.g. `D_EVIL` or `D_BUNNY` or `D_VICTOR`
-  const char  *background; // e.g. `BOSSBACK` or `PFUB1` or `ENDPIC`
+  char         music[9];      // e.g. `D_EVIL` or `D_BUNNY` or `D_VICTOR`
+  char         background[9]; // e.g. `BOSSBACK` or `PFUB1` or `ENDPIC`
   boolean      musicloops;
   boolean      donextmap;
-  end_bunny_t  bunny;
-  end_cast_t   castrollcall;
+  bunny_dir_t  bunny_orientation;
+  char         bunny_stitchimage[9];
+  int          bunny_overlay;
+  int          bunny_overlaycount;
+  int          bunny_overlaysound;
+  int          bunny_overlayx;
+  int          bunny_overlayy;
+  int          cast_animscount;
+  cast_anim_t *cast_anims;
 } end_finale_t;
 
-extern end_finale_t *endfinale;
-end_finale_t *D_ParseEndFinale(const char lump[9]);
+end_finale_t *F_ParseEndFinale(const char lump[9]);
 
 #endif
 

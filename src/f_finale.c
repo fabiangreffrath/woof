@@ -86,13 +86,11 @@ static boolean mapinfo_finale;
 // ID24 EndFinale extensions
 //
 
-// Current finale being played
-end_finale_t *endfinale = NULL;
-
-static void ParseEndFinaleCastAnims(json_t *js_castanim_entry, cast_entry_t *out)
+static cast_anim_t ParseEndFinaleCastAnims(json_t *js_castanim_entry)
 {
-    out->name = JS_GetStringValue(js_castanim_entry, "name");
-    out->alertsound = JS_GetIntegerValue(js_castanim_entry, "alertsound");
+    cast_anim_t out = {0};
+    out.name = JS_GetStringValue(js_castanim_entry, "name");
+    out.alertsound = JS_GetIntegerValue(js_castanim_entry, "alertsound");
 
     json_t *js_alive_frame_list = JS_GetObject(js_castanim_entry, "aliveframes");
     json_t *js_death_frame_list = JS_GetObject(js_castanim_entry, "deathframes");
@@ -100,29 +98,31 @@ static void ParseEndFinaleCastAnims(json_t *js_castanim_entry, cast_entry_t *out
     json_t *js_alive_frame = NULL;
     JS_ArrayForEach(js_alive_frame, js_alive_frame_list)
     {
-        cast_frame_t buffer = {0};
-        buffer.lump = JS_GetStringValue(js_alive_frame, "lump");
-        buffer.flipped = JS_GetBooleanValue(js_alive_frame, "flipped");
-        buffer.duration = JS_GetIntegerValue(js_alive_frame, "duration") * TICRATE;
-        buffer.sound = JS_GetIntegerValue(js_alive_frame, "sound");
-        array_push(out->aliveframes, buffer);
-        out->aliveframescount++;
+        cast_frame_t alive_buffer = {0};
+        M_CopyLumpName(alive_buffer.lump, JS_GetStringValue(js_alive_frame, "lump"));
+        alive_buffer.flipped = JS_GetBooleanValue(js_alive_frame, "flipped");
+        alive_buffer.duration = JS_GetIntegerValue(js_alive_frame, "duration") * TICRATE;
+        alive_buffer.sound = JS_GetIntegerValue(js_alive_frame, "sound");
+        array_push(out.aliveframes, alive_buffer);
+        out.aliveframescount++;
     }
 
     json_t *js_death_frame = NULL;
     JS_ArrayForEach(js_death_frame, js_death_frame_list)
     {
-        cast_frame_t buffer = {0};
-        buffer.lump = JS_GetStringValue(js_death_frame, "lump");
-        buffer.flipped = JS_GetBooleanValue(js_death_frame, "flipped");
-        buffer.duration = JS_GetIntegerValue(js_death_frame, "duration") * TICRATE;
-        buffer.sound = JS_GetIntegerValue(js_death_frame, "sound");
-        array_push(out->deathframes, buffer);
-        out->deathframescount++;
+        cast_frame_t death_buffer = {0};
+        M_CopyLumpName(death_buffer.lump, JS_GetStringValue(js_death_frame, "lump"));
+        death_buffer.flipped = JS_GetBooleanValue(js_death_frame, "flipped");
+        death_buffer.duration = JS_GetIntegerValue(js_death_frame, "duration") * TICRATE;
+        death_buffer.sound = JS_GetIntegerValue(js_death_frame, "sound");
+        array_push(out.deathframes, death_buffer);
+        out.deathframescount++;
     }
+
+    return out;
 }
 
-end_finale_t *D_ParseEndFinale(const char lump[9])
+end_finale_t *F_ParseEndFinale(const char lump[9])
 {
     // Does the JSON lump even exist?
     json_t *json = JS_Open(lump, "finale", (version_t){1, 0, 0});
@@ -142,15 +142,13 @@ end_finale_t *D_ParseEndFinale(const char lump[9])
     }
 
     // Now, actually parse it
-    end_finale_t *out = Z_Calloc(1, sizeof(*out), PU_LEVEL, NULL);
+    end_finale_t *out = Z_Malloc(sizeof(end_finale_t), PU_STATIC, NULL);
 
     end_type_t type = JS_GetIntegerValue(data, "type");
     const char *music = JS_GetStringValue(data, "music");
     const char *background = JS_GetStringValue(data, "background");
     boolean musicloops = JS_GetBooleanValue(data, "musicloops");
     boolean donextmap = JS_GetBooleanValue(data, "donextmap");
-    end_bunny_t bunny = {0};
-    end_cast_t castrollcall = {0};
 
     // Improper definitions should be entirely discarded
     if (music == NULL || background == NULL)
@@ -165,16 +163,16 @@ end_finale_t *D_ParseEndFinale(const char lump[9])
         // Our hero
         case END_CAST:
         {
+            // Why is this nested like this?
             json_t *js_castrollcall = JS_GetObject(data, "castrollcall");
             json_t *js_castanim_list = JS_GetObject(js_castrollcall, "castanims");
 
             json_t *js_castanim_entry = NULL;
             JS_ArrayForEach(js_castanim_entry, js_castanim_list)
             {
-                cast_entry_t castanim_entry = {0};
-                ParseEndFinaleCastAnims(js_castanim_entry, &castanim_entry);
-                castrollcall.castanimscount++;
-                array_push(castrollcall.castanims, castanim_entry);
+                cast_anim_t castanim_entry = ParseEndFinaleCastAnims(js_castanim_entry);
+                out->cast_animscount++;
+                array_push(out->cast_anims, castanim_entry);
             }
 
             break;
@@ -184,40 +182,33 @@ end_finale_t *D_ParseEndFinale(const char lump[9])
         case END_SCROLL:
         {
             json_t *js_bunny = JS_GetObject(data, "bunny");
-            bunny.overlay = JS_GetIntegerValue(js_bunny, "overlay");
-            bunny.overlaycount = JS_GetIntegerValue(js_bunny, "overlaycount");
-            bunny.overlaysound = JS_GetIntegerValue(js_bunny, "overlaysound");
-            bunny.overlayx = JS_GetIntegerValue(js_bunny, "overlayx");
-            bunny.overlayy = JS_GetIntegerValue(js_bunny, "overlayy");
-            bunny.orientation = JS_GetIntegerValue(js_bunny, "orientation");
-            bunny.stitchimage = Z_StrDup(JS_GetStringValue(js_bunny, "stitchimage"), PU_LEVEL);
+            out->bunny_overlay = JS_GetIntegerValue(js_bunny, "overlay");
+            out->bunny_overlaycount = JS_GetIntegerValue(js_bunny, "overlaycount");
+            out->bunny_overlaysound = JS_GetIntegerValue(js_bunny, "overlaysound");
+            out->bunny_overlayx = JS_GetIntegerValue(js_bunny, "overlayx");
+            out->bunny_overlayy = JS_GetIntegerValue(js_bunny, "overlayy");
+            out->bunny_orientation = JS_GetIntegerValue(js_bunny, "orientation");
+            M_CopyLumpName(out->bunny_stitchimage, JS_GetStringValue(js_bunny, "stitchimage"));
             break;
         }
 
-        // Explicitly do not parse anything extra
         case END_ART:
             break;
 
         // Fix you lumps! Fix you editor!
         default:
         {
-            I_Printf(VB_WARNING, "EndFinale: unknown entry of type '%d' on lump %s, skipping",
-                     type, lump);
+            I_Printf(VB_WARNING, "EndFinale: unknown entry of type '%d' on lump %s, skipping", type, lump);
             JS_Close(lump);
             return NULL;
         }
     }
 
-    // Done parsing everything
     out->type = type;
     out->musicloops = musicloops;
     out->donextmap = donextmap;
-    out->castrollcall = castrollcall;
-    out->bunny = bunny;
-    out->music = Z_StrDup(music, PU_LEVEL);
-    out->background = Z_StrDup(background, PU_LEVEL);
-
-    // No need to keep in memory
+    M_CopyLumpName(out->music, music);
+    M_CopyLumpName(out->background, background);
     JS_Close(lump);
     return out;
 }
@@ -323,7 +314,26 @@ static boolean MapInfo_Ticker()
     {
         if (!secretexit && gamemapinfo->flags & MapInfo_EndGame)
         {
-            if (gamemapinfo->flags & MapInfo_EndGameCast)
+            if (gamemapinfo->flags & MapInfo_EndGameCustomFinale)
+            {
+                end_finale_t * endfinale = gamemapinfo->endfinale;
+                if (endfinale->type == END_CAST)
+                {
+                    F_StartCast();
+                }
+                else
+                {
+                    finalecount = 0;
+                    finalestage = FINALE_STAGE_ART;
+                    wipegamestate = -1; // force a wipe
+                    S_ChangeMusInfoMusic(W_CheckNumForName(endfinale->music), endfinale->musicloops);
+                    if (endfinale->type == END_ART)
+                    {
+                        mapinfo_finale = false;
+                    }
+                }
+            }
+            else if (gamemapinfo->flags & MapInfo_EndGameCast)
             {
                 F_StartCast();
             }
@@ -664,97 +674,94 @@ static void F_TextWrite(void)
 // ID24 EndFinale
 static int ef_callee_count = 0;
 static int ef_callee_point = 0;
-static cast_entry_t *ef_callee = NULL;
-static cast_frame_t *ef_frame = NULL;
-static boolean ef_alive = false;
-static int ef_duration = 0;
+static cast_anim_t *ef_current_callee = NULL;
+static cast_frame_t *ef_current_frame = NULL;
+static boolean ef_current_alive = false;
+static int ef_current_duration = 0;
 
 static void EndFinaleCast_Frame(cast_frame_t *frame)
 {
-    I_Printf(VB_DEMO, "Reached %s:%d", __func__, __LINE__);
-    ef_frame = frame;
-    ef_duration = ef_frame->duration;
+    ef_current_frame = frame;
+    ef_current_duration = ef_current_frame->duration;
 
-    if (ef_frame->sound)
+    if (ef_current_frame->sound)
     {
-        S_StartSound(NULL, ef_frame->sound);
+        S_StartSound(NULL, ef_current_frame->sound);
     }
 }
 
-static void EndFinaleCast_Callee(cast_entry_t *callee)
+static void EndFinaleCast_CalleeAlive(cast_anim_t *callee)
 {
-    I_Printf(VB_DEMO, "Reached %s:%d", __func__, __LINE__);
-    if (callee)
-    {
-        ef_alive = true;
-        ef_callee = callee;
-        EndFinaleCast_Frame(ef_callee->aliveframes);
-    }
+    ef_current_callee = callee;
+    ef_current_alive = true;
+    EndFinaleCast_Frame(ef_current_callee->aliveframes);
 }
 
-static void EndFinaleCast_Kill(void)
+static void EndFinaleCast_CalleeDead(void)
 {
-    ef_alive = false;
-    EndFinaleCast_Frame(ef_callee->deathframes);
+    ef_current_alive = false;
+    EndFinaleCast_Frame(ef_current_callee->deathframes);
 }
 
-static void EndFinale_SetupCastCall(void)
+static void EndFinaleCast_SetupCall(void)
 {
-    I_Printf(VB_DEMO, "Reached %s:%d", __func__, __LINE__);
-    ef_callee_count = endfinale->castrollcall.castanimscount;
-    const int background = W_GetNumForName(endfinale->background);
-    W_CacheLumpNum(background, PU_LEVEL);
+    end_finale_t *endfinale = gamemapinfo->endfinale;
 
-    cast_entry_t *callee;
-    cast_frame_t *frame;
+    S_ChangeMusInfoMusic(W_GetNumForName(endfinale->music), endfinale->musicloops);
+    W_CacheLumpName(endfinale->background, PU_LEVEL);
+    ef_callee_count = endfinale->cast_animscount;
 
-    array_foreach(callee, ef_callee)
+    cast_anim_t *callee;
+    array_foreach(callee, endfinale->cast_anims)
     {
-        array_foreach(frame, callee->aliveframes)
+        cast_frame_t *aliveframe;
+        array_foreach(aliveframe, callee->aliveframes)
         {
-            W_CacheLumpName(frame->lump, PU_LEVEL);
+            W_CacheSpriteName(aliveframe->lump, PU_LEVEL);
         }
-        array_foreach(frame, callee->deathframes)
+        cast_frame_t *deathframe;
+        array_foreach(deathframe, callee->deathframes)
         {
-            W_CacheLumpName(frame->lump, PU_LEVEL);
+            W_CacheSpriteName(deathframe->lump, PU_LEVEL);
         }
     }
 
-    EndFinaleCast_Callee(ef_callee);
+    EndFinaleCast_CalleeAlive(&endfinale->cast_anims[0]);
 }
 
-static boolean EndFinale_CastTicker(void)
+static boolean EndFinaleCast_Ticker(void)
 {
     boolean loop_finished = false;
+    end_finale_t *endfinale = gamemapinfo->endfinale;
 
-    if (--ef_duration <= 0)
+    if (--ef_current_duration <= 0)
     {
-        cast_frame_t *initial = ef_alive ? ef_callee->aliveframes : ef_callee->deathframes;
-        cast_frame_t *last = (ef_alive ? ef_callee->aliveframescount : ef_callee->deathframescount) + initial - 1 ;
-        cast_frame_t *next = ++ef_frame;
+        cast_frame_t *start = ef_current_alive ? ef_current_callee->aliveframes : ef_current_callee->deathframes;
+        cast_frame_t *end = start + (ef_current_alive ? ef_current_callee->aliveframescount : ef_current_callee->deathframescount);
+        cast_frame_t *next = ef_current_frame + 1;
 
-        if (ef_alive || (next != last))
+        if (ef_current_alive || (next != end))
         {
-            EndFinaleCast_Frame((next != last) ? next : initial);
+            EndFinaleCast_Frame(next != end ? next : start);
         }
         else
         {
             ef_callee_point = (ef_callee_point + 1) % ef_callee_count;
-            cast_entry_t *next_callee = &ef_callee[ef_callee_point];
+            cast_anim_t *next_callee = &endfinale->cast_anims[ef_callee_point];
 
             // When out of bounds
-            if (next_callee == &ef_callee[ef_callee_count])
+            if (next_callee == ef_current_callee + ef_callee_count)
             {
                 // If possible, go to next map, else start again
                 loop_finished = true;
                 next_callee = endfinale->donextmap || (wminfo.nextmapinfo != NULL)
                             ? NULL
-                            : ef_callee;
+                            : ef_current_callee;
             }
 
             if (next_callee)
             {
-                EndFinaleCast_Callee(next_callee);
+                EndFinaleCast_CalleeAlive(next_callee);
             }
         }
     }
@@ -762,7 +769,7 @@ static boolean EndFinale_CastTicker(void)
     return loop_finished;
 }
 
-static boolean EndFinale_CastResponder(event_t *ev)
+static boolean EndFinaleCast_Responder(event_t *ev)
 {
     boolean respond = ev->type == ev_keydown;
 
@@ -771,12 +778,29 @@ static boolean EndFinale_CastResponder(event_t *ev)
         return false;
     }
 
-    if (ef_alive)
+    if (ef_current_alive)
     {
-        EndFinaleCast_Kill();
+        EndFinaleCast_CalleeDead();
     }
 
     return true;
+}
+
+static void F_CastPrint(const char *text);
+
+void EndFinaleCast_Drawer(void)
+{
+  V_DrawPatchFullScreen(W_CacheLumpName(gamemapinfo->endfinale->background, PU_LEVEL));
+  F_CastPrint(ef_current_callee->name); // TODO: hook into string mnemonic system!
+  patch_t* frame = (patch_t*)W_CacheSpriteName(ef_current_frame->lump, PU_LEVEL);
+  if (ef_current_frame->flipped)
+  {
+    V_DrawPatchFlipped(SCREENWIDTH / 2, 170, frame);
+  }
+  else
+  {
+    V_DrawPatch(SCREENWIDTH / 2, 170, frame);
+  }
 }
 
 //
@@ -812,9 +836,7 @@ static void F_StartCast(void)
 
   if (gamemapinfo->flags & MapInfo_EndGameCustomFinale)
   {
-    I_Printf(VB_DEMO, "Reached %s:%d", __func__, __LINE__);
-    endfinale = D_ParseEndFinale(gamemapinfo->endfinale);
-    EndFinale_SetupCastCall();
+    EndFinaleCast_SetupCall();
     return;
   }
 
@@ -856,8 +878,8 @@ static boolean F_CastTicker(void)
   int st;
   int sfx;
 
-  if (endfinale)
-    return EndFinale_CastTicker();
+  if (gamemapinfo->flags & MapInfo_EndGameCustomFinale)
+    return EndFinaleCast_Ticker();
 
   if (--casttics > 0)
     return false; // not time to change state yet
@@ -964,8 +986,8 @@ static boolean F_CastTicker(void)
 
 static boolean F_CastResponder(event_t* ev)
 {
-  if (endfinale)
-    EndFinale_CastResponder(ev);
+  if (gamemapinfo->flags & MapInfo_EndGameCustomFinale)
+    EndFinaleCast_Responder(ev);
 
   if (ev->type != ev_keydown && ev->type != ev_mouseb_down && ev->type != ev_joyb_down)
     return false;
@@ -986,9 +1008,9 @@ static boolean F_CastResponder(event_t* ev)
 }
 
 
-static void F_CastPrint(char* text)
+static void F_CastPrint(const char* text)
 {
-  char*       ch;
+  const char* ch;
   int         c;
   int         cx;
   int         w;
@@ -1042,6 +1064,11 @@ static void F_CastPrint(char* text)
 
 static void F_CastDrawer(void)
 {
+  if (gamemapinfo->flags & MapInfo_EndGameCustomFinale)
+  {
+    return EndFinaleCast_Drawer();
+  }
+
   spritedef_t*        sprdef;
   spriteframe_t*      sprframe;
   int                 lump;
