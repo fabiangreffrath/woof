@@ -56,10 +56,12 @@
 #include "st_sbardef.h"
 #include "st_widgets.h"
 #include "tables.h"
-#include "v_fmt.h"
+#include "v_patch.h"
 #include "v_video.h"
 #include "w_wad.h"
 #include "z_zone.h"
+
+int st_height = 32;
 
 //
 // STATUS BAR DATA
@@ -237,6 +239,21 @@ static boolean CheckWidgetState(widgetstate_t state)
     return false;
 }
 
+static sbarwidgettype_t GetWidgetType(const char *name)
+{
+    if (name)
+    {
+        for (sbarwidgettype_t type = 0; type < sbw_names_len; ++type)
+        {
+            if (!strcasecmp(sbw_names[type], name))
+            {
+                return type;
+            }
+        }
+    }
+    return sbw_none;
+}
+
 static boolean CheckConditions(sbarcondition_t *conditions, player_t *player)
 {
     boolean result = true;
@@ -391,7 +408,8 @@ static boolean CheckConditions(sbarcondition_t *conditions, player_t *player)
             case sbc_widgetenabled:
                 {
                     widgetstate_t state = HUD_WIDGET_OFF;
-                    switch ((sbarwidgettype_t)cond->param)
+                    sbarwidgettype_t type = GetWidgetType(cond->param_string);
+                    switch (type)
                     {
                         case sbw_monsec:
                             state = hud_level_stats;
@@ -412,7 +430,8 @@ static boolean CheckConditions(sbarcondition_t *conditions, player_t *player)
             case sbc_widgetdisabled:
                 {
                     widgetstate_t state = HUD_WIDGET_OFF;
-                    switch ((sbarwidgettype_t)cond->param)
+                    sbarwidgettype_t type = GetWidgetType(cond->param_string);
+                    switch (type)
                     {
                         case sbw_monsec:
                             state = hud_level_stats;
@@ -566,6 +585,20 @@ static boolean CheckConditions(sbarcondition_t *conditions, player_t *player)
 
             case sbc_levelless:
                 result &= (gamemap < cond->param);
+                break;
+
+            case sbc_patchempty:
+                if (cond->param_string)
+                {
+                    result &= V_PatchIsEmpty(W_GetNumForName(cond->param_string));
+                }
+                break;
+
+            case sbc_patchnotempty:
+                if (cond->param_string)
+                {
+                    result &= (!V_PatchIsEmpty(W_GetNumForName(cond->param_string)));
+                }
                 break;
 
             case sbc_none:
@@ -872,7 +905,14 @@ static void UpdateNumber(sbarelem_t *elem, player_t *player)
     }
 
     int totalwidth = font->monowidth * valglyphs;
-    if (font->type == sbf_proportional)
+    if (font->type == sbf_mono0)
+    {
+        if (elem->type == sbe_percent && font->percent != NULL)
+        {
+            totalwidth += SHORT(font->percent->width) - font->monowidth;
+        }
+    }
+    else if (font->type == sbf_proportional)
     {
         totalwidth = 0;
         if (value < 0 && font->minus != NULL)
@@ -1236,12 +1276,23 @@ static void DrawPatch(int x, int y, crop_t crop, int maxheight,
     int width = SHORT(patch->width);
     int height = maxheight ? maxheight : SHORT(patch->height);
 
+    int xoffset = 0;
+    if (!(alignment & sbe_ignore_yoffset))
+    {
+        xoffset = SHORT(patch->leftoffset);
+    }
+    int yoffset = 0;
+    if (!(alignment & sbe_ignore_yoffset))
+    {
+        yoffset = SHORT(patch->topoffset);
+    }
+
     if (alignment & sbe_h_middle)
     {
-        x = x - width / 2 + SHORT(patch->leftoffset);
-        if (crop.midoffset)
+        x = x - width / 2 + xoffset;
+        if (crop.center)
         {
-            x += width / 2 + crop.midoffset;
+            x += width / 2 + crop.left;
         }
     }
     else if (alignment & sbe_h_right)
@@ -1251,7 +1302,11 @@ static void DrawPatch(int x, int y, crop_t crop, int maxheight,
 
     if (alignment & sbe_v_middle)
     {
-        y = y - height / 2 + SHORT(patch->topoffset);
+        y = y - height / 2 + yoffset;
+        if (crop.center)
+        {
+            y += height / 2 + crop.left;
+        }
     }
     else if (alignment & sbe_v_bottom)
     {
@@ -1271,15 +1326,15 @@ static void DrawPatch(int x, int y, crop_t crop, int maxheight,
 
     if (outr && tl)
     {
-        V_DrawPatchTRTL(x, y, crop, patch, outr, tl);
+        V_DrawPatchTRTL(x, y, xoffset, yoffset, crop, patch, outr, tl);
     }
     else if (tl)
     {
-        V_DrawPatchTL(x, y, crop, patch, tl);
+        V_DrawPatchTL(x, y, xoffset, yoffset, crop, patch, tl);
     }
     else
     {
-        V_DrawPatchTR(x, y, crop, patch, outr);
+        V_DrawPatchTR(x, y, xoffset, yoffset, crop, patch, outr);
     }
 }
 
@@ -1475,7 +1530,7 @@ static void DrawLines(int x, int y, sbarelem_t *elem)
     }
 }
 
-static void DrawElem(int x, int y, sbarelem_t *elem, player_t *player)
+static void DrawElem(int x, int y, int y0, sbarelem_t *elem, player_t *player)
 {
     if (!CheckConditions(elem->conditions, player))
     {
@@ -1484,6 +1539,7 @@ static void DrawElem(int x, int y, sbarelem_t *elem, player_t *player)
 
     x += elem->x_pos;
     y += elem->y_pos;
+    y0 += elem->y_pos;
 
     switch (elem->type)
     {
@@ -1532,19 +1588,19 @@ static void DrawElem(int x, int y, sbarelem_t *elem, player_t *player)
             if (elem == st_cmd_elem)
             {
                 st_cmd_x = x;
-                st_cmd_y = y;
+                st_cmd_y = y0;
             }
             if (message_centered && elem == st_msg_elem)
             {
                 break;
             }
-            DrawLines(x, y, elem);
+            DrawLines(x, y0, elem);
             break;
 
         case sbe_carousel:
             if (weapon_carousel)
             {
-                ST_DrawCarousel(x, y, elem);
+                ST_DrawCarousel(x, y0, elem);
             }
             break;
 
@@ -1555,7 +1611,7 @@ static void DrawElem(int x, int y, sbarelem_t *elem, player_t *player)
     sbarelem_t *child;
     array_foreach(child, elem->children)
     {
-        DrawElem(x, y, child, player);
+        DrawElem(x, y, y0, child, player);
     }
 }
 
@@ -1564,11 +1620,12 @@ static boolean st_solidbackground;
 static void DrawSolidBackground(void)
 {
     // [FG] calculate average color of the 16px left and right of the status bar
-    const int vstep[][2] = { {0, 1}, {1, 2}, {2, ST_HEIGHT} };
+    const int vstep[][2] = { {0, 1}, {1, 2}, {2, st_height} };
 
     patch_t *sbar = V_CachePatchName(W_CheckWidescreenPatch("STBAR"), PU_CACHE);
     // [FG] temporarily draw status bar to background buffer
-    V_DrawPatch(-video.deltaw, 0, sbar);
+    crop_t crop = {.width = SHORT(sbar->width), .height = st_height};
+    V_DrawPatchGeneral(-video.deltaw, 0, 0, 0, crop, sbar, false);
 
     byte *pal = W_CacheLumpName("PLAYPAL", PU_CACHE);
 
@@ -1620,7 +1677,7 @@ static void DrawBackground(const char *name)
     {
         V_UseBuffer(st_backing_screen);
 
-        if (st_solidbackground)
+        if (st_solidbackground && st_height > 3)
         {
             DrawSolidBackground();
         }
@@ -1634,15 +1691,19 @@ static void DrawBackground(const char *name)
             byte *flat =
                 V_CacheFlatNum(firstflat + R_FlatNumForName(name), PU_CACHE);
 
-            V_TileBlock64(ST_Y, video.unscaledw, ST_HEIGHT, flat);
+            V_TileBlock64(ST_Y, video.unscaledw, st_height, flat);
 
-            if (screenblocks == 10
+            if ((!statusbar->fullscreenrender && screenblocks >= 10)
                 || (automapactive && automapoverlay == AM_OVERLAY_OFF))
             {
                 patch_t *patch = V_CachePatchName("brdr_b", PU_CACHE);
                 for (int x = 0; x < video.unscaledw; x += 8)
                 {
-                    V_DrawPatch(x - video.deltaw, 0, patch);
+                    crop_t crop = {.width = SHORT(patch->width),
+                                   .height = st_height};
+                    V_DrawPatchGeneral(x - video.deltaw, 0,
+                        SHORT(patch->leftoffset), SHORT(patch->topoffset),
+                        crop, patch, false);
                 }
             }
         }
@@ -1652,7 +1713,7 @@ static void DrawBackground(const char *name)
         st_refresh_background = false;
     }
 
-    V_CopyRect(0, 0, st_backing_screen, video.unscaledw, ST_HEIGHT, 0, ST_Y);
+    V_CopyRect(0, 0, st_backing_screen, video.unscaledw, st_height, 0, ST_Y);
 }
 
 static void DrawCenteredMessage(void)
@@ -1667,81 +1728,24 @@ static void DrawStatusBar(void)
 {
     player_t *player = &players[displayplayer];
 
-    if (screenblocks <= 10
+    if (!statusbar->fullscreenrender
         || (automapactive && automapoverlay == AM_OVERLAY_OFF))
     {
-        DrawBackground(statusbar->fillflat);
+        st_height = CLAMP(statusbar->height, 0, SCREENHEIGHT) & ~1;
+
+        if (st_height)
+        {
+            DrawBackground(statusbar->fillflat);
+        }
     }
 
     sbarelem_t *child;
     array_foreach(child, statusbar->children)
     {
-        DrawElem(0, SCREENHEIGHT - statusbar->height, child, player);
+        DrawElem(0, SCREENHEIGHT - statusbar->height, 0, child, player);
     }
 
     DrawCenteredMessage();
-}
-
-static void EraseBackground(int y, int height)
-{
-    if (y > scaledviewy && y < scaledviewy + scaledviewheight - height)
-    {
-        R_VideoErase(0, y, scaledviewx, height);
-        R_VideoErase(scaledviewx + scaledviewwidth, y, scaledviewx, height);
-    }
-    else
-    {
-        R_VideoErase(0, y, video.unscaledw, height);
-    }
-}
-
-static void EraseElem(int x, int y, sbarelem_t *elem, player_t *player)
-{
-    if (!CheckConditions(elem->conditions, player))
-    {
-        return;
-    }
-
-    x += elem->x_pos;
-    y += elem->y_pos;
-
-    if (elem->type == sbe_widget)
-    {
-        sbe_widget_t *widget = elem->subtype.widget;
-        hudfont_t *font = widget->font;
-
-        int height = 0;
-        widgetline_t *line;
-        array_foreach(line, widget->lines)
-        {
-            if (elem->alignment & sbe_v_bottom)
-            {
-                y -= font->maxheight;
-            }
-            height += font->maxheight;
-        }
-
-        if (height > 0)
-        {
-            EraseBackground(y, height);
-            widget->height = height;
-        }
-        else if (widget->height)
-        {
-            EraseBackground(y, widget->height);
-            widget->height = 0;
-        }
-    }
-    else if (elem->type == sbe_carousel)
-    {
-        ST_EraseCarousel(y);
-    }
-
-    sbarelem_t *child;
-    array_foreach(child, elem->children)
-    {
-        EraseElem(x, y, child, player);
-    }
 }
 
 void ST_Erase(void)
@@ -1751,13 +1755,7 @@ void ST_Erase(void)
         return;
     }
 
-    player_t *player = &players[displayplayer];
-
-    sbarelem_t *child;
-    array_foreach(child, statusbar->children)
-    {
-        EraseElem(0, SCREENHEIGHT - statusbar->height, child, player);
-    }
+    R_DrawViewBorder();
 }
 
 // Respond to keyboard input events,
@@ -1935,6 +1933,15 @@ void ST_Init(void)
         return;
     }
 
+    if (array_size(sbardef->statusbars))
+    {
+        statusbar_t *sb = &sbardef->statusbars[0];
+        if (!sb->fullscreenrender)
+        {
+            st_height = CLAMP(sb->height, 0, SCREENHEIGHT) & ~1;
+        }
+    }
+
     LoadFacePatches();
 
     HU_InitCrosshair();
@@ -1948,7 +1955,7 @@ void ST_InitRes(void)
 {
     // killough 11/98: allocate enough for hires
     st_backing_screen =
-        Z_Malloc(video.width * V_ScaleY(ST_HEIGHT) * sizeof(*st_backing_screen),
+        Z_Malloc(video.width * V_ScaleY(st_height) * sizeof(*st_backing_screen),
                  PU_RENDERER, 0);
 }
 

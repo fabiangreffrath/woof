@@ -45,7 +45,7 @@
 #include "st_widgets.h"
 #include "tables.h"
 #include "v_flextran.h"
-#include "v_fmt.h"
+#include "v_patch.h"
 #include "v_video.h"
 #include "ws_stuff.h"
 #include "z_zone.h"
@@ -626,7 +626,7 @@ static void AM_initScreenSize(void)
   if (automapoverlay && scaledviewheight == SCREENHEIGHT)
     f_h = video.height;
   else
-    f_h = V_ScaleY(SCREENHEIGHT - ST_HEIGHT);
+    f_h = V_ScaleY(SCREENHEIGHT - st_height);
 }
 
 void AM_ResetScreenSize(void)

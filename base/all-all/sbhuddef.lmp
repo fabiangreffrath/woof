@@ -14,12 +14,12 @@
         "stem": "DIG"
       }
     ],
-    "widgets": [
+    "components": [
       {
         "component": {
           "x": 2,
           "y": 160,
-          "alignment": 16,
+          "alignment": 64,
           "tranmap": null,
           "translation": null,
           "type": "stat_totals",
@@ -37,7 +37,7 @@
         "component": {
           "x": 2,
           "y": 152,
-          "alignment": 16,
+          "alignment": 64,
           "tranmap": null,
           "translation": null,
           "type": "time",
@@ -49,7 +49,7 @@
             },
             {
               "condition": 20,
-              "param": 0
+              "param_string": "stat_totals"
             }
           ],
           "children": null
@@ -59,7 +59,7 @@
         "component": {
           "x": 2,
           "y": 160,
-          "alignment": 16,
+          "alignment": 64,
           "tranmap": null,
           "translation": null,
           "type": "time",
@@ -71,7 +71,7 @@
             },
             {
               "condition": 21,
-              "param": 0
+              "param_string": "stat_totals"
             }
           ],
           "children": null
@@ -81,7 +81,7 @@
         "component": {
           "x": 2,
           "y": 152,
-          "alignment": 16,
+          "alignment": 64,
           "tranmap": null,
           "translation": null,
           "type": "stat_totals",
@@ -99,7 +99,7 @@
         "component": {
           "x": 2,
           "y": 144,
-          "alignment": 16,
+          "alignment": 64,
           "tranmap": null,
           "translation": null,
           "type": "time",
@@ -111,7 +111,7 @@
             },
             {
               "condition": 20,
-              "param": 0
+              "param_string": "stat_totals"
             }
           ],
           "children": null
@@ -121,7 +121,7 @@
         "component": {
           "x": 2,
           "y": 152,
-          "alignment": 16,
+          "alignment": 64,
           "tranmap": null,
           "translation": null,
           "type": "time",
@@ -133,7 +133,7 @@
             },
             {
               "condition": 21,
-              "param": 0
+              "param_string": "stat_totals"
             }
           ],
           "children": null
@@ -143,7 +143,7 @@
         "component": {
           "x": 318,
           "y": 8,
-          "alignment": 34,
+          "alignment": 130,
           "tranmap": null,
           "translation": null,
           "type": "coordinates",
@@ -156,7 +156,7 @@
         "component": {
           "x": 318,
           "y": 0,
-          "alignment": 34,
+          "alignment": 130,
           "tranmap": null,
           "translation": null,
           "type": "fps_counter",
@@ -182,7 +182,7 @@
         "component": {
           "x": 318,
           "y": 167,
-          "alignment": 42,
+          "alignment": 138,
           "tranmap": null,
           "translation": null,
           "type": "command_history",
@@ -208,7 +208,7 @@
         "component": {
           "x": 0,
           "y": 0,
-          "alignment": 16,
+          "alignment": 64,
           "tranmap": null,
           "translation": null,
           "type": "message",
@@ -236,7 +236,7 @@
         "component": {
           "x": 0,
           "y": 8,
-          "alignment": 16,
+          "alignment": 64,
           "tranmap": null,
           "translation": "CRGOLD",
           "type": "chat",
@@ -249,7 +249,7 @@
         "component": {
           "x": 0,
           "y": 160,
-          "alignment": 16,
+          "alignment": 64,
           "tranmap": null,
           "translation": "CRGOLD",
           "type": "level_title",

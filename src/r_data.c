@@ -44,7 +44,7 @@
 #include "r_skydefs.h"
 #include "r_state.h"
 #include "r_tranmap.h"
-#include "v_fmt.h"
+#include "v_patch.h"
 #include "v_video.h" // cr_dark, cr_shaded
 #include "w_wad.h"
 #include "z_zone.h"
@@ -616,7 +616,7 @@ void R_InitTextures (void)
             I_Printf(VB_DEBUG, "Warning: patch %.8s, index %d does not exist",name,i);
         }
 
-      if (patchlookup[i] != -1 && !R_IsPatchLump(patchlookup[i]))
+      if (patchlookup[i] != -1 && !V_LumpIsPatch(patchlookup[i]))
         {
           I_Printf(VB_WARNING, "R_InitTextures: patch %.8s, index %d is invalid", name, i);
           patchlookup[i] = (W_CheckNumForName)("TNT1A0", ns_sprites);
@@ -755,7 +755,7 @@ void R_InitTextures (void)
       texture = textures[i] = Z_Malloc(sizeof(texture_t), PU_STATIC, 0);
       M_CopyLumpName(texture->name, lumpinfo[tx_lump].name);
 
-      if (!R_IsPatchLump(tx_lump))
+      if (!V_LumpIsPatch(tx_lump))
       {
         I_Printf(VB_WARNING, "R_InitTextures: Texture %.8s in wrong format",
                  texture->name);
@@ -1141,58 +1141,6 @@ void R_PrecacheLevel(void)
           }
       }
   Z_Free(hitlist);
-}
-
-// [FG] check if the lump can be a Doom patch
-// taken from PrBoom+ prboom2/src/r_patch.c:L350-L390
-
-boolean R_IsPatchLump (const int lump)
-{
-  int size;
-  int width, height;
-  const patch_t *patch;
-  boolean result;
-
-  // [FG] non-existent cannot be a patch lump
-  if (lump < 0)
-    return false;
-
-  patch = V_CachePatchNum(lump, PU_CACHE);
-
-  size = V_LumpSize(lump);
-
-  // minimum length of a valid Doom patch
-  if (size < 13)
-    return false;
-
-  width = SHORT(patch->width);
-  height = SHORT(patch->height);
-
-  result = (height > 0 && height <= 16384 && width > 0 && width <= 16384
-            && width < size / 4);
-
-  if (result)
-  {
-    // The dimensions seem like they might be valid for a patch, so
-    // check the column directory for extra security. All columns
-    // must begin after the column directory, and none of them must
-    // point past the end of the patch.
-    int x;
-
-    for (x = 0; x < width; x++)
-    {
-      unsigned int ofs = LONG(patch->columnofs[x]);
-
-      // Need one byte for an empty column (but there's patches that don't know that!)
-      if (ofs < (unsigned int)width * 4 + 8 || ofs >= (unsigned int)size)
-      {
-        result = false;
-        break;
-      }
-    }
-  }
-
-  return result;
 }
 
 //-----------------------------------------------------------------------------
