@@ -21,20 +21,14 @@
 #ifndef _D_DEMOLOOP_
 #define _D_DEMOLOOP_
 
+#include "f_wipe.h"
+
 // Screen graphic or DEMO lump.
 typedef enum
 {
     TYPE_ART,
     TYPE_DEMO,
 } dl_type_t;
-
-// Immediate switch or screen melt.
-// TODO: reimplement more cleanly at a later, more relevant moment
-typedef enum
-{
-    WIPE_IMMEDIATE,
-    WIPE_MELT,
-} dl_wipe_t;
 
 // Individual demoloop units.
 typedef struct
@@ -43,7 +37,7 @@ typedef struct
     char      secondary_lump[9]; // Music lump for screen graphic.
     int       duration;          // Game tics.
     dl_type_t type;
-    dl_wipe_t outro_wipe;
+    wipefx_t  outro_wipe;
 } demoloop_entry_t;
 
 typedef demoloop_entry_t* demoloop_t;
