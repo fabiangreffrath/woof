@@ -25,7 +25,6 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "d_deh.h"
 #include "d_items.h"
 #include "d_main.h"
 #include "d_think.h"

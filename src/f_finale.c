@@ -19,7 +19,6 @@
 
 
 #include <string.h>
-#include <strings.h>
 
 #include "d_deh.h" // Ty 03/22/98 - externalizations
 #include "d_event.h"
@@ -881,6 +880,7 @@ static void F_StartCast(void)
   castattacking = false;
   S_ChangeMusic(mus_evil, true);
 }
+
 
 //
 // F_CastTicker
