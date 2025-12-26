@@ -787,9 +787,7 @@ static boolean EndFinaleCast_Ticker(void)
 
 static boolean EndFinaleCast_Responder(event_t *ev)
 {
-    boolean respond = ev->type == ev_keydown;
-
-    if (!respond)
+    if (!(ev->type == ev_keydown || ev->type == ev_mouseb_down || ev->type == ev_joyb_down))
     {
         return false;
     }
