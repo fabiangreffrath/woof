@@ -42,10 +42,10 @@ static boolean ParseSbarCondition(json_t *json, sbarcondition_t *out)
     out->condition = JS_GetInteger(condition);
     out->param = JS_GetIntegerValue(json, "param");
     out->param2 = JS_GetIntegerValue(json, "param2");
-    const char *params = JS_GetStringValue(json, "params");
+    const char *params = JS_GetStringValue(json, "param_string");
     if (params)
     {
-        out->params = M_StringDuplicate(params);
+        out->param_string = M_StringDuplicate(params);
     }
     return true;
 }
@@ -68,7 +68,7 @@ static boolean ParseSbarFrame(json_t *json, sbarframe_t *out)
     return true;
 }
 
-static const char *sbw_names[] =
+const char *sbw_names[] =
 {
     [sbw_monsec] = "stat_totals",
     [sbw_time] = "time",
@@ -82,6 +82,8 @@ static const char *sbw_names[] =
     [sbw_chat] = "chat",
     [sbw_title] = "level_title",
 };
+
+int sbw_names_len = arrlen(sbw_names);
 
 static crop_t ParseCrop(json_t *json)
 {

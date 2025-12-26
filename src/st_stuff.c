@@ -239,6 +239,21 @@ static boolean CheckWidgetState(widgetstate_t state)
     return false;
 }
 
+static sbarwidgettype_t GetWidgetType(const char *name)
+{
+    if (name)
+    {
+        for (sbarwidgettype_t type = 0; type < sbw_names_len; ++type)
+        {
+            if (!strcasecmp(sbw_names[type], name))
+            {
+                return type;
+            }
+        }
+    }
+    return sbw_none;
+}
+
 static boolean CheckConditions(sbarcondition_t *conditions, player_t *player)
 {
     boolean result = true;
@@ -393,7 +408,8 @@ static boolean CheckConditions(sbarcondition_t *conditions, player_t *player)
             case sbc_widgetenabled:
                 {
                     widgetstate_t state = HUD_WIDGET_OFF;
-                    switch ((sbarwidgettype_t)cond->param)
+                    sbarwidgettype_t type = GetWidgetType(cond->param_string);
+                    switch (type)
                     {
                         case sbw_monsec:
                             state = hud_level_stats;
@@ -414,7 +430,8 @@ static boolean CheckConditions(sbarcondition_t *conditions, player_t *player)
             case sbc_widgetdisabled:
                 {
                     widgetstate_t state = HUD_WIDGET_OFF;
-                    switch ((sbarwidgettype_t)cond->param)
+                    sbarwidgettype_t type = GetWidgetType(cond->param_string);
+                    switch (type)
                     {
                         case sbw_monsec:
                             state = hud_level_stats;
@@ -571,16 +588,16 @@ static boolean CheckConditions(sbarcondition_t *conditions, player_t *player)
                 break;
 
             case sbc_patchempty:
-                if (cond->params)
+                if (cond->param_string)
                 {
-                    result &= V_PatchIsEmpty(W_GetNumForName(cond->params));
+                    result &= V_PatchIsEmpty(W_GetNumForName(cond->param_string));
                 }
                 break;
 
             case sbc_patchnotempty:
-                if (cond->params)
+                if (cond->param_string)
                 {
-                    result &= (!V_PatchIsEmpty(W_GetNumForName(cond->params)));
+                    result &= (!V_PatchIsEmpty(W_GetNumForName(cond->param_string)));
                 }
                 break;
 

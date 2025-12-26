@@ -86,7 +86,7 @@ typedef struct
     sbarconditiontype_t condition;
     int param;
     int param2;
-    const char *params;
+    const char *param_string;
 } sbarcondition_t;
 
 typedef enum
@@ -132,6 +132,7 @@ typedef enum
 
 typedef enum
 {
+    sbw_none = -1,
     sbw_monsec,
     sbw_time,
     sbw_coord,
@@ -145,6 +146,9 @@ typedef enum
     sbw_chat,
     sbw_title,
 } sbarwidgettype_t;
+
+extern const char *sbw_names[];
+extern int sbw_names_len;
 
 typedef enum
 {

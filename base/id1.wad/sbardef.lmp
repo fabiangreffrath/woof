@@ -799,7 +799,7 @@
                 },
                 {
                   "condition": 20,
-                  "param": 0
+                  "param_string": "stat_totals"
                 }
               ],
               "children": null
@@ -821,7 +821,7 @@
                 },
                 {
                   "condition": 21,
-                  "param": 0
+                  "param_string": "stat_totals"
                 }
               ],
               "children": null
@@ -1565,7 +1565,7 @@
                       },
                       {
                         "condition": 20,
-                        "param": 0
+                        "param_string": "stat_totals"
                       }
                     ],
                     "children": null
@@ -1587,7 +1587,7 @@
                       },
                       {
                         "condition": 21,
-                        "param": 0
+                        "param_string": "stat_totals"
                       }
                     ],
                     "children": null
@@ -2518,7 +2518,7 @@
                 },
                 {
                   "condition": 20,
-                  "param": 0
+                  "param_string": "stat_totals"
                 }
               ],
               "children": null
@@ -2540,7 +2540,7 @@
                 },
                 {
                   "condition": 21,
-                  "param": 0
+                  "param_string": "stat_totals"
                 }
               ],
               "children": null
@@ -2783,7 +2783,7 @@
                 },
                 {
                   "condition": 20,
-                  "param": 0
+                  "param_string": "stat_totals"
                 }
               ],
               "children": null
@@ -2805,7 +2805,7 @@
                 },
                 {
                   "condition": 21,
-                  "param": 0
+                  "param_string": "stat_totals"
                 }
               ],
               "children": null
