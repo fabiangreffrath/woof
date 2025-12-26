@@ -706,6 +706,10 @@ static void EndFinaleCast_CalleeAlive(cast_anim_t *callee)
 {
     ef_current_callee = callee;
     ef_current_alive = true;
+    if (ef_current_callee)
+    {
+        S_StartSound(NULL, ef_current_callee->alertsound);
+    }
     EndFinaleCast_Frame(ef_current_callee->aliveframes);
 }
 
