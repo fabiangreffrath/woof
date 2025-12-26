@@ -86,10 +86,12 @@ static boolean mapinfo_finale;
 // ID24 EndFinale extensions
 //
 
+// TODO: needs to support custom tranmap & translation
 static void ParseEndFinale_CastFrame(json_t *js_frame, cast_frame_t **frames, int *framecount, const char *lump)
 {
     cast_frame_t frame = {0};
     const char *frame_lump = JS_GetStringValue(js_frame, "lump");
+
     if (frame_lump == NULL)
     {
         I_Printf(VB_WARNING, "EndFinale: invalid cast anim lump field on lump '%s'", lump);
@@ -150,7 +152,6 @@ static void ParseEndFinale_Bunny(json_t *js_bunny, end_finale_t *out, const char
     out->bunny_overlaysound = JS_GetIntegerValue(js_bunny, "overlaysound");
     out->bunny_overlayx = JS_GetIntegerValue(js_bunny, "overlayx");
     out->bunny_overlayy = JS_GetIntegerValue(js_bunny, "overlayy");
-    out->bunny_orientation = JS_GetIntegerValue(js_bunny, "orientation");
     const char *bunny_lump = JS_GetStringValue(js_bunny, "stitchimage");
     if (bunny_lump == NULL || (W_CheckNumForName(bunny_lump) < 0))
     {
@@ -799,6 +800,7 @@ static boolean EndFinaleCast_Responder(event_t *ev)
 
 static void F_CastPrint(const char *text);
 
+// TODO: needs to support custom tranmap & translation
 void EndFinaleCast_Drawer(void)
 {
   V_DrawPatchFullScreen(W_CacheLumpName(gamemapinfo->endfinale->background, PU_LEVEL));

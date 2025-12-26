@@ -53,15 +53,6 @@ typedef enum end_type_e
   END_CAST,   // Custom cast call
 } end_type_t;
 
-// Added in 1.1.0, direction of bunny scroll
-typedef enum bunny_dir_e
-{
-  BUNNY_LEFT,
-  BUNNY_UP,
-  BUNNY_RIGHT,
-  BUNNY_DOWN,
-} bunny_dir_t;
-
 // Custom cast call, per-callee frame
 typedef struct cast_frame_s
 {
@@ -91,7 +82,6 @@ typedef struct end_finale_s
   char         background[9]; // e.g. `BOSSBACK` or `PFUB1` or `ENDPIC`
   boolean      musicloops;
   boolean      donextmap;
-  bunny_dir_t  bunny_orientation;
   char         bunny_stitchimage[9];
   int          bunny_overlay;
   int          bunny_overlaycount;
