@@ -183,7 +183,7 @@ end_finale_t *F_ParseEndFinale(const char lump[9])
     }
 
     // Now, actually parse it
-    end_finale_t *out = Z_Malloc(sizeof(end_finale_t), PU_STATIC, NULL);
+    end_finale_t *out = Z_Calloc(1, sizeof(end_finale_t), PU_STATIC, NULL);
     out->type = JS_GetIntegerValue(data, "type");
     out->donextmap = JS_GetBooleanValue(data, "donextmap");
     out->musicloops = JS_GetBooleanValue(data, "musicloops");
@@ -300,11 +300,12 @@ static boolean MapInfo_Ticker()
 
         if (finalestage == FINALE_STAGE_CAST)
         {
-            next_level = F_CastTicker();
-            return true;
+            if (F_CastTicker())
+            {
+                gameaction = ga_worlddone;
+            }
         }
-
-        if (finalestage == FINALE_STAGE_TEXT)
+        else if (finalestage == FINALE_STAGE_TEXT)
         {
             int textcount = 0;
             if (finaletext)
@@ -328,7 +329,7 @@ static boolean MapInfo_Ticker()
         {
             if (gamemapinfo->flags & MapInfo_EndGameCustomFinale)
             {
-                end_finale_t * endfinale = gamemapinfo->endfinale;
+                end_finale_t *endfinale = gamemapinfo->endfinale;
                 if (endfinale->type == END_CAST)
                 {
                     F_StartCast();
