@@ -34,7 +34,7 @@ static deh_mapping_entry_t *GetMappingEntryByName(deh_context_t *context, deh_ma
         {
             if (entry->location == NULL)
             {
-                DEH_Warning(context, "Field '%s' is unsupported", name);
+                DEH_Debug(context, "Field '%s' is unsupported", name);
                 return NULL;
             }
             return entry;

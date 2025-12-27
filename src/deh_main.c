@@ -278,7 +278,7 @@ static void DEH_ParseContext(deh_context_t *context)
     if (!CheckSignatures(context))
     {
         // [crispy] make non-fatal
-        DEH_Debug(context, "Invalid DeHackEd signature found.");
+        // DEH_Debug(context, "Invalid DeHackEd signature found.");
     }
 
     // Read the file
@@ -360,7 +360,7 @@ static void DEH_ParseContext(deh_context_t *context)
                 }
                 else
                 {
-                    DEH_Debug(context, "Unkown DeHackEd section name '%s', WAD may not work properlly!", section_name);
+                    // DEH_Debug(context, "Unkown DeHackEd section name '%s', WAD may not work properlly!", section_name);
                 }
             }
         }
@@ -426,6 +426,7 @@ void DEH_LoadLump(int lumpnum)
         DEH_Init();
     }
 
+    I_Printf(VB_DEBUG, "DEH_LoadLump: Loading lumpnum %d from %s", lumpnum, lumpinfo[lumpnum].wad_file);
     deh_context_t *context = DEH_OpenLump(lumpnum);
     if (context == NULL)
     {
