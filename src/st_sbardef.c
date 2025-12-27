@@ -161,6 +161,16 @@ static boolean ParseSbarElemType(json_t *json, sbarelementtype_t type,
 
     switch (type)
     {
+        case sbe_list:
+            {
+                sbe_list_t *list = calloc(1, sizeof(*list));
+                list->horizontal = JS_GetBooleanValue(json, "horizontal");
+                list->reverse = JS_GetBooleanValue(json, "reverse");
+                list->spacing = JS_GetIntegerValue(json, "spacing");
+                out->subtype.list = list;
+            }
+            break;
+
         case sbe_graphic:
             {
                 sbe_graphic_t *graphic = calloc(1, sizeof(*graphic));
@@ -311,6 +321,36 @@ static boolean ParseSbarElemType(json_t *json, sbarelementtype_t type,
             }
             break;
 
+        case sbe_string:
+            {
+                sbe_string_t *string = calloc(1, sizeof(*string));
+                const char *font_name = JS_GetStringValue(json, "font");
+                if (!font_name)
+                {
+                    free(string);
+                    return false;
+                }
+                array_foreach_type(font, hudfonts, hudfont_t)
+                {
+                    if (!strcmp(font->name, font_name))
+                    {
+                        string->font = font;
+                        break;
+                    }
+                }
+                string->type = JS_GetIntegerValue(json, "type");
+                if (string->type == sbstr_data)
+                {
+                    const char *data = JS_GetStringValue(json, "data");
+                    if (data)
+                    {
+                        string->line.string = M_StringDuplicate(data);
+                    }
+                }
+                out->subtype.string = string;
+            }
+            break;
+
         default:
             break;
     }
@@ -327,7 +367,9 @@ static const char *sbe_names[] =
     [sbe_number] = "number",
     [sbe_percent] = "percent",
     [sbe_widget] = "component",
-    [sbe_carousel] = "carousel"
+    [sbe_carousel] = "carousel",
+    [sbe_list] = "list",
+    [sbe_string] = "string"
 };
 
 static boolean ParseSbarElem(json_t *json, sbarelem_t *out)

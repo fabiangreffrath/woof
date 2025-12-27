@@ -31,6 +31,8 @@
 #include "doomdef.h"
 #include "doomstat.h"
 #include "doomtype.h"
+#include "g_game.h"
+#include "g_umapinfo.h"
 #include "hu_command.h"
 #include "hu_obituary.h"
 #include "i_video.h"
@@ -668,6 +670,16 @@ static int ResolveNumber(sbe_number_t *number, player_t *player)
             }
             break;
 
+        case sbn_kills:
+            result = player->killcount - player->maxkilldiscount;
+            break;
+        case sbn_items:
+            result = player->itemcount;
+            break;
+        case sbn_secrets:
+            result = player->secretcount;
+            break;
+
         case sbn_none:
         default:
             break;
@@ -951,7 +963,7 @@ static void UpdateLines(sbarelem_t *elem)
     sbe_widget_t *widget = elem->subtype.widget;
     hudfont_t *font = widget->font;
 
-    widgetline_t *line;
+    stringline_t *line;
     array_foreach(line, widget->lines)
     {
         int totalwidth = 0;
@@ -1116,6 +1128,32 @@ static void UpdateBoomColors(sbarelem_t *elem, player_t *player)
     elem->crboom = cr;
 }
 
+static void UpdateString(sbarelem_t *elem)
+{
+    sbe_string_t *string = elem->subtype.string;
+
+    switch (string->type)
+    {
+        case sbstr_maptitle:
+            string->line.string = G_GetLevelTitle();
+            break;
+        case sbstr_label:
+            if (gamemapinfo && gamemapinfo->label)
+            {
+                string->line.string = gamemapinfo->label;
+            }
+            break;
+        case sbstr_author:
+            if (gamemapinfo && gamemapinfo->author)
+            {
+                string->line.string = gamemapinfo->author;
+            }
+            break;
+        default:
+            break;
+    }
+}
+
 static void UpdateElem(sbarelem_t *elem, player_t *player)
 {
     if (!CheckConditions(elem->conditions, player))
@@ -1149,6 +1187,10 @@ static void UpdateElem(sbarelem_t *elem, player_t *player)
             {
                 ST_UpdateCarousel(player);
             }
+            break;
+
+        case sbe_string:
+            UpdateString(elem);
             break;
 
         default:
@@ -1236,6 +1278,16 @@ static void ResetElem(sbarelem_t *elem, player_t *player)
             elem->subtype.widget->duration_left = 0;
             break;
 
+        case sbe_string:
+            {
+                sbe_string_t *string = elem->subtype.string;
+                if (!string->line.string)
+                {
+                    string->line.string = "";
+                }
+            }
+            break;
+
         default:
             break;
     }
@@ -1264,9 +1316,9 @@ static void ResetStatusBar(void)
     ST_ResetTitle();
 }
 
-static void DrawPatch(int x, int y, crop_t crop, int maxheight,
-                      sbaralignment_t alignment, patch_t *patch,
-                      crange_idx_e cr, const byte *tl)
+static void DrawPatch(int x1, int y1, int *x2, int *y2, boolean dry,
+                      crop_t crop, int maxheight, sbaralignment_t alignment,
+                      patch_t *patch, crange_idx_e cr, const byte *tl)
 {
     if (!patch)
     {
@@ -1289,56 +1341,71 @@ static void DrawPatch(int x, int y, crop_t crop, int maxheight,
 
     if (alignment & sbe_h_middle)
     {
-        x = x - width / 2 + xoffset;
+        x1 = x1 - width / 2 + xoffset;
         if (crop.center)
         {
-            x += width / 2 + crop.left;
+            x1 += width / 2 + crop.left;
         }
     }
     else if (alignment & sbe_h_right)
     {
-        x -= width;
+        x1 -= width;
     }
 
     if (alignment & sbe_v_middle)
     {
-        y = y - height / 2 + yoffset;
+        y1 = y1 - height / 2 + yoffset;
         if (crop.center)
         {
-            y += height / 2 + crop.left;
+            y1 += height / 2 + crop.left;
         }
     }
     else if (alignment & sbe_v_bottom)
     {
-        y -= height;
+        y1 -= height;
     }
 
     if (alignment & sbe_wide_left)
     {
-        x -= st_wide_shift;
+        x1 -= st_wide_shift;
     }
     if (alignment & sbe_wide_right)
     {
-        x += st_wide_shift;
+        x1 += st_wide_shift;
+    }
+
+    if (x2)
+    {
+        *x2 = MAX(*x2, x1 + width);
+    }
+    if (y2)
+    {
+        *y2 = MAX(*y2, y1 + height);
+    }
+
+    if (dry)
+    {
+        return;
     }
 
     byte *outr = colrngs[cr];
 
     if (outr && tl)
     {
-        V_DrawPatchTRTL(x, y, xoffset, yoffset, crop, patch, outr, tl);
+        V_DrawPatchTRTL(x1, y1, xoffset, yoffset, crop, patch, outr, tl);
     }
     else if (tl)
     {
-        V_DrawPatchTL(x, y, xoffset, yoffset, crop, patch, tl);
+        V_DrawPatchTL(x1, y1, xoffset, yoffset, crop, patch, tl);
     }
     else
     {
-        V_DrawPatchTR(x, y, xoffset, yoffset, crop, patch, outr);
+        V_DrawPatchTR(x1, y1, xoffset, yoffset, crop, patch, outr);
     }
 }
 
-static void DrawGlyphNumber(int x, int y, sbarelem_t *elem, patch_t *glyph)
+static void DrawGlyphNumber(int x1, int y1, int *x2, int *y2, boolean dry,
+                            sbarelem_t *elem, patch_t *glyph)
 {
     sbe_number_t *number = elem->subtype.number;
     numberfont_t *font = number->font;
@@ -1367,8 +1434,8 @@ static void DrawGlyphNumber(int x, int y, sbarelem_t *elem, patch_t *glyph)
 
     if (glyph)
     {
-        DrawPatch(x + number->xoffset, y, (crop_t){0}, font->maxheight,
-                  elem->alignment, glyph,
+        DrawPatch(x1 + number->xoffset, y1, x2, y2, dry, (crop_t){0},
+                  font->maxheight, elem->alignment, glyph,
                   elem->crboom == CR_NONE ? elem->cr : elem->crboom,
                   elem->tranmap);
     }
@@ -1387,12 +1454,10 @@ static void DrawGlyphNumber(int x, int y, sbarelem_t *elem, patch_t *glyph)
     }
 }
 
-static void DrawGlyphLine(int x, int y, sbarelem_t *elem, widgetline_t *line,
+static void DrawGlyphLine(int x1, int y1, int *x2, int *y2, boolean dry,
+                          sbarelem_t *elem, hudfont_t *font, stringline_t *line,
                           patch_t *glyph)
 {
-    sbe_widget_t *widget = elem->subtype.widget;
-    hudfont_t *font = widget->font;
-
     int width, widthdiff;
 
     if (font->type == sbf_proportional)
@@ -1417,8 +1482,9 @@ static void DrawGlyphLine(int x, int y, sbarelem_t *elem, widgetline_t *line,
 
     if (glyph)
     {
-        DrawPatch(x + line->xoffset, y, (crop_t){0}, font->maxheight,
-                  elem->alignment, glyph, elem->cr, elem->tranmap);
+        DrawPatch(x1 + line->xoffset, y1, x2, y2, dry, (crop_t){0},
+                  font->maxheight, elem->alignment, glyph, elem->cr,
+                  elem->tranmap);
     }
 
     if (elem->alignment & sbe_h_middle)
@@ -1435,7 +1501,8 @@ static void DrawGlyphLine(int x, int y, sbarelem_t *elem, widgetline_t *line,
     }
 }
 
-static void DrawNumber(int x, int y, sbarelem_t *elem)
+static void DrawNumber(int x1, int y1, int *x2, int *y2, boolean dry,
+                       sbarelem_t *elem)
 {
     sbe_number_t *number = elem->subtype.number;
 
@@ -1445,7 +1512,7 @@ static void DrawNumber(int x, int y, sbarelem_t *elem)
 
     if (value < 0 && font->minus != NULL)
     {
-        DrawGlyphNumber(x, y, elem, font->minus);
+        DrawGlyphNumber(x1, y1, x2, y2, dry, elem, font->minus);
         value = -value;
     }
 
@@ -1454,7 +1521,7 @@ static void DrawNumber(int x, int y, sbarelem_t *elem)
     {
         int glyphbase = (int)pow(10.0, --glyphindex);
         int workingnum = value / glyphbase;
-        DrawGlyphNumber(x, y, elem, font->numbers[workingnum]);
+        DrawGlyphNumber(x1, y1, x2, y2, dry, elem, font->numbers[workingnum]);
         value -= (workingnum * glyphbase);
     }
 
@@ -1465,88 +1532,100 @@ static void DrawNumber(int x, int y, sbarelem_t *elem)
         {
             elem->crboom = CR_GRAY;
         }
-        DrawGlyphNumber(x, y, elem, font->percent);
+        DrawGlyphNumber(x1, y1, x2, y2, dry, elem, font->percent);
         elem->crboom = oldcr;
     }
 
     number->xoffset = base_xoffset;
 }
 
-static void DrawLines(int x, int y, sbarelem_t *elem)
+static void DrawLine(int x1, int y1, int *x2, int *y2, boolean dry,
+                     stringline_t *line, sbarelem_t *elem, hudfont_t *font)
 {
-    sbe_widget_t *widget = elem->subtype.widget;
+    int base_xoffset = line->xoffset;
 
     int cr = elem->cr;
 
-    widgetline_t *line;
-    array_foreach(line, widget->lines)
+    const char *str = line->string;
+    while (*str)
     {
-        int base_xoffset = line->xoffset;
-        hudfont_t *font = widget->font;
+        int ch = *str++;
 
-        const char *str = line->string;
-        while (*str)
+        if (ch == '\x1b' && *str)
         {
-            int ch = *str++;
-
-            if (ch == '\x1b' && *str)
+            ch = *str++;
+            if (ch >= '0' && ch <= '0' + CR_NONE)
             {
-                ch = *str++;
-                if (ch >= '0' && ch <= '0' + CR_NONE)
-                {
-                    elem->cr = ch - '0';
-                }
-                else if (ch == '0' + CR_ORIG)
-                {
-                    elem->cr = cr;
-                }
-                continue;
+                elem->cr = ch - '0';
             }
-
-            ch = M_ToUpper(ch) - HU_FONTSTART;
-
-            patch_t *glyph;
-            if (ch < 0 || ch >= HU_FONTSIZE)
+            else if (ch == '0' + CR_ORIG)
             {
-                glyph = NULL;
+                elem->cr = cr;
             }
-            else
-            {
-                glyph = font->characters[ch];
-            }
-            DrawGlyphLine(x, y, elem, line, glyph);
+            continue;
         }
 
-        if (elem->alignment & sbe_v_bottom)
+        ch = M_ToUpper(ch) - HU_FONTSTART;
+
+        patch_t *glyph;
+        if (ch < 0 || ch >= HU_FONTSIZE)
         {
-            y -= font->maxheight;
+            glyph = NULL;
         }
         else
         {
-            y += font->maxheight;
+            glyph = font->characters[ch];
         }
+        DrawGlyphLine(x1, y1, x2, y2, dry, elem, font, line, glyph);
+    }
 
-        line->xoffset = base_xoffset;
+    line->xoffset = base_xoffset;
+}
+
+static void DrawWidget(int x1, int y1, int *x2, int *y2, boolean dry,
+                       sbarelem_t *elem)
+{
+    sbe_widget_t *widget = elem->subtype.widget;
+    hudfont_t *font = widget->font;
+
+    stringline_t *line;
+    array_foreach(line, widget->lines)
+    {
+        DrawLine(x1, y1, x2, y2, dry, line, elem, font);
+        if (elem->alignment & sbe_v_bottom)
+        {
+            y1 -= font->maxheight;
+        }
+        else
+        {
+            y1 += font->maxheight;
+        }
     }
 }
 
-static void DrawElem(int x, int y, int y0, sbarelem_t *elem, player_t *player)
+static void DrawListOfElem(int x1, int y1, sbarelem_t *elem, player_t *player);
+
+static void DrawElem(int x1, int y1, int *x2, int *y2, boolean dry,
+                     sbarelem_t *elem, player_t *player)
 {
     if (!CheckConditions(elem->conditions, player))
     {
         return;
     }
 
-    x += elem->x_pos;
-    y += elem->y_pos;
-    y0 += elem->y_pos;
+    x1 += elem->x_pos;
+    y1 += elem->y_pos;
 
     switch (elem->type)
     {
+        case sbe_list:
+            DrawListOfElem(x1, y1, elem, player);
+            return;
+
         case sbe_graphic:
             {
                 sbe_graphic_t *graphic = elem->subtype.graphic;
-                DrawPatch(x, y, graphic->crop, 0, elem->alignment,
+                DrawPatch(x1, y1, x2, y2, dry, graphic->crop, 0, elem->alignment,
                           graphic->patch, elem->cr, elem->tranmap);
             }
             break;
@@ -1554,16 +1633,16 @@ static void DrawElem(int x, int y, int y0, sbarelem_t *elem, player_t *player)
         case sbe_facebackground:
             {
                 sbe_facebackground_t *facebackground = elem->subtype.facebackground;
-                DrawPatch(x, y, facebackground->crop, 0, elem->alignment,
-                          facebackpatches[displayplayer], elem->cr,
-                          elem->tranmap);
+                DrawPatch(x1, y1, x2, y2, dry, facebackground->crop, 0,
+                          elem->alignment, facebackpatches[displayplayer],
+                          elem->cr, elem->tranmap);
             }
             break;
 
         case sbe_face:
             {
                 sbe_face_t *face = elem->subtype.face;
-                DrawPatch(x, y, face->crop, 0, elem->alignment,
+                DrawPatch(x1, y1, x2, y2, dry, face->crop, 0, elem->alignment,
                           facepatches[face->faceindex], elem->cr,
                           elem->tranmap);
             }
@@ -1574,33 +1653,41 @@ static void DrawElem(int x, int y, int y0, sbarelem_t *elem, player_t *player)
                 sbe_animation_t *animation = elem->subtype.animation;
                 patch_t *patch =
                     animation->frames[animation->frame_index].patch;
-                DrawPatch(x, y, (crop_t){0}, 0, elem->alignment, patch,
-                          elem->cr, elem->tranmap);
+                DrawPatch(x1, y1, x2, y2, dry, (crop_t){0}, 0, elem->alignment,
+                          patch, elem->cr, elem->tranmap);
             }
             break;
 
         case sbe_number:
         case sbe_percent:
-            DrawNumber(x, y, elem);
+            DrawNumber(x1, y1, x2, y2, dry, elem);
             break;
 
         case sbe_widget:
             if (elem == st_cmd_elem)
             {
-                st_cmd_x = x;
-                st_cmd_y = y0;
+                st_cmd_x = x1;
+                st_cmd_y = y1;
             }
             if (message_centered && elem == st_msg_elem)
             {
                 break;
             }
-            DrawLines(x, y0, elem);
+            DrawWidget(x1, y1, x2, y2, dry, elem);
             break;
 
         case sbe_carousel:
             if (weapon_carousel)
             {
-                ST_DrawCarousel(x, y0, elem);
+                ST_DrawCarousel(x1, y1, elem);
+            }
+            break;
+
+        case sbe_string:
+            {
+                sbe_string_t *string = elem->subtype.string;
+                DrawLine(x1, y1, x2, y2, dry, &string->line, elem,
+                         string->font);
             }
             break;
 
@@ -1611,7 +1698,60 @@ static void DrawElem(int x, int y, int y0, sbarelem_t *elem, player_t *player)
     sbarelem_t *child;
     array_foreach(child, elem->children)
     {
-        DrawElem(x, y, y0, child, player);
+        DrawElem(x1, y1, x2, y2, dry, child, player);
+    }
+}
+
+static void DrawListOfElem(int x1, int y1, sbarelem_t *elem, player_t *player)
+{
+    sbe_list_t *list = elem->subtype.list;
+
+    int x2, y2;
+
+    if (!list->reverse)
+    {
+        array_foreach_type(child, elem->children, sbarelem_t)
+        {
+            x2 = y2 = 0;
+            DrawElem(x1, y1, &x2, &y2, false, child, player);
+
+            if (list->horizontal)
+            {
+                x1 = x2 + list->spacing;
+            }
+            else
+            {
+                y1 = y2 + list->spacing;
+            }
+        }
+    }
+    else
+    {
+        array_foreach_type(child, elem->children, sbarelem_t)
+        {
+            x2 = y2 = 0;
+            DrawElem(x1, y1, &x2, &y2, true, child, player);
+
+            if (list->horizontal)
+            {
+                x1 -= (x2 - x1);
+            }
+            else
+            {
+                y1 -= (y2 - y1);
+            }
+
+            DrawElem(x1, y1, NULL, NULL, false, child, player);
+
+            if (list->horizontal)
+            {
+                x1 -= list->spacing;
+            }
+            else
+            {
+                y1 -= list->spacing;
+            }
+        }
     }
 }
 
@@ -1720,7 +1860,7 @@ static void DrawCenteredMessage(void)
 {
     if (message_centered && st_msg_elem)
     {
-        DrawLines(SCREENWIDTH / 2, 0, st_msg_elem);
+        DrawWidget(SCREENWIDTH / 2, 0, NULL, NULL, false, st_msg_elem);
     }
 }
 
@@ -1742,7 +1882,9 @@ static void DrawStatusBar(void)
     sbarelem_t *child;
     array_foreach(child, statusbar->children)
     {
-        DrawElem(0, SCREENHEIGHT - statusbar->height, 0, child, player);
+        DrawElem(
+            0, child->type == sbe_widget ? 0 : SCREENHEIGHT - statusbar->height,
+            NULL, NULL, false, child, player);
     }
 
     DrawCenteredMessage();
@@ -2011,12 +2153,12 @@ void WI_DrawWidgets(void)
         sbarelem_t time = *st_time_elem;
         time.alignment = sbe_wide_left;
         // leveltime is already added to totalleveltimes before WI_Start()
-        DrawLines(0, 0, &time);
+        DrawWidget(0, 0, NULL, NULL, false, &time);
     }
 
     if (st_cmd_elem && STRICTMODE(hud_command_history))
     {
-        DrawLines(st_cmd_x, st_cmd_y, st_cmd_elem);
+        DrawWidget(st_cmd_x, st_cmd_y, NULL, NULL, false, st_cmd_elem);
     }
 }
 
