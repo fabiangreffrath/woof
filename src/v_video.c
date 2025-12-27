@@ -92,29 +92,23 @@ byte *red2col[CR_LIMIT] = {0};
 // provided in v_video.h.
 //
 
-typedef struct
-{
-    const char *name;
-    byte **map1, **map2, **map_orig;
-} crdef_t;
-
 // killough 5/2/98: table-driven approach
-static const crdef_t crdefs[] =
+const crdef_t crdefs[] =
 {
-    {"CRBRICK",  &cr_brick,  &colrngs[CR_BRICK],  &red2col[CR_BRICK]},
-    {"CRTAN",    &cr_tan,    &colrngs[CR_TAN],    &red2col[CR_TAN]},
-    {"CRGRAY",   &cr_gray,   &colrngs[CR_GRAY],   &red2col[CR_GRAY]},
-    {"CRGREEN",  &cr_green,  &colrngs[CR_GREEN],  &red2col[CR_GREEN]},
-    {"CRBROWN",  &cr_brown,  &colrngs[CR_BROWN],  &red2col[CR_BROWN]},
-    {"CRGOLD",   &cr_gold,   &colrngs[CR_GOLD],   &red2col[CR_GOLD]},
-    {"CRRED",    &cr_red,    &colrngs[CR_RED],    &red2col[CR_RED]},
-    {"CRBLUE",   &cr_blue,   &colrngs[CR_BLUE1],  &red2col[CR_BLUE1]},
-    {"CRORANGE", &cr_orange, &colrngs[CR_ORANGE], &red2col[CR_ORANGE]},
-    {"CRYELLOW", &cr_yellow, &colrngs[CR_YELLOW], &red2col[CR_YELLOW]},
-    {"CRBLUE2",  &cr_blue2,  &colrngs[CR_BLUE2],  &red2col[CR_BLUE2]},
-    {"CRBLACK",  &cr_black,  &colrngs[CR_BLACK],  &red2col[CR_BLACK]},
-    {"CRPURPLE", &cr_purple, &colrngs[CR_PURPLE], &red2col[CR_PURPLE]},
-    {"CRWHITE",  &cr_white,  &colrngs[CR_WHITE],  &red2col[CR_WHITE]},
+    {"CRBRICK",  "\x1b\x30", &cr_brick,  &colrngs[CR_BRICK],  &red2col[CR_BRICK]},
+    {"CRTAN",    "\x1b\x31", &cr_tan,    &colrngs[CR_TAN],    &red2col[CR_TAN]},
+    {"CRGRAY",   "\x1b\x32", &cr_gray,   &colrngs[CR_GRAY],   &red2col[CR_GRAY]},
+    {"CRGREEN",  "\x1b\x33", &cr_green,  &colrngs[CR_GREEN],  &red2col[CR_GREEN]},
+    {"CRBROWN",  "\x1b\x34", &cr_brown,  &colrngs[CR_BROWN],  &red2col[CR_BROWN]},
+    {"CRGOLD",   "\x1b\x35", &cr_gold,   &colrngs[CR_GOLD],   &red2col[CR_GOLD]},
+    {"CRRED",    "\x1b\x36", &cr_red,    &colrngs[CR_RED],    &red2col[CR_RED]},
+    {"CRBLUE",   "\x1b\x37", &cr_blue,   &colrngs[CR_BLUE1],  &red2col[CR_BLUE1]},
+    {"CRORANGE", "\x1b\x38", &cr_orange, &colrngs[CR_ORANGE], &red2col[CR_ORANGE]},
+    {"CRYELLOW", "\x1b\x39", &cr_yellow, &colrngs[CR_YELLOW], &red2col[CR_YELLOW]},
+    {"CRBLUE2",  "\x1b\x3a", &cr_blue2,  &colrngs[CR_BLUE2],  &red2col[CR_BLUE2]},
+    {"CRBLACK",  "\x1b\x3b", &cr_black,  &colrngs[CR_BLACK],  &red2col[CR_BLACK]},
+    {"CRPURPLE", "\x1b\x3c", &cr_purple, &colrngs[CR_PURPLE], &red2col[CR_PURPLE]},
+    {"CRWHITE",  "\x1b\x3d", &cr_white,  &colrngs[CR_WHITE],  &red2col[CR_WHITE]},
     {NULL}
 };
 

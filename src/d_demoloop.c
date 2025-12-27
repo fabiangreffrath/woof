@@ -27,7 +27,7 @@
 #include "m_array.h"
 #include "m_json.h"
 #include "m_misc.h"
-#include "sounds.h"
+#include "deh_bex_music.h"
 #include "w_wad.h"
 
 #include "d_demoloop.h"

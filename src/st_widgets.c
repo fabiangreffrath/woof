@@ -16,14 +16,13 @@
 #include <math.h>
 #include <string.h>
 
-#include "d_deh.h"
 #include "d_event.h"
 #include "d_player.h"
+#include "deh_strings.h"
 #include "doomdef.h"
 #include "doomkeys.h"
 #include "doomstat.h"
 #include "doomtype.h"
-#include "dstrings.h"
 #include "g_game.h"
 #include "g_umapinfo.h"
 #include "hu_command.h"
@@ -58,7 +57,7 @@ widgetstate_t hud_player_coords;
 widgetstate_t hud_widget_font;
 
 static boolean hud_map_announce;
-static boolean message_colorized;
+boolean message_colorized;
 
 //jff 2/16/98 hud supported automap colors added
 int hudcolor_titl;  // color range of automap level title
@@ -279,14 +278,6 @@ static boolean AddKeyToChatLine(chatline_t *line, char ch)
 
 #define HU_BROADCAST 5
 
-char **player_names[] =
-{
-    &s_HUSTR_PLRGREEN,
-    &s_HUSTR_PLRINDIGO,
-    &s_HUSTR_PLRBROWN,
-    &s_HUSTR_PLRRED
-};
-
 void ST_UpdateChatMessage(void)
 {
     static char chat_dest[MAXPLAYERS];
@@ -318,7 +309,7 @@ void ST_UpdateChatMessage(void)
                                          || chat_dest[p] == HU_BROADCAST))
                     {
                         M_snprintf(message_string, sizeof(message_string),
-                            "%s%s", *player_names[p], lines[p].string);
+                            "%s%s", DEH_String(strings_players[p]), lines[p].string);
 
                         S_StartSoundPitch(0,
                                           gamemode == commercial ? sfx_radio
@@ -1030,80 +1021,40 @@ boolean ST_DemoProgressBar(boolean force)
     return true;
 }
 
-struct
+static void ColorizeString(char **color_str, const char *haystack, const char *needle, crange_idx_e cr)
 {
-    char **str;
-    const int cr;
-    const char *col;
-} static const colorize_strings[] = {
-    // [Woof!] colorize keycard and skull key messages
-    {&s_GOTBLUECARD,     CR_BLUE2, "blue"  },
-    {&s_GOTBLUESKUL,     CR_BLUE2, "blue"  },
-    {&s_GOTREDCARD,      CR_RED,   "red"   },
-    {&s_GOTREDSKULL,     CR_RED,   "red"   },
-    {&s_GOTYELWCARD,     CR_GOLD,  "yellow"},
-    {&s_GOTYELWSKUL,     CR_GOLD,  "yellow"},
-    {&s_PD_BLUEC,        CR_BLUE2, "blue"  },
-    {&s_PD_BLUEK,        CR_BLUE2, "blue"  },
-    {&s_PD_BLUEO,        CR_BLUE2, "blue"  },
-    {&s_PD_BLUES,        CR_BLUE2, "blue"  },
-    {&s_PD_REDC,         CR_RED,   "red"   },
-    {&s_PD_REDK,         CR_RED,   "red"   },
-    {&s_PD_REDO,         CR_RED,   "red"   },
-    {&s_PD_REDS,         CR_RED,   "red"   },
-    {&s_PD_YELLOWC,      CR_GOLD,  "yellow"},
-    {&s_PD_YELLOWK,      CR_GOLD,  "yellow"},
-    {&s_PD_YELLOWO,      CR_GOLD,  "yellow"},
-    {&s_PD_YELLOWS,      CR_GOLD,  "yellow"},
-
-    // [Woof!] colorize multi-player messages
-    {&s_HUSTR_PLRGREEN,  CR_GREEN, "Green:" },
-    {&s_HUSTR_PLRINDIGO, CR_GRAY,  "Indigo:"},
-    {&s_HUSTR_PLRBROWN,  CR_BROWN, "Brown:" },
-    {&s_HUSTR_PLRRED,    CR_RED,   "Red:"   },
-};
-
-static char* PrepareColor(const char *str, const char *col)
-{
-    char *str_replace, col_replace[16];
-
-    M_snprintf(col_replace, sizeof(col_replace),
-               ORIG_S "%s" ORIG_S, col);
-    str_replace = M_StringReplaceWord(str, col, col_replace);
-
-    return str_replace;
-}
-
-static void UpdateColor(char *str, int cr)
-{
-    int i;
-    int len = strlen(str);
-
-    if (!message_colorized)
-    {
-        cr = CR_ORIG;
-    }
-
-    for (i = 0; i < len; ++i)
-    {
-        if (str[i] == '\x1b' && i + 1 < len)
-        {
-          str[i + 1] = '0'+cr;
-          break;
-        }
-    }
+    char replacement[18];
+    M_snprintf(replacement, sizeof(replacement), "%s%s%s", crdefs[cr].str, needle, ORIG_S);
+    *color_str = M_StringReplaceWord(DEH_String(haystack), needle, replacement);
 }
 
 void ST_InitWidgets(void)
 {
-    // [Woof!] prepare player messages for colorization
-    for (int i = 0; i < arrlen(colorize_strings); i++)
-    {
-        *colorize_strings[i].str =
-            PrepareColor(*colorize_strings[i].str, colorize_strings[i].col);
-    }
+    // [Woof!] colorize keycard and skull key messages
+    ColorizeString(&c_GOTBLUECARD, GOTBLUECARD, "blue",   CR_BLUE2);
+    ColorizeString(&c_GOTBLUESKUL, GOTBLUESKUL, "blue",   CR_BLUE2);
+    ColorizeString(&c_GOTREDCARD,  GOTREDCARD,  "red",    CR_RED);
+    ColorizeString(&c_GOTREDSKULL, GOTREDSKULL, "red",    CR_RED);
+    ColorizeString(&c_GOTYELWCARD, GOTYELWCARD, "yellow", CR_GOLD);
+    ColorizeString(&c_GOTYELWSKUL, GOTYELWSKUL, "yellow", CR_GOLD);
+    ColorizeString(&c_PD_BLUEC,    PD_BLUEC,    "blue",   CR_BLUE2);
+    ColorizeString(&c_PD_BLUEK,    PD_BLUEK,    "blue",   CR_BLUE2);
+    ColorizeString(&c_PD_BLUEO,    PD_BLUEO,    "blue",   CR_BLUE2);
+    ColorizeString(&c_PD_BLUES,    PD_BLUES,    "blue",   CR_BLUE2);
+    ColorizeString(&c_PD_REDC,     PD_REDC,     "red",    CR_RED);
+    ColorizeString(&c_PD_REDK,     PD_REDK,     "red",    CR_RED);
+    ColorizeString(&c_PD_REDO,     PD_REDO,     "red",    CR_RED);
+    ColorizeString(&c_PD_REDS,     PD_REDS,     "red",    CR_RED);
+    ColorizeString(&c_PD_YELLOWC,  PD_YELLOWC,  "yellow", CR_GOLD);
+    ColorizeString(&c_PD_YELLOWK,  PD_YELLOWK,  "yellow", CR_GOLD);
+    ColorizeString(&c_PD_YELLOWO,  PD_YELLOWO,  "yellow", CR_GOLD);
+    ColorizeString(&c_PD_YELLOWS,  PD_YELLOWS,  "yellow", CR_GOLD);
 
-    ST_ResetMessageColors();
+    // [Woof!] colorize multi-player messages
+    ColorizeString(&c_HUSTR_PLRGREEN,  HUSTR_PLRGREEN,  "Green:",  CR_GREEN);
+    ColorizeString(&c_HUSTR_PLRINDIGO, HUSTR_PLRINDIGO, "Indigo:", CR_GRAY);
+    ColorizeString(&c_HUSTR_PLRBROWN,  HUSTR_PLRBROWN,  "Brown:",  CR_BROWN);
+    ColorizeString(&c_HUSTR_PLRRED,    HUSTR_PLRRED,    "Red:",    CR_RED);
 
     if (gamemission == pack_chex || gamemission == pack_chex3v)
     {
@@ -1117,16 +1068,6 @@ void ST_InitWidgets(void)
     else if (gamemission == pack_rekkr)
     {
         statscolor = '\x35'; // gold
-    }
-}
-
-void ST_ResetMessageColors(void)
-{
-    int i;
-
-    for (i = 0; i < arrlen(colorize_strings); i++)
-    {
-        UpdateColor(*colorize_strings[i].str, colorize_strings[i].cr);
     }
 }
 

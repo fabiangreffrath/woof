@@ -173,10 +173,6 @@ enum {
 extern int comp[COMP_TOTAL], default_comp[COMP_TOTAL];
 
 // -------------------------------------------
-// Language.
-extern  Language_t   language;
-
-// -------------------------------------------
 // Selected skill type, map etc.
 //
 
@@ -441,6 +437,9 @@ extern boolean monster_friction, default_monster_friction;
 extern boolean help_friends, default_help_friends;
 
 extern boolean hide_weapon;
+
+// haleyjd 9/22/99
+extern int helper_type; // in P_SpawnMapThing to substitute helper thing
 
 // [FG] centered weapon sprite
 extern int center_weapon;

@@ -22,6 +22,8 @@
 
 #include "i_sound.h"
 
+#include "deh_bex_sounds.h"
+#include "deh_strings.h"
 #include "doomstat.h"
 #include "doomtype.h"
 #include "i_exit.h"
@@ -29,6 +31,7 @@
 #include "i_printf.h"
 #include "i_rumble.h"
 #include "m_array.h"
+#include "m_misc.h"
 #include "mn_menu.h"
 #include "p_mobj.h"
 #include "s_sound.h"
@@ -260,13 +263,8 @@ int I_GetSfxLumpNum(sfxinfo_t *sfx)
 {
     if (sfx->lumpnum == -1)
     {
-        char namebuf[16];
-
-        memset(namebuf, 0, sizeof(namebuf));
-
-        strcpy(namebuf, "DS");
-        strcpy(namebuf + 2, sfx->name);
-
+        char namebuf[9] = {0};
+        M_snprintf(namebuf, sizeof(namebuf), "ds%s", DEH_String(sfx->name));
         sfx->lumpnum = W_CheckNumForName(namebuf);
     }
 

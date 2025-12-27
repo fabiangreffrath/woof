@@ -72,15 +72,12 @@ boolean ST_MessagesResponder(struct event_s *ev);
 
 char ST_DequeueChatChar(void);
 
-extern char **player_names[];
 extern int speedometer;
 
 extern int playback_tic, playback_totaltics;
 boolean ST_DemoProgressBar(boolean force);
 
 void ST_InitWidgets(void);
-void ST_ResetMessageColors(void);
-
 void ST_BindHUDVariables(void);
 
 #endif
