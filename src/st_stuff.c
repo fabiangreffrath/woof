@@ -1306,7 +1306,7 @@ static void ResetStatusBar(void)
     ST_ResetTitle();
 }
 
-static void DrawPatch(int x1, int y1, int *x2, int *y2, crop_t crop,
+static void DrawPatch(int x1, int y1, int *x2, int *y2, boolean dry, crop_t crop,
                       int maxheight, sbaralignment_t alignment, patch_t *patch,
                       crange_idx_e cr, const byte *tl)
 {
@@ -1373,6 +1373,11 @@ static void DrawPatch(int x1, int y1, int *x2, int *y2, crop_t crop,
         *y2 = MAX(*y2, y1 + height);
     }
 
+    if (dry)
+    {
+        return;
+    }
+
     byte *outr = colrngs[cr];
 
     if (outr && tl)
@@ -1389,8 +1394,8 @@ static void DrawPatch(int x1, int y1, int *x2, int *y2, crop_t crop,
     }
 }
 
-static void DrawGlyphNumber(int x1, int y1, int *x2, int *y2, sbarelem_t *elem,
-                            patch_t *glyph)
+static void DrawGlyphNumber(int x1, int y1, int *x2, int *y2, boolean dry,
+                            sbarelem_t *elem, patch_t *glyph)
 {
     sbe_number_t *number = elem->subtype.number;
     numberfont_t *font = number->font;
@@ -1419,8 +1424,8 @@ static void DrawGlyphNumber(int x1, int y1, int *x2, int *y2, sbarelem_t *elem,
 
     if (glyph)
     {
-        DrawPatch(x1 + number->xoffset, y1, x2, y2, (crop_t){0}, font->maxheight,
-                  elem->alignment, glyph,
+        DrawPatch(x1 + number->xoffset, y1, x2, y2, dry, (crop_t){0},
+                  font->maxheight, elem->alignment, glyph,
                   elem->crboom == CR_NONE ? elem->cr : elem->crboom,
                   elem->tranmap);
     }
@@ -1439,8 +1444,9 @@ static void DrawGlyphNumber(int x1, int y1, int *x2, int *y2, sbarelem_t *elem,
     }
 }
 
-static void DrawGlyphLine(int x1, int y1, int *x2, int *y2, sbarelem_t *elem,
-                          hudfont_t *font, stringline_t *line, patch_t *glyph)
+static void DrawGlyphLine(int x1, int y1, int *x2, int *y2, boolean dry,
+                          sbarelem_t *elem, hudfont_t *font, stringline_t *line,
+                          patch_t *glyph)
 {
     int width, widthdiff;
 
@@ -1466,8 +1472,9 @@ static void DrawGlyphLine(int x1, int y1, int *x2, int *y2, sbarelem_t *elem,
 
     if (glyph)
     {
-        DrawPatch(x1 + line->xoffset, y1, x2, y2, (crop_t){0}, font->maxheight,
-                  elem->alignment, glyph, elem->cr, elem->tranmap);
+        DrawPatch(x1 + line->xoffset, y1, x2, y2, dry, (crop_t){0},
+                  font->maxheight, elem->alignment, glyph, elem->cr,
+                  elem->tranmap);
     }
 
     if (elem->alignment & sbe_h_middle)
@@ -1484,7 +1491,8 @@ static void DrawGlyphLine(int x1, int y1, int *x2, int *y2, sbarelem_t *elem,
     }
 }
 
-static void DrawNumber(int x1, int y1, int *x2, int *y2, sbarelem_t *elem)
+static void DrawNumber(int x1, int y1, int *x2, int *y2, boolean dry,
+                       sbarelem_t *elem)
 {
     sbe_number_t *number = elem->subtype.number;
 
@@ -1494,7 +1502,7 @@ static void DrawNumber(int x1, int y1, int *x2, int *y2, sbarelem_t *elem)
 
     if (value < 0 && font->minus != NULL)
     {
-        DrawGlyphNumber(x1, y1, x2, y2, elem, font->minus);
+        DrawGlyphNumber(x1, y1, x2, y2, dry, elem, font->minus);
         value = -value;
     }
 
@@ -1503,7 +1511,7 @@ static void DrawNumber(int x1, int y1, int *x2, int *y2, sbarelem_t *elem)
     {
         int glyphbase = (int)pow(10.0, --glyphindex);
         int workingnum = value / glyphbase;
-        DrawGlyphNumber(x1, y1, x2, y2, elem, font->numbers[workingnum]);
+        DrawGlyphNumber(x1, y1, x2, y2, dry, elem, font->numbers[workingnum]);
         value -= (workingnum * glyphbase);
     }
 
@@ -1514,15 +1522,15 @@ static void DrawNumber(int x1, int y1, int *x2, int *y2, sbarelem_t *elem)
         {
             elem->crboom = CR_GRAY;
         }
-        DrawGlyphNumber(x1, y1, x2, y2, elem, font->percent);
+        DrawGlyphNumber(x1, y1, x2, y2, dry, elem, font->percent);
         elem->crboom = oldcr;
     }
 
     number->xoffset = base_xoffset;
 }
 
-static void DrawLine(int x1, int y1, int *x2, int *y2, stringline_t *line,
-                     sbarelem_t *elem, hudfont_t *font)
+static void DrawLine(int x1, int y1, int *x2, int *y2, boolean dry,
+                     stringline_t *line, sbarelem_t *elem, hudfont_t *font)
 {
     int base_xoffset = line->xoffset;
 
@@ -1558,13 +1566,14 @@ static void DrawLine(int x1, int y1, int *x2, int *y2, stringline_t *line,
         {
             glyph = font->characters[ch];
         }
-        DrawGlyphLine(x1, y1, x2, y2, elem, font, line, glyph);
+        DrawGlyphLine(x1, y1, x2, y2, dry, elem, font, line, glyph);
     }
 
     line->xoffset = base_xoffset;
 }
 
-static void DrawWidget(int x1, int y1, int *x2, int *y2, sbarelem_t *elem)
+static void DrawWidget(int x1, int y1, int *x2, int *y2, boolean dry,
+                       sbarelem_t *elem)
 {
     sbe_widget_t *widget = elem->subtype.widget;
     hudfont_t *font = widget->font;
@@ -1572,7 +1581,7 @@ static void DrawWidget(int x1, int y1, int *x2, int *y2, sbarelem_t *elem)
     stringline_t *line;
     array_foreach(line, widget->lines)
     {
-        DrawLine(x1, y1, x2, y2, line, elem, font);
+        DrawLine(x1, y1, x2, y2, dry, line, elem, font);
         if (elem->alignment & sbe_v_bottom)
         {
             y1 -= font->maxheight;
@@ -1586,8 +1595,8 @@ static void DrawWidget(int x1, int y1, int *x2, int *y2, sbarelem_t *elem)
 
 static void DrawListOfElem(int x1, int y1, sbarelem_t *elem, player_t *player);
 
-static void DrawElem(int x1, int y1, int *x2, int *y2, sbarelem_t *elem,
-                     player_t *player)
+static void DrawElem(int x1, int y1, int *x2, int *y2, boolean dry,
+                     sbarelem_t *elem, player_t *player)
 {
     if (!CheckConditions(elem->conditions, player))
     {
@@ -1606,7 +1615,7 @@ static void DrawElem(int x1, int y1, int *x2, int *y2, sbarelem_t *elem,
         case sbe_graphic:
             {
                 sbe_graphic_t *graphic = elem->subtype.graphic;
-                DrawPatch(x1, y1, x2, y2, graphic->crop, 0, elem->alignment,
+                DrawPatch(x1, y1, x2, y2, dry, graphic->crop, 0, elem->alignment,
                           graphic->patch, elem->cr, elem->tranmap);
             }
             break;
@@ -1614,7 +1623,7 @@ static void DrawElem(int x1, int y1, int *x2, int *y2, sbarelem_t *elem,
         case sbe_facebackground:
             {
                 sbe_facebackground_t *facebackground = elem->subtype.facebackground;
-                DrawPatch(x1, y1, x2, y2, facebackground->crop, 0,
+                DrawPatch(x1, y1, x2, y2, dry, facebackground->crop, 0,
                           elem->alignment, facebackpatches[displayplayer],
                           elem->cr, elem->tranmap);
             }
@@ -1623,7 +1632,7 @@ static void DrawElem(int x1, int y1, int *x2, int *y2, sbarelem_t *elem,
         case sbe_face:
             {
                 sbe_face_t *face = elem->subtype.face;
-                DrawPatch(x1, y1, x2, y2, face->crop, 0, elem->alignment,
+                DrawPatch(x1, y1, x2, y2, dry, face->crop, 0, elem->alignment,
                           facepatches[face->faceindex], elem->cr,
                           elem->tranmap);
             }
@@ -1634,14 +1643,14 @@ static void DrawElem(int x1, int y1, int *x2, int *y2, sbarelem_t *elem,
                 sbe_animation_t *animation = elem->subtype.animation;
                 patch_t *patch =
                     animation->frames[animation->frame_index].patch;
-                DrawPatch(x1, y1, x2, y2, (crop_t){0}, 0, elem->alignment, patch,
-                          elem->cr, elem->tranmap);
+                DrawPatch(x1, y1, x2, y2, dry, (crop_t){0}, 0, elem->alignment,
+                          patch, elem->cr, elem->tranmap);
             }
             break;
 
         case sbe_number:
         case sbe_percent:
-            DrawNumber(x1, y1, x2, y2, elem);
+            DrawNumber(x1, y1, x2, y2, dry, elem);
             break;
 
         case sbe_widget:
@@ -1654,7 +1663,7 @@ static void DrawElem(int x1, int y1, int *x2, int *y2, sbarelem_t *elem,
             {
                 break;
             }
-            DrawWidget(x1, y1, x2, y2, elem);
+            DrawWidget(x1, y1, x2, y2, dry, elem);
             break;
 
         case sbe_carousel:
@@ -1666,7 +1675,7 @@ static void DrawElem(int x1, int y1, int *x2, int *y2, sbarelem_t *elem,
 
         case sbe_string:
             sbe_string_t *string = elem->subtype.string;
-            DrawLine(x1, y1, x2, y2, &string->line, elem, string->font);
+            DrawLine(x1, y1, x2, y2, dry, &string->line, elem, string->font);
             break;
 
         default:
@@ -1676,7 +1685,7 @@ static void DrawElem(int x1, int y1, int *x2, int *y2, sbarelem_t *elem,
     sbarelem_t *child;
     array_foreach(child, elem->children)
     {
-        DrawElem(x1, y1, x2, y2, child, player);
+        DrawElem(x1, y1, x2, y2, dry, child, player);
     }
 }
 
@@ -1685,21 +1694,41 @@ static void DrawListOfElem(int x1, int y1, sbarelem_t *elem, player_t *player)
     sbe_list_t *list = elem->subtype.list;
 
     int x2, y2;
-    int x0 = x1, y0 = y1;
 
-    sbarelem_t *child;
-    array_foreach(child, elem->children)
+    if (!list->reverse)
     {
-        x2 = y2 = 0;
-        DrawElem(x1, y1, &x2, &y2, child, player);
+        array_foreach_type(child, elem->children, sbarelem_t)
+        {
+            x2 = y2 = 0;
+            DrawElem(x1, y1, &x2, &y2, false, child, player);
 
-        if (list->horizontal)
-        {
-            x1 = list->reverse ? x0 - (x2 - x0) : x2;
+            if (list->horizontal)
+            {
+                x1 = x2;
+            }
+            else
+            {
+                y1 = y2;
+            }
         }
-        else
+    }
+    else
+    {
+        array_foreach_type(child, elem->children, sbarelem_t)
         {
-            y1 = list->reverse ? y0 - (y2 - y0) : y2;
+            x2 = y2 = 0;
+            DrawElem(x1, y1, &x2, &y2, true, child, player);
+
+            if (list->horizontal)
+            {
+                x1 -= (x2 - x1);
+            }
+            else
+            {
+                y1 -= (y2 - y1);
+            }
+
+            DrawElem(x1, y1, NULL, NULL, false, child, player);
         }
     }
 }
@@ -1809,7 +1838,7 @@ static void DrawCenteredMessage(void)
 {
     if (message_centered && st_msg_elem)
     {
-        DrawWidget(SCREENWIDTH / 2, 0, NULL, NULL, st_msg_elem);
+        DrawWidget(SCREENWIDTH / 2, 0, NULL, NULL, false, st_msg_elem);
     }
 }
 
@@ -1833,7 +1862,7 @@ static void DrawStatusBar(void)
     {
         DrawElem(
             0, child->type == sbe_widget ? 0 : SCREENHEIGHT - statusbar->height,
-            NULL, NULL, child, player);
+            NULL, NULL, false, child, player);
     }
 
     DrawCenteredMessage();
@@ -2102,12 +2131,12 @@ void WI_DrawWidgets(void)
         sbarelem_t time = *st_time_elem;
         time.alignment = sbe_wide_left;
         // leveltime is already added to totalleveltimes before WI_Start()
-        DrawWidget(0, 0, NULL, NULL, &time);
+        DrawWidget(0, 0, NULL, NULL, false, &time);
     }
 
     if (st_cmd_elem && STRICTMODE(hud_command_history))
     {
-        DrawWidget(st_cmd_x, st_cmd_y, NULL, NULL, st_cmd_elem);
+        DrawWidget(st_cmd_x, st_cmd_y, NULL, NULL, false, st_cmd_elem);
     }
 }
 
