@@ -126,6 +126,7 @@ typedef enum
     // Woof!
     sbe_widget,
     sbe_carousel,
+    sbe_list,
 
     sbe_max,
 } sbarelementtype_t;
@@ -251,6 +252,12 @@ typedef struct sbe_widget_s
     boolean vertical;
 } sbe_widget_t;
 
+typedef struct
+{
+    boolean horizontal;
+    boolean reverse;
+} sbe_list_t;
+
 struct sbarelem_s
 {
     sbarelementtype_t type;
@@ -274,6 +281,7 @@ struct sbarelem_s
 
         // Woof!
         sbe_widget_t *widget;
+        sbe_list_t *list;
     } subtype;
 };
 

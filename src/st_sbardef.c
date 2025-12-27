@@ -161,6 +161,15 @@ static boolean ParseSbarElemType(json_t *json, sbarelementtype_t type,
 
     switch (type)
     {
+        case sbe_list:
+            {
+                sbe_list_t *list = calloc(1, sizeof(*list));
+                list->horizontal = JS_GetBooleanValue(json, "horizontal");
+                list->reverse = JS_GetBooleanValue(json, "reverse");
+                out->subtype.list = list;
+            }
+            break;
+
         case sbe_graphic:
             {
                 sbe_graphic_t *graphic = calloc(1, sizeof(*graphic));
@@ -327,7 +336,8 @@ static const char *sbe_names[] =
     [sbe_number] = "number",
     [sbe_percent] = "percent",
     [sbe_widget] = "component",
-    [sbe_carousel] = "carousel"
+    [sbe_carousel] = "carousel",
+    [sbe_list] = "list"
 };
 
 static boolean ParseSbarElem(json_t *json, sbarelem_t *out)
