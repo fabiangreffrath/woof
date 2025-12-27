@@ -109,6 +109,11 @@ typedef enum
     sbn_weaponammo,
     sbn_weaponmaxammo,
 
+    // Woof!
+    sbn_kills,
+    sbn_items,
+    sbn_secrets,
+
     sbn_max,
 } sbarnumbertype_t;
 

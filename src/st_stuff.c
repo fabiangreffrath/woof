@@ -670,6 +670,16 @@ static int ResolveNumber(sbe_number_t *number, player_t *player)
             }
             break;
 
+        case sbn_kills:
+            result = player->killcount - player->maxkilldiscount;
+            break;
+        case sbn_items:
+            result = player->itemcount;
+            break;
+        case sbn_secrets:
+            result = player->secretcount;
+            break;
+
         case sbn_none:
         default:
             break;
