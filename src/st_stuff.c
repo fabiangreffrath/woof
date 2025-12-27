@@ -1316,9 +1316,9 @@ static void ResetStatusBar(void)
     ST_ResetTitle();
 }
 
-static void DrawPatch(int x1, int y1, int *x2, int *y2, boolean dry, crop_t crop,
-                      int maxheight, sbaralignment_t alignment, patch_t *patch,
-                      crange_idx_e cr, const byte *tl)
+static void DrawPatch(int x1, int y1, int *x2, int *y2, boolean dry,
+                      crop_t crop, int maxheight, sbaralignment_t alignment,
+                      patch_t *patch, crange_idx_e cr, const byte *tl)
 {
     if (!patch)
     {
@@ -1684,8 +1684,11 @@ static void DrawElem(int x1, int y1, int *x2, int *y2, boolean dry,
             break;
 
         case sbe_string:
-            sbe_string_t *string = elem->subtype.string;
-            DrawLine(x1, y1, x2, y2, dry, &string->line, elem, string->font);
+            {
+                sbe_string_t *string = elem->subtype.string;
+                DrawLine(x1, y1, x2, y2, dry, &string->line, elem,
+                         string->font);
+            }
             break;
 
         default:
@@ -1714,11 +1717,11 @@ static void DrawListOfElem(int x1, int y1, sbarelem_t *elem, player_t *player)
 
             if (list->horizontal)
             {
-                x1 = x2;
+                x1 = x2 + list->spacing;
             }
             else
             {
-                y1 = y2;
+                y1 = y2 + list->spacing;
             }
         }
     }
@@ -1739,6 +1742,15 @@ static void DrawListOfElem(int x1, int y1, sbarelem_t *elem, player_t *player)
             }
 
             DrawElem(x1, y1, NULL, NULL, false, child, player);
+
+            if (list->horizontal)
+            {
+                x1 -= list->spacing;
+            }
+            else
+            {
+                y1 -= list->spacing;
+            }
         }
     }
 }

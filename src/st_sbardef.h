@@ -271,6 +271,7 @@ typedef struct
 {
     boolean horizontal;
     boolean reverse;
+    int spacing;
 } sbe_list_t;
 
 typedef struct
