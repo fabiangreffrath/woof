@@ -1128,7 +1128,7 @@ static void UpdateBoomColors(sbarelem_t *elem, player_t *player)
     elem->crboom = cr;
 }
 
-static void UpdateSting(sbarelem_t *elem)
+static void UpdateString(sbarelem_t *elem)
 {
     sbe_string_t *string = elem->subtype.string;
 
@@ -1190,7 +1190,7 @@ static void UpdateElem(sbarelem_t *elem, player_t *player)
             break;
 
         case sbe_string:
-            UpdateSting(elem);
+            UpdateString(elem);
             break;
 
         default:
