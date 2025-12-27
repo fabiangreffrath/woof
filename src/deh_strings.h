@@ -25,6 +25,7 @@
 // Used to do dehacked text substitutions throughout the program
 
 const char *DEH_String(const char *s) PRINTF_ARG_ATTR(1);
+const char *DEH_StringForMnemonic(const char *s);
 void DEH_AddStringReplacement(const char *from_text, const char *to_text);
 boolean DEH_HasStringReplacement(const char *s);
 
@@ -34,7 +35,7 @@ extern const struct bex_string_s
 {
     const char *macro;
     char *string;
-} bex_mnemonic_strings[];
+} bex_mnemonic_table[];
 
 extern const char * const mapnames[];
 extern const char * const mapnames2[];

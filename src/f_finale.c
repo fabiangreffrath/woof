@@ -169,7 +169,7 @@ static cast_anim_t ParseEndFinale_CastAnims(json_t *js_castanim_entry,
                                             const char *lump)
 {
     cast_anim_t out = {0};
-    out.name = D_GetStringForMnemonic(JS_GetStringValue(js_castanim_entry, "name"));
+    out.name = DEH_StringForMnemonic(JS_GetStringValue(js_castanim_entry, "name"));
     out.alertsound = JS_GetIntegerValue(js_castanim_entry, "alertsound");
 
     json_t *js_alive_frame_list = JS_GetObject(js_castanim_entry, "aliveframes");
