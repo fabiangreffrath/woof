@@ -13,8 +13,8 @@
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 // GNU General Public License for more details.
 
-#ifndef V_FMT_H
-#define V_FMT_H
+#ifndef V_PATCH_H
+#define V_PATCH_H
 
 #include "doomtype.h"
 #include "z_zone.h"
@@ -34,5 +34,9 @@ inline static struct patch_s *V_CachePatchName(const char *name, pu_tag tag)
 void *V_CacheFlatNum(int lump, pu_tag tag);
 
 int V_LumpSize(int lump);
+
+boolean V_LumpIsPatch(const int lump);
+
+boolean V_PatchIsEmpty(const int lump);
 
 #endif
