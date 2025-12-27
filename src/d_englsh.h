@@ -732,6 +732,13 @@
 #define CC_CYBER  "THE CYBERDEMON"
 #define CC_HERO "OUR HERO"
 
+#define ID24_CC_GHOUL        "GHOUL"
+#define ID24_CC_BANSHEE      "BANSHEE"
+#define ID24_CC_SHOCKTROOPER "SHOCKTROOPER"
+#define ID24_CC_MINDWEAVER   "MINDWEAVER"
+#define ID24_CC_VASSAGO      "VASSAGO"
+#define ID24_CC_TYRANT       "TYRANT"
+
 // [FG] obituaries
 
 #define OB_CRUSH           "%o was squished."

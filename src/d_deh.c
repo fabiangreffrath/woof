@@ -485,6 +485,13 @@ char *s_CC_ARCH = CC_ARCH;
 char *s_CC_SPIDER = CC_SPIDER;
 char *s_CC_CYBER = CC_CYBER;
 char *s_CC_HERO = CC_HERO;
+char *s_ID24_CC_GHOUL        = ID24_CC_GHOUL;
+char *s_ID24_CC_BANSHEE      = ID24_CC_BANSHEE;
+char *s_ID24_CC_SHOCKTROOPER = ID24_CC_SHOCKTROOPER;
+char *s_ID24_CC_MINDWEAVER   = ID24_CC_MINDWEAVER;
+char *s_ID24_CC_VASSAGO      = ID24_CC_VASSAGO;
+char *s_ID24_CC_TYRANT       = ID24_CC_TYRANT;
+
 // Ty 03/30/98 - new substitutions for background textures
 //               during int screens
 char *bgflatE1 = "FLOOR4_8";   // end of DOOM Episode 1
@@ -887,6 +894,12 @@ static deh_strs deh_strlookup[] = {
     {&s_CC_SPIDER,          "CC_SPIDER"         },
     {&s_CC_CYBER,           "CC_CYBER"          },
     {&s_CC_HERO,            "CC_HERO"           },
+    {&s_ID24_CC_GHOUL,        "ID24_CC_GHOUL"        },
+    {&s_ID24_CC_BANSHEE,      "ID24_CC_BANSHEE"      },
+    {&s_ID24_CC_SHOCKTROOPER, "ID24_CC_SHOCKTROOPER" },
+    {&s_ID24_CC_MINDWEAVER,   "ID24_CC_MINDWEAVER"   },
+    {&s_ID24_CC_VASSAGO,      "ID24_CC_VASSAGO"      },
+    {&s_ID24_CC_TYRANT,       "ID24_CC_TYRANT"       },
     {&bgflatE1,             "BGFLATE1"          },
     {&bgflatE2,             "BGFLATE2"          },
     {&bgflatE3,             "BGFLATE3"          },
@@ -950,6 +963,25 @@ static deh_strs deh_strlookup[] = {
     {&s_OB_MPBFG_BOOM,      "OB_MPBFG_BOOM"     },
     {&s_OB_MPTELEFRAG,      "OB_MPTELEFRAG"     },
 };
+
+static int deh_strlookup_size = arrlen(deh_strlookup);
+static const char * deh_str_placeholder = "(NULL)";
+
+const char * D_GetStringForMnemonic(const char * mnemonic)
+{
+    if (!mnemonic)
+        return deh_str_placeholder;
+
+    for (int i = 0; i < deh_strlookup_size; i++)
+    {
+        if (!strcasecmp(deh_strlookup[i].lookup, mnemonic))
+        {
+            return *deh_strlookup[i].ppstr;
+        }
+    }
+
+    return deh_str_placeholder;
+}
 
 static char *deh_newlevel = "NEWLEVEL";
 
